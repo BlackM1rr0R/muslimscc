@@ -1,0 +1,97 @@
+.dhikr-layout { display:grid; grid-template-columns:240px 1fr; gap:28px; align-items:start; }
+.dhikr-selector { display:flex; flex-direction:column; gap:8px; position:sticky; top:calc(var(--header-h)+16px); }
+.dhikr-sel-btn {
+  background:var(--bg-card); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:14px 16px;
+  cursor:pointer; transition:all .2s; text-align:left;
+  display:flex; flex-direction:column; gap:4px;
+}
+.dhikr-sel-btn:hover { border-color:var(--primary-border); }
+.dhikr-sel-btn.active { background:var(--primary-bg2); border-color:var(--primary); }
+.dhikr-sel-arabic { font-family:'Amiri',serif; font-size:1.1rem; color:var(--primary-dark); direction:rtl; text-align:right; }
+.dhikr-sel-label { font-size:12.5px; font-weight:600; color:var(--text-muted); }
+
+.dhikr-center { display:flex; flex-direction:column; align-items:center; gap:20px; padding:20px; }
+.dhikr-progress-ring { position:relative; display:flex; align-items:center; justify-content:center; }
+.dhikr-tap-btn {
+  position:absolute;
+  width:140px; height:140px; border-radius:50%;
+  background:#fff; border:2px solid var(--primary-border);
+  box-shadow:var(--shadow);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  cursor:pointer; transition:all .12s; user-select:none;
+}
+.dhikr-tap-btn:hover { box-shadow:var(--shadow-lg); transform:scale(1.03); }
+.dhikr-tap-btn.tapped { transform:scale(0.93); box-shadow:var(--shadow-sm); }
+.dhikr-tap-btn.complete { border-color:var(--gold); background:var(--gold-bg); }
+.dhikr-tap-arabic { font-family:'Amiri',serif; font-size:.9rem; color:var(--primary-dark); direction:rtl; text-align:center; line-height:1.3; }
+.dhikr-tap-count { font-size:2.2rem; font-weight:800; color:var(--primary); line-height:1; animation:countUp .2s ease; }
+.dhikr-tap-target { font-size:11px; color:var(--text-muted); }
+
+.dhikr-info { text-align:center; }
+.dhikr-name { font-size:1.6rem; font-weight:800; color:var(--text); margin-bottom:6px; }
+.dhikr-virtue { font-size:14px; color:var(--text-muted); font-style:italic; }
+.dhikr-complete-badge { background:var(--gold-bg); border:1px solid rgba(184,134,11,.25); color:var(--gold-dark); padding:10px 22px; border-radius:14px; font-weight:700; font-size:15px; margin-top:8px; }
+.dhikr-actions { display:flex; align-items:center; gap:16px; }
+.dhikr-progress-text { font-size:14px; font-weight:700; color:var(--text-muted); }
+
+.dhikr-log { grid-column:1/-1; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; }
+.dhikr-log-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; }
+.log-entry { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
+.log-entry:last-child { border:none; }
+.log-name { flex:1; font-size:14px; font-weight:600; color:var(--text); }
+.log-count { font-size:14px; font-weight:700; color:var(--primary); }
+.log-time { font-size:12px; color:var(--text-muted); }
+
+/* ── Total Stats Bar ── */
+.dhikr-total-bar {
+  display: flex; align-items: center; gap: 0;
+  background: var(--primary-bg); border: 1px solid var(--primary-border);
+  border-radius: var(--radius); padding: 14px 8px;
+  width: 100%; max-width: 340px;
+}
+.dhikr-total-item {
+  flex: 1; text-align: center;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.dhikr-total-num { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1; }
+.dhikr-total-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.dhikr-total-sep {
+  width: 1px; height: 28px; background: var(--primary-border); flex-shrink: 0;
+}
+
+@media(max-width:700px) {
+  .dhikr-layout { grid-template-columns:1fr; }
+  .dhikr-selector { position:static; display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+  .dhikr-sel-btn { min-width:0; padding:10px 12px; }
+  .dhikr-sel-arabic { font-size:0.95rem; }
+  .dhikr-sel-label { font-size:11px; }
+  .dhikr-center { padding:12px 0; }
+  .dhikr-name { font-size:1.2rem; }
+  .dhikr-total-bar { max-width:100%; }
+  .dhikr-total-num { font-size:18px; }
+}
+
+@media(max-width:400px) {
+  .dhikr-selector { grid-template-columns:1fr 1fr; gap:5px; }
+  .dhikr-sel-btn { padding:8px 10px; }
+  .dhikr-sel-arabic { font-size:0.85rem; }
+  .dhikr-sel-label { font-size:10px; }
+  .dhikr-progress-ring svg { width:160px; height:160px; }
+  .dhikr-tap-btn { width:112px; height:112px; }
+  .dhikr-tap-arabic { font-size:0.75rem; }
+  .dhikr-tap-count { font-size:1.8rem; }
+}
+
+/* ── Dark mode overrides ── */
+[data-theme="dark"] .dhikr-tap-btn {
+  background: #1a1a2e;
+  border-color: rgba(46,204,113,0.25);
+}
+[data-theme="dark"] .dhikr-tap-btn.complete {
+  background: rgba(240,192,64,0.08);
+}
+[data-theme="dark"] .dhikr-complete-badge {
+  background: rgba(240,192,64,0.1);
+  border-color: rgba(240,192,64,0.25);
+}

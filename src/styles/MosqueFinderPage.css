@@ -1,0 +1,193 @@
+/* ══════════════════════════════════════════════════════
+   MosqueFinderPage Styles
+   ══════════════════════════════════════════════════════ */
+
+.mosque-layout {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ── Search Area ── */
+.mosque-search-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px 24px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.mosque-search-icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.mosque-search-radius {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.mosque-search-btn {
+  font-size: 15px;
+  padding: 13px 32px;
+}
+
+.mosque-search-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* ── Error ── */
+.mosque-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 24px;
+  text-align: center;
+  background: rgba(220, 38, 38, 0.05);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  border-radius: var(--radius-lg);
+}
+
+.mosque-error-icon {
+  font-size: 32px;
+}
+
+.mosque-error p {
+  font-size: 15px;
+  color: var(--danger);
+  font-weight: 500;
+}
+
+/* ── Results ── */
+.mosque-results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mosque-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mosque-results-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-bg);
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--primary-border);
+}
+
+/* ── Empty ── */
+.mosque-empty {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--text-muted);
+}
+
+.mosque-empty-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 14px;
+}
+
+.mosque-empty p {
+  font-size: 15px;
+}
+
+/* ── List ── */
+.mosque-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Card ── */
+.mosque-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+}
+
+.mosque-card:hover {
+  transform: translateY(-2px);
+}
+
+.mosque-card-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--primary-border);
+}
+
+.mosque-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mosque-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.mosque-card-distance {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mosque-maps-btn {
+  flex-shrink: 0;
+  font-size: 13px !important;
+  padding: 8px 14px !important;
+  white-space: nowrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .mosque-search-area {
+    padding: 28px 18px;
+  }
+
+  .mosque-card {
+    flex-wrap: wrap;
+    padding: 16px;
+  }
+
+  .mosque-maps-btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+  }
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] .mosque-error {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.3);
+}

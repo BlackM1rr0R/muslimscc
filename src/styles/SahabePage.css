@@ -1,0 +1,346 @@
+/* ══════════════════════════════════════════════════════
+   SahabePage — Companions of the Prophet ﷺ
+   ══════════════════════════════════════════════════════ */
+
+.sahabe-page { min-height: 100vh; padding-bottom: 80px; }
+
+/* ── Search Bar ── */
+.sahabe-search-wrap {
+  max-width: 560px;
+  margin: 0 auto 36px;
+  position: relative;
+}
+.sahabe-search-icon {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); font-size: 16px; pointer-events: none;
+}
+.sahabe-search {
+  width: 100%; padding: 13px 16px 13px 44px;
+  background: var(--bg-card); border: 1.5px solid var(--border-md);
+  border-radius: var(--radius); font-family: var(--font);
+  font-size: 14.5px; color: var(--text); outline: none;
+  transition: all 0.22s;
+}
+.sahabe-search::placeholder { color: var(--text-muted); }
+.sahabe-search:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26,107,58,0.09);
+}
+[data-theme="dark"] .sahabe-search:focus {
+  box-shadow: 0 0 0 3px rgba(46,204,113,0.15);
+}
+
+/* ── Card Grid ── */
+.sahabe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.sahabe-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.sahabe-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--gold));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.sahabe-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+  border-color: var(--primary-border);
+}
+.sahabe-card:hover::before { opacity: 1; }
+
+.sahabe-card-number {
+  position: absolute; top: 12px; right: 14px;
+  font-size: 12px; font-weight: 700;
+  color: var(--text-muted); background: var(--surface);
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.sahabe-card-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 14px;
+  background: var(--primary-bg);
+  border: 2px solid var(--primary-border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--primary);
+}
+
+.sahabe-card-arabic {
+  font-family: var(--font-arabic);
+  font-size: 20px;
+  color: var(--primary);
+  direction: rtl;
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+
+.sahabe-card-name {
+  font-size: 15px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.sahabe-card-title {
+  font-size: 12px; font-weight: 500;
+  color: var(--text-muted);
+  background: var(--primary-bg);
+  padding: 3px 12px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* ── No Results ── */
+.sahabe-no-results {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* ── Profile View ── */
+.sahabe-profile {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px;
+  animation: fadeUp 0.4s ease both;
+}
+
+.sahabe-back-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-md);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-size: 14px; font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 28px;
+}
+.sahabe-back-btn:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Profile Header */
+.sahabe-profile-header {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 40px 32px;
+  text-align: center;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.sahabe-profile-header::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary), var(--gold), var(--primary));
+}
+
+.sahabe-profile-icon {
+  width: 72px; height: 72px;
+  margin: 0 auto 16px;
+  background: var(--primary-bg);
+  border: 3px solid var(--primary-border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; color: var(--primary);
+}
+
+.sahabe-profile-arabic {
+  font-family: var(--font-arabic);
+  font-size: clamp(26px, 4vw, 34px);
+  color: var(--primary);
+  direction: rtl;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.sahabe-profile-name {
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.sahabe-profile-title {
+  font-size: 14px; font-weight: 600;
+  color: var(--gold-dark);
+  background: var(--gold-bg);
+  padding: 5px 18px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* Profile Sections */
+.sahabe-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.sahabe-section-title {
+  font-size: 16px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sahabe-section-title span {
+  font-size: 20px;
+}
+
+/* Bio */
+.sahabe-bio {
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+
+/* Facts */
+.sahabe-facts-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.sahabe-fact-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  background: var(--primary-bg);
+  border-radius: var(--radius-sm);
+  font-size: 14px; color: var(--text-dim);
+  line-height: 1.6;
+}
+.sahabe-fact-bullet {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  margin-top: 1px;
+}
+
+/* Hadiths */
+.sahabe-hadiths-list {
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.sahabe-hadith-item {
+  padding: 20px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--primary);
+  transition: all 0.2s;
+}
+[dir="rtl"] .sahabe-hadith-item {
+  border-left: 1px solid var(--border);
+  border-right: 3px solid var(--primary);
+}
+.sahabe-hadith-item:hover {
+  border-color: var(--primary-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.sahabe-hadith-arabic {
+  font-family: var(--font-arabic);
+  font-size: 18px;
+  color: var(--text);
+  direction: rtl;
+  text-align: right;
+  line-height: 2.2;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.sahabe-hadith-translation {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+
+.sahabe-hadith-source {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold-dark);
+  background: var(--gold-bg);
+  padding: 3px 10px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.sahabe-hadith-number {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .sahabe-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    padding: 0 16px;
+  }
+  .sahabe-card { padding: 22px 18px; }
+  .sahabe-profile { padding: 0 16px; }
+  .sahabe-profile-header { padding: 28px 20px; }
+  .sahabe-section { padding: 20px; }
+  .sahabe-hadith-item { padding: 16px; }
+}
+
+@media (max-width: 480px) {
+  .sahabe-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .sahabe-card {
+    padding: 18px 12px;
+  }
+  .sahabe-card-arabic { font-size: 17px; }
+  .sahabe-card-name { font-size: 13px; }
+  .sahabe-card-icon { width: 44px; height: 44px; font-size: 20px; }
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] .sahabe-profile-title {
+  color: var(--gold-light);
+}
+[data-theme="dark"] .sahabe-hadith-source {
+  color: var(--gold-light);
+}

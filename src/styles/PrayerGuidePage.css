@@ -1,0 +1,431 @@
+/* ══════════════════════════════════════════════════════
+   PrayerGuidePage — Step-by-step Salah Guide
+   ══════════════════════════════════════════════════════ */
+
+.pg-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ── Prayer Selection ── */
+.pg-select {
+  text-align: center;
+}
+
+.pg-select-title {
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 32px;
+}
+
+.pg-prayer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.pg-prayer-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.pg-prayer-btn:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+  background: var(--primary-bg);
+}
+
+.pg-prayer-icon {
+  font-size: 2rem;
+}
+
+.pg-prayer-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pg-prayer-rakat {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--primary-bg);
+  padding: 3px 12px;
+  border-radius: 20px;
+}
+
+/* ── Progress Bar ── */
+.pg-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.pg-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--surface);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pg-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: 4px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pg-progress-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Back button ── */
+.pg-back-btn {
+  margin-bottom: 20px;
+}
+
+/* ── Step Card ── */
+.pg-step-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  padding: 32px 28px;
+  animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.pg-step-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pg-step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.pg-step-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+/* ── SVG Pose Illustration ── */
+.pg-pose-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 28px 16px;
+  margin-bottom: 20px;
+  background: linear-gradient(180deg, var(--primary-bg) 0%, rgba(255,255,255,0.5) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--primary-border);
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+}
+.pg-pose-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 90%, var(--primary-bg2, rgba(26,107,58,0.1)), transparent 60%),
+    radial-gradient(circle at 30% 20%, rgba(184,134,11,0.04), transparent 50%);
+  pointer-events: none;
+}
+.pg-pose-wrap::after {
+  content: '';
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 4px;
+  background: var(--gold, #b8860b);
+  opacity: 0.15;
+  border-radius: 2px;
+}
+.pg-svg-pose {
+  width: 160px;
+  height: 180px;
+  position: relative;
+  z-index: 1;
+  animation: poseAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 4px 12px rgba(26,107,58,0.15));
+}
+@keyframes poseAppear {
+  from { opacity: 0; transform: scale(0.7) translateY(15px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+[data-theme="dark"] .pg-pose-wrap {
+  background: linear-gradient(180deg, rgba(26,107,58,0.1) 0%, rgba(0,0,0,0.2) 100%);
+}
+[data-theme="dark"] .pg-svg-pose {
+  filter: drop-shadow(0 4px 16px rgba(26,107,58,0.3));
+}
+
+@media (max-width: 480px) {
+  .pg-svg-pose { width: 130px; height: 150px; }
+  .pg-pose-wrap { padding: 20px 10px; min-height: 160px; margin-bottom: 14px; }
+}
+@media (max-width: 360px) {
+  .pg-svg-pose { width: 110px; height: 130px; }
+  .pg-pose-wrap { min-height: 140px; }
+}
+
+.pg-step-name {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 800;
+  color: var(--text);
+  flex: 1;
+}
+
+/* ── Arabic Block ── */
+.pg-arabic-block {
+  background: var(--primary-bg);
+  border: 1px solid var(--primary-border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 18px;
+}
+
+.pg-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.pg-arabic-text {
+  font-size: clamp(18px, 3vw, 26px);
+  line-height: 2;
+  color: var(--primary-dark);
+}
+
+/* ── Transliteration ── */
+.pg-translit {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-dim);
+  padding: 12px 0;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.8;
+}
+
+/* ── Meaning ── */
+.pg-meaning {
+  background: var(--gold-bg);
+  border: 1px solid rgba(184, 134, 11, 0.2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 18px;
+}
+
+.pg-meaning .pg-label {
+  color: var(--gold-dark);
+}
+
+.pg-meaning p {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* ── Description ── */
+.pg-description {
+  margin-bottom: 18px;
+}
+
+.pg-description p {
+  font-size: 14.5px;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+/* ── Repeat Badge ── */
+.pg-repeat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--primary-bg2);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--primary-border);
+}
+
+/* ── Navigation ── */
+.pg-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 28px;
+  gap: 12px;
+}
+
+.pg-nav .btn-secondary:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.pg-nav .btn-primary,
+.pg-nav .btn-secondary {
+  min-width: 130px;
+  justify-content: center;
+}
+
+/* ── Completion Screen ── */
+.pg-complete {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.pg-complete-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.pg-complete-title {
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.pg-complete-prayer {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .pg-step-card {
+    padding: 24px 18px;
+  }
+
+  .pg-arabic-block {
+    padding: 16px 18px;
+  }
+
+  .pg-prayer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .pg-prayer-btn {
+    padding: 20px 12px;
+  }
+
+  .pg-nav .btn-primary,
+  .pg-nav .btn-secondary {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .pg-step-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .pg-prayer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Dark mode overrides ── */
+[data-theme="dark"] .pg-arabic-block {
+  background: rgba(46, 204, 113, 0.08);
+  border-color: rgba(46, 204, 113, 0.2);
+}
+
+[data-theme="dark"] .pg-arabic-text {
+  color: var(--primary-light);
+}
+
+[data-theme="dark"] .pg-meaning {
+  background: rgba(240, 192, 64, 0.08);
+  border-color: rgba(240, 192, 64, 0.2);
+}
+
+[data-theme="dark"] .pg-meaning .pg-label {
+  color: var(--gold-light);
+}
+
+[data-theme="dark"] .pg-prayer-btn:hover {
+  background: rgba(46, 204, 113, 0.08);
+}
+
+[data-theme="dark"] .pg-complete {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+/* ── Mode Toggle ── */
+.pg-mode-toggle {
+  display: flex; gap: 8px; margin-bottom: 28px; justify-content: center;
+}
+.pg-mode-btn {
+  padding: 12px 24px; border-radius: 12px; border: 1.5px solid var(--border-md);
+  background: var(--bg-card); color: var(--text-dim);
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.pg-mode-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pg-mode-btn:hover { border-color: var(--primary); color: var(--primary); }
+.pg-mode-btn.active:hover { color: #fff; }
+
+/* ── Wudu Completion Dua ── */
+.pg-wudu-dua {
+  margin-top: 24px; padding: 20px;
+  background: var(--primary-bg); border: 1px solid var(--primary-border);
+  border-radius: var(--radius-lg); text-align: center;
+}
+.pg-wudu-dua-title { font-size: 13px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.pg-wudu-dua-ar { font-family: var(--font-arabic); font-size: 1.3rem; direction: rtl; line-height: 2; color: var(--text); margin-bottom: 8px; }
+.pg-wudu-dua-trans { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+@media (max-width: 600px) {
+  .pg-mode-toggle { flex-direction: row; gap: 6px; }
+  .pg-mode-btn { padding: 10px 16px; font-size: 12px; }
+}

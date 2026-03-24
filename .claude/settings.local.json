@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r console. /c/Users/Lenovo/Desktop/muslim-cc/src --include=*.jsx --include=*.js)",
+      "Bash(wc -l /c/Users/Lenovo/Desktop/muslim-cc/src/styles/*.css)",
+      "Bash(node -e \":*)",
+      "Bash(npx vite:*)",
+      "Bash(for f:*)",
+      "Bash(do sed:*)",
+      "Bash(done)",
+      "Bash(start \"c:/Users/Lenovo/Desktop/muslim-cc/generate-icons.html\")",
+      "Bash(ls -la \"c:/Users/Lenovo/Desktop/muslim-cc/src/data/h_\"*.js)",
+      "Bash(ls -la \"c:/Users/Lenovo/Desktop/muslim-cc/src/data/hadiths_\"*.js)"
+    ]
+  }
+}

@@ -1,0 +1,443 @@
+/* ══════════════════════════════════════════════════════
+   CharityPage — Charity / Good Deeds Daily Tracker
+   ══════════════════════════════════════════════════════ */
+
+.ch-container {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+/* ── Stats Cards ── */
+.ch-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.ch-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.ch-stat-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.ch-stat-value {
+  font-size: clamp(24px, 4vw, 32px);
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.1;
+}
+
+.ch-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Form Card ── */
+.ch-form-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  margin-bottom: 28px;
+}
+
+.ch-form-title {
+  font-size: clamp(18px, 3vw, 22px);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.ch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ch-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ch-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ch-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── Type Selector Grid ── */
+.ch-type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.ch-type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  background: var(--bg-card2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ch-type-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-bg);
+}
+
+.ch-type-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.ch-type-btn span:first-child {
+  font-size: 1.3rem;
+}
+
+.ch-add-btn {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* ── Filter ── */
+.ch-filter {
+  margin-bottom: 24px;
+}
+
+.ch-filter-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+/* ── Entries List ── */
+.ch-entries {
+  margin-bottom: 40px;
+}
+
+.ch-entries-title {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.ch-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  font-size: 15px;
+  background: var(--bg-card);
+  border: 1.5px dashed var(--border-md);
+  border-radius: var(--radius-lg);
+}
+
+.ch-entry-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  transition: all 0.2s;
+}
+
+.ch-entry-card:hover {
+  border-color: var(--primary-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.ch-entry-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ch-entry-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ch-entry-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ch-entry-type {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ch-entry-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.ch-entry-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.ch-entry-amount {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-bg);
+  padding: 2px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--primary-border);
+}
+
+.ch-entry-delete {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.ch-entry-delete:hover {
+  color: var(--danger);
+  background: rgba(220, 38, 38, 0.08);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .ch-container {
+    padding: 0 4px;
+  }
+
+  .ch-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .ch-stat-card {
+    padding: 16px 8px;
+    gap: 4px;
+  }
+
+  .ch-stat-icon { font-size: 1.4rem; }
+  .ch-stat-value { font-size: 22px; }
+  .ch-stat-label { font-size: 10px; letter-spacing: 0.3px; }
+
+  .ch-form-card {
+    padding: 20px 16px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 20px;
+  }
+
+  .ch-form-title { font-size: 18px; margin-bottom: 14px; }
+
+  .ch-form-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .ch-type-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .ch-type-btn {
+    padding: 10px 4px;
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  .ch-type-btn span:first-child { font-size: 1.1rem; }
+
+  .ch-add-btn {
+    align-self: stretch;
+    text-align: center;
+  }
+
+  .ch-filter { margin-bottom: 18px; }
+
+  .ch-filter .tag-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ch-filter .tag-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .ch-entry-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .ch-entry-icon { font-size: 1.3rem; }
+  .ch-entry-type { font-size: 13px; }
+  .ch-entry-date { font-size: 11px; }
+  .ch-entry-desc { font-size: 12px; }
+  .ch-entry-amount { font-size: 12px; padding: 2px 8px; }
+}
+
+@media (max-width: 480px) {
+  .ch-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .ch-stat-card {
+    padding: 14px 6px;
+  }
+
+  .ch-stat-icon { font-size: 1.2rem; }
+  .ch-stat-value { font-size: 18px; }
+  .ch-stat-label { font-size: 9px; }
+
+  .ch-form-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .ch-type-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+  }
+
+  .ch-type-btn {
+    padding: 8px 2px;
+    font-size: 10px;
+    border-radius: 8px;
+  }
+
+  .ch-type-btn span:first-child { font-size: 1rem; }
+
+  .ch-form-card { padding: 16px 12px; }
+
+  .ch-entry-card {
+    padding: 10px;
+    gap: 8px;
+    border-radius: 10px;
+  }
+
+  .ch-entry-icon { font-size: 1.1rem; margin-top: 1px; }
+
+  .ch-entry-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .ch-entries-title { font-size: 16px; }
+}
+
+@media (max-width: 360px) {
+  .ch-type-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ch-stat-card {
+    padding: 12px 4px;
+  }
+
+  .ch-stat-value { font-size: 16px; }
+}
+
+/* ── Dark mode overrides ── */
+[data-theme="dark"] .ch-stat-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .ch-form-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .ch-type-btn {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .ch-type-btn:hover {
+  background: rgba(46, 204, 113, 0.08);
+}
+
+[data-theme="dark"] .ch-type-btn.active {
+  background: var(--primary);
+  color: #0f0f1a;
+}
+
+[data-theme="dark"] .ch-entry-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .ch-entry-card:hover {
+  border-color: var(--primary-border);
+}
+
+[data-theme="dark"] .ch-empty {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .ch-entry-delete:hover {
+  background: rgba(220, 38, 38, 0.15);
+}

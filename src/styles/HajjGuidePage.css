@@ -1,0 +1,198 @@
+/* ══════════════════════════════════════════════════════
+   HajjGuidePage — Step-by-step Hajj & Umrah Guide
+   ══════════════════════════════════════════════════════ */
+
+.hg-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ── Mode Selection ── */
+.hg-select {
+  text-align: center;
+}
+
+.hg-select-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.hg-select-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 36px 20px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.hg-select-btn:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+  background: var(--primary-bg);
+}
+
+.hg-select-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.hg-select-arabic {
+  font-family: var(--font-arabic);
+  font-size: clamp(20px, 3vw, 28px);
+  color: var(--primary);
+  direction: rtl;
+}
+
+.hg-select-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.hg-select-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--primary-bg);
+  padding: 3px 14px;
+  border-radius: 20px;
+}
+
+/* ── Back Button ── */
+.hg-back-btn {
+  margin-bottom: 20px;
+}
+
+/* ── Step Card ── */
+.hg-step-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  padding: 32px 28px;
+  animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.hg-step-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hg-step-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.hg-step-titles {
+  flex: 1;
+}
+
+.hg-step-name {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.hg-step-arabic {
+  font-family: var(--font-arabic);
+  font-size: clamp(16px, 2.5vw, 22px);
+  color: var(--primary);
+  direction: rtl;
+}
+
+/* ── Description ── */
+.hg-description {
+  margin-bottom: 20px;
+}
+
+.hg-description p {
+  font-size: 14.5px;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+/* ── Notes ── */
+.hg-notes {
+  background: var(--gold-bg);
+  border: 1px solid rgba(184, 134, 11, 0.2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-top: 18px;
+}
+
+.hg-notes-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold-dark);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.hg-notes p {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .hg-step-card {
+    padding: 24px 18px;
+  }
+
+  .hg-select-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    max-width: 280px;
+  }
+
+  .hg-select-btn {
+    padding: 28px 16px;
+  }
+
+  .hg-step-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+/* ── Dark mode overrides ── */
+[data-theme="dark"] .hg-select-btn {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .hg-select-btn:hover {
+  background: rgba(46, 204, 113, 0.08);
+}
+
+[data-theme="dark"] .hg-step-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .hg-notes {
+  background: rgba(240, 192, 64, 0.08);
+  border-color: rgba(240, 192, 64, 0.2);
+}
+
+[data-theme="dark"] .hg-notes-label {
+  color: var(--gold-light);
+}

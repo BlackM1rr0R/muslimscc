@@ -1,0 +1,188 @@
+.zakat-layout { display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start; }
+
+.zakat-block-label { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; }
+
+/* ══ SOL PANEL ══ */
+.zakat-inputs {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-xl); padding:24px;
+  display:flex; flex-direction:column; gap:18px;
+}
+
+/* Valyuta */
+.zakat-currency-block {
+  background:var(--bg-card2); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:14px 16px;
+}
+.zakat-currency-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:10px; flex-wrap:wrap; gap:6px;
+}
+.zakat-rate-badge {
+  font-size:11px; font-weight:600; color:var(--primary-dark);
+  background:var(--primary-bg); border:1px solid var(--primary-border);
+  border-radius:8px; padding:3px 9px;
+}
+.zakat-rate-badge.loading { color:var(--text-muted); background:var(--surface); border-color:var(--border); }
+.zakat-currency-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
+.zakat-cur-btn {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:8px 4px; border-radius:9px;
+  border:1.5px solid var(--border); background:var(--bg-card);
+  cursor:pointer; font-family:var(--font); transition:all .15s;
+}
+.zakat-cur-btn span:first-child { font-size:17px; line-height:1; }
+.zakat-cur-btn span:nth-child(2) { font-size:10.5px; font-weight:700; color:var(--text); }
+.zakat-cur-btn small { font-size:9.5px; color:var(--text-muted); }
+.zakat-cur-btn:hover { border-color:var(--primary-border); background:var(--primary-bg); }
+.zakat-cur-btn.active { border-color:var(--primary); background:var(--primary-bg); box-shadow:0 0 0 1px var(--primary); }
+.zakat-cur-btn.active span:nth-child(2) { color:var(--primary-dark); }
+
+/* Sahələr */
+.zakat-fields { display:flex; flex-direction:column; gap:8px; }
+.zakat-field-row {
+  display:flex; align-items:center; gap:12px;
+  background:var(--bg); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:11px 14px;
+  transition:border-color .2s, background .2s;
+}
+.zakat-field-row:focus-within { border-color:var(--primary-border); background:var(--bg-card); }
+.zakat-field-icon { font-size:20px; flex-shrink:0; }
+.zakat-field-body { flex:1; min-width:0; }
+.zakat-field-body label { display:block; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:3px; }
+.zakat-input-wrap { display:flex; align-items:center; gap:4px; }
+.zakat-cur-prefix { font-size:15px; font-weight:700; color:var(--text-muted); flex-shrink:0; }
+.zakat-input { border:none !important; padding:0 !important; font-size:16px; font-weight:700; background:transparent !important; box-shadow:none !important; color:var(--text); width:100%; }
+.zakat-input:focus { outline:none; }
+
+/* Maaş × 12 badge */
+.zakat-field-side { display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; }
+.zakat-field-tag { font-size:9.5px; font-weight:700; color:var(--primary); background:var(--primary-bg); border:1px solid var(--primary-border); border-radius:5px; padding:1px 6px; }
+.zakat-field-annual { font-size:12px; font-weight:700; color:var(--primary-dark); white-space:nowrap; }
+
+.zakat-reset-btn { align-self:flex-start; font-size:12.5px; }
+
+/* ══ SAĞ PANEL ══ */
+.zakat-result { display:flex; flex-direction:column; gap:12px; }
+
+.zakat-breakdown {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:16px 18px;
+}
+.breakdown-row {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 0; border-bottom:1px solid var(--border);
+}
+.breakdown-row:last-of-type { border:none; }
+.breakdown-icon { font-size:15px; flex-shrink:0; }
+.breakdown-label-wrap { flex:1; display:flex; flex-direction:column; gap:1px; }
+.breakdown-label { font-size:13px; color:var(--text-dim); }
+.breakdown-sub   { font-size:10.5px; color:var(--text-muted); }
+.breakdown-val   { font-size:13.5px; font-weight:700; color:var(--text); white-space:nowrap; }
+.breakdown-total {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-top:8px; padding-top:10px; border-top:2px solid var(--primary-border);
+}
+.breakdown-total span:first-child { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; }
+.total-amount { font-size:1.3rem; font-weight:800; color:var(--primary-dark); }
+
+/* Nisab */
+.nisab-card {
+  background:var(--bg-card); border:1.5px solid var(--border);
+  border-radius:var(--radius-lg); padding:16px 18px; transition:all .3s;
+}
+.nisab-card.above { border-color:var(--primary-border); background:var(--primary-bg); }
+.nisab-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:6px; }
+.nisab-label  { font-size:10px; font-weight:700; color:var(--text-muted); letter-spacing:1.5px; text-transform:uppercase; }
+.nisab-badge  { font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:10px; }
+.nisab-badge.yes { background:rgba(22,163,74,.1);  color:#166534; }
+.nisab-badge.no  { background:rgba(220,38,38,.07); color:#991b1b; }
+.nisab-value  { font-size:1.5rem; font-weight:800; color:var(--text); margin-bottom:3px; }
+.nisab-note   { font-size:11px; color:var(--text-muted); margin-bottom:10px; }
+.nisab-bar-wrap { height:6px; background:var(--surface); border-radius:3px; overflow:hidden; margin-bottom:4px; }
+.nisab-bar { height:100%; background:linear-gradient(90deg,var(--primary-dark),var(--primary-light)); border-radius:3px; transition:width .6s ease; }
+.nisab-bar-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); }
+
+/* Zəkat nəticəsi */
+.zakat-due-card { border-radius:var(--radius-lg); padding:20px; text-align:center; }
+.zakat-due-card.active   { background:linear-gradient(135deg,var(--primary-bg),#fff); border:2px solid var(--primary-border); }
+.zakat-due-card.inactive { background:var(--bg-card2); border:1.5px solid var(--border); }
+.zakat-due-label  { font-size:10px; font-weight:700; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:12px; }
+
+/* İllik + aylıq yan-yana */
+.zakat-due-row { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:8px; }
+.zakat-due-block { flex:1; }
+.zakat-due-divider { width:1px; height:50px; background:var(--primary-border); margin:0 16px; }
+.zakat-due-amount    { font-size:2.2rem; font-weight:800; color:var(--primary-dark); letter-spacing:-1px; line-height:1.1; }
+.zakat-due-sm        { font-size:1.5rem; }
+.zakat-due-period    { font-size:11px; font-weight:600; color:var(--text-muted); margin-top:2px; }
+.zakat-due-pct       { font-size:11.5px; font-weight:700; color:var(--primary); }
+.zakat-due-note      { font-size:12px; color:var(--text-muted); margin-top:6px; font-style:italic; }
+
+/* Ayə */
+.zakat-info-box {
+  background:var(--gold-bg); border:1px solid rgba(184,134,11,.18);
+  border-radius:var(--radius-lg); padding:16px; text-align:center;
+}
+.zakat-quran-ar { font-family:'Amiri',serif; font-size:1.1rem; direction:rtl; display:block; margin-bottom:6px; color:var(--primary-dark); }
+.zakat-quran { font-size:13px; color:var(--text-dim); font-style:italic; line-height:1.7; }
+
+@media(max-width:860px) { .zakat-layout { grid-template-columns:1fr; } }
+@media(max-width:420px) { .zakat-cur-btn { padding:6px 2px; } .zakat-cur-btn span:first-child { font-size:15px; } }
+
+/* ── Dark mode overrides ── */
+[data-theme="dark"] .zakat-due-card.active {
+  background: linear-gradient(135deg, rgba(46,204,113,0.1), #1a1a2e);
+  border-color: rgba(46,204,113,0.25);
+}
+[data-theme="dark"] .zakat-due-card.inactive {
+  background: var(--bg-card2);
+}
+[data-theme="dark"] .zakat-info-box {
+  background: rgba(240,192,64,0.08);
+  border-color: rgba(240,192,64,0.18);
+}
+[data-theme="dark"] .nisab-badge.yes {
+  background: rgba(46,204,113,0.15);
+  color: #4ade80;
+}
+[data-theme="dark"] .nisab-badge.no {
+  background: rgba(220,38,38,0.12);
+  color: #f87171;
+}
+[data-theme="dark"] .nisab-card.above {
+  background: rgba(46,204,113,0.08);
+  border-color: rgba(46,204,113,0.25);
+}
+
+/* ── Borc sahəsi ── */
+.zakat-field-debt { border-left: 3px solid #dc2626; }
+.breakdown-debt .breakdown-val { color: #dc2626; }
+
+/* ── Fitrə Kartı ── */
+.fitr-card {
+  background: var(--bg-card); border: 1.5px solid var(--gold, #b8860b);
+  border-radius: var(--radius-lg); padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.fitr-title { font-size: 16px; font-weight: 800; color: var(--gold-dark, #8b6508); margin-bottom: 6px; }
+.fitr-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5; }
+.fitr-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.fitr-row:last-of-type { border-bottom: none; }
+.fitr-label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
+.fitr-val { font-size: 14px; font-weight: 700; color: var(--text); }
+.fitr-input { width: 80px; text-align: center; font-size: 16px; font-weight: 700; padding: 6px; }
+.fitr-total-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 2px solid var(--gold, #b8860b);
+}
+.fitr-total-val { font-size: 20px; font-weight: 800; color: var(--gold-dark, #8b6508); }
+
+@media (max-width: 768px) {
+  .fitr-card { padding: 16px; }
+  .fitr-total-val { font-size: 18px; }
+}

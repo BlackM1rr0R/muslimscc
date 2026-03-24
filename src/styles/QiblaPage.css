@@ -1,0 +1,330 @@
+/* ══════════════════════════════════════════════
+   QiblaPage.css — Qiblə Kompas Səhifəsi
+   ══════════════════════════════════════════════ */
+
+.qibla-page { min-height: 80vh; }
+
+.qibla-wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* ── Center layout (loading / error) ── */
+.qibla-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 60px 20px;
+}
+.qibla-center h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.qibla-center p {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.qibla-error-icon { font-size: 48px; margin-bottom: 8px; }
+.qibla-error-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+
+/* ── Loader ── */
+.qibla-loader {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.qibla-loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid var(--primary-bg2);
+  border-top-color: var(--primary);
+  animation: spin .8s linear infinite;
+}
+.qibla-loader-icon { font-size: 32px; }
+.qibla-status-text { font-size: 15px; color: var(--text-muted); }
+
+/* ── Main content ── */
+.qibla-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+}
+
+/* ══════════════════════════════════════════════
+   COMPASS
+   ══════════════════════════════════════════════ */
+.qibla-compass-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.qibla-compass {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  /* Subtle outer glow */
+  box-shadow:
+    0 0 0 2px var(--border),
+    0 0 0 10px var(--bg),
+    0 8px 40px rgba(26,107,58,0.12),
+    0 2px 8px rgba(0,0,0,0.06);
+  background: radial-gradient(circle at 40% 35%, #ffffff 0%, #f4f7f2 60%, #e8f0e4 100%);
+}
+
+/* ── Tick ring ── */
+.qibla-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.qibla-tick {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 6px;
+  background: var(--border-md);
+  transform-origin: 0 -135px;
+  transform: rotate(calc(var(--i) * 5deg)) translateX(-50%) translateY(-135px);
+  border-radius: 1px;
+}
+.qibla-tick.minor {
+  height: 9px;
+  background: var(--text-muted);
+}
+.qibla-tick.major {
+  height: 14px;
+  width: 2px;
+  background: var(--primary);
+}
+
+/* ── Cardinal directions ── */
+.qibla-cardinals {
+  position: absolute;
+  inset: 0;
+}
+.qibla-cardinal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: .5px;
+  transform-origin: 0 0;
+  /* place 8 directions evenly */
+  transform:
+    rotate(calc(var(--ci) * 45deg))
+    translateY(-118px)
+    rotate(calc(var(--ci) * -45deg))
+    translate(-50%, -50%);
+}
+.qibla-cardinal.north {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+/* ── Qibla needle ── */
+.qibla-needle-wrap {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+.qibla-needle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 220px;
+  pointer-events: none;
+}
+.qibla-needle-tip {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8px;
+}
+.qibla-kaaba-icon {
+  font-size: 26px;
+  filter: drop-shadow(0 2px 6px rgba(26,107,58,0.3));
+  animation: float 3s ease-in-out infinite;
+}
+.qibla-needle-tail {
+  width: 3px;
+  height: 80px;
+  background: linear-gradient(to bottom, var(--primary), var(--primary-light), transparent);
+  border-radius: 2px;
+  opacity: .6;
+}
+
+/* ── Center dot ── */
+.qibla-center-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.qibla-center-dot-inner {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* ── Angle badge ── */
+.qibla-angle-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-card);
+  border: 1px solid var(--primary-border);
+  border-radius: var(--radius-lg);
+  padding: 12px 28px;
+  box-shadow: var(--shadow-sm);
+}
+.qibla-angle-val {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.qibla-angle-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ══════════════════════════════════════════════
+   INFO CARDS
+   ══════════════════════════════════════════════ */
+.qibla-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+}
+.qibla-info-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  transition: all .22s;
+}
+.qibla-info-card:hover {
+  border-color: var(--primary-border);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+.qibla-info-card.live { border-color: rgba(22,163,74,0.25); background: rgba(22,163,74,0.04); }
+.qibla-info-card.no-sensor { border-color: rgba(217,119,6,0.25); background: rgba(217,119,6,0.04); }
+
+.qibla-info-icon { font-size: 22px; flex-shrink: 0; }
+.qibla-info-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.qibla-info-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+.qibla-info-val { font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.1; }
+.qibla-info-val small { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+.qibla-info-desc { font-size: 12px !important; font-weight: 400 !important; color: var(--text-muted) !important; line-height: 1.4; }
+
+/* ── Coordinates footer ── */
+.qibla-coords {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.qibla-fallback-note {
+  color: var(--warning);
+  font-weight: 500;
+}
+
+/* ── Footer (coords + refresh) ── */
+.qibla-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.qibla-refresh-btn {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-bg2);
+  border: 1px solid var(--primary-border);
+  border-radius: var(--radius);
+  padding: 6px 18px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.qibla-refresh-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ── iOS compass permission button ── */
+.qibla-ios-btn {
+  margin-bottom: 8px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .qibla-compass { width: 260px; height: 260px; }
+  .qibla-tick { transform: rotate(calc(var(--i) * 5deg)) translateX(-50%) translateY(-115px); transform-origin: 0 -115px; }
+  .qibla-cardinal { transform: rotate(calc(var(--ci) * 45deg)) translateY(-100px) rotate(calc(var(--ci) * -45deg)) translate(-50%, -50%); }
+  .qibla-needle { height: 190px; }
+  .qibla-info-grid { grid-template-columns: 1fr; }
+  .qibla-wrap { padding: 32px 16px 64px; }
+}
+
+/* ── Dark mode overrides ── */
+[data-theme="dark"] .qibla-compass {
+  background: radial-gradient(circle at 40% 35%, #222240 0%, #1a1a2e 60%, #15152a 100%);
+  box-shadow:
+    0 0 0 2px var(--border),
+    0 0 0 10px var(--bg),
+    0 8px 40px rgba(0,0,0,0.3),
+    0 2px 8px rgba(0,0,0,0.2);
+}
+[data-theme="dark"] .qibla-info-card.live {
+  border-color: rgba(46,204,113,0.25);
+  background: rgba(46,204,113,0.06);
+}
+[data-theme="dark"] .qibla-info-card.no-sensor {
+  border-color: rgba(240,192,64,0.25);
+  background: rgba(240,192,64,0.06);
+}

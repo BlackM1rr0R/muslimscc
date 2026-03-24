@@ -1,0 +1,85 @@
+.cal-date-card { display:flex; align-items:center; gap:0; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; margin-bottom:24px; justify-content:center; }
+.cal-date-item { text-align:center; padding:0 32px; }
+.cal-date-label { display:block; font-size:10.5px; font-weight:700; color:var(--text-muted); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+.cal-date-val { font-size:16px; font-weight:700; color:var(--text); }
+.cal-date-divider { width:1px; height:44px; background:var(--border); }
+
+.cal-months { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:28px; }
+.cal-month-btn { position:relative; padding:8px 14px; border-radius:20px; border:1.5px solid var(--border-md); background:var(--bg-card); color:var(--text-dim); font-size:12.5px; font-weight:600; cursor:pointer; transition:all .18s; }
+.cal-month-btn:hover { border-color:var(--primary); color:var(--primary); }
+.cal-month-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.cal-event-dot { position:absolute; top:4px; right:4px; width:6px; height:6px; border-radius:50%; background:var(--gold); }
+.cal-month-btn.active .cal-event-dot { background:#fff; }
+
+.cal-main { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:24px; margin-bottom:32px; }
+.cal-selected-month { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.cal-selected-month h2 { font-size:22px; font-weight:800; color:var(--text); }
+.cal-month-num { font-size:12px; font-weight:700; color:var(--text-muted); background:var(--bg-card2); padding:4px 10px; border-radius:10px; }
+.cal-events-label { font-size:10.5px; font-weight:700; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:12px; }
+.cal-event-card { display:flex; align-items:center; gap:14px; padding:14px 16px; background:var(--primary-bg); border:1px solid var(--primary-border); border-radius:12px; margin-bottom:8px; animation:fadeUp .4s ease both; }
+.cal-event-icon { font-size:24px; flex-shrink:0; }
+.cal-event-name { font-size:15px; font-weight:700; color:var(--text); margin-bottom:2px; }
+.cal-event-date { font-size:12px; color:var(--primary); font-weight:600; }
+.cal-no-events { padding:40px; text-align:center; color:var(--text-muted); font-style:italic; }
+
+.cal-timeline { display:flex; flex-direction:column; gap:10px; }
+.cal-timeline-item { display:flex; align-items:center; gap:14px; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; transition:all .2s; }
+.cal-timeline-item:hover { border-color:var(--primary-border); box-shadow:var(--shadow-sm); }
+.cal-tl-icon { font-size:22px; flex-shrink:0; }
+.cal-tl-name { font-size:14.5px; font-weight:700; color:var(--text); margin-bottom:2px; }
+.cal-tl-date { font-size:12px; color:var(--primary); font-weight:600; }
+
+@media(max-width:560px) { .cal-date-card { flex-direction:column; gap:16px; } .cal-date-divider { width:60px; height:1px; } }
+
+/* ── Dark mode overrides ── */
+[data-theme="dark"] .cal-event-card {
+  background: rgba(46,204,113,0.08);
+  border-color: rgba(46,204,113,0.2);
+}
+
+/* Reminder button */
+.cal-remind-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 20px;
+  background: var(--primary-bg); border: 1px solid var(--primary-border);
+  color: var(--primary); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  flex-shrink: 0;
+}
+.cal-remind-btn:hover { background: var(--primary-bg2); }
+.cal-remind-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ── Next Event Card ── */
+.cal-next-event {
+  display: flex; align-items: center; gap: 18px;
+  background: linear-gradient(135deg, var(--primary-bg2), var(--primary-bg));
+  border: 1.5px solid var(--primary-border);
+  border-radius: var(--radius-lg); padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.cal-next-icon { font-size: 2.2rem; flex-shrink: 0; }
+.cal-next-info { flex: 1; }
+.cal-next-label { font-size: 10px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+.cal-next-name { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 2px; }
+.cal-next-date { font-size: 13px; color: var(--primary); font-weight: 600; }
+
+/* ── Type Filter ── */
+.cal-type-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+
+/* ── Event type badges ── */
+.cal-event-card[data-type="night"] { background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.2); }
+.cal-event-card[data-type="sunnah"] { background: rgba(184,134,11,0.06); border-color: rgba(184,134,11,0.2); }
+.cal-event-card[data-type="hajj"] { background: rgba(14,116,144,0.06); border-color: rgba(14,116,144,0.2); }
+
+.cal-event-body { flex: 1; }
+
+@media(max-width:560px) {
+  .cal-next-event { padding: 16px; gap: 12px; flex-direction: row; }
+  .cal-next-icon { font-size: 1.6rem; }
+  .cal-next-name { font-size: 15px; }
+  .cal-type-filter { gap: 4px; }
+  .cal-type-filter .tag-btn { font-size: 11px; padding: 5px 10px; }
+  .cal-remind-btn { padding: 4px 8px; font-size: 11px; gap: 4px; }
+  .cal-remind-btn span { display: none; }
+  .cal-timeline-item { padding: 10px 12px; gap: 10px; }
+}

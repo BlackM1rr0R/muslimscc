@@ -1,0 +1,298 @@
+/* ══════════════════════════════════════════════════════
+   DailyTrackerPage Styles
+   ══════════════════════════════════════════════════════ */
+
+.tracker-layout {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ── Circular Progress ── */
+.tracker-progress-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.tracker-circle-wrap {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+
+.tracker-circle {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.tracker-circle-progress {
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              stroke 0.3s ease;
+}
+
+.tracker-circle-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tracker-circle-pct {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.tracker-circle-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.tracker-stats {
+  display: flex;
+  gap: 32px;
+}
+
+.tracker-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 28px;
+}
+
+.tracker-stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.tracker-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Today Section ── */
+.tracker-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.tracker-section-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tracker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tracker-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.22s ease;
+  animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font);
+}
+
+.tracker-item:hover {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+  transform: translateX(4px);
+}
+
+.tracker-item.done {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+}
+
+.tracker-item-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
+}
+
+.tracker-item-label {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.tracker-item.done .tracker-item-label {
+  color: var(--primary);
+}
+
+.tracker-item-check {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: transparent;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+
+.tracker-item-check.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+/* ── Weekly View ── */
+.tracker-week h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.tracker-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.tracker-week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 4px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.2s;
+}
+
+.tracker-week-day.today {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+}
+
+.tracker-week-day.complete {
+  border-color: var(--success);
+  background: rgba(22, 163, 74, 0.06);
+}
+
+.tracker-week-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tracker-week-num {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tracker-week-day.today .tracker-week-num {
+  color: var(--primary);
+}
+
+.tracker-week-bar-wrap {
+  width: 8px;
+  height: 40px;
+  background: var(--surface);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.tracker-week-bar {
+  width: 100%;
+  background: linear-gradient(to top, var(--primary), var(--primary-light));
+  border-radius: 4px;
+  transition: height 0.4s ease;
+  min-height: 0;
+}
+
+.tracker-week-pct {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.tracker-week-day.complete .tracker-week-pct {
+  color: var(--success);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .tracker-circle-wrap {
+    width: 130px;
+    height: 130px;
+  }
+  .tracker-circle-pct {
+    font-size: 26px;
+  }
+  .tracker-stats {
+    gap: 16px;
+  }
+  .tracker-stat {
+    padding: 10px 20px;
+  }
+  .tracker-week-grid {
+    gap: 4px;
+  }
+  .tracker-week-day {
+    padding: 8px 2px;
+  }
+  .tracker-week-label {
+    font-size: 9px;
+  }
+  .tracker-week-num {
+    font-size: 13px;
+  }
+  .tracker-week-bar-wrap {
+    height: 30px;
+    width: 6px;
+  }
+  .tracker-item {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] .tracker-week-day.complete {
+  background: rgba(22, 163, 74, 0.1);
+}

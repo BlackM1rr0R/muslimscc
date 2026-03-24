@@ -1,0 +1,126 @@
+/* ══════════════════════════════════════════════════════
+   FOOTER — muslims.cc  |  Compact & Clean
+   ══════════════════════════════════════════════════════ */
+
+.footer {
+  background: linear-gradient(175deg, #0d4a27 0%, #072a15 60%, #041a0d 100%);
+  color: rgba(255,255,255,0.75);
+  position: relative; overflow: hidden;
+}
+.footer::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(134,239,172,0.3), transparent);
+}
+
+/* ── Main ── */
+.ft-main { padding: 48px 24px 36px; }
+.ft-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; gap: 48px; align-items: flex-start;
+}
+
+/* ── Brand ── */
+.ft-brand {
+  flex: 0 0 240px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.ft-logo {
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; width: fit-content;
+}
+.ft-logo-icon {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(134,239,172,0.15), rgba(255,255,255,0.06));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; color: #fff;
+  border: 1px solid rgba(134,239,172,0.2);
+}
+.ft-logo:hover .ft-logo-icon {
+  background: linear-gradient(135deg, rgba(134,239,172,0.25), rgba(255,255,255,0.1));
+  transform: scale(1.05);
+}
+.ft-logo-text {
+  font-size: 19px; font-weight: 800;
+  color: #fff; letter-spacing: -0.5px;
+}
+.ft-logo-text span { color: #86efac; }
+.ft-desc {
+  font-size: 13px; line-height: 1.7;
+  color: rgba(255,255,255,0.45); max-width: 220px;
+}
+.ft-arabic {
+  font-family: 'Amiri', serif; font-size: 14px;
+  color: rgba(134,239,172,0.25); direction: rtl;
+  letter-spacing: 0.5px;
+}
+
+/* ── Links Grid ── */
+.ft-links {
+  flex: 1;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.ft-col {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.ft-col h4 {
+  font-size: 10px; font-weight: 700;
+  color: rgba(134,239,172,0.5);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.ft-col button, .ft-col a {
+  font-size: 13px; color: rgba(255,255,255,0.55);
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; text-align: left; text-decoration: none;
+  padding: 3px 0; transition: all .2s; display: flex; align-items: center; gap: 6px;
+}
+.ft-col button:hover, .ft-col a:hover {
+  color: #86efac; transform: translateX(3px);
+}
+
+/* ── Bottom ── */
+.ft-bottom {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 16px 24px;
+  max-width: 1100px; margin: 0 auto;
+  display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 8px;
+}
+.ft-bottom p { font-size: 12px; color: rgba(255,255,255,0.3); }
+.ft-made { font-size: 12px; color: rgba(255,255,255,0.35); }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .ft-inner { flex-direction: column; gap: 32px; }
+  .ft-brand { flex: none; }
+  .ft-links { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 640px) {
+  .ft-links { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .ft-main { padding: 36px 20px 28px; }
+}
+@media (max-width: 400px) {
+  .ft-links { grid-template-columns: 1fr; }
+  .ft-bottom { flex-direction: column; text-align: center; }
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] .footer {
+  background: linear-gradient(175deg, #0a0a18 0%, #060610 60%, #030308 100%);
+}
+[data-theme="dark"] .footer::before {
+  background: linear-gradient(90deg, transparent, rgba(46,204,113,0.2), transparent);
+}
+[data-theme="dark"] .ft-logo-icon {
+  background: linear-gradient(135deg, rgba(46,204,113,0.15), rgba(255,255,255,0.04));
+  border-color: rgba(46,204,113,0.2);
+}
+[data-theme="dark"] .ft-logo-text span { color: #2ecc71; }
+[data-theme="dark"] .ft-col h4 { color: rgba(46,204,113,0.4); }
+[data-theme="dark"] .ft-col button:hover,
+[data-theme="dark"] .ft-col a:hover { color: #2ecc71; }
+[data-theme="dark"] .ft-arabic { color: rgba(46,204,113,0.2); }

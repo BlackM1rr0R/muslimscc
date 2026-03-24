@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Muslims.cc — Header Logo → App Icons</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: system-ui; background: #0a0a0a; color: #eee; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+    h1 { font-weight: 300; letter-spacing: -1px; margin-bottom: 8px; }
+    .preview { background: #fff; padding: 20px 40px; border-radius: 12px; margin: 16px 0 32px; display: flex; align-items: center; gap: 10px; }
+    .preview-icon { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #16a34a, #0d4a27); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-family: serif; position: relative; overflow: hidden; }
+    .preview-icon::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent 50%); border-radius: inherit; }
+    .preview-text { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 20px; color: #1a2e1e; letter-spacing: -0.5px; }
+    .preview-text span { color: #16a34a; }
+    .grid { display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
+    .item { text-align: center; }
+    .item p { font-size: 12px; margin: 8px 0; opacity: 0.5; }
+    canvas { border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
+    button { padding: 16px 44px; font-size: 17px; background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; margin-top: 16px; }
+    button:hover { filter: brightness(1.1); }
+    .sub { font-size: 13px; opacity: 0.4; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>Header Logo → App Icons</h1>
+
+  <!-- Saytdakı orijinal logo preview -->
+  <div class="preview">
+    <div class="preview-icon">☽</div>
+    <div class="preview-text">muslims<span>.cc</span></div>
+  </div>
+
+  <div class="grid">
+    <div class="item"><canvas id="c512" width="512" height="512"></canvas><p>512 × 512</p></div>
+    <div class="item"><canvas id="c192" width="192" height="192"></canvas><p>192 × 192</p></div>
+    <div class="item"><canvas id="c180" width="180" height="180"></canvas><p>180 × 180</p></div>
+    <div class="item"><canvas id="c32" width="32" height="32"></canvas><p>32 × 32</p></div>
+    <div class="item"><canvas id="c16" width="16" height="16"></canvas><p>16 × 16</p></div>
+    <div class="item"><canvas id="cog" width="1200" height="630"></canvas><p>OG Image 1200 × 630</p></div>
+  </div>
+  <button id="dl">Hamısını yüklə → public/ qovluğuna qoy</button>
+  <p class="sub">6 fayl yüklənəcək, hamısını public/ qovluğuna at</p>
+
+<script>
+document.fonts.ready.then(() => {
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath()
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r)
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h)
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r)
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y)
+  ctx.closePath()
+}
+
+/*
+  Header-dəki logo — birebir:
+  .logo-icon: 40x40, border-radius: 12px
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark))
+    ::before — linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%)
+  .logo-crescent: ☽, 20px, white, serif
+
+  App icon-da bunu böyüdürük:
+  - 40px icon → 512px icon (×12.8 scale)
+  - border-radius: 12px → proporsional
+  - ☽ — emoji əvəzinə vektor hilal çəkirik (emoji render fərqli cihazlarda fərqlidir)
+*/
+
+function drawHeaderLogo(ctx, x, y, size) {
+  const r = size * 0.3  // border-radius: 12/40 = 0.3
+
+  // ── Gradient fon — saytdakı kimi ──
+  const bg = ctx.createLinearGradient(x, y, x + size, y + size)
+  bg.addColorStop(0, '#16a34a')   // --primary
+  bg.addColorStop(1, '#0d4a27')   // --primary-dark
+  roundRect(ctx, x, y, size, size, r)
+  ctx.fillStyle = bg
+  ctx.fill()
+
+  // ── Glass shine — ::before ──
+  ctx.save()
+  roundRect(ctx, x, y, size, size, r)
+  ctx.clip()
+  const shine = ctx.createLinearGradient(x, y, x + size * 0.65, y + size * 0.65)
+  shine.addColorStop(0, 'rgba(255,255,255,0.2)')
+  shine.addColorStop(0.5, 'rgba(255,255,255,0)')
+  ctx.fillStyle = shine
+  ctx.fillRect(x, y, size, size)
+  ctx.restore()
+
+  // ── ☽ hilal — vektor versiya ──
+  const cx = x + size * 0.48
+  const cy = y + size * 0.46
+  const R = size * 0.28
+
+  ctx.save()
+  ctx.shadowColor = 'rgba(0,0,0,0.15)'
+  ctx.shadowBlur = size * 0.04
+  ctx.shadowOffsetY = size * 0.01
+
+  // Ağ dairə
+  ctx.beginPath()
+  ctx.arc(cx, cy, R, 0, Math.PI * 2)
+  ctx.fillStyle = '#ffffff'
+  ctx.fill()
+
+  // Kəsmə — saytdakı ☽ formasını yaratmaq üçün
+  ctx.shadowColor = 'transparent'
+  ctx.globalCompositeOperation = 'destination-out'
+  ctx.beginPath()
+  ctx.arc(cx + R * 0.4, cy - R * 0.1, R * 0.68, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.globalCompositeOperation = 'source-over'
+  ctx.restore()
+}
+
+// ── APP ICON — yalnız [yaşıl kvadrat + ☽] ──
+function drawIcon(canvas) {
+  const s = canvas.width
+  drawHeaderLogo(canvas.getContext('2d'), 0, 0, s)
+}
+
+// ── OG IMAGE — [yaşıl kvadrat + ☽] muslims.cc ──
+function drawOG(canvas) {
+  const w = 1200, h = 630
+  const ctx = canvas.getContext('2d')
+
+  // Fon — saytın rəng sxemi
+  ctx.fillStyle = '#f7f8f5'  // saytdakı --bg
+  ctx.fillRect(0, 0, w, h)
+
+  // Yuxarı yaşıl zolaq
+  const topGrad = ctx.createLinearGradient(0, 0, w, 0)
+  topGrad.addColorStop(0, '#16a34a')
+  topGrad.addColorStop(1, '#0d4a27')
+  ctx.fillStyle = topGrad
+  ctx.fillRect(0, 0, w, 4)
+
+  // ── Mərkəzdə: header logo — tam eyni layout ──
+  const iconS = 88
+  const totalW = iconS + 16 + 340  // icon + gap + text width (təxmini)
+  const startX = (w - totalW) / 2
+  const centerY = h * 0.38
+
+  // [yaşıl kvadrat + ☽]
+  drawHeaderLogo(ctx, startX, centerY - iconS / 2, iconS)
+
+  // "muslims" — Inter 800
+  const textX = startX + iconS + 16
+  ctx.font = '800 44px "Inter", system-ui, sans-serif'
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = '#1a2e1e'   // saytdakı --text
+  const mw = ctx.measureText('muslims').width
+  ctx.fillText('muslims', textX, centerY)
+
+  // ".cc" — yaşıl
+  ctx.fillStyle = '#16a34a'   // saytdakı --primary
+  ctx.fillText('.cc', textX + mw, centerY)
+
+  // ── Alt yazılar ──
+  ctx.fillStyle = '#4a6052'   // --text-dim
+  ctx.font = '500 20px "Inter", system-ui, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText('İslami Rəqəmsal Platforma', w / 2, centerY + 60)
+
+  ctx.fillStyle = '#7a9b82'   // --text-muted
+  ctx.font = '400 15px "Inter", system-ui, sans-serif'
+  ctx.fillText('Quran · Namaz · Hədis · Dua · Zikr · Zəkat · Qiblə · Hifz · Kviz', w / 2, centerY + 95)
+  ctx.fillText('31+ xidmət · 5 dil · Pulsuz · Offline', w / 2, centerY + 118)
+
+  // ── Alt separator ──
+  ctx.strokeStyle = '#e2e8df'  // --border
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(w * 0.25, centerY + 148)
+  ctx.lineTo(w * 0.75, centerY + 148)
+  ctx.stroke()
+
+  // Feature pills
+  const pills = ['📖 Quran', '🕌 Namaz', '📚 Hədis', '🤲 Dua', '📿 Zikr', '🧭 Qiblə']
+  ctx.font = '500 13px "Inter", system-ui, sans-serif'
+  const pillW = 92, pillGap = 10
+  const pillsTotalW = pills.length * pillW + (pills.length - 1) * pillGap
+  const pillsStartX = (w - pillsTotalW) / 2
+  const pillY = centerY + 170
+
+  pills.forEach((p, i) => {
+    const px = pillsStartX + i * (pillW + pillGap)
+    ctx.fillStyle = 'rgba(26,107,58,0.07)'  // --primary-bg
+    roundRect(ctx, px, pillY, pillW, 28, 14)
+    ctx.fill()
+    ctx.fillStyle = '#1a6b3a'  // --primary
+    ctx.textAlign = 'center'
+    ctx.fillText(p, px + pillW / 2, pillY + 17)
+  })
+
+  // www.muslims.cc
+  ctx.textAlign = 'center'
+  ctx.fillStyle = '#7a9b82'
+  ctx.font = '600 13px "Inter", system-ui, sans-serif'
+  ctx.fillText('www.muslims.cc', w / 2, h - 30)
+}
+
+// ── Render ──
+const ids = [
+  { id: 'c512', name: 'android-chrome-512x512.png' },
+  { id: 'c192', name: 'android-chrome-192x192.png' },
+  { id: 'c180', name: 'apple-touch-icon.png' },
+  { id: 'c32',  name: 'favicon-32x32.png' },
+  { id: 'c16',  name: 'favicon-16x16.png' },
+]
+ids.forEach(s => drawIcon(document.getElementById(s.id)))
+drawOG(document.getElementById('cog'))
+
+// ── Download ──
+document.getElementById('dl').onclick = () => {
+  const all = [...ids, { id: 'cog', name: 'og-image.png' }]
+  let i = 0
+  const go = () => {
+    if (i >= all.length) return
+    const s = all[i++]
+    const a = document.createElement('a')
+    a.download = s.name
+    a.href = document.getElementById(s.id).toDataURL('image/png')
+    a.click()
+    setTimeout(go, 250)
+  }
+  go()
+}
+
+}) // fonts.ready
+</script>
+</body>
+</html>

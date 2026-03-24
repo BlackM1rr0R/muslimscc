@@ -1,0 +1,405 @@
+/* ══════════════════════════════════════════════════════
+   QuranGamePage Styles
+   ══════════════════════════════════════════════════════ */
+
+.qgame-layout {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* ── Mode Selection ── */
+.qgame-menu-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 32px;
+}
+
+.qgame-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.qgame-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px 24px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+  font-family: var(--font);
+}
+
+.qgame-mode-card:hover {
+  border-color: var(--primary-border);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.qgame-mode-icon {
+  font-size: 44px;
+  margin-bottom: 4px;
+}
+
+.qgame-mode-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.qgame-mode-best {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+  background: var(--gold-bg);
+  padding: 3px 14px;
+  border-radius: 12px;
+}
+
+/* ── Top Bar ── */
+.qgame-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.qgame-q-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.qgame-timer {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary);
+  background: var(--primary-bg);
+  padding: 4px 14px;
+  border-radius: 20px;
+  min-width: 50px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.qgame-timer.danger {
+  color: var(--danger);
+  background: rgba(220, 38, 38, 0.08);
+  animation: pulse 0.6s ease infinite;
+}
+
+/* ── Progress ── */
+.qgame-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.qgame-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ── Question Card ── */
+.qgame-question-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  margin-bottom: 24px;
+  text-align: center;
+  animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.qgame-instruction {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.qgame-verse {
+  font-size: clamp(22px, 4vw, 32px);
+  line-height: 2;
+  color: var(--text);
+}
+
+/* ── Options ── */
+.qgame-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.qgame-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.22s;
+  text-align: left;
+  font-family: var(--font);
+  width: 100%;
+}
+
+.qgame-option:hover:not(:disabled) {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+  transform: translateX(4px);
+}
+
+.qgame-option:disabled {
+  cursor: default;
+}
+
+.qgame-option.correct {
+  border-color: var(--success);
+  background: rgba(22, 163, 74, 0.08);
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.qgame-option.wrong {
+  border-color: var(--danger);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.qgame-option.faded {
+  opacity: 0.45;
+}
+
+.qgame-option-letter {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.qgame-option.correct .qgame-option-letter {
+  background: var(--success);
+  color: #fff;
+}
+
+.qgame-option.wrong .qgame-option-letter {
+  background: var(--danger);
+  color: #fff;
+}
+
+.qgame-option-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+
+.qgame-option-text.arabic-text {
+  font-size: clamp(18px, 3vw, 22px);
+}
+
+/* ── Answer Info ── */
+.qgame-answer-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.qgame-result-badge {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 6px 20px;
+  border-radius: 20px;
+}
+
+.qgame-result-badge.correct {
+  color: var(--success);
+  background: rgba(22, 163, 74, 0.1);
+}
+
+.qgame-result-badge.wrong {
+  color: var(--danger);
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.qgame-result-badge.timeout {
+  color: var(--warning);
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.qgame-full-verse {
+  font-size: clamp(18px, 3vw, 24px);
+  line-height: 2;
+  color: var(--primary);
+}
+
+.qgame-surah-ref {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.qgame-next-btn {
+  margin-top: 8px;
+}
+
+/* ── Results ── */
+.qgame-results {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.qgame-results-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 48px 40px;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: var(--shadow);
+}
+
+.qgame-new-best {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  background: var(--gold-bg);
+  display: inline-block;
+  padding: 5px 18px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+
+.qgame-results-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+}
+
+.qgame-results-card h2 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.qgame-results-score {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.qgame-results-num {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.qgame-results-of {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.qgame-results-detail {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.qgame-detail {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 16px;
+}
+
+.qgame-detail.correct {
+  color: var(--success);
+  background: rgba(22, 163, 74, 0.08);
+}
+
+.qgame-detail.wrong {
+  color: var(--danger);
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.qgame-results-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .qgame-question-card {
+    padding: 24px 18px;
+  }
+  .qgame-option {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .qgame-option-letter {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .qgame-results-card {
+    padding: 32px 20px;
+  }
+  .qgame-results-num {
+    font-size: 44px;
+  }
+  .qgame-modes {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] .qgame-option.correct {
+  background: rgba(22, 163, 74, 0.12);
+}
+
+[data-theme="dark"] .qgame-option.wrong {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+[data-theme="dark"] .qgame-timer.danger {
+  background: rgba(220, 38, 38, 0.15);
+}

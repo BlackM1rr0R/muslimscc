@@ -1,0 +1,322 @@
+/* ══════════════════════════════════════════════════════
+   DuaJournalPage Styles
+   ══════════════════════════════════════════════════════ */
+
+.dua-journal-layout {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Stats ── */
+.dua-stats-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.dua-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 28px;
+  min-width: 100px;
+  transition: all 0.25s;
+}
+
+.dua-stat-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--primary-border);
+}
+
+.dua-stat-answered {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+}
+
+.dua-stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.dua-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Add Button ── */
+.dua-add-btn {
+  align-self: center;
+}
+
+/* ── Form ── */
+.dua-form {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dua-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.7;
+}
+
+.dua-form-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dua-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dua-form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.dua-form-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dua-form-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ── Tabs ── */
+.dua-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+}
+
+.dua-tab {
+  flex: 1;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dua-tab:hover {
+  color: var(--text);
+  background: var(--primary-bg);
+}
+
+.dua-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.dua-tab-count {
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--primary-bg);
+  color: var(--primary);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.dua-tab.active .dua-tab-count {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ── List ── */
+.dua-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Empty State ── */
+.dua-empty {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--text-muted);
+}
+
+.dua-empty-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 14px;
+}
+
+.dua-empty p {
+  font-size: 15px;
+}
+
+/* ── Card ── */
+.dua-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dua-card:hover {
+  transform: translateY(-2px);
+}
+
+.dua-card-answered {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+}
+
+.dua-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dua-category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--bg-card2);
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+
+.dua-priority-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dua-card-text {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+.dua-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.dua-card-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.dua-card-answered-date {
+  font-size: 12px;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.dua-card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dua-action-btn {
+  font-size: 13px !important;
+  padding: 7px 14px !important;
+}
+
+.dua-delete-btn {
+  color: var(--danger) !important;
+  border-color: rgba(220, 38, 38, 0.2) !important;
+}
+
+.dua-delete-btn:hover {
+  background: rgba(220, 38, 38, 0.06) !important;
+  border-color: rgba(220, 38, 38, 0.4) !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .dua-stats-row {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .dua-stat-card {
+    padding: 14px 16px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .dua-stat-value {
+    font-size: 22px;
+  }
+
+  .dua-form {
+    padding: 18px;
+  }
+
+  .dua-card {
+    padding: 16px;
+  }
+
+  .dua-card-actions {
+    flex-direction: column;
+  }
+
+  .dua-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] .dua-card-answered {
+  background: rgba(46, 204, 113, 0.08);
+  border-color: rgba(46, 204, 113, 0.2);
+}
+
+[data-theme="dark"] .dua-stat-answered {
+  background: rgba(46, 204, 113, 0.1);
+  border-color: rgba(46, 204, 113, 0.2);
+}
+
+[data-theme="dark"] .dua-delete-btn {
+  border-color: rgba(220, 38, 38, 0.3) !important;
+}
+
+[data-theme="dark"] .dua-delete-btn:hover {
+  background: rgba(220, 38, 38, 0.1) !important;
+}
