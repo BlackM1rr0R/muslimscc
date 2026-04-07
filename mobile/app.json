@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Muslim.cc",
+    "slug": "muslim-cc",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a6b3a"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "cc.muslim.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Namaz vaxtları, qibla istiqaməti və yaxınlıqdakı məscidləri tapmaq üçün lazımdır.",
+        "NSMotionUsageDescription": "Qibla kompası üçün lazımdır."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a6b3a"
+      },
+      "package": "cc.muslim.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "VIBRATE"
+      ]
+    },
+    "plugins": [
+      "expo-location",
+      "expo-sensors",
+      "expo-notifications",
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}
