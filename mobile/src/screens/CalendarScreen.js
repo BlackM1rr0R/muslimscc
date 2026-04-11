@@ -1,137 +1,251 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { useLang } from '../contexts/LangContext';
-import { Colors, BorderRadius } from '../theme/colors';
+import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
+import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
+import { FadeUp, ScaleIn } from '../components/Animated';
 
 const EVENTS = {
-  1: [ // Muharram
-    { day: 1, type: 'major', az:'Hicri Yeni İl', en:'Islamic New Year', ru:'Исламский Новый Год', ar:'رأس السنة الهجرية', tr:'Hicri Yeni Yıl' },
-    { day: 10, type: 'major', az:'Aşura günü', en:'Day of Ashura', ru:'День Ашура', ar:'يوم عاشوراء', tr:'Aşure Günü' },
+  1: [
+    { day:1, type:'major', color:'#10b981', az:'Hicri Yeni İl', en:'Islamic New Year', ru:'Новый Год', ar:'رأس السنة الهجرية', tr:'Hicri Yeni Yıl' },
+    { day:10, type:'major', color:'#ef4444', az:'Aşura günü', en:'Day of Ashura', ru:'День Ашура', ar:'يوم عاشوراء', tr:'Aşure Günü' },
   ],
-  3: [ // Rabi al-Awwal
-    { day: 12, type: 'major', az:'Mövlud — Peyğəmbərin ﷺ doğum günü', en:'Mawlid — Birthday of Prophet ﷺ', ru:'Мавлид — День рождения Пророка ﷺ', ar:'المولد النبوي الشريف', tr:'Mevlid Kandili' },
+  3: [
+    { day:12, type:'major', color:'#10b981', az:'Mövlud — Peyğəmbərin doğum günü', en:'Mawlid — Birthday of Prophet ﷺ', ru:'Мавлид', ar:'المولد النبوي', tr:'Mevlid Kandili' },
   ],
-  7: [ // Rajab
-    { day: 1, type: 'sunnah', az:'Rəcəb ayının başlanğıcı', en:'Beginning of Rajab', ru:'Начало Раджаба', ar:'بداية رجب', tr:'Recep ayının başlangıcı' },
-    { day: 27, type: 'night', az:'İsra və Merac gecəsi', en:"Night of Isra and Mi'raj", ru:'Ночь Исра и Мирадж', ar:'ليلة الإسراء والمعراج', tr:'İsra ve Mirac Kandili' },
+  7: [
+    { day:1, type:'sunnah', color:'#3b82f6', az:'Rəcəb ayının başlanğıcı', en:'Beginning of Rajab', ru:'Начало Раджаба', ar:'بداية رجب', tr:'Recep başlangıcı' },
+    { day:27, type:'night', color:'#8b5cf6', az:'İsra və Merac gecəsi', en:"Night of Isra and Mi'raj", ru:'Ночь Исра и Мирадж', ar:'ليلة الإسراء والمعراج', tr:'İsra ve Mirac Kandili' },
   ],
-  8: [ // Sha'ban
-    { day: 15, type: 'night', az:'Bərat gecəsi', en:'Night of Barat', ru:'Ночь Барат', ar:'ليلة البراءة', tr:'Berat Kandili' },
+  8: [
+    { day:15, type:'night', color:'#a855f7', az:'Bərat gecəsi', en:'Night of Barat', ru:'Ночь Барат', ar:'ليلة البراءة', tr:'Berat Kandili' },
   ],
-  9: [ // Ramadan
-    { day: 1, type: 'major', az:'Ramazan ayının başlanğıcı', en:'Beginning of Ramadan', ru:'Начало Рамадана', ar:'بداية رمضان', tr:'Ramazan başlangıcı' },
-    { day: 27, type: 'night', az:'Qədr gecəsi', en:'Laylat al-Qadr', ru:'Ночь Предопределения', ar:'ليلة القدر', tr:'Kadir Gecesi' },
+  9: [
+    { day:1, type:'major', color:'#10b981', az:'Ramazan ayının başlanğıcı', en:'Beginning of Ramadan', ru:'Начало Рамадана', ar:'بداية رمضان', tr:'Ramazan başlangıcı' },
+    { day:27, type:'night', color:'#f59e0b', az:'Qədr gecəsi', en:'Laylat al-Qadr', ru:'Ночь Предопределения', ar:'ليلة القدر', tr:'Kadir Gecesi' },
   ],
-  10: [ // Shawwal
-    { day: 1, type: 'major', az:'Ramazan Bayramı', en:'Eid al-Fitr', ru:'Ид аль-Фитр', ar:'عيد الفطر', tr:'Ramazan Bayramı' },
+  10: [
+    { day:1, type:'major', color:'#10b981', az:'Ramazan Bayramı', en:'Eid al-Fitr', ru:'Ид аль-Фитр', ar:'عيد الفطر', tr:'Ramazan Bayramı' },
   ],
-  12: [ // Dhul Hijjah
-    { day: 8, type: 'hajj', az:'Terviye günü — Həcc başlanğıcı', en:'Day of Tarwiyah — Start of Hajj', ru:'День Тарвия — Начало Хаджа', ar:'يوم التروية', tr:'Terviye Günü' },
-    { day: 9, type: 'hajj', az:'Ərəfə günü', en:'Day of Arafah', ru:'День Арафат', ar:'يوم عرفة', tr:'Arefe Günü' },
-    { day: 10, type: 'major', az:'Qurban Bayramı', en:'Eid al-Adha', ru:'Ид аль-Адха', ar:'عيد الأضحى', tr:'Kurban Bayramı' },
+  12: [
+    { day:8, type:'hajj', color:'#f97316', az:'Terviye günü', en:'Day of Tarwiyah', ru:'День Тарвия', ar:'يوم التروية', tr:'Terviye Günü' },
+    { day:9, type:'hajj', color:'#f97316', az:'Ərəfə günü', en:'Day of Arafah', ru:'День Арафат', ar:'يوم عرفة', tr:'Arefe Günü' },
+    { day:10, type:'major', color:'#ef4444', az:'Qurban Bayramı', en:'Eid al-Adha', ru:'Ид аль-Адха', ar:'عيد الأضحى', tr:'Kurban Bayramı' },
   ],
 };
 
-const TYPE_COLORS = { major: '#d32f2f', night: '#7b1fa2', sunnah: '#1565c0', hajj: '#e65100' };
-const TYPE_ICONS = { major: '⭐', night: '🌙', sunnah: '📿', hajj: '🕋' };
+const TYPE_ICONS = { major:'star', night:'moon', sunnah:'dhikr', hajj:'hajjguide' };
+const MONTH_GRADIENTS = [
+  ['#10b981','#059669'],['#f59e0b','#d97706'],['#8b5cf6','#7c3aed'],['#3b82f6','#2563eb'],
+  ['#ec4899','#db2777'],['#06b6d4','#0891b2'],['#f97316','#ea580c'],['#14b8a6','#0d9488'],
+  ['#ef4444','#dc2626'],['#a855f7','#9333ea'],['#84cc16','#65a30d'],['#6366f1','#4f46e5'],
+];
 
 export default function CalendarScreen() {
   const { lang, dark } = useLang();
   const c = dark ? Colors.dark : Colors.light;
   const t = T[lang]?.calendar || T.az.calendar;
-  const [selMonth, setSelMonth] = useState(1);
+  const sh = dark ? Shadows.dark.md : Shadows.md;
+  const shS = dark ? Shadows.dark.sm : Shadows.sm;
 
+  const [selMonth, setSelMonth] = useState(1);
   const events = EVENTS[selMonth] || [];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: c.background }]}>
-      <PageHero arabic="التقويم الإسلامي" title={t.title} subtitle={t.subtitle} />
+    <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
+      <PageHero arabic="التَّقْوِيمُ الإِسْلَامِيّ" title={t.title} subtitle={t.subtitle} />
 
       <View style={styles.content}>
+
+        {/* Current month card */}
+        <ScaleIn delay={100}>
+          <LinearGradient
+            colors={MONTH_GRADIENTS[selMonth - 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.currentCard, sh]}
+          >
+            <View style={styles.currentCircle1} />
+            <View style={styles.currentCircle2} />
+            <View style={styles.currentNum}>
+              <Text style={styles.currentNumText}>{selMonth}</Text>
+            </View>
+            <Text style={styles.currentMonthName}>{t.months[selMonth - 1]}</Text>
+            <Text style={styles.currentYear}>{lang==='ar'?'هـ ١٤٤٧':'1447 AH'}</Text>
+            <View style={styles.currentEventCount}>
+              <AppIcon name="calendar" size={14} color="#fff" />
+              <Text style={styles.currentEventCountText}>
+                {events.length} {lang==='az'?'hadisə':lang==='ru'?'событий':lang==='ar'?'حدث':lang==='tr'?'etkinlik':'events'}
+              </Text>
+            </View>
+          </LinearGradient>
+        </ScaleIn>
+
         {/* Month selector */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthScroll}>
-          {t.months.map((month, i) => (
-            <TouchableOpacity
-              key={i}
-              style={[styles.monthBtn, selMonth === i + 1 && { backgroundColor: c.primary }]}
-              onPress={() => setSelMonth(i + 1)}
-            >
-              <Text style={[styles.monthNum, { color: selMonth === i + 1 ? '#fff' : c.textMuted }]}>{i + 1}</Text>
-              <Text style={[styles.monthName, { color: selMonth === i + 1 ? '#fff' : c.text }]} numberOfLines={1}>{month}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <FadeUp delay={200}>
+          <Text style={[styles.label, { color: c.textMuted }]}>
+            {lang==='az'?'AY SEÇ':lang==='ru'?'ВЫБЕРИТЕ МЕСЯЦ':lang==='ar'?'اختر الشهر':lang==='tr'?'AY SEÇ':'SELECT MONTH'}
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.monthRow}>
+            {t.months.map((month, i) => {
+              const active = selMonth === i + 1;
+              return (
+                <TouchableOpacity
+                  key={i}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    setSelMonth(i + 1);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  {active ? (
+                    <LinearGradient colors={MONTH_GRADIENTS[i]} style={[styles.monthBtn, Shadows.button]}>
+                      <Text style={styles.monthNum}>{i + 1}</Text>
+                      <Text style={styles.monthName} numberOfLines={1}>{month}</Text>
+                    </LinearGradient>
+                  ) : (
+                    <View style={[styles.monthBtn, { backgroundColor: c.card, borderColor: c.cardBorder, borderWidth: 1.5 }, shS]}>
+                      <Text style={[styles.monthNum, { color: c.textMuted }]}>{i + 1}</Text>
+                      <Text style={[styles.monthName, { color: c.text }]} numberOfLines={1}>{month}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </FadeUp>
 
         {/* Events */}
-        <Text style={[styles.sectionTitle, { color: c.text }]}>{t.events}</Text>
+        <FadeUp delay={300}>
+          <Text style={[styles.label, { color: c.textMuted, marginTop: 20 }]}>
+            {lang==='az'?'HADİSƏLƏR':lang==='ru'?'СОБЫТИЯ':lang==='ar'?'الأحداث':lang==='tr'?'OLAYLAR':'EVENTS'}
+          </Text>
+        </FadeUp>
+
         {events.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={{ fontSize: 48 }}>📅</Text>
-            <Text style={[styles.emptyText, { color: c.textMuted }]}>{t.noEvents}</Text>
-          </View>
+          <ScaleIn delay={400}>
+            <View style={[styles.empty, { backgroundColor: c.card, borderColor: c.cardBorder }, shS]}>
+              <View style={[styles.emptyIconWrap, { backgroundColor: c.primaryBg }]}>
+                <AppIcon name="calendar" size={36} color={c.primary} />
+              </View>
+              <Text style={[styles.emptyText, { color: c.textMuted }]}>{t.noEvents}</Text>
+            </View>
+          </ScaleIn>
         ) : (
           events.map((event, i) => (
-            <View key={i} style={[styles.eventCard, { backgroundColor: c.card, borderColor: c.cardBorder, borderLeftColor: TYPE_COLORS[event.type] || c.primary }]}>
-              <View style={styles.eventLeft}>
-                <Text style={styles.eventIcon}>{TYPE_ICONS[event.type]}</Text>
-                <View style={[styles.eventDay, { backgroundColor: TYPE_COLORS[event.type] + '20' }]}>
-                  <Text style={[styles.eventDayText, { color: TYPE_COLORS[event.type] }]}>{event.day}</Text>
+            <FadeUp key={i} delay={400 + i * 80}>
+              <View style={[styles.eventCard, { backgroundColor: c.card, borderColor: c.cardBorder }, sh]}>
+                <LinearGradient
+                  colors={[event.color + '15', 'transparent']}
+                  style={StyleSheet.absoluteFill}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0.5 }}
+                />
+                <View style={[styles.colorBar, { backgroundColor: event.color }]} />
+
+                <LinearGradient colors={[event.color, event.color + 'cc']} style={styles.eventIconWrap}>
+                  <AppIcon name={TYPE_ICONS[event.type] || 'star'} size={20} color="#fff" />
+                </LinearGradient>
+
+                <View style={styles.eventBody}>
+                  <View style={[styles.dayBadge, { backgroundColor: event.color + '18', borderColor: event.color + '30' }]}>
+                    <Text style={[styles.dayText, { color: event.color }]}>
+                      {lang==='az'?'Gün':lang==='ru'?'День':lang==='ar'?'يوم':lang==='tr'?'Gün':'Day'} {event.day}
+                    </Text>
+                  </View>
+                  <Text style={[styles.eventName, { color: c.text }]}>{event[lang] || event.en}</Text>
+                  <Text style={[styles.eventType, { color: c.textMuted }]}>{event.type.toUpperCase()}</Text>
                 </View>
               </View>
-              <View style={styles.eventBody}>
-                <Text style={[styles.eventName, { color: c.text }]}>{event[lang] || event.en}</Text>
-                <Text style={[styles.eventType, { color: TYPE_COLORS[event.type] }]}>{event.type.toUpperCase()}</Text>
-              </View>
-            </View>
+            </FadeUp>
           ))
         )}
-
-        {/* All months summary */}
-        <Text style={[styles.sectionTitle, { color: c.text, marginTop: 24 }]}>
-          {lang === 'az' ? 'Bütün aylar' : lang === 'ru' ? 'Все месяцы' : lang === 'ar' ? 'جميع الأشهر' : lang === 'tr' ? 'Tüm aylar' : 'All months'}
-        </Text>
-        {t.months.map((month, i) => {
-          const monthEvents = EVENTS[i + 1] || [];
-          return (
-            <TouchableOpacity key={i} style={[styles.monthCard, { backgroundColor: c.card, borderColor: c.cardBorder }]} onPress={() => setSelMonth(i + 1)}>
-              <View style={[styles.monthBadge, { backgroundColor: c.primary + '15' }]}>
-                <Text style={[styles.monthBadgeText, { color: c.primary }]}>{i + 1}</Text>
-              </View>
-              <Text style={[styles.monthCardName, { color: c.text }]}>{month}</Text>
-              <Text style={[styles.monthEventCount, { color: c.textMuted }]}>{monthEvents.length}</Text>
-            </TouchableOpacity>
-          );
-        })}
       </View>
-
-      <View style={{ height: 40 }} />
+      <View style={{ height: 50 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingTop: 16 },
-  monthScroll: { marginBottom: 20, maxHeight: 70 },
-  monthBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: '#eee', marginRight: 8, alignItems: 'center', minWidth: 70 },
-  monthNum: { fontSize: 12 },
-  monthName: { fontSize: 13, fontWeight: '600', marginTop: 2 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  empty: { alignItems: 'center', marginTop: 30 },
-  emptyText: { fontSize: 15, marginTop: 8 },
-  eventCard: { flexDirection: 'row', padding: 16, borderRadius: 12, borderWidth: 1, borderLeftWidth: 4, marginBottom: 10 },
-  eventLeft: { alignItems: 'center', marginRight: 14 },
-  eventIcon: { fontSize: 24, marginBottom: 4 },
-  eventDay: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  eventDayText: { fontSize: 14, fontWeight: '700' },
-  eventBody: { flex: 1, justifyContent: 'center' },
-  eventName: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  eventType: { fontSize: 11, fontWeight: '600' },
-  monthCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 10, borderWidth: 1, marginBottom: 6 },
-  monthBadge: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  monthBadgeText: { fontSize: 14, fontWeight: '700' },
-  monthCardName: { flex: 1, fontSize: 15, fontWeight: '500' },
-  monthEventCount: { fontSize: 13 },
+  content: { paddingHorizontal: 20, paddingTop: 14 },
+
+  label: { fontSize: 11, fontWeight: '800', letterSpacing: 1.5, marginBottom: 12 },
+
+  // Current month card
+  currentCard: {
+    padding: 32,
+    borderRadius: BorderRadius.xxl,
+    alignItems: 'center',
+    marginBottom: 24,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  currentCircle1: { position: 'absolute', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(255,255,255,0.08)', top: -60, right: -40 },
+  currentCircle2: { position: 'absolute', width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(255,255,255,0.05)', bottom: -40, left: -30 },
+  currentNum: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  currentNumText: { fontSize: 32, fontWeight: '800', color: '#fff' },
+  currentMonthName: { fontSize: 28, fontWeight: '800', color: '#fff', marginBottom: 6, letterSpacing: -0.5 },
+  currentYear: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 16, fontWeight: '600' },
+  currentEventCount: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.18)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  currentEventCountText: { fontSize: 12, fontWeight: '700', color: '#fff' },
+
+  // Month selector
+  monthRow: { gap: 10, paddingBottom: 8 },
+  monthBtn: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: BorderRadius.md, minWidth: 80, alignItems: 'center' },
+  monthNum: { fontSize: 12, color: 'rgba(255,255,255,0.8)', fontWeight: '700' },
+  monthName: { fontSize: 13, fontWeight: '800', color: '#fff', marginTop: 2 },
+
+  // Empty
+  empty: { alignItems: 'center', padding: 40, borderRadius: BorderRadius.xl, borderWidth: 1 },
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  emptyText: { fontSize: 14, fontWeight: '600' },
+
+  // Event card
+  eventCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 18,
+    paddingLeft: 24,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    marginBottom: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  colorBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 5 },
+  eventIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  eventBody: { flex: 1 },
+  dayBadge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, borderWidth: 1, marginBottom: 6 },
+  dayText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.3 },
+  eventName: { fontSize: 15, fontWeight: '700', marginBottom: 4, letterSpacing: -0.2 },
+  eventType: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
 });
