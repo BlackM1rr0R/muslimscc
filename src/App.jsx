@@ -40,6 +40,7 @@ import AnnouncementToast from './components/AnnouncementToast'
 import NotificationPrompt from './components/NotificationPrompt'
 import AIChatWidget from './components/AIChatWidget'
 import AccessibilityWidget from './components/AccessibilityWidget'
+import NotificationSettingsWidget from './components/NotificationSettingsWidget'
 
 const VALID_PAGES = ['home','quran','hadith','prayer','duas','dhikr','names','zakat','qibla','calendar','about','quiz','glossary','prayerguide','hifz','kids','holyplaces','dailytracker','qurangame','charity','hajjguide','quotes','duajournal','mosques','history','sahaba','analytics','adminlogin','admin','videos','books','aichat']
 
@@ -145,6 +146,8 @@ function AppInner() {
       {!isAdminPage && page !== 'aichat' && <AIChatWidget />}
       {/* Accessibility widget — above MuslimAI button */}
       {!isAdminPage && <AccessibilityWidget />}
+      {/* Notification settings — above Accessibility button */}
+      {!isAdminPage && <NotificationSettingsWidget />}
     </>
   )
 }
