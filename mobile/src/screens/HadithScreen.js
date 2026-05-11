@@ -9,7 +9,7 @@ import { T } from '../data/i18n';
 import { HADITHS } from '../data/hadiths';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
-import { FadeUp, ScaleIn, PressableCard } from '../components/Animated';
+import { FadeUp, ScaleIn, PressableCard, HeartBeat } from '../components/Animated';
 
 const CATS = {
   az:['Hamısı','İman','Əxlaq','İbadət','Namaz','Quran','Elm','Oruc','Zəkat','Zikr','Sədəqə','Səbr','Dünya','Axirət','Salavat','Səfər','Ailə'],

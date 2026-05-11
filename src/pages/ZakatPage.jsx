@@ -121,7 +121,7 @@ export default function ZakatPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-zakat">
         <div className="page-hero-arabic">الزَّكَاةُ</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

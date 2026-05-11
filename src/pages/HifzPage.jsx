@@ -202,7 +202,7 @@ export default function HifzPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-hifz">
         <div className="page-hero-arabic">ٱلۡحِفۡظُ</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

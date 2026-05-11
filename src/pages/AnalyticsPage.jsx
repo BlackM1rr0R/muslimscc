@@ -214,7 +214,7 @@ export default function AnalyticsPage({ setPage }) {
 
   return (
     <div className="analytics-page">
-      <div className="page-hero">
+      <div className="page-hero theme-analytics">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>🏠</button>
           <span>›</span>

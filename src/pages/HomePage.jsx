@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import VideoSection from '../components/VideoSection'
+import BookSection from '../components/BookSection'
+import { DailyContentDisplay } from '../components/AdminContentDisplay'
+import AnnouncementSection from '../components/AnnouncementSection'
+import HeroBannerDisplay from '../components/HeroBannerDisplay'
 import '../styles/HomePage.css'
+import '../styles/AdminPage.css'
 
 function CountUp({ end, duration = 2000 }) {
   const [count, setCount] = useState(0)
@@ -700,6 +706,21 @@ export default function HomePage({ setPage }) {
           </div>
         </div>
       </section>
+
+      {/* ═══ HERO BANNER (admin) ═══ */}
+      <HeroBannerDisplay setPage={goTo} />
+
+      {/* ═══ ANNOUNCEMENTS — Ayrı bölmə kartlarla ═══ */}
+      <AnnouncementSection />
+
+      {/* ═══ DAILY ADMIN CONTENT ═══ */}
+      <DailyContentDisplay />
+
+      {/* ═══ VIDEO SECTION ═══ */}
+      <VideoSection setPage={goTo} />
+
+      {/* ═══ BOOK SECTION ═══ */}
+      <BookSection setPage={goTo} />
 
       {/* ═══ CTA ══════════════════════════════════════════════════════════ */}
       <section className="hp-cta">

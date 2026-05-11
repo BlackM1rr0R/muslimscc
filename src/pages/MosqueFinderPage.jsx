@@ -90,7 +90,7 @@ export default function MosqueFinderPage({ setPage }) {
   return (
     <div className="mosque-finder-page">
       {/* Hero */}
-      <div className="page-hero">
+      <div className="page-hero theme-mosques">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>☰</button>
           <span>/</span>

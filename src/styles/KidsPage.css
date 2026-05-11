@@ -1,6 +1,5 @@
 /* ── Kids Page ── */
-.kids-hero { background:linear-gradient(135deg, rgba(26,107,58,0.08), rgba(184,134,11,0.06), rgba(37,99,235,0.05)); }
-.kids-hero-emojis { font-size:2rem; letter-spacing:8px; margin-bottom:8px; }
+.kids-hero-emojis { font-size:2.2rem; letter-spacing:8px; margin-bottom:8px; position:relative; z-index:1; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.15)); }
 .kids-layout { display:flex; flex-direction:column; gap:24px; }
 
 /* Tabs */
@@ -138,9 +137,6 @@
 }
 
 /* ── Dark mode ── */
-[data-theme="dark"] .kids-hero {
-  background:linear-gradient(135deg, rgba(46,204,113,0.08), rgba(240,192,64,0.05), rgba(96,165,250,0.05));
-}
 [data-theme="dark"] .kids-name-card,
 [data-theme="dark"] .kids-surah-card,
 [data-theme="dark"] .kids-dua-card,

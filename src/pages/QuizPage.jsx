@@ -920,7 +920,7 @@ export default function QuizPage({ setPage }) {
   if (phase === 'categories') {
     return (
       <>
-        <div className="page-hero">
+        <div className="page-hero theme-quiz">
           <div className="page-hero-arabic">اختبر معلوماتك الإسلامية</div>
           <h1>{t.title}</h1>
           <p>{t.subtitle}</p>
@@ -1007,7 +1007,7 @@ export default function QuizPage({ setPage }) {
     const pct = total > 0 ? Math.round((correctCount / total) * 100) : 0
     return (
       <>
-        <div className="page-hero">
+        <div className="page-hero theme-quiz">
           <h1>{t.title}</h1>
         </div>
         <div className="section">

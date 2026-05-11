@@ -165,7 +165,7 @@ export function CalendarPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-calendar">
         <div className="page-hero-arabic">التَّقۡوِيمُ ٱلۡإِسۡلَامِيّ</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

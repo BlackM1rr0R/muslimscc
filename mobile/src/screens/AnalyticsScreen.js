@@ -7,7 +7,7 @@ import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
-import { FadeUp, ScaleIn } from '../components/Animated';
+import { FadeUp, ScaleIn, AnimatedNumber } from '../components/Animated';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -126,7 +126,7 @@ export default function AnalyticsScreen() {
                   />
                 </Svg>
                 <View style={styles.ovRingCenter}>
-                  <Text style={styles.ovRingNum}>{data.totalActivities}</Text>
+                  <AnimatedNumber value={data.totalActivities} duration={1800} style={styles.ovRingNum} />
                   <Text style={styles.ovRingLabel}>
                     {lang==='az'?'fəaliyyət':lang==='ru'?'действий':lang==='ar'?'نشاط':lang==='tr'?'aktivite':'activities'}
                   </Text>
@@ -136,17 +136,17 @@ export default function AnalyticsScreen() {
               <View style={styles.ovStats}>
                 <View style={styles.ovStatItem}>
                   <AppIcon name="calendar" size={14} color="rgba(255,255,255,0.85)" />
-                  <Text style={styles.ovStatNum}>{data.prayerDays}</Text>
+                  <AnimatedNumber value={data.prayerDays} duration={1500} style={styles.ovStatNum} />
                   <Text style={styles.ovStatLabel}>{l.daysActive}</Text>
                 </View>
                 <View style={styles.ovStatItem}>
                   <AppIcon name="prayer" size={14} color="rgba(255,255,255,0.85)" />
-                  <Text style={styles.ovStatNum}>{data.prayerTotal}</Text>
+                  <AnimatedNumber value={data.prayerTotal} duration={1500} style={styles.ovStatNum} />
                   <Text style={styles.ovStatLabel}>{l.totalPrayers}</Text>
                 </View>
                 <View style={styles.ovStatItem}>
                   <AppIcon name="trophy" size={14} color="rgba(255,255,255,0.85)" />
-                  <Text style={styles.ovStatNum}>{data.quizBest}</Text>
+                  <AnimatedNumber value={data.quizBest} duration={1500} style={styles.ovStatNum} />
                   <Text style={styles.ovStatLabel}>{l.score}</Text>
                 </View>
               </View>
@@ -177,7 +177,7 @@ export default function AnalyticsScreen() {
                 <Text style={[styles.cardLabel, { color: c.text }]}>{card.label}</Text>
                 {card.items.map((item, j) => (
                   <View key={j} style={styles.cardItem}>
-                    <Text style={[styles.cardItemNum, { color: card.color }]}>{item.v}</Text>
+                    <AnimatedNumber value={item.v} duration={1200} style={[styles.cardItemNum, { color: card.color }]} />
                     <Text style={[styles.cardItemLabel, { color: c.textMuted }]}>{item.l}</Text>
                   </View>
                 ))}

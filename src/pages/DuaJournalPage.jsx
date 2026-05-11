@@ -83,7 +83,7 @@ export default function DuaJournalPage({ setPage }) {
   return (
     <div className="dua-journal-page">
       {/* Hero */}
-      <div className="page-hero">
+      <div className="page-hero theme-duajournal">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>☰</button>
           <span>/</span>

@@ -1,6 +1,7 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { QUOTES } from '../data/quotes'
+import { QUOTES as STATIC_QUOTES } from '../data/quotes'
+import { subscribeToQuotes } from '../data/adminContent'
 import '../styles/QuoteGeneratorPage.css'
 
 /* ── Labels ── */
@@ -110,10 +111,30 @@ export default function QuoteGeneratorPage({ setPage }) {
   const [category, setCategory] = useState('all')
   const [themeIdx, setThemeIdx] = useState(0)
   const [layoutIdx, setLayoutIdx] = useState(0)
-  const [quoteIdx, setQuoteIdx] = useState(() => Math.floor(Math.random() * QUOTES.length))
+  const [customQuotes, setCustomQuotes] = useState([])
+  const [quoteIdx, setQuoteIdx] = useState(() => Math.floor(Math.random() * STATIC_QUOTES.length))
   const [copied, setCopied] = useState(false)
   const [animKey, setAnimKey] = useState(0)
   const [showCustom, setShowCustom] = useState(false)
+
+  // Firebase real-time custom quotes
+  useEffect(() => {
+    const unsubscribe = subscribeToQuotes((items) => {
+      // Firebase format → app format
+      const mapped = items.map(q => ({
+        ar: q.ar || '',
+        text: q.text || { en:'', az:'', ru:'', ar:'', tr:'' },
+        source: q.source || '',
+        cat: q.category || 'wisdom',
+        _custom: true,
+      }))
+      setCustomQuotes(mapped)
+    })
+    return () => unsubscribe?.()
+  }, [])
+
+  // Birləşmiş quotes (Firebase + static)
+  const QUOTES = useMemo(() => [...customQuotes, ...STATIC_QUOTES], [customQuotes])
   const [custom, setCustom] = useState({
     arFontSize: 24,    // px
     trFontSize: 15,    // px
@@ -261,7 +282,7 @@ export default function QuoteGeneratorPage({ setPage }) {
   return (
     <>
       {/* Hero */}
-      <div className="page-hero">
+      <div className="page-hero theme-quotes">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>Ana səhifə</button>
           <span>/</span>

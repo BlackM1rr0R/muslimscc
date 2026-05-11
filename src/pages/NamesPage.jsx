@@ -123,7 +123,7 @@ export default function NamesPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-names">
         <div className="page-hero-arabic">أَسۡمَاءُ ٱللَّهِ ٱلۡحُسۡنَىٰ</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

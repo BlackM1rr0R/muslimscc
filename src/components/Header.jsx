@@ -129,8 +129,14 @@ function Header({ currentPage, setPage }) {
     { id: "calendar", label: t.calendar, icon: "🌙" },
   ];
 
+  // Videolar üçün multi-lang label
+  const videosLabel = lang === 'az' ? 'Videolar' : lang === 'ru' ? 'Видео' : lang === 'ar' ? 'الفيديوهات' : lang === 'tr' ? 'Videolar' : 'Videos'
+  const booksLabel  = lang === 'az' ? 'Kitablar' : lang === 'ru' ? 'Книги'  : lang === 'ar' ? 'الكتب'        : lang === 'tr' ? 'Kitaplar' : 'Books'
+
   // Desktop: "Daha çox" dropdown
   const moreNav = [
+    { id: "videos",       label: videosLabel,    icon: "📹" },
+    { id: "books",        label: booksLabel,     icon: "📚" },
     { id: "zakat",        label: t.zakat,        icon: "💰" },
     { id: "qibla",        label: t.qibla,        icon: "🧭" },
     { id: "dailytracker", label: t.dailytracker, icon: "📋" },
@@ -162,6 +168,8 @@ function Header({ currentPage, setPage }) {
       { id: "duas", label: t.duas, icon: "🤲" },
       { id: "dhikr", label: t.dhikr, icon: "📿" },
       { id: "names", label: t.names, icon: "⭐" },
+      { id: "videos", label: videosLabel, icon: "📹" },
+      { id: "books",  label: booksLabel,  icon: "📚" },
     ]},
     { items: [
       { id: "calendar", label: t.calendar, icon: "🌙" },

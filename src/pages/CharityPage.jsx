@@ -99,7 +99,7 @@ export default function CharityPage({ setPage }) {
   return (
     <>
       {/* Hero */}
-      <div className="page-hero">
+      <div className="page-hero theme-charity">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>muslims.cc</button>
           <span>/</span>

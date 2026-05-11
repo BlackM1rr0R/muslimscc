@@ -1130,7 +1130,7 @@ export default function GlossaryPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-glossary">
         <div className="page-hero-arabic">قاموس المصطلحات الإسلامية</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

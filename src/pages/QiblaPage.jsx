@@ -229,7 +229,7 @@ export default function QiblaPage({ setPage }) {
 
   return (
     <div className="qibla-page">
-      <div className="page-hero">
+      <div className="page-hero theme-qibla">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>
             {lang==='az'?'Ana Səhifə': lang==='ru'?'Главная': lang==='ar'?'الرئيسية': lang==='tr'?'Ana Sayfa':'Home'}

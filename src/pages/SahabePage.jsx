@@ -525,7 +525,7 @@ export default function SahabePage({ setPage }) {
     const icon = ICONS[selected.id - 1] || '☪'
     return (
       <div className="sahabe-page">
-        <div className="page-hero">
+        <div className="page-hero theme-sahaba">
           <div className="breadcrumb">
             <button onClick={() => setPage('home')}>🏠</button> / <button onClick={() => setSelectedId(null)}>{L.title}</button> / <span>{n}</span>
           </div>
@@ -588,7 +588,7 @@ export default function SahabePage({ setPage }) {
 
   return (
     <div className="sahabe-page">
-      <div className="page-hero">
+      <div className="page-hero theme-sahaba">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>🏠</button> / <span>{L.title}</span>
         </div>

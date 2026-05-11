@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Linking, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Linking, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
@@ -14,6 +15,35 @@ export default function AboutScreen() {
   const c = dark ? Colors.dark : Colors.light;
   const t = T[lang]?.about || T.az.about;
   const sh = dark ? Shadows.dark.md : Shadows.md;
+
+  const RESET_LABELS = {
+    az: { title:'Xoş gəldin ekranını yenidən göstər', sub:'Tətbiqin başlanğıc ekranını yenidən izləyin', confirm:'Xoş gəldin ekranını yenidən göstərmək istədiyinizə əminsiniz? Tətbiqi yenidən başlatmağınız lazımdır.', yes:'Bəli', no:'İmtina' },
+    en: { title:'Show Welcome Screen Again', sub:'Re-watch the app intro', confirm:'Are you sure you want to show the welcome screen again? You need to restart the app.', yes:'Yes', no:'Cancel' },
+    ru: { title:'Показать приветствие снова', sub:'Пересмотреть вводный экран', confirm:'Вы уверены, что хотите показать приветственный экран снова? Необходимо перезапустить приложение.', yes:'Да', no:'Отмена' },
+    ar: { title:'عرض شاشة الترحيب مرة أخرى', sub:'شاهد المقدمة مرة أخرى', confirm:'هل أنت متأكد؟ يجب إعادة تشغيل التطبيق.', yes:'نعم', no:'إلغاء' },
+    tr: { title:'Karşılama Ekranını Tekrar Göster', sub:'Tanıtımı tekrar izleyin', confirm:'Karşılama ekranını tekrar göstermek istediğinize emin misiniz? Uygulamayı yeniden başlatmanız gerekir.', yes:'Evet', no:'İptal' },
+  };
+  const rl = RESET_LABELS[lang] || RESET_LABELS.az;
+
+  const resetOnboarding = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert(
+      rl.title,
+      rl.confirm,
+      [
+        { text: rl.no, style: 'cancel' },
+        {
+          text: rl.yes,
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem('muslim_cc_onboarded');
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            Alert.alert('✅', lang==='az'?'Tətbiqi yenidən başladın':lang==='ru'?'Перезапустите приложение':lang==='ar'?'أعد تشغيل التطبيق':lang==='tr'?'Uygulamayı yeniden başlatın':'Please restart the app');
+          },
+        },
+      ]
+    );
+  };
 
   const VALUES = [
     { iconKey:'check', color:'#10b981', gradient:['#10b981','#059669'], title:t.v1t, desc:t.v1d },
@@ -100,6 +130,30 @@ export default function AboutScreen() {
             </View>
           </FadeUp>
         ))}
+
+        {/* Reset onboarding */}
+        <FadeUp delay={650}>
+          <TouchableOpacity
+            style={[styles.resetCard, { backgroundColor: c.card, borderColor: c.cardBorder }, dark ? Shadows.dark.sm : Shadows.sm]}
+            onPress={resetOnboarding}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={['#f59e0b15', 'transparent']}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0.5 }}
+            />
+            <LinearGradient colors={['#f59e0b','#d97706']} style={styles.resetIconWrap}>
+              <AppIcon name="reset" size={20} color="#fff" />
+            </LinearGradient>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.resetTitle, { color: c.text }]}>{rl.title}</Text>
+              <Text style={[styles.resetSub, { color: c.textMuted }]}>{rl.sub}</Text>
+            </View>
+            <AppIcon name="chevronRight" size={18} color={c.textMuted} />
+          </TouchableOpacity>
+        </FadeUp>
 
         {/* Stats */}
         <FadeUp delay={700}>
@@ -229,6 +283,21 @@ const styles = StyleSheet.create({
   valueIconWrap: { width: 48, height: 48, borderRadius: BorderRadius.md, alignItems: 'center', justifyContent: 'center' },
   valueTitle: { fontSize: 16, fontWeight: '800', marginBottom: 4, letterSpacing: -0.3 },
   valueDesc: { fontSize: 13, lineHeight: 20, fontWeight: '500' },
+
+  // Reset
+  resetCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 18,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    marginTop: 16,
+    overflow: 'hidden',
+  },
+  resetIconWrap: { width: 44, height: 44, borderRadius: BorderRadius.md, alignItems: 'center', justifyContent: 'center' },
+  resetTitle: { fontSize: 14, fontWeight: '800', marginBottom: 2, letterSpacing: -0.2 },
+  resetSub: { fontSize: 12, fontWeight: '500' },
 
   // Stats
   statsCard: { flexDirection: 'row', alignItems: 'center', padding: 24, borderRadius: BorderRadius.xl, borderWidth: 1, marginTop: 20 },

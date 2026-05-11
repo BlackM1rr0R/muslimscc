@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import { subscribeToSettings } from '../data/adminContent'
 import '../styles/PrayerPage.css'
 
 const CITIES = [
@@ -178,7 +179,33 @@ const DUA_LABELS = { az:'Namaz Duaları', en:'Prayer Duas', ru:'Молитвен
 export default function PrayerPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.prayer || T.az.prayer
-  const [selIdx, setSelIdx] = useState(0)
+  const [selIdx, setSelIdx] = useState(() => {
+    // Saxlanmış istifadəçi seçimi varsa onu götür
+    const saved = localStorage.getItem('muslim_cc_selected_city')
+    if (saved) {
+      const idx = parseInt(saved)
+      if (idx >= 0 && idx < CITIES.length) return idx
+    }
+    return 0
+  })
+
+  // Admin Settings-dən default city sinxronlaşdır
+  useEffect(() => {
+    // Yalnız istifadəçi seçim etməyibsə Firebase-dən default city götür
+    if (localStorage.getItem('muslim_cc_selected_city') !== null) return
+    const unsubscribe = subscribeToSettings((settings) => {
+      if (!settings?.defaultCity) return
+      const idx = CITIES.findIndex(c => c.city === settings.defaultCity)
+      if (idx >= 0) setSelIdx(idx)
+    })
+    return () => unsubscribe?.()
+  }, [])
+
+  // İstifadəçi şəhər dəyişəndə saxla
+  useEffect(() => {
+    localStorage.setItem('muslim_cc_selected_city', String(selIdx))
+  }, [selIdx])
+
   const { times, loading, error, hijri } = usePrayer(CITIES[selIdx].city, CITIES[selIdx].country)
   const { next, countdown } = useCountdown(times)
   const { toggle, isDone, todayDone, totalDone, totalPossible, pct, data } = usePrayerStats()
@@ -286,7 +313,7 @@ export default function PrayerPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-prayer">
         <div className="page-hero-arabic">أَوْقَاتُ الصَّلاة</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

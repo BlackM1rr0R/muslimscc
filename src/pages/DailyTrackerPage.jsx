@@ -112,7 +112,7 @@ export default function DailyTrackerPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-dailytracker">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>Muslim.cc</button>
           <span>/</span>

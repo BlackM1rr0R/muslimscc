@@ -331,7 +331,7 @@ export default function HajjGuidePage({ setPage }) {
   return (
     <>
       {/* Hero */}
-      <div className="page-hero">
+      <div className="page-hero theme-hajj">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>muslims.cc</button>
           <span>/</span>

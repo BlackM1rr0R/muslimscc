@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { HADITHS } from '../data/hadiths'
+import { subscribeToHadiths } from '../data/adminContent'
 import '../styles/HadithPage.css'
 
 const CATS_AZ = ['Hamısı','İman','Əxlaq','İbadət','Namaz','Quran','Elm','Oruc','Zəkat','Zikr','Sədəqə','Səbr','Dünya','Axirət','Salavat','Müsafirlik']
@@ -44,9 +45,16 @@ export default function HadithPage({ setPage }) {
   const [pageNum, setPageNum] = useState(1)
   const [favs,    setFavs]    = useState(() => { try { return JSON.parse(localStorage.getItem('hadith_favs')) || [] } catch { return [] } })
   const [showFavs, setShowFavs] = useState(false)
+  const [customHadiths, setCustomHadiths] = useState([])
   const PER = 20
 
   useEffect(() => localStorage.setItem('hadith_favs', JSON.stringify(favs)), [favs])
+
+  // Firebase real-time custom hadiths
+  useEffect(() => {
+    const unsubscribe = subscribeToHadiths((items) => setCustomHadiths(items))
+    return () => unsubscribe?.()
+  }, [])
 
   const toggleFav = (id) => setFavs(f => f.includes(id) ? f.filter(x => x !== id) : [...f, id])
 
@@ -59,7 +67,22 @@ export default function HadithPage({ setPage }) {
     }
   }
 
-  const list = HADITHS[lang] || HADITHS.en
+  // Firebase custom hadithləri uyğun formata çevirək
+  const customForLang = useMemo(() => {
+    return customHadiths.map(h => ({
+      id: h.id,
+      ar: h.ar || '',
+      text: h.text?.[lang] || h.text?.en || '',
+      source: h.source || '',
+      cat: h.category || 'general',
+      _custom: true,
+    }))
+  }, [customHadiths, lang])
+
+  const staticList = HADITHS[lang] || HADITHS.en
+
+  // Firebase-dən gələnləri əvvəl göstər
+  const list = useMemo(() => [...customForLang, ...staticList], [customForLang, staticList])
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
@@ -67,8 +90,8 @@ export default function HadithPage({ setPage }) {
     const enCat = idx <= 0 ? null : CATS_EN[idx] || null
     return list.filter(h => {
       if (showFavs && !favs.includes(h.id)) return false
-      const mq = !q || h.text.toLowerCase().includes(q) || h.ar.includes(q) || h.source.toLowerCase().includes(q)
-      const mc = !enCat || h.cat === enCat
+      const mq = !q || (h.text || '').toLowerCase().includes(q) || (h.ar || '').includes(q) || (h.source || '').toLowerCase().includes(q)
+      const mc = !enCat || h.cat === enCat?.toLowerCase() || h.cat === enCat
       return mq && mc
     })
   }, [list, cat, search, lang, showFavs, favs])
@@ -82,7 +105,7 @@ export default function HadithPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-hadith">
         <div className="page-hero-arabic">كُتُبُ الحَدِيث</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

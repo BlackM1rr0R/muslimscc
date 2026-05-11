@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { DUAS_DATA } from '../data/duas'
+import { subscribeToDuas } from '../data/adminContent'
 import '../styles/DuasPage.css'
 
 // ── Kateqoriya tərcümələri ──────────────────────────────
@@ -44,8 +45,15 @@ export default function DuasPage({ setPage }) {
   const [selectedCat, setSelectedCat] = useState('All')
   const [favs, setFavs] = useState(() => { try { return JSON.parse(localStorage.getItem('dua_favs')) || [] } catch { return [] } })
   const [showFavs, setShowFavs] = useState(false)
+  const [customDuas, setCustomDuas] = useState([])
 
   useEffect(() => localStorage.setItem('dua_favs', JSON.stringify(favs)), [favs])
+
+  // Firebase real-time custom duas
+  useEffect(() => {
+    const unsubscribe = subscribeToDuas((items) => setCustomDuas(items))
+    return () => unsubscribe?.()
+  }, [])
 
   const toggleFav = (id) => setFavs(f => f.includes(id) ? f.filter(x => x !== id) : [...f, id])
 
@@ -58,16 +66,33 @@ export default function DuasPage({ setPage }) {
     }
   }
 
+  // Firebase custom duaları normal formata çevirək
+  const customForLang = useMemo(() => {
+    const catMap = { morning:'Morning', evening:'Evening', general:'Misc', forgiveness:'Forgiveness', gratitude:'Gratitude', travel:'Travel', food:'Eating', sleep:'Sleeping' }
+    return customDuas.map(d => ({
+      id: d.id,
+      ar: d.ar || '',
+      translit: d.translit || '',
+      en: d.text?.en || '',
+      az: d.text?.az || '',
+      ru: d.text?.ru || '',
+      tr: d.text?.tr || '',
+      source: d.source || '',
+      cat: catMap[d.category] || 'Misc',
+      _custom: true,
+    }))
+  }, [customDuas])
+
   const filtered = useMemo(() => {
-    let data = DUAS_DATA
+    let data = [...customForLang, ...DUAS_DATA]
     if (showFavs) data = data.filter(d => favs.includes(d.id))
     if (selectedCat !== 'All' && !showFavs) data = data.filter(d => d.cat === selectedCat)
     return data
-  }, [selectedCat, showFavs, favs])
+  }, [selectedCat, showFavs, favs, customForLang])
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-duas">
         <div className="page-hero-arabic">الأَدْعِيَة وَالأَذْكَار</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

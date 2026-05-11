@@ -277,7 +277,7 @@ export default function QuranPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-quran">
         <div className="page-hero-arabic">القرآن الكريم</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

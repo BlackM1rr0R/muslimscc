@@ -8,7 +8,7 @@ import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
 import PageHero from '../components/PageHero';
-import { FadeUp, FadeIn } from '../components/Animated';
+import { FadeUp, FadeIn, Confetti, SuccessCheck, BounceIn, AnimatedNumber } from '../components/Animated';
 
 const { width: SW } = Dimensions.get('window');
 const AnimatedCircle = RNAnimated.createAnimatedComponent(Circle);
@@ -38,6 +38,7 @@ export default function DhikrScreen() {
   const [selIdx, setSelIdx] = useState(0);
   const [count, setCount] = useState(0);
   const [log, setLog] = useState([]);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const tapScale = useRef(new RNAnimated.Value(1)).current;
   const progressAnim = useRef(new RNAnimated.Value(0)).current;
@@ -84,6 +85,11 @@ export default function DhikrScreen() {
 
     if (newCount >= dhikr.target) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // Triger confetti + heavy impact
+      setShowConfetti(false);
+      setTimeout(() => setShowConfetti(true), 50);
+      setTimeout(() => setShowConfetti(false), 2000);
+      setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 100);
       const newLog = [{ idx: selIdx, count: dhikr.target, time: Date.now() }, ...log].slice(0, 20);
       setLog(newLog);
       save(selIdx, newCount, newLog);
@@ -184,13 +190,16 @@ export default function DhikrScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Confetti on complete */}
+            <Confetti trigger={showConfetti} count={30} colors={[c.gold, c.primary, '#f59e0b', '#ec4899', '#3b82f6']} />
+
             {/* Complete badge */}
             {isComplete && (
-              <FadeUp>
+              <BounceIn>
                 <View style={[styles.completeBadge, { backgroundColor: c.goldBg, borderColor: c.gold + '40' }]}>
                   <Text style={[styles.completeText, { color: c.goldDark || c.gold }]}>✅ {t.complete}</Text>
                 </View>
-              </FadeUp>
+              </BounceIn>
             )}
           </View>
         </FadeIn>
@@ -209,21 +218,21 @@ export default function DhikrScreen() {
         <FadeUp delay={350}>
           <View style={[styles.statsBar, { backgroundColor: c.primaryBg, borderColor: c.primaryBorder }]}>
             <View style={styles.statItem}>
-              <Text style={[styles.statNum, { color: c.primary }]}>{count}</Text>
+              <AnimatedNumber value={count} duration={500} style={[styles.statNum, { color: c.primary }]} />
               <Text style={[styles.statLabel, { color: c.textMuted }]}>
                 {lang === 'az' ? 'Hal-hazırda' : lang === 'ru' ? 'Текущий' : lang === 'ar' ? 'الحالي' : lang === 'tr' ? 'Mevcut' : 'Current'}
               </Text>
             </View>
             <View style={[styles.statDivider, { backgroundColor: c.primaryBorder }]} />
             <View style={styles.statItem}>
-              <Text style={[styles.statNum, { color: c.primary }]}>{log.length}</Text>
+              <AnimatedNumber value={log.length} duration={800} style={[styles.statNum, { color: c.primary }]} />
               <Text style={[styles.statLabel, { color: c.textMuted }]}>
                 {lang === 'az' ? 'Sessiya' : lang === 'ru' ? 'Сессий' : lang === 'ar' ? 'جلسات' : lang === 'tr' ? 'Oturum' : 'Sessions'}
               </Text>
             </View>
             <View style={[styles.statDivider, { backgroundColor: c.primaryBorder }]} />
             <View style={styles.statItem}>
-              <Text style={[styles.statNum, { color: c.primary }]}>{log.reduce((s, e) => s + e.count, 0)}</Text>
+              <AnimatedNumber value={log.reduce((s, e) => s + e.count, 0)} duration={1200} style={[styles.statNum, { color: c.primary }]} />
               <Text style={[styles.statLabel, { color: c.textMuted }]}>
                 {lang === 'az' ? 'Ümumi' : lang === 'ru' ? 'Всего' : lang === 'ar' ? 'الإجمالي' : lang === 'tr' ? 'Toplam' : 'Total'}
               </Text>

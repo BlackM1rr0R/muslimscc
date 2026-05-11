@@ -9,7 +9,7 @@ import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
-import { FadeUp, FadeIn, ScaleIn, Float, Pulse, PressableCard } from '../components/Animated';
+import { FadeUp, FadeIn, ScaleIn, Float, Pulse, PressableCard, AnimatedNumber, BreathingDot, AnimatedProgressBar } from '../components/Animated';
 
 const CITIES = [
   { name: 'Bakı', city: 'Baku', country: 'Azerbaijan' },
@@ -167,9 +167,7 @@ export default function PrayerScreen() {
 
               <View style={styles.nextHeader}>
                 <View style={styles.nextLeft}>
-                  <Pulse>
-                    <View style={styles.nextDot} />
-                  </Pulse>
+                  <BreathingDot color="#fff" size={10} />
                   <Text style={styles.nextLabel}>{t.next}</Text>
                 </View>
                 <Text style={styles.nextEmoji}>{PRAYER_META[nextPrayer.name]?.emoji}</Text>
@@ -198,9 +196,7 @@ export default function PrayerScreen() {
               <Text style={[styles.progressSub, { color: c.textSecondary }]}>
                 {completedToday}/5 {lang==='az'?'namaz qılınıb':lang==='ru'?'молитв':lang==='ar'?'صلوات':lang==='tr'?'namaz':'prayers'}
               </Text>
-              <View style={[styles.progressBar, { backgroundColor: c.surfaceAlt }]}>
-                <View style={[styles.progressFill, { width: `${progressPct * 100}%`, backgroundColor: c.primary }]} />
-              </View>
+              <AnimatedProgressBar progress={progressPct} color={c.primary} bgColor={c.surfaceAlt} height={8} style={{ marginTop: 4 }} />
             </View>
             <View style={styles.ringWrap}>
               <Svg width={RING_SIZE} height={RING_SIZE}>

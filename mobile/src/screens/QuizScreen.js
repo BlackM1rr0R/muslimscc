@@ -7,7 +7,7 @@ import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
-import { FadeUp, ScaleIn, Float } from '../components/Animated';
+import { FadeUp, ScaleIn, Float, Shake, Confetti, BounceIn, AnimatedNumber, AnimatedProgressBar } from '../components/Animated';
 
 const QUIZZES = {
   quran: {
@@ -62,6 +62,8 @@ export default function QuizScreen() {
   const [selected, setSelected] = useState(null);
   const [done, setDone] = useState(false);
   const [bestScores, setBestScores] = useState({});
+  const [shakeTrigger, setShakeTrigger] = useState(0);
+  const [confettiTrigger, setConfettiTrigger] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem('quiz_scores').then(v => {
@@ -82,8 +84,14 @@ export default function QuizScreen() {
     if (correct) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setScore(s => s + 1);
+      // Confetti!
+      setConfettiTrigger(false);
+      setTimeout(() => setConfettiTrigger(true), 50);
+      setTimeout(() => setConfettiTrigger(false), 1800);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      // Shake!
+      setShakeTrigger(s => s + 1);
     }
     setTimeout(async () => {
       if (qIdx + 1 >= quiz.questions.length) {
@@ -156,6 +164,9 @@ export default function QuizScreen() {
 
     return (
       <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
+        {/* Result confetti (high score) */}
+        {pct >= 80 && <Confetti trigger={true} count={50} />}
+
         <View style={styles.resultWrap}>
           <ScaleIn delay={100}>
             <LinearGradient
@@ -170,8 +181,11 @@ export default function QuizScreen() {
               <Float><Text style={styles.resultEmoji}>{emoji}</Text></Float>
 
               <Text style={styles.resultTitle}>{l.finish}</Text>
-              <Text style={styles.resultScore}>{score}/{quiz.questions.length}</Text>
-              <Text style={styles.resultPct}>{pct}%</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                <AnimatedNumber value={score} duration={1500} style={styles.resultScore} />
+                <Text style={[styles.resultScore, { color: 'rgba(255,255,255,0.7)' }]}>/{quiz.questions.length}</Text>
+              </View>
+              <AnimatedNumber value={pct} duration={1500} suffix="%" style={styles.resultPct} />
 
               <View style={styles.resultMsgBadge}>
                 <Text style={styles.resultMsg}>{message}</Text>
@@ -229,20 +243,25 @@ export default function QuizScreen() {
         </FadeUp>
 
         {/* Question card */}
-        <ScaleIn delay={100}>
-          <View style={[styles.questionCard, { backgroundColor: c.card, borderColor: c.cardBorder }, sh]}>
-            <LinearGradient
-              colors={[quiz.color + '15', 'transparent']}
-              style={StyleSheet.absoluteFill}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-            <View style={[styles.questionIconWrap, { backgroundColor: quiz.color + '20' }]}>
-              <AppIcon name={quiz.iconKey} size={28} color={quiz.color} />
+        <Shake trigger={shakeTrigger}>
+          <ScaleIn delay={100}>
+            <View style={[styles.questionCard, { backgroundColor: c.card, borderColor: c.cardBorder }, sh]}>
+              <LinearGradient
+                colors={[quiz.color + '15', 'transparent']}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              />
+              <View style={[styles.questionIconWrap, { backgroundColor: quiz.color + '20' }]}>
+                <AppIcon name={quiz.iconKey} size={28} color={quiz.color} />
+              </View>
+              <Text style={[styles.questionText, { color: c.text }]}>{qText}</Text>
             </View>
-            <Text style={[styles.questionText, { color: c.text }]}>{qText}</Text>
-          </View>
-        </ScaleIn>
+          </ScaleIn>
+        </Shake>
+
+        {/* Confetti on correct */}
+        <Confetti trigger={confettiTrigger} count={25} colors={[quiz.color, '#f59e0b', '#10b981', '#ec4899']} />
 
         {/* Options */}
         {question.opts.map((opt, i) => {
@@ -289,7 +308,7 @@ export default function QuizScreen() {
           <View style={[styles.scoreCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
             <AppIcon name="trophy" size={16} color={quiz.color} />
             <Text style={[styles.scoreLabel, { color: c.textMuted }]}>{l.score}:</Text>
-            <Text style={[styles.scoreValue, { color: quiz.color }]}>{score}</Text>
+            <AnimatedNumber value={score} duration={600} style={[styles.scoreValue, { color: quiz.color }]} />
           </View>
         </FadeUp>
       </View>

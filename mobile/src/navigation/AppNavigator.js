@@ -38,6 +38,7 @@ import IslamicHistoryScreen from '../screens/IslamicHistoryScreen';
 import SahabeScreen from '../screens/SahabeScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import AboutScreen from '../screens/AboutScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 const { width: SW } = Dimensions.get('window');
 const Drawer = createDrawerNavigator();
@@ -98,6 +99,7 @@ const MENU_GROUPS = [
   {
     categoryKey: 'settings',
     items: [
+      { name: 'Notifications', iconKey: 'settings', labelKey: 'notifications', gradient: ['#f59e0b','#d97706'] },
       { name: 'About', iconKey: 'about', labelKey: 'about', gradient: ['#64748b','#475569'] },
     ],
   },
@@ -112,11 +114,11 @@ const CATEGORY_LABELS = {
 };
 
 const NAV_LABELS = {
-  az: { home:'Ana Səhifə', quran:'Quran', hadith:'Hədis', prayer:'Namaz', duas:'Dualar', dhikr:'Zikr', names:'99 Ad', calendar:'Təqvim', zakat:'Zəkat', about:'Haqqında', qibla:'Qibla', prayerguide:'Namaz Dərsliyi', hajjguide:'Həcc Bələdçisi', hifz:'Hifz', quiz:'Viktorina', qurangame:'Quran Oyunu', dailytracker:'Gündəlik İzləyici', charity:'Sədəqə', duajournal:'Dua Jurnalı', quotes:'Sitatlar', mosques:'Məscidlər', holyplaces:'Müqəddəs Yerlər', history:'Tarix', sahaba:'Səhabələr', kids:'Uşaqlar', glossary:'Lüğət', analytics:'Statistika' },
-  en: { home:'Home', quran:'Quran', hadith:'Hadith', prayer:'Prayer', duas:"Du'as", dhikr:'Dhikr', names:'99 Names', calendar:'Calendar', zakat:'Zakat', about:'About', qibla:'Qibla', prayerguide:'Prayer Guide', hajjguide:'Hajj Guide', hifz:'Hifz', quiz:'Quiz', qurangame:'Quran Game', dailytracker:'Daily Tracker', charity:'Charity', duajournal:'Dua Journal', quotes:'Quotes', mosques:'Mosques', holyplaces:'Holy Places', history:'History', sahaba:'Companions', kids:'Kids', glossary:'Glossary', analytics:'Analytics' },
-  ru: { home:'Главная', quran:'Коран', hadith:'Хадисы', prayer:'Намаз', duas:'Дуа', dhikr:'Зикр', names:'99 Имён', calendar:'Календарь', zakat:'Закят', about:'О нас', qibla:'Кибла', prayerguide:'Намаз Гид', hajjguide:'Хадж Гид', hifz:'Хифз', quiz:'Викторина', qurangame:'Коран Игра', dailytracker:'Трекер', charity:'Садака', duajournal:'Журнал Дуа', quotes:'Цитаты', mosques:'Мечети', holyplaces:'Святые Места', history:'История', sahaba:'Сахабы', kids:'Детям', glossary:'Глоссарий', analytics:'Статистика' },
-  ar: { home:'الرئيسية', quran:'القرآن', hadith:'الحديث', prayer:'الصلاة', duas:'الأدعية', dhikr:'الذكر', names:'٩٩ اسم', calendar:'التقويم', zakat:'الزكاة', about:'عن الموقع', qibla:'القبلة', prayerguide:'دليل الصلاة', hajjguide:'دليل الحج', hifz:'الحفظ', quiz:'اختبار', qurangame:'لعبة القرآن', dailytracker:'المتابعة', charity:'الصدقة', duajournal:'دفتر الدعاء', quotes:'اقتباسات', mosques:'المساجد', holyplaces:'الأماكن المقدسة', history:'التاريخ', sahaba:'الصحابة', kids:'الأطفال', glossary:'المعجم', analytics:'الإحصائيات' },
-  tr: { home:'Ana Sayfa', quran:"Kur'an", hadith:'Hadis', prayer:'Namaz', duas:'Dualar', dhikr:'Zikir', names:'99 İsim', calendar:'Takvim', zakat:'Zekât', about:'Hakkımızda', qibla:'Kıble', prayerguide:'Namaz Rehberi', hajjguide:'Hac Rehberi', hifz:'Hıfz', quiz:'Sınav', qurangame:'Kuran Oyunu', dailytracker:'Günlük Takip', charity:'Sadaka', duajournal:'Dua Günlüğü', quotes:'Alıntılar', mosques:'Camiler', holyplaces:'Kutsal Yerler', history:'Tarih', sahaba:'Sahabeler', kids:'Çocuklar', glossary:'Sözlük', analytics:'İstatistik' },
+  az: { home:'Ana Səhifə', quran:'Quran', hadith:'Hədis', prayer:'Namaz', duas:'Dualar', dhikr:'Zikr', names:'99 Ad', calendar:'Təqvim', zakat:'Zəkat', about:'Haqqında', qibla:'Qibla', prayerguide:'Namaz Dərsliyi', hajjguide:'Həcc Bələdçisi', hifz:'Hifz', quiz:'Viktorina', qurangame:'Quran Oyunu', dailytracker:'Gündəlik İzləyici', charity:'Sədəqə', duajournal:'Dua Jurnalı', quotes:'Sitatlar', mosques:'Məscidlər', holyplaces:'Müqəddəs Yerlər', history:'Tarix', sahaba:'Səhabələr', kids:'Uşaqlar', glossary:'Lüğət', analytics:'Statistika', notifications:'Bildirişlər' },
+  en: { home:'Home', quran:'Quran', hadith:'Hadith', prayer:'Prayer', duas:"Du'as", dhikr:'Dhikr', names:'99 Names', calendar:'Calendar', zakat:'Zakat', about:'About', qibla:'Qibla', prayerguide:'Prayer Guide', hajjguide:'Hajj Guide', hifz:'Hifz', quiz:'Quiz', qurangame:'Quran Game', dailytracker:'Daily Tracker', charity:'Charity', duajournal:'Dua Journal', quotes:'Quotes', mosques:'Mosques', holyplaces:'Holy Places', history:'History', sahaba:'Companions', kids:'Kids', glossary:'Glossary', analytics:'Analytics', notifications:'Notifications' },
+  ru: { home:'Главная', quran:'Коран', hadith:'Хадисы', prayer:'Намаз', duas:'Дуа', dhikr:'Зикр', names:'99 Имён', calendar:'Календарь', zakat:'Закят', about:'О нас', qibla:'Кибла', prayerguide:'Намаз Гид', hajjguide:'Хадж Гид', hifz:'Хифз', quiz:'Викторина', qurangame:'Коран Игра', dailytracker:'Трекер', charity:'Садака', duajournal:'Журнал Дуа', quotes:'Цитаты', mosques:'Мечети', holyplaces:'Святые Места', history:'История', sahaba:'Сахабы', kids:'Детям', glossary:'Глоссарий', analytics:'Статистика', notifications:'Уведомления' },
+  ar: { home:'الرئيسية', quran:'القرآن', hadith:'الحديث', prayer:'الصلاة', duas:'الأدعية', dhikr:'الذكر', names:'٩٩ اسم', calendar:'التقويم', zakat:'الزكاة', about:'عن الموقع', qibla:'القبلة', prayerguide:'دليل الصلاة', hajjguide:'دليل الحج', hifz:'الحفظ', quiz:'اختبار', qurangame:'لعبة القرآن', dailytracker:'المتابعة', charity:'الصدقة', duajournal:'دفتر الدعاء', quotes:'اقتباسات', mosques:'المساجد', holyplaces:'الأماكن المقدسة', history:'التاريخ', sahaba:'الصحابة', kids:'الأطفال', glossary:'المعجم', analytics:'الإحصائيات', notifications:'الإشعارات' },
+  tr: { home:'Ana Sayfa', quran:"Kur'an", hadith:'Hadis', prayer:'Namaz', duas:'Dualar', dhikr:'Zikir', names:'99 İsim', calendar:'Takvim', zakat:'Zekât', about:'Hakkımızda', qibla:'Kıble', prayerguide:'Namaz Rehberi', hajjguide:'Hac Rehberi', hifz:'Hıfz', quiz:'Sınav', qurangame:'Kuran Oyunu', dailytracker:'Günlük Takip', charity:'Sadaka', duajournal:'Dua Günlüğü', quotes:'Alıntılar', mosques:'Camiler', holyplaces:'Kutsal Yerler', history:'Tarih', sahaba:'Sahabeler', kids:'Çocuklar', glossary:'Sözlük', analytics:'İstatistik', notifications:'Bildirimler' },
 };
 
 const SEARCH_PLACEHOLDERS = {
@@ -398,6 +400,7 @@ const SCREENS = [
   { name: 'Kids', component: KidsScreen, labelKey: 'kids' },
   { name: 'Glossary', component: GlossaryScreen, labelKey: 'glossary' },
   { name: 'Analytics', component: AnalyticsScreen, labelKey: 'analytics' },
+  { name: 'Notifications', component: NotificationsScreen, labelKey: 'notifications' },
   { name: 'About', component: AboutScreen, labelKey: 'about' },
 ];
 

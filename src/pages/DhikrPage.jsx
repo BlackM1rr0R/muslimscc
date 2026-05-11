@@ -66,7 +66,7 @@ export default function DhikrPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-dhikr">
         <div className="page-hero-arabic">ٱلذِّكۡرُ</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

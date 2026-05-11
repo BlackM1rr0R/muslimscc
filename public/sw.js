@@ -45,6 +45,11 @@ self.addEventListener('periodicsync', (e) => {
 self.addEventListener('fetch', (e) => {
   const { request } = e
 
+  // chrome-extension, data:, ws://, wss:// kimi sxemləri keç
+  if (!request.url.startsWith('http')) return
+  // POST/PUT/DELETE keş etmə
+  if (request.method !== 'GET') return
+
   if (request.url.includes('api.') || request.url.includes('overpass')) {
     e.respondWith(
       fetch(request)

@@ -489,7 +489,7 @@ export default function KidsPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero kids-hero">
+      <div className="page-hero theme-kids kids-hero">
         <div className="kids-hero-emojis">🌙 ⭐ 🕌 📖 🤲</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>

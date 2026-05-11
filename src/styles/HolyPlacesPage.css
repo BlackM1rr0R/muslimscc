@@ -12,30 +12,40 @@
 .holy-hero {
   position: relative;
   text-align: center;
-  padding: 60px 20px 40px;
+  padding: 60px 20px 50px;
   overflow: hidden;
+  color: #fff;
+  background: linear-gradient(135deg, #ca8a04 0%, #a16207 50%, #713f12 100%);
+  box-shadow: 0 8px 32px -12px rgba(0,0,0,0.2);
 }
-.holy-hero-bg {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(160deg, rgba(26,107,58,0.08) 0%, transparent 50%, rgba(184,134,11,0.06) 100%);
-  z-index: 0;
+.holy-hero::before {
+  content:''; position:absolute; top:-120px; right:-100px;
+  width:400px; height:400px; border-radius:50%;
+  background: rgba(255,255,255,0.10);
+  pointer-events:none;
 }
+.holy-hero::after {
+  content:'🕋'; position:absolute; bottom:-50px; left:-30px;
+  font-size:220px; opacity:0.08; pointer-events:none; transform:rotate(-10deg);
+}
+.holy-hero-bg { display: none; }
 .holy-title {
   position: relative;
   z-index: 1;
   font-size: 2.4rem;
-  font-weight: 800;
-  color: var(--text, #1a1a1a);
+  font-weight: 900;
+  color: #fff;
   margin: 0 0 8px;
   letter-spacing: -0.5px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.2);
 }
 .holy-subtitle {
   position: relative;
   z-index: 1;
   font-size: 1.1rem;
-  color: var(--text-dim, #666);
+  color: rgba(255,255,255,0.92);
   margin: 0;
+  font-weight: 500;
 }
 
 /* ── Filters ── */

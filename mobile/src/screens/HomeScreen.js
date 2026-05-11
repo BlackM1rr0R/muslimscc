@@ -7,7 +7,8 @@ import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
 import AppIcon from '../components/Icon';
-import { FadeUp, FadeIn, ScaleIn, SlideIn, Float, Pulse, Rotate, PressableCard, useParallaxHero } from '../components/Animated';
+import VideoSection from '../components/VideoSection';
+import { FadeUp, FadeIn, ScaleIn, SlideIn, Float, Pulse, Rotate, PressableCard, useParallaxHero, AnimatedNumber, BreathingDot } from '../components/Animated';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const HERO_HEIGHT = 380;
@@ -452,6 +453,9 @@ export default function HomeScreen({ navigation }) {
               </FadeUp>
             ))}
           </View>
+
+          {/* ═══ VIDEO SECTION ═══ */}
+          <VideoSection />
 
           {/* ═══ CTA ═══ */}
           <FadeUp delay={200}>

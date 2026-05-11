@@ -28,7 +28,7 @@ export function AboutPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero">
+      <div className="page-hero theme-about">
         <div className="page-hero-arabic">عَنِ الْمَوْقِع</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
