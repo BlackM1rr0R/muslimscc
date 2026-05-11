@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import '../styles/AIChatWidget.css'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -57,6 +58,8 @@ const LABELS = {
     close:'Bağla',
     open:'MuslimAI ilə danış',
     noBackend:'AI xidməti hələ qurulmayıb',
+    rateLimit:'Çox sürətli yazırsınız. Zəhmət olmasa gözləyin, {s} saniyə sonra yenidən cəhd edin.',
+    rateLimitShort:'Bir az gözləyin... {s}s',
   },
   en: {
     botName:'MuslimAI',
@@ -76,6 +79,8 @@ const LABELS = {
     close:'Close',
     open:'Chat with MuslimAI',
     noBackend:'AI service not configured',
+    rateLimit:'You are sending too fast. Please wait — try again in {s} seconds.',
+    rateLimitShort:'Wait a moment... {s}s',
   },
   ru: {
     botName:'MuslimAI',
@@ -95,6 +100,8 @@ const LABELS = {
     close:'Закрыть',
     open:'Чат с MuslimAI',
     noBackend:'AI сервис не настроен',
+    rateLimit:'Вы пишете слишком быстро. Пожалуйста, подождите — попробуйте через {s} сек.',
+    rateLimitShort:'Подождите... {s}с',
   },
   ar: {
     botName:'MuslimAI',
@@ -114,6 +121,8 @@ const LABELS = {
     close:'إغلاق',
     open:'الدردشة مع MuslimAI',
     noBackend:'خدمة AI غير مكونة',
+    rateLimit:'تكتب بسرعة كبيرة. يُرجى الانتظار — حاول مرة أخرى بعد {s} ثانية.',
+    rateLimitShort:'انتظر قليلاً... {s} ث',
   },
   tr: {
     botName:'MuslimAI',
@@ -133,6 +142,8 @@ const LABELS = {
     close:'Kapat',
     open:'MuslimAI ile sohbet',
     noBackend:'AI servisi yapılandırılmamış',
+    rateLimit:'Çok hızlı yazıyorsunuz. Lütfen {s} saniye bekleyin ve tekrar deneyin.',
+    rateLimitShort:'Biraz bekleyin... {s}s',
   },
 }
 
@@ -152,6 +163,7 @@ export default function AIChatWidget() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [cooldown, setCooldown] = useState(0) // saniyə qaldı
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -166,8 +178,27 @@ export default function AIChatWidget() {
     if (open) {
       setHasUnread(false)
       setTimeout(() => inputRef.current?.focus(), 200)
+      // Yenidən açıldıqda cooldown statusunu yoxla
+      const remaining = getActiveCooldown()
+      if (remaining > 0) setCooldown(remaining)
     }
   }, [open])
+
+  // Cooldown countdown
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const interval = setInterval(() => {
+      setCooldown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval)
+          setError('')
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [cooldown])
 
   // Bağlandıqda Escape ilə kapatma
   useEffect(() => {
@@ -179,8 +210,17 @@ export default function AIChatWidget() {
 
   const sendMessage = async (text) => {
     const msg = (text ?? input).trim()
-    if (!msg || loading) return
+    if (!msg || loading || cooldown > 0) return
     if (!API_URL) { setError(l.noBackend); return }
+
+    // Rate limit yoxla
+    const rl = checkRateLimit()
+    if (!rl.allowed) {
+      const tmpl = rl.kind === 'cooldown' ? l.rateLimit : l.rateLimitShort
+      setError(tmpl.replace('{s}', rl.remaining))
+      setCooldown(rl.remaining)
+      return
+    }
 
     setError('')
     setInput('')
@@ -188,6 +228,7 @@ export default function AIChatWidget() {
     const updated = [...messages, userMessage]
     setMessages(updated)
     setLoading(true)
+    recordMessage()
 
     try {
       const res = await fetch(`${API_URL.replace(/\/$/, '')}/api/ask-ai`, {
@@ -311,7 +352,27 @@ export default function AIChatWidget() {
             )}
           </div>
 
-          {error && <div className="aiw-error">⚠️ {error}</div>}
+          {cooldown > 0 && (
+            <div className="aiw-cooldown">
+              <div className="aiw-cooldown-icon">⏳</div>
+              <div className="aiw-cooldown-text">
+                {l.rateLimit.replace('{s}', cooldown)}
+              </div>
+              <div className="aiw-cooldown-ring">
+                <svg viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15" className="aiw-cooldown-bg" />
+                  <circle
+                    cx="18" cy="18" r="15"
+                    className="aiw-cooldown-fg"
+                    style={{ strokeDasharray: `${(cooldown / 30) * 94.2} 94.2` }}
+                  />
+                </svg>
+                <span className="aiw-cooldown-num">{cooldown}</span>
+              </div>
+            </div>
+          )}
+
+          {cooldown === 0 && error && <div className="aiw-error">⚠️ {error}</div>}
 
           {/* Input */}
           <form className="aiw-form" onSubmit={handleSubmit}>
@@ -319,14 +380,14 @@ export default function AIChatWidget() {
               ref={inputRef}
               type="text"
               className="aiw-input"
-              placeholder={l.placeholder}
+              placeholder={cooldown > 0 ? l.rateLimitShort.replace('{s}', cooldown) : l.placeholder}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              disabled={loading}
+              disabled={loading || cooldown > 0}
               maxLength={500}
             />
-            <button type="submit" className="aiw-send" disabled={loading || !input.trim()} aria-label="send">
-              {loading ? '⏳' : '➤'}
+            <button type="submit" className="aiw-send" disabled={loading || cooldown > 0 || !input.trim()} aria-label="send">
+              {loading ? '⏳' : cooldown > 0 ? cooldown : '➤'}
             </button>
           </form>
 

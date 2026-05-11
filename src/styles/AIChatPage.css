@@ -232,6 +232,81 @@
   font-weight: 600;
 }
 
+/* ─── Rate limit cooldown ─── */
+.aic-cooldown {
+  background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.08));
+  border: 1.5px solid rgba(245,158,11,0.35);
+  padding: 14px 16px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: aic-cool-in 0.3s ease;
+}
+
+@keyframes aic-cool-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.aic-cooldown-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+  animation: aic-cool-shake 1.5s ease-in-out infinite;
+}
+
+@keyframes aic-cool-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}
+
+.aic-cooldown-text {
+  flex: 1;
+  font-size: 14px;
+  color: #92400e;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.aic-cooldown-ring {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.aic-cooldown-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.aic-cooldown-bg {
+  fill: none;
+  stroke: rgba(245,158,11,0.2);
+  stroke-width: 3;
+}
+
+.aic-cooldown-fg {
+  fill: none;
+  stroke: #d97706;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s linear;
+}
+
+.aic-cooldown-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+  color: #92400e;
+}
+
 /* ─── Actions ─── */
 .aic-actions {
   display: flex;

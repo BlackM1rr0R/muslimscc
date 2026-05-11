@@ -413,6 +413,80 @@
   border-top: 1px solid rgba(239,68,68,0.2);
 }
 
+/* ─── Rate limit cooldown ─── */
+.aiw-cooldown {
+  background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.08));
+  border-top: 1px solid rgba(245,158,11,0.3);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: aiw-cool-in 0.3s ease;
+}
+
+@keyframes aiw-cool-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.aiw-cooldown-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  animation: aiw-cool-shake 1.5s ease-in-out infinite;
+}
+
+@keyframes aiw-cool-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}
+
+.aiw-cooldown-text {
+  flex: 1;
+  font-size: 12.5px;
+  color: #92400e;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.aiw-cooldown-ring {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.aiw-cooldown-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.aiw-cooldown-bg {
+  fill: none;
+  stroke: rgba(245,158,11,0.2);
+  stroke-width: 3;
+}
+
+.aiw-cooldown-fg {
+  fill: none;
+  stroke: #d97706;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s linear;
+}
+
+.aiw-cooldown-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 900;
+  color: #92400e;
+}
+
 /* ─── Input form ─── */
 .aiw-form {
   display: flex;

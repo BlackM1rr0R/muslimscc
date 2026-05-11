@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import '../styles/AIChatPage.css'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -20,6 +21,8 @@ const LABELS = {
     disclaimer:'⚠️ AI cavabları məlumat üçündür. Mühüm məsələlərdə alimə müraciət edin.',
     error:'Xəta baş verdi. Yenidən cəhd edin.',
     noBackend:'AI xidməti hələ qurulmayıb',
+    rateLimit:'Çox sürətli yazırsınız. Zəhmət olmasa gözləyin, {s} saniyə sonra yenidən cəhd edin.',
+    rateLimitShort:'Gözləyin... {s}s',
   },
   en: {
     title:'Islamic AI Assistant',
@@ -36,6 +39,8 @@ const LABELS = {
     disclaimer:'⚠️ AI answers are informational. Consult a scholar for important matters.',
     error:'An error occurred. Please try again.',
     noBackend:'AI service is not yet configured',
+    rateLimit:'You are sending too fast. Please wait — try again in {s} seconds.',
+    rateLimitShort:'Wait... {s}s',
   },
   ru: {
     title:'Исламский AI помощник',
@@ -52,6 +57,8 @@ const LABELS = {
     disclaimer:'⚠️ Ответы AI информативны. По важным вопросам консультируйтесь с учёным.',
     error:'Произошла ошибка. Попробуйте снова.',
     noBackend:'AI сервис ещё не настроен',
+    rateLimit:'Вы пишете слишком быстро. Пожалуйста, подождите — попробуйте через {s} сек.',
+    rateLimitShort:'Подождите... {s}с',
   },
   ar: {
     title:'مساعد إسلامي بالذكاء الاصطناعي',
@@ -68,6 +75,8 @@ const LABELS = {
     disclaimer:'⚠️ إجابات الذكاء الاصطناعي للمعلومات. استشر عالماً للأمور المهمة.',
     error:'حدث خطأ. حاول مرة أخرى.',
     noBackend:'خدمة AI غير مكونة بعد',
+    rateLimit:'تكتب بسرعة كبيرة. يُرجى الانتظار — حاول مرة أخرى بعد {s} ثانية.',
+    rateLimitShort:'انتظر... {s} ث',
   },
   tr: {
     title:'İslami AI Asistan',
@@ -84,6 +93,8 @@ const LABELS = {
     disclaimer:'⚠️ AI cevapları bilgi amaçlıdır. Önemli konularda âlime danışın.',
     error:'Hata oluştu. Tekrar deneyin.',
     noBackend:'AI servisi henüz yapılandırılmadı',
+    rateLimit:'Çok hızlı yazıyorsunuz. Lütfen {s} saniye bekleyin ve tekrar deneyin.',
+    rateLimitShort:'Bekleyin... {s}s',
   },
 }
 
@@ -103,6 +114,7 @@ export default function AIChatPage({ setPage }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [cooldown, setCooldown] = useState(0)
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -113,11 +125,42 @@ export default function AIChatPage({ setPage }) {
     }
   }, [messages])
 
+  // Check existing cooldown on mount
+  useEffect(() => {
+    const remaining = getActiveCooldown()
+    if (remaining > 0) setCooldown(remaining)
+  }, [])
+
+  // Cooldown countdown
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const interval = setInterval(() => {
+      setCooldown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval)
+          setError('')
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [cooldown])
+
   const sendMessage = async (text) => {
     const msg = (text ?? input).trim()
-    if (!msg || loading) return
+    if (!msg || loading || cooldown > 0) return
     if (!API_URL) {
       setError(l.noBackend)
+      return
+    }
+
+    // Rate limit
+    const rl = checkRateLimit()
+    if (!rl.allowed) {
+      const tmpl = rl.kind === 'cooldown' ? l.rateLimit : l.rateLimitShort
+      setError(tmpl.replace('{s}', rl.remaining))
+      setCooldown(rl.remaining)
       return
     }
 
@@ -127,6 +170,7 @@ export default function AIChatPage({ setPage }) {
     const updated = [...messages, userMessage]
     setMessages(updated)
     setLoading(true)
+    recordMessage()
 
     try {
       const res = await fetch(`${API_URL.replace(/\/$/, '')}/api/ask-ai`, {
@@ -211,8 +255,26 @@ export default function AIChatPage({ setPage }) {
           )}
         </div>
 
-        {/* Error */}
-        {error && <div className="aic-error">⚠️ {error}</div>}
+        {/* Cooldown / Error */}
+        {cooldown > 0 ? (
+          <div className="aic-cooldown">
+            <div className="aic-cooldown-icon">⏳</div>
+            <div className="aic-cooldown-text">{l.rateLimit.replace('{s}', cooldown)}</div>
+            <div className="aic-cooldown-ring">
+              <svg viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15" className="aic-cooldown-bg" />
+                <circle
+                  cx="18" cy="18" r="15"
+                  className="aic-cooldown-fg"
+                  style={{ strokeDasharray: `${(cooldown / 30) * 94.2} 94.2` }}
+                />
+              </svg>
+              <span className="aic-cooldown-num">{cooldown}</span>
+            </div>
+          </div>
+        ) : (
+          error && <div className="aic-error">⚠️ {error}</div>
+        )}
 
         {/* Input form */}
         <form className="aic-form" onSubmit={handleSubmit}>
@@ -220,14 +282,14 @@ export default function AIChatPage({ setPage }) {
             ref={inputRef}
             type="text"
             className="aic-input"
-            placeholder={l.placeholder}
+            placeholder={cooldown > 0 ? l.rateLimitShort.replace('{s}', cooldown) : l.placeholder}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            disabled={loading}
+            disabled={loading || cooldown > 0}
             autoFocus
           />
-          <button type="submit" className="aic-send-btn" disabled={loading || !input.trim()}>
-            {loading ? '⏳' : '➤'}
+          <button type="submit" className="aic-send-btn" disabled={loading || cooldown > 0 || !input.trim()}>
+            {loading ? '⏳' : cooldown > 0 ? cooldown : '➤'}
           </button>
         </form>
 
