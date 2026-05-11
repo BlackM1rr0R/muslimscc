@@ -142,6 +142,9 @@ export default function BooksPage({ setPage }) {
                           {cat.label[lang] || cat.label.en}
                         </div>
                       )}
+                      {b.pdfUrl && (
+                        <span className="bp-pdf-badge">📄 PDF</span>
+                      )}
                     </div>
                     <div className="bp-featured-body">
                       <h3>{b.title?.[lang] || b.title?.en}</h3>
@@ -212,6 +215,9 @@ export default function BooksPage({ setPage }) {
                         <div className="bp-cover-badge" style={{color: cat.color}}>
                           {cat.label[lang] || cat.label.en}
                         </div>
+                      )}
+                      {b.pdfUrl && (
+                        <span className="bp-pdf-badge">📄 PDF</span>
                       )}
                     </div>
                     <div className="bp-body">

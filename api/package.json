@@ -1,0 +1,10 @@
+{
+  "name": "muslim-cc-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vercel serverless functions for muslim.cc — Gemini AI + FCM push notifications",
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}

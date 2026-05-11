@@ -39,6 +39,7 @@ function Footer({ setPage }) {
               <button onClick={() => goTo('hadith')}>📚 {lang==='ru'?'Хадисы':lang==='ar'?'الحديث':lang==='tr'?'Hadis':'Hədis'}</button>
               <button onClick={() => goTo('videos')}>📹 {lang==='ru'?'Видео':lang==='ar'?'الفيديوهات':lang==='tr'?'Videolar':lang==='en'?'Videos':'Videolar'}</button>
               <button onClick={() => goTo('books')}>📚 {lang==='ru'?'Книги':lang==='ar'?'الكتب':lang==='tr'?'Kitaplar':lang==='en'?'Books':'Kitablar'}</button>
+              <button onClick={() => goTo('aichat')}>🤖 {lang==='ru'?'AI помощник':lang==='ar'?'مساعد AI':lang==='tr'?'AI Asistan':lang==='en'?'AI Assistant':'AI Köməkçi'}</button>
               <button onClick={() => goTo('prayer')}>🕌 {lang==='ru'?'Намаз':lang==='ar'?'الصلاة':lang==='tr'?'Namaz':'Namaz'}</button>
               <button onClick={() => goTo('duas')}>🤲 {lang==='ru'?'Дуа':lang==='ar'?'الأدعية':lang==='tr'?'Dualar':'Dualar'}</button>
               <button onClick={() => goTo('names')}>⭐ {lang==='ru'?'99 Имён':lang==='ar'?'الأسماء':lang==='tr'?'99 İsim':'99 Ad'}</button>

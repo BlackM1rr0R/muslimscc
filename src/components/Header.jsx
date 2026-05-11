@@ -132,9 +132,11 @@ function Header({ currentPage, setPage }) {
   // Videolar üçün multi-lang label
   const videosLabel = lang === 'az' ? 'Videolar' : lang === 'ru' ? 'Видео' : lang === 'ar' ? 'الفيديوهات' : lang === 'tr' ? 'Videolar' : 'Videos'
   const booksLabel  = lang === 'az' ? 'Kitablar' : lang === 'ru' ? 'Книги'  : lang === 'ar' ? 'الكتب'        : lang === 'tr' ? 'Kitaplar' : 'Books'
+  const aiChatLabel = lang === 'az' ? 'AI Köməkçi' : lang === 'ru' ? 'AI помощник' : lang === 'ar' ? 'مساعد AI' : lang === 'tr' ? 'AI Asistan' : 'AI Assistant'
 
   // Desktop: "Daha çox" dropdown
   const moreNav = [
+    { id: "aichat",       label: aiChatLabel,    icon: "🤖" },
     { id: "videos",       label: videosLabel,    icon: "📹" },
     { id: "books",        label: booksLabel,     icon: "📚" },
     { id: "zakat",        label: t.zakat,        icon: "💰" },
@@ -170,6 +172,7 @@ function Header({ currentPage, setPage }) {
       { id: "names", label: t.names, icon: "⭐" },
       { id: "videos", label: videosLabel, icon: "📹" },
       { id: "books",  label: booksLabel,  icon: "📚" },
+      { id: "aichat", label: aiChatLabel, icon: "🤖" },
     ]},
     { items: [
       { id: "calendar", label: t.calendar, icon: "🌙" },

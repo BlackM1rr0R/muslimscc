@@ -8,6 +8,7 @@ import {
 } from '../data/adminContent'
 import VideoManager from '../components/admin/VideoManager'
 import BookManager from '../components/admin/BookManager'
+import PushNotificationManager from '../components/admin/PushNotificationManager'
 import HadithManager from '../components/admin/HadithManager'
 import DuaManager from '../components/admin/DuaManager'
 import AnnouncementManager from '../components/admin/AnnouncementManager'
@@ -23,11 +24,11 @@ import SeedManager from '../components/admin/SeedManager'
 import '../styles/AdminPage.css'
 
 const LABELS = {
-  az: { dashboard:'İdarə paneli', content:'KONTENT', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Hero Banner', system:'SİSTEM', settings:'Parametrlər', stats:'Statistika', backup:'Yedək & Bərpa', seed:'Default yüklə', logout:'Çıxış', adminPanel:'Admin Panel' },
-  en: { dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero Banner', system:'SYSTEM', settings:'Settings', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', logout:'Logout', adminPanel:'Admin Panel' },
-  ru: { dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Hero Баннер', system:'СИСТЕМА', settings:'Настройки', stats:'Статистика', backup:'Резерв', seed:'Загрузить', logout:'Выход', adminPanel:'Админ' },
-  ar: { dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر', system:'النظام', settings:'الإعدادات', stats:'الإحصائيات', backup:'النسخ', seed:'تحميل', logout:'خروج', adminPanel:'لوحة الإدارة' },
-  tr: { dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Hero Banner', system:'SİSTEM', settings:'Ayarlar', stats:'İstatistik', backup:'Yedekleme', seed:'Yükle', logout:'Çıkış', adminPanel:'Yönetim' },
+  az: { dashboard:'İdarə paneli', content:'KONTENT', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Hero Banner', system:'SİSTEM', settings:'Parametrlər', stats:'Statistika', backup:'Yedək & Bərpa', seed:'Default yüklə', pushNotif:'Push Bildirişlər', logout:'Çıxış', adminPanel:'Admin Panel' },
+  en: { dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero Banner', system:'SYSTEM', settings:'Settings', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Logout', adminPanel:'Admin Panel' },
+  ru: { dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Hero Баннер', system:'СИСТЕМА', settings:'Настройки', stats:'Статистика', backup:'Резерв', seed:'Загрузить', pushNotif:'Уведомления', logout:'Выход', adminPanel:'Админ' },
+  ar: { dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر', system:'النظام', settings:'الإعدادات', stats:'الإحصائيات', backup:'النسخ', seed:'تحميل', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة' },
+  tr: { dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Hero Banner', system:'SİSTEM', settings:'Ayarlar', stats:'İstatistik', backup:'Yedekleme', seed:'Yükle', pushNotif:'Bildirimler', logout:'Çıkış', adminPanel:'Yönetim' },
 }
 
 const NAV_GROUPS = [
@@ -47,6 +48,7 @@ const NAV_GROUPS = [
       { key:'announcements', icon:'📣', labelKey:'announcements' },
       { key:'events',        icon:'📅', labelKey:'events' },
       { key:'daily',         icon:'🌟', labelKey:'daily', noCount:true },
+      { key:'pushNotif',     icon:'🔔', labelKey:'pushNotif', noCount:true },
     ],
   },
   {
@@ -103,6 +105,7 @@ export default function AdminPage({ setPage }) {
       case 'announcements': return <AnnouncementManager onUpdate={refreshCounts} />
       case 'events':        return <EventManager onUpdate={refreshCounts} />
       case 'daily':         return <DailyContentManager />
+      case 'pushNotif':     return <PushNotificationManager />
       case 'hero':          return <HeroBannerManager />
       case 'settings':      return <SettingsManager />
       case 'stats':         return <StatsManager />

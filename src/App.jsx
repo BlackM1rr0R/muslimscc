@@ -35,9 +35,12 @@ import AdminLoginPage from './pages/AdminLoginPage'
 import AdminPage from './pages/AdminPage'
 import VideosPage from './pages/VideosPage'
 import BooksPage from './pages/BooksPage'
+import AIChatPage from './pages/AIChatPage'
 import AnnouncementToast from './components/AnnouncementToast'
+import NotificationPrompt from './components/NotificationPrompt'
+import AIChatWidget from './components/AIChatWidget'
 
-const VALID_PAGES = ['home','quran','hadith','prayer','duas','dhikr','names','zakat','qibla','calendar','about','quiz','glossary','prayerguide','hifz','kids','holyplaces','dailytracker','qurangame','charity','hajjguide','quotes','duajournal','mosques','history','sahaba','analytics','adminlogin','admin','videos','books']
+const VALID_PAGES = ['home','quran','hadith','prayer','duas','dhikr','names','zakat','qibla','calendar','about','quiz','glossary','prayerguide','hifz','kids','holyplaces','dailytracker','qurangame','charity','hajjguide','quotes','duajournal','mosques','history','sahaba','analytics','adminlogin','admin','videos','books','aichat']
 
 // Hidden admin URL — type "#admin" in the address bar to access
 const ADMIN_HASH = '#admin'
@@ -118,6 +121,7 @@ function AppInner() {
       case 'admin':         return <AdminPage         setPage={navigate} />
       case 'videos':        return <VideosPage        setPage={navigate} />
       case 'books':         return <BooksPage         setPage={navigate} />
+      case 'aichat':        return <AIChatPage        setPage={navigate} />
       default:              return <HomePage          setPage={navigate} />
     }
   }
@@ -134,6 +138,10 @@ function AppInner() {
       {!isAdminPage && <NotificationManager />}
       {/* Pop-up announcement toast — hər səhifədə görünür */}
       {!isAdminPage && <AnnouncementToast />}
+      {/* Push notification permission prompt */}
+      {!isAdminPage && <NotificationPrompt />}
+      {/* MuslimAI floating chat widget — bottom-right */}
+      {!isAdminPage && page !== 'aichat' && <AIChatWidget />}
     </>
   )
 }

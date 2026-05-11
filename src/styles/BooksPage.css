@@ -190,7 +190,7 @@
 /* ═══ FEATURED ROW ═══ */
 .bp-featured-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 22px;
 }
 
@@ -199,9 +199,12 @@
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
   box-shadow: 0 4px 14px rgba(0,0,0,0.06);
   border: 1px solid var(--border);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .bp-featured-card:hover {
@@ -211,15 +214,18 @@
 
 .bp-featured-cover {
   position: relative;
-  aspect-ratio: 2/3;
+  aspect-ratio: 2 / 3;
+  width: 100%;
   overflow: hidden;
   background: linear-gradient(135deg, #f59e0b, #d97706);
+  flex-shrink: 0;
 }
 
 .bp-featured-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
   transition: transform 0.4s;
 }
 
@@ -332,7 +338,7 @@
 /* ═══ GRID ═══ */
 .bp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 22px;
 }
 
@@ -341,11 +347,12 @@
   border-radius: 14px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.3s, box-shadow 0.3s;
   border: 1px solid var(--border);
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .bp-card:hover {
@@ -355,16 +362,39 @@
 
 .bp-cover {
   position: relative;
-  aspect-ratio: 2/3;
+  aspect-ratio: 2 / 3;
+  width: 100%;
   overflow: hidden;
   background: linear-gradient(135deg, #f59e0b, #d97706);
+  flex-shrink: 0;
 }
 
 .bp-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
   transition: transform 0.4s;
+}
+
+/* PDF badge */
+.bp-pdf-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(220, 38, 38, 0.95);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  z-index: 1;
 }
 
 .bp-card:hover .bp-cover img { transform: scale(1.06); }
@@ -744,27 +774,70 @@
 @media (max-width: 768px) {
   .bp-hero { padding: 40px 20px 36px; }
   .bp-container { padding: 28px 14px 60px; }
-  .bp-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
-  .bp-featured-row { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+  .bp-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+  .bp-featured-row {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+  }
+  .bp-cover-icon { font-size: 50px; }
+  .bp-title { font-size: 13px; }
+  .bp-body { padding: 10px 12px 12px; }
+  .bp-actions { padding-top: 6px; }
+  .bp-read-btn { padding: 8px 10px; font-size: 11.5px; }
+  .bp-pdf-badge { font-size: 10px; padding: 3px 8px; }
+
+  /* Modal stacks on mobile */
   .bp-modal-inner {
     grid-template-columns: 1fr;
     gap: 20px;
     padding: 20px;
   }
   .bp-modal-cover {
-    max-width: 220px;
+    max-width: 200px;
     margin: 0 auto;
+    width: 100%;
   }
   .bp-modal-info { padding-right: 0; text-align: center; }
+  .bp-modal-info h2 { font-size: 22px; }
+  .bp-modal-author { font-size: 14px; }
+  .bp-modal-desc { font-size: 14px; text-align: left; }
   .bp-modal-meta { justify-content: center; }
   .bp-modal-actions { justify-content: center; }
 }
 
 @media (max-width: 480px) {
-  .bp-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .bp-cover-icon { font-size: 48px; }
-  .bp-cover-cat { font-size: 11px; }
-  .bp-title { font-size: 13px; }
+  .bp-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .bp-featured-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .bp-cover-icon { font-size: 40px; }
+  .bp-cover-cat { font-size: 10px; }
+  .bp-title { font-size: 12.5px; }
+  .bp-author { font-size: 11px; }
+  .bp-meta { font-size: 10px; gap: 8px; }
   .bp-section-title { font-size: 18px; }
   .bp-hero-title { font-size: 26px; }
+  .bp-body { padding: 10px 10px 12px; gap: 4px; }
+  .bp-actions { gap: 5px; }
+  .bp-share-btn { width: 32px; height: 32px; font-size: 13px; }
+  .bp-cover-badge { font-size: 9px; padding: 3px 8px; top: 8px; left: 8px; }
+
+  /* Featured cards body compact on small screens */
+  .bp-featured-body h3 { font-size: 13px; }
+  .bp-featured-author { font-size: 11px; }
+  .bp-featured-body { padding: 10px 12px 12px; }
+}
+
+@media (max-width: 360px) {
+  .bp-grid { gap: 10px; }
+  .bp-featured-row { gap: 10px; }
+  .bp-body { padding: 8px 8px 10px; }
+  .bp-title { font-size: 12px; }
 }
