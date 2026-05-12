@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { subscribeToSettings } from '../data/adminContent'
+import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/PrayerPage.css'
 
 const CITIES = [
@@ -313,6 +314,7 @@ export default function PrayerPage({ setPage }) {
 
   return (
     <>
+      <SEO title={getPageMeta('prayer', lang)?.title} description={getPageMeta('prayer', lang)?.description} page="/prayer" />
       <div className="page-hero theme-prayer">
         <div className="page-hero-arabic">أَوْقَاتُ الصَّلاة</div>
         <h1>{t.title}</h1>

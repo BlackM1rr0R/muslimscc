@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/NamesPage.css'
 
 const NAMES_99 = [
@@ -123,6 +124,7 @@ export default function NamesPage({ setPage }) {
 
   return (
     <>
+      <SEO title={getPageMeta('names', lang)?.title} description={getPageMeta('names', lang)?.description} page="/names" />
       <div className="page-hero theme-names">
         <div className="page-hero-arabic">أَسۡمَاءُ ٱللَّهِ ٱلۡحُسۡنَىٰ</div>
         <h1>{t.title}</h1>

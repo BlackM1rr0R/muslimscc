@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLang } from '../contexts/LangContext'
+import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/QiblaPage.css'
 
 const KAABA = { lat: 21.3891, lon: 39.8579 }
@@ -229,6 +230,7 @@ export default function QiblaPage({ setPage }) {
 
   return (
     <div className="qibla-page">
+      <SEO title={getPageMeta('qibla', lang)?.title} description={getPageMeta('qibla', lang)?.description} page="/qibla" />
       <div className="page-hero theme-qibla">
         <div className="breadcrumb">
           <button onClick={() => setPage('home')}>

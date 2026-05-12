@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import SEO, { getPageMeta } from '../components/SEO'
 import VideoSection from '../components/VideoSection'
 import BookSection from '../components/BookSection'
 import { DailyContentDisplay } from '../components/AdminContentDisplay'
@@ -341,8 +342,11 @@ export default function HomePage({ setPage }) {
     {t:{az:'Hər gün günün hədisini oxuyuram. Çox maarifləndiricidir. Cəzakallah!',en:'I read the hadith of the day every day. Very enlightening. JazakAllah!',ru:'Каждый день читаю хадис дня. Очень познавательно. Джазакаллах!',tr:'Her gün günün hadisini okuyorum. Çok aydınlatıcı. Cezakallah!',ar:'أقرأ حديث اليوم كل يوم. مفيد ومنير جداً. جزاكم الله خيراً!'},name:'Farid İ.',loc:'Bakı'},
   ]
 
+  const meta = getPageMeta('home', lang)
+
   return (
     <div className="hp-root">
+      <SEO title={meta?.title} description={meta?.description} page="/" />
 
       {/* ═══ HERO ═══════════════════════════════════════════════════════ */}
       <section className={`hp-hero ${visible?'hp-hero--vis':''}`} ref={heroRef}>

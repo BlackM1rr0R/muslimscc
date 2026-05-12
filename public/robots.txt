@@ -1,19 +1,59 @@
+# ═══════════════════════════════════════════════════════
 # Muslim.cc — robots.txt
+# https://muslims.cc
+# ═══════════════════════════════════════════════════════
+
 User-agent: *
 Allow: /
 Disallow: /node_modules/
 Disallow: /src/
+Disallow: /admin
+Disallow: /adminlogin
+Disallow: /api/
 
-# Sitemaps
-Sitemap: https://muslims.cc/sitemap.xml
+# AI scrapers — icazə verilir (məzmun açıq paylaşılır)
+User-agent: GPTBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: Claude-Web
+Allow: /
+User-agent: anthropic-ai
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
 
-# Crawl-delay (optional, for polite crawling)
-Crawl-delay: 1
-
-# Google specific
+# Axtarış motorları — explicit allow
 User-agent: Googlebot
 Allow: /
+Disallow: /admin
+Disallow: /adminlogin
 
-# Bing specific
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
 User-agent: Bingbot
 Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+# Crawl-delay (polite crawling)
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://muslims.cc/sitemap.xml
+
+# Host (kanonik domain)
+Host: https://muslims.cc

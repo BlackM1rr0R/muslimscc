@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/ZakatPage.css'
 
 // Nisab ≈ 85q qızıl × $50/g ≈ $4,250
@@ -121,6 +122,7 @@ export default function ZakatPage({ setPage }) {
 
   return (
     <>
+      <SEO title={getPageMeta('zakat', lang)?.title} description={getPageMeta('zakat', lang)?.description} page="/zakat" />
       <div className="page-hero theme-zakat">
         <div className="page-hero-arabic">الزَّكَاةُ</div>
         <h1>{t.title}</h1>

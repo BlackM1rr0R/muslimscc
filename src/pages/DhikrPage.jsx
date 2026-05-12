@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/DhikrPage.css'
 
 // ── localStorage helper-ləri ──
@@ -66,6 +67,7 @@ export default function DhikrPage({ setPage }) {
 
   return (
     <>
+      <SEO title={getPageMeta('dhikr', lang)?.title} description={getPageMeta('dhikr', lang)?.description} page="/dhikr" />
       <div className="page-hero theme-dhikr">
         <div className="page-hero-arabic">ٱلذِّكۡرُ</div>
         <h1>{t.title}</h1>

@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { DUAS_DATA } from '../data/duas'
 import { subscribeToDuas } from '../data/adminContent'
+import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/DuasPage.css'
 
 // ── Kateqoriya tərcümələri ──────────────────────────────
@@ -92,6 +93,7 @@ export default function DuasPage({ setPage }) {
 
   return (
     <>
+      <SEO title={getPageMeta('duas', lang)?.title} description={getPageMeta('duas', lang)?.description} page="/duas" />
       <div className="page-hero theme-duas">
         <div className="page-hero-arabic">الأَدْعِيَة وَالأَذْكَار</div>
         <h1>{t.title}</h1>
