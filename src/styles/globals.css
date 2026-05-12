@@ -602,3 +602,13 @@ body.panel-open .notif-fab {
   transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
 }
 
+/* Panel açıq olduqda arxa səhifə scroll olmasın — mobile-da klaviatura ilə layout pozulmasın */
+@media (max-width: 640px) {
+  body.panel-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+}
+

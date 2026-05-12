@@ -177,11 +177,26 @@ export default function AIChatWidget() {
   useEffect(() => {
     if (open) {
       setHasUnread(false)
-      setTimeout(() => inputRef.current?.focus(), 200)
+      // Mobil-da autofocus klaviaturanı dərhal açır — istəmirik
+      const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
+      if (!isMobile) setTimeout(() => inputRef.current?.focus(), 200)
       // Yenidən açıldıqda cooldown statusunu yoxla
       const remaining = getActiveCooldown()
       if (remaining > 0) setCooldown(remaining)
     }
+  }, [open])
+
+  // Visual viewport API — klaviatura açıldıqda chat-i düzəlt (iOS Safari)
+  useEffect(() => {
+    if (!open || typeof window === 'undefined' || !window.visualViewport) return
+    const handler = () => {
+      // Mesajların aşağıya scroll edilməsi
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      }
+    }
+    window.visualViewport.addEventListener('resize', handler)
+    return () => window.visualViewport.removeEventListener('resize', handler)
   }, [open])
 
   // Cooldown countdown
@@ -406,6 +421,11 @@ export default function AIChatWidget() {
               onChange={(e) => setInput(e.target.value)}
               disabled={loading || cooldown > 0}
               maxLength={500}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck="false"
+              enterKeyHint="send"
+              inputMode="text"
             />
             <button type="submit" className="aiw-send" disabled={loading || cooldown > 0 || !input.trim()} aria-label="send">
               {loading ? '⏳' : cooldown > 0 ? cooldown : '➤'}
