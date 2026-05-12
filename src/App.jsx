@@ -134,7 +134,7 @@ function AppInner() {
   return (
     <>
       {!isAdminPage && <Header currentPage={page} setPage={navigate} />}
-      <main>{renderPage()}</main>
+      <main key={page} className="page-enter">{renderPage()}</main>
       {!isAdminPage && <Footer setPage={navigate} />}
       {!isAdminPage && <InstallBanner />}
       {!isAdminPage && <NotificationManager />}

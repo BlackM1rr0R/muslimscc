@@ -106,10 +106,36 @@ img { max-width:100%; display:block; }
 ::-webkit-scrollbar-thumb:hover { background:var(--primary); }
 ::selection { background:rgba(26,107,58,0.15); color:var(--text); }
 
-/* ── Utility Animations ── */
-@keyframes fadeUp   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+/* ── Utility Animations (now left-to-right) ── */
+@keyframes fadeUp   { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:none} }
 @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
 @keyframes scaleIn  { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+@keyframes slideInLeft  { from{opacity:0;transform:translateX(-30px)} to{opacity:1;transform:none} }
+@keyframes slideInRight { from{opacity:0;transform:translateX(30px)}  to{opacity:1;transform:none} }
+
+.anim-slideInLeft  { animation:slideInLeft  .5s cubic-bezier(0.4,0,0.2,1) both; }
+.anim-slideInRight { animation:slideInRight .5s cubic-bezier(0.4,0,0.2,1) both; }
+
+/* Page transition — soldan sağa keçid */
+.page-enter { animation: pageEnter 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+[dir="rtl"] .page-enter,
+html[lang="ar"] .page-enter { animation: pageEnterRTL 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+@keyframes pageEnterRTL {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* RTL: animasiyalar sağdan-sola keçsin */
+[dir="rtl"] .anim-fadeUp,
+html[lang="ar"] .anim-fadeUp { animation-name: slideInRight; }
+[dir="rtl"] .anim-slideInLeft,
+html[lang="ar"] .anim-slideInLeft { animation-name: slideInRight; }
+[dir="rtl"] .anim-slideInRight,
+html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
 @keyframes shimmer  { 0%{background-position:-200% center} 100%{background-position:200% center} }
 @keyframes spin     { to{transform:rotate(360deg)} }
 @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.5} }
@@ -357,7 +383,7 @@ img { max-width:100%; display:block; }
   box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
   animation: slideUp 0.4s ease;
 }
-@keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+@keyframes slideUp { from { transform: translateX(-100%) } to { transform: translateX(0) } }
 
 .install-banner-inner {
   max-width: 800px; margin: 0 auto;

@@ -278,7 +278,7 @@ export default function AIChatWidget() {
             <AIIcon size={22} />
           </div>
           {hasUnread && <span className="aiw-fab-dot"></span>}
-          <span className="aiw-fab-label">{l.botName}</span>
+          <span className="aiw-fab-label">AI</span>
         </button>
       )}
 

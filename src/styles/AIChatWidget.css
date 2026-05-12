@@ -2,7 +2,7 @@
    AI CHAT WIDGET — Floating bottom-right button + panel
    ═══════════════════════════════════════════════════════ */
 
-/* ─── FAB ─── */
+/* ─── FAB (bottom of stack) ─── */
 .aiw-fab {
   position: fixed;
   bottom: 24px;
@@ -126,8 +126,8 @@
 }
 
 @keyframes aiw-panel-in {
-  0% { opacity: 0; transform: translateY(30px) scale(0.92); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  0% { opacity: 0; transform: translateX(-30px) scale(0.94); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
 }
 
 /* ─── Header ─── */
@@ -557,7 +557,7 @@
 /* ─── Responsive (mobile = full sheet) ─── */
 @media (max-width: 640px) {
   .aiw-fab {
-    bottom: 80px; /* mobile-da pastdakı navi-yə yer qoy */
+    bottom: 80px; /* AI stack-in altında (mobile nav-ın üstündə) */
     right: 16px;
     padding: 10px 14px 10px 10px;
   }
