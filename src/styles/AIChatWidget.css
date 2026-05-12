@@ -557,7 +557,7 @@
 /* ─── Responsive (mobile = full sheet) ─── */
 @media (max-width: 640px) {
   .aiw-fab {
-    bottom: 80px; /* AI stack-in altında (mobile nav-ın üstündə) */
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     right: 16px;
     padding: 10px 14px 10px 10px;
   }
