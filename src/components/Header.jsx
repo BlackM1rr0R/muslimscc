@@ -133,12 +133,21 @@ function Header({ currentPage, setPage }) {
   const videosLabel = lang === 'az' ? 'Videolar' : lang === 'ru' ? 'Видео' : lang === 'ar' ? 'الفيديوهات' : lang === 'tr' ? 'Videolar' : 'Videos'
   const booksLabel  = lang === 'az' ? 'Kitablar' : lang === 'ru' ? 'Книги'  : lang === 'ar' ? 'الكتب'        : lang === 'tr' ? 'Kitaplar' : 'Books'
   const aiChatLabel = lang === 'az' ? 'AI Köməkçi' : lang === 'ru' ? 'AI помощник' : lang === 'ar' ? 'مساعد AI' : lang === 'tr' ? 'AI Asistan' : 'AI Assistant'
+  const notifLabel  = lang === 'az' ? 'Bildirişlər' : lang === 'ru' ? 'Уведомления' : lang === 'ar' ? 'الإشعارات' : lang === 'tr' ? 'Bildirimler' : 'Notifications'
+
+  // Bildiriş panelini açan funksiya (FAB silinib, indi yalnız menyudan)
+  const openNotifications = () => {
+    setMobileOpen(false)
+    setMoreOpen(false)
+    window.dispatchEvent(new CustomEvent('open-notifications'))
+  }
 
   // Desktop: "Daha çox" dropdown
   const moreNav = [
     { id: "aichat",       label: aiChatLabel,    icon: "🤖" },
     { id: "videos",       label: videosLabel,    icon: "📹" },
     { id: "books",        label: booksLabel,     icon: "📚" },
+    { id: "__notif",      label: notifLabel,     icon: "🔔", action: openNotifications },
     { id: "zakat",        label: t.zakat,        icon: "💰" },
     { id: "qibla",        label: t.qibla,        icon: "🧭" },
     { id: "dailytracker", label: t.dailytracker, icon: "📋" },
@@ -173,6 +182,7 @@ function Header({ currentPage, setPage }) {
       { id: "videos", label: videosLabel, icon: "📹" },
       { id: "books",  label: booksLabel,  icon: "📚" },
       { id: "aichat", label: aiChatLabel, icon: "🤖" },
+      { id: "__notif", label: notifLabel, icon: "🔔", action: openNotifications },
     ]},
     { items: [
       { id: "calendar", label: t.calendar, icon: "🌙" },
@@ -254,7 +264,7 @@ function Header({ currentPage, setPage }) {
                     <button
                       key={item.id}
                       className={`nav-more-item ${currentPage === item.id ? "active" : ""}`}
-                      onClick={() => goTo(item.id)}
+                      onClick={() => item.action ? item.action() : goTo(item.id)}
                     >
                       <span className="nav-more-icon">{item.icon}</span>
                       <span>{item.label}</span>
@@ -362,7 +372,7 @@ function Header({ currentPage, setPage }) {
                 <button
                   key={item.id}
                   className={`mobile-nav-link ${currentPage === item.id ? "active" : ""}`}
-                  onClick={() => goTo(item.id)}
+                  onClick={() => item.action ? item.action() : goTo(item.id)}
                   style={{ animationDelay: `${(si * 5 + i) * 30}ms` }}
                 >
                   <span className="mobile-nav-icon">{item.icon}</span>

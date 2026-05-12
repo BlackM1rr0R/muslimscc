@@ -228,6 +228,13 @@ export default function NotificationSettingsWidget() {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
+  // Header menyusundan açılma (custom event)
+  useEffect(() => {
+    const handler = () => setOpen(true)
+    window.addEventListener('open-notifications', handler)
+    return () => window.removeEventListener('open-notifications', handler)
+  }, [])
+
   const handleEnable = async () => {
     setBusy(true)
     setFeedback(null)
@@ -279,19 +286,7 @@ export default function NotificationSettingsWidget() {
 
   return (
     <>
-      {/* FAB */}
-      <button
-        className="notif-fab"
-        onClick={() => setOpen(o => !o)}
-        aria-label={l.open}
-        aria-expanded={open}
-        title={l.open}
-      >
-        <div className="notif-fab-ring"></div>
-        <BellIcon size={26} />
-        {needsAttention && <span className="notif-fab-dot"></span>}
-        {hasToken && <span className="notif-fab-check">✓</span>}
-      </button>
+      {/* FAB silindi — indi yalnız Header > "Daha çox" menyusundan açılır */}
 
       {open && (
         <>
