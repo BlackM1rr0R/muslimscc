@@ -116,11 +116,33 @@
 .bookmark-name { font-size: 16px; font-weight: 600; color: var(--text); }
 .bookmark-arrow { font-size: 20px; color: var(--primary); }
 
-@media(max-width:600px) {
-  .surah-grid { grid-template-columns:1fr; }
+@media(max-width:768px) {
+  .quran-reader { padding: 0 14px 40px; }
+  .surah-grid { grid-template-columns:1fr; gap: 10px; }
   .reader-toolbar { padding:10px 0; }
   .reader-controls { gap:4px; }
-  .ctrl-btn { padding:5px 10px; font-size:11.5px; }
+  .ctrl-btn { padding: 7px 11px; font-size:12px; min-height: 36px; }
+  .reader-header { padding: 22px 16px; gap: 14px; border-radius: 16px; }
+  .reader-arabic { font-size: 1.7rem; line-height: 1.6; }
+  .reader-english { font-size: 1.15rem; }
+  .reader-meta { font-size: 12px; }
+  .reader-basmalah { padding: 14px; }
+  .basmalah-ar { font-size: 1.4rem; }
+  .ayah-card { padding: 14px; gap: 10px; border-radius: 14px; }
+  .ayah-arabic { font-size: 1.3rem; line-height: 2; }
+  .ayah-trans { font-size: 13.5px; line-height: 1.65; }
+  .ayah-num { width: 28px; height: 28px; font-size: 11px; }
+  .ayah-play { width: 36px; height: 36px; }
+  .quran-search-bar { gap: 8px; }
+  .quran-bookmark-card { padding: 12px 14px; }
+  .bookmark-name { font-size: 14px; }
+}
+
+@media(max-width:480px) {
+  .reader-arabic { font-size: 1.5rem; }
+  .ayah-arabic { font-size: 1.15rem; line-height: 1.95; }
+  .ayah-trans { font-size: 13px; }
+  .surah-name-ar { font-size: 1.1rem; }
 }
 
 /* ── Dark mode overrides ── */

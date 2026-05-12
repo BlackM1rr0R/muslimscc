@@ -334,11 +334,128 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
 .cta-section .btn-primary { background:#fff; color:var(--primary-dark); box-shadow:0 4px 20px rgba(0,0,0,0.15); }
 .cta-section .btn-primary:hover { background:#f0faf4; transform:translateY(-2px); }
 
-/* ── Responsive ── */
-@media(max-width:768px) {
-  .section { padding:56px 16px; }
-  .section-sm { padding:36px 16px; }
-  .section-header { margin-bottom:36px; }
+/* ══════════════════════════════════════════════════════
+   MOBILE OPTIMIZATIONS — kompleks
+   ══════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤768px) ── */
+@media (max-width: 768px) {
+  html { font-size: 15.5px; }
+  body { line-height: 1.6; }
+
+  .section { padding: 44px 16px; }
+  .section-sm { padding: 32px 16px; }
+  .section-header { margin-bottom: 32px; }
+  .section-title { font-size: clamp(22px, 5vw, 30px); }
+
+  /* Cards minimum touch friendly */
+  .card { padding: 16px; }
+
+  /* Buttons — daha rahat tap */
+  .btn-primary, .btn-secondary {
+    padding: 12px 22px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+  .btn-ghost { padding: 10px 18px; min-height: 40px; }
+
+  /* Forms — iOS zoom-suz */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+  .input-base {
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+
+  /* Page hero kompaktdır */
+  .page-hero { padding: 44px 16px 36px; }
+  .page-hero h1 { font-size: clamp(22px, 5.5vw, 32px); }
+  .page-hero p { font-size: 14.5px; }
+  .page-hero-arabic { font-size: clamp(18px, 4.5vw, 28px); margin-bottom: 6px; }
+
+  /* Breadcrumb mobile */
+  .breadcrumb { font-size: 12px; margin-bottom: 10px; }
+
+  /* Tags */
+  .tag { font-size: 12px; padding: 5px 11px; }
+
+  /* CTA */
+  .cta-section { padding: 48px 18px; }
+}
+
+/* ── Mobile (≤480px) ── */
+@media (max-width: 480px) {
+  html { font-size: 15px; }
+
+  .section { padding: 36px 14px; }
+  .section-sm { padding: 28px 14px; }
+
+  /* Tam genişlikdə düymələr — primary call-to-action mobil */
+  .btn-primary.btn-mobile-full,
+  .btn-secondary.btn-mobile-full {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Hero daha kompakt */
+  .page-hero { padding: 36px 14px 30px; }
+  .page-hero h1 { font-size: clamp(20px, 6vw, 28px); }
+  .page-hero p { font-size: 13.5px; max-width: 100%; }
+  .page-hero-arabic { font-size: clamp(16px, 5vw, 24px); }
+
+  /* Cards padding kompakt */
+  .card { padding: 14px; border-radius: 14px; }
+  .card-title { font-size: 15px; }
+  .card-body { font-size: 13px; }
+
+  /* Section eyebrow */
+  .section-eyebrow { font-size: 11px; padding: 4px 11px; }
+}
+
+/* ── Çox kiçik (≤360px) — köhnə telefonlar ── */
+@media (max-width: 360px) {
+  html { font-size: 14.5px; }
+  .section { padding: 32px 12px; }
+  .page-hero { padding: 32px 12px 28px; }
+  .btn-primary, .btn-secondary { padding: 11px 18px; font-size: 13px; }
+}
+
+/* ── Touch target minimums (WCAG 2.1) ── */
+@media (hover: none) and (pointer: coarse) {
+  button:not(.a11y-btn):not(.a11y-toggle-switch):not(.aiw-icon-btn):not(.notif-switch),
+  a[role="button"],
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="checkbox"] + label {
+    min-height: 40px;
+  }
+
+  /* Linklər between text kifayət qədər yer olsun */
+  nav a, .nav-link { min-height: 40px; display: inline-flex; align-items: center; }
+
+  /* Tap highlight Islamic green */
+  * { -webkit-tap-highlight-color: rgba(26,107,58,0.15); }
+}
+
+/* ── No horizontal scroll ── */
+html, body { overflow-x: hidden; max-width: 100vw; }
+
+/* ── Image lazy + responsive ── */
+img { max-width: 100%; height: auto; }
+
+/* ── Smooth scroll on iOS ── */
+* { -webkit-overflow-scrolling: touch; }
+
+/* ── Safari address-bar safe area ── */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .install-banner {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
 }
 
 /* ── Dark mode overrides ── */
@@ -474,159 +591,14 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
   50% { transform: translateY(8px); }
 }
 
-/* ── Notification Manager ── */
-/* ── Notification FAB ── */
-.notif-fab {
-  position: fixed; bottom: 80px; right: 20px; z-index: 999;
-  width: 52px; height: 52px; border-radius: 16px;
-  background: var(--bg-card); border: 1.5px solid var(--border);
-  box-shadow: var(--shadow);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.3s ease;
-  color: var(--text-muted); padding: 0;
-}
-.notif-fab:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-.notif-fab:active { transform: scale(0.95); }
-
-/* Content wrapper */
-.notif-fab-content {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 3px;
+/* ── Hər hansı panel açıq olduqda digər FAB-ları gizlət ── */
+body.panel-open .a11y-fab,
+body.panel-open .aiw-fab,
+body.panel-open .notif-fab {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: scale(0.6) !important;
+  pointer-events: none !important;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
 }
 
-/* Səviyyələr */
-.notif-fab.level-1 {
-  background: var(--bg-card); border-color: var(--primary-border);
-  color: var(--primary);
-}
-.notif-fab.level-2 {
-  background: var(--primary-bg); border-color: var(--primary);
-  color: var(--primary);
-}
-.notif-fab.level-3 {
-  background: var(--primary); border-color: var(--primary);
-  color: #fff;
-}
-.notif-fab.level-4 {
-  background: var(--primary); border-color: var(--primary-dark);
-  color: #fff; box-shadow: 0 4px 20px rgba(26,107,58,0.4);
-}
-
-/* Zəng icon */
-.notif-fab-icon {
-  display: block; flex-shrink: 0;
-}
-.notif-fab-icon.ringing {
-  animation: bellRing 3s ease-in-out infinite;
-  transform-origin: top center;
-}
-@keyframes bellRing {
-  0%, 100% { transform: rotate(0); }
-  4% { transform: rotate(12deg); }
-  8% { transform: rotate(-10deg); }
-  12% { transform: rotate(8deg); }
-  16% { transform: rotate(-5deg); }
-  20% { transform: rotate(2deg); }
-  24%, 100% { transform: rotate(0); }
-}
-
-/* ── Səs barları — zəngin altında ── */
-.notif-fab-bars {
-  display: flex; align-items: flex-end; gap: 2px;
-  height: 10px;
-}
-.notif-bar {
-  width: 3px; border-radius: 1px;
-  background: var(--border);
-  transition: all 0.3s ease;
-}
-.notif-bar:nth-child(1) { height: 3px; }
-.notif-bar:nth-child(2) { height: 5px; }
-.notif-bar:nth-child(3) { height: 7px; }
-.notif-bar:nth-child(4) { height: 10px; }
-
-/* Aktiv bar */
-.notif-bar.on { background: var(--primary); }
-.notif-fab.level-3 .notif-bar.on,
-.notif-fab.level-4 .notif-bar.on { background: rgba(255,255,255,0.85); }
-.notif-fab.level-3 .notif-bar:not(.on),
-.notif-fab.level-4 .notif-bar:not(.on) { background: rgba(255,255,255,0.25); }
-
-/* Level-4 pulse */
-.notif-fab.level-4 .notif-bar.on {
-  animation: barPulse 1.8s ease-in-out infinite;
-}
-.notif-fab.level-4 .notif-bar:nth-child(1) { animation-delay: 0s; }
-.notif-fab.level-4 .notif-bar:nth-child(2) { animation-delay: 0.12s; }
-.notif-fab.level-4 .notif-bar:nth-child(3) { animation-delay: 0.24s; }
-.notif-fab.level-4 .notif-bar:nth-child(4) { animation-delay: 0.36s; }
-@keyframes barPulse {
-  0%, 100% { opacity: 1; transform: scaleY(1); }
-  50% { opacity: 0.5; transform: scaleY(0.7); }
-}
-
-.notif-overlay {
-  position: fixed; inset: 0; z-index: 10000;
-  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px; animation: fadeIn 0.2s ease;
-}
-.notif-panel {
-  background: var(--bg-card); border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl); max-width: 420px; width: 100%;
-  overflow: hidden; animation: scaleIn 0.25s ease;
-}
-.notif-panel-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 20px 24px; border-bottom: 1px solid var(--border);
-}
-.notif-panel-header h3 { font-size: 18px; font-weight: 800; color: var(--text); }
-.notif-panel-close {
-  background: none; border: none; font-size: 20px;
-  color: var(--text-muted); cursor: pointer; padding: 4px;
-}
-
-.notif-denied {
-  padding: 32px 24px; text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-}
-.notif-denied span { font-size: 32px; }
-.notif-denied strong { font-size: 16px; color: var(--text); }
-.notif-denied p { font-size: 13px; color: var(--text-muted); }
-
-.notif-enable-btn {
-  display: block; width: calc(100% - 48px); margin: 24px auto;
-  padding: 14px; border-radius: var(--radius);
-  background: var(--primary); color: #fff; border: none;
-  font-size: 15px; font-weight: 700; font-family: var(--font);
-  cursor: pointer; transition: all 0.2s;
-}
-.notif-enable-btn:hover { background: var(--primary-light); }
-
-.notif-toggles { padding: 8px 0; }
-
-.notif-toggle-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 14px 24px; cursor: pointer; transition: background 0.15s;
-}
-.notif-toggle-item:hover { background: var(--primary-bg); }
-
-.notif-toggle-info {
-  display: flex; align-items: center; gap: 14px; flex: 1;
-}
-.notif-toggle-icon { font-size: 24px; flex-shrink: 0; }
-.notif-toggle-info strong { font-size: 14px; color: var(--text); display: block; }
-.notif-toggle-info p { font-size: 12px; color: var(--text-muted); margin: 2px 0 0; }
-
-.notif-switch {
-  width: 44px; height: 24px; border-radius: 12px;
-  background: var(--border-md); position: relative;
-  cursor: pointer; transition: all 0.25s; flex-shrink: 0;
-}
-.notif-switch.on { background: var(--primary); }
-.notif-switch-thumb {
-  width: 20px; height: 20px; border-radius: 50%;
-  background: #fff; position: absolute; top: 2px; left: 2px;
-  transition: all 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-}
-.notif-switch.on .notif-switch-thumb { left: 22px; }

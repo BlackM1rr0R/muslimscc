@@ -697,8 +697,19 @@
 @media (max-width:480px) {
   .hp-feats-grid { grid-template-columns:1fr; }
   .hp-names-grid { grid-template-columns:repeat(2,1fr); }
-  .hp-hero-btns { flex-direction:column;align-items:flex-start; }
+  .hp-hero { padding: 50px 14px 36px; }
+  .hp-hero-btns { flex-direction:column; align-items:stretch; gap: 10px; }
+  .hp-hero-btns > * { width: 100%; justify-content: center; }
   .hp-fl--dhikr,.hp-fl--tw { display:none; }
+  .hp-hero-title { line-height: 1.25; }
+  .hp-stats-in { gap: 10px; }
+  .hp-twp-content { padding: 22px 16px; }
+  .hp-cta { padding: 40px 16px; }
+}
+
+@media (max-width: 360px) {
+  .hp-names-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hp-hero { padding: 44px 12px 30px; }
 }
 
 /* ═══ DARK MODE OVERRIDES ═══════════════════════════════════════════ */

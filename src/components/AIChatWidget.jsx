@@ -208,6 +208,27 @@ export default function AIChatWidget() {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
+  // Açıq olduqda body-ə class əlavə et (digər FAB-ları gizlət)
+  useEffect(() => {
+    if (open) document.body.classList.add('panel-open')
+    else document.body.classList.remove('panel-open')
+    return () => document.body.classList.remove('panel-open')
+  }, [open])
+
+  // Başqa panel açılanda bunu bağla
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail !== 'ai') setOpen(false)
+    }
+    window.addEventListener('close-other-panels', handler)
+    return () => window.removeEventListener('close-other-panels', handler)
+  }, [])
+
+  // Bu açılanda digərlərinə xəbər ver
+  useEffect(() => {
+    if (open) window.dispatchEvent(new CustomEvent('close-other-panels', { detail: 'ai' }))
+  }, [open])
+
   const sendMessage = async (text) => {
     const msg = (text ?? input).trim()
     if (!msg || loading || cooldown > 0) return

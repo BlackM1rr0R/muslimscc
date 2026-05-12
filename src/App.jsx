@@ -3,7 +3,6 @@ import { LangProvider } from './contexts/LangContext'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import InstallBanner from './components/InstallBanner'
-import NotificationManager from './components/NotificationManager'
 import HomePage from './pages/HomePage'
 import QuranPage from './pages/QuranPage'
 import HadithPage from './pages/HadithPage'
@@ -137,7 +136,6 @@ function AppInner() {
       <main key={page} className="page-enter">{renderPage()}</main>
       {!isAdminPage && <Footer setPage={navigate} />}
       {!isAdminPage && <InstallBanner />}
-      {!isAdminPage && <NotificationManager />}
       {/* Pop-up announcement toast — hər səhifədə görünür */}
       {!isAdminPage && <AnnouncementToast />}
       {/* Push notification permission prompt */}
