@@ -1,5 +1,28 @@
 // Muslims.cc — Design System (Web ilə eyni rənglər)
+// Flat tokens (yeni screen-lər üçün — web CSS variables ilə eyni adlar)
+const FLAT = {
+  primary:      '#1a6b3a',
+  primaryDark:  '#0d4a27',
+  primaryLight: '#22874a',
+  bg:           '#f7f8f5',
+  bgCard:       '#ffffff',
+  bgSoft:       '#eef0ea',
+  text:         '#1a2e1e',
+  textDim:      '#4a6052',
+  textMuted:    '#7a9b82',
+  border:       '#e2e8df',
+  borderMd:     '#c8d4c2',
+  gold:         '#b8860b',
+  goldBg:       'rgba(184,134,11,0.08)',
+  success:      '#16a34a',
+  warning:      '#d97706',
+  danger:       '#dc2626',
+  info:         '#2563eb',
+}
+
 export const Colors = {
+  // Flat (web ilə eyni — yeni screen-lər üçün)
+  ...FLAT,
   light: {
     primary: '#1a6b3a',
     primaryDark: '#0d4a27',

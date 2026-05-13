@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Share, StyleSheet, Animated as RNAnimated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
-import { DUAS_DATA } from '../data/duas';
+import { DUAS_DATA, subscribeToCustomDuas } from '../data/duas';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, Float } from '../components/Animated';
@@ -162,12 +162,34 @@ export default function DuasScreen() {
   const [favs, setFavs] = useState([]);
   const [showFavs, setShowFavs] = useState(false);
   const [expanded, setExpanded] = useState({});
+  const [customDuas, setCustomDuas] = useState([]);
 
   React.useEffect(() => {
     AsyncStorage.getItem('dua_favs').then(v => {
       try { if (v) setFavs(JSON.parse(v)); } catch {}
     });
   }, []);
+
+  // Admin paneldən əlavə edilmiş duaları real-vaxtda dinlə (web ilə eyni)
+  useEffect(() => {
+    const unsubscribe = subscribeToCustomDuas((items) => {
+      const mapped = (items || []).map(d => ({
+        id: 'custom-' + d.id,
+        cat: d.category || d.cat || 'All',
+        ar: d.ar || d.arabic || '',
+        translit: d.translit || d.transliteration || '',
+        [lang]: d.text?.[lang] || d.text?.en || '',
+        en: d.text?.en || '',
+        az: d.text?.az || '',
+        ru: d.text?.ru || '',
+        ar2: d.text?.ar || '',
+        tr: d.text?.tr || '',
+        source: d.source || 'Admin',
+      })).filter(d => d[lang] || d.ar)
+      setCustomDuas(mapped)
+    })
+    return () => unsubscribe?.()
+  }, [lang])
 
   const toggleFav = async (id) => {
     const newFavs = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
@@ -176,13 +198,14 @@ export default function DuasScreen() {
   };
 
   const filtered = useMemo(() => {
-    let list = DUAS_DATA || [];
+    // Custom dualar əvvələ + statik dualar (web ilə eyni)
+    let list = [...customDuas, ...(DUAS_DATA || [])];
     if (showFavs) list = list.filter(d => favs.includes(d.id));
     if (selectedCat > 0) {
       list = list.filter(d => d.cat === CAT_ORDER[selectedCat]);
     }
     return list;
-  }, [selectedCat, showFavs, favs]);
+  }, [selectedCat, showFavs, favs, customDuas]);
 
   const shareDua = async (d) => {
     try {
@@ -193,7 +216,7 @@ export default function DuasScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
-      <PageHero arabic="الأَدْعِيَة" title={t.title} subtitle={t.subtitle} />
+      <PageHero arabic="الأَدْعِيَة" title={t.title} subtitle={t.subtitle} theme="duas" />
 
       <View style={styles.content}>
 

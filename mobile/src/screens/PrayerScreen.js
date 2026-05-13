@@ -10,6 +10,7 @@ import { T } from '../data/i18n';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, FadeIn, ScaleIn, Float, Pulse, PressableCard, AnimatedNumber, BreathingDot, AnimatedProgressBar } from '../components/Animated';
+import { subscribeToSettings } from '../data/adminContent';
 
 const CITIES = [
   { name: 'Bakı', city: 'Baku', country: 'Azerbaijan' },
@@ -46,11 +47,31 @@ export default function PrayerScreen() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
   const [now, setNow] = useState(new Date());
+  const [userPickedCity, setUserPickedCity] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Admin settings-dən default şəhəri oxu (web ilə eyni davranış)
+  // Yalnız istifadəçi əl ilə şəhər seçməyibsə.
+  useEffect(() => {
+    const unsubscribe = subscribeToSettings((settings) => {
+      if (!settings || userPickedCity) return
+      const target = settings.defaultCity
+      if (!target) return
+      const matchIdx = CITIES.findIndex(c =>
+        c.city.toLowerCase() === target.toLowerCase() ||
+        c.name.toLowerCase() === target.toLowerCase()
+      )
+      if (matchIdx !== -1) setCityIdx(matchIdx)
+    })
+    return () => unsubscribe?.()
+  }, [userPickedCity])
+
+  // Wrap the original setter to mark user choice
+  const pickCity = (idx) => { setUserPickedCity(true); setCityIdx(idx) }
 
   useEffect(() => {
     AsyncStorage.getItem('muslim_cc_prayer_stats').then(v => {
@@ -122,7 +143,7 @@ export default function PrayerScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="الصَّلَاة" title={t.title} subtitle={t.subtitle} />
+      <PageHero arabic="الصَّلَاة" title={t.title} subtitle={t.subtitle} theme="prayer" />
 
       <View style={styles.content}>
 
@@ -142,7 +163,7 @@ export default function PrayerScreen() {
                     { backgroundColor: active ? c.primary : c.card, borderColor: active ? c.primary : c.cardBorder },
                     active ? Shadows.button : (dark ? Shadows.dark.sm : Shadows.sm),
                   ]}
-                  onPress={() => setCityIdx(i)}
+                  onPress={() => pickCity(i)}
                 >
                   <AppIcon name="location" size={14} color={active ? '#fff' : c.textMuted} />
                   <Text style={[styles.cityText, { color: active ? '#fff' : c.text }]}>{city.name}</Text>

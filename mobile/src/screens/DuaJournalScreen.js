@@ -80,7 +80,7 @@ export default function DuaJournalScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="دَفْتَرُ الدُّعَاء" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="دَفْتَرُ الدُّعَاء" title={l.title} subtitle={l.sub} theme="duajournal" />
 
       <View style={styles.content}>
 

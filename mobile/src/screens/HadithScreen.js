@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
-import { HADITHS } from '../data/hadiths';
+import { HADITHS, subscribeToCustomHadiths } from '../data/hadiths';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, PressableCard, HeartBeat } from '../components/Animated';
@@ -140,8 +140,32 @@ export default function HadithScreen() {
   const c = dark ? Colors.dark : Colors.light;
   const t = T[lang]?.hadith || T.az.hadith;
   const cats = CATS[lang] || CATS.az;
-  const allHadiths = HADITHS[lang] || HADITHS.az || [];
+  const staticHadiths = HADITHS[lang] || HADITHS.az || [];
   const sh = dark ? Shadows.dark.sm : Shadows.sm;
+
+  const [customHadiths, setCustomHadiths] = useState([]);
+
+  // Admin paneldən əlavə edilmiş hədisləri real-vaxtda dinlə (web ilə eyni)
+  useEffect(() => {
+    const unsubscribe = subscribeToCustomHadiths((items) => {
+      // Mövcud language-ə uyğun field-ları map et
+      const mapped = (items || []).map(h => ({
+        id: 'custom-' + h.id,
+        cat: h.category || h.cat || 'Faith',
+        text: h.text?.[lang] || h.text?.en || h.translation?.[lang] || '',
+        ar: h.ar || h.arabic || '',
+        source: h.source || h.reference || 'Admin',
+      })).filter(h => h.text)
+      setCustomHadiths(mapped)
+    })
+    return () => unsubscribe?.()
+  }, [lang])
+
+  // Custom hədisləri default-lara qarışdır (custom-lar əvvələ)
+  const allHadiths = useMemo(
+    () => [...customHadiths, ...staticHadiths],
+    [customHadiths, staticHadiths]
+  )
 
   const [cat, setCat] = useState(cats[0]);
   const [search, setSearch] = useState('');
@@ -185,7 +209,7 @@ export default function HadithScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
-      <PageHero arabic="الحديث الشريف" title={t.title} subtitle={t.subtitle} />
+      <PageHero arabic="الحديث الشريف" title={t.title} subtitle={t.subtitle} theme="hadith" />
 
       <View style={styles.content}>
 

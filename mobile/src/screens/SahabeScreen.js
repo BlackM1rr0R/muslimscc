@@ -346,7 +346,7 @@ export default function SahabeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
-      <PageHero arabic="الصَّحَابَة" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="الصَّحَابَة" title={l.title} subtitle={l.sub} theme="sahaba" />
 
       <View style={styles.content}>
 

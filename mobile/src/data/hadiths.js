@@ -3,6 +3,15 @@
 //                Fasting | Zakat | Dhikr | Charity | Patience | World |
 //                Afterlife | Salawat | Travel
 
+// ═══ Firebase real-time əlavə hədislər (admin paneldən) ═══
+import { subscribeToCollection, COLLECTIONS } from '../firebase/firestore'
+
+// Admin paneldən əlavə edilmiş custom hədisləri dinləmək (default-lara əlavə)
+export function subscribeToCustomHadiths(callback) {
+  return subscribeToCollection(COLLECTIONS.HADITHS, callback)
+}
+
+
 const RAW = [
   // ── İman / Faith ──────────────────────────────────────────────
   { id:1,   cat:'Faith',      ar:'بُنِيَ الإِسْلاَمُ عَلَى خَمْسٍ', source:'Buxari 8', az:'İslam beş şey üzərində qurulmuşdur: Allahdan başqa ilah olmadığına şəhadət, namaz, zəkat, həcc və Ramazan orucu.', en:'Islam is built on five things: testimony that there is no god but Allah, prayer, zakat, hajj, and fasting Ramadan.', ru:'Ислам основан на пяти вещах: свидетельстве, что нет бога, кроме Аллаха, молитве, закяте, хадже и посте в Рамадан.', tr:"İslam beş şey üzerine kurulmuştur: Allah'tan başka ilah olmadığına şehadet, namaz, zekât, hac ve Ramazan orucu." },

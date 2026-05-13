@@ -95,7 +95,7 @@ export default function AnalyticsScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="الإِحْصَائِيَّات" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="الإِحْصَائِيَّات" title={l.title} subtitle={l.sub} theme="analytics" />
 
       <View style={styles.content}>
 

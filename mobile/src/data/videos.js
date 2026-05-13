@@ -1,4 +1,21 @@
-// Default videolar (mobile-da statik, gələcəkdə API ilə yenilənə bilər)
+// ═══ VIDEOS — Firebase real-time + default fallback ═══
+import { getAll, subscribeToCollection, COLLECTIONS } from '../firebase/firestore'
+import { isFirebaseConfigured } from '../firebase/config'
+
+// Firebase real-time subscription (web admin əlavə edəndə dərhal görünür)
+export function subscribeToVideos(callback) {
+  return subscribeToCollection(COLLECTIONS.VIDEOS, (items) => {
+    callback(items.length > 0 ? items : VIDEOS)
+  })
+}
+
+export async function getVideos() {
+  if (!isFirebaseConfigured()) return VIDEOS
+  const items = await getAll(COLLECTIONS.VIDEOS)
+  return items.length > 0 ? items : VIDEOS
+}
+
+// Default videolar (Firebase boşdursa fallback)
 export const VIDEOS = [
   {
     id: 1,

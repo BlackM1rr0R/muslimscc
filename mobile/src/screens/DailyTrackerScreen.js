@@ -80,7 +80,7 @@ export default function DailyTrackerScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="المُتَابَعَة" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="المُتَابَعَة" title={l.title} subtitle={l.sub} theme="dailytracker" />
 
       <View style={styles.content}>
 

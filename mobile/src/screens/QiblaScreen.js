@@ -87,7 +87,7 @@ export default function QiblaScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
-      <PageHero arabic="القبلة" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="القبلة" title={l.title} subtitle={l.sub} theme="qibla" />
 
       <View style={styles.content}>
         {status === 'loading' && (

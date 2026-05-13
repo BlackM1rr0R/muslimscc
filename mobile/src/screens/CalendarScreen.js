@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -8,6 +8,7 @@ import { T } from '../data/i18n';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn } from '../components/Animated';
+import { subscribeToEvents } from '../data/adminContent';
 
 const EVENTS = {
   1: [
@@ -53,11 +54,34 @@ export default function CalendarScreen() {
   const shS = dark ? Shadows.dark.sm : Shadows.sm;
 
   const [selMonth, setSelMonth] = useState(1);
-  const events = EVENTS[selMonth] || [];
+  const [customEvents, setCustomEvents] = useState([]);
+
+  // Admin paneldən əlavə edilmiş təqvim hadisələri (web ilə eyni)
+  useEffect(() => {
+    const unsubscribe = subscribeToEvents((items) => setCustomEvents(items || []))
+    return () => unsubscribe?.()
+  }, [])
+
+  // Static və custom hadisələri qarışdır
+  const staticEvents = EVENTS[selMonth] || []
+  const customForMonth = customEvents
+    .filter(e => Number(e.month) === selMonth)
+    .map(e => ({
+      day: Number(e.day) || 1,
+      type: e.type || 'major',
+      color: e.color || '#10b981',
+      az: e.title?.az || e.title?.en || '',
+      en: e.title?.en || '',
+      ru: e.title?.ru || '',
+      ar: e.title?.ar || '',
+      tr: e.title?.tr || '',
+      isCustom: true,
+    }))
+  const events = [...customForMonth, ...staticEvents].sort((a, b) => a.day - b.day);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="التَّقْوِيمُ الإِسْلَامِيّ" title={t.title} subtitle={t.subtitle} />
+      <PageHero arabic="التَّقْوِيمُ الإِسْلَامِيّ" title={t.title} subtitle={t.subtitle} theme="calendar" />
 
       <View style={styles.content}>
 

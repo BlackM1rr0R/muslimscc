@@ -54,7 +54,7 @@ export default function AboutScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="عَنِ المَوْقِع" title={t.title} subtitle={t.subtitle} />
+      <PageHero arabic="عَنِ المَوْقِع" title={t.title} subtitle={t.subtitle} theme="about" />
 
       <View style={styles.content}>
 

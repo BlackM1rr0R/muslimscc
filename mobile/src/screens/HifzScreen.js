@@ -85,7 +85,7 @@ export default function HifzScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
-      <PageHero arabic="حِفْظُ القُرْآن" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="حِفْظُ القُرْآن" title={l.title} subtitle={l.sub} theme="hifz" />
 
       <View style={styles.content}>
 

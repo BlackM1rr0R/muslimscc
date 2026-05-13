@@ -217,7 +217,7 @@ export default function QuranScreen({ navigation }) {
   // List view
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
-      <PageHero arabic="القرآن الكريم" title={t.title} subtitle={t.subtitle} />
+      <PageHero arabic="القرآن الكريم" title={t.title} subtitle={t.subtitle} theme="quran" />
 
       <View style={styles.content}>
         {bookmark && (

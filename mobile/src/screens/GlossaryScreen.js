@@ -60,7 +60,7 @@ export default function GlossaryScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
-      <PageHero arabic="المُعْجَم" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="المُعْجَم" title={l.title} subtitle={l.sub} theme="glossary" />
 
       <View style={styles.content}>
 

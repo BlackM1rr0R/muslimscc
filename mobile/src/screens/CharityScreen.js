@@ -67,7 +67,7 @@ export default function CharityScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="الصَّدَقَة" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="الصَّدَقَة" title={l.title} subtitle={l.sub} theme="charity" />
 
       <View style={styles.content}>
 

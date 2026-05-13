@@ -103,3 +103,10 @@ const DUAS_DATA = [
 ]
 
 export { DUAS_DATA }
+
+// ═══ Firebase real-time əlavə dualar (admin paneldən) ═══
+import { subscribeToCollection, COLLECTIONS } from '../firebase/firestore'
+
+export function subscribeToCustomDuas(callback) {
+  return subscribeToCollection(COLLECTIONS.DUAS, callback)
+}

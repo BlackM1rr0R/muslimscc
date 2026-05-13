@@ -1,21 +1,68 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal, Linking, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal, Dimensions, ActivityIndicator, StatusBar, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
-import { VIDEOS, VIDEO_CATEGORIES, getThumbnail, getVideoUrl } from '../data/videos';
+import { VIDEOS, VIDEO_CATEGORIES, getThumbnail, subscribeToVideos } from '../data/videos';
 import AppIcon from './Icon';
-import { FadeUp, ScaleIn, PressableCard, Pulse } from './Animated';
+import { FadeUp, PressableCard, Pulse } from './Animated';
+
+// WebView yalnız ios/android-də mövcuddur. Web-də iframe istifadə edirik.
+let WebView = null;
+if (Platform.OS !== 'web') {
+  try { WebView = require('react-native-webview').WebView; } catch {}
+}
+
+// Platform-uyğun YouTube pleyer
+function YouTubePlayer({ videoId, loadingText }) {
+  const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+
+  if (Platform.OS === 'web') {
+    return React.createElement('iframe', {
+      src,
+      style: { width: '100%', height: '100%', border: 0, backgroundColor: '#000' },
+      allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen',
+      allowFullScreen: true,
+    });
+  }
+
+  if (!WebView) {
+    return (
+      <View style={styles.playerLoading}>
+        <Text style={styles.playerLoadingText}>WebView unavailable</Text>
+      </View>
+    );
+  }
+
+  return (
+    <WebView
+      source={{ uri: src }}
+      style={{ flex: 1, backgroundColor: '#000' }}
+      allowsFullscreenVideo
+      allowsInlineMediaPlayback
+      mediaPlaybackRequiresUserAction={false}
+      javaScriptEnabled
+      domStorageEnabled
+      startInLoadingState
+      renderLoading={() => (
+        <View style={styles.playerLoading}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.playerLoadingText}>{loadingText}</Text>
+        </View>
+      )}
+    />
+  );
+}
 
 const { width: SW } = Dimensions.get('window');
 
 const LABELS = {
-  az: { title:'Video Kontent', sub:'Mühazirələr, tilavətlər və daha çox', open:'Aç', play:'Oynat', close:'Bağla' },
-  en: { title:'Video Content', sub:'Lectures, recitations and more', open:'Open', play:'Play', close:'Close' },
-  ru: { title:'Видео', sub:'Лекции, чтения и больше', open:'Открыть', play:'Играть', close:'Закрыть' },
-  ar: { title:'الفيديوهات', sub:'محاضرات وتلاوات والمزيد', open:'فتح', play:'تشغيل', close:'إغلاق' },
-  tr: { title:'Video İçerik', sub:'Konferanslar ve daha fazlası', open:'Aç', play:'Oynat', close:'Kapat' },
+  az: { title:'Video Kontent', sub:'Mühazirələr, tilavətlər və daha çox', close:'Bağla', loadingPlayer:'Pleyer yüklənir...' },
+  en: { title:'Video Content', sub:'Lectures, recitations and more', close:'Close', loadingPlayer:'Loading player...' },
+  ru: { title:'Видео', sub:'Лекции, чтения и больше', close:'Закрыть', loadingPlayer:'Загрузка плеера...' },
+  ar: { title:'الفيديوهات', sub:'محاضرات وتلاوات والمزيد', close:'إغلاق', loadingPlayer:'تحميل المشغل...' },
+  tr: { title:'Video İçerik', sub:'Konferanslar ve daha fazlası', close:'Kapat', loadingPlayer:'Oynatıcı yükleniyor...' },
 };
 
 export default function VideoSection() {
@@ -27,19 +74,30 @@ export default function VideoSection() {
 
   const [selectedCat, setSelectedCat] = useState('all');
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Real-time Firebase subscription — web ilə eyni mənbə.
+  // Admin video əlavə edəndə ana səhifədə dərhal görünür.
+  useEffect(() => {
+    const unsubscribe = subscribeToVideos((items) => {
+      setVideos(items.length > 0 ? items : VIDEOS);
+      setLoading(false);
+    });
+    return () => unsubscribe?.();
+  }, []);
 
   const filtered = selectedCat === 'all'
-    ? VIDEOS
-    : VIDEOS.filter(v => v.category === selectedCat);
+    ? videos
+    : videos.filter(v => v.category === selectedCat);
 
   const openVideo = (video) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedVideo(video);
   };
 
-  const playOnYouTube = (video) => {
-    Linking.openURL(getVideoUrl(video.youtubeId));
-  };
+  const embedUrl = (id) =>
+    `https://www.youtube.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
 
   return (
     <View style={styles.section}>
@@ -87,6 +145,11 @@ export default function VideoSection() {
       </FadeUp>
 
       {/* Video cards horizontal scroll */}
+      {loading ? (
+        <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+          <ActivityIndicator size="small" color={c.primary} />
+        </View>
+      ) : (
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.videosRow}>
         {filtered.map((v, i) => {
           const cat = VIDEO_CATEGORIES.find(cc => cc.key === v.category);
@@ -109,12 +172,14 @@ export default function VideoSection() {
                     start={{ x: 0, y: 0.4 }}
                     end={{ x: 0, y: 1 }}
                   />
-                  {/* Play button */}
-                  <Pulse>
-                    <View style={[styles.playBtn, { backgroundColor: 'rgba(255,255,255,0.95)' }]}>
-                      <Text style={[styles.playIcon, { color: cat?.color || c.primary }]}>▶</Text>
-                    </View>
-                  </Pulse>
+                  {/* Play button — perfectly centered on the thumbnail */}
+                  <View pointerEvents="none" style={styles.playBtnCenter}>
+                    <Pulse>
+                      <View style={[styles.playBtn, { backgroundColor: 'rgba(255,255,255,0.96)' }]}>
+                        <Text style={[styles.playIcon, { color: cat?.color || c.primary }]}>▶</Text>
+                      </View>
+                    </Pulse>
+                  </View>
                   {/* Category badge */}
                   <View style={[styles.catBadge, { backgroundColor: 'rgba(255,255,255,0.95)' }]}>
                     <Text style={[styles.catBadgeText, { color: cat?.color }]}>
@@ -143,63 +208,52 @@ export default function VideoSection() {
           );
         })}
       </ScrollView>
+      )}
 
-      {/* Modal */}
+      {/* Inline player modal — YouTube embed in WebView, opens centered on screen */}
       <Modal
         visible={!!selectedVideo}
-        animationType="slide"
+        animationType="fade"
         transparent
+        statusBarTranslucent
         onRequestClose={() => setSelectedVideo(null)}
       >
+        <StatusBar barStyle="light-content" backgroundColor="rgba(0,0,0,0.95)" />
         {selectedVideo && (
-          <View style={styles.modalWrap}>
+          <View style={styles.playerWrap}>
             <TouchableOpacity
-              style={styles.modalBackdrop}
+              style={styles.playerBackdrop}
               onPress={() => setSelectedVideo(null)}
               activeOpacity={1}
             />
-            <ScaleIn>
-              <View style={[styles.modalCard, { backgroundColor: c.background }]}>
-                {/* Handle */}
-                <View style={[styles.modalHandle, { backgroundColor: c.border }]} />
+            <View style={styles.playerCard}>
+              {/* Close button (above the player) */}
+              <TouchableOpacity
+                style={styles.playerClose}
+                onPress={() => setSelectedVideo(null)}
+                activeOpacity={0.8}
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+              >
+                <Text style={styles.playerCloseIcon}>×</Text>
+              </TouchableOpacity>
 
-                <Image
-                  source={{ uri: getThumbnail(selectedVideo.youtubeId) }}
-                  style={styles.modalThumb}
-                  resizeMode="cover"
-                />
-
-                <View style={styles.modalBody}>
-                  <Text style={[styles.modalTitle, { color: c.text }]}>
-                    {selectedVideo.title[lang] || selectedVideo.title.en}
-                  </Text>
-                  {(selectedVideo.description?.[lang] || selectedVideo.description?.en) && (
-                    <Text style={[styles.modalDesc, { color: c.textSecondary }]}>
-                      {selectedVideo.description[lang] || selectedVideo.description.en}
-                    </Text>
-                  )}
-
-                  <TouchableOpacity
-                    style={[styles.playYTBtn, Shadows.button]}
-                    onPress={() => playOnYouTube(selectedVideo)}
-                    activeOpacity={0.85}
-                  >
-                    <LinearGradient colors={['#ef4444', '#dc2626']} style={styles.playYTGrad}>
-                      <AppIcon name="play" size={20} color="#fff" />
-                      <Text style={styles.playYTText}>{l.play} on YouTube</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.closeBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}
-                    onPress={() => setSelectedVideo(null)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.closeBtnText, { color: c.text }]}>{l.close}</Text>
-                  </TouchableOpacity>
-                </View>
+              {/* 16:9 YouTube player — WebView on native, iframe on web */}
+              <View style={styles.playerVideoBox}>
+                <YouTubePlayer videoId={selectedVideo.youtubeId} loadingText={l.loadingPlayer} />
               </View>
-            </ScaleIn>
+
+              {/* Title + description below player */}
+              <View style={[styles.playerInfo, { backgroundColor: c.card }]}>
+                <Text style={[styles.playerTitle, { color: c.text }]} numberOfLines={2}>
+                  {selectedVideo.title[lang] || selectedVideo.title.en}
+                </Text>
+                {(selectedVideo.description?.[lang] || selectedVideo.description?.en) && (
+                  <Text style={[styles.playerDesc, { color: c.textSecondary }]} numberOfLines={3}>
+                    {selectedVideo.description[lang] || selectedVideo.description.en}
+                  </Text>
+                )}
+              </View>
+            </View>
           </View>
         )}
       </Modal>
@@ -221,9 +275,9 @@ const styles = StyleSheet.create({
   catText: { fontSize: 12, fontWeight: '700' },
 
   // Videos row
-  videosRow: { gap: 14, paddingHorizontal: 20, paddingBottom: 8 },
+  videosRow: { gap: 12, paddingHorizontal: 20, paddingBottom: 8 },
   videoCard: {
-    width: SW * 0.78,
+    width: SW * 0.72,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
     overflow: 'hidden',
@@ -235,24 +289,24 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   thumb: { width: '100%', height: '100%' },
-  playBtn: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  playBtnCenter: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -28,
-    marginLeft: -28,
+  },
+  playBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  playIcon: { fontSize: 22, fontWeight: '800', marginLeft: 3 },
+  playIcon: { fontSize: 24, fontWeight: '800', marginLeft: 4, lineHeight: 26 },
   catBadge: {
     position: 'absolute',
     top: 10,
@@ -277,23 +331,53 @@ const styles = StyleSheet.create({
   videoTitle: { fontSize: 15, fontWeight: '800', marginBottom: 4, letterSpacing: -0.2, lineHeight: 20 },
   videoDesc: { fontSize: 12, lineHeight: 18 },
 
-  // Modal
-  modalWrap: { flex: 1, justifyContent: 'flex-end' },
-  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
-  modalCard: {
-    borderTopLeftRadius: BorderRadius.xxl,
-    borderTopRightRadius: BorderRadius.xxl,
-    overflow: 'hidden',
-    maxHeight: '90%',
+  // Inline YouTube player
+  playerWrap: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
   },
-  modalHandle: { width: 40, height: 5, borderRadius: 3, alignSelf: 'center', marginTop: 10, marginBottom: 6 },
-  modalThumb: { width: '100%', aspectRatio: 16/9 },
-  modalBody: { padding: 24, paddingBottom: 40 },
-  modalTitle: { fontSize: 20, fontWeight: '800', marginBottom: 8, letterSpacing: -0.3 },
-  modalDesc: { fontSize: 14, lineHeight: 22, marginBottom: 20 },
-  playYTBtn: { borderRadius: BorderRadius.xl, overflow: 'hidden', marginBottom: 12 },
-  playYTGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16 },
-  playYTText: { color: '#fff', fontWeight: '800', fontSize: 15 },
-  closeBtn: { paddingVertical: 14, borderRadius: BorderRadius.md, borderWidth: 1, alignItems: 'center' },
-  closeBtnText: { fontWeight: '700', fontSize: 14 },
+  playerBackdrop: { ...StyleSheet.absoluteFillObject },
+  playerCard: {
+    width: '100%',
+    maxWidth: 520,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  playerClose: {
+    alignSelf: 'flex-end',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  playerCloseIcon: { color: '#fff', fontSize: 24, fontWeight: '700', lineHeight: 28, marginTop: -2 },
+  playerVideoBox: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: '#000',
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  playerLoading: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000',
+    gap: 10,
+  },
+  playerLoadingText: { color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600' },
+  playerInfo: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 10,
+  },
+  playerTitle: { fontSize: 16, fontWeight: '800', letterSpacing: -0.2, marginBottom: 6, lineHeight: 22 },
+  playerDesc: { fontSize: 13, lineHeight: 19 },
 });

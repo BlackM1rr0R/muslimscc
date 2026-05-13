@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -7,6 +7,7 @@ import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn } from '../components/Animated';
+import { subscribeToPlaces } from '../data/adminContent';
 
 const PLACES = [
   { coords:'21.4225,39.8262', color:'#10b981', gradient:['#10b981','#059669'], icon:'hajjguide', emoji:'🕋',
@@ -57,12 +58,34 @@ export default function HolyPlacesScreen() {
   const l = LABELS[lang] || LABELS.az;
   const sh = dark ? Shadows.dark.md : Shadows.md;
 
+  // Admin paneldən custom yerlər real-time
+  const [customPlaces, setCustomPlaces] = useState([])
+  useEffect(() => {
+    const unsubscribe = subscribeToPlaces((items) => {
+      const mapped = (items || []).map(p => ({
+        coords: p.coords || `${p.lat || 0},${p.lng || 0}`,
+        color: p.color || '#10b981',
+        gradient: p.gradient || ['#10b981','#059669'],
+        icon: p.icon || 'mosques',
+        emoji: p.emoji || '🕌',
+        name: p.name || { az: p.title?.az, en: p.title?.en, ru: p.title?.ru, ar: p.title?.ar, tr: p.title?.tr },
+        city: p.city || { az: '', en: '', ru: '', ar: '', tr: '' },
+        desc: p.description || p.desc || { az: '', en: '', ru: '', ar: '', tr: '' },
+        isCustom: true,
+      }))
+      setCustomPlaces(mapped)
+    })
+    return () => unsubscribe?.()
+  }, [])
+
+  const allPlaces = [...customPlaces, ...PLACES]
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="الأَمَاكِنُ المُقَدَّسَة" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="الأَمَاكِنُ المُقَدَّسَة" title={l.title} subtitle={l.sub} theme="holy" />
 
       <View style={styles.content}>
-        {PLACES.map((place, i) => (
+        {allPlaces.map((place, i) => (
           <FadeUp key={i} delay={100 + i * 80}>
             <View style={[styles.placeCard, { backgroundColor: c.card, borderColor: c.cardBorder }, sh]}>
               <LinearGradient

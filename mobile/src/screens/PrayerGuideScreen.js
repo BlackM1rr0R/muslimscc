@@ -66,7 +66,7 @@ export default function PrayerGuideScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="دَلِيلُ الصَّلَاة" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="دَلِيلُ الصَّلَاة" title={l.title} subtitle={l.sub} theme="prayerguide" />
 
       <View style={styles.content}>
         {/* Prayer selector */}

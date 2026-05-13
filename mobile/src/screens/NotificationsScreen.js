@@ -106,7 +106,7 @@ export default function NotificationsScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="الإِشْعَارَات" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="الإِشْعَارَات" title={l.title} subtitle={l.sub} theme="notifications" />
 
       <View style={styles.content}>
 

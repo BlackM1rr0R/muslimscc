@@ -112,7 +112,7 @@ export default function QuizScreen() {
   if (!quizKey) {
     return (
       <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-        <PageHero arabic="الاِخْتِبَار" title={l.title} subtitle={l.sub} />
+        <PageHero arabic="الاِخْتِبَار" title={l.title} subtitle={l.sub} theme="quiz" />
 
         <View style={styles.content}>
           {Object.entries(QUIZZES).map(([key, quiz], i) => (

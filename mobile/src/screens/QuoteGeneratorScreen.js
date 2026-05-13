@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Share, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Slider from '@react-native-community/slider';
@@ -6,6 +6,7 @@ import Slider from '@react-native-community/slider';
 import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { QUOTES } from '../data/quotes';
+import { subscribeToQuotes } from '../data/adminContent';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn } from '../components/Animated';
 
@@ -126,7 +127,23 @@ export default function QuoteGeneratorScreen() {
   const [cardOpacity, setCardOpacity] = useState(100);
   const [borderWidth, setBorderWidth] = useState(0);
 
-  const allQuotes = QUOTES || [];
+  // Admin paneldən əlavə edilmiş sitatları real-time qarışdır
+  const [customQuotes, setCustomQuotes] = useState([])
+  useEffect(() => {
+    const unsubscribe = subscribeToQuotes((items) => {
+      const mapped = (items || []).map(q => ({
+        id: 'custom-' + q.id,
+        cat: q.category || q.cat || 'general',
+        ar: q.ar || q.arabic || '',
+        text: q.text?.[lang] || q.text?.en || '',
+        author: q.author || q.source || 'Admin',
+      })).filter(q => q.text || q.ar)
+      setCustomQuotes(mapped)
+    })
+    return () => unsubscribe?.()
+  }, [lang])
+
+  const allQuotes = [...customQuotes, ...(QUOTES || [])];
   const filtered = catFilter === 'all' ? allQuotes : allQuotes.filter(q => q.cat === catFilter);
   const quote = filtered[quoteIdx % Math.max(filtered.length, 1)];
   const theme = THEMES[themeIdx];
@@ -171,7 +188,7 @@ export default function QuoteGeneratorScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="اقتباسات" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="اقتباسات" title={l.title} subtitle={l.sub} theme="quotes" />
 
       <View style={styles.content}>
         {/* ═══ Category Filter ═══ */}

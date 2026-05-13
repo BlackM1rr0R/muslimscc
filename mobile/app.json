@@ -40,6 +40,9 @@
       "expo-notifications",
       "expo-asset",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "apiUrl": "https://muslims.cc"
+    }
   }
 }

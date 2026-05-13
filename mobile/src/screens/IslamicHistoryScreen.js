@@ -152,7 +152,7 @@ export default function IslamicHistoryScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="التَّارِيخُ الإِسْلَامِيّ" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="التَّارِيخُ الإِسْلَامِيّ" title={l.title} subtitle={l.sub} theme="history" />
 
       <View style={styles.content}>
 

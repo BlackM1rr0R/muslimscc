@@ -84,7 +84,7 @@ export default function QuranGameScreen() {
   if (!playing || done) {
     return (
       <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-        <PageHero arabic="لُعْبَةُ القُرْآن" title={l.title} subtitle={l.sub} />
+        <PageHero arabic="لُعْبَةُ القُرْآن" title={l.title} subtitle={l.sub} theme="qurangame" />
 
         <View style={styles.content}>
           <ScaleIn delay={100}>

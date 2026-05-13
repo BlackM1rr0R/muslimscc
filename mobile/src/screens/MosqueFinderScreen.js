@@ -70,7 +70,7 @@ export default function MosqueFinderScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="المَسَاجِد" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="المَسَاجِد" title={l.title} subtitle={l.sub} theme="mosques" />
 
       <View style={styles.content}>
 

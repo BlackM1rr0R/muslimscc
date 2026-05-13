@@ -61,7 +61,7 @@ export default function ZakatScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="الزَّكَاة" title={t.title} subtitle={t.subtitle} />
+      <PageHero arabic="الزَّكَاة" title={t.title} subtitle={t.subtitle} theme="zakat" />
 
       <View style={styles.content}>
 

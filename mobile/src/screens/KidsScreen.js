@@ -53,7 +53,7 @@ export default function KidsScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="الإِسْلَامُ لِلأَطْفَال" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="الإِسْلَامُ لِلأَطْفَال" title={l.title} subtitle={l.sub} theme="kids" />
 
       <View style={styles.content}>
         {/* Fun banner */}

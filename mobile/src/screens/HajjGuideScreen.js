@@ -64,7 +64,7 @@ export default function HajjGuideScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="الحَجّ" title={l.title} subtitle={l.sub} />
+      <PageHero arabic="الحَجّ" title={l.title} subtitle={l.sub} theme="hajj" />
 
       <View style={styles.content}>
 

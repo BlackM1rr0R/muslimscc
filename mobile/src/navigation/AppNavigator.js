@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, TextInput, Animated, Dimensions, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -39,6 +39,11 @@ import SahabeScreen from '../screens/SahabeScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import AboutScreen from '../screens/AboutScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import BooksScreen from '../screens/BooksScreen';
+import AIChatScreen from '../screens/AIChatScreen';
+import AccessibilityScreen from '../screens/AccessibilityScreen';
+import VideosScreen from '../screens/VideosScreen';
+import FloatingActions from '../components/FloatingActions';
 
 const { width: SW } = Dimensions.get('window');
 const Drawer = createDrawerNavigator();
@@ -67,6 +72,8 @@ const MENU_GROUPS = [
     categoryKey: 'knowledge',
     items: [
       { name: 'Hadith', iconKey: 'hadith', labelKey: 'hadith', gradient: ['#f59e0b','#d97706'] },
+      { name: 'Books', iconKey: 'glossary', labelKey: 'books', gradient: ['#f59e0b','#d97706'] },
+      { name: 'Videos', iconKey: 'play', labelKey: 'videos', gradient: ['#10b981','#059669'] },
       { name: 'Names', iconKey: 'names', labelKey: 'names', gradient: ['#f97316','#ea580c'] },
       { name: 'History', iconKey: 'history', labelKey: 'history', gradient: ['#6366f1','#4f46e5'] },
       { name: 'Sahabe', iconKey: 'sahaba', labelKey: 'sahaba', gradient: ['#14b8a6','#0d9488'] },
@@ -97,28 +104,35 @@ const MENU_GROUPS = [
     ],
   },
   {
+    categoryKey: 'ai',
+    items: [
+      { name: 'AIChat', iconKey: 'about', labelKey: 'aichat', gradient: ['#10b981','#059669'] },
+    ],
+  },
+  {
     categoryKey: 'settings',
     items: [
       { name: 'Notifications', iconKey: 'settings', labelKey: 'notifications', gradient: ['#f59e0b','#d97706'] },
+      { name: 'Accessibility', iconKey: 'settings', labelKey: 'accessibility', gradient: ['#3b82f6','#2563eb'] },
       { name: 'About', iconKey: 'about', labelKey: 'about', gradient: ['#64748b','#475569'] },
     ],
   },
 ];
 
 const CATEGORY_LABELS = {
-  az: { main:'Ana', worship:'İbadət', knowledge:'Bilik', tools:'Alətlər', games:'Əyləncə', settings:'Parametrlər' },
-  en: { main:'Main', worship:'Worship', knowledge:'Knowledge', tools:'Tools', games:'Fun', settings:'Settings' },
-  ru: { main:'Главное', worship:'Поклонение', knowledge:'Знание', tools:'Инструменты', games:'Развлечения', settings:'Настройки' },
-  ar: { main:'الرئيسية', worship:'العبادة', knowledge:'المعرفة', tools:'الأدوات', games:'الترفيه', settings:'الإعدادات' },
-  tr: { main:'Ana', worship:'İbadet', knowledge:'Bilgi', tools:'Araçlar', games:'Eğlence', settings:'Ayarlar' },
+  az: { main:'Ana', worship:'İbadət', knowledge:'Bilik', tools:'Alətlər', games:'Əyləncə', ai:'AI Köməkçi', settings:'Parametrlər' },
+  en: { main:'Main', worship:'Worship', knowledge:'Knowledge', tools:'Tools', games:'Fun', ai:'AI Assistant', settings:'Settings' },
+  ru: { main:'Главное', worship:'Поклонение', knowledge:'Знание', tools:'Инструменты', games:'Развлечения', ai:'AI Помощник', settings:'Настройки' },
+  ar: { main:'الرئيسية', worship:'العبادة', knowledge:'المعرفة', tools:'الأدوات', games:'الترفيه', ai:'مساعد الذكاء الاصطناعي', settings:'الإعدادات' },
+  tr: { main:'Ana', worship:'İbadet', knowledge:'Bilgi', tools:'Araçlar', games:'Eğlence', ai:'AI Asistan', settings:'Ayarlar' },
 };
 
 const NAV_LABELS = {
-  az: { home:'Ana Səhifə', quran:'Quran', hadith:'Hədis', prayer:'Namaz', duas:'Dualar', dhikr:'Zikr', names:'99 Ad', calendar:'Təqvim', zakat:'Zəkat', about:'Haqqında', qibla:'Qibla', prayerguide:'Namaz Dərsliyi', hajjguide:'Həcc Bələdçisi', hifz:'Hifz', quiz:'Viktorina', qurangame:'Quran Oyunu', dailytracker:'Gündəlik İzləyici', charity:'Sədəqə', duajournal:'Dua Jurnalı', quotes:'Sitatlar', mosques:'Məscidlər', holyplaces:'Müqəddəs Yerlər', history:'Tarix', sahaba:'Səhabələr', kids:'Uşaqlar', glossary:'Lüğət', analytics:'Statistika', notifications:'Bildirişlər' },
-  en: { home:'Home', quran:'Quran', hadith:'Hadith', prayer:'Prayer', duas:"Du'as", dhikr:'Dhikr', names:'99 Names', calendar:'Calendar', zakat:'Zakat', about:'About', qibla:'Qibla', prayerguide:'Prayer Guide', hajjguide:'Hajj Guide', hifz:'Hifz', quiz:'Quiz', qurangame:'Quran Game', dailytracker:'Daily Tracker', charity:'Charity', duajournal:'Dua Journal', quotes:'Quotes', mosques:'Mosques', holyplaces:'Holy Places', history:'History', sahaba:'Companions', kids:'Kids', glossary:'Glossary', analytics:'Analytics', notifications:'Notifications' },
-  ru: { home:'Главная', quran:'Коран', hadith:'Хадисы', prayer:'Намаз', duas:'Дуа', dhikr:'Зикр', names:'99 Имён', calendar:'Календарь', zakat:'Закят', about:'О нас', qibla:'Кибла', prayerguide:'Намаз Гид', hajjguide:'Хадж Гид', hifz:'Хифз', quiz:'Викторина', qurangame:'Коран Игра', dailytracker:'Трекер', charity:'Садака', duajournal:'Журнал Дуа', quotes:'Цитаты', mosques:'Мечети', holyplaces:'Святые Места', history:'История', sahaba:'Сахабы', kids:'Детям', glossary:'Глоссарий', analytics:'Статистика', notifications:'Уведомления' },
-  ar: { home:'الرئيسية', quran:'القرآن', hadith:'الحديث', prayer:'الصلاة', duas:'الأدعية', dhikr:'الذكر', names:'٩٩ اسم', calendar:'التقويم', zakat:'الزكاة', about:'عن الموقع', qibla:'القبلة', prayerguide:'دليل الصلاة', hajjguide:'دليل الحج', hifz:'الحفظ', quiz:'اختبار', qurangame:'لعبة القرآن', dailytracker:'المتابعة', charity:'الصدقة', duajournal:'دفتر الدعاء', quotes:'اقتباسات', mosques:'المساجد', holyplaces:'الأماكن المقدسة', history:'التاريخ', sahaba:'الصحابة', kids:'الأطفال', glossary:'المعجم', analytics:'الإحصائيات', notifications:'الإشعارات' },
-  tr: { home:'Ana Sayfa', quran:"Kur'an", hadith:'Hadis', prayer:'Namaz', duas:'Dualar', dhikr:'Zikir', names:'99 İsim', calendar:'Takvim', zakat:'Zekât', about:'Hakkımızda', qibla:'Kıble', prayerguide:'Namaz Rehberi', hajjguide:'Hac Rehberi', hifz:'Hıfz', quiz:'Sınav', qurangame:'Kuran Oyunu', dailytracker:'Günlük Takip', charity:'Sadaka', duajournal:'Dua Günlüğü', quotes:'Alıntılar', mosques:'Camiler', holyplaces:'Kutsal Yerler', history:'Tarih', sahaba:'Sahabeler', kids:'Çocuklar', glossary:'Sözlük', analytics:'İstatistik', notifications:'Bildirimler' },
+  az: { home:'Ana Səhifə', quran:'Quran', hadith:'Hədis', prayer:'Namaz', duas:'Dualar', dhikr:'Zikr', names:'99 Ad', calendar:'Təqvim', zakat:'Zəkat', about:'Haqqında', qibla:'Qibla', prayerguide:'Namaz Dərsliyi', hajjguide:'Həcc Bələdçisi', hifz:'Hifz', quiz:'Viktorina', qurangame:'Quran Oyunu', dailytracker:'Gündəlik İzləyici', charity:'Sədəqə', duajournal:'Dua Jurnalı', quotes:'Sitatlar', mosques:'Məscidlər', holyplaces:'Müqəddəs Yerlər', history:'Tarix', sahaba:'Səhabələr', kids:'Uşaqlar', glossary:'Lüğət', analytics:'Statistika', notifications:'Bildirişlər', books:'Kitablar', videos:'Videolar', aichat:'AI Köməkçi', accessibility:'Əlçatanlıq' },
+  en: { home:'Home', quran:'Quran', hadith:'Hadith', prayer:'Prayer', duas:"Du'as", dhikr:'Dhikr', names:'99 Names', calendar:'Calendar', zakat:'Zakat', about:'About', qibla:'Qibla', prayerguide:'Prayer Guide', hajjguide:'Hajj Guide', hifz:'Hifz', quiz:'Quiz', qurangame:'Quran Game', dailytracker:'Daily Tracker', charity:'Charity', duajournal:'Dua Journal', quotes:'Quotes', mosques:'Mosques', holyplaces:'Holy Places', history:'History', sahaba:'Companions', kids:'Kids', glossary:'Glossary', analytics:'Analytics', notifications:'Notifications', books:'Books', videos:'Videos', aichat:'AI Assistant', accessibility:'Accessibility' },
+  ru: { home:'Главная', quran:'Коран', hadith:'Хадисы', prayer:'Намаз', duas:'Дуа', dhikr:'Зикр', names:'99 Имён', calendar:'Календарь', zakat:'Закят', about:'О нас', qibla:'Кибла', prayerguide:'Намаз Гид', hajjguide:'Хадж Гид', hifz:'Хифз', quiz:'Викторина', qurangame:'Коран Игра', dailytracker:'Трекер', charity:'Садака', duajournal:'Журнал Дуа', quotes:'Цитаты', mosques:'Мечети', holyplaces:'Святые Места', history:'История', sahaba:'Сахабы', kids:'Детям', glossary:'Глоссарий', analytics:'Статистика', notifications:'Уведомления', books:'Книги', videos:'Видео', aichat:'AI Помощник', accessibility:'Доступность' },
+  ar: { home:'الرئيسية', quran:'القرآن', hadith:'الحديث', prayer:'الصلاة', duas:'الأدعية', dhikr:'الذكر', names:'٩٩ اسم', calendar:'التقويم', zakat:'الزكاة', about:'عن الموقع', qibla:'القبلة', prayerguide:'دليل الصلاة', hajjguide:'دليل الحج', hifz:'الحفظ', quiz:'اختبار', qurangame:'لعبة القرآن', dailytracker:'المتابعة', charity:'الصدقة', duajournal:'دفتر الدعاء', quotes:'اقتباسات', mosques:'المساجد', holyplaces:'الأماكن المقدسة', history:'التاريخ', sahaba:'الصحابة', kids:'الأطفال', glossary:'المعجم', analytics:'الإحصائيات', notifications:'الإشعارات', books:'الكتب', videos:'الفيديوهات', aichat:'مساعد AI', accessibility:'إمكانية الوصول' },
+  tr: { home:'Ana Sayfa', quran:"Kur'an", hadith:'Hadis', prayer:'Namaz', duas:'Dualar', dhikr:'Zikir', names:'99 İsim', calendar:'Takvim', zakat:'Zekât', about:'Hakkımızda', qibla:'Kıble', prayerguide:'Namaz Rehberi', hajjguide:'Hac Rehberi', hifz:'Hıfz', quiz:'Sınav', qurangame:'Kuran Oyunu', dailytracker:'Günlük Takip', charity:'Sadaka', duajournal:'Dua Günlüğü', quotes:'Alıntılar', mosques:'Camiler', holyplaces:'Kutsal Yerler', history:'Tarih', sahaba:'Sahabeler', kids:'Çocuklar', glossary:'Sözlük', analytics:'İstatistik', notifications:'Bildirimler', books:'Kitaplar', videos:'Videolar', aichat:'AI Asistan', accessibility:'Erişilebilirlik' },
 };
 
 const SEARCH_PLACEHOLDERS = {
@@ -401,6 +415,10 @@ const SCREENS = [
   { name: 'Glossary', component: GlossaryScreen, labelKey: 'glossary' },
   { name: 'Analytics', component: AnalyticsScreen, labelKey: 'analytics' },
   { name: 'Notifications', component: NotificationsScreen, labelKey: 'notifications' },
+  { name: 'Books', component: BooksScreen, labelKey: 'books' },
+  { name: 'Videos', component: VideosScreen, labelKey: 'videos' },
+  { name: 'AIChat', component: AIChatScreen, labelKey: 'aichat' },
+  { name: 'Accessibility', component: AccessibilityScreen, labelKey: 'accessibility' },
   { name: 'About', component: AboutScreen, labelKey: 'about' },
 ];
 
@@ -434,9 +452,15 @@ export default function AppNavigator() {
   const { lang, dark } = useLang();
   const c = dark ? Colors.dark : Colors.light;
   const labels = NAV_LABELS[lang] || NAV_LABELS.az;
+  const navRef = useNavigationContainerRef();
+  const [currentRoute, setCurrentRoute] = useState('Home');
 
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      ref={navRef}
+      onReady={() => setCurrentRoute(navRef.getCurrentRoute()?.name || 'Home')}
+      onStateChange={() => setCurrentRoute(navRef.getCurrentRoute()?.name || 'Home')}
+    >
       <Drawer.Navigator
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         screenOptions={({ navigation }) => ({
@@ -467,6 +491,12 @@ export default function AppNavigator() {
           />
         ))}
       </Drawer.Navigator>
+
+      {/* Web-də olduğu kimi: bütün ekranlarda floating AI + Accessibility düymələri.
+          AIChat/Accessibility ekranlarında özünü gizlət. */}
+      {currentRoute !== 'AIChat' && currentRoute !== 'Accessibility' && (
+        <FloatingActions navRef={navRef} />
+      )}
     </NavigationContainer>
   );
 }

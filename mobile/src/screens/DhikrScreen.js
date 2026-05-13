@@ -119,7 +119,7 @@ export default function DhikrScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="الذِّكْر" title={t.title} subtitle={t.subtitle} />
+      <PageHero arabic="الذِّكْر" title={t.title} subtitle={t.subtitle} theme="dhikr" />
 
       <View style={styles.content}>
 

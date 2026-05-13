@@ -134,7 +134,7 @@ export default function NamesScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
-      <PageHero arabic="أَسْمَاءُ اللَّهِ الْحُسْنَى" title={t.title} subtitle={t.subtitle} />
+      <PageHero arabic="أَسْمَاءُ اللَّهِ الْحُسْنَى" title={t.title} subtitle={t.subtitle} theme="names" />
 
       <View style={styles.content}>
 

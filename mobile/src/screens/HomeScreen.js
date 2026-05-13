@@ -8,6 +8,12 @@ import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
 import AppIcon from '../components/Icon';
 import VideoSection from '../components/VideoSection';
+import BookSection from '../components/BookSection';
+import {
+  AnnouncementBanner,
+  HeroBannerDisplay,
+  DailyContentDisplay,
+} from '../components/AdminContentSections';
 import { FadeUp, FadeIn, ScaleIn, SlideIn, Float, Pulse, Rotate, PressableCard, useParallaxHero, AnimatedNumber, BreathingDot } from '../components/Animated';
 
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -454,8 +460,21 @@ export default function HomeScreen({ navigation }) {
             ))}
           </View>
 
+          {/* ═══ ADMIN-DRIVEN CONTENT (web ilə eyni Firebase) ═══ */}
+          {/* Elanlar — admin paneldən yenilik elan etdikdə dərhal görünür */}
+          <AnnouncementBanner />
+
+          {/* Admin hero banner — Ramazan, Eyd kimi xüsusi günlər üçün */}
+          <HeroBannerDisplay />
+
+          {/* Bugünkü ayə / zikr / söz (admin paneldən təyin olunur) */}
+          <DailyContentDisplay />
+
           {/* ═══ VIDEO SECTION ═══ */}
           <VideoSection />
+
+          {/* ═══ BOOK SECTION ═══ */}
+          <BookSection />
 
           {/* ═══ CTA ═══ */}
           <FadeUp delay={200}>
