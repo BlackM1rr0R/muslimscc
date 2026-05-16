@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import { SURAH_AZ } from '../data/surahNamesAz'
 import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/QuranPage.css'
 
@@ -175,7 +176,9 @@ export default function QuranPage({ setPage }) {
   const [verseResults, setVerseResults] = useState([])
   const [verseSearching, setVerseSearching] = useState(false)
   const verseTimerRef = useRef(null)
-  const [filter,   setFilter]   = useState(t.all)
+  // Dil dəyişəndə t.all/t.meccan/t.medinan-ın label-i dəyişir; ona görə
+  // filter state-i tərcüməsiz key ('all'|'meccan'|'medinan') saxlayırıq.
+  const [filter,   setFilter]   = useState('all')
   const [showTrans, setShowTrans] = useState(true)
   const [showTafsir, setShowTafsir] = useState(false)
   const [fontSize,  setFontSize]  = useState(1.65)
@@ -217,12 +220,14 @@ export default function QuranPage({ setPage }) {
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
     return surahs.filter(s => {
+      const az = SURAH_AZ[s.number]
       const matchQ = !q || s.englishName.toLowerCase().includes(q) ||
         s.name.includes(search) || String(s.number).includes(q) ||
-        s.englishNameTranslation.toLowerCase().includes(q)
-      const matchF = filter === t.all ||
-        (filter === t.meccan && s.revelationType === 'Meccan') ||
-        (filter === t.medinan && s.revelationType === 'Medinan')
+        s.englishNameTranslation.toLowerCase().includes(q) ||
+        (az && (az.name.toLowerCase().includes(q) || az.meaning.toLowerCase().includes(q)))
+      const matchF = filter === 'all' ||
+        (filter === 'meccan' && s.revelationType === 'Meccan') ||
+        (filter === 'medinan' && s.revelationType === 'Medinan')
       return matchQ && matchF
     })
   }, [surahs, search, filter, lang])
@@ -257,8 +262,8 @@ export default function QuranPage({ setPage }) {
           <div className="reader-number">{surah.number}</div>
           <div className="reader-info">
             <h1 className="reader-arabic">{surah.name}</h1>
-            <h2 className="reader-english">{surah.englishName}</h2>
-            <p className="reader-meta">{surah.englishNameTranslation} · {surah.numberOfAyahs} {t.verses} · {surah.revelationType}</p>
+            <h2 className="reader-english">{lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].name : surah.englishName}</h2>
+            <p className="reader-meta">{lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].meaning : surah.englishNameTranslation} · {surah.numberOfAyahs} {t.verses} · {surah.revelationType}</p>
           </div>
         </div>
         {surah.number !== 9 && (
@@ -341,23 +346,34 @@ export default function QuranPage({ setPage }) {
           {searchMode === 'surah' && (
             <>
               <div className="tag-filters">
-                {[t.all, t.meccan, t.medinan].map(f => (
-                  <button key={f} className={`tag-btn ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>{f}</button>
+                {[
+                  { key:'all',     label: t.all },
+                  { key:'meccan',  label: t.meccan },
+                  { key:'medinan', label: t.medinan },
+                ].map(f => (
+                  <button key={f.key} className={`tag-btn ${filter === f.key ? 'active' : ''}`} onClick={() => setFilter(f.key)}>{f.label}</button>
                 ))}
               </div>
               {listLoading && <div className="spinner-wrap"><div className="spinner"/><span className="spinner-text">{t.loading}</span></div>}
               <div className="surah-grid">
-                {filtered.map((s,i) => (
-                  <div key={s.number} className="surah-card anim-fadeUp" style={{animationDelay:`${Math.min(i*20,400)}ms`}}
-                    onClick={() => openSurah(s.number, s.englishName)}>
-                    <div className="surah-num">{s.number}</div>
-                    <div className="surah-body">
-                      <div className="surah-name-en">{s.englishName}</div>
-                      <div className="surah-meta">{s.englishNameTranslation} · {s.numberOfAyahs} {t.verses}</div>
+                {filtered.map((s,i) => {
+                  const az = lang === 'az' ? SURAH_AZ[s.number] : null
+                  const displayName = az ? az.name : s.englishName
+                  const displayMeta = az
+                    ? `${az.meaning} · ${s.numberOfAyahs} ${t.verses}`
+                    : `${s.englishNameTranslation} · ${s.numberOfAyahs} ${t.verses}`
+                  return (
+                    <div key={s.number} className="surah-card anim-fadeUp" style={{animationDelay:`${Math.min(i*20,400)}ms`}}
+                      onClick={() => openSurah(s.number, displayName)}>
+                      <div className="surah-num">{s.number}</div>
+                      <div className="surah-body">
+                        <div className="surah-name-en">{displayName}</div>
+                        <div className="surah-meta">{displayMeta}</div>
+                      </div>
+                      <div className="surah-name-ar">{s.name}</div>
                     </div>
-                    <div className="surah-name-ar">{s.name}</div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
               {!listLoading && filtered.length === 0 && (
                 <div className="empty-state">

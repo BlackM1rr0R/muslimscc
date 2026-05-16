@@ -18,6 +18,7 @@ const LABELS = {
 
 const DISMISS_KEY = 'muslim_cc_push_prompt_dismissed'
 const DISMISS_HOURS = 24 // gizlədiləndən sonra 24 saat görünmür
+const AUTO_ASKED_KEY = 'muslim_cc_push_auto_asked_v1' // ilk açılışda 1 dəfə avtomatik soruş
 
 export default function NotificationPrompt() {
   const { lang } = useLang()
@@ -30,13 +31,12 @@ export default function NotificationPrompt() {
   useEffect(() => {
     let alive = true
     ;(async () => {
-      // Artıq icazə verilibsə token-i yenilə amma banner göstərmə
       const supported = await isPushSupported()
       if (!supported) return
       const status = getPermissionStatus()
 
       if (status === 'granted') {
-        // Token yoxdursa, sakitcə yenilə
+        // Artıq icazəlidir — sakitcə FCM token-i yenilə (default-da bütün topic-lər ON)
         if (!getStoredToken()) {
           requestNotificationPermission().catch(() => {})
         }
@@ -44,12 +44,30 @@ export default function NotificationPrompt() {
       }
       if (status === 'denied') return // istifadəçi rədd edib — bezdirməyək
 
-      // Banner-i daha əvvəl bağlayıbsa, vaxt bitməyibsə göstərmə
+      // ═══ İlk açılışda DƏRHAL native browser dialog-unu aç ═══
+      // (Notification.requestPermission() user gesture olmadan da Chrome/Firefox-da işləyir,
+      //  Safari isə banner-də click tələb edir — buna görə fallback banner aşağıdadır)
+      const autoAsked = localStorage.getItem(AUTO_ASKED_KEY)
+      if (!autoAsked) {
+        localStorage.setItem(AUTO_ASKED_KEY, '1')
+        try {
+          const result = await requestNotificationPermission()
+          if (alive && result?.reason !== 'denied' && result?.ok !== true) {
+            // Browser auto-prompt-u qəbul etmədi (Safari və s.) — banner göstər
+            setShow(true)
+          }
+          return
+        } catch {
+          // fallback banner-ə düş
+        }
+      }
+
+      // Fallback banner — daha əvvəl bağlayıbsa, vaxt bitməyibsə göstərmə
       const dismissedAt = Number(localStorage.getItem(DISMISS_KEY) || 0)
       if (dismissedAt && Date.now() - dismissedAt < DISMISS_HOURS * 3600 * 1000) return
 
-      // 5 saniyə gözlə (istifadəçi səhifə ilə tanış olsun)
-      const t = setTimeout(() => { if (alive) setShow(true) }, 5000)
+      // Qısa gözləmə (1s) — səhifə yüklənsin
+      const t = setTimeout(() => { if (alive) setShow(true) }, 1000)
       return () => clearTimeout(t)
     })()
     return () => { alive = false }

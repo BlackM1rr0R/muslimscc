@@ -3,7 +3,7 @@ import { useLang } from '../contexts/LangContext'
 
 // Hər səhifə üçün dynamic meta tag-lər (Google + sosial media)
 const SITE_URL = 'https://muslims.cc'
-const SITE_NAME = 'Muslim.cc'
+const SITE_NAME = 'Muslims.cc'
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`
 
 function setMetaTag(name, content, isProperty = false) {

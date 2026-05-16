@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import { VIDEO_CATEGORIES, getThumbnail, getEmbedUrl, DEFAULT_VIDEOS, subscribeToVideos } from '../data/videos'
+import Pagination from './Pagination'
 
 const LABELS = {
   az: { title:'Video Kontent', sub:'Mühazirələr, tilavətlər və daha çoxu', noVideos:'Hələ video əlavə olunmayıb', loading:'Yüklənir...', viewAll:'Hamısını gör' },
@@ -18,6 +20,8 @@ export default function VideoSection({ setPage }) {
   const [loading, setLoading] = useState(true)
   const [selectedCat, setSelectedCat] = useState('all')
   const [playingVideo, setPlayingVideo] = useState(null)
+  const [pageNum, setPageNum] = useState(1)
+  const PER_PAGE = 3
 
   useEffect(() => {
     // Real-time subscriber: admin video əlavə edəndə dərhal görünür
@@ -28,9 +32,16 @@ export default function VideoSection({ setPage }) {
     return () => unsubscribe?.()
   }, [])
 
-  const filtered = selectedCat === 'all'
+  // Kateqoriya dəyişəndə pagination-u sıfırla
+  useEffect(() => { setPageNum(1) }, [selectedCat])
+
+  // Ana səhifədə hər səhifəyə 3 video — istifadəçi sayfalaya bilər
+  const filteredAll = selectedCat === 'all'
     ? videos
     : videos.filter(v => v.category === selectedCat)
+  const totalPages = Math.max(1, Math.ceil(filteredAll.length / PER_PAGE))
+  const currentPage = Math.min(pageNum, totalPages)
+  const filtered = filteredAll.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
 
   if (loading) {
     return (
@@ -131,22 +142,36 @@ export default function VideoSection({ setPage }) {
             {l.noVideos}
           </div>
         )}
+
+        {/* Pagination — ana səhifədə də səhifələmə */}
+        {totalPages > 1 && (
+          <Pagination
+            current={currentPage}
+            total={totalPages}
+            onChange={setPageNum}
+            color="#10b981"
+          />
+        )}
       </div>
 
-      {/* Video Player Modal */}
-      {playingVideo && (
+      {/* Video Player Modal — Portal ilə body-yə render olunur (heç bir parent transform-undan asılı deyil) */}
+      {playingVideo && createPortal(
         <div className="video-modal" onClick={() => setPlayingVideo(null)}>
           <div className="video-modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="video-modal-close" onClick={() => setPlayingVideo(null)}>✕</button>
             <iframe
               className="video-modal-iframe"
-              src={`${getEmbedUrl(playingVideo.youtubeId)}?autoplay=1`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              src={getEmbedUrl(playingVideo.youtubeId)}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
+              playsInline
               title={playingVideo.title[lang] || playingVideo.title.en}
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   )

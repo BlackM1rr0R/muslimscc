@@ -15,12 +15,21 @@ const CATS_MAP = { az:CATS_AZ, en:CATS_EN, ru:CATS_RU, ar:CATS_AR, tr:CATS_TR }
 
 const FAV_LABELS = { az:'Sevimlilər', en:'Favorites', ru:'Избранные', ar:'المفضلة', tr:'Favoriler' }
 
-function HadithCard({ hadith, isFav, onToggleFav, onShare }) {
+// Kateqoriya İngiliscə key-i (məs. "Knowledge") aktiv dilə çevirir.
+function localizeCat(cat, lang) {
+  if (!cat) return ''
+  const c = String(cat).toLowerCase()
+  const idx = CATS_EN.findIndex(x => x.toLowerCase() === c)
+  if (idx > 0) return (CATS_MAP[lang] || CATS_EN)[idx]
+  return cat
+}
+
+function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, lang }) {
   return (
     <div className="hadith-card">
       <div className="hadith-top">
-        <div className="hadith-num">#{hadith.id}</div>
-        <div className="hadith-cat-badge">{hadith.cat}</div>
+        <div className="hadith-num">#{displayNum}</div>
+        <div className="hadith-cat-badge">{localizeCat(hadith.cat, lang)}</div>
         <div className="hadith-source">{hadith.source}</div>
         <button className={`hadith-fav-btn ${isFav ? 'active' : ''}`} onClick={() => onToggleFav(hadith.id)}>
           {isFav ? '❤️' : '🤍'}
@@ -139,7 +148,17 @@ export default function HadithPage({ setPage }) {
           <div className="hadiths-list">
             {paged.length === 0
               ? <div className="empty-state"><span>📚</span><p>{t.noResult}</p></div>
-              : paged.map(h => <HadithCard key={h.id} hadith={h} lang={lang} isFav={favs.includes(h.id)} onToggleFav={toggleFav} onShare={shareHadith} />)
+              : paged.map((h, i) => (
+                  <HadithCard
+                    key={h.id}
+                    hadith={h}
+                    lang={lang}
+                    displayNum={(pageNum - 1) * PER + i + 1}
+                    isFav={favs.includes(h.id)}
+                    onToggleFav={toggleFav}
+                    onShare={shareHadith}
+                  />
+                ))
             }
           </div>
 

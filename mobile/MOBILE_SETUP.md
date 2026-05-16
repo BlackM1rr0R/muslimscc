@@ -1,4 +1,4 @@
-# 📱 Muslim.cc Mobile — Setup
+# 📱 Muslims.cc Mobile — Setup
 
 ## 🔥 Firebase paylaşımı (web ilə eyni)
 

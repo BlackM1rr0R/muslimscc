@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
+import { subscribeToSettings } from '../data/adminContent'
 import '../styles/AIChatPage.css'
 
-const API_URL = import.meta.env.VITE_API_URL || ''
+// URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
+const FALLBACK_API_URL = import.meta.env.VITE_API_URL || ''
 
 const LABELS = {
   az: {
@@ -115,8 +117,19 @@ export default function AIChatPage({ setPage }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [cooldown, setCooldown] = useState(0)
+  const [apiUrl, setApiUrl] = useState(FALLBACK_API_URL)
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
+
+  // Admin Firebase Settings-dən API URL-i real-time oxu (mobile ilə eyni)
+  useEffect(() => {
+    const unsubscribe = subscribeToSettings((settings) => {
+      const url = settings?.apiUrl?.trim()
+      if (url && /^https?:\/\//.test(url)) setApiUrl(url)
+      else setApiUrl(FALLBACK_API_URL)
+    })
+    return () => unsubscribe?.()
+  }, [])
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)) } catch {}
@@ -150,7 +163,7 @@ export default function AIChatPage({ setPage }) {
   const sendMessage = async (text) => {
     const msg = (text ?? input).trim()
     if (!msg || loading || cooldown > 0) return
-    if (!API_URL) {
+    if (!apiUrl) {
       setError(l.noBackend)
       return
     }
@@ -173,7 +186,7 @@ export default function AIChatPage({ setPage }) {
     recordMessage()
 
     try {
-      const res = await fetch(`${API_URL.replace(/\/$/, '')}/api/ask-ai`, {
+      const res = await fetch(`${apiUrl.replace(/\/$/, '')}/api/ask-ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

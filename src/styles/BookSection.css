@@ -54,12 +54,20 @@
   box-shadow: 0 8px 22px rgba(245,158,11,0.4);
 }
 
-/* ─── Grid ─── */
+/* ─── Grid — 5 kitab dolu sıra ─── */
 .book-section-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 18px;
   margin-top: 16px;
+}
+
+@media (max-width: 1024px) {
+  .book-section-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 820px) {
+  .book-section-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* ─── Card ─── */
@@ -183,7 +191,7 @@
 @media (max-width: 768px) {
   .book-section { padding: 30px 14px; }
   .book-section-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
   }
   .bs-placeholder-icon { font-size: 38px; }
@@ -193,10 +201,17 @@
   .bs-body { padding: 10px 10px 12px; }
 }
 
+@media (max-width: 600px) {
+  .book-section-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
 @media (max-width: 480px) {
   .book-section { padding: 24px 12px; }
   .book-section-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
   .bs-placeholder-icon { font-size: 34px; }
@@ -205,12 +220,5 @@
   .book-section-viewall {
     padding: 10px 16px;
     font-size: 12px;
-  }
-}
-
-@media (max-width: 360px) {
-  .book-section-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
   }
 }

@@ -245,7 +245,7 @@ function CustomDrawerContent({ navigation, state }) {
           </View>
         </Float>
 
-        <Text style={styles.drawerLogo}>Muslim.cc</Text>
+        <Text style={styles.drawerLogo}>Muslims.cc</Text>
         <View style={styles.drawerSubBadge}>
           <Text style={styles.drawerSub}>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</Text>
         </View>
@@ -381,14 +381,14 @@ function CustomDrawerContent({ navigation, state }) {
           />
         </View>
 
-        <Text style={[styles.versionText, { color: c.textMuted }]}>v1.0.0 · muslim.cc</Text>
+        <Text style={[styles.versionText, { color: c.textMuted }]}>v1.0.0 · muslims.cc</Text>
       </View>
     </View>
   );
 }
 
 const SCREENS = [
-  { name: 'Home', component: HomeScreen, labelKey: 'home', fixedTitle: '☽ Muslim.cc' },
+  { name: 'Home', component: HomeScreen, labelKey: 'home', fixedTitle: '☽ Muslims.cc' },
   { name: 'Quran', component: QuranScreen, labelKey: 'quran' },
   { name: 'Prayer', component: PrayerScreen, labelKey: 'prayer' },
   { name: 'Hadith', component: HadithScreen, labelKey: 'hadith' },

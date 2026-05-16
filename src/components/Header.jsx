@@ -277,7 +277,7 @@ function Header({ currentPage, setPage }) {
 
           <div className="header-right">
 
-            <button className="theme-toggle" onClick={toggleDark} aria-label="Toggle dark mode">
+            <button className="theme-toggle" onClick={toggleDark} aria-label={lang === 'az' ? 'Qaranl\u0131q rejimi' : lang === 'ru' ? '\u0422\u0451\u043C\u043D\u0430\u044F \u0442\u0435\u043C\u0430' : lang === 'ar' ? '\u0627\u0644\u0648\u0636\u0639 \u0627\u0644\u062F\u0627\u0643\u0646' : lang === 'tr' ? 'Karanl\u0131k mod' : 'Toggle dark mode'}>
               {dark ? '\u2600\uFE0F' : '\uD83C\uDF19'}
             </button>
 
@@ -285,7 +285,7 @@ function Header({ currentPage, setPage }) {
               <button
                 className={`lang-btn ${langOpen ? "open" : ""}`}
                 onClick={() => setLangOpen(o => !o)}
-                aria-label="Change language"
+                aria-label={lang === 'az' ? 'Dili d\u0259yi\u015F' : lang === 'ru' ? '\u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u044F\u0437\u044B\u043A' : lang === 'ar' ? '\u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0644\u063A\u0629' : lang === 'tr' ? 'Dili de\u011Fi\u015Ftir' : 'Change language'}
               >
                 <span className="lang-flag">{currentLang.flag}</span>
                 <span className="lang-code">{currentLang.label}</span>
@@ -296,7 +296,9 @@ function Header({ currentPage, setPage }) {
 
               {langOpen && (
                 <div className="lang-dropdown">
-                  <div className="lang-dropdown-header">Dil / Language</div>
+                  <div className="lang-dropdown-header">
+                    {lang === 'az' ? 'Dil seçin' : lang === 'ru' ? 'Выберите язык' : lang === 'ar' ? 'اختر اللغة' : lang === 'tr' ? 'Dil seçin' : 'Select language'}
+                  </div>
                   {LANGS.map(l => (
                     <button
                       key={l.code}
@@ -327,7 +329,7 @@ function Header({ currentPage, setPage }) {
             <button
               className={`menu-toggle ${mobileOpen ? "open" : ""}`}
               onClick={() => setMobileOpen(o => !o)}
-              aria-label="Menu"
+              aria-label={lang === 'az' ? 'Menyu' : lang === 'ru' ? 'Меню' : lang === 'ar' ? 'القائمة' : lang === 'tr' ? 'Menü' : 'Menu'}
             >
               <span className="toggle-line" />
               <span className="toggle-line" />

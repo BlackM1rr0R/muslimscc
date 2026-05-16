@@ -978,7 +978,7 @@ export default function QuranGamePage({ setPage }) {
     <>
       <div className="page-hero theme-qurangame">
         <div className="breadcrumb">
-          <button onClick={() => setPage('home')}>Muslim.cc</button>
+          <button onClick={() => setPage('home')}>Muslims.cc</button>
           <span>/</span>
           <span>{t.title}</span>
         </div>

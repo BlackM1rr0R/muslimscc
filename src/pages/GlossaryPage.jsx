@@ -34,11 +34,11 @@ const GLOSSARY = [
   {
     term: 'Bidət', ar: 'البدعة', translit: 'Bid\'ah',
     def: {
-      az: 'Dində olmayan yenilik. Peyğəmbərin (s.ə.s) və səhabələrin etmədiyi ibadət formaları.',
+      az: 'Dində olmayan yenilik. Peyğəmbərin (s.a.s) və səhabələrin etmədiyi ibadət formaları.',
       en: 'Innovation in religion. Forms of worship not practiced by the Prophet (PBUH) and his companions.',
       ru: 'Нововведение в религии. Формы поклонения, которые не практиковал Пророк (мир ему) и его сподвижники.',
       ar: 'الابتداع في الدين. أشكال العبادة التي لم يمارسها النبي ﷺ وأصحابه.',
-      tr: 'Dinde yenilik. Hz. Peygamber (s.a.v) ve ashabının yapmadığı ibadet şekilleri.',
+      tr: 'Dinde yenilik. Hz. Peygamber (s.a.s) ve ashabının yapmadığı ibadet şekilleri.',
     }
   },
   {
@@ -74,11 +74,11 @@ const GLOSSARY = [
   {
     term: 'Sünnə', ar: 'السنة', translit: 'Sunnah',
     def: {
-      az: 'Hz. Peyğəmbərin (s.ə.s) söz, əməl və təqrir yolu. Qurandən sonra ikinci mənbə.',
+      az: 'Hz. Peyğəmbərin (s.a.s) söz, əməl və təqrir yolu. Qurandən sonra ikinci mənbə.',
       en: 'The way of Prophet Muhammad (PBUH) including his sayings, actions, and approvals. The second source after the Quran.',
       ru: 'Путь Пророка Мухаммада (мир ему), включая его высказывания, действия и одобрения. Второй источник после Корана.',
       ar: 'طريقة النبي ﷺ من أقوال وأفعال وتقريرات. المصدر الثاني بعد القرآن.',
-      tr: 'Hz. Peygamber\'in (s.a.v) söz, fiil ve takrirleri. Kuran\'dan sonra ikinci kaynak.',
+      tr: 'Hz. Peygamber\'in (s.a.s) söz, fiil ve takrirleri. Kuran\'dan sonra ikinci kaynak.',
     }
   },
   {
@@ -194,21 +194,21 @@ const GLOSSARY = [
   {
     term: 'Quran', ar: 'القرآن', translit: 'Quran',
     def: {
-      az: 'Allahın son ilahi kitabı. Hz. Məhəmmədə (s.ə.s) nazil olmuş, 114 surədən ibarət müqəddəs kitab.',
+      az: 'Allahın son ilahi kitabı. Hz. Muhəmmədə (s.a.s) nazil olmuş, 114 surədən ibarət müqəddəs kitab.',
       en: 'The final divine book of Allah. The holy book revealed to Prophet Muhammad (PBUH), consisting of 114 surahs.',
       ru: 'Последняя божественная книга Аллаха. Священная книга, ниспосланная Пророку Мухаммаду (мир ему), состоящая из 114 сур.',
       ar: 'آخر كتاب أنزله الله. الكتاب المقدس الذي أُنزل على النبي ﷺ ويتكون من 114 سورة.',
-      tr: 'Allah\'ın son ilahi kitabı. Hz. Muhammed\'e (s.a.v) indirilen, 114 sureden oluşan kutsal kitap.',
+      tr: 'Allah\'ın son ilahi kitabı. Hz. Muhammed\'e (s.a.s) indirilen, 114 sureden oluşan kutsal kitap.',
     }
   },
   {
     term: 'Hədis', ar: 'الحديث', translit: 'Hadith',
     def: {
-      az: 'Hz. Peyğəmbərin (s.ə.s) söz, əməl və təqrirləri. İslam hüququnun ikinci mənbəyi.',
+      az: 'Hz. Peyğəmbərin (s.a.s) söz, əməl və təqrirləri. İslam hüququnun ikinci mənbəyi.',
       en: 'The sayings, actions, and approvals of Prophet Muhammad (PBUH). The second source of Islamic jurisprudence.',
       ru: 'Высказывания, действия и одобрения Пророка Мухаммада (мир ему). Второй источник исламского права.',
       ar: 'أقوال وأفعال وتقريرات النبي ﷺ. المصدر الثاني للتشريع الإسلامي.',
-      tr: 'Hz. Peygamber\'in (s.a.v) söz, fiil ve takrirleri. İslam hukukunun ikinci kaynağı.',
+      tr: 'Hz. Peygamber\'in (s.a.s) söz, fiil ve takrirleri. İslam hukukunun ikinci kaynağı.',
     }
   },
   {
@@ -314,11 +314,11 @@ const GLOSSARY = [
   {
     term: 'Səhabə', ar: 'الصحابة', translit: 'Sahabah',
     def: {
-      az: 'Hz. Peyğəmbəri (s.ə.s) görüb müsəlman olan şəxslər. İslamın ilk nəsli.',
+      az: 'Hz. Peyğəmbəri (s.a.s) görüb müsəlman olan şəxslər. İslamın ilk nəsli.',
       en: 'The Companions of Prophet Muhammad (PBUH). Those who met him and accepted Islam.',
       ru: 'Сподвижники Пророка Мухаммада (мир ему). Те, кто встречал его и принял Ислам.',
       ar: 'أصحاب النبي ﷺ. الذين لقوه وآمنوا به.',
-      tr: 'Hz. Peygamber\'i (s.a.v) görüp Müslüman olan kişiler. İslam\'ın ilk nesli.',
+      tr: 'Hz. Peygamber\'i (s.a.s) görüp Müslüman olan kişiler. İslam\'ın ilk nesli.',
     }
   },
   {
@@ -828,11 +828,11 @@ const GLOSSARY = [
   {
     term: 'İsnad', ar: 'الإسناد', translit: 'Isnad',
     def: {
-      az: 'Sənəd, rəvayətçilər silsiləsi. Hədisi Peyğəmbərə (s.ə.s) qədər çatdıran ravilərin adları.',
+      az: 'Sənəd, rəvayətçilər silsiləsi. Hədisi Peyğəmbərə (s.a.s) qədər çatdıran ravilərin adları.',
       en: 'Chain of narration. The chain of narrators who transmitted a hadith back to the Prophet (PBUH).',
       ru: 'Цепочка передатчиков. Цепь рассказчиков, передавших хадис до Пророка (мир ему).',
       ar: 'الإسناد. سلسلة الرواة الذين نقلوا الحديث إلى النبي ﷺ.',
-      tr: 'İsnad. Hadisi Peygamber\'e (s.a.v) kadar ulaştıran ravilerin silsilesi.',
+      tr: 'İsnad. Hadisi Peygamber\'e (s.a.s) kadar ulaştıran ravilerin silsilesi.',
     }
   },
   {
@@ -878,11 +878,11 @@ const GLOSSARY = [
   {
     term: 'Mövzu', ar: 'الموضوع', translit: 'Mawdu',
     def: {
-      az: 'Uydurma hədis. Peyğəmbərə (s.ə.s) yalan nisbət verilmiş söz; hədis hesab olunmur.',
+      az: 'Uydurma hədis. Peyğəmbərə (s.a.s) yalan nisbət verilmiş söz; hədis hesab olunmur.',
       en: 'Fabricated hadith. A statement falsely attributed to the Prophet (PBUH); not considered a hadith at all.',
       ru: 'Подложный хадис. Высказывание, ложно приписанное Пророку (мир ему); вообще не считается хадисом.',
       ar: 'الحديث الموضوع. كلام مكذوب على النبي ﷺ ولا يُعدّ حديثاً.',
-      tr: 'Mevzu hadis. Peygamber\'e (s.a.v) yalan olarak nispet edilen söz; hadis sayılmaz.',
+      tr: 'Mevzu hadis. Peygamber\'e (s.a.s) yalan olarak nispet edilen söz; hadis sayılmaz.',
     }
   },
   {
@@ -1030,11 +1030,11 @@ const GLOSSARY = [
   {
     term: 'Xəlifə', ar: 'الخليفة', translit: 'Khalifah',
     def: {
-      az: 'Xəlifə, canişin. Hz. Peyğəmbərdən (s.ə.s) sonra müsəlman cəmiyyətinin rəhbəri.',
+      az: 'Xəlifə, canişin. Hz. Peyğəmbərdən (s.a.s) sonra müsəlman cəmiyyətinin rəhbəri.',
       en: 'Caliph, successor. The leader of the Muslim community after the Prophet Muhammad (PBUH).',
       ru: 'Халиф, преемник. Руководитель мусульманской общины после Пророка Мухаммада (мир ему).',
       ar: 'الخليفة. قائد المسلمين بعد وفاة النبي ﷺ.',
-      tr: 'Halife. Hz. Peygamber\'den (s.a.v) sonra Müslüman toplumunun lideri.',
+      tr: 'Halife. Hz. Peygamber\'den (s.a.s) sonra Müslüman toplumunun lideri.',
     }
   },
   {
@@ -1070,11 +1070,11 @@ const GLOSSARY = [
   {
     term: 'Hicrət', ar: 'الهجرة', translit: 'Hijrah',
     def: {
-      az: 'Köçmə. Hz. Peyğəmbərin (s.ə.s) Məkkədən Mədinəyə köçməsi; İslam təqviminin başlanğıcı.',
+      az: 'Köçmə. Hz. Peyğəmbərin (s.a.s) Məkkədən Mədinəyə köçməsi; İslam təqviminin başlanğıcı.',
       en: 'Migration. The Prophet\'s (PBUH) migration from Mecca to Medina; marks the beginning of the Islamic calendar.',
       ru: 'Переселение. Переселение Пророка (мир ему) из Мекки в Медину; начало исламского календаря.',
       ar: 'الهجرة. انتقال النبي ﷺ من مكة إلى المدينة؛ بداية التقويم الإسلامي.',
-      tr: 'Hicret. Hz. Peygamber\'in (s.a.v) Mekke\'den Medine\'ye göçü; İslam takviminin başlangıcı.',
+      tr: 'Hicret. Hz. Peygamber\'in (s.a.s) Mekke\'den Medine\'ye göçü; İslam takviminin başlangıcı.',
     }
   },
   {

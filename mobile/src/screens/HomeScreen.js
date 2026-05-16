@@ -99,19 +99,21 @@ const DAILY_DUAS = [
   { ar:'رَبِّ اشْرَحْ لِي صَدْرِي', t:{az:'Rəbbim, köksümü aç və işimi asanlaşdır.',en:'My Lord, expand my chest and ease my task.',ru:'Господи, раскрой мне грудь и облегчи дело.',ar:'رب اشرح لي صدري',tr:'Rabbim, göğsümü aç ve işimi kolaylaştır.'}, ref:'Taha 25-26' },
 ];
 
+// 99 ad — name = Az transliterasiya (bütün dillərdə görünür),
+// meaning = aktiv dilə uyğun seçilir.
 const ALLAH_NAMES = [
-  { ar:'ٱلرَّحْمَٰن', name:'Rəhman', en:'The Most Gracious', color:'#10b981' },
-  { ar:'ٱلرَّحِيم', name:'Rəhim', en:'The Most Merciful', color:'#f59e0b' },
-  { ar:'ٱلْمَلِك', name:'Malik', en:'The King', color:'#8b5cf6' },
-  { ar:'ٱلْقُدُّوس', name:'Quddus', en:'The Most Pure', color:'#3b82f6' },
-  { ar:'ٱلسَّلَٰم', name:'Salam', en:'Source of Peace', color:'#ec4899' },
-  { ar:'ٱلْعَزِيز', name:'Əziz', en:'The Almighty', color:'#f97316' },
-  { ar:'ٱلْغَفُور', name:'Ğafur', en:'The Forgiving', color:'#14b8a6' },
-  { ar:'ٱلْوَدُود', name:'Vadud', en:'The Loving', color:'#a855f7' },
-  { ar:'ٱلْحَكِيم', name:'Həkim', en:'The Wise', color:'#6366f1' },
-  { ar:'ٱلنُّور', name:'Nur', en:'The Light', color:'#fbbf24' },
-  { ar:'ٱلتَّوَّاب', name:'Tövvab', en:'Repentance', color:'#84cc16' },
-  { ar:'ٱلْمُؤْمِن', name:'Mümün', en:'Security', color:'#ef4444' },
+  { ar:'ٱلرَّحْمَٰن', name:'Rəhman', color:'#10b981', meaning:{ az:'Mərhəmətli',         en:'The Most Gracious',          ru:'Всемилостивый',         ar:'الرحمن', tr:'Rahmân' } },
+  { ar:'ٱلرَّحِيم',  name:'Rəhim',  color:'#f59e0b', meaning:{ az:'Rəhmli',              en:'The Most Merciful',          ru:'Милосердный',           ar:'الرحيم', tr:'Rahîm' } },
+  { ar:'ٱلْمَلِك',   name:'Malik',  color:'#8b5cf6', meaning:{ az:'Hökmdar',             en:'The King',                   ru:'Царь',                  ar:'الملك',  tr:'Melik' } },
+  { ar:'ٱلْقُدُّوس', name:'Quddus', color:'#3b82f6', meaning:{ az:'Pak olan',            en:'The Most Pure',              ru:'Святой',                ar:'القدوس', tr:'Kuddûs' } },
+  { ar:'ٱلسَّلَٰم',  name:'Salam',  color:'#ec4899', meaning:{ az:'Sülh verən',          en:'Source of Peace',            ru:'Источник мира',         ar:'السلام', tr:'Selâm' } },
+  { ar:'ٱلْعَزِيز',  name:'Əziz',   color:'#f97316', meaning:{ az:'Qüdrətli',            en:'The Almighty',               ru:'Могущественный',        ar:'العزيز', tr:'Azîz' } },
+  { ar:'ٱلْغَفُور',  name:'Ğafur',  color:'#14b8a6', meaning:{ az:'Bağışlayan',          en:'The Forgiving',              ru:'Прощающий',             ar:'الغفور', tr:'Gafûr' } },
+  { ar:'ٱلْوَدُود',  name:'Vədud',  color:'#a855f7', meaning:{ az:'Sevən',               en:'The Loving',                 ru:'Любящий',               ar:'الودود', tr:'Vedûd' } },
+  { ar:'ٱلْحَكِيم',  name:'Həkim',  color:'#6366f1', meaning:{ az:'Hikmət sahibi',       en:'The Wise',                   ru:'Мудрый',                ar:'الحكيم', tr:'Hakîm' } },
+  { ar:'ٱلنُّور',    name:'Nur',    color:'#fbbf24', meaning:{ az:'Nur (İşıq)',          en:'The Light',                  ru:'Свет',                  ar:'النور',  tr:'Nûr' } },
+  { ar:'ٱلتَّوَّاب', name:'Tövvab', color:'#84cc16', meaning:{ az:'Tövbələri qəbul edən', en:'The Acceptor of Repentance', ru:'Принимающий покаяние', ar:'التواب', tr:'Tevvâb' } },
+  { ar:'ٱلْمُؤْمِن', name:'Mömin',  color:'#ef4444', meaning:{ az:'Güvən verən',         en:'The Granter of Security',    ru:'Дарующий веру',         ar:'المؤمن', tr:"Mü'min" } },
 ];
 
 // ═══════════════════════════════════════════
@@ -156,7 +158,7 @@ export default function HomeScreen({ navigation }) {
       >
         <BlurView intensity={80} tint={dark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
         <View style={[st.animHeaderContent, { backgroundColor: dark ? 'rgba(15,15,26,0.7)' : 'rgba(255,255,255,0.7)' }]}>
-          <Text style={[st.animHeaderTitle, { color: c.text }]}>☽ Muslim.cc</Text>
+          <Text style={[st.animHeaderTitle, { color: c.text }]}>☽ Muslims.cc</Text>
         </View>
       </Animated.View>
 
@@ -425,7 +427,7 @@ export default function HomeScreen({ navigation }) {
                     >
                       <Text style={[st.nameAr, { color: n.color }]}>{n.ar}</Text>
                       <Text style={[st.nameTr, { color: c.text }]}>{n.name}</Text>
-                      <Text style={[st.nameEn, { color: c.textMuted }]}>{n.en}</Text>
+                      <Text style={[st.nameEn, { color: c.textMuted }]}>{n.meaning?.[lang] || n.meaning?.en}</Text>
                     </LinearGradient>
                   </PressableCard>
                 </FadeUp>

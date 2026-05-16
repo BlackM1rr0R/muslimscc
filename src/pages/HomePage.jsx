@@ -108,19 +108,21 @@ const TAWHEED_FACTS = [
   { ar:'لَمْ يَلِدْ وَلَمْ يُولَدْ وَلَمْ يَكُنْ لَهُ كُفُواً أَحَدٌ', az:'O doğmadı, doğulmadı — heç bir şeye bənzəmir, heç kim Onun bənzəri deyil', en:'He neither begot nor was begotten — nothing resembles Him, none equals Him', ru:'Он не рожает и не рождён — ничто Ему не подобно', tr:'O doğurmadı ve doğulmadı — hiçbir şey O\'na benzemez' },
 ]
 
+// 99 ad — translit = Az transliterasiya (bütün dillərdə görünür),
+// meaning = aktiv dilə uyğun seçilir.
 const ALLAH_NAMES = [
-  { ar:'ٱلرَّحْمَٰن',  az:'Rəhman',    en:'The Most Gracious',          color:'#10b981' },
-  { ar:'ٱلرَّحِيم',   az:'Rəhim',     en:'The Most Merciful',          color:'#f59e0b' },
-  { ar:'ٱلْمَلِك',   az:'Malik',     en:'The King',                   color:'#8b5cf6' },
-  { ar:'ٱلْقُدُّوس', az:'Quddus',    en:'The Most Pure',              color:'#3b82f6' },
-  { ar:'ٱلسَّلَٰم',  az:'Salam',     en:'The Source of Peace',        color:'#ec4899' },
-  { ar:'ٱلْمُؤْمِن', az:'Mümün',     en:'The Granter of Security',    color:'#ef4444' },
-  { ar:'ٱلْعَزِيز',  az:'Əziz',      en:'The Almighty',               color:'#f97316' },
-  { ar:'ٱلْغَفُور',  az:'Ğafur',     en:'The Forgiving',              color:'#14b8a6' },
-  { ar:'ٱلْوَدُود',  az:'Vadud',     en:'The Loving',                 color:'#a855f7' },
-  { ar:'ٱلْحَكِيم',  az:'Həkim',     en:'The Wise',                   color:'#6366f1' },
-  { ar:'ٱلتَّوَّاب', az:'Tövvab',    en:'The Acceptor of Repentance', color:'#84cc16' },
-  { ar:'ٱلنُّور',    az:'Nur',       en:'The Light',                  color:'#fbbf24' },
+  { ar:'ٱلرَّحْمَٰن', translit:'Rəhman', color:'#10b981', meaning:{ az:'Mərhəmətli',        en:'The Most Gracious',          ru:'Всемилостивый',         ar:'الرحمن',                    tr:'Rahmân' } },
+  { ar:'ٱلرَّحِيم',   translit:'Rəhim',  color:'#f59e0b', meaning:{ az:'Rəhmli',             en:'The Most Merciful',          ru:'Милосердный',           ar:'الرحيم',                    tr:'Rahîm' } },
+  { ar:'ٱلْمَلِك',    translit:'Malik',  color:'#8b5cf6', meaning:{ az:'Hökmdar',            en:'The King',                   ru:'Царь',                  ar:'الملك',                     tr:'Melik' } },
+  { ar:'ٱلْقُدُّوس', translit:'Quddus', color:'#3b82f6', meaning:{ az:'Pak olan',           en:'The Most Pure',              ru:'Святой',                ar:'القدوس',                    tr:'Kuddûs' } },
+  { ar:'ٱلسَّلَٰم',  translit:'Salam',  color:'#ec4899', meaning:{ az:'Sülh verən',         en:'The Source of Peace',        ru:'Источник мира',         ar:'السلام',                    tr:'Selâm' } },
+  { ar:'ٱلْمُؤْمِن', translit:'Mömin',  color:'#ef4444', meaning:{ az:'Güvən verən',        en:'The Granter of Security',    ru:'Дарующий веру',         ar:'المؤمن',                    tr:"Mü'min" } },
+  { ar:'ٱلْعَزِيز',  translit:'Əziz',   color:'#f97316', meaning:{ az:'Qüdrətli',           en:'The Almighty',               ru:'Могущественный',        ar:'العزيز',                    tr:'Azîz' } },
+  { ar:'ٱلْغَفُور',  translit:'Ğafur',  color:'#14b8a6', meaning:{ az:'Bağışlayan',         en:'The Forgiving',              ru:'Прощающий',             ar:'الغفور',                    tr:'Gafûr' } },
+  { ar:'ٱلْوَدُود',  translit:'Vədud',  color:'#a855f7', meaning:{ az:'Sevən',              en:'The Loving',                 ru:'Любящий',               ar:'الودود',                    tr:'Vedûd' } },
+  { ar:'ٱلْحَكِيم',  translit:'Həkim',  color:'#6366f1', meaning:{ az:'Hikmət sahibi',      en:'The Wise',                   ru:'Мудрый',                ar:'الحكيم',                    tr:'Hakîm' } },
+  { ar:'ٱلتَّوَّاب', translit:'Tövvab', color:'#84cc16', meaning:{ az:'Tövbələri qəbul edən', en:'The Acceptor of Repentance', ru:'Принимающий покаяние', ar:'التواب',                    tr:'Tevvâb' } },
+  { ar:'ٱلنُّور',    translit:'Nur',    color:'#fbbf24', meaning:{ az:'Nur (İşıq)',         en:'The Light',                  ru:'Свет',                  ar:'النور',                     tr:'Nûr' } },
 ]
 
 const DAILY_HADITHS = [
@@ -502,7 +504,7 @@ export default function HomePage({ setPage }) {
           <div className={`hp-kalima ${twIn?'iv':''}`}>
             <div className="hp-kal-ar">لَا إِلَهَ إِلَّا اللَّهُ مُحَمَّدٌ رَسُولُ اللَّهِ</div>
             <div className="hp-kal-tr">
-              {lk==='az'?'"Allahdan başqa ilah yoxdur, Məhəmməd Allahın elçisidir"':
+              {lk==='az'?'"Allahdan başqa ilah yoxdur, Muhəmməd Allahın elçisidir"':
                lk==='ru'?'"Нет бога, кроме Аллаха; Мухаммад — Посланник Аллаха"':
                lk==='ar'?'"لا إله إلا الله محمد رسول الله"':
                lk==='tr'?'"Allah\'tan başka ilah yoktur; Muhammed Allah\'ın elçisidir"':
@@ -556,10 +558,10 @@ export default function HomePage({ setPage }) {
             <div className="hp-twi-card">
               <span className="hp-twi-ic">🌟</span>
               <h4>{lk==='az'?'Niyə Tövhid?':lk==='ru'?'Почему Таухид?':lk==='ar'?'لماذا التوحيد؟':lk==='tr'?'Neden Tevhid?':'Why Tawheed?'}</h4>
-              <p>{lk==='az'?'Tövhid bütün peyğəmbərlərin — Nuh, İbrahim, Musa, İsa, Məhəmməd (s.ə.v.) — dəvət etdiyi əsas prinsipdir. Allah buyurur: "Biz hər ümmətə: Allaha ibadət edin, tağutdan çəkinin — deyə peyğəmbər göndərdik." (Nəhl 36)':
+              <p>{lk==='az'?'Tövhid bütün peyğəmbərlərin — Nuh, İbrahim, Musa, İsa, Muhəmməd (s.a.s) — dəvət etdiyi əsas prinsipdir. Allah buyurur: "Biz hər ümmətə: Allaha ibadət edin, tağutdan çəkinin — deyə peyğəmbər göndərdik." (Nəhl 36)':
                   lk==='ru'?'Таухид — основной принцип, к которому призывали все пророки: Нух, Ибрахим, Муса, Иса, Мухаммад (мир им). Аллах говорит: "Мы отправили к каждому народу посланника с велением: поклоняйтесь Аллаху и избегайте тагута." (Нахль 36)':
                   lk==='ar'?'التوحيد هو المبدأ الأساسي الذي دعا إليه جميع الأنبياء — نوح وإبراهيم وموسى وعيسى ومحمد ﷺ. يقول الله: "وَلَقَدْ بَعَثْنَا فِي كُلِّ أُمَّةٍ رَّسُولًا أَنِ اعْبُدُوا اللَّهَ وَاجْتَنِبُوا الطَّاغُوتَ." (النحل 36)':
-                  lk==='tr'?'Tevhid, tüm peygamberlerin — Nuh, İbrahim, Musa, İsa, Muhammed (s.a.v.) — davet ettiği temel ilkedir. Allah buyurur: "Her ümmete Allah\'a ibadet edin, tağuttan kaçının diye peygamber gönderdik." (Nahl 36)':
+                  lk==='tr'?'Tevhid, tüm peygamberlerin — Nuh, İbrahim, Musa, İsa, Muhammed (s.a.s) — davet ettiği temel ilkedir. Allah buyurur: "Her ümmete Allah\'a ibadet edin, tağuttan kaçının diye peygamber gönderdik." (Nahl 36)':
                   'Tawheed is the core principle all prophets called to — Noah, Abraham, Moses, Jesus, Muhammad (peace be upon them). Allah says: "We sent to every nation a messenger: worship Allah and avoid false deities." (An-Nahl 36)'}</p>
             </div>
             <div className="hp-twi-card">
@@ -628,8 +630,8 @@ export default function HomePage({ setPage }) {
             {ALLAH_NAMES.map((n,i)=>(
               <div key={i} className="hp-name" style={{'--nc':n.color,animationDelay:`${i*40}ms`}}>
                 <div className="hp-name-ar">{n.ar}</div>
-                <div className="hp-name-az">{n[lk]||n.az}</div>
-                <div className="hp-name-en">{n.en}</div>
+                <div className="hp-name-az">{n.translit}</div>
+                <div className="hp-name-en">{n.meaning?.[lk] || n.meaning?.en}</div>
               </div>
             ))}
           </div>

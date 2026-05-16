@@ -76,7 +76,7 @@ export default function AboutScreen() {
               </View>
             </Float>
 
-            <Text style={styles.logoTitle}>Muslim.cc</Text>
+            <Text style={styles.logoTitle}>Muslims.cc</Text>
             <View style={styles.logoVersion}>
               <Text style={styles.logoVersionText}>v1.0.0</Text>
             </View>
@@ -185,16 +185,16 @@ export default function AboutScreen() {
         <FadeUp delay={900}>
           <View style={styles.footerCard}>
             <Text style={[styles.footerCopy, { color: c.textMuted }]}>
-              © 2025 muslim.cc — {lang === 'az' ? 'Ümmət üçün sevgi ilə' : lang === 'ru' ? 'Для уммы с любовью' : lang === 'ar' ? 'صُنع بمحبة للأمة' : lang === 'tr' ? 'Ümmet için sevgiyle' : 'Made with love for the Ummah'}
+              © 2025 muslims.cc — {lang === 'az' ? 'Ümmət üçün sevgi ilə' : lang === 'ru' ? 'Для уммы с любовью' : lang === 'ar' ? 'صُنع بمحبة للأمة' : lang === 'tr' ? 'Ümmet için sevgiyle' : 'Made with love for the Ummah'}
             </Text>
             <TouchableOpacity
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Linking.openURL('https://muslim.cc');
+                Linking.openURL('https://muslims.cc');
               }}
               activeOpacity={0.7}
             >
-              <Text style={[styles.link, { color: c.primary }]}>muslim.cc</Text>
+              <Text style={[styles.link, { color: c.primary }]}>muslims.cc</Text>
             </TouchableOpacity>
           </View>
         </FadeUp>

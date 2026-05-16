@@ -125,7 +125,7 @@ export default function AdminPage({ setPage }) {
             <div className="admin-sidebar-logo">🔐</div>
             <div>
               <div className="admin-sidebar-title">{l.adminPanel}</div>
-              <div className="admin-sidebar-sub">muslim.cc</div>
+              <div className="admin-sidebar-sub">muslims.cc</div>
             </div>
           </div>
 

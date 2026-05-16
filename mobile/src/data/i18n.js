@@ -30,7 +30,7 @@ export const T = {
     quran: {
       title:'Qurani-Kərim', subtitle:'114 Surə · 6 236 Ayə',
       searchPh:'Surə adı ilə axtar...',
-      all:'Hamısı', meccan:'Məkkəvi', medinan:'Mədənəvi',
+      all:'Hamısı', meccan:'Məkki', medinan:'Mədəni',
       verses:'ayə', loading:'Yüklənir...', error:'Xəta baş verdi',
       backBtn:'← Geri', basmalah:'Bismillahir-Rahmanir-Rahim',
       translationLabel:'Tərcümə', audioLabel:'Audio',

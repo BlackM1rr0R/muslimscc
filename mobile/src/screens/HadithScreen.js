@@ -60,7 +60,7 @@ function HadithCard({ h, favs, toggleFav, shareHadith, expanded, setExpanded, t,
       <View style={styles.hadithHeader}>
         <View style={[styles.numberBadge, { backgroundColor: catColor + '18', borderColor: catColor + '30' }]}>
           <AppIcon name="hadith" size={13} color={catColor} />
-          <Text style={[styles.numberText, { color: catColor }]}>#{h.id}</Text>
+          <Text style={[styles.numberText, { color: catColor }]}>#{(index ?? 0) + 1}</Text>
         </View>
 
         <View style={styles.actionsRow}>
@@ -204,7 +204,7 @@ export default function HadithScreen() {
   const paged = filtered.slice(0, (page + 1) * PER_PAGE);
 
   const shareHadith = async (h) => {
-    try { await Share.share({ message: `${h.ar}\n\n${h.text}\n\n— ${h.source}\n\nmuslim.cc` }); } catch {}
+    try { await Share.share({ message: `${h.ar}\n\n${h.text}\n\n— ${h.source}\n\nmuslims.cc` }); } catch {}
   };
 
   return (

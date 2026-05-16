@@ -116,17 +116,21 @@ img { max-width:100%; display:block; }
 .anim-slideInLeft  { animation:slideInLeft  .5s cubic-bezier(0.4,0,0.2,1) both; }
 .anim-slideInRight { animation:slideInRight .5s cubic-bezier(0.4,0,0.2,1) both; }
 
-/* Page transition — soldan sağa keçid */
-.page-enter { animation: pageEnter 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+/* Page transition — soldan sağa keçid
+   Qeyd: `to { transform: none }` istifadə edirik ki, animasiya bitdikdə
+   <main>-da transform qalmasın. Əks halda, daxili `position: fixed`
+   modal-lar (məs. video modal) viewport-a yox, <main>-a görə yerləşir
+   və yanlış yerdə görünür. */
+.page-enter { animation: pageEnter 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
 @keyframes pageEnter {
   from { opacity: 0; transform: translateX(-30px); }
-  to   { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: none; }
 }
 [dir="rtl"] .page-enter,
-html[lang="ar"] .page-enter { animation: pageEnterRTL 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+html[lang="ar"] .page-enter { animation: pageEnterRTL 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
 @keyframes pageEnterRTL {
   from { opacity: 0; transform: translateX(30px); }
-  to   { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* RTL: animasiyalar sağdan-sola keçsin */

@@ -158,7 +158,7 @@ export default function QuoteGeneratorScreen() {
   const shareQuote = async () => {
     if (!quote) return;
     const text = quote.text?.[lang] || quote.text?.en || '';
-    try { await Share.share({ message: `${quote.ar || ''}\n\n${text}\n\n— ${quote.source}\n\nmuslim.cc` }); } catch {}
+    try { await Share.share({ message: `${quote.ar || ''}\n\n${text}\n\n— ${quote.source}\n\nmuslims.cc` }); } catch {}
   };
 
   const copyQuote = () => {
@@ -252,7 +252,7 @@ export default function QuoteGeneratorScreen() {
               {decor.bottom ? <Text style={[styles.decorText, { color: theme.text }]}>{decor.bottom}</Text> : null}
 
               {/* Watermark */}
-              <Text style={[styles.watermark, { color: theme.text }]}>muslim.cc</Text>
+              <Text style={[styles.watermark, { color: theme.text }]}>muslims.cc</Text>
             </LinearGradient>
           </ScaleIn>
         )}

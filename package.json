@@ -1,7 +1,7 @@
 {
   "name": "muslim-cc",
   "version": "1.0.0",
-  "description": "muslim.cc — Islamic Digital Platform",
+  "description": "muslims.cc — Islamic Digital Platform",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

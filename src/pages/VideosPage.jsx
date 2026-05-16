@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import { VIDEO_CATEGORIES, getThumbnail, getEmbedUrl, DEFAULT_VIDEOS, subscribeToVideos } from '../data/videos'
+import Pagination from '../components/Pagination'
 import '../styles/VideosPage.css'
 
 const LABELS = {
@@ -21,6 +23,11 @@ export default function VideosPage({ setPage }) {
   const [search, setSearch] = useState('')
   const [playingVideo, setPlayingVideo] = useState(null)
   const [shareToast, setShareToast] = useState(false)
+  const [page, setPageNum] = useState(1)
+  const PER_PAGE = 12
+
+  // Filter dəyişəndə pagination-u sıfırla
+  useEffect(() => { setPageNum(1) }, [selectedCat, search])
 
   useEffect(() => {
     const unsubscribe = subscribeToVideos((items) => {
@@ -49,6 +56,17 @@ export default function VideosPage({ setPage }) {
 
   // Featured: ilk 3 video
   const featured = videos.slice(0, 3)
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
+  const currentPage = Math.min(page, totalPages)
+  const paginated = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
+  const goToPage = (n) => {
+    setPageNum(n)
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
 
   const handleShare = async (v) => {
     const url = `https://www.youtube.com/watch?v=${v.youtubeId}`
@@ -193,7 +211,7 @@ export default function VideosPage({ setPage }) {
             </div>
           ) : (
             <div className="vp-grid">
-              {filtered.map(v => {
+              {paginated.map(v => {
                 const cat = VIDEO_CATEGORIES.find(c => c.key === v.category)
                 return (
                   <article key={v.id} className="vp-card" onClick={() => setPlayingVideo(v)}>
@@ -237,21 +255,31 @@ export default function VideosPage({ setPage }) {
               })}
             </div>
           )}
+
+          {/* Pagination */}
+          {!loading && totalPages > 1 && (
+            <Pagination current={currentPage} total={totalPages} onChange={goToPage} />
+          )}
         </section>
       </div>
 
-      {/* ═══ VIDEO PLAYER MODAL ═══ */}
-      {playingVideo && (
+      {/* ═══ VIDEO PLAYER MODAL — Portal ilə body-yə render olunur ═══ */}
+      {playingVideo && createPortal(
         <div className="vp-modal" onClick={() => setPlayingVideo(null)}>
           <div className="vp-modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="vp-modal-close" onClick={() => setPlayingVideo(null)}>✕</button>
-            <iframe
-              className="vp-modal-iframe"
-              src={`${getEmbedUrl(playingVideo.youtubeId)}?autoplay=1`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title={playingVideo.title?.[lang] || playingVideo.title?.en}
-            />
+            <div className="vp-modal-video-wrap">
+              <iframe
+                className="vp-modal-iframe"
+                src={getEmbedUrl(playingVideo.youtubeId)}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allowFullScreen
+                playsInline
+                title={playingVideo.title?.[lang] || playingVideo.title?.en}
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
             <div className="vp-modal-info">
               <h3>{playingVideo.title?.[lang] || playingVideo.title?.en}</h3>
               {(playingVideo.description?.[lang] || playingVideo.description?.en) && (
@@ -259,7 +287,8 @@ export default function VideosPage({ setPage }) {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ═══ SHARE TOAST ═══ */}

@@ -13,10 +13,6 @@ import { subscribeToEvents } from '../data/adminContent';
 const EVENTS = {
   1: [
     { day:1, type:'major', color:'#10b981', az:'Hicri Yeni İl', en:'Islamic New Year', ru:'Новый Год', ar:'رأس السنة الهجرية', tr:'Hicri Yeni Yıl' },
-    { day:10, type:'major', color:'#ef4444', az:'Aşura günü', en:'Day of Ashura', ru:'День Ашура', ar:'يوم عاشوراء', tr:'Aşure Günü' },
-  ],
-  3: [
-    { day:12, type:'major', color:'#10b981', az:'Mövlud — Peyğəmbərin doğum günü', en:'Mawlid — Birthday of Prophet ﷺ', ru:'Мавлид', ar:'المولد النبوي', tr:'Mevlid Kandili' },
   ],
   7: [
     { day:1, type:'sunnah', color:'#3b82f6', az:'Rəcəb ayının başlanğıcı', en:'Beginning of Rajab', ru:'Начало Раджаба', ar:'بداية رجب', tr:'Recep başlangıcı' },

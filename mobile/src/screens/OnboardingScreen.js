@@ -16,11 +16,11 @@ const SLIDES = [
     gradient:['#0d4a27','#1a6b3a','#22874a'],
     accentColor:'#10b981',
     title:{
-      az:'Muslim.cc-ə Xoş Gəldiniz',
-      en:'Welcome to Muslim.cc',
-      ru:'Добро пожаловать в Muslim.cc',
-      ar:'مرحباً بكم في Muslim.cc',
-      tr:'Muslim.cc\'ye Hoş Geldiniz',
+      az:'Muslims.cc-ə Xoş Gəldiniz',
+      en:'Welcome to Muslims.cc',
+      ru:'Добро пожаловать в Muslims.cc',
+      ar:'مرحباً بكم في Muslims.cc',
+      tr:'Muslims.cc\'ye Hoş Geldiniz',
     },
     desc:{
       az:'Tam İslami rəqəmsal ev. Quran, hədis, namaz vaxtları və daha çoxu bir yerdə.',

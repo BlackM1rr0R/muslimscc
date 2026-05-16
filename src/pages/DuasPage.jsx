@@ -130,7 +130,7 @@ export default function DuasPage({ setPage }) {
                     {CAT_LABELS[dua.cat]?.[l] || dua.cat}
                   </div>
                   <div className="dua-card-actions">
-                    <button className="dua-share-btn" onClick={() => shareDua(dua)} title="Share">📤</button>
+                    <button className="dua-share-btn" onClick={() => shareDua(dua)} title={l === 'az' ? 'Paylaş' : l === 'ru' ? 'Поделиться' : l === 'ar' ? 'مشاركة' : l === 'tr' ? 'Paylaş' : 'Share'}>📤</button>
                     <button className={`dua-fav-btn ${favs.includes(dua.id) ? 'active' : ''}`} onClick={() => toggleFav(dua.id)}>
                       {favs.includes(dua.id) ? '❤️' : '🤍'}
                     </button>

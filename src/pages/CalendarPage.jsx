@@ -51,14 +51,10 @@ const HIJRI_MONTHS = {
 
 const EVENTS = [
   { month:0, day:1,  en:'Islamic New Year 1447 AH',         az:'İslam Yeni İli 1447 H',          ru:'Исламский Новый Год 1447 г.х.', ar:'رأس السنة الهجرية ١٤٤٧', tr:'İslam Yılbaşı 1447 H', icon:'🌙', type:'major' },
-  { month:0, day:9,  en:'Tasu\'a (9th Muharram)',           az:'Tasua (9 Məhərrəm)',             ru:'Тасуа (9 Мухаррам)',            ar:'تاسوعاء',                  tr:'Taşua (9 Muharrem)',     icon:'📿', type:'sunnah' },
-  { month:0, day:10, en:'Day of Ashura',                     az:'Aşura Günü',                     ru:'День Ашура',                     ar:'يوم عاشوراء',              tr:'Aşure Günü',            icon:'⭐', type:'major' },
   { month:1, day:1,  en:'First of Safar',                    az:'Səfər ayının başlanğıcı',        ru:'Начало месяца Сафар',           ar:'غرة صفر',                  tr:'Safer ayı başlangıcı',  icon:'📅', type:'month' },
   { month:2, day:1,  en:'First of Rabi al-Awwal',           az:'Rəbiül-Əvvəl başlanğıcı',       ru:'Начало Раби аль-Авваль',        ar:'غرة ربيع الأول',           tr:'Rebiülevvel başlangıcı', icon:'📅', type:'month' },
-  { month:2, day:12, en:'Mawlid al-Nabi ﷺ',                 az:'Mövlud Bayramı',                 ru:'Мавлид ан-Наби ﷺ',             ar:'المولد النبوي الشريف ﷺ',   tr:'Mevlid Kandili',        icon:'🌸', type:'major' },
   { month:5, day:1,  en:'First of Jumada al-Thani',         az:'Cəmadiyül-Axir başlanğıcı',     ru:'Начало Джумада ас-Сани',        ar:'غرة جمادى الآخرة',         tr:'Cemaziyelahir başlangıcı', icon:'📅', type:'month' },
   { month:6, day:1,  en:'First of Rajab',                    az:'Rəcəb ayının başlanğıcı',        ru:'Начало месяца Раджаб',          ar:'غرة رجب',                  tr:'Recep ayı başlangıcı',  icon:'🌙', type:'month' },
-  { month:6, day:13, en:'Birth of Imam Ali (a.s.)',          az:'İmam Əlinin doğum günü',        ru:'Рождение Имама Али',            ar:'ولادة الإمام علي',          tr:'İmam Ali doğum günü',   icon:'🌟', type:'minor' },
   { month:6, day:27, en:'Laylat al-Miraj',                   az:'Merac Gecəsi',                   ru:'Лейлят аль-Мирадж',            ar:'ليلة الإسراء والمعراج',    tr:'Miraç Kandili',         icon:'✨', type:'night' },
   { month:7, day:1,  en:'First of Shaban',                   az:'Şaban ayının başlanğıcı',        ru:'Начало месяца Шабан',           ar:'غرة شعبان',                tr:'Şaban ayı başlangıcı',  icon:'🌙', type:'month' },
   { month:7, day:15, en:'Laylat al-Baraat',                  az:'Bərat Gecəsi',                   ru:'Лейлят аль-Бараат',            ar:'ليلة البراءة',             tr:'Berat Kandili',         icon:'💫', type:'night' },

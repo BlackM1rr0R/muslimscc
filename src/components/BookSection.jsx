@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { BOOK_CATEGORIES, DEFAULT_BOOKS, subscribeToBooks } from '../data/books'
+import Pagination from './Pagination'
 import '../styles/BookSection.css'
 
 const LABELS = {
@@ -17,6 +18,8 @@ export default function BookSection({ setPage }) {
 
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [pageNum, setPageNum] = useState(1)
+  const PER_PAGE = 5
 
   useEffect(() => {
     const unsubscribe = subscribeToBooks((items) => {
@@ -40,7 +43,10 @@ export default function BookSection({ setPage }) {
 
   if (books.length === 0) return null
 
-  const preview = books.slice(0, 6)
+  // Hər səhifəyə 5 kitab — istifadəçi səhifələyə bilər
+  const totalPages = Math.max(1, Math.ceil(books.length / PER_PAGE))
+  const currentPage = Math.min(pageNum, totalPages)
+  const preview = books.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
 
   return (
     <section className="section book-section">
@@ -100,6 +106,16 @@ export default function BookSection({ setPage }) {
             )
           })}
         </div>
+
+        {/* Pagination — ana səhifədə də səhifələmə */}
+        {totalPages > 1 && (
+          <Pagination
+            current={currentPage}
+            total={totalPages}
+            onChange={setPageNum}
+            color="#f59e0b"
+          />
+        )}
       </div>
     </section>
   )

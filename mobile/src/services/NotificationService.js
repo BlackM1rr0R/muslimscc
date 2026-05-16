@@ -233,7 +233,7 @@ export async function scheduleDailyHadithReminder(lang = 'az') {
 
 // ═══ TEST BİLDİRİŞİ ═══
 export async function sendTestNotification(lang = 'az') {
-  const titles = { az:'🕌 Muslim.cc Test', en:'🕌 Muslim.cc Test', ru:'🕌 Muslim.cc Тест', ar:'🕌 اختبار', tr:'🕌 Muslim.cc Test' };
+  const titles = { az:'🕌 Muslims.cc Test', en:'🕌 Muslims.cc Test', ru:'🕌 Muslims.cc Тест', ar:'🕌 اختبار', tr:'🕌 Muslims.cc Test' };
   const bodies = {
     az:'Bildirişlər aktivdir! Namaz vaxtlarından xəbər veriləcək.',
     en:'Notifications are active! You will receive prayer time alerts.',
@@ -259,20 +259,28 @@ export async function cancelAllNotifications() {
 // ═══ NOTİF AYARLARI ═══
 const SETTINGS_KEY = 'muslim_cc_notif_settings';
 
+// ═══ DEFAULT — bütün bildirişlər ON. İlk açılışda istifadəçi heç nə etmədən
+// permission sorulur, qəbul edilərsə hamısı dərhal planlaşdırılır.
+const DEFAULT_NOTIF_SETTINGS = {
+  enabled: true,
+  prayers: true,
+  morningAdhkar: true,
+  eveningAdhkar: true,
+  dailyHadith: true,
+  city: 'Baku',
+  country: 'Azerbaijan',
+};
+
 export async function loadNotifSettings() {
   try {
     const v = await AsyncStorage.getItem(SETTINGS_KEY);
-    if (v) return JSON.parse(v);
+    if (v) {
+      // Köhnə saxlanılmış ayarları default-larla birləşdir
+      // (yeni əlavə olunan açarlar üçün on-by-default qalsın)
+      return { ...DEFAULT_NOTIF_SETTINGS, ...JSON.parse(v) };
+    }
   } catch {}
-  return {
-    enabled: false,
-    prayers: true,
-    morningAdhkar: true,
-    eveningAdhkar: true,
-    dailyHadith: true,
-    city: 'Baku',
-    country: 'Azerbaijan',
-  };
+  return { ...DEFAULT_NOTIF_SETTINGS };
 }
 
 export async function saveNotifSettings(settings) {

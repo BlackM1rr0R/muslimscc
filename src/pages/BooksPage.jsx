@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { BOOK_CATEGORIES, DEFAULT_BOOKS, subscribeToBooks, getDefaultCover } from '../data/books'
+import Pagination from '../components/Pagination'
 import '../styles/BooksPage.css'
 
 const LABELS = {
@@ -21,6 +22,11 @@ export default function BooksPage({ setPage }) {
   const [search, setSearch] = useState('')
   const [selectedBook, setSelectedBook] = useState(null)
   const [shareToast, setShareToast] = useState(false)
+  const [pageNum, setPageNum] = useState(1)
+  const PER_PAGE = 12
+
+  // Filter dəyişəndə pagination-u sıfırla
+  useEffect(() => { setPageNum(1) }, [selectedCat, search])
 
   useEffect(() => {
     const unsubscribe = subscribeToBooks((items) => {
@@ -48,6 +54,15 @@ export default function BooksPage({ setPage }) {
   }, [books, selectedCat, search, lang])
 
   const featured = books.slice(0, 4)
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
+  const currentPage = Math.min(pageNum, totalPages)
+  const paginated = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
+  const goToPage = (n) => {
+    setPageNum(n)
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const handleShare = async (b) => {
     const title = b.title?.[lang] || b.title?.en
@@ -202,7 +217,7 @@ export default function BooksPage({ setPage }) {
             </div>
           ) : (
             <div className="bp-grid">
-              {filtered.map(b => {
+              {paginated.map(b => {
                 const cat = BOOK_CATEGORIES.find(c => c.key === b.category)
                 return (
                   <article key={b.id} className="bp-card" onClick={() => setSelectedBook(b)}>
@@ -244,6 +259,11 @@ export default function BooksPage({ setPage }) {
                 )
               })}
             </div>
+          )}
+
+          {/* Pagination */}
+          {!loading && totalPages > 1 && (
+            <Pagination current={currentPage} total={totalPages} onChange={goToPage} color="#f59e0b" />
           )}
         </section>
       </div>

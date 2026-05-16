@@ -41,6 +41,7 @@ export default function SettingsManager() {
     defaultCity: 'Baku', defaultCountry: 'Azerbaijan', defaultLang: 'az', prayerMethod: 13,
     showAnnouncements: true, showVideos: true, showDailyContent: true, autoplayVideos: false,
     enableNotifications: true, primaryColor: '#1a6b3a', goldColor: '#b8860b',
+    apiUrl: '',
   })
   const [saved, setSaved] = useState(false)
 
@@ -159,6 +160,29 @@ export default function SettingsManager() {
                 <input type="text" className="admin-input" value={settings.goldColor} onChange={(e) => update('goldColor', e.target.value)} style={{flex:1}} />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* AI Chat / Backend URL */}
+        <div className="admin-section">
+          <h2 className="admin-section-title">
+            <span className="admin-section-title-icon">🤖</span>
+            AI Chat Endpoint
+          </h2>
+          <div className="admin-input-group">
+            <label className="admin-input-label">
+              API URL (Vercel deploy)
+            </label>
+            <input
+              type="text"
+              className="admin-input"
+              value={settings.apiUrl || ''}
+              onChange={(e) => update('apiUrl', e.target.value)}
+              placeholder="https://muslim-cc.vercel.app"
+            />
+            <p style={{fontSize:12, color:'var(--text-muted)', marginTop:6, lineHeight:1.5}}>
+              MuslimAI chat üçün Vercel endpoint. Boş qoyulsa, frontend-dəki <code>VITE_API_URL</code> / <code>app.json</code> fallback istifadə olunur. Web + iOS + Android eyni anda bu URL-i oxuyur.
+            </p>
           </div>
         </div>
       </div>

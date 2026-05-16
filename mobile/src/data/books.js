@@ -32,7 +32,7 @@ export const DEFAULT_BOOKS = [
   {
     id: 'default-b2',
     title: { az:'Səhih əl-Buxari', en:'Sahih al-Bukhari', ru:'Сахих аль-Бухари', ar:'صحيح البخاري', tr:'Sahih-i Buhari' },
-    author: { az:'İmam Məhəmməd əl-Buxari', en:'Imam Muhammad al-Bukhari', ru:'Имам аль-Бухари', ar:'الإمام البخاري', tr:'İmam Buhari' },
+    author: { az:'İmam Muhəmməd əl-Buxari', en:'Imam Muhammad al-Bukhari', ru:'Имам аль-Бухари', ar:'الإمام البخاري', tr:'İmam Buhari' },
     description: { az:'İslamda Qurandan sonra ən mötəbər hədis toplusu.', en:'The most authentic hadith collection after the Quran.', ru:'Самый достоверный сборник хадисов после Корана.', ar:'أصح كتب الحديث بعد القرآن.', tr:'Kuran\'dan sonra en sahih hadis kitabı.' },
     category: 'hadith',
     coverUrl: '',
@@ -55,7 +55,7 @@ export const DEFAULT_BOOKS = [
     id: 'default-b4',
     title: { az:'Peyğəmbərin Həyatı (Sirə)', en:'The Sealed Nectar', ru:'Жизнеописание Пророка', ar:'الرحيق المختوم', tr:'Peygamberin Hayatı' },
     author: { az:'Safiyyur-Rəhman əl-Mubarakfuri', en:'Safiur-Rahman al-Mubarakpuri', ru:'Сафи ар-Рахман аль-Мубаракфури', ar:'صفي الرحمن المباركفوري', tr:'Safiyyurrahman Mübarekfuri' },
-    description: { az:'Hz. Məhəmmədin həyatının ən geniş və mötəbər təsviri.', en:'The most comprehensive biography of Prophet Muhammad.', ru:'Самое полное жизнеописание Пророка.', ar:'أشمل سيرة للنبي ﷺ.', tr:'Hz. Muhammed\'in en kapsamlı biyografisi.' },
+    description: { az:'Hz. Muhəmmədin həyatının ən geniş və mötəbər təsviri.', en:'The most comprehensive biography of Prophet Muhammad.', ru:'Самое полное жизнеописание Пророка.', ar:'أشمل سيرة للنبي ﷺ.', tr:'Hz. Muhammed\'in en kapsamlı biyografisi.' },
     category: 'biography',
     coverUrl: '',
     pdfUrl: '',
@@ -76,7 +76,7 @@ export const DEFAULT_BOOKS = [
   {
     id: 'default-b6',
     title: { az:'Üç Əsas (Üsulu Səlasə)', en:'The Three Fundamental Principles', ru:'Три основы', ar:'الأصول الثلاثة', tr:'Üç Esas' },
-    author: { az:'Şeyx Məhəmməd ibn Əbdülvəhhab', en:'Sheikh Muhammad ibn Abdul-Wahhab', ru:'Шейх Мухаммад ибн Абдуль-Ваххаб', ar:'الشيخ محمد بن عبد الوهاب', tr:'Şeyh Muhammed b. Abdülvehhab' },
+    author: { az:'Şeyx Muhəmməd ibn Əbdülvəhhab', en:'Sheikh Muhammad ibn Abdul-Wahhab', ru:'Шейх Мухаммад ибн Абдуль-Ваххаб', ar:'الشيخ محمد بن عبد الوهاب', tr:'Şeyh Muhammed b. Abdülvehhab' },
     description: { az:'Hər müsəlmanın bilməli olduğu üç əsas.', en:'The three fundamentals every Muslim must know.', ru:'Три основы каждого мусульманина.', ar:'الأصول الثلاثة.', tr:'Her müslümanın bilmesi gereken üç esas.' },
     category: 'aqida',
     coverUrl: '',

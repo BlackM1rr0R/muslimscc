@@ -106,6 +106,13 @@ export function getThumbnail(youtubeId) {
   return `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`
 }
 
-export function getEmbedUrl(youtubeId) {
-  return `https://www.youtube.com/embed/${youtubeId}`
+export function getEmbedUrl(youtubeId, opts = {}) {
+  const params = new URLSearchParams({
+    autoplay: opts.autoplay === false ? '0' : '1',
+    playsinline: '1',         // iOS Safari inline play — vacibdir
+    rel: '0',                 // related videos yox
+    modestbranding: '1',      // sade YouTube logo
+    enablejsapi: '1',
+  })
+  return `https://www.youtube.com/embed/${youtubeId}?${params.toString()}`
 }

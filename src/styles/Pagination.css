@@ -1,0 +1,74 @@
+/* ═══════════════════════════════════════════════════════
+   PAGINATION
+   ═══════════════════════════════════════════════════════ */
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 32px auto 0;
+  padding: 0 12px;
+  --pg-color: #10b981;
+}
+
+.pg-btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card, #fff);
+  color: var(--text);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.pg-btn:hover:not(:disabled):not(.active) {
+  border-color: var(--pg-color);
+  color: var(--pg-color);
+  transform: translateY(-1px);
+}
+
+.pg-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pg-btn.active {
+  background: var(--pg-color);
+  border-color: var(--pg-color);
+  color: #fff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--pg-color) 35%, transparent);
+  cursor: default;
+}
+
+.pg-prev, .pg-next {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.pg-dots {
+  color: var(--text-muted);
+  padding: 0 6px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 480px) {
+  .pg-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 9px;
+    font-size: 13px;
+    border-radius: 9px;
+  }
+  .pagination { gap: 5px; }
+}

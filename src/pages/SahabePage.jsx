@@ -18,11 +18,11 @@ const SAHABA = [
     name: { ar:'أبو بكر الصديق', az:'Əbu Bəkr əs-Siddiq', en:'Abu Bakr as-Siddiq', ru:'Абу Бакр ас-Сиддик', tr:'Ebu Bekir es-Sıddık' },
     title: { az:'Birinci Xəlifə', en:'First Caliph', ru:'Первый Халиф', ar:'الخليفة الأول', tr:'İlk Halife' },
     bio: {
-      az:'Əbu Bəkr əs-Siddiq İslama ilk iman gətirən kişilərdən biridir. Hz. Peyğəmbərin (s.ə.s) ən yaxın dostu və qayınatası idi. Hicrət zamanı Peyğəmbərlə birlikdə mağarada gizləndi. Peyğəmbərdən sonra birinci xəlifə oldu və riddə müharibələrini idarə edərək İslam dövlətinin bütövlüyünü qorudu.',
+      az:'Əbu Bəkr əs-Siddiq İslama ilk iman gətirən kişilərdən biridir. Hz. Peyğəmbərin (s.a.s) ən yaxın dostu və qayınatası idi. Hicrət zamanı Peyğəmbərlə birlikdə mağarada gizləndi. Peyğəmbərdən sonra birinci xəlifə oldu və riddə müharibələrini idarə edərək İslam dövlətinin bütövlüyünü qorudu.',
       en:'Abu Bakr as-Siddiq was one of the first men to embrace Islam. He was the closest friend and father-in-law of Prophet Muhammad ﷺ. He accompanied the Prophet during the Hijra, hiding in the Cave of Thawr. After the Prophet\'s death, he became the first Caliph and preserved the unity of the Islamic state during the Ridda Wars.',
       ru:'Абу Бакр ас-Сиддик был одним из первых мужчин, принявших Ислам. Он был ближайшим другом и тестем Пророка Мухаммада ﷺ. Он сопровождал Пророка во время Хиджры, укрываясь в пещере Саур. После смерти Пророка он стал первым Халифом и сохранил единство исламского государства во время войн Ридда.',
       ar:'أبو بكر الصديق كان من أوائل الرجال الذين أسلموا. كان أقرب أصدقاء النبي محمد ﷺ وكان حماه. رافق النبي في الهجرة واختبأ معه في غار ثور. بعد وفاة النبي أصبح أول خليفة وحافظ على وحدة الدولة الإسلامية خلال حروب الردة.',
-      tr:'Ebu Bekir es-Sıddık, İslam\'ı kabul eden ilk erkeklerden biriydi. Hz. Peygamber\'in (s.a.v) en yakın dostu ve kayınpederiydi. Hicret sırasında Peygamber\'le birlikte Sevr Mağarası\'nda saklandı. Peygamber\'in vefatından sonra ilk halife oldu ve Ridde Savaşları sırasında İslam devletinin birliğini korudu.',
+      tr:'Ebu Bekir es-Sıddık, İslam\'ı kabul eden ilk erkeklerden biriydi. Hz. Peygamber\'in (s.a.s) en yakın dostu ve kayınpederiydi. Hicret sırasında Peygamber\'le birlikte Sevr Mağarası\'nda saklandı. Peygamber\'in vefatından sonra ilk halife oldu ve Ridde Savaşları sırasında İslam devletinin birliğini korudu.',
     },
     facts: [
       { az:'İslama ilk iman gətirən azad kişidir', en:'First free man to accept Islam', ru:'Первый свободный мужчина, принявший Ислам', ar:'أول رجل حر أسلم', tr:'İslam\'ı kabul eden ilk hür erkek' },
@@ -88,10 +88,10 @@ const SAHABA = [
   },
   {
     id: 4,
-    name: { ar:'علي بن أبي طالب', az:'Əli ibn Əbi Talib', en:'Ali ibn Abi Talib', ru:'Али ибн Абу Талиб', tr:'Ali ibn Ebi Talib' },
+    name: { ar:'علي بن أبي طالب', az:'Əli ibn Əbu Talib', en:'Ali ibn Abi Talib', ru:'Али ибн Абу Талиб', tr:'Ali ibn Ebi Talib' },
     title: { az:'Dördüncü Xəlifə', en:'Fourth Caliph', ru:'Четвёртый Халиф', ar:'الخليفة الرابع', tr:'Dördüncü Halife' },
     bio: {
-      az:'Əli ibn Əbi Talib Peyğəmbərin ﷺ əmisi oğlu və kürəkəni idi. İslama iman gətirən ilk uşaqdır. Cəsarəti, elmi və ədaləti ilə tanınırdı. Dördüncü xəlifə olaraq xidmət etdi.',
+      az:'Əli ibn Əbu Talib Peyğəmbərin ﷺ əmisi oğlu və kürəkəni idi. İslama iman gətirən ilk uşaqdır. Cəsarəti, elmi və ədaləti ilə tanınırdı. Dördüncü xəlifə olaraq xidmət etdi.',
       en:'Ali ibn Abi Talib was the cousin and son-in-law of Prophet Muhammad ﷺ. He was the first child to accept Islam. Known for his bravery, knowledge, and justice, he served as the fourth Caliph.',
       ru:'Али ибн Абу Талиб был двоюродным братом и зятем Пророка Мухаммада ﷺ. Он был первым ребёнком, принявшим Ислам. Известный своей храбростью, знаниями и справедливостью, он был четвёртым Халифом.',
       ar:'علي بن أبي طالب كان ابن عم النبي محمد ﷺ وصهره. كان أول طفل يُسلم. عُرف بشجاعته وعلمه وعدله. تولى الخلافة الرابعة.',
@@ -112,10 +112,10 @@ const SAHABA = [
   },
   {
     id: 5,
-    name: { ar:'خديجة بنت خويلد', az:'Xədicə bint Xuveylid', en:'Khadijah bint Khuwaylid', ru:'Хадиджа бинт Хувайлид', tr:'Hatice bint Huveylid' },
+    name: { ar:'خديجة بنت خويلد', az:'Xədicə bint Xüveylid', en:'Khadijah bint Khuwaylid', ru:'Хадиджа бинт Хувайлид', tr:'Hatice bint Huveylid' },
     title: { az:'Peyğəmbərin ilk xanımı', en:'First wife of the Prophet', ru:'Первая жена Пророка', ar:'أولى زوجات النبي', tr:'Peygamber\'in ilk eşi' },
     bio: {
-      az:'Xədicə bint Xuveylid Peyğəmbərin ﷺ ilk xanımı və İslama iman gətirən ilk insandır. Varlı bir iş qadını idi və bütün malını İslam yolunda sərf etdi. Peyğəmbərin ən çətin anlarında onun ən böyük dayağı oldu.',
+      az:'Xədicə bint Xüveylid Peyğəmbərin ﷺ ilk xanımı və İslama iman gətirən ilk insandır. Varlı bir iş qadını idi və bütün malını İslam yolunda sərf etdi. Peyğəmbərin ən çətin anlarında onun ən böyük dayağı oldu.',
       en:'Khadijah bint Khuwaylid was the first wife of Prophet Muhammad ﷺ and the first person to accept Islam. She was a wealthy businesswoman who spent all her wealth for the cause of Islam. She was the greatest support for the Prophet during his most difficult times.',
       ru:'Хадиджа бинт Хувайлид была первой женой Пророка Мухаммада ﷺ и первым человеком, принявшим Ислам. Она была богатой предпринимательницей, потратившей всё своё состояние на дело Ислама. Она была главной опорой Пророка в самые трудные времена.',
       ar:'خديجة بنت خويلد كانت أولى زوجات النبي محمد ﷺ وأول من أسلم. كانت سيدة أعمال ثرية أنفقت كل مالها في سبيل الإسلام. كانت أعظم سند للنبي في أصعب أوقاته.',
@@ -127,7 +127,7 @@ const SAHABA = [
       { az:'Peyğəmbərlə 25 il evli qalmışdır', en:'Married to the Prophet for 25 years', ru:'Была замужем за Пророком 25 лет', ar:'بقيت زوجة النبي 25 عامًا', tr:'Peygamber ile 25 yıl evli kaldı' },
     ],
     hadiths: [
-      { ar:'قال رسول الله ﷺ: خيرُ نسائِها مريمُ بنتُ عمران وخيرُ نسائِها خديجةُ بنتُ خويلد', source:'Buxari 3432', az:'Peyğəmbər ﷺ buyurdu: "Qadınların ən xeyirlisi Məryəm bint İmran, qadınların ən xeyirlisi Xədicə bint Xuveylid."', en:'The Prophet ﷺ said: "The best of women is Maryam bint Imran and the best of women is Khadijah bint Khuwaylid."', ru:'Пророк ﷺ сказал: «Лучшая из женщин — Марьям бинт Имран, и лучшая из женщин — Хадиджа бинт Хувайлид.»', tr:'Peygamber ﷺ buyurdu: "Kadınların en hayırlısı Meryem bint İmran ve kadınların en hayırlısı Hatice bint Huveylid\'dir."' },
+      { ar:'قال رسول الله ﷺ: خيرُ نسائِها مريمُ بنتُ عمران وخيرُ نسائِها خديجةُ بنتُ خويلد', source:'Buxari 3432', az:'Peyğəmbər ﷺ buyurdu: "Qadınların ən xeyirlisi Məryəm bint İmran, qadınların ən xeyirlisi Xədicə bint Xüveylid."', en:'The Prophet ﷺ said: "The best of women is Maryam bint Imran and the best of women is Khadijah bint Khuwaylid."', ru:'Пророк ﷺ сказал: «Лучшая из женщин — Марьям бинт Имран, и лучшая из женщин — Хадиджа бинт Хувайлид.»', tr:'Peygamber ﷺ buyurdu: "Kadınların en hayırlısı Meryem bint İmran ve kadınların en hayırlısı Hatice bint Huveylid\'dir."' },
       { ar:'قال رسول الله ﷺ: آمنَت بي إذ كفر بي الناسُ، وصدَّقتني إذ كذَّبني الناسُ', source:'Əhməd 24864', az:'Peyğəmbər ﷺ Xədicə haqqında buyurdu: "İnsanlar mənə inanmayanda o mənə inandı, insanlar məni yalanlayanda o məni təsdiq etdi."', en:'The Prophet ﷺ said about Khadijah: "She believed in me when people disbelieved, she affirmed me when people denied me."', ru:'Пророк ﷺ сказал о Хадидже: «Она поверила в меня, когда люди не верили, она подтвердила меня, когда люди отвергали.»', tr:'Peygamber ﷺ Hatice hakkında buyurdu: "İnsanlar bana inanmadığında o inandı, insanlar beni yalanladığında o tasdik etti."' },
       { ar:'أتى جبريلُ النبيَّ ﷺ فقال: بشِّر خديجةَ ببيتٍ في الجنة من قصبٍ لا صخبَ فيه ولا نصَب', source:'Buxari 3820', az:'Cəbrail Peyğəmbərə ﷺ gəlib dedi: "Xədicəni Cənnətdə səs-küy və yorğunluq olmayan qəsrlə müjdələ."', en:'Gabriel came to the Prophet ﷺ and said: "Give Khadijah glad tidings of a palace in Paradise of pearls, with no noise or fatigue."', ru:'Джибриль пришёл к Пророку ﷺ и сказал: «Обрадуй Хадиджу дворцом в Раю из жемчуга, без шума и усталости.»', tr:'Cebrail, Peygamber\'e ﷺ gelip dedi: "Hatice\'yi Cennet\'te gürültü ve yorgunluk olmayan bir köşkle müjdele."' },
       { ar:'كان النبي ﷺ لا يكاد يخرج من البيت حتى يذكرَ خديجةَ فيُحسِنَ الثناءَ عليها', source:'Buxari 3818', az:'Peyğəmbər ﷺ evdən çıxmadan Xədicəni xatırlayar və onu gözəl sözlərlə yad edərdi.', en:'The Prophet ﷺ would hardly leave the house without remembering Khadijah and speaking well of her.', ru:'Пророк ﷺ почти не выходил из дома, не вспомнив Хадиджу и не отозвавшись о ней хорошо.', tr:'Peygamber ﷺ evden çıkmadan Hatice\'yi anar ve onu güzel sözlerle yâd ederdi.' },
@@ -136,10 +136,10 @@ const SAHABA = [
   },
   {
     id: 6,
-    name: { ar:'عائشة بنت أبي بكر', az:'Aişə bint Əbi Bəkr', en:'Aisha bint Abi Bakr', ru:'Аиша бинт Абу Бакр', tr:'Ayşe bint Ebi Bekir' },
+    name: { ar:'عائشة بنت أبي بكر', az:'Aişə bint Əbu Bəkr', en:'Aisha bint Abi Bakr', ru:'Аиша бинт Абу Бакр', tr:'Ayşe bint Ebi Bekir' },
     title: { az:'Böyük alimə xanım', en:'Great female scholar', ru:'Великая учёная', ar:'العالمة الكبرى', tr:'Büyük kadın alim' },
     bio: {
-      az:'Aişə bint Əbi Bəkr Peyğəmbərin ﷺ xanımı və Əbu Bəkrin qızı idi. İslamın ən böyük qadın alimlərindən biri olub, 2200-dən çox hədis rəvayət etmişdir.',
+      az:'Aişə bint Əbu Bəkr Peyğəmbərin ﷺ xanımı və Əbu Bəkrin qızı idi. İslamın ən böyük qadın alimlərindən biri olub, 2200-dən çox hədis rəvayət etmişdir.',
       en:'Aisha bint Abi Bakr was the wife of Prophet Muhammad ﷺ and daughter of Abu Bakr. She was one of the greatest female scholars in Islam, narrating over 2,200 hadiths.',
       ru:'Аиша бинт Абу Бакр была женой Пророка Мухаммада ﷺ и дочерью Абу Бакра. Она была одной из величайших женщин-учёных в Исламе, передавшей более 2200 хадисов.',
       ar:'عائشة بنت أبي بكر كانت زوجة النبي محمد ﷺ وابنة أبي بكر. كانت من أعظم العالمات في الإسلام وروت أكثر من 2200 حديث.',
@@ -163,7 +163,7 @@ const SAHABA = [
     name: { ar:'فاطمة بنت محمد', az:'Fatimə bint Muhəmməd', en:'Fatimah bint Muhammad', ru:'Фатима бинт Мухаммад', tr:'Fatıma bint Muhammed' },
     title: { az:'Peyğəmbərin qızı', en:'Daughter of the Prophet', ru:'Дочь Пророка', ar:'بنت النبي', tr:'Peygamber\'in kızı' },
     bio: {
-      az:'Fatimə bint Muhəmməd Peyğəmbərin ﷺ ən kiçik və ən sevimli qızı idi. Əli ibn Əbi Taliblə evlənmiş, Həsən və Hüseynin anası olmuşdur. Səbri, ibadəti və təvazökarlığı ilə tanınırdı.',
+      az:'Fatimə bint Muhəmməd Peyğəmbərin ﷺ ən kiçik və ən sevimli qızı idi. Əli ibn Əbu Taliblə evlənmiş, Həsən və Hüseynin anası olmuşdur. Səbri, ibadəti və təvazökarlığı ilə tanınırdı.',
       en:'Fatimah bint Muhammad was the youngest and most beloved daughter of Prophet Muhammad ﷺ. She married Ali ibn Abi Talib and was the mother of Hasan and Husayn. She was known for her patience, worship, and humility.',
       ru:'Фатима бинт Мухаммад была младшей и самой любимой дочерью Пророка Мухаммада ﷺ. Она вышла замуж за Али ибн Абу Талиба и была матерью Хасана и Хусейна. Она была известна своим терпением, поклонением и скромностью.',
       ar:'فاطمة بنت محمد كانت أصغر بنات النبي ﷺ وأحبهن إليه. تزوجت عليًا بن أبي طالب وكانت أم الحسن والحسين. عُرفت بصبرها وعبادتها وتواضعها.',
@@ -376,10 +376,10 @@ const SAHABA = [
   },
   {
     id: 16,
-    name: { ar:'سعد بن أبي وقاص', az:'Səd ibn Əbi Vaqqas', en:'Saad ibn Abi Waqqas', ru:'Саад ибн Абу Ваккас', tr:'Sad ibn Ebi Vakkas' },
+    name: { ar:'سعد بن أبي وقاص', az:'Səd ibn Əbu Vəqqas', en:'Saad ibn Abi Waqqas', ru:'Саад ибн Абу Ваккас', tr:'Sad ibn Ebi Vakkas' },
     title: { az:'İran fatehi', en:'Conqueror of Persia', ru:'Завоеватель Персии', ar:'فاتح فارس', tr:'İran fatihi' },
     bio: {
-      az:'Səd ibn Əbi Vaqqas İslama ilk iman gətirənlərdən və Cənnətlə müjdələnən on səhabədən biridir. Qadisiyyə döyüşündə İran imperiyasını məğlub etmişdir.',
+      az:'Səd ibn Əbu Vəqqas İslama ilk iman gətirənlərdən və Cənnətlə müjdələnən on səhabədən biridir. Qadisiyyə döyüşündə İran imperiyasını məğlub etmişdir.',
       en:'Saad ibn Abi Waqqas was among the first to accept Islam and one of the ten companions promised Paradise. He defeated the Persian Empire at the Battle of Qadisiyyah.',
       ru:'Саад ибн Абу Ваккас был среди первых, принявших Ислам, и одним из десяти сподвижников, обещанных Раем. Он победил Персидскую империю в битве при Кадисии.',
       ar:'سعد بن أبي وقاص كان من أوائل المسلمين ومن العشرة المبشرين بالجنة. هزم الإمبراطورية الفارسية في معركة القادسية.',
@@ -424,10 +424,10 @@ const SAHABA = [
   },
   {
     id: 18,
-    name: { ar:'الزبير بن العوام', az:'Zubeyr ibn əl-Əvvam', en:'Zubayr ibn al-Awwam', ru:'Зубайр ибн аль-Аввам', tr:'Zübeyr ibn Avvam' },
+    name: { ar:'الزبير بن العوام', az:'Zübeyr ibn əl-Əvvam', en:'Zubayr ibn al-Awwam', ru:'Зубайр ибн аль-Аввам', tr:'Zübeyr ibn Avvam' },
     title: { az:'Peyğəmbərin həvarisi', en:'Disciple of the Prophet', ru:'Апостол Пророка', ar:'حواري النبي', tr:'Peygamber\'in havarisi' },
     bio: {
-      az:'Zubeyr ibn əl-Əvvam Cənnətlə müjdələnən on səhabədən biridir. Peyğəmbərin ﷺ bibisi oğlu və xalası oğlu idi. Cəsarəti ilə tanınır və "Peyğəmbərin həvarisi" adlandırılırdı.',
+      az:'Zübeyr ibn əl-Əvvam Cənnətlə müjdələnən on səhabədən biridir. Peyğəmbərin ﷺ bibisi oğlu və xalası oğlu idi. Cəsarəti ilə tanınır və "Peyğəmbərin həvarisi" adlandırılırdı.',
       en:'Zubayr ibn al-Awwam was one of the ten companions promised Paradise. He was the cousin of the Prophet ﷺ. Known for his bravery, he was called "the Disciple of the Prophet."',
       ru:'Зубайр ибн аль-Аввам был одним из десяти сподвижников, обещанных Раем. Он был двоюродным братом Пророка ﷺ. Известный своей храбростью, он назывался «Апостолом Пророка».',
       ar:'الزبير بن العوام كان من العشرة المبشرين بالجنة. كان ابن عمة النبي ﷺ. عُرف بشجاعته ولُقِّب بـ"حواري النبي".',
@@ -439,11 +439,11 @@ const SAHABA = [
       { az:'Həbəşistana iki dəfə hicrət etmişdir', en:'Migrated to Abyssinia twice', ru:'Дважды переселился в Абиссинию', ar:'هاجر إلى الحبشة مرتين', tr:'Habeşistan\'a iki kez hicret etti' },
     ],
     hadiths: [
-      { ar:'قال رسول الله ﷺ: إن لكل نبيٍّ حواريًّا وحواريَّ الزبير', source:'Buxari 3719', az:'Peyğəmbər ﷺ buyurdu: "Hər peyğəmbərin bir həvarisi var, mənim həvarim Zubeyrdir."', en:'The Prophet ﷺ said: "Every prophet has a disciple, and my disciple is Zubayr."', ru:'Пророк ﷺ сказал: «У каждого пророка есть апостол, и мой апостол — Зубайр.»', tr:'Peygamber ﷺ buyurdu: "Her peygamberin bir havarisi vardır, benim havarim Zübeyr\'dir."' },
-      { ar:'قال رسول الله ﷺ يوم الخندق: من يأتيني بخبر القوم؟ فقال الزبير: أنا', source:'Buxari 3720', az:'Peyğəmbər ﷺ Xəndək günü dedi: "Kim düşmənin xəbərini gətirər?" Zubeyr dedi: "Mən."', en:'The Prophet ﷺ said on the day of the Trench: "Who will bring me news of the enemy?" Zubayr said: "I will."', ru:'Пророк ﷺ сказал в день Рва: «Кто принесёт мне вести о враге?» Зубайр сказал: «Я.»', tr:'Peygamber ﷺ Hendek günü dedi: "Düşmanın haberini kim getirir?" Zübeyr dedi: "Ben."' },
-      { ar:'قاتل الزبيرُ يوم بدر وهو فارسان', source:'İbn Hişam', az:'Zubeyr Bədr döyüşündə iki atlının gücünə bərabər döyüşdü.', en:'Zubayr fought at the Battle of Badr with the strength of two horsemen.', ru:'Зубайр сражался при Бадре с силой двух всадников.', tr:'Zübeyr, Bedir Savaşı\'nda iki atlının gücüyle savaştı.' },
-      { ar:'كان الزبير يُعرف بشجاعته وإقدامه في كل المعارك مع رسول الله ﷺ', source:'İbn Sad', az:'Zubeyr Peyğəmbərlə ﷺ bütün döyüşlərdə cəsarəti ilə tanınırdı.', en:'Zubayr was known for his courage in every battle with the Prophet ﷺ.', ru:'Зубайр был известен своей храбростью в каждой битве с Пророком ﷺ.', tr:'Zübeyr, Peygamber\'le ﷺ her savaşta cesareti ile tanınırdı.' },
-      { ar:'أسلم الزبير وعمره ست عشرة سنة', source:'İbn Sad', az:'Zubeyr 16 yaşında İslama iman gətirmişdir.', en:'Zubayr accepted Islam at the age of 16.', ru:'Зубайр принял Ислам в возрасте 16 лет.', tr:'Zübeyr, 16 yaşında İslam\'ı kabul etti.' },
+      { ar:'قال رسول الله ﷺ: إن لكل نبيٍّ حواريًّا وحواريَّ الزبير', source:'Buxari 3719', az:'Peyğəmbər ﷺ buyurdu: "Hər peyğəmbərin bir həvarisi var, mənim həvarim Zübeyrdir."', en:'The Prophet ﷺ said: "Every prophet has a disciple, and my disciple is Zubayr."', ru:'Пророк ﷺ сказал: «У каждого пророка есть апостол, и мой апостол — Зубайр.»', tr:'Peygamber ﷺ buyurdu: "Her peygamberin bir havarisi vardır, benim havarim Zübeyr\'dir."' },
+      { ar:'قال رسول الله ﷺ يوم الخندق: من يأتيني بخبر القوم؟ فقال الزبير: أنا', source:'Buxari 3720', az:'Peyğəmbər ﷺ Xəndək günü dedi: "Kim düşmənin xəbərini gətirər?" Zübeyr dedi: "Mən."', en:'The Prophet ﷺ said on the day of the Trench: "Who will bring me news of the enemy?" Zubayr said: "I will."', ru:'Пророк ﷺ сказал в день Рва: «Кто принесёт мне вести о враге?» Зубайр сказал: «Я.»', tr:'Peygamber ﷺ Hendek günü dedi: "Düşmanın haberini kim getirir?" Zübeyr dedi: "Ben."' },
+      { ar:'قاتل الزبيرُ يوم بدر وهو فارسان', source:'İbn Hişam', az:'Zübeyr Bədr döyüşündə iki atlının gücünə bərabər döyüşdü.', en:'Zubayr fought at the Battle of Badr with the strength of two horsemen.', ru:'Зубайр сражался при Бадре с силой двух всадников.', tr:'Zübeyr, Bedir Savaşı\'nda iki atlının gücüyle savaştı.' },
+      { ar:'كان الزبير يُعرف بشجاعته وإقدامه في كل المعارك مع رسول الله ﷺ', source:'İbn Sad', az:'Zübeyr Peyğəmbərlə ﷺ bütün döyüşlərdə cəsarəti ilə tanınırdı.', en:'Zubayr was known for his courage in every battle with the Prophet ﷺ.', ru:'Зубайр был известен своей храбростью в каждой битве с Пророком ﷺ.', tr:'Zübeyr, Peygamber\'le ﷺ her savaşta cesareti ile tanınırdı.' },
+      { ar:'أسلم الزبير وعمره ست عشرة سنة', source:'İbn Sad', az:'Zübeyr 16 yaşında İslama iman gətirmişdir.', en:'Zubayr accepted Islam at the age of 16.', ru:'Зубайр принял Ислам в возрасте 16 лет.', tr:'Zübeyr, 16 yaşında İslam\'ı kabul etti.' },
     ],
   },
   {

@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLang } from '../contexts/LangContext';
 import { Colors, Spacing, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
+import { SURAH_AZ } from '../data/surahNamesAz';
 import PageHero from '../components/PageHero';
 
 const EDITION_MAP = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', ar:'ar.muyassar', tr:'tr.diyanet' };
@@ -145,7 +146,9 @@ export default function QuranScreen({ navigation }) {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return surahs.filter(s => {
-      const matchQ = !q || s.englishName.toLowerCase().includes(q) || s.name.includes(search) || String(s.number).includes(q);
+      const az = SURAH_AZ[s.number];
+      const matchQ = !q || s.englishName.toLowerCase().includes(q) || s.name.includes(search) || String(s.number).includes(q) ||
+        (az && (az.name.toLowerCase().includes(q) || az.meaning.toLowerCase().includes(q)));
       const matchF = filter === 'all' || (filter === 'meccan' && s.revelationType === 'Meccan') || (filter === 'medinan' && s.revelationType === 'Medinan');
       return matchQ && matchF;
     });
@@ -178,8 +181,8 @@ export default function QuranScreen({ navigation }) {
         <View style={[styles.readerHeader, { backgroundColor: c.primary }]}>
           <View style={styles.readerNumBadge}><Text style={styles.readerNum}>{surah.number}</Text></View>
           <Text style={styles.readerArabicName}>{surah.name}</Text>
-          <Text style={styles.readerEnName}>{surah.englishName}</Text>
-          <Text style={styles.readerMeta}>{surah.englishNameTranslation} · {surah.numberOfAyahs} {t.verses}</Text>
+          <Text style={styles.readerEnName}>{lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].name : surah.englishName}</Text>
+          <Text style={styles.readerMeta}>{lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].meaning : surah.englishNameTranslation} · {surah.numberOfAyahs} {t.verses}</Text>
         </View>
 
         {surah.number !== 9 && (
@@ -267,18 +270,25 @@ export default function QuranScreen({ navigation }) {
               <FlatList
                 data={filtered}
                 keyExtractor={s => String(s.number)}
-                renderItem={({ item }) => (
-                  <TouchableOpacity style={[styles.surahCard, { backgroundColor: c.card, borderColor: c.cardBorder }]} onPress={() => openSurah(item.number, item.englishName)}>
-                    <View style={[styles.surahNum, { backgroundColor: c.primary + '15' }]}>
-                      <Text style={[styles.surahNumText, { color: c.primary }]}>{item.number}</Text>
-                    </View>
-                    <View style={styles.surahBody}>
-                      <Text style={[styles.surahNameEn, { color: c.text }]}>{item.englishName}</Text>
-                      <Text style={[styles.surahMeta, { color: c.textSecondary }]}>{item.englishNameTranslation} · {item.numberOfAyahs} {t.verses}</Text>
-                    </View>
-                    <Text style={[styles.surahNameAr, { color: c.text }]}>{item.name}</Text>
-                  </TouchableOpacity>
-                )}
+                renderItem={({ item }) => {
+                  const az = lang === 'az' ? SURAH_AZ[item.number] : null;
+                  const displayName = az ? az.name : item.englishName;
+                  const displayMeta = az
+                    ? `${az.meaning} · ${item.numberOfAyahs} ${t.verses}`
+                    : `${item.englishNameTranslation} · ${item.numberOfAyahs} ${t.verses}`;
+                  return (
+                    <TouchableOpacity style={[styles.surahCard, { backgroundColor: c.card, borderColor: c.cardBorder }]} onPress={() => openSurah(item.number, displayName)}>
+                      <View style={[styles.surahNum, { backgroundColor: c.primary + '15' }]}>
+                        <Text style={[styles.surahNumText, { color: c.primary }]}>{item.number}</Text>
+                      </View>
+                      <View style={styles.surahBody}>
+                        <Text style={[styles.surahNameEn, { color: c.text }]}>{displayName}</Text>
+                        <Text style={[styles.surahMeta, { color: c.textSecondary }]}>{displayMeta}</Text>
+                      </View>
+                      <Text style={[styles.surahNameAr, { color: c.text }]}>{item.name}</Text>
+                    </TouchableOpacity>
+                  );
+                }}
                 contentContainerStyle={{ paddingBottom: 40 }}
               />
             )}

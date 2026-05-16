@@ -306,7 +306,7 @@ const QUESTIONS = {
       ], correct: 0
     },
     {
-      q: { az:'Hz. Peyğəmbərin (s.ə.s) vəfat yaşı neçə idi?', en:'At what age did Prophet Muhammad (PBUH) pass away?', ru:'В каком возрасте скончался Пророк Мухаммад (мир ему)?', ar:'كم كان عمر النبي ﷺ عند وفاته؟', tr:'Hz. Peygamber (s.a.v) kaç yaşında vefat etti?' },
+      q: { az:'Hz. Peyğəmbərin (s.a.s) vəfat yaşı neçə idi?', en:'At what age did Prophet Muhammad (PBUH) pass away?', ru:'В каком возрасте скончался Пророк Мухаммад (мир ему)?', ar:'كم كان عمر النبي ﷺ عند وفاته؟', tr:'Hz. Peygamber (s.a.s) kaç yaşında vefat etti?' },
       options: ['60','63','65','70'], correct: 1
     },
     {
@@ -319,7 +319,7 @@ const QUESTIONS = {
       ], correct: 1
     },
     {
-      q: { az:'Hz. Peyğəmbərin (s.ə.s) ilk vəhy aldığı yer?', en:'Where did Prophet Muhammad (PBUH) receive the first revelation?', ru:'Где Пророк Мухаммад (мир ему) получил первое откровение?', ar:'أين تلقى النبي ﷺ أول وحي؟', tr:'Hz. Peygamber (s.a.v) ilk vahyi nerede aldı?' },
+      q: { az:'Hz. Peyğəmbərin (s.a.s) ilk vəhy aldığı yer?', en:'Where did Prophet Muhammad (PBUH) receive the first revelation?', ru:'Где Пророк Мухаммад (мир ему) получил первое откровение?', ar:'أين تلقى النبي ﷺ أول وحي؟', tr:'Hz. Peygamber (s.a.s) ilk vahyi nerede aldı?' },
       options: [
         { az:'Məscidül-Həram', en:'Masjid al-Haram', ru:'Масджид аль-Харам', ar:'المسجد الحرام', tr:'Mescid-i Haram' },
         { az:'Hira mağarası', en:'Cave of Hira', ru:'Пещера Хира', ar:'غار حراء', tr:'Hira Mağarası' },
@@ -328,7 +328,7 @@ const QUESTIONS = {
       ], correct: 1
     },
     {
-      q: { az:'Peyğəmbərimizin (s.ə.s) neçə qızı olub?', en:'How many daughters did Prophet Muhammad (PBUH) have?', ru:'Сколько дочерей было у Пророка Мухаммада (мир ему)?', ar:'كم عدد بنات النبي ﷺ؟', tr:'Hz. Peygamber (s.a.v) kaç kızı vardı?' },
+      q: { az:'Peyğəmbərimizin (s.a.s) neçə qızı olub?', en:'How many daughters did Prophet Muhammad (PBUH) have?', ru:'Сколько дочерей было у Пророка Мухаммада (мир ему)?', ar:'كم عدد بنات النبي ﷺ؟', tr:'Hz. Peygamber (s.a.s) kaç kızı vardı?' },
       options: ['2','3','4','5'], correct: 2
     },
     {
@@ -425,7 +425,7 @@ const QUESTIONS = {
       ], correct: 1
     },
     {
-      q: { az:'Hz. Peyğəmbərin (s.ə.s) ilk xanımı kim idi?', en:'Who was the first wife of Prophet Muhammad (PBUH)?', ru:'Кто была первой женой Пророка Мухаммада (мир ему)?', ar:'من كانت أول زوجة للنبي ﷺ؟', tr:'Hz. Peygamber (s.a.v) ilk eşi kimdi?' },
+      q: { az:'Hz. Peyğəmbərin (s.a.s) ilk xanımı kim idi?', en:'Who was the first wife of Prophet Muhammad (PBUH)?', ru:'Кто была первой женой Пророка Мухаммада (мир ему)?', ar:'من كانت أول زوجة للنبي ﷺ؟', tr:'Hz. Peygamber (s.a.s) ilk eşi kimdi?' },
       options: [
         { az:'Hz. Aişə', en:'Aisha', ru:'Аиша', ar:'عائشة', tr:'Hz. Aişe' },
         { az:'Hz. Xədicə', en:'Khadijah', ru:'Хадиджа', ar:'خديجة', tr:'Hz. Hatice' },
@@ -461,7 +461,7 @@ const QUESTIONS = {
       ], correct: 1
     },
     {
-      q: { az:'Hz. Peyğəmbərin (s.ə.s) hicrət etdiyi şəhər?', en:'To which city did Prophet Muhammad (PBUH) migrate?', ru:'В какой город совершил хиджру Пророк Мухаммад (мир ему)?', ar:'إلى أي مدينة هاجر النبي ﷺ؟', tr:'Hz. Peygamber (s.a.v) hangi şehre hicret etti?' },
+      q: { az:'Hz. Peyğəmbərin (s.a.s) hicrət etdiyi şəhər?', en:'To which city did Prophet Muhammad (PBUH) migrate?', ru:'В какой город совершил хиджру Пророк Мухаммад (мир ему)?', ar:'إلى أي مدينة هاجر النبي ﷺ؟', tr:'Hz. Peygamber (s.a.s) hangi şehre hicret etti?' },
       options: [
         { az:'Taif', en:'Taif', ru:'Таиф', ar:'الطائف', tr:'Taif' },
         { az:'Mədinə', en:'Medina', ru:'Медина', ar:'المدينة', tr:'Medine' },
@@ -506,7 +506,7 @@ const QUESTIONS = {
       ], correct: 3
     },
     {
-      q: { az:'Hz. Peyğəmbərin (s.ə.s) əmisi oğlu və kürəkəni kimdir?', en:'Who was Prophet Muhammad\'s (PBUH) cousin and son-in-law?', ru:'Кто был двоюродным братом и зятем Пророка Мухаммада (мир ему)?', ar:'من هو ابن عم النبي ﷺ وصهره؟', tr:'Hz. Peygamber\'in (s.a.v) amca oğlu ve damadı kimdir?' },
+      q: { az:'Hz. Peyğəmbərin (s.a.s) əmisi oğlu və kürəkəni kimdir?', en:'Who was Prophet Muhammad\'s (PBUH) cousin and son-in-law?', ru:'Кто был двоюродным братом и зятем Пророка Мухаммада (мир ему)?', ar:'من هو ابن عم النبي ﷺ وصهره؟', tr:'Hz. Peygamber\'in (s.a.s) amca oğlu ve damadı kimdir?' },
       options: [
         { az:'Hz. Ömər', en:'Umar', ru:'Умар', ar:'عمر', tr:'Hz. Ömer' },
         { az:'Hz. Osman', en:'Uthman', ru:'Усман', ar:'عثمان', tr:'Hz. Osman' },

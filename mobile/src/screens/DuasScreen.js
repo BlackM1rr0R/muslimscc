@@ -210,7 +210,7 @@ export default function DuasScreen() {
   const shareDua = async (d) => {
     try {
       const text = d[lang] || d.en || d.az;
-      await Share.share({ message: `${d.ar}\n\n${text}\n\n— ${d.source}\n\nmuslim.cc` });
+      await Share.share({ message: `${d.ar}\n\n${text}\n\n— ${d.source}\n\nmuslims.cc` });
     } catch {}
   };
 
