@@ -13,7 +13,9 @@
 // ═══════════════════════════════════════════════════════
 
 const SYSTEM_PROMPTS = {
-  az: `Sən muslims.cc saytının "MuslimAI" adlı İslami AI köməkçisisən.
+  az: `⚠️ DİL TƏLƏBİ (ƏN VACİB QAYDA): Bütün cavabını YALNIZ Azərbaycan dilində yaz. İstifadəçinin əvvəlki mesajları başqa dildə olsa da, sən mütləq Azərbaycanca cavab ver. Türkcə, İngiliscə, Rusca və ya başqa dildə söz işlətmə.
+
+Sən muslims.cc saytının "MuslimAI" adlı İslami AI köməkçisisən.
 
 ═══ MÜTLƏQ QAYDALAR ═══
 
@@ -44,7 +46,9 @@ const SYSTEM_PROMPTS = {
 
 🤲 SONLUQ: Hər cavabın sonunda mütləq əlavə et: "Allah daha yaxşı bilir (وَاللَّهُ أَعْلَمُ)"`,
 
-  en: `You are "MuslimAI", the Islamic AI assistant for muslims.cc.
+  en: `⚠️ LANGUAGE REQUIREMENT (MOST IMPORTANT RULE): Write your entire response ONLY in English. Even if the user's earlier messages were in another language, you MUST reply in English only. Do not use Azerbaijani, Turkish, Russian or Arabic words.
+
+You are "MuslimAI", the Islamic AI assistant for muslims.cc.
 
 ═══ STRICT RULES ═══
 
@@ -75,7 +79,9 @@ const SYSTEM_PROMPTS = {
 
 🤲 ENDING: Always end with: "Allah knows best (وَاللَّهُ أَعْلَمُ)"`,
 
-  ru: `Ты "MuslimAI" — исламский AI помощник сайта muslims.cc.
+  ru: `⚠️ ЯЗЫКОВОЕ ТРЕБОВАНИЕ (САМОЕ ВАЖНОЕ ПРАВИЛО): Пиши весь ответ ТОЛЬКО на русском языке. Даже если предыдущие сообщения пользователя были на другом языке, ты ОБЯЗАН отвечать на русском. Не используй азербайджанские, турецкие, английские или арабские слова.
+
+Ты "MuslimAI" — исламский AI помощник сайта muslims.cc.
 
 ═══ СТРОГИЕ ПРАВИЛА ═══
 
@@ -105,7 +111,9 @@ const SYSTEM_PROMPTS = {
 
 🤲 ОКОНЧАНИЕ: Всегда заканчивай: "Аллах знает лучше (وَاللَّهُ أَعْلَمُ)"`,
 
-  ar: `أنت "MuslimAI" — مساعد ذكاء اصطناعي إسلامي لموقع muslims.cc.
+  ar: `⚠️ شرط اللغة (أهم قاعدة): اكتب ردك بالكامل باللغة العربية فقط. حتى لو كانت رسائل المستخدم السابقة بلغة أخرى، يجب أن ترد باللغة العربية. لا تستخدم كلمات أذربيجانية أو تركية أو إنجليزية أو روسية.
+
+أنت "MuslimAI" — مساعد ذكاء اصطناعي إسلامي لموقع muslims.cc.
 
 ═══ قواعد صارمة ═══
 
@@ -135,7 +143,9 @@ const SYSTEM_PROMPTS = {
 
 🤲 الخاتمة: اختتم دائماً بـ: "والله أعلم"`,
 
-  tr: `Sen muslims.cc'nin "MuslimAI" adlı İslami AI asistanısın.
+  tr: `⚠️ DİL ŞARTI (EN ÖNEMLİ KURAL): Yanıtının tamamını YALNIZCA Türkçe yaz. Kullanıcının önceki mesajları başka bir dilde olsa bile, Türkçe cevap vermek ZORUNDASIN. Azerice, İngilizce, Rusça veya Arapça kelimeler kullanma.
+
+Sen muslims.cc'nin "MuslimAI" adlı İslami AI asistanısın.
 
 ═══ KESİN KURALLAR ═══
 
@@ -246,10 +256,26 @@ const REFUSAL = {
   tr: 'Üzgünüm, ben sadece İslam, Kuran, hadis, namaz, dua, fıkıh, akide ve diğer dini konulardaki sorulara cevap veriyorum. İslami bir sorunuz olursa, memnuniyetle yardım ederim. 🌙',
 }
 
+// İcazə verilən origin-lər: prod domen(lər)i + lokal inkişaf.
+// ALLOWED_ORIGIN vergüllə bir neçə domen ola bilər. Localhost həmişə icazəlidir.
+function resolveAllowedOrigin(reqOrigin) {
+  const configured = (process.env.ALLOWED_ORIGIN || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+  // Konfiqurasiya yoxdursa köhnə davranış: hamıya icazə
+  if (configured.length === 0) return '*'
+  if (!reqOrigin) return configured[0]
+  const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(reqOrigin)
+  if (configured.includes(reqOrigin) || isLocalhost) return reqOrigin
+  return configured[0]
+}
+
 export default async function handler(req, res) {
   // CORS
-  const origin = process.env.ALLOWED_ORIGIN || '*'
+  const origin = resolveAllowedOrigin(req.headers.origin)
   res.setHeader('Access-Control-Allow-Origin', origin)
+  res.setHeader('Vary', 'Origin')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   if (req.method === 'OPTIONS') return res.status(200).end()

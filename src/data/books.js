@@ -2,6 +2,90 @@
 import { getAll, addDocument, updateDocument, deleteDocument, subscribeToCollection, COLLECTIONS } from '../firebase/firestore'
 import { isFirebaseConfigured } from '../firebase/config'
 
+// ═══ İSLAMİ SVG ÜZ QABIĞI GENERATORU ═══
+// Şəkil linki olmayan kitablar üçün öz-özünə işləyən, sınmayan cover.
+// Həndəsi İslam naxışı + hilal + mehrab tağı. Xarici asılılıq yoxdur.
+function wrapTitle(t, max = 15) {
+  const words = String(t || '').split(/\s+/)
+  const lines = []
+  let cur = ''
+  for (const w of words) {
+    if ((cur + ' ' + w).trim().length > max && cur) { lines.push(cur.trim()); cur = w }
+    else cur = (cur + ' ' + w).trim()
+  }
+  if (cur) lines.push(cur.trim())
+  return lines.slice(0, 4)
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+export function makeCover({ title, author, color = '#10b981' }) {
+  const lines = wrapTitle(title, 15)
+  const startY = 235 - (lines.length - 1) * 17
+  const titleTspans = lines.map((ln, i) =>
+    `<tspan x='150' y='${startY + i * 34}'>${esc(ln)}</tspan>`
+  ).join('')
+  const gold = '#d4af37'
+
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'>
+  <defs>
+    <linearGradient id='bg' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0' stop-color='${color}'/>
+      <stop offset='1' stop-color='#0b1220'/>
+    </linearGradient>
+    <radialGradient id='glow' cx='0.5' cy='0.32' r='0.7'>
+      <stop offset='0' stop-color='#ffffff' stop-opacity='0.18'/>
+      <stop offset='1' stop-color='#ffffff' stop-opacity='0'/>
+    </radialGradient>
+    <pattern id='stars' width='40' height='40' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'>
+      <path d='M20 6 L23 17 L34 20 L23 23 L20 34 L17 23 L6 20 L17 17 Z' fill='#ffffff' fill-opacity='0.05'/>
+    </pattern>
+  </defs>
+
+  <rect width='300' height='450' fill='url(#bg)'/>
+  <rect width='300' height='450' fill='url(#stars)'/>
+  <rect width='300' height='450' fill='url(#glow)'/>
+
+  <rect x='10' y='10' width='280' height='430' fill='none' stroke='${gold}' stroke-opacity='0.75' stroke-width='2'/>
+  <rect x='16' y='16' width='268' height='418' fill='none' stroke='${gold}' stroke-opacity='0.35' stroke-width='1'/>
+
+  <!-- Hilal + ulduz -->
+  <g transform='translate(150 82)'>
+    <circle cx='0' cy='0' r='26' fill='${gold}'/>
+    <circle cx='9' cy='-4' r='22' fill='#0b1220'/>
+    <path d='M26 -3 L29 5 L37 5 L31 10 L33 18 L26 13 L19 18 L21 10 L15 5 L23 5 Z' fill='${gold}'/>
+  </g>
+
+  <!-- Mehrab tağı -->
+  <path d='M70 150 Q70 120 100 120 L200 120 Q230 120 230 150 L230 300'
+        fill='none' stroke='${gold}' stroke-opacity='0.25' stroke-width='1.5'/>
+
+  <text text-anchor='middle' font-family='Georgia, "Times New Roman", serif' font-weight='700'
+        font-size='27' fill='#ffffff' letter-spacing='0.3'>
+    ${titleTspans}
+  </text>
+
+  <g transform='translate(150 ${startY + lines.length * 34 + 6})'>
+    <line x1='-55' y1='0' x2='-14' y2='0' stroke='${gold}' stroke-opacity='0.7' stroke-width='1'/>
+    <path d='M0 -6 L6 0 L0 6 L-6 0 Z' fill='${gold}'/>
+    <line x1='14' y1='0' x2='55' y2='0' stroke='${gold}' stroke-opacity='0.7' stroke-width='1'/>
+  </g>
+
+  <text x='150' y='${startY + lines.length * 34 + 40}' text-anchor='middle'
+        font-family='Georgia, serif' font-size='15' fill='${gold}' fill-opacity='0.95'>${esc(author)}</text>
+
+  <g transform='translate(150 410)' fill='${gold}' fill-opacity='0.6'>
+    <path d='M-24 0 L-18 -5 L-12 0 L-18 5 Z'/>
+    <path d='M-6 0 L0 -5 L6 0 L0 5 Z'/>
+    <path d='M12 0 L18 -5 L24 0 L18 5 Z'/>
+  </g>
+</svg>`
+
+  return 'data:image/svg+xml,' + encodeURIComponent(svg)
+}
+
 // ═══ DEFAULT BOOKS (Firebase qoşulmadıqda fallback) ═══
 export const DEFAULT_BOOKS = [
   {
@@ -85,11 +169,23 @@ export const BOOK_CATEGORIES = [
   { key:'kids',      label:{az:'Uşaqlar',en:'Kids',ru:'Дети',ar:'الأطفال',tr:'Çocuk'}, color:'#f97316' },
 ]
 
+// Şəkli olmayan hər kitaba İslami SVG üz qabığı ver (Firestore + default)
+function withCovers(items) {
+  return items.map(b => b.coverUrl ? b : {
+    ...b,
+    coverUrl: makeCover({
+      title: b.title?.az || b.title?.en,
+      author: b.author?.az || b.author?.en,
+      color: getDefaultCover(b.category),
+    }),
+  })
+}
+
 // ═══ ASYNC CRUD ═══
 export async function getBooks() {
-  if (!isFirebaseConfigured()) return DEFAULT_BOOKS
+  if (!isFirebaseConfigured()) return withCovers(DEFAULT_BOOKS)
   const items = await getAll(COLLECTIONS.BOOKS)
-  return items.length > 0 ? items : DEFAULT_BOOKS
+  return withCovers(items.length > 0 ? items : DEFAULT_BOOKS)
 }
 
 export async function addBook(book) {
@@ -107,7 +203,7 @@ export async function deleteBook(id) {
 // Real-time subscriber
 export function subscribeToBooks(callback) {
   return subscribeToCollection(COLLECTIONS.BOOKS, (items) => {
-    callback(items.length > 0 ? items : DEFAULT_BOOKS)
+    callback(withCovers(items.length > 0 ? items : DEFAULT_BOOKS))
   })
 }
 
@@ -116,3 +212,4 @@ export function getDefaultCover(category) {
   const cat = BOOK_CATEGORIES.find(c => c.key === category)
   return cat?.color || '#10b981'
 }
+

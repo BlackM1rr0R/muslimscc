@@ -141,19 +141,21 @@ export default function AIChatScreen() {
     setError('')
     setInput('')
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    const userMsg = { role:'user', content: msg, time: Date.now() }
+    const userMsg = { role:'user', content: msg, time: Date.now(), lang }
     const updated = [...messages, userMsg]
     setMessages(updated)
     setLoading(true)
 
     const endpoint = `${apiUrl.replace(/\/$/, '')}/api/ask-ai`
     try {
+      // Yalnız cari dildəki mesajları kontekst kimi göndər
+      const sameLangHistory = updated.filter(m => (m.lang || 'az') === lang).slice(-10)
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           message: msg,
-          history: updated.slice(-10).map(m => ({ role: m.role, content: m.content })),
+          history: sameLangHistory.map(m => ({ role: m.role, content: m.content })),
           lang,
         }),
       })
@@ -162,7 +164,7 @@ export default function AIChatScreen() {
       try { data = raw ? JSON.parse(raw) : {} } catch { data = { error: raw?.slice(0, 200) || 'Invalid JSON' } }
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
       if (!data.reply) throw new Error('Empty reply')
-      setMessages([...updated, { role:'assistant', content: data.reply, time: Date.now() }])
+      setMessages([...updated, { role:'assistant', content: data.reply, time: Date.now(), lang }])
     } catch (e) {
       console.warn('[MuslimAI] fetch failed', endpoint, e)
       setError(`${l.error} (${e.message || 'network'})`)

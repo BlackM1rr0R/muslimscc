@@ -273,25 +273,28 @@ export default function AIChatWidget() {
 
     setError('')
     setInput('')
-    const userMessage = { role:'user', content: msg, time: Date.now() }
+    const userMessage = { role:'user', content: msg, time: Date.now(), lang }
     const updated = [...messages, userMessage]
     setMessages(updated)
     setLoading(true)
     recordMessage()
 
     try {
+      // Yalnız cari dildəki mesajları kontekst kimi göndər ki, Gemini cavabı
+      // keçmiş söhbətdəki dilə uyğunlaşdırmasın. Köhnə mesajlar (lang işarəsi olmadan) az sayılır.
+      const sameLangHistory = updated.filter(m => (m.lang || 'az') === lang).slice(-10)
       const res = await fetch(`${apiUrl.replace(/\/$/, '')}/api/ask-ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: msg,
-          history: updated.slice(-10).map(m => ({ role: m.role, content: m.content })),
+          history: sameLangHistory.map(m => ({ role: m.role, content: m.content })),
           lang,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'API error')
-      setMessages([...updated, { role:'assistant', content: data.reply, time: Date.now() }])
+      setMessages([...updated, { role:'assistant', content: data.reply, time: Date.now(), lang }])
       if (!open) setHasUnread(true)
     } catch (e) {
       setError(`${l.error} (${e.message})`)

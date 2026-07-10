@@ -28,6 +28,12 @@ api/node_modules/
 *.sln
 *.sw?
 
+# Backend server + secrets — NEVER commit
+server.js
+ecosystem.config.js
+secret*.json
+serviceAccount*.json
+
 # Environment variables (Firebase config etc.)
 .env
 .env.local
