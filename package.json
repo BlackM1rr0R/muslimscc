@@ -6,13 +6,17 @@
     "dev": "vite",
     "build": "vite build && node scripts/prerender.mjs",
     "prerender": "node scripts/prerender.mjs",
+    "social:pool": "node -e \"import('./scripts/social/content.mjs').then(m=>m.writePool()).then(n=>console.log('pool.json:',n,'element'))\"",
+    "social:post": "node scripts/social/run.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
     "firebase": "^10.14.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.0"
+    "react-router-dom": "^6.22.0",
+    "zod": "^4.5.2"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",

@@ -43,3 +43,9 @@ serviceAccount*.json
 # Mobile
 mobile/.expo/
 mobile/node_modules/
+
+# scripts/social — iş faylları
+scripts/social/.env
+scripts/social/out/
+scripts/social/log/
+scripts/social/state/
