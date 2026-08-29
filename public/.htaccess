@@ -1,0 +1,91 @@
+# ═══════════════════════════════════════════════════════
+# Muslims.cc — Apache konfiqurasiyası (cPanel / adi hostinq)
+#
+# vercel.json yalnız Vercel-də işləyir. FTP ilə adi hostinqə
+# yüklənəndə marşrutlaşdırmanı bu fayl idarə edir.
+#
+# public/ qovluğundadır, ona görə build zamanı avtomatik dist/-ə düşür.
+# ═══════════════════════════════════════════════════════
+
+Options -MultiViews
+DirectorySlash Off
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # ── HTTPS-ə yönləndir ──
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # ── www-suz kanonik domen ──
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+  # ── Sondakı "/" -i sil ──
+  # /quran/ və /quran ayrı-ayrı indekslənməsin deyə tək forma saxlanılır
+  # (canonical teqləri də prefikssiz formanı göstərir).
+  RewriteCond %{REQUEST_URI} !^/$
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^(.*)/$ /$1 [R=301,L]
+
+  # ── Mövcud fayllar olduğu kimi verilsin (assets, şəkillər, sitemap) ──
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+
+  # ── Prerender edilmiş marşrutlar: /quran → /quran/index.html ──
+  # DirectorySlash Off olduğu üçün bunu açıq şəkildə yazmaq lazımdır.
+  RewriteCond %{REQUEST_URI} !^/$
+  RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
+  RewriteRule ^(.+?)/?$ /$1/index.html [L]
+
+  # ── Qalan hər şey SPA-ya ──
+  RewriteRule ^ /index.html [L]
+</IfModule>
+
+# ── Sıxılma ──
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ── Keşləmə ──
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Adında hash olan fayllar — məzmun dəyişəndə ad da dəyişir
+  <FilesMatch "\.(js|css|woff2?|ttf|eot|otf)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  <FilesMatch "\.(png|jpg|jpeg|gif|svg|webp|ico|avif)$">
+    ExpiresDefault "access plus 30 days"
+  </FilesMatch>
+
+  # HTML heç vaxt keşlənməsin — deploy dərhal görünsün
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+
+  # Service worker və sitemap də təzə oxunsun
+  <FilesMatch "(sw\.js|firebase-messaging-sw\.js|sitemap\.xml|robots\.txt)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# ── MIME tipləri ──
+<IfModule mod_mime.c>
+  AddType application/manifest+json  .webmanifest
+  AddType image/svg+xml              .svg
+  AddType font/woff2                 .woff2
+</IfModule>
+
+# ── Təhlükəsizlik başlıqları ──
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>
