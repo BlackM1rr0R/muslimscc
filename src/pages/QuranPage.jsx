@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { SURAH_AZ } from '../data/surahNamesAz'
-import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/QuranPage.css'
 
 const EDITION_MAP = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', ar:'ar.muyassar', tr:'tr.diyanet' }
@@ -281,11 +280,9 @@ export default function QuranPage({ setPage }) {
     )
   }
 
-  const meta = getPageMeta('quran', lang)
 
   return (
     <>
-      <SEO title={meta?.title} description={meta?.description} page="/quran" />
       <div className="page-hero theme-quran">
         <div className="page-hero-arabic">القرآن الكريم</div>
         <h1>{t.title}</h1>

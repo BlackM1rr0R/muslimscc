@@ -1,93 +1,94 @@
-import { useState, useEffect } from 'react'
-import { LangProvider } from './contexts/LangContext'
+import { Suspense, lazy } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
+import { parsePath, pathFor } from './seo/routes'
+import Seo from './seo/Seo'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import InstallBanner from './components/InstallBanner'
 import HomePage from './pages/HomePage'
-import QuranPage from './pages/QuranPage'
-import HadithPage from './pages/HadithPage'
-import PrayerPage from './pages/PrayerPage'
-import DuasPage from './pages/DuasPage'
-import DhikrPage from './pages/DhikrPage'
-import NamesPage from './pages/NamesPage'
-import ZakatPage from './pages/ZakatPage'
-import QiblaPage from './pages/QiblaPage'
-import { CalendarPage } from './pages/CalendarPage'
-import { AboutPage } from './pages/AboutPage'
-import QuizPage from './pages/QuizPage'
-import GlossaryPage from './pages/GlossaryPage'
-import PrayerGuidePage from './pages/PrayerGuidePage'
-import HifzPage from './pages/HifzPage'
-import KidsPage from './pages/KidsPage'
-import { HolyPlacesPage } from './pages/HolyPlacesPage'
-import DailyTrackerPage from './pages/DailyTrackerPage'
-import QuranGamePage from './pages/QuranGamePage'
-import CharityPage from './pages/CharityPage'
-import HajjGuidePage from './pages/HajjGuidePage'
-import QuoteGeneratorPage from './pages/QuoteGeneratorPage'
-import DuaJournalPage from './pages/DuaJournalPage'
-import MosqueFinderPage from './pages/MosqueFinderPage'
-import IslamicHistoryPage from './pages/IslamicHistoryPage'
-import SahabePage from './pages/SahabePage'
-import AnalyticsPage from './pages/AnalyticsPage'
-import AdminLoginPage from './pages/AdminLoginPage'
-import AdminPage from './pages/AdminPage'
-import VideosPage from './pages/VideosPage'
-import BooksPage from './pages/BooksPage'
-import AIChatPage from './pages/AIChatPage'
-import AnnouncementToast from './components/AnnouncementToast'
-import NotificationPrompt from './components/NotificationPrompt'
-import AIChatWidget from './components/AIChatWidget'
+
+// ── Marşrut əsaslı kod bölgüsü ──
+// Əvvəl 31 səhifənin hamısı tək 2.7 MB-lıq bundle-da gəlirdi; ziyarətçi
+// yalnız bir səhifəyə baxsa belə hamısını yükləyirdi. İndi hər səhifə
+// ayrıca chunk-dır — ilk yüklənmə kiçilir, Core Web Vitals yaxşılaşır.
+// HomePage qəsdən eager saxlanılıb: ən çox açılan səhifədir və onu da
+// lazy etmək ilk boyanmaya artıq bir gediş-gəliş əlavə edərdi.
+const QuranPage = lazy(() => import('./pages/QuranPage'))
+const HadithPage = lazy(() => import('./pages/HadithPage'))
+const PrayerPage = lazy(() => import('./pages/PrayerPage'))
+const DuasPage = lazy(() => import('./pages/DuasPage'))
+const DhikrPage = lazy(() => import('./pages/DhikrPage'))
+const NamesPage = lazy(() => import('./pages/NamesPage'))
+const ZakatPage = lazy(() => import('./pages/ZakatPage'))
+const QiblaPage = lazy(() => import('./pages/QiblaPage'))
+const CalendarPage = lazy(() => import('./pages/CalendarPage').then(m => ({ default: m.CalendarPage })))
+const AboutPage = lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })))
+const QuizPage = lazy(() => import('./pages/QuizPage'))
+const GlossaryPage = lazy(() => import('./pages/GlossaryPage'))
+const PrayerGuidePage = lazy(() => import('./pages/PrayerGuidePage'))
+const HifzPage = lazy(() => import('./pages/HifzPage'))
+const KidsPage = lazy(() => import('./pages/KidsPage'))
+const HolyPlacesPage = lazy(() => import('./pages/HolyPlacesPage').then(m => ({ default: m.HolyPlacesPage })))
+const DailyTrackerPage = lazy(() => import('./pages/DailyTrackerPage'))
+const QuranGamePage = lazy(() => import('./pages/QuranGamePage'))
+const CharityPage = lazy(() => import('./pages/CharityPage'))
+const HajjGuidePage = lazy(() => import('./pages/HajjGuidePage'))
+const QuoteGeneratorPage = lazy(() => import('./pages/QuoteGeneratorPage'))
+const DuaJournalPage = lazy(() => import('./pages/DuaJournalPage'))
+const MosqueFinderPage = lazy(() => import('./pages/MosqueFinderPage'))
+const IslamicHistoryPage = lazy(() => import('./pages/IslamicHistoryPage'))
+const SahabePage = lazy(() => import('./pages/SahabePage'))
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
+const AdminPage = lazy(() => import('./pages/AdminPage'))
+const VideosPage = lazy(() => import('./pages/VideosPage'))
+const BooksPage = lazy(() => import('./pages/BooksPage'))
+const AIChatPage = lazy(() => import('./pages/AIChatPage'))
+
 import AccessibilityWidget from './components/AccessibilityWidget'
-import NotificationSettingsWidget from './components/NotificationSettingsWidget'
 
-const VALID_PAGES = ['home','quran','hadith','prayer','duas','dhikr','names','zakat','qibla','calendar','about','quiz','glossary','prayerguide','hifz','kids','holyplaces','dailytracker','qurangame','charity','hajjguide','quotes','duajournal','mosques','history','sahaba','analytics','adminlogin','admin','videos','books','aichat']
+// Bu widget-ler her sehifede render olunur ve Firebase-i cekir (~470 KB).
+// Statik import edilse, Firebase ilk yuklenme paketine dusur; halbuki
+// hec biri ilk ekran ucun vacib deyil. Ona gore tex ire salinirlar.
+const AnnouncementToast = lazy(() => import('./components/AnnouncementToast'))
+const NotificationPrompt = lazy(() => import('./components/NotificationPrompt'))
+const AIChatWidget = lazy(() => import('./components/AIChatWidget'))
+const NotificationSettingsWidget = lazy(() => import('./components/NotificationSettingsWidget'))
 
-// Hidden admin URL — type "#admin" in the address bar to access
-const ADMIN_HASH = '#admin'
-
-function readInitialPage() {
-  // 1) URL hash takes priority — hidden router-style entry
-  const hash = (typeof window !== 'undefined' && window.location.hash) || ''
-  if (hash === ADMIN_HASH || hash === '#/admin') return 'adminlogin'
-
-  // 2) localStorage — but never auto-restore admin pages on refresh from storage
-  const saved = localStorage.getItem('muslim_cc_page')
-  if (saved === 'adminlogin' || saved === 'admin') return 'home'
-  return VALID_PAGES.includes(saved) ? saved : 'home'
+/** Chunk yüklənənədək göstərilən yüngül keçid vəziyyəti. */
+function PageFallback() {
+  return (
+    <div className="spinner-wrap" role="status" aria-live="polite">
+      <div className="spinner" />
+    </div>
+  )
 }
 
+// Gizli admin girişi — ünvan sətrinə "#admin" yaz
+const ADMIN_HASH = '#admin'
+
 function AppInner() {
-  const [page, setPage] = useState(readInitialPage)
+  const location = useLocation()
+  const routerNavigate = useNavigate()
 
+  useStoredLangRedirect()
+
+  // Səhifə və dil artıq URL-dən oxunur — hər səhifənin öz ünvanı var
+  // (/quran, /ru/quran) ki, Google onları ayrıca indeksləyə bilsin.
+  const { lang, key } = parsePath(location.pathname)
+  const hash = location.hash
+  const isAdminKey = key === 'admin' || key === 'adminlogin'
+  // "#admin" istənilən səhifədən gizli girişi açır, amma /admin marşrutunun
+  // özünü ələ keçirmir — əks halda login-dən sonra sonsuz dövrə yaranardı.
+  const page = (!isAdminKey && (hash === ADMIN_HASH || hash === '#/admin')) ? 'adminlogin' : key
+
+  // Səhifələr hələ də setPage('quran') çağırır — API dəyişmir,
+  // sadəcə altında state yerinə həqiqi URL naviqasiyası var.
   const navigate = (p) => {
-    setPage(p)
-    localStorage.setItem('muslim_cc_page', p)
-    // Sync URL hash for admin pages, clear it otherwise
-    if (typeof window !== 'undefined') {
-      if (p === 'adminlogin' || p === 'admin') {
-        if (window.location.hash !== ADMIN_HASH) {
-          history.replaceState(null, '', ADMIN_HASH)
-        }
-      } else if (window.location.hash === ADMIN_HASH || window.location.hash === '#/admin') {
-        history.replaceState(null, '', window.location.pathname + window.location.search)
-      }
-    }
+    routerNavigate(pathFor(p, lang))
+    window.scrollTo(0, 0)
   }
-
-  // React to manual URL changes (user pastes #admin or removes it)
-  useEffect(() => {
-    const onHashChange = () => {
-      const h = window.location.hash
-      if ((h === ADMIN_HASH || h === '#/admin') && page !== 'adminlogin' && page !== 'admin') {
-        setPage('adminlogin')
-      } else if (!h && (page === 'adminlogin' || page === 'admin')) {
-        setPage('home')
-      }
-    }
-    window.addEventListener('hashchange', onHashChange)
-    return () => window.removeEventListener('hashchange', onHashChange)
-  }, [page])
 
   const renderPage = () => {
     switch (page) {
@@ -127,15 +128,19 @@ function AppInner() {
     }
   }
 
-  // Admin pages don't show Header/Footer
+  // Admin səhifələri Header/Footer göstərmir
   const isAdminPage = page === 'adminlogin' || page === 'admin'
 
   return (
     <>
+      <Seo page={page} lang={lang} />
       {!isAdminPage && <Header currentPage={page} setPage={navigate} />}
-      <main key={page} className="page-enter">{renderPage()}</main>
+      <main key={page} className="page-enter">
+        <Suspense fallback={<PageFallback />}>{renderPage()}</Suspense>
+      </main>
       {!isAdminPage && <Footer setPage={navigate} />}
       {!isAdminPage && <InstallBanner />}
+      <Suspense fallback={null}>
       {/* Pop-up announcement toast — hər səhifədə görünür */}
       {!isAdminPage && <AnnouncementToast />}
       {/* Push notification permission prompt */}
@@ -146,6 +151,7 @@ function AppInner() {
       {!isAdminPage && <AccessibilityWidget />}
       {/* Notification settings — above Accessibility button */}
       {!isAdminPage && <NotificationSettingsWidget />}
+      </Suspense>
     </>
   )
 }

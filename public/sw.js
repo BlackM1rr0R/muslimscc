@@ -1,5 +1,5 @@
 // Muslims.cc — Service Worker + Push Notifications
-const CACHE_NAME = 'muslims-cc-v2'
+const CACHE_NAME = 'muslims-cc-v3'
 
 const PRECACHE_URLS = [
   '/',

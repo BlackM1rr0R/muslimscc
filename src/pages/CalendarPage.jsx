@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
-import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/CalendarPage.css'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
@@ -162,7 +161,6 @@ export function CalendarPage({ setPage }) {
 
   return (
     <>
-      <SEO title={getPageMeta('calendar', lang)?.title} description={getPageMeta('calendar', lang)?.description} page="/calendar" />
       <div className="page-hero theme-calendar">
         <div className="page-hero-arabic">التَّقۡوِيمُ ٱلۡإِسۡلَامِيّ</div>
         <h1>{t.title}</h1>

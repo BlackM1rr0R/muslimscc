@@ -3,7 +3,6 @@ import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { HADITHS } from '../data/hadiths'
 import { subscribeToHadiths } from '../data/adminContent'
-import SEO, { getPageMeta } from '../components/SEO'
 import '../styles/HadithPage.css'
 
 const CATS_AZ = ['Hamısı','İman','Əxlaq','İbadət','Namaz','Quran','Elm','Oruc','Zəkat','Zikr','Sədəqə','Səbr','Dünya','Axirət','Salavat','Müsafirlik']
@@ -115,7 +114,6 @@ export default function HadithPage({ setPage }) {
 
   return (
     <>
-      <SEO title={getPageMeta('hadith', lang)?.title} description={getPageMeta('hadith', lang)?.description} page="/hadith" />
       <div className="page-hero theme-hadith">
         <div className="page-hero-arabic">كُتُبُ الحَدِيث</div>
         <h1>{t.title}</h1>

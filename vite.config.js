@@ -25,6 +25,24 @@ export default defineConfig({
     ],
   },
 
+  build: {
+    rollupOptions: {
+      output: {
+        // Vendor kitabxanalarini ayrica chunk-a cixar: bunlar nadir deyisir,
+        // ona gore brauzer kesi deploy-dan deploy-a saxlanilir.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('firebase') || id.includes('@firebase')) return 'firebase'
+          if (id.includes('react-router')) return 'router'
+          if (id.includes('/react/') || id.includes('/react-dom/') ||
+              id.includes('scheduler')) return 'react'
+        },
+      },
+    },
+    // Chunk-lar artiq bolundukden sonra xebardarliq hedd-i realdir
+    chunkSizeWarningLimit: 700,
+  },
+
   server: {
     port: 5173,
     strictPort: false,

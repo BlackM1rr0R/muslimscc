@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
-import SEO, { getPageMeta } from '../components/SEO'
-import VideoSection from '../components/VideoSection'
-import BookSection from '../components/BookSection'
-import { DailyContentDisplay } from '../components/AdminContentDisplay'
-import AnnouncementSection from '../components/AnnouncementSection'
-import HeroBannerDisplay from '../components/HeroBannerDisplay'
+// Bu bolmeler Firestore-dan melumat cekir (Firebase ~470 KB) ve hec biri
+// ilk ekranda deyil. Lazy edilmesi Firebase-i ilk yuklenmeden cixarir.
+const VideoSection = lazy(() => import('../components/VideoSection'))
+const BookSection = lazy(() => import('../components/BookSection'))
+const DailyContentDisplay = lazy(() => import('../components/AdminContentDisplay').then(m => ({ default: m.DailyContentDisplay })))
+const AnnouncementSection = lazy(() => import('../components/AnnouncementSection'))
+const HeroBannerDisplay = lazy(() => import('../components/HeroBannerDisplay'))
 import '../styles/HomePage.css'
 import '../styles/AdminPage.css'
 
@@ -344,11 +345,9 @@ export default function HomePage({ setPage }) {
     {t:{az:'Hər gün günün hədisini oxuyuram. Çox maarifləndiricidir. Cəzakallah!',en:'I read the hadith of the day every day. Very enlightening. JazakAllah!',ru:'Каждый день читаю хадис дня. Очень познавательно. Джазакаллах!',tr:'Her gün günün hadisini okuyorum. Çok aydınlatıcı. Cezakallah!',ar:'أقرأ حديث اليوم كل يوم. مفيد ومنير جداً. جزاكم الله خيراً!'},name:'Farid İ.',loc:'Bakı'},
   ]
 
-  const meta = getPageMeta('home', lang)
 
   return (
     <div className="hp-root">
-      <SEO title={meta?.title} description={meta?.description} page="/" />
 
       {/* ═══ HERO ═══════════════════════════════════════════════════════ */}
       <section className={`hp-hero ${visible?'hp-hero--vis':''}`} ref={heroRef}>
@@ -713,20 +712,24 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* ═══ HERO BANNER (admin) ═══ */}
-      <HeroBannerDisplay setPage={goTo} />
+      {/* Aşağıdakı bölmələr Firestore-dan gəlir və ekranın altındadır —
+          fallback yoxdur ki, boş yer sıçrayışı (layout shift) olmasın. */}
+      <Suspense fallback={null}>
+        {/* ═══ HERO BANNER (admin) ═══ */}
+        <HeroBannerDisplay setPage={goTo} />
 
-      {/* ═══ ANNOUNCEMENTS — Ayrı bölmə kartlarla ═══ */}
-      <AnnouncementSection />
+        {/* ═══ ANNOUNCEMENTS — Ayrı bölmə kartlarla ═══ */}
+        <AnnouncementSection />
 
-      {/* ═══ DAILY ADMIN CONTENT ═══ */}
-      <DailyContentDisplay />
+        {/* ═══ DAILY ADMIN CONTENT ═══ */}
+        <DailyContentDisplay />
 
-      {/* ═══ VIDEO SECTION ═══ */}
-      <VideoSection setPage={goTo} />
+        {/* ═══ VIDEO SECTION ═══ */}
+        <VideoSection setPage={goTo} />
 
-      {/* ═══ BOOK SECTION ═══ */}
-      <BookSection setPage={goTo} />
+        {/* ═══ BOOK SECTION ═══ */}
+        <BookSection setPage={goTo} />
+      </Suspense>
 
       {/* ═══ CTA ══════════════════════════════════════════════════════════ */}
       <section className="hp-cta">
