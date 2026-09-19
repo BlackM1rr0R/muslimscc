@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { subscribeToAnnouncements, subscribeToDailyContent, ANNOUNCEMENT_TYPES } from '../data/adminContent'
+// Admin mənbəni Azərbaycanca yazır ("Bəqərə 2:255", "Buxari 1") — tanınan adlar dilə çevrilir
+import { localizeSource } from '../utils/sourceNames'
 
 // ═══ ANNOUNCEMENTS BANNER ═══
 export function AnnouncementBanner() {
@@ -123,7 +125,7 @@ export function DailyContentDisplay() {
               </div>
               {content.ayah.ar && <div style={{fontSize:20, lineHeight:1.9, textAlign:'right', color:'var(--text)', marginBottom:10, fontFamily:'Amiri, serif'}}>{content.ayah.ar}</div>}
               {(content.ayah.text?.[lang] || content.ayah.text?.en) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:10}}>{content.ayah.text[lang] || content.ayah.text.en}</div>}
-              {content.ayah.source && <div style={{fontSize:12, color:'#10b981', fontWeight:700}}>— {content.ayah.source}</div>}
+              {content.ayah.source && <div style={{fontSize:12, color:'#10b981', fontWeight:700}}>— <bdi>{localizeSource(content.ayah.source, lang)}</bdi></div>}
             </div>
           )}
 
@@ -152,7 +154,7 @@ export function DailyContentDisplay() {
               </div>
               {content.quote.ar && <div style={{fontSize:18, lineHeight:1.9, textAlign:'right', color:'var(--text)', marginBottom:10, fontFamily:'Amiri, serif'}}>{content.quote.ar}</div>}
               {(content.quote.text?.[lang] || content.quote.text?.en) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:10, fontStyle:'italic'}}>"{content.quote.text[lang] || content.quote.text.en}"</div>}
-              {content.quote.source && <div style={{fontSize:12, color:'#a855f7', fontWeight:700}}>— {content.quote.source}</div>}
+              {content.quote.source && <div style={{fontSize:12, color:'#a855f7', fontWeight:700}}>— <bdi>{localizeSource(content.quote.source, lang)}</bdi></div>}
             </div>
           )}
 

@@ -9,7 +9,11 @@
   border-radius:var(--radius-lg); padding:14px 20px;
   cursor:pointer; transition:all .25s; display:flex; flex-direction:column;
   align-items:center; gap:6px; min-width:100px;
+  font-family:var(--font);
 }
+.kids-tab:active { transform:scale(.96); }
+.kids-tab-emoji { transition:transform .3s cubic-bezier(.34,1.56,.64,1); }
+.kids-tab.active .kids-tab-emoji { transform:scale(1.12); }
 .kids-tab:hover { border-color:var(--primary-border); transform:translateY(-2px); box-shadow:var(--shadow); }
 .kids-tab.active { background:var(--primary-bg2); border-color:var(--primary); transform:translateY(-2px); box-shadow:var(--shadow); }
 .kids-tab-emoji { font-size:1.8rem; }
@@ -32,8 +36,16 @@
 .kids-name-arabic { font-family:'Amiri',serif; font-size:1.6rem; color:var(--primary-dark); direction:rtl; }
 .kids-name-desc { font-size:13px; font-weight:600; color:var(--text-dim); line-height:1.5; }
 
-/* Short Surahs */
-.kids-surahs-list { display:flex; flex-direction:column; gap:12px; }
+/* Short Surahs / Duas / Pillars / Manners
+   Geniş ekranda iki sütun — qısa təsvirlər 940px enində bir sətrə
+   uzanmasın; telefonda min() sayəsində avtomatik bir sütun */
+.kids-surahs-list,
+.kids-duas-list,
+.kids-pillars-list {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap:12px;
+}
 .kids-surah-card {
   background:var(--bg-card); border:2px solid var(--border);
   border-radius:var(--radius-lg); padding:20px;
@@ -48,7 +60,6 @@
 .kids-surah-desc { font-size:14px; color:var(--text-dim); line-height:1.6; margin:0; }
 
 /* Daily Duas */
-.kids-duas-list { display:flex; flex-direction:column; gap:12px; }
 .kids-dua-card {
   background:var(--bg-card); border:2px solid var(--border);
   border-radius:var(--radius-lg); padding:20px;
@@ -57,20 +68,19 @@
 }
 .kids-dua-card:hover { border-color:var(--primary-border); box-shadow:var(--shadow-sm); }
 .kids-dua-emoji { font-size:2.2rem; flex-shrink:0; }
-.kids-dua-body { flex:1; }
+.kids-dua-body { flex:1; min-width:0; }
 .kids-dua-title { font-size:15px; font-weight:700; color:var(--text); margin:0 0 8px; }
-.kids-dua-arabic { font-family:'Amiri',serif; font-size:1.3rem; color:var(--primary-dark); direction:rtl; text-align:right; margin-bottom:6px; line-height:1.6; }
+.kids-dua-arabic { font-family:'Amiri',serif; font-size:1.3rem; color:var(--primary-dark); direction:rtl; text-align:right; margin-bottom:6px; line-height:1.8; }
 .kids-dua-meaning { font-size:13px; color:var(--text-dim); margin:0; font-style:italic; }
 
 /* 5 Pillars */
-.kids-pillars-list { display:flex; flex-direction:column; gap:12px; }
 .kids-pillar-card {
   background:var(--bg-card); border:2px solid var(--border);
   border-radius:var(--radius-lg); padding:18px 20px;
   display:flex; align-items:center; gap:16px;
   transition:all .2s;
 }
-.kids-pillar-card:hover { border-color:var(--primary-border); box-shadow:var(--shadow-sm); transform:translateX(4px); }
+.kids-pillar-card:hover { border-color:var(--primary-border); box-shadow:var(--shadow-sm); transform:translateY(-2px); }
 .kids-pillar-num {
   width:40px; height:40px; border-radius:50%;
   background:var(--primary); color:#fff;
@@ -124,16 +134,159 @@
 }
 .kids-quiz-restart:hover { background:var(--primary-light); transform:translateY(-2px); box-shadow:var(--shadow); }
 
-/* Responsive */
-@media(max-width:600px) {
-  .kids-tabs { gap:6px; }
-  .kids-tab { min-width:70px; padding:10px 12px; }
-  .kids-tab-emoji { font-size:1.4rem; }
-  .kids-tab-label { font-size:10px; }
-  .kids-names-grid { grid-template-columns:1fr 1fr; }
-  .kids-quiz-options { grid-template-columns:1fr; }
-  .kids-quiz-box { padding:20px; }
-  .kids-pillar-card:hover { transform:none; }
+.kids-quiz-progress,
+.kids-quiz-result,
+.kids-pillar-num { font-variant-numeric:tabular-nums; }
+
+/* ≥768px: ikon kafeli yox — əvvəlki kimi sadə emoji (geniş ekran dəyişmir) */
+@media (min-width: 768px) {
+  .kids-name-emoji.icon-tile,
+  .kids-surah-emoji.icon-tile,
+  .kids-dua-emoji.icon-tile {
+    display:block; width:auto; height:auto; border-radius:0;
+    background:none; color:inherit; line-height:inherit;
+  }
+  .kids-name-emoji.icon-tile { font-size:2rem; }
+  .kids-surah-emoji.icon-tile { font-size:1.5rem; }
+  .kids-dua-emoji.icon-tile { font-size:2.2rem; }
+}
+
+/* ══ Telefon və kiçik planşet (<768px): tətbiq kimi görünüş ══════
+   • Sekmələr — başlığın altına yapışan şüşə zolaqda hap çiplər (emoji +
+     ad, bir sətirdə); başlıq gizlənəndə zolaq yuxarı sürüşür
+   • Kartlar — ağır 2px çərçivə əvəzinə nazik xətt + yumşaq kölgə,
+     emojilər rəngli ikon kafelində; sürüşəndə növbə ilə görünür
+   • Rüknlər / Əxlaq — qruplaşdırılmış siyahı (nazik ayırıcı xətlər)
+   • Test — hündür cavab düymələri, "Növbəti" rahat basılır
+   Geniş ekran (≥768px) dəyişmir. */
+@media (max-width: 767.98px) {
+  .kids-hero-emojis { font-size:1.6rem; letter-spacing:6px; margin-bottom:4px; }
+  .kids-layout { gap:16px; }
+
+  .kids-tabs {
+    flex-wrap:nowrap; justify-content:flex-start; gap:8px;
+    overflow-x:auto; overflow-y:hidden;
+    overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+    margin-inline:calc(-1 * var(--page-gutter));
+    padding:10px var(--page-gutter);
+    scroll-padding-inline:var(--page-gutter);
+    position:sticky;
+    top:var(--header-offset, var(--header-h));
+    z-index:5;
+    background:var(--bg);
+    background:color-mix(in srgb, var(--bg) 86%, transparent);
+    -webkit-backdrop-filter:var(--glass-blur);
+    backdrop-filter:var(--glass-blur);
+    border-bottom:1px solid var(--hairline);
+    transition:top var(--dur-3) var(--ease-out);
+  }
+  .kids-tabs::-webkit-scrollbar { display:none; }
+  .kids-tab {
+    flex:0 0 auto; flex-direction:row; justify-content:center; gap:6px;
+    min-width:0; min-height:40px;
+    padding-block:0; padding-inline:10px 14px;
+    border:1px solid var(--border-md); border-radius:999px;
+    scroll-snap-align:start;
+    -webkit-tap-highlight-color:transparent;
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      transform var(--dur-1) var(--ease-out);
+  }
+  .kids-tab:hover,
+  .kids-tab.active { transform:none; box-shadow:none; }
+  .kids-tab:hover { border-color:var(--border-md); }
+  .kids-tab:active { transform:scale(var(--press-scale)); }
+  .kids-tab.active { background:var(--primary); border-color:var(--primary); }
+  .kids-tab-emoji { font-size:18px; line-height:1; }
+  .kids-tab.active .kids-tab-emoji { transform:none; }
+  .kids-tab-label { font-size:13.5px; font-weight:600; white-space:nowrap; transition:color var(--dur-2) var(--ease-out); }
+  .kids-tab.active .kids-tab-label { color:var(--on-primary); }
+
+  .kids-section-title { font-size:1.2rem; margin-bottom:14px; }
+
+  /* Adlar / Peyğəmbərlər — iki sütun, yumşaq kartlar */
+  .kids-names-grid { grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; }
+  .kids-name-card {
+    padding:16px 10px 14px; gap:6px;
+    border-width:1px; box-shadow:var(--shadow-sm);
+  }
+  .kids-name-card:hover { transform:none; box-shadow:var(--shadow-sm); border-color:var(--border); }
+  .kids-name-emoji { font-size:24px; line-height:1; }
+  .kids-name-arabic { font-size:1.45rem; line-height:1.5; }
+  .kids-name-desc { font-size:13px; }
+
+  /* Surələr */
+  .kids-surahs-list,
+  .kids-duas-list { gap:12px; }
+  .kids-surah-card,
+  .kids-dua-card {
+    padding:16px; border-width:1px; box-shadow:var(--shadow-sm);
+  }
+  .kids-surah-card:hover,
+  .kids-dua-card:hover { box-shadow:var(--shadow-sm); border-color:var(--border); }
+  .kids-surah-header {
+    display:grid; grid-template-columns:40px minmax(0,1fr) auto;
+    column-gap:12px; row-gap:0; align-items:center;
+  }
+  .kids-surah-emoji { grid-row:1 / span 2; font-size:20px; line-height:1; }
+  .kids-surah-arabic { grid-column:2; justify-self:start; line-height:1.5; }
+  .kids-surah-en { grid-column:2; font-size:14px; }
+  .kids-surah-ayahs { grid-column:3; grid-row:1 / span 2; font-size:13px; font-variant-numeric:tabular-nums; }
+  .kids-surah-desc { font-size:14px; }
+
+  /* Dualar */
+  .kids-dua-card { gap:12px; }
+  .kids-dua-emoji { font-size:20px; line-height:1; }
+  .kids-dua-title { margin-bottom:6px; line-height:1.35; }
+  .kids-dua-meaning { font-size:13.5px; line-height:1.55; }
+
+  /* Rüknlər / Əxlaq — qruplaşdırılmış siyahı (.m-list görünüşü) */
+  .kids-pillars-list {
+    gap:0; background:var(--bg-card);
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm); overflow:hidden;
+  }
+  .kids-pillar-card {
+    position:relative; gap:12px;
+    min-height:56px; padding:10px 16px;
+    border:0; border-radius:0; background:none;
+  }
+  .kids-pillar-card:hover { transform:none; box-shadow:none; }
+  /* Nazik ayırıcı — rəqəm və emojidən sonra, mətnin altından başlayır */
+  .kids-pillar-card + .kids-pillar-card::before {
+    content:''; position:absolute; top:0;
+    inset-inline-start:calc(16px + 32px + 12px + 26px + 12px); inset-inline-end:0;
+    height:1px; background:var(--border);
+  }
+  .kids-pillar-num { width:32px; height:32px; font-size:15px; }
+  .kids-pillar-emoji { width:26px; font-size:22px; line-height:1; text-align:center; }
+  .kids-pillar-text { font-size:14.5px; line-height:1.4; }
+
+  /* Test */
+  .kids-quiz-box {
+    padding:20px 16px; border-width:1px;
+    border-radius:var(--radius-lg); box-shadow:var(--shadow-sm);
+  }
+  .kids-quiz-question { font-size:1.15rem; margin-bottom:18px; }
+  .kids-quiz-options { grid-template-columns:minmax(0,1fr); }
+  .kids-quiz-opt {
+    min-height:52px; border-width:1px; border-radius:14px;
+    -webkit-tap-highlight-color:transparent;
+    transition:background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+  }
+  .kids-quiz-opt:active:not(:disabled) { transform:scale(.985); }
+  .kids-quiz-opt.correct { animation:qm-check-pop var(--dur-3) var(--ease-spring); }
+  .kids-quiz-feedback {
+    gap:12px; padding:10px 10px 10px 16px;
+    animation:qm-reveal-up var(--dur-3) var(--ease-out);
+  }
+  [dir="rtl"] .kids-quiz-feedback { padding:10px 16px 10px 10px; }
+  .kids-quiz-next { min-height:44px; padding:0 22px; border-radius:999px; }
+  .kids-quiz-done { padding:28px 8px; }
+  .kids-quiz-restart { width:100%; min-height:50px; }
 }
 
 /* ── Dark mode ── */
@@ -146,4 +299,14 @@
 }
 [data-theme="dark"] .kids-quiz-opt {
   background:var(--bg-card);
+}
+
+/* Hərəkətsiz rejim */
+@media (prefers-reduced-motion: reduce) {
+  .kids-tab,
+  .kids-tab-emoji,
+  .kids-tabs { transition:none; }
+  .kids-tab.active .kids-tab-emoji { transform:none; }
+  .kids-quiz-opt.correct,
+  .kids-quiz-feedback { animation:none; }
 }

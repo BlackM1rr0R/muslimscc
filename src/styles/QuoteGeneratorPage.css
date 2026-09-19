@@ -2,33 +2,75 @@
    QuoteGeneratorPage — İslami Sitatlar Generatoru
    ══════════════════════════════════════════════════════ */
 
-.qg-layout { max-width:900px; margin:0 auto; }
+/* ── Düzülüş ──
+   DOM: .qg-preview (kart + düymələr), sonra .qg-panel (seçimlər).
+   <1200px: bir sütun — önizləmə ƏVVƏLDƏ, dəyişikliyin nəticəsi dərhal görünür.
+   ≥1200px: iki sütun — seçimlər solda, önizləmə sağda yapışqan (sticky),
+   hər seçimdə kart ekranda qalır. Ərəbcədə (RTL) sütunlar güzgülənir. */
+.qg-layout {
+  max-width:900px; margin:0 auto;
+  display:flex; flex-direction:column; gap:var(--space-6);
+}
+.qg-preview { display:flex; flex-direction:column; gap:var(--space-4); min-width:0; }
+.qg-panel { display:flex; flex-direction:column; gap:20px; min-width:0; }
 
-/* ── Controls Row ── */
+@media (min-width:1200px) {
+  .qg-layout {
+    max-width:1120px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(360px,440px);
+    grid-template-areas:"panel preview";
+    column-gap:var(--space-6);
+    align-items:start;
+  }
+  .qg-panel { grid-area:panel; }
+  .qg-preview {
+    grid-area:preview;
+    /* --header-offset: başlıq gizlənəndə 0 olur (motion.css) — boşluq qalmasın */
+    position:sticky; top:calc(var(--header-offset, var(--header-h)) + 16px);
+    transition:top var(--dur-3) var(--ease-out);
+  }
+}
+
+/* ── Controls ──
+   Kateqoriya və rəng alt-alta (əvvəl yan-yana idi: etiketlər fərqli
+   hündürlükdə dururdu, kateqoriyalar iki sətrə bölünürdü) */
 .qg-controls {
-  display:flex; flex-wrap:wrap; gap:14px; align-items:center;
-  margin-bottom:28px;
+  display:flex; flex-direction:column; align-items:stretch; gap:20px;
 }
 .qg-control-group {
-  display:flex; flex-direction:column; gap:5px;
+  display:flex; flex-direction:column; gap:8px; min-width:0;
 }
 .qg-control-label {
   font-size:11px; font-weight:700; color:var(--text-muted);
   letter-spacing:1.5px; text-transform:uppercase;
 }
 
-/* ── Category Filters ── */
+/* ── Category Filters ──
+   JSX-də həm də .chip-scroll.wrap-desktop (motion.css): telefonda bir
+   sətirdə sürüşür, ≥768px-də əvvəlki kimi sarınır */
 .qg-categories { display:flex; gap:6px; flex-wrap:wrap; }
 
 /* ── Theme Selector ── */
-.qg-themes { display:flex; gap:8px; flex-wrap:wrap; }
+.qg-themes { display:flex; gap:6px; flex-wrap:wrap; }
+
+/* ≥768px: .chip-scroll-un şaquli boşluğu və 8px aralığı yox — əvvəlki görünüş */
+@media (min-width: 768px) {
+  .qg-categories.chip-scroll,
+  .qg-themes.chip-scroll { gap:6px; padding-block:0; }
+}
 .qg-theme-btn {
   width:36px; height:36px; border-radius:50%;
   border:2.5px solid var(--border); cursor:pointer;
-  transition:all .2s; position:relative;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--dur-2) var(--ease-spring), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+  position:relative;
 }
-.qg-theme-btn:hover { transform:scale(1.12); }
-.qg-theme-btn.active { border-color:var(--primary); box-shadow:0 0 0 3px rgba(26,107,58,0.2); }
+@media (hover: hover) and (pointer: fine) {
+  .qg-theme-btn:hover { transform:scale(1.12); }
+}
+.qg-theme-btn:active { transform:scale(.94); }
+.qg-theme-btn.active { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-bg2); transform:scale(1.08); }
 .qg-theme-btn[data-theme-id="green"]   { background:linear-gradient(135deg,#0d4a27,#22874a); }
 .qg-theme-btn[data-theme-id="gold"]    { background:linear-gradient(135deg,#8b6508,#d4a017); }
 .qg-theme-btn[data-theme-id="dark"]    { background:linear-gradient(135deg,#1a1a2e,#0f3460); }
@@ -42,13 +84,15 @@
 .qg-theme-btn[data-theme-id="slate"]   { background:linear-gradient(135deg,#1e293b,#475569); }
 .qg-theme-btn[data-theme-id="sand"]    { background:linear-gradient(135deg,#d4a017,#fef3c7); }
 
-/* ── Quote Card Preview ── */
+/* ── Quote Card Preview ──
+   Yeni sitat / dizayn: kart yumşaq görünür (.97 → 1, motion.css açarı) */
 .qg-card-wrap {
-  margin-bottom:28px;
-  animation: scaleIn .4s cubic-bezier(0.34,1.56,0.64,1) both;
+  animation: qm-reveal-scale var(--dur-3) var(--ease-out) both;
 }
 .qg-card {
-  position:relative; width:100%; aspect-ratio:1/1; max-width:540px;
+  position:relative; width:100%; aspect-ratio:1/1;
+  /* Hündür dizayn (9:16) ekrana sığsın: en ≤ (görünən hündürlük − başlıq − düymələr) × nisbət */
+  max-width:min(540px, calc((100vh - var(--header-h) - 150px) * var(--qg-ratio, 1)));
   margin:0 auto; border-radius:var(--radius-xl); overflow:hidden;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:48px 40px; text-align:center;
@@ -152,17 +196,21 @@
 /* ── Action Buttons ── */
 .qg-actions {
   display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
-  margin-bottom:28px;
 }
 .qg-action-btn {
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:var(--tap);
   padding:11px 22px; border-radius:var(--radius-sm);
   font-family:var(--font); font-size:14px; font-weight:600;
-  border:none; cursor:pointer; transition:all .25s;
+  border:none; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
 }
+.qg-action-btn:active { transform:scale(var(--press-scale)); }
+.qg-action-ico { line-height:1; }
 .qg-action-btn.primary {
-  background:var(--primary); color:#fff;
-  box-shadow:0 3px 12px rgba(26,107,58,0.25);
+  background:var(--primary); color:var(--on-primary);
+  box-shadow:0 3px 12px var(--primary-border);
 }
 .qg-action-btn.primary:hover { background:var(--primary-light); transform:translateY(-1px); }
 .qg-action-btn.secondary {
@@ -178,26 +226,50 @@
 
 .qg-action-btn.copied {
   background:var(--success); color:#fff; border-color:var(--success);
+  animation:qg-pop var(--dur-3) var(--ease-out);
+}
+@keyframes qg-pop { 50% { transform:scale(1.05); } }
+
+/* Geniş ekranda sağ sütunda düymələr 2×2 */
+@media (min-width:1200px) {
+  .qg-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .qg-action-btn { padding-inline:12px; }
 }
 
-/* ── Layout Selector ── */
+/* ── Layout Selector ──
+   Səhifə içində ayrıca sürüşən qutu YOX — bütün 40 düymə görünür
+   (telefonda: iki sıralı üfüqi zolaq, aşağıda) */
 .qg-layouts {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
-  gap: 6px; max-height: 180px; overflow-y: auto; padding: 4px 2px;
+  gap: 6px; padding: 2px;
 }
 .qg-layout-btn {
-  height: 44px; border-radius: 10px;
+  height: 44px; min-width: 0; border-radius: 10px;
   border: 1.5px solid var(--border); background: var(--bg-card);
-  font-size: 12px; cursor: pointer; transition: all 0.2s;
+  font-size: 12px; cursor: pointer;
+  transition: border-color .2s, background .2s, color .2s, transform .15s;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   color: var(--text-dim); font-family: var(--font); gap: 1px;
-  padding: 2px 4px;
+  padding: 2px 4px; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
-.qg-layout-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
-.qg-layout-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+@media (hover: hover) and (pointer: fine) {
+  .qg-layout-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+}
+.qg-layout-btn:active { transform: scale(.94); }
+.qg-layout-btn.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+/* Bismillah düyməsi: ﷽ tək simvolu 56px-ə sığmırdı (kəsilirdi) — "بسم" yazılır */
+.qg-layout-btn[data-layout-id="bismillah"] { font-family: var(--font-arabic); font-size: 15px; line-height: 1; }
 
-/* ── Card ── */
-.qg-card { max-width: 540px; transition: all 0.35s ease; }
+/* ── Card ──
+   "all" yox: yalnız görünüş xassələri keçid alır (layout yox) */
+.qg-card {
+  transition:
+    border-radius var(--dur-3) var(--ease-out),
+    box-shadow var(--dur-3) var(--ease-out),
+    color var(--dur-3) var(--ease-out),
+    opacity var(--dur-2) var(--ease-out);
+}
 
 /* ── Dekor: frame ── */
 .qg-frame-border {
@@ -361,12 +433,80 @@
 /* ── Custom ar font size ── */
 .qg-card[style*="--qg-ar-size"] .qg-card-arabic { font-size: var(--qg-ar-size); }
 
-/* ── Responsive ── */
+/* ══ Telefon və kiçik planşet (<768px): tətbiq kimi görünüş ══════
+   • "Yeni sitat" tam en; Kopyala / Paylaş / Yüklə — ikon dairədə üstdə,
+     ad altda, yumşaq kölgəli kafellər (tətbiqdəki "paylaş" sırası kimi)
+   • Kateqoriya və rənglər — bir sətirdə barmaqla sürüşən zolaq
+     (.chip-scroll), kənarlarda yumşaq solğunlaşma
+   • "Fərdiləşdir" — siyahı xanası kimi (ikon kafeli + ad + ox), açılan
+     panel nazik xətlərlə bölünmüş sətirlər, iri sürgü düymələri
+   Geniş ekran (≥768px) dəyişmir. */
+@media (max-width: 767.98px) {
+  .qg-panel,
+  .qg-controls { gap:22px; }
+  .qg-control-label { padding-inline:4px; font-size:12px; letter-spacing:.06em; }
+  [dir="rtl"] .qg-control-label { letter-spacing:0; font-size:13px; }
+
+  .qg-actions { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
+  .qg-action-btn.primary {
+    grid-column:1 / -1; min-height:50px;
+    border-radius:14px; font-size:15px;
+  }
+  .qg-action-btn:not(.primary) {
+    flex-direction:column; gap:4px;
+    min-height:66px; padding:8px 4px;
+    border:1px solid var(--border); border-radius:14px;
+    background:var(--bg-card); color:var(--text-dim);
+    box-shadow:var(--shadow-sm);
+    font-size:13px; line-height:1.2;
+  }
+  .qg-action-btn:not(.primary) .qg-action-ico {
+    display:grid; place-items:center;
+    width:30px; height:30px; border-radius:50%;
+    background:var(--primary-bg2); color:var(--primary-dark);
+    font-size:15px;
+  }
+  [data-theme="dark"] .qg-action-btn:not(.primary) .qg-action-ico { color:var(--primary); }
+  .qg-action-btn.copied { background:var(--success); border-color:var(--success); color:#fff; }
+  .qg-action-btn.copied .qg-action-ico { background:rgba(255,255,255,.22); color:#fff; }
+
+  /* Çip zolaqları — bir sətir (əsas qaydadakı flex-wrap ləğv olunur);
+     seçilmiş rəng dairəsinin halqası kəsilməsin deyə şaquli boşluq */
+  .qg-categories.chip-scroll,
+  .qg-themes.chip-scroll { flex-wrap:nowrap; }
+  .qg-categories.chip-scroll { padding-block:2px 6px; }
+  .qg-categories .tag-btn { min-height:40px; padding-inline:16px; white-space:nowrap; }
+  .qg-themes.chip-scroll { gap:10px; padding-block:6px 8px; }
+  /* "Fərdiləşdir" hissəsinin telefon qaydaları faylın sonundadır
+     (öz əsas qaydalarından sonra gəlməlidir) */
+}
+
+/* ── Telefon (≤600px) ── */
 @media(max-width:600px) {
-  .qg-card { padding:32px 24px; aspect-ratio:auto; min-height:400px; }
-  .qg-controls { flex-direction:column; align-items:stretch; }
-  .qg-actions { flex-direction:column; }
-  .qg-action-btn { justify-content:center; }
+  .qg-layout { gap:var(--space-5); }
+  .qg-card { padding:32px 24px; aspect-ratio:auto; min-height:400px; max-width:540px; }
+
+  .qg-theme-btn { width:40px; height:40px; }
+
+  /* Dizaynlar: iki sıralı üfüqi zolaq, barmaqla sürüşür */
+  .qg-layouts {
+    grid-template-columns:none;
+    grid-auto-flow:column;
+    grid-template-rows:repeat(2, 44px);
+    grid-auto-columns:56px;
+    overflow-x:auto; overflow-y:hidden;
+    overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+    margin-inline:calc(-1 * var(--page-gutter));
+    padding:2px var(--page-gutter) 6px;
+    scroll-padding-inline:var(--page-gutter);
+    /* Kənarlarda yumşaq solğunlaşma — .chip-scroll ilə eyni */
+    -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - var(--page-gutter)), transparent 100%);
+    mask-image:linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - var(--page-gutter)), transparent 100%);
+  }
+  .qg-layouts::-webkit-scrollbar { display:none; }
+  .qg-layout-btn { scroll-snap-align:start; }
 }
 
 /* ── Dark mode overrides ── */
@@ -385,36 +525,52 @@
 [data-theme="dark"] .qt-theme-minimal .qg-card-decor-bottom { color:var(--primary-light); }
 
 /* ── Customization Panel ── */
-.qg-custom-section { margin-bottom: 24px; }
+.qg-custom-section { margin: 0; }
 
 .qg-custom-toggle {
   display: flex; align-items: center; gap: 8px;
-  width: 100%; padding: 12px 20px; border-radius: var(--radius);
+  width: 100%; min-height: var(--tap); padding: 12px 20px; border-radius: var(--radius);
   background: var(--bg-card); border: 1.5px solid var(--border-md);
   color: var(--text-dim); font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: all 0.25s;
+  cursor: pointer; text-align: start;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
 }
+.qg-custom-chevron { margin-inline-start: auto; transition: transform var(--dur-3) var(--ease-out); }
+.qg-custom-toggle.open .qg-custom-chevron { transform: rotate(180deg); }
 .qg-custom-toggle:hover { border-color: var(--primary); color: var(--primary); }
 .qg-custom-toggle.open { background: var(--primary-bg); border-color: var(--primary-border); color: var(--primary); }
 
+/* ≥768px: ikon kafeli yox — əvvəlki kimi sadə emoji */
+@media (min-width: 768px) {
+  .qg-custom-ico.icon-tile {
+    display: inline; width: auto; height: auto; border-radius: 0;
+    background: none; color: inherit; font-size: inherit; line-height: inherit;
+  }
+}
+
+/* Açılan panel yumşaq qalxır (əvvəl yandan sürüşürdü) */
 .qg-custom-panel {
   margin-top: 12px; padding: 20px 24px;
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   display: flex; flex-direction: column; gap: 16px;
+  animation: qm-reveal-up var(--dur-3) var(--ease-out) both;
 }
 
+/* Etiket | idarəedici | dəyər — sürgülər eyni xətdən başlayır */
 .qg-custom-row {
-  display: flex; align-items: center; gap: 12px;
+  display: grid; grid-template-columns: 9.5rem minmax(0,1fr) 3rem;
+  align-items: center; gap: 12px;
 }
 
 .qg-custom-label {
-  min-width: 120px; font-size: 13px; font-weight: 500;
-  color: var(--text-dim); flex-shrink: 0;
+  min-width: 0; font-size: 13px; font-weight: 500;
+  color: var(--text-dim);
 }
 
 .qg-custom-range {
-  flex: 1; height: 6px; -webkit-appearance: none; appearance: none;
+  width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
   background: var(--border-md); border-radius: 3px; outline: none;
   cursor: pointer;
 }
@@ -426,7 +582,7 @@
 }
 
 .qg-custom-value {
-  min-width: 42px; text-align: right; font-size: 12px;
+  min-width: 42px; text-align: end; font-size: 12px;
   font-weight: 600; color: var(--primary);
   font-variant-numeric: tabular-nums;
 }
@@ -449,7 +605,7 @@
 .qg-custom-clear:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
 
 .qg-custom-reset {
-  align-self: flex-start; padding: 8px 18px;
+  align-self: flex-start; min-height: 40px; padding: 8px 18px;
   border-radius: 20px; border: 1.5px solid var(--border-md);
   background: var(--surface); color: var(--text-muted);
   font-size: 13px; font-weight: 600; cursor: pointer;
@@ -457,8 +613,45 @@
 }
 .qg-custom-reset:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
 
+/* Telefon (<768px): "Fərdiləşdir" — siyahı xanası kimi (ikon kafeli + ad +
+   ox); açılan panel nazik xətlərlə bölünmüş sətirlər, iri sürgü düymələri */
+@media (max-width: 767.98px) {
+  .qg-custom-toggle {
+    min-height: 56px; padding: 8px 14px; gap: 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    color: var(--text); font-size: 15px;
+  }
+  .qg-custom-toggle:hover { border-color: var(--border); color: var(--text); }
+  .qg-custom-toggle.open { background: var(--bg-card); border-color: var(--primary-border); color: var(--text); }
+  .qg-custom-toggle:active { transform: scale(.985); }
+  .qg-custom-chevron { color: var(--text-muted); font-size: 14px; }
+
+  .qg-custom-panel {
+    margin-top: 10px; padding: 4px 16px 14px; gap: 0;
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  }
+  .qg-custom-row { padding-block: 12px; border-bottom: 1px solid var(--hairline); }
+  .qg-custom-label,
+  .qg-custom-value { font-size: 13px; }
+  .qg-custom-range::-webkit-slider-thumb { width: 24px; height: 24px; }
+  .qg-custom-color { width: 40px; height: 40px; border-radius: 10px; }
+  .qg-custom-reset { margin-top: 14px; min-height: 44px; }
+}
+
 @media (max-width: 600px) {
-  .qg-custom-panel { padding: 16px; gap: 12px; }
-  .qg-custom-row { flex-wrap: wrap; gap: 8px; }
-  .qg-custom-label { min-width: 100px; font-size: 12px; }
+  /* Telefonda etiket üstdə, sürgü + dəyər altda (hamısı eyni xətdən) */
+  .qg-custom-row { grid-template-columns: minmax(0,1fr) auto; gap: 6px 12px; }
+  .qg-custom-label { grid-column: 1 / -1; }
+}
+
+/* ── Hərəkətsiz rejim ── */
+@media (prefers-reduced-motion: reduce) {
+  .qg-card-wrap,
+  .qg-custom-panel,
+  .qg-action-btn.copied { animation: none; }
+  .qg-theme-btn,
+  .qg-layout-btn,
+  .qg-custom-chevron,
+  .qg-preview { transition: none; }
 }

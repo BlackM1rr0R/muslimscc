@@ -5,6 +5,8 @@
 .qgame-layout {
   max-width: 700px;
   margin: 0 auto;
+  /* Oyun başlayanda bura sürüşürük — başlığın altında qalmasın */
+  scroll-margin-top: calc(var(--header-h) + 12px);
 }
 
 /* ── Mode Selection ── */
@@ -136,6 +138,8 @@
   font-size: clamp(22px, 4vw, 32px);
   line-height: 2;
   color: var(--text);
+  /* .arabic-text sağa düzləyir — ortalanmış kartda ayə də ortada olsun */
+  text-align: center;
 }
 
 /* ── Options ── */
@@ -156,7 +160,7 @@
   border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.22s;
-  text-align: left;
+  text-align: start;
   font-family: var(--font);
   width: 100%;
 }
@@ -166,6 +170,8 @@
   background: var(--primary-bg);
   transform: translateX(4px);
 }
+/* Ərəbcədə oxu istiqamətinə doğru */
+[dir="rtl"] .qgame-option:hover:not(:disabled) { transform: translateX(-4px); }
 
 .qgame-option:disabled {
   cursor: default;
@@ -224,6 +230,8 @@
 
 /* ── Answer Info ── */
 .qgame-answer-info {
+  /* Cavabdan sonra bura sürüşürük — ekranın alt kənarına yapışmasın */
+  scroll-margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -261,6 +269,7 @@
   font-size: clamp(18px, 3vw, 24px);
   line-height: 2;
   color: var(--primary);
+  text-align: center;
 }
 
 .qgame-surah-ref {
@@ -386,8 +395,31 @@
   .qgame-results-num {
     font-size: 44px;
   }
+  /* Hər iki rejim bir ekranda yan-yana görünsün (əvvəl hər kart 362x202px
+     idi və ikincisi aşağı panelin altında qalırdı) */
+  .qgame-menu-title {
+    font-size: 19px;
+    margin-bottom: 20px;
+  }
   .qgame-modes {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .qgame-mode-card {
+    padding: 20px 12px;
+    gap: 8px;
+  }
+  .qgame-mode-icon {
+    font-size: 34px;
+    margin-bottom: 0;
+  }
+  .qgame-mode-name {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  .qgame-mode-best {
+    font-size: 12px;
+    padding: 3px 10px;
   }
 }
 
@@ -402,4 +434,156 @@
 
 [data-theme="dark"] .qgame-timer.danger {
   background: rgba(220, 38, 38, 0.15);
+}
+
+/* ══════════════════════════════════════════════════════
+   MOBİL CİLA — telefonda müasir tətbiq hissi
+   (motion.css tokenləri; kompüter ≥768px dəyişmir)
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  /* Konteynerlərin öz sola-sürüşmə animasiyası yox — içindəki kartlar
+     növbə ilə qalxır (səhifə keçidini App.jsx verir) */
+  .qgame-menu.anim-fadeUp,
+  .qgame-play.anim-fadeUp,
+  .qgame-results.anim-fadeUp { animation: none; }
+
+  /* ── Rejim seçimi ── */
+  .qgame-menu-title { font-size: 18px; margin-bottom: 16px; }
+  .qgame-modes { gap: 12px; }
+  .qgame-mode-card {
+    gap: 10px;
+    padding: 20px 12px 16px;
+    border: 1px solid var(--border); border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+    animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+  }
+  .qgame-mode-card:nth-child(2) { animation-delay: var(--stagger); }
+  .qgame-mode-card:hover { transform: none; box-shadow: var(--shadow); }
+  /* Emoji rəngli kafeldə (.icon-tile üslubu) */
+  .qgame-mode-icon {
+    display: inline-grid; place-items: center;
+    width: 56px; height: 56px; margin: 0;
+    border-radius: 16px;
+    font-size: 28px; line-height: 1;
+    background: var(--gold-bg);
+    background: color-mix(in srgb, var(--gold) 15%, transparent);
+  }
+  .qgame-mode-card:nth-child(2) .qgame-mode-icon {
+    background: var(--primary-bg);
+    background: color-mix(in srgb, var(--primary) 13%, transparent);
+  }
+  .qgame-mode-name { font-size: 16px; }
+  .qgame-mode-best { font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  /* ── Oyun paneli ── başlığın altına yapışan şüşə zolaq:
+     başlıq gizlənəndə (--header-offset → 0) yumşaq yuxarı qalxır */
+  .qgame-hud {
+    position: sticky; top: var(--header-offset, var(--header-h)); z-index: 30;
+    margin: 0 calc(-1 * var(--page-gutter)) 16px;
+    padding: 8px var(--page-gutter) 10px;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: 0 1px 0 var(--hairline);
+    transition: top var(--dur-3) var(--ease-out);
+  }
+  .qgame-top-bar { gap: 8px; margin-bottom: 8px; }
+  .qgame-top-bar .btn-ghost {
+    min-height: 36px; padding: 0 14px;
+    border-radius: 999px; font-size: 13.5px;
+  }
+  .qgame-q-count { font-size: 14px; font-variant-numeric: tabular-nums; }
+  .qgame-timer { min-width: 56px; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .qgame-progress-bar { height: 6px; margin-bottom: 0; border-radius: 999px; }
+  .qgame-progress-fill { border-radius: 999px; }
+
+  /* ── Sual kartı ── */
+  .qgame-question-card {
+    margin-bottom: 14px; padding: 22px 16px;
+    border: 1px solid var(--border); border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    animation: qm-reveal-scale var(--dur-3) var(--ease-out) both;
+  }
+  .qgame-instruction { font-size: 13px; letter-spacing: 0.06em; margin-bottom: 10px; }
+  [dir="rtl"] .qgame-instruction { letter-spacing: 0; }
+
+  /* ── Variantlar ── yumşaq kartlar, hər sualda növbə ilə (40ms) */
+  .qgame-options { gap: 10px; margin-bottom: 16px; }
+  .qgame-option {
+    min-height: 60px; padding: 12px 14px; gap: 12px;
+    border: 1px solid var(--border); border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--dur-1) var(--ease-out), background-color var(--dur-2) var(--ease-out),
+                border-color var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out);
+    animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+  }
+  .qgame-option:nth-child(2) { animation-delay: calc(1 * var(--stagger)); }
+  .qgame-option:nth-child(3) { animation-delay: calc(2 * var(--stagger)); }
+  .qgame-option:nth-child(4) { animation-delay: calc(3 * var(--stagger)); }
+  .qgame-option:hover:not(:disabled),
+  [dir="rtl"] .qgame-option:hover:not(:disabled) { transform: none; }
+  .qgame-option-letter { width: 30px; height: 30px; font-size: 13px; }
+  .qgame-option-text { font-size: 15.5px; }
+  /* Düzgün cavab yüngülcə "sıçrayır", səhv cavab bir anlıq yellənir */
+  .qgame-option.correct {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 14%, transparent);
+    animation: qgame-pop var(--dur-3) var(--ease-spring) both;
+  }
+  .qgame-option.wrong { animation: qgame-shake var(--dur-3) var(--ease-out) both; }
+  .qgame-option.faded { opacity: 0.5; box-shadow: none; }
+
+  /* ── Cavabdan sonra ── aşağıdan qalxan kart, tam enli "Növbəti" */
+  .qgame-answer-info.anim-scaleIn {
+    animation: qm-reveal-up var(--dur-3) var(--ease-out) both;
+  }
+  .qgame-answer-info {
+    gap: 10px; padding: 18px 16px 16px;
+    border-radius: 20px; box-shadow: var(--shadow);
+  }
+  .qgame-result-badge { font-size: 15px; }
+  .qgame-surah-ref { font-size: 13px; }
+  .qgame-next-btn {
+    width: 100%; min-height: 48px; margin-top: 4px;
+    justify-content: center; font-size: 15px;
+  }
+
+  /* ── Nəticə ── */
+  .qgame-results { padding: 0; }
+  .qgame-results-card {
+    padding: 28px 18px 18px;
+    border: 1px solid var(--border); border-radius: 24px;
+    animation: qm-reveal-scale var(--dur-3) var(--ease-out) both;
+  }
+  .qgame-results-icon {
+    font-size: 52px; margin-bottom: 8px;
+    animation: qgame-pop-in var(--dur-3) var(--ease-spring) 120ms backwards;
+  }
+  .qgame-results-card h2 { font-size: 20px; margin-bottom: 12px; }
+  .qgame-results-num { font-variant-numeric: tabular-nums; }
+  .qgame-results-detail { flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .qgame-detail { font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  .qgame-results-actions { flex-direction: column; gap: 10px; }
+  .qgame-results-actions > button { width: 100%; min-height: 48px; justify-content: center; }
+}
+
+@keyframes qgame-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+@keyframes qgame-shake {
+  0%, 100% { transform: none; }
+  20% { transform: translateX(-6px); }
+  45% { transform: translateX(5px); }
+  70% { transform: translateX(-3px); }
+}
+@keyframes qgame-pop-in {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qgame-mode-card, .qgame-question-card, .qgame-option, .qgame-option.correct, .qgame-option.wrong,
+  .qgame-answer-info.anim-scaleIn, .qgame-results-card, .qgame-results-icon { animation: none; }
 }

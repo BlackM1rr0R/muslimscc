@@ -1,20 +1,27 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import { localizeSource } from '../utils/sourceNames'
 import '../styles/ZakatPage.css'
+import Breadcrumb from '../components/Breadcrumb'
 
-// Nisab ≈ 85q qızıl × $50/g ≈ $4,250
-const NISAB_USD = 4250
+// Təxmini qiymətlər (USD / qram). Nisab eyni qızıl qiyməti ilə hesablanır —
+// əvvəl nisab $50/q, qızıl varlığı isə $75/q ilə sayılırdı (85q qızıl nisabdan
+// xeyli yuxarı çıxırdı).
+const GOLD_USD_PER_G   = 75
+const SILVER_USD_PER_G = 0.90
+const NISAB_USD        = 85 * GOLD_USD_PER_G   // 85q qızıl
 
+// Bayraq emojiləri çıxarıldı: Windows-da iki hərf kimi görünür ("AZ AZN ₼")
 const CURRENCIES = [
-  { code:'AZN', symbol:'₼',   flag:'🇦🇿' },
-  { code:'USD', symbol:'$',   flag:'🇺🇸' },
-  { code:'EUR', symbol:'€',   flag:'🇪🇺' },
-  { code:'RUB', symbol:'₽',   flag:'🇷🇺' },
-  { code:'TRY', symbol:'₺',   flag:'🇹🇷' },
-  { code:'SAR', symbol:'﷼',  flag:'🇸🇦' },
-  { code:'GBP', symbol:'£',   flag:'🇬🇧' },
-  { code:'AED', symbol:'د.إ', flag:'🇦🇪' },
+  { code:'AZN', symbol:'₼'   },
+  { code:'USD', symbol:'$'   },
+  { code:'EUR', symbol:'€'   },
+  { code:'RUB', symbol:'₽'   },
+  { code:'TRY', symbol:'₺'   },
+  { code:'SAR', symbol:'﷼'  },
+  { code:'GBP', symbol:'£'   },
+  { code:'AED', symbol:'د.إ' },
 ]
 const FALLBACK = { USD:1, AZN:1.70, EUR:0.92, RUB:91, TRY:32, SAR:3.75, GBP:0.79, AED:3.67 }
 
@@ -50,8 +57,85 @@ const L = {
   perYear:      { az:'/ il',                  ru:'/ год',                  ar:'/ سنة',              tr:'/ yıl',                 en:'/ year'              },
   perMonth:     { az:'/ ay',                  ru:'/ мес.',                 ar:'/ شهر',              tr:'/ ay',                  en:'/ month'             },
   reset:        { az:'Sıfırla',               ru:'Сброс',                  ar:'إعادة',              tr:'Sıfırla',               en:'Reset'               },
+  priceNote:    { az:'Qiymətlər təxminidir: qızıl ≈ {g}/q, gümüş ≈ {s}/q', ru:'Цены приблизительные: золото ≈ {g}/г, серебро ≈ {s}/г', ar:'الأسعار تقريبية: الذهب ≈ {g}/غ، الفضة ≈ {s}/غ', tr:'Fiyatlar yaklaşıktır: altın ≈ {g}/g, gümüş ≈ {s}/g', en:'Prices are approximate: gold ≈ {g}/g, silver ≈ {s}/g' },
 }
 const s = (k, l) => L[k]?.[l] || L[k]?.en || ''
+
+// ── Ayə: mətn yaddaşdan yazılmır, alquran.cloud-dan gəlir ──
+// Ərəbcə Osmani yazısı + cari dilin tərcüməsi (ərəbcədə yalnız əsl mətn).
+// Sessiya ərzində sessionStorage-də saxlanılır; sorğu alınmasa kart görünmür.
+const AYAH_AR = 'quran-uthmani'
+const AYAH_EDITIONS = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', tr:'tr.diyanet' }
+
+function readAyah(key) {
+  try {
+    const raw = sessionStorage.getItem(key)
+    if (!raw) return null
+    const d = JSON.parse(raw)
+    return d && typeof d.ar === 'string' && d.ar ? d : null
+  } catch {
+    return null
+  }
+}
+
+function useAyah(ref, lang) {
+  const edition = lang === 'ar' ? '' : (AYAH_EDITIONS[lang] || AYAH_EDITIONS.en)
+  const key = `zakat_ayah_${ref.replace(':', '_')}_${lang}`
+  const [state, setState] = useState(() => ({ key, data: readAyah(key) }))
+
+  useEffect(() => {
+    const cached = readAyah(key)
+    if (cached) { setState({ key, data: cached }); return undefined }
+    setState({ key, data: null })
+
+    let alive = true
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 10000)
+    const eds = edition ? `${AYAH_AR},${edition}` : AYAH_AR
+    fetch(`https://api.alquran.cloud/v1/ayah/${ref}/editions/${eds}`, { signal: ctrl.signal })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+      .then(json => {
+        const list = Array.isArray(json?.data) ? json.data : (json?.data ? [json.data] : [])
+        const arabic = list.find(a => a?.edition?.identifier === AYAH_AR)
+        const trans = edition ? list.find(a => a?.edition?.identifier === edition) : null
+        if (!arabic?.text || (edition && !trans?.text)) throw new Error('bad response')
+        const data = { ar: arabic.text, text: trans?.text || '' }
+        try { sessionStorage.setItem(key, JSON.stringify(data)) } catch { /* yaddaş bağlıdır */ }
+        if (alive) setState({ key, data })
+      })
+      .catch(() => { if (alive) setState({ key, data: null }) })
+      .finally(() => clearTimeout(timer))
+
+    return () => {
+      alive = false
+      clearTimeout(timer)
+      ctrl.abort()
+    }
+  }, [key, ref, edition])
+
+  // Dil dəyişəndə köhnə dilin ayəsi bir anlıq da görünməsin
+  return state.key === key ? state.data : readAyah(key)
+}
+
+// ── Varlıq sahəsi: bütün sətir <label>-dir, harasına toxunulsa sahə fokuslanır ──
+// tone — telefonda ikon kafelinin rəngi (motion.css → .icon-tile--*); genişdə sadə emoji
+function ZakatField({ icon, tone = '', label, prefix, value, onChange, placeholder = '0.00', side = null, className = '' }) {
+  return (
+    <label className={`zakat-field-row${className ? ' ' + className : ''}`}>
+      <span className={`zakat-field-icon icon-tile icon-tile--sm${tone ? ` icon-tile--${tone}` : ''}`} aria-hidden="true">{icon}</span>
+      <span className="zakat-field-body">
+        <span className="zakat-field-label">{label}</span>
+        <span className="zakat-input-wrap">
+          <span className="zakat-cur-prefix">{prefix}</span>
+          <input type="number" inputMode="decimal" className="input-base zakat-input"
+            min="0" value={value} placeholder={placeholder}
+            onChange={e => onChange(e.target.value)} />
+        </span>
+      </span>
+      {side}
+    </label>
+  )
+}
 
 export default function ZakatPage({ setPage }) {
   const { lang } = useLang()
@@ -70,8 +154,25 @@ export default function ZakatPage({ setPage }) {
   const [rent,        setRent]        = useState('')
   const [debt,        setDebt]        = useState('')
   const [fitrPeople,  setFitrPeople]  = useState('1')
-  const [goldPrice]   = useState(75)   // ~$75/gram orta
-  const [silverPrice] = useState(0.90) // ~$0.90/gram orta
+  const goldPrice   = GOLD_USD_PER_G
+  const silverPrice = SILVER_USD_PER_G
+  const ayah = useAyah('2:43', lang)
+  const dueRef = useRef(null)
+
+  // Tək sütunlu düzümdə (≤860px) nəticə kartları ilk ekranın altında qalır —
+  // yalnız onda sürüşəndə görünmə (data-reveal) verilir. Genişdə kartlar
+  // ilk ekrandadır və səhifə keçidi onsuz da animasiya edir.
+  const [revealResults] = useState(() => {
+    try { return window.matchMedia('(max-width: 860px)').matches } catch { return false }
+  })
+  const reveal = revealResults ? { 'data-reveal': '' } : {}
+
+  // Yapışqan cəm zolağına toxunanda "Ödənilməli Zəkat" kartına keç
+  const scrollToDue = () => {
+    let smooth = true
+    try { smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { /* köhnə brauzer */ }
+    dueRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' })
+  }
 
   useEffect(() => {
     fetch('https://api.exchangerate-api.com/v4/latest/USD')
@@ -121,7 +222,8 @@ export default function ZakatPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero theme-zakat">
+      <div className="page-hero hero-compact theme-zakat">
+        <Breadcrumb setPage={setPage} current={t.title} />
         <div className="page-hero-arabic">الزَّكَاةُ</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
@@ -142,13 +244,13 @@ export default function ZakatPage({ setPage }) {
                   : <span className="zakat-rate-badge">{s('rateLabel',l)} <strong>{fmt(rate)} {cur.symbol}</strong></span>
                 }
               </div>
-              <div className="zakat-currency-grid">
+              <div className="zakat-currency-grid" role="group" aria-label={s('currency',l)}>
                 {CURRENCIES.map(c => (
                   <button key={c.code}
-                    className={`zakat-cur-btn ${currency === c.code ? 'active' : ''}`}
+                    className={`zakat-cur-btn press ${currency === c.code ? 'active' : ''}`}
+                    aria-pressed={currency === c.code}
                     onClick={() => setCurrency(c.code)}
                   >
-                    <span>{c.flag}</span>
                     <span>{c.code}</span>
                     <small>{c.symbol}</small>
                   </button>
@@ -161,148 +263,87 @@ export default function ZakatPage({ setPage }) {
             <div className="zakat-fields">
 
               {/* Maaş — aylıq */}
-              <div className="zakat-field-row">
-                <span className="zakat-field-icon">💼</span>
-                <div className="zakat-field-body">
-                  <label>{s('salaryLabel',l)}</label>
-                  <div className="zakat-input-wrap">
-                    <span className="zakat-cur-prefix">{cur.symbol}</span>
-                    <input type="number" className="input-base zakat-input"
-                      min="0" value={salary} placeholder="0.00"
-                      onChange={e => setSalary(e.target.value)} />
-                  </div>
-                </div>
-                {salaryMonth > 0 && (
-                  <div className="zakat-field-side">
-                    <div className="zakat-field-tag">{s('monthlyX12',l)}</div>
-                    <div className="zakat-field-annual">{cur.symbol}{fmt(salaryAnnual)}</div>
-                  </div>
-                )}
-              </div>
+              <ZakatField icon="💼" tone="slate" label={s('salaryLabel',l)} prefix={cur.symbol}
+                value={salary} onChange={setSalary}
+                side={salaryMonth > 0 && (
+                  <span className="zakat-field-side">
+                    <span className="zakat-field-tag">{s('monthlyX12',l)}</span>
+                    <span className="zakat-field-annual">{cur.symbol}{fmt(salaryAnnual)}</span>
+                  </span>
+                )} />
 
               {/* Yığım */}
-              <div className="zakat-field-row">
-                <span className="zakat-field-icon">🏦</span>
-                <div className="zakat-field-body">
-                  <label>{s('savingsLabel',l)}</label>
-                  <div className="zakat-input-wrap">
-                    <span className="zakat-cur-prefix">{cur.symbol}</span>
-                    <input type="number" className="input-base zakat-input"
-                      min="0" value={savings} placeholder="0.00"
-                      onChange={e => setSavings(e.target.value)} />
-                  </div>
-                </div>
-              </div>
+              <ZakatField icon="🏦" tone="blue" label={s('savingsLabel',l)} prefix={cur.symbol}
+                value={savings} onChange={setSavings} />
 
               {/* Digər */}
-              <div className="zakat-field-row">
-                <span className="zakat-field-icon">💳</span>
-                <div className="zakat-field-body">
-                  <label>{s('otherLabel',l)}</label>
-                  <div className="zakat-input-wrap">
-                    <span className="zakat-cur-prefix">{cur.symbol}</span>
-                    <input type="number" className="input-base zakat-input"
-                      min="0" value={other} placeholder="0.00"
-                      onChange={e => setOther(e.target.value)} />
-                  </div>
-                </div>
-              </div>
+              <ZakatField icon="💳" tone="violet" label={s('otherLabel',l)} prefix={cur.symbol}
+                value={other} onChange={setOther} />
 
               {/* Qızıl */}
-              <div className="zakat-field-row">
-                <span className="zakat-field-icon">🪙</span>
-                <div className="zakat-field-body">
-                  <label>{s('goldLabel',l)}</label>
-                  <div className="zakat-input-wrap">
-                    <span className="zakat-cur-prefix">g</span>
-                    <input type="number" className="input-base zakat-input"
-                      min="0" value={gold} placeholder="0"
-                      onChange={e => setGold(e.target.value)} />
-                  </div>
-                </div>
-                {n(gold) > 0 && (
-                  <div className="zakat-field-side">
-                    <div className="zakat-field-tag">≈ {cur.symbol}{fmt(goldVal)}</div>
-                  </div>
-                )}
-              </div>
+              <ZakatField icon="🪙" tone="gold" label={s('goldLabel',l)} prefix="g" placeholder="0"
+                value={gold} onChange={setGold}
+                side={n(gold) > 0 && (
+                  <span className="zakat-field-side">
+                    <span className="zakat-field-tag">≈ {cur.symbol}{fmt(goldVal)}</span>
+                  </span>
+                )} />
 
               {/* Gümüş */}
-              <div className="zakat-field-row">
-                <span className="zakat-field-icon">⚪</span>
-                <div className="zakat-field-body">
-                  <label>{s('silverLabel',l)}</label>
-                  <div className="zakat-input-wrap">
-                    <span className="zakat-cur-prefix">g</span>
-                    <input type="number" className="input-base zakat-input"
-                      min="0" value={silver} placeholder="0"
-                      onChange={e => setSilver(e.target.value)} />
-                  </div>
-                </div>
-                {n(silver) > 0 && (
-                  <div className="zakat-field-side">
-                    <div className="zakat-field-tag">≈ {cur.symbol}{fmt(silverVal)}</div>
-                  </div>
-                )}
-              </div>
+              <ZakatField icon="⚪" tone="slate" label={s('silverLabel',l)} prefix="g" placeholder="0"
+                value={silver} onChange={setSilver}
+                side={n(silver) > 0 && (
+                  <span className="zakat-field-side">
+                    <span className="zakat-field-tag">≈ {cur.symbol}{fmt(silverVal)}</span>
+                  </span>
+                )} />
 
               {/* Səhmlər */}
-              <div className="zakat-field-row">
-                <span className="zakat-field-icon">📈</span>
-                <div className="zakat-field-body">
-                  <label>{s('stocksLabel',l)}</label>
-                  <div className="zakat-input-wrap">
-                    <span className="zakat-cur-prefix">{cur.symbol}</span>
-                    <input type="number" className="input-base zakat-input"
-                      min="0" value={stocks} placeholder="0.00"
-                      onChange={e => setStocks(e.target.value)} />
-                  </div>
-                </div>
-              </div>
+              <ZakatField icon="📈" tone="teal" label={s('stocksLabel',l)} prefix={cur.symbol}
+                value={stocks} onChange={setStocks} />
 
               {/* İcarə Gəliri */}
-              <div className="zakat-field-row">
-                <span className="zakat-field-icon">🏠</span>
-                <div className="zakat-field-body">
-                  <label>{s('rentLabel',l)}</label>
-                  <div className="zakat-input-wrap">
-                    <span className="zakat-cur-prefix">{cur.symbol}</span>
-                    <input type="number" className="input-base zakat-input"
-                      min="0" value={rent} placeholder="0.00"
-                      onChange={e => setRent(e.target.value)} />
-                  </div>
-                </div>
-                {n(rent) > 0 && (
-                  <div className="zakat-field-side">
-                    <div className="zakat-field-tag">{s('monthlyX12',l)}</div>
-                    <div className="zakat-field-annual">{cur.symbol}{fmt(rentVal)}</div>
-                  </div>
-                )}
-              </div>
+              <ZakatField icon="🏠" tone="orange" label={s('rentLabel',l)} prefix={cur.symbol}
+                value={rent} onChange={setRent}
+                side={n(rent) > 0 && (
+                  <span className="zakat-field-side">
+                    <span className="zakat-field-tag">{s('monthlyX12',l)}</span>
+                    <span className="zakat-field-annual">{cur.symbol}{fmt(rentVal)}</span>
+                  </span>
+                )} />
 
               {/* Borclar */}
-              <div className="zakat-field-row zakat-field-debt">
-                <span className="zakat-field-icon">📉</span>
-                <div className="zakat-field-body">
-                  <label>{s('debtLabel',l)}</label>
-                  <div className="zakat-input-wrap">
-                    <span className="zakat-cur-prefix">−{cur.symbol}</span>
-                    <input type="number" className="input-base zakat-input"
-                      min="0" value={debt} placeholder="0.00"
-                      onChange={e => setDebt(e.target.value)} />
-                  </div>
-                </div>
-              </div>
+              <ZakatField icon="📉" tone="rose" label={s('debtLabel',l)} prefix={`−${cur.symbol}`}
+                value={debt} onChange={setDebt} className="zakat-field-debt" />
             </div>
 
             <button className="btn-ghost zakat-reset-btn" onClick={reset}>↺ {s('reset',l)}</button>
+
+            {/* Tək sütunlu düzümdə (≤860px): yazdıqca zəkat məbləği ekranın altında
+                görünür (sahələr bitənə qədər yapışqan qalır); toxunanda nəticəyə keçir.
+                Genişdə gizlidir — nəticə sütunu yanda görünür. */}
+            {totalAssets > 0 && (
+              <button type="button" className="zakat-sticky-sum press" onClick={scrollToDue}>
+                <span className="zakat-sticky-text">
+                  <span className="zakat-sticky-title">{s('zakatDue',l)}</span>
+                  <span className={`zakat-sticky-sub ${aboveNisab ? 'yes' : 'no'}`}>
+                    {aboveNisab ? s('aboveNisab',l) : s('belowNisab',l)}
+                  </span>
+                </span>
+                <span className="zakat-sticky-amount-wrap">
+                  <span key={`${currency}-${zakatYear.toFixed(2)}`} className="zakat-sticky-amount">{cur.symbol}{fmt(zakatYear)}</span>
+                  <span className="zakat-sticky-period">{s('perYear',l)}</span>
+                </span>
+                <span className="zakat-sticky-chev" aria-hidden="true" />
+              </button>
+            )}
           </div>
 
           {/* ══ SAĞ: Nəticə ══ */}
           <div className="zakat-result">
 
             {/* Cəm cədvəli */}
-            <div className="zakat-breakdown">
+            <div className="zakat-breakdown" {...reveal}>
               <div className="zakat-block-label" style={{marginBottom:14}}>📊 {s('resultTitle',l)}</div>
 
               <div className="breakdown-row">
@@ -363,7 +404,7 @@ export default function ZakatPage({ setPage }) {
             </div>
 
             {/* Nisab progress */}
-            <div className={`nisab-card ${aboveNisab ? 'above' : ''}`}>
+            <div className={`nisab-card ${aboveNisab ? 'above' : ''}`} {...reveal}>
               <div className="nisab-header">
                 <span className="nisab-label">{s('nisabLabel',l)}</span>
                 <span className={`nisab-badge ${aboveNisab ? 'yes' : 'no'}`}>
@@ -372,8 +413,14 @@ export default function ZakatPage({ setPage }) {
               </div>
               <div className="nisab-value">{cur.symbol}{fmt(nisabLoc)}</div>
               <div className="nisab-note">{t.note}</div>
+              <div className="nisab-note nisab-price-note">
+                {s('priceNote',l)
+                  .replace('{g}', `${cur.symbol}${fmt(goldPrice * rate)}`)
+                  .replace('{s}', `${cur.symbol}${fmt(silverPrice * rate)}`)}
+              </div>
+              {/* Doluluq transform ilə (layout yox) — ZakatPage.css → .nisab-bar */}
               <div className="nisab-bar-wrap">
-                <div className="nisab-bar" style={{width:`${pct}%`}} />
+                <div className="nisab-bar" style={{transform:`scaleX(${pct / 100})`}} />
               </div>
               <div className="nisab-bar-labels">
                 <span>{cur.symbol}0</span>
@@ -382,7 +429,7 @@ export default function ZakatPage({ setPage }) {
             </div>
 
             {/* Zəkat nəticəsi — həmişə görünür */}
-            <div className={`zakat-due-card ${aboveNisab ? 'active' : 'inactive'}`}>
+            <div ref={dueRef} className={`zakat-due-card ${aboveNisab ? 'active' : 'inactive'}`} {...reveal}>
               <div className="zakat-due-label">{s('zakatDue',l)}</div>
 
               {aboveNisab ? (
@@ -409,12 +456,12 @@ export default function ZakatPage({ setPage }) {
             </div>
 
             {/* Fitrə Kalkulyatoru */}
-            <div className="fitr-card">
+            <div className="fitr-card" {...reveal}>
               <div className="fitr-title">🌙 {s('fitrTitle',l)}</div>
               <p className="fitr-desc">{s('fitrDesc',l)}</p>
               <div className="fitr-row">
-                <label className="fitr-label">{s('fitrPeople',l)}</label>
-                <input type="number" className="input-base fitr-input" min="1" value={fitrPeople}
+                <label className="fitr-label" htmlFor="zakat-fitr-people">{s('fitrPeople',l)}</label>
+                <input id="zakat-fitr-people" type="number" inputMode="numeric" className="input-base fitr-input" min="1" value={fitrPeople}
                   onChange={e => setFitrPeople(e.target.value)} />
               </div>
               <div className="fitr-row">
@@ -427,17 +474,14 @@ export default function ZakatPage({ setPage }) {
               </div>
             </div>
 
-            {/* Ayə */}
-            <div className="zakat-info-box">
-              <span className="zakat-quran-ar">وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ</span>
-              <p className="zakat-quran">
-                {lang==='az'?'"Namazı qılın, zəkat verin." — Bəqərə 2:43':
-                 lang==='ru'?'«Совершайте намаз и выплачивайте закят» — Аль-Бакара 2:43':
-                 lang==='ar'?'"وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ" — البقرة ٢:٤٣':
-                 lang==='tr'?'"Namazı kılın ve zekâtı verin." — Bakara 2:43':
-                 '"Establish prayer and give zakat." — Al-Baqarah 2:43'}
-              </p>
-            </div>
+            {/* Ayə (Bəqərə 2:43) — alquran.cloud-dan; alınmasa kart göstərilmir */}
+            {ayah && (
+              <figure className="zakat-info-box" {...reveal}>
+                <p className="zakat-quran-ar" lang="ar" dir="rtl">{ayah.ar}</p>
+                {ayah.text && <p className="zakat-quran">{ayah.text}</p>}
+                <figcaption className="zakat-quran-ref">— {localizeSource('Bəqərə 2:43', lang)}</figcaption>
+              </figure>
+            )}
 
           </div>
         </div>

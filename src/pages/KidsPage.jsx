@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/KidsPage.css'
+
+// Telefonda ikon kafellərinin rəngləri növbə ilə (motion.css → .icon-tile--*);
+// ≥768px-də kafel yoxdur — KidsPage.css sadə emojiyə qaytarır
+const TILE_TONES = ['gold', 'rose', 'blue', 'teal', 'violet', 'orange']
+const tileTone = (i) => `icon-tile--${TILE_TONES[i % TILE_TONES.length]}`
 
 const LABELS = {
   az: { title:'Uşaq Bölməsi', subtitle:'Kiçiklər üçün İslam', namesTitle:'Allahın Gözəl Adları', surahsTitle:'Qısa Surələr', duasTitle:'Gündəlik Dualar', rulesTitle:'İslamın 5 Şərti', quizTitle:'Mini Kviz', prophetsTitle:'Peyğəmbərlər', mannersTitle:'Gözəl Davranışlar', learn:'Öyrən', correct:'Afərin!', wrong:'Yenidən cəhd et', next:'Növbəti' },
@@ -436,7 +442,30 @@ export default function KidsPage({ setPage }) {
   const [score, setScore] = useState(0)
   const [quizDone, setQuizDone] = useState(false)
 
-  const toggleSection = (s) => setOpenSection(openSection === s ? null : s)
+  const layoutRef = useRef(null)
+  const tabsRef = useRef(null)
+
+  // Bölmə seçimi (sekmə kimi — aktiv sekməyə yenidən basmaq məzmunu bağlamır).
+  // Uzun siyahını (99 ad) aşağı sürüşdürüb başqa bölməyə keçəndə yeni
+  // bölmə əvvəlindən görünsün; telefonda aktiv sekmə zolağın ortasına gəlsin.
+  const toggleSection = (s, tabEl) => {
+    setOpenSection(s)
+    let behavior = 'smooth'
+    try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) behavior = 'auto' } catch {}
+    requestAnimationFrame(() => {
+      const strip = tabsRef.current
+      if (strip && tabEl && strip.scrollWidth > strip.clientWidth) {
+        const sr = strip.getBoundingClientRect()
+        const tr = tabEl.getBoundingClientRect()
+        strip.scrollBy({ left: (tr.left + tr.width / 2) - (sr.left + sr.width / 2), behavior })
+      }
+      const layout = layoutRef.current
+      if (!layout) return
+      const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 64
+      const target = layout.getBoundingClientRect().top + window.scrollY - headerH
+      if (window.scrollY > target + 1) window.scrollTo({ top: target, behavior })
+    })
+  }
 
   const getLangField = (obj, field) => {
     if (lang === 'az') return obj[field] || obj.az || ''
@@ -453,6 +482,8 @@ export default function KidsPage({ setPage }) {
   const handleQuizAnswer = (idx) => {
     if (quizState) return
     const q = QUIZ[quizIdx]
+    // Toxunma ekranında yüngül titrəmə (səhvdə bir az uzun)
+    haptic(idx === q.answer ? 8 : 18)
     if (idx === q.answer) {
       setQuizState('correct')
       setScore(s => s + 1)
@@ -489,22 +520,24 @@ export default function KidsPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero theme-kids kids-hero">
+      <div className="page-hero theme-kids kids-hero hero-compact">
         <div className="kids-hero-emojis">🌙 ⭐ 🕌 📖 🤲</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
       </div>
 
       <div className="section">
-        <div className="section-inner kids-layout">
+        <div className="section-inner kids-layout" ref={layoutRef}>
 
-          {/* Section tabs */}
-          <div className="kids-tabs">
+          {/* Section tabs — telefonda üfüqi sürüşən, başlığın altına yapışan zolaq */}
+          <div className="kids-tabs" ref={tabsRef}>
             {sections.map(s => (
               <button key={s.key}
+                type="button"
                 className={`kids-tab ${openSection===s.key?'active':''}`}
-                onClick={() => toggleSection(s.key)}>
-                <span className="kids-tab-emoji">{s.emoji}</span>
+                aria-pressed={openSection===s.key}
+                onClick={(e) => toggleSection(s.key, e.currentTarget)}>
+                <span className="kids-tab-emoji" aria-hidden="true">{s.emoji}</span>
                 <span className="kids-tab-label">{s.title}</span>
               </button>
             ))}
@@ -514,10 +547,10 @@ export default function KidsPage({ setPage }) {
           {openSection === 'names' && (
             <div className="kids-section anim-fadeIn">
               <h2 className="kids-section-title">{t.namesTitle} 🌟</h2>
-              <div className="kids-names-grid">
+              <div className="kids-names-grid" data-reveal="stagger">
                 {NAMES_OF_ALLAH.map((n, i) => (
                   <div key={i} className="kids-name-card">
-                    <span className="kids-name-emoji">{n.emoji}</span>
+                    <span className={`kids-name-emoji icon-tile icon-tile--lg icon-tile--round ${tileTone(i)}`} aria-hidden="true">{n.emoji}</span>
                     <span className="kids-name-arabic">{n.ar}</span>
                     <span className="kids-name-desc">
                       {lang === 'ar' ? n.ar_desc : lang === 'en' ? n.en : lang === 'ru' ? n.ru : lang === 'tr' ? n.tr : n.az}
@@ -532,11 +565,11 @@ export default function KidsPage({ setPage }) {
           {openSection === 'surahs' && (
             <div className="kids-section anim-fadeIn">
               <h2 className="kids-section-title">{t.surahsTitle} 📖</h2>
-              <div className="kids-surahs-list">
+              <div className="kids-surahs-list" data-reveal="stagger">
                 {SHORT_SURAHS.map((s, i) => (
                   <div key={i} className="kids-surah-card">
                     <div className="kids-surah-header">
-                      <span className="kids-surah-emoji">{s.emoji}</span>
+                      <span className={`kids-surah-emoji icon-tile ${tileTone(i)}`} aria-hidden="true">{s.emoji}</span>
                       <span className="kids-surah-arabic">{s.name}</span>
                       <span className="kids-surah-en">{s.en}</span>
                       <span className="kids-surah-ayahs">{s.ayahs} {lang === 'ar' ? 'آية' : lang === 'ru' ? 'аятов' : lang === 'tr' ? 'ayet' : lang === 'en' ? 'ayahs' : 'ayə'}</span>
@@ -554,10 +587,10 @@ export default function KidsPage({ setPage }) {
           {openSection === 'duas' && (
             <div className="kids-section anim-fadeIn">
               <h2 className="kids-section-title">{t.duasTitle} 🤲</h2>
-              <div className="kids-duas-list">
+              <div className="kids-duas-list" data-reveal="stagger">
                 {DAILY_DUAS.map((d, i) => (
                   <div key={i} className="kids-dua-card">
-                    <span className="kids-dua-emoji">{d.emoji}</span>
+                    <span className={`kids-dua-emoji icon-tile ${tileTone(i)}`} aria-hidden="true">{d.emoji}</span>
                     <div className="kids-dua-body">
                       <h3 className="kids-dua-title">
                         {lang === 'ar' ? d.ar_title : lang === 'en' ? d.en_title : lang === 'ru' ? d.ru_title : lang === 'tr' ? d.tr_title : d.az_title}
@@ -577,7 +610,8 @@ export default function KidsPage({ setPage }) {
           {openSection === 'rules' && (
             <div className="kids-section anim-fadeIn">
               <h2 className="kids-section-title">{t.rulesTitle} 🕌</h2>
-              <div className="kids-pillars-list">
+              {/* Telefonda qruplaşdırılmış siyahı (KidsPage.css) */}
+              <div className="kids-pillars-list" data-reveal="stagger">
                 {PILLARS.map((p, i) => (
                   <div key={i} className="kids-pillar-card">
                     <span className="kids-pillar-num">{i + 1}</span>
@@ -593,10 +627,10 @@ export default function KidsPage({ setPage }) {
           {openSection === 'prophets' && (
             <div className="kids-section anim-fadeIn">
               <h2 className="kids-section-title">{t.prophetsTitle} 🌙</h2>
-              <div className="kids-names-grid">
+              <div className="kids-names-grid" data-reveal="stagger">
                 {PROPHETS_FOR_KIDS.map((p, i) => (
                   <div key={i} className="kids-name-card">
-                    <span className="kids-name-emoji">{p.emoji}</span>
+                    <span className={`kids-name-emoji icon-tile icon-tile--lg icon-tile--round ${tileTone(i)}`} aria-hidden="true">{p.emoji}</span>
                     <span className="kids-name-arabic">{p.ar}</span>
                     <span className="kids-name-desc" style={{fontWeight:'bold'}}>{p.name}</span>
                     <span className="kids-name-desc">
@@ -612,7 +646,7 @@ export default function KidsPage({ setPage }) {
           {openSection === 'manners' && (
             <div className="kids-section anim-fadeIn">
               <h2 className="kids-section-title">{t.mannersTitle} 🤝</h2>
-              <div className="kids-pillars-list">
+              <div className="kids-pillars-list" data-reveal="stagger">
                 {GOOD_MANNERS.map((m, i) => (
                   <div key={i} className="kids-pillar-card">
                     <span className="kids-pillar-num">{i + 1}</span>

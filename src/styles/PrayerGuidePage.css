@@ -1,5 +1,10 @@
 /* ══════════════════════════════════════════════════════
    PrayerGuidePage — Step-by-step Salah Guide
+   Telefon (<768px): tətbiq görünüşü — yuxarıda yapışan rejim seqmenti
+   (.m-seg), namaz seçimi keçid sətirləri (.m-list/.m-row), addım kartı
+   istiqamətə görə sürüşərək dəyişir, "Əvvəlki / Növbəti" aşağıda —
+   baş barmağın çatdığı yerdə yapışan şüşə panel.
+   ≥768px: əvvəlki görünüş ("MASAÜSTÜ" blokları kit effektlərini qaytarır).
    ══════════════════════════════════════════════════════ */
 
 .pg-container {
@@ -19,31 +24,12 @@
   margin-bottom: 32px;
 }
 
+/* 5 namaz: yuxarıda 3, aşağıda ortalanmış 2 kart (6 sütunluq şəbəkə,
+   hər kart 2 sütun; 4-cü kart 2-ci sütundan başlayır) — ≥768px */
 .pg-prayer-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
-}
-
-.pg-prayer-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 28px 16px;
-  background: var(--bg-card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: all 0.25s;
-}
-
-.pg-prayer-btn:hover {
-  border-color: var(--primary);
-  box-shadow: var(--shadow);
-  transform: translateY(-3px);
-  background: var(--primary-bg);
 }
 
 .pg-prayer-icon {
@@ -56,16 +42,49 @@
   color: var(--text);
 }
 
-.pg-prayer-rakat {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: var(--primary-bg);
-  padding: 3px 12px;
-  border-radius: 20px;
+/* Telefon sətrinin ikon kafeli və oxu — masaüstündə gizli */
+.pg-prayer-tile,
+.pg-prayer-chev { display: none; }
+
+@media (min-width: 768px) {
+  /* .m-list qutusu yox — kartlar şəbəkədə */
+  .pg-prayer-grid.m-list {
+    background: none; border: 0; border-radius: 0; box-shadow: none;
+    overflow: visible; isolation: auto;
+  }
+  .pg-prayer-grid > .pg-prayer-btn + .pg-prayer-btn::before { display: none; }
+
+  .pg-prayer-btn { grid-column: span 2; }
+  .pg-prayer-btn:nth-child(4) { grid-column: 2 / span 2; }
+
+  .pg-prayer-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-height: 0;
+    padding: 28px 16px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s, background-color 0.25s;
+  }
+
+  .pg-prayer-btn:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow);
+    transform: translateY(-3px);
+    background: var(--primary-bg);
+  }
 }
 
-/* ── Progress Bar ── */
+
+/* ── Progress Bar ──
+   Addım dəyişəndə scrollIntoView bura gəlir; sabit başlığın hündürlüyü
+   html-in scroll-padding-top-u ilə artıq nəzərə alınır */
 .pg-progress-wrap {
   display: flex;
   align-items: center;
@@ -81,12 +100,17 @@
   overflow: hidden;
 }
 
+/* Doluluq transform ilə (--p: 0…1) — en animasiya olunmur */
 .pg-progress-fill {
+  width: 100%;
   height: 100%;
   background: linear-gradient(90deg, var(--primary), var(--primary-light));
   border-radius: 4px;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scaleX(var(--p, 0));
+  transform-origin: 0 50%;
+  transition: transform var(--dur-3, 360ms) var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1));
 }
+[dir="rtl"] .pg-progress-fill { transform-origin: 100% 50%; }
 
 .pg-progress-text {
   font-size: 13px;
@@ -107,7 +131,17 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow);
   padding: 32px 28px;
-  animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  /* Hər addımda (key) yenidən görünür: "Növbəti" — sağdan, "Əvvəlki" — soldan */
+  animation: pg-step-in var(--dur-3, 360ms) var(--ease-out, ease) both;
+}
+.pg-step-card[data-dir="next"] { --pg-dx: 24px; --pg-dy: 0px; }
+.pg-step-card[data-dir="prev"] { --pg-dx: -24px; --pg-dy: 0px; }
+[dir="rtl"] .pg-step-card[data-dir="next"] { --pg-dx: -24px; }
+[dir="rtl"] .pg-step-card[data-dir="prev"] { --pg-dx: 24px; }
+
+@keyframes pg-step-in {
+  from { opacity: 0; transform: translate3d(var(--pg-dx, 0px), var(--pg-dy, 12px), 0); }
+  to   { opacity: 1; transform: none; }
 }
 
 .pg-step-header {
@@ -126,7 +160,7 @@
   width: 36px;
   height: 36px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border-radius: 50%;
   font-size: 14px;
   font-weight: 800;
@@ -263,6 +297,19 @@
   color: var(--text-dim);
   line-height: 1.7;
 }
+/* Ayə nömrəsi və tərcümə mənbəyi (Fatihə) */
+.pg-ayah-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold-dark);
+  white-space: nowrap;
+}
+.pg-meaning-src {
+  display: block;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
 
 /* ── Description ── */
 .pg-description {
@@ -347,15 +394,6 @@
     padding: 16px 18px;
   }
 
-  .pg-prayer-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .pg-prayer-btn {
-    padding: 20px 12px;
-  }
-
   .pg-nav .btn-primary,
   .pg-nav .btn-secondary {
     min-width: 0;
@@ -365,12 +403,6 @@
   .pg-step-header {
     flex-wrap: wrap;
     gap: 10px;
-  }
-}
-
-@media (max-width: 380px) {
-  .pg-prayer-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -402,18 +434,25 @@
   border-color: var(--border);
 }
 
-/* ── Mode Toggle ── */
-.pg-mode-toggle {
-  display: flex; gap: 8px; margin-bottom: 28px; justify-content: center;
+/* ── Mode Toggle ──
+   ≥768px: əvvəlki üç ayrı düymə; telefonda kit seqmenti (.m-seg) */
+@media (min-width: 768px) {
+  .pg-mode-toggle.m-seg {
+    display: flex; gap: 8px; margin-bottom: 28px; justify-content: center;
+    padding: 0; background: none; border-radius: 0;
+  }
+  .pg-mode-btn {
+    min-height: 0;
+    padding: 12px 24px; border-radius: 12px; border: 1.5px solid var(--border-md);
+    background: var(--bg-card); color: var(--text-dim);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .pg-mode-btn.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); box-shadow: none; }
+  .pg-mode-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .pg-mode-btn.active:hover,
+  [data-theme="dark"] .pg-mode-btn.active { color: var(--on-primary); }
 }
-.pg-mode-btn {
-  padding: 12px 24px; border-radius: 12px; border: 1.5px solid var(--border-md);
-  background: var(--bg-card); color: var(--text-dim);
-  font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-}
-.pg-mode-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-.pg-mode-btn:hover { border-color: var(--primary); color: var(--primary); }
-.pg-mode-btn.active:hover { color: #fff; }
 
 /* ── Wudu Completion Dua ── */
 .pg-wudu-dua {
@@ -425,7 +464,98 @@
 .pg-wudu-dua-ar { font-family: var(--font-arabic); font-size: 1.3rem; direction: rtl; line-height: 2; color: var(--text); margin-bottom: 8px; }
 .pg-wudu-dua-trans { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
 
-@media (max-width: 600px) {
-  .pg-mode-toggle { flex-direction: row; gap: 6px; }
-  .pg-mode-btn { padding: 10px 16px; font-size: 12px; }
+/* ══════════════════════════════════════════════════════
+   TELEFON (<768px) — tətbiq görünüşü
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  /* Rejim seqmenti: başlığın altında yapışır (başlıq gizlənəndə yuxarı qalxır) */
+  .pg-mode-toggle {
+    position: sticky;
+    top: calc(var(--header-offset, var(--header-h)) + 8px);
+    z-index: 30;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transition: top var(--dur-3) var(--ease-out);
+  }
+  .pg-mode-btn { min-height: 40px; font-size: 13.5px; }
+
+  /* Namaz seçimi: başlıq + keçid sətirləri */
+  .pg-select { text-align: start; }
+  .pg-select-title { font-size: 17px; margin-bottom: 10px; padding-inline: 4px; }
+  .pg-prayer-grid { display: flex; flex-direction: column; gap: 0; }
+  .pg-prayer-btn { min-height: 60px; }
+  .pg-prayer-icon { display: none; }
+  .pg-prayer-tile { display: inline-grid; }
+  .pg-prayer-chev { display: block; }
+  .pg-prayer-name { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 600; }
+
+  /* İrəliləmə zolağı: yapışan seqmentin altında qalmasın */
+  .pg-progress-wrap { margin-bottom: 12px; scroll-margin-top: 64px; }
+  .pg-progress-bar { height: 6px; }
+  .pg-progress-text { font-size: 13px; font-variant-numeric: tabular-nums; }
+  .pg-back-btn { margin-bottom: 12px; }
+
+  /* Addım kartı: yumşaq kölgə, kompakt boşluqlar */
+  .pg-step-card {
+    padding: 18px 16px 20px;
+    border-width: 1px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .pg-step-header { gap: 12px; margin-bottom: 16px; padding-bottom: 14px; }
+  .pg-step-number { width: 32px; height: 32px; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .pg-step-name { font-size: 17px; line-height: 1.3; }
+  .pg-arabic-block { padding: 14px 16px; margin-bottom: 14px; border-radius: 14px; }
+  .pg-label { font-size: 12px; letter-spacing: 1px; margin-bottom: 8px; }
+  .pg-translit { font-size: 14.5px; padding: 8px 0 12px; margin-bottom: 12px; }
+  .pg-meaning { padding: 14px 16px; margin-bottom: 14px; border-radius: 14px; }
+  .pg-meaning p { font-size: 14.5px; }
+  .pg-ayah-num { font-size: 12px; }
+  .pg-meaning-src { font-size: 12.5px; }
+  .pg-description { margin-bottom: 12px; }
+  .pg-description p { font-size: 15px; line-height: 1.7; }
+
+  /* "Əvvəlki / Növbəti" — ekranın altında yapışan şüşə panel */
+  .pg-nav {
+    position: sticky;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    z-index: 20;
+    margin-top: 16px;
+    padding: 8px;
+    gap: 8px;
+    background: var(--bg-card);
+    background: color-mix(in srgb, var(--bg-card) 84%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  }
+  .pg-nav .btn-primary,
+  .pg-nav .btn-secondary {
+    min-width: 0;
+    min-height: 48px;
+    flex: 1;
+    border-radius: 12px;
+  }
+
+  /* Tamamlandı ekranı */
+  .pg-complete {
+    padding: 36px 20px 24px;
+    border-width: 1px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+  }
+  .pg-complete-icon { font-size: 3.2rem; margin-bottom: 14px; }
+  .pg-complete-prayer { margin-bottom: 24px; }
+  .pg-complete > .btn-primary { width: 100%; justify-content: center; min-height: 48px; }
+  .pg-wudu-dua { padding: 16px; border-radius: 14px; }
+  .pg-wudu-dua-title { font-size: 12.5px; }
+  .pg-wudu-dua-trans { font-size: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-step-card, .pg-svg-pose { animation: none; }
+  .pg-progress-fill { transition: none; }
 }

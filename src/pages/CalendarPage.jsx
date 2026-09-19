@@ -1,9 +1,14 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/CalendarPage.css'
+import Breadcrumb from '../components/Breadcrumb'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
+// Yalnız ehtiyat üçündür: Umm al-Qura-dan 1–2 gün fərqlənə bilər.
+// Əsas mənbə hijriOf() — brauzerin Intl Umm al-Qura təqvimi (/jamaat və
+// /prayer səhifələri ilə eyni tarix).
 function gregorianToHijri(gDate) {
   const gy = gDate.getFullYear()
   const gm = gDate.getMonth() + 1
@@ -40,6 +45,41 @@ function gregorianToHijri(gDate) {
   return { year: hy, month: hm, day: hd }
 }
 
+/** Tarixin hicri günü/ayı/ili — Intl Umm al-Qura; dəstəklənmirsə Kuwaiti alqoritmi. */
+function hijriOf(date) {
+  try {
+    const fmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric' })
+    if (String(fmt.resolvedOptions().calendar || '').startsWith('islamic')) {
+      const parts = fmt.formatToParts(date)
+      const num = (type) => Number(parts.find(p => p.type === type)?.value)
+      const day = num('day'), month = num('month'), year = num('year')
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 30 && year > 1300) return { year, month, day }
+    }
+  } catch { /* köhnə brauzer — aşağıdakı alqoritm */ }
+  return gregorianToHijri(date)
+}
+
+// Hicri il şəkilçisi və hero alt başlığı (il cari tarixdən götürülür)
+const HIJRI_SUFFIX = { az: 'H', en: 'AH', ru: 'г.х.', ar: 'هـ', tr: 'H' }
+const HERO_SUBTITLE = {
+  az: (y) => `Hicri ${y} — Müqəddəs günlər`,
+  en: (y) => `Hijri ${y} — Sacred Days`,
+  ru: (y) => `Хиджра ${y} — Священные дни`,
+  ar: (y) => `هجري ${y} — الأيام المقدسة`,
+  tr: (y) => `Hicri ${y} — Kutsal Günler`,
+}
+
+// Miladi tarix. Chrome-un yığcam ICU-sunda "az" lokalı yoxdur ("2026 M09 19"
+// çıxır) — azərbaycanca əl ilə yazılır; ərəbcədə latın rəqəmləri
+const AZ_MONTHS = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avqust','sentyabr','oktyabr','noyabr','dekabr']
+const DATE_LOCALES = { en: 'en-GB', ru: 'ru-RU', tr: 'tr-TR', ar: 'ar-u-ca-gregory-nu-latn' }
+
+function formatGregorian(date, lang) {
+  if (lang === 'az') return `${date.getDate()} ${AZ_MONTHS[date.getMonth()]} ${date.getFullYear()}`
+  const opts = { day: 'numeric', month: 'long', year: 'numeric' }
+  try { return date.toLocaleDateString(DATE_LOCALES[lang] || 'en-GB', opts) } catch { return date.toLocaleDateString('en-GB', opts) }
+}
+
 const HIJRI_MONTHS = {
   az: ['Məhərrəm','Səfər','Rəbiül-Əvvəl','Rəbiül-Axir','Cəmadiyül-Əvvəl','Cəmadiyül-Axir','Rəcəb','Şaban','Ramazan','Şəvval','Zülqədə','Zülhiccə'],
   en: ['Muharram','Safar','Rabi al-Awwal','Rabi al-Thani','Jumada al-Ula','Jumada al-Thani','Rajab','Shaban','Ramadan','Shawwal','Dhu al-Qadah','Dhu al-Hijjah'],
@@ -49,7 +89,7 @@ const HIJRI_MONTHS = {
 }
 
 const EVENTS = [
-  { month:0, day:1,  en:'Islamic New Year 1447 AH',         az:'İslam Yeni İli 1447 H',          ru:'Исламский Новый Год 1447 г.х.', ar:'رأس السنة الهجرية ١٤٤٧', tr:'İslam Yılbaşı 1447 H', icon:'🌙', type:'major' },
+  { month:0, day:1,  en:'Islamic New Year',                 az:'İslam Yeni İli',                 ru:'Исламский Новый год',           ar:'رأس السنة الهجرية',        tr:'Hicri Yılbaşı',         icon:'🌙', type:'major' },
   { month:1, day:1,  en:'First of Safar',                    az:'Səfər ayının başlanğıcı',        ru:'Начало месяца Сафар',           ar:'غرة صفر',                  tr:'Safer ayı başlangıcı',  icon:'📅', type:'month' },
   { month:2, day:1,  en:'First of Rabi al-Awwal',           az:'Rəbiül-Əvvəl başlanğıcı',       ru:'Начало Раби аль-Авваль',        ar:'غرة ربيع الأول',           tr:'Rebiülevvel başlangıcı', icon:'📅', type:'month' },
   { month:5, day:1,  en:'First of Jumada al-Thani',         az:'Cəmadiyül-Axir başlanğıcı',     ru:'Начало Джумада ас-Сани',        ar:'غرة جمادى الآخرة',         tr:'Cemaziyelahir başlangıcı', icon:'📅', type:'month' },
@@ -77,6 +117,12 @@ const EVENTS = [
   { month:11,day:13, en:'Days of Tashreeq (3)',              az:'Təşriq günləri (3)',              ru:'Дни Ташрика (3)',               ar:'أيام التشريق (٣)',          tr:'Teşrik günleri (3)',     icon:'🐑', type:'hajj' },
 ]
 
+// Telefonda hadisə ikon kafelinin rəngi növə görə (motion.css → .icon-tile--*)
+const TYPE_TONES = { major:'gold', month:'slate', night:'violet', minor:'teal', sunnah:'teal', hajj:'orange' }
+
+// Növ filtri qrupunun ekran oxuyucu adı
+const FILTER_LABEL = { az:'Hadisə növü', en:'Event type', ru:'Тип события', ar:'نوع الحدث', tr:'Olay türü' }
+
 const NOTIFY_LABELS = {
   az: { remind:'Xatırlat', reminded:'Xatırladılacaq', today:'Bu gün!', upcoming:'Yaxınlaşır', removeReminder:'Ləğv et' },
   en: { remind:'Remind me', reminded:'Reminder set', today:'Today!', upcoming:'Upcoming', removeReminder:'Remove' },
@@ -88,7 +134,13 @@ const NOTIFY_LABELS = {
 export function CalendarPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.calendar || T.az.calendar
-  const [selMonth, setSelMonth] = useState(new Date().getMonth())
+  // Bugünkü hicri tarix state-lərdən əvvəl hesablanır ki, seçilmiş ay
+  // miladi ay nömrəsi ilə yox, cari HİCRİ ayla açılsın
+  const today = new Date()
+  const todayKey = today.toDateString()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const hijri = useMemo(() => hijriOf(new Date()), [todayKey])
+  const [selMonth, setSelMonth] = useState(() => hijri.month - 1)
   const [reminders, setReminders] = useState(() => {
     try { return JSON.parse(localStorage.getItem('calendar_reminders')) || [] } catch { return [] }
   })
@@ -120,8 +172,7 @@ export function CalendarPage({ setPage }) {
   // Check for today's reminders and show notifications
   useEffect(() => {
     if (reminders.length === 0) return
-    const today = new Date()
-    const hijriToday = gregorianToHijri(today)
+    const hijriToday = hijriOf(new Date())
     reminders.forEach(r => {
       // month in EVENTS is 0-indexed, hijri.month is 1-indexed
       if (r.month === (hijriToday.month - 1) && r.day === hijriToday.day) {
@@ -132,11 +183,35 @@ export function CalendarPage({ setPage }) {
     })
   }, []) // only on mount
 
+  // Telefonda aylar üfüqi zolaqdadır — seçilmiş ay görünmürsə zolağı ora
+  // sürüşdür (yalnız zolağın özü; səhifə yerində qalır)
+  const monthsRef = useRef(null)
+  const monthsScrolled = useRef(false)
+  useEffect(() => {
+    const strip = monthsRef.current
+    if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return
+    const chip = strip.querySelector('.cal-month-btn.active')
+    if (!chip) return
+    const s = strip.getBoundingClientRect()
+    const c = chip.getBoundingClientRect()
+    // İlk açılışda animasiyasız, sonrakı seçimlərdə yumşaq sürüşmə
+    let smooth = monthsScrolled.current
+    monthsScrolled.current = true
+    if (c.left >= s.left + 8 && c.right <= s.right - 8) return
+    try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) smooth = false } catch { /* köhnə brauzer */ }
+    const left = strip.scrollLeft + (c.left - s.left) - (s.width - c.width) / 2
+    if (typeof strip.scrollTo === 'function') strip.scrollTo({ left, behavior: smooth ? 'smooth' : 'auto' })
+    else strip.scrollLeft = left
+  }, [selMonth])
+
+  const onToggleReminder = (e) => { haptic(); toggleReminder(e) }
+
   const [typeFilter, setTypeFilter] = useState('all')
-  const today = new Date()
-  const hijri = useMemo(() => gregorianToHijri(today), [today.toDateString()])
   const hijriMonthNames = HIJRI_MONTHS[lang] || HIJRI_MONTHS.en
   const hijriStr = `${hijri.day} ${hijriMonthNames[hijri.month - 1]} ${hijri.year}`
+  const yearSuffix = HIJRI_SUFFIX[lang] || HIJRI_SUFFIX.en
+  // Hadisə tarixi: "1 Məhərrəm" (bütün dillərdə gün əvvəl — tarix kartı ilə eyni)
+  const eventDate = (e) => `${e.day} ${hijriMonthNames[e.month]}`
 
   // Növbəti hadisəyə geri sayım
   const nextEvent = useMemo(() => {
@@ -161,10 +236,12 @@ export function CalendarPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero theme-calendar">
-        <div className="page-hero-arabic">التَّقۡوِيمُ ٱلۡإِسۡلَامِيّ</div>
+      <div className="page-hero hero-compact theme-calendar">
+        <Breadcrumb setPage={setPage} current={t.title} />
+        {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
+        {lang !== 'ar' && <div className="page-hero-arabic">التَّقۡوِيمُ ٱلۡإِسۡلَامِيّ</div>}
         <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
+        <p>{(HERO_SUBTITLE[lang] || HERO_SUBTITLE.en)(hijri.year)}</p>
       </div>
 
       <div className="section">
@@ -178,39 +255,46 @@ export function CalendarPage({ setPage }) {
             <div className="cal-date-divider" />
             <div className="cal-date-item">
               <span className="cal-date-label">{t.gregorianDate}</span>
-              <span className="cal-date-val">{today.toLocaleDateString(lang==='ar'?'ar-SA':lang==='ru'?'ru-RU':lang==='tr'?'tr-TR':'az-AZ',{day:'numeric',month:'long',year:'numeric'})}</span>
+              <span className="cal-date-val">{formatGregorian(today, lang)}</span>
             </div>
           </div>
 
           {/* Növbəti hadisə */}
           {nextEvent && (
             <div className="cal-next-event">
-              <span className="cal-next-icon">{nextEvent.icon}</span>
+              <span className={`cal-next-icon icon-tile icon-tile--lg icon-tile--${TYPE_TONES[nextEvent.type] || 'gold'}`} aria-hidden="true">{nextEvent.icon}</span>
               <div className="cal-next-info">
                 <div className="cal-next-label">{lang==='az'?'Növbəti hadisə':lang==='ru'?'Следующее событие':lang==='ar'?'الحدث التالي':lang==='tr'?'Sonraki olay':'Next event'}</div>
                 <div className="cal-next-name">{nextEvent[lang] || nextEvent.en}</div>
-                <div className="cal-next-date">{hijriMonthNames[nextEvent.month]} {nextEvent.day}</div>
+                <div className="cal-next-date">{eventDate(nextEvent)}</div>
               </div>
             </div>
           )}
 
-          {/* Type filter */}
-          <div className="cal-type-filter">
+          {/* Növ filtri — telefonda bir sətirlik sürüşən çiplər (.chip-scroll) */}
+          <div className="cal-type-filter chip-scroll wrap-desktop" role="group" aria-label={FILTER_LABEL[lang] || FILTER_LABEL.en}>
             {Object.keys(TYPE_LABELS).map(k => (
-              <button key={k} className={`tag-btn ${typeFilter === k ? 'active' : ''}`} onClick={() => setTypeFilter(k)}>
+              <button key={k} type="button" className={`tag-btn ${typeFilter === k ? 'active' : ''}`}
+                aria-pressed={typeFilter === k} onClick={() => setTypeFilter(k)}>
                 {TYPE_LABELS[k][tl]}
               </button>
             ))}
           </div>
 
-          {/* Month tabs */}
-          <div className="cal-months">
-            {t.months.map((m, i) => {
+          {/* Aylar: masaüstündə 6 × 2 şəbəkə, telefonda üfüqi zolaq */}
+          <div className="cal-months chip-scroll wrap-desktop" ref={monthsRef}>
+            {hijriMonthNames.map((m, i) => {
               const hasEvent = EVENTS.some(e => e.month === i)
+              const isCurrent = i === hijri.month - 1
               return (
-                <button key={i} className={`cal-month-btn ${selMonth===i?'active':''}`} onClick={() => setSelMonth(i)}>
+                <button key={i} type="button"
+                  className={`cal-month-btn ${selMonth===i?'active':''} ${isCurrent?'current':''}`}
+                  onClick={() => setSelMonth(i)}
+                  aria-pressed={selMonth === i}
+                  aria-current={isCurrent ? 'date' : undefined}
+                  title={m}>
                   {m}
-                  {hasEvent && <span className="cal-event-dot" />}
+                  {hasEvent && <span className="cal-event-dot" aria-hidden="true" />}
                 </button>
               )
             })}
@@ -218,12 +302,13 @@ export function CalendarPage({ setPage }) {
 
           <div className="cal-main">
             <div className="cal-selected-month">
-              <h2>{t.months[selMonth]}</h2>
+              <h2>{hijriMonthNames[selMonth]}</h2>
               <span className="cal-month-num">{selMonth + 1} / 12</span>
             </div>
 
+            {/* key: ay dəyişəndə hadisələr yenidən yumşaq görünür */}
             {monthEvents.length > 0 ? (
-              <div className="cal-events">
+              <div className="cal-events" key={`${selMonth}-${typeFilter}`}>
                 <div className="cal-events-label">{t.events}</div>
                 {monthEvents.map((e, i) => {
                   const reminded = isReminded(e)
@@ -232,9 +317,10 @@ export function CalendarPage({ setPage }) {
                       <span className="cal-event-icon">{e.icon}</span>
                       <div className="cal-event-body">
                         <div className="cal-event-name">{e[lang] || e.en}</div>
-                        <div className="cal-event-date">{t.months[e.month]} {e.day}</div>
+                        <div className="cal-event-date">{eventDate(e)}</div>
                       </div>
-                      <button className={`cal-remind-btn ${reminded ? 'active' : ''}`} onClick={() => toggleReminder(e)}>
+                      <button type="button" className={`cal-remind-btn ${reminded ? 'active' : ''}`} onClick={() => onToggleReminder(e)}
+                        aria-pressed={reminded} aria-label={`${reminded ? nl.reminded : nl.remind}: ${e[lang] || e.en}`}>
                         {reminded ? '🔔' : '🔕'}
                         <span>{reminded ? nl.reminded : nl.remind}</span>
                       </button>
@@ -243,29 +329,35 @@ export function CalendarPage({ setPage }) {
                 })}
               </div>
             ) : (
-              <div className="cal-no-events">{t.noEvents}</div>
+              <div className="cal-no-events" key={`${selMonth}-${typeFilter}`}>
+                {/* Telefonda boş vəziyyət ikonu (masaüstündə gizli) */}
+                <span className="cal-no-events-ico icon-tile icon-tile--lg icon-tile--slate" aria-hidden="true">🗓️</span>
+                <span>{t.noEvents}</span>
+              </div>
             )}
           </div>
 
           {/* All events list */}
           <div className="cal-all-events">
             <div className="section-header" style={{marginBottom:24}}>
-              <div className="section-eyebrow">{hijri.year} AH</div>
+              <div className="section-eyebrow">{hijri.year} {yearSuffix}</div>
               <h2 className="section-title" style={{fontSize:24}}>
                 {lang==='az'?'Bütün Hadisələr': lang==='ru'?'Все события': lang==='ar'?'جميع الأحداث': lang==='tr'?'Tüm Olaylar':'All Events'}
               </h2>
             </div>
-            <div className="cal-timeline">
+            {/* Telefonda qruplu "inset" siyahı (ikon kafeli + zəng düyməsi) */}
+            <div className="cal-timeline m-list" data-reveal="stagger">
               {EVENTS.map((e, i) => {
                 const reminded = isReminded(e)
                 return (
-                  <div key={i} className="cal-timeline-item">
-                    <div className="cal-tl-icon">{e.icon}</div>
+                  <div key={i} className="cal-timeline-item m-row">
+                    <div className={`cal-tl-icon icon-tile icon-tile--${TYPE_TONES[e.type] || 'gold'}`} aria-hidden="true">{e.icon}</div>
                     <div className="cal-tl-body">
                       <div className="cal-tl-name">{e[lang] || e.en}</div>
-                      <div className="cal-tl-date">{t.months[e.month]} {e.day}, {hijri.year}</div>
+                      <div className="cal-tl-date">{eventDate(e)} {hijri.year}</div>
                     </div>
-                    <button className={`cal-remind-btn ${reminded ? 'active' : ''}`} onClick={() => toggleReminder(e)}>
+                    <button type="button" className={`cal-remind-btn ${reminded ? 'active' : ''}`} onClick={() => onToggleReminder(e)}
+                      aria-pressed={reminded} aria-label={`${reminded ? nl.reminded : nl.remind}: ${e[lang] || e.en}`}>
                       {reminded ? '🔔' : '🔕'}
                       <span>{reminded ? nl.reminded : nl.remind}</span>
                     </button>

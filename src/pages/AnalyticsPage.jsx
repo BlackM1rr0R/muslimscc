@@ -1,14 +1,42 @@
 import { useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import '../styles/AnalyticsPage.css'
+import Breadcrumb from '../components/Breadcrumb'
 
 const LABELS = {
-  az: { title:'Statistika', subtitle:'Fəaliyyətinizin ümumi icmalı', overview:'Ümumi Baxış', daysActive:'Aktiv gün', prayers:'Namaz', quranSessions:'Quran', favHadiths:'Sevimli hədis', duasSaved:'Dua', charityDeeds:'Sədəqə', prayerStats:'Namaz Statistikası', total:'Ümumi', thisWeek:'Bu həftə', thisMonth:'Bu ay', rate:'Tamamlanma', streak:'Ardıcıl gün', quranStats:'Quran Statistikası', sessions:'Sessiya', surahs:'Surə', hifzProgress:'Hifz İrəliləyişi', memorized:'Əzbər', inProgress:'Davam edir', notStarted:'Başlanmayıb', hadithDua:'Hədis & Dua', favs:'Sevimlilər', duaJournal:'Dua Gündəliyi', active:'Aktiv', answered:'Qəbul olunan', quizScores:'Kviz Xalları', charityStats:'Sədəqə', totalAmount:'Ümumi məbləğ', byType:'Növə görə', dailyTracker:'Gündəlik Tracker', today:'Bu gün', weekAvg:'Həftəlik orta', achievements:'Nailiyyətlər', achieved:'Qazanıldı', locked:'Kilidli', bestScore:'Ən yaxşı', noData:'Hələ məlumat yoxdur. Tətbiqi istifadə etdikcə statistikanız burada görünəcək.' },
-  en: { title:'Analytics', subtitle:'Your complete activity summary', overview:'Overview', daysActive:'Days active', prayers:'Prayers', quranSessions:'Quran', favHadiths:'Fav hadiths', duasSaved:'Duas', charityDeeds:'Charity', prayerStats:'Prayer Statistics', total:'Total', thisWeek:'This week', thisMonth:'This month', rate:'Completion', streak:'Day streak', quranStats:'Quran Statistics', sessions:'Sessions', surahs:'Surahs', hifzProgress:'Hifz Progress', memorized:'Memorized', inProgress:'In progress', notStarted:'Not started', hadithDua:'Hadith & Dua', favs:'Favorites', duaJournal:'Dua Journal', active:'Active', answered:'Answered', quizScores:'Quiz Scores', charityStats:'Charity', totalAmount:'Total amount', byType:'By type', dailyTracker:'Daily Tracker', today:'Today', weekAvg:'Week average', achievements:'Achievements', achieved:'Achieved', locked:'Locked', bestScore:'Best', noData:'No data yet. Your statistics will appear here as you use the app.' },
-  ru: { title:'Аналитика', subtitle:'Полная сводка вашей активности', overview:'Обзор', daysActive:'Дней активности', prayers:'Намазы', quranSessions:'Коран', favHadiths:'Избранные хадисы', duasSaved:'Дуа', charityDeeds:'Садака', prayerStats:'Статистика намаза', total:'Всего', thisWeek:'Эта неделя', thisMonth:'Этот месяц', rate:'Выполнение', streak:'Дней подряд', quranStats:'Статистика Корана', sessions:'Сессии', surahs:'Суры', hifzProgress:'Прогресс хифза', memorized:'Выучено', inProgress:'В процессе', notStarted:'Не начато', hadithDua:'Хадисы и дуа', favs:'Избранное', duaJournal:'Дневник дуа', active:'Активные', answered:'Отвеченные', quizScores:'Баллы викторины', charityStats:'Садака', totalAmount:'Общая сумма', byType:'По типу', dailyTracker:'Ежедневный трекер', today:'Сегодня', weekAvg:'Среднее за неделю', achievements:'Достижения', achieved:'Получено', locked:'Заблокировано', bestScore:'Лучший', noData:'Пока нет данных. Статистика появится по мере использования.' },
-  ar: { title:'الإحصائيات', subtitle:'ملخص نشاطك الكامل', overview:'نظرة عامة', daysActive:'أيام النشاط', prayers:'الصلوات', quranSessions:'القرآن', favHadiths:'أحاديث مفضلة', duasSaved:'أدعية', charityDeeds:'صدقات', prayerStats:'إحصائيات الصلاة', total:'الإجمالي', thisWeek:'هذا الأسبوع', thisMonth:'هذا الشهر', rate:'الإتمام', streak:'أيام متتالية', quranStats:'إحصائيات القرآن', sessions:'جلسات', surahs:'سور', hifzProgress:'تقدم الحفظ', memorized:'محفوظ', inProgress:'قيد التقدم', notStarted:'لم يبدأ', hadithDua:'الحديث والدعاء', favs:'المفضلة', duaJournal:'مذكرة الدعاء', active:'نشط', answered:'مستجاب', quizScores:'نتائج الاختبار', charityStats:'الصدقة', totalAmount:'المبلغ الإجمالي', byType:'حسب النوع', dailyTracker:'المتابعة اليومية', today:'اليوم', weekAvg:'متوسط الأسبوع', achievements:'الإنجازات', achieved:'تم', locked:'مقفل', bestScore:'الأفضل', noData:'لا بيانات بعد. ستظهر إحصائياتك هنا مع الاستخدام.' },
-  tr: { title:'İstatistikler', subtitle:'Aktivite özetiniz', overview:'Genel Bakış', daysActive:'Aktif gün', prayers:'Namazlar', quranSessions:'Kuran', favHadiths:'Favori hadisler', duasSaved:'Dualar', charityDeeds:'Sadaka', prayerStats:'Namaz İstatistikleri', total:'Toplam', thisWeek:'Bu hafta', thisMonth:'Bu ay', rate:'Tamamlanma', streak:'Ardışık gün', quranStats:'Kuran İstatistikleri', sessions:'Oturum', surahs:'Sure', hifzProgress:'Hıfz İlerlemesi', memorized:'Ezber', inProgress:'Devam ediyor', notStarted:'Başlanmadı', hadithDua:'Hadis & Dua', favs:'Favoriler', duaJournal:'Dua Günlüğü', active:'Aktif', answered:'Kabul edilen', quizScores:'Quiz Puanları', charityStats:'Sadaka', totalAmount:'Toplam tutar', byType:'Türe göre', dailyTracker:'Günlük Takip', today:'Bugün', weekAvg:'Hafta ortalaması', achievements:'Başarılar', achieved:'Kazanıldı', locked:'Kilitli', bestScore:'En iyi', noData:'Henüz veri yok. İstatistikleriniz kullandıkça görünecek.' },
+  az: { title:'Statistika', subtitle:'Fəaliyyətinizin ümumi icmalı', overview:'Ümumi Baxış', daysActive:'Aktiv gün', prayers:'Namaz', quranSessions:'Quran', favHadiths:'Sevimli hədis', duasSaved:'Dua', charityDeeds:'Sədəqə', prayerStats:'Namaz Statistikası', total:'Ümumi', thisWeek:'Bu həftə', thisMonth:'Bu ay', rate:'Tamamlanma', streak:'Ardıcıl gün', quranStats:'Quran Statistikası', sessions:'Sessiya', surahs:'Surə', hifzProgress:'Hifz İrəliləyişi', memorized:'Əzbər', inProgress:'Davam edir', notStarted:'Başlanmayıb', hadithDua:'Hədis & Dua', favs:'Sevimlilər', duaJournal:'Dua Gündəliyi', active:'Aktiv', answered:'Qəbul olunan', quizScores:'Kviz Xalları', charityStats:'Sədəqə', totalAmount:'Ümumi məbləğ', byType:'Növə görə', dailyTracker:'Gündəlik izləyici', quranGame:'Quran Müsabiqəsi', today:'Bu gün', weekAvg:'Həftəlik orta', achievements:'Nailiyyətlər', achieved:'Qazanıldı', locked:'Kilidli', bestScore:'Ən yaxşı', noData:'Hələ məlumat yoxdur. Tətbiqi istifadə etdikcə statistikanız burada görünəcək.' },
+  en: { title:'Analytics', subtitle:'Your complete activity summary', overview:'Overview', daysActive:'Days active', prayers:'Prayers', quranSessions:'Quran', favHadiths:'Fav hadiths', duasSaved:'Duas', charityDeeds:'Charity', prayerStats:'Prayer Statistics', total:'Total', thisWeek:'This week', thisMonth:'This month', rate:'Completion', streak:'Day streak', quranStats:'Quran Statistics', sessions:'Sessions', surahs:'Surahs', hifzProgress:'Hifz Progress', memorized:'Memorized', inProgress:'In progress', notStarted:'Not started', hadithDua:'Hadith & Dua', favs:'Favorites', duaJournal:'Dua Journal', active:'Active', answered:'Answered', quizScores:'Quiz Scores', charityStats:'Charity', totalAmount:'Total amount', byType:'By type', dailyTracker:'Daily Tracker', quranGame:'Quran Quiz', today:'Today', weekAvg:'Week average', achievements:'Achievements', achieved:'Achieved', locked:'Locked', bestScore:'Best', noData:'No data yet. Your statistics will appear here as you use the app.' },
+  ru: { title:'Аналитика', subtitle:'Полная сводка вашей активности', overview:'Обзор', daysActive:'Дней активности', prayers:'Намазы', quranSessions:'Коран', favHadiths:'Избранные хадисы', duasSaved:'Дуа', charityDeeds:'Садака', prayerStats:'Статистика намаза', total:'Всего', thisWeek:'Эта неделя', thisMonth:'Этот месяц', rate:'Выполнение', streak:'Дней подряд', quranStats:'Статистика Корана', sessions:'Сессии', surahs:'Суры', hifzProgress:'Прогресс хифза', memorized:'Выучено', inProgress:'В процессе', notStarted:'Не начато', hadithDua:'Хадисы и дуа', favs:'Избранное', duaJournal:'Дневник дуа', active:'Активные', answered:'Отвеченные', quizScores:'Баллы викторины', charityStats:'Садака', totalAmount:'Общая сумма', byType:'По типу', dailyTracker:'Ежедневный трекер', quranGame:'Викторина Корана', today:'Сегодня', weekAvg:'Среднее за неделю', achievements:'Достижения', achieved:'Получено', locked:'Заблокировано', bestScore:'Лучший', noData:'Пока нет данных. Статистика появится по мере использования.' },
+  ar: { title:'الإحصائيات', subtitle:'ملخص نشاطك الكامل', overview:'نظرة عامة', daysActive:'أيام النشاط', prayers:'الصلوات', quranSessions:'القرآن', favHadiths:'أحاديث مفضلة', duasSaved:'أدعية', charityDeeds:'صدقات', prayerStats:'إحصائيات الصلاة', total:'الإجمالي', thisWeek:'هذا الأسبوع', thisMonth:'هذا الشهر', rate:'الإتمام', streak:'أيام متتالية', quranStats:'إحصائيات القرآن', sessions:'جلسات', surahs:'سور', hifzProgress:'تقدم الحفظ', memorized:'محفوظ', inProgress:'قيد التقدم', notStarted:'لم يبدأ', hadithDua:'الحديث والدعاء', favs:'المفضلة', duaJournal:'مذكرة الدعاء', active:'نشط', answered:'مستجاب', quizScores:'نتائج الاختبار', charityStats:'الصدقة', totalAmount:'المبلغ الإجمالي', byType:'حسب النوع', dailyTracker:'المتابعة اليومية', quranGame:'مسابقة القرآن', today:'اليوم', weekAvg:'متوسط الأسبوع', achievements:'الإنجازات', achieved:'تم', locked:'مقفل', bestScore:'الأفضل', noData:'لا بيانات بعد. ستظهر إحصائياتك هنا مع الاستخدام.' },
+  tr: { title:'İstatistikler', subtitle:'Aktivite özetiniz', overview:'Genel Bakış', daysActive:'Aktif gün', prayers:'Namazlar', quranSessions:'Kuran', favHadiths:'Favori hadisler', duasSaved:'Dualar', charityDeeds:'Sadaka', prayerStats:'Namaz İstatistikleri', total:'Toplam', thisWeek:'Bu hafta', thisMonth:'Bu ay', rate:'Tamamlanma', streak:'Ardışık gün', quranStats:'Kuran İstatistikleri', sessions:'Oturum', surahs:'Sure', hifzProgress:'Hıfz İlerlemesi', memorized:'Ezber', inProgress:'Devam ediyor', notStarted:'Başlanmadı', hadithDua:'Hadis & Dua', favs:'Favoriler', duaJournal:'Dua Günlüğü', active:'Aktif', answered:'Kabul edilen', quizScores:'Quiz Puanları', charityStats:'Sadaka', totalAmount:'Toplam tutar', byType:'Türe göre', dailyTracker:'Günlük Takip', quranGame:'Kuran Yarışması', today:'Bugün', weekAvg:'Hafta ortalaması', achievements:'Başarılar', achieved:'Kazanıldı', locked:'Kilitli', bestScore:'En iyi', noData:'Henüz veri yok. İstatistikleriniz kullandıkça görünecek.' },
 }
+
+// localStorage-dakı daxili açarların (charity_log.type, quiz_scores,
+// quran_game_scores) istifadəçiyə göstərilən adları. Əvvəl açar olduğu kimi
+// ("money", "hadith", "Quran Game — complete") bütün dillərdə görünürdü.
+// Sədəqə növləri CharityPage.jsx-dəki DEED_TYPES ilə eynidir.
+const CHARITY_TYPES = {
+  money:     { az:'Pul', en:'Money', ru:'Деньги', ar:'مال', tr:'Para' },
+  food:      { az:'Yemək', en:'Food', ru:'Еда', ar:'طعام', tr:'Yemek' },
+  smile:     { az:'Gülüş', en:'Smile', ru:'Улыбка', ar:'ابتسامة', tr:'Gülümseme' },
+  knowledge: { az:'Elm', en:'Knowledge', ru:'Знание', ar:'علم', tr:'İlim' },
+  dua:       { az:'Dua', en:'Dua', ru:'Дуа', ar:'دعاء', tr:'Dua' },
+  helping:   { az:'Kömək', en:'Helping', ru:'Помощь', ar:'مساعدة', tr:'Yardım' },
+  clothing:  { az:'Geyim', en:'Clothing', ru:'Одежда', ar:'ملابس', tr:'Giyim' },
+  other:     { az:'Digər', en:'Other', ru:'Другое', ar:'أخرى', tr:'Diğer' },
+}
+// Kviz kateqoriyaları — QuizPage.jsx-dəki adlar
+const QUIZ_CATEGORIES = {
+  quran:  { az:'Quran', en:'Quran', ru:'Коран', ar:'القرآن', tr:'Kuran' },
+  hadith: { az:'Hədis', en:'Hadith', ru:'Хадис', ar:'الحديث', tr:'Hadis' },
+  names:  { az:'99 Ad', en:'99 Names', ru:'99 Имён', ar:'٩٩ اسم', tr:'99 İsim' },
+}
+// Quran müsabiqəsinin rejimləri — QuranGamePage.jsx-dəki adlar
+const QG_MODES = {
+  complete: { az:'Ayəni tamamla', en:'Complete the verse', ru:'Завершите аят', ar:'أكمل الآية', tr:'Ayeti tamamla' },
+  surah:    { az:'Surəni tap', en:'Find the surah', ru:'Найдите суру', ar:'اعثر على السورة', tr:'Sureyi bul' },
+}
+const labelOf = (map, key, lang) => map[key]?.[lang] || map[key]?.en || key
 
 function safeJSON(key, fallback) {
   try {
@@ -214,13 +242,10 @@ export default function AnalyticsPage({ setPage }) {
 
   return (
     <div className="analytics-page">
-      <div className="page-hero theme-analytics">
-        <div className="breadcrumb">
-          <button onClick={() => setPage('home')}>🏠</button>
-          <span>›</span>
-          <span>{t.title}</span>
-        </div>
-        <h1>📊 {t.title}</h1>
+      {/* hero-compact: telefonda yığcam hero, çörək qırıntısı gizlənir (motion.css) */}
+      <div className="page-hero theme-analytics hero-compact">
+        <Breadcrumb setPage={setPage} current={t.title} />
+        <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
       </div>
 
@@ -228,24 +253,27 @@ export default function AnalyticsPage({ setPage }) {
         <div className="section-inner">
 
           {!hasData && (
-            <div className="analytics-nodata">
-              <span className="analytics-nodata-icon">📊</span>
-              {t.noData}
+            <div className="analytics-nodata" role="status">
+              <span className="analytics-nodata-icon icon-tile icon-tile--slate" aria-hidden="true">📊</span>
+              <span>{t.noData}</span>
             </div>
           )}
 
-          {/* ── Overview Cards ── */}
-          <div className="analytics-overview">
+          {/* ── Overview Cards ──
+              data-reveal="stagger": kartlar 40ms aralıqla qalxır (motion.css).
+              Telefonda yığcam üfüqi kartlar, ikon rəngli kafeldə (.icon-tile);
+              ≥768px-də kafel görünmür — əvvəlki görünüş (AnalyticsPage.css) */}
+          <div className="analytics-overview" data-reveal="stagger">
             {[
-              { icon: '📅', value: data.daysActive, label: t.daysActive },
-              { icon: '🕌', value: data.totalPrayers, label: t.prayers },
-              { icon: '📖', value: data.quranSessions, label: t.quranSessions },
-              { icon: '📚', value: data.hadithFavs, label: t.favHadiths },
-              { icon: '🤲', value: data.duaFavs, label: t.duasSaved },
-              { icon: '💚', value: data.totalCharity, label: t.charityDeeds },
+              { icon: '📅', tone: 'blue',   value: data.daysActive, label: t.daysActive },
+              { icon: '🕌', tone: 'teal',   value: data.totalPrayers, label: t.prayers },
+              { icon: '📖', tone: '',       value: data.quranSessions, label: t.quranSessions },
+              { icon: '📚', tone: 'violet', value: data.hadithFavs, label: t.favHadiths },
+              { icon: '🤲', tone: 'gold',   value: data.duaFavs, label: t.duasSaved },
+              { icon: '💚', tone: 'rose',   value: data.totalCharity, label: t.charityDeeds },
             ].map((c, i) => (
-              <div key={i} className={`analytics-ov-card d${i + 1}`} style={{ animationDelay: `${i * 80}ms` }}>
-                <div className="analytics-ov-icon">{c.icon}</div>
+              <div key={i} className="analytics-ov-card">
+                <div className={`analytics-ov-icon icon-tile${c.tone ? ` icon-tile--${c.tone}` : ''}`} aria-hidden="true">{c.icon}</div>
                 <div className="analytics-ov-value">{c.value}</div>
                 <div className="analytics-ov-label">{c.label}</div>
               </div>
@@ -255,9 +283,9 @@ export default function AnalyticsPage({ setPage }) {
           <div className="analytics-sections">
 
             {/* ── Namaz Statistics ── */}
-            <div className="analytics-card">
+            <div className="analytics-card" data-reveal="">
               <div className="analytics-card-header">
-                <span className="analytics-card-header-icon">🕌</span>
+                <span className="analytics-card-header-icon icon-tile icon-tile--sm icon-tile--teal" aria-hidden="true">🕌</span>
                 <h3>{t.prayerStats}</h3>
               </div>
               <div className="analytics-card-body">
@@ -290,9 +318,9 @@ export default function AnalyticsPage({ setPage }) {
             </div>
 
             {/* ── Quran Statistics ── */}
-            <div className="analytics-card">
+            <div className="analytics-card" data-reveal="">
               <div className="analytics-card-header">
-                <span className="analytics-card-header-icon">📖</span>
+                <span className="analytics-card-header-icon icon-tile icon-tile--sm" aria-hidden="true">📖</span>
                 <h3>{t.quranStats}</h3>
               </div>
               <div className="analytics-card-body">
@@ -340,9 +368,9 @@ export default function AnalyticsPage({ setPage }) {
             </div>
 
             {/* ── Hadith & Dua ── */}
-            <div className="analytics-card">
+            <div className="analytics-card" data-reveal="">
               <div className="analytics-card-header">
-                <span className="analytics-card-header-icon">📚</span>
+                <span className="analytics-card-header-icon icon-tile icon-tile--sm icon-tile--violet" aria-hidden="true">📚</span>
                 <h3>{t.hadithDua}</h3>
               </div>
               <div className="analytics-card-body">
@@ -364,10 +392,10 @@ export default function AnalyticsPage({ setPage }) {
                 </div>
                 {Object.keys(data.quizScores).length > 0 && (
                   <>
-                    <div style={{ marginTop: 12, marginBottom: 6, fontSize: 13, fontWeight: 700, color: 'var(--text-dim)' }}>{t.quizScores}</div>
+                    <div className="analytics-subhead">{t.quizScores}</div>
                     {Object.entries(data.quizScores).map(([k, v]) => (
                       <div className="analytics-stat-row" key={k}>
-                        <span className="analytics-stat-label">{k}</span>
+                        <span className="analytics-stat-label">{labelOf(QUIZ_CATEGORIES, k, lang)}</span>
                         <span className="analytics-stat-value">{t.bestScore}: {v}</span>
                       </div>
                     ))}
@@ -377,7 +405,7 @@ export default function AnalyticsPage({ setPage }) {
                   <>
                     {Object.entries(data.quranGameScores).map(([k, v]) => (
                       <div className="analytics-stat-row" key={`qg-${k}`}>
-                        <span className="analytics-stat-label">Quran Game — {k}</span>
+                        <span className="analytics-stat-label">{t.quranGame} — {labelOf(QG_MODES, k, lang)}</span>
                         <span className="analytics-stat-value">{t.bestScore}: {v}</span>
                       </div>
                     ))}
@@ -387,9 +415,9 @@ export default function AnalyticsPage({ setPage }) {
             </div>
 
             {/* ── Charity ── */}
-            <div className="analytics-card">
+            <div className="analytics-card" data-reveal="">
               <div className="analytics-card-header">
-                <span className="analytics-card-header-icon">💚</span>
+                <span className="analytics-card-header-icon icon-tile icon-tile--sm icon-tile--rose" aria-hidden="true">💚</span>
                 <h3>{t.charityStats}</h3>
               </div>
               <div className="analytics-card-body">
@@ -408,11 +436,11 @@ export default function AnalyticsPage({ setPage }) {
 
                 {Object.keys(data.charityByType).length > 0 && (
                   <>
-                    <div style={{ marginTop: 12, marginBottom: 6, fontSize: 13, fontWeight: 700, color: 'var(--text-dim)' }}>{t.byType}</div>
+                    <div className="analytics-subhead">{t.byType}</div>
                     <div className="analytics-bar-chart">
                       {Object.entries(data.charityByType).map(([type, count]) => (
                         <div className="analytics-bar-item" key={type}>
-                          <span className="analytics-bar-label">{type}</span>
+                          <span className="analytics-bar-label">{labelOf(CHARITY_TYPES, type, lang)}</span>
                           <div className="analytics-bar-track">
                             <div className="analytics-bar-fill" style={{ width: `${Math.round((count / data.maxTypeCount) * 100)}%` }}>
                               {count}
@@ -426,46 +454,53 @@ export default function AnalyticsPage({ setPage }) {
               </div>
             </div>
 
-            {/* ── Daily Tracker ── */}
-            <div className="analytics-card">
+            {/* ── Daily Tracker ──
+                Tam en: 2 sütunlu şəbəkədə 5-ci kart tək qalırdı (sağ yarı boş).
+                Geniş ekranda "Bu gün" və "Həftəlik orta" yan-yanadır. */}
+            <div className="analytics-card full-width" data-reveal="">
               <div className="analytics-card-header">
-                <span className="analytics-card-header-icon">📋</span>
+                <span className="analytics-card-header-icon icon-tile icon-tile--sm icon-tile--blue" aria-hidden="true">📋</span>
                 <h3>{t.dailyTracker}</h3>
               </div>
-              <div className="analytics-card-body">
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.today}</span>
-                  <span className="analytics-stat-value highlight">{data.todayPct}%</span>
-                </div>
-                <div className="analytics-progress-wrap">
-                  <div className="analytics-progress-label">
-                    <span>{data.todayDone} / {data.todayTotal}</span>
-                    <span>{data.todayPct}%</span>
+              <div className="analytics-card-body analytics-split">
+                <div className="analytics-split-col">
+                  <div className="analytics-stat-row">
+                    <span className="analytics-stat-label">{t.today}</span>
+                    <span className="analytics-stat-value highlight">{data.todayPct}%</span>
                   </div>
-                  <div className="analytics-progress-bar">
-                    <div className="analytics-progress-fill" style={{ width: `${data.todayPct}%` }} />
+                  <div className="analytics-progress-wrap">
+                    <div className="analytics-progress-label">
+                      <span>{data.todayDone} / {data.todayTotal}</span>
+                      <span>{data.todayPct}%</span>
+                    </div>
+                    <div className="analytics-progress-bar">
+                      <div className="analytics-progress-fill" style={{ width: `${data.todayPct}%` }} />
+                    </div>
                   </div>
                 </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.weekAvg}</span>
-                  <span className="analytics-stat-value">{data.weekAvg}%</span>
-                </div>
-                <div className="analytics-progress-wrap">
-                  <div className="analytics-progress-bar">
-                    <div className="analytics-progress-fill" style={{ width: `${data.weekAvg}%` }} />
+                <div className="analytics-split-col">
+                  <div className="analytics-stat-row">
+                    <span className="analytics-stat-label">{t.weekAvg}</span>
+                    <span className="analytics-stat-value">{data.weekAvg}%</span>
+                  </div>
+                  <div className="analytics-progress-wrap">
+                    <div className="analytics-progress-bar">
+                      <div className="analytics-progress-fill" style={{ width: `${data.weekAvg}%` }} />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* ── Achievements ── */}
-            <div className="analytics-card full-width">
+            <div className="analytics-card full-width" data-reveal="">
               <div className="analytics-card-header">
-                <span className="analytics-card-header-icon">🏆</span>
+                <span className="analytics-card-header-icon icon-tile icon-tile--sm icon-tile--gold" aria-hidden="true">🏆</span>
                 <h3>{t.achievements} ({achievedCount}/{achievements.length})</h3>
               </div>
               <div className="analytics-card-body">
-                <div className="analytics-achievements">
+                {/* Telefonda üfüqi sürüşən nişan zolağı */}
+                <div className="analytics-achievements" data-reveal="stagger">
                   {achievements.map((a, i) => (
                     <div key={i} className={`analytics-badge ${a.check ? 'achieved' : 'locked'}`}>
                       <div className="analytics-badge-icon">{a.icon}</div>

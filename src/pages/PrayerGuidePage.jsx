@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/PrayerGuidePage.css'
+import Breadcrumb from '../components/Breadcrumb'
 
 const LABELS = {
   az: { title:'Namaz Öyrən', subtitle:'Addım-addım namaz qaydası', step:'Addım', prev:'Əvvəlki', next:'Növbəti', recite:'Oxu', meaning:'Mənası', times:'dəfə', selectPrayer:'Namaz seçin', fajr:'Sübh (2 rəkət)', dhuhr:'Zöhr (4 rəkət)', asr:'Əsr (4 rəkət)', maghrib:'Məğrib (3 rəkət)', isha:'İşa (4 rəkət)', complete:'Namaz tamamlandı!', restart:'Yenidən başla', wuduTitle:'Dəstəmaz Qaydası', wuduSubtitle:'Addım-addım dəstəmaz almaq', wuduComplete:'Dəstəmaz tamamlandı!', wuduDuaTitle:'Dəstəmazdan sonra dua', qunutTitle:'Qunut Duası', qunutSubtitle:'Vitr namazında oxunan qunut duası', qunutWhen:'Qunut nə vaxt oxunur?', qunutExplanation:'Qunut duası əsasən Vitr namazının son rəkətində rükudan əvvəl və ya sonra oxunur. Bəzi məzhəblərdə (Şafii) Sübh namazında da oxunur.' },
@@ -508,13 +510,76 @@ function buildPrayerSteps(rakatCount) {
   return [...firstRakat, ...secondRakat, 9, 8, 8, ...finalSitting]
 }
 
+// icon/tone — yalnız telefonda siyahı sətrinin ikon kafeli (masaüstündə 🕌)
 const PRAYER_TYPES = [
-  { key: 'fajr',    rakat: 2 },
-  { key: 'dhuhr',   rakat: 4 },
-  { key: 'asr',     rakat: 4 },
-  { key: 'maghrib', rakat: 3 },
-  { key: 'isha',    rakat: 4 },
+  { key: 'fajr',    rakat: 2, icon: '🌙', tone: 'blue' },
+  { key: 'dhuhr',   rakat: 4, icon: '☀️', tone: 'gold' },
+  { key: 'asr',     rakat: 4, icon: '🌤️', tone: 'teal' },
+  { key: 'maghrib', rakat: 3, icon: '🌇', tone: 'rose' },
+  { key: 'isha',    rakat: 4, icon: '🌃', tone: 'violet' },
 ]
+
+// Rejim seçicisi qrupunun ekran oxuyucu adı
+const MODE_LABEL = { az:'Bələdçi növü', en:'Guide type', ru:'Тип руководства', ar:'نوع الدليل', tr:'Rehber türü' }
+
+// ── Fatihənin tərcüməsi ──
+// Ayələrin mənası yaddaşdan yazılmır: alquran.cloud-dan (QuranPage.jsx ilə
+// eyni nəşrlər) gətirilir və sessionStorage-da saxlanılır. Sorğu alınmasa
+// "Mənası" qutusu gizlədilir. Ərəbcədə tərcümə lazım deyil — mətn yuxarıdadır.
+const FATIHA_EDITIONS = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', tr:'tr.diyanet' }
+const FATIHA_NAME = { az:'Fatihə', en:'Al-Fatiha', ru:'Аль-Фатиха', tr:'Fâtiha' }
+
+function useFatihaMeaning(lang, enabled) {
+  const edition = FATIHA_EDITIONS[lang] || ''
+  const [state, setState] = useState({ edition: '', data: null })
+
+  useEffect(() => {
+    if (!enabled || !edition) return
+    const cacheKey = `qm_fatiha_${edition}`
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey) || 'null')
+      if (cached && Array.isArray(cached.ayahs) && cached.ayahs.length === 7) {
+        setState({ edition, data: cached })
+        return
+      }
+    } catch { /* keş oxunmadı — şəbəkədən */ }
+
+    let alive = true
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 12000)
+    fetch(`https://api.alquran.cloud/v1/surah/1/${edition}`, { signal: ctrl.signal })
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then(j => {
+        const ayahs = (j?.data?.ayahs || []).map(a => String(a?.text || '').trim())
+        if (ayahs.length !== 7 || ayahs.some(a => !a)) throw new Error('bad response')
+        const data = { ayahs, source: String(j?.data?.edition?.name || '') }
+        try { sessionStorage.setItem(cacheKey, JSON.stringify(data)) } catch { /* yaddaş bağlıdır */ }
+        if (alive) setState({ edition, data })
+      })
+      .catch(() => { if (alive) setState({ edition, data: null }) })
+      .finally(() => clearTimeout(timer))
+    return () => { alive = false; clearTimeout(timer); ctrl.abort() }
+  }, [edition, enabled])
+
+  return state.edition === edition ? state.data : null
+}
+
+// Addım dəyişəndə kartın başı (irəliləmə zolağı) görünməyibsə ora sürüşdür —
+// uzun kartın altındakı "Növbəti" basılanda yeni addım ortadan açılmasın
+function scrollToStep() {
+  requestAnimationFrame(() => {
+    const el = document.querySelector('.pg-progress-wrap')
+    if (!el) return
+    const top = el.getBoundingClientRect().top
+    const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 64
+    // Telefonda rejim seçicisi yuxarıda yapışıqdır — onun altında qalan zolaq da görünməmiş sayılır
+    const seg = document.querySelector('.pg-mode-toggle')
+    const segBottom = seg && getComputedStyle(seg).position === 'sticky' ? seg.getBoundingClientRect().bottom : 0
+    if (top >= Math.max(headerH, segBottom) && top < window.innerHeight * 0.6) return
+    const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  })
+}
 
 export default function PrayerGuidePage({ setPage }) {
   const { lang } = useLang()
@@ -524,6 +589,8 @@ export default function PrayerGuidePage({ setPage }) {
   const [selectedPrayer, setSelectedPrayer] = useState(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [wuduStep, setWuduStep] = useState(0)
+  // Addım kartının giriş istiqaməti: 'next' → sağdan, 'prev' → soldan (RTL-də əksinə)
+  const [stepDir, setStepDir] = useState('')
 
   const prayerType = selectedPrayer !== null ? PRAYER_TYPES[selectedPrayer] : null
   const stepIndices = prayerType ? buildPrayerSteps(prayerType.rakat) : []
@@ -533,17 +600,45 @@ export default function PrayerGuidePage({ setPage }) {
 
   const currentStepData = !isComplete && totalSteps > 0 ? STEPS[stepIndices[currentStep]] : null
 
+  // Fatihə mənası namaz seçiləndən sonra əvvəlcədən yüklənir
+  const fatiha = useFatihaMeaning(lang, mode === 'prayer' && selectedPrayer !== null)
+
   const handleSelectPrayer = (idx) => {
+    setStepDir('')
     setSelectedPrayer(idx)
     setCurrentStep(0)
   }
 
   const handlePrev = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1)
+    if (currentStep > 0) {
+      haptic()
+      setStepDir('prev')
+      setCurrentStep(currentStep - 1)
+      scrollToStep()
+    }
   }
 
   const handleNext = () => {
+    haptic()
+    setStepDir('next')
     setCurrentStep(currentStep + 1)
+    scrollToStep()
+  }
+
+  const handleWuduPrev = () => {
+    if (wuduStep > 0) {
+      haptic()
+      setStepDir('prev')
+      setWuduStep(wuduStep - 1)
+      scrollToStep()
+    }
+  }
+
+  const handleWuduNext = () => {
+    haptic()
+    setStepDir('next')
+    setWuduStep(wuduStep + 1)
+    scrollToStep()
   }
 
   const handleRestart = () => {
@@ -557,6 +652,7 @@ export default function PrayerGuidePage({ setPage }) {
   }
 
   const handleModeSwitch = (newMode) => {
+    setStepDir('')
     setMode(newMode)
     setSelectedPrayer(null)
     setCurrentStep(0)
@@ -571,12 +667,8 @@ export default function PrayerGuidePage({ setPage }) {
   return (
     <>
       {/* Hero */}
-      <div className="page-hero theme-prayerguide">
-        <div className="breadcrumb">
-          <button onClick={() => setPage('home')}>muslims.cc</button>
-          <span>/</span>
-          <span>{t.title}</span>
-        </div>
+      <div className="page-hero hero-compact theme-prayerguide">
+        <Breadcrumb setPage={setPage} current={t.title} />
         <div className="page-hero-arabic">بِسْمِ اللَّهِ</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
@@ -585,15 +677,15 @@ export default function PrayerGuidePage({ setPage }) {
       <section className="section">
         <div className="section-inner pg-container">
 
-          {/* Mode Toggle */}
-          <div className="pg-mode-toggle">
-            <button className={`pg-mode-btn ${mode === 'prayer' ? 'active' : ''}`} onClick={() => handleModeSwitch('prayer')}>
+          {/* Rejim seçicisi — telefonda yuxarıda yapışan seqment (.m-seg) */}
+          <div className="pg-mode-toggle m-seg" role="group" aria-label={MODE_LABEL[lang] || MODE_LABEL.en}>
+            <button type="button" className={`pg-mode-btn m-seg-btn ${mode === 'prayer' ? 'active' : ''}`} aria-pressed={mode === 'prayer'} onClick={() => handleModeSwitch('prayer')}>
               🕌 {lang==='az'?'Namaz':lang==='ru'?'Намаз':lang==='ar'?'الصلاة':lang==='tr'?'Namaz':'Prayer'}
             </button>
-            <button className={`pg-mode-btn ${mode === 'wudu' ? 'active' : ''}`} onClick={() => handleModeSwitch('wudu')}>
+            <button type="button" className={`pg-mode-btn m-seg-btn ${mode === 'wudu' ? 'active' : ''}`} aria-pressed={mode === 'wudu'} onClick={() => handleModeSwitch('wudu')}>
               💧 {lang==='az'?'Dəstəmaz':lang==='ru'?'Омовение':lang==='ar'?'الوضوء':lang==='tr'?'Abdest':'Wudu'}
             </button>
-            <button className={`pg-mode-btn ${mode === 'qunut' ? 'active' : ''}`} onClick={() => handleModeSwitch('qunut')}>
+            <button type="button" className={`pg-mode-btn m-seg-btn ${mode === 'qunut' ? 'active' : ''}`} aria-pressed={mode === 'qunut'} onClick={() => handleModeSwitch('qunut')}>
               🤲 {lang==='az'?'Qunut':lang==='ru'?'Кунут':lang==='ar'?'القنوت':lang==='tr'?'Kunut':'Qunut'}
             </button>
           </div>
@@ -605,16 +697,19 @@ export default function PrayerGuidePage({ setPage }) {
               {selectedPrayer === null && (
                 <div className="pg-select anim-fadeUp">
                   <h2 className="pg-select-title">{t.selectPrayer}</h2>
-                  <div className="pg-prayer-grid">
+                  {/* Telefonda keçid sətirləri (ikon kafeli · ad · ›), masaüstündə kartlar */}
+                  <div className="pg-prayer-grid m-list" data-reveal="stagger">
                     {PRAYER_TYPES.map((pt, idx) => (
                       <button
                         key={pt.key}
-                        className="pg-prayer-btn"
+                        type="button"
+                        className="pg-prayer-btn m-row"
                         onClick={() => handleSelectPrayer(idx)}
                       >
-                        <span className="pg-prayer-icon">🕌</span>
+                        <span className="pg-prayer-icon" aria-hidden="true">🕌</span>
+                        <span className={`pg-prayer-tile icon-tile icon-tile--${pt.tone}`} aria-hidden="true">{pt.icon}</span>
                         <span className="pg-prayer-name">{t[pt.key]}</span>
-                        <span className="pg-prayer-rakat">{pt.rakat} {lang === 'az' ? 'rəkət' : lang === 'tr' ? 'rekat' : lang === 'ru' ? 'ракята' : lang === 'ar' ? 'ركعات' : 'rakat'}</span>
+                        <span className="m-row-chev pg-prayer-chev" aria-hidden="true" />
                       </button>
                     ))}
                   </div>
@@ -629,7 +724,7 @@ export default function PrayerGuidePage({ setPage }) {
                     <div className="pg-progress-bar">
                       <div
                         className="pg-progress-fill"
-                        style={{ width: `${progress}%` }}
+                        style={{ '--p': progress / 100 }}
                       />
                     </div>
                     <span className="pg-progress-text">
@@ -639,11 +734,12 @@ export default function PrayerGuidePage({ setPage }) {
 
                   {/* Back to selection */}
                   <button className="btn-ghost pg-back-btn" onClick={handleBackToSelect}>
-                    ← {t.selectPrayer}
+                    <span className="qm-dir-arrow" aria-hidden="true">←</span> {t.selectPrayer}
                   </button>
 
-                  {/* Step card */}
-                  <div className="pg-step-card">
+                  {/* Step card — key: hər addımda kart yenidən qurulur və
+                      istiqamətə görə yumşaq sürüşərək görünür */}
+                  <div className="pg-step-card" key={`p${selectedPrayer}-${currentStep}`} data-dir={stepDir || undefined}>
                     <div className="pg-step-header">
                       <span className="pg-step-number">{currentStep + 1}</span>
                       <h3 className="pg-step-name">{currentStepData.name[lang] || currentStepData.name.en}</h3>
@@ -667,7 +763,22 @@ export default function PrayerGuidePage({ setPage }) {
                       </div>
                     )}
 
-                    {currentStepData.translation[lang] && (
+                    {currentStepData.id === 'qiyam' ? (
+                      /* Fatihə: 7 ayənin tam mənası API-dən; alınmasa qutu göstərilmir */
+                      fatiha && (
+                        <div className="pg-meaning">
+                          <span className="pg-label">{t.meaning}</span>
+                          <p>
+                            {fatiha.ayahs.map((a, i) => (
+                              <span key={i}>{a} <span className="pg-ayah-num">({i + 1})</span>{i < 6 ? ' ' : ''}</span>
+                            ))}
+                          </p>
+                          <span className="pg-meaning-src">
+                            {FATIHA_NAME[lang]} 1:1–7{fatiha.source ? ` · ${fatiha.source}` : ''}
+                          </span>
+                        </div>
+                      )
+                    ) : currentStepData.translation[lang] && (
                       <div className="pg-meaning">
                         <span className="pg-label">{t.meaning}</span>
                         <p>{currentStepData.translation[lang] || currentStepData.translation.en}</p>
@@ -728,7 +839,7 @@ export default function PrayerGuidePage({ setPage }) {
                     <div className="pg-progress-bar">
                       <div
                         className="pg-progress-fill"
-                        style={{ width: `${wuduProgress}%` }}
+                        style={{ '--p': wuduProgress / 100 }}
                       />
                     </div>
                     <span className="pg-progress-text">
@@ -737,7 +848,7 @@ export default function PrayerGuidePage({ setPage }) {
                   </div>
 
                   {/* Step card */}
-                  <div className="pg-step-card">
+                  <div className="pg-step-card" key={`w${wuduStep}`} data-dir={stepDir || undefined}>
                     <div className="pg-step-header">
                       <span className="pg-step-number">{wuduStep + 1}</span>
                       <span className="pg-step-icon">{currentWuduStep.icon}</span>
@@ -773,14 +884,14 @@ export default function PrayerGuidePage({ setPage }) {
                   <div className="pg-nav">
                     <button
                       className="btn-secondary"
-                      onClick={() => { if (wuduStep > 0) setWuduStep(wuduStep - 1) }}
+                      onClick={handleWuduPrev}
                       disabled={wuduStep === 0}
                     >
                       {t.prev}
                     </button>
                     <button
                       className="btn-primary"
-                      onClick={() => setWuduStep(wuduStep + 1)}
+                      onClick={handleWuduNext}
                     >
                       {t.next}
                     </button>

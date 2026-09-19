@@ -1,8 +1,30 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { MOSQUE, brandName } from '../config/mosque'
 import '../styles/QiblaPage.css'
+import Breadcrumb from '../components/Breadcrumb'
 
 const KAABA = { lat: 21.3891, lon: 39.8579 }
+
+// Kompasda yalnız 4 əsas istiqamət yazı ilə göstərilir (aralıqdakılar
+// cizgi ilə). Azərbaycan və ərəb dillərində tək hərf toqquşur
+// (Şimal/Şərq, شمال/شرق) — ona görə tam söz.
+const CARDINALS = {
+  az: ['Şimal', 'Şərq', 'Cənub', 'Qərb'],
+  en: ['N', 'E', 'S', 'W'],
+  ru: ['С', 'В', 'Ю', 'З'],
+  tr: ['K', 'D', 'G', 'B'],
+  ar: ['شمال', 'شرق', 'جنوب', 'غرب'],
+}
+
+// Məsafə vahidi və rəqəm formatı (az: "2.317", ar: latın rəqəmləri —
+// Chrome-un yığcam ICU-sunda "az" lokalı olmadığı üçün tr-TR istifadə olunur)
+const KM = { az: 'km', en: 'km', ru: 'км', ar: 'كم', tr: 'km' }
+const NUM_LOCALES = { az: 'tr-TR', en: 'en-GB', ru: 'ru-RU', tr: 'tr-TR', ar: 'ar-u-nu-latn' }
+
+function formatKm(n, lang) {
+  try { return n.toLocaleString(NUM_LOCALES[lang] || 'en-GB') } catch { return String(n) }
+}
 
 function toRad(deg) { return deg * (Math.PI / 180) }
 function toDeg(rad) { return rad * (180 / Math.PI) }
@@ -25,11 +47,11 @@ function calcDistance(lat1, lon1, lat2, lon2) {
 }
 
 const LABELS = {
-  az: { title:'Qiblə İstiqaməti', subtitle:'Kəbəyə dəqiq istiqamət', loading:'Konum təyin edilir...', error:'Konum tapılmadı', errorSub:'Brauzerdə konum icazəsi verin', distance:'Kəbəyə məsafə', bearing:'Qiblə açısı', grant:'İcazə ver', manual:'Bakı koordinatları ilə davam et', accuracy:'Dəqiqlik', live:'Canlı Kompas', liveDesc:'Cihazınızı düz tutun', noSensor:'Kompas sensoru yoxdur', noSensorSub:'Yalnız statik istiqamət göstərilir', fromNorth:'Şimaldan saat istiqamətində', enableCompass:'Kompası aktivləşdir', refreshLocation:'Yenilə', heading:'Cihaz istiqaməti' },
-  ru: { title:'Направление Киблы', subtitle:'Точное направление к Каабе', loading:'Определение местоположения...', error:'Местоположение не найдено', errorSub:'Разрешите доступ к местоположению', distance:'Расстояние до Каабы', bearing:'Угол Киблы', grant:'Разрешить', manual:'Продолжить с Баку', accuracy:'Точность', live:'Живой Компас', liveDesc:'Держите устройство ровно', noSensor:'Нет компас-сенсора', noSensorSub:'Только статическое направление', fromNorth:'По часовой стрелке от севера', enableCompass:'Включить компас', refreshLocation:'Обновить', heading:'Направление устройства' },
-  ar: { title:'اتجاه القبلة', subtitle:'الاتجاه الدقيق نحو الكعبة', loading:'جارٍ تحديد الموقع...', error:'لم يُعثر على الموقع', errorSub:'يُرجى السماح بالوصول إلى الموقع', distance:'المسافة إلى الكعبة', bearing:'زاوية القبلة', grant:'السماح', manual:'المتابعة بإحداثيات باكو', accuracy:'الدقة', live:'البوصلة الحية', liveDesc:'أمسك جهازك بشكل مستوٍ', noSensor:'لا يوجد حساس بوصلة', noSensorSub:'الاتجاه الثابت فقط', fromNorth:'باتجاه عقارب الساعة من الشمال', enableCompass:'تفعيل البوصلة', refreshLocation:'تحديث', heading:'اتجاه الجهاز' },
-  tr: { title:'Kıble Yönü', subtitle:"Kabe'ye tam yön", loading:'Konum belirleniyor...', error:'Konum bulunamadı', errorSub:"Tarayıcıda konum iznine izin verin", distance:"Kabe'ye mesafe", bearing:'Kıble açısı', grant:'İzin ver', manual:'Bakü koordinatlarıyla devam et', accuracy:'Doğruluk', live:'Canlı Pusula', liveDesc:'Cihazınızı düz tutun', noSensor:'Pusula sensörü yok', noSensorSub:'Sadece statik yön gösterilir', fromNorth:"Kuzeyden saat yönünde", enableCompass:'Pusulayı etkinleştir', refreshLocation:'Yenile', heading:'Cihaz yönü' },
-  en: { title:'Qibla Direction', subtitle:'Precise direction to the Kaaba', loading:'Determining location...', error:'Location not found', errorSub:'Please allow location access in your browser', distance:'Distance to Kaaba', bearing:'Qibla bearing', grant:'Allow', manual:'Continue with Baku coords', accuracy:'Accuracy', live:'Live Compass', liveDesc:'Hold your device flat', noSensor:'No compass sensor', noSensorSub:'Static direction only', fromNorth:'Clockwise from North', enableCompass:'Enable compass', refreshLocation:'Refresh', heading:'Device heading' },
+  az: { title:'Qiblə İstiqaməti', subtitle:'Kəbəyə dəqiq istiqamət', loading:'Məkan təyin edilir...', error:'Məkan tapılmadı', errorSub:'Brauzerdə məkan icazəsi verin', distance:'Kəbəyə məsafə', bearing:'Qiblə bucağı', grant:'İcazə ver', manual:'Məscidin koordinatları ilə davam et', accuracy:'Dəqiqlik', live:'Canlı Kompas', liveDesc:'Cihazınızı düz tutun', noSensor:'Kompas sensoru yoxdur', noSensorSub:'Yalnız statik istiqamət göstərilir', fromNorth:'Şimaldan saat istiqamətində', enableCompass:'Kompası aktivləşdir', refreshLocation:'Yenilə', heading:'Cihaz istiqaməti' },
+  ru: { title:'Направление Киблы', subtitle:'Точное направление к Каабе', loading:'Определение местоположения...', error:'Местоположение не найдено', errorSub:'Разрешите доступ к местоположению', distance:'Расстояние до Каабы', bearing:'Угол Киблы', grant:'Разрешить', manual:'Использовать координаты мечети', accuracy:'Точность', live:'Живой Компас', liveDesc:'Держите устройство ровно', noSensor:'Нет компас-сенсора', noSensorSub:'Только статическое направление', fromNorth:'По часовой стрелке от севера', enableCompass:'Включить компас', refreshLocation:'Обновить', heading:'Направление устройства' },
+  ar: { title:'اتجاه القبلة', subtitle:'الاتجاه الدقيق نحو الكعبة', loading:'جارٍ تحديد الموقع...', error:'لم يُعثر على الموقع', errorSub:'يُرجى السماح بالوصول إلى الموقع', distance:'المسافة إلى الكعبة', bearing:'زاوية القبلة', grant:'السماح', manual:'استخدم موقع المسجد', accuracy:'الدقة', live:'البوصلة الحية', liveDesc:'أمسك جهازك بشكل مستوٍ', noSensor:'لا يوجد حساس بوصلة', noSensorSub:'الاتجاه الثابت فقط', fromNorth:'باتجاه عقارب الساعة من الشمال', enableCompass:'تفعيل البوصلة', refreshLocation:'تحديث', heading:'اتجاه الجهاز' },
+  tr: { title:'Kıble Yönü', subtitle:"Kabe'ye tam yön", loading:'Konum belirleniyor...', error:'Konum bulunamadı', errorSub:"Tarayıcıda konum iznine izin verin", distance:"Kabe'ye mesafe", bearing:'Kıble açısı', grant:'İzin ver', manual:'Caminin konumunu kullan', accuracy:'Doğruluk', live:'Canlı Pusula', liveDesc:'Cihazınızı düz tutun', noSensor:'Pusula sensörü yok', noSensorSub:'Sadece statik yön gösterilir', fromNorth:"Kuzeyden saat yönünde", enableCompass:'Pusulayı etkinleştir', refreshLocation:'Yenile', heading:'Cihaz yönü' },
+  en: { title:'Qibla Direction', subtitle:'Precise direction to the Kaaba', loading:'Determining location...', error:'Location not found', errorSub:'Please allow location access in your browser', distance:'Distance to Kaaba', bearing:'Qibla bearing', grant:'Allow', manual:'Use the mosque location', accuracy:'Accuracy', live:'Live Compass', liveDesc:'Hold your device flat', noSensor:'No compass sensor', noSensorSub:'Static direction only', fromNorth:'Clockwise from North', enableCompass:'Enable compass', refreshLocation:'Refresh', heading:'Device heading' },
 }
 
 export default function QiblaPage({ setPage }) {
@@ -119,8 +141,10 @@ export default function QiblaPage({ setPage }) {
     )
   }, [])
 
-  const useBaku = () => {
-    const lat = 40.4093, lon = 49.8671
+  // Konum icazəsi yoxdursa — məscidin dəqiq koordinatı (config/mosque.js)
+  const pickMosque = () => {
+    const lat = Number(MOSQUE.geo.lat), lon = Number(MOSQUE.geo.lng)
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return
     setCoords({ lat, lon })
     setAccuracy(null)
     const q = calcQibla(lat, lon)
@@ -197,9 +221,11 @@ export default function QiblaPage({ setPage }) {
   }, [onOrientation])
 
   useEffect(() => {
-    // iOS 13+ icazə tələb edir
+    // iOS 13+ icazə tələb edir. Düymə yalnız toxunma ekranlı cihazda
+    // göstərilir — masaüstündə istiqamət sensoru yoxdur
+    const coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
     if (typeof DeviceOrientationEvent !== 'undefined' &&
-        typeof DeviceOrientationEvent.requestPermission === 'function') {
+        typeof DeviceOrientationEvent.requestPermission === 'function' && coarse) {
       setNeedsIOSPermission(true)
     } else {
       const cleanup = startCompass()
@@ -229,14 +255,8 @@ export default function QiblaPage({ setPage }) {
 
   return (
     <div className="qibla-page">
-      <div className="page-hero theme-qibla">
-        <div className="breadcrumb">
-          <button onClick={() => setPage('home')}>
-            {lang==='az'?'Ana Səhifə': lang==='ru'?'Главная': lang==='ar'?'الرئيسية': lang==='tr'?'Ana Sayfa':'Home'}
-          </button>
-          <span>›</span>
-          <span>{l.title}</span>
-        </div>
+      <div className="page-hero hero-compact theme-qibla">
+        <Breadcrumb setPage={setPage} current={l.title} />
         <div className="page-hero-arabic">الْقِبْلَة</div>
         <h1>{l.title}</h1>
         <p>{l.subtitle}</p>
@@ -256,12 +276,12 @@ export default function QiblaPage({ setPage }) {
 
         {status === 'error' && (
           <div className="qibla-center">
-            <div className="qibla-error-icon">📍</div>
+            <div className="qibla-error-icon" aria-hidden="true">📍</div>
             <h3>{l.error}</h3>
             <p>{l.errorSub}</p>
             <div className="qibla-error-btns">
               <button className="btn-primary" onClick={startWatching}>{l.grant}</button>
-              <button className="btn-secondary" onClick={useBaku}>{l.manual}</button>
+              <button className="btn-secondary" onClick={pickMosque}>{l.manual}</button>
             </div>
           </div>
         )}
@@ -275,7 +295,7 @@ export default function QiblaPage({ setPage }) {
               </button>
             )}
 
-            <div className="qibla-compass-wrap">
+            <div className="qibla-compass-wrap" data-reveal="scale">
               <div className="qibla-compass">
 
                 {/* Ring — rAF ilə birbaşa fırladılır, sensor yoxdursa sabit */}
@@ -285,10 +305,10 @@ export default function QiblaPage({ setPage }) {
                       style={{ '--i': i }} />
                   ))}
                   <div className="qibla-cardinals">
-                    {['N','NE','E','SE','S','SW','W','NW'].map((d, i) => (
-                      <span key={d} className={`qibla-cardinal ${d === 'N' ? 'north' : ''}`}
-                        style={{ '--ci': i }}>
-                        {d === 'N' ? (lang==='az'?'Ş':lang==='ru'?'С':lang==='ar'?'ش':lang==='tr'?'K':'N') : d}
+                    {(CARDINALS[lang] || CARDINALS.en).map((d, i) => (
+                      <span key={i} className={`qibla-cardinal ${i === 0 ? 'north' : ''}`}
+                        style={{ '--ci': i * 2 }}>
+                        {d}
                       </span>
                     ))}
                   </div>
@@ -316,28 +336,23 @@ export default function QiblaPage({ setPage }) {
               </div>
             </div>
 
-            <div className="qibla-info-grid">
-              <div className="qibla-info-card">
-                <div className="qibla-info-icon">📏</div>
+            {/* Telefonda qruplu "inset" siyahı: ikon kafeli · ad · dəyər (sonda) */}
+            <div className="qibla-info-grid m-list" data-reveal="stagger">
+              <div className="qibla-info-card m-row">
+                <div className="qibla-info-icon icon-tile icon-tile--blue" aria-hidden="true">📏</div>
                 <div className="qibla-info-body">
                   <span className="qibla-info-label">{l.distance}</span>
                   <span className="qibla-info-val">
-                    {distance?.toLocaleString()} <small>km</small>
+                    {distance != null ? formatKm(distance, lang) : ''} <small>{KM[lang] || KM.en}</small>
                   </span>
                 </div>
               </div>
 
-              <div className="qibla-info-card">
-                <div className="qibla-info-icon">🧭</div>
-                <div className="qibla-info-body">
-                  <span className="qibla-info-label">{l.bearing}</span>
-                  <span className="qibla-info-val">{Math.round(qibla)}°</span>
-                </div>
-              </div>
+              {/* Qiblə açısı kompasın altındakı nişanda artıq göstərilir — ayrıca kart yoxdur */}
 
               {accuracy && (
-                <div className="qibla-info-card">
-                  <div className="qibla-info-icon">🎯</div>
+                <div className="qibla-info-card m-row">
+                  <div className="qibla-info-icon icon-tile icon-tile--rose" aria-hidden="true">🎯</div>
                   <div className="qibla-info-body">
                     <span className="qibla-info-label">{l.accuracy}</span>
                     <span className="qibla-info-val">±{accuracy} <small>m</small></span>
@@ -346,8 +361,8 @@ export default function QiblaPage({ setPage }) {
               )}
 
               {hasOrient && (
-                <div className="qibla-info-card live">
-                  <div className="qibla-info-icon">📡</div>
+                <div className="qibla-info-card m-row live">
+                  <div className="qibla-info-icon icon-tile icon-tile--teal" aria-hidden="true">📡</div>
                   <div className="qibla-info-body">
                     <span className="qibla-info-label">{l.heading}</span>
                     <span className="qibla-info-val" ref={headingNumRef}>
@@ -357,8 +372,8 @@ export default function QiblaPage({ setPage }) {
                 </div>
               )}
 
-              <div className={`qibla-info-card ${hasOrient ? 'live' : 'no-sensor'}`}>
-                <div className="qibla-info-icon">{hasOrient ? '✅' : '⚠️'}</div>
+              <div className={`qibla-info-card m-row is-status ${hasOrient ? 'live' : 'no-sensor'}`}>
+                <div className={`qibla-info-icon icon-tile${hasOrient ? '' : ' icon-tile--orange'}`} aria-hidden="true">{hasOrient ? '✅' : '⚠️'}</div>
                 <div className="qibla-info-body">
                   <span className="qibla-info-label">{hasOrient ? l.live : l.noSensor}</span>
                   <span className="qibla-info-val qibla-info-desc">
@@ -370,10 +385,11 @@ export default function QiblaPage({ setPage }) {
 
             <div className="qibla-footer">
               <p className="qibla-coords">
-                {coords?.lat.toFixed(4)}°N, {coords?.lon.toFixed(4)}°E
-                {!accuracy && <span className="qibla-fallback-note"> (Bakı / Baku)</span>}
+                {/* Koordinatlar ərəbcədə də soldan sağa oxunsun */}
+                <bdi dir="ltr">{coords?.lat.toFixed(4)}°N, {coords?.lon.toFixed(4)}°E</bdi>
+                {!accuracy && <span className="qibla-fallback-note"> ({brandName(lang)})</span>}
               </p>
-              <button className="qibla-refresh-btn" onClick={startWatching}>
+              <button type="button" className="qibla-refresh-btn press" onClick={startWatching}>
                 ↻ {l.refreshLocation}
               </button>
             </div>

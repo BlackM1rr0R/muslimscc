@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { SURAH_AZ } from '../data/surahNamesAz'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/QuranPage.css'
 
 const EDITION_MAP = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', ar:'ar.muyassar', tr:'tr.diyanet' }
@@ -30,6 +31,127 @@ const TAFSIR_LABELS = {
   tr: 'Tefsir',
 }
 
+// Ayənin səs düyməsi (ekran oxuyucusu üçün; əvvəl yalnız ▶ işarəsi idi)
+const PLAY_LABELS = {
+  az: { play:'Ayəni dinlə', pause:'Dayandır' },
+  en: { play:'Listen to the verse', pause:'Pause' },
+  ru: { play:'Слушать аят', pause:'Пауза' },
+  ar: { play:'استمع إلى الآية', pause:'إيقاف مؤقت' },
+  tr: { play:'Ayeti dinle', pause:'Duraklat' },
+}
+
+// Oynat / fasilə ikonları — SVG: telefonda ⏸ simvolu rəngli emoji kimi çıxırdı
+function PlayIcon({ playing }) {
+  return playing ? (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/>
+      <rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/>
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M8 5.6v12.8c0 .8.9 1.3 1.6.9l10-6.4c.6-.4.6-1.3 0-1.7l-10-6.4C8.9 4.3 8 4.8 8 5.6z" fill="currentColor"/>
+    </svg>
+  )
+}
+
+// Yüklənmə skeletləri (telefonda spinner əvəzinə — məzmunun formasını göstərir).
+// Kompüterdə köhnə spinner qalır (CSS ilə seçilir).
+function ReaderSkeleton({ label }) {
+  return (
+    <div className="q-skel q-skel-reader" role="status" aria-label={label}>
+      <div className="skeleton q-skel-head" />
+      <div className="skeleton q-skel-basmala" />
+      {[0, 1, 2, 3].map(i => (
+        <div key={i} className="q-skel-ayah">
+          <span className="skeleton skeleton--circle q-skel-num" />
+          <span className="skeleton skeleton--text q-skel-line" />
+          <span className="skeleton skeleton--text q-skel-line q-skel-line--short" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ListSkeleton({ label }) {
+  return (
+    <div className="q-skel q-skel-list" role="status" aria-label={label}>
+      {[0, 1, 2, 3, 4, 5, 6].map(i => (
+        <div key={i} className="q-skel-row">
+          <span className="skeleton q-skel-tile" />
+          <span className="q-skel-body">
+            <span className="skeleton skeleton--text q-skel-title" />
+            <span className="skeleton skeleton--text q-skel-sub" />
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Oxuma statistikası zolağının yazıları
+const STATS_LABELS = {
+  az: { reads:'Oxuma', surahs:'Surə', streak:'Gün ardıcıl', most:'Ən çox oxunan' },
+  en: { reads:'Reads', surahs:'Surahs', streak:'Day streak', most:'Most read' },
+  ru: { reads:'Чтений', surahs:'Сур', streak:'Дней подряд', most:'Самая читаемая' },
+  ar: { reads:'قراءات', surahs:'سور', streak:'أيام متتالية', most:'الأكثر قراءة' },
+  tr: { reads:'Okuma', surahs:'Sure', streak:'Gün seri', most:'En çok okunan' },
+}
+
+// Şrift düymələri (A− / A+) üçün ekran oxuyucusu yazısı
+const FONT_LABELS = {
+  az: { smaller:'Yazını kiçilt', larger:'Yazını böyüt' },
+  en: { smaller:'Smaller text', larger:'Larger text' },
+  ru: { smaller:'Уменьшить шрифт', larger:'Увеличить шрифт' },
+  ar: { smaller:'تصغير الخط', larger:'تكبير الخط' },
+  tr: { smaller:'Yazıyı küçült', larger:'Yazıyı büyüt' },
+}
+
+// Nazil olma yeri. i18n-dəki t.meccan / t.medinan süzgəc düymələri üçündür
+// (rus dilində cəm: "Мекканские") — surənin özü üçün tək forma lazımdır.
+const REVELATION = {
+  az: { Meccan:'Məkki', Medinan:'Mədəni' },
+  en: { Meccan:'Meccan', Medinan:'Medinan' },
+  ru: { Meccan:'Мекканская', Medinan:'Мединская' },
+  ar: { Meccan:'مكية', Medinan:'مدنية' },
+  tr: { Meccan:'Mekki', Medinan:'Medeni' },
+}
+const revelationLabel = (type, lang) => (REVELATION[lang] || REVELATION.en)[type] || type
+
+// ── Surənin adı cari dildə ──
+// az: yerli yazılış (SURAH_AZ); ar: API-dəki ərəb adı, "سُورَةُ" sözü olmadan;
+// qalan dillər: API-nin latın transliterasiyası.
+const stripSurahWord = name => String(name || '').replace(/^سُورَةُ\s+/, '')
+function surahTitle(s, lang) {
+  if (!s) return ''
+  if (lang === 'az' && SURAH_AZ[s.number]) return SURAH_AZ[s.number].name
+  if (lang === 'ar') return stripSurahWord(s.name)
+  return s.englishName
+}
+
+// i18n sətirlərində ox mətnin içindədir ("← Geri", "Növbəti →"). Oxu atıb
+// ayrıca .qm-dir-arrow ilə veririk — ərəbcədə (RTL) avtomatik güzgülənir.
+const stripArrows = s => String(s || '').replace(/[←→]/g, '').trim()
+function DirArrow({ back = false }) {
+  return <span className="qm-dir-arrow" aria-hidden="true">{back ? '←' : '→'}</span>
+}
+
+// ── Bəsmələnin təkrarlanmaması ──
+// API (ar.alafasy) Fatihə və Tövbədən başqa 112 surədə 1-ci ayənin mətninin
+// əvvəlinə Bəsmələni yapışdırır. Oxuyucuda Bəsmələ ayrıca kartda olduğu üçün
+// 1-ci ayədə onun ilk dörd sözünü göstərmirik (mətn dəyişmir, yalnız təkrar
+// gizlənir). Müqayisə hərəkələrsiz aparılır: 95 və 97-ci surələrdə yazılış
+// "بِّسْمِ" kimidir.
+const AR_MARKS = /[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g
+const plainArabic = s => s.replace(AR_MARKS, '').replace(/\u0671/g, '\u0627')
+const BASMALA_PLAIN = 'بسم الله الرحمن الرحيم'
+function withoutLeadingBasmala(text) {
+  const words = text.split(' ')
+  if (words.length > 4 && plainArabic(words.slice(0, 4).join(' ')) === BASMALA_PLAIN) {
+    return words.slice(4).join(' ')
+  }
+  return text
+}
+
 function useQuranList() {
   const [surahs,  setSurahs]  = useState([])
   const [loading, setLoading] = useState(true)
@@ -50,25 +172,34 @@ function useSurah(num, lang) {
   const edition = EDITION_MAP[lang] || 'en.asad'
   useEffect(() => {
     if (!num) return
+    // Tez-tez "Növbəti" basılanda köhnə cavab yenisinin üstünə yazılmasın
+    let cancelled = false
     setLoading(true); setData(null); setError(null)
     const eds = lang === 'ar' ? 'ar.alafasy,ar.muyassar' : `ar.alafasy,${edition}`
     fetch(`https://api.alquran.cloud/v1/surah/${num}/editions/${eds}`)
       .then(r => r.json())
       .then(d => {
+        if (cancelled) return
         const [arabic, trans] = d.data
-        setData({ ...arabic, verses: arabic.ayahs.map((v,i) => ({
-          n: v.numberInSurah, ar: v.text,
-          audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${v.number}.mp3`,
-          tr: trans?.ayahs[i]?.text || ''
-        })) })
+        setData({ ...arabic, verses: arabic.ayahs.map((v,i) => {
+          // Fatihənin 1-ci ayəsi BOM (U+FEFF) ilə başlayır
+          const text = v.text.replace(/^\uFEFF/, '')
+          return {
+            n: v.numberInSurah,
+            ar: (i === 0 && num !== 1 && num !== 9) ? withoutLeadingBasmala(text) : text,
+            audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${v.number}.mp3`,
+            tr: trans?.ayahs[i]?.text || ''
+          }
+        }) })
       })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false))
+      .catch(e => { if (!cancelled) setError(e.message) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [num, lang])
   return { data, loading, error }
 }
 
-function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize }) {
+function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, playLabels }) {
   const [playing, setPlaying] = useState(false)
   const audioRef = useRef(null)
 
@@ -92,6 +223,7 @@ function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize }) {
   }, [verse.audio])
 
   const toggle = () => {
+    haptic()
     const audio = getAudio()
     if (playing) {
       audio.pause()
@@ -101,11 +233,13 @@ function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize }) {
       setPlaying(true)
     }
   }
+  const playLabel = playing ? playLabels.pause : playLabels.play
   return (
-    <div className="ayah-card">
+    // data-reveal: sürüşdükcə ayə kartı yumşaq görünür (motion.css)
+    <div className={`ayah-card${playing ? ' is-playing' : ''}`} data-reveal="">
       <div className="ayah-num">{verse.n}</div>
       <div className="ayah-body">
-        <p className="ayah-arabic" style={{ fontSize: `${fontSize}rem` }}>{verse.ar}</p>
+        <p className="ayah-arabic" lang="ar" style={{ fontSize: `${fontSize}rem` }}>{verse.ar}</p>
         {showTrans && verse.tr && !showTafsir && <p className="ayah-trans">{verse.tr}</p>}
         {showTafsir && verse.tr && (
           <div className="ayah-tafsir">
@@ -115,8 +249,9 @@ function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize }) {
         )}
       </div>
       {verse.audio && (
-        <button className={`ayah-play ${playing ? 'playing' : ''}`} onClick={toggle}>
-          {playing ? '⏸' : '▶'}
+        <button type="button" className={`ayah-play press ${playing ? 'playing' : ''}`} onClick={toggle}
+          aria-label={playLabel} title={playLabel}>
+          <PlayIcon playing={playing} />
         </button>
       )}
     </div>
@@ -152,6 +287,8 @@ export default function QuranPage({ setPage }) {
   const { surahs, loading: listLoading } = useQuranList()
   const [bookmark, setBookmark] = useState(() => { try { return JSON.parse(localStorage.getItem('quran_bookmark')) } catch { return null } })
   const [selected, setSelected] = useState(null)
+  // Siyahıdakı sürüşmə yeri — oxuyucudan qayıdanda ora dönürük
+  const listScrollRef = useRef(0)
 
   // ── Quran oxuma statistikası ──
   const [stats, setStats] = useState(() => {
@@ -165,7 +302,7 @@ export default function QuranPage({ setPage }) {
       reads[surahNum] = (reads[surahNum] || 0) + 1
       const dates = prev.dates.includes(today) ? prev.dates : [...prev.dates, today]
       const next = { reads, sessions: prev.sessions + 1, dates }
-      localStorage.setItem('quran_stats', JSON.stringify(next))
+      try { localStorage.setItem('quran_stats', JSON.stringify(next)) } catch {}
       return next
     })
   }
@@ -183,6 +320,13 @@ export default function QuranPage({ setPage }) {
   const [fontSize,  setFontSize]  = useState(1.65)
   const { data: surah, loading: surahLoading, error: surahError } = useSurah(selected, lang)
   const sl = SEARCH_LABELS[lang] || SEARCH_LABELS.az
+  const st = STATS_LABELS[lang] || STATS_LABELS.az
+  const fl = FONT_LABELS[lang] || FONT_LABELS.az
+  const tafsirLabel = TAFSIR_LABELS[lang] || TAFSIR_LABELS.en
+  const playLabels = PLAY_LABELS[lang] || PLAY_LABELS.az
+  // Real təfsir yalnız ərəbcədədir (ar.muyassar). Digər dillərin nəşri
+  // tərcümədir — onu "Təfsir" adı ilə göstərmək yanıldıcı olardı.
+  const hasTafsir = lang === 'ar'
 
   useEffect(() => {
     if (searchMode !== 'verse') return
@@ -206,14 +350,29 @@ export default function QuranPage({ setPage }) {
     return () => { if (verseTimerRef.current) clearTimeout(verseTimerRef.current) }
   }, [verseSearch, searchMode, lang])
 
-  const openSurah = (num, name) => {
+  const surahByNum = n => surahs.find(s => s.number === n)
+
+  const saveBookmark = (num) => {
+    const bm = { surah: num, name: surahTitle(surahByNum(num), lang), time: Date.now() }
+    try { localStorage.setItem('quran_bookmark', JSON.stringify(bm)) } catch {}
+    setBookmark(bm)
+  }
+
+  const openSurah = (num) => {
+    if (!num) return
+    // Siyahıdan açılırsa yeri yadda saxla (əvvəlki/növbəti surədə yox)
+    if (!selected) listScrollRef.current = window.scrollY
     setSelected(num)
-    if (num) {
-      const bm = { surah: num, name: name || '', time: Date.now() }
-      localStorage.setItem('quran_bookmark', JSON.stringify(bm))
-      setBookmark(bm)
-      trackRead(num)
-    }
+    saveBookmark(num)
+    trackRead(num)
+    // Surə həmişə əvvəldən açılır — əvvəl siyahının sürüşmə yerində qalırdı
+    window.scrollTo(0, 0)
+  }
+
+  const closeReader = () => {
+    setSelected(null)
+    const y = listScrollRef.current
+    requestAnimationFrame(() => window.scrollTo(0, y))
   }
 
   const filtered = useMemo(() => {
@@ -231,111 +390,178 @@ export default function QuranPage({ setPage }) {
     })
   }, [surahs, search, filter, lang])
 
-  if (selected && surah) {
+  // ── Oxuyucu ──
+  // Surə yüklənərkən də açılır (spinner ilə) — əvvəl yüklənənə qədər
+  // siyahı ekranda qalırdı və toxunuşun heç nə etmədiyi görünürdü.
+  if (selected) {
+    const ready = surah && surah.number === selected
+    const prevS = surahByNum(selected - 1)
+    const nextS = surahByNum(selected + 1)
+    const prevLabel = stripArrows(t.prevSurah)
+    const nextLabel = stripArrows(t.nextSurah)
+    const bmLabel = BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en
+    const rawMeaning = !ready ? '' : lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].meaning
+      : lang === 'ar' ? '' : surah.englishNameTranslation
+    // Məna adla eynidirsə (məs. "Yasin") təkrarlamırıq
+    const meaning = ready && rawMeaning !== surahTitle(surah, lang) ? rawMeaning : ''
     return (
       <div className="quran-reader">
         <div className="reader-toolbar">
-          <button className="btn-ghost" onClick={() => setSelected(null)}>← {t.backBtn}</button>
+          <button type="button" className="btn-ghost reader-back" onClick={closeReader}>
+            <DirArrow back /> {stripArrows(t.backBtn)}
+          </button>
           <div className="reader-controls">
-            <button className="ctrl-btn" onClick={() => setFontSize(f => Math.max(f - .1, 1.2))}>A−</button>
-            <button className="ctrl-btn" onClick={() => setFontSize(f => Math.min(f + .1, 2.2))}>A+</button>
-            <button className={`ctrl-btn ${showTrans ? 'active' : ''}`} onClick={() => setShowTrans(s => !s)}>
-              {showTrans ? t.translationLabel + ' ✓' : t.translationLabel}
+            {/* dir="ltr": ərəbcədə "A−" bidi qaydası ilə "−A" kimi görünürdü */}
+            <button type="button" className="ctrl-btn press" dir="ltr" aria-label={fl.smaller} title={fl.smaller}
+              onClick={() => setFontSize(f => Math.max(f - .1, 1.2))}>A−</button>
+            <button type="button" className="ctrl-btn press" dir="ltr" aria-label={fl.larger} title={fl.larger}
+              onClick={() => setFontSize(f => Math.min(f + .1, 2.2))}>A+</button>
+            {hasTafsir ? (
+              <button type="button" className={`ctrl-btn press ${showTafsir ? 'active' : ''}`} aria-pressed={showTafsir}
+                onClick={() => { haptic(); setShowTafsir(s => !s) }}>
+                {tafsirLabel}{showTafsir && <span className="ctrl-check" aria-hidden="true"> ✓</span>}
+              </button>
+            ) : (
+              <button type="button" className={`ctrl-btn press ${showTrans ? 'active' : ''}`} aria-pressed={showTrans}
+                onClick={() => { haptic(); setShowTrans(s => !s) }}>
+                {t.translationLabel}{showTrans && <span className="ctrl-check" aria-hidden="true"> ✓</span>}
+              </button>
+            )}
+            <button type="button" className="ctrl-btn ctrl-nav press" disabled={selected <= 1}
+              aria-label={prevLabel} title={prevLabel} onClick={() => openSurah(selected - 1)}>
+              <DirArrow back /><span className="ctrl-label"> {prevLabel}</span>
             </button>
-            <button className={`ctrl-btn ${showTafsir ? 'active' : ''}`} onClick={() => setShowTafsir(s => !s)}>
-              {TAFSIR_LABELS[lang] || TAFSIR_LABELS.en}{showTafsir ? ' ✓' : ''}
+            <button type="button" className="ctrl-btn ctrl-nav press" disabled={selected >= 114}
+              aria-label={nextLabel} title={nextLabel} onClick={() => openSurah(selected + 1)}>
+              <span className="ctrl-label">{nextLabel} </span><DirArrow />
             </button>
-            <button className="ctrl-btn" disabled={selected <= 1} onClick={() => openSurah(selected - 1, surahs.find(s => s.number === selected - 1)?.englishName)}>
-              {t.prevSurah}
-            </button>
-            <button className="ctrl-btn" disabled={selected >= 114} onClick={() => openSurah(selected + 1, surahs.find(s => s.number === selected + 1)?.englishName)}>
-              {t.nextSurah}
-            </button>
-            <button className={`ctrl-btn ${bookmark && bookmark.surah === selected ? 'active' : ''}`}
-              onClick={() => openSurah(selected, surah?.englishName || '')} title={BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en}>
+            <button type="button" className={`ctrl-btn ctrl-bookmark press ${bookmark && bookmark.surah === selected ? 'active' : ''}`}
+              onClick={() => { haptic(); saveBookmark(selected) }} title={bmLabel} aria-label={bmLabel}>
               🔖
             </button>
           </div>
         </div>
-        <div className="reader-header">
-          <div className="reader-number">{surah.number}</div>
-          <div className="reader-info">
-            <h1 className="reader-arabic">{surah.name}</h1>
-            <h2 className="reader-english">{lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].name : surah.englishName}</h2>
-            <p className="reader-meta">{lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].meaning : surah.englishNameTranslation} · {surah.numberOfAyahs} {t.verses} · {surah.revelationType}</p>
-          </div>
-        </div>
-        {surah.number !== 9 && (
-          <div className="reader-basmalah">
-            <span className="basmalah-ar">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</span>
-            <span className="basmalah-tr">{t.basmalah}</span>
-          </div>
-        )}
-        {surahLoading && <div className="spinner-wrap"><div className="spinner"/><span className="spinner-text">{t.loading}</span></div>}
         {surahError && <div className="error-box">⚠️ {t.error}</div>}
-        <div className="ayahs-list">
-          {surah.verses?.map(v => <AyahCard key={v.n} verse={v} showTrans={showTrans} showTafsir={showTafsir} tafsirLabel={TAFSIR_LABELS[lang] || TAFSIR_LABELS.en} fontSize={fontSize} />)}
-        </div>
+        {!ready && !surahError && (
+          <>
+            <div className="spinner-wrap q-spinner"><div className="spinner"/><span className="spinner-text">{t.loading}</span></div>
+            <ReaderSkeleton label={t.loading} />
+          </>
+        )}
+        {ready && (
+          <>
+            <div className="reader-header">
+              <div className="reader-number">{surah.number}</div>
+              <div className="reader-info">
+                <h1 className="reader-arabic" lang="ar">{surah.name}</h1>
+                {lang !== 'ar' && <h2 className="reader-english">{surahTitle(surah, lang)}</h2>}
+                <p className="reader-meta">
+                  {[meaning, `${surah.numberOfAyahs} ${t.verses}`, revelationLabel(surah.revelationType, lang)].filter(Boolean).join(' · ')}
+                </p>
+              </div>
+            </div>
+            {/* Fatihədə Bəsmələ 1-ci ayənin özüdür, Tövbədə isə oxunmur */}
+            {surah.number !== 1 && surah.number !== 9 && (
+              <div className="reader-basmalah">
+                <span className="basmalah-ar" lang="ar">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</span>
+                {lang !== 'ar' && <span className="basmalah-tr">{t.basmalah}</span>}
+              </div>
+            )}
+            <div className="ayahs-list">
+              {surah.verses?.map(v => (
+                <AyahCard key={v.n} verse={v} fontSize={fontSize} tafsirLabel={tafsirLabel} playLabels={playLabels}
+                  showTrans={!hasTafsir && showTrans} showTafsir={hasTafsir && showTafsir} />
+              ))}
+            </div>
+            {/* Surənin sonunda: əvvəlki / növbəti surə (telefonda paneldə yalnız ox görünür) */}
+            <div className="reader-pager" data-reveal="">
+              {selected > 1 && (
+                <button type="button" className="reader-pager-btn prev press" onClick={() => openSurah(selected - 1)}>
+                  <span className="reader-pager-dir"><DirArrow back /> {prevLabel}</span>
+                  <span className="reader-pager-name">{surahTitle(prevS, lang) || selected - 1}</span>
+                </button>
+              )}
+              {selected < 114 && (
+                <button type="button" className="reader-pager-btn next press" onClick={() => openSurah(selected + 1)}>
+                  <span className="reader-pager-dir">{nextLabel} <DirArrow /></span>
+                  <span className="reader-pager-name">{surahTitle(nextS, lang) || selected + 1}</span>
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
     )
   }
 
+  const bookmarkName = bookmark ? (surahTitle(surahByNum(bookmark.surah), lang) || bookmark.name) : ''
+  const mostReadName = (() => {
+    const n = +getMostRead(stats.reads)
+    if (!n) return '-'
+    return surahTitle(surahByNum(n), lang) || (lang === 'az' && SURAH_AZ[n] ? SURAH_AZ[n].name : String(n))
+  })()
 
   return (
     <>
-      <div className="page-hero theme-quran">
-        <div className="page-hero-arabic">القرآن الكريم</div>
+      {/* hero-compact: telefonda yığcam hero (motion.css), kompüterdə dəyişmir */}
+      <div className="page-hero theme-quran hero-compact">
+        {/* Ərəbcədə başlığın özü "القرآن الكريم"-dir — ikinci dəfə yazmırıq */}
+        {lang !== 'ar' && <div className="page-hero-arabic" lang="ar">القرآن الكريم</div>}
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
       </div>
       <div className="quran-list-wrap section">
         <div className="section-inner">
-          {bookmark && !selected && (
-            <div className="quran-bookmark-card" onClick={() => openSurah(bookmark.surah, bookmark.name)}>
-              <div className="bookmark-icon">🔖</div>
-              <div className="bookmark-info">
+          {bookmark && (
+            <button type="button" className="quran-bookmark-card press" onClick={() => openSurah(bookmark.surah)}>
+              <span className="bookmark-icon" aria-hidden="true">🔖</span>
+              <span className="bookmark-info">
                 <span className="bookmark-label">{BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en}</span>
-                <span className="bookmark-name">{bookmark.name}</span>
-              </div>
-              <span className="bookmark-arrow">&rarr;</span>
-            </div>
+                <span className="bookmark-name">{bookmarkName}</span>
+              </span>
+              <span className="bookmark-arrow"><DirArrow /></span>
+            </button>
           )}
-          {!selected && stats.sessions > 0 && (
+          {stats.sessions > 0 && (
             <div className="quran-stats-bar">
               <div className="qs-item">
                 <span className="qs-num">{stats.sessions}</span>
-                <span className="qs-label">{lang==='az'?'Oxuma':lang==='ru'?'Чтений':lang==='tr'?'Okuma':lang==='ar'?'قراءات':'Reads'}</span>
+                <span className="qs-label">{st.reads}</span>
               </div>
               <div className="qs-item">
                 <span className="qs-num">{Object.keys(stats.reads).length}</span>
-                <span className="qs-label">{lang==='az'?'Surə':lang==='ru'?'Сур':lang==='tr'?'Sure':lang==='ar'?'سور':'Surahs'}</span>
+                <span className="qs-label">{st.surahs}</span>
               </div>
               <div className="qs-item">
                 <span className="qs-num">{calcStreak(stats.dates)}</span>
-                <span className="qs-label">{lang==='az'?'Gün ardıcıl':lang==='ru'?'Дней подряд':lang==='tr'?'Gün seri':lang==='ar'?'أيام متتالية':'Day streak'}</span>
+                <span className="qs-label">{st.streak}</span>
               </div>
-              <div className="qs-item">
-                <span className="qs-num">{getMostRead(stats.reads)}</span>
-                <span className="qs-label">{lang==='az'?'Ən çox oxunan':lang==='ru'?'Самая читаемая':lang==='tr'?'En çok okunan':lang==='ar'?'الأكثر قراءة':'Most read'}</span>
+              <div className="qs-item qs-item--name">
+                <span className="qs-num qs-name">{mostReadName}</span>
+                <span className="qs-label">{st.most}</span>
               </div>
             </div>
           )}
-          <div className="quran-search-mode">
-            <button className={`search-mode-btn ${searchMode === 'surah' ? 'active' : ''}`} onClick={() => setSearchMode('surah')}>
+          {/* Telefonda seqment idarəsi: ağ "hap" aktiv seçimə sürüşür (data-active),
+              kompüterdə əvvəlki həb düymələr */}
+          <div className="quran-search-mode" role="group" data-active={searchMode}>
+            <button type="button" className={`search-mode-btn press ${searchMode === 'surah' ? 'active' : ''}`}
+              aria-pressed={searchMode === 'surah'} onClick={() => setSearchMode('surah')}>
               {sl.surahSearch}
             </button>
-            <button className={`search-mode-btn ${searchMode === 'verse' ? 'active' : ''}`} onClick={() => setSearchMode('verse')}>
+            <button type="button" className={`search-mode-btn press ${searchMode === 'verse' ? 'active' : ''}`}
+              aria-pressed={searchMode === 'verse'} onClick={() => setSearchMode('verse')}>
               {sl.verseSearch}
             </button>
           </div>
           <div className="quran-search-bar">
             <div className="input-wrap" style={{ flex: 1 }}>
-              <span className="input-icon">🔍</span>
+              <span className="input-icon" aria-hidden="true">🔍</span>
               {searchMode === 'surah' ? (
-                <input className="input-base input-with-icon" placeholder={t.searchPh}
+                <input className="input-base input-with-icon" placeholder={t.searchPh} aria-label={t.searchPh}
                   value={search} onChange={e => setSearch(e.target.value)} />
               ) : (
-                <input className="input-base input-with-icon" placeholder={sl.verseSearch}
+                <input className="input-base input-with-icon" placeholder={sl.verseSearch} aria-label={sl.verseSearch}
                   value={verseSearch} onChange={e => setVerseSearch(e.target.value)} />
               )}
             </div>
@@ -348,27 +574,38 @@ export default function QuranPage({ setPage }) {
                   { key:'meccan',  label: t.meccan },
                   { key:'medinan', label: t.medinan },
                 ].map(f => (
-                  <button key={f.key} className={`tag-btn ${filter === f.key ? 'active' : ''}`} onClick={() => setFilter(f.key)}>{f.label}</button>
+                  <button type="button" key={f.key} className={`tag-btn ${filter === f.key ? 'active' : ''}`}
+                    aria-pressed={filter === f.key} onClick={() => setFilter(f.key)}>{f.label}</button>
                 ))}
               </div>
-              {listLoading && <div className="spinner-wrap"><div className="spinner"/><span className="spinner-text">{t.loading}</span></div>}
+              {listLoading && (
+                <>
+                  <div className="spinner-wrap q-spinner"><div className="spinner"/><span className="spinner-text">{t.loading}</span></div>
+                  <ListSkeleton label={t.loading} />
+                </>
+              )}
+              {/* Telefonda: qruplaşdırılmış siyahı xanaları (QuranPage.css → mobil blok) */}
               <div className="surah-grid">
                 {filtered.map((s,i) => {
+                  const isAr = lang === 'ar'
                   const az = lang === 'az' ? SURAH_AZ[s.number] : null
-                  const displayName = az ? az.name : s.englishName
-                  const displayMeta = az
-                    ? `${az.meaning} · ${s.numberOfAyahs} ${t.verses}`
-                    : `${s.englishNameTranslation} · ${s.numberOfAyahs} ${t.verses}`
+                  const displayName = surahTitle(s, lang)
+                  // ərəbcədə ingiliscə məna yox, "7 آيات · مكية"
+                  const displayMeta = isAr
+                    ? `${s.numberOfAyahs} ${t.verses} · ${revelationLabel(s.revelationType, lang)}`
+                    : `${az ? az.meaning : s.englishNameTranslation} · ${s.numberOfAyahs} ${t.verses}`
                   return (
-                    <div key={s.number} className="surah-card anim-fadeUp" style={{animationDelay:`${Math.min(i*20,400)}ms`}}
-                      onClick={() => openSurah(s.number, displayName)}>
-                      <div className="surah-num">{s.number}</div>
-                      <div className="surah-body">
-                        <div className="surah-name-en">{displayName}</div>
-                        <div className="surah-meta">{displayMeta}</div>
-                      </div>
-                      <div className="surah-name-ar">{s.name}</div>
-                    </div>
+                    // --i: növbə indeksi. Kompüterdə əvvəlki kimi 20ms addım (≤400ms);
+                    // telefonda ilk 8 xana 40ms aralıqla (QuranPage.css)
+                    <button type="button" key={s.number} className="surah-card anim-fadeUp" style={{'--i': Math.min(i, 20)}}
+                      onClick={() => openSurah(s.number)}>
+                      <span className="surah-num">{s.number}</span>
+                      <span className="surah-body">
+                        <span className={`surah-name-en${isAr ? ' is-ar' : ''}`}>{displayName}</span>
+                        <span className="surah-meta">{displayMeta}</span>
+                      </span>
+                      {!isAr && <span className="surah-name-ar" lang="ar">{s.name}</span>}
+                    </button>
                   )
                 })}
               </div>
@@ -381,7 +618,12 @@ export default function QuranPage({ setPage }) {
           )}
           {searchMode === 'verse' && (
             <>
-              {verseSearching && <div className="spinner-wrap"><div className="spinner"/><span className="spinner-text">{sl.searching}</span></div>}
+              {verseSearching && (
+                <>
+                  <div className="spinner-wrap q-spinner"><div className="spinner"/><span className="spinner-text">{sl.searching}</span></div>
+                  <ListSkeleton label={sl.searching} />
+                </>
+              )}
               {!verseSearching && verseSearch.length >= 3 && verseResults.length === 0 && (
                 <div className="empty-state">
                   <span>📖</span><p>{sl.noResults}</p>
@@ -390,16 +632,25 @@ export default function QuranPage({ setPage }) {
               {verseResults.length > 0 && (
                 <div className="verse-results">
                   <p className="verse-results-count">{verseResults.length} {sl.result}</p>
-                  {verseResults.map((v, i) => (
-                    <div key={i} className="verse-result-card" onClick={() => openSurah(v.surah.number, v.surah.englishName)}>
-                      <div className="vr-header">
-                        <span className="vr-surah">{v.surah.englishName} ({v.surah.name})</span>
-                        <span className="vr-ayah">{v.numberInSurah}</span>
-                      </div>
-                      <p className="vr-arabic">{v.text}</p>
-                      {v.edition?.identifier !== 'quran-simple' && <p className="vr-trans">{v.text}</p>}
-                    </div>
-                  ))}
+                  {verseResults.map((v, i) => {
+                    // Axtarış yalnız seçilmiş nəşrin mətnini qaytarır (tərcümə və ya
+                    // ərəbcədə təfsir) — onu bir dəfə, adi yazı kimi göstəririk.
+                    // Ərəb Quran xətti yalnız nəşr Quran mətninin özü olanda.
+                    const isQuranText = v.edition?.type === 'quran'
+                    return (
+                      <button type="button" key={v.number} className="verse-result-card press" style={{'--i': Math.min(i, 7)}}
+                        onClick={() => openSurah(v.surah.number)}>
+                        <span className="vr-header">
+                          <span className="vr-surah">
+                            {surahTitle(v.surah, lang)}
+                            {v.edition?.type === 'tafsir' && <span className="vr-kind">{tafsirLabel}</span>}
+                          </span>
+                          <span className="vr-ayah" dir="ltr">{v.surah.number}:{v.numberInSurah}</span>
+                        </span>
+                        <span className={isQuranText ? 'vr-arabic' : 'vr-trans'} lang={isQuranText ? 'ar' : undefined}>{v.text}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </>

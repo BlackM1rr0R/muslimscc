@@ -7,7 +7,7 @@
 .qibla-wrap {
   max-width: 680px;
   margin: 0 auto;
-  padding: 48px 24px 80px;
+  padding: var(--hero-gap) var(--page-gutter) var(--page-pad-bottom);
 }
 
 /* ── Center layout (loading / error) ── */
@@ -92,6 +92,8 @@
   will-change: transform;
 }
 
+/* Hər cizgi kompasın mərkəzindən (0 0) fırlanır, sonra 135px yuxarı
+   çəkilir — belə ki 72 cizgi mərkəz ətrafında dairə yaradır */
 .qibla-tick {
   position: absolute;
   top: 50%;
@@ -99,8 +101,8 @@
   width: 1px;
   height: 6px;
   background: var(--border-md);
-  transform-origin: 0 -135px;
-  transform: rotate(calc(var(--i) * 5deg)) translateX(-50%) translateY(-135px);
+  transform-origin: 0 0;
+  transform: rotate(calc(var(--i) * 5deg)) translate(-50%, -135px);
   border-radius: 1px;
 }
 .qibla-tick.minor {
@@ -126,11 +128,14 @@
   font-weight: 700;
   color: var(--text-dim);
   letter-spacing: .5px;
+  white-space: nowrap;
+  line-height: 1;
   transform-origin: 0 0;
-  /* place 8 directions evenly */
+  /* 4 əsas istiqamət: --ci 0, 2, 4, 6 → 0°, 90°, 180°, 270° */
+  /* Yazılar bir az içəridədir (104px) ki, kənardakı 🕋 ilə üst-üstə düşməsin */
   transform:
     rotate(calc(var(--ci) * 45deg))
-    translateY(-118px)
+    translateY(-104px)
     rotate(calc(var(--ci) * -45deg))
     translate(-50%, -50%);
 }
@@ -139,13 +144,17 @@
   font-size: 13px;
 }
 
-/* ── Qibla needle ── */
+/* ── Qibla needle ──
+   İynə mərkəzdən Kəbəyə qədər uzanır: sarğı bütün kompası tutur və
+   qiblə açısı qədər fırlanır, iynə isə onun yuxarı yarısını (radiusu)
+   doldurur — yaşıl xətt mərkəzdən 🕋-yə doğru göstərir. 🕋 cizgi
+   halqasının üstündə (kənarda), istiqamət yazılarından kənarda durur */
 .qibla-needle-wrap {
   position: absolute;
   inset: 0;
   border-radius: 50%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   will-change: transform;
 }
@@ -153,27 +162,30 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 220px;
+  justify-content: flex-start;
+  height: 50%;
   pointer-events: none;
 }
 .qibla-needle-tip {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 8px;
+  padding-top: 10px;
 }
 .qibla-kaaba-icon {
   font-size: 26px;
+  line-height: 1;
   filter: drop-shadow(0 2px 6px rgba(26,107,58,0.3));
   animation: float 3s ease-in-out infinite;
 }
 .qibla-needle-tail {
+  flex: 1 1 auto;
   width: 3px;
-  height: 80px;
-  background: linear-gradient(to bottom, var(--primary), var(--primary-light), transparent);
+  margin-top: 4px;
+  background: linear-gradient(to top, transparent 0, var(--primary-light) 30%, var(--primary) 100%);
   border-radius: 2px;
-  opacity: .6;
+  opacity: .75;
 }
 
 /* ── Center dot ── */
@@ -228,6 +240,8 @@
 
 /* ══════════════════════════════════════════════
    INFO CARDS
+   Telefonda (<768px) qruplu "inset" siyahı (motion.css → .m-list/.m-row/
+   .icon-tile) — aşağıdakı "TELEFON" bloku; ≥768px-də əvvəlki kartlar.
    ══════════════════════════════════════════════ */
 .qibla-info-grid {
   display: grid;
@@ -235,31 +249,55 @@
   gap: 12px;
   width: 100%;
 }
-.qibla-info-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  box-shadow: var(--shadow-sm);
-  transition: all .22s;
-}
-.qibla-info-card:hover {
-  border-color: var(--primary-border);
-  box-shadow: var(--shadow);
-  transform: translateY(-2px);
-}
-.qibla-info-card.live { border-color: rgba(22,163,74,0.25); background: rgba(22,163,74,0.04); }
-.qibla-info-card.no-sensor { border-color: rgba(217,119,6,0.25); background: rgba(217,119,6,0.04); }
+/* Tək qalan son kart yarım xanada boş yerin yanında qalmasın — tam en */
+.qibla-info-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 
 .qibla-info-icon { font-size: 22px; flex-shrink: 0; }
 .qibla-info-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .qibla-info-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
-.qibla-info-val { font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.1; }
+.qibla-info-val { font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.1; font-variant-numeric: tabular-nums; }
 .qibla-info-val small { font-size: 13px; font-weight: 500; color: var(--text-muted); }
 .qibla-info-desc { font-size: 12px !important; font-weight: 400 !important; color: var(--text-muted) !important; line-height: 1.4; }
+
+/* ≥768px — əvvəlki ayrı-ayrı kölgəli kartlar (kit qutusu/xətləri söndürülür) */
+@media (min-width: 768px) {
+  .qibla-info-grid.m-list {
+    background: none; border: 0; border-radius: 0; box-shadow: none;
+    overflow: visible; isolation: auto;
+  }
+  .qibla-info-grid > .qibla-info-card + .qibla-info-card::before { display: none; }
+  .qibla-info-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color .22s, box-shadow .22s, transform .22s;
+    -webkit-user-select: text; user-select: text;
+  }
+  .qibla-info-card:hover {
+    border-color: var(--primary-border);
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+  }
+  .qibla-info-card.live { border-color: rgba(22,163,74,0.25); background: rgba(22,163,74,0.04); }
+  .qibla-info-card.no-sensor { border-color: rgba(217,119,6,0.25); background: rgba(217,119,6,0.04); }
+  [data-theme="dark"] .qibla-info-card.live {
+    border-color: rgba(46,204,113,0.25);
+    background: rgba(46,204,113,0.06);
+  }
+  [data-theme="dark"] .qibla-info-card.no-sensor {
+    border-color: rgba(240,192,64,0.25);
+    background: rgba(240,192,64,0.06);
+  }
+  .qibla-info-icon.icon-tile {
+    width: auto; height: auto; border-radius: 0; background: none; font-size: 22px;
+  }
+}
 
 /* ── Coordinates footer ── */
 .qibla-coords {
@@ -288,12 +326,16 @@
   border: 1px solid var(--primary-border);
   border-radius: var(--radius);
   padding: 6px 18px;
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   cursor: pointer;
   transition: all .2s;
 }
 .qibla-refresh-btn:hover {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 
 /* ── iOS compass permission button ── */
@@ -304,11 +346,91 @@
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .qibla-compass { width: 260px; height: 260px; }
-  .qibla-tick { transform: rotate(calc(var(--i) * 5deg)) translateX(-50%) translateY(-115px); transform-origin: 0 -115px; }
-  .qibla-cardinal { transform: rotate(calc(var(--ci) * 45deg)) translateY(-100px) rotate(calc(var(--ci) * -45deg)) translate(-50%, -50%); }
-  .qibla-needle { height: 190px; }
-  .qibla-info-grid { grid-template-columns: 1fr; }
-  .qibla-wrap { padding: 32px 16px 64px; }
+  .qibla-tick { transform-origin: 0 0; transform: rotate(calc(var(--i) * 5deg)) translate(-50%, -115px); }
+  .qibla-cardinal { transform: rotate(calc(var(--ci) * 45deg)) translateY(-88px) rotate(calc(var(--ci) * -45deg)) translate(-50%, -50%); }
+  .qibla-needle-tip { padding-top: 8px; }
+}
+
+/* ══════════════════════════════════════════════
+   TELEFON (<768px) — tətbiq görünüşü
+   ══════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  .qibla-content { gap: 24px; }
+
+  /* Yüklənmə / xəta: ortada yumşaq kart, düymələr tam en (baş barmaq üçün) */
+  .qibla-center {
+    gap: 12px;
+    padding: 32px 20px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+  }
+  .qibla-center h3 { font-size: 19px; }
+  .qibla-center p { font-size: 14.5px; line-height: 1.5; }
+  .qibla-error-icon {
+    display: grid;
+    place-items: center;
+    width: 72px;
+    height: 72px;
+    margin-bottom: 4px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+    font-size: 34px;
+    line-height: 1;
+  }
+  .qibla-error-btns {
+    flex-direction: column;
+    align-self: stretch;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .qibla-error-btns > button { width: 100%; justify-content: center; min-height: 48px; }
+
+  .qibla-ios-btn { align-self: stretch; justify-content: center; min-height: 48px; margin-bottom: 0; }
+
+  .qibla-angle-badge { padding: 10px 24px; }
+  .qibla-angle-val { font-variant-numeric: tabular-nums; }
+  .qibla-angle-label { font-size: 13px; }
+
+  /* Məlumat: qruplu siyahı — ad solda, dəyər sonda */
+  .qibla-info-grid { display: flex; flex-direction: column; gap: 0; }
+  .qibla-info-card { gap: 12px; }
+  .qibla-info-body {
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .qibla-info-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    text-transform: none;
+    letter-spacing: 0;
+    line-height: 1.3;
+  }
+  .qibla-info-val { font-size: 17px; font-weight: 700; white-space: nowrap; }
+  .qibla-info-card.is-status .qibla-info-body {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1px;
+  }
+  .qibla-info-card .qibla-info-desc {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    white-space: normal;
+  }
+
+  .qibla-coords { font-size: 13px; }
+  .qibla-refresh-btn { min-height: 44px; padding: 0 20px; border-radius: 999px; font-size: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qibla-center { animation: none; }
 }
 
 /* ── Dark mode overrides ── */
@@ -319,12 +441,4 @@
     0 0 0 10px var(--bg),
     0 8px 40px rgba(0,0,0,0.3),
     0 2px 8px rgba(0,0,0,0.2);
-}
-[data-theme="dark"] .qibla-info-card.live {
-  border-color: rgba(46,204,113,0.25);
-  background: rgba(46,204,113,0.06);
-}
-[data-theme="dark"] .qibla-info-card.no-sensor {
-  border-color: rgba(240,192,64,0.25);
-  background: rgba(240,192,64,0.06);
 }

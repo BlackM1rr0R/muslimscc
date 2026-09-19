@@ -1,13 +1,34 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import '../styles/HajjGuidePage.css'
+// Addım görünüşü (.pg-progress-*, .pg-step-number, .pg-arabic-block, .pg-nav,
+// .pg-complete*) Namaz bələdçisi ilə eynidir — qaydalar yalnız .pg-* ilə
+// məhdudlaşıb, ona görə birbaşa idxal etmək təhlükəsizdir. Əvvəl bu fayl yalnız
+// /prayerguide açılanda yüklənirdi və /hajjguide birbaşa açılanda addımlar üslubsuz qalırdı.
+import '../styles/PrayerGuidePage.css'
+import Breadcrumb from '../components/Breadcrumb'
 
 const LABELS = {
-  az: { title:'Həcc / Ümrə Rehberi', subtitle:'Addım-addım həcc və ümrə qaydası', heroArabic:'الْحَجّ', hajj:'Həcc', umrah:'Ümrə', step:'Addım', prev:'Əvvəlki', next:'Növbəti', of:'/', notes:'Qeydlər', complete:'Tamamlandı!', restart:'Yenidən başla', backToSteps:'Addımlara qayıt' },
-  en: { title:'Hajj / Umrah Guide', subtitle:'Step-by-step Hajj and Umrah guide', heroArabic:'الْحَجّ', hajj:'Hajj', umrah:'Umrah', step:'Step', prev:'Previous', next:'Next', of:'/', notes:'Notes', complete:'Completed!', restart:'Start again', backToSteps:'Back to steps' },
-  ru: { title:'Хадж / Умра', subtitle:'Пошаговое руководство по Хаджу и Умре', heroArabic:'الْحَجّ', hajj:'Хадж', umrah:'Умра', step:'Шаг', prev:'Назад', next:'Далее', of:'/', notes:'Примечания', complete:'Завершено!', restart:'Начать заново', backToSteps:'К шагам' },
-  ar: { title:'دليل الحج والعمرة', subtitle:'دليل الحج والعمرة خطوة بخطوة', heroArabic:'الْحَجّ', hajj:'الحج', umrah:'العمرة', step:'الخطوة', prev:'السابق', next:'التالي', of:'/', notes:'ملاحظات', complete:'تم الإكمال!', restart:'ابدأ من جديد', backToSteps:'العودة للخطوات' },
-  tr: { title:'Hac / Umre Rehberi', subtitle:'Adım adım Hac ve Umre rehberi', heroArabic:'الْحَجّ', hajj:'Hac', umrah:'Umre', step:'Adım', prev:'Önceki', next:'Sonraki', of:'/', notes:'Notlar', complete:'Tamamlandı!', restart:'Yeniden başla', backToSteps:'Adımlara dön' },
+  az: { title:'Həcc / Ümrə Bələdçisi', subtitle:'Addım-addım həcc və ümrə qaydası', heroArabic:'الْحَجّ', hajj:'Həcc', umrah:'Ümrə', step:'Addım', recite:'Oxu', prev:'Əvvəlki', next:'Növbəti', of:'/', notes:'Qeydlər', complete:'Tamamlandı!', restart:'Yenidən başla', backToSteps:'Addımlara qayıt', steps:'Addımlar' },
+  en: { title:'Hajj / Umrah Guide', subtitle:'Step-by-step Hajj and Umrah guide', heroArabic:'الْحَجّ', hajj:'Hajj', umrah:'Umrah', step:'Step', recite:'Recite', prev:'Previous', next:'Next', of:'/', notes:'Notes', complete:'Completed!', restart:'Start again', backToSteps:'Back to steps', steps:'Steps' },
+  ru: { title:'Хадж / Умра', subtitle:'Пошаговое руководство по Хаджу и Умре', heroArabic:'الْحَجّ', hajj:'Хадж', umrah:'Умра', step:'Шаг', recite:'Читай', prev:'Назад', next:'Далее', of:'/', notes:'Примечания', complete:'Завершено!', restart:'Начать заново', backToSteps:'К шагам', steps:'Шаги' },
+  ar: { title:'دليل الحج والعمرة', subtitle:'دليل الحج والعمرة خطوة بخطوة', heroArabic:'الْحَجّ', hajj:'الحج', umrah:'العمرة', step:'الخطوة', recite:'اقرأ', prev:'السابق', next:'التالي', of:'/', notes:'ملاحظات', complete:'تم الإكمال!', restart:'ابدأ من جديد', backToSteps:'العودة للخطوات', steps:'الخطوات' },
+  tr: { title:'Hac / Umre Rehberi', subtitle:'Adım adım Hac ve Umre rehberi', heroArabic:'الْحَجّ', hajj:'Hac', umrah:'Umre', step:'Adım', recite:'Oku', prev:'Önceki', next:'Sonraki', of:'/', notes:'Notlar', complete:'Tamamlandı!', restart:'Yeniden başla', backToSteps:'Adımlara dön', steps:'Adımlar' },
+}
+
+// Rəqəmdən sonra "addım" sözünün düzgün forması (ru: 4 шага / 10 шагов,
+// ar: 3–10 arası cəm "خطوات", qalanı tək "خطوة"; az/tr-də rəqəmdən sonra tək)
+function stepsWord(n, lang) {
+  if (lang === 'ru') {
+    const d = n % 10, h = n % 100
+    if (d === 1 && h !== 11) return 'шаг'
+    if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return 'шага'
+    return 'шагов'
+  }
+  if (lang === 'ar') return n >= 3 && n <= 10 ? 'خطوات' : 'خطوة'
+  if (lang === 'en') return n === 1 ? 'step' : 'steps'
+  if (lang === 'tr') return 'adım'
+  return 'addım'
 }
 
 const HAJJ_STEPS = [
@@ -57,9 +78,9 @@ const HAJJ_STEPS = [
     id: 'sai',
     icon: '🚶',
     arabic: 'سَعْي',
-    name: { az:'Sey', en:"Sa'i", ru:'Саи', ar:'السعي', tr:'Say' },
+    name: { az:'Səy', en:"Sa'i", ru:'Саи', ar:'السعي', tr:'Say' },
     description: {
-      az: 'Səfa və Mərvə təpələri arasında 7 dəfə yürüyün. Səfadan başlayın, Mərvədə bitirin. Hər təpəyə çatanda Kəbəyə tərəf dönüb dua edin. Yaşıl işıqlar arasında (kişilər) qaçın.',
+      az: 'Səfa və Mərvə təpələri arasında 7 dəfə yeriyin. Səfadan başlayın, Mərvədə bitirin. Hər təpəyə çatanda Kəbəyə tərəf dönüb dua edin. Yaşıl işıqlar arasında (kişilər) qaçın.',
       en: "Walk between the hills of Safa and Marwa 7 times. Start at Safa, end at Marwa. At each hill, face the Kaaba and make dua. Men should jog between the green lights.",
       ru: 'Пройдите между холмами Сафа и Марва 7 раз. Начните с Сафы, закончите на Марве. На каждом холме повернитесь к Каабе и сделайте дуа. Мужчины должны бежать между зелёными отметками.',
       ar: 'اسعَ بين الصفا والمروة ٧ أشواط. ابدأ من الصفا وانتهِ عند المروة. عند كل تل استقبل القبلة وادعُ. يُستحب للرجال الهرولة بين العلمين الأخضرين.',
@@ -88,7 +109,7 @@ const HAJJ_STEPS = [
     },
     recitation: '',
     notes: {
-      az: 'Bu gün hazırlıq günüdür. Sakit qalın, ibadat edin.',
+      az: 'Bu gün hazırlıq günüdür. Sakit qalın, ibadət edin.',
       en: 'This is a preparatory day. Stay calm and worship.',
       ru: 'Это подготовительный день. Сохраняйте спокойствие и поклоняйтесь.',
       ar: 'هذا يوم تحضيري. التزم الهدوء والعبادة.',
@@ -214,7 +235,7 @@ const HAJJ_STEPS = [
     },
     recitation: '',
     notes: {
-      az: 'Hayızlı qadınlar vida təvafından muafdır.',
+      az: 'Heyz halında olan qadınlar vida təvafından müafdır.',
       en: 'Menstruating women are exempt from the farewell tawaf.',
       ru: 'Женщины в период менструации освобождены от прощального тавафа.',
       ar: 'تُعفى الحائض من طواف الوداع.',
@@ -270,9 +291,9 @@ const UMRAH_STEPS = [
     id: 'u_sai',
     icon: '🚶',
     arabic: 'سَعْي',
-    name: { az:'Sey', en:"Sa'i", ru:'Саи', ar:'السعي', tr:'Say' },
+    name: { az:'Səy', en:"Sa'i", ru:'Саи', ar:'السعي', tr:'Say' },
     description: {
-      az: 'Səfa və Mərvə arasında 7 dəfə yürüyün. Səfadan başlayın, Mərvədə bitirin. Hər təpədə Kəbəyə tərəf dönüb dua edin. Kişilər yaşıl sütunlar arasında sürətlə yürüsün.',
+      az: 'Səfa və Mərvə arasında 7 dəfə yeriyin. Səfadan başlayın, Mərvədə bitirin. Hər təpədə Kəbəyə tərəf dönüb dua edin. Kişilər yaşıl sütunlar arasında sürətlə yeriməlidir.',
       en: "Walk between Safa and Marwa 7 times. Start at Safa, end at Marwa. At each hill, face the Kaaba and make dua. Men should walk briskly between the green pillars.",
       ru: 'Пройдите между Сафой и Марвой 7 раз. Начните с Сафы, закончите на Марве. На каждом холме повернитесь к Каабе и сделайте дуа. Мужчины должны быстро идти между зелёными столбами.',
       ar: 'اسعَ بين الصفا والمروة ٧ أشواط. ابدأ من الصفا وانتهِ عند المروة. عند كل تل استقبل القبلة وادعُ. يُستحب للرجال الهرولة بين العلمين.',
@@ -280,7 +301,7 @@ const UMRAH_STEPS = [
     },
     recitation: 'إِنَّ الصَّفَا وَالْمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ',
     notes: {
-      az: 'Sey zamanı istənilən dua edə bilərsiniz.',
+      az: 'Səy zamanı istənilən dua edə bilərsiniz.',
       en: 'You may make any dua during Sai.',
       ru: 'Во время саи можно делать любое дуа.',
       ar: 'يجوز الدعاء بما شئت أثناء السعي.',
@@ -293,7 +314,7 @@ const UMRAH_STEPS = [
     arabic: 'حَلْق / تَقْصِير',
     name: { az:'Halq / Təqsir', en:'Halq / Taqsir', ru:'Халк / Таксир', ar:'الحلق / التقصير', tr:'Halq / Taksir' },
     description: {
-      az: 'Seydən sonra saçınızı qırxdırın (halq) və ya qısaldın (təqsir). Kişilər üçün halq daha fəzilətlidir. Qadınlar saçlarından barmaq ucu boyda kəsir. Bu əməldən sonra ihramdan çıxırsınız — ümrə tamamdır!',
+      az: 'Səydən sonra saçınızı qırxdırın (halq) və ya qısaldın (təqsir). Kişilər üçün halq daha fəzilətlidir. Qadınlar saçlarından barmaq ucu boyda kəsir. Bu əməldən sonra ihramdan çıxırsınız — ümrə tamamdır!',
       en: 'After Sai, shave your head (halq) or trim your hair (taqsir). Shaving is more virtuous for men. Women cut a fingertip-length from their hair. After this, you exit ihram — Umrah is complete!',
       ru: 'После саи обрейте голову (халк) или подстригите волосы (таксир). Бритьё более предпочтительно для мужчин. Женщины отрезают кончик пряди. После этого вы выходите из ихрама — Умра завершена!',
       ar: 'بعد السعي احلق رأسك (حلق) أو قصّر شعرك (تقصير). الحلق أفضل للرجال. تقص النساء قدر أنملة. بعد ذلك تتحلل من الإحرام — اكتملت العمرة!',
@@ -316,6 +337,14 @@ export default function HajjGuidePage({ setPage }) {
 
   const [mode, setMode] = useState(null) // 'hajj' | 'umrah'
   const [currentStep, setCurrentStep] = useState(0)
+  // Addım kartının giriş istiqaməti: 'next' | 'prev' | 'none' (ilk açılış — animasiyasız)
+  const [dir, setDir] = useState('none')
+  // Seçim ekranına geri qayıdanda yumşaq giriş; ilk yükləmədə yox (səhifə keçidi onsuz da var)
+  const [visited, setVisited] = useState(false)
+
+  const topbarRef = useRef(null)
+  const stepsRef = useRef(null)
+  const cardRef = useRef(null)
 
   const steps = mode === 'hajj' ? HAJJ_STEPS : mode === 'umrah' ? UMRAH_STEPS : []
   const totalSteps = steps.length
@@ -323,20 +352,50 @@ export default function HajjGuidePage({ setPage }) {
   const isComplete = mode !== null && totalSteps > 0 && currentStep >= totalSteps
   const step = !isComplete && totalSteps > 0 ? steps[currentStep] : null
 
-  const handlePrev = () => { if (currentStep > 0) setCurrentStep(currentStep - 1) }
-  const handleNext = () => { setCurrentStep(currentStep + 1) }
-  const handleRestart = () => { setMode(null); setCurrentStep(0) }
-  const handleBack = () => { setMode(null); setCurrentStep(0) }
+  const goTo = (i) => {
+    if (i === currentStep) return
+    setDir(i > currentStep ? 'next' : 'prev')
+    setCurrentStep(i)
+  }
+  const startMode = (m) => { setMode(m); setCurrentStep(0); setDir('none'); setVisited(true) }
+  const handlePrev = () => { if (currentStep > 0) goTo(currentStep - 1) }
+  const handleNext = () => { goTo(currentStep + 1) }
+  const handleRestart = () => { setMode(null); setCurrentStep(0); setDir('none') }
+  const handleBack = () => { setMode(null); setCurrentStep(0); setDir('none') }
+
+  // Addım dəyişəndə (telefonda vacibdir: "Növbəti" ekranın altındadır):
+  //  • aktiv addım çipini zolağın ortasına gətir — yalnız üfüqi, səhifə tərpənmir;
+  //  • yeni kartın başı yapışqan zolağın altında qalıbsa, karta yumşaq sürüş.
+  useEffect(() => {
+    if (mode === null) return
+    let smooth = true
+    try { smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { /* köhnə brauzer */ }
+    const behavior = smooth ? 'smooth' : 'auto'
+
+    const strip = stepsRef.current
+    const chip = strip?.querySelector('[aria-current="step"]')
+    if (strip && chip && strip.scrollWidth > strip.clientWidth) {
+      const c = chip.getBoundingClientRect()
+      const r = strip.getBoundingClientRect()
+      // Fiziki fərq — LTR və RTL-də eyni işləyir
+      strip.scrollBy({ left: (c.left + c.width / 2) - (r.left + r.width / 2), behavior })
+    }
+
+    if (dir === 'none') return
+    const card = cardRef.current
+    if (!card) return
+    let limit = 0
+    try { limit = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0 } catch { /* susma */ }
+    const bar = topbarRef.current?.getBoundingClientRect()
+    if (bar && getComputedStyle(topbarRef.current).position === 'sticky') limit = Math.max(limit, bar.bottom)
+    if (card.getBoundingClientRect().top < limit) card.scrollIntoView({ block: 'start', behavior })
+  }, [currentStep, mode, dir])
 
   return (
     <>
       {/* Hero */}
-      <div className="page-hero theme-hajj">
-        <div className="breadcrumb">
-          <button onClick={() => setPage('home')}>muslims.cc</button>
-          <span>/</span>
-          <span>{t.title}</span>
-        </div>
+      <div className="page-hero hero-compact theme-hajj">
+        <Breadcrumb setPage={setPage} current={t.title} />
         <div className="page-hero-arabic">{t.heroArabic}</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
@@ -347,19 +406,19 @@ export default function HajjGuidePage({ setPage }) {
 
           {/* Mode Selection */}
           {mode === null && (
-            <div className="hg-select anim-fadeUp">
+            <div className={`hg-select${visited ? ' hg-view-in' : ''}`}>
               <div className="hg-select-grid">
-                <button className="hg-select-btn" onClick={() => { setMode('hajj'); setCurrentStep(0) }}>
+                <button className="hg-select-btn press" onClick={() => startMode('hajj')}>
                   <span className="hg-select-icon">🕋</span>
                   <span className="hg-select-arabic">الْحَجّ</span>
                   <span className="hg-select-name">{t.hajj}</span>
-                  <span className="hg-select-count">{HAJJ_STEPS.length} {t.step}</span>
+                  <span className="hg-select-count">{HAJJ_STEPS.length} {stepsWord(HAJJ_STEPS.length, lang)}</span>
                 </button>
-                <button className="hg-select-btn" onClick={() => { setMode('umrah'); setCurrentStep(0) }}>
+                <button className="hg-select-btn press" onClick={() => startMode('umrah')}>
                   <span className="hg-select-icon">🤲</span>
                   <span className="hg-select-arabic">الْعُمْرَة</span>
                   <span className="hg-select-name">{t.umrah}</span>
-                  <span className="hg-select-count">{UMRAH_STEPS.length} {t.step}</span>
+                  <span className="hg-select-count">{UMRAH_STEPS.length} {stepsWord(UMRAH_STEPS.length, lang)}</span>
                 </button>
               </div>
             </div>
@@ -367,27 +426,47 @@ export default function HajjGuidePage({ setPage }) {
 
           {/* Step Guide */}
           {mode !== null && !isComplete && step && (
-            <div className="hg-guide anim-fadeUp">
-              {/* Progress */}
-              <div className="pg-progress-wrap">
-                <div className="pg-progress-bar">
-                  <div className="pg-progress-fill" style={{ width: `${progress}%` }} />
+            <div className="hg-guide hg-view-in">
+              {/* Üst zolaq: telefonda yapışqandır (geri + "Addım 3 / 10" + irəliləyiş),
+                  genişdə əvvəlki kimi adi axında */}
+              <div className="hg-topbar" ref={topbarRef}>
+                {/* Progress — doluluq transform ilə (HajjGuidePage.css → --hg-p) */}
+                <div className="pg-progress-wrap">
+                  <div className="pg-progress-bar">
+                    <div className="pg-progress-fill" style={{ '--hg-p': `${progress}%` }} />
+                  </div>
+                  <span className="pg-progress-text">
+                    {t.step} {currentStep + 1} {t.of} {totalSteps}
+                  </span>
                 </div>
-                <span className="pg-progress-text">
-                  {t.step} {currentStep + 1} {t.of} {totalSteps}
-                </span>
+
+                {/* Back */}
+                <button className="btn-ghost hg-back-btn" onClick={handleBack}>
+                  <span className="qm-dir-arrow" aria-hidden="true">←</span> {t.backToSteps}
+                </button>
               </div>
 
-              {/* Back */}
-              <button className="btn-ghost hg-back-btn" onClick={handleBack}>
-                ← {t.backToSteps}
-              </button>
+              {/* Addım çipləri — yalnız telefonda/planşetdə: istənilən addıma birbaşa keçid */}
+              <nav className="hg-steps chip-scroll" ref={stepsRef} aria-label={t.steps}>
+                {steps.map((st, i) => (
+                  <button
+                    key={st.id}
+                    type="button"
+                    className={`m-chip hg-step-chip${i === currentStep ? ' is-active' : ''}${i < currentStep ? ' is-done' : ''}`}
+                    aria-current={i === currentStep ? 'step' : undefined}
+                    onClick={() => goTo(i)}
+                  >
+                    <span className="hg-step-chip-num" aria-hidden="true">{i + 1}</span>
+                    {st.name[lang] || st.name.en}
+                  </button>
+                ))}
+              </nav>
 
-              {/* Step Card */}
-              <div className="hg-step-card">
+              {/* Step Card — açar dəyişir: hər addım istiqamətə görə yumşaq sürüşüb gəlir */}
+              <div key={`${mode}-${step.id}`} ref={cardRef} className={`hg-step-card is-${dir}`}>
                 <div className="hg-step-header">
                   <span className="pg-step-number">{currentStep + 1}</span>
-                  <div className="hg-step-icon">{step.icon}</div>
+                  <div className="hg-step-icon icon-tile icon-tile--lg icon-tile--gold" aria-hidden="true">{step.icon}</div>
                   <div className="hg-step-titles">
                     <h3 className="hg-step-name">{step.name[lang] || step.name.en}</h3>
                     <span className="hg-step-arabic">{step.arabic}</span>
@@ -402,7 +481,7 @@ export default function HajjGuidePage({ setPage }) {
                 {/* Arabic Recitation */}
                 {step.recitation && (
                   <div className="pg-arabic-block">
-                    <span className="pg-label">{lang === 'az' ? 'Oxu' : lang === 'en' ? 'Recite' : lang === 'ru' ? 'Читай' : lang === 'ar' ? 'اقرأ' : 'Oku'}</span>
+                    <span className="pg-label">{t.recite}</span>
                     <div className="pg-arabic-text arabic-text">{step.recitation}</div>
                   </div>
                 )}

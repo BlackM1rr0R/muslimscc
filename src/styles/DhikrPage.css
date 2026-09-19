@@ -1,47 +1,97 @@
-.dhikr-layout { display:grid; grid-template-columns:240px 1fr; gap:28px; align-items:start; }
-.dhikr-selector { display:flex; flex-direction:column; gap:8px; position:sticky; top:calc(var(--header-h)+16px); }
+/* ══════════════════════════════════════════════════════
+   Zikr sayğacı (/dhikr)
+   Geniş ekran: solda zikr siyahısı, sağda yapışqan sayğac.
+   Telefon (≤700): yuxarıda üfüqi zikr zolağı, dərhal altında sayğac.
+   ══════════════════════════════════════════════════════ */
+
+.dhikr-layout { display:grid; grid-template-columns:240px minmax(0,1fr); gap:28px; align-items:start; }
+
+.dhikr-selector { display:flex; flex-direction:column; gap:8px; position:static; }
 .dhikr-sel-btn {
   background:var(--bg-card); border:1.5px solid var(--border);
   border-radius:var(--radius); padding:14px 16px;
-  cursor:pointer; transition:all .2s; text-align:left;
+  cursor:pointer; transition:border-color .2s, background .2s, transform .15s; text-align:start;
   display:flex; flex-direction:column; gap:4px;
+  font-family:var(--font);
 }
-.dhikr-sel-btn:hover { border-color:var(--primary-border); }
+@media (hover: hover) {
+  .dhikr-sel-btn:hover { border-color:var(--primary-border); }
+}
+.dhikr-sel-btn:active { transform:scale(0.98); }
 .dhikr-sel-btn.active { background:var(--primary-bg2); border-color:var(--primary); }
-.dhikr-sel-arabic { font-family:'Amiri',serif; font-size:1.1rem; color:var(--primary-dark); direction:rtl; text-align:right; }
+.dhikr-sel-btn:focus-visible { outline:2px solid color-mix(in srgb, var(--primary) 55%, transparent); outline-offset:2px; }
+.dhikr-sel-arabic { font-family:var(--font-arabic); font-size:1.1rem; color:var(--primary-dark); direction:rtl; text-align:right; line-height:1.6; }
 .dhikr-sel-label { font-size:12.5px; font-weight:600; color:var(--text-muted); }
 
-.dhikr-center { display:flex; flex-direction:column; align-items:center; gap:20px; padding:20px; }
-.dhikr-progress-ring { position:relative; display:flex; align-items:center; justify-content:center; }
+/* Sayğac sütunu siyahı ilə yanaşı ekranda qalır (siyahı daha uzundur).
+   Başlıq gizlənəndə (--header-offset → 0) sütun da yumşaq yuxarı qalxır */
+.dhikr-center {
+  display:flex; flex-direction:column; align-items:center; gap:20px;
+  position:sticky; top:calc(var(--header-offset, var(--header-h)) + 16px);
+  transition: top var(--dur-3) var(--ease-out);
+  padding:0 20px 20px;
+}
+/* --dhikr-btn — toxunma düyməsinin (və dalğanın) diametri */
+.dhikr-progress-ring { --dhikr-btn:140px; position:relative; display:flex; align-items:center; justify-content:center; }
 .dhikr-tap-btn {
   position:absolute;
-  width:140px; height:140px; border-radius:50%;
-  background:#fff; border:2px solid var(--primary-border);
+  width:var(--dhikr-btn); height:var(--dhikr-btn); border-radius:50%;
+  background:var(--bg-card); border:2px solid var(--primary-border);
   box-shadow:var(--shadow);
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
-  cursor:pointer; transition:all .12s; user-select:none;
+  cursor:pointer; transition:transform .12s, box-shadow .12s, border-color .3s, background .3s;
+  user-select:none; -webkit-user-select:none;
+  /* Tez-tez toxunanda iki toxunuşla böyütmə gecikməsi olmasın */
+  touch-action:manipulation;
+  font-family:var(--font);
 }
-.dhikr-tap-btn:hover { box-shadow:var(--shadow-lg); transform:scale(1.03); }
+@media (hover: hover) {
+  .dhikr-tap-btn:hover { box-shadow:var(--shadow-lg); transform:scale(1.03); }
+}
 .dhikr-tap-btn.tapped { transform:scale(0.93); box-shadow:var(--shadow-sm); }
 .dhikr-tap-btn.complete { border-color:var(--gold); background:var(--gold-bg); }
-.dhikr-tap-arabic { font-family:'Amiri',serif; font-size:.9rem; color:var(--primary-dark); direction:rtl; text-align:center; line-height:1.3; }
-.dhikr-tap-count { font-size:2.2rem; font-weight:800; color:var(--primary); line-height:1; animation:countUp .2s ease; }
-.dhikr-tap-target { font-size:11px; color:var(--text-muted); }
+.dhikr-tap-btn:focus-visible { outline:2px solid color-mix(in srgb, var(--primary) 55%, transparent); outline-offset:4px; }
+.dhikr-tap-arabic { font-family:var(--font-arabic); font-size:.9rem; color:var(--primary-dark); direction:rtl; text-align:center; line-height:1.3; }
+/* Rəqəm hər toxunuşda yenidən "atılır" (JSX-də key={count}) */
+.dhikr-tap-count { font-size:2.2rem; font-weight:800; color:var(--primary); line-height:1; animation:countUp .2s ease; font-variant-numeric:tabular-nums; }
+.dhikr-tap-target { font-size:12px; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+
+/* Toxunuş dalğası — düymənin ölçüsündən halqaya qədər yayılıb sönür */
+.dhikr-ripple {
+  position:absolute;
+  width:var(--dhikr-btn); height:var(--dhikr-btn);
+  border-radius:50%;
+  border:2px solid var(--primary);
+  opacity:0;
+  pointer-events:none;
+  animation:dhikrRipple var(--dur-3) var(--ease-out);
+}
+.dhikr-ripple.is-gold { border-color:var(--gold); border-width:3px; }
+@keyframes dhikrRipple {
+  from { opacity:.5; transform:scale(1); }
+  to   { opacity:0;  transform:scale(1.24); }
+}
 
 .dhikr-info { text-align:center; }
 .dhikr-name { font-size:1.6rem; font-weight:800; color:var(--text); margin-bottom:6px; }
-.dhikr-virtue { font-size:14px; color:var(--text-muted); font-style:italic; }
-.dhikr-complete-badge { background:var(--gold-bg); border:1px solid rgba(184,134,11,.25); color:var(--gold-dark); padding:10px 22px; border-radius:14px; font-weight:700; font-size:15px; margin-top:8px; }
+.dhikr-virtue { font-size:14px; color:var(--text-muted); font-style:italic; line-height:1.6; }
+.dhikr-complete-badge {
+  background:var(--gold-bg);
+  border:1px solid var(--gold);
+  border-color:color-mix(in srgb, var(--gold) 30%, transparent);
+  color:var(--gold-dark); padding:10px 22px; border-radius:14px;
+  font-weight:700; font-size:15px; margin-top:8px; display:inline-block;
+}
 .dhikr-actions { display:flex; align-items:center; gap:16px; }
-.dhikr-progress-text { font-size:14px; font-weight:700; color:var(--text-muted); }
+.dhikr-progress-text { font-size:14px; font-weight:700; color:var(--text-muted); font-variant-numeric:tabular-nums; }
 
-.dhikr-log { grid-column:1/-1; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; }
-.dhikr-log-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; }
-.log-entry { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
-.log-entry:last-child { border:none; }
-.log-name { flex:1; font-size:14px; font-weight:600; color:var(--text); }
-.log-count { font-size:14px; font-weight:700; color:var(--primary); }
-.log-time { font-size:12px; color:var(--text-muted); }
+/* ── Jurnal: başlıq sətri + .m-list (motion.css) ── */
+.dhikr-log { grid-column:1/-1; }
+.dhikr-log-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+.dhikr-log-header .m-list-title { margin:0; }
+.dhikr-log-clear { padding:4px 12px; font-size:12.5px; }
+.log-count { font-size:14px; font-weight:700; color:var(--primary); font-variant-numeric:tabular-nums; }
+.log-time { font-variant-numeric:tabular-nums; }
 
 /* ── Total Stats Bar ── */
 .dhikr-total-bar {
@@ -52,46 +102,150 @@
 }
 .dhikr-total-item {
   flex: 1; text-align: center;
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; flex-direction: column; gap: 4px;
 }
-.dhikr-total-num { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1; }
-.dhikr-total-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.dhikr-total-num { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1; font-variant-numeric: tabular-nums; }
+.dhikr-total-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
 .dhikr-total-sep {
   width: 1px; height: 28px; background: var(--primary-border); flex-shrink: 0;
 }
 
 @media(max-width:700px) {
-  .dhikr-layout { grid-template-columns:1fr; }
-  .dhikr-selector { position:static; display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
-  .dhikr-sel-btn { min-width:0; padding:10px 12px; }
-  .dhikr-sel-arabic { font-size:0.95rem; }
-  .dhikr-sel-label { font-size:11px; }
-  .dhikr-center { padding:12px 0; }
-  .dhikr-name { font-size:1.2rem; }
+  .dhikr-layout { grid-template-columns:minmax(0,1fr); gap:12px; }
+
+  /* Zikrlər — bir üfüqi sürüşən kart zolağı (10 kartlıq 300px-lik tor əvəzinə),
+     sayğac dərhal altında, ekranın yuxarı yarısında qalır. Kənarları ekranın
+     kənarına qədər uzanır və yumşaq solğunlaşır (.chip-scroll kimi) */
+  .dhikr-selector {
+    flex-direction:row; flex-wrap:nowrap;
+    overflow-x:auto; gap:10px;
+    overscroll-behavior-x:contain;
+    margin-inline:calc(-1 * var(--page-gutter));
+    padding:4px var(--page-gutter) 10px;
+    scroll-padding-inline:var(--page-gutter);
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - var(--page-gutter)), transparent 100%);
+            mask-image:linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - var(--page-gutter)), transparent 100%);
+  }
+  .dhikr-selector::-webkit-scrollbar { display:none; }
+  .dhikr-sel-btn {
+    flex:0 0 auto; min-width:150px; max-width:230px;
+    scroll-snap-align:start;
+    padding:10px 14px; gap:2px;
+  }
+  .dhikr-sel-arabic { font-size:1.05rem; white-space:nowrap; }
+  .dhikr-sel-label { font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .dhikr-center { position:static; padding:4px 0 8px; gap:16px; }
+  .dhikr-name { font-size:1.25rem; }
   .dhikr-total-bar { max-width:100%; }
   .dhikr-total-num { font-size:18px; }
 }
 
+/* ══ TELEFON (<768) — tətbiq kimi toxunuş hissi ══════════════════
+   Seçici kartları yumşaq kölgəli, seçilmiş zikr dolğun yaşıl; sayğac
+   düyməsi basılanda dərhal sıxılır, buraxanda yaylı qayıdır; statistika
+   və jurnal yumşaq kölgəli kartlarda. */
+@media (max-width: 767.98px) {
+  .dhikr-sel-btn {
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow:var(--shadow-sm);
+    min-height:64px;
+    justify-content:center;
+    transition:transform var(--dur-1) var(--ease-out), background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+  }
+  [data-theme="dark"] .dhikr-sel-btn { border-color:var(--hairline); }
+  .dhikr-sel-btn.active {
+    background:var(--primary);
+    border-color:var(--primary);
+    box-shadow:0 6px 16px -8px var(--primary);
+  }
+  .dhikr-sel-btn .dhikr-sel-arabic,
+  .dhikr-sel-btn .dhikr-sel-label { transition:color var(--dur-2) var(--ease-out); }
+  .dhikr-sel-btn.active .dhikr-sel-arabic,
+  .dhikr-sel-btn.active .dhikr-sel-label { color:var(--on-primary); }
+
+  /* Sayğac düyməsi: yüngül qabarıq (yuxarıdan işıq), buraxanda yay */
+  .dhikr-tap-btn {
+    border-width:1.5px;
+    background:radial-gradient(circle at 50% 30%, var(--bg-card) 0%, var(--bg-card) 45%, var(--bg-card2) 100%);
+    box-shadow:var(--shadow), inset 0 -3px 0 var(--primary-bg2);
+    transition:transform var(--dur-2) var(--ease-spring), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-3) var(--ease-out), background-color var(--dur-3) var(--ease-out);
+  }
+  .dhikr-tap-btn:active,
+  .dhikr-tap-btn.tapped {
+    transform:scale(0.94);
+    box-shadow:var(--shadow-sm), inset 0 -1px 0 var(--primary-bg2);
+    transition-duration:90ms;
+    transition-timing-function:var(--ease-out);
+  }
+  .dhikr-tap-btn.complete {
+    background:radial-gradient(circle at 50% 30%, var(--bg-card) 0%, var(--gold-bg) 100%);
+    background-color:var(--bg-card);
+  }
+
+  .dhikr-virtue { font-size:14px; padding-inline:8px; }
+
+  /* Sıfırla + faiz — yumşaq "hap" düymələr */
+  .dhikr-actions { gap:10px; }
+  .dhikr-reset {
+    min-height:var(--tap);
+    padding:0 18px;
+    border-radius:999px;
+    border-color:var(--border);
+    background:var(--bg-card);
+    box-shadow:var(--shadow-sm);
+    font-size:14px;
+    font-weight:600;
+  }
+  .dhikr-progress-text {
+    display:inline-grid; place-items:center;
+    min-width:56px; min-height:36px; padding:0 12px;
+    border-radius:999px;
+    background:var(--primary-bg);
+    color:var(--primary-dark);
+  }
+  [data-theme="dark"] .dhikr-progress-text { color:var(--primary); }
+
+  /* Statistika — yumşaq kölgəli ağ kart */
+  .dhikr-total-bar {
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    box-shadow:var(--shadow-sm);
+    padding:16px 8px;
+  }
+  [data-theme="dark"] .dhikr-total-bar { border-color:var(--hairline); }
+  .dhikr-total-sep { background:var(--hairline); }
+  .dhikr-total-num { font-size:20px; }
+  .dhikr-total-label { font-size:12.5px; font-weight:600; }
+
+  .dhikr-log { margin-top:12px; }
+  .dhikr-log-header { padding-inline:4px 0; }
+  .dhikr-log-clear { min-height:36px; border-radius:999px; }
+}
+
 @media(max-width:400px) {
-  .dhikr-selector { grid-template-columns:1fr 1fr; gap:5px; }
-  .dhikr-sel-btn { padding:8px 10px; }
-  .dhikr-sel-arabic { font-size:0.85rem; }
-  .dhikr-sel-label { font-size:10px; }
-  .dhikr-progress-ring svg { width:160px; height:160px; }
-  .dhikr-tap-btn { width:112px; height:112px; }
-  .dhikr-tap-arabic { font-size:0.75rem; }
+  .dhikr-sel-btn { min-width:140px; padding:9px 12px; }
+  .dhikr-sel-arabic { font-size:1rem; }
+  .dhikr-sel-label { font-size:12px; }
+  /* Yığcam hero sayəsində yer var — sayğac barmaq üçün rahat ölçüdə qalır */
+  .dhikr-progress-ring { --dhikr-btn:130px; }
+  .dhikr-progress-ring svg { width:186px; height:186px; }
+  .dhikr-tap-arabic { font-size:.85rem; }
+  .dhikr-tap-count { font-size:2rem; }
+}
+
+@media(max-width:360px) {
+  .dhikr-progress-ring { --dhikr-btn:118px; }
+  .dhikr-progress-ring svg { width:168px; height:168px; }
   .dhikr-tap-count { font-size:1.8rem; }
 }
 
-/* ── Dark mode overrides ── */
-[data-theme="dark"] .dhikr-tap-btn {
-  background: #1a1a2e;
-  border-color: rgba(46,204,113,0.25);
-}
-[data-theme="dark"] .dhikr-tap-btn.complete {
-  background: rgba(240,192,64,0.08);
-}
-[data-theme="dark"] .dhikr-complete-badge {
-  background: rgba(240,192,64,0.1);
-  border-color: rgba(240,192,64,0.25);
+@media (prefers-reduced-motion: reduce) {
+  .dhikr-tap-count { animation:none; }
+  .dhikr-tap-btn, .dhikr-tap-btn.tapped { transition:none; }
+  .dhikr-ripple { display:none; }
 }

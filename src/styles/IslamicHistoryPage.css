@@ -1,18 +1,20 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   muslims.cc — IslamicHistoryPage.css
+   Qaraçuxur Məscidi — IslamicHistoryPage.css
    İslami Tarix — Vertical timeline with expandable cards
 ════════════════════════════════════════════════════════════════════════ */
 
+/* Footer-ə qədər boşluq digər səhifələrin .section-i ilə eyni (80 → 36px);
+   son kartın öz margin-bottom-u sıfırlanır (aşağıda) */
 .history-page {
   min-height: 100vh;
-  padding-bottom: 80px;
+  padding-bottom: var(--section-gap);
 }
 
 /* ── Hero ── */
 .history-hero {
   position: relative;
   text-align: center;
-  padding: 60px 20px 50px;
+  padding: 60px var(--page-gutter) 50px;
   overflow: hidden;
   color: #fff;
   background: linear-gradient(135deg, #92400e 0%, #78350f 50%, #451a03 100%);
@@ -54,42 +56,12 @@
   margin: 0;
   font-weight: 500;
 }
-.history-hero .history-breadcrumb {
-  color: rgba(255,255,255,0.9);
-}
-.history-hero .history-breadcrumb button {
-  color: #fde68a;
-}
-
-/* ── Breadcrumb ── */
-.history-breadcrumb {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin-bottom: 16px;
-  font-size: 13px;
-  color: var(--text-muted);
-  position: relative;
-  z-index: 1;
-}
-.history-breadcrumb button {
-  color: var(--primary);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-family: var(--font);
-}
-.history-breadcrumb button:hover {
-  text-decoration: underline;
-}
-
 /* ── Tab Toggle ── */
 .history-tabs {
   display: flex;
   justify-content: center;
   gap: 8px;
-  padding: 0 20px 40px;
+  padding: 0 var(--page-gutter) 40px;
 }
 .history-tab-btn {
   padding: 10px 28px;
@@ -104,16 +76,18 @@
   transition: all 0.25s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  /* emoji ilə ad arasında bir boşluq eni (əvvəl ikisi bir mətn idi) */
+  gap: 4px;
 }
 .history-tab-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
   background: var(--primary-bg);
 }
+/* --on-primary: işıqlıda ağ, tünddə (parlaq yaşılda) tünd mətn */
 .history-tab-btn.active {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border-color: var(--primary);
   box-shadow: 0 3px 12px rgba(26,107,58,0.25);
 }
@@ -122,7 +96,7 @@
 .history-timeline {
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 var(--page-gutter);
   position: relative;
 }
 
@@ -147,6 +121,7 @@
   position: relative;
   animation: fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
 }
+.history-entry:last-child { margin-bottom: 0; }
 .history-entry:nth-child(odd) {
   flex-direction: row;
 }
@@ -225,6 +200,11 @@
 .history-card.expanded::before {
   opacity: 1;
 }
+/* Klaviatura fokusu (kart role="button"-dur) */
+.history-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
 
 /* Date badge */
 .history-date-badge {
@@ -263,7 +243,7 @@
   line-height: 1.6;
 }
 .history-card-desc {
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--text-dim);
   line-height: 1.65;
   margin-bottom: 8px;
@@ -286,7 +266,7 @@
 }
 .history-card.expanded .history-expand-icon {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   transform: rotate(180deg);
 }
 
@@ -326,7 +306,7 @@
   flex-shrink: 0;
 }
 .history-detail-value {
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--text-dim);
   line-height: 1.6;
 }
@@ -352,7 +332,7 @@
   height: 32px;
   border-radius: 50%;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 13px;
   font-weight: 700;
   display: flex;
@@ -363,11 +343,12 @@
 }
 
 /* ── Stats Bar ── */
+/* Hero-dan sonra nəfəs yeri (əvvəl rəqəmlər hero-nun alt kənarına yapışırdı) */
 .history-stats {
   display: flex;
   justify-content: center;
   gap: 32px;
-  padding: 0 24px 36px;
+  padding: 32px var(--page-gutter) 28px;
   flex-wrap: wrap;
 }
 .history-stat {
@@ -388,31 +369,33 @@
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .history-hero {
-    padding: 48px 16px 32px;
+    padding: 44px var(--page-gutter) 32px;
   }
   .history-title {
     font-size: 1.8rem;
   }
   .history-tabs {
-    padding: 0 16px 28px;
+    padding: 0 var(--page-gutter) 28px;
   }
   .history-tab-btn {
     padding: 8px 20px;
     font-size: 13px;
   }
 
-  /* Single-column timeline */
+  /* Tək sütunlu xətt. Xətt .history-timeline-a (padding daxil), nöqtə isə
+     .history-entry-yə görə yerləşir — ikisi də gutter + 16px-də olmalıdır
+     (əvvəl nöqtə xəttdən 24px sağda "üzürdü") */
   .history-timeline::before {
-    left: 20px;
+    left: calc(var(--page-gutter) + 16px);
   }
   .history-entry,
   .history-entry:nth-child(odd),
   .history-entry:nth-child(even) {
     flex-direction: row;
-    padding-left: 48px;
+    padding-left: 36px;
   }
   .history-dot {
-    left: 20px;
+    left: 16px;
   }
   .history-card-wrap,
   .history-entry:nth-child(odd) .history-card-wrap,
@@ -424,15 +407,46 @@
   .history-entry {
     margin-bottom: 28px;
   }
+  .history-entry:last-child { margin-bottom: 0; }
   .history-card {
     padding: 16px;
   }
   .history-stats {
     gap: 20px;
+    padding: 24px var(--page-gutter) 20px;
+  }
+
+  /* Ərəbcə (RTL): xətt, nöqtə və kartın boşluğu sağa güzgülənir */
+  [dir="rtl"] .history-timeline::before {
+    left: auto;
+    right: calc(var(--page-gutter) + 16px);
+    transform: translateX(50%);
+  }
+  [dir="rtl"] .history-entry,
+  [dir="rtl"] .history-entry:nth-child(odd),
+  [dir="rtl"] .history-entry:nth-child(even) {
+    padding-left: 0;
+    padding-right: 36px;
+  }
+  [dir="rtl"] .history-dot {
+    left: auto;
+    right: 16px;
+    transform: translateX(50%);
+  }
+  [dir="rtl"] .history-entry:hover .history-dot {
+    transform: translateX(50%) scale(1.3);
   }
 }
 
 @media (max-width: 480px) {
+  /* Hero kompakt: 72px emoji + böyük boşluq ekranın üçdə birini tuturdu */
+  .history-hero {
+    padding: 36px var(--page-gutter) 30px;
+  }
+  .history-hero-icon {
+    font-size: 2rem;
+    margin-bottom: 6px;
+  }
   .history-title {
     font-size: 1.5rem;
   }
@@ -440,8 +454,8 @@
     font-size: 0.95rem;
   }
   .history-tab-btn {
-    padding: 7px 16px;
-    font-size: 12px;
+    padding: 9px 16px;
+    font-size: 13px;
   }
 }
 
@@ -466,4 +480,213 @@
 }
 [data-theme="dark"] .history-tab-btn.active {
   box-shadow: 0 3px 12px rgba(46,204,113,0.3);
+}
+
+/* Bölmə sayğacı yalnız telefonda (kompüterdə yuxarıda ayrıca statistika var);
+   track kompüterdə görünməz qabdır — düymələr əvvəlki kimi .history-tabs-in
+   mərkəzləşdirilmiş flex sırasındadır */
+.history-tab-count { display: none; }
+.history-tabs-track { display: contents; }
+
+/* Kartlar sürüşdükcə görünür (JSX: data-reveal) — köhnə fadeUp (soldan
+   sürüşmə) əvəzinə motion.css-in yumşaq qalxma animasiyası */
+.history-entry[data-reveal] { animation: none; }
+
+/* ══════════════════════════════════════════════════════
+   TELEFON / KİÇİK PLANŞET (<768px) — müasir tətbiq görünüşü
+   • Hero yığcam, məzmunu növbə ilə qalxır
+   • Statistika seqment idarəsinə köçür (hər bölmənin sayı düymədə)
+   • Seqment idarəsi başlığın altında YAPIŞIR; ağ "həb" seçilənə sürüşür
+     (yalnız transform)
+   • Xətt kartları: yumşaq kölgə, barmaq altında yüngül sıxılma; açılanda
+     hündürlük animasiyası yox — məzmun yumşaq qalxır
+   Kompüter (≥1024px) görünüşü dəyişmir.
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  .history-hero { padding: 24px var(--page-gutter) 22px; }
+  .history-hero-icon { font-size: 1.75rem; margin-bottom: 4px; }
+  .history-title { font-size: clamp(22px, 6.2vw, 26px); margin-bottom: 4px; }
+  .history-subtitle { font-size: 13.5px; line-height: 1.5; }
+  .history-hero > * { animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards; }
+  .history-hero > :nth-child(3) { animation-delay: 40ms; }
+  .history-hero > :nth-child(n+4) { animation-delay: 80ms; }
+
+  .history-stats { display: none; }
+
+  /* Yapışqan şüşə zolaq */
+  .history-tabs {
+    position: sticky;
+    /* Başlıq gizlənəndə 0 — amma PWA-da (viewport-fit=cover) telefonun
+       status zolağının altına girməsin */
+    top: max(var(--header-offset, var(--header-h)), env(safe-area-inset-top, 0px));
+    z-index: 20;
+    display: block;
+    margin: 8px 0 16px;
+    padding: 10px var(--page-gutter);
+    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: 0 1px 0 var(--hairline);
+    transition: top var(--dur-3) var(--ease-out);
+  }
+  .history-tabs-track {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    max-width: 480px;
+    margin-inline: auto;
+    padding: 3px;
+    border-radius: 12px;
+    background: var(--bg-card2);
+  }
+  [data-theme="dark"] .history-tabs-track { background: var(--surface); }
+  /* Sürüşən ağ həb — seçilmiş seqmentin altında */
+  .history-tabs-track::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    inset-inline-start: 3px;
+    width: calc(50% - 3px);
+    border-radius: 9px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+  .history-tabs-track[data-active="events"]::before { transform: translateX(100%); }
+  [dir="rtl"] .history-tabs-track[data-active="events"]::before { transform: translateX(-100%); }
+
+  .history-tab-btn {
+    position: relative;
+    z-index: 1;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: none;
+    transition: color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+  }
+  .history-tab-btn:hover { border-color: transparent; background: transparent; color: var(--text); }
+  .history-tab-btn.active,
+  [data-theme="dark"] .history-tab-btn.active { background: transparent; color: var(--primary-dark); box-shadow: none; }
+  [data-theme="dark"] .history-tab-btn.active { color: var(--primary); }
+  .history-tab-btn:active { transform: scale(var(--press-scale)); }
+  .history-tab-emoji { display: none; }
+  .history-tab-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .history-tab-count {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    min-width: 24px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--hairline);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    transition: background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+  }
+  .history-tab-btn.active .history-tab-count { background: var(--primary-bg2); color: var(--primary-dark); }
+  [data-theme="dark"] .history-tab-btn.active .history-tab-count { color: var(--primary); }
+
+  /* Xətt yapışqan zolağın altında qalmasın (bölmə dəyişəndə scrollIntoView) */
+  .history-timeline { scroll-margin-top: 76px; }
+  .history-timeline::before { width: 2px; opacity: 0.8; }
+  .history-entry { margin-bottom: 14px; }
+  .history-entry:last-child { margin-bottom: 0; }
+  .history-dot {
+    top: 22px;
+    width: 12px;
+    height: 12px;
+    border-width: 2px;
+    box-shadow: 0 0 0 3px var(--primary-bg2);
+  }
+  .history-entry:hover .history-dot { transform: translateX(-50%); box-shadow: 0 0 0 3px var(--primary-bg2); }
+  [dir="rtl"] .history-entry:hover .history-dot { transform: translateX(50%); }
+
+  .history-card {
+    padding: 14px 14px 14px 16px;
+    border-radius: 16px;
+    transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+  }
+  [dir="rtl"] .history-card { padding: 14px 16px 14px 14px; }
+  .history-card:hover,
+  [data-theme="dark"] .history-card:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--border); }
+  .history-card:hover::before { opacity: 0; }
+  .history-card:active { transform: scale(0.985); }
+  .history-card.expanded,
+  .history-card.expanded:hover,
+  [data-theme="dark"] .history-card.expanded:hover { border-color: var(--primary-border); box-shadow: var(--shadow); }
+  .history-card.expanded::before { opacity: 1; }
+
+  .history-date-badge {
+    margin-bottom: 8px;
+    padding: 3px 10px;
+    border: 0;
+    background: var(--primary-bg2);
+    color: var(--primary-dark);
+    font-size: 12px;
+    letter-spacing: 0.2px;
+    font-variant-numeric: tabular-nums;
+  }
+  [data-theme="dark"] .history-date-badge { color: var(--primary); }
+  .history-prophet-num {
+    width: 28px;
+    height: 28px;
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    box-shadow: none;
+  }
+  .history-card-title { font-size: 16px; }
+  .history-card-arabic { font-size: 1.15rem; margin-bottom: 4px; }
+  .history-card-desc { font-size: 14px; margin-bottom: 0; }
+
+  /* Açma işarəsi: ▼ əvəzinə nazik CSS ox, açılanda fırlanır */
+  .history-expand-icon {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    font-size: 0;
+    color: var(--primary);
+    transition: transform var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+  }
+  .history-expand-icon::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+  }
+
+  /* Detallar: hündürlük animasiya olunmur — məzmun yumşaq qalxır */
+  .history-details { transition: none; }
+  .history-card.expanded .history-details { margin-top: 6px; }
+  .history-card.expanded .history-details > * {
+    animation: qm-reveal-up var(--dur-2) var(--ease-out) backwards;
+  }
+  .history-card.expanded .history-details > :nth-child(2) { animation-delay: 40ms; }
+  .history-card.expanded .history-details > :nth-child(n+3) { animation-delay: 80ms; }
+  .history-detail-divider { margin: 6px 0 12px; background: var(--hairline); }
+  .history-detail-row { flex-wrap: wrap; gap: 6px 8px; }
+  .history-detail-label { font-size: 12px; letter-spacing: 0.6px; }
+  .history-detail-value { font-size: 14px; }
+  .history-quran-badge { font-size: 12.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .history-tabs,
+  .history-tabs-track::before { transition: none; }
+  .history-card.expanded .history-details > * { animation: none; }
 }

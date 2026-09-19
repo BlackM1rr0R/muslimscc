@@ -1,13 +1,14 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/QuizPage.css'
 
 const LABELS = {
-  az: { title:'İslami Kviz', subtitle:'Biliyini test et', categories:'Kateqoriya seç', quran:'Quran', hadith:'Hədis', names:'99 Ad', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', playAgain:'Yenidən', question:'Sual', of:'/', bestScore:'Ən yaxşı nəticə', newBest:'Yeni rekord!', back:'Geri', selectAnswer:'Cavab seçin' },
-  en: { title:'Islamic Quiz', subtitle:'Test your knowledge', categories:'Choose category', quran:'Quran', hadith:'Hadith', names:'99 Names', start:'Start', next:'Next', finish:'Finish', score:'Score', correct:'Correct', wrong:'Wrong', playAgain:'Play Again', question:'Question', of:'/', bestScore:'Best score', newBest:'New record!', back:'Back', selectAnswer:'Select an answer' },
-  ru: { title:'Исламская Викторина', subtitle:'Проверь свои знания', categories:'Выберите категорию', quran:'Коран', hadith:'Хадис', names:'99 Имён', start:'Начать', next:'Далее', finish:'Завершить', score:'Баллы', correct:'Правильно', wrong:'Неправильно', playAgain:'Играть снова', question:'Вопрос', of:'/', bestScore:'Лучший результат', newBest:'Новый рекорд!', back:'Назад', selectAnswer:'Выберите ответ' },
-  ar: { title:'اختبار إسلامي', subtitle:'اختبر معلوماتك', categories:'اختر الفئة', quran:'القرآن', hadith:'الحديث', names:'٩٩ اسم', start:'ابدأ', next:'التالي', finish:'إنهاء', score:'النقاط', correct:'صحيح', wrong:'خطأ', playAgain:'أعد اللعب', question:'سؤال', of:'/', bestScore:'أفضل نتيجة', newBest:'رقم قياسي!', back:'رجوع', selectAnswer:'اختر إجابة' },
-  tr: { title:'İslami Quiz', subtitle:'Bilgini test et', categories:'Kategori seç', quran:'Kuran', hadith:'Hadis', names:'99 İsim', start:'Başla', next:'Sonraki', finish:'Bitir', score:'Puan', correct:'Doğru', wrong:'Yanlış', playAgain:'Tekrar Oyna', question:'Soru', of:'/', bestScore:'En iyi skor', newBest:'Yeni rekor!', back:'Geri', selectAnswer:'Bir cevap seçin' },
+  az: { title:'İslami Kviz', subtitle:'Biliyini test et', categories:'Kateqoriya seç', quran:'Quran', hadith:'Hədis', names:'99 Ad', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', playAgain:'Yenidən', question:'Sual', of:'/', bestScore:'Ən yaxşı nəticə', newBest:'Yeni rekord!', back:'Geri', selectAnswer:'Cavab seçin', exit:'Kateqoriyalar' },
+  en: { title:'Islamic Quiz', subtitle:'Test your knowledge', categories:'Choose category', quran:'Quran', hadith:'Hadith', names:'99 Names', start:'Start', next:'Next', finish:'Finish', score:'Score', correct:'Correct', wrong:'Wrong', playAgain:'Play Again', question:'Question', of:'/', bestScore:'Best score', newBest:'New record!', back:'Back', selectAnswer:'Select an answer', exit:'Categories' },
+  ru: { title:'Исламская Викторина', subtitle:'Проверь свои знания', categories:'Выберите категорию', quran:'Коран', hadith:'Хадис', names:'99 Имён', start:'Начать', next:'Далее', finish:'Завершить', score:'Баллы', correct:'Правильно', wrong:'Неправильно', playAgain:'Играть снова', question:'Вопрос', of:'/', bestScore:'Лучший результат', newBest:'Новый рекорд!', back:'Назад', selectAnswer:'Выберите ответ', exit:'Категории' },
+  ar: { title:'اختبار إسلامي', subtitle:'اختبر معلوماتك', categories:'اختر الفئة', quran:'القرآن', hadith:'الحديث', names:'٩٩ اسم', start:'ابدأ', next:'التالي', finish:'إنهاء', score:'النقاط', correct:'صحيح', wrong:'خطأ', playAgain:'أعد اللعب', question:'سؤال', of:'/', bestScore:'أفضل نتيجة', newBest:'رقم قياسي!', back:'رجوع', selectAnswer:'اختر إجابة', exit:'الفئات' },
+  tr: { title:'İslami Quiz', subtitle:'Bilgini test et', categories:'Kategori seç', quran:'Kuran', hadith:'Hadis', names:'99 İsim', start:'Başla', next:'Sonraki', finish:'Bitir', score:'Puan', correct:'Doğru', wrong:'Yanlış', playAgain:'Tekrar Oyna', question:'Soru', of:'/', bestScore:'En iyi skor', newBest:'Yeni rekor!', back:'Geri', selectAnswer:'Bir cevap seçin', exit:'Kategoriler' },
 }
 
 const QUESTIONS = {
@@ -869,6 +870,29 @@ export default function QuizPage({ setPage }) {
   }, [category])
 
   const scores = loadScores()
+  const containerRef = useRef(null)
+  const nextRef = useRef(null)
+
+  // Sürüşdürmə: telefonda "99 Ad"-a çatmaq üçün səhifə aşağı sürüşdürülür;
+  // mərhələ dəyişəndə (başla / nəticə / kateqoriyalar) səhifənin əvvəlinə,
+  // növbəti sualda isə YALNIZ sual başlığın altında qalıbsa ona qayıdırıq
+  const smooth = () => {
+    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' } catch { return 'auto' }
+  }
+  const scrollToTop = () => {
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: smooth() }))
+  }
+  const scrollToQuestion = () => {
+    requestAnimationFrame(() => {
+      const el = containerRef.current
+      if (!el) return
+      const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 64
+      if (el.getBoundingClientRect().top < headerH + 8) {
+        // html-in scroll-padding-top-u başlığın hündürlüyünü nəzərə alır
+        el.scrollIntoView({ behavior: smooth(), block: 'start' })
+      }
+    })
+  }
 
   const startQuiz = (cat) => {
     setCategory(cat)
@@ -879,6 +903,7 @@ export default function QuizPage({ setPage }) {
     setWrongCount(0)
     setIsNewBest(false)
     setPhase('quiz')
+    scrollToTop()
   }
 
   const handleSelect = (idx) => {
@@ -886,10 +911,15 @@ export default function QuizPage({ setPage }) {
     setSelected(idx)
     setAnswered(true)
     if (idx === questions[currentQ].correct) {
+      haptic()
       setCorrectCount(c => c + 1)
     } else {
+      // Səhv cavab — bir az uzun titrəmə (yalnız toxunma ekranında)
+      haptic(18)
       setWrongCount(c => c + 1)
     }
+    // Qısa ekranda "Növbəti" düyməsi görünmür — ona qədər yumşaq sürüşdür
+    requestAnimationFrame(() => nextRef.current?.scrollIntoView({ behavior: smooth(), block: 'nearest' }))
   }
 
   const handleNext = () => {
@@ -898,29 +928,34 @@ export default function QuizPage({ setPage }) {
       const nb = saveScore(category, finalScore)
       setIsNewBest(nb)
       setPhase('results')
+      scrollToTop()
     } else {
       setCurrentQ(currentQ + 1)
       setSelected(null)
       setAnswered(false)
+      scrollToQuestion()
     }
   }
 
   const handleReplay = () => {
     setPhase('categories')
     setCategory(null)
+    scrollToTop()
   }
 
   const totalQ = questions.length
   const progress = totalQ > 0 ? ((currentQ + (answered ? 1 : 0)) / totalQ) * 100 : 0
 
   const categoryIcons = { quran: '📖', hadith: '📜', names: '✨' }
+  // Telefonda ikon kafelinin rəngi (motion.css → .icon-tile--*)
+  const categoryTones = { quran: '', hadith: ' icon-tile--gold', names: ' icon-tile--violet' }
   const categoryKeys = ['quran', 'hadith', 'names']
 
   // --- RENDER ---
   if (phase === 'categories') {
     return (
       <>
-        <div className="page-hero theme-quiz">
+        <div className="page-hero theme-quiz hero-compact">
           <div className="page-hero-arabic">اختبر معلوماتك الإسلامية</div>
           <h1>{t.title}</h1>
           <p>{t.subtitle}</p>
@@ -929,9 +964,9 @@ export default function QuizPage({ setPage }) {
           <div className="section-inner">
             <h2 className="quiz-categories-title">{t.categories}</h2>
             <div className="quiz-categories-grid">
-              {categoryKeys.map(key => (
-                <button key={key} className="quiz-category-card" onClick={() => startQuiz(key)}>
-                  <span className="quiz-category-icon">{categoryIcons[key]}</span>
+              {categoryKeys.map((key, i) => (
+                <button key={key} className="quiz-category-card" style={{ '--i': i }} onClick={() => startQuiz(key)}>
+                  <span className={`quiz-category-icon icon-tile icon-tile--lg${categoryTones[key]}`} aria-hidden="true">{categoryIcons[key]}</span>
                   <span className="quiz-category-name">{t[key]}</span>
                   <span className="quiz-category-count">
                     {QUESTIONS[key].length} {t.question.toLowerCase()}{QUESTIONS[key].length !== 1 ? '' : ''}
@@ -939,7 +974,9 @@ export default function QuizPage({ setPage }) {
                   {scores[key] !== undefined && (
                     <span className="quiz-category-best">{t.bestScore}: {scores[key]}/{QUESTIONS[key].length}</span>
                   )}
-                  <span className="quiz-category-start">{t.start} &rarr;</span>
+                  <span className="quiz-category-start">
+                    {t.start} <span className="qm-dir-arrow" aria-hidden="true">&rarr;</span>
+                  </span>
                 </button>
               ))}
             </div>
@@ -953,22 +990,36 @@ export default function QuizPage({ setPage }) {
     const q = questions[currentQ]
     return (
       <>
-        <div className="page-hero quiz-hero-compact">
+        <div className="page-hero quiz-hero-compact hero-compact">
           <h1>{t.title} — {t[category]}</h1>
         </div>
         <div className="section">
-          <div className="section-inner quiz-container">
+          <div className="section-inner quiz-container" ref={containerRef}>
+            {/* Testdən çıxış — kateqoriya seçiminə qayıt */}
+            <div className="quiz-toolbar">
+              <button type="button" className="btn-ghost quiz-exit" onClick={handleReplay}>
+                <span className="qm-dir-arrow" aria-hidden="true">&larr;</span> {t.exit}
+              </button>
+            </div>
+            {/* İrəliləyiş — telefonda başlığın altına yapışan şüşə zolaq.
+                key — say dəyişəndə kiçik "pop" animasiyası yenidən oynasın */}
             <div className="quiz-progress-wrap">
               <div className="quiz-progress-info">
-                <span>{t.question} {currentQ + 1} {t.of} {totalQ}</span>
-                <span>{t.correct}: {correctCount} | {t.wrong}: {wrongCount}</span>
+                <span className="quiz-progress-count">{t.question} {currentQ + 1} {t.of} {totalQ}</span>
+                <span className="quiz-tally">
+                  <span key={`c${correctCount}`} className="quiz-tally-item is-correct">{t.correct}: {correctCount}</span>
+                  <span className="quiz-tally-sep" aria-hidden="true"> | </span>
+                  <span key={`w${wrongCount}`} className="quiz-tally-item is-wrong">{t.wrong}: {wrongCount}</span>
+                </span>
               </div>
+              {/* Doluluq transform (scaleX) ilə — layout animasiyası yox */}
               <div className="quiz-progress-bar">
-                <div className="quiz-progress-fill" style={{ width: `${progress}%` }} />
+                <div className="quiz-progress-fill" style={{ transform: `scaleX(${progress / 100})` }} />
               </div>
             </div>
 
-            <div className="quiz-question-card">
+            {/* key — hər yeni sualda giriş animasiyası yenidən oynasın */}
+            <div className="quiz-question-card" key={currentQ}>
               <h3 className="quiz-question-text">{q.q[lang] || q.q.en}</h3>
               <div className="quiz-options">
                 {q.options.map((opt, idx) => {
@@ -980,7 +1031,7 @@ export default function QuizPage({ setPage }) {
                     cls += ' quiz-option-selected'
                   }
                   return (
-                    <button key={idx} className={cls} onClick={() => handleSelect(idx)} disabled={answered}>
+                    <button key={idx} className={cls} style={{ '--i': idx }} onClick={() => handleSelect(idx)} disabled={answered}>
                       <span className="quiz-option-letter">{String.fromCharCode(65 + idx)}</span>
                       <span className="quiz-option-text">{getOptionText(opt, lang)}</span>
                     </button>
@@ -991,8 +1042,8 @@ export default function QuizPage({ setPage }) {
 
             <div className="quiz-actions">
               {answered && (
-                <button className="btn-primary" onClick={handleNext}>
-                  {currentQ + 1 >= totalQ ? t.finish : t.next} &rarr;
+                <button ref={nextRef} className="btn-primary quiz-next-btn" onClick={handleNext}>
+                  {currentQ + 1 >= totalQ ? t.finish : t.next} <span className="qm-dir-arrow" aria-hidden="true">&rarr;</span>
                 </button>
               )}
             </div>
@@ -1007,11 +1058,11 @@ export default function QuizPage({ setPage }) {
     const pct = total > 0 ? Math.round((correctCount / total) * 100) : 0
     return (
       <>
-        <div className="page-hero theme-quiz">
+        <div className="page-hero theme-quiz hero-compact">
           <h1>{t.title}</h1>
         </div>
         <div className="section">
-          <div className="section-inner quiz-container">
+          <div className="section-inner quiz-container" ref={containerRef}>
             <div className="quiz-results-card">
               {isNewBest && <div className="quiz-new-best">{t.newBest}</div>}
               <div className="quiz-results-score">{pct}%</div>

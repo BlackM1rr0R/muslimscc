@@ -7,7 +7,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--stack-gap);
 }
 
 /* ── Search Area ── */
@@ -32,7 +32,16 @@
 .mosque-search-radius {
   font-size: 13px;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
+}
+
+/* Axtarışın necə işlədiyi — məkan icazəsi və məlumat mənbəyi */
+.mosque-search-hint {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  max-width: 420px;
+  margin-top: calc(-1 * var(--space-2));
 }
 
 .mosque-search-btn {
@@ -108,11 +117,66 @@
   font-size: 15px;
 }
 
-/* ── List ── */
-.mosque-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* ── List ──
+   JSX: ul.mosque-list.m-list > li > a.mosque-row.m-row (motion.css).
+   Genişdə (≥768px) əvvəlki ayrı kartlar kimi görünür — aşağıdakı blok;
+   telefonda kitin qruplaşdırılmış siyahı xanaları (aşağıda "TELEFON"). */
+@media (min-width: 768px) {
+  .mosque-list.m-list {
+    gap: 12px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .mosque-list > li + li > .m-row::before { content: none; }
+
+  /* .card + .mosque-card görünüşü (əvvəlki kart) */
+  .mosque-row {
+    gap: 16px;
+    min-height: 0;
+    padding: 18px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    font-size: inherit;
+    line-height: inherit;
+    transition: all .25s;
+  }
+  .mosque-row:hover {
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+    border-color: var(--primary-border);
+  }
+  .mosque-row:hover .mosque-maps-btn {
+    background: var(--primary-bg);
+    border-color: var(--primary);
+  }
+  .mosque-row .m-row-chev { display: none; }
+}
+
+/* Yüklənmə: siyahı formasında parıltılı yer tutucular (.skeleton) */
+.mosque-skeleton-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+.mosque-skeleton .m-row-body { gap: 2px; }
+
+/* Ekran oxuyucusu üçün gizli mətn ("Axtarılır...") */
+.mosque-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ── Card ── */
@@ -161,8 +225,36 @@
   color: var(--text-muted);
 }
 
+/* ── Öz məscidimiz (seçilmiş kart) ── */
+.mosque-card--own {
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.mosque-card--own:hover {
+  transform: none;
+}
+
+.mosque-card--own .mosque-card-name {
+  font-size: 17px;
+}
+
+.mosque-card--own .mosque-card-icon {
+  background: var(--bg-card);
+}
+
+.mosque-own-eyebrow {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
 .mosque-maps-btn {
   flex-shrink: 0;
+  min-height: var(--tap);
   font-size: 13px !important;
   padding: 8px 14px !important;
   white-space: nowrap;
@@ -179,10 +271,127 @@
     padding: 16px;
   }
 
-  .mosque-maps-btn {
+  .mosque-card .mosque-maps-btn {
     width: 100%;
     justify-content: center;
     margin-top: 4px;
+  }
+}
+
+/* ══ TELEFON (<768px) — müasir tətbiq görünüşü ═════════════════
+   • Öz məscidimiz: yumşaq kölgəli kart, tonlu tam enli xəritə düyməsi
+   • Axtarış: dairəvi kompas kafeli, baş barmaqla çatılan tam enli düymə
+   • Nəticələr: bütün sətri toxunulan siyahı xanaları, sonda › oxu */
+@media (max-width: 767.98px) {
+  .mosque-layout { gap: var(--space-4); }
+
+  /* Öz məscidimiz */
+  .mosque-card--own {
+    gap: 12px 14px;
+    padding: 16px;
+    border-radius: var(--radius-lg);
+  }
+  .mosque-card--own .mosque-card-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 26px;
+    border-radius: 14px;
+    border: 0;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+  }
+  .mosque-card--own .mosque-card-name { font-size: 17px; }
+  .mosque-own-eyebrow { font-size: 12px; letter-spacing: 0.06em; }
+  .mosque-card-distance { font-size: 13px; }
+  .mosque-card--own .mosque-maps-btn {
+    min-height: 46px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--bg-card);
+    color: var(--primary-dark);
+    font-size: 14px !important;
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+  [data-theme="dark"] .mosque-card--own .mosque-maps-btn { color: var(--primary); }
+
+  /* Axtarış sahəsi */
+  .mosque-search-area {
+    gap: 12px;
+    padding: 24px 16px 16px;
+    border-radius: var(--radius-lg);
+  }
+  .mosque-search-icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--primary-bg2);
+    font-size: 32px;
+  }
+  .mosque-search-radius { font-size: 13px; }
+  .mosque-search-hint {
+    margin-top: calc(-1 * var(--space-1));
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .mosque-search-btn {
+    align-self: stretch;
+    justify-content: center;
+    min-height: 48px;
+    margin-top: 4px;
+    padding-inline: 16px;
+    border-radius: 12px;
+  }
+
+  /* Nəticələr */
+  .mosque-results { gap: 12px; }
+  .mosque-results-count {
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mosque-row {
+    min-height: 64px;
+    padding-block: 10px;
+  }
+  .mosque-row .mosque-card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--primary-bg2);
+  }
+  .mosque-row .mosque-card-info { gap: 2px; }
+  .mosque-row .mosque-card-name {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .mosque-row .mosque-card-distance { font-variant-numeric: tabular-nums; }
+  /* Mətnli düymə telefonda yoxdur — bütün sətir keçiddir, sonda › oxu */
+  .mosque-row .mosque-maps-btn { display: none; }
+
+  /* Xəta və boş vəziyyət — sakit kart */
+  .mosque-error {
+    gap: 12px;
+    padding: 28px 16px;
+    border-radius: var(--radius-lg);
+  }
+  .mosque-error .btn-secondary {
+    align-self: stretch;
+    justify-content: center;
+    min-height: 46px;
+    border-radius: 12px;
+  }
+  .mosque-empty {
+    padding: 40px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
   }
 }
 
@@ -190,4 +399,9 @@
 [data-theme="dark"] .mosque-error {
   background: rgba(220, 38, 38, 0.1);
   border-color: rgba(220, 38, 38, 0.3);
+}
+
+/* Ərəb yazısında hərf aralığı birləşmələri qırır */
+[dir="rtl"] .mosque-own-eyebrow {
+  letter-spacing: 0;
 }

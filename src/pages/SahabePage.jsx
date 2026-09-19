@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { useBackToClose, isOverlayEntry } from '../utils/useBackToClose'
+import { localizeSource } from '../utils/sourceNames'
 import '../styles/SahabePage.css'
 
 /* ── Labels ── */
@@ -499,6 +501,13 @@ const SAHABA = [
 /* ── Icons for each sahabi ── */
 const ICONS = ['☪','☪','☪','☪','🌙','🌙','🌙','📢','📖','📖','🌍','🕌','📚','❤','⚔','🏹','🛡','⚔','🤲','⭐']
 
+// Telefon siyahısında ikon kafelinin rəng tonu (motion.css → .icon-tile--*)
+const ICON_TONES = { '☪':'', '🌙':'violet', '📢':'orange', '📖':'blue', '🌍':'teal', '🕌':'gold', '📚':'blue', '❤':'rose', '⚔':'slate', '🏹':'slate', '🛡':'slate', '🤲':'teal', '⭐':'gold' }
+const tileClass = (icon) => {
+  const tone = ICON_TONES[icon]
+  return `icon-tile icon-tile--round sahabe-row-tile${tone ? ` icon-tile--${tone}` : ''}`
+}
+
 export default function SahabePage({ setPage }) {
   const { lang } = useLang()
   const L = LABELS[lang] || LABELS.en
@@ -518,6 +527,30 @@ export default function SahabePage({ setPage }) {
 
   const selected = selectedId ? SAHABA.find(s => s.id === selectedId) : null
 
+  // Profil açılanda siyahıdakı yeri yadda saxla, bağlananda ora qayıt
+  const listScrollRef = useRef(0)
+  const openProfile = (id) => {
+    listScrollRef.current = window.scrollY
+    setSelectedId(id)
+    window.scrollTo(0, 0)
+  }
+  const closeProfile = () => {
+    setSelectedId(null)
+    const y = listScrollRef.current
+    requestAnimationFrame(() => window.scrollTo(0, y))
+  }
+  // Telefonda "Geri" (jest / brauzer düyməsi) səhifəni yox, profili bağlasın
+  useBackToClose(Boolean(selected), closeProfile)
+  // Səhifədəki "Geri" düyməsi də eyni yolla getsin: tarixçə girişi varsa
+  // history.back() → popstate → closeProfile. Belə olmasa brauzer öz
+  // sürüşmə bərpası ilə siyahını ən yuxarıya atırdı.
+  const onBackButton = () => {
+    if (isOverlayEntry()) window.history.back()
+    else closeProfile()
+  }
+
+  const isAr = lang === 'ar'
+
   if (selected) {
     const n = selected.name[lang] || selected.name.en
     const t = selected.title[lang] || selected.title.en
@@ -525,36 +558,35 @@ export default function SahabePage({ setPage }) {
     const icon = ICONS[selected.id - 1] || '☪'
     return (
       <div className="sahabe-page">
-        <div className="page-hero theme-sahaba">
-          <div className="breadcrumb">
-            <button onClick={() => setPage('home')}>🏠</button> / <button onClick={() => setSelectedId(null)}>{L.title}</button> / <span>{n}</span>
-          </div>
-          <div className="page-hero-arabic">{selected.name.ar}</div>
+        {/* Breadcrumb yoxdur: yan panel / ☰ menyu yeri göstərir, "Geri" düyməsi aşağıdadır */}
+        <div className="page-hero theme-sahaba hero-compact">
+          {/* Ərəbcədə h1 onsuz da ərəbcə addır — təkrar etməyək */}
+          {!isAr && <div className="page-hero-arabic">{selected.name.ar}</div>}
           <h1>{n}</h1>
           <p>{t}</p>
         </div>
 
         <div className="section">
           <div className="sahabe-profile">
-            <button className="sahabe-back-btn" onClick={() => setSelectedId(null)}>
-              ← {L.back}
+            <button type="button" className="sahabe-back-btn press" onClick={onBackButton}>
+              <span className="qm-dir-arrow" aria-hidden="true">←</span> {L.back}
             </button>
 
             <div className="sahabe-profile-header">
-              <div className="sahabe-profile-icon">{icon}</div>
-              <div className="sahabe-profile-arabic">{selected.name.ar}</div>
+              <div className="sahabe-profile-icon" aria-hidden="true">{icon}</div>
+              {!isAr && <div className="sahabe-profile-arabic">{selected.name.ar}</div>}
               <div className="sahabe-profile-name">{n}</div>
               <div className="sahabe-profile-title">{t}</div>
             </div>
 
             {/* Bio */}
-            <div className="sahabe-section">
+            <div className="sahabe-section" data-reveal>
               <div className="sahabe-section-title"><span>📜</span> {L.bio}</div>
               <p className="sahabe-bio">{b}</p>
             </div>
 
             {/* Facts */}
-            <div className="sahabe-section">
+            <div className="sahabe-section" data-reveal>
               <div className="sahabe-section-title"><span>💡</span> {L.facts}</div>
               <ul className="sahabe-facts-list">
                 {selected.facts.map((f, i) => (
@@ -567,7 +599,7 @@ export default function SahabePage({ setPage }) {
             </div>
 
             {/* Hadiths */}
-            <div className="sahabe-section">
+            <div className="sahabe-section" data-reveal>
               <div className="sahabe-section-title"><span>📖</span> {L.hadiths}</div>
               <div className="sahabe-hadiths-list">
                 {selected.hadiths.map((h, i) => (
@@ -575,7 +607,7 @@ export default function SahabePage({ setPage }) {
                     <div className="sahabe-hadith-number">{L.hadithLabel} #{i + 1}</div>
                     <div className="sahabe-hadith-arabic">{h.ar}</div>
                     <div className="sahabe-hadith-translation">{h[lang] || h.en}</div>
-                    <span className="sahabe-hadith-source">{h.source}</span>
+                    <span className="sahabe-hadith-source">{localizeSource(h.source, lang)}</span>
                   </div>
                 ))}
               </div>
@@ -588,10 +620,7 @@ export default function SahabePage({ setPage }) {
 
   return (
     <div className="sahabe-page">
-      <div className="page-hero theme-sahaba">
-        <div className="breadcrumb">
-          <button onClick={() => setPage('home')}>🏠</button> / <span>{L.title}</span>
-        </div>
+      <div className="page-hero theme-sahaba hero-compact">
         <div className="page-hero-arabic">الصحابة الكرام</div>
         <h1>{L.title}</h1>
         <p>{L.subtitle}</p>
@@ -600,11 +629,13 @@ export default function SahabePage({ setPage }) {
       <div className="section">
         <div className="section-inner">
           <div className="sahabe-search-wrap">
-            <span className="sahabe-search-icon">🔍</span>
+            <span className="sahabe-search-icon" aria-hidden="true">🔍</span>
             <input
               className="sahabe-search"
               type="text"
+              aria-label={L.search}
               placeholder={L.search}
+              enterKeyHint="search"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -613,22 +644,53 @@ export default function SahabePage({ setPage }) {
           {filtered.length === 0 ? (
             <div className="sahabe-no-results">{L.noResults}</div>
           ) : (
-            <div className="sahabe-grid">
-              {filtered.map(s => {
-                const n = s.name[lang] || s.name.en
-                const t = s.title[lang] || s.title.en
-                const icon = ICONS[s.id - 1] || '☪'
-                return (
-                  <div key={s.id} className="sahabe-card anim-fadeUp" onClick={() => { setSelectedId(s.id); window.scrollTo(0, 0) }}>
-                    <span className="sahabe-card-number">{s.id}</span>
-                    <div className="sahabe-card-icon">{icon}</div>
-                    <div className="sahabe-card-arabic">{s.name.ar}</div>
-                    <div className="sahabe-card-name">{n}</div>
-                    <div className="sahabe-card-title">{t}</div>
-                  </div>
-                )
-              })}
-            </div>
+            <>
+              {/* Kompüter / planşet: kart şəbəkəsi (≥768px) */}
+              <div className="sahabe-grid">
+                {filtered.map(s => {
+                  const n = s.name[lang] || s.name.en
+                  const t = s.title[lang] || s.title.en
+                  const icon = ICONS[s.id - 1] || '☪'
+                  // Kart əsl <button>-dur: klaviatura (Tab, Enter/Boşluq) və ekran
+                  // oxuyucu ilə açılır. Düymənin içində yalnız <span> ola bilər.
+                  return (
+                    <button type="button" key={s.id} className="sahabe-card anim-fadeUp" onClick={() => openProfile(s.id)}>
+                      <span className="sahabe-card-number" aria-hidden="true">{s.id}</span>
+                      <span className="sahabe-card-icon" aria-hidden="true">{icon}</span>
+                      {!isAr && <span className="sahabe-card-arabic" lang="ar">{s.name.ar}</span>}
+                      <span className="sahabe-card-name">{n}</span>
+                      <span className="sahabe-card-title">{t}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Telefon (<768px): qruplaşdırılmış siyahı xanaları — ad, vəzifə,
+                  ərəbcə ad və keçid oxu. Şəbəkə ilə eyni məlumat, CSS ancaq
+                  birini göstərir (display:none ekran oxuyucudan da gizlədir) */}
+              <ul className="m-list sahabe-mlist" data-reveal="stagger">
+                {filtered.map(s => {
+                  const n = s.name[lang] || s.name.en
+                  const t = s.title[lang] || s.title.en
+                  const icon = ICONS[s.id - 1] || '☪'
+                  return (
+                    <li key={s.id}>
+                      <button type="button" className="m-row sahabe-row" onClick={() => openProfile(s.id)}>
+                        <span className={tileClass(icon)} aria-hidden="true">{icon}</span>
+                        <span className="m-row-body">
+                          <span className="m-row-title">{n}</span>
+                          <span className="m-row-sub">{t}</span>
+                        </span>
+                        <span className="m-row-trail">
+                          {!isAr && <span className="sahabe-row-ar" lang="ar" dir="rtl">{s.name.ar}</span>}
+                          <span className="m-row-chev" aria-hidden="true" />
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </>
           )}
         </div>
       </div>

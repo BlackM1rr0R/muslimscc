@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import '../styles/IslamicHistoryPage.css'
 
@@ -832,17 +832,49 @@ export default function IslamicHistoryPage({ setPage }) {
 
   const toggle = (idx) => setExpanded(expanded === idx ? null : idx)
 
+  // Telefonda seqment idarəsi yapışqandır (sticky): xəttin ortasında digər
+  // bölməyə keçəndə yeni siyahının əvvəlinə qalx. Kompüterdə panel yapışmır —
+  // orada bu yoxlama heç nə etmir.
+  const tabsRef = useRef(null)
+  const timelineRef = useRef(null)
+  const switchTab = (next) => {
+    setTab(next)
+    setExpanded(null)
+    requestAnimationFrame(() => {
+      const bar = tabsRef.current
+      const tl = timelineRef.current
+      if (!bar || !tl || getComputedStyle(bar).position !== 'sticky') return
+      if (tl.getBoundingClientRect().top < bar.getBoundingClientRect().bottom) {
+        tl.scrollIntoView({ block: 'start' })
+      }
+    })
+  }
+
+  // Sürüşdükcə görünmə (motion.css → data-reveal): ilk bir neçə kart
+  // növbə ilə, qalanları ekrana girəndə gecikməsiz
+  const revealProps = (i) => ({
+    'data-reveal': '',
+    ...(i > 0 && i < 6 ? { 'data-reveal-delay': String(i * 40) } : {}),
+  })
+
+  // Kart klaviatura ilə də açılsın (Enter / Boşluq) — ekran oxuyucu üçün
+  // role="button" + aria-expanded
+  const cardProps = (i) => ({
+    role: 'button',
+    tabIndex: 0,
+    'aria-expanded': expanded === i,
+    onClick: () => toggle(i),
+    onKeyDown: (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(i) }
+    },
+  })
+
   return (
     <div className="history-page">
-      {/* Hero */}
+      {/* Hero — breadcrumb yoxdur: yan panel / ☰ menyu onsuz da yeri göstərir */}
       <div className="history-hero">
         <div className="history-hero-bg" />
-        <div className="history-breadcrumb">
-          <button onClick={() => setPage('home')}>{L.home}</button>
-          <span>/</span>
-          <span>{L.title}</span>
-        </div>
-        <div className="history-hero-icon">📜</div>
+        <div className="history-hero-icon" aria-hidden="true">📜</div>
         <h1 className="history-title">{L.title}</h1>
         <p className="history-subtitle">{L.subtitle}</p>
       </div>
@@ -859,35 +891,45 @@ export default function IslamicHistoryPage({ setPage }) {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="history-tabs">
-        <button
-          className={`history-tab-btn${tab === 'prophets' ? ' active' : ''}`}
-          onClick={() => { setTab('prophets'); setExpanded(null) }}
-        >
-          📖 {L.prophets}
-        </button>
-        <button
-          className={`history-tab-btn${tab === 'events' ? ' active' : ''}`}
-          onClick={() => { setTab('events'); setExpanded(null) }}
-        >
-          ⚔️ {L.events}
-        </button>
+      {/* Tabs — telefonda yapışqan seqment idarəsi: sürüşən ağ "həb"
+          (track[data-active]) və hər bölmənin sayı; kompüterdə əvvəlki
+          iki həb düymə (track display:contents) */}
+      <div className="history-tabs" ref={tabsRef}>
+        <div className="history-tabs-track" data-active={tab}>
+          <button
+            type="button"
+            className={`history-tab-btn${tab === 'prophets' ? ' active' : ''}`}
+            aria-pressed={tab === 'prophets'}
+            onClick={() => switchTab('prophets')}
+          >
+            <span className="history-tab-emoji" aria-hidden="true">📖</span> <span className="history-tab-label">{L.prophets}</span>
+            <span className="history-tab-count">{PROPHETS.length}</span>
+          </button>
+          <button
+            type="button"
+            className={`history-tab-btn${tab === 'events' ? ' active' : ''}`}
+            aria-pressed={tab === 'events'}
+            onClick={() => switchTab('events')}
+          >
+            <span className="history-tab-emoji" aria-hidden="true">⚔️</span> <span className="history-tab-label">{L.events}</span>
+            <span className="history-tab-count">{EVENTS.length}</span>
+          </button>
+        </div>
       </div>
 
       {/* Timeline */}
-      <div className="history-timeline">
+      <div className="history-timeline" ref={timelineRef}>
         {tab === 'prophets' && PROPHETS.map((p, i) => (
           <div
             className="history-entry"
-            key={i}
-            style={{ animationDelay: `${Math.min(i * 0.06, 0.6)}s` }}
+            key={`p${i}`}
+            {...revealProps(i)}
           >
             <div className="history-dot" />
             <div className="history-card-wrap">
               <div
                 className={`history-card${expanded === i ? ' expanded' : ''}`}
-                onClick={() => toggle(i)}
+                {...cardProps(i)}
               >
                 <div className="history-date-badge">
                   {p.era[lang] || p.era.en}
@@ -898,10 +940,11 @@ export default function IslamicHistoryPage({ setPage }) {
                       <div className="history-prophet-num">{p.num}</div>
                       <h3 className="history-card-title">{p.name[lang] || p.name.en}</h3>
                     </div>
-                    <div className="history-card-arabic">{p.arabic}</div>
+                    {/* Ərəbcədə başlıq onsuz da ərəbcədir — təkrar etməyək */}
+                    {lang !== 'ar' && <div className="history-card-arabic">{p.arabic}</div>}
                     <p className="history-card-desc">{p.desc[lang] || p.desc.en}</p>
                   </div>
-                  <div className="history-expand-icon">▼</div>
+                  <div className="history-expand-icon" aria-hidden="true">▼</div>
                 </div>
 
                 <div className="history-details">
@@ -922,14 +965,14 @@ export default function IslamicHistoryPage({ setPage }) {
         {tab === 'events' && EVENTS.map((e, i) => (
           <div
             className="history-entry"
-            key={i}
-            style={{ animationDelay: `${Math.min(i * 0.06, 0.6)}s` }}
+            key={`e${i}`}
+            {...revealProps(i)}
           >
             <div className="history-dot" />
             <div className="history-card-wrap">
               <div
                 className={`history-card${expanded === i ? ' expanded' : ''}`}
-                onClick={() => toggle(i)}
+                {...cardProps(i)}
               >
                 <div className="history-date-badge">
                   {e.year[lang] || e.year.en}
@@ -939,7 +982,7 @@ export default function IslamicHistoryPage({ setPage }) {
                     <h3 className="history-card-title">{e.title[lang] || e.title.en}</h3>
                     <p className="history-card-desc">{e.desc[lang] || e.desc.en}</p>
                   </div>
-                  <div className="history-expand-icon">▼</div>
+                  <div className="history-expand-icon" aria-hidden="true">▼</div>
                 </div>
 
                 <div className="history-details">

@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import { DHIKRS } from '../data/dhikr'
 import '../styles/DhikrPage.css'
 
 // ── localStorage helper-ləri ──
@@ -8,65 +9,90 @@ const STORAGE_KEY = 'dhikr_session'
 function loadSession() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { count: 0, selIdx: 0, log: [] }
-    return JSON.parse(raw)
+    const data = raw ? JSON.parse(raw) : null
+    return data && typeof data === 'object' ? data : { count: 0, selIdx: 0, log: [] }
   } catch { return { count: 0, selIdx: 0, log: [] } }
 }
 function saveSession(data) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch {}
 }
 
-const DHIKRS = [
-  { az:'SubhanAllah',  en:'SubhanAllah',  ru:'СубханАллах',  ar:'سُبْحَانَ اللَّه',    tr:'Sübhanallah',  arabic:'سُبۡحَانَ ٱللَّهِ', target:33,  virtue:{ az:'Cənnətdə bir xurma ağacı əkilir', en:'A palm tree is planted in Paradise', ru:'Садится пальма в Рай', ar:'تُغرس له نخلة في الجنة', tr:'Cennette bir hurma ağacı dikilir' } },
-  { az:'Alhamdulillah',en:'Alhamdulillah',ru:'Альхамдулиллях',ar:'الحَمْدُ لِلَّه',   tr:'Elhamdülillah',arabic:'ٱلۡحَمۡدُ لِلَّهِ',   target:33,  virtue:{ az:'Tərəzini doldurur', en:'Fills the scales', ru:'Наполняет весы', ar:'تملأ الميزان', tr:'Tartıları doldurur' } },
-  { az:'Allahu Akbar', en:'Allahu Akbar', ru:'Аллаху Акбар',  ar:'اللَّهُ أَكْبَر',   tr:'Allahu Ekber', arabic:'ٱللَّهُ أَكۡبَرُ',    target:33,  virtue:{ az:'Göy ilə yer arasını doldurur', en:'Fills what is between heaven and earth', ru:'Заполняет пространство между небом и землёй', ar:'تملأ ما بين السماء والأرض', tr:'Gökyüzü ile yeryüzü arasını doldurur' } },
-  { az:'La ilaha illallah', en:'La ilaha illallah', ru:'Ла иляха иллаллах', ar:'لَا إِلَهَ إِلَّا اللَّه', tr:'La ilahe illallah', arabic:'لَا إِلَٰهَ إِلَّا ٱللَّهُ', target:100, virtue:{ az:'Ən üstün zikrdir', en:'The best of all dhikr', ru:'Лучший из всех зикров', ar:'أفضل الذكر', tr:'En üstün zikirdir' } },
-  { az:'Astaghfirullah', en:'Astaghfirullah', ru:'Астагфируллах', ar:'أَسْتَغْفِرُ اللَّه', tr:'Estağfirullah', arabic:'أَسۡتَغۡفِرُ ٱللَّهَ', target:100, virtue:{ az:'Günahları məhv edir', en:'Wipes out sins', ru:'Стирает грехи', ar:'يمحو الذنوب', tr:'Günahları siler' } },
-  { az:'La həvlə vəla quvvətə illə billah', en:'La hawla wa la quwwata illa billah', ru:'Ла хауля ва ля куввата илля биллях', ar:'لاَ حَوْلَ وَلاَ قُوَّةَ إِلَّا بِاللَّه', tr:'La havle vela kuvvete illa billah', arabic:'لَا حَوۡلَ وَلَا قُوَّةَ إِلَّا بِٱللَّهِ', target:33, virtue:{ az:'Cənnət xəzinələrindən bir xəzinədir', en:'A treasure from the treasures of Paradise', ru:'Сокровище из сокровищ Рая', ar:'كنز من كنوز الجنة', tr:'Cennet hazinelerinden bir hazinedir' } },
-  { az:'SubhanAllahi və bihamdihi', en:'SubhanAllahi wa bihamdihi', ru:'СубханАллахи ва бихамдихи', ar:'سُبْحَانَ اللَّهِ وَبِحَمْدِه', tr:'Sübhanallahi ve bihamdihi', arabic:'سُبۡحَانَ ٱللَّهِ وَبِحَمۡدِهِ', target:100, virtue:{ az:'Günahları dəniz köpüyü qədər olsa da silinir', en:'Sins forgiven even if like sea foam', ru:'Грехи прощаются, даже если их как морская пена', ar:'تحط خطاياه وإن كانت مثل زبد البحر', tr:'Deniz köpüğü kadar olsa da günahları silinir' } },
-  { az:'SubhanAllahil-azim', en:'SubhanAllahil-Azeem', ru:'СубханАллахиль-Азым', ar:'سُبْحَانَ اللَّهِ الْعَظِيم', tr:'Sübhanallahil-azim', arabic:'سُبۡحَانَ ٱللَّهِ ٱلۡعَظِيمِ', target:33, virtue:{ az:'Ərşin altında xəzinə', en:'Treasure beneath the Throne', ru:'Сокровище под Троном', ar:'كنز تحت العرش', tr:'Arşın altında hazine' } },
-  { az:'Salavat', en:'Salawat', ru:'Салават', ar:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّد', tr:'Salavat', arabic:'ٱللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ', target:100, virtue:{ az:'Hər salavata 10 savab', en:'10 rewards for each salawat', ru:'10 наград за каждый салават', ar:'عشر حسنات بكل صلاة', tr:'Her salavata 10 sevap' } },
-  { az:'Həsbunallahu və niməl vəkil', en:'Hasbunallahu wa ni\'mal wakeel', ru:'ХасбунАллаху ва ни\'маль вакиль', ar:'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيل', tr:'Hasbünallahü ve ni\'mel vekil', arabic:'حَسۡبُنَا ٱللَّهُ وَنِعۡمَ ٱلۡوَكِيلُ', target:33, virtue:{ az:'İbrahimin atəşə atılarkən dediyi söz', en:'What Ibrahim said when thrown into the fire', ru:'Слова Ибрахима, когда его бросили в огонь', ar:'قالها إبراهيم حين ألقي في النار', tr:'İbrahim ateşe atıldığında söylediği söz' } },
-]
+// Vibrasiya — yalnız istifadəçi səhifəyə toxunandan sonra (əks halda brauzer
+// hər dəfə konsola xəta yazır)
+function vibrate(pattern) {
+  try {
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return
+    navigator.vibrate?.(pattern)
+  } catch { /* dəstəklənmir */ }
+}
+
+// Jurnaldakı vaxt interfeys dilində (az-da "19:57", "7:57:49 PM" yox)
+const LOCALE = { az:'az-AZ', en:'en-GB', ru:'ru-RU', ar:'ar', tr:'tr-TR' }
+
+// Sayğacın altındakı statistika yazıları
+const STAT_LABELS = {
+  current:  { az:'Hazırkı', en:'Current',  ru:'Текущий', ar:'الحالي',   tr:'Mevcut' },
+  sessions: { az:'Sessiya', en:'Sessions', ru:'Сессий',  ar:'جلسات',    tr:'Oturum' },
+  total:    { az:'Ümumi',   en:'Total',    ru:'Всего',   ar:'الإجمالي', tr:'Toplam' },
+}
 
 export default function DhikrPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.dhikr || T.az.dhikr
-  const saved = loadSession()
-  const [selIdx, setSelIdx] = useState(saved.selIdx)
-  const [count,  setCount]  = useState(saved.count)
+  // Saxlanmış sessiya yalnız ilk renderdə oxunur
+  const [saved] = useState(loadSession)
+  const [selIdx, setSelIdx] = useState(() => (DHIKRS[saved.selIdx] ? saved.selIdx : 0))
+  const [count,  setCount]  = useState(() => Number(saved.count) || 0)
   const [tap,    setTap]    = useState(false)
-  const [log,    setLog]    = useState(saved.log)
-  const totalAll = log.reduce((s, e) => s + (e.count || 0), 0) + count
+  // Hər toxunuşda yeni "dalğa" halqası (key dəyişir → animasiya yenidən oynayır)
+  const [tapId,  setTapId]  = useState(0)
+  const [log,    setLog]    = useState(() => (Array.isArray(saved.log) ? saved.log : []))
+  const stat = (k) => STAT_LABELS[k][lang] || STAT_LABELS[k].en
 
   // Hər dəyişiklikdə localStorage-ə yaz
   useEffect(() => {
     saveSession({ count, selIdx, log })
   }, [count, selIdx, log])
   const dhikr = DHIKRS[selIdx]
+
+  // Telefonda seçici üfüqi zolaqdır — seçilmiş zikr zolaqda görünsün
+  // (yalnız zolaq sürüşəndə; geniş ekranda səhifə yerindən oynamır)
+  const selRef = useRef(null)
+  useEffect(() => {
+    const strip = selRef.current
+    if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return
+    strip.querySelector('.dhikr-sel-btn.active')?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
+  }, [selIdx])
   const progress = Math.min((count / dhikr.target) * 100, 100)
   const complete = count >= dhikr.target
+  // Ümumi say: jurnaldakı dövrələr + cari dövrə. Tamamlanmış dövrə artıq
+  // jurnaldadır — ikinci dəfə sayılmır (33-də "66" göstərməsin)
+  const totalAll = log.reduce((s, e) => s + (e.count || 0), 0) + (complete ? 0 : count)
   const CIRC = 2 * Math.PI * 70
 
+  // Toxunuş: hədəfə ÇATAN toxunuş jurnala bir sessiya yazır (yalnız bir dəfə).
+  // Hədəf tamamlandıqdan sonrakı toxunuş yeni dövrə başlayır (1 / 33) —
+  // sayğac hədəfdən o yana getmir. Yan təsirlər setState funksiyasının
+  // içində deyil (StrictMode onu iki dəfə çağırır).
   const handleTap = useCallback(() => {
-    setCount(c => {
-      const next = c + 1
-      if (next >= dhikr.target) {
-        setLog(l => [{ name: dhikr[lang] || dhikr.en, count: dhikr.target, time: new Date().toLocaleTimeString() }, ...l.slice(0,9)])
-        // Hədəf tamamlandıqda uzun vibrasiə
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100])
-      }
-      return next
-    })
-    // Vibrə et (mobil)
-    if (navigator.vibrate) navigator.vibrate(30)
+    const next = count >= dhikr.target ? 1 : count + 1
+    setCount(next)
+    if (next === dhikr.target) {
+      const time = new Date().toLocaleTimeString(LOCALE[lang] || 'az-AZ', { hour: '2-digit', minute: '2-digit' })
+      setLog(l => [{ name: dhikr[lang] || dhikr.en, count: dhikr.target, time }, ...l.slice(0, 9)])
+      // Hədəf tamamlandı — uzun vibrasiya
+      vibrate([100, 50, 100])
+    } else {
+      vibrate(30)
+    }
     setTap(true)
+    setTapId(n => n + 1)
     setTimeout(() => setTap(false), 120)
-  }, [dhikr, lang])
+  }, [count, dhikr, lang])
 
   return (
     <>
-      <div className="page-hero theme-dhikr">
+      <div className="page-hero hero-compact theme-dhikr">
         <div className="page-hero-arabic">ٱلذِّكۡرُ</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
@@ -76,12 +102,14 @@ export default function DhikrPage({ setPage }) {
         <div className="section-inner dhikr-layout">
 
           {/* Selector */}
-          <div className="dhikr-selector">
+          <div className="dhikr-selector" ref={selRef}>
             {DHIKRS.map((d,i) => (
-              <button key={i} className={`dhikr-sel-btn ${selIdx===i?'active':''}`}
-                onClick={() => { setSelIdx(i); setCount(0) }}>
-                <span className="dhikr-sel-arabic">{d.arabic}</span>
-                <span className="dhikr-sel-label">{d[lang] || d.en}</span>
+              <button key={i} type="button" className={`dhikr-sel-btn press ${selIdx===i?'active':''}`}
+                aria-pressed={selIdx===i}
+                onClick={() => { if (selIdx !== i) { setSelIdx(i); setCount(0) } }}>
+                <span className="dhikr-sel-arabic" lang="ar">{d.arabic}</span>
+                {/* Ərəbcədə ad elə ərəb ifadəsinin özüdür — təkrar yazılmır */}
+                {lang !== 'ar' && <span className="dhikr-sel-label">{d[lang] || d.en}</span>}
               </button>
             ))}
           </div>
@@ -100,12 +128,17 @@ export default function DhikrPage({ setPage }) {
                   style={{ transition:'stroke-dashoffset .3s ease, stroke .3s' }}
                 />
               </svg>
+              {/* Toxunuş dalğası: düymədən halqaya qədər yayılıb sönür (yalnız transform/opacity) */}
+              {tapId > 0 && (
+                <span key={tapId} className={`dhikr-ripple${complete ? ' is-gold' : ''}`} aria-hidden="true" />
+              )}
               <button
+                type="button"
                 className={`dhikr-tap-btn ${tap?'tapped':''} ${complete?'complete':''}`}
                 onClick={handleTap}
               >
                 <span className="dhikr-tap-arabic">{dhikr.arabic}</span>
-                <span className="dhikr-tap-count">{count}</span>
+                <span key={count} className="dhikr-tap-count">{count}</span>
                 <span className="dhikr-tap-target">/ {dhikr.target}</span>
               </button>
             </div>
@@ -121,45 +154,55 @@ export default function DhikrPage({ setPage }) {
             </div>
 
             <div className="dhikr-actions">
-              <button className="btn-ghost" onClick={() => setCount(0)}>🔄 {t.reset}</button>
+              <button type="button" className="btn-ghost dhikr-reset" onClick={() => setCount(0)}>🔄 {t.reset}</button>
               <span className="dhikr-progress-text">{Math.round(progress)}%</span>
             </div>
 
             <div className="dhikr-total-bar">
               <div className="dhikr-total-item">
                 <span className="dhikr-total-num">{count}</span>
-                <span className="dhikr-total-label">{lang==='az'?'Hazırki':lang==='ru'?'Текущий':lang==='ar'?'الحالي':lang==='tr'?'Mevcut':'Current'}</span>
+                <span className="dhikr-total-label">{stat('current')}</span>
               </div>
               <div className="dhikr-total-sep"/>
               <div className="dhikr-total-item">
                 <span className="dhikr-total-num">{log.length}</span>
-                <span className="dhikr-total-label">{lang==='az'?'Sessiya':lang==='ru'?'Сессий':lang==='ar'?'جلسات':lang==='tr'?'Oturum':'Sessions'}</span>
+                <span className="dhikr-total-label">{stat('sessions')}</span>
               </div>
               <div className="dhikr-total-sep"/>
               <div className="dhikr-total-item">
                 <span className="dhikr-total-num">{totalAll}</span>
-                <span className="dhikr-total-label">{lang==='az'?'Ümumi':lang==='ru'?'Всего':lang==='ar'?'الإجمالي':lang==='tr'?'Toplam':'Total'}</span>
+                <span className="dhikr-total-label">{stat('total')}</span>
               </div>
             </div>
           </div>
 
           {/* Log */}
+          {/* Jurnal — qruplaşdırılmış siyahı xanaları (.m-list / .m-row) */}
           {log.length > 0 && (
-            <div className="dhikr-log">
+            <section className="dhikr-log" data-reveal="">
               <div className="dhikr-log-header">
-                <span>{t.session}</span>
-                <button className="btn-ghost" style={{padding:'4px 10px',fontSize:12}} onClick={() => setLog([])}>
+                <h2 className="m-list-title">{t.session}</h2>
+                <button type="button" className="btn-ghost dhikr-log-clear" onClick={() => setLog([])}>
                   {t.clearSession}
                 </button>
               </div>
-              {log.map((entry,i) => (
-                <div key={i} className="log-entry">
-                  <span className="log-name">{entry.name}</span>
-                  <span className="log-count">×{entry.count}</span>
-                  <span className="log-time">{entry.time}</span>
-                </div>
-              ))}
-            </div>
+              <ul className="m-list">
+                {log.map((entry,i) => (
+                  <li key={i}>
+                    <div className="m-row log-entry">
+                      <span className="icon-tile icon-tile--sm icon-tile--round" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 12.5l3.8 3.8L17.5 8.5"/></svg>
+                      </span>
+                      <span className="m-row-body">
+                        <span className="m-row-title log-name">{entry.name}</span>
+                        <span className="m-row-sub log-time">{entry.time}</span>
+                      </span>
+                      <span className="m-row-trail"><span className="log-count">×{entry.count}</span></span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </div>
       </div>

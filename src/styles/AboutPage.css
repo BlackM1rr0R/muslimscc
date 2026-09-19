@@ -1,37 +1,213 @@
-.about-mission { display:flex; align-items:flex-start; gap:20px; background:var(--primary-bg); border:1.5px solid var(--primary-border); border-radius:var(--radius-xl); padding:28px; margin-bottom:32px; }
-.about-mission-icon { width:52px; height:52px; border-radius:14px; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; }
-.about-mission h2 { font-size:1.3rem; font-weight:800; color:var(--primary-dark); margin-bottom:8px; }
-.about-mission p { font-size:15px; color:var(--text-dim); line-height:1.75; }
+/* ══════════════════════════════════════════════════════
+   Haqqımızda səhifəsi
+   Bloklar arası ritm boşluq sistemindən (globals.css :root):
+   48px (--space-7) geniş ekranda, 32px (--space-6) telefonda.
+   ══════════════════════════════════════════════════════ */
 
-.about-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:48px; }
-.about-stat { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; text-align:center; }
-.about-stat-num { display:block; font-size:2rem; font-weight:800; color:var(--primary-dark); letter-spacing:-1px; }
+.about-mission {
+  display:flex; align-items:flex-start; gap:20px;
+  background:var(--primary-bg); border:1.5px solid var(--primary-border);
+  border-radius:var(--radius-xl); padding:28px;
+  margin-bottom:var(--space-6);
+}
+.about-mission-icon {
+  width:52px; height:52px; border-radius:14px;
+  background:var(--primary); color:var(--on-primary);
+  display:flex; align-items:center; justify-content:center;
+  font-size:26px; flex-shrink:0;
+}
+.about-mission-body { min-width:0; }
+.about-mission h2 { font-size:1.3rem; font-weight:800; color:var(--primary-dark); margin-bottom:8px; line-height:1.3; }
+/* Oxunaqlı sətir uzunluğu (~68 simvol) */
+.about-mission p { font-size:15px; color:var(--text-dim); line-height:1.75; max-width:68ch; }
+
+.about-stats {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+  margin-bottom:var(--space-7);
+}
+.about-stat {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:20px; text-align:center;
+  transition:transform .22s, border-color .22s, box-shadow .22s;
+}
+.about-stat:hover { transform:translateY(-2px); border-color:var(--primary-border); box-shadow:var(--shadow-sm); }
+/* "1400+" ərəbcədə "+1400" kimi görünməsin (bidi yenidən düzmə) */
+.about-stat-num {
+  display:block; font-size:2rem; font-weight:800; color:var(--primary-dark);
+  letter-spacing:-1px; line-height:1.2;
+  direction:ltr; unicode-bidi:isolate;
+}
 .about-stat-label { font-size:12px; color:var(--text-muted); font-weight:600; }
 
-.about-values { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:0; }
-.about-value-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; transition:all .22s; }
+/* Bölmə başlıqları — qlobal .section-header-in 52px alt boşluğu əvəzinə */
+.section-header.about-block-head { margin-bottom:var(--space-5); }
+.section-header.about-block-head .section-title { margin-bottom:0; }
+.section-header.about-team-head { margin-top:var(--space-7); }
+
+.about-values { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+.about-value-card {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:var(--card-pad);
+  transition:transform .22s, border-color .22s, box-shadow .22s;
+}
 .about-value-card:hover { border-color:var(--primary-border); transform:translateY(-2px); box-shadow:var(--shadow); }
-.about-value-icon { font-size:26px; margin-bottom:12px; }
+.about-value-icon { font-size:26px; margin-bottom:12px; line-height:1.2; }
 .about-value-card h3 { font-size:16px; font-weight:700; color:var(--text); margin-bottom:6px; }
 .about-value-card p { font-size:14px; color:var(--text-muted); line-height:1.65; }
 
-.about-team { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-.about-team-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:28px; text-align:center; transition:all .22s; }
+/* Bir nəfər — mərkəzdə tək kart */
+.about-team { display:grid; grid-template-columns:minmax(0,360px); justify-content:center; }
+.about-team-card {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-xl); padding:28px; text-align:center;
+  transition:transform .22s, border-color .22s, box-shadow .22s;
+}
 .about-team-card:hover { border-color:var(--primary-border); transform:translateY(-3px); box-shadow:var(--shadow-lg); }
-.team-avatar { width:64px; height:64px; border-radius:50%; background:var(--primary-bg2); border:2px solid var(--primary-border); color:var(--primary-dark); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; margin:0 auto 14px; }
+.team-avatar {
+  width:64px; height:64px; border-radius:50%;
+  background:var(--primary-bg2); border:2px solid var(--primary-border);
+  color:var(--primary-dark);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; font-weight:800; margin:0 auto 14px;
+}
 .team-name { font-size:16px; font-weight:700; color:var(--text); margin-bottom:4px; }
 .team-role { font-size:13px; color:var(--text-muted); }
 
-.about-cta { margin-top:60px; background:linear-gradient(135deg,var(--primary-dark),var(--primary)); border-radius:var(--radius-xl); padding:40px; text-align:center; }
-.about-cta-arabic { font-family:'Amiri',serif; font-size:1.8rem; color:rgba(255,255,255,.9); direction:rtl; margin-bottom:12px; }
-.about-cta p { font-size:15px; color:rgba(255,255,255,.75); font-style:italic; margin-bottom:20px; line-height:1.7; }
-.about-cta .btn-primary { background:#fff; color:var(--primary-dark); }
+/* ── CTA: ayə (API-dən) + "Quran oxu" ── */
+.about-cta {
+  margin-top:var(--space-7);
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+  border-radius:var(--radius-xl); padding:40px;
+  text-align:center; color:#fff;
+}
+.about-cta-verse { margin:0 0 24px; }
+.about-cta-arabic {
+  margin:0 auto 14px; max-width:46rem;
+  font-family:var(--font-arabic); font-size:1.45rem; line-height:2.1;
+  color:rgba(255,255,255,.82);
+}
+/* "وَمَا تَوْفِيقِيٓ إِلَّا بِٱللَّهِ" — səhifənin şüarı, vurğulanır */
+.about-cta-motto {
+  color:#f6d98a; font-weight:700; font-size:1.12em;
+  text-shadow:0 0 18px rgba(246,217,138,.35);
+}
+.about-cta-translation {
+  margin:0 auto 10px; max-width:68ch;
+  font-size:14.5px; line-height:1.75; font-style:italic;
+  color:rgba(255,255,255,.85);
+}
+.about-cta-ref { font-size:13px; font-weight:600; color:rgba(255,255,255,.7); }
+.about-cta .btn-primary { background:#fff; color:var(--primary-dark); min-height:var(--tap); }
+
+/* Ayə yüklənərkən yer tutucu — motion.css .skeleton (parıltı transform ilə
+   hərəkət edir); yaşıl fonda ağ tonlu */
+.about-cta-skeleton { display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:24px; }
+.about-cta .about-cta-skeleton .skeleton {
+  height:14px; width:min(100%, 34rem); margin:0; border-radius:7px;
+  background:rgba(255,255,255,.14);
+}
+.about-cta .about-cta-skeleton .skeleton::after {
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.24), transparent);
+}
+.about-cta .about-cta-skeleton .skeleton:nth-child(2) { width:min(88%, 28rem); }
+.about-cta .about-cta-skeleton .skeleton:nth-child(3) { width:min(60%, 18rem); }
 
 @media(max-width:700px) {
-  .about-stats { grid-template-columns:repeat(2,1fr); }
-  .about-values { grid-template-columns:1fr; }
-  .about-team { grid-template-columns:1fr; }
-  .about-mission { flex-direction:column; }
+  .about-mission {
+    margin-bottom:var(--space-6);
+    padding:20px; gap:14px;
+  }
+  .about-mission-icon { width:40px; height:40px; font-size:20px; border-radius:12px; }
+  .about-mission h2 { font-size:1.15rem; }
+  .about-mission p { font-size:14.5px; }
+  .about-stats { grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:var(--space-6); }
+  .about-stat { padding:16px 12px; }
+  .about-stat-num { font-size:1.75rem; }
+  .section-header.about-team-head { margin-top:var(--space-6); }
+  .about-values { grid-template-columns:1fr; gap:12px; }
+  .about-cta { margin-top:var(--space-6); padding:28px 20px; }
+  .about-cta-arabic { font-size:1.25rem; line-height:2; }
+  .about-cta-translation { font-size:14px; }
+}
+
+/* ≥768px: ikon kafeli yox — əvvəlki kimi sadə emoji (geniş ekran dəyişmir) */
+@media (min-width: 768px) {
+  .about-value-icon.icon-tile {
+    display:block; width:auto; height:auto; border-radius:0;
+    background:none; color:inherit; font-size:26px; line-height:1.2;
+  }
+}
+
+/* ══ Telefon (<768px): tətbiq kimi görünüş ══════════════════
+   • Statistika — bir kart, 2×2 xana nazik xətlərlə, rəqəmlər bərabər enli
+   • Dəyərlər — qruplaşdırılmış siyahı: ikon kafeli + başlıq + mətn
+   • Hazırlayan — üfüqi kart; CTA düyməsi tam en (baş barmaqla rahat)
+   • Bölmə başlıqları — siyahı üstündəki kiçik etiket (.m-list-title kimi)
+   Ağır çərçivələr əvəzinə yumşaq kölgə. Geniş ekran dəyişmir. */
+@media (max-width: 767.98px) {
+  .about-mission {
+    border-width:1px; border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm);
+  }
+
+  .section-header.about-block-head { text-align:start; margin-bottom:8px; padding-inline:4px; }
+  .section-header.about-block-head .section-title {
+    font-size:12px; font-weight:700; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--text-muted); line-height:1.3;
+  }
+  [dir="rtl"] .section-header.about-block-head .section-title { letter-spacing:0; font-size:13px; }
+
+  /* Statistika — bir kart */
+  .about-stats {
+    gap:0; background:var(--bg-card);
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm); overflow:hidden;
+  }
+  .about-stat { border:0; border-radius:0; background:none; padding:16px 10px; }
+  .about-stat:nth-child(odd) { border-inline-end:1px solid var(--hairline); }
+  .about-stat:nth-child(-n+2) { border-bottom:1px solid var(--hairline); }
+  .about-stat:hover { transform:none; box-shadow:none; }
+  .about-stat-num { font-size:1.6rem; letter-spacing:-.5px; font-variant-numeric:tabular-nums; }
+  .about-stat-label { font-size:13px; }
+
+  /* Dəyərlər — qruplaşdırılmış siyahı (.m-list görünüşü) */
+  .about-values {
+    gap:0; background:var(--bg-card);
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm); overflow:hidden;
+  }
+  .about-value-card {
+    position:relative;
+    display:grid; grid-template-columns:40px minmax(0,1fr);
+    column-gap:12px; row-gap:2px; align-items:start;
+    padding:14px 16px; border:0; border-radius:0; background:none;
+  }
+  .about-value-card:hover { transform:none; box-shadow:none; }
+  /* Nazik ayırıcı — ikonun sonundan başlayır (RTL-də güzgülənir) */
+  .about-value-card + .about-value-card::before {
+    content:''; position:absolute; top:0;
+    inset-inline-start:calc(16px + 40px + 12px); inset-inline-end:0;
+    height:1px; background:var(--border);
+  }
+  .about-value-icon { grid-row:1 / span 2; margin:0; font-size:20px; line-height:1; }
+  .about-value-card h3 { margin:0; padding-top:1px; font-size:15px; line-height:1.35; }
+  .about-value-card p { font-size:13.5px; line-height:1.55; }
+
+  /* Hazırlayan — üfüqi kart */
+  .about-team { grid-template-columns:minmax(0,1fr); }
+  .about-team-card {
+    display:grid; grid-template-columns:52px minmax(0,1fr);
+    column-gap:14px; align-items:center; text-align:start;
+    padding:14px 16px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm);
+  }
+  .about-team-card:hover { transform:none; box-shadow:var(--shadow-sm); border-color:var(--border); }
+  .team-avatar { grid-row:1 / span 2; width:52px; height:52px; margin:0; font-size:18px; }
+  .team-name { margin:0; align-self:end; }
+  .team-role { align-self:start; }
+
+  /* CTA */
+  .about-cta { padding:26px 18px 20px; border-radius:var(--radius-lg); }
+  .about-cta .btn-primary { width:100%; min-height:48px; justify-content:center; }
 }
 
 /* ── Dark mode overrides ── */
@@ -44,5 +220,9 @@
 }
 [data-theme="dark"] .about-cta .btn-primary {
   background: var(--primary);
-  color: #0f0f1a;
+  color: var(--on-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-stat, .about-value-card, .about-team-card { transition:none; }
 }

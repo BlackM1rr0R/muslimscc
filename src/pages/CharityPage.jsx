@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/CharityPage.css'
+import Breadcrumb from '../components/Breadcrumb'
 
 const DEED_TYPES = [
   { key:'money', icon:'💰', az:'Pul', en:'Money', ru:'Деньги', ar:'مال', tr:'Para' },
@@ -13,6 +15,14 @@ const DEED_TYPES = [
   { key:'other', icon:'✨', az:'Digər', en:'Other', ru:'Другое', ar:'أخرى', tr:'Diğer' },
 ]
 
+// Telefonda qeyd sətirlərindəki ikon kafelinin rəng tonu (motion.css → .icon-tile--*).
+// Boş sətir — susma yaşıl ton.
+const DEED_TONE = {
+  money: 'gold', food: 'orange', smile: 'rose', knowledge: 'blue',
+  dua: '', helping: 'teal', clothing: 'violet', other: 'slate',
+}
+const tileClass = (key) => `icon-tile${DEED_TONE[key] ? ` icon-tile--${DEED_TONE[key]}` : ''}`
+
 const LABELS = {
   az: { title:'Sədəqə Gündəliyi', subtitle:'Gündəlik xeyir əməllərinizi qeyd edin', heroArabic:'صَدَقَة', total:'Ümumi əməl', totalAmount:'Ümumi məbləğ', streak:'Ardıcıl gün', addTitle:'Yeni əməl əlavə et', date:'Tarix', type:'Növ', amount:'Məbləğ (istəyə bağlı)', description:'Təsvir', add:'Əlavə et', entries:'Qeydlər', noEntries:'Hələ heç bir qeyd yoxdur', delete:'Sil', all:'Hamısı', filterBy:'Süzgəc' },
   en: { title:'Charity Diary', subtitle:'Track your daily good deeds', heroArabic:'صَدَقَة', total:'Total Deeds', totalAmount:'Total Amount', streak:'Day Streak', addTitle:'Add New Deed', date:'Date', type:'Type', amount:'Amount (optional)', description:'Description', add:'Add', entries:'Entries', noEntries:'No entries yet', delete:'Delete', all:'All', filterBy:'Filter' },
@@ -21,15 +31,37 @@ const LABELS = {
   tr: { title:'Sadaka Günlüğü', subtitle:'Günlük hayır işlerinizi kaydedin', heroArabic:'صَدَقَة', total:'Toplam İş', totalAmount:'Toplam Tutar', streak:'Ardışık Gün', addTitle:'Yeni İş Ekle', date:'Tarih', type:'Tür', amount:'Tutar (isteğe bağlı)', description:'Açıklama', add:'Ekle', entries:'Kayıtlar', noEntries:'Henüz kayıt yok', delete:'Sil', all:'Tümü', filterBy:'Filtre' },
 }
 
+// Yerli tarix (YYYY-MM-DD). toISOString() UTC-dir — Bakıda (UTC+4) gecə
+// 00:00–03:59 arası forma dünənki tarixlə açılırdı.
+function localDateKey(d = new Date()) {
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+}
+
 function getToday() {
-  return new Date().toISOString().slice(0, 10)
+  return localDateKey()
+}
+
+// Qeyd tarixini dilə uyğun göstər. Chrome-un yığcam ICU-sunda "az" lokalı
+// yoxdur ("2026 M09 19" çıxır) — ona görə azərbaycanca ay adları əl ilə yazılır.
+const AZ_MONTHS_SHORT = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avq', 'sen', 'okt', 'noy', 'dek']
+const DATE_LOCALES = { en: 'en-GB', ru: 'ru-RU', ar: 'ar-u-nu-latn', tr: 'tr-TR' }
+
+function formatEntryDate(key, lang) {
+  const [y, m, d] = String(key || '').split('-').map(Number)
+  if (!y || !m || !d) return key || ''
+  if (lang === 'az' || !DATE_LOCALES[lang]) return `${d} ${AZ_MONTHS_SHORT[m - 1]} ${y}`
+  try {
+    return new Date(y, m - 1, d).toLocaleDateString(DATE_LOCALES[lang], { day: 'numeric', month: 'short', year: 'numeric' })
+  } catch {
+    return key
+  }
 }
 
 function calcStreak(entries) {
   if (!entries.length) return 0
   const uniqueDays = [...new Set(entries.map(e => e.date))].sort().reverse()
   const today = getToday()
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+  const yesterday = localDateKey(new Date(Date.now() - 86400000))
   if (uniqueDays[0] !== today && uniqueDays[0] !== yesterday) return 0
   let streak = 1
   for (let i = 1; i < uniqueDays.length; i++) {
@@ -59,7 +91,7 @@ export default function CharityPage({ setPage }) {
   const [filterType, setFilterType] = useState('all')
 
   useEffect(() => {
-    localStorage.setItem('charity_log', JSON.stringify(entries))
+    try { localStorage.setItem('charity_log', JSON.stringify(entries)) } catch { /* yaddaş bağlıdır */ }
   }, [entries])
 
   const stats = useMemo(() => {
@@ -88,6 +120,7 @@ export default function CharityPage({ setPage }) {
     setEntries(prev => [...prev, entry])
     setAmount('')
     setDescription('')
+    haptic()
   }
 
   const handleDelete = (id) => {
@@ -99,12 +132,8 @@ export default function CharityPage({ setPage }) {
   return (
     <>
       {/* Hero */}
-      <div className="page-hero theme-charity">
-        <div className="breadcrumb">
-          <button onClick={() => setPage('home')}>muslims.cc</button>
-          <span>/</span>
-          <span>{t.title}</span>
-        </div>
+      <div className="page-hero hero-compact theme-charity">
+        <Breadcrumb setPage={setPage} current={t.title} />
         <div className="page-hero-arabic">{t.heroArabic}</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
@@ -113,33 +142,35 @@ export default function CharityPage({ setPage }) {
       <section className="section">
         <div className="section-inner ch-container">
 
-          {/* Stats */}
-          <div className="ch-stats anim-fadeUp">
+          {/* Stats — telefonda üç xanalı tək kart (CharityPage.css);
+              səhifə girişini App.jsx-in .page-enter keçidi verir */}
+          <div className="ch-stats">
             <div className="ch-stat-card">
-              <span className="ch-stat-icon">🤲</span>
+              <span className="ch-stat-icon icon-tile" aria-hidden="true">🤲</span>
               <span className="ch-stat-value">{stats.total}</span>
               <span className="ch-stat-label">{t.total}</span>
             </div>
             <div className="ch-stat-card">
-              <span className="ch-stat-icon">💰</span>
+              <span className="ch-stat-icon icon-tile icon-tile--gold" aria-hidden="true">💰</span>
               <span className="ch-stat-value">{stats.totalAmount > 0 ? stats.totalAmount.toFixed(2) : '0'}</span>
               <span className="ch-stat-label">{t.totalAmount}</span>
             </div>
             <div className="ch-stat-card">
-              <span className="ch-stat-icon">🔥</span>
+              <span className="ch-stat-icon icon-tile icon-tile--orange" aria-hidden="true">🔥</span>
               <span className="ch-stat-value">{stats.streak}</span>
               <span className="ch-stat-label">{t.streak}</span>
             </div>
           </div>
 
           {/* Add Form */}
-          <div className="ch-form-card anim-fadeUp d1">
+          <div className="ch-form-card">
             <h2 className="ch-form-title">{t.addTitle}</h2>
             <form className="ch-form" onSubmit={handleAdd}>
               <div className="ch-form-row">
                 <div className="ch-form-group">
-                  <label className="ch-label">{t.date}</label>
+                  <label className="ch-label" htmlFor="ch-date">{t.date}</label>
                   <input
+                    id="ch-date"
                     type="date"
                     className="input-base"
                     value={date}
@@ -148,9 +179,11 @@ export default function CharityPage({ setPage }) {
                   />
                 </div>
                 <div className="ch-form-group">
-                  <label className="ch-label">{t.amount}</label>
+                  <label className="ch-label" htmlFor="ch-amount">{t.amount}</label>
                   <input
+                    id="ch-amount"
                     type="number"
+                    inputMode="decimal"
                     className="input-base"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
@@ -162,16 +195,17 @@ export default function CharityPage({ setPage }) {
               </div>
 
               <div className="ch-form-group">
-                <label className="ch-label">{t.type}</label>
-                <div className="ch-type-grid">
+                <span className="ch-label" id="ch-type-label">{t.type}</span>
+                <div className="ch-type-grid" role="group" aria-labelledby="ch-type-label">
                   {DEED_TYPES.map(dt => (
                     <button
                       key={dt.key}
                       type="button"
-                      className={`ch-type-btn${type === dt.key ? ' active' : ''}`}
+                      className={`ch-type-btn press${type === dt.key ? ' active' : ''}`}
+                      aria-pressed={type === dt.key}
                       onClick={() => setType(dt.key)}
                     >
-                      <span>{dt.icon}</span>
+                      <span aria-hidden="true">{dt.icon}</span>
                       <span>{dt[lang] || dt.en}</span>
                     </button>
                   ))}
@@ -179,8 +213,9 @@ export default function CharityPage({ setPage }) {
               </div>
 
               <div className="ch-form-group">
-                <label className="ch-label">{t.description}</label>
+                <label className="ch-label" htmlFor="ch-desc">{t.description}</label>
                 <input
+                  id="ch-desc"
                   type="text"
                   className="input-base"
                   value={description}
@@ -193,12 +228,13 @@ export default function CharityPage({ setPage }) {
             </form>
           </div>
 
-          {/* Filter */}
-          <div className="ch-filter anim-fadeUp d2">
-            <span className="ch-filter-label">{t.filterBy}:</span>
-            <div className="tag-filters">
+          {/* Filter — telefonda bir sətirdə üfüqi sürüşən çiplər, genişdə sarınır */}
+          <div className="ch-filter" data-reveal>
+            <span className="ch-filter-label" id="ch-filter-label">{t.filterBy}:</span>
+            <div className="tag-filters chip-scroll wrap-desktop" role="group" aria-labelledby="ch-filter-label">
               <button
                 className={`tag-btn${filterType === 'all' ? ' active' : ''}`}
+                aria-pressed={filterType === 'all'}
                 onClick={() => setFilterType('all')}
               >
                 {t.all}
@@ -207,6 +243,7 @@ export default function CharityPage({ setPage }) {
                 <button
                   key={dt.key}
                   className={`tag-btn${filterType === dt.key ? ' active' : ''}`}
+                  aria-pressed={filterType === dt.key}
                   onClick={() => setFilterType(dt.key)}
                 >
                   {dt.icon} {dt[lang] || dt.en}
@@ -215,39 +252,51 @@ export default function CharityPage({ setPage }) {
             </div>
           </div>
 
-          {/* Entries */}
-          <div className="ch-entries anim-fadeUp d3">
+          {/* Entries — telefonda qruplaşdırılmış siyahı xanaları (.m-list/.m-row),
+              genişdə əvvəlki ayrı kartlar (CharityPage.css ≥768px) */}
+          <div className="ch-entries">
             <h2 className="ch-entries-title">{t.entries} ({filteredEntries.length})</h2>
             {filteredEntries.length === 0 && (
-              <div className="ch-empty">{t.noEntries}</div>
+              <div className="ch-empty" data-reveal="fade">
+                <span className="ch-empty-icon icon-tile icon-tile--lg icon-tile--round" aria-hidden="true">🤲</span>
+                <p>{t.noEntries}</p>
+              </div>
             )}
-            {filteredEntries.map(entry => {
-              const dt = getDeedType(entry.type)
-              return (
-                <div key={entry.id} className="ch-entry-card">
-                  <div className="ch-entry-icon">{dt.icon}</div>
-                  <div className="ch-entry-body">
-                    <div className="ch-entry-top">
-                      <span className="ch-entry-type">{dt[lang] || dt.en}</span>
-                      <span className="ch-entry-date">{entry.date}</span>
-                    </div>
-                    {entry.description && (
-                      <p className="ch-entry-desc">{entry.description}</p>
-                    )}
-                    {entry.amount != null && entry.amount > 0 && (
-                      <span className="ch-entry-amount">{entry.amount.toFixed(2)}</span>
-                    )}
-                  </div>
-                  <button
-                    className="ch-entry-delete"
-                    onClick={() => handleDelete(entry.id)}
-                    title={t.delete}
-                  >
-                    &times;
-                  </button>
-                </div>
-              )
-            })}
+            {filteredEntries.length > 0 && (
+              <ul className="ch-entry-list m-list" data-reveal="stagger">
+                {filteredEntries.map(entry => {
+                  const dt = getDeedType(entry.type)
+                  return (
+                    <li key={entry.id}>
+                      <div className="ch-entry-card m-row">
+                        <span className={`ch-entry-icon ${tileClass(dt.key)}`} aria-hidden="true">{dt.icon}</span>
+                        <div className="ch-entry-body">
+                          <div className="ch-entry-top">
+                            <span className="ch-entry-type">{dt[lang] || dt.en}</span>
+                            <time className="ch-entry-date" dateTime={entry.date}>{formatEntryDate(entry.date, lang)}</time>
+                          </div>
+                          {entry.description && (
+                            <p className="ch-entry-desc">{entry.description}</p>
+                          )}
+                          {entry.amount != null && entry.amount > 0 && (
+                            <span className="ch-entry-amount">{entry.amount.toFixed(2)}</span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="ch-entry-delete press"
+                          onClick={() => handleDelete(entry.id)}
+                          title={t.delete}
+                          aria-label={t.delete}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </div>
 
         </div>

@@ -1,16 +1,19 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { BRAND, brandName } from '../config/mosque'
 import { QUOTES as STATIC_QUOTES } from '../data/quotes'
 import { subscribeToQuotes } from '../data/adminContent'
+import { localizeSource } from '../utils/sourceNames'
+import { dedupeList, hadithKeys } from '../utils/uniqueHadiths'
 import '../styles/QuoteGeneratorPage.css'
 
 /* ── Labels ── */
 const LABELS = {
-  az: { title:'Sitat Generatoru', subtitle:'Gözəl İslami sitatlar yaradın', generate:'Yeni sitat', copy:'Kopyala', share:'Paylaş', download:'Yüklə', copied:'Kopyalandı!', theme:'Rəng', category:'Kateqoriya', layout:'Dizayn', custom:'Fərdiləşdir', quran:'Quran', hadith:'Hədis', dua:'Dua', wisdom:'Hikmət', all:'Hamısı', watermark:'muslims.cc', fontSize:'Yazı ölçüsü', bgColor:'Arxa plan', textColor:'Yazı rəngi', borderWidth:'Sərhəd', borderColor:'Sərhəd rəngi', opacity:'Şəffaflıq', reset:'Sıfırla', customBg:'Öz rəng' },
-  en: { title:'Quote Generator', subtitle:'Create beautiful Islamic quotes', generate:'New quote', copy:'Copy', share:'Share', download:'Download', copied:'Copied!', theme:'Color', category:'Category', layout:'Layout', custom:'Customize', quran:'Quran', hadith:'Hadith', dua:'Dua', wisdom:'Wisdom', all:'All', watermark:'muslims.cc', fontSize:'Font size', bgColor:'Background', textColor:'Text color', borderWidth:'Border', borderColor:'Border color', opacity:'Opacity', reset:'Reset', customBg:'Custom color' },
-  ru: { title:'Генератор цитат', subtitle:'Создавайте красивые исламские цитаты', generate:'Новая цитата', copy:'Копировать', share:'Поделиться', download:'Скачать', copied:'Скопировано!', theme:'Цвет', category:'Категория', layout:'Дизайн', custom:'Настроить', quran:'Коран', hadith:'Хадис', dua:'Дуа', wisdom:'Мудрость', all:'Все', watermark:'muslims.cc', fontSize:'Размер шрифта', bgColor:'Фон', textColor:'Цвет текста', borderWidth:'Рамка', borderColor:'Цвет рамки', opacity:'Прозрачность', reset:'Сбросить', customBg:'Свой цвет' },
-  ar: { title:'مولد الاقتباسات', subtitle:'أنشئ اقتباسات إسلامية جميلة', generate:'اقتباس جديد', copy:'نسخ', share:'مشاركة', download:'تحميل', copied:'تم النسخ!', theme:'اللون', category:'الفئة', layout:'التصميم', custom:'تخصيص', quran:'القرآن', hadith:'الحديث', dua:'الدعاء', wisdom:'حكمة', all:'الكل', watermark:'muslims.cc', fontSize:'حجم الخط', bgColor:'الخلفية', textColor:'لون النص', borderWidth:'الإطار', borderColor:'لون الإطار', opacity:'الشفافية', reset:'إعادة ضبط', customBg:'لون مخصص' },
-  tr: { title:'Alıntı Oluşturucu', subtitle:'Güzel İslami alıntılar oluşturun', generate:'Yeni alıntı', copy:'Kopyala', share:'Paylaş', download:'İndir', copied:'Kopyalandı!', theme:'Renk', category:'Kategori', layout:'Tasarım', custom:'Özelleştir', quran:'Kuran', hadith:'Hadis', dua:'Dua', wisdom:'Hikmet', all:'Tümü', watermark:'muslims.cc', fontSize:'Yazı boyutu', bgColor:'Arka plan', textColor:'Yazı rengi', borderWidth:'Kenarlık', borderColor:'Kenarlık rengi', opacity:'Saydamlık', reset:'Sıfırla', customBg:'Özel renk' },
+  az: { title:'Sitat Generatoru', subtitle:'Gözəl İslami sitatlar yaradın', generate:'Yeni sitat', copy:'Kopyala', share:'Paylaş', download:'Yüklə', copied:'Kopyalandı!', theme:'Rəng', category:'Kateqoriya', layout:'Dizayn', custom:'Fərdiləşdir', quran:'Quran', hadith:'Hədis', dua:'Dua', wisdom:'Hikmət', all:'Hamısı', watermark:`${BRAND.name.az} · ${BRAND.domain}`, fontSize:'Yazı ölçüsü', bgColor:'Arxa plan', textColor:'Yazı rəngi', borderWidth:'Sərhəd', borderColor:'Sərhəd rəngi', opacity:'Şəffaflıq', reset:'Sıfırla', customBg:'Öz rəng', arText:'Ərəb', trText:'Tərcümə' },
+  en: { title:'Quote Generator', subtitle:'Create beautiful Islamic quotes', generate:'New quote', copy:'Copy', share:'Share', download:'Download', copied:'Copied!', theme:'Color', category:'Category', layout:'Layout', custom:'Customize', quran:'Quran', hadith:'Hadith', dua:'Dua', wisdom:'Wisdom', all:'All', watermark:`${BRAND.name.en} · ${BRAND.domain}`, fontSize:'Font size', bgColor:'Background', textColor:'Text color', borderWidth:'Border', borderColor:'Border color', opacity:'Opacity', reset:'Reset', customBg:'Custom color', arText:'Arabic', trText:'Translation' },
+  ru: { title:'Генератор цитат', subtitle:'Создавайте красивые исламские цитаты', generate:'Новая цитата', copy:'Копировать', share:'Поделиться', download:'Скачать', copied:'Скопировано!', theme:'Цвет', category:'Категория', layout:'Дизайн', custom:'Настроить', quran:'Коран', hadith:'Хадис', dua:'Дуа', wisdom:'Мудрость', all:'Все', watermark:`${BRAND.name.ru} · ${BRAND.domain}`, fontSize:'Размер шрифта', bgColor:'Фон', textColor:'Цвет текста', borderWidth:'Рамка', borderColor:'Цвет рамки', opacity:'Прозрачность', reset:'Сбросить', customBg:'Свой цвет', arText:'Арабский', trText:'Перевод' },
+  ar: { title:'مولد الاقتباسات', subtitle:'أنشئ اقتباسات إسلامية جميلة', generate:'اقتباس جديد', copy:'نسخ', share:'مشاركة', download:'تحميل', copied:'تم النسخ!', theme:'اللون', category:'الفئة', layout:'التصميم', custom:'تخصيص', quran:'القرآن', hadith:'الحديث', dua:'الدعاء', wisdom:'حكمة', all:'الكل', watermark:`${BRAND.name.ar} · ${BRAND.domain}`, fontSize:'حجم الخط', bgColor:'الخلفية', textColor:'لون النص', borderWidth:'الإطار', borderColor:'لون الإطار', opacity:'الشفافية', reset:'إعادة ضبط', customBg:'لون مخصص', arText:'العربية', trText:'الترجمة' },
+  tr: { title:'Alıntı Oluşturucu', subtitle:'Güzel İslami alıntılar oluşturun', generate:'Yeni alıntı', copy:'Kopyala', share:'Paylaş', download:'İndir', copied:'Kopyalandı!', theme:'Renk', category:'Kategori', layout:'Tasarım', custom:'Özelleştir', quran:'Kuran', hadith:'Hadis', dua:'Dua', wisdom:'Hikmet', all:'Tümü', watermark:`${BRAND.name.tr} · ${BRAND.domain}`, fontSize:'Yazı boyutu', bgColor:'Arka plan', textColor:'Yazı rengi', borderWidth:'Kenarlık', borderColor:'Kenarlık rengi', opacity:'Saydamlık', reset:'Sıfırla', customBg:'Özel renk', arText:'Arapça', trText:'Çeviri' },
 }
 
 /* ── Theme configs — 12 tema ── */
@@ -30,6 +33,68 @@ const THEMES = [
 ]
 
 const CATEGORIES = ['all','quran','hadith','dua','wisdom']
+
+/* ── Rəng və dizayn adları — [az, en, ru, ar, tr] ──
+   Düymələrdə yalnız rəng dairəsi / simvol görünür; ad title və
+   aria-label-da (əvvəl yalnız ingiliscə id idi) */
+const LANG_IDX = { az:0, en:1, ru:2, ar:3, tr:4 }
+const THEME_NAMES = {
+  green:   ['Yaşıl','Green','Зелёный','أخضر','Yeşil'],
+  gold:    ['Qızılı','Gold','Золотой','ذهبي','Altın'],
+  dark:    ['Tünd','Dark','Тёмный','داكن','Koyu'],
+  mosque:  ['Məscid','Mosque','Мечеть','مسجد','Cami'],
+  geo:     ['Bənövşəyi','Purple','Фиолетовый','بنفسجي','Mor'],
+  minimal: ['Açıq','Light','Светлый','فاتح','Açık'],
+  ocean:   ['Okean','Ocean','Океан','محيط','Okyanus'],
+  sunset:  ['Qürub','Sunset','Закат','غروب','Gün batımı'],
+  rose:    ['Qızılgül','Rose','Роза','وردي','Gül'],
+  emerald: ['Zümrüd','Emerald','Изумруд','زمردي','Zümrüt'],
+  slate:   ['Boz','Slate','Графит','رمادي','Arduvaz'],
+  sand:    ['Qum','Sand','Песок','رملي','Kum'],
+}
+const LAYOUT_NAMES = {
+  square:['Kvadrat','Square','Квадрат','مربع','Kare'],
+  portrait:['İnstagram 4:5','Instagram 4:5','Instagram 4:5','إنستغرام 4:5','Instagram 4:5'],
+  story:['Story 9:16','Story 9:16','Сторис 9:16','قصة 9:16','Hikâye 9:16'],
+  landscape:['Geniş 16:9','Wide 16:9','Широкий 16:9','عريض 16:9','Geniş 16:9'],
+  circle:['Dairə','Circle','Круг','دائرة','Daire'],
+  rounded:['Yumru künc','Rounded','Скруглённый','زوايا مستديرة','Yuvarlak köşe'],
+  flat:['Düz künc','Sharp corners','Прямые углы','زوايا حادة','Düz köşe'],
+  pill:['Oval','Pill','Овал','بيضاوي','Oval'],
+  'frame-thin':['Nazik çərçivə','Thin frame','Тонкая рамка','إطار رفيع','İnce çerçeve'],
+  'frame-thick':['Qalın çərçivə','Thick frame','Толстая рамка','إطار سميك','Kalın çerçeve'],
+  'frame-double':['İkiqat çərçivə','Double frame','Двойная рамка','إطار مزدوج','Çift çerçeve'],
+  'frame-gradient':['Gradient çərçivə','Gradient frame','Градиентная рамка','إطار متدرج','Gradyan çerçeve'],
+  'frame-neon':['Neon çərçivə','Neon frame','Неоновая рамка','إطار نيون','Neon çerçeve'],
+  'frame-dashed':['Kəsik çərçivə','Dashed frame','Пунктирная рамка','إطار متقطع','Kesikli çerçeve'],
+  'frame-corner':['Künc çərçivə','Corner frame','Угловая рамка','إطار الزوايا','Köşe çerçeve'],
+  'frame-shadow':['Dərin kölgə','Deep shadow','Глубокая тень','ظل عميق','Derin gölge'],
+  bismillah:['Bismillah','Bismillah','Бисмиллях','البسملة','Besmele'],
+  ornament:['Ornament','Ornament','Орнамент','زخرفة','Süsleme'],
+  quotemark:['Dırnaq','Quote mark','Кавычка','علامة اقتباس','Tırnak'],
+  topbar:['Üst xətt','Top bar','Верхняя линия','شريط علوي','Üst çizgi'],
+  sideline:['Yan xətt','Side line','Боковая линия','خط جانبي','Yan çizgi'],
+  dots:['Nöqtələr','Dots','Точки','نقاط','Noktalar'],
+  diamond:['Romb','Diamond','Ромб','معين','Elmas'],
+  stars:['Ulduzlar','Stars','Звёзды','نجوم','Yıldızlar'],
+  grid:['Tor','Grid','Сетка','شبكة','Izgara'],
+  hex:['Altıbucaq','Hexagon','Шестиугольник','سداسي','Altıgen'],
+  diagonal:['Diaqonal','Diagonal','Диагональ','قطري','Çapraz'],
+  'circles-bg':['Dairələr','Circles','Круги','دوائر','Daireler'],
+  wave:['Dalğa','Wave','Волна','موجة','Dalga'],
+  noise:['Toxunuş','Texture','Текстура','ملمس','Doku'],
+  vignette:['Kölgə kənar','Vignette','Виньетка','تظليل الحواف','Vinyet'],
+  spotlight:['İşıq','Spotlight','Прожектор','بقعة ضوء','Spot ışık'],
+  'ar-big':['Böyük ərəb','Large Arabic','Крупный арабский','عربي كبير','Büyük Arapça'],
+  'ar-small':['Kiçik ərəb','Small Arabic','Мелкий арабский','عربي صغير','Küçük Arapça'],
+  'ar-only':['Yalnız ərəb','Arabic only','Только арабский','العربية فقط','Yalnız Arapça'],
+  'tr-only':['Yalnız tərcümə','Translation only','Только перевод','الترجمة فقط','Yalnız çeviri'],
+  minimal:['Minimal','Minimal','Минимализм','بسيط','Minimal'],
+  paper:['Kağız','Paper','Бумага','ورق','Kâğıt'],
+  ticket:['Bilet','Ticket','Билет','تذكرة','Bilet'],
+  split:['Bölünmüş','Split','Разделённый','مقسوم','Bölünmüş'],
+}
+const nameOf = (map, id, lang) => (map[id] || [])[LANG_IDX[lang] ?? 1] || (map[id] || [])[1] || id
 
 /* ── Layout / Dizayn seçimləri — 40 fərqli stil ── */
 const LAYOUTS = [
@@ -54,7 +119,7 @@ const LAYOUTS = [
   { id:'frame-shadow', label:'▨',  ratio:'1/1', radius:'24px', decor:'bismillah',      desc:'Dərin kölgə', shadow:'deep' },
 
   // ── DEKOR (8) ──
-  { id:'bismillah',  label:'﷽',  ratio:'1/1', radius:'20px', decor:'bismillah',  desc:'Bismillah' },
+  { id:'bismillah',  label:'بسم',  ratio:'1/1', radius:'20px', decor:'bismillah',  desc:'Bismillah' },
   { id:'ornament',   label:'❋',   ratio:'1/1', radius:'20px', decor:'ornament',   desc:'Ornament' },
   { id:'quotemark',  label:'❝',   ratio:'1/1', radius:'20px', decor:'quotemark',  desc:'Dırnaq' },
   { id:'topbar',     label:'▔',   ratio:'1/1', radius:'20px', decor:'topbar',     desc:'Üst xətt' },
@@ -133,8 +198,13 @@ export default function QuoteGeneratorPage({ setPage }) {
     return () => unsubscribe?.()
   }, [])
 
-  // Birləşmiş quotes (Firebase + static)
-  const QUOTES = useMemo(() => [...customQuotes, ...STATIC_QUOTES], [customQuotes])
+  // Birləşmiş quotes (Firebase + static). Admin paneli yerli sitatları
+  // Firebase-ə köçürə bilir — surətlər bir dəfə sayılsın (ərəb mətni və ya
+  // Azərbaycanca mətn eynidirsə; utils/uniqueHadiths ilə eyni qayda)
+  const QUOTES = useMemo(
+    () => dedupeList([...customQuotes, ...STATIC_QUOTES], q => hadithKeys(q.ar, q.text?.az, q.source), { idOf: q => q }).items,
+    [customQuotes],
+  )
   const [custom, setCustom] = useState({
     arFontSize: 24,    // px
     trFontSize: 15,    // px
@@ -160,12 +230,12 @@ export default function QuoteGeneratorPage({ setPage }) {
     do { next = Math.floor(Math.random() * pool.length) } while (next === quoteIdx && pool.length > 1)
     setQuoteIdx(next)
     setAnimKey(k => k + 1)
-  }, [category, quoteIdx])
+  }, [category, quoteIdx, QUOTES])
 
   /* ── Copy text ── */
   const copyText = useCallback(async () => {
     const translation = quote.text[lang] || quote.text.en
-    const text = `${quote.ar}\n\n${translation}\n\n— ${quote.source}`
+    const text = `${quote.ar}\n\n${translation}\n\n— ${localizeSource(quote.source, lang)}`
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
@@ -176,7 +246,7 @@ export default function QuoteGeneratorPage({ setPage }) {
   /* ── Share via Web Share API ── */
   const shareQuote = useCallback(async () => {
     const translation = quote.text[lang] || quote.text.en
-    const text = `${quote.ar}\n\n${translation}\n\n— ${quote.source}\n\nmuslims.cc`
+    const text = `${quote.ar}\n\n${translation}\n\n— ${localizeSource(quote.source, lang)}\n\n${brandName(lang)} — muslims.cc`
     if (navigator.share) {
       try { await navigator.share({ title: t.title, text }) } catch { /* user cancelled */ }
     } else {
@@ -248,13 +318,13 @@ export default function QuoteGeneratorPage({ setPage }) {
     // Source
     ctx.font = '600 26px Inter, sans-serif'
     ctx.fillStyle = dimColor
-    ctx.fillText('— ' + quote.source, 540, trY + 60)
+    ctx.fillText('— ' + localizeSource(quote.source, lang), 540, trY + 60)
 
     // Watermark
     ctx.font = '700 22px Inter, sans-serif'
     ctx.fillStyle = theme.id === 'minimal' ? 'rgba(26,107,58,0.2)' : 'rgba(255,255,255,0.25)'
     ctx.textAlign = 'right'
-    ctx.fillText('muslims.cc', 1050, 1050)
+    ctx.fillText(`${brandName(lang)} · ${BRAND.domain}`, 1050, 1050)
 
     // Decorative ornament bottom
     ctx.font = '36px serif'
@@ -264,7 +334,7 @@ export default function QuoteGeneratorPage({ setPage }) {
 
     // Download
     const link = document.createElement('a')
-    link.download = 'muslims-cc-quote.png'
+    link.download = 'qaracuxur-mescidi-quote.png'
     link.href = canvas.toDataURL('image/png')
     link.click()
   }, [quote, theme, lang])
@@ -275,19 +345,18 @@ export default function QuoteGeneratorPage({ setPage }) {
     const pool = cat === 'all' ? QUOTES : QUOTES.filter(q => q.cat === cat)
     setQuoteIdx(Math.floor(Math.random() * pool.length))
     setAnimKey(k => k + 1)
-  }, [])
+  }, [QUOTES])
 
   const translation = quote.text[lang] || quote.text.en
+  // En/hündürlük nisbəti — hündür dizayn (9:16) ekrana sığsın deyə kartın
+  // maksimum eni CSS-də bu ədədlə hesablanır
+  const [ratioW, ratioH] = String(layout.ratio).split('/').map(Number)
+  const ratio = ratioW > 0 && ratioH > 0 ? ratioW / ratioH : 1
 
   return (
     <>
       {/* Hero */}
-      <div className="page-hero theme-quotes">
-        <div className="breadcrumb">
-          <button onClick={() => setPage('home')}>Ana səhifə</button>
-          <span>/</span>
-          <span>{t.title}</span>
-        </div>
+      <div className="page-hero theme-quotes hero-compact">
         <div className="page-hero-arabic">اقْتِبَاسَات</div>
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
@@ -296,195 +365,214 @@ export default function QuoteGeneratorPage({ setPage }) {
       <div className="section">
         <div className="section-inner qg-layout">
 
-          {/* Controls */}
-          <div className="qg-controls">
-            {/* Category filter */}
-            <div className="qg-control-group" style={{ flex:1 }}>
-              <span className="qg-control-label">{t.category}</span>
-              <div className="qg-categories">
-                {CATEGORIES.map(cat => (
+          {/* Önizləmə + düymələr — telefonda əvvəldə, geniş ekranda sağda yapışqan */}
+          <div className="qg-preview">
+            {/* Quote Card Preview */}
+            <div className="qg-card-wrap" key={animKey} ref={cardRef}>
+              <div
+                className={`qg-card qt-theme-${theme.id} qg-decor-${layout.decor} ${layout.shadow === 'deep' ? 'qg-shadow-deep' : ''}`}
+                style={{
+                  aspectRatio: layout.ratio,
+                  borderRadius: layout.radius,
+                  '--qg-ratio': ratio,
+                  ...(layout.arSize ? { '--qg-ar-size': layout.arSize } : {}),
+                  ...(custom.bgColor ? { background: custom.bgColor } : {}),
+                  ...(custom.textColor ? { color: custom.textColor, '--qg-text': custom.textColor } : {}),
+                  ...(custom.borderWidth > 0 ? { border: `${custom.borderWidth}px solid ${custom.borderColor}` } : {}),
+                  ...(custom.opacity < 100 ? { opacity: custom.opacity / 100 } : {}),
+                }}
+              >
+                <div className="qg-card-overlay" />
+
+                {layout.decor === 'frame' && <div className="qg-frame-border" />}
+                {layout.decor === 'topbar' && <div className="qg-topbar" />}
+                {layout.decor === 'sideline' && <div className="qg-sideline" />}
+                {layout.decor === 'quotemark' && <div className="qg-quotemark">❝</div>}
+                {layout.decor === 'neon' && <div className="qg-neon-border" />}
+                {layout.decor === 'gradientborder' && <div className="qg-gradient-border" />}
+
+                {/* Top dekor */}
+                {layout.decor === 'bismillah' && <div className="qg-card-decor-top">﷽</div>}
+                {layout.decor === 'ornament' && <div className="qg-card-decor-top">✦ ❋ ✦</div>}
+                {layout.decor === 'dots' && <div className="qg-card-decor-top">· · · · ·</div>}
+                {layout.decor === 'lines' && <div className="qg-card-decor-top">━━━</div>}
+                {layout.decor === 'diamond' && <div className="qg-card-decor-top">◆</div>}
+                {layout.decor === 'arch' && <div className="qg-card-decor-top">⌓</div>}
+                {layout.decor === 'line' && <div className="qg-card-decor-top">───</div>}
+                {layout.decor === 'hex' && <div className="qg-card-decor-top">⬡ ⬢ ⬡</div>}
+                {layout.decor === 'wave' && <div className="qg-card-decor-top">〰〰〰</div>}
+                {layout.decor === 'starbg' && <div className="qg-card-decor-top">✧ ✦ ✧</div>}
+                {layout.decor === 'minimaldot' && <div className="qg-card-decor-top">·</div>}
+                {layout.decor === 'paper' && <div className="qg-card-decor-top" style={{fontFamily:'serif',fontSize:20}}>❦</div>}
+                {layout.decor === 'split' && <div className="qg-split-line" />}
+
+                {/* Ərəb mətni */}
+                {!layout.hideArabic && (
+                  <div className="qg-card-arabic" style={{
+                    fontSize: layout.arSize || `${custom.arFontSize}px`,
+                    ...(custom.textColor ? { color: custom.textColor } : {}),
+                  }}>
+                    {quote.ar}
+                  </div>
+                )}
+
+                {/* Tərcümə */}
+                {!layout.hideTranslation && (
+                  <div className="qg-card-translation" style={{
+                    fontSize: `${custom.trFontSize}px`,
+                    ...(custom.textColor ? { color: custom.textColor, opacity: 0.8 } : {}),
+                  }}>
+                    {translation}
+                  </div>
+                )}
+
+                <div className="qg-card-divider" />
+                <div className="qg-card-source">— <bdi>{localizeSource(quote.source, lang)}</bdi></div>
+
+                {/* Bottom dekor */}
+                {layout.decor === 'bismillah' && <div className="qg-card-decor-bottom">❁</div>}
+                {layout.decor === 'ornament' && <div className="qg-card-decor-bottom">✦ ❋ ✦</div>}
+                {layout.decor === 'thickborder' && <div className="qg-card-decor-bottom">▪ ▪ ▪</div>}
+
+                <div className="qg-card-watermark">{t.watermark}</div>
+              </div>
+            </div>
+
+            {/* Action Buttons — simvollar ayrıca <span>-da: telefonda ikon
+                üstdə, ad altda (tətbiqdəki "paylaş" sırası kimi) */}
+            <div className="qg-actions">
+              <button className="qg-action-btn primary" onClick={generateNew}>
+                <span className="qg-action-ico" aria-hidden="true">✦</span> {t.generate}
+              </button>
+              <button
+                className={`qg-action-btn ${copied ? 'copied' : 'secondary'}`}
+                onClick={copyText}
+              >
+                <span className="qg-action-ico" aria-hidden="true">{copied ? '✓' : '❐'}</span> {copied ? t.copied : t.copy}
+              </button>
+              <button className="qg-action-btn ghost" onClick={shareQuote}>
+                <span className="qg-action-ico" aria-hidden="true">↗</span> {t.share}
+              </button>
+              <button className="qg-action-btn ghost" onClick={downloadQuote}>
+                <span className="qg-action-ico" aria-hidden="true">↓</span> {t.download}
+              </button>
+            </div>
+          </div>
+
+          {/* Seçimlər — kateqoriya, rəng, dizayn, fərdiləşdirmə */}
+          <div className="qg-panel">
+            {/* Controls */}
+            <div className="qg-controls">
+              {/* Category filter */}
+              <div className="qg-control-group">
+                <span className="qg-control-label">{t.category}</span>
+                {/* Telefonda bir sətirdə barmaqla sürüşən çiplər (motion.css) */}
+                <div className="qg-categories chip-scroll wrap-desktop" role="group" aria-label={t.category}>
+                  {CATEGORIES.map(cat => (
+                    <button
+                      key={cat}
+                      className={`tag-btn ${category === cat ? 'active' : ''}`}
+                      aria-pressed={category === cat}
+                      onClick={() => handleCategoryChange(cat)}
+                    >
+                      {t[cat]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Theme selector */}
+              <div className="qg-control-group">
+                <span className="qg-control-label">{t.theme}</span>
+                <div className="qg-themes chip-scroll wrap-desktop" role="group" aria-label={t.theme}>
+                  {THEMES.map((th, i) => (
+                    <button
+                      key={th.id}
+                      className={`qg-theme-btn ${themeIdx === i ? 'active' : ''}`}
+                      data-theme-id={th.id}
+                      onClick={() => setThemeIdx(i)}
+                      title={nameOf(THEME_NAMES, th.id, lang)}
+                      aria-label={nameOf(THEME_NAMES, th.id, lang)}
+                      aria-pressed={themeIdx === i}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Layout selector */}
+            <div className="qg-control-group qg-layout-group">
+              <span className="qg-control-label">{t.layout}</span>
+              <div className="qg-layouts">
+                {LAYOUTS.map((ly, i) => (
                   <button
-                    key={cat}
-                    className={`tag-btn ${category === cat ? 'active' : ''}`}
-                    onClick={() => handleCategoryChange(cat)}
+                    key={ly.id}
+                    className={`qg-layout-btn ${layoutIdx === i ? 'active' : ''}`}
+                    data-layout-id={ly.id}
+                    onClick={() => { setLayoutIdx(i); setAnimKey(k => k + 1) }}
+                    title={nameOf(LAYOUT_NAMES, ly.id, lang)}
+                    aria-label={nameOf(LAYOUT_NAMES, ly.id, lang)}
+                    aria-pressed={layoutIdx === i}
                   >
-                    {t[cat]}
+                    {ly.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Theme selector */}
-            <div className="qg-control-group">
-              <span className="qg-control-label">{t.theme}</span>
-              <div className="qg-themes">
-                {THEMES.map((th, i) => (
-                  <button
-                    key={th.id}
-                    className={`qg-theme-btn ${themeIdx === i ? 'active' : ''}`}
-                    data-theme-id={th.id}
-                    onClick={() => setThemeIdx(i)}
-                    title={th.id}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Layout selector */}
-          <div className="qg-control-group" style={{ marginBottom: 24 }}>
-            <span className="qg-control-label">{t.layout}</span>
-            <div className="qg-layouts">
-              {LAYOUTS.map((ly, i) => (
-                <button
-                  key={ly.id}
-                  className={`qg-layout-btn ${layoutIdx === i ? 'active' : ''}`}
-                  onClick={() => { setLayoutIdx(i); setAnimKey(k => k + 1) }}
-                  title={ly.id}
-                >
-                  {ly.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Customization Panel */}
-          <div className="qg-custom-section">
-            <button className={`qg-custom-toggle ${showCustom ? 'open' : ''}`} onClick={() => setShowCustom(!showCustom)}>
-              🎨 {t.custom} {showCustom ? '▲' : '▼'}
-            </button>
-            {showCustom && (
-              <div className="qg-custom-panel anim-fadeUp">
-                <div className="qg-custom-row">
-                  <label className="qg-custom-label">{t.fontSize} (Ərəb)</label>
-                  <input type="range" min="14" max="48" value={custom.arFontSize} onChange={e => updateCustom('arFontSize', +e.target.value)} className="qg-custom-range" />
-                  <span className="qg-custom-value">{custom.arFontSize}px</span>
-                </div>
-                <div className="qg-custom-row">
-                  <label className="qg-custom-label">{t.fontSize} (Tərcümə)</label>
-                  <input type="range" min="10" max="28" value={custom.trFontSize} onChange={e => updateCustom('trFontSize', +e.target.value)} className="qg-custom-range" />
-                  <span className="qg-custom-value">{custom.trFontSize}px</span>
-                </div>
-                <div className="qg-custom-row">
-                  <label className="qg-custom-label">{t.customBg}</label>
-                  <input type="color" value={custom.bgColor || theme.gradient[0]} onChange={e => updateCustom('bgColor', e.target.value)} className="qg-custom-color" />
-                  {custom.bgColor && <button className="qg-custom-clear" onClick={() => updateCustom('bgColor', '')}>✕</button>}
-                </div>
-                <div className="qg-custom-row">
-                  <label className="qg-custom-label">{t.textColor}</label>
-                  <input type="color" value={custom.textColor || theme.textColor} onChange={e => updateCustom('textColor', e.target.value)} className="qg-custom-color" />
-                  {custom.textColor && <button className="qg-custom-clear" onClick={() => updateCustom('textColor', '')}>✕</button>}
-                </div>
-                <div className="qg-custom-row">
-                  <label className="qg-custom-label">{t.borderWidth}</label>
-                  <input type="range" min="0" max="10" value={custom.borderWidth} onChange={e => updateCustom('borderWidth', +e.target.value)} className="qg-custom-range" />
-                  <span className="qg-custom-value">{custom.borderWidth}px</span>
-                </div>
-                {custom.borderWidth > 0 && (
+            {/* Customization Panel */}
+            <div className="qg-custom-section">
+              <button
+                className={`qg-custom-toggle ${showCustom ? 'open' : ''}`}
+                aria-expanded={showCustom}
+                onClick={() => setShowCustom(!showCustom)}
+              >
+                <span className="qg-custom-ico icon-tile icon-tile--sm icon-tile--rose" aria-hidden="true">🎨</span> {t.custom}
+                <span className="qg-custom-chevron" aria-hidden="true">▾</span>
+              </button>
+              {showCustom && (
+                <div className="qg-custom-panel">
                   <div className="qg-custom-row">
-                    <label className="qg-custom-label">{t.borderColor}</label>
-                    <input type="color" value={custom.borderColor} onChange={e => updateCustom('borderColor', e.target.value)} className="qg-custom-color" />
+                    <label className="qg-custom-label" htmlFor="qg-c-ar">{t.fontSize} ({t.arText})</label>
+                    <input id="qg-c-ar" type="range" min="14" max="48" value={custom.arFontSize} onChange={e => updateCustom('arFontSize', +e.target.value)} className="qg-custom-range" />
+                    <span className="qg-custom-value">{custom.arFontSize}px</span>
                   </div>
-                )}
-                <div className="qg-custom-row">
-                  <label className="qg-custom-label">{t.opacity}</label>
-                  <input type="range" min="30" max="100" value={custom.opacity} onChange={e => updateCustom('opacity', +e.target.value)} className="qg-custom-range" />
-                  <span className="qg-custom-value">{custom.opacity}%</span>
-                </div>
-                <button className="qg-custom-reset" onClick={resetCustom}>↺ {t.reset}</button>
-              </div>
-            )}
-          </div>
-
-          {/* Quote Card Preview */}
-          <div className="qg-card-wrap" key={animKey} ref={cardRef}>
-            <div
-              className={`qg-card qt-theme-${theme.id} qg-decor-${layout.decor} ${layout.shadow === 'deep' ? 'qg-shadow-deep' : ''}`}
-              style={{
-                aspectRatio: layout.ratio,
-                borderRadius: layout.radius,
-                ...(layout.arSize ? { '--qg-ar-size': layout.arSize } : {}),
-                ...(custom.bgColor ? { background: custom.bgColor } : {}),
-                ...(custom.textColor ? { color: custom.textColor, '--qg-text': custom.textColor } : {}),
-                ...(custom.borderWidth > 0 ? { border: `${custom.borderWidth}px solid ${custom.borderColor}` } : {}),
-                ...(custom.opacity < 100 ? { opacity: custom.opacity / 100 } : {}),
-              }}
-            >
-              <div className="qg-card-overlay" />
-
-              {layout.decor === 'frame' && <div className="qg-frame-border" />}
-              {layout.decor === 'topbar' && <div className="qg-topbar" />}
-              {layout.decor === 'sideline' && <div className="qg-sideline" />}
-              {layout.decor === 'quotemark' && <div className="qg-quotemark">❝</div>}
-              {layout.decor === 'neon' && <div className="qg-neon-border" />}
-              {layout.decor === 'gradientborder' && <div className="qg-gradient-border" />}
-
-              {/* Top dekor */}
-              {layout.decor === 'bismillah' && <div className="qg-card-decor-top">﷽</div>}
-              {layout.decor === 'ornament' && <div className="qg-card-decor-top">✦ ❋ ✦</div>}
-              {layout.decor === 'dots' && <div className="qg-card-decor-top">· · · · ·</div>}
-              {layout.decor === 'lines' && <div className="qg-card-decor-top">━━━</div>}
-              {layout.decor === 'diamond' && <div className="qg-card-decor-top">◆</div>}
-              {layout.decor === 'arch' && <div className="qg-card-decor-top">⌓</div>}
-              {layout.decor === 'line' && <div className="qg-card-decor-top">───</div>}
-              {layout.decor === 'hex' && <div className="qg-card-decor-top">⬡ ⬢ ⬡</div>}
-              {layout.decor === 'wave' && <div className="qg-card-decor-top">〰〰〰</div>}
-              {layout.decor === 'starbg' && <div className="qg-card-decor-top">✧ ✦ ✧</div>}
-              {layout.decor === 'minimaldot' && <div className="qg-card-decor-top">·</div>}
-              {layout.decor === 'paper' && <div className="qg-card-decor-top" style={{fontFamily:'serif',fontSize:20}}>❦</div>}
-              {layout.decor === 'split' && <div className="qg-split-line" />}
-
-              {/* Ərəb mətni */}
-              {!layout.hideArabic && (
-                <div className="qg-card-arabic" style={{
-                  fontSize: layout.arSize || `${custom.arFontSize}px`,
-                  ...(custom.textColor ? { color: custom.textColor } : {}),
-                }}>
-                  {quote.ar}
+                  <div className="qg-custom-row">
+                    <label className="qg-custom-label" htmlFor="qg-c-tr">{t.fontSize} ({t.trText})</label>
+                    <input id="qg-c-tr" type="range" min="10" max="28" value={custom.trFontSize} onChange={e => updateCustom('trFontSize', +e.target.value)} className="qg-custom-range" />
+                    <span className="qg-custom-value">{custom.trFontSize}px</span>
+                  </div>
+                  <div className="qg-custom-row">
+                    <label className="qg-custom-label" htmlFor="qg-c-bg">{t.customBg}</label>
+                    <input id="qg-c-bg" type="color" value={custom.bgColor || theme.gradient[0]} onChange={e => updateCustom('bgColor', e.target.value)} className="qg-custom-color" />
+                    {custom.bgColor && <button className="qg-custom-clear" aria-label={t.reset} onClick={() => updateCustom('bgColor', '')}>✕</button>}
+                  </div>
+                  <div className="qg-custom-row">
+                    <label className="qg-custom-label" htmlFor="qg-c-text">{t.textColor}</label>
+                    <input id="qg-c-text" type="color" value={custom.textColor || theme.textColor} onChange={e => updateCustom('textColor', e.target.value)} className="qg-custom-color" />
+                    {custom.textColor && <button className="qg-custom-clear" aria-label={t.reset} onClick={() => updateCustom('textColor', '')}>✕</button>}
+                  </div>
+                  <div className="qg-custom-row">
+                    <label className="qg-custom-label" htmlFor="qg-c-bw">{t.borderWidth}</label>
+                    <input id="qg-c-bw" type="range" min="0" max="10" value={custom.borderWidth} onChange={e => updateCustom('borderWidth', +e.target.value)} className="qg-custom-range" />
+                    <span className="qg-custom-value">{custom.borderWidth}px</span>
+                  </div>
+                  {custom.borderWidth > 0 && (
+                    <div className="qg-custom-row">
+                      <label className="qg-custom-label" htmlFor="qg-c-bc">{t.borderColor}</label>
+                      <input id="qg-c-bc" type="color" value={custom.borderColor} onChange={e => updateCustom('borderColor', e.target.value)} className="qg-custom-color" />
+                    </div>
+                  )}
+                  <div className="qg-custom-row">
+                    <label className="qg-custom-label" htmlFor="qg-c-op">{t.opacity}</label>
+                    <input id="qg-c-op" type="range" min="30" max="100" value={custom.opacity} onChange={e => updateCustom('opacity', +e.target.value)} className="qg-custom-range" />
+                    <span className="qg-custom-value">{custom.opacity}%</span>
+                  </div>
+                  <button className="qg-custom-reset" onClick={resetCustom}>↺ {t.reset}</button>
                 </div>
               )}
-
-              {/* Tərcümə */}
-              {!layout.hideTranslation && (
-                <div className="qg-card-translation" style={{
-                  fontSize: `${custom.trFontSize}px`,
-                  ...(custom.textColor ? { color: custom.textColor, opacity: 0.8 } : {}),
-                }}>
-                  {translation}
-                </div>
-              )}
-
-              <div className="qg-card-divider" />
-              <div className="qg-card-source">— {quote.source}</div>
-
-              {/* Bottom dekor */}
-              {layout.decor === 'bismillah' && <div className="qg-card-decor-bottom">❁</div>}
-              {layout.decor === 'ornament' && <div className="qg-card-decor-bottom">✦ ❋ ✦</div>}
-              {layout.decor === 'thickborder' && <div className="qg-card-decor-bottom">▪ ▪ ▪</div>}
-
-              <div className="qg-card-watermark">{t.watermark}</div>
             </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className="qg-actions">
-            <button className="qg-action-btn primary" onClick={generateNew}>
-              ✦ {t.generate}
-            </button>
-            <button
-              className={`qg-action-btn ${copied ? 'copied' : 'secondary'}`}
-              onClick={copyText}
-            >
-              {copied ? '✓' : '❐'} {copied ? t.copied : t.copy}
-            </button>
-            <button className="qg-action-btn ghost" onClick={shareQuote}>
-              ↗ {t.share}
-            </button>
-            <button className="qg-action-btn ghost" onClick={downloadQuote}>
-              ↓ {t.download}
-            </button>
-          </div>
-
         </div>
       </div>
     </>

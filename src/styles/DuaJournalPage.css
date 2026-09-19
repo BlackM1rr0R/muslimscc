@@ -1,5 +1,8 @@
 /* ══════════════════════════════════════════════════════
-   DuaJournalPage Styles
+   DuaJournalPage Styles (/duajournal)
+   Jurnal kartları .dj-* adlanır — .dua-card* adları DuasPage.css-dədir;
+   /duas açıldıqdan sonra o qaydalar buradakı kartlara da tətbiq olunurdu.
+   Mobil (<768) görünüş faylın sonundadır; geniş ekran dəyişməyib.
    ══════════════════════════════════════════════════════ */
 
 .dua-journal-layout {
@@ -10,29 +13,32 @@
   gap: 28px;
 }
 
-/* ── Stats ── */
+/* ── Stats — üç bərabər sütun ── */
 .dua-stats-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
-  justify-content: center;
 }
 
 .dua-stat-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px 28px;
-  min-width: 100px;
-  transition: all 0.25s;
+  padding: 18px 12px;
+  transition: border-color .25s, box-shadow .25s;
 }
 
-.dua-stat-card:hover {
-  box-shadow: var(--shadow-sm);
-  border-color: var(--primary-border);
+@media (hover: hover) {
+  .dua-stat-card:hover {
+    box-shadow: var(--shadow-sm);
+    border-color: var(--primary-border);
+  }
 }
 
 .dua-stat-answered {
@@ -45,6 +51,7 @@
   font-weight: 800;
   color: var(--primary);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .dua-stat-label {
@@ -53,6 +60,8 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-align: center;
+  line-height: 1.3;
 }
 
 /* ── Add Button ── */
@@ -60,13 +69,22 @@
   align-self: center;
 }
 
-/* ── Form ── */
+/* ── Form ── (açılanda yumşaq qalxır — köhnə anim-scaleIn əvəzinə) */
 .dua-form {
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  animation: djFormIn var(--dur-3) var(--ease-out) backwards;
 }
+@keyframes djFormIn {
+  from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+/* Yazı yazılarkən forma "qalxmasın"/sıxılmasın (.card:hover və
+   motion.css-in .card:active basılma rəyi — forma özü düymə deyil) */
+.dua-form.card:hover,
+.dua-form.card:active { transform: none; }
 
 .dua-textarea {
   resize: vertical;
@@ -98,46 +116,75 @@
   flex-wrap: wrap;
 }
 
+/* Prioritet seqmenti: rəngli nöqtə + ad bir sətirdə */
+.dj-prio-seg .m-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.dj-prio-seg .dua-priority-dot { width: 8px; height: 8px; }
+
 .dua-form-actions {
   display: flex;
   gap: 12px;
   align-items: center;
 }
-
-/* ── Tabs ── */
-.dua-tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 2px solid var(--border);
+.dua-form-actions .btn-primary:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
-.dua-tab {
-  flex: 1;
-  padding: 14px 20px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  font-family: var(--font);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.25s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
+/* ── Tabs ──
+   JSX-də .m-seg / .m-seg-btn sinifləri də var (telefonda seqment idarəsi).
+   Geniş ekranda (≥768) əvvəlki alt xətli tablar qalır — seqmentin fonu,
+   radiusu və "hap" kölgəsi burada sıfırlanır. */
+@media (min-width: 768px) {
+  .dua-journal-layout .dua-tabs.m-seg {
+    display: flex;
+    gap: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    border-bottom: 2px solid var(--border);
+  }
 
-.dua-tab:hover {
-  color: var(--text);
-  background: var(--primary-bg);
-}
+  .dua-journal-layout .dua-tab.m-seg-btn {
+    flex: 1;
+    min-height: 0;
+    padding: 14px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    margin-bottom: -2px;
+    box-shadow: none;
+    overflow: visible;
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color .25s, background .25s, border-color .25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
 
-.dua-tab.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
+  .dua-journal-layout .dua-tab.m-seg-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: none;
+    box-shadow: none;
+  }
+
+  .dua-journal-layout .dua-tab.m-seg-btn:hover {
+    color: var(--text);
+    background: var(--primary-bg);
+  }
 }
 
 .dua-tab-count {
@@ -147,15 +194,16 @@
   color: var(--primary);
   padding: 2px 8px;
   border-radius: 10px;
+  font-variant-numeric: tabular-nums;
 }
 
 .dua-tab.active .dua-tab-count {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 
 /* ── List ── */
-.dua-list {
+.dj-list {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -168,10 +216,20 @@
   color: var(--text-muted);
 }
 
+/* İkon telefonda rəngli dairədə (.icon-tile), genişdə əvvəlki kimi sadə emoji */
 .dua-empty-icon {
-  font-size: 40px;
-  display: block;
   margin-bottom: 14px;
+}
+@media (min-width: 768px) {
+  .dua-empty .dua-empty-icon.icon-tile {
+    display: block;
+    width: auto;
+    height: auto;
+    background: none;
+    border-radius: 0;
+    font-size: 40px;
+    line-height: inherit;
+  }
 }
 
 .dua-empty p {
@@ -179,26 +237,35 @@
 }
 
 /* ── Card ── */
-.dua-card {
+.dj-card {
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.dua-card:hover {
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .dj-card:hover {
+    transform: translateY(-2px);
+  }
+}
+/* Kartın özü düymə deyil — içindəki düymə basılanda kart sıxılmasın,
+   toxunma ekranında "yapışan" hover qalxması da olmasın */
+.dj-card.card:active { transform: none; }
+@media (hover: none) {
+  .dj-card.card:hover { transform: none; box-shadow: var(--shadow-sm); }
 }
 
-.dua-card-answered {
+.dj-card-answered {
   border-color: var(--primary-border);
   background: var(--primary-bg);
 }
 
-.dua-card-top {
+.dj-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .dua-category-badge {
@@ -214,6 +281,26 @@
   border: 1px solid var(--border);
 }
 
+.dj-prio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Genişdə prioritet adı yalnız ekran oxuyucusu üçündür (görünən — nöqtə) */
+.dj-prio-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .dua-priority-dot {
   width: 10px;
   height: 10px;
@@ -221,32 +308,34 @@
   flex-shrink: 0;
 }
 
-.dua-card-text {
+.dj-card-text {
   font-size: 15px;
   color: var(--text);
   line-height: 1.7;
   word-break: break-word;
+  white-space: pre-line;
+  text-align: start;
 }
 
-.dua-card-meta {
+.dj-card-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
 }
 
-.dua-card-date {
+.dj-card-date {
   font-size: 12px;
   color: var(--text-muted);
 }
 
-.dua-card-answered-date {
+.dj-card-answered-date {
   font-size: 12px;
   color: var(--success);
   font-weight: 600;
 }
 
-.dua-card-actions {
+.dj-card-actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -259,64 +348,161 @@
 
 .dua-delete-btn {
   color: var(--danger) !important;
-  border-color: rgba(220, 38, 38, 0.2) !important;
+  border-color: color-mix(in srgb, var(--danger) 25%, transparent) !important;
 }
 
 .dua-delete-btn:hover {
-  background: rgba(220, 38, 38, 0.06) !important;
-  border-color: rgba(220, 38, 38, 0.4) !important;
+  background: color-mix(in srgb, var(--danger) 8%, transparent) !important;
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent) !important;
 }
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
-  .dua-stats-row {
-    flex-direction: row;
-    gap: 10px;
-  }
-
-  .dua-stat-card {
-    padding: 14px 16px;
-    min-width: 0;
-    flex: 1;
-  }
-
-  .dua-stat-value {
-    font-size: 22px;
-  }
-
   .dua-form {
     padding: 18px;
   }
 
-  .dua-card {
-    padding: 16px;
-  }
-
-  .dua-card-actions {
-    flex-direction: column;
+  /* İki düymə yan-yana — hər kartda 90px yer tutmasın */
+  .dj-card-actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
   }
 
   .dua-action-btn {
-    width: 100%;
+    flex: 1;
+    min-height: var(--tap);
     justify-content: center;
   }
 }
 
-/* ── Dark mode ── */
-[data-theme="dark"] .dua-card-answered {
-  background: rgba(46, 204, 113, 0.08);
-  border-color: rgba(46, 204, 113, 0.2);
-}
+/* ══ TELEFON (<768) — müasir tətbiq görünüşü ═════════════════════
+   Statistika: üç sütunlu tək kart (nazik ayırıcılarla). Əlavə düyməsi:
+   tam en. Tablar: seqment idarəsi (.m-seg, motion.css). Kartlar: yumşaq
+   kölgə, prioritet adı görünür (toxunma ekranında ipucu yoxdur). */
+@media (max-width: 767.98px) {
+  .dua-journal-layout { gap: var(--space-4); }
 
-[data-theme="dark"] .dua-stat-answered {
-  background: rgba(46, 204, 113, 0.1);
-  border-color: rgba(46, 204, 113, 0.2);
-}
+  .dua-stats-row {
+    gap: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  [data-theme="dark"] .dua-stats-row { border-color: var(--hairline); }
+  .dua-stat-card {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    padding: 16px 6px 14px;
+    gap: 6px;
+  }
+  .dua-stat-card + .dua-stat-card { border-inline-start: 1px solid var(--hairline); }
+  .dua-stat-answered { background: var(--primary-bg); }
+  .dua-stat-value { font-size: 24px; }
+  .dua-stat-label {
+    font-size: 12.5px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
 
-[data-theme="dark"] .dua-delete-btn {
-  border-color: rgba(220, 38, 38, 0.3) !important;
-}
+  .dua-add-btn {
+    align-self: stretch;
+    justify-content: center;
+    min-height: 48px;
+    border-radius: 14px;
+    font-size: 15px;
+  }
 
-[data-theme="dark"] .dua-delete-btn:hover {
-  background: rgba(220, 38, 38, 0.1) !important;
+  .dua-form {
+    padding: 16px;
+    gap: 16px;
+    border-radius: 18px;
+  }
+  .dua-textarea { border-radius: 12px; }
+  .dua-form-label { font-size: 13px; }
+  .dua-form-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .dua-form-actions > button {
+    justify-content: center;
+    min-height: 48px;
+    border-radius: 12px;
+  }
+
+  /* Seqment: sayğac nişanı ilə bir sətirdə */
+  .dua-tab.m-seg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 42px;
+    font-size: 14px;
+  }
+  .dua-tab-count { padding: 1px 7px; font-size: 12px; border-radius: 999px; }
+  .dua-tab:not(.active) .dua-tab-count { background: var(--bg-card); }
+  [data-theme="dark"] .dua-tab:not(.active) .dua-tab-count { background: var(--bg-card2); }
+
+  .dj-list { gap: 12px; }
+
+  .dua-empty { padding: 40px 16px 48px; }
+  .dua-empty-icon.icon-tile {
+    width: 64px;
+    height: 64px;
+    font-size: 30px;
+    margin-bottom: 12px;
+  }
+
+  .dj-card {
+    padding: 16px;
+    gap: 10px;
+    border-radius: 18px;
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  [data-theme="dark"] .dj-card { border-color: var(--hairline); }
+  .dj-card-answered { border-color: var(--primary-border); }
+
+  .dua-category-badge {
+    font-size: 12.5px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    border-color: transparent;
+  }
+
+  /* Prioritet — nöqtə + ad, yumşaq "hap" içində */
+  .dj-prio {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--bg-card2);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+  [data-theme="dark"] .dj-prio { background: var(--surface); }
+  .dj-prio .dua-priority-dot { width: 8px; height: 8px; }
+  .dj-prio-label {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .dj-card-text { font-size: 15.5px; line-height: 1.65; }
+  .dj-card-date,
+  .dj-card-answered-date { font-size: 12.5px; }
+
+  .dj-card-actions {
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
+  }
+  .dua-action-btn {
+    font-size: 14px !important;
+    border-radius: 12px;
+  }
 }

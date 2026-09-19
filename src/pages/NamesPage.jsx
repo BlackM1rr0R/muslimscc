@@ -4,26 +4,42 @@ import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import '../styles/NamesPage.css'
 
-export default function NamesPage({ setPage }) {
+const NOT_FOUND = { az:'Ad tapılmadı', en:'Not found', ru:'Ничего не найдено', ar:'لم يتم العثور على شيء', tr:'Bulunamadı' }
+
+// Ərəb axtarışı hərəkəsiz də işləsin: "رحمن" → "ٱلرَّحۡمَٰنُ"
+const normAr = (s) => String(s || '').replace(/[ً-ٰٟۖ-ۭـ\s]/g, '').replace(/[ٱأإآ]/g, 'ا')
+const HAS_ARABIC = /[؀-ۿ]/
+
+// Kartdakı məna sətri. Ərəbcədə "məna" adın özüdür, NAMES_99-da isə "tr"
+// sahəsi türkcə tərcümə deyil, transliterasiyadır — hər iki halda sətir
+// yuxarıdakını təkrarlayardı, ona görə göstərilmir.
+const meaningOf = (name, lang) => (lang === 'ar' || lang === 'tr') ? '' : (name[lang] || name.en)
+
+export default function NamesPage() {
   const { lang } = useLang()
   const t = T[lang]?.names || T.az.names
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState(null)
 
   const filtered = useMemo(() => {
-    const q = search.toLowerCase()
+    const q = search.trim().toLowerCase()
     if (!q) return NAMES_99
+    if (HAS_ARABIC.test(q)) {
+      const nq = normAr(q)
+      return NAMES_99.filter(n => normAr(n.ar).includes(nq))
+    }
     return NAMES_99.filter(n =>
-      n.ar.includes(q) || n.tr.toLowerCase().includes(q) ||
-      (n[lang]||n.en||'').toLowerCase().includes(q) ||
-      String(n.n).includes(q)
+      n.tr.toLowerCase().includes(q) ||
+      (n[lang] || n.en || '').toLowerCase().includes(q) ||
+      (n.en || '').toLowerCase().includes(q) ||
+      String(n.n) === q
     )
   }, [search, lang])
 
   return (
     <>
-      <div className="page-hero theme-names">
-        <div className="page-hero-arabic">أَسۡمَاءُ ٱللَّهِ ٱلۡحُسۡنَىٰ</div>
+      <div className="page-hero hero-compact theme-names">
+        {/* Ərəbcədə başlıq onsuz da ərəbcədir — təkrar sətir göstərilmir */}
+        {lang !== 'ar' && <div className="page-hero-arabic">أَسۡمَاءُ ٱللَّهِ ٱلۡحُسۡنَىٰ</div>}
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
       </div>
@@ -35,27 +51,37 @@ export default function NamesPage({ setPage }) {
             <span className="names-hadith-ref">— {t.hadithRef}</span>
           </div>
 
-          <div className="input-wrap" style={{ maxWidth:420, marginBottom:24 }}>
-            <span className="input-icon">🔍</span>
-            <input className="input-base input-with-icon" placeholder={t.searchPh}
-              value={search} onChange={e => setSearch(e.target.value)} />
+          <div className="input-wrap names-search">
+            <span className="input-icon" aria-hidden="true">🔍</span>
+            <input
+              type="search"
+              className="input-base input-with-icon"
+              placeholder={t.searchPh}
+              aria-label={t.searchPh}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </div>
 
-          <div className="names-grid">
-            {filtered.map(name => (
-              <div key={name.n}
-                className={`name-card ${selected===name.n?'active':''}`}
-                onClick={() => setSelected(selected===name.n?null:name.n)}>
-                <div className="name-num">{name.n}</div>
-                <div className="name-arabic">{name.ar}</div>
-                <div className="name-translit">{name.tr}</div>
-                <div className="name-meaning">{name[lang] || name.en}</div>
-              </div>
-            ))}
-          </div>
+          {/* Hər kart ekrana girəndə yumşaq qalxır; ilk 8-i növbə ilə,
+              sonrakılar cüt sütunda 40ms fərqlə (sətir "dalğası") */}
+          <ol className="names-grid">
+            {filtered.map((name, i) => {
+              const meaning = meaningOf(name, lang)
+              return (
+                <li key={name.n} className="name-card"
+                  data-reveal="" data-reveal-delay={i < 8 ? i * 40 : (i % 2) * 40}>
+                  <div className="name-num">{name.n}</div>
+                  <div className="name-arabic" lang="ar">{name.ar}</div>
+                  <div className="name-translit" dir="ltr">{name.tr}</div>
+                  {meaning && <div className="name-meaning">{meaning}</div>}
+                </li>
+              )
+            })}
+          </ol>
 
           {filtered.length === 0 && (
-            <div className="empty-state"><span>⭐</span><p>{lang==='az'?'Ad tapılmadı':lang==='ru'?'Ничего не найдено':lang==='ar'?'لم يتم العثور على شيء':lang==='tr'?'Bulunamadı':'Not found'}</p></div>
+            <div className="empty-state"><span aria-hidden="true">⭐</span><p>{NOT_FOUND[lang] || NOT_FOUND.en}</p></div>
           )}
         </div>
       </div>

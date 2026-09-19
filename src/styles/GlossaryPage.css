@@ -7,6 +7,12 @@
   display:flex; align-items:center; gap:16px;
   margin-bottom:20px; flex-wrap:wrap;
 }
+/* Axtarış sahəsi böyüsün (əvvəl 248px-ə qədər sıxılırdı) — Hədis və
+   Səhabələrdəki kimi 560px-ə qədər */
+.glossary-search-wrap .input-wrap {
+  flex: 1 1 320px;
+  max-width: 560px;
+}
 .glossary-count {
   font-size:13px; color:var(--text-muted); font-weight:500;
 }
@@ -29,7 +35,7 @@
   background:var(--primary-bg);
 }
 .glossary-alpha-btn.active {
-  background:var(--primary); color:#fff;
+  background:var(--primary); color:var(--on-primary);
   border-color:var(--primary);
 }
 
@@ -94,18 +100,30 @@
   .glossary-grid {
     grid-template-columns:1fr;
   }
-  .glossary-alpha-btn {
-    padding:4px 6px; min-width:26px; font-size:11px;
-  }
   .glossary-search-wrap {
     flex-direction:column; align-items:stretch;
   }
+  .glossary-search-wrap .input-wrap { flex-basis:auto; max-width:none; }
   .glossary-count { text-align:center; }
-}
 
-@media(max-width:400px) {
-  .glossary-alpha-bar { gap:3px; }
-  .glossary-alpha-btn { padding:3px 5px; min-width:22px; font-size:10px; }
+  /* Hərf zolağı: 22px-lik iki sətir düymə əvəzinə bir sürüşən sətir,
+     barmaqla rahat basılan 40px düymələr */
+  .glossary-alpha-bar {
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    gap:6px;
+    margin-inline:calc(-1 * var(--page-gutter));
+    padding:10px var(--page-gutter);
+    scroll-padding-inline:var(--page-gutter);
+    scrollbar-width:none;
+  }
+  .glossary-alpha-bar::-webkit-scrollbar { display:none; }
+  .glossary-alpha-btn {
+    flex:0 0 auto;
+    min-width:40px; min-height:40px;
+    font-size:13px; padding:6px 10px;
+    white-space:nowrap;
+  }
 }
 
 /* ── Dark mode ── */
@@ -130,4 +148,129 @@
 }
 [data-theme="dark"] .glossary-alpha-btn.active {
   background:var(--primary); border-color:var(--primary);
+}
+
+/* ══════════════════════════════════════════════════════
+   TELEFON / KİÇİK PLANŞET (<768px) — müasir tətbiq görünüşü
+   • Axtarış: 48px, yumşaq kölgə; sayğac rəqəmləri titrəmir
+   • Hərf zolağı: 44px dairəvi hərflər, bir sürüşən sətir; başlığın
+     altında YAPIŞIR (şüşə fon), başlıq gizlənəndə yumşaq yuxarı qalxır
+   • Kart: başlıq üfüqi (termin solda, ərəbcə sağda) — hər kart ~60px
+     yığcam; yumşaq kölgə, sürüşdükcə görünür (JSX: data-reveal)
+   Kompüter (≥1024px) görünüşü dəyişmir.
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  .glossary-search-wrap {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .glossary-search-wrap .input-wrap { flex-basis: auto; max-width: none; }
+  .glossary-search-wrap .input-base {
+    height: 48px;
+    padding-block: 0;
+    border: 1px solid var(--border-md);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .glossary-search-wrap .input-base:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-bg2);
+  }
+  .glossary-count {
+    text-align: center;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Yapışqan hərf zolağı — ekranın bir kənarından o birinə */
+  .glossary-alpha-bar {
+    position: sticky;
+    /* Başlıq gizlənəndə 0 — amma PWA-da (viewport-fit=cover) telefonun
+       status zolağının altına girməsin */
+    top: max(var(--header-offset, var(--header-h)), env(safe-area-inset-top, 0px));
+    z-index: 20;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin: 0 calc(-1 * var(--page-gutter)) 16px;
+    padding: 8px var(--page-gutter);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--page-gutter);
+    scrollbar-width: none;
+    border-bottom: 0;
+    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: 0 1px 0 var(--hairline);
+    transition: top var(--dur-3) var(--ease-out);
+  }
+  .glossary-alpha-bar::-webkit-scrollbar { display: none; }
+  .glossary-alpha-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--border-md);
+    border-radius: 999px;
+    font-size: 14.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    scroll-snap-align: start;
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out),
+      transform var(--dur-1) var(--ease-out);
+  }
+  /* Barmaqla basılandan sonra "ilişən" hover rəngi olmasın */
+  .glossary-alpha-btn:not(.active):hover {
+    border-color: var(--border-md);
+    background: var(--bg-card);
+    color: var(--text-dim);
+  }
+  .glossary-alpha-btn:active { transform: scale(0.92); }
+
+  /* Kartlar */
+  .glossary-grid { gap: 12px; }
+  .glossary-card {
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    transition: none;
+  }
+  .glossary-card:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--border); }
+  [data-theme="dark"] .glossary-card:hover { border-color: var(--border); }
+  .glossary-card-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    align-items: center;
+    padding: 12px 16px;
+    text-align: start;
+  }
+  .glossary-arabic-text {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1.4;
+  }
+  .glossary-term-name { grid-column: 1; grid-row: 1; margin: 0; font-size: 16.5px; line-height: 1.3; }
+  .glossary-translit { grid-column: 1; grid-row: 2; font-size: 13px; }
+  .glossary-card-body { padding: 12px 16px 16px; }
+  .glossary-definition { font-size: 14.5px; line-height: 1.65; }
+
+  .glossary-empty { padding: 48px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glossary-alpha-bar { transition: none; }
 }

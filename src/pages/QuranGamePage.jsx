@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/QuranGamePage.css'
+import Breadcrumb from '../components/Breadcrumb'
 
 // ── i18n Labels ──
 const LABELS = {
@@ -893,6 +895,27 @@ function shuffle(arr) {
   return a
 }
 
+// Suallarda düzgün cavab həmişə birinci variantdır (correct: 0) — hər
+// raundda variantların yerini qarışdırırıq, correct yeni yerə köçür.
+function shuffleOptions(q) {
+  const order = shuffle(q.options.map((_, i) => i))
+  return { ...q, options: order.map(i => q.options[i]), correct: order.indexOf(q.correct) }
+}
+
+// Elementi görünüşə gətirir. Telefonda oyun başlayanda variantlar aşağı
+// panelin altında qalırdı, cavabdan sonra "Növbəti" düyməsi ekrandan kənarda
+// idi. Hərəkəti azaltmaq seçilibsə — animasiyasız.
+function reveal(selector, block) {
+  if (typeof window === 'undefined') return
+  requestAnimationFrame(() => {
+    const el = document.querySelector(selector)
+    if (!el) return
+    let smooth = true
+    try { smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch {}
+    el.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block })
+  })
+}
+
 export default function QuranGamePage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
@@ -926,17 +949,24 @@ export default function QuranGamePage({ setPage }) {
   const startGame = useCallback((m) => {
     setMode(m)
     const pool = m === 'complete' ? COMPLETE_QUESTIONS : FIND_SURAH_QUESTIONS
-    setQuestions(shuffle(pool).slice(0, QUESTIONS_PER_ROUND))
+    setQuestions(shuffle(pool).slice(0, QUESTIONS_PER_ROUND).map(shuffleOptions))
     setQIdx(0)
     setSelected(null)
     setCorrectCount(0)
     setAnswered(false)
     setTimeLeft(TIME_PER_Q)
     setPhase('playing')
+    reveal('.qgame-layout', 'start')
   }, [])
+
+  // Cavab veriləndə (və ya vaxt bitəndə) nəticə və "Növbəti" görünsün
+  useEffect(() => {
+    if (phase === 'playing' && answered) reveal('.qgame-answer-info', 'nearest')
+  }, [phase, answered])
 
   const handleAnswer = useCallback((idx) => {
     if (answered) return
+    haptic()
     clearInterval(timerRef.current)
     setSelected(idx)
     setAnswered(true)
@@ -958,11 +988,13 @@ export default function QuranGamePage({ setPage }) {
         saveScores(newScores)
       }
       setPhase('result')
+      reveal('.qgame-layout', 'start')
     } else {
       setQIdx(i => i + 1)
       setSelected(null)
       setAnswered(false)
       setTimeLeft(TIME_PER_Q)
+      reveal('.qgame-layout', 'start')
     }
   }, [qIdx, questions, correctCount, mode, scores])
 
@@ -976,13 +1008,11 @@ export default function QuranGamePage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero theme-qurangame">
-        <div className="breadcrumb">
-          <button onClick={() => setPage('home')}>Muslims.cc</button>
-          <span>/</span>
-          <span>{t.title}</span>
-        </div>
-        <div className="page-hero-arabic">مسابقة القرآن</div>
+      {/* hero-compact: telefonda yığcam hero, çörək qırıntısı gizlənir (motion.css) */}
+      <div className="page-hero theme-qurangame hero-compact">
+        <Breadcrumb setPage={setPage} current={t.title} />
+        {/* Ərəbcədə başlığın özü "مسابقة القرآن"-dir — ikinci dəfə yazmırıq */}
+        {lang !== 'ar' && <div className="page-hero-arabic" lang="ar">مسابقة القرآن</div>}
         <h1>{t.title}</h1>
         <p>{t.subtitle}</p>
       </div>
@@ -995,13 +1025,13 @@ export default function QuranGamePage({ setPage }) {
             <div className="qgame-menu anim-fadeUp">
               <h2 className="qgame-menu-title">{t.selectMode}</h2>
               <div className="qgame-modes">
-                <button className="qgame-mode-card" onClick={() => startGame('complete')}>
-                  <span className="qgame-mode-icon">✍️</span>
+                <button type="button" className="qgame-mode-card press" onClick={() => startGame('complete')}>
+                  <span className="qgame-mode-icon" aria-hidden="true">✍️</span>
                   <span className="qgame-mode-name">{t.modeComplete}</span>
                   <span className="qgame-mode-best">{t.bestScore}: {scores.complete}/{QUESTIONS_PER_ROUND}</span>
                 </button>
-                <button className="qgame-mode-card" onClick={() => startGame('surah')}>
-                  <span className="qgame-mode-icon">📖</span>
+                <button type="button" className="qgame-mode-card press" onClick={() => startGame('surah')}>
+                  <span className="qgame-mode-icon" aria-hidden="true">📖</span>
                   <span className="qgame-mode-name">{t.modeSurah}</span>
                   <span className="qgame-mode-best">{t.bestScore}: {scores.surah}/{QUESTIONS_PER_ROUND}</span>
                 </button>
@@ -1012,17 +1042,20 @@ export default function QuranGamePage({ setPage }) {
           {/* ── Playing ── */}
           {phase === 'playing' && q && (
             <div className="qgame-play anim-fadeUp">
-              {/* Progress & Timer */}
-              <div className="qgame-top-bar">
-                <button className="btn-ghost" onClick={backToMenu}>{t.back}</button>
-                <span className="qgame-q-count">{t.question} {qIdx + 1}{t.of}{questions.length}</span>
-                <span className={`qgame-timer ${timeLeft <= 5 ? 'danger' : ''}`}>
-                  {timeLeft}s
-                </span>
-              </div>
+              {/* Progress & Timer — telefonda başlığın altına yapışan şüşə panel
+                  (sual sayı, vaxt və irəliləyiş sürüşəndə də görünür) */}
+              <div className="qgame-hud">
+                <div className="qgame-top-bar">
+                  <button type="button" className="btn-ghost" onClick={backToMenu}>{t.back}</button>
+                  <span className="qgame-q-count">{t.question} {qIdx + 1}{t.of}{questions.length}</span>
+                  <span className={`qgame-timer ${timeLeft <= 5 ? 'danger' : ''}`}>
+                    {timeLeft}s
+                  </span>
+                </div>
 
-              <div className="qgame-progress-bar">
-                <div className="qgame-progress-fill" style={{ width: `${((qIdx) / questions.length) * 100}%` }} />
+                <div className="qgame-progress-bar">
+                  <div className="qgame-progress-fill" style={{ width: `${((qIdx) / questions.length) * 100}%` }} />
+                </div>
               </div>
 
               {/* Question */}
@@ -1040,8 +1073,8 @@ export default function QuranGamePage({ setPage }) {
                 )}
               </div>
 
-              {/* Options */}
-              <div className="qgame-options">
+              {/* Options — key: hər sualda variantlar yenidən növbə ilə görünür */}
+              <div className="qgame-options" key={`opts-${qIdx}`}>
                 {q.options.map((opt, i) => {
                   const isCorrect = i === q.correct
                   const isSelected = i === selected
@@ -1053,7 +1086,7 @@ export default function QuranGamePage({ setPage }) {
                   }
                   const label = typeof opt === 'string' ? opt : (opt[lang] || opt.en)
                   return (
-                    <button key={i} className={cls} onClick={() => handleAnswer(i)} disabled={answered}>
+                    <button type="button" key={i} className={`${cls} press`} onClick={() => handleAnswer(i)} disabled={answered}>
                       <span className="qgame-option-letter">{String.fromCharCode(65 + i)}</span>
                       <span className={`qgame-option-text ${mode === 'complete' ? 'arabic-text' : ''}`}>{label}</span>
                     </button>
@@ -1077,7 +1110,7 @@ export default function QuranGamePage({ setPage }) {
                   {mode === 'complete' && q.surah && (
                     <p className="qgame-surah-ref">{t.fromSurah} {q.surah[lang] || q.surah.en}</p>
                   )}
-                  <button className="btn-primary qgame-next-btn" onClick={nextQuestion}>
+                  <button type="button" className="btn-primary qgame-next-btn" onClick={nextQuestion}>
                     {qIdx + 1 >= questions.length ? t.finish : t.next}
                   </button>
                 </div>
@@ -1090,7 +1123,7 @@ export default function QuranGamePage({ setPage }) {
             <div className="qgame-results anim-fadeUp">
               <div className="qgame-results-card">
                 {isNewBest && <div className="qgame-new-best anim-scaleIn">{t.newBest}</div>}
-                <div className="qgame-results-icon">{correctCount >= 7 ? '🏆' : correctCount >= 4 ? '👍' : '💪'}</div>
+                <div className="qgame-results-icon" aria-hidden="true">{correctCount >= 7 ? '🏆' : correctCount >= 4 ? '👍' : '💪'}</div>
                 <h2>{t.result}</h2>
                 <div className="qgame-results-score">
                   <span className="qgame-results-num">{correctCount}</span>
@@ -1101,8 +1134,8 @@ export default function QuranGamePage({ setPage }) {
                   <span className="qgame-detail wrong">{t.wrong}: {questions.length - correctCount}</span>
                 </div>
                 <div className="qgame-results-actions">
-                  <button className="btn-primary" onClick={() => startGame(mode)}>{t.playAgain}</button>
-                  <button className="btn-secondary" onClick={backToMenu}>{t.back}</button>
+                  <button type="button" className="btn-primary" onClick={() => startGame(mode)}>{t.playAgain}</button>
+                  <button type="button" className="btn-secondary" onClick={backToMenu}>{t.back}</button>
                 </div>
               </div>
             </div>

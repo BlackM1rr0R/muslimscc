@@ -2,7 +2,9 @@
    SahabePage — Companions of the Prophet ﷺ
    ══════════════════════════════════════════════════════ */
 
-.sahabe-page { min-height: 100vh; padding-bottom: 80px; }
+/* Alt boşluğu .section verir (80 → 36px) — əlavə 80px footer-dən əvvəl
+   boş zolaq yaradırdı */
+.sahabe-page { min-height: 100vh; padding-bottom: 0; }
 
 /* ── Search Bar ── */
 .sahabe-search-wrap {
@@ -11,11 +13,12 @@
   position: relative;
 }
 .sahabe-search-icon {
-  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  /* Məntiqi xassə — ərəbcədə ikon sağda, mətnin başlanğıcında olur */
+  position: absolute; inset-inline-start: 16px; top: 50%; transform: translateY(-50%);
   color: var(--text-muted); font-size: 16px; pointer-events: none;
 }
 .sahabe-search {
-  width: 100%; padding: 13px 16px 13px 44px;
+  width: 100%; padding: 13px 16px; padding-inline-start: 44px;
   background: var(--bg-card); border: 1.5px solid var(--border-md);
   border-radius: var(--radius); font-family: var(--font);
   font-size: 14.5px; color: var(--text); outline: none;
@@ -37,10 +40,24 @@
   gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
+  /* Yan boşluğu .section verir — ikinci gutter kartları axtarış
+     sahəsindən və başlığın kənarından içəri itələyirdi */
+  padding: 0;
 }
 
 .sahabe-card {
+  /* <button> — brauzerin düymə üslubunu sıfırla. Düymə məzmunu
+     şaquli ortalayır — sütun flex ilə məzmun yuxarıdan başlasın
+     (sırada hündür qonşu kart olanda ikonlar bir xətdə qalsın) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  -webkit-appearance: none;
+  appearance: none;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -66,9 +83,14 @@
   border-color: var(--primary-border);
 }
 .sahabe-card:hover::before { opacity: 1; }
+.sahabe-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.sahabe-card:focus-visible::before { opacity: 1; }
 
 .sahabe-card-number {
-  position: absolute; top: 12px; right: 14px;
+  position: absolute; top: 12px; inset-inline-end: 14px;
   font-size: 12px; font-weight: 700;
   color: var(--text-muted); background: var(--surface);
   width: 28px; height: 28px; border-radius: 50%;
@@ -86,6 +108,7 @@
 }
 
 .sahabe-card-arabic {
+  display: block;
   font-family: var(--font-arabic);
   font-size: 20px;
   color: var(--primary);
@@ -95,6 +118,7 @@
 }
 
 .sahabe-card-name {
+  display: block;
   font-size: 15px; font-weight: 700;
   color: var(--text);
   margin-bottom: 4px;
@@ -121,7 +145,7 @@
 .sahabe-profile {
   max-width: 800px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0;
   animation: fadeUp 0.4s ease both;
 }
 
@@ -245,7 +269,8 @@
   flex-shrink: 0;
   width: 24px; height: 24px;
   background: var(--primary);
-  color: #fff;
+  /* işıqlıda ağ, tünddə parlaq yaşılın üstündə tünd rəqəm */
+  color: var(--on-primary);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700;
@@ -315,10 +340,8 @@
   .sahabe-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 14px;
-    padding: 0 16px;
   }
   .sahabe-card { padding: 22px 18px; }
-  .sahabe-profile { padding: 0 16px; }
   .sahabe-profile-header { padding: 28px 20px; }
   .sahabe-section { padding: 20px; }
   .sahabe-hadith-item { padding: 16px; }
@@ -333,8 +356,136 @@
     padding: 18px 12px;
   }
   .sahabe-card-arabic { font-size: 17px; }
-  .sahabe-card-name { font-size: 13px; }
+  .sahabe-card-name { font-size: 14px; }
+  .sahabe-card-title { font-size: 12.5px; padding: 3px 10px; }
   .sahabe-card-icon { width: 44px; height: 44px; font-size: 20px; }
+}
+
+/* Telefon siyahısı (JSX: ul.m-list.sahabe-mlist) — kompüterdə gizli,
+   orada kart şəbəkəsi göstərilir */
+.sahabe-mlist { display: none; }
+
+/* ══════════════════════════════════════════════════════
+   TELEFON / KİÇİK PLANŞET (<768px) — müasir tətbiq görünüşü
+   Siyahı: kart şəbəkəsi əvəzinə qruplaşdırılmış xanalar (motion.css →
+   .m-list / .m-row / .icon-tile): ikon, ad, vəzifə, ərəbcə ad, keçid oxu.
+   Profil: hero adı onsuz da göstərir — təkrarlanan başlıq kartı gizlənir;
+   bölmələr yumşaq kölgəli kartlardır və sürüşdükcə görünür (data-reveal).
+   Kompüter (≥1024px) görünüşü dəyişmir.
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  /* Axtarış: 48px, yumşaq kölgə */
+  .sahabe-search-wrap { max-width: none; margin-bottom: 16px; }
+  .sahabe-search {
+    height: 48px;
+    padding-block: 0;
+    border: 1px solid var(--border-md);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .sahabe-search:focus { box-shadow: 0 0 0 3px var(--primary-bg2); }
+
+  .sahabe-grid { display: none; }
+  .sahabe-mlist { display: flex; }
+
+  .sahabe-row { min-height: 64px; padding-block: 10px; }
+  .sahabe-row-tile { font-size: 19px; }
+  .sahabe-row .m-row-sub { margin-top: 1px; }
+  /* Ərəbcə ad — xananın sonunda, Amiri ilə, sakit yaşıl */
+  .sahabe-row-ar {
+    max-width: 7.5em;
+    font-family: var(--font-arabic);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--primary);
+    text-align: end;
+    opacity: 0.9;
+  }
+
+  .sahabe-no-results { padding: 48px 16px; }
+
+  /* ── Profil ── */
+  .sahabe-profile { animation: qm-reveal-up var(--dur-3) var(--ease-out) both; }
+  .sahabe-back-btn {
+    min-height: 40px;
+    padding: 0 16px 0 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+    font-size: 14px;
+  }
+  [dir="rtl"] .sahabe-back-btn { padding: 0 12px 0 16px; }
+  /* Hero ad, ərəbcə ad və vəzifəni artıq göstərir */
+  .sahabe-profile-header { display: none; }
+
+  .sahabe-section {
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 18px;
+  }
+  .sahabe-section-title {
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 0;
+    border-bottom: 0;
+    font-size: 15.5px;
+  }
+  /* Bölmə ikonu — yumşaq rəngli kafel */
+  .sahabe-section-title span {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--primary-bg2);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .sahabe-bio { font-size: 15px; line-height: 1.75; }
+
+  /* Faktlar — qutular əvəzinə nazik xətlə ayrılan xanalar */
+  .sahabe-facts-list { gap: 0; }
+  .sahabe-fact-item {
+    gap: 12px;
+    padding: 12px 0;
+    background: none;
+    border-radius: 0;
+    font-size: 14.5px;
+  }
+  .sahabe-fact-item + .sahabe-fact-item { border-top: 1px solid var(--hairline); }
+  .sahabe-fact-item:first-child { padding-top: 2px; }
+  .sahabe-fact-item:last-child { padding-bottom: 0; }
+  .sahabe-fact-bullet {
+    width: 26px;
+    height: 26px;
+    margin-top: 0;
+    background: var(--primary-bg2);
+    color: var(--primary-dark);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Hədislər — yumşaq fonlu bloklar, başlanğıc kənarında vurğu xətti */
+  .sahabe-hadiths-list { gap: 12px; }
+  .sahabe-hadith-item,
+  [dir="rtl"] .sahabe-hadith-item {
+    padding: 14px;
+    border: 0;
+    border-inline-start: 3px solid var(--primary-border);
+    border-radius: 14px;
+  }
+  .sahabe-hadith-item:hover { box-shadow: none; }
+  .sahabe-hadith-arabic { font-size: 18px; line-height: 2; margin-bottom: 10px; padding-bottom: 10px; }
+  .sahabe-hadith-translation { font-size: 14.5px; }
+  .sahabe-hadith-number { font-variant-numeric: tabular-nums; margin-bottom: 6px; }
+  .sahabe-hadith-source { font-size: 12.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sahabe-profile { animation: none; }
 }
 
 /* ── Dark mode ── */

@@ -1,5 +1,9 @@
 /* ══════════════════════════════════════════════════════
    CharityPage — Charity / Good Deeds Daily Tracker
+   Genişdə (≥768px) görünüş əvvəlki kimidir; telefonda (<768px)
+   müasir tətbiq görünüşü — aşağıdakı "TELEFON" bölməsinə baxın.
+   Ümumi hərəkət/siyahı üslubları motion.css-dən gəlir
+   (.m-list, .m-row, .icon-tile, .chip-scroll, .press).
    ══════════════════════════════════════════════════════ */
 
 .ch-container {
@@ -123,7 +127,7 @@
 
 .ch-type-btn.active {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border-color: var(--primary);
 }
 
@@ -151,9 +155,9 @@
   margin-bottom: 10px;
 }
 
-/* ── Entries List ── */
+/* ── Entries List ── (alt boşluq .section-dan gəlir) */
 .ch-entries {
-  margin-bottom: 40px;
+  margin-bottom: 0;
 }
 
 .ch-entries-title {
@@ -171,23 +175,6 @@
   background: var(--bg-card);
   border: 1.5px dashed var(--border-md);
   border-radius: var(--radius-lg);
-}
-
-.ch-entry-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px 18px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 10px;
-  transition: all 0.2s;
-}
-
-.ch-entry-card:hover {
-  border-color: var(--primary-border);
-  box-shadow: var(--shadow-sm);
 }
 
 .ch-entry-icon {
@@ -241,14 +228,23 @@
   border: 1px solid var(--primary-border);
 }
 
+/* Silmə düyməsi: 44×44 toxunma sahəsi; mənfi kənar boşluq kartın
+   görünüşünü dəyişmir (× əvvəlki yerində qalır) */
 .ch-entry-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  margin-block: -10px;
+  margin-inline-end: -10px;
+  padding: 0;
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 22px;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   transition: all 0.2s;
   flex-shrink: 0;
   line-height: 1;
@@ -259,157 +255,309 @@
   background: rgba(220, 38, 38, 0.08);
 }
 
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .ch-container {
-    padding: 0 4px;
+/* ══ GENİŞ EKRAN (≥768px) — əvvəlki görünüş olduğu kimi ══════════
+   Qeydlər siyahısı indi .m-list/.m-row-dur (telefon üçün); genişdə
+   onlar yenə ayrı-ayrı kartlar kimi görünür, ikon kafeli sadə emojidir. */
+@media (min-width: 768px) {
+  .ch-entry-list.m-list {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .ch-entry-list > li + li { margin-top: 10px; }
+  .ch-entry-list > li + li > .m-row::before { content: none; }
+
+  .ch-entry-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    min-height: 0;
+    padding: 16px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: inherit;
+    line-height: inherit;
+    -webkit-user-select: auto;
+    user-select: auto;
+    transition: all 0.2s;
   }
 
+  .ch-entry-card:hover {
+    border-color: var(--primary-border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* İkon kafeli yalnız telefonda — burada əvvəlki kimi sadə emoji */
+  .ch-entry-icon.icon-tile,
+  .ch-stat-icon.icon-tile {
+    display: block;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: none;
+  }
+
+  .ch-empty-icon { display: none; }
+
+  /* .chip-scroll-un şaquli daxili boşluğu genişdə lazım deyil */
+  .ch-filter .tag-filters.chip-scroll { padding-block: 0; }
+}
+
+/* ══ TELEFON (<768px) — müasir tətbiq görünüşü ═════════════════
+   • Statistika: nazik xətlərlə bölünmüş tək kart, rəngli ikon kafelləri
+   • Forma: yumşaq kölgəli kart, 16px yazı (iOS yaxınlaşdırmasın), 48px sahələr
+   • Növ seçimi: tonlu kafellər, seçiləndə yumşaq "pop"
+   • Süzgəc: bir sətirdə üfüqi sürüşən çiplər (.chip-scroll)
+   • Qeydlər: qruplaşdırılmış siyahı xanaları (.m-list/.m-row) */
+@media (max-width: 767.98px) {
+  /* ── Statistika ── */
   .ch-stats {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 24px;
+    gap: 0;
+    margin-bottom: var(--space-4);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
 
   .ch-stat-card {
-    padding: 16px 8px;
-    gap: 4px;
+    min-width: 0;
+    padding: 14px 6px 12px;
+    gap: 6px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .ch-stat-card + .ch-stat-card { border-inline-start: 1px solid var(--hairline); }
+
+  .ch-stat-icon { font-size: 20px; }
+
+  .ch-stat-value {
+    font-size: 21px;
+    font-variant-numeric: tabular-nums;
   }
 
-  .ch-stat-icon { font-size: 1.4rem; }
-  .ch-stat-value { font-size: 22px; }
-  .ch-stat-label { font-size: 10px; letter-spacing: 0.3px; }
+  .ch-stat-label {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0;
+    text-transform: none;
+  }
 
+  /* ── Forma ── */
   .ch-form-card {
-    padding: 20px 16px;
+    padding: 18px 16px 16px;
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-5);
   }
 
   .ch-form-title { font-size: 18px; margin-bottom: 14px; }
+  .ch-form { gap: 14px; }
 
-  .ch-form-row {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  .ch-label {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+  [dir="rtl"] .ch-label,
+  [dir="rtl"] .ch-filter-label { letter-spacing: 0; font-size: 13px; }
+
+  .ch-form .input-base {
+    min-height: 48px;
+    font-size: 16px;
+    border-radius: 12px;
   }
 
-  .ch-type-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-  }
+  .ch-form-row { grid-template-columns: 1fr; gap: 14px; }
+
+  /* Növ seçimi — tonlu kafellər */
+  .ch-type-grid { gap: 8px; }
 
   .ch-type-btn {
-    padding: 10px 4px;
-    font-size: 11px;
-    gap: 3px;
+    justify-content: center;
+    min-height: 66px;
+    padding: 10px 2px;
+    gap: 5px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.2;
+    color: var(--text-dim);
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out),
+      box-shadow var(--dur-2) var(--ease-out),
+      transform var(--dur-1) var(--ease-out);
   }
+  .ch-type-btn span:first-child { font-size: 22px; line-height: 1; }
 
-  .ch-type-btn span:first-child { font-size: 1.1rem; }
+  .ch-type-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+    box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--primary) 60%, transparent);
+  }
+  .ch-type-btn.active span:first-child {
+    animation: ch-pop var(--dur-3) var(--ease-spring);
+  }
 
   .ch-add-btn {
     align-self: stretch;
-    text-align: center;
+    justify-content: center;
+    min-height: 48px;
+    margin-top: 2px;
+    border-radius: 12px;
+    font-size: 15px;
   }
 
-  .ch-filter { margin-bottom: 18px; }
-
-  .ch-filter .tag-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+  /* ── Süzgəc çipləri ── */
+  .ch-filter { margin-bottom: var(--space-4); }
+  .ch-filter-label {
+    margin-bottom: 8px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
   }
-
+  /* globals.css-dəki .tag-filters sarınır — telefonda bir sətir qalsın */
+  .ch-filter .tag-filters { margin-bottom: 0; flex-wrap: nowrap; }
   .ch-filter .tag-btn {
-    font-size: 12px;
-    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ── Qeydlər ── */
+  .ch-entries-title {
+    font-size: 17px;
+    margin-bottom: 10px;
+    padding-inline: 4px;
   }
 
   .ch-entry-card {
-    padding: 12px;
-    gap: 10px;
+    gap: 12px;
+    padding-block: 10px;
+    padding-inline: 14px 4px;
   }
 
-  .ch-entry-icon { font-size: 1.3rem; }
-  .ch-entry-type { font-size: 13px; }
-  .ch-entry-date { font-size: 11px; }
-  .ch-entry-desc { font-size: 12px; }
-  .ch-entry-amount { font-size: 12px; padding: 2px 8px; }
-}
+  .ch-entry-icon { margin-top: 0; }
 
-@media (max-width: 480px) {
-  .ch-stats {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+  /* Ad + tarix solda, məbləğ sağda, təsvir altda (tam en) */
+  .ch-entry-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 1px;
+  }
+  .ch-entry-top { display: contents; }
+
+  .ch-entry-type {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
   }
 
-  .ch-stat-card {
-    padding: 14px 6px;
+  .ch-entry-date {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.35;
   }
 
-  .ch-stat-icon { font-size: 1.2rem; }
-  .ch-stat-value { font-size: 18px; }
-  .ch-stat-label { font-size: 9px; }
-
-  .ch-form-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
+  .ch-entry-desc {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin: 2px 0 0;
+    font-size: 13.5px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
   }
 
-  .ch-type-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
+  .ch-entry-amount {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    justify-self: end;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    unicode-bidi: isolate;
   }
 
-  .ch-type-btn {
-    padding: 8px 2px;
-    font-size: 10px;
-    border-radius: 8px;
+  .ch-entry-delete {
+    margin: 0;
+    border-radius: 50%;
+    font-size: 24px;
+    color: var(--text-muted);
+    transition:
+      background-color var(--dur-1) var(--ease-out),
+      color var(--dur-1) var(--ease-out),
+      transform var(--dur-1) var(--ease-out);
+  }
+  .ch-entry-delete:active {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
   }
 
-  .ch-type-btn span:first-child { font-size: 1rem; }
-
-  .ch-form-card { padding: 16px 12px; }
-
-  .ch-entry-card {
-    padding: 10px;
-    gap: 8px;
-    border-radius: 10px;
-  }
-
-  .ch-entry-icon { font-size: 1.1rem; margin-top: 1px; }
-
-  .ch-entry-top {
+  /* ── Boş vəziyyət ── */
+  .ch-empty {
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
+    align-items: center;
+    gap: 12px;
+    padding: 32px 20px;
+    border: 1px solid var(--border);
+    font-size: 14.5px;
+    line-height: 1.5;
   }
-
-  .ch-entries-title { font-size: 16px; }
 }
 
+/* Çox dar ekran — növ kafellərində uzun sözlər ("Gülümseme") bölünməsin */
 @media (max-width: 360px) {
+  .ch-type-btn {
+    padding-inline: 1px;
+    font-size: 12px;
+    letter-spacing: -0.1px;
+  }
+  .ch-stat-value { font-size: 18px; }
+  .ch-stat-label { font-size: 12px; }
+}
+
+/* 2 sütuna yalnız çox dar ekranlarda keç (2 sütunda 8 düymə formu uzadır) */
+@media (max-width: 340px) {
   .ch-type-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
 
-  .ch-stat-card {
-    padding: 12px 4px;
-  }
+@keyframes ch-pop {
+  0%   { transform: scale(0.86); }
+  60%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
 
-  .ch-stat-value { font-size: 16px; }
+@media (prefers-reduced-motion: reduce) {
+  .ch-type-btn.active span:first-child { animation: none; }
 }
 
 /* ── Dark mode overrides ── */
-[data-theme="dark"] .ch-stat-card {
-  background: var(--bg-card);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .ch-form-card {
-  background: var(--bg-card);
-  border-color: var(--border);
-}
-
 [data-theme="dark"] .ch-type-btn {
   background: var(--surface);
   border-color: var(--border);
@@ -421,23 +569,19 @@
 
 [data-theme="dark"] .ch-type-btn.active {
   background: var(--primary);
-  color: #0f0f1a;
-}
-
-[data-theme="dark"] .ch-entry-card {
-  background: var(--bg-card);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .ch-entry-card:hover {
-  border-color: var(--primary-border);
+  color: var(--on-primary);
+  border-color: var(--primary);
 }
 
 [data-theme="dark"] .ch-empty {
-  background: var(--bg-card);
   border-color: var(--border);
 }
 
 [data-theme="dark"] .ch-entry-delete:hover {
   background: rgba(220, 38, 38, 0.15);
+}
+
+@media (max-width: 767.98px) {
+  /* Telefonda tünd rejimdə də kafellər arasında sərhəd görünməsin */
+  [data-theme="dark"] .ch-type-btn:not(.active) { border-color: transparent; }
 }

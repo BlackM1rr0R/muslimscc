@@ -34,11 +34,19 @@
   transition: all 0.25s;
 }
 
-.hg-select-btn:hover {
-  border-color: var(--primary);
-  box-shadow: var(--shadow);
-  transform: translateY(-3px);
-  background: var(--primary-bg);
+/* Qalxma yalnız siçanlı cihazlarda — toxunuşda basılma rəyi (.press) var */
+@media (hover: hover) {
+  .hg-select-btn:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow);
+    transform: translateY(-3px);
+    background: var(--primary-bg);
+  }
+}
+
+/* Görünüş dəyişəndə (seçim ↔ bələdçi) yumşaq qalxma — yalnız transform/opacity */
+.hg-view-in {
+  animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
 }
 
 .hg-select-icon {
@@ -71,16 +79,52 @@
 /* ── Back Button ── */
 .hg-back-btn {
   margin-bottom: 20px;
+  min-height: var(--tap);
 }
 
-/* ── Step Card ── */
+/* Addım nömrəsi: yaşıl dairədəki rəqəm tünd rejimdə də oxunaqlı olsun
+   (parlaq yaşıl üzərində ağ mətn 2:1 idi) */
+.hg-step-header .pg-step-number {
+  color: var(--on-primary);
+}
+
+/* ── İrəliləyiş zolağı ──
+   Doluluq eni yox, transform ilə dəyişir (layout yenidən hesablanmır):
+   tam enli zolaq --hg-p qədər görünənə sürüşür; ucun yuvarlaqlığı qalır. */
+.hg-guide .pg-progress-fill {
+  width: 100%;
+  transform: translateX(calc(var(--hg-p, 0%) - 100%));
+  transition: transform var(--dur-3) var(--ease-out);
+}
+[dir="rtl"] .hg-guide .pg-progress-fill {
+  transform: translateX(calc(100% - var(--hg-p, 0%)));
+}
+
+/* Addım çipləri yalnız dar ekranda (aşağıda) */
+.hg-steps { display: none; }
+
+/* ── Step Card ──
+   Hər addım açarla yenidən qurulur və istiqamətə görə sürüşüb gəlir:
+   "Növbəti" — sağdan, "Əvvəlki" — soldan (ərəbcədə əksinə). */
 .hg-step-card {
   background: var(--bg-card);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow);
   padding: 32px 28px;
-  animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.hg-step-card.is-next { animation: hg-step-from-end var(--dur-3) var(--ease-out) backwards; }
+.hg-step-card.is-prev { animation: hg-step-from-start var(--dur-3) var(--ease-out) backwards; }
+[dir="rtl"] .hg-step-card.is-next { animation-name: hg-step-from-start; }
+[dir="rtl"] .hg-step-card.is-prev { animation-name: hg-step-from-end; }
+
+@keyframes hg-step-from-end {
+  from { opacity: 0; transform: translate3d(18px, 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes hg-step-from-start {
+  from { opacity: 0; transform: translate3d(-18px, 0, 0); }
+  to   { opacity: 1; transform: none; }
 }
 
 .hg-step-header {
@@ -157,14 +201,26 @@
     padding: 24px 18px;
   }
 
+  /* Telefonda iki kart yan-yana, səhifənin ümumi yan boşluğu ilə —
+     əvvəl 280px-lik tək sütun 55px kənar boşluq qoyurdu və Ümrə kartı
+     aşağı panelin altına düşürdü */
   .hg-select-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    max-width: 280px;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    max-width: none;
   }
 
   .hg-select-btn {
-    padding: 28px 16px;
+    padding: var(--space-5) 10px;
+    gap: 10px;
+  }
+
+  .hg-select-icon {
+    font-size: 2.1rem;
+  }
+
+  .hg-select-name {
+    font-size: 16px;
   }
 
   .hg-step-header {
@@ -173,14 +229,234 @@
   }
 }
 
+/* ══ GENİŞ EKRAN (≥768px) — addım ikonu əvvəlki kimi sadə emoji ══ */
+@media (min-width: 768px) {
+  .hg-step-icon.icon-tile {
+    display: block;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: none;
+    color: inherit;
+  }
+}
+
+/* ══ TELEFON (<768px) — müasir tətbiq görünüşü ═════════════════
+   • Seçim: yumşaq kölgəli iki kafel, basılma rəyi
+   • Üst zolaq yapışqandır: geri · "Addım 3 / 10" · nazik irəliləyiş xətti
+     (başlıq gizlənəndə --header-offset 0 olur, zolaq yuxarı sürüşür)
+   • Addım çipləri: bir sətirdə sürüşür, aktiv çip ortaya gəlir
+   • Kart: rəngli ikon kafeli, oxunaqlı 15px mətn
+   • "Əvvəlki / Növbəti" — baş barmaq zonasında, aşağıda yapışqan şüşə panel */
+@media (max-width: 767.98px) {
+  /* Seçim kafelləri */
+  .hg-select-btn {
+    gap: 8px;
+    padding: var(--space-5) 10px 20px;
+    border-width: 1px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .hg-select-count {
+    padding: 3px 12px;
+    font-size: 13px;
+  }
+
+  /* Yapışqan üst zolaq */
+  .hg-topbar {
+    position: sticky;
+    top: var(--header-offset, var(--header-h));
+    z-index: 6;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "back text"
+      "bar  bar";
+    align-items: center;
+    gap: 2px 12px;
+    margin-inline: calc(-1 * var(--page-gutter));
+    margin-bottom: 10px;
+    padding: 4px var(--page-gutter) 10px;
+    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--hairline);
+    transition: top var(--dur-3) var(--ease-out);
+  }
+  .hg-topbar .pg-progress-wrap { display: contents; }
+  .hg-topbar .pg-progress-bar {
+    grid-area: bar;
+    height: 6px;
+    border-radius: 999px;
+  }
+  .hg-topbar .pg-progress-fill { border-radius: 999px; }
+  .hg-topbar .pg-progress-text {
+    grid-area: text;
+    justify-self: end;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .hg-topbar .hg-back-btn {
+    grid-area: back;
+    justify-self: start;
+    min-height: var(--tap);
+    margin: 0;
+    margin-inline-start: -10px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--primary-dark);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  [data-theme="dark"] .hg-topbar .hg-back-btn { color: var(--primary); }
+
+  /* Addım çipləri */
+  .hg-steps {
+    display: flex;
+    margin-bottom: var(--space-3);
+  }
+  .hg-step-chip { gap: 8px; padding-inline: 6px 14px; }
+  .hg-step-chip-num {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--bg-card2);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    transition: background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+  }
+  .hg-step-chip.is-done .hg-step-chip-num {
+    background: var(--primary-bg2);
+    color: var(--primary-dark);
+  }
+  [data-theme="dark"] .hg-step-chip.is-done .hg-step-chip-num { color: var(--primary); }
+  .hg-step-chip.is-active .hg-step-chip-num {
+    background: color-mix(in srgb, var(--on-primary) 22%, transparent);
+    color: var(--on-primary);
+  }
+
+  /* Addım kartı */
+  .hg-step-card {
+    padding: 18px 16px 20px;
+    border-width: 1px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    /* Karta sürüşəndə yapışqan üst zolağın altında qalmasın */
+    scroll-margin-top: 76px;
+  }
+  .hg-step-header {
+    flex-wrap: nowrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom-color: var(--hairline);
+  }
+  .hg-step-header .pg-step-number {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .hg-step-icon { font-size: 24px; }
+  .hg-step-name { font-size: 18px; }
+  .hg-step-arabic { font-size: 18px; }
+
+  .hg-description { margin-bottom: 16px; }
+  .hg-description p {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .hg-step-card .pg-arabic-block {
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+  .hg-step-card .pg-label,
+  .hg-notes-label {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+
+  .hg-notes {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+  .hg-notes p { font-size: 14px; }
+
+  /* Yapışqan "Əvvəlki / Növbəti" — ekranın altında (üzən kart varsa onun
+     üstündə: --qm-bottom-reserve; aşağı naviqasiya zolağı yoxdur) */
+  .hg-guide .pg-nav {
+    position: sticky;
+    bottom: calc(var(--qm-bottom-reserve, 0px) + 10px);
+    z-index: 5;
+    gap: 8px;
+    margin-top: var(--space-4);
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--bg-card);
+    background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: var(--shadow-lg);
+  }
+  .hg-guide .pg-nav .btn-primary,
+  .hg-guide .pg-nav .btn-secondary {
+    min-height: 48px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+
+  /* Tamamlandı ekranı */
+  .hg-container .pg-complete {
+    padding: 40px 20px;
+    border-width: 1px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .hg-container .pg-complete .btn-primary {
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+    border-radius: 12px;
+  }
+}
+
+/* Planşetdə də (768–1023px) çiplər və yapışqan panel faydalıdır */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .hg-steps {
+    display: flex;
+    margin-bottom: var(--space-4);
+  }
+  .hg-step-chip { gap: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hg-step-card.is-next,
+  .hg-step-card.is-prev,
+  .hg-view-in { animation: none; }
+  .hg-topbar { transition: none; }
+}
+
 /* ── Dark mode overrides ── */
 [data-theme="dark"] .hg-select-btn {
   background: var(--bg-card);
   border-color: var(--border);
 }
 
-[data-theme="dark"] .hg-select-btn:hover {
-  background: rgba(46, 204, 113, 0.08);
+@media (hover: hover) {
+  [data-theme="dark"] .hg-select-btn:hover {
+    background: rgba(46, 204, 113, 0.08);
+  }
 }
 
 [data-theme="dark"] .hg-step-card {

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import { subscribeToSettings } from '../data/adminContent'
+import { BRAND, tr } from '../config/mosque'
 import '../styles/AIChatPage.css'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
@@ -20,7 +21,6 @@ const LABELS = {
     suggest3:'Tövhidin əsasları nədir?',
     suggest4:'Ən fəzilətli dualar hansılardır?',
     clear:'Söhbəti təmizlə',
-    disclaimer:'⚠️ AI cavabları məlumat üçündür. Mühüm məsələlərdə alimə müraciət edin.',
     error:'Xəta baş verdi. Yenidən cəhd edin.',
     noBackend:'AI xidməti hələ qurulmayıb',
     rateLimit:'Çox sürətli yazırsınız. Zəhmət olmasa gözləyin, {s} saniyə sonra yenidən cəhd edin.',
@@ -38,7 +38,6 @@ const LABELS = {
     suggest3:'What are the foundations of Tawheed?',
     suggest4:'What are the most virtuous duas?',
     clear:'Clear chat',
-    disclaimer:'⚠️ AI answers are informational. Consult a scholar for important matters.',
     error:'An error occurred. Please try again.',
     noBackend:'AI service is not yet configured',
     rateLimit:'You are sending too fast. Please wait — try again in {s} seconds.',
@@ -56,7 +55,6 @@ const LABELS = {
     suggest3:'Каковы основы Таухида?',
     suggest4:'Какие дуа самые добродетельные?',
     clear:'Очистить чат',
-    disclaimer:'⚠️ Ответы AI информативны. По важным вопросам консультируйтесь с учёным.',
     error:'Произошла ошибка. Попробуйте снова.',
     noBackend:'AI сервис ещё не настроен',
     rateLimit:'Вы пишете слишком быстро. Пожалуйста, подождите — попробуйте через {s} сек.',
@@ -74,7 +72,6 @@ const LABELS = {
     suggest3:'ما أسس التوحيد؟',
     suggest4:'ما أفضل الأدعية؟',
     clear:'مسح المحادثة',
-    disclaimer:'⚠️ إجابات الذكاء الاصطناعي للمعلومات. استشر عالماً للأمور المهمة.',
     error:'حدث خطأ. حاول مرة أخرى.',
     noBackend:'خدمة AI غير مكونة بعد',
     rateLimit:'تكتب بسرعة كبيرة. يُرجى الانتظار — حاول مرة أخرى بعد {s} ثانية.',
@@ -92,7 +89,6 @@ const LABELS = {
     suggest3:'Tevhidin esasları nelerdir?',
     suggest4:'En faziletli dualar hangileri?',
     clear:'Sohbeti temizle',
-    disclaimer:'⚠️ AI cevapları bilgi amaçlıdır. Önemli konularda âlime danışın.',
     error:'Hata oluştu. Tekrar deneyin.',
     noBackend:'AI servisi henüz yapılandırılmadı',
     rateLimit:'Çok hızlı yazıyorsunuz. Lütfen {s} saniye bekleyin ve tekrar deneyin.',
@@ -101,6 +97,15 @@ const LABELS = {
 }
 
 const STORAGE_KEY = 'muslim_cc_ai_chat'
+
+// Təkliflərin ikonları — yalnız telefonda (siyahı xanası kimi) görünür;
+// ≥768px-də gizlidir, geniş ekran əvvəlki kimi qalır
+const SUGGEST_ICONS = [
+  { icon: '🕌', tone: '' },
+  { icon: '📜', tone: ' icon-tile--gold' },
+  { icon: '☝️', tone: ' icon-tile--blue' },
+  { icon: '🤲', tone: ' icon-tile--teal' },
+]
 
 export default function AIChatPage({ setPage }) {
   const { lang } = useLang()
@@ -142,6 +147,17 @@ export default function AIChatPage({ setPage }) {
   useEffect(() => {
     const remaining = getActiveCooldown()
     if (remaining > 0) setCooldown(remaining)
+  }, [])
+
+  // Avtofokus YALNIZ siçanlı cihazda və səhifəni sürüşdürmədən:
+  // əvvəlki autoFocus telefonda səhifəni ~370px aşağı atır, klaviaturanı
+  // açıb hero-nu və təklifləri gizlədirdi
+  useEffect(() => {
+    try {
+      if (window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) {
+        inputRef.current?.focus({ preventScroll: true })
+      }
+    } catch {}
   }, [])
 
   // Cooldown countdown
@@ -203,7 +219,7 @@ export default function AIChatPage({ setPage }) {
       setError(`${l.error} (${e.message})`)
     }
     setLoading(false)
-    inputRef.current?.focus()
+    inputRef.current?.focus({ preventScroll: true })
   }
 
   const handleSubmit = (e) => {
@@ -222,9 +238,9 @@ export default function AIChatPage({ setPage }) {
     <div className="ai-chat-page">
 
       {/* Hero */}
-      <div className="page-hero theme-quran">
+      <div className="page-hero theme-quran hero-compact">
         <div className="page-hero-arabic">المُسَاعِدُ الإِسْلَامِيُّ</div>
-        <h1>🤖 {l.title}</h1>
+        <h1>{l.title}</h1>
         <p>{l.subtitle}</p>
       </div>
 
@@ -238,8 +254,10 @@ export default function AIChatPage({ setPage }) {
               <p className="aic-welcome-text">{l.welcome}</p>
               <div className="aic-suggestions">
                 {suggestions.map((s, i) => (
-                  <button key={i} className="aic-suggest-btn" onClick={() => sendMessage(s)}>
-                    {s}
+                  <button key={i} type="button" className="aic-suggest-btn" style={{ '--i': i }} onClick={() => sendMessage(s)}>
+                    <span className={`aic-suggest-ico icon-tile icon-tile--sm${SUGGEST_ICONS[i]?.tone || ''}`} aria-hidden="true">{SUGGEST_ICONS[i]?.icon}</span>
+                    <span className="aic-suggest-text">{s}</span>
+                    <span className="aic-suggest-chev m-row-chev" aria-hidden="true" />
                   </button>
                 ))}
               </div>
@@ -299,23 +317,39 @@ export default function AIChatPage({ setPage }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading || cooldown > 0}
-            autoFocus
+            aria-label={l.placeholder}
+            enterKeyHint="send"
           />
-          <button type="submit" className="aic-send-btn" disabled={loading || cooldown > 0 || !input.trim()}>
-            {loading ? '⏳' : cooldown > 0 ? cooldown : '➤'}
+          <button
+            type="submit"
+            className="aic-send-btn"
+            disabled={loading || cooldown > 0 || !input.trim()}
+            aria-label={loading ? l.thinking : l.send}
+          >
+            {loading ? (
+              <span className="aic-send-spinner" aria-hidden="true" />
+            ) : cooldown > 0 ? (
+              cooldown
+            ) : (
+              /* Göndər oxu — ərəbcədə CSS ilə güzgülənir (sahəyə tərəf baxsın) */
+              <svg className="aic-send-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
           </button>
         </form>
 
-        {/* Actions */}
-        <div className="aic-actions">
-          {messages.length > 0 && (
-            <button onClick={handleClear} className="aic-clear-btn">
+        {/* Actions — boş olanda yer tutmasın */}
+        {messages.length > 0 && (
+          <div className="aic-actions">
+            <button type="button" onClick={handleClear} className="aic-clear-btn">
               🗑️ {l.clear}
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
-        <p className="aic-disclaimer">{l.disclaimer}</p>
+        {/* Xəbərdarlıq — AI cavabları məscidin rəsmi mövqeyi deyil */}
+        <p className="aic-disclaimer">⚠️ {tr(BRAND.aiDisclaimer, lang)}</p>
       </div>
     </div>
   )

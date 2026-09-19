@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import '../styles/HolyPlacesPage.css'
+import Breadcrumb from '../components/Breadcrumb'
 
 const LABELS = {
   az: { title:'Müqəddəs Yerlər', subtitle:'İslamın müqəddəs məkanları', openMaps:'Xəritədə aç', significance:'Əhəmiyyəti', reference:'İstinad' },
@@ -146,18 +147,18 @@ const PLACES = [
   {
     emoji: '🏔️',
     nameAr: 'جبل عرفات',
-    name: { az:'Ərafat Dağı', en:'Mount Arafat', ru:'Гора Арафат', ar:'جبل عرفات', tr:'Arafat Dağı' },
+    name: { az:'Ərəfat Dağı', en:'Mount Arafat', ru:'Гора Арафат', ar:'جبل عرفات', tr:'Arafat Dağı' },
     lat: 21.3549, lon: 39.9841,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
-      az:'Həccin ən mühüm rüknü olan Ərafat dayanması burada edilir. Peyğəmbərimiz (s.a.s) Vida Xütbəsini burada söyləmişdir. Zilhiccə ayının 9-cu günü milyonlarla müsəlman burada toplanır.',
+      az:'Həccin ən mühüm rüknü olan Ərəfat dayanması burada edilir. Peyğəmbərimiz (s.a.s) Vida Xütbəsini burada söyləmişdir. Zilhiccə ayının 9-cu günü milyonlarla müsəlman burada toplanır.',
       en:'The most important pillar of Hajj — the standing at Arafat — takes place here. Prophet Muhammad (PBUH) delivered his Farewell Sermon here. Millions of Muslims gather here on the 9th of Dhul-Hijjah.',
       ru:'Здесь совершается самый важный столп Хаджа — стояние на Арафате. Пророк Мухаммад (мир ему) произнес здесь прощальную проповедь. Миллионы мусульман собираются здесь 9-го Зуль-Хиджа.',
       ar:'يُؤدى هنا أهم ركن من أركان الحج — الوقوف بعرفة. ألقى النبي ﷺ خطبة الوداع هنا. يجتمع ملايين المسلمين هنا في اليوم التاسع من ذي الحجة.',
       tr:'Haccın en önemli rüknü olan Arafat vakfesi burada yapılır. Hz. Peygamber (s.a.s) Veda Hutbesi\'ni burada okumuştur. Zilhicce ayının 9. günü milyonlarca Müslüman burada toplanır.',
     },
     significance: {
-      az:'"Həcc Ərafatdır" — bu hədis Ərafatın həccdəki mərkəzi rolunu göstərir.',
+      az:'"Həcc Ərəfatdır" — bu hədis Ərəfatın həccdəki mərkəzi rolunu göstərir.',
       en:'"Hajj is Arafat" — this hadith highlights the central role of Arafat in Hajj.',
       ru:'«Хадж — это Арафат» — этот хадис подчеркивает центральную роль Арафата в Хадже.',
       ar:'"الحج عرفة" — هذا الحديث يبرز الدور المركزي لعرفة في الحج.',
@@ -194,7 +195,7 @@ const PLACES = [
     lat: 21.3992, lon: 39.9089,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
-      az:'Ərafat ilə Mina arasında yerləşən açıq sahə. Hacılar Ərafatdan sonra burada gecələyir və daş toplayırlar. Burada Məğrib və İşa namazları cəm edilərək qılınır.',
+      az:'Ərəfat ilə Mina arasında yerləşən açıq sahə. Hacılar Ərəfatdan sonra burada gecələyir və daş toplayırlar. Burada Məğrib və İşa namazları cəm edilərək qılınır.',
       en:'An open area between Arafat and Mina. Pilgrims spend the night here after Arafat and collect pebbles. Maghrib and Isha prayers are combined and performed here.',
       ru:'Открытая территория между Арафатом и Миной. Паломники проводят здесь ночь после Арафата и собирают камешки. Молитвы Магриб и Иша объединяются и совершаются здесь.',
       ar:'منطقة مفتوحة بين عرفات ومنى. يبيت الحجاج هنا بعد عرفة ويجمعون الحصى. تُصلى صلاتا المغرب والعشاء جمعاً هنا.',
@@ -233,6 +234,10 @@ const PLACES = [
   },
 ]
 
+// Telefonda ikon kafelinin rəng tonu şəhərə görə (motion.css → .icon-tile--*);
+// genişdə kafel sıfırlanır və əvvəlki kimi sadə emoji görünür (HolyPlacesPage.css)
+const CITY_TONE = { Mecca: 'gold', Medina: '', Jerusalem: 'blue' }
+
 export function HolyPlacesPage({ setPage }) {
   const { lang } = useLang()
   const lk = lang
@@ -244,65 +249,83 @@ export function HolyPlacesPage({ setPage }) {
 
   return (
     <div className="holy-page">
-      <section className="holy-hero">
-        <div className="holy-hero-bg" />
-        <h1 className="holy-title">{lb.title}</h1>
-        <p className="holy-subtitle">{lb.subtitle}</p>
-      </section>
-
-      <div className="holy-filters">
-        <button
-          className={`holy-filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          {lk === 'az' ? 'Hamısı' : lk === 'ru' ? 'Все' : lk === 'ar' ? 'الكل' : lk === 'tr' ? 'Tümü' : 'All'}
-        </button>
-        {cities.map(c => (
-          <button
-            key={c}
-            className={`holy-filter-btn ${filter === c ? 'active' : ''}`}
-            onClick={() => setFilter(c)}
-          >
-            {PLACES.find(p => p.city.en === c).city[lk] || c}
-          </button>
-        ))}
+      {/* Hero — digər səhifələrlə eyni .page-hero quruluşu (breadcrumb + ərəbcə sətir);
+          rəng və illüstrasiya heroes.css-dəki .holy-hero.holy-hero-dən gəlir */}
+      <div className="page-hero hero-compact holy-hero">
+        <Breadcrumb setPage={setPage} current={lb.title} />
+        <div className="page-hero-arabic">الأماكن المقدسة</div>
+        <h1>{lb.title}</h1>
+        <p>{lb.subtitle}</p>
       </div>
 
-      <div className="holy-grid">
-        {filtered.map((place, i) => (
-          <article key={i} className="holy-card">
-            <div className="holy-card-header">
-              <span className="holy-card-emoji">{place.emoji}</span>
-              <div className="holy-card-titles">
-                <h2 className="holy-card-name">{place.name[lk] || place.name.az}</h2>
-                <p className="holy-card-ar">{place.nameAr}</p>
-                <span className="holy-card-city">📍 {place.city[lk] || place.city.az}</span>
-              </div>
-            </div>
-
-            <p className="holy-card-desc">{place.desc[lk] || place.desc.az}</p>
-
-            <div className="holy-card-section">
-              <h3 className="holy-card-section-title">✦ {lb.significance}</h3>
-              <p className="holy-card-significance">{place.significance[lk] || place.significance.az}</p>
-            </div>
-
-            <div className="holy-card-section">
-              <h3 className="holy-card-section-title">📜 {lb.reference}</h3>
-              <p className="holy-card-ref">{place.reference[lk] || place.reference.az}</p>
-            </div>
-
-            <a
-              className="holy-card-maps"
-              href={`https://www.google.com/maps?q=${place.lat},${place.lon}`}
-              target="_blank"
-              rel="noopener noreferrer"
+      <section className="section">
+        <div className="section-inner">
+          {/* Süzgəc: telefonda bir sətirdə sürüşən çiplər (.chip-scroll/.m-chip),
+              genişdə əvvəlki kimi mərkəzdə sarınan düymələr */}
+          <div className="holy-filters chip-scroll wrap-desktop" role="group" aria-label={lb.title}>
+            <button
+              className={`holy-filter-btn m-chip ${filter === 'all' ? 'active' : ''}`}
+              aria-pressed={filter === 'all'}
+              onClick={() => setFilter('all')}
             >
-              🗺️ {lb.openMaps}
-            </a>
-          </article>
-        ))}
-      </div>
+              {lk === 'az' ? 'Hamısı' : lk === 'ru' ? 'Все' : lk === 'ar' ? 'الكل' : lk === 'tr' ? 'Tümü' : 'All'}
+            </button>
+            {cities.map(c => (
+              <button
+                key={c}
+                className={`holy-filter-btn m-chip ${filter === c ? 'active' : ''}`}
+                aria-pressed={filter === c}
+                onClick={() => setFilter(c)}
+              >
+                {PLACES.find(p => p.city.en === c).city[lk] || c}
+              </button>
+            ))}
+          </div>
+
+          <div className="holy-grid">
+            {filtered.map((place) => (
+              // Sabit açar: süzgəc dəyişəndə yeni kartlar sürüşəndə görünmə animasiyası ilə gəlir
+              <article key={place.name.en} className="holy-card" data-reveal>
+                <div className="holy-card-header">
+                  <span
+                    className={`holy-card-emoji icon-tile icon-tile--lg${CITY_TONE[place.city.en] ? ` icon-tile--${CITY_TONE[place.city.en]}` : ''}`}
+                    aria-hidden="true"
+                  >
+                    {place.emoji}
+                  </span>
+                  <div className="holy-card-titles">
+                    <h2 className="holy-card-name">{place.name[lk] || place.name.az}</h2>
+                    {/* Ərəbcədə başlıq onsuz da ərəbcədir — eyni adı ikinci dəfə göstərmə */}
+                    {lk !== 'ar' && <p className="holy-card-ar">{place.nameAr}</p>}
+                    <span className="holy-card-city">📍 {place.city[lk] || place.city.az}</span>
+                  </div>
+                </div>
+
+                <p className="holy-card-desc">{place.desc[lk] || place.desc.az}</p>
+
+                <div className="holy-card-section">
+                  <h3 className="holy-card-section-title">✦ {lb.significance}</h3>
+                  <p className="holy-card-significance">{place.significance[lk] || place.significance.az}</p>
+                </div>
+
+                <div className="holy-card-section holy-card-section--ref">
+                  <h3 className="holy-card-section-title">📜 {lb.reference}</h3>
+                  <p className="holy-card-ref">{place.reference[lk] || place.reference.az}</p>
+                </div>
+
+                <a
+                  className="holy-card-maps press"
+                  href={`https://www.google.com/maps?q=${place.lat},${place.lon}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  🗺️ {lb.openMaps}
+                </a>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

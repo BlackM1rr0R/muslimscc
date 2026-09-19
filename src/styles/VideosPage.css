@@ -11,7 +11,7 @@
 .vp-hero {
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
   color: #fff;
-  padding: 60px 24px 50px;
+  padding: 60px var(--page-gutter) 50px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -104,11 +104,14 @@
   display: block;
 }
 
-/* ═══ CONTAINER ═══ */
+/* ═══ CONTAINER ═══
+   Digər səhifələrin .section + .section-inner ritmi: yan boşluq
+   --page-gutter, məzmun eni --container, hero-dan sonra --hero-gap,
+   footer-dən əvvəl --section-gap (son bölmənin margin-i sıfırdır) */
 .vp-container {
-  max-width: 1280px;
+  max-width: calc(var(--container) + 2 * var(--page-gutter));
   margin: 0 auto;
-  padding: 40px 24px 60px;
+  padding: var(--hero-gap) var(--page-gutter) var(--section-gap);
 }
 
 /* ═══ SEARCH ═══ */
@@ -121,7 +124,8 @@
 
 .vp-search-icon {
   position: absolute;
-  left: 20px;
+  /* Məntiqi xassə — ərəbcədə ikon sağda */
+  inset-inline-start: 20px;
   top: 50%;
   transform: translateY(-50%);
   font-size: 18px;
@@ -133,7 +137,8 @@
   background: var(--bg-card);
   border: 2px solid var(--border);
   border-radius: 18px;
-  padding: 18px 52px;
+  padding-block: 18px;
+  padding-inline: 52px;
   font-size: 15px;
   color: var(--text);
   box-sizing: border-box;
@@ -150,7 +155,7 @@
 
 .vp-search-clear {
   position: absolute;
-  right: 16px;
+  inset-inline-end: 16px;
   top: 50%;
   transform: translateY(-50%);
   background: var(--bg-card2);
@@ -177,6 +182,7 @@
 .vp-section {
   margin-bottom: 50px;
 }
+.vp-section:last-child { margin-bottom: 0; }
 
 .vp-section-title {
   font-size: clamp(20px, 3vw, 26px);
@@ -200,15 +206,17 @@
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
-/* ═══ FEATURED ═══ */
+/* ═══ FEATURED ═══
+   3 seçilmiş video → bir bərabər sıra (əvvəlki 2fr 1fr 1fr × 2 sıra
+   sxemində 2-ci sıra boş qalırdı, böyük kartın şəkli isə kəsilirdi) */
 .vp-featured-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto;
   gap: 16px;
-  grid-template-rows: 1fr 1fr;
 }
 
 .vp-featured-card {
@@ -224,7 +232,7 @@
 }
 
 .vp-featured-card.large {
-  grid-row: span 2;
+  grid-row: auto;
 }
 
 .vp-featured-card:hover {
@@ -241,8 +249,8 @@
 }
 
 .vp-featured-card.large .vp-featured-thumb {
-  aspect-ratio: auto;
-  flex: 1;
+  aspect-ratio: 16 / 9;
+  flex: none;
 }
 
 .vp-featured-thumb img {
@@ -525,7 +533,8 @@
 .vp-watch-btn {
   flex: 1;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff;
+  /* işıqlıda ağ, tünddə parlaq yaşılın üstündə tünd mətn */
+  color: var(--on-primary);
   border: none;
   padding: 9px 14px;
   border-radius: 10px;
@@ -544,8 +553,9 @@
 .vp-share-btn {
   background: var(--bg-card2);
   border: 1.5px solid var(--border);
-  width: 38px;
-  height: 38px;
+  flex-shrink: 0;
+  width: var(--tap);
+  height: var(--tap);
   border-radius: 10px;
   cursor: pointer;
   font-size: 14px;
@@ -560,33 +570,7 @@
   background: var(--primary-bg);
 }
 
-/* ═══ LOADING ═══ */
-.vp-loading {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.vp-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--border);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  margin: 0 auto 16px;
-  animation: vpSpin 0.8s linear infinite;
-}
-
-@keyframes vpSpin {
-  to { transform: rotate(360deg) }
-}
-
-.vp-loading p {
-  color: var(--text-muted);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-/* ═══ EMPTY ═══ */
+/* ═══ EMPTY ═══ (yüklənmə — aşağıda skelet kartlar) */
 .vp-empty {
   text-align: center;
   padding: 60px 20px;
@@ -731,6 +715,42 @@
   to { opacity: 1; transform: translateX(-50%) translateY(0) }
 }
 
+/* ═══ TELEFON ═══
+   Hero kompakt (əvvəl 390px ekranda 346px — ekranın 41%-i idi) */
+@media (max-width: 768px) {
+  .vp-hero { padding: 40px var(--page-gutter) 32px; }
+
+  /* × düyməsi videonun ÜSTÜNDƏ (YouTube-un başlıq zolağını örtürdü) yox,
+     çərçivənin yuxarısında dursun */
+  .vp-modal-content { overflow: visible; }
+  .vp-modal-video-wrap {
+    border-radius: 20px 20px 0 0;
+    overflow: hidden;
+  }
+  .vp-modal-close {
+    top: -52px;
+    right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .vp-hero { padding: 32px var(--page-gutter) 28px; }
+  .vp-hero-arabic { margin-bottom: 6px; }
+  .vp-hero-title { font-size: 26px; }
+  .vp-hero-sub { margin-bottom: 16px; }
+  /* Say bir sətirlik həb kimi: "4 VIDEO" */
+  .vp-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 16px;
+    min-width: 0;
+    border-radius: 999px;
+  }
+  .vp-stat-num { display: inline; font-size: 18px; line-height: 1.2; letter-spacing: -0.5px; }
+  .vp-stat-label { display: inline; margin-top: 0; line-height: 1.2; }
+}
+
 /* ═══ DARK MODE ═══ */
 [data-theme="dark"] .vp-cat-count {
   background: rgba(255,255,255,0.08);
@@ -738,4 +758,276 @@
 
 [data-theme="dark"] .vp-modal-content {
   background: var(--bg-card);
+}
+
+/* ═══ YÜKLƏNMƏ SKELETİ (bütün enlərdə) ═══
+   Videolar gələnə qədər şəbəkə öz yerini tutur — kartlar gələndə səhifə
+   tullanmır (motion.css → .skeleton parıltısı) */
+.vp-skel-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.vp-skel-thumb { aspect-ratio: 16 / 9; border-radius: 0; }
+.vp-skel-body { padding: 16px 18px; }
+.vp-skel-btn { height: 38px; margin-top: 12px; border-radius: 10px; }
+
+/* Telefon vərəqinin tutacağı — kompüterdə yoxdur */
+.vp-sheet-grab { display: none; }
+
+/* Paylaşma bildirişi telefonda iPhone-un alt kənarına düşməsin (<1024px) */
+@media (max-width: 1023.98px) {
+  .vp-share-toast { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ══════════════════════════════════════════════════════
+   TELEFON / KİÇİK PLANŞET (<768px) — müasir tətbiq görünüşü
+   • Hero yığcam (~170px), məzmunu növbə ilə qalxır
+   • Axtarış 48px; seçilmişlər üfüqi sürüşən karusel (snap);
+     filtr çipləri bir sürüşən sətir (başlıq gizli)
+   • Kartlar: yumşaq kölgə, barmaq altında yüngül sıxılma ("ilişən" hover yox)
+   • Video pəncərəsi aşağıdan qalxan vərəqdir: tutacaq sırasında ✕,
+     video kənardan kənara, çəkib bağlamaq, bağlananda aşağı sürüşür
+   Kompüter (≥1024px) görünüşü dəyişmir.
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  /* ── Hero ── */
+  .vp-hero { padding: 22px var(--page-gutter) 20px; }
+  .vp-hero-arabic { font-size: clamp(16px, 4.6vw, 20px); margin-bottom: 2px; }
+  .vp-hero-title { font-size: clamp(22px, 6.2vw, 26px); margin-bottom: 4px; }
+  .vp-hero-sub { font-size: 13.5px; line-height: 1.5; margin-bottom: 12px; }
+  .vp-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    padding: 4px 14px;
+    border-radius: 999px;
+  }
+  .vp-stat-num { display: inline; font-size: 16px; line-height: 1.3; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
+  .vp-stat-label { display: inline; margin-top: 0; line-height: 1.3; font-size: 12px; }
+  .vp-hero > * { animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards; }
+  .vp-hero > :nth-child(2) { animation-delay: 40ms; }
+  .vp-hero > :nth-child(3) { animation-delay: 80ms; }
+  .vp-hero > :nth-child(n+4) { animation-delay: 120ms; }
+
+  /* ── Axtarış ── */
+  .vp-search-wrap { max-width: none; margin-bottom: 24px; }
+  .vp-search {
+    height: 48px;
+    padding-block: 0;
+    padding-inline: 44px 48px;
+    border: 1px solid var(--border-md);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .vp-search:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-bg2); }
+  .vp-search-icon { inset-inline-start: 14px; font-size: 16px; }
+  /* 44px toxunma hədəfi, görünən dairə 26px */
+  .vp-search-clear,
+  .vp-search-clear:hover {
+    inset-inline-end: 2px;
+    width: 44px;
+    height: 44px;
+    padding: 9px;
+    background: var(--bg-card2);
+    background-clip: content-box;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1;
+    transform: translateY(-50%);
+  }
+
+  /* ── Bölmələr ── */
+  .vp-section { margin-bottom: 28px; }
+  .vp-section-title { font-size: 18px; margin-bottom: 14px; gap: 8px; letter-spacing: -0.2px; }
+  .vp-section-count { font-size: 12.5px; padding: 3px 10px; font-variant-numeric: tabular-nums; }
+
+  /* Seçilmişlər — üfüqi karusel, kənardan kənara */
+  .vp-featured-grid {
+    display: flex;
+    gap: 12px;
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding: 2px var(--page-gutter) 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--page-gutter);
+    scrollbar-width: none;
+  }
+  .vp-featured-grid::-webkit-scrollbar { display: none; }
+  .vp-featured-card {
+    flex: 0 0 min(80vw, 340px);
+    scroll-snap-align: start;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--dur-1) var(--ease-out);
+  }
+  .vp-featured-body { padding: 12px 14px 14px; }
+  .vp-featured-card.large .vp-featured-body h3,
+  .vp-featured-body h3 { font-size: 15px; font-weight: 700; }
+  .vp-featured-body p { font-size: 13px; }
+
+  /* Filtr — başlıq gizli (qrupun adı aria-label-dədir), bir sürüşən sətir */
+  .vp-filter-title { display: none; }
+  .vp-cat-filter {
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding: 2px var(--page-gutter) 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--page-gutter);
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - var(--page-gutter)), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - var(--page-gutter)), transparent 100%);
+  }
+  .vp-cat-filter::-webkit-scrollbar { display: none; }
+  .vp-cat-btn {
+    flex: 0 0 auto;
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 10px 0 14px;
+    border-width: 1px;
+    font-size: 13.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    scroll-snap-align: start;
+    transition: background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+  }
+  [dir="rtl"] .vp-cat-btn { padding: 0 14px 0 10px; }
+  .vp-cat-btn.active { transform: none; }
+  .vp-cat-btn:hover:not(.active) { transform: none; border-color: var(--border); color: var(--text); }
+  .vp-cat-btn:active { transform: scale(var(--press-scale)); }
+  .vp-cat-count { font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  /* ── Video kartları ── */
+  .vp-grid { gap: 16px; }
+  .vp-card {
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+  }
+  /* Toxunma ekranında hover "ilişir" — qaldırma, böyümə yox */
+  .vp-card:hover,
+  .vp-featured-card:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--border); }
+  .vp-card:hover .vp-thumb img,
+  .vp-featured-card:hover .vp-featured-thumb img { transform: none; }
+  .vp-card:hover .vp-play-btn {
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--primary);
+  }
+  .vp-featured-card:hover .vp-featured-overlay { opacity: 0; }
+  .vp-card:active,
+  .vp-featured-card:active { transform: scale(0.98); }
+
+  .vp-body { padding: 14px 16px 16px; }
+  .vp-title { font-size: 15.5px; font-weight: 700; }
+  .vp-desc { font-size: 13px; }
+  .vp-duration,
+  .vp-featured-duration { font-size: 12px; font-variant-numeric: tabular-nums; }
+  .vp-cat-badge,
+  .vp-featured-cat { font-size: 11px; }
+  .vp-actions { margin-top: 10px; }
+  .vp-watch-btn {
+    min-height: var(--tap);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform var(--dur-1) var(--ease-out);
+  }
+  .vp-share-btn { border-width: 1px; border-radius: 12px; transition: transform var(--dur-1) var(--ease-out); }
+  .vp-watch-btn:hover { transform: none; box-shadow: none; }
+  .vp-watch-btn:active,
+  .vp-share-btn:active { transform: scale(0.95); }
+
+  .vp-empty { padding: 48px 16px; }
+
+  /* ── Video vərəqi (aşağıdan qalxır) ── */
+  .vp-modal {
+    align-items: flex-end;
+    padding: 0;
+    background: transparent;
+    animation: none;
+    /* Arxa fondan başlayan toxunuş səhifəni sürüşdürməsin */
+    touch-action: none;
+    overscroll-behavior: contain;
+  }
+  /* Arxa fon: yumşaq bulanıq, çəkdikcə (--sheet-drag) solğunlaşır */
+  .vp-modal::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 8, 6, 0.62);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    opacity: calc(1 - var(--sheet-drag, 0) * 0.9);
+    animation: qm-reveal-fade var(--dur-3) var(--ease-out);
+    transition: opacity var(--dur-3) var(--ease-out);
+  }
+  .vp-modal.is-dragging::before { transition: none; }
+  .vp-modal.is-closing::before { opacity: 0; transition: opacity 240ms var(--ease-in); }
+
+  .vp-modal-content {
+    max-width: none;
+    max-height: 92vh;
+    max-height: 92dvh;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.22);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    transform: none;
+    transition: transform var(--dur-3) var(--ease-out);
+    animation: vp-sheet-in 420ms var(--ease-sheet);
+  }
+  .vp-modal.is-closing .vp-modal-content {
+    transform: translate3d(0, 100%, 0);
+    transition: transform 240ms var(--ease-in);
+  }
+  /* Tutacaq sırası ✕ düyməsinə də yer verir — video ondan aşağıda başlayır */
+  .vp-sheet-grab { display: block; min-height: 52px; }
+
+  .vp-modal-close,
+  .vp-modal-close:hover {
+    top: 4px;
+    right: auto;
+    inset-inline-end: 8px;
+    width: 44px;
+    height: 44px;
+    padding: 6px;
+    border: 0;
+    background: var(--bg-card2);
+    background-clip: content-box;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transform: none;
+  }
+  .vp-modal-close:active { transform: scale(0.9); }
+
+  .vp-modal-video-wrap { flex-shrink: 0; border-radius: 0; }
+  .vp-modal-info {
+    min-height: 0;
+    padding: 16px 20px 20px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+  .vp-modal-info h3 { font-size: 17px; line-height: 1.35; }
+}
+
+@keyframes vp-sheet-in {
+  from { transform: translate3d(0, 100%, 0); }
+  to   { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vp-modal-content,
+  .vp-modal::before { animation: none; }
 }
