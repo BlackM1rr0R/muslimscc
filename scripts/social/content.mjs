@@ -35,11 +35,14 @@ export const TYPES = ['quran', 'hadith', 'dua', 'name']
  */
 async function buildPoolFromSource() {
   // Dinamik import: pool.json mövcuddursa bu fayllar heç oxunmur
-  const [{ HADITHS }, { QUOTES }, { DUAS_DATA }, { NAMES_99 }] = await Promise.all([
+  const [{ HADITHS }, { QUOTES }, { DUAS_DATA }, { NAMES_99 }, { uniqueHadithsFor }, { isNotHadith }] = await Promise.all([
     import('../../src/data/hadiths.js'),
     import('../../src/data/quotes.js'),
     import('../../src/data/duas.js'),
     import('../../src/data/names99.js'),
+    // Saytla eyni qaydalar: təkrarsız hədis siyahısı və "bu hədisdirmi?" yoxlaması
+    import('../../src/utils/uniqueHadiths.js'),
+    import('../../src/utils/search.js'),
   ])
 
   const pool = []
@@ -58,11 +61,17 @@ async function buildPoolFromSource() {
     })
   }
 
-  // ── Hədislər ── az və en eyni id ilə uyğunlaşır
+  // ── Hədislər ── az və en eyni id ilə uyğunlaşır.
+  // hadiths.js-də eyni hədis bir neçə id ilə təkrarlanır — hovuza hər hədis
+  // BİR dəfə düşür (/hadith səhifəsi ilə eyni siyahı, src/utils/uniqueHadiths).
+  // "Hədis" kimi paylaşılmayanlar (sayt axtarışındakı qayda ilə eyni):
+  //   • mənbəsi surə + ayə olanlar ("Bəqərə 155") — Quran ayəsidir;
+  //   • "Məşhur" — heç bir hədis toplusunda olmayan məşhur söz.
   const enById = new Map(HADITHS.en.map(h => [h.id, h.text]))
-  for (const h of HADITHS.az) {
+  for (const h of uniqueHadithsFor(HADITHS, 'az')) {
     const en = enById.get(h.id)
     if (!h.ar || !h.text || !en) continue
+    if (isNotHadith(h.source)) continue
     pool.push({
       key: `hadith:${h.id}`,
       type: 'hadith',

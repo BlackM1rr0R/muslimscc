@@ -209,8 +209,12 @@ def render(item, out_path):
     # ── Alt sətir: istinad + brend ──
     src = (item.get('source') or '').strip()
     if src:
-        d.text((cx, H - 116), src, font=font(LATIN_BOLD, 27), fill=GOLD, anchor='ma')
-    d.text((cx, H - 66), 'muslims.cc', font=font(LATIN_REG, 25), fill=SOFT, anchor='ma')
+        d.text((cx, H - 124), src, font=font(LATIN_BOLD, 27), fill=GOLD, anchor='ma')
+    # Brend adı, altında daha kiçik ünvan (domen dəyişmir).
+    # src/config/mosque.js → BRAND.name.az / BRAND.domain ilə eyni saxla
+    # (skript serverə ayrıca köçürülür, ona görə import edilmir)
+    d.text((cx, H - 78), 'Qaraçuxur Məscidi', font=font(LATIN_BOLD, 25), fill=SOFT, anchor='ma')
+    d.text((cx, H - 44), 'muslims.cc', font=font(LATIN_REG, 19), fill=SOFT, anchor='ma')
 
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     # Instagram JPEG tələb edir — PNG və WebP qəbul edilmir

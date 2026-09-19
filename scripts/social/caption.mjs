@@ -21,6 +21,20 @@ const MODEL = 'claude-opus-5'
 // Instagram caption limiti 2200 simvoldur; təhlükəsiz həddə qalırıq
 const MAX_CAPTION = 2000
 
+// Brend — src/config/mosque.js → BRAND.name.az / BRAND.domain / BRAND.hashtag
+// ilə eyni saxla (skript serverə ayrıca köçürülür, ona görə import edilmir)
+const BRAND_NAME = 'Qaraçuxur Məscidi'
+const BRAND_DOMAIN = 'muslims.cc'
+const BRAND_HASHTAG = '#qaracuxurmescidi'
+
+// Model yazan təfəkkür məscidin öz postu kimi paylaşılır — oxucu onu
+// məscidin rəsmi mövqeyi sanmasın. Mənaca src/config/mosque.js →
+// BRAND.aiDisclaimer ilə eynidir (az + en, caption iki dillidir).
+const AI_NOTE = [
+  'Təfəkkür mətni süni intellektlə hazırlanıb, məscidin rəsmi mövqeyi və ya fətva deyil. Dini hökmlər üçün məscidin imamına müraciət edin.',
+  'The reflection was written with AI and is not the mosque’s official position or a fatwa. For religious rulings, please consult the mosque’s imam.',
+].join('\n')
+
 const TYPE_LABEL = {
   quran:  { az: 'Quran ayəsi',        en: 'Quran verse' },
   hadith: { az: 'Hədis',              en: 'Hadith' },
@@ -34,7 +48,8 @@ const CaptionSchema = z.object({
   hashtags: z.array(z.string()).describe('8-12 hashtag, hamısı # ilə başlayır, boşluqsuz.'),
 })
 
-const SYSTEM = `Sən muslims.cc-nin Instagram hesabı üçün caption yazırsan.
+// Birinci sətirdə ad yiyəlik halındadır ("Məscidinin") — BRAND_NAME dəyişəndə əl ilə yenilə
+const SYSTEM = `Sən Qaraçuxur Məscidinin (Bakı) Instagram hesabı üçün caption yazırsan.
 
 SƏNƏ VERİLƏN MƏTN artıq doğrulanmış mənbədən gəlir və caption-a ayrıca
 əlavə olunacaq. Sənin işin yalnız onun ətrafındakı qısa təfəkkürü yazmaqdır.
@@ -45,14 +60,17 @@ MÜTLƏQ QAYDALAR:
    İstinad caption-a avtomatik əlavə olunur.
 3. Sənə verilən mətni təkrarlama — o, caption-da onsuz da var.
 4. Fiqhi hökm vermə, halal/haram fətvası vermə, mübahisəli mövzulara girmə.
+   Yazdığını məscidin rəsmi mövqeyi və ya fətvası kimi təqdim etmə; hökm
+   lazım olan yerdə oxucunu məscidin imamına müraciət etməyə yönəlt.
 5. Sadə, isti və hörmətli dil. Şüar və reklam tonu olmasın.
 6. Emoji istifadə etmə.
+7. Məscid haqqında fakt uydurma (ünvan, camaat vaxtı, imam, tədbir, tarix).
 
 NƏ YAZIRSAN: mətnin gündəlik həyatda nə demək olduğuna dair 2-3 cümləlik
 səmimi bir düşüncə. Azərbaycanca və ingiliscə — eyni fikir, tərcümə deyil,
 hər dildə təbii səslənən variant.
 
-HASHTAG: 8-12 ədəd, qarışıq az/en/ar. Həmişə #muslimscc daxil olsun.`
+HASHTAG: 8-12 ədəd, qarışıq az/en/ar. Həmişə ${BRAND_HASHTAG} daxil olsun.`
 
 function buildPrompt(item) {
   const label = TYPE_LABEL[item.type] || TYPE_LABEL.quran
@@ -127,7 +145,7 @@ export function fallbackCaption(item) {
   return {
     az: f.az,
     en: f.en,
-    hashtags: ['#muslimscc', '#islam', ...f.tags, '#azerbaycan', '#islamicreminder'],
+    hashtags: [BRAND_HASHTAG, '#qaraçuxur', '#bakı', '#islam', ...f.tags, '#azerbaycan', '#islamicreminder'],
     fallback: true,
   }
 }
@@ -190,11 +208,21 @@ export function composeCaption(item, cap) {
   parts.push(item.en.trim())
   if (item.source) parts.push(`— ${item.source}`)
   parts.push('')
-  parts.push('muslims.cc')
-  parts.push('')
-  parts.push(cap.hashtags.join(' '))
+  parts.push(`${BRAND_NAME} · ${BRAND_DOMAIN}`)
 
-  let text = parts.join('\n')
-  if (text.length > MAX_CAPTION) text = text.slice(0, MAX_CAPTION - 1).trimEnd() + '…'
+  // Təfəkkürü model yazıbsa, bunu açıq de (şablon caption-da model mətni yoxdur)
+  const note = cap.fallback ? '' : `\n\n${AI_NOTE}`
+  const head = parts.join('\n')
+
+  // Limit aşılsa, əvvəlcə sondakı hashtag-lər bir-bir düşür; yenə sığmasa
+  // əsas mətn kəsilir — AI qeydi heç vaxt kəsilmir
+  const tags = [...cap.hashtags]
+  let text
+  do {
+    text = head + note + (tags.length ? `\n\n${tags.join(' ')}` : '')
+  } while (text.length > MAX_CAPTION && tags.pop())
+  if (text.length > MAX_CAPTION) {
+    text = head.slice(0, MAX_CAPTION - note.length - 1).trimEnd() + '…' + note
+  }
   return text
 }
