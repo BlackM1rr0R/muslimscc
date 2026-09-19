@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="az">
 <head>
-  <title>Muslims.cc — Header Logo → App Icons</title>
+  <title>Qaraçuxur Məscidi — Header Logo → App Icons</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
   <style>
     body { font-family: system-ui; background: #0a0a0a; color: #eee; display: flex; flex-direction: column; align-items: center; padding: 40px; }
@@ -27,7 +27,7 @@
   <!-- Saytdakı orijinal logo preview -->
   <div class="preview">
     <div class="preview-icon">☽</div>
-    <div class="preview-text">muslims<span>.cc</span></div>
+    <div class="preview-text">Qaraçuxur <span>Məscidi</span></div>
   </div>
 
   <div class="grid">
@@ -120,7 +120,7 @@ function drawIcon(canvas) {
   drawHeaderLogo(canvas.getContext('2d'), 0, 0, s)
 }
 
-// ── OG IMAGE — [yaşıl kvadrat + ☽] muslims.cc ──
+// ── OG IMAGE — [yaşıl kvadrat + ☽] Qaraçuxur Məscidi ──
 function drawOG(canvas) {
   const w = 1200, h = 630
   const ctx = canvas.getContext('2d')
@@ -138,36 +138,40 @@ function drawOG(canvas) {
 
   // ── Mərkəzdə: header logo — tam eyni layout ──
   const iconS = 88
-  const totalW = iconS + 16 + 340  // icon + gap + text width (təxmini)
-  const startX = (w - totalW) / 2
   const centerY = h * 0.38
+
+  // Brend adı — src/config/mosque.js → BRAND.name.az
+  const nameA = 'Qaraçuxur ', nameB = 'Məscidi'
+  ctx.font = '800 44px "Inter", system-ui, sans-serif'
+  const mw = ctx.measureText(nameA).width
+  const totalW = iconS + 16 + mw + ctx.measureText(nameB).width  // icon + gap + mətn eni (ölçülür)
+  const startX = (w - totalW) / 2
 
   // [yaşıl kvadrat + ☽]
   drawHeaderLogo(ctx, startX, centerY - iconS / 2, iconS)
 
-  // "muslims" — Inter 800
+  // "Qaraçuxur" — Inter 800
   const textX = startX + iconS + 16
   ctx.font = '800 44px "Inter", system-ui, sans-serif'
   ctx.textAlign = 'left'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = '#1a2e1e'   // saytdakı --text
-  const mw = ctx.measureText('muslims').width
-  ctx.fillText('muslims', textX, centerY)
+  ctx.fillText(nameA, textX, centerY)
 
-  // ".cc" — yaşıl
+  // "Məscidi" — yaşıl
   ctx.fillStyle = '#16a34a'   // saytdakı --primary
-  ctx.fillText('.cc', textX + mw, centerY)
+  ctx.fillText(nameB, textX + mw, centerY)
 
   // ── Alt yazılar ──
   ctx.fillStyle = '#4a6052'   // --text-dim
   ctx.font = '500 20px "Inter", system-ui, sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText('İslami Rəqəmsal Platforma', w / 2, centerY + 60)
+  ctx.fillText('Namaz vaxtları, camaat namazı, elanlar və İslami bilik — bir yerdə', w / 2, centerY + 60)
 
   ctx.fillStyle = '#7a9b82'   // --text-muted
   ctx.font = '400 15px "Inter", system-ui, sans-serif'
   ctx.fillText('Quran · Namaz · Hədis · Dua · Zikr · Zəkat · Qiblə · Hifz · Kviz', w / 2, centerY + 95)
-  ctx.fillText('31+ xidmət · 5 dil · Pulsuz · Offline', w / 2, centerY + 118)
+  ctx.fillText('Qaraçuxur, Bakı', w / 2, centerY + 118)
 
   // ── Alt separator ──
   ctx.strokeStyle = '#e2e8df'  // --border
@@ -195,7 +199,7 @@ function drawOG(canvas) {
     ctx.fillText(p, px + pillW / 2, pillY + 17)
   })
 
-  // www.muslims.cc
+  // Saytın ünvanı — domen dəyişmir
   ctx.textAlign = 'center'
   ctx.fillStyle = '#7a9b82'
   ctx.font = '600 13px "Inter", system-ui, sans-serif'

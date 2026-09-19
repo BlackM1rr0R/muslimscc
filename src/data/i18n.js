@@ -1,4 +1,7 @@
-// muslims.cc — Tam i18n Tərcümə Məlumatları
+// Qaraçuxur Məscidi — Tam i18n Tərcümə Məlumatları
+// Brend adı src/config/mosque.js-dən gəlir (yeganə mənbə)
+import { BRAND } from '../config/mosque'
+
 export const T = {
   az: {
     nav: {
@@ -9,10 +12,10 @@ export const T = {
     },
     home: {
       badge:'Bismillahir-Rahmanir-Rahim',
-      heroTitle:'İslami Rəqəmsal Eviniz',
+      heroTitle:BRAND.name.az,
       heroSub:'Quran, hədis, namaz vaxtları, dualar, zikr və zəkat — hamısı bir yerdə, pulsuz.',
       btnQuran:'Quran Oxu', btnPrayer:'Namaz Vaxtı', btnDua:'Dua Et',
-      statsTitle:'Platformamız',
+      statsTitle:'Saytımızda',
       featTitle:'Hər Şey Bir Yerdə',
       featSub:'Hər müsəlman üçün tam mənəvi yoldaş',
       ayah:'Şübhəsiz ki, çətinliyin yanında asanlıq var.',
@@ -24,7 +27,7 @@ export const T = {
       feature5Title:'99 Allahın Adı', feature5Desc:'Əsmaül-Hüsna — məna və izahları ilə.',
       feature6Title:'Zəkat Kalkulyatoru', feature6Desc:'Qızıl, gümüş, nağd pul üzrə dəqiq hesab.',
       ctaTitle:'Başlamağa Hazırsınız?',
-      ctaDesc:'Rəqəmsal İslami həyat tərəfinizi bizimlə kəşf edin.',
+      ctaDesc:`${BRAND.name.az}nin saytında namaz vaxtlarını, elanları və İslami bilikləri kəşf edin.`,
       ctaBtn:'Quran Oxumağa Başla',
     },
     quran: {
@@ -87,8 +90,8 @@ export const T = {
       result:'Nəticə', aboveNisab:'Nisab həddini aşıbsınız',
     },
     about: {
-      title:'Haqqımızda', subtitle:'muslims.cc haqqında',
-      mission:'Missiyanız', missionText:'Hər müsəlmana öz dilindəki gözəl, diqqəti dağıtmayan mühitdə səhih İslam biliklərinə çatmaq imkanı vermək.',
+      title:'Haqqımızda', subtitle:`${BRAND.name.az}nin saytı haqqında`,
+      mission:'Missiyanız', missionText:`${BRAND.name.az}nin camaatına və hər ziyarətçiyə namaz vaxtlarını, elanları və səhih İslam biliklərini öz dilində, gözəl və diqqəti dağıtmayan mühitdə çatdırmaq.`,
       values:'Dəyərlərimiz',
       v1t:'Etibarlılıq', v1d:'Yalnız Quran, səhih hədis və alim icmasından məzmun.',
       v2t:'Pulsuz', v2d:'Heç bir abunə, reklam, ödəniş yoxdur.',
@@ -97,9 +100,9 @@ export const T = {
       teamTitle:'Komanda', contactTitle:'Əlaqə',
     },
     footer: {
-      desc:'Hər müsəlman üçün tam İslami rəqəmsal platforma.',
+      desc:`${BRAND.name.az}nin saytı — namaz vaxtları, camaat namazı, elanlar və İslami bilik.`,
       links:'Sürətli keçid', contact:'Əlaqə',
-      copy:'© 2025 muslims.cc — Ümmət üçün sevgi ilə',
+      copy:`© ${BRAND.name.az} — ${BRAND.domain}`,
       tagline:'Bismillahir-Rahmanir-Rahim',
     },
   },
@@ -113,10 +116,10 @@ export const T = {
     },
     home: {
       badge:'In the Name of Allah, the Most Gracious, the Most Merciful',
-      heroTitle:'Your Islamic Digital Home',
+      heroTitle:BRAND.name.en,
       heroSub:"Quran, Hadith, prayer times, du'as, dhikr and zakat — all in one place, free.",
       btnQuran:'Read Quran', btnPrayer:'Prayer Times', btnDua:"Make Du'a",
-      statsTitle:'Our Platform',
+      statsTitle:'On Our Website',
       featTitle:'Everything You Need',
       featSub:'A complete spiritual companion for every Muslim',
       ayah:'Verily, with every hardship comes ease.',
@@ -128,7 +131,7 @@ export const T = {
       feature5Title:'99 Names of Allah', feature5Desc:"Asma ul-Husna — with meaning and explanation.",
       feature6Title:'Zakat Calculator', feature6Desc:'Precise calculation for gold, silver, and cash.',
       ctaTitle:'Ready to Begin?',
-      ctaDesc:'Discover your digital Islamic lifestyle with us.',
+      ctaDesc:`Explore prayer times, announcements and Islamic knowledge on the ${BRAND.name.en} website.`,
       ctaBtn:'Start Reading Quran',
     },
     quran: {
@@ -191,8 +194,8 @@ export const T = {
       result:'Result', aboveNisab:'You have reached the nisab threshold',
     },
     about: {
-      title:'About Us', subtitle:'About muslims.cc',
-      mission:'Our Mission', missionText:'To give every Muslim access to authentic Islamic knowledge in their own language, in a beautiful distraction-free environment.',
+      title:'About Us', subtitle:`About the ${BRAND.name.en} website`,
+      mission:'Our Mission', missionText:`To bring prayer times, announcements and authentic Islamic knowledge to the ${BRAND.name.en} community and every visitor, in their own language, in a beautiful distraction-free environment.`,
       values:'Our Values',
       v1t:'Authenticity', v1d:'Only from Quran, authentic hadiths and scholarly consensus.',
       v2t:'Free Forever', v2d:'No subscription, no ads, no payments.',
@@ -201,9 +204,9 @@ export const T = {
       teamTitle:'Team', contactTitle:'Contact',
     },
     footer: {
-      desc:'A complete Islamic digital platform for every Muslim.',
+      desc:`The website of ${BRAND.name.en} — prayer times, congregational prayers, announcements and Islamic knowledge.`,
       links:'Quick Links', contact:'Contact',
-      copy:'© 2025 muslims.cc — Made with love for the Ummah',
+      copy:`© ${BRAND.name.en} — ${BRAND.domain}`,
       tagline:'In the Name of Allah, the Most Gracious, the Most Merciful',
     },
   },
@@ -217,10 +220,10 @@ export const T = {
     },
     home: {
       badge:'Во имя Аллаха, Милостивого, Милосердного',
-      heroTitle:'Ваш Исламский Цифровой Дом',
+      heroTitle:BRAND.name.ru,
       heroSub:'Коран, хадисы, время намаза, дуа, зикр и закят — всё в одном месте, бесплатно.',
       btnQuran:'Читать Коран', btnPrayer:'Время Намаза', btnDua:'Сделать Дуа',
-      statsTitle:'Наша Платформа',
+      statsTitle:'На нашем сайте',
       featTitle:'Всё Необходимое',
       featSub:'Полный духовный спутник для каждого мусульманина',
       ayah:'Поистине, после трудности приходит облегчение.',
@@ -232,7 +235,7 @@ export const T = {
       feature5Title:'99 Имён Аллаха', feature5Desc:'Асмаул-Хусна — со значением и объяснением.',
       feature6Title:'Калькулятор Закята', feature6Desc:'Точный расчёт для золота, серебра и наличных.',
       ctaTitle:'Готовы начать?',
-      ctaDesc:'Откройте свою цифровую исламскую жизнь вместе с нами.',
+      ctaDesc:'Время намаза, объявления и исламские знания — на сайте мечети Карачухур.',
       ctaBtn:'Начать читать Коран',
     },
     quran: {
@@ -295,8 +298,8 @@ export const T = {
       result:'Результат', aboveNisab:'Вы достигли порога нисаба',
     },
     about: {
-      title:'О нас', subtitle:'О платформе muslims.cc',
-      mission:'Наша Миссия', missionText:'Предоставить каждому мусульманину доступ к подлинным исламским знаниям на родном языке, в красивой среде без отвлечений.',
+      title:'О нас', subtitle:'О сайте мечети Карачухур',
+      mission:'Наша Миссия', missionText:'Доносить до прихожан мечети Карачухур и каждого посетителя время намаза, объявления и подлинные исламские знания на родном языке, в красивой среде без отвлечений.',
       values:'Наши Ценности',
       v1t:'Достоверность', v1d:'Только из Корана, достоверных хадисов и единогласия учёных.',
       v2t:'Бесплатно', v2d:'Без подписки, рекламы и платежей.',
@@ -305,9 +308,9 @@ export const T = {
       teamTitle:'Команда', contactTitle:'Контакты',
     },
     footer: {
-      desc:'Полная исламская цифровая платформа для каждого мусульманина.',
+      desc:'Сайт мечети Карачухур — время намаза, коллективные молитвы, объявления и исламские знания.',
       links:'Быстрые ссылки', contact:'Контакты',
-      copy:'© 2025 muslims.cc — Сделано с любовью для уммы',
+      copy:`© ${BRAND.name.ru} — ${BRAND.domain}`,
       tagline:'Во имя Аллаха, Милостивого, Милосердного',
     },
   },
@@ -321,10 +324,10 @@ export const T = {
     },
     home: {
       badge:'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-      heroTitle:'بيتك الإسلامي الرقمي',
+      heroTitle:BRAND.name.ar,
       heroSub:'القرآن والحديث ومواقيت الصلاة والأدعية والذكر والزكاة — كل شيء في مكان واحد، مجاناً.',
       btnQuran:'اقرأ القرآن', btnPrayer:'مواقيت الصلاة', btnDua:'ادعُ الله',
-      statsTitle:'منصتنا',
+      statsTitle:'في موقعنا',
       featTitle:'كل ما تحتاجه',
       featSub:'رفيق روحي متكامل لكل مسلم',
       ayah:'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
@@ -336,7 +339,7 @@ export const T = {
       feature5Title:'أسماء الله الحسنى', feature5Desc:'٩٩ اسماً مع المعاني والشرح.',
       feature6Title:'حاسبة الزكاة', feature6Desc:'حساب دقيق للذهب والفضة والنقود.',
       ctaTitle:'هل أنت مستعد للبدء؟',
-      ctaDesc:'اكتشف حياتك الإسلامية الرقمية معنا.',
+      ctaDesc:`اكتشف مواقيت الصلاة والإعلانات والمعرفة الإسلامية على موقع ${BRAND.name.ar}.`,
       ctaBtn:'ابدأ قراءة القرآن',
     },
     quran: {
@@ -399,8 +402,8 @@ export const T = {
       result:'النتيجة', aboveNisab:'لقد بلغت النصاب',
     },
     about: {
-      title:'عن الموقع', subtitle:'عن منصة muslims.cc',
-      mission:'رسالتنا', missionText:'إتاحة المعرفة الإسلامية الأصيلة لكل مسلم بلغته في بيئة جميلة خالية من المشتتات.',
+      title:'عن الموقع', subtitle:`عن موقع ${BRAND.name.ar}`,
+      mission:'رسالتنا', missionText:`إيصال مواقيت الصلاة والإعلانات والمعرفة الإسلامية الأصيلة إلى جماعة ${BRAND.name.ar} وكل زائر بلغته، في بيئة جميلة خالية من المشتتات.`,
       values:'قيمنا',
       v1t:'الأصالة', v1d:'من القرآن والحديث الصحيح وإجماع العلماء فقط.',
       v2t:'مجاني دائماً', v2d:'لا اشتراك، لا إعلانات، لا مدفوعات.',
@@ -409,9 +412,9 @@ export const T = {
       teamTitle:'الفريق', contactTitle:'تواصل معنا',
     },
     footer: {
-      desc:'منصة إسلامية رقمية متكاملة لكل مسلم.',
+      desc:`موقع ${BRAND.name.ar} — مواقيت الصلاة وصلاة الجماعة والإعلانات والمعرفة الإسلامية.`,
       links:'روابط سريعة', contact:'تواصل',
-      copy:'© ٢٠٢٥ muslims.cc — صُنع بمحبة للأمة',
+      copy:`© ${BRAND.name.ar} — ${BRAND.domain}`,
       tagline:'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
     },
   },
@@ -425,10 +428,10 @@ export const T = {
     },
     home: {
       badge:'Bismillahirrahmanirrahim',
-      heroTitle:'İslami Dijital Eviniz',
+      heroTitle:BRAND.name.tr,
       heroSub:"Kur'an, hadis, namaz vakitleri, dualar, zikir ve zekât — hepsi bir arada, ücretsiz.",
       btnQuran:"Kur'an Oku", btnPrayer:'Namaz Vakitleri', btnDua:'Dua Et',
-      statsTitle:'Platformumuz',
+      statsTitle:'Sitemizde',
       featTitle:'İhtiyacınız Olan Her Şey',
       featSub:'Her Müslüman için eksiksiz manevi bir rehber',
       ayah:'Güçlükle birlikte mutlaka bir kolaylık vardır.',
@@ -440,7 +443,7 @@ export const T = {
       feature5Title:"Allah'ın 99 İsmi", feature5Desc:'Esmaül-Hüsna — anlam ve açıklamayla.',
       feature6Title:'Zekât Hesaplayıcı', feature6Desc:'Altın, gümüş ve nakit için hassas hesap.',
       ctaTitle:'Başlamaya Hazır mısınız?',
-      ctaDesc:'Bizimle dijital İslami yaşam tarzınızı keşfedin.',
+      ctaDesc:`${BRAND.name.tr} sitesinde namaz vakitlerini, duyuruları ve İslami bilgiyi keşfedin.`,
       ctaBtn:"Kur'an Okumaya Başla",
     },
     quran: {
@@ -503,8 +506,8 @@ export const T = {
       result:'Sonuç', aboveNisab:'Nisap eşiğine ulaştınız',
     },
     about: {
-      title:'Hakkımızda', subtitle:'muslims.cc hakkında',
-      mission:'Misyonumuz', missionText:"Her Müslümana kendi dilinde özgün İslami bilgiye güzel, dikkat dağıtmayan bir ortamda erişim sağlamak.",
+      title:'Hakkımızda', subtitle:`${BRAND.name.tr} sitesi hakkında`,
+      mission:'Misyonumuz', missionText:`${BRAND.name.tr} cemaatine ve her ziyaretçiye namaz vakitlerini, duyuruları ve özgün İslami bilgiyi kendi dilinde, güzel ve dikkat dağıtmayan bir ortamda ulaştırmak.`,
       values:'Değerlerimiz',
       v1t:'Özgünlük', v1d:"Yalnızca Kur'an, sahih hadis ve âlimlerin icmaından.",
       v2t:'Sonsuza Kadar Ücretsiz', v2d:'Abonelik, reklam, ödeme yok.',
@@ -513,9 +516,9 @@ export const T = {
       teamTitle:'Ekip', contactTitle:'İletişim',
     },
     footer: {
-      desc:'Her Müslüman için eksiksiz İslami dijital platform.',
+      desc:`${BRAND.name.tr} sitesi — namaz vakitleri, cemaat namazları, duyurular ve İslami bilgi.`,
       links:'Hızlı Bağlantılar', contact:'İletişim',
-      copy:'© 2025 muslims.cc — Ümmet için sevgiyle yapıldı',
+      copy:`© ${BRAND.name.tr} — ${BRAND.domain}`,
       tagline:'Bismillahirrahmanirrahim',
     },
   },

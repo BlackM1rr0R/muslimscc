@@ -1,8 +1,39 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { LANGS, DEFAULT_LANG, parsePath, pathFor } from '../seo/routes'
 
 const LangCtx = createContext(null)
+
+// ── Tema ──────────────────────────────────────────────
+// Qayda (sahibin qərarı): istifadəçi ay/günəş düyməsi ilə özü seçməyibsə,
+// sayt telefonun/sistemin rejimini izləyir (ilk gələn, telefonu qaranlıq
+// rejimdə olan ziyarətçi qaranlıq saytı görür) və sistem dəyişəndə canlı
+// dəyişir. Düyməyə basılan andan saxlanmış seçim ('dark' | 'light') qalib gəlir.
+// index.html-in <head>-indəki kiçik skript EYNİ qaydanı React yüklənməmiş
+// tətbiq edir (açıq temanın bir anlıq yanıb-sönməsi olmasın) — biri dəyişsə,
+// o biri də dəyişməlidir.
+const THEME_KEY = 'muslim_cc_theme'
+const DARK_QUERY = '(prefers-color-scheme: dark)'
+
+/** Saxlanmış seçim: 'dark' | 'light' | null (seçilməyib və ya yaddaş bağlıdır). */
+function readStoredTheme() {
+  try {
+    const v = localStorage.getItem(THEME_KEY)
+    return v === 'dark' || v === 'light' ? v : null
+  } catch { /* yaddaş bağlıdır */ return null }
+}
+
+/** Sistemin qaranlıq rejim sorğusu (dəstəklənmirsə null). */
+function darkQuery() {
+  try { return window.matchMedia ? window.matchMedia(DARK_QUERY) : null } catch { return null }
+}
+
+/** Saytın effektiv teması: saxlanmış seçim, yoxdursa sistemin rejimi. */
+export function resolveSiteDark() {
+  const stored = readStoredTheme()
+  if (stored) return stored === 'dark'
+  return Boolean(darkQuery()?.matches)
+}
 
 export function LangProvider({ children }) {
   const location = useLocation()
@@ -13,21 +44,26 @@ export function LangProvider({ children }) {
   // localStorage-a bağlı dil bütün dilləri eyni URL-də gizlədirdi.
   const { lang, key } = parsePath(location.pathname)
 
-  const [dark, setDark] = useState(() => {
-    return localStorage.getItem('muslim_cc_theme') === 'dark'
-  })
+  // Yaddaş bağlı ola bilər (brauzer sayt məlumatını bloklayır) — o halda
+  // localStorage xəta atır; kök provayder çökməsin deyə hər müraciət qorunur.
+  const [dark, setDark] = useState(resolveSiteDark)
+  // Bu sessiyada düyməyə basılıbmı — yaddaş bağlı olsa belə seçim sistemə uduzmasın
+  const userChoseRef = useRef(false)
+  // MutationObserver-in görməsi üçün cari tema (bax aşağıda)
+  const darkRef = useRef(dark)
 
   /** Dili dəyiş = eyni səhifənin başqa dildəki URL-inə keç. */
   const setLang = (l) => {
     if (!LANGS.includes(l)) return
-    localStorage.setItem('muslim_cc_lang', l) // növbəti gəlişdə tərcih kimi
+    try { localStorage.setItem('muslim_cc_lang', l) } catch { /* yaddaş bağlıdır */ } // növbəti gəlişdə tərcih kimi
     navigate(pathFor(key, l))
   }
 
   const toggleDark = () => {
+    userChoseRef.current = true
     setDark(prev => {
       const next = !prev
-      localStorage.setItem('muslim_cc_theme', next ? 'dark' : 'light')
+      try { localStorage.setItem(THEME_KEY, next ? 'dark' : 'light') } catch { /* yaddaş bağlıdır */ }
       document.documentElement.setAttribute('data-theme', next ? 'dark' : '')
       return next
     })
@@ -39,12 +75,48 @@ export function LangProvider({ children }) {
   }, [lang])
 
   useEffect(() => {
+    darkRef.current = dark
     if (dark) {
       document.documentElement.setAttribute('data-theme', 'dark')
     } else {
       document.documentElement.removeAttribute('data-theme')
     }
+    // Brauzer zolağının rəngi başlıqla eyni olsun (açıq: ağ şüşə, qaranlıq: #1a1a2e)
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#1a1a2e' : '#ffffff')
   }, [dark])
+
+  // Sistem rejimi canlı dəyişəndə (telefon axşam avtomatik qaranlığa keçir)
+  // izlə — amma yalnız istifadəçi hələ özü seçməyibsə. Seçimi hər dəfə
+  // yaddaşdan oxuyuruq: başqa vərəqdə edilən seçim də nəzərə alınır.
+  useEffect(() => {
+    const mq = darkQuery()
+    if (!mq) return undefined
+    const onChange = (e) => {
+      if (userChoseRef.current || readStoredTheme()) return
+      setDark(e.matches)
+    }
+    if (mq.addEventListener) mq.addEventListener('change', onChange)
+    else mq.addListener?.(onChange) // köhnə Safari (<14)
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', onChange)
+      else mq.removeListener?.(onChange)
+    }
+  }, [])
+
+  // Əlçatanlıq panelinin "Avto" teması data-theme-i yalnız saxlanmış seçimə
+  // baxaraq qoyur/silir — sistemdən gələn qaranlığı bilmir və hər hansı ayar
+  // dəyişəndə atributu silirdi (sayt açığa keçir, düymə isə "qaranlıq" qalırdı).
+  // Atributun silinməsi "saytın öz seçimi qalsın" deməkdir: sayt qaranlıqdırsa,
+  // geri qoyuruq. Panelin açıq "light"/"sepia" seçimlərinə toxunulmur.
+  useEffect(() => {
+    if (typeof MutationObserver === 'undefined') return undefined
+    const root = document.documentElement
+    const mo = new MutationObserver(() => {
+      if (darkRef.current && !root.hasAttribute('data-theme')) root.setAttribute('data-theme', 'dark')
+    })
+    mo.observe(root, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => mo.disconnect()
+  }, [])
 
   return (
     <LangCtx.Provider value={{ lang, setLang, dark, toggleDark }}>
@@ -65,7 +137,8 @@ export function useStoredLangRedirect() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const saved = localStorage.getItem('muslim_cc_lang')
+    let saved = null
+    try { saved = localStorage.getItem('muslim_cc_lang') } catch { /* yaddaş bağlıdır */ }
     if (!saved || saved === DEFAULT_LANG || !LANGS.includes(saved)) return
     const { lang, key } = parsePath(location.pathname)
     if (lang !== DEFAULT_LANG) return

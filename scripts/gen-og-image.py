@@ -122,18 +122,30 @@ def main():
     crescent(img, 140, 196, 66)
     star5(img, 186, 196, 21, GOLD)
 
-    # ── Wordmark ──
-    f_brand = load_font(BOLD, 92)
-    d.text((262, 148), 'Muslims.cc', font=f_brand, fill=CREAM, anchor='lm')
+    # ── Wordmark ── uzun ad olduğu üçün ölçü eni ölçülərək seçilir.
+    # Ad, yer və tagline src/config/mosque.js-dəki BRAND.name.az,
+    # MOSQUE.locality.az və BRAND.tagline.az ilə uyğun saxla (Python import edə bilmir)
+    brand = 'Qaraçuxur Məscidi'
+    size = 88
+    f_brand = load_font(BOLD, size)
+    while d.textlength(brand, font=f_brand) > W - 72 - 262 and size > 56:
+        size -= 2
+        f_brand = load_font(BOLD, size)
+    d.text((262, 170), brand, font=f_brand, fill=CREAM, anchor='ls')
+
+    # ── Yer ── wordmark-ın altında, qızılı
+    f_loc = load_font(BOLD, 34)
+    d.text((264, 224), 'Qaraçuxur, Bakı', font=f_loc, fill=GOLD, anchor='ls')
 
     # ── Tagline ──
-    f_tag = load_font(REG, 40)
-    d.text((72, 296), 'İslami Rəqəmsal Platforma', font=f_tag, fill=(203, 232, 213), anchor='lm')
+    f_tag = load_font(REG, 34)
+    d.text((72, 316), 'Namaz vaxtları, camaat namazı, elanlar və İslami bilik',
+           font=f_tag, fill=(203, 232, 213), anchor='lm')
 
     # ── Xidmət çipləri ──
     # Çiplər ayrı RGBA qatında çəkilir: ImageDraw şəffaflığı qarışdırmır,
     # birbaşa çəkilsə piksellər tam ağ olur.
-    chips = ['Quran', 'Namaz Vaxtları', 'Hədis', 'Dua', 'Zikr', 'Zəkat', 'Qiblə']
+    chips = ['Namaz Vaxtları', 'Camaat namazı', 'Elanlar', 'Quran', 'Hədis', 'Dua', 'Zikr', 'Qiblə']
     f_chip = load_font(REG, 30)
     chip_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     dc = ImageDraw.Draw(chip_layer)
@@ -153,7 +165,7 @@ def main():
 
     # ── Alt sətir ──
     f_foot = load_font(REG, 28)
-    d.text((72, H - 62), '5 dil  ·  31 xidmət  ·  pulsuz və reklamsız',
+    d.text((72, H - 62), '5 dildə  ·  pulsuz və reklamsız',
            font=f_foot, fill=(168, 214, 184), anchor='lm')
     d.text((W - 72, H - 62), 'muslims.cc', font=load_font(BOLD, 30), fill=GOLD, anchor='rm')
 

@@ -1,7 +1,7 @@
 {
   "name": "muslim-cc",
   "version": "1.0.0",
-  "description": "muslims.cc — Islamic Digital Platform",
+  "description": "Qaraçuxur Məscidi — məscidin saytı (muslims.cc): namaz vaxtları, camaat namazı, elanlar və İslami bilik",
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/prerender.mjs",

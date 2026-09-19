@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-# Muslims.cc — Apache konfiqurasiyası (cPanel / adi hostinq)
+# Qaraçuxur Məscidi (muslims.cc) — Apache konfiqurasiyası (cPanel / adi hostinq)
 #
 # vercel.json yalnız Vercel-də işləyir. FTP ilə adi hostinqə
 # yüklənəndə marşrutlaşdırmanı bu fayl idarə edir.
@@ -9,6 +9,14 @@
 
 Options -MultiViews
 DirectorySlash Off
+
+# ── Həqiqi 404 ──
+# Naməlum ünvan (/nope, /ru/nope) ana səhifəni 200 ilə YOX, 404.html-i
+# HTTP 404 statusu ilə alır. 404.html-i build (scripts/prerender.mjs) yazır:
+# SPA qabığıdır, brauzerdə "Səhifə tapılmadı" səhifəsini URL-in dilində
+# göstərir, noindex-dir. Kök-nisbi yol (/404.html) — status 404 qalır;
+# tam URL (https://...) yazsan Apache 302 yönləndirmə edərdi.
+ErrorDocument 404 /404.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
@@ -23,6 +31,11 @@ DirectorySlash Off
   RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
   RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
+  # ── /az/... → prefiksiz kanonik forma ──
+  # Azərbaycan dili prefiksizdir (/quran); /az/quran üçün statik fayl yoxdur.
+  # Tətbiq bu ünvanı tanıyır, ona görə 404 yox, 301: /az → /, /az/quran → /quran
+  RewriteRule ^az(?:/(.*))?$ /$1 [R=301,L]
+
   # ── Sondakı "/" -i sil ──
   # /quran/ və /quran ayrı-ayrı indekslənməsin deyə tək forma saxlanılır
   # (canonical teqləri də prefikssiz formanı göstərir).
@@ -30,9 +43,19 @@ DirectorySlash Off
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^(.*)/$ /$1 [R=301,L]
 
+  # ── /404.html birbaşa açılanda da 404 ──
+  # (200 ilə indekslənə bilən dublikat olmasın). ErrorDocument-in daxili
+  # yönləndirməsində REDIRECT_STATUS dolu olur — o zaman fayl adi qaydada verilir.
+  RewriteCond %{ENV:REDIRECT_STATUS} ^$
+  RewriteRule ^404\.html$ - [R=404,L]
+
   # ── Mövcud fayllar olduğu kimi verilsin (assets, şəkillər, sitemap) ──
   RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
+
+  # ── Ana səhifə ──
+  # Əvvəl "/" aşağıdakı ümumi SPA qaydası ilə açılırdı; o qayda artıq yoxdur.
+  RewriteRule ^$ /index.html [L]
 
   # ── Prerender edilmiş marşrutlar: /quran → /quran/index.html ──
   # DirectorySlash Off olduğu üçün bunu açıq şəkildə yazmaq lazımdır.
@@ -40,8 +63,12 @@ DirectorySlash Off
   RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
   RewriteRule ^(.+?)/?$ /$1/index.html [L]
 
-  # ── Qalan hər şey SPA-ya ──
-  RewriteRule ^ /index.html [L]
+  # ── Qalan hər şey — HƏQİQİ 404 (ErrorDocument 404.html-i verir) ──
+  # Əvvəl burada "RewriteRule ^ /index.html [L]" idi: hər naməlum ünvan
+  # 200 + ana səhifə qaytarırdı ("soft-404"). /api/ istisnadır — onu
+  # hostinqdə başqa nə idarə edirsə, ona toxunulmur.
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteRule ^ - [R=404,L]
 </IfModule>
 
 # ── Sıxılma ──

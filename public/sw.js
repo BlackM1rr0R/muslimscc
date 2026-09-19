@@ -1,5 +1,7 @@
-// Muslims.cc — Service Worker + Push Notifications
-const CACHE_NAME = 'muslims-cc-v3'
+// Qaraçuxur Məscidi — Service Worker + Push Notifications
+// v4: /favicon.svg əvvəl public/-də yox idi — köhnə keşdə onun yerinə index.html
+// saxlanılıb (şəkillər keşdən birinci verilir). Ad dəyişəndə köhnə keş silinir.
+const CACHE_NAME = 'muslims-cc-v4'
 
 const PRECACHE_URLS = [
   '/',

@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// Muslims.cc — Marşrut & SEO meta reyestri
+// Qaraçuxur Məscidi — Marşrut & SEO meta reyestri
 //
 // Bu fayl saytın YEGANƏ həqiqət mənbəyidir:
 //   • App.jsx marşrutlaşdırma üçün oxuyur
@@ -25,6 +25,11 @@ export const LOCALES = {
 // noindex  — sitemap-dan və indeksləmədən kənar (admin səhifələri)
 export const PAGES = [
   { key: 'home',         path: '',             priority: 1.0,  changefreq: 'daily'   },
+  // Məscid bölmələri
+  { key: 'mosque',        path: 'mosque',        priority: 0.95, changefreq: 'monthly' },
+  { key: 'jamaat',        path: 'jamaat',        priority: 0.95, changefreq: 'daily'   },
+  { key: 'announcements', path: 'announcements', priority: 0.90, changefreq: 'daily'   },
+  { key: 'donate',        path: 'donate',        priority: 0.70, changefreq: 'monthly' },
   { key: 'quran',        path: 'quran',        priority: 0.95, changefreq: 'weekly'  },
   { key: 'prayer',       path: 'prayer',       priority: 0.95, changefreq: 'daily'   },
   { key: 'hadith',       path: 'hadith',       priority: 0.90, changefreq: 'weekly'  },

@@ -3,7 +3,8 @@
 //
 // Vite tək bir dist/index.html verir. Bu skript hər marşrut və hər dil
 // üçün ayrıca dist/<yol>/index.html yazır — <head>-i həmin səhifəyə
-// uyğun doldurulmuş halda.
+// uyğun doldurulmuş halda. Üstəlik dist/404.html: server naməlum ünvana
+// onu HTTP 404 statusu ilə qaytarır (noindex, canonical-sız SPA qabığı).
 //
 // NİYƏ: Googlebot JS icra etsə də bunu gecikmə ilə edir, Bing və Yandex
 // isə praktik olaraq etmir. Statik fayl olmadan bütün URL-lər eyni
@@ -22,10 +23,23 @@ import { fileURLToPath } from 'node:url'
 
 import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, pathFor } from '../src/seo/routes.js'
 import { titleFor, descFor, shortName, UI } from '../src/seo/meta.js'
+import { brandName, mosqueJsonLd } from '../src/config/mosque.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const DIST = path.join(ROOT, 'dist')
 const OG_IMAGE = `${SITE}/og-image.png`
+
+// schema.org/Mosque hansı səhifələrdə yazılır — src/seo/Seo.jsx-dəki
+// MOSQUE_JSONLD_PAGES ilə EYNİ olmalıdır. Sabit @id iki səhifədəki bloku
+// Google üçün bir məscid obyektinə birləşdirir. index.html-də statik Mosque
+// bloku yoxdur, ona görə heç bir səhifədə iki Mosque obyekti yaranmır.
+const MOSQUE_JSONLD_PAGES = ['home', 'mosque']
+const mosqueEntity = (lang) => ({ ...mosqueJsonLd(lang), '@id': `${SITE}/#mosque` })
+
+// Tanınmayan ünvan (404) — App.jsx parsePath(...).known === false olanda
+// məhz bu açarla NotFoundPage göstərir, Seo.jsx də eyni açarı yoxlayır.
+// PAGES-də yoxdur: sitemap-a düşmür, yalnız dist/404.html kimi yazılır.
+const NOT_FOUND = 'notfound'
 
 const esc = (s) => String(s)
   .replace(/&/g, '&amp;')
@@ -48,6 +62,24 @@ function replaceMeta(html, attr, key, value) {
   return html
 }
 
+/**
+ * Səhifənin izi (breadcrumb): Ana səhifə → səhifə. src/seo/Seo.jsx ilə EYNİ
+ * quruluş — JS-li və JS-siz robot eyni sxemi görür.
+ */
+function breadcrumbFor(key, lang, title) {
+  const brand = brandName(lang)
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: brand, item: SITE + pathFor('home', lang) },
+      ...(key === 'home'
+        ? []
+        : [{ '@type': 'ListItem', position: 2, name: title.split(' | ')[0], item: SITE + pathFor(key, lang) }]),
+    ],
+  }
+}
+
 /** Bir səhifə + dil üçün <head> parçası. */
 function headFor(key, lang) {
   const canonical = SITE + pathFor(key, lang)
@@ -66,13 +98,18 @@ function headFor(key, lang) {
     description: desc,
     url: canonical,
     inLanguage: lang,
-    isPartOf: { '@type': 'WebSite', name: 'Muslims.cc', url: SITE + '/' },
+    isPartOf: { '@type': 'WebSite', name: brandName(lang), url: SITE + '/' },
+    breadcrumb: breadcrumbFor(key, lang, title),
   }
 
   return [
     `    <link rel="canonical" href="${canonical}" data-seo="canonical" />`,
     alts,
     `    <script type="application/ld+json" data-seo="page-jsonld">${JSON.stringify(jsonld)}</script>`,
+    // Məscid sxemi (schema.org/Mosque) — ana səhifədə və "Məscid haqqında"-da, həmin dildə
+    ...(MOSQUE_JSONLD_PAGES.includes(key)
+      ? [`    <script type="application/ld+json" data-seo="mosque-jsonld">${JSON.stringify(mosqueEntity(lang))}</script>`]
+      : []),
   ].join('\n')
 }
 
@@ -91,7 +128,9 @@ function noscriptFor(key, lang) {
     .map(p => `<li><a href="${pathFor(p.key, lang)}">${esc(shortName(p.key, lang))}</a></li>`)
     .join('')
 
-  const langLinks = LANGS
+  // 404 səhifəsinin dil variantı yoxdur — pathFor onu ana səhifəyə
+  // çevirərdi, hreflang isə yanlış "bu səhifənin tərcüməsi" deyərdi
+  const langLinks = key === NOT_FOUND ? '' : LANGS
     .filter(l => l !== lang)
     .map(l => `<a href="${pathFor(key, l)}" hreflang="${l}">${l.toUpperCase()}</a>`)
     .join(' · ')
@@ -99,8 +138,8 @@ function noscriptFor(key, lang) {
   return `<noscript>
       <div style="font-family:system-ui,sans-serif;max-width:820px;margin:40px auto;padding:20px;line-height:1.7">
         <h1>${esc(shortName(key, lang))}</h1>
-        <p>${esc(descFor(key, lang))}</p>
-        <p>${langLinks}</p>
+        <p>${esc(descFor(key, lang))}</p>${langLinks ? `
+        <p>${langLinks}</p>` : ''}
         <h2>${esc(ui.nav)}</h2>
         <ul>${links}</ul>
         <p><em>${esc(ui.js)}</em></p>
@@ -108,8 +147,17 @@ function noscriptFor(key, lang) {
     </noscript>`
 }
 
-/** Şablon HTML-i konkret səhifəyə uyğunlaşdır. */
+/**
+ * Şablon HTML-i konkret səhifəyə uyğunlaşdır.
+ *
+ * key === NOT_FOUND (dist/404.html): canonical, hreflang, səhifə sxemi və
+ * og:url YAZILMIR — bu faylı server istənilən naməlum ünvana 404 statusu ilə
+ * qaytarır, ona görə o heç bir konkret URL-i "özüm" deyə göstərməməlidir
+ * (Seo.jsx brauzerdə canonical/hreflang/sxem üçün eyni qaydanı tətbiq edir).
+ * Həmişə noindex.
+ */
 function renderPage(template, key, lang, noindex = false) {
+  const notFound = key === NOT_FOUND
   const title = titleFor(key, lang)
   const desc = descFor(key, lang)
   const canonical = SITE + pathFor(key, lang)
@@ -117,7 +165,9 @@ function renderPage(template, key, lang, noindex = false) {
 
   let html = template
 
-  html = html.replace('<!--SEO:HEAD-->', headFor(key, lang))
+  html = notFound
+    ? html.replace(/[ \t]*<!--SEO:HEAD-->[ \t]*\r?\n?/, '')
+    : html.replace('<!--SEO:HEAD-->', headFor(key, lang))
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`)
   html = html.replace(/<html([^>]*)\slang="[^"]*"/i, '<html$1')
   html = html.replace(/<html([^>]*)>/i, `<html$1 lang="${lang}" dir="${dir}">`)
@@ -125,8 +175,20 @@ function renderPage(template, key, lang, noindex = false) {
   html = replaceMeta(html, 'name', 'description', desc)
   html = replaceMeta(html, 'property', 'og:title', title)
   html = replaceMeta(html, 'property', 'og:description', desc)
-  html = replaceMeta(html, 'property', 'og:url', canonical)
+  html = notFound
+    ? html.replace(/[ \t]*<meta\s+[^>]*property=["']og:url["'][^>]*>[ \t]*\r?\n?/i, '')
+    : replaceMeta(html, 'property', 'og:url', canonical)
   html = replaceMeta(html, 'property', 'og:locale', LOCALES[lang] || LOCALES.az)
+  // Sayt adı da səhifənin dilində (əvvəl hər dildə "Qaraçuxur Məscidi" idi)
+  html = replaceMeta(html, 'property', 'og:site_name', brandName(lang))
+  // og:locale:alternate — cari dildən BAŞQA dörd dil (şablondakı sabit siyahı
+  // /en/ səhifəsində en_US-u özünə alternativ göstərir, az_AZ-ı buraxırdı)
+  html = html.replace(
+    /(\s*<meta\s+property="og:locale:alternate"[^>]*>)+/i,
+    LANGS.filter(l => l !== lang)
+      .map(l => `\n    <meta property="og:locale:alternate" content="${LOCALES[l]}" />`)
+      .join(''),
+  )
   html = replaceMeta(html, 'property', 'og:image', OG_IMAGE)
   html = replaceMeta(html, 'name', 'twitter:title', title)
   html = replaceMeta(html, 'name', 'twitter:description', desc)
@@ -135,7 +197,7 @@ function renderPage(template, key, lang, noindex = false) {
   // Statik noscript blokunu səhifəyə uyğun olanı ilə əvəz et
   html = html.replace(/<noscript>[\s\S]*?<\/noscript>/i, () => noscriptFor(key, lang))
 
-  if (noindex) {
+  if (noindex || notFound) {
     html = replaceMeta(html, 'name', 'robots', 'noindex, nofollow')
     html = replaceMeta(html, 'name', 'googlebot', 'noindex, nofollow')
   }
@@ -200,14 +262,23 @@ if (!template.includes('<!--SEO:HEAD-->')) {
 
 let count = 0
 for (const p of PAGES) {
-  // Admin marşrutları da statik yazılır ki, birbaşa açılanda 404 olmasın —
-  // amma noindex olduqları üçün sitemap-a düşmürlər.
-  const langs = p.noindex ? [DEFAULT_LANG] : LANGS
-  for (const lang of langs) {
+  // Admin marşrutları da HƏR DİLDƏ statik yazılır: server artıq naməlum
+  // ünvana həqiqi 404 qaytarır (bax: deploy/nginx-muslims.cc.conf, .htaccess),
+  // tətbiq isə interfeys ingiliscə olanda admini /en/admin ünvanında açır.
+  // noindex olduqları üçün sitemap-a düşmürlər.
+  for (const lang of LANGS) {
     writeRoute(renderPage(template, p.key, lang, Boolean(p.noindex)), pathFor(p.key, lang))
     count++
   }
 }
 
+// ── 404 səhifəsi ──
+// nginx: error_page 404 /404.html · Apache: ErrorDocument 404 /404.html.
+// Tanınmayan ünvan (/nope, /ru/nope) HTTP 404 statusu ilə bu SPA qabığını
+// alır; brauzerdə App.jsx həmin yolu 'notfound' kimi, URL-in dilində göstərir.
+// Əvvəl belə ünvanlar 200 + ana səhifə qaytarırdı ("soft-404").
+fs.writeFileSync(path.join(DIST, '404.html'), renderPage(template, NOT_FOUND, DEFAULT_LANG), 'utf8')
+count++
+
 const sitemapUrls = buildSitemap()
-console.log(`✓ Prerender: ${count} statik HTML, sitemap.xml-də ${sitemapUrls} URL`)
+console.log(`✓ Prerender: ${count} statik HTML (404.html daxil), sitemap.xml-də ${sitemapUrls} URL`)

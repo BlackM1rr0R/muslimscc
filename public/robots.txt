@@ -1,59 +1,36 @@
 # ═══════════════════════════════════════════════════════
-# Muslims.cc — robots.txt
+# Qaraçuxur Məscidi — robots.txt
 # https://muslims.cc
+#
+# TƏK QRUP — qəsdən. Hər robot yalnız ÖZ adına uyğun olan ən dəqiq
+# "User-agent" qrupuna tabe olur və "*" qrupunu tamamilə unudur.
+# Əvvəl Bingbot, YandexBot, GPTBot və s. üçün ayrıca "Allow: /"
+# qrupları vardı — nəticədə həmin robotlar /admin və /api/ qadağasını
+# heç görmürdü. İndi hamı (axtarış motorları və AI robotları da) eyni
+# qaydalara tabedir; qadağan olunmayan hər şey açıqdır.
+#
+# Yeni robot üçün ayrıca qrup əlavə etsən, aşağıdakı Disallow
+# sətirlərini ORAYA DA TƏKRAR YAZ.
+#
+# "Allow: /" yazılmayıb: köhnə (ilk uyğunluğa baxan) parserlər onu
+# görüb aşağıdakı Disallow-ları nəzərə almırdı.
 # ═══════════════════════════════════════════════════════
 
 User-agent: *
-Allow: /
-Disallow: /node_modules/
-Disallow: /src/
+# İdarəetmə paneli və dil prefiksli variantları (/en/admin, /ru/adminlogin ...)
+# ("/admin" prefiks kimi /adminlogin-i də örtür — aydınlıq üçün ayrıca yazılıb)
+#
+# DİQQƏT: "/*/admin" kimi joker İSTİFADƏ ETMƏ — o, /assets/adminContent-<hash>.js
+# faylına da uyğun gəlir. Hədis, Dualar, Elanlar səhifələri bu faylı yükləyir;
+# Googlebot bloklanmış JS-i yükləyə bilmədiyi üçün o səhifələri render edə bilməz.
 Disallow: /admin
 Disallow: /adminlogin
+Disallow: /en/admin
+Disallow: /ru/admin
+Disallow: /ar/admin
+Disallow: /tr/admin
+# Server API-si (PM2 / Node)
 Disallow: /api/
 
-# AI scrapers — icazə verilir (məzmun açıq paylaşılır)
-User-agent: GPTBot
-Allow: /
-User-agent: ChatGPT-User
-Allow: /
-User-agent: Claude-Web
-Allow: /
-User-agent: anthropic-ai
-Allow: /
-User-agent: PerplexityBot
-Allow: /
-User-agent: Google-Extended
-Allow: /
-
-# Axtarış motorları — explicit allow
-User-agent: Googlebot
-Allow: /
-Disallow: /admin
-Disallow: /adminlogin
-
-User-agent: Googlebot-Image
-Allow: /
-
-User-agent: Googlebot-News
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: YandexBot
-Allow: /
-
-User-agent: DuckDuckBot
-Allow: /
-
-User-agent: Baiduspider
-Allow: /
-
-# Crawl-delay (polite crawling)
-Crawl-delay: 1
-
-# Sitemap
+# Sitemap — bütün dillərdəki səhifələr (build zamanı yaradılır)
 Sitemap: https://muslims.cc/sitemap.xml
-
-# Host (kanonik domain)
-Host: https://muslims.cc
