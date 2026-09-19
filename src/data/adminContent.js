@@ -117,6 +117,28 @@ export function subscribeToSettings(cb) {
   })
 }
 
+// ═══ CAMAAT VAXTLARI (singleton) ═══
+// Sənəd: { jamaat:{ fajr, dhuhr, asr, maghrib, isha }, jumua:{ time, khutbahLang:{ az, en, ru, tr, ar } } }
+// Hər qayda "HH:MM", "+N" (azandan N dəqiqə sonra), "-" (camaat vaxtını gizlə) və ya "" —
+// MOSQUE.jamaat ilə eyni format ("-" yalnız admin üstələməsidir, konfiqə qayıtmır).
+// Doldurulmuş dəyər src/config/mosque.js-dəkini üstələyir (bax: hooks/useMosqueTimes.js).
+// Default YOXDUR: sənəd yoxdursa null qaytarılır — vaxt uydurulmur.
+
+export async function getJamaat() {
+  return await getSingleDoc('singletons', 'jamaat')
+}
+
+export async function saveJamaat(data) {
+  // getJamaat()-dan gələn texniki sahələr sənədə təkrar yazılmasın
+  const { id, updatedAt, ...rest } = data || {}
+  return await setSingleDoc('singletons', 'jamaat', rest)
+}
+
+export function subscribeToJamaat(cb) {
+  // Firebase qurulmayıbsa subscribeSingleDoc dərhal cb(null) çağırır
+  return subscribeSingleDoc('singletons', 'jamaat', (data) => cb(data || null))
+}
+
 // ═══ KATEQORIYALAR (static — Firebase-də saxlanılmır) ═══
 export const ANNOUNCEMENT_TYPES = [
   { key:'info',    label:{az:'Məlumat',en:'Info',ru:'Информация',ar:'معلومات',tr:'Bilgi'}, color:'#3b82f6', icon:'ℹ️' },

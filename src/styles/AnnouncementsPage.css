@@ -1,0 +1,618 @@
+/* ══════════════════════════════════════════════
+   AnnouncementsPage.css — Elanlar (/announcements)
+   Yalnız globals.css dəyişənləri — qaranlıq rejim avtomatik işləyir.
+   Növ rəngi hər kartda inline --anp-accent ilə gəlir (ANNOUNCEMENT_TYPES).
+   ══════════════════════════════════════════════ */
+
+/* Hero rəngi — saytın əsas yaşıl tonu, bir az tünd */
+.page-hero.theme-announcements { --hero-from:#1f7a45; --hero-via:#17603a; --hero-to:#0d4a27; }
+
+.anp-page { min-height: 70vh; }
+
+/* Yan boşluq başlıq/footer ilə bir xətdə — ortaq boşluq dəyişənləri */
+.anp-wrap {
+  max-width: 880px;
+  margin: 0 auto;
+  padding-block: var(--hero-gap) var(--page-pad-bottom);
+  padding-inline: var(--page-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ── Bölmə başlığı ── */
+.anp-section { min-width: 0; }
+.anp-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.anp-section-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  line-height: 1.3;
+}
+.anp-eyebrow {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+html[lang="ar"] .anp-eyebrow { letter-spacing: 0; }
+
+/* ── Sabit kart: Məscidə yardım ──
+   Elan kartlarının dilində (yan zolaq, eyni radius/kölgə), amma qızılı ton ilə —
+   reklam kimi yox, səhifənin bir hissəsi kimi görünsün. */
+.anp-help {
+  /* Qızılı işıq ləkəsinin tonu — qaranlıq rejimdə bir az zəif (bulanıq görünməsin) */
+  --anp-help-glow: color-mix(in srgb, var(--gold) 9%, transparent);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "icon head"
+    "icon text"
+    "icon actions";
+  column-gap: 18px;
+  background: var(--bg-card);
+  background:
+    radial-gradient(120% 140% at 100% 0%, var(--anp-help-glow) 0%, transparent 55%),
+    var(--bg-card);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--gold);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 22px 24px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+[data-theme="dark"] .anp-help { --anp-help-glow: color-mix(in srgb, var(--gold) 6%, transparent); }
+/* RTL-də işıq ləkəsi başlanğıc tərəfin əksinə — sol yuxarı küncə keçsin */
+[dir="rtl"] .anp-help,
+html[lang="ar"] .anp-help {
+  background:
+    radial-gradient(120% 140% at 0% 0%, var(--anp-help-glow) 0%, transparent 55%),
+    var(--bg-card);
+}
+.anp-help-icon {
+  grid-area: icon;
+  align-self: start;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold-bg);
+  border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent);
+  color: var(--gold-dark);
+}
+[data-theme="dark"] .anp-help-icon { color: var(--gold); }
+.anp-help-head { grid-area: head; min-width: 0; }
+.anp-help-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  margin-bottom: 4px;
+}
+[data-theme="dark"] .anp-help-pin { color: var(--gold); }
+html[lang="ar"] .anp-help-pin { letter-spacing: 0; font-size: 12.5px; }
+.anp-help-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.35;
+  letter-spacing: -0.2px;
+}
+.anp-help-text {
+  grid-area: text;
+  margin-top: 6px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-dim);
+  max-width: 62ch;
+}
+.anp-help-actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ── Süzgəc çipləri ── */
+.anp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.anp-chip {
+  --anp-accent: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-md);
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s;
+}
+.anp-chip:hover { border-color: var(--anp-accent); color: var(--text); }
+.anp-chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.anp-chip.active {
+  background: var(--primary-bg2);
+  border-color: var(--primary);
+  color: var(--text);
+}
+.anp-chip-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--anp-accent);
+  flex-shrink: 0;
+}
+.anp-chip-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ── Elan kartları ── */
+.anp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.anp-card {
+  --anp-accent: var(--primary);
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--anp-accent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px 22px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.anp-card-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-bottom: 10px;
+}
+.anp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  background: color-mix(in srgb, var(--anp-accent) 13%, transparent);
+  color: var(--anp-accent);
+  color: color-mix(in srgb, var(--anp-accent) 72%, var(--text));
+  font-size: 12px;
+  font-weight: 700;
+}
+.anp-new {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--gold-bg);
+  color: var(--gold-dark);   /* açıq fonda --gold kontrastı çatmırdı */
+  font-size: 11.5px;
+  font-weight: 800;
+}
+[data-theme="dark"] .anp-new { color: var(--gold); }
+.anp-date {
+  margin-inline-start: auto;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.anp-card-title {
+  font-size: 17.5px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+.anp-card-message {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-dim);
+  white-space: pre-line;
+}
+.anp-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+}
+.anp-card-link:hover { text-decoration: underline; }
+.anp-card-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+
+/* ── Yüklənmə skeleton-u (hündürlüyü real karta yaxın — sıçrayış olmasın)
+   Fon və parıltı kitin .skeleton sinfindən (transform ilə); burada ölçülər. ── */
+.anp-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-inline-start-color: var(--border-md);
+}
+.anp-skel-line {
+  display: block;
+  height: 12px;
+  width: 100%;
+  border-radius: 6px;
+}
+.anp-skel-short { width: 90px; height: 18px; border-radius: 999px; }
+.anp-skel-title { width: 55%; height: 18px; }
+.anp-skel-mid { width: 70%; }
+
+/* ── Boş vəziyyət ── */
+.anp-empty {
+  background: var(--bg-card);
+  border: 1px dashed var(--border-md);
+  border-radius: var(--radius-lg);
+  padding: 36px 24px;
+  text-align: center;
+}
+.anp-empty-icon { font-size: 34px; line-height: 1; margin-bottom: 12px; }
+.anp-empty-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.anp-empty-sub {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.anp-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ── Düymələr ── */
+.anp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--tap);   /* 44px toxunma hədəfi */
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;   /* <a> kimi istifadə olunanda da (yol tarifi) */
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s, transform .15s;
+}
+.anp-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.anp-btn-primary {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: var(--on-primary);
+}
+.anp-btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.anp-btn-ghost {
+  background: var(--bg-card);
+  border: 1px solid var(--border-md);
+  color: var(--text);
+}
+.anp-btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+
+.anp-link-btn {
+  background: none;
+  border: none;
+  padding: 6px 0;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.anp-link-btn:hover { text-decoration: underline; }
+.anp-link-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+
+/* ── Hicri günlər ── */
+.anp-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.anp-event {
+  --anp-accent: var(--primary);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.anp-event-date {
+  flex-shrink: 0;
+  width: 64px;
+  padding: 8px 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  background: color-mix(in srgb, var(--anp-accent) 12%, transparent);
+  color: var(--anp-accent);
+  color: color-mix(in srgb, var(--anp-accent) 72%, var(--text));
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.anp-event-day {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+}
+.anp-event-month {
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+html[lang="ar"] .anp-event-month { font-family: var(--font-arabic); font-size: 12.5px; }
+.anp-event-body { flex: 1; min-width: 0; }
+.anp-event-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+.anp-event-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+}
+.anp-event-meta {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.anp-event-desc {
+  margin-top: 6px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+.anp-more { margin-top: 14px; }
+.anp-note {
+  margin-top: 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* Yalnız ekran oxuyucular üçün */
+.anp-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Responsiv ── */
+@media (max-width: 720px) {
+  .anp-events { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .anp-wrap { gap: 32px; }
+  .anp-section-title { font-size: 19px; }
+  .anp-card { padding: 16px 16px; }
+  .anp-card-title { font-size: 16.5px; }
+  .anp-card-message { font-size: 14.5px; }
+  .anp-date { margin-inline-start: 0; flex-basis: 100%; }
+  .anp-empty { padding: 28px 16px; }
+  .anp-empty-actions .anp-btn { width: 100%; }
+
+  /* Yardım kartı: ikon başlıqla yanaşı, mətn və düymələr tam enlə */
+  .anp-help {
+    grid-template-areas:
+      "icon head"
+      "text text"
+      "actions actions";
+    column-gap: 14px;
+    padding: 18px 16px;
+  }
+  .anp-help-icon { width: 46px; height: 46px; align-self: center; }
+  .anp-help-icon svg { width: 25px; height: 25px; }
+  .anp-help-title { font-size: 17.5px; }
+  .anp-help-text { margin-top: 12px; font-size: 14.5px; }
+  .anp-help-actions .anp-btn { width: 100%; }
+}
+
+/* Çip sırası: masaüstündə əvvəlki kimi sarınır — kitin şaquli boşluğu burada lazım deyil */
+@media (min-width: 768px) {
+  .anp-chips.chip-scroll { padding-block: 0; }
+}
+
+/* ══════════════════════════════════════════════
+   TELEFON (<768px) — müasir tətbiq görünüşü
+   Masaüstü (≥1024px) toxunulmur: bütün dəyişikliklər bu blokdadır.
+   • Elan kartları: qalın yan zolaq yox — yumşaq kölgə, 16px radius;
+     növün rəngi nişanda və kartın yuxarı küncündəki zəif işıqda qalır
+   • Süzgəc çipləri bir sətirdə üfüqi sürüşür (.chip-scroll)
+   • Hicri günlər: bir qruplaşdırılmış siyahı (nazik ayırıcılarla)
+   • Düymələr barmaq üçün: tam en, ≥ 48px
+   ══════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  .anp-wrap { gap: 28px; }
+  .anp-section-head { margin-bottom: 12px; padding-inline: 4px; }
+  .anp-section-title { font-size: 20px; }
+
+  /* ── Sabit yardım kartı: yan zolaq əvəzinə qızılı işıq + kafel ikon ── */
+  .anp-help {
+    border-inline-start-width: 1px;
+    border-color: color-mix(in srgb, var(--gold) 22%, var(--border));
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm), 0 10px 28px -16px color-mix(in srgb, var(--gold) 55%, transparent);
+    --anp-help-glow: color-mix(in srgb, var(--gold) 14%, transparent);
+  }
+  [data-theme="dark"] .anp-help {
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+    --anp-help-glow: color-mix(in srgb, var(--gold) 9%, transparent);
+  }
+  .anp-help-icon { border: 0; border-radius: 14px; }
+  .anp-help-actions .anp-btn { min-height: 48px; border-radius: 12px; }
+
+  /* ── Süzgəc çipləri ── */
+  .anp-chips.chip-scroll { flex-wrap: nowrap; margin-bottom: 12px; }
+  .anp-chip { flex-shrink: 0; }
+  .anp-chip.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+  }
+  .anp-chip.active .anp-chip-dot { box-shadow: 0 0 0 2px color-mix(in srgb, var(--on-primary) 70%, transparent); }
+  .anp-chip.active .anp-chip-count {
+    background: color-mix(in srgb, var(--on-primary) 22%, transparent);
+    color: var(--on-primary);
+  }
+
+  /* ── Elan kartları ── */
+  .anp-list { gap: 12px; }
+  .anp-card {
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: 16px;
+    padding: 16px;
+    background:
+      radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--anp-accent) 9%, transparent) 0%, transparent 60%),
+      var(--bg-card);
+    box-shadow: var(--shadow-sm), 0 6px 20px -12px rgba(26, 107, 58, 0.18);
+  }
+  [dir="rtl"] .anp-card,
+  html[lang="ar"] .anp-card {
+    background:
+      radial-gradient(90% 70% at 0% 0%, color-mix(in srgb, var(--anp-accent) 9%, transparent) 0%, transparent 60%),
+      var(--bg-card);
+  }
+  [data-theme="dark"] .anp-card { border-color: var(--border); box-shadow: var(--shadow-sm); }
+  .anp-skeleton { background: var(--bg-card); }
+  .anp-badge { padding: 4px 10px; font-size: 12.5px; }
+  .anp-new { font-size: 12px; }
+  .anp-date { font-size: 13px; font-variant-numeric: tabular-nums; }
+  .anp-card-title { font-size: 16.5px; }
+  .anp-card-message { font-size: 14.5px; line-height: 1.7; }
+  /* "Ətraflı →" — 44px toxunma hədəfi, görünüşü eyni */
+  .anp-card-link {
+    min-height: var(--tap);
+    margin-top: 4px;
+    margin-bottom: -8px;
+  }
+
+  /* ── Boş vəziyyət: qırıq çərçivə yox — sakit kart, ikon dairəvi kafeldə ── */
+  .anp-empty {
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    padding: 28px 18px 20px;
+  }
+  [data-theme="dark"] .anp-empty { border-color: var(--border); }
+  .anp-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: var(--primary-bg2);
+    font-size: 30px;
+  }
+  .anp-empty-actions { flex-direction: column; align-items: stretch; gap: 8px; }
+  .anp-empty-actions .anp-btn { width: 100%; min-height: 48px; border-radius: 12px; }
+
+  /* ── Hicri günlər: qruplaşdırılmış siyahı ── */
+  .anp-link-btn { min-height: var(--tap); display: inline-flex; align-items: center; }
+  .anp-events {
+    gap: 0;
+    background: var(--bg-card);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm), 0 6px 20px -12px rgba(26, 107, 58, 0.18);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  [data-theme="dark"] .anp-events { border-color: var(--border); box-shadow: var(--shadow-sm); }
+  .anp-event {
+    position: relative;
+    align-items: center;
+    gap: 12px;
+    min-height: 64px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .anp-event + .anp-event::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline-start: 94px;   /* 14 + 68 + 12 — tarix kafelinin sonu */
+    inset-inline-end: 0;
+    height: 1px;
+    background: var(--border);
+    pointer-events: none;
+  }
+  /* Ay adı sözün ortasından bölünməsin ("Məhərrə-m") — əvvəlcə defis/boşluqda sarınır */
+  .anp-event-date { width: 68px; padding: 8px 4px; border-radius: 12px; }
+  .anp-event-day { font-size: 21px; font-variant-numeric: tabular-nums; }
+  .anp-event-month { font-size: 11.5px; overflow-wrap: break-word; hyphens: manual; }
+  html[lang="ar"] .anp-event-month { font-size: 12.5px; }
+  .anp-event-meta { font-size: 12.5px; }
+  .anp-more { width: 100%; min-height: 48px; border-radius: 12px; }
+  .anp-note { font-size: 13px; padding-inline: 4px; }
+}

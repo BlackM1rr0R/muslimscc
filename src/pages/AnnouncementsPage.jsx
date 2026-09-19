@@ -1,0 +1,613 @@
+// ═══════════════════════════════════════════════════════
+// Elanlar (/announcements)
+//
+// Məlumat yalnız admin paneldən gəlir (Firestore, canlı):
+//   • announcements — elanlar (title[lang], message[lang], type, link, active, createdAt)
+//   • events        — hicri təqvim günləri (name[lang], desc[lang], month, day, type)
+// Heç bir elan və ya tədbir uydurulmur: məlumat yoxdursa sakit boş vəziyyət
+// göstərilir. Firebase qoşulmayıbsa da eyni boş vəziyyət — xəta yoxdur.
+//
+// Ən yuxarıda sabit "Məscidə yardım" kartı durur (sahibin istəyi): ümumi
+// dəvət + /donate düyməsi + (xəritə məlumatı varsa) yol tarifi. Məbləğ,
+// layihə və ya rekvizit burada göstərilmir — bunlar yalnız /donate-dədir.
+// ═══════════════════════════════════════════════════════
+import { useState, useEffect, useMemo } from 'react'
+import { useLang } from '../contexts/LangContext'
+import {
+  subscribeToAnnouncements,
+  subscribeToEvents,
+  ANNOUNCEMENT_TYPES,
+  EVENT_TYPES,
+} from '../data/adminContent'
+import { MOSQUE, filled, tr } from '../config/mosque'
+import '../styles/AnnouncementsPage.css'
+import Breadcrumb from '../components/Breadcrumb'
+
+const LABELS = {
+  az: {
+    title: 'Elanlar',
+    subtitle: 'Məsciddən son xəbərlər və elanlar',
+    latest: 'Son elanlar',
+    all: 'Hamısı',
+    filterLabel: 'Elan növünə görə süz',
+    loading: 'Yüklənir…',
+    empty: 'Hazırda aktiv elan yoxdur',
+    emptySub: 'Məscidin yeni elanları burada görünəcək.',
+    enableNotif: 'Bildirişləri aktivləşdir',
+    seeTimes: 'Namaz vaxtlarına bax',
+    readMore: 'Ətraflı',
+    isNew: 'Yeni',
+    eventsEyebrow: 'Hicri təqvim',
+    eventsTitle: 'Qarşıdakı İslami günlər',
+    eventsNote: 'Tarixlər hesablanmış hicri təqvimə əsaslanır; ayın görünməsinə görə bir gün fərq ola bilər.',
+    next: 'Növbəti',
+    today: 'Bu gün',
+    fullCalendar: 'Tam təqvim',
+    showMore: 'Daha çox göstər',
+    showLess: 'Daha az göstər',
+    helpEyebrow: 'Sabitlənmiş',
+    helpTitle: 'Məscidə yardım',
+    helpText: 'Məscid camaatın dəstəyi ilə abad olur. İanə etməklə və ya namaza gəlməklə siz də öz payınızı verə bilərsiniz.',
+    helpDonate: 'Məscidə ianə',
+    helpDirections: 'Yol tarifi',
+  },
+  en: {
+    title: 'Announcements',
+    subtitle: 'Latest news and announcements from the mosque',
+    latest: 'Latest announcements',
+    all: 'All',
+    filterLabel: 'Filter by announcement type',
+    loading: 'Loading…',
+    empty: 'There are no active announcements right now',
+    emptySub: 'New announcements from the mosque will appear here.',
+    enableNotif: 'Turn on notifications',
+    seeTimes: 'See prayer times',
+    readMore: 'Read more',
+    isNew: 'New',
+    eventsEyebrow: 'Hijri calendar',
+    eventsTitle: 'Upcoming Islamic dates',
+    eventsNote: 'Dates follow the calculated Hijri calendar and may differ by a day depending on the moon sighting.',
+    next: 'Next',
+    today: 'Today',
+    fullCalendar: 'Full calendar',
+    showMore: 'Show more',
+    showLess: 'Show less',
+    helpEyebrow: 'Pinned',
+    helpTitle: 'Support the mosque',
+    helpText: 'A mosque thrives through the support of its community. You can do your part by donating or simply by coming to pray.',
+    helpDonate: 'Donate to the mosque',
+    helpDirections: 'Get directions',
+  },
+  ru: {
+    title: 'Объявления',
+    subtitle: 'Последние новости и объявления мечети',
+    latest: 'Последние объявления',
+    all: 'Все',
+    filterLabel: 'Фильтр по типу объявления',
+    loading: 'Загрузка…',
+    empty: 'Сейчас нет активных объявлений',
+    emptySub: 'Новые объявления мечети появятся здесь.',
+    enableNotif: 'Включить уведомления',
+    seeTimes: 'Время намаза',
+    readMore: 'Подробнее',
+    isNew: 'Новое',
+    eventsEyebrow: 'Календарь хиджры',
+    eventsTitle: 'Ближайшие исламские даты',
+    eventsNote: 'Даты рассчитаны по календарю хиджры и могут отличаться на один день в зависимости от наблюдения луны.',
+    next: 'Следующее',
+    today: 'Сегодня',
+    fullCalendar: 'Весь календарь',
+    showMore: 'Показать ещё',
+    showLess: 'Свернуть',
+    helpEyebrow: 'Закреплено',
+    helpTitle: 'Помощь мечети',
+    helpText: 'Мечеть живёт поддержкой своей общины. Вы можете внести свой вклад — пожертвованием или просто приходя на намаз.',
+    helpDonate: 'Пожертвовать мечети',
+    helpDirections: 'Проложить маршрут',
+  },
+  ar: {
+    title: 'الإعلانات',
+    subtitle: 'آخر أخبار المسجد وإعلاناته',
+    latest: 'أحدث الإعلانات',
+    all: 'الكل',
+    filterLabel: 'التصفية حسب نوع الإعلان',
+    loading: 'جارٍ التحميل…',
+    empty: 'لا توجد إعلانات حالياً',
+    emptySub: 'ستظهر إعلانات المسجد الجديدة هنا.',
+    enableNotif: 'تفعيل الإشعارات',
+    seeTimes: 'مواقيت الصلاة',
+    readMore: 'المزيد',
+    isNew: 'جديد',
+    eventsEyebrow: 'التقويم الهجري',
+    eventsTitle: 'المناسبات الإسلامية القادمة',
+    eventsNote: 'التواريخ محسوبة وفق التقويم الهجري وقد تختلف بيوم واحد بحسب رؤية الهلال.',
+    next: 'القادم',
+    today: 'اليوم',
+    fullCalendar: 'التقويم الكامل',
+    showMore: 'عرض المزيد',
+    showLess: 'عرض أقل',
+    helpEyebrow: 'مثبّت',
+    helpTitle: 'دعم المسجد',
+    helpText: 'يُعمَر المسجد بدعم أهله وروّاده. يمكنك أن تُسهم في ذلك بالتبرع أو بالحضور إلى الصلاة فيه.',
+    helpDonate: 'التبرع للمسجد',
+    helpDirections: 'الاتجاهات',
+  },
+  tr: {
+    title: 'Duyurular',
+    subtitle: 'Camiden son haberler ve duyurular',
+    latest: 'Son duyurular',
+    all: 'Tümü',
+    filterLabel: 'Duyuru türüne göre süz',
+    loading: 'Yükleniyor…',
+    empty: 'Şu anda aktif duyuru yok',
+    emptySub: 'Caminin yeni duyuruları burada görünecek.',
+    enableNotif: 'Bildirimleri aç',
+    seeTimes: 'Namaz vakitleri',
+    readMore: 'Devamı',
+    isNew: 'Yeni',
+    eventsEyebrow: 'Hicri takvim',
+    eventsTitle: 'Yaklaşan İslami günler',
+    eventsNote: 'Tarihler hesaplanmış hicri takvime göredir; hilalin görülmesine göre bir gün fark olabilir.',
+    next: 'Sıradaki',
+    today: 'Bugün',
+    fullCalendar: 'Tüm takvim',
+    showMore: 'Daha fazla göster',
+    showLess: 'Daha az göster',
+    helpEyebrow: 'Sabitlenmiş',
+    helpTitle: 'Camiye destek',
+    helpText: 'Cami, cemaatinin desteğiyle mamur olur. Bağış yaparak ya da namaza gelerek siz de katkıda bulunabilirsiniz.',
+    helpDonate: 'Camiye bağış',
+    helpDirections: 'Yol tarifi',
+  },
+}
+
+// Hicri ay adları — CalendarPage ilə eyni yazılış
+const HIJRI_MONTH_NAMES = {
+  az: ['Məhərrəm','Səfər','Rəbiül-Əvvəl','Rəbiül-Axir','Cəmadiyül-Əvvəl','Cəmadiyül-Axir','Rəcəb','Şaban','Ramazan','Şəvval','Zülqədə','Zülhiccə'],
+  en: ['Muharram','Safar','Rabi al-Awwal','Rabi al-Thani','Jumada al-Ula','Jumada al-Thani','Rajab','Shaban','Ramadan','Shawwal','Dhu al-Qadah','Dhu al-Hijjah'],
+  ru: ['Мухаррам','Сафар','Раби аль-Авваль','Раби ас-Сани','Джумада аль-Уля','Джумада ас-Сани','Раджаб','Шабан','Рамадан','Шавваль','Зуль-Каада','Зуль-Хиджа'],
+  ar: ['مُحَرَّم','صَفَر','رَبِيع الأَوَّل','رَبِيع الثَّانِي','جُمَادَى الأُولَى','جُمَادَى الآخِرَة','رَجَب','شَعْبَان','رَمَضَان','شَوَّال','ذُو القَعْدَة','ذُو الحِجَّة'],
+  tr: ['Muharrem','Safer','Rebiülevvel','Rebiülahir','Cemaziyelevvel','Cemaziyelahir','Recep','Şaban','Ramazan','Şevval','Zilkade','Zilhicce'],
+}
+
+const DATE_LOCALES = { en: 'en-GB', ru: 'ru-RU', ar: 'ar', tr: 'tr-TR' }
+
+// Bəzi brauzerlərdə az locale məlumatı yoxdur ("2026 M09 19" çıxır) — ay adları əl ilə
+const AZ_MONTHS = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avqust','sentyabr','oktyabr','noyabr','dekabr']
+
+const NEW_WINDOW_MS = 3 * 24 * 60 * 60 * 1000   // 3 gündən təzə elan "Yeni" nişanı alır
+const LOAD_TIMEOUT_MS = 8000                      // şəbəkə cavab vermirsə skeleton sonsuz qalmasın
+const EVENTS_PREVIEW = 6
+
+// ── Köməkçilər ──────────────────────────────────────
+
+/** createdAt → millisaniyə. Firestore Timestamp, {seconds} (backup JSON) və ISO sətri qəbul edir. */
+function toMillis(ts) {
+  if (!ts) return null
+  try {
+    if (typeof ts.toMillis === 'function') return ts.toMillis()
+    if (typeof ts.toDate === 'function') return ts.toDate().getTime()
+    if (typeof ts.seconds === 'number') return ts.seconds * 1000
+    const t = new Date(ts).getTime()
+    return Number.isFinite(t) ? t : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Ən yeni birinci. serverTimestamp hələ yazılmayıbsa (_ms null) elan indicə
+ * əlavə olunub — ən yuxarıda saxla. Heç vaxt NaN qaytarmır.
+ */
+function byNewest(x, y) {
+  if (x._ms == null && y._ms == null) return 0
+  if (x._ms == null) return -1
+  if (y._ms == null) return 1
+  return y._ms - x._ms
+}
+
+function formatDate(ms, lang) {
+  if (ms == null) return ''
+  const d = new Date(ms)
+  if (lang === 'az') return `${d.getDate()} ${AZ_MONTHS[d.getMonth()]} ${d.getFullYear()}`
+  try {
+    return d.toLocaleDateString(DATE_LOCALES[lang] || undefined, { day: 'numeric', month: 'long', year: 'numeric' })
+  } catch {
+    return d.toLocaleDateString()
+  }
+}
+
+/** Yalnız təhlükəsiz linklər: http(s), sayt daxili yol və ya protokolsuz domen. */
+function safeHref(link) {
+  if (typeof link !== 'string') return ''
+  const s = link.trim()
+  if (!s) return ''
+  if (/^https?:\/\//i.test(s)) return s
+  if (s.startsWith('/') && !s.startsWith('//')) return s
+  if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(s)) return 'https://' + s
+  return ''
+}
+
+/**
+ * Bugünkü hicri ay və gün (Umm al-Qura, brauzerin Intl-i ilə).
+ * Brauzer bu təqvimi dəstəkləmirsə null — onda hadisələr sadəcə ay/gün sırası ilə düzülür.
+ */
+function hijriToday() {
+  try {
+    const fmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric' })
+    if (!String(fmt.resolvedOptions().calendar || '').startsWith('islamic')) return null
+    const parts = fmt.formatToParts(new Date())
+    const month = Number(parts.find(p => p.type === 'month')?.value)
+    const day = Number(parts.find(p => p.type === 'day')?.value)
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 30) return { month, day }
+  } catch { /* köhnə brauzer */ }
+  return null
+}
+
+/**
+ * "Yol tarifi" linki: dəqiq koordinat varsa Google Maps marşrutu (MosquePage ilə eyni),
+ * yoxsa sahibin verdiyi xəritə linki. Heç biri yoxdursa '' — düymə göstərilmir.
+ */
+function directionsHref() {
+  const { lat, lng } = MOSQUE.geo || {}
+  if (filled(lat) && filled(lng)) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${Number(lat)},${Number(lng)}`
+  }
+  return filled(MOSQUE.mapUrl) ? MOSQUE.mapUrl.trim() : ''
+}
+
+/** Kart ikonu — sadə günbəz və minarə (xətt üslubu, rəngi currentColor-dan) */
+function MosqueIcon() {
+  return (
+    <svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor"
+      strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      {/* Günbəz və təpəsindəki şar */}
+      <path d="M9 17c0-4.4 3.2-7 7-8.6 3.8 1.6 7 4.2 7 8.6" />
+      <path d="M16 8.4V6.2" />
+      <circle cx="16" cy="4.8" r="1.2" />
+      {/* Əsas bina və tağlı qapı */}
+      <path d="M8 17h16v11H8z" />
+      <path d="M13.5 28v-4a2.5 2.5 0 0 1 5 0v4" />
+      {/* İki minarə — uclu papaqla */}
+      <path d="M3 28V13.5h3V28M3 13.5l1.5-4 1.5 4" />
+      <path d="M26 28V13.5h3V28M26 13.5l1.5-4 1.5 4" />
+      <path d="M1.5 28h29" />
+    </svg>
+  )
+}
+
+/** Sancaq ikonu — "sabitlənmiş" nişanı üçün */
+function PinIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor"
+      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d="M10 1.8 14.2 6l-2.1.7-2.5 2.5-.4 3.1L4.7 7.8l3.1-.4 2.5-2.5z" />
+      <path d="M6.9 9.1 2 14" />
+    </svg>
+  )
+}
+
+/** Bildiriş funksiyası brauzerdə varmı və icazə hələ soruşulmayıbmı? */
+function canOfferNotifications() {
+  try {
+    return typeof window !== 'undefined' && 'Notification' in window && window.Notification.permission === 'default'
+  } catch {
+    return false
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+
+export default function AnnouncementsPage({ setPage }) {
+  const { lang } = useLang()
+  const l = LABELS[lang] || LABELS.en
+  const isRtl = lang === 'ar'
+  const arrow = isRtl ? '←' : '→'
+
+  const [rawAnnouncements, setRawAnnouncements] = useState([])
+  const [rawEvents, setRawEvents] = useState([])
+  const [loaded, setLoaded] = useState(false)
+  const [filter, setFilter] = useState('all')
+  const [showAllEvents, setShowAllEvents] = useState(false)
+  const [offerNotif] = useState(canOfferNotifications)
+
+  // ── Canlı abunələr (çıxanda ləğv olunur) ──
+  useEffect(() => {
+    let alive = true
+    const timer = setTimeout(() => { if (alive) setLoaded(true) }, LOAD_TIMEOUT_MS)
+
+    const unsubA = subscribeToAnnouncements((items) => {
+      if (!alive) return
+      setRawAnnouncements(Array.isArray(items) ? items : [])
+      setLoaded(true)
+    })
+    const unsubE = subscribeToEvents((items) => {
+      if (!alive) return
+      setRawEvents(Array.isArray(items) ? items : [])
+    })
+
+    return () => {
+      alive = false
+      clearTimeout(timer)
+      try { unsubA?.() } catch { /* */ }
+      try { unsubE?.() } catch { /* */ }
+    }
+  }, [])
+
+  // ── Aktiv elanlar, ən yenisi birinci ──
+  const announcements = useMemo(() => {
+    return rawAnnouncements
+      .filter(a => a && a.active !== false)
+      .map(a => ({
+        ...a,
+        _title: tr(a.title, lang).trim(),
+        _message: tr(a.message, lang).trim(),
+        _ms: toMillis(a.createdAt),
+        _href: safeHref(a.link),
+        _type: ANNOUNCEMENT_TYPES.find(t => t.key === a.type) || ANNOUNCEMENT_TYPES[0],
+      }))
+      .filter(a => a._title || a._message)
+      .sort(byNewest)
+  }, [rawAnnouncements, lang])
+
+  // ── Süzgəc çipləri: yalnız həqiqətən rast gəlinən növlər ──
+  const typeCounts = useMemo(() => {
+    const counts = {}
+    for (const a of announcements) counts[a._type.key] = (counts[a._type.key] || 0) + 1
+    return ANNOUNCEMENT_TYPES.filter(t => counts[t.key]).map(t => ({ ...t, count: counts[t.key] }))
+  }, [announcements])
+
+  // Seçilmiş növ artıq yoxdursa (elan silinib) — "Hamısı"na qayıt
+  useEffect(() => {
+    if (filter !== 'all' && !typeCounts.some(t => t.key === filter)) setFilter('all')
+  }, [filter, typeCounts])
+
+  const visible = filter === 'all' ? announcements : announcements.filter(a => a._type.key === filter)
+
+  // ── Hicri günlər: bu gündən başlayaraq ilboyu sıra ──
+  // Səhifə gecə yarısından sonra da açıq qalırsa "bu gün" yenilənsin
+  const [dayTick, setDayTick] = useState(0)
+  useEffect(() => {
+    const now = new Date()
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5)
+    const t = setTimeout(() => setDayTick(n => n + 1), midnight - now)
+    return () => clearTimeout(t)
+  }, [dayTick])
+  const today = useMemo(() => hijriToday(), [dayTick])
+  const events = useMemo(() => {
+    const list = rawEvents
+      .filter(ev => ev && Number(ev.month) >= 1 && Number(ev.month) <= 12 && Number(ev.day) >= 1 && Number(ev.day) <= 30)
+      .map(ev => {
+        const month = Number(ev.month)
+        const day = Number(ev.day)
+        let order = (month - 1) * 30 + (day - 1)
+        if (today) {
+          order -= (today.month - 1) * 30 + (today.day - 1)
+          if (order < 0) order += 360
+        }
+        return {
+          ...ev,
+          _month: month,
+          _day: day,
+          _order: order,
+          _name: tr(ev.name, lang).trim(),
+          _desc: tr(ev.desc, lang).trim(),
+          _type: EVENT_TYPES.find(t => t.key === ev.type) || EVENT_TYPES[0],
+        }
+      })
+      .filter(ev => ev._name)
+    return list.sort((a, b) => a._order - b._order)
+  }, [rawEvents, lang, today])
+
+  const shownEvents = showAllEvents ? events : events.slice(0, EVENTS_PREVIEW)
+  const monthNames = HIJRI_MONTH_NAMES[lang] || HIJRI_MONTH_NAMES.en
+  const now = Date.now()
+
+  const openNotifications = () => {
+    window.dispatchEvent(new CustomEvent('open-notifications'))
+  }
+
+  const mapHref = directionsHref()
+
+  return (
+    <div className="anp-page">
+      {/* ── Hero ── */}
+      <div className="page-hero theme-announcements hero-compact">
+        <Breadcrumb setPage={setPage} current={l.title} />
+        {/* Ərəbcə dekorativ başlıq — ar dilində h1 ilə təkrar olmasın deyə gizlədilir */}
+        {!isRtl && <div className="page-hero-arabic">الإعلانات</div>}
+        <h1>{l.title}</h1>
+        <p>{l.subtitle}</p>
+      </div>
+
+      <div className="anp-wrap">
+        {/* ═══ SABİT KART: MƏSCİDƏ YARDIM ═══ */}
+        <section className="anp-help" data-reveal aria-labelledby="anp-help-title">
+          <div className="anp-help-icon" aria-hidden="true">
+            <MosqueIcon />
+          </div>
+          <div className="anp-help-head">
+            <span className="anp-help-pin">
+              <PinIcon /> {l.helpEyebrow}
+            </span>
+            <h2 id="anp-help-title" className="anp-help-title">{l.helpTitle}</h2>
+          </div>
+          <p className="anp-help-text">{l.helpText}</p>
+          <div className="anp-help-actions">
+            <button type="button" className="anp-btn anp-btn-primary press" onClick={() => setPage?.('donate')}>
+              {l.helpDonate} <span aria-hidden="true">{arrow}</span>
+            </button>
+            {mapHref && (
+              <a className="anp-btn anp-btn-ghost press" href={mapHref} target="_blank" rel="noopener noreferrer">
+                <span aria-hidden="true">🧭</span> {l.helpDirections}
+              </a>
+            )}
+          </div>
+        </section>
+
+        {/* ═══ ELANLAR ═══ */}
+        <section className="anp-section" aria-labelledby="anp-latest-title">
+          <div className="anp-section-head">
+            <h2 id="anp-latest-title" className="anp-section-title">{l.latest}</h2>
+          </div>
+
+          {!loaded ? (
+            <div className="anp-list" aria-busy="true" aria-label={l.loading}>
+              {[0, 1].map(i => (
+                <div key={i} className="anp-card anp-skeleton" aria-hidden="true">
+                  <span className="skeleton anp-skel-line anp-skel-short" />
+                  <span className="skeleton anp-skel-line anp-skel-title" />
+                  <span className="skeleton anp-skel-line" />
+                  <span className="skeleton anp-skel-line anp-skel-mid" />
+                </div>
+              ))}
+            </div>
+          ) : announcements.length === 0 ? (
+            <div className="anp-empty" data-reveal="scale">
+              <div className="anp-empty-icon" aria-hidden="true">📭</div>
+              <p className="anp-empty-title">{l.empty}</p>
+              <p className="anp-empty-sub">{l.emptySub}</p>
+              <div className="anp-empty-actions">
+                {offerNotif && (
+                  <button type="button" className="anp-btn anp-btn-primary press" onClick={openNotifications}>
+                    <span aria-hidden="true">🔔</span> {l.enableNotif}
+                  </button>
+                )}
+                <button type="button" className="anp-btn anp-btn-ghost press" onClick={() => setPage?.('jamaat')}>
+                  {l.seeTimes} <span aria-hidden="true">{arrow}</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {typeCounts.length > 1 && (
+                /* Telefonda çiplər bir sətirdə barmaqla sürüşür (motion.css → .chip-scroll),
+                   ≥768px-də əvvəlki kimi sarınır */
+                <div className="anp-chips chip-scroll wrap-desktop" role="group" aria-label={l.filterLabel}>
+                  <button
+                    type="button"
+                    className={`anp-chip press ${filter === 'all' ? 'active' : ''}`}
+                    aria-pressed={filter === 'all'}
+                    onClick={() => setFilter('all')}
+                  >
+                    {l.all}
+                    <span className="anp-chip-count">{announcements.length}</span>
+                  </button>
+                  {typeCounts.map(t => (
+                    <button
+                      key={t.key}
+                      type="button"
+                      className={`anp-chip press ${filter === t.key ? 'active' : ''}`}
+                      aria-pressed={filter === t.key}
+                      style={{ '--anp-accent': t.color }}
+                      onClick={() => setFilter(t.key)}
+                    >
+                      <span className="anp-chip-dot" aria-hidden="true" />
+                      {t.label[lang] || t.label.en}
+                      <span className="anp-chip-count">{t.count}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Kartlar sürüşəndə növbə ilə görünür; süzgəc dəyişəndə yeni kartlar da yumşaq girir */}
+              <div className="anp-list" data-reveal="stagger">
+                {visible.map(a => {
+                  const isNew = a._ms != null && now - a._ms < NEW_WINDOW_MS && a._ms <= now + 60000
+                  return (
+                    <article
+                      key={a.id}
+                      className="anp-card"
+                      style={{ '--anp-accent': a._type.color }}
+                    >
+                      <div className="anp-card-top">
+                        <span className="anp-badge">
+                          <span aria-hidden="true">{a._type.icon}</span>
+                          {a._type.label[lang] || a._type.label.en}
+                        </span>
+                        {isNew && <span className="anp-new">{l.isNew}</span>}
+                        {a._ms != null && (
+                          <time className="anp-date" dateTime={new Date(a._ms).toISOString()}>
+                            {formatDate(a._ms, lang)}
+                          </time>
+                        )}
+                      </div>
+
+                      {/* dir="auto": ərəbcə mətn yoxdursa tr() az/en-ə düşür — Latın mətni RTL-də düzgün axsın */}
+                      {a._title && <h3 className="anp-card-title" dir="auto">{a._title}</h3>}
+                      {a._message && <p className="anp-card-message" dir="auto">{a._message}</p>}
+
+                      {a._href && (
+                        <a
+                          className="anp-card-link"
+                          href={a._href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {l.readMore} <span aria-hidden="true">{arrow}</span>
+                        </a>
+                      )}
+                    </article>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </section>
+
+        {/* ═══ HİCRİ GÜNLƏR (yalnız admin əlavə edibsə) ═══ */}
+        {events.length > 0 && (
+          <section className="anp-section" aria-labelledby="anp-events-title">
+            <div className="anp-section-head">
+              <div>
+                <span className="anp-eyebrow">{l.eventsEyebrow}</span>
+                <h2 id="anp-events-title" className="anp-section-title">{l.eventsTitle}</h2>
+              </div>
+              <button type="button" className="anp-link-btn press" onClick={() => setPage?.('calendar')}>
+                {l.fullCalendar} <span aria-hidden="true">{arrow}</span>
+              </button>
+            </div>
+
+            <ul className="anp-events" data-reveal="stagger">
+              {shownEvents.map((ev, i) => (
+                <li key={ev.id} className="anp-event" style={{ '--anp-accent': ev._type.color }}>
+                  <div className="anp-event-date" aria-hidden="true">
+                    <span className="anp-event-day">{ev._day}</span>
+                    <span className="anp-event-month">{monthNames[ev._month - 1]}</span>
+                  </div>
+                  <div className="anp-event-body">
+                    <div className="anp-event-head">
+                      <span className="anp-event-name" dir="auto">{ev._name}</span>
+                      {today && ev._order === 0 && <span className="anp-new">{l.today}</span>}
+                      {today && i === 0 && ev._order > 0 && <span className="anp-new">{l.next}</span>}
+                    </div>
+                    <span className="anp-sr">{ev._day} {monthNames[ev._month - 1]}</span>
+                    <div className="anp-event-meta">
+                      <span className="anp-event-type">
+                        <span aria-hidden="true">{ev._type.icon}</span> {ev._type.label[lang] || ev._type.label.en}
+                      </span>
+                    </div>
+                    {ev._desc && <p className="anp-event-desc" dir="auto">{ev._desc}</p>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {events.length > EVENTS_PREVIEW && (
+              <button
+                type="button"
+                className="anp-btn anp-btn-ghost anp-more press"
+                aria-expanded={showAllEvents}
+                onClick={() => setShowAllEvents(v => !v)}
+              >
+                {showAllEvents ? l.showLess : l.showMore}
+              </button>
+            )}
+
+            <p className="anp-note">{l.eventsNote}</p>
+          </section>
+        )}
+      </div>
+    </div>
+  )
+}

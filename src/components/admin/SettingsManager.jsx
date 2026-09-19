@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
 import { getAppSettings, saveAppSettings } from '../../data/adminContent'
+import { BRAND } from '../../config/mosque'
 
 const CITIES = [
   { name:'Baku', country:'Azerbaijan' },
@@ -181,7 +182,7 @@ export default function SettingsManager() {
               placeholder="https://muslim-cc.vercel.app"
             />
             <p style={{fontSize:12, color:'var(--text-muted)', marginTop:6, lineHeight:1.5}}>
-              MuslimAI chat üçün Vercel endpoint. Boş qoyulsa, frontend-dəki <code>VITE_API_URL</code> / <code>app.json</code> fallback istifadə olunur. Web + iOS + Android eyni anda bu URL-i oxuyur.
+              {BRAND.aiName.az} chat üçün Vercel endpoint. Boş qoyulsa, frontend-dəki <code>VITE_API_URL</code> / <code>app.json</code> fallback istifadə olunur. Web + iOS + Android eyni anda bu URL-i oxuyur.
             </p>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { brandName } from '../../config/mosque'
 import { getAll, addDocument, COLLECTIONS } from '../../firebase/firestore'
 import { isFirebaseConfigured } from '../../firebase/config'
 
@@ -191,7 +192,7 @@ export default function PushNotificationManager() {
                 fontSize:18, flexShrink:0,
               }}>🌙</div>
               <div style={{flex:1, minWidth:0}}>
-                <div style={{fontSize:11, color:'var(--text-muted)', marginBottom:2, fontWeight:700}}>muslims.cc · indi</div>
+                <div style={{fontSize:11, color:'var(--text-muted)', marginBottom:2, fontWeight:700}}>{brandName(lang)} · indi</div>
                 <div style={{fontSize:14, fontWeight:800, color:'var(--text)'}}>{form.title || l.titleField}</div>
                 <div style={{fontSize:13, color:'var(--text-muted)', marginTop:2, lineHeight:1.4}}>{form.body || l.bodyField}</div>
               </div>

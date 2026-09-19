@@ -1,0 +1,940 @@
+/* ══════════════════════════════════════════════
+   JamaatPage.css — Namaz və camaat vaxtları (/jamaat)
+   Yalnız globals.css dəyişənləri — qaranlıq rejim avtomatik işləyir.
+   Qeyd: admin JamaatManager.css də "jm-" prefiksindən istifadə edir —
+   orada olan sinif adları (jm-row, jm-row-name, jm-status...) burada
+   qəsdən işlədilmir ki, üslublar bir-birinə qarışmasın.
+   ══════════════════════════════════════════════ */
+
+/* Hero rəngi — yaşıldan gecə mavisinə (günün vaxtları) */
+.page-hero.theme-jamaat { --hero-from:#1a6b3a; --hero-via:#17625a; --hero-to:#1e3a5f; }
+
+/* width:100% — .jm-wrap konteyner sorğusu üçün ölçünü valideyndən alır
+   (məzmuna görə daralan valideyndə 0-a düşməsin) */
+.jm-page { min-height: 70vh; width: 100%; min-width: 0; }
+
+/* Hero alt sətri: brend · tarix · hicri tarix */
+.page-hero p.jm-hero-sub {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 2px 10px;
+  max-width: 720px;
+}
+.jm-hero-dot { opacity: .6; }
+
+/* Konteyner: sütun sayı ekranın yox, məzmun sahəsinin enindən asılıdır —
+   masaüstündə sabit yan menyu olanda da kartlar sıxılmır */
+.jm-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  /* Yan boşluq başlıq/footer ilə bir xətdə — ortaq boşluq dəyişənləri */
+  padding-block: var(--hero-gap) var(--page-pad-bottom);
+  padding-inline: var(--page-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+  container: jm-wrap / inline-size;
+}
+
+/* Ekran oxuyucusu üçün gizli mətn */
+.jm-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Vaxt rəqəmləri: ərəbcə səhifədə də soldan sağa ── */
+.jm-time {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── Kiçik nişanlar ── */
+.jm-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--primary-bg);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+  white-space: nowrap;
+}
+.jm-chip--gold {
+  background: var(--gold-bg);
+  color: var(--gold-dark);
+  border-color: var(--gold-bg);
+}
+.jm-chip--muted {
+  background: var(--bg-card2);
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+/* 11.5px — 10.5px telefonda oxunmurdu; dolğu şaquli/üfüqi balanslı */
+.jm-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  white-space: nowrap;
+  line-height: 1.35;
+}
+.jm-tag--gold {
+  background: var(--gold-bg);
+  color: var(--gold-dark);
+}
+.jm-tag--soft {
+  background: var(--bg-card);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+  line-height: 1.45;
+}
+
+/* Camaat qaydası nişanı: "azandan +20 dəq" */
+.jm-rule {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text-dim);
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+}
+.jm-rule--gold {
+  margin-top: 12px;
+  color: var(--gold-dark);
+  background: var(--gold-bg);
+  border-color: var(--gold-bg);
+}
+
+/* ── Növbəti namaz kartı ── */
+.jm-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px 32px;
+  padding: 26px 30px;
+  background:
+    linear-gradient(135deg, var(--primary-bg2) 0%, var(--primary-bg) 55%, var(--gold-bg) 100%),
+    var(--bg-card);
+  border: 1px solid var(--primary-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.jm-next-info { min-width: 0; }
+.jm-next-label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+.jm-next-label .jm-tag { letter-spacing: .4px; }
+.jm-next-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+.jm-next-icon { font-size: .8em; }
+.jm-next-name .jm-tag { font-size: 12px; letter-spacing: .4px; }
+
+.jm-next-times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 14px 0 0;
+}
+.jm-next-times > div { min-width: 0; }
+.jm-next-times dt {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.jm-next-times dd {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+}
+/* Camaat vaxtı önə çıxır; oxunmuş azan sakitləşir */
+.jm-next-times .is-jamaat dt { color: var(--primary); }
+.jm-next-times .is-jamaat dd { color: var(--primary); }
+.jm-next-times .is-done dd { color: var(--text-muted); }
+
+.jm-next-count { text-align: end; }
+.jm-count {
+  font-size: clamp(36px, 7vw, 54px);
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.05;
+  letter-spacing: -1px;
+}
+.jm-next-caption {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ── Yüklənmə / xəta ──
+   Yüklənmə: səhifənin öz formasında skelet (motion.css → .skeleton) */
+.jm-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+}
+.jm-loading-next { height: 168px; border-radius: var(--radius-lg); }
+.jm-loading-card { display: flex; flex-direction: column; gap: 12px; }
+.jm-loading-title { width: 46%; height: 20px; border-radius: 8px; margin-bottom: 4px; }
+.jm-loading-row { height: 44px; border-radius: 12px; }
+.jm-state { text-align: center; }
+.jm-state-icon { font-size: 30px; margin: 8px 0 6px; }
+.jm-state-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.jm-state-sub { font-size: 14px; color: var(--text-muted); margin: 4px 0 16px; line-height: 1.6; }
+
+/* ── Kart ── */
+.jm-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--card-pad);
+  min-width: 0;
+}
+.jm-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+.jm-card-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  line-height: 1.3;
+}
+
+/* Camaat kartı — yuxarıda nazik yaşıl xətt (səhifənin əsas kartı) */
+.jm-card--jamaat {
+  border-color: var(--primary-border);
+  background:
+    linear-gradient(var(--primary), var(--primary)) top / 100% 3px no-repeat,
+    var(--bg-card);
+}
+
+/* ── Düzülüş ── */
+.jm-grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--stack-gap);
+  align-items: stretch;
+}
+.jm-grid2 > .jm-card { display: flex; flex-direction: column; }
+
+/* Cümə kartı ilə keçidlər kartı eyni hündürlükdə — keçidlər ortalanır,
+   qısa kartın altında boş sahə qalmır */
+.jm-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--stack-gap);
+  align-items: stretch;
+}
+
+/* ── Vaxt siyahısı (camaat və azan kartları) ── */
+.jm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.jm-li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: var(--radius);
+  border-top: 1px solid var(--border);
+}
+.jm-li:first-child { border-top-color: transparent; }
+
+.jm-li-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--bg-card2);
+  font-size: 17px;
+}
+.jm-li-name {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+.jm-li-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+.jm-li-note {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+.jm-li-time {
+  font-weight: 700;
+  color: var(--text);
+  text-align: end;
+}
+.jm-li--adhan .jm-li-time { font-size: 18px; }
+.jm-li--jamaat { padding-block: 12px; }
+.jm-li--jamaat .jm-li-time {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+.jm-dash { color: var(--text-muted); font-size: 18px; }
+
+/* Növbəti sətir — yumşaq fon; qonşu ayırıcı xətlər gizlənir */
+.jm-li.is-next {
+  background: var(--primary-bg);
+  box-shadow: inset 0 0 0 1px var(--primary-border);
+}
+.jm-li.is-next,
+.jm-li.is-next + .jm-li { border-top-color: transparent; }
+.jm-li.is-next .jm-li-icon { background: var(--primary-bg2); }
+.jm-li--adhan.is-next .jm-li-time { color: var(--primary); font-weight: 800; }
+.jm-li.is-next .jm-rule { background: var(--bg-card); border-color: var(--primary-border); color: var(--primary); }
+
+/* Günəş və keçmiş vaxtlar — sakit ton */
+.jm-li.is-sunrise .jm-li-title { color: var(--text-dim); font-weight: 600; }
+.jm-li.is-sunrise .jm-li-time { color: var(--text-dim); font-weight: 600; }
+.jm-li.is-passed .jm-li-title,
+.jm-li.is-passed .jm-li-time { color: var(--text-muted); }
+.jm-li.is-passed .jm-li-icon { opacity: .7; }
+
+/* Kartın alt qeydi */
+.jm-foot {
+  margin-top: auto;
+  padding-top: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.jm-list + .jm-foot { border-top: 1px dashed var(--border-md); margin-top: 10px; }
+/* Yan-yana kartlar eyni hündürlükdədir: qısa kartda sətirlər bərabər
+   paylanır — son sətirlə alt qeyd arasında boş zolaq qalmır */
+.jm-grid2 .jm-list { flex: 1 0 auto; justify-content: space-between; margin-bottom: 10px; }
+.jm-grid2 .jm-list + .jm-foot { margin-top: 0; }
+.jm-foot--geo { display: flex; align-items: flex-start; gap: 6px; }
+
+/* Camaat vaxtları hələ yoxdur */
+.jm-soon {
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-dim);
+  background: var(--bg-card2);
+  border-radius: var(--radius);
+}
+
+/* ── Cümə kartı ── */
+.jm-friday {
+  background:
+    linear-gradient(var(--gold), var(--gold)) top / 100% 3px no-repeat,
+    var(--bg-card);
+}
+.jm-friday.is-today {
+  border-color: var(--gold);
+  background:
+    linear-gradient(135deg, var(--gold-bg) 0%, transparent 70%),
+    var(--bg-card);
+  box-shadow: 0 0 0 3px var(--gold-bg), var(--shadow);
+}
+.jm-friday .jm-card-head { margin-bottom: 4px; }
+.jm-friday-date {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+.jm-ftimes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.jm-fbox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+.jm-fbox-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+.jm-fbox-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.15;
+}
+.jm-fbox--main {
+  background: var(--primary-bg);
+  border-color: var(--primary-border);
+}
+.jm-fbox--main .jm-fbox-label { color: var(--primary); }
+.jm-fbox--main .jm-fbox-val { color: var(--primary); font-size: 32px; }
+
+.jm-friday-text {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+.jm-friday-meta {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.jm-friday-meta strong { color: var(--text); }
+.jm-friday-khutbah {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+.jm-friday-khutbah-icon { flex-shrink: 0; line-height: 1.5; }
+.jm-friday-btn { margin-top: 18px; }
+
+/* ── Keçidlər ──
+   .jm-card.jm-links — ≤600px-dəki ".jm-card { padding }" qaydası bunu üstələməsin */
+.jm-card.jm-links {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+/* Başlıq: yuxarıdan cümə kartının başlığı ilə eyni (8 + 16 = 24px),
+   yandan keçid ikonları ilə bir xətdə (8 + 14px) */
+.jm-links-title { padding: 16px 14px 8px; }
+/* Kart cümə kartı qədər uzananda keçidlər qalan hündürlükdə bərabər paylanır */
+.jm-links-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 2px;
+}
+.jm-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text);
+  text-align: start;
+  text-decoration: none;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background .2s;
+}
+.jm-link:hover { background: var(--primary-bg); }
+.jm-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.jm-link-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--primary-bg);
+  font-size: 18px;
+}
+.jm-link-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.jm-link-text strong { font-size: 14.5px; font-weight: 700; line-height: 1.35; }
+.jm-link-text small { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; }
+.jm-link-arrow { font-size: 22px; color: var(--text-muted); line-height: 1; }
+.jm-link-arrow--ext { font-size: 16px; }
+[dir="rtl"] .jm-link-arrow { transform: scaleX(-1); }
+
+/* ── Fəzilətlər ── */
+.jm-virtues {
+  margin-top: 18px;
+  padding-top: 34px;
+  border-top: 1px solid var(--border);
+}
+.jm-sec-head {
+  text-align: center;
+  margin-bottom: 26px;
+}
+.jm-sec-title {
+  font-size: clamp(24px, 3.4vw, 32px);
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+}
+.jm-sec-sub {
+  margin: 8px auto 0;
+  max-width: 560px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.jm-vgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  align-items: start;
+}
+.jm-vgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.jm-vgroup-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+.jm-vgroup-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--primary-bg);
+  font-size: 18px;
+}
+.jm-vgroup-icon--gold { background: var(--gold-bg); }
+
+.jm-vcard {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 20px 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+.jm-vcard--verse {
+  border-color: var(--primary-border);
+  background:
+    linear-gradient(160deg, var(--primary-bg) 0%, transparent 65%),
+    var(--bg-card);
+}
+.jm-vkind {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  padding: 4px 11px;
+  border-radius: 999px;
+  color: var(--primary);
+  background: var(--primary-bg2);
+  line-height: 1.35;
+}
+.jm-vkind--gold { color: var(--gold-dark); background: var(--gold-bg); }
+
+.jm-varabic {
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-arabic);
+  font-size: 24px;
+  line-height: 2;
+  text-align: start;
+  color: var(--text);
+  overflow-wrap: break-word;
+}
+.jm-varabic--sm { font-size: 21px; line-height: 1.95; }
+
+.jm-vtext {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-dim);
+}
+.jm-vsource {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin-top: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.jm-vcard--hadith .jm-vsource { color: var(--gold-dark); }
+.jm-vtrans {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* Ayə yüklənərkən — yer tutan skelet. Fon və parıltı kitin .skeleton
+   sinfindən gəlir (transform ilə hərəkət edir); burada yalnız ölçülər. */
+.jm-skel {
+  display: block;
+  height: 14px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+.jm-skel--chip { width: 54px; height: 20px; margin-top: 0; border-radius: 999px; }
+.jm-skel--ar { height: 26px; width: 88%; margin-inline-start: auto; margin-top: 16px; }
+.jm-skel--short { width: 45%; }
+.jm-skel--time { width: 80px; height: 28px; margin-top: 4px; }
+[dir="rtl"] .jm-skel--ar { margin-inline-start: 0; }
+
+/* ── Ərəbcə: hərf aralığı və böyük hərf ərəb yazısının birləşməsini pozur ── */
+html[lang="ar"] .jm-page .jm-chip,
+html[lang="ar"] .jm-page .jm-tag,
+html[lang="ar"] .jm-page .jm-vkind,
+html[lang="ar"] .jm-page .jm-next-label,
+html[lang="ar"] .jm-page .jm-next-times dt,
+html[lang="ar"] .jm-page .jm-fbox-label,
+html[lang="ar"] .jm-page .jm-card-title,
+html[lang="ar"] .jm-page .jm-sec-title,
+html[lang="ar"] .jm-page .jm-next-name {
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[lang="ar"] .jm-page .jm-vkind,
+html[lang="ar"] .jm-page .jm-tag { font-size: 12px; }
+html[lang="ar"] .jm-page .jm-next-label,
+html[lang="ar"] .jm-page .jm-next-times dt,
+html[lang="ar"] .jm-page .jm-fbox-label { font-size: 13px; }
+
+/* ── Mənbə qeydləri ── */
+.jm-notes {
+  border-top: 1px dashed var(--border-md);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+/* ── Responsiv ──
+   Sütunlar məzmun sahəsinin eninə görə (konteyner sorğusu) birləşir;
+   konteyner sorğusu olmayan köhnə brauzerlərdə ekran eninə görə. */
+@container jm-wrap (max-width: 760px) {
+  .jm-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@container jm-wrap (max-width: 680px) {
+  .jm-grid2 { grid-template-columns: minmax(0, 1fr); }
+  .jm-vgrid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+}
+
+@supports not (container-type: inline-size) {
+  @media (max-width: 900px) {
+    .jm-layout { grid-template-columns: minmax(0, 1fr); }
+    .jm-vgrid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  }
+  @media (max-width: 760px) {
+    .jm-grid2 { grid-template-columns: minmax(0, 1fr); }
+  }
+}
+
+@media (max-width: 600px) {
+  /* Dar ekranda sətir sonunda tək "·" qalmasın — elementlər alt-alta */
+  .page-hero p.jm-hero-sub { flex-direction: column; gap: 0; font-size: 15px; }
+  .jm-hero-dot { display: none; }
+  /* Brend adı başlıqdakı loqoda var — telefonda yalnız iki tarix qalır */
+  .page-hero p.jm-hero-sub > .jm-hero-brand { display: none; }
+
+  .jm-next {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px;
+    gap: 14px;
+  }
+  .jm-next-count {
+    text-align: start;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--primary-border);
+  }
+  .jm-next-caption { margin-top: 0; }
+  .jm-next-times dd { font-size: 20px; }
+
+  /* Keçidlər: ikon kart kənarından digər kartların məzmunu qədər (~16px) içəridə */
+  .jm-card.jm-links { padding: 6px; }
+  .jm-links-title { padding: 12px 10px 4px; }
+  .jm-link { padding: 12px 10px; }
+  .jm-li { gap: 10px; padding: 10px 8px; }
+  .jm-li--jamaat { padding-block: 11px; }
+  .jm-li-icon { width: 32px; height: 32px; font-size: 15px; border-radius: 8px; }
+  .jm-li--adhan .jm-li-time { font-size: 17px; }
+  .jm-li--jamaat .jm-li-time { font-size: 23px; }
+
+  .jm-fbox { padding: 12px; }
+  .jm-fbox-val { font-size: 22px; }
+  .jm-fbox--main .jm-fbox-val { font-size: 26px; }
+
+  .jm-virtues { margin-top: 8px; padding-top: 26px; }
+  .jm-sec-head { margin-bottom: 20px; }
+  .jm-sec-sub { font-size: 14px; }
+  .jm-vcard { padding: 18px 16px; }
+  .jm-varabic { font-size: 22px; }
+  .jm-varabic--sm { font-size: 20px; }
+  .jm-vtext { font-size: 14.5px; }
+  .jm-vgroup-title { font-size: 17px; }
+}
+
+@media (max-width: 380px) {
+  .jm-li-icon { display: none; }
+  .jm-li { grid-template-columns: minmax(0, 1fr) auto; }
+  .jm-li-title { font-size: 14.5px; }
+  .jm-fbox-label { letter-spacing: .4px; }
+}
+
+/* ══════════════════════════════════════════════
+   TELEFON (<768px) — müasir tətbiq görünüşü
+   Masaüstü (≥1024px) toxunulmur: bütün dəyişikliklər bu blokdadır.
+   • Kartlar: 16px radius, yumşaq kölgə, solğun çərçivə
+   • Vaxt sətirləri: rəngli ikon kafeli (PRAYER_TONES → --tile),
+     ikonun sonundan başlayan nazik ayırıcı, qayda nişanı sakit alt sətir
+   • Keçidlər: qruplaşdırılmış siyahı xanaları, basılanda rəng örtüyü
+   • Əsas düymələr barmaq üçün tam en, 48px
+   ══════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+  .jm-card,
+  .jm-vcard {
+    border-radius: 16px;
+    border-color: color-mix(in srgb, var(--border) 70%, transparent);
+    box-shadow: var(--shadow-sm), 0 6px 20px -12px rgba(26, 107, 58, 0.18);
+  }
+  [data-theme="dark"] .jm-card,
+  [data-theme="dark"] .jm-vcard {
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  /* Rəngli üst xətti olan kartların çərçivəsi öz tonunda qalsın */
+  .jm-card--jamaat { border-color: var(--primary-border); }
+  .jm-vcard--verse { border-color: var(--primary-border); }
+  .jm-card-title { font-size: 17.5px; }
+
+  /* ── Növbəti namaz ── */
+  .jm-next { border-radius: 20px; }
+  .jm-count { font-size: clamp(38px, 11vw, 48px); }
+  .jm-next-caption { font-size: 13.5px; }
+
+  /* ── Vaxt sətirləri ── */
+  .jm-li {
+    position: relative;
+    gap: 12px;
+    min-height: 56px;
+    padding: 8px 10px;
+    border-top: 0;
+    border-radius: 12px;
+    transition: background-color var(--dur-2, 240ms) var(--ease-out, ease-out);
+  }
+  .jm-li--jamaat { padding-block: 9px; }
+  .jm-li + .jm-li::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline-start: 60px;   /* 10 + 38 + 12 — ikon kafelinin sonu */
+    inset-inline-end: 10px;
+    height: 1px;
+    background: var(--border);
+    pointer-events: none;
+  }
+  /* Növbəti sətir yumşaq yaşıl hapdır — onun və qonşusunun ayırıcısı gizlənir */
+  .jm-li.is-next::before,
+  .jm-li.is-next + .jm-li::before { display: none; }
+  .jm-li.is-next {
+    background: var(--primary-bg2);
+    box-shadow: none;
+  }
+
+  .jm-li-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 18px;
+    background: color-mix(in srgb, var(--tile, var(--primary)) 13%, transparent);
+  }
+  [data-theme="dark"] .jm-li-icon {
+    background: color-mix(in srgb, var(--tile, var(--primary)) 20%, transparent);
+  }
+  .jm-li.is-next .jm-li-icon { background: var(--bg-card); }
+
+  .jm-li-title { font-size: 15px; font-weight: 600; }
+  .jm-li--jamaat .jm-li-title { font-weight: 700; }
+  /* "azandan +20 dəq" — çərçivəli hap yox, sakit alt sətir */
+  .jm-rule {
+    margin-top: 1px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+  .jm-li.is-next .jm-rule { background: none; color: var(--primary); }
+  .jm-rule.jm-rule--gold {
+    margin-top: 12px;
+    padding: 4px 10px;
+    background: var(--gold-bg);
+    color: var(--gold-dark);
+    font-weight: 600;
+  }
+  [data-theme="dark"] .jm-rule.jm-rule--gold { color: var(--gold); }
+
+  .jm-li--adhan .jm-li-time { font-size: 17px; }
+  .jm-li--jamaat .jm-li-time { font-size: 22px; }
+
+  .jm-foot { font-size: 13.5px; }
+  .jm-list + .jm-foot { border-top: 1px solid var(--border); }
+
+  /* ── Cümə ── */
+  .jm-fbox { border-radius: 14px; border-color: transparent; }
+  .jm-fbox--main { border-color: var(--primary-border); }
+  .jm-friday-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+    border-radius: 12px;
+  }
+
+  /* ── Faydalı keçidlər: siyahı xanaları ── */
+  .jm-links-list { gap: 0; justify-content: flex-start; }
+  .jm-link {
+    position: relative;
+    min-height: 60px;
+    padding: 10px;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color var(--dur-1, 140ms) var(--ease-out, ease-out);
+  }
+  .jm-link + .jm-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline-start: 62px;   /* 10 + 40 + 12 */
+    inset-inline-end: 10px;
+    height: 1px;
+    background: var(--border);
+    pointer-events: none;
+  }
+  .jm-link:active {
+    background: var(--bg-card2);
+    box-shadow: inset 0 0 0 999px var(--press-tint, transparent);
+  }
+  .jm-link:focus-visible { outline-offset: -2px; }
+  .jm-link-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 19px;
+    background: color-mix(in srgb, var(--tile, var(--primary)) 13%, transparent);
+  }
+  [data-theme="dark"] .jm-link-icon {
+    background: color-mix(in srgb, var(--tile, var(--primary)) 20%, transparent);
+  }
+  .jm-link-text strong { font-size: 15px; font-weight: 600; }
+  .jm-link-text small { font-size: 13px; }
+  .jm-link-arrow { color: var(--border-md); }
+
+  /* ── Fəzilətlər ── */
+  .jm-virtues { border-top-color: transparent; }
+  .jm-vgroup { gap: 12px; }
+  .jm-vgroup-icon { width: 38px; height: 38px; border-radius: 12px; }
+}
+
+/* Çox dar ekranda ikon gizlənir (yuxarıdakı ≤380 qaydası) — ayırıcı kənardan başlasın */
+@media (max-width: 380px) {
+  .jm-li + .jm-li::before { inset-inline-start: 10px; }
+}
