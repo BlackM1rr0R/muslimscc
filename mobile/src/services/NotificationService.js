@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import { BRAND, prayerLocation } from '../config/mosque';
 
 // Default notification handler
 Notifications.setNotificationHandler({
@@ -112,18 +113,30 @@ export async function requestPermissions() {
 }
 
 // ═══ ŞEHER SECİLƏN NAMAZ VAXTLARINI ALMAQ ═══
+// Standart seçim ('Baku' — məscidin öz şəhəri) üçün vaxtlar MƏSCİDİN
+// koordinatı və metodu ilə hesablanır (prayerLocation()) — tətbiqin
+// Camaat/Ana ekranlarında göstərilən azan vaxtları ilə eyni olsun deyə.
+// Digər şəhərlər üçün aladhan timingsByCity istifadə olunur.
 export async function fetchPrayerTimes(city = 'Baku', country = 'Azerbaijan') {
   const today = new Date();
   const dd = String(today.getDate()).padStart(2, '0');
   const mm = String(today.getMonth() + 1).padStart(2, '0');
   const yyyy = today.getFullYear();
 
+  let url;
+  if (city === 'Baku') {
+    const loc = prayerLocation();
+    url = `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${loc.lat}&longitude=${loc.lng}&method=${loc.method}`;
+  } else {
+    url = `https://api.aladhan.com/v1/timingsByCity/${dd}-${mm}-${yyyy}` +
+      `?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=13`;
+  }
+
   try {
-    const res = await fetch(
-      `https://api.aladhan.com/v1/timingsByCity/${dd}-${mm}-${yyyy}?city=${city}&country=${country}&method=13`
-    );
+    const res = await fetch(url);
+    if (!res.ok) return null;
     const data = await res.json();
-    return data.data.timings;
+    return data?.data?.timings || null;
   } catch {
     return null;
   }
@@ -143,10 +156,12 @@ export async function schedulePrayerNotifications(lang = 'az', city = 'Baku', co
     let scheduled = 0;
 
     for (const prayer of prayers) {
-      const time = times[prayer];
-      if (!time) continue;
+      // "05:12" və ya "05:12 (+04)" — yalnız saat:dəqiqə götürülür
+      const hm = String(times[prayer] || '').match(/(\d{1,2}):(\d{2})/);
+      if (!hm) continue;
 
-      const [hours, minutes] = time.split(':').map(Number);
+      const hours = Number(hm[1]);
+      const minutes = Number(hm[2]);
       const trigger = new Date();
       trigger.setHours(hours, minutes, 0, 0);
 
@@ -233,7 +248,7 @@ export async function scheduleDailyHadithReminder(lang = 'az') {
 
 // ═══ TEST BİLDİRİŞİ ═══
 export async function sendTestNotification(lang = 'az') {
-  const titles = { az:'🕌 Muslims.cc Test', en:'🕌 Muslims.cc Test', ru:'🕌 Muslims.cc Тест', ar:'🕌 اختبار', tr:'🕌 Muslims.cc Test' };
+  const titles = { az:`🕌 ${BRAND.name.az} — Test`, en:`🕌 ${BRAND.name.en} — Test`, ru:`🕌 ${BRAND.name.ru} — Тест`, ar:`🕌 ${BRAND.name.ar} — اختبار`, tr:`🕌 ${BRAND.name.tr} — Test` };
   const bodies = {
     az:'Bildirişlər aktivdir! Namaz vaxtlarından xəbər veriləcək.',
     en:'Notifications are active! You will receive prayer time alerts.',

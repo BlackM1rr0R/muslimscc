@@ -1,5 +1,6 @@
 {
   "name": "muslim-cc-mobile",
+  "description": "Qaraçuxur Məscidi — mobil tətbiq (namaz vaxtları, Quran, hədis, dualar və İslami bilik)",
   "version": "1.0.0",
   "main": "expo/AppEntry.js",
   "scripts": {

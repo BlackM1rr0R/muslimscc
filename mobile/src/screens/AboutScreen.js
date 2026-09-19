@@ -9,12 +9,40 @@ import { T } from '../data/i18n';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, Float, Rotate } from '../components/Animated';
+import { MOSQUE, filled, tr, brandName } from '../config/mosque';
+
+// Əlaqə kartı üçün etiketlər — başlıq və missiya mətni i18n-dən (T.about) gəlir
+const ABOUT_LABELS = {
+  az: { contact: 'Əlaqə', map: 'Xəritədə aç' },
+  en: { contact: 'Contact', map: 'Open in maps' },
+  ru: { contact: 'Контакты', map: 'Открыть на карте' },
+  ar: { contact: 'تواصل', map: 'افتح في الخريطة' },
+  tr: { contact: 'İletişim', map: 'Haritada aç' },
+};
+
+// Yalnız doldurulmuş əlaqə məlumatları — boş sahə göstərilmir
+function contactItems(lang, al) {
+  const items = [];
+  const address = tr(MOSQUE.address, lang);
+  if (filled(address)) items.push({ key: 'address', icon: '📍', label: address, url: filled(MOSQUE.mapUrl) ? MOSQUE.mapUrl : null });
+  else if (filled(MOSQUE.mapUrl)) items.push({ key: 'map', icon: '📍', label: al.map, url: MOSQUE.mapUrl });
+  if (filled(MOSQUE.phone)) items.push({ key: 'phone', icon: '📞', label: MOSQUE.phone, url: `tel:${MOSQUE.phone.replace(/\s+/g, '')}` });
+  if (filled(MOSQUE.whatsapp)) items.push({ key: 'whatsapp', icon: '💬', label: 'WhatsApp', url: `https://wa.me/${MOSQUE.whatsapp.replace(/\D/g, '')}` });
+  if (filled(MOSQUE.email)) items.push({ key: 'email', icon: '✉️', label: MOSQUE.email, url: `mailto:${MOSQUE.email}` });
+  const socialNames = { instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', telegram: 'Telegram' };
+  Object.entries(MOSQUE.social || {}).forEach(([k, v]) => {
+    if (filled(v)) items.push({ key: k, icon: '🔗', label: socialNames[k] || k, url: v });
+  });
+  return items;
+}
 
 export default function AboutScreen() {
   const { lang, dark } = useLang();
   const c = dark ? Colors.dark : Colors.light;
   const t = T[lang]?.about || T.az.about;
   const sh = dark ? Shadows.dark.md : Shadows.md;
+  const al = ABOUT_LABELS[lang] || ABOUT_LABELS.az;
+  const contacts = contactItems(lang, al);
 
   const RESET_LABELS = {
     az: { title:'Xoş gəldin ekranını yenidən göstər', sub:'Tətbiqin başlanğıc ekranını yenidən izləyin', confirm:'Xoş gəldin ekranını yenidən göstərmək istədiyinizə əminsiniz? Tətbiqi yenidən başlatmağınız lazımdır.', yes:'Bəli', no:'İmtina' },
@@ -76,7 +104,8 @@ export default function AboutScreen() {
               </View>
             </Float>
 
-            <Text style={styles.logoTitle}>Muslims.cc</Text>
+            <Text style={styles.logoTitle}>{brandName(lang)}</Text>
+            <Text style={styles.logoLocality}>{tr(MOSQUE.locality, lang)}</Text>
             <View style={styles.logoVersion}>
               <Text style={styles.logoVersionText}>v1.0.0</Text>
             </View>
@@ -131,6 +160,30 @@ export default function AboutScreen() {
           </FadeUp>
         ))}
 
+        {/* Əlaqə — yalnız MOSQUE-da doldurulmuş məlumatlar */}
+        {contacts.length > 0 ? (
+          <FadeUp delay={620}>
+            <View style={[styles.contactCard, { backgroundColor: c.card, borderColor: c.cardBorder }, dark ? Shadows.dark.sm : Shadows.sm]}>
+              <Text style={[styles.sectionLabel, { color: c.textMuted, marginTop: 0 }]}>{al.contact.toUpperCase()}</Text>
+              {contacts.map(item => (
+                <TouchableOpacity
+                  key={item.key}
+                  disabled={!item.url}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    Linking.openURL(item.url);
+                  }}
+                  activeOpacity={0.7}
+                  style={styles.contactRow}
+                >
+                  <Text style={styles.contactIcon}>{item.icon}</Text>
+                  <Text style={[styles.contactText, { color: item.url ? c.primary : c.text }]}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </FadeUp>
+        ) : null}
+
         {/* Reset onboarding */}
         <FadeUp delay={650}>
           <TouchableOpacity
@@ -155,13 +208,13 @@ export default function AboutScreen() {
           </TouchableOpacity>
         </FadeUp>
 
-        {/* Stats */}
+        {/* Stats — tətbiqin bölmələri (məscidin xidmətləri deyil) */}
         <FadeUp delay={700}>
           <View style={[styles.statsCard, { backgroundColor: c.card, borderColor: c.cardBorder }, sh]}>
             <View style={styles.statItem}>
               <Text style={[styles.statNum, { color: c.primary }]}>27</Text>
               <Text style={[styles.statLabel, { color: c.textMuted }]}>
-                {lang==='az'?'Xidmət':lang==='ru'?'Сервисов':lang==='ar'?'خدمة':lang==='tr'?'Hizmet':'Services'}
+                {lang==='az'?'Bölmə':lang==='ru'?'Разделов':lang==='ar'?'قسم':lang==='tr'?'Bölüm':'Sections'}
               </Text>
             </View>
             <View style={[styles.statDivider, { backgroundColor: c.border }]} />
@@ -185,7 +238,7 @@ export default function AboutScreen() {
         <FadeUp delay={900}>
           <View style={styles.footerCard}>
             <Text style={[styles.footerCopy, { color: c.textMuted }]}>
-              © 2025 muslims.cc — {lang === 'az' ? 'Ümmət üçün sevgi ilə' : lang === 'ru' ? 'Для уммы с любовью' : lang === 'ar' ? 'صُنع بمحبة للأمة' : lang === 'tr' ? 'Ümmet için sevgiyle' : 'Made with love for the Ummah'}
+              {`© ${new Date().getFullYear()} ${brandName(lang)}`}
             </Text>
             <TouchableOpacity
               onPress={() => {
@@ -245,7 +298,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   logoIcon: { fontSize: 48, color: '#fff' },
-  logoTitle: { fontSize: 30, fontWeight: '800', color: '#fff', marginBottom: 10, letterSpacing: -0.5 },
+  logoTitle: { fontSize: 26, fontWeight: '800', color: '#fff', marginBottom: 4, letterSpacing: -0.5, textAlign: 'center' },
+  logoLocality: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.85)', marginBottom: 10, textAlign: 'center' },
   logoVersion: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
   logoVersionText: { fontSize: 12, fontWeight: '800', color: '#fff', letterSpacing: 0.5 },
   logoCircle1: { position: 'absolute', width: 230, height: 230, borderRadius: 115, backgroundColor: 'rgba(255,255,255,0.06)', top: -80, right: -60 },
@@ -283,6 +337,12 @@ const styles = StyleSheet.create({
   valueIconWrap: { width: 48, height: 48, borderRadius: BorderRadius.md, alignItems: 'center', justifyContent: 'center' },
   valueTitle: { fontSize: 16, fontWeight: '800', marginBottom: 4, letterSpacing: -0.3 },
   valueDesc: { fontSize: 13, lineHeight: 20, fontWeight: '500' },
+
+  // Contact
+  contactCard: { padding: 18, borderRadius: BorderRadius.lg, borderWidth: 1, marginTop: 16 },
+  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+  contactIcon: { fontSize: 16 },
+  contactText: { flex: 1, fontSize: 14, fontWeight: '600' },
 
   // Reset
   resetCard: {

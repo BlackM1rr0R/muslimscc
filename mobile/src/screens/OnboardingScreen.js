@@ -7,6 +7,7 @@ import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import AppIcon from '../components/Icon';
 import { FadeUp, FadeIn, ScaleIn, Float, Rotate, Pulse, Glow, BreathingDot, Confetti } from '../components/Animated';
+import { BRAND } from '../config/mosque';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -16,18 +17,18 @@ const SLIDES = [
     gradient:['#0d4a27','#1a6b3a','#22874a'],
     accentColor:'#10b981',
     title:{
-      az:'Muslims.cc-ə Xoş Gəldiniz',
-      en:'Welcome to Muslims.cc',
-      ru:'Добро пожаловать в Muslims.cc',
-      ar:'مرحباً بكم في Muslims.cc',
-      tr:'Muslims.cc\'ye Hoş Geldiniz',
+      az:`${BRAND.name.az}nə Xoş Gəldiniz`,
+      en:`Welcome to ${BRAND.name.en}`,
+      ru:`Добро пожаловать в «${BRAND.name.ru}»`,
+      ar:`مرحباً بكم في ${BRAND.name.ar}`,
+      tr:`${BRAND.name.tr}'ne Hoş Geldiniz`,
     },
     desc:{
-      az:'Tam İslami rəqəmsal ev. Quran, hədis, namaz vaxtları və daha çoxu bir yerdə.',
-      en:'Your complete Islamic digital home. Quran, Hadith, prayer times and much more in one place.',
-      ru:'Ваш полный исламский дом. Коран, хадисы, намаз и многое другое.',
-      ar:'بيتك الإسلامي الرقمي الكامل. القرآن والحديث ومواقيت الصلاة.',
-      tr:'Tam İslami dijital eviniz. Kuran, hadis, namaz vakitleri ve daha fazlası.',
+      az:`${BRAND.name.az}nin tətbiqi — namaz vaxtları, camaat namazı, elanlar və İslami bilik: Quran, hədis və daha çoxu bir yerdə.`,
+      en:`The ${BRAND.name.en} app — prayer times, congregational prayers, announcements and Islamic knowledge: Quran, Hadith and more in one place.`,
+      ru:`Приложение «${BRAND.name.ru}» — время намаза, коллективные молитвы, объявления и исламские знания: Коран, хадисы и многое другое.`,
+      ar:`تطبيق ${BRAND.name.ar} — مواقيت الصلاة وصلاة الجماعة والإعلانات والمعرفة الإسلامية: القرآن والحديث والمزيد في مكان واحد.`,
+      tr:`${BRAND.name.tr} uygulaması — namaz vakitleri, cemaat namazları, duyurular ve İslami bilgi: Kuran, hadis ve daha fazlası bir arada.`,
     },
   },
   {

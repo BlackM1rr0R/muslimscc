@@ -4,6 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
+import { BRAND } from '../config/mosque'
+import { useLang } from '../contexts/LangContext'
 
 // ─── Reusable animated FAB ────────────────────────────────────────────────
 function AnimatedFab({
@@ -123,6 +125,7 @@ function AnimatedFab({
 // ─── Floating overlay ─────────────────────────────────────────────────────
 export default function FloatingActions({ navRef }) {
   const insets = useSafeAreaInsets()
+  const { lang } = useLang()
   const bottomBase = 18 + (insets.bottom || 0)
 
   const openAI = () => { try { navRef?.navigate('AIChat') } catch {} }
@@ -149,7 +152,7 @@ export default function FloatingActions({ navRef }) {
       <View pointerEvents="box-none" style={[styles.slot, { right: 18, bottom: bottomBase }]}>
         <AnimatedFab
           onPress={openAI}
-          label="MuslimAI chat"
+          label={BRAND.aiName[lang] || BRAND.aiName.az}
           size={62}
           colors={['#34d399', '#10b981', '#047857']}
           shadowColor="#10b981"

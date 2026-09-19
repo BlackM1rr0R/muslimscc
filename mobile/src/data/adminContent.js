@@ -4,7 +4,7 @@
 // Web-də admin panelinin yazdığı bütün məlumat
 // burada da real-vaxtda oxunur.
 
-import { subscribeToCollection, subscribeSingleDoc, COLLECTIONS } from '../firebase/firestore'
+import { subscribeToCollection, subscribeSingleDoc, getSingleDoc, COLLECTIONS } from '../firebase/firestore'
 
 // ═══ Sabitlər (web ilə eyni) ═══
 export const ANNOUNCEMENT_TYPES = [
@@ -101,5 +101,67 @@ export function subscribeToHero(cb) {
 export function subscribeToSettings(cb) {
   return subscribeSingleDoc('singletons', 'settings', (data) => {
     cb(data ? { ...DEFAULT_SETTINGS, ...data } : DEFAULT_SETTINGS)
+  })
+}
+
+// ═══════════════════════════════════════════════════════
+// Camaat (iqamə) vaxtları — singleton: singletons/jamaat (web ilə eyni sənəd)
+// ═══════════════════════════════════════════════════════
+// Admin panelindən yazılan camaat vaxtları. Burada heç bir vaxt uydurulmur:
+// Default YOXDUR — sənəd yoxdursa (və ya Firebase qurulmayıbsa) null
+// qaytarılır (web kontraktı ilə eyni). Sahə boşdursa boş sətir qalır və
+// hooks/useMosqueTimes.js config/mosque.js-dəki MOSQUE.jamaat / MOSQUE.jumua
+// dəyərinə düşür (o da boşdursa, camaat vaxtı ümumiyyətlə göstərilmir).
+//
+// Sənəd varsa cb normallaşdırılmış formanı alır (web sənədi ilə eyni açarlar):
+//   {
+//     id,                                            // 'jamaat'
+//     jamaat: { fajr, dhuhr, asr, maghrib, isha },  // "HH:MM" | "+N" | ''
+//     jumua:  { time, khutbahLang: { az, en, ru, ar, tr } },
+//     updatedAt,                                     // Firestore Timestamp | null
+//   }
+// Sənəddə həm iç-içə ({ jamaat:{...}, jumua:{...} }), həm də düz
+// ({ fajr, dhuhr, ..., jumua:'13:00' }) forma qəbul olunur.
+const JAMAAT_KEYS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
+const EMPTY_LANG_TEXT = { az:'', en:'', ru:'', ar:'', tr:'' }
+
+function cleanRule(v) {
+  return typeof v === 'string' ? v.trim() : (typeof v === 'number' ? String(v) : '')
+}
+
+function normalizeJamaat(data) {
+  if (!data || typeof data !== 'object') return null
+  const src = data
+  const nested = src.jamaat && typeof src.jamaat === 'object' ? src.jamaat : src
+
+  const jamaat = {}
+  JAMAAT_KEYS.forEach(k => { jamaat[k] = cleanRule(nested[k]) })
+
+  const j = src.jumua
+  const jumuaTime = typeof j === 'string' ? j : (j && typeof j === 'object' ? j.time : src.jumuaTime)
+  const khutbah = (j && typeof j === 'object' && j.khutbahLang) || src.khutbahLang
+  const khutbahLang = typeof khutbah === 'string'
+    ? { ...EMPTY_LANG_TEXT, az: khutbah }
+    : { ...EMPTY_LANG_TEXT, ...(khutbah && typeof khutbah === 'object' ? khutbah : {}) }
+
+  return {
+    id: src.id || 'jamaat',
+    jamaat,
+    jumua: { time: cleanRule(jumuaTime), khutbahLang },
+    updatedAt: src.updatedAt || null,
+  }
+}
+
+// Bir dəfəlik oxu — sənəd yoxdursa null
+export async function getJamaat() {
+  const data = await getSingleDoc('singletons', 'jamaat')
+  return normalizeJamaat(data)
+}
+
+// Real-vaxt dinləyici — unsubscribe funksiyası qaytarır.
+// Firebase qurulmayıbsa subscribeSingleDoc dərhal cb(null) çağırır.
+export function subscribeToJamaat(cb) {
+  return subscribeSingleDoc('singletons', 'jamaat', (data) => {
+    cb(normalizeJamaat(data))
   })
 }

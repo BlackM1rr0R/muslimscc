@@ -1,4 +1,4 @@
-# 📱 Muslims.cc Mobile — Setup
+# 📱 Qaraçuxur Məscidi Mobile — Setup
 
 ## 🔥 Firebase paylaşımı (web ilə eyni)
 
@@ -25,7 +25,7 @@ useEffect(() => {
 
 ## 🤖 AI Chat (Gemini)
 
-Mobile MuslimAI **web-lə eyni Vercel endpoint** istifadə edir.
+Mobil AI Köməkçi (əvvəl "MuslimAI") **web-lə eyni Vercel endpoint** istifadə edir. Görünən ad və xəbərdarlıq mətni `src/config/mosque.js`-dəki `BRAND.aiName` / `BRAND.aiDisclaimer`-dən gəlir — AI cavabları məscidin rəsmi mövqeyi və ya fətva deyil.
 
 [app.json](app.json) → `expo.extra.apiUrl`:
 ```json

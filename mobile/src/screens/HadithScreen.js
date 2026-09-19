@@ -10,6 +10,7 @@ import { HADITHS, subscribeToCustomHadiths } from '../data/hadiths';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, PressableCard, HeartBeat } from '../components/Animated';
+import { brandName, BRAND } from '../config/mosque';
 
 const CATS = {
   az:['Hamısı','İman','Əxlaq','İbadət','Namaz','Quran','Elm','Oruc','Zəkat','Zikr','Sədəqə','Səbr','Dünya','Axirət','Salavat','Səfər','Ailə'],
@@ -204,7 +205,7 @@ export default function HadithScreen() {
   const paged = filtered.slice(0, (page + 1) * PER_PAGE);
 
   const shareHadith = async (h) => {
-    try { await Share.share({ message: `${h.ar}\n\n${h.text}\n\n— ${h.source}\n\nmuslims.cc` }); } catch {}
+    try { await Share.share({ message: `${h.ar}\n\n${h.text}\n\n— ${h.source}\n\n${brandName(lang)} · ${BRAND.domain}` }); } catch {}
   };
 
   return (

@@ -9,6 +9,7 @@ import { QUOTES } from '../data/quotes';
 import { subscribeToQuotes } from '../data/adminContent';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn } from '../components/Animated';
+import { brandName, BRAND } from '../config/mosque';
 
 const { width: SW } = Dimensions.get('window');
 const CARD_SIZE = SW - 48;
@@ -158,7 +159,7 @@ export default function QuoteGeneratorScreen() {
   const shareQuote = async () => {
     if (!quote) return;
     const text = quote.text?.[lang] || quote.text?.en || '';
-    try { await Share.share({ message: `${quote.ar || ''}\n\n${text}\n\n— ${quote.source}\n\nmuslims.cc` }); } catch {}
+    try { await Share.share({ message: `${quote.ar || ''}\n\n${text}\n\n— ${quote.source}\n\n${brandName(lang)} · ${BRAND.domain}` }); } catch {}
   };
 
   const copyQuote = () => {
@@ -252,7 +253,7 @@ export default function QuoteGeneratorScreen() {
               {decor.bottom ? <Text style={[styles.decorText, { color: theme.text }]}>{decor.bottom}</Text> : null}
 
               {/* Watermark */}
-              <Text style={[styles.watermark, { color: theme.text }]}>muslims.cc</Text>
+              <Text style={[styles.watermark, { color: theme.text }]}>{brandName(lang)}</Text>
             </LinearGradient>
           </ScaleIn>
         )}

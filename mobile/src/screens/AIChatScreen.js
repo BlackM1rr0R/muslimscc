@@ -11,6 +11,7 @@ import { useLang } from '../contexts/LangContext'
 import { Colors } from '../theme/colors'
 import PageHero from '../components/PageHero'
 import { subscribeToSettings } from '../data/adminContent'
+import { BRAND } from '../config/mosque'
 
 // URL prioritet sırası (web ilə eyni):
 //   1) Firebase Settings.apiUrl (admin paneldən, real-time)
@@ -37,28 +38,28 @@ const COOLDOWN = 30
 
 const LABELS = {
   az: {
-    title:'MuslimAI', subtitle:'İslami AI köməkçi',
+    title:BRAND.aiName.az, subtitle:'İslami AI köməkçi',
     placeholder:'Sualınızı yazın...',
-    welcome:'Salam aleykum! Mən MuslimAI — İslami köməkçinizəm.',
+    welcome:`Salam aleykum! Mən ${BRAND.name.az} tətbiqinin AI köməkçisiyəm.`,
     s1:'Namaz necə qılınır?', s2:'Səbr haqqında hədis', s3:'Tövhid nədir?', s4:'Ən fəzilətli dua?',
-    disclaimer:'AI cavablar məlumat üçündür. Allah daha yaxşı bilir.',
+    disclaimer:`${BRAND.aiDisclaimer.az} Allah daha yaxşı bilir.`,
     send:'Göndər', clear:'Təmizlə',
     rateLimit:'Çox sürətli yazırsınız. {s} saniyə gözləyin.',
     error:'Xəta. Yenidən cəhd edin.',
   },
   en: {
-    title:'MuslimAI', subtitle:'Islamic AI assistant',
+    title:BRAND.aiName.en, subtitle:'Islamic AI assistant',
     placeholder:'Type your question...',
-    welcome:'Assalamu alaikum! I am MuslimAI — your Islamic assistant.',
+    welcome:`Assalamu alaikum! I am the AI assistant of the ${BRAND.name.en} app.`,
     s1:'How to pray?', s2:'Hadith about patience', s3:'What is Tawheed?', s4:'Most virtuous dua?',
-    disclaimer:'AI answers are informational. Allah knows best.',
+    disclaimer:`${BRAND.aiDisclaimer.en} Allah knows best.`,
     send:'Send', clear:'Clear',
     rateLimit:'Too fast. Wait {s} seconds.',
     error:'Error. Try again.',
   },
-  ru: { title:'MuslimAI', subtitle:'Исламский AI помощник', placeholder:'Напишите вопрос...', welcome:'Ас-саляму алейкум! Я MuslimAI.', s1:'Как совершать намаз?', s2:'Хадис о терпении', s3:'Что такое Таухид?', s4:'Лучшая дуа?', disclaimer:'Ответы AI информативны.', send:'Отправить', clear:'Очистить', rateLimit:'Подождите {s} сек.', error:'Ошибка.' },
-  ar: { title:'MuslimAI', subtitle:'مساعد إسلامي', placeholder:'اكتب سؤالك...', welcome:'السلام عليكم! أنا MuslimAI.', s1:'كيف أصلي؟', s2:'حديث عن الصبر', s3:'ما هو التوحيد؟', s4:'أفضل دعاء؟', disclaimer:'إجابات الذكاء الاصطناعي للمعلومات.', send:'إرسال', clear:'مسح', rateLimit:'انتظر {s} ثانية.', error:'خطأ.' },
-  tr: { title:'MuslimAI', subtitle:'İslami AI asistan', placeholder:'Sorunuzu yazın...', welcome:'Selamün aleyküm! Ben MuslimAI.', s1:'Namaz nasıl?', s2:'Sabırla ilgili hadis', s3:'Tevhid nedir?', s4:'En faziletli dua?', disclaimer:'AI cevapları bilgi içindir.', send:'Gönder', clear:'Temizle', rateLimit:'{s} saniye bekleyin.', error:'Hata.' },
+  ru: { title:BRAND.aiName.ru, subtitle:'Исламский AI помощник', placeholder:'Напишите вопрос...', welcome:`Ас-саляму алейкум! Я ИИ-помощник приложения «${BRAND.name.ru}».`, s1:'Как совершать намаз?', s2:'Хадис о терпении', s3:'Что такое Таухид?', s4:'Лучшая дуа?', disclaimer:BRAND.aiDisclaimer.ru, send:'Отправить', clear:'Очистить', rateLimit:'Подождите {s} сек.', error:'Ошибка.' },
+  ar: { title:BRAND.aiName.ar, subtitle:'مساعد إسلامي', placeholder:'اكتب سؤالك...', welcome:`السلام عليكم! أنا المساعد الذكي لتطبيق ${BRAND.name.ar}.`, s1:'كيف أصلي؟', s2:'حديث عن الصبر', s3:'ما هو التوحيد؟', s4:'أفضل دعاء؟', disclaimer:BRAND.aiDisclaimer.ar, send:'إرسال', clear:'مسح', rateLimit:'انتظر {s} ثانية.', error:'خطأ.' },
+  tr: { title:BRAND.aiName.tr, subtitle:'İslami AI asistan', placeholder:'Sorunuzu yazın...', welcome:`Selamün aleyküm! Ben ${BRAND.name.tr} uygulamasının yapay zekâ asistanıyım.`, s1:'Namaz nasıl?', s2:'Sabırla ilgili hadis', s3:'Tevhid nedir?', s4:'En faziletli dua?', disclaimer:BRAND.aiDisclaimer.tr, send:'Gönder', clear:'Temizle', rateLimit:'{s} saniye bekleyin.', error:'Hata.' },
 }
 
 export default function AIChatScreen() {
@@ -166,7 +167,7 @@ export default function AIChatScreen() {
       if (!data.reply) throw new Error('Empty reply')
       setMessages([...updated, { role:'assistant', content: data.reply, time: Date.now(), lang }])
     } catch (e) {
-      console.warn('[MuslimAI] fetch failed', endpoint, e)
+      console.warn('[AIChat] fetch failed', endpoint, e)
       setError(`${l.error} (${e.message || 'network'})`)
     }
     setLoading(false)
@@ -277,7 +278,8 @@ export default function AIChatScreen() {
         </TouchableOpacity>
       ) : null}
 
-      <Text style={styles.disclaimer}>{l.disclaimer}</Text>
+      {/* Xəbərdarlıq həmişə görünür — AI cavabı məscidin rəsmi mövqeyi/fətvası deyil */}
+      <Text style={styles.disclaimer}>ⓘ {l.disclaimer}</Text>
     </KeyboardAvoidingView>
   )
 }

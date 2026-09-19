@@ -1,7 +1,6 @@
-import React, { useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet, Dimensions, StatusBar } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Animated, StyleSheet, Dimensions, StatusBar, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
@@ -15,9 +14,233 @@ import {
   DailyContentDisplay,
 } from '../components/AdminContentSections';
 import { FadeUp, FadeIn, ScaleIn, SlideIn, Float, Pulse, Rotate, PressableCard, useParallaxHero, AnimatedNumber, BreathingDot } from '../components/Animated';
+import { MOSQUE, brandName, filled, tr } from '../config/mosque';
+import useMosqueTimes, { PRAYER_NAMES } from '../hooks/useMosqueTimes';
+import { QUOTES } from '../data/quotes';
+import { DUAS_DATA } from '../data/duas';
 
 const { width: SW, height: SH } = Dimensions.get('window');
-const HERO_HEIGHT = 380;
+// Parallaks effekti üçün təxmini hero hündürlüyü
+const HERO_HEIGHT = 420;
+
+// ═══ GÜNÜN HƏDİSİ / DUASI — mətn yaddaşdan yazılmır ═══
+// Hər ikisi repo məlumatından (data/quotes.js, data/duas.js) OLDUĞU KİMİ,
+// mənbəsi ilə götürülür. Seçim veb-dəki DailyReminderBar ilə eynidir (eyni
+// data faylları, eyni gün nömrəsi) — sayt və tətbiq eyni gün eyni hədisi və
+// duanı göstərir.
+const TEXT_LANGS = ['az', 'en', 'ru', 'tr'];
+const maxLen = (texts) => Math.max(0, ...TEXT_LANGS.map(l => (texts?.[l] || '').length));
+// Qısa mətnlərə üstünlük ver (kart uzanmasın); heç biri uyğun deyilsə bütün siyahı
+const preferShort = (list, getTexts, limit) => {
+  const short = list.filter(x => maxLen(getTexts(x)) <= limit);
+  return short.length ? short : list;
+};
+const HADITH_POOL = preferShort(QUOTES.filter(q => q.cat === 'hadith' && q.ar && q.source), q => q.text, 100);
+const DUA_POOL = preferShort(DUAS_DATA.filter(d => d.ar && d.source), d => d, 140);
+// Yerli təqvim günü üzrə epoxadan keçən günlərin sayı (veb ilə eyni)
+const dayNumber = (d = new Date()) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+const pick = (pool, day, offset = 0) =>
+  pool.length ? pool[(((day + offset) % pool.length) + pool.length) % pool.length] : null;
+
+// ═══ MƏSCİD KARTI — 4 sürətli düymə (yalnız Icon.js-də olan ikon açarları) ═══
+const MOSQUE_QUICK = [
+  { key:'mosque', nav:'Mosque', iconKey:'prayer' },
+  { key:'jamaat', nav:'Jamaat', iconKey:'time' },
+  { key:'announcements', nav:'Announcements', iconKey:'about' },
+  { key:'donate', nav:'Donate', iconKey:'heart' },
+];
+
+const pad2 = (n) => String(n).padStart(2, '0');
+
+// Kartda 5 fərz namazı göstərilir (günəş — Camaat ekranında)
+const FARD_KEYS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+
+// Məscid kartı üçün əlavə mətnlər (i18n.js-dəki mosqueCard-a əlavə)
+const MQ_EXTRA = {
+  az: { jamaatNote: 'Camaat vaxtları azan vaxtına görə müəyyən edilir', friday: 'Cümə namazı', untilJumua: 'cümə namazına qalıb' },
+  en: { jamaatNote: 'Congregation times are set relative to the adhan', friday: 'Friday prayer', untilJumua: 'until Jumu’ah' },
+  ru: { jamaatNote: 'Время джамаата определяется по времени азана', friday: 'Пятничный намаз', untilJumua: 'до пятничного намаза' },
+  ar: { jamaatNote: 'تُحدَّد أوقات الجماعة بحسب أوقات الأذان', friday: 'صلاة الجمعة', untilJumua: 'حتى صلاة الجمعة' },
+  tr: { jamaatNote: 'Cemaat vakitleri ezan vakitlerine göre belirlenir', friday: 'Cuma namazı', untilJumua: 'cuma namazına kaldı' },
+};
+
+// "+N" (azandan N dəqiqə sonra) qaydası — "azana görə müəyyən edilir" qeydi
+// yalnız belə qayda olanda doğrudur (admin sabit "HH:MM" yazsa göstərilmir)
+const isRelRule = (rule) => /^\+\d{1,3}$/.test(String(rule || '').trim());
+
+/** 'DD-MM-YYYY' → 'DD.MM' (qısa, dildən asılı olmayan tarix). */
+const shortDate = (dateKey) => {
+  const [d, m] = String(dateKey || '').split('-');
+  return d && m ? `${d}.${m}` : '';
+};
+
+// ── Canlı geri sayım — yalnız bu kiçik komponent hər saniyə yenilənir ──
+function Countdown({ at, mc, style }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [at]);
+
+  const total = Math.max(0, Math.floor((at - now) / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const spoken = (h ? mc.hm : mc.m).replace('{h}', String(h)).replace('{m}', String(m));
+
+  return (
+    <Text style={style} accessibilityRole="timer" accessibilityLabel={spoken}>
+      {pad2(h)}:{pad2(m)}:{pad2(s)}
+    </Text>
+  );
+}
+
+// ── Növbəti namaz paneli (hero daxilində) ──
+// Azan vaxtı aladhan.com-dan məscidin koordinatı üçün HESABLANIR və belə də
+// yazılır. Altında 5 namazın azan və camaat vaxtları cədvəli — camaat sətri
+// yalnız vaxt təyin olunubsa (config "+N" və ya admin) çıxır, heç nə uydurulmur.
+// Geri sayım növbəti namazın CAMAATINA qədərdir (cümə günü zöhr — cümə
+// namazına); camaat vaxtı yoxdursa azana. Veb ana səhifə ilə eyni.
+function NextPrayerPanel({ lang, mc, times, onOpen, onRetry, isAr }) {
+  const { loading, error, next, isFriday, prayers = [], hasJamaat: anyJamaat, nextFriday } = times;
+  const extra = MQ_EXTRA[lang] || MQ_EXTRA.en;
+  const name = (key) => PRAYER_NAMES[key]?.[lang] || PRAYER_NAMES[key]?.en || key;
+  const rtl = isAr ? st.rtlText : null;
+  const flip = isAr ? st.flipX : null;
+
+  if (next) {
+    const hasJamaat = filled(next.jamaat);
+    const isJumua = isFriday && !next.tomorrow && next.key === 'dhuhr';
+    const fard = prayers.filter(p => FARD_KEYS.includes(p.key));
+    // Geri sayım: camaat vaxtı varsa ona, yoxdursa azana
+    const countToJamaat = next.jamaatAt != null;
+    const countAt = next.jamaatAt ?? next.at;
+    const nextIsJumua = !next.tomorrow && !!fard.find(p => p.key === next.key)?.jumua;
+    // Növbəti namazın azanı artıq oxunub, camaat gözlənilir
+    const adhanCalled = next.target === 'jamaat';
+    const anyRelative = fard.some(p => isRelRule(p.rule));
+    // Cümə gələcək gündədirsə kiçik bir sətir: "Cümə namazı · 26.09 · 13:28"
+    const showFriday = !!nextFriday && !nextFriday.isToday && filled(nextFriday.time);
+    const spoken = [
+      `${mc.nextPrayer}: ${name(next.key)}`,
+      `${mc.adhan} ${next.adhan}`,
+      hasJamaat ? `${mc.jamaat} ${next.jamaat}` : null,
+      anyJamaat
+        ? `${mc.jamaat}: ${fard.filter(p => filled(p.jamaat)).map(p => `${name(p.key)} ${p.jamaat}`).join(', ')}`
+        : null,
+    ].filter(Boolean).join(', ');
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={onOpen}
+        style={st.mqPanel}
+        accessibilityRole="button"
+        accessibilityLabel={spoken}
+        accessibilityHint={mc.allTimes}
+      >
+        <View style={st.mqTopRow}>
+          <BreathingDot color="#fff" size={8} />
+          <Text style={st.mqLabel} numberOfLines={1}>{mc.nextPrayer}</Text>
+          {next.tomorrow ? (
+            <View style={st.mqTag}><Text style={st.mqTagText}>{mc.tomorrow}</Text></View>
+          ) : null}
+          {isJumua ? (
+            <View style={[st.mqTag, st.mqTagGold]}><Text style={st.mqTagText}>{mc.jumua}</Text></View>
+          ) : null}
+          <View style={st.mqSpacer} />
+          <Text style={st.mqAll} numberOfLines={1}>{mc.allTimes}</Text>
+          <AppIcon name="chevronRight" size={14} color="rgba(255,255,255,0.85)" style={flip} />
+        </View>
+
+        <View style={st.mqMainRow}>
+          <View style={st.mqNameCol}>
+            <Text style={[st.mqName, rtl]} numberOfLines={1}>{name(next.key)}</Text>
+            <View style={st.mqTimesRow}>
+              <Text style={[st.mqTime, adhanCalled && st.mqDimmed]}>
+                {mc.adhan} <Text style={st.mqTimeVal}>{next.adhan}</Text>
+              </Text>
+              {hasJamaat ? (
+                <Text style={st.mqTime}>
+                  {mc.jamaat} <Text style={st.mqTimeVal}>{next.jamaat}</Text>
+                </Text>
+              ) : null}
+            </View>
+          </View>
+          <View style={st.mqCountCol}>
+            <Countdown at={countAt} mc={mc} style={st.mqCount} />
+            <Text style={st.mqCountLabel} numberOfLines={1}>
+              {countToJamaat ? (nextIsJumua ? extra.untilJumua : mc.untilJamaat) : mc.untilAdhan}
+            </Text>
+          </View>
+        </View>
+
+        {/* 5 namaz: azan (hesablanmış) və camaat vaxtları */}
+        {fard.length ? (
+          <View style={st.mqGrid}>
+            <View style={st.mqGridLabels}>
+              <Text style={st.mqGridName}> </Text>
+              <Text style={[st.mqGridLabel, rtl]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{mc.adhan}</Text>
+              {anyJamaat ? (
+                <Text style={[st.mqGridLabel, st.mqGridLabelJm, rtl]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{mc.jamaat}</Text>
+              ) : null}
+            </View>
+            {fard.map(p => {
+              const on = !next.tomorrow && next.key === p.key;
+              const jumuaCol = isFriday && p.key === 'dhuhr' && filled(p.jamaat);
+              return (
+                <View key={p.key} style={[st.mqGridCol, on && st.mqGridColOn]}>
+                  <Text style={[st.mqGridName, jumuaCol && st.mqGridNameGold]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                    {jumuaCol ? mc.jumua : name(p.key)}
+                  </Text>
+                  <Text style={[st.mqGridAdhan, on && adhanCalled && st.mqDimmed]} numberOfLines={1}>{p.adhan}</Text>
+                  {anyJamaat ? (
+                    <Text style={st.mqGridJamaat} numberOfLines={1}>{filled(p.jamaat) ? p.jamaat : '—'}</Text>
+                  ) : null}
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
+
+        {showFriday ? (
+          <View style={st.mqFriday}>
+            <View style={[st.mqTag, st.mqTagGold]}><Text style={st.mqTagText}>{mc.jumua}</Text></View>
+            <Text style={[st.mqFridayText, rtl]} numberOfLines={1}>
+              {extra.friday} · {shortDate(nextFriday.date)} · <Text style={st.mqTimeVal}>{nextFriday.time}</Text>
+            </Text>
+          </View>
+        ) : null}
+
+        <Text style={[st.mqNote, rtl]}>
+          {mc.calc}{anyJamaat && anyRelative ? ` · ${extra.jamaatNote}` : ''}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
+
+  // Xəta — keşdə də məlumat yoxdur
+  if (!loading && error) {
+    return (
+      <View style={[st.mqPanel, st.mqPanelCenter]} accessibilityRole="alert">
+        <Text style={st.mqStatus}>{mc.error}</Text>
+        <TouchableOpacity onPress={onRetry} activeOpacity={0.8} style={st.mqRetry} accessibilityRole="button">
+          <AppIcon name="reset" size={14} color="#fff" />
+          <Text style={st.mqRetryText}>{mc.retry}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Yüklənir — hündürlük sabit qalır ki, səhifə tullanmasın
+  return (
+    <View style={[st.mqPanel, st.mqPanelCenter]}>
+      <ActivityIndicator color="#fff" />
+      <Text style={st.mqStatus}>{mc.loading}</Text>
+    </View>
+  );
+}
 
 // ═══ DATA ═══
 const FEATURES = [
@@ -45,19 +268,11 @@ const QUICK_LINKS = [
 ];
 
 const NAV_L = {
-  az:{dhikr:'Zikr',qibla:'Qibla',calendar:'Təqvim',prayerguide:'Namaz',hajjguide:'Həcc',hifz:'Hifz',quiz:'Quiz',dailytracker:'Tracker',analytics:'Analytics',charity:'Sədəqə',duajournal:'Jurnal',quotes:'Sitatlar'},
+  az:{dhikr:'Zikr',qibla:'Qiblə',calendar:'Təqvim',prayerguide:'Namaz',hajjguide:'Həcc',hifz:'Hifz',quiz:'Viktorina',dailytracker:'İzləyici',analytics:'Statistika',charity:'Sədəqə',duajournal:'Jurnal',quotes:'Sitatlar'},
   en:{dhikr:'Dhikr',qibla:'Qibla',calendar:'Calendar',prayerguide:'Prayer',hajjguide:'Hajj',hifz:'Hifz',quiz:'Quiz',dailytracker:'Tracker',analytics:'Analytics',charity:'Charity',duajournal:'Journal',quotes:'Quotes'},
   ru:{dhikr:'Зикр',qibla:'Кибла',calendar:'Календарь',prayerguide:'Намаз',hajjguide:'Хадж',hifz:'Хифз',quiz:'Тест',dailytracker:'Трекер',analytics:'Статистика',charity:'Садака',duajournal:'Дуа',quotes:'Цитаты'},
   ar:{dhikr:'الذكر',qibla:'القبلة',calendar:'التقويم',prayerguide:'الصلاة',hajjguide:'الحج',hifz:'الحفظ',quiz:'اختبار',dailytracker:'المتابعة',analytics:'إحصائيات',charity:'الصدقة',duajournal:'الدعاء',quotes:'اقتباسات'},
   tr:{dhikr:'Zikir',qibla:'Kıble',calendar:'Takvim',prayerguide:'Namaz',hajjguide:'Hac',hifz:'Hıfz',quiz:'Sınav',dailytracker:'Takip',analytics:'İstatistik',charity:'Sadaka',duajournal:'Günlük',quotes:'Alıntılar'},
-};
-
-const STATS = {
-  az:[{n:'114',l:'Surə',i:'quran'},{n:'6236',l:'Ayə',i:'quran'},{n:'50+',l:'Hədis',i:'hadith'},{n:'100+',l:'Dua',i:'duas'},{n:'99',l:'Ad',i:'names'},{n:'5',l:'Dil',i:'settings'}],
-  en:[{n:'114',l:'Surahs',i:'quran'},{n:'6236',l:'Verses',i:'quran'},{n:'50+',l:'Hadiths',i:'hadith'},{n:'100+',l:"Du'as",i:'duas'},{n:'99',l:'Names',i:'names'},{n:'5',l:'Languages',i:'settings'}],
-  ru:[{n:'114',l:'Сур',i:'quran'},{n:'6236',l:'Аятов',i:'quran'},{n:'50+',l:'Хадисов',i:'hadith'},{n:'100+',l:'Дуа',i:'duas'},{n:'99',l:'Имён',i:'names'},{n:'5',l:'Языков',i:'settings'}],
-  ar:[{n:'١١٤',l:'سورة',i:'quran'},{n:'٦٢٣٦',l:'آية',i:'quran'},{n:'٥٠+',l:'حديث',i:'hadith'},{n:'١٠٠+',l:'دعاء',i:'duas'},{n:'٩٩',l:'اسم',i:'names'},{n:'٥',l:'لغات',i:'settings'}],
-  tr:[{n:'114',l:'Sure',i:'quran'},{n:'6236',l:'Ayet',i:'quran'},{n:'50+',l:'Hadis',i:'hadith'},{n:'100+',l:'Dua',i:'duas'},{n:'99',l:'İsim',i:'names'},{n:'5',l:'Dil',i:'settings'}],
 };
 
 const TAWHEED = [
@@ -83,22 +298,6 @@ const FIVE_PILLARS = [
   { n:5, icon:'🕋', color:'#ef4444', gradient:['#ef4444','#dc2626'], t:{az:'Həcc',en:'Hajj',ru:'Хадж',ar:'الحج',tr:'Hac'}, d:{az:'İmkanı olan hər müsəlman ömründə ən azı bir dəfə Məkkəyə Həcc ziyarətini yerinə yetirməlidir.',en:'Performing Hajj pilgrimage to Mecca at least once in a lifetime if able.',ru:'Совершить Хадж в Мекку хотя бы раз в жизни.',ar:'أداء الحج مرة واحدة في العمر للمستطيع',tr:'Ömründe en az bir kere Mekke\'ye hac yapmak.'} },
 ];
 
-const DAILY_HADITHS = [
-  { ar:'إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ', az:'Əməllər ancaq niyyətlərə görədir.', en:'Actions are judged by intentions.', ru:'Дела оцениваются по намерениям.', tr:'Ameller niyetlere göredir.', source:'Buxari 1' },
-  { ar:'الدِّينُ النَّصِيحَةُ', az:'Din nəsihətdir.', en:'Religion is sincerity.', ru:'Религия — это искренность.', tr:'Din nasihattır.', source:'Muslim 55' },
-  { ar:'أَلاَ بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ', az:'Qəlblər ancaq Allahın zikri ilə rahatlıq tapar.', en:'Hearts find rest only in the remembrance of Allah.', ru:'Сердца успокаиваются поминанием Аллаха.', tr:'Kalpler ancak Allah\'ın zikriyle huzur bulur.', source:'Rad 28' },
-  { ar:'خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ', az:'İnsanların ən xeyirlisi insanlara ən faydalı olanıdır.', en:'The best of people are those most beneficial to others.', ru:'Лучшие из людей — наиболее полезные.', tr:'İnsanların en hayırlısı insanlara en faydalı olanıdır.', source:'Taberani' },
-  { ar:'تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ صَدَقَةٌ', az:'Qardaşının üzünə gülümsəmən sədəqədir.', en:'Your smile to your brother is charity.', ru:'Улыбка брату — милостыня.', tr:'Kardeşinin yüzüne gülümsemen sadakadır.', source:'Tirmizi' },
-  { ar:'إِنَّ اللَّهَ جَمِيلٌ يُحِبُّ الْجَمَالَ', az:'Allah gözəldir, gözəlliyi sevir.', en:'Allah is beautiful and loves beauty.', ru:'Аллах красив и любит красоту.', tr:'Allah güzeldir, güzelliği sever.', source:'Muslim 91' },
-  { ar:'طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ', az:'Elm öyrənmək hər müsəlmana fərzdir.', en:'Seeking knowledge is obligatory upon every Muslim.', ru:'Знание — обязанность каждого мусульманина.', tr:'İlim öğrenmek her Müslümana farzdır.', source:'İbn Macə' },
-];
-
-const DAILY_DUAS = [
-  { ar:'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً', t:{az:'Rəbbimiz, bizə dünyada da, axirətdə də gözəllik ver.',en:'Our Lord, give us good in this world and the Hereafter.',ru:'Господь наш, даруй нам благо в мире и в будущем.',ar:'ربنا آتنا في الدنيا حسنة',tr:'Rabbimiz, bize dünyada da ahirette de iyilik ver.'}, ref:'Bəqərə 201' },
-  { ar:'رَبِّ زِدْنِي عِلْماً', t:{az:'Rəbbim, elmimi artır.',en:'My Lord, increase me in knowledge.',ru:'Господи, приумножь мне знание.',ar:'رب زدني علماً',tr:'Rabbim, ilmimi artır.'}, ref:'Taha 114' },
-  { ar:'رَبِّ اشْرَحْ لِي صَدْرِي', t:{az:'Rəbbim, köksümü aç və işimi asanlaşdır.',en:'My Lord, expand my chest and ease my task.',ru:'Господи, раскрой мне грудь и облегчи дело.',ar:'رب اشرح لي صدري',tr:'Rabbim, göğsümü aç ve işimi kolaylaştır.'}, ref:'Taha 25-26' },
-];
-
 // 99 ad — name = Az transliterasiya (bütün dillərdə görünür),
 // meaning = aktiv dilə uyğun seçilir.
 const ALLAH_NAMES = [
@@ -121,22 +320,23 @@ export default function HomeScreen({ navigation }) {
   const { lang, dark } = useLang();
   const c = dark ? Colors.dark : Colors.light;
   const t = T[lang]?.home || T.az.home;
-  const stats = STATS[lang] || STATS.az;
+  const mc = t.mosqueCard || T.az.home.mosqueCard;
+  const navT = T[lang]?.nav || T.az.nav;
   const navLabels = NAV_L[lang] || NAV_L.az;
+  const isAr = lang === 'ar';
+
+  // Məscidin bugünkü vaxtları (Camaat ekranı ilə eyni keş — bir sorğu)
+  const times = useMosqueTimes();
+  const locality = tr(MOSQUE.locality, lang);
 
   // Parallax scroll
   const scrollY = useRef(new Animated.Value(0)).current;
   const { heroScale, heroTranslate, heroOpacity } = useParallaxHero(scrollY, HERO_HEIGHT);
 
-  // Header blur animation
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [HERO_HEIGHT - 100, HERO_HEIGHT - 40],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
-
-  const todayIdx = new Date().getDate() % DAILY_HADITHS.length;
-  const duaIdx = new Date().getDate() % DAILY_DUAS.length;
+  // Günün hədisi və duası (veb ilə eyni seçim)
+  const day = dayNumber();
+  const hadith = pick(HADITH_POOL, day, 1);
+  const dua = pick(DUA_POOL, day, 2);
   const sh = dark ? Shadows.dark.md : Shadows.md;
   const shL = dark ? Shadows.dark.lg : Shadows.lg;
 
@@ -148,20 +348,8 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
 
-      {/* ═══ ANİMATED BLURRED HEADER (appears on scroll) ═══ */}
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          st.animHeader,
-          { opacity: headerOpacity, borderBottomColor: c.border },
-        ]}
-      >
-        <BlurView intensity={80} tint={dark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-        <View style={[st.animHeaderContent, { backgroundColor: dark ? 'rgba(15,15,26,0.7)' : 'rgba(255,255,255,0.7)' }]}>
-          <Text style={[st.animHeaderTitle, { color: c.text }]}>☽ Muslims.cc</Text>
-        </View>
-      </Animated.View>
-
+      {/* Məscid adı yalnız naviqasiya başlığındadır — ekranda məzmunun üstünə
+          düşən üzən başlıq/düymə yoxdur (sahibin qaydası: heç nə məzmunu örtməsin). */}
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
@@ -181,36 +369,58 @@ export default function HomeScreen({ navigation }) {
               <View style={st.rotatingRingInner} />
             </Rotate>
 
-            <Animated.View style={{ opacity: heroOpacity, alignItems: 'center' }}>
+            {/* ═══ MƏSCİD BAŞLIĞI — ad, yerləşmə, növbəti namaz, 4 sürətli düymə ═══ */}
+            <Animated.View style={[st.heroInner, { opacity: heroOpacity }]}>
               <FadeIn delay={100}>
                 <View style={st.heroBadge}>
                   <Text style={st.heroBadgeText}>{t.badge}</Text>
                 </View>
               </FadeIn>
 
-              <FadeUp delay={200}>
-                <Text style={st.heroTitle}>{t.heroTitle}</Text>
+              <FadeUp delay={180}>
+                <Text style={st.heroTitle} accessibilityRole="header">{brandName(lang)}</Text>
               </FadeUp>
 
-              <FadeUp delay={350}>
-                <Text style={st.heroSub}>{t.heroSub}</Text>
+              {filled(locality) ? (
+                <FadeUp delay={260}>
+                  <View style={st.heroLocRow}>
+                    <AppIcon name="location" size={15} color="rgba(255,255,255,0.85)" />
+                    <Text style={st.heroLoc}>{locality}</Text>
+                  </View>
+                </FadeUp>
+              ) : null}
+
+              <FadeUp delay={340} style={st.heroBlock}>
+                <NextPrayerPanel
+                  lang={lang}
+                  mc={mc}
+                  times={times}
+                  isAr={isAr}
+                  onOpen={() => navigate('Jamaat')}
+                  onRetry={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    times.reload();
+                  }}
+                />
               </FadeUp>
 
-              <FadeUp delay={500}>
-                <View style={st.heroButtons}>
-                  <PressableCard
-                    style={[st.heroBtnP, Shadows.button]}
-                    onPress={() => navigate('Quran')}
-                    haptic="medium"
-                  >
-                    <AppIcon name="quran" size={20} color={c.primary} style={{ marginRight: 8 }} />
-                    <Text style={[st.heroBtnPT, { color: c.primary }]}>{t.btnQuran}</Text>
-                  </PressableCard>
-
-                  <PressableCard style={st.heroBtnS} onPress={() => navigate('Prayer')} haptic="medium">
-                    <AppIcon name="prayer" size={20} color="#fff" style={{ marginRight: 8 }} />
-                    <Text style={st.heroBtnST}>{t.btnPrayer}</Text>
-                  </PressableCard>
+              <FadeUp delay={420} style={st.heroBlock}>
+                <View style={st.mqQuickRow}>
+                  {MOSQUE_QUICK.map(q => (
+                    <TouchableOpacity
+                      key={q.key}
+                      style={st.mqQuick}
+                      activeOpacity={0.8}
+                      onPress={() => navigate(q.nav)}
+                      accessibilityRole="button"
+                      accessibilityLabel={navT[q.key] || mc.quick[q.key]}
+                    >
+                      <View style={st.mqQuickIcon}>
+                        <AppIcon name={q.iconKey} size={20} color="#fff" />
+                      </View>
+                      <Text style={st.mqQuickLabel} numberOfLines={2}>{mc.quick[q.key]}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </FadeUp>
             </Animated.View>
@@ -224,30 +434,42 @@ export default function HomeScreen({ navigation }) {
 
         <View style={st.contentWrap}>
 
-          {/* ═══ GÜNÜN HƏDİSİ ═══ */}
-          <ScaleIn delay={200}>
-            <View style={[st.floatingCard, { backgroundColor: c.card, borderColor: c.cardBorder }, shL]}>
-              <LinearGradient
-                colors={['transparent', c.goldBg]}
-                style={StyleSheet.absoluteFill}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              />
-              <View style={st.dailyHeader}>
-                <View style={[st.dailyIcon, { backgroundColor: c.goldBg }]}>
-                  <AppIcon name="hadith" size={18} color={c.gold} />
+          {/* ═══ GÜNÜN HƏDİSİ (data/quotes.js — olduğu kimi, mənbəsi ilə) ═══ */}
+          {hadith ? (
+            <ScaleIn delay={200}>
+              <View style={[st.floatingCard, { backgroundColor: c.card, borderColor: c.cardBorder }, shL]}>
+                <LinearGradient
+                  colors={['transparent', c.goldBg]}
+                  style={StyleSheet.absoluteFill}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+                <View style={st.dailyHeader}>
+                  <View style={[st.dailyIcon, { backgroundColor: c.goldBg }]}>
+                    <AppIcon name="hadith" size={18} color={c.gold} />
+                  </View>
+                  <Text style={[st.dailyLabel, { color: c.gold }]}>
+                    {lang === 'az' ? 'GÜNÜN HƏDİSİ' : lang === 'ru' ? 'ХАДИС ДНЯ' : lang === 'ar' ? 'حديث اليوم' : lang === 'tr' ? 'GÜNÜN HADİSİ' : 'HADITH OF THE DAY'}
+                  </Text>
                 </View>
-                <Text style={[st.dailyLabel, { color: c.gold }]}>
-                  {lang === 'az' ? 'GÜNÜN HƏDİSİ' : lang === 'ru' ? 'ХАДИС ДНЯ' : lang === 'ar' ? 'حديث اليوم' : lang === 'tr' ? 'GÜNÜN HADİSİ' : 'HADITH OF THE DAY'}
-                </Text>
+                <Text style={[st.dailyArabic, { color: c.text }]}>{hadith.ar}</Text>
+                {/* Ərəb dilində mətn artıq yuxarıdadır — iki dəfə göstərilməsin */}
+                {!isAr ? (
+                  <Text style={[st.dailyText, { color: c.textSecondary }]}>{hadith.text?.[lang] || hadith.text?.en}</Text>
+                ) : null}
+                <View style={[st.sourceChip, { backgroundColor: c.goldBg }]}>
+                  <Text style={[st.sourceChipText, { color: c.gold }]}>— {hadith.source}</Text>
+                </View>
               </View>
-              <Text style={[st.dailyArabic, { color: c.text }]}>{DAILY_HADITHS[todayIdx].ar}</Text>
-              <Text style={[st.dailyText, { color: c.textSecondary }]}>{DAILY_HADITHS[todayIdx][lang] || DAILY_HADITHS[todayIdx].en}</Text>
-              <View style={[st.sourceChip, { backgroundColor: c.goldBg }]}>
-                <Text style={[st.sourceChipText, { color: c.gold }]}>— {DAILY_HADITHS[todayIdx].source}</Text>
-              </View>
-            </View>
-          </ScaleIn>
+            </ScaleIn>
+          ) : null}
+
+          {/* Məscidin elanları — admin paneldən; aktiv elan yoxdursa heç nə göstərmir.
+              Məscid tətbiqində elan aşağıda itməsin deyə yuxarıya, günün hədisindən sonra qoyulub.
+              Bannerin öz 16px kənar boşluğu + 4px = kartlarla eyni 20px xətt. */}
+          <View style={st.annWrap}>
+            <AnnouncementBanner />
+          </View>
 
           {/* ═══ AYƏ ═══ */}
           <FadeUp delay={300}>
@@ -264,52 +486,34 @@ export default function HomeScreen({ navigation }) {
             </View>
           </FadeUp>
 
-          {/* ═══ GÜNÜN DUASI ═══ */}
-          <FadeUp delay={400}>
-            <LinearGradient
-              colors={dark ? ['#1a3d2a', '#0d2818'] : ['#e8f4ee', '#f0faf4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[st.duaCard, { borderColor: c.primaryBorder }, sh]}
-            >
-              <View style={st.dailyHeader}>
-                <View style={[st.dailyIcon, { backgroundColor: c.primaryBg }]}>
-                  <AppIcon name="duas" size={18} color={c.primary} />
-                </View>
-                <Text style={[st.dailyLabel, { color: c.primary }]}>
-                  {lang === 'az' ? 'GÜNÜN DUASI' : lang === 'ru' ? 'ДУА ДНЯ' : lang === 'ar' ? 'دعاء اليوم' : lang === 'tr' ? 'GÜNÜN DUASI' : 'DUA OF THE DAY'}
-                </Text>
-              </View>
-              <Text style={[st.dailyArabic, { color: c.text }]}>{DAILY_DUAS[duaIdx].ar}</Text>
-              <Text style={[st.dailyText, { color: c.textSecondary }]}>{DAILY_DUAS[duaIdx].t[lang] || DAILY_DUAS[duaIdx].t.en}</Text>
-              <View style={[st.sourceChip, { backgroundColor: c.primaryBg }]}>
-                <Text style={[st.sourceChipText, { color: c.primary }]}>— {DAILY_DUAS[duaIdx].ref}</Text>
-              </View>
-            </LinearGradient>
-          </FadeUp>
-
-          {/* ═══ STATS — colorful cards ═══ */}
-          <View style={st.sec}>
-            <FadeUp><Text style={[st.secTitle, { color: c.text }]}>{t.statsTitle}</Text></FadeUp>
-            <FadeUp delay={100}>
-              <Text style={[st.secSub, { color: c.textSecondary }]}>
-                {lang === 'az' ? 'Platformamızın məzmunu bir baxışda' : lang === 'ru' ? 'Обзор контента платформы' : lang === 'ar' ? 'نظرة على محتوى المنصة' : lang === 'tr' ? 'Platform içeriğine bir bakış' : 'Platform content at a glance'}
-              </Text>
-            </FadeUp>
-            <View style={st.statsGrid}>
-              {stats.map((s, i) => (
-                <SlideIn key={i} delay={200 + i * 80} direction="up">
-                  <View style={[st.statCard, { backgroundColor: c.card, borderColor: c.cardBorder }, sh]}>
-                    <View style={[st.statIconWrap, { backgroundColor: c.primaryBg }]}>
-                      <AppIcon name={s.i} size={18} color={c.primary} />
-                    </View>
-                    <Text style={[st.statNum, { color: c.primary }]}>{s.n}</Text>
-                    <Text style={[st.statLabel, { color: c.textMuted }]}>{s.l}</Text>
+          {/* ═══ GÜNÜN DUASI (data/duas.js — olduğu kimi, mənbəsi ilə) ═══ */}
+          {dua ? (
+            <FadeUp delay={400}>
+              <LinearGradient
+                colors={dark ? ['#1a3d2a', '#0d2818'] : ['#e8f4ee', '#f0faf4']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[st.duaCard, { borderColor: c.primaryBorder }, sh]}
+              >
+                <View style={st.dailyHeader}>
+                  <View style={[st.dailyIcon, { backgroundColor: c.primaryBg }]}>
+                    <AppIcon name="duas" size={18} color={c.primary} />
                   </View>
-                </SlideIn>
-              ))}
-            </View>
-          </View>
+                  <Text style={[st.dailyLabel, { color: c.primary }]}>
+                    {lang === 'az' ? 'GÜNÜN DUASI' : lang === 'ru' ? 'ДУА ДНЯ' : lang === 'ar' ? 'دعاء اليوم' : lang === 'tr' ? 'GÜNÜN DUASI' : 'DUA OF THE DAY'}
+                  </Text>
+                </View>
+                <Text style={[st.dailyArabic, { color: c.text }]}>{dua.ar}</Text>
+                {!isAr ? (
+                  <Text style={[st.dailyText, { color: c.textSecondary }]}>{dua[lang] || dua.en}</Text>
+                ) : null}
+                <View style={[st.sourceChip, { backgroundColor: c.primaryBg }]}>
+                  <Text style={[st.sourceChipText, { color: c.primary }]}>— {dua.source}</Text>
+                </View>
+              </LinearGradient>
+            </FadeUp>
+          ) : null}
+
 
           {/* ═══ QUICK LINKS — colorful bubbles ═══ */}
           <View style={st.sec}>
@@ -455,7 +659,7 @@ export default function HomeScreen({ navigation }) {
                     <Text style={[st.featureDesc, { color: c.textSecondary }]}>{t[`${f.key}Desc`]}</Text>
                   </View>
                   <View style={[st.featureArrow, { backgroundColor: c.primaryBg }]}>
-                    <AppIcon name="chevronRight" size={18} color={c.primary} />
+                    <AppIcon name="chevronRight" size={18} color={c.primary} style={isAr ? st.flipX : null} />
                   </View>
                 </PressableCard>
               </FadeUp>
@@ -463,9 +667,6 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           {/* ═══ ADMIN-DRIVEN CONTENT (web ilə eyni Firebase) ═══ */}
-          {/* Elanlar — admin paneldən yenilik elan etdikdə dərhal görünür */}
-          <AnnouncementBanner />
-
           {/* Admin hero banner — Ramazan, Eyd kimi xüsusi günlər üçün */}
           <HeroBannerDisplay />
 
@@ -512,33 +713,18 @@ export default function HomeScreen({ navigation }) {
 }
 
 const st = StyleSheet.create({
-  // Animated blur header
-  animHeader: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    height: 90,
-    zIndex: 10,
-    borderBottomWidth: 0.5,
-  },
-  animHeaderContent: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingBottom: 14,
-  },
-  animHeaderTitle: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
-
   // Hero
   hero: {
-    paddingTop: 36,
-    paddingBottom: 52,
-    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 48,
+    paddingHorizontal: 20,
     alignItems: 'center',
     overflow: 'hidden',
     position: 'relative',
-    minHeight: HERO_HEIGHT,
     justifyContent: 'center',
   },
+  heroInner: { width: '100%', maxWidth: 520, alignItems: 'center' },
+  heroBlock: { alignSelf: 'stretch' },
   rotatingRing: {
     position: 'absolute',
     width: 400,
@@ -562,22 +748,98 @@ const st = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
-    marginBottom: 20,
+    marginBottom: 14,
   },
   heroBadgeText: { fontSize: 12, color: 'rgba(255,255,255,0.9)', letterSpacing: 0.5, textAlign: 'center' },
-  heroTitle: { fontSize: 32, fontWeight: '800', color: '#fff', textAlign: 'center', marginBottom: 14, letterSpacing: -1, lineHeight: 38 },
-  heroSub: { fontSize: 15, color: 'rgba(255,255,255,0.85)', textAlign: 'center', lineHeight: 24, marginBottom: 28, paddingHorizontal: 8 },
-  heroButtons: { flexDirection: 'row', gap: 12 },
-  heroBtnP: { backgroundColor: '#fff', paddingHorizontal: 24, paddingVertical: 16, borderRadius: BorderRadius.xl, flexDirection: 'row', alignItems: 'center' },
-  heroBtnPT: { fontWeight: '800', fontSize: 15, letterSpacing: -0.2 },
-  heroBtnS: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 24, paddingVertical: 16, borderRadius: BorderRadius.xl, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', flexDirection: 'row', alignItems: 'center' },
-  heroBtnST: { color: '#fff', fontWeight: '700', fontSize: 15, letterSpacing: -0.2 },
+  heroTitle: { fontSize: 30, fontWeight: '800', color: '#fff', textAlign: 'center', marginBottom: 6, letterSpacing: -0.8, lineHeight: 36 },
+  heroLocRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 18 },
+  heroLoc: { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.88)' },
+
+  // Növbəti namaz paneli (şüşə effektli)
+  mqPanel: {
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    borderColor: 'rgba(255,255,255,0.24)',
+    borderWidth: 1,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  mqPanelCenter: { minHeight: 128, alignItems: 'center', justifyContent: 'center', gap: 10 },
+  mqTopRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  mqLabel: { fontSize: 12, fontWeight: '800', color: 'rgba(255,255,255,0.92)', letterSpacing: 0.4, flexShrink: 1 },
+  mqTag: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
+  mqTagGold: { backgroundColor: 'rgba(240,192,64,0.45)' },
+  mqTagText: { fontSize: 11, fontWeight: '800', color: '#fff' },
+  mqSpacer: { flex: 1 },
+  mqAll: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.85)', flexShrink: 1 },
+  mqMainRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 10, gap: 12 },
+  mqNameCol: { flex: 1, minWidth: 0 },
+  mqName: { fontSize: 26, fontWeight: '800', color: '#fff', letterSpacing: -0.5, lineHeight: 32 },
+  mqTimesRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 14, rowGap: 2, marginTop: 2 },
+  mqTime: { fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: '600' },
+  mqTimeVal: { color: '#fff', fontWeight: '800', fontVariant: ['tabular-nums'] },
+  mqCountCol: { alignItems: 'flex-end' },
+  mqCount: { fontSize: 26, fontWeight: '800', color: '#fff', letterSpacing: 0.5, fontVariant: ['tabular-nums'], writingDirection: 'ltr' },
+  mqCountLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.8)', marginTop: 1 },
+  mqDimmed: { opacity: 0.6 },
+  mqNote: { fontSize: 11, lineHeight: 15, color: 'rgba(255,255,255,0.72)', marginTop: 10 },
+  // Azan / camaat cədvəli — hər sətrin lineHeight-i etiket sütunu ilə eynidir
+  mqGrid: {
+    flexDirection: 'row',
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.18)',
+  },
+  mqGridLabels: { width: 50, paddingVertical: 4, paddingRight: 4 },
+  mqGridCol: { flex: 1, minWidth: 0, alignItems: 'center', paddingVertical: 4, borderRadius: BorderRadius.sm },
+  mqGridColOn: { backgroundColor: 'rgba(255,255,255,0.16)' },
+  mqGridName: { fontSize: 11, lineHeight: 15, fontWeight: '700', color: 'rgba(255,255,255,0.82)' },
+  mqGridNameGold: { color: '#fde68a' },
+  mqGridLabel: { fontSize: 11, lineHeight: 18, fontWeight: '600', color: 'rgba(255,255,255,0.7)' },
+  mqGridLabelJm: { lineHeight: 21, fontWeight: '800', color: '#fff' },
+  mqGridAdhan: { fontSize: 12, lineHeight: 18, fontWeight: '600', color: 'rgba(255,255,255,0.75)', fontVariant: ['tabular-nums'] },
+  mqGridJamaat: { fontSize: 14, lineHeight: 21, fontWeight: '800', color: '#fff', fontVariant: ['tabular-nums'] },
+  mqFriday: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  mqFridayText: { flexShrink: 1, fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  mqStatus: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.9)', textAlign: 'center' },
+  mqRetry: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 16, minHeight: 40, borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+  },
+  mqRetryText: { fontSize: 13, fontWeight: '800', color: '#fff' },
+  rtlText: { writingDirection: 'rtl', textAlign: 'right' },
+  flipX: { transform: [{ scaleX: -1 }] },
+
+  // 4 sürətli düymə (Məscid · Vaxtlar · Elanlar · İanə)
+  mqQuickRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  mqQuick: {
+    flex: 1,
+    minHeight: 78,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: BorderRadius.md,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mqQuickIcon: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 6,
+  },
+  mqQuickLabel: { fontSize: 12, fontWeight: '700', color: '#fff', textAlign: 'center', lineHeight: 15 },
   heroCircle1: { position: 'absolute', width: 300, height: 300, borderRadius: 150, backgroundColor: 'rgba(255,255,255,0.05)', top: -100, right: -80 },
   heroCircle2: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.04)', bottom: -60, left: -50 },
   heroCircle3: { position: 'absolute', width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(255,255,255,0.03)', top: '50%', right: -40 },
 
   // Content wrap
   contentWrap: { marginTop: -24 },
+  annWrap: { paddingHorizontal: 4 },
 
   // Floating daily hadith card
   floatingCard: {
@@ -624,13 +886,6 @@ const st = StyleSheet.create({
   sec: { paddingHorizontal: 20, marginTop: 40 },
   secTitle: { fontSize: 24, fontWeight: '800', marginBottom: 6, letterSpacing: -0.5 },
   secSub: { fontSize: 14, marginBottom: 22, lineHeight: 22 },
-
-  // Stats
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  statCard: { width: (SW - 40 - 24) / 3, paddingVertical: 20, paddingHorizontal: 10, alignItems: 'center', borderRadius: BorderRadius.lg, borderWidth: 1 },
-  statIconWrap: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  statNum: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  statLabel: { fontSize: 11, marginTop: 4, fontWeight: '600' },
 
   // Quick links
   quickScroll: { paddingVertical: 8, gap: 12, paddingHorizontal: 2 },

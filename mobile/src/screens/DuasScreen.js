@@ -10,6 +10,7 @@ import { DUAS_DATA, subscribeToCustomDuas } from '../data/duas';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, Float } from '../components/Animated';
+import { brandName, BRAND } from '../config/mosque';
 
 // Kateqoriya rəngləri və ikonlar
 const CAT_META = {
@@ -210,7 +211,7 @@ export default function DuasScreen() {
   const shareDua = async (d) => {
     try {
       const text = d[lang] || d.en || d.az;
-      await Share.share({ message: `${d.ar}\n\n${text}\n\n— ${d.source}\n\nmuslims.cc` });
+      await Share.share({ message: `${d.ar}\n\n${text}\n\n— ${d.source}\n\n${brandName(lang)} · ${BRAND.domain}` });
     } catch {}
   };
 
