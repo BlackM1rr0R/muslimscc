@@ -3,9 +3,19 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
 import { parsePath, pathFor } from './seo/routes'
 import Seo from './seo/Seo'
+import { isOverlayEntry } from './utils/useBackToClose'
 import Header from './components/Header'
+// Naviqasiya:
+//   ≥1024px — başlığın altında həmişə açıq yan panel (SideNav "rail", qərar #5)
+//   <1024px — başlıqdakı ☰ sağdan sürüşən çəkmə menyunu açır (Header →
+//             SideNav "drawer", qərar #7). Aşağı zolaq YOXDUR — aşağı hissə boşdur.
+import SideNav from './components/SideNav'
 import Footer from './components/Footer'
 import InstallBanner from './components/InstallBanner'
+// Tək üzən düymə (AI, əlçatanlıq, bildirişlər) — əvvəlki 3 ayrı dairəvi düymənin yerinə.
+// Adi import: dok özü yüngüldür, ağır panelləri (AI, bildirişlər) içəridə tənbəl yükləyir,
+// əlçatanlıq tərcihləri isə ilk boyamadan tətbiq olunmalıdır.
+import FloatingDock from './components/FloatingDock'
 import HomePage from './pages/HomePage'
 
 // ── Marşrut əsaslı kod bölgüsü ──
@@ -14,6 +24,11 @@ import HomePage from './pages/HomePage'
 // ayrıca chunk-dır — ilk yüklənmə kiçilir, Core Web Vitals yaxşılaşır.
 // HomePage qəsdən eager saxlanılıb: ən çox açılan səhifədir və onu da
 // lazy etmək ilk boyanmaya artıq bir gediş-gəliş əlavə edərdi.
+// Məscid bölmələri
+const MosquePage = lazy(() => import('./pages/MosquePage'))
+const JamaatPage = lazy(() => import('./pages/JamaatPage'))
+const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'))
+const DonatePage = lazy(() => import('./pages/DonatePage'))
 const QuranPage = lazy(() => import('./pages/QuranPage'))
 const HadithPage = lazy(() => import('./pages/HadithPage'))
 const PrayerPage = lazy(() => import('./pages/PrayerPage'))
@@ -45,16 +60,13 @@ const AdminPage = lazy(() => import('./pages/AdminPage'))
 const VideosPage = lazy(() => import('./pages/VideosPage'))
 const BooksPage = lazy(() => import('./pages/BooksPage'))
 const AIChatPage = lazy(() => import('./pages/AIChatPage'))
-
-import AccessibilityWidget from './components/AccessibilityWidget'
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Bu widget-ler her sehifede render olunur ve Firebase-i cekir (~470 KB).
 // Statik import edilse, Firebase ilk yuklenme paketine dusur; halbuki
 // hec biri ilk ekran ucun vacib deyil. Ona gore tex ire salinirlar.
 const AnnouncementToast = lazy(() => import('./components/AnnouncementToast'))
 const NotificationPrompt = lazy(() => import('./components/NotificationPrompt'))
-const AIChatWidget = lazy(() => import('./components/AIChatWidget'))
-const NotificationSettingsWidget = lazy(() => import('./components/NotificationSettingsWidget'))
 
 /** Chunk yüklənənədək göstərilən yüngül keçid vəziyyəti. */
 function PageFallback() {
@@ -68,6 +80,10 @@ function PageFallback() {
 // Gizli admin girişi — ünvan sətrinə "#admin" yaz
 const ADMIN_HASH = '#admin'
 
+// "Məzmuna keç" linki — klaviatura ilə başlığı və yan paneli atlamaq üçün
+const SKIP_LABEL = { az: 'Məzmuna keç', en: 'Skip to content', ru: 'Перейти к содержимому', ar: 'انتقل إلى المحتوى', tr: 'İçeriğe geç' }
+const MAIN_ID = 'qm-main'
+
 function AppInner() {
   const location = useLocation()
   const routerNavigate = useNavigate()
@@ -76,23 +92,41 @@ function AppInner() {
 
   // Səhifə və dil artıq URL-dən oxunur — hər səhifənin öz ünvanı var
   // (/quran, /ru/quran) ki, Google onları ayrıca indeksləyə bilsin.
-  const { lang, key } = parsePath(location.pathname)
+  const { lang, key, known } = parsePath(location.pathname)
   const hash = location.hash
   const isAdminKey = key === 'admin' || key === 'adminlogin'
   // "#admin" istənilən səhifədən gizli girişi açır, amma /admin marşrutunun
   // özünü ələ keçirmir — əks halda login-dən sonra sonsuz dövrə yaranardı.
-  const page = (!isAdminKey && (hash === ADMIN_HASH || hash === '#/admin')) ? 'adminlogin' : key
+  // Tanınmayan ünvan → 'notfound' (404 səhifəsi, noindex) — əvvəl səssizcə ana səhifə açılırdı
+  const page = (!isAdminKey && (hash === ADMIN_HASH || hash === '#/admin')) ? 'adminlogin' : (known ? key : 'notfound')
 
   // Səhifələr hələ də setPage('quran') çağırır — API dəyişmir,
   // sadəcə altında state yerinə həqiqi URL naviqasiyası var.
+  // Açıq üst qatdan (çəkmə menyu, axtarış) keçid "replace" ilə olur:
+  // onların tarixçə girişi (utils/useBackToClose) yeni səhifə ilə əvəzlənir,
+  // Geri düyməsi isə əvvəlki səhifəyə — təkrarsız — qayıdır.
   const navigate = (p) => {
-    routerNavigate(pathFor(p, lang))
+    routerNavigate(pathFor(p, lang), { replace: isOverlayEntry() })
     window.scrollTo(0, 0)
+  }
+
+  // Skip link: <main>-ə fokus (hash dəyişmir — "#admin" məntiqinə toxunmur)
+  const skipToMain = (e) => {
+    e.preventDefault()
+    const main = document.getElementById(MAIN_ID)
+    if (main) {
+      main.focus({ preventScroll: true })
+      main.scrollIntoView({ block: 'start' })
+    }
   }
 
   const renderPage = () => {
     switch (page) {
       case 'home':     return <HomePage     setPage={navigate} />
+      case 'mosque':        return <MosquePage        setPage={navigate} />
+      case 'jamaat':        return <JamaatPage        setPage={navigate} />
+      case 'announcements': return <AnnouncementsPage setPage={navigate} />
+      case 'donate':        return <DonatePage        setPage={navigate} />
       case 'quran':    return <QuranPage    setPage={navigate} />
       case 'hadith':   return <HadithPage   setPage={navigate} />
       case 'prayer':   return <PrayerPage   setPage={navigate} />
@@ -124,33 +158,66 @@ function AppInner() {
       case 'videos':        return <VideosPage        setPage={navigate} />
       case 'books':         return <BooksPage         setPage={navigate} />
       case 'aichat':        return <AIChatPage        setPage={navigate} />
+      case 'notfound':      return <NotFoundPage      setPage={navigate} />
       default:              return <HomePage          setPage={navigate} />
     }
   }
 
-  // Admin səhifələri Header/Footer göstərmir
+  // Admin səhifələri Header/Footer göstərmir — nə yan panel, nə çəkmə menyu
   const isAdminPage = page === 'adminlogin' || page === 'admin'
+
+  // Səhifə keçidi (motion.css → .page-enter): yeni <main> 10px aşağıdan
+  // yumşaq qalxır. Suspense qəsdən <main>-dən KƏNARDADIR: naviqasiya
+  // startTransition ilə gedir (main.jsx → v7_startTransition), ona görə
+  // artıq görünən sərhəd yeni səhifənin kodu yüklənənə qədər KÖHNƏ səhifəni
+  // saxlayır — arada boş ekran / spinner "yanıb-sönməsi" olmur. Spinner
+  // yalnız ilk açılışda (hələ heç nə göstərilməyibsə) görünür.
+  const pageMain = (
+    <Suspense fallback={<PageFallback />}>
+      <main key={page} id={MAIN_ID} tabIndex={-1} className="page-enter">
+        {renderPage()}
+      </main>
+    </Suspense>
+  )
+
+  if (isAdminPage) {
+    return (
+      <>
+        <Seo page={page} lang={lang} />
+        {pageMain}
+      </>
+    )
+  }
 
   return (
     <>
       <Seo page={page} lang={lang} />
-      {!isAdminPage && <Header currentPage={page} setPage={navigate} />}
-      <main key={page} className="page-enter">
-        <Suspense fallback={<PageFallback />}>{renderPage()}</Suspense>
-      </main>
-      {!isAdminPage && <Footer setPage={navigate} />}
-      {!isAdminPage && <InstallBanner />}
+      <a className="qm-skip" href={`#${MAIN_ID}`} onClick={skipToMain}>{SKIP_LABEL[lang] || SKIP_LABEL.az}</a>
+      <Header currentPage={page} setPage={navigate} />
+
+      {/* Tətbiq qabığı (globals.css → .qm-shell): [yan panel | əsas sütun].
+          Əsas sütunda <main> VƏ footer var — footer panelin altına düşmür.
+          Ərəbcədə grid güzgülənir, panel sağda olur. */}
+      <div className="qm-shell">
+        <SideNav mode="rail" currentPage={page} setPage={navigate} />
+        <div className="qm-shell-main">
+          {pageMain}
+          <Footer setPage={navigate} />
+        </div>
+      </div>
+
+      <InstallBanner />
+      {/* ≥1024px: sağ aşağıda TƏK üzən düymə — AI köməkçi, əlçatanlıq,
+          bildiriş ayarları. <1024px-də düymə gizlidir (məzmunu örtürdü);
+          həmin alətlər ☰ çəkmə menyusundadır, panellər isə yenə buradan
+          açılır. <main key={page}>-dən kənarda — səhifə dəyişəndə yenidən
+          qurulmur. AI bəndini page === 'aichat' olanda özü gizlədir. */}
+      <FloatingDock page={page} />
       <Suspense fallback={null}>
-      {/* Pop-up announcement toast — hər səhifədə görünür */}
-      {!isAdminPage && <AnnouncementToast />}
-      {/* Push notification permission prompt */}
-      {!isAdminPage && <NotificationPrompt />}
-      {/* MuslimAI floating chat widget — bottom-right */}
-      {!isAdminPage && page !== 'aichat' && <AIChatWidget />}
-      {/* Accessibility widget — above MuslimAI button */}
-      {!isAdminPage && <AccessibilityWidget />}
-      {/* Notification settings — above Accessibility button */}
-      {!isAdminPage && <NotificationSettingsWidget />}
+        {/* Elan bildirişi, bildiriş icazəsi və quraşdırma zolağı növbə ilə
+            göstərilir (src/utils/promptCoordinator.js) — üst-üstə düşmürlər */}
+        <AnnouncementToast />
+        <NotificationPrompt />
       </Suspense>
     </>
   )

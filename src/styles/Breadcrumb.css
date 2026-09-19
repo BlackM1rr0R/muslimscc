@@ -1,0 +1,44 @@
+/* ═══════════════════════════════════════════════════════
+   ÇÖRƏK QIRINTISI — components/Breadcrumb.jsx
+   Konteynerin əsas görünüşü (mərkəz, 13px, boşluq, hero içində ağ rəng)
+   globals.css-dəki .breadcrumb-dadır; burada yalnız siyahı, link və ayırıcı.
+   ═══════════════════════════════════════════════════════ */
+
+.bc-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bc-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.bc-home {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.bc-home:hover { text-decoration: underline; text-underline-offset: 3px; }
+.bc-home:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+.bc-sep {
+  font-size: 1.1em;
+  line-height: 1;
+  opacity: .75;
+}
+
+.bc-current { overflow-wrap: anywhere; }
+
+/* Rəngli hero içində — ağ link (globals.css-dəki köhnə düymə görünüşü kimi) */
+.page-hero .bc-home { color: #fff; }
+.page-hero .bc-home:hover { opacity: .85; }

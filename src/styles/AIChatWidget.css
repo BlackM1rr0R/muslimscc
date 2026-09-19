@@ -593,4 +593,7 @@ html[lang="ar"] .aiw-panel { right: auto; left: 24px; }
 @media (max-width: 640px) {
   [dir="rtl"] .aiw-fab,
   html[lang="ar"] .aiw-fab { left: 16px; }
+  /* Mobil tam ekran vərəq — yuxarıdakı RTL "left: 24px" onu ekrandan kənara itələməsin */
+  [dir="rtl"] .aiw-panel,
+  html[lang="ar"] .aiw-panel { left: 0; right: 0; }
 }

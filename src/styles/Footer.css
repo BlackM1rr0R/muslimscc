@@ -1,11 +1,26 @@
 /* ══════════════════════════════════════════════════════
-   FOOTER — muslims.cc  |  Compact & Clean
+   FOOTER — Qaraçuxur Məscidi  |  Compact & Clean
+
+   • Yan boşluq və maks. en boşluq sistemindəndir (globals.css →
+     --page-gutter, --container) — kənarlar başlıq və səhifə məzmunu
+     ilə bir xətdə durur.
+   • Düzülüş footer-in ÖZ eninə görə dəyişir (container query): ≥1024px-də
+     footer yan paneldən sonrakı sütundadır, ona görə ekran eni yox,
+     sütunun eni vacibdir. Konteyner sorğusu olmayan köhnə brauzerlər
+     üçün aşağıda ekran eninə görə ehtiyat qaydalar var.
+   • Mətn kontrastı tünd yaşıl fonda WCAG AA-ya uyğundur.
+   • <1024px-də aşağı naviqasiya zolağı YOXDUR (bölmələr başlıqdakı ☰
+     menyusundadır). Alt boşluq yalnız iPhone-un alt boşluğu və altdan
+     16px (+ safe-area) yuxarıda üzən kart (elan, quraşdırma, bildiriş
+     təklifi) üçündür — globals.css-də (.qm-shell-main > .footer →
+     --qm-bottom-reserve) verilir.
    ══════════════════════════════════════════════════════ */
 
 .footer {
   background: linear-gradient(175deg, #0d4a27 0%, #072a15 60%, #041a0d 100%);
-  color: rgba(255,255,255,0.75);
+  color: rgba(255,255,255,0.78);
   position: relative; overflow: hidden;
+  container: ft / inline-size;
 }
 .footer::before {
   content: '';
@@ -14,9 +29,9 @@
 }
 
 /* ── Main ── */
-.ft-main { padding: 48px 24px 36px; }
+.ft-main { padding: 48px var(--page-gutter, 24px) 36px; }
 .ft-inner {
-  max-width: 1100px; margin: 0 auto;
+  max-width: var(--container, 1200px); margin: 0 auto;
   display: flex; gap: 48px; align-items: flex-start;
 }
 
@@ -27,7 +42,9 @@
 }
 .ft-logo {
   display: flex; align-items: center; gap: 10px;
-  cursor: pointer; width: fit-content;
+  width: fit-content;
+  color: inherit; text-decoration: none;
+  border-radius: 10px;
 }
 .ft-logo-icon {
   width: 34px; height: 34px; border-radius: 10px;
@@ -35,6 +52,7 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 17px; color: #fff;
   border: 1px solid rgba(134,239,172,0.2);
+  transition: transform .2s ease, background .2s ease;
 }
 .ft-logo:hover .ft-logo-icon {
   background: linear-gradient(135deg, rgba(134,239,172,0.25), rgba(255,255,255,0.1));
@@ -47,70 +65,135 @@
 .ft-logo-text span { color: #86efac; }
 .ft-desc {
   font-size: 13px; line-height: 1.7;
-  color: rgba(255,255,255,0.45); max-width: 220px;
+  color: rgba(255,255,255,0.72); max-width: 240px;
 }
 .ft-arabic {
   font-family: 'Amiri', serif; font-size: 14px;
-  color: rgba(134,239,172,0.25); direction: rtl;
+  color: rgba(134,239,172,0.45); direction: rtl;
   letter-spacing: 0.5px;
+  /* Sütun düzülüşündə də brend blokunun başlanğıcında dursun (sağa qaçmasın) */
+  align-self: flex-start;
 }
 
 /* ── Links Grid ── */
 .ft-links {
   flex: 1;
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  min-width: 0;
+  /* 5 sütun: Məscid, Əsas, Alətlər, Öyrən, Əlaqə */
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 24px;
 }
 .ft-col {
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 0;
 }
 .ft-col h4 {
-  font-size: 10px; font-weight: 700;
-  color: rgba(134,239,172,0.5);
-  letter-spacing: 2px; text-transform: uppercase;
-  margin-bottom: 4px;
+  font-size: 11px; font-weight: 700;
+  color: rgba(134,239,172,0.88);
+  letter-spacing: 1.6px; text-transform: uppercase;
+  margin-bottom: 6px;
   padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.ft-col button, .ft-col a {
-  font-size: 13px; color: rgba(255,255,255,0.55);
-  background: none; border: none; cursor: pointer;
-  font-family: inherit; text-align: left; text-decoration: none;
-  padding: 3px 0; transition: all .2s; display: flex; align-items: center; gap: 6px;
+/* Ərəb yazısında böyük hərf və hərf aralığı yoxdur */
+[dir="rtl"] .ft-col h4 { letter-spacing: 0; font-size: 12.5px; }
+
+.ft-col a,
+.ft-col .ft-contact-line {
+  display: flex; align-items: center; gap: 6px;
+  min-height: 32px;
+  font-size: 13px; line-height: 1.35;
+  color: rgba(255,255,255,0.78);
+  text-decoration: none;
+  overflow-wrap: anywhere;
 }
-.ft-col button:hover, .ft-col a:hover {
-  color: #86efac; transform: translateX(3px);
+.ft-col a {
+  border-radius: 6px;
+  transition: color .2s ease, transform .2s ease;
+}
+.ft-link-icon { flex-shrink: 0; }
+
+.ft-col a:hover { color: #86efac; transform: translateX(3px); }
+/* Ərəbcədə "irəli" sola doğrudur */
+[dir="rtl"] .ft-col a:hover { transform: translateX(-3px); }
+
+/* Klaviatura fokusu — tünd fonda görünən halqa */
+.footer a:focus { outline: none; }
+.footer a:focus-visible {
+  outline: 2px solid rgba(134,239,172,0.85);
+  outline-offset: 2px;
+}
+
+/* Toxunma ekranında sətirlər barmaq üçün (hamısı eyni hündürlükdə) */
+@media (pointer: coarse) {
+  .ft-col a,
+  .ft-col .ft-contact-line { min-height: 40px; }
 }
 
 /* ── Bottom ── */
 .ft-bottom {
-  border-top: 1px solid rgba(255,255,255,0.06);
-  padding: 16px 24px;
-  max-width: 1100px; margin: 0 auto;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 16px var(--page-gutter, 24px);
+  /* Mətn .ft-inner ilə eyni kənarda başlasın */
+  max-width: calc(var(--container, 1200px) + 2 * var(--page-gutter, 24px));
+  margin: 0 auto;
   display: flex; justify-content: space-between;
   align-items: center; flex-wrap: wrap; gap: 8px;
 }
-.ft-bottom p { font-size: 12px; color: rgba(255,255,255,0.3); }
-.ft-made { font-size: 12px; color: rgba(255,255,255,0.35); }
+.ft-bottom p { font-size: 12px; color: rgba(255,255,255,0.66); }
+.ft-made { font-size: 12px; color: rgba(255,255,255,0.66); }
 
-/* ── Responsive ── */
-@media (max-width: 900px) {
-  .ft-inner { flex-direction: column; gap: 32px; }
+/* ── Düzülüş: footer-in öz eninə görə (container query) ──
+   ≥1024px-də footer 248px-lik yan paneldən sonrakı sütundadır: 1280px
+   ekranda cəmi ~1030px. Əvvəl bu endə brend bloku + 5 dar sütun yan-yana
+   dururdu və adlar iki sətrə düşürdü ("Müqəddəs / yerlər"). */
+@container ft (max-width: 1140px) {
+  .ft-inner { flex-direction: column; gap: 28px; align-items: stretch; }
   .ft-brand { flex: none; }
-  .ft-links { grid-template-columns: repeat(4, 1fr); }
+  .ft-desc { max-width: 520px; }
 }
-@media (max-width: 640px) {
-  .ft-links { grid-template-columns: repeat(2, 1fr); gap: 20px; }
-  .ft-main { padding: 36px 20px 28px; }
+@container ft (max-width: 900px) {
+  .ft-links { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-@media (max-width: 400px) {
-  .ft-links { grid-template-columns: 1fr; }
+@container ft (max-width: 600px) {
+  .ft-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 14px; }
+  .ft-main { padding-block: 36px 28px; }
+}
+@container ft (max-width: 400px) {
   .ft-bottom { flex-direction: column; text-align: center; }
 }
 
-/* ── Dark mode ── */
+/* ── Ehtiyat: konteyner sorğusu olmayan brauzerlər ── */
+@supports not (container-type: inline-size) {
+  @media (max-width: 1279.98px) {
+    .ft-inner { flex-direction: column; gap: 28px; align-items: stretch; }
+    .ft-brand { flex: none; }
+  }
+  @media (max-width: 900px) {
+    .ft-links { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .ft-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 14px; }
+    .ft-main { padding-block: 36px 28px; }
+  }
+  @media (max-width: 400px) {
+    .ft-bottom { flex-direction: column; text-align: center; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ft-col a,
+  .ft-logo-icon { transition: none; }
+  .ft-col a:hover,
+  [dir="rtl"] .ft-col a:hover { transform: none; }
+}
+
+/* ── Dark mode ──
+   Əvvəlki qradiyent (#0a0a18 → #030308) səhifə fonu (#0f0f1a) ilə demək
+   olar eyni idi — footer ayrıca blok kimi oxunmurdu */
 [data-theme="dark"] .footer {
-  background: linear-gradient(175deg, #0a0a18 0%, #060610 60%, #030308 100%);
+  background: linear-gradient(175deg, #15152b 0%, #0d0d1f 100%);
+  border-top: 1px solid var(--border);
 }
 [data-theme="dark"] .footer::before {
   background: linear-gradient(90deg, transparent, rgba(46,204,113,0.2), transparent);
@@ -120,7 +203,6 @@
   border-color: rgba(46,204,113,0.2);
 }
 [data-theme="dark"] .ft-logo-text span { color: #2ecc71; }
-[data-theme="dark"] .ft-col h4 { color: rgba(46,204,113,0.4); }
-[data-theme="dark"] .ft-col button:hover,
+[data-theme="dark"] .ft-col h4 { color: rgba(46,204,113,0.85); }
 [data-theme="dark"] .ft-col a:hover { color: #2ecc71; }
-[data-theme="dark"] .ft-arabic { color: rgba(46,204,113,0.2); }
+[data-theme="dark"] .ft-arabic { color: rgba(46,204,113,0.4); }

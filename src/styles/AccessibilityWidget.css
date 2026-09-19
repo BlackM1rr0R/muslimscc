@@ -1,29 +1,53 @@
 /* ═══════════════════════════════════════════════════════
-   ACCESSIBILITY WIDGET — v2 (expanded with live preview)
+   ACCESSIBILITY WIDGET — v2 (canlı önizləmə ilə)
+
+   Rənglər YALNIZ globals.css dəyişənlərindəndir (yaşıl --primary,
+   qızılı --gold, --bg-card / --surface / --text / --border …) —
+   tünd rejim ([data-theme="dark"]) və sepia avtomatik işləyir.
+   Əvvəl ~25 sabit göy rəng var idi; panel saytın qalanından
+   ayrı görünürdü.
+
+   Mətn kontrastı (AA, 4.5:1+):
+     --text / --text-dim / --text-muted  → --bg-card və --bg-soft üzərində
+     --primary (işıqlı 6.6:1, tünd 8.5:1)  → vurğu mətni, aktiv sərhəd
+     --primary + --on-primary             → doldurulmuş aktiv düymə
+   Status/xəta mətni üçün rəng --text ilə qarışdırılır (color-mix):
+   işıqlıda tündləşir, tündə açılır — hər iki rejimdə AA.
    ═══════════════════════════════════════════════════════ */
 
-/* ─── FAB ─── */
+.a11y-panel,
+.a11y-fab {
+  /* Fokus halqası — FloatingDock və yan menyu ilə eyni */
+  --a11y-ring: color-mix(in srgb, var(--primary) 55%, transparent);
+  /* Doldurulmuş aktiv elementin yumşaq kölgəsi */
+  --a11y-glow: 0 4px 12px color-mix(in srgb, var(--primary) 28%, transparent);
+  /* Xəta / sıfırla mətni: qırmızı + mətn rəngi → hər iki rejimdə AA */
+  --a11y-danger-ink: color-mix(in srgb, var(--danger) 65%, var(--text));
+}
+
+/* ─── FAB (yalnız müstəqil rejim; FloatingDock-da istifadə olunmur) ─── */
 .a11y-fab {
   position: fixed;
   bottom: 112px;
   right: 24px;
   z-index: 99999;
   width: 56px; height: 56px;
-  border: none;
+  border: 1px solid var(--primary-border);
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
-  color: #fff;
+  background: var(--primary);
+  color: var(--on-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 28px rgba(59,130,246,0.4), 0 4px 12px rgba(0,0,0,0.18);
-  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, background 0.2s;
   animation: a11y-fab-in 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;
 }
 
-.a11y-fab:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 18px 38px rgba(59,130,246,0.55), 0 6px 16px rgba(0,0,0,0.22); }
+.a11y-fab:hover { background: var(--primary-dark); transform: translateY(-3px) scale(1.05); box-shadow: var(--shadow-xl); }
 .a11y-fab:active { transform: scale(0.95); }
+.a11y-fab:focus-visible { outline: 2px solid var(--a11y-ring); outline-offset: 3px; }
 
 @keyframes a11y-fab-in {
   0% { opacity: 0; transform: translateY(60px) scale(0.4); }
@@ -34,7 +58,7 @@
   position: absolute;
   inset: 4px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.18);
+  background: color-mix(in srgb, var(--on-primary) 18%, transparent);
   pointer-events: none;
   animation: a11y-pulse 2.6s ease-in-out infinite 1.2s;
 }
@@ -47,7 +71,6 @@
 .a11y-fab svg {
   position: relative;
   z-index: 1;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.2));
 }
 
 .a11y-fab-badge {
@@ -56,14 +79,14 @@
   min-width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: #ef4444;
-  color: #fff;
+  background: var(--bg-card);
+  color: var(--primary);
   font-size: 11px;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fff;
+  border: 2px solid var(--primary);
   z-index: 2;
   padding: 0 5px;
   animation: a11y-badge-pop 0.3s ease;
@@ -96,7 +119,8 @@
   width: 400px;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 48px);
-  background: var(--bg-card, #fff);
+  background: var(--bg);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 22px;
   box-shadow: 0 30px 80px -10px rgba(0,0,0,0.35), 0 12px 28px -8px rgba(0,0,0,0.18);
@@ -111,86 +135,105 @@
   100% { opacity: 1; transform: translateX(0) scale(1); }
 }
 
-/* ─── Header ─── */
+/* ─── Header ───
+   Sakit kart başlığı + aşağıda qızılı xətt (səhifə hero-larındakı kimi).
+   İkon dairəsi yan menyunun "Alətlər" ikonları ilə eynidir — ziyarətçi
+   basdığı düyməni panelin başında tanıyır. */
 .a11y-header {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
-  color: #fff;
-  padding: 16px;
+  background: var(--bg-card);
+  color: var(--text);
+  padding-block: 14px;
+  padding-inline: 16px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   flex-shrink: 0;
   position: relative;
+  border-bottom: 1px solid var(--border);
 }
 
-.a11y-header::before {
+.a11y-header::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 60%);
+  inset-inline: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(to right, var(--gold), transparent 75%);
+  opacity: 0.7;
   pointer-events: none;
+}
+
+[dir="rtl"] .a11y-header::after,
+html[lang="ar"] .a11y-header::after {
+  background: linear-gradient(to left, var(--gold), transparent 75%);
 }
 
 .a11y-header-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  position: relative;
-  z-index: 1;
   min-width: 0;
 }
 
 .a11y-header-icon {
   width: 42px; height: 42px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.22);
+  background: var(--primary-bg2);
+  color: var(--primary-dark);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 
-.a11y-name { font-weight: 800; font-size: 17px; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.15); }
-.a11y-tagline { font-size: 12px; opacity: 0.92; margin-top: 1px; line-height: 1.3; }
+[data-theme="dark"] .a11y-header-icon { color: var(--primary); }
+
+.a11y-name { font-weight: 800; font-size: 17px; letter-spacing: 0.2px; color: var(--text); line-height: 1.25; }
+.a11y-tagline { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; line-height: 1.3; }
 
 .a11y-close {
-  background: rgba(255,255,255,0.18);
-  border: none;
-  color: #fff;
-  width: 34px; height: 34px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 36px; height: 36px;
   border-radius: 50%;
   font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  z-index: 1;
-  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
 }
 
-.a11y-close:hover { background: rgba(255,255,255,0.32); transform: rotate(90deg); }
+.a11y-close:hover { background: var(--primary-bg2); border-color: var(--primary-border); color: var(--primary); transform: rotate(90deg); }
+.a11y-close:focus-visible { outline: 2px solid var(--a11y-ring); outline-offset: 2px; }
 
 /* ─── Body ─── */
 .a11y-body {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 16px;
-  background: var(--bg-soft, #f8fafc);
+  background: var(--bg);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
+/* Sütunlu flex + overflow: "overflow: hidden" olan önizləmə kartı əvvəl
+   sıxılıb yalnız başlıq zolağına qədər kiçilirdi — heç biri sıxılmasın */
+.a11y-body > * { flex-shrink: 0; }
+
 .a11y-body::-webkit-scrollbar { width: 6px; }
-.a11y-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+.a11y-body::-webkit-scrollbar-track { background: transparent; }
+.a11y-body::-webkit-scrollbar-thumb { background: var(--primary-border); border-radius: 3px; }
 
 /* ─── LIVE PREVIEW ─── */
 .a11y-preview {
-  background: var(--bg-card, #fff);
-  border: 2px solid #3b82f6;
+  background: var(--bg-card);
+  border: 1.5px dashed var(--primary-border);
   border-radius: 14px;
   padding: 14px;
   position: relative;
@@ -200,7 +243,7 @@
 .a11y-preview-label {
   font-size: 11px;
   font-weight: 800;
-  color: #2563eb;
+  color: var(--primary);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 10px;
@@ -230,32 +273,34 @@
 }
 
 .a11y-preview-link {
-  color: #2563eb;
+  color: var(--primary);
   font-weight: 700;
   text-decoration: none;
 }
 
 .a11y-preview-btn {
   align-self: flex-start;
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #fff;
+  background: var(--primary);
+  color: var(--on-primary);
   border: none;
   border-radius: 999px;
   padding: 7px 16px;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+  box-shadow: var(--a11y-glow);
 }
 
 /* ─── Section ─── */
 .a11y-section {
-  background: var(--bg-card, #fff);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: var(--shadow-sm);
 }
 
 .a11y-section-title {
@@ -274,6 +319,8 @@
   margin-top: 4px;
 }
 
+.a11y-sub-label strong { color: var(--primary); }
+
 /* ─── Profiles ─── */
 .a11y-profiles {
   display: grid;
@@ -282,8 +329,8 @@
 }
 
 .a11y-profile {
-  background: var(--bg-soft, #f8fafc);
-  border: 1.5px solid var(--border);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 10px 6px;
   display: flex;
@@ -291,14 +338,17 @@
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  color: var(--text);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
 
 .a11y-profile:hover {
-  border-color: #3b82f6;
-  background: rgba(59,130,246,0.06);
+  border-color: var(--primary-border);
+  background: var(--primary-bg);
   transform: translateY(-2px);
 }
+
+.a11y-profile:active { transform: scale(0.97); }
 
 .a11y-profile-icon { font-size: 22px; }
 .a11y-profile-name { font-size: 11px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.2; }
@@ -310,15 +360,15 @@
 .a11y-grid-5 { grid-template-columns: repeat(5, 1fr); }
 
 .a11y-btn {
-  background: var(--bg-soft, #f8fafc);
-  border: 1.5px solid var(--border);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 8px 4px;
   font-size: 12px;
   font-weight: 700;
   color: var(--text);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -340,110 +390,152 @@
 
 .a11y-btn-text { font-size: 12px; }
 
-.a11y-btn:hover { border-color: #3b82f6; background: rgba(59,130,246,0.04); color: #2563eb; }
+.a11y-btn:hover { border-color: var(--primary-border); background: var(--primary-bg); color: var(--primary); }
 
-.a11y-btn.active {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  border-color: #2563eb;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+/* Seçilmiş dəyər — saytın əsas düyməsi kimi doldurulmuş yaşıl */
+.a11y-btn.active,
+.a11y-btn.active:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--a11y-glow);
 }
 
-/* ─── Slider ─── */
+/* ─── Slider ───
+   Dolu hissə --a11y-fill (JSX-dən, 0–100%) ilə yaşıl göstərilir */
 .a11y-slider {
+  --a11y-fill: 66.67%;
   width: 100%;
   height: 6px;
   -webkit-appearance: none;
   appearance: none;
-  background: var(--border);
+  background: linear-gradient(to right, var(--primary) var(--a11y-fill), var(--border-md) var(--a11y-fill));
   border-radius: 999px;
   outline: none;
-  margin-top: 2px;
+  margin-block: 8px 4px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+[dir="rtl"] .a11y-slider,
+html[lang="ar"] .a11y-slider {
+  background: linear-gradient(to left, var(--primary) var(--a11y-fill), var(--border-md) var(--a11y-fill));
 }
 
 .a11y-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 20px; height: 20px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: var(--primary);
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(59,130,246,0.4);
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 0 0 1px var(--primary-border), 0 2px 6px rgba(0,0,0,0.2);
 }
 
 .a11y-slider::-moz-range-thumb {
   width: 20px; height: 20px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: var(--primary);
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(59,130,246,0.4);
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 0 0 1px var(--primary-border), 0 2px 6px rgba(0,0,0,0.2);
 }
+
+.a11y-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--a11y-ring); }
+.a11y-slider:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(--a11y-ring); }
 
 /* ─── Toggles ─── */
 .a11y-toggle {
-  background: var(--bg-soft, #f8fafc);
-  border: 1.5px solid var(--border);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 9px 11px;
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
+  transition: background 0.2s, border-color 0.2s;
+  text-align: start;
   width: 100%;
+  color: var(--text);
 }
 
-.a11y-toggle:hover { border-color: #3b82f6; background: rgba(59,130,246,0.04); }
-.a11y-toggle.on { background: rgba(59,130,246,0.08); border-color: #3b82f6; }
+.a11y-toggle:hover { border-color: var(--primary-border); background: var(--primary-bg); }
+.a11y-toggle.on { background: var(--primary-bg); border-color: var(--primary-border); }
 
 .a11y-toggle-icon { font-size: 18px; width: 26px; flex-shrink: 0; text-align: center; }
 .a11y-toggle-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .a11y-toggle-label { font-size: 13px; font-weight: 700; color: var(--text); }
-.a11y-toggle-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; line-height: 1.3; }
+/* --text-dim: --text-muted tünd rejimdə yaşıl fonlu (.on) kafeldə 4.3:1 idi */
+.a11y-toggle-sub { font-size: 11px; color: var(--text-dim); margin-top: 1px; line-height: 1.3; }
 
+/* Açar: sönülü — boz sərhədli zolaq + boz düymə; açıq — yaşıl zolaq.
+   Hər iki halda düymə fonla ≥3:1 kontrastdadır (WCAG 1.4.11). */
 .a11y-toggle-switch {
   width: 36px; height: 20px;
-  background: var(--border);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--border-md);
   border-radius: 999px;
   position: relative;
   flex-shrink: 0;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .a11y-toggle.on .a11y-toggle-switch {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: var(--primary);
+  box-shadow: inset 0 0 0 1.5px var(--primary);
 }
 
 .a11y-toggle-knob {
   position: absolute;
-  top: 2px; left: 2px;
-  width: 16px; height: 16px;
-  background: #fff;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 14px; height: 14px;
+  background: var(--text-muted);
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
 }
 
-.a11y-toggle.on .a11y-toggle-knob { transform: translateX(16px); }
+.a11y-toggle.on .a11y-toggle-knob {
+  background: var(--on-primary);
+  transform: translateX(16px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+[dir="rtl"] .a11y-toggle.on .a11y-toggle-knob,
+html[lang="ar"] .a11y-toggle.on .a11y-toggle-knob { transform: translateX(-16px); }
+
+/* Klaviatura fokusu — panel daxilindəki bütün düymələr */
+.a11y-profile:focus-visible,
+.a11y-btn:focus-visible,
+.a11y-toggle:focus-visible,
+.a11y-reset:focus-visible,
+.a11y-preview-btn:focus-visible,
+.a11y-preview-link:focus-visible {
+  outline: 2px solid var(--a11y-ring);
+  outline-offset: 2px;
+}
 
 /* ─── Reset ─── */
 .a11y-reset {
-  background: var(--bg-card, #fff);
-  border: 2px dashed #ef4444;
-  color: #dc2626;
+  background: var(--bg-card);
+  border: 1.5px dashed var(--border-md);
+  color: var(--text-dim);
   border-radius: 12px;
   padding: 12px;
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
   margin-top: 4px;
 }
 
-.a11y-reset:hover { background: rgba(239,68,68,0.08); }
+.a11y-reset:hover {
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  color: var(--a11y-danger-ink);
+  background: color-mix(in srgb, var(--danger) 7%, var(--bg-card));
+}
 
 /* ─── Reading guide line ─── */
 .a11y-guide-line {
@@ -451,8 +543,8 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: rgba(59,130,246,0.7);
-  box-shadow: 0 0 16px rgba(59,130,246,0.5);
+  background: color-mix(in srgb, var(--primary) 75%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--primary) 50%, transparent);
   pointer-events: none;
   z-index: 99999;
   transform: translateY(-1px);
@@ -473,6 +565,9 @@
     border-radius: 0;
     border: none;
   }
+  /* Tam ekran vərəq: başlıq çentikin, son düymə ev zolağının altında qalmasın */
+  .a11y-header { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+  .a11y-body { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
   .a11y-profiles { grid-template-columns: repeat(3, 1fr); }
   .a11y-grid-5 { grid-template-columns: repeat(5, 1fr); }
   .a11y-grid-4 { grid-template-columns: repeat(4, 1fr); }
@@ -487,6 +582,9 @@ html[lang="ar"] .a11y-panel { right: auto; left: 24px; }
 @media (max-width: 640px) {
   [dir="rtl"] .a11y-fab,
   html[lang="ar"] .a11y-fab { left: 16px; }
+  /* Mobil tam ekran vərəq — yuxarıdakı RTL "left: 24px" onu ekrandan kənara itələməsin */
+  [dir="rtl"] .a11y-panel,
+  html[lang="ar"] .a11y-panel { left: 0; right: 0; }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -558,16 +656,23 @@ html.a11y-grayscale .a11y-panel,
 html.a11y-grayscale .a11y-backdrop,
 html.a11y-grayscale .a11y-fab { filter: grayscale(0); }
 
-/* Sepia theme */
+/* Sepia theme — yalnız palitra; qalan hər şey dəyişənlərdən gəlir.
+   --text-muted əvvəl #8b7355 idi (kartda 4.1:1) — AA üçün tündləşdirildi;
+   panelin istifadə etdiyi --text-dim / --surface / --border-md /
+   --bg-card2 da sepiyaya uyğunlaşdırıldı (əvvəl işıqlı yaşıl qalırdı). */
 html[data-theme="sepia"] {
   --bg: #f4ecd8;
   --bg-card: #fbf6e9;
+  --bg-card2: #f0e6cf;
   --bg-soft: #f0e6cf;
+  --surface: #ebdfc3;
   --text: #5b4636;
-  --text-muted: #8b7355;
+  --text-dim: #6b5440;
+  --text-muted: #7a6248;
   --border: #d9c89e;
+  --border-md: #c9b183;
 }
-html[data-theme="sepia"] body { background: #f4ecd8; color: #5b4636; }
+html[data-theme="sepia"] body { background: var(--bg); color: var(--text); }
 
 /* Dyslexia-friendly font */
 html.a11y-dyslexia,
@@ -587,15 +692,25 @@ html.a11y-underline-links [role="link"] {
   text-underline-offset: 3px !important;
 }
 
-/* Highlight headings */
+/* Highlight headings — qızılı (--gold) yarımşəffaf fon və kənar xətt;
+   mətn rəngi dəyişmir, fon səhifə fonu ilə qarışdığı üçün başlıq hər iki
+   rejimdə oxunaqlı qalır (əvvəl sabit sarı #facc15 idi) */
 html.a11y-highlight-headings h1,
 html.a11y-highlight-headings h2,
 html.a11y-highlight-headings h3,
 html.a11y-highlight-headings h4 {
-  background: linear-gradient(90deg, rgba(250,204,21,0.4), rgba(250,204,21,0.1)) !important;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 30%, transparent), color-mix(in srgb, var(--gold) 8%, transparent)) !important;
   padding: 4px 8px !important;
-  border-left: 4px solid #facc15 !important;
+  border-left: 4px solid var(--gold) !important;
   border-radius: 4px !important;
+}
+[dir="rtl"].a11y-highlight-headings h1,
+[dir="rtl"].a11y-highlight-headings h2,
+[dir="rtl"].a11y-highlight-headings h3,
+[dir="rtl"].a11y-highlight-headings h4 {
+  background: linear-gradient(270deg, color-mix(in srgb, var(--gold) 30%, transparent), color-mix(in srgb, var(--gold) 8%, transparent)) !important;
+  border-left: none !important;
+  border-right: 4px solid var(--gold) !important;
 }
 
 /* Reduce motion */
@@ -647,9 +762,9 @@ html.a11y-larger-targets input[type="button"] {
 /* Highlight focus */
 html.a11y-highlight-focus *:focus,
 html.a11y-highlight-focus *:focus-visible {
-  outline: 3px solid #3b82f6 !important;
+  outline: 3px solid var(--primary) !important;
   outline-offset: 3px !important;
-  box-shadow: 0 0 0 6px rgba(59,130,246,0.3) !important;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 28%, transparent) !important;
   border-radius: 4px !important;
 }
 
@@ -659,7 +774,7 @@ html.a11y-read-aloud h1:hover,
 html.a11y-read-aloud h2:hover,
 html.a11y-read-aloud h3:hover,
 html.a11y-read-aloud li:hover {
-  background: rgba(59,130,246,0.08) !important;
+  background: var(--primary-bg) !important;
   cursor: pointer !important;
   border-radius: 4px;
 }

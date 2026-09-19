@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useLang } from '../contexts/LangContext'
+import { useLang, resolveSiteDark } from '../contexts/LangContext'
 import '../styles/AccessibilityWidget.css'
 
 const STORAGE_KEY = 'muslim_cc_a11y_prefs_v2'
@@ -249,7 +249,16 @@ function applyPreferences(prefs) {
   if (prefs.theme === 'dark') html.setAttribute('data-theme', 'dark')
   else if (prefs.theme === 'light') html.setAttribute('data-theme', 'light')
   else if (prefs.theme === 'sepia') html.setAttribute('data-theme', 'sepia')
-  else html.removeAttribute('data-theme')
+  else {
+    // "Avto" — saytın öz tema seçimi (header-dəki ay/günəş düyməsi) qalsın.
+    // Əvvəl burada data-theme həmişə silinirdi: hər hansı əlçatanlıq ayarı
+    // dəyişəndə tünd rejim səhifə yenilənənə qədər sönürdü.
+    // Saytın tema qərarı (saxlanmış seçim, yoxdursa telefonun sistem rejimi) —
+    // yalnız localStorage-a baxanda sistem qaranlıq olan telefonda ayar dəyişəndə sayt işıqlanırdı
+    const siteDark = resolveSiteDark()
+    if (siteDark) html.setAttribute('data-theme', 'dark')
+    else html.removeAttribute('data-theme')
+  }
 
   // Saturation
   html.style.setProperty('--a11y-saturation', `${prefs.saturation}%`)
@@ -269,11 +278,34 @@ function applyPreferences(prefs) {
   html.classList.toggle('a11y-reading-guide', prefs.readingGuide)
 }
 
-export default function AccessibilityWidget() {
+/**
+ * Əlçatanlıq paneli + saytda tətbiq olunan tərcihlər.
+ *
+ * Tərcihlər (şrift ölçüsü, kontrast və s.) panel bağlı olanda da tətbiq
+ * olunur — ona görə bu komponent həmişə render edilməlidir.
+ *
+ * İki rejim:
+ *  • İdarə olunan — `open` prop verilir (FloatingDock). Öz üzən düyməsini
+ *    göstərmir; bağlananda `onClose()` çağırılır.
+ *  • Köhnə (müstəqil) — prop yoxdur: öz düyməsi ilə açılır.
+ *
+ * @param {{ open?: boolean, onClose?: () => void, onActiveCountChange?: (n: number) => void }} props
+ */
+export default function AccessibilityWidget({ open: openProp, onClose, onActiveCountChange } = {}) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
 
-  const [open, setOpen] = useState(false)
+  const controlled = openProp !== undefined
+  const [openState, setOpenState] = useState(false)
+  const open = controlled ? Boolean(openProp) : openState
+  const setOpen = (value) => {
+    if (controlled) { if (!value) onClose?.() }
+    else setOpenState(value)
+  }
+  const closeRef = useRef(null)
+  closeRef.current = () => setOpen(false)
+  const closeBtnRef = useRef(null)
+
   const [prefs, setPrefs] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
@@ -307,7 +339,7 @@ export default function AccessibilityWidget() {
     if (typeof window === 'undefined' || !window.speechSynthesis) return
     const onClick = (e) => {
       // Skip clicks inside the widget itself
-      if (e.target.closest('.a11y-panel, .a11y-fab, button, input, select, textarea, a')) return
+      if (e.target.closest('.a11y-panel, .a11y-fab, .qm-dock, button, input, select, textarea, a')) return
       const text = e.target.innerText || e.target.textContent
       if (!text || text.length < 3 || text.length > 800) return
       e.preventDefault()
@@ -336,34 +368,45 @@ export default function AccessibilityWidget() {
     return () => clearInterval(interval)
   }, [prefs.pauseMedia])
 
-  // Escape to close
+  // Escape ilə bağlama
   useEffect(() => {
     if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') closeRef.current?.() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
-  // Açıq olduqda body-ə class əlavə et (digər FAB-ları gizlət)
+  // Açılanda fokus panelə keçsin (klaviatura istifadəçiləri üçün)
   useEffect(() => {
-    if (open) document.body.classList.add('panel-open')
-    else document.body.classList.remove('panel-open')
+    if (!open) return
+    const t = setTimeout(() => closeBtnRef.current?.focus(), 60)
+    return () => clearTimeout(t)
+  }, [open])
+
+  // Açıq olduqda body-ə class əlavə et (mobil scroll kilidi, üzən düymələri gizlət).
+  // Yalnız açıq ikən əlavə edib bağlananda silirik — panellər arasında
+  // keçid zamanı bir panelin təmizləməsi digərinin sinfini silməsin.
+  useEffect(() => {
+    if (!open) return
+    document.body.classList.add('panel-open')
     return () => document.body.classList.remove('panel-open')
   }, [open])
 
-  // Başqa panel açılanda bunu bağla
+  // Başqa panel açılanda bunu bağla (yalnız müstəqil rejimdə —
+  // idarə olunan rejimdə eyni anda bir paneli FloatingDock özü təmin edir)
   useEffect(() => {
+    if (controlled) return
     const handler = (e) => {
-      if (e.detail !== 'a11y') setOpen(false)
+      if (e.detail !== 'a11y') setOpenState(false)
     }
     window.addEventListener('close-other-panels', handler)
     return () => window.removeEventListener('close-other-panels', handler)
-  }, [])
+  }, [controlled])
 
   // Bu açılanda digərlərinə xəbər ver
   useEffect(() => {
-    if (open) window.dispatchEvent(new CustomEvent('close-other-panels', { detail: 'a11y' }))
-  }, [open])
+    if (open && !controlled) window.dispatchEvent(new CustomEvent('close-other-panels', { detail: 'a11y' }))
+  }, [open, controlled])
 
   const update = useCallback((key, value) => setPrefs(p => ({ ...p, [key]: value })), [])
   const toggle = useCallback((key) => setPrefs(p => ({ ...p, [key]: !p[key] })), [])
@@ -387,20 +430,27 @@ export default function AccessibilityWidget() {
     return n
   })()
 
+  // Aktiv ayar sayını dok menyusuna ötür (nişan üçün)
+  useEffect(() => {
+    onActiveCountChange?.(activeCount)
+  }, [activeCount, onActiveCountChange])
+
   return (
     <>
-      {/* FAB */}
-      <button
-        className="a11y-fab"
-        onClick={() => setOpen(o => !o)}
-        aria-label={l.open}
-        aria-expanded={open}
-        title={l.open}
-      >
-        <div className="a11y-fab-ring"></div>
-        <A11yIcon size={26} />
-        {activeCount > 0 && <span className="a11y-fab-badge">{activeCount}</span>}
-      </button>
+      {/* FAB — yalnız müstəqil rejimdə (dokda bu düymə yoxdur) */}
+      {!controlled && (
+        <button
+          className="a11y-fab"
+          onClick={() => setOpenState(o => !o)}
+          aria-label={l.open}
+          aria-expanded={open}
+          title={l.open}
+        >
+          <div className="a11y-fab-ring"></div>
+          <A11yIcon size={26} />
+          {activeCount > 0 && <span className="a11y-fab-badge">{activeCount}</span>}
+        </button>
+      )}
 
       {open && (
         <>
@@ -416,7 +466,7 @@ export default function AccessibilityWidget() {
                   </div>
                 </div>
               </div>
-              <button className="a11y-close" onClick={() => setOpen(false)} aria-label={l.close}>✕</button>
+              <button ref={closeBtnRef} className="a11y-close" onClick={() => setOpen(false)} aria-label={l.close}>✕</button>
             </div>
 
             <div className="a11y-body">
@@ -525,6 +575,7 @@ export default function AccessibilityWidget() {
                 </div>
 
                 <div className="a11y-sub-label">{l.saturation} — <strong>{prefs.saturation}%</strong></div>
+                {/* --a11y-fill: zolağın dolu (yaşıl) hissəsi — rəng CSS-dədir */}
                 <input
                   type="range"
                   className="a11y-slider"
@@ -532,6 +583,9 @@ export default function AccessibilityWidget() {
                   max="150"
                   step="10"
                   value={prefs.saturation}
+                  aria-label={l.saturation}
+                  aria-valuetext={`${prefs.saturation}%`}
+                  style={{ '--a11y-fill': `${(prefs.saturation / 150) * 100}%` }}
                   onChange={(e) => update('saturation', Number(e.target.value))}
                 />
 

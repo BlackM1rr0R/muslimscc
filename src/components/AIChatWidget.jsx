@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import { subscribeToSettings } from '../data/adminContent'
+import { BRAND } from '../config/mosque'
 import '../styles/AIChatWidget.css'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
@@ -43,117 +44,139 @@ function AIIcon({ size = 24, className = '' }) {
 
 const LABELS = {
   az: {
-    botName:'MuslimAI',
+    botName:BRAND.aiName.az,
     tagline:'İslami AI köməkçi',
     placeholder:'Sualınızı yazın...',
-    welcome:'Salam aleykum! Mən MuslimAI — sizin İslami köməkçinizəm. Quran, hədis, namaz, dua haqqında soruşa bilərsiniz.',
+    welcome:`Salam aleykum! Mən ${BRAND.name.az} saytının AI köməkçisiyəm. Quran, hədis, namaz, dua haqqında soruşa bilərsiniz.`,
     suggest1:'Namaz necə qılınır?',
     suggest2:'Səbr haqqında hədis',
     suggest3:'Ən fəzilətli dua hansıdır?',
     suggest4:'Tövhid nədir?',
-    disclaimer:'AI cavablar məlumat üçündür. Allah daha yaxşı bilir.',
+    disclaimer:`${BRAND.aiDisclaimer.az} Allah daha yaxşı bilir.`,
     online:'Onlayn',
     typing:'Yazır',
     error:'Xəta. Yenidən cəhd edin.',
     clear:'Təmizlə',
     minimize:'Kiçilt',
     close:'Bağla',
-    open:'MuslimAI ilə danış',
+    open:`${BRAND.aiName.az} ilə danış`,
     noBackend:'AI xidməti hələ qurulmayıb',
     rateLimit:'Çox sürətli yazırsınız. Zəhmət olmasa gözləyin, {s} saniyə sonra yenidən cəhd edin.',
     rateLimitShort:'Bir az gözləyin... {s}s',
   },
   en: {
-    botName:'MuslimAI',
+    botName:BRAND.aiName.en,
     tagline:'Islamic AI assistant',
     placeholder:'Type your question...',
-    welcome:'Assalamu alaikum! I am MuslimAI — your Islamic assistant. You can ask about Quran, Hadith, prayer, duas.',
+    welcome:`Assalamu alaikum! I am the AI assistant of the ${BRAND.name.en} website. You can ask about Quran, Hadith, prayer, duas.`,
     suggest1:'How to pray?',
     suggest2:'Hadith about patience',
     suggest3:'Most virtuous dua?',
     suggest4:'What is Tawheed?',
-    disclaimer:'AI answers are informational. Allah knows best.',
+    disclaimer:`${BRAND.aiDisclaimer.en} Allah knows best.`,
     online:'Online',
     typing:'Typing',
     error:'Error. Try again.',
     clear:'Clear',
     minimize:'Minimize',
     close:'Close',
-    open:'Chat with MuslimAI',
+    open:`Chat with the ${BRAND.aiName.en}`,
     noBackend:'AI service not configured',
     rateLimit:'You are sending too fast. Please wait — try again in {s} seconds.',
     rateLimitShort:'Wait a moment... {s}s',
   },
   ru: {
-    botName:'MuslimAI',
+    botName:BRAND.aiName.ru,
     tagline:'Исламский AI помощник',
     placeholder:'Напишите вопрос...',
-    welcome:'Ас-саляму алейкум! Я MuslimAI — ваш исламский помощник. Спрашивайте о Коране, хадисах, намазе, дуа.',
+    welcome:`Ас-саляму алейкум! Я ИИ-помощник сайта «${BRAND.name.ru}». Спрашивайте о Коране, хадисах, намазе, дуа.`,
     suggest1:'Как совершать намаз?',
     suggest2:'Хадис о терпении',
     suggest3:'Лучшая дуа?',
     suggest4:'Что такое Таухид?',
-    disclaimer:'Ответы AI — информационные. Аллах знает лучше.',
+    disclaimer:`${BRAND.aiDisclaimer.ru} Аллах знает лучше.`,
     online:'Онлайн',
     typing:'Пишет',
     error:'Ошибка. Попробуйте снова.',
     clear:'Очистить',
     minimize:'Свернуть',
     close:'Закрыть',
-    open:'Чат с MuslimAI',
+    open:'Чат с ИИ-помощником',
     noBackend:'AI сервис не настроен',
     rateLimit:'Вы пишете слишком быстро. Пожалуйста, подождите — попробуйте через {s} сек.',
     rateLimitShort:'Подождите... {s}с',
   },
   ar: {
-    botName:'MuslimAI',
+    botName:BRAND.aiName.ar,
     tagline:'مساعد ذكاء اصطناعي إسلامي',
     placeholder:'اكتب سؤالك...',
-    welcome:'السلام عليكم! أنا MuslimAI — مساعدك الإسلامي. اسألني عن القرآن، الحديث، الصلاة، الأدعية.',
+    welcome:`السلام عليكم! أنا المساعد الذكي لموقع ${BRAND.name.ar}. اسألني عن القرآن، الحديث، الصلاة، الأدعية.`,
     suggest1:'كيف أصلي؟',
     suggest2:'حديث عن الصبر',
     suggest3:'أفضل دعاء؟',
     suggest4:'ما هو التوحيد؟',
-    disclaimer:'إجابات AI للمعلومات. والله أعلم.',
+    disclaimer:`${BRAND.aiDisclaimer.ar} والله أعلم.`,
     online:'متصل',
     typing:'يكتب',
     error:'خطأ. حاول مرة أخرى.',
     clear:'مسح',
     minimize:'تصغير',
     close:'إغلاق',
-    open:'الدردشة مع MuslimAI',
+    open:`الدردشة مع ${BRAND.aiName.ar}`,
     noBackend:'خدمة AI غير مكونة',
     rateLimit:'تكتب بسرعة كبيرة. يُرجى الانتظار — حاول مرة أخرى بعد {s} ثانية.',
     rateLimitShort:'انتظر قليلاً... {s} ث',
   },
   tr: {
-    botName:'MuslimAI',
+    botName:BRAND.aiName.tr,
     tagline:'İslami AI asistan',
     placeholder:'Sorunuzu yazın...',
-    welcome:'Selamün aleyküm! Ben MuslimAI — İslami asistanınız. Kuran, hadis, namaz, dua hakkında sorabilirsiniz.',
+    welcome:`Selamün aleyküm! Ben ${BRAND.name.tr} web sitesinin yapay zekâ asistanıyım. Kuran, hadis, namaz, dua hakkında sorabilirsiniz.`,
     suggest1:'Namaz nasıl kılınır?',
     suggest2:'Sabırla ilgili hadis',
     suggest3:'En faziletli dua?',
     suggest4:'Tevhid nedir?',
-    disclaimer:'AI cevapları bilgi içindir. Allah daha iyi bilir.',
+    disclaimer:`${BRAND.aiDisclaimer.tr} Allah daha iyi bilir.`,
     online:'Çevrimiçi',
     typing:'Yazıyor',
     error:'Hata. Tekrar deneyin.',
     clear:'Temizle',
     minimize:'Küçült',
     close:'Kapat',
-    open:'MuslimAI ile sohbet',
+    open:`${BRAND.aiName.tr} ile sohbet`,
     noBackend:'AI servisi yapılandırılmamış',
     rateLimit:'Çok hızlı yazıyorsunuz. Lütfen {s} saniye bekleyin ve tekrar deneyin.',
     rateLimitShort:'Biraz bekleyin... {s}s',
   },
 }
 
-export default function AIChatWidget() {
+/**
+ * AI köməkçi paneli.
+ *
+ * İki rejim:
+ *  • İdarə olunan — `open` prop verilir (FloatingDock). Öz üzən düyməsini
+ *    göstərmir; bağlananda `onClose()` çağırılır.
+ *  • Köhnə (müstəqil) — prop yoxdur: öz "AI" düyməsi ilə açılır.
+ *
+ * @param {{ open?: boolean, onClose?: () => void, onUnreadChange?: (v: boolean) => void }} props
+ */
+export default function AIChatWidget({ open: openProp, onClose, onUnreadChange } = {}) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
 
-  const [open, setOpen] = useState(false)
+  const controlled = openProp !== undefined
+  const [openState, setOpenState] = useState(false)
+  const open = controlled ? Boolean(openProp) : openState
+  const setOpen = (value) => {
+    if (controlled) { if (!value) onClose?.() }
+    else setOpenState(value)
+  }
+  // Asinxron cavab gələndə panelin CARİ vəziyyətini bilmək üçün
+  const openRef = useRef(open)
+  openRef.current = open
+  const closeRef = useRef(null)
+  closeRef.current = () => setOpen(false)
+
   const [hasUnread, setHasUnread] = useState(false)
   const [messages, setMessages] = useState(() => {
     try {
@@ -182,13 +205,21 @@ export default function AIChatWidget() {
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)) } catch {}
-    if (scrollRef.current) {
+    // Boş söhbətdə salamlama ekranı yuxarıdan görünsün — aşağı sürüşdürmə yalnız mesaj olanda
+    if (scrollRef.current && messages.length > 0) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
 
   useEffect(() => {
     if (open) {
+      // Panel açılanda son mesaj görünsün (panel bağlı ikən gələn cavablar da daxil)
+      requestAnimationFrame(() => {
+        const el = scrollRef.current
+        if (el && el.scrollHeight > el.clientHeight && el.querySelector('.aiw-msg')) {
+          el.scrollTop = el.scrollHeight
+        }
+      })
       setHasUnread(false)
       // Mobil-da autofocus klaviaturanı dərhal açır — istəmirik
       const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
@@ -228,34 +259,43 @@ export default function AIChatWidget() {
     return () => clearInterval(interval)
   }, [cooldown])
 
-  // Bağlandıqda Escape ilə kapatma
+  // Escape ilə bağlama
   useEffect(() => {
     if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') closeRef.current?.() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
-  // Açıq olduqda body-ə class əlavə et (digər FAB-ları gizlət)
+  // Açıq olduqda body-ə class əlavə et (mobil scroll kilidi, üzən düymələri gizlət).
+  // Yalnız açıq ikən əlavə edib bağlananda silirik — panellər arasında
+  // keçid zamanı bir panelin təmizləməsi digərinin sinfini silməsin.
   useEffect(() => {
-    if (open) document.body.classList.add('panel-open')
-    else document.body.classList.remove('panel-open')
+    if (!open) return
+    document.body.classList.add('panel-open')
     return () => document.body.classList.remove('panel-open')
   }, [open])
 
-  // Başqa panel açılanda bunu bağla
+  // Oxunmamış cavab göstəricisi — dok düyməsində nöqtə üçün
   useEffect(() => {
+    onUnreadChange?.(hasUnread)
+  }, [hasUnread, onUnreadChange])
+
+  // Başqa panel açılanda bunu bağla (yalnız müstəqil rejimdə —
+  // idarə olunan rejimdə eyni anda bir paneli FloatingDock özü təmin edir)
+  useEffect(() => {
+    if (controlled) return
     const handler = (e) => {
-      if (e.detail !== 'ai') setOpen(false)
+      if (e.detail !== 'ai') setOpenState(false)
     }
     window.addEventListener('close-other-panels', handler)
     return () => window.removeEventListener('close-other-panels', handler)
-  }, [])
+  }, [controlled])
 
   // Bu açılanda digərlərinə xəbər ver
   useEffect(() => {
-    if (open) window.dispatchEvent(new CustomEvent('close-other-panels', { detail: 'ai' }))
-  }, [open])
+    if (open && !controlled) window.dispatchEvent(new CustomEvent('close-other-panels', { detail: 'ai' }))
+  }, [open, controlled])
 
   const sendMessage = async (text) => {
     const msg = (text ?? input).trim()
@@ -295,7 +335,7 @@ export default function AIChatWidget() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'API error')
       setMessages([...updated, { role:'assistant', content: data.reply, time: Date.now(), lang }])
-      if (!open) setHasUnread(true)
+      if (!openRef.current) setHasUnread(true)
     } catch (e) {
       setError(`${l.error} (${e.message})`)
     }
@@ -310,15 +350,15 @@ export default function AIChatWidget() {
 
   const handleClear = () => {
     setMessages([])
-    localStorage.removeItem(STORAGE_KEY)
+    try { localStorage.removeItem(STORAGE_KEY) } catch { /* yaddaş bağlıdır */ }
   }
 
   const suggestions = [l.suggest1, l.suggest2, l.suggest3, l.suggest4]
 
   return (
     <>
-      {/* FAB (floating action button) */}
-      {!open && (
+      {/* FAB — yalnız müstəqil rejimdə (dokda bu düymə yoxdur) */}
+      {!controlled && !open && (
         <button
           className="aiw-fab"
           onClick={() => setOpen(true)}
@@ -358,7 +398,7 @@ export default function AIChatWidget() {
                   🗑️
                 </button>
               )}
-              <button className="aiw-icon-btn" onClick={() => setOpen(false)} title={l.close} aria-label={l.close}>
+              <button className="aiw-icon-btn aiw-close-btn" onClick={() => setOpen(false)} title={l.close} aria-label={l.close}>
                 ✕
               </button>
             </div>

@@ -1,0 +1,315 @@
+/* ═══════════════════════════════════════════════════════
+   FLOATING DOCK — sağ aşağıda tək üzən düymə + şaquli menyu
+   (AI köməkçi, əlçatanlıq, bildirişlər)
+
+   • Yalnız ≥1024px-də görünür. Dar ekranda (<1024px) düymə məzmunu
+     örtürdü (namaz vaxtları, surə adları) və menyunu təkrarlayırdı —
+     orada gizlidir; AI, əlçatanlıq və bildirişlər ☰ çəkmə menyusunun
+     "Alətlər" sətrindədir (SideNav.jsx → "qm-dock-open").
+   • Yalnız globals.css dəyişənləri — tünd rejim avtomatik işləyir.
+   • Aşağıda banner/zolaq görünəndə (--bottom-inset) onun ÜSTÜNƏ qalxır.
+   • z-index 990: səhifə məzmunundan yuxarı, header (1000) və mobil
+     menyudan (998) aşağı; açılan panellər (9991+) hamısından yuxarı.
+   ═══════════════════════════════════════════════════════ */
+
+.qm-dock {
+  --qm-dock-size: 46px;
+  --qm-dock-gap: 16px;
+  position: fixed;
+  right: calc(var(--qm-dock-gap) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--qm-dock-gap) + max(var(--bottom-inset, 0px), env(safe-area-inset-bottom, 0px)));
+  z-index: 990;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  /* boş sahə kliki udmasın — yalnız düymələr klik alır */
+  pointer-events: none;
+  transition: bottom 0.25s ease, opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0s;
+}
+
+.qm-dock > * { pointer-events: auto; }
+
+/* Panel açıq olanda dok gizlənir (panel onun yerində açılır) */
+.qm-dock.is-hidden,
+body.panel-open .qm-dock {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.85);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+}
+
+/* Aşağı sürüşdürərkən kənara çəkilir — oxunan məzmunu örtmür.
+   visibility dəyişmir: klaviatura ilə fokus gələndə (:focus-within) geri çıxır. */
+.qm-dock.is-scroll-hidden:not(:focus-within) {
+  opacity: 0;
+  transform: translateY(calc(100% + var(--qm-dock-gap)));
+  pointer-events: none;
+}
+.qm-dock.is-scroll-hidden:not(:focus-within) > * { pointer-events: none; }
+
+/* ─── Əsas düymə ─── */
+.qm-dock-toggle {
+  position: relative;
+  width: var(--qm-dock-size);
+  height: var(--qm-dock-size);
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--primary-border);
+  background: var(--primary);
+  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.2s ease, background 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.qm-dock-toggle:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.qm-dock-toggle:active { transform: scale(0.96); }
+
+.qm-dock-toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 3px;
+}
+
+.qm-dock-toggle-icon {
+  display: inline-flex;
+  transition: transform var(--dur-3, 360ms) var(--ease-spring, ease);
+}
+
+.qm-dock.is-open .qm-dock-toggle-icon { transform: rotate(45deg); }
+
+/* Oxunmamış AI cavabı */
+.qm-dock-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 2px solid var(--bg-card);
+}
+
+/* ─── Menyu ─── */
+.qm-dock-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.qm-dock-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+  /* Menyu yay kimi açılır: bəndlər düymədən yuxarı növbə ilə "qalxır" */
+  animation: qm-dock-in 320ms var(--ease-spring, cubic-bezier(0.34, 1.36, 0.64, 1)) backwards;
+  animation-delay: calc(min(var(--i, 0), 7) * var(--stagger, 40ms));
+  transform-origin: bottom right;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.qm-dock-item:focus-visible { outline: none; }
+
+.qm-dock-item-label {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.qm-dock-item-icon {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  /* düymə ilə mərkəz xətti eyni olsun: (46 - 44) / 2 */
+  margin-inline-end: calc((var(--qm-dock-size) - 44px) / 2);
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--primary);
+  border: 1px solid var(--border-md);
+  box-shadow: var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.qm-dock-item:hover .qm-dock-item-icon,
+.qm-dock-item:focus-visible .qm-dock-item-icon {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+}
+
+.qm-dock-item:hover .qm-dock-item-label,
+.qm-dock-item:focus-visible .qm-dock-item-label {
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.qm-dock-item:focus-visible .qm-dock-item-icon {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/* Basılanda bənd yüngülcə sıxılır */
+.qm-dock-item:active .qm-dock-item-icon { transform: scale(0.92); }
+
+/* Nişanlar */
+.qm-dock-item-dot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 2px solid var(--bg-card);
+}
+
+.qm-dock-item-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--white);
+  border: 2px solid var(--bg-card);
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 15px;
+  text-align: center;
+}
+
+@keyframes qm-dock-in {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.9); }
+  to   { opacity: 1; transform: none; }
+}
+
+[dir="rtl"] .qm-dock-item { transform-origin: bottom left; }
+
+/* ─── Panel chunk-ı yüklənərkən ─── */
+.qm-dock-loading {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(16px + max(var(--bottom-inset, 0px), env(safe-area-inset-bottom, 0px)));
+  z-index: 990;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qm-dock-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid var(--primary-bg2);
+  border-top-color: var(--primary);
+  animation: qm-dock-spin 0.7s linear infinite;
+}
+
+@keyframes qm-dock-spin { to { transform: rotate(360deg); } }
+
+/* Ekran oxuyucu üçün gizli mətn */
+.qm-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── Siçanlı cihazlar: istirahətdə şəffaf — altındakı mətn oxunsun ─── */
+@media (hover: hover) {
+  .qm-dock-toggle { opacity: 0.78; }
+  .qm-dock-toggle:hover,
+  .qm-dock:focus-within .qm-dock-toggle,
+  .qm-dock.is-open .qm-dock-toggle { opacity: 1; }
+}
+
+/* ─── Dar ekran (<1024px): üzən düymə YOXDUR ───
+   Alətlər ☰ çəkmə menyusundadır (SideNav "drawer"); panellər (AI,
+   əlçatanlıq, bildirişlər) FloatingDock-dan yenə açılır. Aşağı zolaq
+   yoxdur — panel chunk-ı yüklənərkən göstərici ekranın altından 16px
+   (+ iPhone boşluğu) yuxarıda görünür. */
+@media (max-width: 1023.98px) {
+  /* Telefon ölçüsü (düymə göstəriləcəksə): 48px, üzən kartın üstündə */
+  .qm-dock {
+    --qm-dock-size: 48px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px) + var(--bottom-clear, 0px));
+    display: none;
+  }
+  .qm-dock-loading {
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* ─── RTL (ərəbcə): mövcud panellər kimi sola keçir ─── */
+[dir="rtl"] .qm-dock,
+[dir="rtl"] .qm-dock-loading {
+  right: auto;
+  left: calc(var(--qm-dock-gap, 16px) + env(safe-area-inset-left, 0px));
+}
+[dir="rtl"] .qm-dock-dot,
+[dir="rtl"] .qm-dock-item-dot { right: auto; left: 3px; }
+[dir="rtl"] .qm-dock-item-badge { right: auto; left: -5px; }
+
+@media (max-width: 1023.98px) {
+  [dir="rtl"] .qm-dock-loading { left: calc(16px + env(safe-area-inset-left, 0px)); }
+}
+
+/* ─── Hərəkətsiz rejim ─── */
+@media (prefers-reduced-motion: reduce) {
+  .qm-dock,
+  .qm-dock-toggle,
+  .qm-dock-toggle-icon,
+  .qm-dock-item-icon { transition: none; }
+  .qm-dock-item { animation: none; }
+}
+
+@media print {
+  .qm-dock,
+  .qm-dock-loading { display: none !important; }
+}

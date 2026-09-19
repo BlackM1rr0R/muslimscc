@@ -1,0 +1,893 @@
+/* ═══════════════════════════════════════════════════════
+   SIDE NAV — bütün bölmələr, iki rejimdə (SideNav.jsx)
+
+   1) .qm-sn--rail  — ≥1024px: başlığın altında HƏMİŞƏ AÇIQ yan panel.
+      Başlığın altına bərkidilib (fixed) və App.jsx qabığının
+      (.qm-shell, globals.css) birinci sütununun yerində dayanır;
+      ərəbcədə məntiqi xassələr güzgülənir → panel sağda. Hündürlüyü
+      ekran − başlıq, öz nazik scrollbar-ı var.
+      <1024px-də gizlidir (orada başlıqdakı ☰ + çəkmə menyu var).
+
+   2) .qm-sn--drawer — <1024px: başlıqdakı ☰ ilə açılan çəkmə menyu
+      (sahibin qərarı #7). Sağdan (ərəbcədə soldan) sürüşüb gəlir,
+      eni min(88vw, 360px), tam hündürlük, arxa fon qaralır + bulanır.
+      z-index 1200: başlıq (1000) və üzən dokdan (990) yuxarı,
+      axtarış dialoqundan (1300) aşağı. Aşağı zolaq YOXDUR.
+
+   • Yalnız globals.css dəyişənləri — tünd rejim avtomatik işləyir.
+   • Mövqelər məntiqi xassələrlə (inset-inline-*, border-inline-*) —
+     RTL-də ayrıca qayda yalnız ox (chevron) istiqamətinə lazımdır.
+   • Fokus halqası yalnız klaviatura ilə (:focus-visible), yumşaq rəngdə.
+   ═══════════════════════════════════════════════════════ */
+
+.qm-sn {
+  --qm-sn-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --qm-sn-bg: var(--bg-card);
+  --qm-sn-field: var(--bg);
+  color: var(--text);
+}
+
+/* Tünd rejimdə yan panel başlıq kimi səhifə fonu tonundadır */
+[data-theme="dark"] .qm-sn--rail {
+  --qm-sn-bg: var(--bg);
+  --qm-sn-field: var(--bg-card);
+}
+
+[data-theme="dark"] .qm-sn--drawer {
+  --qm-sn-field: var(--bg-card2);
+}
+
+/* ══════════════════════════════════════════════════════
+   1) YAN PANEL (≥1024px)
+   ══════════════════════════════════════════════════════ */
+/* Başlığın altına bərkidilir və qabığın birinci sütununun yerində dayanır
+   (globals.css → .qm-shell). Sticky yox, fixed: axtarış dialoqu və digər
+   panellər body-yə overflow:hidden verəndə sticky element yerindən qopur. */
+.qm-sn--rail {
+  position: fixed;
+  top: var(--header-h);
+  bottom: 0;
+  inset-inline-start: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidenav-w);
+  background: var(--qm-sn-bg);
+  border-inline-end: 1px solid var(--border);
+}
+
+@media (max-width: 1023.98px) {
+  .qm-sn--rail { display: none; }
+}
+
+/* Panelin eni 248px-dir: böyük hərfli ən uzun qrup adı (az: "HƏCC VƏ
+   MÜQƏDDƏS YERLƏR") 0.07em aralıqla 2px sığmırdı və iki sətrə düşürdü */
+.qm-sn--rail .qm-sn-group-btn { letter-spacing: 0.05em; }
+
+/* ── Axtarış sahəsi (düymədir — GlobalSearch dialoqunu açır) ── */
+.qm-sn-search-wrap {
+  flex-shrink: 0;
+  padding: 14px 12px 8px;
+}
+
+.qm-sn-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 40px;
+  padding-block: 0;
+  padding-inline: 12px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--qm-sn-field);
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.qm-sn-search:hover {
+  border-color: var(--primary-border);
+  color: var(--text-dim);
+}
+
+.qm-sn-search-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.qm-sn-search-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qm-sn-kbd {
+  flex-shrink: 0;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--qm-sn-bg);
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+/* Toxunma ekranında klaviatura qısayolu mənasızdır */
+@media (hover: none) {
+  .qm-sn-kbd { display: none; }
+}
+
+/* ── Sürüşən hissə: qruplar ── */
+.qm-sn-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 12px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-md) transparent;
+}
+
+.qm-sn-body::-webkit-scrollbar { width: 6px; }
+.qm-sn-body::-webkit-scrollbar-track { background: transparent; }
+.qm-sn-body::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
+
+/* ══════════════════════════════════════════════════════
+   QRUPLAR (hər iki rejim)
+   Başlıq: kiçik, böyük hərfli, sakit; klik qrupu açıb-bağlayır.
+   ══════════════════════════════════════════════════════ */
+.qm-sn-group + .qm-sn-group { margin-top: 4px; }
+
+.qm-sn-group-h {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.qm-sn-group-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 10px 10px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-align: start;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.qm-sn-group-btn:hover { color: var(--text); }
+
+.qm-sn-group.has-current .qm-sn-group-btn { color: var(--text-dim); }
+
+/* Ərəb yazısında böyük hərf və hərf aralığı yoxdur — bir az iri */
+[dir="rtl"] .qm-sn-group-btn {
+  letter-spacing: 0;
+  font-size: 12.5px;
+}
+
+.qm-sn-group-label {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Bağlı qrupda cari səhifə varsa — kiçik nöqtə */
+.qm-sn-group-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* Ox: açıq qrupda aşağı, bağlıda oxu istiqamətinə (LTR sağa, RTL sola) */
+.qm-sn-chevron {
+  flex-shrink: 0;
+  opacity: 0.75;
+  transition: transform 0.22s var(--qm-sn-ease);
+}
+
+.qm-sn-group:not(.is-expanded) .qm-sn-chevron { transform: rotate(-90deg); }
+[dir="rtl"] .qm-sn-group:not(.is-expanded) .qm-sn-chevron { transform: rotate(90deg); }
+
+/* Açılıb-bağlanma: grid 0fr → 1fr (hündürlüyü bilmədən hamar animasiya).
+   Bağlı qrupun linkləri visibility:hidden ilə Tab sırasından çıxır. */
+.qm-sn-items-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.26s var(--qm-sn-ease),
+    visibility 0s linear 0.26s;
+}
+
+.qm-sn-group.is-expanded .qm-sn-items-wrap {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 0.26s var(--qm-sn-ease),
+    visibility 0s linear 0s;
+}
+
+.qm-sn-items {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ── Sətir: ikon + ad (~40px, 8px radius) ── */
+.qm-sn-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.qm-sn-item:hover {
+  background: var(--bg-card2);
+  color: var(--text);
+}
+
+/* Cari səhifə: yumşaq yaşıl fon + kənarda 3px vurğu xətti */
+.qm-sn-item.is-current {
+  background: var(--primary-bg2);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .qm-sn-item.is-current { color: var(--primary); }
+
+.qm-sn-item.is-current::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--primary);
+}
+
+.qm-sn-item-icon {
+  flex-shrink: 0;
+  width: 22px;
+  font-size: 17px;
+  line-height: 1;
+  text-align: center;
+}
+
+.qm-sn-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ══════════════════════════════════════════════════════
+   2) ÇƏKMƏ MENYU (<1024px) — sahibin qərarı #7
+   Başlıqdakı ☰ açır (Header.jsx). Sağdan (ərəbcədə soldan) sürüşüb
+   gəlir: eni min(88vw, 360px), tam hündürlük, iPhone-un üst/alt
+   boşluqları (safe-area) içəridə nəzərə alınır.
+   • Açılış yumşaq YAY (--ease-spring), bağlanış sürətli ease-in —
+     motion.css tokenləri; arxa fon yumşaq qaralır + yüngül bulanır.
+   • Qruplar kənardan bir az sürüşərək növbə ilə görünür (--gi, ≤ 8 addım).
+   • Barmaqla kənara çəkmək bağlayır (SideNav.jsx → useDrawerSwipe):
+     çəkərkən keçid söndürülür (.is-dragging), arxa fon --drawer-drag
+     (0…1) ilə solğunlaşır.
+   • İstiqamət tək dəyişəndədir: --qm-sn-dir = 1 (LTR — sağ kənar),
+     −1 (RTL — sol kənar); transform və animasiyalar onu oxuyur.
+   • Yan boşluq başlığınkı ilə eynidir (--page-gutter: 16 / 20 / 24px):
+     ✕ ikonu hər enində başlıqdakı ☰-nin düz yerinə düşür.
+   • --qm-sn-edge — ekranın kənarındakı iPhone "çəntik" boşluğu (üfüqi
+     rejimdə safe-area-inset-right, ərəbcədə -left). Kənara baxan tərəfdə
+     heç bir düymə/sətir ondan içəri girmir; başlıq da eyni qaydanı
+     işlədir (Header.css → .header-inner), ✕ yenə ☰-nin yerində qalır.
+   ══════════════════════════════════════════════════════ */
+.qm-sn--drawer {
+  --qm-sn-dir: 1;
+  --qm-sn-open: 480ms;    /* açılış — yay */
+  --qm-sn-close: 260ms;   /* bağlanış — ease-in (göz izləmir) */
+  --qm-sn-pad: var(--page-gutter, 16px);        /* menyunun daxili yan boşluğu */
+  --qm-sn-edge: env(safe-area-inset-right, 0px); /* kənar tərəfdəki çəntik */
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  visibility: hidden;
+  pointer-events: none;
+  /* bağlananda animasiya bitənə qədər görünür qalsın */
+  transition: visibility 0s linear var(--qm-sn-close);
+}
+
+.qm-sn--drawer[dir="rtl"] {
+  --qm-sn-dir: -1;
+  --qm-sn-edge: env(safe-area-inset-left, 0px);
+}
+
+.qm-sn--drawer.is-open {
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+/* Genişdə yan panel var — menyu heç vaxt görünmür (Header onu bağlayır da) */
+@media (min-width: 1024px) {
+  .qm-sn--drawer { display: none; }
+}
+
+/* Arxa fon: yumşaq qaralma + yüngül bulanıqlıq; çəkərkən barmağı izləyərək solğunlaşır */
+.qm-sn-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 16, 12, 0.42);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity var(--qm-sn-close) var(--ease-in, ease-in);
+}
+
+[data-theme="dark"] .qm-sn-backdrop { background: rgba(0, 0, 0, 0.55); }
+
+.qm-sn--drawer.is-open .qm-sn-backdrop {
+  opacity: calc(1 - var(--drawer-drag, 0) * 0.9);
+  transition: opacity var(--dur-3, 360ms) var(--ease-out, ease);
+}
+
+.qm-sn--drawer.is-dragging .qm-sn-backdrop { transition: none; }
+
+.qm-sn--drawer .qm-sn-panel {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(88vw, 360px);
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--qm-sn-bg);
+  color: var(--text);
+  border-inline-start: 1px solid var(--border);
+  /* Ekranın içinə baxan künclər yumru */
+  border-start-start-radius: 20px;
+  border-end-start-radius: 20px;
+  box-shadow: 0 0 48px rgba(0, 0, 0, 0.18);
+  transform: translate3d(calc(var(--qm-sn-dir) * 100%), 0, 0);
+  transition: transform var(--qm-sn-close) var(--ease-in, cubic-bezier(0.4, 0, 1, 1));
+  will-change: transform;
+  /* Şaquli sürüşməni brauzer edir, üfüqi hərəkət çəkib-bağlamaya gedir */
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+  outline: none;
+}
+
+.qm-sn--drawer .qm-sn-body { touch-action: pan-y; }
+
+/* Açılış: yumşaq YAY — bir az içəri aşıb yerinə oturur */
+.qm-sn--drawer.is-open .qm-sn-panel {
+  transform: none;
+  transition: transform var(--qm-sn-open) var(--ease-spring, cubic-bezier(0.34, 1.36, 0.64, 1));
+}
+
+/* Yay aşanda və ya içəri "rezin" çəkmədə kənarda boşluq görünməsin —
+   panelin fonu ekranın kənarından o yana uzanır */
+.qm-sn--drawer .qm-sn-panel::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 100%;
+  width: 48px;
+  background: var(--qm-sn-bg);
+  pointer-events: none;
+}
+
+/* ── Yuxarı sətir: brend + ✕ (başlığın hündürlüyündə; ✕ ikonu ☰-nin yerində) ── */
+.qm-sn-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--header-h, 56px);
+  /* ✕ düyməsi 44px, ikonu 20px: ikon kənardan başlıqdakı ☰ ilə eyni
+     məsafədədir — max(--page-gutter, çəntik) (Header.css → .header-inner
+     və .hdr-burger { margin-inline-end: -12px }) */
+  padding-inline: var(--qm-sn-pad) calc(max(var(--qm-sn-pad), var(--qm-sn-edge)) - 12px);
+}
+
+.qm-sn-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 2px;
+  margin-inline-start: -2px;
+  border-radius: 12px;
+  color: var(--text);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.qm-sn-brand-mark {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-1, 140ms) var(--ease-out, ease);
+}
+
+.qm-sn-brand:active .qm-sn-brand-mark { transform: scale(0.94); }
+
+.qm-sn-brand-crescent {
+  color: #fff;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.qm-sn-brand-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+}
+
+.qm-sn-brand-accent { color: var(--primary); }
+
+/* ✕ — başlıqdakı ikon düymələri kimi "ghost", barmaq üçün 44×44 */
+.qm-sn-close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .qm-sn-close:hover {
+    background: var(--primary-bg);
+    color: var(--text);
+  }
+}
+
+/* ☰ → ✕: başlıqdakı .hdr-burger ilə eyni həndəsə və eyni iki mərhələli
+   çevrilmə (Header.css) — panel başlığın ☰ düyməsini örtür, ona görə
+   çevrilmə menyunun öz düyməsində görünür: panel yerinə çatandan sonra
+   xətlər ortaya yığılıb fırlanır; bağlananda dərhal geri ☰ olur. */
+.qm-sn-x {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.qm-sn-x-line {
+  position: absolute;
+  inset-inline-start: 1px;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transform-origin: 50% 50%;
+  transition:
+    rotate var(--dur-1, 140ms) var(--ease-out, ease),
+    translate var(--dur-1, 140ms) var(--ease-out, ease) 100ms,
+    opacity 0s linear 100ms;
+}
+
+.qm-sn-x-line:nth-child(1) { top: 4px; }
+.qm-sn-x-line:nth-child(2) { top: 9px; }
+.qm-sn-x-line:nth-child(3) { top: 14px; }
+
+.qm-sn--drawer.is-open .qm-sn-x-line {
+  transition:
+    translate var(--dur-1, 140ms) var(--ease-out, ease) 140ms,
+    rotate var(--dur-2, 240ms) var(--ease-spring, ease) 240ms,
+    opacity 0s linear 240ms;
+}
+.qm-sn--drawer.is-open .qm-sn-x-line:nth-child(1) { translate: 0 5px; rotate: 45deg; }
+.qm-sn--drawer.is-open .qm-sn-x-line:nth-child(2) { opacity: 0; }
+.qm-sn--drawer.is-open .qm-sn-x-line:nth-child(3) { translate: 0 -5px; rotate: -45deg; }
+
+@supports not (rotate: 45deg) {
+  .qm-sn-x-line,
+  .qm-sn--drawer.is-open .qm-sn-x-line {
+    transition: transform var(--dur-2, 240ms) var(--ease-out, ease), opacity var(--dur-1, 140ms) var(--ease-out, ease);
+  }
+  .qm-sn--drawer.is-open .qm-sn-x-line:nth-child(1) { transform: translate3d(0, 5px, 0) rotate(45deg); }
+  .qm-sn--drawer.is-open .qm-sn-x-line:nth-child(3) { transform: translate3d(0, -5px, 0) rotate(-45deg); }
+}
+
+/* Menyuda axtarış və sətirlər barmaq üçün bir az iri */
+/* Kənara baxan tərəfdə boşluq çəntikdən az olmur (--qm-sn-edge) */
+.qm-sn--drawer .qm-sn-search-wrap {
+  padding-block: 2px 10px;
+  padding-inline: var(--qm-sn-pad) max(var(--qm-sn-pad), var(--qm-sn-edge));
+}
+
+.qm-sn--drawer .qm-sn-search {
+  height: 46px;
+  padding-inline: 14px;
+  border-radius: 12px;
+  font-size: 14.5px;
+}
+
+/* Sətirlərin öz 12px boşluğu var — ikonlar axtarış sahəsinin kənarı ilə bir xətdə */
+.qm-sn--drawer .qm-sn-body {
+  padding-block: 0 12px;
+  padding-inline: calc(var(--qm-sn-pad) - 4px) max(calc(var(--qm-sn-pad) - 4px), var(--qm-sn-edge));
+}
+
+.qm-sn--drawer .qm-sn-group-btn {
+  min-height: 44px;
+  padding: 14px 10px 8px;
+  font-size: 11.5px;
+}
+
+[dir="rtl"] .qm-sn--drawer .qm-sn-group-btn,
+.qm-sn--drawer[dir="rtl"] .qm-sn-group-btn { font-size: 13px; }
+
+.qm-sn--drawer .qm-sn-item {
+  min-height: 46px;
+  padding: 10px 12px;
+  font-size: 15px;
+}
+
+.qm-sn--drawer .qm-sn-item-icon {
+  width: 24px;
+  font-size: 18px;
+}
+
+/* Menyu açılanda axtarış, qruplar və alt hissə kənardan bir az sürüşərək
+   növbə ilə yumşaq görünür (--gi — qrupun sırası, SideNav.jsx). Panelin
+   gəlişi ilə eyni vaxtda başlayır və ~0.5 s-də bitir. */
+.qm-sn--drawer.is-open .qm-sn-search-wrap,
+.qm-sn--drawer.is-open .qm-sn-group,
+.qm-sn--drawer.is-open .qm-sn-foot {
+  animation: qm-sn-slide-in var(--dur-3, 360ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) backwards;
+  /* Növbə: --stagger (40ms) addım, ən çox 8 addım */
+  animation-delay: calc(100ms + min(var(--gi, 0), 7) * var(--stagger, 40ms));
+}
+
+.qm-sn--drawer.is-open .qm-sn-search-wrap { animation-delay: 60ms; }
+.qm-sn--drawer.is-open .qm-sn-foot { animation-delay: 220ms; }
+
+@keyframes qm-sn-slide-in {
+  from { opacity: 0; transform: translate3d(calc(var(--qm-sn-dir, 1) * 18px), 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Menyudakı sətirlər, alətlər, dil düymələri — barmaqla basılanda rəy */
+.qm-sn--drawer .qm-sn-item {
+  transition: background-color 0.15s ease, color 0.15s ease, transform var(--dur-1, 140ms) var(--ease-out, ease);
+}
+.qm-sn--drawer .qm-sn-item:active {
+  background: var(--bg-card2);
+  box-shadow: inset 0 0 0 999px var(--press-tint, rgba(26, 107, 58, 0.08));
+  transform: scale(0.985);
+}
+.qm-sn--drawer .qm-sn-search:active,
+.qm-sn--drawer .qm-sn-theme:active,
+.qm-sn--drawer .qm-sn-lang:active,
+.qm-sn-close:active { transform: scale(0.94); }
+.qm-sn--drawer .qm-sn-search,
+.qm-sn--drawer .qm-sn-theme,
+.qm-sn--drawer .qm-sn-lang,
+.qm-sn-close { transition-property: background-color, color, border-color, transform; transition-duration: 0.18s; }
+
+/* Çəkərkən sətirlərin "basılma" rəyi görünməsin */
+.qm-sn--drawer.is-dragging .qm-sn-item:active {
+  background: none;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Seçilmiş dil — "həb" yumşaq keçir */
+.qm-sn--drawer .qm-sn-lang.is-current { animation: qm-sn-pop var(--dur-2, 240ms) var(--ease-spring, ease); }
+@keyframes qm-sn-pop {
+  from { transform: scale(0.9); }
+  to   { transform: none; }
+}
+
+/* ── Alt hissə: alətlər və ayarlar (tema + dil) ── */
+.qm-sn-foot {
+  flex-shrink: 0;
+  padding-block: 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  padding-inline: var(--qm-sn-pad) max(var(--qm-sn-pad), var(--qm-sn-edge, 0px));
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Alətlər — üç bərabər "kafel": ikon üstdə, ad altda (ən çox 2 sətir).
+   AI səhifəsində AI kafeli yoxdur — qalan ikisi eni bölüşür.
+   Aralıq dar telefonda 6px-ə qədər kiçilir (adlara yer). */
+.qm-sn-tools {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: clamp(6px, 2vw, 8px);
+  margin-bottom: 10px;
+}
+
+.qm-sn-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Yuxarıdan düzülür: bir kafelin adı iki sətrə düşsə də ikonlar bir xətdə qalır */
+  justify-content: flex-start;
+  gap: 4px;
+  min-width: 0;
+  min-height: 60px;
+  padding: 8px 4px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--qm-sn-field);
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.15s ease;
+}
+
+@media (hover: hover) {
+  .qm-sn-tool:hover {
+    background: var(--primary-bg);
+    border-color: var(--primary-border);
+    color: var(--text);
+  }
+}
+
+.qm-sn-tool:active { transform: scale(0.96); }
+
+.qm-sn-tool-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-bg2);
+  color: var(--primary-dark);
+}
+
+[data-theme="dark"] .qm-sn-tool-icon { color: var(--primary); }
+
+/* Ad sözün ortasından qırılmasın ("Доступност|ь"): şrift və yan boşluq
+   dar telefonda bir az kiçilir ki, ən uzun tək söz (ru "Уведомления",
+   en "Notifications", tr "Erişilebilirlik") 360px-də bir sətrə sığsın.
+   3vw: panel <409px-də ekranın 88%-dir → 400px+ 12px, 390px-də 11.7px,
+   360px-də 10.8px, 320px-də 10px. Tire ilə yazılan ad ("ИИ-помощник")
+   yalnız ≤340px-də tiredən bölünür; break-word son çarədir. */
+.qm-sn-tool-label {
+  max-width: 100%;
+  font-size: clamp(10px, 3vw, 12px);
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.qm-sn-settings {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qm-sn-theme {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: var(--qm-sn-field);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.qm-sn-theme[aria-pressed="true"] {
+  background: var(--primary-bg);
+  color: var(--text);
+}
+
+@media (hover: hover) {
+  .qm-sn-theme:hover {
+    background: var(--primary-bg);
+    color: var(--text);
+  }
+}
+
+/* Dil seçimi — 5 bərabər hissəli sakit "seqment" */
+.qm-sn-langs {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--qm-sn-field);
+}
+
+.qm-sn-lang {
+  min-width: 0;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+@media (hover: hover) {
+  .qm-sn-lang:hover { color: var(--text); }
+}
+
+/* Menyuda barmaq üçün: düymə 44px, tema düyməsi ilə eyni hündürlük xətti */
+.qm-sn--drawer .qm-sn-langs { padding: 2px; }
+.qm-sn--drawer .qm-sn-lang { height: 44px; min-height: 44px; }
+.qm-sn--drawer .qm-sn-theme { width: 48px; height: 48px; }
+
+.qm-sn-lang.is-current {
+  background: var(--qm-sn-bg);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Panelin məzmunu (yuxarı sətir, axtarış, qruplar, alt hissə) daxili
+   qabdadır. Panelin özü heç vaxt sürüşən konteyner olmur — yoxsa onun
+   kənardakı ::after "doldurucusu" üfüqi daşmaya çevrilir: menyu yana
+   48px sürüşə bilirdi və doldurucu kəsilirdi. */
+.qm-sn--drawer .qm-sn-inner {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Alçaq ekran (telefon üfüqi): bütün məzmun bir yerdə sürüşür ki,
+   qruplara yer qalsın (alt hissə ekranın yarısını tutmasın) */
+@media (max-height: 540px) {
+  .qm-sn--drawer .qm-sn-inner {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .qm-sn--drawer .qm-sn-body {
+    flex: none;
+    overflow: visible;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   FOKUS — yalnız klaviatura ilə, yumşaq halqa
+   (barmaqla toxunuşdan sonra halqa və ya fon qalmır:
+   hooks/useInputModality → html.qm-input-pointer)
+   ══════════════════════════════════════════════════════ */
+/* Yalnız klaviatura fokusu OLMAYANDA halqa silinir. Əvvəl bu qayda
+   (.qm-sn :is(button, a):focus — spesifiklik 0,2,1) aşağıdakı halqa
+   qaydalarından (0,2,0) güclü idi və Tab ilə heç bir halqa görünmürdü.
+   Barmaq/siçan ilə fokusda halqanı motion.css (html.qm-input-pointer) söndürür. */
+.qm-sn :is(button, a):focus:not(:focus-visible) { outline: none; }
+
+.qm-sn-theme:focus-visible,
+.qm-sn-lang:focus-visible,
+.qm-sn-tool:focus-visible {
+  outline: 2px solid var(--primary-border);
+  outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: 1px;
+}
+
+.qm-sn-close:focus-visible,
+.qm-sn-brand:focus-visible,
+.qm-sn-search:focus-visible,
+.qm-sn-group-btn:focus-visible,
+.qm-sn-item:focus-visible {
+  outline: 2px solid var(--primary-border);
+  outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: -2px;
+}
+
+/* Menyu açılanda fokus ✕-ə proqramla keçir — zəif fon yalnız klaviatura ilə */
+html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
+  background: var(--primary-bg);
+  color: var(--text);
+}
+
+/* ── Hərəkəti azalt ── */
+@media (prefers-reduced-motion: reduce) {
+  .qm-sn--drawer,
+  .qm-sn-backdrop,
+  .qm-sn--drawer.is-open .qm-sn-backdrop,
+  .qm-sn--drawer .qm-sn-panel,
+  .qm-sn--drawer.is-open .qm-sn-panel,
+  .qm-sn-brand-mark,
+  .qm-sn-x-line,
+  .qm-sn--drawer.is-open .qm-sn-x-line,
+  .qm-sn-chevron,
+  .qm-sn-items-wrap,
+  .qm-sn-group.is-expanded .qm-sn-items-wrap,
+  .qm-sn-tool {
+    transition: none;
+  }
+  .qm-sn--drawer.is-open .qm-sn-search-wrap,
+  .qm-sn--drawer.is-open .qm-sn-group,
+  .qm-sn--drawer.is-open .qm-sn-foot,
+  .qm-sn--drawer .qm-sn-lang.is-current {
+    animation: none;
+  }
+  .qm-sn--drawer .qm-sn-item:active,
+  .qm-sn-brand:active .qm-sn-brand-mark { transform: none; }
+}
+
+@media print {
+  .qm-sn { display: none !important; }
+}

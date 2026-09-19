@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { brandName } from '../config/mosque'
 import {
   isPushSupported,
   getPermissionStatus,
@@ -49,6 +50,8 @@ const LABELS = {
     permissionNeeded:'Əvvəlcə icazə verin',
     save:'Yadda saxla',
     saved:'Yadda saxlandı ✓',
+    confirmDisable:'Bildirişlər söndürüləcək. Davam edək?',
+    testBody:'Test bildirişi — hər şey işləyir!',
   },
   en: {
     open:'Notification settings',
@@ -79,6 +82,8 @@ const LABELS = {
     permissionNeeded:'Grant permission first',
     save:'Save',
     saved:'Saved ✓',
+    confirmDisable:'Notifications will be turned off. Continue?',
+    testBody:'Test notification — everything works!',
   },
   ru: {
     open:'Настройки уведомлений',
@@ -109,6 +114,8 @@ const LABELS = {
     permissionNeeded:'Сначала разрешите',
     save:'Сохранить',
     saved:'Сохранено ✓',
+    confirmDisable:'Уведомления будут отключены. Продолжить?',
+    testBody:'Тестовое уведомление — всё работает!',
   },
   ar: {
     open:'إعدادات الإشعارات',
@@ -139,6 +146,8 @@ const LABELS = {
     permissionNeeded:'امنح الإذن أولاً',
     save:'حفظ',
     saved:'تم الحفظ ✓',
+    confirmDisable:'سيتم إيقاف الإشعارات. هل تريد المتابعة؟',
+    testBody:'إشعار تجريبي — كل شيء يعمل!',
   },
   tr: {
     open:'Bildirim ayarları',
@@ -169,6 +178,8 @@ const LABELS = {
     permissionNeeded:'Önce izin verin',
     save:'Kaydet',
     saved:'Kaydedildi ✓',
+    confirmDisable:'Bildirimler kapatılacak. Devam edilsin mi?',
+    testBody:'Test bildirimi — her şey çalışıyor!',
   },
 }
 
@@ -187,11 +198,31 @@ function BellIcon({ size = 24 }) {
   )
 }
 
-export default function NotificationSettingsWidget() {
+/**
+ * Bildiriş ayarları paneli.
+ *
+ * İki rejim:
+ *  • İdarə olunan — `open` prop verilir (FloatingDock). Header-in
+ *    "open-notifications" hadisəsini dok özü dinləyir; bağlananda
+ *    `onClose()` çağırılır.
+ *  • Köhnə (müstəqil) — prop yoxdur: "open-notifications" hadisəsi ilə açılır.
+ *
+ * @param {{ open?: boolean, onClose?: () => void }} props
+ */
+export default function NotificationSettingsWidget({ open: openProp, onClose } = {}) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
 
-  const [open, setOpen] = useState(false)
+  const controlled = openProp !== undefined
+  const [openState, setOpenState] = useState(false)
+  const open = controlled ? Boolean(openProp) : openState
+  const setOpen = (value) => {
+    if (controlled) { if (!value) onClose?.() }
+    else setOpenState(value)
+  }
+  const closeRef = useRef(null)
+  closeRef.current = () => setOpen(false)
+  const closeBtnRef = useRef(null)
   const [supported, setSupported] = useState(true)
   const [permission, setPermission] = useState('default')
   const [hasToken, setHasToken] = useState(false)
@@ -220,41 +251,53 @@ export default function NotificationSettingsWidget() {
     try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)) } catch {}
   }, [prefs])
 
-  // Escape to close
+  // Escape ilə bağlama
   useEffect(() => {
     if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') closeRef.current?.() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
-  // Header menyusundan açılma (custom event)
+  // Açılanda fokus panelə keçsin (klaviatura istifadəçiləri üçün)
   useEffect(() => {
-    const handler = () => setOpen(true)
+    if (!open) return
+    const t = setTimeout(() => closeBtnRef.current?.focus(), 60)
+    return () => clearTimeout(t)
+  }, [open])
+
+  // Header menyusundan açılma (custom event) — yalnız müstəqil rejimdə;
+  // idarə olunan rejimdə bu hadisəni FloatingDock dinləyir
+  useEffect(() => {
+    if (controlled) return
+    const handler = () => setOpenState(true)
     window.addEventListener('open-notifications', handler)
     return () => window.removeEventListener('open-notifications', handler)
-  }, [])
+  }, [controlled])
 
-  // Açıq olduqda body-ə class əlavə et (digər FAB-ları gizlət)
+  // Açıq olduqda body-ə class əlavə et (mobil scroll kilidi, üzən düymələri gizlət).
+  // Yalnız açıq ikən əlavə edib bağlananda silirik — panellər arasında
+  // keçid zamanı bir panelin təmizləməsi digərinin sinfini silməsin.
   useEffect(() => {
-    if (open) document.body.classList.add('panel-open')
-    else document.body.classList.remove('panel-open')
+    if (!open) return
+    document.body.classList.add('panel-open')
     return () => document.body.classList.remove('panel-open')
   }, [open])
 
-  // Başqa panel açılanda bunu bağla
+  // Başqa panel açılanda bunu bağla (yalnız müstəqil rejimdə)
   useEffect(() => {
+    if (controlled) return
     const handler = (e) => {
-      if (e.detail !== 'notif') setOpen(false)
+      if (e.detail !== 'notif') setOpenState(false)
     }
     window.addEventListener('close-other-panels', handler)
     return () => window.removeEventListener('close-other-panels', handler)
-  }, [])
+  }, [controlled])
 
   // Bu açılanda digərlərinə xəbər ver
   useEffect(() => {
-    if (open) window.dispatchEvent(new CustomEvent('close-other-panels', { detail: 'notif' }))
-  }, [open])
+    if (open && !controlled) window.dispatchEvent(new CustomEvent('close-other-panels', { detail: 'notif' }))
+  }, [open, controlled])
 
   const handleEnable = async () => {
     setBusy(true)
@@ -269,7 +312,7 @@ export default function NotificationSettingsWidget() {
   }
 
   const handleDisable = async () => {
-    if (!window.confirm('Bildirişlər söndürüləcək. Davam edək?')) return
+    if (!window.confirm(l.confirmDisable)) return
     setBusy(true)
     const token = getStoredToken()
     if (token) {
@@ -285,8 +328,8 @@ export default function NotificationSettingsWidget() {
       setFeedback({ ok: false, text: l.permissionNeeded })
       return
     }
-    new Notification('🌙 muslims.cc', {
-      body: 'Test bildirişi — hər şey işləyir!',
+    new Notification(`🌙 ${brandName(lang)}`, {
+      body: l.testBody,
       icon: '/android-chrome-192x192.png',
       badge: '/favicon-32x32.png',
     })
@@ -296,18 +339,19 @@ export default function NotificationSettingsWidget() {
 
   const togglePref = (key) => setPrefs(p => ({ ...p, [key]: !p[key] }))
 
+  // Rəng burada deyil — CSS data-status-a görə seçir (NotificationSettingsWidget.css)
   const statusInfo = (() => {
-    if (!supported) return { color: '#64748b', icon: '⊘', text: l.unsupported }
-    if (permission === 'granted' && hasToken) return { color: '#10b981', icon: '✓', text: l.granted }
-    if (permission === 'denied') return { color: '#ef4444', icon: '⊗', text: l.denied }
-    return { color: '#f59e0b', icon: '!', text: l.default }
+    if (!supported) return { key: 'unsupported', icon: '⊘', text: l.unsupported }
+    if (permission === 'granted' && hasToken) return { key: 'granted', icon: '✓', text: l.granted }
+    if (permission === 'denied') return { key: 'denied', icon: '⊗', text: l.denied }
+    return { key: 'default', icon: '!', text: l.default }
   })()
 
   const needsAttention = supported && permission !== 'granted' && permission !== 'denied'
 
   return (
     <>
-      {/* FAB silindi — indi yalnız Header > "Daha çox" menyusundan açılır */}
+      {/* Öz üzən düyməsi yoxdur — Header > "Daha çox" menyusundan və FloatingDock-dan açılır */}
 
       {open && (
         <>
@@ -321,22 +365,19 @@ export default function NotificationSettingsWidget() {
                   <div className="notif-tagline">{l.subtitle}</div>
                 </div>
               </div>
-              <button className="notif-close" onClick={() => setOpen(false)} aria-label={l.close}>✕</button>
+              <button ref={closeBtnRef} className="notif-close" onClick={() => setOpen(false)} aria-label={l.close}>✕</button>
             </div>
 
             <div className="notif-body">
 
               {/* Status card */}
-              <div className="notif-status-card" style={{ borderColor: statusInfo.color }}>
-                <div
-                  className="notif-status-icon"
-                  style={{ background: `linear-gradient(135deg, ${statusInfo.color}, ${statusInfo.color}cc)` }}
-                >
+              <div className="notif-status-card" data-status={statusInfo.key} role="status">
+                <div className="notif-status-icon" aria-hidden="true">
                   {statusInfo.icon}
                 </div>
                 <div className="notif-status-body">
                   <div className="notif-status-label">{l.status}</div>
-                  <div className="notif-status-text" style={{ color: statusInfo.color }}>
+                  <div className="notif-status-text">
                     {statusInfo.text}
                   </div>
                 </div>

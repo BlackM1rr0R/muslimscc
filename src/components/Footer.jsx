@@ -1,20 +1,65 @@
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
+import { BRAND, MOSQUE, filled, tr, brandName } from '../config/mosque'
+import { navLabel, navIcon, navGroupLabel } from '../data/navigation'
+import { pathFor } from '../seo/routes'
 import '../styles/Footer.css'
 
-const FOOTER_LABELS = {
-  az: { quickLinks:'Əsas', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'© 2025 muslims.cc — Bütün hüquqlar qorunur.', made:'Ümmət üçün 💚 ilə hazırlandı', desc:'Tövhid əsasında qurulan pulsuz İslami platforma.' },
-  en: { quickLinks:'Main', tools:'Tools', learn:'Learn', contact:'Contact', copy:'© 2025 muslims.cc — All rights reserved.', made:'Made with 💚 for the Ummah', desc:'Free Islamic platform built on Tawheed.' },
-  ru: { quickLinks:'Основное', tools:'Инструменты', learn:'Обучение', contact:'Контакт', copy:'© 2025 muslims.cc — Все права защищены.', made:'Сделано с 💚 для уммы', desc:'Бесплатная исламская платформа на основе Таухида.' },
-  ar: { quickLinks:'الرئيسية', tools:'أدوات', learn:'تعلم', contact:'تواصل', copy:'© 2025 muslims.cc — جميع الحقوق محفوظة.', made:'صُنع بـ 💚 للأمة', desc:'منصة إسلامية مجانية قائمة على التوحيد.' },
-  tr: { quickLinks:'Ana', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'© 2025 muslims.cc — Tüm hakları saklıdır.', made:'Ümmet için 💚 ile yapıldı', desc:'Tevhid temeli üzerine kurulu ücretsiz İslami platform.' },
+// Footer linkləri həqiqi <a href> linkləridir (başlıq, yan panel və aşağı
+// zolaq kimi): Ctrl/⌘/orta klik yeni tabda açır, robotlar da görür;
+// adi klikdə SPA naviqasiyası işləyir. Loqo da klaviatura ilə açılır.
+
+/** Adi sol klikdirmi? (Ctrl/⌘/orta klik — brauzer linki yeni tabda açsın) */
+function isPlainClick(e) {
+  return !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 }
+
+// copy — yalnız hüquq mətni; "© {il} {brend}" hissəsi dinamik qurulur
+// nav — footer naviqasiyasının ekran oxuyucu adı
+const FOOTER_LABELS = {
+  az: { nav:'Saytın bölmələri', quickLinks:'Əsas', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'Bütün hüquqlar qorunur.', made:'Camaatımız üçün 💚 ilə hazırlandı', desc:'Qaraçuxur Məscidinin saytı — namaz vaxtları, camaat namazı, elanlar və İslami bilik.', map:'Xəritədə bax' },
+  en: { nav:'Site sections', quickLinks:'Main', tools:'Tools', learn:'Learn', contact:'Contact', copy:'All rights reserved.', made:'Made with 💚 for our congregation', desc:'The website of Garachukhur Mosque — prayer times, congregational prayers, announcements and Islamic knowledge.', map:'View on map' },
+  ru: { nav:'Разделы сайта', quickLinks:'Основное', tools:'Инструменты', learn:'Обучение', contact:'Контакт', copy:'Все права защищены.', made:'Сделано с 💚 для нашей общины', desc:'Сайт мечети Карачухур — время намаза, коллективные молитвы, объявления и исламские знания.', map:'Открыть на карте' },
+  ar: { nav:'أقسام الموقع', quickLinks:'الرئيسية', tools:'أدوات', learn:'تعلم', contact:'تواصل', copy:'جميع الحقوق محفوظة.', made:'صُنع بـ 💚 لجماعتنا', desc:'موقع مسجد قاراچوخور — مواقيت الصلاة وصلاة الجماعة والإعلانات والمعرفة الإسلامية.', map:'عرض على الخريطة' },
+  tr: { nav:'Site bölümleri', quickLinks:'Ana', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'Tüm hakları saklıdır.', made:'Cemaatimiz için 💚 ile yapıldı', desc:"Karaçuhur Camii'nin web sitesi — namaz vakitleri, cemaat namazları, duyurular ve İslami bilgi.", map:'Haritada gör' },
+}
+
+// Sosial şəbəkə ikonları — yalnız MOSQUE.social-da doldurulanlar göstərilir
+const SOCIAL_LABELS = { instagram:'Instagram', facebook:'Facebook', youtube:'YouTube', telegram:'Telegram' }
+
+// "Məscid" sütunu — adlar və ikonlar src/data/navigation.js-dən (bölmələr paneli ilə eyni)
+const MOSQUE_LINKS = ['mosque', 'jamaat', 'announcements', 'donate']
+
+// Digər sütunlar — əvvəlki kimi, amma adlar da navigation.js-dən gəlir ki,
+// 5 dilin hamısında düzgün olsun (əvvəl ingiliscə səhifədə "Hədis", "99 Ad" çıxırdı)
+const LINK_COLUMNS = [
+  { title: 'quickLinks', keys: ['quran', 'hadith', 'videos', 'books', 'aichat', 'prayer', 'duas', 'names'] },
+  { title: 'tools',      keys: ['dhikr', 'qibla', 'zakat', 'calendar', 'hifz'] },
+  { title: 'learn',      keys: ['quiz', 'prayerguide', 'glossary', 'holyplaces', 'kids'] },
+]
 
 function Footer({ setPage }) {
   const { lang } = useLang()
   const fl = FOOTER_LABELS[lang] || FOOTER_LABELS.az
+  const brand = brandName(lang)
+  // az: "Qaraçuxur" + vurğulu "Məscidi"; digər dillərdə tam ad
+  const brandSplit = lang === 'az' ? brand.lastIndexOf(' ') : -1
+  const address = tr(MOSQUE.address, lang)
+  const socials = Object.entries(MOSQUE.social).filter(([, url]) => filled(url))
 
   const goTo = (p) => { setPage(p); window.scrollTo({ top:0, behavior:'smooth' }) }
+
+  // Bölmə linki: href həqiqi ünvandır, adi klik SPA ilə keçir
+  const navLink = (k) => (
+    <a
+      key={k}
+      href={pathFor(k, lang)}
+      onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); goTo(k) } }}
+    >
+      <span className="ft-link-icon" aria-hidden="true">{navIcon(k)}</span>
+      <span>{navLabel(k, lang)}</span>
+    </a>
+  )
 
   return (
     <footer className="footer">
@@ -23,55 +68,60 @@ function Footer({ setPage }) {
 
           {/* Brand */}
           <div className="ft-brand">
-            <div className="ft-logo" onClick={() => goTo('home')}>
-              <div className="ft-logo-icon">☽</div>
-              <span className="ft-logo-text">muslims<span>.cc</span></span>
-            </div>
+            <a
+              className="ft-logo"
+              href={pathFor('home', lang)}
+              onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); goTo('home') } }}
+            >
+              <span className="ft-logo-icon" aria-hidden="true">☽</span>
+              <span className="ft-logo-text">
+                {brandSplit > 0
+                  ? <>{brand.slice(0, brandSplit)} <span>{brand.slice(brandSplit + 1)}</span></>
+                  : brand}
+              </span>
+            </a>
             <p className="ft-desc">{fl.desc}</p>
             <div className="ft-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
           </div>
 
           {/* Links columns */}
-          <div className="ft-links">
+          <nav className="ft-links" aria-label={fl.nav}>
             <div className="ft-col">
-              <h4>{fl.quickLinks}</h4>
-              <button onClick={() => goTo('quran')}>📖 Quran</button>
-              <button onClick={() => goTo('hadith')}>📚 {lang==='ru'?'Хадисы':lang==='ar'?'الحديث':lang==='tr'?'Hadis':'Hədis'}</button>
-              <button onClick={() => goTo('videos')}>📹 {lang==='ru'?'Видео':lang==='ar'?'الفيديوهات':lang==='tr'?'Videolar':lang==='en'?'Videos':'Videolar'}</button>
-              <button onClick={() => goTo('books')}>📚 {lang==='ru'?'Книги':lang==='ar'?'الكتب':lang==='tr'?'Kitaplar':lang==='en'?'Books':'Kitablar'}</button>
-              <button onClick={() => goTo('aichat')}>🤖 {lang==='ru'?'AI помощник':lang==='ar'?'مساعد AI':lang==='tr'?'AI Asistan':lang==='en'?'AI Assistant':'AI Köməkçi'}</button>
-              <button onClick={() => goTo('prayer')}>🕌 {lang==='ru'?'Намаз':lang==='ar'?'الصلاة':lang==='tr'?'Namaz':'Namaz'}</button>
-              <button onClick={() => goTo('duas')}>🤲 {lang==='ru'?'Дуа':lang==='ar'?'الأدعية':lang==='tr'?'Dualar':'Dualar'}</button>
-              <button onClick={() => goTo('names')}>⭐ {lang==='ru'?'99 Имён':lang==='ar'?'الأسماء':lang==='tr'?'99 İsim':'99 Ad'}</button>
+              <h4>{navGroupLabel('mosque', lang)}</h4>
+              {MOSQUE_LINKS.map(key => navLink(key))}
             </div>
-            <div className="ft-col">
-              <h4>{fl.tools}</h4>
-              <button onClick={() => goTo('dhikr')}>📿 {lang==='ru'?'Зикр':lang==='ar'?'الذكر':lang==='tr'?'Zikir':'Zikr'}</button>
-              <button onClick={() => goTo('qibla')}>🧭 {lang==='ru'?'Кибла':lang==='ar'?'القبلة':lang==='tr'?'Kıble':'Qiblə'}</button>
-              <button onClick={() => goTo('zakat')}>💰 {lang==='ru'?'Закят':lang==='ar'?'الزكاة':lang==='tr'?'Zekât':'Zəkat'}</button>
-              <button onClick={() => goTo('calendar')}>🌙 {lang==='ru'?'Календарь':lang==='ar'?'التقويم':lang==='tr'?'Takvim':'Təqvim'}</button>
-              <button onClick={() => goTo('hifz')}>📝 {lang==='ru'?'Хифз':lang==='ar'?'الحفظ':lang==='tr'?'Hıfz':'Hifz'}</button>
-            </div>
-            <div className="ft-col">
-              <h4>{fl.learn}</h4>
-              <button onClick={() => goTo('quiz')}>❓ {lang==='ru'?'Викторина':lang==='ar'?'اختبار':lang==='tr'?'Quiz':'Kviz'}</button>
-              <button onClick={() => goTo('prayerguide')}>🤲 {lang==='ru'?'Учись':lang==='ar'?'تعلم':lang==='tr'?'Öğren':'Öyrən'}</button>
-              <button onClick={() => goTo('glossary')}>📖 {lang==='ru'?'Словарь':lang==='ar'?'معجم':lang==='tr'?'Sözlük':'Lüğət'}</button>
-              <button onClick={() => goTo('holyplaces')}>🕋 {lang==='ru'?'Места':lang==='ar'?'أماكن':lang==='tr'?'Yerler':'Yerlər'}</button>
-              <button onClick={() => goTo('kids')}>👶 {lang==='ru'?'Дети':lang==='ar'?'أطفال':lang==='tr'?'Çocuk':'Uşaq'}</button>
-            </div>
+            {LINK_COLUMNS.map(col => (
+              <div className="ft-col" key={col.title}>
+                <h4>{fl[col.title]}</h4>
+                {col.keys.map(key => navLink(key))}
+              </div>
+            ))}
             <div className="ft-col">
               <h4>{fl.contact}</h4>
-              <a href="mailto:abdllyevv@gmail.com">✉ abdllyevv@gmail.com</a>
-              <button onClick={() => goTo('about')}>ℹ️ {lang==='ru'?'О нас':lang==='ar'?'عنا':lang==='tr'?'Hakkımızda':'Haqqında'}</button>
+              {/* Məscid məlumatları yalnız doldurulubsa göstərilir — bax: src/config/mosque.js */}
+              <span className="ft-contact-line">📍 {filled(address) ? address : tr(MOSQUE.locality, lang)}</span>
+              {filled(MOSQUE.mapUrl) && (
+                <a href={MOSQUE.mapUrl} target="_blank" rel="noopener noreferrer">🗺️ {fl.map}</a>
+              )}
+              {filled(MOSQUE.phone) && (
+                <a href={`tel:${MOSQUE.phone.replace(/[^\d+]/g, '')}`}>📞 {MOSQUE.phone}</a>
+              )}
+              {filled(MOSQUE.email) && (
+                <a href={`mailto:${MOSQUE.email}`}>✉ {MOSQUE.email}</a>
+              )}
+              {socials.map(([key, url]) => (
+                <a key={key} href={url} target="_blank" rel="noopener noreferrer">🔗 {SOCIAL_LABELS[key] || key}</a>
+              ))}
+              <span className="ft-contact-line">🌐 {BRAND.domain}</span>
+              {navLink('about')}
             </div>
-          </div>
+          </nav>
 
         </div>
       </div>
 
       <div className="ft-bottom">
-        <p>{fl.copy}</p>
+        <p>{`© ${new Date().getFullYear()} ${brand} — ${fl.copy}`}</p>
         <span className="ft-made">{fl.made}</span>
       </div>
     </footer>

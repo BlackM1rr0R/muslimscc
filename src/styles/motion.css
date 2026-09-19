@@ -1,0 +1,798 @@
+/* ══════════════════════════════════════════════════════════════
+   MOTION & MOBİL UI SİSTEMİ — Qaraçuxur Məscidi
+   (main.jsx-də heroes.css-dən dərhal sonra import olunur)
+
+   Məqsəd: telefonda sayt müasir tətbiq kimi hiss olunsun — toxunuşa
+   cavab verən, hamar, SAKİT (məscid saytıdır: zərif hərəkət, parıltı yox).
+
+   QAYDALAR
+   • Yalnız transform və opacity animasiya olunur (layout yox).
+   • Müddət 120–360ms, ease-out və ya yumşaq "yay" əyrisi.
+   • Növbəli görünmə: element başına ≤ 40ms, ən çox 8 element.
+   • prefers-reduced-motion: reduce → bütün hərəkət söndürülür (aşağıda).
+   • Rənglər yalnız globals.css dəyişənlərindən — tünd rejim avtomatik.
+   • Məntiqi xassələr (inset-inline, padding-inline) — ərəbcə (RTL) güzgülənir.
+
+   MÜNDƏRİCAT
+     1. Hərəkət tokenləri
+     2. Fokus halqası (yalnız klaviatura) + toxunuş vurğusu
+     3. Basılma (press) rəyi
+     4. Səhifə keçidi
+     5. Sürüşəndə görünmə (data-reveal)
+     6. .icon-tile — rəngli ikon kafeli
+     7. .m-list / .m-row — müasir siyahı xanaları
+     8. .m-check — animasiyalı dairəvi işarə qutusu
+     9. .m-chip / .chip-scroll — üfüqi çiplər
+    10. .m-seg — seqment (tab) idarəsi
+    11. .m-card — toxunulan kart
+    12. .skeleton — yüklənmə parıltısı
+    13. .m-sheet — aşağıdan qalxan vərəq köməkçiləri
+    14. Mobil hero (kompakt)
+    15. "Hərəkəti azalt" — qlobal söndürmə
+   ══════════════════════════════════════════════════════════════ */
+
+/* ══ 1. HƏRƏKƏT TOKENLƏRİ ══════════════════════════════════════ */
+:root {
+  --ease-out:     cubic-bezier(0.22, 1, 0.36, 1);      /* yumşaq dayanma */
+  --ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-in:      cubic-bezier(0.4, 0, 1, 1);          /* çıxış (bağlanma) */
+  --ease-spring:  cubic-bezier(0.34, 1.36, 0.64, 1);   /* yüngül yay, kiçik aşma */
+  --ease-sheet:   cubic-bezier(0.32, 0.72, 0, 1);      /* iOS vərəqi kimi */
+
+  --dur-1: 140ms;   /* basılma, rəng, kiçik ikon */
+  --dur-2: 240ms;   /* düymə, çip, işarə qutusu */
+  --dur-3: 360ms;   /* səhifə keçidi, vərəq, görünmə */
+
+  --stagger: 40ms;
+
+  /* Basılma rəngi (xananın üstünə yarımşəffaf örtük) */
+  --press-tint:  rgba(26, 107, 58, 0.08);
+  --press-scale: 0.97;
+
+  /* Başlığın hazırkı hündürlüyü: gizlənəndə 0 (Header → html.qm-hdr-hidden).
+     Yapışqan (sticky) paneller bunu oxusun: top: var(--header-offset) */
+  --header-offset: var(--header-h);
+
+  /* Şüşə effekti (başlıq, üzən kartlar) */
+  --glass-blur: saturate(170%) blur(18px);
+  --hairline: color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+[data-theme="dark"] {
+  --press-tint: rgba(255, 255, 255, 0.07);
+  --hairline: color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+/* Başlıq yalnız <1024px-də gizlənir — genişdə yapışqan panellər başlığın altında qalmalıdır */
+@media (max-width: 1023.98px) {
+  html.qm-hdr-hidden { --header-offset: 0px; }
+}
+
+/* ══ 2. FOKUS HALQASI + TOXUNUŞ VURĞUSU ════════════════════════
+   Sahibin gördüyü qalın narıncı halqa: brauzerin öz fokus halqası idi —
+   window.confirm() bağlanandan sonra fokus düyməyə qayıdırdı və brauzer
+   bunu "klaviatura fokusu" sayırdı. İndi:
+   • siçan/barmaq ilə fokusda halqa YOXDUR (hooks/useInputModality.js →
+     html.qm-input-pointer), yazı sahələri istisnadır (onların öz stili var);
+   • klaviatura ilə — hər yerdə eyni yumşaq yaşıl halqa;
+   • əlçatanlıq panelinin "Fokusu vurğula" seçimi hər zaman qalib gəlir. */
+:where(:focus-visible) {
+  outline: 2px solid var(--primary-border);
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 2px;
+}
+
+:where(:focus:not(:focus-visible)) { outline: none; }
+
+html.qm-input-pointer:not(.a11y-highlight-focus) :focus:not(input, textarea, select, [contenteditable="true"]) {
+  outline: none;
+}
+
+/* Android/iOS-un boz-mavi toxunuş kvadratı yox — əvəzində basılma rəyi (3) */
+html { -webkit-tap-highlight-color: transparent; }
+
+/* ══ 3. BASILMA (PRESS) RƏYİ ═══════════════════════════════════
+   Toxunma ekranında düymələr, kartlar, xanalar, tablar basılanda bir
+   anlıq sıxılır (scale .97) və ya yüngül rəng örtüyü alır.
+   Öz elementinizə: class="press" və ya data-press atributu. */
+@media (hover: none), (pointer: coarse) {
+  :where(.btn-primary, .btn-secondary, .btn-ghost, .tag-btn, .m-chip, .m-seg-btn, .press, [data-press]) {
+    transition-property: transform, background-color, border-color, color, box-shadow, opacity;
+    transition-duration: var(--dur-1);
+    transition-timing-function: var(--ease-out);
+  }
+  :where(.btn-primary, .btn-secondary, .btn-ghost, .tag-btn, .m-chip, .m-seg-btn, .press, [data-press]):active {
+    transform: scale(var(--press-scale));
+  }
+  :where(.card, .m-card):active {
+    transform: scale(0.985);
+  }
+}
+
+/* ══ 4. SƏHİFƏ KEÇİDİ ══════════════════════════════════════════
+   Marşrut dəyişəndə <main key={page} class="page-enter"> yenidən qurulur:
+   məzmun 10px aşağıdan yumşaq qalxır və görünür (App.jsx). Köhnə səhifə
+   yeni səhifənin kodu yüklənənə qədər qalır (Suspense + startTransition) —
+   ağ "yanıb-sönmə" yoxdur. Animasiyadan sonra transform qalmır (fill: both,
+   son dəyər none) — içindəki position:fixed modallar yerində açılır. */
+.page-enter {
+  animation: qm-page-in var(--dur-3) var(--ease-out) both;
+}
+[dir="rtl"] .page-enter,
+html[lang="ar"] .page-enter {
+  animation: qm-page-in var(--dur-3) var(--ease-out) both;
+}
+
+@keyframes qm-page-in {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Hərəkət azaldılıbsa — yalnız qısa görünmə */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  [dir="rtl"] .page-enter,
+  html[lang="ar"] .page-enter { animation: fadeIn 0.2s ease both; }
+}
+
+/* ══ 5. SÜRÜŞƏNDƏ GÖRÜNMƏ (data-reveal) ════════════════════════
+   hooks/useReveal.js — tək qlobal IntersectionObserver.
+   Gizli başlanğıc yalnız müşahidəçi elementi götürəndə ([data-reveal-ready])
+   və html.qm-reveal-on olanda — JS olmasa məzmun görünür qalır.
+   Animasiya fill-mode: backwards — bitəndən sonra elementin öz
+   transform/hover effektlərinə toxunmur. */
+html.qm-reveal-on [data-reveal][data-reveal-ready]:not([data-revealed]):not([data-reveal="stagger"]),
+html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]) > * {
+  opacity: 0;
+}
+
+[data-reveal][data-revealed=""]:not([data-reveal="stagger"]) {
+  animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal="fade"][data-revealed=""]  { animation-name: qm-reveal-fade; }
+[data-reveal="scale"][data-revealed=""] { animation-name: qm-reveal-scale; }
+
+[data-reveal="stagger"][data-revealed=""] > * {
+  animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+  animation-delay: calc(var(--reveal-delay, 0ms) + var(--reveal-i, 0) * var(--stagger));
+}
+
+/* Növbə indeksi — CSS ilə, ən çox 8 addım (qalanları 8-ci ilə birlikdə) */
+[data-reveal="stagger"] > :nth-child(2) { --reveal-i: 1; }
+[data-reveal="stagger"] > :nth-child(3) { --reveal-i: 2; }
+[data-reveal="stagger"] > :nth-child(4) { --reveal-i: 3; }
+[data-reveal="stagger"] > :nth-child(5) { --reveal-i: 4; }
+[data-reveal="stagger"] > :nth-child(6) { --reveal-i: 5; }
+[data-reveal="stagger"] > :nth-child(7) { --reveal-i: 6; }
+[data-reveal="stagger"] > :nth-child(n+8) { --reveal-i: 7; }
+
+@keyframes qm-reveal-up {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-reveal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes qm-reveal-scale {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ══ 6. .icon-tile — RƏNGLİ İKON KAFELİ ════════════════════════
+   40×40, yumşaq rəngli fon, emoji və ya SVG üçün.
+     <span class="icon-tile" aria-hidden="true">🕌</span>
+     <span class="icon-tile icon-tile--gold">☀️</span>
+   Tonlar: (susma yaşıl) --gold --blue --teal --violet --rose --orange --slate
+   Ölçülər: --sm (32) --lg (48) · Forma: --round (dairə) */
+.icon-tile {
+  --tile: var(--primary);
+  --tile-bg-mix: 13%;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--primary-bg2);
+  background: color-mix(in srgb, var(--tile) var(--tile-bg-mix), transparent);
+  color: var(--tile);
+  font-size: 20px;
+  line-height: 1;
+  font-style: normal;
+}
+[data-theme="dark"] .icon-tile { --tile-bg-mix: 20%; }
+
+.icon-tile svg { width: 20px; height: 20px; }
+
+.icon-tile--gold   { --tile: #c28a0e; }
+.icon-tile--blue   { --tile: #2f6fd6; }
+.icon-tile--teal   { --tile: #0f8f83; }
+.icon-tile--violet { --tile: #7457d6; }
+.icon-tile--rose   { --tile: #d24a6a; }
+.icon-tile--orange { --tile: #e0701f; }
+.icon-tile--slate  { --tile: #5b6b73; }
+
+[data-theme="dark"] .icon-tile--gold   { --tile: #f0c040; }
+[data-theme="dark"] .icon-tile--blue   { --tile: #7aa7ff; }
+[data-theme="dark"] .icon-tile--teal   { --tile: #4fd1c5; }
+[data-theme="dark"] .icon-tile--violet { --tile: #a996ff; }
+[data-theme="dark"] .icon-tile--rose   { --tile: #ff8fa8; }
+[data-theme="dark"] .icon-tile--orange { --tile: #ffab6b; }
+[data-theme="dark"] .icon-tile--slate  { --tile: #a9b6bd; }
+
+.icon-tile--sm { width: 32px; height: 32px; border-radius: 10px; font-size: 16px; }
+.icon-tile--sm svg { width: 16px; height: 16px; }
+.icon-tile--lg { width: 48px; height: 48px; border-radius: 14px; font-size: 24px; }
+.icon-tile--lg svg { width: 24px; height: 24px; }
+.icon-tile--round { border-radius: 50%; }
+
+/* ══ 7. .m-list / .m-row — MÜASİR SİYAHI XANALARI ══════════════
+   Qruplaşdırılmış "inset" siyahı: yuvarlaq künclü qutu, xanalar arasında
+   nazik xətt (ikonun sonundan başlayır), 56px hündürlük, basılma rəngi.
+
+   <ul class="m-list">
+     <li>
+       <button class="m-row" role="checkbox" aria-checked="false">
+         <span class="icon-tile icon-tile--gold" aria-hidden="true">🌅</span>
+         <span class="m-row-body">
+           <span class="m-row-title">Sübh namazı</span>
+           <span class="m-row-sub">05:12</span>
+         </span>
+         <span class="m-row-trail"><span class="m-check" aria-hidden="true">…</span></span>
+       </button>
+     </li>
+   </ul>
+   • <li> olmadan da işləyir: <div class="m-list"><a class="m-row">…</a>…</div>
+   • Keçid oxu: <span class="m-row-chev" aria-hidden="true"></span> (RTL-də güzgülənir)
+   • Başlıq: <h3 class="m-list-title">Bu gün</h3> (siyahının üstündə)
+   • Variantlar: .m-list--plain (çərçivəsiz, fonsuz), .m-list--flush (telefonda kənardan kənara)
+   • Tamamlanmış xana: .m-row.is-done və ya [aria-checked="true"] — ad sakitləşir */
+.m-list-title {
+  margin: 0 0 8px;
+  padding-inline: 4px;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+[dir="rtl"] .m-list-title { letter-spacing: 0; font-size: 13px; }
+
+.m-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  isolation: isolate;
+}
+.m-list > li { position: relative; list-style: none; }
+
+.m-list--plain {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 480px) {
+  .m-list--flush {
+    margin-inline: calc(-1 * var(--page-gutter));
+    border-inline: 0;
+    border-radius: 0;
+  }
+}
+
+.m-row {
+  --m-row-pad: 14px;
+  --m-row-lead: 40px;   /* ikon kafelinin eni — xətt ondan sonra başlayır */
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  margin: 0;
+  padding: 8px var(--m-row-pad);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.35;
+  text-align: start;
+  text-decoration: none;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+:is(button, a, label).m-row,
+.m-row[role="button"],
+.m-row[role="checkbox"] { cursor: pointer; }
+
+/* Nazik ayırıcı xətt: ikonun sonundan xananın sonuna */
+.m-list > .m-row + .m-row::before,
+.m-list > li + li > .m-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline-start: calc(var(--m-row-pad) + var(--m-row-lead) + 12px);
+  inset-inline-end: 0;
+  height: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+/* İkonsuz xana: xətt kənardan başlasın */
+.m-row.no-lead { --m-row-lead: -12px; }
+
+@media (hover: hover) and (pointer: fine) {
+  :is(button, a, label).m-row:hover,
+  .m-row[role="button"]:hover,
+  .m-row[role="checkbox"]:hover { background: var(--bg-card2); }
+}
+
+:is(button, a, label).m-row:active,
+.m-row[role="button"]:active,
+.m-row[role="checkbox"]:active {
+  background: var(--bg-card2);
+  box-shadow: inset 0 0 0 999px var(--press-tint);
+}
+
+.m-row:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: -2px;
+  border-radius: inherit;
+}
+
+.m-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.m-row-title {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  transition: color var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out);
+}
+
+.m-row-sub {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.m-row-trail {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Keçid oxu › — CSS ilə çəkilir, ərəbcədə güzgülənir */
+.m-row-chev {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-inline: 2px 4px;
+  border-top: 2px solid var(--border-md);
+  border-inline-end: 2px solid var(--border-md);
+  transform: rotate(45deg);
+}
+[dir="rtl"] .m-row-chev { transform: rotate(-45deg); }
+
+.m-row.is-done .m-row-title,
+.m-row[aria-checked="true"] .m-row-title,
+.m-row[aria-pressed="true"] .m-row-title {
+  color: var(--text-dim);
+}
+
+/* ══ 8. .m-check — ANİMASİYALI DAİRƏVİ İŞARƏ QUTUSU ════════════
+   Seçiləndə: yaşıl dolur, ✓ xətti "çəkilir", kiçik yay "pop".
+   Vəziyyət bu yollardan biri ilə verilir:
+     • .m-check.is-checked
+     • valideyndə [aria-checked="true"] və ya [aria-pressed="true"]
+     • <input type="checkbox" class="m-check-input"> + qonşu .m-check
+
+   <span class="m-check" aria-hidden="true">
+     <svg viewBox="0 0 24 24"><path d="M6.5 12.5l3.8 3.8L17.5 8.5"/></svg>
+   </span> */
+.m-check {
+  --m-check-size: 26px;
+  position: relative;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: var(--m-check-size);
+  height: var(--m-check-size);
+  border-radius: 50%;
+  border: 2px solid var(--border-md);
+  background: var(--bg-card);
+  color: var(--on-primary);
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out);
+}
+
+.m-check svg {
+  width: 70%;
+  height: 70%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  transition: stroke-dashoffset var(--dur-2) var(--ease-out);
+}
+
+.m-check.is-checked,
+[aria-checked="true"] .m-check,
+[aria-pressed="true"] .m-check,
+.m-check-input:checked + .m-check {
+  background: var(--primary);
+  border-color: var(--primary);
+  animation: qm-check-pop var(--dur-3) var(--ease-spring);
+}
+
+.m-check.is-checked svg,
+[aria-checked="true"] .m-check svg,
+[aria-pressed="true"] .m-check svg,
+.m-check-input:checked + .m-check svg {
+  stroke-dashoffset: 0;
+  transition-delay: 60ms;
+}
+
+.m-check-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.m-check-input:focus-visible + .m-check {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 2px;
+}
+
+@keyframes qm-check-pop {
+  0%   { transform: scale(0.82); }
+  55%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* ══ 9. .m-chip / .chip-scroll — ÜFÜQİ ÇİPLƏR ═════════════════
+   Telefonda filtrlər bir sətirdə, barmaqla sürüşür, kənarlarda yumşaq
+   solğunlaşma; kənardan kənara uzanır (--page-gutter qədər).
+   <div class="chip-scroll" role="group" aria-label="…">
+     <button class="m-chip is-active" aria-pressed="true">Hamısı</button>
+     <button class="m-chip" aria-pressed="false">Səhər</button>
+   </div>
+   ≥768px-də (.chip-scroll) sətirlər sarınır — sürüşmə yoxdur. */
+.chip-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding: 2px var(--page-gutter) 6px;
+  scroll-padding-inline: var(--page-gutter);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - var(--page-gutter)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - var(--page-gutter)), transparent 100%);
+}
+.chip-scroll::-webkit-scrollbar { display: none; }
+.chip-scroll > * { flex: 0 0 auto; scroll-snap-align: start; }
+
+@media (min-width: 768px) {
+  .chip-scroll.wrap-desktop {
+    flex-wrap: wrap;
+    overflow: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+.m-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border-md);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .m-chip:hover { border-color: var(--primary-border); color: var(--text); }
+}
+.m-chip.is-active,
+.m-chip[aria-pressed="true"],
+.m-chip[aria-selected="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+/* ══ 10. .m-seg — SEQMENT (TAB) İDARƏSİ ═══════════════════════
+   2–4 seçimli sakit "hap" düymələr (Gün/Həftə, Ərəbcə/Tərcümə …).
+   <div class="m-seg" role="tablist">
+     <button class="m-seg-btn is-active" role="tab" aria-selected="true">Bu gün</button>
+     <button class="m-seg-btn" role="tab" aria-selected="false">Həftə</button>
+   </div> */
+.m-seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--bg-card2);
+}
+[data-theme="dark"] .m-seg { background: var(--surface); }
+
+.m-seg-btn {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+}
+.m-seg-btn.is-active,
+.m-seg-btn[aria-selected="true"],
+.m-seg-btn[aria-pressed="true"] {
+  background: var(--bg-card);
+  color: var(--primary-dark);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme="dark"] .m-seg-btn.is-active,
+[data-theme="dark"] .m-seg-btn[aria-selected="true"],
+[data-theme="dark"] .m-seg-btn[aria-pressed="true"] { color: var(--primary); }
+
+/* ══ 11. .m-card — TOXUNULAN KART ═════════════════════════════
+   Yumşaq kölgəli, 18px radius, telefonda basılanda yüngül sıxılır;
+   siçanla üzərinə gələndə 2px qalxır (yalnız hover olan cihazlarda). */
+.m-card {
+  position: relative;
+  display: block;
+  padding: var(--card-pad);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  :is(a, button).m-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--primary-border); }
+}
+
+/* ══ 12. .skeleton — YÜKLƏNMƏ PARILTISI ═══════════════════════
+   <div class="skeleton" style="height:56px"></div>
+   <span class="skeleton skeleton--text"></span>   (bir sətir mətn)
+   <span class="skeleton skeleton--circle" style="width:40px;height:40px"></span>
+   Parıltı transform ilə hərəkət edir (background-position yox). */
+.skeleton {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--bg-card2);
+  isolation: isolate;
+}
+[data-theme="dark"] .skeleton { background: var(--surface); }
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg-card) 70%, transparent), transparent);
+  animation: qm-shimmer 1.4s var(--ease-in-out) infinite;
+}
+[dir="rtl"] .skeleton::after { animation-direction: reverse; }
+
+.skeleton--text { height: 0.9em; margin-block: 0.35em; border-radius: 6px; }
+.skeleton--circle { border-radius: 50%; }
+
+@keyframes qm-shimmer {
+  to { transform: translateX(100%); }
+}
+
+/* ══ 13. .m-sheet — AŞAĞIDAN QALXAN VƏRƏQ KÖMƏKÇİLƏRİ ══════════
+   Öz vərəqinizi qurmaq üçün (☰ çəkmə menyusu — SideNav.css — eyni tokenlərlə qurulub):
+   <div class="m-sheet-root is-open">                 (is-open — açıq)
+     <div class="m-sheet-backdrop" onClick={close}></div>
+     <div class="m-sheet" role="dialog" aria-modal="true" ref={panelRef}>
+       <div class="m-sheet-grab" {...useSheetDrag(panelRef, close)}>
+         <span class="m-sheet-handle"></span>
+       </div>
+       <div class="m-sheet-body">…</div>
+     </div>
+   </div>
+   • Açılış: yay əyrisi ilə qalxma; bağlanış: sürətli ease-in.
+   • Arxa fon yumşaq bulanır; çəkərkən (--sheet-drag) solğunlaşır.
+   • Body scroll kilidini komponent özü qoyur (SideNav.jsx-ə baxın). */
+.m-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s linear var(--dur-3);
+}
+.m-sheet-root.is-open {
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.m-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 16, 12, 0.42);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+.m-sheet-root.is-open .m-sheet-backdrop { opacity: calc(1 - var(--sheet-drag, 0) * 0.9); }
+.m-sheet-root.is-dragging .m-sheet-backdrop { transition: none; }
+
+.m-sheet {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  max-width: 640px;
+  max-height: 88dvh;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.18);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  transform: translate3d(0, 100%, 0);
+  transition: transform 260ms var(--ease-in);
+  will-change: transform;
+}
+/* Yay aşanda altda boşluq görünməsin — fon aşağıya uzanır */
+.m-sheet::after {
+  content: '';
+  position: absolute;
+  inset-inline: -1px;
+  top: 100%;
+  height: 64px;
+  background: inherit;
+  border-inline: inherit;
+}
+.m-sheet-root.is-open .m-sheet {
+  transform: none;
+  transition: transform 460ms var(--ease-spring);
+}
+
+.m-sheet-grab {
+  flex-shrink: 0;
+  padding: 10px 0 6px;
+  touch-action: none;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.m-sheet-handle {
+  display: block;
+  width: 40px;
+  height: 5px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: var(--border-md);
+}
+.m-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 16px 16px;
+}
+
+/* Vərəq içində növbə ilə görünən elementlər: class="m-stagger" + style="--i:N" */
+.m-sheet-root.is-open .m-stagger {
+  animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+  animation-delay: calc(80ms + min(var(--i, 0), 7) * var(--stagger));
+}
+
+/* ══ 14. MOBİL HERO (kompakt) ══════════════════════════════════
+   <768px-də bütün .page-hero-lar yığcamdır (globals.css) ki, məzmun ilk
+   ekranda görünsün. Daha da yığcam variant (≈170px) — .page-hero.hero-compact:
+   çörək qırıntısı (breadcrumb) gizlənir (☰ menyusu cari səhifəni onsuz da vurğulayır),
+   ərəbcə sətir və alt başlıq kiçilir. */
+@media (max-width: 767.98px) {
+  .page-hero.hero-compact { padding-block: 26px 22px; }
+  .page-hero.hero-compact .breadcrumb { display: none; }
+  .page-hero.hero-compact .page-hero-arabic { font-size: clamp(16px, 4.6vw, 20px); margin-bottom: 2px; }
+  .page-hero.hero-compact h1 { font-size: clamp(22px, 6.2vw, 26px); margin-bottom: 6px; }
+  .page-hero.hero-compact p { font-size: 13.5px; line-height: 1.5; }
+
+  /* Hero-nun məzmunu yumşaq qalxır (ilk ekranda hiss olunan canlılıq) */
+  .page-hero > * {
+    animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+  }
+  .page-hero > :nth-child(2) { animation-delay: 40ms; }
+  .page-hero > :nth-child(3) { animation-delay: 80ms; }
+  .page-hero > :nth-child(n+4) { animation-delay: 120ms; }
+}
+
+/* ══ 15. "HƏRƏKƏTİ AZALT" — QLOBAL SÖNDÜRMƏ ═══════════════════
+   Sistem ayarında hərəkət azaldılıbsa bütün animasiya və keçidlər
+   dərhal bitir (vəziyyətlər dəyişir, amma hərəkət görünmür). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    /* 0s: keçid ümumiyyətlə başlamır — 0.01ms irsi visibility-ni də bir kadr gizli saxlayırdı və dialoqlarda focus() alınmırdı */
+    transition-duration: 0s !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  html.qm-reveal-on [data-reveal][data-reveal-ready]:not([data-revealed]),
+  html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]) > * {
+    opacity: 1;
+  }
+}

@@ -1,34 +1,55 @@
 /* ═══════════════════════════════════════════════════════
    NOTIFICATION SETTINGS WIDGET
-   FAB stacked above Accessibility, above MuslimAI
+   FAB stacked above Accessibility, above AI chat
+
+   Rənglər YALNIZ globals.css dəyişənlərindəndir (yaşıl --primary,
+   qızılı --gold, --bg-card / --surface / --text / --border …) —
+   tünd rejim ([data-theme="dark"]) avtomatik işləyir. Əvvəl ~17 sabit
+   narıncı rəng var idi. Görünüş Əlçatanlıq paneli ilə eynidir.
+
+   Status kartı: JSX data-status verir (granted | default | denied |
+   unsupported), rəng burada seçilir. Status mətni rəngi --text ilə
+   qarışdırılır (color-mix) — işıqlıda tündləşir, tündə açılır, hər
+   iki rejimdə AA (4.5:1+).
    ═══════════════════════════════════════════════════════ */
 
-/* ─── FAB (top of stack — first/most prominent) ─── */
+.notif-panel,
+.notif-fab {
+  /* Fokus halqası — FloatingDock və yan menyu ilə eyni */
+  --notif-ring: color-mix(in srgb, var(--primary) 55%, transparent);
+  --notif-glow: 0 4px 14px color-mix(in srgb, var(--primary) 28%, transparent);
+  /* Xəta mətni: qırmızı + mətn rəngi → hər iki rejimdə AA */
+  --notif-danger-ink: color-mix(in srgb, var(--danger) 65%, var(--text));
+}
+
+/* ─── FAB (yalnız köhnə müstəqil rejim üçün stil; hazırda dokdan açılır) ─── */
 .notif-fab {
   position: fixed;
   bottom: 200px;
   right: 24px;
   z-index: 100000;
   width: 56px; height: 56px;
-  border: none;
+  border: 1px solid var(--primary-border);
   border-radius: 50%;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
-  color: #fff;
+  background: var(--primary);
+  color: var(--on-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 28px rgba(245,158,11,0.4), 0 4px 12px rgba(0,0,0,0.18);
-  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, background 0.2s;
   animation: notif-fab-in 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
 }
 
 .notif-fab:hover {
+  background: var(--primary-dark);
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 18px 38px rgba(245,158,11,0.55), 0 6px 16px rgba(0,0,0,0.22);
+  box-shadow: var(--shadow-xl);
 }
 
 .notif-fab:active { transform: scale(0.95); }
+.notif-fab:focus-visible { outline: 2px solid var(--notif-ring); outline-offset: 3px; }
 
 @keyframes notif-fab-in {
   0% { opacity: 0; transform: translateY(60px) scale(0.4); }
@@ -39,7 +60,7 @@
   position: absolute;
   inset: 4px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.18);
+  background: color-mix(in srgb, var(--on-primary) 18%, transparent);
   pointer-events: none;
   animation: notif-pulse 2.8s ease-in-out infinite 2s;
 }
@@ -52,17 +73,16 @@
 .notif-fab svg {
   position: relative;
   z-index: 1;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.2));
 }
 
-/* "Needs attention" red dot (when permission is default) */
+/* "Diqqət tələb edir" nöqtəsi (icazə hələ soruşulmayıb) */
 .notif-fab-dot {
   position: absolute;
   top: 6px; right: 6px;
   width: 14px; height: 14px;
   border-radius: 50%;
-  background: #ef4444;
-  border: 2px solid #fff;
+  background: var(--danger);
+  border: 2px solid var(--bg-card);
   z-index: 2;
   animation: notif-bell-shake 1.5s ease-in-out infinite;
 }
@@ -73,20 +93,20 @@
   20% { transform: scale(0.9); }
 }
 
-/* Check mark when active subscribed */
+/* Abunəlik aktivdirsə — işarə */
 .notif-fab-check {
   position: absolute;
   bottom: 4px; right: 4px;
   width: 18px; height: 18px;
   border-radius: 50%;
-  background: #10b981;
-  color: #fff;
+  background: var(--bg-card);
+  color: var(--primary);
   font-size: 11px;
   font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fff;
+  border: 2px solid var(--primary);
   z-index: 2;
 }
 
@@ -112,7 +132,8 @@
   width: 380px;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 48px);
-  background: var(--bg-card, #fff);
+  background: var(--bg);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 22px;
   box-shadow: 0 30px 80px -10px rgba(0,0,0,0.35), 0 12px 28px -8px rgba(0,0,0,0.18);
@@ -127,119 +148,149 @@
   100% { opacity: 1; transform: translateX(0) scale(1); }
 }
 
-/* ─── Header ─── */
+/* ─── Header ───
+   Sakit kart başlığı + aşağıda qızılı xətt (səhifə hero-larındakı kimi);
+   ikon dairəsi yan menyunun "Alətlər" ikonları ilə eynidir */
 .notif-header {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
-  color: #fff;
-  padding: 16px;
+  background: var(--bg-card);
+  color: var(--text);
+  padding-block: 14px;
+  padding-inline: 16px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   flex-shrink: 0;
   position: relative;
+  border-bottom: 1px solid var(--border);
 }
 
-.notif-header::before {
+.notif-header::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 60%);
+  inset-inline: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(to right, var(--gold), transparent 75%);
+  opacity: 0.7;
   pointer-events: none;
+}
+
+[dir="rtl"] .notif-header::after,
+html[lang="ar"] .notif-header::after {
+  background: linear-gradient(to left, var(--gold), transparent 75%);
 }
 
 .notif-header-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  position: relative;
-  z-index: 1;
   min-width: 0;
 }
 
 .notif-header-icon {
   width: 42px; height: 42px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.22);
+  background: var(--primary-bg2);
+  color: var(--primary-dark);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
+
+[data-theme="dark"] .notif-header-icon { color: var(--primary); }
 
 .notif-name {
   font-weight: 800;
   font-size: 17px;
   letter-spacing: 0.2px;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  color: var(--text);
+  line-height: 1.25;
 }
 
 .notif-tagline {
-  font-size: 12px;
-  opacity: 0.92;
-  margin-top: 1px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
   line-height: 1.3;
 }
 
 .notif-close {
-  background: rgba(255,255,255,0.18);
-  border: none;
-  color: #fff;
-  width: 34px; height: 34px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 36px; height: 36px;
   border-radius: 50%;
   font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  z-index: 1;
-  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
 }
 
 .notif-close:hover {
-  background: rgba(255,255,255,0.32);
+  background: var(--primary-bg2);
+  border-color: var(--primary-border);
+  color: var(--primary);
   transform: rotate(90deg);
 }
+
+.notif-close:focus-visible { outline: 2px solid var(--notif-ring); outline-offset: 2px; }
 
 /* ─── Body ─── */
 .notif-body {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 16px;
-  background: var(--bg-soft, #f8fafc);
+  background: var(--bg);
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.notif-body::-webkit-scrollbar { width: 6px; }
-.notif-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+/* Sütunlu flex + overflow: kartlar hündürlük azalanda sıxılmasın */
+.notif-body > * { flex-shrink: 0; }
 
-/* ─── Status card ─── */
+.notif-body::-webkit-scrollbar { width: 6px; }
+.notif-body::-webkit-scrollbar-track { background: transparent; }
+.notif-body::-webkit-scrollbar-thumb { background: var(--primary-border); border-radius: 3px; }
+
+/* ─── Status card ───
+   --st: statusun rəngi; --st-ink: onun mətn üçün AA variantı */
 .notif-status-card {
-  background: var(--bg-card, #fff);
-  border: 2px solid var(--border);
+  --st: var(--gold);
+  --st-ink: color-mix(in srgb, var(--st) 65%, var(--text));
+  background: color-mix(in srgb, var(--st) 6%, var(--bg-card));
+  border: 1.5px solid color-mix(in srgb, var(--st) 45%, var(--border));
   border-radius: 14px;
   padding: 14px;
   display: flex;
   align-items: center;
   gap: 14px;
+  box-shadow: var(--shadow-sm);
 }
+
+.notif-status-card[data-status="granted"]     { --st: var(--primary); }
+.notif-status-card[data-status="default"]     { --st: var(--gold); }
+.notif-status-card[data-status="denied"]      { --st: var(--danger); }
+.notif-status-card[data-status="unsupported"] { --st: var(--text-muted); }
 
 .notif-status-icon {
   width: 48px; height: 48px;
   border-radius: 50%;
-  background: #f59e0b;
-  color: #fff;
+  background: color-mix(in srgb, var(--st) 16%, var(--bg-card));
+  color: var(--st-ink);
+  border: 1px solid color-mix(in srgb, var(--st) 30%, transparent);
   font-size: 22px;
   font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .notif-status-body {
@@ -259,52 +310,57 @@
   font-size: 16px;
   font-weight: 800;
   margin-top: 2px;
+  color: var(--st-ink);
 }
 
 /* ─── Buttons ─── */
 .notif-primary-btn {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #fff;
-  border: none;
+  background: var(--primary);
+  color: var(--on-primary);
+  border: 1px solid var(--primary);
   border-radius: 12px;
   padding: 13px;
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 14px rgba(245,158,11,0.3);
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--notif-glow);
 }
 
 .notif-primary-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(245,158,11,0.4);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
 .notif-primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .notif-secondary-btn {
-  background: var(--bg-card, #fff);
-  border: 2px solid var(--border);
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-md);
   color: var(--text);
   border-radius: 12px;
   padding: 13px;
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
+/* "Söndür" — üzərinə gələndə yumşaq xəbərdarlıq rəngi */
 .notif-secondary-btn:hover:not(:disabled) {
-  border-color: #ef4444;
-  color: #dc2626;
-  background: rgba(239,68,68,0.04);
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  color: var(--notif-danger-ink);
+  background: color-mix(in srgb, var(--danger) 7%, var(--bg-card));
 }
+
+.notif-secondary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ─── Help / feedback messages ─── */
 .notif-help {
-  background: rgba(245,158,11,0.1);
-  border: 1px solid rgba(245,158,11,0.3);
-  color: #92400e;
+  background: var(--gold-bg);
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+  color: var(--text);
   border-radius: 12px;
   padding: 12px;
   font-size: 13px;
@@ -316,27 +372,31 @@
   padding: 10px 14px;
   font-size: 13px;
   font-weight: 700;
+  border: 1px solid transparent;
 }
 
 .notif-feedback.ok {
-  background: rgba(16,185,129,0.12);
-  color: #059669;
+  background: var(--primary-bg);
+  border-color: var(--primary-border);
+  color: var(--primary);
 }
 
 .notif-feedback.err {
-  background: rgba(239,68,68,0.12);
-  color: #dc2626;
+  background: color-mix(in srgb, var(--danger) 9%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--notif-danger-ink);
 }
 
 /* ─── Section ─── */
 .notif-section {
-  background: var(--bg-card, #fff);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: var(--shadow-sm);
 }
 
 .notif-section-title {
@@ -355,21 +415,22 @@
 
 /* ─── Toggle ─── */
 .notif-toggle {
-  background: var(--bg-soft, #f8fafc);
-  border: 1.5px solid var(--border);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 9px 11px;
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
+  transition: background 0.2s, border-color 0.2s;
+  text-align: start;
   width: 100%;
+  color: var(--text);
 }
 
-.notif-toggle:hover { border-color: #f59e0b; background: rgba(245,158,11,0.04); }
-.notif-toggle.on { background: rgba(245,158,11,0.08); border-color: #f59e0b; }
+.notif-toggle:hover { border-color: var(--primary-border); background: var(--primary-bg); }
+.notif-toggle.on { background: var(--primary-bg); border-color: var(--primary-border); }
 
 .notif-toggle-icon {
   font-size: 18px;
@@ -391,42 +452,54 @@
   color: var(--text);
 }
 
+/* --text-dim: --text-muted tünd rejimdə yaşıl fonlu (.on) kafeldə 4.3:1 idi */
 .notif-toggle-sub {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--text-dim);
   margin-top: 1px;
   line-height: 1.3;
 }
 
+/* Açar: sönülü — boz sərhədli zolaq + boz düymə; açıq — yaşıl zolaq.
+   Hər iki halda düymə fonla ≥3:1 kontrastdadır (WCAG 1.4.11). */
 .notif-toggle-switch {
   width: 36px; height: 20px;
-  background: var(--border);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--border-md);
   border-radius: 999px;
   position: relative;
   flex-shrink: 0;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .notif-toggle.on .notif-toggle-switch {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: var(--primary);
+  box-shadow: inset 0 0 0 1.5px var(--primary);
 }
 
 .notif-toggle-knob {
   position: absolute;
-  top: 2px; left: 2px;
-  width: 16px; height: 16px;
-  background: #fff;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 14px; height: 14px;
+  background: var(--text-muted);
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
 }
 
-.notif-toggle.on .notif-toggle-knob { transform: translateX(16px); }
+.notif-toggle.on .notif-toggle-knob {
+  background: var(--on-primary);
+  transform: translateX(16px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+[dir="rtl"] .notif-toggle.on .notif-toggle-knob,
+html[lang="ar"] .notif-toggle.on .notif-toggle-knob { transform: translateX(-16px); }
 
 /* ─── Test button ─── */
 .notif-test-btn {
-  background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(217,119,6,0.08));
-  border: 1.5px dashed #f59e0b;
+  background: var(--gold-bg);
+  border: 1.5px dashed color-mix(in srgb, var(--gold) 60%, transparent);
   color: var(--text);
   border-radius: 12px;
   padding: 12px;
@@ -434,13 +507,13 @@
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
+  transition: background 0.2s, border-color 0.2s;
+  text-align: start;
 }
 
 .notif-test-btn:hover {
-  background: rgba(245,158,11,0.12);
-  border-color: #d97706;
+  background: color-mix(in srgb, var(--gold) 16%, var(--bg-card));
+  border-color: var(--gold);
 }
 
 .notif-test-icon {
@@ -463,8 +536,17 @@
 
 .notif-test-sub {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--text-dim);
   margin-top: 1px;
+}
+
+/* Klaviatura fokusu — panel daxilindəki bütün düymələr */
+.notif-primary-btn:focus-visible,
+.notif-secondary-btn:focus-visible,
+.notif-toggle:focus-visible,
+.notif-test-btn:focus-visible {
+  outline: 2px solid var(--notif-ring);
+  outline-offset: 2px;
 }
 
 /* ─── Responsive ─── */
@@ -482,6 +564,9 @@
     border-radius: 0;
     border: none;
   }
+  /* Tam ekran vərəq: başlıq çentikin, son kart ev zolağının altında qalmasın */
+  .notif-header { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+  .notif-body { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* RTL */
@@ -493,4 +578,7 @@ html[lang="ar"] .notif-panel { right: auto; left: 24px; }
 @media (max-width: 640px) {
   [dir="rtl"] .notif-fab,
   html[lang="ar"] .notif-fab { left: 16px; }
+  /* Mobil tam ekran vərəq — yuxarıdakı RTL "left: 24px" onu ekrandan kənara itələməsin */
+  [dir="rtl"] .notif-panel,
+  html[lang="ar"] .notif-panel { left: 0; right: 0; }
 }

@@ -1,0 +1,228 @@
+/* ═══════════════════════════════════════════════════════
+   BİLDİRİŞ İCAZƏSİ TƏKLİFİ + ÖN PLAN PUSH TOAST-U
+   Yalnız globals.css dəyişənləri — tünd rejim avtomatik.
+   ═══════════════════════════════════════════════════════ */
+
+/* Aşağı zolaq görünəndə son məzmunun onun altında qalmaması üçün yer
+   footer-in içində saxlanılır — qayda globals.css-dədir ("TƏTBİQ QABIĞI",
+   --qm-bottom-reserve). Əvvəl burada body-yə padding verilirdi və
+   səhifənin sonunda footer ilə zolaq arasında açıq rəngli boşluq qalırdı. */
+
+/* ─── İcazə təklifi — aşağıda yığcam zolaq ─── */
+.qm-notif-prompt {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 995;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  animation: qm-np-in 0.3s ease both;
+}
+
+@keyframes qm-np-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.qm-notif-prompt-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qm-notif-prompt-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background: var(--primary-bg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+}
+
+.qm-notif-prompt-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qm-notif-prompt-text strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.qm-notif-prompt-text span {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.qm-notif-prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.qm-notif-prompt-btn,
+.qm-notif-prompt-later {
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.qm-notif-prompt-btn {
+  border: none;
+  background: var(--primary);
+  color: var(--white);
+}
+
+.qm-notif-prompt-btn:hover { background: var(--primary-dark); }
+.qm-notif-prompt-btn:disabled { opacity: 0.7; cursor: default; }
+
+.qm-notif-prompt-later {
+  border: 1px solid var(--border-md);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.qm-notif-prompt-later:hover { background: var(--surface); color: var(--text); }
+
+.qm-notif-prompt-btn:focus-visible,
+.qm-notif-prompt-later:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/* ≥1024px: zolaq yalnız əsas sütunun enində — yan panelin altına düşmür */
+@media (min-width: 1024px) {
+  .qm-notif-prompt { inset-inline-start: var(--sidenav-w); }
+}
+
+/* <1024px: ekranın altından 16px (+ iPhone boşluğu) yuxarıda üzən kart —
+   aşağı zolaq yoxdur (sahibin qərarı #7) */
+@media (max-width: 1023.98px) {
+  .qm-notif-prompt {
+    inset-inline: var(--page-gutter, 16px);
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    max-width: 640px;
+    margin-inline: auto;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    background: var(--bg-card);
+    background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur, saturate(170%) blur(18px));
+    backdrop-filter: var(--glass-blur, saturate(170%) blur(18px));
+    animation: qm-np-float var(--dur-3, 360ms) var(--ease-spring, ease) both;
+  }
+}
+
+/* Telefonda üzən kart yay kimi qalxır (motion.css tokenləri) */
+@keyframes qm-np-float {
+  from { opacity: 0; transform: translate3d(0, 24px, 0) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.qm-notif-prompt-btn,
+.qm-notif-prompt-later,
+.qm-push-toast-close { -webkit-tap-highlight-color: transparent; }
+.qm-notif-prompt-btn:active,
+.qm-notif-prompt-later:active,
+.qm-push-toast-close:active { transform: scale(0.96); }
+
+/* Dar ekran: düymələr mətnin altına keçir */
+@media (max-width: 560px) {
+  .qm-notif-prompt-inner { flex-wrap: wrap; gap: 8px 12px; }
+  .qm-notif-prompt-text { flex-basis: calc(100% - 50px); }
+  .qm-notif-prompt-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* ─── Ön planda gələn push toast-u (header-in altında) ─── */
+.qm-push-toast {
+  position: fixed;
+  top: calc(var(--header-h, 71px) + 12px + env(safe-area-inset-top, 0px));
+  left: var(--page-gutter, 16px);
+  right: var(--page-gutter, 16px);
+  max-width: 400px;
+  margin: 0 auto;
+  z-index: 995;
+  /* ≥1024px-də əsas sütunun ortasında (aşağıdakı media qaydası) */
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--primary-border);
+  border-inline-start: 4px solid var(--primary);
+  box-shadow: var(--shadow-xl);
+  animation: qm-push-in var(--dur-3, 360ms) var(--ease-spring, ease) both;
+}
+
+@keyframes qm-push-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.qm-push-toast-icon { font-size: 20px; line-height: 1.2; flex-shrink: 0; }
+
+.qm-push-toast-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qm-push-toast-text strong { font-size: 14px; font-weight: 800; color: var(--text); }
+.qm-push-toast-text span { font-size: 13px; line-height: 1.4; color: var(--text-dim); overflow-wrap: anywhere; }
+
+.qm-push-toast-close {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin-block: -6px;
+  margin-inline-end: -6px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.qm-push-toast-close:hover { background: var(--surface); color: var(--text); }
+.qm-push-toast-close:focus-visible { outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent); outline-offset: 2px; }
+
+@media (min-width: 1024px) {
+  .qm-push-toast { inset-inline-start: calc(var(--sidenav-w) + 16px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qm-notif-prompt,
+  .qm-push-toast { animation: none; }
+}
+
+@media print {
+  .qm-notif-prompt,
+  .qm-push-toast { display: none !important; }
+}

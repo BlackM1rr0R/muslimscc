@@ -1,0 +1,812 @@
+/* ═══════════════════════════════════════════════════════
+   GLOBAL SEARCH — bir sözlə bütün saytda axtarış (komanda paneli)
+
+   • Masaüstü: mərkəzdə modal (maks. 720px); mobil (≤640px): tam ekran.
+   • Yalnız globals.css dəyişənləri — tünd rejim avtomatik işləyir.
+   • z-index 1300: header (1000), üzən dok (990) və SideNav (1200)
+     üstündə — SideNav bağlanma animasiyası zamanı da; tam ekran
+     modallardan (10000+) aşağı.
+   • Ərəbcə (dir="rtl") məntiqi xassələrlə (inline-start/end) işləyir.
+   ═══════════════════════════════════════════════════════ */
+
+/* Arxa fonun sürüşmə kilidi (GlobalSearch.jsx <html>-ə sinif qoyur) */
+html.gs-open body {
+  overflow: hidden;
+  padding-right: var(--gs-sbw, 0px);
+}
+
+.gs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(24px, 9vh, 96px) 16px 24px;
+  background: rgba(8, 18, 12, 0.5);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  animation: gsFade 0.14s ease-out both;
+}
+
+.gs-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  max-height: min(78vh, 760px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: gsIn 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Başlıq, çiplər və alt sətir sıxılmır — yalnız nəticələr sürüşür */
+.gs-head,
+.gs-chips,
+.gs-foot {
+  flex: none;
+}
+
+/* ── Başlıq: axtarış sahəsi ── */
+.gs-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 14px 18px;
+  padding-inline: 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gs-head-icon {
+  flex: none;
+  color: var(--primary);
+}
+
+.gs-input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.gs-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.gs-icon-btn {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.gs-icon-btn:hover {
+  background: var(--bg-card2);
+  color: var(--text);
+}
+
+.gs-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.gs-close:hover .gs-esc {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.gs-close-txt {
+  display: none;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.gs-dialog kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--border-md);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--bg-card2);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── Filtr çipləri ── */
+.gs-chips {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gs-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.gs-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 12px;
+  border: 1px solid var(--border-md);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.gs-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.gs-chip[aria-pressed="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  /* --bg-card: açıqda ağ, tündə tünd — hər iki rejimdə yaşıl üstündə oxunaqlı */
+  color: var(--bg-card);
+}
+
+.gs-chip.is-empty:not([aria-pressed="true"]) {
+  opacity: 0.55;
+}
+
+.gs-chip-n {
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--primary-bg2);
+  color: inherit;
+  font-size: 11.5px; /* px: telefonda html 15px olur və rem ilə ~10.8px-ə düşürdü */
+  font-weight: 700;
+  text-align: center;
+}
+
+.gs-chip[aria-pressed="true"] .gs-chip-n {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.gs-chip-soft {
+  background: var(--primary-bg);
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+/* ── Nəticələr ── */
+.gs-body {
+  flex: 1;
+  min-height: 120px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 0 10px;
+}
+
+.gs-section {
+  padding: 4px 8px;
+}
+
+.gs-section + .gs-section {
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.gs-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+}
+
+.gs-sec-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.gs-sec-n {
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--bg-card2);
+  color: var(--text-dim);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.gs-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.gs-opt[aria-selected="true"] {
+  background: var(--primary-bg);
+  border-color: var(--primary-border);
+}
+
+.gs-opt.is-open {
+  background: var(--bg-card2);
+  border-color: var(--border-md);
+}
+
+.gs-opt-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--bg-card2);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.gs-opt[aria-selected="true"] .gs-opt-icon,
+.gs-opt.is-open .gs-opt-icon {
+  background: var(--bg-card);
+}
+
+.gs-opt-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.gs-opt-title {
+  font-weight: 600;
+  font-size: 0.975rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.gs-opt-sub {
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.gs-opt-desc {
+  margin-top: 2px;
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gs-opt-text {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.gs-opt-text[dir="rtl"] {
+  font-family: var(--font-arabic);
+  font-size: 1.15rem;
+  line-height: 1.9;
+  text-align: start;
+}
+
+.gs-opt-ar {
+  margin-top: 4px;
+  font-family: var(--font-arabic);
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--text-dim);
+  text-align: start;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs-opt-ar.is-full {
+  white-space: normal;
+  color: var(--text);
+  font-size: 1.3rem;
+  line-height: 2;
+}
+
+.gs-opt-translit {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--text-dim);
+}
+
+.gs-opt-meta {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.gs-inline-ar {
+  /* inline-start burada işləmir: span-ın öz dir="rtl"-i tərəfi çevirir */
+  display: inline-block;
+  margin: 0 8px;
+  font-family: var(--font-arabic);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+.gs-name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.gs-name-ar {
+  font-family: var(--font-arabic);
+  font-size: 1.45rem;
+  line-height: 1.6;
+  color: var(--primary);
+}
+
+.gs-name-tr {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.gs-opt mark {
+  background: var(--gold-bg);
+  color: inherit;
+  border-radius: 3px;
+  box-shadow: inset 0 -2px 0 var(--gold);
+  padding: 0 1px;
+}
+
+/* Oxlar: səhifə → "keç"; məzmun → aşağı açılır */
+.gs-chev {
+  flex: none;
+  color: var(--text-muted);
+  transition: transform 0.18s ease;
+}
+
+.gs-chev-go,
+.gs-chev-expand {
+  margin-top: 9px;
+}
+
+.gs-chev-expand {
+  transform: rotate(90deg);
+}
+
+.gs-chev-expand.is-open {
+  transform: rotate(-90deg);
+}
+
+.gs-opt[aria-selected="true"] > .gs-chev {
+  color: var(--primary);
+}
+
+[dir="rtl"] .gs-chev-go,
+[dir="rtl"] .gs-chev-inline {
+  transform: scaleX(-1);
+}
+
+.gs-chev-inline {
+  vertical-align: -3px;
+  color: currentColor;
+}
+
+/* ── Açılmış nəticənin düymələri ── */
+.gs-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.gs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 7px 14px;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--bg-card);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.gs-btn:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.gs-btn-ghost {
+  background: var(--bg-card);
+  color: var(--primary);
+  border-color: var(--primary-border);
+}
+
+.gs-btn-ghost:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary);
+}
+
+.gs-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: var(--primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.gs-link:hover {
+  background: var(--primary-bg);
+}
+
+.gs-more {
+  display: block;
+  width: calc(100% - 16px);
+  margin: 6px 8px 2px;
+  min-height: 40px;
+  border: 1px dashed var(--border-md);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.gs-more:hover {
+  background: var(--primary-bg);
+  border-color: var(--primary);
+}
+
+/* ── Vəziyyət sətirləri ── */
+.gs-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 8px;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  color: var(--text-dim);
+}
+
+.gs-spin {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--primary-border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: gsSpin 0.8s linear infinite;
+}
+
+/* ── Boş vəziyyət, son axtarışlar, təkliflər ── */
+.gs-empty {
+  padding: 16px 18px 8px;
+}
+
+.gs-intro,
+.gs-hint {
+  font-size: 0.9375rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.gs-block {
+  margin-top: 18px;
+}
+
+.gs-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.gs-recent {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gs-recent li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gs-recent-btn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9375rem;
+  text-align: start;
+}
+
+.gs-recent-btn svg {
+  flex: none;
+  color: var(--text-muted);
+}
+
+.gs-recent-btn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gs-recent-btn:hover {
+  background: var(--bg-card2);
+}
+
+.gs-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gs-none {
+  padding: 28px 20px 16px;
+  text-align: center;
+}
+
+.gs-none .gs-suggest {
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.gs-none-small {
+  padding: 20px;
+}
+
+.gs-none-icon {
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+
+.gs-none-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+/* ── Alt sətir: klaviatura ipucları ── */
+.gs-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card2);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.gs-foot span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gs-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.gs-dialog button:focus-visible,
+.gs-dialog input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.gs-dialog .gs-input:focus-visible {
+  outline: none;
+}
+
+/* ── Mobil: tam ekran vərəq ── */
+@media (max-width: 640px) {
+  .gs-overlay {
+    padding: 0;
+    align-items: stretch;
+    background: var(--bg-card);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .gs-dialog {
+    max-width: none;
+    max-height: none;
+    height: 100%;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation-name: gsUp;
+  }
+
+  .gs-head {
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    padding-bottom: 10px;
+    padding-inline: 16px 10px;
+  }
+
+  .gs-input {
+    font-size: 1.0625rem; /* ≥16px: iOS fokusda zoom etməsin */
+  }
+
+  .gs-esc {
+    display: none !important;
+  }
+
+  .gs-close-txt {
+    display: inline;
+  }
+
+  .gs-close {
+    min-height: 44px;
+    padding: 0 8px;
+  }
+
+  /* Barmaq üçün 44px toxunma hədəfləri (təmizlə ✕, "Bağla", çiplər, keçidlər) */
+  .gs-icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .gs-chip,
+  .gs-link,
+  .gs-btn,
+  .gs-more,
+  .gs-recent-btn {
+    min-height: 44px;
+  }
+
+  .gs-chips {
+    padding-inline: 12px;
+  }
+
+  .gs-section {
+    padding-inline: 4px;
+  }
+
+  .gs-opt {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .gs-opt-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
+
+  .gs-opt-desc {
+    -webkit-line-clamp: 2;
+  }
+
+  .gs-body {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .gs-foot {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .gs-opt-icon {
+    display: none;
+  }
+}
+
+/* ── Animasiyalar ── */
+@keyframes gsFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes gsIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes gsUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes gsSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-overlay,
+  .gs-dialog {
+    animation: none;
+  }
+
+  .gs-chev {
+    transition: none;
+  }
+
+  .gs-spin {
+    animation-duration: 2s;
+  }
+}

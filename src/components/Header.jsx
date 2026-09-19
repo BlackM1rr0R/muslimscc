@@ -1,401 +1,524 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useLang } from "../contexts/LangContext";
+import { brandName } from "../config/mosque";
+import { PRIMARY_NAV, navShortLabel } from "../data/navigation";
+import { pathFor } from "../seo/routes";
+import { useBackToClose } from "../utils/useBackToClose";
+import { useScrollDirection } from "../hooks/useScrollDirection";
+import SideNav from "./SideNav";
 import "../styles/Header.css";
 
+// ═══════════════════════════════════════════════════════
+// Header — sahibin qərarları: #5 (geniş ekran) və #7 (dar ekran).
+//
+//   ≥1024px (#5 — DƏYİŞMƏYİB, ☰ yoxdur):
+//   [loqo + "Qaraçuxur Məscidi"] ── Quran · Namaz · Hədis · AI · Haqqımızda ── [🔍] [🌙] [AZ ▾]
+//   • Loqo bloku yan panelin (SideNav "rail") eni qədərdir — loqo panelin
+//     sətirləri ilə bir xətdə durur (Header.css → --sidenav-w)
+//   • Ortada YALNIZ 5 qısa link (PRIMARY_NAV + SHORT_LABELS, src/data/navigation.js),
+//     əsas sütunun ortasında
+//   • Sağda eyni ölçülü (40×40) "ghost" ikon düymələri: axtarış, tema, dil
+//   • Bütün bölmələr solda həmişə açıq yan paneldədir (ərəbcədə sağda)
+//
+//   <1024px (#7 — "Bölmələri yuxarıda burger menyuya köçür, aşağı zolaq olmasın"):
+//   [loqo + "Qaraçuxur Məscidi"] ……… [🔍] [☰]      (ərəbcədə güzgülənir: ☰ solda)
+//   • ☰ çəkmə menyunu açır: <SideNav mode="drawer"> sağdan (ərəbcədə soldan)
+//     sürüşüb gəlir — bütün bölmələr, axtarış, alətlər, tema və dil orada.
+//     Açıq ikən ☰ yumşaq şəkildə ✕-ə çevrilir (Header.css → .hdr-burger).
+//     aria-expanded / aria-controls; Geri düyməsi menyunu bağlayır
+//     (utils/useBackToClose); səhifə dəyişəndə və ekran ≥1024px-ə
+//     genişləndikdə menyu bağlanır; bağlananda fokus ☰-yə qayıdır.
+//   • Aşağı naviqasiya zolağı YOXDUR (BottomNav silinib).
+//   • 56px, şüşə kimi yarımşəffaf fon + bulanıqlıq + nazik xətt.
+//   • Aşağı sürüşəndə yuxarı çəkilib gizlənir, yuxarı sürüşəndə geri gəlir
+//     (hooks/useScrollDirection — rAF + passive dinləyici, 8px həddi).
+//     Səhifənin lap yuxarısında, axtarış/menyu açıq olanda, dil menyusu
+//     açıqkən və ya fokus başlıqdadırsa heç vaxt gizlənmir. Gizli halda
+//     <html>-ə "qm-hdr-hidden" yazılır → --header-offset: 0 (motion.css).
+//
+// İpucu yalnız brauzerin öz "title"-ı ilə — səhifənin üstünə düşən
+// qara ipucu qutusu yoxdur. Bildiriş ayarları üzən düymədədir (FloatingDock).
+//
+// Axtarış: düymə, Ctrl+K / ⌘K, "/", ?q=<söz> ünvanı (index.html-dəki
+// WebSite SearchAction) və "qm-open-search" hadisəsi (yan panelin
+// axtarış sahəsi göndərir) GlobalSearch dialoqunu açır; çəkmə menyunun
+// axtarış sahəsi isə birbaşa openSearch-i çağırır.
+// Açıq axtarışı telefonun Geri düyməsi bağlayır (səhifə dəyişmir) —
+// utils/useBackToClose; marşrut başqa yolla dəyişsə də dialoq bağlanır.
+// ═══════════════════════════════════════════════════════
+
+// Axtarış dialoqu ilk ehtiyacda yüklənir — ilk yüklənmə paketinə düşmür
+const loadSearch = () => import("./GlobalSearch");
+const GlobalSearch = lazy(loadSearch);
+
+// SideNav.jsx bu hadisəni göndərir ("Saytda axtar" sahəsi)
+const OPEN_SEARCH_EVENT = "qm-open-search";
+
+// Çəkmə menyunun paneli (☰ → aria-controls)
+const DRAWER_ID = "qm-drawer";
+
+// Yan panelin göründüyü en (globals.css, SideNav.css ilə eyni sərhəd) —
+// ekran bu enə çatanda açıq menyu öz-özünə bağlanır
+const DESKTOP_MQ = "(min-width: 1024px)";
+
+// Bayraq emojiləri Windows-da hərf kimi görünür ("AZ AZ") — ona görə yalnız kod və doğma ad
 const LANGS = [
-  { code: "az", label: "AZ", native: "Azərbaycanca", flag: "🇦🇿" },
-  { code: "en", label: "EN", native: "English",       flag: "🇬🇧" },
-  { code: "ru", label: "RU", native: "Русский",        flag: "🇷🇺" },
-  { code: "ar", label: "AR", native: "العربية",         flag: "🇸🇦" },
-  { code: "tr", label: "TR", native: "Türkçe",          flag: "🇹🇷" },
+  { code: "az", label: "AZ", native: "Azərbaycanca" },
+  { code: "en", label: "EN", native: "English" },
+  { code: "ru", label: "RU", native: "Русский" },
+  { code: "ar", label: "AR", native: "العربية" },
+  { code: "tr", label: "TR", native: "Türkçe" },
 ];
 
-const NAV_LABELS = {
+const LABELS = {
   az: {
-    home: "Ana Səhifə", quran: "Quran", hadith: "Hədis",
-    prayer: "Namaz", duas: "Dualar", dhikr: "Zikr",
-    names: "99 Ad", calendar: "Təqvim", zakat: "Zəkat",
-    qibla: "Qiblə", quiz: "Kviz", glossary: "Lüğət",
-    prayerguide: "Namaz Öyrən", hifz: "Hifz", kids: "Uşaqlar", holyplaces: "Müqəddəs Yerlər",
-    dailytracker: "Gündəlik", qurangame: "Quran Oyun", charity: "Sədəqə", hajjguide: "Həcc/Ümrə", quotes: "Sitatlar",
-    duajournal: "Dua Gündəliyi", mosques: "Məscidlər", history: "Tarix", sahaba: "Səhabələr", analytics: "Statistika",
-    about: "Haqqında", cta: "Dua et",
+    primaryNav: "Əsas bölmələr", home: "Ana səhifə", menu: "Menyu",
+    search: "Axtar", dark: "Qaranlıq rejim", light: "İşıqlı rejim",
+    changeLang: "Dili dəyiş", selectLang: "Dil seçin",
   },
   en: {
-    home: "Home", quran: "Quran", hadith: "Hadith",
-    prayer: "Prayer", duas: "Du'as", dhikr: "Dhikr",
-    names: "99 Names", calendar: "Calendar", zakat: "Zakat",
-    qibla: "Qibla", quiz: "Quiz", glossary: "Glossary",
-    prayerguide: "Learn Prayer", hifz: "Hifz", kids: "Kids", holyplaces: "Holy Places",
-    dailytracker: "Daily", qurangame: "Quran Game", charity: "Charity", hajjguide: "Hajj/Umrah", quotes: "Quotes",
-    duajournal: "Dua Journal", mosques: "Mosques", history: "History", sahaba: "Companions", analytics: "Analytics",
-    about: "About", cta: "Make Du'a",
+    primaryNav: "Main sections", home: "Home", menu: "Menu",
+    search: "Search", dark: "Dark mode", light: "Light mode",
+    changeLang: "Change language", selectLang: "Select language",
   },
   ru: {
-    home: "Главная", quran: "Коран", hadith: "Хадисы",
-    prayer: "Намаз", duas: "Дуа", dhikr: "Зикр",
-    names: "99 Имён", calendar: "Календарь", zakat: "Закят",
-    qibla: "Кибла", quiz: "Викторина", glossary: "Словарь",
-    prayerguide: "Учись молиться", hifz: "Хифз", kids: "Дети", holyplaces: "Святые места",
-    dailytracker: "Ежедневно", qurangame: "Игра Коран", charity: "Садака", hajjguide: "Хадж/Умра", quotes: "Цитаты",
-    duajournal: "Дневник дуа", mosques: "Мечети", history: "История", sahaba: "Сахабы", analytics: "Аналитика",
-    about: "О нас", cta: "Сделать дуа",
+    primaryNav: "Основные разделы", home: "Главная", menu: "Меню",
+    search: "Поиск", dark: "Тёмная тема", light: "Светлая тема",
+    changeLang: "Изменить язык", selectLang: "Выберите язык",
   },
   ar: {
-    home: "الرئيسية", quran: "القرآن", hadith: "الحديث",
-    prayer: "الصلاة", duas: "الأدعية", dhikr: "الذكر",
-    names: "٩٩ اسم", calendar: "التقويم", zakat: "الزكاة",
-    qibla: "القبلة", quiz: "اختبار", glossary: "معجم",
-    prayerguide: "تعلم الصلاة", hifz: "الحفظ", kids: "أطفال", holyplaces: "أماكن مقدسة",
-    dailytracker: "يومي", qurangame: "لعبة القرآن", charity: "صدقة", hajjguide: "الحج/العمرة", quotes: "اقتباسات",
-    duajournal: "مذكرة الدعاء", mosques: "المساجد", history: "التاريخ", sahaba: "الصحابة", analytics: "الإحصائيات",
-    about: "عن الموقع", cta: "ادعُ الله",
+    primaryNav: "الأقسام الرئيسية", home: "الرئيسية", menu: "القائمة",
+    search: "بحث", dark: "الوضع الداكن", light: "الوضع الفاتح",
+    changeLang: "تغيير اللغة", selectLang: "اختر اللغة",
   },
   tr: {
-    home: "Ana Sayfa", quran: "Kur'an", hadith: "Hadis",
-    prayer: "Namaz", duas: "Dualar", dhikr: "Zikir",
-    names: "99 İsim", calendar: "Takvim", zakat: "Zekât",
-    qibla: "Kıble", quiz: "Quiz", glossary: "Sözlük",
-    prayerguide: "Namaz Öğren", hifz: "Hıfz", kids: "Çocuklar", holyplaces: "Kutsal Yerler",
-    dailytracker: "Günlük", qurangame: "Kuran Oyun", charity: "Sadaka", hajjguide: "Hac/Umre", quotes: "Alıntılar",
-    duajournal: "Dua Günlüğü", mosques: "Camiler", history: "Tarih", sahaba: "Sahabeler", analytics: "İstatistikler",
-    about: "Hakkımızda", cta: "Dua Et",
+    primaryNav: "Ana bölümler", home: "Ana sayfa", menu: "Menü",
+    search: "Ara", dark: "Karanlık mod", light: "Aydınlık mod",
+    changeLang: "Dili değiştir", selectLang: "Dil seçin",
   },
 };
 
-const MORE_LABEL = { az:'Daha çox', en:'More', ru:'Ещё', ar:'المزيد', tr:'Daha fazla' };
-const MOBILE_SECTIONS = {
-  az: ['Əsas','Alətlər','Öyrən','Digər'],
-  en: ['Main','Tools','Learn','Other'],
-  ru: ['Основное','Инструменты','Обучение','Другое'],
-  ar: ['الرئيسية','أدوات','تعلم','أخرى'],
-  tr: ['Ana','Araçlar','Öğren','Diğer'],
-};
+// Qısayol işarəsi: Mac-da ⌘, digərlərində Ctrl
+const IS_MAC = typeof navigator !== "undefined" &&
+  /mac|iphone|ipad/i.test(navigator.userAgentData?.platform || navigator.platform || "");
+const SHORTCUT = IS_MAC ? "⌘K" : "Ctrl+K";
+
+// ?q= ilə gələn sorğunun ağlabatan uzunluğu (axtarış onsuz da qısa sözlə işləyir)
+const MAX_DEEPLINK_Q = 100;
+
+/** Adi sol klikdirmi? (Ctrl/⌘/orta klik — brauzer linki yeni tabda açsın) */
+function isPlainClick(e) {
+  return !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+}
+
+/** Fokus yazı sahəsindədirmi? ("/" qısayolu orada işləməməlidir) */
+function isTypingTarget(t) {
+  if (!t) return false;
+  if (t.isContentEditable) return true;
+  return ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName);
+}
+
+// ── Xətti ikonlar (hamısı eyni çəkidə — düymələr bir ailə kimi görünsün) ──
+const ICON = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true };
+
+function SearchIcon() {
+  return (
+    <svg {...ICON}>
+      <circle cx="11" cy="11" r="6.5" />
+      <line x1="16" y1="16" x2="20.5" y2="20.5" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg {...ICON}>
+      <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg {...ICON}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4" />
+    </svg>
+  );
+}
+
+/** ☰ — üç xətt; açıq ikən yuxarı və aşağı xətt fırlanıb ✕ olur, orta xətt itir */
+function BurgerIcon() {
+  return (
+    <span className="hdr-burger-box" aria-hidden="true">
+      <span className="hdr-burger-line" />
+      <span className="hdr-burger-line" />
+      <span className="hdr-burger-line" />
+    </span>
+  );
+}
 
 function Header({ currentPage, setPage }) {
-  const [scrolled,    setScrolled]    = useState(false);
-  const [mobileOpen,  setMobileOpen]  = useState(false);
-  const [langOpen,    setLangOpen]    = useState(false);
-  const [moreOpen,    setMoreOpen]    = useState(false);
-  const [visible,     setVisible]     = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [focusInside, setFocusInside] = useState(false);
+
+  // Çəkmə menyu (<1024px): ilk açılışda mount olur, sonra DOM-da qalır
+  // (bağlanma animasiyası üçün)
+  const [menuOpen,    setMenuOpen]    = useState(false);
+  const [menuMounted, setMenuMounted] = useState(false);
+  const burgerRef = useRef(null);
+
+  // Axtarış dialoqu
+  const [searchOpen,    setSearchOpen]    = useState(false);
+  const [searchMounted, setSearchMounted] = useState(false);
+  const [searchQ,       setSearchQ]       = useState("");
+
   const { lang, setLang: setLangCtx, dark, toggleDark } = useLang();
+  const l = LABELS[lang] || LABELS.az;
+  const currentLang = LANGS.find(x => x.code === lang) || LANGS[0];
 
   const langRef = useRef(null);
-  const moreRef = useRef(null);
-  const t = NAV_LABELS[lang] || NAV_LABELS.az;
-  const currentLang = LANGS.find(l => l.code === lang) || LANGS[0];
+  const langBtnRef = useRef(null);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  // ── Sürüşmə: nazik xətt + kölgə (scrolled) və telefonda gizlənmə (hidden) ──
+  // Tək passive dinləyici + requestAnimationFrame (hooks/useScrollDirection).
+  // Gizlənmə yalnız <1024px-də görünür (Header.css); genişdə sinif təsirsizdir.
+  // Menyu açıq ikən başlıq heç vaxt gizlənmir.
+  const { hidden: scrollHidden, scrolled } = useScrollDirection({
+    threshold: 8,
+    disabled: searchOpen || langOpen || focusInside || menuOpen,
+  });
 
+  // Gizli vəziyyəti <html>-ə yaz: yapışqan panellər --header-offset ilə yuxarı qalxsın
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(true), 80);
-    return () => clearTimeout(timer);
-  }, []);
+    const root = document.documentElement;
+    root.classList.toggle("qm-hdr-hidden", scrollHidden);
+    return () => root.classList.remove("qm-hdr-hidden");
+  }, [scrollHidden]);
 
+  // ── Dil menyusu: kənara klik və Esc bağlayır, oxlar seçimlər arasında gəzir ──
   useEffect(() => {
-    const handler = (e) => {
+    if (!langOpen) return undefined;
+    const onDown = (e) => {
       if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false);
-      if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false);
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setLangOpen(false);
+        langBtnRef.current?.focus();
+        return;
+      }
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      const opts = Array.from(langRef.current?.querySelectorAll(".lang-option") || []);
+      if (!opts.length) return;
+      e.preventDefault();
+      const i = opts.indexOf(document.activeElement);
+      const n = opts.length;
+      const next = e.key === "ArrowDown"
+        ? opts[(i + 1) % n]
+        : opts[i < 0 ? n - 1 : (i - 1 + n) % n];
+      next.focus();
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [langOpen]);
 
   const changeLang = (code) => {
-    setLangCtx(code);
     setLangOpen(false);
+    langBtnRef.current?.focus({ preventScroll: true });
+    if (code !== lang) setLangCtx(code);
   };
 
-  const goTo = (p) => {
+  const goTo = useCallback((p) => {
     setPage(p);
-    setMobileOpen(false);
-    setMoreOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    setLangOpen(false);
+  }, [setPage]);
 
-  // Desktop: əsas nav — ilk 8 item
-  const mainNav = [
-    { id: "home",     label: t.home,     icon: "⌂"  },
-    { id: "quran",    label: t.quran,    icon: "📖" },
-    { id: "hadith",   label: t.hadith,   icon: "📚" },
-    { id: "prayer",   label: t.prayer,   icon: "🕌" },
-    { id: "duas",     label: t.duas,     icon: "🤲" },
-    { id: "dhikr",    label: t.dhikr,    icon: "📿" },
-    { id: "names",    label: t.names,    icon: "⭐" },
-    { id: "calendar", label: t.calendar, icon: "🌙" },
-  ];
+  // ── Çəkmə menyu ──
+  const openMenu = useCallback(() => {
+    setMenuMounted(true);
+    setMenuOpen(true);
+    setLangOpen(false);
+  }, []);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
-  // Videolar üçün multi-lang label
-  const videosLabel = lang === 'az' ? 'Videolar' : lang === 'ru' ? 'Видео' : lang === 'ar' ? 'الفيديوهات' : lang === 'tr' ? 'Videolar' : 'Videos'
-  const booksLabel  = lang === 'az' ? 'Kitablar' : lang === 'ru' ? 'Книги'  : lang === 'ar' ? 'الكتب'        : lang === 'tr' ? 'Kitaplar' : 'Books'
-  const aiChatLabel = lang === 'az' ? 'AI Köməkçi' : lang === 'ru' ? 'AI помощник' : lang === 'ar' ? 'مساعد AI' : lang === 'tr' ? 'AI Asistan' : 'AI Assistant'
-  const notifLabel  = lang === 'az' ? 'Bildirişlər' : lang === 'ru' ? 'Уведомления' : lang === 'ar' ? 'الإشعارات' : lang === 'tr' ? 'Bildirimler' : 'Notifications'
+  // Geri düyməsi açıq menyunu bağlasın (arxadakı səhifəni dəyişməsin)
+  useBackToClose(menuOpen, closeMenu);
 
-  // Bildiriş panelini açan funksiya (FAB silinib, indi yalnız menyudan)
-  const openNotifications = () => {
-    setMobileOpen(false)
-    setMoreOpen(false)
-    window.dispatchEvent(new CustomEvent('open-notifications'))
-  }
+  // Ekran genişlənib yan panel görünəndə menyu bağlansın
+  useEffect(() => {
+    if (!menuOpen || typeof window.matchMedia !== "function") return undefined;
+    const mq = window.matchMedia(DESKTOP_MQ);
+    if (mq.matches) {
+      setMenuOpen(false);
+      return undefined;
+    }
+    const onChange = (e) => { if (e.matches) setMenuOpen(false); };
+    if (mq.addEventListener) mq.addEventListener("change", onChange);
+    else mq.addListener(onChange);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", onChange);
+      else mq.removeListener(onChange);
+    };
+  }, [menuOpen]);
 
-  // Desktop: "Daha çox" dropdown
-  const moreNav = [
-    { id: "aichat",       label: aiChatLabel,    icon: "🤖" },
-    { id: "videos",       label: videosLabel,    icon: "📹" },
-    { id: "books",        label: booksLabel,     icon: "📚" },
-    { id: "__notif",      label: notifLabel,     icon: "🔔", action: openNotifications },
-    { id: "zakat",        label: t.zakat,        icon: "💰" },
-    { id: "qibla",        label: t.qibla,        icon: "🧭" },
-    { id: "dailytracker", label: t.dailytracker, icon: "📋" },
-    { id: "quiz",         label: t.quiz,         icon: "❓" },
-    { id: "qurangame",    label: t.qurangame,    icon: "🎮" },
-    { id: "prayerguide",  label: t.prayerguide,  icon: "🕌" },
-    { id: "hajjguide",    label: t.hajjguide,    icon: "🕋" },
-    { id: "hifz",         label: t.hifz,         icon: "📝" },
-    { id: "charity",      label: t.charity,      icon: "💚" },
-    { id: "glossary",     label: t.glossary,     icon: "📖" },
-    { id: "holyplaces",   label: t.holyplaces,   icon: "🕋" },
-    { id: "quotes",       label: t.quotes,       icon: "🖼️" },
-    { id: "duajournal",   label: t.duajournal,   icon: "📓" },
-    { id: "mosques",      label: t.mosques,      icon: "🏛️" },
-    { id: "history",      label: t.history,      icon: "📜" },
-    { id: "sahaba",       label: t.sahaba,       icon: "🏅" },
-    { id: "analytics",    label: t.analytics,    icon: "📊" },
-    { id: "kids",         label: t.kids,         icon: "👶" },
-    { id: "about",        label: t.about,        icon: "ℹ️"  },
-  ];
+  // ── Axtarış ──
+  // Axtarış açılanda menyu bağlanır (axtarış onun üstündə açılmır —
+  // iki dialoqun fokus tələsi bir-birinə mane olardı)
+  const openSearch = useCallback((q = "") => {
+    setSearchQ(q);
+    setSearchMounted(true);
+    setSearchOpen(true);
+    setLangOpen(false);
+    setMenuOpen(false);
+  }, []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
+  const preloadSearch = () => { loadSearch().catch(() => {}); };
 
-  // Mobil: kateqoriyalı bölmələr
-  const mobileSections = [
-    { items: [
-      { id: "home", label: t.home, icon: "⌂" },
-      { id: "quran", label: t.quran, icon: "📖" },
-      { id: "hadith", label: t.hadith, icon: "📚" },
-      { id: "prayer", label: t.prayer, icon: "🕌" },
-      { id: "duas", label: t.duas, icon: "🤲" },
-      { id: "dhikr", label: t.dhikr, icon: "📿" },
-      { id: "names", label: t.names, icon: "⭐" },
-      { id: "videos", label: videosLabel, icon: "📹" },
-      { id: "books",  label: booksLabel,  icon: "📚" },
-      { id: "aichat", label: aiChatLabel, icon: "🤖" },
-      { id: "__notif", label: notifLabel, icon: "🔔", action: openNotifications },
-    ]},
-    { items: [
-      { id: "calendar", label: t.calendar, icon: "🌙" },
-      { id: "zakat", label: t.zakat, icon: "💰" },
-      { id: "qibla", label: t.qibla, icon: "🧭" },
-      { id: "hifz", label: t.hifz, icon: "📝" },
-      { id: "dailytracker", label: t.dailytracker, icon: "📋" },
-      { id: "charity", label: t.charity, icon: "💚" },
-      { id: "mosques", label: t.mosques, icon: "🏛️" },
-      { id: "duajournal", label: t.duajournal, icon: "📓" },
-      { id: "analytics", label: t.analytics, icon: "📊" },
-    ]},
-    { items: [
-      { id: "quiz", label: t.quiz, icon: "❓" },
-      { id: "qurangame", label: t.qurangame, icon: "🎮" },
-      { id: "prayerguide", label: t.prayerguide, icon: "🕌" },
-      { id: "hajjguide", label: t.hajjguide, icon: "🕋" },
-      { id: "glossary", label: t.glossary, icon: "📖" },
-      { id: "holyplaces", label: t.holyplaces, icon: "🕋" },
-      { id: "history", label: t.history, icon: "📜" },
-      { id: "sahaba", label: t.sahaba, icon: "🏅" },
-      { id: "quotes", label: t.quotes, icon: "🖼️" },
-      { id: "kids", label: t.kids, icon: "👶" },
-    ]},
-    { items: [
-      { id: "about", label: t.about, icon: "ℹ️" },
-    ]},
-  ];
+  // Geri düyməsi açıq axtarışı bağlasın (arxadakı səhifəni dəyişməsin)
+  useBackToClose(searchOpen, closeSearch);
 
-  const moreLabel = MORE_LABEL[lang] || MORE_LABEL.en;
-  const sectionLabels = MOBILE_SECTIONS[lang] || MOBILE_SECTIONS.en;
-  const isMoreActive = moreNav.some(n => n.id === currentPage);
+  // Marşrut dəyişəndə (hər hansı yolla) axtarış və menyu bağlansın. Ref ilə
+  // müqayisə: ?q= effekti dialoqu ilk mount-da açır — onu dərhal bağlamamalıyıq.
+  const prevPageRef = useRef(currentPage);
+  useEffect(() => {
+    if (prevPageRef.current === currentPage) return;
+    prevPageRef.current = currentPage;
+    setSearchOpen(false);
+    setMenuOpen(false);
+  }, [currentPage]);
+
+  // Yan panelin "Saytda axtar" sahəsi (SideNav.jsx) bu hadisəni göndərir
+  useEffect(() => {
+    const onOpen = (e) => {
+      const q = typeof e.detail?.q === "string" ? e.detail.q.slice(0, MAX_DEEPLINK_Q) : "";
+      openSearch(q);
+    };
+    window.addEventListener(OPEN_SEARCH_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_SEARCH_EVENT, onOpen);
+  }, [openSearch]);
+
+  // Klaviatura: Ctrl+K / ⌘K hər yerdə, "/" yalnız yazı sahəsindən kənarda
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.defaultPrevented || e.isComposing) return;
+      const key = (e.key || "").toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && key === "k") {
+        e.preventDefault();
+        openSearch();
+        return;
+      }
+      if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (isTypingTarget(e.target)) return;
+        e.preventDefault();
+        openSearch();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openSearch]);
+
+  // ?q=<söz> — Google-un "sayt daxili axtarış" linki (index.html SearchAction).
+  // Axtarışı həmin sözlə açırıq və ?q-nu ünvandan silirik ki, yeniləmə və ya
+  // paylaşma zamanı dialoq təkrar açılmasın. history.state saxlanılır —
+  // React Router öz açarını itirməsin.
+  useEffect(() => {
+    let q = "";
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has("q")) return;
+      q = (params.get("q") || "").trim().slice(0, MAX_DEEPLINK_Q);
+      params.delete("q");
+      const rest = params.toString();
+      window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.pathname + (rest ? `?${rest}` : "") + window.location.hash,
+      );
+    } catch {
+      return;
+    }
+    if (q) openSearch(q);
+  }, [openSearch]);
+
+  // Brend adı: az dilində "Qaraçuxur" + vurğulu "Məscidi",
+  // digər dillərdə tam lokallaşdırılmış ad tək hissə kimi göstərilir
+  const brand = brandName(lang);
+  const brandSplit = lang === "az" ? brand.lastIndexOf(" ") : -1;
+  const brandMain = brandSplit > 0 ? brand.slice(0, brandSplit) : brand;
+  const brandAccent = brandSplit > 0 ? brand.slice(brandSplit + 1) : "";
+
+  const searchTip = `${l.search} (${SHORTCUT})`;
+  const themeTip = dark ? l.light : l.dark;
 
   return (
     <>
-      <header className={`header ${scrolled ? "scrolled" : ""} ${visible ? "visible" : ""}`}>
-        <div className="header-topline" />
-
+      <header
+        className={`header${scrolled ? " scrolled" : ""}${scrollHidden ? " is-hidden" : ""}`}
+        // Klaviatura ilə gələn fokus başlığı açıq saxlayır (barmaqla toxunuş yox —
+        // əks halda axtarış bağlanandan sonra fokus düymədə qalıb başlığı "yapışdırardı")
+        onFocus={() => setFocusInside(document.documentElement.classList.contains("qm-input-keyboard"))}
+        onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setFocusInside(false); }}
+      >
         <div className="header-inner">
 
-          <div className="logo" onClick={() => goTo("home")}>
-            <div className="logo-icon">
-              <span className="logo-crescent">☽</span>
-            </div>
-            <div className="logo-text-wrap">
-              <span className="logo-main">muslims</span>
-              <span className="logo-dot">.cc</span>
-            </div>
+          {/* ── SOL: loqo (ərəbcədə sağda) ── */}
+          <div className="header-left">
+            <a
+              className="logo"
+              href={pathFor("home", lang)}
+              onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); goTo("home"); } }}
+              aria-label={`${brand} — ${l.home}`}
+            >
+              <span className="logo-icon" aria-hidden="true">
+                <span className="logo-crescent">☽</span>
+              </span>
+              <span className="logo-text-wrap">
+                <span className="logo-main">{brandMain}</span>
+                {/* Boşluq mətn düyünü: kopyalama zamanı sözləri ayırır */}
+                {brandAccent && <>{" "}<span className="logo-dot">{brandAccent}</span></>}
+              </span>
+            </a>
           </div>
 
-          <nav className="nav-desktop">
-            {mainNav.map((item, i) => (
-              <button
-                key={item.id}
-                className={`nav-link ${currentPage === item.id ? "active" : ""}`}
-                onClick={() => goTo(item.id)}
-                style={{ animationDelay: `${i * 40}ms` }}
-              >
-                {item.label}
-                {currentPage === item.id && <span className="nav-active-dot" />}
-              </button>
-            ))}
-
-            {/* ── "Daha çox" dropdown ── */}
-            <div className="nav-more-wrap" ref={moreRef}>
-              <button
-                className={`nav-link nav-more-btn ${isMoreActive ? "active" : ""} ${moreOpen ? "open" : ""}`}
-                onClick={() => setMoreOpen(o => !o)}
-              >
-                {moreLabel}
-                <svg className={`nav-more-arrow ${moreOpen ? "up" : ""}`} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-                {isMoreActive && <span className="nav-active-dot" />}
-              </button>
-              {moreOpen && (
-                <div className="nav-more-dropdown">
-                  {moreNav.map(item => (
-                    <button
-                      key={item.id}
-                      className={`nav-more-item ${currentPage === item.id ? "active" : ""}`}
-                      onClick={() => item.action ? item.action() : goTo(item.id)}
-                    >
-                      <span className="nav-more-icon">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* ── ORTA: yalnız 5 əsas link (≥1024px, əsas sütunun ortasında) ── */}
+          <nav className="nav-desktop" aria-label={l.primaryNav}>
+            {PRIMARY_NAV.map(key => {
+              const active = currentPage === key;
+              return (
+                <a
+                  key={key}
+                  href={pathFor(key, lang)}
+                  className={`nav-link${active ? " active" : ""}`}
+                  aria-current={active ? "page" : undefined}
+                  onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); goTo(key); } }}
+                >
+                  {navShortLabel(key, lang)}
+                </a>
+              );
+            })}
           </nav>
 
+          {/* ── SAĞ: axtarış, tema, dil — eyni ölçülü ikon düymələri.
+                 <1024px-də axtarış + ☰ (tema və dil çəkmə menyudadır) ── */}
           <div className="header-right">
+            <button
+              type="button"
+              className="hdr-btn nav-search-btn"
+              onClick={() => openSearch()}
+              onPointerEnter={preloadSearch}
+              onFocus={preloadSearch}
+              aria-label={searchTip}
+              title={searchTip}
+              aria-keyshortcuts="Control+K Meta+K /"
+              aria-haspopup="dialog"
+              aria-expanded={searchOpen}
+            >
+              <SearchIcon />
+            </button>
 
-            <button className="theme-toggle" onClick={toggleDark} aria-label={lang === 'az' ? 'Qaranl\u0131q rejimi' : lang === 'ru' ? '\u0422\u0451\u043C\u043D\u0430\u044F \u0442\u0435\u043C\u0430' : lang === 'ar' ? '\u0627\u0644\u0648\u0636\u0639 \u0627\u0644\u062F\u0627\u0643\u0646' : lang === 'tr' ? 'Karanl\u0131k mod' : 'Toggle dark mode'}>
-              {dark ? '\u2600\uFE0F' : '\uD83C\uDF19'}
+            <button
+              type="button"
+              className="hdr-btn theme-toggle"
+              onClick={toggleDark}
+              aria-label={l.dark}
+              title={themeTip}
+              aria-pressed={Boolean(dark)}
+            >
+              {dark ? <SunIcon /> : <MoonIcon />}
             </button>
 
             <div className="lang-wrap" ref={langRef}>
               <button
-                className={`lang-btn ${langOpen ? "open" : ""}`}
+                ref={langBtnRef}
+                type="button"
+                className={`hdr-btn lang-btn${langOpen ? " open" : ""}`}
                 onClick={() => setLangOpen(o => !o)}
-                aria-label={lang === 'az' ? 'Dili d\u0259yi\u015F' : lang === 'ru' ? '\u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u044F\u0437\u044B\u043A' : lang === 'ar' ? '\u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0644\u063A\u0629' : lang === 'tr' ? 'Dili de\u011Fi\u015Ftir' : 'Change language'}
+                aria-label={`${l.changeLang}: ${currentLang.native}`}
+                title={langOpen ? undefined : l.changeLang}
+                aria-expanded={langOpen}
+                aria-controls="hdr-lang-menu"
               >
-                <span className="lang-flag">{currentLang.flag}</span>
                 <span className="lang-code">{currentLang.label}</span>
-                <svg className={`lang-arrow ${langOpen ? "up" : ""}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg className="lang-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>
 
               {langOpen && (
-                <div className="lang-dropdown">
-                  <div className="lang-dropdown-header">
-                    {lang === 'az' ? 'Dil seçin' : lang === 'ru' ? 'Выберите язык' : lang === 'ar' ? 'اختر اللغة' : lang === 'tr' ? 'Dil seçin' : 'Select language'}
-                  </div>
-                  {LANGS.map(l => (
-                    <button
-                      key={l.code}
-                      className={`lang-option ${lang === l.code ? "selected" : ""}`}
-                      onClick={() => changeLang(l.code)}
-                    >
-                      <span className="lang-option-flag">{l.flag}</span>
-                      <div className="lang-option-text">
-                        <span className="lang-option-native">{l.native}</span>
-                        <span className="lang-option-code">{l.label}</span>
-                      </div>
-                      {lang === l.code && (
-                        <svg className="lang-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <div className="lang-dropdown" id="hdr-lang-menu" role="group" aria-label={l.selectLang}>
+                  {LANGS.map(x => {
+                    const selected = lang === x.code;
+                    return (
+                      <button
+                        type="button"
+                        key={x.code}
+                        className={`lang-option${selected ? " selected" : ""}`}
+                        onClick={() => changeLang(x.code)}
+                        lang={x.code}
+                        aria-current={selected ? "true" : undefined}
+                      >
+                        <span className="lang-option-native">{x.native}</span>
+                        <span className="lang-option-code">{x.label}</span>
+                        <svg className="lang-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
-                      )}
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            <button className="nav-cta" onClick={() => goTo("duas")}>
-              <span>🤲</span>
-              <span>{t.cta}</span>
-            </button>
-
+            {/* ☰ — yalnız <1024px (Header.css); ≥1024px-də yan panel həmişə açıqdır */}
             <button
-              className={`menu-toggle ${mobileOpen ? "open" : ""}`}
-              onClick={() => setMobileOpen(o => !o)}
-              aria-label={lang === 'az' ? 'Menyu' : lang === 'ru' ? 'Меню' : lang === 'ar' ? 'القائمة' : lang === 'tr' ? 'Menü' : 'Menu'}
+              ref={burgerRef}
+              type="button"
+              className={`hdr-btn hdr-burger${menuOpen ? " is-open" : ""}`}
+              onClick={() => (menuOpen ? closeMenu() : openMenu())}
+              aria-label={l.menu}
+              title={l.menu}
+              aria-haspopup="dialog"
+              aria-expanded={menuOpen}
+              aria-controls={menuMounted ? DRAWER_ID : undefined}
             >
-              <span className="toggle-line" />
-              <span className="toggle-line" />
-              <span className="toggle-line" />
+              <BurgerIcon />
             </button>
           </div>
         </div>
       </header>
 
-      <div className={`mobile-overlay ${mobileOpen ? "open" : ""}`} onClick={() => setMobileOpen(false)} />
-      <nav className={`mobile-nav ${mobileOpen ? "open" : ""}`}>
-        <div className="mobile-nav-header">
-          <div className="mobile-logo">
-            <span className="logo-crescent">☽</span>
-            <span>muslims<span style={{ color: "var(--primary)" }}>.cc</span></span>
-          </div>
-          <button className="mobile-close" onClick={() => setMobileOpen(false)}>✕</button>
-        </div>
+      {/* Çəkmə menyu <header>-dən KƏNARDA (axtarış dialoqu kimi): header-in
+          backdrop-filter-i position:fixed uşaqları öz qutusuna həbs edərdi */}
+      {menuMounted && (
+        <SideNav
+          mode="drawer"
+          id={DRAWER_ID}
+          open={menuOpen}
+          onClose={closeMenu}
+          currentPage={currentPage}
+          setPage={goTo}
+          onOpenSearch={openSearch}
+          returnFocusRef={burgerRef}
+        />
+      )}
 
-        <div className="mobile-langs">
-          {LANGS.map(l => (
-            <button
-              key={l.code}
-              className={`mobile-lang-btn ${lang === l.code ? "active" : ""}`}
-              onClick={() => changeLang(l.code)}
-            >
-              {l.flag} {l.label}
-            </button>
-          ))}
-          <button className="theme-toggle" onClick={toggleDark} aria-label="Toggle dark mode">
-            {dark ? '\u2600\uFE0F' : '\uD83C\uDF19'}
-          </button>
-        </div>
-
-        <div className="mobile-divider" />
-
-        <div className="mobile-nav-items">
-          {mobileSections.map((section, si) => (
-            <div key={si} className="mobile-nav-section">
-              <div className="mobile-nav-section-label">{sectionLabels[si]}</div>
-              {section.items.map((item, i) => (
-                <button
-                  key={item.id}
-                  className={`mobile-nav-link ${currentPage === item.id ? "active" : ""}`}
-                  onClick={() => item.action ? item.action() : goTo(item.id)}
-                  style={{ animationDelay: `${(si * 5 + i) * 30}ms` }}
-                >
-                  <span className="mobile-nav-icon">{item.icon}</span>
-                  <span>{item.label}</span>
-                  {currentPage === item.id && (
-                    <span className="mobile-active-badge">●</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-
-        <div className="mobile-divider" />
-
-        <button className="mobile-cta" onClick={() => goTo("duas")}>
-          🤲 {t.cta}
-        </button>
-
-        <div className="mobile-nav-deco">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
-      </nav>
+      {/* Dialoq <header>-dən KƏNARDA: header-in backdrop-filter-i
+          position:fixed uşaqları öz qutusuna həbs edərdi */}
+      {searchMounted && (
+        <Suspense fallback={null}>
+          <GlobalSearch
+            open={searchOpen}
+            onClose={closeSearch}
+            setPage={goTo}
+            initialQuery={searchQ}
+          />
+        </Suspense>
+      )}
     </>
   );
 }
