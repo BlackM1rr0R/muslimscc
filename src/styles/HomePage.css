@@ -23,6 +23,13 @@
   --hp-gold-bg:       rgba(184,134,11,.07);
   --hp-gold-bdr:      rgba(184,134,11,.2);
 
+  /* ── İslami həndəsi naxış (xatəm — 8 guşəli ulduz) ──
+     Ayrıca şəkil faylı yüklənməsin deyə SVG birbaşa CSS-dədir. Rəng data
+     URI-nin içində sabitdir, ona görə tünd rejim üçün ayrıca variant var
+     (aşağıda, DARK MODE bölməsində). Kafel 72px-dir — dekor tam bir kafel
+     qədər sürüşəndə dövrə "tikişsiz" bağlanır. */
+  --hp-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%231a6b3a' stroke-width='1'%3E%3Crect x='18' y='18' width='36' height='36'/%3E%3Crect x='18' y='18' width='36' height='36' transform='rotate(45 36 36)'/%3E%3Ccircle cx='36' cy='36' r='3.5'/%3E%3C/g%3E%3C/svg%3E");
+
   /* ── Fon & mətn ── */
   --hp-bg:            #f6fdf9;
   --hp-bg-white:      #ffffff;
@@ -66,10 +73,21 @@
   cursor: pointer; transition: all .25s; font-family: var(--font);
   box-shadow: 0 4px 18px rgba(26,107,58,.28);
 }
+.hp-btn-primary { position: relative; overflow: hidden; }
 .hp-btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 28px rgba(26,107,58,.36);
   background: linear-gradient(135deg, var(--hp-primary-l), var(--hp-primary));
+}
+/* Yalnız kursor olan cihazlarda: düymənin üstündən bir dəfə işıq keçir */
+@media (hover: hover) {
+  .hp-btn-primary::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(120deg, transparent 36%, rgba(255,255,255,.28) 50%, transparent 64%);
+    transform: translateX(-110%);
+    transition: transform .75s var(--ease-out);
+  }
+  .hp-btn-primary:hover::after { transform: translateX(110%); }
 }
 
 .hp-btn-sec {
@@ -120,6 +138,63 @@
 @keyframes spin    { to{transform:rotate(360deg)} }
 @keyframes hpPanelIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
 
+/* ── İlk ekranın dekorativ hərəkəti ──
+   Hamısı YALNIZ transform/opacity üzərindədir: brauzer yenidən yerləşdirmə
+   etmir, sıçrayış (CLS) olmur. Müddətlər qəsdən uzundur (26–110s) — məscid
+   saytına yaraşan sakit "nəfəsalma", diqqəti mətndən yayındırmır.
+   "Hərəkəti azalt" rejimində motion.css §15 hamısını söndürür. */
+/* Fondakı halqa/ulduz: fırlanır və eyni zamanda çox yüngül nəfəs alır */
+@keyframes hpOrbit {
+  0%   { transform: rotate(0deg)   scale(1); }
+  50%  { transform: rotate(180deg) scale(1.05); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+/* Naxış kafeli tam bir kafel qədər sürüşür — dövrə gözə görünmür */
+@keyframes hpDriftStar { from { transform: translate3d(0,0,0); } to { transform: translate3d(72px,72px,0); } }
+@keyframes hpDriftMesh { from { transform: translate3d(0,0,0); } to { transform: translate3d(-28px,28px,0); } }
+/* Yumşaq işıqlar üzür */
+@keyframes hpFloatA {
+  0%,100% { transform: translate3d(0,0,0) scale(1); }
+  50%     { transform: translate3d(26px,-20px,0) scale(1.08); }
+}
+@keyframes hpFloatB {
+  0%,100% { transform: translate3d(0,0,0) scale(1); }
+  50%     { transform: translate3d(-22px,18px,0) scale(1.1); }
+}
+/* .hp-glow-3 mərkəzləşdirilib — keyframe translate(-50%,-50%)-i saxlamalıdır */
+@keyframes hpFloatC {
+  0%,100% { transform: translate3d(-50%,-50%,0) scale(1); }
+  50%     { transform: translate3d(calc(-50% + 24px), calc(-50% - 18px), 0) scale(1.12); }
+}
+/* Yalnız solma — "hərəkəti azalt" rejimində hero bununla açılır */
+@keyframes hpFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* Hero elementlərinin növbə ilə (stagger) görünməsi */
+@keyframes hpHeroIn {
+  from { opacity: 0; transform: translate3d(0,18px,0); }
+  to   { opacity: 1; transform: none; }
+}
+/* Başlığın arxasındakı işıq yavaşca nəfəs alır */
+@keyframes hpAura {
+  0%,100% { opacity: .65; transform: scale(1); }
+  50%     { opacity: 1;   transform: scale(1.09); }
+}
+/* Başlığın altındakı qızıl ornament bir dəfə açılır */
+@keyframes hpRuleIn { to { transform: scaleX(1); } }
+/* Nişandakı nöqtənin sakit döyüntüsü */
+@keyframes hpDotPulse {
+  0%,100% { transform: scale(1);   opacity: 1; }
+  50%     { transform: scale(1.5); opacity: .5; }
+}
+/* Növbəti namaz sətrindən arabir keçən çox yüngül işıq */
+@keyframes hpSweep {
+  0%, 66% { transform: translateX(-100%); opacity: 0; }
+  74%     { opacity: 1; }
+  100%    { transform: translateX(100%);  opacity: 0; }
+}
+
 /* Görünmə animasiyası — motion.css-in data-reveal sistemi (JSX-də atribut):
    başlıqlar yumşaq qalxır, qrupların (statistika, bölmələr, adlar, faktlar)
    uşaqları 40ms fasilə ilə növbə ilə görünür. JS işləməsə hər şey görünür.
@@ -136,9 +211,23 @@
    HERO
 ════════════════════════════════════════════════════════════════════ */
 /* Zolaq + hero + "Məscid" sırası bir fonda — aralarında tikiş görünmür */
+/* Əsas qradiyentin üstünə iki yumşaq işıq (yaşıl + qızıl) qoyulub —
+   səth "düz rəng" kimi görünmür, hero-nun dərinliyi artır. */
 .hp-top {
   position: relative;
-  background: linear-gradient(160deg, #e8f5ee 0%, #ffffff 45%, #f0faf5 100%);
+  background:
+    radial-gradient(1100px 520px at 10% -12%, rgba(26,107,58,.11), transparent 70%),
+    radial-gradient(900px 460px at 94% 4%, rgba(184,134,11,.07), transparent 70%),
+    linear-gradient(160deg, #e8f5ee 0%, #ffffff 45%, #f0faf5 100%);
+}
+/* Hero blokundan aşağıdakı bölmələrə incə ayırıcı — tikiş səliqəli görünsün */
+.hp-top::after {
+  content: ''; position: absolute; inset-inline: 0; inset-block-end: 0;
+  height: 1px; pointer-events: none;
+  background: linear-gradient(90deg,
+    transparent, var(--primary-border) 20%,
+    color-mix(in srgb, var(--gold) 42%, transparent) 50%,
+    var(--primary-border) 80%, transparent);
 }
 
 .hp-hero {
@@ -155,30 +244,60 @@
 /* Background decorations */
 .hp-hero-bg { position: absolute; inset: 0; pointer-events: none; }
 
+/* Nöqtə şəbəkəsi — bir kafel (28px) qədər sürüşür; kənarda boşluq
+   qalmasın deyə element hero-dan bir az böyükdür (inset mənfidir). */
 .hp-hero-mesh {
-  position: absolute; inset: 0;
-  background-image: radial-gradient(rgba(26,107,58,.055) 1.5px, transparent 1.5px);
+  position: absolute; inset: -56px;
+  background-image: radial-gradient(rgba(26,107,58,.05) 1.5px, transparent 1.5px);
   background-size: 28px 28px;
+  animation: hpDriftMesh 46s linear infinite;
 }
 
-/* Geometric rings */
+/* İslami həndəsi naxış (xatəm kafeli) — hero-nun əsas motivi.
+   Maska ilə yalnız yuxarı küncdə güclüdür və mətnin üstündə əriyir:
+   naxış oxunaqlılığı pozmur. Maskanın mövqeyi RTL-də güzgülənir. */
+.hp-hero-pattern {
+  position: absolute; inset: -80px;
+  background-image: var(--hp-star);
+  background-size: 72px 72px;
+  opacity: .075;
+  -webkit-mask-image: radial-gradient(115% 95% at 88% 10%, #000 0%, rgba(0,0,0,.4) 46%, transparent 78%);
+          mask-image: radial-gradient(115% 95% at 88% 10%, #000 0%, rgba(0,0,0,.4) 46%, transparent 78%);
+  animation: hpDriftStar 76s linear infinite;
+}
+[dir="rtl"] .hp-hero-pattern {
+  -webkit-mask-image: radial-gradient(115% 95% at 12% 10%, #000 0%, rgba(0,0,0,.4) 46%, transparent 78%);
+          mask-image: radial-gradient(115% 95% at 12% 10%, #000 0%, rgba(0,0,0,.4) 46%, transparent 78%);
+}
+
+/* Həndəsi halqalar — mövqelər məntiqi xassələrlə (ərəbcədə güzgülənir) */
 .hp-geo {
   position: absolute; border-radius: 50%;
-  border: 1px solid rgba(26,107,58,.07);
-  animation: spin linear infinite;
+  border: 1px solid rgba(26,107,58,.08);
+  animation: hpOrbit linear infinite;
 }
-.hp-geo-1 { width:520px;height:520px; top:-140px;right:-160px; animation-duration:90s; }
-.hp-geo-2 { width:360px;height:360px; top:-60px;right:-60px;  animation-duration:55s; animation-direction:reverse; border-style:dashed; border-color:rgba(26,107,58,.05); }
-.hp-geo-3 { width:200px;height:200px; top:100px;right:40px;   animation-duration:35s; border-color:rgba(184,134,11,.07); }
-.hp-geo-4 { width:680px;height:680px; bottom:-240px;left:-260px; animation-duration:110s; border-color:rgba(26,107,58,.04); }
-.hp-geo-5 { width:440px;height:440px; bottom:-100px;left:-90px;  animation-duration:65s; animation-direction:reverse; border-style:dashed; }
-.hp-geo-6 { width:240px;height:240px; bottom:80px;left:40px;     animation-duration:42s; border-color:rgba(184,134,11,.06); }
+.hp-geo-1 { width:520px;height:520px; inset-block-start:-140px; inset-inline-end:-160px; animation-duration:90s; }
+.hp-geo-2 { width:360px;height:360px; inset-block-start:-60px;  inset-inline-end:-60px;  animation-duration:58s; animation-direction:reverse; border-style:dashed; border-color:rgba(26,107,58,.06); }
+.hp-geo-3 { width:200px;height:200px; inset-block-start:96px;   inset-inline-end:40px;   animation-duration:46s; border-color:rgba(184,134,11,.16); }
+.hp-geo-4 { width:680px;height:680px; inset-block-end:-240px;   inset-inline-start:-260px; animation-duration:110s; border-color:rgba(26,107,58,.05); }
+.hp-geo-5 { width:440px;height:440px; inset-block-end:-100px;   inset-inline-start:-90px;  animation-duration:68s; animation-direction:reverse; border-style:dashed; }
+.hp-geo-6 { width:240px;height:240px; inset-block-end:80px;     inset-inline-start:40px;   animation-duration:54s; border-color:rgba(26,107,58,.14); }
 
-/* Glows */
+/* İki üst-üstə düşən kvadrat = 8 guşəli İslami ulduz (xatəm motivi).
+   Halqalardan fərqli olaraq bu ikisi açıq şəkildə İslami naxışdır. */
+.hp-geo-3, .hp-geo-6 { border-radius: 10px; }
+.hp-geo-3::before,
+.hp-geo-6::before {
+  content: ''; position: absolute; inset: -1px;
+  border: inherit; border-radius: inherit;
+  transform: rotate(45deg);
+}
+
+/* İşıqlar — hər biri öz tempində üzür (26–38s) */
 .hp-hero-glow { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; }
-.hp-glow-1 { width:480px;height:480px; top:-80px;left:-100px; background:radial-gradient(circle,rgba(26,107,58,.10),transparent 70%); }
-.hp-glow-2 { width:560px;height:560px; bottom:-180px;right:-180px; background:radial-gradient(circle,rgba(26,107,58,.07),transparent 70%); }
-.hp-glow-3 { width:360px;height:360px; top:50%;left:50%;transform:translate(-50%,-50%); background:radial-gradient(circle,rgba(184,134,11,.04),transparent 70%); }
+.hp-glow-1 { width:480px;height:480px; inset-block-start:-80px; inset-inline-start:-100px; background:radial-gradient(circle,rgba(26,107,58,.14),transparent 70%); animation:hpFloatA 26s var(--ease-in-out) infinite; }
+.hp-glow-2 { width:560px;height:560px; inset-block-end:-180px;  inset-inline-end:-180px;   background:radial-gradient(circle,rgba(26,107,58,.10),transparent 70%); animation:hpFloatB 32s var(--ease-in-out) infinite; }
+.hp-glow-3 { width:420px;height:420px; inset-block-start:48%;   inset-inline-start:50%; transform:translate(-50%,-50%); background:radial-gradient(circle,rgba(184,134,11,.09),transparent 70%); animation:hpFloatC 38s var(--ease-in-out) infinite; }
 
 /* Inner grid */
 .hp-hero-inner {
@@ -194,37 +313,76 @@
 
 .hp-badge {
   display: inline-flex; align-items: center; gap: 9px;
-  background: var(--hp-primary-bg); border: 1px solid var(--hp-primary-bdr);
+  /* Yaşıldan qızıla keçən yumşaq fon — mətnin rəngi dəyişmir (kontrast eyni) */
+  background: linear-gradient(120deg, var(--hp-primary-bg), var(--hp-gold-bg));
+  border: 1px solid var(--hp-primary-bdr);
   border-radius: 50px; padding: 7px 17px;
   font-size: 12.5px; font-weight: 600; color: var(--hp-primary-d);
   width: fit-content; letter-spacing: .3px;
-  opacity: 0; animation: fadeIn .6s .3s ease forwards;
+  /* Hero elementləri növbə ilə görünür: nişan → başlıq → şüar → kart → ... */
+  opacity: 0; animation: hpHeroIn .7s .22s var(--ease-out) forwards;
 }
 .hp-hero--vis .hp-badge { opacity: 1; }
-.hp-badge-dot { width:7px;height:7px;border-radius:50%;background:var(--hp-primary);flex-shrink:0; }
+.hp-badge-dot {
+  width:7px;height:7px;border-radius:50%;background:var(--hp-primary);flex-shrink:0;
+  animation: hpDotPulse 2.8s var(--ease-in-out) infinite;
+}
 
 .hp-hero-title {
+  position: relative;
   display: flex; flex-direction: column; gap: 2px;
-  opacity: 0; animation: fadeUp .75s .35s ease forwards;
+  opacity: 0; animation: hpHeroIn .8s .32s var(--ease-out) forwards;
 }
 .hp-hero--vis .hp-hero-title { opacity: 1; }
+/* Başlığın arxasında yavaş nəfəs alan yumşaq işıq — hərflər "oturur",
+   fondakı naxışla qarışmır. z-index:-1 onu mətnin altında saxlayır. */
+.hp-hero-title::before {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  inset-inline-start: -10%; inset-block-start: -28%;
+  width: 78%; aspect-ratio: 1.45;
+  background: radial-gradient(circle at 42% 50%, rgba(26,107,58,.2), transparent 68%);
+  filter: blur(26px);
+  animation: hpAura 14s var(--ease-in-out) infinite;
+}
+/* Başlığın altında incə qızıl ornament — bir dəfə soldan açılır
+   (transform: scaleX, ona görə yerləşməni dəyişmir) */
+.hp-hero-title::after {
+  content: ''; height: 2px; width: min(46%, 280px);
+  margin-block-start: 12px; border-radius: 2px; opacity: .9;
+  background: linear-gradient(to right, var(--hp-gold), var(--hp-primary-l) 55%, transparent);
+  transform: scaleX(0); transform-origin: left center;
+  animation: hpRuleIn .9s .95s var(--ease-out) forwards;
+}
+[dir="rtl"] .hp-hero-title::after {
+  transform-origin: right center;
+  background: linear-gradient(to left, var(--hp-gold), var(--hp-primary-l) 55%, transparent);
+}
 
+/* align-self — söz öz enini alsın: .hp-ht-2-nin qradiyenti sözün
+   sonunda bitir (əks halda qızıl ton mətnin kənarından kənarda qalırdı) */
 .hp-ht-1 {
+  align-self: flex-start;
   font-size: clamp(36px,5.5vw,68px); font-weight: 800; line-height: 1.05;
   letter-spacing: -2px; color: var(--hp-text);
 }
+/* Yaşıldan qızıla keçid — vurğu sonda. Qızıl tünd tondadır (--hp-gold):
+   ağ fonda ~3.6:1, tünd fonda ~10:1 — iri başlıq üçün WCAG AA. */
 .hp-ht-2 {
+  align-self: flex-start;
   font-size: clamp(36px,5.5vw,68px); font-weight: 800; line-height: 1.05;
   letter-spacing: -2px;
-  background: linear-gradient(135deg, var(--hp-primary) 0%, var(--hp-primary-l) 100%);
+  background: linear-gradient(112deg, var(--hp-primary) 0%, var(--hp-primary-l) 46%, var(--hp-gold) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+[dir="rtl"] .hp-ht-2 {
+  background-image: linear-gradient(248deg, var(--hp-primary) 0%, var(--hp-primary-l) 46%, var(--hp-gold) 100%);
 }
 
 .hp-hero-sub {
   font-size: 16.5px; line-height: 1.75; color: var(--hp-text-2); max-width: 520px;
   /* son söz tək sətirdə qalmasın ("bir / yerdə") */
   text-wrap: balance;
-  opacity: 0; animation: fadeUp .75s .45s ease forwards;
+  opacity: 0; animation: hpHeroIn .8s .42s var(--ease-out) forwards;
 }
 .hp-hero--vis .hp-hero-sub { opacity: 1; }
 
@@ -234,14 +392,30 @@ html[lang="ar"] .hp-ht-2 { letter-spacing: 0; line-height: 1.35; }
 
 /* Hero hədis kartı (src/data/quotes.js — Muslim 671) */
 .hp-hero-ayah {
+  position: relative; overflow: hidden;
   display: flex; flex-direction: column; gap: 6px;
   max-width: 560px;
-  background: var(--hp-gold-bg); border: 1px solid var(--hp-gold-bdr);
+  /* İki qatlı yumşaq fon (qızıl → yaşıl) düz rəngdən daha canlıdır; ən alt
+     qat kartın öz səthidir ki, fondakı naxış mətnin arxasından keçib
+     oxunaqlılığı pozmasın */
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--gold) 12%, transparent),
+      color-mix(in srgb, var(--primary) 6%, transparent)),
+    var(--bg-card);
+  border: 1px solid var(--hp-gold-bdr);
   border-inline-start: 3px solid var(--hp-gold);
   border-radius: var(--hp-r); padding: 14px 18px;
-  opacity: 0; animation: fadeUp .75s .55s ease forwards;
+  opacity: 0; animation: hpHeroIn .8s .6s var(--ease-out) forwards;
 }
 .hp-hero--vis .hp-hero-ayah { opacity: 1; }
+/* Kartın yuxarı küncündə zərif qızıl işıq */
+.hp-hero-ayah::before {
+  content: ''; position: absolute; pointer-events: none;
+  inset-block-start: -55%; inset-inline-end: -8%;
+  width: 190px; aspect-ratio: 1;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gold) 20%, transparent), transparent 70%);
+}
 .hp-hero-ayah blockquote { margin: 0; display: flex; flex-direction: column; gap: 4px; }
 
 .hp-ha-ar { font-family:var(--font-arabic); font-size:21px; color:var(--gold-dark); direction:rtl; text-align:right; line-height:1.7; }
@@ -253,7 +427,7 @@ html[lang="ar"] .hp-ht-2 { letter-spacing: 0; line-height: 1.35; }
 .hp-hero-btns {
   display: flex; flex-wrap: wrap; gap: 10px;
   max-width: 560px;
-  opacity: 0; animation: fadeUp .75s .65s ease forwards;
+  opacity: 0; animation: hpHeroIn .8s .72s var(--ease-out) forwards;
 }
 .hp-hero--vis .hp-hero-btns { opacity: 1; }
 /* min-height — 44px toxunma hədəfi (--tap) */
@@ -269,50 +443,126 @@ html[lang="ar"] .hp-ht-2 { letter-spacing: 0; line-height: 1.35; }
 /* ── Right visual ── */
 .hp-hero-visual {
   position: relative; min-width: 0;
-  opacity: 0; animation: fadeIn 1s .5s ease forwards;
+  opacity: 0; animation: hpHeroIn .9s .5s var(--ease-out) forwards;
 }
 .hp-hero--vis .hp-hero-visual { opacity: 1; }
 
 /* ═══ NAMAZ VAXTLARI KARTI (useMosqueTimes) ═══════════════════════════ */
+/* isolation:isolate + ::before(z-index:-1) — künc işıqları kartın öz
+   fonunun ÜSTÜNDƏ, amma bütün mətnin ALTINDA qalır. overflow:hidden
+   onları yuvarlaq kənara kəsir. */
 .hp-pc {
+  position: relative; isolation: isolate; overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 20px; padding: 22px 24px;
   box-shadow: var(--shadow-lg);
+  transition: box-shadow var(--dur-3) var(--ease-out), border-color var(--dur-3) var(--ease-out);
+}
+.hp-pc::before {
+  content: ''; position: absolute; z-index: -1; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(420px 220px at 100% 0%, var(--primary-bg2), transparent 70%),
+    radial-gradient(340px 200px at 0% 100%, var(--gold-bg), transparent 70%);
+}
+@media (hover: hover) and (min-width: 768px) {
+  .hp-pc:hover { box-shadow: var(--shadow-xl); border-color: var(--primary-border); }
 }
 .hp-pc-hdr { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px;gap:10px; }
 .hp-pc-hdr-l { display:flex;align-items:center;gap:10px;min-width:0; }
-.hp-pc-ic { font-size:22px;line-height:1; }
+/* Başlıq ikonu — kafel (telefondakı kimi), qızıl-yaşıl yumşaq fonda */
+.hp-pc-ic {
+  display:inline-grid; place-items:center; flex-shrink:0;
+  width:40px; height:40px; border-radius:12px;
+  background:linear-gradient(135deg, var(--primary-bg2), var(--gold-bg));
+  box-shadow:inset 0 0 0 1px var(--primary-border);
+  font-size:20px; line-height:1;
+}
 .hp-pc-ttl { display:block;margin:0;font-size:15px;font-weight:700;line-height:1.3;color:var(--text); }
 .hp-pc-sub { font-size:11.5px;color:var(--primary);font-weight:600; }
+/* Qradiyentli nişan (yaşıl → qızıl) — kartın ən "canlı" nöqtəsi.
+   Mətnin rəngi dəyişmir: kontrast əvvəlki kimi qalır. */
 .hp-pc-next {
   display:inline-flex;align-items:center;gap:8px;
-  background:var(--primary-bg);color:var(--primary-dark);
+  background:linear-gradient(135deg, var(--primary-bg2), var(--gold-bg));
+  color:var(--primary-dark);
   border:1px solid var(--primary-border);
   border-radius:50px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap;
 }
 [data-theme="dark"] .hp-pc-next { color: var(--primary); }
 /* "camaata qalıb" — adla sayğac arasında, daha yüngül */
 .hp-pc-next-cap { font-weight:500;opacity:.8; }
-.hp-pc-cd { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.hp-pc-cd { font-variant-numeric: tabular-nums; letter-spacing: .02em; font-weight:800; }
+
+/* Geri sayım zolağı kompüterdə də görünür: nişanın içində, altda.
+   Yalnız transform: scaleX dəyişir (JSX hər saniyə yazır) və 1s xətti
+   keçidlə hamar axır. Zolaq mütləq mövqedədir — sətir yerini dəyişmir. */
+@media (min-width: 768px) {
+  .hp-pc-next { position: relative; padding: 5px 14px 10px; }
+  .hp-pc .hp-pc-bar {
+    display: block; position: absolute; overflow: hidden;
+    inset-inline: 12px; inset-block-end: 4px;
+    height: 3px; border-radius: 999px;
+    background: color-mix(in srgb, var(--primary) 20%, transparent);
+  }
+  .hp-pc .hp-pc-bar > span {
+    display: block; height: 100%; border-radius: inherit;
+    background: linear-gradient(to right, var(--primary), var(--gold));
+    transform-origin: left center;
+    transition: transform 1s linear;
+  }
+  [dir="rtl"] .hp-pc .hp-pc-bar > span {
+    transform-origin: right center;
+    background: linear-gradient(to left, var(--primary), var(--gold));
+  }
+}
 
 .hp-pr-list { list-style:none;margin:0;padding:0; }
+/* position:relative — psevdo-elementlər (vurğu zolağı, işıq) mütləq
+   mövqedədir, ona görə grid xanalarını TUTMUR: sütun düzümü pozulmur. */
 .hp-pr {
+  position:relative;
   display:grid;
   grid-template-columns: 8px minmax(0,1fr) 3.4em 14px;
   align-items:center;column-gap:11px;
   min-height:42px;padding:0 12px;margin-bottom:3px;
-  border-radius:11px;transition:background .2s;
+  border-radius:11px;
+  transition:background-color var(--dur-2) var(--ease-out);
+}
+/* Sətrin başındakı nazik vurğu zolağı — normalda yığılıb (scaleY:0),
+   üzərinə gələndə və növbəti namazda açılır */
+.hp-pr-list .hp-pr::before {
+  content:''; position:absolute; pointer-events:none;
+  inset-inline-start:4px; inset-block:9px;
+  width:3px; border-radius:3px; opacity:.6;
+  background:var(--primary);
+  transform:scaleY(0);
+  transition:transform var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out);
 }
 .hp-pc--jm .hp-pr { grid-template-columns: 8px minmax(0,1fr) 3.4em 3.4em 14px; }
 .hp-pr--head { min-height:22px;margin-bottom:2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim); }
 html[lang="ar"] .hp-pr--head { letter-spacing:0;font-size:12px; }
 .hp-pr--head .hp-pr-tm { font-size:inherit;font-weight:inherit;color:inherit; }
-.hp-pr--act  { background: var(--primary-bg2); }
+/* Növbəti namaz: sakit, amma nəzərə çarpan vurğu */
+.hp-pr--act  { background: var(--primary-bg2); isolation: isolate; }
+.hp-pr-list .hp-pr--act::before { transform:scaleY(1); opacity:1; background:linear-gradient(var(--primary), var(--gold)); }
+/* Arabir (7s-dən bir) sətrin üstündən çox yüngül işıq keçir.
+   z-index:-1 — mətnin altındadır, oxunaqlılığa toxunmur. */
+.hp-pr-list .hp-pr--act::after {
+  content:''; position:absolute; z-index:-1; inset:0; pointer-events:none;
+  border-radius:inherit;
+  background:linear-gradient(100deg, transparent 32%, color-mix(in srgb, var(--primary) 14%, transparent) 50%, transparent 68%);
+  transform:translateX(-100%);
+  animation:hpSweep 7s var(--ease-in-out) infinite;
+}
+@media (hover: hover) and (min-width: 768px) {
+  .hp-pr-list .hp-pr:hover { background: var(--primary-bg); }
+  .hp-pr-list .hp-pr:hover::before { transform:scaleY(1); }
+}
 .hp-pr--done .hp-pr-nm,
 .hp-pr--done .hp-pr-tm { opacity:.55; }
 .hp-pr-dot { width:8px;height:8px;border-radius:50%;border:2px solid var(--border-md); }
-.hp-pr-dot.act  { background:var(--primary);border-color:var(--primary);box-shadow:0 0 7px var(--primary-border);animation:pulse 1.6s infinite; }
+.hp-pr-dot.act  { background:var(--primary);border-color:var(--primary);box-shadow:0 0 7px var(--primary-border);animation:pulse 2.2s var(--ease-in-out) infinite; }
 .hp-pr-dot.done { background:var(--primary);opacity:.4;border-color:transparent; }
 .hp-pr-nm  { display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-width:0;font-size:14px;font-weight:500;color:var(--text); }
 .hp-pr--act .hp-pr-nm { font-weight:700; }
@@ -364,7 +614,10 @@ html[lang="ar"] .hp-pr--head { letter-spacing:0;font-size:12px; }
 }
 .hp-pc-more:active { transform:scale(.98); }
 [data-theme="dark"] .hp-pc-more { color: var(--primary); }
-.hp-pc-more:hover { border-color:var(--primary);color:var(--primary);background:var(--primary-bg); }
+.hp-pc-more { transition:background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out); }
+@media (hover: hover) and (min-width: 768px) {
+  .hp-pc-more:hover { border-color:var(--primary);color:var(--primary);background:var(--primary-bg);transform:translateY(-1px); }
+}
 
 /* Ekran oxuyucusu üçün gizli mətn */
 .hp-sr {
@@ -380,20 +633,72 @@ html[lang="ar"] .hp-pr--head { letter-spacing:0;font-size:12px; }
   font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--primary-dark);
 }
 [data-theme="dark"] .hp-msq-ttl { color: var(--primary); }
+/* Başlıqdan sonra sönən nazik xətt — bölmələr arası keçid səliqəli olsun.
+   .hp-msq-ttl flex-dir, ona görə ::after adi flex elementi kimi yayılır. */
+.hp-msq-ttl::after {
+  content:''; flex:1; height:1px; border-radius:1px;
+  background:linear-gradient(to right, color-mix(in srgb, var(--primary) 30%, transparent), transparent);
+}
+[dir="rtl"] .hp-msq-ttl::after { background:linear-gradient(to left, color-mix(in srgb, var(--primary) 30%, transparent), transparent); }
 html[lang="ar"] .hp-msq-ttl { letter-spacing: 0; font-size: 15px; }
 .hp-msq-grid {
   list-style:none;margin:0;padding:0;
   display:grid;grid-template-columns:repeat(4, minmax(0,1fr));gap:14px;
 }
 .hp-msq-grid > li { display:flex; }
+
+/* Hər kartın öz tonu — JSX-dəki data-tone ilə seçilir; rənglər ikon
+   kafelinin palitrası ilə eynidir (motion.css → .icon-tile--*), beləcə
+   kart və ikon bir-birinə uyğun gəlir və kartlar bir-birinə oxşamır. */
+.hp-msq-grid > li { --tone: var(--primary); }
+.hp-msq-grid > li[data-tone="teal"]   { --tone:#0f8f83; }
+.hp-msq-grid > li[data-tone="gold"]   { --tone:#c28a0e; }
+.hp-msq-grid > li[data-tone="orange"] { --tone:#e0701f; }
+.hp-msq-grid > li[data-tone="rose"]   { --tone:#d24a6a; }
+.hp-msq-grid > li[data-tone="blue"]   { --tone:#2f6fd6; }
+.hp-msq-grid > li[data-tone="violet"] { --tone:#7457d6; }
+[data-theme="dark"] .hp-msq-grid > li[data-tone="teal"]   { --tone:#4fd1c5; }
+[data-theme="dark"] .hp-msq-grid > li[data-tone="gold"]   { --tone:#f0c040; }
+[data-theme="dark"] .hp-msq-grid > li[data-tone="orange"] { --tone:#ffab6b; }
+[data-theme="dark"] .hp-msq-grid > li[data-tone="rose"]   { --tone:#ff8fa8; }
+[data-theme="dark"] .hp-msq-grid > li[data-tone="blue"]   { --tone:#7aa7ff; }
+[data-theme="dark"] .hp-msq-grid > li[data-tone="violet"] { --tone:#a996ff; }
+
 .hp-msq-card {
+  position:relative; isolation:isolate; overflow:hidden;
   flex:1;display:flex;align-items:center;gap:12px;
   width:100%;min-height:76px;padding:14px 16px;
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
   box-shadow:var(--shadow-sm);color:var(--text);text-align:start;font:inherit;cursor:pointer;
-  transition:transform .2s, box-shadow .2s, border-color .2s;
+  transition:transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
 }
 .hp-msq-card:hover { transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--primary-border); }
+
+/* Kompüterdə kartın fonunda incə İslami naxış (::before) və öz tonunun
+   işığı (::after). Hər ikisi z-index:-1 — mətnin altındadır.
+   Telefonda kartlar siyahı sətrinə çevrilir, ona görə bu blok yalnız
+   ≥768px-dədir (orada effektlər sakit qalır). */
+@media (min-width: 768px) {
+  .hp-msq-card::before {
+    content:''; position:absolute; z-index:-1; inset:0; pointer-events:none;
+    background-image:var(--hp-star); background-size:64px 64px;
+    opacity:.05;
+    transition:opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-out);
+  }
+  .hp-msq-card::after {
+    content:''; position:absolute; z-index:-1; inset:0; pointer-events:none;
+    background:radial-gradient(170px 140px at 100% -12%, color-mix(in srgb, var(--tone) 17%, transparent), transparent 72%);
+    opacity:.8;
+    transition:opacity var(--dur-3) var(--ease-out);
+  }
+  .hp-msq-card:hover {
+    transform:translateY(-5px);
+    border-color:color-mix(in srgb, var(--tone) 40%, transparent);
+    box-shadow:0 14px 32px -14px color-mix(in srgb, var(--tone) 55%, transparent), var(--shadow);
+  }
+  .hp-msq-card:hover::before { opacity:.1; transform:scale(1.07) rotate(2deg); }
+  .hp-msq-card:hover::after  { opacity:1; }
+}
 .hp-msq-card:active { transform:scale(.98); }
 .hp-msq-card:focus-visible { outline:2px solid color-mix(in srgb, var(--primary) 55%, transparent);outline-offset:2px; }
 /* İkon — JSX-də .icon-tile (motion.css): telefonda rəngli kafel.
@@ -404,16 +709,26 @@ html[lang="ar"] .hp-msq-ttl { letter-spacing: 0; font-size: 15px; }
   .hp-msq-card .hp-msq-ic {
     width:44px;height:44px;border-radius:12px;
     display:flex;align-items:center;justify-content:center;
-    background:var(--primary-bg);font-size:22px;line-height:1;
+    background:color-mix(in srgb, var(--tone) 13%, transparent);
+    font-size:22px;line-height:1;
+    transition:transform var(--dur-2) var(--ease-spring), box-shadow var(--dur-2) var(--ease-out);
+  }
+  /* Kafel "qalxır": yüngül böyümə + kiçik dönmə (yalnız transform) */
+  .hp-msq-card:hover .hp-msq-ic {
+    transform:translateY(-2px) scale(1.08) rotate(-4deg);
+    box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tone) 65%, transparent);
   }
 }
 .hp-msq-txt { flex:1;min-width:0;display:flex;flex-direction:column;gap:2px; }
 .hp-msq-txt strong { font-size:14.5px;font-weight:700;line-height:1.3;color:var(--text); }
 .hp-msq-txt small  { font-size:12.5px;line-height:1.45;color:var(--text-dim); }
-.hp-msq-go { flex-shrink:0;color:var(--primary);font-weight:700;transition:transform .2s; }
-.hp-msq-card:hover .hp-msq-go { transform:translateX(3px); }
+.hp-msq-go {
+  flex-shrink:0;color:var(--tone, var(--primary));font-weight:700;opacity:.65;
+  transition:transform var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out);
+}
+.hp-msq-card:hover .hp-msq-go { transform:translateX(5px); opacity:1; }
 html[dir="rtl"] .hp-msq-go { transform:scaleX(-1); }
-html[dir="rtl"] .hp-msq-card:hover .hp-msq-go { transform:scaleX(-1) translateX(3px); }
+html[dir="rtl"] .hp-msq-card:hover .hp-msq-go { transform:scaleX(-1) translateX(5px); }
 
 /* ═══ BISMILLAH BAR ══════════════════════════════════════════════════ */
 .hp-bism {
@@ -865,8 +1180,22 @@ html[lang="ar"] .hp-stat-l { letter-spacing: 0; }
 ════════════════════════════════════════════════════════════════════ */
 @media (max-width:767.98px) {
   /* ── Hero ── */
-  /* Fondakı halqalar telefonda fırlanmır: sakitlik və batareya */
-  .hp-geo { animation: none; }
+  /* Fondakı dekor telefonda hərəkət etmir: sakitlik və batareya */
+  .hp-geo,
+  .hp-hero-mesh,
+  .hp-hero-pattern,
+  .hp-hero-glow { animation: none; }
+  /* Naxış və başlıq işığı dar ekranda daha sakit/ixtisar olunur */
+  .hp-hero-pattern { opacity: .045; }
+  /* Ulduz motivlərinin xətləri dar ekranda başlığın üstündən keçir — sönük */
+  .hp-geo-3 { border-color: rgba(184,134,11,.09); }
+  .hp-geo-6 { border-color: rgba(26,107,58,.08); }
+  .hp-hero-title::before { display: none; }
+  .hp-hero-title::after { margin-block-start: 8px; width: min(54%, 190px); }
+  /* Sətir vurğusu telefonda rəngli ikon kafelidir — zolaq və işıq lazım deyil
+     (zolaq 32px-lik kafelin üstünə düşərdi) */
+  .hp-pr-list .hp-pr::before,
+  .hp-pr-list .hp-pr--act::after { display: none; }
   /* Giriş kit tempində (360ms, 40ms fasilə) — əvvəl .75s + .65s-ə qədər gecikmə idi */
   .hp-hero { transition-duration: var(--dur-3); }
   .hp-badge, .hp-hero-title, .hp-hero-sub, .hp-hero-visual, .hp-hero-ayah {
@@ -1163,11 +1492,31 @@ html[lang="ar"] .hp-stat-l { letter-spacing: 0; }
 /* Hərəkətə həssas istifadəçilər: sonsuz və görünmə animasiyaları dayanır,
    hero dərhal görünür (motion.css qlobal olaraq da söndürür) */
 @media (prefers-reduced-motion: reduce) {
-  .hp-geo, .hp-pr-dot.act, .hp-kal-glow { animation: none; }
+  .hp-geo, .hp-pr-dot.act, .hp-kal-glow,
+  .hp-hero-mesh, .hp-hero-pattern, .hp-hero-glow, .hp-badge-dot,
+  .hp-hero-title::before, .hp-pr-list .hp-pr--act::after { animation: none; }
+  /* Qızıl ornament animasiyasız da tam görünür */
+  .hp-hero-title::after { animation: none; transform: none; }
+  .hp-msq-card::before, .hp-msq-card::after,
+  .hp-msq-ic, .hp-msq-go, .hp-pr, .hp-pr-list .hp-pr::before,
+  .hp-btn-primary::after { transition: none; }
+  .hp-msq-card:hover .hp-msq-ic, .hp-msq-card:hover .hp-msq-go,
+  .hp-msq-card:hover::before { transform: none; }
   .hp-pr--act .hp-pr-ic::after { animation: none; opacity: .45; }
   .hp-twp-content { animation: none !important; }
+  /* Hero SÜRÜŞMÜR, amma tamam animasiyasız da qalmır: elementlər növbə ilə
+     yumşaq SOLARAQ görünür (yerdəyişmə yoxdur — baş gicəllənməsi vermir).
+     !important: motion.css §15 bu rejimdə bütün animasiyaları 0.01ms edir. */
   .hp-badge, .hp-hero-title, .hp-hero-sub, .hp-hero-ayah,
-  .hp-hero-btns, .hp-hero-visual { animation: none; opacity: 1; }
+  .hp-hero-btns, .hp-hero-visual {
+    animation: hpFadeIn 320ms ease-out backwards !important;
+    opacity: 1;
+  }
+  .hp-hero-title  { animation-delay: 60ms !important; }
+  .hp-hero-sub    { animation-delay: 110ms !important; }
+  .hp-hero-visual { animation-delay: 140ms !important; }
+  .hp-hero-ayah   { animation-delay: 180ms !important; }
+  .hp-hero-btns   { animation-delay: 230ms !important; }
   .hp-hero { transition: none; }
   .hp-feat, .hp-name, .hp-tw-fact, .hp-twi-card, .hp-msq-card, .hp-tw-thumb,
   .hp-pc-bar > span, .hp-tw-tab, .hp-twtab-num,
@@ -1208,25 +1557,43 @@ html[lang="ar"] .hp-stat-l { letter-spacing: 0; }
   --hp-shadow-sm:     0 2px 12px rgba(0,0,0,0.3);
   --hp-shadow:        0 4px 24px rgba(0,0,0,0.4);
   --hp-shadow-lg:     0 8px 40px rgba(0,0,0,0.5);
+
+  /* Naxışın rəngi SVG-nin içində sabitdir — tünd rejim üçün yaşıl variant */
+  --hp-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%232ecc71' stroke-width='1'%3E%3Crect x='18' y='18' width='36' height='36'/%3E%3Crect x='18' y='18' width='36' height='36' transform='rotate(45 36 36)'/%3E%3Ccircle cx='36' cy='36' r='3.5'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 [data-theme="dark"] .hp-top {
-  background: linear-gradient(160deg, #0f1a14 0%, #0f0f1a 45%, #121825 100%);
+  background:
+    radial-gradient(1100px 520px at 10% -12%, rgba(46,204,113,.10), transparent 70%),
+    radial-gradient(900px 460px at 94% 4%, rgba(240,192,64,.06), transparent 70%),
+    linear-gradient(160deg, #0f1a14 0%, #0f0f1a 45%, #121825 100%);
 }
+/* Tünd fonda naxış bir az daha görünən olmalıdır ki, itməsin */
+[data-theme="dark"] .hp-hero-pattern { opacity: .085; }
 [data-theme="dark"] .hp-hero-mesh {
   background-image: radial-gradient(rgba(46,204,113,0.05) 1.5px, transparent 1.5px);
 }
 [data-theme="dark"] .hp-geo {
-  border-color: rgba(46,204,113,0.06);
+  border-color: rgba(46,204,113,0.09);
+}
+/* Ulduz motivləri (geo-3 / geo-6) — ümumi qaydadan sonra öz rəngləri */
+[data-theme="dark"] .hp-geo-3 { border-color: rgba(240,192,64,0.18); }
+[data-theme="dark"] .hp-geo-6 { border-color: rgba(46,204,113,0.16); }
+@media (max-width:767.98px) {
+  [data-theme="dark"] .hp-geo-3 { border-color: rgba(240,192,64,0.10); }
+  [data-theme="dark"] .hp-geo-6 { border-color: rgba(46,204,113,0.09); }
+}
+[data-theme="dark"] .hp-hero-title::before {
+  background: radial-gradient(circle at 42% 50%, rgba(46,204,113,.20), transparent 68%);
 }
 [data-theme="dark"] .hp-glow-1 {
-  background: radial-gradient(circle, rgba(46,204,113,0.08), transparent 70%);
+  background: radial-gradient(circle, rgba(46,204,113,0.12), transparent 70%);
 }
 [data-theme="dark"] .hp-glow-2 {
-  background: radial-gradient(circle, rgba(46,204,113,0.05), transparent 70%);
+  background: radial-gradient(circle, rgba(46,204,113,0.08), transparent 70%);
 }
 [data-theme="dark"] .hp-glow-3 {
-  background: radial-gradient(circle, rgba(240,192,64,0.04), transparent 70%);
+  background: radial-gradient(circle, rgba(240,192,64,0.08), transparent 70%);
 }
 [data-theme="dark"] .hp-bism {
   background: linear-gradient(135deg, #15202a, #0f0f1a);

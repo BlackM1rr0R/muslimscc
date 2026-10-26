@@ -93,7 +93,24 @@ export const BRAND = {
 // ── Məscid məlumatları — REAL MƏLUMATLA DOLDURULMALIDIR ──
 export const MOSQUE = {
   // Ünvan — tam küçə ünvanı
-  address: { az: '', en: '', ru: '', tr: '', ar: '' },
+  // Mənbə: məscid sahibinin verdiyi məlumat (2026-09-20)
+  address: {
+    az: 'Bakı şəhəri, Suraxanı rayonu, Qaraçuxur qəsəbəsi, Ə.Mehbalıyev küçəsi 58/1',
+    en: 'A. Mehbaliyev str. 58/1, Garachukhur settlement, Surakhani district, Baku',
+    ru: 'г. Баку, Сураханский район, посёлок Карачухур, ул. А. Мехбалыева, 58/1',
+    tr: 'Bakü, Suraxanı ilçesi, Karaçuhur kasabası, Ə. Mehbalıyev sokak 58/1',
+    ar: 'باكو، منطقة سوراخاني، قصبة قاراچوخور، شارع أ. محبالييف 58/1',
+  },
+
+  // Yalnız küçə/bina — schema.org "streetAddress" üçün (yuxarıdakı tam ünvanda
+  // şəhər və rayon da var; onlar ayrıca sahələrdə verilir, təkrarlanmasın)
+  street: {
+    az: 'Ə.Mehbalıyev küçəsi 58/1',
+    en: 'A. Mehbaliyev str. 58/1',
+    ru: 'ул. А. Мехбалыева, 58/1',
+    tr: 'Ə. Mehbalıyev sokak 58/1',
+    ar: 'شارع أ. محبالييف 58/1',
+  },
 
   // Yaşayış məntəqəsi — addan birbaşa məlumdur
   locality: {
@@ -145,8 +162,53 @@ export const MOSQUE = {
   },
 
   // Məscidin tarixi — bir neçə abzas, hər dildə
-  history: { az: '', en: '', ru: '', tr: '', ar: '' },
-  founded: '',        // tikilmə ili, məs. "1998"
+  // Mənbə: məscid sahibinin verdiyi mətn (2026-09-20). Abzaslar boş sətirlə
+  // ayrılır (MosquePage → paragraphs). Digər dillər bu mətnin tərcüməsidir —
+  // burada heç nə əlavə edilməyib.
+  history: {
+    az:
+      'Bakının böyük məscidlərindən olan “Qaraçuxur qəsəbə” məscidi 1996-cı ildə ' +
+      'Türkiyə Diyanət Vəqfinin və xeyriyyəçi şəxslərin vəsaiti ilə inşa edilmişdir. ' +
+      'Ənənəvi Osmanlı memarlığı üslubunda inşa edilmiş məscidin təxminən 22 metr ' +
+      'hündürlüyündə minarəsi var.' +
+      '\n\n' +
+      'Məscid iki mərtəbəlidir, ibadət zalının sahəsi 750 kvadratmetrdir. Əllə işlənmiş ' +
+      'minbəri və kürsüsü Türkiyədən gətirilmişdir. Məscidin qübbəsində yüksək xəttatlıqla ' +
+      'Qurani-Kərimin “əl-İxlas” surəsi, mehrabında isə “Ayətül-kürsü” yazılmışdır.',
+    en:
+      'One of Baku’s large mosques, the “Garachukhur settlement” mosque was built in 1996 ' +
+      'with funds from the Turkish Diyanet Foundation and from benefactors. Built in the ' +
+      'traditional Ottoman architectural style, it has a minaret about 22 metres high.' +
+      '\n\n' +
+      'The mosque has two floors and its prayer hall covers 750 square metres. Its ' +
+      'hand-crafted minbar and kursi were brought from Türkiye. Surah al-Ikhlas is ' +
+      'inscribed on the dome in fine calligraphy, and Ayat al-Kursi in the mihrab.',
+    ru:
+      'Мечеть посёлка Карачухур — одна из больших мечетей Баку — построена в 1996 году ' +
+      'на средства Турецкого фонда «Диянет» и благотворителей. Она возведена в традиционном ' +
+      'османском архитектурном стиле, высота минарета — около 22 метров.' +
+      '\n\n' +
+      'Мечеть двухэтажная, площадь молитвенного зала — 750 квадратных метров. Минбар и ' +
+      'кюрси ручной работы привезены из Турции. На куполе мечети искусной каллиграфией ' +
+      'написана сура «аль-Ихляс», а в михрабе — «Аятуль-Курси».',
+    tr:
+      'Bakü’nün büyük camilerinden olan “Karaçuhur kasabası” camii, 1996 yılında Türkiye ' +
+      'Diyanet Vakfı’nın ve hayırseverlerin katkılarıyla inşa edilmiştir. Geleneksel Osmanlı ' +
+      'mimarisi üslubunda inşa edilen caminin yaklaşık 22 metre yüksekliğinde minaresi vardır.' +
+      '\n\n' +
+      'Cami iki katlıdır, ibadet salonunun alanı 750 metrekaredir. El işçiliğiyle yapılmış ' +
+      'minberi ve kürsüsü Türkiye’den getirilmiştir. Caminin kubbesinde yüksek hat sanatıyla ' +
+      'Kur’an-ı Kerim’in İhlâs sûresi, mihrabında ise Âyetü’l-Kürsî yazılıdır.',
+    ar:
+      'مسجد قصبة قاراچوخور من المساجد الكبيرة في باكو، بُني عام 1996 بتمويل من وقف الديانة ' +
+      'التركي وأهل الخير. شُيّد على الطراز المعماري العثماني التقليدي، ويبلغ ارتفاع مئذنته ' +
+      'نحو 22 مترًا.' +
+      '\n\n' +
+      'المسجد من طابقين، وتبلغ مساحة قاعة الصلاة 750 مترًا مربعًا. وقد جُلب منبره وكرسيه ' +
+      'المصنوعان يدويًا من تركيا. وكُتبت على قبة المسجد سورة الإخلاص بخط بديع، وفي محرابه ' +
+      'آية الكرسي.',
+  },
+  founded: '1996',    // tikilmə ili (sahibin məlumatı)
 
   // Məsciddə göstərilən xidmətlər — real olanları əlavə et.
   // Nümunə forma: { az: 'Uşaqlar üçün Quran kursu', en: 'Quran classes for children', ... }
@@ -263,7 +325,9 @@ export function mosqueJsonLd(lang = 'az') {
     addressLocality: lang === 'az' ? 'Qaraçuxur' : 'Garachukhur',
     addressRegion: lang === 'az' ? 'Bakı' : 'Baku',
     addressCountry: MOSQUE.country,
-    ...(filled(addressLine) ? { streetAddress: addressLine } : {}),
+    // Küçə sahəsi varsa onu ver (tam ünvan şəhəri də təkrarlayır)
+    ...(filled(tr(MOSQUE.street, lang)) ? { streetAddress: tr(MOSQUE.street, lang) }
+      : filled(addressLine) ? { streetAddress: addressLine } : {}),
   }
 
   if (filled(MOSQUE.geo.lat) && filled(MOSQUE.geo.lng)) {

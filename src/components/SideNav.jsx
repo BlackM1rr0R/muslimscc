@@ -26,8 +26,9 @@
 // Ümumi:
 // • Qruplar və bəndlər src/data/navigation.js-dəki NAV_GROUPS-dan gəlir.
 // • Qruplar açılıb-bağlanır; istifadəçinin seçimi localStorage
-//   "qm_sidenav_groups" açarında yadda qalır (try/catch). Susmaya görə
-//   "Məscid" qrupu və cari səhifənin qrupu açıqdır.
+//   "qm_sidenav_groups_v2" açarında yadda qalır (try/catch). Susmaya görə
+//   HAMISI açıqdır (sahibin qərarı: "hər şey açıq olsun") — istifadəçi
+//   istədiyini yığa bilər, seçimi növbəti gəlişdə də qalır.
 // • Bəndlər həqiqi <a href> linkləridir (Ctrl/orta klik yeni tabda açır,
 //   robotlar da görür); adi klikdə SPA naviqasiyası işləyir.
 // • Yuxarıdakı axtarış sahəsi GlobalSearch dialoqunu açır: onOpenSearch
@@ -43,8 +44,13 @@ import { pathFor } from '../seo/routes'
 import { isOverlayEntry } from '../utils/useBackToClose'
 import '../styles/SideNav.css'
 
-const STORAGE_KEY = 'qm_sidenav_groups'
-const DEFAULT_OPEN = ['mosque']
+// Açar "v2"-dir: sahibin qərarı ilə susmaya görə BÜTÜN qruplar açıq oldu.
+// Köhnə açarda (qm_sidenav_groups) yalnız "Məscid" yazılmışdı — onu oxusaydıq,
+// əvvəl saytda olmuş ziyarətçi yenə yığılmış menyu görərdi.
+const STORAGE_KEY = 'qm_sidenav_groups_v2'
+// Susmaya görə BÜTÜN qruplar açıq: ziyarətçi bölmələri bir baxışda görsün
+// (yığmaq istəsə, qrup başlığına klik — seçimi yaddaşda qalır).
+const DEFAULT_OPEN = NAV_GROUPS.map(g => g.key)
 
 // Header.jsx bu hadisəni dinləyib axtarış dialoqunu açır
 const OPEN_SEARCH_EVENT = 'qm-open-search'
@@ -562,6 +568,8 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   const swipeProps = useDrawerSwipe(panelRef, onClose, isRtl)
 
   // ── Qruplar (hər iki rejimdə eyni) ──
+  // --gi (qrupun sırası) hər iki rejimə verilir: menyuda da, yan paneldə də
+  // qruplar növbə ilə yumşaq görünür (SideNav.css).
   const GroupHeading = isRail ? 'div' : 'h2'
   const groups = NAV_GROUPS.map((group, gi) => {
     const isOpen = expanded.has(group.key)
@@ -572,7 +580,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
       <div
         key={group.key}
         className={`qm-sn-group${isOpen ? ' is-expanded' : ''}${hasCurrent ? ' has-current' : ''}`}
-        style={isRail ? undefined : { '--gi': gi }}
+        style={{ '--gi': gi }}
       >
         <GroupHeading className="qm-sn-group-h">
           <button
@@ -617,7 +625,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   // ═══ Yan panel (≥1024px) ═══
   if (isRail) {
     return (
-      <nav className="qm-sn qm-sn--rail" aria-label={l.sections}>
+      <nav className="qm-sn qm-sn--rail" aria-label={l.sections} dir={isRtl ? 'rtl' : 'ltr'}>
         <div className="qm-sn-search-wrap">
           {/* Görünən mətn düymənin adıdır (səslə idarədə "axtar" deyən tapsın) */}
           <button

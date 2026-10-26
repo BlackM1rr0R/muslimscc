@@ -615,6 +615,9 @@ export default function HomePage({ setPage }) {
         <section className={`hp-hero ${visible?'hp-hero--vis':''}`}>
           <div className="hp-hero-bg" aria-hidden="true">
             <div className="hp-hero-mesh" />
+            {/* İslami həndəsi naxış qatı (xatəm kafeli) — tamamilə dekorativdir,
+                üslubu HomePage.css-dədir (--hp-star) */}
+            <div className="hp-hero-pattern" />
             {[...Array(6)].map((_,i)=><div key={i} className={`hp-geo hp-geo-${i+1}`}/>)}
             <div className="hp-hero-glow hp-glow-1" />
             <div className="hp-hero-glow hp-glow-2" />
@@ -665,8 +668,10 @@ export default function HomePage({ setPage }) {
             <h2 id="hp-msq-ttl" className="hp-msq-ttl"><span aria-hidden="true">🕌</span>{l.msqTitle}</h2>
             {/* Telefonda qruplaşdırılmış siyahı (ikon kafeli + ox), kompüterdə 4 kart */}
             <ul className="hp-msq-grid" data-reveal="stagger">
+              {/* data-tone — yalnız üslub üçün: kart öz ikonunun rəngini
+                  (--tone) alır ki, kartlar bir-birinə oxşamasın */}
               {MOSQUE_LINKS.map(c=>(
-                <li key={c.page}>
+                <li key={c.page} data-tone={c.tone}>
                   <button type="button" className="hp-msq-card" onClick={()=>goTo(c.page)}>
                     <span className={`hp-msq-ic icon-tile icon-tile--${c.tone}`} aria-hidden="true">{c.icon}</span>
                     <span className="hp-msq-txt">

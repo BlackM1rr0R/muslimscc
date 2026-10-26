@@ -6,12 +6,21 @@ import { isFirebaseConfigured } from '../../firebase/config'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
 
+// Göndərmə açarı (serverin ADMIN_TOKEN-i) sessiya yaddaşında saxlanır —
+// sekmə bağlananda silinir. QƏSDƏN kodda/env-də DEYİL: VITE_* dəyərləri
+// hamıya açıq JS faylına düşür; açar orada olsaydı, istənilən ziyarətçi
+// onu oxuyub bütün abunəçilərə bildiriş göndərə bilərdi.
+const TOKEN_KEY = 'qm_admin_push_token'
+const readStoredPushToken = () => {
+  try { return sessionStorage.getItem(TOKEN_KEY) || '' } catch { return '' }
+}
+
 const LABELS = {
-  az: { title:'Push Bildirişlər', sub:'Bütün abunəçilərə bildiriş göndərin', send:'Bildiriş Göndər', subscribers:'Abunəçi sayı', titleField:'Başlıq', bodyField:'Mesaj', urlField:'Açılacaq URL (opsional)', priorityHigh:'Yüksək prioritet', preview:'Önizləmə', sending:'Göndərilir...', sent:'Göndərildi:', failed:'Xəta:', history:'Tarixçə', noHistory:'Hələ bildiriş göndərilməyib', titleRequired:'Başlıq tələb olunur', bodyRequired:'Mesaj tələb olunur', noBackend:'Backend API qoşulmayıb. .env-də VITE_API_URL təyin edin.' },
-  en: { title:'Push Notifications', sub:'Send notifications to all subscribers', send:'Send Notification', subscribers:'Subscribers', titleField:'Title', bodyField:'Message', urlField:'URL to open (optional)', priorityHigh:'High priority', preview:'Preview', sending:'Sending...', sent:'Sent to:', failed:'Failed:', history:'History', noHistory:'No notifications sent yet', titleRequired:'Title required', bodyRequired:'Message required', noBackend:'Backend API not configured. Set VITE_API_URL in .env.' },
-  ru: { title:'Push уведомления', sub:'Отправить уведомления всем подписчикам', send:'Отправить', subscribers:'Подписчики', titleField:'Заголовок', bodyField:'Сообщение', urlField:'URL для открытия', priorityHigh:'Высокий приоритет', preview:'Превью', sending:'Отправка...', sent:'Отправлено:', failed:'Ошибка:', history:'История', noHistory:'Нет уведомлений', titleRequired:'Заголовок обязателен', bodyRequired:'Сообщение обязательно', noBackend:'Backend API не настроен' },
-  ar: { title:'إشعارات Push', sub:'إرسال إشعارات لجميع المشتركين', send:'إرسال', subscribers:'المشتركون', titleField:'العنوان', bodyField:'الرسالة', urlField:'الرابط', priorityHigh:'أولوية عالية', preview:'معاينة', sending:'جارٍ الإرسال...', sent:'تم الإرسال إلى:', failed:'فشل:', history:'السجل', noHistory:'لا توجد إشعارات', titleRequired:'العنوان مطلوب', bodyRequired:'الرسالة مطلوبة', noBackend:'Backend API غير مكون' },
-  tr: { title:'Push Bildirimler', sub:'Tüm abonelere bildirim gönder', send:'Bildirim Gönder', subscribers:'Aboneler', titleField:'Başlık', bodyField:'Mesaj', urlField:'Açılacak URL', priorityHigh:'Yüksek öncelik', preview:'Önizleme', sending:'Gönderiliyor...', sent:'Gönderildi:', failed:'Hata:', history:'Geçmiş', noHistory:'Henüz bildirim yok', titleRequired:'Başlık gerekli', bodyRequired:'Mesaj gerekli', noBackend:'Backend API yapılandırılmamış' },
+  az: { tokenField:'Göndərmə açarı', tokenHint:'Serverdəki ADMIN_TOKEN. Yalnız bu sekmədə yadda qalır.', tokenRequired:'Göndərmə açarını daxil et', tokenWrong:'Açar yanlışdır — serverdəki ADMIN_TOKEN ilə eyni olmalıdır', title:'Push Bildirişlər', sub:'Bütün abunəçilərə bildiriş göndərin', send:'Bildiriş Göndər', subscribers:'Abunəçi sayı', titleField:'Başlıq', bodyField:'Mesaj', urlField:'Açılacaq URL (opsional)', priorityHigh:'Yüksək prioritet', preview:'Önizləmə', sending:'Göndərilir...', sent:'Göndərildi:', failed:'Xəta:', history:'Tarixçə', noHistory:'Hələ bildiriş göndərilməyib', titleRequired:'Başlıq tələb olunur', bodyRequired:'Mesaj tələb olunur', noBackend:'Backend API qoşulmayıb. .env-də VITE_API_URL təyin edin.' },
+  en: { tokenField:'Send key', tokenHint:'The server ADMIN_TOKEN. Kept only in this tab.', tokenRequired:'Enter the send key', tokenWrong:'Wrong key — must match the server ADMIN_TOKEN', title:'Push Notifications', sub:'Send notifications to all subscribers', send:'Send Notification', subscribers:'Subscribers', titleField:'Title', bodyField:'Message', urlField:'URL to open (optional)', priorityHigh:'High priority', preview:'Preview', sending:'Sending...', sent:'Sent to:', failed:'Failed:', history:'History', noHistory:'No notifications sent yet', titleRequired:'Title required', bodyRequired:'Message required', noBackend:'Backend API not configured. Set VITE_API_URL in .env.' },
+  ru: { tokenField:'Ключ отправки', tokenHint:'ADMIN_TOKEN сервера. Хранится только в этой вкладке.', tokenRequired:'Введите ключ отправки', tokenWrong:'Неверный ключ — должен совпадать с ADMIN_TOKEN сервера', title:'Push уведомления', sub:'Отправить уведомления всем подписчикам', send:'Отправить', subscribers:'Подписчики', titleField:'Заголовок', bodyField:'Сообщение', urlField:'URL для открытия', priorityHigh:'Высокий приоритет', preview:'Превью', sending:'Отправка...', sent:'Отправлено:', failed:'Ошибка:', history:'История', noHistory:'Нет уведомлений', titleRequired:'Заголовок обязателен', bodyRequired:'Сообщение обязательно', noBackend:'Backend API не настроен' },
+  ar: { tokenField:'مفتاح الإرسال', tokenHint:'ADMIN_TOKEN الخاص بالخادم. يُحفظ في هذا التبويب فقط.', tokenRequired:'أدخل مفتاح الإرسال', tokenWrong:'المفتاح غير صحيح — يجب أن يطابق ADMIN_TOKEN', title:'إشعارات Push', sub:'إرسال إشعارات لجميع المشتركين', send:'إرسال', subscribers:'المشتركون', titleField:'العنوان', bodyField:'الرسالة', urlField:'الرابط', priorityHigh:'أولوية عالية', preview:'معاينة', sending:'جارٍ الإرسال...', sent:'تم الإرسال إلى:', failed:'فشل:', history:'السجل', noHistory:'لا توجد إشعارات', titleRequired:'العنوان مطلوب', bodyRequired:'الرسالة مطلوبة', noBackend:'Backend API غير مكون' },
+  tr: { tokenField:'Gönderim anahtarı', tokenHint:'Sunucudaki ADMIN_TOKEN. Yalnızca bu sekmede saklanır.', tokenRequired:'Gönderim anahtarını girin', tokenWrong:'Anahtar yanlış — sunucudaki ADMIN_TOKEN ile aynı olmalı', title:'Push Bildirimler', sub:'Tüm abonelere bildirim gönder', send:'Bildirim Gönder', subscribers:'Aboneler', titleField:'Başlık', bodyField:'Mesaj', urlField:'Açılacak URL', priorityHigh:'Yüksek öncelik', preview:'Önizleme', sending:'Gönderiliyor...', sent:'Gönderildi:', failed:'Hata:', history:'Geçmiş', noHistory:'Henüz bildirim yok', titleRequired:'Başlık gerekli', bodyRequired:'Mesaj gerekli', noBackend:'Backend API yapılandırılmamış' },
 }
 
 export default function PushNotificationManager() {
@@ -22,6 +31,7 @@ export default function PushNotificationManager() {
   const [tokens, setTokens] = useState([])
   const [history, setHistory] = useState([])
   const [form, setForm] = useState({ title:'', body:'', url:'', priority:'normal' })
+  const [adminToken, setAdminToken] = useState(readStoredPushToken)
   const [sending, setSending] = useState(false)
   const [feedback, setFeedback] = useState(null) // { ok, text }
 
@@ -46,23 +56,27 @@ export default function PushNotificationManager() {
     setFeedback(null)
     if (!form.title.trim()) { setFeedback({ ok:false, text: l.titleRequired }); return }
     if (!form.body.trim()) { setFeedback({ ok:false, text: l.bodyRequired }); return }
+    if (!adminToken.trim()) { setFeedback({ ok:false, text: l.tokenRequired }); return }
     if (!API_URL) { setFeedback({ ok:false, text: l.noBackend }); return }
 
     setSending(true)
     try {
       const res = await fetch(`${API_URL.replace(/\/$/, '')}/api/send-notification`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken.trim() },
         body: JSON.stringify({
           title: form.title.trim(),
           body: form.body.trim(),
           url: form.url.trim() || '/',
           priority: form.priority,
-          adminToken: import.meta.env.VITE_ADMIN_TOKEN || '',
         }),
       })
       const data = await res.json()
+      if (res.status === 401) throw new Error(l.tokenWrong)
       if (!res.ok) throw new Error(data.error || 'Send failed')
+
+      // Açar doğrudur — bu sekmədə yadda saxla ki, hər dəfə yazılmasın
+      try { sessionStorage.setItem(TOKEN_KEY, adminToken.trim()) } catch { /* yaddaş bağlıdır */ }
 
       // Tarixçəyə əlavə et
       await addDocument('notification_history', {
@@ -175,6 +189,19 @@ export default function PushNotificationManager() {
                 <option value="high">High</option>
               </select>
             </div>
+          </div>
+
+          <div className="admin-input-group">
+            <label className="admin-input-label">{l.tokenField} 🔑</label>
+            <input
+              type="password"
+              className="admin-input"
+              value={adminToken}
+              onChange={(e) => setAdminToken(e.target.value)}
+              autoComplete="off"
+              placeholder="ADMIN_TOKEN"
+            />
+            <div style={{fontSize:11, color:'var(--text-muted)', marginTop:4}}>{l.tokenHint}</div>
           </div>
 
           {/* Live preview */}

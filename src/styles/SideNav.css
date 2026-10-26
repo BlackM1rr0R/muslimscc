@@ -64,6 +64,135 @@
    MÜQƏDDƏS YERLƏR") 0.07em aralıqla 2px sığmırdı və iki sətrə düşürdü */
 .qm-sn--rail .qm-sn-group-btn { letter-spacing: 0.05em; }
 
+/* ── Panelin öz fonu: yuxarıdan aşağı çox yüngül yaşıl çalar + incə
+   İslami nöqtə naxışı. Sahibin qərarı: bütün qruplar AÇIQ gəlir
+   (SideNav.jsx → DEFAULT_OPEN), ona görə panel uzun bir siyahıdır —
+   fon, yapışqan başlıqlar və kənar işıqları ona ritm verir. ── */
+.qm-sn--rail::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 1px 1px, var(--primary-bg) 1px, transparent 0) 0 0 / 18px 18px,
+    linear-gradient(180deg, var(--primary-bg) 0%, transparent 180px);
+  opacity: 0.9;
+}
+
+/* Panelin məzmunu fonun üstündə qalsın */
+.qm-sn--rail > * { position: relative; z-index: 1; }
+
+/* Panelin sağ kənarı: xətt əvəzinə yuxarısı yaşıl, aşağısı solan zolaq */
+.qm-sn--rail {
+  border-inline-end: 0;
+  box-shadow: inset calc(var(--qm-sn-edge-dir, 1) * -1px) 0 0 var(--border);
+}
+
+.qm-sn--rail::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: 2px;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--gold-light) 22%, transparent 55%);
+  opacity: 0.45;
+}
+
+/* ── Axtarış sahəsi: fokusda yaşıl halqa, üstünə gələndə yüngül qalxır ── */
+.qm-sn--rail .qm-sn-search-wrap {
+  padding: 16px 12px 10px;
+}
+
+.qm-sn--rail .qm-sn-search {
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease,
+    box-shadow 0.18s ease, transform 0.18s var(--ease-out, ease);
+}
+
+.qm-sn--rail .qm-sn-search:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.qm-sn--rail .qm-sn-search:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-bg2);
+}
+
+/* ── Qrup başlığı: sürüşəndə yuxarıda yapışıb qalır ki, uzun siyahıda
+   hansı bölmədə olduğun itməsin. Fon şəffafdır + bulanıqlıq. ── */
+.qm-sn--rail .qm-sn-group-h {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  /* Fon TAM qeyri-şəffafdır: altından sürüşüb keçən sətir başlığın
+     arxasından görünməsin. Yumşaq keçid üçün altına 10px-lik solma qoyulur. */
+  background: var(--qm-sn-bg);
+}
+
+.qm-sn--rail .qm-sn-group-h::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 10px;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--qm-sn-bg), transparent);
+}
+
+/* Başlıqdan əvvəl qısa qızıl-yaşıl tire — bölmələri bir-birindən ayırır */
+.qm-sn--rail .qm-sn-group-btn::before {
+  content: '';
+  flex-shrink: 0;
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--gold-light));
+  opacity: 0.55;
+  transition: width 0.22s var(--qm-sn-ease), opacity 0.22s ease;
+}
+
+.qm-sn--rail .qm-sn-group-btn:hover::before { width: 20px; opacity: 1; }
+.qm-sn--rail .qm-sn-group.has-current .qm-sn-group-btn::before { opacity: 1; }
+
+.qm-sn--rail .qm-sn-group + .qm-sn-group { margin-top: 10px; }
+
+/* ── Sətir: ikon yumşaq kafeldə, üstünə gələndə oxu istiqamətinə sürüşür.
+   Kafel və cari sətir bəzəyi HƏR İKİ rejimdə eynidir (menyuda da, yan
+   paneldə də) — yerdəyişmə (hover) yalnız siçan olan ekranda. ── */
+.qm-sn--rail .qm-sn-item {
+  gap: 10px;
+  padding-inline: 8px 10px;
+  transition:
+    background-color 0.16s ease, color 0.16s ease,
+    transform 0.18s var(--ease-out, ease), box-shadow 0.18s ease;
+}
+
+
+.qm-sn--rail .qm-sn-item:hover {
+  transform: translateX(calc(var(--qm-sn-shift, 1) * 3px));
+}
+
+.qm-sn--rail[dir="rtl"] { --qm-sn-shift: -1; --qm-sn-edge-dir: -1; }
+
+
+/* ── Panel yüklənəndə qruplar növbə ilə yumşaq görünür (--gi, SideNav.jsx).
+   Yalnız bir dəfə — səhifələr arasında keçiddə panel yenidən qurulmur. ── */
+.qm-sn--rail .qm-sn-search-wrap,
+.qm-sn--rail .qm-sn-group {
+  animation: qm-sn-rail-in var(--dur-3, 360ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) backwards;
+  animation-delay: calc(60ms + min(var(--gi, 0), 8) * 45ms);
+}
+
+.qm-sn--rail .qm-sn-search-wrap { animation-delay: 0ms; }
+
+@keyframes qm-sn-rail-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
 /* ── Axtarış sahəsi (düymədir — GlobalSearch dialoqunu açır) ── */
 .qm-sn-search-wrap {
   flex-shrink: 0;
@@ -268,9 +397,14 @@
 
 /* Cari səhifə: yumşaq yaşıl fon + kənarda 3px vurğu xətti */
 .qm-sn-item.is-current {
-  background: var(--primary-bg2);
+  background: linear-gradient(90deg, var(--primary-bg2), transparent 88%);
+  box-shadow: var(--shadow-sm);
   color: var(--primary-dark);
   font-weight: 600;
+}
+
+.qm-sn[dir="rtl"] .qm-sn-item.is-current {
+  background: linear-gradient(270deg, var(--primary-bg2), transparent 88%);
 }
 
 [data-theme="dark"] .qm-sn-item.is-current { color: var(--primary); }
@@ -279,19 +413,37 @@
   content: '';
   position: absolute;
   inset-inline-start: 0;
-  top: 9px;
-  bottom: 9px;
+  top: 7px;
+  bottom: 7px;
   width: 3px;
   border-radius: 3px;
-  background: var(--primary);
+  background: linear-gradient(180deg, var(--primary), var(--gold-light));
 }
 
+/* İkon yumşaq kafeldə oturur (hər iki rejimdə); üstünə gələndə canlanır */
 .qm-sn-item-icon {
   flex-shrink: 0;
-  width: 22px;
-  font-size: 17px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--bg-card2);
+  box-shadow: inset 0 0 0 1px var(--border);
+  font-size: 15px;
   line-height: 1;
-  text-align: center;
+  transition: transform 0.2s var(--ease-spring, ease), background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qm-sn-item:hover .qm-sn-item-icon {
+  transform: scale(1.08) rotate(-3deg);
+  background: var(--primary-bg);
+  box-shadow: inset 0 0 0 1px var(--primary-border);
+}
+
+.qm-sn-item.is-current .qm-sn-item-icon {
+  background: var(--primary-bg2);
+  box-shadow: inset 0 0 0 1px var(--primary-border);
 }
 
 .qm-sn-item-label {
@@ -583,9 +735,12 @@
   font-size: 15px;
 }
 
+/* Barmaq üçün kafel bir az iri (sətir də 46px-dir) */
 .qm-sn--drawer .qm-sn-item-icon {
-  width: 24px;
-  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 17px;
 }
 
 /* Menyu açılanda axtarış, qruplar və alt hissə kənardan bir az sürüşərək
@@ -863,12 +1018,52 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
 }
 
 /* ── Hərəkəti azalt ── */
+/* ── "Hərəkəti azalt" rejimi: sürüşmə YOX, yalnız yumşaq solma ──
+   Əvvəl bu rejimdə menyu heç bir animasiya olmadan birdən açılırdı (Windows-da
+   "Animasiya effektləri" sönülü olanda Chrome məhz bu rejimi bildirir). Apple və
+   Google-un tövsiyəsinə uyğun olaraq sürüşmə solma ilə əvəz olunur: solma baş
+   gicəllənməsi yaratmır, amma açılış yenə hiss olunur. Barmaqla çəkmə zamanı JS
+   inline transform yazır — o, bu qaydaları üstələyir, çəkib-bağlama işləyir. */
 @media (prefers-reduced-motion: reduce) {
-  .qm-sn--drawer,
-  .qm-sn-backdrop,
-  .qm-sn--drawer.is-open .qm-sn-backdrop,
-  .qm-sn--drawer .qm-sn-panel,
-  .qm-sn--drawer.is-open .qm-sn-panel,
+  /* !important: motion.css (§15) bu rejimdə hər elementin keçidini
+     "* { transition-duration: 0s !important }" ilə söndürür — sinif
+     seçiciləri daha dəqiq olduğu üçün buradakı !important qalib gəlir. */
+  .qm-sn--drawer {
+    /* bağlananda solma bitənə qədər görünür qalsın */
+    transition: visibility 0s linear 170ms !important;
+  }
+  .qm-sn--drawer.is-open { transition: visibility 0s linear 0s !important; }
+  .qm-sn--drawer .qm-sn-panel {
+    transform: none;
+    opacity: 0;
+    transition: opacity 170ms ease-in !important;
+  }
+  .qm-sn--drawer.is-open .qm-sn-panel {
+    transform: none;
+    opacity: 1;
+    transition: opacity 240ms ease-out !important;
+  }
+  .qm-sn--drawer .qm-sn-backdrop { transition: opacity 170ms ease-in !important; }
+  .qm-sn--drawer.is-open .qm-sn-backdrop { transition: opacity 240ms ease-out !important; }
+  .qm-sn--drawer.is-dragging .qm-sn-panel,
+  .qm-sn--drawer.is-dragging .qm-sn-backdrop { transition: none !important; }
+  /* Bölmələr sürüşmədən, növbə ilə solaraq görünür */
+  .qm-sn--drawer.is-open .qm-sn-search-wrap,
+  .qm-sn--drawer.is-open .qm-sn-group,
+  .qm-sn--drawer.is-open .qm-sn-foot {
+    animation: qm-sn-fade-in 280ms ease-out backwards !important;
+    animation-delay: calc(80ms + min(var(--gi, 0), 7) * 35ms) !important;
+  }
+  .qm-sn--drawer.is-open .qm-sn-search-wrap { animation-delay: 40ms !important; }
+  .qm-sn--drawer.is-open .qm-sn-foot { animation-delay: 200ms !important; }
+}
+
+@keyframes qm-sn-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .qm-sn-brand-mark,
   .qm-sn-x-line,
   .qm-sn--drawer.is-open .qm-sn-x-line,
@@ -878,9 +1073,6 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
   .qm-sn-tool {
     transition: none;
   }
-  .qm-sn--drawer.is-open .qm-sn-search-wrap,
-  .qm-sn--drawer.is-open .qm-sn-group,
-  .qm-sn--drawer.is-open .qm-sn-foot,
   .qm-sn--drawer .qm-sn-lang.is-current {
     animation: none;
   }
