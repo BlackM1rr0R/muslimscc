@@ -15,8 +15,9 @@
 name: CI/CD
 
 on:
+  # Hər branch-da testlər işləyir; deploy yalnız main-də (aşağıda "deploy" job-unun if-i)
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
   workflow_dispatch:
 
