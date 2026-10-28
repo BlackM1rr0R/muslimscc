@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { brandName } from '../config/mosque'
+import { brandName } from '../config/brand'
 import {
   usePromptSlot,
   useBottomInset,
@@ -24,7 +24,7 @@ import '../styles/InstallBanner.css'
 // ═══════════════════════════════════════════════════════
 
 const LABELS = {
-  az: { install:'Tətbiqi yüklə', desc:'Offline istifadə et, sürətli giriş', close:'Bağla', iosTitle:'iOS-da yükləmək üçün:', iosStep1:'Aşağıdakı paylaş düyməsinə bas ⬆️', iosStep2:'"Ana ekrana əlavə et" seç', installed:'Yükləndi!' },
+  az: { install:'Tətbiqi yüklə', desc:'İnternetsiz istifadə et, sürətli giriş', close:'Bağla', iosTitle:'iOS-da yükləmək üçün:', iosStep1:'Aşağıdakı paylaş düyməsinə bas ⬆️', iosStep2:'"Ana ekrana əlavə et" seç', installed:'Yükləndi!' },
   en: { install:'Install App', desc:'Use offline, fast access', close:'Close', iosTitle:'To install on iOS:', iosStep1:'Tap the share button below ⬆️', iosStep2:'Select "Add to Home Screen"', installed:'Installed!' },
   ru: { install:'Установить', desc:'Работать офлайн, быстрый доступ', close:'Закрыть', iosTitle:'Для установки на iOS:', iosStep1:'Нажмите кнопку "Поделиться" ⬆️', iosStep2:'Выберите "На экран Домой"', installed:'Установлено!' },
   ar: { install:'تثبيت التطبيق', desc:'استخدم بدون إنترنت، وصول سريع', close:'إغلاق', iosTitle:'للتثبيت على iOS:', iosStep1:'اضغط زر المشاركة أدناه ⬆️', iosStep2:'اختر "إضافة إلى الشاشة الرئيسية"', installed:'تم التثبيت!' },

@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
 import { getHeroBanner, saveHeroBanner, HERO_GRADIENTS } from '../../data/adminContent'
+import { pickLang } from '../../utils/pickLang'
+
+// Admin siyahısında əskik dil yer tutucu ilə göstərilir — konsol xəbərdarlığı lazım deyil
+const NOWARN = { warn: false }
 
 const LABELS = {
-  az: { title:'Hero Banner', sub:'Ana səhifədə üstdə görünəcək xüsusi banner', active:'Aktivdir', titleField:'Başlıq', subtitle:'Alt başlıq', ctaText:'Düymə mətni', ctaLink:'Düymə linki', gradient:'Rəng sxemi', save:'Yadda saxla', saved:'Yadda saxlandı!', preview:'Önbaxış' },
-  en: { title:'Hero Banner', sub:'Special banner on top of home page', active:'Active', titleField:'Title', subtitle:'Subtitle', ctaText:'Button text', ctaLink:'Button link', gradient:'Color scheme', save:'Save', saved:'Saved!', preview:'Preview' },
-  ru: { title:'Hero Баннер', sub:'Особый баннер на главной', active:'Активен', titleField:'Заголовок', subtitle:'Подзаголовок', ctaText:'Текст кнопки', ctaLink:'Ссылка', gradient:'Цветовая схема', save:'Сохранить', saved:'Сохранено!', preview:'Предпросмотр' },
-  ar: { title:'بانر رئيسي', sub:'بانر خاص في الصفحة الرئيسية', active:'نشط', titleField:'العنوان', subtitle:'العنوان الفرعي', ctaText:'نص الزر', ctaLink:'رابط الزر', gradient:'مخطط الألوان', save:'حفظ', saved:'تم الحفظ!', preview:'معاينة' },
-  tr: { title:'Hero Banner', sub:'Ana sayfa üst banner', active:'Aktif', titleField:'Başlık', subtitle:'Alt başlık', ctaText:'Düğme metni', ctaLink:'Düğme bağlantısı', gradient:'Renk şeması', save:'Kaydet', saved:'Kaydedildi!', preview:'Önizleme' },
+  az: { title:'Ana səhifə lövhəsi', sub:'Ana səhifənin yuxarısında görünəcək xüsusi lövhə', empty:'(Boş)', inactive:'(Deaktiv)', noText:'(bu dildə mətn yoxdur)', active:'Aktivdir', titleField:'Başlıq', subtitle:'Alt başlıq', ctaText:'Düymə mətni', ctaLink:'Düymə linki', gradient:'Rəng sxemi', save:'Yadda saxla', saved:'Yadda saxlandı!', preview:'Önbaxış' },
+  en: { title:'Hero banner', sub:'Special banner at the top of the home page', empty:'(Empty)', inactive:'(Inactive)', noText:'(no text in this language)', active:'Active', titleField:'Title', subtitle:'Subtitle', ctaText:'Button text', ctaLink:'Button link', gradient:'Color scheme', save:'Save', saved:'Saved!', preview:'Preview' },
+  ru: { title:'Главный баннер', sub:'Особый баннер вверху главной страницы', empty:'(Пусто)', inactive:'(Неактивен)', noText:'(нет текста на этом языке)', active:'Активен', titleField:'Заголовок', subtitle:'Подзаголовок', ctaText:'Текст кнопки', ctaLink:'Ссылка', gradient:'Цветовая схема', save:'Сохранить', saved:'Сохранено!', preview:'Предпросмотр' },
+  ar: { title:'بانر رئيسي', sub:'بانر خاص في أعلى الصفحة الرئيسية', empty:'(فارغ)', inactive:'(غير نشط)', noText:'(لا يوجد نص بهذه اللغة)', active:'نشط', titleField:'العنوان', subtitle:'العنوان الفرعي', ctaText:'نص الزر', ctaLink:'رابط الزر', gradient:'مخطط الألوان', save:'حفظ', saved:'تم الحفظ!', preview:'معاينة' },
+  tr: { title:'Ana afiş', sub:'Ana sayfanın üstünde görünecek özel afiş', empty:'(Boş)', inactive:'(Pasif)', noText:'(bu dilde metin yok)', active:'Aktif', titleField:'Başlık', subtitle:'Alt başlık', ctaText:'Düğme metni', ctaLink:'Düğme bağlantısı', gradient:'Renk şeması', save:'Kaydet', saved:'Kaydedildi!', preview:'Önizleme' },
 }
 
 const LANGS = ['az','en','ru','ar','tr']
@@ -40,6 +44,9 @@ export default function HeroBannerManager() {
   }
 
   const selectedGradient = HERO_GRADIENTS.find(g => g.key === hero.gradient) || HERO_GRADIENTS[0]
+  const heroTitle = pickLang(hero.title, lang, NOWARN)
+  // Başqa dildə başlıq varsa "boş" deyil — bu dildə mətn yoxdur
+  const filled = Object.values(hero.title || {}).some(v => typeof v === 'string' && v.trim())
 
   return (
     <div>
@@ -63,14 +70,15 @@ export default function HeroBannerManager() {
           opacity: hero.active ? 1 : 0.5,
         }}>
           <h2 style={{fontSize:28, fontWeight:800, margin:'0 0 8px', letterSpacing:-0.5}}>
-            {hero.title[lang] || hero.title.en || (hero.active ? '(Boş)' : '(Deaktiv)')}
+            {/* Önbaxış yalnız cari dildə — başqa dilin mətni göstərilmir */}
+            {heroTitle || (!hero.active ? l.inactive : filled ? l.noText : l.empty)}
           </h2>
           <p style={{fontSize:15, opacity:0.9, margin:'0 0 16px'}}>
-            {hero.subtitle[lang] || hero.subtitle.en || ''}
+            {pickLang(hero.subtitle, lang, NOWARN)}
           </p>
-          {(hero.ctaText[lang] || hero.ctaText.en) && (
+          {pickLang(hero.ctaText, lang, NOWARN) && (
             <button style={{background:'#fff', color:selectedGradient.colors[1], border:'none', padding:'10px 24px', borderRadius:999, fontWeight:800, fontSize:14}}>
-              {hero.ctaText[lang] || hero.ctaText.en}
+              {pickLang(hero.ctaText, lang, NOWARN)}
             </button>
           )}
         </div>
@@ -99,18 +107,18 @@ export default function HeroBannerManager() {
         <div className="admin-form">
           <div className="admin-input-group">
             <label className="admin-input-label">{l.titleField} ({formLang.toUpperCase()})</label>
-            <input type="text" className="admin-input" value={hero.title[formLang]} onChange={(e) => updateText('title', formLang, e.target.value)} placeholder={l.titleField} />
+            <input type="text" className="admin-input" value={hero.title?.[formLang] || ''} onChange={(e) => updateText('title', formLang, e.target.value)} placeholder={l.titleField} />
           </div>
 
           <div className="admin-input-group">
             <label className="admin-input-label">{l.subtitle} ({formLang.toUpperCase()})</label>
-            <input type="text" className="admin-input" value={hero.subtitle[formLang]} onChange={(e) => updateText('subtitle', formLang, e.target.value)} placeholder={l.subtitle} />
+            <input type="text" className="admin-input" value={hero.subtitle?.[formLang] || ''} onChange={(e) => updateText('subtitle', formLang, e.target.value)} placeholder={l.subtitle} />
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
               <label className="admin-input-label">{l.ctaText} ({formLang.toUpperCase()})</label>
-              <input type="text" className="admin-input" value={hero.ctaText[formLang]} onChange={(e) => updateText('ctaText', formLang, e.target.value)} placeholder={l.ctaText} />
+              <input type="text" className="admin-input" value={hero.ctaText?.[formLang] || ''} onChange={(e) => updateText('ctaText', formLang, e.target.value)} placeholder={l.ctaText} />
             </div>
             <div className="admin-input-group">
               <label className="admin-input-label">{l.ctaLink}</label>
@@ -142,7 +150,7 @@ export default function HeroBannerManager() {
                     </span>
                   )}
                   <span style={{position:'absolute', bottom:6, left:0, right:0, color:'#fff', fontSize:11, fontWeight:800, textShadow:'0 1px 2px rgba(0,0,0,0.3)'}}>
-                    {g.label}
+                    {g.label[lang]}
                   </span>
                 </button>
               ))}

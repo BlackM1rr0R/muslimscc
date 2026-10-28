@@ -9,6 +9,16 @@ import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn } from '../components/Animated';
 import { subscribeToEvents } from '../data/adminContent';
+import { pickLang } from '../utils/pickLang';
+
+// Hadisə növünün adı — veb data/adminContent.js EVENT_TYPES ilə eyni (kod açarı ekranda göstərilmir)
+const EVENT_TYPE_LABELS = {
+  major:  { az:'Əsas', en:'Major', ru:'Главный', ar:'رئيسي', tr:'Ana' },
+  sunnah: { az:'Sünnə', en:'Sunnah', ru:'Сунна', ar:'سنة', tr:'Sünnet' },
+  night:  { az:'Gecə', en:'Night', ru:'Ночь', ar:'ليلة', tr:'Gece' },
+  hajj:   { az:'Həcc', en:'Hajj', ru:'Хадж', ar:'حج', tr:'Hac' },
+  fast:   { az:'Oruc', en:'Fasting', ru:'Пост', ar:'صيام', tr:'Oruç' },
+};
 
 const EVENTS = {
   1: [
@@ -29,7 +39,7 @@ const EVENTS = {
     { day:1, type:'major', color:'#10b981', az:'Ramazan Bayramı', en:'Eid al-Fitr', ru:'Ид аль-Фитр', ar:'عيد الفطر', tr:'Ramazan Bayramı' },
   ],
   12: [
-    { day:8, type:'hajj', color:'#f97316', az:'Terviye günü', en:'Day of Tarwiyah', ru:'День Тарвия', ar:'يوم التروية', tr:'Terviye Günü' },
+    { day:8, type:'hajj', color:'#f97316', az:'Tərviyə günü', en:'Day of Tarwiyah', ru:'День Тарвия', ar:'يوم التروية', tr:'Terviye Günü' },
     { day:9, type:'hajj', color:'#f97316', az:'Ərəfə günü', en:'Day of Arafah', ru:'День Арафат', ar:'يوم عرفة', tr:'Arefe Günü' },
     { day:10, type:'major', color:'#ef4444', az:'Qurban Bayramı', en:'Eid al-Adha', ru:'Ид аль-Адха', ar:'عيد الأضحى', tr:'Kurban Bayramı' },
   ],
@@ -41,6 +51,9 @@ const MONTH_GRADIENTS = [
   ['#ec4899','#db2777'],['#06b6d4','#0891b2'],['#f97316','#ea580c'],['#14b8a6','#0d9488'],
   ['#ef4444','#dc2626'],['#a855f7','#9333ea'],['#84cc16','#65a30d'],['#6366f1','#4f46e5'],
 ];
+
+// Hicri il — hər dilin öz qısaltması ilə (h. / AH / г. х. / هـ / H.)
+const HIJRI_YEAR_LABEL = { az:'1447 h.', en:'1447 AH', ru:'1447 г. х.', ar:'١٤٤٧ هـ', tr:'1447 H.' };
 
 export default function CalendarScreen() {
   const { lang, dark } = useLang();
@@ -66,13 +79,12 @@ export default function CalendarScreen() {
       day: Number(e.day) || 1,
       type: e.type || 'major',
       color: e.color || '#10b981',
-      az: e.title?.az || e.title?.en || '',
-      en: e.title?.en || '',
-      ru: e.title?.ru || '',
-      ar: e.title?.ar || '',
-      tr: e.title?.tr || '',
+      // Admin paneli adı "name" sahəsində saxlayır (köhnə qeydlərdə "title");
+      // cari dildə ad yoxdursa hadisə bu dildə göstərilmir — başqa dilə düşmür
+      [lang]: pickLang(e.name || e.title, lang),
       isCustom: true,
     }))
+    .filter(e => e[lang])
   const events = [...customForMonth, ...staticEvents].sort((a, b) => a.day - b.day);
 
   return (
@@ -95,7 +107,7 @@ export default function CalendarScreen() {
               <Text style={styles.currentNumText}>{selMonth}</Text>
             </View>
             <Text style={styles.currentMonthName}>{t.months[selMonth - 1]}</Text>
-            <Text style={styles.currentYear}>{lang==='ar'?'هـ ١٤٤٧':'1447 AH'}</Text>
+            <Text style={styles.currentYear}>{HIJRI_YEAR_LABEL[lang] || HIJRI_YEAR_LABEL.az}</Text>
             <View style={styles.currentEventCount}>
               <AppIcon name="calendar" size={14} color="#fff" />
               <Text style={styles.currentEventCountText}>
@@ -177,8 +189,8 @@ export default function CalendarScreen() {
                       {lang==='az'?'Gün':lang==='ru'?'День':lang==='ar'?'يوم':lang==='tr'?'Gün':'Day'} {event.day}
                     </Text>
                   </View>
-                  <Text style={[styles.eventName, { color: c.text }]}>{event[lang] || event.en}</Text>
-                  <Text style={[styles.eventType, { color: c.textMuted }]}>{event.type.toUpperCase()}</Text>
+                  <Text style={[styles.eventName, { color: c.text }]}>{event[lang]}</Text>
+                  <Text style={[styles.eventType, { color: c.textMuted }]}>{(EVENT_TYPE_LABELS[event.type]?.[lang] || '').toUpperCase()}</Text>
                 </View>
               </View>
             </FadeUp>

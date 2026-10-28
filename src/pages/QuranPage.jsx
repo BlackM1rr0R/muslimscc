@@ -1,11 +1,21 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
-import { SURAH_AZ } from '../data/surahNamesAz'
+import { SURAH_AZ, getSurahLocal } from '../data/surahNamesAz'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/QuranPage.css'
 
+// Hər dilin ÖZ tərcümə nəşri. Nəşr alınmasa başqa dilə (ingilis/türk)
+// DÜŞMÜRÜK — dürüst xəta + "Yenidən cəhd et" göstərilir.
 const EDITION_MAP = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', ar:'ar.muyassar', tr:'tr.diyanet' }
+
+const RETRY_LABELS = {
+  az: { msg:'Surə yüklənmədi. İnternet bağlantısını yoxlayın.', retry:'Yenidən cəhd et' },
+  en: { msg:'The surah could not be loaded. Please check your connection.', retry:'Try again' },
+  ru: { msg:'Не удалось загрузить суру. Проверьте подключение к интернету.', retry:'Повторить' },
+  ar: { msg:'تعذّر تحميل السورة. تحقّق من الاتصال بالإنترنت.', retry:'أعد المحاولة' },
+  tr: { msg:'Sure yüklenemedi. İnternet bağlantınızı kontrol edin.', retry:'Tekrar dene' },
+}
 
 const SEARCH_LABELS = {
   az: { surahSearch: 'Surə axtar', verseSearch: 'Ayə axtar', searching: 'Axtarılır...', noResults: 'Nəticə tapılmadı', result: 'nəticə' },
@@ -117,15 +127,23 @@ const REVELATION = {
 }
 const revelationLabel = (type, lang) => (REVELATION[lang] || REVELATION.en)[type] || type
 
-// ── Surənin adı cari dildə ──
-// az: yerli yazılış (SURAH_AZ); ar: API-dəki ərəb adı, "سُورَةُ" sözü olmadan;
-// qalan dillər: API-nin latın transliterasiyası.
+// ── Surənin adı və mənası cari dildə ──
+// az/ru/tr: yerli yazılış (surahNamesAz.js — SURAH_AZ/RU/TR); ar: API-dəki
+// ərəb adı, "سُورَةُ" sözü olmadan; en: API-nin transliterasiyası və mənası.
+// (Əvvəl ru/tr-də ingiliscə məna — "The Opening" — görünürdü.)
 const stripSurahWord = name => String(name || '').replace(/^سُورَةُ\s+/, '')
 function surahTitle(s, lang) {
   if (!s) return ''
-  if (lang === 'az' && SURAH_AZ[s.number]) return SURAH_AZ[s.number].name
+  const local = getSurahLocal(s.number, lang)
+  if (local) return local.name
   if (lang === 'ar') return stripSurahWord(s.name)
   return s.englishName
+}
+function surahMeaning(s, lang) {
+  if (!s || lang === 'ar') return ''
+  const local = getSurahLocal(s.number, lang)
+  if (local) return local.meaning
+  return lang === 'en' ? s.englishNameTranslation : ''
 }
 
 // i18n sətirlərində ox mətnin içindədir ("← Geri", "Növbəti →"). Oxu atıb
@@ -165,13 +183,14 @@ function useQuranList() {
   return { surahs, loading, error }
 }
 
-function useSurah(num, lang) {
+function useSurah(num, lang, attempt = 0) {
   const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
-  const edition = EDITION_MAP[lang] || 'en.asad'
+  const edition = EDITION_MAP[lang]
   useEffect(() => {
     if (!num) return
+    if (!edition) { setError('no-edition'); return }
     // Tez-tez "Növbəti" basılanda köhnə cavab yenisinin üstünə yazılmasın
     let cancelled = false
     setLoading(true); setData(null); setError(null)
@@ -180,7 +199,11 @@ function useSurah(num, lang) {
       .then(r => r.json())
       .then(d => {
         if (cancelled) return
-        const [arabic, trans] = d.data
+        const [arabic, trans] = Array.isArray(d?.data) ? d.data : []
+        // Tərcümə məhz seçilmiş dilin nəşrindən gəlməlidir; gəlmədisə xəta
+        if (!arabic?.ayahs || trans?.edition?.identifier !== edition || trans.ayahs?.length !== arabic.ayahs.length) {
+          throw new Error('edition-unavailable')
+        }
         setData({ ...arabic, verses: arabic.ayahs.map((v,i) => {
           // Fatihənin 1-ci ayəsi BOM (U+FEFF) ilə başlayır
           const text = v.text.replace(/^\uFEFF/, '')
@@ -195,7 +218,7 @@ function useSurah(num, lang) {
       .catch(e => { if (!cancelled) setError(e.message) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [num, lang])
+  }, [num, lang, attempt])
   return { data, loading, error }
 }
 
@@ -318,7 +341,9 @@ export default function QuranPage({ setPage }) {
   const [showTrans, setShowTrans] = useState(true)
   const [showTafsir, setShowTafsir] = useState(false)
   const [fontSize,  setFontSize]  = useState(1.65)
-  const { data: surah, loading: surahLoading, error: surahError } = useSurah(selected, lang)
+  const [attempt, setAttempt] = useState(0)
+  const { data: surah, loading: surahLoading, error: surahError } = useSurah(selected, lang, attempt)
+  const rl = RETRY_LABELS[lang] || RETRY_LABELS.az
   const sl = SEARCH_LABELS[lang] || SEARCH_LABELS.az
   const st = STATS_LABELS[lang] || STATS_LABELS.az
   const fl = FONT_LABELS[lang] || FONT_LABELS.az
@@ -334,7 +359,8 @@ export default function QuranPage({ setPage }) {
     setVerseSearching(true)
     if (verseTimerRef.current) clearTimeout(verseTimerRef.current)
     verseTimerRef.current = setTimeout(() => {
-      const edition = EDITION_MAP[lang] || 'en.asad'
+      // Axtarış seçilmiş dilin nəşrində aparılır (başqa dilə düşmür)
+      const edition = EDITION_MAP[lang]
       fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(verseSearch)}/all/${edition}`)
         .then(r => r.json())
         .then(d => {
@@ -378,11 +404,12 @@ export default function QuranPage({ setPage }) {
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
     return surahs.filter(s => {
-      const az = SURAH_AZ[s.number]
+      // Bütün yazılışlarda axtar (az/ru/tr adları, ingiliscə, ərəbcə, nömrə)
+      const locals = ['az', 'ru', 'tr'].map(l => getSurahLocal(s.number, l)).filter(Boolean)
       const matchQ = !q || s.englishName.toLowerCase().includes(q) ||
         s.name.includes(search) || String(s.number).includes(q) ||
         s.englishNameTranslation.toLowerCase().includes(q) ||
-        (az && (az.name.toLowerCase().includes(q) || az.meaning.toLowerCase().includes(q)))
+        locals.some(x => x.name.toLowerCase().includes(q) || x.meaning.toLowerCase().includes(q))
       const matchF = filter === 'all' ||
         (filter === 'meccan' && s.revelationType === 'Meccan') ||
         (filter === 'medinan' && s.revelationType === 'Medinan')
@@ -400,8 +427,7 @@ export default function QuranPage({ setPage }) {
     const prevLabel = stripArrows(t.prevSurah)
     const nextLabel = stripArrows(t.nextSurah)
     const bmLabel = BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en
-    const rawMeaning = !ready ? '' : lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].meaning
-      : lang === 'ar' ? '' : surah.englishNameTranslation
+    const rawMeaning = !ready ? '' : surahMeaning(surah, lang)
     // Məna adla eynidirsə (məs. "Yasin") təkrarlamırıq
     const meaning = ready && rawMeaning !== surahTitle(surah, lang) ? rawMeaning : ''
     return (
@@ -441,7 +467,12 @@ export default function QuranPage({ setPage }) {
             </button>
           </div>
         </div>
-        {surahError && <div className="error-box">⚠️ {t.error}</div>}
+        {surahError && (
+          <div className="error-box" role="alert">
+            ⚠️ {rl.msg}{' '}
+            <button type="button" className="btn-ghost" onClick={() => setAttempt(a => a + 1)}>{rl.retry}</button>
+          </div>
+        )}
         {!ready && !surahError && (
           <>
             <div className="spinner-wrap q-spinner"><div className="spinner"/><span className="spinner-text">{t.loading}</span></div>
@@ -588,12 +619,11 @@ export default function QuranPage({ setPage }) {
               <div className="surah-grid">
                 {filtered.map((s,i) => {
                   const isAr = lang === 'ar'
-                  const az = lang === 'az' ? SURAH_AZ[s.number] : null
                   const displayName = surahTitle(s, lang)
                   // ərəbcədə ingiliscə məna yox, "7 آيات · مكية"
                   const displayMeta = isAr
                     ? `${s.numberOfAyahs} ${t.verses} · ${revelationLabel(s.revelationType, lang)}`
-                    : `${az ? az.meaning : s.englishNameTranslation} · ${s.numberOfAyahs} ${t.verses}`
+                    : [surahMeaning(s, lang), `${s.numberOfAyahs} ${t.verses}`].filter(Boolean).join(' · ')
                   return (
                     // --i: növbə indeksi. Kompüterdə əvvəlki kimi 20ms addım (≤400ms);
                     // telefonda ilk 8 xana 40ms aralıqla (QuranPage.css)

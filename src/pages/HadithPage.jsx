@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { brandName } from '../config/mosque'
+import { brandName } from '../config/brand'
 import { T } from '../data/i18n'
 import { HADITHS } from '../data/hadiths'
 import { subscribeToHadiths } from '../data/adminContent'
@@ -9,6 +9,7 @@ import { uniqueHadithsFor, hadithAliases, staticHadithKeys, hadithKeys, dedupeLi
 import Pagination from '../components/Pagination'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/HadithPage.css'
+import { pickLang } from '../utils/pickLang'
 
 const CATS_AZ = ['Hamısı','İman','Əxlaq','İbadət','Namaz','Quran','Elm','Oruc','Zəkat','Zikr','Sədəqə','Səbr','Dünya','Axirət','Salavat','Müsafirlik']
 const CATS_EN = ['All','Faith','Character','Worship','Prayer','Quran','Knowledge','Fasting','Zakat','Dhikr','Charity','Patience','World','Afterlife','Salawat','Travel']
@@ -170,12 +171,15 @@ export default function HadithPage({ setPage }) {
     return customHadiths.map(h => ({
       id: h.id,
       ar: h.ar || '',
-      text: h.text?.[lang] || h.text?.en || '',
+      // Tərcümə yalnız cari dildə — başqa dilə (ingiliscə daxil) düşmür
+      text: pickLang(h.text, lang),
       source: h.source || '',
       cat: h.category || 'general',
       _az: h.text?.az || '',
       _custom: true,
     }))
+      // Cari dildə tərcüməsi olmayan admin hədisi bu dildə göstərilmir
+      .filter(h => h.text || (lang === 'ar' && h.ar))
   }, [customHadiths, lang])
 
   // Yerli siyahı təkrarsız (utils/uniqueHadiths): 2000 qeyddə eyni hədis

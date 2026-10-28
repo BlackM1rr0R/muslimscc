@@ -29,7 +29,7 @@ api/node_modules/
 *.sw?
 
 # Backend server + secrets — NEVER commit
-server.js
+# server.js artıq server/ qovluğunda izlənir (sirr yoxdur — hamısı env-dən)
 ecosystem.config.js
 secret*.json
 serviceAccount*.json
@@ -49,3 +49,8 @@ scripts/social/.env
 scripts/social/out/
 scripts/social/log/
 scripts/social/state/
+
+# Playwright çıxışları
+test-results/
+playwright-report/
+blob-report/

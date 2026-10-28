@@ -1,9 +1,8 @@
 /* ══════════════════════════════════════════════
-   JamaatPage.css — Namaz və camaat vaxtları (/jamaat)
+   JamaatPage.css — Camaat və Cümə namazı (/jamaat)
    Yalnız globals.css dəyişənləri — qaranlıq rejim avtomatik işləyir.
-   Qeyd: admin JamaatManager.css də "jm-" prefiksindən istifadə edir —
-   orada olan sinif adları (jm-row, jm-row-name, jm-status...) burada
-   qəsdən işlədilmir ki, üslublar bir-birinə qarışmasın.
+   Fəzilət kartları (jm-v*) components/VirtueCards.jsx-dədir və /donate
+   səhifəsində də istifadə olunur.
    ══════════════════════════════════════════════ */
 
 /* Hero rəngi — yaşıldan gecə mavisinə (günün vaxtları) */
@@ -364,6 +363,20 @@
 .jm-li.is-passed .jm-li-title,
 .jm-li.is-passed .jm-li-time { color: var(--text-muted); }
 .jm-li.is-passed .jm-li-icon { opacity: .7; }
+
+/* Kartın alt qeydindəki mətn-düymə ("Şəhəri dəyiş") */
+.jm-inline-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.jm-inline-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
 
 /* Kartın alt qeydi */
 .jm-foot {

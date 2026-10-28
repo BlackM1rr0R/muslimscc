@@ -10,7 +10,9 @@ import { HADITHS, subscribeToCustomHadiths } from '../data/hadiths';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, PressableCard, HeartBeat } from '../components/Animated';
-import { brandName, BRAND } from '../config/mosque';
+import { BRAND } from '../config/brand';
+import { localizeSource } from '../utils/sourceNames';
+import { pickLang } from '../utils/pickLang';
 
 const CATS = {
   az:['Hamısı','İman','Əxlaq','İbadət','Namaz','Quran','Elm','Oruc','Zəkat','Zikr','Sədəqə','Səbr','Dünya','Axirət','Salavat','Səfər','Ailə'],
@@ -101,7 +103,8 @@ function HadithCard({ h, favs, toggleFav, shareHadith, expanded, setExpanded, t,
         </View>
       )}
 
-      {/* Translation toggle */}
+      {/* Translation toggle — tərcümə yoxdursa (ar: orijinal onsuz da göstərilir) düymə də yoxdur */}
+      {h.text ? (
       <TouchableOpacity
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -115,23 +118,26 @@ function HadithCard({ h, favs, toggleFav, shareHadith, expanded, setExpanded, t,
           {isOpen ? t.hideTrans : t.showTrans}
         </Text>
       </TouchableOpacity>
+      ) : null}
 
       {/* Translation */}
-      {isOpen && (
+      {isOpen && h.text ? (
         <FadeUp duration={300}>
           <View style={styles.translationBox}>
             <Text style={[styles.translationText, { color: c.textSecondary }]}>{h.text}</Text>
           </View>
         </FadeUp>
-      )}
+      ) : null}
 
-      {/* Footer */}
+      {/* Footer — mənbə cari dildə (Buxari → Bukhari / Бухари …) */}
+      {h.source ? (
       <View style={[styles.hadithFooter, { borderTopColor: c.border }]}>
         <View style={[styles.sourceBadge, { backgroundColor: c.goldBg, borderColor: c.gold + '30' }]}>
           <AppIcon name="bookmark" size={12} color={c.gold} />
-          <Text style={[styles.sourceText, { color: c.gold }]}>{h.source}</Text>
+          <Text style={[styles.sourceText, { color: c.gold }]}>{localizeSource(h.source, lang)}</Text>
         </View>
       </View>
+      ) : null}
     </View>
   );
 }
@@ -153,10 +159,11 @@ export default function HadithScreen() {
       const mapped = (items || []).map(h => ({
         id: 'custom-' + h.id,
         cat: h.category || h.cat || 'Faith',
-        text: h.text?.[lang] || h.text?.en || h.translation?.[lang] || '',
+        // Tərcümə yalnız seçilmiş dildə — əskikdirsə başqa dilə (ingiliscə daxil) düşmür
+        text: lang === 'ar' ? '' : (pickLang(h.text, lang) || pickLang(h.translation, lang)),
         ar: h.ar || h.arabic || '',
-        source: h.source || h.reference || 'Admin',
-      })).filter(h => h.text)
+        source: h.source || h.reference || '',
+      })).filter(h => h.text || (lang === 'ar' && h.ar))
       setCustomHadiths(mapped)
     })
     return () => unsubscribe?.()
@@ -205,7 +212,8 @@ export default function HadithScreen() {
   const paged = filtered.slice(0, (page + 1) * PER_PAGE);
 
   const shareHadith = async (h) => {
-    try { await Share.share({ message: `${h.ar}\n\n${h.text}\n\n— ${h.source}\n\n${brandName(lang)} · ${BRAND.domain}` }); } catch {}
+    const src = localizeSource(h.source, lang);
+    try { await Share.share({ message: [h.ar, h.text, src && `— ${src}`, BRAND.domain].filter(Boolean).join('\n\n') }); } catch {}
   };
 
   return (

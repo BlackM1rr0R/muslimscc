@@ -6,6 +6,8 @@ import Pagination from '../components/Pagination'
 import { useBackToClose } from '../utils/useBackToClose'
 import { useSheetDrag } from '../hooks/useSheetDrag'
 import '../styles/VideosPage.css'
+// Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
+import { pickLang, hasLang } from '../utils/pickLang'
 
 const LABELS = {
   az: { title:'Video Kitabxana', subtitle:'İslami mühazirələr, Quran tilavətləri və daha çox', search:'Video axtar...', all:'Hamısı', featured:'Seçilmişlər', latest:'Ən son', allVideos:'Bütün videolar', moreVideos:'Digər videolar', filter:'Filtr', noResults:'Video tapılmadı', loading:'Yüklənir...', videos:'video', watchNow:'İndi izlə', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
@@ -42,7 +44,9 @@ export default function VideosPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
 
-  const [videos, setVideos] = useState([])
+  const [allVideos, setVideos] = useState([])
+  // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)
+  const videos = useMemo(() => allVideos.filter(v => hasLang(v.title, lang)), [allVideos, lang])
   const [loading, setLoading] = useState(true)
   const [selectedCat, setSelectedCat] = useState('all')
   const [search, setSearch] = useState('')
@@ -86,8 +90,8 @@ export default function VideosPage({ setPage }) {
     if (search.trim()) {
       const q = search.toLowerCase()
       list = list.filter(v => {
-        const title = (v.title?.[lang] || v.title?.en || '').toLowerCase()
-        const desc = (v.description?.[lang] || v.description?.en || '').toLowerCase()
+        const title = (pickLang(v.title, lang) || '').toLowerCase()
+        const desc = (pickLang(v.description, lang, { warn: false }) || '').toLowerCase()
         return title.includes(q) || desc.includes(q)
       })
     }
@@ -153,7 +157,7 @@ export default function VideosPage({ setPage }) {
 
   const handleShare = async (v) => {
     const url = `https://www.youtube.com/watch?v=${v.youtubeId}`
-    const title = v.title?.[lang] || v.title?.en
+    const title = pickLang(v.title, lang)
     if (navigator.share) {
       try { await navigator.share({ title, url }) } catch {}
     } else {
@@ -222,7 +226,7 @@ export default function VideosPage({ setPage }) {
                     <div className="vp-featured-thumb">
                       <img
                         src={getThumbnail(v.youtubeId)}
-                        alt={v.title?.[lang] || v.title?.en}
+                        alt={pickLang(v.title, lang)}
                         onError={(e) => e.target.src = `https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`}
                         loading="lazy"
                       />
@@ -231,7 +235,7 @@ export default function VideosPage({ setPage }) {
                       </div>
                       {cat && (
                         <div className="vp-featured-cat" style={{background: cat.color}}>
-                          {cat.label[lang] || cat.label.en}
+                          {cat.label[lang]}
                         </div>
                       )}
                       {v.duration && v.duration !== '—' && (
@@ -239,9 +243,9 @@ export default function VideosPage({ setPage }) {
                       )}
                     </div>
                     <div className="vp-featured-body">
-                      <h3>{v.title?.[lang] || v.title?.en}</h3>
-                      {(v.description?.[lang] || v.description?.en) && (
-                        <p>{v.description[lang] || v.description.en}</p>
+                      <h3>{pickLang(v.title, lang)}</h3>
+                      {(pickLang(v.description, lang, { warn: false })) && (
+                        <p>{pickLang(v.description, lang, { warn: false })}</p>
                       )}
                     </div>
                   </article>
@@ -278,7 +282,7 @@ export default function VideosPage({ setPage }) {
                   onClick={() => setSelectedCat(cat.key)}
                   style={active ? activeStyle : { '--cat-color': cat.key === 'all' ? 'var(--primary)' : cat.color }}
                 >
-                  <span>{cat.label[lang] || cat.label.en}</span>
+                  <span>{cat.label[lang]}</span>
                   <span className="vp-cat-count">{count}</span>
                 </button>
               )
@@ -324,14 +328,14 @@ export default function VideosPage({ setPage }) {
                     <div className="vp-thumb">
                       <img
                         src={getThumbnail(v.youtubeId)}
-                        alt={v.title?.[lang] || v.title?.en}
+                        alt={pickLang(v.title, lang)}
                         onError={(e) => e.target.src = `https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`}
                         loading="lazy"
                       />
                       <div className="vp-play-btn">▶</div>
                       {cat && (
                         <div className="vp-cat-badge" style={{color: cat.color}}>
-                          {cat.label[lang] || cat.label.en}
+                          {cat.label[lang]}
                         </div>
                       )}
                       {v.duration && v.duration !== '—' && (
@@ -339,9 +343,9 @@ export default function VideosPage({ setPage }) {
                       )}
                     </div>
                     <div className="vp-body">
-                      <h3 className="vp-title">{v.title?.[lang] || v.title?.en}</h3>
-                      {(v.description?.[lang] || v.description?.en) && (
-                        <p className="vp-desc">{v.description[lang] || v.description.en}</p>
+                      <h3 className="vp-title">{pickLang(v.title, lang)}</h3>
+                      {(pickLang(v.description, lang, { warn: false })) && (
+                        <p className="vp-desc">{pickLang(v.description, lang, { warn: false })}</p>
                       )}
                       <div className="vp-actions">
                         <button className="vp-watch-btn" onClick={(e) => { e.stopPropagation(); setPlayingVideo(v) }}>
@@ -378,7 +382,7 @@ export default function VideosPage({ setPage }) {
             ref={sheetRef}
             role="dialog"
             aria-modal="true"
-            aria-label={playingVideo.title?.[lang] || playingVideo.title?.en}
+            aria-label={pickLang(playingVideo.title, lang)}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Telefonda tutacaq — aşağı çəkib bağlamaq (kompüterdə gizli) */}
@@ -391,15 +395,15 @@ export default function VideosPage({ setPage }) {
                 className="vp-modal-iframe"
                 src={getEmbedUrl(playingVideo.youtubeId)}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                title={playingVideo.title?.[lang] || playingVideo.title?.en}
+                title={pickLang(playingVideo.title, lang)}
                 loading="lazy"
                 referrerPolicy="strict-origin-when-cross-origin"
               />
             </div>
             <div className="vp-modal-info">
-              <h3>{playingVideo.title?.[lang] || playingVideo.title?.en}</h3>
-              {(playingVideo.description?.[lang] || playingVideo.description?.en) && (
-                <p>{playingVideo.description[lang] || playingVideo.description.en}</p>
+              <h3>{pickLang(playingVideo.title, lang)}</h3>
+              {(pickLang(playingVideo.description, lang, { warn: false })) && (
+                <p>{pickLang(playingVideo.description, lang, { warn: false })}</p>
               )}
             </div>
           </div>

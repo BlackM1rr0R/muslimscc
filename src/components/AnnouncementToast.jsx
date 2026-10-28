@@ -74,10 +74,12 @@ function safeLink(link) {
   return typeof link === 'string' && /^https?:\/\//i.test(link.trim()) ? link.trim() : ''
 }
 
+// Yalnız cari dil: elan bu dildə yazılmayıbsa göstərilmir (başqa dilin
+// mətni səhifəyə "sızmasın" — /announcements ilə eyni qayda)
 function pick(obj, lang) {
   if (!obj) return ''
   if (typeof obj === 'string') return obj
-  return obj[lang] || obj.az || obj.en || ''
+  return typeof obj[lang] === 'string' ? obj[lang] : ''
 }
 
 export default function AnnouncementToast() {

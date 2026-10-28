@@ -10,20 +10,13 @@ import { T } from '../data/i18n';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, FadeIn, ScaleIn, Float, Pulse, PressableCard, AnimatedNumber, BreathingDot, AnimatedProgressBar } from '../components/Animated';
-import { subscribeToSettings } from '../data/adminContent';
+import { PRAYER_CITIES, usePrayerLocation, setPrayerCity } from '../services/prayerLocation';
+import { tr } from '../config/brand';
 
-const CITIES = [
-  { name: 'Bakı', city: 'Baku', country: 'Azerbaijan' },
-  { name: 'İstanbul', city: 'Istanbul', country: 'Turkey' },
-  { name: 'Məkkə', city: 'Makkah', country: 'Saudi Arabia' },
-  { name: 'Mədinə', city: 'Madinah', country: 'Saudi Arabia' },
-  { name: 'Qahirə', city: 'Cairo', country: 'Egypt' },
-  { name: 'Dubai', city: 'Dubai', country: 'UAE' },
-  { name: 'Ankara', city: 'Ankara', country: 'Turkey' },
-  { name: 'Moskva', city: 'Moscow', country: 'Russia' },
-  { name: 'London', city: 'London', country: 'UK' },
-  { name: 'New York', city: 'New York', country: 'US' },
-];
+// Şəhərlər — tətbiqin ortaq siyahısı və seçimi (services/prayerLocation).
+// Burada seçilən şəhər ana səhifənin namaz kartına, "Camaat və Cümə namazı"
+// ekranına və namaz bildirişlərinə də tətbiq olunur. İstifadəçi seçməyibsə
+// admin paneldəki standart şəhər (Settings → defaultCity), o da yoxdursa Bakı.
 
 const PRAYER_KEYS = ['Fajr','Sunrise','Dhuhr','Asr','Maghrib','Isha'];
 const PRAYER_META = {
@@ -42,36 +35,20 @@ export default function PrayerScreen() {
   const sh = dark ? Shadows.dark.md : Shadows.md;
   const shL = dark ? Shadows.dark.lg : Shadows.lg;
 
-  const [cityIdx, setCityIdx] = useState(0);
+  const loc = usePrayerLocation();
+  const cityIdx = Math.max(0, PRAYER_CITIES.findIndex(x => x.id === loc.id));
   const [times, setTimes] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
   const [now, setNow] = useState(new Date());
-  const [userPickedCity, setUserPickedCity] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Admin settings-dən default şəhəri oxu (web ilə eyni davranış)
-  // Yalnız istifadəçi əl ilə şəhər seçməyibsə.
-  useEffect(() => {
-    const unsubscribe = subscribeToSettings((settings) => {
-      if (!settings || userPickedCity) return
-      const target = settings.defaultCity
-      if (!target) return
-      const matchIdx = CITIES.findIndex(c =>
-        c.city.toLowerCase() === target.toLowerCase() ||
-        c.name.toLowerCase() === target.toLowerCase()
-      )
-      if (matchIdx !== -1) setCityIdx(matchIdx)
-    })
-    return () => unsubscribe?.()
-  }, [userPickedCity])
-
-  // Wrap the original setter to mark user choice
-  const pickCity = (idx) => { setUserPickedCity(true); setCityIdx(idx) }
+  // İstifadəçinin seçimi — bütün tətbiq üçün yadda saxlanılır
+  const pickCity = (idx) => { setPrayerCity(PRAYER_CITIES[idx].id) }
 
   useEffect(() => {
     AsyncStorage.getItem('muslim_cc_prayer_stats').then(v => {
@@ -81,12 +58,13 @@ export default function PrayerScreen() {
 
   useEffect(() => {
     setLoading(true);
-    const city = CITIES[cityIdx];
+    const city = PRAYER_CITIES[cityIdx];
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
-    fetch(`https://api.aladhan.com/v1/timingsByCity/${dd}-${mm}-${yyyy}?city=${city.city}&country=${city.country}&method=13`)
+    // Koordinatla hesablanır — ana səhifə və bildirişlərlə eyni nəticə
+    fetch(`https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${city.lat}&longitude=${city.lng}&method=${loc.method || 13}`)
       .then(r => r.json())
       .then(d => setTimes(d.data.timings))
       .catch(() => {})
@@ -153,7 +131,7 @@ export default function PrayerScreen() {
             {lang==='az'?'ŞƏHƏR':lang==='ru'?'ГОРОД':lang==='ar'?'المدينة':lang==='tr'?'ŞEHİR':'CITY'}
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cityRow}>
-            {CITIES.map((city, i) => {
+            {PRAYER_CITIES.map((city, i) => {
               const active = cityIdx === i;
               return (
                 <PressableCard
@@ -166,7 +144,7 @@ export default function PrayerScreen() {
                   onPress={() => pickCity(i)}
                 >
                   <AppIcon name="location" size={14} color={active ? '#fff' : c.textMuted} />
-                  <Text style={[styles.cityText, { color: active ? '#fff' : c.text }]}>{city.name}</Text>
+                  <Text style={[styles.cityText, { color: active ? '#fff' : c.text }]}>{tr(city.label, lang)}</Text>
                 </PressableCard>
               );
             })}

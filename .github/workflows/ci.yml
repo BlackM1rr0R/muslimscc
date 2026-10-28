@@ -1,0 +1,183 @@
+# ═══════════════════════════════════════════════════════
+# Muslims.cc — CI/CD
+#
+# Hər push və PR:  yoxlamalar → unit testlər → build → e2e (Playwright)
+#                  → Docker image-lərinin build-i
+# main-ə push:     + serverə deploy (avtomatik sağlamlıq yoxlaması və
+#                    alınmasa köhnə versiyaya qayıdış — infra/deploy.sh)
+#
+# Lazım olan GitHub sirləri (Settings → Secrets and variables → Actions):
+#   DEPLOY_HOST          serverin IP-si
+#   DEPLOY_SSH_KEY       CI açarının PRIVATE hissəsi (~/.ssh/muslimscc_ci)
+#   DEPLOY_KNOWN_HOSTS   `ssh-keyscan -t ed25519 <IP>` çıxışı (MITM qoruması)
+# Bu açar serverdə yalnız infra/ci-gate.sh-ı işlədə bilər (shell ala bilməz).
+# ═══════════════════════════════════════════════════════
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ── 1) Sürətli yoxlamalar + build ──
+  checks:
+    name: Yoxlamalar, unit testlər, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - run: npm ci
+
+      - name: Brend konfiqi veb ↔ mobil eynidir
+        run: node scripts/check-config-sync.mjs
+      - name: Dil təmizliyi (az-da türkcə yox və s.)
+        run: node scripts/check-lang.mjs
+      - name: Unit testlər
+        run: npm run test:unit
+      - name: API sintaksisi
+        run: for f in server/*.js; do node --check "$f"; done
+
+      - name: Build
+        run: |
+          cp .env.public .env.production.local
+          npm run build
+          test -f dist/404.html && test -f dist/sitemap.xml
+      - uses: actions/upload-artifact@v4
+        with: { name: dist, path: dist, retention-days: 3 }
+
+  # ── 2) Real brauzerdə e2e (kompüter + telefon) ──
+  e2e:
+    name: E2E (Playwright)
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: npm }
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with: { name: dist, path: dist }
+      - name: Playwright brauzeri
+        run: npx playwright install --with-deps chromium
+      - name: E2E testləri
+        run: npx playwright test
+      - name: Hesabat (yıxılanda)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: playwright-report, path: playwright-report, retention-days: 7 }
+
+  # ── 3) Docker image-ləri (hər push-da build olunur ki, Dockerfile sınmasın) ──
+  images:
+    name: Docker image-ləri
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+
+      - name: api image
+        uses: docker/build-push-action@v6
+        with:
+          context: server
+          tags: muslimscc-api:${{ steps.tag.outputs.tag }}
+          outputs: type=docker,dest=/tmp/api.tar
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+      - name: web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/web.Dockerfile
+          tags: muslimscc-web:${{ steps.tag.outputs.tag }}
+          outputs: type=docker,dest=/tmp/web.tar
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+      - name: nginx konfiqi image-in içində keçərlidir
+        run: |
+          docker load -i /tmp/web.tar
+          mkdir -p /tmp/c && openssl req -x509 -nodes -newkey rsa:2048 -days 1 -subj /CN=muslims.cc \
+            -keyout /tmp/c/privkey.pem -out /tmp/c/fullchain.pem 2>/dev/null && chmod 644 /tmp/c/*.pem
+          docker run --rm -v /tmp/c:/certs:ro muslimscc-web:${{ steps.tag.outputs.tag }} nginx -t
+
+      - name: Sıxışdır
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: gzip -1 /tmp/api.tar /tmp/web.tar
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          name: images
+          path: /tmp/*.tar.gz
+          retention-days: 3
+          compression-level: 0
+
+  # ── 4) Deploy (yalnız main, bütün testlər keçəndən sonra) ──
+  deploy:
+    name: Serverə deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [e2e, images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://muslims.cc
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    env:
+      TAG: ${{ needs.images.outputs.tag }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: images, path: images }
+
+      - name: SSH
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN" > ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User root\n  IdentityFile ~/.ssh/deploy\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  ServerAliveInterval 15\n' \
+            "${{ secrets.DEPLOY_HOST }}" > ~/.ssh/config
+
+      - name: Image-ləri yüklə
+        run: |
+          ssh prod "upload $TAG api" < images/api.tar.gz
+          ssh prod "upload $TAG web" < images/web.tar.gz
+
+      - name: Deploy (sağlamlıq yoxlaması + avtomatik geri qaytarma)
+        run: ssh prod "deploy $TAG"
+
+      - name: Canlı yoxlama (Cloudflare üzərindən)
+        run: |
+          for i in 1 2 3 4 5; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://muslims.cc/) && [ "$code" = 200 ] && \
+            curl -fsS https://muslims.cc/api/health | grep -q '"ok"' && { echo "✓ canlıdır"; exit 0; }
+            sleep 6
+          done
+          echo "✗ sayt cavab vermir"; exit 1
+
+      - name: Vəziyyət
+        if: always()
+        run: ssh prod status || true

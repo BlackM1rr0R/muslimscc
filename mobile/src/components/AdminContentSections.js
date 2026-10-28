@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useNavigation } from '@react-navigation/native'
 import { useLang } from '../contexts/LangContext'
 import { Colors } from '../theme/colors'
+import { pickLang } from '../utils/pickLang'
 import {
   subscribeToAnnouncements,
   subscribeToDailyContent,
@@ -27,10 +28,11 @@ export function AnnouncementBanner() {
     return () => unsubscribe?.()
   }, [])
 
-  const visible = items.filter(a => !closed.includes(a.id))
+  // Cari dildə başlığı olmayan elan bu dildə göstərilmir (başqa dilə düşmür)
+  const visible = items.filter(a => !closed.includes(a.id) && pickLang(a.title, lang, { warn: false }))
   if (visible.length === 0) return null
 
-  const readMore = { az:'Daha çox', en:'Learn more', ru:'Подробнее', ar:'المزيد', tr:'Daha fazla' }[lang] || 'Learn more'
+  const readMore = { az:'Daha çox', en:'Learn more', ru:'Подробнее', ar:'المزيد', tr:'Daha fazla' }[lang]
 
   return (
     <View style={styles.annContainer}>
@@ -44,9 +46,9 @@ export function AnnouncementBanner() {
           }]}>
             <Text style={styles.annIcon}>{type.icon}</Text>
             <View style={{ flex: 1 }}>
-              <Text style={styles.annTitle}>{a.title?.[lang] || a.title?.en}</Text>
-              {(a.message?.[lang] || a.message?.en) ? (
-                <Text style={styles.annMsg}>{a.message[lang] || a.message.en}</Text>
+              <Text style={styles.annTitle}>{pickLang(a.title, lang)}</Text>
+              {pickLang(a.message, lang) ? (
+                <Text style={styles.annMsg}>{pickLang(a.message, lang)}</Text>
               ) : null}
               {a.link ? (
                 <TouchableOpacity onPress={() => Linking.openURL(a.link).catch(() => {})}>
@@ -83,9 +85,9 @@ export function HeroBannerDisplay() {
   if (!hero) return null
 
   const gradient = HERO_GRADIENTS.find(g => g.key === hero.gradient) || HERO_GRADIENTS[0]
-  const title = hero.title?.[lang] || hero.title?.en
-  const subtitle = hero.subtitle?.[lang] || hero.subtitle?.en
-  const ctaText = hero.ctaText?.[lang] || hero.ctaText?.en
+  const title = pickLang(hero.title, lang)
+  const subtitle = pickLang(hero.subtitle, lang)
+  const ctaText = pickLang(hero.ctaText, lang)
 
   if (!title) return null
 
@@ -125,9 +127,9 @@ export function DailyContentDisplay() {
   useEffect(() => {
     const unsubscribe = subscribeToDailyContent((c) => {
       if (!c) { setContent(null); return }
-      const hasAyah = c.ayah?.ar || c.ayah?.text?.[lang] || c.ayah?.text?.en
+      const hasAyah = c.ayah?.ar || pickLang(c.ayah?.text, lang)
       const hasDhikr = c.dhikr?.ar || c.dhikr?.text?.[lang]
-      const hasQuote = c.quote?.ar || c.quote?.text?.[lang] || c.quote?.text?.en
+      const hasQuote = c.quote?.ar || pickLang(c.quote?.text, lang)
       if (hasAyah || hasDhikr || hasQuote) {
         setContent({ ...c, hasAyah, hasDhikr, hasQuote })
       } else {
@@ -159,8 +161,8 @@ export function DailyContentDisplay() {
             <Text style={[styles.dailyLabel, { color: '#10b981' }]}>{l.ayah}</Text>
           </View>
           {content.ayah.ar ? <Text style={styles.dailyArabic}>{content.ayah.ar}</Text> : null}
-          {(content.ayah.text?.[lang] || content.ayah.text?.en) ? (
-            <Text style={styles.dailyText}>{content.ayah.text[lang] || content.ayah.text.en}</Text>
+          {pickLang(content.ayah.text, lang) ? (
+            <Text style={styles.dailyText}>{pickLang(content.ayah.text, lang)}</Text>
           ) : null}
           {content.ayah.source ? <Text style={[styles.dailySource, { color: '#10b981' }]}>— {content.ayah.source}</Text> : null}
         </View>
@@ -174,8 +176,8 @@ export function DailyContentDisplay() {
           </View>
           {content.dhikr.ar ? <Text style={styles.dailyArabic}>{content.dhikr.ar}</Text> : null}
           {content.dhikr.translit ? <Text style={[styles.dailyTranslit, { color: '#0891b2' }]}>{content.dhikr.translit}</Text> : null}
-          {(content.dhikr.text?.[lang] || content.dhikr.text?.en) ? (
-            <Text style={styles.dailyText}>{content.dhikr.text[lang] || content.dhikr.text.en}</Text>
+          {pickLang(content.dhikr.text, lang) ? (
+            <Text style={styles.dailyText}>{pickLang(content.dhikr.text, lang)}</Text>
           ) : null}
           {content.dhikr.count ? (
             <View style={[styles.dailyPill, { backgroundColor: '#06b6d4' + '18' }]}>
@@ -192,8 +194,8 @@ export function DailyContentDisplay() {
             <Text style={[styles.dailyLabel, { color: '#a855f7' }]}>{l.quote}</Text>
           </View>
           {content.quote.ar ? <Text style={styles.dailyArabic}>{content.quote.ar}</Text> : null}
-          {(content.quote.text?.[lang] || content.quote.text?.en) ? (
-            <Text style={[styles.dailyText, { fontStyle: 'italic' }]}>"{content.quote.text[lang] || content.quote.text.en}"</Text>
+          {pickLang(content.quote.text, lang) ? (
+            <Text style={[styles.dailyText, { fontStyle: 'italic' }]}>"{pickLang(content.quote.text, lang)}"</Text>
           ) : null}
           {content.quote.source ? <Text style={[styles.dailySource, { color: '#a855f7' }]}>— {content.quote.source}</Text> : null}
         </View>

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminText, adminPick } from './adminText'
 import { addCustomHadith, updateCustomHadith, deleteCustomHadith, CUSTOM_HADITH_CATS, subscribeToHadiths } from '../../data/adminContent'
 
 const LABELS = {
-  az: { title:'Hədislər', sub:'Hədis kontenti idarə edin', addNew:'Yeni Hədis', editItem:'Redaktə Et', all:'Bütün Hədislər', arabicText:'Ərəbcə mətn', translation:'Tərcümə', source:'Mənbə', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu hədisi silmək?', noItems:'Hələ hədis yoxdur', required:'Bu sahə tələb olunur' },
-  en: { title:'Hadiths', sub:'Manage hadith content', addNew:'New Hadith', editItem:'Edit', all:'All Hadiths', arabicText:'Arabic text', translation:'Translation', source:'Source', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this hadith?', noItems:'No hadiths yet', required:'Required field' },
-  ru: { title:'Хадисы', sub:'Управление хадисами', addNew:'Новый Хадис', editItem:'Изменить', all:'Все хадисы', arabicText:'Арабский текст', translation:'Перевод', source:'Источник', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noItems:'Нет хадисов', required:'Обязательно' },
-  ar: { title:'الأحاديث', sub:'إدارة الأحاديث', addNew:'حديث جديد', editItem:'تعديل', all:'كل الأحاديث', arabicText:'النص العربي', translation:'الترجمة', source:'المصدر', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noItems:'لا توجد', required:'مطلوب' },
-  tr: { title:'Hadisler', sub:'Hadis yönetimi', addNew:'Yeni Hadis', editItem:'Düzenle', all:'Tüm Hadisler', arabicText:'Arapça metin', translation:'Çeviri', source:'Kaynak', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noItems:'Hadis yok', required:'Gerekli' },
+  az: { title:'Hədislər', sub:'Hədis məzmununu idarə edin', addNew:'Yeni Hədis', editItem:'Redaktə Et', all:'Bütün Hədislər', arabicText:'Ərəbcə mətn', translation:'Tərcümə', source:'Mənbə', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu hədisi silmək?', noItems:'Hələ hədis yoxdur', required:'Bu sahə tələb olunur', sourcePh:'Buxari, Muslim...' },
+  en: { title:'Hadiths', sub:'Manage hadith content', addNew:'New Hadith', editItem:'Edit', all:'All Hadiths', arabicText:'Arabic text', translation:'Translation', source:'Source', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this hadith?', noItems:'No hadiths yet', required:'Required field', sourcePh:'Bukhari, Muslim...' },
+  ru: { title:'Хадисы', sub:'Управление хадисами', addNew:'Новый Хадис', editItem:'Изменить', all:'Все хадисы', arabicText:'Арабский текст', translation:'Перевод', source:'Источник', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noItems:'Нет хадисов', required:'Обязательно', sourcePh:'Бухари, Муслим...' },
+  ar: { title:'الأحاديث', sub:'إدارة الأحاديث', addNew:'حديث جديد', editItem:'تعديل', all:'كل الأحاديث', arabicText:'النص العربي', translation:'الترجمة', source:'المصدر', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noItems:'لا توجد', required:'مطلوب', sourcePh:'البخاري، مسلم...' },
+  tr: { title:'Hadisler', sub:'Hadis yönetimi', addNew:'Yeni Hadis', editItem:'Düzenle', all:'Tüm Hadisler', arabicText:'Arapça metin', translation:'Çeviri', source:'Kaynak', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noItems:'Hadis yok', required:'Gerekli', sourcePh:'Buhârî, Müslim...' },
 }
 
 const LANGS = ['az','en','ru','ar','tr']
@@ -121,13 +122,13 @@ export default function HadithManager({ onUpdate }) {
           <div className="admin-form-row">
             <div className="admin-input-group">
               <label className="admin-input-label">{l.source}</label>
-              <input type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder="Buxari, Muslim..." />
+              <input type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder={l.sourcePh} />
             </div>
             <div className="admin-input-group">
               <label className="admin-input-label">{l.category}</label>
               <select className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
                 {CUSTOM_HADITH_CATS.map(c => (
-                  <option key={c.key} value={c.key}>{c.label[lang] || c.label.en}</option>
+                  <option key={c.key} value={c.key}>{c.label[lang]}</option>
                 ))}
               </select>
             </div>
@@ -168,15 +169,16 @@ export default function HadithManager({ onUpdate }) {
                 }}>
                   <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:10}}>
                     <span style={{background:cat?.color+'18', color:cat?.color, padding:'4px 12px', borderRadius:999, fontSize:11, fontWeight:800, textTransform:'uppercase', letterSpacing:0.3}}>
-                      {cat?.label[lang] || cat?.label.en || h.category}
+                      {cat?.label[lang]}
                     </span>
                     <div style={{display:'flex', gap:6}}>
-                      <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleEdit(h)}>✏️</button>
-                      <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleDelete(h.id)}>🗑️</button>
+                      <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleEdit(h)} title={l.edit} aria-label={l.edit}>✏️</button>
+                      <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleDelete(h.id)} title={l.delete} aria-label={l.delete}>🗑️</button>
                     </div>
                   </div>
                   {h.ar && <div style={{fontSize:18, lineHeight:1.8, textAlign:'right', color:'var(--text)', marginBottom:8, fontFamily:'Amiri, serif'}}>{h.ar}</div>}
-                  {(h.text?.[lang] || h.text?.en) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:8}}>{h.text[lang] || h.text.en}</div>}
+                  {/* Tərcümə cari dildə yoxdursa yer tutucu; ərəbcədə orijinal onsuz da göstərilir */}
+                  {(lang !== 'ar' || adminPick(h.text, lang)) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:8}}><AdminText value={h.text} lang={lang} /></div>}
                   {h.source && <div style={{fontSize:12, color:'var(--gold, #b8860b)', fontWeight:700}}>— {h.source}</div>}
                 </div>
               )

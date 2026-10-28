@@ -38,14 +38,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
-import { brandName } from '../config/mosque'
+import { brandName } from '../config/brand'
 import { NAV_GROUPS, navGroupOf } from '../data/navigation'
 import { pathFor } from '../seo/routes'
 import { isOverlayEntry } from '../utils/useBackToClose'
+import Icon, { BrandMark } from './Icon'
 import '../styles/SideNav.css'
 
 // Açar "v2"-dir: sahibin qərarı ilə susmaya görə BÜTÜN qruplar açıq oldu.
-// Köhnə açarda (qm_sidenav_groups) yalnız "Məscid" yazılmışdı — onu oxusaydıq,
+// Köhnə açarda (qm_sidenav_groups) yalnız bir qrup yazılmışdı — onu oxusaydıq,
 // əvvəl saytda olmuş ziyarətçi yenə yığılmış menyu görərdi.
 const STORAGE_KEY = 'qm_sidenav_groups_v2'
 // Susmaya görə BÜTÜN qruplar açıq: ziyarətçi bölmələri bir baxışda görsün
@@ -170,7 +171,8 @@ function readStoredGroups() {
     const arr = JSON.parse(raw)
     if (!Array.isArray(arr)) return null
     const known = new Set(NAV_GROUPS.map(g => g.key))
-    return arr.filter(k => known.has(k))
+    // 2026-10: "Məscid" qrupu (mosque) "Əsas" (main) oldu — açıq vəziyyəti keçsin
+    return arr.map(k => (k === 'mosque' ? 'main' : k)).filter(k => known.has(k))
   } catch {
     return null
   }
@@ -379,7 +381,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   const isRtl = lang === 'ar'
   const currentGroup = navGroupOf(currentPage)
 
-  // Açıq qruplar: yadda saxlanmış seçim (yoxdursa "Məscid") + cari səhifənin qrupu
+  // Açıq qruplar: yadda saxlanmış seçim (yoxdursa hamısı) + cari səhifənin qrupu
   const [expanded, setExpanded] = useState(() => {
     const set = new Set(readStoredGroups() ?? DEFAULT_OPEN)
     if (currentGroup) set.add(currentGroup)
@@ -610,7 +612,10 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
                     aria-current={isCurrent ? 'page' : undefined}
                     onClick={(e) => onItemClick(e, item.key)}
                   >
-                    <span className="qm-sn-item-icon" aria-hidden="true">{item.icon}</span>
+                    {/* Xətti SVG ikon (Icon.jsx); ikon yoxdursa emoji ehtiyatı */}
+                    <span className="qm-sn-item-icon" aria-hidden="true">
+                      <Icon name={item.key} size={18} fallback={item.icon} />
+                    </span>
                     <span className="qm-sn-item-label">{label}</span>
                   </a>
                 </li>
@@ -650,11 +655,11 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   // ═══ Kənardan sürüşüb gələn çəkmə menyu (<1024px) ═══
   const visible = open && shown
 
-  // Brend adı: az dilində "Qaraçuxur" + vurğulu "Məscidi" (başlıqdakı kimi)
+  // Brend adı domen kimi: "Muslims" + vurğulu ".cc" (başlıqdakı loqo kimi)
   const brand = brandName(lang)
-  const brandSplit = lang === 'az' ? brand.lastIndexOf(' ') : -1
+  const brandSplit = brand.lastIndexOf('.')
   const brandMain = brandSplit > 0 ? brand.slice(0, brandSplit) : brand
-  const brandAccent = brandSplit > 0 ? brand.slice(brandSplit + 1) : ''
+  const brandAccent = brandSplit > 0 ? brand.slice(brandSplit) : ''
 
   return (
     <div
@@ -684,11 +689,11 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
               aria-label={`${brand} — ${l.home}`}
             >
               <span className="qm-sn-brand-mark" aria-hidden="true">
-                <span className="qm-sn-brand-crescent">☽</span>
+                <BrandMark size={32} />
               </span>
               <span className="qm-sn-brand-name">
                 {brandMain}
-                {brandAccent && <>{' '}<span className="qm-sn-brand-accent">{brandAccent}</span></>}
+                {brandAccent && <span className="qm-sn-brand-accent">{brandAccent}</span>}
               </span>
             </a>
             <button

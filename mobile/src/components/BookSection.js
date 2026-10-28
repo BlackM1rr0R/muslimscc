@@ -8,6 +8,7 @@ import { Colors } from '../theme/colors'
 import { DEFAULT_BOOKS, BOOK_CATEGORIES, subscribeToBooks } from '../data/books'
 import { FadeUp } from './Animated'
 import Pagination from './Pagination'
+import { pickLang } from '../utils/pickLang'
 
 const { width: SW } = Dimensions.get('window')
 const CARD_W = (SW - 16 * 2 - 12) / 2 // 2 sütun, 16 margin, 12 gap
@@ -35,9 +36,11 @@ export default function BookSection() {
     return () => unsubscribe?.()
   }, [])
 
-  const totalPages = Math.max(1, Math.ceil(books.length / PER_PAGE))
+  // Cari dildə başlığı olmayan kitab bu dildə göstərilmir (başqa dilə düşmür)
+  const langBooks = books.filter(b => pickLang(b.title, lang, { warn: false }))
+  const totalPages = Math.max(1, Math.ceil(langBooks.length / PER_PAGE))
   const currentPage = Math.min(pageNum, totalPages)
-  const preview = books.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
+  const preview = langBooks.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
 
   const goToBooks = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -73,7 +76,7 @@ export default function BookSection() {
             >
               <LinearGradient colors={[color, color + 'dd']} style={styles.cover}>
                 <Text style={styles.coverIcon}>📖</Text>
-                <Text style={styles.coverCat}>{cat?.label[lang] || cat?.label.en}</Text>
+                <Text style={styles.coverCat}>{pickLang(cat?.label, lang)}</Text>
                 {b.pdfUrl ? (
                   <View style={styles.pdfBadge}>
                     <Text style={styles.pdfBadgeText}>📄 PDF</Text>
@@ -82,10 +85,10 @@ export default function BookSection() {
               </LinearGradient>
               <View style={styles.body}>
                 <Text style={styles.cardTitle} numberOfLines={2}>
-                  {b.title?.[lang] || b.title?.en}
+                  {pickLang(b.title, lang)}
                 </Text>
                 <Text style={styles.cardAuthor} numberOfLines={1}>
-                  ✍️ {b.author?.[lang] || b.author?.en}
+                  ✍️ {pickLang(b.author, lang)}
                 </Text>
               </View>
             </TouchableOpacity>

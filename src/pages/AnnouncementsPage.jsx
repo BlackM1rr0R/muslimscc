@@ -7,9 +7,11 @@
 // Heç bir elan və ya tədbir uydurulmur: məlumat yoxdursa sakit boş vəziyyət
 // göstərilir. Firebase qoşulmayıbsa da eyni boş vəziyyət — xəta yoxdur.
 //
-// Ən yuxarıda sabit "Məscidə yardım" kartı durur (sahibin istəyi): ümumi
-// dəvət + /donate düyməsi + (xəritə məlumatı varsa) yol tarifi. Məbləğ,
-// layihə və ya rekvizit burada göstərilmir — bunlar yalnız /donate-dədir.
+// Ən yuxarıda sabit "Xeyriyyə və ianə" kartı durur: /donate bələdçisinə
+// qısa dəvət. Məbləğ, layihə və ya rekvizit yoxdur (Muslims.cc ianə qəbul etmir).
+//
+// DİL QAYDASI: admin mətni cari dildə yazılmayıbsa həmin elan/gün bu dildə
+// GÖSTƏRİLMİR — başqa dilin mətni səhifəyə "sızmır" (bax: pickLang).
 // ═══════════════════════════════════════════════════════
 import { useState, useEffect, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
@@ -19,20 +21,19 @@ import {
   ANNOUNCEMENT_TYPES,
   EVENT_TYPES,
 } from '../data/adminContent'
-import { MOSQUE, filled, tr } from '../config/mosque'
 import '../styles/AnnouncementsPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 
 const LABELS = {
   az: {
     title: 'Elanlar',
-    subtitle: 'Məsciddən son xəbərlər və elanlar',
+    subtitle: 'Muslims.cc-dən son xəbərlər və elanlar',
     latest: 'Son elanlar',
     all: 'Hamısı',
     filterLabel: 'Elan növünə görə süz',
     loading: 'Yüklənir…',
     empty: 'Hazırda aktiv elan yoxdur',
-    emptySub: 'Məscidin yeni elanları burada görünəcək.',
+    emptySub: 'Yeni elanlar burada görünəcək.',
     enableNotif: 'Bildirişləri aktivləşdir',
     seeTimes: 'Namaz vaxtlarına bax',
     readMore: 'Ətraflı',
@@ -46,20 +47,19 @@ const LABELS = {
     showMore: 'Daha çox göstər',
     showLess: 'Daha az göstər',
     helpEyebrow: 'Sabitlənmiş',
-    helpTitle: 'Məscidə yardım',
-    helpText: 'Məscid camaatın dəstəyi ilə abad olur. İanə etməklə və ya namaza gəlməklə siz də öz payınızı verə bilərsiniz.',
-    helpDonate: 'Məscidə ianə',
-    helpDirections: 'Yol tarifi',
+    helpTitle: 'Xeyriyyə və ianə',
+    helpText: 'Sədəqənin fəziləti və etibarlı xeyriyyəyə necə vermək barədə qısa bələdçi.',
+    helpDonate: 'Bələdçini oxu',
   },
   en: {
     title: 'Announcements',
-    subtitle: 'Latest news and announcements from the mosque',
+    subtitle: 'Latest news and announcements from Muslims.cc',
     latest: 'Latest announcements',
     all: 'All',
     filterLabel: 'Filter by announcement type',
     loading: 'Loading…',
     empty: 'There are no active announcements right now',
-    emptySub: 'New announcements from the mosque will appear here.',
+    emptySub: 'New announcements will appear here.',
     enableNotif: 'Turn on notifications',
     seeTimes: 'See prayer times',
     readMore: 'Read more',
@@ -73,20 +73,19 @@ const LABELS = {
     showMore: 'Show more',
     showLess: 'Show less',
     helpEyebrow: 'Pinned',
-    helpTitle: 'Support the mosque',
-    helpText: 'A mosque thrives through the support of its community. You can do your part by donating or simply by coming to pray.',
-    helpDonate: 'Donate to the mosque',
-    helpDirections: 'Get directions',
+    helpTitle: 'Charity & Giving',
+    helpText: 'A short guide to the virtue of charity and how to give to a trustworthy cause.',
+    helpDonate: 'Read the guide',
   },
   ru: {
     title: 'Объявления',
-    subtitle: 'Последние новости и объявления мечети',
+    subtitle: 'Последние новости и объявления Muslims.cc',
     latest: 'Последние объявления',
     all: 'Все',
     filterLabel: 'Фильтр по типу объявления',
     loading: 'Загрузка…',
     empty: 'Сейчас нет активных объявлений',
-    emptySub: 'Новые объявления мечети появятся здесь.',
+    emptySub: 'Новые объявления появятся здесь.',
     enableNotif: 'Включить уведомления',
     seeTimes: 'Время намаза',
     readMore: 'Подробнее',
@@ -100,20 +99,19 @@ const LABELS = {
     showMore: 'Показать ещё',
     showLess: 'Свернуть',
     helpEyebrow: 'Закреплено',
-    helpTitle: 'Помощь мечети',
-    helpText: 'Мечеть живёт поддержкой своей общины. Вы можете внести свой вклад — пожертвованием или просто приходя на намаз.',
-    helpDonate: 'Пожертвовать мечети',
-    helpDirections: 'Проложить маршрут',
+    helpTitle: 'Благотворительность',
+    helpText: 'Краткое руководство о достоинстве садаки и о том, как жертвовать надёжным организациям.',
+    helpDonate: 'Читать руководство',
   },
   ar: {
     title: 'الإعلانات',
-    subtitle: 'آخر أخبار المسجد وإعلاناته',
+    subtitle: 'آخر الأخبار والإعلانات من Muslims.cc',
     latest: 'أحدث الإعلانات',
     all: 'الكل',
     filterLabel: 'التصفية حسب نوع الإعلان',
     loading: 'جارٍ التحميل…',
     empty: 'لا توجد إعلانات حالياً',
-    emptySub: 'ستظهر إعلانات المسجد الجديدة هنا.',
+    emptySub: 'ستظهر الإعلانات الجديدة هنا.',
     enableNotif: 'تفعيل الإشعارات',
     seeTimes: 'مواقيت الصلاة',
     readMore: 'المزيد',
@@ -127,20 +125,19 @@ const LABELS = {
     showMore: 'عرض المزيد',
     showLess: 'عرض أقل',
     helpEyebrow: 'مثبّت',
-    helpTitle: 'دعم المسجد',
-    helpText: 'يُعمَر المسجد بدعم أهله وروّاده. يمكنك أن تُسهم في ذلك بالتبرع أو بالحضور إلى الصلاة فيه.',
-    helpDonate: 'التبرع للمسجد',
-    helpDirections: 'الاتجاهات',
+    helpTitle: 'الصدقة والتبرع',
+    helpText: 'دليل موجز عن فضل الصدقة وكيفية التبرع لجهة موثوقة.',
+    helpDonate: 'اقرأ الدليل',
   },
   tr: {
     title: 'Duyurular',
-    subtitle: 'Camiden son haberler ve duyurular',
+    subtitle: 'Muslims.cc’den son haberler ve duyurular',
     latest: 'Son duyurular',
     all: 'Tümü',
-    filterLabel: 'Duyuru türüne göre süz',
+    filterLabel: 'Duyuru türüne göre filtrele',
     loading: 'Yükleniyor…',
     empty: 'Şu anda aktif duyuru yok',
-    emptySub: 'Caminin yeni duyuruları burada görünecek.',
+    emptySub: 'Yeni duyurular burada görünecek.',
     enableNotif: 'Bildirimleri aç',
     seeTimes: 'Namaz vakitleri',
     readMore: 'Devamı',
@@ -154,10 +151,9 @@ const LABELS = {
     showMore: 'Daha fazla göster',
     showLess: 'Daha az göster',
     helpEyebrow: 'Sabitlenmiş',
-    helpTitle: 'Camiye destek',
-    helpText: 'Cami, cemaatinin desteğiyle mamur olur. Bağış yaparak ya da namaza gelerek siz de katkıda bulunabilirsiniz.',
-    helpDonate: 'Camiye bağış',
-    helpDirections: 'Yol tarifi',
+    helpTitle: 'Hayır ve Bağış',
+    helpText: 'Sadakanın fazileti ve güvenilir bir hayır kurumuna nasıl bağış yapılacağı hakkında kısa bir rehber.',
+    helpDonate: 'Rehberi oku',
   },
 }
 
@@ -170,7 +166,8 @@ const HIJRI_MONTH_NAMES = {
   tr: ['Muharrem','Safer','Rebiülevvel','Rebiülahir','Cemaziyelevvel','Cemaziyelahir','Recep','Şaban','Ramazan','Şevval','Zilkade','Zilhicce'],
 }
 
-const DATE_LOCALES = { en: 'en-GB', ru: 'ru-RU', ar: 'ar', tr: 'tr-TR' }
+// az tarixi AZ_MONTHS ilə əl ilə yazılır (bəzi brauzerlərdə az lokalı natamamdır)
+const DATE_LOCALES = { az: 'az-Latn-AZ', en: 'en-GB', ru: 'ru-RU', ar: 'ar', tr: 'tr-TR' }
 
 // Bəzi brauzerlərdə az locale məlumatı yoxdur ("2026 M09 19" çıxır) — ay adları əl ilə
 const AZ_MONTHS = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avqust','sentyabr','oktyabr','noyabr','dekabr']
@@ -245,15 +242,13 @@ function hijriToday() {
 }
 
 /**
- * "Yol tarifi" linki: dəqiq koordinat varsa Google Maps marşrutu (MosquePage ilə eyni),
- * yoxsa sahibin verdiyi xəritə linki. Heç biri yoxdursa '' — düymə göstərilmir.
+ * Admin mətnindən YALNIZ cari dili götür (tr()-dən fərqli olaraq başqa dilə
+ * düşmür). Köhnə elanlarda sahə sadə sətir ola bilər — o, olduğu kimi qalır.
  */
-function directionsHref() {
-  const { lat, lng } = MOSQUE.geo || {}
-  if (filled(lat) && filled(lng)) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${Number(lat)},${Number(lng)}`
-  }
-  return filled(MOSQUE.mapUrl) ? MOSQUE.mapUrl.trim() : ''
+function pickLang(v, lang) {
+  if (typeof v === 'string') return v.trim()
+  const x = v && typeof v === 'object' ? v[lang] : ''
+  return typeof x === 'string' ? x.trim() : ''
 }
 
 /** Kart ikonu — sadə günbəz və minarə (xətt üslubu, rəngi currentColor-dan) */
@@ -340,8 +335,8 @@ export default function AnnouncementsPage({ setPage }) {
       .filter(a => a && a.active !== false)
       .map(a => ({
         ...a,
-        _title: tr(a.title, lang).trim(),
-        _message: tr(a.message, lang).trim(),
+        _title: pickLang(a.title, lang),
+        _message: pickLang(a.message, lang),
         _ms: toMillis(a.createdAt),
         _href: safeHref(a.link),
         _type: ANNOUNCEMENT_TYPES.find(t => t.key === a.type) || ANNOUNCEMENT_TYPES[0],
@@ -390,8 +385,8 @@ export default function AnnouncementsPage({ setPage }) {
           _month: month,
           _day: day,
           _order: order,
-          _name: tr(ev.name, lang).trim(),
-          _desc: tr(ev.desc, lang).trim(),
+          _name: pickLang(ev.name, lang),
+          _desc: pickLang(ev.desc, lang),
           _type: EVENT_TYPES.find(t => t.key === ev.type) || EVENT_TYPES[0],
         }
       })
@@ -407,8 +402,6 @@ export default function AnnouncementsPage({ setPage }) {
     window.dispatchEvent(new CustomEvent('open-notifications'))
   }
 
-  const mapHref = directionsHref()
-
   return (
     <div className="anp-page">
       {/* ── Hero ── */}
@@ -421,7 +414,7 @@ export default function AnnouncementsPage({ setPage }) {
       </div>
 
       <div className="anp-wrap">
-        {/* ═══ SABİT KART: MƏSCİDƏ YARDIM ═══ */}
+        {/* ═══ SABİT KART: XEYRİYYƏ VƏ İANƏ ═══ */}
         <section className="anp-help" data-reveal aria-labelledby="anp-help-title">
           <div className="anp-help-icon" aria-hidden="true">
             <MosqueIcon />
@@ -437,11 +430,6 @@ export default function AnnouncementsPage({ setPage }) {
             <button type="button" className="anp-btn anp-btn-primary press" onClick={() => setPage?.('donate')}>
               {l.helpDonate} <span aria-hidden="true">{arrow}</span>
             </button>
-            {mapHref && (
-              <a className="anp-btn anp-btn-ghost press" href={mapHref} target="_blank" rel="noopener noreferrer">
-                <span aria-hidden="true">🧭</span> {l.helpDirections}
-              </a>
-            )}
           </div>
         </section>
 
@@ -473,7 +461,7 @@ export default function AnnouncementsPage({ setPage }) {
                     <span aria-hidden="true">🔔</span> {l.enableNotif}
                   </button>
                 )}
-                <button type="button" className="anp-btn anp-btn-ghost press" onClick={() => setPage?.('jamaat')}>
+                <button type="button" className="anp-btn anp-btn-ghost press" onClick={() => setPage?.('prayer')}>
                   {l.seeTimes} <span aria-hidden="true">{arrow}</span>
                 </button>
               </div>
@@ -533,7 +521,7 @@ export default function AnnouncementsPage({ setPage }) {
                         )}
                       </div>
 
-                      {/* dir="auto": ərəbcə mətn yoxdursa tr() az/en-ə düşür — Latın mətni RTL-də düzgün axsın */}
+                      {/* dir="auto": köhnə (tək dilli) elan mətni RTL səhifədə də düzgün axsın */}
                       {a._title && <h3 className="anp-card-title" dir="auto">{a._title}</h3>}
                       {a._message && <p className="anp-card-message" dir="auto">{a._message}</p>}
 

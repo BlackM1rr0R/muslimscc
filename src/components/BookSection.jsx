@@ -3,6 +3,8 @@ import { useLang } from '../contexts/LangContext'
 import { BOOK_CATEGORIES, DEFAULT_BOOKS, subscribeToBooks } from '../data/books'
 import Pagination from './Pagination'
 import '../styles/BookSection.css'
+// Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
+import { pickLang, hasLang } from '../utils/pickLang'
 
 const LABELS = {
   az: { title:'Kitabxana', sub:'İslami kitablar və alimlərin əsərləri', loading:'Yüklənir...', viewAll:'Hamısını gör', pdf:'PDF' },
@@ -16,7 +18,9 @@ export default function BookSection({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
 
-  const [books, setBooks] = useState([])
+  const [allBooks, setBooks] = useState([])
+  // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)
+  const books = allBooks.filter(b => hasLang(b.title, lang))
   const [loading, setLoading] = useState(true)
   const [pageNum, setPageNum] = useState(1)
   const PER_PAGE = 5
@@ -54,7 +58,7 @@ export default function BookSection({ setPage }) {
 
         <div className="book-section-header">
           <div>
-            <h2 className="book-section-title">📚 {l.title}</h2>
+            <h2 className="book-section-title">{l.title}</h2>
             <p className="book-section-sub">{l.sub}</p>
           </div>
           {setPage && (
@@ -84,14 +88,14 @@ export default function BookSection({ setPage }) {
                   {b.coverUrl ? (
                     <img
                       src={b.coverUrl}
-                      alt={b.title?.[lang] || b.title?.en}
+                      alt={pickLang(b.title, lang)}
                       loading="lazy"
                       onError={(e) => { e.target.style.display = 'none' }}
                     />
                   ) : (
                     <div className="bs-placeholder">
                       <div className="bs-placeholder-icon">📖</div>
-                      <div className="bs-placeholder-cat">{cat?.label[lang] || cat?.label.en}</div>
+                      <div className="bs-placeholder-cat">{cat?.label[lang]}</div>
                     </div>
                   )}
                   {b.pdfUrl && (
@@ -99,8 +103,8 @@ export default function BookSection({ setPage }) {
                   )}
                 </div>
                 <div className="bs-body">
-                  <h3 className="bs-title">{b.title?.[lang] || b.title?.en}</h3>
-                  <p className="bs-author">✍️ {b.author?.[lang] || b.author?.en}</p>
+                  <h3 className="bs-title">{pickLang(b.title, lang)}</h3>
+                  <p className="bs-author">✍️ {pickLang(b.author, lang, { warn: false })}</p>
                 </div>
               </article>
             )

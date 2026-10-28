@@ -96,6 +96,7 @@ const EVENTS = [
   // Osmanlılar
   { year:'1299', era:'ottoman', color:'#14b8a6', icon:'star',
     title:{ az:'Osmanlı dövlətinin qurulması', en:'Foundation of Ottoman State', ru:'Основание Османского государства', ar:'تأسيس الدولة العثمانية', tr:'Osmanlı Devleti\'nin kuruluşu' },
+    // lang-ok[Söğüt]: yer adının rəsmi yazılışı — ingilis mənbələrində də "Söğüt" yazılır
     desc:{ az:'Osman Qazi Söyüd yaxınlığında Osmanlı dövlətinin əsasını qoydu. 600 il davam edəcək imperatorluq başladı.', en:'Osman Ghazi laid the foundation of the Ottoman state near Söğüt. A 600-year empire began.', ru:'Осман Гази заложил основу Османского государства возле Согута. Началась 600-летняя империя.', ar:'أسس عثمان غازي الدولة العثمانية قرب سوغوت. بدأت إمبراطورية دامت ٦٠٠ عام.', tr:'Osman Gazi Söğüt yakınlarında Osmanlı Devleti\'nin temelini attı. 600 yıl sürecek bir imparatorluk başladı.' } },
   { year:'1453', era:'ottoman', color:'#14b8a6', icon:'star',
     title:{ az:'İstanbulun fəthi', en:'Conquest of Constantinople', ru:'Взятие Константинополя', ar:'فتح القسطنطينية', tr:'İstanbul\'un Fethi' },

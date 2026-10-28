@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { subscribeToHero, HERO_GRADIENTS } from '../data/adminContent'
+// Admin mətni cari dildə yoxdursa başqa dilə düşmür — lövhə bu dildə göstərilmir
+import { pickLang } from '../utils/pickLang'
 
 export default function HeroBannerDisplay({ setPage }) {
   const { lang } = useLang()
@@ -17,9 +19,9 @@ export default function HeroBannerDisplay({ setPage }) {
   if (!hero) return null
 
   const gradient = HERO_GRADIENTS.find(g => g.key === hero.gradient) || HERO_GRADIENTS[0]
-  const title = hero.title?.[lang] || hero.title?.en
-  const subtitle = hero.subtitle?.[lang] || hero.subtitle?.en
-  const ctaText = hero.ctaText?.[lang] || hero.ctaText?.en
+  const title = pickLang(hero.title, lang)
+  const subtitle = pickLang(hero.subtitle, lang, { warn: false })
+  const ctaText = pickLang(hero.ctaText, lang, { warn: false })
 
   const handleCta = () => {
     if (!hero.ctaLink) return

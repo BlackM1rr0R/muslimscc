@@ -52,7 +52,7 @@ const SAHABA = [
   },
   {
     id:3, category:'caliph',
-    name:{ az:'Osman ibn Affan', en:'Uthman ibn Affan', ru:'Усман ибн Аффан', ar:'عثمان بن عفان', tr:'Osman ibn Affan' },
+    name:{ az:'Osman ibn Əffan', en:'Uthman ibn Affan', ru:'Усман ибн Аффан', ar:'عثمان بن عفان', tr:'Osman ibn Affan' },
     arName:'عثمان بن عفان رضي الله عنه',
     title:{ az:'3-cü Xəlifə — Zinnureyn', en:'3rd Caliph — Possessor of Two Lights', ru:'3-й халиф — Обладатель двух светов', ar:'الخليفة الثالث — ذو النورين', tr:'3. Halife — Zinnureyn' },
     years:'576-656', color:'#f59e0b', gradient:['#f59e0b','#d97706'],
@@ -248,7 +248,7 @@ const SAHABA = [
   },
   {
     id:13, category:'scholar',
-    name:{ az:'Zeyd ibn Sabit', en:'Zayd ibn Thabit', ru:'Зайд ибн Сабит', ar:'زيد بن ثابت', tr:'Zeyd ibn Sabit' },
+    name:{ az:'Zeyd ibn Sabit', en:'Zayd ibn Thabit', ru:'Зайд ибн Сабит', ar:'زيد بن ثابت', tr:'Zeyd ibn Sâbit' },
     arName:'زيد بن ثابت رضي الله عنه',
     title:{ az:'Quran katibi', en:'Scribe of the Quran', ru:'Писец Корана', ar:'كاتب الوحي', tr:'Vahiy kâtibi' },
     years:'611-665', color:'#8b5cf6', gradient:['#8b5cf6','#7c3aed'],

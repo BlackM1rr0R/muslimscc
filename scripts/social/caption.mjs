@@ -21,18 +21,19 @@ const MODEL = 'claude-opus-5'
 // Instagram caption limiti 2200 simvoldur; təhlükəsiz həddə qalırıq
 const MAX_CAPTION = 2000
 
-// Brend — src/config/mosque.js → BRAND.name.az / BRAND.domain / BRAND.hashtag
+// Brend — src/config/brand.js → BRAND.name.az / BRAND.domain / BRAND.hashtag
 // ilə eyni saxla (skript serverə ayrıca köçürülür, ona görə import edilmir)
-const BRAND_NAME = 'Qaraçuxur Məscidi'
+const BRAND_NAME = 'Muslims.cc'
 const BRAND_DOMAIN = 'muslims.cc'
-const BRAND_HASHTAG = '#qaracuxurmescidi'
+const BRAND_HASHTAG = '#muslimscc'
+const BRAND_INSTAGRAM = '@muslims_cc'
 
-// Model yazan təfəkkür məscidin öz postu kimi paylaşılır — oxucu onu
-// məscidin rəsmi mövqeyi sanmasın. Mənaca src/config/mosque.js →
-// BRAND.aiDisclaimer ilə eynidir (az + en, caption iki dillidir).
+// Model yazan təfəkkür hesabın öz postu kimi paylaşılır — oxucu onu fətva
+// sanmasın. Mənaca src/config/brand.js → BRAND.aiDisclaimer ilə eynidir
+// (az + en, caption iki dillidir; hər sətir TAMAMİLƏ öz dilində).
 const AI_NOTE = [
-  'Təfəkkür mətni süni intellektlə hazırlanıb, məscidin rəsmi mövqeyi və ya fətva deyil. Dini hökmlər üçün məscidin imamına müraciət edin.',
-  'The reflection was written with AI and is not the mosque’s official position or a fatwa. For religious rulings, please consult the mosque’s imam.',
+  'Təfəkkür mətni süni intellektlə hazırlanıb, ümumi məlumatdır, fətva deyil. Dini hökmlər üçün etibarlı bir alimə müraciət edin.',
+  'The reflection was written with AI and is general information, not a fatwa. For religious rulings, please consult a trusted scholar.',
 ].join('\n')
 
 const TYPE_LABEL = {
@@ -48,8 +49,9 @@ const CaptionSchema = z.object({
   hashtags: z.array(z.string()).describe('8-12 hashtag, hamısı # ilə başlayır, boşluqsuz.'),
 })
 
-// Birinci sətirdə ad yiyəlik halındadır ("Məscidinin") — BRAND_NAME dəyişəndə əl ilə yenilə
-const SYSTEM = `Sən Qaraçuxur Məscidinin (Bakı) Instagram hesabı üçün caption yazırsan.
+// Brend adına şəkilçi qoşulmur ("Muslims.cc-nin" yox) — ad dəyişsə də cümlə düz qalır
+const SYSTEM = `Sən ${BRAND_NAME} (${BRAND_INSTAGRAM}) Instagram hesabı üçün caption yazırsan.
+${BRAND_NAME} — 5 dildə pulsuz İslami platformadır (Quran, namaz vaxtları, hədis, dua).
 
 SƏNƏ VERİLƏN MƏTN artıq doğrulanmış mənbədən gəlir və caption-a ayrıca
 əlavə olunacaq. Sənin işin yalnız onun ətrafındakı qısa təfəkkürü yazmaqdır.
@@ -60,11 +62,14 @@ MÜTLƏQ QAYDALAR:
    İstinad caption-a avtomatik əlavə olunur.
 3. Sənə verilən mətni təkrarlama — o, caption-da onsuz da var.
 4. Fiqhi hökm vermə, halal/haram fətvası vermə, mübahisəli mövzulara girmə.
-   Yazdığını məscidin rəsmi mövqeyi və ya fətvası kimi təqdim etmə; hökm
-   lazım olan yerdə oxucunu məscidin imamına müraciət etməyə yönəlt.
+   Yazdığını fətva kimi təqdim etmə; hökm lazım olan yerdə oxucunu
+   etibarlı bir alimə müraciət etməyə yönəlt.
 5. Sadə, isti və hörmətli dil. Şüar və reklam tonu olmasın.
 6. Emoji istifadə etmə.
-7. Məscid haqqında fakt uydurma (ünvan, camaat vaxtı, imam, tədbir, tarix).
+7. HEÇ BİR fakt uydurma (ad, tarix, tədbir, rəqəm, məkan).
+8. Dil qarışdırma: "az" sahəsi TAMAMİLƏ Azərbaycan dilində (türkcə "ve", "ile",
+   "için", "değil" və türkcə apostrof şəkilçisi "Allah'ın" YOX), "en" sahəsi
+   TAMAMİLƏ ingiliscə.
 
 NƏ YAZIRSAN: mətnin gündəlik həyatda nə demək olduğuna dair 2-3 cümləlik
 səmimi bir düşüncə. Azərbaycanca və ingiliscə — eyni fikir, tərcümə deyil,
@@ -145,7 +150,7 @@ export function fallbackCaption(item) {
   return {
     az: f.az,
     en: f.en,
-    hashtags: [BRAND_HASHTAG, '#qaraçuxur', '#bakı', '#islam', ...f.tags, '#azerbaycan', '#islamicreminder'],
+    hashtags: [BRAND_HASHTAG, '#islam', '#müsəlman', '#muslim', ...f.tags, '#azerbaycan', '#islamicreminder'],
     fallback: true,
   }
 }

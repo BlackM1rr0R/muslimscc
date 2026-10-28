@@ -117,28 +117,6 @@ export function subscribeToSettings(cb) {
   })
 }
 
-// ═══ CAMAAT VAXTLARI (singleton) ═══
-// Sənəd: { jamaat:{ fajr, dhuhr, asr, maghrib, isha }, jumua:{ time, khutbahLang:{ az, en, ru, tr, ar } } }
-// Hər qayda "HH:MM", "+N" (azandan N dəqiqə sonra), "-" (camaat vaxtını gizlə) və ya "" —
-// MOSQUE.jamaat ilə eyni format ("-" yalnız admin üstələməsidir, konfiqə qayıtmır).
-// Doldurulmuş dəyər src/config/mosque.js-dəkini üstələyir (bax: hooks/useMosqueTimes.js).
-// Default YOXDUR: sənəd yoxdursa null qaytarılır — vaxt uydurulmur.
-
-export async function getJamaat() {
-  return await getSingleDoc('singletons', 'jamaat')
-}
-
-export async function saveJamaat(data) {
-  // getJamaat()-dan gələn texniki sahələr sənədə təkrar yazılmasın
-  const { id, updatedAt, ...rest } = data || {}
-  return await setSingleDoc('singletons', 'jamaat', rest)
-}
-
-export function subscribeToJamaat(cb) {
-  // Firebase qurulmayıbsa subscribeSingleDoc dərhal cb(null) çağırır
-  return subscribeSingleDoc('singletons', 'jamaat', (data) => cb(data || null))
-}
-
 // ═══ KATEQORIYALAR (static — Firebase-də saxlanılmır) ═══
 export const ANNOUNCEMENT_TYPES = [
   { key:'info',    label:{az:'Məlumat',en:'Info',ru:'Информация',ar:'معلومات',tr:'Bilgi'}, color:'#3b82f6', icon:'ℹ️' },
@@ -185,30 +163,31 @@ export const EVENT_TYPES = [
   { key:'fast',   label:{az:'Oruc',en:'Fasting',ru:'Пост',ar:'صيام',tr:'Oruç'}, color:'#10b981', icon:'🌅' },
 ]
 
+// Hicri ay adları — CalendarPage ilə eyni yazılış (5 dil)
 export const HIJRI_MONTHS = [
-  { num:1, az:'Muharram', en:'Muharram', ar:'محرم' },
-  { num:2, az:'Səfər', en:'Safar', ar:'صفر' },
-  { num:3, az:'Rəbiüləvvəl', en:'Rabi al-Awwal', ar:'ربيع الأول' },
-  { num:4, az:'Rəbiülaxır', en:'Rabi al-Thani', ar:'ربيع الآخر' },
-  { num:5, az:'Cümadəlula', en:'Jumada al-Ula', ar:'جمادى الأولى' },
-  { num:6, az:'Cümadəlaxir', en:'Jumada al-Akhira', ar:'جمادى الآخرة' },
-  { num:7, az:'Rəcəb', en:'Rajab', ar:'رجب' },
-  { num:8, az:'Şaban', en:"Sha'ban", ar:'شعبان' },
-  { num:9, az:'Ramazan', en:'Ramadan', ar:'رمضان' },
-  { num:10, az:'Şəvval', en:'Shawwal', ar:'شوال' },
-  { num:11, az:'Zilqədə', en:"Dhu al-Qi'dah", ar:'ذو القعدة' },
-  { num:12, az:'Zilhiccə', en:'Dhu al-Hijjah', ar:'ذو الحجة' },
+  { num:1, az:'Məhərrəm', en:'Muharram', ru:'Мухаррам', ar:'محرم', tr:'Muharrem' },
+  { num:2, az:'Səfər', en:'Safar', ru:'Сафар', ar:'صفر', tr:'Safer' },
+  { num:3, az:'Rəbiül-Əvvəl', en:'Rabi al-Awwal', ru:'Раби аль-Авваль', ar:'ربيع الأول', tr:'Rebiülevvel' },
+  { num:4, az:'Rəbiül-Axir', en:'Rabi al-Thani', ru:'Раби ас-Сани', ar:'ربيع الآخر', tr:'Rebiülahir' },
+  { num:5, az:'Cəmadiyül-Əvvəl', en:'Jumada al-Ula', ru:'Джумада аль-Уля', ar:'جمادى الأولى', tr:'Cemaziyelevvel' },
+  { num:6, az:'Cəmadiyül-Axir', en:'Jumada al-Akhira', ru:'Джумада ас-Сани', ar:'جمادى الآخرة', tr:'Cemaziyelahir' },
+  { num:7, az:'Rəcəb', en:'Rajab', ru:'Раджаб', ar:'رجب', tr:'Recep' },
+  { num:8, az:'Şaban', en:"Sha'ban", ru:'Шабан', ar:'شعبان', tr:'Şaban' },
+  { num:9, az:'Ramazan', en:'Ramadan', ru:'Рамадан', ar:'رمضان', tr:'Ramazan' },
+  { num:10, az:'Şəvval', en:'Shawwal', ru:'Шавваль', ar:'شوال', tr:'Şevval' },
+  { num:11, az:'Zülqədə', en:"Dhu al-Qi'dah", ru:'Зуль-Каада', ar:'ذو القعدة', tr:'Zilkade' },
+  { num:12, az:'Zülhiccə', en:'Dhu al-Hijjah', ru:'Зуль-Хиджа', ar:'ذو الحجة', tr:'Zilhicce' },
 ]
 
 export const HERO_GRADIENTS = [
-  { key:'green',  colors:['#0d4a27','#1a6b3a','#22874a'], label:'Yaşıl' },
-  { key:'gold',   colors:['#8b6508','#b8860b','#d4a017'], label:'Qızılı' },
-  { key:'dark',   colors:['#1a1a2e','#16213e','#0f3460'], label:'Tünd' },
-  { key:'ocean',  colors:['#0c4a6e','#0369a1','#0284c7'], label:'Okean' },
-  { key:'sunset', colors:['#9a3412','#ea580c','#f97316'], label:'Gün batımı' },
-  { key:'rose',   colors:['#881337','#be123c','#e11d48'], label:'Çəhrayı' },
-  { key:'purple', colors:['#4c1d95','#7c3aed','#a855f7'], label:'Bənövşəyi' },
-  { key:'teal',   colors:['#134e4a','#0f766e','#14b8a6'], label:'Teal' },
+  { key:'green',  colors:['#0d4a27','#1a6b3a','#22874a'], label:{az:'Yaşıl',en:'Green',ru:'Зелёный',ar:'أخضر',tr:'Yeşil'} },
+  { key:'gold',   colors:['#8b6508','#b8860b','#d4a017'], label:{az:'Qızılı',en:'Gold',ru:'Золотой',ar:'ذهبي',tr:'Altın'} },
+  { key:'dark',   colors:['#1a1a2e','#16213e','#0f3460'], label:{az:'Tünd',en:'Dark',ru:'Тёмный',ar:'داكن',tr:'Koyu'} },
+  { key:'ocean',  colors:['#0c4a6e','#0369a1','#0284c7'], label:{az:'Dəniz',en:'Ocean',ru:'Океан',ar:'محيطي',tr:'Okyanus'} },
+  { key:'sunset', colors:['#9a3412','#ea580c','#f97316'], label:{az:'Gün batımı',en:'Sunset',ru:'Закат',ar:'غروب',tr:'Gün batımı'} },
+  { key:'rose',   colors:['#881337','#be123c','#e11d48'], label:{az:'Çəhrayı',en:'Rose',ru:'Розовый',ar:'وردي',tr:'Pembe'} },
+  { key:'purple', colors:['#4c1d95','#7c3aed','#a855f7'], label:{az:'Bənövşəyi',en:'Purple',ru:'Фиолетовый',ar:'بنفسجي',tr:'Mor'} },
+  { key:'teal',   colors:['#134e4a','#0f766e','#14b8a6'], label:{az:'Firuzəyi',en:'Teal',ru:'Бирюзовый',ar:'فيروزي',tr:'Turkuaz'} },
 ]
 
 // ═══ BACKUP & RESTORE ═══

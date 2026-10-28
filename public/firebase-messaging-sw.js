@@ -26,7 +26,7 @@ const messaging = firebase.messaging()
 
 // Background-da mesaj gəldikdə bildirişi göstər
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || payload.data?.title || 'Qaraçuxur Məscidi'
+  const title = payload.notification?.title || payload.data?.title || 'Muslims.cc'
   const options = {
     body: payload.notification?.body || payload.data?.body || '',
     icon: '/android-chrome-192x192.png',

@@ -20,15 +20,18 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 const TAP_SIZE = 150;
 
 const ADHKAR = [
-  { ar:'سُبْحَانَ اللَّهِ', en:'SubhanAllah', target:33, virtue:{az:'Hər təsbeh sədəqədir',en:'Each tasbeeh is a charity',ru:'Каждый тасбих — садака',ar:'كل تسبيحة صدقة',tr:'Her tesbih bir sadakadır'} },
-  { ar:'الْحَمْدُ لِلَّهِ', en:'Alhamdulillah', target:33, virtue:{az:'Tərəzi doldurar',en:'Fills the scales',ru:'Наполняет весы',ar:'تملأ الميزان',tr:'Teraziyi doldurur'} },
-  { ar:'اللَّهُ أَكْبَرُ', en:'Allahu Akbar', target:33, virtue:{az:'Səmaları doldurar',en:'Fills the heavens',ru:'Наполняет небеса',ar:'تملأ السماوات',tr:'Gökleri doldurur'} },
-  { ar:'لَا إِلَهَ إِلَّا اللَّهُ', en:'La ilaha illallah', target:100, virtue:{az:'Ən fəzilətli zikr',en:'Greatest dhikr',ru:'Величайший зикр',ar:'أفضل الذكر',tr:'En faziletli zikir'} },
-  { ar:'أَسْتَغْفِرُ اللَّهَ', en:'Astaghfirullah', target:100, virtue:{az:'Günahların bağışlanması',en:'Forgiveness of sins',ru:'Прощение грехов',ar:'مغفرة الذنوب',tr:'Günahların bağışlanması'} },
-  { ar:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', en:'SubhanAllahi wa bihamdihi', target:100, virtue:{az:'Günahlar silinər',en:'Sins are erased',ru:'Грехи стираются',ar:'تُحَطّ الخطايا',tr:'Günahlar silinir'} },
-  { ar:'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ', en:'La hawla...', target:33, virtue:{az:'Cənnət xəzinəsi',en:'Treasure of Paradise',ru:'Сокровище Рая',ar:'كنز من كنوز الجنة',tr:'Cennet hazinesi'} },
-  { ar:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ', en:'Salavat', target:100, virtue:{az:'10 savab yazılar',en:'10 rewards written',ru:'10 наград',ar:'يُكتب عشر حسنات',tr:'10 sevap yazılır'} },
+  { ar:'سُبْحَانَ اللَّهِ', name:{ az:"Sübhanəllah", en:"SubhanAllah", ru:"СубханАллах", tr:"Sübhanallah" }, target:33, virtue:{az:'Hər təsbeh sədəqədir',en:'Each tasbeeh is a charity',ru:'Каждый тасбих — садака',ar:'كل تسبيحة صدقة',tr:'Her tesbih bir sadakadır'} },
+  { ar:'الْحَمْدُ لِلَّهِ', name:{ az:"Əlhəmdulillah", en:"Alhamdulillah", ru:"Альхамдулиллях", tr:"Elhamdülillah" }, target:33, virtue:{az:'Tərəzi doldurar',en:'Fills the scales',ru:'Наполняет весы',ar:'تملأ الميزان',tr:'Teraziyi doldurur'} },
+  { ar:'اللَّهُ أَكْبَرُ', name:{ az:"Allahu Əkbər", en:"Allahu Akbar", ru:"Аллаху Акбар", tr:"Allahu Ekber" }, target:33, virtue:{az:'Səmaları doldurar',en:'Fills the heavens',ru:'Наполняет небеса',ar:'تملأ السماوات',tr:'Gökleri doldurur'} },
+  { ar:'لَا إِلَهَ إِلَّا اللَّهُ', name:{ az:"La ilahə illəllah", en:"La ilaha illallah", ru:"Ла иляха иллаллах", tr:"La ilahe illallah" }, target:100, virtue:{az:'Ən fəzilətli zikr',en:'Greatest dhikr',ru:'Величайший зикр',ar:'أفضل الذكر',tr:'En faziletli zikir'} },
+  { ar:'أَسْتَغْفِرُ اللَّهَ', name:{ az:"Əstəğfirullah", en:"Astaghfirullah", ru:"Астагфируллах", tr:"Estağfirullah" }, target:100, virtue:{az:'Günahların bağışlanması',en:'Forgiveness of sins',ru:'Прощение грехов',ar:'مغفرة الذنوب',tr:'Günahların bağışlanması'} },
+  { ar:'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', name:{ az:"Sübhanəllahi və bihəmdihi", en:"SubhanAllahi wa bihamdihi", ru:"СубханАллахи ва бихамдихи", tr:"Sübhanallahi ve bihamdihi" }, target:100, virtue:{az:'Günahlar silinər',en:'Sins are erased',ru:'Грехи стираются',ar:'تُحَطّ الخطايا',tr:'Günahlar silinir'} },
+  { ar:'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ', name:{ az:"La həvlə vəla quvvətə illə billah", en:"La hawla wa la quwwata illa billah", ru:"Ла хауля ва ля куввата илля биллях", tr:"La havle vela kuvvete illa billah" }, target:33, virtue:{az:'Cənnət xəzinəsi',en:'Treasure of Paradise',ru:'Сокровище Рая',ar:'كنز من كنوز الجنة',tr:'Cennet hazinesi'} },
+  { ar:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ', name:{ az:"Salavat", en:"Salawat", ru:"Салават", tr:"Salavat" }, target:100, virtue:{az:'10 savab yazılar',en:'10 rewards written',ru:'10 наград',ar:'يُكتب عشر حسنات',tr:'10 sevap yazılır'} },
 ];
+
+// Zikrin adı seçilmiş dilin yazılışı ilə (veb data/dhikr.js ilə eyni); ərəbcədə — orijinal
+const dhikrName = (d, lang) => (lang === 'ar' ? d.ar : d.name[lang]);
 
 export default function DhikrScreen() {
   const { lang, dark } = useLang();
@@ -141,7 +144,9 @@ export default function DhikrScreen() {
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.selAr, { color: active ? '#fff' : c.text }]} numberOfLines={1}>{d.ar}</Text>
-                  <Text style={[styles.selEn, { color: active ? 'rgba(255,255,255,0.7)' : c.textMuted }]} numberOfLines={1}>{d.en}</Text>
+                  {lang !== 'ar' ? (
+                    <Text style={[styles.selEn, { color: active ? 'rgba(255,255,255,0.7)' : c.textMuted }]} numberOfLines={1}>{dhikrName(d, lang)}</Text>
+                  ) : null}
                 </TouchableOpacity>
               );
             })}
@@ -207,7 +212,7 @@ export default function DhikrScreen() {
         {/* ═══ ZİKR INFO ═══ */}
         <FadeUp delay={300}>
           <View style={[styles.infoCard, { backgroundColor: c.card, borderColor: c.cardBorder }, dark ? Shadows.dark.sm : Shadows.sm]}>
-            <Text style={[styles.infoName, { color: c.text }]}>{dhikr.en}</Text>
+            <Text style={[styles.infoName, { color: c.text }]}>{dhikrName(dhikr, lang)}</Text>
             <View style={[styles.virtueBadge, { backgroundColor: c.primaryBg }]}>
               <Text style={[styles.virtueText, { color: c.textSecondary }]}>{dhikr.virtue[lang] || dhikr.virtue.en}</Text>
             </View>
@@ -270,7 +275,7 @@ export default function DhikrScreen() {
               </View>
               {log.map((entry, i) => (
                 <View key={i} style={[styles.logRow, i < log.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.border }]}>
-                  <Text style={[styles.logName, { color: c.text }]}>{ADHKAR[entry.idx]?.en || '—'}</Text>
+                  <Text style={[styles.logName, { color: c.text }]}>{ADHKAR[entry.idx] ? dhikrName(ADHKAR[entry.idx], lang) : '—'}</Text>
                   <Text style={[styles.logCount, { color: c.primary }]}>×{entry.count}</Text>
                   <Text style={[styles.logTime, { color: c.textMuted }]}>{new Date(entry.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                 </View>

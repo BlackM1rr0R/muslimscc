@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { brandName } from '../config/mosque'
+import { brandName } from '../config/brand'
 import { isAdminLoggedIn, adminLogout, getVideos } from '../data/videos'
 import { getBooks } from '../data/books'
 import {
@@ -13,7 +13,6 @@ import PushNotificationManager from '../components/admin/PushNotificationManager
 import HadithManager from '../components/admin/HadithManager'
 import DuaManager from '../components/admin/DuaManager'
 import AnnouncementManager from '../components/admin/AnnouncementManager'
-import JamaatManager from '../components/admin/JamaatManager'
 import DailyContentManager from '../components/admin/DailyContentManager'
 import DashboardOverview from '../components/admin/DashboardOverview'
 import QuoteManager from '../components/admin/QuoteManager'
@@ -26,11 +25,11 @@ import SeedManager from '../components/admin/SeedManager'
 import '../styles/AdminPage.css'
 
 const LABELS = {
-  az: { dashboard:'İdarə paneli', content:'KONTENT', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', jamaat:'Camaat vaxtları', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Hero Banner', system:'SİSTEM', settings:'Parametrlər', stats:'Statistika', backup:'Yedək & Bərpa', seed:'Default yüklə', pushNotif:'Push Bildirişlər', logout:'Çıxış', adminPanel:'Admin Panel' },
-  en: { dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', jamaat:'Congregation Times', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero Banner', system:'SYSTEM', settings:'Settings', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Logout', adminPanel:'Admin Panel' },
-  ru: { dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', jamaat:'Время джамаата', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Hero Баннер', system:'СИСТЕМА', settings:'Настройки', stats:'Статистика', backup:'Резерв', seed:'Загрузить', pushNotif:'Уведомления', logout:'Выход', adminPanel:'Админ' },
-  ar: { dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', jamaat:'مواقيت الجماعة', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر', system:'النظام', settings:'الإعدادات', stats:'الإحصائيات', backup:'النسخ', seed:'تحميل', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة' },
-  tr: { dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', jamaat:'Cemaat Vakitleri', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Hero Banner', system:'SİSTEM', settings:'Ayarlar', stats:'İstatistik', backup:'Yedekleme', seed:'Yükle', pushNotif:'Bildirimler', logout:'Çıkış', adminPanel:'Yönetim' },
+  az: { dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli' },
+  en: { dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero banner', system:'SYSTEM', settings:'Settings', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Logout', adminPanel:'Admin Panel' },
+  ru: { dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель' },
+  ar: { dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة' },
+  tr: { dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli' },
 }
 
 const NAV_GROUPS = [
@@ -48,7 +47,6 @@ const NAV_GROUPS = [
       { key:'duas',          icon:'🤲', labelKey:'duas' },
       { key:'quotes',        icon:'💬', labelKey:'quotes' },
       { key:'announcements', icon:'📣', labelKey:'announcements' },
-      { key:'jamaat',        icon:'🕌', labelKey:'jamaat', noCount:true },
       { key:'events',        icon:'📅', labelKey:'events' },
       { key:'daily',         icon:'🌟', labelKey:'daily', noCount:true },
       { key:'pushNotif',     icon:'🔔', labelKey:'pushNotif', noCount:true },
@@ -106,7 +104,6 @@ export default function AdminPage({ setPage }) {
       case 'duas':          return <DuaManager onUpdate={refreshCounts} />
       case 'quotes':        return <QuoteManager onUpdate={refreshCounts} />
       case 'announcements': return <AnnouncementManager onUpdate={refreshCounts} />
-      case 'jamaat':        return <JamaatManager />
       case 'events':        return <EventManager onUpdate={refreshCounts} />
       case 'daily':         return <DailyContentManager />
       case 'pushNotif':     return <PushNotificationManager />

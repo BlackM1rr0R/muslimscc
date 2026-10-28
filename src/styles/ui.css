@@ -1,0 +1,633 @@
+/* ══════════════════════════════════════════════════════════════════
+   UI KOMPONENT SİNİFLƏRİ — Muslims.cc dizayn sistemi v2
+   (globals.css-in əvvəlində @import olunur; tokenlər globals.css-dədir)
+
+   Qaydalar (ətraflı: src/styles/DESIGN.md):
+   • Bütün rənglər, radiuslar, kölgələr TOKENDƏN — burada hex yalnız
+     "hər iki rejimdə eyni" olan yerlərdə (tünd zolaqdakı açıq mətn).
+   • BEM-ə yaxın adlar: .ui-blok, .ui-blok__hissə, .ui-blok--variant.
+   • Məntiqi xassələr (padding-inline, inset-inline-*) — /ar avtomatik
+     güzgülənir. İstiqamət oxları .ui-flip-rtl ilə çevrilir.
+   • Toxunma hədəfi ≥ 44px (--tap); fokus halqası motion.css §2-dən.
+   • Hover effektləri yalnız (hover: hover) cihazlarda — telefonda
+     "ilişib qalmasın".
+
+   MÜNDƏRİCAT
+     1. Layout: .ui-container .ui-section .ui-grid .ui-stack
+     2. Tipografiya: .ui-eyebrow .ui-title .ui-lead .ui-display .ui-num
+     3. Düymələr: .ui-btn (+ variantlar) .ui-icon-btn .ui-link
+     4. Kart: .ui-card (+ variantlar) .ui-icon-tile
+     5. Çip, nişan, klaviatura: .ui-chip .ui-badge .ui-kbd
+     6. Forma: .ui-field .ui-input .ui-select
+     7. İslami detallar: .ui-pattern .ui-ornament .ui-arabic .ui-quote
+     8. Statistika: .ui-stat
+     9. Daxili səhifə hero-su: .ui-page-hero (növbəti mərhələ üçün hazır)
+    10. Köməkçilər: .ui-sr-only .ui-flip-rtl
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ══ 1. LAYOUT ═════════════════════════════════════════════════════ */
+
+/* Mərkəzləşmiş konteyner — kənar boşluğu --page-gutter, maks. en --container.
+   .ui-container--narrow — oxu səhifələri (760px) */
+.ui-container {
+  width: 100%;
+  max-width: calc(var(--container) + 2 * var(--page-gutter));
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+.ui-container--narrow { max-width: calc(var(--container-narrow) + 2 * var(--page-gutter)); }
+
+/* Bölmə — şaquli ritm boşluq sistemindən.
+   --tight: yarım boşluq; --alt: sakit ikinci səth + hairline xətlər */
+.ui-section { padding-block: var(--section-gap); }
+.ui-section--tight { padding-block: var(--section-gap-sm); }
+.ui-section--alt {
+  background: var(--surface-2);
+  border-block: 1px solid var(--line);
+}
+
+/* Bölmə başlığı bloku: eyebrow + başlıq + lead.
+   Susma ilə başlanğıcda (sola), --center ilə ortada */
+.ui-section-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: clamp(28px, 3vw, 44px);
+}
+.ui-section-head--center { align-items: center; text-align: center; }
+.ui-section-head--row {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+
+/* Avtomatik şəbəkə: kartlar min. --ui-grid-min enində, qalan yeri bölüşür */
+.ui-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ui-grid-min, 240px)), 1fr));
+  gap: var(--ui-grid-gap, var(--space-4));
+}
+
+/* Şaquli yığın (aralıq --ui-stack-gap) */
+.ui-stack { display: flex; flex-direction: column; gap: var(--ui-stack-gap, var(--space-4)); }
+
+/* ══ 2. TİPOQRAFİYA ════════════════════════════════════════════════ */
+
+/* Kiçik böyük hərfli etiket — qızılı nöqtə ilə. Ərəbcədə hərf aralığı yox */
+.ui-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+.ui-eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  background: var(--accent);
+  transform: rotate(45deg);   /* kiçik romb — xatəm motivinin "nöqtəsi" */
+  border-radius: 1px;
+}
+[dir="rtl"] .ui-eyebrow { letter-spacing: 0; font-size: var(--step--1); }
+
+/* Bölmə başlığı (h2) — display şrifti */
+.ui-title {
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+}
+.ui-title--sm { font-size: var(--step-2); }
+
+/* Səhifə və ya hero başlığı (h1) */
+.ui-display {
+  font-family: var(--font-display);
+  font-size: var(--step-4);
+  font-weight: 500;
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+}
+
+/* Giriş paraqrafı — ikinci dərəcəli rəng, oxunaqlı en */
+.ui-lead {
+  max-width: 60ch;
+  color: var(--text-secondary);
+  font-size: var(--step-1);
+  line-height: 1.6;
+}
+.ui-section-head--center .ui-lead { margin-inline: auto; }
+
+/* Rəqəmlər bərabər enli (saat, sayğac, statistika tullanmasın) */
+.ui-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+/* ══ 3. DÜYMƏLƏR ═══════════════════════════════════════════════════
+   <button class="ui-btn ui-btn--primary">…</button>
+   Variantlar: --primary (zümrüd) · --secondary (ağ, haşiyəli) ·
+               --ghost (fonsuz) · --accent (qızılı) · --inverse (tünd zolaqda)
+   Ölçü: --sm (36px) · susma (44px) · --lg (52px) · --block (tam en)
+   İkon: <svg class="ui-btn__icon"> — 18px, mətnlə eyni rəng */
+.ui-btn {
+  --ui-btn-h: 44px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--ui-btn-h);
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--dur-1, 150ms) ease,
+    border-color var(--dur-1, 150ms) ease,
+    color var(--dur-1, 150ms) ease,
+    box-shadow var(--dur-2, 240ms) ease,
+    transform var(--dur-1, 150ms) var(--ease-out, ease);
+}
+.ui-btn:active { transform: translateY(1px) scale(0.99); }
+.ui-btn:disabled,
+.ui-btn[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
+
+.ui-btn__icon { width: 18px; height: 18px; flex-shrink: 0; }
+
+.ui-btn--primary {
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.ui-btn--secondary {
+  background: var(--surface-1);
+  border-color: var(--line-strong);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-1);
+}
+.ui-btn--ghost { color: var(--text-secondary); }
+.ui-btn--accent {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-text);
+}
+/* Tünd zolaqda (CTA, footer, .ui-card--inverse) */
+.ui-btn--inverse {
+  background: #f3efe6;
+  color: var(--emerald-900);
+}
+.ui-btn--inverse-ghost {
+  border-color: rgba(243, 239, 230, 0.28);
+  color: #f3efe6;
+}
+
+@media (hover: hover) {
+  .ui-btn--primary:hover { background: var(--brand-hover); box-shadow: var(--shadow-2); }
+  .ui-btn--secondary:hover { background: var(--surface-2); border-color: var(--text-tertiary); }
+  .ui-btn--ghost:hover { background: var(--surface-2); color: var(--text-strong); }
+  .ui-btn--accent:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .ui-btn--inverse:hover { background: #ffffff; }
+  .ui-btn--inverse-ghost:hover { background: rgba(243, 239, 230, 0.08); border-color: rgba(243, 239, 230, 0.5); }
+}
+
+.ui-btn--sm { --ui-btn-h: 36px; padding: 0 14px; font-size: 14px; border-radius: var(--radius-sm); }
+.ui-btn--lg { --ui-btn-h: 52px; padding: 0 24px; font-size: 16px; border-radius: var(--radius-md); }
+.ui-btn--block { width: 100%; }
+
+/* Toxunma ekranında kiçik düymə də 44px hədəf alır */
+@media (pointer: coarse) {
+  .ui-btn--sm { --ui-btn-h: 44px; }
+}
+
+/* Kvadrat ikon düyməsi (başlıq, kart küncü) — 40px, toxunmada 44px */
+.ui-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease;
+}
+@media (hover: hover) {
+  .ui-icon-btn:hover { background: var(--surface-2); color: var(--text-strong); }
+}
+@media (pointer: coarse) {
+  .ui-icon-btn { width: 44px; height: 44px; }
+}
+
+/* Mətn linki + ox: "Hamısına bax →". Ox hover-də 3px irəli gedir */
+.ui-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--brand);
+  font-weight: 600;
+  font-size: var(--step--1);
+  text-decoration: none;
+  border-radius: 4px;
+}
+.ui-link__arrow { transition: transform var(--dur-2, 240ms) var(--ease-out, ease); }
+@media (hover: hover) {
+  .ui-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .ui-link:hover .ui-link__arrow { transform: translateX(3px); }
+  [dir="rtl"] .ui-link:hover .ui-link__arrow { transform: scaleX(-1) translateX(3px); }
+}
+
+/* ══ 4. KART ═══════════════════════════════════════════════════════
+   <article class="ui-card">…</article>
+   <a class="ui-card ui-card--interactive" href="…">…</a>
+   Variantlar: --interactive (hover-də qalxır, haşiyə tündləşir) ·
+               --sunken (ikinci səth, kölgəsiz) · --inverse (tünd zümrüd) ·
+               --flush (daxili boşluqsuz — siyahı/şəkil üçün)
+   Hissələr: __head __title __text __foot */
+.ui-card {
+  position: relative;
+  display: block;
+  padding: var(--card-pad);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  color: var(--text-body);
+  text-decoration: none;
+  text-align: start;
+}
+.ui-card--interactive {
+  cursor: pointer;
+  transition:
+    transform var(--dur-2, 240ms) var(--ease-out, ease),
+    box-shadow var(--dur-2, 240ms) ease,
+    border-color var(--dur-2, 240ms) ease;
+}
+@media (hover: hover) {
+  .ui-card--interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-3);
+    border-color: var(--line-strong);
+  }
+}
+.ui-card--interactive:active { transform: scale(0.99); }
+.ui-card--sunken { background: var(--surface-2); box-shadow: none; }
+.ui-card--inverse {
+  background: var(--surface-inverse);
+  border-color: transparent;
+  color: var(--text-on-inverse);
+}
+.ui-card--flush { padding: 0; overflow: hidden; }
+
+.ui-card__head { display: flex; align-items: center; gap: 12px; margin-bottom: var(--card-title-gap); }
+.ui-card__title {
+  color: var(--text-strong);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
+}
+.ui-card__text { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.ui-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* İkon kafeli — xətti SVG ikon üçün (Icon.jsx), brend tonunda.
+   --accent (qızılı) · --neutral (boz) · --lg (52px) · --sm (32px) */
+.ui-icon-tile {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand-soft-2);
+  color: var(--brand);
+}
+.ui-icon-tile svg { width: 22px; height: 22px; }
+.ui-icon-tile--accent { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-line); color: var(--accent-text); }
+.ui-icon-tile--neutral { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); color: var(--text-secondary); }
+.ui-icon-tile--lg { width: 52px; height: 52px; border-radius: var(--radius-lg); }
+.ui-icon-tile--lg svg { width: 26px; height: 26px; }
+.ui-icon-tile--sm { width: 32px; height: 32px; border-radius: var(--radius-sm); }
+.ui-icon-tile--sm svg { width: 18px; height: 18px; }
+
+/* ══ 5. ÇİP, NİŞAN, KLAVİATURA ═════════════════════════════════════ */
+
+/* Filtr çipi — seçiləndə "mürəkkəb" (tünd) dolğu: rəngli yox, sakit.
+   <button class="ui-chip" aria-pressed="true">Hamısı</button> */
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease, border-color var(--dur-1, 150ms) ease;
+}
+@media (hover: hover) {
+  .ui-chip:hover { border-color: var(--text-tertiary); color: var(--text-strong); }
+}
+.ui-chip.is-active,
+.ui-chip[aria-pressed="true"],
+.ui-chip[aria-selected="true"] {
+  background: var(--text-strong);
+  border-color: var(--text-strong);
+  color: var(--surface-1);
+}
+@media (pointer: coarse) { .ui-chip { min-height: 40px; } }
+
+/* Kiçik nişan (status, say, "Növbəti") */
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.ui-badge--brand  { background: var(--brand-soft-2); color: var(--brand-strong); }
+.ui-badge--accent { background: var(--accent-soft); color: var(--accent-text); }
+.ui-badge--solid  { background: var(--brand); color: var(--on-brand); }
+[data-theme="dark"] .ui-badge--brand { color: var(--brand); }
+
+.ui-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--surface-1);
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ══ 6. FORMA ══════════════════════════════════════════════════════
+   <label class="ui-field">
+     <span class="ui-field__label">Şəhər</span>
+     <input class="ui-input" …>
+     <span class="ui-field__hint">…</span>
+   </label> */
+.ui-field { display: flex; flex-direction: column; gap: 6px; }
+.ui-field__label { color: var(--text-strong); font-size: 14px; font-weight: 600; }
+.ui-field__hint { color: var(--text-tertiary); font-size: 13px; }
+
+.ui-input,
+.ui-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: 16px;   /* iOS fokusda yaxınlaşdırmasın */
+  line-height: 1.4;
+  box-shadow: inset 0 1px 2px rgba(17, 24, 21, 0.04);
+  transition: border-color var(--dur-1, 150ms) ease, box-shadow var(--dur-1, 150ms) ease;
+}
+.ui-input::placeholder { color: var(--text-tertiary); }
+@media (hover: hover) {
+  .ui-input:hover, .ui-select:hover { border-color: var(--text-tertiary); }
+}
+.ui-input:focus,
+.ui-select:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-2);
+}
+
+/* ══ 7. İSLAMİ DETALLAR ════════════════════════════════════════════
+   .ui-pattern — xatəm (8 guşəli ulduz) şəbəkəsi. Mütləq qat kimi
+   valideynin içinə qoyulur (valideyndə position:relative + isolation).
+   Rəng --pattern-color tokenindən (mask-image texnikası: SVG yalnız
+   formadır, rəngi fon verir — tünd rejimdə avtomatik dəyişir).
+   --fade: kənarlara doğru solur (mərkəzdən ellips) — hero üçün.
+   <div class="ui-pattern ui-pattern--fade" aria-hidden="true"></div> */
+.ui-pattern {
+  --ui-pattern-size: 72px;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--pattern-color);
+  -webkit-mask-image: var(--ui-khatam);
+  mask-image: var(--ui-khatam);
+  -webkit-mask-size: var(--ui-pattern-size) var(--ui-pattern-size);
+  mask-size: var(--ui-pattern-size) var(--ui-pattern-size);
+}
+.ui-pattern--fade {
+  -webkit-mask-image: var(--ui-khatam), radial-gradient(ellipse 70% 80% at 70% 30%, #000 0%, transparent 72%);
+  mask-image: var(--ui-khatam), radial-gradient(ellipse 70% 80% at 70% 30%, #000 0%, transparent 72%);
+  -webkit-mask-size: var(--ui-pattern-size) var(--ui-pattern-size), 100% 100%;
+  mask-size: var(--ui-pattern-size) var(--ui-pattern-size), 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat;
+  mask-repeat: repeat, no-repeat;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+[dir="rtl"] .ui-pattern--fade {
+  -webkit-mask-image: var(--ui-khatam), radial-gradient(ellipse 70% 80% at 30% 30%, #000 0%, transparent 72%);
+  mask-image: var(--ui-khatam), radial-gradient(ellipse 70% 80% at 30% 30%, #000 0%, transparent 72%);
+}
+
+:root {
+  /* Xatəm kafeli: iki kvadrat (biri 45° dönük) = 8 guşəli ulduz, uclarından
+     kafelin kənarlarına xətlər — kafellər yan-yana düzüləndə girih şəbəkəsi */
+  --ui-khatam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80' fill='none' stroke='%23000' stroke-width='1.1'%3E%3Cpath d='M22 22h36v36H22zM40 14.5 65.5 40 40 65.5 14.5 40zM40 0v14.5M40 65.5V80M0 40h14.5M65.5 40H80M0 0l22 22M80 0 58 22M80 80 58 58M0 80l22-22'/%3E%3C/svg%3E");
+  /* Tək ulduz (ornament, loqo fonu) */
+  --ui-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1.5l3.1 4.4 5.3-.3-.3 5.3L22.5 12l-4.4 3.1.3 5.3-5.3-.3L12 22.5l-3.1-4.4-5.3.3.3-5.3L1.5 12l4.4-3.1-.3-5.3 5.3.3z'/%3E%3C/svg%3E");
+}
+
+/* Ornament ayırıcı: —— ✦ —— (ortada 8 guşəli ulduz, qızılı).
+   <div class="ui-ornament" aria-hidden="true"><span class="ui-ornament__star"></span></div> */
+.ui-ornament {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(100%, 320px);
+  margin-inline: auto;
+  color: var(--accent);
+}
+.ui-ornament::before,
+.ui-ornament::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-line));
+}
+.ui-ornament::after { background: linear-gradient(270deg, transparent, var(--accent-line)); }
+.ui-ornament__star {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  -webkit-mask: var(--ui-star) center / contain no-repeat;
+  mask: var(--ui-star) center / contain no-repeat;
+}
+
+/* Quran/hədis ərəbcəsi — Amiri, geniş sətir, sağdan sola */
+.ui-arabic {
+  font-family: var(--font-arabic);
+  font-weight: 400;
+  line-height: var(--lh-arabic);
+  direction: rtl;
+  color: var(--text-strong);
+  letter-spacing: 0;   /* ərəb hərfləri birləşikdir — aralıq onları qırır */
+}
+
+/* Sitat bloku: ərəbcə + tərcümə + mənbə; başlanğıc tərəfdə qızılı xətt.
+   <figure class="ui-quote">
+     <blockquote><p class="ui-quote__ar ui-arabic">…</p><p class="ui-quote__text">…</p></blockquote>
+     <figcaption class="ui-quote__src">— Muslim 671</figcaption>
+   </figure> */
+.ui-quote {
+  position: relative;
+  padding-block: 4px;
+  padding-inline: 20px 0;
+  border-inline-start: 2px solid var(--accent);
+}
+.ui-quote__ar { font-size: clamp(22px, 2vw, 28px); margin-bottom: 6px; }
+.ui-quote__text {
+  color: var(--text-body);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-style: italic;
+  line-height: 1.5;
+}
+.ui-quote__src { margin-top: 8px; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
+
+/* ══ 8. STATİSTİKA ═════════════════════════════════════════════════
+   <div class="ui-stat"><span class="ui-stat__num">114</span><span class="ui-stat__label">Surə</span></div> */
+.ui-stat { display: flex; flex-direction: column; gap: 4px; }
+.ui-stat__num {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.ui-stat__label { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
+
+/* ══ 9. DAXİLİ SƏHİFƏ HERO-SU (növbəti mərhələ) ═══════════════════
+   Köhnə rəngli .page-hero-nun yerinə: sakit kağız fon + incə naxış,
+   başlanğıca düzlənmiş başlıq. Breadcrumb, eyebrow, h1, lead, əməllər.
+   <header class="ui-page-hero">
+     <div class="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+     <div class="ui-container">
+       <nav class="ui-page-hero__crumbs">…</nav>
+       <span class="ui-eyebrow">Quran</span>
+       <h1 class="ui-display">Qurani-Kərim</h1>
+       <p class="ui-lead">…</p>
+       <div class="ui-page-hero__actions">…</div>
+     </div>
+   </header> */
+.ui-page-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: clamp(36px, 5vw, 72px) clamp(28px, 4vw, 48px);
+  background:
+    radial-gradient(ellipse 60% 90% at 85% 0%, var(--brand-soft) 0%, transparent 70%),
+    var(--surface-0);
+  border-bottom: 1px solid var(--line);
+}
+[dir="rtl"] .ui-page-hero {
+  background:
+    radial-gradient(ellipse 60% 90% at 15% 0%, var(--brand-soft) 0%, transparent 70%),
+    var(--surface-0);
+}
+.ui-page-hero .ui-container { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.ui-page-hero .ui-lead { margin-top: 2px; }
+.ui-page-hero__crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+.ui-page-hero__crumbs a { color: var(--text-secondary); }
+@media (hover: hover) { .ui-page-hero__crumbs a:hover { color: var(--brand); } }
+.ui-page-hero__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+
+/* ══ 10. KÖMƏKÇİLƏR ════════════════════════════════════════════════ */
+.ui-sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Brend işarəsi (Icon.jsx → BrandMark): başlıq, menyu, footer — hər iki
+   rejimdə eyni brend rəngləri (zümrüd kafel, qum rəngli xatəm) */
+.qm-mark { display: block; flex-shrink: 0; }
+.qm-mark-tile { fill: var(--emerald-700); }
+.qm-mark-star { fill: none; stroke: var(--sand-300); stroke-width: 1.5; stroke-linejoin: round; }
+.qm-mark-dot { fill: var(--sand-400); }
+
+/* İstiqamət oxu (→ ‹ ›) ərəbcədə güzgülənir */
+[dir="rtl"] .ui-flip-rtl { transform: scaleX(-1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-btn,
+  .ui-card--interactive,
+  .ui-link__arrow { transition: none; }
+  .ui-card--interactive:hover { transform: none; }
+}

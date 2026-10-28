@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════
+# Muslims.cc — istehsal (serverdə: /opt/muslimscc/docker-compose.yml)
+#
+# İki konteyner:
+#   web — root-suz nginx: sayt + /api/ proksi. Yeganə internetə açıq xidmət.
+#   api — Node (server.js): AI, push bildirişləri, azan planlayıcısı.
+#         Heç bir port açmır — yalnız "web" ona Docker şəbəkəsində çatır.
+#
+# Image-lər CI-da (GitHub Actions) build olunur və serverə tar kimi
+# göndərilir (server 1 CPU / 1 GB — build üçün kiçikdir). Versiya: TAG
+# (git commit qısa hash-i). İşə salma və geri qaytarma: deploy.sh.
+#
+# DİQQƏT — Docker və UFW: Docker açdığı portları UFW-dən yan keçir. Ona
+# görə yalnız web portları açılır, həm də yalnız IPv4-də (IPv6-da Docker
+# real mənbə IP-ni gizlədir və "yalnız Cloudflare" qaydası işləməzdi;
+# Cloudflare origin-ə onsuz da IPv4 ilə gəlir).
+# ═══════════════════════════════════════════════════════
+
+name: muslimscc
+
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  api:
+    <<: *hardening
+    image: muslimscc-api:${TAG:?TAG verilməyib}
+    env_file: ./api.env          # 600, root — sirlər yalnız burada
+    tmpfs: [/tmp]
+    mem_limit: 320m
+    networks: [backend]
+
+  web:
+    <<: *hardening
+    image: muslimscc-web:${TAG:?TAG verilməyib}
+    depends_on:
+      api: { condition: service_healthy }
+    ports:
+      - "${BIND_IP:-0.0.0.0}:${HTTP_PORT:-80}:8080"
+      - "${BIND_IP:-0.0.0.0}:${HTTPS_PORT:-443}:8443"
+    volumes:
+      - ./certs:/certs:ro                        # certbot deploy-hook kopyalayır
+      - /var/www/certbot:/var/www/certbot:ro     # Let's Encrypt yoxlama faylları
+    tmpfs: [/tmp, /var/cache/nginx]
+    mem_limit: 96m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    networks: [backend]
+
+networks:
+  backend: {}

@@ -2,8 +2,9 @@
    HOMEPAGE BOOK SECTION — Preview grid
    ═══════════════════════════════════════════════════════ */
 
+/* v2: kənar boşluğu saytın ümumi --page-gutter-i ilə (hero, bento ilə bir xətt) */
 .book-section {
-  padding: 40px 20px;
+  padding: var(--section-gap-sm) var(--page-gutter);
 }
 
 .book-section-header {
@@ -16,8 +17,10 @@
 }
 
 .book-section-title {
-  font-size: clamp(20px, 3vw, 26px);
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
   margin: 0 0 4px;
   color: var(--text);
   display: flex;
@@ -31,18 +34,19 @@
   margin: 0;
 }
 
+/* v2: .ui-btn--secondary ilə eyni görünüş (narıncı qradiyent götürülüb) */
 .book-section-viewall {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #fff;
-  border: none;
-  padding: 12px 22px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 13px;
+  background: var(--surface-1);
+  color: var(--text-strong);
+  border: 1px solid var(--line-strong);
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
-  letter-spacing: 0.3px;
-  box-shadow: 0 4px 14px rgba(245,158,11,0.3);
-  transition: all 0.25s;
+  box-shadow: var(--shadow-1);
+  transition: background-color .18s ease, border-color .18s ease;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -50,8 +54,8 @@
 }
 
 .book-section-viewall:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(245,158,11,0.4);
+  background: var(--surface-2);
+  border-color: var(--text-tertiary);
 }
 
 /* ─── Grid — 5 kitab dolu sıra ─── */

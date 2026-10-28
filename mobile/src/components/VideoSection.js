@@ -8,6 +8,7 @@ import { VIDEOS, VIDEO_CATEGORIES, getThumbnail, subscribeToVideos } from '../da
 import AppIcon from './Icon';
 import { FadeUp, PressableCard, Pulse } from './Animated';
 
+import { pickLang } from '../utils/pickLang';
 // WebView yalnız ios/android-də mövcuddur. Web-də iframe istifadə edirik.
 let WebView = null;
 if (Platform.OS !== 'web') {
@@ -15,7 +16,7 @@ if (Platform.OS !== 'web') {
 }
 
 // Platform-uyğun YouTube pleyer
-function YouTubePlayer({ videoId, loadingText }) {
+function YouTubePlayer({ videoId, loadingText, unavailableText }) {
   const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
 
   if (Platform.OS === 'web') {
@@ -30,7 +31,7 @@ function YouTubePlayer({ videoId, loadingText }) {
   if (!WebView) {
     return (
       <View style={styles.playerLoading}>
-        <Text style={styles.playerLoadingText}>WebView unavailable</Text>
+        <Text style={styles.playerLoadingText}>{unavailableText}</Text>
       </View>
     );
   }
@@ -58,11 +59,11 @@ function YouTubePlayer({ videoId, loadingText }) {
 const { width: SW } = Dimensions.get('window');
 
 const LABELS = {
-  az: { title:'Video Kontent', sub:'Mühazirələr, tilavətlər və daha çox', close:'Bağla', loadingPlayer:'Pleyer yüklənir...' },
-  en: { title:'Video Content', sub:'Lectures, recitations and more', close:'Close', loadingPlayer:'Loading player...' },
-  ru: { title:'Видео', sub:'Лекции, чтения и больше', close:'Закрыть', loadingPlayer:'Загрузка плеера...' },
-  ar: { title:'الفيديوهات', sub:'محاضرات وتلاوات والمزيد', close:'إغلاق', loadingPlayer:'تحميل المشغل...' },
-  tr: { title:'Video İçerik', sub:'Konferanslar ve daha fazlası', close:'Kapat', loadingPlayer:'Oynatıcı yükleniyor...' },
+  az: { title:'Video Kontent', sub:'Mühazirələr, tilavətlər və daha çox', close:'Bağla', loadingPlayer:'Pleyer yüklənir...', noPlayer:'Pleyer əlçatan deyil' },
+  en: { title:'Video Content', sub:'Lectures, recitations and more', close:'Close', loadingPlayer:'Loading player...', noPlayer:'Player unavailable' },
+  ru: { title:'Видео', sub:'Лекции, чтения и больше', close:'Закрыть', loadingPlayer:'Загрузка плеера...', noPlayer:'Плеер недоступен' },
+  ar: { title:'الفيديوهات', sub:'محاضرات وتلاوات والمزيد', close:'إغلاق', loadingPlayer:'تحميل المشغل...', noPlayer:'المشغل غير متاح' },
+  tr: { title:'Video İçerik', sub:'Konferanslar ve daha fazlası', close:'Kapat', loadingPlayer:'Oynatıcı yükleniyor...', noPlayer:'Oynatıcı kullanılamıyor' },
 };
 
 export default function VideoSection() {
@@ -87,9 +88,11 @@ export default function VideoSection() {
     return () => unsubscribe?.();
   }, []);
 
+  // Cari dildə başlığı olmayan video bu dildə göstərilmir (başqa dilə düşmür)
+  const langVideos = videos.filter(v => pickLang(v.title, lang, { warn: false }));
   const filtered = selectedCat === 'all'
-    ? videos
-    : videos.filter(v => v.category === selectedCat);
+    ? langVideos
+    : langVideos.filter(v => v.category === selectedCat);
 
   const openVideo = (video) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -136,7 +139,7 @@ export default function VideoSection() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.catText, { color: active ? '#fff' : c.textSecondary }]}>
-                  {cat.label[lang] || cat.label.en}
+                  {pickLang(cat.label, lang)}
                 </Text>
               </TouchableOpacity>
             );
@@ -183,7 +186,7 @@ export default function VideoSection() {
                   {/* Category badge */}
                   <View style={[styles.catBadge, { backgroundColor: 'rgba(255,255,255,0.95)' }]}>
                     <Text style={[styles.catBadgeText, { color: cat?.color }]}>
-                      {cat?.label[lang] || cat?.label.en}
+                      {pickLang(cat?.label, lang)}
                     </Text>
                   </View>
                   {/* Duration */}
@@ -195,11 +198,11 @@ export default function VideoSection() {
                 </View>
                 <View style={styles.body}>
                   <Text style={[styles.videoTitle, { color: c.text }]} numberOfLines={2}>
-                    {v.title[lang] || v.title.en}
+                    {pickLang(v.title, lang)}
                   </Text>
-                  {(v.description?.[lang] || v.description?.en) && (
+                  {!!pickLang(v.description, lang) && (
                     <Text style={[styles.videoDesc, { color: c.textMuted }]} numberOfLines={2}>
-                      {v.description[lang] || v.description.en}
+                      {pickLang(v.description, lang)}
                     </Text>
                   )}
                 </View>
@@ -239,17 +242,17 @@ export default function VideoSection() {
 
               {/* 16:9 YouTube player — WebView on native, iframe on web */}
               <View style={styles.playerVideoBox}>
-                <YouTubePlayer videoId={selectedVideo.youtubeId} loadingText={l.loadingPlayer} />
+                <YouTubePlayer videoId={selectedVideo.youtubeId} loadingText={l.loadingPlayer} unavailableText={l.noPlayer} />
               </View>
 
               {/* Title + description below player */}
               <View style={[styles.playerInfo, { backgroundColor: c.card }]}>
                 <Text style={[styles.playerTitle, { color: c.text }]} numberOfLines={2}>
-                  {selectedVideo.title[lang] || selectedVideo.title.en}
+                  {pickLang(selectedVideo.title, lang)}
                 </Text>
-                {(selectedVideo.description?.[lang] || selectedVideo.description?.en) && (
+                {!!pickLang(selectedVideo.description, lang) && (
                   <Text style={[styles.playerDesc, { color: c.textSecondary }]} numberOfLines={3}>
-                    {selectedVideo.description[lang] || selectedVideo.description.en}
+                    {pickLang(selectedVideo.description, lang)}
                   </Text>
                 )}
               </View>

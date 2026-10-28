@@ -1,18 +1,19 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useLang } from "../contexts/LangContext";
-import { brandName } from "../config/mosque";
+import { brandName } from "../config/brand";
 import { PRIMARY_NAV, navShortLabel } from "../data/navigation";
 import { pathFor } from "../seo/routes";
 import { useBackToClose } from "../utils/useBackToClose";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 import SideNav from "./SideNav";
+import { BrandMark } from "./Icon";
 import "../styles/Header.css";
 
 // ═══════════════════════════════════════════════════════
 // Header — sahibin qərarları: #5 (geniş ekran) və #7 (dar ekran).
 //
 //   ≥1024px (#5 — DƏYİŞMƏYİB, ☰ yoxdur):
-//   [loqo + "Qaraçuxur Məscidi"] ── Quran · Namaz · Hədis · AI · Haqqımızda ── [🔍] [🌙] [AZ ▾]
+//   [loqo + "Muslims.cc"] ── Quran · Namaz · Hədis · AI · Haqqımızda ── [🔍] [🌙] [AZ ▾]
 //   • Loqo bloku yan panelin (SideNav "rail") eni qədərdir — loqo panelin
 //     sətirləri ilə bir xətdə durur (Header.css → --sidenav-w)
 //   • Ortada YALNIZ 5 qısa link (PRIMARY_NAV + SHORT_LABELS, src/data/navigation.js),
@@ -21,7 +22,7 @@ import "../styles/Header.css";
 //   • Bütün bölmələr solda həmişə açıq yan paneldədir (ərəbcədə sağda)
 //
 //   <1024px (#7 — "Bölmələri yuxarıda burger menyuya köçür, aşağı zolaq olmasın"):
-//   [loqo + "Qaraçuxur Məscidi"] ……… [🔍] [☰]      (ərəbcədə güzgülənir: ☰ solda)
+//   [loqo + "Muslims.cc"] ……… [🔍] [☰]      (ərəbcədə güzgülənir: ☰ solda)
 //   • ☰ çəkmə menyunu açır: <SideNav mode="drawer"> sağdan (ərəbcədə soldan)
 //     sürüşüb gəlir — bütün bölmələr, axtarış, alətlər, tema və dil orada.
 //     Açıq ikən ☰ yumşaq şəkildə ✕-ə çevrilir (Header.css → .hdr-burger).
@@ -345,12 +346,12 @@ function Header({ currentPage, setPage }) {
     if (q) openSearch(q);
   }, [openSearch]);
 
-  // Brend adı: az dilində "Qaraçuxur" + vurğulu "Məscidi",
-  // digər dillərdə tam lokallaşdırılmış ad tək hissə kimi göstərilir
+  // Brend adı domen kimi iki hissədə: "Muslims" + vurğulu ".cc"
+  // (2026-09-dan əvvəlki loqo ilə eyni). Nöqtə yoxdursa — tək hissə.
   const brand = brandName(lang);
-  const brandSplit = lang === "az" ? brand.lastIndexOf(" ") : -1;
+  const brandSplit = brand.lastIndexOf(".");
   const brandMain = brandSplit > 0 ? brand.slice(0, brandSplit) : brand;
-  const brandAccent = brandSplit > 0 ? brand.slice(brandSplit + 1) : "";
+  const brandAccent = brandSplit > 0 ? brand.slice(brandSplit) : "";
 
   const searchTip = `${l.search} (${SHORTCUT})`;
   const themeTip = dark ? l.light : l.dark;
@@ -374,13 +375,14 @@ function Header({ currentPage, setPage }) {
               onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); goTo("home"); } }}
               aria-label={`${brand} — ${l.home}`}
             >
+              {/* Brend işarəsi — SVG xatəm (əvvəl şrift simvolu "☽" idi) */}
               <span className="logo-icon" aria-hidden="true">
-                <span className="logo-crescent">☽</span>
+                <BrandMark size={34} />
               </span>
               <span className="logo-text-wrap">
                 <span className="logo-main">{brandMain}</span>
-                {/* Boşluq mətn düyünü: kopyalama zamanı sözləri ayırır */}
-                {brandAccent && <>{" "}<span className="logo-dot">{brandAccent}</span></>}
+                {/* Boşluqsuz: kopyalananda "Muslims.cc" bütöv qalsın */}
+                {brandAccent && <span className="logo-dot">{brandAccent}</span>}
               </span>
             </a>
           </div>

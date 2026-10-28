@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Qaraçuxur",
+    "name": "Muslims.cc",
     "slug": "muslim-cc",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,8 +18,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "cc.muslim.app",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Namaz vaxtları, qibla istiqaməti və yaxınlıqdakı məscidləri tapmaq üçün lazımdır.",
-        "NSMotionUsageDescription": "Qibla kompası üçün lazımdır."
+        "NSLocationWhenInUseUsageDescription": "Namaz vaxtları, qiblə istiqaməti və yaxınlıqdakı məscidləri tapmaq üçün lazımdır.",
+        "NSMotionUsageDescription": "Qiblə kompası üçün lazımdır."
       }
     },
     "android": {

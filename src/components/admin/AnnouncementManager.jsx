@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminText, adminPick } from './adminText'
 import { addAnnouncement, updateAnnouncement, deleteAnnouncement, ANNOUNCEMENT_TYPES, subscribeToAnnouncements } from '../../data/adminContent'
 
 const LABELS = {
@@ -125,7 +126,7 @@ export default function AnnouncementManager({ onUpdate }) {
               <label className="admin-input-label">{l.type}</label>
               <select className="admin-input admin-select" value={form.type} onChange={(e) => setForm({...form, type:e.target.value})}>
                 {ANNOUNCEMENT_TYPES.map(t => (
-                  <option key={t.key} value={t.key}>{t.icon} {t.label[lang] || t.label.en}</option>
+                  <option key={t.key} value={t.key}>{t.icon} {t.label[lang]}</option>
                 ))}
               </select>
             </div>
@@ -182,7 +183,7 @@ export default function AnnouncementManager({ onUpdate }) {
                     <div style={{display:'flex', alignItems:'center', gap:10}}>
                       <span style={{fontSize:24}}>{type.icon}</span>
                       <span style={{background:type.color+'18', color:type.color, padding:'4px 12px', borderRadius:999, fontSize:11, fontWeight:800, textTransform:'uppercase'}}>
-                        {type.label[lang] || type.label.en}
+                        {type.label[lang]}
                       </span>
                       <span style={{
                         background: a.active ? '#10b98118' : '#ef444418',
@@ -196,15 +197,15 @@ export default function AnnouncementManager({ onUpdate }) {
                       </span>
                     </div>
                     <div style={{display:'flex', gap:6}}>
-                      <button className="admin-action-btn" style={{flex:'0 0 auto', padding:'6px 12px', color: a.active ? '#10b981' : '#94a3b8'}} onClick={() => toggleActive(a)}>
+                      <button className="admin-action-btn" style={{flex:'0 0 auto', padding:'6px 12px', color: a.active ? '#10b981' : '#94a3b8'}} onClick={() => toggleActive(a)} title={a.active ? l.statusActive : l.statusInactive} aria-label={a.active ? l.statusActive : l.statusInactive}>
                         {a.active ? '👁️' : '👁️‍🗨️'}
                       </button>
-                      <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleEdit(a)}>✏️</button>
-                      <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleDelete(a.id)}>🗑️</button>
+                      <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleEdit(a)} title={l.edit} aria-label={l.edit}>✏️</button>
+                      <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleDelete(a.id)} title={l.delete} aria-label={l.delete}>🗑️</button>
                     </div>
                   </div>
-                  <h3 style={{fontSize:17, fontWeight:800, color:'var(--text)', margin:'0 0 6px'}}>{a.title[lang] || a.title.en}</h3>
-                  {(a.message?.[lang] || a.message?.en) && <p style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, margin:0}}>{a.message[lang] || a.message.en}</p>}
+                  <h3 style={{fontSize:17, fontWeight:800, color:'var(--text)', margin:'0 0 6px'}}><AdminText value={a.title} lang={lang} /></h3>
+                  {adminPick(a.message, lang) && <p style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, margin:0}}>{adminPick(a.message, lang)}</p>}
                   {a.link && <a href={a.link} target="_blank" rel="noopener noreferrer" style={{fontSize:12, color:type.color, fontWeight:700, marginTop:10, display:'inline-block'}}>🔗 {a.link}</a>}
                 </div>
               )

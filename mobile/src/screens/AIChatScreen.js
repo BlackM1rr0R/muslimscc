@@ -11,7 +11,7 @@ import { useLang } from '../contexts/LangContext'
 import { Colors } from '../theme/colors'
 import PageHero from '../components/PageHero'
 import { subscribeToSettings } from '../data/adminContent'
-import { BRAND } from '../config/mosque'
+import { BRAND } from '../config/brand'
 
 // URL prioritet sırası (web ilə eyni):
 //   1) Firebase Settings.apiUrl (admin paneldən, real-time)
@@ -42,7 +42,7 @@ const LABELS = {
     placeholder:'Sualınızı yazın...',
     welcome:`Salam aleykum! Mən ${BRAND.name.az} tətbiqinin AI köməkçisiyəm.`,
     s1:'Namaz necə qılınır?', s2:'Səbr haqqında hədis', s3:'Tövhid nədir?', s4:'Ən fəzilətli dua?',
-    disclaimer:`${BRAND.aiDisclaimer.az} Allah daha yaxşı bilir.`,
+    disclaimer:BRAND.aiDisclaimer.az,
     send:'Göndər', clear:'Təmizlə',
     rateLimit:'Çox sürətli yazırsınız. {s} saniyə gözləyin.',
     error:'Xəta. Yenidən cəhd edin.',
@@ -52,7 +52,7 @@ const LABELS = {
     placeholder:'Type your question...',
     welcome:`Assalamu alaikum! I am the AI assistant of the ${BRAND.name.en} app.`,
     s1:'How to pray?', s2:'Hadith about patience', s3:'What is Tawheed?', s4:'Most virtuous dua?',
-    disclaimer:`${BRAND.aiDisclaimer.en} Allah knows best.`,
+    disclaimer:BRAND.aiDisclaimer.en,
     send:'Send', clear:'Clear',
     rateLimit:'Too fast. Wait {s} seconds.',
     error:'Error. Try again.',
@@ -278,7 +278,7 @@ export default function AIChatScreen() {
         </TouchableOpacity>
       ) : null}
 
-      {/* Xəbərdarlıq həmişə görünür — AI cavabı məscidin rəsmi mövqeyi/fətvası deyil */}
+      {/* Xəbərdarlıq həmişə görünür — AI cavabı fətva deyil */}
       <Text style={styles.disclaimer}>ⓘ {l.disclaimer}</Text>
     </KeyboardAvoidingView>
   )

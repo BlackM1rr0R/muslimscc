@@ -1,22 +1,16 @@
 // ═══════════════════════════════════════════════════════
-// Namaz və camaat vaxtları — web /jamaat (src/pages/JamaatPage.jsx) ilə eyni məzmun
+// Camaat və Cümə namazı — web /jamaat (src/pages/JamaatPage.jsx) ilə eyni məzmun
 //
-// Mənbə: hooks/useMosqueTimes.js
-//   • Azan vaxtları aladhan.com-dan məscidin öz koordinatı üçün HESABLANIR —
-//     ekranda "Hesablanmış" kimi yazılır (ayrıca "Azan vaxtları" kartı).
-//   • Camaat vaxtları ayrıca kartdadır. Sahibin göstərişi ilə azan vaxtından
-//     hesablanır (config "+N") və ya admin paneldən (Firestore) təyin olunur.
-//     Boşdursa heç nə uydurulmur — əvəzində sakit "tezliklə" sətri çıxır.
-//     Sətir altındakı yazı qaydanın özündən gəlir ("+N" → "azandan N dəq
-//     sonra", "HH:MM" → "sabit vaxt"); "azana görə müəyyən edilir" qeydi
-//     yalnız ən azı bir "+N" qaydası olanda göstərilir.
-//   • Növbəti namaz kartı birbaşa CAMAAT vaxtına sayır (cümə günü zöhr —
-//     cümə namazına); camaat vaxtı yoxdursa azana. Azan oxunubsa bu qeyd olunur.
-//   • Növbəti cümə kartı həmin cümənin zöhr azanından hesablanır; cümə
-//     vaxtı boşdursa yalnız ümumi dini fakt yazılır.
+// Tətbiq konkret bir məscidə bağlı deyil (Muslims.cc — ümumi platforma), ona
+// görə camaat (iqamə) vaxtları YOXDUR. Ekranda:
 //   • Fəzilətlər: ayə mətni api.alquran.cloud-dan (Quran ekranının istifadə
 //     etdiyi mənbə) gətirilir, yaddaşdan yazılmır — alınmasa kart gizlənir.
 //     Hədislər data/jamaatVirtues.js-dən olduğu kimi, mənbəsi ilə.
+//   • İstifadəçinin seçdiyi şəhər üçün bugünkü AZAN vaxtları
+//     (hooks/usePrayerTimes.js) — "Hesablanmış" kimi yazılır; növbəti azana
+//     geri sayım; növbəti cümə günü üçün həmin şəhərin zöhr azanı.
+//   • Yaxınlıqdakı məscidi tapmaq üçün keçid (MosqueFinder ekranı) — camaat
+//     və cümə vaxtını həmin məsciddən öyrənmək tövsiyə olunur.
 // ═══════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -29,157 +23,134 @@ import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, BreathingDot } from '../components/Animated';
-import { filled, tr, brandName } from '../config/mosque';
-import useMosqueTimes, { PRAYER_NAMES, MOSQUE_UTC_OFFSET_MIN } from '../hooks/useMosqueTimes';
+import { filled, tr } from '../config/brand';
+import { localizeSource } from '../utils/sourceNames';
+import { pickLang } from '../utils/pickLang';
+import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes';
 import { JAMAAT_VIRTUES, JUMUA_VIRTUES, VIRTUE_VERSES } from '../data/jamaatVirtues';
 import { SURAH_AZ } from '../data/surahNamesAz';
 
 const LABELS = {
   az: {
-    title: 'Namaz və camaat vaxtları',
+    title: 'Camaat və Cümə namazı',
     next: 'Növbəti namaz', tomorrow: 'sabah', nextBadge: 'Növbəti', jumuaTag: 'Cümə',
-    adhan: 'Azan', jamaat: 'Camaat',
-    untilAdhan: 'azana qalıb', untilJamaat: 'camaata qalıb', untilJumua: 'cümə namazına qalıb',
-    adhanCalled: 'Azan oxunub', fixedTime: 'sabit vaxt',
-    jamaatTitle: 'Camaat namazı vaxtları', jamaatSub: 'Məsciddə namazın camaatla qılınma vaxtı',
-    afterAdhan: (n) => `azandan ${n} dəq sonra`,
-    jamaatSoon: 'Camaat (iqamə) vaxtları tezliklə əlavə olunacaq. Hazırda yalnız hesablanmış azan vaxtları göstərilir.',
-    adhanTitle: 'Azan vaxtları', adhanSub: 'Məscidin yeri üçün astronomik hesablanıb', calcBadge: 'Hesablanmış',
+    adhan: 'Azan', untilAdhan: 'azana qalıb',
+    adhanTitle: 'Bugünkü azan vaxtları', adhanSub: '{city} üçün astronomik hesablanıb', calcBadge: 'Hesablanmış',
+    changeCity: 'Şəhəri dəyiş',
     sunriseNote: 'Sübh namazının vaxtı bitir',
     nextFriday: 'Növbəti cümə namazı', today: 'Bu gün', tomorrowCap: 'Sabah', inDays: (n) => `${n} gün sonra`,
-    friday: 'Cümə namazı', fridayToday: 'Bu gün cümədir', khutbah: 'Xütbə',
-    fridayDhuhr: 'Zöhr azanı', afterDhuhr: (n) => `zöhr azanından ${n} dəq sonra`,
-    fridayGeneral: 'Cümə namazı zöhr vaxtında qılınır. Dəqiq vaxt üçün məscidin elanlarını izləyin.',
-    announcements: 'Elanlara bax',
+    fridayToday: 'Bu gün cümədir',
+    fridayDhuhr: 'Zöhr azanı · {city}',
+    fridayGeneral: 'Cümə namazı zöhr vaxtında, xütbə ilə birlikdə camaatla qılınır. Dəqiq vaxtı yaxınlıqdakı məsciddən öyrənin.',
     virtuesEyebrow: 'Quran və sünnədən', virtuesTitle: 'Camaat və cümə namazının fəziləti',
     tabJamaat: 'Camaat namazı', tabJumua: 'Cümə namazı',
     verse: 'Ayə', hadith: 'Hədis', translation: 'Tərcümə',
+    findMosque: 'Yaxınlıqdakı məscidi tap', findMosqueSub: 'Camaat və cümə vaxtını məsciddən öyrənin',
     more: 'Faydalı keçidlər',
     otherCities: 'Digər şəhərlərin namaz vaxtları', otherCitiesSub: 'Namaz izləyicisi və azan bildirişi',
     qibla: 'Qiblə istiqaməti', qiblaSub: 'Kəbəyə dəqiq istiqamət',
-    source: 'Azan vaxtları aladhan.com xidməti ilə məscidin koordinatı üçün astronomik hesablanır. Hesablama metodu: {method}.',
-    jamaatRule: 'Camaat vaxtları azan vaxtına görə müəyyən edilir.',
-    tzNote: 'Bütün vaxtlar Bakı vaxtı ilə (GMT+4) göstərilir.',
+    source: 'Azan vaxtları aladhan.com xidməti ilə {city} üçün astronomik hesablanır. Hesablama metodu: {method}. Məscidlərin camaat vaxtı azandan sonra olur və fərqli ola bilər.',
+    tzNote: 'Bütün vaxtlar {city} yerli vaxtı ilə göstərilir.',
     loading: 'Namaz vaxtları yüklənir...',
     error: 'Namaz vaxtlarını yükləmək alınmadı.', errorSub: 'İnternet bağlantınızı yoxlayıb yenidən cəhd edin.', retry: 'Yenidən cəhd et',
     hijriSuffix: 'H',
     hm: (h, m) => (h ? `${h} saat ${m} dəqiqə` : `${m} dəqiqə`),
   },
   en: {
-    title: 'Prayer & Congregation Times',
+    title: 'Congregational & Friday Prayer',
     next: 'Next prayer', tomorrow: 'tomorrow', nextBadge: 'Next', jumuaTag: 'Jumu’ah',
-    adhan: 'Adhan', jamaat: 'Iqamah',
-    untilAdhan: 'until adhan', untilJamaat: 'until iqamah', untilJumua: 'until Jumu’ah',
-    adhanCalled: 'Adhan called', fixedTime: 'fixed time',
-    jamaatTitle: 'Congregation (iqamah) times', jamaatSub: 'When each prayer is held in congregation at the mosque',
-    afterAdhan: (n) => `${n} min after adhan`,
-    jamaatSoon: 'Congregation (iqamah) times will be added soon. For now, only calculated adhan times are shown.',
-    adhanTitle: 'Adhan times', adhanSub: 'Astronomically calculated for the mosque’s location', calcBadge: 'Calculated',
+    adhan: 'Adhan', untilAdhan: 'until adhan',
+    adhanTitle: 'Today’s adhan times', adhanSub: 'Astronomically calculated for {city}', calcBadge: 'Calculated',
+    changeCity: 'Change city',
     sunriseNote: 'Fajr time ends',
     nextFriday: 'Next Friday prayer', today: 'Today', tomorrowCap: 'Tomorrow', inDays: (n) => `in ${n} days`,
-    friday: 'Friday prayer (Jumu’ah)', fridayToday: 'Today is Friday', khutbah: 'Khutbah',
-    fridayDhuhr: 'Dhuhr adhan', afterDhuhr: (n) => `${n} min after the Dhuhr adhan`,
-    fridayGeneral: 'Friday prayer is held at Dhuhr time. Please check the mosque’s announcements for the exact time.',
-    announcements: 'See announcements',
+    fridayToday: 'Today is Friday',
+    fridayDhuhr: 'Dhuhr adhan · {city}',
+    fridayGeneral: 'Friday prayer is held in congregation at Dhuhr time, together with the khutbah. Please ask your nearest mosque for the exact time.',
     virtuesEyebrow: 'From the Quran and Sunnah', virtuesTitle: 'Virtues of congregational and Friday prayer',
     tabJamaat: 'Congregation', tabJumua: 'Friday prayer',
     verse: 'Verse', hadith: 'Hadith', translation: 'Translation',
+    findMosque: 'Find a nearby mosque', findMosqueSub: 'Ask the mosque for its congregation and Friday times',
     more: 'Useful links',
     otherCities: 'Prayer times for other cities', otherCitiesSub: 'Prayer tracker and adhan notification',
     qibla: 'Qibla direction', qiblaSub: 'Precise direction to the Kaaba',
-    source: 'Adhan times are astronomically calculated for the mosque’s coordinates via aladhan.com. Calculation method: {method}.',
-    jamaatRule: 'Congregation times are set relative to the adhan times.',
-    tzNote: 'All times are shown in Baku time (GMT+4).',
+    source: 'Adhan times are astronomically calculated for {city} via aladhan.com. Calculation method: {method}. Mosques hold the congregational prayer after the adhan, and their times may differ.',
+    tzNote: 'All times are shown in the local time of {city}.',
     loading: 'Loading prayer times...',
     error: 'Couldn’t load prayer times.', errorSub: 'Please check your internet connection and try again.', retry: 'Try again',
     hijriSuffix: 'AH',
     hm: (h, m) => (h ? `${h} h ${m} min` : `${m} min`),
   },
   ru: {
-    title: 'Время намаза и джамаата',
+    title: 'Коллективный и пятничный намаз',
     next: 'Следующий намаз', tomorrow: 'завтра', nextBadge: 'Следующий', jumuaTag: 'Джума',
-    adhan: 'Азан', jamaat: 'Джамаат',
-    untilAdhan: 'до азана', untilJamaat: 'до джамаата', untilJumua: 'до пятничного намаза',
-    adhanCalled: 'Азан прозвучал', fixedTime: 'фиксированное время',
-    jamaatTitle: 'Время коллективного намаза', jamaatSub: 'Когда намаз совершается в мечети коллективно',
-    afterAdhan: (n) => `через ${n} мин после азана`,
-    jamaatSoon: 'Время коллективного намаза (икамата) скоро будет добавлено. Пока показано только расчётное время азана.',
-    adhanTitle: 'Время азана', adhanSub: 'Рассчитано астрономически для местоположения мечети', calcBadge: 'Расчётное',
+    adhan: 'Азан', untilAdhan: 'до азана',
+    adhanTitle: 'Время азана сегодня', adhanSub: 'Астрономический расчёт · {city}', calcBadge: 'Расчётное',
+    changeCity: 'Сменить город',
     sunriseNote: 'Время Фаджра заканчивается',
     nextFriday: 'Следующий пятничный намаз', today: 'Сегодня', tomorrowCap: 'Завтра', inDays: (n) => `через ${n} дн.`,
-    friday: 'Пятничный намаз (Джума)', fridayToday: 'Сегодня пятница', khutbah: 'Хутба',
-    fridayDhuhr: 'Азан Зухра', afterDhuhr: (n) => `через ${n} мин после азана Зухра`,
-    fridayGeneral: 'Пятничный намаз совершается во время Зухра. Точное время смотрите в объявлениях мечети.',
-    announcements: 'Объявления',
+    fridayToday: 'Сегодня пятница',
+    fridayDhuhr: 'Азан Зухра · {city}',
+    fridayGeneral: 'Пятничный намаз совершается коллективно во время Зухра вместе с хутбой. Точное время уточняйте в ближайшей мечети.',
     virtuesEyebrow: 'Из Корана и Сунны', virtuesTitle: 'Достоинства коллективного и пятничного намаза',
     tabJamaat: 'Джамаат', tabJumua: 'Джума',
     verse: 'Аят', hadith: 'Хадис', translation: 'Перевод',
+    findMosque: 'Найти ближайшую мечеть', findMosqueSub: 'Время джамаата и джумы уточняйте в мечети',
     more: 'Полезные ссылки',
     otherCities: 'Время намаза в других городах', otherCitiesSub: 'Трекер намазов и уведомление об азане',
     qibla: 'Направление Киблы', qiblaSub: 'Точное направление к Каабе',
-    source: 'Время азана рассчитано астрономически для координат мечети сервисом aladhan.com. Метод расчёта: {method}.',
-    jamaatRule: 'Время джамаата определяется по времени азана.',
-    tzNote: 'Всё время указано по бакинскому времени (GMT+4).',
+    source: 'Время азана рассчитано астрономически сервисом aladhan.com (город: {city}). Метод расчёта: {method}. Коллективный намаз в мечетях проводится после азана, и его время может отличаться.',
+    tzNote: 'Всё время указано по местному времени (город: {city}).',
     loading: 'Загрузка времени намаза...',
     error: 'Не удалось загрузить время намаза.', errorSub: 'Проверьте подключение к интернету и попробуйте снова.', retry: 'Повторить',
     hijriSuffix: 'г. х.',
     hm: (h, m) => (h ? `${h} ч ${m} мин` : `${m} мин`),
   },
   ar: {
-    title: 'مواقيت الصلاة والجماعة',
+    title: 'صلاة الجماعة والجمعة',
     next: 'الصلاة القادمة', tomorrow: 'غدًا', nextBadge: 'التالية', jumuaTag: 'الجمعة',
-    adhan: 'الأذان', jamaat: 'الإقامة',
-    untilAdhan: 'حتى الأذان', untilJamaat: 'حتى الإقامة', untilJumua: 'حتى صلاة الجمعة',
-    adhanCalled: 'أُذِّن', fixedTime: 'وقت ثابت',
-    jamaatTitle: 'أوقات صلاة الجماعة', jamaatSub: 'مواعيد إقامة الصلاة جماعةً في المسجد',
-    afterAdhan: (n) => `بعد الأذان بـ ${n} دقيقة`,
-    jamaatSoon: 'ستُضاف أوقات الإقامة (صلاة الجماعة) قريبًا. تُعرض حاليًا أوقات الأذان المحسوبة فقط.',
-    adhanTitle: 'أوقات الأذان', adhanSub: 'محسوبة فلكيًا لموقع المسجد', calcBadge: 'محسوبة',
+    adhan: 'الأذان', untilAdhan: 'حتى الأذان',
+    adhanTitle: 'أوقات الأذان اليوم', adhanSub: 'محسوبة فلكيًا لمدينة {city}', calcBadge: 'محسوبة',
+    changeCity: 'تغيير المدينة',
     sunriseNote: 'ينتهي وقت الفجر',
     nextFriday: 'صلاة الجمعة القادمة', today: 'اليوم', tomorrowCap: 'غدًا', inDays: (n) => `بعد ${n} أيام`,
-    friday: 'صلاة الجمعة', fridayToday: 'اليوم الجمعة', khutbah: 'الخطبة',
-    fridayDhuhr: 'أذان الظهر', afterDhuhr: (n) => `بعد أذان الظهر بـ ${n} دقيقة`,
-    fridayGeneral: 'تُقام صلاة الجمعة في وقت الظهر. يُرجى متابعة إعلانات المسجد لمعرفة الوقت الدقيق.',
-    announcements: 'الإعلانات',
+    fridayToday: 'اليوم الجمعة',
+    fridayDhuhr: 'أذان الظهر · {city}',
+    fridayGeneral: 'تُقام صلاة الجمعة جماعةً في وقت الظهر مع الخطبة. يُرجى معرفة الوقت الدقيق من أقرب مسجد.',
     virtuesEyebrow: 'من القرآن والسنة', virtuesTitle: 'فضل صلاة الجماعة والجمعة',
     tabJamaat: 'صلاة الجماعة', tabJumua: 'صلاة الجمعة',
     verse: 'آية', hadith: 'حديث', translation: 'الترجمة',
+    findMosque: 'ابحث عن مسجد قريب', findMosqueSub: 'اعرف أوقات الجماعة والجمعة من المسجد',
     more: 'روابط مفيدة',
     otherCities: 'مواقيت الصلاة في مدن أخرى', otherCitiesSub: 'متابعة الصلوات وتنبيه الأذان',
     qibla: 'اتجاه القبلة', qiblaSub: 'الاتجاه الدقيق نحو الكعبة',
-    source: 'أوقات الأذان محسوبة فلكيًا لإحداثيات المسجد عبر خدمة aladhan.com. طريقة الحساب: {method}.',
-    jamaatRule: 'تُحدَّد أوقات الجماعة بحسب أوقات الأذان.',
-    tzNote: 'جميع الأوقات بتوقيت باكو (GMT+4).',
+    source: 'أوقات الأذان محسوبة فلكيًا لمدينة {city} عبر خدمة aladhan.com. طريقة الحساب: {method}. تُقام صلاة الجماعة في المساجد بعد الأذان وقد تختلف أوقاتها.',
+    tzNote: 'جميع الأوقات بالتوقيت المحلي لمدينة {city}.',
     loading: 'جارٍ تحميل مواقيت الصلاة...',
     error: 'تعذّر تحميل مواقيت الصلاة.', errorSub: 'يُرجى التحقق من الاتصال بالإنترنت والمحاولة مرة أخرى.', retry: 'إعادة المحاولة',
     hijriSuffix: 'هـ',
     hm: (h, m) => (h ? `${h} ساعة و${m} دقيقة` : `${m} دقيقة`),
   },
   tr: {
-    title: 'Namaz ve Cemaat Vakitleri',
+    title: 'Cemaat ve Cuma Namazı',
     next: 'Sıradaki namaz', tomorrow: 'yarın', nextBadge: 'Sıradaki', jumuaTag: 'Cuma',
-    adhan: 'Ezan', jamaat: 'Cemaat',
-    untilAdhan: 'ezana kaldı', untilJamaat: 'cemaate kaldı', untilJumua: 'cuma namazına kaldı',
-    adhanCalled: 'Ezan okundu', fixedTime: 'sabit saat',
-    jamaatTitle: 'Cemaat namazı vakitleri', jamaatSub: 'Camide namazın cemaatle kılındığı vakitler',
-    afterAdhan: (n) => `ezandan ${n} dk sonra`,
-    jamaatSoon: 'Cemaat (kamet) vakitleri yakında eklenecek. Şimdilik yalnızca hesaplanmış ezan vakitleri gösteriliyor.',
-    adhanTitle: 'Ezan vakitleri', adhanSub: 'Caminin konumu için astronomik olarak hesaplanmıştır', calcBadge: 'Hesaplanmış',
+    adhan: 'Ezan', untilAdhan: 'ezana kaldı',
+    adhanTitle: 'Bugünkü ezan vakitleri', adhanSub: '{city} için astronomik olarak hesaplanmıştır', calcBadge: 'Hesaplanmış',
+    changeCity: 'Şehri değiştir',
     sunriseNote: 'Sabah namazı vakti biter',
     nextFriday: 'Sonraki cuma namazı', today: 'Bugün', tomorrowCap: 'Yarın', inDays: (n) => `${n} gün sonra`,
-    friday: 'Cuma namazı', fridayToday: 'Bugün cuma', khutbah: 'Hutbe',
-    fridayDhuhr: 'Öğle ezanı', afterDhuhr: (n) => `öğle ezanından ${n} dk sonra`,
-    fridayGeneral: 'Cuma namazı öğle vaktinde kılınır. Kesin saat için caminin duyurularını takip edin.',
-    announcements: 'Duyurulara bak',
+    fridayToday: 'Bugün cuma',
+    fridayDhuhr: 'Öğle ezanı · {city}',
+    fridayGeneral: 'Cuma namazı öğle vaktinde, hutbeyle birlikte cemaatle kılınır. Kesin saati en yakın camiden öğrenin.',
     virtuesEyebrow: 'Kur’an ve Sünnet’ten', virtuesTitle: 'Cemaat ve cuma namazının fazileti',
     tabJamaat: 'Cemaat namazı', tabJumua: 'Cuma namazı',
     verse: 'Ayet', hadith: 'Hadis', translation: 'Meal',
+    findMosque: 'Yakındaki camiyi bul', findMosqueSub: 'Cemaat ve cuma vaktini camiden öğrenin',
     more: 'Faydalı bağlantılar',
     otherCities: 'Diğer şehirlerin namaz vakitleri', otherCitiesSub: 'Namaz takibi ve ezan bildirimi',
     qibla: 'Kıble yönü', qiblaSub: 'Kâbe’ye tam yön',
-    source: 'Ezan vakitleri aladhan.com hizmetiyle caminin koordinatları için astronomik olarak hesaplanır. Hesaplama yöntemi: {method}.',
-    jamaatRule: 'Cemaat vakitleri ezan vakitlerine göre belirlenir.',
-    tzNote: 'Tüm vakitler Bakü saatiyle (GMT+4) gösterilir.',
+    source: 'Ezan vakitleri aladhan.com hizmetiyle {city} için astronomik olarak hesaplanır. Hesaplama yöntemi: {method}. Camilerde cemaat namazı ezandan sonra kılınır ve saatleri farklı olabilir.',
+    tzNote: 'Tüm vakitler {city} yerel saatiyle gösterilir.',
     loading: 'Namaz vakitleri yükleniyor...',
     error: 'Namaz vakitleri yüklenemedi.', errorSub: 'İnternet bağlantınızı kontrol edip tekrar deneyin.', retry: 'Tekrar dene',
     hijriSuffix: 'H',
@@ -233,14 +204,11 @@ const PRAYER_META = {
   isha:    { iconKey: 'isha',    gradient: ['#1e3a8a', '#0f172a'] },
 };
 
-// Fərz namazları — camaat kartı yalnız bunları göstərir (günəş namaz deyil)
-const FARD = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
-
 // Ayə tərcüməsi — Quran ekranındakı EDITION_MAP ilə eyni nəşrlər.
 // Ərəbcədə tərcümə yoxdur (ar.muyassar təfsirdir) — yalnız Osmani mətn.
 const VERSE_EDITIONS = { az: 'az.mammadaliyev', en: 'en.asad', ru: 'ru.kuliev', tr: 'tr.diyanet' };
 const VERSE_TIMEOUT_MS = 12000;
-const VERSE_STORE_KEY = 'qm_verses';   // AsyncStorage: { 'ref|nəşr': ayə } — sabit mətn
+const VERSE_STORE_KEY = 'muslim_cc_verses';   // AsyncStorage: { 'ref|nəşr': ayə } — sabit mətn
 const verseMem = new Map();            // ekranlar arası yaddaş keşi
 
 // Ayə istinadlarında surə adları (veb JamaatPage.jsx ilə eyni) — API-nin
@@ -250,43 +218,16 @@ const SURAH_LABELS = {
   62: { az: 'Cümə', en: 'Al-Jumu‘ah', ru: 'Аль-Джумуа', ar: 'الجمعة', tr: 'Cuma' },
 };
 
-// Hədis mənbə adlarının dillərə uyğun yazılışı (məlumat faylı dəyişmir)
-const SOURCE_WORDS = {
-  Buxari:  { en: 'Bukhari', ru: 'Бухари', ar: 'البخاري', tr: 'Buhârî' },
-  Muslim:  { en: 'Muslim', ru: 'Муслим', ar: 'مسلم', tr: 'Müslim' },
-  Mesacid: { en: 'Masajid', ru: 'Масаджид', ar: 'المساجد', tr: 'Mesâcid' },
-};
 
 const pad2 = (n) => String(n).padStart(2, '0');
 
-/** Camaat qaydasının növü: { kind:'rel', n } ("+N"), { kind:'fixed' } ("HH:MM") və ya null. */
-function ruleInfo(rule) {
-  const r = String(rule || '').trim();
-  const m = r.match(/^\+(\d{1,3})$/);
-  if (m) return { kind: 'rel', n: Number(m[1]) };
-  if (/^\d{1,2}:\d{2}$/.test(r)) return { kind: 'fixed' };
-  return null;
-}
-
-/** "azandan 20 dəq sonra" / "sabit vaxt" yazısı (qayda yoxdursa ''). */
-function ruleText(rule, l, afterDhuhr = false) {
-  const info = ruleInfo(rule);
-  if (!info) return '';
-  if (info.kind === 'fixed') return l.fixedTime;
-  return afterDhuhr ? l.afterDhuhr(info.n) : l.afterAdhan(info.n);
-}
-
-/** "Buxari 645" → "Bukhari 645" və s.; tanınmayan söz olduğu kimi qalır. */
-function localizeSource(src, lang) {
-  let out = String(src || '');
-  if (lang === 'az') return out;
-  for (const [word, names] of Object.entries(SOURCE_WORDS)) {
-    if (names[lang]) out = out.replace(new RegExp(`\\b${word}\\b`, 'g'), names[lang]);
-  }
+// Mənbə adları ortaq utils/sourceNames.js ilə çevrilir; ərəbcədə vergül "،" olur
+function localizeSourceLang(src, lang) {
+  const out = localizeSource(src, lang);
   return lang === 'ar' ? out.replace(/, /g, '، ') : out;
 }
 
-/** 'DD-MM-YYYY' (məscidin tarixi) → dilə uyğun uzun tarix (həftə günü ilə). */
+/** 'DD-MM-YYYY' (şəhərin tarixi) → dilə uyğun uzun tarix (həftə günü ilə). */
 function formatGregorian(dateKey, lang) {
   const [d, m, y] = String(dateKey || '').split('-').map(Number);
   if (!d || !m || !y) return '';
@@ -310,15 +251,6 @@ function formatHijri(hijri, lang, suffix) {
   const month = HIJRI_MONTHS[lang]?.[idx] || (lang === 'ar' ? hijri.monthAr : hijri.monthEn);
   if (!filled(month)) return '';
   return `${hijri.day} ${month} ${hijri.year} ${suffix}`;
-}
-
-/** Cihazın saat qurşağı Bakıdan (UTC+4) fərqlidirsə true (xaricdəki istifadəçilər üçün qeyd). */
-function isForeignTimezone() {
-  try {
-    return new Date().getTimezoneOffset() !== -MOSQUE_UTC_OFFSET_MIN;
-  } catch {
-    return false;
-  }
 }
 
 // ── Ayə: api.alquran.cloud (keş: yaddaş + AsyncStorage) ──
@@ -489,7 +421,7 @@ function VerseCard({ refKey, lang, l, c, sh, isAr }) {
 
 // ── Hədis kartı (data/jamaatVirtues.js — olduğu kimi, mənbəsi ilə) ──
 function HadithCard({ item, lang, l, c, sh, isAr }) {
-  const text = item.text?.[lang] || item.text?.en || '';
+  const text = item.text?.[lang] || ''; // başqa dilə düşmür
   return (
     <View style={[styles.virtueCard, { backgroundColor: c.card, borderColor: c.cardBorder }, sh]}>
       <LinearGradient
@@ -508,7 +440,7 @@ function HadithCard({ item, lang, l, c, sh, isAr }) {
       {/* Ərəb dilində mətn artıq yuxarıdadır — iki dəfə göstərilməsin */}
       {!isAr && filled(text) ? <Text style={[styles.virtueText, { color: c.textSecondary }]}>{text}</Text> : null}
       <View style={[styles.sourceChip, { backgroundColor: c.goldBg }]}>
-        <Text style={[styles.sourceChipText, { color: c.gold }]}>— {localizeSource(item.source, lang)}</Text>
+        <Text style={[styles.sourceChipText, { color: c.gold }]}>— {localizeSourceLang(item.source, lang)}</Text>
       </View>
     </View>
   );
@@ -523,14 +455,16 @@ export default function JamaatScreen({ navigation }) {
   const isAr = lang === 'ar';
 
   const {
-    loading, error, date, hijri, prayers, hasJamaat, next,
-    isFriday, jumua, nextFriday, method, reload,
-  } = useMosqueTimes();
+    loading, error, date, hijri, city, prayers, next,
+    isFriday, nextFriday, method, utcOffsetMin, reload,
+  } = usePrayerTimes();
 
   // Fəzilətlər: cümə günü əvvəlcə cümə bölməsi açılır
   const [virtueTab, setVirtueTab] = useState(() => (isFriday ? 'jumua' : 'jamaat'));
 
-  const name = (key) => PRAYER_NAMES[key]?.[lang] || PRAYER_NAMES[key]?.en || key;
+  const name = (key) => tr(PRAYER_NAMES[key], lang) || key;
+  const cityLabel = tr(city?.name, lang);
+  const withCity = (s) => String(s || '').replace('{city}', cityLabel);
 
   const go = (route) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -549,36 +483,25 @@ export default function JamaatScreen({ navigation }) {
 
   const gregorian = formatGregorian(date, lang);
   const hijriStr = formatHijri(hijri, lang, l.hijriSuffix);
-  const showTzNote = useMemo(() => isForeignTimezone(), []);
-  const methodName = METHOD_NAMES[method]?.[lang] || METHOD_NAMES[method]?.en || `aladhan #${method}`;
+  // Cihazın saat qurşağı seçilmiş şəhərinkindən fərqlidirsə qeyd göstərilir
+  const showTzNote = useMemo(() => {
+    try { return new Date().getTimezoneOffset() !== -utcOffsetMin; } catch { return false; }
+  }, [utcOffsetMin]);
+  const methodName = METHOD_NAMES[method]?.[lang] || `aladhan #${method}`;
 
-  const khutbah = tr(jumua?.khutbahLang, lang);
   const hasData = prayers.length > 0;
-  const fardRows = prayers.filter(p => FARD.includes(p.key));
 
   // Keçmiş sətirlər: növbəti namazdan əvvəlkilər (işadan sonra — hamısı)
   const nextIdx = next ? (next.tomorrow ? prayers.length : prayers.findIndex(p => p.key === next.key)) : -1;
   const isPassedKey = (key) => nextIdx > -1 && prayers.findIndex(p => p.key === key) < nextIdx;
   const isNextKey = (key) => !!next && !next.tomorrow && next.key === key;
 
-  // Növbəti namaz kartı: geri sayım camaat vaxtınadır (varsa) — veb /jamaat ilə eyni
-  const nextPrayer = next ? prayers.find(p => p.key === next.key) : null;
-  const nextIsJumua = !!next && !next.tomorrow && !!nextPrayer?.jumua;
-  const countAt = next ? (next.jamaatAt ?? next.at) : 0;
-  const countToJamaat = !!next && next.jamaatAt != null;
-  const adhanCalled = !!next && next.target === 'jamaat';
-  // "Azana görə müəyyən edilir" qeydi yalnız ən azı bir "+N" qaydası olanda doğrudur
-  const anyRelative = fardRows.some(p => ruleInfo(p.rule)?.kind === 'rel');
-
   // Növbəti cümə
   const nf = nextFriday || null;
-  const nfTime = nf?.time || '';
   const nfWhen = nf
     ? (nf.daysAway === 0 ? l.today : nf.daysAway === 1 ? l.tomorrowCap : l.inDays(nf.daysAway))
     : '';
   const nfDate = nf ? formatDayMonth(nf.date, lang) : '';
-  const nfRuleText = nf ? ruleText(nf.rule, l, true) : '';
-  const nfHasRule = filled(nf?.rule);
 
   const virtues = virtueTab === 'jumua' ? JUMUA_VIRTUES : JAMAAT_VIRTUES;
   const verseRef = VIRTUE_VERSES.find(v => v.topic === virtueTab)?.ref;
@@ -588,13 +511,66 @@ export default function JamaatScreen({ navigation }) {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
-      <PageHero arabic="صَلَاةُ الْجَمَاعَة" title={l.title} subtitle={brandName(lang)} theme="prayer" />
+      <PageHero arabic="صَلَاةُ الْجَمَاعَة" title={l.title} subtitle={l.virtuesTitle} theme="prayer" />
 
       <View style={styles.content}>
 
-        {/* ── Bugünkü tarix (məscidin saat qurşağı ilə) ── */}
+        {/* ── FƏZİLƏTLƏR: ayə (API) + hədislər (data) ── */}
+        <FadeUp delay={60}>
+          <View style={[styles.sectionHead, styles.sectionHeadFirst]}>
+            <Text style={[styles.eyebrow, { color: c.gold }, rtl]}>{l.virtuesEyebrow.toUpperCase()}</Text>
+            <Text style={[styles.sectionTitle, { color: c.text }, rtl]}>{l.virtuesTitle}</Text>
+          </View>
+
+          <View style={[styles.tabs, { backgroundColor: c.surfaceAlt, borderColor: c.border }]} accessibilityRole="tablist">
+            {[
+              { key: 'jamaat', label: l.tabJamaat },
+              { key: 'jumua', label: l.tabJumua },
+            ].map(t => {
+              const on = virtueTab === t.key;
+              return (
+                <TouchableOpacity
+                  key={t.key}
+                  onPress={() => pickTab(t.key)}
+                  activeOpacity={0.85}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: on }}
+                  style={[styles.tab, on && [{ backgroundColor: c.card, borderColor: c.primaryBorder }, sh]]}
+                >
+                  <Text numberOfLines={1} style={[styles.tabText, { color: on ? c.primary : c.textSecondary }]}>{t.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </FadeUp>
+
+        {verseRef ? (
+          <VerseCard key={`${verseRef}|${lang}`} refKey={verseRef} lang={lang} l={l} c={c} sh={sh} isAr={isAr} />
+        ) : null}
+        {virtues.map((v) => (
+          <HadithCard key={v.ref} item={v} lang={lang} l={l} c={c} sh={sh} isAr={isAr} />
+        ))}
+
+        {/* ── Yaxınlıqdakı məscid ── */}
+        <TouchableOpacity
+          onPress={() => go('Mosques')}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          style={[styles.linkTile, styles.linkTileMain, { backgroundColor: c.primaryBg, borderColor: c.primaryBorder }, sh]}
+        >
+          <View style={[styles.linkIconWrap, { backgroundColor: c.card }]}>
+            <AppIcon name="mosques" size={20} color={c.primary} />
+          </View>
+          <View style={styles.flex1}>
+            <Text style={[styles.linkTitle, { color: c.primary }, rtl]}>{l.findMosque}</Text>
+            <Text style={[styles.linkDesc, { color: c.textSecondary }, rtl]}>{l.findMosqueSub}</Text>
+          </View>
+          <AppIcon name="chevronRight" size={18} color={c.primary} style={isAr ? styles.flipX : null} />
+        </TouchableOpacity>
+
+        {/* ── Bugünkü tarix (seçilmiş şəhərin saat qurşağı ilə) ── */}
         {gregorian ? (
-          <FadeUp delay={60}>
+          <FadeUp delay={100}>
             <View style={[styles.dateRow, { backgroundColor: c.card, borderColor: c.cardBorder }, sh]}>
               <AppIcon name="calendar" size={18} color={c.primary} />
               <View style={styles.flex1}>
@@ -635,7 +611,7 @@ export default function JamaatScreen({ navigation }) {
           </FadeUp>
         ) : null}
 
-        {/* ── Növbəti namaz + geri sayım ── */}
+        {/* ── Növbəti namaz + azana geri sayım ── */}
         {next ? (
           <ScaleIn delay={120}>
             <LinearGradient
@@ -653,8 +629,8 @@ export default function JamaatScreen({ navigation }) {
                 {next.tomorrow ? (
                   <View style={styles.nextTag}><Text style={styles.nextTagText}>{l.tomorrow}</Text></View>
                 ) : null}
-                {adhanCalled ? (
-                  <View style={styles.nextTag}><Text style={styles.nextTagText}>{l.adhanCalled}</Text></View>
+                {filled(cityLabel) ? (
+                  <View style={styles.nextTag}><Text style={styles.nextTagText}>{cityLabel}</Text></View>
                 ) : null}
               </View>
 
@@ -666,68 +642,62 @@ export default function JamaatScreen({ navigation }) {
               </View>
 
               <View style={styles.nextTimes}>
-                {/* Azan oxunubsa azan sütunu solğunlaşır — vurğu camaat vaxtındadır */}
-                <View style={adhanCalled ? styles.dimmed : null}>
+                <View>
                   <Text style={styles.nextTimeLabel}>{l.adhan}</Text>
                   <Text style={[styles.nextTime, styles.ltr]}>{next.adhan}</Text>
                 </View>
-                {filled(next.jamaat) ? (
-                  <View>
-                    <Text style={styles.nextTimeLabel}>{l.jamaat}</Text>
-                    <Text style={[styles.nextTime, styles.ltr]}>{next.jamaat}</Text>
-                  </View>
-                ) : null}
               </View>
 
               <View style={styles.countdownBox}>
-                <Countdown at={countAt} hm={l.hm} style={[styles.countdownText, styles.ltr]} />
-                <Text style={styles.countdownLabel}>
-                  {countToJamaat ? (nextIsJumua ? l.untilJumua : l.untilJamaat) : l.untilAdhan}
-                </Text>
+                <Countdown at={next.at} hm={l.hm} style={[styles.countdownText, styles.ltr]} />
+                <Text style={styles.countdownLabel}>{l.untilAdhan}</Text>
               </View>
             </LinearGradient>
           </ScaleIn>
         ) : null}
 
-        {/* ── CAMAAT NAMAZI VAXTLARI (ayrıca kart) ── */}
+        {/* ── AZAN VAXTLARI (seçilmiş şəhər, hesablanmış) ── */}
         {hasData ? (
           <FadeUp delay={170}>
-            <View style={[cardStyle, styles.listCard, { borderColor: c.primaryBorder }]}>
+            <View style={[cardStyle, styles.listCard]}>
               <View style={styles.listHead}>
                 <View style={[styles.headIcon, { backgroundColor: c.primaryBg }]}>
-                  <AppIcon name="prayer" size={20} color={c.primary} />
+                  <AppIcon name="time" size={20} color={c.primary} />
                 </View>
                 <View style={styles.flex1}>
-                  <Text style={[styles.cardTitle, { color: c.text }, rtl]}>{l.jamaatTitle}</Text>
-                  <Text style={[styles.cardSub, { color: c.textMuted }, rtl]}>{l.jamaatSub}</Text>
+                  <Text style={[styles.cardTitle, { color: c.text }, rtl]}>{l.adhanTitle}</Text>
+                  <Text style={[styles.cardSub, { color: c.textMuted }, rtl]}>{withCity(l.adhanSub)}</Text>
+                </View>
+                <View style={[styles.pill, { backgroundColor: c.primaryBg, borderColor: c.primaryBorder }]}>
+                  <Text style={[styles.pillText, { color: c.primary }]}>{l.calcBadge}</Text>
                 </View>
               </View>
 
-              {hasJamaat ? fardRows.map((p) => {
+              {prayers.map((p) => {
                 const meta = PRAYER_META[p.key];
                 const isNext = isNextKey(p.key);
+                const isSunrise = p.key === 'sunrise';
                 const isJumuaRow = isFriday && p.key === 'dhuhr';
-                const has = filled(p.jamaat);
-                // Qaydanın özündən: "+N" → "azandan N dəq sonra", "HH:MM" → "sabit vaxt"
-                const sub = has ? ruleText(p.rule, l, p.jumua) : '';
+                const color = isNext ? c.primary : (isSunrise ? c.textMuted : c.text);
                 return (
                   <View
                     key={p.key}
                     accessible
-                    accessibilityLabel={`${name(p.key)}: ${l.jamaat} ${has ? p.jamaat : '—'}`}
+                    accessibilityLabel={`${name(p.key)}: ${l.adhan} ${p.adhan}`}
                     style={[
                       styles.row,
+                      styles.rowCompact,
                       { borderTopColor: c.border },
                       isNext && { backgroundColor: c.primaryBg2 },
                       isPassedKey(p.key) && styles.passed,
                     ]}
                   >
-                    <LinearGradient colors={meta.gradient} style={styles.rowIcon}>
-                      <AppIcon name={meta.iconKey} size={16} color="#fff" />
+                    <LinearGradient colors={meta.gradient} style={styles.rowIconSm}>
+                      <AppIcon name={meta.iconKey} size={14} color="#fff" />
                     </LinearGradient>
                     <View style={styles.rowNameWrap}>
                       <View style={styles.rowTitle}>
-                        <Text numberOfLines={1} style={[styles.rowName, { color: isNext ? c.primary : c.text }]}>{name(p.key)}</Text>
+                        <Text numberOfLines={1} style={[styles.rowNameSm, { color }]}>{name(p.key)}</Text>
                         {isJumuaRow ? (
                           <View style={[styles.tag, { backgroundColor: c.goldBg }]}>
                             <Text style={[styles.tagText, { color: c.gold }]}>{l.jumuaTag}</Text>
@@ -739,30 +709,28 @@ export default function JamaatScreen({ navigation }) {
                           </View>
                         ) : null}
                       </View>
-                      {sub ? <Text numberOfLines={2} style={[styles.rowNote, { color: c.textMuted }, rtl]}>{sub}</Text> : null}
+                      {isSunrise ? (
+                        <Text numberOfLines={2} style={[styles.rowNote, { color: c.textMuted }, rtl]}>{l.sunriseNote}</Text>
+                      ) : null}
                     </View>
-                    <Text style={[styles.jamaatTime, styles.ltr, { color: has ? (isJumuaRow ? c.gold : c.primary) : c.textMuted }]}>
-                      {has ? p.jamaat : '—'}
-                    </Text>
+                    <Text style={[styles.adhanTime, styles.ltr, { color }]}>{p.adhan}</Text>
                   </View>
                 );
-              }) : (
-                /* Camaat vaxtları hələ yoxdursa — bir sakit sətir */
-                <View style={[styles.soonBox, { borderTopColor: c.border }]}>
-                  <Text style={[styles.soon, { color: c.textMuted }, rtl]}>{l.jamaatSoon}</Text>
-                </View>
-              )}
+              })}
 
-              {hasJamaat && anyRelative ? (
-                <View style={[styles.cardFoot, { borderTopColor: c.border }]}>
-                  <Text style={[styles.cardFootText, { color: c.textMuted }, rtl]}>ⓘ {l.jamaatRule}</Text>
-                </View>
-              ) : null}
+              <TouchableOpacity
+                onPress={() => go('Prayer')}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                style={[styles.cardFoot, { borderTopColor: c.border }]}
+              >
+                <Text style={[styles.cardFootLink, { color: c.primary }, rtl]}>📍 {l.changeCity}</Text>
+              </TouchableOpacity>
             </View>
           </FadeUp>
         ) : null}
 
-        {/* ── NÖVBƏTİ CÜMƏ NAMAZI ── */}
+        {/* ── NÖVBƏTİ CÜMƏ NAMAZI (ümumi dini fakt + şəhərin zöhr azanı) ── */}
         {nf ? (
           <FadeUp delay={220}>
             <View style={[cardStyle, { borderColor: nf.isToday ? c.gold + '88' : c.gold + '44', borderWidth: nf.isToday ? 1.5 : 1 }]}>
@@ -789,143 +757,18 @@ export default function JamaatScreen({ navigation }) {
                 ) : null}
               </View>
 
-              {nfHasRule ? (
-                nfTime ? (
-                  <View style={styles.jumuaBody}>
-                    <View style={styles.jumuaMain}>
-                      <Text style={[styles.jumuaLabel, { color: c.textMuted }, rtl]}>{l.friday}</Text>
-                      <Text style={[styles.jumuaTime, styles.ltr, { color: c.gold }]}>{nfTime}</Text>
-                      {nfRuleText ? (
-                        <Text style={[styles.jumuaSub, { color: c.textMuted }, rtl]}>{nfRuleText}</Text>
-                      ) : null}
-                    </View>
-                    {filled(nf.dhuhr) ? (
-                      <View style={[styles.jumuaSide, { backgroundColor: c.surfaceAlt, borderColor: c.border }]}>
-                        <Text style={[styles.jumuaSideLabel, { color: c.textMuted }]}>{l.fridayDhuhr}</Text>
-                        <Text style={[styles.jumuaSideTime, styles.ltr, { color: c.text }]}>{nf.dhuhr}</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                ) : nf.loading ? (
-                  <View style={styles.jumuaLoading}><ActivityIndicator color={c.gold} /></View>
-                ) : (
-                  <Text style={[styles.jumuaText, { color: c.textSecondary }, rtl]}>{l.fridayGeneral}</Text>
-                )
-              ) : (
-                <>
-                  <Text style={[styles.jumuaText, { color: c.textSecondary }, rtl]}>{l.fridayGeneral}</Text>
-                  {filled(nf.dhuhr) ? (
-                    <Text style={[styles.jumuaSub, { color: c.textMuted }, rtl]}>
-                      {l.fridayDhuhr}: <Text style={[styles.ltr, { color: c.text, fontWeight: '800' }]}>{nf.dhuhr}</Text>
-                    </Text>
-                  ) : null}
-                  <TouchableOpacity
-                    onPress={() => go('Announcements')}
-                    activeOpacity={0.85}
-                    accessibilityRole="button"
-                    style={[styles.secondaryBtn, { borderColor: c.primaryBorder, backgroundColor: c.primaryBg }]}
-                  >
-                    <Text style={[styles.secondaryBtnText, { color: c.primary }]}>📢 {l.announcements}</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-
-              {filled(khutbah) ? (
-                <Text style={[styles.jumuaSub, { color: c.textSecondary }, rtl]}>
-                  {l.khutbah}: <Text style={{ color: c.text, fontWeight: '800' }}>{khutbah}</Text>
-                </Text>
+              <Text style={[styles.jumuaText, { color: c.textSecondary }, rtl]}>{l.fridayGeneral}</Text>
+              {filled(nf.dhuhr) ? (
+                <View style={[styles.jumuaSide, { backgroundColor: c.surfaceAlt, borderColor: c.border }]}>
+                  <Text style={[styles.jumuaSideLabel, { color: c.textMuted }]}>{withCity(l.fridayDhuhr)}</Text>
+                  <Text style={[styles.jumuaSideTime, styles.ltr, { color: c.text }]}>{nf.dhuhr}</Text>
+                </View>
+              ) : nf.loading ? (
+                <View style={styles.jumuaLoading}><ActivityIndicator color={c.gold} /></View>
               ) : null}
             </View>
           </FadeUp>
         ) : null}
-
-        {/* ── AZAN VAXTLARI (hesablanmış — ayrıca kart) ── */}
-        {hasData ? (
-          <FadeUp delay={260}>
-            <View style={[cardStyle, styles.listCard]}>
-              <View style={styles.listHead}>
-                <View style={[styles.headIcon, { backgroundColor: c.surfaceAlt }]}>
-                  <AppIcon name="time" size={20} color={c.textSecondary} />
-                </View>
-                <View style={styles.flex1}>
-                  <Text style={[styles.cardTitle, { color: c.text }, rtl]}>{l.adhanTitle}</Text>
-                  <Text style={[styles.cardSub, { color: c.textMuted }, rtl]}>{l.adhanSub}</Text>
-                </View>
-                <View style={[styles.pill, { backgroundColor: c.primaryBg, borderColor: c.primaryBorder }]}>
-                  <Text style={[styles.pillText, { color: c.primary }]}>{l.calcBadge}</Text>
-                </View>
-              </View>
-
-              {prayers.map((p) => {
-                const meta = PRAYER_META[p.key];
-                const isNext = isNextKey(p.key) && next?.target === 'adhan';
-                const isSunrise = p.key === 'sunrise';
-                const color = isNext ? c.primary : (isSunrise ? c.textMuted : c.text);
-                return (
-                  <View
-                    key={p.key}
-                    accessible
-                    accessibilityLabel={`${name(p.key)}: ${l.adhan} ${p.adhan}`}
-                    style={[
-                      styles.row,
-                      styles.rowCompact,
-                      { borderTopColor: c.border },
-                      isNext && { backgroundColor: c.primaryBg2 },
-                      isPassedKey(p.key) && styles.passed,
-                    ]}
-                  >
-                    <LinearGradient colors={meta.gradient} style={styles.rowIconSm}>
-                      <AppIcon name={meta.iconKey} size={14} color="#fff" />
-                    </LinearGradient>
-                    <View style={styles.rowNameWrap}>
-                      <Text numberOfLines={1} style={[styles.rowNameSm, { color }]}>{name(p.key)}</Text>
-                      {isSunrise ? (
-                        <Text numberOfLines={2} style={[styles.rowNote, { color: c.textMuted }, rtl]}>{l.sunriseNote}</Text>
-                      ) : null}
-                    </View>
-                    <Text style={[styles.adhanTime, styles.ltr, { color }]}>{p.adhan}</Text>
-                  </View>
-                );
-              })}
-            </View>
-          </FadeUp>
-        ) : null}
-
-        {/* ── FƏZİLƏTLƏR: ayə (API) + hədislər (data) ── */}
-        <FadeUp delay={300}>
-          <View style={styles.sectionHead}>
-            <Text style={[styles.eyebrow, { color: c.gold }, rtl]}>{l.virtuesEyebrow.toUpperCase()}</Text>
-            <Text style={[styles.sectionTitle, { color: c.text }, rtl]}>{l.virtuesTitle}</Text>
-          </View>
-
-          <View style={[styles.tabs, { backgroundColor: c.surfaceAlt, borderColor: c.border }]} accessibilityRole="tablist">
-            {[
-              { key: 'jamaat', label: l.tabJamaat },
-              { key: 'jumua', label: l.tabJumua },
-            ].map(t => {
-              const on = virtueTab === t.key;
-              return (
-                <TouchableOpacity
-                  key={t.key}
-                  onPress={() => pickTab(t.key)}
-                  activeOpacity={0.85}
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: on }}
-                  style={[styles.tab, on && [{ backgroundColor: c.card, borderColor: c.primaryBorder }, sh]]}
-                >
-                  <Text numberOfLines={1} style={[styles.tabText, { color: on ? c.primary : c.textSecondary }]}>{t.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </FadeUp>
-
-        {verseRef ? (
-          <VerseCard key={`${verseRef}|${lang}`} refKey={verseRef} lang={lang} l={l} c={c} sh={sh} isAr={isAr} />
-        ) : null}
-        {virtues.map((v) => (
-          <HadithCard key={v.ref} item={v} lang={lang} l={l} c={c} sh={sh} isAr={isAr} />
-        ))}
 
         {/* ── Faydalı keçidlər ── */}
         <Text style={[styles.sectionLabel, { color: c.textMuted }, rtl]}>{l.more.toUpperCase()}</Text>
@@ -953,8 +796,8 @@ export default function JamaatScreen({ navigation }) {
 
         {/* ── Mənbə qeydləri — azan vaxtları hesablanmışdır ── */}
         <View style={styles.notes}>
-          <Text style={[styles.note, { color: c.textMuted }, rtl]}>ⓘ {l.source.replace('{method}', methodName)}</Text>
-          {showTzNote ? <Text style={[styles.note, { color: c.textMuted }, rtl]}>{l.tzNote}</Text> : null}
+          <Text style={[styles.note, { color: c.textMuted }, rtl]}>ⓘ {withCity(l.source).replace('{method}', methodName)}</Text>
+          {showTzNote && filled(cityLabel) ? <Text style={[styles.note, { color: c.textMuted }, rtl]}>{withCity(l.tzNote)}</Text> : null}
         </View>
       </View>
 
@@ -1038,7 +881,6 @@ const styles = StyleSheet.create({
   },
   countdownText: { fontSize: 26, fontWeight: '800', color: '#fff', letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
   countdownLabel: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.85)', marginTop: 2 },
-  dimmed: { opacity: 0.6 },
 
   // Siyahı kartları (camaat / azan)
   listCard: { padding: 0 },
@@ -1047,39 +889,28 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1 },
   rowCompact: { paddingVertical: 10 },
   passed: { opacity: 0.55 },
-  rowIcon: { width: 34, height: 34, borderRadius: BorderRadius.sm, alignItems: 'center', justifyContent: 'center' },
   rowIconSm: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   rowNameWrap: { flex: 1, minWidth: 0 },
   rowTitle: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  rowName: { flexShrink: 1, fontSize: 16, fontWeight: '800' },
   rowNameSm: { fontSize: 15, fontWeight: '700' },
   rowNote: { fontSize: 12, fontWeight: '600', marginTop: 2 },
   tag: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: BorderRadius.full },
   tagText: { fontSize: 10, fontWeight: '800' },
-  jamaatTime: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, fontVariant: ['tabular-nums'], minWidth: 64, textAlign: 'right' },
   adhanTime: { fontSize: 16, fontWeight: '800', fontVariant: ['tabular-nums'], minWidth: 56, textAlign: 'right' },
-  soonBox: { borderTopWidth: 1, paddingHorizontal: 16, paddingVertical: 14 },
-  soon: { fontSize: 13, lineHeight: 19, fontWeight: '500', fontStyle: 'italic' },
-  cardFoot: { borderTopWidth: 1, paddingHorizontal: 16, paddingVertical: 11 },
-  cardFootText: { fontSize: 12, lineHeight: 17, fontWeight: '600' },
+  cardFoot: { borderTopWidth: 1, paddingHorizontal: 16, paddingVertical: 12 },
+  cardFootLink: { fontSize: 13, fontWeight: '800' },
 
   // Növbəti cümə
   jumuaHead: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
-  jumuaBody: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' },
-  jumuaMain: { flex: 1, minWidth: 150 },
-  jumuaLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
-  jumuaTime: { fontSize: 38, fontWeight: '900', letterSpacing: -1, fontVariant: ['tabular-nums'], lineHeight: 44 },
-  jumuaSub: { fontSize: 13, lineHeight: 19, fontWeight: '600', marginTop: 6 },
-  jumuaSide: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: BorderRadius.md, borderWidth: 1, alignItems: 'center' },
+  jumuaSide: { alignSelf: 'flex-start', marginTop: 12, paddingHorizontal: 14, paddingVertical: 10, borderRadius: BorderRadius.md, borderWidth: 1, alignItems: 'center' },
   jumuaSideLabel: { fontSize: 11, fontWeight: '700' },
   jumuaSideTime: { fontSize: 18, fontWeight: '800', fontVariant: ['tabular-nums'], marginTop: 2 },
   jumuaLoading: { paddingVertical: 18, alignItems: 'center' },
   jumuaText: { fontSize: 14, lineHeight: 21, fontWeight: '600' },
-  secondaryBtn: { alignSelf: 'flex-start', marginTop: 12, paddingHorizontal: 16, paddingVertical: 10, borderRadius: BorderRadius.full, borderWidth: 1.5 },
-  secondaryBtnText: { fontSize: 14, fontWeight: '800' },
 
   // Fəzilətlər
   sectionHead: { marginTop: 10, marginBottom: 12, paddingHorizontal: 2 },
+  sectionHeadFirst: { marginTop: 0 },
   eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.4, marginBottom: 3 },
   sectionTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4, lineHeight: 26 },
   tabs: { flexDirection: 'row', padding: 4, borderRadius: BorderRadius.full, borderWidth: 1, marginBottom: 14, gap: 4 },
@@ -1108,6 +939,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
   },
+  linkTileMain: { marginBottom: 16 },
   linkIconWrap: { width: 44, height: 44, borderRadius: BorderRadius.md, alignItems: 'center', justifyContent: 'center' },
   linkTitle: { fontSize: 15, fontWeight: '800', marginBottom: 2 },
   linkDesc: { fontSize: 12, fontWeight: '500' },

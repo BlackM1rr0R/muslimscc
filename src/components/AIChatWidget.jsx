@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import { subscribeToSettings } from '../data/adminContent'
-import { BRAND } from '../config/mosque'
+import { BRAND } from '../config/brand'
 import '../styles/AIChatWidget.css'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
@@ -41,6 +41,9 @@ function AIIcon({ size = 24, className = '' }) {
     </svg>
   )
 }
+
+// Göndər düyməsinin ekran oxuyucusu üçün adı (5 dil)
+const SEND_LABEL = { az:'Göndər', en:'Send', ru:'Отправить', ar:'إرسال', tr:'Gönder' }
 
 const LABELS = {
   az: {
@@ -483,7 +486,7 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
               enterKeyHint="send"
               inputMode="text"
             />
-            <button type="submit" className="aiw-send" disabled={loading || cooldown > 0 || !input.trim()} aria-label="send">
+            <button type="submit" className="aiw-send" disabled={loading || cooldown > 0 || !input.trim()} aria-label={SEND_LABEL[lang]}>
               {loading ? '⏳' : cooldown > 0 ? cooldown : '➤'}
             </button>
           </form>

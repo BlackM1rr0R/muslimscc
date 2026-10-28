@@ -1,16 +1,15 @@
 import { useState, useCallback } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { brandName, filled, tr, MOSQUE } from '../config/mosque'
 import '../styles/MosqueFinderPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 
 // ── i18n Labels ──
 const LABELS = {
-  az: { title:'Yaxındakı Məscidlər', subtitle:'Ətrafınızdakı məscidləri tapın', loading:'Axtarılır...', error:'Məkan tapılmadı', noResults:'Yaxında məscid tapılmadı', openMaps:'Xəritədə aç', distance:'Məsafə', retry:'Yenidən axtar', found:'məscid tapıldı', searchRadius:'Axtarış radiusu: 10 km', name:'Ad', unknown:'Naməlum məscid', ourMosque:'Bizim məscid', hint:'Məkan icazəsi verin — yaxınlıqdakı məscidlər OpenStreetMap-dən tapılır', fromYou:'sizdən' },
-  en: { title:'Nearby Mosques', subtitle:'Find mosques around you', loading:'Searching...', error:'Location not found', noResults:'No mosques found nearby', openMaps:'Open in Maps', distance:'Distance', retry:'Search again', found:'mosques found', searchRadius:'Search radius: 10 km', name:'Name', unknown:'Unknown mosque', ourMosque:'Our mosque', hint:'Allow location access — nearby mosques are found via OpenStreetMap', fromYou:'from you' },
-  ru: { title:'Ближайшие мечети', subtitle:'Найдите мечети рядом с вами', loading:'Поиск...', error:'Местоположение не найдено', noResults:'Мечетей поблизости не найдено', openMaps:'Открыть на карте', distance:'Расстояние', retry:'Искать снова', found:'мечетей найдено', searchRadius:'Радиус поиска: 10 км', name:'Название', unknown:'Неизвестная мечеть', ourMosque:'Наша мечеть', hint:'Разрешите доступ к геолокации — ближайшие мечети ищутся через OpenStreetMap', fromYou:'от вас' },
-  ar: { title:'المساجد القريبة', subtitle:'ابحث عن المساجد حولك', loading:'جارٍ البحث...', error:'لم يُعثر على الموقع', noResults:'لا مساجد قريبة', openMaps:'افتح في الخريطة', distance:'المسافة', retry:'ابحث مجدداً', found:'مساجد', searchRadius:'نطاق البحث: ١٠ كم', name:'الاسم', unknown:'مسجد غير معروف', ourMosque:'مسجدنا', hint:'اسمح بالوصول إلى موقعك — يتم البحث عن المساجد القريبة عبر OpenStreetMap', fromYou:'منك' },
-  tr: { title:'Yakındaki Camiler', subtitle:'Çevrenizdeki camileri bulun', loading:'Aranıyor...', error:'Konum bulunamadı', noResults:'Yakında cami bulunamadı', openMaps:'Haritada aç', distance:'Mesafe', retry:'Tekrar ara', found:'cami bulundu', searchRadius:'Arama yarıçapı: 10 km', name:'İsim', unknown:'Bilinmeyen cami', ourMosque:'Camimiz', hint:'Konum izni verin — yakındaki camiler OpenStreetMap üzerinden bulunur', fromYou:'sizden' },
+  az: { title:'Yaxındakı Məscidlər', subtitle:'Ətrafınızdakı məscidləri tapın', loading:'Axtarılır...', error:'Məkan tapılmadı', noResults:'Yaxında məscid tapılmadı', openMaps:'Xəritədə aç', distance:'Məsafə', retry:'Yenidən axtar', found:'məscid tapıldı', searchRadius:'Axtarış radiusu: 10 km', name:'Ad', unknown:'Naməlum məscid', hint:'Məkan icazəsi verin — yaxınlıqdakı məscidlər OpenStreetMap-dən tapılır', fromYou:'sizdən' },
+  en: { title:'Nearby Mosques', subtitle:'Find mosques around you', loading:'Searching...', error:'Location not found', noResults:'No mosques found nearby', openMaps:'Open in Maps', distance:'Distance', retry:'Search again', found:'mosques found', searchRadius:'Search radius: 10 km', name:'Name', unknown:'Unknown mosque', hint:'Allow location access — nearby mosques are found via OpenStreetMap', fromYou:'from you' },
+  ru: { title:'Ближайшие мечети', subtitle:'Найдите мечети рядом с вами', loading:'Поиск...', error:'Местоположение не найдено', noResults:'Мечетей поблизости не найдено', openMaps:'Открыть на карте', distance:'Расстояние', retry:'Искать снова', found:'мечетей найдено', searchRadius:'Радиус поиска: 10 км', name:'Название', unknown:'Неизвестная мечеть', hint:'Разрешите доступ к геолокации — ближайшие мечети ищутся через OpenStreetMap', fromYou:'от вас' },
+  ar: { title:'المساجد القريبة', subtitle:'ابحث عن المساجد حولك', loading:'جارٍ البحث...', error:'لم يُعثر على الموقع', noResults:'لا مساجد قريبة', openMaps:'افتح في الخريطة', distance:'المسافة', retry:'ابحث مجدداً', found:'مساجد', searchRadius:'نطاق البحث: ١٠ كم', name:'الاسم', unknown:'مسجد غير معروف', hint:'اسمح بالوصول إلى موقعك — يتم البحث عن المساجد القريبة عبر OpenStreetMap', fromYou:'منك' },
+  tr: { title:'Yakındaki Camiler', subtitle:'Çevrenizdeki camileri bulun', loading:'Aranıyor...', error:'Konum bulunamadı', noResults:'Yakında cami bulunamadı', openMaps:'Haritada aç', distance:'Mesafe', retry:'Tekrar ara', found:'cami bulundu', searchRadius:'Arama yarıçapı: 10 km', name:'İsim', unknown:'Bilinmeyen cami', hint:'Konum izni verin — yakındaki camiler OpenStreetMap üzerinden bulunur', fromYou:'sizden' },
 }
 
 // ── Haversine distance (km) ──
@@ -89,11 +88,6 @@ export default function MosqueFinderPage({ setPage }) {
     }
   }, [t.error])
 
-  // Öz məscidimizə məsafə — yalnız istifadəçi məkan icazəsi verəndən sonra
-  const ownGeo = MOSQUE.geo
-  const hasOwnGeo = filled(ownGeo?.lat) && filled(ownGeo?.lng)
-  const ownDistance = userPos && hasOwnGeo ? haversine(userPos.lat, userPos.lon, ownGeo.lat, ownGeo.lng) : null
-
   return (
     <div className="mosque-finder-page">
       {/* Hero */}
@@ -106,31 +100,6 @@ export default function MosqueFinderPage({ setPage }) {
 
       <div className="section">
         <div className="mosque-layout">
-          {/* Öz məscidimiz — ad və xəritə linki config-dən (ünvan boşdursa göstərilmir) */}
-          {filled(MOSQUE.mapUrl) && (
-            <div className="mosque-card mosque-card--own card anim-fadeUp">
-              <div className="mosque-card-icon">🕌</div>
-              <div className="mosque-card-info">
-                <span className="mosque-own-eyebrow">{t.ourMosque}</span>
-                <h2 className="mosque-card-name">{brandName(lang)}</h2>
-                {filled(MOSQUE.locality) && (
-                  <span className="mosque-card-distance">📍 {tr(MOSQUE.locality, lang)}</span>
-                )}
-                {ownDistance != null && (
-                  <span className="mosque-card-distance">📏 {t.distance}: {formatDistance(ownDistance)}</span>
-                )}
-              </div>
-              <a
-                className="btn-secondary mosque-maps-btn"
-                href={MOSQUE.mapUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                🗺️ {t.openMaps}
-              </a>
-            </div>
-          )}
-
           {/* Search area */}
           <div className="mosque-search-area anim-fadeUp">
             <div className="mosque-search-icon" aria-hidden="true">🧭</div>
@@ -196,21 +165,21 @@ export default function MosqueFinderPage({ setPage }) {
                 // xanası (.m-list/.m-row, sonda › oxu), genişdə əvvəlki kimi ayrı
                 // kartlar və sağda "Xəritədə aç" düyməsi (MosqueFinderPage.css)
                 <ul className="mosque-list m-list" data-reveal="stagger">
-                  {mosques.map((mosque) => (
-                    <li key={mosque.id}>
+                  {mosques.map((place) => (
+                    <li key={place.id}>
                       <a
                         className="mosque-row m-row"
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${mosque.lat},${mosque.lon}${userPos ? `&origin=${userPos.lat},${userPos.lon}` : ''}`}
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lon}${userPos ? `&origin=${userPos.lat},${userPos.lon}` : ''}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
                         <span className="mosque-card-icon" aria-hidden="true">🕌</span>
                         <div className="mosque-card-info">
                           <h3 className="mosque-card-name">
-                            {mosque.name || t.unknown}
+                            {place.name || t.unknown}
                           </h3>
                           <span className="mosque-card-distance">
-                            📏 {t.distance}: {formatDistance(mosque.distance)}
+                            📏 {t.distance}: {formatDistance(place.distance)}
                           </span>
                         </div>
                         <span className="btn-secondary mosque-maps-btn">🗺️ {t.openMaps}</span>

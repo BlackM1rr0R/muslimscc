@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
-import { brandName } from '../../config/mosque'
+import { brandName } from '../../config/brand'
 import { getAll, addDocument, COLLECTIONS } from '../../firebase/firestore'
 import { isFirebaseConfigured } from '../../firebase/config'
 
@@ -16,11 +16,11 @@ const readStoredPushToken = () => {
 }
 
 const LABELS = {
-  az: { tokenField:'Göndərmə açarı', tokenHint:'Serverdəki ADMIN_TOKEN. Yalnız bu sekmədə yadda qalır.', tokenRequired:'Göndərmə açarını daxil et', tokenWrong:'Açar yanlışdır — serverdəki ADMIN_TOKEN ilə eyni olmalıdır', title:'Push Bildirişlər', sub:'Bütün abunəçilərə bildiriş göndərin', send:'Bildiriş Göndər', subscribers:'Abunəçi sayı', titleField:'Başlıq', bodyField:'Mesaj', urlField:'Açılacaq URL (opsional)', priorityHigh:'Yüksək prioritet', preview:'Önizləmə', sending:'Göndərilir...', sent:'Göndərildi:', failed:'Xəta:', history:'Tarixçə', noHistory:'Hələ bildiriş göndərilməyib', titleRequired:'Başlıq tələb olunur', bodyRequired:'Mesaj tələb olunur', noBackend:'Backend API qoşulmayıb. .env-də VITE_API_URL təyin edin.' },
-  en: { tokenField:'Send key', tokenHint:'The server ADMIN_TOKEN. Kept only in this tab.', tokenRequired:'Enter the send key', tokenWrong:'Wrong key — must match the server ADMIN_TOKEN', title:'Push Notifications', sub:'Send notifications to all subscribers', send:'Send Notification', subscribers:'Subscribers', titleField:'Title', bodyField:'Message', urlField:'URL to open (optional)', priorityHigh:'High priority', preview:'Preview', sending:'Sending...', sent:'Sent to:', failed:'Failed:', history:'History', noHistory:'No notifications sent yet', titleRequired:'Title required', bodyRequired:'Message required', noBackend:'Backend API not configured. Set VITE_API_URL in .env.' },
-  ru: { tokenField:'Ключ отправки', tokenHint:'ADMIN_TOKEN сервера. Хранится только в этой вкладке.', tokenRequired:'Введите ключ отправки', tokenWrong:'Неверный ключ — должен совпадать с ADMIN_TOKEN сервера', title:'Push уведомления', sub:'Отправить уведомления всем подписчикам', send:'Отправить', subscribers:'Подписчики', titleField:'Заголовок', bodyField:'Сообщение', urlField:'URL для открытия', priorityHigh:'Высокий приоритет', preview:'Превью', sending:'Отправка...', sent:'Отправлено:', failed:'Ошибка:', history:'История', noHistory:'Нет уведомлений', titleRequired:'Заголовок обязателен', bodyRequired:'Сообщение обязательно', noBackend:'Backend API не настроен' },
-  ar: { tokenField:'مفتاح الإرسال', tokenHint:'ADMIN_TOKEN الخاص بالخادم. يُحفظ في هذا التبويب فقط.', tokenRequired:'أدخل مفتاح الإرسال', tokenWrong:'المفتاح غير صحيح — يجب أن يطابق ADMIN_TOKEN', title:'إشعارات Push', sub:'إرسال إشعارات لجميع المشتركين', send:'إرسال', subscribers:'المشتركون', titleField:'العنوان', bodyField:'الرسالة', urlField:'الرابط', priorityHigh:'أولوية عالية', preview:'معاينة', sending:'جارٍ الإرسال...', sent:'تم الإرسال إلى:', failed:'فشل:', history:'السجل', noHistory:'لا توجد إشعارات', titleRequired:'العنوان مطلوب', bodyRequired:'الرسالة مطلوبة', noBackend:'Backend API غير مكون' },
-  tr: { tokenField:'Gönderim anahtarı', tokenHint:'Sunucudaki ADMIN_TOKEN. Yalnızca bu sekmede saklanır.', tokenRequired:'Gönderim anahtarını girin', tokenWrong:'Anahtar yanlış — sunucudaki ADMIN_TOKEN ile aynı olmalı', title:'Push Bildirimler', sub:'Tüm abonelere bildirim gönder', send:'Bildirim Gönder', subscribers:'Aboneler', titleField:'Başlık', bodyField:'Mesaj', urlField:'Açılacak URL', priorityHigh:'Yüksek öncelik', preview:'Önizleme', sending:'Gönderiliyor...', sent:'Gönderildi:', failed:'Hata:', history:'Geçmiş', noHistory:'Henüz bildirim yok', titleRequired:'Başlık gerekli', bodyRequired:'Mesaj gerekli', noBackend:'Backend API yapılandırılmamış' },
+  az: { tokenField:'Göndərmə açarı', tokenHint:'Serverdə təyin olunmuş admin açarı. Yalnız bu sekmədə yadda qalır.', tokenRequired:'Göndərmə açarını daxil et', tokenWrong:'Açar yanlışdır — serverdəki admin açarı ilə eyni olmalıdır', title:'Anlıq bildirişlər', sub:'Bütün abunəçilərə bildiriş göndərin', send:'Bildiriş göndər', subscribers:'Abunəçi sayı', titleField:'Başlıq', bodyField:'Mesaj', urlField:'Açılacaq ünvan (istəyə bağlı)', priorityHigh:'Prioritet', normal:'Adi', high:'Yüksək', preview:'Önbaxış', now:'indi', sending:'Göndərilir...', sent:'Göndərildi:', failed:'Xəta:', sendFailed:'Göndərmək alınmadı', history:'Tarixçə', noHistory:'Hələ bildiriş göndərilməyib', titleRequired:'Başlıq tələb olunur', bodyRequired:'Mesaj tələb olunur', noBackend:'Server API-si qoşulmayıb. .env faylında VITE_API_URL təyin edin.', noFirebase:'Firebase qoşulmayıb', phTitle:'🕌 Namaz vaxtı', phBody:'Zöhr namazının vaxtı çatdı' },
+  en: { tokenField:'Send key', tokenHint:'The admin key set on the server. Kept only in this tab.', tokenRequired:'Enter the send key', tokenWrong:'Wrong key — must match the admin key on the server', title:'Push notifications', sub:'Send notifications to all subscribers', send:'Send notification', subscribers:'Subscribers', titleField:'Title', bodyField:'Message', urlField:'URL to open (optional)', priorityHigh:'Priority', normal:'Normal', high:'High', preview:'Preview', now:'now', sending:'Sending...', sent:'Sent to:', failed:'Failed:', sendFailed:'Sending failed', history:'History', noHistory:'No notifications sent yet', titleRequired:'Title required', bodyRequired:'Message required', noBackend:'Server API not configured. Set VITE_API_URL in .env.', noFirebase:'Firebase is not connected', phTitle:'🕌 Prayer time', phBody:'It is time for the Dhuhr prayer' },
+  ru: { tokenField:'Ключ отправки', tokenHint:'Ключ администратора, заданный на сервере. Хранится только в этой вкладке.', tokenRequired:'Введите ключ отправки', tokenWrong:'Неверный ключ — он должен совпадать с ключом администратора на сервере', title:'Мгновенные уведомления', sub:'Отправить уведомления всем подписчикам', send:'Отправить уведомление', subscribers:'Подписчики', titleField:'Заголовок', bodyField:'Сообщение', urlField:'Открываемый адрес (необязательно)', priorityHigh:'Приоритет', normal:'Обычный', high:'Высокий', preview:'Предпросмотр', now:'сейчас', sending:'Отправка...', sent:'Отправлено:', failed:'Ошибка:', sendFailed:'Не удалось отправить', history:'История', noHistory:'Уведомления ещё не отправлялись', titleRequired:'Заголовок обязателен', bodyRequired:'Сообщение обязательно', noBackend:'Адрес API сервера не настроен.', noFirebase:'Firebase не подключён', phTitle:'🕌 Время намаза', phBody:'Наступило время полуденного намаза (Зухр)' },
+  ar: { tokenField:'مفتاح الإرسال', tokenHint:'مفتاح المسؤول المحدد على الخادم. يُحفظ في هذا التبويب فقط.', tokenRequired:'أدخل مفتاح الإرسال', tokenWrong:'المفتاح غير صحيح — يجب أن يطابق مفتاح المسؤول على الخادم', title:'الإشعارات الفورية', sub:'إرسال إشعارات لجميع المشتركين', send:'إرسال إشعار', subscribers:'المشتركون', titleField:'العنوان', bodyField:'الرسالة', urlField:'الرابط المراد فتحه (اختياري)', priorityHigh:'الأولوية', normal:'عادية', high:'عالية', preview:'معاينة', now:'الآن', sending:'جارٍ الإرسال...', sent:'تم الإرسال إلى:', failed:'فشل:', sendFailed:'تعذّر الإرسال', history:'السجل', noHistory:'لم تُرسل أي إشعارات بعد', titleRequired:'العنوان مطلوب', bodyRequired:'الرسالة مطلوبة', noBackend:'عنوان API للخادم غير مُعدّ.', noFirebase:'Firebase غير متصل', phTitle:'🕌 وقت الصلاة', phBody:'حان وقت صلاة الظهر' },
+  tr: { tokenField:'Gönderim anahtarı', tokenHint:'Sunucuda tanımlı yönetici anahtarı. Yalnızca bu sekmede saklanır.', tokenRequired:'Gönderim anahtarını girin', tokenWrong:'Anahtar yanlış — sunucudaki yönetici anahtarıyla aynı olmalı', title:'Anlık bildirimler', sub:'Tüm abonelere bildirim gönderin', send:'Bildirim gönder', subscribers:'Aboneler', titleField:'Başlık', bodyField:'Mesaj', urlField:'Açılacak adres (isteğe bağlı)', priorityHigh:'Öncelik', normal:'Normal', high:'Yüksek', preview:'Önizleme', now:'şimdi', sending:'Gönderiliyor...', sent:'Gönderildi:', failed:'Hata:', sendFailed:'Gönderilemedi', history:'Geçmiş', noHistory:'Henüz bildirim gönderilmedi', titleRequired:'Başlık gerekli', bodyRequired:'Mesaj gerekli', noBackend:'Sunucu API adresi yapılandırılmamış. .env dosyasında VITE_API_URL tanımlayın.', noFirebase:'Firebase bağlı değil', phTitle:'🕌 Namaz vakti', phBody:'Öğle namazının vakti girdi' },
 }
 
 export default function PushNotificationManager() {
@@ -73,7 +73,7 @@ export default function PushNotificationManager() {
       })
       const data = await res.json()
       if (res.status === 401) throw new Error(l.tokenWrong)
-      if (!res.ok) throw new Error(data.error || 'Send failed')
+      if (!res.ok) throw new Error(data.error || l.sendFailed)
 
       // Açar doğrudur — bu sekmədə yadda saxla ki, hər dəfə yazılmasın
       try { sessionStorage.setItem(TOKEN_KEY, adminToken.trim()) } catch { /* yaddaş bağlıdır */ }
@@ -102,7 +102,7 @@ export default function PushNotificationManager() {
       <div className="admin-section">
         <div style={{padding:40, textAlign:'center'}}>
           <div style={{fontSize:48, marginBottom:12}}>⚠️</div>
-          <h3 style={{color:'#ef4444'}}>Firebase qoşulmayıb</h3>
+          <h3 style={{color:'#ef4444'}}>{l.noFirebase}</h3>
         </div>
       </div>
     )
@@ -150,7 +150,7 @@ export default function PushNotificationManager() {
               value={form.title}
               onChange={(e) => setForm({...form, title:e.target.value})}
               maxLength={60}
-              placeholder="🕌 Namaz vaxtı"
+              placeholder={l.phTitle}
             />
           </div>
 
@@ -162,7 +162,7 @@ export default function PushNotificationManager() {
               onChange={(e) => setForm({...form, body:e.target.value})}
               maxLength={200}
               rows={3}
-              placeholder="Zöhr namazının vaxtı çatdı"
+              placeholder={l.phBody}
             />
             <div style={{fontSize:11, color:'var(--text-muted)', marginTop:4}}>{form.body.length}/200</div>
           </div>
@@ -185,8 +185,8 @@ export default function PushNotificationManager() {
                 value={form.priority}
                 onChange={(e) => setForm({...form, priority:e.target.value})}
               >
-                <option value="normal">Normal</option>
-                <option value="high">High</option>
+                <option value="normal">{l.normal}</option>
+                <option value="high">{l.high}</option>
               </select>
             </div>
           </div>
@@ -219,7 +219,7 @@ export default function PushNotificationManager() {
                 fontSize:18, flexShrink:0,
               }}>🌙</div>
               <div style={{flex:1, minWidth:0}}>
-                <div style={{fontSize:11, color:'var(--text-muted)', marginBottom:2, fontWeight:700}}>{brandName(lang)} · indi</div>
+                <div style={{fontSize:11, color:'var(--text-muted)', marginBottom:2, fontWeight:700}}>{brandName(lang)} · {l.now}</div>
                 <div style={{fontSize:14, fontWeight:800, color:'var(--text)'}}>{form.title || l.titleField}</div>
                 <div style={{fontSize:13, color:'var(--text-muted)', marginTop:2, lineHeight:1.4}}>{form.body || l.bodyField}</div>
               </div>

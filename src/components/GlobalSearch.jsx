@@ -48,23 +48,28 @@ const DEBOUNCE_MS = 350    // Quran nəşrini yükləməzdən əvvəl gözləmə
 const OPT_ID = 'gs-opt-'
 
 // Səhifələrin görünməyən açar sözləri — başlıq və təsvirdə olmayan, amma
-// ziyarətçinin yazdığı sözlərlə səhifə tapılsın ("cümə" → Camaat vaxtları).
+// ziyarətçinin yazdığı sözlərlə səhifə tapılsın ("cümə" → Camaat və Cümə).
 // Başlıqdan az, təsvirdən çox çəkisi var (utils/search.js → buildSources).
 const PAGE_KEYWORDS = {
   jamaat: {
-    az: 'cümə namazı camaat azan iqamə namaz vaxtı', en: 'friday jumuah jumua congregation jamaat adhan iqamah',
-    ru: 'пятница джума пятничный намаз джамаат азан', ar: 'الجمعة صلاة الجمعة الجماعة الأذان الإقامة',
-    tr: 'cuma cuma namazı cemaat ezan kamet',
+    az: 'cümə namazı camaat xütbə fəzilət', en: 'friday jumuah jumua congregation jamaat khutbah virtue',
+    ru: 'пятница джума пятничный намаз джамаат хутба', ar: 'الجمعة صلاة الجمعة الجماعة الخطبة فضل',
+    tr: 'cuma cuma namazı cemaat hutbe fazilet',
+  },
+  prayer: {
+    az: 'azan namaz vaxtı şəhər geri sayım', en: 'adhan azan prayer time city countdown',
+    ru: 'азан время намаза город отсчёт', ar: 'الأذان وقت الصلاة المدينة',
+    tr: 'ezan namaz vakti şehir geri sayım',
   },
   donate: {
-    az: 'ianə sədəqə yardım dəstək bağış', en: 'donation sadaqah charity support give',
-    ru: 'пожертвование садака помощь поддержка', ar: 'تبرع صدقة دعم مساعدة',
-    tr: 'bağış sadaka yardım destek',
+    az: 'ianə sədəqə xeyriyyə yardım infaq', en: 'donation sadaqah charity giving',
+    ru: 'пожертвование садака благотворительность помощь', ar: 'تبرع صدقة خير إنفاق',
+    tr: 'bağış sadaka hayır yardım infak',
   },
-  mosque: {
-    az: 'məscid ünvan xəritə yol tarixçə', en: 'mosque masjid address map directions',
-    ru: 'мечеть адрес карта маршрут', ar: 'مسجد العنوان الخريطة',
-    tr: 'cami mescit adres harita yol tarifi',
+  mosques: {
+    az: 'məscid yaxınlıqda xəritə yol', en: 'mosque masjid nearby map directions',
+    ru: 'мечеть рядом карта маршрут', ar: 'مسجد قريب الخريطة',
+    tr: 'cami mescit yakında harita yol tarifi',
   },
   announcements: {
     az: 'elan xəbər bildiriş tədbir', en: 'news notice events',

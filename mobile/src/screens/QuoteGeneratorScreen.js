@@ -9,7 +9,12 @@ import { QUOTES } from '../data/quotes';
 import { subscribeToQuotes } from '../data/adminContent';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn } from '../components/Animated';
-import { brandName, BRAND } from '../config/mosque';
+import { brandName, BRAND } from '../config/brand';
+import { localizeSource } from '../utils/sourceNames';
+import { pickLang } from '../utils/pickLang';
+
+// Tərcümə yalnız seçilmiş dildə; ərəbcədə orijinal mətn onsuz da göstərilir
+const quoteText = (q, lang) => (lang === 'ar' ? '' : (q?.text?.[lang] || ''));
 
 const { width: SW } = Dimensions.get('window');
 const CARD_SIZE = SW - 48;
@@ -136,9 +141,10 @@ export default function QuoteGeneratorScreen() {
         id: 'custom-' + q.id,
         cat: q.category || q.cat || 'general',
         ar: q.ar || q.arabic || '',
-        text: q.text?.[lang] || q.text?.en || '',
-        author: q.author || q.source || 'Admin',
-      })).filter(q => q.text || q.ar)
+        // Admin mətni başqa dilə (ingiliscə daxil) düşmür — yalnız cari dil
+        text: { [lang]: pickLang(q.text, lang) },
+        source: q.source || q.author || '',
+      })).filter(q => q.text[lang] || q.ar)
       setCustomQuotes(mapped)
     })
     return () => unsubscribe?.()
@@ -158,8 +164,9 @@ export default function QuoteGeneratorScreen() {
 
   const shareQuote = async () => {
     if (!quote) return;
-    const text = quote.text?.[lang] || quote.text?.en || '';
-    try { await Share.share({ message: `${quote.ar || ''}\n\n${text}\n\n— ${quote.source}\n\n${brandName(lang)} · ${BRAND.domain}` }); } catch {}
+    const text = quoteText(quote, lang);
+    const src = localizeSource(quote.source, lang);
+    try { await Share.share({ message: [quote.ar, text, src && `— ${src}`, BRAND.domain].filter(Boolean).join('\n\n') }); } catch {}
   };
 
   const copyQuote = () => {
@@ -232,7 +239,7 @@ export default function QuoteGeneratorScreen() {
               {decor.top ? <Text style={[styles.decorText, { color: theme.text }]}>{decor.top}</Text> : null}
 
               {/* Arabic */}
-              {!layout.hideArabic && quote.ar && (
+              {(!layout.hideArabic || lang === 'ar') && quote.ar && (
                 <Text style={[styles.quoteArabic, { color: theme.text, fontSize: layout.arSize || arFontSize }]}>{quote.ar}</Text>
               )}
 
@@ -240,14 +247,16 @@ export default function QuoteGeneratorScreen() {
               <View style={[styles.divider, { backgroundColor: theme.text }]} />
 
               {/* Translation */}
-              {!layout.hideTranslation && (
+              {!layout.hideTranslation && quoteText(quote, lang) ? (
                 <Text style={[styles.quoteText, { color: theme.text, fontSize: trFontSize }]}>
-                  {quote.text?.[lang] || quote.text?.en || ''}
+                  {quoteText(quote, lang)}
                 </Text>
-              )}
+              ) : null}
 
-              {/* Source */}
-              <Text style={[styles.quoteSource, { color: theme.text }]}>— {quote.source}</Text>
+              {/* Source — cari dildə */}
+              {quote.source ? (
+                <Text style={[styles.quoteSource, { color: theme.text }]}>— {localizeSource(quote.source, lang)}</Text>
+              ) : null}
 
               {/* Bottom decor */}
               {decor.bottom ? <Text style={[styles.decorText, { color: theme.text }]}>{decor.bottom}</Text> : null}

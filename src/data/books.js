@@ -169,15 +169,22 @@ export const BOOK_CATEGORIES = [
   { key:'kids',      label:{az:'Uşaqlar',en:'Kids',ru:'Дети',ar:'الأطفال',tr:'Çocuk'}, color:'#f97316' },
 ]
 
-// Şəkli olmayan hər kitaba İslami SVG üz qabığı ver (Firestore + default)
+// Şəkli olmayan hər kitaba İslami SVG üz qabığı ver (Firestore + default).
+// Üz qabığındakı ad/müəllif HƏR DİL ÜÇÜN ayrıca çəkilir (coverByLang) — ki
+// ingilis/rus istifadəçisi üz qabığında azərbaycanca ad görməsin.
+// coverUrl (az) köhnə istifadəçilər üçün saxlanılır.
+const COVER_LANGS = ['az', 'en', 'ru', 'ar', 'tr']
 function withCovers(items) {
-  return items.map(b => b.coverUrl ? b : {
-    ...b,
-    coverUrl: makeCover({
-      title: b.title?.az || b.title?.en,
-      author: b.author?.az || b.author?.en,
-      color: getDefaultCover(b.category),
-    }),
+  return items.map(b => {
+    if (b.coverUrl) return b
+    const color = getDefaultCover(b.category)
+    const coverByLang = {}
+    for (const l of COVER_LANGS) {
+      const title = b.title?.[l]
+      if (!title) continue
+      coverByLang[l] = makeCover({ title, author: b.author?.[l] === '—' ? '' : (b.author?.[l] || ''), color })
+    }
+    return { ...b, coverByLang, coverUrl: coverByLang.az || makeCover({ title: b.title?.en, author: b.author?.en, color }) }
   })
 }
 

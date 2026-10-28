@@ -3,32 +3,11 @@ import { getAll, addDocument, updateDocument, deleteDocument, subscribeToCollect
 import { isFirebaseConfigured } from '../firebase/config'
 
 // ═══ DEFAULT VIDEOS (Firebase qoşulmadıqda fallback) ═══
-export const DEFAULT_VIDEOS = [
-  {
-    id: 'default-1',
-    title: { az:'Quran Tilavəti — Sura Yasin', en:'Quran — Surah Yasin', ru:'Сура Ясин', ar:'سورة يس', tr:'Yasin Suresi' },
-    description: { az:'Mişari Raşid əl-Əfasinin tilavətində', en:'In Mishari Rashid Alafasy\'s recitation', ru:'В чтении Мишари Рашида', ar:'بصوت العفاسي', tr:'Mişari Raşid el-Afasi' },
-    youtubeId: '9w3vw02P77U',
-    category: 'quran',
-    duration: '20:15',
-  },
-  {
-    id: 'default-2',
-    title: { az:'Hz. Peyğəmbərin Həyatı', en:'Life of Prophet Muhammad', ru:'Жизнь Пророка', ar:'حياة النبي', tr:'Peygamberin Hayatı' },
-    description: { az:'Doğumundan vəfatına', en:'From birth to passing', ru:'От рождения до смерти', ar:'من المولد إلى الوفاة', tr:'Doğumundan vefatına' },
-    youtubeId: 'WcKE7nVtKxw',
-    category: 'lecture',
-    duration: '45:30',
-  },
-  {
-    id: 'default-3',
-    title: { az:'Namaz Necə Qılınır', en:'How to Pray', ru:'Как совершать намаз', ar:'كيفية الصلاة', tr:'Namaz Nasıl Kılınır' },
-    description: { az:'Addım-addım bələdçi', en:'Step-by-step guide', ru:'Пошаговое руководство', ar:'دليل خطوة بخطوة', tr:'Adım adım rehber' },
-    youtubeId: 'kWGy_lt0vyM',
-    category: 'lecture',
-    duration: '12:45',
-  },
-]
+// Əvvəl burada 6 standart video vardı — 2026-10-27 yoxlamasında HAMISI YouTube-da
+// mövcud deyildi (thumbnail və oEmbed 404): istifadəçi boş kartlar görürdü.
+// Uydurma ID yazılmır; videolar admin paneldən (Firestore) əlavə olunur,
+// siyahı boşdursa səhifə "video yoxdur" vəziyyətini göstərir.
+export const DEFAULT_VIDEOS = []
 
 export const VIDEO_CATEGORIES = [
   { key:'all',     label:{az:'Hamısı',en:'All',ru:'Все',ar:'الكل',tr:'Tümü'}, color:'#64748b' },
@@ -102,8 +81,10 @@ export function getYouTubeId(url) {
   return null
 }
 
+// hqdefault (480×360) HƏR videoda var; maxresdefault isə yalnız HD yüklənmiş
+// videolarda — olmayanda YouTube 404 qaytarırdı (boş kart + konsol xətası)
 export function getThumbnail(youtubeId) {
-  return `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`
+  return `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`
 }
 
 export function getEmbedUrl(youtubeId, opts = {}) {

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-public/og-image.png generatoru — 1200x630, sosial paylaşım kartı.
+public/og-image*.png generatoru — 1200x630, sosial paylaşım kartları (hər dilə bir).
 
 Bir dəfəlik lokal skriptdir: nəticə public/-ə yazılır və git-ə commit edilir.
 Build zəncirinə qoşulmayıb (Windows şriftlərinə bağlıdır, Vercel-də işləməz).
@@ -13,7 +13,7 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1200, 630
-OUT = os.path.join(os.path.dirname(__file__), '..', 'public', 'og-image.png')
+OUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'public')
 
 # Brend rəngləri — theme-color #16a34a ilə eyni ailə
 DEEP = (6, 59, 36)
@@ -107,57 +107,110 @@ def star5(img, cx, cy, r, color):
     img.paste(tile, (int(cx - m.size[0] / 2), int(cy - m.size[1] / 2)), m)
 
 
-def main():
+# ── Dil başına mətnlər ──
+# Hər dil öz kartını alır (og-image.png = az, og-image-<dil>.png = digərləri):
+# /en/quran linki paylaşılanda kartda azərbaycanca yazı görünməsin.
+# Ad və şüar src/config/brand.js-dəki BRAND.name / BRAND.tagline ilə uyğun
+# saxla (Python JS import edə bilmir). Fayl adları src/seo/meta.js-dəki
+# ogImageFor() ilə EYNİ olmalıdır.
+BRAND = 'Muslims.cc'
+TEXTS = {
+    'az': {
+        'sub': 'İslami platforma',
+        'tag': 'Quran, namaz vaxtları, hədis, dua və zikr',
+        'chips': ['Quran', 'Namaz vaxtları', 'Hədis', 'Dua', 'Zikr', 'Zəkat', 'Qiblə'],
+        'foot': '5 dildə  ·  pulsuz və reklamsız',
+    },
+    'en': {
+        'sub': 'Islamic platform',
+        'tag': 'Quran, prayer times, hadith, duas and dhikr',
+        'chips': ['Quran', 'Prayer times', 'Hadith', 'Duas', 'Dhikr', 'Zakat', 'Qibla'],
+        'foot': '5 languages  ·  free and ad-free',
+    },
+    'ru': {
+        'sub': 'Исламская платформа',
+        'tag': 'Коран, время намаза, хадисы, дуа и зикр',
+        'chips': ['Коран', 'Время намаза', 'Хадисы', 'Дуа', 'Зикр', 'Закят', 'Кибла'],
+        'foot': '5 языков  ·  бесплатно и без рекламы',
+    },
+    'tr': {
+        'sub': 'İslami platform',
+        'tag': 'Kur’an, namaz vakitleri, hadis, dua ve zikir',
+        'chips': ['Kur’an', 'Namaz vakitleri', 'Hadis', 'Dua', 'Zikir', 'Zekât', 'Kıble'],
+        'foot': '5 dilde  ·  ücretsiz ve reklamsız',
+    },
+    'ar': {
+        'sub': 'منصة إسلامية',
+        'tag': 'القرآن ومواقيت الصلاة والحديث والأدعية والأذكار',
+        'chips': ['القرآن', 'مواقيت الصلاة', 'الحديث', 'الأدعية', 'الأذكار', 'الزكاة', 'القبلة'],
+        'foot': '٥ لغات  ·  مجاناً وبلا إعلانات',
+    },
+}
+
+
+def shape_ar(text):
+    """Ərəb mətni: Pillow-da raqm yoxdursa hərflər birləşmir və sıra tərsinə
+    düşür — arabic_reshaper birləşdirir, bidi vizual (sağdan sola) sıraya çevirir."""
+    try:
+        import arabic_reshaper
+        from bidi.algorithm import get_display
+    except ImportError:
+        raise SystemExit('ar kartı üçün: pip install arabic-reshaper python-bidi')
+    return get_display(arabic_reshaper.reshape(text))
+
+
+def render(lang):
+    t = TEXTS[lang]
+    rtl = lang == 'ar'
+    sh = shape_ar if rtl else (lambda s: s)
+    # RTL-də düzən güzgü kimi çevrilir: emblem sağda, mətn sağa düzlənir
+    mx = (lambda x: W - x) if rtl else (lambda x: x)
+    side = 'r' if rtl else 'l'
+
     img = Image.new('RGBA', (W, H), DEEP + (255,))
     vertical_gradient(img)
     pattern(img)
-
     d = ImageDraw.Draw(img)
 
-    # Üstdə və altda incə qızılı xətt — kart çərçivəsi hissi
+    # Üstdə və altda incə zolaq — kart çərçivəsi hissi
     d.rectangle([0, 0, W, 7], fill=GOLD)
     d.rectangle([0, H - 7, W, H], fill=ACCENT)
 
     # ── Emblem ── ulduz ayparanın qövsünün içinə oturur
-    crescent(img, 140, 196, 66)
-    star5(img, 186, 196, 21, GOLD)
+    # Aypara güzgülənmir (açıq tərəfi həmişə sağdadır), ona görə ulduz RTL-də
+    # də ayparanın mərkəzindən +46 px sağda — açıq qövsün içində qalır
+    crescent(img, mx(140), 196, 66)
+    star5(img, mx(140) + 46, 196, 21, GOLD)
 
-    # ── Wordmark ── uzun ad olduğu üçün ölçü eni ölçülərək seçilir.
-    # Ad, yer və tagline src/config/mosque.js-dəki BRAND.name.az,
-    # MOSQUE.locality.az və BRAND.tagline.az ilə uyğun saxla (Python import edə bilmir)
-    brand = 'Qaraçuxur Məscidi'
-    size = 88
-    f_brand = load_font(BOLD, size)
-    while d.textlength(brand, font=f_brand) > W - 72 - 262 and size > 56:
-        size -= 2
-        f_brand = load_font(BOLD, size)
-    d.text((262, 170), brand, font=f_brand, fill=CREAM, anchor='ls')
+    # ── Wordmark ── (domen adı — tərcümə olunmur, Latın qalır)
+    f_brand = load_font(BOLD, 96)
+    d.text((mx(262), 172), BRAND, font=f_brand, fill=CREAM, anchor=side + 's')
 
-    # ── Yer ── wordmark-ın altında, qızılı
-    f_loc = load_font(BOLD, 34)
-    d.text((264, 224), 'Qaraçuxur, Bakı', font=f_loc, fill=GOLD, anchor='ls')
+    # ── Alt başlıq ── wordmark-ın altında, qızılı
+    f_sub = load_font(BOLD, 34)
+    d.text((mx(266), 226), sh(t['sub']), font=f_sub, fill=GOLD, anchor=side + 's')
 
-    # ── Tagline ──
-    f_tag = load_font(REG, 34)
-    d.text((72, 316), 'Namaz vaxtları, camaat namazı, elanlar və İslami bilik',
-           font=f_tag, fill=(203, 232, 213), anchor='lm')
+    # ── Şüar ──
+    f_tag = load_font(REG, 36)
+    d.text((mx(72), 316), sh(t['tag']), font=f_tag, fill=(203, 232, 213), anchor=side + 'm')
 
     # ── Xidmət çipləri ──
     # Çiplər ayrı RGBA qatında çəkilir: ImageDraw şəffaflığı qarışdırmır,
     # birbaşa çəkilsə piksellər tam ağ olur.
-    chips = ['Namaz Vaxtları', 'Camaat namazı', 'Elanlar', 'Quran', 'Hədis', 'Dua', 'Zikr', 'Qiblə']
     f_chip = load_font(REG, 30)
     chip_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     dc = ImageDraw.Draw(chip_layer)
     placed = []
-    x, y = 72, 372
-    for c in chips:
+    x, y = 72, 372  # x — başlanğıc kənardan məsafə (RTL-də sağdan)
+    for c in t['chips']:
+        c = sh(c)
         w = d.textlength(c, font=f_chip) + 44
         if x + w > W - 72:
             x, y = 72, y + 66
-        dc.rounded_rectangle([x, y, x + w, y + 54], radius=27,
+        x0, x1 = (W - x - w, W - x) if rtl else (x, x + w)
+        dc.rounded_rectangle([x0, y, x1, y + 54], radius=27,
                              fill=(255, 255, 255, 30), outline=(255, 255, 255, 90), width=2)
-        placed.append((x + w / 2, y + 27, c))
+        placed.append(((x0 + x1) / 2, y + 27, c))
         x += w + 14
     img.alpha_composite(chip_layer)
     for cx, cy, c in placed:
@@ -165,12 +218,20 @@ def main():
 
     # ── Alt sətir ──
     f_foot = load_font(REG, 28)
-    d.text((72, H - 62), '5 dildə  ·  pulsuz və reklamsız',
-           font=f_foot, fill=(168, 214, 184), anchor='lm')
-    d.text((W - 72, H - 62), 'muslims.cc', font=load_font(BOLD, 30), fill=GOLD, anchor='rm')
+    d.text((mx(72), H - 62), sh(t['foot']), font=f_foot, fill=(168, 214, 184), anchor=side + 'm')
+    d.text((mx(W - 72), H - 62), 'muslims.cc', font=load_font(BOLD, 30), fill=GOLD,
+           anchor=('l' if rtl else 'r') + 'm')
 
-    img.convert('RGB').save(os.path.normpath(OUT), 'PNG', optimize=True)
-    print('OK ->', os.path.normpath(OUT), img.size)
+    name = 'og-image.png' if lang == 'az' else 'og-image-%s.png' % lang
+    out = os.path.normpath(os.path.join(OUT_DIR, name))
+    img.convert('RGB').save(out, 'PNG', optimize=True)
+    # Yalnız ASCII çap et — Windows konsolu (cp1252) başqa simvolda yıxılır
+    print('OK ->', out, img.size)
+
+
+def main():
+    for lang in TEXTS:
+        render(lang)
 
 
 if __name__ == '__main__':

@@ -3,6 +3,8 @@ import { useLang } from '../contexts/LangContext'
 import { subscribeToAnnouncements, subscribeToDailyContent, ANNOUNCEMENT_TYPES } from '../data/adminContent'
 // Admin mənbəni Azərbaycanca yazır ("Bəqərə 2:255", "Buxari 1") — tanınan adlar dilə çevrilir
 import { localizeSource } from '../utils/sourceNames'
+// Admin mətni cari dildə yoxdursa başqa dilə (ingiliscə daxil) düşmür — göstərilmir
+import { pickLang } from '../utils/pickLang'
 
 // ═══ ANNOUNCEMENTS BANNER ═══
 export function AnnouncementBanner() {
@@ -17,7 +19,8 @@ export function AnnouncementBanner() {
     return () => unsubscribe?.()
   }, [])
 
-  const visible = items.filter(a => !closed.includes(a.id))
+  // Başlığı cari dildə olmayan elan bu dildə göstərilmir
+  const visible = items.filter(a => !closed.includes(a.id) && pickLang(a.title, lang))
   if (visible.length === 0) return null
 
   return (
@@ -40,11 +43,11 @@ export function AnnouncementBanner() {
             <div style={{fontSize:28, flexShrink:0}}>{type.icon}</div>
             <div style={{flex:1, minWidth:0}}>
               <div style={{fontSize:15, fontWeight:800, color:'var(--text)', marginBottom:4, letterSpacing:-0.2}}>
-                {a.title?.[lang] || a.title?.en}
+                {pickLang(a.title, lang)}
               </div>
-              {(a.message?.[lang] || a.message?.en) && (
+              {pickLang(a.message, lang, { warn: false }) && (
                 <div style={{fontSize:13, color:'var(--text-dim)', lineHeight:1.5}}>
-                  {a.message[lang] || a.message.en}
+                  {pickLang(a.message, lang, { warn: false })}
                 </div>
               )}
               {a.link && (
@@ -85,9 +88,10 @@ export function DailyContentDisplay() {
   useEffect(() => {
     const unsubscribe = subscribeToDailyContent((c) => {
       if (!c) { setContent(null); return }
-      const hasAyah = c.ayah?.ar || c.ayah?.text?.[lang] || c.ayah?.text?.en
-      const hasDhikr = c.dhikr?.ar || c.dhikr?.text?.[lang]
-      const hasQuote = c.quote?.ar || c.quote?.text?.[lang] || c.quote?.text?.en
+      // Ərəbcə orijinal hər dildə göstərilir; tərcümə yalnız cari dildə
+      const hasAyah = c.ayah?.ar || pickLang(c.ayah?.text, lang)
+      const hasDhikr = c.dhikr?.ar || pickLang(c.dhikr?.text, lang)
+      const hasQuote = c.quote?.ar || pickLang(c.quote?.text, lang)
       if (hasAyah || hasDhikr || hasQuote) {
         setContent({ ...c, hasAyah, hasDhikr, hasQuote })
       } else {
@@ -124,7 +128,7 @@ export function DailyContentDisplay() {
                 <span style={{fontSize:11, fontWeight:800, color:'#10b981', textTransform:'uppercase', letterSpacing:1}}>{l.ayah}</span>
               </div>
               {content.ayah.ar && <div style={{fontSize:20, lineHeight:1.9, textAlign:'right', color:'var(--text)', marginBottom:10, fontFamily:'Amiri, serif'}}>{content.ayah.ar}</div>}
-              {(content.ayah.text?.[lang] || content.ayah.text?.en) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:10}}>{content.ayah.text[lang] || content.ayah.text.en}</div>}
+              {pickLang(content.ayah.text, lang) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:10}}>{pickLang(content.ayah.text, lang)}</div>}
               {content.ayah.source && <div style={{fontSize:12, color:'#10b981', fontWeight:700}}>— <bdi>{localizeSource(content.ayah.source, lang)}</bdi></div>}
             </div>
           )}
@@ -137,7 +141,7 @@ export function DailyContentDisplay() {
               </div>
               {content.dhikr.ar && <div style={{fontSize:20, lineHeight:1.9, textAlign:'right', color:'var(--text)', marginBottom:10, fontFamily:'Amiri, serif'}}>{content.dhikr.ar}</div>}
               {content.dhikr.translit && <div style={{fontSize:13, fontStyle:'italic', color:'#0891b2', marginBottom:8}}>{content.dhikr.translit}</div>}
-              {(content.dhikr.text?.[lang] || content.dhikr.text?.en) && <div style={{fontSize:13, color:'var(--text-dim)', lineHeight:1.5, marginBottom:10}}>{content.dhikr.text[lang] || content.dhikr.text.en}</div>}
+              {pickLang(content.dhikr.text, lang) && <div style={{fontSize:13, color:'var(--text-dim)', lineHeight:1.5, marginBottom:10}}>{pickLang(content.dhikr.text, lang)}</div>}
               {content.dhikr.count && (
                 <div style={{display:'inline-block', background:'#06b6d418', color:'#06b6d4', padding:'4px 12px', borderRadius:999, fontSize:11, fontWeight:800}}>
                   🎯 {l.target}: ×{content.dhikr.count}
@@ -153,7 +157,7 @@ export function DailyContentDisplay() {
                 <span style={{fontSize:11, fontWeight:800, color:'#a855f7', textTransform:'uppercase', letterSpacing:1}}>{l.quote}</span>
               </div>
               {content.quote.ar && <div style={{fontSize:18, lineHeight:1.9, textAlign:'right', color:'var(--text)', marginBottom:10, fontFamily:'Amiri, serif'}}>{content.quote.ar}</div>}
-              {(content.quote.text?.[lang] || content.quote.text?.en) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:10, fontStyle:'italic'}}>"{content.quote.text[lang] || content.quote.text.en}"</div>}
+              {pickLang(content.quote.text, lang) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:10, fontStyle:'italic'}}>"{pickLang(content.quote.text, lang)}"</div>}
               {content.quote.source && <div style={{fontSize:12, color:'#a855f7', fontWeight:700}}>— <bdi>{localizeSource(content.quote.source, lang)}</bdi></div>}
             </div>
           )}

@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLang } from '../contexts/LangContext';
 import { Colors, Spacing, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
-import { SURAH_AZ } from '../data/surahNamesAz';
+import { getSurahLocal } from '../data/surahNamesAz';
 import PageHero from '../components/PageHero';
 
 const EDITION_MAP = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', ar:'ar.muyassar', tr:'tr.diyanet' };
@@ -21,7 +21,25 @@ const SEARCH_LABELS = {
 const BOOKMARK_LABELS = { az:'Oxumağa davam et', en:'Continue reading', ru:'Продолжить чтение', ar:'أكمل القراءة', tr:'Okumaya devam et' };
 const TAFSIR_LABELS = { az:'Təfsir', en:'Tafsir', ru:'Тафсир', ar:'تفسير', tr:'Tefsir' };
 
-function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, dark }) {
+// ── Surənin adı və mənası cari dildə (veb QuranPage.jsx ilə eyni) ──
+// az/ru/tr: yerli yazılış (surahNamesAz.js); ar: API-dəki ərəb adı ("سُورَةُ" sözü olmadan);
+// en: API-nin transliterasiyası və mənası. ru/tr/ar-da ingiliscə məna göstərilmir.
+const stripSurahWord = (name) => String(name || '').replace(/^سُورَةُ\s+/, '');
+function surahTitle(s, lang) {
+  if (!s) return '';
+  const local = getSurahLocal(s.number, lang);
+  if (local) return local.name;
+  if (lang === 'ar') return stripSurahWord(s.name);
+  return s.englishName;
+}
+function surahMeaning(s, lang) {
+  if (!s || lang === 'ar') return '';
+  const local = getSurahLocal(s.number, lang);
+  if (local) return local.meaning;
+  return lang === 'en' ? s.englishNameTranslation : '';
+}
+
+function AyahCard({ verse, showTrans, showTafsir, hasTafsir, tafsirLabel, fontSize, dark }) {
   const [playing, setPlaying] = useState(false);
   const soundRef = useRef(null);
   const c = dark ? Colors.dark : Colors.light;
@@ -54,15 +72,16 @@ function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, dark })
       </View>
       <View style={styles.ayahBody}>
         <Text style={[styles.ayahArabic, { color: c.text, fontSize: fontSize * 16 }]}>{verse.ar}</Text>
-        {showTrans && verse.tr && !showTafsir && (
+        {/* ar: ikinci nəşr (ar.muyassar) təfsirdir; digər dillərdə — seçilmiş dilin tərcüməsi */}
+        {!hasTafsir && showTrans && verse.tr ? (
           <Text style={[styles.ayahTrans, { color: c.textSecondary }]}>{verse.tr}</Text>
-        )}
-        {showTafsir && verse.tr && (
+        ) : null}
+        {hasTafsir && showTafsir && verse.tr ? (
           <View style={[styles.tafsirBox, { backgroundColor: c.surfaceAlt }]}>
             <Text style={[styles.tafsirLabel, { color: c.primary }]}>{tafsirLabel}</Text>
             <Text style={[styles.tafsirText, { color: c.textSecondary }]}>{verse.tr}</Text>
           </View>
-        )}
+        ) : null}
       </View>
       {verse.audio && (
         <TouchableOpacity style={[styles.playBtn, playing && { backgroundColor: c.primary }]} onPress={toggle}>
@@ -78,6 +97,9 @@ export default function QuranScreen({ navigation }) {
   const c = dark ? Colors.dark : Colors.light;
   const t = T[lang]?.quran || T.az.quran;
   const sl = SEARCH_LABELS[lang] || SEARCH_LABELS.az;
+  // Real təfsir yalnız ərəbcədədir (ar.muyassar); digər dillərin nəşri tərcümədir —
+  // onu "Təfsir" adı ilə göstərmək yanıldıcı olardı (veb QuranPage ilə eyni)
+  const hasTafsir = lang === 'ar';
 
   const [surahs, setSurahs] = useState([]);
   const [listLoading, setListLoading] = useState(true);
@@ -109,7 +131,8 @@ export default function QuranScreen({ navigation }) {
     setVerseSearching(true);
     if (verseTimerRef.current) clearTimeout(verseTimerRef.current);
     verseTimerRef.current = setTimeout(() => {
-      const edition = EDITION_MAP[lang] || 'en.asad';
+      // Axtarış seçilmiş dilin nəşrində aparılır (başqa dilə düşmür)
+      const edition = EDITION_MAP[lang];
       fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(verseSearch)}/all/${edition}`)
         .then(r => r.json())
         .then(d => setVerseResults(d.code === 200 && d.data?.matches ? d.data.matches : []))
@@ -119,15 +142,17 @@ export default function QuranScreen({ navigation }) {
     return () => { if (verseTimerRef.current) clearTimeout(verseTimerRef.current); };
   }, [verseSearch, searchMode, lang]);
 
-  const openSurah = async (num, name) => {
+  const openSurah = async (num) => {
     setSelected(num);
     setSurahLoading(true);
-    const edition = EDITION_MAP[lang] || 'en.asad';
+    const edition = EDITION_MAP[lang];
     const eds = lang === 'ar' ? 'ar.alafasy,ar.muyassar' : `ar.alafasy,${edition}`;
     try {
       const res = await fetch(`https://api.alquran.cloud/v1/surah/${num}/editions/${eds}`);
       const d = await res.json();
-      const [arabic, trans] = d.data;
+      const [arabic, trans] = Array.isArray(d?.data) ? d.data : [];
+      // Tərcümə məhz seçilmiş dilin nəşrindən gəlməlidir — başqa nəşrə düşmür
+      if (!arabic?.ayahs || trans?.edition?.identifier !== edition) throw new Error('edition-unavailable');
       setSurah({
         ...arabic,
         verses: arabic.ayahs.map((v, i) => ({
@@ -136,7 +161,8 @@ export default function QuranScreen({ navigation }) {
           tr: trans?.ayahs[i]?.text || ''
         }))
       });
-      const bm = { surah: num, name: name || '', time: Date.now() };
+      // Ad saxlanmır — göstərərkən cari dildə hesablanır (dil dəyişəndə köhnə dil qalmasın)
+      const bm = { surah: num, time: Date.now() };
       await AsyncStorage.setItem('quran_bookmark', JSON.stringify(bm));
       setBookmark(bm);
     } catch {}
@@ -146,9 +172,9 @@ export default function QuranScreen({ navigation }) {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return surahs.filter(s => {
-      const az = SURAH_AZ[s.number];
+      const locals = ['az', 'ru', 'tr'].map(l => getSurahLocal(s.number, l)).filter(Boolean);
       const matchQ = !q || s.englishName.toLowerCase().includes(q) || s.name.includes(search) || String(s.number).includes(q) ||
-        (az && (az.name.toLowerCase().includes(q) || az.meaning.toLowerCase().includes(q)));
+        locals.some(x => x.name.toLowerCase().includes(q) || x.meaning.toLowerCase().includes(q));
       const matchF = filter === 'all' || (filter === 'meccan' && s.revelationType === 'Meccan') || (filter === 'medinan' && s.revelationType === 'Medinan');
       return matchQ && matchF;
     });
@@ -169,20 +195,23 @@ export default function QuranScreen({ navigation }) {
             <TouchableOpacity style={styles.ctrlBtn} onPress={() => setFontSize(f => Math.min(f + 0.1, 2.2))}>
               <Text style={{ color: c.text }}>A+</Text>
             </TouchableOpacity>
+            {!hasTafsir ? (
             <TouchableOpacity style={[styles.ctrlBtn, showTrans && { backgroundColor: c.primary + '30' }]} onPress={() => setShowTrans(s => !s)}>
               <Text style={{ color: c.text, fontSize: 11 }}>{t.translationLabel}</Text>
             </TouchableOpacity>
+            ) : (
             <TouchableOpacity style={[styles.ctrlBtn, showTafsir && { backgroundColor: c.primary + '30' }]} onPress={() => setShowTafsir(s => !s)}>
               <Text style={{ color: c.text, fontSize: 11 }}>{TAFSIR_LABELS[lang]}</Text>
             </TouchableOpacity>
+            )}
           </View>
         </View>
 
         <View style={[styles.readerHeader, { backgroundColor: c.primary }]}>
           <View style={styles.readerNumBadge}><Text style={styles.readerNum}>{surah.number}</Text></View>
           <Text style={styles.readerArabicName}>{surah.name}</Text>
-          <Text style={styles.readerEnName}>{lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].name : surah.englishName}</Text>
-          <Text style={styles.readerMeta}>{lang === 'az' && SURAH_AZ[surah.number] ? SURAH_AZ[surah.number].meaning : surah.englishNameTranslation} · {surah.numberOfAyahs} {t.verses}</Text>
+          {lang !== 'ar' ? <Text style={styles.readerEnName}>{surahTitle(surah, lang)}</Text> : null}
+          <Text style={styles.readerMeta}>{[surahMeaning(surah, lang), `${surah.numberOfAyahs} ${t.verses}`].filter(Boolean).join(' · ')}</Text>
         </View>
 
         {surah.number !== 9 && (
@@ -199,7 +228,7 @@ export default function QuranScreen({ navigation }) {
             data={surah.verses}
             keyExtractor={v => String(v.n)}
             renderItem={({ item }) => (
-              <AyahCard verse={item} showTrans={showTrans} showTafsir={showTafsir} tafsirLabel={TAFSIR_LABELS[lang]} fontSize={fontSize} dark={dark} />
+              <AyahCard verse={item} showTrans={showTrans} showTafsir={showTafsir} hasTafsir={hasTafsir} tafsirLabel={TAFSIR_LABELS[lang]} fontSize={fontSize} dark={dark} />
             )}
             contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           />
@@ -224,11 +253,11 @@ export default function QuranScreen({ navigation }) {
 
       <View style={styles.content}>
         {bookmark && (
-          <TouchableOpacity style={[styles.bookmarkCard, { backgroundColor: c.card, borderColor: c.gold }]} onPress={() => openSurah(bookmark.surah, bookmark.name)}>
+          <TouchableOpacity style={[styles.bookmarkCard, { backgroundColor: c.card, borderColor: c.gold }]} onPress={() => openSurah(bookmark.surah)}>
             <Text style={{ fontSize: 24 }}>🔖</Text>
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={[styles.bookmarkLabel, { color: c.textSecondary }]}>{BOOKMARK_LABELS[lang]}</Text>
-              <Text style={[styles.bookmarkName, { color: c.text }]}>{bookmark.name}</Text>
+              <Text style={[styles.bookmarkName, { color: c.text }]}>{surahTitle(surahs.find(s => s.number === bookmark.surah), lang) || `${bookmark.surah}`}</Text>
             </View>
             <Text style={{ color: c.textMuted, fontSize: 20 }}>→</Text>
           </TouchableOpacity>
@@ -271,13 +300,10 @@ export default function QuranScreen({ navigation }) {
                 data={filtered}
                 keyExtractor={s => String(s.number)}
                 renderItem={({ item }) => {
-                  const az = lang === 'az' ? SURAH_AZ[item.number] : null;
-                  const displayName = az ? az.name : item.englishName;
-                  const displayMeta = az
-                    ? `${az.meaning} · ${item.numberOfAyahs} ${t.verses}`
-                    : `${item.englishNameTranslation} · ${item.numberOfAyahs} ${t.verses}`;
+                  const displayName = surahTitle(item, lang);
+                  const displayMeta = [surahMeaning(item, lang), `${item.numberOfAyahs} ${t.verses}`].filter(Boolean).join(' · ');
                   return (
-                    <TouchableOpacity style={[styles.surahCard, { backgroundColor: c.card, borderColor: c.cardBorder }]} onPress={() => openSurah(item.number, displayName)}>
+                    <TouchableOpacity style={[styles.surahCard, { backgroundColor: c.card, borderColor: c.cardBorder }]} onPress={() => openSurah(item.number)}>
                       <View style={[styles.surahNum, { backgroundColor: c.primary + '15' }]}>
                         <Text style={[styles.surahNumText, { color: c.primary }]}>{item.number}</Text>
                       </View>
@@ -310,9 +336,9 @@ export default function QuranScreen({ navigation }) {
                 keyExtractor={(v, i) => String(i)}
                 ListHeaderComponent={<Text style={[styles.resultsCount, { color: c.textSecondary }]}>{verseResults.length} {sl.result}</Text>}
                 renderItem={({ item }) => (
-                  <TouchableOpacity style={[styles.verseResultCard, { backgroundColor: c.card, borderColor: c.cardBorder }]} onPress={() => openSurah(item.surah.number, item.surah.englishName)}>
+                  <TouchableOpacity style={[styles.verseResultCard, { backgroundColor: c.card, borderColor: c.cardBorder }]} onPress={() => openSurah(item.surah.number)}>
                     <View style={styles.vrHeader}>
-                      <Text style={[styles.vrSurah, { color: c.primary }]}>{item.surah.englishName} ({item.surah.name})</Text>
+                      <Text style={[styles.vrSurah, { color: c.primary }]}>{lang === 'ar' ? stripSurahWord(item.surah.name) : `${surahTitle(item.surah, lang)} (${item.surah.name})`}</Text>
                       <Text style={[styles.vrAyah, { color: c.textMuted }]}>{item.numberInSurah}</Text>
                     </View>
                     <Text style={[styles.vrArabic, { color: c.text }]}>{item.text}</Text>

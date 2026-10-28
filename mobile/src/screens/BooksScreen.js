@@ -10,6 +10,7 @@ import { Colors, BorderRadius, Shadows } from '../theme/colors'
 import { DEFAULT_BOOKS, BOOK_CATEGORIES, subscribeToBooks } from '../data/books'
 import PageHero from '../components/PageHero'
 import AppIcon from '../components/Icon'
+import { pickLang } from '../utils/pickLang'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -37,13 +38,13 @@ export default function BooksScreen() {
   }, [])
 
   const filtered = useMemo(() => {
-    let list = books
+    let list = books.filter(x => pickLang(x.title, lang, { warn: false }))
     if (selectedCat !== 'all') list = list.filter(b => b.category === selectedCat)
     if (search.trim()) {
       const q = search.toLowerCase()
       list = list.filter(b => {
-        const title = (b.title?.[lang] || b.title?.en || '').toLowerCase()
-        const author = (b.author?.[lang] || b.author?.en || '').toLowerCase()
+        const title = (pickLang(b.title, lang) || '').toLowerCase()
+        const author = (pickLang(b.author, lang) || '').toLowerCase()
         return title.includes(q) || author.includes(q)
       })
     }
@@ -51,8 +52,8 @@ export default function BooksScreen() {
   }, [books, selectedCat, search, lang])
 
   const handleShare = async (b) => {
-    const title = b.title?.[lang] || b.title?.en
-    const author = b.author?.[lang] || b.author?.en
+    const title = pickLang(b.title, lang)
+    const author = pickLang(b.author, lang)
     try {
       await Share.share({
         message: `📚 ${title} — ${author}${b.pdfUrl ? '\n' + b.pdfUrl : ''}`,
@@ -78,7 +79,7 @@ export default function BooksScreen() {
         style={size === 'large' ? styles.coverLarge : styles.cover}
       >
         <Text style={size === 'large' ? styles.coverIconLarge : styles.coverIcon}>📖</Text>
-        <Text style={styles.coverCat}>{cat?.label[lang] || cat?.label.en}</Text>
+        <Text style={styles.coverCat}>{pickLang(cat?.label, lang)}</Text>
         {b.pdfUrl ? (
           <View style={styles.pdfBadge}>
             <Text style={styles.pdfBadgeText}>📄 PDF</Text>
@@ -128,7 +129,7 @@ export default function BooksScreen() {
                 style={[styles.catBtn, active && { backgroundColor: cat.color, borderColor: cat.color }]}
               >
                 <Text style={[styles.catBtnText, active && { color:'#fff' }]}>
-                  {cat.label[lang] || cat.label.en}
+                  {pickLang(cat.label, lang)}
                 </Text>
                 <View style={[styles.catCount, active && { backgroundColor:'rgba(255,255,255,0.3)' }]}>
                   <Text style={[styles.catCountText, active && { color:'#fff' }]}>{count}</Text>
@@ -158,8 +159,8 @@ export default function BooksScreen() {
               >
                 {renderCover(b)}
                 <View style={styles.cardBody}>
-                  <Text style={styles.cardTitle} numberOfLines={2}>{b.title?.[lang] || b.title?.en}</Text>
-                  <Text style={styles.cardAuthor} numberOfLines={1}>✍️ {b.author?.[lang] || b.author?.en}</Text>
+                  <Text style={styles.cardTitle} numberOfLines={2}>{pickLang(b.title, lang)}</Text>
+                  <Text style={styles.cardAuthor} numberOfLines={1}>✍️ {pickLang(b.author, lang)}</Text>
                   {(b.pages || b.year) ? (
                     <View style={styles.cardMeta}>
                       {b.pages ? <Text style={styles.cardMetaText}>📄 {b.pages}</Text> : null}
@@ -189,14 +190,14 @@ export default function BooksScreen() {
               </TouchableOpacity>
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
                 {renderCover(selectedBook, 'large')}
-                <Text style={styles.modalTitle}>{selectedBook.title?.[lang] || selectedBook.title?.en}</Text>
-                <Text style={styles.modalAuthor}>✍️ {selectedBook.author?.[lang] || selectedBook.author?.en}</Text>
+                <Text style={styles.modalTitle}>{pickLang(selectedBook.title, lang)}</Text>
+                <Text style={styles.modalAuthor}>✍️ {pickLang(selectedBook.author, lang)}</Text>
                 <View style={styles.modalMeta}>
                   {selectedBook.pages ? <Text style={styles.modalMetaPill}>📄 {selectedBook.pages} {l.pages}</Text> : null}
                   {selectedBook.year ? <Text style={styles.modalMetaPill}>📅 {selectedBook.year}</Text> : null}
                 </View>
-                {(selectedBook.description?.[lang] || selectedBook.description?.en) ? (
-                  <Text style={styles.modalDesc}>{selectedBook.description[lang] || selectedBook.description.en}</Text>
+                {pickLang(selectedBook.description, lang) ? (
+                  <Text style={styles.modalDesc}>{pickLang(selectedBook.description, lang)}</Text>
                 ) : null}
                 <View style={styles.modalActions}>
                   <TouchableOpacity

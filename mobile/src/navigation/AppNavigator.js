@@ -9,12 +9,12 @@ import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useLang } from '../contexts/LangContext';
 import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import { T } from '../data/i18n';
-import { BRAND, MOSQUE, brandName, tr } from '../config/mosque';
+import { BRAND, brandName, tr } from '../config/brand';
+import { usePrayerLocation } from '../services/prayerLocation';
 import AppIcon from '../components/Icon';
 import { FadeUp, Float, Rotate } from '../components/Animated';
 
 import HomeScreen from '../screens/HomeScreen';
-import MosqueScreen from '../screens/MosqueScreen';
 import JamaatScreen from '../screens/JamaatScreen';
 import AnnouncementsScreen from '../screens/AnnouncementsScreen';
 import DonateScreen from '../screens/DonateScreen';
@@ -54,15 +54,14 @@ const { width: SW } = Dimensions.get('window');
 const Drawer = createDrawerNavigator();
 
 // ═══ MENU — kateqoriyalara bölünmüş, gradient rəngli ikonlar ═══
-// İlk qrup "Məscid" — ana səhifə + məscidin öz bölmələri (vebdəki
+// İlk qrup "Əsas" — ana səhifə + camaat/cümə, elanlar, xeyriyyə (vebdəki
 // src/data/navigation.js ilə eyni sıra). İkonlar yalnız Icon.js-də olan açarlardır.
 const MENU_GROUPS = [
   {
-    categoryKey: 'mosque',
+    categoryKey: 'main',
     items: [
       { name: 'Home', iconKey: 'home', labelKey: 'home', gradient: ['#10b981','#059669'] },
-      { name: 'Mosque', iconKey: 'prayer', labelKey: 'mosque', gradient: ['#1a6b3a','#0d4a27'] },
-      { name: 'Jamaat', iconKey: 'time', labelKey: 'jamaat', gradient: ['#6366f1','#4f46e5'] },
+      { name: 'Jamaat', iconKey: 'prayer', labelKey: 'jamaat', gradient: ['#6366f1','#4f46e5'] },
       { name: 'Announcements', iconKey: 'about', labelKey: 'announcements', gradient: ['#f59e0b','#d97706'] },
       { name: 'Donate', iconKey: 'heart', labelKey: 'donate', gradient: ['#22c55e','#16a34a'] },
     ],
@@ -131,11 +130,11 @@ const MENU_GROUPS = [
 ];
 
 const CATEGORY_LABELS = {
-  az: { mosque:'Məscid', worship:'İbadət', knowledge:'Bilik', tools:'Alətlər', games:'Əyləncə', ai:'AI Köməkçi', settings:'Parametrlər' },
-  en: { mosque:'Mosque', worship:'Worship', knowledge:'Knowledge', tools:'Tools', games:'Fun', ai:'AI Assistant', settings:'Settings' },
-  ru: { mosque:'Мечеть', worship:'Поклонение', knowledge:'Знание', tools:'Инструменты', games:'Развлечения', ai:'AI Помощник', settings:'Настройки' },
-  ar: { mosque:'المسجد', worship:'العبادة', knowledge:'المعرفة', tools:'الأدوات', games:'الترفيه', ai:'مساعد الذكاء الاصطناعي', settings:'الإعدادات' },
-  tr: { mosque:'Cami', worship:'İbadet', knowledge:'Bilgi', tools:'Araçlar', games:'Eğlence', ai:'AI Asistan', settings:'Ayarlar' },
+  az: { main:'Əsas', worship:'İbadət', knowledge:'Bilik', tools:'Alətlər', games:'Əyləncə', ai:'AI Köməkçi', settings:'Parametrlər' },
+  en: { main:'Main', worship:'Worship', knowledge:'Knowledge', tools:'Tools', games:'Fun', ai:'AI Assistant', settings:'Settings' },
+  ru: { main:'Главное', worship:'Поклонение', knowledge:'Знание', tools:'Инструменты', games:'Развлечения', ai:'AI Помощник', settings:'Настройки' },
+  ar: { main:'الرئيسية', worship:'العبادة', knowledge:'المعرفة', tools:'الأدوات', games:'الترفيه', ai:'مساعد الذكاء الاصطناعي', settings:'الإعدادات' },
+  tr: { main:'Ana', worship:'İbadet', knowledge:'Bilgi', tools:'Araçlar', games:'Eğlence', ai:'AI Asistan', settings:'Ayarlar' },
 };
 
 const NAV_LABELS = {
@@ -146,14 +145,14 @@ const NAV_LABELS = {
   tr: { home:'Ana Sayfa', quran:"Kur'an", hadith:'Hadis', prayer:'Namaz', duas:'Dualar', dhikr:'Zikir', names:'99 İsim', calendar:'Takvim', zakat:'Zekât', about:'Hakkımızda', qibla:'Kıble', prayerguide:'Namaz Rehberi', hajjguide:'Hac Rehberi', hifz:'Hıfz', quiz:'Sınav', qurangame:'Kuran Oyunu', dailytracker:'Günlük Takip', charity:'Sadaka', duajournal:'Dua Günlüğü', quotes:'Alıntılar', mosques:'Camiler', holyplaces:'Kutsal Yerler', history:'Tarih', sahaba:'Sahabeler', kids:'Çocuklar', glossary:'Sözlük', analytics:'İstatistik', notifications:'Bildirimler', books:'Kitaplar', videos:'Videolar', aichat:'AI Asistan', accessibility:'Erişilebilirlik' },
 };
 
-// Məscid bölmələrinin adları data/i18n.js-dən gəlir (T[lang].nav) — tək mənbə.
-// AI köməkçinin adı config/mosque.js-dəki BRAND.aiName-dən (veb yan paneli ilə eyni).
+// Əlavə bölmələrin adları data/i18n.js-dən gəlir (T[lang].nav) — tək mənbə.
+// AI köməkçinin adı config/brand.js-dəki BRAND.aiName-dən (veb yan paneli ilə eyni).
 // Hər dil üçün bir dəfə birləşdirilir ki, render zamanı yeni obyekt yaranmasın.
-const MOSQUE_NAV_KEYS = ['mosque', 'jamaat', 'announcements', 'donate'];
+const EXTRA_NAV_KEYS = ['jamaat', 'announcements', 'donate'];
 const ALL_NAV_LABELS = Object.fromEntries(Object.keys(NAV_LABELS).map(l => {
   const nav = T[l]?.nav || T.az.nav;
   const extra = { aichat: tr(BRAND.aiName, l) || NAV_LABELS[l].aichat };
-  MOSQUE_NAV_KEYS.forEach(k => { extra[k] = nav[k] || T.az.nav[k]; });
+  EXTRA_NAV_KEYS.forEach(k => { extra[k] = nav[k] || T.az.nav[k]; });
   return [l, { ...NAV_LABELS[l], ...extra }];
 }));
 const navLabelsFor = (lang) => ALL_NAV_LABELS[lang] || ALL_NAV_LABELS.az;
@@ -232,6 +231,8 @@ function CustomDrawerContent({ navigation, state }) {
   const labels = navLabelsFor(lang);
   const catLabels = CATEGORY_LABELS[lang] || CATEGORY_LABELS.az;
   const activeRoute = state.routes[state.index]?.name;
+  // Namaz vaxtlarının seçilmiş şəhəri (başlıqda göstərilir)
+  const prayerLoc = usePrayerLocation();
   const [search, setSearch] = useState('');
 
   // Filter items based on search
@@ -273,12 +274,17 @@ function CustomDrawerContent({ navigation, state }) {
           <Text style={styles.drawerSub}>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</Text>
         </View>
 
-        {/* Yerləşmə — config/mosque.js-dəki MOSQUE.locality (addan məlumdur, uydurma deyil) */}
-        {tr(MOSQUE.locality, lang) ? (
-          <View style={styles.headerLocation}>
+        {/* Namaz vaxtlarının şəhəri — istifadəçinin seçimi (services/prayerLocation) */}
+        {tr(prayerLoc.city, lang) ? (
+          <TouchableOpacity
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); navigation.navigate('Prayer'); }}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            style={styles.headerLocation}
+          >
             <AppIcon name="location" size={14} color="rgba(255,255,255,0.85)" />
-            <Text style={styles.headerLocationText} numberOfLines={1}>{tr(MOSQUE.locality, lang)}</Text>
-          </View>
+            <Text style={styles.headerLocationText} numberOfLines={1}>{tr(prayerLoc.city, lang)}</Text>
+          </TouchableOpacity>
         ) : null}
 
         {/* Decorative circles */}
@@ -396,8 +402,7 @@ function CustomDrawerContent({ navigation, state }) {
 
 const SCREENS = [
   { name: 'Home', component: HomeScreen, labelKey: 'home', brandTitle: true },
-  // Məscid bölmələri
-  { name: 'Mosque', component: MosqueScreen, labelKey: 'mosque' },
+  // Əlavə bölmələr
   { name: 'Jamaat', component: JamaatScreen, labelKey: 'jamaat' },
   { name: 'Announcements', component: AnnouncementsScreen, labelKey: 'announcements' },
   { name: 'Donate', component: DonateScreen, labelKey: 'donate' },

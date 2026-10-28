@@ -10,6 +10,7 @@ import { Colors } from '../theme/colors'
 import { VIDEOS, VIDEO_CATEGORIES, getThumbnail, getVideoUrl, subscribeToVideos } from '../data/videos'
 import PageHero from '../components/PageHero'
 import Pagination from '../components/Pagination'
+import { pickLang } from '../utils/pickLang'
 
 const { width: SW } = Dimensions.get('window')
 
@@ -39,13 +40,13 @@ export default function VideosScreen() {
   }, [])
 
   const filtered = useMemo(() => {
-    let list = videos
+    let list = videos.filter(x => pickLang(x.title, lang, { warn: false }))
     if (selectedCat !== 'all') list = list.filter(v => v.category === selectedCat)
     if (search.trim()) {
       const q = search.toLowerCase()
       list = list.filter(v => {
-        const title = (v.title?.[lang] || v.title?.en || '').toLowerCase()
-        const desc = (v.description?.[lang] || v.description?.en || '').toLowerCase()
+        const title = (pickLang(v.title, lang) || '').toLowerCase()
+        const desc = (pickLang(v.description, lang) || '').toLowerCase()
         return title.includes(q) || desc.includes(q)
       })
     }
@@ -60,7 +61,7 @@ export default function VideosScreen() {
   React.useEffect(() => { setPageNum(1) }, [selectedCat, search])
 
   const handleShare = async (v) => {
-    const title = v.title?.[lang] || v.title?.en
+    const title = pickLang(v.title, lang)
     try {
       await Share.share({
         message: `${title}\n${getVideoUrl(v.youtubeId)}`,
@@ -116,7 +117,7 @@ export default function VideosScreen() {
                 style={[styles.catBtn, active && { backgroundColor: cat.color, borderColor: cat.color }]}
               >
                 <Text style={[styles.catBtnText, active && { color:'#fff' }]}>
-                  {cat.label?.[lang] || cat.label?.en || cat.key}
+                  {pickLang(cat.label, lang) || cat.key}
                 </Text>
                 <View style={[styles.catCount, active && { backgroundColor:'rgba(255,255,255,0.3)' }]}>
                   <Text style={[styles.catCountText, active && { color:'#fff' }]}>{count}</Text>
@@ -153,7 +154,7 @@ export default function VideosScreen() {
                     </View>
                     {cat ? (
                       <View style={[styles.catBadge, { backgroundColor: cat.color }]}>
-                        <Text style={styles.catBadgeText}>{cat.label?.[lang] || cat.label?.en}</Text>
+                        <Text style={styles.catBadgeText}>{pickLang(cat.label, lang)}</Text>
                       </View>
                     ) : null}
                     {v.duration && v.duration !== '—' ? (
@@ -163,9 +164,9 @@ export default function VideosScreen() {
                     ) : null}
                   </View>
                   <View style={styles.cardBody}>
-                    <Text style={styles.cardTitle} numberOfLines={2}>{v.title?.[lang] || v.title?.en}</Text>
-                    {(v.description?.[lang] || v.description?.en) ? (
-                      <Text style={styles.cardDesc} numberOfLines={2}>{v.description[lang] || v.description.en}</Text>
+                    <Text style={styles.cardTitle} numberOfLines={2}>{pickLang(v.title, lang)}</Text>
+                    {pickLang(v.description, lang) ? (
+                      <Text style={styles.cardDesc} numberOfLines={2}>{pickLang(v.description, lang)}</Text>
                     ) : null}
                   </View>
                 </TouchableOpacity>
@@ -195,9 +196,9 @@ export default function VideosScreen() {
                 <Image source={{ uri: getThumbnail(selectedVideo.youtubeId) }} style={styles.modalThumb} />
               </View>
               <View style={{ padding: 20 }}>
-                <Text style={styles.modalTitle}>{selectedVideo.title?.[lang] || selectedVideo.title?.en}</Text>
-                {(selectedVideo.description?.[lang] || selectedVideo.description?.en) ? (
-                  <Text style={styles.modalDesc}>{selectedVideo.description[lang] || selectedVideo.description.en}</Text>
+                <Text style={styles.modalTitle}>{pickLang(selectedVideo.title, lang)}</Text>
+                {pickLang(selectedVideo.description, lang) ? (
+                  <Text style={styles.modalDesc}>{pickLang(selectedVideo.description, lang)}</Text>
                 ) : null}
                 <View style={styles.modalActions}>
                   <TouchableOpacity style={styles.modalBtn} onPress={() => handleWatch(selectedVideo)}>

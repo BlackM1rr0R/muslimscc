@@ -2,62 +2,17 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { subscribeToSettings } from '../data/adminContent'
-import { brandName } from '../config/mosque'
-import useMosqueTimes from '../hooks/useMosqueTimes'
+import usePrayerTimes from '../hooks/usePrayerTimes'
+import { PRAYER_CITIES, usePrayerLocation, setPrayerCity, setAdminDefaultCity } from '../utils/prayerLocation'
 import { haptic } from '../hooks/useHaptic'
 import { pathFor } from '../seo/routes'
 import '../styles/PrayerPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 
-// Alternativ şəhərlər (aladhan timingsByCity). Birinci və standart seçim
-// isə məscidin özüdür — onun vaxtı dəqiq koordinatla useMosqueTimes-dən gəlir.
-const CITIES = [
-  { city:'Baku',         country:'AZ', label:{ az:'Bakı',         en:'Baku',         ru:'Баку',         ar:'باكو',            tr:'Bakü' } },
-  { city:'Ganja',        country:'AZ', label:{ az:'Gəncə',        en:'Ganja',        ru:'Гянджа',       ar:'كنجة',            tr:'Gence' } },
-  { city:'Istanbul',     country:'TR', label:{ az:'İstanbul',     en:'Istanbul',     ru:'Стамбул',      ar:'إسطنبول',         tr:'İstanbul' } },
-  { city:'Ankara',       country:'TR', label:{ az:'Ankara',       en:'Ankara',       ru:'Анкара',       ar:'أنقرة',           tr:'Ankara' } },
-  { city:'Moscow',       country:'RU', label:{ az:'Moskva',       en:'Moscow',       ru:'Москва',       ar:'موسكو',           tr:'Moskova' } },
-  { city:'Cairo',        country:'EG', label:{ az:'Qahirə',       en:'Cairo',        ru:'Каир',         ar:'القاهرة',         tr:'Kahire' } },
-  { city:'Mecca',        country:'SA', label:{ az:'Məkkə',        en:'Mecca',        ru:'Мекка',        ar:'مكة المكرمة',     tr:'Mekke' } },
-  { city:'Medina',       country:'SA', label:{ az:'Mədinə',       en:'Medina',       ru:'Медина',       ar:'المدينة المنورة', tr:'Medine' } },
-  { city:'Dubai',        country:'AE', label:{ az:'Dubay',        en:'Dubai',        ru:'Дубай',        ar:'دبي',             tr:'Dubai' } },
-  { city:'London',       country:'GB', label:{ az:'London',       en:'London',       ru:'Лондон',       ar:'لندن',            tr:'Londra' } },
-  { city:'Sheki',        country:'AZ', label:{ az:'Şəki',         en:'Sheki',        ru:'Шеки',         ar:'شكي',             tr:'Şeki' } },
-  { city:'Lankaran',     country:'AZ', label:{ az:'Lənkəran',     en:'Lankaran',     ru:'Ленкорань',    ar:'لنكران',          tr:'Lenkeran' } },
-  { city:'Tabriz',       country:'IR', label:{ az:'Təbriz',       en:'Tabriz',       ru:'Тебриз',       ar:'تبريز',           tr:'Tebriz' } },
-  { city:'Berlin',       country:'DE', label:{ az:'Berlin',       en:'Berlin',       ru:'Берлин',       ar:'برلين',           tr:'Berlin' } },
-  { city:'Paris',        country:'FR', label:{ az:'Paris',        en:'Paris',        ru:'Париж',        ar:'باريس',           tr:'Paris' } },
-  { city:'New York',     country:'US', label:{ az:'Nyu-York',     en:'New York',     ru:'Нью-Йорк',     ar:'نيويورك',         tr:'New York' } },
-  { city:'Toronto',      country:'CA', label:{ az:'Toronto',      en:'Toronto',      ru:'Торонто',      ar:'تورونتو',         tr:'Toronto' } },
-  { city:'Kazan',        country:'RU', label:{ az:'Kazan',        en:'Kazan',        ru:'Казань',       ar:'قازان',           tr:'Kazan' } },
-  { city:'Jakarta',      country:'ID', label:{ az:'Cakarta',      en:'Jakarta',      ru:'Джакарта',     ar:'جاكرتا',          tr:'Cakarta' } },
-  { city:'Kuala Lumpur', country:'MY', label:{ az:'Kuala-Lumpur', en:'Kuala Lumpur', ru:'Куала-Лумпур', ar:'كوالالمبور',      tr:'Kuala Lumpur' } },
-]
-
-// ── Seçilmiş yer (localStorage 'muslim_cc_selected_city') ──
-// Dəyər: 'mosque' və ya şəhərin adı ('Ganja'). Köhnə versiya CITIES
-// indeksini yazırdı ('3') — o da oxunur. Köhnə versiya ilk açılışda
-// avtomatik '0' (Bakı) yazırdı; məscid Bakıdadır, ona görə '0' → məscid.
-const CITY_KEY = 'muslim_cc_selected_city'
-const MOSQUE_ID = 'mosque'
-
-function readSelection() {
-  let saved = null
-  try { saved = localStorage.getItem(CITY_KEY) } catch { return null }
-  if (saved === null || saved === '') return null
-  if (saved === MOSQUE_ID) return MOSQUE_ID
-  if (/^\d+$/.test(saved)) {
-    const idx = Number(saved)
-    if (idx === 0) return MOSQUE_ID
-    return idx < CITIES.length ? idx : null
-  }
-  const idx = CITIES.findIndex(c => c.city === saved)
-  return idx >= 0 ? idx : null
-}
-
-function writeSelection(sel) {
-  try { localStorage.setItem(CITY_KEY, sel === MOSQUE_ID ? MOSQUE_ID : CITIES[sel].city) } catch { /* yaddaş bağlıdır */ }
-}
+// Şəhər seçimi bütün saytda ortaqdır (utils/prayerLocation.js): burada
+// seçilən şəhər ana səhifənin namaz kartında, /jamaat-da və push
+// bildirişlərinin saatında da istifadə olunur. Vaxtlar şəhərin koordinatı
+// ilə hesablanır (usePrayerTimes) — əvvəlki "timingsByCity" sorğusu yoxdur.
 
 // ── Tarix və saat ──
 // Chrome-un yığcam ICU-sunda "az" lokalı yoxdur ("2026 M09 19" çıxırdı) —
@@ -86,7 +41,7 @@ const HIJRI_MONTHS = {
 }
 const HIJRI_SUFFIX = { az:'H', en:'AH', ru:'г.х.', ar:'هـ', tr:'H' }
 
-/** aladhan-ın iki hicri formatını ({month:{number,en,ar}} və useMosqueTimes-in {month,monthEn,monthAr}) birləşdir. */
+/** aladhan-ın iki hicri formatını ({month:{number,en,ar}} və usePrayerTimes-in {month,monthEn,monthAr}) birləşdir. */
 function normHijri(h) {
   if (!h) return null
   const monthObj = typeof h.month === 'object' && h.month ? h.month : null
@@ -217,54 +172,29 @@ function useWeeklyStats(data) {
 }
 // ────────────────────────────────────────────────────
 
-/** Alternativ şəhərin vaxtları (city boşdursa — məscid seçilib — sorğu getmir). */
-function usePrayer(city, country) {
-  const [times,   setTimes]   = useState(null)
-  const [loading, setLoading] = useState(!!city)
-  const [error,   setError]   = useState(null)
-  const [hijri,   setHijri]   = useState(null)
-  const [reloadKey, setReloadKey] = useState(0)
+/** Hədəf ana (epoch ms) qədər qalan vaxt "HH:MM:SS" — hər saniyə yenilənir. */
+function useCountdownTo(at) {
+  const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
-    if (!city) { setLoading(false); return }
-    let alive = true
-    setLoading(true); setError(null)
-    const ts = Math.floor(Date.now()/1000)
-    fetch(`https://api.aladhan.com/v1/timingsByCity/${ts}?city=${encodeURIComponent(city)}&country=${country}&method=13`)
-      .then(r => r.json())
-      .then(d => {
-        if (!alive) return
-        setTimes(d.data?.timings || null)
-        setHijri(d.data?.date?.hijri || null)
-        if (!d.data?.timings) setError('bad response')
-      })
-      .catch(e => { if (alive) setError(e?.message || 'network') })
-      .finally(() => { if (alive) setLoading(false) })
-    return () => { alive = false }
-  }, [city, country, reloadKey])
-  return { times, loading, error, hijri, reload: () => setReloadKey(k => k + 1) }
+    if (!at) return undefined
+    setNow(Date.now())
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [at])
+  if (!at) return '--:--:--'
+  const diff = Math.max(0, at - now)
+  const h = Math.floor(diff / 3.6e6), m = Math.floor((diff % 3.6e6) / 6e4), sec = Math.floor((diff % 6e4) / 1e3)
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
 }
 
-function useCountdown(times) {
-  const [next,      setNext]      = useState(null)
-  const [countdown, setCountdown] = useState('--:--:--')
-  useEffect(() => {
-    if (!times) return
-    const ORDER = ['Fajr','Dhuhr','Asr','Maghrib','Isha']
-    const tick = () => {
-      const now = new Date()
-      const parse = s => { const [h,m]=s.split(':').map(Number); const d=new Date(now); d.setHours(h,m,0,0); return d }
-      let found = null
-      for (const p of ORDER) {
-        const t=parse(times[p]); if(t>now){found={name:p,time:times[p],date:t};break}
-      }
-      if(!found){const t=parse(times.Fajr);t.setDate(t.getDate()+1);found={name:'Fajr',time:times.Fajr,date:t}}
-      setNext(found)
-      const diff=found.date-now,h=Math.floor(diff/3.6e6),m=Math.floor((diff%3.6e6)/6e4),s=Math.floor((diff%6e4)/1e3)
-      setCountdown(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`)
-    }
-    tick(); const id=setInterval(tick,1000); return ()=>clearInterval(id)
-  }, [times])
-  return { next, countdown }
+/** Şəhərin saat qurşağında indiki "HH:MM" (əzan bildirişi şəhərin vaxtı ilə yoxlanır). */
+function hhmmIn(tz) {
+  try {
+    return new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date())
+  } catch {
+    const d = new Date()
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+  }
 }
 
 const PRAYER_ICONS = { Fajr:'🌙', Sunrise:'🌅', Dhuhr:'☀️', Asr:'🌤️', Maghrib:'🌇', Isha:'🌃' }
@@ -299,8 +229,9 @@ const DUA_LABELS = { az:'Namaz Duaları', en:'Prayer Duas', ru:'Молитвен
 
 // Səhifənin qısa mətnləri (5 dil)
 const TXT = {
-  jamaatLink: { az:'Camaat vaxtları', en:'Congregation times', ru:'Время джамаата', ar:'أوقات الجماعة', tr:'Cemaat vakitleri' },
-  calcNote:   { az:'Məscidin koordinatına görə hesablanıb', en:'Calculated for the mosque’s location', ru:'Рассчитано по координатам мечети', ar:'محسوبة وفق موقع المسجد', tr:'Caminin konumuna göre hesaplandı' },
+  jamaatLink: { az:'Camaat və Cümə namazı', en:'Congregational & Friday prayer', ru:'Коллективный и пятничный намаз', ar:'صلاة الجماعة والجمعة', tr:'Cemaat ve Cuma namazı' },
+  // {city} — seçilmiş şəhərin adı
+  calcNote:   { az:'Vaxtlar {city} üçün hesablanıb', en:'Times calculated for {city}', ru:'Время рассчитано для города {city}', ar:'المواقيت محسوبة لمدينة {city}', tr:'Vakitler {city} için hesaplandı' },
   loadError:  { az:'Namaz vaxtları yüklənmədi. İnternet bağlantısını yoxlayın.', en:'Could not load prayer times. Check your connection.', ru:'Не удалось загрузить время намаза. Проверьте подключение.', ar:'تعذّر تحميل مواقيت الصلاة. تحقّق من الاتصال.', tr:'Namaz vakitleri yüklenemedi. Bağlantınızı kontrol edin.' },
   retry:      { az:'Yenidən yoxla', en:'Try again', ru:'Повторить', ar:'أعد المحاولة', tr:'Tekrar dene' },
   notifBody:  { az:'Namaz vaxtı gəldi!', en:'It is time for prayer', ru:'Наступило время намаза', ar:'حان وقت الصلاة', tr:'Namaz vakti geldi' },
@@ -308,7 +239,7 @@ const TXT = {
   azanSub:    { az:'Namaz vaxtı girəndə bildiriş və səs', en:'Notification and sound at prayer time', ru:'Уведомление и звук во время намаза', ar:'إشعار وصوت عند دخول وقت الصلاة', tr:'Namaz vaktinde bildirim ve ses' },
 }
 
-// useMosqueTimes açarları → aladhan adları (səhifənin qalanı bu adlarla işləyir)
+// usePrayerTimes açarları → aladhan adları (səhifənin qalanı bu adlarla işləyir)
 const API_NAME = { fajr:'Fajr', sunrise:'Sunrise', dhuhr:'Dhuhr', asr:'Asr', maghrib:'Maghrib', isha:'Isha' }
 
 /** Yeni tabda açmaq istəyən klik (Ctrl/⌘, orta düymə) SPA keçidinə çevrilməsin. */
@@ -319,43 +250,34 @@ export default function PrayerPage({ setPage }) {
   const t = T[lang]?.prayer || T.az.prayer
   const lk = ['az','ru','ar','tr'].includes(lang) ? lang : 'en'
 
-  // Seçim: 'mosque' (standart) və ya CITIES indeksi
-  const [sel, setSel] = useState(() => readSelection() ?? MOSQUE_ID)
-  const isMosque = sel === MOSQUE_ID
-  const city = isMosque ? null : CITIES[sel]
+  // Seçilmiş şəhər — bütün saytda ortaq (utils/prayerLocation.js)
+  const loc = usePrayerLocation()
+  const sel = loc.id
+  const choose = (id) => setPrayerCity(id)
 
-  const choose = (v) => { setSel(v); writeSelection(v) }
-
-  // Admin Settings-dəki standart şəhər — yalnız istifadəçi özü seçməyibsə.
-  // Admin standartı "Baku"-dur: məscid Bakıdadır, ona görə məscidin dəqiq vaxtı.
+  // Admin Settings-dəki standart şəhər — yalnız istifadəçi özü seçməyibsə
+  // tətbiq olunur (setAdminDefaultCity bunu özü yoxlayır və yadda saxlayır).
   useEffect(() => {
-    if (readSelection() !== null) return
     const unsubscribe = subscribeToSettings((settings) => {
-      const c = settings?.defaultCity
-      if (!c || readSelection() !== null) return
-      if (c === 'Baku') { setSel(MOSQUE_ID); return }
-      const idx = CITIES.findIndex(x => x.city === c)
-      if (idx >= 0) setSel(idx)
+      if (settings?.defaultCity) setAdminDefaultCity(settings.defaultCity)
     })
     return () => unsubscribe?.()
   }, [])
 
-  // Məscid: dəqiq koordinat (useMosqueTimes, /jamaat ilə eyni vaxtlar); şəhər: aladhan timingsByCity
-  const mosque = useMosqueTimes()
-  const cityData = usePrayer(city?.city, city?.country)
+  const pt = usePrayerTimes()
 
-  const mosqueTimes = useMemo(() => {
-    if (!mosque.prayers.length) return null
+  const times = useMemo(() => {
+    if (!pt.prayers.length) return null
     const o = {}
-    for (const p of mosque.prayers) o[API_NAME[p.key]] = p.adhan
+    for (const p of pt.prayers) o[API_NAME[p.key]] = p.adhan
     return o
-  }, [mosque.prayers])
+  }, [pt.prayers])
 
-  const times   = isMosque ? mosqueTimes : cityData.times
-  const loading = isMosque ? mosque.loading : cityData.loading
-  const error   = isMosque ? mosque.error : cityData.error
-  const hijri   = normHijri(isMosque ? mosque.hijri : cityData.hijri)
-  const retry   = isMosque ? mosque.reload : cityData.reload
+  const loading = pt.loading
+  const error   = pt.error
+  const hijri   = normHijri(pt.hijri)
+  const retry   = pt.reload
+  const cityName = loc.city?.[lang] || loc.city?.en || ''
 
   // Son yüklənmiş vaxtlar (köhnə açar saxlanılır)
   useEffect(() => {
@@ -367,7 +289,9 @@ export default function PrayerPage({ setPage }) {
     } catch { /* yaddaş bağlıdır */ }
   }, [times])
 
-  const { next, countdown } = useCountdown(times)
+  // Növbəti namaz və geri sayım şəhərin öz saatı ilə (usePrayerTimes → next)
+  const next = pt.next ? { name: API_NAME[pt.next.key], time: pt.next.adhan } : null
+  const countdown = useCountdownTo(pt.next?.at)
   const { toggle, isDone, todayDone, totalDone, totalPossible, pct, data } = usePrayerStats()
   const weeklyStats = useWeeklyStats(data)
   const [now, setNow] = useState(new Date())
@@ -419,8 +343,8 @@ export default function PrayerPage({ setPage }) {
   useEffect(() => {
     if (!azanEnabled || !times) return
     const check = () => {
-      const now = new Date()
-      const nowStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+      // Şəhərin saatı ilə — başqa saat qurşağındakı şəhər seçilibsə də düz vaxtda
+      const nowStr = hhmmIn(loc.tz)
       // Yalnız 5 fərz namaz (aladhan cavabında İmsak, Gecəyarısı və s. də var)
       STAT_KEYS.forEach((key) => {
         const time = times[key]
@@ -477,7 +401,7 @@ export default function PrayerPage({ setPage }) {
     return () => clearInterval(id)
     // STAT_NAMES hər renderdə yaranır, amma dil dəyişəndə lk ilə birlikdə yenilənir
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [azanEnabled, times, lk])
+  }, [azanEnabled, times, lk, loc.tz])
 
   const PRAYER_KEYS = ['Fajr','Sunrise','Dhuhr','Asr','Maghrib','Isha']
   const PRAYER_NAMES = [t.fajr, t.sunrise, t.dhuhr, t.asr, t.maghrib, t.isha]
@@ -488,7 +412,7 @@ export default function PrayerPage({ setPage }) {
   const dateStr = formatClockDate(now, lang)
 
   const L = {
-    statTitle:  { az:'Bu Ay Namaz',      ru:'Намаз в этом месяце', ar:'صلواتي هذا الشهر', tr:'Bu Ay Namaz',      en:'This Month Prayers'   },
+    statTitle:  { az:'Bu ayın namazları', ru:'Намаз в этом месяце', ar:'صلواتي هذا الشهر', tr:'Bu ayki namazlar',      en:'This Month Prayers'   },
     todayTitle: { az:'Bu gün',           ru:'Сегодня',             ar:'اليوم',             tr:'Bugün',            en:'Today'                },
     done:       { az:'qılındı',          ru:'выполнено',           ar:'مُؤدَّاة',           tr:'kılındı',          en:'completed'            },
     of:         { az:'/',               ru:'из',                  ar:'من',               tr:'/',                en:'of'                   },
@@ -537,14 +461,10 @@ export default function PrayerPage({ setPage }) {
               <div className="prayer-city-block">
                 <div className="prayer-city-label" id="prayer-city-label">{t.selectCity}</div>
                 <div className="city-grid" ref={cityGridRef} role="group" aria-labelledby="prayer-city-label">
-                  <button className={`city-btn is-mosque ${isMosque ? 'active' : ''}`}
-                    aria-pressed={isMosque} onClick={() => choose(MOSQUE_ID)}>
-                    <span aria-hidden="true">🕌</span> {brandName(lang)}
-                  </button>
-                  {CITIES.map((c, i) => (
-                    <button key={c.city} className={`city-btn ${sel === i ? 'active' : ''}`}
-                      aria-pressed={sel === i} onClick={() => choose(i)}>
-                      {c.label[lang] || c.label.en}
+                  {PRAYER_CITIES.map(c => (
+                    <button key={c.id} className={`city-btn ${sel === c.id ? 'active' : ''}`}
+                      aria-pressed={sel === c.id} onClick={() => choose(c.id)}>
+                      {c.label[lang]}
                     </button>
                   ))}
                 </div>
@@ -606,7 +526,7 @@ export default function PrayerPage({ setPage }) {
               )}
               {times && !loading && (
                 <div className="prayer-times-foot">
-                  {isMosque && <span className="prayer-times-note">{TXT.calcNote[lk]}</span>}
+                  {cityName && <span className="prayer-times-note">{TXT.calcNote[lk].replace('{city}', cityName)}</span>}
                   <a className="prayer-jamaat-link" href={pathFor('jamaat', lang)}
                     onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); setPage?.('jamaat') } }}>
                     {TXT.jamaatLink[lk]} <span className="qm-dir-arrow" aria-hidden="true">→</span>

@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
-import { parsePath, pathFor } from './seo/routes'
+import { LANGS, parsePath, pathFor } from './seo/routes'
 import Seo from './seo/Seo'
 import { isOverlayEntry } from './utils/useBackToClose'
 import Header from './components/Header'
@@ -24,8 +24,7 @@ import HomePage from './pages/HomePage'
 // ayrıca chunk-dır — ilk yüklənmə kiçilir, Core Web Vitals yaxşılaşır.
 // HomePage qəsdən eager saxlanılıb: ən çox açılan səhifədir və onu da
 // lazy etmək ilk boyanmaya artıq bir gediş-gəliş əlavə edərdi.
-// Məscid bölmələri
-const MosquePage = lazy(() => import('./pages/MosquePage'))
+// "Əsas" bölmələri (namaz vaxtları aşağıdadır)
 const JamaatPage = lazy(() => import('./pages/JamaatPage'))
 const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'))
 const DonatePage = lazy(() => import('./pages/DonatePage'))
@@ -84,11 +83,28 @@ const ADMIN_HASH = '#admin'
 const SKIP_LABEL = { az: 'Məzmuna keç', en: 'Skip to content', ru: 'Перейти к содержимому', ar: 'انتقل إلى المحتوى', tr: 'İçeriğe geç' }
 const MAIN_ID = 'qm-main'
 
+// Köhnə "/mosque" (Qaraçuxur dövründəki "Məscid haqqında") səhifəsi silinib.
+// Marşrut routes.js-də artıq yoxdur, ona görə yol birbaşa yoxlanır:
+// /mosque, /en/mosque, /az/mosque/... → eyni dildə /about (replace — Geri
+// düyməsi silinmiş ünvana qayıtmasın). Sorğu sətri və hash saxlanmır.
+const LEGACY_REDIRECTS = { mosque: 'about' }
+
+/** Köhnə ünvandırsa { lang, to } qaytarır, yoxsa null. */
+function legacyRedirect(pathname) {
+  const parts = String(pathname || '/').split('/').filter(Boolean)
+  let lang = 'az'
+  if (parts.length && LANGS.includes(parts[0])) lang = parts.shift()
+  const to = parts.length === 1 ? LEGACY_REDIRECTS[parts[0].toLowerCase()] : null
+  return to ? { lang, to } : null
+}
+
 function AppInner() {
   const location = useLocation()
   const routerNavigate = useNavigate()
 
   useStoredLangRedirect()
+
+  const legacy = legacyRedirect(location.pathname)
 
   // Səhifə və dil artıq URL-dən oxunur — hər səhifənin öz ünvanı var
   // (/quran, /ru/quran) ki, Google onları ayrıca indeksləyə bilsin.
@@ -123,7 +139,6 @@ function AppInner() {
   const renderPage = () => {
     switch (page) {
       case 'home':     return <HomePage     setPage={navigate} />
-      case 'mosque':        return <MosquePage        setPage={navigate} />
       case 'jamaat':        return <JamaatPage        setPage={navigate} />
       case 'announcements': return <AnnouncementsPage setPage={navigate} />
       case 'donate':        return <DonatePage        setPage={navigate} />
@@ -162,6 +177,8 @@ function AppInner() {
       default:              return <HomePage          setPage={navigate} />
     }
   }
+
+  if (legacy) return <Navigate to={pathFor(legacy.to, legacy.lang)} replace />
 
   // Admin səhifələri Header/Footer göstərmir — nə yan panel, nə çəkmə menyu
   const isAdminPage = page === 'adminlogin' || page === 'admin'

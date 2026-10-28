@@ -1,6 +1,10 @@
-// Qaraçuxur Məscidi — Tam i18n Tərcümə Məlumatları
-// Brend adı src/config/mosque.js-dən gəlir (yeganə mənbə)
-import { BRAND } from '../config/mosque'
+// Muslims.cc — Tam i18n tərcümə məlumatları
+// Brend adı src/config/brand.js-dən gəlir (yeganə mənbə).
+// DİL QAYDASI: hər açar 5 dilin hamısında dolu olmalıdır və hər mətn
+// TAMAMİLƏ öz dilində yazılır (az mətnində türkcə söz/apostrof olmur).
+// Brend adına şəkilçi qoşulmur ("Muslims.cc-nin" kimi) — ad dəyişsə
+// şəkilçi uyğunlaşmazdı; cümlələr adı şəkilçisiz işlədəcək şəkildə qurulub.
+import { BRAND } from '../config/brand'
 
 export const T = {
   az: {
@@ -20,14 +24,14 @@ export const T = {
       featSub:'Hər müsəlman üçün tam mənəvi yoldaş',
       ayah:'Şübhəsiz ki, çətinliyin yanında asanlıq var.',
       ayahRef:'İnşirah, 94:6',
-      feature1Title:'Qurani-Kərim', feature1Desc:'114 surə, ayə-ayə audio tilləvət, tərcümə.',
-      feature2Title:'Hədis Kitabları', feature2Desc:'50+ səhih hədis Buxari, Muslim və digər mənbələrdən.',
-      feature3Title:'Namaz Vaxtları', feature3Desc:'Real vaxtlı namaz vaxtları, qibla istiqaməti.',
+      feature1Title:'Qurani-Kərim', feature1Desc:'114 surə, ayə-ayə audio tilavət, tərcümə.',
+      feature2Title:'Hədis Kitabları', feature2Desc:'1350+ hədis — Buxari, Müslim və digər mənbələrdən.',
+      feature3Title:'Namaz Vaxtları', feature3Desc:'Real vaxtlı namaz vaxtları, qiblə istiqaməti.',
       feature4Title:'Dualar & Əzkar', feature4Desc:'Hər məqam üçün səhih dua və zikrlər.',
       feature5Title:'99 Allahın Adı', feature5Desc:'Əsmaül-Hüsna — məna və izahları ilə.',
       feature6Title:'Zəkat Kalkulyatoru', feature6Desc:'Qızıl, gümüş, nağd pul üzrə dəqiq hesab.',
       ctaTitle:'Başlamağa Hazırsınız?',
-      ctaDesc:`${BRAND.name.az}nin saytında namaz vaxtlarını, elanları və İslami bilikləri kəşf edin.`,
+      ctaDesc:`Namaz vaxtları, Quran, hədis, dualar və İslami bilik — hamısı ${BRAND.name.az} platformasında, pulsuz.`,
       ctaBtn:'Quran Oxumağa Başla',
     },
     quran: {
@@ -49,12 +53,12 @@ export const T = {
       title:'Namaz Vaxtları', subtitle:'Real vaxtlı namaz cədvəli',
       fajr:'Sübh', sunrise:'Günəş', dhuhr:'Zöhr', asr:'Əsr', maghrib:'Məğrib', isha:'İşa',
       next:'Növbəti namaz', remaining:'Qalan vaxt',
-      qiblaTitle:'Qibla İstiqaməti', qiblaDesc:'Məkkəyə istiqamət',
+      qiblaTitle:'Qiblə İstiqaməti', qiblaDesc:'Məkkəyə istiqamət',
       selectCity:'Şəhər seçin', loading:'Yüklənir...',
     },
     duas: {
       title:'Dualar & Əzkar', subtitle:'Quran və Sünnədən səhih dualar',
-      categories:['Hamısı','Səhər','Axşam','Yemək','Yatmaq','Oyanmaq','Narahatçılıq','Şükür','Bağışlanma','Namaz','Müsafirlik'],
+      categories:['Hamısı','Səhər','Axşam','Yemək','Yatmaq','Oyanmaq','Narahatçılıq','Şükür','Bağışlanma','Namaz','Səfər'],
       searchPh:'Dua axtar...',
       translitLabel:'Transliterasiya', meaningLabel:'Məna', sourceLabel:'Mənbə',
       tapExpand:'Açmaq üçün vurun',
@@ -69,12 +73,12 @@ export const T = {
       title:'Allahın 99 Adı', subtitle:'Əsmaül-Hüsna — ən gözəl adlar',
       searchPh:'Ad axtar...',
       meaningLabel:'Məna', descLabel:'İzah',
-      hadith:'Allah Taala\'nın 99 adı vardır. Kim onları əzbərləsə Cənnətə girər.',
-      hadithRef:'Buxari & Muslim',
+      hadith:'Allah Təalanın 99 adı vardır. Kim onları əzbərləsə, Cənnətə girər.',
+      hadithRef:'Buxari və Müslim',
     },
     calendar: {
       title:'İslam Təqvimi', subtitle:'Hicri 1447 — Müqəddəs günlər',
-      months:['Muharram','Səfər','Rəbiüləvvəl','Rəbiülaxır','Cümadəlula','Cümadəlaxir','Rəcəb','Şaban','Ramazan','Şəvval','Zilqədə','Zilhiccə'],
+      months:['Məhərrəm','Səfər','Rəbiüləvvəl','Rəbiülaxır','Cümadəlula','Cümadəlaxir','Rəcəb','Şaban','Ramazan','Şəvval','Zilqədə','Zilhiccə'],
       events:'Hadisələr', noEvents:'Bu ay hadisə yoxdur',
       hijriDate:'Hicri tarix', gregorianDate:'Miladi tarix',
     },
@@ -90,8 +94,8 @@ export const T = {
       result:'Nəticə', aboveNisab:'Nisab həddini aşıbsınız',
     },
     about: {
-      title:'Haqqımızda', subtitle:`${BRAND.name.az}nin saytı haqqında`,
-      mission:'Missiyanız', missionText:`${BRAND.name.az}nin camaatına və hər ziyarətçiyə namaz vaxtlarını, elanları və səhih İslam biliklərini öz dilində, gözəl və diqqəti dağıtmayan mühitdə çatdırmaq.`,
+      title:'Haqqımızda', subtitle:`${BRAND.name.az} platforması haqqında`,
+      mission:'Missiyamız', missionText:'Hər müsəlmana və hər ziyarətçiyə Quranı, namaz vaxtlarını, hədis və duaları, etibarlı İslami bilikləri öz dilində, gözəl və diqqəti dağıtmayan mühitdə, pulsuz çatdırmaq.',
       values:'Dəyərlərimiz',
       v1t:'Etibarlılıq', v1d:'Yalnız Quran, səhih hədis və alim icmasından məzmun.',
       v2t:'Pulsuz', v2d:'Heç bir abunə, reklam, ödəniş yoxdur.',
@@ -100,7 +104,7 @@ export const T = {
       teamTitle:'Komanda', contactTitle:'Əlaqə',
     },
     footer: {
-      desc:`${BRAND.name.az}nin saytı — namaz vaxtları, camaat namazı, elanlar və İslami bilik.`,
+      desc:`${BRAND.name.az} — Quran, namaz vaxtları, hədis, dua, zikr və İslami bilik. 5 dildə, pulsuz və reklamsız.`,
       links:'Sürətli keçid', contact:'Əlaqə',
       copy:`© ${BRAND.name.az} — ${BRAND.domain}`,
       tagline:'Bismillahir-Rahmanir-Rahim',
@@ -125,13 +129,13 @@ export const T = {
       ayah:'Verily, with every hardship comes ease.',
       ayahRef:'Al-Inshirah, 94:6',
       feature1Title:'Holy Quran', feature1Desc:'114 surahs, verse-by-verse audio, translation.',
-      feature2Title:'Hadith Collections', feature2Desc:'50+ authentic hadiths from Bukhari, Muslim and more.',
+      feature2Title:'Hadith Collections', feature2Desc:'1350+ hadiths from Bukhari, Muslim and other sources.',
       feature3Title:'Prayer Times', feature3Desc:'Real-time prayer schedule, qibla direction.',
       feature4Title:"Du'as & Dhikr", feature4Desc:'Authentic supplications for every occasion.',
       feature5Title:'99 Names of Allah', feature5Desc:"Asma ul-Husna — with meaning and explanation.",
       feature6Title:'Zakat Calculator', feature6Desc:'Precise calculation for gold, silver, and cash.',
       ctaTitle:'Ready to Begin?',
-      ctaDesc:`Explore prayer times, announcements and Islamic knowledge on the ${BRAND.name.en} website.`,
+      ctaDesc:`Prayer times, the Quran, hadith, duas and Islamic knowledge — all on ${BRAND.name.en}, free.`,
       ctaBtn:'Start Reading Quran',
     },
     quran: {
@@ -194,8 +198,8 @@ export const T = {
       result:'Result', aboveNisab:'You have reached the nisab threshold',
     },
     about: {
-      title:'About Us', subtitle:`About the ${BRAND.name.en} website`,
-      mission:'Our Mission', missionText:`To bring prayer times, announcements and authentic Islamic knowledge to the ${BRAND.name.en} community and every visitor, in their own language, in a beautiful distraction-free environment.`,
+      title:'About Us', subtitle:`About the ${BRAND.name.en} platform`,
+      mission:'Our Mission', missionText:'To bring the Quran, prayer times, hadith, duas and reliable Islamic knowledge to every Muslim and every visitor, in their own language, in a beautiful, distraction-free environment — free of charge.',
       values:'Our Values',
       v1t:'Authenticity', v1d:'Only from Quran, authentic hadiths and scholarly consensus.',
       v2t:'Free Forever', v2d:'No subscription, no ads, no payments.',
@@ -204,7 +208,7 @@ export const T = {
       teamTitle:'Team', contactTitle:'Contact',
     },
     footer: {
-      desc:`The website of ${BRAND.name.en} — prayer times, congregational prayers, announcements and Islamic knowledge.`,
+      desc:`${BRAND.name.en} — the Quran, prayer times, hadith, duas, dhikr and Islamic knowledge. In 5 languages, free and ad-free.`,
       links:'Quick Links', contact:'Contact',
       copy:`© ${BRAND.name.en} — ${BRAND.domain}`,
       tagline:'In the Name of Allah, the Most Gracious, the Most Merciful',
@@ -229,13 +233,13 @@ export const T = {
       ayah:'Поистине, после трудности приходит облегчение.',
       ayahRef:'Аш-Шарх, 94:6',
       feature1Title:'Священный Коран', feature1Desc:'114 сур, аудио по аятам, перевод.',
-      feature2Title:'Сборники Хадисов', feature2Desc:'50+ достоверных хадисов из Бухари, Муслима и др.',
+      feature2Title:'Сборники Хадисов', feature2Desc:'1350+ хадисов из Бухари, Муслима и других источников.',
       feature3Title:'Время Намаза', feature3Desc:'Актуальное расписание намазов, направление киблы.',
       feature4Title:'Дуа и Зикр', feature4Desc:'Достоверные мольбы для каждого случая.',
       feature5Title:'99 Имён Аллаха', feature5Desc:'Асмаул-Хусна — со значением и объяснением.',
       feature6Title:'Калькулятор Закята', feature6Desc:'Точный расчёт для золота, серебра и наличных.',
       ctaTitle:'Готовы начать?',
-      ctaDesc:'Время намаза, объявления и исламские знания — на сайте мечети Карачухур.',
+      ctaDesc:`Время намаза, Коран, хадисы, дуа и исламские знания — всё на ${BRAND.name.ru}, бесплатно.`,
       ctaBtn:'Начать читать Коран',
     },
     quran: {
@@ -298,8 +302,8 @@ export const T = {
       result:'Результат', aboveNisab:'Вы достигли порога нисаба',
     },
     about: {
-      title:'О нас', subtitle:'О сайте мечети Карачухур',
-      mission:'Наша Миссия', missionText:'Доносить до прихожан мечети Карачухур и каждого посетителя время намаза, объявления и подлинные исламские знания на родном языке, в красивой среде без отвлечений.',
+      title:'О нас', subtitle:`О платформе ${BRAND.name.ru}`,
+      mission:'Наша Миссия', missionText:'Доносить до каждого мусульманина и каждого посетителя Коран, время намаза, хадисы, дуа и надёжные исламские знания на родном языке, в красивой среде без отвлечений — бесплатно.',
       values:'Наши Ценности',
       v1t:'Достоверность', v1d:'Только из Корана, достоверных хадисов и единогласия учёных.',
       v2t:'Бесплатно', v2d:'Без подписки, рекламы и платежей.',
@@ -308,7 +312,7 @@ export const T = {
       teamTitle:'Команда', contactTitle:'Контакты',
     },
     footer: {
-      desc:'Сайт мечети Карачухур — время намаза, коллективные молитвы, объявления и исламские знания.',
+      desc:`${BRAND.name.ru} — Коран, время намаза, хадисы, дуа, зикр и исламские знания. На 5 языках, бесплатно и без рекламы.`,
       links:'Быстрые ссылки', contact:'Контакты',
       copy:`© ${BRAND.name.ru} — ${BRAND.domain}`,
       tagline:'Во имя Аллаха, Милостивого, Милосердного',
@@ -333,13 +337,13 @@ export const T = {
       ayah:'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
       ayahRef:'الشرح، ٩٤:٦',
       feature1Title:'القرآن الكريم', feature1Desc:'١١٤ سورة، تلاوة صوتية، ترجمة.',
-      feature2Title:'كتب الحديث', feature2Desc:'٥٠+ حديثاً صحيحاً من البخاري ومسلم وغيرهما.',
+      feature2Title:'كتب الحديث', feature2Desc:'أكثر من ١٣٥٠ حديثاً من البخاري ومسلم ومصادر أخرى.',
       feature3Title:'مواقيت الصلاة', feature3Desc:'جدول الصلاة الفعلي، اتجاه القبلة.',
       feature4Title:'الأدعية والأذكار', feature4Desc:'أدعية مأثورة لكل مناسبة.',
       feature5Title:'أسماء الله الحسنى', feature5Desc:'٩٩ اسماً مع المعاني والشرح.',
       feature6Title:'حاسبة الزكاة', feature6Desc:'حساب دقيق للذهب والفضة والنقود.',
       ctaTitle:'هل أنت مستعد للبدء؟',
-      ctaDesc:`اكتشف مواقيت الصلاة والإعلانات والمعرفة الإسلامية على موقع ${BRAND.name.ar}.`,
+      ctaDesc:`مواقيت الصلاة والقرآن والحديث والأدعية والمعرفة الإسلامية — كلها على ${BRAND.name.ar} مجاناً.`,
       ctaBtn:'ابدأ قراءة القرآن',
     },
     quran: {
@@ -402,8 +406,8 @@ export const T = {
       result:'النتيجة', aboveNisab:'لقد بلغت النصاب',
     },
     about: {
-      title:'عن الموقع', subtitle:`عن موقع ${BRAND.name.ar}`,
-      mission:'رسالتنا', missionText:`إيصال مواقيت الصلاة والإعلانات والمعرفة الإسلامية الأصيلة إلى جماعة ${BRAND.name.ar} وكل زائر بلغته، في بيئة جميلة خالية من المشتتات.`,
+      title:'عن الموقع', subtitle:`عن منصة ${BRAND.name.ar}`,
+      mission:'رسالتنا', missionText:'إيصال القرآن الكريم ومواقيت الصلاة والأحاديث والأدعية والمعرفة الإسلامية الموثوقة إلى كل مسلم وكل زائر بلغته، في بيئة جميلة خالية من المشتتات، ومجاناً.',
       values:'قيمنا',
       v1t:'الأصالة', v1d:'من القرآن والحديث الصحيح وإجماع العلماء فقط.',
       v2t:'مجاني دائماً', v2d:'لا اشتراك، لا إعلانات، لا مدفوعات.',
@@ -412,7 +416,7 @@ export const T = {
       teamTitle:'الفريق', contactTitle:'تواصل معنا',
     },
     footer: {
-      desc:`موقع ${BRAND.name.ar} — مواقيت الصلاة وصلاة الجماعة والإعلانات والمعرفة الإسلامية.`,
+      desc:`${BRAND.name.ar} — القرآن ومواقيت الصلاة والحديث والأدعية والأذكار والمعرفة الإسلامية. بخمس لغات، مجاناً وبلا إعلانات.`,
       links:'روابط سريعة', contact:'تواصل',
       copy:`© ${BRAND.name.ar} — ${BRAND.domain}`,
       tagline:'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
@@ -437,13 +441,13 @@ export const T = {
       ayah:'Güçlükle birlikte mutlaka bir kolaylık vardır.',
       ayahRef:'İnşirah, 94:6',
       feature1Title:"Kur'an-ı Kerim", feature1Desc:'114 sure, ayet ayet ses, tercüme.',
-      feature2Title:'Hadis Kitapları', feature2Desc:"50+ sahih hadis Buhârî, Müslim ve diğerlerinden.",
+      feature2Title:'Hadis Kitapları', feature2Desc:'1350+ hadis — Buhârî, Müslim ve diğer kaynaklardan.',
       feature3Title:'Namaz Vakitleri', feature3Desc:'Gerçek zamanlı namaz takvimi, kıble yönü.',
       feature4Title:'Dualar ve Zikirler', feature4Desc:'Her durum için sahih dualar.',
       feature5Title:"Allah'ın 99 İsmi", feature5Desc:'Esmaül-Hüsna — anlam ve açıklamayla.',
       feature6Title:'Zekât Hesaplayıcı', feature6Desc:'Altın, gümüş ve nakit için hassas hesap.',
       ctaTitle:'Başlamaya Hazır mısınız?',
-      ctaDesc:`${BRAND.name.tr} sitesinde namaz vakitlerini, duyuruları ve İslami bilgiyi keşfedin.`,
+      ctaDesc:`Namaz vakitleri, Kur'an, hadis, dualar ve İslami bilgi — hepsi ${BRAND.name.tr} platformunda, ücretsiz.`,
       ctaBtn:"Kur'an Okumaya Başla",
     },
     quran: {
@@ -506,8 +510,8 @@ export const T = {
       result:'Sonuç', aboveNisab:'Nisap eşiğine ulaştınız',
     },
     about: {
-      title:'Hakkımızda', subtitle:`${BRAND.name.tr} sitesi hakkında`,
-      mission:'Misyonumuz', missionText:`${BRAND.name.tr} cemaatine ve her ziyaretçiye namaz vakitlerini, duyuruları ve özgün İslami bilgiyi kendi dilinde, güzel ve dikkat dağıtmayan bir ortamda ulaştırmak.`,
+      title:'Hakkımızda', subtitle:`${BRAND.name.tr} platformu hakkında`,
+      mission:'Misyonumuz', missionText:"Her Müslümana ve her ziyaretçiye Kur'an'ı, namaz vakitlerini, hadisleri, duaları ve güvenilir İslami bilgiyi kendi dilinde, güzel ve dikkat dağıtmayan bir ortamda, ücretsiz ulaştırmak.",
       values:'Değerlerimiz',
       v1t:'Özgünlük', v1d:"Yalnızca Kur'an, sahih hadis ve âlimlerin icmaından.",
       v2t:'Sonsuza Kadar Ücretsiz', v2d:'Abonelik, reklam, ödeme yok.',
@@ -516,7 +520,7 @@ export const T = {
       teamTitle:'Ekip', contactTitle:'İletişim',
     },
     footer: {
-      desc:`${BRAND.name.tr} sitesi — namaz vakitleri, cemaat namazları, duyurular ve İslami bilgi.`,
+      desc:`${BRAND.name.tr} — Kur'an, namaz vakitleri, hadis, dua, zikir ve İslami bilgi. 5 dilde, ücretsiz ve reklamsız.`,
       links:'Hızlı Bağlantılar', contact:'İletişim',
       copy:`© ${BRAND.name.tr} — ${BRAND.domain}`,
       tagline:'Bismillahirrahmanirrahim',

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { BRAND, tr } from '../config/mosque'
+import { BRAND, tr } from '../config/brand'
 import AccessibilityWidget from './AccessibilityWidget'
 import { useBackToClose } from '../utils/useBackToClose'
 import '../styles/FloatingDock.css'

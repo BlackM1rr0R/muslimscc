@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-# Qaraçuxur Məscidi — robots.txt
+# Muslims.cc — robots.txt
 # https://muslims.cc
 #
 # TƏK QRUP — qəsdən. Hər robot yalnız ÖZ adına uyğun olan ən dəqiq

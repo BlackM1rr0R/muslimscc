@@ -1,0 +1,17 @@
+# Docker build kontekstinə düşməməli olanlar (sürət + sirlər)
+.git
+node_modules
+dist
+mobile
+server/node_modules
+**/node_modules
+.env
+.env.*
+!.env.example
+!.env.public
+ecosystem.config.js
+*.log
+.vscode
+.idea
+test-results
+playwright-report

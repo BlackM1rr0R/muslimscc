@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// Qaraçuxur Məscidi — sayt naviqasiyasının YEGANƏ mənbəyi
+// Muslims.cc — sayt naviqasiyasının YEGANƏ mənbəyi
 //
 // Kim oxuyur:
 //   • SideNav.jsx       — soldan açılan bölmələr paneli (kateqoriyalar)
@@ -11,12 +11,12 @@
 // routes.js-dən sonra buraya da bir sətir yaz.
 //
 // Etiketlər mümkün qədər Header.jsx-in köhnə menyusundan götürülüb; yalnız
-// panelde qarışıq düşə biləcək qısa adlar aydınlaşdırılıb (məs. "Namaz" →
+// paneldə qarışıq düşə biləcək qısa adlar aydınlaşdırılıb (məs. "Namaz" →
 // "Namaz təqvimi", "Məscidlər" → "Yaxınlıqdakı məscidlər", "Təqvim" →
 // "İslami təqvim"), ikonlar isə panel daxilində təkrarlanmasın deyə seçilib.
 // ═══════════════════════════════════════════════════════
 
-import { BRAND } from '../config/mosque.js'
+import { BRAND } from '../config/brand.js'
 
 // ── Qruplar ──────────────────────────────────────────
 // key   — qrupun daxili adı (localStorage-da açıq qrupları yadda saxlamaq üçün)
@@ -25,20 +25,21 @@ import { BRAND } from '../config/mosque.js'
 // items — [{ key /* routes.js marşrut açarı */, icon, label }]
 export const NAV_GROUPS = [
   {
-    key: 'mosque',
-    icon: '🕌',
-    label: { az: 'Məscid', en: 'Mosque', ru: 'Мечеть', ar: 'المسجد', tr: 'Cami' },
+    // "Əsas" — gündəlik ən çox lazım olan bölmələr (əvvəlki "Məscid" qrupu)
+    key: 'main',
+    icon: '⭐',
+    label: { az: 'Əsas', en: 'Main', ru: 'Главное', ar: 'الرئيسية', tr: 'Ana Menü' },
     items: [
       { key: 'home', icon: '🏠',
-        label: { az: 'Ana səhifə', en: 'Home', ru: 'Главная', ar: 'الرئيسية', tr: 'Ana Sayfa' } },
-      { key: 'mosque', icon: '🕌',
-        label: { az: 'Məscid haqqında', en: 'About the Mosque', ru: 'О мечети', ar: 'عن المسجد', tr: 'Cami Hakkında' } },
-      { key: 'jamaat', icon: '⏰',
-        label: { az: 'Camaat vaxtları', en: 'Congregation Times', ru: 'Время джамаата', ar: 'مواقيت الجماعة', tr: 'Cemaat Vakitleri' } },
+        label: { az: 'Ana səhifə', en: 'Home', ru: 'Главная', ar: 'الصفحة الرئيسية', tr: 'Ana Sayfa' } },
+      { key: 'prayer', icon: '🕐',
+        label: { az: 'Namaz vaxtları', en: 'Prayer Times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz Vakitleri' } },
+      { key: 'jamaat', icon: '🤝',
+        label: { az: 'Camaat və Cümə', en: 'Congregation & Friday', ru: 'Джамаат и Джума', ar: 'الجماعة والجمعة', tr: 'Cemaat ve Cuma' } },
       { key: 'announcements', icon: '📢',
         label: { az: 'Elanlar', en: 'Announcements', ru: 'Объявления', ar: 'الإعلانات', tr: 'Duyurular' } },
       { key: 'donate', icon: '💝',
-        label: { az: 'Məscidə ianə', en: 'Donate to the Mosque', ru: 'Пожертвование мечети', ar: 'التبرع للمسجد', tr: 'Camiye Bağış' } },
+        label: { az: 'Xeyriyyə və ianə', en: 'Charity & Giving', ru: 'Благотворительность', ar: 'الصدقة والتبرع', tr: 'Hayır ve Bağış' } },
     ],
   },
   {
@@ -80,8 +81,6 @@ export const NAV_GROUPS = [
     icon: '🌙',
     label: { az: 'Namaz və ibadət', en: 'Prayer & Worship', ru: 'Намаз и поклонение', ar: 'الصلاة والعبادة', tr: 'Namaz ve İbadet' },
     items: [
-      { key: 'prayer', icon: '🕐',
-        label: { az: 'Namaz təqvimi', en: 'Prayer Times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz Vakitleri' } },
       { key: 'prayerguide', icon: '🎓',
         label: { az: 'Namaz öyrən', en: 'Learn Prayer', ru: 'Учись молиться', ar: 'تعلم الصلاة', tr: 'Namaz Öğren' } },
       { key: 'qibla', icon: '🧭',
@@ -138,7 +137,7 @@ export const NAV_GROUPS = [
     items: [
       { key: 'aichat', icon: '🤖', label: BRAND.aiName },
       { key: 'quiz', icon: '❓',
-        label: { az: 'Kviz', en: 'Quiz', ru: 'Викторина', ar: 'اختبار', tr: 'Quiz' } },
+        label: { az: 'Kviz', en: 'Quiz', ru: 'Викторина', ar: 'اختبار', tr: 'Bilgi Yarışması' } },
       { key: 'quotes', icon: '🖼️',
         label: { az: 'Sitatlar', en: 'Quotes', ru: 'Цитаты', ar: 'اقتباسات', tr: 'Alıntılar' } },
       { key: 'kids', icon: '🎈',
@@ -151,8 +150,8 @@ export const NAV_GROUPS = [
 
 // Başlığın ortasında (900px-dən geniş ekranda) görünən linklər — sahibin
 // tələbi ilə YALNIZ bu beşi: Quran · Namaz · Hədis · AI · Haqqımızda.
-// "Ana səhifə" linki yoxdur (loqo ana səhifəyə aparır); məscid bölmələri
-// yan paneldə və ana səhifədədir. Qalan hər şey SideNav panelindədir.
+// "Ana səhifə" linki yoxdur (loqo ana səhifəyə aparır); "Əsas" qrupunun
+// bölmələri yan paneldə və ana səhifədədir. Qalan hər şey SideNav panelindədir.
 export const PRIMARY_NAV = ['quran', 'prayer', 'hadith', 'aichat', 'about']
 
 // Başlıq üçün QISA adlar — panel isə öz tam adlarını (NAV_GROUPS) saxlayır
@@ -172,12 +171,14 @@ export const NAV_ITEMS = NAV_GROUPS.flatMap(g => g.items.map(item => ({ ...item,
 
 const ITEM_BY_KEY = Object.fromEntries(NAV_ITEMS.map(item => [item.key, item]))
 
+// Hər etiketdə 5 dilin hamısı var; əskik olsa ingiliscəyə düşür (azərbaycanca
+// mətn başqa dilin səhifəsinə "sızmasın")
 function pick(label, lang) {
   if (!label) return ''
-  return label[lang] || label.az || label.en || ''
+  return label[lang] || label.en || label.az || ''
 }
 
-/** İstənilən marşrut açarının cari dildəki adı (az, sonra en-ə düşür). */
+/** İstənilən marşrut açarının cari dildəki adı. */
 export function navLabel(key, lang = 'az') {
   const item = ITEM_BY_KEY[key]
   return item ? pick(item.label, lang) : ''

@@ -1,26 +1,29 @@
-# Instagram avtoposter — Qaraçuxur Məscidi
+# Instagram avtoposter — Muslims.cc
 
-Qaraçuxur Məscidinin Instagram hesabı üçün gündə 3 dəfə avtomatik post:
-doğrulanmış İslami məzmun → şəkil → caption → paylaşım.
+**Muslims.cc** Instagram hesabı (**@muslims_cc**) üçün gündə 3 dəfə avtomatik
+post: doğrulanmış İslami məzmun → şəkil → caption → paylaşım.
 
-Şəklin altında və caption-un sonunda brend adı **Qaraçuxur Məscidi** yazılır,
-ünvan kimi isə `muslims.cc` qalır (domen dəyişmir). Əsas hashtag: `#qaracuxurmescidi`.
+Şəklin altında və caption-un sonunda `muslims.cc` yazılır (brend adı elə
+domendir). Əsas hashtag: `#muslimscc`.
 
-Caption-lar məscidin rəsmi mövqeyi və ya fətvası deyil — model hökm vermir,
-lazım gələndə oxucunu məscidin imamına yönəldir. Model yazan caption-ların
-sonunda (hashtag-lərdən əvvəl) bunu deyən qısa az/en qeyd avtomatik əlavə
-olunur. Məscid haqqında heç bir fakt (ünvan, camaat vaxtı, imam) avtomatik
-yazılmır.
+Caption-lar ümumi məlumatdır, fətva deyil — model hökm vermir, lazım gələndə
+oxucunu etibarlı bir alimə yönəldir və heç bir fakt uydurmur. Model yazan
+caption-ların sonunda (hashtag-lərdən əvvəl) bunu deyən qısa az/en qeyd
+avtomatik əlavə olunur. Caption iki dillidir (az + en), amma hər hissə
+TAMAMİLƏ öz dilindədir — az hissədə türkcə söz olmur.
 
-Brend adı, hashtag və domen skriptlərdə əl ilə yazılıb (`caption.mjs`,
+Tarixçə: 2026-09 — 2026-10 arası hesab bir məscidin adı ilə işlədi;
+sahibin qərarı ilə yenidən Muslims.cc oldu.
+
+Brend adı, hashtag, hesab və domen skriptlərdə əl ilə yazılıb (`caption.mjs`,
 `render.py`), çünki `scripts/social/*` serverə ayrıca köçürülür və
-`src/config/mosque.js`-i import edə bilmir. Ad dəyişəndə onları da yenilə.
+`src/config/brand.js`-i import edə bilmir. Ad dəyişəndə onları da yenilə.
 
 ## Necə işləyir
 
 ```
-content.mjs   pool.json-dan təkrarsız element seçir (2299 element ≈ 766 gün)
-render.py     1080×1350 JPEG çəkir (ərəb + az + en + mənbə + məscid adı)
+content.mjs   pool.json-dan təkrarsız element seçir (1657 element ≈ 552 gün)
+render.py     1080×1350 JPEG çəkir (ərəb + az + en + mənbə + muslims.cc)
 caption.mjs   Claude ilə caption yazır, sonra onu yoxlayır
 publish.mjs   Instagram Graph API ilə paylaşır
 run.mjs       hamısını birləşdirir, jurnal yazır
@@ -50,9 +53,9 @@ bilərsən (`fallback: true` olanlar model işləmədən paylaşılanlardır).
 
 Bunlar olmadan paylaşım mümkün deyil:
 
-0. **Hesab adı:** Köhnə Instagram hesabının istifadəçi adını və profil adını
-   məscidin adına ("Qaraçuxur Məscidi") hesab sahibi **əl ilə** dəyişməlidir —
-   skript bunu etmir.
+0. **Hesab adı:** İstifadəçi adı `muslims_cc`, profil adı `Muslims.cc` olmalıdır.
+   Hesab məscid dövründə başqa adla adlandırılıbsa, hesab sahibi onu
+   **əl ilə** geri dəyişməlidir — skript bunu etmir.
 1. Instagram hesabını **Business** və ya **Creator**-a çevir (şəxsi hesab işləmir)
 2. Onu bir **Facebook Səhifəsinə** bağla
 3. [developers.facebook.com](https://developers.facebook.com) → yeni **app** yarat
@@ -135,7 +138,7 @@ crontab -e
 ```
 
 ```cron
-# Qaraçuxur Məscidi Instagram — 09:00, 14:00, 20:00
+# Muslims.cc Instagram (@muslims_cc) — 09:00, 14:00, 20:00
 0 9,14,20 * * * cd /var/www/muslim-cc-api/social && /usr/bin/node run.mjs >> log/cron.log 2>&1
 ```
 

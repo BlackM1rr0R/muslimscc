@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminText, adminPick } from './adminText'
 import { addBook, updateBook, deleteBook, BOOK_CATEGORIES, subscribeToBooks, DEFAULT_BOOKS } from '../../data/books'
 import { isFirebaseConfigured } from '../../firebase/config'
 
 const LABELS = {
-  az: { title:'Kitablar', sub:'Kitab kontentini idarə edin', addNew:'Yeni Kitab', editBook:'Redaktə Et', all:'Bütün Kitablar', titleField:'Başlıq', authorField:'Müəllif', descField:'Təsvir', coverUrl:'Üz qabığı (şəkil URL)', pdfUrl:'PDF linki (opsional)', pages:'Səhifə sayı', year:'İl', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu kitabı silmək istəyirsiniz?', noBooks:'Hələ kitab yoxdur', titleRequired:'Başlıq tələb olunur', authorRequired:'Müəllif tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.' },
-  en: { title:'Books', sub:'Manage book content', addNew:'New Book', editBook:'Edit Book', all:'All Books', titleField:'Title', authorField:'Author', descField:'Description', coverUrl:'Cover image URL', pdfUrl:'PDF link (optional)', pages:'Pages', year:'Year', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this book?', noBooks:'No books yet', titleRequired:'Title required', authorRequired:'Author required', loading:'Loading...', saving:'Saving...', notConfigured:'Firebase not configured. Check .env file.' },
-  ru: { title:'Книги', sub:'Управление книгами', addNew:'Новая книга', editBook:'Редактировать', all:'Все книги', titleField:'Название', authorField:'Автор', descField:'Описание', coverUrl:'Обложка (URL)', pdfUrl:'PDF ссылка', pages:'Страниц', year:'Год', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noBooks:'Нет книг', titleRequired:'Название обязательно', authorRequired:'Автор обязателен', loading:'Загрузка...', saving:'Сохранение...', notConfigured:'Firebase не настроен' },
-  ar: { title:'الكتب', sub:'إدارة الكتب', addNew:'كتاب جديد', editBook:'تعديل', all:'كل الكتب', titleField:'العنوان', authorField:'المؤلف', descField:'الوصف', coverUrl:'رابط الغلاف', pdfUrl:'رابط PDF', pages:'الصفحات', year:'السنة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noBooks:'لا توجد كتب', titleRequired:'العنوان مطلوب', authorRequired:'المؤلف مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', notConfigured:'Firebase غير مكون' },
-  tr: { title:'Kitaplar', sub:'Kitap yönetimi', addNew:'Yeni Kitap', editBook:'Düzenle', all:'Tüm Kitaplar', titleField:'Başlık', authorField:'Yazar', descField:'Açıklama', coverUrl:'Kapak resmi (URL)', pdfUrl:'PDF linki', pages:'Sayfa', year:'Yıl', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noBooks:'Kitap yok', titleRequired:'Başlık gerekli', authorRequired:'Yazar gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', notConfigured:'Firebase yapılandırılmamış' },
+  az: { title:'Kitablar', sub:'Kitab məzmununu idarə edin', addNew:'Yeni Kitab', editBook:'Redaktə Et', all:'Bütün Kitablar', titleField:'Başlıq', authorField:'Müəllif', descField:'Təsvir', coverUrl:'Üz qabığı (şəkil URL)', pdfUrl:'PDF linki (istəyə bağlı)', pages:'Səhifə sayı', year:'İl', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu kitabı silmək istəyirsiniz?', noBooks:'Hələ kitab yoxdur', titleRequired:'Başlıq tələb olunur', authorRequired:'Müəllif tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.', setupHint:'Ətraflı: FIREBASE_SETUP.md faylı', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)', pagesShort:'səh.' },
+  en: { title:'Books', sub:'Manage book content', addNew:'New Book', editBook:'Edit Book', all:'All Books', titleField:'Title', authorField:'Author', descField:'Description', coverUrl:'Cover image URL', pdfUrl:'PDF link (optional)', pages:'Pages', year:'Year', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this book?', noBooks:'No books yet', titleRequired:'Title required', authorRequired:'Author required', loading:'Loading...', saving:'Saving...', notConfigured:'Firebase not configured. Check .env file.', setupHint:'See FIREBASE_SETUP.md', preview:'Preview', readOnly:'Default (read-only)', pagesShort:'p.' },
+  ru: { title:'Книги', sub:'Управление книгами', addNew:'Новая книга', editBook:'Редактировать', all:'Все книги', titleField:'Название', authorField:'Автор', descField:'Описание', coverUrl:'Обложка (URL)', pdfUrl:'Ссылка на PDF (необязательно)', pages:'Страниц', year:'Год', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noBooks:'Нет книг', titleRequired:'Название обязательно', authorRequired:'Автор обязателен', loading:'Загрузка...', saving:'Сохранение...', notConfigured:'Firebase не настроен', setupHint:'Подробнее в инструкции по настройке Firebase', preview:'Предпросмотр', readOnly:'Встроенная (только чтение)', pagesShort:'стр.' },
+  ar: { title:'الكتب', sub:'إدارة الكتب', addNew:'كتاب جديد', editBook:'تعديل', all:'كل الكتب', titleField:'العنوان', authorField:'المؤلف', descField:'الوصف', coverUrl:'رابط الغلاف', pdfUrl:'رابط PDF (اختياري)', pages:'الصفحات', year:'السنة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noBooks:'لا توجد كتب', titleRequired:'العنوان مطلوب', authorRequired:'المؤلف مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', notConfigured:'Firebase غير مكون', setupHint:'راجع دليل إعداد Firebase', preview:'معاينة', readOnly:'افتراضي (للقراءة فقط)', pagesShort:'ص' },
+  tr: { title:'Kitaplar', sub:'Kitap yönetimi', addNew:'Yeni Kitap', editBook:'Düzenle', all:'Tüm Kitaplar', titleField:'Başlık', authorField:'Yazar', descField:'Açıklama', coverUrl:'Kapak resmi (URL)', pdfUrl:'PDF bağlantısı (isteğe bağlı)', pages:'Sayfa', year:'Yıl', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noBooks:'Kitap yok', titleRequired:'Başlık gerekli', authorRequired:'Yazar gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', notConfigured:'Firebase yapılandırılmamış', setupHint:'Ayrıntılar: FIREBASE_SETUP.md dosyası', preview:'Önizleme', readOnly:'Varsayılan (salt okunur)', pagesShort:'syf.' },
 }
 
 const LANGS = ['az','en','ru','ar','tr']
@@ -111,7 +112,7 @@ export default function BookManager({ onUpdate }) {
         <div style={{padding:40, textAlign:'center'}}>
           <div style={{fontSize:48, marginBottom:12}}>⚠️</div>
           <h3 style={{color:'#ef4444'}}>{l.notConfigured}</h3>
-          <p style={{color:'var(--text-muted)', marginTop:8}}>FIREBASE_SETUP.md faylına baxın</p>
+          <p style={{color:'var(--text-muted)', marginTop:8}}>{l.setupHint}</p>
         </div>
       </div>
     )
@@ -176,7 +177,7 @@ export default function BookManager({ onUpdate }) {
               <label className="admin-input-label">{l.category}</label>
               <select className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
                 {BOOK_CATEGORIES.filter(c => c.key !== 'all').map(c => (
-                  <option key={c.key} value={c.key}>{c.label[lang] || c.label.en}</option>
+                  <option key={c.key} value={c.key}>{c.label[lang]}</option>
                 ))}
               </select>
             </div>
@@ -193,8 +194,8 @@ export default function BookManager({ onUpdate }) {
           {/* Live preview */}
           {form.coverUrl && (
             <div style={{display:'flex', gap:14, padding:12, background:'var(--bg-soft, #f8fafc)', borderRadius:12, marginTop:6}}>
-              <img src={form.coverUrl} alt="preview" style={{width:90, height:130, objectFit:'cover', borderRadius:8, boxShadow:'0 4px 14px rgba(0,0,0,0.15)'}} onError={(e) => e.target.style.display='none'} />
-              <div style={{flex:1, fontSize:13, color:'var(--text-muted)'}}>📖 Preview</div>
+              <img src={form.coverUrl} alt={l.preview} style={{width:90, height:130, objectFit:'cover', borderRadius:8, boxShadow:'0 4px 14px rgba(0,0,0,0.15)'}} onError={(e) => e.target.style.display='none'} />
+              <div style={{flex:1, fontSize:13, color:'var(--text-muted)'}}>📖 {l.preview}</div>
             </div>
           )}
 
@@ -230,24 +231,24 @@ export default function BookManager({ onUpdate }) {
                 <div key={b.id} className="admin-video-card">
                   <div className="admin-video-thumb" style={{aspectRatio:'2/3', background: cat?.color || '#10b981'}}>
                     {b.coverUrl ? (
-                      <img src={b.coverUrl} alt={b.title?.[lang] || b.title?.en} onError={(e) => { e.target.style.display = 'none' }} />
+                      <img src={b.coverUrl} alt={adminPick(b.title, lang)} onError={(e) => { e.target.style.display = 'none' }} />
                     ) : (
                       <div style={{display:'flex', alignItems:'center', justifyContent:'center', height:'100%', fontSize:48, color:'#fff'}}>📚</div>
                     )}
-                    <div className="admin-video-cat-badge" style={{color: cat?.color}}>{cat?.label[lang] || cat?.label.en || b.category}</div>
-                    {b.pages && <div className="admin-video-duration">{b.pages} {lang === 'az' ? 'səh.' : lang === 'ru' ? 'стр.' : lang === 'tr' ? 'syf.' : 'p.'}</div>}
+                    <div className="admin-video-cat-badge" style={{color: cat?.color}}>{cat?.label[lang]}</div>
+                    {b.pages && <div className="admin-video-duration">{b.pages} {l.pagesShort}</div>}
                   </div>
                   <div className="admin-video-body">
-                    <h3 className="admin-video-title">{b.title?.[lang] || b.title?.en}</h3>
-                    <p style={{fontSize:13, color:'var(--text-muted)', margin:'2px 0 6px', fontWeight:600}}>✍️ {b.author?.[lang] || b.author?.en}</p>
-                    {(b.description?.[lang] || b.description?.en) && <p className="admin-video-desc">{b.description[lang] || b.description.en}</p>}
+                    <h3 className="admin-video-title"><AdminText value={b.title} lang={lang} /></h3>
+                    <p style={{fontSize:13, color:'var(--text-muted)', margin:'2px 0 6px', fontWeight:600}}>✍️ <AdminText value={b.author} lang={lang} /></p>
+                    {adminPick(b.description, lang) && <p className="admin-video-desc">{adminPick(b.description, lang)}</p>}
                     {!isDefault && (
                       <div className="admin-video-actions">
                         <button className="admin-action-btn edit" onClick={() => handleEdit(b)}>✏️ {l.edit}</button>
                         <button className="admin-action-btn delete" onClick={() => handleDelete(b.id)}>🗑️ {l.delete}</button>
                       </div>
                     )}
-                    {isDefault && <div style={{fontSize:11, color:'var(--text-muted)', fontStyle:'italic', marginTop:6}}>Default (read-only)</div>}
+                    {isDefault && <div style={{fontSize:11, color:'var(--text-muted)', fontStyle:'italic', marginTop:6}}>{l.readOnly}</div>}
                   </div>
                 </div>
               )

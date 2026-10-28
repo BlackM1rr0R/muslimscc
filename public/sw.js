@@ -1,7 +1,10 @@
-// Qaraçuxur Məscidi — Service Worker + Push Notifications
+// Muslims.cc — Service Worker + Push Notifications
+// Keş adı dəyişəndə köhnə keş "activate" zamanı silinir:
 // v4: /favicon.svg əvvəl public/-də yox idi — köhnə keşdə onun yerinə index.html
-// saxlanılıb (şəkillər keşdən birinci verilir). Ad dəyişəndə köhnə keş silinir.
-const CACHE_NAME = 'muslims-cc-v4'
+//     saxlanılıb (şəkillər keşdən birinci verilir).
+// v5: brend yenidən Muslims.cc oldu — keşdə qalmış köhnə adlı index.html
+//     və site.webmanifest təmizlənsin.
+const CACHE_NAME = 'muslims-cc-v5'
 
 const PRECACHE_URLS = [
   '/',

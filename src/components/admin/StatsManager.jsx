@@ -3,22 +3,28 @@ import { useLang } from '../../contexts/LangContext'
 import { getUserStats } from '../../data/adminContent'
 
 const LABELS = {
-  az: { title:'Statistika', sub:'İstifadəçi fəaliyyəti və app məlumatları', prayer:'Namaz', quran:'Quran', interaction:'Qarşılıqlı əlaqə', misc:'Digər', storage:'Yaddaş', refresh:'Yenilə',
-    prayerDays:'Namaz qılınan günlər', totalPrayers:'Ümumi namaz', quranSessions:'Quran oxuma sessiyaları', quranSurahs:'Oxunan surələr', hadithFavs:'Favorit hədislər', duaFavs:'Favorit dualar', dhikrSessions:'Zikr sessiyaları', totalDhikr:'Ümumi zikr sayı', charityDeeds:'Sədəqə əməlləri', charityTotal:'Ümumi sədəqə', hifzMemorized:'Əzbər surələr', storageSize:'Yaddaş ölçüsü' },
+  az: { title:'Statistika', sub:'İstifadəçi fəaliyyəti və tətbiq məlumatları', prayer:'Namaz', quran:'Quran', interaction:'Qarşılıqlı əlaqə', misc:'Digər', storage:'Yaddaş', refresh:'Yenilə',
+    prayerDays:'Namaz qılınan günlər', totalPrayers:'Ümumi namaz', quranSessions:'Quran oxuma sessiyaları', quranSurahs:'Oxunan surələr', hadithFavs:'Seçilmiş hədislər', duaFavs:'Seçilmiş dualar', dhikrSessions:'Zikr sessiyaları', totalDhikr:'Ümumi zikr sayı', charityDeeds:'Sədəqə əməlləri', charityTotal:'Ümumi sədəqə', hifzMemorized:'Əzbər surələr', storageSize:'Yaddaş ölçüsü' },
   en: { title:'Statistics', sub:'User activity and app data', prayer:'Prayer', quran:'Quran', interaction:'Interaction', misc:'Misc', storage:'Storage', refresh:'Refresh',
     prayerDays:'Prayer days', totalPrayers:'Total prayers', quranSessions:'Quran sessions', quranSurahs:'Surahs read', hadithFavs:'Favorite hadiths', duaFavs:'Favorite duas', dhikrSessions:'Dhikr sessions', totalDhikr:'Total dhikr count', charityDeeds:'Charity deeds', charityTotal:'Total charity', hifzMemorized:'Memorized surahs', storageSize:'Storage size' },
-  ru: { title:'Статистика', sub:'Активность и данные', prayer:'Намаз', quran:'Коран', interaction:'Взаимодействие', misc:'Прочее', storage:'Хранилище', refresh:'Обновить',
-    prayerDays:'Дни намаза', totalPrayers:'Всего намазов', quranSessions:'Сессий Корана', quranSurahs:'Прочитано сур', hadithFavs:'Избранные хадисы', duaFavs:'Избранные дуа', dhikrSessions:'Сессий зикра', totalDhikr:'Всего зикров', charityDeeds:'Милостыни', charityTotal:'Сумма', hifzMemorized:'Выучено сур', storageSize:'Размер хранилища' },
+  ru: { title:'Статистика', sub:'Активность пользователей и данные приложения', prayer:'Намаз', quran:'Коран', interaction:'Взаимодействие', misc:'Прочее', storage:'Хранилище', refresh:'Обновить',
+    prayerDays:'Дни намаза', totalPrayers:'Всего намазов', quranSessions:'Сессий Корана', quranSurahs:'Прочитано сур', hadithFavs:'Избранные хадисы', duaFavs:'Избранные дуа', dhikrSessions:'Сессий зикра', totalDhikr:'Всего зикров', charityDeeds:'Добрые дела (садака)', charityTotal:'Всего садаки', hifzMemorized:'Выучено сур', storageSize:'Размер хранилища' },
   ar: { title:'الإحصائيات', sub:'النشاط والبيانات', prayer:'الصلاة', quran:'القرآن', interaction:'التفاعل', misc:'متفرقات', storage:'التخزين', refresh:'تحديث',
     prayerDays:'أيام الصلاة', totalPrayers:'إجمالي الصلوات', quranSessions:'جلسات القرآن', quranSurahs:'سور مقروءة', hadithFavs:'أحاديث مفضلة', duaFavs:'أدعية مفضلة', dhikrSessions:'جلسات الذكر', totalDhikr:'مجموع الذكر', charityDeeds:'صدقات', charityTotal:'الإجمالي', hifzMemorized:'سور محفوظة', storageSize:'حجم التخزين' },
-  tr: { title:'İstatistikler', sub:'Kullanıcı aktivitesi', prayer:'Namaz', quran:'Kuran', interaction:'Etkileşim', misc:'Diğer', storage:'Depolama', refresh:'Yenile',
-    prayerDays:'Namaz günleri', totalPrayers:'Toplam namaz', quranSessions:'Kuran oturumları', quranSurahs:'Okunan sureler', hadithFavs:'Favori hadisler', duaFavs:'Favori dualar', dhikrSessions:'Zikir oturumları', totalDhikr:'Toplam zikir', charityDeeds:'Sadakalar', charityTotal:'Toplam sadaka', hifzMemorized:'Ezberlenmiş', storageSize:'Depolama boyutu' },
+  tr: { title:'İstatistikler', sub:'Kullanıcı etkinliği ve uygulama verileri', prayer:'Namaz', quran:'Kuran', interaction:'Etkileşim', misc:'Diğer', storage:'Depolama', refresh:'Yenile',
+    prayerDays:'Namaz günleri', totalPrayers:'Toplam namaz', quranSessions:'Kuran oturumları', quranSurahs:'Okunan sureler', hadithFavs:'Favori hadisler', duaFavs:'Favori dualar', dhikrSessions:'Zikir oturumları', totalDhikr:'Toplam zikir', charityDeeds:'Sadakalar', charityTotal:'Toplam sadaka', hifzMemorized:'Ezberlenen sureler', storageSize:'Depolama boyutu' },
 }
 
-function formatBytes(bytes) {
-  if (bytes < 1024) return bytes + ' B'
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
+// Yaddaş vahidləri hər dildə öz qısaltması ilə
+const BYTE_UNITS = {
+  az: ['B', 'KB', 'MB'], en: ['B', 'KB', 'MB'], tr: ['B', 'KB', 'MB'],
+  ru: ['Б', 'КБ', 'МБ'], ar: ['بايت', 'ك.ب', 'م.ب'],
+}
+function formatBytes(bytes, lang) {
+  const [b, kb, mb] = BYTE_UNITS[lang] || BYTE_UNITS.en
+  if (bytes < 1024) return bytes + ' ' + b
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' ' + kb
+  return (bytes / (1024 * 1024)).toFixed(2) + ' ' + mb
 }
 
 export default function StatsManager() {
@@ -77,7 +83,7 @@ export default function StatsManager() {
           <div style={{fontSize:11, fontWeight:800, letterSpacing:1.5, textTransform:'uppercase', opacity:0.9, marginBottom:6}}>
             💾 {l.storage}
           </div>
-          <div style={{fontSize:36, fontWeight:800, letterSpacing:-1}}>{formatBytes(stats.storageSize)}</div>
+          <div style={{fontSize:36, fontWeight:800, letterSpacing:-1}}>{formatBytes(stats.storageSize, lang)}</div>
           <div style={{fontSize:13, opacity:0.85, marginTop:4}}>{l.storageSize}</div>
         </div>
       </div>

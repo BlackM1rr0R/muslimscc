@@ -9,30 +9,22 @@ import { T } from '../data/i18n';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, Float, Rotate } from '../components/Animated';
-import { MOSQUE, filled, tr, brandName } from '../config/mosque';
+import { BRAND, tr, brandName } from '../config/brand';
 
 // Əlaqə kartı üçün etiketlər — başlıq və missiya mətni i18n-dən (T.about) gəlir
 const ABOUT_LABELS = {
-  az: { contact: 'Əlaqə', map: 'Xəritədə aç' },
-  en: { contact: 'Contact', map: 'Open in maps' },
-  ru: { contact: 'Контакты', map: 'Открыть на карте' },
-  ar: { contact: 'تواصل', map: 'افتح في الخريطة' },
-  tr: { contact: 'İletişim', map: 'Haritada aç' },
+  az: { contact: 'Əlaqə', website: 'Veb sayt' },
+  en: { contact: 'Contact', website: 'Website' },
+  ru: { contact: 'Контакты', website: 'Веб-сайт' },
+  ar: { contact: 'تواصل', website: 'الموقع الإلكتروني' },
+  tr: { contact: 'İletişim', website: 'Web sitesi' },
 };
 
-// Yalnız doldurulmuş əlaqə məlumatları — boş sahə göstərilmir
-function contactItems(lang, al) {
+// Platformanın əlaqə kanalları — brend konfiqindən (config/brand.js)
+function contactItems(al) {
   const items = [];
-  const address = tr(MOSQUE.address, lang);
-  if (filled(address)) items.push({ key: 'address', icon: '📍', label: address, url: filled(MOSQUE.mapUrl) ? MOSQUE.mapUrl : null });
-  else if (filled(MOSQUE.mapUrl)) items.push({ key: 'map', icon: '📍', label: al.map, url: MOSQUE.mapUrl });
-  if (filled(MOSQUE.phone)) items.push({ key: 'phone', icon: '📞', label: MOSQUE.phone, url: `tel:${MOSQUE.phone.replace(/\s+/g, '')}` });
-  if (filled(MOSQUE.whatsapp)) items.push({ key: 'whatsapp', icon: '💬', label: 'WhatsApp', url: `https://wa.me/${MOSQUE.whatsapp.replace(/\D/g, '')}` });
-  if (filled(MOSQUE.email)) items.push({ key: 'email', icon: '✉️', label: MOSQUE.email, url: `mailto:${MOSQUE.email}` });
-  const socialNames = { instagram: 'Instagram', facebook: 'Facebook', youtube: 'YouTube', telegram: 'Telegram' };
-  Object.entries(MOSQUE.social || {}).forEach(([k, v]) => {
-    if (filled(v)) items.push({ key: k, icon: '🔗', label: socialNames[k] || k, url: v });
-  });
+  if (BRAND.url) items.push({ key: 'website', icon: '🌐', label: `${al.website}: ${BRAND.domain}`, url: BRAND.url });
+  if (BRAND.instagram) items.push({ key: 'instagram', icon: '🔗', label: `Instagram: @${BRAND.instagram}`, url: `https://instagram.com/${BRAND.instagram}` });
   return items;
 }
 
@@ -42,7 +34,7 @@ export default function AboutScreen() {
   const t = T[lang]?.about || T.az.about;
   const sh = dark ? Shadows.dark.md : Shadows.md;
   const al = ABOUT_LABELS[lang] || ABOUT_LABELS.az;
-  const contacts = contactItems(lang, al);
+  const contacts = contactItems(al);
 
   const RESET_LABELS = {
     az: { title:'Xoş gəldin ekranını yenidən göstər', sub:'Tətbiqin başlanğıc ekranını yenidən izləyin', confirm:'Xoş gəldin ekranını yenidən göstərmək istədiyinizə əminsiniz? Tətbiqi yenidən başlatmağınız lazımdır.', yes:'Bəli', no:'İmtina' },
@@ -105,7 +97,7 @@ export default function AboutScreen() {
             </Float>
 
             <Text style={styles.logoTitle}>{brandName(lang)}</Text>
-            <Text style={styles.logoLocality}>{tr(MOSQUE.locality, lang)}</Text>
+            <Text style={styles.logoLocality}>{tr(BRAND.tagline, lang)}</Text>
             <View style={styles.logoVersion}>
               <Text style={styles.logoVersionText}>v1.0.0</Text>
             </View>
@@ -160,7 +152,7 @@ export default function AboutScreen() {
           </FadeUp>
         ))}
 
-        {/* Əlaqə — yalnız MOSQUE-da doldurulmuş məlumatlar */}
+        {/* Əlaqə — platformanın sayt və sosial şəbəkə keçidləri */}
         {contacts.length > 0 ? (
           <FadeUp delay={620}>
             <View style={[styles.contactCard, { backgroundColor: c.card, borderColor: c.cardBorder }, dark ? Shadows.dark.sm : Shadows.sm]}>
@@ -208,7 +200,7 @@ export default function AboutScreen() {
           </TouchableOpacity>
         </FadeUp>
 
-        {/* Stats — tətbiqin bölmələri (məscidin xidmətləri deyil) */}
+        {/* Stats — tətbiqin bölmələri */}
         <FadeUp delay={700}>
           <View style={[styles.statsCard, { backgroundColor: c.card, borderColor: c.cardBorder }, sh]}>
             <View style={styles.statItem}>

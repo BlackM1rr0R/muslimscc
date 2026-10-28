@@ -8,10 +8,9 @@
 // vəziyyət göstərilir. Firebase qoşulmayıbsa da eyni boş vəziyyət — xəta yoxdur.
 // Deaktiv (active === false) elanlar göstərilmir.
 //
-// Siyahının başında həmişə sabitlənmiş "Məscidə yardım" kartı durur — o, elan
-// deyil: İanə ekranına (Donate) keçid və "Yol tarifi" (məscidin koordinatı ilə
-// Google Maps marşrutu). Mətni veb /announcements ilə eynidir; rekvizit,
-// məbləğ və s. burada yazılmır (MOSQUE.donation hələ boşdur).
+// Siyahının başında həmişə sabitlənmiş "Xeyriyyə və ianə" kartı durur — o, elan
+// deyil: "Xeyriyyə və ianə" bələdçisinə (Donate) keçiddir. Rekvizit, məbləğ və
+// s. burada yazılmır — Muslims.cc ianə qəbul etmir.
 // ═══════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -24,79 +23,80 @@ import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp } from '../components/Animated';
-import { BRAND, LANGS, MOSQUE, filled, tr } from '../config/mosque';
+import { BRAND, LANGS } from '../config/brand';
 import { subscribeToAnnouncements, subscribeToEvents } from '../data/adminContent';
+import { pickLang } from '../utils/pickLang';
 
 const LABELS = {
   az: {
-    title: 'Elanlar', subtitle: 'Məsciddən son xəbərlər və elanlar',
+    title: 'Elanlar', subtitle: `${BRAND.name.az} — son xəbərlər və elanlar`,
     latest: 'Son elanlar', all: 'Hamısı', loading: 'Yüklənir…',
-    empty: 'Hazırda aktiv elan yoxdur', emptySub: 'Məscidin yeni elanları burada görünəcək.',
+    empty: 'Hazırda aktiv elan yoxdur', emptySub: 'Yeni elanlar burada görünəcək.',
     enableNotif: 'Bildirişləri aktivləşdir', seeTimes: 'Namaz vaxtlarına bax',
     readMore: 'Ətraflı', isNew: 'Yeni',
     eventsEyebrow: 'Hicri təqvim', eventsTitle: 'Qarşıdakı İslami günlər',
     eventsNote: 'Tarixlər hesablanmış hicri təqvimə əsaslanır; ayın görünməsinə görə bir gün fərq ola bilər.',
     next: 'Növbəti', today: 'Bu gün', fullCalendar: 'Tam təqvim',
     showMore: 'Daha çox göstər', showLess: 'Daha az göstər',
-    pinned: 'Sabitlənmiş', donateTitle: 'Məscidə yardım',
-    donateText: 'Məscid camaatın dəstəyi ilə abad olur. İanə etməklə və ya namaza gəlməklə siz də öz payınızı verə bilərsiniz.',
-    donateCta: 'Məscidə ianə', directions: 'Yol tarifi',
+    pinned: 'Sabitlənmiş', donateTitle: 'Xeyriyyə və ianə',
+    donateText: 'Sədəqənin fəziləti, zəkatın hesablanması və etibarlı ianə üçün qısa bələdçi.',
+    donateCta: 'Bələdçiyə bax',
   },
   en: {
-    title: 'Announcements', subtitle: 'Latest news and announcements from the mosque',
+    title: 'Announcements', subtitle: `${BRAND.name.en} — latest news and announcements`,
     latest: 'Latest announcements', all: 'All', loading: 'Loading…',
-    empty: 'There are no active announcements right now', emptySub: 'New announcements from the mosque will appear here.',
+    empty: 'There are no active announcements right now', emptySub: 'New announcements will appear here.',
     enableNotif: 'Turn on notifications', seeTimes: 'See prayer times',
     readMore: 'Read more', isNew: 'New',
     eventsEyebrow: 'Hijri calendar', eventsTitle: 'Upcoming Islamic dates',
     eventsNote: 'Dates follow the calculated Hijri calendar and may differ by a day depending on the moon sighting.',
     next: 'Next', today: 'Today', fullCalendar: 'Full calendar',
     showMore: 'Show more', showLess: 'Show less',
-    pinned: 'Pinned', donateTitle: 'Support the mosque',
-    donateText: 'A mosque thrives through the support of its community. You can do your part by donating or simply by coming to pray.',
-    donateCta: 'Donate to the mosque', directions: 'Get directions',
+    pinned: 'Pinned', donateTitle: 'Charity & Giving',
+    donateText: 'A short guide to the virtue of charity, calculating zakat and giving to trusted recipients.',
+    donateCta: 'Open the guide',
   },
   ru: {
-    title: 'Объявления', subtitle: 'Последние новости и объявления мечети',
+    title: 'Объявления', subtitle: `${BRAND.name.ru} — последние новости и объявления`,
     latest: 'Последние объявления', all: 'Все', loading: 'Загрузка…',
-    empty: 'Сейчас нет активных объявлений', emptySub: 'Новые объявления мечети появятся здесь.',
+    empty: 'Сейчас нет активных объявлений', emptySub: 'Новые объявления появятся здесь.',
     enableNotif: 'Включить уведомления', seeTimes: 'Время намаза',
     readMore: 'Подробнее', isNew: 'Новое',
     eventsEyebrow: 'Календарь хиджры', eventsTitle: 'Ближайшие исламские даты',
     eventsNote: 'Даты рассчитаны по календарю хиджры и могут отличаться на один день в зависимости от наблюдения луны.',
     next: 'Следующее', today: 'Сегодня', fullCalendar: 'Весь календарь',
     showMore: 'Показать ещё', showLess: 'Свернуть',
-    pinned: 'Закреплено', donateTitle: 'Помощь мечети',
-    donateText: 'Мечеть живёт поддержкой своей общины. Вы можете внести свой вклад — пожертвованием или просто приходя на намаз.',
-    donateCta: 'Пожертвовать мечети', directions: 'Проложить маршрут',
+    pinned: 'Закреплено', donateTitle: 'Благотворительность и пожертвования',
+    donateText: 'Краткое руководство: достоинство милостыни, расчёт закята и надёжные получатели пожертвований.',
+    donateCta: 'Открыть руководство',
   },
   ar: {
-    title: 'الإعلانات', subtitle: 'آخر أخبار المسجد وإعلاناته',
+    title: 'الإعلانات', subtitle: `${BRAND.name.ar} — آخر الأخبار والإعلانات`,
     latest: 'أحدث الإعلانات', all: 'الكل', loading: 'جارٍ التحميل…',
-    empty: 'لا توجد إعلانات حالياً', emptySub: 'ستظهر إعلانات المسجد الجديدة هنا.',
+    empty: 'لا توجد إعلانات حالياً', emptySub: 'ستظهر الإعلانات الجديدة هنا.',
     enableNotif: 'تفعيل الإشعارات', seeTimes: 'مواقيت الصلاة',
     readMore: 'المزيد', isNew: 'جديد',
     eventsEyebrow: 'التقويم الهجري', eventsTitle: 'المناسبات الإسلامية القادمة',
     eventsNote: 'التواريخ محسوبة وفق التقويم الهجري وقد تختلف بيوم واحد بحسب رؤية الهلال.',
     next: 'القادم', today: 'اليوم', fullCalendar: 'التقويم الكامل',
     showMore: 'عرض المزيد', showLess: 'عرض أقل',
-    pinned: 'مثبّت', donateTitle: 'دعم المسجد',
-    donateText: 'يُعمَر المسجد بدعم أهله وروّاده. يمكنك أن تُسهم في ذلك بالتبرع أو بالحضور إلى الصلاة فيه.',
-    donateCta: 'التبرع للمسجد', directions: 'الاتجاهات',
+    pinned: 'مثبّت', donateTitle: 'الصدقة والتبرع',
+    donateText: 'دليل مختصر عن فضل الصدقة وحساب الزكاة والتبرع للجهات الموثوقة.',
+    donateCta: 'افتح الدليل',
   },
   tr: {
-    title: 'Duyurular', subtitle: 'Camiden son haberler ve duyurular',
+    title: 'Duyurular', subtitle: `${BRAND.name.tr} — son haberler ve duyurular`,
     latest: 'Son duyurular', all: 'Tümü', loading: 'Yükleniyor…',
-    empty: 'Şu anda aktif duyuru yok', emptySub: 'Caminin yeni duyuruları burada görünecek.',
+    empty: 'Şu anda aktif duyuru yok', emptySub: 'Yeni duyurular burada görünecek.',
     enableNotif: 'Bildirimleri aç', seeTimes: 'Namaz vakitleri',
     readMore: 'Devamı', isNew: 'Yeni',
     eventsEyebrow: 'Hicri takvim', eventsTitle: 'Yaklaşan İslami günler',
     eventsNote: 'Tarihler hesaplanmış hicri takvime göredir; hilalin görülmesine göre bir gün fark olabilir.',
     next: 'Sıradaki', today: 'Bugün', fullCalendar: 'Tüm takvim',
     showMore: 'Daha fazla göster', showLess: 'Daha az göster',
-    pinned: 'Sabitlenmiş', donateTitle: 'Camiye destek',
-    donateText: 'Cami, cemaatinin desteğiyle mamur olur. Bağış yaparak ya da namaza gelerek siz de katkıda bulunabilirsiniz.',
-    donateCta: 'Camiye bağış', directions: 'Yol tarifi',
+    pinned: 'Sabitlenmiş', donateTitle: 'Hayır ve Bağış',
+    donateText: 'Sadakanın fazileti, zekâtın hesaplanması ve güvenilir bağış için kısa rehber.',
+    donateCta: 'Rehberi aç',
   },
 };
 
@@ -146,10 +146,11 @@ const PATH_ROUTES = {
   history: 'History', sahaba: 'Sahabe', holyplaces: 'HolyPlaces', mosques: 'Mosques',
   dailytracker: 'DailyTracker', charity: 'Charity', duajournal: 'DuaJournal', quotes: 'Quotes',
   videos: 'Videos', books: 'Books', aichat: 'AIChat', kids: 'Kids', about: 'About',
-  mosque: 'Mosque', jamaat: 'Jamaat', announcements: 'Announcements', donate: 'Donate',
+  // Köhnə /mosque linkləri — məscid haqqında ekranı silinib, Haqqımızda açılır
+  mosque: 'About', jamaat: 'Jamaat', announcements: 'Announcements', donate: 'Donate',
 };
 
-// Sabitlənmiş "Məscidə yardım" kartının rəngi — naviqasiyadakı İanə düyməsi ilə eyni
+// Sabitlənmiş "Xeyriyyə və ianə" kartının rəngi — naviqasiyadakı düymə ilə eyni
 const DONATE_GRADIENT = ['#22c55e', '#16a34a'];
 const DONATE_COLOR = '#16a34a';
 const DONATE_DARK = '#15803d';   // açıq fonda oxunaqlı mətn rəngi
@@ -207,18 +208,6 @@ function resolveLink(link) {
   }
   if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(s)) return { url: 'https://' + s };
   return null;
-}
-
-/**
- * "Yol tarifi" linki: dəqiq koordinat varsa Google Maps marşrutu (veb ilə eyni),
- * yoxsa sahibin verdiyi xəritə linki. Heç biri yoxdursa '' — düymə göstərilmir.
- */
-function directionsHref() {
-  const { lat, lng } = MOSQUE.geo || {};
-  if (filled(lat) && filled(lng)) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${Number(lat)},${Number(lng)}`;
-  }
-  return filled(MOSQUE.mapUrl) ? String(MOSQUE.mapUrl).trim() : '';
 }
 
 /**
@@ -302,8 +291,9 @@ export default function AnnouncementsScreen({ navigation }) {
       .filter(a => a && a.active !== false)
       .map(a => ({
         ...a,
-        _title: tr(a.title, lang).trim(),
-        _message: tr(a.message, lang).trim(),
+        // Yalnız cari dil — əskikdirsə başqa dilə (ingiliscə daxil) düşmür
+        _title: pickLang(a.title, lang),
+        _message: pickLang(a.message, lang),
         _ms: toMillis(a.createdAt),
         _link: resolveLink(a.link),
         _type: ANN_TYPES.find(t => t.key === a.type) || ANN_TYPES[0],
@@ -344,8 +334,8 @@ export default function AnnouncementsScreen({ navigation }) {
           _month: month,
           _day: day,
           _order: order,
-          _name: tr(ev.name, lang).trim(),
-          _desc: tr(ev.desc, lang).trim(),
+          _name: pickLang(ev.name, lang),
+          _desc: pickLang(ev.desc, lang),
           _type: EVENT_TYPES.find(t => t.key === ev.type) || EVENT_TYPES[0],
         };
       })
@@ -375,7 +365,6 @@ export default function AnnouncementsScreen({ navigation }) {
   };
 
   const typeLabel = (t) => t.label[lang] || t.label.en;
-  const mapHref = directionsHref();
   const donateInk = dark ? '#4ade80' : DONATE_DARK;
 
   return (
@@ -388,7 +377,7 @@ export default function AnnouncementsScreen({ navigation }) {
         {/* ═══ ELANLAR ═══ */}
         <Text style={[styles.sectionTitle, { color: c.text }, rtl]}>{l.latest}</Text>
 
-        {/* Sabitlənmiş: Məscidə yardım — İanə ekranı + yol tarifi (həmişə yuxarıda, süzgəcdən asılı deyil) */}
+        {/* Sabitlənmiş: Xeyriyyə və ianə bələdçisi (həmişə yuxarıda, süzgəcdən asılı deyil) */}
         <FadeUp delay={40}>
           <View style={[styles.card, styles.pinCard, { backgroundColor: c.card, borderColor: DONATE_COLOR + '55' }, sh]}>
             <LinearGradient
@@ -414,7 +403,7 @@ export default function AnnouncementsScreen({ navigation }) {
               </View>
             </View>
 
-            {/* İki düymə: İanə ekranı | Yol tarifi (xəritə linki yoxdursa yalnız birincisi) */}
+            {/* Bələdçiyə keçid */}
             <View style={[styles.pinCta, { borderTopColor: c.border }]}>
               <TouchableOpacity
                 onPress={() => go('Donate')}
@@ -425,22 +414,6 @@ export default function AnnouncementsScreen({ navigation }) {
                 <Text style={[styles.moreText, styles.pinBtnText, { color: donateInk }]} numberOfLines={2}>{l.donateCta}</Text>
                 <AppIcon name="chevronRight" size={16} color={donateInk} style={isAr ? styles.flipX : null} />
               </TouchableOpacity>
-              {mapHref ? (
-                <>
-                  <View style={[styles.pinDivider, { backgroundColor: c.border }]} />
-                  <TouchableOpacity
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      Linking.openURL(mapHref).catch(() => {});
-                    }}
-                    activeOpacity={0.7}
-                    accessibilityRole="link"
-                    style={styles.pinBtn}
-                  >
-                    <Text style={[styles.moreText, styles.pinBtnText, { color: c.primary }]} numberOfLines={2}>🧭 {l.directions}</Text>
-                  </TouchableOpacity>
-                </>
-              ) : null}
             </View>
           </View>
         </FadeUp>
@@ -716,7 +689,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   pinBtnText: { flexShrink: 1, textAlign: 'center' },
-  pinDivider: { width: 1, marginVertical: 10 },
   flipX: { transform: [{ scaleX: -1 }] },
   moreText: { fontSize: 13, fontWeight: '800' },
 

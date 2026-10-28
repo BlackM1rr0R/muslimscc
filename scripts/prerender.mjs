@@ -22,19 +22,23 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, pathFor } from '../src/seo/routes.js'
-import { titleFor, descFor, shortName, UI } from '../src/seo/meta.js'
-import { brandName, mosqueJsonLd } from '../src/config/mosque.js'
+import { titleFor, descFor, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
+import { brandName, siteJsonLd } from '../src/config/brand.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const DIST = path.join(ROOT, 'dist')
-const OG_IMAGE = `${SITE}/og-image.png`
+// Çıxış qovluğu: susmaya görə dist/. `--out <qovluq>` (və ya PRERENDER_DIST
+// mühit dəyişəni) ilə başqa qovluq verilə bilər — məs. `vite build --outDir X`
+// ilə ayrıca yığılmış nüsxəni yoxlamaq üçün, işlək dist/-ə toxunmadan.
+const outArg = process.argv.indexOf('--out')
+const DIST = path.resolve(ROOT,
+  outArg > -1 && process.argv[outArg + 1] ? process.argv[outArg + 1]
+  : process.env.PRERENDER_DIST || 'dist')
 
-// schema.org/Mosque hansı səhifələrdə yazılır — src/seo/Seo.jsx-dəki
-// MOSQUE_JSONLD_PAGES ilə EYNİ olmalıdır. Sabit @id iki səhifədəki bloku
-// Google üçün bir məscid obyektinə birləşdirir. index.html-də statik Mosque
-// bloku yoxdur, ona görə heç bir səhifədə iki Mosque obyekti yaranmır.
-const MOSQUE_JSONLD_PAGES = ['home', 'mosque']
-const mosqueEntity = (lang) => ({ ...mosqueJsonLd(lang), '@id': `${SITE}/#mosque` })
+// Sayt sxemi (schema.org WebSite + Organization) hansı səhifələrdə yazılır —
+// src/seo/Seo.jsx-dəki SITE_JSONLD_PAGES ilə EYNİ olmalıdır. Yalnız ana
+// səhifədə: Google sayt adını və loqosunu kök URL-dən götürür. index.html-dəki
+// statik WebSite bloku eyni @id-ni (…/#website) daşıyır — bir obyekt sayılır.
+const SITE_JSONLD_PAGES = ['home']
 
 // Tanınmayan ünvan (404) — App.jsx parsePath(...).known === false olanda
 // məhz bu açarla NotFoundPage göstərir, Seo.jsx də eyni açarı yoxlayır.
@@ -98,7 +102,8 @@ function headFor(key, lang) {
     description: desc,
     url: canonical,
     inLanguage: lang,
-    isPartOf: { '@type': 'WebSite', name: brandName(lang), url: SITE + '/' },
+    // @id siteJsonLd()-dəki WebSite ilə eynidir — Google onları birləşdirir
+    isPartOf: { '@type': 'WebSite', '@id': SITE + '/#website', name: brandName(lang), url: SITE + '/' },
     breadcrumb: breadcrumbFor(key, lang, title),
   }
 
@@ -106,9 +111,9 @@ function headFor(key, lang) {
     `    <link rel="canonical" href="${canonical}" data-seo="canonical" />`,
     alts,
     `    <script type="application/ld+json" data-seo="page-jsonld">${JSON.stringify(jsonld)}</script>`,
-    // Məscid sxemi (schema.org/Mosque) — ana səhifədə və "Məscid haqqında"-da, həmin dildə
-    ...(MOSQUE_JSONLD_PAGES.includes(key)
-      ? [`    <script type="application/ld+json" data-seo="mosque-jsonld">${JSON.stringify(mosqueEntity(lang))}</script>`]
+    // Sayt sxemi (WebSite + Organization) — yalnız ana səhifədə, həmin dildə
+    ...(SITE_JSONLD_PAGES.includes(key)
+      ? [`    <script type="application/ld+json" data-seo="site-jsonld">${JSON.stringify(siteJsonLd(lang))}</script>`]
       : []),
   ].join('\n')
 }
@@ -179,7 +184,7 @@ function renderPage(template, key, lang, noindex = false) {
     ? html.replace(/[ \t]*<meta\s+[^>]*property=["']og:url["'][^>]*>[ \t]*\r?\n?/i, '')
     : replaceMeta(html, 'property', 'og:url', canonical)
   html = replaceMeta(html, 'property', 'og:locale', LOCALES[lang] || LOCALES.az)
-  // Sayt adı da səhifənin dilində (əvvəl hər dildə "Qaraçuxur Məscidi" idi)
+  // Sayt adı da səhifənin dilində (BRAND.name hər dil üçün ayrıca verilir)
   html = replaceMeta(html, 'property', 'og:site_name', brandName(lang))
   // og:locale:alternate — cari dildən BAŞQA dörd dil (şablondakı sabit siyahı
   // /en/ səhifəsində en_US-u özünə alternativ göstərir, az_AZ-ı buraxırdı)
@@ -189,10 +194,14 @@ function renderPage(template, key, lang, noindex = false) {
       .map(l => `\n    <meta property="og:locale:alternate" content="${LOCALES[l]}" />`)
       .join(''),
   )
-  html = replaceMeta(html, 'property', 'og:image', OG_IMAGE)
+  // Paylaşım kartı səhifənin dilində (og-image-<dil>.png, az = og-image.png)
+  const ogAlt = OG_ALT[lang] || OG_ALT.az
+  html = replaceMeta(html, 'property', 'og:image', ogImageFor(lang))
+  html = replaceMeta(html, 'property', 'og:image:alt', ogAlt)
   html = replaceMeta(html, 'name', 'twitter:title', title)
   html = replaceMeta(html, 'name', 'twitter:description', desc)
-  html = replaceMeta(html, 'name', 'twitter:image', OG_IMAGE)
+  html = replaceMeta(html, 'name', 'twitter:image', ogImageFor(lang))
+  html = replaceMeta(html, 'name', 'twitter:image:alt', ogAlt)
 
   // Statik noscript blokunu səhifəyə uyğun olanı ilə əvəz et
   html = html.replace(/<noscript>[\s\S]*?<\/noscript>/i, () => noscriptFor(key, lang))

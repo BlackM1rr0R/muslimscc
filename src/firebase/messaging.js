@@ -1,10 +1,23 @@
 // ═══ FIREBASE CLOUD MESSAGING (FCM) ═══
+//
+// Token Firestore-da `fcm_tokens/<token>` sənədində saxlanılır:
+//   { token, userAgent, lang, loc:{ lat, lng, tz, method, city:{az,en,ru,ar,tr} },
+//     createdAt:<ms>, updatedAt:<serverTimestamp> }
+// `loc` istifadəçinin seçdiyi namaz yeridir (utils/prayerLocation.js) — server
+// hər istifadəçiyə ÖZ şəhərinin azan vaxtında push göndərir. İstifadəçi
+// şəhəri dəyişəndə setPrayerCity() → updateTokenLocation() sənədi yeniləyir
+// (merge — createdAt itmir).
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging'
-import app, { isFirebaseConfigured } from './config'
-import { setSingleDoc, addDocument, COLLECTIONS } from './firestore'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import app, { db, isFirebaseConfigured } from './config'
+import { getPrayerLocation } from '../utils/prayerLocation'
 
 // VAPID açar — Firebase Console > Project Settings > Cloud Messaging > Web Push certificates
 const VAPID_KEY = import.meta.env.VITE_FCM_VAPID_KEY || ''
+
+const TOKEN_KEY = 'muslim_cc_fcm_token'
+const LANG_KEY = 'muslim_cc_lang'
+const TOKENS_COLLECTION = 'fcm_tokens'
 
 let _messaging = null
 
@@ -76,20 +89,66 @@ export async function requestNotificationPermission() {
   }
 }
 
+function readLS(key) {
+  try { return localStorage.getItem(key) } catch { return null }
+}
+
+/** Sənədə yazılan namaz yeri — yalnız serverə lazım olan sahələr. */
+function locationPayload() {
+  const loc = getPrayerLocation()
+  return {
+    lat: loc.lat,
+    lng: loc.lng,
+    tz: loc.tz,
+    method: loc.method,
+    city: { ...loc.city },
+  }
+}
+
+function currentLang() {
+  return readLS(LANG_KEY) || 'az'
+}
+
 // ─── Token-i Firestore-da unikal şəkildə saxla ───
 async function saveTokenToFirestore(token) {
   try {
-    // Token-i ID kimi istifadə et ki, təkrar saxlanmasın
-    await setSingleDoc('fcm_tokens', token, {
+    if (!db) return
+    const now = Date.now()
+    // Token sənədin ID-sidir — təkrar saxlanmır. merge: əvvəlki createdAt qalsın
+    // deyə yalnız token ilk dəfə yazılanda createdAt əlavə olunur.
+    const isNew = readLS(TOKEN_KEY) !== token
+    await setDoc(doc(db, TOKENS_COLLECTION, token), {
       token,
       userAgent: navigator.userAgent,
-      lang: localStorage.getItem('muslim_cc_lang') || 'az',
-      createdAt: Date.now(),
-    })
+      lang: currentLang(),
+      loc: locationPayload(),
+      ...(isNew ? { createdAt: now } : {}),
+      updatedAt: serverTimestamp(),
+    }, { merge: true })
     // Lokal yadda saxla
-    localStorage.setItem('muslim_cc_fcm_token', token)
+    try { localStorage.setItem(TOKEN_KEY, token) } catch { /* yaddaş bağlıdır */ }
   } catch (e) {
     console.warn('FCM token save failed:', e.message)
+  }
+}
+
+/**
+ * İstifadəçi şəhəri (və ya dili) dəyişəndə çağırılır: token varsa onun
+ * sənədində loc və lang yenilənir. Token yoxdursa heç nə etmir.
+ */
+export async function updateTokenLocation() {
+  const token = readLS(TOKEN_KEY)
+  if (!token || !db || !isFirebaseConfigured()) return false
+  try {
+    await setDoc(doc(db, TOKENS_COLLECTION, token), {
+      lang: currentLang(),
+      loc: locationPayload(),
+      updatedAt: serverTimestamp(),
+    }, { merge: true })
+    return true
+  } catch (e) {
+    console.warn('FCM location update failed:', e.message)
+    return false
   }
 }
 
@@ -103,11 +162,11 @@ export async function onForegroundMessage(callback) {
 // ─── İstifadəçi göstərmək istəmirsə tokeni silmək ───
 export function getStoredToken() {
   if (typeof window === 'undefined') return null
-  return localStorage.getItem('muslim_cc_fcm_token')
+  return readLS(TOKEN_KEY)
 }
 
 export function clearStoredToken() {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('muslim_cc_fcm_token')
+    try { localStorage.removeItem(TOKEN_KEY) } catch { /* */ }
   }
 }

@@ -1,11 +1,16 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { BRAND, brandName } from '../config/mosque'
+import { BRAND, brandName } from '../config/brand'
 import { QUOTES as STATIC_QUOTES } from '../data/quotes'
 import { subscribeToQuotes } from '../data/adminContent'
 import { localizeSource } from '../utils/sourceNames'
+import { pickLang } from '../utils/pickLang'
 import { dedupeList, hadithKeys } from '../utils/uniqueHadiths'
 import '../styles/QuoteGeneratorPage.css'
+
+// Sitatın tərcüməsi YALNIZ cari dildə. Ərəbcədə orijinal mətn onsuz da göstərilir —
+// tərcümə sətri yoxdur (əvvəl ar istifadəçisi ingiliscə tərcümə görürdü).
+const translationOf = (q, lang) => (lang === 'ar' ? '' : pickLang(q?.text, lang))
 
 /* ── Labels ── */
 const LABELS = {
@@ -202,8 +207,10 @@ export default function QuoteGeneratorPage({ setPage }) {
   // Firebase-ə köçürə bilir — surətlər bir dəfə sayılsın (ərəb mətni və ya
   // Azərbaycanca mətn eynidirsə; utils/uniqueHadiths ilə eyni qayda)
   const QUOTES = useMemo(
-    () => dedupeList([...customQuotes, ...STATIC_QUOTES], q => hadithKeys(q.ar, q.text?.az, q.source), { idOf: q => q }).items,
-    [customQuotes],
+    () => dedupeList([...customQuotes, ...STATIC_QUOTES], q => hadithKeys(q.ar, q.text?.az, q.source), { idOf: q => q }).items
+      // Cari dildə mətni olmayan admin sitatı bu dildə göstərilmir (ərəbcədə — orijinal varsa)
+      .filter(q => (lang === 'ar' ? q.ar : pickLang(q.text, lang, { warn: false }))),
+    [customQuotes, lang],
   )
   const [custom, setCustom] = useState({
     arFontSize: 24,    // px
@@ -234,8 +241,7 @@ export default function QuoteGeneratorPage({ setPage }) {
 
   /* ── Copy text ── */
   const copyText = useCallback(async () => {
-    const translation = quote.text[lang] || quote.text.en
-    const text = `${quote.ar}\n\n${translation}\n\n— ${localizeSource(quote.source, lang)}`
+    const text = [quote.ar, translationOf(quote, lang), `— ${localizeSource(quote.source, lang)}`].filter(Boolean).join('\n\n')
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
@@ -245,8 +251,7 @@ export default function QuoteGeneratorPage({ setPage }) {
 
   /* ── Share via Web Share API ── */
   const shareQuote = useCallback(async () => {
-    const translation = quote.text[lang] || quote.text.en
-    const text = `${quote.ar}\n\n${translation}\n\n— ${localizeSource(quote.source, lang)}\n\n${brandName(lang)} — muslims.cc`
+    const text = [quote.ar, translationOf(quote, lang), `— ${localizeSource(quote.source, lang)}`, `${brandName(lang)} — muslims.cc`].filter(Boolean).join('\n\n')
     if (navigator.share) {
       try { await navigator.share({ title: t.title, text }) } catch { /* user cancelled */ }
     } else {
@@ -301,7 +306,7 @@ export default function QuoteGeneratorPage({ setPage }) {
     }
 
     // Translation
-    const translation = quote.text[lang] || quote.text.en
+    const translation = translationOf(quote, lang)
     ctx.font = '32px Inter, sans-serif'
     ctx.fillStyle = dimColor
     const trLines = wrapText(ctx, translation, 860)
@@ -334,7 +339,7 @@ export default function QuoteGeneratorPage({ setPage }) {
 
     // Download
     const link = document.createElement('a')
-    link.download = 'qaracuxur-mescidi-quote.png'
+    link.download = 'muslims-cc-quote.png'
     link.href = canvas.toDataURL('image/png')
     link.click()
   }, [quote, theme, lang])
@@ -347,7 +352,7 @@ export default function QuoteGeneratorPage({ setPage }) {
     setAnimKey(k => k + 1)
   }, [QUOTES])
 
-  const translation = quote.text[lang] || quote.text.en
+  const translation = translationOf(quote, lang)
   // En/hündürlük nisbəti — hündür dizayn (9:16) ekrana sığsın deyə kartın
   // maksimum eni CSS-də bu ədədlə hesablanır
   const [ratioW, ratioH] = String(layout.ratio).split('/').map(Number)
@@ -417,7 +422,7 @@ export default function QuoteGeneratorPage({ setPage }) {
                 )}
 
                 {/* Tərcümə */}
-                {!layout.hideTranslation && (
+                {!layout.hideTranslation && translation && (
                   <div className="qg-card-translation" style={{
                     fontSize: `${custom.trFontSize}px`,
                     ...(custom.textColor ? { color: custom.textColor, opacity: 0.8 } : {}),

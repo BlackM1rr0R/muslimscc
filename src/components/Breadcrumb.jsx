@@ -6,7 +6,7 @@ import '../styles/Breadcrumb.css'
 // Çörək qırıntısı (breadcrumb) — səhifə hero-larında ortaq komponent
 //
 // Əvvəl hər səhifə öz izini yazırdı: bəzisi "Ana Səhifə ›", bəzisi
-// "Qaraçuxur Məscidi ›", bəzisi "Qaraçuxur Məscidi /". İndi hamısı eynidir:
+// "<brend> ›", bəzisi "<brend> /". İndi hamısı eynidir:
 //   Ana səhifə › Cari səhifə        (ərəbcədə sağdan sola: ‹)
 //
 // Kök — həqiqi link (href = ana səhifənin ünvanı): Ctrl/orta klik yeni
@@ -15,6 +15,9 @@ import '../styles/Breadcrumb.css'
 // hero içində ağ) və motion.css-dəki "telefonda .hero-compact-da gizlət"
 // qaydası olduğu kimi işləyir.
 // ═══════════════════════════════════════════════════════
+
+// Naviqasiya zəncirinin ekran oxuyucusu üçün adı (5 dil)
+const NAV_LABEL = { az:'Naviqasiya zənciri', en:'Breadcrumb', ru:'Навигационная цепочка', ar:'مسار التنقل', tr:'Gezinme yolu' }
 
 const HOME = {
   az: 'Ana səhifə',
@@ -44,7 +47,7 @@ export default function Breadcrumb({ setPage, current }) {
   }
 
   return (
-    <nav className="breadcrumb bc" aria-label="breadcrumb">
+    <nav className="breadcrumb bc" aria-label={NAV_LABEL[lang]}>
       <ol className="bc-list">
         <li className="bc-item">
           <a className="bc-home" href={pathFor('home', lang)} onClick={goHome}>

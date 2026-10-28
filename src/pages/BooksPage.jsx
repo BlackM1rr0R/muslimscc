@@ -6,6 +6,8 @@ import Pagination from '../components/Pagination'
 import { useBackToClose } from '../utils/useBackToClose'
 import { useSheetDrag } from '../hooks/useSheetDrag'
 import '../styles/BooksPage.css'
+// Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
+import { pickLang, hasLang } from '../utils/pickLang'
 
 const LABELS = {
   az: { title:'Kitabxana', subtitle:'İslami kitablar, təfsirlər və elm əsərləri', search:'Kitab axtar...', filter:'Filtr', featured:'Seçilmiş Kitablar', allBooks:'Bütün Kitablar', moreBooks:'Digər kitablar', noResults:'Kitab tapılmadı', loading:'Yüklənir...', books:'kitab', author:'Müəllif', read:'Oxu', preview:'Önizlə', readPdf:'PDF açın', noPdf:'PDF mövcud deyil', pages:'səhifə', year:'İl', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
@@ -42,7 +44,9 @@ export default function BooksPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
 
-  const [books, setBooks] = useState([])
+  const [allBooks, setBooks] = useState([])
+  // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)
+  const books = useMemo(() => allBooks.filter(b => hasLang(b.title, lang)), [allBooks, lang])
   const [loading, setLoading] = useState(true)
   const [selectedCat, setSelectedCat] = useState('all')
   const [search, setSearch] = useState('')
@@ -85,9 +89,9 @@ export default function BooksPage({ setPage }) {
     if (search.trim()) {
       const q = search.toLowerCase()
       list = list.filter(b => {
-        const title = (b.title?.[lang] || b.title?.en || '').toLowerCase()
-        const author = (b.author?.[lang] || b.author?.en || '').toLowerCase()
-        const desc = (b.description?.[lang] || b.description?.en || '').toLowerCase()
+        const title = (pickLang(b.title, lang) || '').toLowerCase()
+        const author = (pickLang(b.author, lang, { warn: false }) || '').toLowerCase()
+        const desc = (pickLang(b.description, lang, { warn: false }) || '').toLowerCase()
         return title.includes(q) || author.includes(q) || desc.includes(q)
       })
     }
@@ -152,8 +156,8 @@ export default function BooksPage({ setPage }) {
   }, [isOpen])
 
   const handleShare = async (b) => {
-    const title = b.title?.[lang] || b.title?.en
-    const author = b.author?.[lang] || b.author?.en
+    const title = pickLang(b.title, lang)
+    const author = pickLang(b.author, lang, { warn: false })
     const text = `📚 ${title} — ${author}`
     if (navigator.share) {
       try { await navigator.share({ title, text, url: b.pdfUrl || window.location.href }) } catch {}
@@ -168,11 +172,13 @@ export default function BooksPage({ setPage }) {
 
   const renderCover = (b, size = 'normal') => {
     const cat = BOOK_CATEGORIES.find(c => c.key === b.category)
-    if (b.coverUrl) {
+    // Avtomatik üz qabığı seçilmiş dildə (coverByLang), real şəkil olduğu kimi
+    const cover = b.coverByLang?.[lang] || b.coverUrl
+    if (cover) {
       return (
         <img
-          src={b.coverUrl}
-          alt={b.title?.[lang] || b.title?.en}
+          src={cover}
+          alt={pickLang(b.title, lang)}
           loading="lazy"
           onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.classList.add('bp-cover-fallback') }}
         />
@@ -181,7 +187,7 @@ export default function BooksPage({ setPage }) {
     return (
       <div className="bp-cover-placeholder" style={{background: `linear-gradient(135deg, ${cat?.color || '#10b981'}, ${cat?.color || '#10b981'}dd)`}}>
         <div className="bp-cover-icon">📖</div>
-        <div className="bp-cover-cat">{cat?.label[lang] || cat?.label.en}</div>
+        <div className="bp-cover-cat">{cat?.label[lang]}</div>
       </div>
     )
   }
@@ -247,7 +253,7 @@ export default function BooksPage({ setPage }) {
                       </div>
                       {cat && (
                         <div className="bp-featured-badge" style={{background: cat.color}}>
-                          {cat.label[lang] || cat.label.en}
+                          {cat.label[lang]}
                         </div>
                       )}
                       {b.pdfUrl && (
@@ -255,8 +261,8 @@ export default function BooksPage({ setPage }) {
                       )}
                     </div>
                     <div className="bp-featured-body">
-                      <h3>{b.title?.[lang] || b.title?.en}</h3>
-                      <p className="bp-featured-author">✍️ {b.author?.[lang] || b.author?.en}</p>
+                      <h3>{pickLang(b.title, lang)}</h3>
+                      <p className="bp-featured-author">✍️ {pickLang(b.author, lang, { warn: false })}</p>
                     </div>
                   </article>
                 )
@@ -292,7 +298,7 @@ export default function BooksPage({ setPage }) {
                   onClick={() => setSelectedCat(cat.key)}
                   style={active ? activeStyle : { '--cat-color': cat.key === 'all' ? 'var(--primary)' : cat.color }}
                 >
-                  <span>{cat.label[lang] || cat.label.en}</span>
+                  <span>{cat.label[lang]}</span>
                   <span className="bp-cat-count">{count}</span>
                 </button>
               )
@@ -342,7 +348,7 @@ export default function BooksPage({ setPage }) {
                       </div>
                       {cat && (
                         <div className="bp-cover-badge" style={{color: cat.color}}>
-                          {cat.label[lang] || cat.label.en}
+                          {cat.label[lang]}
                         </div>
                       )}
                       {b.pdfUrl && (
@@ -350,8 +356,8 @@ export default function BooksPage({ setPage }) {
                       )}
                     </div>
                     <div className="bp-body">
-                      <h3 className="bp-title">{b.title?.[lang] || b.title?.en}</h3>
-                      <p className="bp-author">✍️ {b.author?.[lang] || b.author?.en}</p>
+                      <h3 className="bp-title">{pickLang(b.title, lang)}</h3>
+                      <p className="bp-author">✍️ {pickLang(b.author, lang, { warn: false })}</p>
                       <div className="bp-meta">
                         {b.pages && <span>📄 {b.pages}</span>}
                         {b.year && <span>📅 {b.year}</span>}
@@ -395,7 +401,7 @@ export default function BooksPage({ setPage }) {
               ref={sheetRef}
               role="dialog"
               aria-modal="true"
-              aria-label={selectedBook.title?.[lang] || selectedBook.title?.en}
+              aria-label={pickLang(selectedBook.title, lang)}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Telefonda tutacaq — aşağı çəkib bağlamaq (kompüterdə gizli) */}
@@ -412,20 +418,20 @@ export default function BooksPage({ setPage }) {
                     const cat = BOOK_CATEGORIES.find(c => c.key === selectedBook.category)
                     return cat && (
                       <div className="bp-modal-cat" style={{background: cat.color}}>
-                        {cat.label[lang] || cat.label.en}
+                        {cat.label[lang]}
                       </div>
                     )
                   })()}
-                  <h2>{selectedBook.title?.[lang] || selectedBook.title?.en}</h2>
-                  <p className="bp-modal-author">✍️ {selectedBook.author?.[lang] || selectedBook.author?.en}</p>
+                  <h2>{pickLang(selectedBook.title, lang)}</h2>
+                  <p className="bp-modal-author">✍️ {pickLang(selectedBook.author, lang, { warn: false })}</p>
 
                   <div className="bp-modal-meta">
                     {selectedBook.pages && <span>📄 {selectedBook.pages} {l.pages}</span>}
                     {selectedBook.year && <span>📅 {selectedBook.year}</span>}
                   </div>
 
-                  {(selectedBook.description?.[lang] || selectedBook.description?.en) && (
-                    <p className="bp-modal-desc">{selectedBook.description[lang] || selectedBook.description.en}</p>
+                  {(pickLang(selectedBook.description, lang, { warn: false })) && (
+                    <p className="bp-modal-desc">{pickLang(selectedBook.description, lang, { warn: false })}</p>
                   )}
 
                   <div className="bp-modal-actions">

@@ -31,7 +31,11 @@ export default function AnnouncementSection() {
     return () => unsubscribe?.()
   }, [])
 
-  if (items.length === 0) return null
+  // Yalnız cari dildə başlığı və ya mətni olan elanlar (dil qaydası —
+  // /announcements ilə eyni: başqa dilin mətni göstərilmir)
+  const pick = (v) => (typeof v === 'string' ? v : (v && typeof v[lang] === 'string' ? v[lang] : ''))
+  const shown = items.filter(a => pick(a.title) || pick(a.message))
+  if (shown.length === 0) return null
 
   const handleClick = (a) => {
     if (a.link) window.open(a.link, '_blank', 'noopener')
@@ -48,12 +52,12 @@ export default function AnnouncementSection() {
             <p className="announcement-section-sub">{l.sub}</p>
           </div>
           <span className="announcement-section-count">
-            {items.length} {l.count}
+            {shown.length} {l.count}
           </span>
         </div>
 
         <div className="announcement-grid">
-          {items.map(a => {
+          {shown.map(a => {
             const type = ANNOUNCEMENT_TYPES.find(t => t.key === a.type) || ANNOUNCEMENT_TYPES[0]
             return (
               <article
@@ -84,12 +88,12 @@ export default function AnnouncementSection() {
                 </div>
 
                 <h3 className="announcement-card-title">
-                  {a.title?.[lang] || a.title?.en}
+                  {pick(a.title)}
                 </h3>
 
-                {(a.message?.[lang] || a.message?.en) && (
+                {pick(a.message) && (
                   <p className="announcement-card-message">
-                    {a.message[lang] || a.message.en}
+                    {pick(a.message)}
                   </p>
                 )}
 

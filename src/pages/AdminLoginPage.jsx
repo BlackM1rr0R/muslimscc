@@ -4,10 +4,10 @@ import { adminLogin } from '../data/videos'
 import '../styles/AdminPage.css'
 
 const LABELS = {
-  az: { title:'Admin Panel', sub:'Davam etmək üçün şifrəni daxil edin', password:'Şifrə', login:'Giriş', error:'Şifrə yanlışdır!', hint:'Yalnız admin üçündür. Şifrəni unutmusunuzsa, müraciət edin.', back:'← Geri qayıt' },
+  az: { title:'Admin paneli', sub:'Davam etmək üçün şifrəni daxil edin', password:'Şifrə', login:'Giriş', error:'Şifrə yanlışdır!', hint:'Yalnız admin üçündür. Şifrəni unutmusunuzsa, müraciət edin.', back:'← Geri qayıt' },
   en: { title:'Admin Panel', sub:'Enter password to continue', password:'Password', login:'Login', error:'Incorrect password!', hint:'For admin only. Contact support if forgotten.', back:'← Back' },
-  ru: { title:'Админ Панель', sub:'Введите пароль для продолжения', password:'Пароль', login:'Войти', error:'Неверный пароль!', hint:'Только для администратора.', back:'← Назад' },
-  ar: { title:'لوحة الإدارة', sub:'أدخل كلمة المرور للمتابعة', password:'كلمة المرور', login:'دخول', error:'!كلمة المرور غير صحيحة', hint:'للمسؤولين فقط', back:'رجوع →' },
+  ru: { title:'Админ-панель', sub:'Введите пароль для продолжения', password:'Пароль', login:'Войти', error:'Неверный пароль!', hint:'Только для администратора.', back:'← Назад' },
+  ar: { title:'لوحة الإدارة', sub:'أدخل كلمة المرور للمتابعة', password:'كلمة المرور', login:'دخول', error:'كلمة المرور غير صحيحة!', hint:'للمسؤولين فقط', back:'رجوع →' },
   tr: { title:'Yönetim Paneli', sub:'Devam etmek için şifre girin', password:'Şifre', login:'Giriş', error:'Şifre yanlış!', hint:'Sadece yöneticiler için.', back:'← Geri' },
 }
 

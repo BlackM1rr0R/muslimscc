@@ -1,4 +1,4 @@
-// Qaraçuxur Məscidi — Design System (Web ilə eyni rənglər)
+// Muslims.cc — Design System (Web ilə eyni rənglər)
 // Flat tokens (yeni screen-lər üçün — web CSS variables ilə eyni adlar)
 const FLAT = {
   primary:      '#1a6b3a',

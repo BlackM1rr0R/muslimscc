@@ -204,13 +204,13 @@ const HAJJ_STEPS = [
     id: 'halq',
     icon: '💇',
     arabic: 'حَلْق / تَقْصِير',
-    name: { az:'Halq / Təqsir', en:'Halq / Taqsir', ru:'Халк / Таксир', ar:'الحلق / التقصير', tr:'Halq / Taksir' },
+    name: { az:'Halq / Təqsir', en:'Halq / Taqsir', ru:'Халк / Таксир', ar:'الحلق / التقصير', tr:'Halk / Taksir' },
     description: {
       az: 'Kişilər saçlarını tamamilə qırxdırır (halq) və ya qısaldır (təqsir). Halq daha fəzilətlidir. Qadınlar saçlarından barmaq ucu boyda kəsir. Bu əməldən sonra ihram qadağaları qalxır (cinsi münasibət xaric).',
       en: 'Men shave their head completely (halq) or trim (taqsir). Shaving is more virtuous. Women cut a fingertip-length from their hair. After this, ihram restrictions are lifted (except conjugal relations).',
       ru: 'Мужчины полностью бреют голову (халк) или подстригают (таксир). Бритьё более предпочтительно. Женщины отрезают кончик пряди волос. После этого запреты ихрама снимаются (кроме супружеских отношений).',
       ar: 'يحلق الرجال رؤوسهم (حلق) أو يقصرون (تقصير). الحلق أفضل. تقص النساء قدر أنملة من شعرهن. بعد ذلك تُرفع محظورات الإحرام (عدا الجماع).',
-      tr: 'Erkekler saçlarını tamamen tıraş eder (halq) veya kısaltır (taksir). Tıraş daha faziletlidir. Kadınlar saçlarından parmak ucu kadar keser. Bundan sonra ihram yasakları kalkar (cinsel ilişki hariç).',
+      tr: 'Erkekler saçlarını tamamen tıraş eder (halk) veya kısaltır (taksir). Tıraş daha faziletlidir. Kadınlar saçlarından parmak ucu kadar keser. Bundan sonra ihram yasakları kalkar (cinsel ilişki hariç).',
     },
     recitation: '',
     notes: {
@@ -218,7 +218,7 @@ const HAJJ_STEPS = [
       en: 'After Halq/Taqsir, the "first tahallul" occurs — you may wear regular clothes.',
       ru: 'После Халк/Таксир наступает «первый тахаллюль» — можно надеть обычную одежду.',
       ar: 'بعد الحلق/التقصير يحصل "التحلل الأول" — يجوز لبس الثياب العادية.',
-      tr: 'Halq/Taksir sonrası "ilk tahallül" gerçekleşir — normal kıyafet giyebilirsiniz.',
+      tr: 'Halk/Taksir sonrası "ilk tahallül" gerçekleşir — normal kıyafet giyebilirsiniz.',
     },
   },
   {
@@ -272,6 +272,7 @@ const UMRAH_STEPS = [
     arabic: 'طَوَاف',
     name: { az:'Təvaf', en:'Tawaf', ru:'Таваф', ar:'الطواف', tr:'Tavaf' },
     description: {
+      // lang-ok[için]: "için" — az dilində "içmək" felinin əmr forması (Zəmzəm suyu için)
       az: 'Kəbəni saat əqrəbinin əksinə 7 dəfə dolanın. Həcərül-Əsvəddən başlayın. Hər dövrədə Həcərül-Əsvədə işarə edib "Bismillahi Allahu Akbar" deyin. Təvafdan sonra Məqami-İbrahimin arxasında 2 rəkət namaz qılın. Zəmzəm suyu için.',
       en: 'Circle the Kaaba 7 times counter-clockwise. Start from the Black Stone. Point toward the Black Stone each round saying "Bismillahi Allahu Akbar." After tawaf, pray 2 rakat behind Maqam Ibrahim. Drink Zamzam water.',
       ru: 'Обойдите Каабу 7 раз против часовой стрелки. Начните от Чёрного камня. На каждом круге укажите на Чёрный камень, говоря «Бисмилляхи Аллаху Акбар». После тавафа совершите 2 ракята за Макамом Ибрахима. Выпейте воду Замзам.',
@@ -312,13 +313,13 @@ const UMRAH_STEPS = [
     id: 'u_halq',
     icon: '💇',
     arabic: 'حَلْق / تَقْصِير',
-    name: { az:'Halq / Təqsir', en:'Halq / Taqsir', ru:'Халк / Таксир', ar:'الحلق / التقصير', tr:'Halq / Taksir' },
+    name: { az:'Halq / Təqsir', en:'Halq / Taqsir', ru:'Халк / Таксир', ar:'الحلق / التقصير', tr:'Halk / Taksir' },
     description: {
       az: 'Səydən sonra saçınızı qırxdırın (halq) və ya qısaldın (təqsir). Kişilər üçün halq daha fəzilətlidir. Qadınlar saçlarından barmaq ucu boyda kəsir. Bu əməldən sonra ihramdan çıxırsınız — ümrə tamamdır!',
       en: 'After Sai, shave your head (halq) or trim your hair (taqsir). Shaving is more virtuous for men. Women cut a fingertip-length from their hair. After this, you exit ihram — Umrah is complete!',
       ru: 'После саи обрейте голову (халк) или подстригите волосы (таксир). Бритьё более предпочтительно для мужчин. Женщины отрезают кончик пряди. После этого вы выходите из ихрама — Умра завершена!',
       ar: 'بعد السعي احلق رأسك (حلق) أو قصّر شعرك (تقصير). الحلق أفضل للرجال. تقص النساء قدر أنملة. بعد ذلك تتحلل من الإحرام — اكتملت العمرة!',
-      tr: 'Saydan sonra saçınızı tıraş edin (halq) veya kısaltın (taksir). Erkekler için tıraş daha faziletlidir. Kadınlar saçlarından parmak ucu kadar keser. Bundan sonra ihramdan çıkarsınız — umre tamam!',
+      tr: 'Saydan sonra saçınızı tıraş edin (halk) veya kısaltın (taksir). Erkekler için tıraş daha faziletlidir. Kadınlar saçlarından parmak ucu kadar keser. Bundan sonra ihramdan çıkarsınız — umre tamam!',
     },
     recitation: '',
     notes: {
@@ -326,7 +327,7 @@ const UMRAH_STEPS = [
       en: 'After Halq/Taqsir, all ihram restrictions are lifted.',
       ru: 'После Халк/Таксир все запреты ихрама снимаются.',
       ar: 'بعد الحلق/التقصير تُرفع جميع محظورات الإحرام.',
-      tr: 'Halq/Taksir sonrası tüm ihram yasakları kalkar.',
+      tr: 'Halk/Taksir sonrası tüm ihram yasakları kalkar.',
     },
   },
 ]

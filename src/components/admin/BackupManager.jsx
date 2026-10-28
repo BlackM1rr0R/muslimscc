@@ -3,11 +3,11 @@ import { useLang } from '../../contexts/LangContext'
 import { exportAllData } from '../../data/adminContent'
 
 const LABELS = {
-  az: { title:'Yedək və Bərpa', sub:'Bütün məlumatları idarə edin', export:'İxrac et', exportDesc:'Bütün admin məlumatlarını JSON formatında endirin', import:'İdxal et', importDesc:'JSON faylından məlumatları yükləyin', clear:'Hamısını sil', clearDesc:'Bütün admin məzmununu silin (geri qaytarıla bilməz)', exportBtn:'JSON Yüklə', importBtn:'JSON faylı seç', clearBtn:'Sil', confirmClear:'Bütün admin məlumatları silmək istəyirsiniz? Bu əməliyyat geri qaytarıla bilməz!', imported:'Uğurla idxal olundu! Səhifəni yeniləyin.', importError:'Fayl yanlışdır', cleared:'Hamısı silindi', danger:'TƏHLÜKƏLİ' },
-  en: { title:'Backup & Restore', sub:'Manage all your data', export:'Export', exportDesc:'Download all admin data as JSON', import:'Import', importDesc:'Load data from JSON file', clear:'Delete all', clearDesc:'Delete all admin content (cannot be undone)', exportBtn:'Download JSON', importBtn:'Select JSON file', clearBtn:'Delete', confirmClear:'Delete all admin data? This cannot be undone!', imported:'Imported! Reload the page.', importError:'Invalid file', cleared:'All cleared', danger:'DANGER' },
-  ru: { title:'Резервная копия', sub:'Управление данными', export:'Экспорт', exportDesc:'Скачать все данные в JSON', import:'Импорт', importDesc:'Загрузить данные из JSON', clear:'Удалить всё', clearDesc:'Удалить весь контент (необратимо)', exportBtn:'Скачать JSON', importBtn:'Выбрать JSON', clearBtn:'Удалить', confirmClear:'Удалить всё? Необратимо!', imported:'Импортировано! Перезагрузите.', importError:'Неверный файл', cleared:'Очищено', danger:'ОПАСНО' },
-  ar: { title:'نسخ احتياطي', sub:'إدارة البيانات', export:'تصدير', exportDesc:'تحميل البيانات بصيغة JSON', import:'استيراد', importDesc:'تحميل من ملف JSON', clear:'حذف الكل', clearDesc:'حذف كل المحتوى (لا يمكن التراجع)', exportBtn:'تحميل JSON', importBtn:'اختر ملف JSON', clearBtn:'حذف', confirmClear:'حذف الكل؟ لا يمكن التراجع!', imported:'تم الاستيراد!', importError:'ملف غير صحيح', cleared:'تم المسح', danger:'خطر' },
-  tr: { title:'Yedekleme', sub:'Verileri yönetin', export:'Dışa Aktar', exportDesc:'Tüm verileri JSON olarak indir', import:'İçe Aktar', importDesc:'JSON dosyasından yükle', clear:'Tümünü sil', clearDesc:'Tüm içeriği sil (geri alınamaz)', exportBtn:'JSON İndir', importBtn:'JSON dosyası seç', clearBtn:'Sil', confirmClear:'Hepsi silinsin mi? Geri alınamaz!', imported:'İçe aktarıldı! Yenileyin.', importError:'Geçersiz dosya', cleared:'Temizlendi', danger:'TEHLİKE' },
+  az: { title:'Ehtiyat nüsxə və bərpa', sub:'Bütün məlumatları idarə edin', export:'İxrac et', exportDesc:'Bütün admin məlumatlarını JSON formatında endirin', import:'İdxal et', importDesc:'JSON faylından məlumatları yükləyin', clear:'Hamısını sil', clearDesc:'Bütün admin məzmununu silin (geri qaytarıla bilməz)', exportBtn:'JSON Yüklə', importBtn:'JSON faylı seç', clearBtn:'Sil', confirmClear:'Bütün admin məlumatları silmək istəyirsiniz? Bu əməliyyat geri qaytarıla bilməz!', imported:'Uğurla idxal olundu! Səhifəni yeniləyin.', importError:'Fayl yanlışdır', cleared:'Hamısı silindi', danger:'TƏHLÜKƏLİ', importViaConsole:'Firebase-ə idxalı Firebase konsolundan etmək tövsiyə olunur', clearViaConsole:'Firebase-dəki məlumatları Firebase konsolundan silin' },
+  en: { title:'Backup & Restore', sub:'Manage all your data', export:'Export', exportDesc:'Download all admin data as JSON', import:'Import', importDesc:'Load data from JSON file', clear:'Delete all', clearDesc:'Delete all admin content (cannot be undone)', exportBtn:'Download JSON', importBtn:'Select JSON file', clearBtn:'Delete', confirmClear:'Delete all admin data? This cannot be undone!', imported:'Imported! Reload the page.', importError:'Invalid file', cleared:'All cleared', danger:'DANGER', importViaConsole:'Importing into Firebase is recommended via the Firebase console', clearViaConsole:'Delete Firebase data from the Firebase console' },
+  ru: { title:'Резервная копия и восстановление', sub:'Управление данными', export:'Экспорт', exportDesc:'Скачать все данные в JSON', import:'Импорт', importDesc:'Загрузить данные из JSON', clear:'Удалить всё', clearDesc:'Удалить весь контент админки (необратимо)', exportBtn:'Скачать JSON', importBtn:'Выбрать JSON', clearBtn:'Удалить', confirmClear:'Удалить всё? Необратимо!', imported:'Импортировано! Перезагрузите.', importError:'Неверный файл', cleared:'Очищено', danger:'ОПАСНО', importViaConsole:'Импорт в Firebase рекомендуется выполнять через консоль Firebase', clearViaConsole:'Удаляйте данные Firebase через консоль Firebase' },
+  ar: { title:'النسخ الاحتياطي والاستعادة', sub:'إدارة البيانات', export:'تصدير', exportDesc:'تحميل البيانات بصيغة JSON', import:'استيراد', importDesc:'تحميل من ملف JSON', clear:'حذف الكل', clearDesc:'حذف كل المحتوى (لا يمكن التراجع)', exportBtn:'تحميل JSON', importBtn:'اختر ملف JSON', clearBtn:'حذف', confirmClear:'حذف الكل؟ لا يمكن التراجع!', imported:'تم الاستيراد!', importError:'ملف غير صحيح', cleared:'تم المسح', danger:'خطر', importViaConsole:'يُنصح بالاستيراد إلى Firebase عبر لوحة تحكم Firebase', clearViaConsole:'احذف بيانات Firebase من لوحة تحكم Firebase' },
+  tr: { title:'Yedekleme ve geri yükleme', sub:'Verileri yönetin', export:'Dışa Aktar', exportDesc:'Tüm verileri JSON olarak indir', import:'İçe Aktar', importDesc:'JSON dosyasından yükle', clear:'Tümünü sil', clearDesc:'Tüm içeriği sil (geri alınamaz)', exportBtn:'JSON İndir', importBtn:'JSON dosyası seç', clearBtn:'Sil', confirmClear:'Hepsi silinsin mi? Geri alınamaz!', imported:'İçe aktarıldı! Yenileyin.', importError:'Geçersiz dosya', cleared:'Temizlendi', danger:'TEHLİKE', importViaConsole:'Firebase içe aktarımının Firebase konsolundan yapılması önerilir', clearViaConsole:'Firebase verilerini Firebase konsolundan silin' },
 }
 
 export default function BackupManager() {
@@ -22,19 +22,19 @@ export default function BackupManager() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `qaracuxur-mescidi-backup-${new Date().toISOString().slice(0,10)}.json`
+    a.download = `muslims-cc-backup-${new Date().toISOString().slice(0,10)}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
 
   const handleImport = (e) => {
-    setMsg('error:Firebase-də idxal Firebase Console-dan etmək tövsiyə olunur')
+    setMsg('error:' + l.importViaConsole)
     setTimeout(() => setMsg(''), 4000)
     e.target.value = ''
   }
 
   const handleClear = () => {
-    setMsg('error:Firebase-də silmə Firebase Console-dan edin')
+    setMsg('error:' + l.clearViaConsole)
     setTimeout(() => setMsg(''), 4000)
   }
 
@@ -57,7 +57,7 @@ export default function BackupManager() {
           color: msg.startsWith('success') ? '#10b981' : '#ef4444',
           fontWeight:700,
         }}>
-          {msg.startsWith('success') ? '✅' : '⚠️'} {msg.split(':')[1]}
+          {msg.startsWith('success') ? '✅' : '⚠️'} {msg.slice(msg.indexOf(':') + 1)}
         </div>
       )}
 

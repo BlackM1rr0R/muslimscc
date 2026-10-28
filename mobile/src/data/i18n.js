@@ -1,6 +1,6 @@
-// Qaraçuxur Məscidi — Tam i18n Tərcümə Məlumatları
-// Brend adı config/mosque.js-dən gəlir (tək mənbə)
-import { BRAND } from '../config/mosque';
+// Muslims.cc — Tam i18n Tərcümə Məlumatları
+// Brend adı config/brand.js-dən gəlir (tək mənbə)
+import { BRAND } from '../config/brand';
 
 export const T = {
   az: {
@@ -9,26 +9,26 @@ export const T = {
       prayer:'Namaz', duas:'Dualar', dhikr:'Zikr',
       names:'99 Ad', calendar:'Təqvim', zakat:'Zəkat',
       about:'Haqqımızda', cta:'Dua et',
-      // Məscid bölmələri (menyu və ekran başlıqları)
-      mosque:'Məscid haqqında', jamaat:'Camaat vaxtları',
-      announcements:'Elanlar', donate:'Məscidə ianə',
+      // Əlavə bölmələr (menyu və ekran başlıqları)
+      jamaat:'Camaat və Cümə namazı',
+      announcements:'Elanlar', donate:'Xeyriyyə və ianə',
     },
     home: {
       badge:'Bismillahir-Rahmanir-Rahim',
       heroTitle:BRAND.name.az,
       heroSub:BRAND.tagline.az,
       btnQuran:'Quran Oxu', btnPrayer:'Namaz Vaxtı', btnDua:'Dua Et',
-      // Ana səhifənin yuxarısındakı məscid kartı
-      mosqueCard: {
-        nextPrayer:'Növbəti namaz', adhan:'Azan', jamaat:'Camaat', tomorrow:'sabah', jumua:'Cümə',
-        untilAdhan:'azana qalıb', untilJamaat:'camaata qalıb',
+      // Ana səhifənin yuxarısındakı "növbəti namaz" kartı (seçilmiş şəhər üzrə)
+      prayerCard: {
+        nextPrayer:'Növbəti namaz', adhan:'Azan', tomorrow:'sabah', jumua:'Cümə',
+        untilAdhan:'azana qalıb',
         calc:'Hesablanmış azan vaxtları',
-        calcBaku:'Hesablanmış azan vaxtları · Bakı üçün (Qaraçuxurla fərq 1 dəqiqədən az)',
+        calcCity:'Hesablanmış azan vaxtları · {city}',
         allTimes:'Bütün vaxtlar',
         loading:'Namaz vaxtları yüklənir...',
         error:'Namaz vaxtlarını yükləmək alınmadı.', retry:'Yenidən cəhd et',
         hm:'{h} saat {m} dəqiqə', m:'{m} dəqiqə',
-        quick:{ mosque:'Məscid', jamaat:'Vaxtlar', announcements:'Elanlar', donate:'İanə' },
+        quick:{ prayer:'Vaxtlar', jamaat:'Camaat', announcements:'Elanlar', donate:'Xeyriyyə' },
       },
       featTitle:'Əsas bölmələr',
       featSub:'Quran, hədis, namaz və dualar — gündəlik ibadət üçün',
@@ -84,7 +84,7 @@ export const T = {
       title:'Allahın 99 Adı', subtitle:'Əsmaül-Hüsna — ən gözəl adlar',
       searchPh:'Ad axtar...',
       meaningLabel:'Məna', descLabel:'İzah',
-      hadith:'Allah Taala\'nın 99 adı vardır. Kim onları əzbərləsə Cənnətə girər.',
+      hadith:'Allah-Təalanın 99 adı vardır. Kim onları əzbərləsə, Cənnətə girər.',
       hadithRef:'Buxari & Muslim',
     },
     calendar: {
@@ -106,7 +106,7 @@ export const T = {
     },
     about: {
       title:'Haqqımızda', subtitle:`${BRAND.name.az} haqqında`,
-      mission:'Missiyamız', missionText:'Qaraçuxur Məscidinin mobil tətbiqi — camaatımıza və hər müsəlmana namaz vaxtlarını, elanları və səhih İslami bilikləri öz dilində, rahat mühitdə çatdırmaq.',
+      mission:'Missiyamız', missionText:'Hər müsəlmana öz dilində, gözəl və diqqəti dağıtmayan mühitdə səhih İslami biliklərə çatmaq imkanı vermək.',
       values:'Dəyərlərimiz',
       v1t:'Etibarlılıq', v1d:'Yalnız Quran, səhih hədis və alim icmasından məzmun.',
       v2t:'Pulsuz', v2d:'Heç bir abunə, reklam, ödəniş yoxdur.',
@@ -115,7 +115,7 @@ export const T = {
       teamTitle:'Komanda', contactTitle:'Əlaqə',
     },
     footer: {
-      desc:'Qaraçuxur Məscidinin mobil tətbiqi — namaz vaxtları, camaat namazı, elanlar və İslami bilik.',
+      desc:'Hər müsəlman üçün pulsuz və reklamsız İslami platforma.',
       links:'Sürətli keçid', contact:'Əlaqə',
       copy:`© ${new Date().getFullYear()} ${BRAND.name.az}`,
       tagline:'Bismillahir-Rahmanir-Rahim',
@@ -128,24 +128,24 @@ export const T = {
       prayer:'Prayer', duas:"Du'as", dhikr:'Dhikr',
       names:'99 Names', calendar:'Calendar', zakat:'Zakat',
       about:'About', cta:"Make Du'a",
-      mosque:'About the Mosque', jamaat:'Congregation Times',
-      announcements:'Announcements', donate:'Donate to the Mosque',
+      jamaat:'Congregational & Friday Prayer',
+      announcements:'Announcements', donate:'Charity & Giving',
     },
     home: {
       badge:'In the Name of Allah, the Most Gracious, the Most Merciful',
       heroTitle:BRAND.name.en,
       heroSub:BRAND.tagline.en,
       btnQuran:'Read Quran', btnPrayer:'Prayer Times', btnDua:"Make Du'a",
-      mosqueCard: {
-        nextPrayer:'Next prayer', adhan:'Adhan', jamaat:'Iqamah', tomorrow:'tomorrow', jumua:'Jumu’ah',
-        untilAdhan:'until adhan', untilJamaat:'until iqamah',
+      prayerCard: {
+        nextPrayer:'Next prayer', adhan:'Adhan', tomorrow:'tomorrow', jumua:'Jumu’ah',
+        untilAdhan:'until adhan',
         calc:'Calculated adhan times',
-        calcBaku:'Calculated adhan times · for Baku (under 1 minute difference for Garachukhur)',
+        calcCity:'Calculated adhan times · {city}',
         allTimes:'All times',
         loading:'Loading prayer times...',
         error:'Couldn’t load prayer times.', retry:'Try again',
         hm:'{h} h {m} min', m:'{m} min',
-        quick:{ mosque:'Mosque', jamaat:'Times', announcements:'News', donate:'Donate' },
+        quick:{ prayer:'Times', jamaat:'Jama’ah', announcements:'News', donate:'Charity' },
       },
       featTitle:'Main Sections',
       featSub:"Quran, hadith, prayer and du'as — for everyday worship",
@@ -222,7 +222,7 @@ export const T = {
     },
     about: {
       title:'About Us', subtitle:`About ${BRAND.name.en}`,
-      mission:'Our Mission', missionText:'The Garachukhur Mosque app — bringing prayer times, announcements and authentic Islamic knowledge to our congregation and every Muslim, in their own language and in a calm environment.',
+      mission:'Our Mission', missionText:'To give every Muslim access to authentic Islamic knowledge in their own language, in a beautiful distraction-free environment.',
       values:'Our Values',
       v1t:'Authenticity', v1d:'Only from Quran, authentic hadiths and scholarly consensus.',
       v2t:'Free', v2d:'No subscription, no ads, no payments.',
@@ -231,7 +231,7 @@ export const T = {
       teamTitle:'Team', contactTitle:'Contact',
     },
     footer: {
-      desc:`The ${BRAND.name.en} app — prayer times, congregational prayers, announcements and Islamic knowledge.`,
+      desc:'A free, ad-free Islamic platform for every Muslim.',
       links:'Quick Links', contact:'Contact',
       copy:`© ${new Date().getFullYear()} ${BRAND.name.en}`,
       tagline:'In the Name of Allah, the Most Gracious, the Most Merciful',
@@ -244,24 +244,24 @@ export const T = {
       prayer:'Намаз', duas:'Дуа', dhikr:'Зикр',
       names:'99 Имён', calendar:'Календарь', zakat:'Закят',
       about:'О нас', cta:'Сделать дуа',
-      mosque:'О мечети', jamaat:'Время джамаата',
-      announcements:'Объявления', donate:'Пожертвование мечети',
+      jamaat:'Коллективный и пятничный намаз',
+      announcements:'Объявления', donate:'Благотворительность и пожертвования',
     },
     home: {
       badge:'Во имя Аллаха, Милостивого, Милосердного',
       heroTitle:BRAND.name.ru,
       heroSub:BRAND.tagline.ru,
       btnQuran:'Читать Коран', btnPrayer:'Время Намаза', btnDua:'Сделать Дуа',
-      mosqueCard: {
-        nextPrayer:'Следующий намаз', adhan:'Азан', jamaat:'Джамаат', tomorrow:'завтра', jumua:'Джума',
-        untilAdhan:'до азана', untilJamaat:'до джамаата',
+      prayerCard: {
+        nextPrayer:'Следующий намаз', adhan:'Азан', tomorrow:'завтра', jumua:'Джума',
+        untilAdhan:'до азана',
         calc:'Расчётное время азана',
-        calcBaku:'Расчётное время азана · для Баку (разница с Карачухуром менее 1 минуты)',
+        calcCity:'Расчётное время азана · {city}',
         allTimes:'Всё расписание',
         loading:'Загрузка времени намаза...',
         error:'Не удалось загрузить время намаза.', retry:'Повторить',
         hm:'{h} ч {m} мин', m:'{m} мин',
-        quick:{ mosque:'Мечеть', jamaat:'Время', announcements:'Новости', donate:'Помочь' },
+        quick:{ prayer:'Время', jamaat:'Джамаат', announcements:'Новости', donate:'Садака' },
       },
       featTitle:'Основные разделы',
       featSub:'Коран, хадисы, намаз и дуа — для ежедневного поклонения',
@@ -337,8 +337,8 @@ export const T = {
       result:'Результат', aboveNisab:'Вы достигли порога нисаба',
     },
     about: {
-      title:'О нас', subtitle:'О мечети Карачухур',
-      mission:'Наша Миссия', missionText:'Приложение мечети Карачухур — доносить до нашей общины и каждого мусульманина время намаза, объявления и достоверные исламские знания на родном языке, в спокойной среде.',
+      title:'О нас', subtitle:`О платформе ${BRAND.name.ru}`,
+      mission:'Наша Миссия', missionText:'Предоставить каждому мусульманину доступ к достоверным исламским знаниям на родном языке, в красивой среде без отвлечений.',
       values:'Наши Ценности',
       v1t:'Достоверность', v1d:'Только из Корана, достоверных хадисов и единогласия учёных.',
       v2t:'Бесплатно', v2d:'Без подписки, рекламы и платежей.',
@@ -347,7 +347,7 @@ export const T = {
       teamTitle:'Команда', contactTitle:'Контакты',
     },
     footer: {
-      desc:'Приложение мечети Карачухур — время намаза, коллективные молитвы, объявления и исламские знания.',
+      desc:'Бесплатная исламская платформа без рекламы для каждого мусульманина.',
       links:'Быстрые ссылки', contact:'Контакты',
       copy:`© ${new Date().getFullYear()} ${BRAND.name.ru}`,
       tagline:'Во имя Аллаха, Милостивого, Милосердного',
@@ -360,24 +360,24 @@ export const T = {
       prayer:'الصلاة', duas:'الأدعية', dhikr:'الذكر',
       names:'٩٩ اسم', calendar:'التقويم', zakat:'الزكاة',
       about:'من نحن', cta:'ادعُ الله',
-      mosque:'عن المسجد', jamaat:'مواقيت الجماعة',
-      announcements:'الإعلانات', donate:'التبرع للمسجد',
+      jamaat:'صلاة الجماعة والجمعة',
+      announcements:'الإعلانات', donate:'الصدقة والتبرع',
     },
     home: {
       badge:'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
       heroTitle:BRAND.name.ar,
       heroSub:BRAND.tagline.ar,
       btnQuran:'اقرأ القرآن', btnPrayer:'مواقيت الصلاة', btnDua:'ادعُ الله',
-      mosqueCard: {
-        nextPrayer:'الصلاة القادمة', adhan:'الأذان', jamaat:'الإقامة', tomorrow:'غدًا', jumua:'الجمعة',
-        untilAdhan:'حتى الأذان', untilJamaat:'حتى الإقامة',
+      prayerCard: {
+        nextPrayer:'الصلاة القادمة', adhan:'الأذان', tomorrow:'غدًا', jumua:'الجمعة',
+        untilAdhan:'حتى الأذان',
         calc:'أوقات الأذان محسوبة',
-        calcBaku:'أوقات الأذان محسوبة · لمدينة باكو (الفرق مع قاراچوخور أقل من دقيقة)',
+        calcCity:'أوقات الأذان محسوبة · {city}',
         allTimes:'جميع المواقيت',
         loading:'جارٍ تحميل مواقيت الصلاة...',
         error:'تعذّر تحميل مواقيت الصلاة.', retry:'إعادة المحاولة',
         hm:'{h} ساعة و{m} دقيقة', m:'{m} دقيقة',
-        quick:{ mosque:'المسجد', jamaat:'المواقيت', announcements:'الإعلانات', donate:'التبرع' },
+        quick:{ prayer:'المواقيت', jamaat:'الجماعة', announcements:'الإعلانات', donate:'الصدقة' },
       },
       featTitle:'الأقسام الرئيسية',
       featSub:'القرآن والحديث والصلاة والأدعية — لعبادتك اليومية',
@@ -454,7 +454,7 @@ export const T = {
     },
     about: {
       title:'من نحن', subtitle:`عن ${BRAND.name.ar}`,
-      mission:'رسالتنا', missionText:'تطبيق مسجد قاراچوخور — إيصال مواقيت الصلاة والإعلانات والمعرفة الإسلامية الأصيلة إلى جماعتنا وإلى كل مسلم بلغته في بيئة هادئة.',
+      mission:'رسالتنا', missionText:'إتاحة المعرفة الإسلامية الأصيلة لكل مسلم بلغته في بيئة جميلة خالية من المشتتات.',
       values:'قيمنا',
       v1t:'الأصالة', v1d:'من القرآن والحديث الصحيح وإجماع العلماء فقط.',
       v2t:'مجاني', v2d:'لا اشتراك، لا إعلانات، لا مدفوعات.',
@@ -463,7 +463,7 @@ export const T = {
       teamTitle:'الفريق', contactTitle:'تواصل معنا',
     },
     footer: {
-      desc:`تطبيق ${BRAND.name.ar} — مواقيت الصلاة وصلاة الجماعة والإعلانات والمعرفة الإسلامية.`,
+      desc:'منصة إسلامية مجانية بلا إعلانات لكل مسلم.',
       links:'روابط سريعة', contact:'تواصل',
       copy:`© ${new Date().getFullYear()} ${BRAND.name.ar}`,
       tagline:'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
@@ -476,24 +476,24 @@ export const T = {
       prayer:'Namaz', duas:'Dualar', dhikr:'Zikir',
       names:'99 İsim', calendar:'Takvim', zakat:'Zekât',
       about:'Hakkımızda', cta:'Dua Et',
-      mosque:'Cami Hakkında', jamaat:'Cemaat Vakitleri',
-      announcements:'Duyurular', donate:'Camiye Bağış',
+      jamaat:'Cemaat ve Cuma Namazı',
+      announcements:'Duyurular', donate:'Hayır ve Bağış',
     },
     home: {
       badge:'Bismillahirrahmanirrahim',
       heroTitle:BRAND.name.tr,
       heroSub:BRAND.tagline.tr,
       btnQuran:"Kur'an Oku", btnPrayer:'Namaz Vakitleri', btnDua:'Dua Et',
-      mosqueCard: {
-        nextPrayer:'Sıradaki namaz', adhan:'Ezan', jamaat:'Cemaat', tomorrow:'yarın', jumua:'Cuma',
-        untilAdhan:'ezana kaldı', untilJamaat:'cemaate kaldı',
+      prayerCard: {
+        nextPrayer:'Sıradaki namaz', adhan:'Ezan', tomorrow:'yarın', jumua:'Cuma',
+        untilAdhan:'ezana kaldı',
         calc:'Hesaplanmış ezan vakitleri',
-        calcBaku:'Hesaplanmış ezan vakitleri · Bakü için (Karaçuhur ile fark 1 dakikadan az)',
+        calcCity:'Hesaplanmış ezan vakitleri · {city}',
         allTimes:'Tüm vakitler',
         loading:'Namaz vakitleri yükleniyor...',
         error:'Namaz vakitleri yüklenemedi.', retry:'Tekrar dene',
         hm:'{h} saat {m} dakika', m:'{m} dakika',
-        quick:{ mosque:'Cami', jamaat:'Vakitler', announcements:'Duyurular', donate:'Bağış' },
+        quick:{ prayer:'Vakitler', jamaat:'Cemaat', announcements:'Duyurular', donate:'Hayır' },
       },
       featTitle:'Ana Bölümler',
       featSub:"Kur'an, hadis, namaz ve dualar — günlük ibadet için",
@@ -570,7 +570,7 @@ export const T = {
     },
     about: {
       title:'Hakkımızda', subtitle:`${BRAND.name.tr} hakkında`,
-      mission:'Misyonumuz', missionText:"Karaçuhur Camii'nin mobil uygulaması — cemaatimize ve her Müslümana namaz vakitlerini, duyuruları ve sahih İslami bilgiyi kendi dilinde, huzurlu bir ortamda ulaştırmak.",
+      mission:'Misyonumuz', missionText:'Her Müslümana kendi dilinde, güzel ve dikkat dağıtmayan bir ortamda sahih İslami bilgiye erişim imkânı sağlamak.',
       values:'Değerlerimiz',
       v1t:'Özgünlük', v1d:"Yalnızca Kur'an, sahih hadis ve âlimlerin icmaından.",
       v2t:'Ücretsiz', v2d:'Abonelik, reklam, ödeme yok.',
@@ -579,7 +579,7 @@ export const T = {
       teamTitle:'Ekip', contactTitle:'İletişim',
     },
     footer: {
-      desc:"Karaçuhur Camii'nin mobil uygulaması — namaz vakitleri, cemaat namazları, duyurular ve İslami bilgi.",
+      desc:'Her Müslüman için ücretsiz ve reklamsız İslami platform.',
       links:'Hızlı Bağlantılar', contact:'İletişim',
       copy:`© ${new Date().getFullYear()} ${BRAND.name.tr}`,
       tagline:'Bismillahirrahmanirrahim',

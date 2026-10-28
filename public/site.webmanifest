@@ -1,19 +1,28 @@
 {
-  "name": "Qaraçuxur Məscidi",
-  "short_name": "Qaraçuxur",
-  "description": "Qaraçuxur Məscidinin saytı — namaz vaxtları, camaat namazı, elanlar və İslami bilik: Quran, hədis, dua, zikr, zəkat, qiblə.",
+  "name": "Muslims.cc",
+  "short_name": "Muslims.cc",
+  "description": "5 dildə pulsuz İslami platforma: Quran oxu və dinlə, namaz vaxtları, hədislər, dualar, zikr sayğacı, zəkat kalkulyatoru, qiblə istiqaməti, hifz izləyicisi və İslami bilik.",
   "start_url": "/",
   "scope": "/",
   "id": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui", "browser"],
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "lang": "az",
   "dir": "ltr",
   "prefer_related_applications": false,
-  "categories": ["religion", "education", "lifestyle", "books"],
+  "categories": [
+    "religion",
+    "education",
+    "lifestyle",
+    "books"
+  ],
   "icons": [
     {
       "src": "/favicon.svg",
@@ -58,37 +67,61 @@
       "sizes": "1200x630",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Qaraçuxur Məscidi — Ana Səhifə"
+      "label": "Muslims.cc — İslami platforma"
     }
   ],
   "shortcuts": [
     {
-      "name": "Namaz və camaat vaxtları",
-      "short_name": "Camaat vaxtı",
-      "description": "Məsciddə bugünkü azan və camaat namazı vaxtları",
-      "url": "/jamaat",
-      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "Elanlar",
-      "short_name": "Elanlar",
-      "description": "Məscidin xəbər və elanları",
-      "url": "/announcements",
-      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "name": "Namaz vaxtları",
+      "short_name": "Namaz",
+      "description": "Bugünkü namaz vaxtları və növbəti namaza geri sayım",
+      "url": "/prayer",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Quran oxu",
       "short_name": "Quran",
       "description": "Quranı oxu və dinlə",
       "url": "/quran",
-      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
-      "name": "Qiblə istiqaməti",
-      "short_name": "Qiblə",
-      "description": "Qiblə istiqamətini tap",
-      "url": "/qibla",
-      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "name": "Hədislər",
+      "short_name": "Hədis",
+      "description": "Mövzular üzrə hədis toplusu",
+      "url": "/hadith",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Dualar və əzkar",
+      "short_name": "Dua",
+      "description": "Gündəlik dualar və zikrlər",
+      "url": "/duas",
+      "icons": [
+        {
+          "src": "/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   "related_applications": []

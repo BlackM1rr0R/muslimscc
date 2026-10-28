@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { brandName } from '../config/mosque'
+import { brandName } from '../config/brand'
 import {
   isPushSupported,
   getPermissionStatus,

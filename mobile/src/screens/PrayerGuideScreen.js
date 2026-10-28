@@ -16,32 +16,86 @@ const PRAYERS = [
   { key:'isha', iconKey:'isha', rakat:4, gradient:['#1e3a8a','#0f172a'] },
 ];
 
+// Hər addımın dildən asılı olmayan hissəsi: ərəbcə mətn (toxunulmur) və ikon açarı
+const STEP_META = [
+  { icon:'heart' },
+  { arabic:'اللَّهُ أَكْبَرُ', icon:'star' },
+  { arabic:'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ ۝ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', icon:'quran' },
+  { icon:'quran' },
+  { arabic:'سُبْحَانَ رَبِّيَ الْعَظِيمِ', icon:'prayer' },
+  { arabic:'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ', icon:'prayer' },
+  { arabic:'سُبْحَانَ رَبِّيَ الْأَعْلَى', icon:'prayer' },
+  { arabic:'رَبِّ اغْفِرْ لِي', icon:'prayer' },
+  { icon:'prayer' },
+  { arabic:'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ', icon:'duas' },
+  { arabic:'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ', icon:'check' },
+];
+
 const STEPS = {
   az: [
-    { title:'Niyyət', desc:'Namaza niyyət edin. Qəlbinizdə hansı namazı qılacağınızı niyyət edin.', icon:'heart' },
-    { title:'Təkbirətül-İhram', desc:'"Allahu Əkbər" deyərək əlləri qulaqlara qaldırın. Bununla namaza başlayırsınız.', arabic:'اللَّهُ أَكْبَرُ', icon:'star' },
-    { title:'Qiyam — Fatihə', desc:'Əl-Fatihə surəsini oxuyun. Bu hər rəkətdə vacibdir.', arabic:'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ ۝ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', icon:'quran' },
-    { title:'Qiyam — Surə', desc:'Fatihədən sonra bir surə və ya ayələr oxuyun (ilk 2 rəkətdə).', icon:'quran' },
-    { title:'Rüku', desc:'"Allahu Əkbər" deyərək rükuya gedin. "Subhanə Rabbiyəl-Azim" 3 dəfə deyin.', arabic:'سُبْحَانَ رَبِّيَ الْعَظِيمِ', icon:'prayer' },
-    { title:'Qövmə', desc:'Rükudan qalxarkən "Səmiallahu limən hamidəh" deyin.', arabic:'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ', icon:'prayer' },
-    { title:'Səcdə', desc:'Səcdəyə gedin. "Subhanə Rabbiyəl-Ala" 3 dəfə deyin.', arabic:'سُبْحَانَ رَبِّيَ الْأَعْلَى', icon:'prayer' },
-    { title:'Cəlsə', desc:'İki səcdə arasında qısa oturuş.', arabic:'رَبِّ اغْفِرْ لِي', icon:'prayer' },
-    { title:'İkinci Səcdə', desc:'Yenidən səcdəyə gedin və "Subhanə Rabbiyəl-Ala" deyin.', icon:'prayer' },
-    { title:'Təşəhhüd', desc:'Son oturuşda Əttəhiyyatı oxuyun.', arabic:'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ', icon:'duas' },
-    { title:'Salam', desc:'Sağa və sola salam verərək namazı bitirin.', arabic:'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ', icon:'check' },
+    { title:'Niyyət', desc:'Namaza niyyət edin. Qəlbinizdə hansı namazı qılacağınızı niyyət edin.' },
+    { title:'Təkbirətül-İhram', desc:'"Allahu Əkbər" deyərək əlləri qulaqlara qaldırın. Bununla namaza başlayırsınız.' },
+    { title:'Qiyam — Fatihə', desc:'Əl-Fatihə surəsini oxuyun. Bu hər rəkətdə vacibdir.' },
+    { title:'Qiyam — Surə', desc:'Fatihədən sonra bir surə və ya ayələr oxuyun (ilk 2 rəkətdə).' },
+    { title:'Rüku', desc:'"Allahu Əkbər" deyərək rükuya gedin. "Subhanə Rabbiyəl-Azim" 3 dəfə deyin.' },
+    { title:'Qövmə', desc:'Rükudan qalxarkən "Səmiallahu limən hamidəh" deyin.' },
+    { title:'Səcdə', desc:'Səcdəyə gedin. "Subhanə Rabbiyəl-Ala" 3 dəfə deyin.' },
+    { title:'Cəlsə', desc:'İki səcdə arasında qısa oturuş.' },
+    { title:'İkinci Səcdə', desc:'Yenidən səcdəyə gedin və "Subhanə Rabbiyəl-Ala" deyin.' },
+    { title:'Təşəhhüd', desc:'Son oturuşda Əttəhiyyatı oxuyun.' },
+    { title:'Salam', desc:'Sağa və sola salam verərək namazı bitirin.' },
   ],
   en: [
-    { title:'Intention (Niyyah)', desc:'Make your intention for the specific prayer in your heart.', icon:'heart' },
-    { title:'Takbiratul Ihram', desc:'Raise your hands to ears and say "Allahu Akbar" to begin the prayer.', arabic:'اللَّهُ أَكْبَرُ', icon:'star' },
-    { title:'Standing — Al-Fatihah', desc:'Recite Surah Al-Fatihah. This is mandatory in every rakah.', arabic:'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', icon:'quran' },
-    { title:'Standing — Surah', desc:'After Al-Fatihah, recite another surah or verses (in first 2 rakahs).', icon:'quran' },
-    { title:'Ruku (Bowing)', desc:'Say "Allahu Akbar" and bow. Say "Subhana Rabbiyal Azeem" 3 times.', arabic:'سُبْحَانَ رَبِّيَ الْعَظِيمِ', icon:'prayer' },
-    { title:'Rising from Ruku', desc:'Rise saying "Sami Allahu liman hamidah".', arabic:'سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ', icon:'prayer' },
-    { title:'Sujud (Prostration)', desc:'Prostrate and say "Subhana Rabbiyal A\'la" 3 times.', arabic:'سُبْحَانَ رَبِّيَ الْأَعْلَى', icon:'prayer' },
-    { title:'Sitting between Sujud', desc:'Sit briefly between the two prostrations.', arabic:'رَبِّ اغْفِرْ لِي', icon:'prayer' },
-    { title:'Second Sujud', desc:'Prostrate again and repeat the dhikr.', icon:'prayer' },
-    { title:'Tashahhud', desc:'In the final sitting, recite At-Tahiyyat.', arabic:'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ', icon:'duas' },
-    { title:'Salam', desc:'Turn right then left giving salam to conclude.', arabic:'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ', icon:'check' },
+    { title:'Intention (Niyyah)', desc:'Make your intention for the specific prayer in your heart.' },
+    { title:'Takbiratul Ihram', desc:'Raise your hands to ears and say "Allahu Akbar" to begin the prayer.' },
+    { title:'Standing — Al-Fatihah', desc:'Recite Surah Al-Fatihah. This is mandatory in every rakah.' },
+    { title:'Standing — Surah', desc:'After Al-Fatihah, recite another surah or verses (in first 2 rakahs).' },
+    { title:'Ruku (Bowing)', desc:'Say "Allahu Akbar" and bow. Say "Subhana Rabbiyal Azeem" 3 times.' },
+    { title:'Rising from Ruku', desc:'Rise saying "Sami Allahu liman hamidah".' },
+    { title:'Sujud (Prostration)', desc:'Prostrate and say "Subhana Rabbiyal A\'la" 3 times.' },
+    { title:'Sitting between Sujud', desc:'Sit briefly between the two prostrations.' },
+    { title:'Second Sujud', desc:'Prostrate again and repeat the dhikr.' },
+    { title:'Tashahhud', desc:'In the final sitting, recite At-Tahiyyat.' },
+    { title:'Salam', desc:'Turn right then left giving salam to conclude.' },
+  ],
+  ru: [
+    { title:'Намерение (ният)', desc:'Сделайте в сердце намерение совершить конкретный намаз.' },
+    { title:'Такбир аль-ихрам', desc:'Поднимите руки к ушам и скажите «Аллаху акбар» — этим вы начинаете намаз.' },
+    { title:'Стояние — аль-Фатиха', desc:'Прочитайте суру аль-Фатиха. Это обязательно в каждом ракаате.' },
+    { title:'Стояние — сура', desc:'После аль-Фатихи прочитайте суру или аяты (в первых двух ракаатах).' },
+    { title:'Руку (поясной поклон)', desc:'Со словами «Аллаху акбар» совершите поясной поклон. Скажите 3 раза «Субхана Раббияль-Азым».' },
+    { title:'Выпрямление после руку', desc:'Поднимаясь из поклона, скажите «Сами‘а Ллаху ли-ман хамидах».' },
+    { title:'Суджуд (земной поклон)', desc:'Совершите земной поклон. Скажите 3 раза «Субхана Раббияль-А‘ля».' },
+    { title:'Сидение между суджудами', desc:'Короткое сидение между двумя земными поклонами.' },
+    { title:'Второй суджуд', desc:'Снова совершите земной поклон и скажите «Субхана Раббияль-А‘ля».' },
+    { title:'Ташаххуд', desc:'В последнем сидении прочитайте ат-Тахият.' },
+    { title:'Салям', desc:'Завершите намаз, произнеся салям направо и налево.' },
+  ],
+  ar: [
+    { title:'النية', desc:'انوِ في قلبك الصلاة التي تريد أداءها.' },
+    { title:'تكبيرة الإحرام', desc:'ارفع يديك إلى أذنيك قائلًا «الله أكبر»، وبها تبدأ الصلاة.' },
+    { title:'القيام — الفاتحة', desc:'اقرأ سورة الفاتحة، وهي واجبة في كل ركعة.' },
+    { title:'القيام — السورة', desc:'بعد الفاتحة اقرأ سورة أو آيات (في الركعتين الأوليين).' },
+    { title:'الركوع', desc:'كبّر واركع، وقل «سبحان ربي العظيم» ثلاث مرات.' },
+    { title:'الرفع من الركوع', desc:'قل عند الرفع من الركوع «سمع الله لمن حمده».' },
+    { title:'السجود', desc:'اسجد وقل «سبحان ربي الأعلى» ثلاث مرات.' },
+    { title:'الجلسة بين السجدتين', desc:'جلسة قصيرة بين السجدتين.' },
+    { title:'السجدة الثانية', desc:'اسجد مرة أخرى وقل «سبحان ربي الأعلى».' },
+    { title:'التشهد', desc:'اقرأ التحيات في الجلوس الأخير.' },
+    { title:'التسليم', desc:'اختم الصلاة بالتسليم يمينًا ثم يسارًا.' },
+  ],
+  tr: [
+    { title:'Niyet', desc:'Kalbinizde hangi namazı kılacağınıza niyet edin.' },
+    { title:'İftitah Tekbiri', desc:'"Allahu Ekber" diyerek ellerinizi kulaklarınıza kaldırın. Böylece namaza başlarsınız.' },
+    { title:'Kıyam — Fâtiha', desc:'Fâtiha sûresini okuyun. Bu her rekâtta vaciptir.' },
+    { title:'Kıyam — Sûre', desc:'Fâtiha\'dan sonra bir sûre veya ayetler okuyun (ilk 2 rekâtta).' },
+    { title:'Rükû', desc:'"Allahu Ekber" diyerek rükûya gidin. 3 defa "Sübhâne Rabbiye\'l-Azîm" deyin.' },
+    { title:'Kavme', desc:'Rükûdan doğrulurken "Semiallâhu limen hamideh" deyin.' },
+    { title:'Secde', desc:'Secdeye gidin. 3 defa "Sübhâne Rabbiye\'l-A\'lâ" deyin.' },
+    { title:'Celse', desc:'İki secde arasında kısa oturuş.' },
+    { title:'İkinci Secde', desc:'Yeniden secdeye gidin ve "Sübhâne Rabbiye\'l-A\'lâ" deyin.' },
+    { title:'Teşehhüd', desc:'Son oturuşta Ettehiyyâtü\'yü okuyun.' },
+    { title:'Selâm', desc:'Sağa ve sola selâm vererek namazı bitirin.' },
   ],
 };
 
@@ -57,7 +111,7 @@ export default function PrayerGuideScreen() {
   const { lang, dark } = useLang();
   const c = dark ? Colors.dark : Colors.light;
   const l = LABELS[lang] || LABELS.az;
-  const steps = STEPS[lang] || STEPS.az;
+  const steps = (STEPS[lang] || STEPS.az).map((st, i) => ({ ...STEP_META[i], ...st }));
   const sh = dark ? Shadows.dark.md : Shadows.md;
   const shS = dark ? Shadows.dark.sm : Shadows.sm;
 

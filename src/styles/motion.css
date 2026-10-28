@@ -1,13 +1,17 @@
 /* ══════════════════════════════════════════════════════════════
-   MOTION & MOBİL UI SİSTEMİ — Qaraçuxur Məscidi
-   (main.jsx-də heroes.css-dən dərhal sonra import olunur)
+   MOTION & MOBİL UI SİSTEMİ — Muslims.cc (dizayn sistemi v2)
+   (main.jsx-də heroes.css-dən dərhal sonra import olunur; ui.css bundan
+   sonra gəlir. Tam sənəd: src/styles/DESIGN.md → "Hərəkət")
 
-   Məqsəd: telefonda sayt müasir tətbiq kimi hiss olunsun — toxunuşa
-   cavab verən, hamar, SAKİT (məscid saytıdır: zərif hərəkət, parıltı yox).
+   Məqsəd: sayt müasir tətbiq kimi hiss olunsun — toxunuşa cavab verən,
+   hamar, SAKİT (ibadət yoldaşıdır: zərif hərəkət, parıltı/sıçrayış yox).
 
    QAYDALAR
    • Yalnız transform və opacity animasiya olunur (layout yox).
-   • Müddət 120–360ms, ease-out və ya yumşaq "yay" əyrisi.
+   • Müddət 150–400ms: --dur-1 (150) rəng/basılma · --dur-2 (240) düymə,
+     çip · --dur-3 (360) səhifə, menyu, görünmə. Giriş ease-out,
+     çıxış ease-in; "yay" yalnız kiçik elementlərdə (☰→✕, işarə).
+   • Uzun/dövri dekorativ animasiya YOXDUR (fonda fırlanan ulduz və s.).
    • Növbəli görünmə: element başına ≤ 40ms, ən çox 8 element.
    • prefers-reduced-motion: reduce → bütün hərəkət söndürülür (aşağıda).
    • Rənglər yalnız globals.css dəyişənlərindən — tünd rejim avtomatik.
@@ -39,14 +43,14 @@
   --ease-spring:  cubic-bezier(0.34, 1.36, 0.64, 1);   /* yüngül yay, kiçik aşma */
   --ease-sheet:   cubic-bezier(0.32, 0.72, 0, 1);      /* iOS vərəqi kimi */
 
-  --dur-1: 140ms;   /* basılma, rəng, kiçik ikon */
+  --dur-1: 150ms;   /* basılma, rəng, kiçik ikon */
   --dur-2: 240ms;   /* düymə, çip, işarə qutusu */
   --dur-3: 360ms;   /* səhifə keçidi, vərəq, görünmə */
 
   --stagger: 40ms;
 
-  /* Basılma rəngi (xananın üstünə yarımşəffaf örtük) */
-  --press-tint:  rgba(26, 107, 58, 0.08);
+  /* Basılma rəngi (xananın üstünə yarımşəffaf örtük) — brend tonundan */
+  --press-tint:  color-mix(in srgb, var(--brand) 8%, transparent);
   --press-scale: 0.97;
 
   /* Başlığın hazırkı hündürlüyü: gizlənəndə 0 (Header → html.qm-hdr-hidden).
@@ -74,12 +78,12 @@
    bunu "klaviatura fokusu" sayırdı. İndi:
    • siçan/barmaq ilə fokusda halqa YOXDUR (hooks/useInputModality.js →
      html.qm-input-pointer), yazı sahələri istisnadır (onların öz stili var);
-   • klaviatura ilə — hər yerdə eyni yumşaq yaşıl halqa;
+   • klaviatura ilə — hər yerdə eyni halqa (--ring tokeni, globals.css);
    • əlçatanlıq panelinin "Fokusu vurğula" seçimi hər zaman qalib gəlir. */
 :where(:focus-visible) {
-  outline: 2px solid var(--primary-border);
-  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
-  outline-offset: 2px;
+  outline: var(--ring-width, 2px) solid var(--primary-border);
+  outline: var(--ring-width, 2px) solid var(--ring);
+  outline-offset: var(--ring-offset, 2px);
 }
 
 :where(:focus:not(:focus-visible)) { outline: none; }
@@ -350,7 +354,7 @@ html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]
 }
 
 .m-row:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline: 2px solid var(--ring);
   outline-offset: -2px;
   border-radius: inherit;
 }
@@ -473,7 +477,7 @@ html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]
   pointer-events: none;
 }
 .m-check-input:focus-visible + .m-check {
-  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 

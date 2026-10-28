@@ -8,6 +8,17 @@ import { Colors, Shadows, BorderRadius } from '../theme/colors';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn } from '../components/Animated';
+import { getSurahLocal } from '../data/surahNamesAz';
+
+// Ayə sayı cari dildə ("7 ayə", "7 аятов" …); rus dilində cəm forması rəqəmə görə
+function ayahCount(n, lang) {
+  const m10 = n % 10, m100 = n % 100;
+  const ruWord = m10 === 1 && m100 !== 11 ? 'аят' : (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) ? 'аята' : 'аятов';
+  const W = { az: 'ayə', en: n === 1 ? 'ayah' : 'ayahs', ru: ruWord, ar: 'آية', tr: 'ayet' };
+  return `${n} ${W[lang]}`;
+}
+// Surə adı: az/ru/tr — yerli yazılış; en — transliterasiya; ar — ərəb adı onsuz da göstərilir
+const surahName = (s, lang) => (lang === 'ar' ? '' : getSurahLocal(s.n, lang)?.name || s.name);
 
 const SURAHS = [
   {n:1,name:'Al-Fatihah',ar:'الفاتحة',ayahs:7},
@@ -169,8 +180,8 @@ export default function HifzScreen() {
                       </LinearGradient>
                     </View>
                     <Text style={[styles.surahArabic, { color: c.text }]}>{s.ar}</Text>
-                    <Text style={[styles.surahName, { color: c.text }]}>{s.name}</Text>
-                    <Text style={[styles.surahAyahs, { color: c.textMuted }]}>{s.ayahs} {lang==='ar'?'آية':'ayah'}</Text>
+                    {surahName(s, lang) ? <Text style={[styles.surahName, { color: c.text }]}>{surahName(s, lang)}</Text> : null}
+                    <Text style={[styles.surahAyahs, { color: c.textMuted }]}>{ayahCount(s.ayahs, lang)}</Text>
                   </View>
                 </TouchableOpacity>
               </FadeUp>

@@ -13,7 +13,7 @@ export const JAMAAT_VIRTUES = [
     "text": {
       "az": "Camaatla namaz tək başına namazdan iyirmi yeddi dərəcə üstündür.",
       "en": "Prayer in congregation is superior to individual prayer by twenty-seven degrees.",
-      "ru": "Молитва в мечети превосходит одиночную молитву на двадцать семь степеней.",
+      "ru": "Коллективная молитва превосходит одиночную молитву на двадцать семь степеней.",
       "tr": "Cemaatle namaz, tek başına kılınan namazdan yirmi yedi derece üstündür.",
       "ar": "صَلاَةُ الجَمَاعَةِ تَفْضُلُ صَلاَةَ الفَذِّ بِسَبْعٍ وَعِشْرِينَ دَرَجَةً"
     }

@@ -10,106 +10,108 @@ import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, Float } from '../components/Animated';
 
 // 99 Ad — Məna, rəng
+// "translit" — latın transliterasiyası (Ar-Rahman), hər dildə adın altında göstərilir.
+// Türkcə məna "tr_meaning"-dədir (veb src/data/names99.js ilə eyni).
 const NAMES = [
-  {n:1,ar:'الرَّحْمَنُ',tr:'Ar-Rahman',az:'Mərhəmətli',en:'The Most Gracious',ru:'Милостивый',tur:'Rahman',color:'#10b981',desc:{az:'Bütün yaratdıqlarına sonsuz mərhəmət göstərən',en:'The One who shows endless mercy to all creation',ru:'Тот, кто проявляет бесконечную милость',ar:'الذي وسعت رحمته كل شيء',tr:'Yarattığı her şeye sınırsız merhamet gösteren'}},
-  {n:2,ar:'الرَّحِيمُ',tr:'Ar-Rahim',az:'Rəhmli',en:'The Most Merciful',ru:'Милосердный',tur:'Rahim',color:'#f59e0b',desc:{az:'Möminlərə xüsusi rəhm edən',en:'Especially merciful to believers',ru:'Особенно милосердный к верующим',ar:'الذي يخص المؤمنين برحمته',tr:'Müminlere özel rahmet gösteren'}},
-  {n:3,ar:'الْمَلِكُ',tr:'Al-Malik',az:'Hökmdar',en:'The King',ru:'Царь',tur:'Melik',color:'#8b5cf6',desc:{az:'Mülkün və hökmün sahibi',en:'The Sovereign Lord',ru:'Владыка всего сущего',ar:'مالك كل شيء والحاكم عليه',tr:'Mülkün ve hükmün sahibi'}},
-  {n:4,ar:'الْقُدُّوسُ',tr:'Al-Quddus',az:'Pak olan',en:'The Most Holy',ru:'Святой',tur:'Kuddüs',color:'#3b82f6',desc:{az:'Hər cür nöqsandan uzaq',en:'Free from every imperfection',ru:'Свободный от всяких недостатков',ar:'المنزه عن كل نقص',tr:'Her türlü eksiklikten uzak'}},
-  {n:5,ar:'السَّلَامُ',tr:'As-Salam',az:'Sülh verən',en:'The Source of Peace',ru:'Источник мира',tur:'Selam',color:'#ec4899',desc:{az:'Sülh və salamatlıq verən',en:'The Giver of peace and safety',ru:'Дающий мир и безопасность',ar:'واهب السلام والأمان',tr:'Barış ve selamet veren'}},
-  {n:6,ar:'الْمُؤْمِنُ',tr:"Al-Mu'min",az:'İman verən',en:'The Granter of Security',ru:'Дарующий веру',tur:'Mümin',color:'#ef4444'},
-  {n:7,ar:'الْمُهَيْمِنُ',tr:'Al-Muhaymin',az:'Qoruyan',en:'The Protector',ru:'Хранитель',tur:'Müheymin',color:'#f97316'},
-  {n:8,ar:'الْعَزِيزُ',tr:'Al-Aziz',az:'Qüdrətli',en:'The Almighty',ru:'Могущественный',tur:'Aziz',color:'#14b8a6'},
-  {n:9,ar:'الْجَبَّارُ',tr:'Al-Jabbar',az:'Qadir',en:'The Compeller',ru:'Могучий',tur:'Cebbar',color:'#a855f7'},
-  {n:10,ar:'الْمُتَكَبِّرُ',tr:'Al-Mutakabbir',az:'Uca',en:'The Greatest',ru:'Величайший',tur:'Mütekebbir',color:'#6366f1'},
-  {n:11,ar:'الْخَالِقُ',tr:'Al-Khaliq',az:'Yaradan',en:'The Creator',ru:'Творец',tur:'Halık',color:'#84cc16'},
-  {n:12,ar:'الْبَارِئُ',tr:'Al-Bari',az:'Formalaşdıran',en:'The Maker',ru:'Создатель',tur:'Bari',color:'#fbbf24'},
-  {n:13,ar:'الْمُصَوِّرُ',tr:'Al-Musawwir',az:'Şəkil verən',en:'The Fashioner',ru:'Формирующий',tur:'Musavvir',color:'#06b6d4'},
-  {n:14,ar:'الْغَفَّارُ',tr:'Al-Ghaffar',az:'Çox bağışlayan',en:'The Forgiver',ru:'Прощающий',tur:'Gaffar',color:'#10b981'},
-  {n:15,ar:'الْقَهَّارُ',tr:'Al-Qahhar',az:'Qalib gələn',en:'The Subduer',ru:'Покоритель',tur:'Kahhar',color:'#f59e0b'},
-  {n:16,ar:'الْوَهَّابُ',tr:'Al-Wahhab',az:'Bəxş edən',en:'The Bestower',ru:'Дарующий',tur:'Vehhab',color:'#8b5cf6'},
-  {n:17,ar:'الرَّزَّاقُ',tr:'Ar-Razzaq',az:'Ruzi verən',en:'The Provider',ru:'Дающий пропитание',tur:'Rezzak',color:'#3b82f6'},
-  {n:18,ar:'الْفَتَّاحُ',tr:'Al-Fattah',az:'Açan',en:'The Opener',ru:'Открывающий',tur:'Fettah',color:'#ec4899'},
-  {n:19,ar:'الْعَلِيمُ',tr:'Al-Alim',az:'Hər şeyi bilən',en:'The All-Knowing',ru:'Всезнающий',tur:'Alim',color:'#ef4444'},
-  {n:20,ar:'الْقَابِضُ',tr:'Al-Qabid',az:'Daraldan',en:'The Constrictor',ru:'Сжимающий',tur:'Kabız',color:'#f97316'},
-  {n:21,ar:'الْبَاسِطُ',tr:'Al-Basit',az:'Genişlədən',en:'The Expander',ru:'Расширяющий',tur:'Basıt',color:'#14b8a6'},
-  {n:22,ar:'الْخَافِضُ',tr:'Al-Khafid',az:'Alçaldan',en:'The Abaser',ru:'Унижающий',tur:'Hafıd',color:'#a855f7'},
-  {n:23,ar:'الرَّافِعُ',tr:'Ar-Rafi',az:'Yüksəldən',en:'The Exalter',ru:'Возвышающий',tur:'Rafi',color:'#6366f1'},
-  {n:24,ar:'الْمُعِزُّ',tr:"Al-Mu'izz",az:'İzzət verən',en:'The Honourer',ru:'Дающий честь',tur:'Muiz',color:'#84cc16'},
-  {n:25,ar:'الْمُذِلُّ',tr:'Al-Mudhill',az:'Zəlil edən',en:'The Dishonourer',ru:'Унижающий',tur:'Müzill',color:'#fbbf24'},
-  {n:26,ar:'السَّمِيعُ',tr:'As-Sami',az:'Eşidən',en:'The All-Hearing',ru:'Слышащий',tur:'Semi',color:'#06b6d4'},
-  {n:27,ar:'الْبَصِيرُ',tr:'Al-Basir',az:'Görən',en:'The All-Seeing',ru:'Видящий',tur:'Basir',color:'#10b981'},
-  {n:28,ar:'الْحَكَمُ',tr:'Al-Hakam',az:'Hökm edən',en:'The Judge',ru:'Судья',tur:'Hakem',color:'#f59e0b'},
-  {n:29,ar:'الْعَدْلُ',tr:'Al-Adl',az:'Ədalətli',en:'The Just',ru:'Справедливый',tur:'Adl',color:'#8b5cf6'},
-  {n:30,ar:'اللَّطِيفُ',tr:'Al-Latif',az:'Lütfkar',en:'The Subtle',ru:'Мягкий',tur:'Latif',color:'#3b82f6'},
-  {n:31,ar:'الْخَبِيرُ',tr:'Al-Khabir',az:'Xəbərdar',en:'The All-Aware',ru:'Осведомлённый',tur:'Habir',color:'#ec4899'},
-  {n:32,ar:'الْحَلِيمُ',tr:'Al-Halim',az:'Həlim',en:'The Forbearing',ru:'Кроткий',tur:'Halim',color:'#ef4444'},
-  {n:33,ar:'الْعَظِيمُ',tr:'Al-Azim',az:'Əzəmətli',en:'The Magnificent',ru:'Великий',tur:'Azim',color:'#f97316'},
-  {n:34,ar:'الْغَفُورُ',tr:'Al-Ghafur',az:'Bağışlayan',en:'The All-Forgiving',ru:'Всепрощающий',tur:'Gafur',color:'#14b8a6'},
-  {n:35,ar:'الشَّكُورُ',tr:'Ash-Shakur',az:'Şükür edən',en:'The Appreciative',ru:'Благодарный',tur:'Şekur',color:'#a855f7'},
-  {n:36,ar:'الْعَلِيُّ',tr:'Al-Ali',az:'Uca',en:'The Most High',ru:'Высочайший',tur:'Ali',color:'#6366f1'},
-  {n:37,ar:'الْكَبِيرُ',tr:'Al-Kabir',az:'Böyük',en:'The Greatest',ru:'Великий',tur:'Kebir',color:'#84cc16'},
-  {n:38,ar:'الْحَفِيظُ',tr:'Al-Hafiz',az:'Qoruyan',en:'The Preserver',ru:'Хранитель',tur:'Hafız',color:'#fbbf24'},
-  {n:39,ar:'الْمُقِيتُ',tr:'Al-Muqit',az:'Bəsləyən',en:'The Nourisher',ru:'Питающий',tur:'Mukit',color:'#06b6d4'},
-  {n:40,ar:'الْحَسِيبُ',tr:'Al-Hasib',az:'Hesab aparan',en:'The Reckoner',ru:'Считающий',tur:'Hasib',color:'#10b981'},
-  {n:41,ar:'الْجَلِيلُ',tr:'Al-Jalil',az:'Ulu',en:'The Majestic',ru:'Величественный',tur:'Celil',color:'#f59e0b'},
-  {n:42,ar:'الْكَرِيمُ',tr:'Al-Karim',az:'Kərim',en:'The Generous',ru:'Щедрый',tur:'Kerim',color:'#8b5cf6'},
-  {n:43,ar:'الرَّقِيبُ',tr:'Ar-Raqib',az:'Nəzarət edən',en:'The Watchful',ru:'Наблюдающий',tur:'Rakib',color:'#3b82f6'},
-  {n:44,ar:'الْمُجِيبُ',tr:'Al-Mujib',az:'Qəbul edən',en:'The Responsive',ru:'Отвечающий',tur:'Mücib',color:'#ec4899'},
-  {n:45,ar:'الْوَاسِعُ',tr:'Al-Wasi',az:'Geniş',en:'The All-Encompassing',ru:'Объемлющий',tur:'Vasi',color:'#ef4444'},
-  {n:46,ar:'الْحَكِيمُ',tr:'Al-Hakim',az:'Hikmətli',en:'The Wise',ru:'Мудрый',tur:'Hakim',color:'#f97316'},
-  {n:47,ar:'الْوَدُودُ',tr:'Al-Wadud',az:'Sevən',en:'The Loving',ru:'Любящий',tur:'Vedud',color:'#14b8a6'},
-  {n:48,ar:'الْمَجِيدُ',tr:'Al-Majid',az:'Şanlı',en:'The Glorious',ru:'Славный',tur:'Mecid',color:'#a855f7'},
-  {n:49,ar:'الْبَاعِثُ',tr:"Al-Ba'ith",az:'Dirildən',en:'The Resurrector',ru:'Воскрешающий',tur:'Bais',color:'#6366f1'},
-  {n:50,ar:'الشَّهِيدُ',tr:'Ash-Shahid',az:'Şahid',en:'The Witness',ru:'Свидетель',tur:'Şehid',color:'#84cc16'},
-  {n:51,ar:'الْحَقُّ',tr:'Al-Haqq',az:'Haqq',en:'The Truth',ru:'Истина',tur:'Hak',color:'#fbbf24'},
-  {n:52,ar:'الْوَكِيلُ',tr:'Al-Wakil',az:'Vəkil',en:'The Trustee',ru:'Доверенный',tur:'Vekil',color:'#06b6d4'},
-  {n:53,ar:'الْقَوِيُّ',tr:'Al-Qawiy',az:'Güclü',en:'The Strong',ru:'Сильный',tur:'Kavi',color:'#10b981'},
-  {n:54,ar:'الْمَتِينُ',tr:'Al-Matin',az:'Möhkəm',en:'The Firm',ru:'Прочный',tur:'Metin',color:'#f59e0b'},
-  {n:55,ar:'الْوَلِيُّ',tr:'Al-Waliy',az:'Dost',en:'The Protecting Friend',ru:'Покровитель',tur:'Veli',color:'#8b5cf6'},
-  {n:56,ar:'الْحَمِيدُ',tr:'Al-Hamid',az:'Həmd olunan',en:'The Praiseworthy',ru:'Достохвальный',tur:'Hamid',color:'#3b82f6'},
-  {n:57,ar:'الْمُحْصِي',tr:'Al-Muhsi',az:'Sayan',en:'The Counter',ru:'Считающий',tur:'Muhsi',color:'#ec4899'},
-  {n:58,ar:'الْمُبْدِئُ',tr:'Al-Mubdi',az:'Başladan',en:'The Originator',ru:'Начинающий',tur:'Mübdi',color:'#ef4444'},
-  {n:59,ar:'الْمُعِيدُ',tr:"Al-Mu'id",az:'Geri qaytaran',en:'The Restorer',ru:'Возвращающий',tur:'Muid',color:'#f97316'},
-  {n:60,ar:'الْمُحْيِي',tr:'Al-Muhyi',az:'Həyat verən',en:'The Giver of Life',ru:'Оживляющий',tur:'Muhyi',color:'#14b8a6'},
-  {n:61,ar:'الْمُمِيتُ',tr:'Al-Mumit',az:'Ölüm verən',en:'The Taker of Life',ru:'Умертвляющий',tur:'Mümit',color:'#a855f7'},
-  {n:62,ar:'الْحَيُّ',tr:'Al-Hayy',az:'Diri',en:'The Ever Living',ru:'Живой',tur:'Hay',color:'#6366f1'},
-  {n:63,ar:'الْقَيُّومُ',tr:'Al-Qayyum',az:'Əbədi',en:'The Self-Subsisting',ru:'Самодостаточный',tur:'Kayyum',color:'#84cc16'},
-  {n:64,ar:'الْوَاجِدُ',tr:'Al-Wajid',az:'Tapan',en:'The Finder',ru:'Находящий',tur:'Vacid',color:'#fbbf24'},
-  {n:65,ar:'الْمَاجِدُ',tr:'Al-Majid',az:'Şərəfli',en:'The Noble',ru:'Благородный',tur:'Macid',color:'#06b6d4'},
-  {n:66,ar:'الْوَاحِدُ',tr:'Al-Wahid',az:'Tək',en:'The One',ru:'Единый',tur:'Vahid',color:'#10b981'},
-  {n:67,ar:'الصَّمَدُ',tr:'As-Samad',az:'Ehtiyacsız',en:'The Eternal',ru:'Вечный',tur:'Samed',color:'#f59e0b'},
-  {n:68,ar:'الْقَادِرُ',tr:'Al-Qadir',az:'Qadir',en:'The Able',ru:'Способный',tur:'Kadir',color:'#8b5cf6'},
-  {n:69,ar:'الْمُقْتَدِرُ',tr:'Al-Muqtadir',az:'Hər şeyə qadir',en:'The Powerful',ru:'Могущественный',tur:'Muktedir',color:'#3b82f6'},
-  {n:70,ar:'الْمُقَدِّمُ',tr:'Al-Muqaddim',az:'Öndə tutan',en:'The Expediter',ru:'Выдвигающий',tur:'Mukaddim',color:'#ec4899'},
-  {n:71,ar:'الْمُؤَخِّرُ',tr:"Al-Mu'akhkhir",az:'Geri saxlayan',en:'The Delayer',ru:'Откладывающий',tur:'Muahhir',color:'#ef4444'},
-  {n:72,ar:'الْأَوَّلُ',tr:'Al-Awwal',az:'İlk',en:'The First',ru:'Первый',tur:'Evvel',color:'#f97316'},
-  {n:73,ar:'الْآخِرُ',tr:'Al-Akhir',az:'Son',en:'The Last',ru:'Последний',tur:'Ahir',color:'#14b8a6'},
-  {n:74,ar:'الظَّاهِرُ',tr:'Az-Zahir',az:'Zahir',en:'The Manifest',ru:'Явный',tur:'Zahir',color:'#a855f7'},
-  {n:75,ar:'الْبَاطِنُ',tr:'Al-Batin',az:'Gizli',en:'The Hidden',ru:'Скрытый',tur:'Batın',color:'#6366f1'},
-  {n:76,ar:'الْوَالِي',tr:'Al-Wali',az:'İdarə edən',en:'The Governor',ru:'Правитель',tur:'Vali',color:'#84cc16'},
-  {n:77,ar:'الْمُتَعَالِي',tr:"Al-Muta'ali",az:'Yüksək',en:'The Most Exalted',ru:'Превознесённый',tur:'Müteali',color:'#fbbf24'},
-  {n:78,ar:'الْبَرُّ',tr:'Al-Barr',az:'Yaxşılıq edən',en:'The Doer of Good',ru:'Благодетель',tur:'Berr',color:'#06b6d4'},
-  {n:79,ar:'التَّوَّابُ',tr:'At-Tawwab',az:'Tövbə qəbul edən',en:'The Acceptor of Repentance',ru:'Принимающий покаяние',tur:'Tevvab',color:'#10b981'},
-  {n:80,ar:'الْمُنْتَقِمُ',tr:'Al-Muntaqim',az:'İntiqam alan',en:'The Avenger',ru:'Мститель',tur:'Müntakim',color:'#f59e0b'},
-  {n:81,ar:'الْعَفُوُّ',tr:'Al-Afuw',az:'Əfv edən',en:'The Pardoner',ru:'Прощающий',tur:'Afüv',color:'#8b5cf6'},
-  {n:82,ar:'الرَّءُوفُ',tr:"Ar-Ra'uf",az:'Şəfqətli',en:'The Compassionate',ru:'Сострадательный',tur:'Rauf',color:'#3b82f6'},
-  {n:83,ar:'مَالِكُ الْمُلْكِ',tr:'Malik al-Mulk',az:'Mülkün sahibi',en:'Owner of Sovereignty',ru:'Владыка царства',tur:'Malikül Mülk',color:'#ec4899'},
-  {n:84,ar:'ذُو الْجَلَالِ وَالْإِكْرَامِ',tr:'Dhul-Jalali wal-Ikram',az:'Əzəmət sahibi',en:'Lord of Majesty',ru:'Обладатель величия',tur:'Zülcelali vel İkram',color:'#ef4444'},
-  {n:85,ar:'الْمُقْسِطُ',tr:'Al-Muqsit',az:'Ədalətlə hökm',en:'The Equitable',ru:'Справедливый',tur:'Muksit',color:'#f97316'},
-  {n:86,ar:'الْجَامِعُ',tr:'Al-Jami',az:'Toplayan',en:'The Gatherer',ru:'Собирающий',tur:'Cami',color:'#14b8a6'},
-  {n:87,ar:'الْغَنِيُّ',tr:'Al-Ghani',az:'Ehtiyacsız',en:'The Self-Sufficient',ru:'Богатый',tur:'Gani',color:'#a855f7'},
-  {n:88,ar:'الْمُغْنِي',tr:'Al-Mughni',az:'Zəngin edən',en:'The Enricher',ru:'Обогащающий',tur:'Muğni',color:'#6366f1'},
-  {n:89,ar:'الْمَانِعُ',tr:'Al-Mani',az:'Mane olan',en:'The Preventer',ru:'Удерживающий',tur:'Mani',color:'#84cc16'},
-  {n:90,ar:'الضَّارُّ',tr:'Ad-Darr',az:'Zərər verən',en:'The Distresser',ru:'Причиняющий',tur:'Darr',color:'#fbbf24'},
-  {n:91,ar:'النَّافِعُ',tr:'An-Nafi',az:'Fayda verən',en:'The Benefiter',ru:'Приносящий пользу',tur:'Nafi',color:'#06b6d4'},
-  {n:92,ar:'النُّورُ',tr:'An-Nur',az:'Nur',en:'The Light',ru:'Свет',tur:'Nur',color:'#10b981'},
-  {n:93,ar:'الْهَادِي',tr:'Al-Hadi',az:'Hidayət edən',en:'The Guide',ru:'Ведущий',tur:'Hadi',color:'#f59e0b'},
-  {n:94,ar:'الْبَدِيعُ',tr:'Al-Badi',az:'Yaradan',en:'The Incomparable',ru:'Создатель',tur:'Bedi',color:'#8b5cf6'},
-  {n:95,ar:'الْبَاقِي',tr:'Al-Baqi',az:'Əbədi',en:'The Everlasting',ru:'Вечный',tur:'Baki',color:'#3b82f6'},
-  {n:96,ar:'الْوَارِثُ',tr:'Al-Warith',az:'Varis',en:'The Inheritor',ru:'Наследник',tur:'Varis',color:'#ec4899'},
-  {n:97,ar:'الرَّشِيدُ',tr:'Ar-Rashid',az:'Doğru yola',en:'The Guide to Right',ru:'Направляющий',tur:'Reşid',color:'#ef4444'},
-  {n:98,ar:'الصَّبُورُ',tr:'As-Sabur',az:'Çox səbirli',en:'The Patient',ru:'Терпеливый',tur:'Sabur',color:'#f97316'},
-  {n:99,ar:'اللَّهُ',tr:'Allah',az:'Allah',en:'Allah',ru:'Аллах',tur:'Allah',color:'#d4a017'},
+  {n:1,ar:'الرَّحْمَنُ',translit:'Ar-Rahman',az:'Mərhəmətli',en:'The Most Gracious',ru:'Милостивый',tr_meaning:'Rahmân (Çok Merhametli)',color:'#10b981',desc:{az:'Bütün yaratdıqlarına sonsuz mərhəmət göstərən',en:'The One who shows endless mercy to all creation',ru:'Тот, кто проявляет бесконечную милость',ar:'الذي وسعت رحمته كل شيء',tr:'Yarattığı her şeye sınırsız merhamet gösteren'}},
+  {n:2,ar:'الرَّحِيمُ',translit:'Ar-Rahim',az:'Rəhmli',en:'The Most Merciful',ru:'Милосердный',tr_meaning:'Rahîm (Çok Esirgeyen)',color:'#f59e0b',desc:{az:'Möminlərə xüsusi rəhm edən',en:'Especially merciful to believers',ru:'Особенно милосердный к верующим',ar:'الذي يخص المؤمنين برحمته',tr:'Müminlere özel rahmet gösteren'}},
+  {n:3,ar:'الْمَلِكُ',translit:'Al-Malik',az:'Hökmdar',en:'The King',ru:'Царь',tr_meaning:'Melik (Mülkün Sahibi, Hükümdar)',color:'#8b5cf6',desc:{az:'Mülkün və hökmün sahibi',en:'The Sovereign Lord',ru:'Владыка всего сущего',ar:'مالك كل شيء والحاكم عليه',tr:'Mülkün ve hükmün sahibi'}},
+  {n:4,ar:'الْقُدُّوسُ',translit:'Al-Quddus',az:'Pak olan',en:'The Most Holy',ru:'Святой',tr_meaning:'Kuddûs (Her Eksiklikten Uzak)',color:'#3b82f6',desc:{az:'Hər cür nöqsandan uzaq',en:'Free from every imperfection',ru:'Свободный от всяких недостатков',ar:'المنزه عن كل نقص',tr:'Her türlü eksiklikten uzak'}},
+  {n:5,ar:'السَّلَامُ',translit:'As-Salam',az:'Sülh verən',en:'The Source of Peace',ru:'Источник мира',tr_meaning:'Selâm (Esenlik Veren)',color:'#ec4899',desc:{az:'Sülh və salamatlıq verən',en:'The Giver of peace and safety',ru:'Дающий мир и безопасность',ar:'واهب السلام والأمان',tr:'Barış ve selamet veren'}},
+  {n:6,ar:'الْمُؤْمِنُ',translit:"Al-Mu'min",az:'İman verən',en:'The Granter of Security',ru:'Дарующий веру',tr_meaning:'Mü\'min (Güven Veren)',color:'#ef4444'},
+  {n:7,ar:'الْمُهَيْمِنُ',translit:'Al-Muhaymin',az:'Qoruyan',en:'The Protector',ru:'Хранитель',tr_meaning:'Müheymin (Gözetip Koruyan)',color:'#f97316'},
+  {n:8,ar:'الْعَزِيزُ',translit:'Al-Aziz',az:'Qüdrətli',en:'The Almighty',ru:'Могущественный',tr_meaning:'Azîz (Mağlup Edilmeyen, Üstün)',color:'#14b8a6'},
+  {n:9,ar:'الْجَبَّارُ',translit:'Al-Jabbar',az:'Hər şeyə gücü çatan',en:'The Compeller',ru:'Могучий',tr_meaning:'Cebbâr (Dilediğini Yaptıran)',color:'#a855f7'},
+  {n:10,ar:'الْمُتَكَبِّرُ',translit:'Al-Mutakabbir',az:'Uca',en:'The Greatest',ru:'Величайший',tr_meaning:'Mütekebbir (Büyüklükte Eşsiz)',color:'#6366f1'},
+  {n:11,ar:'الْخَالِقُ',translit:'Al-Khaliq',az:'Yaradan',en:'The Creator',ru:'Творец',tr_meaning:'Hâlık (Yaratan)',color:'#84cc16'},
+  {n:12,ar:'الْبَارِئُ',translit:'Al-Bari',az:'Formalaşdıran',en:'The Maker',ru:'Создатель',tr_meaning:'Bâri (Kusursuz Yaratan)',color:'#fbbf24'},
+  {n:13,ar:'الْمُصَوِّرُ',translit:'Al-Musawwir',az:'Şəkil verən',en:'The Fashioner',ru:'Формирующий',tr_meaning:'Musavvir (Şekil Veren)',color:'#06b6d4'},
+  {n:14,ar:'الْغَفَّارُ',translit:'Al-Ghaffar',az:'Çox bağışlayan',en:'The Forgiver',ru:'Прощающий',tr_meaning:'Gaffâr (Çok Bağışlayan)',color:'#10b981'},
+  {n:15,ar:'الْقَهَّارُ',translit:'Al-Qahhar',az:'Qalib gələn',en:'The Subduer',ru:'Покоритель',tr_meaning:'Kahhâr (Her Şeye Galip Gelen)',color:'#f59e0b'},
+  {n:16,ar:'الْوَهَّابُ',translit:'Al-Wahhab',az:'Bəxş edən',en:'The Bestower',ru:'Дарующий',tr_meaning:'Vehhâb (Karşılıksız Veren)',color:'#8b5cf6'},
+  {n:17,ar:'الرَّزَّاقُ',translit:'Ar-Razzaq',az:'Ruzi verən',en:'The Provider',ru:'Дающий пропитание',tr_meaning:'Rezzâk (Rızık Veren)',color:'#3b82f6'},
+  {n:18,ar:'الْفَتَّاحُ',translit:'Al-Fattah',az:'Açan',en:'The Opener',ru:'Открывающий',tr_meaning:'Fettâh (Açan)',color:'#ec4899'},
+  {n:19,ar:'الْعَلِيمُ',translit:'Al-Alim',az:'Hər şeyi bilən',en:'The All-Knowing',ru:'Всезнающий',tr_meaning:'Alîm (Her Şeyi Bilen)',color:'#ef4444'},
+  {n:20,ar:'الْقَابِضُ',translit:'Al-Qabid',az:'Daraldan',en:'The Constrictor',ru:'Сжимающий',tr_meaning:'Kâbız (Daraltan)',color:'#f97316'},
+  {n:21,ar:'الْبَاسِطُ',translit:'Al-Basit',az:'Genişlədən',en:'The Expander',ru:'Расширяющий',tr_meaning:'Bâsıt (Genişleten)',color:'#14b8a6'},
+  {n:22,ar:'الْخَافِضُ',translit:'Al-Khafid',az:'Alçaldan',en:'The Abaser',ru:'Унижающий',tr_meaning:'Hâfıd (Alçaltan)',color:'#a855f7'},
+  {n:23,ar:'الرَّافِعُ',translit:'Ar-Rafi',az:'Yüksəldən',en:'The Exalter',ru:'Возвышающий',tr_meaning:'Râfi (Yükselten)',color:'#6366f1'},
+  {n:24,ar:'الْمُعِزُّ',translit:"Al-Mu'izz",az:'İzzət verən',en:'The Honourer',ru:'Дающий честь',tr_meaning:'Muiz (İzzet Veren)',color:'#84cc16'},
+  {n:25,ar:'الْمُذِلُّ',translit:'Al-Mudhill',az:'Zəlil edən',en:'The Dishonourer',ru:'Унижающий',tr_meaning:'Müzil (Zillete Düşüren)',color:'#fbbf24'},
+  {n:26,ar:'السَّمِيعُ',translit:'As-Sami',az:'Eşidən',en:'The All-Hearing',ru:'Слышащий',tr_meaning:'Semî (Her Şeyi İşiten)',color:'#06b6d4'},
+  {n:27,ar:'الْبَصِيرُ',translit:'Al-Basir',az:'Görən',en:'The All-Seeing',ru:'Видящий',tr_meaning:'Basîr (Her Şeyi Gören)',color:'#10b981'},
+  {n:28,ar:'الْحَكَمُ',translit:'Al-Hakam',az:'Hökm edən',en:'The Judge',ru:'Судья',tr_meaning:'Hakem (Hükmeden)',color:'#f59e0b'},
+  {n:29,ar:'الْعَدْلُ',translit:'Al-Adl',az:'Ədalətli',en:'The Just',ru:'Справедливый',tr_meaning:'Adl (Mutlak Adil)',color:'#8b5cf6'},
+  {n:30,ar:'اللَّطِيفُ',translit:'Al-Latif',az:'Lütfkar',en:'The Subtle',ru:'Мягкий',tr_meaning:'Latîf (Lütufkâr, İnceliklere Vâkıf)',color:'#3b82f6'},
+  {n:31,ar:'الْخَبِيرُ',translit:'Al-Khabir',az:'Xəbərdar',en:'The All-Aware',ru:'Осведомлённый',tr_meaning:'Habîr (Her Şeyden Haberdar)',color:'#ec4899'},
+  {n:32,ar:'الْحَلِيمُ',translit:'Al-Halim',az:'Tələsmədən cəzalandırmayan',en:'The Forbearing',ru:'Кроткий',tr_meaning:'Halîm (Cezada Acele Etmeyen)',color:'#ef4444'},
+  {n:33,ar:'الْعَظِيمُ',translit:'Al-Azim',az:'Əzəmətli',en:'The Magnificent',ru:'Великий',tr_meaning:'Azîm (Pek Büyük)',color:'#f97316'},
+  {n:34,ar:'الْغَفُورُ',translit:'Al-Ghafur',az:'Bağışlayan',en:'The All-Forgiving',ru:'Всепрощающий',tr_meaning:'Gafûr (Bağışlayan)',color:'#14b8a6'},
+  {n:35,ar:'الشَّكُورُ',translit:'Ash-Shakur',az:'Şükür edən',en:'The Appreciative',ru:'Благодарный',tr_meaning:'Şekûr (Az İyiliğe Çok Karşılık Veren)',color:'#a855f7'},
+  {n:36,ar:'الْعَلِيُّ',translit:'Al-Ali',az:'Uca',en:'The Most High',ru:'Высочайший',tr_meaning:'Aliyy (Pek Yüce)',color:'#6366f1'},
+  {n:37,ar:'الْكَبِيرُ',translit:'Al-Kabir',az:'Böyük',en:'The Greatest',ru:'Великий',tr_meaning:'Kebîr (Pek Büyük)',color:'#84cc16'},
+  {n:38,ar:'الْحَفِيظُ',translit:'Al-Hafiz',az:'Qoruyan',en:'The Preserver',ru:'Хранитель',tr_meaning:'Hafîz (Koruyan)',color:'#fbbf24'},
+  {n:39,ar:'الْمُقِيتُ',translit:'Al-Muqit',az:'Bəsləyən',en:'The Nourisher',ru:'Питающий',tr_meaning:'Mukît (Güç ve Rızık Veren)',color:'#06b6d4'},
+  {n:40,ar:'الْحَسِيبُ',translit:'Al-Hasib',az:'Hesab aparan',en:'The Reckoner',ru:'Считающий',tr_meaning:'Hasîb (Hesaba Çeken)',color:'#10b981'},
+  {n:41,ar:'الْجَلِيلُ',translit:'Al-Jalil',az:'Ulu',en:'The Majestic',ru:'Величественный',tr_meaning:'Celîl (Pek Ulu)',color:'#f59e0b'},
+  {n:42,ar:'الْكَرِيمُ',translit:'Al-Karim',az:'Kərəmli, səxavətli',en:'The Generous',ru:'Щедрый',tr_meaning:'Kerîm (Cömert)',color:'#8b5cf6'},
+  {n:43,ar:'الرَّقِيبُ',translit:'Ar-Raqib',az:'Nəzarət edən',en:'The Watchful',ru:'Наблюдающий',tr_meaning:'Rakîb (Gözetleyen)',color:'#3b82f6'},
+  {n:44,ar:'الْمُجِيبُ',translit:'Al-Mujib',az:'Qəbul edən',en:'The Responsive',ru:'Отвечающий',tr_meaning:'Mucîb (Duaları Kabul Eden)',color:'#ec4899'},
+  {n:45,ar:'الْوَاسِعُ',translit:'Al-Wasi',az:'Geniş',en:'The All-Encompassing',ru:'Объемлющий',tr_meaning:'Vâsi (Rahmeti Geniş)',color:'#ef4444'},
+  {n:46,ar:'الْحَكِيمُ',translit:'Al-Hakim',az:'Hikmətli',en:'The Wise',ru:'Мудрый',tr_meaning:'Hakîm (Hikmet Sahibi)',color:'#f97316'},
+  {n:47,ar:'الْوَدُودُ',translit:'Al-Wadud',az:'Sevən',en:'The Loving',ru:'Любящий',tr_meaning:'Vedûd (Seven, Sevilen)',color:'#14b8a6'},
+  {n:48,ar:'الْمَجِيدُ',translit:'Al-Majid',az:'Şanlı',en:'The Glorious',ru:'Славный',tr_meaning:'Mecîd (Şanı Yüce)',color:'#a855f7'},
+  {n:49,ar:'الْبَاعِثُ',translit:"Al-Ba'ith",az:'Dirildən',en:'The Resurrector',ru:'Воскрешающий',tr_meaning:'Bâis (Ölüleri Dirilten)',color:'#6366f1'},
+  {n:50,ar:'الشَّهِيدُ',translit:'Ash-Shahid',az:'Hər şeyə şahid olan',en:'The Witness',ru:'Свидетель',tr_meaning:'Şehîd (Her Şeye Şahit)',color:'#84cc16'},
+  {n:51,ar:'الْحَقُّ',translit:'Al-Haqq',az:'Varlığı həqiqi olan',en:'The Truth',ru:'Истина',tr_meaning:'Hak (Varlığı Gerçek Olan)',color:'#fbbf24'},
+  {n:52,ar:'الْوَكِيلُ',translit:'Al-Wakil',az:'Hər işi Ona həvalə edilən',en:'The Trustee',ru:'Доверенный',tr_meaning:'Vekîl (Kendisine Güvenilen)',color:'#06b6d4'},
+  {n:53,ar:'الْقَوِيُّ',translit:'Al-Qawiy',az:'Güclü',en:'The Strong',ru:'Сильный',tr_meaning:'Kaviyy (Pek Güçlü)',color:'#10b981'},
+  {n:54,ar:'الْمَتِينُ',translit:'Al-Matin',az:'Möhkəm',en:'The Firm',ru:'Прочный',tr_meaning:'Metîn (Çok Sağlam)',color:'#f59e0b'},
+  {n:55,ar:'الْوَلِيُّ',translit:'Al-Waliy',az:'Dost',en:'The Protecting Friend',ru:'Покровитель',tr_meaning:'Veliyy (Dost)',color:'#8b5cf6'},
+  {n:56,ar:'الْحَمِيدُ',translit:'Al-Hamid',az:'Həmd olunan',en:'The Praiseworthy',ru:'Достохвальный',tr_meaning:'Hamîd (Övülmeye Layık)',color:'#3b82f6'},
+  {n:57,ar:'الْمُحْصِي',translit:'Al-Muhsi',az:'Sayan',en:'The Counter',ru:'Считающий',tr_meaning:'Muhsî (Her Şeyi Sayan)',color:'#ec4899'},
+  {n:58,ar:'الْمُبْدِئُ',translit:'Al-Mubdi',az:'Başladan',en:'The Originator',ru:'Начинающий',tr_meaning:'Mübdi (İlk Defa Yaratan)',color:'#ef4444'},
+  {n:59,ar:'الْمُعِيدُ',translit:"Al-Mu'id",az:'Geri qaytaran',en:'The Restorer',ru:'Возвращающий',tr_meaning:'Muîd (Yeniden Yaratan)',color:'#f97316'},
+  {n:60,ar:'الْمُحْيِي',translit:'Al-Muhyi',az:'Həyat verən',en:'The Giver of Life',ru:'Оживляющий',tr_meaning:'Muhyî (Hayat Veren)',color:'#14b8a6'},
+  {n:61,ar:'الْمُمِيتُ',translit:'Al-Mumit',az:'Ölüm verən',en:'The Taker of Life',ru:'Умертвляющий',tr_meaning:'Mümît (Ölümü Yaratan)',color:'#a855f7'},
+  {n:62,ar:'الْحَيُّ',translit:'Al-Hayy',az:'Diri',en:'The Ever Living',ru:'Живой',tr_meaning:'Hayy (Diri)',color:'#6366f1'},
+  {n:63,ar:'الْقَيُّومُ',translit:'Al-Qayyum',az:'Əbədi',en:'The Self-Subsisting',ru:'Самодостаточный',tr_meaning:'Kayyûm (Her Şeyi Ayakta Tutan)',color:'#84cc16'},
+  {n:64,ar:'الْوَاجِدُ',translit:'Al-Wajid',az:'Tapan',en:'The Finder',ru:'Находящий',tr_meaning:'Vâcid (İstediğini Bulan)',color:'#fbbf24'},
+  {n:65,ar:'الْمَاجِدُ',translit:'Al-Majid',az:'Şərəfli',en:'The Noble',ru:'Благородный',tr_meaning:'Mâcid (Şanı Büyük)',color:'#06b6d4'},
+  {n:66,ar:'الْوَاحِدُ',translit:'Al-Wahid',az:'Tək',en:'The One',ru:'Единый',tr_meaning:'Vâhid (Bir)',color:'#10b981'},
+  {n:67,ar:'الصَّمَدُ',translit:'As-Samad',az:'Ehtiyacsız',en:'The Eternal',ru:'Вечный',tr_meaning:'Samed (Hiçbir Şeye Muhtaç Olmayan)',color:'#f59e0b'},
+  {n:68,ar:'الْقَادِرُ',translit:'Al-Qadir',az:'Hər şeyə gücü çatan',en:'The Able',ru:'Способный',tr_meaning:'Kâdir (Gücü Yeten)',color:'#8b5cf6'},
+  {n:69,ar:'الْمُقْتَدِرُ',translit:'Al-Muqtadir',az:'Hər şeyə qadir',en:'The Powerful',ru:'Могущественный',tr_meaning:'Muktedir (Kudret Sahibi)',color:'#3b82f6'},
+  {n:70,ar:'الْمُقَدِّمُ',translit:'Al-Muqaddim',az:'Öndə tutan',en:'The Expediter',ru:'Выдвигающий',tr_meaning:'Mukaddim (Öne Alan)',color:'#ec4899'},
+  {n:71,ar:'الْمُؤَخِّرُ',translit:"Al-Mu'akhkhir",az:'Geri saxlayan',en:'The Delayer',ru:'Откладывающий',tr_meaning:'Muahhir (Geriye Bırakan)',color:'#ef4444'},
+  {n:72,ar:'الْأَوَّلُ',translit:'Al-Awwal',az:'İlk',en:'The First',ru:'Первый',tr_meaning:'Evvel (Başlangıcı Olmayan)',color:'#f97316'},
+  {n:73,ar:'الْآخِرُ',translit:'Al-Akhir',az:'Son',en:'The Last',ru:'Последний',tr_meaning:'Âhir (Sonu Olmayan)',color:'#14b8a6'},
+  {n:74,ar:'الظَّاهِرُ',translit:'Az-Zahir',az:'Aşkar olan',en:'The Manifest',ru:'Явный',tr_meaning:'Zâhir (Varlığı Apaçık)',color:'#a855f7'},
+  {n:75,ar:'الْبَاطِنُ',translit:'Al-Batin',az:'Gizli',en:'The Hidden',ru:'Скрытый',tr_meaning:'Bâtın (Gizli Olan)',color:'#6366f1'},
+  {n:76,ar:'الْوَالِي',translit:'Al-Wali',az:'İdarə edən',en:'The Governor',ru:'Правитель',tr_meaning:'Vâlî (Yöneten)',color:'#84cc16'},
+  {n:77,ar:'الْمُتَعَالِي',translit:"Al-Muta'ali",az:'Yüksək',en:'The Most Exalted',ru:'Превознесённый',tr_meaning:'Müteâlî (Pek Yüce)',color:'#fbbf24'},
+  {n:78,ar:'الْبَرُّ',translit:'Al-Barr',az:'Yaxşılıq edən',en:'The Doer of Good',ru:'Благодетель',tr_meaning:'Berr (İyilik Eden)',color:'#06b6d4'},
+  {n:79,ar:'التَّوَّابُ',translit:'At-Tawwab',az:'Tövbə qəbul edən',en:'The Acceptor of Repentance',ru:'Принимающий покаяние',tr_meaning:'Tevvâb (Tövbeleri Kabul Eden)',color:'#10b981'},
+  {n:80,ar:'الْمُنْتَقِمُ',translit:'Al-Muntaqim',az:'İntiqam alan',en:'The Avenger',ru:'Мститель',tr_meaning:'Müntakim (Suçluları Cezalandıran)',color:'#f59e0b'},
+  {n:81,ar:'الْعَفُوُّ',translit:'Al-Afuw',az:'Əfv edən',en:'The Pardoner',ru:'Прощающий',tr_meaning:'Afüvv (Affeden)',color:'#8b5cf6'},
+  {n:82,ar:'الرَّءُوفُ',translit:"Ar-Ra'uf",az:'Şəfqətli',en:'The Compassionate',ru:'Сострадательный',tr_meaning:'Raûf (Çok Şefkatli)',color:'#3b82f6'},
+  {n:83,ar:'مَالِكُ الْمُلْكِ',translit:'Malik al-Mulk',az:'Mülkün sahibi',en:'Owner of Sovereignty',ru:'Владыка царства',tr_meaning:'Mâlikü\'l-Mülk (Mülkün Sahibi)',color:'#ec4899'},
+  {n:84,ar:'ذُو الْجَلَالِ وَالْإِكْرَامِ',translit:'Dhul-Jalali wal-Ikram',az:'Əzəmət sahibi',en:'Lord of Majesty',ru:'Обладатель величия',tr_meaning:'Zü\'l-Celâli ve\'l-İkrâm (Celal ve İkram Sahibi)',color:'#ef4444'},
+  {n:85,ar:'الْمُقْسِطُ',translit:'Al-Muqsit',az:'Ədalətlə hökm',en:'The Equitable',ru:'Справедливый',tr_meaning:'Muksit (Adaletle Hükmeden)',color:'#f97316'},
+  {n:86,ar:'الْجَامِعُ',translit:'Al-Jami',az:'Toplayan',en:'The Gatherer',ru:'Собирающий',tr_meaning:'Câmi (Toplayan)',color:'#14b8a6'},
+  {n:87,ar:'الْغَنِيُّ',translit:'Al-Ghani',az:'Ehtiyacsız',en:'The Self-Sufficient',ru:'Богатый',tr_meaning:'Ganî (Hiçbir Şeye Muhtaç Olmayan)',color:'#a855f7'},
+  {n:88,ar:'الْمُغْنِي',translit:'Al-Mughni',az:'Zəngin edən',en:'The Enricher',ru:'Обогащающий',tr_meaning:'Mugnî (Zengin Kılan)',color:'#6366f1'},
+  {n:89,ar:'الْمَانِعُ',translit:'Al-Mani',az:'Mane olan',en:'The Preventer',ru:'Удерживающий',tr_meaning:'Mâni (Engelleyen)',color:'#84cc16'},
+  {n:90,ar:'الضَّارُّ',translit:'Ad-Darr',az:'Zərər verən',en:'The Distresser',ru:'Причиняющий',tr_meaning:'Dârr (Zarar Veren)',color:'#fbbf24'},
+  {n:91,ar:'النَّافِعُ',translit:'An-Nafi',az:'Fayda verən',en:'The Benefiter',ru:'Приносящий пользу',tr_meaning:'Nâfi (Fayda Veren)',color:'#06b6d4'},
+  {n:92,ar:'النُّورُ',translit:'An-Nur',az:'İşıq verən',en:'The Light',ru:'Свет',tr_meaning:'Nûr (Nurlandıran)',color:'#10b981'},
+  {n:93,ar:'الْهَادِي',translit:'Al-Hadi',az:'Hidayət edən',en:'The Guide',ru:'Ведущий',tr_meaning:'Hâdî (Hidayet Veren)',color:'#f59e0b'},
+  {n:94,ar:'الْبَدِيعُ',translit:'Al-Badi',az:'Yaradan',en:'The Incomparable',ru:'Создатель',tr_meaning:'Bedî (Eşsiz Yaratan)',color:'#8b5cf6'},
+  {n:95,ar:'الْبَاقِي',translit:'Al-Baqi',az:'Əbədi',en:'The Everlasting',ru:'Вечный',tr_meaning:'Bâkî (Varlığı Sonsuz)',color:'#3b82f6'},
+  {n:96,ar:'الْوَارِثُ',translit:'Al-Warith',az:'Hər şeyin varisi',en:'The Inheritor',ru:'Наследник',tr_meaning:'Vâris (Her Şeyin Asıl Sahibi)',color:'#ec4899'},
+  {n:97,ar:'الرَّشِيدُ',translit:'Ar-Rashid',az:'Doğru yola',en:'The Guide to Right',ru:'Направляющий',tr_meaning:'Reşîd (Doğru Yolu Gösteren)',color:'#ef4444'},
+  {n:98,ar:'الصَّبُورُ',translit:'As-Sabur',az:'Çox səbirli',en:'The Patient',ru:'Терпеливый',tr_meaning:'Sabûr (Çok Sabırlı)',color:'#f97316'},
+  {n:99,ar:'اللَّهُ',translit:'Allah',az:'Allah',en:'Allah',ru:'Аллах',tr_meaning:'Yüce Allah',color:'#d4a017'},
 ];
 
 export default function NamesScreen() {
@@ -121,16 +123,15 @@ export default function NamesScreen() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
 
-  const getMeaning = (name) => {
-    const map = { az: name.az, en: name.en, ru: name.ru, ar: name.ar, tr: name.tur };
-    return map[lang] || name.en;
-  };
+  // Ərəbcə ad onsuz da göstərilir — ar üçün ayrıca "məna" yoxdur (veb NamesPage kimi).
+  // Başqa dilə ehtiyat keçid YOXDUR: məna yalnız seçilmiş dildə göstərilir.
+  const getMeaning = (name) => (lang === 'ar' ? '' : lang === 'tr' ? name.tr_meaning : name[lang]) || '';
 
   const filtered = useMemo(() => {
     if (!search) return NAMES;
     const q = search.toLowerCase();
-    return NAMES.filter(n => n.ar.includes(search) || n.tr.toLowerCase().includes(q) || n.en.toLowerCase().includes(q) || (n.az && n.az.toLowerCase().includes(q)));
-  }, [search]);
+    return NAMES.filter(n => n.ar.includes(search) || n.translit.toLowerCase().includes(q) || getMeaning(n).toLowerCase().includes(q));
+  }, [search, lang]);
 
   return (
     <View style={[styles.container, { backgroundColor: c.background }]}>
@@ -202,8 +203,8 @@ export default function NamesScreen() {
                     <Text style={styles.nameNumText}>{n.n}</Text>
                   </View>
                   <Text style={[styles.nameArabic, { color: n.color }]}>{n.ar}</Text>
-                  <Text style={[styles.nameTranslit, { color: c.text }]}>{n.tr}</Text>
-                  <Text style={[styles.nameMeaning, { color: c.textMuted }]} numberOfLines={1}>{getMeaning(n)}</Text>
+                  <Text style={[styles.nameTranslit, { color: c.text }]}>{n.translit}</Text>
+                  {getMeaning(n) ? <Text style={[styles.nameMeaning, { color: c.textMuted }]} numberOfLines={1}>{getMeaning(n)}</Text> : null}
                 </View>
               </TouchableOpacity>
             </FadeUp>
@@ -229,26 +230,28 @@ export default function NamesScreen() {
                   <Text style={styles.modalNum}>{selected.n}</Text>
                 </View>
                 <Text style={styles.modalArabic}>{selected.ar}</Text>
-                <Text style={styles.modalTranslit}>{selected.tr}</Text>
+                <Text style={styles.modalTranslit}>{selected.translit}</Text>
                 <View style={styles.modalCircle1} />
                 <View style={styles.modalCircle2} />
               </LinearGradient>
 
               <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                {getMeaning(selected) ? (
                 <View style={[styles.meaningBox, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                   <Text style={[styles.meaningLabel, { color: selected.color }]}>
                     {lang==='az'?'MƏNA':lang==='ru'?'ЗНАЧЕНИЕ':lang==='ar'?'المعنى':lang==='tr'?'ANLAM':'MEANING'}
                   </Text>
                   <Text style={[styles.meaningValue, { color: c.text }]}>{getMeaning(selected)}</Text>
                 </View>
+                ) : null}
 
-                {selected.desc && (
+                {selected.desc?.[lang] && (
                   <View style={[styles.descBox, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
                     <Text style={[styles.descLabel, { color: selected.color }]}>
                       {lang==='az'?'İZAH':lang==='ru'?'ОПИСАНИЕ':lang==='ar'?'الوصف':lang==='tr'?'AÇIKLAMA':'DESCRIPTION'}
                     </Text>
                     <Text style={[styles.descText, { color: c.textSecondary }]}>
-                      {selected.desc[lang] || selected.desc.en || ''}
+                      {selected.desc[lang]}
                     </Text>
                   </View>
                 )}

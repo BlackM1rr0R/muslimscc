@@ -10,10 +10,10 @@ const NOT_FOUND = { az:'Ad tapılmadı', en:'Not found', ru:'Ничего не �
 const normAr = (s) => String(s || '').replace(/[ً-ٰٟۖ-ۭـ\s]/g, '').replace(/[ٱأإآ]/g, 'ا')
 const HAS_ARABIC = /[؀-ۿ]/
 
-// Kartdakı məna sətri. Ərəbcədə "məna" adın özüdür, NAMES_99-da isə "tr"
-// sahəsi türkcə tərcümə deyil, transliterasiyadır — hər iki halda sətir
-// yuxarıdakını təkrarlayardı, ona görə göstərilmir.
-const meaningOf = (name, lang) => (lang === 'ar' || lang === 'tr') ? '' : (name[lang] || name.en)
+// Kartdakı məna sətri. Ərəbcədə "məna" adın özüdür — göstərilmir.
+// NAMES_99-da "tr" sahəsi transliterasiyadır; türkcə məna "tr_meaning"-dədir.
+// Başqa dilə (ingiliscəyə) düşmür — hər dilin öz mətni var.
+const meaningOf = (name, lang) => lang === 'ar' ? '' : lang === 'tr' ? (name.tr_meaning || '') : (name[lang] || '')
 
 export default function NamesPage() {
   const { lang } = useLang()
@@ -29,7 +29,7 @@ export default function NamesPage() {
     }
     return NAMES_99.filter(n =>
       n.tr.toLowerCase().includes(q) ||
-      (n[lang] || n.en || '').toLowerCase().includes(q) ||
+      (lang === 'tr' ? (n.tr_meaning || '') : (n[lang] || '')).toLowerCase().includes(q) ||
       (n.en || '').toLowerCase().includes(q) ||
       String(n.n) === q
     )

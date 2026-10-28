@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import { subscribeToSettings } from '../data/adminContent'
-import { BRAND, tr } from '../config/mosque'
+import { BRAND, tr } from '../config/brand'
 import '../styles/AIChatPage.css'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
@@ -348,7 +348,7 @@ export default function AIChatPage({ setPage }) {
           </div>
         )}
 
-        {/* Xəbərdarlıq — AI cavabları məscidin rəsmi mövqeyi deyil */}
+        {/* Xəbərdarlıq — AI cavabları fətva deyil (BRAND.aiDisclaimer) */}
         <p className="aic-disclaimer">⚠️ {tr(BRAND.aiDisclaimer, lang)}</p>
       </div>
     </div>

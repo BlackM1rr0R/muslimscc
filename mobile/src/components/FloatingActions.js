@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
-import { BRAND } from '../config/mosque'
+import { BRAND, tr } from '../config/brand'
 import { useLang } from '../contexts/LangContext'
 
 // ─── Reusable animated FAB ────────────────────────────────────────────────
@@ -123,6 +123,9 @@ function AnimatedFab({
 }
 
 // ─── Floating overlay ─────────────────────────────────────────────────────
+// Əlçatanlıq düyməsinin adı (ekran oxuyucusu üçün, 5 dil)
+const A11Y_LABEL = { az:'Əlçatanlıq menyusu', en:'Accessibility menu', ru:'Меню доступности', ar:'قائمة إمكانية الوصول', tr:'Erişilebilirlik menüsü' };
+
 export default function FloatingActions({ navRef }) {
   const insets = useSafeAreaInsets()
   const { lang } = useLang()
@@ -137,7 +140,7 @@ export default function FloatingActions({ navRef }) {
       <View pointerEvents="box-none" style={[styles.slot, { right: 18, bottom: bottomBase + 78 }]}>
         <AnimatedFab
           onPress={openA11y}
-          label="Accessibility menu"
+          label={A11Y_LABEL[lang] || A11Y_LABEL.az}
           size={56}
           colors={['#60a5fa', '#3b82f6', '#1d4ed8']}
           shadowColor="#3b82f6"
@@ -152,7 +155,7 @@ export default function FloatingActions({ navRef }) {
       <View pointerEvents="box-none" style={[styles.slot, { right: 18, bottom: bottomBase }]}>
         <AnimatedFab
           onPress={openAI}
-          label={BRAND.aiName[lang] || BRAND.aiName.az}
+          label={tr(BRAND.aiName, lang)}
           size={62}
           colors={['#34d399', '#10b981', '#047857']}
           shadowColor="#10b981"

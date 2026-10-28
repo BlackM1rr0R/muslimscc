@@ -10,7 +10,9 @@ import { DUAS_DATA, subscribeToCustomDuas } from '../data/duas';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, Float } from '../components/Animated';
-import { brandName, BRAND } from '../config/mosque';
+import { BRAND } from '../config/brand';
+import { localizeSource } from '../utils/sourceNames';
+import { pickLang } from '../utils/pickLang';
 
 // Kateqoriya rəngləri və ikonlar
 const CAT_META = {
@@ -33,7 +35,9 @@ function DuaCard({ d, favs, toggleFav, shareDua, expanded, setExpanded, t, lang,
   const sh = dark ? Shadows.dark.md : Shadows.md;
   const isOpen = expanded[d.id];
   const isFav = favs.includes(d.id);
-  const translation = d[lang] || d.en || d.az;
+  // Ərəbcədə orijinal mətn onsuz da göstərilir; tərcümə yalnız seçilmiş dildə (başqa dilə düşmür)
+  const translation = lang === 'ar' ? '' : (d[lang] || '');
+  const source = localizeSource(d.source, lang);
   const meta = CAT_META[d.cat] || CAT_META.morning;
 
   const favScale = useRef(new RNAnimated.Value(1)).current;
@@ -127,18 +131,22 @@ function DuaCard({ d, favs, toggleFav, shareDua, expanded, setExpanded, t, lang,
               <Text style={[styles.translitText, { color: c.primaryDark }]}>{d.translit}</Text>
             </View>
           )}
+          {translation ? (
           <View style={styles.section}>
             <View style={[styles.sectionLabelWrap, { backgroundColor: meta.color + '15' }]}>
               <Text style={[styles.sectionLabel, { color: meta.color }]}>{t.meaningLabel}</Text>
             </View>
             <Text style={[styles.meaningText, { color: c.textSecondary }]}>{translation}</Text>
           </View>
+          ) : null}
+          {source ? (
           <View style={[styles.sourceRow, { borderTopColor: c.border }]}>
             <View style={[styles.sourceBadge, { backgroundColor: c.goldBg, borderColor: c.gold + '30' }]}>
               <AppIcon name="bookmark" size={11} color={c.gold} />
-              <Text style={[styles.sourceText, { color: c.gold }]}>{d.source}</Text>
+              <Text style={[styles.sourceText, { color: c.gold }]}>{source}</Text>
             </View>
           </View>
+          ) : null}
         </FadeUp>
       )}
 
@@ -179,13 +187,9 @@ export default function DuasScreen() {
         cat: d.category || d.cat || 'All',
         ar: d.ar || d.arabic || '',
         translit: d.translit || d.transliteration || '',
-        [lang]: d.text?.[lang] || d.text?.en || '',
-        en: d.text?.en || '',
-        az: d.text?.az || '',
-        ru: d.text?.ru || '',
-        ar2: d.text?.ar || '',
-        tr: d.text?.tr || '',
-        source: d.source || 'Admin',
+        // Tərcümə yalnız seçilmiş dildə — əskikdirsə başqa dilə (ingiliscə daxil) düşmür
+        [lang]: lang === 'ar' ? '' : pickLang(d.text, lang),
+        source: d.source || '',
       })).filter(d => d[lang] || d.ar)
       setCustomDuas(mapped)
     })
@@ -210,8 +214,9 @@ export default function DuasScreen() {
 
   const shareDua = async (d) => {
     try {
-      const text = d[lang] || d.en || d.az;
-      await Share.share({ message: `${d.ar}\n\n${text}\n\n— ${d.source}\n\n${brandName(lang)} · ${BRAND.domain}` });
+      const text = lang === 'ar' ? '' : (d[lang] || '');
+      const src = localizeSource(d.source, lang);
+      await Share.share({ message: [d.ar, text, src && `— ${src}`, BRAND.domain].filter(Boolean).join('\n\n') });
     } catch {}
   };
 

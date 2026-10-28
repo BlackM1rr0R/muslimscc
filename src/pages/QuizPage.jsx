@@ -8,7 +8,7 @@ const LABELS = {
   en: { title:'Islamic Quiz', subtitle:'Test your knowledge', categories:'Choose category', quran:'Quran', hadith:'Hadith', names:'99 Names', start:'Start', next:'Next', finish:'Finish', score:'Score', correct:'Correct', wrong:'Wrong', playAgain:'Play Again', question:'Question', of:'/', bestScore:'Best score', newBest:'New record!', back:'Back', selectAnswer:'Select an answer', exit:'Categories' },
   ru: { title:'Исламская Викторина', subtitle:'Проверь свои знания', categories:'Выберите категорию', quran:'Коран', hadith:'Хадис', names:'99 Имён', start:'Начать', next:'Далее', finish:'Завершить', score:'Баллы', correct:'Правильно', wrong:'Неправильно', playAgain:'Играть снова', question:'Вопрос', of:'/', bestScore:'Лучший результат', newBest:'Новый рекорд!', back:'Назад', selectAnswer:'Выберите ответ', exit:'Категории' },
   ar: { title:'اختبار إسلامي', subtitle:'اختبر معلوماتك', categories:'اختر الفئة', quran:'القرآن', hadith:'الحديث', names:'٩٩ اسم', start:'ابدأ', next:'التالي', finish:'إنهاء', score:'النقاط', correct:'صحيح', wrong:'خطأ', playAgain:'أعد اللعب', question:'سؤال', of:'/', bestScore:'أفضل نتيجة', newBest:'رقم قياسي!', back:'رجوع', selectAnswer:'اختر إجابة', exit:'الفئات' },
-  tr: { title:'İslami Quiz', subtitle:'Bilgini test et', categories:'Kategori seç', quran:'Kuran', hadith:'Hadis', names:'99 İsim', start:'Başla', next:'Sonraki', finish:'Bitir', score:'Puan', correct:'Doğru', wrong:'Yanlış', playAgain:'Tekrar Oyna', question:'Soru', of:'/', bestScore:'En iyi skor', newBest:'Yeni rekor!', back:'Geri', selectAnswer:'Bir cevap seçin', exit:'Kategoriler' },
+  tr: { title:'İslami Bilgi Yarışması', subtitle:'Bilgini test et', categories:'Kategori seç', quran:'Kuran', hadith:'Hadis', names:'99 İsim', start:'Başla', next:'Sonraki', finish:'Bitir', score:'Puan', correct:'Doğru', wrong:'Yanlış', playAgain:'Tekrar Oyna', question:'Soru', of:'/', bestScore:'En iyi skor', newBest:'Yeni rekor!', back:'Geri', selectAnswer:'Bir cevap seçin', exit:'Kategoriler' },
 }
 
 const QUESTIONS = {
@@ -257,7 +257,7 @@ const QUESTIONS = {
       ], correct: 1
     },
     {
-      q: { az:'Quranın "Muavvizətеyn" adlanan surələri hansılardır?', en:'Which surahs are called "Al-Muawwidhatayn"?', ru:'Какие суры называются «Аль-Муаввизатайн»?', ar:'ما هما المعوذتان؟', tr:'"Muavvizeteyn" olarak bilinen sureler hangileridir?' },
+      q: { az:'Quranın "Muavvizəteyn" adlanan surələri hansılardır?', en:'Which surahs are called "Al-Muawwidhatayn"?', ru:'Какие суры называются «Аль-Муаввизатайн»?', ar:'ما هما المعوذتان؟', tr:'"Muavvizeteyn" olarak bilinen sureler hangileridir?' },
       options: [
         { az:'Fatihə və İxlas', en:'Al-Fatiha & Al-Ikhlas', ru:'Аль-Фатиха и Аль-Ихлас', ar:'الفاتحة والإخلاص', tr:'Fatiha ve İhlas' },
         { az:'Fələq və Nas', en:'Al-Falaq & An-Nas', ru:'Аль-Фаляк и Ан-Нас', ar:'الفلق والناس', tr:'Felak ve Nas' },
@@ -516,7 +516,7 @@ const QUESTIONS = {
       ], correct: 2
     },
     {
-      q: { az:'Hədis elmində "mürsel" hədis nədir?', en:'What is a "mursal" hadith?', ru:'Что такое «мурсаль» хадис?', ar:'ما هو الحديث المرسل؟', tr:'"Mürsel" hadis nedir?' },
+      q: { az:'Hədis elmində "mürsəl" hədis nədir?', en:'What is a "mursal" hadith?', ru:'Что такое «мурсаль» хадис?', ar:'ما هو الحديث المرسل؟', tr:'"Mürsel" hadis nedir?' },
       options: [
         { az:'Səhabə atlanan hədis', en:'A hadith where the companion is omitted from chain', ru:'Хадис, в цепочке которого пропущен сподвижник', ar:'حديث سقط منه الصحابي', tr:'Sahabenin atlandığı hadis' },
         { az:'Çox rəvayətçili hədis', en:'A hadith with many narrators', ru:'Хадис со многими передатчиками', ar:'حديث كثير الرواة', tr:'Çok ravili hadis' },

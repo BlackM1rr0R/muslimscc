@@ -1076,7 +1076,7 @@ export const GLOSSARY = [
   {
     term: 'Mübah', ar: 'المباح', translit: 'Mubah',
     def: {
-      az: 'İcazə verilmiş, nə savabı nə günahı olan əməl. İslam hüququnun hökm vermədiyi neytrаl davranışlar.',
+      az: 'İcazə verilmiş, nə savabı nə günahı olan əməl. İslam hüququnun hökm vermədiyi neytral davranışlar.',
       en: 'Permissible, neutral act. Actions that Islamic law neither encourages nor discourages; no reward or sin attached.',
       ru: 'Дозволенное, нейтральное действие. Действия, которые исламское право не поощряет и не порицает; ни награды, ни греха.',
       ar: 'المباح. الفعل الذي لا ثواب فيه ولا عقاب؛ ما سكت عنه الشرع.',

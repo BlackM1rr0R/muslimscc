@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-# Qaraçuxur Məscidi (muslims.cc) — Apache konfiqurasiyası (cPanel / adi hostinq)
+# Muslims.cc — Apache konfiqurasiyası (cPanel / adi hostinq)
 #
 # vercel.json yalnız Vercel-də işləyir. FTP ilə adi hostinqə
 # yüklənəndə marşrutlaşdırmanı bu fayl idarə edir.
@@ -35,6 +35,14 @@ ErrorDocument 404 /404.html
   # Azərbaycan dili prefiksizdir (/quran); /az/quran üçün statik fayl yoxdur.
   # Tətbiq bu ünvanı tanıyır, ona görə 404 yox, 301: /az → /, /az/quran → /quran
   RewriteRule ^az(?:/(.*))?$ /$1 [R=301,L]
+
+  # ── Silinmiş /mosque səhifəsi → eyni dildə /about ──
+  # 2026-09 — 2026-10 arası saytda "Məscid haqqında" (/mosque) səhifəsi var idi;
+  # sayt yenidən ümumi platforma olanda silindi. 301 — Google köhnə URL-in
+  # yerinə "Haqqımızda"-nı indeksləsin (404 olsa, qazanılmış keçidlər itərdi).
+  # /mosques (yaxınlıqdakı məscidlər) bu qaydaya düşmür: sonda "/?$" var.
+  RewriteRule ^mosque/?$ /about [R=301,L]
+  RewriteRule ^(en|ru|ar|tr)/mosque/?$ /$1/about [R=301,L]
 
   # ── Sondakı "/" -i sil ──
   # /quran/ və /quran ayrı-ayrı indekslənməsin deyə tək forma saxlanılır

@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import { VIDEO_CATEGORIES, getThumbnail, getEmbedUrl, DEFAULT_VIDEOS, subscribeToVideos } from '../data/videos'
 import Pagination from './Pagination'
+// Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
+import { pickLang, hasLang } from '../utils/pickLang'
 
 const LABELS = {
   az: { title:'Video Kontent', sub:'Mühazirələr, tilavətlər və daha çoxu', noVideos:'Hələ video əlavə olunmayıb', loading:'Yüklənir...', viewAll:'Hamısını gör' },
@@ -16,7 +18,9 @@ export default function VideoSection({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
 
-  const [videos, setVideos] = useState([])
+  const [allVideos, setVideos] = useState([])
+  // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)
+  const videos = allVideos.filter(v => hasLang(v.title, lang))
   const [loading, setLoading] = useState(true)
   const [selectedCat, setSelectedCat] = useState('all')
   const [playingVideo, setPlayingVideo] = useState(null)
@@ -101,7 +105,7 @@ export default function VideoSection({ setPage }) {
               onClick={() => setSelectedCat(cat.key)}
               style={selectedCat === cat.key ? { backgroundColor: cat.color, borderColor: cat.color } : {}}
             >
-              {cat.label[lang] || cat.label.en}
+              {cat.label[lang]}
             </button>
           ))}
         </div>
@@ -114,22 +118,22 @@ export default function VideoSection({ setPage }) {
                 <div className="video-card-thumb">
                   <img
                     src={getThumbnail(v.youtubeId)}
-                    alt={v.title[lang] || v.title.en}
+                    alt={pickLang(v.title, lang)}
                     onError={(e) => e.target.src = `https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`}
                     loading="lazy"
                   />
                   <div className="video-card-play">▶</div>
                   <div className="video-card-cat" style={{color: cat?.color}}>
-                    {cat?.label[lang] || cat?.label.en || v.category}
+                    {cat?.label[lang] || ''}
                   </div>
                   {v.duration && v.duration !== '—' && (
                     <div className="video-card-duration">{v.duration}</div>
                   )}
                 </div>
                 <div className="video-card-body">
-                  <h3 className="video-card-title">{v.title[lang] || v.title.en}</h3>
-                  {(v.description?.[lang] || v.description?.en) && (
-                    <p className="video-card-desc">{v.description[lang] || v.description.en}</p>
+                  <h3 className="video-card-title">{pickLang(v.title, lang)}</h3>
+                  {(pickLang(v.description, lang, { warn: false })) && (
+                    <p className="video-card-desc">{pickLang(v.description, lang, { warn: false })}</p>
                   )}
                 </div>
               </div>
@@ -165,7 +169,7 @@ export default function VideoSection({ setPage }) {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
               playsInline
-              title={playingVideo.title[lang] || playingVideo.title.en}
+              title={pickLang(playingVideo.title, lang)}
               loading="lazy"
               referrerPolicy="strict-origin-when-cross-origin"
             />

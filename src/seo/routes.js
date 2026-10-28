@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// Qaraçuxur Məscidi — Marşrut & SEO meta reyestri
+// Muslims.cc — Marşrut & SEO meta reyestri
 //
 // Bu fayl saytın YEGANƏ həqiqət mənbəyidir:
 //   • App.jsx marşrutlaşdırma üçün oxuyur
@@ -25,8 +25,10 @@ export const LOCALES = {
 // noindex  — sitemap-dan və indeksləmədən kənar (admin səhifələri)
 export const PAGES = [
   { key: 'home',         path: '',             priority: 1.0,  changefreq: 'daily'   },
-  // Məscid bölmələri
-  { key: 'mosque',        path: 'mosque',        priority: 0.95, changefreq: 'monthly' },
+  // Camaat/cümə, elanlar, xeyriyyə — ümumi platforma bölmələri.
+  // Məscid dövründəki /mosque səhifəsi silindi: server (nginx, .htaccess)
+  // /mosque və /<dil>/mosque ünvanlarını eyni dildə /about-a 301 ilə
+  // yönləndirir ki, Google köhnə URL-i düzgün köçürsün.
   { key: 'jamaat',        path: 'jamaat',        priority: 0.95, changefreq: 'daily'   },
   { key: 'announcements', path: 'announcements', priority: 0.90, changefreq: 'daily'   },
   { key: 'donate',        path: 'donate',        priority: 0.70, changefreq: 'monthly' },

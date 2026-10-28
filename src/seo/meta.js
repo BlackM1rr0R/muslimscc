@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// Qaraçuxur Məscidi — Səhifə başına SEO mətnləri
+// Muslims.cc — Səhifə başına SEO mətnləri
 //
 // META[key][lang] = { t: <title>, d: <description> }
 //
@@ -13,12 +13,19 @@
 //   • title  ≤ ~60 simvol + " | <brend adı>" şəkilçisi (dilə görə)
 //   • description 140-160 simvol, fərqləndirici və hərəkətə çağıran
 //   • Hər səhifədə UNİKAL mətn — təkrar = duplicate content
+//   • DİL QAYDASI: hər mətn TAMAMİLƏ öz dilində — az mətnində türkcə
+//     söz ("ve", "ile", "için") və türkcə apostrof şəkilçisi ("Allah'ın")
+//     olmur; tr mətnində "ə" hərfi olmur.
 //
-// Brend adı src/config/mosque.js-dən gəlir. İmport yolunda .js
+// Brend adı src/config/brand.js-dən gəlir. İmport yolunda .js
 // uzantısı vacibdir — prerender bu faylı adi Node ilə yükləyir.
+//
+// Tarixçə: 2026-09 — 2026-10 arası sayt bir məscidin saytı idi; məscidə
+// aid səhifə (/mosque) silindi (server onu /about-a 301 ilə yönləndirir),
+// camaat/elanlar/ianə səhifələri isə ümumi platforma mətnləri ilə qaldı.
 // ═══════════════════════════════════════════════════════
 
-import { BRAND, brandName } from '../config/mosque.js'
+import { BRAND, brandName } from '../config/brand.js'
 
 // Uyğunluq üçün saxlanılıb — dilə görə ad üçün brandName(lang) istifadə et
 export const SUFFIX = BRAND.name.az
@@ -34,79 +41,63 @@ const FALLBACK = {
 
 export const META = {
   home: {
-    az: { t: 'Namaz Vaxtları, Camaat Namazı və Elanlar',
-          d: 'Qaraçuxur Məscidinin saytı (Qaraçuxur, Bakı): gündəlik namaz vaxtları, camaat namazı və elanlar. Quran oxu və dinlə, hədis, dua, zikr, zəkat — 5 dildə.' },
-    en: { t: 'Prayer & Congregation Times, Announcements',
-          d: 'The website of Garachukhur Mosque in Baku: daily prayer times, congregational prayers and announcements, plus the Quran, hadith, duas and dhikr in 5 languages.' },
-    ru: { t: 'Время намаза, коллективные молитвы и объявления',
-          d: 'Сайт мечети Карачухур (Баку): ежедневное время намаза, коллективные молитвы и объявления, а также Коран, хадисы, дуа и зикр на 5 языках.' },
-    tr: { t: 'Namaz Vakitleri, Cemaat Namazı ve Duyurular',
-          d: 'Karaçuhur Camii’nin web sitesi (Bakü): günlük namaz vakitleri, cemaat namazı ve duyurular. Kuran oku ve dinle, hadis, dua, zikir, zekât — 5 dilde.' },
-    ar: { t: 'مواقيت الصلاة وصلاة الجماعة والإعلانات',
-          d: 'موقع مسجد قاراچوخور في باكو: مواقيت الصلاة اليومية وصلاة الجماعة والإعلانات، إلى جانب القرآن الكريم والحديث والأدعية والأذكار بخمس لغات.' },
+    az: { t: 'Quran, Namaz Vaxtları, Hədis və Dua — İslami Platforma',
+          d: '5 dildə 30-dan çox bölməli pulsuz İslami platforma: Quran oxu və dinlə, namaz vaxtları, 1350+ hədis, dua, zikr sayğacı, zəkat və qiblə. Reklamsız.' },
+    en: { t: 'Quran, Prayer Times, Hadith & Dua — Islamic Platform',
+          d: 'A free Islamic platform with 30+ sections in 5 languages: read and listen to the Quran, prayer times, 1350+ hadith, duas, dhikr, zakat and qibla. No ads.' },
+    ru: { t: 'Коран, время намаза, хадисы и дуа — исламская платформа',
+          d: 'Бесплатная исламская платформа: более 30 разделов на 5 языках. Читайте и слушайте Коран, время намаза, 1350+ хадисов, дуа, зикр, закят и кибла.' },
+    tr: { t: 'Kuran, Namaz Vakitleri, Hadis ve Dua — İslami Platform',
+          d: '5 dilde 30’dan fazla bölümlü ücretsiz İslami platform: Kuran oku ve dinle, namaz vakitleri, 1350+ hadis, dua, zikir, zekât ve kıble. Reklamsız.' },
+    ar: { t: 'القرآن ومواقيت الصلاة والحديث والدعاء — منصة إسلامية',
+          d: 'منصة إسلامية مجانية بأكثر من ٣٠ قسماً بخمس لغات: اقرأ القرآن واستمع إليه، ومواقيت الصلاة، وأكثر من ١٣٥٠ حديثاً، والأدعية والأذكار والزكاة والقبلة. بلا إعلانات.' },
   },
 
-  // ── Məscid bölmələri ──
-  // Yalnız bu gün səhifədə HƏQİQƏTƏN olanı vəd edirik. Namaz vaxtları
-  // məscidin öz koordinatına görə hesablanır; camaat vaxtları MOSQUE.jamaat-dan
-  // gəlir (azandan +N dəqiqə — sahibin təsdiqi ilə; admin dəyişə bilər), ona
-  // görə təsvirlərdə dəqiqə rəqəmi yazılmır. Ünvan, imam, telefon və ianə
-  // rekvizitləri hələ doldurulmayıb (src/config/mosque.js) — vəd edilmir.
-  mosque: {
-    az: { t: 'Məscid Haqqında — Qaraçuxur, Bakı',
-          d: 'Qaraçuxur Məscidi haqqında səhifə (Qaraçuxur, Bakı): məscidin yeri, bugünkü namaz vaxtları, məscidin elanları və ianə bölməsinə keçidlər bir yerdə.' },
-    en: { t: 'About the Mosque — Garachukhur, Baku',
-          d: 'About Garachukhur Mosque in Garachukhur, Baku: where it is, plus quick links to today’s prayer times, the mosque’s announcements and how to support it.' },
-    ru: { t: 'О мечети — Карачухур, Баку',
-          d: 'О мечети Карачухур (Карачухур, Баку): где она находится, а также быстрые ссылки на сегодняшнее время намаза, объявления мечети и помощь мечети.' },
-    tr: { t: 'Cami Hakkında — Karaçuhur, Bakü',
-          d: 'Karaçuhur Camii hakkında (Karaçuhur, Bakü): caminin yeri ile bugünkü namaz vakitleri, cami duyuruları ve camiye destek sayfalarına hızlı bağlantılar.' },
-    ar: { t: 'عن المسجد — قاراچوخور، باكو',
-          d: 'صفحة عن مسجد قاراچوخور في قاراچوخور بباكو: موقع المسجد وروابط سريعة إلى مواقيت الصلاة لهذا اليوم وإعلانات المسجد وطريقة دعم المسجد بالتبرع.' },
-  },
-
+  // ── Camaat, elanlar, ianə ──
+  // Məscid dövründən qalan, indi ÜMUMİ olan səhifələr: konkret məscid adı,
+  // ünvanı və ya ianə rekvizitləri vəd edilmir (saytda ödəniş qəbul olunmur).
   jamaat: {
-    az: { t: 'Namaz və Camaat Vaxtları — Qaraçuxur',
-          d: 'Qaraçuxur Məscidində bugünkü azan və camaat namazı vaxtları: Sübh, Zöhr, Əsr, Məğrib, İşa, növbəti camaata geri sayım, cümə namazı vaxtı və fəzilətləri.' },
-    en: { t: 'Prayer & Congregation Times — Garachukhur',
-          d: 'Today’s adhan and congregational (jamaat) prayer times at Garachukhur Mosque in Baku, a countdown to the next jamaat, the Friday prayer time and its virtues.' },
-    ru: { t: 'Время намаза и джамаата — Карачухур',
-          d: 'Время азана и коллективной молитвы (джамаата) в мечети Карачухур на сегодня: отсчёт до следующего джамаата, время пятничного намаза и его достоинства.' },
-    tr: { t: 'Namaz ve Cemaat Vakitleri — Karaçuhur',
-          d: 'Karaçuhur Camii’nde bugünkü ezan ve cemaat namazı vakitleri: sonraki cemaate geri sayım, cuma namazı saati ve cemaatle kılınan namazın faziletleri.' },
-    ar: { t: 'مواقيت الصلاة والجماعة — قاراچوخور',
-          d: 'مواقيت الأذان وإقامة صلاة الجماعة اليوم في مسجد قاراچوخور بباكو، مع عدّ تنازلي للجماعة القادمة وموعد صلاة الجمعة وفضل صلاة الجماعة.' },
+    az: { t: 'Camaat və Cümə Namazı — Fəziləti və Vaxtları',
+          d: 'Camaat və cümə namazının fəziləti haqqında ayə və hədislər, bugünkü namaz vaxtları və yaxınlıqdakı məscidi tapmaq üçün keçid — hamısı bir səhifədə.' },
+    en: { t: 'Congregational & Friday Prayer — Virtues and Times',
+          d: 'Verses and hadith on the virtues of praying in congregation and the Friday prayer, today’s prayer times and a quick way to find a mosque near you.' },
+    ru: { t: 'Коллективный и пятничный намаз — достоинства и время',
+          d: 'Аяты и хадисы о достоинстве коллективного и пятничного намаза, сегодняшнее время намаза и быстрый поиск ближайшей мечети — на одной странице.' },
+    tr: { t: 'Cemaat ve Cuma Namazı — Fazileti ve Vakitleri',
+          d: 'Cemaatle ve cuma namazı kılmanın fazileti hakkında ayet ve hadisler, bugünkü namaz vakitleri ve yakınınızdaki camiyi bulmak için bağlantı bir arada.' },
+    ar: { t: 'صلاة الجماعة والجمعة — فضلها ومواقيتها',
+          d: 'آيات وأحاديث في فضل صلاة الجماعة وصلاة الجمعة، مع مواقيت الصلاة لهذا اليوم ورابط سريع للعثور على أقرب مسجد إليك، في صفحة واحدة.' },
   },
 
   announcements: {
-    az: { t: 'Elanlar — Məscidin Xəbər və Bildirişləri',
-          d: 'Qaraçuxur Məscidinin elan lövhəsi: məscidin dərc etdiyi xəbər və elanlar burada toplanır. Yeni elanı qaçırmamaq üçün bildirişləri aktivləşdirin.' },
-    en: { t: 'Announcements — News from the Mosque',
-          d: 'The notice board of Garachukhur Mosque in Baku: news and announcements published by the mosque appear here. Turn on notifications so you never miss one.' },
-    ru: { t: 'Объявления — новости мечети',
-          d: 'Доска объявлений мечети Карачухур в Баку: здесь собраны новости и объявления, которые публикует мечеть. Включите уведомления, чтобы не пропустить новое.' },
-    tr: { t: 'Duyurular — Caminin Haberleri',
-          d: 'Karaçuhur Camii’nin duyuru panosu: caminin yayımladığı haber ve duyurular burada toplanır. Yeni duyuruları kaçırmamak için bildirimleri açın.' },
-    ar: { t: 'الإعلانات — أخبار المسجد',
-          d: 'لوحة إعلانات مسجد قاراچوخور في باكو: تُجمع هنا الأخبار والإعلانات التي ينشرها المسجد. فعّل الإشعارات حتى لا يفوتك أي إعلان جديد.' },
+    az: { t: 'Elanlar — Muslims.cc Yenilikləri və İslami Günlər',
+          d: 'Muslims.cc elanları: saytdakı yeniliklər, mübarək günlər və İslami tarixlər haqqında xatırlatmalar. Yeni elanı qaçırmamaq üçün bildirişləri aktivləşdirin.' },
+    en: { t: 'Announcements — Muslims.cc News & Islamic Days',
+          d: 'Muslims.cc announcements: what is new on the site, plus reminders of blessed days and Islamic dates. Turn on notifications so you never miss one.' },
+    ru: { t: 'Объявления — новости Muslims.cc и исламские дни',
+          d: 'Объявления Muslims.cc: новое на сайте, а также напоминания о благословенных днях и исламских датах. Включите уведомления, чтобы не пропустить новое.' },
+    tr: { t: 'Duyurular — Muslims.cc Haberleri ve Mübarek Günler',
+          d: 'Muslims.cc duyuruları: sitedeki yenilikler, mübarek günler ve İslami tarihler hakkında hatırlatmalar. Yeni duyuruları kaçırmamak için bildirimleri açın.' },
+    ar: { t: 'الإعلانات — أخبار Muslims.cc والأيام الإسلامية',
+          d: 'إعلانات Muslims.cc: الجديد في الموقع، مع التذكير بالأيام المباركة والمناسبات الإسلامية. فعّل الإشعارات حتى لا يفوتك أي إعلان جديد.' },
   },
 
   donate: {
-    az: { t: 'Məscidə İanə — Məscidə Dəstək Olun',
-          d: 'Qaraçuxur Məscidinə dəstək olmaq istəyənlər üçün: məscid tikməyin fəziləti haqqında hədis (Buxari 450), zəkat kalkulyatoru və şəxsi sədəqə gündəliyi.' },
-    en: { t: 'Donate — Support the Mosque',
-          d: 'For those who wish to support Garachukhur Mosque in Baku: the hadith on the reward for building a mosque, a zakat calculator and a personal sadaqah journal.' },
-    ru: { t: 'Пожертвование — поддержите мечеть',
-          d: 'Для тех, кто хочет поддержать мечеть Карачухур в Баку: хадис о награде за строительство мечети, калькулятор закята и личный дневник садаки.' },
-    tr: { t: 'Bağış — Camiye Destek Olun',
-          d: 'Karaçuhur Camii’ne destek olmak isteyenler için: cami yapmanın fazileti hakkında hadis, zekât hesaplama aracı ve kişisel sadaka günlüğü bir arada.' },
-    ar: { t: 'التبرع — ادعم المسجد',
-          d: 'لمن يرغب في دعم مسجد قاراچوخور في باكو: حديث في فضل بناء المساجد، وحاسبة الزكاة، وسجل شخصي للصدقات، وكل ذلك في صفحة واحدة.' },
+    az: { t: 'Xeyriyyə və İanə — Sədəqə Bələdçisi',
+          d: 'Sədəqə və ianənin fəziləti, kimə və necə vermək haqqında bələdçi, zəkat kalkulyatoru və şəxsi sədəqə gündəliyi. Saytda ödəniş rekvizitləri yoxdur.' },
+    en: { t: 'Charity & Giving — A Guide to Sadaqah',
+          d: 'A guide to the virtue of sadaqah and giving, who to give to and how, plus a zakat calculator and a personal sadaqah journal. No payment details here.' },
+    ru: { t: 'Благотворительность — путеводитель по садаке',
+          d: 'Достоинство садаки и пожертвований, кому и как давать, калькулятор закята и личный дневник садаки. Платёжных реквизитов на сайте нет.' },
+    tr: { t: 'Hayır ve Bağış — Sadaka Rehberi',
+          d: 'Sadaka ve bağışın fazileti, kime ve nasıl verileceğine dair rehber, zekât hesaplama aracı ve kişisel sadaka günlüğü. Sitede ödeme bilgisi yoktur.' },
+    ar: { t: 'الصدقة والتبرع — دليل العطاء',
+          d: 'دليل لفضل الصدقة والتبرع، ولمن تُعطى وكيف، مع حاسبة الزكاة وسجل شخصي للصدقات. لا توجد في الموقع أي بيانات للدفع.' },
   },
 
   quran: {
     az: { t: 'Quran Oxu — 114 Surə, Tərcümə, Audio və Təfsir',
-          d: 'Quranın bütün 114 surəsini onlayn oxu: ərəb mətni, Azərbaycan tərcüməsi, audio qiraət, təfsir, ayə axtarışı və bookmark. Pulsuz və reklamsız.' },
+          d: 'Quranın bütün 114 surəsini onlayn oxu: ərəb mətni, Azərbaycan tərcüməsi, audio qiraət, təfsir, ayə axtarışı və əlfəcinlər. Pulsuz və reklamsız.' },
     en: { t: 'Read the Quran — 114 Surahs, Translation & Audio',
           d: 'Read all 114 surahs of the Quran online with Arabic text, translation in 5 languages, audio recitation, tafsir, verse search and bookmarks. Free, no ads.' },
     ru: { t: 'Читать Коран онлайн — 114 сур, перевод и аудио',
@@ -283,7 +274,7 @@ export const META = {
           d: 'Test your Islamic knowledge with questions on the Quran, hadith, the names of Allah, the prophets and Islamic history. Levels, scoring and sharing.' },
     ru: { t: 'Исламская викторина — проверьте свои знания',
           d: 'Проверьте знания об исламе: вопросы по Корану, хадисам, именам Аллаха, пророкам и истории ислама. Уровни, очки и обмен результатом.' },
-    tr: { t: 'İslami Quiz — Kuran, Hadis ve Din Bilgi Testi',
+    tr: { t: 'İslami Bilgi Yarışması — Kuran, Hadis ve Din Testi',
           d: 'İslami bilgini sına: Kuran, hadis, Allah’ın isimleri, peygamberler ve İslam tarihi soruları. Seviyeler, puan ve sonuç paylaşımı ile.' },
     ar: { t: 'اختبار إسلامي — اختبر معلوماتك عن الإسلام',
           d: 'اختبر معلوماتك الإسلامية بأسئلة عن القرآن والحديث وأسماء الله الحسنى والأنبياء والتاريخ الإسلامي، مع مستويات ونقاط ومشاركة النتيجة.' },
@@ -447,15 +438,15 @@ export const META = {
 
   aichat: {
     az: { t: `${BRAND.aiName.az} — İslami Suallarına Cavab Al`,
-          d: 'İslamla bağlı suallarını AI köməkçiyə ver: namaz, oruc, halal-haram, Quran və hədis mövzularında izahlı cavablar. Fətva deyil — hökmlər üçün imama müraciət edin.' },
+          d: 'İslamla bağlı suallarını AI köməkçiyə ver: namaz, oruc, halal-haram, Quran və hədis mövzularında izahlı cavablar. Fətva deyil — dini hökm üçün etibarlı alimə müraciət edin.' },
     en: { t: `${BRAND.aiName.en} — Ask Your Questions About Islam`,
-          d: 'Ask the AI assistant about Islam: prayer, fasting, halal and haram, the Quran and hadith, explained in 5 languages. Not a fatwa — consult the imam for rulings.' },
+          d: 'Ask the AI assistant about Islam: prayer, fasting, halal and haram, the Quran and hadith, explained in 5 languages. Not a fatwa — consult a trusted scholar for rulings.' },
     ru: { t: `${BRAND.aiName.ru} — ответы на вопросы об исламе`,
-          d: 'Задайте ИИ-помощнику вопросы об исламе: намаз, пост, халяль и харам, Коран и хадисы — с пояснениями на 5 языках. Это не фетва — по решениям обращайтесь к имаму.' },
+          d: 'Задайте ИИ-помощнику вопросы об исламе: намаз, пост, халяль и харам, Коран и хадисы — с пояснениями на 5 языках. Это не фетва — за решениями обращайтесь к надёжному учёному.' },
     tr: { t: `${BRAND.aiName.tr} — İslam Hakkında Sorular`,
-          d: 'İslam hakkındaki sorularını yapay zekâ asistanına sor: namaz, oruç, helal-haram, Kuran ve hadis üzerine açıklamalar. Fetva değildir — hükümler için imama danışın.' },
+          d: 'İslam hakkındaki sorularını yapay zekâ asistanına sor: namaz, oruç, helal-haram, Kuran ve hadis üzerine açıklamalar. Fetva değildir — hükümler için güvenilir bir âlime danışın.' },
     ar: { t: `${BRAND.aiName.ar} — أجوبة عن أسئلتك في الإسلام`,
-          d: 'اسأل المساعد الذكي عن الإسلام: الصلاة والصيام والحلال والحرام والقرآن والحديث، مع الشرح بخمس لغات. ليست فتوى — للأحكام يُرجى الرجوع إلى الإمام.' },
+          d: 'اسأل المساعد الذكي عن الإسلام: الصلاة والصيام والحلال والحرام والقرآن والحديث، مع الشرح بخمس لغات. ليست فتوى — للأحكام الشرعية يُرجى الرجوع إلى عالم موثوق.' },
   },
 
   kids: {
@@ -472,16 +463,16 @@ export const META = {
   },
 
   about: {
-    az: { t: 'Haqqımızda — Məscid və Sayt Haqqında',
-          d: 'Qaraçuxur Məscidinin saytı haqqında: namaz vaxtları, camaat namazı, elanlar və İslami bilik bir yerdə. Saytda nələr var və necə istifadə olunur.' },
-    en: { t: 'About — The Mosque and This Website',
-          d: 'About the website of Garachukhur Mosque in Baku: prayer times, congregational prayers, announcements and Islamic knowledge gathered in one place.' },
-    ru: { t: 'О нас — о мечети и сайте',
-          d: 'О сайте мечети Карачухур в Баку: время намаза, коллективные молитвы, объявления и исламские знания в одном месте.' },
-    tr: { t: 'Hakkımızda — Cami ve Site Hakkında',
-          d: 'Karaçuhur Camii’nin web sitesi hakkında: namaz vakitleri, cemaat namazı, duyurular ve İslami bilgi bir arada.' },
-    ar: { t: 'من نحن — عن المسجد والموقع',
-          d: 'عن موقع مسجد قاراچوخور في باكو: مواقيت الصلاة وصلاة الجماعة والإعلانات والمعرفة الإسلامية في مكان واحد.' },
+    az: { t: 'Haqqımızda — Muslims.cc Layihəsi',
+          d: 'Muslims.cc — pulsuz, reklamsız və açıq İslami rəqəmsal platforma. Missiyamız, dəyərlərimiz, saytdakı bölmələr və bizimlə əlaqə haqqında.' },
+    en: { t: 'About — The Muslims.cc Project',
+          d: 'Muslims.cc is a free, ad-free and open Islamic digital platform. Learn about our mission and values, the sections we offer and how to get in touch.' },
+    ru: { t: 'О нас — проект Muslims.cc',
+          d: 'Muslims.cc — бесплатная, открытая исламская цифровая платформа без рекламы. О нашей миссии и ценностях, разделах сайта и о том, как с нами связаться.' },
+    tr: { t: 'Hakkımızda — Muslims.cc Projesi',
+          d: 'Muslims.cc ücretsiz, reklamsız ve açık bir İslami dijital platformdur. Misyonumuz, değerlerimiz, sitedeki bölümler ve bize nasıl ulaşacağınız hakkında.' },
+    ar: { t: 'من نحن — مشروع Muslims.cc',
+          d: 'Muslims.cc منصة إسلامية رقمية مجانية ومفتوحة وبلا إعلانات. تعرّف على رسالتنا وقيمنا وأقسام الموقع وكيفية التواصل معنا.' },
   },
 
   // ── İdarəetmə (noindex) ──
@@ -519,15 +510,15 @@ export const META = {
   // yazır (server naməlum ünvana HTTP 404 ilə bu faylı qaytarır)
   notfound: {
     az: { t: 'Səhifə tapılmadı',
-          d: 'Axtardığınız səhifə yoxdur və ya ünvanı dəyişib. Ana səhifəyə qayıdın, camaat vaxtlarına baxın və ya saytda axtarın.' },
+          d: 'Axtardığınız səhifə yoxdur və ya ünvanı dəyişib. Ana səhifəyə qayıdın, namaz vaxtlarına baxın və ya saytda axtarın.' },
     en: { t: 'Page not found',
-          d: 'The page you are looking for does not exist or has moved. Go back to the home page, check the congregation times or search the site.' },
+          d: 'The page you are looking for does not exist or has moved. Go back to the home page, check the prayer times or search the site.' },
     ru: { t: 'Страница не найдена',
-          d: 'Такой страницы нет, или её адрес изменился. Вернитесь на главную, посмотрите время коллективных молитв или воспользуйтесь поиском.' },
+          d: 'Такой страницы нет, или её адрес изменился. Вернитесь на главную, посмотрите время намаза или воспользуйтесь поиском.' },
     tr: { t: 'Sayfa bulunamadı',
-          d: 'Aradığınız sayfa yok ya da adresi değişti. Ana sayfaya dönün, cemaat vakitlerine bakın veya sitede arayın.' },
+          d: 'Aradığınız sayfa yok ya da adresi değişti. Ana sayfaya dönün, namaz vakitlerine bakın veya sitede arayın.' },
     ar: { t: 'الصفحة غير موجودة',
-          d: 'الصفحة التي تبحث عنها غير موجودة أو تغيّر عنوانها. عُد إلى الصفحة الرئيسية، أو اطّلع على أوقات صلاة الجماعة، أو ابحث في الموقع.' },
+          d: 'الصفحة التي تبحث عنها غير موجودة أو تغيّر عنوانها. عُد إلى الصفحة الرئيسية، أو اطّلع على مواقيت الصلاة، أو ابحث في الموقع.' },
   },
 }
 
@@ -564,6 +555,24 @@ export const UI = {
   ru: { nav: 'Все разделы',    js: 'Включите JavaScript, чтобы пользоваться сайтом полностью.' },
   tr: { nav: 'Tüm bölümler',   js: 'Siteyi tam kullanmak için JavaScript’i etkinleştirin.' },
   ar: { nav: 'جميع الأقسام',   js: 'فعّل جافاسكريبت لاستخدام الموقع بالكامل.' },
+}
+
+// ── Sosial paylaşım kartı (og:image) ────────────────
+// Hər dilin öz kartı var (scripts/gen-og-image.py yaradır): /en/... linki
+// paylaşılanda kartda azərbaycanca yazı görünməsin. az = og-image.png
+// (index.html və manifest də onu göstərir), digərləri og-image-<dil>.png.
+export const OG_ALT = {
+  az: 'Muslims.cc — İslami platforma: Quran, namaz vaxtları, hədis, dua və zikr',
+  en: 'Muslims.cc — Islamic platform: Quran, prayer times, hadith, duas and dhikr',
+  ru: 'Muslims.cc — исламская платформа: Коран, время намаза, хадисы, дуа и зикр',
+  tr: 'Muslims.cc — İslami platform: Kur’an, namaz vakitleri, hadis, dua ve zikir',
+  ar: 'Muslims.cc — منصة إسلامية: القرآن ومواقيت الصلاة والحديث والأدعية والأذكار',
+}
+
+/** Dilə uyğun OG şəklinin tam URL-i. */
+export function ogImageFor(lang = 'az') {
+  const file = lang === 'az' || !OG_ALT[lang] ? 'og-image.png' : `og-image-${lang}.png`
+  return `${BRAND.url}/${file}`
 }
 
 /** Qısa ad — menyu və breadcrumb üçün (başlığın ilk hissəsi). */

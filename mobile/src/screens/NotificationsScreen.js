@@ -8,19 +8,11 @@ import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, Pulse } from '../components/Animated';
 import { loadNotifSettings, saveNotifSettings, setupNotifications, sendTestNotification, requestPermissions } from '../services/NotificationService';
+import { PRAYER_CITIES } from '../services/prayerLocation';
+import { tr } from '../config/brand';
 
-const CITIES = [
-  { name:'Bakı', city:'Baku', country:'Azerbaijan' },
-  { name:'İstanbul', city:'Istanbul', country:'Turkey' },
-  { name:'Məkkə', city:'Makkah', country:'Saudi Arabia' },
-  { name:'Mədinə', city:'Madinah', country:'Saudi Arabia' },
-  { name:'Qahirə', city:'Cairo', country:'Egypt' },
-  { name:'Dubai', city:'Dubai', country:'UAE' },
-  { name:'Ankara', city:'Ankara', country:'Turkey' },
-  { name:'Moskva', city:'Moscow', country:'Russia' },
-  { name:'London', city:'London', country:'UK' },
-  { name:'New York', city:'New York', country:'US' },
-];
+// Şəhərlər — tətbiqin ortaq siyahısı (services/prayerLocation; Namaz ekranı ilə eyni).
+// Burada seçilən şəhər bütün tətbiq üçün seçimdir (saveNotifSettings → setPrayerCity).
 
 const LABELS = {
   az: { title:'Bildirişlər', sub:'Bildirişlərinizi idarə edin', enable:'Bildirişlər', prayers:'Namaz vaxtları', prayersDesc:'Hər namaz vaxtında xəbər', morning:'Səhər əzkarı', morningDesc:'Hər səhər saat 06:30-da', evening:'Axşam əzkarı', eveningDesc:'Hər axşam saat 18:30-da', hadith:'Günün Hədisi', hadithDesc:'Hər gün saat 09:00-da', city:'Şəhər', save:'Qeyd et', testNotif:'Test bildirişi', saved:'Qeyd olundu!', permDenied:'Bildiriş icazəsi verilməyib. Tənzimləmələrdən icazə verin.', active:'Aktiv', inactive:'Deaktiv', notifCount:'bildiriş planlaşdırıldı', ok:'OK', info:'Məlumat' },
@@ -43,8 +35,7 @@ export default function NotificationsScreen() {
     morningAdhkar: true,
     eveningAdhkar: true,
     dailyHadith: true,
-    city: 'Baku',
-    country: 'Azerbaijan',
+    city: '',
   });
   const [loading, setLoading] = useState(false);
   const [savedCount, setSavedCount] = useState(null);
@@ -59,7 +50,7 @@ export default function NotificationsScreen() {
 
     // Əgər enable on edilirsə, icazə al
     if (key === 'enabled' && newSettings.enabled) {
-      const granted = await requestPermissions();
+      const granted = await requestPermissions(lang);
       if (!granted) {
         Alert.alert(l.info, l.permDenied);
         return;
@@ -72,7 +63,7 @@ export default function NotificationsScreen() {
 
   const selectCity = async (city) => {
     Haptics.selectionAsync();
-    const newSettings = { ...settings, city: city.city, country: city.country };
+    const newSettings = { ...settings, city: city.id };
     setSettings(newSettings);
     await saveNotifSettings(newSettings);
   };
@@ -95,7 +86,7 @@ export default function NotificationsScreen() {
 
   const handleTest = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const granted = await requestPermissions();
+    const granted = await requestPermissions(lang);
     if (!granted) {
       Alert.alert(l.info, l.permDenied);
       return;
@@ -203,11 +194,11 @@ export default function NotificationsScreen() {
                 {l.city.toUpperCase()}
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cityRow}>
-                {CITIES.map((city, i) => {
-                  const active = settings.city === city.city;
+                {PRAYER_CITIES.map((city) => {
+                  const active = settings.city === city.id;
                   return (
                     <TouchableOpacity
-                      key={i}
+                      key={city.id}
                       style={[
                         styles.cityBtn,
                         {
@@ -220,7 +211,7 @@ export default function NotificationsScreen() {
                       activeOpacity={0.8}
                     >
                       <AppIcon name="location" size={14} color={active ? '#fff' : c.textMuted} />
-                      <Text style={[styles.cityText, { color: active ? '#fff' : c.text }]}>{city.name}</Text>
+                      <Text style={[styles.cityText, { color: active ? '#fff' : c.text }]}>{tr(city.label, lang)}</Text>
                     </TouchableOpacity>
                   );
                 })}

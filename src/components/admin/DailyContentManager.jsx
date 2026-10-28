@@ -3,11 +3,11 @@ import { useLang } from '../../contexts/LangContext'
 import { getDailyContent, saveDailyContent } from '../../data/adminContent'
 
 const LABELS = {
-  az: { title:'Günün Məzmunu', sub:'Hər gün ana səhifədə göstəriləcək məzmun', ayah:'Günün Ayəsi', dhikr:'Günün Zikri', quote:'Günün Sitatı', arabic:'Ərəbcə', translit:'Transliterasiya', translation:'Tərcümə', source:'Mənbə', count:'Hədəf say', save:'Yadda saxla', saved:'Yadda saxlandı!' },
-  en: { title:'Daily Content', sub:'Content shown on home page each day', ayah:'Daily Ayah', dhikr:'Daily Dhikr', quote:'Daily Quote', arabic:'Arabic', translit:'Transliteration', translation:'Translation', source:'Source', count:'Target count', save:'Save', saved:'Saved!' },
-  ru: { title:'Контент дня', sub:'Контент на главной странице каждый день', ayah:'Аят дня', dhikr:'Зикр дня', quote:'Цитата дня', arabic:'Арабский', translit:'Транслитерация', translation:'Перевод', source:'Источник', count:'Цель', save:'Сохранить', saved:'Сохранено!' },
-  ar: { title:'محتوى اليوم', sub:'المحتوى المعروض كل يوم', ayah:'آية اليوم', dhikr:'ذكر اليوم', quote:'اقتباس اليوم', arabic:'العربية', translit:'النطق', translation:'الترجمة', source:'المصدر', count:'الهدف', save:'حفظ', saved:'تم الحفظ!' },
-  tr: { title:'Günün İçeriği', sub:'Her gün ana sayfada gösterilecek içerik', ayah:'Günün Ayeti', dhikr:'Günün Zikri', quote:'Günün Sözü', arabic:'Arapça', translit:'Okunuş', translation:'Çeviri', source:'Kaynak', count:'Hedef sayı', save:'Kaydet', saved:'Kaydedildi!' },
+  az: { title:'Günün Məzmunu', sub:'Hər gün ana səhifədə göstəriləcək məzmun', ayah:'Günün Ayəsi', dhikr:'Günün Zikri', quote:'Günün Sitatı', arabic:'Ərəbcə', translit:'Transliterasiya', translation:'Tərcümə', source:'Mənbə', count:'Hədəf say', save:'Yadda saxla', saved:'Yadda saxlandı!', ayahSrcPh:'Şərh, 94:6', quoteSrcPh:'Həzrət Əli, İmam Şafii...' },
+  en: { title:'Daily Content', sub:'Content shown on home page each day', ayah:'Daily Ayah', dhikr:'Daily Dhikr', quote:'Daily Quote', arabic:'Arabic', translit:'Transliteration', translation:'Translation', source:'Source', count:'Target count', save:'Save', saved:'Saved!', ayahSrcPh:'Ash-Sharh, 94:6', quoteSrcPh:'Ali ibn Abi Talib, Imam al-Shafi‘i...' },
+  ru: { title:'Контент дня', sub:'Контент на главной странице каждый день', ayah:'Аят дня', dhikr:'Зикр дня', quote:'Цитата дня', arabic:'Арабский', translit:'Транслитерация', translation:'Перевод', source:'Источник', count:'Цель', save:'Сохранить', saved:'Сохранено!', ayahSrcPh:'Аш-Шарх, 94:6', quoteSrcPh:'Али ибн Абу Талиб, имам аш-Шафии...' },
+  ar: { title:'محتوى اليوم', sub:'المحتوى المعروض كل يوم', ayah:'آية اليوم', dhikr:'ذكر اليوم', quote:'اقتباس اليوم', arabic:'العربية', translit:'النطق', translation:'الترجمة', source:'المصدر', count:'الهدف', save:'حفظ', saved:'تم الحفظ!', ayahSrcPh:'الشرح، 94:6', quoteSrcPh:'علي بن أبي طالب، الإمام الشافعي...' },
+  tr: { title:'Günün İçeriği', sub:'Her gün ana sayfada gösterilecek içerik', ayah:'Günün Ayeti', dhikr:'Günün Zikri', quote:'Günün Sözü', arabic:'Arapça', translit:'Okunuş', translation:'Çeviri', source:'Kaynak', count:'Hedef sayı', save:'Kaydet', saved:'Kaydedildi!', ayahSrcPh:'İnşirah, 94:6', quoteSrcPh:'Hz. Ali, İmam Şâfiî...' },
 }
 
 const LANGS = ['az','en','ru','ar','tr']
@@ -111,7 +111,7 @@ export default function DailyContentManager() {
               className="admin-input"
               value={content.ayah.source}
               onChange={(e) => updateField('ayah', 'source', e.target.value)}
-              placeholder="Şərh, 94:6"
+              placeholder={l.ayahSrcPh}
             />
           </div>
         </div>
@@ -212,7 +212,7 @@ export default function DailyContentManager() {
               className="admin-input"
               value={content.quote.source}
               onChange={(e) => updateField('quote', 'source', e.target.value)}
-              placeholder="Hz. Əli, İmam Şafi..."
+              placeholder={l.quoteSrcPh}
             />
           </div>
         </div>

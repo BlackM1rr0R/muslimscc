@@ -8,6 +8,7 @@ import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn } from '../components/Animated';
 import { subscribeToPlaces } from '../data/adminContent';
+import { pickLang } from '../utils/pickLang';
 
 const PLACES = [
   { coords:'21.4225,39.8262', color:'#10b981', gradient:['#10b981','#059669'], icon:'hajjguide', emoji:'🕋',
@@ -78,7 +79,8 @@ export default function HolyPlacesScreen() {
     return () => unsubscribe?.()
   }, [])
 
-  const allPlaces = [...customPlaces, ...PLACES]
+  // Cari dildə adı olmayan admin yeri bu dildə göstərilmir (başqa dilə düşmür)
+  const allPlaces = [...customPlaces.filter(p => pickLang(p.name, lang, { warn: false })), ...PLACES]
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: c.background }]} showsVerticalScrollIndicator={false}>
@@ -101,15 +103,15 @@ export default function HolyPlacesScreen() {
                   <Text style={styles.placeEmoji}>{place.emoji}</Text>
                 </LinearGradient>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.placeName, { color: c.text }]}>{place.name[lang] || place.name.en}</Text>
+                  <Text style={[styles.placeName, { color: c.text }]}>{pickLang(place.name, lang)}</Text>
                   <View style={[styles.cityBadge, { backgroundColor: place.color + '18', borderColor: place.color + '30' }]}>
                     <AppIcon name="location" size={10} color={place.color} />
-                    <Text style={[styles.cityText, { color: place.color }]}>{place.city[lang] || place.city.en}</Text>
+                    <Text style={[styles.cityText, { color: place.color }]}>{pickLang(place.city, lang)}</Text>
                   </View>
                 </View>
               </View>
 
-              <Text style={[styles.placeDesc, { color: c.textSecondary }]}>{place.desc[lang] || place.desc.en}</Text>
+              <Text style={[styles.placeDesc, { color: c.textSecondary }]}>{pickLang(place.desc, lang)}</Text>
 
               <TouchableOpacity
                 style={styles.mapBtn}

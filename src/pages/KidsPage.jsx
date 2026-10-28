@@ -13,7 +13,7 @@ const LABELS = {
   en: { title:'Kids Section', subtitle:'Islam for little ones', namesTitle:'Beautiful Names of Allah', surahsTitle:'Short Surahs', duasTitle:'Daily Duas', rulesTitle:'5 Pillars of Islam', quizTitle:'Mini Quiz', prophetsTitle:'Prophets', mannersTitle:'Good Manners', learn:'Learn', correct:'Well done!', wrong:'Try again', next:'Next' },
   ru: { title:'Детский раздел', subtitle:'Ислам для малышей', namesTitle:'Прекрасные Имена Аллаха', surahsTitle:'Короткие суры', duasTitle:'Ежедневные дуа', rulesTitle:'5 Столпов Ислама', quizTitle:'Мини-викторина', prophetsTitle:'Пророки', mannersTitle:'Хорошие манеры', learn:'Учи', correct:'Молодец!', wrong:'Попробуй ещё', next:'Далее' },
   ar: { title:'قسم الأطفال', subtitle:'الإسلام للصغار', namesTitle:'أسماء الله الحسنى', surahsTitle:'سور قصيرة', duasTitle:'أدعية يومية', rulesTitle:'أركان الإسلام', quizTitle:'اختبار صغير', prophetsTitle:'الأنبياء', mannersTitle:'الآداب الحسنة', learn:'تعلم', correct:'أحسنت!', wrong:'حاول مرة أخرى', next:'التالي' },
-  tr: { title:'Çocuk Bölümü', subtitle:'Küçükler için İslam', namesTitle:'Allah\'ın Güzel İsimleri', surahsTitle:'Kısa Sureler', duasTitle:'Günlük Dualar', rulesTitle:'İslam\'ın 5 Şartı', quizTitle:'Mini Quiz', prophetsTitle:'Peygamberler', mannersTitle:'Güzel Davranışlar', learn:'Öğren', correct:'Aferin!', wrong:'Tekrar dene', next:'Sonraki' },
+  tr: { title:'Çocuk Bölümü', subtitle:'Küçükler için İslam', namesTitle:'Allah\'ın Güzel İsimleri', surahsTitle:'Kısa Sureler', duasTitle:'Günlük Dualar', rulesTitle:'İslam\'ın 5 Şartı', quizTitle:'Mini Bilgi Yarışması', prophetsTitle:'Peygamberler', mannersTitle:'Güzel Davranışlar', learn:'Öğren', correct:'Aferin!', wrong:'Tekrar dene', next:'Sonraki' },
 }
 
 const NAMES_OF_ALLAH = [

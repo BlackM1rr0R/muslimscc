@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { T } from '../data/i18n'
+import { BRAND, brandName } from '../config/brand'
 import { HADITH_COUNT } from '../data/siteStats'
 import { INDEXABLE } from '../seo/routes'
 import '../styles/AboutPage.css'
@@ -85,21 +85,65 @@ function splitMotto(ar) {
 // Surə adı dillərə görə (ayə mətni deyil — yalnız istinad)
 const SURAH_HUD = { az: 'Hud', en: 'Hud', ru: 'Худ', ar: 'هود', tr: 'Hûd' }
 
-// i18n.js-dəki bəzi mətnlərin düzəlişi (paylaşılan faylı dəyişmirik):
-//  • az "Missiyanız" ("sizin missiyanız") → "Missiyamız"
-//  • "yalnız səhih hədis" iddiası — hədis bazasında "Məşhur", Təbərani,
-//    Beyhəqi mənbəli mətnlər də var, ona görə dəqiq ifadə
-const MISSION_AZ = 'Missiyamız'
-const V1_DESC = {
-  az: 'Quran, hədis mənbələri və alimlərin əsərlərinə əsaslanan məzmun.',
-  en: 'Content based on the Quran, hadith collections and the works of scholars.',
-  ru: 'Содержание основано на Коране, сборниках хадисов и трудах учёных.',
-  ar: 'محتوى مبني على القرآن وكتب الحديث ومؤلفات العلماء.',
-  tr: "Kur'an, hadis kaynakları ve âlimlerin eserlerine dayanan içerik.",
+// "Haqqımızda" mətnləri — Muslims.cc platforması haqqında (konkret məscid yox).
+// Əvvəl i18n.js-dən (T.about) gəlirdi; orada məscid dövrünün ifadələri
+// qalmışdı və az mətnində "Missiyanız" səhvi var idi — ona görə mətnlər
+// burada, 5 dilin hamısında saxlanılır. {brand} — brend adı (config/brand.js).
+const ABOUT = {
+  az: {
+    title: 'Haqqımızda', subtitle: '{brand} — pulsuz və reklamsız İslami platforma',
+    mission: 'Missiyamız',
+    missionText: 'Hər müsəlmana — harada yaşamasından asılı olmayaraq — Quranı, namaz vaxtlarını, hədis və duaları öz dilində, gözəl və diqqəti dağıtmayan mühitdə çatdırmaq.',
+    values: 'Dəyərlərimiz',
+    v1t: 'Etibarlılıq', v1d: 'Quran, hədis mənbələri və alimlərin əsərlərinə əsaslanan məzmun.',
+    v2t: 'Pulsuz', v2d: 'Heç bir abunə, reklam və ya ödəniş yoxdur.',
+    v3t: '5 dil', v3d: 'Azərbaycan, ingilis, rus, ərəb və türk dillərində.',
+    v4t: 'Hər cihazda', v4d: 'Telefonda, planşetdə və kompüterdə işləyir; tətbiq kimi quraşdırmaq olar.',
+  },
+  en: {
+    title: 'About Us', subtitle: '{brand} — a free, ad-free Islamic platform',
+    mission: 'Our Mission',
+    missionText: 'To bring the Quran, prayer times, hadith and duas to every Muslim — wherever they live — in their own language, in a beautiful, distraction-free environment.',
+    values: 'Our Values',
+    v1t: 'Reliability', v1d: 'Content based on the Quran, hadith collections and the works of scholars.',
+    v2t: 'Free', v2d: 'No subscriptions, no ads, no payments.',
+    v3t: '5 languages', v3d: 'In Azerbaijani, English, Russian, Arabic and Turkish.',
+    v4t: 'On every device', v4d: 'Works on phones, tablets and computers, and can be installed as an app.',
+  },
+  ru: {
+    title: 'О нас', subtitle: '{brand} — бесплатная исламская платформа без рекламы',
+    mission: 'Наша миссия',
+    missionText: 'Донести Коран, время намаза, хадисы и дуа до каждого мусульманина — где бы он ни жил — на его родном языке, в красивой среде без отвлечений.',
+    values: 'Наши ценности',
+    v1t: 'Достоверность', v1d: 'Содержание основано на Коране, сборниках хадисов и трудах учёных.',
+    v2t: 'Бесплатно', v2d: 'Без подписок, рекламы и платежей.',
+    v3t: '5 языков', v3d: 'На азербайджанском, английском, русском, арабском и турецком.',
+    v4t: 'На любом устройстве', v4d: 'Работает на телефоне, планшете и компьютере; можно установить как приложение.',
+  },
+  ar: {
+    title: 'عن الموقع', subtitle: '{brand} — منصة إسلامية مجانية بلا إعلانات',
+    mission: 'رسالتنا',
+    missionText: 'إيصال القرآن ومواقيت الصلاة والأحاديث والأدعية إلى كل مسلم — أينما كان — بلغته، في بيئة جميلة خالية من المشتتات.',
+    values: 'قيمنا',
+    v1t: 'الموثوقية', v1d: 'محتوى مبني على القرآن وكتب الحديث ومؤلفات العلماء.',
+    v2t: 'مجاني', v2d: 'لا اشتراكات ولا إعلانات ولا مدفوعات.',
+    v3t: '5 لغات', v3d: 'بالأذربيجانية والإنجليزية والروسية والعربية والتركية.',
+    v4t: 'على كل جهاز', v4d: 'يعمل على الهاتف واللوحي والحاسوب، ويمكن تثبيته كتطبيق.',
+  },
+  tr: {
+    title: 'Hakkımızda', subtitle: '{brand} — ücretsiz ve reklamsız İslami platform',
+    mission: 'Misyonumuz',
+    missionText: 'Kur’an’ı, namaz vakitlerini, hadisleri ve duaları her Müslümana — nerede yaşarsa yaşasın — kendi dilinde, güzel ve dikkat dağıtmayan bir ortamda ulaştırmak.',
+    values: 'Değerlerimiz',
+    v1t: 'Güvenilirlik', v1d: 'Kur’an, hadis kaynakları ve âlimlerin eserlerine dayanan içerik.',
+    v2t: 'Ücretsiz', v2d: 'Abonelik, reklam veya ödeme yok.',
+    v3t: '5 dil', v3d: 'Azerbaycan Türkçesi, İngilizce, Rusça, Arapça ve Türkçe.',
+    v4t: 'Her cihazda', v4d: 'Telefonda, tablette ve bilgisayarda çalışır; uygulama olarak yüklenebilir.',
+  },
 }
 
 // Saytı hazırlayan — bir nəfər; əvvəl eyni ad üç fərqli vəzifə ilə üç dəfə
-// göstərilirdi. "Qurucu" yazılmır: məscid saytında bu, məscidin qurucusu kimi oxunar.
+// göstərilirdi. Bir nəfər, bir vəzifə.
 const BUILT_BY = {
   az: 'Saytı hazırlayan', en: 'Built by', ru: 'Сайт подготовил', ar: 'أعدّ الموقع', tr: 'Siteyi hazırlayan',
 }
@@ -111,15 +155,16 @@ const READ_QURAN = { az: 'Quran oxu', en: 'Read the Quran', ru: 'Читать К
 
 export function AboutPage({ setPage }) {
   const { lang } = useLang()
-  const t = T[lang]?.about || T.az.about
+  const t = ABOUT[lang] || ABOUT.en
+  const brand = brandName(lang)
   const verse = useVerse(CTA_AYAH, lang)
 
   // tone — telefonda ikon kafelinin rəngi (motion.css → .icon-tile--*)
   const values = [
-    { icon:'📖', tone:'',       title:t.v1t, desc:V1_DESC[lang] || V1_DESC.en },
+    { icon:'📖', tone:'',       title:t.v1t, desc:t.v1d },
     { icon:'💚', tone:'teal',   title:t.v2t, desc:t.v2d },
     { icon:'🌐', tone:'blue',   title:t.v3t, desc:t.v3d },
-    { icon:'🔓', tone:'gold',   title:t.v4t, desc:t.v4d },
+    { icon:'📱', tone:'gold',   title:t.v4t, desc:t.v4d },
   ]
 
   const member = { initials:'EA', name:'Elchin Abdullayev', role: DEV_ROLE[lang] || DEV_ROLE.en }
@@ -140,9 +185,10 @@ export function AboutPage({ setPage }) {
   return (
     <>
       <div className="page-hero theme-about hero-compact">
-        <div className="page-hero-arabic">عَنِ الْمَوْقِع</div>
+        {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
+        {lang !== 'ar' && <div className="page-hero-arabic">{BRAND.arabicMotto}</div>}
         <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
+        <p>{t.subtitle.replace('{brand}', brand)}</p>
       </div>
 
       <div className="section">
@@ -151,7 +197,7 @@ export function AboutPage({ setPage }) {
           <div className="about-mission">
             <div className="about-mission-icon" aria-hidden="true">☽</div>
             <div className="about-mission-body">
-              <h2>{lang === 'az' ? MISSION_AZ : t.mission}</h2>
+              <h2>{t.mission}</h2>
               <p>{t.missionText}</p>
             </div>
           </div>

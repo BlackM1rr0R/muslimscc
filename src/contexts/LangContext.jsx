@@ -57,6 +57,16 @@ export function LangProvider({ children }) {
     if (!LANGS.includes(l)) return
     try { localStorage.setItem('muslim_cc_lang', l) } catch { /* yaddaş bağlıdır */ } // növbəti gəlişdə tərcih kimi
     navigate(pathFor(key, l))
+    // Push açıqdırsa, serverdəki abunəlik də yeni dilə keçsin — azan
+    // bildirişi istifadəçinin indiki dilində gəlsin. Token yoxdursa
+    // Firebase modulu ümumiyyətlə yüklənmir.
+    let hasToken = false
+    try { hasToken = Boolean(localStorage.getItem('muslim_cc_fcm_token')) } catch { /* yaddaş bağlıdır */ }
+    if (hasToken) {
+      import('../firebase/messaging')
+        .then(m => m.updateTokenLocation?.())
+        .catch(() => { /* şəbəkə yoxdur — növbəti yazılışda yenilənəcək */ })
+    }
   }
 
   const toggleDark = () => {

@@ -18,8 +18,8 @@
   --drb-h: 56px;
   position: relative;
   box-sizing: border-box;
-  /* ana səhifə bölmələrinin məzmun eni (.hp-sec-in, hero, "Məscid" sırası) */
-  max-width: 1132px;
+  /* ana səhifə bölmələrinin məzmun eni (.hp-sec-in, hero, "Əsas" sırası) */
+  max-width: var(--container);
   height: var(--drb-h);
   margin: 0 auto;
   display: grid;
@@ -29,13 +29,14 @@
   column-gap: 12px;
   padding-block: 0;
   padding-inline: 12px 6px;
-  background:
-    linear-gradient(90deg, var(--primary-bg) 0%, var(--gold-bg) 100%),
-    var(--bg-card);
-  border: 1px solid var(--primary-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  color: var(--text);
+  /* v2: sakit ağ "kağız" zolaq — rəngli qradiyent yox, yalnız hairline */
+  background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  color: var(--text-body);
 }
 
 /* Yer tutucu — eyni ölçü, boş; üzərindən yumşaq parıltı keçir
@@ -62,11 +63,11 @@
   gap: 6px;
   padding: 3px 10px;
   border-radius: 999px;
-  background: var(--bg-card);
-  border: 1px solid var(--primary-border);
-  color: var(--primary);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  color: var(--accent-text);
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   letter-spacing: .01em;
   white-space: nowrap;
@@ -75,8 +76,10 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--gold);
+  background: var(--accent);
   flex-shrink: 0;
+  transform: rotate(45deg);
+  border-radius: 1px;
 }
 .drb--hadith .drb-chip-dot,
 .drb--dhikr .drb-chip-dot { background: var(--primary); }

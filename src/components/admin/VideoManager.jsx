@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminText, adminPick } from './adminText'
 import { addVideo, updateVideo, deleteVideo, getYouTubeId, getThumbnail, VIDEO_CATEGORIES, subscribeToVideos, DEFAULT_VIDEOS } from '../../data/videos'
 import { isFirebaseConfigured } from '../../firebase/config'
 
 const LABELS = {
-  az: { title:'Videolar', sub:'Video kontenti idarə edin', addNew:'Yeni Video', editVideo:'Redaktə Et', all:'Bütün Videolar', titleField:'Başlıq', descField:'Təsvir', youtubeUrl:'YouTube linki', duration:'Müddət', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu videonu silmək istəyirsiniz?', noVideos:'Hələ video yoxdur', invalidUrl:'YouTube linki yanlışdır', titleRequired:'Başlıq tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.' },
-  en: { title:'Videos', sub:'Manage video content', addNew:'New Video', editVideo:'Edit', all:'All Videos', titleField:'Title', descField:'Description', youtubeUrl:'YouTube URL', duration:'Duration', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this video?', noVideos:'No videos yet', invalidUrl:'Invalid URL', titleRequired:'Title required', loading:'Loading...', saving:'Saving...', notConfigured:'Firebase not configured. Check .env file.' },
-  ru: { title:'Видео', sub:'Управление видео', addNew:'Новое видео', editVideo:'Изменить', all:'Все видео', titleField:'Заголовок', descField:'Описание', youtubeUrl:'YouTube ссылка', duration:'Длительность', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noVideos:'Нет видео', invalidUrl:'Неверная ссылка', titleRequired:'Заголовок обязателен', loading:'Загрузка...', saving:'Сохранение...', notConfigured:'Firebase не настроен' },
-  ar: { title:'الفيديوهات', sub:'إدارة الفيديوهات', addNew:'فيديو جديد', editVideo:'تعديل', all:'كل الفيديوهات', titleField:'العنوان', descField:'الوصف', youtubeUrl:'رابط YouTube', duration:'المدة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noVideos:'لا توجد فيديوهات', invalidUrl:'رابط غير صحيح', titleRequired:'العنوان مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', notConfigured:'Firebase غير مكون' },
-  tr: { title:'Videolar', sub:'Video yönetimi', addNew:'Yeni Video', editVideo:'Düzenle', all:'Tüm Videolar', titleField:'Başlık', descField:'Açıklama', youtubeUrl:'YouTube linki', duration:'Süre', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noVideos:'Video yok', invalidUrl:'Geçersiz link', titleRequired:'Başlık gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', notConfigured:'Firebase yapılandırılmamış' },
+  az: { title:'Videolar', sub:'Video məzmununu idarə edin', addNew:'Yeni Video', editVideo:'Redaktə Et', all:'Bütün Videolar', titleField:'Başlıq', descField:'Təsvir', youtubeUrl:'YouTube linki', duration:'Müddət', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu videonu silmək istəyirsiniz?', noVideos:'Hələ video yoxdur', invalidUrl:'YouTube linki yanlışdır', titleRequired:'Başlıq tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.', setupHint:'Ətraflı: FIREBASE_SETUP.md faylı', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)' },
+  en: { title:'Videos', sub:'Manage video content', addNew:'New Video', editVideo:'Edit', all:'All Videos', titleField:'Title', descField:'Description', youtubeUrl:'YouTube URL', duration:'Duration', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this video?', noVideos:'No videos yet', invalidUrl:'Invalid YouTube URL', titleRequired:'Title required', loading:'Loading...', saving:'Saving...', notConfigured:'Firebase not configured. Check .env file.', setupHint:'See FIREBASE_SETUP.md', preview:'Preview', readOnly:'Default (read-only)' },
+  ru: { title:'Видео', sub:'Управление видео', addNew:'Новое видео', editVideo:'Изменить', all:'Все видео', titleField:'Заголовок', descField:'Описание', youtubeUrl:'Ссылка на YouTube', duration:'Длительность', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noVideos:'Нет видео', invalidUrl:'Неверная ссылка на YouTube', titleRequired:'Заголовок обязателен', loading:'Загрузка...', saving:'Сохранение...', notConfigured:'Firebase не настроен', setupHint:'Подробнее в инструкции по настройке Firebase', preview:'Предпросмотр', readOnly:'Встроенная (только чтение)' },
+  ar: { title:'الفيديوهات', sub:'إدارة الفيديوهات', addNew:'فيديو جديد', editVideo:'تعديل', all:'كل الفيديوهات', titleField:'العنوان', descField:'الوصف', youtubeUrl:'رابط YouTube', duration:'المدة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noVideos:'لا توجد فيديوهات', invalidUrl:'رابط غير صحيح', titleRequired:'العنوان مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', notConfigured:'Firebase غير مكون', setupHint:'راجع دليل إعداد Firebase', preview:'معاينة', readOnly:'افتراضي (للقراءة فقط)' },
+  tr: { title:'Videolar', sub:'Video yönetimi', addNew:'Yeni Video', editVideo:'Düzenle', all:'Tüm Videolar', titleField:'Başlık', descField:'Açıklama', youtubeUrl:'YouTube bağlantısı', duration:'Süre', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noVideos:'Video yok', invalidUrl:'Geçersiz YouTube bağlantısı', titleRequired:'Başlık gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', notConfigured:'Firebase yapılandırılmamış', setupHint:'Ayrıntılar: FIREBASE_SETUP.md dosyası', preview:'Önizleme', readOnly:'Varsayılan (salt okunur)' },
 }
 
 const LANGS = ['az','en','ru','ar','tr']
@@ -104,7 +105,7 @@ export default function VideoManager({ onUpdate }) {
         <div style={{padding:40, textAlign:'center'}}>
           <div style={{fontSize:48, marginBottom:12}}>⚠️</div>
           <h3 style={{color:'#ef4444'}}>{l.notConfigured}</h3>
-          <p style={{color:'var(--text-muted)', marginTop:8}}>FIREBASE_SETUP.md faylına baxın</p>
+          <p style={{color:'var(--text-muted)', marginTop:8}}>{l.setupHint}</p>
         </div>
       </div>
     )
@@ -162,7 +163,7 @@ export default function VideoManager({ onUpdate }) {
               <label className="admin-input-label">{l.category}</label>
               <select className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
                 {VIDEO_CATEGORIES.filter(c => c.key !== 'all').map(c => (
-                  <option key={c.key} value={c.key}>{c.label[lang] || c.label.en}</option>
+                  <option key={c.key} value={c.key}>{c.label[lang]}</option>
                 ))}
               </select>
             </div>
@@ -199,20 +200,20 @@ export default function VideoManager({ onUpdate }) {
               return (
                 <div key={v.id} className="admin-video-card">
                   <div className="admin-video-thumb">
-                    <img src={getThumbnail(v.youtubeId)} alt={v.title[lang] || v.title.en} onError={(e) => e.target.src=`https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`} />
-                    <div className="admin-video-cat-badge" style={{color: cat?.color}}>{cat?.label[lang] || cat?.label.en || v.category}</div>
+                    <img src={getThumbnail(v.youtubeId)} alt={adminPick(v.title, lang)} onError={(e) => e.target.src=`https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`} />
+                    <div className="admin-video-cat-badge" style={{color: cat?.color}}>{cat?.label[lang]}</div>
                     {v.duration && <div className="admin-video-duration">{v.duration}</div>}
                   </div>
                   <div className="admin-video-body">
-                    <h3 className="admin-video-title">{v.title[lang] || v.title.en}</h3>
-                    {(v.description?.[lang] || v.description?.en) && <p className="admin-video-desc">{v.description[lang] || v.description.en}</p>}
+                    <h3 className="admin-video-title"><AdminText value={v.title} lang={lang} /></h3>
+                    {adminPick(v.description, lang) && <p className="admin-video-desc">{adminPick(v.description, lang)}</p>}
                     {!isDefault && (
                       <div className="admin-video-actions">
                         <button className="admin-action-btn edit" onClick={() => handleEdit(v)}>✏️ {l.edit}</button>
                         <button className="admin-action-btn delete" onClick={() => handleDelete(v.id)}>🗑️ {l.delete}</button>
                       </div>
                     )}
-                    {isDefault && <div style={{fontSize:11, color:'var(--text-muted)', fontStyle:'italic', marginTop:6}}>Default (read-only)</div>}
+                    {isDefault && <div style={{fontSize:11, color:'var(--text-muted)', fontStyle:'italic', marginTop:6}}>{l.readOnly}</div>}
                   </div>
                 </div>
               )

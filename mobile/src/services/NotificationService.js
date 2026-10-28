@@ -2,7 +2,8 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import { BRAND, prayerLocation } from '../config/mosque';
+import { BRAND, tr } from '../config/brand';
+import { cityById, loadPrayerLocation, setPrayerCity } from './prayerLocation';
 
 // Default notification handler
 Notifications.setNotificationHandler({
@@ -16,6 +17,7 @@ Notifications.setNotificationHandler({
 });
 
 // ═══ 5 NAMAZ VAXTI MESAJLARI ═══
+// Mətnin sonuna seçilmiş şəhər əlavə olunur: "… (Bakı)" — bax: withCity()
 const PRAYER_MESSAGES = {
   Fajr: {
     az: { title:'🌅 Sübh namazı', body:'Sübh namazı vaxtı yetişdi. Namazınızı qılın.' },
@@ -78,8 +80,20 @@ const ADHKAR_MESSAGES = {
   },
 };
 
+// Android bildiriş kanallarının adları (telefonun Parametrlər ekranında görünür)
+const CHANNEL_NAMES = {
+  prayer: { az: 'Namaz bildirişləri', en: 'Prayer notifications', ru: 'Уведомления о намазе', ar: 'إشعارات الصلاة', tr: 'Namaz bildirimleri' },
+  adhkar: { az: 'Əzkar xatırlatmaları', en: 'Adhkar reminders', ru: 'Напоминания об азкарах', ar: 'تذكيرات الأذكار', tr: 'Ezkar hatırlatmaları' },
+  daily:  { az: 'Gündəlik xatırlatmalar', en: 'Daily reminders', ru: 'Ежедневные напоминания', ar: 'تذكيرات يومية', tr: 'Günlük hatırlatmalar' },
+};
+
+/** Mətnin sonuna şəhər adını əlavə et: "… (Bakı)". Şəhər yoxdursa mətn olduğu kimi. */
+function withCity(body, cityName) {
+  return cityName ? `${body} (${cityName})` : body;
+}
+
 // ═══ İCAZƏ ALMAQ ═══
-export async function requestPermissions() {
+export async function requestPermissions(lang = 'az') {
   if (!Device.isDevice) return false;
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -92,19 +106,19 @@ export async function requestPermissions() {
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('prayer', {
-      name: 'Namaz Bildirişləri',
+      name: tr(CHANNEL_NAMES.prayer, lang),
       importance: Notifications.AndroidImportance.HIGH,
       sound: 'default',
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#1a6b3a',
     });
     await Notifications.setNotificationChannelAsync('adhkar', {
-      name: 'Əzkar Yadda saxlatma',
+      name: tr(CHANNEL_NAMES.adhkar, lang),
       importance: Notifications.AndroidImportance.DEFAULT,
       sound: 'default',
     });
     await Notifications.setNotificationChannelAsync('daily', {
-      name: 'Gündəlik yadda saxlatma',
+      name: tr(CHANNEL_NAMES.daily, lang),
       importance: Notifications.AndroidImportance.DEFAULT,
     });
   }
@@ -112,25 +126,30 @@ export async function requestPermissions() {
   return finalStatus === 'granted';
 }
 
-// ═══ ŞEHER SECİLƏN NAMAZ VAXTLARINI ALMAQ ═══
-// Standart seçim ('Baku' — məscidin öz şəhəri) üçün vaxtlar MƏSCİDİN
-// koordinatı və metodu ilə hesablanır (prayerLocation()) — tətbiqin
-// Camaat/Ana ekranlarında göstərilən azan vaxtları ilə eyni olsun deyə.
-// Digər şəhərlər üçün aladhan timingsByCity istifadə olunur.
-export async function fetchPrayerTimes(city = 'Baku', country = 'Azerbaijan') {
+// ═══ SEÇİLMİŞ ŞƏHƏRİN NAMAZ VAXTLARINI ALMAQ ═══
+// Yer — istifadəçinin seçdiyi şəhər (services/prayerLocation: Namaz ekranı,
+// ana səhifə və "Camaat və Cümə namazı" ekranı ilə ortaq). Vaxtlar
+// koordinat və metodla hesablanır (hooks/usePrayerTimes ilə eyni nəticə).
+// iso8601=true: hər vaxt UTC fərqi ilə gəlir ("2026-10-27T05:12:00+04:00") —
+// cihaz başqa saat qurşağındadırsa bildiriş yenə şəhərin azan anında gəlir.
+// Köhnə çağırış forması (city, country) da qəbul olunur: city — şəhər id-si
+// və ya köhnə aladhan adı ('Baku', 'Makkah'); siyahıda yoxdursa timingsByCity.
+export async function fetchPrayerTimes(city, country) {
   const today = new Date();
   const dd = String(today.getDate()).padStart(2, '0');
   const mm = String(today.getMonth() + 1).padStart(2, '0');
   const yyyy = today.getFullYear();
 
-  let url;
-  if (city === 'Baku') {
-    const loc = prayerLocation();
-    url = `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${loc.lat}&longitude=${loc.lng}&method=${loc.method}`;
-  } else {
-    url = `https://api.aladhan.com/v1/timingsByCity/${dd}-${mm}-${yyyy}` +
-      `?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=13`;
-  }
+  const known = city ? cityById(city) : null;
+  const loc = known
+    ? { lat: known.lat, lng: known.lng, method: known.method || 13 }
+    : (city ? null : await loadPrayerLocation());
+
+  const url = loc
+    ? `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}` +
+      `?latitude=${loc.lat}&longitude=${loc.lng}&method=${loc.method}&iso8601=true`
+    : `https://api.aladhan.com/v1/timingsByCity/${dd}-${mm}-${yyyy}` +
+      `?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country || '')}&method=13&iso8601=true`;
 
   try {
     const res = await fetch(url);
@@ -142,8 +161,24 @@ export async function fetchPrayerTimes(city = 'Baku', country = 'Azerbaijan') {
   }
 }
 
+/**
+ * aladhan vaxtı → cihazın yerli saatı ilə { hours, minutes }.
+ * ISO formatda (UTC fərqi ilə) gəlibsə cihazın saat qurşağına çevrilir;
+ * köhnə "05:12" formatında olduğu kimi götürülür. Tanınmırsa null.
+ */
+function toDeviceTime(value) {
+  const s = String(value || '');
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)) {
+    const d = new Date(s);
+    if (Number.isFinite(d.getTime())) return { hours: d.getHours(), minutes: d.getMinutes() };
+  }
+  const hm = s.match(/(\d{1,2}):(\d{2})/);
+  return hm ? { hours: Number(hm[1]), minutes: Number(hm[2]) } : null;
+}
+
 // ═══ NAMAZ BİLDİRİŞLƏRİNİ PLANLAŞDIR ═══
-export async function schedulePrayerNotifications(lang = 'az', city = 'Baku', country = 'Azerbaijan') {
+// Bildirişlər seçilmiş şəhərin AZAN vaxtına qurulur (camaat vaxtı yoxdur).
+export async function schedulePrayerNotifications(lang = 'az', city, country) {
   try {
     // Əvvəlki namaz bildirişlərini sil
     await Notifications.cancelAllScheduledNotificationsAsync();
@@ -151,38 +186,30 @@ export async function schedulePrayerNotifications(lang = 'az', city = 'Baku', co
     const times = await fetchPrayerTimes(city, country);
     if (!times) return 0;
 
+    // Bildiriş mətnindəki şəhər adı (cari dildə)
+    const loc = city ? cityById(city) : await loadPrayerLocation();
+    const cityName = loc ? tr(loc.label || loc.city, lang) : '';
+
     const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-    const now = new Date();
     let scheduled = 0;
 
     for (const prayer of prayers) {
-      // "05:12" və ya "05:12 (+04)" — yalnız saat:dəqiqə götürülür
-      const hm = String(times[prayer] || '').match(/(\d{1,2}):(\d{2})/);
-      if (!hm) continue;
-
-      const hours = Number(hm[1]);
-      const minutes = Number(hm[2]);
-      const trigger = new Date();
-      trigger.setHours(hours, minutes, 0, 0);
-
-      // Əgər vaxt keçibsə, sabah üçün planlaşdır
-      if (trigger <= now) {
-        trigger.setDate(trigger.getDate() + 1);
-      }
+      const t = toDeviceTime(times[prayer]);
+      if (!t) continue;
 
       const msg = PRAYER_MESSAGES[prayer][lang] || PRAYER_MESSAGES[prayer].en;
 
       await Notifications.scheduleNotificationAsync({
         content: {
           title: msg.title,
-          body: msg.body,
+          body: withCity(msg.body, cityName),
           sound: 'default',
           priority: Notifications.AndroidNotificationPriority.HIGH,
           data: { type: 'prayer', prayer },
         },
         trigger: {
-          hour: hours,
-          minute: minutes,
+          hour: t.hours,
+          minute: t.minutes,
           repeats: true,
           channelId: 'prayer',
         },
@@ -276,29 +303,35 @@ const SETTINGS_KEY = 'muslim_cc_notif_settings';
 
 // ═══ DEFAULT — bütün bildirişlər ON. İlk açılışda istifadəçi heç nə etmədən
 // permission sorulur, qəbul edilərsə hamısı dərhal planlaşdırılır.
+// city — şəhər id-si (services/prayerLocation); boşdursa tətbiqdə seçilmiş
+// şəhər (və ya standart yer) götürülür.
 const DEFAULT_NOTIF_SETTINGS = {
   enabled: true,
   prayers: true,
   morningAdhkar: true,
   eveningAdhkar: true,
   dailyHadith: true,
-  city: 'Baku',
-  country: 'Azerbaijan',
+  city: '',
 };
 
 export async function loadNotifSettings() {
+  // Şəhər həmişə tətbiqin ortaq seçimindən götürülür (Namaz ekranı ilə eyni)
+  const loc = await loadPrayerLocation();
   try {
     const v = await AsyncStorage.getItem(SETTINGS_KEY);
     if (v) {
       // Köhnə saxlanılmış ayarları default-larla birləşdir
       // (yeni əlavə olunan açarlar üçün on-by-default qalsın)
-      return { ...DEFAULT_NOTIF_SETTINGS, ...JSON.parse(v) };
+      const saved = { ...DEFAULT_NOTIF_SETTINGS, ...JSON.parse(v) };
+      return { ...saved, city: loc.id || '' };
     }
   } catch {}
-  return { ...DEFAULT_NOTIF_SETTINGS };
+  return { ...DEFAULT_NOTIF_SETTINGS, city: loc.id || '' };
 }
 
 export async function saveNotifSettings(settings) {
+  // Bildirişlər ekranında seçilən şəhər bütün tətbiq üçün seçimdir
+  if (settings?.city) await setPrayerCity(settings.city);
   await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }
 
@@ -309,14 +342,14 @@ export async function setupNotifications(lang, settings) {
     return { success: true, count: 0 };
   }
 
-  const granted = await requestPermissions();
+  const granted = await requestPermissions(lang);
   if (!granted) return { success: false, error: 'permission' };
 
   await cancelAllNotifications();
   let count = 0;
 
   if (settings.prayers) {
-    count += await schedulePrayerNotifications(lang, settings.city, settings.country);
+    count += await schedulePrayerNotifications(lang, settings.city || undefined);
   }
   if (settings.morningAdhkar || settings.eveningAdhkar) {
     count += await scheduleAdhkarReminders(lang);

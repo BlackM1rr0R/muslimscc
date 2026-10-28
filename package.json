@@ -1,14 +1,19 @@
 {
   "name": "muslim-cc",
   "version": "1.0.0",
-  "description": "Qaraçuxur Məscidi — məscidin saytı (muslims.cc): namaz vaxtları, camaat namazı, elanlar və İslami bilik",
+  "description": "Muslims.cc — 5 dildə pulsuz İslami platforma: Quran, namaz vaxtları, hədis, dua, zikr və İslami bilik",
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/prerender.mjs",
     "prerender": "node scripts/prerender.mjs",
     "social:pool": "node -e \"import('./scripts/social/content.mjs').then(m=>m.writePool()).then(n=>console.log('pool.json:',n,'element'))\"",
     "social:post": "node scripts/social/run.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npm run check && npm run test:unit",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "check": "node scripts/check-config-sync.mjs && node scripts/check-lang.mjs",
+    "check:lang": "node scripts/check-lang.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
@@ -19,7 +24,9 @@
     "zod": "^4.5.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.1.0"
+    "vite": "^5.1.0",
+    "vitest": "^3.2.7"
   }
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminText, adminPick } from './adminText'
 import { addCustomEvent, updateCustomEvent, deleteCustomEvent, EVENT_TYPES, HIJRI_MONTHS, subscribeToEvents } from '../../data/adminContent'
 
 const LABELS = {
@@ -102,7 +103,7 @@ export default function EventManager({ onUpdate }) {
               <label className="admin-input-label">{l.month}</label>
               <select className="admin-input admin-select" value={form.month} onChange={(e) => setForm({...form, month:parseInt(e.target.value)})}>
                 {HIJRI_MONTHS.map(m => (
-                  <option key={m.num} value={m.num}>{m.num}. {m[lang] || m.en}</option>
+                  <option key={m.num} value={m.num}>{m.num}. {m[lang]}</option>
                 ))}
               </select>
             </div>
@@ -113,7 +114,7 @@ export default function EventManager({ onUpdate }) {
             <div className="admin-input-group">
               <label className="admin-input-label">{l.type}</label>
               <select className="admin-input admin-select" value={form.type} onChange={(e) => setForm({...form, type:e.target.value})}>
-                {EVENT_TYPES.map(t => <option key={t.key} value={t.key}>{t.icon} {t.label[lang] || t.label.en}</option>)}
+                {EVENT_TYPES.map(t => <option key={t.key} value={t.key}>{t.icon} {t.label[lang]}</option>)}
               </select>
             </div>
           </div>
@@ -145,19 +146,19 @@ export default function EventManager({ onUpdate }) {
               return (
                 <div key={ev.id} style={{background:'var(--bg-card2)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:16, display:'flex', alignItems:'center', gap:14, borderLeft:`4px solid ${type.color}`}}>
                   <div style={{minWidth:60, textAlign:'center', background:type.color+'18', padding:'10px', borderRadius:10}}>
-                    <div style={{fontSize:11, fontWeight:800, color:type.color, textTransform:'uppercase'}}>{month?.[lang] || month?.en}</div>
+                    <div style={{fontSize:11, fontWeight:800, color:type.color, textTransform:'uppercase'}}>{month?.[lang]}</div>
                     <div style={{fontSize:24, fontWeight:800, color:type.color, lineHeight:1}}>{ev.day}</div>
                   </div>
                   <div style={{flex:1}}>
                     <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:4}}>
                       <span>{type.icon}</span>
-                      <strong style={{fontSize:15, color:'var(--text)'}}>{ev.name[lang] || ev.name.en}</strong>
+                      <strong style={{fontSize:15, color:'var(--text)'}}><AdminText value={ev.name} lang={lang} /></strong>
                     </div>
-                    {(ev.desc?.[lang] || ev.desc?.en) && <div style={{fontSize:12, color:'var(--text-dim)'}}>{ev.desc[lang] || ev.desc.en}</div>}
+                    {adminPick(ev.desc, lang) && <div style={{fontSize:12, color:'var(--text-dim)'}}>{adminPick(ev.desc, lang)}</div>}
                   </div>
                   <div style={{display:'flex', gap:6}}>
-                    <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 10px'}} onClick={() => handleEdit(ev)}>✏️</button>
-                    <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 10px'}} onClick={() => handleDelete(ev.id)}>🗑️</button>
+                    <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 10px'}} onClick={() => handleEdit(ev)} title={l.edit} aria-label={l.edit}>✏️</button>
+                    <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 10px'}} onClick={() => handleDelete(ev.id)} title={l.delete} aria-label={l.delete}>🗑️</button>
                   </div>
                 </div>
               )

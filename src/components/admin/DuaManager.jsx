@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminText, adminPick } from './adminText'
 import { addCustomDua, updateCustomDua, deleteCustomDua, CUSTOM_DUA_CATS, subscribeToDuas } from '../../data/adminContent'
 
 const LABELS = {
-  az: { title:'Dualar', sub:'Dua kontenti idarə edin', addNew:'Yeni Dua', editItem:'Redaktə Et', all:'Bütün Dualar', arabicText:'Ərəbcə', translit:'Transliterasiya', translation:'Tərcümə', source:'Mənbə', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hələ dua yoxdur', required:'Bu sahə tələb olunur' },
-  en: { title:'Duas', sub:'Manage duas', addNew:'New Dua', editItem:'Edit', all:'All Duas', arabicText:'Arabic', translit:'Transliteration', translation:'Translation', source:'Source', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete?', noItems:'No duas yet', required:'Required' },
-  ru: { title:'Дуа', sub:'Управление дуа', addNew:'Новая Дуа', editItem:'Изменить', all:'Все дуа', arabicText:'Арабский', translit:'Транслитерация', translation:'Перевод', source:'Источник', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noItems:'Нет дуа', required:'Обязательно' },
-  ar: { title:'الأدعية', sub:'إدارة الأدعية', addNew:'دعاء جديد', editItem:'تعديل', all:'كل الأدعية', arabicText:'العربية', translit:'النطق', translation:'الترجمة', source:'المصدر', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noItems:'لا توجد', required:'مطلوب' },
-  tr: { title:'Dualar', sub:'Dua yönetimi', addNew:'Yeni Dua', editItem:'Düzenle', all:'Tüm Dualar', arabicText:'Arapça', translit:'Okunuş', translation:'Çeviri', source:'Kaynak', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noItems:'Dua yok', required:'Gerekli' },
+  az: { title:'Dualar', sub:'Dua məzmununu idarə edin', addNew:'Yeni Dua', editItem:'Redaktə Et', all:'Bütün Dualar', arabicText:'Ərəbcə', translit:'Transliterasiya', translation:'Tərcümə', source:'Mənbə', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hələ dua yoxdur', required:'Bu sahə tələb olunur', sourcePh:'Bəqərə 201...' },
+  en: { title:'Duas', sub:'Manage duas', addNew:'New Dua', editItem:'Edit', all:'All Duas', arabicText:'Arabic', translit:'Transliteration', translation:'Translation', source:'Source', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete?', noItems:'No duas yet', required:'Required', sourcePh:'Al-Baqarah 201...' },
+  ru: { title:'Дуа', sub:'Управление дуа', addNew:'Новая Дуа', editItem:'Изменить', all:'Все дуа', arabicText:'Арабский', translit:'Транслитерация', translation:'Перевод', source:'Источник', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noItems:'Нет дуа', required:'Обязательно', sourcePh:'Аль-Бакара 201...' },
+  ar: { title:'الأدعية', sub:'إدارة الأدعية', addNew:'دعاء جديد', editItem:'تعديل', all:'كل الأدعية', arabicText:'العربية', translit:'النطق', translation:'الترجمة', source:'المصدر', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noItems:'لا توجد', required:'مطلوب', sourcePh:'البقرة 201...' },
+  tr: { title:'Dualar', sub:'Dua yönetimi', addNew:'Yeni Dua', editItem:'Düzenle', all:'Tüm Dualar', arabicText:'Arapça', translit:'Okunuş', translation:'Çeviri', source:'Kaynak', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noItems:'Dua yok', required:'Gerekli', sourcePh:'Bakara 201...' },
 }
 
 const LANGS = ['az','en','ru','ar','tr']
@@ -126,13 +127,13 @@ export default function DuaManager({ onUpdate }) {
           <div className="admin-form-row">
             <div className="admin-input-group">
               <label className="admin-input-label">{l.source}</label>
-              <input type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder="Bəqərə 201..." />
+              <input type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder={l.sourcePh} />
             </div>
             <div className="admin-input-group">
               <label className="admin-input-label">{l.category}</label>
               <select className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
                 {CUSTOM_DUA_CATS.map(c => (
-                  <option key={c.key} value={c.key}>{c.label[lang] || c.label.en}</option>
+                  <option key={c.key} value={c.key}>{c.label[lang]}</option>
                 ))}
               </select>
             </div>
@@ -173,16 +174,17 @@ export default function DuaManager({ onUpdate }) {
                 }}>
                   <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:10}}>
                     <span style={{background:cat?.color+'18', color:cat?.color, padding:'4px 12px', borderRadius:999, fontSize:11, fontWeight:800, textTransform:'uppercase'}}>
-                      {cat?.label[lang] || cat?.label.en || d.category}
+                      {cat?.label[lang]}
                     </span>
                     <div style={{display:'flex', gap:6}}>
-                      <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleEdit(d)}>✏️</button>
-                      <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleDelete(d.id)}>🗑️</button>
+                      <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleEdit(d)} title={l.edit} aria-label={l.edit}>✏️</button>
+                      <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleDelete(d.id)} title={l.delete} aria-label={l.delete}>🗑️</button>
                     </div>
                   </div>
                   {d.ar && <div style={{fontSize:18, lineHeight:1.8, textAlign:'right', color:'var(--text)', marginBottom:8, fontFamily:'Amiri, serif'}}>{d.ar}</div>}
                   {d.translit && <div style={{fontSize:13, fontStyle:'italic', color:'var(--primary-dark)', marginBottom:8}}>{d.translit}</div>}
-                  {(d.text?.[lang] || d.text?.en) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:8}}>{d.text[lang] || d.text.en}</div>}
+                  {/* Tərcümə cari dildə yoxdursa yer tutucu; ərəbcədə orijinal onsuz da göstərilir */}
+                  {(lang !== 'ar' || adminPick(d.text, lang)) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:8}}><AdminText value={d.text} lang={lang} /></div>}
                   {d.source && <div style={{fontSize:12, color:'var(--gold, #b8860b)', fontWeight:700}}>— {d.source}</div>}
                 </div>
               )

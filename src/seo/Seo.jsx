@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { SITE, LANGS, LOCALES, DEFAULT_LANG, urlFor, pathFor } from './routes'
-import { titleFor, descFor } from './meta'
-import { brandName, mosqueJsonLd } from '../config/mosque'
+import { titleFor, descFor, ogImageFor, OG_ALT } from './meta'
+import { brandName, siteJsonLd } from '../config/brand'
 
 // ═══════════════════════════════════════════════════════
 // <head>-i cari səhifəyə uyğun yeniləyir.
@@ -15,18 +15,11 @@ import { brandName, mosqueJsonLd } from '../config/mosque'
 // prerender edilmiş statik HTML-dəki teqləri elə yerindəcə əvəzləyir.
 // ═══════════════════════════════════════════════════════
 
-// schema.org/Mosque hansı səhifələrdə yazılır — scripts/prerender.mjs-dəki
-// MOSQUE_JSONLD_PAGES ilə EYNİ olmalıdır (o, JSX faylını import edə bilmir)
-const MOSQUE_JSONLD_PAGES = ['home', 'mosque']
-
-/**
- * Məscid obyekti + sabit @id: iki səhifədəki blok Google üçün EYNİ məscid
- * kimi birləşir (iki ayrı "Mosque" yox). Sahələr yenə yalnız mosqueJsonLd-dən
- * gəlir — orada boş sahələr qəsdən buraxılır.
- */
-function mosqueEntity(lang) {
-  return { ...mosqueJsonLd(lang), '@id': `${SITE}/#mosque` }
-}
+// Sayt sxemi (schema.org WebSite + Organization) hansı səhifələrdə yazılır —
+// scripts/prerender.mjs-dəki SITE_JSONLD_PAGES ilə EYNİ olmalıdır (o, JSX
+// faylını import edə bilmir). Yalnız ana səhifədə: Google sayt adını və
+// loqosunu kök URL-dən götürür, hər səhifədə təkrar lazım deyil.
+const SITE_JSONLD_PAGES = ['home']
 
 /** name/property atributuna görə <meta> tap və ya yarat, sonra content yaz. */
 function setMeta(attr, key, content) {
@@ -104,8 +97,13 @@ export default function Seo({ page, lang }) {
     setMeta('property', 'og:locale', LOCALES[lang] || LOCALES.az)
     setMeta('property', 'og:site_name', brandName(lang))
     setLocaleAlternates(lang)
+    // Paylaşım kartının şəkli və alt mətni də cari dildə
+    setMeta('property', 'og:image', ogImageFor(lang))
+    setMeta('property', 'og:image:alt', OG_ALT[lang] || OG_ALT.az)
     setMeta('name', 'twitter:title', title)
     setMeta('name', 'twitter:description', desc)
+    setMeta('name', 'twitter:image', ogImageFor(lang))
+    setMeta('name', 'twitter:image:alt', OG_ALT[lang] || OG_ALT.az)
 
     // canonical + hreflang — hər dil variantı bir-birini göstərir
     setLinks('canonical', isNotFound ? [] : [{ rel: 'canonical', href: canonical }])
@@ -127,7 +125,8 @@ export default function Seo({ page, lang }) {
       description: desc,
       url: canonical,
       inLanguage: lang,
-      isPartOf: { '@type': 'WebSite', name: brand, url: SITE + '/' },
+      // @id siteJsonLd()-dəki WebSite ilə eynidir — Google onları birləşdirir
+      isPartOf: { '@type': 'WebSite', '@id': SITE + '/#website', name: brand, url: SITE + '/' },
       breadcrumb: {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
@@ -140,10 +139,10 @@ export default function Seo({ page, lang }) {
       },
     })
 
-    // Məscid sxemi (schema.org/Mosque) — ana səhifədə və "Məscid haqqında"
-    // səhifəsində; digərlərində silinir. index.html-də statik Mosque bloku
-    // yoxdur, ona görə heç bir səhifədə iki Mosque obyekti yaranmır.
-    setJsonLd(MOSQUE_JSONLD_PAGES.includes(page) ? mosqueEntity(lang) : null, 'mosque-jsonld')
+    // Sayt sxemi (WebSite + Organization) — yalnız ana səhifədə, cari dildə;
+    // digərlərində silinir. index.html-dəki statik WebSite bloku eyni @id
+    // (https://muslims.cc/#website) daşıyır, Google ikisini bir obyekt sayır.
+    setJsonLd(SITE_JSONLD_PAGES.includes(page) ? siteJsonLd(lang) : null, 'site-jsonld')
   }, [page, lang])
 
   return null

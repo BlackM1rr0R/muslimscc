@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { brandName } from '../config/mosque'
+import { brandName } from '../config/brand'
 import { T } from '../data/i18n'
 import { DUAS_DATA } from '../data/duas'
 import { subscribeToDuas } from '../data/adminContent'
@@ -8,6 +8,7 @@ import { localizeSource } from '../utils/sourceNames'
 import { normArabic, normText } from '../utils/uniqueHadiths'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/DuasPage.css'
+import { pickLang } from '../utils/pickLang'
 
 // ── Kateqoriya tərcümələri ──────────────────────────────
 const CAT_LABELS = {
@@ -222,7 +223,7 @@ export default function DuasPage() {
   }
 
   const shareDua = async (dua) => {
-    const meaning = lang === 'ar' ? '' : `${dua[lang] || dua.en}\n\n`
+    const meaning = lang === 'ar' ? '' : `${dua[lang] || ''}\n\n`
     const text = `${dua.ar}\n\n${meaning}— ${localizeSource(dua.source, lang)}\n\n${brandName(lang)} — muslims.cc`
     if (navigator.share) {
       try { await navigator.share({ text }) } catch {}
@@ -246,7 +247,9 @@ export default function DuasPage() {
       cat: catMap[d.category] || 'Misc',
       _custom: true,
     }))
-  }, [customDuas])
+      // Cari dildə mətni olmayan admin duası bu dildə göstərilmir (başqa dilə düşmür)
+      .filter(d => (lang === 'ar' ? d.ar : pickLang(d[lang], lang, { warn: false })))
+  }, [customDuas, lang])
 
   // Dublikatları birləşdir: Firebase-dəki dua yerli siyahıdakının surətidirsə,
   // bir kart qalır. Admin mətni (tərcümə, mənbə) üstündür, boş sahələr yerli
@@ -379,7 +382,7 @@ export default function DuasPage() {
                   {/* Emoji işarələri bəzəkdir: telefonda gizlənir (mətn daha təmiz), ekran oxuyucusu oxumur */}
                   {dua.translit && <p className="dua-translit" dir="ltr"><span className="dua-ico" aria-hidden="true">🔤 </span>{dua.translit}</p>}
                   {/* Tərcümə — ərəbcədə mətn elə ərəb mətninin özüdür, təkrarlanmır */}
-                  {lang !== 'ar' && <p className="dua-meaning"><span className="dua-ico" aria-hidden="true">💬 </span>{dua[lang] || dua.en}</p>}
+                  {lang !== 'ar' && <p className="dua-meaning"><span className="dua-ico" aria-hidden="true">💬 </span>{dua[lang]}</p>}
                   {/* Mənbə */}
                   {dua.source && <div className="dua-source">📚 {t.sourceLabel}: {localizeSource(dua.source, lang)}</div>}
                 </article>
