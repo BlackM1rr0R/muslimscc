@@ -50,7 +50,7 @@
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg-card) 60%, transparent), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface-1) 60%, transparent), transparent);
   animation: qm-shimmer 1.4s var(--ease-in-out, ease-in-out) infinite;
 }
 [dir="rtl"] .drb--skeleton::after { animation-direction: reverse; }
@@ -82,7 +82,7 @@
   border-radius: 1px;
 }
 .drb--hadith .drb-chip-dot,
-.drb--dhikr .drb-chip-dot { background: var(--primary); }
+.drb--dhikr .drb-chip-dot { background: var(--brand); }
 
 /* ── Mətn (kliklə tam mətn açılır) ── */
 .drb-body {
@@ -116,7 +116,7 @@
   font-family: var(--font-arabic);
   font-size: 19px;
   line-height: 1.7;
-  color: var(--primary);
+  color: var(--brand);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -126,16 +126,16 @@
   min-width: 0;
   font-size: 14px;
   line-height: 1.45;
-  color: var(--text);
+  color: var(--text-body);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.drb-name { font-weight: 700; color: var(--primary); }
-.drb-sep { color: var(--text-muted); }
+.drb-name { font-weight: 700; color: var(--brand); }
+.drb-sep { color: var(--text-tertiary); }
 .drb-body:hover .drb-tx {
   text-decoration: underline;
-  text-decoration-color: var(--primary-border);
+  text-decoration-color: var(--brand-line);
   text-underline-offset: 3px;
 }
 
@@ -148,7 +148,7 @@
   grid-area: src;
   max-width: 200px;
   font-size: 12.5px;
-  color: var(--text-dim);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -171,7 +171,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--text-dim);
+  color: var(--text-secondary);
   border-radius: 999px;
   transition: background .2s, color .2s;
 }
@@ -182,8 +182,8 @@
 }
 .drb-nav:hover,
 .drb-close:hover {
-  background: var(--primary-bg2);
-  color: var(--primary);
+  background: var(--brand-soft-2);
+  color: var(--brand);
 }
 .drb-close { grid-area: close; }
 
@@ -212,13 +212,13 @@
   height: 7px;
   border-radius: 4px;
   /* --border-md qaranlıq rejimdə fonda itirdi — --text-muted hər iki rejimdə ~3:1 */
-  background: var(--text-muted);
+  background: var(--text-tertiary);
   transition: width .25s ease, background .25s ease;
 }
-.drb-dot:hover span { background: var(--text-dim); }
+.drb-dot:hover span { background: var(--text-secondary); }
 .drb-dot.is-active span {
   width: 16px;
-  background: var(--primary);
+  background: var(--brand);
 }
 
 /* ── "Ətraflı" keçidi (yalnız tam mətn açıq olanda) ── */
@@ -229,7 +229,7 @@
   padding: 4px 2px;
   border: 0;
   background: none;
-  color: var(--primary);
+  color: var(--brand);
   font: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -239,7 +239,7 @@
 
 /* ── Fokus (yalnız klaviatura; saytın yumşaq yaşıl halqası) ── */
 .drb button:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
   outline-offset: 2px;
 }
 .drb .drb-body:focus-visible { outline-offset: 3px; }
@@ -401,7 +401,7 @@
 @media (max-width: 1023.98px) {
   .drb {
     touch-action: pan-y;
-    border-color: var(--hairline, var(--primary-border));
+    border-color: var(--hairline, var(--brand-line));
     border-radius: 16px;
     box-shadow: var(--shadow-sm);
   }
@@ -422,14 +422,14 @@
   /* Aktiv nöqtə — dolan zolaq */
   .drb-dot span { position: relative; overflow: hidden; }
   .drb[data-rotating="on"] .drb-dot.is-active span {
-    background: color-mix(in srgb, var(--primary) 28%, transparent);
+    background: color-mix(in srgb, var(--brand) 28%, transparent);
   }
   .drb[data-rotating="on"] .drb-dot.is-active span::after {
     content: '';
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: var(--primary);
+    background: var(--brand);
     transform-origin: left center;
     animation: drbFill var(--drb-rotate, 8s) linear both;
   }
@@ -495,4 +495,20 @@
   .drb-dot span::after { animation: none !important; }
   .drb-dot span,
   .drb-btn { transition: none; }
+}
+
+/* ═══ 2-ci mərhələ: dar (üst-üstə) düzülüşdə bərabər tarazlıq ═══
+   Koordinatorun qeydi: 768–1024px-də zolaq "qeyri-bərabər" görünürdü —
+   ərəbcə sətir sağa (öz yazı istiqamətinin başlanğıcına), tərcümə sola
+   düzlənirdi; tərcümə bir sətir olanda altında ~18px boş yer qalırdı.
+   İndi hər iki sətir səhifənin başlanğıc kənarına düzlənir (ərəbcədə hər
+   ikisi sağda) və mətn bloku öz sətrinin ortasında durur. */
+@container (max-width: 940px) {
+  .drb-body { align-self: stretch; align-items: center; }
+  .drb-body-in { justify-content: center; }
+  html:not([dir="rtl"]) .drb-ar { text-align: left; }
+  /* Hərəkələr yuxarıda kəsilməsin: ərəbcə sətir 26px, tərcümə 2×17px (cəmi 60px) */
+  .drb-body-in > .drb-ar { height: 26px; line-height: 26px; }
+  .drb-body-in > .drb-tx { line-height: 17px; max-height: 34px; }
+  .drb--open .drb-body { align-items: flex-start; }
 }

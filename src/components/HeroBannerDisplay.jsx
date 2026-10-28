@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { subscribeToHero, HERO_GRADIENTS } from '../data/adminContent'
+import Icon from './Icon'
+import '../styles/AdminContentDisplay.css'
 // Admin mətni cari dildə yoxdursa başqa dilə düşmür — lövhə bu dildə göstərilmir
 import { pickLang } from '../utils/pickLang'
+
+// v2: adminin seçdiyi "göy qurşağı" qradiyentləri saytın hero ailələrinə
+// bağlanır (heroes.css ilə eyni tonlar) — lövhə həmişə palitraya uyğundur
+const FAMILY = {
+  green: 'emerald', teal: 'teal', ocean: 'teal', dark: 'night', purple: 'night',
+  gold: 'bronze', sunset: 'umber', rose: 'umber',
+}
 
 export default function HeroBannerDisplay({ setPage }) {
   const { lang } = useLang()
@@ -36,85 +45,23 @@ export default function HeroBannerDisplay({ setPage }) {
 
   if (!title) return null
 
+  const family = FAMILY[gradient.key] || 'emerald'
+
   return (
-    <section style={{
-      background: `linear-gradient(135deg, ${gradient.colors[0]}, ${gradient.colors[1]}, ${gradient.colors[2]})`,
-      padding: '60px 24px',
-      color: '#fff',
-      textAlign: 'center',
-      position: 'relative',
-      overflow: 'hidden',
-      animation: 'fadeUp 0.6s cubic-bezier(0.4,0,0.2,1)',
-    }}>
-      {/* Dekorativ dairələr */}
-      <div style={{
-        position: 'absolute',
-        width: 400,
-        height: 400,
-        borderRadius: '50%',
-        background: 'rgba(255,255,255,0.06)',
-        top: -150,
-        right: -100,
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        position: 'absolute',
-        width: 300,
-        height: 300,
-        borderRadius: '50%',
-        background: 'rgba(255,255,255,0.04)',
-        bottom: -100,
-        left: -80,
-        pointerEvents: 'none',
-      }} />
-
-      <div style={{ position: 'relative', maxWidth: 800, margin: '0 auto', zIndex: 2 }}>
-        <h2 style={{
-          fontSize: 'clamp(28px, 5vw, 48px)',
-          fontWeight: 800,
-          margin: '0 0 16px',
-          letterSpacing: -0.8,
-          lineHeight: 1.15,
-          textShadow: '0 2px 12px rgba(0,0,0,0.18)',
-        }}>
-          {title}
-        </h2>
-
-        {subtitle && (
-          <p style={{
-            fontSize: 'clamp(15px, 2.5vw, 18px)',
-            opacity: 0.95,
-            margin: '0 0 28px',
-            lineHeight: 1.6,
-            maxWidth: 600,
-            marginInline: 'auto',
-          }}>
-            {subtitle}
-          </p>
-        )}
-
-        {ctaText && (
-          <button
-            onClick={handleCta}
-            style={{
-              background: '#fff',
-              color: gradient.colors[1],
-              border: 'none',
-              padding: '14px 36px',
-              borderRadius: 999,
-              fontWeight: 800,
-              fontSize: 15,
-              cursor: 'pointer',
-              letterSpacing: 0.3,
-              boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-              transition: 'all 0.25s',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 14px 38px rgba(0,0,0,0.3)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.25)' }}
-          >
-            {ctaText} →
-          </button>
-        )}
+    <section className="ui-section ui-section--tight qm-banner-section">
+      <div className="ui-container">
+        <div className={`qm-banner qm-banner--${family}`} data-reveal="zoom">
+          <div className="ui-pattern qm-banner__pattern" aria-hidden="true" />
+          <span className="ui-ornament qm-banner__ornament" aria-hidden="true"><span className="ui-ornament__star" /></span>
+          <h2 className="qm-banner__title">{title}</h2>
+          {subtitle && <p className="qm-banner__text">{subtitle}</p>}
+          {ctaText && (
+            <button type="button" className="ui-btn ui-btn--inverse ui-btn--lg qm-banner__cta" onClick={handleCta}>
+              {ctaText}
+              <Icon name="arrow" size={18} className="ui-btn__icon ui-btn__icon--end ui-flip-rtl" />
+            </button>
+          )}
+        </div>
       </div>
     </section>
   )

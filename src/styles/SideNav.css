@@ -40,6 +40,13 @@
 }
 
 [data-theme="dark"] .qm-sn--rail { --qm-sn-current: var(--surface-2); }
+/* Qaranlıq rejimdə --surface-raised və --surface-2 eyni tondadır (#17212b):
+   menyuda sahələr (axtarış, dil seqmenti) bir pillə BATIQ (surface-1),
+   ikon kafelləri və seçilmiş dil bir pillə QALXIQ (surface-3) olur —
+   əvvəl onlar panelin fonunda itirdi */
+[data-theme="dark"] .qm-sn--drawer { --qm-sn-field: var(--surface-1); }
+[data-theme="dark"] .qm-sn--drawer .qm-sn-item-icon { background: var(--surface-3); }
+[data-theme="dark"] .qm-sn--drawer .qm-sn-lang.is-current { background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--line-strong); }
 
 /* ══════════════════════════════════════════════════════
    1) YAN PANEL (≥1024px)
@@ -122,6 +129,45 @@
     box-shadow var(--dur-1, 150ms) ease;
 }
 
+
+/* ── Cari sətrin qızılı göstəricisi — sətirdən sətrə SÜRÜŞÜR (SideNav.jsx
+   → .qm-sn-ind; yalnız transform). Göstərici varsa sətrin öz ::before
+   xətti gizlənir; JS işləməsə köhnə xətt yerində qalır. Sətrin başlanğıc
+   kənarında (body padding 14px + 0) dayanır; RTL-də məntiqi xassə ilə sağda. */
+.qm-sn--rail .qm-sn-ind {
+  position: absolute;
+  top: -9px;                      /* 18px hündürlüyün yarısı — mərkəz translateY-dədir */
+  inset-inline-start: 14px;
+  z-index: 1;                     /* yapışqan qrup başlığının (2) altında qalsın */
+  width: 3px;
+  height: 18px;
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 460ms var(--ease-spring, cubic-bezier(0.34, 1.36, 0.64, 1)),
+    opacity var(--dur-2, 240ms) ease;
+}
+.qm-sn--rail .qm-sn-ind.is-on { opacity: 1; }
+.qm-sn--rail .qm-sn-ind.is-instant { transition: opacity var(--dur-2, 240ms) ease; }
+.qm-sn--rail .qm-sn-body.has-ind .qm-sn-item.is-current::before { display: none; }
+
+/* Cari sətrin "kartı" yeni yerdə yumşaq yanır */
+.qm-sn--rail .qm-sn-item.is-current { animation: qm-sn-cur-in 320ms var(--ease-out, ease); }
+@keyframes qm-sn-cur-in {
+  from { opacity: 0.4; transform: scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Hover: ikon oxu istiqamətində 2px irəli, sətir yumşaq fon alır */
+.qm-sn--rail .qm-sn-item-icon { transition: color var(--dur-1, 150ms) ease, transform var(--dur-2, 240ms) var(--ease-spring, ease); }
+@media (hover: hover) {
+  .qm-sn--rail .qm-sn-item:hover .qm-sn-item-icon { transform: translateX(2px) scale(1.06); }
+  .qm-sn--rail[dir="rtl"] .qm-sn-item:hover .qm-sn-item-icon { transform: translateX(-2px) scale(1.06); }
+  .qm-sn--rail .qm-sn-item.is-current:hover .qm-sn-item-icon { transform: none; }
+}
 
 /* ── Panel yüklənəndə qruplar növbə ilə yumşaq görünür (--gi, SideNav.jsx).
    Yalnız bir dəfə — səhifələr arasında keçiddə panel yenidən qurulmur. ── */
@@ -695,6 +741,22 @@
 }
 
 .qm-sn--drawer.is-open .qm-sn-search-wrap { animation-delay: 60ms; }
+/* Brend işarəsi panel gələndə bir dəfə yumşaq dönüb oturur */
+.qm-sn--drawer.is-open .qm-sn-brand-mark { animation: qm-sn-mark-in 620ms var(--ease-spring, ease) 120ms backwards; }
+@keyframes qm-sn-mark-in {
+  from { opacity: 0; transform: rotate(-45deg) scale(0.7); }
+  to   { opacity: 1; transform: none; }
+}
+/* Açıq qrupun sətirləri də növbə ilə (qrupun öz gecikməsinin üstündən) */
+.qm-sn--drawer.is-open .qm-sn-group.is-expanded .qm-sn-items > li {
+  animation: qm-sn-slide-in var(--dur-3, 360ms) var(--ease-out, ease) backwards;
+  animation-delay: calc(140ms + min(var(--gi, 0), 7) * var(--stagger, 40ms) + var(--li, 0) * 22ms);
+}
+.qm-sn--drawer .qm-sn-items > li:nth-child(2) { --li: 1; }
+.qm-sn--drawer .qm-sn-items > li:nth-child(3) { --li: 2; }
+.qm-sn--drawer .qm-sn-items > li:nth-child(4) { --li: 3; }
+.qm-sn--drawer .qm-sn-items > li:nth-child(5) { --li: 4; }
+.qm-sn--drawer .qm-sn-items > li:nth-child(n+6) { --li: 5; }
 .qm-sn--drawer.is-open .qm-sn-foot { animation-delay: 220ms; }
 
 @keyframes qm-sn-slide-in {
@@ -993,6 +1055,10 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
     animation-delay: calc(80ms + min(var(--gi, 0), 7) * 35ms) !important;
   }
   .qm-sn--drawer.is-open .qm-sn-search-wrap { animation-delay: 40ms !important; }
+  .qm-sn--drawer.is-open .qm-sn-brand-mark,
+  .qm-sn--drawer.is-open .qm-sn-group.is-expanded .qm-sn-items > li,
+  .qm-sn--rail .qm-sn-item.is-current { animation: none !important; }
+  .qm-sn--rail .qm-sn-ind { transition: opacity 0.2s ease !important; }
   .qm-sn--drawer.is-open .qm-sn-foot { animation-delay: 200ms !important; }
 }
 
@@ -1015,7 +1081,8 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
     animation: none;
   }
   .qm-sn--drawer .qm-sn-item:active,
-  .qm-sn-brand:active .qm-sn-brand-mark { transform: none; }
+  .qm-sn-brand:active .qm-sn-brand-mark,
+  .qm-sn--rail .qm-sn-item:hover .qm-sn-item-icon { transform: none !important; }
 }
 
 @media print {

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminHeader, SectionTitle, AdminSwitch, AdminToast, SAVE_FAILED } from './AdminUi'
+import Icon from '../Icon'
 import { getAppSettings, saveAppSettings } from '../../data/adminContent'
 import { BRAND, tr } from '../../config/brand'
 
@@ -60,51 +62,31 @@ export default function SettingsManager() {
   })
   const [saved, setSaved] = useState(false)
 
-  useEffect(() => { getAppSettings().then(s => setSettings(s)) }, [])
+  useEffect(() => { getAppSettings().then(s => s && setSettings(s)).catch(() => { /* şəbəkə yoxdur */ }) }, [])
 
   const update = (key, value) => setSettings({ ...settings, [key]: value })
 
+  // Saxlama nəticəsi üzən bildirişdə (AdminToast); xəta da tutulur
+  const [saveErr, setSaveErr] = useState(false)
   const handleSave = async () => {
-    await saveAppSettings(settings)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setSaveErr(false)
+    try {
+      await saveAppSettings(settings)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setSaveErr(true)
+      setTimeout(() => setSaveErr(false), 4000)
+    }
   }
-
-  const Toggle = ({ label, value, onChange }) => (
-    <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', background:'var(--bg-card2)', border:'1px solid var(--border)', borderRadius:'var(--radius)', marginBottom:8}}>
-      <span style={{fontSize:14, fontWeight:600, color:'var(--text)'}}>{label}</span>
-      <label style={{position:'relative', display:'inline-block', width:48, height:26}}>
-        <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} style={{opacity:0, width:0, height:0}} />
-        <span style={{
-          position:'absolute', cursor:'pointer', top:0, left:0, right:0, bottom:0,
-          background: value ? 'var(--primary)' : '#cbd5e1',
-          transition:'.3s', borderRadius:13,
-        }}>
-          <span style={{
-            position:'absolute', content:'""', height:20, width:20,
-            left: value ? 25 : 3, bottom:3, background:'#fff', transition:'.3s', borderRadius:'50%',
-            display:'block',
-          }} />
-        </span>
-      </label>
-    </div>
-  )
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#64748b,#475569)'}}>⚙️</div>
-          <div className="admin-header-info"><h1>{l.title}</h1><p>{l.sub}</p></div>
-        </div>
-      </div>
+      <AdminHeader icon="list" title={l.title} sub={l.sub} />
 
       {/* General */}
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">🌍</span>
-          {l.general}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon="globe">{l.general}</SectionTitle>
 
         <div className="admin-form">
           <div className="admin-form-row">
@@ -120,11 +102,11 @@ export default function SettingsManager() {
             <div className="admin-input-group">
               <label className="admin-input-label">{l.defaultLang}</label>
               <select className="admin-input admin-select" value={settings.defaultLang} onChange={(e) => update('defaultLang', e.target.value)}>
-                <option value="az">🇦🇿 Azərbaycan</option>
-                <option value="en">🇬🇧 English</option>
-                <option value="ru">🇷🇺 Русский</option>
-                <option value="ar">🇸🇦 العربية</option>
-                <option value="tr">🇹🇷 Türkçe</option>
+                <option value="az">Azərbaycan</option>
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+                <option value="ar">العربية</option>
+                <option value="tr">Türkçe</option>
               </select>
             </div>
           </div>
@@ -139,51 +121,45 @@ export default function SettingsManager() {
       </div>
 
       {/* Display options */}
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">👁️</span>
-          {l.display}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon="eye">{l.display}</SectionTitle>
 
-        <Toggle label={l.showAnn} value={settings.showAnnouncements} onChange={(v) => update('showAnnouncements', v)} />
-        <Toggle label={l.showVid} value={settings.showVideos} onChange={(v) => update('showVideos', v)} />
-        <Toggle label={l.showDaily} value={settings.showDailyContent} onChange={(v) => update('showDailyContent', v)} />
-        <Toggle label={l.autoVid} value={settings.autoplayVideos} onChange={(v) => update('autoplayVideos', v)} />
-        <Toggle label={l.enableNotif} value={settings.enableNotifications} onChange={(v) => update('enableNotifications', v)} />
+        <div className="admin-switch-list">
+        <AdminSwitch id="set-showAnnouncements" label={l.showAnn} checked={settings.showAnnouncements} onChange={(v) => update('showAnnouncements', v)} />
+        <AdminSwitch id="set-showVideos" label={l.showVid} checked={settings.showVideos} onChange={(v) => update('showVideos', v)} />
+        <AdminSwitch id="set-showDailyContent" label={l.showDaily} checked={settings.showDailyContent} onChange={(v) => update('showDailyContent', v)} />
+        <AdminSwitch id="set-autoplayVideos" label={l.autoVid} checked={settings.autoplayVideos} onChange={(v) => update('autoplayVideos', v)} />
+        <AdminSwitch id="set-enableNotifications" label={l.enableNotif} checked={settings.enableNotifications} onChange={(v) => update('enableNotifications', v)} />
+        </div>
       </div>
 
       {/* Appearance */}
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">🎨</span>
-          {l.appearance}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon="palette">{l.appearance}</SectionTitle>
 
         <div className="admin-form">
           <div className="admin-form-row">
             <div className="admin-input-group">
               <label className="admin-input-label">{l.primaryColor}</label>
-              <div style={{display:'flex', gap:10, alignItems:'center'}}>
-                <input type="color" value={settings.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} style={{width:60, height:42, borderRadius:8, border:'1.5px solid var(--border)', cursor:'pointer'}} />
-                <input type="text" className="admin-input" value={settings.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} style={{flex:1}} />
+              <div className="admin-color-row">
+                <input type="color" value={settings.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} className="admin-color" aria-label={l.primaryColor} />
+                <input type="text" className="admin-input" value={settings.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} />
               </div>
             </div>
             <div className="admin-input-group">
               <label className="admin-input-label">{l.goldColor}</label>
-              <div style={{display:'flex', gap:10, alignItems:'center'}}>
-                <input type="color" value={settings.goldColor} onChange={(e) => update('goldColor', e.target.value)} style={{width:60, height:42, borderRadius:8, border:'1.5px solid var(--border)', cursor:'pointer'}} />
-                <input type="text" className="admin-input" value={settings.goldColor} onChange={(e) => update('goldColor', e.target.value)} style={{flex:1}} />
+              <div className="admin-color-row">
+                <input type="color" value={settings.goldColor} onChange={(e) => update('goldColor', e.target.value)} className="admin-color" aria-label={l.goldColor} />
+                <input type="text" className="admin-input" value={settings.goldColor} onChange={(e) => update('goldColor', e.target.value)} />
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* AI Chat / Backend URL */}
-        <div className="admin-section">
-          <h2 className="admin-section-title">
-            <span className="admin-section-title-icon">🤖</span>
-            {l.aiTitle}
-          </h2>
+      {/* AI söhbət — server ünvanı (əvvəl "Görünüş" kartının İÇİNDƏ idi) */}
+      <div className="admin-section" data-reveal>
+          <SectionTitle icon="aichat">{l.aiTitle}</SectionTitle>
           <div className="admin-input-group">
             <label className="admin-input-label">
               {l.apiLabel}
@@ -195,18 +171,18 @@ export default function SettingsManager() {
               onChange={(e) => update('apiUrl', e.target.value)}
               placeholder="https://muslim-cc.vercel.app"
             />
-            <p style={{fontSize:12, color:'var(--text-muted)', marginTop:6, lineHeight:1.5}}>
+            <p className="admin-hint">
               {l.apiHint.replace('{name}', tr(BRAND.aiName, lang))}
             </p>
           </div>
-        </div>
       </div>
 
-      <div style={{position:'sticky', bottom:20}}>
-        <button onClick={handleSave} className="admin-submit-btn" style={{width:'100%', padding:'18px', fontSize:15}}>
-          <span>💾</span> {saved ? '✅ ' + l.saved : l.save}
+      <div className="admin-savebar">
+        <button type="button" onClick={handleSave} className="admin-submit-btn">
+          <Icon name="check" /> {saved ? l.saved : l.save}
         </button>
       </div>
+      <AdminToast message={saved ? l.saved : saveErr ? SAVE_FAILED[lang] : ''} tone={saveErr ? 'bad' : 'ok'} />
     </div>
   )
 }

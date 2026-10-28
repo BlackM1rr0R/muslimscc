@@ -16,13 +16,14 @@ function isPlainClick(e) {
 
 // copy — yalnız hüquq mətni; "© {il} {brend}" hissəsi dinamik qurulur
 // nav — footer naviqasiyasının ekran oxuyucu adı
+// made — emoji (💚) əvəzinə mətn + xətti ürək ikonu (dizayn sistemi: emoji yox)
 // Təsvir (desc) brend konfiqindən gəlir — BRAND.tagline
 const FOOTER_LABELS = {
-  az: { nav:'Saytın bölmələri', content:'Məzmun', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'Bütün hüquqlar qorunur.', made:'Ümmət üçün 💚 ilə hazırlandı' },
-  en: { nav:'Site sections', content:'Content', tools:'Tools', learn:'Learn', contact:'Contact', copy:'All rights reserved.', made:'Made with 💚 for the Ummah' },
-  ru: { nav:'Разделы сайта', content:'Материалы', tools:'Инструменты', learn:'Обучение', contact:'Контакты', copy:'Все права защищены.', made:'Сделано с 💚 для уммы' },
-  ar: { nav:'أقسام الموقع', content:'المحتوى', tools:'أدوات', learn:'تعلّم', contact:'تواصل', copy:'جميع الحقوق محفوظة.', made:'صُنع بـ 💚 للأمة' },
-  tr: { nav:'Site bölümleri', content:'İçerik', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'Tüm hakları saklıdır.', made:'Ümmet için 💚 ile yapıldı' },
+  az: { nav:'Saytın bölmələri', content:'Məzmun', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'Bütün hüquqlar qorunur.', made:'Ümmət üçün sevgi ilə hazırlandı' },
+  en: { nav:'Site sections', content:'Content', tools:'Tools', learn:'Learn', contact:'Contact', copy:'All rights reserved.', made:'Made with love for the Ummah' },
+  ru: { nav:'Разделы сайта', content:'Материалы', tools:'Инструменты', learn:'Обучение', contact:'Контакты', copy:'Все права защищены.', made:'Сделано с любовью для уммы' },
+  ar: { nav:'أقسام الموقع', content:'المحتوى', tools:'أدوات', learn:'تعلّم', contact:'تواصل', copy:'جميع الحقوق محفوظة.', made:'صُنع بحبّ للأمة' },
+  tr: { nav:'Site bölümleri', content:'İçerik', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'Tüm hakları saklıdır.', made:'Ümmet için sevgiyle yapıldı' },
 }
 
 // "Əsas" sütunu — yan paneldəki "Əsas" qrupu ilə eyni (ana səhifə loqodadır).
@@ -66,7 +67,7 @@ function Footer({ setPage }) {
         <div className="ft-inner">
 
           {/* Brand */}
-          <div className="ft-brand">
+          <div className="ft-brand" data-reveal>
             <a
               className="ft-logo"
               href={pathFor('home', lang)}
@@ -84,7 +85,8 @@ function Footer({ setPage }) {
           </div>
 
           {/* Links columns */}
-          <nav className="ft-links" aria-label={fl.nav}>
+          {/* Sütunlar görünəndə növbə ilə qalxır (motion.css → data-reveal="stagger") */}
+          <nav className="ft-links" aria-label={fl.nav} data-reveal="stagger">
             <div className="ft-col">
               <h4>{navGroupLabel('main', lang)}</h4>
               {MAIN_LINKS.map(key => navLink(key))}
@@ -110,7 +112,7 @@ function Footer({ setPage }) {
 
       <div className="ft-bottom">
         <p>{`© ${new Date().getFullYear()} ${brand} — ${fl.copy}`}</p>
-        <span className="ft-made">{fl.made}</span>
+        <span className="ft-made"><Icon name="donate" size={14} className="ft-heart" /> {fl.made}</span>
       </div>
     </footer>
   )

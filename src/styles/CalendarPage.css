@@ -1,249 +1,384 @@
-/* ══════════════════════════════════════════════════════
-   CalendarPage — İslami təqvim
-   Telefon (<768px): iki tarix bir kartda yan-yana, növ filtri və aylar
-   bir sətirlik sürüşən zolaqlar (motion.css → .chip-scroll), bütün
-   hadisələr qruplu "inset" siyahıda (.m-list/.m-row/.icon-tile).
-   ≥768px: əvvəlki görünüş ("MASAÜSTÜ" bloku kit effektlərini qaytarır).
-   ══════════════════════════════════════════════════════ */
-.cal-date-card { display:flex; align-items:center; gap:0; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; margin-bottom:24px; justify-content:center; }
-.cal-date-item { text-align:center; padding:0 32px; }
-.cal-date-label { display:block; font-size:10.5px; font-weight:700; color:var(--text-muted); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
-.cal-date-val { font-size:16px; font-weight:700; color:var(--text); }
-.cal-date-divider { width:1px; height:44px; background:var(--border); }
+/* ══════════════════════════════════════════════════════════════════
+   CalendarPage — İslami təqvim (/calendar) · dizayn sistemi v2
+   Üstdə: bugünkü iki tarix + növbəti hadisə (tünd zümrüd panel).
+   Aylar: masaüstündə 6 × 2 çip şəbəkəsi, telefonda üfüqi zolaq.
+   Seçilmiş ay: əvvəlki/növbəti oxları, günlər şəbəkəsi (hicri gün + miladi
+   tarix), seçilmiş günün paneli, növ filtri, ayın hadisələri.
+   Altda: ilin bütün hadisələri (keçmişlər solğun).
+   Yalnız semantik tokenlər; .ui-*-ni dəyişəndə .cal-page ilə gücləndir.
+   ══════════════════════════════════════════════════════════════════ */
 
-/* 12 hicri ay: 6 × 2 bərabər xanalar (telefonda üfüqi zolaq — aşağıda) */
-.cal-months { margin-bottom:28px; }
-.cal-month-btn {
-  position:relative; min-height:40px; padding:8px 6px; border-radius:20px;
-  border:1.5px solid var(--border-md); background:var(--bg-card); color:var(--text-dim);
-  font-size:12.5px; font-weight:600; cursor:pointer;
-  transition:background-color .18s, border-color .18s, color .18s, transform var(--dur-1, 140ms) var(--ease-out, ease);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+/* ── Hero ── */
+.cal-hero .breadcrumb { justify-content: flex-start; margin: 0 0 4px; }
+.cal-hero .bc-list { justify-content: flex-start; }
+.cal-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
+.cal-page.ui-section { padding-block: var(--space-6) var(--section-gap); }
+
+/* ── Üst sıra: tarixlər + növbəti hadisə ── */
+.cal-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
 }
-.cal-month-btn:hover { border-color:var(--primary); color:var(--primary); }
-/* Cari hicri ay — seçilməyəndə də nazik yaşıl haşiyə ilə seçilir */
-.cal-month-btn.current { border-color:var(--primary-border); color:var(--primary); }
-.cal-month-btn.active { background:var(--primary); color:var(--on-primary); border-color:var(--primary); }
-.cal-event-dot { position:absolute; top:4px; inset-inline-end:6px; width:6px; height:6px; border-radius:50%; background:var(--gold); }
-.cal-month-btn.active .cal-event-dot { background:var(--on-primary); }
-
-.cal-main { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:24px; margin-bottom:32px; }
-.cal-selected-month { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-.cal-selected-month h2 { font-size:22px; font-weight:800; color:var(--text); }
-.cal-month-num { font-size:12px; font-weight:700; color:var(--text-muted); background:var(--bg-card2); padding:4px 10px; border-radius:10px; font-variant-numeric:tabular-nums; }
-.cal-events-label { font-size:10.5px; font-weight:700; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:12px; }
-.cal-event-card { display:flex; align-items:center; gap:14px; padding:14px 16px; background:var(--primary-bg); border:1px solid var(--primary-border); border-radius:12px; margin-bottom:8px; animation:fadeUp .4s var(--ease-out, ease) both; }
-.cal-event-icon { font-size:24px; flex-shrink:0; }
-.cal-event-name { font-size:15px; font-weight:700; color:var(--text); margin-bottom:2px; }
-.cal-event-date { font-size:12px; color:var(--primary); font-weight:600; }
-.cal-no-events { padding:40px; text-align:center; color:var(--text-muted); font-style:italic; }
-.cal-no-events-ico { display:none; }
-
-.cal-timeline { display:flex; flex-direction:column; gap:10px; }
-.cal-tl-icon { font-size:22px; flex-shrink:0; }
-/* Mətn qalan eni tutur — "Xatırlat" düymələri sıranın sonunda bir xətdə durur */
-.cal-tl-body { flex:1; min-width:0; }
-.cal-tl-name { font-size:14.5px; font-weight:700; color:var(--text); margin-bottom:2px; }
-.cal-tl-date { font-size:12px; color:var(--primary); font-weight:600; }
-
-/* ── Dark mode overrides ── */
-[data-theme="dark"] .cal-event-card {
-  background: rgba(46,204,113,0.08);
-  border-color: rgba(46,204,113,0.2);
+.cal-page .cal-date-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
 }
-
-/* Reminder button */
-.cal-remind-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 20px;
-  background: var(--primary-bg); border: 1px solid var(--primary-border);
-  color: var(--primary); font-size: 12px; font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform var(--dur-1, 140ms) var(--ease-out, ease);
-  flex-shrink: 0;
+.cal-date-item { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.cal-date-label {
+  color: var(--accent-text);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
-.cal-remind-btn:hover { background: var(--primary-bg2); }
-.cal-remind-btn.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.cal-date-val {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.cal-date-divider { width: 1px; height: 100%; min-height: 44px; background: var(--line); }
 
-/* ── Next Event Card ── */
 .cal-next-event {
-  display: flex; align-items: center; gap: 18px;
-  background: linear-gradient(135deg, var(--primary-bg2), var(--primary-bg));
-  border: 1.5px solid var(--primary-border);
-  border-radius: var(--radius-lg); padding: 20px 24px;
-  margin-bottom: 20px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: var(--card-pad);
+  border-radius: var(--radius-lg);
+  background: var(--surface-inverse);
+  color: var(--text-on-inverse);
+  box-shadow: var(--shadow-2);
 }
-.cal-next-icon { font-size: 2.2rem; flex-shrink: 0; }
-.cal-next-info { flex: 1; min-width: 0; }
-.cal-next-label { font-size: 10px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
-.cal-next-name { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 2px; }
-.cal-next-date { font-size: 13px; color: var(--primary); font-weight: 600; }
+.cal-next-event::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--sand-300) 8%, transparent);
+  -webkit-mask: var(--ui-khatam) 0 0 / 56px 56px;
+  mask: var(--ui-khatam) 0 0 / 56px 56px;
+}
+[data-theme="dark"] .cal-next-event { box-shadow: var(--shadow-2), inset 0 0 0 1px var(--brand-line); }
+.cal-page .cal-next-icon {
+  background: color-mix(in srgb, var(--sand-200) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sand-200) 22%, transparent);
+  color: var(--sand-300);
+}
+.cal-next-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cal-next-label {
+  color: var(--sand-300);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+.cal-next-name { color: var(--text-on-inverse); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; line-height: 1.3; }
+.cal-next-date { color: var(--text-on-inverse-dim); font-size: 14px; font-weight: 500; }
+.cal-page .cal-next-go { flex-shrink: 0; color: var(--text-on-inverse); background: color-mix(in srgb, var(--sand-200) 10%, transparent); }
+@media (hover: hover) { .cal-page .cal-next-go:hover { background: color-mix(in srgb, var(--sand-200) 18%, transparent); color: var(--text-on-inverse); } }
 
-/* ── Type Filter ── */
-.cal-type-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+/* ── Aylar ── */
+.cal-months { margin-bottom: var(--space-4); }
+.cal-month-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease, color var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
+}
+@media (hover: hover) { .cal-month-btn:hover { border-color: var(--text-tertiary); color: var(--text-strong); } }
+.cal-month-btn:active { transform: scale(0.97); }
+/* Cari hicri ay — seçilməyəndə də brend haşiyəsi ilə */
+.cal-month-btn.current { border-color: var(--brand-line); color: var(--brand); font-weight: 600; }
+.cal-month-btn.active { background: var(--text-strong); border-color: var(--text-strong); color: var(--surface-1); }
+.cal-event-dot { flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.cal-month-btn.active .cal-event-dot { background: var(--sand-300); }
 
-/* ── Event type badges ── */
-.cal-event-card[data-type="night"] { background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.2); }
-.cal-event-card[data-type="sunnah"] { background: rgba(184,134,11,0.06); border-color: rgba(184,134,11,0.2); }
-.cal-event-card[data-type="hajj"] { background: rgba(14,116,144,0.06); border-color: rgba(14,116,144,0.2); }
+/* ══ Seçilmiş ay kartı ════════════════════════════════════════════ */
+.cal-page .cal-main { margin-bottom: var(--space-7); padding: var(--space-5); border-radius: var(--radius-xl); }
+.cal-selected-month {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: var(--space-4);
+}
+.cal-selected-title { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; text-align: center; }
+.cal-month-name {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  animation: cal-swap var(--dur-3) var(--ease-out) both;
+}
+.cal-month-num { color: var(--text-tertiary); font-size: 13px; font-weight: 500; }
+.cal-page .cal-nav-btn { width: var(--tap); height: var(--tap); border: 1px solid var(--line); border-radius: 50%; }
 
+/* Günlər şəbəkəsi */
+.cal-grid-wrap { margin-bottom: var(--space-4); }
+.cal-weekdays,
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.cal-weekdays { margin-bottom: 6px; }
+.cal-weekdays span { color: var(--text-tertiary); font-size: 12px; font-weight: 600; text-align: center; }
+.cal-weekdays span.is-fri { color: var(--brand); }
+.cal-grid { animation: cal-swap var(--dur-3) var(--ease-out) both; }
+.cal-day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 60px;
+  padding: 6px 2px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-body);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color var(--dur-2) ease, border-color var(--dur-2) ease, color var(--dur-2) ease, transform var(--dur-1) var(--ease-out);
+}
+.cal-day.is-blank { background: transparent; cursor: default; }
+@media (hover: hover) { .cal-day:not(.is-blank):not(.is-selected):hover { border-color: var(--brand-line); background: var(--brand-soft); } }
+.cal-day:active:not(.is-blank) { transform: scale(0.94); }
+.cal-day-h { color: var(--text-strong); font-size: 17px; font-weight: 600; line-height: 1; }
+.cal-day-g { color: var(--text-tertiary); font-size: 11px; font-weight: 500; line-height: 1.2; white-space: nowrap; }
+.cal-day-dot { position: absolute; top: 6px; inset-inline-end: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+.cal-day.is-major .cal-day-dot { background: var(--accent); }
+.cal-day.has-event { background: var(--surface-1); border-color: var(--line-strong); }
+.cal-day.is-major { border-color: var(--accent-line); background: var(--accent-soft); }
+.cal-day.is-today { box-shadow: inset 0 0 0 2px var(--brand); background: var(--brand-soft); }
+.cal-day.is-today .cal-day-h { color: var(--brand); }
+/* Seçilmiş gün — dolğu + yüngül "pop" */
+.cal-day.is-selected {
+  background: var(--brand);
+  border-color: var(--brand);
+  box-shadow: var(--shadow-2);
+  animation: cal-pop var(--dur-3) var(--ease-spring);
+}
+.cal-day.is-selected .cal-day-h,
+.cal-day.is-selected .cal-day-g { color: var(--on-brand); }
+.cal-day.is-selected .cal-day-dot { background: var(--on-brand); }
+@keyframes cal-pop {
+  0% { transform: scale(0.9); }
+  60% { transform: scale(1.06); }
+  100% { transform: none; }
+}
+@keyframes cal-swap {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Seçilmiş günün paneli */
+.cal-day-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--space-4);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border-inline-start: 3px solid var(--brand);
+  animation: cal-swap var(--dur-3) var(--ease-out) both;
+}
+.cal-day-panel-date { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.cal-day-panel-h { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; }
+.cal-day-panel-g { color: var(--text-secondary); font-size: 14px; }
+.cal-day-panel-empty { color: var(--text-tertiary); font-size: 14px; }
+
+/* Növ filtri */
+.cal-type-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: var(--space-4); }
+
+/* Ayın hadisələri */
+.cal-events { display: flex; flex-direction: column; gap: 8px; }
+.cal-events-label { margin-bottom: 4px; color: var(--text-tertiary); font-size: 13px; font-weight: 600; }
+.cal-event-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  animation: cal-swap var(--dur-3) var(--ease-out) both;
+  transition: border-color var(--dur-2) ease, background-color var(--dur-2) ease;
+}
+.cal-event-card:nth-child(3) { animation-delay: 40ms; }
+.cal-event-card:nth-child(4) { animation-delay: 80ms; }
+.cal-event-card:nth-child(n+5) { animation-delay: 120ms; }
+.cal-event-card.is-selected { border-color: var(--brand-line); background: var(--brand-soft); }
 .cal-event-body { flex: 1; min-width: 0; }
+.cal-event-name { color: var(--text-strong); font-size: 15px; font-weight: 600; line-height: 1.35; }
+.cal-event-date { color: var(--brand); font-size: 13px; font-weight: 500; }
+.cal-no-events {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-5) var(--space-3);
+  color: var(--text-tertiary);
+  font-size: 14.5px;
+  text-align: center;
+  animation: cal-swap var(--dur-3) var(--ease-out) both;
+}
 
-/* ══════════════════════════════════════════════════════
-   MASAÜSTÜ / PLANŞET (≥768px) — əvvəlki görünüş
-   ══════════════════════════════════════════════════════ */
+/* Xatırlat düyməsi */
+.cal-remind-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease, color var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
+}
+@media (hover: hover) { .cal-remind-btn:hover { border-color: var(--brand-line); color: var(--brand); } }
+.cal-remind-btn:active { transform: scale(0.96); }
+.cal-remind-btn.active { background: var(--brand-soft-2); border-color: var(--brand-line); color: var(--brand-strong); }
+[data-theme="dark"] .cal-remind-btn.active { color: var(--brand); }
+.cal-remind-btn.active svg { animation: cal-ring 520ms var(--ease-out); transform-origin: 50% 15%; }
+@keyframes cal-ring {
+  0% { transform: rotate(0); }
+  30% { transform: rotate(14deg); }
+  60% { transform: rotate(-10deg); }
+  100% { transform: rotate(0); }
+}
+@media (pointer: coarse) { .cal-remind-btn { min-height: var(--tap); } }
+
+/* ══ Bütün hadisələr ══════════════════════════════════════════════ */
+.cal-page .cal-all-head { margin-bottom: var(--space-5); }
+.cal-approx { color: var(--text-tertiary); font-size: 13.5px; max-width: 60ch; }
+.cal-timeline { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 10px; }
+.cal-timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
+  padding-inline: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease;
+}
+@media (hover: hover) { .cal-timeline-item:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); } }
+.cal-timeline-item.is-past { background: var(--surface-2); box-shadow: none; }
+.cal-timeline-item.is-past .cal-tl-name { color: var(--text-secondary); }
+.cal-tl-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.cal-tl-body { flex: 1; min-width: 0; }
+.cal-tl-name { color: var(--text-strong); font-size: 14.5px; font-weight: 600; line-height: 1.35; }
+.cal-tl-date { color: var(--brand); font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* Ərəbcə: böyük hərf/aralıq yox */
+[dir="rtl"] .cal-date-label,
+[dir="rtl"] .cal-next-label { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
+
+/* ══ Responsiv ════════════════════════════════════════════════════ */
 @media (min-width: 768px) {
   /* Aylar: 6 × 2 şəbəkə (.chip-scroll-un zolaq xüsusiyyətləri söndürülür) */
-  .cal-months.chip-scroll {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: var(--space-2);
-    padding: 0;
-  }
-  .cal-type-filter.chip-scroll { gap: 6px; padding: 0; }
-
-  /* Hadisələr siyahısı: ayrı-ayrı haşiyəli kartlar */
-  .cal-timeline.m-list {
-    background: none; border: 0; border-radius: 0; box-shadow: none;
-    overflow: visible; isolation: auto;
-  }
-  .cal-timeline > .cal-timeline-item + .cal-timeline-item::before { display: none; }
-  .cal-timeline-item {
-    display: flex; align-items: center; gap: 14px; min-height: 0;
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px 18px;
-    transition: border-color .2s, box-shadow .2s;
-    -webkit-user-select: text; user-select: text;
-  }
-  .cal-timeline-item:hover { border-color: var(--primary-border); box-shadow: var(--shadow-sm); }
-
-  /* İkon kafelləri — sadə emoji */
-  .cal-tl-icon.icon-tile,
-  .cal-next-icon.icon-tile {
-    width: auto; height: auto; border-radius: 0; background: none;
-  }
-  .cal-tl-icon.icon-tile { font-size: 22px; }
-  .cal-next-icon.icon-tile { font-size: 2.2rem; }
+  .cal-months.chip-scroll { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-2); padding: 0; }
+  .cal-type-filter.chip-scroll { padding: 0; }
 }
-
-/* 561–767px: aylar zolağı yoxdur — əvvəlki 6 × 2 / 3 × 4 düzülüş
-   yalnız ≥768-də; bu aralıq telefon kimi zolaqdır (aşağıda) */
-
-/* ══════════════════════════════════════════════════════
-   TELEFON (<768px) — tətbiq görünüşü
-   ══════════════════════════════════════════════════════ */
+@media (max-width: 1023.98px) {
+  .cal-top { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 767.98px) {
-  /* İki tarix bir kartda yan-yana (ortada nazik xətt) */
-  .cal-date-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
-    align-items: center;
-    gap: 12px;
-    padding: 16px 12px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow-sm);
-  }
-  .cal-date-item { padding: 0 4px; min-width: 0; }
-  .cal-date-label { font-size: 11px; letter-spacing: 1px; margin-bottom: 4px; }
-  .cal-date-val { display: block; font-size: 15px; line-height: 1.3; overflow-wrap: anywhere; }
-  .cal-date-divider { width: 1px; height: 40px; }
+  .cal-hero .breadcrumb { display: none; }
+  .cal-page.ui-section { padding-block: var(--space-4) var(--space-7); }
+  .cal-top { gap: var(--space-3); margin-bottom: var(--space-4); }
+  .cal-page .cal-date-card { gap: 12px; padding: 16px; }
+  .cal-date-val { font-size: 15.5px; }
+  .cal-next-event { gap: 12px; padding: 16px; }
+  .cal-month-btn { flex: 0 0 auto; min-height: 40px; padding: 0 14px; }
+  .cal-type-filter { flex-wrap: nowrap; }
 
-  /* Növbəti hadisə: ikon kafeli + mətn */
-  .cal-next-event {
-    gap: 14px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-    border-width: 1px;
-    box-shadow: var(--shadow-sm);
-  }
-  .cal-next-label { font-size: 11.5px; letter-spacing: 1px; }
-  .cal-next-name { font-size: 16px; line-height: 1.3; }
-  .cal-next-date { font-size: 13px; }
+  .cal-page .cal-main { padding: var(--space-4) 12px; border-radius: var(--radius-lg); margin-bottom: var(--space-6); }
+  .cal-month-name { font-size: var(--step-2); }
+  .cal-weekdays, .cal-grid { gap: 4px; }
+  .cal-weekdays span { font-size: 11px; }
+  .cal-day { min-height: 52px; border-radius: var(--radius-sm); }
+  .cal-day-h { font-size: 15.5px; }
+  .cal-day-g { font-size: 10px; }
+  .cal-day-dot { top: 4px; inset-inline-end: 4px; width: 5px; height: 5px; }
 
-  /* Növ filtri: bir sətirlik sürüşən çiplər */
-  .cal-type-filter { flex-wrap: nowrap; gap: 8px; margin-bottom: 8px; }
-  .cal-type-filter .tag-btn,
-  .cal-month-btn {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 36px;
-    padding: 0 14px;
-    border-width: 1px;
-    border-radius: 999px;
-    font-size: 13.5px;
-    font-weight: 600;
-    line-height: 1;
-    white-space: nowrap;
-  }
-  .cal-type-filter .tag-btn:not(.active):hover { background: var(--bg-card); }
-
-  /* Aylar: üfüqi zolaq; hadisəli aylarda kiçik qızılı nöqtə mətnin yanında */
-  .cal-months { display: flex; gap: 8px; margin-bottom: 16px; }
-  .cal-month-btn { overflow: visible; text-overflow: clip; }
-  .cal-event-dot { position: static; flex-shrink: 0; }
-
-  /* Seçilmiş ay kartı */
-  .cal-main {
-    padding: 16px;
-    margin-bottom: 28px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-  }
-  .cal-selected-month { margin-bottom: 14px; }
-  .cal-selected-month h2 { font-size: 19px; }
-  .cal-month-num { font-size: 13px; }
-  .cal-events-label { font-size: 12px; letter-spacing: 1px; margin-bottom: 10px; }
-  .cal-event-card { gap: 12px; padding: 12px 14px; border-radius: 14px; }
-  .cal-event-icon { font-size: 22px; }
-  .cal-event-date { font-size: 13px; }
-
-  /* Boş vəziyyət: ikon kafeli + sakit mətn */
-  .cal-no-events {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 20px 12px 12px;
-    font-size: 14px;
-    font-style: normal;
-  }
-  .cal-no-events-ico {
-    display: inline-grid;
-    animation: qm-reveal-scale var(--dur-3) var(--ease-out) backwards;
-  }
-
-  /* Bütün hadisələr — kit .m-list/.m-row; zəng düyməsi dairəvi */
-  .cal-timeline-item { gap: 12px; padding-block: 6px; }
-  .cal-tl-name { font-size: 15px; font-weight: 600; margin-bottom: 1px; }
-  .cal-tl-date { font-size: 13px; font-variant-numeric: tabular-nums; }
-  .cal-remind-btn {
-    justify-content: center;
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-    min-height: 40px;
-    padding: 0;
-    border-radius: 50%;
-    font-size: 16px;
-    gap: 0;
-  }
-  .cal-remind-btn:not(.active) { background: var(--bg-card2); border-color: transparent; }
-  [data-theme="dark"] .cal-remind-btn:not(.active) { background: var(--surface); }
+  /* Ayın hadisələri: zəng düyməsi dairəvi (mətn gizli, aria-label var) */
+  .cal-remind-btn { justify-content: center; width: var(--tap); min-width: var(--tap); height: var(--tap); padding: 0; border-radius: 50%; }
   .cal-remind-btn span { display: none; }
+  .cal-timeline { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 }
-
 @media (max-width: 360px) {
-  .cal-date-val { font-size: 14px; }
-}
-
-/* Toxunma ekranında basılma rəyi (motion.css qaydaları ilə eyni) */
-@media (hover: none), (pointer: coarse) {
-  .cal-month-btn:active,
-  .cal-remind-btn:active { transform: scale(var(--press-scale, 0.97)); }
+  .cal-day-g { display: none; }
+  .cal-day { min-height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cal-no-events-ico { animation: none; }
+  .cal-month-name,
+  .cal-grid,
+  .cal-day.is-selected,
+  .cal-day-panel,
+  .cal-event-card,
+  .cal-no-events,
+  .cal-remind-btn.active svg { animation: none; }
+  .cal-day:active, .cal-month-btn:active, .cal-remind-btn:active { transform: none; }
+}
+
+/* Telefonda filtr zolağı kartın içindədir — səhifə kənarına yox, kartın
+   daxili boşluğuna (12px) qədər uzanır, kənarlarda solğunlaşır */
+@media (max-width: 767.98px) {
+  .cal-main .cal-type-filter.chip-scroll {
+    margin-inline: -12px;
+    padding-inline: 12px;
+    scroll-padding-inline: 12px;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+  }
 }

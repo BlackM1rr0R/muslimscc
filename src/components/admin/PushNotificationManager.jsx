@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminHeader, SectionTitle, AdminNotice, AdminAlert, AdminEmpty } from './AdminUi'
+import Icon, { BrandMark } from '../Icon'
 import { brandName } from '../../config/brand'
 import { getAll, addDocument, COLLECTIONS } from '../../firebase/firestore'
 import { isFirebaseConfigured } from '../../firebase/config'
@@ -99,47 +101,31 @@ export default function PushNotificationManager() {
 
   if (!configured) {
     return (
-      <div className="admin-section">
-        <div style={{padding:40, textAlign:'center'}}>
-          <div style={{fontSize:48, marginBottom:12}}>⚠️</div>
-          <h3 style={{color:'#ef4444'}}>{l.noFirebase}</h3>
-        </div>
-      </div>
+      <AdminNotice title={l.noFirebase} />
     )
   }
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#f43f5e,#be123c)'}}>🔔</div>
-          <div className="admin-header-info">
-            <h1>{l.title}</h1>
-            <p>{l.sub}</p>
-          </div>
-        </div>
-      </div>
+      <AdminHeader icon="bell" title={l.title} sub={l.sub} />
 
       {/* Stats */}
-      <div className="admin-stats">
-        <div className="admin-stat-card" style={{'--accent':'#f43f5e', '--accent-bg':'#f43f5e15'}}>
-          <div className="admin-stat-icon">👥</div>
-          <div className="admin-stat-num">{tokens.length}</div>
+      <div className="admin-stats" data-reveal="stagger">
+        <div className="admin-stat-card">
+          <span className="ui-icon-tile admin-stat-icon" aria-hidden="true"><Icon name="user" /></span>
+          <div className="admin-stat-num"><span key={tokens.length} data-count={tokens.length}>{tokens.length}</span></div>
           <div className="admin-stat-label">{l.subscribers}</div>
         </div>
-        <div className="admin-stat-card" style={{'--accent':'#3b82f6', '--accent-bg':'#3b82f615'}}>
-          <div className="admin-stat-icon">📤</div>
-          <div className="admin-stat-num">{history.length}</div>
+        <div className="admin-stat-card">
+          <span className="ui-icon-tile ui-icon-tile--accent admin-stat-icon" aria-hidden="true"><Icon name="send" /></span>
+          <div className="admin-stat-num"><span key={history.length} data-count={history.length}>{history.length}</span></div>
           <div className="admin-stat-label">{l.history}</div>
         </div>
       </div>
 
       {/* Send form */}
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">📤</span>
-          {l.send}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon="send">{l.send}</SectionTitle>
 
         <form onSubmit={handleSend} className="admin-form">
           <div className="admin-input-group">
@@ -164,7 +150,7 @@ export default function PushNotificationManager() {
               rows={3}
               placeholder={l.phBody}
             />
-            <div style={{fontSize:11, color:'var(--text-muted)', marginTop:4}}>{form.body.length}/200</div>
+            <div className="admin-hint admin-hint--end" aria-live="polite">{form.body.length}/200</div>
           </div>
 
           <div className="admin-form-row">
@@ -192,8 +178,9 @@ export default function PushNotificationManager() {
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.tokenField} 🔑</label>
+            <label className="admin-input-label" htmlFor="push-token">{l.tokenField}</label>
             <input
+              id="push-token"
               type="password"
               className="admin-input"
               value={adminToken}
@@ -201,45 +188,26 @@ export default function PushNotificationManager() {
               autoComplete="off"
               placeholder="ADMIN_TOKEN"
             />
-            <div style={{fontSize:11, color:'var(--text-muted)', marginTop:4}}>{l.tokenHint}</div>
+            <div className="admin-hint"><Icon name="shield" size={14} /> {l.tokenHint}</div>
           </div>
 
           {/* Live preview */}
           {(form.title || form.body) && (
-            <div style={{
-              background:'var(--bg-soft, #f8fafc)',
-              border:'1px solid var(--border)',
-              borderRadius:12, padding:12,
-              display:'flex', gap:12, alignItems:'flex-start',
-            }}>
-              <div style={{
-                width:38, height:38, borderRadius:10,
-                background:'linear-gradient(135deg, #1a6b3a, #10b981)',
-                display:'flex', alignItems:'center', justifyContent:'center',
-                fontSize:18, flexShrink:0,
-              }}>🌙</div>
-              <div style={{flex:1, minWidth:0}}>
-                <div style={{fontSize:11, color:'var(--text-muted)', marginBottom:2, fontWeight:700}}>{brandName(lang)} · {l.now}</div>
-                <div style={{fontSize:14, fontWeight:800, color:'var(--text)'}}>{form.title || l.titleField}</div>
-                <div style={{fontSize:13, color:'var(--text-muted)', marginTop:2, lineHeight:1.4}}>{form.body || l.bodyField}</div>
+            <div className="admin-notif-preview">
+              <BrandMark size={38} />
+              <div className="admin-notif-body">
+                <div className="admin-notif-app">{brandName(lang)} · {l.now}</div>
+                <div className="admin-notif-title">{form.title || l.titleField}</div>
+                <div className="admin-notif-text">{form.body || l.bodyField}</div>
               </div>
             </div>
           )}
 
-          {feedback && (
-            <div style={{
-              padding:'10px 14px', borderRadius:10,
-              background: feedback.ok ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-              color: feedback.ok ? '#059669' : '#dc2626',
-              fontSize:13, fontWeight:700,
-            }}>
-              {feedback.ok ? '✅' : '⚠️'} {feedback.text}
-            </div>
-          )}
+          {feedback && <AdminAlert tone={feedback.ok ? 'ok' : 'bad'}>{feedback.text}</AdminAlert>}
 
           <div className="admin-form-actions">
             <button type="submit" className="admin-submit-btn" disabled={sending || tokens.length === 0}>
-              <span>📤</span> {sending ? l.sending : `${l.send} (${tokens.length})`}
+              <Icon name="send" className="ui-flip-rtl" /> {sending ? l.sending : `${l.send} (${tokens.length})`}
             </button>
           </div>
         </form>
@@ -247,37 +215,25 @@ export default function PushNotificationManager() {
 
       {/* History */}
       <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">📋</span>
-          {l.history} ({history.length})
-        </h2>
+        <SectionTitle icon="list">{l.history} <span className="admin-count">({history.length})</span></SectionTitle>
 
         {history.length === 0 ? (
-          <div className="admin-empty">
-            <div className="admin-empty-icon">📭</div>
-            {l.noHistory}
-          </div>
+          <AdminEmpty icon="bell">{l.noHistory}</AdminEmpty>
         ) : (
-          <div style={{display:'flex', flexDirection:'column', gap:10}}>
+          <ul className="admin-items">
             {history.slice(0, 20).map(h => (
-              <div key={h.id} style={{
-                background:'var(--bg-card, #fff)',
-                border:'1px solid var(--border)',
-                borderRadius:12, padding:'12px 14px',
-              }}>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10}}>
-                  <div style={{flex:1, minWidth:0}}>
-                    <div style={{fontSize:14, fontWeight:800, color:'var(--text)'}}>{h.title}</div>
-                    <div style={{fontSize:13, color:'var(--text-muted)', marginTop:2}}>{h.body}</div>
-                  </div>
-                  <div style={{textAlign:'right', flexShrink:0}}>
-                    <div style={{fontSize:12, fontWeight:700, color:'#059669'}}>✓ {h.sentTo || 0}</div>
-                    {h.failed > 0 && <div style={{fontSize:11, color:'#dc2626'}}>✗ {h.failed}</div>}
-                  </div>
+              <li key={h.id} className="admin-item admin-item--row">
+                <div className="admin-item__body">
+                  <div className="admin-item__title">{h.title}</div>
+                  <div className="admin-item__text">{h.body}</div>
                 </div>
-              </div>
+                <div className="admin-history-meta">
+                  <div className="is-ok"><Icon name="check" size={14} /> {h.sentTo || 0}</div>
+                  {h.failed > 0 && <div className="is-bad"><Icon name="close" size={14} /> {h.failed}</div>}
+                </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
     </div>

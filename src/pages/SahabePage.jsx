@@ -2,15 +2,16 @@ import { useState, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { useBackToClose, isOverlayEntry } from '../utils/useBackToClose'
 import { localizeSource } from '../utils/sourceNames'
+import Icon from '../components/Icon'
 import '../styles/SahabePage.css'
 
 /* ── Labels ── */
 const LABELS = {
-  az: { title:'Səhabələr', subtitle:'Peyğəmbərin ﷺ əshabı', search:'Axtar...', bio:'Həyatı', facts:'Əsas Faktlar', hadiths:'Hədislər', back:'Geri', readMore:'Daha çox', noResults:'Nəticə tapılmadı', hadithLabel:'Hədis' },
-  en: { title:'Companions', subtitle:'Companions of the Prophet ﷺ', search:'Search...', bio:'Biography', facts:'Key Facts', hadiths:'Hadiths', back:'Back', readMore:'Read more', noResults:'No results found', hadithLabel:'Hadith' },
-  ru: { title:'Сахабы', subtitle:'Сподвижники Пророка ﷺ', search:'Поиск...', bio:'Биография', facts:'Ключевые факты', hadiths:'Хадисы', back:'Назад', readMore:'Подробнее', noResults:'Результаты не найдены', hadithLabel:'Хадис' },
-  ar: { title:'الصحابة', subtitle:'أصحاب النبي ﷺ', search:'بحث...', bio:'السيرة', facts:'حقائق أساسية', hadiths:'الأحاديث', back:'رجوع', readMore:'المزيد', noResults:'لم يتم العثور على نتائج', hadithLabel:'حديث' },
-  tr: { title:'Sahabeler', subtitle:'Peygamberimizin ﷺ Ashabı', search:'Ara...', bio:'Hayatı', facts:'Temel Bilgiler', hadiths:'Hadisler', back:'Geri', readMore:'Devamı', noResults:'Sonuç bulunamadı', hadithLabel:'Hadis' },
+  az: { eyebrow:'Hədis və bilik', clear:'Axtarışı təmizlə', title:'Səhabələr', subtitle:'Peyğəmbərin ﷺ əshabı', search:'Səhabə axtar...', bio:'Həyatı', facts:'Əsas faktlar', hadiths:'Hədislər', back:'Geri', readMore:'Daha çox', noResults:'Nəticə tapılmadı', hadithLabel:'Hədis' },
+  en: { eyebrow:'Hadith & knowledge', clear:'Clear search', title:'Companions', subtitle:'Companions of the Prophet ﷺ', search:'Search companions...', bio:'Biography', facts:'Key Facts', hadiths:'Hadiths', back:'Back', readMore:'Read more', noResults:'No results found', hadithLabel:'Hadith' },
+  ru: { eyebrow:'Хадисы и знание', clear:'Очистить поиск', title:'Сахабы', subtitle:'Сподвижники Пророка ﷺ', search:'Поиск сахабов...', bio:'Биография', facts:'Ключевые факты', hadiths:'Хадисы', back:'Назад', readMore:'Подробнее', noResults:'Результаты не найдены', hadithLabel:'Хадис' },
+  ar: { eyebrow:'الحديث والعلم', clear:'مسح البحث', title:'الصحابة', subtitle:'أصحاب النبي ﷺ', search:'ابحث عن صحابي...', bio:'السيرة', facts:'حقائق أساسية', hadiths:'الأحاديث', back:'رجوع', readMore:'المزيد', noResults:'لم يتم العثور على نتائج', hadithLabel:'حديث' },
+  tr: { eyebrow:'Hadis ve ilim', clear:'Aramayı temizle', title:'Sahabeler', subtitle:'Peygamberimizin ﷺ Ashabı', search:'Sahabe ara...', bio:'Hayatı', facts:'Temel Bilgiler', hadiths:'Hadisler', back:'Geri', readMore:'Devamı', noResults:'Sonuç bulunamadı', hadithLabel:'Hadis' },
 }
 
 /* ── Sahabi Data (20 companions, 5 hadiths each) ── */
@@ -18,7 +19,7 @@ const SAHABA = [
   {
     id: 1,
     name: { ar:'أبو بكر الصديق', az:'Əbu Bəkr əs-Siddiq', en:'Abu Bakr as-Siddiq', ru:'Абу Бакр ас-Сиддик', tr:'Ebu Bekir es-Sıddık' },
-    title: { az:'Birinci Xəlifə', en:'First Caliph', ru:'Первый Халиф', ar:'الخليفة الأول', tr:'İlk Halife' },
+    title: { az:'Birinci xəlifə', en:'First Caliph', ru:'Первый Халиф', ar:'الخليفة الأول', tr:'İlk Halife' },
     bio: {
       az:'Əbu Bəkr əs-Siddiq İslama ilk iman gətirən kişilərdən biridir. Hz. Peyğəmbərin (s.a.s) ən yaxın dostu və qayınatası idi. Hicrət zamanı Peyğəmbərlə birlikdə mağarada gizləndi. Peyğəmbərdən sonra birinci xəlifə oldu və riddə müharibələrini idarə edərək İslam dövlətinin bütövlüyünü qorudu.',
       en:'Abu Bakr as-Siddiq was one of the first men to embrace Islam. He was the closest friend and father-in-law of Prophet Muhammad ﷺ. He accompanied the Prophet during the Hijra, hiding in the Cave of Thawr. After the Prophet\'s death, he became the first Caliph and preserved the unity of the Islamic state during the Ridda Wars.',
@@ -43,7 +44,7 @@ const SAHABA = [
   {
     id: 2,
     name: { ar:'عمر بن الخطاب', az:'Ömər ibn əl-Xəttab', en:'Umar ibn al-Khattab', ru:'Умар ибн аль-Хаттаб', tr:'Ömer ibn el-Hattab' },
-    title: { az:'İkinci Xəlifə', en:'Second Caliph', ru:'Второй Халиф', ar:'الخليفة الثاني', tr:'İkinci Halife' },
+    title: { az:'İkinci xəlifə', en:'Second Caliph', ru:'Второй Халиф', ar:'الخليفة الثاني', tr:'İkinci Halife' },
     bio: {
       az:'Ömər ibn əl-Xəttab İslamın ən güclü xəlifələrindən biridir. Əvvəlcə İslama düşmən idi, lakin sonra iman gətirib müsəlmanların ən böyük simalarından birinə çevrildi. Ədaləti ilə tanınırdı və xilafəti dövründə İslam dövləti böyük genişlənmə yaşadı.',
       en:'Umar ibn al-Khattab was one of the most powerful caliphs in Islam. Initially hostile to Islam, he later embraced it and became one of the greatest figures among Muslims. Known for his justice, the Islamic state experienced great expansion during his caliphate.',
@@ -67,7 +68,7 @@ const SAHABA = [
   {
     id: 3,
     name: { ar:'عثمان بن عفان', az:'Osman ibn Əffan', en:'Uthman ibn Affan', ru:'Усман ибн Аффан', tr:'Osman ibn Affan' },
-    title: { az:'Üçüncü Xəlifə', en:'Third Caliph', ru:'Третий Халиф', ar:'الخليفة الثالث', tr:'Üçüncü Halife' },
+    title: { az:'Üçüncü xəlifə', en:'Third Caliph', ru:'Третий Халиф', ar:'الخليفة الثالث', tr:'Üçüncü Halife' },
     bio: {
       az:'Osman ibn Əffan səxavəti və həyası ilə tanınan səhabədir. Peyğəmbərin ﷺ iki qızı ilə evləndiyi üçün "Zun-Nureyn" (iki nur sahibi) ləqəbi verilmişdir. Quranın standart nüsxəsini hazırladı.',
       en:'Uthman ibn Affan was known for his generosity and modesty. He was given the title "Dhun-Nurayn" (possessor of two lights) because he married two daughters of the Prophet ﷺ. He standardized the Quran into a single text.',
@@ -91,7 +92,7 @@ const SAHABA = [
   {
     id: 4,
     name: { ar:'علي بن أبي طالب', az:'Əli ibn Əbu Talib', en:'Ali ibn Abi Talib', ru:'Али ибн Абу Талиб', tr:'Ali ibn Ebi Talib' },
-    title: { az:'Dördüncü Xəlifə', en:'Fourth Caliph', ru:'Четвёртый Халиф', ar:'الخليفة الرابع', tr:'Dördüncü Halife' },
+    title: { az:'Dördüncü xəlifə', en:'Fourth Caliph', ru:'Четвёртый Халиф', ar:'الخليفة الرابع', tr:'Dördüncü Halife' },
     bio: {
       az:'Əli ibn Əbu Talib Peyğəmbərin ﷺ əmisi oğlu və kürəkəni idi. İslama iman gətirən ilk uşaqdır. Cəsarəti, elmi və ədaləti ilə tanınırdı. Dördüncü xəlifə olaraq xidmət etdi.',
       en:'Ali ibn Abi Talib was the cousin and son-in-law of Prophet Muhammad ﷺ. He was the first child to accept Islam. Known for his bravery, knowledge, and justice, he served as the fourth Caliph.',
@@ -499,15 +500,22 @@ const SAHABA = [
   },
 ]
 
-/* ── Icons for each sahabi ── */
-const ICONS = ['☪','☪','☪','☪','🌙','🌙','🌙','📢','📖','📖','🌍','🕌','📚','❤','⚔','🏹','🛡','⚔','🤲','⭐']
-
-// Telefon siyahısında ikon kafelinin rəng tonu (motion.css → .icon-tile--*)
-const ICON_TONES = { '☪':'', '🌙':'violet', '📢':'orange', '📖':'blue', '🌍':'teal', '🕌':'gold', '📚':'blue', '❤':'rose', '⚔':'slate', '🏹':'slate', '🛡':'slate', '🤲':'teal', '⭐':'gold' }
-const tileClass = (icon) => {
-  const tone = ICON_TONES[icon]
-  return `icon-tile icon-tile--round sahabe-row-tile${tone ? ` icon-tile--${tone}` : ''}`
+/* ── Monoqram kafeli (emoji ikonların yerinə) ──
+   Hər səhabənin adının ilk hərfi display şriftində; dörd raşid xəlifə
+   (id 1–4) qızılı, qalanları zümrüd tonda — rəng yalnız tokenlərdən. */
+const initialOf = (name) => {
+  // "Əbu …", "Abu …" kimi künyələrdə də ilk hərf; ərəbcədə "أبو" → "أ"
+  const s = String(name || '').trim()
+  return s ? [...s][0].toLocaleUpperCase() : '·'
 }
+const Monogram = ({ s, name, lg = false }) => (
+  <span className={`ui-icon-tile sahabe-mono${s.id <= 4 ? ' ui-icon-tile--accent' : ''}${lg ? ' ui-icon-tile--lg' : ''}`} aria-hidden="true">
+    {initialOf(name)}
+  </span>
+)
+
+// Profil bölmələrinin başlıq ikonları (Icon.jsx)
+const SECTION_ICONS = { bio: 'user', facts: 'bulb', hadiths: 'hadith' }
 
 export default function SahabePage({ setPage }) {
   const { lang } = useLang()
@@ -556,63 +564,70 @@ export default function SahabePage({ setPage }) {
     const n = selected.name[lang] || selected.name.en
     const t = selected.title[lang] || selected.title.en
     const b = selected.bio[lang] || selected.bio.en
-    const icon = ICONS[selected.id - 1] || '☪'
     return (
       <div className="sahabe-page">
-        {/* Breadcrumb yoxdur: yan panel / ☰ menyu yeri göstərir, "Geri" düyməsi aşağıdadır */}
-        <div className="page-hero theme-sahaba hero-compact">
-          {/* Ərəbcədə h1 onsuz da ərəbcə addır — təkrar etməyək */}
-          {!isAr && <div className="page-hero-arabic">{selected.name.ar}</div>}
-          <h1>{n}</h1>
-          <p>{t}</p>
-        </div>
-
-        <div className="section">
-          <div className="sahabe-profile">
-            <button type="button" className="sahabe-back-btn press" onClick={onBackButton}>
-              <span className="qm-dir-arrow" aria-hidden="true">←</span> {L.back}
+        {/* Hero: "Geri" düyməsi yuxarıda, monoqram + ad + vəzifə */}
+        <header className="ui-page-hero sahabe-hero">
+          <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+          <div className="ui-container ui-container--narrow">
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm sahabe-back-btn" onClick={onBackButton}>
+              <Icon name="arrow" size={16} className="ui-btn__icon sahabe-back-ic" /> {L.back}
             </button>
-
-            <div className="sahabe-profile-header">
-              <div className="sahabe-profile-icon" aria-hidden="true">{icon}</div>
-              {!isAr && <div className="sahabe-profile-arabic">{selected.name.ar}</div>}
-              <div className="sahabe-profile-name">{n}</div>
-              <div className="sahabe-profile-title">{t}</div>
+            <div className="sahabe-hero__id" data-reveal="fade">
+              <Monogram s={selected} name={n} lg />
+              <div className="sahabe-hero__text">
+                <span className="ui-eyebrow">{t}</span>
+                <h1 className="ui-display">{n}</h1>
+                {/* Ərəbcədə h1 onsuz da ərəbcə addır — təkrar etməyək */}
+                {!isAr && <p className="sahabe-hero__ar ui-arabic" lang="ar" dir="rtl">{selected.name.ar}</p>}
+              </div>
             </div>
+          </div>
+        </header>
 
-            {/* Bio */}
-            <div className="sahabe-section" data-reveal>
-              <div className="sahabe-section-title"><span>📜</span> {L.bio}</div>
+        <div className="ui-section ui-section--tight">
+          <div className="ui-container ui-container--narrow sahabe-profile">
+            {/* Həyatı */}
+            <section className="ui-card sahabe-section" data-reveal>
+              <h2 className="sahabe-section-title">
+                <span className="ui-icon-tile ui-icon-tile--sm"><Icon name={SECTION_ICONS.bio} /></span> {L.bio}
+              </h2>
               <p className="sahabe-bio">{b}</p>
-            </div>
+            </section>
 
-            {/* Facts */}
-            <div className="sahabe-section" data-reveal>
-              <div className="sahabe-section-title"><span>💡</span> {L.facts}</div>
-              <ul className="sahabe-facts-list">
+            {/* Əsas faktlar */}
+            <section className="ui-card sahabe-section" data-reveal>
+              <h2 className="sahabe-section-title">
+                <span className="ui-icon-tile ui-icon-tile--sm"><Icon name={SECTION_ICONS.facts} /></span> {L.facts}
+              </h2>
+              <ol className="sahabe-facts-list" data-reveal="stagger">
                 {selected.facts.map((f, i) => (
                   <li key={i} className="sahabe-fact-item">
-                    <span className="sahabe-fact-bullet">{i + 1}</span>
+                    <span className="sahabe-fact-bullet ui-num" aria-hidden="true">{i + 1}</span>
                     <span>{f[lang] || f.en}</span>
                   </li>
                 ))}
-              </ul>
-            </div>
+              </ol>
+            </section>
 
-            {/* Hadiths */}
-            <div className="sahabe-section" data-reveal>
-              <div className="sahabe-section-title"><span>📖</span> {L.hadiths}</div>
-              <div className="sahabe-hadiths-list">
+            {/* Hədislər */}
+            <section className="ui-card sahabe-section" data-reveal>
+              <h2 className="sahabe-section-title">
+                <span className="ui-icon-tile ui-icon-tile--sm"><Icon name={SECTION_ICONS.hadiths} /></span> {L.hadiths}
+              </h2>
+              <div className="sahabe-hadiths-list" data-reveal="stagger-left">
                 {selected.hadiths.map((h, i) => (
-                  <div key={i} className="sahabe-hadith-item">
-                    <div className="sahabe-hadith-number">{L.hadithLabel} #{i + 1}</div>
-                    <div className="sahabe-hadith-arabic">{h.ar}</div>
-                    <div className="sahabe-hadith-translation">{h[lang] || h.en}</div>
-                    <span className="sahabe-hadith-source">{typeof h.source === 'object' ? h.source[lang] : localizeSource(h.source, lang)}</span>
-                  </div>
+                  <figure key={i} className="ui-quote sahabe-hadith-item">
+                    <span className="sahabe-hadith-number ui-num">{L.hadithLabel} #{i + 1}</span>
+                    <blockquote>
+                      <p className="ui-quote__ar ui-arabic sahabe-hadith-arabic" lang="ar" dir="rtl">{h.ar}</p>
+                      {!isAr && <p className="sahabe-hadith-translation">{h[lang] || h.en}</p>}
+                    </blockquote>
+                    <figcaption className="ui-quote__src">— {typeof h.source === 'object' ? h.source[lang] : localizeSource(h.source, lang)}</figcaption>
+                  </figure>
                 ))}
               </div>
-            </div>
+            </section>
           </div>
         </div>
       </div>
@@ -621,77 +636,68 @@ export default function SahabePage({ setPage }) {
 
   return (
     <div className="sahabe-page">
-      <div className="page-hero theme-sahaba hero-compact">
-        <div className="page-hero-arabic">الصحابة الكرام</div>
-        <h1>{L.title}</h1>
-        <p>{L.subtitle}</p>
-      </div>
+      <header className="ui-page-hero sahabe-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container">
+          <span className="ui-eyebrow">{L.eyebrow}</span>
+          <h1 className="ui-display">{L.title}</h1>
+          {!isAr && <p className="sahabe-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الصحابة الكرام</p>}
+          <p className="ui-lead">{L.subtitle}</p>
+        </div>
+      </header>
 
-      <div className="section">
-        <div className="section-inner">
+      <div className="ui-section ui-section--tight sahabe-list-sec">
+        <div className="ui-container">
           <div className="sahabe-search-wrap">
-            <span className="sahabe-search-icon" aria-hidden="true">🔍</span>
+            <Icon name="search" size={19} className="sahabe-search-icon" />
             <input
-              className="sahabe-search"
-              type="text"
+              className="ui-input sahabe-search"
+              type="search"
               aria-label={L.search}
               placeholder={L.search}
               enterKeyHint="search"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
+            {search && (
+              <button type="button" className="ui-icon-btn sahabe-search-clear" onClick={() => setSearch('')} aria-label={L.clear} title={L.clear}>
+                <Icon name="close" size={16} />
+              </button>
+            )}
           </div>
 
           {filtered.length === 0 ? (
-            <div className="sahabe-no-results">{L.noResults}</div>
+            <div className="ui-card ui-card--sunken sahabe-no-results" data-reveal="scale">
+              <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="search" /></span>
+              <p>{L.noResults}</p>
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setSearch('')}>
+                <Icon name="close" className="ui-btn__icon" /> {L.clear}
+              </button>
+            </div>
           ) : (
-            <>
-              {/* Kompüter / planşet: kart şəbəkəsi (≥768px) */}
-              <div className="sahabe-grid">
-                {filtered.map(s => {
-                  const n = s.name[lang] || s.name.en
-                  const t = s.title[lang] || s.title.en
-                  const icon = ICONS[s.id - 1] || '☪'
-                  // Kart əsl <button>-dur: klaviatura (Tab, Enter/Boşluq) və ekran
-                  // oxuyucu ilə açılır. Düymənin içində yalnız <span> ola bilər.
-                  return (
-                    <button type="button" key={s.id} className="sahabe-card anim-fadeUp" onClick={() => openProfile(s.id)}>
-                      <span className="sahabe-card-number" aria-hidden="true">{s.id}</span>
-                      <span className="sahabe-card-icon" aria-hidden="true">{icon}</span>
-                      {!isAr && <span className="sahabe-card-arabic" lang="ar">{s.name.ar}</span>}
-                      <span className="sahabe-card-name">{n}</span>
-                      <span className="sahabe-card-title">{t}</span>
+            /* Bir siyahı: kompüterdə kart şəbəkəsi, telefonda (<768px) üfüqi
+               sətir-kartlar (CSS). Kart əsl <button>-dur — klaviatura və ekran
+               oxuyucu ilə açılır; düymənin içində yalnız <span> var. */
+            <ul className="sahabe-grid" data-reveal="stagger-zoom" key={search ? 'q' : 'all'}>
+              {filtered.map(s => {
+                const n = s.name[lang] || s.name.en
+                const t = s.title[lang] || s.title.en
+                return (
+                  <li key={s.id}>
+                    <button type="button" className="ui-card ui-card--interactive sahabe-card" onClick={() => openProfile(s.id)}>
+                      <span className="sahabe-card-number ui-num" aria-hidden="true">{s.id}</span>
+                      <Monogram s={s} name={n} />
+                      <span className="sahabe-card-body">
+                        {!isAr && <span className="sahabe-card-arabic ui-arabic" lang="ar" dir="rtl">{s.name.ar}</span>}
+                        <span className="sahabe-card-name">{n}</span>
+                        <span className="sahabe-card-title">{t}</span>
+                      </span>
+                      <Icon name="chevron" size={18} className="sahabe-card-chev ui-flip-rtl" />
                     </button>
-                  )
-                })}
-              </div>
-
-              {/* Telefon (<768px): qruplaşdırılmış siyahı xanaları — ad, vəzifə,
-                  ərəbcə ad və keçid oxu. Şəbəkə ilə eyni məlumat, CSS ancaq
-                  birini göstərir (display:none ekran oxuyucudan da gizlədir) */}
-              <ul className="m-list sahabe-mlist" data-reveal="stagger">
-                {filtered.map(s => {
-                  const n = s.name[lang] || s.name.en
-                  const t = s.title[lang] || s.title.en
-                  const icon = ICONS[s.id - 1] || '☪'
-                  return (
-                    <li key={s.id}>
-                      <button type="button" className="m-row sahabe-row" onClick={() => openProfile(s.id)}>
-                        <span className={tileClass(icon)} aria-hidden="true">{icon}</span>
-                        <span className="m-row-body">
-                          <span className="m-row-title">{n}</span>
-                          <span className="m-row-sub">{t}</span>
-                        </span>
-                        <span className="m-row-trail">
-                          {!isAr && <span className="sahabe-row-ar" lang="ar" dir="rtl">{s.name.ar}</span>}
-                          <span className="m-row-chev" aria-hidden="true" />
-                        </span>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            </>
+                  </li>
+                )
+              })}
+            </ul>
           )}
         </div>
       </div>

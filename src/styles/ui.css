@@ -23,6 +23,8 @@
      8. Statistika: .ui-stat
      9. Daxili səhifə hero-su: .ui-page-hero (növbəti mərhələ üçün hazır)
     10. Köməkçilər: .ui-sr-only .ui-flip-rtl
+    11. Üzən kart / toast: .ui-toast (quraşdırma, bildiriş, elan)
+    12. Mikro-qarşılıqlı təsirlər (hover, basılma, seçilmə) — 2-ci mərhələ
    ══════════════════════════════════════════════════════════════════ */
 
 /* ══ 1. LAYOUT ═════════════════════════════════════════════════════ */
@@ -625,9 +627,342 @@
 /* İstiqamət oxu (→ ‹ ›) ərəbcədə güzgülənir */
 [dir="rtl"] .ui-flip-rtl { transform: scaleX(-1); }
 
+/* ══ 11. ÜZƏN KART / TOAST — .ui-toast ═════════════════════════════
+   Quraşdırma dəvəti, bildiriş icazəsi, elan, ön plan push bildirişi — hamısı
+   EYNİ görünüşdə: ekranın altından 16px + iPhone boşluğu (safe-area) yuxarıda
+   üzən şüşə kart, yuxarı kənarında incə qızılı xətt. Eyni anda yalnız biri
+   görünür (utils/promptCoordinator.js). ≥1024px-də əsas sütunun ortasında,
+   sağdakı üzən dok üçün yer saxlanılır (ərəbcədə güzgülənir).
+
+   <div class="ui-toast" role="region" aria-label="…">
+     <span class="ui-toast__icon"><Icon name="bell" /></span>     (və ya __mark — BrandMark)
+     <div class="ui-toast__body">
+       <span class="ui-toast__eyebrow">Elan</span>                 (istəyə görə)
+       <strong class="ui-toast__title">…</strong>
+       <span class="ui-toast__text">…</span>                       (ən çox 2 sətir)
+     </div>
+     <div class="ui-toast__actions"><button class="ui-btn ui-btn--primary ui-btn--sm">…</button></div>
+     <button class="ui-toast__close" aria-label="Bağla"><Icon name="close" /></button>
+     <span class="ui-toast__progress" aria-hidden="true"></span>   (avtomatik bağlanma, --toast-duration)
+   </div>
+   Bağlananda: .is-leaving (200ms çıxış), sonra DOM-dan çıxar.
+   Variant: --top (başlığın altında, push bildirişi). Vurğu rəngi: style="--toast-accent: var(--bad)"
+   Dar ekranda (≤520px) düymələr ikinci sətrə keçir — mətn kəsilmir. */
+.ui-toast {
+  --toast-accent: var(--accent);
+  position: fixed;
+  z-index: 995;
+  inset-inline: var(--page-gutter, 16px);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  max-width: 560px;
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px 12px 14px;
+  padding-inline: 14px 10px;
+  color: var(--text-body);
+  background: var(--surface-raised);
+  background: color-mix(in srgb, var(--surface-raised) 93%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  backdrop-filter: saturate(160%) blur(16px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-4);
+  overflow: hidden;
+  animation: qm-toast-in var(--dur-3, 360ms) var(--ease-spring, ease) both;
+}
+/* Yuxarı kənarda incə vurğu xətti (ortada qızılı, kənarlara solur) */
+.ui-toast::before {
+  content: '';
+  position: absolute;
+  inset-inline: 18px;
+  top: 0;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(90deg, transparent, var(--toast-accent) 30%, var(--toast-accent) 70%, transparent);
+  opacity: 0.75;
+  pointer-events: none;
+}
+.ui-toast.is-leaving {
+  animation: qm-toast-out 200ms var(--ease-in, ease-in) forwards;
+  pointer-events: none;
+}
+.ui-toast--top {
+  top: calc(var(--header-offset, var(--header-h, 64px)) + 12px + env(safe-area-inset-top, 0px));
+  bottom: auto;
+  animation-name: qm-toast-in-top;
+}
+
+@media (min-width: 1024px) {
+  .ui-toast {
+    inset-inline-start: calc(var(--sidenav-w, 0px) + var(--page-gutter, 24px));
+    inset-inline-end: calc(var(--page-gutter, 24px) + 64px);
+    bottom: 20px;
+  }
+}
+
+.ui-toast__icon,
+.ui-toast__mark {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  align-self: flex-start;
+}
+.ui-toast__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand-soft-2);
+  color: var(--brand);
+  animation: qm-toast-icon 520ms var(--ease-spring, ease) 120ms backwards;
+}
+.ui-toast__icon svg { width: 20px; height: 20px; }
+.ui-toast__mark { animation: qm-toast-icon 520ms var(--ease-spring, ease) 120ms backwards; }
+.ui-toast__mark .qm-mark { border-radius: 11px; box-shadow: var(--shadow-1); }
+
+.ui-toast__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ui-toast__eyebrow {
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+[dir="rtl"] .ui-toast__eyebrow { letter-spacing: 0; font-size: 12px; }
+.ui-toast__title {
+  color: var(--text-strong);
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.ui-toast__text {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ui-toast__actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ui-toast__close {
+  flex-shrink: 0;
+  align-self: flex-start;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-block: -4px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease, transform var(--dur-1, 150ms) var(--ease-out, ease);
+}
+@media (hover: hover) {
+  .ui-toast__close:hover { background: var(--surface-2); color: var(--text-strong); }
+  .ui-toast__close:hover svg { transform: rotate(90deg); }
+}
+.ui-toast__close svg { transition: transform var(--dur-2, 240ms) var(--ease-out, ease); }
+.ui-toast__close:active { transform: scale(0.9); }
+@media (pointer: coarse) { .ui-toast__close { width: 44px; height: 44px; } }
+
+/* Avtomatik bağlanma göstəricisi — siçan/fokus üstündə dayanır */
+.ui-toast__progress {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--toast-accent);
+  opacity: 0.45;
+  transform-origin: left center;
+  animation: qm-toast-progress var(--toast-duration, 8s) linear forwards;
+  pointer-events: none;
+}
+[dir="rtl"] .ui-toast__progress { transform-origin: right center; }
+.ui-toast:hover .ui-toast__progress,
+.ui-toast:focus-within .ui-toast__progress { animation-play-state: paused; }
+
+/* Dar ekran: [ikon][mətn][✕] birinci sətirdə, düymələr altda */
+@media (max-width: 520px) {
+  .ui-toast { flex-wrap: wrap; row-gap: 10px; }
+  .ui-toast__actions {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+  .ui-toast__actions .ui-btn { flex: 1 1 auto; max-width: 220px; }
+}
+
+@keyframes qm-toast-in {
+  from { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-toast-in-top {
+  from { opacity: 0; transform: translate3d(0, -14px, 0) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-toast-out {
+  to { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.98); }
+}
+@keyframes qm-toast-icon {
+  from { opacity: 0; transform: scale(0.6) rotate(-12deg); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-toast-progress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+@media print { .ui-toast { display: none !important; } }
+
+/* ══ 12. MİKRO-QARŞILIQLI TƏSİRLƏR (2-ci mərhələ) ══════════════════
+   Sahibin istəyi: "animasiyaları çoxaldaq" — ləyaqətli, qısa, yalnız
+   transform/opacity/kölgə. Hover yalnız (hover: hover) cihazlarda.
+   • .ui-btn      hover-də 1px qalxır, basılanda .97; __icon--end (ox) irəli sürüşür
+   • .ui-card     sakit kart hover-də kölgəsi bir pillə artır (yerindən tərpənmir);
+                  --interactive və <a>/<button> kart: 3px qalxır + kölgə-3 +
+                  içindəki .ui-icon-tile canlanır, .ui-link__arrow irəli gedir
+   • .ui-chip     seçiləndə yüngül "pop"; basılanda .96
+   • .ui-icon-btn basılanda .92
+   • .ui-icon-tile--interactive  özü hover-də canlanır (kart xaricində)
+   • .ui-page-hero  naxış çox yavaş "nəfəs alır"; alt qızılı xətt açılır */
+@media (hover: hover) {
+  .ui-btn--primary:hover,
+  .ui-btn--secondary:hover,
+  .ui-btn--accent:hover,
+  .ui-btn--inverse:hover { transform: translateY(-1px); }
+  .ui-btn:hover .ui-btn__icon--end { transform: translateX(2px); }
+  [dir="rtl"] .ui-btn:hover .ui-btn__icon--end { transform: scaleX(-1) translateX(2px); }
+}
+.ui-btn__icon { transition: transform var(--dur-2, 240ms) var(--ease-out, ease); }
+.ui-btn:active,
+.ui-btn--primary:active,
+.ui-btn--secondary:active { transform: scale(0.97); transition-duration: 80ms; }
+
+.ui-card {
+  transition:
+    transform var(--dur-2, 240ms) var(--ease-out, ease),
+    box-shadow var(--dur-2, 240ms) ease,
+    border-color var(--dur-2, 240ms) ease;
+}
+a.ui-card,
+button.ui-card { cursor: pointer; }
+@media (hover: hover) {
+  .ui-card:hover { box-shadow: var(--shadow-2); }
+  .ui-card--sunken:hover,
+  .ui-card--flush:hover { box-shadow: none; }
+  .ui-card--interactive:hover,
+  a.ui-card:hover,
+  button.ui-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-3);
+    border-color: var(--line-strong);
+  }
+  .ui-card--interactive:hover .ui-icon-tile,
+  a.ui-card:hover .ui-icon-tile,
+  button.ui-card:hover .ui-icon-tile,
+  .ui-icon-tile--interactive:hover {
+    transform: translateY(-1px) scale(1.06);
+    background: var(--brand-soft-2);
+  }
+  .ui-card--interactive:hover .ui-icon-tile--accent,
+  a.ui-card:hover .ui-icon-tile--accent { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .ui-card--interactive:hover .ui-icon-tile svg,
+  a.ui-card:hover .ui-icon-tile svg,
+  .ui-icon-tile--interactive:hover svg { transform: rotate(-6deg); }
+  .ui-card--interactive:hover .ui-link__arrow,
+  a.ui-card:hover .ui-link__arrow { transform: translateX(3px); }
+  [dir="rtl"] .ui-card--interactive:hover .ui-link__arrow,
+  [dir="rtl"] a.ui-card:hover .ui-link__arrow { transform: scaleX(-1) translateX(3px); }
+}
+a.ui-card:active,
+button.ui-card:active,
+.ui-card--interactive:active { transform: scale(0.985); transition-duration: 80ms; }
+
+.ui-icon-tile {
+  transition:
+    transform var(--dur-2, 240ms) var(--ease-spring, ease),
+    background-color var(--dur-2, 240ms) ease;
+}
+.ui-icon-tile svg { transition: transform var(--dur-3, 360ms) var(--ease-spring, ease); }
+
+.ui-chip { transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease, border-color var(--dur-1, 150ms) ease, transform var(--dur-1, 150ms) var(--ease-out, ease); }
+.ui-chip:active { transform: scale(0.96); }
+.ui-chip.is-active,
+.ui-chip[aria-pressed="true"],
+.ui-chip[aria-selected="true"] { animation: qm-chip-pop var(--dur-3, 360ms) var(--ease-spring, ease); }
+@keyframes qm-chip-pop {
+  0%   { transform: scale(0.94); }
+  60%  { transform: scale(1.04); }
+  100% { transform: none; }
+}
+
+.ui-icon-btn { transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease, transform var(--dur-1, 150ms) var(--ease-out, ease); }
+.ui-icon-btn:active { transform: scale(0.92); }
+
+/* Daxili səhifə hero-su: naxış çox yavaş nəfəs alır (40 s, irəli-geri),
+   alt kənarda qızılı xətt səhifə açılanda mərkəzdən açılır */
+.ui-page-hero > .ui-pattern {
+  transform-origin: 70% 30%;
+  animation: qm-pattern-breathe 40s var(--ease-in-out, ease-in-out) infinite alternate;
+}
+[dir="rtl"] .ui-page-hero > .ui-pattern { transform-origin: 30% 30%; }
+@keyframes qm-pattern-breathe {
+  from { transform: none; opacity: 1; }
+  to   { transform: scale(1.05); opacity: 0.7; }
+}
+.ui-page-hero::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-line) 25%, var(--accent) 50%, var(--accent-line) 75%, transparent);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.page-enter .ui-page-hero::after { animation: qm-line-grow 900ms var(--ease-out, ease) 200ms backwards; }
+
 @media (prefers-reduced-motion: reduce) {
   .ui-btn,
+  .ui-card,
   .ui-card--interactive,
+  .ui-icon-tile,
+  .ui-icon-tile svg,
+  .ui-chip,
+  .ui-icon-btn,
   .ui-link__arrow { transition: none; }
-  .ui-card--interactive:hover { transform: none; }
+  .ui-card:hover,
+  .ui-card--interactive:hover,
+  a.ui-card:hover,
+  button.ui-card:hover,
+  .ui-btn:hover { transform: none; }
+  .ui-page-hero > .ui-pattern,
+  .ui-chip[aria-pressed="true"],
+  .ui-chip.is-active,
+  .ui-toast,
+  .ui-toast__icon,
+  .ui-toast__mark { animation: none; }
+  .ui-toast__progress { display: none; }
 }
+

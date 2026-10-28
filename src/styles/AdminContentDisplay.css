@@ -1,0 +1,92 @@
+/* ═══ ADMİN MƏZMUNU — ana səhifə lövhəsi, günün məzmunu, elan zolaqları ═══
+   (HeroBannerDisplay.jsx, AdminContentDisplay.jsx — dizayn v2)
+   • Lövhə (.qm-banner): tünd panel, adminin seçdiyi rəng saytın hero
+     ailəsinə bağlanır (heroes.css-dəki tonlar), incə xatəm naxışı, qum
+     rəngli başlıq. Görünəndə yüngül "zoom" (data-reveal).
+   • Günün məzmunu: .ui-card + .ui-quote şəbəkəsi, növbə ilə görünür.
+   • Yalnız tokenlər; hex yalnız "hər iki rejimdə eyni" tünd paneldə. */
+
+.qm-banner {
+  --bn-from: #11604c;
+  --bn-via:  #0c4b3c;
+  --bn-to:   #072e25;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: clamp(36px, 6vw, 64px) clamp(20px, 5vw, 56px);
+  border-radius: var(--radius-2xl);
+  background:
+    radial-gradient(ellipse 70% 90% at 50% 0%, rgba(216, 180, 106, 0.16), transparent 70%),
+    linear-gradient(135deg, var(--bn-from), var(--bn-via) 55%, var(--bn-to));
+  color: var(--text-on-inverse);
+  text-align: center;
+  box-shadow: var(--shadow-3);
+}
+.qm-banner--teal   { --bn-from: #114a4f; --bn-via: #0c3a3f; --bn-to: #072528; }
+.qm-banner--night  { --bn-from: #173641; --bn-via: #112a34; --bn-to: #0a1a21; }
+.qm-banner--bronze { --bn-from: #5e4721; --bn-via: #4a381a; --bn-to: #2e2310; }
+.qm-banner--umber  { --bn-from: #5a3a26; --bn-via: #472e1e; --bn-to: #2c1c12; }
+
+.qm-banner__pattern {
+  --pattern-color: rgba(230, 204, 149, 0.12);
+  -webkit-mask-image: var(--ui-khatam), radial-gradient(ellipse 80% 90% at 50% 40%, #000 0%, transparent 75%);
+  mask-image: var(--ui-khatam), radial-gradient(ellipse 80% 90% at 50% 40%, #000 0%, transparent 75%);
+  -webkit-mask-size: 72px 72px, 100% 100%;
+  mask-size: 72px 72px, 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat;
+  mask-repeat: repeat, no-repeat;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  animation: qm-pattern-breathe 40s var(--ease-in-out, ease-in-out) infinite alternate;
+}
+.qm-banner__ornament { --accent: #d8b46a; --accent-line: rgba(216, 180, 106, 0.5); width: min(100%, 200px); }
+.qm-banner__title {
+  max-width: 22ch;
+  margin: 0;
+  color: #e6cc95;
+  font-family: var(--font-display);
+  font-size: var(--step-4);
+  font-weight: 500;
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+.qm-banner__text {
+  max-width: 56ch;
+  margin: 0;
+  color: var(--text-on-inverse-dim);
+  font-size: var(--step-1);
+  line-height: 1.6;
+}
+.qm-banner__cta { margin-top: 8px; }
+
+/* ── Günün məzmunu ── */
+.qm-daily-card { display: flex; flex-direction: column; gap: 4px; }
+.qm-daily-card__label {
+  color: var(--accent-text);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .qm-daily-card__label { letter-spacing: 0; font-size: 12.5px; }
+.qm-daily-card .ui-quote__ar { font-size: clamp(20px, 1.8vw, 24px); }
+.qm-daily-card .ui-quote__text { font-size: var(--step-0); }
+.qm-daily-card__translit { margin: 0 0 6px; color: var(--brand); font-size: 13.5px; font-style: italic; }
+.qm-daily-card__count { align-self: flex-start; margin-top: 12px; }
+
+/* ── Elan zolaqları (AnnouncementBanner) ── */
+.qm-ann-banners { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.qm-ann-banner { display: flex; align-items: flex-start; gap: 14px; padding: 16px 12px 16px 18px; padding-inline: 18px 12px; }
+.qm-ann-banner__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.qm-ann-banner.tone-bad { border-inline-start: 3px solid var(--bad); }
+.qm-ann-banner.tone-bad .ui-icon-tile { background: color-mix(in srgb, var(--bad) 10%, transparent); box-shadow: none; color: var(--bad); }
+.qm-ann-banner.tone-accent .ui-icon-tile { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-line); color: var(--accent-text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .qm-banner__pattern { animation: none; }
+}

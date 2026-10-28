@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
+import { getSurahLocal } from '../data/surahNamesAz'
+import { navGroupLabel } from '../data/navigation'
+import Icon from '../components/Icon'
 import '../styles/HifzPage.css'
 
 // ── localStorage helpers ──
@@ -17,11 +20,11 @@ function saveProgress(data) {
 }
 
 const LABELS = {
-  az: { title:'Hifz izləyicisi', subtitle:'Quran əzbərləmə izləyicisi', hint:'Statusu dəyişmək üçün surəyə toxunun', all:'Hamısı', memorized:'Əzbərləmişəm', inProgress:'Davam edir', notStarted:'Başlanmayıb', surahCount:'surə', ayahCount:'ayə', progress:'İrəliləyiş', juz:'Cüz', total:'Ümumi', reset:'Sıfırla', confirmReset:'Əminsiniz?' },
-  en: { title:'Hifz Tracker', subtitle:'Quran memorization tracker', hint:'Tap a surah to change its status', all:'All', memorized:'Memorized', inProgress:'In Progress', notStarted:'Not Started', surahCount:'surahs', ayahCount:'ayahs', progress:'Progress', juz:'Juz', total:'Total', reset:'Reset', confirmReset:'Are you sure?' },
-  ru: { title:'Хифз Трекер', subtitle:'Отслеживание заучивания Корана', hint:'Нажмите на суру, чтобы сменить статус', all:'Все', memorized:'Выучено', inProgress:'В процессе', notStarted:'Не начато', surahCount:'сур', ayahCount:'аятов', progress:'Прогресс', juz:'Джуз', total:'Всего', reset:'Сброс', confirmReset:'Вы уверены?' },
-  ar: { title:'متابعة الحفظ', subtitle:'متابعة حفظ القرآن الكريم', hint:'اضغط على السورة لتغيير حالتها', all:'الكل', memorized:'محفوظ', inProgress:'قيد الحفظ', notStarted:'لم يبدأ', surahCount:'سورة', ayahCount:'آية', progress:'التقدم', juz:'جزء', total:'الإجمالي', reset:'إعادة', confirmReset:'هل أنت متأكد؟' },
-  tr: { title:'Hıfz Takip', subtitle:'Kuran ezberleme takipçisi', hint:'Durumu değiştirmek için sureye dokunun', all:'Tümü', memorized:'Ezberledim', inProgress:'Devam ediyor', notStarted:'Başlanmadı', surahCount:'sure', ayahCount:'ayet', progress:'İlerleme', juz:'Cüz', total:'Toplam', reset:'Sıfırla', confirmReset:'Emin misiniz?' },
+  az: { title:'Hifz izləyicisi', subtitle:'Quran əzbərləmə izləyicisi', hint:'Statusu dəyişmək üçün surəyə toxunun', all:'Hamısı', memorized:'Əzbərləmişəm', inProgress:'Davam edir', notStarted:'Başlanmayıb', surahCount:'surə', ayahCount:'ayə', progress:'İrəliləyiş', juz:'Cüz', total:'Ümumi', reset:'Sıfırla', confirmReset:'Əminsiniz?', empty:'Bu siyahıda hələ surə yoxdur', filterLabel:'Statusa görə süzgəc', ofTotal:'114 surədən {n}' },
+  en: { title:'Hifz Tracker', subtitle:'Quran memorization tracker', hint:'Tap a surah to change its status', all:'All', memorized:'Memorized', inProgress:'In Progress', notStarted:'Not Started', surahCount:'surahs', ayahCount:'ayahs', progress:'Progress', juz:'Juz', total:'Total', reset:'Reset', confirmReset:'Are you sure?', empty:'No surahs in this list yet', filterLabel:'Filter by status', ofTotal:'{n} of 114 surahs' },
+  ru: { title:'Хифз Трекер', subtitle:'Отслеживание заучивания Корана', hint:'Нажмите на суру, чтобы сменить статус', all:'Все', memorized:'Выучено', inProgress:'В процессе', notStarted:'Не начато', surahCount:'сур', ayahCount:'аятов', progress:'Прогресс', juz:'Джуз', total:'Всего', reset:'Сброс', confirmReset:'Вы уверены?', empty:'В этом списке пока нет сур', filterLabel:'Фильтр по статусу', ofTotal:'{n} из 114 сур' },
+  ar: { title:'متابعة الحفظ', subtitle:'متابعة حفظ القرآن الكريم', hint:'اضغط على السورة لتغيير حالتها', all:'الكل', memorized:'محفوظ', inProgress:'قيد الحفظ', notStarted:'لم يبدأ', surahCount:'سورة', ayahCount:'آية', progress:'التقدم', juz:'جزء', total:'الإجمالي', reset:'إعادة', confirmReset:'هل أنت متأكد؟', empty:'لا توجد سور في هذه القائمة بعد', filterLabel:'تصفية حسب الحالة', ofTotal:'{n} من 114 سورة' },
+  tr: { title:'Hıfz Takip', subtitle:'Kuran ezberleme takipçisi', hint:'Durumu değiştirmek için sureye dokunun', all:'Tümü', memorized:'Ezberledim', inProgress:'Devam ediyor', notStarted:'Başlanmadı', surahCount:'sure', ayahCount:'ayet', progress:'İlerleme', juz:'Cüz', total:'Toplam', reset:'Sıfırla', confirmReset:'Emin misiniz?', empty:'Bu listede henüz sure yok', filterLabel:'Duruma göre filtrele', ofTotal:'114 sureden {n}' },
 }
 
 // status: 0 = not started, 1 = in progress, 2 = memorized
@@ -164,8 +167,13 @@ export default function HifzPage({ setPage }) {
 
   const getStatus = (num) => progress[num] || 0
 
+  // Son toxunulan surə — kartda qısa "təsdiq" animasiyası (cüt/tək növbə ilə
+  // eyni kartı ardıcıl basanda da animasiya yenidən oynayır)
+  const [bump, setBump] = useState({ num: 0, n: 0 })
+
   const cycleStatus = (num) => {
     haptic()
+    setBump(b => ({ num, n: b.n + 1 }))
     setProgress(prev => {
       const current = prev[num] || 0
       const next = (current + 1) % 3
@@ -200,90 +208,99 @@ export default function HifzPage({ setPage }) {
   }
 
   const statusClass = (st) => st === 2 ? 'memorized' : st === 1 ? 'in-progress' : 'not-started'
-  const statusIcon = (st) => st === 2 ? '✅' : st === 1 ? '📖' : ''
+  // Surənin cari dildə adı: az/ru/tr — yerli yazılış (əvvəl hamısında
+  // ingiliscə "Al-Baqarah" görünürdü), en — transliterasiya
+  const localName = (s) => getSurahLocal(s.num, lang)?.name || s.en
+  const hasProgress = stats.memorized + stats.inProg > 0
 
   return (
     <>
-      {/* hero-compact: telefonda yığcam hero (motion.css) */}
-      <div className="page-hero theme-hifz hero-compact">
-        <div className="page-hero-arabic">ٱلۡحِفۡظُ</div>
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+      {/* Sakit kağız hero (dizayn v2): naxış, eyebrow, bir h1, lead */}
+      <header className="ui-page-hero hifz-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <span className="hifz-hero__art" lang="ar" aria-hidden="true">ٱلۡحِفۡظُ</span>
+        <div className="ui-container">
+          <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          <p className="ui-lead">{t.subtitle}</p>
+        </div>
+      </header>
 
-      <div className="section">
+      <div className="section hifz-section">
         <div className="section-inner hifz-layout">
 
-          {/* Stats bar — telefonda bir xülasə kartı: yuxarıda faiz + zolaq,
-              altında üç sətir (HifzPage.css → mobil blok) */}
+          {/* Xülasə paneli: faiz + zolaq (əsas) və üç status sətri.
+              Zolaq scaleX ilə dolur (yalnız transform) */}
           <div className="hifz-stats" data-reveal="stagger">
+            <div className="hifz-stat-card progress-card">
+              <span className="hifz-stat-label">{t.progress}</span>
+              <span className="hifz-stat-num ui-num">{stats.pct}%</span>
+              <span className="hifz-stat-ayahs">{t.ofTotal.replace('{n}', stats.memorized)}</span>
+              <div className="hifz-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={stats.pct} aria-label={t.progress}>
+                <div className="hifz-progress-fill" style={{ transform: `scaleX(${stats.pct / 100})` }} />
+              </div>
+            </div>
             <div className="hifz-stat-card memorized">
-              <span className="hifz-stat-num">{stats.memorized}</span>
+              <span className="hifz-stat-num ui-num">{stats.memorized}</span>
               <span className="hifz-stat-label">{t.memorized}</span>
               <span className="hifz-stat-ayahs">{stats.memAyahs} {t.ayahCount}</span>
             </div>
             <div className="hifz-stat-card in-progress">
-              <span className="hifz-stat-num">{stats.inProg}</span>
+              <span className="hifz-stat-num ui-num">{stats.inProg}</span>
               <span className="hifz-stat-label">{t.inProgress}</span>
               <span className="hifz-stat-ayahs">{stats.progAyahs} {t.ayahCount}</span>
             </div>
             <div className="hifz-stat-card not-started">
-              <span className="hifz-stat-num">{stats.notStarted}</span>
+              <span className="hifz-stat-num ui-num">{stats.notStarted}</span>
               <span className="hifz-stat-label">{t.notStarted}</span>
-            </div>
-            <div className="hifz-stat-card progress-card">
-              <span className="hifz-stat-num">{stats.pct}%</span>
-              <span className="hifz-stat-label">{t.progress}</span>
-              <div className="hifz-progress-bar">
-                <div className="hifz-progress-fill" style={{ width: `${stats.pct}%` }} />
-              </div>
             </div>
           </div>
 
-          {/* Filter + Reset */}
-          <div className="hifz-controls">
-            <div className="hifz-filters">
+          {/* Süzgəc çipləri (say nişanı ilə) + Sıfırla */}
+          <div className="hifz-controls" data-reveal="fade">
+            <div className="hifz-filters" role="group" aria-label={t.filterLabel}>
               {['all','memorized','inProgress','notStarted'].map(f => (
-                <button type="button" key={f} className={`hifz-filter-btn press ${filter===f?'active':''}`}
+                <button type="button" key={f} className="ui-chip hifz-filter-btn"
                   aria-pressed={filter===f} onClick={() => setFilter(f)}>
                   {t[f]}
-                  <span className="hifz-filter-count">
+                  <span className="hifz-filter-count ui-num">
                     {f==='all' ? 114 : f==='memorized' ? stats.memorized : f==='inProgress' ? stats.inProg : stats.notStarted}
                   </span>
                 </button>
               ))}
             </div>
-            <button type="button" className="btn-ghost hifz-reset-btn press" onClick={handleReset}>
-              {t.reset}
+            {/* Sıfırlanacaq heç nə yoxdursa düymə söndürülür */}
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm hifz-reset-btn" onClick={handleReset} disabled={!hasProgress}>
+              <Icon name="refresh" className="ui-btn__icon" />{t.reset}
             </button>
           </div>
 
           {/* Toxunuş nə edir — statuslar ardıcıllığı (ərəbcədə ox sağdan sola) */}
-          <p className="hifz-hint">{t.hint}: {sl.join(lang === 'ar' ? ' ← ' : ' → ')}</p>
+          <p className="hifz-hint">
+            <Icon name="info" size={16} className="hifz-hint__icon" />
+            <span>{t.hint}: {sl.join(lang === 'ar' ? ' ← ' : ' → ')}</span>
+          </p>
 
-          {/* Surah grid — telefonda qruplaşdırılmış siyahı xanaları; --i: ilk 8
-              xananın növbəli görünməsi (40ms addım) */}
-          <div className="hifz-grid">
-            {filtered.map((s, i) => {
+          {/* Surə şəbəkəsi — telefonda qruplaşdırılmış siyahı; data-reveal="stagger" */}
+          <div className="hifz-grid" data-reveal="stagger">
+            {filtered.map((s) => {
               const st = getStatus(s.num)
+              const bumped = bump.num === s.num ? (bump.n % 2 ? ' is-bump-a' : ' is-bump-b') : ''
               return (
-                <button type="button" key={s.num} className={`hifz-card ${statusClass(st)}`} style={{ '--i': Math.min(i, 7) }}
+                <button type="button" key={s.num} className={`hifz-card ${statusClass(st)}${bumped}`}
                   onClick={() => cycleStatus(s.num)}
-                  title={sl[st]} aria-label={`${s.num}. ${lang === 'ar' ? s.name : s.en} — ${sl[st]}`}>
-                  <div className="hifz-card-num">{s.num}</div>
-                  <div className={`hifz-card-body${lang === 'ar' ? ' is-ar' : ''}`}>
-                    <div className="hifz-card-arabic">{s.name}</div>
-                    {/* Ərəbcədə latın transliterasiyası artıqdır — ərəb adı yuxarıdadır */}
-                    {lang !== 'ar' && <div className="hifz-card-en">{s.en}</div>}
-                    <div className="hifz-card-meta">
+                  title={sl[st]} aria-label={`${s.num}. ${lang === 'ar' ? s.name : localName(s)} — ${sl[st]}`}>
+                  <span className="hifz-card-num ui-num">{s.num}</span>
+                  <span className={`hifz-card-body${lang === 'ar' ? ' is-ar' : ''}`}>
+                    {/* Ərəbcədə latın adı artıqdır — ərəb adı başlıqdır */}
+                    {lang !== 'ar' && <span className="hifz-card-en">{localName(s)}</span>}
+                    <span className="hifz-card-meta">
                       <span>{s.ayahs} {t.ayahCount}</span>
                       <span>{t.juz} {s.juz}</span>
-                    </div>
-                  </div>
-                  <div className="hifz-card-status" aria-hidden="true">
-                    {statusIcon(st)}
-                  </div>
-                  {/* Telefonda emoji əvəzinə animasiyalı dairə: boş → yarım (davam edir) → ✓ */}
+                    </span>
+                    <span className="hifz-card-arabic" lang="ar">{s.name}</span>
+                  </span>
+                  {/* Status dairəsi: boş → yarım (davam edir) → ✓ (əzbər) */}
                   <span className={`m-check hifz-check${st === 2 ? ' is-checked' : st === 1 ? ' is-partial' : ''}`} aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M6.5 12.5l3.8 3.8L17.5 8.5"/></svg>
                   </span>
@@ -291,6 +308,13 @@ export default function HifzPage({ setPage }) {
               )
             })}
           </div>
+          {/* Süzgəcdə surə yoxdursa — boş ekran əvəzinə izah */}
+          {filtered.length === 0 && (
+            <div className="hifz-empty" role="status">
+              <span className="ui-icon-tile ui-icon-tile--lg" aria-hidden="true"><Icon name="hifz" /></span>
+              <p>{t.empty}</p>
+            </div>
+          )}
 
         </div>
       </div>

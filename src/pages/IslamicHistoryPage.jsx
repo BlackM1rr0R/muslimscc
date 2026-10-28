@@ -1,14 +1,15 @@
 import { useState, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import Icon from '../components/Icon'
 import '../styles/IslamicHistoryPage.css'
 
 /* ── Labels ── */
 const LABELS = {
-  az: { title:'İslami Tarix', subtitle:'Peyğəmbərlər və mühüm hadisələr', prophets:'Peyğəmbərlər', events:'Tarixi Hadisələr', readMore:'Daha çox', quranic:'Quranda adı keçir', mentioned:'dəfə', era:'Dövr', keyFact:'Əsas fakt', home:'Ana Səhifə', story:'Hekayə', quranRef:'Quran istinadı' },
-  en: { title:'Islamic History', subtitle:'Prophets and major events', prophets:'Prophets', events:'Historical Events', readMore:'Read more', quranic:'Mentioned in Quran', mentioned:'times', era:'Era', keyFact:'Key fact', home:'Home', story:'Story', quranRef:'Quran reference' },
-  ru: { title:'Исламская история', subtitle:'Пророки и важные события', prophets:'Пророки', events:'Исторические события', readMore:'Подробнее', quranic:'Упоминается в Коране', mentioned:'раз', era:'Эпоха', keyFact:'Ключевой факт', home:'Главная', story:'История', quranRef:'Ссылка на Коран' },
-  ar: { title:'التاريخ الإسلامي', subtitle:'الأنبياء والأحداث الكبرى', prophets:'الأنبياء', events:'أحداث تاريخية', readMore:'اقرأ المزيد', quranic:'مذكور في القرآن', mentioned:'مرة', era:'العصر', keyFact:'حقيقة أساسية', home:'الرئيسية', story:'القصة', quranRef:'مرجع قرآني' },
-  tr: { title:'İslam Tarihi', subtitle:'Peygamberler ve önemli olaylar', prophets:'Peygamberler', events:'Tarihi Olaylar', readMore:'Devamını oku', quranic:'Kuran\'da geçer', mentioned:'kez', era:'Dönem', keyFact:'Önemli bilgi', home:'Ana Sayfa', story:'Kıssa', quranRef:'Kuran referansı' },
+  az: { eyebrow:'Hədis və bilik', sections:'Bölmələr', title:'İslami tarix', subtitle:'Peyğəmbərlər və mühüm hadisələr', prophets:'Peyğəmbərlər', events:'Tarixi hadisələr', readMore:'Daha çox', quranic:'Quranda adı keçir', mentioned:'dəfə', era:'Dövr', keyFact:'Əsas fakt', home:'Ana səhifə', story:'Hekayə', quranRef:'Quran istinadı' },
+  en: { eyebrow:'Hadith & knowledge', sections:'Sections', title:'Islamic History', subtitle:'Prophets and major events', prophets:'Prophets', events:'Historical Events', readMore:'Read more', quranic:'Mentioned in Quran', mentioned:'times', era:'Era', keyFact:'Key fact', home:'Home', story:'Story', quranRef:'Quran reference' },
+  ru: { eyebrow:'Хадисы и знание', sections:'Разделы', title:'Исламская история', subtitle:'Пророки и важные события', prophets:'Пророки', events:'Исторические события', readMore:'Подробнее', quranic:'Упоминается в Коране', mentioned:'раз', era:'Эпоха', keyFact:'Ключевой факт', home:'Главная', story:'История', quranRef:'Ссылка на Коран' },
+  ar: { eyebrow:'الحديث والعلم', sections:'الأقسام', title:'التاريخ الإسلامي', subtitle:'الأنبياء والأحداث الكبرى', prophets:'الأنبياء', events:'أحداث تاريخية', readMore:'اقرأ المزيد', quranic:'مذكور في القرآن', mentioned:'مرة', era:'العصر', keyFact:'حقيقة أساسية', home:'الرئيسية', story:'القصة', quranRef:'مرجع قرآني' },
+  tr: { eyebrow:'Hadis ve ilim', sections:'Bölümler', title:'İslam Tarihi', subtitle:'Peygamberler ve önemli olaylar', prophets:'Peygamberler', events:'Tarihi Olaylar', readMore:'Devamını oku', quranic:'Kuran\'da geçer', mentioned:'kez', era:'Dönem', keyFact:'Önemli bilgi', home:'Ana Sayfa', story:'Kıssa', quranRef:'Kuran referansı' },
 }
 
 /* ── Prophets Data ── */
@@ -609,7 +610,7 @@ const EVENTS = [
   },
   {
     year: { az:'622 e.', en:'622 CE', ru:'622 н.э.', ar:'٦٢٢ م', tr:'MS 622' },
-    title: { az:'Mədinəyə Hicrət', en:'Hijra to Medina', ru:'Хиджра в Медину', ar:'الهجرة إلى المدينة', tr:'Medine\'ye Hicret' },
+    title: { az:'Mədinəyə hicrət', en:'Hijra to Medina', ru:'Хиджра в Медину', ar:'الهجرة إلى المدينة', tr:'Medine\'ye Hicret' },
     desc: {
       az:'Hz. Muhəmməd ﷺ və müsəlmanlar Məkkədən Mədinəyə köç etdilər. İslam təqviminin başlanğıcı bu hadisədir. Mədinədə ilk İslam dövləti quruldu.',
       en:'Prophet Muhammad ﷺ and Muslims migrated from Mecca to Medina. This event marks the beginning of the Islamic calendar. The first Islamic state was established in Medina.',
@@ -717,7 +718,7 @@ const EVENTS = [
   },
   {
     year: { az:'632 e.', en:'632 CE', ru:'632 н.э.', ar:'٦٣٢ م', tr:'MS 632' },
-    title: { az:'Vida Həcci və Peyğəmbərin vəfatı', en:'Farewell Hajj & Prophet\'s Passing', ru:'Прощальный Хадж и кончина Пророка', ar:'حجة الوداع ووفاة النبي', tr:'Veda Haccı ve Peygamber\'in Vefatı' },
+    title: { az:'Vida həcci və Peyğəmbərin vəfatı', en:'Farewell Hajj & Prophet\'s Passing', ru:'Прощальный Хадж и кончина Пророка', ar:'حجة الوداع ووفاة النبي', tr:'Veda Haccı ve Peygamber\'in Vefatı' },
     desc: {
       az:'Hz. Muhəmməd ﷺ 100.000-dən çox müsəlmanla Vida Həccini icra etdi. Məşhur Vida Xütbəsini söylədi. Həmin il Rəbiül-Əvvəl ayında vəfat etdi.',
       en:'Prophet Muhammad ﷺ performed the Farewell Hajj with over 100,000 Muslims. He delivered the famous Farewell Sermon. He passed away later that year in Rabi al-Awwal.',
@@ -735,7 +736,7 @@ const EVENTS = [
   },
   {
     year: { az:'632-661 e.', en:'632-661 CE', ru:'632-661 н.э.', ar:'٦٣٢-٦٦١ م', tr:'MS 632-661' },
-    title: { az:'Raşidi Xilafəti', en:'Rashidun Caliphate', ru:'Праведный Халифат', ar:'الخلافة الراشدة', tr:'Râşidîn Hilâfeti' },
+    title: { az:'Raşidi xilafəti', en:'Rashidun Caliphate', ru:'Праведный Халифат', ar:'الخلافة الراشدة', tr:'Râşidîn Hilâfeti' },
     desc: {
       az:'Dörd raşidi xəlifə dövrü: Əbu Bəkr, Ömər, Osman və Əli. İslamın sürətlə yayılma dövrü. Quranın kitab halına gətirilməsi bu dövrdə baş verdi.',
       en:'The era of four Rashidun caliphs: Abu Bakr, Umar, Uthman, and Ali. A period of rapid expansion of Islam. The Quran was compiled into book form during this era.',
@@ -753,7 +754,7 @@ const EVENTS = [
   },
   {
     year: { az:'661-750 e.', en:'661-750 CE', ru:'661-750 н.э.', ar:'٦٦١-٧٥٠ م', tr:'MS 661-750' },
-    title: { az:'Əməvi Xilafəti', en:'Umayyad Caliphate', ru:'Омейядский Халифат', ar:'الخلافة الأموية', tr:'Emevî Hilâfeti' },
+    title: { az:'Əməvi xilafəti', en:'Umayyad Caliphate', ru:'Омейядский Халифат', ar:'الخلافة الأموية', tr:'Emevî Hilâfeti' },
     desc: {
       az:'Paytaxt Dəməşq olan böyük İslam imperiyası. İspaniyadan Orta Asiyaya qədər geniş ərazilər fəth edildi. İslam mədəniyyəti sürətlə inkişaf etdi.',
       en:'A great Islamic empire with Damascus as its capital. Vast territories were conquered from Spain to Central Asia. Islamic civilization flourished rapidly.',
@@ -771,7 +772,7 @@ const EVENTS = [
   },
   {
     year: { az:'750-1258 e.', en:'750-1258 CE', ru:'750-1258 н.э.', ar:'٧٥٠-١٢٥٨ م', tr:'MS 750-1258' },
-    title: { az:'Abbasi Xilafəti', en:'Abbasid Caliphate', ru:'Аббасидский Халифат', ar:'الخلافة العباسية', tr:'Abbâsî Hilâfeti' },
+    title: { az:'Abbasi xilafəti', en:'Abbasid Caliphate', ru:'Аббасидский Халифат', ar:'الخلافة العباسية', tr:'Abbâsî Hilâfeti' },
     desc: {
       az:'İslam sivilizasiyasının qızıl dövrü. Bağdad dünya elm mərkəzinə çevrildi. Riyaziyyat, tibb, astronomiya, fəlsəfə sahələrində böyük irəliləyişlər.',
       en:'The Golden Age of Islamic civilization. Baghdad became a world center of learning. Great advances in mathematics, medicine, astronomy, and philosophy.',
@@ -819,7 +820,7 @@ const EVENTS = [
   { year:{az:'1924 e.',en:'1924 CE',ru:'1924 н.э.',ar:'١٩٢٤ م',tr:'MS 1924'}, title:{az:'Xilafətin ləğvi',en:'Abolition of the Caliphate',ru:'Упразднение Халифата',ar:'إلغاء الخلافة',tr:'Hilâfetin kaldırılması'}, desc:{az:'Türkiyədə Xilafət rəsmi olaraq ləğv edildi. 1300+ illik xilafət müəssisəsi sona çatdı.',en:'The Caliphate was officially abolished in Turkey. The 1300+ year institution of the Caliphate came to an end.',ru:'Халифат был официально упразднён в Турции. Институт халифата, существовавший более 1300 лет, прекратил существование.',ar:'أُلغيت الخلافة رسميًا في تركيا. انتهت مؤسسة الخلافة التي دامت أكثر من ١٣٠٠ عام.',tr:'Hilâfet Türkiye\'de resmen kaldırıldı. 1300+ yıllık hilâfet müessesesi sona erdi.'}, keyFact:{az:'Son xəlifə Əbdülməcid Əfəndi idi.',en:'The last caliph was Abdulmejid II.',ru:'Последним халифом был Абдулмеджид II.',ar:'آخر خليفة كان عبد المجيد الثاني.',tr:'Son halife Abdülmecid Efendi\'ydi.'} },
   { year:{az:'1948 e.',en:'1948 CE',ru:'1948 н.э.',ar:'١٩٤٨ م',tr:'MS 1948'}, title:{az:'Fələstinin işğalı',en:'Nakba — Occupation of Palestine',ru:'Накба — оккупация Палестины',ar:'النكبة — احتلال فلسطين',tr:'Nekbe — Filistin\'in işgali'}, desc:{az:'İsrail dövləti elan edildi. Yüz minlərlə fələstinli qaçqın oldu. Müqəddəs torpaqlar işğal altına düşdü.',en:'The State of Israel was declared. Hundreds of thousands of Palestinians became refugees. The Holy Lands came under occupation.',ru:'Государство Израиль было провозглашено. Сотни тысяч палестинцев стали беженцами. Святые земли оказались под оккупацией.',ar:'أُعلنت دولة إسرائيل. أصبح مئات الآلاف من الفلسطينيين لاجئين. وقعت الأراضي المقدسة تحت الاحتلال.',tr:'İsrail devleti ilan edildi. Yüz binlerce Filistinli mülteci oldu. Kutsal topraklar işgal altına girdi.'}, keyFact:{az:'Nəkbə — "Fəlakət" — hər il 15 may tarixində xatırlanır.',en:'Nakba — "Catastrophe" — is commemorated every year on May 15.',ru:'Накба — «Катастрофа» — ежегодно отмечается 15 мая.',ar:'النكبة تُحيا ذكراها كل ١٥ مايو.',tr:'Nekbe — "Felaket" — her yıl 15 Mayıs\'ta anılır.'} },
   { year:{az:'1969 e.',en:'1969 CE',ru:'1969 н.э.',ar:'١٩٦٩ م',tr:'MS 1969'}, title:{az:'Məscidül-Əqsanın yandırılması',en:'Burning of Al-Aqsa Mosque',ru:'Поджог мечети Аль-Акса',ar:'حريق المسجد الأقصى',tr:'Mescid-i Aksâ\'nın yakılması'}, desc:{az:'Bir avstraliyalı ekstremist Məscidül-Əqsanın Qiblə minbərini yandırdı. Bu hadisə İslam Əməkdaşlıq Təşkilatının yaranmasına səbəb oldu.',en:'An Australian extremist set fire to the Qibla pulpit of Al-Aqsa. This led to the formation of the Organisation of Islamic Cooperation.',ru:'Австралийский экстремист поджёг кафедру Киблы в Аль-Аксе. Это привело к созданию Организации Исламского Сотрудничества.',ar:'أحرق متطرف أسترالي منبر القبلة في الأقصى. أدى ذلك إلى تأسيس منظمة التعاون الإسلامي.',tr:'Avustralyalı bir aşırılıkçı Mescid-i Aksâ\'nın Kıble minberini yaktı.'}, keyFact:{az:'İslam Əməkdaşlıq Təşkilatı 57 ölkəni birləşdirir.',en:'The OIC unites 57 countries.',ru:'ОИС объединяет 57 стран.',ar:'تضم منظمة التعاون الإسلامي ٥٧ دولة.',tr:'İslam İşbirliği Teşkilatı 57 ülkeyi birleştirir.'} },
-  { year:{az:'622 e.',en:'622 CE',ru:'622 н.э.',ar:'٦٢٢ م',tr:'MS 622'}, title:{az:'Mədinə Konstitusiyası',en:'Constitution of Medina',ru:'Мединская конституция',ar:'صحيفة المدينة',tr:'Medine Anayasası'}, desc:{az:'Peyğəmbər ﷺ Mədinədə müsəlman, yəhudi və müşrik qəbilələr arasında ilk yazılı konstitusiyanı hazırladı — hüquq bərabərliyi, müdafiə ittifaqı.',en:'The Prophet ﷺ drafted the first written constitution in Medina among Muslim, Jewish and pagan tribes — equal rights and mutual defense.',ru:'Пророк ﷺ составил первую письменную конституцию в Медине между мусульманами, иудеями и язычниками — равные права и взаимная защита.',ar:'أعدّ النبي ﷺ أول دستور مكتوب في المدينة بين المسلمين واليهود والمشركين.',tr:'Peygamber ﷺ Medine\'de Müslüman, Yahudi ve müşrik kabileler arasında ilk yazılı anayasayı hazırladı.'}, keyFact:{az:'Tarixi ilk yazılı konstitusiya hesab olunur.',en:'Considered the first written constitution in history.',ru:'Считается первой письменной конституцией в истории.',ar:'تُعدّ أول دستور مكتوب في التاريخ.',tr:'Tarihteki ilk yazılı anayasa kabul edilir.'} },
+  { year:{az:'622 e.',en:'622 CE',ru:'622 н.э.',ar:'٦٢٢ م',tr:'MS 622'}, title:{az:'Mədinə konstitusiyası',en:'Constitution of Medina',ru:'Мединская конституция',ar:'صحيفة المدينة',tr:'Medine Anayasası'}, desc:{az:'Peyğəmbər ﷺ Mədinədə müsəlman, yəhudi və müşrik qəbilələr arasında ilk yazılı konstitusiyanı hazırladı — hüquq bərabərliyi, müdafiə ittifaqı.',en:'The Prophet ﷺ drafted the first written constitution in Medina among Muslim, Jewish and pagan tribes — equal rights and mutual defense.',ru:'Пророк ﷺ составил первую письменную конституцию в Медине между мусульманами, иудеями и язычниками — равные права и взаимная защита.',ar:'أعدّ النبي ﷺ أول دستور مكتوب في المدينة بين المسلمين واليهود والمشركين.',tr:'Peygamber ﷺ Medine\'de Müslüman, Yahudi ve müşrik kabileler arasında ilk yazılı anayasayı hazırladı.'}, keyFact:{az:'Tarixi ilk yazılı konstitusiya hesab olunur.',en:'Considered the first written constitution in history.',ru:'Считается первой письменной конституцией в истории.',ar:'تُعدّ أول دستور مكتوب في التاريخ.',tr:'Tarihteki ilk yazılı anayasa kabul edilir.'} },
   { year:{az:'624 e.',en:'624 CE',ru:'624 н.э.',ar:'٦٢٤ م',tr:'MS 624'}, title:{az:'Qiblənin dəyişdirilməsi',en:'Change of Qibla',ru:'Изменение Киблы',ar:'تحويل القبلة',tr:'Kıblenin değiştirilmesi'}, desc:{az:'Namazın qibləsi Qüdsdən (Məscidül-Əqsa) Məkkəyə (Kəbə) çevrildi. Bu dəyişiklik Bəqərə surəsinin 144-cü ayəsi ilə əmr edildi.',en:'The direction of prayer was changed from Jerusalem (Al-Aqsa) to Mecca (Kaaba). Commanded by verse 2:144 of the Quran.',ru:'Направление молитвы было изменено с Иерусалима (Аль-Акса) на Мекку (Каабу). По повелению аята 2:144.',ar:'حُوّلت القبلة من القدس (الأقصى) إلى مكة (الكعبة). بأمر الآية ١٤٤ من البقرة.',tr:'Namazın kıblesi Kudüs\'ten (Mescid-i Aksâ) Mekke\'ye (Kâbe) çevrildi.'}, keyFact:{az:'"Təhvil-i Qiblə" məscidi Mədinədə hələ durur.',en:'The "Masjid al-Qiblatain" (Mosque of Two Qiblas) still stands in Medina.',ru:'«Масджид аль-Киблатайн» (мечеть двух кибл) до сих пор стоит в Медине.',ar:'لا يزال "مسجد القبلتين" قائمًا في المدينة.',tr:'"Mescid-i Kıbleteyn" Medine\'de hâlâ ayaktadır.'} },
   { year:{az:'630 e.',en:'630 CE',ru:'630 н.э.',ar:'٦٣٠ م',tr:'MS 630'}, title:{az:'Bütlərin qırılması',en:'Destruction of Idols',ru:'Уничтожение идолов',ar:'تحطيم الأصنام',tr:'Putların kırılması'}, desc:{az:'Məkkə fəthindən sonra Peyğəmbər ﷺ Kəbədəki 360 bütü qırdırdı. "Haqq gəldi, batil yox oldu" (İsra 81) deyərək hər bütü devirdi.',en:'After the conquest of Mecca, the Prophet ﷺ destroyed the 360 idols in the Kaaba, saying "Truth has come and falsehood has vanished" (Isra 81).',ru:'После завоевания Мекки Пророк ﷺ уничтожил 360 идолов в Каабе, говоря «Истина пришла, ложь исчезла» (Исра 81).',ar:'بعد فتح مكة حطّم النبي ﷺ ٣٦٠ صنمًا في الكعبة قائلاً "جاء الحق وزهق الباطل" (الإسراء ٨١).',tr:'Mekke\'nin fethinden sonra Peygamber ﷺ Kâbe\'deki 360 putu kırdırdı.'}, keyFact:{az:'Kəbə İbrahimin (ə.s.) qurduğu tövhid məbədinə qaytarıldı.',en:'The Kaaba was restored to the monotheistic temple built by Ibrahim.',ru:'Кааба была возвращена к монотеистическому храму, построенному Ибрахимом.',ar:'أُعيدت الكعبة إلى معبد التوحيد الذي بناه إبراهيم.',tr:'Kâbe, İbrahim\'in inşa ettiği tevhid mâbedine iade edildi.'} },
   { year:{az:'1979 e.',en:'1979 CE',ru:'1979 н.э.',ar:'١٩٧٩ م',tr:'MS 1979'}, title:{az:'Kəbənin ələ keçirilməsi hadisəsi',en:'Seizure of the Grand Mosque',ru:'Захват Заповедной мечети',ar:'حادثة الحرم المكي',tr:'Harem-i Şerif\'in işgali'}, desc:{az:'Cuheyman əl-Uteybi qrupu Məscidül-Haramı ələ keçirdi. 2 həftəlik mühasirədən sonra təhlükəsizlik qüvvələri nəzarəti bərpa etdi.',en:'Juhayman al-Utaybi\'s group seized the Grand Mosque in Mecca. After a 2-week siege, security forces regained control.',ru:'Группа Джухаймана аль-Утайби захватила Заповедную мечеть в Мекке. После 2-недельной осады силы безопасности восстановили контроль.',ar:'استولت جماعة جهيمان العتيبي على الحرم المكي. بعد حصار أسبوعين استعادت قوات الأمن السيطرة.',tr:'Cuheyman el-Uteybi grubu Mescid-i Haram\'ı ele geçirdi. 2 haftalık kuşatmadan sonra güvenlik güçleri kontrolü sağladı.'}, keyFact:{az:'Bu hadisə bütün İslam dünyasını sarsıtdı.',en:'This event shook the entire Muslim world.',ru:'Это событие потрясло весь мусульманский мир.',ar:'هزت هذه الحادثة العالم الإسلامي بأسره.',tr:'Bu olay tüm İslam dünyasını sarstı.'} },
@@ -870,133 +871,110 @@ export default function IslamicHistoryPage({ setPage }) {
     },
   })
 
+  // Bir zaman xətti girişi (peyğəmbər və ya hadisə) — eyni kart quruluşu
+  const renderEntry = (i, { badge, num, title, arabic, desc, keyFact, quranRef }) => (
+    <li className={`history-entry${expanded === i ? ' is-open' : ''}`} key={`${tab}${i}`} {...revealProps(i)}>
+      <span className="history-dot" aria-hidden="true" />
+      <div className="ui-card ui-card--interactive history-card" {...cardProps(i)}>
+        <div className="history-card-top">
+          <span className="ui-badge ui-badge--accent history-date-badge">{badge}</span>
+          <Icon name="chevronDown" size={18} className="history-expand-icon" />
+        </div>
+        <div className="history-card-head">
+          {num != null && <span className="history-prophet-num ui-num" aria-hidden="true">{num}</span>}
+          <h2 className="history-card-title">{title}</h2>
+          {/* Ərəbcədə başlıq onsuz da ərəbcədir — təkrar etməyək */}
+          {arabic && lang !== 'ar' && <span className="history-card-arabic ui-arabic" lang="ar" dir="rtl">{arabic}</span>}
+        </div>
+        <p className="history-card-desc">{desc}</p>
+
+        {expanded === i && (
+          <div className="history-details">
+            <div className="history-detail-row">
+              <span className="history-detail-label">
+                <Icon name="bulb" size={16} /> {L.keyFact}
+              </span>
+              <span className="history-detail-value">{keyFact}</span>
+            </div>
+            {quranRef && (
+              <span className="ui-badge ui-badge--brand history-quran-badge">
+                <Icon name="quran" size={14} /> {L.quranRef}: {quranRef}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </li>
+  )
+
   return (
     <div className="history-page">
       {/* Hero — breadcrumb yoxdur: yan panel / ☰ menyu onsuz da yeri göstərir */}
-      <div className="history-hero">
-        <div className="history-hero-bg" />
-        <div className="history-hero-icon" aria-hidden="true">📜</div>
-        <h1 className="history-title">{L.title}</h1>
-        <p className="history-subtitle">{L.subtitle}</p>
-      </div>
-
-      {/* Stats */}
-      <div className="history-stats">
-        <div className="history-stat">
-          <div className="history-stat-num">25</div>
-          <div className="history-stat-label">{L.prophets}</div>
-        </div>
-        <div className="history-stat">
-          <div className="history-stat-num">{EVENTS.length}</div>
-          <div className="history-stat-label">{L.events}</div>
-        </div>
-      </div>
-
-      {/* Tabs — telefonda yapışqan seqment idarəsi: sürüşən ağ "həb"
-          (track[data-active]) və hər bölmənin sayı; kompüterdə əvvəlki
-          iki həb düymə (track display:contents) */}
-      <div className="history-tabs" ref={tabsRef}>
-        <div className="history-tabs-track" data-active={tab}>
-          <button
-            type="button"
-            className={`history-tab-btn${tab === 'prophets' ? ' active' : ''}`}
-            aria-pressed={tab === 'prophets'}
-            onClick={() => switchTab('prophets')}
-          >
-            <span className="history-tab-emoji" aria-hidden="true">📖</span> <span className="history-tab-label">{L.prophets}</span>
-            <span className="history-tab-count">{PROPHETS.length}</span>
-          </button>
-          <button
-            type="button"
-            className={`history-tab-btn${tab === 'events' ? ' active' : ''}`}
-            aria-pressed={tab === 'events'}
-            onClick={() => switchTab('events')}
-          >
-            <span className="history-tab-emoji" aria-hidden="true">⚔️</span> <span className="history-tab-label">{L.events}</span>
-            <span className="history-tab-count">{EVENTS.length}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Timeline */}
-      <div className="history-timeline" ref={timelineRef}>
-        {tab === 'prophets' && PROPHETS.map((p, i) => (
-          <div
-            className="history-entry"
-            key={`p${i}`}
-            {...revealProps(i)}
-          >
-            <div className="history-dot" />
-            <div className="history-card-wrap">
-              <div
-                className={`history-card${expanded === i ? ' expanded' : ''}`}
-                {...cardProps(i)}
-              >
-                <div className="history-date-badge">
-                  {p.era[lang] || p.era.en}
-                </div>
-                <div className="history-card-header">
-                  <div>
-                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
-                      <div className="history-prophet-num">{p.num}</div>
-                      <h3 className="history-card-title">{p.name[lang] || p.name.en}</h3>
-                    </div>
-                    {/* Ərəbcədə başlıq onsuz da ərəbcədir — təkrar etməyək */}
-                    {lang !== 'ar' && <div className="history-card-arabic">{p.arabic}</div>}
-                    <p className="history-card-desc">{p.desc[lang] || p.desc.en}</p>
-                  </div>
-                  <div className="history-expand-icon" aria-hidden="true">▼</div>
-                </div>
-
-                <div className="history-details">
-                  <div className="history-detail-divider" />
-                  <div className="history-detail-row">
-                    <span className="history-detail-label">{L.keyFact}</span>
-                    <span className="history-detail-value">{p.keyFact[lang] || p.keyFact.en}</span>
-                  </div>
-                  <div className="history-quran-badge">
-                    📖 {L.quranRef}: {p.quranRef}
-                  </div>
-                </div>
-              </div>
+      <header className="ui-page-hero hist-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container">
+          <span className="ui-eyebrow">{L.eyebrow}</span>
+          <h1 className="ui-display">{L.title}</h1>
+          <p className="ui-lead">{L.subtitle}</p>
+          <div className="history-stats" data-reveal="stagger">
+            <div className="ui-stat">
+              <span className="ui-stat__num" data-count={PROPHETS.length}>{PROPHETS.length}</span>
+              <span className="ui-stat__label">{L.prophets}</span>
+            </div>
+            <div className="ui-stat">
+              <span className="ui-stat__num" data-count={EVENTS.length}>{EVENTS.length}</span>
+              <span className="ui-stat__label">{L.events}</span>
             </div>
           </div>
-        ))}
+        </div>
+      </header>
 
-        {tab === 'events' && EVENTS.map((e, i) => (
-          <div
-            className="history-entry"
-            key={`e${i}`}
-            {...revealProps(i)}
-          >
-            <div className="history-dot" />
-            <div className="history-card-wrap">
-              <div
-                className={`history-card${expanded === i ? ' expanded' : ''}`}
-                {...cardProps(i)}
+      <div className="ui-section ui-section--tight history-body">
+        <div className="ui-container history-container">
+          {/* Bölmə seçimi — telefonda başlığın altında yapışır */}
+          <div className="history-tabs" ref={tabsRef} data-reveal="fade">
+            <div className="history-tabs-track" role="group" aria-label={L.sections}>
+              <button
+                type="button"
+                className="ui-chip history-tab-btn"
+                aria-pressed={tab === 'prophets'}
+                onClick={() => switchTab('prophets')}
               >
-                <div className="history-date-badge">
-                  {e.year[lang] || e.year.en}
-                </div>
-                <div className="history-card-header">
-                  <div>
-                    <h3 className="history-card-title">{e.title[lang] || e.title.en}</h3>
-                    <p className="history-card-desc">{e.desc[lang] || e.desc.en}</p>
-                  </div>
-                  <div className="history-expand-icon" aria-hidden="true">▼</div>
-                </div>
-
-                <div className="history-details">
-                  <div className="history-detail-divider" />
-                  <div className="history-detail-row">
-                    <span className="history-detail-label">{L.keyFact}</span>
-                    <span className="history-detail-value">{e.keyFact[lang] || e.keyFact.en}</span>
-                  </div>
-                </div>
-              </div>
+                <Icon name="sahaba" size={17} /> <span className="history-tab-label">{L.prophets}</span>
+                <span className="history-tab-count ui-num">{PROPHETS.length}</span>
+              </button>
+              <button
+                type="button"
+                className="ui-chip history-tab-btn"
+                aria-pressed={tab === 'events'}
+                onClick={() => switchTab('events')}
+              >
+                <Icon name="history" size={17} /> <span className="history-tab-label">{L.events}</span>
+                <span className="history-tab-count ui-num">{EVENTS.length}</span>
+              </button>
             </div>
           </div>
-        ))}
+
+          {/* Zaman xətti — başlanğıc tərəfdə xətt və nöqtələr, kartlar tam en.
+              Açar bölmə dəyişəndə siyahını yenidən qurur (keçid animasiyası) */}
+          <ol className="history-timeline" ref={timelineRef} key={tab}>
+            {tab === 'prophets' && PROPHETS.map((p, i) => renderEntry(i, {
+              badge: p.era[lang] || p.era.en,
+              num: p.num,
+              title: p.name[lang] || p.name.en,
+              arabic: p.arabic,
+              desc: p.desc[lang] || p.desc.en,
+              keyFact: p.keyFact[lang] || p.keyFact.en,
+              quranRef: p.quranRef,
+            }))}
+            {tab === 'events' && EVENTS.map((e, i) => renderEntry(i, {
+              badge: e.year[lang] || e.year.en,
+              title: e.title[lang] || e.title.en,
+              desc: e.desc[lang] || e.desc.en,
+              keyFact: e.keyFact[lang] || e.keyFact.en,
+            }))}
+          </ol>
+        </div>
       </div>
     </div>
   )

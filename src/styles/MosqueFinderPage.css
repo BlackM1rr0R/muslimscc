@@ -1,407 +1,197 @@
-/* ══════════════════════════════════════════════════════
-   MosqueFinderPage Styles
-   ══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   MosqueFinderPage — Yaxınlıqdakı məscidlər (/mosques) · dizayn sistemi v2
+   Axtarış kartı (radar ikonu — axtarışda halqa yayılır), yüklənmə
+   parıltısı, xəta/boş vəziyyətlər, nəticələr — bir kart içində sətirlər
+   (hər sətir xəritə keçididir; genişdə "Xəritədə aç", telefonda › oxu).
+   Yalnız semantik tokenlər; .ui-*-ni dəyişəndə .mosque-page ilə gücləndir.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Hero ── */
+.mosque-hero .breadcrumb { justify-content: flex-start; margin: 0 0 4px; }
+.mosque-hero .bc-list { justify-content: flex-start; }
+.mosque-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
+.mosque-page.ui-section { padding-block: var(--space-6) var(--section-gap); }
 
 .mosque-layout {
-  max-width: 700px;
-  margin: 0 auto;
+  max-width: calc(760px + 2 * var(--page-gutter));
   display: flex;
   flex-direction: column;
-  gap: var(--stack-gap);
+  gap: var(--space-4);
 }
 
-/* ── Search Area ── */
-.mosque-search-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 40px 24px;
-  text-align: center;
-  box-shadow: var(--shadow-sm);
-}
-
-.mosque-search-icon {
-  font-size: 48px;
-  line-height: 1;
-}
-
-.mosque-search-radius {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-/* Axtarışın necə işlədiyi — məkan icazəsi və məlumat mənbəyi */
-.mosque-search-hint {
-  font-size: 13px;
-  color: var(--text-dim);
-  line-height: 1.6;
-  max-width: 420px;
-  margin-top: calc(-1 * var(--space-2));
-}
-
-.mosque-search-btn {
-  font-size: 15px;
-  padding: 13px 32px;
-}
-
-.mosque-search-btn:disabled {
-  opacity: 0.7;
-  cursor: wait;
-}
-
-/* ── Error ── */
-.mosque-error {
+/* ══ Axtarış kartı ════════════════════════════════════════════════ */
+.mosque-page .mosque-search-area {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
-  padding: 40px 24px;
+  padding: var(--space-7) var(--space-5) var(--space-6);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(ellipse 70% 70% at 50% 0%, var(--brand-soft) 0%, transparent 70%), var(--surface-1);
   text-align: center;
-  background: rgba(220, 38, 38, 0.05);
-  border: 1px solid rgba(220, 38, 38, 0.15);
-  border-radius: var(--radius-lg);
+}
+.mosque-search-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--pattern-color);
+  -webkit-mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 0%, #000 0%, transparent 75%);
+  mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 0%, #000 0%, transparent 75%);
+  -webkit-mask-size: 64px 64px, 100% 100%;
+  mask-size: 64px 64px, 100% 100%;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.mosque-search-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: var(--surface-inverse);
+  color: var(--sand-300);
+  box-shadow: 0 0 0 8px var(--brand-soft-2), var(--shadow-2);
+}
+/* Axtarış gedərkən halqa ikondan çölə yayılır (yalnız transform/opacity) */
+.mosque-radar {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--brand-line);
+  opacity: 0;
+  pointer-events: none;
+}
+.is-searching .mosque-radar { animation: mosque-radar 1.6s var(--ease-out) infinite; }
+@keyframes mosque-radar {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+.mosque-page .mosque-search-radius { height: 26px; padding: 0 10px; font-size: 12.5px; }
+.mosque-search-hint { max-width: 46ch; color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
+.mosque-search-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.mosque-page .mosque-search-btn:disabled { opacity: 0.85; cursor: wait; }
+.mosque-btn-spin {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--on-brand) 35%, transparent);
+  border-top-color: var(--on-brand);
+  animation: spin .8s linear infinite;
 }
 
-.mosque-error-icon {
-  font-size: 32px;
-}
-
-.mosque-error p {
-  font-size: 15px;
-  color: var(--danger);
-  font-weight: 500;
-}
-
-/* ── Results ── */
-.mosque-results {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.mosque-results-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.mosque-results-count {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--primary);
-  background: var(--primary-bg);
-  padding: 6px 16px;
-  border-radius: 20px;
-  border: 1px solid var(--primary-border);
-}
-
-/* ── Empty ── */
-.mosque-empty {
-  text-align: center;
-  padding: 56px 20px;
-  color: var(--text-muted);
-}
-
-.mosque-empty-icon {
-  font-size: 40px;
-  display: block;
-  margin-bottom: 14px;
-}
-
-.mosque-empty p {
-  font-size: 15px;
-}
-
-/* ── List ──
-   JSX: ul.mosque-list.m-list > li > a.mosque-row.m-row (motion.css).
-   Genişdə (≥768px) əvvəlki ayrı kartlar kimi görünür — aşağıdakı blok;
-   telefonda kitin qruplaşdırılmış siyahı xanaları (aşağıda "TELEFON"). */
-@media (min-width: 768px) {
-  .mosque-list.m-list {
-    gap: 12px;
-    background: none;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    overflow: visible;
-  }
-  .mosque-list > li + li > .m-row::before { content: none; }
-
-  /* .card + .mosque-card görünüşü (əvvəlki kart) */
-  .mosque-row {
-    gap: 16px;
-    min-height: 0;
-    padding: 18px 20px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    font-size: inherit;
-    line-height: inherit;
-    transition: all .25s;
-  }
-  .mosque-row:hover {
-    background: var(--bg-card);
-    box-shadow: var(--shadow);
-    transform: translateY(-2px);
-    border-color: var(--primary-border);
-  }
-  .mosque-row:hover .mosque-maps-btn {
-    background: var(--primary-bg);
-    border-color: var(--primary);
-  }
-  .mosque-row .m-row-chev { display: none; }
-}
-
-/* Yüklənmə: siyahı formasında parıltılı yer tutucular (.skeleton) */
-.mosque-skeleton-icon {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-}
-.mosque-skeleton .m-row-body { gap: 2px; }
-
-/* Ekran oxuyucusu üçün gizli mətn ("Axtarılır...") */
+/* ── Yüklənmə ── */
 .mosque-sr {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
 }
+.mosque-skeleton { margin: 0; padding: 0; list-style: none; }
+.mosque-skel-row { display: flex; align-items: center; gap: 14px; min-height: 68px; padding: 10px 18px; }
+.mosque-skel-row + .mosque-skel-row { border-top: 1px solid var(--line); }
+.mosque-skeleton-icon { flex-shrink: 0; width: 42px; height: 42px; border-radius: var(--radius-md); }
+.mosque-skel-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 
-/* ── Card ── */
-.mosque-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 18px 20px;
-}
-
-.mosque-card:hover {
-  transform: translateY(-2px);
-}
-
-.mosque-card-icon {
-  font-size: 28px;
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-bg);
-  border-radius: var(--radius);
-  border: 1px solid var(--primary-border);
-}
-
-.mosque-card-info {
-  flex: 1;
-  min-width: 0;
+/* ── Xəta / boş ── */
+.mosque-page .mosque-error,
+.mosque-page .mosque-empty {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+  animation: mosque-in var(--dur-3) var(--ease-out) both;
+}
+.mosque-error-title { color: var(--text-strong); font-size: var(--step-1); font-weight: 600; }
+.mosque-error-sub,
+.mosque-empty p { max-width: 44ch; color: var(--text-secondary); font-size: 15px; line-height: 1.55; }
+.mosque-error-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+@keyframes mosque-in {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to   { opacity: 1; transform: none; }
 }
 
-.mosque-card-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.3;
-  word-break: break-word;
-}
+/* ══ Nəticələr ════════════════════════════════════════════════════ */
+.mosque-results { display: flex; flex-direction: column; gap: var(--space-3); animation: mosque-in var(--dur-3) var(--ease-out) both; }
+.mosque-results-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.mosque-page .mosque-results-count { height: 28px; padding: 0 12px; font-size: 13px; }
+.mosque-results-from { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-size: 13px; }
 
-.mosque-card-distance {
-  font-size: 13px;
-  color: var(--text-muted);
+.mosque-list { margin: 0; padding: 0; list-style: none; }
+.mosque-list > li + li { border-top: 1px solid var(--line); }
+.mosque-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 12px 18px;
+  color: var(--text-body);
+  text-decoration: none;
+  transition: background-color var(--dur-2) ease;
 }
-
-/* ── Öz məscidimiz (seçilmiş kart) ── */
-.mosque-card--own {
-  border-color: var(--primary-border);
-  background: var(--primary-bg);
-  box-shadow: var(--shadow-sm);
+@media (hover: hover) {
+  .mosque-row:hover { background: var(--surface-2); }
+  .mosque-row:hover .mosque-maps-btn { border-color: var(--brand-line); background: var(--brand-soft); }
 }
-
-.mosque-card--own:hover {
-  transform: none;
-}
-
-.mosque-card--own .mosque-card-name {
-  font-size: 17px;
-}
-
-.mosque-card--own .mosque-card-icon {
-  background: var(--bg-card);
-}
-
-.mosque-own-eyebrow {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--primary);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
+.mosque-row:active { background: var(--surface-3); }
+.mosque-row:focus-visible { outline-offset: -2px; }
+.mosque-card-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.mosque-card-name { color: var(--text-strong); font-size: 15.5px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.mosque-card-distance { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-size: 13px; }
+.mosque-card-distance svg { flex-shrink: 0; }
+/* İlk (ən yaxın) nəticə — brend vurğusu */
+.mosque-list > li:first-child .mosque-card-distance { color: var(--brand); font-weight: 600; }
 .mosque-maps-btn {
   flex-shrink: 0;
-  min-height: var(--tap);
-  font-size: 13px !important;
-  padding: 8px 14px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
+  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease;
 }
+.mosque-row-chev { display: none; flex-shrink: 0; color: var(--text-tertiary); }
+.mosque-source { color: var(--text-tertiary); font-size: 12.5px; text-align: end; }
 
-/* ── Responsive ── */
-@media (max-width: 600px) {
-  .mosque-search-area {
-    padding: 28px 18px;
-  }
-
-  .mosque-card {
-    flex-wrap: wrap;
-    padding: 16px;
-  }
-
-  .mosque-card .mosque-maps-btn {
-    width: 100%;
-    justify-content: center;
-    margin-top: 4px;
-  }
-}
-
-/* ══ TELEFON (<768px) — müasir tətbiq görünüşü ═════════════════
-   • Öz məscidimiz: yumşaq kölgəli kart, tonlu tam enli xəritə düyməsi
-   • Axtarış: dairəvi kompas kafeli, baş barmaqla çatılan tam enli düymə
-   • Nəticələr: bütün sətri toxunulan siyahı xanaları, sonda › oxu */
+/* ══ Telefon ══════════════════════════════════════════════════════ */
 @media (max-width: 767.98px) {
-  .mosque-layout { gap: var(--space-4); }
-
-  /* Öz məscidimiz */
-  .mosque-card--own {
-    gap: 12px 14px;
-    padding: 16px;
-    border-radius: var(--radius-lg);
-  }
-  .mosque-card--own .mosque-card-icon {
-    width: 48px;
-    height: 48px;
-    font-size: 26px;
-    border-radius: 14px;
-    border: 0;
-    background: var(--bg-card);
-    box-shadow: var(--shadow-sm);
-  }
-  .mosque-card--own .mosque-card-name { font-size: 17px; }
-  .mosque-own-eyebrow { font-size: 12px; letter-spacing: 0.06em; }
-  .mosque-card-distance { font-size: 13px; }
-  .mosque-card--own .mosque-maps-btn {
-    min-height: 46px;
-    border: 0;
-    border-radius: 12px;
-    background: var(--bg-card);
-    color: var(--primary-dark);
-    font-size: 14px !important;
-    font-weight: 700;
-    box-shadow: var(--shadow-sm);
-  }
-  [data-theme="dark"] .mosque-card--own .mosque-maps-btn { color: var(--primary); }
-
-  /* Axtarış sahəsi */
-  .mosque-search-area {
-    gap: 12px;
-    padding: 24px 16px 16px;
-    border-radius: var(--radius-lg);
-  }
-  .mosque-search-icon {
-    display: grid;
-    place-items: center;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: var(--primary-bg2);
-    font-size: 32px;
-  }
-  .mosque-search-radius { font-size: 13px; }
-  .mosque-search-hint {
-    margin-top: calc(-1 * var(--space-1));
-    font-size: 13.5px;
-    line-height: 1.55;
-  }
-  .mosque-search-btn {
-    align-self: stretch;
-    justify-content: center;
-    min-height: 48px;
-    margin-top: 4px;
-    padding-inline: 16px;
-    border-radius: 12px;
-  }
-
-  /* Nəticələr */
-  .mosque-results { gap: 12px; }
-  .mosque-results-count {
-    padding: 5px 14px;
-    border-radius: 999px;
-    font-size: 13.5px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .mosque-row {
-    min-height: 64px;
-    padding-block: 10px;
-  }
-  .mosque-row .mosque-card-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-    border: 0;
-    border-radius: 12px;
-    background: var(--primary-bg2);
-  }
-  .mosque-row .mosque-card-info { gap: 2px; }
-  .mosque-row .mosque-card-name {
-    font-size: 15px;
-    font-weight: 600;
-  }
-  .mosque-row .mosque-card-distance { font-variant-numeric: tabular-nums; }
+  .mosque-hero .breadcrumb { display: none; }
+  .mosque-page.ui-section { padding-block: var(--space-4) var(--space-7); }
+  .mosque-page .mosque-search-area { padding: var(--space-6) var(--space-4) var(--space-5); border-radius: var(--radius-lg); }
+  .mosque-search-icon { width: 64px; height: 64px; }
+  .mosque-search-hint { font-size: 14.5px; }
+  .mosque-search-btns { flex-direction: column; align-self: stretch; }
+  .mosque-search-btns .ui-btn { width: 100%; white-space: normal; }
+  .mosque-error-btns { flex-direction: column; align-self: stretch; }
+  .mosque-error-btns .ui-btn { width: 100%; white-space: normal; }
+  .mosque-row { min-height: 64px; padding: 10px 14px; gap: 12px; }
   /* Mətnli düymə telefonda yoxdur — bütün sətir keçiddir, sonda › oxu */
-  .mosque-row .mosque-maps-btn { display: none; }
-
-  /* Xəta və boş vəziyyət — sakit kart */
-  .mosque-error {
-    gap: 12px;
-    padding: 28px 16px;
-    border-radius: var(--radius-lg);
-  }
-  .mosque-error .btn-secondary {
-    align-self: stretch;
-    justify-content: center;
-    min-height: 46px;
-    border-radius: 12px;
-  }
-  .mosque-empty {
-    padding: 40px 16px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-  }
+  .mosque-maps-btn { display: none; }
+  .mosque-row-chev { display: block; }
+  .mosque-source { text-align: center; }
 }
 
-/* ── Dark mode ── */
-[data-theme="dark"] .mosque-error {
-  background: rgba(220, 38, 38, 0.1);
-  border-color: rgba(220, 38, 38, 0.3);
-}
-
-/* Ərəb yazısında hərf aralığı birləşmələri qırır */
-[dir="rtl"] .mosque-own-eyebrow {
-  letter-spacing: 0;
+@media (prefers-reduced-motion: reduce) {
+  .is-searching .mosque-radar,
+  .mosque-page .mosque-error,
+  .mosque-page .mosque-empty,
+  .mosque-results { animation: none; }
+  .mosque-btn-spin { animation-duration: 2.4s; }
 }

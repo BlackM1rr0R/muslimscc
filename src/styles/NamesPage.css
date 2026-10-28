@@ -1,79 +1,233 @@
 /* ══════════════════════════════════════════════════════
-   Allahın 99 adı (/names)
+   Allahın 99 adı (/names) — dizayn v2
+   Yalnız semantik tokenlər; bu fayl ui.css-dən ƏVVƏL yüklənir — .ui-*
+   dəyişəndə valideyn ilə gücləndirilir (DESIGN.md §4.1).
+   Pəncərə (.names-modal) portal ilə <body>-yə çıxarılır — onun qaydaları
+   .names-page-dən asılı deyil.
    ══════════════════════════════════════════════════════ */
 
+/* ── Hero ── */
+.names-hero .breadcrumb { justify-content: flex-start; margin: 0 0 2px; }
+.names-hero .bc-list { justify-content: flex-start; }
+.names-hero-ar {
+  margin-top: -2px;
+  color: var(--accent-text);
+  font-size: clamp(22px, 1.4rem + 0.8vw, 32px);
+  line-height: 1.5;
+}
+
+/* ── Hədis banneri ── */
 .names-hadith-banner {
-  background:var(--gold-bg);
-  border:1px solid var(--gold);
-  border-color:color-mix(in srgb, var(--gold) 22%, transparent);
-  border-radius:14px; padding:18px 22px; margin-bottom:24px; text-align:center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 760px;
+  margin: 0 auto var(--space-6);
+  text-align: center;
 }
-.names-hadith-text { font-size:15px; color:var(--text-dim); font-style:italic; line-height:1.7; margin-bottom:4px; }
-.names-hadith-ref { font-size:13px; font-weight:700; color:var(--gold); }
+.names-hadith-banner .ui-ornament { width: min(100%, 220px); }
+.names-hadith-text {
+  color: var(--text-body);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-style: italic;
+  line-height: 1.6;
+}
+.names-hadith-ref { color: var(--accent-text); font-size: 13px; font-weight: 600; }
 
-.names-search { max-width:420px; margin-bottom:24px; }
+/* ── Axtarış + say ── */
+.names-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  margin-bottom: var(--space-5);
+}
+.names-search { position: relative; display: block; flex: 1 1 280px; max-width: 440px; }
+.names-search-ic {
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+.names-page .names-search .ui-input { padding-inline-start: 42px; }
+.names-count { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
+.names-count .ui-num { color: var(--text-strong); font-weight: 600; }
 
+/* ── 99 ad şəbəkəsi ── */
 .names-grid {
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(165px,1fr)); gap:10px;
-  list-style:none; margin:0; padding:0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 176px), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
+.names-grid > li { display: flex; }
+
 .name-card {
-  background:var(--bg-card); border:1.5px solid var(--border);
-  border-radius:var(--radius); padding:16px 12px;
-  text-align:center; transition:border-color .22s, box-shadow .22s, transform .22s;
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 100%;
+  padding: 16px 12px 18px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) ease,
+    border-color var(--dur-2) ease;
 }
 @media (hover: hover) {
-  .name-card:hover { border-color:var(--primary-border); transform:translateY(-2px); box-shadow:var(--shadow-sm); }
+  .name-card:hover { transform: translateY(-3px); border-color: var(--brand-line); box-shadow: var(--shadow-3); }
+  .name-card:hover .name-arabic { transform: scale(1.06); }
 }
-.name-num { font-size:11px; font-weight:800; color:var(--text-muted); margin-bottom:8px; letter-spacing:.5px; font-variant-numeric:tabular-nums; }
-.name-arabic { font-family:var(--font-arabic); font-size:1.4rem; color:var(--primary-dark); direction:rtl; line-height:1.5; margin-bottom:5px; }
-.name-translit { font-size:13px; font-weight:700; color:var(--text-dim); margin-bottom:3px; }
-.name-meaning { font-size:13px; color:var(--text-muted); line-height:1.45; }
+.name-card:active { transform: scale(0.97); }
 
-@media(max-width:768px) {
-  .names-search { max-width:none; }
-  .names-hadith-banner { padding:16px; }
+.name-num {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 22px;
+  margin-bottom: 4px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.name-arabic {
+  color: var(--brand);
+  font-family: var(--font-arabic);
+  font-size: 1.6rem;
+  line-height: 1.6;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.name-translit { color: var(--text-strong); font-size: 13.5px; font-weight: 600; }
+.name-meaning { color: var(--text-tertiary); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+
+.names-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8) var(--space-4);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  text-align: center;
 }
 
-/* ══ TELEFON (<768) — yumşaq kölgəli kartlar, nömrə "hap" nişanda ══ */
+/* ── Açılmış ad: mərkəzi pəncərə ── */
+.names-modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+  display: grid;
+  place-items: center;
+  padding: var(--page-gutter);
+  background: color-mix(in srgb, var(--surface-inverse) 46%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: namesFade var(--dur-2) var(--ease-out) both;
+}
+.names-modal .names-modal-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: min(100%, 460px);
+  padding: 20px 24px 24px;
+  border-radius: var(--radius-xl);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-4);
+  text-align: center;
+  /* Kart "açılır": kiçikdən yerinə, yüngül yayla */
+  animation: namesOpen var(--dur-3) var(--ease-spring) both;
+}
+.names-modal-card > .ui-pattern {
+  -webkit-mask-image: var(--ui-khatam), linear-gradient(180deg, #000, transparent 55%);
+  mask-image: var(--ui-khatam), linear-gradient(180deg, #000, transparent 55%);
+  -webkit-mask-size: var(--ui-pattern-size) var(--ui-pattern-size), 100% 100%;
+  mask-size: var(--ui-pattern-size) var(--ui-pattern-size), 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat;
+  mask-repeat: repeat, no-repeat;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.names-modal-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.names-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-4) var(--space-5);
+  animation: namesBodyIn var(--dur-3) var(--ease-out) both;
+}
+.names-modal-ar { color: var(--brand); font-size: clamp(3rem, 2rem + 4vw, 4.2rem); line-height: 1.5; }
+.names-modal-body .ui-ornament { width: min(100%, 180px); }
+.names-modal-title {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: var(--tracking-tight);
+}
+.names-modal-meaning { max-width: 32ch; color: var(--text-secondary); font-size: var(--step-1); line-height: 1.5; }
+.names-modal-nav { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.names-modal-nav .ui-btn { min-width: 0; }
+.names-nav-label { overflow: hidden; text-overflow: ellipsis; }
+
+@keyframes namesFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes namesOpen {
+  from { opacity: 0; transform: translateY(14px) scale(0.92); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes namesBodyIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ══ TELEFON (<768) ═══════════════════════════════════════════════ */
 @media (max-width: 767.98px) {
-  .names-hadith-banner { border-radius:18px; margin-bottom:var(--space-4); }
-  .names-hadith-text { font-size:14.5px; line-height:1.65; }
-
-  .names-search { margin-bottom:var(--space-4); }
-  .names-search .input-base {
-    min-height:48px;
-    border:1px solid var(--border);
-    border-radius:14px;
-    box-shadow:var(--shadow-sm);
-  }
-
-  .names-grid { gap:12px; }
-  .name-card {
-    display:flex; flex-direction:column; align-items:center;
-    border:1px solid var(--border);
-    border-radius:18px;
-    box-shadow:var(--shadow-sm);
-    padding:12px 10px 16px;
-  }
-  [data-theme="dark"] .name-card { border-color:var(--hairline); }
-
-  .name-num {
-    display:inline-grid; place-items:center;
-    min-width:28px; height:22px; padding:0 8px;
-    margin-bottom:6px;
-    border-radius:999px;
-    background:var(--primary-bg);
-    color:var(--primary-dark);
-    font-size:12px; letter-spacing:0;
-  }
-  [data-theme="dark"] .name-num { color:var(--primary); }
-  .name-arabic { font-size:1.5rem; line-height:1.55; margin-bottom:6px; }
-  .name-translit { font-size:13.5px; color:var(--text); }
-  .name-meaning { font-size:13px; }
+  .names-hero .breadcrumb { display: none; }
+  .names-hero-ar { font-size: 20px; }
+  .names-hadith-banner { margin-bottom: var(--space-5); }
+  .names-hadith-text { font-size: 16px; }
+  .names-search { max-width: none; flex-basis: 100%; }
+  .names-page .names-search .ui-input { min-height: 48px; }
+  .names-toolbar { margin-bottom: var(--space-4); }
+  .name-arabic { font-size: 1.5rem; }
 }
 
-@media(max-width:480px) {
-  .names-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-  .name-card { padding:12px 10px 14px; }
+@media (max-width: 480px) {
+  .names-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .name-card { padding: 12px 10px 14px; }
+  .names-modal .names-modal-card { padding: 16px 16px 18px; }
+}
+
+@media (max-width: 360px) {
+  .names-nav-label { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .name-card, .name-arabic { transition: none; }
+  .name-card:hover, .name-card:hover .name-arabic { transform: none; }
+  .names-modal, .names-modal .names-modal-card, .names-modal-body { animation: none; }
 }

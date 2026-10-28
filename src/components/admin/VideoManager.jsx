@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import Icon from '../Icon'
+import { AdminHeader, SectionTitle, AdminEmpty, AdminNotice, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addVideo, updateVideo, deleteVideo, getYouTubeId, getThumbnail, VIDEO_CATEGORIES, subscribeToVideos, DEFAULT_VIDEOS } from '../../data/videos'
 import { isFirebaseConfigured } from '../../firebase/config'
 
 const LABELS = {
-  az: { title:'Videolar', sub:'Video məzmununu idarə edin', addNew:'Yeni Video', editVideo:'Redaktə Et', all:'Bütün Videolar', titleField:'Başlıq', descField:'Təsvir', youtubeUrl:'YouTube linki', duration:'Müddət', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu videonu silmək istəyirsiniz?', noVideos:'Hələ video yoxdur', invalidUrl:'YouTube linki yanlışdır', titleRequired:'Başlıq tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.', setupHint:'Ətraflı: FIREBASE_SETUP.md faylı', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)' },
+  az: { title:'Videolar', sub:'Video məzmununu idarə edin', addNew:'Yeni video', editVideo:'Redaktə et', all:'Bütün videolar', titleField:'Başlıq', descField:'Təsvir', youtubeUrl:'YouTube linki', duration:'Müddət', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu videonu silmək istəyirsiniz?', noVideos:'Hələ video yoxdur', invalidUrl:'YouTube linki yanlışdır', titleRequired:'Başlıq tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.', setupHint:'Ətraflı: FIREBASE_SETUP.md faylı', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)' },
   en: { title:'Videos', sub:'Manage video content', addNew:'New Video', editVideo:'Edit', all:'All Videos', titleField:'Title', descField:'Description', youtubeUrl:'YouTube URL', duration:'Duration', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this video?', noVideos:'No videos yet', invalidUrl:'Invalid YouTube URL', titleRequired:'Title required', loading:'Loading...', saving:'Saving...', notConfigured:'Firebase not configured. Check .env file.', setupHint:'See FIREBASE_SETUP.md', preview:'Preview', readOnly:'Default (read-only)' },
   ru: { title:'Видео', sub:'Управление видео', addNew:'Новое видео', editVideo:'Изменить', all:'Все видео', titleField:'Заголовок', descField:'Описание', youtubeUrl:'Ссылка на YouTube', duration:'Длительность', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noVideos:'Нет видео', invalidUrl:'Неверная ссылка на YouTube', titleRequired:'Заголовок обязателен', loading:'Загрузка...', saving:'Сохранение...', notConfigured:'Firebase не настроен', setupHint:'Подробнее в инструкции по настройке Firebase', preview:'Предпросмотр', readOnly:'Встроенная (только чтение)' },
   ar: { title:'الفيديوهات', sub:'إدارة الفيديوهات', addNew:'فيديو جديد', editVideo:'تعديل', all:'كل الفيديوهات', titleField:'العنوان', descField:'الوصف', youtubeUrl:'رابط YouTube', duration:'المدة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noVideos:'لا توجد فيديوهات', invalidUrl:'رابط غير صحيح', titleRequired:'العنوان مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', notConfigured:'Firebase غير مكون', setupHint:'راجع دليل إعداد Firebase', preview:'معاينة', readOnly:'افتراضي (للقراءة فقط)' },
   tr: { title:'Videolar', sub:'Video yönetimi', addNew:'Yeni Video', editVideo:'Düzenle', all:'Tüm Videolar', titleField:'Başlık', descField:'Açıklama', youtubeUrl:'YouTube bağlantısı', duration:'Süre', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noVideos:'Video yok', invalidUrl:'Geçersiz YouTube bağlantısı', titleRequired:'Başlık gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', notConfigured:'Firebase yapılandırılmamış', setupHint:'Ayrıntılar: FIREBASE_SETUP.md dosyası', preview:'Önizleme', readOnly:'Varsayılan (salt okunur)' },
 }
 
-const LANGS = ['az','en','ru','ar','tr']
 const EMPTY_FORM = {
   title: { az:'', en:'', ru:'', ar:'', tr:'' },
   description: { az:'', en:'', ru:'', ar:'', tr:'' },
@@ -101,42 +102,19 @@ export default function VideoManager({ onUpdate }) {
 
   if (!configured) {
     return (
-      <div className="admin-section">
-        <div style={{padding:40, textAlign:'center'}}>
-          <div style={{fontSize:48, marginBottom:12}}>⚠️</div>
-          <h3 style={{color:'#ef4444'}}>{l.notConfigured}</h3>
-          <p style={{color:'var(--text-muted)', marginTop:8}}>{l.setupHint}</p>
-        </div>
-      </div>
+      <AdminNotice title={l.notConfigured} text={l.setupHint} />
     )
   }
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#10b981,#059669)'}}>📹</div>
-          <div className="admin-header-info">
-            <h1>{l.title}</h1>
-            <p>{l.sub}</p>
-          </div>
-        </div>
-      </div>
+      <AdminHeader icon="videos" title={l.title} sub={l.sub} />
 
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">{editingId ? '✏️' : '➕'}</span>
-          {editingId ? l.editVideo : l.addNew}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editVideo : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
-          <div className="admin-lang-tabs">
-            {LANGS.map(L => (
-              <button key={L} type="button" className={`admin-lang-tab ${formLang === L ? 'active' : ''}`} onClick={() => setFormLang(L)}>
-                {L.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-form-row">
             <div className="admin-input-group">
@@ -169,11 +147,11 @@ export default function VideoManager({ onUpdate }) {
             </div>
           </div>
 
-          {error && <div className="admin-login-error">⚠️ {error}</div>}
+          {error && <AdminAlert tone="bad">{error}</AdminAlert>}
 
           <div className="admin-form-actions">
             <button type="submit" className="admin-submit-btn" disabled={saving}>
-              <span>{editingId ? '💾' : '➕'}</span> {saving ? l.saving : l.save}
+              <Icon name={editingId ? 'check' : 'plus'} /> {saving ? l.saving : l.save}
             </button>
             {editingId && (
               <button type="button" className="admin-cancel-btn" onClick={() => { setEditingId(null); setForm(EMPTY_FORM); }}>{l.cancel}</button>
@@ -183,15 +161,12 @@ export default function VideoManager({ onUpdate }) {
       </div>
 
       <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">📹</span>
-          {l.all} ({videos.length})
-        </h2>
+        <SectionTitle icon="videos">{l.all} <span className="admin-count">({videos.length})</span></SectionTitle>
 
         {loading ? (
-          <div className="admin-empty"><div className="admin-empty-icon">⏳</div>{l.loading}</div>
+          <AdminEmpty icon="refresh" busy>{l.loading}</AdminEmpty>
         ) : videos.length === 0 ? (
-          <div className="admin-empty"><div className="admin-empty-icon">📭</div>{l.noVideos}</div>
+          <AdminEmpty>{l.noVideos}</AdminEmpty>
         ) : (
           <div className="admin-video-list">
             {videos.map(v => {
@@ -201,7 +176,8 @@ export default function VideoManager({ onUpdate }) {
                 <div key={v.id} className="admin-video-card">
                   <div className="admin-video-thumb">
                     <img src={getThumbnail(v.youtubeId)} alt={adminPick(v.title, lang)} onError={(e) => e.target.src=`https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`} />
-                    <div className="admin-video-cat-badge" style={{color: cat?.color}}>{cat?.label[lang]}</div>
+                    <span className="admin-video-play" aria-hidden="true"><Icon name="play" size={20} /></span>
+                    <div className="admin-video-cat-badge">{cat?.label[lang]}</div>
                     {v.duration && <div className="admin-video-duration">{v.duration}</div>}
                   </div>
                   <div className="admin-video-body">
@@ -209,11 +185,11 @@ export default function VideoManager({ onUpdate }) {
                     {adminPick(v.description, lang) && <p className="admin-video-desc">{adminPick(v.description, lang)}</p>}
                     {!isDefault && (
                       <div className="admin-video-actions">
-                        <button className="admin-action-btn edit" onClick={() => handleEdit(v)}>✏️ {l.edit}</button>
-                        <button className="admin-action-btn delete" onClick={() => handleDelete(v.id)}>🗑️ {l.delete}</button>
+                        <button className="admin-action-btn edit" onClick={() => handleEdit(v)}><Icon name="duajournal" /> {l.edit}</button>
+                        <button className="admin-action-btn delete" onClick={() => handleDelete(v.id)}><Icon name="trash" /> {l.delete}</button>
                       </div>
                     )}
-                    {isDefault && <div style={{fontSize:11, color:'var(--text-muted)', fontStyle:'italic', marginTop:6}}>{l.readOnly}</div>}
+                    {isDefault && <div className="admin-readonly"><Icon name="shield" size={14} /> {l.readOnly}</div>}
                   </div>
                 </div>
               )

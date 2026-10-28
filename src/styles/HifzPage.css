@@ -1,247 +1,337 @@
-/* ── Hifz Tracker ── */
-.hifz-layout { display:flex; flex-direction:column; gap:24px; }
+/* ══════════════════════════════════════════════════════════════════
+   HifzPage.css — Hifz izləyicisi, dizayn v2
+   Statuslar palitradan: əzbər — zümrüd (--brand), davam edir — qum-qızılı
+   (--accent), başlanmayıb — neytral xətt. Hex/öz kölgə yoxdur.
+   Bu fayl ui.css-dən ƏVVƏL yüklənir (DESIGN.md §4.1).
+   ══════════════════════════════════════════════════════════════════ */
 
-/* Stats */
-.hifz-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+/* ── 1. HERO ─────────────────────────────────────────────────────── */
+/* Dekorativ xəttatlıq — solğun, iri; element özü rtl olduğu üçün fiziki tərəf */
+.hifz-hero__art {
+  position: absolute;
+  z-index: -1;
+  right: clamp(24px, 6vw, 96px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-arabic);
+  font-size: clamp(64px, 8vw, 128px);
+  line-height: 1.3;
+  direction: rtl;
+  color: var(--brand);
+  opacity: 0.09;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+[dir="rtl"] .hifz-hero__art { right: auto; left: clamp(24px, 6vw, 96px); }
+@media (max-width: 1099.98px) { .hifz-hero__art { display: none; } }
+
+.hifz-section.section { padding-top: clamp(24px, 3vw, 36px); }
+.hifz-layout { display: flex; flex-direction: column; gap: var(--space-5); }
+
+/* ── 2. XÜLASƏ PANELİ ────────────────────────────────────────────── */
+.hifz-stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(0, 1fr));
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
 .hifz-stat-card {
-  background:var(--bg-card); border:1.5px solid var(--border);
-  border-radius:var(--radius-lg); padding:18px 16px;
-  display:flex; flex-direction:column; align-items:center; gap:4px;
-  text-align:center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;   /* rəqəmlər bir xətdə (alt sətri olmayan kartda da) */
+  gap: 4px;
+  min-width: 0;
+  padding: 22px;
 }
-.hifz-stat-card.memorized { border-color:rgba(22,163,74,0.3); background:rgba(22,163,74,0.05); }
-.hifz-stat-card.in-progress { border-color:rgba(217,119,6,0.3); background:rgba(217,119,6,0.05); }
-.hifz-stat-card.not-started { border-color:var(--border); }
-.hifz-stat-card.progress-card { border-color:var(--primary-border); background:var(--primary-bg); }
-.hifz-stat-num { font-size:2rem; font-weight:800; color:var(--text); line-height:1; }
-.hifz-stat-card.memorized .hifz-stat-num { color:var(--success); }
-.hifz-stat-card.in-progress .hifz-stat-num { color:var(--warning); }
-.hifz-stat-card.progress-card .hifz-stat-num { color:var(--primary); }
-.hifz-stat-label { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; }
-.hifz-stat-ayahs { font-size:12px; color:var(--text-dim); }
-.hifz-progress-bar { width:100%; height:6px; background:var(--surface); border-radius:3px; margin-top:6px; overflow:hidden; }
-.hifz-progress-fill { height:100%; background:var(--primary); border-radius:3px; transition:width .4s ease; }
+.hifz-stat-card + .hifz-stat-card { border-inline-start: 1px solid var(--line); }
+.hifz-stat-num {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-tight);
+}
+.hifz-stat-label { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+.hifz-stat-ayahs { color: var(--text-tertiary); font-size: 13px; font-variant-numeric: tabular-nums; }
 
-/* Controls */
-.hifz-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-.hifz-filters { display:flex; gap:8px; flex-wrap:wrap; }
-.hifz-filter-btn {
-  background:var(--bg-card); border:1.5px solid var(--border);
-  border-radius:var(--radius); padding:8px 16px;
-  cursor:pointer; font-size:13px; font-weight:600; color:var(--text-dim);
-  display:flex; align-items:center; gap:6px; transition:all .2s;
-  white-space:nowrap;
+/* Status nöqtəsi etiketin əvvəlində */
+.hifz-stat-card:not(.progress-card) .hifz-stat-label::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--line-strong);
 }
-.hifz-filter-btn:hover { border-color:var(--primary-border); color:var(--primary); }
-.hifz-filter-btn.active { background:var(--primary-bg2); border-color:var(--primary); color:var(--primary); }
+.hifz-stat-card.memorized .hifz-stat-label::before { background: var(--brand); }
+.hifz-stat-card.in-progress .hifz-stat-label::before { background: var(--accent); }
+.hifz-stat-card.memorized .hifz-stat-num { color: var(--brand); }
+
+/* Əsas kart: böyük faiz + zolaq, incə zümrüd fon */
+.hifz-stat-card.progress-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "label label" "num sub" "bar bar";
+  align-items: baseline;
+  column-gap: 12px;
+  row-gap: 6px;
+  background: radial-gradient(ellipse 80% 120% at 0% 0%, var(--brand-soft) 0%, transparent 70%), var(--surface-1);
+}
+[dir="rtl"] .hifz-stat-card.progress-card {
+  background: radial-gradient(ellipse 80% 120% at 100% 0%, var(--brand-soft) 0%, transparent 70%), var(--surface-1);
+}
+.progress-card .hifz-stat-label { grid-area: label; color: var(--accent-text); font-size: 12px; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+[dir="rtl"] .progress-card .hifz-stat-label { letter-spacing: 0; font-size: 13px; }
+.progress-card .hifz-stat-num { grid-area: num; font-size: var(--step-4); color: var(--brand); }
+.progress-card .hifz-stat-ayahs { grid-area: sub; }
+.hifz-progress-bar {
+  grid-area: bar;
+  width: 100%;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+/* Doluluq transform: scaleX ilə (JSX style) — layout yenidən hesablanmır */
+.hifz-progress-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+  transform-origin: left center;
+  transition: transform var(--dur-3) var(--ease-out);
+}
+[dir="rtl"] .hifz-progress-fill { transform-origin: right center; }
+/* Panel görünəndə zolaq sıfırdan dolur (yalnız "from" — sonda inline dəyər qalır) */
+.hifz-stats[data-revealed=""] .hifz-progress-fill { animation: hifz-bar-in 700ms var(--ease-out) 200ms backwards; }
+
+/* ── 3. SÜZGƏC + SIFIRLA ─────────────────────────────────────────── */
+.hifz-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.hifz-filters { display: flex; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.hifz-filter-btn { gap: 8px; }
 .hifz-filter-count {
-  background:var(--surface); padding:1px 7px; border-radius:10px;
-  font-size:11px; font-weight:700; color:var(--text-muted);
+  min-width: 22px;
+  padding: 3px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
 }
-.hifz-filter-btn.active .hifz-filter-count { background:var(--primary); color:var(--on-primary); }
-.hifz-reset-btn { font-size:13px; color:var(--danger) !important; }
+.hifz-filter-btn[aria-pressed="true"] .hifz-filter-count {
+  background: color-mix(in srgb, var(--surface-1) 20%, transparent);
+  color: var(--surface-1);
+}
+.hifz-controls .hifz-reset-btn { color: var(--bad); }
+@media (hover: hover) {
+  .hifz-controls .hifz-reset-btn:not(:disabled):hover { background: color-mix(in srgb, var(--bad) 8%, transparent); color: var(--bad); }
+}
 
-/* Toxunuşun nə etdiyini izah edən sətir (əvvəl yalnız hover title var idi) */
-.hifz-hint { font-size:13px; line-height:1.5; color:var(--text-muted); margin:-10px 0 -8px; }
+/* Toxunuşun nə etdiyini izah edən sətir */
+.hifz-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: calc(-1 * var(--space-2));
+  color: var(--text-tertiary);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.hifz-hint__icon { flex-shrink: 0; margin-top: 1px; color: var(--accent); }
 
-/* Grid */
-.hifz-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
+/* ── 4. SURƏ ŞƏBƏKƏSİ ─────────────────────────────────────────────── */
+.hifz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 10px;
+}
+.hifz-grid:empty { display: none; }
 .hifz-card {
-  display:flex; align-items:center; gap:12px;
-  background:var(--bg-card); border:1.5px solid var(--border);
-  border-radius:var(--radius); padding:12px 14px;
-  cursor:pointer; transition:all .2s; text-align:start;
-  font:inherit; color:inherit;
-  position:relative; overflow:hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+  padding: 12px 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) ease,
+    border-color var(--dur-2) ease,
+    background-color var(--dur-2) ease;
 }
-.hifz-card:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
-.hifz-card:hover { box-shadow:var(--shadow-sm); transform:translateY(-1px); }
+@media (hover: hover) {
+  .hifz-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line-strong); }
+}
+.hifz-card:active { transform: scale(0.98); }
 
-/* Status colors */
-.hifz-card.not-started { border-color:var(--border); }
-.hifz-card.in-progress {
-  border-color:rgba(217,119,6,0.35);
-  background:rgba(217,119,6,0.04);
-}
-.hifz-card.memorized {
-  border-color:rgba(22,163,74,0.35);
-  background:rgba(22,163,74,0.05);
-}
+/* Status rəngləri */
+.hifz-card.in-progress { background: color-mix(in srgb, var(--accent) 6%, var(--surface-1)); border-color: var(--accent-line); }
+.hifz-card.memorized   { background: color-mix(in srgb, var(--brand) 6%, var(--surface-1)); border-color: var(--brand-line); }
 
 .hifz-card-num {
-  width:34px; height:34px; border-radius:50%;
-  background:var(--surface); display:flex; align-items:center; justify-content:center;
-  font-size:12px; font-weight:800; color:var(--text-muted); flex-shrink:0;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
 }
-.hifz-card.memorized .hifz-card-num { background:rgba(22,163,74,0.15); color:var(--success); }
-.hifz-card.in-progress .hifz-card-num { background:rgba(217,119,6,0.15); color:var(--warning); }
+.hifz-card.in-progress .hifz-card-num { background: var(--accent-soft); color: var(--accent-text); }
+.hifz-card.memorized .hifz-card-num   { background: var(--brand-soft-2); color: var(--brand); }
 
-.hifz-card-body { flex:1; min-width:0; }
-.hifz-card-arabic { font-family:'Amiri',serif; font-size:1.15rem; color:var(--text); direction:rtl; text-align:right; line-height:1.3; }
-.hifz-card-en { font-size:13px; font-weight:600; color:var(--text-dim); margin-top:1px; }
-.hifz-card-meta { display:flex; gap:10px; font-size:12px; color:var(--text-muted); margin-top:3px; }
-.hifz-card-status { font-size:16px; flex-shrink:0; }
+/* Mətn: yerli ad (başlıq) + "7 ayə · Cüz 1", ərəb adı sonda */
+.hifz-card-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "en ar" "meta ar";
+  align-items: center;
+  column-gap: 10px;
+}
+.hifz-card-en {
+  grid-area: en;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-strong);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.hifz-card-meta {
+  grid-area: meta;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;   /* "200 ayə · Cüz 3" iki sətrə bölünməsin */
+  color: var(--text-tertiary);
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.hifz-card-meta > span + span::before { content: '·'; margin-inline: 6px; }
+.hifz-card-arabic {
+  grid-area: ar;
+  font-family: var(--font-arabic);
+  font-size: 1.2rem;
+  line-height: 1.4;
+  color: var(--brand);
+  direction: rtl;
+}
+/* Ərəbcədə ərəb adı başlıqdır */
+.hifz-card-body.is-ar { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ar" "meta"; }
+.hifz-card-body.is-ar .hifz-card-arabic { color: var(--text-strong); font-weight: 700; text-align: start; }
 
-/* Responsive */
-@media(max-width:800px) {
-  .hifz-stats { grid-template-columns:repeat(2,1fr); }
+/* Status dairəsi (motion.css .m-check): davam edir — yarım qızılı dolu */
+.hifz-check { --m-check-size: 26px; border-color: var(--line-strong); background: var(--surface-1); }
+.hifz-check.is-partial { border-color: var(--accent); }
+.hifz-check.is-partial::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
+  animation: qm-check-pop var(--dur-3) var(--ease-spring);
 }
-@media(max-width:500px) {
-  .hifz-stats { grid-template-columns:1fr 1fr; gap:10px; }
-  .hifz-stat-card { padding:12px 10px; }
-  .hifz-stat-num { font-size:1.6rem; }
-  .hifz-grid { grid-template-columns:1fr; }
-  /* Sütunlu flex + wrap birlikdə hər sətri ən enli elementin eninə qədər
-     uzadırdı (390-da 546px) — "Sıfırla" ekrandan çıxırdı. İndi süzgəclər
-     bir sətirdə yana sürüşür (ekranın kənarına qədər), düymə sonda qalır. */
-  .hifz-controls { flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:10px; }
-  .hifz-filters {
-    flex-wrap:nowrap; overflow-x:auto; min-width:0;
-    margin-inline:calc(-1 * var(--page-gutter)); padding-inline:var(--page-gutter);
-    scrollbar-width:none; overscroll-behavior-x:contain;
-  }
-  .hifz-filters::-webkit-scrollbar { display:none; }
-  .hifz-filter-btn { flex-shrink:0; }
-  .hifz-reset-btn { align-self:flex-end; }
+[dir="rtl"] .hifz-check.is-partial::after { background: linear-gradient(270deg, var(--accent) 50%, transparent 50%); }
+
+/* Toxunulan kartın qısa "təsdiq" yayı (cüt/tək — ardıcıl basanda yenidən oynasın).
+   Valideynlə gücləndirilib: motion.css-in görünmə animasiyasını üstələsin */
+.hifz-grid .hifz-card.is-bump-a { animation: hifz-bump-a var(--dur-3) var(--ease-spring); }
+.hifz-grid .hifz-card.is-bump-b { animation: hifz-bump-b var(--dur-3) var(--ease-spring); }
+@keyframes hifz-bump-a { 0% { transform: scale(0.97); } 60% { transform: scale(1.015); } 100% { transform: none; } }
+@keyframes hifz-bump-b { 0% { transform: scale(0.97); } 60% { transform: scale(1.015); } 100% { transform: none; } }
+
+/* Boş süzgəc */
+.hifz-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 20px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-xl);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  text-align: center;
+  animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
 }
 
-/* ── Dark mode ── */
-[data-theme="dark"] .hifz-card {
-  background:var(--bg-card);
+/* ── 5. TELEFON ──────────────────────────────────────────────────── */
+@media (max-width: 899.98px) {
+  .hifz-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hifz-stat-card.progress-card { grid-column: 1 / -1; border-bottom: 1px solid var(--line); }
+  .hifz-stat-card.progress-card + .hifz-stat-card { border-inline-start: 0; }
 }
-[data-theme="dark"] .hifz-card.memorized {
-  background:rgba(22,163,74,0.08);
-  border-color:rgba(22,163,74,0.25);
-}
-[data-theme="dark"] .hifz-card.in-progress {
-  background:rgba(217,119,6,0.08);
-  border-color:rgba(217,119,6,0.25);
-}
-[data-theme="dark"] .hifz-stat-card.memorized {
-  background:rgba(22,163,74,0.08);
-  border-color:rgba(22,163,74,0.2);
-}
-[data-theme="dark"] .hifz-stat-card.in-progress {
-  background:rgba(217,119,6,0.08);
-  border-color:rgba(217,119,6,0.2);
-}
-[data-theme="dark"] .hifz-stat-card.progress-card {
-  background:rgba(46,204,113,0.08);
-  border-color:rgba(46,204,113,0.2);
-}
-[data-theme="dark"] .hifz-card-num {
-  background:rgba(255,255,255,0.06);
-}
-
-/* ══════════════════════════════════════════════════════
-   MOBİL CİLA — telefonda müasir tətbiq hissi
-   (motion.css tokenləri; kompüter ≥768px dəyişmir)
-   ══════════════════════════════════════════════════════ */
-
-/* Animasiyalı dairə yalnız telefonda; kompüterdə əvvəlki emoji qalır */
-.hifz-check { display: none; }
 
 @media (max-width: 767.98px) {
   .hifz-layout { gap: 16px; }
 
-  /* ── Xülasə kartı ──
-     Dörd rəngli qutu əvəzinə bir yumşaq kart: yuxarıda faiz və zolaq,
-     altında "Əzbərləmişəm / Davam edir / Başlanmayıb" sətirləri */
-  .hifz-stats {
-    display: flex; flex-direction: column; gap: 0;
-    background: var(--bg-card);
-    border: 1px solid var(--border); border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden; isolation: isolate;
-  }
-  .hifz-layout .hifz-stats > .hifz-stat-card {
-    position: relative;
-    border: 0; border-radius: 0;
-    background: transparent;
-  }
-  /* Növbəli görünmə ekrandakı sıra ilə: faiz kartı (DOM-da sonuncu) birinci */
-  .hifz-stats[data-reveal] > .hifz-stat-card.progress-card { --reveal-i: 0; }
-  .hifz-stats[data-reveal] > .hifz-stat-card.memorized     { --reveal-i: 1; }
-  .hifz-stats[data-reveal] > .hifz-stat-card.in-progress   { --reveal-i: 2; }
-  .hifz-stats[data-reveal] > .hifz-stat-card.not-started   { --reveal-i: 3; }
-  .hifz-layout .hifz-stats > .hifz-stat-card.progress-card {
-    order: -1;
+  /* Xülasə: üstdə faiz + zolaq, altında üç sətir (nöqtə · ad + ayə · rəqəm) */
+  .hifz-stats { display: flex; flex-direction: column; }
+  .hifz-stat-card { padding: 14px 16px; }
+  .hifz-stat-card + .hifz-stat-card { border-inline-start: 0; }
+  .hifz-stat-card.progress-card { padding: 16px 16px 18px; }
+  .progress-card .hifz-stat-num { font-size: 2.2rem; }
+  .hifz-stat-card:not(.progress-card) {
     display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: baseline;
-    gap: 10px 10px;
-    padding: 16px 16px 18px;
-    text-align: start;
-    background: linear-gradient(135deg, var(--primary-bg), var(--bg-card));
-  }
-  .progress-card .hifz-stat-num { font-size: 2.1rem; font-variant-numeric: tabular-nums; }
-  .progress-card .hifz-stat-label {
-    justify-self: start;
-    font-size: 14px; letter-spacing: 0; text-transform: none; color: var(--text-dim);
-  }
-  .progress-card .hifz-progress-bar { grid-column: 1 / -1; height: 8px; margin: 0; border-radius: 999px; }
-  .progress-card .hifz-progress-fill { border-radius: 999px; transform-origin: left center; }
-  [dir="rtl"] .progress-card .hifz-progress-fill { transform-origin: right center; }
-  /* Zolaq kart görünəndə soldan dolur (yalnız transform) */
-  .hifz-stats[data-revealed=""] .hifz-progress-fill {
-    animation: hifz-bar-in var(--dur-3) var(--ease-out) 160ms backwards;
-  }
-
-  /* Üç sətir: rəngli nöqtə · ad + ayə sayı · rəqəm */
-  .hifz-layout .hifz-stats > .hifz-stat-card:not(.progress-card) {
-    display: grid;
-    grid-template-columns: 10px minmax(0, 1fr) auto;
-    grid-template-areas: "dot label num" "dot sub num";
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "label num" "sub num";
     align-items: center;
-    column-gap: 12px; row-gap: 0;
-    min-height: 54px; padding: 8px 16px;
-    text-align: start;
+    column-gap: 12px;
+    row-gap: 0;
+    min-height: 56px;
+    padding-block: 8px;
   }
-  .hifz-stat-card:not(.progress-card)::before {
+  .hifz-stat-card:not(.progress-card) + .hifz-stat-card::after {
     content: '';
-    grid-area: dot;
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--border-md);
+    position: absolute;
+    top: 0;
+    inset-inline: 16px 0;
+    height: 1px;
+    background: var(--line);
   }
-  .hifz-stat-card.memorized::before { background: var(--success); }
-  .hifz-stat-card.in-progress::before { background: var(--warning); }
-  /* Nazik ayırıcı nöqtədən sonra başlayır */
-  .hifz-stat-card:not(.progress-card)::after {
-    content: '';
-    position: absolute; top: 0;
-    inset-inline-start: calc(16px + 10px + 12px); inset-inline-end: 0;
-    height: 1px; background: var(--border);
-  }
-  .hifz-stat-card:not(.progress-card) .hifz-stat-num {
-    grid-area: num;
-    font-size: 20px; font-variant-numeric: tabular-nums;
-  }
-  .hifz-stat-card:not(.progress-card) .hifz-stat-label {
-    grid-area: label;
-    font-size: 15px; font-weight: 600; color: var(--text);
-    letter-spacing: 0; text-transform: none;
-  }
-  .hifz-stat-card:not(.progress-card) .hifz-stat-ayahs {
-    grid-area: sub;
-    font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums;
-  }
-  .hifz-stat-card.not-started .hifz-stat-num { color: var(--text-dim); }
+  .hifz-stat-card:not(.progress-card) .hifz-stat-num { grid-area: num; font-size: 22px; }
+  .hifz-stat-card:not(.progress-card) .hifz-stat-label { grid-area: label; font-size: 15px; color: var(--text-strong); }
+  .hifz-stat-card:not(.progress-card) .hifz-stat-ayahs { grid-area: sub; padding-inline-start: 17px; }
 
-  /* ── Süzgəc çipləri + Sıfırla — bir sətir ──
-     Çiplər yana sürüşür (kənarlarda yumşaq solğunlaşma), "Sıfırla" sonda
-     yığcam mətn düyməsidir (əvvəl ayrıca sətirdə qalın çərçivəli idi) */
-  .hifz-controls {
-    flex-direction: row; flex-wrap: nowrap;
-    align-items: center; gap: 4px;
-  }
+  /* Çiplər bir sətirdə yana sürüşür (kənarlarda solğunlaşma), "Sıfırla" sonda */
+  .hifz-controls { flex-wrap: nowrap; gap: 4px; }
   .hifz-filters {
-    flex: 1; min-width: 0;
-    gap: 8px;
-    margin-inline: calc(-1 * var(--page-gutter)) 0;
-    padding: 2px 8px 2px var(--page-gutter);
-    padding-inline: var(--page-gutter) 8px;
+    flex: 1;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline-start: calc(-1 * var(--page-gutter));
+    padding-block: 2px;
+    padding-inline: var(--page-gutter) 12px;
     scroll-snap-type: x proximity;
     scroll-padding-inline: var(--page-gutter);
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
     -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - 20px), transparent 100%);
             mask-image: linear-gradient(90deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - 20px), transparent 100%);
   }
@@ -249,118 +339,53 @@
     -webkit-mask-image: linear-gradient(270deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - 20px), transparent 100%);
             mask-image: linear-gradient(270deg, transparent 0, #000 var(--page-gutter), #000 calc(100% - 20px), transparent 100%);
   }
-  .hifz-filter-btn {
-    flex-shrink: 0; scroll-snap-align: start;
-    min-height: 36px; padding: 0 8px 0 14px; padding-inline: 14px 8px;
-    border-width: 1px; border-color: var(--border-md);
-    border-radius: 999px;
-    font-size: 13.5px;
-    transition: background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out),
-                color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
-  }
-  .hifz-filter-btn.active { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
-  .hifz-filter-count {
-    min-width: 22px; padding: 2px 7px; border-radius: 999px;
-    font-size: 12px; text-align: center; font-variant-numeric: tabular-nums;
-  }
-  .hifz-filter-btn.active .hifz-filter-count {
-    background: color-mix(in srgb, var(--on-primary) 22%, transparent);
-    color: var(--on-primary);
-  }
-  .hifz-reset-btn {
-    flex-shrink: 0; align-self: center;
-    min-height: 36px; padding: 0 10px;
-    border: 0; border-radius: 999px;
-    background: transparent;
-    font-size: 13.5px; font-weight: 600;
-  }
-  .hifz-reset-btn:hover { background: color-mix(in srgb, var(--danger) 8%, transparent); }
+  .hifz-filters::-webkit-scrollbar { display: none; }
+  .hifz-filter-btn { flex-shrink: 0; scroll-snap-align: start; }
+  .hifz-controls .hifz-reset-btn { flex-shrink: 0; padding-inline: 10px; }
 
-  .hifz-hint { margin: -6px 0 -4px; }
-
-  /* ── Surə siyahısı ── qruplaşdırılmış xanalar (.m-list üslubu) */
+  /* Surə siyahısı — qruplaşdırılmış xanalar */
   .hifz-grid {
     gap: 0;
-    background: var(--bg-card);
-    border: 1px solid var(--border); border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden; isolation: isolate;
+    background: var(--surface-1);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+    isolation: isolate;
   }
-  .hifz-grid:empty { display: none; }
-  .hifz-grid > .hifz-card,
-  .hifz-grid > .hifz-card.memorized,
-  .hifz-grid > .hifz-card.in-progress {
-    gap: 12px; min-height: 64px;
+  .hifz-grid > .hifz-card {
+    min-height: 64px;
     padding: 10px 14px;
-    background: transparent; border: 0; border-radius: 0;
-    overflow: visible;
-    transition: background-color var(--dur-1) var(--ease-out);
-    /* İlk ekran növbə ilə qalxır: 40ms addım, ən çox 8 xana */
-    animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
-    animation-delay: calc(var(--i, 0) * var(--stagger));
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
   }
+  .hifz-grid > .hifz-card.memorized   { background: color-mix(in srgb, var(--brand) 4%, transparent); }
+  .hifz-grid > .hifz-card.in-progress { background: color-mix(in srgb, var(--accent) 5%, transparent); }
   .hifz-card + .hifz-card::before {
     content: '';
-    position: absolute; top: 0;
-    inset-inline-start: calc(14px + 40px + 12px); inset-inline-end: 0;
-    height: 1px; background: var(--border);
+    position: absolute;
+    top: 0;
+    inset-inline-start: calc(14px + 38px + 12px);
+    inset-inline-end: 0;
+    height: 1px;
+    background: var(--line);
     pointer-events: none;
   }
-  .hifz-card:hover { transform: none; box-shadow: none; background: var(--bg-card2); }
-  .hifz-grid > .hifz-card:active { background: var(--bg-card2); box-shadow: inset 0 0 0 999px var(--press-tint); }
+  .hifz-grid > .hifz-card:active { transform: none; background: var(--surface-2); }
   .hifz-card:focus-visible { outline-offset: -2px; }
-
-  /* Nömrə kafeli — statusa görə rənglənir */
-  .hifz-card-num {
-    width: 40px; height: 40px; border-radius: 12px;
-    font-size: 13px; font-variant-numeric: tabular-nums;
-    transition: background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
-  }
-  .hifz-card.memorized .hifz-card-num { background: color-mix(in srgb, var(--success) 15%, transparent); }
-  .hifz-card.in-progress .hifz-card-num { background: color-mix(in srgb, var(--warning) 15%, transparent); }
-
-  /* Mətn: latın adı (başlıq) + "7 ayə · Cüz 1", ərəb adı sonda */
-  .hifz-card-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "en ar" "meta ar";
-    align-items: center;
-    column-gap: 10px;
-  }
-  .hifz-card-en { grid-area: en; margin: 0; font-size: 15px; font-weight: 600; color: var(--text); }
-  .hifz-card-arabic {
-    grid-area: ar;
-    font-size: 1.2rem; line-height: 1.4;
-    color: var(--primary);
-  }
-  .hifz-card-meta { grid-area: meta; gap: 0; margin-top: 1px; font-size: 13px; font-variant-numeric: tabular-nums; }
-  .hifz-card-meta > span + span::before { content: '·'; margin-inline: 6px; }
-  /* Ərəbcədə ərəb adı başlıqdır */
-  .hifz-card-body.is-ar { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ar" "meta"; }
-  .hifz-card-body.is-ar .hifz-card-arabic { color: var(--text); font-weight: 700; text-align: start; }
-
-  /* Status: emoji gizlənir, animasiyalı dairə görünür */
-  .hifz-card-status { display: none; }
-  .hifz-check { display: inline-grid; }
-  /* "Davam edir" — sarı çərçivə, yarısı dolu dairə */
-  .hifz-check.is-partial { border-color: var(--warning); }
-  .hifz-check.is-partial::after {
-    content: '';
-    position: absolute; inset: 3px;
-    border-radius: 50%;
-    background: linear-gradient(90deg, var(--warning) 50%, transparent 50%);
-    animation: qm-check-pop var(--dur-3) var(--ease-spring);
-  }
-  .hifz-check.is-checked { background: var(--success); border-color: var(--success); }
 }
 
-@keyframes hifz-bar-in {
-  from { transform: scaleX(0); }
-  to   { transform: none; }
-}
+@keyframes hifz-bar-in { from { transform: scaleX(0); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .hifz-grid > .hifz-card,
   .hifz-check.is-partial::after,
-  .hifz-stats[data-revealed=""] .hifz-progress-fill { animation: none; }
+  .hifz-stats[data-revealed=""] .hifz-progress-fill,
+  .hifz-grid .hifz-card.is-bump-a,
+  .hifz-grid .hifz-card.is-bump-b,
+  .hifz-empty { animation: none; }
+  .hifz-card,
+  .hifz-progress-fill { transition: none; }
+  .hifz-card:hover { transform: none; }
 }

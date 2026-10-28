@@ -6,6 +6,8 @@ import usePrayerTimes from '../hooks/usePrayerTimes'
 import { PRAYER_CITIES, usePrayerLocation, setPrayerCity, setAdminDefaultCity } from '../utils/prayerLocation'
 import { haptic } from '../hooks/useHaptic'
 import { pathFor } from '../seo/routes'
+import { navGroupLabel } from '../data/navigation'
+import Icon from '../components/Icon'
 import '../styles/PrayerPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 
@@ -68,7 +70,7 @@ function hijriLine(h, lang) {
 const STAT_KEYS = ['Fajr','Dhuhr','Asr','Maghrib','Isha']
 
 const STATS_LABELS = {
-  az: { weeklyTitle: 'Həftəlik Namaz', monthlyTitle: 'Aylıq İrəliləyiş', completed: 'tamamlandı', days: ['Baz','B.e','Ç.a','Çər','C.a','Cümə','Şən'] },
+  az: { weeklyTitle: 'Həftəlik namaz', monthlyTitle: 'Aylıq irəliləyiş', completed: 'tamamlandı', days: ['Baz','B.e','Ç.a','Çər','C.a','Cümə','Şən'] },
   en: { weeklyTitle: 'Weekly Prayer', monthlyTitle: 'Monthly Progress', completed: 'completed', days: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] },
   ru: { weeklyTitle: 'Молитвы за неделю', monthlyTitle: 'Прогресс за месяц', completed: 'выполнено', days: ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'] },
   ar: { weeklyTitle: 'صلوات الأسبوع', monthlyTitle: 'تقدم الشهر', completed: 'مكتمل', days: ['أحد','إثن','ثلا','أرب','خمي','جمع','سبت'] },
@@ -197,22 +199,24 @@ function hhmmIn(tz) {
   }
 }
 
-const PRAYER_ICONS = { Fajr:'🌙', Sunrise:'🌅', Dhuhr:'☀️', Asr:'🌤️', Maghrib:'🌇', Isha:'🌃' }
-// Telefonda ikon kafelinin rəngi (motion.css → .icon-tile--*; /dailytracker ilə eyni)
-const PRAYER_TONES = { Fajr:'blue', Sunrise:'orange', Dhuhr:'gold', Asr:'teal', Maghrib:'rose', Isha:'violet' }
-const SUNNAH_TONES = ['blue', 'gold', 'teal', 'rose', 'violet', 'gold', 'violet', 'orange']
+// v2: emoji və göy qurşağı kafelləri əvəzinə xətti ikonlar (Icon.jsx) —
+// ana səhifənin namaz kartı ilə eyni: sübh — günəş doğur, zöhr — günəş,
+// əsr — alçaq günəş, məğrib — batır, işa — ay. "Günəş" (şuruq) namaz deyil —
+// sətri sakit rəngdə göstərilir; ikonu (sun) zöhrlə eynidir, Icon.jsx-də ayrıca
+// "üfüqdə günəş" ikonu yoxdur.
+const PRAYER_ICONS = { Fajr:'sunrise', Sunrise:'sun', Dhuhr:'sun', Asr:'sunLow', Maghrib:'sunset', Isha:'moon' }
 // .m-check-in ✓ xətti (motion.css)
 const CHECK_PATH = 'M6.5 12.5l3.8 3.8L17.5 8.5'
 
 const SUNNAH_PRAYERS = [
-  { icon:'🌙', rakat:'2', name:{ az:'Sübh sünnəsi', en:'Fajr Sunnah', ru:'Сунна Фаджр', ar:'سنة الفجر', tr:'Sabah sünneti' }, desc:{ az:'Fərz namazdan əvvəl 2 rükət', en:'2 rakat before Fajr', ru:'2 ракаата до Фаджр', ar:'ركعتان قبل الفجر', tr:'Farzdan önce 2 rekât' }},
-  { icon:'☀️', rakat:'4+2', name:{ az:'Zöhr sünnəsi', en:'Dhuhr Sunnah', ru:'Сунна Зухр', ar:'سنة الظهر', tr:'Öğle sünneti' }, desc:{ az:'Fərzdən əvvəl 4, sonra 2 rükət', en:'4 before, 2 after Dhuhr', ru:'4 до и 2 после Зухр', ar:'أربع قبل وركعتان بعد الظهر', tr:'Farzdan önce 4, sonra 2 rekât' }},
-  { icon:'🌤️', rakat:'—', name:{ az:'Əsr sünnəsi', en:'Asr Sunnah', ru:'Сунна Аср', ar:'سنة العصر', tr:'İkindi sünneti' }, desc:{ az:'Müstəhəb — 4 rükət əvvəl', en:'Recommended — 4 rakat before', ru:'Рекомендуется — 4 ракаата до', ar:'مستحب — أربع ركعات قبل', tr:'Müstehap — farzdan önce 4 rekât' }},
-  { icon:'🌇', rakat:'2', name:{ az:'Məğrib sünnəsi', en:'Maghrib Sunnah', ru:'Сунна Магриб', ar:'سنة المغرب', tr:'Akşam sünneti' }, desc:{ az:'Fərzdən sonra 2 rükət', en:'2 rakat after Maghrib', ru:'2 ракаата после Магриб', ar:'ركعتان بعد المغرب', tr:'Farzdan sonra 2 rekât' }},
-  { icon:'🌃', rakat:'2', name:{ az:'İşa sünnəsi', en:'Isha Sunnah', ru:'Сунна Иша', ar:'سنة العشاء', tr:'Yatsı sünneti' }, desc:{ az:'Fərzdən sonra 2 rükət', en:'2 rakat after Isha', ru:'2 ракаата после Иша', ar:'ركعتان بعد العشاء', tr:'Farzdan sonra 2 rekât' }},
-  { icon:'🌟', rakat:'3', name:{ az:'Vitr namazı', en:'Witr Prayer', ru:'Витр намаз', ar:'صلاة الوتر', tr:'Vitir namazı' }, desc:{ az:'İşadan sonra, yatmadan əvvəl', en:'After Isha, before sleeping', ru:'После Иша, перед сном', ar:'بعد العشاء وقبل النوم', tr:'Yatsıdan sonra, yatmadan önce' }},
-  { icon:'✨', rakat:'2-8', name:{ az:'Təhəccüd', en:'Tahajjud', ru:'Тахаджуд', ar:'تهجد', tr:'Teheccüd' }, desc:{ az:'Gecə namazı — ən fəzilətli nafilə', en:'Night prayer — most virtuous voluntary prayer', ru:'Ночной намаз — самая достойная добровольная молитва', ar:'صلاة الليل — أفضل النوافل', tr:'Gece namazı — en faziletli nafile' }},
-  { icon:'🌅', rakat:'2', name:{ az:'Duha namazı', en:'Duha Prayer', ru:'Намаз Духа', ar:'صلاة الضحى', tr:'Kuşluk namazı' }, desc:{ az:'Günəş doğandan 15 dəq sonra — zöhrdən əvvəl', en:'15 min after sunrise until before Dhuhr', ru:'Через 15 мин после рассвета до Зухр', ar:'بعد شروق الشمس بربع ساعة حتى قبل الظهر', tr:'Güneş doğduktan 15 dk sonra — öğleye kadar' }},
+  { icon:'sunrise', rakat:'2', name:{ az:'Sübh sünnəsi', en:'Fajr Sunnah', ru:'Сунна Фаджр', ar:'سنة الفجر', tr:'Sabah sünneti' }, desc:{ az:'Fərz namazdan əvvəl 2 rükət', en:'2 rakat before Fajr', ru:'2 ракаата до Фаджр', ar:'ركعتان قبل الفجر', tr:'Farzdan önce 2 rekât' }},
+  { icon:'sun', rakat:'4+2', name:{ az:'Zöhr sünnəsi', en:'Dhuhr Sunnah', ru:'Сунна Зухр', ar:'سنة الظهر', tr:'Öğle sünneti' }, desc:{ az:'Fərzdən əvvəl 4, sonra 2 rükət', en:'4 before, 2 after Dhuhr', ru:'4 до и 2 после Зухр', ar:'أربع قبل وركعتان بعد الظهر', tr:'Farzdan önce 4, sonra 2 rekât' }},
+  { icon:'sunLow', rakat:'4', name:{ az:'Əsr sünnəsi', en:'Asr Sunnah', ru:'Сунна Аср', ar:'سنة العصر', tr:'İkindi sünneti' }, desc:{ az:'Müstəhəb — 4 rükət əvvəl', en:'Recommended — 4 rakat before', ru:'Рекомендуется — 4 ракаата до', ar:'مستحب — أربع ركعات قبل', tr:'Müstehap — farzdan önce 4 rekât' }},
+  { icon:'sunset', rakat:'2', name:{ az:'Məğrib sünnəsi', en:'Maghrib Sunnah', ru:'Сунна Магриб', ar:'سنة المغرب', tr:'Akşam sünneti' }, desc:{ az:'Fərzdən sonra 2 rükət', en:'2 rakat after Maghrib', ru:'2 ракаата после Магриб', ar:'ركعتان بعد المغرب', tr:'Farzdan sonra 2 rekât' }},
+  { icon:'moon', rakat:'2', name:{ az:'İşa sünnəsi', en:'Isha Sunnah', ru:'Сунна Иша', ar:'سنة العشاء', tr:'Yatsı sünneti' }, desc:{ az:'Fərzdən sonra 2 rükət', en:'2 rakat after Isha', ru:'2 ракаата после Иша', ar:'ركعتان بعد العشاء', tr:'Farzdan sonra 2 rekât' }},
+  { icon:'moon', rakat:'3', name:{ az:'Vitr namazı', en:'Witr Prayer', ru:'Витр намаз', ar:'صلاة الوتر', tr:'Vitir namazı' }, desc:{ az:'İşadan sonra, yatmadan əvvəl', en:'After Isha, before sleeping', ru:'После Иша, перед сном', ar:'بعد العشاء وقبل النوم', tr:'Yatsıdan sonra, yatmadan önce' }},
+  { icon:'duas', rakat:'2–8', name:{ az:'Təhəccüd', en:'Tahajjud', ru:'Тахаджуд', ar:'تهجد', tr:'Teheccüd' }, desc:{ az:'Gecə namazı — ən fəzilətli nafilə', en:'Night prayer — most virtuous voluntary prayer', ru:'Ночной намаз — самая достойная добровольная молитва', ar:'صلاة الليل — أفضل النوافل', tr:'Gece namazı — en faziletli nafile' }},
+  { icon:'sun', rakat:'2', name:{ az:'Duha namazı', en:'Duha Prayer', ru:'Намаз Духа', ar:'صلاة الضحى', tr:'Kuşluk namazı' }, desc:{ az:'Günəş doğandan 15 dəq sonra — zöhrdən əvvəl', en:'15 min after sunrise until before Dhuhr', ru:'Через 15 мин после рассвета до Зухр', ar:'بعد شروق الشمس بربع ساعة حتى قبل الظهر', tr:'Güneş doğduktan 15 dk sonra — öğleye kadar' }},
 ]
 
 const PRAYER_DUAS = [
@@ -224,12 +228,12 @@ const PRAYER_DUAS = [
   { name:{ az:'Qunut duası', en:'Qunut Dua', ru:'Дуа Кунут', ar:'دعاء القنوت', tr:'Kunut duası' }, ar:'اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ وَعَافِنِي فِيمَنْ عَافَيْتَ وَتَوَلَّنِي فِيمَنْ تَوَلَّيْتَ', trans:{ az:'Allahım, hidayət etdiklərinlə birlikdə mənə də hidayət et, afiyət verdiklərinlə birlikdə mənə də afiyət ver.', en:'O Allah, guide me among those You have guided, grant me wellness among those You have granted wellness.', ru:'О Аллах, наставь меня среди тех, кого Ты наставил, и дай мне благополучие среди тех, кому Ты его дал.', ar:'اللهم اهدني فيمن هديت وعافني فيمن عافيت وتولني فيمن توليت', tr:'Allah\'ım, hidayet ettiklerin arasında bana da hidayet et, afiyet verdiklerin arasında bana da afiyet ver.' }},
 ]
 
-const SUNNAH_LABELS = { az:'Sünnə Namazları', en:'Sunnah Prayers', ru:'Сунна-намазы', ar:'صلوات السنة', tr:'Sünnet Namazları' }
-const DUA_LABELS = { az:'Namaz Duaları', en:'Prayer Duas', ru:'Молитвенные дуа', ar:'أدعية الصلاة', tr:'Namaz Duaları' }
+const SUNNAH_LABELS = { az:'Sünnə namazları', en:'Sunnah Prayers', ru:'Сунна-намазы', ar:'صلوات السنة', tr:'Sünnet Namazları' }
+const DUA_LABELS = { az:'Namaz duaları', en:'Prayer Duas', ru:'Молитвенные дуа', ar:'أدعية الصلاة', tr:'Namaz Duaları' }
 
 // Səhifənin qısa mətnləri (5 dil)
 const TXT = {
-  jamaatLink: { az:'Camaat və Cümə namazı', en:'Congregational & Friday prayer', ru:'Коллективный и пятничный намаз', ar:'صلاة الجماعة والجمعة', tr:'Cemaat ve Cuma namazı' },
+  jamaatLink: { az:'Camaat və cümə namazı', en:'Congregational & Friday prayer', ru:'Коллективный и пятничный намаз', ar:'صلاة الجماعة والجمعة', tr:'Cemaat ve Cuma namazı' },
   // {city} — seçilmiş şəhərin adı
   calcNote:   { az:'Vaxtlar {city} üçün hesablanıb', en:'Times calculated for {city}', ru:'Время рассчитано для города {city}', ar:'المواقيت محسوبة لمدينة {city}', tr:'Vakitler {city} için hesaplandı' },
   loadError:  { az:'Namaz vaxtları yüklənmədi. İnternet bağlantısını yoxlayın.', en:'Could not load prayer times. Check your connection.', ru:'Не удалось загрузить время намаза. Проверьте подключение.', ar:'تعذّر تحميل مواقيت الصلاة. تحقّق من الاتصال.', tr:'Namaz vakitleri yüklenemedi. Bağlantınızı kontrol edin.' },
@@ -237,6 +241,17 @@ const TXT = {
   notifBody:  { az:'Namaz vaxtı gəldi!', en:'It is time for prayer', ru:'Наступило время намаза', ar:'حان وقت الصلاة', tr:'Namaz vakti geldi' },
   // Telefonda əzan sətrinin alt yazısı (masaüstündə gizlidir)
   azanSub:    { az:'Namaz vaxtı girəndə bildiriş və səs', en:'Notification and sound at prayer time', ru:'Уведомление и звук во время намаза', ar:'إشعار وصوت عند دخول وقت الصلاة', tr:'Namaz vaktinde bildirim ve ses' },
+  azanOn:     { az:'Əzan aktiv', en:'Azan active', ru:'Азан включён', ar:'الأذان مفعل', tr:'Ezan aktif' },
+  azanOff:    { az:'Əzan bildirişi', en:'Azan notification', ru:'Уведомление азана', ar:'إشعار الأذان', tr:'Ezan bildirimi' },
+  // Bildiriş icazəsi brauzerdə bağlanıbsa — səs yenə çalınır, amma bildiriş gəlmir
+  azanBlocked:{ az:'Brauzer bildirişləri bağlıdır — yalnız səs çalınacaq', en:'Browser notifications are blocked — only the sound will play', ru:'Уведомления браузера заблокированы — будет только звук', ar:'إشعارات المتصفح محظورة — سيُشغَّل الصوت فقط', tr:'Tarayıcı bildirimleri kapalı — yalnızca ses çalınacak' },
+  lead:       { az:'Seçdiyiniz şəhər üçün bugünkü azan vaxtları, növbəti namaza qalan vaxt və gündəlik namaz izləyicisi.', en:'Today’s adhan times for your chosen city, a countdown to the next prayer and a daily prayer tracker.', ru:'Время азана на сегодня для выбранного города, отсчёт до следующего намаза и ежедневный трекер.', ar:'مواقيت الأذان لهذا اليوم في المدينة التي تختارها، والعدّ التنازلي للصلاة القادمة، ومتابعة الصلوات اليومية.', tr:'Seçtiğiniz şehir için bugünkü ezan vakitleri, sonraki namaza kalan süre ve günlük namaz takibi.' },
+  todayTimes: { az:'Bugünkü vaxtlar', en:'Today’s times', ru:'Время на сегодня', ar:'مواقيت اليوم', tr:'Bugünkü vakitler' },
+  calc:       { az:'Hesablanmış', en:'Calculated', ru:'Расчётное', ar:'محسوبة', tr:'Hesaplanmış' },
+  nextBadge:  { az:'Növbəti', en:'Next', ru:'Следующий', ar:'التالي', tr:'Sonraki' },
+  tomorrow:   { az:'sabah', en:'tomorrow', ru:'завтра', ar:'غدًا', tr:'yarın' },
+  now:        { az:'İndi', en:'Now', ru:'Сейчас', ar:'الآن', tr:'Şu an' },
+  allDone:    { az:'Bu günün beş namazı qılındı', en:'All five prayers done today', ru:'Все пять намазов сегодня выполнены', ar:'أُدِّيَت الصلوات الخمس اليوم', tr:'Bugünün beş vakit namazı kılındı' },
 }
 
 // usePrayerTimes açarları → aladhan adları (səhifənin qalanı bu adlarla işləyir)
@@ -417,175 +432,220 @@ export default function PrayerPage({ setPage }) {
     done:       { az:'qılındı',          ru:'выполнено',           ar:'مُؤدَّاة',           tr:'kılındı',          en:'completed'            },
     of:         { az:'/',               ru:'из',                  ar:'من',               tr:'/',                en:'of'                   },
     monthStat:  { az:'bu ay',           ru:'в этом месяце',       ar:'هذا الشهر',        tr:'bu ay',            en:'this month'           },
-    tapHint:    { az:'Klik edərək işarələyin', ru:'Нажмите чтобы отметить', ar:'اضغط للتحديد', tr:'İşaretlemek için tıklayın', en:'Tap to mark' },
+    tapHint:    { az:'Klik edərək işarələyin', ru:'Нажмите, чтобы отметить', ar:'اضغط للتحديد', tr:'İşaretlemek için tıklayın', en:'Tap to mark' },
   }
   const s = (k) => L[k][lk]
 
-  return (
-    <>
-      <div className="page-hero hero-compact theme-prayer">
-        <Breadcrumb setPage={setPage} current={t.title} />
-        {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
-        {lang !== 'ar' && <div className="page-hero-arabic">أَوْقَاتُ الصَّلاة</div>}
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+  // Növbəti namaza qədər ötən hissə (0…1) — əvvəlki fərz azanından bu ana.
+  // Zolaq transform: scaleX ilə dolur (hər saniyə, xətti keçid).
+  const nowMs = now.getTime()
+  const span = pt.next?.prevAt != null ? pt.next.at - pt.next.prevAt : 0
+  const frac = span > 0 && span < 86400000 ? Math.min(1, Math.max(0, (nowMs - pt.next.prevAt) / span)) : null
 
-      <div className="section">
-        <div className="section-inner">
+  // Bugünkü siyahıda keçmiş vaxtlar sakitləşir: "növbəti"dən əvvəlkilər keçib
+  // (işadan sonra növbəti sabahın sübhüdür — hamısı keçib)
+  const nextIdx = !pt.next ? -1 : pt.next.tomorrow ? PRAYER_KEYS.length : PRAYER_KEYS.indexOf(API_NAME[pt.next.key])
+  const nextLabel = next ? (PRAYER_NAMES[PRAYER_KEYS.indexOf(next.name)] || next.name) : ''
+  const allDone = todayDone.length === STAT_KEYS.length
+  const notifBlocked = azanEnabled && typeof Notification !== 'undefined' && Notification.permission === 'denied'
+
+  return (
+    <div className="pp-root">
+      {/* v2: sakit kağız hero — çörək qırıntısı, eyebrow, bir h1, giriş */}
+      <header className="ui-page-hero pp-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <div className="ui-container">
+          <Breadcrumb setPage={setPage} current={t.title} />
+          <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
+          {lang !== 'ar' && <p className="pp-hero-ar ui-arabic" lang="ar" aria-hidden="true">أَوْقَاتُ الصَّلَاة</p>}
+          <p className="ui-lead">{TXT.lead[lk]}</p>
+        </div>
+      </header>
+
+      <section className="ui-section pp-main">
+        <div className="ui-container">
           {/* Masaüstü: iki sütun. ≤900px: bir sütun, CSS order ilə
               saat → növbəti namaz → vaxtlar → şəhər → əzan → statistika */}
           <div className="prayer-layout">
 
             <div className="prayer-left">
-              <div className="prayer-clock">
-                <div className="clock-time">{timeStr}</div>
-                <div className="clock-date">{dateStr}</div>
-                {hijri && (
-                  <div className="clock-hijri">
-                    <span>{hijriLine(hijri, lang)}</span>
-                    {lang !== 'ar' && hijri.monthAr && <span className="clock-hijri-ar" lang="ar">{hijri.monthAr}</span>}
+              {/* Saat + növbəti namaz — bir tünd zümrüd panel (ana səhifənin
+                  namaz kartındakı "növbəti" bloku ilə eyni dil) */}
+              <div className="pp-now" data-reveal="scale">
+                <div className="prayer-clock">
+                  <span className="pp-now-cap">{TXT.now[lk]}</span>
+                  <div className="clock-time ui-num" aria-live="off">{timeStr}</div>
+                  <div className="clock-date">{dateStr}</div>
+                  {hijri && (
+                    <div className="clock-hijri">
+                      <span>{hijriLine(hijri, lang)}</span>
+                      {lang !== 'ar' && hijri.monthAr && <span className="clock-hijri-ar" lang="ar">{hijri.monthAr}</span>}
+                    </div>
+                  )}
+                </div>
+
+                {next && (
+                  <div className="next-prayer-card">
+                    <div className="next-head">
+                      <span className="next-label">{t.next}</span>
+                      <span className="next-name">
+                        <Icon name={PRAYER_ICONS[next.name]} size={18} />
+                        {nextLabel}{pt.next?.tomorrow ? ` · ${TXT.tomorrow[lk]}` : ''}
+                        <span className="next-at ui-num">{next.time}</span>
+                      </span>
+                    </div>
+                    <div className="next-countdown ui-num" role="timer" aria-label={`${t.remaining}: ${countdown}`}>{countdown}</div>
+                    <div className="next-remaining-label">{t.remaining}</div>
+                    {frac != null && (
+                      <span className="pp-bar" aria-hidden="true">
+                        <span style={{ transform: `scaleX(${frac.toFixed(4)})` }} />
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
 
-              {next && (
-                <div className="next-prayer-card">
-                  <div className="next-label">{t.next}</div>
-                  <div className="next-name">{PRAYER_ICONS[next.name]} {PRAYER_NAMES[PRAYER_KEYS.indexOf(next.name)] || next.name}</div>
-                  <div className="next-countdown">{countdown}</div>
-                  <div className="next-remaining-label">{t.remaining}</div>
+              <div className="prayer-city-block ui-card" data-reveal>
+                <div className="prayer-city-head">
+                  <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="pin" /></span>
+                  <h2 className="prayer-city-label" id="prayer-city-label">{t.selectCity}</h2>
                 </div>
-              )}
-
-              <div className="prayer-city-block">
-                <div className="prayer-city-label" id="prayer-city-label">{t.selectCity}</div>
                 <div className="city-grid" ref={cityGridRef} role="group" aria-labelledby="prayer-city-label">
                   {PRAYER_CITIES.map(c => (
-                    <button key={c.id} className={`city-btn ${sel === c.id ? 'active' : ''}`}
-                      aria-pressed={sel === c.id} onClick={() => choose(c.id)}>
-                      {c.label[lang]}
+                    <button key={c.id} type="button" className={`ui-chip city-btn ${sel === c.id ? 'active' : ''}`}
+                      aria-pressed={sel === c.id} onClick={() => { if (sel !== c.id) haptic(); choose(c.id) }}>
+                      {c.label[lang] || c.label.en}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Masaüstündə: "🔔 Əzan aktiv" həbi. Telefonda: ayarlar sətri —
-                  ikon kafeli, ad + alt yazı, sonda açar (switch) */}
-              <button type="button" className={`azan-toggle ${azanEnabled ? 'active' : ''}`} onClick={toggleAzan} aria-pressed={azanEnabled}>
-                <span className="azan-ico icon-tile icon-tile--gold" aria-hidden="true">{azanEnabled ? '🔔' : '🔕'}</span>
+              {/* Əzan: ayarlar sətri — ikon kafeli, ad + alt yazı, sonda açar (switch).
+                  role="switch" + aria-checked — ekran oxuyucusu "açıq/bağlı" desin */}
+              <button type="button" className={`azan-toggle ui-card ${azanEnabled ? 'active' : ''}`} onClick={toggleAzan}
+                role="switch" aria-checked={azanEnabled} data-reveal>
+                <span className="azan-ico ui-icon-tile ui-icon-tile--accent" aria-hidden="true"><Icon name="bell" /></span>
                 <span className="azan-text">
-                  <span className="azan-label">{azanEnabled ? (lang==='az'?'Əzan aktiv':lang==='ru'?'Азан включён':lang==='ar'?'الأذان مفعل':lang==='tr'?'Ezan aktif':'Azan active') : (lang==='az'?'Əzan bildirişi':lang==='ru'?'Уведомление азана':lang==='ar'?'إشعار الأذان':lang==='tr'?'Ezan bildirimi':'Azan notification')}</span>
-                  <span className="azan-sub">{TXT.azanSub[lk]}</span>
+                  <span className="azan-label">{azanEnabled ? TXT.azanOn[lk] : TXT.azanOff[lk]}</span>
+                  <span className="azan-sub">{notifBlocked ? TXT.azanBlocked[lk] : TXT.azanSub[lk]}</span>
                 </span>
                 <span className="azan-switch" aria-hidden="true"><span className="azan-knob" /></span>
               </button>
             </div>
 
             <div className="prayer-right">
-              {loading && (
-                <>
-                  <div className="spinner-wrap"><div className="spinner"/><span className="spinner-text">{t.loading}</span></div>
-                  {/* Telefonda fırlanan göstərici əvəzinə siyahı formasında parıltı */}
-                  <div className="prayer-times-skeleton" role="status" aria-label={t.loading}>
-                    {PRAYER_KEYS.map(k => (
-                      <div key={k} className="pts-row">
-                        <span className="skeleton pts-ico" />
-                        <span className="skeleton skeleton--text pts-name" />
-                        <span className="skeleton skeleton--text pts-time" />
-                      </div>
+              <div className="pp-times ui-card ui-card--flush" data-reveal>
+                <div className="pp-times-head">
+                  <h2 className="pp-times-title">{TXT.todayTimes[lk]}</h2>
+                  <span className="ui-badge">{cityName ? <><Icon name="pin" size={12} /> {cityName} · {TXT.calc[lk]}</> : TXT.calc[lk]}</span>
+                </div>
+
+                {loading && (
+                  // Yüklənir: adlar məlumdur, vaxtların yerində parıltı (hündürlük dəyişmir)
+                  <ol className="prayer-times-list" aria-busy="true" aria-label={t.loading}>
+                    {PRAYER_KEYS.map((k, i) => (
+                      <li key={k} className={`prayer-time-card is-skel${k === 'Sunrise' ? ' is-aux' : ''}`}>
+                        <span className="pt-icon" aria-hidden="true"><Icon name={PRAYER_ICONS[k]} /></span>
+                        <span className="pt-info"><span className="pt-name">{PRAYER_NAMES[i]}</span></span>
+                        <span className="pt-time"><span className="skeleton skeleton--text pts-time" aria-hidden="true" /></span>
+                      </li>
                     ))}
+                  </ol>
+                )}
+                {error && !loading && !times && (
+                  <div className="prayer-error" role="alert">
+                    <span className="ui-icon-tile ui-icon-tile--neutral" aria-hidden="true"><Icon name="globe" /></span>
+                    <p>{TXT.loadError[lk]}</p>
+                    <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={retry}>{TXT.retry[lk]}</button>
                   </div>
-                </>
-              )}
-              {error && !loading && !times && (
-                <div className="prayer-error" role="alert">
-                  <span>{TXT.loadError[lk]}</span>
-                  <button className="btn-secondary" onClick={retry}>{TXT.retry[lk]}</button>
-                </div>
-              )}
-              {times && !loading && (
-                <div className="prayer-times-list m-list" data-reveal="stagger">
-                  {PRAYER_KEYS.map((key,i) => {
-                    const isNext = next?.name === key
-                    return (
-                      <div key={key} className={`prayer-time-card m-row ${isNext?'is-next':''}`}>
-                        <div className={`pt-icon icon-tile icon-tile--${PRAYER_TONES[key]}`} aria-hidden="true">{PRAYER_ICONS[key]}</div>
-                        <div className="pt-info">
-                          <span className="pt-name">{PRAYER_NAMES[i]}</span>
-                          {isNext && <span className="pt-next-badge">
-                            {lang==='az'?'Növbəti': lang==='ru'?'Следующий': lang==='ar'?'التالي': lang==='tr'?'Sonraki':'Next'}
-                          </span>}
-                        </div>
-                        <div className="pt-time">{times[key]}</div>
-                        <div className={`pt-indicator ${isNext?'active':''}`} />
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-              {times && !loading && (
-                <div className="prayer-times-foot">
-                  {cityName && <span className="prayer-times-note">{TXT.calcNote[lk].replace('{city}', cityName)}</span>}
-                  <a className="prayer-jamaat-link" href={pathFor('jamaat', lang)}
-                    onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); setPage?.('jamaat') } }}>
-                    {TXT.jamaatLink[lk]} <span className="qm-dir-arrow" aria-hidden="true">→</span>
-                  </a>
-                </div>
-              )}
+                )}
+                {times && !loading && (
+                  // key={sel} — şəhər dəyişəndə siyahı yumşaq yenidən görünür
+                  <ol className="prayer-times-list pp-swap" key={sel || 'default'}>
+                    {PRAYER_KEYS.map((key,i) => {
+                      const isNext = next?.name === key && !pt.next?.tomorrow
+                      const passed = i < nextIdx
+                      return (
+                        <li key={key} className={`prayer-time-card${isNext ? ' is-next' : ''}${passed ? ' is-passed' : ''}${key === 'Sunrise' ? ' is-aux' : ''}`}>
+                          <span className="pt-icon" aria-hidden="true"><Icon name={PRAYER_ICONS[key]} /></span>
+                          <span className="pt-info">
+                            <span className="pt-name">{PRAYER_NAMES[i]}</span>
+                            {isNext && <span className="pt-next-badge">{TXT.nextBadge[lk]}</span>}
+                          </span>
+                          <span className="pt-time ui-num">{times[key]}</span>
+                          <span className="pt-indicator" aria-hidden="true">{passed ? <Icon name="check" size={14} strokeWidth={2.2} /> : null}</span>
+                        </li>
+                      )
+                    })}
+                  </ol>
+                )}
+                {times && !loading && (
+                  <div className="prayer-times-foot">
+                    {cityName && <span className="prayer-times-note">{TXT.calcNote[lk].replace('{city}', cityName)}</span>}
+                    <a className="prayer-jamaat-link ui-link" href={pathFor('jamaat', lang)}
+                      onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); setPage?.('jamaat') } }}>
+                      {TXT.jamaatLink[lk]} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+                    </a>
+                  </div>
+                )}
+              </div>
 
               {/* ── Namaz Statistikası Kartı ── */}
-              <div className="stat-card" data-reveal>
+              <div className={`stat-card ui-card${allDone ? ' is-complete' : ''}`} data-reveal>
                 {/* Başlıq + aylıq faiz */}
                 <div className="stat-card-header">
-                  <div>
-                    <div className="stat-card-title">📊 {s('statTitle')}</div>
+                  <div className="stat-card-head-l">
+                    <h2 className="stat-card-title">
+                      <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="analytics" /></span>
+                      {s('statTitle')}
+                    </h2>
                     <div className="stat-card-sub">
-                      <span className="stat-total-num">{totalDone}</span>
-                      <span className="stat-total-sep"> {s('of')} {totalPossible} </span>
+                      <span className="stat-total-num ui-num">{totalDone}</span>
+                      <span className="stat-total-sep ui-num"> {s('of')} {totalPossible} </span>
                       <span className="stat-total-label">{s('monthStat')}</span>
                     </div>
                   </div>
                   <div className="stat-circle">
-                    <svg viewBox="0 0 36 36" className="stat-circle-svg">
+                    <svg viewBox="0 0 36 36" className="stat-circle-svg" aria-hidden="true">
                       <path className="stat-circle-bg"
                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                      <path className="stat-circle-fill"
+                      <path className={`stat-circle-fill${pct === 0 ? ' is-empty' : ''}`}
                         strokeDasharray={`${pct}, 100`}
                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                     </svg>
-                    <span className="stat-circle-pct">{pct}%</span>
+                    <span className="stat-circle-pct ui-num">{pct}%</span>
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="stat-progress-bar">
+                <div className="stat-progress-bar" aria-hidden="true">
                   {/* Doluluq transform ilə (scaleX) — en animasiya olunmur */}
                   <div className="stat-progress-fill" style={{ '--p': pct / 100 }} />
                 </div>
 
                 {/* Bu günün namazları — toggle düymələri */}
-                <div className="stat-today-label">
-                  {s('todayTitle')} — {todayDone.length}/5 {s('done')}
+                <div className="stat-today-row">
+                  <div className="stat-today-label">
+                    {s('todayTitle')} — <span key={todayDone.length} className="stat-today-count ui-num">{todayDone.length}/5</span> {s('done')}
+                  </div>
+                  <div className="stat-today-hint" aria-live="polite">{allDone ? TXT.allDone[lk] : s('tapHint')}</div>
                 </div>
-                <div className="stat-today-hint">{s('tapHint')}</div>
-                {/* Telefonda: kartın içində haşiyəsiz siyahı + animasiyalı dairəvi
-                    işarə (.m-check); masaüstündə əvvəlki düymələr və ✓ */}
-                <div className="stat-prayers m-list">
+                {/* Hər düymədə animasiyalı dairəvi işarə (.m-check): ✓ "çəkilir" */}
+                <div className="stat-prayers">
                   {STAT_KEYS.map(p => {
                     const done = isDone(p, todayKey())
                     return (
                       <button
                         key={p}
                         type="button"
-                        className={`stat-prayer-btn m-row ${done ? 'done' : ''}`}
+                        className={`stat-prayer-btn ${done ? 'done' : ''}`}
                         onClick={() => { haptic(); toggle(p) }}
                         aria-pressed={done}
-                        title={STAT_NAMES[p][lk]}
                       >
-                        <span className={`stat-prayer-icon icon-tile icon-tile--sm icon-tile--${PRAYER_TONES[p]}`} aria-hidden="true">{PRAYER_ICONS[p]}</span>
+                        <span className="stat-prayer-icon" aria-hidden="true"><Icon name={PRAYER_ICONS[p]} size={18} /></span>
                         <span className="stat-prayer-name">{STAT_NAMES[p][lk]}</span>
-                        <span className="stat-prayer-check" aria-hidden="true">{done ? '✓' : ''}</span>
                         <span className="m-check stat-prayer-mcheck" aria-hidden="true">
                           <svg viewBox="0 0 24 24"><path d={CHECK_PATH} /></svg>
                         </span>
@@ -598,43 +658,43 @@ export default function PrayerPage({ setPage }) {
           </div>
 
           {/* Əlavə blok: solda sünnə namazları + həftəlik statistika, sağda dualar,
-              altında ayə. İki sütun təxminən bərabər hündürlükdə bitir.
-              ≤900px: sütunlar "display:contents" — həftəlik kart birinci gəlir */}
+              altında ayə. ≤900px: sütunlar "display:contents" — həftəlik kart birinci gəlir */}
           <div className="prayer-extras">
             <div className="prayer-extras-col">
               {/* Sünnə Namazları */}
-              <div className="sunnah-section">
-                <h3 className="sunnah-title">{SUNNAH_LABELS[lk] || SUNNAH_LABELS.en}</h3>
-                <div className="sunnah-list m-list" data-reveal="stagger">
+              <div className="sunnah-section ui-card" data-reveal>
+                <h2 className="sunnah-title pp-card-title">{SUNNAH_LABELS[lk] || SUNNAH_LABELS.en}</h2>
+                <ul className="sunnah-list" data-reveal="stagger">
                   {SUNNAH_PRAYERS.map((sp, i) => (
-                    <div key={i} className="sunnah-item m-row">
-                      <div className={`sunnah-icon icon-tile icon-tile--${SUNNAH_TONES[i] || 'gold'}`} aria-hidden="true">{sp.icon}</div>
+                    <li key={i} className="sunnah-item">
+                      <span className="sunnah-icon ui-icon-tile ui-icon-tile--sm ui-icon-tile--neutral" aria-hidden="true"><Icon name={sp.icon} /></span>
                       <div className="sunnah-info">
                         <div className="sunnah-name">{sp.name[lk] || sp.name.en}</div>
                         <div className="sunnah-desc">{sp.desc[lk] || sp.desc.en}</div>
                       </div>
-                      <div className="sunnah-rakat">{sp.rakat}</div>
-                    </div>
+                      <span className="sunnah-rakat ui-num">{sp.rakat}</span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
 
               {/* ── Həftəlik Namaz Statistikası ── */}
-              <div className="prayer-stats-section" data-reveal>
-                <h3 className="prayer-stats-title">{sl.weeklyTitle}</h3>
-                <div className="prayer-week-grid">
-                  <div className="pw-header">
-                    <div className="pw-label"></div>
+              <div className="prayer-stats-section ui-card" data-reveal>
+                <h2 className="prayer-stats-title pp-card-title">{sl.weeklyTitle}</h2>
+                <div className="prayer-week-grid" role="table" aria-label={sl.weeklyTitle}>
+                  <div className="pw-header" role="row">
+                    <div className="pw-label" role="columnheader"></div>
                     {weeklyStats.map((d, i) => (
-                      <div key={i} className={`pw-day-label${i === weeklyStats.length - 1 ? ' is-today' : ''}`}>{sl.days[d.day]}</div>
+                      <div key={i} role="columnheader" className={`pw-day-label${i === weeklyStats.length - 1 ? ' is-today' : ''}`}>{sl.days[d.day]}</div>
                     ))}
                   </div>
                   {STAT_KEYS.map(prayer => (
-                    <div key={prayer} className="pw-row">
-                      <div className="pw-prayer-name">{STAT_NAMES[prayer][lk]}</div>
+                    <div key={prayer} className="pw-row" role="row">
+                      <div className="pw-prayer-name" role="rowheader">{STAT_NAMES[prayer][lk]}</div>
                       {weeklyStats.map((d, i) => (
-                        <div key={i} className={`pw-cell ${d.prayers[prayer] ? 'done' : ''}`}>
-                          {d.prayers[prayer] ? '✓' : ''}
+                        <div key={i} role="cell" className={`pw-cell${d.prayers[prayer] ? ' done' : ''}${i === weeklyStats.length - 1 ? ' is-today' : ''}`}
+                          aria-label={d.prayers[prayer] ? '✓' : '—'}>
+                          {d.prayers[prayer] ? <Icon name="check" size={14} strokeWidth={2.4} /> : null}
                         </div>
                       ))}
                     </div>
@@ -645,31 +705,40 @@ export default function PrayerPage({ setPage }) {
 
             <div className="prayer-extras-col">
               {/* Namaz Duaları */}
-              <div className="prayer-dua-section" data-reveal="stagger">
-                <h3 className="prayer-dua-title">{DUA_LABELS[lk] || DUA_LABELS.en}</h3>
-                {PRAYER_DUAS.map((d, i) => (
-                  <div key={i} className="prayer-dua-card">
-                    <div className="prayer-dua-name">{d.name[lk] || d.name.en}</div>
-                    <div className="prayer-dua-ar">{d.ar}</div>
-                    <div className="prayer-dua-trans">{d.trans[lk] || d.trans.en}</div>
-                  </div>
-                ))}
+              <div className="prayer-dua-section ui-card" data-reveal>
+                <h2 className="prayer-dua-title pp-card-title">{DUA_LABELS[lk] || DUA_LABELS.en}</h2>
+                <div className="prayer-dua-list" data-reveal="stagger-fade">
+                  {PRAYER_DUAS.map((d, i) => (
+                    <div key={i} className="prayer-dua-card">
+                      <div className="prayer-dua-name">{d.name[lk] || d.name.en}</div>
+                      <p className="prayer-dua-ar ui-arabic" lang="ar" dir="rtl">{d.ar}</p>
+                      {/* Ərəbcə saytda tərcümə sətri ərəbcə mətnin təkrarıdır — göstərilmir */}
+                      {lang !== 'ar' && <p className="prayer-dua-trans">{d.trans[lk] || d.trans.en}</p>}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="prayer-reminder" data-reveal="scale">
-              <div className="reminder-arabic">حَافِظُوا عَلَى الصَّلَوَاتِ</div>
-              <p className="reminder-trans">
-                {lang==='az'?'"Namazlarınızı, xüsusən orta namazı mühafizə edin." — Bəqərə 2:238':
-                 lang==='ru'?'«Оберегайте молитвы и среднюю молитву» — Аль-Бакара 2:238':
-                 lang==='ar'?'«حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَى» — البقرة ٢:٢٣٨':
-                 lang==='tr'?'"Namazlara ve orta namaza devam edin." — Bakara 2:238':
-                 '"Maintain with care the prayers." — Al-Baqarah 2:238'}
-              </p>
-            </div>
+            <figure className="prayer-reminder" data-reveal="scale">
+              <div className="ui-ornament" aria-hidden="true"><span className="ui-ornament__star" /></div>
+              <blockquote>
+                <p className="reminder-arabic ui-arabic" lang="ar" dir="rtl">حَافِظُوا عَلَى الصَّلَوَاتِ</p>
+                <p className="reminder-trans">
+                  {lang==='az'?'“Namazlarınızı, xüsusən orta namazı mühafizə edin.”':
+                   lang==='ru'?'«Оберегайте молитвы и среднюю молитву»':
+                   lang==='ar'?'«حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَى»':
+                   lang==='tr'?'“Namazlara ve orta namaza devam edin.”':
+                   '“Maintain with care the prayers and the middle prayer.”'}
+                </p>
+              </blockquote>
+              <figcaption className="reminder-src">
+                {lang==='az'?'Bəqərə 2:238':lang==='ru'?'Аль-Бакара 2:238':lang==='ar'?'البقرة ٢:٢٣٨':lang==='tr'?'Bakara 2:238':'Al-Baqarah 2:238'}
+              </figcaption>
+            </figure>
           </div>
         </div>
-      </div>
-    </>
+      </section>
+    </div>
   )
 }

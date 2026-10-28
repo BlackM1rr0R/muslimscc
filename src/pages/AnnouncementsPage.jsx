@@ -23,6 +23,7 @@ import {
 } from '../data/adminContent'
 import '../styles/AnnouncementsPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import Icon from '../components/Icon'
 
 const LABELS = {
   az: {
@@ -251,36 +252,16 @@ function pickLang(v, lang) {
   return typeof x === 'string' ? x.trim() : ''
 }
 
-/** Kart ikonu — sadə günbəz və minarə (xətt üslubu, rəngi currentColor-dan) */
-function MosqueIcon() {
-  return (
-    <svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor"
-      strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      {/* Günbəz və təpəsindəki şar */}
-      <path d="M9 17c0-4.4 3.2-7 7-8.6 3.8 1.6 7 4.2 7 8.6" />
-      <path d="M16 8.4V6.2" />
-      <circle cx="16" cy="4.8" r="1.2" />
-      {/* Əsas bina və tağlı qapı */}
-      <path d="M8 17h16v11H8z" />
-      <path d="M13.5 28v-4a2.5 2.5 0 0 1 5 0v4" />
-      {/* İki minarə — uclu papaqla */}
-      <path d="M3 28V13.5h3V28M3 13.5l1.5-4 1.5 4" />
-      <path d="M26 28V13.5h3V28M26 13.5l1.5-4 1.5 4" />
-      <path d="M1.5 28h29" />
-    </svg>
-  )
+// Elan və hadisə növlərinin semantik tonu + xətti ikonu (data-dakı hex rənglər
+// və emojilər əvəzinə — DESIGN.md: göy qurşağı yox, vəziyyət rəngləri tokenlərdən)
+const ANN_TONE = {
+  info:     { tone: 'note',  icon: 'info' },
+  urgent:   { tone: 'bad',   icon: 'alert' },
+  event:    { tone: 'brand', icon: 'calendar' },
+  success:  { tone: 'ok',    icon: 'sparkle' },
+  reminder: { tone: 'warn',  icon: 'bell' },
 }
-
-/** Sancaq ikonu — "sabitlənmiş" nişanı üçün */
-function PinIcon() {
-  return (
-    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor"
-      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      <path d="M10 1.8 14.2 6l-2.1.7-2.5 2.5-.4 3.1L4.7 7.8l3.1-.4 2.5-2.5z" />
-      <path d="M6.9 9.1 2 14" />
-    </svg>
-  )
-}
+const EVENT_ICON = { major: 'star', sunnah: 'dhikr', night: 'moonStar', hajj: 'hajjguide', fast: 'sunrise' }
 
 /** Bildiriş funksiyası brauzerdə varmı və icazə hələ soruşulmayıbmı? */
 function canOfferNotifications() {
@@ -297,7 +278,6 @@ export default function AnnouncementsPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.en
   const isRtl = lang === 'ar'
-  const arrow = isRtl ? '←' : '→'
 
   const [rawAnnouncements, setRawAnnouncements] = useState([])
   const [rawEvents, setRawEvents] = useState([])
@@ -405,44 +385,45 @@ export default function AnnouncementsPage({ setPage }) {
   return (
     <div className="anp-page">
       {/* ── Hero ── */}
-      <div className="page-hero theme-announcements hero-compact">
-        <Breadcrumb setPage={setPage} current={l.title} />
-        {/* Ərəbcə dekorativ başlıq — ar dilində h1 ilə təkrar olmasın deyə gizlədilir */}
-        {!isRtl && <div className="page-hero-arabic">الإعلانات</div>}
-        <h1>{l.title}</h1>
-        <p>{l.subtitle}</p>
-      </div>
+      <header className="ui-page-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container anp-container">
+          <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={l.title} /></div>
+          {/* Ərəbcə dekorativ başlıq — ar dilində h1 ilə təkrar olmasın deyə gizlədilir */}
+          {!isRtl && <span className="anp-hero-ar ui-arabic" lang="ar" dir="rtl">الإعلانات</span>}
+          <h1 className="ui-display">{l.title}</h1>
+          <p className="ui-lead">{l.subtitle}</p>
+        </div>
+      </header>
 
-      <div className="anp-wrap">
+      <div className="anp-wrap ui-container anp-container">
         {/* ═══ SABİT KART: XEYRİYYƏ VƏ İANƏ ═══ */}
-        <section className="anp-help" data-reveal aria-labelledby="anp-help-title">
-          <div className="anp-help-icon" aria-hidden="true">
-            <MosqueIcon />
-          </div>
-          <div className="anp-help-head">
-            <span className="anp-help-pin">
-              <PinIcon /> {l.helpEyebrow}
+        <section className="ui-card anp-help" data-reveal aria-labelledby="anp-help-title">
+          <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--accent anp-help-icon" aria-hidden="true">
+            <Icon name="charity" />
+          </span>
+          <div className="anp-help-body">
+            <span className="ui-badge ui-badge--accent anp-help-pin">
+              <Icon name="pin" size={13} /> {l.helpEyebrow}
             </span>
             <h2 id="anp-help-title" className="anp-help-title">{l.helpTitle}</h2>
+            <p className="anp-help-text">{l.helpText}</p>
           </div>
-          <p className="anp-help-text">{l.helpText}</p>
-          <div className="anp-help-actions">
-            <button type="button" className="anp-btn anp-btn-primary press" onClick={() => setPage?.('donate')}>
-              {l.helpDonate} <span aria-hidden="true">{arrow}</span>
-            </button>
-          </div>
+          <button type="button" className="ui-btn ui-btn--primary anp-help-btn" onClick={() => setPage?.('donate')}>
+            {l.helpDonate} <Icon name="arrow" size={18} className="ui-btn__icon ui-btn__icon--end ui-flip-rtl" />
+          </button>
         </section>
 
         {/* ═══ ELANLAR ═══ */}
         <section className="anp-section" aria-labelledby="anp-latest-title">
-          <div className="anp-section-head">
-            <h2 id="anp-latest-title" className="anp-section-title">{l.latest}</h2>
+          <div className="anp-section-head" data-reveal>
+            <h2 id="anp-latest-title" className="ui-title ui-title--sm">{l.latest}</h2>
           </div>
 
           {!loaded ? (
             <div className="anp-list" aria-busy="true" aria-label={l.loading}>
               {[0, 1].map(i => (
-                <div key={i} className="anp-card anp-skeleton" aria-hidden="true">
+                <div key={i} className="ui-card anp-card anp-skeleton" aria-hidden="true">
                   <span className="skeleton anp-skel-line anp-skel-short" />
                   <span className="skeleton anp-skel-line anp-skel-title" />
                   <span className="skeleton anp-skel-line" />
@@ -451,18 +432,18 @@ export default function AnnouncementsPage({ setPage }) {
               ))}
             </div>
           ) : announcements.length === 0 ? (
-            <div className="anp-empty" data-reveal="scale">
-              <div className="anp-empty-icon" aria-hidden="true">📭</div>
+            <div className="ui-card anp-empty" data-reveal="scale">
+              <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral anp-empty-icon" aria-hidden="true"><Icon name="announcements" /></span>
               <p className="anp-empty-title">{l.empty}</p>
               <p className="anp-empty-sub">{l.emptySub}</p>
               <div className="anp-empty-actions">
                 {offerNotif && (
-                  <button type="button" className="anp-btn anp-btn-primary press" onClick={openNotifications}>
-                    <span aria-hidden="true">🔔</span> {l.enableNotif}
+                  <button type="button" className="ui-btn ui-btn--primary" onClick={openNotifications}>
+                    <Icon name="bell" className="ui-btn__icon" /> {l.enableNotif}
                   </button>
                 )}
-                <button type="button" className="anp-btn anp-btn-ghost press" onClick={() => setPage?.('prayer')}>
-                  {l.seeTimes} <span aria-hidden="true">{arrow}</span>
+                <button type="button" className="ui-btn ui-btn--secondary" onClick={() => setPage?.('prayer')}>
+                  <Icon name="prayer" className="ui-btn__icon" /> {l.seeTimes}
                 </button>
               </div>
             </div>
@@ -471,10 +452,10 @@ export default function AnnouncementsPage({ setPage }) {
               {typeCounts.length > 1 && (
                 /* Telefonda çiplər bir sətirdə barmaqla sürüşür (motion.css → .chip-scroll),
                    ≥768px-də əvvəlki kimi sarınır */
-                <div className="anp-chips chip-scroll wrap-desktop" role="group" aria-label={l.filterLabel}>
+                <div className="anp-chips chip-scroll wrap-desktop" role="group" aria-label={l.filterLabel} data-reveal="fade">
                   <button
                     type="button"
-                    className={`anp-chip press ${filter === 'all' ? 'active' : ''}`}
+                    className="ui-chip anp-chip"
                     aria-pressed={filter === 'all'}
                     onClick={() => setFilter('all')}
                   >
@@ -485,12 +466,11 @@ export default function AnnouncementsPage({ setPage }) {
                     <button
                       key={t.key}
                       type="button"
-                      className={`anp-chip press ${filter === t.key ? 'active' : ''}`}
+                      className="ui-chip anp-chip"
                       aria-pressed={filter === t.key}
-                      style={{ '--anp-accent': t.color }}
                       onClick={() => setFilter(t.key)}
                     >
-                      <span className="anp-chip-dot" aria-hidden="true" />
+                      <Icon name={(ANN_TONE[t.key] || ANN_TONE.info).icon} size={15} />
                       {t.label[lang] || t.label.en}
                       <span className="anp-chip-count">{t.count}</span>
                     </button>
@@ -499,21 +479,18 @@ export default function AnnouncementsPage({ setPage }) {
               )}
 
               {/* Kartlar sürüşəndə növbə ilə görünür; süzgəc dəyişəndə yeni kartlar da yumşaq girir */}
-              <div className="anp-list" data-reveal="stagger">
+              <div className="anp-list anp-list--anim" key={filter}>
                 {visible.map(a => {
                   const isNew = a._ms != null && now - a._ms < NEW_WINDOW_MS && a._ms <= now + 60000
+                  const tone = ANN_TONE[a._type.key] || ANN_TONE.info
                   return (
-                    <article
-                      key={a.id}
-                      className="anp-card"
-                      style={{ '--anp-accent': a._type.color }}
-                    >
+                    <article key={a.id} className={`ui-card anp-card anp-tone--${tone.tone}`}>
                       <div className="anp-card-top">
-                        <span className="anp-badge">
-                          <span aria-hidden="true">{a._type.icon}</span>
+                        <span className="ui-badge anp-badge">
+                          <Icon name={tone.icon} size={14} />
                           {a._type.label[lang] || a._type.label.en}
                         </span>
-                        {isNew && <span className="anp-new">{l.isNew}</span>}
+                        {isNew && <span className="ui-badge ui-badge--solid anp-new">{l.isNew}</span>}
                         {a._ms != null && (
                           <time className="anp-date" dateTime={new Date(a._ms).toISOString()}>
                             {formatDate(a._ms, lang)}
@@ -527,12 +504,12 @@ export default function AnnouncementsPage({ setPage }) {
 
                       {a._href && (
                         <a
-                          className="anp-card-link"
+                          className="ui-link anp-card-link"
                           href={a._href}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          {l.readMore} <span aria-hidden="true">{arrow}</span>
+                          {l.readMore} <Icon name="external" size={15} />
                         </a>
                       )}
                     </article>
@@ -546,19 +523,19 @@ export default function AnnouncementsPage({ setPage }) {
         {/* ═══ HİCRİ GÜNLƏR (yalnız admin əlavə edibsə) ═══ */}
         {events.length > 0 && (
           <section className="anp-section" aria-labelledby="anp-events-title">
-            <div className="anp-section-head">
-              <div>
-                <span className="anp-eyebrow">{l.eventsEyebrow}</span>
-                <h2 id="anp-events-title" className="anp-section-title">{l.eventsTitle}</h2>
+            <div className="anp-section-head anp-section-head--row" data-reveal>
+              <div className="anp-events-head">
+                <span className="ui-eyebrow">{l.eventsEyebrow}</span>
+                <h2 id="anp-events-title" className="ui-title ui-title--sm">{l.eventsTitle}</h2>
               </div>
-              <button type="button" className="anp-link-btn press" onClick={() => setPage?.('calendar')}>
-                {l.fullCalendar} <span aria-hidden="true">{arrow}</span>
+              <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm anp-link-btn" onClick={() => setPage?.('calendar')}>
+                {l.fullCalendar} <Icon name="arrow" size={16} className="ui-btn__icon ui-btn__icon--end ui-flip-rtl" />
               </button>
             </div>
 
             <ul className="anp-events" data-reveal="stagger">
               {shownEvents.map((ev, i) => (
-                <li key={ev.id} className="anp-event" style={{ '--anp-accent': ev._type.color }}>
+                <li key={ev.id} className="anp-event">
                   <div className="anp-event-date" aria-hidden="true">
                     <span className="anp-event-day">{ev._day}</span>
                     <span className="anp-event-month">{monthNames[ev._month - 1]}</span>
@@ -566,13 +543,13 @@ export default function AnnouncementsPage({ setPage }) {
                   <div className="anp-event-body">
                     <div className="anp-event-head">
                       <span className="anp-event-name" dir="auto">{ev._name}</span>
-                      {today && ev._order === 0 && <span className="anp-new">{l.today}</span>}
-                      {today && i === 0 && ev._order > 0 && <span className="anp-new">{l.next}</span>}
+                      {today && ev._order === 0 && <span className="ui-badge ui-badge--solid anp-new">{l.today}</span>}
+                      {today && i === 0 && ev._order > 0 && <span className="ui-badge ui-badge--brand anp-new">{l.next}</span>}
                     </div>
                     <span className="anp-sr">{ev._day} {monthNames[ev._month - 1]}</span>
                     <div className="anp-event-meta">
                       <span className="anp-event-type">
-                        <span aria-hidden="true">{ev._type.icon}</span> {ev._type.label[lang] || ev._type.label.en}
+                        <Icon name={EVENT_ICON[ev._type.key] || 'calendar'} size={14} /> {ev._type.label[lang] || ev._type.label.en}
                       </span>
                     </div>
                     {ev._desc && <p className="anp-event-desc" dir="auto">{ev._desc}</p>}
@@ -584,7 +561,7 @@ export default function AnnouncementsPage({ setPage }) {
             {events.length > EVENTS_PREVIEW && (
               <button
                 type="button"
-                className="anp-btn anp-btn-ghost anp-more press"
+                className="ui-btn ui-btn--secondary anp-more"
                 aria-expanded={showAllEvents}
                 onClick={() => setShowAllEvents(v => !v)}
               >
@@ -592,7 +569,7 @@ export default function AnnouncementsPage({ setPage }) {
               </button>
             )}
 
-            <p className="anp-note">{l.eventsNote}</p>
+            <p className="anp-note"><Icon name="info" size={16} /> <span>{l.eventsNote}</span></p>
           </section>
         )}
       </div>

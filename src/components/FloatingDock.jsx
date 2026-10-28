@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import { BRAND, tr } from '../config/brand'
 import AccessibilityWidget from './AccessibilityWidget'
 import { useBackToClose } from '../utils/useBackToClose'
+import Icon from './Icon'
 import '../styles/FloatingDock.css'
 
 // ═══════════════════════════════════════════════════════
@@ -43,48 +44,8 @@ const PANEL_KEYS = ['ai', 'a11y', 'notif']
 // Səhifənin ilk bu qədər pikselində düymə sürüşdürmə ilə gizlənmir
 const SHOW_NEAR_TOP_PX = 120
 
-// ── İkonlar (panellərin özündəkilərlə eyni forma; lazy chunk-u
-//    açmamaq üçün burada ayrıca saxlanılır) ─────────────
-function SparkleIcon({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <path d="M16 3.5 L17.9 13.6 L28 16 L17.9 18.4 L16 28.5 L14.1 18.4 L4 16 L14.1 13.6 Z" fill="currentColor" />
-      <path d="M24.5 5.5 L25.3 8.2 L28 9 L25.3 9.8 L24.5 12.5 L23.7 9.8 L21 9 L23.7 8.2 Z" fill="currentColor" opacity="0.85" />
-    </svg>
-  )
-}
-
-function A11yIcon({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="4.5" r="2.2" fill="currentColor" />
-      <path
-        d="M5.5 8.5C6.1 8.2 6.8 8.4 7 9L8.2 11.5L11.5 11.5L11.5 14L9 19.2C8.7 19.9 9.1 20.6 9.8 20.9C10.5 21.2 11.3 20.8 11.5 20.1L13 16.5L14.5 20.1C14.7 20.8 15.5 21.2 16.2 20.9C16.9 20.6 17.3 19.9 17 19.2L14.5 14L14.5 11.5L17.5 11.5C18.3 11.5 18.8 11 18.8 10.3C18.8 9.5 18.3 9 17.5 9L12 9C11.2 9 10.8 9.4 10.8 9.4L10.2 8.2C10 7.8 9.5 7.5 9 7.5L6 7.5C5.5 7.5 5 8 5 8.5Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-function BellIcon({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 2C10.5 2 9.3 3.2 9.3 4.7V5.2C6.8 6 5 8.4 5 11.2V14L3.5 16.5C3.2 17 3 17.6 3 18.2C3 19 3.7 19.7 4.5 19.7H19.5C20.3 19.7 21 19 21 18.2C21 17.6 20.8 17 20.5 16.5L19 14V11.2C19 8.4 17.2 6 14.7 5.2V4.7C14.7 3.2 13.5 2 12 2Z"
-        fill="currentColor"
-      />
-      <path d="M10 20.7C10 21.9 10.9 22.7 12 22.7C13.1 22.7 14 21.9 14 20.7H10Z" fill="currentColor" />
-    </svg>
-  )
-}
-
-function PlusIcon({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-    </svg>
-  )
-}
+// ── İkonlar — saytın vahid xətti ikon dəsti (Icon.jsx, v2) ──
+// Əvvəl burada ayrıca dolu SVG-lər idi; indi panellərdəki ikonlarla eynidir.
 
 /** Panel chunk-ı yüklənərkən dok yerində kiçik fırlanan göstərici. */
 function DockLoading() {
@@ -269,19 +230,19 @@ export default function FloatingDock({ page }) {
     showAI && {
       key: 'ai',
       label: tr(BRAND.aiName, lang),
-      icon: <SparkleIcon size={20} />,
+      icon: <Icon name="aichat" size={20} />,
       badge: unread ? { dot: true, sr: l.unread } : null,
     },
     {
       key: 'a11y',
       label: l.a11y,
-      icon: <A11yIcon size={20} />,
+      icon: <Icon name="a11y" size={21} />,
       badge: a11yCount > 0 ? { text: String(a11yCount), sr: `${a11yCount} ${l.active}` } : null,
     },
     {
       key: 'notif',
       label: l.notif,
-      icon: <BellIcon size={19} />,
+      icon: <Icon name="bell" size={20} />,
       badge: null,
     },
   ].filter(Boolean)
@@ -310,7 +271,7 @@ export default function FloatingDock({ page }) {
                 type="button"
                 role="menuitem"
                 className={`qm-dock-item qm-dock-item-${it.key}`}
-                style={{ '--i': i }}
+                style={{ '--i': items.length - 1 - i }}  /* düyməyə ən yaxın bənd birinci qalxır */
                 onClick={() => openPanel(it.key)}
               >
                 <span className="qm-dock-item-label">
@@ -338,7 +299,7 @@ export default function FloatingDock({ page }) {
           aria-controls={menuOpen ? 'qm-dock-menu' : undefined}
           onClick={() => setMenuOpen(o => !o)}
         >
-          <span className="qm-dock-toggle-icon"><PlusIcon size={22} /></span>
+          <span className="qm-dock-toggle-icon"><Icon name="plus" size={22} strokeWidth={2.2} /></span>
           {unread && !menuOpen && <span className="qm-dock-dot" aria-hidden="true" />}
         </button>
       </div>

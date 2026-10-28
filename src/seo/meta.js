@@ -83,7 +83,7 @@ export const META = {
   },
 
   donate: {
-    az: { t: 'Xeyriyyə və İanə — Sədəqə Bələdçisi',
+    az: { t: 'Xeyriyyə və ianə — sədəqə bələdçisi',
           d: 'Sədəqə və ianənin fəziləti, kimə və necə vermək haqqında bələdçi, zəkat kalkulyatoru və şəxsi sədəqə gündəliyi. Saytda ödəniş rekvizitləri yoxdur.' },
     en: { t: 'Charity & Giving — A Guide to Sadaqah',
           d: 'A guide to the virtue of sadaqah and giving, who to give to and how, plus a zakat calculator and a personal sadaqah journal. No payment details here.' },
@@ -151,7 +151,7 @@ export const META = {
   },
 
   dhikr: {
-    az: { t: 'Zikr Sayğacı — Rəqəmsal Təsbih',
+    az: { t: 'Zikr sayğacı — rəqəmsal təsbih',
           d: 'Onlayn rəqəmsal təsbih: SubhanAllah, Alhamdulillah, Allahu Əkbər zikrlərini say. Vibrasiya, hədəf təyini və sessiya tarixçəsi ilə.' },
     en: { t: 'Dhikr Counter — Digital Tasbih Online',
           d: 'A digital tasbih counter for SubhanAllah, Alhamdulillah and Allahu Akbar. Set a target, feel haptic feedback on each count and track your session history.' },
@@ -255,7 +255,7 @@ export const META = {
   },
 
   hifz: {
-    az: { t: 'Hifz İzləyicisi — Quranı Əzbərləmə Planı',
+    az: { t: 'Hifz izləyicisi — Quranı əzbərləmə planı',
           d: 'Quran hifzini planla və izlə: əzbərlədiyin surələri qeyd et, təkrar cədvəli qur, gündəlik irəliləyişini və seriya günlərini gör.' },
     en: { t: 'Hifz Tracker — Quran Memorisation Progress',
           d: 'Plan and track your Quran hifz: mark memorised surahs, set a revision schedule and watch your daily progress and streak build up over time.' },
@@ -294,7 +294,7 @@ export const META = {
   },
 
   glossary: {
-    az: { t: 'İslami Lüğət — Dini Terminlərin İzahı',
+    az: { t: 'İslami lüğət — dini terminlərin izahı',
           d: 'İslami terminləri sadə dildə öyrən: fiqh, sünnə, halal, haram, təqva, sədəqə və 100-dən çox anlayışın izahı, mənşəyi və istifadəsi.' },
     en: { t: 'Islamic Glossary — Key Terms Explained',
           d: 'Understand Islamic terminology in plain language: fiqh, sunnah, halal, haram, taqwa, sadaqah and 100+ terms with origins and usage explained.' },
@@ -320,7 +320,7 @@ export const META = {
   },
 
   sahaba: {
-    az: { t: 'Səhabələr — Peyğəmbərin Yoldaşlarının Həyatı',
+    az: { t: 'Səhabələr — Peyğəmbərin yoldaşlarının həyatı',
           d: 'Peyğəmbərimizin səhabələrini tanı: Əbu Bəkr, Ömər, Osman, Əli və digərlərinin həyatı, İslama xidməti və ibrətli hadisələr.' },
     en: { t: 'The Sahaba — Lives of the Prophet’s Companions',
           d: 'Meet the companions of the Prophet ﷺ: the lives of Abu Bakr, Umar, Uthman, Ali and others, their service to Islam and the lessons they left.' },
@@ -398,7 +398,7 @@ export const META = {
   },
 
   analytics: {
-    az: { t: 'Quran Oxu Statistikası — İrəliləyişini Gör',
+    az: { t: 'Quran oxu statistikası — irəliləyişini gör',
           d: 'Quran oxu vərdişini rəqəmlərlə gör: oxunan surələr, sərf olunan vaxt, həftəlik qrafik və ən aktiv günlərin.' },
     en: { t: 'Quran Reading Stats — See Your Progress',
           d: 'See your Quran reading habit in numbers: surahs completed, time spent, a weekly chart and the days you read most consistently.' },
@@ -424,7 +424,7 @@ export const META = {
   },
 
   books: {
-    az: { t: 'İslami Kitablar — Pulsuz Onlayn Kitabxana',
+    az: { t: 'İslami kitablar — pulsuz onlayn kitabxana',
           d: 'İslami kitabları onlayn oxu və yüklə: təfsir, hədis, fiqh, siyər və əxlaq kitabları. Kateqoriya üzrə axtarış ilə, pulsuz.' },
     en: { t: 'Islamic Books — Free Online Library',
           d: 'Read and download Islamic books online: tafsir, hadith, fiqh, seerah and works on character. Browse by category, completely free.' },

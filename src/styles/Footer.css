@@ -136,12 +136,33 @@
 .ft-col a svg,
 .ft-contact-line svg { flex-shrink: 0; opacity: 0.8; }
 
+/* Hover: mətn qum rənginə keçir, yüngülcə irəli sürüşür və başlanğıcında
+   kiçik qızılı romb görünür (yalnız transform/opacity) */
+.ft-col a { position: relative; }
+.ft-col a > span { transition: transform var(--dur-2, 240ms) var(--ease-out, ease); }
+.ft-col a::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: -12px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  border-radius: 1px;
+  background: var(--ft-head);
+  opacity: 0;
+  transform: rotate(45deg) scale(0.4);
+  transition: opacity var(--dur-2, 240ms) ease, transform var(--dur-2, 240ms) var(--ease-out, ease);
+}
 @media (hover: hover) {
   .ft-col a:hover {
     color: var(--ft-text);
     text-decoration: underline;
     text-decoration-color: rgba(230, 204, 149, 0.6);
   }
+  .ft-col a:hover > span { transform: translateX(3px); }
+  [dir="rtl"] .ft-col a:hover > span { transform: translateX(-3px); }
+  .ft-col a:hover::before { opacity: 1; transform: rotate(45deg) scale(1); }
 }
 
 /* Klaviatura fokusu — tünd fonda görünən qum rəngli halqa */
@@ -169,6 +190,29 @@
 }
 .ft-bottom p,
 .ft-made { font-size: 12.5px; color: rgba(243, 239, 230, 0.62); }
+.ft-made { display: inline-flex; align-items: center; gap: 6px; }
+.ft-heart { flex-shrink: 0; color: var(--ft-head); }
+@media (hover: hover) {
+  .ft-made:hover .ft-heart { animation: ftBeat 700ms var(--ease-spring, ease) 1; }
+}
+@keyframes ftBeat {
+  0%, 100% { transform: none; }
+  35% { transform: scale(1.25); }
+  60% { transform: scale(0.95); }
+}
+/* Sütun başlıqlarının altında qısa qızılı xətt */
+.ft-col h4 { position: relative; padding-bottom: 8px; }
+.ft-col h4::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 18px;
+  height: 1px;
+  background: rgba(230, 204, 149, 0.45);
+}
+/* Bismillah sətri ilə təsvir arasında incə ayırıcı */
+.ft-arabic { padding-top: 12px; border-top: 1px solid var(--ft-line); }
 
 /* ── Düzülüş: footer-in öz eninə görə (container query) ── */
 @container ft (max-width: 1140px) {
@@ -207,8 +251,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ft-col a,
+  .ft-col a > span,
+  .ft-col a::before,
   .ft-logo-icon { transition: none; }
-  .ft-logo:hover .ft-logo-icon { transform: none; }
+  .ft-logo:hover .ft-logo-icon,
+  .ft-col a:hover > span { transform: none; }
+  .ft-made:hover .ft-heart { animation: none; }
 }
 
 /* Qaranlıq rejim: --surface-inverse tokeni (globals.css) özü dəyişir;

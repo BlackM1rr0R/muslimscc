@@ -3,6 +3,7 @@ import { BRAND, brandName } from '../config/brand'
 import { VerseCard, HadithCard } from '../components/VirtueCards'
 import '../styles/DonatePage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import Icon from '../components/Icon'
 
 // ═══════════════════════════════════════════════════════
 // Xeyriyyə və ianə — /donate (ümumi bələdçi)
@@ -36,6 +37,7 @@ const CHARITY_VERSE = '2:261'
 
 const LABELS = {
   az: {
+    eyebrow: 'Zəkat və sədəqə',
     title: 'Xeyriyyə və ianə',
     subtitle: 'Sədəqənin fəziləti və etibarlı xeyriyyəyə necə vermək',
     virtues: 'Sədəqənin fəziləti',
@@ -54,6 +56,7 @@ const LABELS = {
     mosques: 'Yaxınlıqdakı məscidlər', mosquesDesc: 'Xəritədə yaxın məscidləri tapın',
   },
   en: {
+    eyebrow: 'Zakat & charity',
     title: 'Charity & Giving',
     subtitle: 'The virtue of charity and how to give to a trustworthy cause',
     virtues: 'The virtue of charity',
@@ -72,6 +75,7 @@ const LABELS = {
     mosques: 'Mosques near me', mosquesDesc: 'Find nearby mosques on the map',
   },
   ru: {
+    eyebrow: 'Закят и садака',
     title: 'Благотворительность',
     subtitle: 'Достоинство садаки и как жертвовать надёжным организациям',
     virtues: 'Достоинство садаки',
@@ -90,6 +94,7 @@ const LABELS = {
     mosques: 'Мечети рядом', mosquesDesc: 'Найдите ближайшие мечети на карте',
   },
   ar: {
+    eyebrow: 'الزكاة والصدقة',
     title: 'الصدقة والتبرع',
     subtitle: 'فضل الصدقة وكيف تتبرع لجهة موثوقة',
     virtues: 'فضل الصدقة',
@@ -108,6 +113,7 @@ const LABELS = {
     mosques: 'المساجد القريبة', mosquesDesc: 'اعثر على المساجد القريبة على الخريطة',
   },
   tr: {
+    eyebrow: 'Zekât ve sadaka',
     title: 'Hayır ve Bağış',
     subtitle: 'Sadakanın fazileti ve güvenilir bir hayır kurumuna nasıl bağış yapılır',
     virtues: 'Sadakanın fazileti',
@@ -132,28 +138,36 @@ export default function DonatePage({ setPage }) {
   const t = LABELS[lang] || LABELS.en
   const go = (key) => { setPage?.(key); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
+  // Əlaqəli bölmələr — ikonlar Icon.jsx-dən (marşrut açarı ilə eyni ad)
   const links = [
-    { key: 'zakat',   icon: '🧮', tone: 'gold', title: t.zakat,   desc: t.zakatDesc },
-    { key: 'charity', icon: '🤲', tone: 'teal', title: t.journal, desc: t.journalDesc },
-    { key: 'mosques', icon: '📍', tone: 'rose', title: t.mosques, desc: t.mosquesDesc },
+    { key: 'zakat',   icon: 'zakat',   title: t.zakat,   desc: t.zakatDesc },
+    { key: 'charity', icon: 'charity', title: t.journal, desc: t.journalDesc },
+    { key: 'mosques', icon: 'mosques', title: t.mosques, desc: t.mosquesDesc },
   ]
 
   return (
-    <div className="donate-page">
-      <div className="page-hero theme-donate hero-compact">
-        {/* Bütün hero-larda eyni iz: Ana səhifə › … (components/Breadcrumb) */}
-        <Breadcrumb setPage={setPage} current={t.title} />
-        {/* Ərəbcə dekorativ başlıq ar dilində təkrar olmasın */}
-        {lang !== 'ar' && <div className="page-hero-arabic">{BRAND.arabicMotto}</div>}
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+    <div className="dn-root">
+      <header className="ui-page-hero dn-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container ui-container--narrow">
+          {/* Bütün hero-larda eyni iz: Ana səhifə › … (components/Breadcrumb) */}
+          <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>
+          <span className="ui-eyebrow">{t.eyebrow}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          <p className="ui-lead">{t.subtitle}</p>
+          {/* Ərəbcə dekorativ şüar ar dilində təkrar olmasın */}
+          {lang !== 'ar' && <p className="dn-hero-ar ui-arabic" lang="ar" dir="rtl">{BRAND.arabicMotto}</p>}
+        </div>
+      </header>
 
-      <div className="dn-wrap">
+      <div className="dn-wrap ui-container ui-container--narrow">
 
         {/* Fəzilətlər — ayə (API) + hədislər (hadiths.js) */}
         <section className="dn-virtues" aria-labelledby="dn-virtues-title">
-          <h2 id="dn-virtues-title" className="dn-links-title">{t.virtues}</h2>
+          <div className="dn-head" data-reveal>
+            <span className="ui-icon-tile ui-icon-tile--accent" aria-hidden="true"><Icon name="donate" /></span>
+            <h2 id="dn-virtues-title" className="ui-title ui-title--sm">{t.virtues}</h2>
+          </div>
           <div className="dn-vlist" data-reveal="stagger">
             <VerseCard verseRef={CHARITY_VERSE} lang={lang} />
             {CHARITY_HADITHS.map(h => <HadithCard key={h.id} h={h} lang={lang} />)}
@@ -161,26 +175,32 @@ export default function DonatePage({ setPage }) {
         </section>
 
         {/* Ümumi tövsiyələr */}
-        <section className="dn-card" data-reveal aria-labelledby="dn-tips-title">
-          <h2 id="dn-tips-title" className="dn-card-title">{t.tipsTitle}</h2>
-          <ol className="dn-tips">
+        <section className="ui-card dn-card" data-reveal aria-labelledby="dn-tips-title">
+          <div className="dn-head">
+            <span className="ui-icon-tile" aria-hidden="true"><Icon name="check" /></span>
+            <h2 id="dn-tips-title" className="ui-title ui-title--sm">{t.tipsTitle}</h2>
+          </div>
+          <ol className="dn-tips" data-reveal="stagger">
             {t.tips.map((tip, i) => <li key={i}>{tip}</li>)}
           </ol>
-          <p className="dn-footnote">{t.noPayments.replace('{brand}', brandName(lang))}</p>
+          <p className="dn-footnote">
+            <Icon name="info" size={18} />
+            <span>{t.noPayments.replace('{brand}', brandName(lang))}</span>
+          </p>
         </section>
 
-        {/* Əlaqəli bölmələr — telefonda qruplaşdırılmış siyahı (CSS) */}
-        <nav className="dn-links" data-reveal data-reveal-delay="60" aria-labelledby="dn-links-title">
-          <h2 id="dn-links-title" className="dn-links-title">{t.seeAlso}</h2>
-          <div className="dn-links-grid">
+        {/* Əlaqəli bölmələr */}
+        <nav className="dn-links" aria-labelledby="dn-links-title">
+          <h2 id="dn-links-title" className="dn-links-title ui-eyebrow">{t.seeAlso}</h2>
+          <div className="dn-links-grid" data-reveal="stagger">
             {links.map(k => (
-              <button key={k.key} type="button" className="dn-link" onClick={() => go(k.key)}>
-                <span className={`dn-link-icon icon-tile--${k.tone}`} aria-hidden="true">{k.icon}</span>
+              <button key={k.key} type="button" className="ui-card ui-card--interactive dn-link" onClick={() => go(k.key)}>
+                <span className="ui-icon-tile" aria-hidden="true"><Icon name={k.icon} /></span>
                 <span className="dn-link-body">
                   <span className="dn-link-title">{k.title}</span>
                   <span className="dn-link-desc">{k.desc}</span>
                 </span>
-                <span className="dn-link-arrow" aria-hidden="true">→</span>
+                <Icon name="arrow" size={18} className="dn-link-arrow ui-flip-rtl" />
               </button>
             ))}
           </div>

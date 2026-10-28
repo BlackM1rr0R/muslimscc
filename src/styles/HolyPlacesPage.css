@@ -1,313 +1,161 @@
-/* ═══════════════════════════════════════════════════════════════════════
-   Qaraçuxur Məscidi — HolyPlacesPage.css
-   Müqəddəs Yerlər — Card-based holy places guide
-════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   Müqəddəs yerlər (/holyplaces) — dizayn v2
+   Yalnız semantik tokenlər (DESIGN.md) — qaranlıq rejim avtomatikdir.
+   Bu fayl ui.css-dən ƏVVƏL yüklənir: .ui-* sinfini dəyişəndə valideyn
+   ilə gücləndirilir (.holy-page .ui-… — DESIGN.md §4.1).
+   Hero artıq heroes.css-in rəngli .holy-hero temasını işlətmir.
+   ══════════════════════════════════════════════════════ */
 
-/* Hero .page-hero-dən (globals.css), rəngi və illüstrasiyası heroes.css-dəki
-   .holy-hero.holy-hero-dən gəlir. Yan və şaquli boşluqlar .section-dan —
-   səhifənin öz min-height/padding-i yoxdur (tək kartlı süzgəcdə boş zolaq yaranırdı). */
-.holy-page {
-  min-height: 0;
+/* ── Hero ── */
+.holy-hero-v2 .breadcrumb { justify-content: flex-start; margin: 0 0 2px; }
+.holy-hero-v2 .bc-list { justify-content: flex-start; }
+.holy-hero-ar {
+  margin-top: -2px;
+  color: var(--accent-text);
+  font-size: clamp(22px, 1.4rem + 0.8vw, 32px);
+  line-height: 1.5;
 }
 
-/* ── Filters ──
-   JSX: .holy-filters.chip-scroll + .holy-filter-btn.m-chip (motion.css).
-   Telefonda (<768px) çip görünüşü və üfüqi sürüşmə kitdən gəlir;
-   genişdə (≥768px) əvvəlki mərkəzdə sarınan düymələr olduğu kimi qalır. */
-.holy-filters {
-  margin-bottom: 28px;
-}
-
+/* ── Süzgəc ── */
+.holy-filters { gap: 8px; margin-bottom: var(--space-6); }
 @media (min-width: 768px) {
-  .holy-filters,
-  .holy-filters.chip-scroll {
-    display: flex;
-    justify-content: center;
-    gap: var(--space-2);
-    padding: 0;
-    flex-wrap: wrap;
-  }
-  .holy-filter-btn {
-    min-height: 0;
-    padding: 8px 18px;
-    border-radius: 20px;
-    border: 1.5px solid var(--primary-border);
-    background: var(--bg-card);
-    color: var(--text-dim);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: normal;
-    cursor: pointer;
-    transition: all 0.25s ease;
-  }
-  .holy-filter-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-  }
-  .holy-filter-btn.active {
-    background: var(--primary);
-    color: var(--on-primary);
-    border-color: var(--primary);
-  }
+  .holy-filters { padding-block: 0; }
+}
+.holy-chip-num {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.holy-page .ui-chip[aria-pressed="true"] .holy-chip-num {
+  background: color-mix(in srgb, var(--surface-1) 20%, transparent);
+  color: inherit;
 }
 
-/* ── Grid ──
-   auto-fit: boş sütunlar yığılır; tək kart (məs. yalnız Qüds) mərkəzdə,
-   oxunaqlı enində qalır — əvvəl solda 484px kart, sağda boş sütun qalırdı. */
+/* ── Şəbəkə ──
+   auto-fill + min 340px: 1440-da 3 sütun; tək kartlı süzgəcdə (Qüds)
+   kart sütun enində qalır, boş yer yaranmır (soldan başlayır) */
 .holy-grid {
-  padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
   gap: var(--space-5);
-}
-.holy-card:only-child {
-  justify-self: center;
-  width: 100%;
-  max-width: 560px;
+  align-items: stretch;
 }
 
-/* ── Card ── */
-.holy-card {
-  background: var(--bg-card);
-  border: 1.5px solid var(--primary-border);
-  border-radius: 16px;
-  padding: var(--card-pad);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+/* ── Kart ── */
+.holy-page .holy-card {
   display: flex;
   flex-direction: column;
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
 }
-/* Qalxma yalnız siçanlı cihazlarda — toxunuşda "ilişib qalan" hover olmasın */
 @media (hover: hover) {
-  .holy-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(26,107,58,0.10);
-  }
+  .holy-page .holy-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); border-color: var(--line-strong); }
+  .holy-card:hover .holy-card-icon { transform: scale(1.06); }
 }
 
 .holy-card-header {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
 }
-.holy-card-emoji {
-  font-size: 2.4rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-.holy-card-titles {
-  flex: 1;
-  min-width: 0;
-}
+.holy-card-icon { transition: transform var(--dur-2) var(--ease-spring); }
+.holy-card-titles { flex: 1; min-width: 0; }
 .holy-card-name {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 4px;
-  line-height: 1.3;
+  margin-bottom: 2px;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-snug);
 }
 .holy-card-ar {
-  font-family: var(--font-arabic);
-  font-size: 1rem;
-  color: var(--primary);
-  direction: rtl;
-  text-align: start;
-  unicode-bidi: plaintext;
-  margin: 0 0 6px;
-  line-height: 1.6;
-}
-.holy-card-city {
-  font-size: 12.5px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.holy-card-desc {
-  font-size: 14px;
-  color: var(--text-dim);
+  margin-bottom: 4px;
+  color: var(--brand);
+  font-size: 1.1rem;
   line-height: 1.7;
-  margin: 0 0 16px;
-  flex: 1;
+  /* Ərəbcə ad başlığın altında, onunla eyni kənardan başlasın */
+  text-align: left;
 }
-
-/* ── Sections ── */
-.holy-card-section {
-  margin-bottom: 14px;
-  padding: 12px 14px;
-  background: var(--primary-bg);
-  border-radius: 10px;
-}
-.holy-card-section-title {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0 0 6px;
-}
-.holy-card-significance {
-  font-size: 13.5px;
-  color: var(--text-dim);
-  line-height: 1.6;
-  margin: 0;
-}
-.holy-card-ref {
-  font-size: 13px;
-  color: var(--text);
-  font-weight: 600;
-  margin: 0;
-  font-style: italic;
-}
-
-/* ── Maps Button ── */
-.holy-card-maps {
+[dir="rtl"] .holy-card-ar { text-align: right; }
+.holy-card-city {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 500;
+}
+.holy-card-city svg { color: var(--accent); }
+
+.holy-card-desc {
+  flex: 1;
+  margin-bottom: var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--step--1);
+  line-height: 1.7;
+}
+
+.holy-card-section {
+  margin-bottom: var(--space-3);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.holy-card-section-title {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  margin-top: auto;
-  min-height: var(--tap);
-  padding: 10px 20px;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-size: 13.5px;
+  margin-bottom: 6px;
+  color: var(--accent-text);
+  font-size: var(--step--2);
   font-weight: 600;
-  border-radius: 10px;
-  text-decoration: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
-@media (hover: hover) {
-  .holy-card-maps:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-  }
-}
+[dir="rtl"] .holy-card-section-title { letter-spacing: 0; font-size: var(--step--1); }
+.holy-card-significance { color: var(--text-body); font-size: var(--step--1); line-height: 1.6; }
 
-/* ── Dark theme ── */
-[data-theme="dark"] .holy-card {
-  border-color: rgba(46,204,113,0.12);
+/* İstinad: fonsuz, başlıq və mənbə bir sətirdə */
+.holy-card-section--ref {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 2px 2px 6px;
+  background: none;
 }
-@media (hover: hover) {
-  [data-theme="dark"] .holy-card:hover {
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
-  }
-}
-[data-theme="dark"] .holy-card-section {
-  background: rgba(46,204,113,0.06);
-}
-@media (min-width: 768px) {
-  [data-theme="dark"] .holy-filter-btn {
-    border-color: rgba(46,204,113,0.15);
-  }
-  [data-theme="dark"] .holy-filter-btn.active {
-    border-color: var(--primary);
-  }
-}
+.holy-card-section--ref .holy-card-section-title { margin: 0; }
+.holy-card-ref { color: var(--text-strong); font-size: var(--step--1); font-weight: 600; }
 
-/* ══ GENİŞ EKRAN (≥768px) — ikon kafeli yox, əvvəlki kimi sadə emoji ══ */
-@media (min-width: 768px) {
-  .holy-card-emoji.icon-tile {
-    display: block;
-    width: auto;
-    height: auto;
-    border-radius: 0;
-    background: none;
-    font-size: 2.4rem;
-  }
-}
+/* "Xəritədə aç" — sakit ikinci dərəcəli düymə (10 kartda 10 tünd düymə ağır olardı) */
+.holy-page .holy-card-maps { width: 100%; margin-top: auto; }
+.holy-card-ext { opacity: 0.6; }
+[dir="rtl"] .holy-card-ext { transform: scaleX(-1); }
 
-/* ══ TELEFON (<768px) — müasir tətbiq görünüşü ═════════════════
-   • Süzgəc: bir sətirdə sürüşən çiplər (kitdən)
-   • Kart: qalın haşiyə yox, yumşaq kölgə; şəhərə görə rəngli ikon kafeli
-   • Şəhər — kiçik "hap"; istinad bir sətirdə
-   • "Xəritədə aç" — tam enli, sakit tonlu düymə (10 kartda 10 tünd yaşıl düymə ağır idi) */
+/* ══ TELEFON (<768px) ══ */
 @media (max-width: 767.98px) {
+  .holy-hero-v2 .breadcrumb { display: none; }
+  .holy-hero-ar { font-size: 20px; }
+
   .holy-filters { margin-bottom: var(--space-4); }
+  .holy-grid { gap: var(--space-3); }
+  .holy-page .holy-card { padding: 16px; }
+  .holy-card-header { align-items: center; gap: 12px; margin-bottom: 12px; }
+  .holy-card-desc { font-size: 14.5px; line-height: 1.65; }
+  .holy-page .holy-card-maps { min-height: 48px; }
+}
 
-  .holy-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-4);
-  }
-
-  .holy-card {
-    padding: 16px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-  }
-  [data-theme="dark"] .holy-card { border-color: var(--border); }
-
-  .holy-card-header {
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-  .holy-card-emoji { font-size: 26px; }
-
-  .holy-card-name {
-    font-size: 17px;
-    margin-bottom: 2px;
-  }
-  .holy-card-ar {
-    font-size: 15px;
-    line-height: 1.5;
-    margin-bottom: 4px;
-  }
-  .holy-card-city {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 10px;
-    border-radius: 999px;
-    background: var(--bg-card2);
-    color: var(--text-dim);
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  .holy-card-desc {
-    font-size: 14.5px;
-    line-height: 1.65;
-    margin-bottom: 14px;
-  }
-
-  .holy-card-section {
-    margin-bottom: 10px;
-    padding: 12px 14px;
-    border-radius: 12px;
-  }
-  .holy-card-section-title {
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    margin-bottom: 4px;
-  }
-  [dir="rtl"] .holy-card-section-title { letter-spacing: 0; font-size: 13px; }
-  .holy-card-significance {
-    font-size: 14px;
-    line-height: 1.55;
-  }
-
-  /* İstinad: fonsuz, başlıq və mənbə bir sətirdə */
-  .holy-card-section--ref,
-  [data-theme="dark"] .holy-card-section--ref {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 4px 10px;
-    padding: 2px 2px 4px;
-    background: none;
-  }
-  .holy-card-section--ref .holy-card-section-title { margin: 0; }
-  .holy-card-ref { font-size: 14px; }
-
-  .holy-card-maps {
-    width: 100%;
-    min-height: 48px;
-    margin-top: 6px;
-    border-radius: 12px;
-    background: var(--primary-bg2);
-    color: var(--primary-dark);
-    font-size: 14.5px;
-  }
-  [data-theme="dark"] .holy-card-maps { color: var(--primary); }
+@media (prefers-reduced-motion: reduce) {
+  .holy-page .holy-card,
+  .holy-card-icon { transition: none; }
+  .holy-page .holy-card:hover,
+  .holy-card:hover .holy-card-icon { transform: none; }
 }

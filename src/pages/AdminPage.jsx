@@ -22,55 +22,57 @@ import SettingsManager from '../components/admin/SettingsManager'
 import BackupManager from '../components/admin/BackupManager'
 import StatsManager from '../components/admin/StatsManager'
 import SeedManager from '../components/admin/SeedManager'
+import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AdminPage.css'
 
 const LABELS = {
-  az: { dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli' },
-  en: { dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero banner', system:'SYSTEM', settings:'Settings', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Logout', adminPanel:'Admin Panel' },
-  ru: { dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель' },
-  ar: { dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة' },
-  tr: { dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli' },
+  az: { dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli', sections:'Admin bölmələri', dark:'Qaranlıq rejim', light:'İşıqlı rejim' },
+  en: { dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero banner', system:'SYSTEM', settings:'Settings', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Log out', adminPanel:'Admin Panel', sections:'Admin sections', dark:'Dark mode', light:'Light mode' },
+  ru: { dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель', sections:'Разделы админки', dark:'Тёмная тема', light:'Светлая тема' },
+  ar: { dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة', sections:'أقسام الإدارة', dark:'الوضع الداكن', light:'الوضع الفاتح' },
+  tr: { dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli', sections:'Yönetim bölümleri', dark:'Karanlık mod', light:'Aydınlık mod' },
 }
 
 const NAV_GROUPS = [
   {
     items: [
-      { key:'dashboard', icon:'📊', labelKey:'dashboard', noCount:true },
+      { key:'dashboard', icon:'home', labelKey:'dashboard', noCount:true },
     ],
   },
   {
     labelKey:'content',
     items: [
-      { key:'videos',        icon:'📹', labelKey:'videos' },
-      { key:'books',         icon:'📚', labelKey:'books' },
-      { key:'hadiths',       icon:'📜', labelKey:'hadiths' },
-      { key:'duas',          icon:'🤲', labelKey:'duas' },
-      { key:'quotes',        icon:'💬', labelKey:'quotes' },
-      { key:'announcements', icon:'📣', labelKey:'announcements' },
-      { key:'events',        icon:'📅', labelKey:'events' },
-      { key:'daily',         icon:'🌟', labelKey:'daily', noCount:true },
-      { key:'pushNotif',     icon:'🔔', labelKey:'pushNotif', noCount:true },
+      { key:'videos',        icon:'videos', labelKey:'videos' },
+      { key:'books',         icon:'books', labelKey:'books' },
+      { key:'hadiths',       icon:'hadith', labelKey:'hadiths' },
+      { key:'duas',          icon:'duas', labelKey:'duas' },
+      { key:'quotes',        icon:'quotes', labelKey:'quotes' },
+      { key:'announcements', icon:'announcements', labelKey:'announcements' },
+      { key:'events',        icon:'calendar', labelKey:'events' },
+      { key:'daily',         icon:'sparkle', labelKey:'daily', noCount:true },
+      { key:'pushNotif',     icon:'bell', labelKey:'pushNotif', noCount:true },
     ],
   },
   {
     labelKey:'customization',
     items: [
-      { key:'hero',     icon:'🎨', labelKey:'hero', noCount:true },
-      { key:'settings', icon:'⚙️', labelKey:'settings', noCount:true },
+      { key:'hero',     icon:'palette', labelKey:'hero', noCount:true },
+      { key:'settings', icon:'list', labelKey:'settings', noCount:true },
     ],
   },
   {
     labelKey:'system',
     items: [
-      { key:'stats',  icon:'📈', labelKey:'stats', noCount:true },
-      { key:'backup', icon:'💾', labelKey:'backup', noCount:true },
-      { key:'seed',   icon:'🌱', labelKey:'seed', noCount:true },
+      { key:'stats',  icon:'analytics', labelKey:'stats', noCount:true },
+      { key:'backup', icon:'download', labelKey:'backup', noCount:true },
+      { key:'seed',   icon:'leaf', labelKey:'seed', noCount:true },
     ],
   },
 ]
 
 export default function AdminPage({ setPage }) {
-  const { lang } = useLang()
+  // Admin səhifəsində sayt başlığı yoxdur — tema açarı yan menyudadır
+  const { lang, dark, toggleDark } = useLang()
   const l = LABELS[lang] || LABELS.az
 
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -116,50 +118,72 @@ export default function AdminPage({ setPage }) {
     }
   }
 
+  // Telefonda menyu düyməsində cari bölmə görünür
+  const activeItem = NAV_GROUPS.flatMap(g => g.items).find(it => it.key === activeTab) || NAV_GROUPS[0].items[0]
+
   return (
     <div className="admin-page">
       <div className="admin-container">
 
-        {/* Sidebar */}
-        <aside className="admin-sidebar">
+        {/* Yan menyu — geniş ekranda yapışqan; <900px-də bir düymə ilə açılır */}
+        <aside className={`admin-sidebar${sidebarOpen ? ' is-open' : ''}`}>
           <div className="admin-sidebar-header">
-            <div className="admin-sidebar-logo">🔐</div>
-            <div>
+            <BrandMark size={36} className="admin-sidebar-logo" />
+            <div className="admin-sidebar-id">
               <div className="admin-sidebar-title">{l.adminPanel}</div>
               <div className="admin-sidebar-sub">{brandName(lang)}</div>
             </div>
           </div>
 
-          {NAV_GROUPS.map((group, gi) => (
-            <div key={gi} className="admin-nav-section">
-              {group.labelKey && <div className="admin-nav-section-label">{l[group.labelKey]}</div>}
-              {group.items.map(item => (
-                <button
-                  key={item.key}
-                  className={`admin-nav-btn ${activeTab === item.key ? 'active' : ''}`}
-                  onClick={() => { setActiveTab(item.key); setSidebarOpen(false); window.scrollTo({top:0, behavior:'smooth'}); }}
-                >
-                  <span className="admin-nav-icon">{item.icon}</span>
-                  <span>{l[item.labelKey]}</span>
-                  {!item.noCount && counts[item.key] > 0 && (
-                    <span className="admin-nav-badge">{counts[item.key]}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          ))}
+          <button
+            type="button"
+            className="admin-menu-toggle"
+            aria-expanded={sidebarOpen}
+            aria-controls="admin-nav"
+            onClick={() => setSidebarOpen(v => !v)}
+          >
+            <Icon name={activeItem.icon} className="admin-nav-icon" />
+            <span className="admin-nav-text">{l[activeItem.labelKey]}</span>
+            <Icon name="chevronDown" size={18} className="admin-menu-chev" />
+          </button>
+
+          <nav id="admin-nav" className="admin-nav-groups" aria-label={l.sections}>
+            {NAV_GROUPS.map((group, gi) => (
+              <div key={gi} className="admin-nav-section">
+                {group.labelKey && <div className="admin-nav-section-label">{l[group.labelKey]}</div>}
+                {group.items.map(item => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`admin-nav-btn ${activeTab === item.key ? 'active' : ''}`}
+                    aria-current={activeTab === item.key ? 'page' : undefined}
+                    onClick={() => { setActiveTab(item.key); setSidebarOpen(false); window.scrollTo({top:0, behavior:'smooth'}); }}
+                  >
+                    <Icon name={item.icon} className="admin-nav-icon" />
+                    <span className="admin-nav-text">{l[item.labelKey]}</span>
+                    {!item.noCount && counts[item.key] > 0 && (
+                      <span className="admin-nav-badge">{counts[item.key]}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </nav>
 
           <div className="admin-sidebar-footer">
-            <button className="admin-logout-btn" onClick={handleLogout} style={{width:'100%', justifyContent:'center'}}>
-              <span>🚪</span> {l.logout}
+            <button type="button" className="ui-btn ui-btn--ghost admin-logout-btn admin-theme-btn" onClick={toggleDark} aria-pressed={!!dark}>
+              <Icon name={dark ? 'sun' : 'moon'} className="ui-btn__icon" /> {dark ? l.light : l.dark}
+            </button>
+            <button type="button" className="ui-btn ui-btn--ghost admin-logout-btn" onClick={handleLogout}>
+              <Icon name="enter" className="ui-btn__icon admin-back-arrow" /> {l.logout}
             </button>
           </div>
         </aside>
 
-        {/* Main */}
-        <main className="admin-main">
+        {/* Əsas sahə (div — səhifənin <main>-i App.jsx-dədir); key: tab dəyişəndə məzmun yumşaq girsin */}
+        <div className="admin-main" key={activeTab}>
           {renderTab()}
-        </main>
+        </div>
 
       </div>
     </div>

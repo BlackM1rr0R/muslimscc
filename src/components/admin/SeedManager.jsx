@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminHeader, AdminAlert } from './AdminUi'
+import Icon from '../Icon'
 import { HADITHS } from '../../data/hadiths'
 import { DUAS_DATA } from '../../data/duas'
 import { QUOTES as STATIC_QUOTES } from '../../data/quotes'
@@ -103,116 +105,41 @@ export default function SeedManager() {
     await seedQuotes()
   }
 
-  const Card = ({ icon, title, count, total, color, onClick, disabled, type }) => (
-    <div style={{
-      background: 'var(--bg-card2)',
-      border: `2px solid ${color}30`,
-      borderRadius: 'var(--radius-lg)',
-      padding: 22,
-      textAlign: 'center',
-    }}>
-      <div style={{ fontSize: 36, marginBottom: 8 }}>{icon}</div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>{title}</div>
-      <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>
+  const Card = ({ icon, title, total, onClick, disabled, type }) => (
+    <div className="admin-seed-card">
+      <span className="ui-icon-tile ui-icon-tile--lg" aria-hidden="true"><Icon name={icon} /></span>
+      <div className="admin-seed-title">{title}</div>
+      <div className={`admin-seed-count${results[type] !== undefined ? ' is-done' : ''}`}>
         {results[type] !== undefined
-          ? `✅ ${results[type]}/${total} ${l.count}`
+          ? <><Icon name="check" size={14} /> {results[type]}/{total} {l.count}</>
           : `${total} ${l.count}`}
       </div>
-      <button
-        onClick={onClick}
-        disabled={disabled}
-        style={{
-          width: '100%',
-          background: `linear-gradient(135deg, ${color}, ${color}cc)`,
-          color: '#fff',
-          border: 'none',
-          padding: '10px 16px',
-          borderRadius: 'var(--radius)',
-          fontWeight: 800,
-          fontSize: 13,
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.5 : 1,
-        }}
-      >
-        {uploading === type ? '⏳ ' + l.uploading : '⬆️ ' + (type === 'hadiths' ? l.seedHadiths : type === 'duas' ? l.seedDuas : l.seedQuotes)}
+      <button type="button" className="admin-submit-btn" onClick={onClick} disabled={disabled}>
+        <Icon name={uploading === type ? 'refresh' : 'arrowUp'} /> {uploading === type ? l.uploading : (type === 'hadiths' ? l.seedHadiths : type === 'duas' ? l.seedDuas : l.seedQuotes)}
       </button>
     </div>
   )
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#a855f7,#7c3aed)'}}>🌱</div>
-          <div className="admin-header-info">
-            <h1>{l.title}</h1>
-            <p>{l.sub}</p>
-          </div>
-        </div>
-      </div>
+      <AdminHeader icon="leaf" title={l.title} sub={l.sub} />
 
-      <div className="admin-section" style={{
-        background: 'linear-gradient(135deg, #f59e0b15, #f59e0b08)',
-        border: '1.5px solid #f59e0b40',
-      }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <span style={{ fontSize: 28 }}>⚠️</span>
-          <div>
-            <h3 style={{ margin: '0 0 6px', color: '#d97706', fontSize: 16 }}>{l.warning}</h3>
-            <p style={{ margin: 0, color: 'var(--text-dim)', fontSize: 14, lineHeight: 1.6 }}>{l.warningText}</p>
-          </div>
-        </div>
-      </div>
+      <AdminAlert tone="warn" className="admin-seed-warn"><b>{l.warning}</b>{l.warningText}</AdminAlert>
 
-      <div className="admin-section">
-        <p style={{ color: 'var(--text-dim)', marginTop: 0, marginBottom: 20, lineHeight: 1.6 }}>
-          ℹ️ {l.info}
-        </p>
+      <div className="admin-section" data-reveal>
+        <AdminAlert tone="note" className="admin-seed-info">{l.info}</AdminAlert>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
-          <Card
-            icon="📚"
-            title={l.hadiths}
-            total={Math.min(50, (HADITHS.en || []).length)}
-            color="#f59e0b"
-            onClick={seedHadiths}
-            disabled={!!uploading}
-            type="hadiths"
-          />
-          <Card
-            icon="🤲"
-            title={l.duas}
-            total={Math.min(50, DUAS_DATA.length)}
-            color="#8b5cf6"
-            onClick={seedDuas}
-            disabled={!!uploading}
-            type="duas"
-          />
-          <Card
-            icon="💬"
-            title={l.quotes}
-            total={Math.min(50, STATIC_QUOTES.length)}
-            color="#ec4899"
-            onClick={seedQuotes}
-            disabled={!!uploading}
-            type="quotes"
-          />
+        <div className="admin-seed-grid" data-reveal="stagger">
+          <Card icon="hadith" title={l.hadiths} total={Math.min(50, (HADITHS.en || []).length)} onClick={seedHadiths} disabled={!!uploading} type="hadiths" />
+          <Card icon="duas" title={l.duas} total={Math.min(50, DUAS_DATA.length)} onClick={seedDuas} disabled={!!uploading} type="duas" />
+          <Card icon="quotes" title={l.quotes} total={Math.min(50, STATIC_QUOTES.length)} onClick={seedQuotes} disabled={!!uploading} type="quotes" />
         </div>
 
-        <button
-          onClick={seedAll}
-          disabled={!!uploading}
-          className="admin-submit-btn"
-          style={{
-            width: '100%',
-            marginTop: 20,
-            background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
-            opacity: uploading ? 0.5 : 1,
-            cursor: uploading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          🌱 {uploading ? l.uploading : l.seedAll}
-        </button>
+        <div className="admin-form-actions admin-seed-all">
+          <button type="button" onClick={seedAll} disabled={!!uploading} className="admin-submit-btn">
+            <Icon name="leaf" /> {uploading ? l.uploading : l.seedAll}
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
 import { useLang } from '../contexts/LangContext'
+import Icon from './Icon'
 import '../styles/Pagination.css'
 
 const A11Y = {
@@ -9,8 +10,11 @@ const A11Y = {
   tr: { pagination:'Sayfalama',   prev:'Önceki sayfa',  next:'Sonraki sayfa',  page:'Sayfa' },
 }
 
-// Sadə, kompakt pagination komponenti
-export default function Pagination({ current, total, onChange, color = '#10b981' }) {
+// Sadə, kompakt pagination komponenti.
+// v2: rəng həmişə brend tokenidir (--brand) — köhnə `color` prop-u qəbul
+// olunur, amma nəzərə alınmır (səhifələr göy qurşağı rəngi ötürürdü).
+// eslint-disable-next-line no-unused-vars
+export default function Pagination({ current, total, onChange, color }) {
   const { lang } = useLang()
   const a = A11Y[lang] || A11Y.az
   if (total <= 1) return null
@@ -32,17 +36,16 @@ export default function Pagination({ current, total, onChange, color = '#10b981'
     out.push(p)
   })
 
-  const cssVars = { '--pg-color': color }
-
   return (
-    <nav className="pagination" aria-label={a.pagination} style={cssVars}>
+    <nav className="pagination" aria-label={a.pagination}>
       <button
+        type="button"
         className="pg-btn pg-prev"
         onClick={() => onChange(current - 1)}
         disabled={current === 1}
         aria-label={a.prev}
       >
-        ‹
+        <Icon name="chevronLeft" size={18} className="ui-flip-rtl" />
       </button>
 
       {out.map((item, i) =>
@@ -51,7 +54,8 @@ export default function Pagination({ current, total, onChange, color = '#10b981'
         ) : (
           <button
             key={item}
-            className={`pg-btn pg-num ${item === current ? 'active' : ''}`}
+            type="button"
+            className={`pg-btn pg-num ui-num ${item === current ? 'active' : ''}`}
             onClick={() => onChange(item)}
             aria-label={`${a.page} ${item}`}
             aria-current={item === current ? 'page' : undefined}
@@ -62,12 +66,13 @@ export default function Pagination({ current, total, onChange, color = '#10b981'
       )}
 
       <button
+        type="button"
         className="pg-btn pg-next"
         onClick={() => onChange(current + 1)}
         disabled={current === total}
         aria-label={a.next}
       >
-        ›
+        <Icon name="chevron" size={18} className="ui-flip-rtl" />
       </button>
     </nav>
   )

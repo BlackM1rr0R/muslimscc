@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import Icon from '../Icon'
+import { ANN_TONE, AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addAnnouncement, updateAnnouncement, deleteAnnouncement, ANNOUNCEMENT_TYPES, subscribeToAnnouncements } from '../../data/adminContent'
 
 const LABELS = {
-  az: { title:'Elanlar', sub:'Ana səhifədə görünəcək elanlar', addNew:'Yeni Elan', editItem:'Redaktə Et', all:'Bütün Elanlar', titleField:'Başlıq', message:'Mesaj', link:'Link (ixtiyari)', type:'Növ', active:'Aktiv', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hələ elan yoxdur', required:'Bu sahə tələb olunur', statusActive:'Aktiv', statusInactive:'Deaktiv' },
+  az: { title:'Elanlar', sub:'Ana səhifədə görünəcək elanlar', addNew:'Yeni elan', editItem:'Redaktə et', all:'Bütün elanlar', titleField:'Başlıq', message:'Mesaj', link:'Link (ixtiyari)', type:'Növ', active:'Aktiv', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hələ elan yoxdur', required:'Bu sahə tələb olunur', statusActive:'Aktiv', statusInactive:'Deaktiv' },
   en: { title:'Announcements', sub:'Banners shown on home page', addNew:'New Announcement', editItem:'Edit', all:'All Announcements', titleField:'Title', message:'Message', link:'Link (optional)', type:'Type', active:'Active', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete?', noItems:'No announcements yet', required:'Required', statusActive:'Active', statusInactive:'Inactive' },
   ru: { title:'Объявления', sub:'Баннеры на главной', addNew:'Новое', editItem:'Изменить', all:'Все', titleField:'Заголовок', message:'Сообщение', link:'Ссылка', type:'Тип', active:'Активный', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noItems:'Нет объявлений', required:'Обязательно', statusActive:'Активный', statusInactive:'Неактивный' },
   ar: { title:'الإعلانات', sub:'إعلانات الصفحة الرئيسية', addNew:'إعلان جديد', editItem:'تعديل', all:'كل الإعلانات', titleField:'العنوان', message:'الرسالة', link:'رابط', type:'النوع', active:'نشط', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noItems:'لا توجد', required:'مطلوب', statusActive:'نشط', statusInactive:'غير نشط' },
   tr: { title:'Duyurular', sub:'Ana sayfa duyuruları', addNew:'Yeni Duyuru', editItem:'Düzenle', all:'Tüm Duyurular', titleField:'Başlık', message:'Mesaj', link:'Bağlantı', type:'Tip', active:'Aktif', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin?', noItems:'Duyuru yok', required:'Gerekli', statusActive:'Aktif', statusInactive:'Pasif' },
 }
 
-const LANGS = ['az','en','ru','ar','tr']
 const EMPTY = {
   title: { az:'', en:'', ru:'', ar:'', tr:'' },
   message: { az:'', en:'', ru:'', ar:'', tr:'' },
@@ -82,30 +83,13 @@ export default function AnnouncementManager({ onUpdate }) {
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#ef4444,#dc2626)'}}>📣</div>
-          <div className="admin-header-info">
-            <h1>{l.title}</h1>
-            <p>{l.sub}</p>
-          </div>
-        </div>
-      </div>
+      <AdminHeader icon="announcements" title={l.title} sub={l.sub} />
 
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">{editingId ? '✏️' : '➕'}</span>
-          {editingId ? l.editItem : l.addNew}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
-          <div className="admin-lang-tabs">
-            {LANGS.map(L => (
-              <button key={L} type="button" className={`admin-lang-tab ${formLang === L ? 'active' : ''}`} onClick={() => setFormLang(L)}>
-                {L.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-input-group">
             <label className="admin-input-label">{l.titleField} ({formLang.toUpperCase()})</label>
@@ -126,30 +110,27 @@ export default function AnnouncementManager({ onUpdate }) {
               <label className="admin-input-label">{l.type}</label>
               <select className="admin-input admin-select" value={form.type} onChange={(e) => setForm({...form, type:e.target.value})}>
                 {ANNOUNCEMENT_TYPES.map(t => (
-                  <option key={t.key} value={t.key}>{t.icon} {t.label[lang]}</option>
+                  <option key={t.key} value={t.key}>{t.label[lang]}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div style={{display:'flex', alignItems:'center', gap:10}}>
+          <label className="admin-check" htmlFor="active-check">
             <input
               type="checkbox"
               id="active-check"
               checked={form.active}
               onChange={(e) => setForm({...form, active:e.target.checked})}
-              style={{width:20, height:20, accentColor:'var(--primary)'}}
             />
-            <label htmlFor="active-check" style={{fontSize:14, fontWeight:600, color:'var(--text-dim)', cursor:'pointer'}}>
-              {l.active}
-            </label>
-          </div>
+            {l.active}
+          </label>
 
-          {error && <div className="admin-login-error">⚠️ {error}</div>}
+          {error && <AdminAlert tone="bad">{error}</AdminAlert>}
 
           <div className="admin-form-actions">
-            <button type="submit" className="admin-submit-btn" style={{background:'linear-gradient(135deg,#ef4444,#dc2626)'}}>
-              <span>{editingId ? '💾' : '➕'}</span> {l.save}
+            <button type="submit" className="admin-submit-btn">
+              <Icon name={editingId ? 'check' : 'plus'} /> {l.save}
             </button>
             {editingId && (
               <button type="button" className="admin-cancel-btn" onClick={() => { setEditingId(null); setForm(EMPTY); }}>{l.cancel}</button>
@@ -159,58 +140,40 @@ export default function AnnouncementManager({ onUpdate }) {
       </div>
 
       <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">📣</span>
-          {l.all} ({items.length})
-        </h2>
+        <SectionTitle icon="announcements">{l.all} <span className="admin-count">({items.length})</span></SectionTitle>
 
         {items.length === 0 ? (
-          <div className="admin-empty"><div className="admin-empty-icon">📭</div>{l.noItems}</div>
+          <AdminEmpty>{l.noItems}</AdminEmpty>
         ) : (
-          <div style={{display:'grid', gap:14}}>
+          <ul className="admin-items">
             {items.map(a => {
               const type = ANNOUNCEMENT_TYPES.find(t => t.key === a.type) || ANNOUNCEMENT_TYPES[0]
+              const tone = ANN_TONE[type.key] || ANN_TONE.info
               return (
-                <div key={a.id} style={{
-                  background: a.active ? type.color + '08' : 'var(--bg-card2)',
-                  border: `2px solid ${a.active ? type.color + '40' : 'var(--border)'}`,
-                  borderRadius:'var(--radius-lg)',
-                  padding:20,
-                  opacity: a.active ? 1 : 0.6,
-                  position:'relative',
-                }}>
-                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12, flexWrap:'wrap', gap:8}}>
-                    <div style={{display:'flex', alignItems:'center', gap:10}}>
-                      <span style={{fontSize:24}}>{type.icon}</span>
-                      <span style={{background:type.color+'18', color:type.color, padding:'4px 12px', borderRadius:999, fontSize:11, fontWeight:800, textTransform:'uppercase'}}>
-                        {type.label[lang]}
-                      </span>
-                      <span style={{
-                        background: a.active ? '#10b98118' : '#ef444418',
-                        color: a.active ? '#10b981' : '#ef4444',
-                        padding:'3px 10px',
-                        borderRadius:999,
-                        fontSize:10,
-                        fontWeight:800,
-                      }}>
-                        {a.active ? '●' : '○'} {a.active ? l.statusActive : l.statusInactive}
+                <li key={a.id} className={`admin-item${a.active ? '' : ' is-muted'}`}>
+                  <div className="admin-item__head">
+                    <div className="admin-item__tags">
+                      <span className={`ui-badge admin-tone admin-tone--${tone.tone}`}><Icon name={tone.icon} /> {type.label[lang]}</span>
+                      <span className={`ui-badge admin-tone ${a.active ? 'admin-tone--ok' : ''}`}>
+                        <Icon name={a.active ? 'eye' : 'close'} /> {a.active ? l.statusActive : l.statusInactive}
                       </span>
                     </div>
-                    <div style={{display:'flex', gap:6}}>
-                      <button className="admin-action-btn" style={{flex:'0 0 auto', padding:'6px 12px', color: a.active ? '#10b981' : '#94a3b8'}} onClick={() => toggleActive(a)} title={a.active ? l.statusActive : l.statusInactive} aria-label={a.active ? l.statusActive : l.statusInactive}>
-                        {a.active ? '👁️' : '👁️‍🗨️'}
+                    <div className="admin-item__actions">
+                      {/* Görünmə açarı: basılı = aktiv (ana səhifədə görünür) */}
+                      <button type="button" className={`admin-action-btn admin-action-btn--icon${a.active ? ' is-on' : ''}`} onClick={() => toggleActive(a)} title={l.active} aria-label={l.active} aria-pressed={!!a.active}>
+                        <Icon name={a.active ? 'eye' : 'close'} />
                       </button>
-                      <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleEdit(a)} title={l.edit} aria-label={l.edit}>✏️</button>
-                      <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 12px'}} onClick={() => handleDelete(a.id)} title={l.delete} aria-label={l.delete}>🗑️</button>
+                      <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(a)} title={l.edit} aria-label={l.edit}><Icon name="duajournal" /></button>
+                      <button type="button" className="admin-action-btn admin-action-btn--icon delete" onClick={() => handleDelete(a.id)} title={l.delete} aria-label={l.delete}><Icon name="trash" /></button>
                     </div>
                   </div>
-                  <h3 style={{fontSize:17, fontWeight:800, color:'var(--text)', margin:'0 0 6px'}}><AdminText value={a.title} lang={lang} /></h3>
-                  {adminPick(a.message, lang) && <p style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, margin:0}}>{adminPick(a.message, lang)}</p>}
-                  {a.link && <a href={a.link} target="_blank" rel="noopener noreferrer" style={{fontSize:12, color:type.color, fontWeight:700, marginTop:10, display:'inline-block'}}>🔗 {a.link}</a>}
-                </div>
+                  <h3 className="admin-item__title"><AdminText value={a.title} lang={lang} /></h3>
+                  {adminPick(a.message, lang) && <p className="admin-item__text">{adminPick(a.message, lang)}</p>}
+                  {a.link && <a className="admin-item__link" href={a.link} target="_blank" rel="noopener noreferrer"><Icon name="link" size={14} /> {a.link}</a>}
+                </li>
               )
             })}
-          </div>
+          </ul>
         )}
       </div>
     </div>

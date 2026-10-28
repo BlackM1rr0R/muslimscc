@@ -1,5 +1,8 @@
 /* ═══════════════════════════════════════════════════════
-   PAGINATION
+   SƏHİFƏLƏMƏ — components/Pagination.jsx (dizayn v2)
+   Sakit hairline düymələr; cari səhifə zümrüd dolğu (--brand).
+   Hover yalnız siçanlı cihazda; basılanda .94 sıxılır; cari səhifə
+   dəyişəndə yüngül "pop". Toxunmada 44px hədəf.
    ═══════════════════════════════════════════════════════ */
 
 .pagination {
@@ -10,32 +13,41 @@
   gap: 6px;
   margin: 32px auto 0;
   padding: 0 12px;
-  --pg-color: #10b981;
 }
 
 .pg-btn {
   min-width: 40px;
   height: 40px;
   padding: 0 12px;
-  border: 1.5px solid var(--border);
-  background: var(--bg-card, #fff);
-  color: var(--text);
-  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-1);
+  color: var(--text-body);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--dur-1, 150ms) ease,
+    border-color var(--dur-1, 150ms) ease,
+    color var(--dur-1, 150ms) ease,
+    transform var(--dur-1, 150ms) var(--ease-out, ease),
+    box-shadow var(--dur-2, 240ms) ease;
 }
 
-.pg-btn:hover:not(:disabled):not(.active) {
-  border-color: var(--pg-color);
-  color: var(--pg-color);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .pg-btn:hover:not(:disabled):not(.active) {
+    border-color: var(--brand-line);
+    background: var(--brand-soft);
+    color: var(--brand);
+    transform: translateY(-1px);
+  }
 }
+.pg-btn:active:not(:disabled) { transform: scale(0.94); }
 
 .pg-btn:disabled {
   opacity: 0.4;
@@ -43,32 +55,33 @@
 }
 
 .pg-btn.active {
-  background: var(--pg-color);
-  border-color: var(--pg-color);
-  color: #fff;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--pg-color) 35%, transparent);
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+  box-shadow: var(--shadow-2);
   cursor: default;
+  animation: qm-chip-pop var(--dur-3, 360ms) var(--ease-spring, ease);
 }
 
-.pg-prev, .pg-next {
-  font-size: 20px;
-  font-weight: 800;
-}
+.pg-prev, .pg-next { padding: 0 10px; color: var(--text-secondary); }
 
 .pg-dots {
-  color: var(--text-muted);
-  padding: 0 6px;
-  font-weight: 800;
+  color: var(--text-tertiary);
+  padding: 0 4px;
+  font-weight: 600;
   letter-spacing: 1px;
 }
 
+@media (pointer: coarse) {
+  .pg-btn { min-width: 44px; height: 44px; }
+}
+
 @media (max-width: 480px) {
-  .pg-btn {
-    min-width: 36px;
-    height: 36px;
-    padding: 0 9px;
-    font-size: 13px;
-    border-radius: 9px;
-  }
-  .pagination { gap: 5px; }
+  .pagination { gap: 4px; padding: 0; }
+  .pg-btn { min-width: 40px; padding: 0 8px; font-size: 13.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-btn { transition: none; }
+  .pg-btn.active { animation: none; }
 }

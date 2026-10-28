@@ -9,6 +9,7 @@ import {
   clearStoredToken,
 } from '../firebase/messaging'
 import { deleteDocument } from '../firebase/firestore'
+import Icon from './Icon'
 import '../styles/NotificationSettingsWidget.css'
 
 const PREFS_KEY = 'muslim_cc_notif_prefs'
@@ -26,32 +27,32 @@ const LABELS = {
     close:'Bağla',
     title:'Bildirişlər',
     subtitle:'Bildiriş ayarlarınızı idarə edin',
-    status:'Status',
+    status:'Vəziyyət',
     granted:'Aktiv',
-    denied:'Bloklanıb',
+    denied:'Bağlanıb',
     default:'Aktivləşdirilməyib',
     unsupported:'Brauzer dəstəkləmir',
     enable:'Bildirişləri aktivləşdir',
     disable:'Söndür',
-    enabling:'Aktivləşdirilir...',
-    blockedHelp:'Bildirişlər brauzerdə bloklanıb. Brauzer ünvan sətrində kilidə klikləyib icazə verin.',
+    enabling:'Aktivləşdirilir…',
+    blockedHelp:'Bildirişlər brauzerdə bağlanıb. Ünvan sətrindəki kilid işarəsinə basıb icazə verin.',
     types:'Bildiriş növləri',
     typePrayer:'Namaz vaxtları',
     typePrayerSub:'5 vaxt namazı üçün xatırlatma',
-    typeDaily:'Günün ayəsi/duası',
+    typeDaily:'Günün ayəsi və duası',
     typeDailySub:'Hər səhər yeni məzmun',
     typeAnnouncements:'Elanlar',
     typeAnnouncementsSub:'Yeni xəbərlər və yenilənmələr',
-    typeEvents:'Hadisələr',
-    typeEventsSub:'Ramazan, Eyd, mübarək günlər',
-    test:'Test bildirişi göndər',
-    testSub:'Sınamaq üçün lokal bildiriş',
-    testSent:'Test göndərildi ✓',
+    typeEvents:'Mübarək günlər',
+    typeEventsSub:'Ramazan, bayramlar, mübarək gecələr',
+    test:'Sınaq bildirişi göndər',
+    testSub:'Bu cihazda yoxlama bildirişi',
+    testSent:'Sınaq bildirişi göndərildi',
     permissionNeeded:'Əvvəlcə icazə verin',
     save:'Yadda saxla',
-    saved:'Yadda saxlandı ✓',
+    saved:'Yadda saxlandı',
     confirmDisable:'Bildirişlər söndürüləcək. Davam edək?',
-    testBody:'Test bildirişi — hər şey işləyir!',
+    testBody:'Sınaq bildirişi — hər şey işləyir!',
   },
   en: {
     open:'Notification settings',
@@ -65,23 +66,23 @@ const LABELS = {
     unsupported:'Browser not supported',
     enable:'Enable notifications',
     disable:'Disable',
-    enabling:'Enabling...',
+    enabling:'Enabling…',
     blockedHelp:'Notifications are blocked in your browser. Click the lock icon in the address bar to allow.',
     types:'Notification types',
     typePrayer:'Prayer times',
     typePrayerSub:'Reminders for 5 daily prayers',
-    typeDaily:'Daily verse/dua',
+    typeDaily:'Verse and dua of the day',
     typeDailySub:'New content every morning',
     typeAnnouncements:'Announcements',
     typeAnnouncementsSub:'News and updates',
-    typeEvents:'Events',
+    typeEvents:'Blessed days',
     typeEventsSub:'Ramadan, Eid, blessed days',
     test:'Send test notification',
     testSub:'Local test notification',
-    testSent:'Test sent ✓',
+    testSent:'Test notification sent',
     permissionNeeded:'Grant permission first',
     save:'Save',
-    saved:'Saved ✓',
+    saved:'Saved',
     confirmDisable:'Notifications will be turned off. Continue?',
     testBody:'Test notification — everything works!',
   },
@@ -97,7 +98,7 @@ const LABELS = {
     unsupported:'Браузер не поддерживает',
     enable:'Включить уведомления',
     disable:'Отключить',
-    enabling:'Включается...',
+    enabling:'Включается…',
     blockedHelp:'Уведомления заблокированы в браузере. Нажмите на замок в адресной строке.',
     types:'Типы уведомлений',
     typePrayer:'Время намаза',
@@ -106,14 +107,14 @@ const LABELS = {
     typeDailySub:'Новый контент каждое утро',
     typeAnnouncements:'Объявления',
     typeAnnouncementsSub:'Новости и обновления',
-    typeEvents:'События',
-    typeEventsSub:'Рамадан, Ид, благословенные дни',
+    typeEvents:'Благословенные дни',
+    typeEventsSub:'Рамадан, праздники, благословенные ночи',
     test:'Тестовое уведомление',
     testSub:'Локальный тест',
-    testSent:'Отправлено ✓',
+    testSent:'Тест отправлен',
     permissionNeeded:'Сначала разрешите',
     save:'Сохранить',
-    saved:'Сохранено ✓',
+    saved:'Сохранено',
     confirmDisable:'Уведомления будут отключены. Продолжить?',
     testBody:'Тестовое уведомление — всё работает!',
   },
@@ -129,7 +130,7 @@ const LABELS = {
     unsupported:'المتصفح غير مدعوم',
     enable:'تفعيل الإشعارات',
     disable:'إيقاف',
-    enabling:'جارٍ التفعيل...',
+    enabling:'جارٍ التفعيل…',
     blockedHelp:'الإشعارات محظورة في المتصفح. انقر على القفل في شريط العنوان.',
     types:'أنواع الإشعارات',
     typePrayer:'أوقات الصلاة',
@@ -142,10 +143,10 @@ const LABELS = {
     typeEventsSub:'رمضان والعيد والأيام المباركة',
     test:'إشعار تجريبي',
     testSub:'إشعار محلي للتجربة',
-    testSent:'تم الإرسال ✓',
+    testSent:'تم الإرسال',
     permissionNeeded:'امنح الإذن أولاً',
     save:'حفظ',
-    saved:'تم الحفظ ✓',
+    saved:'تم الحفظ',
     confirmDisable:'سيتم إيقاف الإشعارات. هل تريد المتابعة؟',
     testBody:'إشعار تجريبي — كل شيء يعمل!',
   },
@@ -161,7 +162,7 @@ const LABELS = {
     unsupported:'Tarayıcı desteklemiyor',
     enable:'Bildirimleri etkinleştir',
     disable:'Kapat',
-    enabling:'Etkinleştiriliyor...',
+    enabling:'Etkinleştiriliyor…',
     blockedHelp:'Bildirimler tarayıcıda engellendi. Adres çubuğundaki kilide tıklayın.',
     types:'Bildirim türleri',
     typePrayer:'Namaz vakitleri',
@@ -170,32 +171,17 @@ const LABELS = {
     typeDailySub:'Her sabah yeni içerik',
     typeAnnouncements:'Duyurular',
     typeAnnouncementsSub:'Haberler ve güncellemeler',
-    typeEvents:'Olaylar',
-    typeEventsSub:'Ramazan, Bayram, mübarek günler',
+    typeEvents:'Mübarek günler',
+    typeEventsSub:'Ramazan, bayramlar, mübarek geceler',
     test:'Test bildirimi gönder',
     testSub:'Yerel test bildirimi',
-    testSent:'Gönderildi ✓',
+    testSent:'Test bildirimi gönderildi',
     permissionNeeded:'Önce izin verin',
     save:'Kaydet',
-    saved:'Kaydedildi ✓',
+    saved:'Kaydedildi',
     confirmDisable:'Bildirimler kapatılacak. Devam edilsin mi?',
     testBody:'Test bildirimi — her şey çalışıyor!',
   },
-}
-
-function BellIcon({ size = 24 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 2C10.5 2 9.3 3.2 9.3 4.7V5.2C6.8 6 5 8.4 5 11.2V14L3.5 16.5C3.2 17 3 17.6 3 18.2C3 19 3.7 19.7 4.5 19.7H19.5C20.3 19.7 21 19 21 18.2C21 17.6 20.8 17 20.5 16.5L19 14V11.2C19 8.4 17.2 6 14.7 5.2V4.7C14.7 3.2 13.5 2 12 2Z"
-        fill="currentColor"
-      />
-      <path
-        d="M10 20.7C10 21.9 10.9 22.7 12 22.7C13.1 22.7 14 21.9 14 20.7H10Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
 }
 
 /**
@@ -328,7 +314,7 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
       setFeedback({ ok: false, text: l.permissionNeeded })
       return
     }
-    new Notification(`🌙 ${brandName(lang)}`, {
+    new Notification(brandName(lang), {
       body: l.testBody,
       icon: '/android-chrome-192x192.png',
       badge: '/favicon-32x32.png',
@@ -341,10 +327,10 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
 
   // Rəng burada deyil — CSS data-status-a görə seçir (NotificationSettingsWidget.css)
   const statusInfo = (() => {
-    if (!supported) return { key: 'unsupported', icon: '⊘', text: l.unsupported }
-    if (permission === 'granted' && hasToken) return { key: 'granted', icon: '✓', text: l.granted }
-    if (permission === 'denied') return { key: 'denied', icon: '⊗', text: l.denied }
-    return { key: 'default', icon: '!', text: l.default }
+    if (!supported) return { key: 'unsupported', icon: 'bellOff', text: l.unsupported }
+    if (permission === 'granted' && hasToken) return { key: 'granted', icon: 'check', text: l.granted }
+    if (permission === 'denied') return { key: 'denied', icon: 'bellOff', text: l.denied }
+    return { key: 'default', icon: 'bell', text: l.default }
   })()
 
   const needsAttention = supported && permission !== 'granted' && permission !== 'denied'
@@ -359,13 +345,13 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
           <div className="notif-panel" role="dialog" aria-label={l.title}>
             <div className="notif-header">
               <div className="notif-header-info">
-                <div className="notif-header-icon"><BellIcon size={24} /></div>
+                <div className="notif-header-icon" aria-hidden="true"><Icon name="bell" size={22} /></div>
                 <div>
                   <div className="notif-name">{l.title}</div>
                   <div className="notif-tagline">{l.subtitle}</div>
                 </div>
               </div>
-              <button ref={closeBtnRef} className="notif-close" onClick={() => setOpen(false)} aria-label={l.close}>✕</button>
+              <button ref={closeBtnRef} className="notif-close" onClick={() => setOpen(false)} aria-label={l.close}><Icon name="close" size={18} /></button>
             </div>
 
             <div className="notif-body">
@@ -373,7 +359,7 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
               {/* Status card */}
               <div className="notif-status-card" data-status={statusInfo.key} role="status">
                 <div className="notif-status-icon" aria-hidden="true">
-                  {statusInfo.icon}
+                  <Icon name={statusInfo.icon} size={20} strokeWidth={2} />
                 </div>
                 <div className="notif-status-body">
                   <div className="notif-status-label">{l.status}</div>
@@ -386,45 +372,47 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
               {/* Permission actions */}
               {supported && permission === 'default' && (
                 <button className="notif-primary-btn" onClick={handleEnable} disabled={busy}>
-                  {busy ? l.enabling : `🔔 ${l.enable}`}
+                  {busy ? <span className="notif-spinner" aria-hidden="true" /> : <Icon name="bell" size={18} />}
+                  <span>{busy ? l.enabling : l.enable}</span>
                 </button>
               )}
 
               {supported && permission === 'granted' && !hasToken && (
                 <button className="notif-primary-btn" onClick={handleEnable} disabled={busy}>
-                  {busy ? l.enabling : `🔔 ${l.enable}`}
+                  {busy ? <span className="notif-spinner" aria-hidden="true" /> : <Icon name="bell" size={18} />}
+                  <span>{busy ? l.enabling : l.enable}</span>
                 </button>
               )}
 
               {supported && permission === 'granted' && hasToken && (
                 <button className="notif-secondary-btn" onClick={handleDisable} disabled={busy}>
-                  🔕 {l.disable}
+                  <Icon name="bellOff" size={18} /> <span>{l.disable}</span>
                 </button>
               )}
 
               {permission === 'denied' && (
                 <div className="notif-help">
-                  💡 {l.blockedHelp}
+                  <Icon name="info" size={18} /> <span>{l.blockedHelp}</span>
                 </div>
               )}
 
               {feedback && (
-                <div className={`notif-feedback ${feedback.ok ? 'ok' : 'err'}`}>
-                  {feedback.ok ? '✅' : '⚠️'} {feedback.text}
+                <div className={`notif-feedback ${feedback.ok ? 'ok' : 'err'}`} role="status">
+                  <Icon name={feedback.ok ? 'check' : 'alert'} size={17} /> <span>{feedback.text}</span>
                 </div>
               )}
 
               {/* Notification type preferences */}
               <section className="notif-section">
-                <div className="notif-section-title">📋 {l.types}</div>
+                <div className="notif-section-title"><Icon name="list" size={15} /> {l.types}</div>
                 <div className="notif-toggles">
-                  <PrefToggle icon="🕌" label={l.typePrayer} sub={l.typePrayerSub}
+                  <PrefToggle icon="prayer" label={l.typePrayer} sub={l.typePrayerSub}
                     on={prefs.prayer} onClick={() => togglePref('prayer')} />
-                  <PrefToggle icon="🌅" label={l.typeDaily} sub={l.typeDailySub}
+                  <PrefToggle icon="quran" label={l.typeDaily} sub={l.typeDailySub}
                     on={prefs.daily} onClick={() => togglePref('daily')} />
-                  <PrefToggle icon="📣" label={l.typeAnnouncements} sub={l.typeAnnouncementsSub}
+                  <PrefToggle icon="megaphone" label={l.typeAnnouncements} sub={l.typeAnnouncementsSub}
                     on={prefs.announcements} onClick={() => togglePref('announcements')} />
-                  <PrefToggle icon="📅" label={l.typeEvents} sub={l.typeEventsSub}
+                  <PrefToggle icon="calendar" label={l.typeEvents} sub={l.typeEventsSub}
                     on={prefs.events} onClick={() => togglePref('events')} />
                 </div>
               </section>
@@ -432,7 +420,7 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
               {/* Test button */}
               {supported && permission === 'granted' && (
                 <button className="notif-test-btn" onClick={handleTest}>
-                  <span className="notif-test-icon">🧪</span>
+                  <span className="notif-test-icon" aria-hidden="true"><Icon name="flask" size={18} /></span>
                   <span className="notif-test-text">
                     <span>{l.test}</span>
                     <span className="notif-test-sub">{l.testSub}</span>
@@ -451,7 +439,7 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
 function PrefToggle({ icon, label, sub, on, onClick }) {
   return (
     <button className={`notif-toggle ${on ? 'on' : ''}`} onClick={onClick} role="switch" aria-checked={on}>
-      <span className="notif-toggle-icon">{icon}</span>
+      <span className="notif-toggle-icon" aria-hidden="true"><Icon name={icon} size={18} /></span>
       <span className="notif-toggle-text">
         <span className="notif-toggle-label">{label}</span>
         <span className="notif-toggle-sub">{sub}</span>

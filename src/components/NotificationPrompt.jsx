@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
+import Icon from './Icon'
 import {
   isPushSupported,
   getPermissionStatus,
@@ -16,6 +17,9 @@ import {
   visitCount,
   hasNavigated,
   wasShownThisSession,
+  snoozePrompt,
+  isSnoozed,
+  exitDelay,
 } from '../utils/promptCoordinator'
 import '../styles/NotificationPrompt.css'
 
@@ -29,6 +33,9 @@ import '../styles/NotificationPrompt.css'
 //     təkrar gəlişdə: ~10 s sonra;
 //   • quraşdırma zolağı və elan toast-u ilə eyni anda çıxmır
 //     (promptCoordinator); sessiyada ən çox bir dəfə.
+//   • 2-ci mərhələ: "Sonra" və ✕ → 7 gün, özü gizləndi → 3 gün göstərilmir
+//     (əvvəl özü gizlənəndə heç nə yadda qalmırdı — hər sessiyada yenə çıxırdı);
+//     bağlananda yumşaq çıxış animasiyası; görünüş ümumi .ui-toast (ui.css §11).
 // ═══════════════════════════════════════════════════════
 
 const LABELS = {
@@ -39,8 +46,10 @@ const LABELS = {
   tr: { title:'Bildirimleri etkinleştir', desc:'Namaz vakitleri, günün ayeti ve duyurular için bildirim alın.', enable:'Etkinleştir', later:'Sonra', close:'Kapat' },
 }
 
-const DISMISS_KEY = 'muslim_cc_push_prompt_dismissed' // mövcud açar — dəyişmir
-const DISMISS_HOURS = 24          // "Sonra"dan sonra 24 saat görünmür
+const DISMISS_KEY = 'muslim_cc_push_prompt_dismissed' // mövcud açar: indi "bu vaxta qədər" (köhnə qeyd = bağlanma anı)
+const SNOOZE_DAYS = { later: 7, auto: 3 }
+const LEGACY_DAYS = 1             // köhnə qeydlər (bağlanma anı) 24 saat sayılırdı
+const LEAVE_MS = 220
 const FIRST_VISIT_MS = 30000      // ilk gəliş: ~30 s görünən vaxt (+ başqa səhifəyə keçid)
 const RETURN_VISIT_MS = 10000     // təkrar gəliş: ~10 s
 const AUTO_HIDE_MS = 30000        // toxunulmasa sakitcə gizlənir (sessiyada yenidən çıxmır)
@@ -50,12 +59,7 @@ const TOAST_MS = 6000
 const HAS_VAPID = Boolean(import.meta.env.VITE_FCM_VAPID_KEY)
 
 function dismissedRecently() {
-  try {
-    const at = Number(localStorage.getItem(DISMISS_KEY) || 0)
-    return Boolean(at) && Date.now() - at < DISMISS_HOURS * 3600 * 1000
-  } catch {
-    return false
-  }
+  return isSnoozed(DISMISS_KEY, LEGACY_DAYS)
 }
 
 function isEligible() {
@@ -71,7 +75,9 @@ export default function NotificationPrompt() {
 
   const [canAsk, setCanAsk] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [leaving, setLeaving] = useState(false)
   const [toast, setToast] = useState(null) // { title, body }
+  const leaveTimerRef = useRef(null)
   const barRef = useRef(null)
   const toastTimerRef = useRef(null)
 
@@ -97,8 +103,22 @@ export default function NotificationPrompt() {
   const enabled = canAsk && !wasShownThisSession('notif')
   const [shown, hide] = usePromptSlot('notif', isEligible, { ask: true, enabled })
 
+  /** Yumşaq çıxış + qərarı yadda saxla (days = null → yalnız bu sessiya) */
+  const close = useCallback((days) => {
+    if (days) snoozePrompt(DISMISS_KEY, days)
+    setCanAsk(false)
+    setLeaving(true)
+    clearTimeout(leaveTimerRef.current)
+    leaveTimerRef.current = setTimeout(() => {
+      setLeaving(false)
+      hide()
+    }, exitDelay(LEAVE_MS))
+  }, [hide])
+  useEffect(() => () => clearTimeout(leaveTimerRef.current), [])
+
   useBottomInset(barRef, shown)
-  const pauseProps = useAutoHide(shown && !busy, AUTO_HIDE_MS, hide)
+  const autoHide = useCallback(() => close(SNOOZE_DAYS.auto), [close])
+  const pauseProps = useAutoHide(shown && !busy && !leaving, AUTO_HIDE_MS, autoHide)
 
   // Cari dili ref-də saxla — foreground callback bir dəfə qeydiyyatdan keçir,
   // dil dəyişəndə yenidən abunə olmadan aktual brend adını göstərsin
@@ -139,64 +159,71 @@ export default function NotificationPrompt() {
       console.warn('Notification setup failed:', e?.message || e)
     }
     setBusy(false)
-    setCanAsk(false)
-    hide()
+    close(null)
   }
 
-  const handleLater = useCallback(() => {
-    try { localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch { /* yaddaş bağlıdır */ }
-    setCanAsk(false)
-    hide()
-  }, [hide])
+  const handleLater = useCallback(() => close(SNOOZE_DAYS.later), [close])
 
   return (
     <>
-      {/* İcazə təklifi — aşağıda yığcam zolaq, məzmunu örtmür */}
+      {/* İcazə təklifi — üzən kart (.ui-toast), məzmunu örtmür */}
       {shown && (
         <div
           ref={barRef}
-          className="qm-notif-prompt"
+          className={`qm-notif-prompt ui-toast${leaving ? ' is-leaving' : ''}`}
           role="region"
           aria-label={l.title}
           {...pauseProps}
         >
-          <div className="qm-notif-prompt-inner">
-            <span className="qm-notif-prompt-icon" aria-hidden="true">🔔</span>
-            <div className="qm-notif-prompt-text">
-              <strong>{l.title}</strong>
-              <span>{l.desc}</span>
-            </div>
-            <div className="qm-notif-prompt-actions">
-              <button
-                type="button"
-                className="qm-notif-prompt-btn"
-                onClick={handleEnable}
-                disabled={busy}
-              >
-                {busy ? '…' : l.enable}
-              </button>
-              <button type="button" className="qm-notif-prompt-later" onClick={handleLater}>
-                {l.later}
-              </button>
-            </div>
+          <span className="ui-toast__icon qm-notif-prompt-icon" aria-hidden="true"><Icon name="bell" /></span>
+          <div className="ui-toast__body">
+            <strong className="ui-toast__title">{l.title}</strong>
+            <span className="ui-toast__text">{l.desc}</span>
           </div>
-        </div>
-      )}
-
-      {/* Ön planda gələn push bildirişi */}
-      {toast && (
-        <div className="qm-push-toast" role="status" aria-live="polite">
-          <span className="qm-push-toast-icon" aria-hidden="true">🔔</span>
-          <div className="qm-push-toast-text">
-            <strong>{toast.title}</strong>
-            {toast.body && <span>{toast.body}</span>}
+          <div className="ui-toast__actions">
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={handleLater}>
+              {l.later}
+            </button>
+            <button
+              type="button"
+              className="ui-btn ui-btn--primary ui-btn--sm"
+              onClick={handleEnable}
+              disabled={busy}
+              aria-busy={busy || undefined}
+            >
+              {busy ? <span className="ui-spin" aria-hidden="true" /> : <Icon name="check" size={17} className="ui-btn__icon" />}
+              {l.enable}
+            </button>
           </div>
           <button
             type="button"
-            className="qm-push-toast-close"
+            className="ui-toast__close"
+            onClick={handleLater}
+            aria-label={l.close}
+            title={l.close}
+          >
+            <Icon name="close" size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Ön planda gələn push bildirişi — başlığın altında */}
+      {toast && (
+        <div className="qm-push-toast ui-toast ui-toast--top" role="status" aria-live="polite" style={{ '--toast-duration': `${TOAST_MS}ms` }}>
+          <span className="ui-toast__icon" aria-hidden="true"><Icon name="bell" /></span>
+          <div className="ui-toast__body">
+            <strong className="ui-toast__title">{toast.title}</strong>
+            {toast.body && <span className="ui-toast__text">{toast.body}</span>}
+          </div>
+          <button
+            type="button"
+            className="ui-toast__close"
             onClick={() => setToast(null)}
             aria-label={l.close}
-          >✕</button>
+          >
+            <Icon name="close" size={18} />
+          </button>
+          <span className="ui-toast__progress" aria-hidden="true" />
         </div>
       )}
     </>

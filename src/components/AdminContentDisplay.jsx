@@ -5,6 +5,19 @@ import { subscribeToAnnouncements, subscribeToDailyContent, ANNOUNCEMENT_TYPES }
 import { localizeSource } from '../utils/sourceNames'
 // Admin mətni cari dildə yoxdursa başqa dilə (ingiliscə daxil) düşmür — göstərilmir
 import { pickLang } from '../utils/pickLang'
+import Icon from './Icon'
+import '../styles/AdminContentDisplay.css'
+
+// Elan növü → ikon + ton (emoji və hex rənglərin yerinə)
+const TYPE_STYLE = {
+  info:     { icon: 'info',     tone: 'brand' },
+  urgent:   { icon: 'alert',    tone: 'bad' },
+  event:    { icon: 'calendar', tone: 'accent' },
+  success:  { icon: 'star',     tone: 'ok' },
+  reminder: { icon: 'bell',     tone: 'accent' },
+}
+const MORE = { az: 'Daha çox', en: 'Learn more', ru: 'Подробнее', ar: 'المزيد', tr: 'Devamı' }
+const CLOSE = { az: 'Bağla', en: 'Close', ru: 'Закрыть', ar: 'إغلاق', tr: 'Kapat' }
 
 // ═══ ANNOUNCEMENTS BANNER ═══
 export function AnnouncementBanner() {
@@ -24,55 +37,33 @@ export function AnnouncementBanner() {
   if (visible.length === 0) return null
 
   return (
-    <div style={{padding:'0 20px', marginTop:20, display:'flex', flexDirection:'column', gap:10}}>
+    <div className="ui-container qm-ann-banners">
       {visible.map(a => {
         const type = ANNOUNCEMENT_TYPES.find(t => t.key === a.type) || ANNOUNCEMENT_TYPES[0]
+        const look = TYPE_STYLE[type.key] || TYPE_STYLE.info
+        const msg = pickLang(a.message, lang, { warn: false })
+        const link = typeof a.link === 'string' && /^https?:\/\//i.test(a.link.trim()) ? a.link.trim() : ''
         return (
-          <div key={a.id} style={{
-            background: `linear-gradient(135deg, ${type.color}18, ${type.color}08)`,
-            border: `1.5px solid ${type.color}40`,
-            borderLeft: `5px solid ${type.color}`,
-            borderRadius: 14,
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            position: 'relative',
-            animation: 'fadeUp .5s cubic-bezier(0.4,0,0.2,1)',
-          }}>
-            <div style={{fontSize:28, flexShrink:0}}>{type.icon}</div>
-            <div style={{flex:1, minWidth:0}}>
-              <div style={{fontSize:15, fontWeight:800, color:'var(--text)', marginBottom:4, letterSpacing:-0.2}}>
-                {pickLang(a.title, lang)}
-              </div>
-              {pickLang(a.message, lang, { warn: false }) && (
-                <div style={{fontSize:13, color:'var(--text-dim)', lineHeight:1.5}}>
-                  {pickLang(a.message, lang, { warn: false })}
-                </div>
-              )}
-              {a.link && (
-                <a href={a.link} target="_blank" rel="noopener noreferrer" style={{display:'inline-block', marginTop:6, fontSize:12, fontWeight:700, color:type.color}}>
-                  {lang==='az'?'Daha çox →':lang==='ru'?'Подробнее →':lang==='ar'?'المزيد ←':lang==='tr'?'Daha fazla →':'Learn more →'}
+          <div key={a.id} className={`ui-card qm-ann-banner tone-${look.tone}`} data-reveal>
+            <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={look.icon} /></span>
+            <div className="qm-ann-banner__body">
+              <div className="ui-card__title">{pickLang(a.title, lang)}</div>
+              {msg && <div className="ui-card__text">{msg}</div>}
+              {link && (
+                <a className="ui-link" href={link} target="_blank" rel="noopener noreferrer">
+                  {MORE[lang] || MORE.en}
+                  <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
                 </a>
               )}
             </div>
             <button
+              type="button"
+              className="ui-icon-btn"
               onClick={() => setClosed([...closed, a.id])}
-              style={{
-                background: 'rgba(0,0,0,0.06)',
-                border: 'none',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
-                fontSize: 14,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >✕</button>
+              aria-label={CLOSE[lang] || CLOSE.en}
+            >
+              <Icon name="close" size={18} />
+            </button>
           </div>
         )
       })}
@@ -104,7 +95,7 @@ export function DailyContentDisplay() {
   if (!content) return null
 
   const LABELS = {
-    az: { ayah:'Günün Ayəsi', dhikr:'Günün Zikri', quote:'Günün Sözü', target:'Hədəf' },
+    az: { ayah:'Günün ayəsi', dhikr:'Günün zikri', quote:'Günün sözü', target:'Hədəf' },
     en: { ayah:'Daily Ayah', dhikr:'Daily Dhikr', quote:'Daily Quote', target:'Target' },
     ru: { ayah:'Аят дня', dhikr:'Зикр дня', quote:'Цитата дня', target:'Цель' },
     ar: { ayah:'آية اليوم', dhikr:'ذكر اليوم', quote:'اقتباس اليوم', target:'الهدف' },
@@ -112,56 +103,77 @@ export function DailyContentDisplay() {
   }
   const l = LABELS[lang] || LABELS.az
 
+  const HEAD = {
+    az: { eyebrow: 'Bu gün', title: 'Bugünkü məzmun' },
+    en: { eyebrow: 'Today', title: "Today's content" },
+    ru: { eyebrow: 'Сегодня', title: 'Контент дня' },
+    ar: { eyebrow: 'اليوم', title: 'محتوى اليوم' },
+    tr: { eyebrow: 'Bugün', title: 'Bugünün içeriği' },
+  }
+  const h = HEAD[lang] || HEAD.az
+
   return (
-    <section className="section">
-      <div className="section-inner">
-        <h2 style={{fontSize:'clamp(24px,4vw,32px)', fontWeight:800, color:'var(--text)', margin:'0 0 20px', letterSpacing:-0.5}}>
-          🌟 {lang==='az'?'Bugünkü Məzmun':lang==='ru'?'Контент дня':lang==='ar'?'محتوى اليوم':lang==='tr'?'Bugünün İçeriği':"Today's Content"}
-        </h2>
+    <section className="ui-section ui-section--tight qm-daily">
+      <div className="ui-container">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{h.eyebrow}</span>
+          <h2 className="ui-title">{h.title}</h2>
+        </div>
 
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:16}}>
-
+        <div className="ui-grid" style={{ '--ui-grid-min': '280px' }} data-reveal="stagger">
           {content.hasAyah && (
-            <div style={{background:'linear-gradient(135deg, #10b98112, #10b98103)', border:'1.5px solid #10b98140', borderRadius:'var(--radius-lg)', padding:24, overflow:'hidden'}}>
-              <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:14}}>
-                <span style={{fontSize:24}}>📖</span>
-                <span style={{fontSize:11, fontWeight:800, color:'#10b981', textTransform:'uppercase', letterSpacing:1}}>{l.ayah}</span>
+            <article className="ui-card qm-daily-card">
+              <div className="ui-card__head">
+                <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="quran" /></span>
+                <span className="qm-daily-card__label">{l.ayah}</span>
               </div>
-              {content.ayah.ar && <div style={{fontSize:20, lineHeight:1.9, textAlign:'right', color:'var(--text)', marginBottom:10, fontFamily:'Amiri, serif'}}>{content.ayah.ar}</div>}
-              {pickLang(content.ayah.text, lang) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:10}}>{pickLang(content.ayah.text, lang)}</div>}
-              {content.ayah.source && <div style={{fontSize:12, color:'#10b981', fontWeight:700}}>— <bdi>{localizeSource(content.ayah.source, lang)}</bdi></div>}
-            </div>
+              <figure className="ui-quote">
+                <blockquote>
+                  {content.ayah.ar && <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{content.ayah.ar}</p>}
+                  {pickLang(content.ayah.text, lang) && <p className="ui-quote__text">{pickLang(content.ayah.text, lang)}</p>}
+                </blockquote>
+                {content.ayah.source && <figcaption className="ui-quote__src">— <bdi>{localizeSource(content.ayah.source, lang)}</bdi></figcaption>}
+              </figure>
+            </article>
           )}
 
           {content.hasDhikr && (
-            <div style={{background:'linear-gradient(135deg, #06b6d412, #06b6d403)', border:'1.5px solid #06b6d440', borderRadius:'var(--radius-lg)', padding:24}}>
-              <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:14}}>
-                <span style={{fontSize:24}}>📿</span>
-                <span style={{fontSize:11, fontWeight:800, color:'#06b6d4', textTransform:'uppercase', letterSpacing:1}}>{l.dhikr}</span>
+            <article className="ui-card qm-daily-card">
+              <div className="ui-card__head">
+                <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="dhikr" /></span>
+                <span className="qm-daily-card__label">{l.dhikr}</span>
               </div>
-              {content.dhikr.ar && <div style={{fontSize:20, lineHeight:1.9, textAlign:'right', color:'var(--text)', marginBottom:10, fontFamily:'Amiri, serif'}}>{content.dhikr.ar}</div>}
-              {content.dhikr.translit && <div style={{fontSize:13, fontStyle:'italic', color:'#0891b2', marginBottom:8}}>{content.dhikr.translit}</div>}
-              {pickLang(content.dhikr.text, lang) && <div style={{fontSize:13, color:'var(--text-dim)', lineHeight:1.5, marginBottom:10}}>{pickLang(content.dhikr.text, lang)}</div>}
+              <figure className="ui-quote">
+                <blockquote>
+                  {content.dhikr.ar && <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{content.dhikr.ar}</p>}
+                  {content.dhikr.translit && <p className="qm-daily-card__translit">{content.dhikr.translit}</p>}
+                  {pickLang(content.dhikr.text, lang) && <p className="ui-quote__text">{pickLang(content.dhikr.text, lang)}</p>}
+                </blockquote>
+              </figure>
               {content.dhikr.count && (
-                <div style={{display:'inline-block', background:'#06b6d418', color:'#06b6d4', padding:'4px 12px', borderRadius:999, fontSize:11, fontWeight:800}}>
-                  🎯 {l.target}: ×{content.dhikr.count}
-                </div>
+                <span className="ui-badge ui-badge--accent qm-daily-card__count">
+                  <Icon name="target" size={14} />
+                  {l.target}: <span className="ui-num">×{content.dhikr.count}</span>
+                </span>
               )}
-            </div>
+            </article>
           )}
 
           {content.hasQuote && (
-            <div style={{background:'linear-gradient(135deg, #a855f712, #a855f703)', border:'1.5px solid #a855f740', borderRadius:'var(--radius-lg)', padding:24}}>
-              <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:14}}>
-                <span style={{fontSize:24}}>💬</span>
-                <span style={{fontSize:11, fontWeight:800, color:'#a855f7', textTransform:'uppercase', letterSpacing:1}}>{l.quote}</span>
+            <article className="ui-card qm-daily-card">
+              <div className="ui-card__head">
+                <span className="ui-icon-tile ui-icon-tile--sm ui-icon-tile--accent" aria-hidden="true"><Icon name="quotes" /></span>
+                <span className="qm-daily-card__label">{l.quote}</span>
               </div>
-              {content.quote.ar && <div style={{fontSize:18, lineHeight:1.9, textAlign:'right', color:'var(--text)', marginBottom:10, fontFamily:'Amiri, serif'}}>{content.quote.ar}</div>}
-              {pickLang(content.quote.text, lang) && <div style={{fontSize:14, color:'var(--text-dim)', lineHeight:1.6, marginBottom:10, fontStyle:'italic'}}>"{pickLang(content.quote.text, lang)}"</div>}
-              {content.quote.source && <div style={{fontSize:12, color:'#a855f7', fontWeight:700}}>— <bdi>{localizeSource(content.quote.source, lang)}</bdi></div>}
-            </div>
+              <figure className="ui-quote">
+                <blockquote>
+                  {content.quote.ar && <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{content.quote.ar}</p>}
+                  {pickLang(content.quote.text, lang) && <p className="ui-quote__text">{pickLang(content.quote.text, lang)}</p>}
+                </blockquote>
+                {content.quote.source && <figcaption className="ui-quote__src">— <bdi>{localizeSource(content.quote.source, lang)}</bdi></figcaption>}
+              </figure>
+            </article>
           )}
-
         </div>
       </div>
     </section>

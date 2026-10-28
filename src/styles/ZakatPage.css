@@ -1,498 +1,424 @@
-.zakat-layout { display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start; }
+/* ══════════════════════════════════════════════════════
+   Zəkat kalkulyatoru (/zakat) — dizayn v2
+   Yalnız semantik tokenlər (DESIGN.md) — qaranlıq rejim avtomatikdir.
+   Bu fayl ui.css-dən ƏVVƏL yüklənir: .ui-* sinfini dəyişəndə valideyn
+   ilə gücləndirilir (.zakat-page .ui-… — DESIGN.md §4.1).
 
-.zakat-block-label { font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; }
+   Quruluş (≥1180px): [forma + fitrə | nəticə sütunu] → ayə.
+   <1180px: tək sütun — forma → nəticə → fitrə; yazarkən ekranın altında
+   yapışqan "Ödənilməli zəkat" zolağı görünür.
+   ══════════════════════════════════════════════════════ */
 
-/* ══ SOL PANEL ══ */
-.zakat-inputs {
-  background:var(--bg-card); border:1px solid var(--border);
-  border-radius:var(--radius-xl); padding:24px;
-  display:flex; flex-direction:column; gap:18px;
-}
+/* Məbləğlər Inter ilə: Literata-da ₼ (manat) işarəsi yoxdur — ehtiyat
+   şriftdə yad görünürdü */
 
-/* Valyuta */
-.zakat-currency-block {
-  background:var(--bg-card2); border:1px solid var(--border);
-  border-radius:var(--radius-lg); padding:14px 16px;
-}
-.zakat-currency-header {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:10px; flex-wrap:wrap; gap:6px;
-}
-.zakat-rate-badge {
-  font-size:12px; font-weight:600; color:var(--primary-dark);
-  background:var(--primary-bg); border:1px solid var(--primary-border);
-  border-radius:8px; padding:3px 9px;
-}
-.zakat-rate-badge.loading { color:var(--text-muted); background:var(--surface); border-color:var(--border); }
-.zakat-currency-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
-.zakat-cur-btn {
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
-  padding:8px 4px; border-radius:9px; min-height:var(--tap);
-  border:1.5px solid var(--border); background:var(--bg-card); color:var(--text);
-  cursor:pointer; font-family:var(--font); transition:all .15s;
-}
-.zakat-cur-btn span:first-child { font-size:12px; font-weight:700; color:var(--text); line-height:1.2; }
-.zakat-cur-btn small { font-size:11px; color:var(--text-muted); line-height:1.2; }
-.zakat-cur-btn:hover { border-color:var(--primary-border); background:var(--primary-bg); }
-.zakat-cur-btn.active { border-color:var(--primary); background:var(--primary-bg); box-shadow:0 0 0 1px var(--primary); }
-.zakat-cur-btn.active span:first-child { color:var(--primary-dark); }
-
-/* Sahələr */
-.zakat-fields { display:flex; flex-direction:column; gap:8px; }
-/* Bütün sətir <label>-dir: ikona və ya yazıya toxunmaq da sahəni fokuslayır */
-.zakat-field-row {
-  display:flex; align-items:center; gap:12px;
-  background:var(--bg); border:1.5px solid var(--border);
-  border-radius:var(--radius); padding:11px 14px;
-  cursor:text;
-  transition:border-color .2s, background .2s;
-}
-.zakat-field-row:focus-within { border-color:var(--primary-border); background:var(--bg-card); }
-.zakat-field-icon { font-size:20px; flex-shrink:0; }
-.zakat-field-body { display:block; flex:1; min-width:0; }
-.zakat-field-label { display:block; font-size:12.5px; font-weight:600; color:var(--text-muted); margin-bottom:2px; }
-.zakat-input-wrap { display:flex; align-items:center; gap:4px; }
-.zakat-cur-prefix { font-size:15px; font-weight:700; color:var(--text-muted); flex-shrink:0; }
-.zakat-input { border:none !important; padding:0 !important; min-height:32px; font-size:16px; font-weight:700; background:transparent !important; box-shadow:none !important; color:var(--text); width:100%; }
-.zakat-input:focus { outline:none; }
-
-/* Maaş × 12 badge */
-.zakat-field-side { display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; }
-.zakat-field-tag { font-size:11px; font-weight:700; color:var(--primary); background:var(--primary-bg); border:1px solid var(--primary-border); border-radius:5px; padding:1px 6px; }
-.zakat-field-annual { font-size:12px; font-weight:700; color:var(--primary-dark); white-space:nowrap; }
-
-.zakat-reset-btn { align-self:flex-start; font-size:12.5px; }
-
-/* ══ SAĞ PANEL ══ */
-.zakat-result { display:flex; flex-direction:column; gap:12px; }
-
-.zakat-breakdown {
-  background:var(--bg-card); border:1px solid var(--border);
-  border-radius:var(--radius-lg); padding:16px 18px;
-}
-.breakdown-row {
-  display:flex; align-items:center; gap:10px;
-  padding:8px 0; border-bottom:1px solid var(--border);
-}
-.breakdown-row:last-of-type { border:none; }
-.breakdown-icon { font-size:15px; flex-shrink:0; }
-.breakdown-label-wrap { flex:1; display:flex; flex-direction:column; gap:1px; }
-/* Yazı hissəsi qalan eni tutur — məbləğ həmişə sağ kənarda (ərəbcədə sol) */
-.breakdown-label-wrap { min-width:0; }
-.breakdown-label { flex:1; min-width:0; font-size:13px; color:var(--text-dim); }
-.breakdown-sub   { font-size:11.5px; color:var(--text-muted); }
-.breakdown-val   { font-size:13.5px; font-weight:700; color:var(--text); white-space:nowrap; }
-.breakdown-total {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-top:8px; padding-top:10px; border-top:2px solid var(--primary-border);
-}
-.breakdown-total span:first-child { font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; }
-.total-amount { font-size:1.3rem; font-weight:800; color:var(--primary-dark); }
-
-/* Nisab */
-.nisab-card {
-  background:var(--bg-card); border:1.5px solid var(--border);
-  border-radius:var(--radius-lg); padding:16px 18px; transition:all .3s;
-}
-.nisab-card.above { border-color:var(--primary-border); background:var(--primary-bg); }
-.nisab-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:6px; }
-.nisab-label  { font-size:11.5px; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; }
-.nisab-badge  { font-size:12px; font-weight:700; padding:3px 9px; border-radius:10px; }
-.nisab-badge.yes { background:rgba(22,163,74,.1);  color:#166534; }
-.nisab-badge.no  { background:rgba(220,38,38,.07); color:#991b1b; }
-.nisab-value  { font-size:1.5rem; font-weight:800; color:var(--text); margin-bottom:3px; }
-.nisab-note   { font-size:12px; color:var(--text-muted); margin-bottom:10px; line-height:1.5; }
-.nisab-note + .nisab-price-note { margin-top:-8px; }
-.nisab-bar-wrap { height:6px; background:var(--surface); border-radius:3px; overflow:hidden; margin-bottom:4px; }
-/* Doluluq eni yox, transform: scaleX (JSX) — layout yenidən hesablanmır */
-.nisab-bar { height:100%; width:100%; background:linear-gradient(90deg,var(--primary-dark),var(--primary-light)); border-radius:3px; transform-origin:left center; transition:transform .6s var(--ease-out); }
-[dir="rtl"] .nisab-bar { transform-origin:right center; }
-.nisab-bar-labels { display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); }
-
-/* Zəkat nəticəsi */
-.zakat-due-card { border-radius:var(--radius-lg); padding:20px; text-align:center; }
-.zakat-due-card.active   { background:linear-gradient(135deg,var(--primary-bg),#fff); border:2px solid var(--primary-border); }
-.zakat-due-card.inactive { background:var(--bg-card2); border:1.5px solid var(--border); }
-.zakat-due-label  { font-size:11.5px; font-weight:700; color:var(--text-muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:12px; }
-
-/* İllik + aylıq yan-yana */
-.zakat-due-row { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:8px; }
-.zakat-due-block { flex:1; }
-.zakat-due-divider { width:1px; height:50px; background:var(--primary-border); margin:0 16px; }
-.zakat-due-amount    { font-size:2.2rem; font-weight:800; color:var(--primary-dark); letter-spacing:-1px; line-height:1.1; }
-.zakat-due-sm        { font-size:1.5rem; }
-.zakat-due-period    { font-size:12px; font-weight:600; color:var(--text-muted); margin-top:2px; }
-.zakat-due-pct       { font-size:11.5px; font-weight:700; color:var(--primary); }
-.zakat-due-note      { font-size:12px; color:var(--text-muted); margin-top:6px; font-style:italic; }
-
-/* Ayə (alquran.cloud-dan yüklənir) */
-.zakat-info-box {
-  background:var(--gold-bg); border:1px solid rgba(184,134,11,.18);
-  border-radius:var(--radius-lg); padding:16px 18px; text-align:center;
-}
-.zakat-quran-ar { font-family:var(--font-arabic); font-size:1.3rem; line-height:2; direction:rtl; margin-bottom:8px; color:var(--primary-dark); }
-.zakat-quran { font-size:13.5px; color:var(--text-dim); font-style:italic; line-height:1.7; }
-.zakat-quran-ref { margin-top:6px; font-size:12.5px; font-weight:600; color:var(--text-muted); }
-
-@media(max-width:860px) { .zakat-layout { grid-template-columns:1fr; } }
-@media(max-width:420px) { .zakat-cur-btn { padding:6px 2px; } }
-
-/* Telefonda iç-içə boşluqları azalt — sahələrə daha çox en qalsın */
-@media (max-width:480px) {
-  .zakat-inputs { padding:14px; gap:14px; border-radius:var(--radius-lg); }
-  .zakat-currency-block { padding:12px; }
-  .zakat-field-row { padding:10px 12px; gap:10px; }
-}
-
-/* ── Dark mode overrides ── */
-[data-theme="dark"] .zakat-due-card.active {
-  background: linear-gradient(135deg, rgba(46,204,113,0.1), #1a1a2e);
-  border-color: rgba(46,204,113,0.25);
-}
-[data-theme="dark"] .zakat-due-card.inactive {
-  background: var(--bg-card2);
-}
-[data-theme="dark"] .zakat-info-box {
-  background: rgba(240,192,64,0.08);
-  border-color: rgba(240,192,64,0.18);
-}
-[data-theme="dark"] .nisab-badge.yes {
-  background: rgba(46,204,113,0.15);
-  color: #4ade80;
-}
-[data-theme="dark"] .nisab-badge.no {
-  background: rgba(220,38,38,0.12);
-  color: #f87171;
-}
-[data-theme="dark"] .nisab-card.above {
-  background: rgba(46,204,113,0.08);
-  border-color: rgba(46,204,113,0.25);
+/* ── Hero ── */
+.zakat-hero .breadcrumb { justify-content: flex-start; margin: 0 0 2px; }
+.zakat-hero .bc-list { justify-content: flex-start; }
+.zakat-hero-ar {
+  margin-top: -2px;
+  color: var(--accent-text);
+  font-size: clamp(22px, 1.4rem + 0.8vw, 32px);
+  line-height: 1.5;
 }
 
 /* Məbləğlər ərəbcədə də soldan sağa oxunsun ("−₼300.00", "₼300.00−" yox) */
-.breakdown-val, .total-amount, .zakat-cur-prefix, .zakat-field-annual, .zakat-field-tag {
-  direction: ltr; unicode-bidi: isolate;
+.zakat-money, .zakat-ltr, .breakdown-val, .zakat-rate-badge strong {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
-/* ── Borc sahəsi ── (məntiqi xassə: ərəbcədə vurğu sağda, başlanğıc tərəfdə) */
-.zakat-field-debt { border-inline-start: 3px solid var(--danger); }
-.breakdown-debt .breakdown-val { color: var(--danger); }
-
-/* ── Fitrə Kartı ── */
-.fitr-card {
-  background: var(--bg-card); border: 1.5px solid var(--gold, #b8860b);
-  border-radius: var(--radius-lg); padding: 20px 22px;
+/* ── Quruluş ── */
+.zakat-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "form" "result" "fitr";
+  gap: var(--space-5);
+  align-items: start;
 }
-.fitr-title { font-size: 16px; font-weight: 800; color: var(--gold-dark, #8b6508); margin-bottom: 6px; }
-.fitr-desc { font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5; }
-.fitr-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 0; border-bottom: 1px solid var(--border);
-}
-/* Cəm sətrinin qızılı xətti var — ondan əvvəlki sətirdə ikinci xətt olmasın */
-.fitr-row + .fitr-row { border-bottom: none; }
-.fitr-label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
-.fitr-val { font-size: 14px; font-weight: 700; color: var(--text); }
-.fitr-input { width: 80px; text-align: center; font-size: 16px; font-weight: 700; padding: 6px; }
-.fitr-total-row {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-top: 12px; padding-top: 12px;
-  border-top: 2px solid var(--gold, #b8860b);
-}
-.fitr-total-val { font-size: 20px; font-weight: 800; color: var(--gold-dark, #8b6508); }
-
-@media (max-width: 768px) {
-  .fitr-card { padding: 16px; }
-  .fitr-total-val { font-size: 18px; }
-}
-
-/* ══ GENİŞ EKRAN (≥768px) — əvvəlki görünüş ═════════════════════
-   Varlıq ikonları JSX-də .icon-tile-dır (telefon üçün); burada yenə sadə emoji */
-@media (min-width: 768px) {
-  .zakat-field-icon.icon-tile {
-    display: inline;
-    width: auto;
-    height: auto;
-    border-radius: 0;
-    background: none;
-    line-height: inherit;
+.zakat-inputs { grid-area: form; }
+.zakat-result { grid-area: result; }
+.fitr-card    { grid-area: fitr; }
+@media (min-width: 1180px) {
+  .zakat-layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-areas: "form result" "fitr result";
+    gap: var(--space-5) var(--space-6);
   }
 }
 
-/* ══ YAPIŞQAN CƏM ZOLAĞI (≤860px, tək sütunlu düzüm) ═════════════
+/* Kiçik böyük hərfli blok etiketi (ikonla) */
+.zakat-block-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+.zakat-block-label svg { color: var(--accent); flex-shrink: 0; }
+[dir="rtl"] .zakat-block-label { letter-spacing: 0; font-size: var(--step--1); }
+
+/* ══ FORMA ══ */
+.zakat-page .zakat-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: clamp(18px, 1rem + 1vw, 28px);
+  border-radius: var(--radius-xl);
+}
+
+/* Valyuta */
+.zakat-currency-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--space-3);
+}
+.zakat-page .zakat-rate-badge { height: 26px; padding: 0 10px; font-size: 12.5px; }
+.zakat-currency-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.zakat-page .zakat-cur-btn {
+  justify-content: center;
+  min-height: var(--tap);
+  padding: 0 8px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+}
+.zakat-cur-btn small { color: var(--text-tertiary); font-size: 12.5px; font-weight: 500; }
+.zakat-page .zakat-cur-btn[aria-pressed="true"] small { color: inherit; opacity: 0.8; }
+
+/* Varlıq sahələri — genişdə iki sütun */
+.zakat-assets-title { margin-bottom: calc(-1 * var(--space-2)); }
+.zakat-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: var(--space-4) var(--space-4);
+}
+.zakat-field { cursor: text; min-width: 0; }
+.zakat-field-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.zakat-field-head .ui-field__label { min-width: 0; line-height: 1.3; }
+.zakat-input-wrap { position: relative; display: block; }
+.zakat-cur-prefix {
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  font-size: 15px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.zakat-page .zakat-input {
+  padding-inline-start: 46px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.zakat-field-hint b { color: var(--brand); font-weight: 600; }
+.zakat-field-debt .zakat-cur-prefix { color: var(--bad); }
+
+.zakat-page .zakat-reset-btn { align-self: flex-start; margin-top: calc(-1 * var(--space-2)); }
+
+/* ══ NƏTİCƏ ══ */
+.zakat-result { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+
+/* Ödənilməli zəkat — nisab keçiləndə tünd zümrüd kart */
+.zakat-page .zakat-due-card {
+  padding: clamp(20px, 1rem + 1.2vw, 32px);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+.zakat-due-card.active { animation: zakatDueIn var(--dur-3) var(--ease-out); }
+@keyframes zakatDueIn {
+  from { opacity: 0.4; transform: scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+.zakat-due-label {
+  margin-bottom: var(--space-3);
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .zakat-due-label { letter-spacing: 0; font-size: var(--step--1); }
+.zakat-due-card.active .zakat-due-label { color: var(--text-on-inverse-dim); }
+
+.zakat-due-row { display: flex; align-items: center; justify-content: center; margin-bottom: var(--space-3); }
+.zakat-due-block { flex: 1; min-width: 0; }
+.zakat-due-divider { width: 1px; height: 52px; margin-inline: var(--space-4); background: color-mix(in srgb, var(--text-on-inverse) 20%, transparent); }
+.zakat-due-amount {
+  display: block;
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: clamp(2rem, 1.5rem + 1.6vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: var(--tracking-tight);
+  overflow-wrap: anywhere;
+}
+.zakat-due-card.inactive .zakat-due-amount { color: var(--text-tertiary); }
+.zakat-due-card.active .zakat-due-amount { color: var(--text-on-inverse); }
+.zakat-due-sm { font-size: clamp(1.4rem, 1.1rem + 0.9vw, 1.75rem); }
+.zakat-due-period { margin-top: 4px; color: var(--text-on-inverse-dim); font-size: 13px; font-weight: 500; }
+.zakat-due-pct {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--text-on-inverse) 12%, transparent);
+  color: var(--text-on-inverse);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.zakat-due-note { margin-top: var(--space-2); color: var(--text-secondary); font-size: var(--step--1); }
+
+/* Nisab irəliləyişi */
+.zakat-page .nisab-card { transition: border-color var(--dur-3) ease, background-color var(--dur-3) ease; }
+.zakat-page .nisab-card.above { border-color: var(--brand-line); }
+.nisab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--space-2);
+}
+.zakat-page .nisab-badge.yes { background: var(--brand-soft-2); color: var(--brand); }
+.zakat-page .nisab-badge.no  { background: var(--surface-2); color: var(--text-secondary); }
+.nisab-value {
+  margin-bottom: var(--space-3);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: var(--step-2);
+  font-weight: 600;
+}
+.nisab-bar-wrap {
+  height: 8px;
+  margin-bottom: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+/* Doluluq eni yox, transform: scaleX (JSX) — layout yenidən hesablanmır */
+.nisab-bar {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+  transform-origin: left center;
+  transition: transform 0.7s var(--ease-out);
+}
+.nisab-card.above .nisab-bar { background: var(--accent); }
+[dir="rtl"] .nisab-bar { transform-origin: right center; }
+.nisab-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  color: var(--text-tertiary);
+  font-size: 12.5px;
+}
+.nisab-note { color: var(--text-tertiary); font-size: 13px; line-height: 1.55; }
+.nisab-note + .nisab-note { margin-top: 2px; }
+
+/* Cəm cədvəli */
+.zakat-breakdown-title { margin-bottom: var(--space-2); }
+.breakdown-list { list-style: none; margin: 0; padding: 0; }
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.breakdown-row:last-child { border-bottom: 0; }
+.breakdown-icon {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+.breakdown-label-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.breakdown-label { flex: 1; min-width: 0; color: var(--text-secondary); font-size: 14px; }
+.breakdown-sub { color: var(--text-tertiary); font-size: 12.5px; }
+.breakdown-val { color: var(--text-strong); font-size: 14.5px; font-weight: 600; white-space: nowrap; }
+.breakdown-debt .breakdown-val { color: var(--bad); }
+.breakdown-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line-strong);
+}
+.breakdown-total > span:first-child {
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .breakdown-total > span:first-child { letter-spacing: 0; font-size: var(--step--1); }
+.total-amount { color: var(--brand); font-size: var(--step-2); font-weight: 600; letter-spacing: var(--tracking-snug); }
+
+/* ── Fitrə ── */
+.zakat-page .fitr-card { border-color: var(--accent-line); }
+.fitr-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: var(--space-3); }
+.fitr-title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; line-height: 1.3; }
+.fitr-desc { margin-top: 2px; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.5; }
+.fitr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.fitr-row + .fitr-row { border-bottom: 0; }
+.fitr-label { color: var(--text-secondary); font-size: 14px; font-weight: 500; }
+.fitr-val { color: var(--text-strong); font-size: 15px; font-weight: 600; }
+.zakat-page .fitr-input { width: 96px; flex-shrink: 0; text-align: center; font-weight: 600; }
+.fitr-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--accent-line);
+}
+.fitr-total-val { color: var(--accent-text); font-size: var(--step-2); font-weight: 600; letter-spacing: var(--tracking-snug); }
+
+/* ── Ayə (alquran.cloud-dan) ── */
+.zakat-info-box {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-7);
+  padding: clamp(28px, 1.4rem + 2vw, 52px) clamp(18px, 1rem + 2vw, 48px);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+.zakat-info-box > .ui-pattern {
+  -webkit-mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 50%, transparent 30%, #000 100%);
+  mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 50%, transparent 30%, #000 100%);
+  -webkit-mask-size: var(--ui-pattern-size) var(--ui-pattern-size), 100% 100%;
+  mask-size: var(--ui-pattern-size) var(--ui-pattern-size), 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat;
+  mask-repeat: repeat, no-repeat;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.zakat-info-box .ui-ornament { width: min(100%, 220px); }
+.zakat-quran-ar { max-width: 36ch; font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem); line-height: 2; overflow-wrap: anywhere; }
+.zakat-quran {
+  max-width: 62ch;
+  color: var(--text-body);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-style: italic;
+  line-height: 1.6;
+}
+.zakat-quran-ref { color: var(--accent-text); font-size: 13px; font-weight: 600; }
+
+/* ══ YAPIŞQAN CƏM ZOLAĞI (<1180px, tək sütunlu düzüm) ═════════════
    Sahələrin sonunda durur, sahələr ekrandan çıxana qədər ekranın altında
-   (üzən kart varsa onun üstündə — --qm-bottom-reserve) qalır — yazdıqca
-   zəkat görünür. */
+   (üzən kart varsa onun üstündə — --qm-bottom-reserve) qalır. */
 .zakat-sticky-sum { display: none; }
 
-@media (max-width: 860px) {
+@media (max-width: 1179.98px) {
   .zakat-sticky-sum {
     position: sticky;
-    bottom: calc(var(--qm-bottom-reserve, 0px) + 10px);
+    bottom: calc(var(--qm-bottom-reserve, 0px) + 12px);
     z-index: 5;
     display: flex;
     align-items: center;
     gap: 12px;
     width: 100%;
-    min-height: 58px;
-    margin-top: 4px;
+    min-height: 60px;
     padding-block: 8px;
     padding-inline: 16px 12px;
-    border: 1px solid var(--primary-border);
-    border-radius: 16px;
-    background: var(--bg-card);
-    background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+    border: 1px solid var(--brand-line);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--surface-1) 90%, transparent);
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
-    box-shadow: var(--shadow-lg);
-    color: var(--text);
-    font-family: var(--font);
+    box-shadow: var(--shadow-3);
+    color: var(--text-body);
+    font-family: var(--font-sans);
     text-align: start;
     cursor: pointer;
     animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
   }
-
-  .zakat-sticky-text {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-  .zakat-sticky-title {
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.25;
-    color: var(--text);
-  }
+  .zakat-sticky-sum:active { transform: scale(0.99); }
+  .zakat-sticky-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .zakat-sticky-title { color: var(--text-strong); font-size: 14px; font-weight: 600; line-height: 1.25; }
   .zakat-sticky-sub {
+    overflow: hidden;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.3;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
   }
-  .zakat-sticky-sub.yes { color: var(--primary); }
-  .zakat-sticky-sub.no  { color: var(--text-muted); }
-
-  .zakat-sticky-amount-wrap {
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    line-height: 1.1;
-  }
-  .zakat-sticky-amount {
-    font-size: 19px;
-    font-weight: 800;
-    color: var(--primary-dark);
-    font-variant-numeric: tabular-nums;
-    direction: ltr;
-    unicode-bidi: isolate;
-    /* Məbləğ dəyişəndə (key) yumşaq "yenilənmə" — yalnız opacity/transform */
-    animation: zakat-tick var(--dur-2) var(--ease-out);
-  }
-  [data-theme="dark"] .zakat-sticky-amount { color: var(--primary); }
-  .zakat-sticky-period {
-    margin-top: 2px;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--text-muted);
-  }
-
-  /* Aşağı baxan ox — nəticə aşağıdadır (RTL-də də eyni) */
-  .zakat-sticky-chev {
-    flex-shrink: 0;
-    width: 9px;
-    height: 9px;
-    margin: -4px 4px 0;
-    border-right: 2px solid var(--text-muted);
-    border-bottom: 2px solid var(--text-muted);
-    transform: rotate(45deg);
-  }
+  .zakat-sticky-sub.yes { color: var(--brand); }
+  .zakat-sticky-sub.no  { color: var(--text-tertiary); }
+  .zakat-sticky-amount-wrap { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+  .zakat-sticky-amount { color: var(--brand); font-size: 19px; font-weight: 700; }
+  .zakat-sticky-period { margin-top: 2px; color: var(--text-tertiary); font-size: 12.5px; font-weight: 500; }
+  .zakat-sticky-chev { flex-shrink: 0; color: var(--text-tertiary); }
 }
 
-@keyframes zakat-tick {
-  from { opacity: 0.35; transform: translate3d(0, 3px, 0); }
-  to   { opacity: 1;    transform: none; }
-}
-
-/* ══ TELEFON (<768px) — müasir tətbiq görünüşü ═════════════════
-   • Daxiletmə bölməsi kart içində kart deyil: başlıq + qruplaşdırılmış siyahı
-   • Valyuta: hap düymələr, seçilən yaşıl dolur
-   • Varlıqlar: nazik xətlərlə ayrılmış 64px xanalar, rəngli ikon kafelləri
-   • Nəticə kartları: yumşaq kölgə, rəqəmlər bərabər enli (tabular-nums) */
+/* ══ TELEFON (<768) ═══════════════════════════════════════════════ */
 @media (max-width: 767.98px) {
-  .zakat-layout { gap: var(--space-5); }
+  .zakat-hero .breadcrumb { display: none; }
+  .zakat-hero-ar { font-size: 20px; }
 
-  .zakat-inputs {
-    gap: 12px;
-    padding: 0;
-    background: none;
-    border: 0;
-    border-radius: 0;
-  }
+  .zakat-layout { gap: var(--space-4); }
+  .zakat-page .zakat-inputs { gap: var(--space-4); padding: 16px; border-radius: var(--radius-lg); }
+  .zakat-currency-grid { gap: 6px; }
+  .zakat-page .zakat-cur-btn { padding: 0 4px; gap: 4px; font-size: 13.5px; }
+  .zakat-fields { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+  .zakat-page .zakat-reset-btn { align-self: stretch; }
 
-  .zakat-block-label {
-    padding-inline: 4px;
-    font-size: 12px;
-    letter-spacing: 0.06em;
-  }
-  [dir="rtl"] .zakat-block-label { letter-spacing: 0; font-size: 13px; }
-  .zakat-inputs > .zakat-block-label { margin-top: 8px; }
+  .zakat-page .zakat-due-card { border-radius: var(--radius-lg); }
+  .zakat-due-divider { margin-inline: var(--space-3); }
 
-  /* Valyuta */
-  .zakat-currency-block {
-    padding: 0;
-    background: none;
-    border: 0;
-    border-radius: 0;
-  }
-  .zakat-currency-header { margin-bottom: 10px; }
-  .zakat-rate-badge {
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-variant-numeric: tabular-nums;
-  }
-  .zakat-currency-grid { gap: 8px; }
-  .zakat-cur-btn {
-    min-height: 50px;
-    padding: 6px 2px;
-    gap: 1px;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--bg-card);
-    box-shadow: var(--shadow-sm);
-    transition:
-      background-color var(--dur-2) var(--ease-out),
-      border-color var(--dur-2) var(--ease-out),
-      box-shadow var(--dur-2) var(--ease-out),
-      transform var(--dur-1) var(--ease-out);
-  }
-  .zakat-cur-btn span:first-child { font-size: 13.5px; }
-  .zakat-cur-btn small { font-size: 12.5px; }
-  .zakat-cur-btn.active {
-    background: var(--primary);
-    border-color: var(--primary);
-    box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--primary) 60%, transparent);
-  }
-  .zakat-cur-btn.active span:first-child,
-  .zakat-cur-btn.active small { color: var(--on-primary); }
+  .zakat-info-box { margin-top: var(--space-6); border-radius: var(--radius-lg); }
+}
 
-  /* Varlıqlar — qruplaşdırılmış siyahı */
-  .zakat-fields {
-    gap: 0;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-    isolation: isolate;
-  }
-  .zakat-field-row {
-    position: relative;
-    min-height: 64px;
-    padding: 8px 14px;
-    gap: 12px;
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    transition: background-color var(--dur-1) var(--ease-out);
-  }
-  /* Nazik ayırıcı: ikon kafelindən sonra başlayır (.m-list kimi) */
-  .zakat-field-row + .zakat-field-row::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    inset-inline-start: calc(14px + 32px + 12px);
-    inset-inline-end: 0;
-    height: 1px;
-    background: var(--border);
-    pointer-events: none;
-  }
-  .zakat-field-row:focus-within {
-    background: var(--primary-bg);
-    border-color: transparent;
-  }
-  .zakat-field-icon { font-size: 17px; }
-  .zakat-field-label {
-    margin-bottom: 0;
-    font-size: 13px;
-    line-height: 1.3;
-  }
-  .zakat-cur-prefix { font-size: 16px; }
-  .zakat-input {
-    min-height: 30px;
-    font-size: 17px;
-    font-variant-numeric: tabular-nums;
-  }
-  .zakat-field-tag { font-size: 12px; padding: 1px 7px; border-radius: 999px; }
-  .zakat-field-annual { font-size: 13px; font-variant-numeric: tabular-nums; }
-
-  /* Borc: sol zolaq yox — qırmızı kafel və qırmızı "−₼" kifayətdir */
-  .zakat-field-debt { border-inline-start: 0; }
-  .zakat-field-debt .zakat-cur-prefix { color: var(--danger); }
-
-  .zakat-reset-btn {
-    align-self: stretch;
-    justify-content: center;
-    min-height: var(--tap);
-    border-radius: 12px;
-    font-size: 14px;
-  }
-
-  /* ── Nəticə kartları ── */
-  .zakat-result { gap: var(--space-3); }
-
-  .zakat-breakdown,
-  .nisab-card,
-  .fitr-card,
-  .zakat-info-box {
-    border-width: 1px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-  }
-  .zakat-breakdown { padding: 16px; }
-  .breakdown-row { min-height: 44px; padding: 8px 0; gap: 12px; }
-  .breakdown-icon { font-size: 17px; }
-  .breakdown-label { font-size: 14px; }
-  .breakdown-sub { font-size: 12.5px; font-variant-numeric: tabular-nums; }
-  .breakdown-val { font-size: 14.5px; font-variant-numeric: tabular-nums; }
-  .total-amount { font-variant-numeric: tabular-nums; }
-
-  .nisab-card { padding: 16px; }
-  .nisab-badge { padding: 4px 10px; border-radius: 999px; font-size: 12.5px; }
-  .nisab-value { font-variant-numeric: tabular-nums; }
-  .nisab-note { font-size: 13px; }
-  .nisab-bar-wrap { height: 8px; border-radius: 999px; }
-  .nisab-bar-labels { font-size: 12.5px; font-variant-numeric: tabular-nums; }
-
-  .zakat-due-card {
-    padding: 20px 16px;
-    box-shadow: var(--shadow-sm);
-  }
-  .zakat-due-card.active { border-width: 1px; }
-  .zakat-due-amount { font-variant-numeric: tabular-nums; }
-  .zakat-due-period,
-  .zakat-due-pct,
-  .zakat-due-note { font-size: 13px; }
-
-  .fitr-card { padding: 16px; border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
-  .fitr-desc { font-size: 13px; }
-  .fitr-row { min-height: 48px; }
-  .fitr-label { font-size: 14px; }
-  .fitr-input { width: 88px; min-height: 44px; border-radius: 12px; }
-  .fitr-val,
-  .fitr-total-val { font-variant-numeric: tabular-nums; }
-
-  .zakat-info-box { padding: 16px; }
-  .zakat-quran { font-size: 14px; }
-  .zakat-quran-ref { font-size: 13px; }
+@media (max-width: 380px) {
+  .zakat-currency-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .zakat-cur-btn small { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .zakat-sticky-sum,
-  .zakat-sticky-amount { animation: none; }
+  .zakat-due-card.active { animation: none; }
+  .nisab-bar { transition: none; }
 }

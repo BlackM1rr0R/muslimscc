@@ -10,6 +10,7 @@ import {
   highlightSegments, snippetSegments, hasArabic,
 } from '../utils/search'
 import { localizeSource, QURAN_WORD } from '../utils/sourceNames'
+import Icon from './Icon'
 import '../styles/GlobalSearch.css'
 
 // ═══════════════════════════════════════════════════════
@@ -80,7 +81,8 @@ const PAGE_KEYWORDS = {
 
 // Nəticənin "keç" düyməsi hansı səhifəni açır
 const TARGET = { quran: 'quran', hadith: 'hadith', dua: 'duas', name: 'names', glossary: 'glossary' }
-const TYPE_ICON = { page: '🧭', quran: '📖', hadith: '📜', dua: '🤲', name: '✨', glossary: '📚' }
+// Növ → xətti ikon adı (Icon.jsx); səhifə nəticəsi öz bölmə ikonunu göstərir
+const TYPE_ICON = { page: 'compass', quran: 'quran', hadith: 'hadith', dua: 'duas', name: 'names', glossary: 'glossary' }
 
 const SUGGEST = {
   az: ['səbr', 'namaz', 'Rəhman', 'tövbə', 'cümə', 'oruc'],
@@ -676,12 +678,14 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
   const noResults = showResults && data && results.total === 0 && !results.quranBusy && !results.quranErr
   const emptyInType = showResults && !noResults && filter !== 'all' && !sections.length
 
-  const renderOption = (r, i) => {
+  const renderOption = (r, i, k = 0) => {
     const it = r.item
     const type = it.type
     const isOpen = openId === it.id
     const selected = i === act
-    const icon = type === 'page' ? (it.icon || TYPE_ICON.page) : TYPE_ICON[type]
+    const icon = type === 'page'
+      ? <Icon name={it.key} size={18} fallback={<Icon name={TYPE_ICON.page} size={18} />} />
+      : <Icon name={TYPE_ICON[type]} size={18} />
     let main = null
 
     if (type === 'page') {
@@ -756,6 +760,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
         role="option"
         aria-selected={selected}
         className={`gs-opt gs-opt-${type}${isOpen ? ' is-open' : ''}`}
+        style={{ '--i': Math.min(k, 7) }}
         onMouseMove={() => { if (active !== i) setActive(i) }}
         onClick={(e) => {
           if (e.target.closest('.gs-actions')) return
@@ -774,7 +779,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
               </button>
               {copyable && (
                 <button type="button" className="gs-btn gs-btn-ghost" onClick={() => copy(it)}>
-                  {copiedId === it.id ? `✓ ${L.copied}` : L.copy}
+                  {copiedId === it.id ? <><Icon name="check" size={15} /> {L.copied}</> : <><Icon name="copy" size={15} /> {L.copy}</>}
                 </button>
               )}
             </div>
@@ -855,7 +860,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
               <div key={sec.type} className="gs-section" role="group" aria-labelledby={`gs-sec-${sec.type}`}>
                 <div className="gs-sec-head">
                   <span id={`gs-sec-${sec.type}`} className="gs-sec-title">
-                    <span aria-hidden="true">{TYPE_ICON[sec.type]}</span> {L.groups[sec.type]}
+                    <span className="gs-sec-icon" aria-hidden="true"><Icon name={TYPE_ICON[sec.type]} size={15} /></span> {L.groups[sec.type]}
                     {sec.total > 0 && <span className="gs-sec-n">{sec.total}</span>}
                   </span>
                   {filter === 'all' && sec.more && (
@@ -864,7 +869,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
                     </button>
                   )}
                 </div>
-                {sec.items.map((r, k) => renderOption(r, sec.start + k))}
+                {sec.items.map((r, k) => renderOption(r, sec.start + k, k))}
                 {sec.type === 'quran' && results.quranBusy && (
                   <div className="gs-status" role="status"><span className="gs-spin" aria-hidden="true" /> {L.quranLoading}</div>
                 )}
@@ -902,7 +907,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
 
           {noResults && (
             <div className="gs-none">
-              <div className="gs-none-icon" aria-hidden="true">🔍</div>
+              <div className="gs-none-icon" aria-hidden="true"><Icon name="search" size={26} /></div>
               <p className="gs-none-title">{L.noResults(trimmed)}</p>
               <p className="gs-hint">{L.noResultsTip}</p>
               <div className="gs-suggest">
@@ -949,8 +954,8 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
         </div>
 
         <div className="gs-foot" aria-hidden="true">
-          <span><kbd>↑</kbd><kbd>↓</kbd> {L.hintMove}</span>
-          <span><kbd>↵</kbd> {L.hintOpen}</span>
+          <span><kbd><Icon name="arrowUp" size={12} strokeWidth={2.2} /></kbd><kbd><Icon name="arrowDown" size={12} strokeWidth={2.2} /></kbd> {L.hintMove}</span>
+          <span><kbd><Icon name="enter" size={12} strokeWidth={2.2} className="ui-flip-rtl" /></kbd> {L.hintOpen}</span>
           <span><kbd>Esc</kbd> {L.hintClose}</span>
         </div>
 

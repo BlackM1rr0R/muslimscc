@@ -1,395 +1,321 @@
-/* ══════════════════════════════════════════════════════
-   AnalyticsPage.css — Statistics / Analytics Dashboard
-   ══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   AnalyticsPage.css — Statistika paneli, dizayn v2
+   Bir vurğu rəngi (zümrüd); qızılı yalnız nailiyyətlərdə. Zolaqlar
+   transform: scaleX ilə dolur (JSX style) və kart görünəndə sıfırdan
+   böyüyür — yalnız transform/opacity. ui.css-dən ƏVVƏL yüklənir.
+   ══════════════════════════════════════════════════════════════════ */
 
-/* .analytics-page sarğısına ayrıca alt boşluq verilmir — .section-in öz
-   boşluğu kifayətdir (əvvəl üst-üstə footer-dən əvvəl 160px boş zolaq idi) */
+/* ── 1. HERO ─────────────────────────────────────────────────────── */
+.analytics-hero .breadcrumb { justify-content: flex-start; margin: 0; font-size: 13px; color: var(--text-tertiary); }
+.analytics-hero .bc-list { justify-content: flex-start; }
+.analytics-hero .bc-home { color: var(--text-secondary); font-weight: 600; }
+@media (hover: hover) { .analytics-hero .bc-home:hover { color: var(--brand); } }
 
-/* ── Overview Cards Grid ── */
+.analytics-section.section { padding-top: clamp(24px, 3vw, 36px); }
+
+/* ── 2. MƏLUMAT YOXDUR ───────────────────────────────────────────── */
+.analytics-nodata {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: var(--space-5);
+  padding: 20px 22px;
+  background: var(--surface-1);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+}
+.analytics-nodata-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.analytics-nodata-text { color: var(--text-secondary); font-size: 15px; line-height: 1.55; }
+.analytics-nodata-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── 3. ÜMUMİ BAXIŞ ──────────────────────────────────────────────── */
 .analytics-overview {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
-  margin-bottom: var(--space-6);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: var(--space-5);
 }
-
 .analytics-ov-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  padding: 18px 16px 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  padding: 20px 16px;
-  text-align: center;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.25s;
-  /* Görünmə animasiyası: data-reveal="stagger" (motion.css) */
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
 }
-.analytics-ov-card:hover {
-  box-shadow: var(--shadow);
-  transform: translateY(-3px);
-  border-color: var(--primary-border);
+@media (hover: hover) {
+  .analytics-ov-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line-strong); }
 }
-.analytics-ov-icon { font-size: 28px; margin-bottom: 8px; }
+.analytics-ov-icon { margin-bottom: 6px; }
+/* Sıfır dəyərli kartda ikon sakit (boz) — məlumatı olan kart seçilsin */
+.analytics-ov-card:not(.has-value) .analytics-ov-icon {
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--text-tertiary);
+}
 .analytics-ov-value {
-  font-size: 28px; font-weight: 800; color: var(--primary);
-  line-height: 1.2; margin-bottom: 4px;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1.05;
 }
-.analytics-ov-label {
-  font-size: 12px; color: var(--text-muted); font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.5px;
-}
+.analytics-ov-card.has-value .analytics-ov-value { color: var(--brand); }
+.analytics-ov-label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; line-height: 1.3; }
 
-/* ── Section Cards ── */
+/* ── 4. BÖLMƏ KARTLARI ───────────────────────────────────────────── */
 .analytics-sections {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-5);
+  align-items: stretch;   /* bir sırada kartlar eyni hündürlükdə — boş "dəlik" qalmasın */
 }
-
 .analytics-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  min-width: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-1);
   overflow: hidden;
-  transition: all 0.25s;
-  /* Görünmə animasiyası: data-reveal (sürüşəndə, motion.css) */
 }
-.analytics-card:hover {
-  box-shadow: var(--shadow);
-  border-color: var(--primary-border);
-}
+.analytics-card.full-width { grid-column: 1 / -1; }
 
 .analytics-card-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--primary-bg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px 6px;
 }
-.analytics-card-header-icon { font-size: 22px; }
-.analytics-card-header h3 {
-  font-size: 16px; font-weight: 700; color: var(--text);
-  margin: 0;
+.analytics-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: 1.3;
 }
-
-.analytics-card-body { padding: 20px; }
+.analytics-count { color: var(--text-tertiary); font-family: var(--font-sans); font-size: 14px; font-weight: 500; }
+.analytics-card-body { padding: 6px 22px 20px; }
 
 /* Kart içindəki kiçik alt başlıq ("Növə görə", "Kviz xalları") */
 .analytics-subhead {
-  margin: 12px 0 6px;
-  font-size: 13px; font-weight: 700; color: var(--text-dim);
+  margin: 16px 0 4px;
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
+[dir="rtl"] .analytics-subhead { letter-spacing: 0; font-size: 13px; }
 
 /* Tam enli kartda iki blok yan-yana (Gündəlik izləyici) */
 .analytics-split { display: grid; grid-template-columns: 1fr; gap: 8px; }
 @media (min-width: 769px) {
-  .analytics-split { grid-template-columns: 1fr 1fr; column-gap: 32px; }
+  .analytics-split { grid-template-columns: 1fr 1fr; column-gap: 40px; }
 }
 
-/* ── Stat Rows ── */
+/* Statistika sətirləri */
 .analytics-stat-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
 }
 .analytics-stat-row:last-child { border-bottom: none; }
+.analytics-stat-label { min-width: 0; color: var(--text-secondary); font-size: 14.5px; font-weight: 500; }
+.analytics-stat-value { flex-shrink: 0; color: var(--text-strong); font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.analytics-stat-value.highlight { color: var(--brand); }
 
-.analytics-stat-label {
-  font-size: 14px; color: var(--text-dim); font-weight: 500;
-}
-.analytics-stat-value {
-  font-size: 16px; font-weight: 700; color: var(--text);
-}
-.analytics-stat-value.highlight { color: var(--primary); }
-
-/* ── Progress Bar ── */
-.analytics-progress-wrap { margin: 14px 0 6px; }
+/* İrəliləyiş zolağı */
+.analytics-progress-wrap { margin: 14px 0 4px; }
 .analytics-progress-label {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 500;
 }
-.analytics-progress-bar {
-  height: 10px; background: var(--surface); border-radius: 5px; overflow: hidden;
-  position: relative;
-}
-.analytics-progress-fill {
-  height: 100%; border-radius: 5px;
-  background: linear-gradient(90deg, var(--primary), var(--primary-light));
-  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
-  min-width: 0;
-}
-
-/* ── Hifz multi-bar ── */
-.analytics-hifz-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
-.analytics-hifz-item { display: flex; align-items: center; gap: 10px; }
-.analytics-hifz-dot {
-  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-}
-.analytics-hifz-dot.memorized { background: var(--success); }
-.analytics-hifz-dot.in-progress { background: var(--warning); }
-.analytics-hifz-dot.not-started { background: var(--border-md); }
-.analytics-hifz-label { font-size: 13px; color: var(--text-dim); flex: 1; }
-.analytics-hifz-count { font-size: 14px; font-weight: 700; color: var(--text); }
-
-/* ── Charity Bar Chart ── */
-.analytics-bar-chart { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
-.analytics-bar-item { display: flex; align-items: center; gap: 10px; }
-.analytics-bar-label {
-  width: 80px; font-size: 12px; color: var(--text-dim); font-weight: 500;
-  text-align: end; flex-shrink: 0;
-}
+.analytics-progress-bar,
 .analytics-bar-track {
-  flex: 1; height: 18px; background: var(--surface); border-radius: 9px;
-  overflow: hidden; position: relative;
+  position: relative;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
 }
+.analytics-progress-fill,
 .analytics-bar-fill {
-  height: 100%; border-radius: 9px;
-  background: linear-gradient(90deg, var(--primary), var(--primary-light));
-  transition: width 0.6s ease;
-  display: flex; align-items: center; justify-content: flex-end;
-  /* Məntiqi tərəf: ərəbcədə rəqəm solda kəsilmirdi */
-  padding-inline-end: 8px;
-  font-size: 11px; font-weight: 700; color: var(--on-primary);
-  min-width: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+  transform-origin: left center;
+  transition: transform 600ms var(--ease-out);
+}
+[dir="rtl"] .analytics-progress-fill,
+[dir="rtl"] .analytics-bar-fill { transform-origin: right center; }
+/* Kart görünəndə zolaq sıfırdan dolur (yalnız "from" — sonda inline dəyər qalır) */
+.analytics-card[data-revealed=""] .analytics-progress-fill,
+.analytics-card[data-revealed=""] .analytics-bar-fill {
+  animation: an-bar-in 800ms var(--ease-out) 240ms backwards;
 }
 
-/* ── Achievements ── */
+/* Hifz üç sətri */
+.analytics-hifz-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.analytics-hifz-item { display: flex; align-items: center; gap: 10px; }
+.analytics-hifz-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.analytics-hifz-dot.memorized { background: var(--brand); }
+.analytics-hifz-dot.in-progress { background: var(--accent); }
+.analytics-hifz-dot.not-started { background: var(--line-strong); }
+.analytics-hifz-label { flex: 1; color: var(--text-secondary); font-size: 14px; }
+.analytics-hifz-count { color: var(--text-strong); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Sədəqə növləri — yatay zolaqlar */
+.analytics-bar-chart { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.analytics-bar-item { display: grid; grid-template-columns: 88px minmax(0, 1fr) 28px; align-items: center; gap: 10px; }
+.analytics-bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+.analytics-bar-track { height: 10px; }
+.analytics-bar-count { color: var(--text-strong); font-size: 13px; font-weight: 600; text-align: end; }
+
+/* ── 5. NAİLİYYƏTLƏR ─────────────────────────────────────────────── */
 .analytics-achievements {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
-  margin-top: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
 }
-
 .analytics-badge {
-  display: flex; flex-direction: column; align-items: center;
-  text-align: center; gap: 6px; padding: 14px 8px;
-  border-radius: var(--radius); border: 1px solid var(--border);
-  background: var(--bg-card2); transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  text-align: center;
+  transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) ease;
 }
-.analytics-badge.achieved {
-  background: var(--primary-bg);
-  border-color: var(--primary-border);
-}
-.analytics-badge.locked { opacity: 1; }
-/* Kilidli nişan: yalnız ikon solğun, yazı oxunaqlı qalır (əvvəl bütün nişan
-   .45 şəffaflıqda idi — 10–11px yazılar demək olar ki, görünmürdü) */
-.analytics-badge.locked .analytics-badge-icon { filter: grayscale(1); opacity: 0.5; }
-.analytics-badge.locked .analytics-badge-name { color: var(--text-muted); }
-
+@media (hover: hover) { .analytics-badge:hover { transform: translateY(-2px); } }
+.analytics-badge.achieved { background: var(--accent-soft); border-color: var(--accent-line); }
 .analytics-badge-icon {
-  font-size: 28px; width: 48px; height: 48px;
-  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: var(--surface);
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--text-tertiary);
 }
-.analytics-badge.achieved .analytics-badge-icon {
-  background: var(--primary-bg2);
+.analytics-badge.achieved .analytics-badge-icon { box-shadow: inset 0 0 0 1px var(--accent-line); color: var(--accent-text); }
+/* Qazanılan nişanın küncündə kiçik ✓ — görünəndə "pop" edir */
+.analytics-badge-tick {
+  position: absolute;
+  top: -2px;
+  inset-inline-end: -2px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: 0 0 0 2px var(--surface-1);
 }
-.analytics-badge-name {
-  font-size: 12.5px; font-weight: 600; color: var(--text-dim);
-  line-height: 1.3;
-}
-.analytics-badge.achieved .analytics-badge-name { color: var(--primary); }
-
+.analytics-achievements[data-revealed=""] .analytics-badge-tick { animation: an-pop-in var(--dur-3) var(--ease-spring) 320ms backwards; }
+.analytics-badge-name { color: var(--text-secondary); font-size: 13px; font-weight: 600; line-height: 1.3; }
+.analytics-badge.achieved .analytics-badge-name { color: var(--text-strong); }
 .analytics-badge-status {
-  font-size: 11px; font-weight: 700; padding: 2px 8px;
-  border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-tertiary);
+  font-size: 11.5px;
+  font-weight: 600;
 }
-.analytics-badge.achieved .analytics-badge-status {
-  background: var(--primary-bg2); color: var(--primary);
-}
-.analytics-badge.locked .analytics-badge-status {
-  background: var(--surface); color: var(--text-muted);
-}
+.analytics-badge.achieved .analytics-badge-status { background: var(--brand-soft-2); color: var(--brand-strong); }
+[data-theme="dark"] .analytics-badge.achieved .analytics-badge-status { color: var(--brand); }
 
-/* ── Full-width card ── */
-.analytics-card.full-width { grid-column: 1 / -1; }
-
-/* ── No data ──
-   Yığcam məlumat sətri: əvvəl 60px boşluqlu, 48px ikonlu blok idi və
-   hero ilə kartlar arasında böyük boş zolaq yaradırdı */
-.analytics-nodata {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 18px; margin-bottom: var(--space-5);
-  text-align: start; font-size: 14px; line-height: 1.55; color: var(--text-muted);
-  background: var(--bg-card);
-  border: 1px dashed var(--border-md); border-radius: var(--radius-lg);
-}
-.analytics-nodata-icon { font-size: 28px; margin: 0; flex-shrink: 0; line-height: 1; }
-
-/* ── Responsive ── */
-@media (max-width: 1024px) {
-  .analytics-overview { grid-template-columns: repeat(3, 1fr); }
-  .analytics-achievements { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 768px) {
-  .analytics-sections { grid-template-columns: 1fr; gap: var(--stack-gap); }
-  .analytics-overview { margin-bottom: var(--space-5); }
-  .analytics-card-header { padding: 14px 16px; }
-  .analytics-card-body { padding: 16px; }
-  .analytics-overview { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .analytics-ov-card { padding: 14px 10px; }
-  .analytics-ov-value { font-size: 22px; }
-  .analytics-ov-icon { font-size: 22px; }
-  .analytics-achievements { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .analytics-badge { padding: 10px 6px; }
-  .analytics-badge-icon { font-size: 24px; width: 40px; height: 40px; }
-  .analytics-bar-label { width: 60px; font-size: 11px; }
-}
-
-@media (max-width: 480px) {
-  .analytics-overview { grid-template-columns: repeat(2, 1fr); }
-  .analytics-achievements { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* ── Dark mode ── */
-[data-theme="dark"] .analytics-card-header {
-  background: rgba(46,204,113,0.08);
-}
-[data-theme="dark"] .analytics-badge.achieved {
-  background: rgba(46,204,113,0.1);
-  border-color: rgba(46,204,113,0.25);
-}
-[data-theme="dark"] .analytics-badge.achieved .analytics-badge-icon {
-  background: rgba(46,204,113,0.15);
-}
-
-/* ══════════════════════════════════════════════════════
-   MOBİL CİLA — telefonda müasir tətbiq hissi
-   (motion.css tokenləri və .icon-tile kafelləri)
-   ══════════════════════════════════════════════════════ */
-
-/* İkon kafelləri (.icon-tile) yalnız telefonda görünür — ≥768px-də
-   ikonlar əvvəlki kimi sadə emojidir (kompüter görünüşü dəyişmir) */
-@media (min-width: 768px) {
-  .analytics-ov-icon.icon-tile,
-  .analytics-card-header-icon.icon-tile,
-  .analytics-nodata-icon.icon-tile {
-    display: block;
-    width: auto; height: auto;
-    border-radius: 0;
-    background: none;
-    color: inherit;
-    line-height: inherit;
-  }
-  .analytics-nodata-icon.icon-tile { line-height: 1; }
+/* ── 6. CAVABDEHLİK ──────────────────────────────────────────────── */
+@media (max-width: 1099.98px) {
+  .analytics-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .analytics-achievements { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 @media (max-width: 767.98px) {
-  /* ── Ümumi baxış ── yığcam üfüqi kartlar: rəngli kafel · rəqəm · ad */
-  .analytics-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .analytics-hero .ui-page-hero__crumbs { display: none; }
+  .analytics-section.section { padding-top: 20px; }
+
+  .analytics-nodata { flex-direction: column; gap: 12px; padding: 16px; }
+  .analytics-nodata .ui-icon-tile--lg { width: 44px; height: 44px; }
+
+  /* Ümumi baxış — yığcam üfüqi kartlar: kafel · rəqəm · ad */
+  .analytics-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
   .analytics-ov-card {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-areas: "icon value" "icon label";
     align-items: center;
     column-gap: 12px;
-    min-height: 68px; padding: 12px;
-    text-align: start;
-    border-radius: 16px;
+    row-gap: 0;
+    min-height: 68px;
+    padding: 12px;
   }
-  .analytics-ov-card:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--border); }
-  .analytics-ov-icon { grid-area: icon; margin: 0; font-size: 20px; }
-  .analytics-ov-value {
-    grid-area: value; align-self: end;
-    margin: 0; font-size: 20px; line-height: 1.15;
-    font-variant-numeric: tabular-nums;
-  }
-  .analytics-ov-label {
-    grid-area: label; align-self: start;
-    font-size: 13px; line-height: 1.3;
-    text-transform: none; letter-spacing: 0;
-  }
+  .analytics-ov-icon { grid-area: icon; margin: 0; width: 38px; height: 38px; }
+  .analytics-ov-value { grid-area: value; align-self: end; font-size: 22px; }
+  .analytics-ov-label { grid-area: label; align-self: start; }
 
-  /* ── Bölmə kartları ── rəngli zolaq yox: kafel + başlıq, nazik ayırıcılar */
-  .analytics-sections { gap: 14px; }
-  .analytics-card { border-radius: 18px; }
-  .analytics-card:hover { box-shadow: var(--shadow-sm); border-color: var(--border); }
-  .analytics-card > .analytics-card-header {
-    gap: 12px;
-    padding: 14px 16px 4px;
-    background: transparent;
-    border-bottom: 0;
-  }
-  .analytics-card-header-icon { font-size: 16px; }
-  .analytics-card-header h3 { font-size: 16px; }
-  .analytics-card-body { padding: 4px 16px 14px; }
+  .analytics-sections { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .analytics-card-header { padding: 14px 16px 4px; }
+  .analytics-card-body { padding: 4px 16px 16px; }
+  .analytics-bar-item { grid-template-columns: 76px minmax(0, 1fr) 24px; }
 
-  .analytics-stat-row {
-    gap: 12px; min-height: 48px; padding: 6px 0;
-    border-bottom-color: var(--hairline);
-  }
-  .analytics-stat-label { font-size: 14.5px; }
-  .analytics-stat-value { flex-shrink: 0; font-variant-numeric: tabular-nums; }
-
-  .analytics-subhead { font-size: 13px; margin: 14px 0 2px; }
-  .analytics-progress-wrap { margin: 12px 0 4px; }
-  .analytics-progress-label { font-size: 13px; font-variant-numeric: tabular-nums; }
-  .analytics-progress-bar { height: 8px; border-radius: 999px; }
-  .analytics-progress-fill { border-radius: 999px; transform-origin: left center; }
-  [dir="rtl"] .analytics-progress-fill { transform-origin: right center; }
-  /* Kart görünəndə zolaq dolur (yalnız transform) */
-  .analytics-card[data-revealed=""] .analytics-progress-fill {
-    animation: an-bar-in var(--dur-3) var(--ease-out) 160ms backwards;
-  }
-
-  .analytics-hifz-label { font-size: 14px; }
-  .analytics-hifz-count { font-variant-numeric: tabular-nums; }
-
-  .analytics-bar-label { width: 72px; font-size: 13px; }
-  .analytics-bar-track { height: 22px; border-radius: 999px; }
-  .analytics-bar-fill { border-radius: 999px; font-size: 13px; font-variant-numeric: tabular-nums; }
-
-  /* ── Nailiyyətlər ── üfüqi sürüşən nişan zolağı (kartın kənarına qədər) */
+  /* Nailiyyətlər — üfüqi sürüşən nişan zolağı (kartın kənarına qədər) */
   .analytics-achievements {
-    display: flex; gap: 10px;
-    margin: 4px -16px 0; padding: 4px 16px 6px;
-    overflow-x: auto; overscroll-behavior-x: contain;
-    scroll-snap-type: x proximity; scroll-padding-inline: 16px;
+    display: flex;
+    gap: 10px;
+    margin: 4px -16px 0;
+    padding: 4px 16px 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 16px;
     scrollbar-width: none;
     -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
             mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
   }
   .analytics-achievements::-webkit-scrollbar { display: none; }
-  .analytics-badge {
-    position: relative;
-    flex: 0 0 112px; scroll-snap-align: start;
-    gap: 8px; padding: 16px 8px 14px;
-    border-radius: 16px;
-  }
-  .analytics-badge-icon { width: 48px; height: 48px; font-size: 26px; }
-  .analytics-badge-name { font-size: 13px; }
-  /* Status yazısı ekran oxuyucusu üçün qalır; gözlə — küncdəki ✓ və boz ikon */
-  .analytics-badge-status {
-    position: absolute;
-    width: 1px; height: 1px; margin: -1px; padding: 0;
-    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
-  }
-  .analytics-badge.achieved::after {
-    content: '✓';
-    content: '✓' / '';
-    position: absolute; top: 8px; inset-inline-end: 8px;
-    display: grid; place-items: center;
-    width: 20px; height: 20px; border-radius: 50%;
-    background: var(--primary); color: var(--on-primary);
-    font-size: 12px; font-weight: 800; line-height: 1;
-  }
-
-  /* Məlumat yoxdur sətri — yumşaq kart */
-  .analytics-nodata {
-    gap: 12px; padding: 12px 14px;
-    border-style: solid; border-color: var(--border); border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-  }
-  .analytics-nodata-icon { font-size: 20px; }
+  .analytics-badge { flex: 0 0 116px; scroll-snap-align: start; }
 }
 
-@keyframes an-bar-in {
-  from { transform: scaleX(0); }
-  to   { transform: none; }
+@keyframes an-bar-in { from { transform: scaleX(0); } }
+@keyframes an-pop-in {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .analytics-card[data-revealed=""] .analytics-progress-fill { animation: none; }
+  .analytics-card[data-revealed=""] .analytics-progress-fill,
+  .analytics-card[data-revealed=""] .analytics-bar-fill,
+  .analytics-achievements[data-revealed=""] .analytics-badge-tick { animation: none; }
+  .analytics-ov-card, .analytics-badge, .analytics-progress-fill, .analytics-bar-fill { transition: none; }
+  .analytics-ov-card:hover, .analytics-badge:hover { transform: none; }
 }

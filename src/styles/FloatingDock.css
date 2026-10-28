@@ -56,28 +56,37 @@ body.panel-open .qm-dock {
   height: var(--qm-dock-size);
   padding: 0;
   border-radius: 50%;
-  border: 1px solid var(--primary-border);
-  background: var(--primary);
-  color: var(--white);
+  border: 0;
+  /* v2: zümrüd düymə, yuxarıdan incə işıq + qum rəngli nazik halqa */
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
+    var(--brand);
+  color: var(--on-brand);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: var(--shadow-lg);
-  transition: transform 0.2s ease, background 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+  box-shadow:
+    var(--shadow-3),
+    0 0 0 3px color-mix(in srgb, var(--surface-0) 70%, transparent),
+    0 0 0 4px var(--accent-line);
+  transition: transform var(--dur-2, 240ms) var(--ease-spring, ease), background-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .qm-dock-toggle:hover {
-  background: var(--primary-dark);
+  background-color: var(--brand-hover);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
+  box-shadow:
+    var(--shadow-4),
+    0 0 0 3px color-mix(in srgb, var(--surface-0) 70%, transparent),
+    0 0 0 4px var(--accent);
 }
 
 .qm-dock-toggle:active { transform: scale(0.96); }
 
 .qm-dock-toggle:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
   outline-offset: 3px;
 }
 
@@ -86,7 +95,8 @@ body.panel-open .qm-dock {
   transition: transform var(--dur-3, 360ms) var(--ease-spring, ease);
 }
 
-.qm-dock.is-open .qm-dock-toggle-icon { transform: rotate(45deg); }
+.qm-dock.is-open .qm-dock-toggle-icon { transform: rotate(135deg); }
+.qm-dock.is-open .qm-dock-toggle { background-color: var(--text-strong); color: var(--surface-1); }
 
 /* Oxunmamış AI cavabı */
 .qm-dock-dot {
@@ -96,8 +106,8 @@ body.panel-open .qm-dock {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--danger);
-  border: 2px solid var(--bg-card);
+  background: var(--bad);
+  border: 2px solid var(--surface-1);
 }
 
 /* ─── Menyu ─── */
@@ -117,7 +127,7 @@ body.panel-open .qm-dock {
   border: none;
   background: none;
   font: inherit;
-  color: var(--text);
+  color: var(--text-body);
   cursor: pointer;
   /* Menyu yay kimi açılır: bəndlər düymədən yuxarı növbə ilə "qalxır" */
   animation: qm-dock-in 320ms var(--ease-spring, cubic-bezier(0.34, 1.36, 0.64, 1)) backwards;
@@ -129,16 +139,19 @@ body.panel-open .qm-dock {
 .qm-dock-item:focus-visible { outline: none; }
 
 .qm-dock-item-label {
-  background: var(--bg-card);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-body);
+  border: 1px solid var(--line);
   border-radius: 999px;
   padding: 7px 13px;
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  backdrop-filter: saturate(160%) blur(12px);
   line-height: 1.3;
   white-space: nowrap;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-2);
   transition: border-color 0.2s ease, color 0.2s ease;
 }
 
@@ -150,10 +163,10 @@ body.panel-open .qm-dock {
   margin-inline-end: calc((var(--qm-dock-size) - 44px) / 2);
   flex-shrink: 0;
   border-radius: 50%;
-  background: var(--bg-card);
-  color: var(--primary);
-  border: 1px solid var(--border-md);
-  box-shadow: var(--shadow);
+  background: var(--surface-1);
+  color: var(--brand);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -162,19 +175,19 @@ body.panel-open .qm-dock {
 
 .qm-dock-item:hover .qm-dock-item-icon,
 .qm-dock-item:focus-visible .qm-dock-item-icon {
-  background: var(--primary);
-  color: var(--white);
-  border-color: var(--primary);
+  background: var(--brand);
+  color: var(--on-brand);
+  border-color: var(--brand);
 }
 
 .qm-dock-item:hover .qm-dock-item-label,
 .qm-dock-item:focus-visible .qm-dock-item-label {
-  border-color: var(--primary-border);
-  color: var(--primary);
+  border-color: var(--brand-line);
+  color: var(--brand);
 }
 
 .qm-dock-item:focus-visible .qm-dock-item-icon {
-  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
   outline-offset: 2px;
 }
 
@@ -189,8 +202,8 @@ body.panel-open .qm-dock {
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: var(--danger);
-  border: 2px solid var(--bg-card);
+  background: var(--bad);
+  border: 2px solid var(--surface-1);
 }
 
 .qm-dock-item-badge {
@@ -201,9 +214,9 @@ body.panel-open .qm-dock {
   height: 19px;
   padding: 0 4px;
   border-radius: 999px;
-  background: var(--primary);
-  color: var(--white);
-  border: 2px solid var(--bg-card);
+  background: var(--brand);
+  color: var(--on-brand);
+  border: 2px solid var(--surface-1);
   font-size: 10.5px;
   font-weight: 800;
   line-height: 15px;
@@ -226,9 +239,9 @@ body.panel-open .qm-dock {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -238,8 +251,8 @@ body.panel-open .qm-dock {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 3px solid var(--primary-bg2);
-  border-top-color: var(--primary);
+  border: 3px solid var(--brand-soft-2);
+  border-top-color: var(--brand);
   animation: qm-dock-spin 0.7s linear infinite;
 }
 

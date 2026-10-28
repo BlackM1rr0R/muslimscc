@@ -7,7 +7,8 @@ Qısa qayda: **yalnız tokenləri və `.ui-*` siniflərini işlət, öz rəngini
 |---|---|
 | `src/styles/globals.css` | Bütün tokenlər (xam palitra → semantik → köhnə adlar), baza, qabıq (`.qm-shell`), köhnə ümumi siniflər (`.btn-primary`, `.card`, `.page-hero` …) |
 | `src/styles/ui.css` | Yeni komponent sinifləri (`.ui-*`). `globals.css`-in əvvəlində `@import` olunur |
-| `src/styles/motion.css` | Hərəkət tokenləri, fokus halqası, səhifə keçidi, `data-reveal`, mobil dəst (`.m-row`, `.m-chip` …) |
+| `src/styles/motion.css` | Hərəkət tokenləri, fokus halqası, səhifə keçidi, `data-reveal` (12 variant), giriş/çıxış sinifləri, sayğac, skeleton, mobil dəst (`.m-row`, `.m-chip` …) |
+| `src/styles/heroes.css` | Köhnə `.page-hero` temaları — 7 palitra ailəsi (zümrüd, şam, mamır, firuzə, gecə, tunc, torpaq) + hero hərəkəti |
 | `src/components/Icon.jsx` | Xətti SVG ikon dəsti (`<Icon name="quran" />`) + `BrandMark` |
 | `src/pages/HomePage.jsx` + `HomePage.css` | Sistemin "nümunə səhifəsi" |
 
@@ -93,13 +94,69 @@ Rəqəmlər (saat, sayğac): `.ui-num` və ya `font-variant-numeric: tabular-num
 - Kölgə: `--shadow-1` (sakit kart) → `-2` (hover) → `-3` (üzən kart) → `-4` (menyu/dialoq). Rəngsizdir (yaşıl çalar yoxdur).
 - Boşluq: `--space-1…9` (4…96), `--page-gutter` (32/24/20/16), `--container` 1200, `--section-gap` 88→56→44→36, `--card-pad`, `--tap` 44.
 
-### Hərəkət (motion.css)
+### Hərəkət (motion.css + ui.css §11–12 + heroes.css)
 
-`--dur-1` 150ms (rəng, basılma) · `--dur-2` 240ms (düymə, kart hover) · `--dur-3` 360ms (səhifə, menyu, görünmə).
-`--ease-out` giriş, `--ease-in` çıxış, `--ease-spring` yalnız kiçik elementlərdə.
-Yalnız `transform`/`opacity`. Dövri dekorativ animasiya yoxdur. `prefers-reduced-motion` — hər şey söndürülür
-(motion.css §15); vacib girişlər yalnız solma ilə (`HomePage.css` sonu nümunədir).
-Sürüşəndə görünmə: `data-reveal`, `data-reveal="stagger"`, `="fade"`, `="scale"`.
+Tokenlər: `--dur-1` 150ms (rəng, basılma) · `--dur-2` 240ms (düymə, kart hover) · `--dur-3` 360ms (menyu, dialoq, toast) ·
+`--dur-4` 560ms (sürüşəndə görünmə) · `--stagger` 45ms. Əyrilər: `--ease-out` giriş, `--ease-in` çıxış,
+`--ease-spring` yalnız kiçik elementlərdə, `--ease-sheet` vərəq.
+Qaydalar: yalnız `transform` / `opacity` (+ bir dəfəlik `filter: blur`); dövri dekor yalnız hero təsvirinin/naxışının
+çox yavaş "nəfəsi"dir (28–40 s). `prefers-reduced-motion: reduce` — hər şey söndürülür (motion.css §17), məzmun
+dərhal görünür, sayğac saymır, skeleton parıltısı dayanır.
+
+**Sürüşəndə görünmə — `data-reveal`** (JS: `hooks/useReveal.js`, tək müşahidəçi; JS yoxdursa məzmun görünür qalır)
+
+| Dəyər | Nə edir |
+|---|---|
+| `data-reveal` / `="up"` | aşağıdan 16px qalxır + görünür |
+| `="down"` | yuxarıdan enir |
+| `="left"` / `="right"` | başlanğıc / son tərəfdən 22px (ərəbcədə güzgülənir) |
+| `="zoom"` | .94 → 1 · `="scale"` .97 → 1 (köhnə) |
+| `="blur"` | bulanıqdan aydınlaşır + 8px qalxır (iri başlıq, sitat üçün) |
+| `="fade"` | yalnız görünür |
+| `="stagger"` | **uşaqlar** növbə ilə qalxır (45ms, ən çox 10 addım) |
+| `="stagger-zoom"` `-fade` `-left` `-right` `-blur` | uşaqlar növbə ilə, uyğun hərəkətlə |
+
+Əlavə: `data-reveal-delay="120"` (ms, ≤ 400), `style="--reveal-dur: 800ms"`. `.ui-ornament[data-reveal]` — xətlər mərkəzdən
+açılır, ulduz fırlanıb oturur. Ref ilə: `const ref = useReveal('stagger')`.
+
+```html
+<div class="ui-section-head" data-reveal>…</div>
+<div class="ui-grid" data-reveal="stagger">  <a class="ui-card ui-card--interactive">…</a> … </div>
+<figure class="ui-quote" data-reveal="blur">…</figure>
+<div class="ui-ornament" data-reveal aria-hidden="true"><span class="ui-ornament__star"></span></div>
+```
+
+**Rəqəm sayğacı — `data-count`**: `<span class="ui-stat__num" data-count="6236">6 236</span>` — görünəndə 0-dan
+hədəfə 1.2 s sayır (ease-out), minlik ayırıcısını saxlayır, sonda HTML-dəki mətn olduğu kimi qalır (SEO).
+`data-count-duration="1600"`; ondalıq: `data-count="4.8"`. Element yalnız bir mətn düyünündən ibarət olmalıdır.
+
+**Mikro-qarşılıqlı təsirlər** (avtomatikdir, sinif əlavə etmək lazım deyil):
+`.ui-btn` hover-də 1px qalxır, basılanda .97; sonda ox üçün `<Icon className="ui-btn__icon ui-btn__icon--end ui-flip-rtl">` irəli sürüşür ·
+`.ui-card` hover-də kölgə bir pillə artır; `.ui-card--interactive`, `a.ui-card`, `button.ui-card` 3px qalxır + `--shadow-3`,
+içindəki `.ui-icon-tile` böyüyür/ikonu əyilir, `.ui-link__arrow` irəli gedir · `.ui-chip` seçiləndə "pop", basılanda .96 ·
+`.ui-icon-btn` basılanda .92 · `.ui-icon-tile--interactive` kart xaricində öz hover canlanması · fokus halqası 6px-dən 2px-ə "oturur".
+
+**Köməkçi siniflər** (motion.css §15–16):
+
+| Sinif | Nə edir |
+|---|---|
+| `.ui-enter-fade` · `-rise` · `-drop` · `-pop` · `-dialog` · `-sheet` | giriş animasiyası (backdrop · toast · açılan menyu · kiçik nişan · modal · telefon vərəqi) |
+| `… .is-leaving` | çıxış (200ms); sonra DOM-dan çıxar — `exitDelay()` (utils/promptCoordinator.js) hərəkət azaldılıbsa 0 qaytarır |
+| `.ui-lift` | hover-də 2px qalxma + kölgə (istənilən blok) |
+| `.ui-press` | basılanda .97 (köhnə `.press` eynidir) |
+| `.ui-underline` | link altında xətt başlanğıcdan "çəkilir" |
+| `.ui-spin` | kiçik yüklənmə fırlanması (düymə içində) |
+| `.ui-skeleton` (+ `--text` `--circle` `--card`, `style="--w:60%"`) | yüklənmə parıltısı; köhnə `.skeleton` də işləyir |
+
+**Səhifə keçidi**: `<main class="page-enter">` 10px aşağıdan qalxır (App.jsx); `.ui-page-hero` məzmunu (crumbs → eyebrow →
+h1 → lead → düymələr) növbə ilə qalxır, alt qızılı xətt mərkəzdən açılır, naxış 40 s-də "nəfəs alır". Köhnə `.page-hero`
+(heroes.css): məzmun növbə ilə qalxır, təsvir 28 s-də 1 → 1.035 miqyasda nəfəs alır.
+
+**Üzən kart / dəvət — `.ui-toast`** (ui.css §11): quraşdırma, bildiriş icazəsi, elan, push — hamısı bir görünüşdə,
+altdan `16px + safe-area`, ≥1024px-də əsas sütunun ortasında (dok üçün yer). Hissələr: `__icon` / `__mark`, `__body`,
+`__eyebrow`, `__title`, `__text`, `__actions`, `__close`, `__progress` (`--toast-duration`); `--top` variantı; vurğu
+`style="--toast-accent: var(--bad)"`. **Eyni anda yalnız BİR dəvət** — yeni üzən element əlavə edirsənsə
+`usePromptSlot()` (utils/promptCoordinator.js) işlət; bağlananda seçimi `snoozePrompt(key, days)` ilə yadda saxla.
 
 ## 3. Komponentlər (ui.css)
 
@@ -217,4 +274,5 @@ Yeni ikon: 24×24 şəbəkə, yalnız stroke, fill yox.
 - [ ] Emoji ikonlar → `<Icon>`; göy qurşağı `style={{'--clr': …}}` rəngləri → brend/vurğu tokenləri.
 - [ ] Kartlar → `.ui-card`, düymələr → `.ui-btn`, filtrlər → `.ui-chip`, sahələr → `.ui-input`.
 - [ ] Hex rəng, öz kölgə/radius yoxdur; `[data-theme=dark]` qaydaları minimal.
+- [ ] Bölmə başlıqlarına `data-reveal`, kart şəbəkələrinə `data-reveal="stagger"`, iri rəqəmlərə `data-count`.
 - [ ] 1440 işıqlı/qaranlıq, 390 telefon, `/ar` ekran şəkli; konsol təmiz; e2e keçir.

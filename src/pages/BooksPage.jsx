@@ -5,16 +5,17 @@ import { BOOK_CATEGORIES, DEFAULT_BOOKS, subscribeToBooks, getDefaultCover } fro
 import Pagination from '../components/Pagination'
 import { useBackToClose } from '../utils/useBackToClose'
 import { useSheetDrag } from '../hooks/useSheetDrag'
+import Icon from '../components/Icon'
 import '../styles/BooksPage.css'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
 
 const LABELS = {
-  az: { title:'Kitabxana', subtitle:'İslami kitablar, təfsirlər və elm əsərləri', search:'Kitab axtar...', filter:'Filtr', featured:'Seçilmiş Kitablar', allBooks:'Bütün Kitablar', moreBooks:'Digər kitablar', noResults:'Kitab tapılmadı', loading:'Yüklənir...', books:'kitab', author:'Müəllif', read:'Oxu', preview:'Önizlə', readPdf:'PDF açın', noPdf:'PDF mövcud deyil', pages:'səhifə', year:'İl', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
-  en: { title:'Library', subtitle:'Islamic books, tafsirs and scholarly works', search:'Search books...', filter:'Filter', featured:'Featured Books', allBooks:'All Books', moreBooks:'More books', noResults:'No books found', loading:'Loading...', books:'books', author:'Author', read:'Read', preview:'Preview', readPdf:'Open PDF', noPdf:'PDF not available', pages:'pages', year:'Year', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
-  ru: { title:'Библиотека', subtitle:'Исламские книги, тафсиры и научные труды', search:'Поиск книг...', filter:'Фильтр', featured:'Избранные книги', allBooks:'Все книги', moreBooks:'Другие книги', noResults:'Книги не найдены', loading:'Загрузка...', books:'книг', author:'Автор', read:'Читать', preview:'Просмотр', readPdf:'Открыть PDF', noPdf:'PDF недоступен', pages:'страниц', year:'Год', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
-  ar: { title:'المكتبة', subtitle:'كتب إسلامية وتفاسير وأعمال علمية', search:'البحث عن كتاب...', filter:'تصفية', featured:'كتب مميزة', allBooks:'كل الكتب', moreBooks:'كتب أخرى', noResults:'لا توجد كتب', loading:'جارٍ التحميل...', books:'كتاب', author:'المؤلف', read:'اقرأ', preview:'معاينة', readPdf:'فتح PDF', noPdf:'PDF غير متاح', pages:'صفحة', year:'السنة', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
-  tr: { title:'Kütüphane', subtitle:'İslami kitaplar, tefsirler ve ilmi eserler', search:'Kitap ara...', filter:'Filtre', featured:'Öne Çıkan Kitaplar', allBooks:'Tüm Kitaplar', moreBooks:'Diğer kitaplar', noResults:'Kitap bulunamadı', loading:'Yükleniyor...', books:'kitap', author:'Yazar', read:'Oku', preview:'Önizle', readPdf:'PDF aç', noPdf:'PDF mevcut değil', pages:'sayfa', year:'Yıl', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
+  az: { eyebrow:'Hədis və bilik', title:'Kitabxana', subtitle:'İslami kitablar, təfsirlər və elm əsərləri', search:'Kitab axtar...', filter:'Filtr', featured:'Seçilmiş kitablar', allBooks:'Bütün kitablar', moreBooks:'Digər kitablar', noResults:'Kitab tapılmadı', loading:'Yüklənir...', books:'kitab', author:'Müəllif', read:'Oxu', preview:'Önizlə', readPdf:'PDF açın', noPdf:'PDF mövcud deyil', pages:'səhifə', year:'İl', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
+  en: { eyebrow:'Hadith & knowledge', title:'Library', subtitle:'Islamic books, tafsirs and scholarly works', search:'Search books...', filter:'Filter', featured:'Featured Books', allBooks:'All Books', moreBooks:'More books', noResults:'No books found', loading:'Loading...', books:'books', author:'Author', read:'Read', preview:'Preview', readPdf:'Open PDF', noPdf:'PDF not available', pages:'pages', year:'Year', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
+  ru: { eyebrow:'Хадисы и знание', title:'Библиотека', subtitle:'Исламские книги, тафсиры и научные труды', search:'Поиск книг...', filter:'Фильтр', featured:'Избранные книги', allBooks:'Все книги', moreBooks:'Другие книги', noResults:'Книги не найдены', loading:'Загрузка...', books:'книг', author:'Автор', read:'Читать', preview:'Просмотр', readPdf:'Открыть PDF', noPdf:'PDF недоступен', pages:'страниц', year:'Год', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
+  ar: { eyebrow:'الحديث والعلم', title:'المكتبة', subtitle:'كتب إسلامية وتفاسير وأعمال علمية', search:'البحث عن كتاب...', filter:'تصفية', featured:'كتب مميزة', allBooks:'كل الكتب', moreBooks:'كتب أخرى', noResults:'لا توجد كتب', loading:'جارٍ التحميل...', books:'كتاب', author:'المؤلف', read:'اقرأ', preview:'معاينة', readPdf:'فتح PDF', noPdf:'PDF غير متاح', pages:'صفحة', year:'السنة', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
+  tr: { eyebrow:'Hadis ve ilim', title:'Kütüphane', subtitle:'İslami kitaplar, tefsirler ve ilmi eserler', search:'Kitap ara...', filter:'Filtre', featured:'Öne Çıkan Kitaplar', allBooks:'Tüm Kitaplar', moreBooks:'Diğer kitaplar', noResults:'Kitap bulunamadı', loading:'Yükleniyor...', books:'kitap', author:'Yazar', read:'Oku', preview:'Önizle', readPdf:'PDF aç', noPdf:'PDF mevcut değil', pages:'sayfa', year:'Yıl', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
 }
 
 // Sürüşdükcə görünmə (motion.css → data-reveal): hər kart ayrıca izlənir —
@@ -185,10 +186,23 @@ export default function BooksPage({ setPage }) {
       )
     }
     return (
-      <div className="bp-cover-placeholder" style={{background: `linear-gradient(135deg, ${cat?.color || '#10b981'}, ${cat?.color || '#10b981'}dd)`}}>
-        <div className="bp-cover-icon">📖</div>
+      // Şəkilsiz kitab — tünd zümrüd üz qabığı + incə xatəm naxışı (tokenlərlə)
+      <div className="bp-cover-placeholder">
+        <div className="ui-pattern" aria-hidden="true"></div>
+        <Icon name="books" size={34} className="bp-cover-icon" />
         <div className="bp-cover-cat">{cat?.label[lang]}</div>
       </div>
+    )
+  }
+
+  // Kart üz qabığındakı sakit nişanlar (bölmə + PDF) — rəng yalnız tokenlərdən
+  const coverBadges = (b) => {
+    const cat = BOOK_CATEGORIES.find(c => c.key === b.category)
+    return (
+      <>
+        {cat && <span className="bp-cover-badge">{cat.label[lang]}</span>}
+        {b.pdfUrl && <span className="bp-pdf-badge">PDF</span>}
+      </>
     )
   }
 
@@ -196,27 +210,33 @@ export default function BooksPage({ setPage }) {
     <div className="books-page">
 
       {/* ═══ HERO ═══ */}
-      <div className="bp-hero">
-        <div className="bp-hero-arabic">مَكْتَبَةُ الْكُتُبِ</div>
-        <h1 className="bp-hero-title"><span aria-hidden="true">📚</span> {l.title}</h1>
-        <p className="bp-hero-sub">{l.subtitle}</p>
-        {/* Yalnız real məzmun sayı (əvvəlki "FİLTR 9" bölmə sayı idi, məzmun deyil) */}
-        <div className="bp-hero-stats">
-          <div className="bp-stat">
-            <span className="bp-stat-num">{books.length}</span>
-            <span className="bp-stat-label">{l.books}</span>
-          </div>
+      <header className="ui-page-hero bp-hero2">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container">
+          <span className="ui-eyebrow">{l.eyebrow}</span>
+          <h1 className="ui-display">{l.title}</h1>
+          {lang !== 'ar' && <p className="bp-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">مَكْتَبَةُ الْكُتُبِ</p>}
+          <p className="ui-lead">{l.subtitle}</p>
+          {/* Yalnız real məzmun sayı (yüklənəndə gizli — "0 kitab" görünməsin) */}
+          {!loading && books.length > 0 && (
+            <div className="bp-hero-stats" data-reveal="fade">
+              <div className="ui-stat">
+                <span className="ui-stat__num" data-count={books.length}>{books.length}</span>
+                <span className="ui-stat__label">{l.books}</span>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </header>
 
-      <div className="bp-container">
+      <div className="ui-container bp-container">
 
-        {/* ═══ SEARCH BAR ═══ */}
+        {/* ═══ AXTARIŞ ═══ */}
         <div className="bp-search-wrap">
-          <span className="bp-search-icon" aria-hidden="true">🔍</span>
+          <Icon name="search" size={19} className="bp-search-icon" />
           <input
-            type="text"
-            className="bp-search"
+            type="search"
+            className="ui-input bp-search"
             aria-label={l.search}
             placeholder={l.search}
             enterKeyHint="search"
@@ -224,167 +244,144 @@ export default function BooksPage({ setPage }) {
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
-            <button type="button" className="bp-search-clear" onClick={() => setSearch('')} aria-label={l.clear} title={l.clear}>✕</button>
+            <button type="button" className="ui-icon-btn bp-search-clear" onClick={() => setSearch('')} aria-label={l.clear} title={l.clear}>
+              <Icon name="close" size={16} />
+            </button>
           )}
         </div>
 
-        {/* ═══ FEATURED (axtarış yox, "Hamısı" seçili və kitab > 8) ═══ */}
+        {/* ═══ SEÇİLMİŞLƏR (axtarış yox, "Hamısı" seçili və kitab > 8) ═══ */}
         {featured.length > 0 && (
           <section className="bp-section">
-            <h2 className="bp-section-title">
-              <span>⭐</span> {l.featured}
-            </h2>
-            <div className="bp-featured-row" data-reveal="stagger">
-              {featured.map(b => {
-                const cat = BOOK_CATEGORIES.find(c => c.key === b.category)
-                return (
-                  <article
-                    key={b.id}
-                    className="bp-featured-card"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setSelectedBook(b)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedBook(b) } }}
-                  >
-                    <div className="bp-featured-cover">
-                      {renderCover(b)}
-                      <div className="bp-featured-overlay">
-                        <div className="bp-featured-overlay-btn">📖 {l.preview}</div>
-                      </div>
-                      {cat && (
-                        <div className="bp-featured-badge" style={{background: cat.color}}>
-                          {cat.label[lang]}
-                        </div>
-                      )}
-                      {b.pdfUrl && (
-                        <span className="bp-pdf-badge">📄 PDF</span>
-                      )}
-                    </div>
-                    <div className="bp-featured-body">
-                      <h3>{pickLang(b.title, lang)}</h3>
-                      <p className="bp-featured-author">✍️ {pickLang(b.author, lang, { warn: false })}</p>
-                    </div>
-                  </article>
-                )
-              })}
+            <div className="bp-section-head" data-reveal>
+              <h2 className="ui-title ui-title--sm bp-section-title">
+                <Icon name="star" size={20} className="bp-section-ic" /> {l.featured}
+              </h2>
+            </div>
+            <div className="bp-featured-row" data-reveal="stagger-zoom">
+              {featured.map(b => (
+                <article
+                  key={b.id}
+                  className="ui-card ui-card--flush ui-card--interactive bp-featured-card"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={pickLang(b.title, lang)}
+                  onClick={() => setSelectedBook(b)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedBook(b) } }}
+                >
+                  <div className="bp-cover bp-featured-cover">
+                    {renderCover(b)}
+                    {coverBadges(b)}
+                  </div>
+                  <div className="bp-featured-body">
+                    <h3 className="bp-title">{pickLang(b.title, lang)}</h3>
+                    <p className="bp-author">{pickLang(b.author, lang, { warn: false })}</p>
+                  </div>
+                </article>
+              ))}
             </div>
           </section>
         )}
 
-        {/* ═══ CATEGORY FILTER ═══
+        {/* ═══ FİLTR ═══
             Yalnız bir dolu bölmə varsa filtr mənasızdır ("Hamısı" = həmin bölmə) — gizlədirik */}
         {categories.length > 2 && (
-        <section className="bp-section">
-          <h2 className="bp-section-title bp-filter-title">
-            <span>📂</span> {l.filter}
-          </h2>
-          {/* Telefonda başlıq gizlənir, çiplər bir sürüşən sətirdir */}
-          <div className="bp-cat-filter" role="group" aria-label={l.filter}>
+          <div className="bp-cat-filter" role="group" aria-label={l.filter} data-reveal="stagger-fade">
             {categories.map(cat => {
               const active = selectedCat === cat.key
               const count = cat.key === 'all'
                 ? books.length
                 : books.filter(b => b.category === cat.key).length
-              // "Hamısı" saytın əsas yaşılı ilə (boz #64748b yox); digərləri bölmə rəngi
-              const activeStyle = cat.key === 'all'
-                ? { backgroundColor: 'var(--primary)', borderColor: 'var(--primary)', color: 'var(--on-primary)' }
-                : { backgroundColor: cat.color, borderColor: cat.color, color: '#fff' }
               return (
                 <button
                   type="button"
                   key={cat.key}
-                  className={`bp-cat-btn ${active ? 'active' : ''}`}
+                  className="ui-chip bp-cat-btn"
                   aria-pressed={active}
                   onClick={() => setSelectedCat(cat.key)}
-                  style={active ? activeStyle : { '--cat-color': cat.key === 'all' ? 'var(--primary)' : cat.color }}
                 >
                   <span>{cat.label[lang]}</span>
-                  <span className="bp-cat-count">{count}</span>
+                  <span className="bp-cat-count ui-num">{count}</span>
                 </button>
               )
             })}
           </div>
-        </section>
         )}
 
-        {/* ═══ ALL BOOKS ═══ */}
+        {/* ═══ BÜTÜN KİTABLAR ═══ */}
         <section className="bp-section">
-          <h2 className="bp-section-title" ref={gridTopRef}>
-            <span>📖</span> {selectedCat !== 'all'
-              ? BOOK_CATEGORIES.find(c => c.key === selectedCat)?.label[lang]
-              : featured.length ? l.moreBooks : l.allBooks}
-            <span className="bp-section-count">{filtered.length}</span>
-          </h2>
+          <div className="bp-section-head" ref={gridTopRef}>
+            <h2 className="ui-title ui-title--sm bp-section-title">
+              <Icon name="books" size={20} className="bp-section-ic" /> {selectedCat !== 'all'
+                ? BOOK_CATEGORIES.find(c => c.key === selectedCat)?.label[lang]
+                : featured.length ? l.moreBooks : l.allBooks}
+            </h2>
+            {!loading && <span className="ui-badge bp-section-count ui-num">{filtered.length}</span>}
+          </div>
 
           {loading ? (
-            // Yüklənmə: fırlanan dairə əvəzinə kartların "skelet"i (motion.css → .skeleton)
+            // Yüklənmə: kartların "skelet"i (motion.css → .skeleton)
             <div className="bp-grid" role="status" aria-label={l.loading}>
               {Array.from({ length: 6 }, (_, i) => (
-                <div key={i} className="bp-skel-card" aria-hidden="true">
+                <div key={i} className="ui-card ui-card--flush bp-skel-card" aria-hidden="true">
                   <div className="skeleton bp-skel-cover" />
                   <div className="bp-skel-body">
                     <span className="skeleton skeleton--text" style={{ width: '85%' }} />
                     <span className="skeleton skeleton--text" style={{ width: '55%' }} />
-                    <span className="skeleton bp-skel-btn" />
                   </div>
                 </div>
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="bp-empty">
-              <div className="bp-empty-icon">📚</div>
-              <p>{l.noResults}</p>
+            <div className="ui-card ui-card--sunken bp-empty" data-reveal="scale">
+              <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="books" /></span>
+              <p className="bp-empty-title">{l.noResults}</p>
+              {(search || selectedCat !== 'all') && (
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => { setSearch(''); setSelectedCat('all') }}>
+                  <Icon name="close" className="ui-btn__icon" /> {l.clear}
+                </button>
+              )}
             </div>
           ) : (
-            <div className="bp-grid">
-              {paginated.map((b, i) => {
-                const cat = BOOK_CATEGORIES.find(c => c.key === b.category)
-                return (
-                  <article key={b.id} className="bp-card" onClick={() => setSelectedBook(b)} {...revealProps(i)}>
-                    <div className="bp-cover">
-                      {renderCover(b)}
-                      <div className="bp-cover-overlay">
-                        <div className="bp-cover-btn">📖</div>
+            // Açar filtr/səhifə dəyişəndə şəbəkəni yenidən qurur — kartlar yenidən növbə ilə görünür
+            <div className="bp-grid" key={`${selectedCat}|${currentPage}`}>
+              {paginated.map((b, i) => (
+                <article key={b.id} className="ui-card ui-card--flush ui-card--interactive bp-card" onClick={() => setSelectedBook(b)} {...revealProps(i)}>
+                  <div className="bp-cover">
+                    {renderCover(b)}
+                    {coverBadges(b)}
+                  </div>
+                  <div className="bp-body">
+                    <h3 className="bp-title">{pickLang(b.title, lang)}</h3>
+                    <p className="bp-author">{pickLang(b.author, lang, { warn: false })}</p>
+                    {(b.pages || b.year) && (
+                      <div className="bp-meta ui-num">
+                        {b.pages && <span>{b.pages} {l.pages}</span>}
+                        {b.year && <span>{b.year}</span>}
                       </div>
-                      {cat && (
-                        <div className="bp-cover-badge" style={{color: cat.color}}>
-                          {cat.label[lang]}
-                        </div>
-                      )}
-                      {b.pdfUrl && (
-                        <span className="bp-pdf-badge">📄 PDF</span>
-                      )}
+                    )}
+                    <div className="bp-actions">
+                      <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm bp-read-btn" onClick={(e) => { e.stopPropagation(); setSelectedBook(b) }}>
+                        <Icon name="books" className="ui-btn__icon" /> {l.read}
+                      </button>
+                      <button
+                        type="button"
+                        className="ui-icon-btn bp-share-btn"
+                        onClick={(e) => { e.stopPropagation(); handleShare(b) }}
+                        title={l.share}
+                        aria-label={l.share}
+                      >
+                        <Icon name="share" size={18} />
+                      </button>
                     </div>
-                    <div className="bp-body">
-                      <h3 className="bp-title">{pickLang(b.title, lang)}</h3>
-                      <p className="bp-author">✍️ {pickLang(b.author, lang, { warn: false })}</p>
-                      <div className="bp-meta">
-                        {b.pages && <span>📄 {b.pages}</span>}
-                        {b.year && <span>📅 {b.year}</span>}
-                      </div>
-                      <div className="bp-actions">
-                        <button className="bp-read-btn" onClick={(e) => { e.stopPropagation(); setSelectedBook(b) }}>
-                          📖 {l.read}
-                        </button>
-                        <button
-                          className="bp-share-btn"
-                          onClick={(e) => { e.stopPropagation(); handleShare(b) }}
-                          title={l.share}
-                          aria-label={l.share}
-                        >
-                          📤
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                )
-              })}
+                  </div>
+                </article>
+              ))}
             </div>
           )}
 
-          {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <Pagination current={currentPage} total={totalPages} onChange={goToPage} color="var(--primary)" />
+            <Pagination current={currentPage} total={totalPages} onChange={goToPage} color="var(--brand)" />
           )}
         </section>
       </div>
@@ -408,7 +405,7 @@ export default function BooksPage({ setPage }) {
               <div className="m-sheet-grab bp-sheet-grab" {...sheetDrag}>
                 <span className="m-sheet-handle" />
               </div>
-              <button type="button" ref={closeBtnRef} className="bp-modal-close" onClick={closeBook} aria-label={l.close} title={l.close}>✕</button>
+              <button type="button" ref={closeBtnRef} className="ui-icon-btn bp-modal-close" onClick={closeBook} aria-label={l.close} title={l.close}><Icon name="close" size={18} /></button>
               <div className="bp-modal-inner">
                 <div className="bp-modal-cover">
                   {renderCover(selectedBook, 'large')}
@@ -417,18 +414,18 @@ export default function BooksPage({ setPage }) {
                   {(() => {
                     const cat = BOOK_CATEGORIES.find(c => c.key === selectedBook.category)
                     return cat && (
-                      <div className="bp-modal-cat" style={{background: cat.color}}>
-                        {cat.label[lang]}
-                      </div>
+                      <span className="ui-badge ui-badge--accent bp-modal-cat">{cat.label[lang]}</span>
                     )
                   })()}
                   <h2>{pickLang(selectedBook.title, lang)}</h2>
-                  <p className="bp-modal-author">✍️ {pickLang(selectedBook.author, lang, { warn: false })}</p>
+                  <p className="bp-modal-author">{pickLang(selectedBook.author, lang, { warn: false })}</p>
 
-                  <div className="bp-modal-meta">
-                    {selectedBook.pages && <span>📄 {selectedBook.pages} {l.pages}</span>}
-                    {selectedBook.year && <span>📅 {selectedBook.year}</span>}
-                  </div>
+                  {(selectedBook.pages || selectedBook.year) && (
+                    <div className="bp-modal-meta ui-num">
+                      {selectedBook.pages && <span className="ui-badge">{selectedBook.pages} {l.pages}</span>}
+                      {selectedBook.year && <span className="ui-badge"><Icon name="calendar" size={13} /> {selectedBook.year}</span>}
+                    </div>
+                  )}
 
                   {(pickLang(selectedBook.description, lang, { warn: false })) && (
                     <p className="bp-modal-desc">{pickLang(selectedBook.description, lang, { warn: false })}</p>
@@ -436,14 +433,15 @@ export default function BooksPage({ setPage }) {
 
                   <div className="bp-modal-actions">
                     {selectedBook.pdfUrl ? (
-                      <a className="bp-modal-pdf-btn" href={selectedBook.pdfUrl} target="_blank" rel="noopener noreferrer">
-                        📖 {l.readPdf}
+                      <a className="ui-btn ui-btn--primary bp-modal-pdf-btn" href={selectedBook.pdfUrl} target="_blank" rel="noopener noreferrer">
+                        <Icon name="books" className="ui-btn__icon" /> {l.readPdf}
+                        <Icon name="external" size={15} className="bp-ext-ic" />
                       </a>
                     ) : (
-                      <div className="bp-modal-pdf-disabled">⛔ {l.noPdf}</div>
+                      <div className="bp-modal-pdf-disabled"><Icon name="info" size={18} /> {l.noPdf}</div>
                     )}
-                    <button className="bp-modal-share-btn" onClick={() => handleShare(selectedBook)}>
-                      📤 {l.share}
+                    <button type="button" className="ui-btn ui-btn--secondary bp-modal-share-btn" onClick={() => handleShare(selectedBook)}>
+                      <Icon name="share" className="ui-btn__icon" /> {l.share}
                     </button>
                   </div>
                 </div>
@@ -457,8 +455,8 @@ export default function BooksPage({ setPage }) {
       {/* ═══ SHARE TOAST ═══ */}
       {/* <body>-yə — açıq vərəqin də üstündə görünsün */}
       {shareToast && createPortal(
-        <div className="bp-share-toast">
-          ✅ {l.shared}
+        <div className="bp-share-toast" role="status">
+          <Icon name="check" size={18} /> {l.shared}
         </div>,
         document.body
       )}

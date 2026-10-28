@@ -1,444 +1,292 @@
-/* ══════════════════════════════════════════════
-   QiblaPage.css — Qiblə Kompas Səhifəsi
-   ══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   QiblaPage.css — Qiblə kompası (/qibla) · dizayn sistemi v2
+   Masaüstü: solda kompas paneli, sağda məlumat kartları + koordinatlar.
+   Telefon: bir sütun. Kompas halqası sensorla rAF ilə fırlanır (JS);
+   sensor yoxdursa iynə şimaldan qiblə bucağına bir dəfə yumşaq dönür.
+   Yalnız semantik tokenlər; .ui-*-ni dəyişəndə .qibla-page ilə gücləndir.
+   ══════════════════════════════════════════════════════════════════ */
 
 .qibla-page { min-height: 80vh; }
 
+/* ── Hero ── */
+.qibla-hero .breadcrumb { justify-content: flex-start; margin: 0 0 4px; }
+.qibla-hero .bc-list { justify-content: flex-start; }
+.qibla-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
+
 .qibla-wrap {
-  max-width: 680px;
+  max-width: calc(1040px + 2 * var(--page-gutter));
   margin: 0 auto;
-  padding: var(--hero-gap) var(--page-gutter) var(--page-pad-bottom);
+  padding: var(--space-6) var(--page-gutter) var(--section-gap);
 }
 
-/* ── Center layout (loading / error) ── */
-.qibla-center {
+/* ── Yüklənmə / xəta ── */
+.qibla-page .qibla-center {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 12px;
+  max-width: 560px;
+  margin-inline: auto;
+  padding: var(--space-7) var(--space-5);
   text-align: center;
-  gap: 16px;
-  padding: 60px 20px;
+  animation: qb-in var(--dur-3) var(--ease-out) both;
 }
-.qibla-center h3 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
+.qibla-center-title {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
 }
-.qibla-center p {
-  font-size: 14px;
-  color: var(--text-muted);
-}
-.qibla-error-icon { font-size: 48px; margin-bottom: 8px; }
-.qibla-error-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.qibla-center p { max-width: 40ch; color: var(--text-secondary); font-size: 15px; line-height: 1.55; }
+.qibla-error-icon { margin-bottom: 4px; }
+.qibla-error-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
 
-/* ── Loader ── */
-.qibla-loader {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-}
+.qibla-loader { position: relative; display: grid; place-items: center; width: 80px; height: 80px; margin-bottom: 4px; }
 .qibla-loader-ring {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 3px solid var(--primary-bg2);
-  border-top-color: var(--primary);
-  animation: spin .8s linear infinite;
+  border: 3px solid var(--brand-soft-2);
+  border-top-color: var(--brand);
+  animation: spin .9s linear infinite;
 }
-.qibla-loader-icon { font-size: 32px; }
-.qibla-status-text { font-size: 15px; color: var(--text-muted); }
+.qibla-loader-icon { display: grid; place-items: center; color: var(--brand); }
+.qibla-status-text { color: var(--text-secondary); font-size: 15px; }
 
-/* ── Main content ── */
+@keyframes qb-in {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Əsas düzən ── */
 .qibla-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 36px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
 }
+.qibla-side { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
 
-/* ══════════════════════════════════════════════
-   COMPASS
-   ══════════════════════════════════════════════ */
-.qibla-compass-wrap {
+/* ══ KOMPAS ═══════════════════════════════════════════════════════ */
+.qibla-page .qibla-compass-wrap {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(ellipse 70% 60% at 50% 40%, var(--brand-soft) 0%, transparent 70%), var(--surface-1);
+}
+.qibla-compass-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--pattern-color);
+  -webkit-mask: var(--ui-khatam) 0 0 / 64px 64px;
+  mask: var(--ui-khatam) 0 0 / 64px 64px;
+  -webkit-mask-image: var(--ui-khatam), radial-gradient(circle at 50% 42%, transparent 34%, #000 70%);
+  mask-image: var(--ui-khatam), radial-gradient(circle at 50% 42%, transparent 34%, #000 70%);
+  -webkit-mask-size: 64px 64px, 100% 100%;
+  mask-size: 64px 64px, 100% 100%;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  opacity: 0.8;
 }
 
 .qibla-compass {
+  --r: 150px;           /* yarımdiametr — cizgilər və yazılar bundan hesablanır */
   position: relative;
-  width: 300px;
-  height: 300px;
+  width: calc(var(--r) * 2);
+  height: calc(var(--r) * 2);
   border-radius: 50%;
-  /* Subtle outer glow */
+  background: radial-gradient(circle at 50% 40%, var(--surface-1) 0%, var(--surface-1) 55%, var(--surface-2) 100%);
   box-shadow:
-    0 0 0 2px var(--border),
-    0 0 0 10px var(--bg),
-    0 8px 40px rgba(26,107,58,0.12),
-    0 2px 8px rgba(0,0,0,0.06);
-  background: radial-gradient(circle at 40% 35%, #ffffff 0%, #f4f7f2 60%, #e8f0e4 100%);
+    inset 0 0 0 1px var(--line-strong),
+    0 0 0 10px var(--surface-1),
+    0 0 0 11px var(--line),
+    var(--shadow-3);
 }
 
-/* ── Tick ring ── */
-.qibla-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  will-change: transform;
-}
-
-/* Hər cizgi kompasın mərkəzindən (0 0) fırlanır, sonra 135px yuxarı
-   çəkilir — belə ki 72 cizgi mərkəz ətrafında dairə yaradır */
+/* Cizgi halqası — rAF ilə birbaşa fırladılır, sensor yoxdursa sabit */
+.qibla-ring { position: absolute; inset: 0; border-radius: 50%; will-change: transform; }
+/* Hər cizgi mərkəzdən (0 0) fırlanır, sonra (r − 15px) yuxarı çəkilir */
 .qibla-tick {
   position: absolute;
   top: 50%;
   left: 50%;
   width: 1px;
   height: 6px;
-  background: var(--border-md);
-  transform-origin: 0 0;
-  transform: rotate(calc(var(--i) * 5deg)) translate(-50%, -135px);
   border-radius: 1px;
+  background: var(--line-strong);
+  transform-origin: 0 0;
+  transform: rotate(calc(var(--i) * 5deg)) translate(-50%, calc(15px - var(--r)));
 }
-.qibla-tick.minor {
-  height: 9px;
-  background: var(--text-muted);
-}
-.qibla-tick.major {
-  height: 14px;
-  width: 2px;
-  background: var(--primary);
-}
+.qibla-tick.minor { height: 9px; background: var(--text-tertiary); }
+.qibla-tick.major { width: 2px; height: 14px; background: var(--brand); }
 
-/* ── Cardinal directions ── */
-.qibla-cardinals {
-  position: absolute;
-  inset: 0;
-}
+.qibla-cardinals { position: absolute; inset: 0; }
+/* 4 əsas istiqamət: --ci 0, 2, 4, 6 → 0°, 90°, 180°, 270°; yazılar düz qalır */
 .qibla-cardinal {
   position: absolute;
   top: 50%;
   left: 50%;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-dim);
-  letter-spacing: .5px;
-  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   line-height: 1;
+  white-space: nowrap;
   transform-origin: 0 0;
-  /* 4 əsas istiqamət: --ci 0, 2, 4, 6 → 0°, 90°, 180°, 270° */
-  /* Yazılar bir az içəridədir (104px) ki, kənardakı 🕋 ilə üst-üstə düşməsin */
   transform:
     rotate(calc(var(--ci) * 45deg))
-    translateY(-104px)
+    translateY(calc(46px - var(--r)))
     rotate(calc(var(--ci) * -45deg))
     translate(-50%, -50%);
 }
-.qibla-cardinal.north {
-  color: var(--danger);
-  font-size: 13px;
-}
+.qibla-cardinal.north { color: var(--bad); font-size: 13px; font-weight: 700; }
+[dir="rtl"] .qibla-cardinal { letter-spacing: 0; font-size: 12.5px; }
 
-/* ── Qibla needle ──
-   İynə mərkəzdən Kəbəyə qədər uzanır: sarğı bütün kompası tutur və
-   qiblə açısı qədər fırlanır, iynə isə onun yuxarı yarısını (radiusu)
-   doldurur — yaşıl xətt mərkəzdən 🕋-yə doğru göstərir. 🕋 cizgi
-   halqasının üstündə (kənarda), istiqamət yazılarından kənarda durur */
+/* İynə: sarğı bütün kompası tutur və qiblə bucağı qədər fırlanır */
 .qibla-needle-wrap {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  border-radius: 50%;
   will-change: transform;
 }
-.qibla-needle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  height: 50%;
-  pointer-events: none;
+/* Sensor yoxdur: açılışda şimaldan bucağa yumşaq dönmə (bir dəfə) */
+.qibla-needle-wrap.is-static { animation: qb-needle-in 1.1s var(--ease-out) both; }
+@keyframes qb-needle-in {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(var(--q, 0deg)); }
 }
-.qibla-needle-tip {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 10px;
-}
+.qibla-needle { display: flex; flex-direction: column; align-items: center; height: 50%; pointer-events: none; }
+.qibla-needle-tip { flex: 0 0 auto; display: flex; justify-content: center; padding-top: 12px; }
 .qibla-kaaba-icon {
-  font-size: 26px;
-  line-height: 1;
-  filter: drop-shadow(0 2px 6px rgba(26,107,58,0.3));
-  animation: float 3s ease-in-out infinite;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-inverse);
+  color: var(--sand-300);
+  box-shadow: 0 0 0 3px var(--surface-1), var(--shadow-2);
 }
 .qibla-needle-tail {
   flex: 1 1 auto;
   width: 3px;
-  margin-top: 4px;
-  background: linear-gradient(to top, transparent 0, var(--primary-light) 30%, var(--primary) 100%);
-  border-radius: 2px;
-  opacity: .75;
+  margin-top: 6px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to top, transparent 0, var(--brand) 100%);
 }
 
-/* ── Center dot ── */
 .qibla-center-dot {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--bg);
-  border: 2px solid var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-.qibla-center-dot-inner {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--primary);
-}
-
-/* ── Angle badge ── */
-.qibla-angle-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  background: var(--bg-card);
-  border: 1px solid var(--primary-border);
-  border-radius: var(--radius-lg);
-  padding: 12px 28px;
-  box-shadow: var(--shadow-sm);
-}
-.qibla-angle-val {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--primary);
-  letter-spacing: -1px;
-  line-height: 1;
-}
-.qibla-angle-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 500;
-  text-align: center;
-  line-height: 1.3;
-}
-
-/* ══════════════════════════════════════════════
-   INFO CARDS
-   Telefonda (<768px) qruplu "inset" siyahı (motion.css → .m-list/.m-row/
-   .icon-tile) — aşağıdakı "TELEFON" bloku; ≥768px-də əvvəlki kartlar.
-   ══════════════════════════════════════════════ */
-.qibla-info-grid {
+  z-index: 2;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  width: 100%;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  box-shadow: 0 0 0 2px var(--brand), var(--shadow-1);
+  transform: translate(-50%, -50%);
 }
-/* Tək qalan son kart yarım xanada boş yerin yanında qalmasın — tam en */
-.qibla-info-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.qibla-center-dot-inner { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
 
-.qibla-info-icon { font-size: 22px; flex-shrink: 0; }
-.qibla-info-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.qibla-info-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
-.qibla-info-val { font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.1; font-variant-numeric: tabular-nums; }
-.qibla-info-val small { font-size: 13px; font-weight: 500; color: var(--text-muted); }
-.qibla-info-desc { font-size: 12px !important; font-weight: 400 !important; color: var(--text-muted) !important; line-height: 1.4; }
-
-/* ≥768px — əvvəlki ayrı-ayrı kölgəli kartlar (kit qutusu/xətləri söndürülür) */
-@media (min-width: 768px) {
-  .qibla-info-grid.m-list {
-    background: none; border: 0; border-radius: 0; box-shadow: none;
-    overflow: visible; isolation: auto;
-  }
-  .qibla-info-grid > .qibla-info-card + .qibla-info-card::before { display: none; }
-  .qibla-info-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-height: 0;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    box-shadow: var(--shadow-sm);
-    transition: border-color .22s, box-shadow .22s, transform .22s;
-    -webkit-user-select: text; user-select: text;
-  }
-  .qibla-info-card:hover {
-    border-color: var(--primary-border);
-    box-shadow: var(--shadow);
-    transform: translateY(-2px);
-  }
-  .qibla-info-card.live { border-color: rgba(22,163,74,0.25); background: rgba(22,163,74,0.04); }
-  .qibla-info-card.no-sensor { border-color: rgba(217,119,6,0.25); background: rgba(217,119,6,0.04); }
-  [data-theme="dark"] .qibla-info-card.live {
-    border-color: rgba(46,204,113,0.25);
-    background: rgba(46,204,113,0.06);
-  }
-  [data-theme="dark"] .qibla-info-card.no-sensor {
-    border-color: rgba(240,192,64,0.25);
-    background: rgba(240,192,64,0.06);
-  }
-  .qibla-info-icon.icon-tile {
-    width: auto; height: auto; border-radius: 0; background: none; font-size: 22px;
-  }
+/* Bucaq nişanı */
+.qibla-angle-badge { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.qibla-angle-cap {
+  color: var(--accent-text);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
-
-/* ── Coordinates footer ── */
-.qibla-coords {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-.qibla-fallback-note {
-  color: var(--warning);
+[dir="rtl"] .qibla-angle-cap { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
+.qibla-angle-val {
+  color: var(--brand);
+  font-family: var(--font-display);
+  font-size: var(--step-4);
   font-weight: 500;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
 }
+.qibla-angle-label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; }
 
-/* ── Footer (coords + refresh) ── */
+.qibla-page .qibla-ios-btn { align-self: stretch; }
+
+/* ══ Məlumat kartları ═════════════════════════════════════════════ */
+.qibla-info-grid { display: flex; flex-direction: column; gap: var(--space-3); }
+.qibla-page .qibla-info-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+}
+.qibla-info-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.qibla-info-label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; }
+.qibla-info-val {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 500;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.qibla-info-val small { color: var(--text-tertiary); font-family: var(--font-sans); font-size: 13px; font-weight: 500; }
+.qibla-info-card.is-status .qibla-info-label { color: var(--text-strong); font-size: 15px; font-weight: 600; }
+.qibla-info-card .qibla-info-desc { color: var(--text-secondary); font-family: var(--font-sans); font-size: 13.5px; font-weight: 400; line-height: 1.45; }
+.qibla-page .qibla-info-card.live { border-color: var(--brand-line); }
+.qibla-page .qibla-info-card.no-sensor { background: var(--surface-2); box-shadow: none; }
+
+/* ── Koordinatlar + yenilə ── */
 .qibla-footer {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--line-strong);
 }
-.qibla-refresh-btn {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary);
-  background: var(--primary-bg2);
-  border: 1px solid var(--primary-border);
-  border-radius: var(--radius);
-  padding: 6px 18px;
-  min-height: var(--tap);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all .2s;
-}
-.qibla-refresh-btn:hover {
-  background: var(--primary);
-  color: var(--on-primary);
-}
+.qibla-coords { display: flex; flex-direction: column; gap: 2px; color: var(--text-secondary); font-size: 14px; }
+.qibla-coords-cap { color: var(--text-tertiary); font-size: 12.5px; font-weight: 500; }
+.qibla-fallback-note { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-text); font-size: 13px; font-weight: 500; }
 
-/* ── iOS compass permission button ── */
-.qibla-ios-btn {
-  margin-bottom: 8px;
+/* ══ Responsiv ════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .qibla-content { grid-template-columns: minmax(0, 1fr); max-width: 620px; margin-inline: auto; }
 }
-
-/* ── Responsive ── */
-@media (max-width: 480px) {
-  .qibla-compass { width: 260px; height: 260px; }
-  .qibla-tick { transform-origin: 0 0; transform: rotate(calc(var(--i) * 5deg)) translate(-50%, -115px); }
-  .qibla-cardinal { transform: rotate(calc(var(--ci) * 45deg)) translateY(-88px) rotate(calc(var(--ci) * -45deg)) translate(-50%, -50%); }
-  .qibla-needle-tip { padding-top: 8px; }
-}
-
-/* ══════════════════════════════════════════════
-   TELEFON (<768px) — tətbiq görünüşü
-   ══════════════════════════════════════════════ */
 @media (max-width: 767.98px) {
-  .qibla-content { gap: 24px; }
-
-  /* Yüklənmə / xəta: ortada yumşaq kart, düymələr tam en (baş barmaq üçün) */
-  .qibla-center {
-    gap: 12px;
-    padding: 32px 20px 24px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
-  }
-  .qibla-center h3 { font-size: 19px; }
-  .qibla-center p { font-size: 14.5px; line-height: 1.5; }
-  .qibla-error-icon {
-    display: grid;
-    place-items: center;
-    width: 72px;
-    height: 72px;
-    margin-bottom: 4px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--danger) 10%, transparent);
-    font-size: 34px;
-    line-height: 1;
-  }
-  .qibla-error-btns {
-    flex-direction: column;
-    align-self: stretch;
-    gap: 10px;
-    margin-top: 12px;
-  }
-  .qibla-error-btns > button { width: 100%; justify-content: center; min-height: 48px; }
-
-  .qibla-ios-btn { align-self: stretch; justify-content: center; min-height: 48px; margin-bottom: 0; }
-
-  .qibla-angle-badge { padding: 10px 24px; }
-  .qibla-angle-val { font-variant-numeric: tabular-nums; }
-  .qibla-angle-label { font-size: 13px; }
-
-  /* Məlumat: qruplu siyahı — ad solda, dəyər sonda */
-  .qibla-info-grid { display: flex; flex-direction: column; gap: 0; }
-  .qibla-info-card { gap: 12px; }
-  .qibla-info-body {
-    flex: 1;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .qibla-info-label {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    text-transform: none;
-    letter-spacing: 0;
-    line-height: 1.3;
-  }
-  .qibla-info-val { font-size: 17px; font-weight: 700; white-space: nowrap; }
-  .qibla-info-card.is-status .qibla-info-body {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 1px;
-  }
-  .qibla-info-card .qibla-info-desc {
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    white-space: normal;
-  }
-
-  .qibla-coords { font-size: 13px; }
-  .qibla-refresh-btn { min-height: 44px; padding: 0 20px; border-radius: 999px; font-size: 14px; }
+  .qibla-hero .breadcrumb { display: none; }
+  .qibla-wrap { padding-top: var(--space-4); padding-bottom: var(--space-7); }
+  .qibla-content { gap: var(--space-4); }
+  .qibla-page .qibla-compass-wrap { padding: var(--space-5) var(--space-3); border-radius: var(--radius-lg); }
+  .qibla-page .qibla-center { padding: var(--space-6) var(--space-4); }
+  .qibla-error-btns { flex-direction: column; align-self: stretch; }
+  .qibla-error-btns > .ui-btn { width: 100%; min-height: 48px; }
+  .qibla-page .qibla-info-card { padding: 14px 16px; }
+}
+@media (max-width: 480px) {
+  .qibla-compass { --r: 128px; }
+  .qibla-kaaba-icon { width: 28px; height: 28px; }
+}
+@media (max-width: 340px) {
+  .qibla-compass { --r: 112px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .qibla-center { animation: none; }
-}
-
-/* ── Dark mode overrides ── */
-[data-theme="dark"] .qibla-compass {
-  background: radial-gradient(circle at 40% 35%, #222240 0%, #1a1a2e 60%, #15152a 100%);
-  box-shadow:
-    0 0 0 2px var(--border),
-    0 0 0 10px var(--bg),
-    0 8px 40px rgba(0,0,0,0.3),
-    0 2px 8px rgba(0,0,0,0.2);
+  .qibla-page .qibla-center,
+  .qibla-needle-wrap.is-static { animation: none; }
+  .qibla-loader-ring { animation-duration: 2.4s; }
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLang, resolveSiteDark } from '../contexts/LangContext'
+import Icon from './Icon'
 import '../styles/AccessibilityWidget.css'
 
 const STORAGE_KEY = 'muslim_cc_a11y_prefs_v2'
@@ -46,7 +47,7 @@ const LABELS = {
     active:'aktiv', preview:'Önizləmə',
     previewHeading:'Bismillah — Mərhəmətli Allahın adı ilə',
     previewText:'Bu mətn ayarlamaları görmək üçündür. Burada bir',
-    previewLink:'nümunə link',
+    previewLink:'nümunə keçid',
     previewAfter:'və düymə var.',
     previewBtn:'Düymə nümunəsi',
     profiles:'Hazır profillər',
@@ -59,23 +60,23 @@ const LABELS = {
     textGroup:'Mətn', colorGroup:'Rəng və kontrast', helpersGroup:'Vizual köməkçilər',
     interactionGroup:'Qarşılıqlı təsir', motionGroup:'Hərəkət',
     fontSize:'Mətn ölçüsü', lineSpacing:'Sətir arası', letterSpacing:'Hərf arası',
-    contrast:'Kontrast', theme:'Tema', saturation:'Doyğunluq',
+    contrast:'Kontrast', theme:'Tema', saturation:'Rəng doyğunluğu',
     smaller:'Kiçik', normal:'Normal', larger:'Böyük', xlarger:'Ən böyük', huge:'Nəhəng',
     spaceN:'Normal', spaceL:'Geniş', spaceXL:'Çox geniş',
     contrastN:'Normal', contrastH:'Yüksək', contrastI:'Tərs',
     themeA:'Avto', themeL:'İşıqlı', themeD:'Tünd', themeS:'Sepia',
     dyslexia:'Disleksiya şrifti', dyslexiaSub:'Daha rahat oxunan şrift',
-    underlineLinks:'Linklərin altını çək', underlineLinksSub:'Bütün linklər vurğulansın',
-    highlightHeadings:'Başlıqları vurğula', highlightHeadingsSub:'h1, h2, h3 sarı fonlu',
+    underlineLinks:'Keçidlərin altından xətt', underlineLinksSub:'Bütün keçidlər seçilsin',
+    highlightHeadings:'Başlıqları vurğula', highlightHeadingsSub:'Başlıqlar fonla seçilir',
     highlightFocus:'Fokusu vurğula', highlightFocusSub:'Klaviatura naviqasiyası',
     biggerCursor:'Böyük kursor', biggerCursorSub:'Daha asan görünən siçan',
     readingGuide:'Oxuma bələdçisi', readingGuideSub:'Siçanı izləyən xətt',
     hideImages:'Şəkilləri gizlə', hideImagesSub:'Diqqəti yayındırmasın',
     grayscale:'Boz tonlar', grayscaleSub:'Rənglər söndürülür',
     largerTargets:'Böyük düymələr', largerTargetsSub:'Daha asan toxunma',
-    readAloud:'Oxu (audio)', readAloudSub:'Mətn üzərinə kliklə audio oxu',
+    readAloud:'Səsli oxu', readAloudSub:'Mətnə toxun — səsli oxunsun',
     reduceMotion:'Animasiyaları azalt', reduceMotionSub:'Bütün hərəkətlər söndürülür',
-    pauseMedia:'Media-nı dayandır', pauseMediaSub:'Auto-play video/audio dayandırılır',
+    pauseMedia:'Medianı dayandır', pauseMediaSub:'Avtomatik başlayan video və səs dayanır',
   },
   en: {
     title:'Accessibility', subtitle:'Customize the site to your needs',
@@ -99,7 +100,7 @@ const LABELS = {
     themeA:'Auto', themeL:'Light', themeD:'Dark', themeS:'Sepia',
     dyslexia:'Dyslexia font', dyslexiaSub:'Easier-to-read font',
     underlineLinks:'Underline links', underlineLinksSub:'Highlight all links',
-    highlightHeadings:'Highlight headings', highlightHeadingsSub:'h1, h2, h3 with yellow bg',
+    highlightHeadings:'Highlight headings', highlightHeadingsSub:'Headings get a highlight',
     highlightFocus:'Highlight focus', highlightFocusSub:'For keyboard navigation',
     biggerCursor:'Bigger cursor', biggerCursorSub:'Easier-to-see mouse',
     readingGuide:'Reading guide', readingGuideSub:'Line follows cursor',
@@ -113,7 +114,7 @@ const LABELS = {
   ru: {
     title:'Доступность', subtitle:'Настройте сайт под себя',
     open:'Меню доступности', close:'Закрыть', reset:'Сбросить всё',
-    active:'активно', preview:'Превью',
+    active:'активно', preview:'Предпросмотр',
     previewHeading:'Бисмиллах — Во имя Аллаха',
     previewText:'Этот текст показывает применение настроек. Вот',
     previewLink:'пример ссылки',
@@ -128,11 +129,11 @@ const LABELS = {
     contrast:'Контраст', theme:'Тема', saturation:'Насыщенность',
     smaller:'Меньше', normal:'Нормальный', larger:'Больше', xlarger:'Самый большой', huge:'Огромный',
     spaceN:'Нормальный', spaceL:'Большой', spaceXL:'Очень большой',
-    contrastN:'Нормальный', contrastH:'Высокий', contrastI:'Инверт.',
+    contrastN:'Нормальный', contrastH:'Высокий', contrastI:'Инверсия',
     themeA:'Авто', themeL:'Светлая', themeD:'Тёмная', themeS:'Сепия',
     dyslexia:'Шрифт для дислексии', dyslexiaSub:'Легко читаемый',
     underlineLinks:'Подчеркнуть ссылки', underlineLinksSub:'Все ссылки выделены',
-    highlightHeadings:'Подсветка заголовков', highlightHeadingsSub:'h1-h3 жёлтым',
+    highlightHeadings:'Подсветка заголовков', highlightHeadingsSub:'Заголовки выделены фоном',
     highlightFocus:'Подсветка фокуса', highlightFocusSub:'Для клавиатуры',
     biggerCursor:'Большой курсор', biggerCursorSub:'Видимая мышь',
     readingGuide:'Линия чтения', readingGuideSub:'За курсором',
@@ -141,7 +142,7 @@ const LABELS = {
     largerTargets:'Большие кнопки', largerTargetsSub:'Проще нажимать',
     readAloud:'Озвучка', readAloudSub:'Клик по тексту — аудио',
     reduceMotion:'Меньше анимации', reduceMotionSub:'Отключение движения',
-    pauseMedia:'Пауза медиа', pauseMediaSub:'Стоп авто-воспроизв.',
+    pauseMedia:'Пауза медиа', pauseMediaSub:'Без автовоспроизведения',
   },
   ar: {
     title:'إمكانية الوصول', subtitle:'خصص الموقع حسب احتياجاتك',
@@ -182,9 +183,9 @@ const LABELS = {
     active:'aktif', preview:'Önizleme',
     previewHeading:'Bismillah — Allah\'ın adıyla',
     previewText:'Bu metin ayarların etkisini gösterir. İşte bir',
-    previewLink:'örnek link',
-    previewAfter:'ve buton.',
-    previewBtn:'Örnek buton',
+    previewLink:'örnek bağlantı',
+    previewAfter:'ve düğme var.',
+    previewBtn:'Örnek düğme',
     profiles:'Hazır profiller',
     profileLowVision:'Az gören', profileDyslexia:'Disleksi', profileMotor:'Motor',
     profileColorblind:'Renk körü', profileCalm:'Sakin', profileSeizure:'Nöbet güvenli',
@@ -195,10 +196,10 @@ const LABELS = {
     smaller:'Küçük', normal:'Normal', larger:'Büyük', xlarger:'En büyük', huge:'Devasa',
     spaceN:'Normal', spaceL:'Geniş', spaceXL:'Çok geniş',
     contrastN:'Normal', contrastH:'Yüksek', contrastI:'Ters',
-    themeA:'Oto', themeL:'Açık', themeD:'Koyu', themeS:'Sepya',
+    themeA:'Otomatik', themeL:'Açık', themeD:'Koyu', themeS:'Sepya',
     dyslexia:'Disleksi yazı tipi', dyslexiaSub:'Daha kolay okunur',
-    underlineLinks:'Linklerin altını çiz', underlineLinksSub:'Tüm linkler vurgulansın',
-    highlightHeadings:'Başlıkları vurgula', highlightHeadingsSub:'h1-h3 sarı arka plan',
+    underlineLinks:'Bağlantıların altını çiz', underlineLinksSub:'Tüm bağlantılar vurgulansın',
+    highlightHeadings:'Başlıkları vurgula', highlightHeadingsSub:'Başlıklar arka planla belirginleşir',
     highlightFocus:'Odağı vurgula', highlightFocusSub:'Klavye navigasyonu',
     biggerCursor:'Büyük imleç', biggerCursorSub:'Daha görünür',
     readingGuide:'Okuma kılavuzu', readingGuideSub:'İmleci takip eden çizgi',
@@ -209,18 +210,6 @@ const LABELS = {
     reduceMotion:'Hareketi azalt', reduceMotionSub:'Tüm animasyonlar kapanır',
     pauseMedia:'Medyayı durdur', pauseMediaSub:'Otomatik oynatmayı durdur',
   },
-}
-
-function A11yIcon({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="4.5" r="2.2" fill="currentColor" />
-      <path
-        d="M5.5 8.5C6.1 8.2 6.8 8.4 7 9L8.2 11.5L11.5 11.5L11.5 14L9 19.2C8.7 19.9 9.1 20.6 9.8 20.9C10.5 21.2 11.3 20.8 11.5 20.1L13 16.5L14.5 20.1C14.7 20.8 15.5 21.2 16.2 20.9C16.9 20.6 17.3 19.9 17 19.2L14.5 14L14.5 11.5L17.5 11.5C18.3 11.5 18.8 11 18.8 10.3C18.8 9.5 18.3 9 17.5 9L12 9C11.2 9 10.8 9.4 10.8 9.4L10.2 8.2C10 7.8 9.5 7.5 9 7.5L6 7.5C5.5 7.5 5 8 5 8.5Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
 }
 
 function applyPreferences(prefs) {
@@ -447,7 +436,7 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
           title={l.open}
         >
           <div className="a11y-fab-ring"></div>
-          <A11yIcon size={26} />
+          <Icon name="a11y" size={26} />
           {activeCount > 0 && <span className="a11y-fab-badge">{activeCount}</span>}
         </button>
       )}
@@ -458,7 +447,7 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
           <div className="a11y-panel" role="dialog" aria-label={l.title}>
             <div className="a11y-header">
               <div className="a11y-header-info">
-                <div className="a11y-header-icon"><A11yIcon size={24} /></div>
+                <div className="a11y-header-icon" aria-hidden="true"><Icon name="a11y" size={22} /></div>
                 <div>
                   <div className="a11y-name">{l.title}</div>
                   <div className="a11y-tagline">
@@ -466,14 +455,14 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
                   </div>
                 </div>
               </div>
-              <button ref={closeBtnRef} className="a11y-close" onClick={() => setOpen(false)} aria-label={l.close}>✕</button>
+              <button ref={closeBtnRef} className="a11y-close" onClick={() => setOpen(false)} aria-label={l.close}><Icon name="close" size={18} /></button>
             </div>
 
             <div className="a11y-body">
 
               {/* ─── LIVE PREVIEW ─── */}
               <div className="a11y-preview">
-                <div className="a11y-preview-label">👁️ {l.preview}</div>
+                <div className="a11y-preview-label"><Icon name="eye" size={14} /> {l.preview}</div>
                 <div className="a11y-preview-content">
                   <h3 className="a11y-preview-h">{l.previewHeading}</h3>
                   <p className="a11y-preview-p">
@@ -485,30 +474,30 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
 
               {/* ─── PROFILES ─── */}
               <section className="a11y-section">
-                <div className="a11y-section-title">⚡ {l.profiles}</div>
+                <div className="a11y-section-title"><Icon name="bolt" size={15} /> {l.profiles}</div>
                 <div className="a11y-profiles">
                   <button className="a11y-profile" onClick={() => applyProfile('lowVision')}>
-                    <span className="a11y-profile-icon">👁️</span>
+                    <span className="a11y-profile-icon" aria-hidden="true"><Icon name="eye" size={20} /></span>
                     <span className="a11y-profile-name">{l.profileLowVision}</span>
                   </button>
                   <button className="a11y-profile" onClick={() => applyProfile('dyslexia')}>
-                    <span className="a11y-profile-icon">📖</span>
+                    <span className="a11y-profile-icon" aria-hidden="true"><Icon name="books" size={20} /></span>
                     <span className="a11y-profile-name">{l.profileDyslexia}</span>
                   </button>
                   <button className="a11y-profile" onClick={() => applyProfile('motor')}>
-                    <span className="a11y-profile-icon">✋</span>
+                    <span className="a11y-profile-icon" aria-hidden="true"><Icon name="touch" size={20} /></span>
                     <span className="a11y-profile-name">{l.profileMotor}</span>
                   </button>
                   <button className="a11y-profile" onClick={() => applyProfile('colorblind')}>
-                    <span className="a11y-profile-icon">🎨</span>
+                    <span className="a11y-profile-icon" aria-hidden="true"><Icon name="palette" size={20} /></span>
                     <span className="a11y-profile-name">{l.profileColorblind}</span>
                   </button>
                   <button className="a11y-profile" onClick={() => applyProfile('calm')}>
-                    <span className="a11y-profile-icon">🧘</span>
+                    <span className="a11y-profile-icon" aria-hidden="true"><Icon name="leaf" size={20} /></span>
                     <span className="a11y-profile-name">{l.profileCalm}</span>
                   </button>
                   <button className="a11y-profile" onClick={() => applyProfile('seizure')}>
-                    <span className="a11y-profile-icon">🛡️</span>
+                    <span className="a11y-profile-icon" aria-hidden="true"><Icon name="shield" size={20} /></span>
                     <span className="a11y-profile-name">{l.profileSeizure}</span>
                   </button>
                 </div>
@@ -516,7 +505,7 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
 
               {/* ─── TEXT ─── */}
               <section className="a11y-section">
-                <div className="a11y-section-title">🔤 {l.textGroup}</div>
+                <div className="a11y-section-title"><Icon name="type" size={15} /> {l.textGroup}</div>
 
                 <div className="a11y-sub-label">{l.fontSize}</div>
                 <div className="a11y-btn-group a11y-grid-5">
@@ -533,7 +522,7 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
                       onClick={() => update('fontSize', opt.val)}
                       title={opt.name}
                     >
-                      <span style={{ fontSize: opt.size, fontWeight: 800 }}>A</span>
+                      <span style={{ fontSize: opt.size, fontWeight: 600 }}>A</span>
                     </button>
                   ))}
                 </div>
@@ -552,12 +541,12 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
                   <button className={`a11y-btn a11y-btn-text ${prefs.letterSpacing === 2 ? 'active' : ''}`} onClick={() => update('letterSpacing', 2)}>{l.spaceXL}</button>
                 </div>
 
-                <Toggle icon="🔠" label={l.dyslexia} sub={l.dyslexiaSub} on={prefs.dyslexia} onClick={() => toggle('dyslexia')} />
+                <Toggle icon="type" label={l.dyslexia} sub={l.dyslexiaSub} on={prefs.dyslexia} onClick={() => toggle('dyslexia')} />
               </section>
 
               {/* ─── COLOR & CONTRAST ─── */}
               <section className="a11y-section">
-                <div className="a11y-section-title">🌗 {l.colorGroup}</div>
+                <div className="a11y-section-title"><Icon name="contrast" size={15} /> {l.colorGroup}</div>
 
                 <div className="a11y-sub-label">{l.contrast}</div>
                 <div className="a11y-btn-group a11y-grid-3">
@@ -568,10 +557,10 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
 
                 <div className="a11y-sub-label">{l.theme}</div>
                 <div className="a11y-btn-group a11y-grid-4">
-                  <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'auto' ? 'active' : ''}`} onClick={() => update('theme', 'auto')}>🔄<span>{l.themeA}</span></button>
-                  <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'light' ? 'active' : ''}`} onClick={() => update('theme', 'light')}>☀️<span>{l.themeL}</span></button>
-                  <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'dark' ? 'active' : ''}`} onClick={() => update('theme', 'dark')}>🌙<span>{l.themeD}</span></button>
-                  <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'sepia' ? 'active' : ''}`} onClick={() => update('theme', 'sepia')}>📖<span>{l.themeS}</span></button>
+                  <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'auto' ? 'active' : ''}`} onClick={() => update('theme', 'auto')}><Icon name="refresh" size={18} /><span>{l.themeA}</span></button>
+                  <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'light' ? 'active' : ''}`} onClick={() => update('theme', 'light')}><Icon name="sun" size={18} /><span>{l.themeL}</span></button>
+                  <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'dark' ? 'active' : ''}`} onClick={() => update('theme', 'dark')}><Icon name="moon" size={18} /><span>{l.themeD}</span></button>
+                  <button className={`a11y-btn a11y-btn-icon ${prefs.theme === 'sepia' ? 'active' : ''}`} onClick={() => update('theme', 'sepia')}><Icon name="books" size={18} /><span>{l.themeS}</span></button>
                 </div>
 
                 <div className="a11y-sub-label">{l.saturation} — <strong>{prefs.saturation}%</strong></div>
@@ -589,37 +578,37 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
                   onChange={(e) => update('saturation', Number(e.target.value))}
                 />
 
-                <Toggle icon="◐" label={l.grayscale} sub={l.grayscaleSub} on={prefs.grayscale} onClick={() => toggle('grayscale')} />
+                <Toggle icon="drop" label={l.grayscale} sub={l.grayscaleSub} on={prefs.grayscale} onClick={() => toggle('grayscale')} />
               </section>
 
               {/* ─── VISUAL HELPERS ─── */}
               <section className="a11y-section">
-                <div className="a11y-section-title">✨ {l.helpersGroup}</div>
-                <Toggle icon="🔗" label={l.underlineLinks} sub={l.underlineLinksSub} on={prefs.underlineLinks} onClick={() => toggle('underlineLinks')} />
-                <Toggle icon="🏷️" label={l.highlightHeadings} sub={l.highlightHeadingsSub} on={prefs.highlightHeadings} onClick={() => toggle('highlightHeadings')} />
-                <Toggle icon="🎯" label={l.highlightFocus} sub={l.highlightFocusSub} on={prefs.highlightFocus} onClick={() => toggle('highlightFocus')} />
-                <Toggle icon="🖱️" label={l.biggerCursor} sub={l.biggerCursorSub} on={prefs.biggerCursor} onClick={() => toggle('biggerCursor')} />
-                <Toggle icon="📏" label={l.readingGuide} sub={l.readingGuideSub} on={prefs.readingGuide} onClick={() => toggle('readingGuide')} />
-                <Toggle icon="🖼️" label={l.hideImages} sub={l.hideImagesSub} on={prefs.hideImages} onClick={() => toggle('hideImages')} />
+                <div className="a11y-section-title"><Icon name="sparkle" size={15} /> {l.helpersGroup}</div>
+                <Toggle icon="link" label={l.underlineLinks} sub={l.underlineLinksSub} on={prefs.underlineLinks} onClick={() => toggle('underlineLinks')} />
+                <Toggle icon="heading" label={l.highlightHeadings} sub={l.highlightHeadingsSub} on={prefs.highlightHeadings} onClick={() => toggle('highlightHeadings')} />
+                <Toggle icon="target" label={l.highlightFocus} sub={l.highlightFocusSub} on={prefs.highlightFocus} onClick={() => toggle('highlightFocus')} />
+                <Toggle icon="cursor" label={l.biggerCursor} sub={l.biggerCursorSub} on={prefs.biggerCursor} onClick={() => toggle('biggerCursor')} />
+                <Toggle icon="ruler" label={l.readingGuide} sub={l.readingGuideSub} on={prefs.readingGuide} onClick={() => toggle('readingGuide')} />
+                <Toggle icon="image" label={l.hideImages} sub={l.hideImagesSub} on={prefs.hideImages} onClick={() => toggle('hideImages')} />
               </section>
 
               {/* ─── INTERACTION ─── */}
               <section className="a11y-section">
-                <div className="a11y-section-title">👆 {l.interactionGroup}</div>
-                <Toggle icon="🔘" label={l.largerTargets} sub={l.largerTargetsSub} on={prefs.largerTargets} onClick={() => toggle('largerTargets')} />
-                <Toggle icon="🔊" label={l.readAloud} sub={l.readAloudSub} on={prefs.readAloud} onClick={() => toggle('readAloud')} />
+                <div className="a11y-section-title"><Icon name="touch" size={15} /> {l.interactionGroup}</div>
+                <Toggle icon="touch" label={l.largerTargets} sub={l.largerTargetsSub} on={prefs.largerTargets} onClick={() => toggle('largerTargets')} />
+                <Toggle icon="volume" label={l.readAloud} sub={l.readAloudSub} on={prefs.readAloud} onClick={() => toggle('readAloud')} />
               </section>
 
               {/* ─── MOTION ─── */}
               <section className="a11y-section">
-                <div className="a11y-section-title">🎬 {l.motionGroup}</div>
-                <Toggle icon="⏸️" label={l.reduceMotion} sub={l.reduceMotionSub} on={prefs.reduceMotion} onClick={() => toggle('reduceMotion')} />
-                <Toggle icon="⏹️" label={l.pauseMedia} sub={l.pauseMediaSub} on={prefs.pauseMedia} onClick={() => toggle('pauseMedia')} />
+                <div className="a11y-section-title"><Icon name="film" size={15} /> {l.motionGroup}</div>
+                <Toggle icon="pause" label={l.reduceMotion} sub={l.reduceMotionSub} on={prefs.reduceMotion} onClick={() => toggle('reduceMotion')} />
+                <Toggle icon="film" label={l.pauseMedia} sub={l.pauseMediaSub} on={prefs.pauseMedia} onClick={() => toggle('pauseMedia')} />
               </section>
 
               {/* ─── RESET ─── */}
               <button className="a11y-reset" onClick={reset}>
-                🔄 {l.reset}
+                <Icon name="refresh" size={16} /> {l.reset}
               </button>
             </div>
           </div>
@@ -632,7 +621,7 @@ export default function AccessibilityWidget({ open: openProp, onClose, onActiveC
 function Toggle({ icon, label, sub, on, onClick }) {
   return (
     <button className={`a11y-toggle ${on ? 'on' : ''}`} onClick={onClick} role="switch" aria-checked={on}>
-      <span className="a11y-toggle-icon">{icon}</span>
+      <span className="a11y-toggle-icon" aria-hidden="true"><Icon name={icon} size={18} /></span>
       <span className="a11y-toggle-text">
         <span className="a11y-toggle-label">{label}</span>
         <span className="a11y-toggle-sub">{sub}</span>

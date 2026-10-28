@@ -7,6 +7,9 @@ import { subscribeToDuas } from '../data/adminContent'
 import { localizeSource } from '../utils/sourceNames'
 import { normArabic, normText } from '../utils/uniqueHadiths'
 import { haptic } from '../hooks/useHaptic'
+import Icon from '../components/Icon'
+import Breadcrumb from '../components/Breadcrumb'
+import { navGroupLabel, navGroupOf } from '../data/navigation'
 import '../styles/DuasPage.css'
 import { pickLang } from '../utils/pickLang'
 
@@ -42,11 +45,11 @@ const FAV_LABELS = { az:'Sevimlilər', en:'Favorites', ru:'Избранные', 
 
 // ── Səhifənin kiçik mətnləri (5 dil) ──
 const UI = {
-  az: { share:'Paylaş', favAdd:'Sevimlilərə əlavə et', favRemove:'Sevimlilərdən çıxar', copied:'Kopyalandı!', more:'Daha çox göstər', emptyFav:'Hələ sevimli dua yoxdur — kartdakı 🤍 düyməsinə toxunun', notFound:'Dua tapılmadı', search:'Dua axtar', cats:'Kateqoriyalar' },
-  en: { share:'Share', favAdd:'Add to favourites', favRemove:'Remove from favourites', copied:'Copied!', more:'Show more', emptyFav:'No favourite duas yet — tap 🤍 on a card', notFound:'No duas found', search:'Search duas', cats:'Categories' },
-  ru: { share:'Поделиться', favAdd:'Добавить в избранное', favRemove:'Убрать из избранного', copied:'Скопировано!', more:'Показать ещё', emptyFav:'Пока нет избранных дуа — нажмите 🤍 на карточке', notFound:'Дуа не найдены', search:'Поиск дуа', cats:'Категории' },
-  ar: { share:'مشاركة', favAdd:'أضف إلى المفضلة', favRemove:'إزالة من المفضلة', copied:'تم النسخ!', more:'عرض المزيد', emptyFav:'لا توجد أدعية مفضلة بعد — اضغط 🤍 على البطاقة', notFound:'لم يتم العثور على أدعية', search:'ابحث عن دعاء', cats:'الفئات' },
-  tr: { share:'Paylaş', favAdd:'Favorilere ekle', favRemove:'Favorilerden çıkar', copied:'Kopyalandı!', more:'Daha fazla göster', emptyFav:'Henüz favori dua yok — karttaki 🤍 simgesine dokunun', notFound:'Dua bulunamadı', search:'Dua ara', cats:'Kategoriler' },
+  az: { share:'Paylaş', favAdd:'Sevimlilərə əlavə et', favRemove:'Sevimlilərdən çıxar', copied:'Kopyalandı!', more:'Daha çox göstər', emptyFav:'Hələ sevimli dua yoxdur — kartdakı ürək düyməsinə toxunun', notFound:'Dua tapılmadı', search:'Dua axtar', cats:'Kateqoriyalar', count:'dua' },
+  en: { share:'Share', favAdd:'Add to favourites', favRemove:'Remove from favourites', copied:'Copied!', more:'Show more', emptyFav:'No favourite duas yet — tap the heart on a card', notFound:'No duas found', search:'Search duas', cats:'Categories', count:'duas' },
+  ru: { share:'Поделиться', favAdd:'Добавить в избранное', favRemove:'Убрать из избранного', copied:'Скопировано!', more:'Показать ещё', emptyFav:'Пока нет избранных дуа — нажмите на сердечко на карточке', notFound:'Дуа не найдены', search:'Поиск дуа', cats:'Категории', count:'дуа' },
+  ar: { share:'مشاركة', favAdd:'أضف إلى المفضلة', favRemove:'إزالة من المفضلة', copied:'تم النسخ!', more:'عرض المزيد', emptyFav:'لا توجد أدعية مفضلة بعد — اضغط على رمز القلب في البطاقة', notFound:'لم يتم العثور على أدعية', search:'ابحث عن دعاء', cats:'الفئات', count:'دعاء' },
+  tr: { share:'Paylaş', favAdd:'Favorilere ekle', favRemove:'Favorilerden çıkar', copied:'Kopyalandı!', more:'Daha fazla göster', emptyFav:'Henüz favori dua yok — karttaki kalp simgesine dokunun', notFound:'Dua bulunamadı', search:'Dua ara', cats:'Kategoriler', count:'dua' },
 }
 
 // "Hərəkəti azalt" seçilibsə sürüşmə dərhal olsun (animasiyasız)
@@ -134,25 +137,17 @@ function useVerse(ref, lang) {
   return { data: cached, loading: !cached }
 }
 
-// ── İkonlar (emoji əvəzinə — açıq fonda da aydın görünür) ──
-function ShareIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-      <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>
-    </svg>
-  )
-}
-
+// ── Ürək ikonu: Icon.jsx-in ikonları yalnız xətlidir (fill yox), sevimli
+//    vəziyyəti isə dolu ürəklə göstərilir — ona görə yerli SVG (eyni xətt qalınlığı) ──
 function HeartIcon({ filled }) {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>
     </svg>
   )
 }
 
-export default function DuasPage() {
+export default function DuasPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.duas || T.az.duas
   const l = lk(lang)
@@ -191,9 +186,15 @@ export default function DuasPage() {
     if (!filterMounted.current) { filterMounted.current = true; return }
     const bar = barRef.current
     const list = listRef.current
-    if (!bar || !list || getComputedStyle(bar).position !== 'sticky') return
+    if (!bar || !list) return
     const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 56
     const listTop = list.getBoundingClientRect().top
+    if (getComputedStyle(bar).position !== 'sticky') {
+      // Geniş ekran: filtrlər yan sütundadır — siyahının başı yuxarıda
+      // gizli qalıbsa, yeni nəticələrin əvvəlinə qayıdırıq
+      if (listTop < headerH) window.scrollTo({ top: Math.max(0, window.scrollY + listTop - headerH - 72), behavior: scrollBehavior() })
+      return
+    }
     if (listTop >= bar.getBoundingClientRect().bottom) return
     window.scrollTo({ top: Math.max(0, window.scrollY + listTop - headerH - bar.offsetHeight - 8), behavior: scrollBehavior() })
   }, [selectedCat, showFavs])
@@ -302,129 +303,155 @@ export default function DuasPage() {
   const rest = filtered.length - visible.length
 
   return (
-    <>
-      <div className="page-hero hero-compact theme-duas">
-        {/* Ərəbcədə başlıq onsuz da ərəbcədir — təkrar sətir göstərilmir */}
-        {lang !== 'ar' && <div className="page-hero-arabic">الأَدْعِيَة وَالأَذْكَار</div>}
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
-
-      <div className="section">
-        <div className="section-inner">
-
-          {/* Axtarış */}
-          <div className="input-wrap duas-search">
-            <span className="input-icon" aria-hidden="true">🔍</span>
-            <input
-              type="search"
-              className="input-base input-with-icon"
-              placeholder={t.searchPh}
-              aria-label={ui.search}
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-            />
-          </div>
-
-          {/* Kateqoriya çipləri — telefonda başlığın altına yapışan, üfüqi
-              sürüşən şüşə zolaq; geniş ekranda sətirlərə sarınır */}
-          <div className="duas-filters-bar" ref={barRef}>
-            <div className="chip-scroll wrap-desktop duas-filters" role="group" aria-label={ui.cats}>
-              <button type="button" className="m-chip"
-                aria-pressed={showFavs}
-                onClick={(e) => { revealChip(e.currentTarget); setShowFavs(f => !f) }}>
-                ❤️ {FAV_LABELS[lang] || FAV_LABELS.en}
-              </button>
-              {EN_CATS.map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  className="m-chip"
-                  aria-pressed={selectedCat === c && !showFavs}
-                  onClick={(e) => { revealChip(e.currentTarget); setSelectedCat(c); setShowFavs(false) }}
-                >
-                  {CAT_LABELS[c][l]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Dualar — hər kart ekrana girəndə yumşaq qalxır (ilk 8-i növbə ilə) */}
-          <div className="duas-list" ref={listRef}>
-            {visible.map((dua, i) => {
-              const fav = isFav(dua)
-              return (
-                <article key={dua.id} className="dua-card dua-card-open"
-                  data-reveal="" data-reveal-delay={Math.min(i % PAGE_SIZE, 7) * 40}>
-                  {/* Üst sətir: badge + iconlar */}
-                  <div className="dua-card-top">
-                    <div className="dua-cat-badge">
-                      {CAT_LABELS[dua.cat]?.[l] || dua.cat}
-                    </div>
-                    <div className="dua-card-actions">
-                      <button type="button" className="dua-share-btn" onClick={() => shareDua(dua)}
-                        title={ui.share} aria-label={ui.share}>
-                        <ShareIcon />
-                      </button>
-                      <button type="button"
-                        className={`dua-fav-btn${fav ? ' active' : ''}${popId === dua.id ? ' pop' : ''}`}
-                        onClick={() => toggleFav(dua)}
-                        aria-pressed={fav}
-                        title={fav ? ui.favRemove : ui.favAdd}
-                        aria-label={fav ? ui.favRemove : ui.favAdd}>
-                        <HeartIcon filled={fav} />
-                      </button>
-                    </div>
-                  </div>
-                  {/* Ərəb mətni */}
-                  <div className="dua-arabic" lang="ar">{dua.ar}</div>
-                  {/* Transliterasiya */}
-                  {/* Emoji işarələri bəzəkdir: telefonda gizlənir (mətn daha təmiz), ekran oxuyucusu oxumur */}
-                  {dua.translit && <p className="dua-translit" dir="ltr"><span className="dua-ico" aria-hidden="true">🔤 </span>{dua.translit}</p>}
-                  {/* Tərcümə — ərəbcədə mətn elə ərəb mətninin özüdür, təkrarlanmır */}
-                  {lang !== 'ar' && <p className="dua-meaning"><span className="dua-ico" aria-hidden="true">💬 </span>{dua[lang]}</p>}
-                  {/* Mənbə */}
-                  {dua.source && <div className="dua-source">📚 {t.sourceLabel}: {localizeSource(dua.source, lang)}</div>}
-                </article>
-              )
-            })}
-          </div>
-
-          {filtered.length === 0 && (
-            <div className="empty-state duas-empty">
-              <span aria-hidden="true">{showFavs && !query.trim() ? '🤍' : '🔍'}</span>
-              <p>{showFavs && !query.trim() ? ui.emptyFav : ui.notFound}</p>
-            </div>
-          )}
-
-          {rest > 0 && (
-            <div className="duas-more">
-              <button type="button" className="btn-secondary" onClick={() => setShown(s => s + PAGE_SIZE)}>
-                {ui.more} <span className="duas-more-count">({rest})</span>
-              </button>
-            </div>
-          )}
-
-          {/* Ğafir 40:60 — ayə API-dən gəlir; yüklənərkən skelet, xəta olanda gizlidir */}
-          {verse ? (
-            <figure className="duas-banner" data-reveal="">
-              <div className="duas-banner-arabic" lang="ar" dir="rtl">{verse.ar}</div>
-              {lang !== 'ar' && verse.text && (
-                <blockquote className="duas-banner-trans">«{verse.text}»</blockquote>
-              )}
-              <figcaption className="duas-banner-ref">
-                — {localizeSource(BANNER_SOURCE, lang)}{verse.tname ? ` · ${verse.tname}` : ''}
-              </figcaption>
-            </figure>
-          ) : verseLoading ? (
-            <div className="duas-banner duas-banner-skel" aria-hidden="true">
-              <span className="skeleton skeleton--text duas-skel-ar" />
-              {lang !== 'ar' && <span className="skeleton skeleton--text duas-skel-line" />}
-              <span className="skeleton skeleton--text duas-skel-ref" />
-            </div>
-          ) : null}
+    <div className="duas-page">
+      {/* Hero — dizayn v2: sakit kağız fon + xatəm naxışı, bir <h1>.
+          Ərəbcə sətir bəzəkdir: ərəb dilində başlıq onsuz da ərəbcədir */}
+      <header className="ui-page-hero duas-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <div className="ui-container" data-reveal="stagger">
+          <Breadcrumb setPage={setPage} current={t.title} />
+          <span className="ui-eyebrow">{navGroupLabel(navGroupOf('duas'), lang)}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          {lang !== 'ar' && <p className="duas-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الأَدْعِيَة وَالأَذْكَار</p>}
+          <p className="ui-lead">{t.subtitle}</p>
         </div>
-      </div>
-    </>
+      </header>
+
+      <section className="ui-section ui-section--tight duas-body">
+        <div className="ui-container duas-layout">
+
+          {/* Yan sütun (genişdə yapışqan): axtarış + kateqoriyalar */}
+          <aside className="duas-side">
+            <label className="duas-search">
+              <span className="ui-sr-only">{ui.search}</span>
+              <Icon name="search" size={18} className="duas-search-ic" />
+              <input
+                type="search"
+                className="ui-input"
+                placeholder={t.searchPh}
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+              />
+            </label>
+
+            {/* Kateqoriya çipləri — telefonda başlığın altına yapışan, üfüqi
+                sürüşən zolaq; genişdə yan sütunda sətirlərə sarınır */}
+            <div className="duas-filters-bar" ref={barRef}>
+              <p className="duas-side-label" aria-hidden="true">{ui.cats}</p>
+              <div className="chip-scroll wrap-desktop duas-filters" role="group" aria-label={ui.cats}>
+                <button type="button" className="ui-chip duas-fav-chip"
+                  aria-pressed={showFavs}
+                  onClick={(e) => { revealChip(e.currentTarget); setShowFavs(f => !f) }}>
+                  <Icon name="donate" size={15} />
+                  {FAV_LABELS[lang] || FAV_LABELS.en}
+                  {favs.length > 0 && <span className="duas-chip-num ui-num">{favs.length}</span>}
+                </button>
+                {EN_CATS.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    className="ui-chip"
+                    aria-pressed={selectedCat === c && !showFavs}
+                    onClick={(e) => { revealChip(e.currentTarget); setSelectedCat(c); setShowFavs(false) }}
+                  >
+                    {CAT_LABELS[c][l]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          <div className="duas-main">
+            {/* Nəticə sayı — ekran oxuyucusu da filtr dəyişəndə eşidir */}
+            <p className="duas-count" aria-live="polite">
+              <span className="ui-num">{filtered.length}</span> {ui.count}
+            </p>
+
+            {/* Dualar — hər kart ekrana girəndə yumşaq qalxır (ilk 8-i növbə ilə) */}
+            <div className="duas-list" ref={listRef}>
+              {visible.map((dua, i) => {
+                const fav = isFav(dua)
+                return (
+                  <article key={dua.id} className="ui-card dua-card"
+                    data-reveal="" data-reveal-delay={Math.min(i % PAGE_SIZE, 7) * 40}>
+                    {/* Üst sətir: kateqoriya nişanı + düymələr */}
+                    <div className="dua-card-top">
+                      <span className="ui-badge ui-badge--brand dua-cat-badge">
+                        {CAT_LABELS[dua.cat]?.[l] || dua.cat}
+                      </span>
+                      <div className="dua-card-actions">
+                        <button type="button" className="ui-icon-btn dua-act" onClick={() => shareDua(dua)}
+                          title={ui.share} aria-label={ui.share}>
+                          <Icon name="share" size={18} />
+                        </button>
+                        <button type="button"
+                          className={`ui-icon-btn dua-act dua-fav-btn${fav ? ' active' : ''}${popId === dua.id ? ' pop' : ''}`}
+                          onClick={() => toggleFav(dua)}
+                          aria-pressed={fav}
+                          title={fav ? ui.favRemove : ui.favAdd}
+                          aria-label={fav ? ui.favRemove : ui.favAdd}>
+                          <HeartIcon filled={fav} />
+                        </button>
+                      </div>
+                    </div>
+                    {/* Ərəb mətni */}
+                    <p className="dua-arabic ui-arabic" lang="ar" dir="rtl">{dua.ar}</p>
+                    {/* Transliterasiya (latın) */}
+                    {dua.translit && <p className="dua-translit" dir="ltr">{dua.translit}</p>}
+                    {/* Tərcümə — ərəbcədə mətn elə ərəb mətninin özüdür, təkrarlanmır */}
+                    {lang !== 'ar' && dua[lang] && <p className="dua-meaning">{dua[lang]}</p>}
+                    {/* Mənbə */}
+                    {dua.source && (
+                      <p className="dua-source">
+                        <Icon name="books" size={15} />
+                        <span>{t.sourceLabel}: {localizeSource(dua.source, lang)}</span>
+                      </p>
+                    )}
+                  </article>
+                )
+              })}
+            </div>
+
+            {filtered.length === 0 && (
+              <div className="duas-empty" data-reveal="fade">
+                <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral">
+                  <Icon name={showFavs && !query.trim() ? 'donate' : 'search'} />
+                </span>
+                <p>{showFavs && !query.trim() ? ui.emptyFav : ui.notFound}</p>
+              </div>
+            )}
+
+            {rest > 0 && (
+              <div className="duas-more">
+                <button type="button" className="ui-btn ui-btn--secondary" onClick={() => setShown(s => s + PAGE_SIZE)}>
+                  {ui.more} <span className="duas-more-count ui-num">({rest})</span>
+                </button>
+              </div>
+            )}
+
+            {/* Ğafir 40:60 — ayə API-dən gəlir; yüklənərkən skelet, xəta olanda gizlidir */}
+            {verse ? (
+              <figure className="duas-banner" data-reveal="scale">
+                <div className="ui-pattern" aria-hidden="true" />
+                <div className="ui-ornament" aria-hidden="true"><span className="ui-ornament__star" /></div>
+                <p className="duas-banner-arabic ui-arabic" lang="ar" dir="rtl">{verse.ar}</p>
+                {lang !== 'ar' && verse.text && (
+                  <blockquote className="duas-banner-trans">«{verse.text}»</blockquote>
+                )}
+                <figcaption className="duas-banner-ref">
+                  — {localizeSource(BANNER_SOURCE, lang)}{verse.tname ? ` · ${verse.tname}` : ''}
+                </figcaption>
+              </figure>
+            ) : verseLoading ? (
+              <div className="duas-banner duas-banner-skel" aria-hidden="true">
+                <span className="skeleton skeleton--text duas-skel-ar" />
+                {lang !== 'ar' && <span className="skeleton skeleton--text duas-skel-line" />}
+                <span className="skeleton skeleton--text duas-skel-ref" />
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </section>
+    </div>
   )
 }

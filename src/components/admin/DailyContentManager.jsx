@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminHeader, SectionTitle, LangTabs, AdminToast, SAVE_FAILED } from './AdminUi'
+import Icon from '../Icon'
 import { getDailyContent, saveDailyContent } from '../../data/adminContent'
 
 const LABELS = {
-  az: { title:'Günün Məzmunu', sub:'Hər gün ana səhifədə göstəriləcək məzmun', ayah:'Günün Ayəsi', dhikr:'Günün Zikri', quote:'Günün Sitatı', arabic:'Ərəbcə', translit:'Transliterasiya', translation:'Tərcümə', source:'Mənbə', count:'Hədəf say', save:'Yadda saxla', saved:'Yadda saxlandı!', ayahSrcPh:'Şərh, 94:6', quoteSrcPh:'Həzrət Əli, İmam Şafii...' },
+  az: { title:'Günün məzmunu', sub:'Hər gün ana səhifədə göstəriləcək məzmun', ayah:'Günün ayəsi', dhikr:'Günün zikri', quote:'Günün sitatı', arabic:'Ərəbcə', translit:'Transliterasiya', translation:'Tərcümə', source:'Mənbə', count:'Hədəf say', save:'Yadda saxla', saved:'Yadda saxlandı!', ayahSrcPh:'Şərh, 94:6', quoteSrcPh:'Həzrət Əli, İmam Şafii...' },
   en: { title:'Daily Content', sub:'Content shown on home page each day', ayah:'Daily Ayah', dhikr:'Daily Dhikr', quote:'Daily Quote', arabic:'Arabic', translit:'Transliteration', translation:'Translation', source:'Source', count:'Target count', save:'Save', saved:'Saved!', ayahSrcPh:'Ash-Sharh, 94:6', quoteSrcPh:'Ali ibn Abi Talib, Imam al-Shafi‘i...' },
   ru: { title:'Контент дня', sub:'Контент на главной странице каждый день', ayah:'Аят дня', dhikr:'Зикр дня', quote:'Цитата дня', arabic:'Арабский', translit:'Транслитерация', translation:'Перевод', source:'Источник', count:'Цель', save:'Сохранить', saved:'Сохранено!', ayahSrcPh:'Аш-Шарх, 94:6', quoteSrcPh:'Али ибн Абу Талиб, имам аш-Шафии...' },
   ar: { title:'محتوى اليوم', sub:'المحتوى المعروض كل يوم', ayah:'آية اليوم', dhikr:'ذكر اليوم', quote:'اقتباس اليوم', arabic:'العربية', translit:'النطق', translation:'الترجمة', source:'المصدر', count:'الهدف', save:'حفظ', saved:'تم الحفظ!', ayahSrcPh:'الشرح، 94:6', quoteSrcPh:'علي بن أبي طالب، الإمام الشافعي...' },
   tr: { title:'Günün İçeriği', sub:'Her gün ana sayfada gösterilecek içerik', ayah:'Günün Ayeti', dhikr:'Günün Zikri', quote:'Günün Sözü', arabic:'Arapça', translit:'Okunuş', translation:'Çeviri', source:'Kaynak', count:'Hedef sayı', save:'Kaydet', saved:'Kaydedildi!', ayahSrcPh:'İnşirah, 94:6', quoteSrcPh:'Hz. Ali, İmam Şâfiî...' },
 }
 
-const LANGS = ['az','en','ru','ar','tr']
 
 export default function DailyContentManager() {
   const { lang } = useLang()
@@ -25,7 +26,7 @@ export default function DailyContentManager() {
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    getDailyContent().then(c => setContent(c))
+    getDailyContent().then(c => c && setContent(c)).catch(() => { /* şəbəkə yoxdur — boş forma qalır */ })
   }, [])
 
   const updateField = (section, field, value) => {
@@ -45,51 +46,41 @@ export default function DailyContentManager() {
     })
   }
 
+  // Saxlama nəticəsi üzən bildirişdə (AdminToast) göstərilir; xəta da tutulur
+  const [saveErr, setSaveErr] = useState(false)
   const handleSave = async () => {
-    await saveDailyContent(content)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setSaveErr(false)
+    try {
+      await saveDailyContent(content)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setSaveErr(true)
+      setTimeout(() => setSaveErr(false), 4000)
+    }
   }
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#fbbf24,#d97706)'}}>🌟</div>
-          <div className="admin-header-info">
-            <h1>{l.title}</h1>
-            <p>{l.sub}</p>
-          </div>
-        </div>
-      </div>
+      <AdminHeader icon="sparkle" title={l.title} sub={l.sub} />
 
       {/* Language tabs */}
-      <div className="admin-section" style={{padding:14}}>
-        <div className="admin-lang-tabs" style={{margin:0}}>
-          {LANGS.map(L => (
-            <button key={L} type="button" className={`admin-lang-tab ${formLang === L ? 'active' : ''}`} onClick={() => setFormLang(L)}>
-              {L.toUpperCase()}
-            </button>
-          ))}
-        </div>
+      <div className="admin-section admin-section--tight" data-reveal="fade">
+        <LangTabs value={formLang} onChange={setFormLang} className="admin-lang-tabs--block" />
       </div>
 
       {/* Daily Ayah */}
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon" style={{background:'#10b98118'}}>📖</span>
-          {l.ayah}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon="quran">{l.ayah}</SectionTitle>
 
         <div className="admin-form">
           <div className="admin-input-group">
             <label className="admin-input-label">{l.arabic}</label>
             <textarea
-              className="admin-input admin-textarea"
+              className="admin-input admin-textarea admin-input--arabic"
               value={content.ayah.ar}
               onChange={(e) => updateField('ayah', 'ar', e.target.value)}
               placeholder="فَإِنَّ مَعَ الْعُسْرِ يُسْرًا..."
-              style={{textAlign:'right', fontSize:18, fontFamily:'Amiri, serif', lineHeight:1.8}}
               dir="rtl"
             />
           </div>
@@ -118,22 +109,18 @@ export default function DailyContentManager() {
       </div>
 
       {/* Daily Dhikr */}
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon" style={{background:'#06b6d418'}}>📿</span>
-          {l.dhikr}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon="dhikr">{l.dhikr}</SectionTitle>
 
         <div className="admin-form">
           <div className="admin-input-group">
             <label className="admin-input-label">{l.arabic}</label>
             <input
               type="text"
-              className="admin-input"
+              className="admin-input admin-input--arabic"
               value={content.dhikr.ar}
               onChange={(e) => updateField('dhikr', 'ar', e.target.value)}
               placeholder="سُبْحَانَ اللَّهِ وَبِحَمْدِهِ"
-              style={{textAlign:'right', fontSize:18, fontFamily:'Amiri, serif'}}
               dir="rtl"
             />
           </div>
@@ -176,21 +163,17 @@ export default function DailyContentManager() {
       </div>
 
       {/* Daily Quote */}
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon" style={{background:'#a855f718'}}>💬</span>
-          {l.quote}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon="quotes">{l.quote}</SectionTitle>
 
         <div className="admin-form">
           <div className="admin-input-group">
             <label className="admin-input-label">{l.arabic}</label>
             <textarea
-              className="admin-input admin-textarea"
+              className="admin-input admin-textarea admin-input--arabic"
               value={content.quote.ar}
               onChange={(e) => updateField('quote', 'ar', e.target.value)}
               placeholder="لَا تَحْزَنْ إِنَّ اللَّهَ مَعَنَا..."
-              style={{textAlign:'right', fontSize:18, fontFamily:'Amiri, serif', lineHeight:1.8}}
               dir="rtl"
             />
           </div>
@@ -218,12 +201,13 @@ export default function DailyContentManager() {
         </div>
       </div>
 
-      {/* Save button (sticky) */}
-      <div style={{position:'sticky', bottom:20, marginTop:20}}>
-        <button onClick={handleSave} className="admin-submit-btn" style={{width:'100%', padding:'18px', fontSize:15, background:'linear-gradient(135deg,#fbbf24,#d97706)'}}>
-          <span>💾</span> {saved ? '✅ ' + l.saved : l.save}
+      {/* Yapışqan saxla paneli */}
+      <div className="admin-savebar">
+        <button type="button" onClick={handleSave} className="admin-submit-btn">
+          <Icon name="check" /> {saved ? l.saved : l.save}
         </button>
       </div>
+      <AdminToast message={saved ? l.saved : saveErr ? SAVE_FAILED[lang] : ''} tone={saveErr ? 'bad' : 'ok'} />
     </div>
   )
 }

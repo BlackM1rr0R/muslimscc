@@ -3,6 +3,8 @@ import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { SURAH_AZ, getSurahLocal } from '../data/surahNamesAz'
 import { haptic } from '../hooks/useHaptic'
+import { navGroupLabel } from '../data/navigation'
+import Icon from '../components/Icon'
 import '../styles/QuranPage.css'
 
 // Hər dilin ÖZ tərcümə nəşri. Nəşr alınmasa başqa dilə (ingilis/türk)
@@ -10,19 +12,19 @@ import '../styles/QuranPage.css'
 const EDITION_MAP = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', ar:'ar.muyassar', tr:'tr.diyanet' }
 
 const RETRY_LABELS = {
-  az: { msg:'Surə yüklənmədi. İnternet bağlantısını yoxlayın.', retry:'Yenidən cəhd et' },
-  en: { msg:'The surah could not be loaded. Please check your connection.', retry:'Try again' },
-  ru: { msg:'Не удалось загрузить суру. Проверьте подключение к интернету.', retry:'Повторить' },
-  ar: { msg:'تعذّر تحميل السورة. تحقّق من الاتصال بالإنترنت.', retry:'أعد المحاولة' },
-  tr: { msg:'Sure yüklenemedi. İnternet bağlantınızı kontrol edin.', retry:'Tekrar dene' },
+  az: { msg:'Surə yüklənmədi. İnternet bağlantısını yoxlayın.', listMsg:'Surələrin siyahısı yüklənmədi. İnternet bağlantısını yoxlayın.', retry:'Yenidən cəhd et' },
+  en: { msg:'The surah could not be loaded. Please check your connection.', listMsg:'The list of surahs could not be loaded. Please check your connection.', retry:'Try again' },
+  ru: { msg:'Не удалось загрузить суру. Проверьте подключение к интернету.', listMsg:'Не удалось загрузить список сур. Проверьте подключение к интернету.', retry:'Повторить' },
+  ar: { msg:'تعذّر تحميل السورة. تحقّق من الاتصال بالإنترنت.', listMsg:'تعذّر تحميل قائمة السور. تحقّق من الاتصال بالإنترنت.', retry:'أعد المحاولة' },
+  tr: { msg:'Sure yüklenemedi. İnternet bağlantınızı kontrol edin.', listMsg:'Sure listesi yüklenemedi. İnternet bağlantınızı kontrol edin.', retry:'Tekrar dene' },
 }
 
 const SEARCH_LABELS = {
-  az: { surahSearch: 'Surə axtar', verseSearch: 'Ayə axtar', searching: 'Axtarılır...', noResults: 'Nəticə tapılmadı', result: 'nəticə' },
-  en: { surahSearch: 'Search surahs', verseSearch: 'Search verses', searching: 'Searching...', noResults: 'No results found', result: 'results' },
-  ru: { surahSearch: 'Поиск сур', verseSearch: 'Поиск аятов', searching: 'Поиск...', noResults: 'Ничего не найдено', result: 'результатов' },
-  ar: { surahSearch: 'بحث السور', verseSearch: 'بحث الآيات', searching: 'جارٍ البحث...', noResults: 'لا نتائج', result: 'نتائج' },
-  tr: { surahSearch: 'Sure ara', verseSearch: 'Ayet ara', searching: 'Aranıyor...', noResults: 'Sonuç bulunamadı', result: 'sonuç' },
+  az: { surahSearch: 'Surə axtar', verseSearch: 'Ayə axtar', searching: 'Axtarılır...', noResults: 'Nəticə tapılmadı', result: 'nəticə', minChars: 'Axtarmaq üçün ən azı 3 hərf yazın', mode: 'Axtarış növü', place: 'Nazil olma yeri' },
+  en: { surahSearch: 'Search surahs', verseSearch: 'Search verses', searching: 'Searching...', noResults: 'No results found', result: 'results', minChars: 'Type at least 3 letters to search', mode: 'Search type', place: 'Place of revelation' },
+  ru: { surahSearch: 'Поиск сур', verseSearch: 'Поиск аятов', searching: 'Поиск...', noResults: 'Ничего не найдено', result: 'результатов', minChars: 'Введите не менее 3 букв для поиска', mode: 'Тип поиска', place: 'Место ниспослания' },
+  ar: { surahSearch: 'بحث السور', verseSearch: 'بحث الآيات', searching: 'جارٍ البحث...', noResults: 'لا نتائج', result: 'نتائج', minChars: 'اكتب ثلاثة أحرف على الأقل للبحث', mode: 'نوع البحث', place: 'مكان النزول' },
+  tr: { surahSearch: 'Sure ara', verseSearch: 'Ayet ara', searching: 'Aranıyor...', noResults: 'Sonuç bulunamadı', result: 'sonuç', minChars: 'Aramak için en az 3 harf yazın', mode: 'Arama türü', place: 'İniş yeri' },
 }
 
 const BOOKMARK_LABELS = {
@@ -78,6 +80,18 @@ function ReaderSkeleton({ label }) {
           <span className="skeleton skeleton--text q-skel-line q-skel-line--short" />
         </div>
       ))}
+    </div>
+  )
+}
+
+// Boş / xəta vəziyyəti — ikon kafeli + mətn (+ istəyə görə düymə).
+// Əvvəl "📖" emojisi və boz mətn idi.
+function QEmpty({ icon = 'quran', bad = false, children, action }) {
+  return (
+    <div className={`qp-empty${bad ? ' qp-empty--bad' : ''}`} role={bad ? 'alert' : 'status'}>
+      <span className="ui-icon-tile ui-icon-tile--lg qp-empty__icon" aria-hidden="true"><Icon name={icon} /></span>
+      <p className="qp-empty__text">{children}</p>
+      {action}
     </div>
   )
 }
@@ -149,8 +163,9 @@ function surahMeaning(s, lang) {
 // i18n sətirlərində ox mətnin içindədir ("← Geri", "Növbəti →"). Oxu atıb
 // ayrıca .qm-dir-arrow ilə veririk — ərəbcədə (RTL) avtomatik güzgülənir.
 const stripArrows = s => String(s || '').replace(/[←→]/g, '').trim()
+// Ox ikonu: irəli — ərəbcədə güzgülənir (ui-flip-rtl); geri — əksinə (.qp-arrow--back)
 function DirArrow({ back = false }) {
-  return <span className="qm-dir-arrow" aria-hidden="true">{back ? '←' : '→'}</span>
+  return <Icon name="arrow" size={16} className={back ? 'qp-arrow qp-arrow--back' : 'qp-arrow ui-flip-rtl'} />
 }
 
 // ── Bəsmələnin təkrarlanmaması ──
@@ -170,16 +185,20 @@ function withoutLeadingBasmala(text) {
   return text
 }
 
-function useQuranList() {
+function useQuranList(attempt = 0) {
   const [surahs,  setSurahs]  = useState([])
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState(null)
   useEffect(() => {
+    setLoading(true); setError(null)
     fetch('https://api.alquran.cloud/v1/surah')
-      .then(r => r.json()).then(d => setSurahs(d.data))
+      .then(r => r.json())
+      // Cavab gözlənilən formada deyilsə — xəta (əvvəl surahs = undefined
+      // olurdu və .filter səhifəni çökdürürdü)
+      .then(d => { if (!Array.isArray(d?.data)) throw new Error('bad-response'); setSurahs(d.data) })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
-  }, [])
+  }, [attempt])
   return { surahs, loading, error }
 }
 
@@ -307,7 +326,8 @@ function getMostRead(reads) {
 export default function QuranPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.quran || T.az.quran
-  const { surahs, loading: listLoading } = useQuranList()
+  const [listAttempt, setListAttempt] = useState(0)
+  const { surahs, loading: listLoading, error: listError } = useQuranList(listAttempt)
   const [bookmark, setBookmark] = useState(() => { try { return JSON.parse(localStorage.getItem('quran_bookmark')) } catch { return null } })
   const [selected, setSelected] = useState(null)
   // Siyahıdakı sürüşmə yeri — oxuyucudan qayıdanda ora dönürük
@@ -433,45 +453,49 @@ export default function QuranPage({ setPage }) {
     return (
       <div className="quran-reader">
         <div className="reader-toolbar">
-          <button type="button" className="btn-ghost reader-back" onClick={closeReader}>
+          <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm reader-back" onClick={closeReader}>
             <DirArrow back /> {stripArrows(t.backBtn)}
           </button>
           <div className="reader-controls">
-            {/* dir="ltr": ərəbcədə "A−" bidi qaydası ilə "−A" kimi görünürdü */}
-            <button type="button" className="ctrl-btn press" dir="ltr" aria-label={fl.smaller} title={fl.smaller}
-              onClick={() => setFontSize(f => Math.max(f - .1, 1.2))}>A−</button>
-            <button type="button" className="ctrl-btn press" dir="ltr" aria-label={fl.larger} title={fl.larger}
-              onClick={() => setFontSize(f => Math.min(f + .1, 2.2))}>A+</button>
+            {/* dir="ltr": ərəbcədə "A−" bidi qaydası ilə "−A" kimi görünürdü.
+                Həddə çatanda düymə söndürülür (əvvəl basılırdı, heç nə olmurdu) */}
+            <button type="button" className="ctrl-btn" dir="ltr" aria-label={fl.smaller} title={fl.smaller}
+              disabled={fontSize <= 1.21} onClick={() => setFontSize(f => Math.max(f - .1, 1.2))}>A−</button>
+            <button type="button" className="ctrl-btn" dir="ltr" aria-label={fl.larger} title={fl.larger}
+              disabled={fontSize >= 2.19} onClick={() => setFontSize(f => Math.min(f + .1, 2.2))}>A+</button>
             {hasTafsir ? (
-              <button type="button" className={`ctrl-btn press ${showTafsir ? 'active' : ''}`} aria-pressed={showTafsir}
+              <button type="button" className={`ctrl-btn ${showTafsir ? 'active' : ''}`} aria-pressed={showTafsir}
                 onClick={() => { haptic(); setShowTafsir(s => !s) }}>
-                {tafsirLabel}{showTafsir && <span className="ctrl-check" aria-hidden="true"> ✓</span>}
+                {showTafsir && <Icon name="check" size={16} className="ctrl-check" />}{tafsirLabel}
               </button>
             ) : (
-              <button type="button" className={`ctrl-btn press ${showTrans ? 'active' : ''}`} aria-pressed={showTrans}
+              <button type="button" className={`ctrl-btn ${showTrans ? 'active' : ''}`} aria-pressed={showTrans}
                 onClick={() => { haptic(); setShowTrans(s => !s) }}>
-                {t.translationLabel}{showTrans && <span className="ctrl-check" aria-hidden="true"> ✓</span>}
+                {showTrans && <Icon name="check" size={16} className="ctrl-check" />}{t.translationLabel}
               </button>
             )}
-            <button type="button" className="ctrl-btn ctrl-nav press" disabled={selected <= 1}
+            <button type="button" className="ctrl-btn ctrl-nav" disabled={selected <= 1}
               aria-label={prevLabel} title={prevLabel} onClick={() => openSurah(selected - 1)}>
-              <DirArrow back /><span className="ctrl-label"> {prevLabel}</span>
+              <DirArrow back /><span className="ctrl-label">{prevLabel}</span>
             </button>
-            <button type="button" className="ctrl-btn ctrl-nav press" disabled={selected >= 114}
+            <button type="button" className="ctrl-btn ctrl-nav" disabled={selected >= 114}
               aria-label={nextLabel} title={nextLabel} onClick={() => openSurah(selected + 1)}>
-              <span className="ctrl-label">{nextLabel} </span><DirArrow />
+              <span className="ctrl-label">{nextLabel}</span><DirArrow />
             </button>
-            <button type="button" className={`ctrl-btn ctrl-bookmark press ${bookmark && bookmark.surah === selected ? 'active' : ''}`}
-              onClick={() => { haptic(); saveBookmark(selected) }} title={bmLabel} aria-label={bmLabel}>
-              🔖
+            {/* Əlfəcin — "hifz" ikonundakı lent (Icon.jsx-də ayrıca əlfəcin ikonu yoxdur) */}
+            <button type="button" className={`ctrl-btn ctrl-bookmark ${bookmark && bookmark.surah === selected ? 'active' : ''}`}
+              onClick={() => { haptic(); saveBookmark(selected) }} title={bmLabel} aria-label={bmLabel}
+              aria-pressed={!!bookmark && bookmark.surah === selected}>
+              <Icon name="hifz" size={18} />
             </button>
           </div>
         </div>
         {surahError && (
-          <div className="error-box" role="alert">
-            ⚠️ {rl.msg}{' '}
-            <button type="button" className="btn-ghost" onClick={() => setAttempt(a => a + 1)}>{rl.retry}</button>
-          </div>
+          <QEmpty icon="alert" bad action={
+            <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setAttempt(a => a + 1)}>
+              <Icon name="refresh" className="ui-btn__icon" />{rl.retry}
+            </button>
+          }>{rl.msg}</QEmpty>
         )}
         {!ready && !surahError && (
           <>
@@ -481,7 +505,8 @@ export default function QuranPage({ setPage }) {
         )}
         {ready && (
           <>
-            <div className="reader-header">
+            <div className="reader-header" data-reveal="scale">
+              <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
               <div className="reader-number">{surah.number}</div>
               <div className="reader-info">
                 <h1 className="reader-arabic" lang="ar">{surah.name}</h1>
@@ -493,7 +518,7 @@ export default function QuranPage({ setPage }) {
             </div>
             {/* Fatihədə Bəsmələ 1-ci ayənin özüdür, Tövbədə isə oxunmur */}
             {surah.number !== 1 && surah.number !== 9 && (
-              <div className="reader-basmalah">
+              <div className="reader-basmalah" data-reveal="fade">
                 <span className="basmalah-ar" lang="ar">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</span>
                 {lang !== 'ar' && <span className="basmalah-tr">{t.basmalah}</span>}
               </div>
@@ -507,13 +532,13 @@ export default function QuranPage({ setPage }) {
             {/* Surənin sonunda: əvvəlki / növbəti surə (telefonda paneldə yalnız ox görünür) */}
             <div className="reader-pager" data-reveal="">
               {selected > 1 && (
-                <button type="button" className="reader-pager-btn prev press" onClick={() => openSurah(selected - 1)}>
+                <button type="button" className="reader-pager-btn prev" onClick={() => openSurah(selected - 1)}>
                   <span className="reader-pager-dir"><DirArrow back /> {prevLabel}</span>
                   <span className="reader-pager-name">{surahTitle(prevS, lang) || selected - 1}</span>
                 </button>
               )}
               {selected < 114 && (
-                <button type="button" className="reader-pager-btn next press" onClick={() => openSurah(selected + 1)}>
+                <button type="button" className="reader-pager-btn next" onClick={() => openSurah(selected + 1)}>
                   <span className="reader-pager-dir">{nextLabel} <DirArrow /></span>
                   <span className="reader-pager-name">{surahTitle(nextS, lang) || selected + 1}</span>
                 </button>
@@ -534,37 +559,42 @@ export default function QuranPage({ setPage }) {
 
   return (
     <>
-      {/* hero-compact: telefonda yığcam hero (motion.css), kompüterdə dəyişmir */}
-      <div className="page-hero theme-quran hero-compact">
-        {/* Ərəbcədə başlığın özü "القرآن الكريم"-dir — ikinci dəfə yazmırıq */}
-        {lang !== 'ar' && <div className="page-hero-arabic" lang="ar">القرآن الكريم</div>}
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+      {/* Sakit kağız hero (dizayn v2): naxış + eyebrow + bir h1 + lead.
+          "Oxumağa davam et" əvvəl ayrıca kart idi — indi hero-nun əsas düyməsidir */}
+      <header className="ui-page-hero qp-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        {/* Dekorativ xəttatlıq (ərəbcədə başlığın özüdür — təkrarlanmır) */}
+        {lang !== 'ar' && <span className="qp-hero__art" lang="ar" aria-hidden="true">القرآن الكريم</span>}
+        <div className="ui-container">
+          <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          <p className="ui-lead">{t.subtitle}</p>
+          {bookmark && (
+            <div className="ui-page-hero__actions">
+              <button type="button" className="ui-btn ui-btn--primary ui-btn--lg qp-continue" onClick={() => openSurah(bookmark.surah)}>
+                <Icon name="hifz" className="ui-btn__icon" />
+                <span className="qp-continue__label">{BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en}</span>
+                {bookmarkName && <span className="qp-continue__name">{bookmarkName}</span>}
+                <DirArrow />
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
       <div className="quran-list-wrap section">
         <div className="section-inner">
-          {bookmark && (
-            <button type="button" className="quran-bookmark-card press" onClick={() => openSurah(bookmark.surah)}>
-              <span className="bookmark-icon" aria-hidden="true">🔖</span>
-              <span className="bookmark-info">
-                <span className="bookmark-label">{BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en}</span>
-                <span className="bookmark-name">{bookmarkName}</span>
-              </span>
-              <span className="bookmark-arrow"><DirArrow /></span>
-            </button>
-          )}
           {stats.sessions > 0 && (
-            <div className="quran-stats-bar">
+            <div className="quran-stats-bar" data-reveal="stagger">
               <div className="qs-item">
-                <span className="qs-num">{stats.sessions}</span>
+                <span className="qs-num" data-count={stats.sessions}>{stats.sessions}</span>
                 <span className="qs-label">{st.reads}</span>
               </div>
               <div className="qs-item">
-                <span className="qs-num">{Object.keys(stats.reads).length}</span>
+                <span className="qs-num" data-count={Object.keys(stats.reads).length}>{Object.keys(stats.reads).length}</span>
                 <span className="qs-label">{st.surahs}</span>
               </div>
               <div className="qs-item">
-                <span className="qs-num">{calcStreak(stats.dates)}</span>
+                <span className="qs-num" data-count={calcStreak(stats.dates)}>{calcStreak(stats.dates)}</span>
                 <span className="qs-label">{st.streak}</span>
               </div>
               <div className="qs-item qs-item--name">
@@ -573,41 +603,48 @@ export default function QuranPage({ setPage }) {
               </div>
             </div>
           )}
-          {/* Telefonda seqment idarəsi: ağ "hap" aktiv seçimə sürüşür (data-active),
-              kompüterdə əvvəlki həb düymələr */}
-          <div className="quran-search-mode" role="group" data-active={searchMode}>
-            <button type="button" className={`search-mode-btn press ${searchMode === 'surah' ? 'active' : ''}`}
-              aria-pressed={searchMode === 'surah'} onClick={() => setSearchMode('surah')}>
-              {sl.surahSearch}
-            </button>
-            <button type="button" className={`search-mode-btn press ${searchMode === 'verse' ? 'active' : ''}`}
-              aria-pressed={searchMode === 'verse'} onClick={() => setSearchMode('verse')}>
-              {sl.verseSearch}
-            </button>
-          </div>
-          <div className="quran-search-bar">
-            <div className="input-wrap" style={{ flex: 1 }}>
-              <span className="input-icon" aria-hidden="true">🔍</span>
+          {/* Axtarış paneli: seqment (surə / ayə) + sahə. Seqmentdə ağ "hap"
+              aktiv seçimə sürüşür (data-active) — bütün ekranlarda */}
+          <div className="qp-toolbar" data-reveal="">
+            <div className="quran-search-mode" role="group" aria-label={sl.mode} data-active={searchMode}>
+              <button type="button" className={`search-mode-btn ${searchMode === 'surah' ? 'active' : ''}`}
+                aria-pressed={searchMode === 'surah'} onClick={() => setSearchMode('surah')}>
+                {sl.surahSearch}
+              </button>
+              <button type="button" className={`search-mode-btn ${searchMode === 'verse' ? 'active' : ''}`}
+                aria-pressed={searchMode === 'verse'} onClick={() => setSearchMode('verse')}>
+                {sl.verseSearch}
+              </button>
+            </div>
+            <div className="quran-search-bar">
+              <Icon name="search" size={18} className="qp-search-icon" />
               {searchMode === 'surah' ? (
-                <input className="input-base input-with-icon" placeholder={t.searchPh} aria-label={t.searchPh}
+                <input type="search" className="ui-input qp-search-input" placeholder={t.searchPh} aria-label={t.searchPh}
                   value={search} onChange={e => setSearch(e.target.value)} />
               ) : (
-                <input className="input-base input-with-icon" placeholder={sl.verseSearch} aria-label={sl.verseSearch}
+                <input type="search" className="ui-input qp-search-input" placeholder={sl.verseSearch} aria-label={sl.verseSearch}
                   value={verseSearch} onChange={e => setVerseSearch(e.target.value)} />
               )}
             </div>
           </div>
           {searchMode === 'surah' && (
             <>
-              <div className="tag-filters">
-                {[
-                  { key:'all',     label: t.all },
-                  { key:'meccan',  label: t.meccan },
-                  { key:'medinan', label: t.medinan },
-                ].map(f => (
-                  <button type="button" key={f.key} className={`tag-btn ${filter === f.key ? 'active' : ''}`}
-                    aria-pressed={filter === f.key} onClick={() => setFilter(f.key)}>{f.label}</button>
-                ))}
+              <div className="qp-filters" data-reveal="fade">
+                <div className="qp-chips" role="group" aria-label={sl.place}>
+                  {[
+                    { key:'all',     label: t.all },
+                    { key:'meccan',  label: t.meccan },
+                    { key:'medinan', label: t.medinan },
+                  ].map(f => (
+                    <button type="button" key={f.key} className="ui-chip"
+                      aria-pressed={filter === f.key} onClick={() => setFilter(f.key)}>{f.label}</button>
+                  ))}
+                </div>
+                {!listLoading && !listError && (
+                  <span className="qp-count ui-num" aria-live="polite">
+                    {filtered.length} {String(st.surahs).toLocaleLowerCase(lang)}
+                  </span>
+                )}
               </div>
               {listLoading && (
                 <>
@@ -615,9 +652,17 @@ export default function QuranPage({ setPage }) {
                   <ListSkeleton label={t.loading} />
                 </>
               )}
-              {/* Telefonda: qruplaşdırılmış siyahı xanaları (QuranPage.css → mobil blok) */}
-              <div className="surah-grid">
-                {filtered.map((s,i) => {
+              {!listLoading && listError && (
+                <QEmpty icon="alert" bad action={
+                  <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setListAttempt(a => a + 1)}>
+                    <Icon name="refresh" className="ui-btn__icon" />{rl.retry}
+                  </button>
+                }>{rl.listMsg}</QEmpty>
+              )}
+              {/* Kart şəbəkəsi (telefonda qruplaşdırılmış siyahı). data-reveal="stagger":
+                  ilk kartlar növbə ilə qalxır; süzgəcdən sonra yeni kartlar da */}
+              <div className="surah-grid" data-reveal="stagger">
+                {filtered.map((s) => {
                   const isAr = lang === 'ar'
                   const displayName = surahTitle(s, lang)
                   // ərəbcədə ingiliscə məna yox, "7 آيات · مكية"
@@ -625,9 +670,7 @@ export default function QuranPage({ setPage }) {
                     ? `${s.numberOfAyahs} ${t.verses} · ${revelationLabel(s.revelationType, lang)}`
                     : [surahMeaning(s, lang), `${s.numberOfAyahs} ${t.verses}`].filter(Boolean).join(' · ')
                   return (
-                    // --i: növbə indeksi. Kompüterdə əvvəlki kimi 20ms addım (≤400ms);
-                    // telefonda ilk 8 xana 40ms aralıqla (QuranPage.css)
-                    <button type="button" key={s.number} className="surah-card anim-fadeUp" style={{'--i': Math.min(i, 20)}}
+                    <button type="button" key={s.number} className="surah-card"
                       onClick={() => openSurah(s.number)}>
                       <span className="surah-num">{s.number}</span>
                       <span className="surah-body">
@@ -639,15 +682,18 @@ export default function QuranPage({ setPage }) {
                   )
                 })}
               </div>
-              {!listLoading && filtered.length === 0 && (
-                <div className="empty-state">
-                  <span>📖</span><p>{t.noResult || 'Not found'}</p>
-                </div>
+              {/* Əvvəl t.noResult quran bölməsində yox idi — bütün dillərdə "Not found" görünürdü */}
+              {!listLoading && !listError && filtered.length === 0 && (
+                <QEmpty icon="search">{sl.noResults}</QEmpty>
               )}
             </>
           )}
           {searchMode === 'verse' && (
             <>
+              {/* Hələ 3 hərf yazılmayıb — boş ekran əvəzinə ipucu */}
+              {verseSearch.length < 3 && (
+                <QEmpty icon="search">{sl.minChars}</QEmpty>
+              )}
               {verseSearching && (
                 <>
                   <div className="spinner-wrap q-spinner"><div className="spinner"/><span className="spinner-text">{sl.searching}</span></div>
@@ -655,20 +701,18 @@ export default function QuranPage({ setPage }) {
                 </>
               )}
               {!verseSearching && verseSearch.length >= 3 && verseResults.length === 0 && (
-                <div className="empty-state">
-                  <span>📖</span><p>{sl.noResults}</p>
-                </div>
+                <QEmpty icon="search">{sl.noResults}</QEmpty>
               )}
-              {verseResults.length > 0 && (
+              {!verseSearching && verseResults.length > 0 && (
                 <div className="verse-results">
-                  <p className="verse-results-count">{verseResults.length} {sl.result}</p>
+                  <p className="verse-results-count ui-num">{verseResults.length} {sl.result}</p>
                   {verseResults.map((v, i) => {
                     // Axtarış yalnız seçilmiş nəşrin mətnini qaytarır (tərcümə və ya
                     // ərəbcədə təfsir) — onu bir dəfə, adi yazı kimi göstəririk.
                     // Ərəb Quran xətti yalnız nəşr Quran mətninin özü olanda.
                     const isQuranText = v.edition?.type === 'quran'
                     return (
-                      <button type="button" key={v.number} className="verse-result-card press" style={{'--i': Math.min(i, 7)}}
+                      <button type="button" key={v.number} className="verse-result-card" style={{'--i': Math.min(i, 7)}}
                         onClick={() => openSurah(v.surah.number)}>
                         <span className="vr-header">
                           <span className="vr-surah">

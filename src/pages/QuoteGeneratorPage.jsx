@@ -6,6 +6,7 @@ import { subscribeToQuotes } from '../data/adminContent'
 import { localizeSource } from '../utils/sourceNames'
 import { pickLang } from '../utils/pickLang'
 import { dedupeList, hadithKeys } from '../utils/uniqueHadiths'
+import Icon from '../components/Icon'
 import '../styles/QuoteGeneratorPage.css'
 
 // Sitatın tərcüməsi YALNIZ cari dildə. Ərəbcədə orijinal mətn onsuz da göstərilir —
@@ -14,11 +15,11 @@ const translationOf = (q, lang) => (lang === 'ar' ? '' : pickLang(q?.text, lang)
 
 /* ── Labels ── */
 const LABELS = {
-  az: { title:'Sitat Generatoru', subtitle:'Gözəl İslami sitatlar yaradın', generate:'Yeni sitat', copy:'Kopyala', share:'Paylaş', download:'Yüklə', copied:'Kopyalandı!', theme:'Rəng', category:'Kateqoriya', layout:'Dizayn', custom:'Fərdiləşdir', quran:'Quran', hadith:'Hədis', dua:'Dua', wisdom:'Hikmət', all:'Hamısı', watermark:`${BRAND.name.az} · ${BRAND.domain}`, fontSize:'Yazı ölçüsü', bgColor:'Arxa plan', textColor:'Yazı rəngi', borderWidth:'Sərhəd', borderColor:'Sərhəd rəngi', opacity:'Şəffaflıq', reset:'Sıfırla', customBg:'Öz rəng', arText:'Ərəb', trText:'Tərcümə' },
-  en: { title:'Quote Generator', subtitle:'Create beautiful Islamic quotes', generate:'New quote', copy:'Copy', share:'Share', download:'Download', copied:'Copied!', theme:'Color', category:'Category', layout:'Layout', custom:'Customize', quran:'Quran', hadith:'Hadith', dua:'Dua', wisdom:'Wisdom', all:'All', watermark:`${BRAND.name.en} · ${BRAND.domain}`, fontSize:'Font size', bgColor:'Background', textColor:'Text color', borderWidth:'Border', borderColor:'Border color', opacity:'Opacity', reset:'Reset', customBg:'Custom color', arText:'Arabic', trText:'Translation' },
-  ru: { title:'Генератор цитат', subtitle:'Создавайте красивые исламские цитаты', generate:'Новая цитата', copy:'Копировать', share:'Поделиться', download:'Скачать', copied:'Скопировано!', theme:'Цвет', category:'Категория', layout:'Дизайн', custom:'Настроить', quran:'Коран', hadith:'Хадис', dua:'Дуа', wisdom:'Мудрость', all:'Все', watermark:`${BRAND.name.ru} · ${BRAND.domain}`, fontSize:'Размер шрифта', bgColor:'Фон', textColor:'Цвет текста', borderWidth:'Рамка', borderColor:'Цвет рамки', opacity:'Прозрачность', reset:'Сбросить', customBg:'Свой цвет', arText:'Арабский', trText:'Перевод' },
-  ar: { title:'مولد الاقتباسات', subtitle:'أنشئ اقتباسات إسلامية جميلة', generate:'اقتباس جديد', copy:'نسخ', share:'مشاركة', download:'تحميل', copied:'تم النسخ!', theme:'اللون', category:'الفئة', layout:'التصميم', custom:'تخصيص', quran:'القرآن', hadith:'الحديث', dua:'الدعاء', wisdom:'حكمة', all:'الكل', watermark:`${BRAND.name.ar} · ${BRAND.domain}`, fontSize:'حجم الخط', bgColor:'الخلفية', textColor:'لون النص', borderWidth:'الإطار', borderColor:'لون الإطار', opacity:'الشفافية', reset:'إعادة ضبط', customBg:'لون مخصص', arText:'العربية', trText:'الترجمة' },
-  tr: { title:'Alıntı Oluşturucu', subtitle:'Güzel İslami alıntılar oluşturun', generate:'Yeni alıntı', copy:'Kopyala', share:'Paylaş', download:'İndir', copied:'Kopyalandı!', theme:'Renk', category:'Kategori', layout:'Tasarım', custom:'Özelleştir', quran:'Kuran', hadith:'Hadis', dua:'Dua', wisdom:'Hikmet', all:'Tümü', watermark:`${BRAND.name.tr} · ${BRAND.domain}`, fontSize:'Yazı boyutu', bgColor:'Arka plan', textColor:'Yazı rengi', borderWidth:'Kenarlık', borderColor:'Kenarlık rengi', opacity:'Saydamlık', reset:'Sıfırla', customBg:'Özel renk', arText:'Arapça', trText:'Çeviri' },
+  az: { eyebrow:'Paylaş və yay', title:'Sitat generatoru', subtitle:'Gözəl İslami sitatlar yaradın', generate:'Yeni sitat', copy:'Kopyala', share:'Paylaş', download:'Yüklə', copied:'Kopyalandı!', theme:'Rəng', category:'Kateqoriya', layout:'Dizayn', custom:'Fərdiləşdir', quran:'Quran', hadith:'Hədis', dua:'Dua', wisdom:'Hikmət', all:'Hamısı', watermark:`${BRAND.name.az} · ${BRAND.domain}`, fontSize:'Yazı ölçüsü', bgColor:'Arxa plan', textColor:'Yazı rəngi', borderWidth:'Sərhəd', borderColor:'Sərhəd rəngi', opacity:'Şəffaflıq', reset:'Sıfırla', customBg:'Öz rəng', arText:'Ərəb', trText:'Tərcümə' },
+  en: { eyebrow:'Share the good', title:'Quote Generator', subtitle:'Create beautiful Islamic quotes', generate:'New quote', copy:'Copy', share:'Share', download:'Download', copied:'Copied!', theme:'Color', category:'Category', layout:'Layout', custom:'Customize', quran:'Quran', hadith:'Hadith', dua:'Dua', wisdom:'Wisdom', all:'All', watermark:`${BRAND.name.en} · ${BRAND.domain}`, fontSize:'Font size', bgColor:'Background', textColor:'Text color', borderWidth:'Border', borderColor:'Border color', opacity:'Opacity', reset:'Reset', customBg:'Custom color', arText:'Arabic', trText:'Translation' },
+  ru: { eyebrow:'Делитесь добром', title:'Генератор цитат', subtitle:'Создавайте красивые исламские цитаты', generate:'Новая цитата', copy:'Копировать', share:'Поделиться', download:'Скачать', copied:'Скопировано!', theme:'Цвет', category:'Категория', layout:'Дизайн', custom:'Настроить', quran:'Коран', hadith:'Хадис', dua:'Дуа', wisdom:'Мудрость', all:'Все', watermark:`${BRAND.name.ru} · ${BRAND.domain}`, fontSize:'Размер шрифта', bgColor:'Фон', textColor:'Цвет текста', borderWidth:'Рамка', borderColor:'Цвет рамки', opacity:'Прозрачность', reset:'Сбросить', customBg:'Свой цвет', arText:'Арабский', trText:'Перевод' },
+  ar: { eyebrow:'انشر الخير', title:'مولد الاقتباسات', subtitle:'أنشئ اقتباسات إسلامية جميلة', generate:'اقتباس جديد', copy:'نسخ', share:'مشاركة', download:'تحميل', copied:'تم النسخ!', theme:'اللون', category:'الفئة', layout:'التصميم', custom:'تخصيص', quran:'القرآن', hadith:'الحديث', dua:'الدعاء', wisdom:'حكمة', all:'الكل', watermark:`${BRAND.name.ar} · ${BRAND.domain}`, fontSize:'حجم الخط', bgColor:'الخلفية', textColor:'لون النص', borderWidth:'الإطار', borderColor:'لون الإطار', opacity:'الشفافية', reset:'إعادة ضبط', customBg:'لون مخصص', arText:'العربية', trText:'الترجمة' },
+  tr: { eyebrow:'Paylaş ve yay', title:'Alıntı Oluşturucu', subtitle:'Güzel İslami alıntılar oluşturun', generate:'Yeni alıntı', copy:'Kopyala', share:'Paylaş', download:'İndir', copied:'Kopyalandı!', theme:'Renk', category:'Kategori', layout:'Tasarım', custom:'Özelleştir', quran:'Kuran', hadith:'Hadis', dua:'Dua', wisdom:'Hikmet', all:'Tümü', watermark:`${BRAND.name.tr} · ${BRAND.domain}`, fontSize:'Yazı boyutu', bgColor:'Arka plan', textColor:'Yazı rengi', borderWidth:'Kenarlık', borderColor:'Kenarlık rengi', opacity:'Saydamlık', reset:'Sıfırla', customBg:'Özel renk', arText:'Arapça', trText:'Çeviri' },
 }
 
 /* ── Theme configs — 12 tema ── */
@@ -149,8 +150,8 @@ const LAYOUTS = [
   { id:'ar-only',    label:'ع',    ratio:'1/1', radius:'20px', decor:'none',       desc:'Yalnız ərəb', hideTranslation:true },
   { id:'tr-only',    label:'Aa',   ratio:'1/1', radius:'20px', decor:'bismillah',  desc:'Yalnız tərcümə', hideArabic:true },
   { id:'minimal',    label:'—',    ratio:'1/1', radius:'20px', decor:'none',       desc:'Minimal' },
-  { id:'paper',      label:'📄',   ratio:'4/5', radius:'4px',  decor:'paper',      desc:'Kağız' },
-  { id:'ticket',     label:'🎫',   ratio:'5/2', radius:'16px', decor:'line',       desc:'Bilet' },
+  { id:'paper',      label:'❏',   ratio:'4/5', radius:'4px',  decor:'paper',      desc:'Kağız' },
+  { id:'ticket',     label:'▭',   ratio:'5/2', radius:'16px', decor:'line',       desc:'Bilet' },
   { id:'split',      label:'◧',    ratio:'1/1', radius:'20px', decor:'split',      desc:'Bölünmüş' },
 ]
 
@@ -267,11 +268,15 @@ export default function QuoteGeneratorPage({ setPage }) {
     canvas.height = 1080
     const ctx = canvas.getContext('2d')
 
+    // Amiri/Inter hələ yüklənməyibsə kətan ehtiyat şriftlə çəkirdi — əvvəlcə gözlə
+    try { await Promise.all([document.fonts?.load('48px Amiri'), document.fonts?.load('32px Inter')]) } catch { /* şrift yüklənmədi */ }
+
     // Draw gradient background
     const grad = ctx.createLinearGradient(0, 0, 1080, 1080)
     const colors = theme.gradient
     colors.forEach((c, i) => grad.addColorStop(i / (colors.length - 1 || 1), c))
-    ctx.fillStyle = grad
+    // Önizləmədəki 'Öz rəng' seçilibsə — şəkil də həmin rənglə (əvvəl nəzərə alınmırdı)
+    ctx.fillStyle = custom.bgColor || grad
     ctx.fillRect(0, 0, 1080, 1080)
 
     // Grid pattern for mosque/geo themes
@@ -284,7 +289,7 @@ export default function QuoteGeneratorPage({ setPage }) {
       }
     }
 
-    const textColor = theme.textColor
+    const textColor = custom.textColor || theme.textColor
     const dimColor = theme.id === 'minimal' ? '#4a6052' : 'rgba(255,255,255,0.7)'
 
     // Decorative ornament top
@@ -342,7 +347,7 @@ export default function QuoteGeneratorPage({ setPage }) {
     link.download = 'muslims-cc-quote.png'
     link.href = canvas.toDataURL('image/png')
     link.click()
-  }, [quote, theme, lang])
+  }, [quote, theme, lang, custom])
 
   /* ── Category change resets quote ── */
   const handleCategoryChange = useCallback((cat) => {
@@ -361,14 +366,18 @@ export default function QuoteGeneratorPage({ setPage }) {
   return (
     <>
       {/* Hero */}
-      <div className="page-hero theme-quotes hero-compact">
-        <div className="page-hero-arabic">اقْتِبَاسَات</div>
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+      <header className="ui-page-hero qg-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container">
+          <span className="ui-eyebrow">{t.eyebrow}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          {lang !== 'ar' && <p className="qg-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">اقْتِبَاسَات</p>}
+          <p className="ui-lead">{t.subtitle}</p>
+        </div>
+      </header>
 
-      <div className="section">
-        <div className="section-inner qg-layout">
+      <div className="ui-section ui-section--tight qg-page">
+        <div className="ui-container qg-layout">
 
           {/* Önizləmə + düymələr — telefonda əvvəldə, geniş ekranda sağda yapışqan */}
           <div className="qg-preview">
@@ -446,26 +455,28 @@ export default function QuoteGeneratorPage({ setPage }) {
             {/* Action Buttons — simvollar ayrıca <span>-da: telefonda ikon
                 üstdə, ad altda (tətbiqdəki "paylaş" sırası kimi) */}
             <div className="qg-actions">
-              <button className="qg-action-btn primary" onClick={generateNew}>
-                <span className="qg-action-ico" aria-hidden="true">✦</span> {t.generate}
+              <button type="button" className="ui-btn ui-btn--primary qg-action-btn qg-action-btn--gen" onClick={generateNew}>
+                <Icon name="sparkle" className="ui-btn__icon qg-action-ico" /> {t.generate}
               </button>
               <button
-                className={`qg-action-btn ${copied ? 'copied' : 'secondary'}`}
+                type="button"
+                className={`ui-btn ui-btn--secondary qg-action-btn${copied ? ' copied' : ''}`}
                 onClick={copyText}
+                aria-live="polite"
               >
-                <span className="qg-action-ico" aria-hidden="true">{copied ? '✓' : '❐'}</span> {copied ? t.copied : t.copy}
+                <Icon name={copied ? 'check' : 'copy'} className="ui-btn__icon qg-action-ico" /> {copied ? t.copied : t.copy}
               </button>
-              <button className="qg-action-btn ghost" onClick={shareQuote}>
-                <span className="qg-action-ico" aria-hidden="true">↗</span> {t.share}
+              <button type="button" className="ui-btn ui-btn--secondary qg-action-btn" onClick={shareQuote}>
+                <Icon name="share" className="ui-btn__icon qg-action-ico" /> {t.share}
               </button>
-              <button className="qg-action-btn ghost" onClick={downloadQuote}>
-                <span className="qg-action-ico" aria-hidden="true">↓</span> {t.download}
+              <button type="button" className="ui-btn ui-btn--secondary qg-action-btn" onClick={downloadQuote}>
+                <Icon name="download" className="ui-btn__icon qg-action-ico" /> {t.download}
               </button>
             </div>
           </div>
 
           {/* Seçimlər — kateqoriya, rəng, dizayn, fərdiləşdirmə */}
-          <div className="qg-panel">
+          <div className="qg-panel" data-reveal="up">
             {/* Controls */}
             <div className="qg-controls">
               {/* Category filter */}
@@ -475,8 +486,9 @@ export default function QuoteGeneratorPage({ setPage }) {
                 <div className="qg-categories chip-scroll wrap-desktop" role="group" aria-label={t.category}>
                   {CATEGORIES.map(cat => (
                     <button
+                      type="button"
                       key={cat}
-                      className={`tag-btn ${category === cat ? 'active' : ''}`}
+                      className="ui-chip"
                       aria-pressed={category === cat}
                       onClick={() => handleCategoryChange(cat)}
                     >
@@ -493,6 +505,7 @@ export default function QuoteGeneratorPage({ setPage }) {
                   {THEMES.map((th, i) => (
                     <button
                       key={th.id}
+                      type="button"
                       className={`qg-theme-btn ${themeIdx === i ? 'active' : ''}`}
                       data-theme-id={th.id}
                       onClick={() => setThemeIdx(i)}
@@ -512,7 +525,8 @@ export default function QuoteGeneratorPage({ setPage }) {
                 {LAYOUTS.map((ly, i) => (
                   <button
                     key={ly.id}
-                    className={`qg-layout-btn ${layoutIdx === i ? 'active' : ''}`}
+                    type="button"
+                className={`qg-layout-btn ${layoutIdx === i ? 'active' : ''}`}
                     data-layout-id={ly.id}
                     onClick={() => { setLayoutIdx(i); setAnimKey(k => k + 1) }}
                     title={nameOf(LAYOUT_NAMES, ly.id, lang)}
@@ -532,8 +546,8 @@ export default function QuoteGeneratorPage({ setPage }) {
                 aria-expanded={showCustom}
                 onClick={() => setShowCustom(!showCustom)}
               >
-                <span className="qg-custom-ico icon-tile icon-tile--sm icon-tile--rose" aria-hidden="true">🎨</span> {t.custom}
-                <span className="qg-custom-chevron" aria-hidden="true">▾</span>
+                <span className="ui-icon-tile ui-icon-tile--sm qg-custom-ico" aria-hidden="true"><Icon name="palette" /></span> {t.custom}
+                <Icon name="chevronDown" size={18} className="qg-custom-chevron" />
               </button>
               {showCustom && (
                 <div className="qg-custom-panel">
@@ -550,12 +564,12 @@ export default function QuoteGeneratorPage({ setPage }) {
                   <div className="qg-custom-row">
                     <label className="qg-custom-label" htmlFor="qg-c-bg">{t.customBg}</label>
                     <input id="qg-c-bg" type="color" value={custom.bgColor || theme.gradient[0]} onChange={e => updateCustom('bgColor', e.target.value)} className="qg-custom-color" />
-                    {custom.bgColor && <button className="qg-custom-clear" aria-label={t.reset} onClick={() => updateCustom('bgColor', '')}>✕</button>}
+                    {custom.bgColor && <button type="button" className="ui-icon-btn qg-custom-clear" aria-label={t.reset} title={t.reset} onClick={() => updateCustom('bgColor', '')}><Icon name="close" size={16} /></button>}
                   </div>
                   <div className="qg-custom-row">
                     <label className="qg-custom-label" htmlFor="qg-c-text">{t.textColor}</label>
                     <input id="qg-c-text" type="color" value={custom.textColor || theme.textColor} onChange={e => updateCustom('textColor', e.target.value)} className="qg-custom-color" />
-                    {custom.textColor && <button className="qg-custom-clear" aria-label={t.reset} onClick={() => updateCustom('textColor', '')}>✕</button>}
+                    {custom.textColor && <button type="button" className="ui-icon-btn qg-custom-clear" aria-label={t.reset} title={t.reset} onClick={() => updateCustom('textColor', '')}><Icon name="close" size={16} /></button>}
                   </div>
                   <div className="qg-custom-row">
                     <label className="qg-custom-label" htmlFor="qg-c-bw">{t.borderWidth}</label>
@@ -573,7 +587,7 @@ export default function QuoteGeneratorPage({ setPage }) {
                     <input id="qg-c-op" type="range" min="30" max="100" value={custom.opacity} onChange={e => updateCustom('opacity', +e.target.value)} className="qg-custom-range" />
                     <span className="qg-custom-value">{custom.opacity}%</span>
                   </div>
-                  <button className="qg-custom-reset" onClick={resetCustom}>↺ {t.reset}</button>
+                  <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm qg-custom-reset" onClick={resetCustom}><Icon name="refresh" className="ui-btn__icon" /> {t.reset}</button>
                 </div>
               )}
             </div>

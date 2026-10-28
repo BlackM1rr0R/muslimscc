@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import { subscribeToSettings } from '../data/adminContent'
 import { BRAND } from '../config/brand'
+import Icon from './Icon'
 import '../styles/AIChatWidget.css'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
@@ -384,25 +385,25 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
           <div className="aiw-header">
             <div className="aiw-header-info">
               <div className="aiw-avatar">
-                <AIIcon size={24} />
+                <Icon name="sparkle" size={22} />
                 <span className="aiw-avatar-status"></span>
               </div>
               <div>
                 <div className="aiw-name">{l.botName}</div>
-                <div className="aiw-status">
+                <div className={`aiw-status${loading ? ' is-typing' : ''}`}>
                   <span className="aiw-status-dot"></span>
-                  {loading ? l.typing + '...' : l.online}
+                  {loading ? l.typing + '…' : l.online}
                 </div>
               </div>
             </div>
             <div className="aiw-header-actions">
               {messages.length > 0 && (
                 <button className="aiw-icon-btn" onClick={handleClear} title={l.clear} aria-label={l.clear}>
-                  🗑️
+                  <Icon name="trash" size={18} />
                 </button>
               )}
               <button className="aiw-icon-btn aiw-close-btn" onClick={() => setOpen(false)} title={l.close} aria-label={l.close}>
-                ✕
+                <Icon name="close" size={18} />
               </button>
             </div>
           </div>
@@ -412,15 +413,17 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
             {messages.length === 0 ? (
               <div className="aiw-welcome">
                 <div className="aiw-welcome-icon">
-                  <AIIcon size={64} />
+                  <Icon name="sparkle" size={34} strokeWidth={1.5} />
                 </div>
                 <div className="aiw-welcome-name">{l.botName}</div>
                 <div className="aiw-welcome-tagline">{l.tagline}</div>
                 <p className="aiw-welcome-text">{l.welcome}</p>
                 <div className="aiw-suggestions">
                   {suggestions.map((s, i) => (
-                    <button key={i} className="aiw-suggest" onClick={() => sendMessage(s)}>
-                      {s}
+                    <button key={i} className="aiw-suggest" style={{ '--i': i }} onClick={() => sendMessage(s)}>
+                      <Icon name="sparkle" size={16} className="aiw-suggest-icon" />
+                      <span className="aiw-suggest-text">{s}</span>
+                      <Icon name="arrow" size={16} className="aiw-suggest-arrow ui-flip-rtl" />
                     </button>
                   ))}
                 </div>
@@ -429,13 +432,13 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
               <>
                 {messages.map((m, i) => (
                   <div key={i} className={`aiw-msg aiw-msg-${m.role}`}>
-                    {m.role === 'assistant' && <div className="aiw-msg-avatar"><AIIcon size={16} /></div>}
-                    <div className="aiw-bubble">{m.content}</div>
+                    {m.role === 'assistant' && <div className="aiw-msg-avatar" aria-hidden="true"><Icon name="sparkle" size={15} /></div>}
+                    <div className="aiw-bubble" dir="auto">{m.content}</div>
                   </div>
                 ))}
                 {loading && (
                   <div className="aiw-msg aiw-msg-assistant">
-                    <div className="aiw-msg-avatar"><AIIcon size={16} /></div>
+                    <div className="aiw-msg-avatar" aria-hidden="true"><Icon name="sparkle" size={15} /></div>
                     <div className="aiw-bubble aiw-thinking">
                       <span className="aiw-dot"></span>
                       <span className="aiw-dot"></span>
@@ -449,7 +452,7 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
 
           {cooldown > 0 && (
             <div className="aiw-cooldown">
-              <div className="aiw-cooldown-icon">⏳</div>
+              <div className="aiw-cooldown-icon" aria-hidden="true"><Icon name="clock" size={22} /></div>
               <div className="aiw-cooldown-text">
                 {l.rateLimit.replace('{s}', cooldown)}
               </div>
@@ -467,7 +470,9 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
             </div>
           )}
 
-          {cooldown === 0 && error && <div className="aiw-error">⚠️ {error}</div>}
+          {cooldown === 0 && error && (
+            <div className="aiw-error" role="alert"><Icon name="alert" size={16} /><span>{error}</span></div>
+          )}
 
           {/* Input */}
           <form className="aiw-form" onSubmit={handleSubmit}>
@@ -487,7 +492,9 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
               inputMode="text"
             />
             <button type="submit" className="aiw-send" disabled={loading || cooldown > 0 || !input.trim()} aria-label={SEND_LABEL[lang]}>
-              {loading ? '⏳' : cooldown > 0 ? cooldown : '➤'}
+              {loading
+                ? <span className="aiw-spinner" aria-hidden="true" />
+                : cooldown > 0 ? cooldown : <Icon name="send" size={18} className="ui-flip-rtl" />}
             </button>
           </form>
 

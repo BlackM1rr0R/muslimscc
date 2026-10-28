@@ -1,10 +1,11 @@
 /* ═══════════════════════════════════════════════════════
-   AI CHAT PAGE
-   Tətbiq kimi düzülüş: səhifə görünən ekranı (başlıq çıxılmaqla)
-   tam doldurur — söhbət pəncərəsi
-   qalan yeri tutur, yazı sahəsi həmişə ekranın aşağısında görünür.
-   Rənglər yalnız sayt dəyişənlərindən (--primary …) — tünd rejim
-   avtomatik işləyir. Kənar/künc xassələri məntiqidir (RTL üçün).
+   AI SÖHBƏT — dizayn v2 (müasir çat interfeysi)
+   Tətbiq kimi düzülüş: səhifə görünən ekranı doldurur, söhbət kartı
+   qalan yeri tutur, yazı sahəsi həmişə aşağıda (yapışqan).
+   Rənglər yalnız tokenlərdən — tünd rejim avtomatik; RTL məntiqi xassələrlə.
+   Animasiyalar: mesajın girişi (öz küncündən), "yazır…" nöqtələri,
+   təkliflərin növbəli girişi — yalnız transform/opacity.
+   .ui-* sinifləri valideynlə (.ai-chat-page …) dəyişdirilir (DESIGN.md §4.1).
    ═══════════════════════════════════════════════════════ */
 
 .ai-chat-page {
@@ -12,296 +13,273 @@
   flex-direction: column;
   min-height: calc(100vh - var(--header-h));
   min-height: calc(100dvh - var(--header-h) - env(safe-area-inset-bottom, 0px));
-  background: var(--bg);
+  background: var(--surface-0);
 }
+
+/* Yığcam hero */
+.ai-chat-page .aic-hero { padding-block: clamp(24px, 3.4vw, 44px) clamp(20px, 2.6vw, 32px); }
+.aic-hero-in { max-width: calc(840px + 2 * var(--page-gutter)); }
+.ai-chat-page .aic-hero .ui-display { font-size: var(--step-3); }
 
 .aic-container {
   flex: 1 0 auto;
   width: 100%;
-  max-width: 820px;
+  max-width: calc(840px + 2 * var(--page-gutter));
   margin: 0 auto;
-  padding-block: var(--hero-gap) var(--space-6);
+  padding-block: var(--space-5) var(--space-6);
   padding-inline: var(--page-gutter);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 12px;
 }
 
-/* ─── Chat window ───
-   flex:1 — hündürlüyü ekrana görə özü tapır; min-height qısa ekranda
-   (məs. 1366×650 noutbuk) söhbəti çox sıxmasın — o zaman səhifə
-   uzanır və yazı sahəsi yapışqan (sticky) olaraq aşağıda qalır */
-.aic-chat {
+/* ─── Söhbət kartı ─── */
+.aic-chat-card {
   flex: 1 1 0;
-  min-height: 300px;
+  min-height: 380px;
   display: flex;
   flex-direction: column;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+}
+
+.aic-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-2) 60%, var(--surface-1));
+}
+.aic-chat-id { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.aic-chat-name { display: inline-flex; align-items: center; gap: 8px; color: var(--text-strong); font-size: 15px; font-weight: 600; line-height: 1.3; }
+.aic-chat-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+  font-size: 12.5px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aic-status-dot { flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+.ai-chat-page .aic-clear-btn { flex-shrink: 0; }
+
+.aic-chat {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 22px;
   scroll-behavior: smooth;
+  scrollbar-width: thin;
 }
-
 .aic-chat::-webkit-scrollbar { width: 6px; }
-.aic-chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.aic-chat::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
 
-/* Az mesaj olanda onlar söhbətin aşağısından başlasın (messencer kimi) */
+/* Az mesaj olanda söhbət aşağıdan başlasın (messencer kimi) */
 .aic-chat > .aic-msg:first-child { margin-top: auto; }
 
-/* ─── Welcome ─── */
-.aic-welcome {
-  margin-block: auto;
-  text-align: center;
-  padding: 16px 8px;
+/* ─── Xoş gəldin ─── */
+.aic-welcome { margin-block: auto; padding: 12px 4px; text-align: center; }
+.aic-welcome-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 16px;
+  animation: aic-pop var(--dur-3) var(--ease-out) both;
 }
-
-.aic-welcome-icon {
-  font-size: 52px;
-  line-height: 1;
-  margin-bottom: 14px;
-  animation: aic-float 3s ease-in-out infinite;
+/* İncə xatəm halqası — bir dəfə açılır */
+.aic-welcome-ring {
+  position: absolute;
+  inset: 0;
+  background: var(--accent-line);
+  -webkit-mask: var(--ui-star) center / contain no-repeat;
+  mask: var(--ui-star) center / contain no-repeat;
+  opacity: .9;
+  animation: aic-ring 900ms var(--ease-out) 80ms both;
 }
-
-@keyframes aic-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
 .aic-welcome-text {
-  font-size: 15px;
-  color: var(--text-muted);
+  max-width: 52ch;
+  margin: 0 auto 22px;
+  color: var(--text-secondary);
+  font-size: var(--step-0);
   line-height: 1.6;
-  max-width: 540px;
-  margin: 0 auto 20px;
 }
 
 .aic-suggestions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  max-width: 600px;
+  max-width: 620px;
   margin: 0 auto;
 }
-
 .aic-suggest-btn {
-  min-height: var(--tap);
-  background: var(--bg-soft);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  cursor: pointer;
-  text-align: start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-body);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.4;
+  text-align: start;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
     border-color var(--dur-2) var(--ease-out),
     background-color var(--dur-2) var(--ease-out),
-    color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
     transform var(--dur-1) var(--ease-out);
   /* Təkliflər növbə ilə süzülüb gəlir (40ms addım — motion.css) */
-  animation: aic-fadeIn var(--dur-3) var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * var(--stagger) + 120ms);
+  animation: aic-fade-up var(--dur-3) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger) + 160ms);
 }
-
-@media (hover: hover) and (pointer: fine) {
-  .aic-suggest-btn:hover {
-    border-color: var(--primary);
-    background: var(--primary-bg);
-    color: var(--primary);
-    transform: translateY(-1px);
-  }
+.aic-suggest-text { flex: 1; min-width: 0; }
+.aic-suggest-chev { flex-shrink: 0; color: var(--text-tertiary); transition: transform var(--dur-2) var(--ease-out), color var(--dur-2) ease; }
+@media (hover: hover) {
+  .aic-suggest-btn:hover { border-color: var(--brand-line); background: var(--brand-soft); box-shadow: var(--shadow-1); }
+  .aic-suggest-btn:hover .aic-suggest-chev { color: var(--brand); transform: translateX(3px); }
+  [dir="rtl"] .aic-suggest-btn:hover .aic-suggest-chev { transform: scaleX(-1) translateX(3px); }
 }
-
 .aic-suggest-btn:active { transform: scale(0.98); }
 
-/* İkon və ox yalnız telefonda (aşağıda) — geniş ekranda sadə düymə */
-.aic-suggest-ico,
-.aic-suggest-chev { display: none; }
-
-/* ─── Messages ─── */
-/* Yeni mesaj öz tərəfinin aşağı küncündən yumşaq "çıxır" (mesencer kimi):
-   istifadəçi — sonda, köməkçi — əvvəldə; ərəbcədə güzgülənir */
+/* ─── Mesajlar ─── */
 .aic-msg {
   display: flex;
+  align-items: flex-end;
   gap: 10px;
   margin-bottom: 14px;
   transform-origin: 0 100%;
   animation: aic-msg-in var(--dur-3) var(--ease-out) backwards;
 }
-
-@keyframes aic-fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes aic-msg-in {
-  from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.96); }
-  to   { opacity: 1; transform: none; }
-}
-
-.aic-msg-user {
-  flex-direction: row-reverse;
-  transform-origin: 100% 100%;
-}
+.aic-msg-user { flex-direction: row-reverse; transform-origin: 100% 100%; }
 [dir="rtl"] .aic-msg { transform-origin: 100% 100%; }
 [dir="rtl"] .aic-msg-user { transform-origin: 0 100%; }
 
 .aic-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px var(--primary-border);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: var(--shadow-1);
 }
+.aic-avatar--lg { width: 38px; height: 38px; }
+.aic-avatar--xl { position: relative; width: 60px; height: 60px; box-shadow: var(--shadow-2); }
 
 .aic-bubble {
-  max-width: 78%;
+  max-width: min(78%, 60ch);
   padding: 11px 15px;
   border-radius: 18px;
-  font-size: 14.5px;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.6;
   overflow-wrap: anywhere;
 }
-
 /* "Quyruq" — mesajın göndərildiyi tərəfin aşağı küncü (RTL-də güzgülənir) */
 .aic-msg-user .aic-bubble {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: var(--on-primary);
+  background: var(--brand);
+  color: var(--on-brand);
   border-end-end-radius: 6px;
-  box-shadow: 0 2px 10px var(--primary-border);
+  box-shadow: var(--shadow-1);
 }
-
 .aic-msg-assistant .aic-bubble {
-  background: var(--bg-soft);
-  color: var(--text);
+  background: var(--surface-2);
+  color: var(--text-body);
+  border: 1px solid var(--line);
   border-end-start-radius: 6px;
-  border: 1px solid var(--border);
 }
+/* Hər abzasın istiqaməti öz mətnindən (ərəbcə ayə + latın sitat) */
+.aic-content { white-space: pre-wrap; unicode-bidi: plaintext; text-align: start; }
 
-/* Hər abzasın istiqaməti öz mətnindən — azərbaycanca cavabdakı
-   ərəbcə ayə sağdan, ərəbcə cavabdakı latın sitat soldan başlayır */
-.aic-content {
-  white-space: pre-wrap;
-  unicode-bidi: plaintext;
-  text-align: start;
-}
-
-/* ─── Thinking dots ─── */
-.aic-thinking {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 14px 18px !important;
-}
-
+/* ─── "Yazır…" nöqtələri ─── */
+.ai-chat-page .aic-thinking { display: flex; align-items: center; gap: 5px; padding: 14px 18px; }
 .aic-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--primary);
-  animation: aic-bounce 1.4s infinite ease-in-out;
+  background: var(--brand);
+  animation: aic-bounce 1.2s infinite var(--ease-in-out);
 }
+.aic-dot:nth-child(3) { animation-delay: .15s; }
+.aic-dot:nth-child(4) { animation-delay: .3s; }
 
-.aic-dot:nth-child(2) { animation-delay: 0.16s; }
-.aic-dot:nth-child(3) { animation-delay: 0.32s; }
-
-@keyframes aic-bounce {
-  0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
-}
-
-/* ─── Input form ───
-   Yapışqan: səhifə ekrandan uzun olanda (qısa ekran, uzun söhbət)
-   yazı sahəsi ekranın altında (və üzən kartın üstündə — globals.css →
-   --bottom-clear) qalır */
+/* ─── Yazı sahəsi (yapışqan) ─── */
 .aic-form {
   position: sticky;
   bottom: calc(env(safe-area-inset-bottom, 0px) + var(--bottom-clear, 0px) + 8px);
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--bg-card);
-  border: 1.5px solid var(--border);
-  border-radius: 999px;
+  gap: 8px;
   padding-block: 6px;
   padding-inline: 18px 6px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-  transition: border-color .2s, box-shadow .2s;
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-3);
+  transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease;
 }
-
-.aic-form:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-bg2), 0 4px 18px var(--primary-border);
-}
-
+.aic-form:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft-2), var(--shadow-3); }
 .aic-input {
   flex: 1;
   min-width: 0;
-  border: none;
+  padding: 10px 0;
+  border: 0;
   outline: none;
   background: transparent;
-  font-size: 15px;
-  color: var(--text);
-  padding: 10px 0;
+  color: var(--text-body);
   font-family: inherit;
+  font-size: 16px;
 }
-
-.aic-input::placeholder { color: var(--text-muted); }
+.aic-input::placeholder { color: var(--text-tertiary); }
+.aic-input:disabled { cursor: not-allowed; }
 
 .aic-send-btn {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
   width: var(--tap);
   height: var(--tap);
+  border: 0;
   border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: var(--on-primary);
+  background: var(--brand);
+  color: var(--on-brand);
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   -webkit-tap-highlight-color: transparent;
   transition:
     transform var(--dur-2) var(--ease-spring),
-    box-shadow var(--dur-2) var(--ease-out),
+    background-color var(--dur-1) ease,
     opacity var(--dur-2) var(--ease-out);
-  flex-shrink: 0;
 }
-
-.aic-send-btn:hover:not(:disabled) {
-  transform: scale(1.06);
-  box-shadow: 0 4px 14px var(--primary-border);
+@media (hover: hover) {
+  .aic-send-btn:hover:not(:disabled) { background: var(--brand-hover); transform: scale(1.05); }
 }
-
 .aic-send-btn:active:not(:disabled) { transform: scale(0.94); }
-
-.aic-send-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
+.aic-send-btn:disabled { opacity: .4; cursor: not-allowed; transform: scale(.9); }
 .aic-send-icon { display: block; transition: transform var(--dur-2) var(--ease-out); }
-.aic-send-btn:hover:not(:disabled) .aic-send-icon { transform: translateX(2px); }
+[dir="rtl"] .aic-send-icon { transform: scaleX(-1); }
 
-/* Ərəbcə: ox yazı sahəsinə tərəf (sola) baxsın */
-[dir="rtl"] .aic-send-icon { scale: -1 1; }
-[dir="rtl"] .aic-send-btn:hover:not(:disabled) .aic-send-icon { transform: translateX(-2px); }
-
-/* Göndərilir… — kiçik fırlanan halqa (⏳ emojisi əvəzinə) */
+/* Göndərilir… — fırlanan halqa */
 .aic-send-spinner {
   width: 18px;
   height: 18px;
@@ -311,265 +289,128 @@
   animation: aic-spin .8s linear infinite;
 }
 
-@keyframes aic-spin { to { transform: rotate(360deg); } }
-
-/* ─── Error ─── */
+/* ─── Xəta ─── */
 .aic-error {
-  background: rgba(239,68,68,0.1);
-  color: var(--danger);
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--bad) 28%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bad) 8%, var(--surface-1));
+  color: var(--bad);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  animation: aic-fade-up var(--dur-2) var(--ease-out) both;
 }
+.aic-error > svg { flex-shrink: 0; }
+.aic-error-text { flex: 1 1 240px; min-width: 0; color: var(--text-body); }
+.ai-chat-page .aic-retry { flex-shrink: 0; }
 
-/* ─── Rate limit cooldown ─── */
+/* ─── Gözləmə (çox sürətli yazma) ─── */
 .aic-cooldown {
-  background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.08));
-  border: 1.5px solid rgba(245,158,11,0.35);
-  padding: 14px 16px;
-  border-radius: 14px;
   display: flex;
   align-items: center;
   gap: 14px;
-  animation: aic-cool-in 0.3s ease;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--warn) 32%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--warn) 9%, var(--surface-1));
+  animation: aic-fade-up var(--dur-3) var(--ease-out) both;
 }
-
-@keyframes aic-cool-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.aic-cooldown-icon {
-  font-size: 26px;
-  flex-shrink: 0;
-  animation: aic-cool-shake 1.5s ease-in-out infinite;
-}
-
-@keyframes aic-cool-shake {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-15deg); }
-  75% { transform: rotate(15deg); }
-}
-
-.aic-cooldown-text {
-  flex: 1;
-  font-size: 14px;
-  color: #92400e;
-  font-weight: 700;
-  line-height: 1.45;
-}
-
-.aic-cooldown-ring {
-  position: relative;
-  width: 50px;
-  height: 50px;
-  flex-shrink: 0;
-}
-
-.aic-cooldown-ring svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.aic-cooldown-bg {
-  fill: none;
-  stroke: rgba(245,158,11,0.2);
-  stroke-width: 3;
-}
-
-.aic-cooldown-fg {
-  fill: none;
-  stroke: #d97706;
-  stroke-width: 3;
-  stroke-linecap: round;
-  transition: stroke-dasharray 1s linear;
-}
-
+.aic-cooldown-icon { flex-shrink: 0; color: var(--warn); }
+.aic-cooldown-text { flex: 1; color: var(--text-body); font-size: 14px; font-weight: 500; line-height: 1.45; }
+.aic-cooldown-ring { position: relative; width: 46px; height: 46px; flex-shrink: 0; }
+.aic-cooldown-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.aic-cooldown-bg { fill: none; stroke: color-mix(in srgb, var(--warn) 22%, transparent); stroke-width: 3; }
+.aic-cooldown-fg { fill: none; stroke: var(--warn); stroke-width: 3; stroke-linecap: round; transition: stroke-dasharray 1s linear; }
 .aic-cooldown-num {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 900;
-  color: #92400e;
-}
-
-/* ─── Actions ─── */
-.aic-actions {
-  display: flex;
-  justify-content: center;
-}
-
-.aic-clear-btn {
-  min-height: 36px;
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 7px 16px;
-  font-size: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--warn);
+  font-size: 15px;
   font-weight: 700;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
+  font-variant-numeric: tabular-nums;
 }
 
-.aic-clear-btn:hover {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fecaca;
-}
-
+/* ─── Xəbərdarlıq (həmişə görünür) ─── */
 .aic-disclaimer {
-  text-align: center;
-  font-size: 12px;
-  color: var(--text-muted);
-  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  margin: 2px 0 0;
+  color: var(--text-tertiary);
+  font-size: 13px;
   line-height: 1.5;
+  text-align: center;
 }
+.aic-disclaimer svg { flex-shrink: 0; margin-top: 1px; color: var(--accent-text); }
 
-/* ─── Geniş ekran, dar sütun (1024–1199px) ───
-   Sağ-aşağı üzən dok (46px) yapışqan yazı sahəsinin göndər düyməsini
-   örtməsin — məzmun hər iki tərəfdən dokun enindən içəri çəkilir */
+/* ─── Animasiyalar ─── */
+@keyframes aic-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes aic-msg-in { from { opacity: 0; transform: translate3d(0, 10px, 0) scale(.95); } to { opacity: 1; transform: none; } }
+@keyframes aic-pop { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes aic-ring { from { opacity: 0; transform: rotate(-30deg) scale(.7); } to { opacity: .9; transform: none; } }
+@keyframes aic-bounce {
+  0%, 70%, 100% { transform: translateY(0); opacity: .45; }
+  35% { transform: translateY(-5px); opacity: 1; }
+}
+@keyframes aic-spin { to { transform: rotate(360deg); } }
+
+/* ─── Geniş ekran, dar sütun (1024–1199px): üzən dok göndər düyməsini örtməsin ─── */
 @media (min-width: 1024px) and (max-width: 1199.98px) {
   .aic-container { padding-inline: 72px; }
 }
 
-/* ─── Qısa geniş ekran (noutbuk) — hero yığcam, söhbətə yer qalsın ─── */
+/* ─── Qısa noutbuk ekranı: hero daha yığcam ─── */
 @media (min-width: 641px) and (max-height: 820px) {
-  .ai-chat-page .page-hero { padding-block: 32px 28px; }
-  .ai-chat-page .page-hero-arabic { display: none; }
+  .ai-chat-page .aic-hero { padding-block: 20px 18px; }
+  .ai-chat-page .aic-hero .ui-lead { display: none; }
 }
 
 /* ─── Telefon ─── */
 @media (max-width: 640px) {
-  /* Yığcam hero: başlıq + bir cümlə — söhbət və yazı sahəsi ilk ekranda */
-  .ai-chat-page .page-hero { padding-block: 20px 18px; }
-  .ai-chat-page .page-hero-arabic { display: none; }
-  .ai-chat-page .page-hero h1 { margin-bottom: 6px; }
-
-  .aic-container {
-    padding-block: var(--space-4) var(--space-4);
-    gap: 10px;
-  }
-  .aic-chat {
-    min-height: 0;
-    padding: 14px;
-    border-radius: var(--radius);
-  }
-  .aic-bubble { max-width: 85%; font-size: 14px; }
-  .aic-avatar { width: 32px; height: 32px; font-size: 16px; }
-  .aic-welcome { padding: 4px 0; }
-  .aic-welcome-icon { font-size: 40px; margin-bottom: 10px; }
-  .aic-welcome-text { font-size: 14px; margin-bottom: 14px; }
-  .aic-suggestions { gap: 8px; }
-  .aic-suggest-btn { padding: 9px 12px; font-size: 12.5px; }
-  /* 16px — iOS sahəyə fokuslananda səhifəni böyütməsin */
-  .aic-input { font-size: 16px; }
-  .aic-form { padding-inline: 16px 5px; padding-block: 5px; }
-}
-
-/* Çox dar telefon — təkliflər bir sütun */
-@media (max-width: 359.98px) {
-  .aic-suggestions { grid-template-columns: minmax(0, 1fr); }
-}
-
-/* ══ Telefon və kiçik planşet (<768px): tətbiq kimi görünüş ══════
-   • Təkliflər — qruplaşdırılmış siyahı: rəngli ikon kafeli + sual + ox,
-     nazik ayırıcı xətlər, basılanda yüngül rəng örtüyü (.m-list kimi)
-   • Söhbət pəncərəsi — yumşaq kölgə, iri künclər
-   • Göndər düyməsi — boş sahədə kiçik və solğun, yazı başlayanda yay
-     əyrisi ilə "açılır"
-   • Kiçik mətnlər ≥13px, "Söhbəti təmizlə" barmaqla rahat basılır
-   Geniş ekran (≥768px) dəyişmir. */
-@media (max-width: 767.98px) {
-  .aic-chat {
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-  }
-
+  .ai-chat-page .aic-hero { padding-block: 18px 16px; }
+  .ai-chat-page .aic-hero .ui-lead { font-size: 15px; }
+  .aic-container { padding-block: var(--space-3) var(--space-4); gap: 10px; }
+  .aic-chat-card { min-height: 0; border-radius: var(--radius-lg); }
+  .aic-chat-head { padding: 10px 12px; }
+  .aic-chat { padding: 14px; }
+  .aic-bubble { max-width: 86%; font-size: 14.5px; }
+  .aic-avatar { width: 28px; height: 28px; }
+  .aic-welcome-art { width: 68px; height: 68px; margin-bottom: 12px; }
+  .aic-avatar--xl { width: 50px; height: 50px; }
+  .aic-welcome-text { font-size: 14.5px; margin-bottom: 16px; }
+  /* Təkliflər — qruplaşdırılmış siyahı */
   .aic-suggestions {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
-    max-width: 480px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    isolation: isolate;
+    background: var(--surface-1);
   }
-  .aic-suggest-btn {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    min-height: 52px;
-    padding: 8px 12px 8px 14px;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: var(--text);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.35;
-  }
-  [dir="rtl"] .aic-suggest-btn { padding: 8px 14px 8px 12px; }
-  /* Nazik ayırıcı — ikonun sonundan başlayır */
-  .aic-suggest-btn + .aic-suggest-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    inset-inline-start: calc(14px + 32px + 12px);
-    inset-inline-end: 0;
-    height: 1px;
-    background: var(--border);
-    pointer-events: none;
-  }
-  .aic-suggest-btn:active {
-    transform: none;
-    background: var(--bg-card2);
-    box-shadow: inset 0 0 0 999px var(--press-tint);
-  }
-  .aic-suggest-ico { display: inline-grid; }
-  .aic-suggest-text { flex: 1; min-width: 0; }
-  .aic-suggest-chev { display: block; }
-
-  /* Göndər: boş sahədə kiçik, yazı başlayanda açılır */
-  .aic-send-btn:disabled { transform: scale(0.88); }
-
-  .aic-clear-btn { min-height: 40px; padding: 8px 16px; font-size: 13px; }
-  .aic-disclaimer { font-size: 13px; line-height: 1.45; }
-  .aic-error { font-size: 13.5px; }
-  .aic-cooldown-text { font-size: 13.5px; }
+  .aic-suggest-btn { min-height: 54px; border: 0; border-radius: 0; }
+  .aic-suggest-btn + .aic-suggest-btn { border-top: 1px solid var(--line); }
+  .aic-suggest-btn:active { transform: none; background: var(--surface-2); }
+  .aic-form { padding-inline: 16px 5px; padding-block: 5px; }
+  .aic-cooldown-text, .aic-error { font-size: 13.5px; }
 }
 
-/* ─── Tünd rejim ─── */
-[data-theme="dark"] .aic-cooldown-text,
-[data-theme="dark"] .aic-cooldown-num { color: #fbbf24; }
-[data-theme="dark"] .aic-cooldown-fg { stroke: #fbbf24; }
-[data-theme="dark"] .aic-error { color: #f87171; background: rgba(239,68,68,0.14); }
-[data-theme="dark"] .aic-clear-btn:hover {
-  background: rgba(239,68,68,0.14);
-  color: #f87171;
-  border-color: rgba(239,68,68,0.35);
-}
-[data-theme="dark"] .aic-form { box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
-
-/* ─── Hərəkətsiz rejim ─── */
+/* ─── Hərəkəti azalt ─── */
 @media (prefers-reduced-motion: reduce) {
-  .aic-welcome-icon,
-  .aic-cooldown-icon,
+  .aic-welcome-art,
+  .aic-welcome-ring,
   .aic-suggest-btn,
   .aic-msg,
+  .aic-error,
   .aic-cooldown { animation: none; }
+  .aic-dot { animation: none; opacity: .7; }
   .aic-chat { scroll-behavior: auto; }
-  .aic-send-btn,
-  .aic-send-icon,
-  .aic-suggest-btn { transition: none; }
+  .aic-send-btn, .aic-send-icon, .aic-suggest-btn, .aic-suggest-chev { transition: none; }
 }

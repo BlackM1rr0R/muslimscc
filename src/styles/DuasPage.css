@@ -1,86 +1,132 @@
 /* ══════════════════════════════════════════════════════
-   Dualar & Əzkar (/duas)
-   Rənglər yalnız dəyişənlərdən — tünd rejim avtomatik işləyir.
+   Dualar & Əzkar (/duas) — dizayn v2
+   Yalnız semantik tokenlər (DESIGN.md) — qaranlıq rejim avtomatikdir.
+   Bu fayl ui.css-dən ƏVVƏL yüklənir: .ui-* sinfini dəyişəndə valideyn
+   ilə gücləndirilir (.duas-page .ui-… — DESIGN.md §4.1).
+
+   Quruluş: hero → [yan sütun: axtarış + kateqoriyalar | dualar] → ayə.
+   ≥1100px: yan sütun yapışqandır; 768–1099: filtrlər yuxarıda;
+   <768: kateqoriyalar başlığın altına yapışan üfüqi zolaqdır.
    ══════════════════════════════════════════════════════ */
 
-/* ── Axtarış ── */
-.duas-search { max-width: 420px; margin-bottom: var(--space-4); }
+/* ── Hero ── */
+.duas-hero .breadcrumb { justify-content: flex-start; margin: 0 0 2px; }
+.duas-hero .bc-list { justify-content: flex-start; }
+.duas-hero-ar {
+  margin-top: -2px;
+  color: var(--accent-text);
+  font-size: clamp(22px, 1.4rem + 0.8vw, 32px);
+  line-height: 1.5;
+}
 
-/* ── Kateqoriya çipləri (.chip-scroll + .m-chip — motion.css) ──
-   Geniş ekranda sətirlərə sarınır (.wrap-desktop); zolağın öz şaquli
-   boşluğu sıfırlanır ki, çiplərlə siyahı arası əvvəlki kimi 24px qalsın */
-.duas-filters { margin-bottom: var(--space-5); }
+/* ── Quruluş ── */
+.duas-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+@media (min-width: 1100px) {
+  .duas-layout {
+    grid-template-columns: 296px minmax(0, 1fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+  .duas-side {
+    position: sticky;
+    top: calc(var(--header-offset, var(--header-h)) + var(--space-5));
+    transition: top var(--dur-3) var(--ease-out);
+  }
+}
+.duas-main { min-width: 0; }
+
+/* ── Axtarış (ikon sahənin içində, ərəbcədə sağda) ── */
+.duas-search { position: relative; display: block; }
+.duas-search-ic {
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+.duas-page .duas-search .ui-input { padding-inline-start: 42px; }
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  .duas-search { max-width: 440px; }
+}
+
+/* ── Kateqoriyalar ── */
+.duas-side-label {
+  margin: var(--space-5) 0 var(--space-3);
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .duas-side-label { letter-spacing: 0; font-size: var(--step--1); }
+.duas-filters { gap: 8px; }
 @media (min-width: 768px) {
   .duas-filters { padding-block: 0; }
 }
+.duas-fav-chip svg { color: var(--accent); }
+.duas-page .duas-fav-chip[aria-pressed="true"] svg { color: currentColor; }
+.duas-chip-num {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.duas-fav-chip[aria-pressed="true"] .duas-chip-num {
+  background: color-mix(in srgb, var(--surface-1) 20%, transparent);
+  color: inherit;
+}
 
-.duas-list { display:flex; flex-direction:column; gap:14px; }
+/* ── Nəticə sayı ── */
+.duas-count {
+  margin-bottom: var(--space-3);
+  color: var(--text-tertiary);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+.duas-count .ui-num { color: var(--text-strong); font-weight: 600; }
 
-.dua-card {
-  position: relative;
-  background:var(--bg-card); border:1.5px solid var(--border);
-  border-radius:var(--radius-lg); padding:20px 22px;
-  transition:border-color .22s, box-shadow .22s;
+/* ── Dua kartı: nişan + düymələr → ərəbcə → transliterasiya → tərcümə → mənbə ── */
+.duas-list { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.duas-list .dua-card {
+  padding: clamp(18px, 1.2rem + 0.6vw, 28px);
+  transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease;
 }
 @media (hover: hover) {
-  .dua-card:hover { border-color:var(--primary-border); box-shadow:var(--shadow-sm); }
+  .duas-list .dua-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); }
 }
 
-/* ── Üst sətir: badge + iconlar ── */
 .dua-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 8px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
-
-/* Düymələr kartın o biri ucunda (ərəbcədə — solda) */
 .dua-card-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
   margin-inline-start: auto;
 }
-
-.dua-share-btn,
-.dua-fav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text-dim);
-  cursor: pointer;
-  line-height: 1;
-  transition: background .2s, border-color .2s, color .2s, transform .15s;
-  padding: 0;
-  flex-shrink: 0;
-}
-/* Toxunma ekranında hover "yapışıb" qalmasın — yalnız siçanlı cihazlarda */
+.duas-page .dua-act { border: 1px solid var(--line); }
 @media (hover: hover) {
-  .dua-share-btn:hover,
-  .dua-fav-btn:hover {
-    border-color: var(--primary-border);
-    background: var(--primary-bg);
-    color: var(--primary);
-  }
+  .duas-page .dua-act:hover { border-color: var(--brand-line); background: var(--brand-soft); color: var(--brand); }
 }
-.dua-share-btn:active,
-.dua-fav-btn:active { transform: scale(0.92); }
-.dua-share-btn:focus-visible,
-.dua-fav-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-
-.dua-fav-btn.active,
-.dua-fav-btn.active:hover {
-  color: var(--danger);
-  background: var(--primary-bg);
-  border-color: var(--primary-border);
-}
+.dua-act:active { transform: scale(0.92); }
+.duas-page .dua-fav-btn.active { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
 /* Sevimliyə əlavə edəndə ürək bir dəfə "döyünür" */
 .dua-fav-btn.pop svg { animation: duaHeartPop var(--dur-3) var(--ease-spring); }
 @keyframes duaHeartPop {
@@ -89,91 +135,129 @@
   100% { transform: scale(1); }
 }
 
-/* Toxunmalı ekranda — 44px minimum toxunma hədəfi */
-@media (pointer: coarse) {
-  .dua-share-btn,
-  .dua-fav-btn { width: var(--tap); height: var(--tap); }
-}
+.dua-cat-badge { text-transform: uppercase; letter-spacing: 0.04em; }
+[dir="rtl"] .dua-cat-badge { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
 
-/* Kateqoriya badge */
-.dua-cat-badge {
-  display:inline-block; font-size:11px; font-weight:700;
-  padding:3px 10px; border-radius:10px;
-  background:var(--primary-bg); color:var(--primary-dark);
-  border:1px solid var(--primary-border);
-  letter-spacing:.3px; text-transform:uppercase;
-}
-
-/* Ərəb mətni */
+/* Ərəb mətni — iri Amiri, sağa düzlənmiş; uzun dua telefonda sətirlərə bölünür */
 .dua-arabic {
-  font-family:var(--font-arabic); font-size:1.45rem;
-  direction:rtl; text-align:right; color:var(--text);
-  line-height:2.1;
-  border-right:3px solid var(--primary-border);
-  padding-right:12px;
-  margin-bottom:14px;
-  overflow-wrap:anywhere;
+  margin-bottom: var(--space-3);
+  padding-block: 4px;
+  font-size: clamp(1.45rem, 1.2rem + 0.9vw, 1.9rem);
+  line-height: 2.05;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
-/* Transliterasiya + Tərcümə + Mənbə */
-.dua-translit { font-size:14px; color:var(--primary-dark); font-style:italic; line-height:1.6; margin-bottom:6px; text-align:start; }
+.dua-translit {
+  margin-bottom: var(--space-2);
+  color: var(--brand);
+  font-size: var(--step--1);
+  font-style: italic;
+  line-height: 1.6;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
 /* Latın transliterasiyası ərəbcə səhifədə də kartın sağ kənarı ilə bir xətdə */
 [dir="rtl"] .dua-translit { text-align: right; }
-.dua-meaning  { font-size:15px; color:var(--text-dim); line-height:1.75; margin-bottom:8px; }
-.dua-source   { font-size:12px; font-weight:600; color:var(--text-muted); padding-top:8px; border-top:1px solid var(--border); }
 
-/* Boş siyahı (sevimlilər / axtarış) */
-.duas-empty p { font-size: 15px; line-height: 1.6; max-width: 420px; margin-inline: auto; }
+.dua-meaning {
+  color: var(--text-body);
+  font-size: var(--step-0);
+  line-height: 1.7;
+}
 
-/* "Daha çox göstər" */
-.duas-more { display:flex; justify-content:center; margin-top: var(--space-5); }
-.duas-more .btn-secondary { min-height: var(--tap); }
-.duas-more-count { font-weight: 500; color: var(--text-muted); }
+.dua-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 500;
+}
+.dua-source svg { flex-shrink: 0; color: var(--accent); }
+
+/* ── Boş siyahı (sevimlilər / axtarış) ── */
+.duas-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8) var(--space-4);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.duas-empty p { max-width: 420px; color: var(--text-secondary); font-size: var(--step-0); line-height: 1.6; }
+
+/* ── "Daha çox göstər" ── */
+.duas-more { display: flex; justify-content: center; margin-top: var(--space-5); }
+.duas-more-count { color: var(--text-tertiary); font-weight: 500; }
 
 /* ── Ayə banneri (Ğafir 40:60 — mətn API-dən) ── */
 .duas-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
   margin-top: var(--space-7);
-  background: linear-gradient(135deg, var(--primary-bg2), var(--primary-bg));
-  border:1px solid var(--primary-border);
-  border-radius:var(--radius-lg); padding:36px; text-align:center;
+  padding: clamp(28px, 1.4rem + 2vw, 52px) clamp(18px, 1rem + 2vw, 48px);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  text-align: center;
 }
+.duas-banner > .ui-pattern {
+  -webkit-mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 50%, transparent 30%, #000 100%);
+  mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 50%, transparent 30%, #000 100%);
+  -webkit-mask-size: var(--ui-pattern-size) var(--ui-pattern-size), 100% 100%;
+  mask-size: var(--ui-pattern-size) var(--ui-pattern-size), 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat;
+  mask-repeat: repeat, no-repeat;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.duas-banner .ui-ornament { width: min(100%, 220px); }
 .duas-banner-arabic {
-  font-family:var(--font-arabic); font-size:1.6rem; line-height:2;
-  color:var(--primary-dark); direction:rtl; margin-bottom:12px;
+  max-width: 34ch;
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.15rem);
+  line-height: 2;
+  overflow-wrap: anywhere;
 }
-.duas-banner-trans  { font-size:15px; color:var(--text-dim); font-style:italic; line-height:1.7; max-width:720px; margin:0 auto 10px; }
-.duas-banner-ref    { font-size:13px; font-weight:700; color:var(--primary-dark); }
+.duas-banner-trans {
+  max-width: 62ch;
+  color: var(--text-body);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-style: italic;
+  line-height: 1.6;
+}
+.duas-banner-ref { color: var(--accent-text); font-size: 13px; font-weight: 600; }
 
 /* Ayə yüklənərkən — eyni ölçülü qutuda parıltılı skelet sətirləri */
-.duas-banner-skel { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.duas-banner-skel .skeleton { background: var(--bg-card); }
-[data-theme="dark"] .duas-banner-skel .skeleton { background: var(--surface); }
-.duas-skel-ar   { width: min(420px, 78%); height: 1.6rem; }
+.duas-banner-skel { gap: 12px; }
+.duas-banner-skel .skeleton { background: var(--surface-1); }
+.duas-skel-ar   { width: min(420px, 78%); height: 1.8rem; }
 .duas-skel-line { width: min(560px, 92%); }
 .duas-skel-ref  { width: min(180px, 44%); }
 
-/* ── Planşet / telefon (≤768) — əvvəlki ölçülər ── */
-@media (max-width: 768px) {
-  .duas-search { max-width: none; }
-  .dua-card-top { margin-bottom: 10px; gap: 6px; }
-  .duas-banner { padding: 24px 16px; margin-top: var(--space-6); border-radius: 16px; }
-  .duas-banner-arabic { font-size: 1.35rem; }
-  .duas-banner-trans { font-size: 14px; }
-}
-
-/* ══ TELEFON (<768) — müasir tətbiq görünüşü ═════════════════════
-   Axtarış: yumşaq kölgəli, 48px. Çiplər: başlığın altına yapışan şüşə
-   zolaq (başlıq gizlənəndə --header-offset ilə yuxarı qalxır). Kartlar:
-   ağır çərçivə əvəzinə nazik xətt + yumşaq kölgə, ərəb mətni rəngli
-   lövhədə, dairəvi ikon düymələri. */
+/* ══ TELEFON (<768) ═══════════════════════════════════════════════
+   Hero yığcam (çörək qırıntısı gizli). Çiplər: başlığın altına yapışan
+   şüşə zolaq (başlıq gizlənəndə --header-offset ilə yuxarı qalxır).
+   Ərəb mətni yumşaq lövhədə. */
 @media (max-width: 767.98px) {
-  .duas-search { margin-bottom: var(--space-3); }
-  .duas-search .input-base {
-    min-height: 48px;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    box-shadow: var(--shadow-sm);
-  }
+  .duas-hero .breadcrumb { display: none; }
+  .duas-hero-ar { font-size: 20px; }
+
+  .duas-layout { gap: 0; }
+  .duas-page .duas-search .ui-input { min-height: 48px; }
+
+  .duas-side-label { display: none; }
 
   /* Yapışqan çip zolağı: kənardan kənara, arxası bulanıq */
   .duas-filters-bar {
@@ -181,9 +265,8 @@
     top: var(--header-offset, var(--header-h));
     z-index: 30;
     margin: 0 calc(-1 * var(--page-gutter)) var(--space-3);
-    padding-top: 6px;
-    background: var(--bg);
-    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    padding-top: var(--space-3);
+    background: color-mix(in srgb, var(--surface-0) 88%, transparent);
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     transition: top var(--dur-3) var(--ease-out);
@@ -196,81 +279,33 @@
   }
   /* Zolaq yapışanda altında nazik ayırıcı xətt (dəstəkləyən brauzerlərdə) */
   @container scroll-state(stuck: top) {
-    .duas-filters-bar > .duas-filters { box-shadow: inset 0 -1px 0 var(--hairline); }
+    .duas-filters-bar > .duas-filters { box-shadow: inset 0 -1px 0 var(--line); }
   }
 
-  .duas-list { gap: 12px; }
+  .duas-list { gap: var(--space-3); }
+  .duas-list .dua-card { padding: 16px; }
 
-  .dua-card {
-    padding: 16px;
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    box-shadow: var(--shadow-sm);
-  }
-  [data-theme="dark"] .dua-card { border-color: var(--hairline); }
-
-  /* İkon düymələri — çərçivəsiz dairələr */
-  .dua-card-actions { gap: 8px; }
-  .dua-share-btn,
-  .dua-fav-btn {
-    border: 0;
-    border-radius: 50%;
-    background: var(--bg-card2);
-    transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out);
-  }
-  [data-theme="dark"] .dua-share-btn,
-  [data-theme="dark"] .dua-fav-btn { background: var(--surface); }
-  .dua-fav-btn.active,
-  .dua-fav-btn.active:hover {
-    color: var(--danger);
-    background: color-mix(in srgb, var(--danger) 12%, transparent);
-  }
-
-  .dua-cat-badge { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; }
-
-  /* Ərəb mətni yumşaq rəngli lövhədə (yan xətt əvəzinə) */
   .dua-arabic {
+    padding: 8px 14px;
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
     font-size: 1.4rem;
     line-height: 2;
-    border-right: 0;
-    padding: 8px 14px;
-    margin-bottom: 12px;
-    background: var(--primary-bg);
-    border-radius: 12px;
   }
+  .dua-meaning { font-size: 15px; line-height: 1.6; }
 
-  .dua-ico { display: none; }
-  .dua-translit { font-size: 14px; line-height: 1.55; margin-bottom: 4px; }
-  .dua-meaning { font-size: 15px; line-height: 1.6; color: var(--text); margin-bottom: 10px; }
-  .dua-source {
-    font-size: 13px;
-    padding-top: 10px;
-    border-top-color: var(--hairline);
-  }
+  .duas-empty { padding-block: var(--space-7); }
 
-  .duas-empty { padding-block: 40px; }
+  .duas-more .ui-btn { width: 100%; min-height: 48px; }
 
-  /* "Daha çox göstər" — baş barmaqla rahat, tam en */
-  .duas-more { margin-top: var(--space-4); }
-  .duas-more .btn-secondary {
-    width: 100%;
-    justify-content: center;
-    min-height: 48px;
-    border-radius: 14px;
-    background: var(--bg-card);
-    border-color: var(--border);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .duas-banner { border-radius: 18px; }
+  .duas-banner { margin-top: var(--space-6); border-radius: var(--radius-lg); }
 }
 
 @media (max-width: 480px) {
   .dua-arabic { font-size: 1.32rem; }
-  .duas-banner { padding: 20px 14px; margin-top: var(--space-5); }
-  .duas-banner-arabic { font-size: 1.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .dua-fav-btn.pop svg { animation: none; }
+  .duas-list .dua-card { transition: none; }
 }

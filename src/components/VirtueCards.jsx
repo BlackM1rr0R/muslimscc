@@ -7,13 +7,13 @@
 //   səhifəsi ilə eyni nəşrlər); sorğu alınmasa kart heç göstərilmir.
 // • Hədis mətni çağıran tərəfin verdiyi qeyddir (src/data/hadiths.js-dən
 //   olduğu kimi köçürülmüş) — burada heç bir dini mətn yoxdur.
-// Üslublar JamaatPage.css-dədir (jm-v* sinifləri) — vizual redizaynadək
-// ayrıca fayla çıxarılmır.
+// Üslublar src/styles/VirtueCards.css-dədir (jm-v* sinifləri, dizayn v2) —
+// hər iki səhifə komponentlə birlikdə eyni faylı yükləyir.
 // ═══════════════════════════════════════════════════════
 import { useEffect, useState } from 'react'
 import { filled } from '../config/brand'
 import { localizeSource } from '../utils/sourceNames'
-import '../styles/JamaatPage.css'
+import '../styles/VirtueCards.css'
 
 // Kart nişanları (5 dil)
 const KIND = {

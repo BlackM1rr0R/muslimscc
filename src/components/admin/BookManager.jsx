@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import Icon from '../Icon'
+import { AdminHeader, SectionTitle, AdminEmpty, AdminNotice, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addBook, updateBook, deleteBook, BOOK_CATEGORIES, subscribeToBooks, DEFAULT_BOOKS } from '../../data/books'
 import { isFirebaseConfigured } from '../../firebase/config'
 
 const LABELS = {
-  az: { title:'Kitablar', sub:'Kitab məzmununu idarə edin', addNew:'Yeni Kitab', editBook:'Redaktə Et', all:'Bütün Kitablar', titleField:'Başlıq', authorField:'Müəllif', descField:'Təsvir', coverUrl:'Üz qabığı (şəkil URL)', pdfUrl:'PDF linki (istəyə bağlı)', pages:'Səhifə sayı', year:'İl', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu kitabı silmək istəyirsiniz?', noBooks:'Hələ kitab yoxdur', titleRequired:'Başlıq tələb olunur', authorRequired:'Müəllif tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.', setupHint:'Ətraflı: FIREBASE_SETUP.md faylı', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)', pagesShort:'səh.' },
+  az: { title:'Kitablar', sub:'Kitab məzmununu idarə edin', addNew:'Yeni kitab', editBook:'Redaktə et', all:'Bütün kitablar', titleField:'Başlıq', authorField:'Müəllif', descField:'Təsvir', coverUrl:'Üz qabığı (şəkil URL)', pdfUrl:'PDF linki (istəyə bağlı)', pages:'Səhifə sayı', year:'İl', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu kitabı silmək istəyirsiniz?', noBooks:'Hələ kitab yoxdur', titleRequired:'Başlıq tələb olunur', authorRequired:'Müəllif tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.', setupHint:'Ətraflı: FIREBASE_SETUP.md faylı', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)', pagesShort:'səh.' },
   en: { title:'Books', sub:'Manage book content', addNew:'New Book', editBook:'Edit Book', all:'All Books', titleField:'Title', authorField:'Author', descField:'Description', coverUrl:'Cover image URL', pdfUrl:'PDF link (optional)', pages:'Pages', year:'Year', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this book?', noBooks:'No books yet', titleRequired:'Title required', authorRequired:'Author required', loading:'Loading...', saving:'Saving...', notConfigured:'Firebase not configured. Check .env file.', setupHint:'See FIREBASE_SETUP.md', preview:'Preview', readOnly:'Default (read-only)', pagesShort:'p.' },
   ru: { title:'Книги', sub:'Управление книгами', addNew:'Новая книга', editBook:'Редактировать', all:'Все книги', titleField:'Название', authorField:'Автор', descField:'Описание', coverUrl:'Обложка (URL)', pdfUrl:'Ссылка на PDF (необязательно)', pages:'Страниц', year:'Год', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noBooks:'Нет книг', titleRequired:'Название обязательно', authorRequired:'Автор обязателен', loading:'Загрузка...', saving:'Сохранение...', notConfigured:'Firebase не настроен', setupHint:'Подробнее в инструкции по настройке Firebase', preview:'Предпросмотр', readOnly:'Встроенная (только чтение)', pagesShort:'стр.' },
   ar: { title:'الكتب', sub:'إدارة الكتب', addNew:'كتاب جديد', editBook:'تعديل', all:'كل الكتب', titleField:'العنوان', authorField:'المؤلف', descField:'الوصف', coverUrl:'رابط الغلاف', pdfUrl:'رابط PDF (اختياري)', pages:'الصفحات', year:'السنة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noBooks:'لا توجد كتب', titleRequired:'العنوان مطلوب', authorRequired:'المؤلف مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', notConfigured:'Firebase غير مكون', setupHint:'راجع دليل إعداد Firebase', preview:'معاينة', readOnly:'افتراضي (للقراءة فقط)', pagesShort:'ص' },
   tr: { title:'Kitaplar', sub:'Kitap yönetimi', addNew:'Yeni Kitap', editBook:'Düzenle', all:'Tüm Kitaplar', titleField:'Başlık', authorField:'Yazar', descField:'Açıklama', coverUrl:'Kapak resmi (URL)', pdfUrl:'PDF bağlantısı (isteğe bağlı)', pages:'Sayfa', year:'Yıl', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noBooks:'Kitap yok', titleRequired:'Başlık gerekli', authorRequired:'Yazar gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', notConfigured:'Firebase yapılandırılmamış', setupHint:'Ayrıntılar: FIREBASE_SETUP.md dosyası', preview:'Önizleme', readOnly:'Varsayılan (salt okunur)', pagesShort:'syf.' },
 }
 
-const LANGS = ['az','en','ru','ar','tr']
 const EMPTY_FORM = {
   title: { az:'', en:'', ru:'', ar:'', tr:'' },
   author: { az:'', en:'', ru:'', ar:'', tr:'' },
@@ -108,42 +109,19 @@ export default function BookManager({ onUpdate }) {
 
   if (!configured) {
     return (
-      <div className="admin-section">
-        <div style={{padding:40, textAlign:'center'}}>
-          <div style={{fontSize:48, marginBottom:12}}>⚠️</div>
-          <h3 style={{color:'#ef4444'}}>{l.notConfigured}</h3>
-          <p style={{color:'var(--text-muted)', marginTop:8}}>{l.setupHint}</p>
-        </div>
-      </div>
+      <AdminNotice title={l.notConfigured} text={l.setupHint} />
     )
   }
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#f59e0b,#d97706)'}}>📚</div>
-          <div className="admin-header-info">
-            <h1>{l.title}</h1>
-            <p>{l.sub}</p>
-          </div>
-        </div>
-      </div>
+      <AdminHeader icon="books" title={l.title} sub={l.sub} />
 
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">{editingId ? '✏️' : '➕'}</span>
-          {editingId ? l.editBook : l.addNew}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editBook : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
-          <div className="admin-lang-tabs">
-            {LANGS.map(L => (
-              <button key={L} type="button" className={`admin-lang-tab ${formLang === L ? 'active' : ''}`} onClick={() => setFormLang(L)}>
-                {L.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-form-row">
             <div className="admin-input-group">
@@ -193,17 +171,17 @@ export default function BookManager({ onUpdate }) {
 
           {/* Live preview */}
           {form.coverUrl && (
-            <div style={{display:'flex', gap:14, padding:12, background:'var(--bg-soft, #f8fafc)', borderRadius:12, marginTop:6}}>
-              <img src={form.coverUrl} alt={l.preview} style={{width:90, height:130, objectFit:'cover', borderRadius:8, boxShadow:'0 4px 14px rgba(0,0,0,0.15)'}} onError={(e) => e.target.style.display='none'} />
-              <div style={{flex:1, fontSize:13, color:'var(--text-muted)'}}>📖 {l.preview}</div>
+            <div className="admin-cover-preview">
+              <img src={form.coverUrl} alt={l.preview} onError={(e) => e.target.style.display='none'} />
+              <div className="admin-hint"><Icon name="eye" size={16} /> {l.preview}</div>
             </div>
           )}
 
-          {error && <div className="admin-login-error">⚠️ {error}</div>}
+          {error && <AdminAlert tone="bad">{error}</AdminAlert>}
 
           <div className="admin-form-actions">
             <button type="submit" className="admin-submit-btn" disabled={saving}>
-              <span>{editingId ? '💾' : '➕'}</span> {saving ? l.saving : l.save}
+              <Icon name={editingId ? 'check' : 'plus'} /> {saving ? l.saving : l.save}
             </button>
             {editingId && (
               <button type="button" className="admin-cancel-btn" onClick={() => { setEditingId(null); setForm(EMPTY_FORM); }}>{l.cancel}</button>
@@ -213,42 +191,39 @@ export default function BookManager({ onUpdate }) {
       </div>
 
       <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">📚</span>
-          {l.all} ({books.length})
-        </h2>
+        <SectionTitle icon="books">{l.all} <span className="admin-count">({books.length})</span></SectionTitle>
 
         {loading ? (
-          <div className="admin-empty"><div className="admin-empty-icon">⏳</div>{l.loading}</div>
+          <AdminEmpty icon="refresh" busy>{l.loading}</AdminEmpty>
         ) : books.length === 0 ? (
-          <div className="admin-empty"><div className="admin-empty-icon">📭</div>{l.noBooks}</div>
+          <AdminEmpty>{l.noBooks}</AdminEmpty>
         ) : (
-          <div className="admin-video-list">
+          <div className="admin-video-list admin-video-list--books">
             {books.map(b => {
               const cat = BOOK_CATEGORIES.find(c => c.key === b.category)
               const isDefault = String(b.id).startsWith('default-')
               return (
                 <div key={b.id} className="admin-video-card">
-                  <div className="admin-video-thumb" style={{aspectRatio:'2/3', background: cat?.color || '#10b981'}}>
+                  <div className="admin-video-thumb admin-video-thumb--book">
                     {b.coverUrl ? (
                       <img src={b.coverUrl} alt={adminPick(b.title, lang)} onError={(e) => { e.target.style.display = 'none' }} />
                     ) : (
-                      <div style={{display:'flex', alignItems:'center', justifyContent:'center', height:'100%', fontSize:48, color:'#fff'}}>📚</div>
+                      <div className="admin-cover-fallback" aria-hidden="true"><Icon name="books" size={40} strokeWidth={1.4} /></div>
                     )}
-                    <div className="admin-video-cat-badge" style={{color: cat?.color}}>{cat?.label[lang]}</div>
+                    <div className="admin-video-cat-badge">{cat?.label[lang]}</div>
                     {b.pages && <div className="admin-video-duration">{b.pages} {l.pagesShort}</div>}
                   </div>
                   <div className="admin-video-body">
                     <h3 className="admin-video-title"><AdminText value={b.title} lang={lang} /></h3>
-                    <p style={{fontSize:13, color:'var(--text-muted)', margin:'2px 0 6px', fontWeight:600}}>✍️ <AdminText value={b.author} lang={lang} /></p>
+                    <p className="admin-video-meta"><AdminText value={b.author} lang={lang} /></p>
                     {adminPick(b.description, lang) && <p className="admin-video-desc">{adminPick(b.description, lang)}</p>}
                     {!isDefault && (
                       <div className="admin-video-actions">
-                        <button className="admin-action-btn edit" onClick={() => handleEdit(b)}>✏️ {l.edit}</button>
-                        <button className="admin-action-btn delete" onClick={() => handleDelete(b.id)}>🗑️ {l.delete}</button>
+                        <button className="admin-action-btn edit" onClick={() => handleEdit(b)}><Icon name="duajournal" /> {l.edit}</button>
+                        <button className="admin-action-btn delete" onClick={() => handleDelete(b.id)}><Icon name="trash" /> {l.delete}</button>
                       </div>
                     )}
-                    {isDefault && <div style={{fontSize:11, color:'var(--text-muted)', fontStyle:'italic', marginTop:6}}>{l.readOnly}</div>}
+                    {isDefault && <div className="admin-readonly"><Icon name="shield" size={14} /> {l.readOnly}</div>}
                   </div>
                 </div>
               )

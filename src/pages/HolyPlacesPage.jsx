@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import '../styles/HolyPlacesPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import Icon from '../components/Icon'
+import { navGroupLabel, navGroupOf } from '../data/navigation'
 
 const LABELS = {
-  az: { title:'Müqəddəs Yerlər', subtitle:'İslamın müqəddəs məkanları', openMaps:'Xəritədə aç', significance:'Əhəmiyyəti', reference:'İstinad' },
+  az: { title:'Müqəddəs yerlər', subtitle:'İslamın müqəddəs məkanları', openMaps:'Xəritədə aç', significance:'Əhəmiyyəti', reference:'İstinad' },
   en: { title:'Holy Places', subtitle:'Sacred places of Islam', openMaps:'Open in Maps', significance:'Significance', reference:'Reference' },
   ru: { title:'Святые Места', subtitle:'Священные места ислама', openMaps:'Открыть на карте', significance:'Значение', reference:'Ссылка' },
   ar: { title:'الأماكن المقدسة', subtitle:'الأماكن المقدسة في الإسلام', openMaps:'افتح في الخريطة', significance:'الأهمية', reference:'المرجع' },
@@ -13,7 +15,7 @@ const LABELS = {
 
 const PLACES = [
   {
-    emoji: '🕋',
+    icon: 'hajjguide',
     nameAr: 'الكعبة المشرفة / المسجد الحرام',
     name: { az:'Kəbə / Məscidül-Haram', en:'Kaaba / Masjid al-Haram', ru:'Кааба / Масджид аль-Харам', ar:'الكعبة المشرفة / المسجد الحرام', tr:'Kâbe / Mescid-i Haram' },
     lat: 21.4225, lon: 39.8262,
@@ -35,7 +37,7 @@ const PLACES = [
     reference: { az:'Ali-İmran 96', en:'Ali \'Imran 96', ru:'Аль-Имран 96', ar:'آل عمران ٩٦', tr:'Âl-i İmrân 96' },
   },
   {
-    emoji: '🕌',
+    icon: 'holyplaces',
     nameAr: 'المسجد النبوي',
     name: { az:'Məscidün-Nəbəvi', en:'Al-Masjid an-Nabawi', ru:'Масджид ан-Набави', ar:'المسجد النبوي', tr:'Mescid-i Nebevî' },
     lat: 24.4672, lon: 39.6112,
@@ -57,7 +59,7 @@ const PLACES = [
     reference: { az:'Buxari 1190', en:'Bukhari 1190', ru:'Бухари 1190', ar:'البخاري ١١٩٠', tr:'Buhârî 1190' },
   },
   {
-    emoji: '🏛️',
+    icon: 'holyplaces',
     nameAr: 'المسجد الأقصى',
     name: { az:'Məscidül-Əqsa', en:'Al-Aqsa Mosque', ru:'Масджид аль-Акса', ar:'المسجد الأقصى', tr:'Mescid-i Aksâ' },
     lat: 31.7761, lon: 35.2358,
@@ -79,9 +81,9 @@ const PLACES = [
     reference: { az:'İsra 1', en:'Al-Isra 1', ru:'Аль-Исра 1', ar:'الإسراء ١', tr:'İsrâ 1' },
   },
   {
-    emoji: '🕌',
+    icon: 'holyplaces',
     nameAr: 'مسجد قباء',
-    name: { az:'Quba Məscidi', en:'Quba Mosque', ru:'Мечеть Куба', ar:'مسجد قباء', tr:'Kuba Mescidi' },
+    name: { az:'Quba məscidi', en:'Quba Mosque', ru:'Мечеть Куба', ar:'مسجد قباء', tr:'Kuba Mescidi' },
     lat: 24.4397, lon: 39.6166,
     city: { az:'Mədinə', en:'Medina', ru:'Медина', ar:'المدينة المنورة', tr:'Medine' },
     desc: {
@@ -101,9 +103,9 @@ const PLACES = [
     reference: { az:'Tirmizi 324', en:'Tirmidhi 324', ru:'Тирмизи 324', ar:'الترمذي ٣٢٤', tr:'Tirmizî 324' },
   },
   {
-    emoji: '⛰️',
+    icon: 'quran',
     nameAr: 'غار حراء',
-    name: { az:'Həra Mağarası', en:'Cave of Hira', ru:'Пещера Хира', ar:'غار حراء', tr:'Hira Mağarası' },
+    name: { az:'Həra mağarası', en:'Cave of Hira', ru:'Пещера Хира', ar:'غار حراء', tr:'Hira Mağarası' },
     lat: 21.4574, lon: 39.8582,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
@@ -123,9 +125,9 @@ const PLACES = [
     reference: { az:'Ələq 1-5', en:'Al-Alaq 1-5', ru:'Аль-Алак 1-5', ar:'العلق ١-٥', tr:'Alak 1-5' },
   },
   {
-    emoji: '🏔️',
+    icon: 'shield',
     nameAr: 'غار ثور',
-    name: { az:'Sevr Mağarası', en:'Cave of Thawr', ru:'Пещера Саур', ar:'غار ثور', tr:'Sevr Mağarası' },
+    name: { az:'Sevr mağarası', en:'Cave of Thawr', ru:'Пещера Саур', ar:'غار ثور', tr:'Sevr Mağarası' },
     lat: 21.3771, lon: 39.8214,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
@@ -145,9 +147,9 @@ const PLACES = [
     reference: { az:'Tövbə 40', en:'At-Tawbah 40', ru:'Ат-Тауба 40', ar:'التوبة ٤٠', tr:'Tevbe 40' },
   },
   {
-    emoji: '🏔️',
+    icon: 'sun',
     nameAr: 'جبل عرفات',
-    name: { az:'Ərəfat Dağı', en:'Mount Arafat', ru:'Гора Арафат', ar:'جبل عرفات', tr:'Arafat Dağı' },
+    name: { az:'Ərəfat dağı', en:'Mount Arafat', ru:'Гора Арафат', ar:'جبل عرفات', tr:'Arafat Dağı' },
     lat: 21.3549, lon: 39.9841,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
@@ -167,7 +169,7 @@ const PLACES = [
     reference: { az:'Tirmizi 889', en:'Tirmidhi 889', ru:'Тирмизи 889', ar:'الترمذي ٨٨٩', tr:'Tirmizî 889' },
   },
   {
-    emoji: '⛺',
+    icon: 'jamaat',
     nameAr: 'منى',
     name: { az:'Mina', en:'Mina', ru:'Мина', ar:'منى', tr:'Mina' },
     lat: 21.4134, lon: 39.8933,
@@ -189,7 +191,7 @@ const PLACES = [
     reference: { az:'Bəqərə 203', en:'Al-Baqarah 203', ru:'Аль-Бакара 203', ar:'البقرة ٢٠٣', tr:'Bakara 203' },
   },
   {
-    emoji: '🌙',
+    icon: 'moon',
     nameAr: 'مزدلفة',
     name: { az:'Müzdəlifə', en:'Muzdalifah', ru:'Муздалифа', ar:'مزدلفة', tr:'Müzdelife' },
     lat: 21.3992, lon: 39.9089,
@@ -211,7 +213,7 @@ const PLACES = [
     reference: { az:'Bəqərə 198', en:'Al-Baqarah 198', ru:'Аль-Бакара 198', ar:'البقرة ١٩٨', tr:'Bakara 198' },
   },
   {
-    emoji: '🌿',
+    icon: 'leaf',
     nameAr: 'جنة البقيع',
     name: { az:'Cənnətül-Bəqi', en:'Jannat al-Baqi', ru:'Джаннат аль-Баки', ar:'جنة البقيع', tr:'Cennetü\'l-Bakî' },
     lat: 24.4667, lon: 39.6150,
@@ -234,9 +236,8 @@ const PLACES = [
   },
 ]
 
-// Telefonda ikon kafelinin rəng tonu şəhərə görə (motion.css → .icon-tile--*);
-// genişdə kafel sıfırlanır və əvvəlki kimi sadə emoji görünür (HolyPlacesPage.css)
-const CITY_TONE = { Mecca: 'gold', Medina: '', Jerusalem: 'blue' }
+// "Hamısı" süzgəcinin adı (5 dil)
+const ALL_LABEL = { az: 'Hamısı', en: 'All', ru: 'Все', ar: 'الكل', tr: 'Tümü' }
 
 export function HolyPlacesPage({ setPage }) {
   const { lang } = useLang()
@@ -246,80 +247,85 @@ export function HolyPlacesPage({ setPage }) {
 
   const cities = [...new Set(PLACES.map(p => p.city.en))]
   const filtered = filter === 'all' ? PLACES : PLACES.filter(p => p.city.en === filter)
+  const countOf = (c) => PLACES.filter(p => p.city.en === c).length
 
   return (
     <div className="holy-page">
-      {/* Hero — digər səhifələrlə eyni .page-hero quruluşu (breadcrumb + ərəbcə sətir);
-          rəng və illüstrasiya heroes.css-dəki .holy-hero.holy-hero-dən gəlir */}
-      <div className="page-hero hero-compact holy-hero">
-        <Breadcrumb setPage={setPage} current={lb.title} />
-        <div className="page-hero-arabic">الأماكن المقدسة</div>
-        <h1>{lb.title}</h1>
-        <p>{lb.subtitle}</p>
-      </div>
+      {/* Hero — dizayn v2: sakit kağız fon + xatəm naxışı, bir <h1>.
+          Ərəbcə sətir bəzəkdir: ərəb dilində başlıq onsuz da ərəbcədir */}
+      <header className="ui-page-hero holy-hero-v2">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <div className="ui-container" data-reveal="stagger">
+          <Breadcrumb setPage={setPage} current={lb.title} />
+          <span className="ui-eyebrow">{navGroupLabel(navGroupOf('holyplaces'), lk)}</span>
+          <h1 className="ui-display">{lb.title}</h1>
+          {lk !== 'ar' && <p className="holy-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الأماكن المقدسة</p>}
+          <p className="ui-lead">{lb.subtitle}</p>
+        </div>
+      </header>
 
-      <section className="section">
-        <div className="section-inner">
-          {/* Süzgəc: telefonda bir sətirdə sürüşən çiplər (.chip-scroll/.m-chip),
-              genişdə əvvəlki kimi mərkəzdə sarınan düymələr */}
+      <section className="ui-section ui-section--tight">
+        <div className="ui-container">
+          {/* Süzgəc: telefonda bir sətirdə sürüşən çiplər, genişdə sarınır */}
           <div className="holy-filters chip-scroll wrap-desktop" role="group" aria-label={lb.title}>
             <button
-              className={`holy-filter-btn m-chip ${filter === 'all' ? 'active' : ''}`}
+              type="button"
+              className="ui-chip"
               aria-pressed={filter === 'all'}
               onClick={() => setFilter('all')}
             >
-              {lk === 'az' ? 'Hamısı' : lk === 'ru' ? 'Все' : lk === 'ar' ? 'الكل' : lk === 'tr' ? 'Tümü' : 'All'}
+              {ALL_LABEL[lk] || ALL_LABEL.en}
+              <span className="holy-chip-num ui-num">{PLACES.length}</span>
             </button>
             {cities.map(c => (
               <button
                 key={c}
-                className={`holy-filter-btn m-chip ${filter === c ? 'active' : ''}`}
+                type="button"
+                className="ui-chip"
                 aria-pressed={filter === c}
                 onClick={() => setFilter(c)}
               >
                 {PLACES.find(p => p.city.en === c).city[lk] || c}
+                <span className="holy-chip-num ui-num">{countOf(c)}</span>
               </button>
             ))}
           </div>
 
           <div className="holy-grid">
-            {filtered.map((place) => (
-              // Sabit açar: süzgəc dəyişəndə yeni kartlar sürüşəndə görünmə animasiyası ilə gəlir
-              <article key={place.name.en} className="holy-card" data-reveal>
+            {filtered.map((place, i) => (
+              // Sabit açar: süzgəc dəyişəndə yeni kartlar görünmə animasiyası ilə gəlir
+              <article key={place.name.en} className="ui-card holy-card" data-reveal="" data-reveal-delay={(i % 3) * 60}>
                 <div className="holy-card-header">
-                  <span
-                    className={`holy-card-emoji icon-tile icon-tile--lg${CITY_TONE[place.city.en] ? ` icon-tile--${CITY_TONE[place.city.en]}` : ''}`}
-                    aria-hidden="true"
-                  >
-                    {place.emoji}
-                  </span>
+                  <span className="ui-icon-tile ui-icon-tile--lg holy-card-icon"><Icon name={place.icon} /></span>
                   <div className="holy-card-titles">
                     <h2 className="holy-card-name">{place.name[lk] || place.name.az}</h2>
                     {/* Ərəbcədə başlıq onsuz da ərəbcədir — eyni adı ikinci dəfə göstərmə */}
-                    {lk !== 'ar' && <p className="holy-card-ar">{place.nameAr}</p>}
-                    <span className="holy-card-city">📍 {place.city[lk] || place.city.az}</span>
+                    {lk !== 'ar' && <p className="holy-card-ar ui-arabic" lang="ar" dir="rtl">{place.nameAr}</p>}
+                    <span className="holy-card-city"><Icon name="pin" size={14} /> {place.city[lk] || place.city.az}</span>
                   </div>
                 </div>
 
                 <p className="holy-card-desc">{place.desc[lk] || place.desc.az}</p>
 
                 <div className="holy-card-section">
-                  <h3 className="holy-card-section-title">✦ {lb.significance}</h3>
+                  <h3 className="holy-card-section-title"><Icon name="star" size={14} /> {lb.significance}</h3>
                   <p className="holy-card-significance">{place.significance[lk] || place.significance.az}</p>
                 </div>
 
                 <div className="holy-card-section holy-card-section--ref">
-                  <h3 className="holy-card-section-title">📜 {lb.reference}</h3>
+                  <h3 className="holy-card-section-title"><Icon name="books" size={14} /> {lb.reference}</h3>
                   <p className="holy-card-ref">{place.reference[lk] || place.reference.az}</p>
                 </div>
 
                 <a
-                  className="holy-card-maps press"
+                  className="ui-btn ui-btn--secondary holy-card-maps"
                   href={`https://www.google.com/maps?q=${place.lat},${place.lon}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  🗺️ {lb.openMaps}
+                  <Icon name="pin" size={18} className="ui-btn__icon" />
+                  {lb.openMaps}
+                  <Icon name="external" size={15} className="holy-card-ext" />
                 </a>
               </article>
             ))}

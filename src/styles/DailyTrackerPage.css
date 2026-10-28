@@ -1,405 +1,310 @@
-/* ══════════════════════════════════════════════════════
-   DailyTrackerPage Styles
-   Telefonda (<768px) — müasir tətbiq görünüşü: faiz halqası və
-   statistika bir kartda yan-yana, ibadətlər iki qruplu "inset"
-   siyahıda (motion.css → .m-list / .m-row / .icon-tile / .m-check),
-   həftəlik baxış yumşaq kölgəli kartda.
-   ≥768px — əvvəlki görünüş olduğu kimi qalır (aşağıdakı "MASAÜSTÜ"
-   bloku kit siniflərinin qutu/fon/ölçü effektlərini geri qaytarır).
-   ══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   DailyTrackerPage — Gündəlik ibadət (/dailytracker) · dizayn sistemi v2
+   Masaüstü: solda irəliləyiş kartı (halqa + seriya + tamamlanan),
+   sağda bu günün iki qrupu (namazlar, zikr və əməllər); altda həftə.
+   İşarələyəndə: dairə dolur, ✓ çəkilir (.m-check), sətir bir dəfə
+   yumşaq "nəfəs alır" (.just-done), halqa və faiz yenilənir; hamısı
+   bitəndə halqa qızılı olur və təbrik sətri görünür.
+   Yalnız semantik tokenlər; .ui-*-ni dəyişəndə .tracker-page ilə gücləndir.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Hero ── */
+.tracker-hero .breadcrumb { justify-content: flex-start; margin: 0 0 4px; }
+.tracker-hero .bc-list { justify-content: flex-start; }
+.tracker-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
+.tracker-page.ui-section { padding-block: var(--space-6) var(--section-gap); }
 
 .tracker-layout {
-  max-width: 700px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  grid-template-areas: "progress today" "week week";
+  gap: var(--space-5) var(--space-6);
+  align-items: start;
 }
+.tracker-progress-section { grid-area: progress; }
+.tracker-today { grid-area: today; min-width: 0; }
+.tracker-week { grid-area: week; min-width: 0; }
 
-/* ── Circular Progress ── */
-.tracker-progress-section {
+/* ══ İrəliləyiş kartı ═════════════════════════════════════════════ */
+.tracker-page .tracker-progress-section {
+  position: sticky;
+  top: calc(var(--header-h, 64px) + 16px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--brand-soft) 0%, transparent 70%), var(--surface-1);
+  text-align: center;
+  transition: border-color var(--dur-3) ease;
 }
+.tracker-page .tracker-progress-section.is-complete { border-color: var(--accent-line); }
 
-.tracker-circle-wrap {
-  position: relative;
-  width: 160px;
-  height: 160px;
-}
-
-.tracker-circle {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
+.tracker-circle-wrap { position: relative; width: 168px; height: 168px; }
+.tracker-circle { width: 100%; height: 100%; transform: rotate(-90deg); }
+.tracker-circle-track { stroke: var(--surface-3); }
 .tracker-circle-progress {
-  transition: stroke-dashoffset 0.6s var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1)),
-              stroke 0.3s ease;
+  stroke: var(--brand);
+  transition: stroke-dashoffset .6s var(--ease-out), stroke .3s ease;
+}
+.tracker-circle-progress.is-empty { opacity: 0; }
+.is-complete .tracker-circle-progress { stroke: var(--accent); }
+/* Hamısı bitəndə halqa bir dəfə yüngül "nəfəs alır" */
+.is-complete .tracker-circle-wrap { animation: tracker-done 700ms var(--ease-spring); }
+@keyframes tracker-done {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.07); }
+  100% { transform: none; }
 }
 
-.tracker-circle-text {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
+.tracker-circle-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .tracker-circle-pct {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--primary);
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 500;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
   /* Faiz dəyişəndə (key={percent}) rəqəm yüngülcə "sıçrayır" */
-  animation: tracker-pop var(--dur-2, 240ms) var(--ease-spring, ease-out);
+  animation: tracker-pop var(--dur-3) var(--ease-spring);
 }
-
 @keyframes tracker-pop {
-  0%   { transform: scale(0.86); opacity: 0.6; }
+  0%   { transform: scale(0.84); opacity: 0.5; }
   100% { transform: none; opacity: 1; }
 }
+.tracker-circle-label { color: var(--text-tertiary); font-size: 13px; font-variant-numeric: tabular-nums; }
 
-.tracker-circle-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 4px;
-  font-variant-numeric: tabular-nums;
-}
-
-.tracker-stats {
-  display: flex;
-  gap: 32px;
-}
-
+.tracker-progress-side { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-3); width: 100%; }
+.tracker-progress-title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; }
+.tracker-stats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .tracker-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 28px;
-}
-
-.tracker-stat-value {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--primary);
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.tracker-stat-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-/* ── Today Section ── */
-.tracker-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.tracker-section-header h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-/* Qruplar (telefonda başlıqlı iki siyahı) */
-.tracker-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* ── Weekly View ── */
-.tracker-week h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 20px;
-}
-
-.tracker-week-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "ic value" "label label";
+  align-items: center;
+  gap: 4px 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  text-align: start;
+}
+.tracker-stat-ic { grid-area: ic; display: grid; place-items: center; color: var(--accent); }
+.tracker-stat-value { grid-area: value; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-2); font-weight: 500; line-height: 1; }
+.tracker-stat-value small { color: var(--text-tertiary); font-family: var(--font-sans); font-size: 13px; font-weight: 500; }
+.tracker-stat-label { grid-area: label; color: var(--text-tertiary); font-size: 12.5px; font-weight: 500; line-height: 1.3; }
+.tracker-done-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 1.5em;
+  color: var(--accent-text);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.tracker-done-msg svg { flex-shrink: 0; }
+.is-complete .tracker-done-msg { animation: tracker-rise var(--dur-3) var(--ease-out) both; }
+@keyframes tracker-rise {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to   { opacity: 1; transform: none; }
 }
 
+/* ══ Bu günün ibadətləri ══════════════════════════════════════════ */
+.tracker-section-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: var(--space-3); }
+.tracker-section-header h2,
+.tracker-week h2 {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.tracker-groups { display: flex; flex-direction: column; gap: var(--space-5); }
+.tracker-group-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-inline: 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .tracker-group-title { letter-spacing: 0; text-transform: none; font-size: 14px; }
+.tracker-group-count { color: var(--text-tertiary); font-size: 12.5px; letter-spacing: 0; }
+
+.tracker-list { margin: 0; padding: 0; list-style: none; }
+.tracker-list > li { position: relative; }
+.tracker-list > li + li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline: 64px 0;
+  height: 1px;
+  background: var(--line);
+  z-index: 1;
+}
+.tracker-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--text-body);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-2) ease;
+}
+@media (hover: hover) { .tracker-item:hover { background: var(--surface-2); } }
+.tracker-item:active { background: var(--surface-3); }
+.tracker-item:focus-visible { outline-offset: -2px; }
+.tracker-item-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  transition: background-color var(--dur-2) ease, color var(--dur-2) ease;
+}
+.tracker-item-label { flex: 1; min-width: 0; color: var(--text-strong); font-size: 15.5px; font-weight: 500; line-height: 1.35; transition: color var(--dur-2) ease; }
+.tracker-page .tracker-item-check { --m-check-size: 28px; border-color: var(--line-strong); background: var(--surface-1); }
+.tracker-item.done { background: var(--brand-soft); }
+.tracker-item.done .tracker-item-icon { background: var(--brand-soft-2); color: var(--brand); }
+.tracker-item.done .tracker-item-label { color: var(--text-secondary); }
+.tracker-page .tracker-item.done .tracker-item-check { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+/* Yeni işarələnən sətir: ikon bir dəfə "pop" edir */
+.tracker-item.just-done .tracker-item-icon { animation: tracker-icon-pop 420ms var(--ease-spring); }
+@keyframes tracker-icon-pop {
+  0% { transform: scale(0.8); }
+  60% { transform: scale(1.12); }
+  100% { transform: none; }
+}
+
+.tracker-page .tracker-reset { margin-inline-end: -8px; }
+
+/* ══ Həftəlik baxış ═══════════════════════════════════════════════ */
+.tracker-week h2 { margin-bottom: var(--space-3); }
+.tracker-page .tracker-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px;
+}
 .tracker-week-day {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
   padding: 12px 4px;
-  background: var(--bg-card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  transition: background-color 0.2s, border-color 0.2s;
+  border-radius: var(--radius-md);
+  transition: background-color var(--dur-2) ease;
 }
-
-.tracker-week-day.today {
-  border-color: var(--primary-border);
-  background: var(--primary-bg);
-}
-
-.tracker-week-day.complete {
-  border-color: var(--success);
-  background: rgba(22, 163, 74, 0.06);
-}
-
-.tracker-week-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.tracker-week-num {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-
-.tracker-week-day.today .tracker-week-num {
-  color: var(--primary);
-}
-
+.tracker-week-day.today { background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand-line); }
+.tracker-week-day.complete { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-line); }
+.tracker-week-label { color: var(--text-tertiary); font-size: 12px; font-weight: 600; }
+.tracker-week-num { color: var(--text-strong); font-size: 17px; font-weight: 600; }
+.tracker-week-day.today .tracker-week-num { color: var(--brand); }
 .tracker-week-bar-wrap {
-  width: 8px;
-  height: 40px;
-  background: var(--surface);
-  border-radius: 4px;
-  overflow: hidden;
   display: flex;
   align-items: flex-end;
+  width: 10px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  overflow: hidden;
 }
-
 /* Sütunun doluluğu transform ilə (--p: 0…1) — hündürlük animasiya olunmur */
 .tracker-week-bar {
   width: 100%;
   height: 100%;
-  background: linear-gradient(to top, var(--primary), var(--primary-light));
-  border-radius: 4px;
+  border-radius: inherit;
+  background: var(--brand);
   transform: scaleY(var(--p, 0));
   transform-origin: 50% 100%;
-  transition: transform var(--dur-3, 360ms) var(--ease-out, ease);
+  transition: transform var(--dur-3) var(--ease-out);
 }
+.tracker-week-day.complete .tracker-week-bar { background: var(--accent); }
+.tracker-week-pct { color: var(--text-tertiary); font-size: 12px; font-weight: 600; }
+.tracker-week-day.complete .tracker-week-pct { color: var(--accent-text); }
 
-.tracker-week-pct {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+.tracker-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: var(--space-3);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  line-height: 1.5;
 }
+.tracker-note svg { flex-shrink: 0; margin-top: 2px; }
 
-.tracker-week-day.complete .tracker-week-pct {
-  color: var(--success);
-}
-
-/* ══════════════════════════════════════════════════════
-   MASAÜSTÜ / PLANŞET (≥768px) — əvvəlki görünüş:
-   ayrı-ayrı haşiyəli sətirlər, sadə emoji, qrup başlıqları gizli
-   ══════════════════════════════════════════════════════ */
-@media (min-width: 768px) {
-  .tracker-groups { gap: 8px; }
-  .tracker-group-title { display: none; }
-
-  /* .m-list qutusu yox — sətirlər arasında 8px */
-  .tracker-list.m-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: none;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    overflow: visible;
-    isolation: auto;
+/* ══ Responsiv ════════════════════════════════════════════════════ */
+@media (max-width: 1023.98px) {
+  .tracker-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "progress" "today" "week";
+    max-width: 720px;
+    margin-inline: auto;
   }
-  .tracker-list > li + li > .tracker-item::before { display: none; }
-
-  .tracker-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
-    background: var(--bg-card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease;
-    width: 100%;
-    min-height: var(--tap);
-    text-align: start;
-    font-family: var(--font);
-  }
-
-  .tracker-item:hover {
-    border-color: var(--primary-border);
-    background: var(--primary-bg);
-    transform: translateX(4px);
-  }
-  /* RTL-də hover sürüşməsi mətnin axını istiqamətində */
-  [dir="rtl"] .tracker-item:hover { transform: translateX(-4px); }
-
-  .tracker-item.done {
-    border-color: var(--primary-border);
-    background: var(--primary-bg);
-  }
-
-  /* İkon kafeli masaüstündə sadə emoji kimi */
-  .tracker-item-icon.icon-tile {
-    width: 32px;
-    height: auto;
-    border-radius: 0;
-    background: none;
-    font-size: 22px;
-    text-align: center;
-  }
-
-  .tracker-item .m-row-title {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text);
-  }
-  .tracker-item.done .m-row-title { color: var(--primary); }
-
-  .tracker-item .m-check { --m-check-size: 28px; }
-}
-
-/* ══════════════════════════════════════════════════════
-   TELEFON (<768px) — müasir tətbiq görünüşü
-   ══════════════════════════════════════════════════════ */
-@media (max-width: 767.98px) {
-  .tracker-layout { gap: 28px; }
-
-  /* Halqa + statistika: bir yumşaq kartda yan-yana */
-  .tracker-progress-section {
+  /* Halqa + statistika yan-yana, yapışmır */
+  .tracker-page .tracker-progress-section {
+    position: static;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: 18px;
-    padding: 18px;
-    background:
-      radial-gradient(120% 140% at 0% 0%, var(--primary-bg) 0%, transparent 60%),
-      var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+    gap: var(--space-5);
+    padding: var(--space-5);
+    text-align: start;
   }
-  [dir="rtl"] .tracker-progress-section {
-    background:
-      radial-gradient(120% 140% at 100% 0%, var(--primary-bg) 0%, transparent 60%),
-      var(--bg-card);
-  }
-
+  .tracker-done-msg { justify-content: flex-start; }
+}
+@media (max-width: 767.98px) {
+  .tracker-hero .breadcrumb { display: none; }
+  .tracker-page.ui-section { padding-block: var(--space-4) var(--space-7); }
+  .tracker-layout { gap: var(--space-5); }
+  .tracker-page .tracker-progress-section { gap: 16px; padding: 16px; border-radius: var(--radius-lg); }
   .tracker-circle-wrap { width: 112px; height: 112px; }
-  .tracker-circle-pct { font-size: 26px; }
-  .tracker-circle-label { font-size: 13px; }
-
-  .tracker-stats {
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-  }
-  .tracker-stat {
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border: 0;
-    border-radius: 12px;
-    background: var(--bg-card2);
-  }
-  [data-theme="dark"] .tracker-stat { background: var(--surface); }
-  .tracker-stat-value {
-    min-width: 1.6em;
-    font-size: 22px;
-    text-align: center;
-  }
-  .tracker-stat-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-dim);
-    line-height: 1.25;
-  }
-
-  /* "Bu gün" başlığı + kiçik, sakit "Sıfırla" həbi */
-  .tracker-section-header { margin-bottom: 12px; }
-  .tracker-section-header h2 { font-size: 18px; }
-  .tracker-reset.btn-ghost {
-    min-height: 36px;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-dim);
-  }
-
-  /* Qruplu siyahı — kit .m-list/.m-row; yalnız kiçik düzəlişlər */
-  .tracker-groups { gap: 18px; }
-  .tracker-item .m-row-title { font-size: 15px; }
-
-  /* Həftəlik baxış: bir kartın içində 7 sütun, haşiyəsiz */
-  .tracker-week h2 { font-size: 18px; margin-bottom: 12px; }
-  .tracker-week-grid {
-    gap: 2px;
-    padding: 10px 6px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-  }
-  .tracker-week-day {
-    gap: 6px;
-    padding: 8px 0;
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
-  }
-  .tracker-week-day.today { background: var(--primary-bg); }
-  .tracker-week-day.complete { background: rgba(22, 163, 74, 0.07); }
-  /* 9px oxunmurdu — 11px, hərf aralığı sıfır ki, "CÜMƏ" sığsın */
-  .tracker-week-label {
-    font-size: 11px;
-    letter-spacing: 0;
-  }
+  .tracker-circle-pct { font-size: 28px; }
+  .tracker-stats { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .tracker-stat { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: "ic value label"; padding: 8px 10px; }
+  .tracker-stat-value { font-size: 20px; }
+  .tracker-progress-title { font-size: 16px; }
+  .tracker-groups { gap: var(--space-4); }
+  .tracker-item { min-height: 56px; padding-inline: 14px; gap: 12px; }
+  .tracker-list > li + li::before { inset-inline-start: 60px; }
+  .tracker-page .tracker-week-grid { gap: 2px; padding: 8px 4px; }
+  .tracker-week-day { padding: 8px 0; }
+  .tracker-week-label { font-size: 11px; }
   .tracker-week-num { font-size: 15px; }
-  .tracker-week-bar-wrap {
-    width: 8px;
-    height: 44px;
-  }
+  .tracker-week-bar-wrap { height: 44px; width: 8px; }
   .tracker-week-pct { font-size: 11px; }
 }
-
 @media (max-width: 360px) {
-  .tracker-progress-section { gap: 14px; padding: 16px 14px; }
-  .tracker-circle-wrap { width: 96px; height: 96px; }
-  .tracker-circle-pct { font-size: 22px; }
+  .tracker-page .tracker-progress-section { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+  .tracker-circle-wrap { width: 104px; height: 104px; }
 }
 
-/* ── Dark mode ── */
-[data-theme="dark"] .tracker-week-day.complete {
-  background: rgba(22, 163, 74, 0.1);
-}
-
-/* Öz açar kadrlarımız — "hərəkəti azalt"da söndürülür */
 @media (prefers-reduced-motion: reduce) {
-  .tracker-circle-pct { animation: none; }
+  .tracker-circle-pct,
+  .is-complete .tracker-circle-wrap,
+  .is-complete .tracker-done-msg,
+  .tracker-item.just-done .tracker-item-icon { animation: none; }
   .tracker-week-bar,
   .tracker-circle-progress { transition: none; }
 }

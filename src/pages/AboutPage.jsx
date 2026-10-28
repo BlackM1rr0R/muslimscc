@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import { BRAND, brandName } from '../config/brand'
 import { HADITH_COUNT } from '../data/siteStats'
 import { INDEXABLE } from '../seo/routes'
+import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AboutPage.css'
 
 // ── Ayə: api.alquran.cloud-dan gətirilir (yaddaşdan yazılmır) ──
@@ -159,12 +160,12 @@ export function AboutPage({ setPage }) {
   const brand = brandName(lang)
   const verse = useVerse(CTA_AYAH, lang)
 
-  // tone — telefonda ikon kafelinin rəngi (motion.css → .icon-tile--*)
+  // Dəyərlər — xətti ikonlar (Icon.jsx), hamısı eyni brend tonunda
   const values = [
-    { icon:'📖', tone:'',       title:t.v1t, desc:t.v1d },
-    { icon:'💚', tone:'teal',   title:t.v2t, desc:t.v2d },
-    { icon:'🌐', tone:'blue',   title:t.v3t, desc:t.v3d },
-    { icon:'📱', tone:'gold',   title:t.v4t, desc:t.v4d },
+    { icon:'quran',  title:t.v1t, desc:t.v1d },
+    { icon:'donate', title:t.v2t, desc:t.v2d },
+    { icon:'globe',  title:t.v3t, desc:t.v3d },
+    { icon:'phone',  title:t.v4t, desc:t.v4d },
   ]
 
   const member = { initials:'EA', name:'Elchin Abdullayev', role: DEV_ROLE[lang] || DEV_ROLE.en }
@@ -183,87 +184,99 @@ export function AboutPage({ setPage }) {
   const motto = verse.data ? splitMotto(verse.data.ar) : null
 
   return (
-    <>
-      <div className="page-hero theme-about hero-compact">
-        {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
-        {lang !== 'ar' && <div className="page-hero-arabic">{BRAND.arabicMotto}</div>}
-        <h1>{t.title}</h1>
-        <p>{t.subtitle.replace('{brand}', brand)}</p>
-      </div>
+    <div className="ab-root">
+      <header className="ui-page-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container">
+          <span className="ui-eyebrow ab-brand">{brand}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          <p className="ui-lead">{t.subtitle.replace('{brand}', brand)}</p>
+          {/* Ərəbcə dekorativ şüar ar dilində h1-i təkrarlamasın */}
+          {lang !== 'ar' && <p className="ab-hero-ar ui-arabic" lang="ar" dir="rtl">{BRAND.arabicMotto}</p>}
+        </div>
+      </header>
 
-      <div className="section">
-        <div className="section-inner">
-          {/* Mission */}
-          <div className="about-mission">
-            <div className="about-mission-icon" aria-hidden="true">☽</div>
-            <div className="about-mission-body">
-              <h2>{t.mission}</h2>
+      <section className="ui-section ab-intro">
+        <div className="ui-container ab-intro-grid">
+          {/* Missiya */}
+          <article className="ui-card ab-mission" data-reveal>
+            <BrandMark size={52} className="ab-mission-mark" />
+            <div className="ab-mission-body">
+              <h2 className="ui-title ui-title--sm">{t.mission}</h2>
               <p>{t.missionText}</p>
             </div>
-          </div>
+          </article>
 
-          {/* Stats — sürüşəndə növbə ilə görünür (motion.css → data-reveal) */}
-          <div className="about-stats" data-reveal="stagger">
+          {/* Rəqəmlər — sürüşəndə növbə ilə görünür */}
+          <dl className="ui-card ab-stats" data-reveal="stagger">
             {stats.map((s,i) => (
-              <div key={i} className="about-stat">
-                <span className="about-stat-num">{s.num}</span>
-                <span className="about-stat-label">{s.label}</span>
+              <div key={i} className="ab-stat">
+                <dt className="ui-stat__label">{s.label}</dt>
+                {/* Təmiz rəqəm sayğacla (data-count) sayılır; "1350+" olduğu kimi qalır */}
+                <dd className="ui-stat__num ab-stat-num">{/^\d+$/.test(s.num) ? <span data-count={s.num}>{s.num}</span> : s.num}</dd>
               </div>
             ))}
-          </div>
+          </dl>
+        </div>
+      </section>
 
-          {/* Values */}
-          <div className="section-header about-block-head">
-            <h2 className="section-title">{t.values}</h2>
+      <section className="ui-section ui-section--alt ab-values-sec" aria-labelledby="ab-values-title">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <h2 id="ab-values-title" className="ui-title">{t.values}</h2>
           </div>
-          {/* Telefonda qruplaşdırılmış siyahı xanaları, geniş ekranda 2×2 kart */}
-          <div className="about-values" data-reveal="stagger">
+          <div className="ui-grid ab-values" data-reveal="stagger-zoom">
             {values.map((v,i) => (
-              <div key={i} className="about-value-card">
-                <div className={`about-value-icon icon-tile${v.tone ? ` icon-tile--${v.tone}` : ''}`} aria-hidden="true">{v.icon}</div>
-                <h3>{v.title}</h3>
-                <p>{v.desc}</p>
-              </div>
+              <article key={i} className="ui-card ab-value">
+                <span className="ui-icon-tile" aria-hidden="true"><Icon name={v.icon} /></span>
+                <h3 className="ui-card__title">{v.title}</h3>
+                <p className="ui-card__text">{v.desc}</p>
+              </article>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* Saytı hazırlayan */}
-          <div className="section-header about-block-head about-team-head">
-            <h2 className="section-title">{BUILT_BY[lang] || BUILT_BY.en}</h2>
-          </div>
-          <div className="about-team" data-reveal>
-            <div className="about-team-card">
-              <div className="team-avatar" aria-hidden="true">{member.initials}</div>
-              <div className="team-name">{member.name}</div>
-              <div className="team-role">{member.role}</div>
-            </div>
-          </div>
-
+      <section className="ui-section ab-end" aria-labelledby="ab-team-title">
+        <div className="ui-container ab-end-grid">
           {/* CTA — ayə API-dən; alınmasa ayə sətirləri gizlənir, düymə qalır */}
-          <div className="about-cta" data-reveal>
+          <div className="ui-card ui-card--inverse ab-cta" data-reveal="scale">
+            <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
             {verse.data ? (
-              <figure className="about-cta-verse">
-                <blockquote className="about-cta-arabic" lang="ar" dir="rtl">
+              <figure className="ab-cta-verse">
+                <blockquote className="ab-cta-arabic" lang="ar" dir="rtl">
                   {motto.idx >= 0
-                    ? motto.parts.map((p, i) => (i === motto.idx ? <span key={i} className="about-cta-motto">{p}</span> : p))
+                    ? motto.parts.map((p, i) => (i === motto.idx ? <span key={i} className="ab-cta-motto">{p}</span> : p))
                     : verse.data.ar}
                 </blockquote>
-                {verse.data.text && <p className="about-cta-translation">{verse.data.text}</p>}
-                <figcaption className="about-cta-ref">
+                {verse.data.text && <p className="ab-cta-translation">{verse.data.text}</p>}
+                <figcaption className="ab-cta-ref">
                   — {ayahRef}{verse.data.tname ? ` · ${verse.data.tname}` : ''}
                 </figcaption>
               </figure>
             ) : !verse.failed ? (
-              <div className="about-cta-skeleton" aria-hidden="true">
+              <div className="ab-cta-skeleton" aria-hidden="true">
                 <span className="skeleton skeleton--text" /><span className="skeleton skeleton--text" /><span className="skeleton skeleton--text" />
               </div>
             ) : null}
-            <button className="btn-primary" onClick={() => { setPage('quran'); window.scrollTo({top:0,behavior:'smooth'}) }}>
-              📖 {READ_QURAN[lang] || READ_QURAN.en}
+            <button type="button" className="ui-btn ui-btn--inverse ui-btn--lg" onClick={() => { setPage('quran'); window.scrollTo({top:0,behavior:'smooth'}) }}>
+              <Icon name="quran" className="ui-btn__icon" /> {READ_QURAN[lang] || READ_QURAN.en}
             </button>
           </div>
+          {/* Saytı hazırlayan */}
+          <div className="ab-team" data-reveal>
+            <h2 id="ab-team-title" className="ui-eyebrow">{BUILT_BY[lang] || BUILT_BY.en}</h2>
+            <div className="ui-card ab-team-card">
+              <div className="ab-avatar" aria-hidden="true">{member.initials}</div>
+              <div>
+                <div className="ab-team-name">{member.name}</div>
+                <div className="ab-team-role">{member.role}</div>
+              </div>
+            </div>
+          </div>
+
         </div>
-      </div>
-    </>
+      </section>
+    </div>
   )
 }

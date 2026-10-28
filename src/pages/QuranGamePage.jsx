@@ -3,14 +3,25 @@ import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/QuranGamePage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import Icon from '../components/Icon'
+import { navGroupLabel } from '../data/navigation'
 
 // ── i18n Labels ──
 const LABELS = {
-  az: { title:'Quran Müsabiqəsi', subtitle:'Quran biliyinizi sınayın', modeComplete:'Ayəni tamamla', modeSurah:'Surəni tap', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', timeUp:'Vaxt bitdi!', playAgain:'Yenidən oyna', question:'Sual', of:'/', bestScore:'Ən yaxşı', newBest:'Yeni rekord!', back:'Geri', selectMode:'Oyun rejimini seçin', result:'Nəticə', complete:'Tamamla', fromSurah:'Surə:', timer:'Saniyə', chooseAnswer:'Cavabı seçin' },
+  az: { title:'Quran müsabiqəsi', subtitle:'Quran biliyinizi sınayın', modeComplete:'Ayəni tamamla', modeSurah:'Surəni tap', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', timeUp:'Vaxt bitdi!', playAgain:'Yenidən oyna', question:'Sual', of:'/', bestScore:'Ən yaxşı', newBest:'Yeni rekord!', back:'Geri', selectMode:'Oyun rejimini seçin', result:'Nəticə', complete:'Tamamla', fromSurah:'Surə:', timer:'Saniyə', chooseAnswer:'Cavabı seçin' },
   en: { title:'Quran Quiz', subtitle:'Test your Quran knowledge', modeComplete:'Complete the verse', modeSurah:'Find the surah', start:'Start', next:'Next', finish:'Finish', score:'Score', correct:'Correct', wrong:'Wrong', timeUp:'Time\'s up!', playAgain:'Play Again', question:'Question', of:'/', bestScore:'Best', newBest:'New record!', back:'Back', selectMode:'Select game mode', result:'Result', complete:'Complete', fromSurah:'Surah:', timer:'Seconds', chooseAnswer:'Choose answer' },
   ru: { title:'Викторина Корана', subtitle:'Проверьте знание Корана', modeComplete:'Завершите аят', modeSurah:'Найдите суру', start:'Начать', next:'Далее', finish:'Завершить', score:'Баллы', correct:'Правильно', wrong:'Неправильно', timeUp:'Время вышло!', playAgain:'Играть снова', question:'Вопрос', of:'/', bestScore:'Лучший', newBest:'Новый рекорд!', back:'Назад', selectMode:'Выберите режим', result:'Результат', complete:'Завершить', fromSurah:'Сура:', timer:'Секунд', chooseAnswer:'Выберите ответ' },
   ar: { title:'مسابقة القرآن', subtitle:'اختبر معرفتك بالقرآن', modeComplete:'أكمل الآية', modeSurah:'اعثر على السورة', start:'ابدأ', next:'التالي', finish:'إنهاء', score:'النقاط', correct:'صحيح', wrong:'خطأ', timeUp:'انتهى الوقت!', playAgain:'أعد اللعب', question:'سؤال', of:'/', bestScore:'الأفضل', newBest:'رقم قياسي!', back:'رجوع', selectMode:'اختر وضع اللعبة', result:'النتيجة', complete:'أكمل', fromSurah:'السورة:', timer:'ثوانٍ', chooseAnswer:'اختر الإجابة' },
   tr: { title:'Kuran Yarışması', subtitle:'Kuran bilginizi test edin', modeComplete:'Ayeti tamamla', modeSurah:'Sureyi bul', start:'Başla', next:'Sonraki', finish:'Bitir', score:'Puan', correct:'Doğru', wrong:'Yanlış', timeUp:'Süre doldu!', playAgain:'Tekrar Oyna', question:'Soru', of:'/', bestScore:'En iyi', newBest:'Yeni rekor!', back:'Geri', selectMode:'Oyun modunu seçin', result:'Sonuç', complete:'Tamamla', fromSurah:'Sure:', timer:'Saniye', chooseAnswer:'Cevabı seçin' },
+}
+
+// Rejim kartındakı say yazısı: "10 sual · 30 saniyə" (cəm forması dilə görə)
+const ROUND_META = {
+  az: { questions: 'sual', seconds: 'saniyə' },
+  en: { questions: 'questions', seconds: 'seconds' },
+  ru: { questions: 'вопросов', seconds: 'секунд' },
+  ar: { questions: 'أسئلة', seconds: 'ثانية' },
+  tr: { questions: 'soru', seconds: 'saniye' },
 }
 
 // ── Complete the verse questions ──
@@ -928,6 +939,9 @@ export default function QuranGamePage({ setPage }) {
   const [answered, setAnswered] = useState(false)
   const [timeLeft, setTimeLeft] = useState(TIME_PER_Q)
   const [phase, setPhase] = useState('menu') // 'menu' | 'playing' | 'result'
+  // Yeni rekord — raund bitəndə köhnə rekordla müqayisə edilir (əvvəl
+  // nəticə köhnə rekorda BƏRABƏR olanda da "Yeni rekord!" yazılırdı)
+  const [newBest, setNewBest] = useState(false)
   const timerRef = useRef(null)
 
   // Timer
@@ -981,7 +995,8 @@ export default function QuranGamePage({ setPage }) {
       // Game over
       const finalScore = correctCount
       const key = mode === 'complete' ? 'complete' : 'surah'
-      const best = scores[key]
+      const best = scores[key] || 0
+      setNewBest(finalScore > best)
       if (finalScore > best) {
         const newScores = { ...scores, [key]: finalScore }
         setScores(newScores)
@@ -1004,138 +1019,171 @@ export default function QuranGamePage({ setPage }) {
   }, [])
 
   const q = questions[qIdx]
-  const isNewBest = phase === 'result' && correctCount > 0 && correctCount >= (scores[mode === 'complete' ? 'complete' : 'surah'] || 0)
+  const isNewBest = phase === 'result' && newBest
+  // İrəliləyiş cavabdan sonra da artır (əvvəl son sualda zolaq 90%-də qalırdı)
+  const progressPct = questions.length ? ((qIdx + (answered ? 1 : 0)) / questions.length) * 100 : 0
+  const isCorrect = answered && selected === q?.correct
+  const isTimeout = answered && selected === null
+
+  // Nəticəyə görə ikon (əvvəl 🏆 👍 💪 emojiləri idi)
+  const resultIcon = correctCount >= 7 ? 'sahaba' : correctCount >= 4 ? 'star' : 'leaf'
+  const modes = [
+    { key: 'complete', icon: 'duajournal', name: t.modeComplete, best: scores.complete },
+    { key: 'surah', icon: 'quran', name: t.modeSurah, best: scores.surah },
+  ]
 
   return (
     <>
-      {/* hero-compact: telefonda yığcam hero, çörək qırıntısı gizlənir (motion.css) */}
-      <div className="page-hero theme-qurangame hero-compact">
-        <Breadcrumb setPage={setPage} current={t.title} />
-        {/* Ərəbcədə başlığın özü "مسابقة القرآن"-dir — ikinci dəfə yazmırıq */}
-        {lang !== 'ar' && <div className="page-hero-arabic" lang="ar">مسابقة القرآن</div>}
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+      {/* Sakit kağız hero (dizayn v2): çörək qırıntısı, eyebrow, bir h1, lead */}
+      <header className="ui-page-hero qgame-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        {/* Dekorativ xəttatlıq (ərəbcədə başlığın özüdür — təkrarlanmır) */}
+        {lang !== 'ar' && <span className="qgame-hero__art" lang="ar" aria-hidden="true">مسابقة القرآن</span>}
+        <div className="ui-container">
+          <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>
+          <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          <p className="ui-lead">{t.subtitle}</p>
+        </div>
+      </header>
 
-      <div className="section">
+      <div className="section qgame-section">
         <div className="section-inner qgame-layout">
 
-          {/* ── Mode Selection ── */}
+          {/* ── Rejim seçimi ── */}
           {phase === 'menu' && (
-            <div className="qgame-menu anim-fadeUp">
-              <h2 className="qgame-menu-title">{t.selectMode}</h2>
-              <div className="qgame-modes">
-                <button type="button" className="qgame-mode-card press" onClick={() => startGame('complete')}>
-                  <span className="qgame-mode-icon" aria-hidden="true">✍️</span>
-                  <span className="qgame-mode-name">{t.modeComplete}</span>
-                  <span className="qgame-mode-best">{t.bestScore}: {scores.complete}/{QUESTIONS_PER_ROUND}</span>
-                </button>
-                <button type="button" className="qgame-mode-card press" onClick={() => startGame('surah')}>
-                  <span className="qgame-mode-icon" aria-hidden="true">📖</span>
-                  <span className="qgame-mode-name">{t.modeSurah}</span>
-                  <span className="qgame-mode-best">{t.bestScore}: {scores.surah}/{QUESTIONS_PER_ROUND}</span>
-                </button>
+            <div className="qgame-menu">
+              <h2 className="ui-title ui-title--sm qgame-menu-title" data-reveal="">{t.selectMode}</h2>
+              <div className="qgame-modes" data-reveal="stagger-zoom">
+                {modes.map(m => (
+                  <button type="button" key={m.key} className="ui-card ui-card--interactive qgame-mode-card" onClick={() => startGame(m.key)}>
+                    <span className="ui-icon-tile ui-icon-tile--lg qgame-mode-icon" aria-hidden="true"><Icon name={m.icon} /></span>
+                    <span className="qgame-mode-name">{m.name}</span>
+                    <span className="qgame-mode-meta ui-num">
+                      <span>{QUESTIONS_PER_ROUND} {(ROUND_META[lang] || ROUND_META.az).questions}</span>
+                      <span>{TIME_PER_Q} {(ROUND_META[lang] || ROUND_META.az).seconds}</span>
+                    </span>
+                    <span className="ui-badge ui-badge--accent qgame-mode-best ui-num">{t.bestScore}: <bdi dir="ltr">{m.best || 0}/{QUESTIONS_PER_ROUND}</bdi></span>
+                    <span className="qgame-mode-start">
+                      {t.start} <Icon name="arrow" size={16} className="qgame-arrow ui-flip-rtl" />
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
-          {/* ── Playing ── */}
+          {/* ── Oyun ── */}
           {phase === 'playing' && q && (
-            <div className="qgame-play anim-fadeUp">
-              {/* Progress & Timer — telefonda başlığın altına yapışan şüşə panel
+            <div className="qgame-play">
+              {/* Panel — telefonda başlığın altına yapışan şüşə zolaq
                   (sual sayı, vaxt və irəliləyiş sürüşəndə də görünür) */}
               <div className="qgame-hud">
                 <div className="qgame-top-bar">
-                  <button type="button" className="btn-ghost" onClick={backToMenu}>{t.back}</button>
-                  <span className="qgame-q-count">{t.question} {qIdx + 1}{t.of}{questions.length}</span>
-                  <span className={`qgame-timer ${timeLeft <= 5 ? 'danger' : ''}`}>
-                    {timeLeft}s
+                  <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm qgame-back" onClick={backToMenu}>
+                    <Icon name="arrow" size={16} className="qgame-arrow qgame-arrow--back" />{t.back}
+                  </button>
+                  <span className="qgame-q-count ui-num">{t.question} <bdi dir="ltr">{qIdx + 1}{t.of}{questions.length}</bdi></span>
+                  {/* Vaxt: rəqəm + saat ikonu (əvvəl "30s" — "s" hər dildə latınca idi) */}
+                  <span className={`qgame-timer ui-num${timeLeft <= 5 && !answered ? ' danger' : ''}`}
+                    role="timer" aria-label={`${timeLeft} ${t.timer}`}>
+                    <Icon name="clock" size={16} />
+                    <span key={timeLeft <= 5 ? timeLeft : 'n'} className="qgame-timer__num">{timeLeft}</span>
                   </span>
                 </div>
-
-                <div className="qgame-progress-bar">
-                  <div className="qgame-progress-fill" style={{ width: `${((qIdx) / questions.length) * 100}%` }} />
+                <div className="qgame-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={qIdx + (answered ? 1 : 0)}>
+                  <div className="qgame-progress-fill" style={{ transform: `scaleX(${progressPct / 100})` }} />
                 </div>
               </div>
 
-              {/* Question */}
-              <div className="qgame-question-card" key={qIdx}>
+              {/* Sual — key: hər sualda giriş animasiyası yenidən oynayır */}
+              <div className="ui-card qgame-question-card" key={qIdx}>
+                {/* Vaxt zolağı — 30 saniyədə əriyir (transform), cavab veriləndə dayanır */}
+                <span className={`qgame-timebar${answered ? ' is-paused' : ''}`} aria-hidden="true"
+                  style={{ '--qg-time': `${TIME_PER_Q}s` }} />
+                <p className="qgame-instruction">{mode === 'complete' ? t.modeComplete : t.modeSurah}</p>
                 {mode === 'complete' ? (
-                  <>
-                    <p className="qgame-instruction">{t.modeComplete}:</p>
-                    <p className="qgame-verse arabic-text">{q.start} ...</p>
-                  </>
+                  <p className="qgame-verse ui-arabic" lang="ar">{q.start} <span className="qgame-blank" aria-hidden="true">…</span></p>
                 ) : (
-                  <>
-                    <p className="qgame-instruction">{t.modeSurah}:</p>
-                    <p className="qgame-verse arabic-text">{q.verse}</p>
-                  </>
+                  <p className="qgame-verse ui-arabic" lang="ar">{q.verse}</p>
                 )}
               </div>
 
-              {/* Options — key: hər sualda variantlar yenidən növbə ilə görünür */}
-              <div className="qgame-options" key={`opts-${qIdx}`}>
+              {/* Variantlar — key: hər sualda variantlar yenidən növbə ilə görünür */}
+              <div className="qgame-options" key={`opts-${qIdx}`} role="group" aria-label={t.chooseAnswer}>
                 {q.options.map((opt, i) => {
-                  const isCorrect = i === q.correct
+                  const isRight = i === q.correct
                   const isSelected = i === selected
                   let cls = 'qgame-option'
                   if (answered) {
-                    if (isCorrect) cls += ' correct'
+                    if (isRight) cls += ' correct'
                     else if (isSelected) cls += ' wrong'
                     else cls += ' faded'
                   }
                   const label = typeof opt === 'string' ? opt : (opt[lang] || opt.en)
                   return (
-                    <button type="button" key={i} className={`${cls} press`} onClick={() => handleAnswer(i)} disabled={answered}>
-                      <span className="qgame-option-letter">{String.fromCharCode(65 + i)}</span>
-                      <span className={`qgame-option-text ${mode === 'complete' ? 'arabic-text' : ''}`}>{label}</span>
+                    <button type="button" key={i} className={cls} style={{ '--i': i }} onClick={() => handleAnswer(i)} disabled={answered}>
+                      <span className="qgame-option-letter" aria-hidden="true">
+                        {answered && isRight ? <Icon name="check" size={16} strokeWidth={2.4} />
+                          : answered && isSelected ? <Icon name="close" size={16} strokeWidth={2.4} />
+                          : String.fromCharCode(65 + i)}
+                      </span>
+                      <span className={`qgame-option-text${mode === 'complete' ? ' ui-arabic' : ''}`} lang={mode === 'complete' ? 'ar' : undefined}>{label}</span>
                     </button>
                   )
                 })}
               </div>
 
-              {/* After answer info */}
+              {/* Cavabdan sonra: nəticə nişanı, tam ayə, mənbə, "Növbəti" */}
               {answered && (
-                <div className="qgame-answer-info anim-scaleIn">
-                  {selected === q.correct ? (
-                    <span className="qgame-result-badge correct">{t.correct}!</span>
-                  ) : timeLeft === 0 && selected === null ? (
-                    <span className="qgame-result-badge timeout">{t.timeUp}</span>
+                <div className="ui-card qgame-answer-info" aria-live="polite">
+                  {isCorrect ? (
+                    <span className="qgame-result-badge correct"><Icon name="check" size={18} strokeWidth={2.2} />{t.correct}!</span>
+                  ) : isTimeout ? (
+                    <span className="qgame-result-badge timeout"><Icon name="clock" size={18} />{t.timeUp}</span>
                   ) : (
-                    <span className="qgame-result-badge wrong">{t.wrong}</span>
+                    <span className="qgame-result-badge wrong"><Icon name="close" size={18} strokeWidth={2.2} />{t.wrong}</span>
                   )}
                   {mode === 'complete' && q.fullVerse && (
-                    <p className="qgame-full-verse arabic-text">{q.fullVerse}</p>
+                    <p className="qgame-full-verse ui-arabic" lang="ar">{q.fullVerse}</p>
                   )}
                   {mode === 'complete' && q.surah && (
                     <p className="qgame-surah-ref">{t.fromSurah} {q.surah[lang] || q.surah.en}</p>
                   )}
-                  <button type="button" className="btn-primary qgame-next-btn" onClick={nextQuestion}>
+                  <button type="button" className="ui-btn ui-btn--primary ui-btn--lg qgame-next-btn" onClick={nextQuestion}>
                     {qIdx + 1 >= questions.length ? t.finish : t.next}
+                    <Icon name="arrow" size={18} className="qgame-arrow ui-flip-rtl" />
                   </button>
                 </div>
               )}
             </div>
           )}
 
-          {/* ── Results ── */}
+          {/* ── Nəticə ── */}
           {phase === 'result' && (
-            <div className="qgame-results anim-fadeUp">
-              <div className="qgame-results-card">
-                {isNewBest && <div className="qgame-new-best anim-scaleIn">{t.newBest}</div>}
-                <div className="qgame-results-icon" aria-hidden="true">{correctCount >= 7 ? '🏆' : correctCount >= 4 ? '👍' : '💪'}</div>
-                <h2>{t.result}</h2>
-                <div className="qgame-results-score">
-                  <span className="qgame-results-num">{correctCount}</span>
+            <div className="qgame-results">
+              <div className="ui-card qgame-results-card">
+                <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+                {isNewBest && <span className="ui-badge ui-badge--accent qgame-new-best"><Icon name="star" size={14} />{t.newBest}</span>}
+                <span className="ui-icon-tile ui-icon-tile--lg qgame-results-icon" aria-hidden="true"><Icon name={resultIcon} /></span>
+                <h2 className="ui-title ui-title--sm">{t.result}</h2>
+                <div className="qgame-results-score ui-num" dir="ltr">
+                  <span className="qgame-results-num" data-count={correctCount}>{correctCount}</span>
                   <span className="qgame-results-of">/ {questions.length}</span>
                 </div>
-                <div className="qgame-results-detail">
-                  <span className="qgame-detail correct">{t.correct}: {correctCount}</span>
-                  <span className="qgame-detail wrong">{t.wrong}: {questions.length - correctCount}</span>
+                {/* Düzgün cavabların payı — zolaq sıfırdan dolur (transform) */}
+                <div className="qgame-results-bar" aria-hidden="true">
+                  <span style={{ transform: `scaleX(${questions.length ? correctCount / questions.length : 0})` }} />
+                </div>
+                <div className="qgame-results-detail ui-num">
+                  <span className="qgame-detail correct"><Icon name="check" size={16} strokeWidth={2.2} />{t.correct}: {correctCount}</span>
+                  <span className="qgame-detail wrong"><Icon name="close" size={16} strokeWidth={2.2} />{t.wrong}: {questions.length - correctCount}</span>
                 </div>
                 <div className="qgame-results-actions">
-                  <button type="button" className="btn-primary" onClick={() => startGame(mode)}>{t.playAgain}</button>
-                  <button type="button" className="btn-secondary" onClick={backToMenu}>{t.back}</button>
+                  <button type="button" className="ui-btn ui-btn--primary" onClick={() => startGame(mode)}>
+                    <Icon name="refresh" className="ui-btn__icon" />{t.playAgain}
+                  </button>
+                  <button type="button" className="ui-btn ui-btn--secondary" onClick={backToMenu}>{t.back}</button>
                 </div>
               </div>
             </div>

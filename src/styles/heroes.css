@@ -1,38 +1,51 @@
 /* ═══════════════════════════════════════════════════════
-   Page hero themes — harmonised mosque palette + Islamic SVG art
-   Rendering mechanics live in globals.css (.page-hero, ::before = art,
-   ::after = vignette). Each theme sets:
-     --hero-from / --hero-via / --hero-to   3-stop gradient (all AA with white text)
-     --hero-art                             url() of its illustration
-   Art files: src/assets/heroes/<theme>.svg (viewBox 0 0 1600 400, transparent)
+   Daxili səhifə hero temaları — dizayn v2 palitrası + İslami SVG təsvirlər
+   Mexanika globals.css-dədir (.page-hero, ::before = təsvir, ::after = vinyet).
+   Hər tema təyin edir:
+     --hero-from / --hero-via / --hero-to   3 nöqtəli qradiyent (ağ mətnlə AA)
+     --hero-art                             təsvirin url()-i
+   Təsvirlər: src/assets/heroes/<tema>.svg (viewBox 0 0 1600 400, şəffaf)
+
+   v2 (2-ci mərhələ): köhnə "göy qurşağı" (bənövşəyi, al, lacivərd …) yerinə
+   YEDDİ yaxın ailə — hamısı fil sümüyü/zümrüd/qum-qızılı xarakterinə uyğun,
+   ağ mətnlə kontrast ≥ 9:1:
+     zümrüd        #11604c → #072e25   Quran, Hifz, Quran oyunu, Uşaqlar
+     şam yaşılı    #16513f → #09271f   Dualar, Namaz qaydası, Xeyriyyə
+     mamır         #3d5236 → #1d2a1b   Gündəlik izləmə, Zəkat
+     tünd firuzə   #114a4f → #072528   Zikr, Qiblə, Haqqımızda, Viktorina, Videolar
+     gecə mürəkkəbi #173641 → #0a1a21  Namaz vaxtları, Təqvim, 99 ad, Məscidlər, AI …
+     tunc-qum      #5e4721 → #2e2310   Lüğət, Səhabələr, Sitatlar, Həcc, Kitablar, Müqəddəs yerlər
+     qəhvəyi torpaq #5a3a26 → #2c1c12  Hədis, İslam tarixi
+   Sonda: təsvirin çox yavaş "nəfəsi" və məzmunun növbəli girişi (hərəkəti
+   azaldanda söndürülür).
    ═══════════════════════════════════════════════════════ */
 
-.page-hero.theme-quran        { --hero-from:#11704f; --hero-via:#0b5a41; --hero-to:#063a2b; --hero-art:url('../assets/heroes/quran.svg'); } /* emerald */
-.page-hero.theme-prayerguide  { --hero-from:#2a6b3f; --hero-via:#1f5532; --hero-to:#133a22; --hero-art:url('../assets/heroes/prayerguide.svg'); } /* deep green */
-.page-hero.theme-dailytracker { --hero-from:#50653c; --hero-via:#3d5030; --hero-to:#27341f; --hero-art:url('../assets/heroes/dailytracker.svg'); } /* olive-sage moss */
-.page-hero.theme-charity      { --hero-from:#1d6a5a; --hero-via:#155548; --hero-to:#0c3b32; --hero-art:url('../assets/heroes/charity.svg'); } /* green-teal */
-.page-hero.theme-about        { --hero-from:#28504a; --hero-via:#1d3e3a; --hero-to:#122927; --hero-art:url('../assets/heroes/about.svg'); } /* slate-green */
-.page-hero.theme-dhikr        { --hero-from:#11636a; --hero-via:#0c4f55; --hero-to:#07373c; --hero-art:url('../assets/heroes/dhikr.svg'); } /* deep teal */
-.page-hero.theme-glossary     { --hero-from:#5f5221; --hero-via:#4a4119; --hero-to:#302b10; --hero-art:url('../assets/heroes/glossary.svg'); } /* olive-bronze, old brass & parchment */
-.page-hero.theme-kids         { --hero-from:#137472; --hero-via:#0e5e5c; --hero-to:#094341; --hero-art:url('../assets/heroes/kids.svg'); } /* Iznik turquoise */
-.page-hero.theme-qibla        { --hero-from:#0f6275; --hero-via:#0b4f60; --hero-to:#073645; --hero-art:url('../assets/heroes/qibla.svg'); } /* turquoise petrol */
-.page-hero.theme-mosques      { --hero-from:#004f6a; --hero-via:#003f56; --hero-to:#002a3a; --hero-art:url('../assets/heroes/mosques.svg'); } /* petrol-navy */
-.page-hero.theme-analytics    { --hero-from:#2e4a5c; --hero-via:#233b4b; --hero-to:#172836; --hero-art:url('../assets/heroes/analytics.svg'); } /* petrol slate */
-.page-hero.theme-prayer       { --hero-from:#1f3a6a; --hero-via:#172d55; --hero-to:#0d1b37; --hero-art:url('../assets/heroes/prayer.svg'); } /* midnight navy */
-.page-hero.theme-calendar     { --hero-from:#27316e; --hero-via:#1e2659; --hero-to:#12183c; --hero-art:url('../assets/heroes/calendar.svg'); } /* indigo night */
+.page-hero.theme-quran        { --hero-from:#11604c; --hero-via:#0c4b3c; --hero-to:#072e25; --hero-art:url('../assets/heroes/quran.svg'); } /* zümrüd */
+.page-hero.theme-prayerguide  { --hero-from:#16513f; --hero-via:#103f32; --hero-to:#09271f; --hero-art:url('../assets/heroes/prayerguide.svg'); } /* şam yaşılı */
+.page-hero.theme-dailytracker { --hero-from:#3d5236; --hero-via:#30422b; --hero-to:#1d2a1b; --hero-art:url('../assets/heroes/dailytracker.svg'); } /* mamır */
+.page-hero.theme-charity      { --hero-from:#16513f; --hero-via:#103f32; --hero-to:#09271f; --hero-art:url('../assets/heroes/charity.svg'); } /* şam yaşılı */
+.page-hero.theme-about        { --hero-from:#114a4f; --hero-via:#0c3a3f; --hero-to:#072528; --hero-art:url('../assets/heroes/about.svg'); } /* tünd firuzə */
+.page-hero.theme-dhikr        { --hero-from:#114a4f; --hero-via:#0c3a3f; --hero-to:#072528; --hero-art:url('../assets/heroes/dhikr.svg'); } /* tünd firuzə */
+.page-hero.theme-glossary     { --hero-from:#5e4721; --hero-via:#4a381a; --hero-to:#2e2310; --hero-art:url('../assets/heroes/glossary.svg'); } /* tunc-qum */
+.page-hero.theme-kids         { --hero-from:#11604c; --hero-via:#0c4b3c; --hero-to:#072e25; --hero-art:url('../assets/heroes/kids.svg'); } /* zümrüd */
+.page-hero.theme-qibla        { --hero-from:#114a4f; --hero-via:#0c3a3f; --hero-to:#072528; --hero-art:url('../assets/heroes/qibla.svg'); } /* tünd firuzə */
+.page-hero.theme-mosques      { --hero-from:#173641; --hero-via:#112a34; --hero-to:#0a1a21; --hero-art:url('../assets/heroes/mosques.svg'); } /* gecə mürəkkəbi */
+.page-hero.theme-analytics    { --hero-from:#173641; --hero-via:#112a34; --hero-to:#0a1a21; --hero-art:url('../assets/heroes/analytics.svg'); } /* gecə mürəkkəbi */
+.page-hero.theme-prayer       { --hero-from:#173641; --hero-via:#112a34; --hero-to:#0a1a21; --hero-art:url('../assets/heroes/prayer.svg'); } /* gecə mürəkkəbi */
+.page-hero.theme-calendar     { --hero-from:#173641; --hero-via:#112a34; --hero-to:#0a1a21; --hero-art:url('../assets/heroes/calendar.svg'); } /* gecə mürəkkəbi */
 .page-hero.theme-quiz,
-.page-hero.quiz-hero-compact   { --hero-from:#1a5094; --hero-via:#154078; --hero-to:#0d2a4f; --hero-art:url('../assets/heroes/quiz.svg'); } /* lapis (compact = hero while a quiz is running) */
+.page-hero.quiz-hero-compact   { --hero-from:#114a4f; --hero-via:#0c3a3f; --hero-to:#072528; --hero-art:url('../assets/heroes/quiz.svg'); } /* tünd firuzə */
 .page-hero.quiz-hero-compact  { --hero-art-pos: center 70%; } /* short bar: centre on the side lamps, keep the bottom emblem out from under the title */
-.page-hero.theme-names        { --hero-from:#4b3178; --hero-via:#3f275f; --hero-to:#2d1a3f; --hero-art:url('../assets/heroes/names.svg'); } /* violet night */
-.page-hero.theme-duajournal   { --hero-from:#34405f; --hero-via:#28324b; --hero-to:#1a2133; --hero-art:url('../assets/heroes/duajournal.svg'); } /* ink blue-grey */
-.page-hero.theme-duas         { --hero-from:#5a2c62; --hero-via:#46214e; --hero-to:#2e1535; --hero-art:url('../assets/heroes/duas.svg'); } /* aubergine */
-.page-hero.theme-qurangame    { --hero-from:#6a2d57; --hero-via:#552346; --hero-to:#38162e; --hero-art:url('../assets/heroes/qurangame.svg'); } /* plum */
-.page-hero.theme-hadith       { --hero-from:#8a2d2b; --hero-via:#6f2224; --hero-to:#4a1518; --hero-art:url('../assets/heroes/hadith.svg'); } /* burgundy */
-.page-hero.theme-quotes       { --hero-from:#7f2843; --hero-via:#661f36; --hero-to:#441424; --hero-art:url('../assets/heroes/quotes.svg'); } /* maroon-rose */
-.page-hero.theme-hifz         { --hero-from:#7c3f22; --hero-via:#63321b; --hero-to:#422011; --hero-art:url('../assets/heroes/hifz.svg'); } /* copper umber */
-.page-hero.theme-sahaba       { --hero-from:#6e5230; --hero-via:#584125; --hero-to:#3a2a17; --hero-art:url('../assets/heroes/sahaba.svg'); } /* bronze earth */
-.page-hero.theme-zakat        { --hero-from:#566526; --hero-via:#44511e; --hero-to:#2d3613; --hero-art:url('../assets/heroes/zakat.svg'); } /* olive */
-.page-hero.theme-hajj         { --hero-from:#8a5b17; --hero-via:#6f4811; --hero-to:#4a2f0a; --hero-art:url('../assets/heroes/hajj.svg'); } /* deep amber-gold */
+.page-hero.theme-names        { --hero-from:#173641; --hero-via:#112a34; --hero-to:#0a1a21; --hero-art:url('../assets/heroes/names.svg'); } /* gecə mürəkkəbi */
+.page-hero.theme-duajournal   { --hero-from:#173641; --hero-via:#112a34; --hero-to:#0a1a21; --hero-art:url('../assets/heroes/duajournal.svg'); } /* gecə mürəkkəbi */
+.page-hero.theme-duas         { --hero-from:#16513f; --hero-via:#103f32; --hero-to:#09271f; --hero-art:url('../assets/heroes/duas.svg'); } /* şam yaşılı */
+.page-hero.theme-qurangame    { --hero-from:#11604c; --hero-via:#0c4b3c; --hero-to:#072e25; --hero-art:url('../assets/heroes/qurangame.svg'); } /* zümrüd */
+.page-hero.theme-hadith       { --hero-from:#5a3a26; --hero-via:#472e1e; --hero-to:#2c1c12; --hero-art:url('../assets/heroes/hadith.svg'); } /* qəhvəyi torpaq */
+.page-hero.theme-quotes       { --hero-from:#5e4721; --hero-via:#4a381a; --hero-to:#2e2310; --hero-art:url('../assets/heroes/quotes.svg'); } /* tunc-qum */
+.page-hero.theme-hifz         { --hero-from:#11604c; --hero-via:#0c4b3c; --hero-to:#072e25; --hero-art:url('../assets/heroes/hifz.svg'); } /* zümrüd */
+.page-hero.theme-sahaba       { --hero-from:#5e4721; --hero-via:#4a381a; --hero-to:#2e2310; --hero-art:url('../assets/heroes/sahaba.svg'); } /* tunc-qum */
+.page-hero.theme-zakat        { --hero-from:#3d5236; --hero-via:#30422b; --hero-to:#1d2a1b; --hero-art:url('../assets/heroes/zakat.svg'); } /* mamır */
+.page-hero.theme-hajj         { --hero-from:#5e4721; --hero-via:#4a381a; --hero-to:#2e2310; --hero-art:url('../assets/heroes/hajj.svg'); } /* tunc-qum */
 
 /* Pages owned by a parallel workflow — colours stay in their page CSS for now,
    only the illustration is supplied here. */
@@ -46,17 +59,17 @@
    own palette + art (armillary spheres, star-node network). .theme-aichat is
    ready for when the page switches to its own class. */
 .page-hero.theme-aichat,
-.ai-chat-page .page-hero.theme-quran { --hero-from:#2e587a; --hero-via:#264662; --hero-to:#1b2d41; --hero-art:url('../assets/heroes/aichat.svg'); } /* steel lapis */
+.ai-chat-page .page-hero.theme-quran { --hero-from:#173641; --hero-via:#112a34; --hero-to:#0a1a21; --hero-art:url('../assets/heroes/aichat.svg'); } /* gecə mürəkkəbi */
 
 /* ── Custom heroes (Books, Videos, Islamic History, Holy Places) ──
    Their markup/CSS files belong to the pages; we only re-skin them here with a
    doubled class selector (specificity 0,2,0 / 0,3,0) so these rules win over the
    page stylesheet (0,1,0) that loads later. Old emoji/circle pseudo layers are
    replaced by the same art + vignette system as .page-hero. */
-.bp-hero.bp-hero { --hero-from:#7a4e1c; --hero-via:#623f16; --hero-to:#41290e; --hero-art:url('../assets/heroes/books.svg'); } /* leather bronze */
-.vp-hero.vp-hero { --hero-from:#0b4a55; --hero-via:#093c46; --hero-to:#05282f; --hero-art:url('../assets/heroes/videos.svg'); } /* deep teal-blue */
-.history-hero.history-hero { --hero-from:#672f26; --hero-via:#53261d; --hero-to:#381a13; --hero-art:url('../assets/heroes/history.svg'); } /* maroon-brown */
-.holy-hero.holy-hero { --hero-from:#89524c; --hero-via:#6d403b; --hero-to:#472a25; --hero-art:url('../assets/heroes/holy.svg'); } /* desert rose (dusk over the holy cities) */
+.bp-hero.bp-hero { --hero-from:#5e4721; --hero-via:#4a381a; --hero-to:#2e2310; --hero-art:url('../assets/heroes/books.svg'); } /* tunc-qum */
+.vp-hero.vp-hero { --hero-from:#114a4f; --hero-via:#0c3a3f; --hero-to:#072528; --hero-art:url('../assets/heroes/videos.svg'); } /* tünd firuzə */
+.history-hero.history-hero { --hero-from:#5a3a26; --hero-via:#472e1e; --hero-to:#2c1c12; --hero-art:url('../assets/heroes/history.svg'); } /* qəhvəyi torpaq */
+.holy-hero.holy-hero { --hero-from:#5e4721; --hero-via:#4a381a; --hero-to:#2e2310; --hero-art:url('../assets/heroes/holy.svg'); } /* tunc-qum */
 .bp-hero.bp-hero, .vp-hero.vp-hero, .history-hero.history-hero, .holy-hero.holy-hero {
   background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-via) 50%, var(--hero-to) 100%);
   isolation: isolate;
@@ -90,4 +103,38 @@
    of the niches / lattice windows into the corners beside the stat boxes. */
 @media (max-width: 600px) {
   .bp-hero.bp-hero::before, .vp-hero.vp-hero::before { background-size: 160% auto; }
+}
+
+
+/* ═══ HƏRƏKƏT (2-ci mərhələ) ═══════════════════════════════
+   1. Təsvir (::before) çox yavaş "nəfəs alır": 1 → 1.035 miqyas, 28 s,
+      irəli-geri. Yalnız transform — kompozitor qatında, layout yoxdur.
+   2. Hero məzmunu (breadcrumb, ərəbcə sətir, h1, p) növbə ilə yumşaq
+      qalxır — hər ekran enində (əvvəl yalnız telefonda idi, motion.css §14).
+   Hərəkəti azaldanda: hamısı söndürülür, məzmun dərhal görünür. */
+.page-hero::before,
+.bp-hero.bp-hero::before, .vp-hero.vp-hero::before,
+.history-hero.history-hero::before, .holy-hero.holy-hero::before {
+  transform-origin: 50% 100%;
+  animation: qm-hero-breathe 28s var(--ease-in-out, ease-in-out) infinite alternate;
+  will-change: transform;
+}
+
+@keyframes qm-hero-breathe {
+  from { transform: scale(1); }
+  to   { transform: scale(1.035) translate3d(0, -0.6%, 0); }
+}
+
+.page-hero > * {
+  animation: qm-reveal-up 560ms var(--ease-out) backwards;
+}
+.page-hero > :nth-child(2) { animation-delay: 70ms; }
+.page-hero > :nth-child(3) { animation-delay: 140ms; }
+.page-hero > :nth-child(n+4) { animation-delay: 210ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-hero::before,
+  .bp-hero.bp-hero::before, .vp-hero.vp-hero::before,
+  .history-hero.history-hero::before, .holy-hero.holy-hero::before,
+  .page-hero > * { animation: none !important; }
 }

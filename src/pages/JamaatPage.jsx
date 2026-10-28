@@ -20,12 +20,15 @@ import { brandName, filled } from '../config/brand'
 import usePrayerTimes, { PRAYER_NAMES, toMinutes } from '../hooks/usePrayerTimes'
 import { JAMAAT_VIRTUES, JUMUA_VIRTUES } from '../data/jamaatVirtues'
 import { VerseCard, HadithCard } from '../components/VirtueCards'
+import { navGroupLabel } from '../data/navigation'
+import Icon from '../components/Icon'
 import '../styles/JamaatPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 
 const LABELS = {
   az: {
-    title: 'Camaat və Cümə namazı',
+    title: 'Camaat və cümə namazı',
+    lead: 'Seçdiyiniz şəhər üçün bugünkü azan vaxtları, növbəti cümə namazı və camaatla namazın fəziləti haqqında ayə və hədislər.',
     next: 'Növbəti namaz', tomorrow: 'sabah', nextBadge: 'Növbəti', jumuaTag: 'Cümə',
     untilAdhan: 'azana qalıb',
     adhanTitle: 'Bugünkü azan vaxtları', calcBadge: 'Hesablanmış',
@@ -50,6 +53,7 @@ const LABELS = {
   },
   en: {
     title: 'Congregational & Friday Prayer',
+    lead: 'Today’s adhan times for your chosen city, the next Friday prayer, and verses and hadith on the virtue of praying in congregation.',
     next: 'Next prayer', tomorrow: 'tomorrow', nextBadge: 'Next', jumuaTag: 'Jumu’ah',
     untilAdhan: 'until adhan',
     adhanTitle: 'Today’s adhan times', calcBadge: 'Calculated',
@@ -74,6 +78,7 @@ const LABELS = {
   },
   ru: {
     title: 'Коллективный и пятничный намаз',
+    lead: 'Время азана на сегодня для выбранного города, ближайший пятничный намаз, аяты и хадисы о достоинстве коллективной молитвы.',
     next: 'Следующий намаз', tomorrow: 'завтра', nextBadge: 'Следующий', jumuaTag: 'Джума',
     untilAdhan: 'до азана',
     adhanTitle: 'Время азана сегодня', calcBadge: 'Расчётное',
@@ -104,6 +109,7 @@ const LABELS = {
   },
   ar: {
     title: 'صلاة الجماعة والجمعة',
+    lead: 'مواقيت الأذان لهذا اليوم في المدينة التي تختارها، وموعد صلاة الجمعة القادمة، وآيات وأحاديث في فضل صلاة الجماعة.',
     next: 'الصلاة القادمة', tomorrow: 'غدًا', nextBadge: 'التالية', jumuaTag: 'الجمعة',
     untilAdhan: 'حتى الأذان',
     adhanTitle: 'أوقات الأذان اليوم', calcBadge: 'محسوبة',
@@ -128,6 +134,7 @@ const LABELS = {
   },
   tr: {
     title: 'Cemaat ve Cuma Namazı',
+    lead: 'Seçtiğiniz şehir için bugünkü ezan vakitleri, sıradaki cuma namazı ve cemaatle namazın fazileti hakkında ayet ve hadisler.',
     next: 'Sıradaki namaz', tomorrow: 'yarın', nextBadge: 'Sıradaki', jumuaTag: 'Cuma',
     untilAdhan: 'ezana kaldı',
     adhanTitle: 'Bugünkü ezan vakitleri', calcBadge: 'Hesaplanmış',
@@ -172,9 +179,8 @@ const METHOD_NAMES = {
   },
 }
 
-const PRAYER_ICONS = { fajr: '🌙', sunrise: '🌅', dhuhr: '☀️', asr: '🌤️', maghrib: '🌇', isha: '🌃' }
-// Telefonda ikon kafelinin rəng tonu (motion.css → .icon-tile--*); masaüstündə kafel boz qalır
-const PRAYER_TONES = { fajr: 'violet', sunrise: 'orange', dhuhr: 'gold', asr: 'teal', maghrib: 'rose', isha: 'blue' }
+// v2: emoji əvəzinə xətti ikonlar (Icon.jsx) — /prayer və ana səhifə ilə eyni
+const PRAYER_ICONS = { fajr: 'sunrise', sunrise: 'sun', dhuhr: 'sun', asr: 'sunLow', maghrib: 'sunset', isha: 'moon' }
 
 // Qriqorian tarix üçün lokal — ərəbcədə Qriqorian təqvim və latın rəqəmləri
 // (vaxtlar da latın rəqəmləri ilə göstərilir)
@@ -226,7 +232,7 @@ function isForeignTimezone(tz) {
 }
 
 // ── Canlı geri sayım — yalnız bu kiçik komponent hər saniyə yenilənir ──
-function Countdown({ at, hm }) {
+function Countdown({ at, from, hm }) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     setNow(Date.now())
@@ -238,11 +244,21 @@ function Countdown({ at, hm }) {
   const h = Math.floor(total / 3600)
   const m = Math.floor((total % 3600) / 60)
   const s = total % 60
+  // Əvvəlki fərz azanından bu ana qədər ötən hissə — zolaq scaleX ilə dolur
+  const span = from != null ? at - from : 0
+  const frac = span > 0 && span < 86400000 ? Math.min(1, Math.max(0, (now - from) / span)) : null
 
   return (
-    <div className="jm-count" role="timer" aria-label={hm(h, m)}>
-      <span className="jm-time">{pad2(h)}:{pad2(m)}:{pad2(s)}</span>
-    </div>
+    <>
+      <div className="jm-count" role="timer" aria-label={hm(h, m)}>
+        <span className="jm-time">{pad2(h)}:{pad2(m)}:{pad2(s)}</span>
+      </div>
+      {frac != null && (
+        <span className="jm-bar" aria-hidden="true">
+          <span style={{ transform: `scaleX(${frac.toFixed(4)})` }} />
+        </span>
+      )}
+    </>
   )
 }
 
@@ -257,7 +273,7 @@ function TimeRow({ p, l, name, time, isNext, isPassed, jumuaTag, note }) {
   ].filter(Boolean).join(' ')
   return (
     <li className={cls} aria-current={isNext ? 'time' : undefined}>
-      <span className={`jm-li-icon icon-tile--${PRAYER_TONES[p.key] || 'slate'}`} aria-hidden="true">{PRAYER_ICONS[p.key]}</span>
+      <span className="jm-li-icon" aria-hidden="true"><Icon name={PRAYER_ICONS[p.key]} /></span>
       <span className="jm-li-name">
         <span className="jm-li-title">
           {name}
@@ -267,20 +283,21 @@ function TimeRow({ p, l, name, time, isNext, isPassed, jumuaTag, note }) {
         {filled(note) && <small className="jm-li-note">{note}</small>}
       </span>
       <span className="jm-time jm-li-time">{time}</span>
+      <span className="jm-li-chk" aria-hidden="true">{isPassed && !isNext ? <Icon name="check" size={14} strokeWidth={2.2} /> : null}</span>
     </li>
   )
 }
 
 /** Keçid sətri (düymə — SPA naviqasiyası) */
-function LinkRow({ icon, tone, title, sub, onClick }) {
+function LinkRow({ icon, title, sub, onClick }) {
   return (
     <button type="button" className="jm-link" onClick={onClick}>
-      <span className={`jm-link-icon icon-tile--${tone}`} aria-hidden="true">{icon}</span>
+      <span className="jm-link-icon ui-icon-tile" aria-hidden="true"><Icon name={icon} /></span>
       <span className="jm-link-text">
         <strong>{title}</strong>
         <small>{sub}</small>
       </span>
-      <span className="jm-link-arrow" aria-hidden="true">›</span>
+      <Icon name="chevron" size={18} className="jm-link-arrow ui-flip-rtl" />
     </button>
   )
 }
@@ -318,17 +335,24 @@ export default function JamaatPage({ setPage }) {
 
   return (
     <div className="jm-page">
-      <div className="page-hero theme-jamaat hero-compact">
-        <Breadcrumb setPage={setPage} current={l.title} />
-        {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
-        {lang !== 'ar' && <div className="page-hero-arabic">صَلَاةُ الْجَمَاعَة</div>}
-        <h1>{l.title}</h1>
-        <p className="jm-hero-sub">
-          <span className="jm-hero-brand">{brand}</span>
-          {gregorian && <><span className="jm-hero-dot" aria-hidden="true">·</span><span>{gregorian}</span></>}
-          {hijriStr && <><span className="jm-hero-dot" aria-hidden="true">·</span><span>{hijriStr}</span></>}
-        </p>
-      </div>
+      {/* v2: sakit kağız hero — iz, eyebrow, bir h1, giriş, tarix nişanları */}
+      <header className="ui-page-hero jm-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <div className="ui-container">
+          <Breadcrumb setPage={setPage} current={l.title} />
+          <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
+          <h1 className="ui-display">{l.title}</h1>
+          {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
+          {lang !== 'ar' && <p className="jm-hero-ar ui-arabic" lang="ar" aria-hidden="true">صَلَاةُ الْجَمَاعَة</p>}
+          <p className="ui-lead">{l.lead.replace('{brand}', brand)}</p>
+          {(gregorian || hijriStr) && (
+            <p className="jm-hero-sub">
+              {gregorian && <span className="ui-badge"><Icon name="calendar" size={13} /> {gregorian}</span>}
+              {hijriStr && <span className="ui-badge ui-badge--accent"><Icon name="moon" size={13} /> {hijriStr}</span>}
+            </p>
+          )}
+        </div>
+      </header>
 
       <div className="jm-wrap">
 
@@ -346,10 +370,10 @@ export default function JamaatPage({ setPage }) {
 
         {!loading && error && !hasData && (
           <section className="jm-card jm-state" role="alert">
-            <div className="jm-state-icon" aria-hidden="true">⚠️</div>
+            <span className="jm-state-icon ui-icon-tile ui-icon-tile--neutral ui-icon-tile--lg" aria-hidden="true"><Icon name="alert" /></span>
             <p className="jm-state-title">{l.error}</p>
             <p className="jm-state-sub">{l.errorSub}</p>
-            <button type="button" className="btn-primary" onClick={reload}>↻ {l.retry}</button>
+            <button type="button" className="ui-btn ui-btn--primary" onClick={reload}><Icon name="refresh" className="ui-btn__icon" /> {l.retry}</button>
           </section>
         )}
 
@@ -362,7 +386,7 @@ export default function JamaatPage({ setPage }) {
                 {next.tomorrow && <span className="jm-tag">{l.tomorrow}</span>}
               </div>
               <div className="jm-next-name">
-                <span className="jm-next-icon" aria-hidden="true">{PRAYER_ICONS[next.key]}</span>
+                <span className="jm-next-icon" aria-hidden="true"><Icon name={PRAYER_ICONS[next.key]} size={26} /></span>
                 <span>{name(next.key)}</span>
                 {isFriday && !next.tomorrow && next.key === 'dhuhr' && <span className="jm-tag jm-tag--gold">{l.jumuaTag}</span>}
               </div>
@@ -374,7 +398,7 @@ export default function JamaatPage({ setPage }) {
               </dl>
             </div>
             <div className="jm-next-count">
-              <Countdown at={next.at} hm={l.hm} />
+              <Countdown at={next.at} from={next.prevAt} hm={l.hm} />
               <div className="jm-next-caption">{l.untilAdhan}</div>
             </div>
           </section>
@@ -386,7 +410,7 @@ export default function JamaatPage({ setPage }) {
             <section className="jm-card jm-card--jamaat" data-reveal data-reveal-delay="40" aria-labelledby="jm-adhan-title">
               <div className="jm-card-head">
                 <h2 id="jm-adhan-title" className="jm-card-title">{l.adhanTitle}</h2>
-                <span className="jm-chip jm-chip--muted">{l.calcBadge}</span>
+                <span className="ui-badge">{l.calcBadge}</span>
               </div>
 
               <ol className="jm-list">
@@ -407,7 +431,7 @@ export default function JamaatPage({ setPage }) {
               </ol>
 
               <p className="jm-foot jm-foot--geo">
-                <span aria-hidden="true">📍</span> {l.cityLine(city)}
+                <Icon name="pin" size={15} className="jm-foot-ic" /> {l.cityLine(city)}
                 <span aria-hidden="true"> · </span>
                 <button type="button" className="jm-inline-link" onClick={() => go('prayer')}>{l.changeCity}</button>
               </p>
@@ -421,8 +445,11 @@ export default function JamaatPage({ setPage }) {
             aria-labelledby="jm-friday-title"
           >
             <div className="jm-card-head">
-              <h2 id="jm-friday-title" className="jm-card-title">🕌 {l.friday}</h2>
-              {fridayRel && <span className="jm-chip jm-chip--gold">{fridayRel}</span>}
+              <h2 id="jm-friday-title" className="jm-card-title">
+                <span className="ui-icon-tile ui-icon-tile--sm ui-icon-tile--accent" aria-hidden="true"><Icon name="holyplaces" /></span>
+                {l.friday}
+              </h2>
+              {fridayRel && <span className="ui-badge ui-badge--accent">{fridayRel}</span>}
             </div>
 
             {fridayDate && <p className="jm-friday-date">{fridayDate}</p>}
@@ -438,12 +465,12 @@ export default function JamaatPage({ setPage }) {
             )}
 
             <p className="jm-friday-khutbah">
-              <span className="jm-friday-khutbah-icon" aria-hidden="true">🎙️</span>
+              <Icon name="mic" size={18} className="jm-friday-khutbah-icon" />
               <span>{l.khutbahBefore}</span>
             </p>
 
-            <button type="button" className="btn-secondary jm-friday-btn" onClick={() => go('mosques')}>
-              <span aria-hidden="true">📍</span> {l.findMosque}
+            <button type="button" className="ui-btn ui-btn--secondary jm-friday-btn" onClick={() => go('mosques')}>
+              <Icon name="mosques" className="ui-btn__icon" /> {l.findMosque}
             </button>
           </section>
         </div>
@@ -451,24 +478,25 @@ export default function JamaatPage({ setPage }) {
         {/* ── Keçidlər ── */}
         <nav className="jm-card jm-links" data-reveal aria-labelledby="jm-links-title">
           <h2 id="jm-links-title" className="jm-card-title jm-links-title">{l.more}</h2>
-          <div className="jm-links-list">
-            <LinkRow icon="📍" tone="rose" title={l.findMosque} sub={l.findMosqueSub} onClick={() => go('mosques')} />
-            <LinkRow icon="🗓️" tone="blue" title={l.otherCities} sub={l.otherCitiesSub} onClick={() => go('prayer')} />
-            <LinkRow icon="🧭" tone="teal" title={l.qibla} sub={l.qiblaSub} onClick={() => go('qibla')} />
+          <div className="jm-links-list" data-reveal="stagger-zoom">
+            <LinkRow icon="mosques" title={l.findMosque} sub={l.findMosqueSub} onClick={() => go('mosques')} />
+            <LinkRow icon="prayer" title={l.otherCities} sub={l.otherCitiesSub} onClick={() => go('prayer')} />
+            <LinkRow icon="qibla" title={l.qibla} sub={l.qiblaSub} onClick={() => go('qibla')} />
           </div>
         </nav>
 
         {/* ── Fəzilətlər: ayə + hədislər ── */}
         <section className="jm-virtues" aria-labelledby="jm-virtues-title">
-          <div className="jm-sec-head" data-reveal>
-            <h2 id="jm-virtues-title" className="jm-sec-title">{l.virtues}</h2>
-            <p className="jm-sec-sub">{l.virtuesSub}</p>
+          <div className="ui-section-head ui-section-head--center jm-sec-head" data-reveal>
+            <div className="ui-ornament" aria-hidden="true"><span className="ui-ornament__star" /></div>
+            <h2 id="jm-virtues-title" className="ui-title">{l.virtues}</h2>
+            <p className="ui-lead">{l.virtuesSub}</p>
           </div>
 
           <div className="jm-vgrid">
             <div className="jm-vgroup" role="group" aria-labelledby="jm-vg-jamaat" data-reveal="stagger">
               <h3 id="jm-vg-jamaat" className="jm-vgroup-title">
-                <span className="jm-vgroup-icon" aria-hidden="true">🤝</span>
+                <span className="jm-vgroup-icon ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="jamaat" /></span>
                 {l.groupJamaat}
               </h3>
               <VerseCard verseRef="2:43" lang={lang} />
@@ -477,7 +505,7 @@ export default function JamaatPage({ setPage }) {
 
             <div className="jm-vgroup" role="group" aria-labelledby="jm-vg-jumua" data-reveal="stagger">
               <h3 id="jm-vg-jumua" className="jm-vgroup-title">
-                <span className="jm-vgroup-icon jm-vgroup-icon--gold" aria-hidden="true">🕌</span>
+                <span className="jm-vgroup-icon ui-icon-tile ui-icon-tile--sm ui-icon-tile--accent" aria-hidden="true"><Icon name="holyplaces" /></span>
                 {l.groupJumua}
               </h3>
               <VerseCard verseRef="62:9" lang={lang} />

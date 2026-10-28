@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import Icon from '../Icon'
+import { EVENT_ICON, AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addCustomEvent, updateCustomEvent, deleteCustomEvent, EVENT_TYPES, HIJRI_MONTHS, subscribeToEvents } from '../../data/adminContent'
 
 const LABELS = {
-  az: { title:'İslami Hadisələr', sub:'Təqvimdə göstəriləcək tarixlər', addNew:'Yeni Hadisə', editItem:'Redaktə', all:'Bütün Hadisələr', name:'Ad', desc:'Təsvir', month:'Ay', day:'Gün', type:'Növ', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hadisə yoxdur', required:'Bu sahə tələb olunur' },
+  az: { title:'İslami hadisələr', sub:'Təqvimdə göstəriləcək tarixlər', addNew:'Yeni hadisə', editItem:'Redaktə', all:'Bütün hadisələr', name:'Ad', desc:'Təsvir', month:'Ay', day:'Gün', type:'Növ', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hadisə yoxdur', required:'Bu sahə tələb olunur' },
   en: { title:'Islamic Events', sub:'Dates shown in calendar', addNew:'New Event', editItem:'Edit', all:'All Events', name:'Name', desc:'Description', month:'Month', day:'Day', type:'Type', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete?', noItems:'No events yet', required:'Required' },
   ru: { title:'Исламские События', sub:'Даты в календаре', addNew:'Новое', editItem:'Изменить', all:'Все', name:'Название', desc:'Описание', month:'Месяц', day:'День', type:'Тип', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noItems:'Нет событий', required:'Обязательно' },
   ar: { title:'الأحداث الإسلامية', sub:'التواريخ في التقويم', addNew:'حدث جديد', editItem:'تعديل', all:'الكل', name:'الاسم', desc:'الوصف', month:'الشهر', day:'اليوم', type:'النوع', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noItems:'لا توجد', required:'مطلوب' },
   tr: { title:'İslami Olaylar', sub:'Takvimdeki tarihler', addNew:'Yeni Olay', editItem:'Düzenle', all:'Tümü', name:'Ad', desc:'Açıklama', month:'Ay', day:'Gün', type:'Tip', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin?', noItems:'Olay yok', required:'Gerekli' },
 }
 
-const LANGS = ['az','en','ru','ar','tr']
 const EMPTY = { name:{az:'',en:'',ru:'',ar:'',tr:''}, desc:{az:'',en:'',ru:'',ar:'',tr:''}, month:1, day:1, type:'major' }
 
 export default function EventManager({ onUpdate }) {
@@ -66,27 +67,13 @@ export default function EventManager({ onUpdate }) {
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#6366f1,#4338ca)'}}>📅</div>
-          <div className="admin-header-info"><h1>{l.title}</h1><p>{l.sub}</p></div>
-        </div>
-      </div>
+      <AdminHeader icon="calendar" title={l.title} sub={l.sub} />
 
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">{editingId ? '✏️' : '➕'}</span>
-          {editingId ? l.editItem : l.addNew}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
-          <div className="admin-lang-tabs">
-            {LANGS.map(L => (
-              <button key={L} type="button" className={`admin-lang-tab ${formLang === L ? 'active' : ''}`} onClick={() => setFormLang(L)}>
-                {L.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-input-group">
             <label className="admin-input-label">{l.name} ({formLang.toUpperCase()})</label>
@@ -114,16 +101,16 @@ export default function EventManager({ onUpdate }) {
             <div className="admin-input-group">
               <label className="admin-input-label">{l.type}</label>
               <select className="admin-input admin-select" value={form.type} onChange={(e) => setForm({...form, type:e.target.value})}>
-                {EVENT_TYPES.map(t => <option key={t.key} value={t.key}>{t.icon} {t.label[lang]}</option>)}
+                {EVENT_TYPES.map(t => <option key={t.key} value={t.key}>{t.label[lang]}</option>)}
               </select>
             </div>
           </div>
 
-          {error && <div className="admin-login-error">⚠️ {error}</div>}
+          {error && <AdminAlert tone="bad">{error}</AdminAlert>}
 
           <div className="admin-form-actions">
-            <button type="submit" className="admin-submit-btn" style={{background:'linear-gradient(135deg,#6366f1,#4338ca)'}}>
-              <span>{editingId ? '💾' : '➕'}</span> {l.save}
+            <button type="submit" className="admin-submit-btn">
+              <Icon name={editingId ? 'check' : 'plus'} /> {l.save}
             </button>
             {editingId && <button type="button" className="admin-cancel-btn" onClick={() => { setEditingId(null); setForm(EMPTY); }}>{l.cancel}</button>}
           </div>
@@ -131,39 +118,34 @@ export default function EventManager({ onUpdate }) {
       </div>
 
       <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">📅</span>
-          {l.all} ({sorted.length})
-        </h2>
+        <SectionTitle icon="calendar">{l.all} <span className="admin-count">({sorted.length})</span></SectionTitle>
 
         {sorted.length === 0 ? (
-          <div className="admin-empty"><div className="admin-empty-icon">📭</div>{l.noItems}</div>
+          <AdminEmpty>{l.noItems}</AdminEmpty>
         ) : (
-          <div style={{display:'grid', gap:10}}>
+          <ul className="admin-items">
             {sorted.map(ev => {
               const type = EVENT_TYPES.find(t => t.key === ev.type) || EVENT_TYPES[0]
               const month = HIJRI_MONTHS.find(m => m.num === ev.month)
               return (
-                <div key={ev.id} style={{background:'var(--bg-card2)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:16, display:'flex', alignItems:'center', gap:14, borderLeft:`4px solid ${type.color}`}}>
-                  <div style={{minWidth:60, textAlign:'center', background:type.color+'18', padding:'10px', borderRadius:10}}>
-                    <div style={{fontSize:11, fontWeight:800, color:type.color, textTransform:'uppercase'}}>{month?.[lang]}</div>
-                    <div style={{fontSize:24, fontWeight:800, color:type.color, lineHeight:1}}>{ev.day}</div>
+                <li key={ev.id} className="admin-item admin-item--row">
+                  <div className="admin-date-tile">
+                    <b>{ev.day}</b>
+                    <span>{month?.[lang]}</span>
                   </div>
-                  <div style={{flex:1}}>
-                    <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:4}}>
-                      <span>{type.icon}</span>
-                      <strong style={{fontSize:15, color:'var(--text)'}}><AdminText value={ev.name} lang={lang} /></strong>
-                    </div>
-                    {adminPick(ev.desc, lang) && <div style={{fontSize:12, color:'var(--text-dim)'}}>{adminPick(ev.desc, lang)}</div>}
+                  <div className="admin-item__body">
+                    <strong className="admin-item__title"><AdminText value={ev.name} lang={lang} /></strong>
+                    <span className="ui-badge admin-tone admin-item__type"><Icon name={EVENT_ICON[type.key] || 'calendar'} /> {type.label[lang]}</span>
+                    {adminPick(ev.desc, lang) && <p className="admin-item__text">{adminPick(ev.desc, lang)}</p>}
                   </div>
-                  <div style={{display:'flex', gap:6}}>
-                    <button className="admin-action-btn edit" style={{flex:'0 0 auto', padding:'6px 10px'}} onClick={() => handleEdit(ev)} title={l.edit} aria-label={l.edit}>✏️</button>
-                    <button className="admin-action-btn delete" style={{flex:'0 0 auto', padding:'6px 10px'}} onClick={() => handleDelete(ev.id)} title={l.delete} aria-label={l.delete}>🗑️</button>
+                  <div className="admin-item__actions">
+                    <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(ev)} title={l.edit} aria-label={l.edit}><Icon name="duajournal" /></button>
+                    <button type="button" className="admin-action-btn admin-action-btn--icon delete" onClick={() => handleDelete(ev.id)} title={l.delete} aria-label={l.delete}><Icon name="trash" /></button>
                   </div>
-                </div>
+                </li>
               )
             })}
-          </div>
+          </ul>
         )}
       </div>
     </div>

@@ -30,30 +30,50 @@ const HeroBannerDisplay = lazy(() => import('../components/HeroBannerDisplay'))
 import '../styles/HomePage.css'
 import '../styles/AdminPage.css'
 
-function CountUp({ end, duration = 2000 }) {
-  const [count, setCount] = useState(0)
+// "Hərəkəti azalt" seçilibsə rəqəmlər saymır — dərhal son dəyər görünür
+const reducedMotion = () => {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false }
+}
+
+// Statistika rəqəmi: görünəndə 0-dan sona qədər sayır (ease-out, yalnız mətn
+// dəyişir — layout sabitdir, rəqəmlər tabular-nums). delay — sıradakı
+// rəqəmlər növbə ilə başlasın. Ekran oxuyucu yalnız son dəyəri eşidir
+// (sayılan rəqəm aria-hidden, yanında gizli son dəyər).
+function CountUp({ end, duration = 1600, delay = 0 }) {
+  const [count, setCount] = useState(() => (typeof window !== 'undefined' && !reducedMotion() && 'IntersectionObserver' in window ? 0 : end))
   const ref = useRef(null)
   const started = useRef(false)
   useEffect(() => {
+    if (reducedMotion() || !('IntersectionObserver' in window)) { setCount(end); return undefined }
+    let raf = 0
+    let timer = 0
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting && !started.current) {
         started.current = true
-        const start = performance.now()
-        const tick = (now) => {
-          const p = Math.min((now - start) / duration, 1)
-          const ease = 1 - Math.pow(1 - p, 3)
-          setCount(Math.floor(ease * end))
-          if (p < 1) requestAnimationFrame(tick)
-        }
-        requestAnimationFrame(tick)
+        obs.disconnect()
+        timer = window.setTimeout(() => {
+          const start = performance.now()
+          const tick = (now) => {
+            const p = Math.min((now - start) / duration, 1)
+            const ease = 1 - Math.pow(1 - p, 3)
+            setCount(Math.round(ease * end))
+            if (p < 1) raf = requestAnimationFrame(tick)
+          }
+          raf = requestAnimationFrame(tick)
+        }, delay)
       }
     }, { threshold: 0.3 })
     if (ref.current) obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [end, duration])
+    return () => { obs.disconnect(); cancelAnimationFrame(raf); window.clearTimeout(timer) }
+  }, [end, duration, delay])
   // Ayırıcısız yazılır — səhifənin qalan rəqəmləri (Quran zolağı, bölmələr)
   // kimi. toLocaleString() brauzerin dilinə görə "6,236" yazırdı.
-  return <span ref={ref}>{String(count)}</span>
+  return (
+    <>
+      <span ref={ref} aria-hidden="true" className={count === end ? 'hp-cu is-done' : 'hp-cu'}>{String(count)}</span>
+      <span className="ui-sr-only">{String(end)}</span>
+    </>
+  )
 }
 
 // Görünmə animasiyaları motion.css-in data-reveal sistemi ilədir (tək qlobal
@@ -89,7 +109,7 @@ const LABELS = {
     ctaTitle: 'Hər gün İslamla birlikdə',
     ctaDesc: 'Namaz vaxtlarını izləyin, yeni elanlardan xəbərdar olun və İslami bilikləri bir yerdə öyrənin.',
     ctaTimes: 'Namaz vaxtları', ctaNotif: 'Bildiriş ayarları',
-    adFree: 'Reklamsız', free: '100% Pulsuz', langs: '5 Dil',
+    adFree: 'Reklamsız', free: '100% pulsuz', langs: '5 dil',
   },
   en: {
     badge: 'A free Islamic platform',
@@ -182,7 +202,7 @@ const MAIN_LINKS = [
   },
   {
     page: 'jamaat', icon: '🤝', tone: 'gold',
-    title: { az: 'Camaat və Cümə', en: 'Congregation & Friday', ru: 'Джамаат и Джума', ar: 'الجماعة والجمعة', tr: 'Cemaat ve Cuma' },
+    title: { az: 'Camaat və cümə', en: 'Congregation & Friday', ru: 'Джамаат и Джума', ar: 'الجماعة والجمعة', tr: 'Cemaat ve Cuma' },
     desc: { az: 'Camaat və cümə namazının fəziləti', en: 'The virtue of congregational and Friday prayer', ru: 'Достоинства коллективного и пятничного намаза', ar: 'فضل صلاة الجماعة والجمعة', tr: 'Cemaat ve cuma namazının fazileti' },
   },
   {
@@ -246,8 +266,10 @@ function Countdown({ at, from, label }) {
   const frac = span > 0 && span < 86400000 ? Math.min(1, Math.max(0, (now - from) / span)) : null
   return (
     <>
+      {/* Saniyələr hər dəyişəndə yumşaq "döyünür" (key → animasiya yenidən
+          başlayır; HomePage.css → .hp-pc-s) — sayğacın canlı hissi */}
       <span className="hp-pc-cd" role="timer" aria-label={label(h, m)}>
-        {pad2(h)}:{pad2(m)}:{pad2(s)}
+        {pad2(h)}:{pad2(m)}:<span key={s} className="hp-pc-s">{pad2(s)}</span>
       </span>
       {frac != null && (
         <span className="hp-pc-bar" aria-hidden="true">
@@ -300,7 +322,7 @@ function PrayerWidget({ lang, l, onMore }) {
             const done = i < nextIdx
             const act = i === nextIdx
             return (
-              <li key={p.key} className={`hp-pr${done ? ' hp-pr--done' : ''}${act ? ' hp-pr--act' : ''}`}>
+              <li key={p.key} className={`hp-pr${done ? ' hp-pr--done' : ''}${act ? ' hp-pr--act' : ''}`} style={{ '--i': i }}>
                 <span className={`hp-pr-dot${done ? ' done' : act ? ' act' : ''}`} aria-hidden="true" />
                 <PrayerTile k={p.key} />
                 <span className="hp-pr-nm">
@@ -343,7 +365,7 @@ function PrayerWidget({ lang, l, onMore }) {
 const TAWHEED_PILLARS = [
   {
     icon:'☝️', key:'rub', ar:'تَوْحِيدُ الرُّبُوبِيَّة',
-    az:'Rübubiyyət Tövhidi', en:'Tawhid al-Rububiyyah', ru:'Таухид ар-Рубубийя', tr:'Rububiyyet Tevhidi',
+    az:'Rübubiyyət tövhidi', en:'Tawhid al-Rububiyyah', ru:'Таухид ар-Рубубийя', tr:'Rububiyyet Tevhidi',
     desc:{
       az:'Allahın Rəbb olduğuna inanmaqdır — O hər şeyin yaradıcısı, ruzi verəni və idarəçisidir. Heç kim Onun yaratmaq, öldürmək, diriltmək, ruzi vermək, idarə etmək kimi xüsusiyyətlərində Ona şərik ola bilməz.',
       en:'Belief in Allah\'s Lordship — that He alone creates, provides sustenance, and governs all things. Nothing can share His powers of creation, life, death, and governance.',
@@ -357,7 +379,7 @@ const TAWHEED_PILLARS = [
   },
   {
     icon:'🕌', key:'ulu', ar:'تَوْحِيدُ الأُلُوهِيَّة',
-    az:'Uluhiyyət Tövhidi', en:'Tawhid al-Uluhiyyah', ru:'Таухид аль-Улюхийя', tr:'Uluhiyyet Tevhidi',
+    az:'Uluhiyyət tövhidi', en:'Tawhid al-Uluhiyyah', ru:'Таухид аль-Улюхийя', tr:'Uluhiyyet Tevhidi',
     desc:{
       az:'Bütün ibadətin — namaz, dua, qurban, nəzir, sevgi, qorxu, ümid, s.d.a. — yalnız Allaha edilməsidir. Bu tövhid növü peyğəmbərlərin insanlara ən çox çatdırdığı dəvətin əsasını təşkil edir.',
       en:'Dedicating all acts of worship solely to Allah: prayer, supplication, sacrifice, vows, love, fear, and hope. This is the core of every prophet\'s call to their people.',
@@ -371,7 +393,7 @@ const TAWHEED_PILLARS = [
   },
   {
     icon:'✨', key:'asma', ar:'تَوْحِيدُ الأَسْمَاءِ وَالصِّفَاتِ',
-    az:'Əsma və Sifat Tövhidi', en:'Tawhid al-Asma was-Sifat', ru:'Таухид аль-Асма уа ас-Сыфат', tr:'Esma ve Sıfat Tevhidi',
+    az:'Əsma və sifat tövhidi', en:'Tawhid al-Asma was-Sifat', ru:'Таухид аль-Асма уа ас-Сыфат', tr:'Esma ve Sıfat Tevhidi',
     desc:{
       az:'Allahın Özü üçün Quran və sünnədə sabit etdiyi bütün gözəl ad və sifətlərə iman etmək; onları məxluqata bənzətmədən, inkar etmədən, dəyişdirmədən, surətini soruşmadan.',
       en:'Affirming all the beautiful Names and Attributes that Allah established for Himself in the Quran and Sunnah — without likening them to creation, denying, distorting, or asking about their modality.',
@@ -456,11 +478,11 @@ export default function HomePage({ setPage }) {
   const heroHadithText = lang === 'ar' ? '' : tr(HERO_HADITH.text, lang)
 
   const stats=[
-    {num:114,  s:'',  l:{az:'Quran Surəsi',  en:'Quran Surahs',   ru:'Сур Корана',    tr:'Sure',         ar:'سورة'}},
-    {num:6236, s:'',  l:{az:'Quran Ayəsi',   en:'Quran Verses',   ru:'Аятов Корана',  tr:'Ayet',         ar:'آية'}},
+    {num:114,  s:'',  l:{az:'Quran surəsi',  en:'Quran Surahs',   ru:'Сур Корана',    tr:'Sure',         ar:'سورة'}},
+    {num:6236, s:'',  l:{az:'Quran ayəsi',   en:'Quran Verses',   ru:'Аятов Корана',  tr:'Ayet',         ar:'آية'}},
     // Təkrarsız 1394 hədis — "1350+" (bax: data/siteStats.js)
     {num:HADITH_COUNT, s:'+', l:{az:'Hədis',  en:'Hadiths',        ru:'Хадисов',       tr:'Hadis',        ar:'حديث'}},
-    {num:99,   s:'',  l:{az:"Allahın Adı",   en:"Names of Allah", ru:'Имён Аллаха',   tr:"Allah'ın İsmi",ar:'اسمًا لله'}},
+    {num:99,   s:'',  l:{az:"Allahın adı",   en:"Names of Allah", ru:'Имён Аллаха',   tr:"Allah'ın İsmi",ar:'اسمًا لله'}},
     {num:5,    s:'',  l:{az:'Dil',            en:'Languages',      ru:'Языков',        tr:'Dil',          ar:'لغات'}},
     {num:100,  s:'%', l:{az:'Pulsuz',         en:'Free',           ru:'Бесплатно',     tr:'Ücretsiz',     ar:'مجاناً'}},
   ]
@@ -589,7 +611,7 @@ export default function HomePage({ setPage }) {
                   ].map((s,i)=><div key={i} className="hp-qban-s"><span>{s.n}</span>{L(s.l)}</div>)}
                 </div>
                 <button type="button" className="ui-btn ui-btn--inverse" onClick={()=>goTo('quran')}>
-                  {lk==='az'?'Quran Oxu':lk==='ru'?'Читать Коран':lk==='ar'?'اقرأ القرآن':lk==='tr'?'Kuran Oku':'Read Quran'}
+                  {l.btnQuran}
                   <Icon name="arrow" size={18} className="ui-btn__icon ui-flip-rtl" />
                 </button>
               </div>
@@ -625,7 +647,7 @@ export default function HomePage({ setPage }) {
         <div className="hp-stats-in" data-reveal="stagger">
           {stats.map((s,i)=>(
             <div key={i} className="hp-stat">
-              <div className="hp-stat-n"><CountUp end={s.num}/>{s.s}</div>
+              <div className="hp-stat-n"><CountUp end={s.num} delay={i * 90} />{s.s && <span className="hp-stat-sfx">{s.s}</span>}</div>
               <div className="hp-stat-l">{L(s.l)}</div>
             </div>
           ))}
@@ -639,9 +661,9 @@ export default function HomePage({ setPage }) {
         <div className="hp-sec-in">
 
           <div className="hp-sec-hd" data-reveal>
-            <div className="ui-eyebrow hp-tw-ey">{lk==='az'?'İslamın Əsası':lk==='ru'?'Основа ислама':lk==='ar'?'أساس الإسلام':lk==='tr'?'İslam\'ın Temeli':'Foundation of Islam'}</div>
+            <div className="ui-eyebrow hp-tw-ey">{lk==='az'?'İslamın əsası':lk==='ru'?'Основа ислама':lk==='ar'?'أساس الإسلام':lk==='tr'?'İslam\'ın Temeli':'Foundation of Islam'}</div>
             <h2 className="ui-title hp-sec-ttl hp-tw-ttl">
-              {lk==='az'?'Tövhid — Allahın Birliyi':lk==='ru'?'Таухид — Единство Аллаха':lk==='ar'?'التوحيد — وحدانية الله':lk==='tr'?'Tevhid — Allah\'ın Birliği':'Tawheed — The Oneness of Allah'}
+              {lk==='az'?'Tövhid — Allahın birliyi':lk==='ru'?'Таухид — Единство Аллаха':lk==='ar'?'التوحيد — وحدانية الله':lk==='tr'?'Tevhid — Allah\'ın Birliği':'Tawheed — The Oneness of Allah'}
             </h2>
             <p className="hp-sec-sub">
               {lk==='az'?'Tövhid İslamın qəlbi və əsasıdır. O, Allahın yalnız bir olduğunu, heç bir şərikin, mislin, nəzirin olmadığını elan edir. Bütün peyğəmbərlər bu dəvətlə gəlmişdir.':
@@ -687,10 +709,12 @@ export default function HomePage({ setPage }) {
           {/* Seçilmiş növün paneli */}
           <div className="hp-tw-panel">
             <div key={twPillar.key} className="hp-twp-content">
-              <div className="hp-twp-badge" aria-hidden="true">
-                {activeTW+1}
+              {/* Nişan (sıra) və ərəbcə ad bir sətirdə — əvvəl nişan tək sətirdə
+                  qalıb üstdə boş yer yaradırdı */}
+              <div className="hp-twp-head">
+                <span className="hp-twp-badge" aria-hidden="true">{activeTW+1}</span>
+                <h3 className="hp-twp-ar" lang="ar" dir="rtl">{twPillar.ar}</h3>
               </div>
-              <h3 className="hp-twp-ar" lang="ar" dir="rtl">{twPillar.ar}</h3>
               {!isAr && <h4 className="hp-twp-nm">{twPillar[lk]||twPillar.en}</h4>}
               <p className="hp-twp-desc">{L(twPillar.desc)}</p>
               <div className="hp-twp-ayah">
@@ -723,7 +747,7 @@ export default function HomePage({ setPage }) {
             </div>
             <div className="hp-twi-card">
               <span className="hp-twi-ic ui-icon-tile ui-icon-tile--accent" aria-hidden="true"><Icon name="shield" /></span>
-              <h4>{lk==='az'?'Şirkdən Uzaq Ol':lk==='ru'?'Избегай ширка':lk==='ar'?'ابتعد عن الشرك':lk==='tr'?'Şirkten Uzak Dur':'Avoid Shirk'}</h4>
+              <h4>{lk==='az'?'Şirkdən uzaq ol':lk==='ru'?'Избегай ширка':lk==='ar'?'ابتعد عن الشرك':lk==='tr'?'Şirkten Uzak Dur':'Avoid Shirk'}</h4>
               <p>{lk==='az'?'Şirk — Allaha ortaq qoşmaqdır. Bu ən böyük günahdır. Allah buyurur: "Həqiqətən, Allah Özünə şərik qoşulmasını bağışlamaz, bundan başqasını istədiyinə bağışlar." (Nisa 48) Şirk ibadəti batil edir, bağışlanmaz.':
                   lk==='ru'?'Ширк — придание сотоварищей Аллаху. Это величайший грех. Аллах говорит: "Аллах не прощает придания Ему сотоварищей, но прощает всё остальное, кому пожелает." (Ниса 48) Ширк обнуляет поклонение и не прощается.':
                   lk==='ar'?'الشرك هو إشراك شيء مع الله. وهو أعظم الذنوب. قال الله تعالى: "إِنَّ اللَّهَ لَا يَغْفِرُ أَن يُشْرَكَ بِهِ وَيَغْفِرُ مَا دُونَ ذَٰلِكَ لِمَن يَشَاءُ." (النساء 48) الشرك يحبط العبادة ولا يُغفر.':
@@ -732,7 +756,7 @@ export default function HomePage({ setPage }) {
             </div>
             <div className="hp-twi-card">
               <span className="hp-twi-ic ui-icon-tile ui-icon-tile--accent" aria-hidden="true"><Icon name="donate" /></span>
-              <h4>{lk==='az'?'Tövhidin Meyvəsi':lk==='ru'?'Плоды Таухида':lk==='ar'?'ثمار التوحيد':lk==='tr'?'Tevhidin Meyvesi':'Fruits of Tawheed'}</h4>
+              <h4>{lk==='az'?'Tövhidin meyvəsi':lk==='ru'?'Плоды Таухида':lk==='ar'?'ثمار التوحيد':lk==='tr'?'Tevhidin Meyvesi':'Fruits of Tawheed'}</h4>
               <p>{lk==='az'?'Tövhid qəlbə rahatlıq, həyata mənalılıq, günahlara kəffarə, cənnətə giriş açarı verir. Allah buyurur: "İman gətirib imanlarını zülmlə qarışdırmayanlar — əmin-amanlıq onlar üçündür və onlar doğru yoldadırlar." (Ənam 82)':
                   lk==='ru'?'Таухид дарует покой сердцу, смысл жизни, искупление грехов и ключ к раю. Аллах говорит: "Те, кто не смешивает своей веры с несправедливостью, — для них безопасность, и они на верном пути." (Аль-Анам 82)':
                   lk==='ar'?'التوحيد يمنح الطمأنينة للقلب والمعنى للحياة وكفارة للذنوب ومفتاحاً للجنة. قال الله: "الَّذِينَ آمَنُوا وَلَمْ يَلْبِسُوا إِيمَانَهُم بِظُلْمٍ أُولَٰئِكَ لَهُمُ الْأَمْنُ وَهُم مُّهْتَدُونَ." (الأنعام 82)':
@@ -750,7 +774,7 @@ export default function HomePage({ setPage }) {
         <div className="hp-sec-in">
           <div className="hp-sec-hd" data-reveal>
             <div className="ui-eyebrow"><span lang="ar" dir="rtl">أسماء الله الحسنى</span></div>
-            <h2 className="ui-title hp-sec-ttl">{lk==='az'?"Allahın 99 Gözəl Adı":lk==='ru'?'99 Прекрасных Имён Аллаха':lk==='ar'?'أسماء الله الحسنى':lk==='tr'?"Allah'ın 99 Güzel İsmi":'99 Beautiful Names of Allah'}</h2>
+            <h2 className="ui-title hp-sec-ttl">{lk==='az'?"Allahın 99 gözəl adı":lk==='ru'?'99 Прекрасных Имён Аллаха':lk==='ar'?'أسماء الله الحسنى':lk==='tr'?"Allah'ın 99 Güzel İsmi":'99 Beautiful Names of Allah'}</h2>
             <p className="hp-sec-sub">
               {lk==='az'?'"Allahın doxsan doqquz adı var; kim onları saya bilsə, cənnətə girər." — (Buxari)':
                lk==='ru'?'"У Аллаха девяносто девять имён; кто их перечислит, войдёт в рай." — (Бухари)':
@@ -772,7 +796,7 @@ export default function HomePage({ setPage }) {
           </div>
           <div className="hp-names-more">
             <button type="button" className="ui-btn ui-btn--secondary" onClick={()=>goTo('names')}>
-              {lk==='az'?'Bütün 99 Adı Gör':lk==='ru'?'Все 99 имён':lk==='ar'?'عرض جميع الأسماء':lk==='tr'?'Tüm 99 İsmi Gör':'See All 99 Names'}
+              {lk==='az'?'Bütün 99 adı gör':lk==='ru'?'Все 99 имён':lk==='ar'?'عرض جميع الأسماء':lk==='tr'?'Tüm 99 İsmi Gör':'See All 99 Names'}
               <Icon name="arrow" size={18} className="ui-btn__icon ui-flip-rtl" />
             </button>
           </div>

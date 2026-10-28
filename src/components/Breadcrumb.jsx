@@ -1,5 +1,6 @@
 import { useLang } from '../contexts/LangContext'
 import { pathFor } from '../seo/routes'
+import Icon from './Icon'
 import '../styles/Breadcrumb.css'
 
 // ═══════════════════════════════════════════════════════
@@ -38,7 +39,6 @@ function isPlainClick(e) {
  */
 export default function Breadcrumb({ setPage, current }) {
   const { lang } = useLang()
-  const rtl = lang === 'ar'
 
   const goHome = (e) => {
     if (!setPage || !isPlainClick(e)) return
@@ -55,10 +55,9 @@ export default function Breadcrumb({ setPage, current }) {
           </a>
         </li>
         <li className="bc-item">
-          {/* Ayırıcı cari səhifəyə baxır: LTR-də ›, RTL-də ‹.
-              dir="ltr" — brauzerin bidi "güzgü" əvəzləməsi simvolu
-              ikinci dəfə çevirməsin (hər brauzerdə eyni görünsün). */}
-          <span className="bc-sep" aria-hidden="true" dir="ltr">{rtl ? '‹' : '›'}</span>
+          {/* Ayırıcı cari səhifəyə baxır: LTR-də ›, RTL-də ‹ (xətti ikon,
+              ui-flip-rtl ilə güzgülənir — şriftdən asılı deyil) */}
+          <span className="bc-sep" aria-hidden="true"><Icon name="chevron" size={14} strokeWidth={2} className="ui-flip-rtl" /></span>
           <span className="bc-current" aria-current="page">{current}</span>
         </li>
       </ol>

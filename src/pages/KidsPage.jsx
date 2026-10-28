@@ -1,15 +1,16 @@
 import { useState, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
+import Icon from '../components/Icon'
 import '../styles/KidsPage.css'
 
-// Telefonda ikon kafellərinin rəngləri növbə ilə (motion.css → .icon-tile--*);
-// ≥768px-də kafel yoxdur — KidsPage.css sadə emojiyə qaytarır
-const TILE_TONES = ['gold', 'rose', 'blue', 'teal', 'violet', 'orange']
-const tileTone = (i) => `icon-tile--${TILE_TONES[i % TILE_TONES.length]}`
+// Rüknlərin və davranışların ikonları (Icon.jsx) — məlumatdakı emoji sahələri
+// artıq göstərilmir (dizayn v2: emoji ikon yoxdur). Sıra PILLARS / GOOD_MANNERS ilədir.
+const PILLAR_ICONS = ['names', 'prayer', 'moon', 'zakat', 'hajjguide']
+const MANNER_ICONS = ['jamaat', 'check', 'home', 'donate', 'leaf', 'gift', 'kids', 'drop', 'shield', 'clock']
 
 const LABELS = {
-  az: { title:'Uşaq Bölməsi', subtitle:'Kiçiklər üçün İslam', namesTitle:'Allahın Gözəl Adları', surahsTitle:'Qısa Surələr', duasTitle:'Gündəlik Dualar', rulesTitle:'İslamın 5 Şərti', quizTitle:'Mini Kviz', prophetsTitle:'Peyğəmbərlər', mannersTitle:'Gözəl Davranışlar', learn:'Öyrən', correct:'Afərin!', wrong:'Yenidən cəhd et', next:'Növbəti' },
+  az: { title:'Uşaq bölməsi', subtitle:'Kiçiklər üçün İslam', namesTitle:'Allahın gözəl adları', surahsTitle:'Qısa surələr', duasTitle:'Gündəlik dualar', rulesTitle:'İslamın 5 şərti', quizTitle:'Mini kviz', prophetsTitle:'Peyğəmbərlər', mannersTitle:'Gözəl davranışlar', learn:'Öyrən', correct:'Afərin!', wrong:'Yenidən cəhd et', next:'Növbəti' },
   en: { title:'Kids Section', subtitle:'Islam for little ones', namesTitle:'Beautiful Names of Allah', surahsTitle:'Short Surahs', duasTitle:'Daily Duas', rulesTitle:'5 Pillars of Islam', quizTitle:'Mini Quiz', prophetsTitle:'Prophets', mannersTitle:'Good Manners', learn:'Learn', correct:'Well done!', wrong:'Try again', next:'Next' },
   ru: { title:'Детский раздел', subtitle:'Ислам для малышей', namesTitle:'Прекрасные Имена Аллаха', surahsTitle:'Короткие суры', duasTitle:'Ежедневные дуа', rulesTitle:'5 Столпов Ислама', quizTitle:'Мини-викторина', prophetsTitle:'Пророки', mannersTitle:'Хорошие манеры', learn:'Учи', correct:'Молодец!', wrong:'Попробуй ещё', next:'Далее' },
   ar: { title:'قسم الأطفال', subtitle:'الإسلام للصغار', namesTitle:'أسماء الله الحسنى', surahsTitle:'سور قصيرة', duasTitle:'أدعية يومية', rulesTitle:'أركان الإسلام', quizTitle:'اختبار صغير', prophetsTitle:'الأنبياء', mannersTitle:'الآداب الحسنة', learn:'تعلم', correct:'أحسنت!', wrong:'حاول مرة أخرى', next:'التالي' },
@@ -441,6 +442,7 @@ export default function KidsPage({ setPage }) {
   const [quizState, setQuizState] = useState(null) // null, 'correct', 'wrong'
   const [score, setScore] = useState(0)
   const [quizDone, setQuizDone] = useState(false)
+  const [picked, setPicked] = useState(null) // seçilən variant (səhvi göstərmək üçün)
 
   const layoutRef = useRef(null)
   const tabsRef = useRef(null)
@@ -484,6 +486,7 @@ export default function KidsPage({ setPage }) {
     const q = QUIZ[quizIdx]
     // Toxunma ekranında yüngül titrəmə (səhvdə bir az uzun)
     haptic(idx === q.answer ? 8 : 18)
+    setPicked(idx)
     if (idx === q.answer) {
       setQuizState('correct')
       setScore(s => s + 1)
@@ -498,81 +501,109 @@ export default function KidsPage({ setPage }) {
     } else {
       setQuizIdx(i => i + 1)
       setQuizState(null)
+      setPicked(null)
     }
   }
 
   const resetQuiz = () => {
     setQuizIdx(0)
     setQuizState(null)
+    setPicked(null)
     setScore(0)
     setQuizDone(false)
   }
 
+  // Bölmələr — ikonlar Icon.jsx-dən (əvvəl emoji idi)
   const sections = [
-    { key:'names', emoji:'🌟', title:t.namesTitle },
-    { key:'surahs', emoji:'📖', title:t.surahsTitle },
-    { key:'duas', emoji:'🤲', title:t.duasTitle },
-    { key:'rules', emoji:'🕌', title:t.rulesTitle },
-    { key:'prophets', emoji:'🌙', title:t.prophetsTitle },
-    { key:'manners', emoji:'🤝', title:t.mannersTitle },
-    { key:'quiz', emoji:'🧩', title:t.quizTitle },
+    { key:'names', icon:'names', title:t.namesTitle },
+    { key:'surahs', icon:'quran', title:t.surahsTitle },
+    { key:'duas', icon:'duas', title:t.duasTitle },
+    { key:'rules', icon:'holyplaces', title:t.rulesTitle },
+    { key:'prophets', icon:'history', title:t.prophetsTitle },
+    { key:'manners', icon:'donate', title:t.mannersTitle },
+    { key:'quiz', icon:'quiz', title:t.quizTitle },
   ]
+  const current = sections.find(s => s.key === openSection) || sections[0]
+  // Ayə sözü — rus dilində say ilə uzlaşır (əvvəl həmişə 'аятов': '4 аятов')
+  const ayahWord = (n) => lang === 'ar' ? 'آية' : lang === 'tr' ? 'ayet' : lang === 'en' ? 'ayahs' : lang === 'ru'
+    ? (n % 10 === 1 && n % 100 !== 11 ? 'аят' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'аята' : 'аятов')
+    : 'ayə'
+  const q = QUIZ[quizIdx]
+
+  // Bölmə başlığı: ikon kafeli + h2 (əvvəl başlığın sonunda emoji var idi)
+  const SectionTitle = () => (
+    <div className="kids-section-head">
+      <span className="ui-icon-tile kids-section-icon" aria-hidden="true"><Icon name={current.icon} /></span>
+      <h2 className="ui-title ui-title--sm kids-section-title">{current.title}</h2>
+    </div>
+  )
 
   return (
     <>
-      <div className="page-hero theme-kids kids-hero hero-compact">
-        <div className="kids-hero-emojis">🌙 ⭐ 🕌 📖 🤲</div>
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+      {/* Sakit kağız hero (dizayn v2); sonda dekorativ ikon kafelləri
+          (əvvəl "🌙 ⭐ 🕌 📖 🤲" emoji sətri idi) */}
+      <header className="ui-page-hero kids-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <div className="kids-hero__art" aria-hidden="true">
+          {['moonStar', 'star', 'holyplaces', 'quran', 'kids'].map((n, i) => (
+            <span key={n} className={`ui-icon-tile ui-icon-tile--lg kids-hero__tile kids-hero__tile--${i + 1}`}><Icon name={n} /></span>
+          ))}
+        </div>
+        <div className="ui-container">
+          <span className="ui-eyebrow">{t.subtitle}</span>
+          <h1 className="ui-display">{t.title}</h1>
+        </div>
+      </header>
 
-      <div className="section">
+      <div className="section kids-section-wrap">
         <div className="section-inner kids-layout" ref={layoutRef}>
 
-          {/* Section tabs — telefonda üfüqi sürüşən, başlığın altına yapışan zolaq */}
-          <div className="kids-tabs" ref={tabsRef}>
+          {/* Bölmə sekmələri — telefonda üfüqi sürüşən, başlığın altına yapışan zolaq */}
+          <div className="kids-tabs" ref={tabsRef} role="group" aria-label={t.learn}>
             {sections.map(s => (
               <button key={s.key}
                 type="button"
                 className={`kids-tab ${openSection===s.key?'active':''}`}
                 aria-pressed={openSection===s.key}
                 onClick={(e) => toggleSection(s.key, e.currentTarget)}>
-                <span className="kids-tab-emoji" aria-hidden="true">{s.emoji}</span>
+                <span className="kids-tab-icon" aria-hidden="true"><Icon name={s.icon} size={18} /></span>
                 <span className="kids-tab-label">{s.title}</span>
               </button>
             ))}
           </div>
 
-          {/* Names of Allah */}
+          {/* Allahın gözəl adları — nömrə xatəm ulduzunda */}
           {openSection === 'names' && (
-            <div className="kids-section anim-fadeIn">
-              <h2 className="kids-section-title">{t.namesTitle} 🌟</h2>
-              <div className="kids-names-grid" data-reveal="stagger">
+            <section className="kids-section" key="names">
+              <SectionTitle />
+              <div className="kids-names-grid" data-reveal="stagger-zoom">
                 {NAMES_OF_ALLAH.map((n, i) => (
                   <div key={i} className="kids-name-card">
-                    <span className={`kids-name-emoji icon-tile icon-tile--lg icon-tile--round ${tileTone(i)}`} aria-hidden="true">{n.emoji}</span>
-                    <span className="kids-name-arabic">{n.ar}</span>
+                    <span className="kids-star-num ui-num" aria-hidden="true">{i + 1}</span>
+                    <span className="kids-name-arabic" lang="ar">{n.ar}</span>
                     <span className="kids-name-desc">
                       {lang === 'ar' ? n.ar_desc : lang === 'en' ? n.en : lang === 'ru' ? n.ru : lang === 'tr' ? n.tr : n.az}
                     </span>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Short Surahs */}
+          {/* Qısa surələr */}
           {openSection === 'surahs' && (
-            <div className="kids-section anim-fadeIn">
-              <h2 className="kids-section-title">{t.surahsTitle} 📖</h2>
+            <section className="kids-section" key="surahs">
+              <SectionTitle />
               <div className="kids-surahs-list" data-reveal="stagger">
                 {SHORT_SURAHS.map((s, i) => (
                   <div key={i} className="kids-surah-card">
                     <div className="kids-surah-header">
-                      <span className={`kids-surah-emoji icon-tile ${tileTone(i)}`} aria-hidden="true">{s.emoji}</span>
-                      <span className="kids-surah-arabic">{s.name}</span>
-                      <span className="kids-surah-en">{s.en}</span>
-                      <span className="kids-surah-ayahs">{s.ayahs} {lang === 'ar' ? 'آية' : lang === 'ru' ? 'аятов' : lang === 'tr' ? 'ayet' : lang === 'en' ? 'ayahs' : 'ayə'}</span>
+                      <span className="kids-star-num ui-num" aria-hidden="true">{s.num}</span>
+                      <span className="kids-surah-titles">
+                        {lang !== 'ar' && <span className="kids-surah-en">{s.en}</span>}
+                        <span className="kids-surah-arabic" lang="ar">{s.name}</span>
+                      </span>
+                      <span className="ui-badge kids-surah-ayahs ui-num">{s.ayahs} {ayahWord(s.ayahs)}</span>
                     </div>
                     <p className="kids-surah-desc">
                       {lang === 'ar' ? s.ar_desc : lang === 'en' ? s.en_desc : lang === 'ru' ? s.ru : lang === 'tr' ? s.tr : s.az}
@@ -580,22 +611,22 @@ export default function KidsPage({ setPage }) {
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Daily Duas */}
+          {/* Gündəlik dualar */}
           {openSection === 'duas' && (
-            <div className="kids-section anim-fadeIn">
-              <h2 className="kids-section-title">{t.duasTitle} 🤲</h2>
+            <section className="kids-section" key="duas">
+              <SectionTitle />
               <div className="kids-duas-list" data-reveal="stagger">
                 {DAILY_DUAS.map((d, i) => (
                   <div key={i} className="kids-dua-card">
-                    <span className={`kids-dua-emoji icon-tile ${tileTone(i)}`} aria-hidden="true">{d.emoji}</span>
+                    <span className="ui-icon-tile ui-icon-tile--accent kids-dua-icon" aria-hidden="true"><Icon name="duas" /></span>
                     <div className="kids-dua-body">
                       <h3 className="kids-dua-title">
                         {lang === 'ar' ? d.ar_title : lang === 'en' ? d.en_title : lang === 'ru' ? d.ru_title : lang === 'tr' ? d.tr_title : d.az_title}
                       </h3>
-                      <div className="kids-dua-arabic">{d.ar}</div>
+                      <div className="kids-dua-arabic" lang="ar">{d.ar}</div>
                       <p className="kids-dua-meaning">
                         {lang === 'ar' ? d.ar_desc : lang === 'en' ? d.en_desc : lang === 'ru' ? d.ru_desc : lang === 'tr' ? d.tr_desc : d.az}
                       </p>
@@ -603,107 +634,125 @@ export default function KidsPage({ setPage }) {
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
-          {/* 5 Pillars */}
+          {/* İslamın 5 şərti */}
           {openSection === 'rules' && (
-            <div className="kids-section anim-fadeIn">
-              <h2 className="kids-section-title">{t.rulesTitle} 🕌</h2>
-              {/* Telefonda qruplaşdırılmış siyahı (KidsPage.css) */}
-              <div className="kids-pillars-list" data-reveal="stagger">
+            <section className="kids-section" key="rules">
+              <SectionTitle />
+              <ol className="kids-pillars-list" data-reveal="stagger">
                 {PILLARS.map((p, i) => (
-                  <div key={i} className="kids-pillar-card">
-                    <span className="kids-pillar-num">{i + 1}</span>
-                    <span className="kids-pillar-emoji">{p.emoji}</span>
+                  <li key={i} className="kids-pillar-card">
+                    <span className="kids-pillar-num ui-num" aria-hidden="true">{i + 1}</span>
+                    <span className="kids-pillar-icon" aria-hidden="true"><Icon name={PILLAR_ICONS[i] || 'names'} /></span>
                     <span className="kids-pillar-text">{p[lang] || p.az}</span>
-                  </div>
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ol>
+            </section>
           )}
 
-          {/* Prophets */}
+          {/* Peyğəmbərlər */}
           {openSection === 'prophets' && (
-            <div className="kids-section anim-fadeIn">
-              <h2 className="kids-section-title">{t.prophetsTitle} 🌙</h2>
-              <div className="kids-names-grid" data-reveal="stagger">
+            <section className="kids-section" key="prophets">
+              <SectionTitle />
+              <div className="kids-names-grid" data-reveal="stagger-zoom">
                 {PROPHETS_FOR_KIDS.map((p, i) => (
                   <div key={i} className="kids-name-card">
-                    <span className={`kids-name-emoji icon-tile icon-tile--lg icon-tile--round ${tileTone(i)}`} aria-hidden="true">{p.emoji}</span>
-                    <span className="kids-name-arabic">{p.ar}</span>
-                    <span className="kids-name-desc" style={{fontWeight:'bold'}}>{p.name}</span>
+                    <span className="kids-star-num ui-num" aria-hidden="true">{i + 1}</span>
+                    <span className="kids-name-arabic" lang="ar">{p.ar}</span>
+                    {lang !== 'ar' && <span className="kids-name-title">{p.name}</span>}
                     <span className="kids-name-desc">
                       {lang === 'ar' ? p.ar_desc : lang === 'en' ? p.en : lang === 'ru' ? p.ru : lang === 'tr' ? p.tr : p.az}
                     </span>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Good Manners */}
+          {/* Gözəl davranışlar */}
           {openSection === 'manners' && (
-            <div className="kids-section anim-fadeIn">
-              <h2 className="kids-section-title">{t.mannersTitle} 🤝</h2>
-              <div className="kids-pillars-list" data-reveal="stagger">
+            <section className="kids-section" key="manners">
+              <SectionTitle />
+              <ol className="kids-pillars-list" data-reveal="stagger">
                 {GOOD_MANNERS.map((m, i) => (
-                  <div key={i} className="kids-pillar-card">
-                    <span className="kids-pillar-num">{i + 1}</span>
-                    <span className="kids-pillar-emoji">{m.emoji}</span>
+                  <li key={i} className="kids-pillar-card">
+                    <span className="kids-pillar-num ui-num" aria-hidden="true">{i + 1}</span>
+                    <span className="kids-pillar-icon" aria-hidden="true"><Icon name={MANNER_ICONS[i] || 'donate'} /></span>
                     <span className="kids-pillar-text">{lang === 'ar' ? m.ar : lang === 'en' ? m.en : lang === 'ru' ? m.ru : lang === 'tr' ? m.tr : m.az}</span>
-                  </div>
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ol>
+            </section>
           )}
 
-          {/* Quiz */}
+          {/* Mini kviz */}
           {openSection === 'quiz' && (
-            <div className="kids-section anim-fadeIn">
-              <h2 className="kids-section-title">{t.quizTitle} 🧩</h2>
+            <section className="kids-section" key="quiz">
+              <SectionTitle />
               {quizDone ? (
                 <div className="kids-quiz-done">
-                  <div className="kids-quiz-score-big">
-                    {score === QUIZ.length ? '🏆' : score >= 3 ? '🌟' : '📚'}
-                  </div>
-                  <div className="kids-quiz-result">
-                    {score} / {QUIZ.length}
+                  <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--accent kids-quiz-done-icon" aria-hidden="true">
+                    <Icon name={score === QUIZ.length ? 'star' : score >= 3 ? 'sparkle' : 'books'} />
+                  </span>
+                  <div className="kids-quiz-result ui-num">
+                    <bdi dir="ltr">{score} / {QUIZ.length}</bdi>
                   </div>
                   <p className="kids-quiz-msg">
                     {score === QUIZ.length
                       ? (t.correct)
                       : (lang === 'az' ? 'Yaxşı cəhd!' : lang === 'en' ? 'Good try!' : lang === 'ru' ? 'Хорошая попытка!' : lang === 'ar' ? 'محاولة جيدة!' : 'İyi deneme!')}
                   </p>
-                  <button className="kids-quiz-restart" onClick={resetQuiz}>
+                  <button type="button" className="ui-btn ui-btn--primary ui-btn--lg kids-quiz-restart" onClick={resetQuiz}>
+                    <Icon name="refresh" className="ui-btn__icon" />
                     {lang === 'az' ? 'Yenidən başla' : lang === 'en' ? 'Play again' : lang === 'ru' ? 'Играть снова' : lang === 'ar' ? 'العب مرة أخرى' : 'Tekrar oyna'}
                   </button>
                 </div>
               ) : (
-                <div className="kids-quiz-box">
-                  <div className="kids-quiz-progress">
-                    {quizIdx + 1} / {QUIZ.length}
+                <div className="kids-quiz-box" key={quizIdx}>
+                  <div className="kids-quiz-top">
+                    <span className="kids-quiz-progress ui-num" dir="ltr">{quizIdx + 1} / {QUIZ.length}</span>
+                    <span className="kids-quiz-score ui-num"><Icon name="star" size={16} />{score}</span>
                   </div>
-                  <h3 className="kids-quiz-question">{getQuizQ(QUIZ[quizIdx])}</h3>
+                  {/* İrəliləyiş zolağı — transform: scaleX */}
+                  <div className="kids-quiz-bar" aria-hidden="true">
+                    <span style={{ transform: `scaleX(${(quizIdx + (quizState ? 1 : 0)) / QUIZ.length})` }} />
+                  </div>
+                  <h3 className="kids-quiz-question">{getQuizQ(q)}</h3>
                   <div className="kids-quiz-options">
-                    {getQuizOpts(QUIZ[quizIdx]).map((opt, i) => (
-                      <button key={i}
-                        className={`kids-quiz-opt ${quizState && i === QUIZ[quizIdx].answer ? 'correct' : ''} ${quizState === 'wrong' && i !== QUIZ[quizIdx].answer ? 'dimmed' : ''}`}
-                        onClick={() => handleQuizAnswer(i)}
-                        disabled={!!quizState}>
-                        {opt}
-                      </button>
-                    ))}
+                    {getQuizOpts(q).map((opt, i) => {
+                      // Səhv seçilən variant da qeyd olunur (əvvəl yalnız düzgün cavab vurğulanırdı)
+                      const cls = !quizState ? ''
+                        : i === q.answer ? ' correct'
+                        : i === picked ? ' wrong'
+                        : ' dimmed'
+                      return (
+                        <button key={i} type="button"
+                          className={`kids-quiz-opt${cls}`}
+                          style={{ '--i': i }}
+                          onClick={() => handleQuizAnswer(i)}
+                          disabled={!!quizState}>
+                          {opt}
+                        </button>
+                      )
+                    })}
                   </div>
                   {quizState && (
-                    <div className={`kids-quiz-feedback ${quizState}`}>
-                      <span>{quizState === 'correct' ? t.correct : t.wrong}</span>
-                      <button className="kids-quiz-next" onClick={nextQuiz}>{t.next}</button>
+                    <div className={`kids-quiz-feedback ${quizState}`} aria-live="polite">
+                      <span className="kids-quiz-feedback-msg">
+                        <Icon name={quizState === 'correct' ? 'check' : 'refresh'} size={18} strokeWidth={2.2} />
+                        {quizState === 'correct' ? t.correct : t.wrong}
+                      </span>
+                      <button type="button" className="ui-btn ui-btn--primary kids-quiz-next" onClick={nextQuiz}>
+                        {t.next} <Icon name="arrow" size={16} className="ui-flip-rtl" />
+                      </button>
                     </div>
                   )}
                 </div>
               )}
-            </div>
+            </section>
           )}
 
         </div>

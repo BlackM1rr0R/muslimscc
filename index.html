@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- theme-color skriptdən ƏVVƏL durmalıdır ki, skript onu tapıb qaranlıq rəngə keçirə bilsin -->
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#f7f5ef" />
     <!-- Qaranlıq rejim ilk kadrdan, CSS yüklənməmiş: saxlanmış seçim 'dark'dırsa, ya da
          seçim yoxdur və telefon/sistem qaranlıq rejimdədirsə data-theme="dark" qoyulur
          (açıq temanın yanıb-sönməsi olmasın). Qayda src/contexts/LangContext.jsx ilə EYNİDİR. -->
-    <script>(function(){var t=null;try{t=localStorage.getItem('muslim_cc_theme')}catch(e){}try{if(t==='dark'||(t!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#1a1a2e')}}catch(e){}})()</script>
+    <script>(function(){var t=null;try{t=localStorage.getItem('muslim_cc_theme')}catch(e){}try{if(t==='dark'||(t!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content','#0a1016')}}catch(e){}})()</script>
 
     <!-- ═══════════════════════════════════════════════
          PRIMARY META
@@ -74,8 +74,9 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="msapplication-TileColor" content="#ffffff" />
 
-    <!-- Inline SVG Favicon (heç bir PNG olmasa belə işləyir) -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%2316a34a'/><text y='46' x='50%25' text-anchor='middle' font-size='40' font-family='serif'>☽</text></svg>" />
+    <!-- Inline SVG Favicon (heç bir PNG olmasa belə işləyir) — BrandMark ilə eyni:
+         zümrüd kafel + qum rəngli xatəm + mərkəzdə nöqtə (src/components/Icon.jsx) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f5a47'/><path d='M9.4 9.4h13.2v13.2H9.4zM16 6.7 25.3 16 16 25.3 6.7 16z' fill='none' stroke='%23e6cc95' stroke-width='1.5' stroke-linejoin='round'/><circle cx='16' cy='16' r='2.1' fill='%23d8b46a'/></svg>" />
 
     <!-- ═══════════════════════════════════════════════
          WEB APP MANIFEST (PWA)

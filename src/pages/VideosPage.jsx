@@ -5,16 +5,17 @@ import { VIDEO_CATEGORIES, getThumbnail, getEmbedUrl, DEFAULT_VIDEOS, subscribeT
 import Pagination from '../components/Pagination'
 import { useBackToClose } from '../utils/useBackToClose'
 import { useSheetDrag } from '../hooks/useSheetDrag'
+import Icon from '../components/Icon'
 import '../styles/VideosPage.css'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
 
 const LABELS = {
-  az: { title:'Video Kitabxana', subtitle:'İslami mühazirələr, Quran tilavətləri və daha çox', search:'Video axtar...', all:'Hamısı', featured:'Seçilmişlər', latest:'Ən son', allVideos:'Bütün videolar', moreVideos:'Digər videolar', filter:'Filtr', noResults:'Video tapılmadı', loading:'Yüklənir...', videos:'video', watchNow:'İndi izlə', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
-  en: { title:'Video Library', subtitle:'Islamic lectures, Quran recitations and more', search:'Search videos...', all:'All', featured:'Featured', latest:'Latest', allVideos:'All Videos', moreVideos:'More videos', filter:'Filter', noResults:'No videos found', loading:'Loading...', videos:'videos', watchNow:'Watch Now', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
-  ru: { title:'Видео Библиотека', subtitle:'Исламские лекции, чтение Корана и многое другое', search:'Поиск видео...', all:'Все', featured:'Избранные', latest:'Последние', allVideos:'Все видео', moreVideos:'Другие видео', filter:'Фильтр', noResults:'Видео не найдены', loading:'Загрузка...', videos:'видео', watchNow:'Смотреть', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
-  ar: { title:'مكتبة الفيديو', subtitle:'محاضرات إسلامية وتلاوات قرآنية والمزيد', search:'البحث عن فيديو...', all:'الكل', featured:'مميز', latest:'الأحدث', allVideos:'كل الفيديوهات', moreVideos:'فيديوهات أخرى', filter:'تصفية', noResults:'لا توجد فيديوهات', loading:'جارٍ التحميل...', videos:'فيديو', watchNow:'شاهد الآن', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
-  tr: { title:'Video Kütüphanesi', subtitle:'İslami konferanslar, Kuran tilavetleri ve daha fazlası', search:'Video ara...', all:'Tümü', featured:'Öne çıkanlar', latest:'En yeni', allVideos:'Tüm videolar', moreVideos:'Diğer videolar', filter:'Filtre', noResults:'Video bulunamadı', loading:'Yükleniyor...', videos:'video', watchNow:'Şimdi izle', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
+  az: { eyebrow:'Hədis və bilik', title:'Video kitabxana', subtitle:'İslami mühazirələr, Quran tilavətləri və daha çox', search:'Video axtar...', all:'Hamısı', featured:'Seçilmişlər', latest:'Ən son', allVideos:'Bütün videolar', moreVideos:'Digər videolar', filter:'Filtr', noResults:'Video tapılmadı', loading:'Yüklənir...', videos:'video', watchNow:'İndi izlə', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
+  en: { eyebrow:'Hadith & knowledge', title:'Video Library', subtitle:'Islamic lectures, Quran recitations and more', search:'Search videos...', all:'All', featured:'Featured', latest:'Latest', allVideos:'All Videos', moreVideos:'More videos', filter:'Filter', noResults:'No videos found', loading:'Loading...', videos:'videos', watchNow:'Watch Now', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
+  ru: { eyebrow:'Хадисы и знание', title:'Видео Библиотека', subtitle:'Исламские лекции, чтение Корана и многое другое', search:'Поиск видео...', all:'Все', featured:'Избранные', latest:'Последние', allVideos:'Все видео', moreVideos:'Другие видео', filter:'Фильтр', noResults:'Видео не найдены', loading:'Загрузка...', videos:'видео', watchNow:'Смотреть', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
+  ar: { eyebrow:'الحديث والعلم', title:'مكتبة الفيديو', subtitle:'محاضرات إسلامية وتلاوات قرآنية والمزيد', search:'البحث عن فيديو...', all:'الكل', featured:'مميز', latest:'الأحدث', allVideos:'كل الفيديوهات', moreVideos:'فيديوهات أخرى', filter:'تصفية', noResults:'لا توجد فيديوهات', loading:'جارٍ التحميل...', videos:'فيديو', watchNow:'شاهد الآن', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
+  tr: { eyebrow:'Hadis ve ilim', title:'Video Kütüphanesi', subtitle:'İslami konferanslar, Kuran tilavetleri ve daha fazlası', search:'Video ara...', all:'Tümü', featured:'Öne çıkanlar', latest:'En yeni', allVideos:'Tüm videolar', moreVideos:'Diğer videolar', filter:'Filtre', noResults:'Video bulunamadı', loading:'Yükleniyor...', videos:'video', watchNow:'Şimdi izle', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
 }
 
 // Sürüşdükcə görünmə (motion.css → data-reveal): hər kart ayrıca izlənir —
@@ -169,31 +170,58 @@ export default function VideosPage({ setPage }) {
     }
   }
 
+  // Miniatür — YouTube şəkli; yüklənməsə hqdefault-a düşür
+  const thumb = (v) => (
+    <img
+      src={getThumbnail(v.youtubeId)}
+      alt=""
+      onError={(e) => { if (!e.target.dataset.fb) { e.target.dataset.fb = '1'; e.target.src = `https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg` } }}
+      loading="lazy"
+    />
+  )
+  // Miniatürün üstündəki sakit nişanlar (bölmə + müddət) və oynat düyməsi
+  const thumbBadges = (v) => {
+    const cat = VIDEO_CATEGORIES.find(c => c.key === v.category)
+    return (
+      <>
+        <span className="vp-play" aria-hidden="true"><Icon name="play" size={30} strokeWidth={1.5} /></span>
+        {cat && <span className="vp-cat-badge">{cat.label[lang]}</span>}
+        {v.duration && v.duration !== '—' && <span className="vp-duration ui-num">{v.duration}</span>}
+      </>
+    )
+  }
+
   return (
     <div className="videos-page">
 
       {/* ═══ HERO ═══ */}
-      <div className="vp-hero">
-        <div className="vp-hero-arabic">مَكْتَبَةُ الفِيدِيُو</div>
-        <h1 className="vp-hero-title"><span aria-hidden="true">📹</span> {l.title}</h1>
-        <p className="vp-hero-sub">{l.subtitle}</p>
-        {/* Yalnız real məzmun sayı (əvvəlki "FİLTR 5" bölmə sayı idi) */}
-        <div className="vp-hero-stats">
-          <div className="vp-stat">
-            <span className="vp-stat-num">{videos.length}</span>
-            <span className="vp-stat-label">{l.videos}</span>
-          </div>
+      <header className="ui-page-hero vp-hero2">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container">
+          <span className="ui-eyebrow">{l.eyebrow}</span>
+          <h1 className="ui-display">{l.title}</h1>
+          {lang !== 'ar' && <p className="vp-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">مَكْتَبَةُ الفِيدِيُو</p>}
+          <p className="ui-lead">{l.subtitle}</p>
+          {/* Yalnız real məzmun sayı (yüklənəndə gizli — "0 video" görünməsin) */}
+          {!loading && videos.length > 0 && (
+            <div className="vp-hero-stats" data-reveal="fade">
+              <div className="ui-stat">
+                <span className="ui-stat__num" data-count={videos.length}>{videos.length}</span>
+                <span className="ui-stat__label">{l.videos}</span>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </header>
 
-      <div className="vp-container">
+      <div className="ui-container vp-container">
 
-        {/* ═══ SEARCH BAR ═══ */}
+        {/* ═══ AXTARIŞ ═══ */}
         <div className="vp-search-wrap">
-          <span className="vp-search-icon" aria-hidden="true">🔍</span>
+          <Icon name="search" size={19} className="vp-search-icon" />
           <input
-            type="text"
-            className="vp-search"
+            type="search"
+            className="ui-input vp-search"
             aria-label={l.search}
             placeholder={l.search}
             enterKeyHint="search"
@@ -201,180 +229,147 @@ export default function VideosPage({ setPage }) {
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
-            <button type="button" className="vp-search-clear" onClick={() => setSearch('')} aria-label={l.clear} title={l.clear}>✕</button>
+            <button type="button" className="ui-icon-btn vp-search-clear" onClick={() => setSearch('')} aria-label={l.clear} title={l.clear}>
+              <Icon name="close" size={16} />
+            </button>
           )}
         </div>
 
-        {/* ═══ FEATURED (axtarış yox, "Hamısı" seçili və video > 6) ═══ */}
+        {/* ═══ SEÇİLMİŞLƏR (axtarış yox, "Hamısı" seçili və video > 6) ═══ */}
         {featured.length > 0 && (
           <section className="vp-section">
-            <h2 className="vp-section-title">
-              <span>⭐</span> {l.featured}
-            </h2>
-            <div className="vp-featured-grid" data-reveal="stagger">
-              {featured.map((v, i) => {
-                const cat = VIDEO_CATEGORIES.find(c => c.key === v.category)
-                return (
-                  <article
-                    key={v.id}
-                    className={`vp-featured-card ${i === 0 ? 'large' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setPlayingVideo(v)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPlayingVideo(v) } }}
-                  >
-                    <div className="vp-featured-thumb">
-                      <img
-                        src={getThumbnail(v.youtubeId)}
-                        alt={pickLang(v.title, lang)}
-                        onError={(e) => e.target.src = `https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`}
-                        loading="lazy"
-                      />
-                      <div className="vp-featured-overlay">
-                        <div className="vp-featured-play">▶</div>
-                      </div>
-                      {cat && (
-                        <div className="vp-featured-cat" style={{background: cat.color}}>
-                          {cat.label[lang]}
-                        </div>
-                      )}
-                      {v.duration && v.duration !== '—' && (
-                        <div className="vp-featured-duration">{v.duration}</div>
-                      )}
-                    </div>
-                    <div className="vp-featured-body">
-                      <h3>{pickLang(v.title, lang)}</h3>
-                      {(pickLang(v.description, lang, { warn: false })) && (
-                        <p>{pickLang(v.description, lang, { warn: false })}</p>
-                      )}
-                    </div>
-                  </article>
-                )
-              })}
+            <div className="vp-section-head" data-reveal>
+              <h2 className="ui-title ui-title--sm vp-section-title">
+                <Icon name="star" size={20} className="vp-section-ic" /> {l.featured}
+              </h2>
+            </div>
+            <div className="vp-featured-grid" data-reveal="stagger-zoom">
+              {featured.map((v, i) => (
+                <article
+                  key={v.id}
+                  className={`ui-card ui-card--flush ui-card--interactive vp-featured-card${i === 0 ? ' large' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={pickLang(v.title, lang)}
+                  onClick={() => setPlayingVideo(v)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPlayingVideo(v) } }}
+                >
+                  <div className="vp-thumb">
+                    {thumb(v)}
+                    {thumbBadges(v)}
+                  </div>
+                  <div className="vp-body">
+                    <h3 className="vp-title">{pickLang(v.title, lang)}</h3>
+                    {(pickLang(v.description, lang, { warn: false })) && (
+                      <p className="vp-desc">{pickLang(v.description, lang, { warn: false })}</p>
+                    )}
+                  </div>
+                </article>
+              ))}
             </div>
           </section>
         )}
 
-        {/* ═══ CATEGORY FILTER ═══
+        {/* ═══ FİLTR ═══
             Yalnız bir dolu bölmə varsa filtr mənasızdır ("Hamısı" = həmin bölmə) — gizlədirik */}
         {categories.length > 2 && (
-        <section className="vp-section">
-          <h2 className="vp-section-title vp-filter-title">
-            <span>📂</span> {l.filter}
-          </h2>
-          {/* Telefonda başlıq gizlənir, çiplər bir sürüşən sətirdir */}
-          <div className="vp-cat-filter" role="group" aria-label={l.filter}>
+          <div className="vp-cat-filter" role="group" aria-label={l.filter} data-reveal="stagger-fade">
             {categories.map(cat => {
               const active = selectedCat === cat.key
               const count = cat.key === 'all'
                 ? videos.length
                 : videos.filter(v => v.category === cat.key).length
-              // "Hamısı" saytın əsas yaşılı ilə (boz #64748b yox); digərləri bölmə rəngi
-              const activeStyle = cat.key === 'all'
-                ? { backgroundColor: 'var(--primary)', borderColor: 'var(--primary)', color: 'var(--on-primary)' }
-                : { backgroundColor: cat.color, borderColor: cat.color, color: '#fff' }
               return (
                 <button
                   type="button"
                   key={cat.key}
-                  className={`vp-cat-btn ${active ? 'active' : ''}`}
+                  className="ui-chip vp-cat-btn"
                   aria-pressed={active}
                   onClick={() => setSelectedCat(cat.key)}
-                  style={active ? activeStyle : { '--cat-color': cat.key === 'all' ? 'var(--primary)' : cat.color }}
                 >
                   <span>{cat.label[lang]}</span>
-                  <span className="vp-cat-count">{count}</span>
+                  <span className="vp-cat-count ui-num">{count}</span>
                 </button>
               )
             })}
           </div>
-        </section>
         )}
 
-        {/* ═══ ALL VIDEOS ═══ */}
+        {/* ═══ BÜTÜN VİDEOLAR ═══ */}
         <section className="vp-section">
-          <h2 className="vp-section-title" ref={gridTopRef}>
-            <span>🎬</span> {selectedCat !== 'all'
-              ? VIDEO_CATEGORIES.find(c => c.key === selectedCat)?.label[lang]
-              : featured.length ? l.moreVideos : l.allVideos}
-            <span className="vp-section-count">{filtered.length}</span>
-          </h2>
+          <div className="vp-section-head" ref={gridTopRef}>
+            <h2 className="ui-title ui-title--sm vp-section-title">
+              <Icon name="videos" size={20} className="vp-section-ic" /> {selectedCat !== 'all'
+                ? VIDEO_CATEGORIES.find(c => c.key === selectedCat)?.label[lang]
+                : featured.length ? l.moreVideos : l.allVideos}
+            </h2>
+            {!loading && <span className="ui-badge vp-section-count ui-num">{filtered.length}</span>}
+          </div>
 
           {loading ? (
-            // Yüklənmə: fırlanan dairə əvəzinə kartların "skelet"i (motion.css → .skeleton)
+            // Yüklənmə: kartların "skelet"i (motion.css → .skeleton)
             <div className="vp-grid" role="status" aria-label={l.loading}>
               {Array.from({ length: 4 }, (_, i) => (
-                <div key={i} className="vp-skel-card" aria-hidden="true">
+                <div key={i} className="ui-card ui-card--flush vp-skel-card" aria-hidden="true">
                   <div className="skeleton vp-skel-thumb" />
                   <div className="vp-skel-body">
                     <span className="skeleton skeleton--text" style={{ width: '80%' }} />
                     <span className="skeleton skeleton--text" style={{ width: '50%' }} />
-                    <span className="skeleton vp-skel-btn" />
                   </div>
                 </div>
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="vp-empty">
-              <div className="vp-empty-icon">📹</div>
-              <p>{l.noResults}</p>
+            <div className="ui-card ui-card--sunken vp-empty" data-reveal="scale">
+              <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="videos" /></span>
+              <p className="vp-empty-title">{l.noResults}</p>
+              {(search || selectedCat !== 'all') && (
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => { setSearch(''); setSelectedCat('all') }}>
+                  <Icon name="close" className="ui-btn__icon" /> {l.clear}
+                </button>
+              )}
             </div>
           ) : (
-            <div className="vp-grid">
-              {paginated.map((v, i) => {
-                const cat = VIDEO_CATEGORIES.find(c => c.key === v.category)
-                return (
-                  <article key={v.id} className="vp-card" onClick={() => setPlayingVideo(v)} {...revealProps(i)}>
-                    <div className="vp-thumb">
-                      <img
-                        src={getThumbnail(v.youtubeId)}
-                        alt={pickLang(v.title, lang)}
-                        onError={(e) => e.target.src = `https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg`}
-                        loading="lazy"
-                      />
-                      <div className="vp-play-btn">▶</div>
-                      {cat && (
-                        <div className="vp-cat-badge" style={{color: cat.color}}>
-                          {cat.label[lang]}
-                        </div>
-                      )}
-                      {v.duration && v.duration !== '—' && (
-                        <div className="vp-duration">{v.duration}</div>
-                      )}
+            // Açar filtr/səhifə dəyişəndə şəbəkəni yenidən qurur — kartlar yenidən növbə ilə görünür
+            <div className="vp-grid" key={`${selectedCat}|${currentPage}`}>
+              {paginated.map((v, i) => (
+                <article key={v.id} className="ui-card ui-card--flush ui-card--interactive vp-card" onClick={() => setPlayingVideo(v)} {...revealProps(i)}>
+                  <div className="vp-thumb">
+                    {thumb(v)}
+                    {thumbBadges(v)}
+                  </div>
+                  <div className="vp-body">
+                    <h3 className="vp-title">{pickLang(v.title, lang)}</h3>
+                    {(pickLang(v.description, lang, { warn: false })) && (
+                      <p className="vp-desc">{pickLang(v.description, lang, { warn: false })}</p>
+                    )}
+                    <div className="vp-actions">
+                      <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm vp-watch-btn" onClick={(e) => { e.stopPropagation(); setPlayingVideo(v) }}>
+                        <Icon name="play" className="ui-btn__icon" /> {l.watchNow}
+                      </button>
+                      <button
+                        type="button"
+                        className="ui-icon-btn vp-share-btn"
+                        onClick={(e) => { e.stopPropagation(); handleShare(v) }}
+                        title={l.share}
+                        aria-label={l.share}
+                      >
+                        <Icon name="share" size={18} />
+                      </button>
                     </div>
-                    <div className="vp-body">
-                      <h3 className="vp-title">{pickLang(v.title, lang)}</h3>
-                      {(pickLang(v.description, lang, { warn: false })) && (
-                        <p className="vp-desc">{pickLang(v.description, lang, { warn: false })}</p>
-                      )}
-                      <div className="vp-actions">
-                        <button className="vp-watch-btn" onClick={(e) => { e.stopPropagation(); setPlayingVideo(v) }}>
-                          ▶ {l.watchNow}
-                        </button>
-                        <button
-                          className="vp-share-btn"
-                          onClick={(e) => { e.stopPropagation(); handleShare(v) }}
-                          title={l.share}
-                          aria-label={l.share}
-                        >
-                          📤
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                )
-              })}
+                  </div>
+                </article>
+              ))}
             </div>
           )}
 
-          {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <Pagination current={currentPage} total={totalPages} onChange={goToPage} color="var(--primary)" />
+            <Pagination current={currentPage} total={totalPages} onChange={goToPage} color="var(--brand)" />
           )}
         </section>
       </div>
 
-      {/* ═══ VIDEO PLAYER MODAL — Portal ilə body-yə render olunur ═══ */}
+      {/* ═══ VİDEO PƏNCƏRƏSİ — Portal ilə body-yə render olunur ═══ */}
       {playingVideo && createPortal(
         <div className={`vp-modal${closing ? ' is-closing' : ''}`} onClick={closeVideo}>
           <div
@@ -389,7 +384,9 @@ export default function VideosPage({ setPage }) {
             <div className="m-sheet-grab vp-sheet-grab" {...sheetDrag}>
               <span className="m-sheet-handle" />
             </div>
-            <button type="button" ref={closeBtnRef} className="vp-modal-close" onClick={closeVideo} aria-label={l.close} title={l.close}>✕</button>
+            <button type="button" ref={closeBtnRef} className="ui-icon-btn vp-modal-close" onClick={closeVideo} aria-label={l.close} title={l.close}>
+              <Icon name="close" size={18} />
+            </button>
             <div className="vp-modal-video-wrap">
               <iframe
                 className="vp-modal-iframe"
@@ -405,17 +402,20 @@ export default function VideosPage({ setPage }) {
               {(pickLang(playingVideo.description, lang, { warn: false })) && (
                 <p>{pickLang(playingVideo.description, lang, { warn: false })}</p>
               )}
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm vp-modal-share" onClick={() => handleShare(playingVideo)}>
+                <Icon name="share" className="ui-btn__icon" /> {l.share}
+              </button>
             </div>
           </div>
         </div>,
         document.body
       )}
 
-      {/* ═══ SHARE TOAST ═══ */}
+      {/* ═══ PAYLAŞMA BİLDİRİŞİ ═══ */}
       {/* <body>-yə — açıq video vərəqinin də üstündə görünsün */}
       {shareToast && createPortal(
-        <div className="vp-share-toast">
-          ✅ {l.shared}
+        <div className="vp-share-toast" role="status">
+          <Icon name="check" size={18} /> {l.shared}
         </div>,
         document.body
       )}

@@ -1,4 +1,6 @@
 import { useLang } from '../../contexts/LangContext'
+import Icon from '../Icon'
+import { AdminHeader, SectionTitle } from './AdminUi'
 
 const LABELS = {
   az: { welcome:'Xoş gəldiniz, Admin!', sub:'Burada bütün məzmunu idarə edə bilərsiniz', total:'Ümumi məzmun', quickAdd:'Sürətli əməliyyat', videos:'Video', books:'Kitab', hadiths:'Hədis', duas:'Dua', announcements:'Elan', addVideo:'Video əlavə et', addBook:'Kitab əlavə et', addHadith:'Hədis əlavə et', addDua:'Dua əlavə et', addAnnouncement:'Elan əlavə et', stats:'Statistika' },
@@ -14,87 +16,56 @@ export default function DashboardOverview({ counts, setActiveTab }) {
 
   const total = (counts.videos || 0) + (counts.books || 0) + (counts.hadiths || 0) + (counts.duas || 0) + (counts.announcements || 0)
 
+  // Rəngli kartlar əvəzinə vahid görünüş: ikon kafeli (brend tonu) + rəqəm
   const cards = [
-    { key:'videos',        icon:'📹', label:l.videos,        count:counts.videos || 0,        color:'#10b981', tab:'videos' },
-    { key:'books',         icon:'📚', label:l.books,         count:counts.books || 0,         color:'#f59e0b', tab:'books' },
-    { key:'hadiths',       icon:'📜', label:l.hadiths,       count:counts.hadiths || 0,       color:'#ea580c', tab:'hadiths' },
-    { key:'duas',          icon:'🤲', label:l.duas,          count:counts.duas || 0,          color:'#8b5cf6', tab:'duas' },
-    { key:'announcements', icon:'📣', label:l.announcements, count:counts.announcements || 0, color:'#ef4444', tab:'announcements' },
+    { key:'videos',        icon:'videos',        label:l.videos,        count:counts.videos || 0,        tab:'videos',        add:l.addVideo },
+    { key:'books',         icon:'books',         label:l.books,         count:counts.books || 0,         tab:'books',         add:l.addBook },
+    { key:'hadiths',       icon:'hadith',        label:l.hadiths,       count:counts.hadiths || 0,       tab:'hadiths',       add:l.addHadith },
+    { key:'duas',          icon:'duas',          label:l.duas,          count:counts.duas || 0,          tab:'duas',          add:l.addDua },
+    { key:'announcements', icon:'announcements', label:l.announcements, count:counts.announcements || 0, tab:'announcements', add:l.addAnnouncement },
   ]
 
   return (
     <div>
-      {/* Header */}
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge">👋</div>
-          <div className="admin-header-info">
-            <h1>{l.welcome}</h1>
-            <p>{l.sub}</p>
-          </div>
-        </div>
-      </div>
+      <AdminHeader icon="home" title={l.welcome} sub={l.sub} />
 
-      {/* Total stats card */}
-      <div className="admin-section" style={{
-        background: 'linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light))',
-        color: '#fff',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <div style={{position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(255,255,255,0.08)', top:-60, right:-40}} />
-        <div style={{position:'absolute', width:140, height:140, borderRadius:'50%', background:'rgba(255,255,255,0.05)', bottom:-40, left:-20}} />
-        <div style={{position:'relative', zIndex:1}}>
-          <div style={{fontSize:11, fontWeight:800, letterSpacing:1.5, textTransform:'uppercase', opacity:0.9, marginBottom:6}}>
-            {l.total}
-          </div>
-          <div style={{fontSize:48, fontWeight:800, letterSpacing:-2, lineHeight:1}}>{total}</div>
-          <div style={{fontSize:13, opacity:0.85, marginTop:8, fontWeight:600}}>
-            📹 {counts.videos || 0} · 📚 {counts.books || 0} · 📜 {counts.hadiths || 0} · 🤲 {counts.duas || 0} · 📣 {counts.announcements || 0}
-          </div>
+      {/* Ümumi məzmun — tünd zümrüd zolaq */}
+      <section className="admin-hero" data-reveal="scale" aria-label={l.total}>
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div>
+          <div className="admin-hero-label">{l.total}</div>
+          {/* data-count — görünəndə 0-dan sayır; key: say gələndə yenidən */}
+          <div className="admin-hero-num"><span key={total} data-count={total}>{total}</span></div>
         </div>
-      </div>
+        <ul className="admin-hero-breakdown">
+          {cards.map(c => (
+            <li key={c.key}><Icon name={c.icon} size={16} /> <span>{c.label}</span> <b>{c.count}</b></li>
+          ))}
+        </ul>
+      </section>
 
-      {/* Content count cards */}
-      <div className="admin-stats">
+      {/* Məzmun sayları — kart bölməyə aparır */}
+      <div className="admin-stats" data-reveal="stagger-zoom">
         {cards.map(card => (
-          <div
-            key={card.key}
-            className="admin-stat-card"
-            style={{'--accent':card.color, '--accent-bg':card.color+'15', cursor:'pointer'}}
-            onClick={() => setActiveTab(card.tab)}
-          >
-            <div className="admin-stat-icon">{card.icon}</div>
-            <div className="admin-stat-num">{card.count}</div>
-            <div className="admin-stat-label">{card.label}</div>
-          </div>
+          <button key={card.key} type="button" className="admin-stat-card" onClick={() => setActiveTab(card.tab)}>
+            <span className="ui-icon-tile admin-stat-icon" aria-hidden="true"><Icon name={card.icon} /></span>
+            <span className="admin-stat-num"><span key={card.count} data-count={card.count}>{card.count}</span></span>
+            <span className="admin-stat-label">{card.label}</span>
+          </button>
         ))}
       </div>
 
-      {/* Quick actions */}
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">⚡</span>
-          {l.quickAdd}
-        </h2>
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:12}}>
-          <button className="admin-submit-btn" onClick={() => setActiveTab('videos')} style={{background:'linear-gradient(135deg, #10b981, #059669)'}}>
-            <span>📹</span> {l.addVideo}
-          </button>
-          <button className="admin-submit-btn" onClick={() => setActiveTab('books')} style={{background:'linear-gradient(135deg, #f59e0b, #d97706)'}}>
-            <span>📚</span> {l.addBook}
-          </button>
-          <button className="admin-submit-btn" onClick={() => setActiveTab('hadiths')} style={{background:'linear-gradient(135deg, #ea580c, #c2410c)'}}>
-            <span>📜</span> {l.addHadith}
-          </button>
-          <button className="admin-submit-btn" onClick={() => setActiveTab('duas')} style={{background:'linear-gradient(135deg, #8b5cf6, #7c3aed)'}}>
-            <span>🤲</span> {l.addDua}
-          </button>
-          <button className="admin-submit-btn" onClick={() => setActiveTab('announcements')} style={{background:'linear-gradient(135deg, #ef4444, #dc2626)'}}>
-            <span>📣</span> {l.addAnnouncement}
-          </button>
+      {/* Sürətli əməliyyatlar */}
+      <section className="admin-section" data-reveal>
+        <SectionTitle icon="bolt" tone="accent">{l.quickAdd}</SectionTitle>
+        <div className="admin-quick">
+          {cards.map(c => (
+            <button key={c.key} type="button" className="ui-btn ui-btn--secondary" onClick={() => setActiveTab(c.tab)}>
+              <Icon name="plus" className="ui-btn__icon" /> {c.add}
+            </button>
+          ))}
         </div>
-      </div>
+      </section>
     </div>
   )
 }

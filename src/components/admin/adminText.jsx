@@ -25,5 +25,5 @@ export const adminPick = (v, lang) => pickLang(v, lang, NOWARN)
 export function AdminText({ value, lang }) {
   const text = adminPick(value, lang)
   if (text) return text
-  return <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: 500 }}>{NO_TEXT[lang]}</span>
+  return <span className="admin-notext">{NO_TEXT[lang]}</span>
 }

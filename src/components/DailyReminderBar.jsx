@@ -13,6 +13,7 @@
 //
 // Ana səhifədə React.lazy ilə yüklənir; fallback: DailyReminderBarSkeleton.
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import Icon from './Icon'
 import { useLang } from '../contexts/LangContext'
 import { QUOTES } from '../data/quotes'
 import { DUAS_DATA } from '../data/duas'
@@ -340,7 +341,6 @@ export default function DailyReminderBar({ setPage }) {
   const source = localizeSource(cur.source, lang)
   const fullTitle = [cur.ar, [cur.name, cur.text].filter(Boolean).join(' — '), source && `— ${source}`]
     .filter(Boolean).join('\n')
-  const moreArrow = isAr ? '←' : '→'
 
   return (
     <div className="drb-wrap">
@@ -420,7 +420,7 @@ export default function DailyReminderBar({ setPage }) {
 
         {open && typeof setPage === 'function' && (
           <button type="button" className="drb-more" onClick={() => setPage(cur.page)}>
-            {L.more[cur.page]} <span aria-hidden="true">{moreArrow}</span>
+            {L.more[cur.page]} <Icon name="arrow" size={15} className="drb-more-arrow ui-flip-rtl" />
           </button>
         )}
 

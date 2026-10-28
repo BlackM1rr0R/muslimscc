@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
+import { navGroupLabel } from '../data/navigation'
+import Icon from '../components/Icon'
 import '../styles/PrayerGuidePage.css'
 import Breadcrumb from '../components/Breadcrumb'
 
 const LABELS = {
-  az: { title:'Namaz Öyrən', subtitle:'Addım-addım namaz qaydası', step:'Addım', prev:'Əvvəlki', next:'Növbəti', recite:'Oxu', meaning:'Mənası', times:'dəfə', selectPrayer:'Namaz seçin', fajr:'Sübh (2 rəkət)', dhuhr:'Zöhr (4 rəkət)', asr:'Əsr (4 rəkət)', maghrib:'Məğrib (3 rəkət)', isha:'İşa (4 rəkət)', complete:'Namaz tamamlandı!', restart:'Yenidən başla', wuduTitle:'Dəstəmaz Qaydası', wuduSubtitle:'Addım-addım dəstəmaz almaq', wuduComplete:'Dəstəmaz tamamlandı!', wuduDuaTitle:'Dəstəmazdan sonra dua', qunutTitle:'Qunut Duası', qunutSubtitle:'Vitr namazında oxunan qunut duası', qunutWhen:'Qunut nə vaxt oxunur?', qunutExplanation:'Qunut duası əsasən Vitr namazının son rəkətində rükudan əvvəl və ya sonra oxunur. Bəzi məzhəblərdə (Şafii) Sübh namazında da oxunur.' },
+  az: { title:'Namaz öyrən', subtitle:'Addım-addım namaz qaydası', step:'Addım', prev:'Əvvəlki', next:'Növbəti', recite:'Oxu', meaning:'Mənası', times:'dəfə', selectPrayer:'Namaz seçin', fajr:'Sübh (2 rəkət)', dhuhr:'Zöhr (4 rəkət)', asr:'Əsr (4 rəkət)', maghrib:'Məğrib (3 rəkət)', isha:'İşa (4 rəkət)', complete:'Namaz tamamlandı!', restart:'Yenidən başla', wuduTitle:'Dəstəmaz qaydası', wuduSubtitle:'Addım-addım dəstəmaz almaq', wuduComplete:'Dəstəmaz tamamlandı!', wuduDuaTitle:'Dəstəmazdan sonra dua', qunutTitle:'Qunut duası', qunutSubtitle:'Vitr namazında oxunan qunut duası', qunutWhen:'Qunut nə vaxt oxunur?', qunutExplanation:'Qunut duası əsasən Vitr namazının son rəkətində rükudan əvvəl və ya sonra oxunur. Bəzi məzhəblərdə (Şafii) Sübh namazında da oxunur.' },
   en: { title:'Learn Prayer', subtitle:'Step-by-step prayer guide', step:'Step', prev:'Previous', next:'Next', recite:'Recite', meaning:'Meaning', times:'times', selectPrayer:'Select prayer', fajr:'Fajr (2 rakat)', dhuhr:'Dhuhr (4 rakat)', asr:'Asr (4 rakat)', maghrib:'Maghrib (3 rakat)', isha:'Isha (4 rakat)', complete:'Prayer completed!', restart:'Start again', wuduTitle:'Wudu Guide', wuduSubtitle:'Step-by-step ablution guide', wuduComplete:'Wudu completed!', wuduDuaTitle:'Dua after Wudu', qunutTitle:'Qunut Dua', qunutSubtitle:'The Qunut supplication recited in Witr prayer', qunutWhen:'When is Qunut recited?', qunutExplanation:'The Qunut dua is primarily recited in the last rakat of Witr prayer, before or after ruku. In some madhabs (Shafi\'i), it is also recited in Fajr prayer.' },
   ru: { title:'Учись молиться', subtitle:'Пошаговое руководство', step:'Шаг', prev:'Назад', next:'Далее', recite:'Читай', meaning:'Значение', times:'раз', selectPrayer:'Выберите намаз', fajr:'Фаджр (2 ракята)', dhuhr:'Зухр (4 ракята)', asr:'Аср (4 ракята)', maghrib:'Магриб (3 ракята)', isha:'Иша (4 ракята)', complete:'Намаз завершён!', restart:'Начать заново', wuduTitle:'Руководство по омовению', wuduSubtitle:'Пошаговое руководство по вуду', wuduComplete:'Омовение завершено!', wuduDuaTitle:'Дуа после омовения', qunutTitle:'Дуа Кунут', qunutSubtitle:'Мольба Кунут, читаемая в намазе Витр', qunutWhen:'Когда читается Кунут?', qunutExplanation:'Дуа Кунут в основном читается в последнем ракяте намаза Витр, до или после руку. В некоторых мазхабах (Шафии) читается также в намазе Фаджр.' },
   ar: { title:'تعلم الصلاة', subtitle:'دليل الصلاة خطوة بخطوة', step:'الخطوة', prev:'السابق', next:'التالي', recite:'اقرأ', meaning:'المعنى', times:'مرات', selectPrayer:'اختر الصلاة', fajr:'الفجر (ركعتان)', dhuhr:'الظهر (٤ ركعات)', asr:'العصر (٤ ركعات)', maghrib:'المغرب (٣ ركعات)', isha:'العشاء (٤ ركعات)', complete:'تمت الصلاة!', restart:'ابدأ من جديد', wuduTitle:'دليل الوضوء', wuduSubtitle:'دليل الوضوء خطوة بخطوة', wuduComplete:'اكتمل الوضوء!', wuduDuaTitle:'دعاء بعد الوضوء', qunutTitle:'دعاء القنوت', qunutSubtitle:'دعاء القنوت الذي يُقرأ في صلاة الوتر', qunutWhen:'متى يُقرأ القنوت؟', qunutExplanation:'يُقرأ دعاء القنوت في الركعة الأخيرة من صلاة الوتر، قبل الركوع أو بعده. في بعض المذاهب (الشافعي) يُقرأ أيضًا في صلاة الفجر.' },
@@ -13,9 +15,10 @@ const LABELS = {
 }
 
 // SVG illustrasiyalar — namaz pozisiyaları (real siluet)
-const C1 = 'var(--primary)' // əsas rəng
-const C2 = 'var(--primary-dark, #0d6b3a)' // tünd variant
-const C3 = 'var(--gold, #b8860b)' // qızılı aksent
+// v2: semantik tokenlər — qaranlıq rejimdə avtomatik açılır
+const C1 = 'var(--brand)'        // əsas rəng
+const C2 = 'var(--brand-strong)' // tünd variant (əmmamə, çiyin)
+const C3 = 'var(--accent)'       // qızılı aksent (xalça, istiqamət oxu)
 
 const POS = {
   standing: (
@@ -155,10 +158,8 @@ const POS = {
       <ellipse cx="70" cy="17" rx="13" ry="7" fill={C2} opacity="0.7"/>
       {/* Baş dönmə istiqaməti oxu */}
       <path d="M82 22 Q92 18 98 14" stroke={C3} strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.8">
-        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
       </path>
       <polygon points="98,10 102,16 96,16" fill={C3} opacity="0.8">
-        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
       </polygon>
       <rect x="66" y="37" width="8" height="7" rx="3" fill={C1}/>
       <path d="M53 44 Q70 40 87 44 L89 100 Q70 105 51 100 Z" fill={C1} opacity="0.85"/>
@@ -236,7 +237,7 @@ const STEPS = [
   {
     id: 'qiyam',
     icon: '🧍',
-    name: { az:'Qiyam — Fatihə və Surə', en:'Standing — Al-Fatiha & Surah', ru:'Стояние — Аль-Фатиха и Сура', ar:'القيام — الفاتحة وسورة', tr:'Kıyam — Fatiha ve Sure' },
+    name: { az:'Qiyam — Fatihə və surə', en:'Standing — Al-Fatiha & Surah', ru:'Стояние — Аль-Фатиха и Сура', ar:'القيام — الفاتحة وسورة', tr:'Kıyam — Fatiha ve Sure' },
     arabic: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ۝ ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ ۝ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ۝ مَٰلِكِ يَوْمِ ٱلدِّينِ ۝ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ۝ ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ ۝ صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ',
     transliteration: 'Bismillahir-Rahmanir-Rahim. Al-hamdu lillahi Rabbil-alamin. Ar-Rahmanir-Rahim. Maliki yawmid-din. Iyyaka na\'budu wa iyyaka nasta\'in. Ihdinas-siratal-mustaqim. Siratal-ladhina an\'amta alayhim ghayril-maghdubi alayhim walad-dallin.',
     translation: {
@@ -346,7 +347,7 @@ const STEPS = [
   {
     id: 'sajdah2',
     icon: '🤲',
-    name: { az:'İkinci Səcdə', en:'Second Prostration', ru:'Второй земной поклон', ar:'السجدة الثانية', tr:'İkinci Secde' },
+    name: { az:'İkinci səcdə', en:'Second Prostration', ru:'Второй земной поклон', ar:'السجدة الثانية', tr:'İkinci Secde' },
     arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى',
     transliteration: 'Subhana Rabbiyal-A\'la',
     translation: {
@@ -510,14 +511,30 @@ function buildPrayerSteps(rakatCount) {
   return [...firstRakat, ...secondRakat, 9, 8, 8, ...finalSitting]
 }
 
-// icon/tone — yalnız telefonda siyahı sətrinin ikon kafeli (masaüstündə 🕌)
+// icon — xətti ikon (Icon.jsx; /prayer ilə eyni günün vaxtı ikonları)
 const PRAYER_TYPES = [
-  { key: 'fajr',    rakat: 2, icon: '🌙', tone: 'blue' },
-  { key: 'dhuhr',   rakat: 4, icon: '☀️', tone: 'gold' },
-  { key: 'asr',     rakat: 4, icon: '🌤️', tone: 'teal' },
-  { key: 'maghrib', rakat: 3, icon: '🌇', tone: 'rose' },
-  { key: 'isha',    rakat: 4, icon: '🌃', tone: 'violet' },
+  { key: 'fajr',    rakat: 2, icon: 'sunrise' },
+  { key: 'dhuhr',   rakat: 4, icon: 'sun' },
+  { key: 'asr',     rakat: 4, icon: 'sunLow' },
+  { key: 'maghrib', rakat: 3, icon: 'sunset' },
+  { key: 'isha',    rakat: 4, icon: 'moon' },
 ]
+
+// Rejim düymələri (5 dil) + ikonlar
+const MODES = [
+  { key: 'prayer', icon: 'holyplaces', label: { az:'Namaz', en:'Prayer', ru:'Намаз', ar:'الصلاة', tr:'Namaz' } },
+  { key: 'wudu',   icon: 'drop',       label: { az:'Dəstəmaz', en:'Wudu', ru:'Омовение', ar:'الوضوء', tr:'Abdest' } },
+  { key: 'qunut',  icon: 'duas',       label: { az:'Qunut', en:'Qunut', ru:'Кунут', ar:'القنوت', tr:'Kunut' } },
+]
+
+// Giriş mətni hero-da (5 dil)
+const LEAD = {
+  az: 'Namazın hər hərəkəti, oxunan dualar və mənaları — addım-addım, şəkillərlə. Dəstəmaz qaydası və qunut duası da buradadır.',
+  en: 'Every position of the prayer, what to recite and what it means — step by step, with illustrations. The wudu guide and the Qunut dua are here too.',
+  ru: 'Каждое положение намаза, что читать и что это значит — шаг за шагом, с иллюстрациями. Здесь же порядок омовения и дуа Кунут.',
+  ar: 'كل حركة في الصلاة وما يُقرأ فيها ومعناه — خطوة بخطوة مع الرسوم. وهنا أيضًا دليل الوضوء ودعاء القنوت.',
+  tr: 'Namazın her hareketi, okunan dualar ve anlamları — adım adım, resimlerle. Abdest rehberi ve kunut duası da burada.',
+}
 
 // Rejim seçicisi qrupunun ekran oxuyucu adı
 const MODE_LABEL = { az:'Bələdçi növü', en:'Guide type', ru:'Тип руководства', ar:'نوع الدليل', tr:'Rehber türü' }
@@ -664,30 +681,34 @@ export default function PrayerGuidePage({ setPage }) {
   const isWuduComplete = wuduStep >= wuduTotalSteps
   const currentWuduStep = !isWuduComplete ? WUDU_STEPS[wuduStep] : null
 
+  const modeIdx = Math.max(0, MODES.findIndex(m => m.key === mode))
+
   return (
-    <>
-      {/* Hero */}
-      <div className="page-hero hero-compact theme-prayerguide">
-        <Breadcrumb setPage={setPage} current={t.title} />
-        <div className="page-hero-arabic">بِسْمِ اللَّهِ</div>
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+    <div className="pg-root">
+      {/* v2: sakit kağız hero — iz, eyebrow, bir h1, giriş */}
+      <header className="ui-page-hero pg-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <div className="ui-container">
+          <Breadcrumb setPage={setPage} current={t.title} />
+          <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          <p className="pg-hero-ar ui-arabic" lang="ar" aria-hidden="true">بِسْمِ اللَّهِ</p>
+          <p className="ui-lead">{LEAD[lang] || LEAD.en}</p>
+        </div>
+      </header>
 
-      <section className="section">
-        <div className="section-inner pg-container">
+      <section className="ui-section pg-main">
+        <div className="ui-container pg-container">
 
-          {/* Rejim seçicisi — telefonda yuxarıda yapışan seqment (.m-seg) */}
-          <div className="pg-mode-toggle m-seg" role="group" aria-label={MODE_LABEL[lang] || MODE_LABEL.en}>
-            <button type="button" className={`pg-mode-btn m-seg-btn ${mode === 'prayer' ? 'active' : ''}`} aria-pressed={mode === 'prayer'} onClick={() => handleModeSwitch('prayer')}>
-              🕌 {lang==='az'?'Namaz':lang==='ru'?'Намаз':lang==='ar'?'الصلاة':lang==='tr'?'Namaz':'Prayer'}
-            </button>
-            <button type="button" className={`pg-mode-btn m-seg-btn ${mode === 'wudu' ? 'active' : ''}`} aria-pressed={mode === 'wudu'} onClick={() => handleModeSwitch('wudu')}>
-              💧 {lang==='az'?'Dəstəmaz':lang==='ru'?'Омовение':lang==='ar'?'الوضوء':lang==='tr'?'Abdest':'Wudu'}
-            </button>
-            <button type="button" className={`pg-mode-btn m-seg-btn ${mode === 'qunut' ? 'active' : ''}`} aria-pressed={mode === 'qunut'} onClick={() => handleModeSwitch('qunut')}>
-              🤲 {lang==='az'?'Qunut':lang==='ru'?'Кунут':lang==='ar'?'القنوت':lang==='tr'?'Kunut':'Qunut'}
-            </button>
+          {/* Rejim seçicisi — seqment; seçilmiş "hap" düymələr arasında sürüşür
+              (--i). Telefonda başlığın altında yapışır. */}
+          <div className="pg-mode-toggle" role="group" aria-label={MODE_LABEL[lang] || MODE_LABEL.en} style={{ '--i': modeIdx }}>
+            <span className="pg-mode-thumb" aria-hidden="true" />
+            {MODES.map(m => (
+              <button key={m.key} type="button" className={`pg-mode-btn ${mode === m.key ? 'active' : ''}`} aria-pressed={mode === m.key} onClick={() => handleModeSwitch(m.key)}>
+                <Icon name={m.icon} size={18} /> <span>{m.label[lang] || m.label.en}</span>
+              </button>
+            ))}
           </div>
 
           {/* ═══════════════ PRAYER MODE ═══════════════ */}
@@ -695,21 +716,23 @@ export default function PrayerGuidePage({ setPage }) {
             <>
               {/* Prayer Type Selection */}
               {selectedPrayer === null && (
-                <div className="pg-select anim-fadeUp">
-                  <h2 className="pg-select-title">{t.selectPrayer}</h2>
-                  {/* Telefonda keçid sətirləri (ikon kafeli · ad · ›), masaüstündə kartlar */}
-                  <div className="pg-prayer-grid m-list" data-reveal="stagger">
+                <div className="pg-select pg-enter">
+                  <div className="pg-mode-head">
+                    <h2 className="pg-select-title">{t.selectPrayer}</h2>
+                    <p className="pg-mode-sub">{t.subtitle}</p>
+                  </div>
+                  {/* Kartlar: ikon kafeli · ad (rükət sayı ilə) · ox; telefonda sətirlər */}
+                  <div className="pg-prayer-grid" data-reveal="stagger-zoom">
                     {PRAYER_TYPES.map((pt, idx) => (
                       <button
                         key={pt.key}
                         type="button"
-                        className="pg-prayer-btn m-row"
+                        className="pg-prayer-btn ui-card ui-card--interactive"
                         onClick={() => handleSelectPrayer(idx)}
                       >
-                        <span className="pg-prayer-icon" aria-hidden="true">🕌</span>
-                        <span className={`pg-prayer-tile icon-tile icon-tile--${pt.tone}`} aria-hidden="true">{pt.icon}</span>
+                        <span className="pg-prayer-tile ui-icon-tile" aria-hidden="true"><Icon name={pt.icon} /></span>
                         <span className="pg-prayer-name">{t[pt.key]}</span>
-                        <span className="m-row-chev pg-prayer-chev" aria-hidden="true" />
+                        <Icon name="arrow" size={18} className="pg-prayer-chev ui-flip-rtl" />
                       </button>
                     ))}
                   </div>
@@ -718,7 +741,7 @@ export default function PrayerGuidePage({ setPage }) {
 
               {/* Step Guide */}
               {selectedPrayer !== null && !isComplete && currentStepData && (
-                <div className="pg-guide anim-fadeUp">
+                <div className="pg-guide pg-enter">
                   {/* Progress bar */}
                   <div className="pg-progress-wrap">
                     <div className="pg-progress-bar">
@@ -728,13 +751,14 @@ export default function PrayerGuidePage({ setPage }) {
                       />
                     </div>
                     <span className="pg-progress-text">
-                      {t.step} {currentStep + 1} / {totalSteps}
+                      <span className="pg-progress-name">{t[prayerType.key]}</span>
+                      <span className="ui-num">{t.step} {currentStep + 1} / {totalSteps}</span>
                     </span>
                   </div>
 
                   {/* Back to selection */}
-                  <button className="btn-ghost pg-back-btn" onClick={handleBackToSelect}>
-                    <span className="qm-dir-arrow" aria-hidden="true">←</span> {t.selectPrayer}
+                  <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm pg-back-btn" onClick={handleBackToSelect}>
+                    <Icon name="arrow" size={16} className="pg-back-ic ui-flip-rtl" /> {t.selectPrayer}
                   </button>
 
                   {/* Step card — key: hər addımda kart yenidən qurulur və
@@ -753,7 +777,7 @@ export default function PrayerGuidePage({ setPage }) {
                     {currentStepData.arabic && (
                       <div className="pg-arabic-block">
                         <span className="pg-label">{t.recite}{currentStepData.repeat > 1 ? ` (${currentStepData.repeat}x)` : ''}</span>
-                        <div className="pg-arabic-text arabic-text">{currentStepData.arabic}</div>
+                        <div className="pg-arabic-text ui-arabic" lang="ar" dir="rtl">{currentStepData.arabic}</div>
                       </div>
                     )}
 
@@ -799,17 +823,19 @@ export default function PrayerGuidePage({ setPage }) {
                   {/* Navigation */}
                   <div className="pg-nav">
                     <button
-                      className="btn-secondary"
+                      type="button"
+                      className="ui-btn ui-btn--secondary"
                       onClick={handlePrev}
                       disabled={currentStep === 0}
                     >
-                      {t.prev}
+                      <Icon name="arrow" size={18} className="pg-prev-ic ui-flip-rtl" /> {t.prev}
                     </button>
                     <button
-                      className="btn-primary"
+                      type="button"
+                      className="ui-btn ui-btn--primary"
                       onClick={handleNext}
                     >
-                      {t.next}
+                      {t.next} <Icon name="arrow" size={18} className="ui-flip-rtl" />
                     </button>
                   </div>
                 </div>
@@ -817,12 +843,13 @@ export default function PrayerGuidePage({ setPage }) {
 
               {/* Completion Screen */}
               {isComplete && (
-                <div className="pg-complete anim-scaleIn">
-                  <div className="pg-complete-icon">✅</div>
+                <div className="pg-complete ui-card">
+                  {/* Tamamlanma: dairə "pop" edir, ✓ xətti çəkilir */}
+                  <div className="pg-complete-icon" aria-hidden="true"><Icon name="check" size={34} strokeWidth={2.2} /></div>
                   <h2 className="pg-complete-title">{t.complete}</h2>
                   <p className="pg-complete-prayer">{t[PRAYER_TYPES[selectedPrayer].key]}</p>
-                  <button className="btn-primary" onClick={handleRestart}>
-                    {t.restart}
+                  <button type="button" className="ui-btn ui-btn--primary" onClick={handleRestart}>
+                    <Icon name="refresh" className="ui-btn__icon" /> {t.restart}
                   </button>
                 </div>
               )}
@@ -832,8 +859,14 @@ export default function PrayerGuidePage({ setPage }) {
           {/* ═══════════════ WUDU MODE ═══════════════ */}
           {mode === 'wudu' && (
             <>
+              {wuduStep === 0 && (
+                <div className="pg-mode-head pg-enter">
+                  <h2 className="pg-select-title">{t.wuduTitle}</h2>
+                  <p className="pg-mode-sub">{t.wuduSubtitle}</p>
+                </div>
+              )}
               {!isWuduComplete && currentWuduStep && (
-                <div className="pg-guide anim-fadeUp">
+                <div className="pg-guide pg-enter">
                   {/* Progress bar */}
                   <div className="pg-progress-wrap">
                     <div className="pg-progress-bar">
@@ -843,7 +876,8 @@ export default function PrayerGuidePage({ setPage }) {
                       />
                     </div>
                     <span className="pg-progress-text">
-                      {t.step} {wuduStep + 1} / {wuduTotalSteps}
+                      <span className="pg-progress-name">{t.wuduTitle}</span>
+                      <span className="ui-num">{t.step} {wuduStep + 1} / {wuduTotalSteps}</span>
                     </span>
                   </div>
 
@@ -851,14 +885,13 @@ export default function PrayerGuidePage({ setPage }) {
                   <div className="pg-step-card" key={`w${wuduStep}`} data-dir={stepDir || undefined}>
                     <div className="pg-step-header">
                       <span className="pg-step-number">{wuduStep + 1}</span>
-                      <span className="pg-step-icon">{currentWuduStep.icon}</span>
                       <h3 className="pg-step-name">{currentWuduStep.name[lang] || currentWuduStep.name.en}</h3>
                     </div>
 
                     {currentWuduStep.arabic && (
                       <div className="pg-arabic-block">
                         <span className="pg-label">{t.recite}</span>
-                        <div className="pg-arabic-text arabic-text">{currentWuduStep.arabic}</div>
+                        <div className="pg-arabic-text ui-arabic" lang="ar" dir="rtl">{currentWuduStep.arabic}</div>
                       </div>
                     )}
 
@@ -883,17 +916,19 @@ export default function PrayerGuidePage({ setPage }) {
                   {/* Navigation */}
                   <div className="pg-nav">
                     <button
-                      className="btn-secondary"
+                      type="button"
+                      className="ui-btn ui-btn--secondary"
                       onClick={handleWuduPrev}
                       disabled={wuduStep === 0}
                     >
-                      {t.prev}
+                      <Icon name="arrow" size={18} className="pg-prev-ic ui-flip-rtl" /> {t.prev}
                     </button>
                     <button
-                      className="btn-primary"
+                      type="button"
+                      className="ui-btn ui-btn--primary"
                       onClick={handleWuduNext}
                     >
-                      {t.next}
+                      {t.next} <Icon name="arrow" size={18} className="ui-flip-rtl" />
                     </button>
                   </div>
                 </div>
@@ -901,15 +936,15 @@ export default function PrayerGuidePage({ setPage }) {
 
               {/* Wudu Completion */}
               {isWuduComplete && (
-                <div className="pg-complete anim-scaleIn">
-                  <div className="pg-complete-icon">💧</div>
+                <div className="pg-complete ui-card">
+                  <div className="pg-complete-icon" aria-hidden="true"><Icon name="check" size={34} strokeWidth={2.2} /></div>
                   <h2 className="pg-complete-title">{t.wuduComplete}</h2>
 
                   {/* Wudu completion dua */}
                   <div className="pg-wudu-dua">
                     <div className="pg-wudu-dua-title">{t.wuduDuaTitle}</div>
-                    <div className="pg-wudu-dua-ar">{WUDU_DUA.arabic}</div>
-                    <div className="pg-translit" style={{ border: 'none', marginBottom: 8 }}>
+                    <div className="pg-wudu-dua-ar ui-arabic" lang="ar" dir="rtl">{WUDU_DUA.arabic}</div>
+                    <div className="pg-translit pg-translit--plain">
                       {WUDU_DUA.transliteration}
                     </div>
                     <div className="pg-wudu-dua-trans">
@@ -917,8 +952,8 @@ export default function PrayerGuidePage({ setPage }) {
                     </div>
                   </div>
 
-                  <button className="btn-primary" onClick={() => setWuduStep(0)} style={{ marginTop: 24 }}>
-                    {t.restart}
+                  <button type="button" className="ui-btn ui-btn--primary pg-complete-btn" onClick={() => setWuduStep(0)}>
+                    <Icon name="refresh" className="ui-btn__icon" /> {t.restart}
                   </button>
                 </div>
               )}
@@ -927,15 +962,18 @@ export default function PrayerGuidePage({ setPage }) {
 
           {/* ═══════════════ QUNUT MODE ═══════════════ */}
           {mode === 'qunut' && (
-            <div className="pg-guide anim-fadeUp">
+            <div className="pg-guide pg-enter">
               <div className="pg-step-card">
                 <div className="pg-step-header">
-                  <span className="pg-step-icon" style={{ fontSize: '2rem' }}>🤲</span>
-                  <h3 className="pg-step-name">{t.qunutTitle}</h3>
+                  <span className="pg-step-icon ui-icon-tile ui-icon-tile--accent" aria-hidden="true"><Icon name="duas" /></span>
+                  <span className="pg-step-head-text">
+                    <h2 className="pg-step-name">{t.qunutTitle}</h2>
+                    <span className="pg-step-sub">{t.qunutSubtitle}</span>
+                  </span>
                 </div>
 
                 {/* When to recite */}
-                <div className="pg-description" style={{ marginBottom: 20 }}>
+                <div className="pg-description pg-description--lead">
                   <span className="pg-label">{t.qunutWhen}</span>
                   <p>{t.qunutExplanation}</p>
                 </div>
@@ -943,7 +981,7 @@ export default function PrayerGuidePage({ setPage }) {
                 {/* Arabic text */}
                 <div className="pg-arabic-block">
                   <span className="pg-label">{t.recite}</span>
-                  <div className="pg-arabic-text arabic-text">{QUNUT_DUA.arabic}</div>
+                  <div className="pg-arabic-text ui-arabic" lang="ar" dir="rtl">{QUNUT_DUA.arabic}</div>
                 </div>
 
                 {/* Transliteration */}
@@ -962,6 +1000,6 @@ export default function PrayerGuidePage({ setPage }) {
 
         </div>
       </section>
-    </>
+    </div>
   )
 }

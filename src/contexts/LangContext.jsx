@@ -91,8 +91,9 @@ export function LangProvider({ children }) {
     } else {
       document.documentElement.removeAttribute('data-theme')
     }
-    // Brauzer zolağının rəngi başlıqla eyni olsun (açıq: ağ şüşə, qaranlıq: #1a1a2e)
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#1a1a2e' : '#ffffff')
+    // Brauzer zolağının rəngi başlıqla eyni olsun — səhifə fonu (--surface-0):
+    // işıqlı #f7f5ef (fil sümüyü), qaranlıq #0a1016. index.html skripti ilə EYNİ.
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0a1016' : '#f7f5ef')
   }, [dark])
 
   // Sistem rejimi canlı dəyişəndə (telefon axşam avtomatik qaranlığa keçir)

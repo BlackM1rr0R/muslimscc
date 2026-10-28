@@ -21,19 +21,19 @@ function esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-export function makeCover({ title, author, color = '#10b981' }) {
+export function makeCover({ title, author, color = '#11604c' }) {
   const lines = wrapTitle(title, 15)
   const startY = 235 - (lines.length - 1) * 17
   const titleTspans = lines.map((ln, i) =>
     `<tspan x='150' y='${startY + i * 34}'>${esc(ln)}</tspan>`
   ).join('')
-  const gold = '#d4af37'
+  const gold = '#d8b46a'   // DESIGN.md → --accent (qaranlıq)
 
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'>
   <defs>
     <linearGradient id='bg' x1='0' y1='0' x2='0' y2='1'>
       <stop offset='0' stop-color='${color}'/>
-      <stop offset='1' stop-color='#0b1220'/>
+      <stop offset='1' stop-color='#06140f'/>
     </linearGradient>
     <radialGradient id='glow' cx='0.5' cy='0.32' r='0.7'>
       <stop offset='0' stop-color='#ffffff' stop-opacity='0.18'/>
@@ -156,17 +156,20 @@ export const DEFAULT_BOOKS = [
   },
 ]
 
+// Rənglər heroes.css-dəki 7 palitra ailəsindəndir (zümrüd, şam yaşılı, mamır,
+// tünd firuzə, gecə mürəkkəbi, tunc-qum, qəhvəyi torpaq) — dizayn v2-dən əvvəl
+// göy qurşağı rəngləri idi (#ec4899, #f97316 …) və saytla uyğun gəlmirdi.
 export const BOOK_CATEGORIES = [
-  { key:'all',       label:{az:'Hamısı',en:'All',ru:'Все',ar:'الكل',tr:'Tümü'}, color:'#64748b' },
-  { key:'quran',     label:{az:'Quran',en:'Quran',ru:'Коран',ar:'القرآن',tr:'Kuran'}, color:'#10b981' },
-  { key:'hadith',    label:{az:'Hədis',en:'Hadith',ru:'Хадис',ar:'الحديث',tr:'Hadis'}, color:'#f59e0b' },
-  { key:'fiqh',      label:{az:'Fiqh',en:'Fiqh',ru:'Фикх',ar:'الفقه',tr:'Fıkıh'}, color:'#3b82f6' },
-  { key:'aqida',     label:{az:'Əqidə',en:'Aqida',ru:'Акыда',ar:'العقيدة',tr:'Akide'}, color:'#8b5cf6' },
-  { key:'biography', label:{az:'Sirə',en:'Biography',ru:'Сира',ar:'السيرة',tr:'Siret'}, color:'#ec4899' },
-  { key:'tasawwuf',  label:{az:'Təzkiyə',en:'Tazkiyah',ru:'Тасаввуф',ar:'التزكية',tr:'Tasavvuf'}, color:'#06b6d4' },
-  { key:'history',   label:{az:'Tarix',en:'History',ru:'История',ar:'التاريخ',tr:'Tarih'}, color:'#a16207' },
-  { key:'tafsir',    label:{az:'Təfsir',en:'Tafsir',ru:'Тафсир',ar:'التفسير',tr:'Tefsir'}, color:'#dc2626' },
-  { key:'kids',      label:{az:'Uşaqlar',en:'Kids',ru:'Дети',ar:'الأطفال',tr:'Çocuk'}, color:'#f97316' },
+  { key:'all',       label:{az:'Hamısı',en:'All',ru:'Все',ar:'الكل',tr:'Tümü'}, color:'#3e4f48' },
+  { key:'quran',     label:{az:'Quran',en:'Quran',ru:'Коран',ar:'القرآن',tr:'Kuran'}, color:'#11604c' },
+  { key:'hadith',    label:{az:'Hədis',en:'Hadith',ru:'Хадис',ar:'الحديث',tr:'Hadis'}, color:'#5a3a26' },
+  { key:'fiqh',      label:{az:'Fiqh',en:'Fiqh',ru:'Фикх',ar:'الفقه',tr:'Fıkıh'}, color:'#114a4f' },
+  { key:'aqida',     label:{az:'Əqidə',en:'Aqida',ru:'Акыда',ar:'العقيدة',tr:'Akide'}, color:'#16513f' },
+  { key:'biography', label:{az:'Sirə',en:'Biography',ru:'Сира',ar:'السيرة',tr:'Siret'}, color:'#5e4721' },
+  { key:'tasawwuf',  label:{az:'Təzkiyə',en:'Tazkiyah',ru:'Тасаввуф',ar:'التزكية',tr:'Tasavvuf'}, color:'#3d5236' },
+  { key:'history',   label:{az:'Tarix',en:'History',ru:'История',ar:'التاريخ',tr:'Tarih'}, color:'#5a3a26' },
+  { key:'tafsir',    label:{az:'Təfsir',en:'Tafsir',ru:'Тафсир',ar:'التفسير',tr:'Tefsir'}, color:'#173641' },
+  { key:'kids',      label:{az:'Uşaqlar',en:'Kids',ru:'Дети',ar:'الأطفال',tr:'Çocuk'}, color:'#3d5236' },
 ]
 
 // Şəkli olmayan hər kitaba İslami SVG üz qabığı ver (Firestore + default).

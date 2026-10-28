@@ -2,6 +2,9 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { DHIKRS } from '../data/dhikr'
+import { navGroupLabel, navGroupOf } from '../data/navigation'
+import Icon from '../components/Icon'
+import Breadcrumb from '../components/Breadcrumb'
 import '../styles/DhikrPage.css'
 
 // ── localStorage helper-ləri ──
@@ -46,6 +49,8 @@ export default function DhikrPage({ setPage }) {
   const [tap,    setTap]    = useState(false)
   // Hər toxunuşda yeni "dalğa" halqası (key dəyişir → animasiya yenidən oynayır)
   const [tapId,  setTapId]  = useState(0)
+  // Dövr tamamlananda qızılı halqa effekti (key dəyişir → yenidən oynayır)
+  const [burst,  setBurst]  = useState(0)
   const [log,    setLog]    = useState(() => (Array.isArray(saved.log) ? saved.log : []))
   const stat = (k) => STAT_LABELS[k][lang] || STAT_LABELS[k].en
 
@@ -79,7 +84,9 @@ export default function DhikrPage({ setPage }) {
     setCount(next)
     if (next === dhikr.target) {
       const time = new Date().toLocaleTimeString(LOCALE[lang] || 'az-AZ', { hour: '2-digit', minute: '2-digit' })
-      setLog(l => [{ name: dhikr[lang] || dhikr.en, count: dhikr.target, time }, ...l.slice(0, 9)])
+      // id — siyahıda sabit açar (yeni sətir yuxarıdan yumşaq daxil olur)
+      setLog(l => [{ id: Date.now(), name: dhikr[lang] || dhikr.en, count: dhikr.target, time }, ...l.slice(0, 9)])
+      setBurst(b => b + 1)
       // Hədəf tamamlandı — uzun vibrasiya
       vibrate([100, 50, 100])
     } else {
@@ -91,121 +98,135 @@ export default function DhikrPage({ setPage }) {
   }, [count, dhikr, lang])
 
   return (
-    <>
-      <div className="page-hero hero-compact theme-dhikr">
-        <div className="page-hero-arabic">ٱلذِّكۡرُ</div>
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+    <div className="dhikr-page">
+      {/* Hero — dizayn v2 (sakit kağız fon + xatəm naxışı), bir <h1> */}
+      <header className="ui-page-hero dhikr-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <div className="ui-container" data-reveal="stagger">
+          <Breadcrumb setPage={setPage} current={t.title} />
+          <span className="ui-eyebrow">{navGroupLabel(navGroupOf('dhikr'), lang)}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          {lang !== 'ar' && <p className="dhikr-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">ٱلذِّكۡرُ</p>}
+          <p className="ui-lead">{t.subtitle}</p>
+        </div>
+      </header>
 
-      <div className="section">
-        <div className="section-inner dhikr-layout">
+      <section className="ui-section ui-section--tight">
+        <div className="ui-container dhikr-layout">
 
-          {/* Selector */}
-          <div className="dhikr-selector" ref={selRef}>
-            {DHIKRS.map((d,i) => (
-              <button key={i} type="button" className={`dhikr-sel-btn press ${selIdx===i?'active':''}`}
-                aria-pressed={selIdx===i}
-                onClick={() => { if (selIdx !== i) { setSelIdx(i); setCount(0) } }}>
-                <span className="dhikr-sel-arabic" lang="ar">{d.arabic}</span>
-                {/* Ərəbcədə ad elə ərəb ifadəsinin özüdür — təkrar yazılmır */}
-                {lang !== 'ar' && <span className="dhikr-sel-label">{d[lang] || d.en}</span>}
-              </button>
-            ))}
+          {/* Zikr seçicisi — genişdə şaquli siyahı, telefonda üfüqi zolaq */}
+          <div className="dhikr-side">
+            <p className="dhikr-side-label" id="dhikr-sel-label">{t.selectZikr}</p>
+            <div className="dhikr-selector" ref={selRef} role="group" aria-labelledby="dhikr-sel-label" data-reveal="stagger">
+              {DHIKRS.map((d,i) => (
+                <button key={i} type="button" className={`dhikr-sel-btn ${selIdx===i?'active':''}`}
+                  aria-pressed={selIdx===i}
+                  onClick={() => { if (selIdx !== i) { setSelIdx(i); setCount(0) } }}>
+                  <span className="dhikr-sel-arabic" lang="ar" dir="rtl">{d.arabic}</span>
+                  <span className="dhikr-sel-meta">
+                    {/* Ərəbcədə ad elə ərəb ifadəsinin özüdür — təkrar yazılmır */}
+                    {lang !== 'ar' && <span className="dhikr-sel-label">{d[lang] || d.en}</span>}
+                    <span className="dhikr-sel-target ui-num">×{d.target}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Counter */}
-          <div className="dhikr-center">
-            <div className="dhikr-progress-ring">
-              <svg viewBox="0 0 160 160" width="200" height="200">
-                <circle cx="80" cy="80" r="70" fill="none" stroke="var(--primary-bg2)" strokeWidth="8"/>
+          {/* Sayğac — iri, rahat basılan dairə; halqa irəliləyişi göstərir */}
+          <div className="ui-card dhikr-center" data-reveal="scale">
+            <div className={`dhikr-progress-ring${complete ? ' is-complete' : ''}`}>
+              <svg viewBox="0 0 160 160" className="dhikr-ring-svg" aria-hidden="true">
+                <circle cx="80" cy="80" r="70" fill="none" className="dhikr-ring-track" strokeWidth="5"/>
                 <circle cx="80" cy="80" r="70" fill="none"
-                  stroke={complete ? 'var(--gold)' : 'var(--primary)'}
-                  strokeWidth="8" strokeLinecap="round"
+                  className="dhikr-ring-bar"
+                  strokeWidth="5" strokeLinecap="round"
                   strokeDasharray={CIRC}
                   strokeDashoffset={CIRC * (1 - progress/100)}
                   transform="rotate(-90 80 80)"
-                  style={{ transition:'stroke-dashoffset .3s ease, stroke .3s' }}
                 />
               </svg>
               {/* Toxunuş dalğası: düymədən halqaya qədər yayılıb sönür (yalnız transform/opacity) */}
               {tapId > 0 && (
                 <span key={tapId} className={`dhikr-ripple${complete ? ' is-gold' : ''}`} aria-hidden="true" />
               )}
+              {/* Dövr tamamlandı — qızılı halqalar bir dəfə genişlənib sönür */}
+              {complete && burst > 0 && (
+                <span key={`b${burst}`} className="dhikr-halo" aria-hidden="true"><span /><span /></span>
+              )}
               <button
                 type="button"
                 className={`dhikr-tap-btn ${tap?'tapped':''} ${complete?'complete':''}`}
                 onClick={handleTap}
               >
-                <span className="dhikr-tap-arabic">{dhikr.arabic}</span>
-                <span key={count} className="dhikr-tap-count">{count}</span>
-                <span className="dhikr-tap-target">/ {dhikr.target}</span>
+                <span className="dhikr-tap-arabic" lang="ar" dir="rtl">{dhikr.arabic}</span>
+                <span key={count} className="dhikr-tap-count ui-num">{count}</span>
+                <span className="dhikr-tap-target ui-num">/ {dhikr.target}</span>
               </button>
             </div>
 
             <div className="dhikr-info">
               <h2 className="dhikr-name">{dhikr[lang] || dhikr.en}</h2>
-              <p className="dhikr-virtue">✨ {dhikr.virtue[lang] || dhikr.virtue.en}</p>
+              <p className="dhikr-virtue">
+                <Icon name="sparkle" size={16} />
+                <span>{dhikr.virtue[lang] || dhikr.virtue.en}</span>
+              </p>
               {complete && (
-                <div className="dhikr-complete-badge anim-scaleIn">
-                  🎉 {t.complete}
-                </div>
+                <p className="dhikr-complete-badge" role="status">
+                  <Icon name="check" size={16} /> {t.complete}
+                </p>
               )}
             </div>
 
             <div className="dhikr-actions">
-              <button type="button" className="btn-ghost dhikr-reset" onClick={() => setCount(0)}>🔄 {t.reset}</button>
-              <span className="dhikr-progress-text">{Math.round(progress)}%</span>
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm dhikr-reset"
+                onClick={() => setCount(0)} disabled={count === 0}>
+                <Icon name="refresh" className="ui-btn__icon" /> {t.reset}
+              </button>
+              <span className="dhikr-progress-text ui-num">{Math.round(progress)}%</span>
             </div>
 
             <div className="dhikr-total-bar">
-              <div className="dhikr-total-item">
-                <span className="dhikr-total-num">{count}</span>
-                <span className="dhikr-total-label">{stat('current')}</span>
+              <div className="ui-stat dhikr-total-item">
+                <span className="ui-stat__num dhikr-total-num">{count}</span>
+                <span className="ui-stat__label">{stat('current')}</span>
               </div>
-              <div className="dhikr-total-sep"/>
-              <div className="dhikr-total-item">
-                <span className="dhikr-total-num">{log.length}</span>
-                <span className="dhikr-total-label">{stat('sessions')}</span>
+              <div className="ui-stat dhikr-total-item">
+                <span className="ui-stat__num dhikr-total-num">{log.length}</span>
+                <span className="ui-stat__label">{stat('sessions')}</span>
               </div>
-              <div className="dhikr-total-sep"/>
-              <div className="dhikr-total-item">
-                <span className="dhikr-total-num">{totalAll}</span>
-                <span className="dhikr-total-label">{stat('total')}</span>
+              <div className="ui-stat dhikr-total-item">
+                <span className="ui-stat__num dhikr-total-num">{totalAll}</span>
+                <span className="ui-stat__label">{stat('total')}</span>
               </div>
             </div>
           </div>
 
-          {/* Log */}
-          {/* Jurnal — qruplaşdırılmış siyahı xanaları (.m-list / .m-row) */}
+          {/* Jurnal — tamamlanan dövrələr (son 10) */}
           {log.length > 0 && (
-            <section className="dhikr-log" data-reveal="">
+            <section className="ui-card dhikr-log" data-reveal="">
               <div className="dhikr-log-header">
-                <h2 className="m-list-title">{t.session}</h2>
-                <button type="button" className="btn-ghost dhikr-log-clear" onClick={() => setLog([])}>
-                  {t.clearSession}
+                <h2 className="dhikr-log-title">{t.session}</h2>
+                <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm dhikr-log-clear" onClick={() => setLog([])}>
+                  <Icon name="trash" className="ui-btn__icon" /> {t.clearSession}
                 </button>
               </div>
-              <ul className="m-list">
+              <ul className="dhikr-log-list" data-reveal="stagger">
                 {log.map((entry,i) => (
-                  <li key={i}>
-                    <div className="m-row log-entry">
-                      <span className="icon-tile icon-tile--sm icon-tile--round" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 12.5l3.8 3.8L17.5 8.5"/></svg>
-                      </span>
-                      <span className="m-row-body">
-                        <span className="m-row-title log-name">{entry.name}</span>
-                        <span className="m-row-sub log-time">{entry.time}</span>
-                      </span>
-                      <span className="m-row-trail"><span className="log-count">×{entry.count}</span></span>
-                    </div>
+                  <li key={entry.id ?? `${entry.time}-${i}`} className="dhikr-log-row">
+                    <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="check" /></span>
+                    <span className="dhikr-log-body">
+                      <span className="dhikr-log-name">{entry.name}</span>
+                      <span className="dhikr-log-time ui-num">{entry.time}</span>
+                    </span>
+                    <span className="dhikr-log-count ui-num">×{entry.count}</span>
                   </li>
                 ))}
               </ul>
             </section>
           )}
         </div>
-      </div>
-    </>
+      </section>
+    </div>
   )
 }

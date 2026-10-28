@@ -1,608 +1,755 @@
-.quran-search-bar { display:flex; gap:12px; margin-bottom:20px; }
-/* .input-icon, .input-with-icon və .empty-state globals.css-dədir (məntiqi
-   xassələrlə, RTL-də ikon sağda). Burada təkrar yazılmır: bu fayl yükləndikdən
-   sonra left/padding-left ilə ərəbcədə ikonu sola atırdı. */
+/* ══════════════════════════════════════════════════════════════════
+   QuranPage.css — Qurani-Kərim (siyahı + oxuyucu), dizayn v2
+   Yalnız semantik tokenlər (globals.css) və .ui-* siniflər (ui.css).
+   QEYD: bu fayl ui.css-dən ƏVVƏL yüklənir — .ui-* sinfini dəyişmək
+   lazım gələndə valideyn ilə gücləndirilir (DESIGN.md §4.1).
+   Hərəkət: yalnız transform/opacity; "hərəkəti azalt" — sonda söndürülür.
+   ══════════════════════════════════════════════════════════════════ */
 
-.surah-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
-/* Surə kartı <button>-dur: Tab ilə çatılır, Enter ilə açılır */
-.surah-card {
-  display:flex; align-items:center; gap:14px; width:100%;
-  background:var(--bg-card); border:1px solid var(--border);
-  border-radius:var(--radius); padding:14px 16px;
-  font:inherit; color:inherit; text-align:start;
-  cursor:pointer; transition:all .22s;
+/* ── 1. HERO ─────────────────────────────────────────────────────── */
+/* Dekorativ xəttatlıq — hero-nun son tərəfində solğun, iri ərəb yazısı.
+   Telefonda gizlənir (yer azdır, başlıqla toqquşmasın) */
+.qp-hero__art {
+  position: absolute;
+  z-index: -1;
+  /* Fiziki "right": element özü direction:rtl-dir, məntiqi inset-inline-end
+     onun üçün SOL tərəf olardı (ərəbcə səhifədə bu xətt göstərilmir) */
+  right: clamp(24px, 6vw, 96px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-arabic);
+  font-size: clamp(56px, 7vw, 112px);
+  line-height: 1.4;
+  direction: rtl;
+  color: var(--brand);
+  opacity: 0.09;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
 }
-.surah-card:hover { border-color:var(--primary-border); transform:translateY(-2px); box-shadow:var(--shadow); }
-/* Növbəli görünmə: --i JSX-dən gəlir (≤20) → əvvəlki kimi 20ms addım, ən çox 400ms */
-.surah-card.anim-fadeUp { animation-delay: calc(var(--i, 0) * 20ms); }
-.surah-card:focus-visible,
-.quran-bookmark-card:focus-visible,
-.verse-result-card:focus-visible,
-.reader-pager-btn:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
-.surah-num {
-  width:38px; height:38px; border-radius:10px; flex-shrink:0;
-  background:var(--primary-bg); border:1px solid var(--primary-border);
-  display:flex; align-items:center; justify-content:center;
-  font-size:13px; font-weight:800; color:var(--primary-dark);
-}
-.surah-body { flex:1; min-width:0; }
-.surah-name-en { display:block; font-size:14.5px; font-weight:700; color:var(--text); }
-/* Ərəbcədə başlıq surənin ərəb adıdır */
-.surah-name-en.is-ar { font-family:var(--font-arabic); font-size:1.2rem; font-weight:700; line-height:1.5; }
-.surah-meta { display:block; font-size:12px; color:var(--text-muted); margin-top:2px; }
-.surah-name-ar { font-family:'Amiri',serif; font-size:1.25rem; color:var(--primary); direction:rtl; }
+@media (max-width: 1099.98px) { .qp-hero__art { display: none; } }
 
-/* Reader */
-.quran-reader {
-  max-width:780px; margin:0 auto;
-  padding-inline:var(--page-gutter); padding-bottom:var(--page-pad-bottom);
+/* "Oxumağa davam et · Fatihə →" — iki hissəli əsas düymə */
+.qp-continue { gap: 10px; max-width: 100%; }
+.qp-continue__label { font-weight: 600; }
+.qp-continue__name {
+  padding-inline-start: 10px;
+  border-inline-start: 1px solid color-mix(in srgb, var(--on-brand) 32%, transparent);
+  font-weight: 500;
+  opacity: 0.92;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-/* Yapışqan panel başlığın HAZIRKI hündürlüyünə bağlıdır: başlıq sürüşəndə
-   gizlənir (--header-offset → 0) və panel yumşaq yuxarı qalxır — əvvəl
-   top:var(--header-h) idi və başlıq gizlənəndə üstdə 56px boşluq qalırdı */
-.reader-toolbar {
-  position:sticky; top:var(--header-offset, var(--header-h)); z-index:100;
-  transition: top var(--dur-3, 360ms) var(--ease-out, ease-out);
-  background:var(--bg);
-  background:color-mix(in srgb, var(--bg) 94%, transparent);
-  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);
-  padding:12px 0; display:flex; align-items:center; justify-content:space-between; gap:12px;
-  margin-bottom:32px; flex-wrap:wrap;
-}
-.reader-back { flex-shrink:0; }
-.reader-controls { display:flex; gap:6px; flex-wrap:wrap; }
-.ctrl-btn {
-  display:inline-flex; align-items:center; justify-content:center; gap:4px;
-  padding:6px 13px; border-radius:8px; border:1.5px solid var(--border-md);
-  background:var(--bg-card); color:var(--text-dim); font-size:12.5px; font-weight:600;
-  font-family:var(--font); white-space:nowrap;
-  cursor:pointer; transition:all .18s;
-}
-.ctrl-btn:hover { border-color:var(--primary); color:var(--primary); }
-.ctrl-btn.active { background:var(--primary-bg2); color:var(--primary-dark); border-color:var(--primary-border); }
-.ctrl-btn:disabled { opacity:.35; cursor:not-allowed; }
-
-.reader-header {
-  display:flex; align-items:center; gap:24px;
-  background:linear-gradient(135deg,var(--primary-bg),var(--bg-card));
-  border:1px solid var(--primary-border); border-radius:20px;
-  padding:28px; margin-bottom:24px; text-align:center;
-  justify-content:center; flex-direction:column;
-}
-.reader-number {
-  width:48px; height:48px; border-radius:12px; flex-shrink:0;
-  background:var(--primary); color:var(--on-primary);
-  display:flex; align-items:center; justify-content:center;
-  font-size:16px; font-weight:800;
-}
-.reader-arabic { font-family:'Amiri',serif; font-size:2.2rem; color:var(--primary-dark); direction:rtl; }
-.reader-english { font-size:1.4rem; font-weight:700; color:var(--text); margin:4px 0; }
-.reader-meta { font-size:13px; color:var(--text-muted); }
-.reader-basmalah {
-  text-align:center; margin-bottom:28px;
-  padding:18px; background:var(--gold-bg);
-  border:1px solid rgba(184,134,11,.18); border-radius:14px;
-}
-.basmalah-ar { display:block; font-family:'Amiri',serif; font-size:1.7rem; color:var(--primary-dark); direction:rtl; margin-bottom:5px; }
-.basmalah-ar:last-child { margin-bottom:0; }
-.basmalah-tr { font-size:13px; color:var(--text-muted); font-style:italic; }
-
-.ayahs-list { display:flex; flex-direction:column; gap:12px; }
-.ayah-card {
-  display:flex; align-items:flex-start; gap:14px;
-  background:var(--bg-card); border:1px solid var(--border);
-  border-radius:var(--radius-lg); padding:18px;
-  transition:border-color .2s;
-}
-.ayah-card:hover { border-color:var(--primary-border); }
-.ayah-num {
-  width:32px; height:32px; border-radius:50%; flex-shrink:0;
-  background:var(--primary-bg); border:1.5px solid var(--primary-border);
-  display:flex; align-items:center; justify-content:center;
-  font-size:11.5px; font-weight:800; color:var(--primary-dark);
-}
-.ayah-body { flex:1; min-width:0; }
-.ayah-arabic {
-  font-family:'Amiri',serif; direction:rtl; text-align:right;
-  color:var(--text); line-height:2.2; margin-bottom:8px;
-}
-.ayah-trans { font-size:14px; color:var(--text-dim); line-height:1.7; font-style:italic; }
-.ayah-play {
-  width:34px; height:34px; border-radius:50%; border:none; flex-shrink:0;
-  background:var(--primary-bg); color:var(--primary);
-  display:flex; align-items:center; justify-content:center;
-  font-size:13px; cursor:pointer; transition:all .2s; margin-top:2px;
-}
-.ayah-play:hover,.ayah-play.playing { background:var(--primary); color:var(--on-primary); }
-/* SVG ikon (əvvəl ▶/⏸ simvolu idi — telefonda ⏸ rəngli emoji çıxırdı) */
-.ayah-play svg { width:14px; height:14px; display:block; }
-
-/* Surənin sonunda: əvvəlki / növbəti surə */
-.reader-pager { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:28px; }
-.reader-pager-btn {
-  display:flex; flex-direction:column; align-items:flex-start; gap:2px;
-  min-width:0; min-height:var(--tap); padding:14px 16px;
-  background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
-  font:inherit; color:var(--text); text-align:start;
-  cursor:pointer; transition:border-color .2s, box-shadow .2s;
-}
-.reader-pager-btn.next { grid-column:2; align-items:flex-end; text-align:end; }
-.reader-pager-btn:hover { border-color:var(--primary-border); box-shadow:var(--shadow-sm); }
-.reader-pager-dir { font-size:12px; font-weight:600; color:var(--text-muted); }
-.reader-pager-name { font-size:15px; font-weight:700; color:var(--primary-dark); max-width:100%; overflow-wrap:anywhere; }
-
-/* Surə yüklənərkən footer yuxarı sıçramasın */
-.quran-reader > .spinner-wrap { min-height:50vh; }
-
-.error-box { background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:16px; color:#dc2626; text-align:center; margin:20px 0; }
-
-/* Bookmark card (<button>) */
-.quran-bookmark-card {
-  display: flex; align-items: center; gap: 16px; width: 100%;
-  padding: 16px 20px; margin-bottom: 24px;
-  background: var(--primary-bg); border: 1.5px solid var(--primary-border);
-  border-radius: var(--radius); cursor: pointer;
-  font: inherit; color: inherit; text-align: start;
-  transition: all 0.25s;
-}
-.quran-bookmark-card:hover {
-  background: var(--primary-bg2); transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
-.bookmark-icon { font-size: 28px; }
-.bookmark-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.bookmark-label { font-size: 12px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-.bookmark-name { font-size: 16px; font-weight: 600; color: var(--text); }
-.bookmark-arrow { font-size: 20px; color: var(--primary); }
-
-@media(max-width:768px) {
-  .surah-grid { grid-template-columns:1fr; gap: 10px; }
-  /* Oxuyucu paneli telefonda BİR sətirdir (əvvəl 3 sətir, ~150px idi və
-     yapışqan olduğu üçün ekranın beşdə birini örtürdü). Düymələr sığmayanda
-     sıra yana sürüşür; əvvəlki/növbəti yalnız ox kimi görünür — tam adları
-     surənin sonundakı düymələrdədir. */
-  .reader-toolbar { flex-wrap:nowrap; gap:8px; padding:8px 0; margin-bottom:20px; }
-  .reader-back { padding-inline:10px; }
-  .reader-controls {
-    flex:1; min-width:0; flex-wrap:nowrap; gap:4px;
-    overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain;
-  }
-  .reader-controls::-webkit-scrollbar { display:none; }
-  .ctrl-btn { flex-shrink:0; padding: 7px 11px; font-size:12px; min-height: 36px; }
-  .ctrl-nav { min-width:40px; padding-inline:10px; }
-  .ctrl-nav .ctrl-label { display:none; }
-  /* Əlfəcin surə açılanda özü saxlanılır — dar paneldə ayrıca düyməyə yer vermirik;
-     aktiv düymənin ✓ işarəsi də (rəngi onsuz da seçili olduğunu göstərir) */
-  .ctrl-bookmark, .ctrl-check { display:none; }
-  .reader-header { padding: 22px 16px; gap: 14px; border-radius: 16px; }
-  .reader-arabic { font-size: 1.7rem; line-height: 1.6; }
-  .reader-english { font-size: 1.15rem; }
-  .reader-meta { font-size: 12px; }
-  .reader-basmalah { padding: 14px; margin-bottom: 20px; }
-  .basmalah-ar { font-size: 1.4rem; }
-  .ayah-card { padding: 14px; gap: 10px; border-radius: 14px; }
-  .ayah-arabic { font-size: 1.3rem; line-height: 2; }
-  .ayah-trans { font-size: 13.5px; line-height: 1.65; }
-  .ayah-num { width: 28px; height: 28px; font-size: 11px; }
-  .ayah-play { width: 36px; height: 36px; }
-  .reader-pager { gap: 10px; margin-top: 20px; }
-  .reader-pager-btn { padding: 12px 14px; }
-  .quran-search-bar { gap: 8px; }
-  .quran-bookmark-card { padding: 12px 14px; gap: 12px; margin-bottom: 20px; }
-  .bookmark-name { font-size: 14px; }
+.qp-continue .qp-arrow { transition: transform var(--dur-2) var(--ease-out); }
+@media (hover: hover) {
+  .qp-continue:hover .qp-arrow { transform: translateX(3px); }
+  [dir="rtl"] .qp-continue:hover .qp-arrow { transform: scaleX(-1) translateX(3px); }
 }
 
-@media(max-width:480px) {
-  .reader-arabic { font-size: 1.5rem; }
-  .ayah-arabic { font-size: 1.15rem; line-height: 1.95; }
-  .ayah-trans { font-size: 13px; }
-  .surah-name-ar { font-size: 1.1rem; }
-  /* 360px-də də bütün panel düymələri bir sətirə sığsın (en/ru daxil) */
-  .reader-back { padding-inline: 8px; }
-  .ctrl-btn { padding-inline: 9px; }
-  .ctrl-nav { min-width: 36px; padding-inline: 8px; }
-}
+/* Ox ikonları: geri ox LTR-də sola baxır, RTL-də sağa */
+.qp-arrow { flex-shrink: 0; }
+.qp-arrow--back { transform: scaleX(-1); }
+[dir="rtl"] .qp-arrow--back { transform: none; }
 
-/* ── Dark mode overrides ── */
-[data-theme="dark"] .error-box {
-  background: rgba(220,38,38,0.1);
-  border-color: rgba(220,38,38,0.3);
-  color: #f87171;
-}
+/* Hero-dan sonra bölmə yuxarıda bir az yığcam olsun (ritm: hero → panel) */
+.quran-list-wrap.section { padding-top: clamp(24px, 3vw, 36px); }
 
-/* Verse search */
-.quran-search-mode { display: flex; gap: 8px; margin-bottom: 16px; }
-.search-mode-btn {
-  padding: 8px 18px; border-radius: 20px; border: 1.5px solid var(--border-md);
-  background: var(--bg-card); color: var(--text-dim);
-  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-}
-.search-mode-btn.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
-.search-mode-btn:hover { border-color: var(--primary); color: var(--primary); }
-.search-mode-btn.active:hover { color: var(--on-primary); }
-
-.verse-results { display: flex; flex-direction: column; gap: 12px; }
-.verse-results-count { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
-/* Nəticə kartı <button>-dur */
-.verse-result-card {
-  display: block; width: 100%;
-  padding: 16px 20px; background: var(--bg-card);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  font: inherit; color: inherit; text-align: start;
-  cursor: pointer; transition: all 0.25s;
-}
-.verse-result-card:hover { border-color: var(--primary-border); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
-.vr-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
-.vr-surah { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 14px; font-weight: 600; color: var(--primary); }
-.vr-kind { font-size: 11.5px; font-weight: 700; line-height: 1.35; color: var(--gold, #b8860b); background: var(--gold-bg); padding: 2px 9px; border-radius: 10px; }
-.vr-ayah { flex-shrink: 0; font-size: 13px; color: var(--text-muted); background: var(--primary-bg); padding: 2px 10px; border-radius: 12px; }
-.vr-arabic { display: block; font-family: var(--font-arabic); font-size: 1.3rem; direction: rtl; text-align: right; line-height: 2; color: var(--text); }
-.vr-trans { display: block; font-size: 14px; color: var(--text-dim); line-height: 1.6; }
-
-/* Tafsir mode (yalnız ərəbcə — ar.muyassar) */
-.ayah-tafsir {
-  margin-top: 8px; padding: 14px 18px;
-  background: var(--gold-bg, rgba(184,134,11,0.06));
-  border: 1px solid rgba(184,134,11,0.15);
-  border-radius: 8px;
-  font-size: 14px; line-height: 1.8;
-  color: var(--text-dim);
-  position: relative;
-}
-.ayah-tafsir-label {
-  position: absolute; top: -8px; inset-inline-start: 14px;
-  font-size: 10px; font-weight: 700;
-  color: var(--gold, #b8860b);
-  background: var(--bg-card, #fff);
-  padding: 0 8px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* Quran reading stats bar */
+/* ── 2. OXUMA STATİSTİKASI ──────────────────────────────────────── */
 .quran-stats-bar {
-  display: flex; gap: 4px; margin-bottom: 20px;
-  background: var(--primary-bg); border: 1px solid var(--primary-border);
-  border-radius: var(--radius); padding: 14px 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.5fr);
+  margin-bottom: var(--space-5);
+  padding: 16px 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
 }
 .qs-item {
-  flex: 1; min-width: 0; text-align: center;
-  display: flex; flex-direction: column; justify-content: center; gap: 2px;
-  padding-inline: 4px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding-inline: 8px;
+  text-align: center;
 }
 /* Ayırıcı xətt məntiqi tərəfdə — ərəbcədə kənarda artıq xətt qalmır */
-.qs-item:not(:last-child) { border-inline-end: 1px solid var(--primary-border); }
-.qs-num { font-size: 20px; font-weight: 800; color: var(--primary); line-height: 1.25; }
-/* "Ən çox oxunan" — rəqəm yox, surənin adı; uzun adlar ("Al-Mumtahana")
-   sözün ortasından qırılmasın deyə bu sütun digərlərindən enlidir */
-.qs-item--name { flex: 1.5; }
-.qs-num.qs-name { font-size: 15px; overflow-wrap: break-word; }
-.qs-label { font-size: 12px; color: var(--text-muted); font-weight: 500; line-height: 1.3; }
-@media(max-width:480px) {
-  .qs-num { font-size: 18px; }
-  .quran-stats-bar { padding: 12px 4px; }
+.qs-item:not(:last-child) { border-inline-end: 1px solid var(--line); }
+.qs-num {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 500;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+/* "Ən çox oxunan" — rəqəm yox, surənin adı (uzun adlar sözün ortasından qırılmasın) */
+.qs-num.qs-name { font-size: var(--step-1); color: var(--brand); overflow-wrap: break-word; }
+.qs-label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; line-height: 1.3; }
+
+/* ── 3. AXTARIŞ PANELİ ───────────────────────────────────────────── */
+.qp-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
-/* ══════════════════════════════════════════════════════
-   MOBİL CİLA — telefonda müasir tətbiq hissi
-   (motion.css tokenləri: --ease-*, --dur-*, --stagger, --press-tint, --hairline)
-   Kompüter (≥1024px) dəyişmir: aşağıdakı hər şey media sorğularının içindədir.
-   ══════════════════════════════════════════════════════ */
+/* Seqment idarəsi (Surə / Ayə axtar) — ağ "hap" aktiv seçimə sürüşür */
+.quran-search-mode {
+  position: relative;
+  isolation: isolate;
+  flex: 0 0 auto;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.quran-search-mode::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset-block: 4px;
+  inset-inline-start: 4px;
+  width: calc(50% - 4px);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1), inset 0 0 0 1px var(--line);
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.quran-search-mode[data-active="verse"]::before { transform: translateX(100%); }
+[dir="rtl"] .quran-search-mode[data-active="verse"]::before { transform: translateX(-100%); }
+.search-mode-btn {
+  min-height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+}
+.search-mode-btn.active { color: var(--brand); }
+.search-mode-btn:active { transform: scale(0.97); }
+@media (hover: hover) { .search-mode-btn:not(.active):hover { color: var(--text-strong); } }
 
-/* Surə və ayə nömrəsinin çərçivəsi — səkkizguşəli ulduz (۞), maska kimi:
-   rəngi var(--primary)-dən gəlir, tünd rejimdə özü dəyişir */
+/* Sahə: ikon başlanğıcda (RTL-də sağda) */
+.quran-search-bar { position: relative; flex: 1; min-width: 0; }
+.qp-search-icon {
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+.quran-search-bar .qp-search-input { min-height: 46px; padding-inline-start: 42px; }
+
+/* Süzgəc çipləri + nəticə sayı */
+.qp-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: var(--space-5);
+}
+.qp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.qp-count { color: var(--text-tertiary); font-size: 13px; font-weight: 500; }
+
+/* ── 4. SURƏ ŞƏBƏKƏSİ ─────────────────────────────────────────────
+   Surə kartı <button>-dur: Tab ilə çatılır, Enter ilə açılır */
+.surah-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 12px;
+}
+.surah-grid:empty { display: none; }
+.surah-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 72px;
+  padding: 14px 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) ease,
+    border-color var(--dur-2) ease;
+}
+@media (hover: hover) {
+  .surah-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); border-color: var(--brand-line); }
+  .surah-card:hover .surah-num::before { transform: rotate(22.5deg); }
+}
+.surah-card:active { transform: scale(0.985); }
+
+/* Surənin nömrəsi — səkkizguşəli ulduz (xatəm) çərçivəsində, maska ilə:
+   rəngi --brand-dən gəlir, tünd rejimdə özü dəyişir */
 :root {
   --q-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 2.2l5.3 5.3h7.2v7.2l5.3 5.3-5.3 5.3v7.2h-7.2L20 37.8l-5.3-5.3H7.5v-7.2L2.2 20l5.3-5.3V7.5h7.2z' fill='%23000' fill-opacity='.12' stroke='%23000' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
-
-/* Yüklənmə: telefonda/planşetdə skelet, kompüterdə köhnə spinner */
-.q-skel { display: none; }
-
-@media (max-width: 1023.98px) {
-  .q-spinner { display: none; }
-  .q-skel { display: flex; flex-direction: column; gap: 12px; }
-
-  /* Oxuyucu skeleti — başlıq kartı, Bəsmələ, ayə kartları */
-  .q-skel-head { height: 156px; border-radius: 20px; }
-  .q-skel-basmala { height: 64px; border-radius: 14px; margin-bottom: 8px; }
-  .q-skel-ayah {
-    display: flex; flex-direction: column; gap: 4px;
-    padding: 14px 16px 16px;
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 16px; box-shadow: var(--shadow-sm);
-  }
-  .q-skel-num { width: 30px; height: 30px; margin-bottom: 8px; }
-  /* Ərəb mətni həmişə sağa düzlənir — skelet xətləri də */
-  .q-skel-line { height: 1.15em; margin-left: auto; width: 100%; }
-  .q-skel-line--short { width: 62%; }
-
-  /* Siyahı skeleti — qruplaşdırılmış xanalar */
-  .q-skel-list {
-    gap: 0; overflow: hidden;
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 16px; box-shadow: var(--shadow-sm);
-  }
-  .q-skel-row { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; }
-  .q-skel-row + .q-skel-row { border-top: 1px solid var(--border); }
-  .q-skel-tile { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; }
-  .q-skel-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .q-skel-title { width: 42%; }
-  .q-skel-sub { width: 68%; height: 0.75em; }
-
-  /* Oxunan ayə: kart yumşaq vurğulanır, düymənin ətrafında sakit dalğa */
-  .ayah-card { transition: border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
-  .ayah-card.is-playing {
-    border-color: var(--primary-border);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent), var(--shadow-sm);
-  }
-  .ayah-play { position: relative; }
-  .ayah-play.playing::after {
-    content: '';
-    position: absolute; inset: 0;
-    border-radius: 50%;
-    border: 2px solid var(--primary);
-    pointer-events: none;
-    animation: q-play-ring 1.8s var(--ease-out) infinite;
-  }
+.surah-num,
+.ayah-num,
+.reader-number {
+  position: relative;
+  isolation: isolate;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  color: var(--brand);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.surah-num { width: 42px; height: 42px; font-size: 13px; }
+.surah-num::before,
+.ayah-num::before,
+.reader-number::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: currentColor;
+  opacity: 0.85;
+  -webkit-mask: var(--q-star) center / contain no-repeat;
+  mask: var(--q-star) center / contain no-repeat;
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.surah-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.surah-name-en {
+  color: var(--text-strong);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Ərəbcədə başlıq surənin ərəb adıdır */
+.surah-name-en.is-ar { font-family: var(--font-arabic); font-size: 1.25rem; font-weight: 700; line-height: 1.5; white-space: normal; }
+.surah-meta { color: var(--text-tertiary); font-size: 13px; line-height: 1.35; font-variant-numeric: tabular-nums; }
+.surah-name-ar {
+  flex-shrink: 0;
+  font-family: var(--font-arabic);
+  font-size: 1.3rem;
+  line-height: 1.5;
+  color: var(--brand);
+  direction: rtl;
 }
 
+/* ── 5. BOŞ / XƏTA VƏZİYYƏTİ ────────────────────────────────────── */
+.qp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: clamp(36px, 6vw, 64px) 20px;
+  margin-block: var(--space-4);
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-xl);
+}
+.qp-empty__text { max-width: 44ch; color: var(--text-secondary); font-size: var(--step-0); line-height: 1.55; }
+.qp-empty--bad { border-style: solid; border-color: color-mix(in srgb, var(--bad) 35%, var(--line)); }
+.qp-empty--bad .qp-empty__icon {
+  background: color-mix(in srgb, var(--bad) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bad) 22%, transparent);
+  color: var(--bad);
+}
+/* Kiçik "sakit" giriş — ikon kafeli yumşaq böyüyür */
+.qp-empty__icon { animation: qp-pop-in var(--dur-3) var(--ease-spring) 60ms backwards; }
+
+/* ── 6. AYƏ AXTARIŞININ NƏTİCƏLƏRİ ──────────────────────────────── */
+.verse-results { display: flex; flex-direction: column; gap: 12px; }
+.verse-results-count { color: var(--text-tertiary); font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+/* Nəticə kartı <button>-dur — növbə ilə qalxır (--i JSX-dən, ≤7) */
+.verse-result-card {
+  display: block;
+  width: 100%;
+  padding: 16px 20px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+@media (hover: hover) {
+  .verse-result-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); border-color: var(--brand-line); }
+}
+.verse-result-card:active { transform: scale(0.99); }
+.vr-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.vr-surah { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; color: var(--brand); font-size: 14px; font-weight: 600; }
+.vr-kind {
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.vr-ayah {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-soft);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.vr-arabic { display: block; font-family: var(--font-arabic); font-size: 1.35rem; direction: rtl; text-align: right; line-height: 2; color: var(--text-strong); }
+.vr-trans { display: block; color: var(--text-secondary); font-size: 14.5px; line-height: 1.65; }
+
+/* ── 7. OXUYUCU ─────────────────────────────────────────────────── */
+.quran-reader {
+  max-width: calc(var(--container-narrow, 760px) + 2 * var(--page-gutter));
+  margin: 0 auto;
+  padding-inline: var(--page-gutter);
+  padding-bottom: var(--page-pad-bottom);
+}
+
+/* Yapışqan panel başlığın HAZIRKI hündürlüyünə bağlıdır: başlıq sürüşəndə
+   gizlənir (--header-offset → 0) və panel yumşaq yuxarı qalxır */
+.reader-toolbar {
+  position: sticky;
+  top: var(--header-offset, var(--header-h));
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: var(--space-6);
+  padding: 10px 0;
+  background: var(--surface-0);
+  background: color-mix(in srgb, var(--surface-0) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  transition: top var(--dur-3) var(--ease-out);
+}
+.reader-back { flex-shrink: 0; }
+.reader-controls { display: flex; gap: 6px; flex-wrap: wrap; }
+.ctrl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--dur-1) ease,
+    border-color var(--dur-1) ease,
+    color var(--dur-1) ease,
+    transform var(--dur-1) var(--ease-out);
+}
+@media (hover: hover) { .ctrl-btn:not(:disabled):hover { border-color: var(--text-tertiary); color: var(--text-strong); } }
+.ctrl-btn:active:not(:disabled) { transform: scale(0.96); }
+.ctrl-btn.active { background: var(--brand-soft-2); border-color: var(--brand-line); color: var(--brand-strong); }
+[data-theme="dark"] .ctrl-btn.active { color: var(--brand); }
+.ctrl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ctrl-check { animation: qp-pop-in var(--dur-3) var(--ease-spring); }
+.ctrl-bookmark.active svg { animation: qp-pop-in var(--dur-3) var(--ease-spring); }
+@media (pointer: coarse) { .ctrl-btn { min-height: 44px; } }
+
+/* Surənin başlıq kartı — naxışlı sakit panel */
+.reader-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: var(--space-5);
+  padding: clamp(24px, 4vw, 40px) 24px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 70% 90% at 50% 0%, var(--brand-soft) 0%, transparent 70%),
+    var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-1);
+}
+.reader-header .ui-pattern { --ui-pattern-size: 64px; opacity: 0.8; }
+.reader-number { width: 52px; height: 52px; font-size: 16px; }
+.reader-info { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.reader-arabic {
+  font-family: var(--font-arabic);
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-strong);
+  direction: rtl;
+}
+.reader-english {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+}
+.reader-meta { color: var(--text-tertiary); font-size: 13.5px; font-variant-numeric: tabular-nums; }
+
+/* Bəsmələ — qızılı incə xətlər arasında (ornament motivi) */
+.reader-basmalah {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: var(--space-6);
+  padding: 18px 20px;
+  text-align: center;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-lg);
+}
+.basmalah-ar { font-family: var(--font-arabic); font-size: clamp(1.45rem, 3vw, 1.85rem); line-height: 1.7; color: var(--text-strong); direction: rtl; }
+.basmalah-tr { color: var(--accent-text); font-family: var(--font-display); font-size: 14px; font-style: italic; }
+
+/* Ayə kartları */
+.ayahs-list { display: flex; flex-direction: column; gap: 12px; }
+.ayah-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  transition: border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+/* Oxunan ayə: kart yumşaq vurğulanır */
+.ayah-card.is-playing {
+  border-color: var(--brand-line);
+  box-shadow: 0 0 0 3px var(--brand-soft-2), var(--shadow-1);
+}
+.ayah-num { width: 36px; height: 36px; font-size: 12px; }
+.ayah-body { flex: 1; min-width: 0; }
+.ayah-arabic {
+  margin-bottom: 10px;
+  font-family: var(--font-arabic);
+  direction: rtl;
+  text-align: right;
+  line-height: 2.2;
+  color: var(--text-strong);
+}
+.ayah-arabic:last-child { margin-bottom: 0; }
+.ayah-trans { color: var(--text-secondary); font-size: 15px; line-height: 1.75; }
+
+/* Dinlə düyməsi — toxunma sahəsi 44px, görünən dairə 36px */
+.ayah-play {
+  position: relative;
+  isolation: isolate;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -4px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--brand);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+}
+.ayah-play::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  z-index: -1;
+  border-radius: 50%;
+  background: var(--brand-soft-2);
+  transition: background-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) { .ayah-play:hover::before { transform: scale(1.08); } }
+.ayah-play:active { transform: scale(0.92); }
+.ayah-play.playing { color: var(--on-brand); }
+.ayah-play.playing::before { background: var(--brand); }
+/* Oxunarkən düymə ətrafında sakit dalğa */
+.ayah-play.playing::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 2px solid var(--brand);
+  pointer-events: none;
+  animation: q-play-ring 1.8s var(--ease-out) infinite;
+}
+.ayah-play svg { width: 15px; height: 15px; display: block; }
 @keyframes q-play-ring {
   from { transform: scale(1);   opacity: 0.5; }
   to   { transform: scale(1.5); opacity: 0; }
 }
 
+/* Təfsir (yalnız ərəbcə — ar.muyassar) */
+.ayah-tafsir {
+  position: relative;
+  margin-top: 12px;
+  padding: 16px 18px 14px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.85;
+}
+.ayah-tafsir-label {
+  position: absolute;
+  top: -9px;
+  inset-inline-start: 14px;
+  padding: 0 8px;
+  background: var(--surface-1);
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+/* Surənin sonunda: əvvəlki / növbəti surə */
+.reader-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: var(--space-6); }
+.reader-pager-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  min-height: 72px;
+  padding: 14px 18px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  font: inherit;
+  color: var(--text-body);
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+.reader-pager-btn.next { grid-column: 2; align-items: flex-end; text-align: end; }
+@media (hover: hover) {
+  .reader-pager-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); border-color: var(--brand-line); }
+}
+.reader-pager-btn:active { transform: scale(0.985); }
+.reader-pager-dir { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-size: 13px; font-weight: 600; }
+.reader-pager-name {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 500;
+}
+
+/* Surə yüklənərkən footer yuxarı sıçramasın */
+.quran-reader > .spinner-wrap { min-height: 50vh; }
+
+/* ── 8. YÜKLƏNMƏ SKELETİ (telefon/planşet; kompüterdə spinner) ─── */
+.q-skel { display: none; }
+@media (max-width: 1023.98px) {
+  .q-spinner { display: none; }
+  .q-skel { display: flex; flex-direction: column; gap: 12px; }
+  .q-skel-head { height: 168px; border-radius: var(--radius-xl); }
+  .q-skel-basmala { height: 72px; border-radius: var(--radius-lg); margin-bottom: 8px; }
+  .q-skel-ayah {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 14px 16px 16px;
+    background: var(--surface-1); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-1);
+  }
+  .q-skel-num { width: 30px; height: 30px; margin-bottom: 8px; }
+  /* Ərəb mətni həmişə sağa düzlənir — skelet xətləri də */
+  .q-skel-line { height: 1.15em; margin-left: auto; width: 100%; }
+  .q-skel-line--short { width: 62%; }
+  .q-skel-list {
+    gap: 0; overflow: hidden;
+    background: var(--surface-1); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-1);
+  }
+  .q-skel-row { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; }
+  .q-skel-row + .q-skel-row { border-top: 1px solid var(--line); }
+  .q-skel-tile { width: 40px; height: 40px; border-radius: var(--radius-md); flex-shrink: 0; }
+  .q-skel-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .q-skel-title { width: 42%; }
+  .q-skel-sub { width: 68%; height: 0.75em; }
+}
+
+/* ── 9. PLANŞET / TELEFON ───────────────────────────────────────── */
 @media (max-width: 767.98px) {
-  /* ── Oxumağa davam et ── ağ, yumşaq kölgəli kart + qızılı ikon kafeli */
-  .quran-bookmark-card {
-    gap: 14px; min-height: 72px;
-    padding: 12px 14px; margin-bottom: 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border); border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-    transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
-  }
-  .quran-bookmark-card:hover { transform: none; background: var(--bg-card); box-shadow: var(--shadow); }
-  .quran-bookmark-card:active { transform: scale(0.985); }
-  .bookmark-icon {
-    flex-shrink: 0;
-    display: inline-grid; place-items: center;
-    width: 44px; height: 44px; border-radius: 14px;
-    font-size: 22px; line-height: 1;
-    background: var(--gold-bg);
-    background: color-mix(in srgb, var(--gold) 15%, transparent);
-  }
-  .bookmark-label { font-size: 12.5px; letter-spacing: 0.05em; }
-  [dir="rtl"] .bookmark-label { letter-spacing: 0; font-size: 13px; }
-  .bookmark-name { font-size: 16px; font-weight: 700; }
-  .bookmark-arrow {
-    flex-shrink: 0;
-    display: inline-grid; place-items: center;
-    width: 34px; height: 34px; border-radius: 50%;
-    font-size: 16px;
-    background: var(--primary-bg); color: var(--primary);
-    transition: transform var(--dur-2) var(--ease-out);
-  }
-  .quran-bookmark-card:active .bookmark-arrow { transform: translateX(3px); }
-  [dir="rtl"] .quran-bookmark-card:active .bookmark-arrow { transform: translateX(-3px); }
+  .quran-list-wrap.section { padding-top: 20px; }
 
-  /* ── Oxuma statistikası ── yumşaq kölgə, nazik ayırıcılar, cədvəl rəqəmləri */
-  .quran-stats-bar {
-    margin-bottom: 18px; padding: 12px 4px;
-    background: var(--bg-card);
-    border: 1px solid var(--border); border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-  }
-  .qs-item:not(:last-child) { border-inline-end-color: var(--hairline); }
-  .qs-num { font-size: 19px; font-variant-numeric: tabular-nums; }
-  .qs-num.qs-name { font-size: 14px; }
-  .qs-label { font-size: 12.5px; }
+  .qp-continue { width: 100%; justify-content: flex-start; }
+  .qp-continue .qp-arrow { margin-inline-start: auto; }
 
-  /* ── Surə / Ayə axtar ── seqment idarəsi; ağ "hap" aktiv seçimə sürüşür */
-  .quran-search-mode {
-    position: relative; isolation: isolate;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
-    padding: 3px; margin-bottom: 12px;
-    border-radius: 12px;
-    background: var(--bg-card2);
-  }
-  [data-theme="dark"] .quran-search-mode { background: var(--surface); }
-  .quran-search-mode::before {
-    content: '';
-    position: absolute; z-index: -1;
-    inset-block: 3px; inset-inline-start: 3px;
-    width: calc(50% - 3px);
-    border-radius: 9px;
-    background: var(--bg-card);
-    box-shadow: var(--shadow-sm);
-    transition: transform var(--dur-3) var(--ease-out);
-  }
-  .quran-search-mode[data-active="verse"]::before { transform: translateX(100%); }
-  [dir="rtl"] .quran-search-mode[data-active="verse"]::before { transform: translateX(-100%); }
-  .search-mode-btn,
-  .search-mode-btn.active {
-    min-height: 40px; padding: 0 10px;
-    border: 0; border-radius: 9px;
-    background: transparent;
-    font-size: 14px; font-weight: 600;
-    transition: color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
-  }
-  .search-mode-btn { color: var(--text-dim); }
-  .search-mode-btn.active,
-  .search-mode-btn.active:hover { color: var(--primary-dark); }
-  [data-theme="dark"] .search-mode-btn.active,
-  [data-theme="dark"] .search-mode-btn.active:hover { color: var(--primary); }
-  .search-mode-btn:hover { color: var(--text); }
+  .quran-stats-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 12px; padding: 14px 4px; margin-bottom: 16px; }
+  /* "Ən çox oxunan" — ayrıca alt sətirdə tam endə (dar sütunda ad qırılırdı) */
+  .qs-item--name { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--line); }
+  .qs-item:nth-child(3) { border-inline-end: 0; }
+  .qs-num { font-size: 20px; }
 
-  .quran-search-bar { margin-bottom: 12px; }
-  .quran-search-bar .input-base { border-radius: 14px; }
+  .qp-toolbar { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 12px; }
+  .quran-search-mode { display: grid; }
+  .search-mode-btn { min-height: 40px; padding: 0 10px; }
 
-  /* Məkki / Mədəni çipləri — .m-chip ölçüləri */
-  .quran-list-wrap .tag-filters { gap: 8px; margin-bottom: 16px; }
-  .quran-list-wrap .tag-btn {
-    min-height: 36px; padding: 0 16px;
-    border-width: 1px; font-size: 13.5px; font-weight: 600;
-    transition: background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out),
-                color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
-  }
+  .qp-filters { margin-bottom: 14px; }
+  .qp-chips { flex-wrap: nowrap; }
 
-  /* ── Surə siyahısı ── qruplaşdırılmış "inset" siyahı (.m-list üslubu):
-     bir yuvarlaq qutu, xanalar arasında nazik xətt, basılma rəngi */
+  /* Surə siyahısı — qruplaşdırılmış "inset" siyahı: bir yuvarlaq qutu,
+     xanalar arasında nazik xətt, basılma rəngi */
   .surah-grid {
     gap: 0;
-    background: var(--bg-card);
-    border: 1px solid var(--border); border-radius: 16px;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden; isolation: isolate;
+    background: var(--surface-1);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+    isolation: isolate;
   }
-  .surah-grid:empty { display: none; }
   .surah-card {
-    position: relative;
-    gap: 12px; min-height: 64px;
+    gap: 12px;
+    min-height: 64px;
     padding: 10px 14px;
-    background: transparent; border: 0; border-radius: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
     transition: background-color var(--dur-1) var(--ease-out);
   }
   /* Nazik ayırıcı: nömrənin sonundan xananın sonuna */
-  .surah-card + .surah-card::before {
+  .surah-card + .surah-card::after {
     content: '';
-    position: absolute; top: 0;
-    inset-inline-start: calc(14px + 40px + 12px); inset-inline-end: 0;
-    height: 1px; background: var(--border);
+    position: absolute;
+    top: 0;
+    inset-inline-start: calc(14px + 40px + 12px);
+    inset-inline-end: 0;
+    height: 1px;
+    background: var(--line);
     pointer-events: none;
   }
-  .surah-card:hover { transform: none; box-shadow: none; border-color: transparent; background: var(--bg-card2); }
-  .surah-card:active { background: var(--bg-card2); box-shadow: inset 0 0 0 999px var(--press-tint); }
+  .surah-card:active { transform: none; background: var(--surface-2); }
   .surah-card:focus-visible { outline-offset: -2px; }
-
-  /* İlk ekran növbə ilə qalxır: 40ms addım, ən çox 8 xana (qalanı 8-ci ilə) */
-  .surah-grid .surah-card.anim-fadeUp {
-    animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
-    animation-delay: calc(min(var(--i, 0), 7) * var(--stagger));
-  }
-
-  /* Surənin nömrəsi — səkkizguşəli ulduz çərçivəsində */
-  .surah-num {
-    position: relative; isolation: isolate;
-    width: 40px; height: 40px;
-    background: none; border: 0; border-radius: 0;
-    font-size: 12.5px; font-variant-numeric: tabular-nums;
-  }
-  .surah-num::before,
-  .ayah-num::before {
-    content: '';
-    position: absolute; inset: 0; z-index: -1;
-    background: var(--primary);
-    opacity: 0.8;
-    -webkit-mask: var(--q-star) center / contain no-repeat;
-            mask: var(--q-star) center / contain no-repeat;
-  }
-  .surah-name-en { font-size: 15px; }
+  .surah-num { width: 40px; height: 40px; font-size: 12.5px; }
   .surah-meta { font-size: 13px; }
-  .surah-name-ar { font-size: 1.2rem; flex-shrink: 0; }
+  .surah-name-ar { font-size: 1.2rem; }
 
-  /* ── Ayə axtarışının nəticələri ── yumşaq kartlar, növbə ilə */
-  .verse-results { gap: 10px; }
-  .verse-results-count { font-size: 13px; margin-bottom: 2px; }
-  .verse-result-card {
-    padding: 14px 16px;
-    border-radius: 16px; box-shadow: var(--shadow-sm);
-    animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
-    animation-delay: calc(var(--i, 0) * var(--stagger));
-    transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
-  }
-  .verse-result-card:hover { transform: none; }
-  .vr-ayah { font-variant-numeric: tabular-nums; }
+  .verse-result-card { padding: 14px 16px; }
 
-  /* ── Oxuyucu paneli ── kənardan kənara şüşə zolaq, həb düymələr */
+  /* Oxuyucu paneli telefonda BİR sətirdir; düymələr sığmayanda yana
+     sürüşür, əvvəlki/növbəti yalnız ox kimi görünür */
+  /* Telefonda panel kənardan kənara şüşə zolaqdır */
   .reader-toolbar {
+    flex-wrap: nowrap; gap: 8px; margin-bottom: 20px;
     margin-inline: calc(-1 * var(--page-gutter));
     padding: 8px var(--page-gutter);
-    background: color-mix(in srgb, var(--bg) 84%, transparent);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border-bottom-color: var(--hairline);
   }
-  .ctrl-btn {
-    border-width: 1px; border-color: var(--border);
-    border-radius: 999px;
-    font-size: 13px;
-    transition: background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out),
-                color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+  .reader-back { padding-inline: 10px; }
+  .reader-controls {
+    flex: 1; min-width: 0; flex-wrap: nowrap; gap: 6px;
+    overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
   }
-  .ctrl-btn.active { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
-  .reader-back { border-radius: 999px; }
+  .reader-controls::-webkit-scrollbar { display: none; }
+  .ctrl-btn { flex-shrink: 0; padding-inline: 11px; border-radius: var(--radius-pill); }
+  .ctrl-nav { min-width: 44px; padding-inline: 10px; }
+  .ctrl-nav .ctrl-label { display: none; }
+  /* Əlfəcin surə açılanda özü saxlanılır — dar paneldə ayrıca düyməyə yer vermirik */
+  .ctrl-bookmark { display: none; }
+  .reader-back.ui-btn { border-radius: var(--radius-pill); }
 
-  /* ── Surənin başlıq kartı ── */
-  .reader-header { border-color: transparent; box-shadow: var(--shadow-sm); border-radius: 20px; }
-  .reader-number { border-radius: 14px; font-variant-numeric: tabular-nums; }
-  .reader-meta { font-size: 13px; }
-  .reader-basmalah { border-radius: 16px; }
-  .basmalah-tr { font-size: 13px; }
+  .reader-header { padding: 22px 16px; gap: 10px; border-radius: var(--radius-lg); }
+  .reader-arabic { font-size: 1.75rem; line-height: 1.6; }
+  .reader-basmalah { padding: 14px; margin-bottom: 20px; }
 
-  /* ── Ayə kartı ── üstdə nazik sıra (nömrə · dinlə), ərəb mətni tam endə */
-  .ayahs-list { gap: 12px; }
+  /* Ayə kartı: üstdə nazik sıra (nömrə · dinlə), ərəb mətni tam endə */
   .ayah-card {
     display: grid;
     grid-template-columns: auto 1fr auto;
     grid-template-areas: "num . play" "body body body";
     align-items: center;
-    gap: 4px 10px;
+    gap: 6px 10px;
     padding: 10px 12px 16px 14px;
     padding-inline: 14px 12px;
-    border-radius: 16px;
-    box-shadow: var(--shadow-sm);
   }
-  .ayah-card:hover { border-color: var(--border); }
-  .ayah-card.is-playing:hover { border-color: var(--primary-border); }
-  .ayah-num {
-    grid-area: num;
-    position: relative; isolation: isolate;
-    width: 34px; height: 34px;
-    background: none; border: 0; border-radius: 0;
-    font-size: 11.5px; font-variant-numeric: tabular-nums;
-  }
+  .ayah-num { grid-area: num; width: 34px; height: 34px; font-size: 11.5px; }
   .ayah-body { grid-area: body; }
-  .ayah-arabic { margin-bottom: 6px; }
-  .ayah-trans { font-size: 14px; line-height: 1.7; }
-  /* Toxunma sahəsi 44px, görünən dairə 36px */
-  .ayah-play {
-    grid-area: play;
-    width: 44px; height: 44px; margin: -4px;
-    background: transparent;
-    isolation: isolate;
-    transition: color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
-  }
-  .ayah-play::before {
-    content: '';
-    position: absolute; inset: 4px; z-index: -1;
-    border-radius: 50%;
-    background: var(--primary-bg);
-    transition: background-color var(--dur-2) var(--ease-out);
-  }
-  .ayah-play:hover,
-  .ayah-play.playing { background: transparent; }
-  .ayah-play:hover { color: var(--primary); }
-  .ayah-play.playing { color: var(--on-primary); }
-  .ayah-play.playing::before { background: var(--primary); }
-  .ayah-play.playing::after { inset: 4px; }
-  .ayah-play svg { width: 16px; height: 16px; }
-  .ayah-tafsir { font-size: 14px; border-radius: 12px; }
-  .ayah-tafsir-label { font-size: 11.5px; }
+  .ayah-play { grid-area: play; }
+  .ayah-arabic { font-size: 1.3rem; line-height: 2; margin-bottom: 6px; }
+  .ayah-trans { font-size: 14.5px; line-height: 1.7; }
+  .ayah-tafsir { font-size: 14px; }
 
-  /* ── Əvvəlki / növbəti surə ── */
-  .reader-pager-btn {
-    min-height: 64px; justify-content: center;
-    border-radius: 16px; box-shadow: var(--shadow-sm);
-    transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
-  }
-  .reader-pager-dir { font-size: 13px; }
+  .reader-pager { gap: 10px; margin-top: 20px; }
+  .reader-pager-btn { min-height: 64px; padding: 12px 14px; }
+  .reader-pager-name { font-size: 15px; }
 }
 
-/* Sakit hərəkət: xüsusi animasiyalar söndürülür (kit onsuz da hamısını dayandırır) */
+@media (max-width: 479.98px) {
+  .ayah-arabic { font-size: 1.2rem; line-height: 1.95; }
+  .reader-arabic { font-size: 1.55rem; }
+  .surah-name-ar { font-size: 1.1rem; }
+  /* 360px-də də bütün panel düymələri bir sətirə sığsın (en/ru daxil) */
+  .reader-back { padding-inline: 8px; }
+  .ctrl-btn { padding-inline: 9px; }
+  .ctrl-nav { min-width: 40px; padding-inline: 8px; }
+  .qs-label { font-size: 12px; }
+}
+
+@keyframes qp-pop-in {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Sakit hərəkət: xüsusi animasiyalar söndürülür (motion.css §15 qalanını dayandırır) */
 @media (prefers-reduced-motion: reduce) {
   .ayah-play.playing::after { animation: none; opacity: 0; }
-  .surah-grid .surah-card.anim-fadeUp,
-  .verse-result-card { animation: none; }
-  .quran-search-mode::before { transition: none; }
+  .verse-result-card,
+  .qp-empty__icon,
+  .ctrl-check,
+  .ctrl-bookmark.active svg { animation: none; }
+  .quran-search-mode::before,
+  .surah-num::before,
+  .surah-card,
+  .verse-result-card,
+  .reader-pager-btn,
+  .qp-continue .qp-arrow { transition: none; }
+  .surah-card:hover,
+  .verse-result-card:hover,
+  .reader-pager-btn:hover { transform: none; }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useLang } from "../contexts/LangContext";
 import { brandName } from "../config/brand";
 import { PRIMARY_NAV, navShortLabel } from "../data/navigation";
@@ -180,6 +180,35 @@ function Header({ currentPage, setPage }) {
 
   const langRef = useRef(null);
   const langBtnRef = useRef(null);
+
+  // ── Aktiv link göstəricisi (≥1024px): linkin altındakı qızılı romb bir
+  // elementdir və aktiv linkdən aktiv linkə SÜRÜŞÜR (yalnız transform).
+  // Mövqe linkin ortasıdır; şrift yüklənəndə / dil dəyişəndə / en
+  // dəyişəndə ResizeObserver yenidən ölçür. İlk görünüşdə sürüşmədən
+  // (soldan "uçub gəlmədən") yerində peyda olur.
+  const navRef = useRef(null);
+  const [ind, setInd] = useState({ x: 0, on: false, instant: true });
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return undefined;
+    const measure = () => {
+      const a = nav.querySelector(".nav-link.active");
+      if (!a || !a.offsetWidth) { setInd(p => (p.on ? { ...p, on: false } : p)); return; }
+      const x = Math.round(a.offsetLeft + a.offsetWidth / 2);
+      setInd(p => (p.x === x && p.on ? p : { x, on: true, instant: !p.on }));
+    };
+    measure();
+    if (typeof ResizeObserver !== "function") return undefined;
+    const ro = new ResizeObserver(measure);
+    ro.observe(nav);
+    return () => ro.disconnect();
+  }, [currentPage, lang]);
+  // "instant" yalnız bir kadr: növbəti dəyişiklikdən etibarən romb sürüşür
+  useEffect(() => {
+    if (!ind.instant || !ind.on) return undefined;
+    const r = requestAnimationFrame(() => setInd(p => ({ ...p, instant: false })));
+    return () => cancelAnimationFrame(r);
+  }, [ind.instant, ind.on]);
 
   // ── Sürüşmə: nazik xətt + kölgə (scrolled) və telefonda gizlənmə (hidden) ──
   // Tək passive dinləyici + requestAnimationFrame (hooks/useScrollDirection).
@@ -388,7 +417,12 @@ function Header({ currentPage, setPage }) {
           </div>
 
           {/* ── ORTA: yalnız 5 əsas link (≥1024px, əsas sütunun ortasında) ── */}
-          <nav className="nav-desktop" aria-label={l.primaryNav}>
+          <nav className="nav-desktop" aria-label={l.primaryNav} ref={navRef}>
+            <span
+              className={`nav-ind${ind.on ? " is-on" : ""}${ind.instant ? " is-instant" : ""}`}
+              style={{ transform: `translate3d(${ind.x}px, 0, 0) rotate(45deg)` }}
+              aria-hidden="true"
+            />
             {PRIMARY_NAV.map(key => {
               const active = currentPage === key;
               return (
@@ -431,7 +465,8 @@ function Header({ currentPage, setPage }) {
               title={themeTip}
               aria-pressed={Boolean(dark)}
             >
-              {dark ? <SunIcon /> : <MoonIcon />}
+              {/* key: rejim dəyişəndə ikon yumşaq fırlanaraq gəlir (Header.css → .hdr-ic-swap) */}
+              <span key={dark ? "sun" : "moon"} className="hdr-ic-swap">{dark ? <SunIcon /> : <MoonIcon />}</span>
             </button>
 
             <div className="lang-wrap" ref={langRef}>

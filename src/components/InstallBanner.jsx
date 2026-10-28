@@ -1,41 +1,69 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
+import Icon, { BrandMark } from './Icon'
 import {
   usePromptSlot,
   useBottomInset,
   useAutoHide,
   engagedMs,
+  hasNavigated,
   wasShownThisSession,
+  snoozePrompt,
+  isSnoozed,
+  exitDelay,
 } from '../utils/promptCoordinator'
 import '../styles/InstallBanner.css'
 
 // ═══════════════════════════════════════════════════════
-// PWA quraşdırma zolağı
+// PWA quraşdırma dəvəti ("Ana ekrana əlavə et")
 //
-// Sahibinin rəyi ilə sakitləşdirildi:
-//   • yalnız brauzer həqiqətən "beforeinstallprompt" göndərəndə
-//     (və ya iOS Safari-də) çıxır;
-//   • ilk ~20 s görünən vaxtdan əvvəl çıxmır;
-//   • bildiriş icazəsi və elan toast-u ilə eyni anda çıxmır
-//     (promptCoordinator — eyni anda yalnız bir prompt);
-//   • yığcam zolaqdır, görünəndə səhifə aşağıdan boşluq alır
-//     (--bottom-inset), heç nəyi örtmür; sessiyada ən çox bir dəfə.
+// Sahibinin şikayəti: "çıxır və YOX OLMUR, qalır". Səbəblər (hamısı düzəldi):
+//   1. iOS-da "Tətbiqi yüklə" → bələdçi açılırdı; bələdçini bağlayanda zolaq
+//      yerində QALIRDI, sonra 3 gündən bir yenidən çıxırdı (Safari ana ekrana
+//      əlavə olunduğunu bilmir). İndi bələdçi bağlananda dəvət də bağlanır və
+//      60 gün göstərilmir.
+//   2. Avtomatik gizlətmə taymeri telefonda karta toxunan kimi əbədi
+//      dayanırdı ("mouseenter" emulyasiyası) — kart ilişib qalırdı
+//      (promptCoordinator → useAutoHide indi yalnız siçana baxır).
+//   3. Özü gizlənəndə heç nə yadda qalmırdı — hər yeni sessiyada yenə çıxırdı.
+//
+// Qaydalar indi:
+//   • ✕ → 14 gün; özü gizləndi → 7 gün; brauzer pəncərəsində "Ləğv et" → 30 gün;
+//     iOS bələdçisi göstərildi → 60 gün; quraşdırıldı (appinstalled / "accepted" /
+//     standalone) → HEÇ VAXT. Yaddaş: localStorage (try/catch), sessiyada ən çox bir dəfə.
+//   • İlk gəlişdə dərhal yox: ~30 s görünən vaxt VƏ YA başqa səhifəyə keçid + ~8 s.
+//   • Eyni anda yalnız BİR dəvət (promptCoordinator): bildiriş icazəsi, elan,
+//     açıq panel / dok menyusu ilə üst-üstə düşmür.
+//   • Üzən kart ekranın altından 16px + iPhone boşluğu (safe-area) yuxarıdadır;
+//     görünəndə footer aşağıdan yer saxlayır (--bottom-inset).
 // ═══════════════════════════════════════════════════════
 
 const LABELS = {
-  az: { install:'Tətbiqi yüklə', desc:'İnternetsiz istifadə et, sürətli giriş', close:'Bağla', iosTitle:'iOS-da yükləmək üçün:', iosStep1:'Aşağıdakı paylaş düyməsinə bas ⬆️', iosStep2:'"Ana ekrana əlavə et" seç', installed:'Yükləndi!' },
-  en: { install:'Install App', desc:'Use offline, fast access', close:'Close', iosTitle:'To install on iOS:', iosStep1:'Tap the share button below ⬆️', iosStep2:'Select "Add to Home Screen"', installed:'Installed!' },
-  ru: { install:'Установить', desc:'Работать офлайн, быстрый доступ', close:'Закрыть', iosTitle:'Для установки на iOS:', iosStep1:'Нажмите кнопку "Поделиться" ⬆️', iosStep2:'Выберите "На экран Домой"', installed:'Установлено!' },
-  ar: { install:'تثبيت التطبيق', desc:'استخدم بدون إنترنت، وصول سريع', close:'إغلاق', iosTitle:'للتثبيت على iOS:', iosStep1:'اضغط زر المشاركة أدناه ⬆️', iosStep2:'اختر "إضافة إلى الشاشة الرئيسية"', installed:'تم التثبيت!' },
-  tr: { install:'Uygulamayı Yükle', desc:'Çevrimdışı kullan, hızlı erişim', close:'Kapat', iosTitle:'iOS\'ta yüklemek için:', iosStep1:'Aşağıdaki paylaş düğmesine dokunun ⬆️', iosStep2:'"Ana Ekrana Ekle" seçin', installed:'Yüklendi!' },
+  az: { title:'Tətbiq kimi quraşdır', desc:'Ana ekrandan bir toxunuşla açılır, internetsiz də işləyir.', install:'Quraşdır', close:'Bağla', iosTitle:'Telefonun ana ekranına əlavə et', iosStep1:'Safari-nin aşağı panelindəki "Paylaş" düyməsinə toxun', iosStep2:'Siyahıda "Ana ekrana əlavə et" bəndini seç', iosStep3:'Yuxarıda "Əlavə et" düyməsinə toxun', iosDone:'Başa düşdüm' },
+  en: { title:'Install as an app', desc:'Opens from your home screen in one tap and works offline.', install:'Install', close:'Close', iosTitle:'Add to your iPhone home screen', iosStep1:'Tap the "Share" button in the Safari bottom bar', iosStep2:'Choose "Add to Home Screen" in the list', iosStep3:'Tap "Add" at the top', iosDone:'Got it' },
+  ru: { title:'Установить как приложение', desc:'Открывается с главного экрана одним касанием и работает без интернета.', install:'Установить', close:'Закрыть', iosTitle:'Добавить на экран «Домой»', iosStep1:'Нажмите кнопку «Поделиться» на нижней панели браузера', iosStep2:'Выберите «На экран „Домой“» в списке', iosStep3:'Нажмите «Добавить» вверху', iosDone:'Понятно' },
+  ar: { title:'ثبّت الموقع كتطبيق', desc:'يُفتح من الشاشة الرئيسية بلمسة واحدة ويعمل دون إنترنت.', install:'تثبيت', close:'إغلاق', iosTitle:'أضِف الموقع إلى الشاشة الرئيسية', iosStep1:'اضغط زر «مشاركة» في الشريط السفلي للمتصفح', iosStep2:'اختر «إضافة إلى الشاشة الرئيسية» من القائمة', iosStep3:'اضغط «إضافة» في الأعلى', iosDone:'فهمت' },
+  tr: { title:'Uygulama olarak yükle', desc:'Ana ekrandan tek dokunuşla açılır, internetsiz de çalışır.', install:'Yükle', close:'Kapat', iosTitle:'iPhone ana ekranına ekle', iosStep1:'Safari alt çubuğundaki "Paylaş" düğmesine dokunun', iosStep2:'Listeden "Ana Ekrana Ekle" seçeneğini seçin', iosStep3:'Üstteki "Ekle" düğmesine dokunun', iosDone:'Anladım' },
 }
 
-const DISMISS_KEY = 'install_dismissed'   // mövcud açar — dəyişmir
-const DISMISS_DAYS = 3
-const SHOW_AFTER_MS = 20000               // ~20 s görünən vaxtdan sonra
-const AUTO_HIDE_MS = 30000                // toxunulmasa 30 s sonra sakitcə gizlənir
+const DISMISS_KEY = 'install_dismissed'              // mövcud açar: indi "bu vaxta qədər" (köhnə qeyd = bağlanma anı)
+const INSTALLED_KEY = 'muslim_cc_pwa_installed'      // '1' — quraşdırılıb, bir daha təklif etmə
+const SNOOZE_DAYS = { close: 14, auto: 7, cancel: 30, guide: 60 }
+const LEGACY_DAYS = 3                                 // köhnə qeydlər (bağlanma anı) 3 gün sayılırdı
+const SHOW_AFTER_MS = 30000                           // ~30 s görünən vaxt …
+const SHOW_AFTER_NAV_MS = 8000                        // … və ya başqa səhifəyə keçid + ~8 s
+const AUTO_HIDE_MS = 25000                            // toxunulmasa sakitcə gizlənir
+const LEAVE_MS = 220
 const INSTALLABLE_EVENT = 'qm-installable'
+
+function markInstalled() {
+  try { localStorage.setItem(INSTALLED_KEY, '1') } catch { /* yaddaş bağlıdır */ }
+}
+
+function isInstalled() {
+  try { return localStorage.getItem(INSTALLED_KEY) === '1' } catch { return false }
+}
 
 // ── Prompt-u modul səviyyəsində tut ─────────────────
 // Hadisə tez-tez React mount olmamışdan ƏVVƏL gəlir; burada tutulmasa itir.
@@ -49,7 +77,7 @@ if (typeof window !== 'undefined') {
   })
   window.addEventListener('appinstalled', () => {
     savedPrompt = null
-    try { localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch { /* yaddaş bağlıdır */ }
+    markInstalled()
     window.dispatchEvent(new Event(INSTALLABLE_EVENT))
   })
 }
@@ -67,55 +95,90 @@ function isIOSSafari() {
   return iosDevice && safari
 }
 
-function recentlyDismissed() {
-  try {
-    const at = Number(localStorage.getItem(DISMISS_KEY) || 0)
-    return Boolean(at) && Date.now() - at < DISMISS_DAYS * 86400000
-  } catch {
-    return false
-  }
+/** Dəvət bu cihazda hələ göstərilə bilərmi? (quraşdırılmayıb, "yatmır") */
+function blocked() {
+  if (isStandaloneNow()) { markInstalled(); return true }
+  return isInstalled() || isSnoozed(DISMISS_KEY, LEGACY_DAYS)
+}
+
+/** Ziyarətçi bir az gəzibmi? */
+function engagedEnough() {
+  const ms = engagedMs()
+  return ms >= SHOW_AFTER_MS || (ms >= SHOW_AFTER_NAV_MS && hasNavigated())
 }
 
 export default function InstallBanner() {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.en
 
-  const [standalone] = useState(isStandaloneNow)
+  const [standalone, setStandalone] = useState(isStandaloneNow)
   const [isIOS] = useState(isIOSSafari)
   const [installable, setInstallable] = useState(() => Boolean(savedPrompt))
-  const [dismissed, setDismissed] = useState(recentlyDismissed)
+  const [dismissed, setDismissed] = useState(blocked)
   const [showIOSGuide, setShowIOSGuide] = useState(false)
   const [installing, setInstalling] = useState(false)
+  const [leaving, setLeaving] = useState(false)
   const barRef = useRef(null)
+  const guideCloseRef = useRef(null)
+  const leaveTimerRef = useRef(null)
 
-  // Modul səviyyəsində tutulan hadisəni izlə
+  // Modul səviyyəsində tutulan hadisəni izlə; quraşdırılanda dərhal "bloklan"
   useEffect(() => {
-    const sync = () => setInstallable(Boolean(savedPrompt))
+    const sync = () => {
+      setInstallable(Boolean(savedPrompt))
+      if (isInstalled()) setDismissed(true)
+    }
     window.addEventListener(INSTALLABLE_EVENT, sync)
     sync()
-    return () => window.removeEventListener(INSTALLABLE_EVENT, sync)
+    // Tətbiq pəncərəsinə keçid (display-mode dəyişir) — bir daha göstərmə
+    const mq = window.matchMedia?.('(display-mode: standalone)')
+    const onMode = () => { if (mq.matches) { markInstalled(); setStandalone(true) } }
+    mq?.addEventListener?.('change', onMode)
+    return () => {
+      window.removeEventListener(INSTALLABLE_EVENT, sync)
+      mq?.removeEventListener?.('change', onMode)
+    }
   }, [])
+
+  useEffect(() => () => clearTimeout(leaveTimerRef.current), [])
 
   const enabled = !standalone && !dismissed && (installable || isIOS) && !wasShownThisSession('install')
 
-  const [shown, hide] = usePromptSlot('install', () => engagedMs() >= SHOW_AFTER_MS, { ask: true, enabled })
+  const [shown, hide] = usePromptSlot('install', engagedEnough, { ask: true, enabled })
 
-  useBottomInset(barRef, shown)
-  const pauseProps = useAutoHide(shown && !installing && !showIOSGuide, AUTO_HIDE_MS, hide)
-
-  // Quraşdırıldısa (və ya prompt itdisə) zolağı bağla
-  useEffect(() => {
-    if (shown && !installable && !isIOS) hide()
-  }, [shown, installable, isIOS, hide])
-
-  const handleDismiss = useCallback(() => {
-    try { localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch { /* yaddaş bağlıdır */ }
+  /** Kartı yumşaq çıxışla bağla və qərarı yadda saxla (days = null → yalnız bu sessiya) */
+  const close = useCallback((days) => {
+    if (days === 'installed') markInstalled()
+    else if (days) snoozePrompt(DISMISS_KEY, days)
     setDismissed(true)
     setShowIOSGuide(false)
-    hide()
+    setLeaving(true)
+    clearTimeout(leaveTimerRef.current)
+    leaveTimerRef.current = setTimeout(() => {
+      setLeaving(false)
+      hide()
+    }, exitDelay(LEAVE_MS))
   }, [hide])
 
-  // Birbaşa yüklə — prompt.prompt() çağır (hər hadisə yalnız bir dəfə istifadə olunur)
+  useBottomInset(barRef, shown)
+  const autoHide = useCallback(() => close(SNOOZE_DAYS.auto), [close])
+  const pauseProps = useAutoHide(shown && !leaving && !installing && !showIOSGuide, AUTO_HIDE_MS, autoHide)
+
+  // Quraşdırıldısa (və ya prompt itdisə) kartı bağla
+  useEffect(() => {
+    if (shown && !leaving && !installable && !isIOS) close(isInstalled() ? 'installed' : null)
+  }, [shown, leaving, installable, isIOS, close])
+
+  // iOS bələdçisi: Esc bağlayır, fokus "Bağla" düyməsinə
+  useEffect(() => {
+    if (!showIOSGuide) return undefined
+    const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(SNOOZE_DAYS.guide) } }
+    document.addEventListener('keydown', onKey)
+    const f = setTimeout(() => guideCloseRef.current?.focus({ preventScroll: true }), 30)
+    return () => { document.removeEventListener('keydown', onKey); clearTimeout(f) }
+  }, [showIOSGuide, close])
+
+  // Birbaşa quraşdır — prompt.prompt() (hər hadisə yalnız bir dəfə istifadə olunur)
   const handleInstall = async () => {
     const promptEvent = savedPrompt
     if (!promptEvent) return
@@ -125,10 +188,9 @@ export default function InstallBanner() {
       const { outcome } = await promptEvent.userChoice
       savedPrompt = null
       setInstallable(false)
-      if (outcome === 'accepted') hide()
-      else handleDismiss()
+      close(outcome === 'accepted' ? 'installed' : SNOOZE_DAYS.cancel)
     } catch {
-      hide()
+      close(SNOOZE_DAYS.cancel)
     } finally {
       setInstalling(false)
     }
@@ -138,58 +200,86 @@ export default function InstallBanner() {
 
   return (
     <>
-      {shown && (
+      {shown && !showIOSGuide && (
         <div
           ref={barRef}
-          className="qm-install"
+          className={`qm-install ui-toast${leaving ? ' is-leaving' : ''}`}
           role="region"
-          aria-label={t.install}
+          aria-label={t.title}
           {...pauseProps}
         >
-          <div className="qm-install-inner">
-            <span className="qm-install-icon" aria-hidden="true">☽</span>
-            <div className="qm-install-text">
-              <strong>{brandName(lang)}</strong>
-              <span>{t.desc}</span>
-            </div>
-            {isIOS ? (
-              <button type="button" className="qm-install-btn" onClick={() => setShowIOSGuide(true)}>
-                {t.install}
-              </button>
-            ) : (
-              <button type="button" className="qm-install-btn" onClick={handleInstall} disabled={installing}>
-                {installing ? '…' : t.install}
-              </button>
-            )}
+          <span className="ui-toast__mark" aria-hidden="true"><BrandMark size={40} /></span>
+          <div className="ui-toast__body">
+            <strong className="ui-toast__title">{t.title}</strong>
+            <span className="ui-toast__text">{t.desc}</span>
+          </div>
+          <div className="ui-toast__actions">
             <button
               type="button"
-              className="qm-install-close"
-              onClick={handleDismiss}
-              aria-label={t.close}
-              title={t.close}
-            >✕</button>
+              className="ui-btn ui-btn--primary ui-btn--sm qm-install-btn"
+              onClick={isIOS ? () => setShowIOSGuide(true) : handleInstall}
+              disabled={installing}
+              aria-busy={installing || undefined}
+            >
+              <Icon name="download" size={17} className="ui-btn__icon" />
+              {t.install}
+            </button>
           </div>
+          <button
+            type="button"
+            className="ui-toast__close qm-install-close"
+            onClick={() => close(SNOOZE_DAYS.close)}
+            aria-label={t.close}
+            title={t.close}
+          >
+            <Icon name="close" size={18} />
+          </button>
         </div>
       )}
 
-      {/* iOS təlimat pəncərəsi — yalnız istifadəçi "Yüklə" basanda */}
+      {/* iOS bələdçisi — yalnız istifadəçi "Quraşdır" basanda. Bağlananda
+          dəvət də bağlanır (əvvəl zolaq arxada qalırdı) */}
       {showIOSGuide && (
-        <div className="ios-guide-overlay" onClick={() => setShowIOSGuide(false)}>
-          <div className="ios-guide" role="dialog" aria-label={t.iosTitle} onClick={(e) => e.stopPropagation()}>
-            <button className="ios-guide-close" onClick={() => setShowIOSGuide(false)} aria-label={t.close}>✕</button>
-            <div className="ios-guide-icon">☽</div>
-            <h3>{t.iosTitle}</h3>
-            <div className="ios-guide-steps">
-              <div className="ios-step">
+        <div className="ios-guide-overlay qm-ios-guide" onClick={() => close(SNOOZE_DAYS.guide)}>
+          <div
+            className="ios-guide"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="qm-ios-guide-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              ref={guideCloseRef}
+              type="button"
+              className="ui-toast__close ios-guide-close"
+              onClick={() => close(SNOOZE_DAYS.guide)}
+              aria-label={t.close}
+            >
+              <Icon name="close" size={18} />
+            </button>
+            <span className="ios-guide-icon" aria-hidden="true"><BrandMark size={56} /></span>
+            <h3 id="qm-ios-guide-title" className="ios-guide-title">{t.iosTitle}</h3>
+            <p className="ios-guide-brand">{brandName(lang)}</p>
+            <ol className="ios-guide-steps">
+              <li className="ios-step">
                 <span className="ios-step-num">1</span>
-                <span>{t.iosStep1}</span>
-              </div>
-              <div className="ios-step">
+                <span className="ios-step-text">{t.iosStep1}</span>
+                <span className="ios-step-icon" aria-hidden="true"><Icon name="share" size={20} /></span>
+              </li>
+              <li className="ios-step">
                 <span className="ios-step-num">2</span>
-                <span>{t.iosStep2}</span>
-              </div>
-            </div>
-            <div className="ios-guide-arrow">⬇</div>
+                <span className="ios-step-text">{t.iosStep2}</span>
+                <span className="ios-step-icon" aria-hidden="true"><Icon name="addSquare" size={20} /></span>
+              </li>
+              <li className="ios-step">
+                <span className="ios-step-num">3</span>
+                <span className="ios-step-text">{t.iosStep3}</span>
+              </li>
+            </ol>
+            <button type="button" className="ui-btn ui-btn--primary ui-btn--block" onClick={() => close(SNOOZE_DAYS.guide)}>
+              {t.iosDone}
+            </button>
+            <span className="ios-guide-arrow" aria-hidden="true"><Icon name="arrowDown" size={22} /></span>
           </div>
         </div>
       )}

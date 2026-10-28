@@ -236,7 +236,7 @@ export function useBottomInset(ref, visible) {
 /**
  * Avtomatik gizlətmə — siçan üstündə və ya fokus içində olanda dayanır
  * (WCAG 2.2.1: vaxt məhdudiyyəti dayandırıla bilməlidir).
- * @returns {{ onMouseEnter, onMouseLeave, onFocus, onBlur }} konteynerə yayılacaq props
+ * @returns {{ onPointerEnter, onPointerLeave, onFocus, onBlur }} konteynerə yayılacaq props
  */
 export function useAutoHide(active, ms, onHide) {
   const remainingRef = useRef(ms)
@@ -272,10 +272,42 @@ export function useAutoHide(active, ms, onHide) {
     }
   }, [active, ms, start])
 
+  // Yalnız SİÇAN üstündə dayanır. Əvvəl onMouseEnter idi: telefonda karta
+  // toxunanda brauzer "mouseenter" emulyasiya edir, "mouseleave" isə heç vaxt
+  // gəlmir — taymer əbədi dayanırdı və kart ekranda "ilişib qalırdı".
+  const isMouse = (e) => !e || e.pointerType === 'mouse'
   return {
-    onMouseEnter: stop,
-    onMouseLeave: start,
+    onPointerEnter: (e) => { if (isMouse(e)) stop() },
+    onPointerLeave: (e) => { if (isMouse(e)) start() },
     onFocus: stop,
     onBlur: (e) => { if (!e.currentTarget.contains(e.relatedTarget)) start() },
   }
+}
+
+// ── "Bir müddət göstərmə" yaddaşı ───────────────────
+// Bağlanan dəvət (quraşdırma, bildiriş icazəsi) neçə gün gizli qalacaq —
+// localStorage-da "bu vaxta qədər" (ms) saxlanılır. Yaddaş bağlıdırsa
+// (gizli rejim) sessiya bayrağı (wasShownThisSession) yenə təkrarı saxlayır.
+const DAY_MS = 86400000
+
+/** `key` üçün `days` gün ərzində göstərmə. */
+export function snoozePrompt(key, days) {
+  writeStore('localStorage', key, String(Date.now() + days * DAY_MS))
+}
+
+/** `key` hələ "yatır"mı? (köhnə format — bağlanma vaxtı — `legacyDays` ilə oxunur) */
+export function isSnoozed(key, legacyDays = 0) {
+  const v = Number(readStore('localStorage', key) || 0)
+  if (!v) return false
+  // Köhnə qeydlər "bağlandığı an" idi (keçmiş vaxt); yenilər "bu vaxta qədər"
+  if (v <= Date.now()) return legacyDays > 0 && Date.now() - v < legacyDays * DAY_MS
+  return true
+}
+
+/** Hərəkəti azaltma seçilibsə çıxış animasiyası gözlənilmir. */
+export function exitDelay(ms = 200) {
+  try {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 0
+  } catch { /* köhnə brauzer */ }
+  return ms
 }

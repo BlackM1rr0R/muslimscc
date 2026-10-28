@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import Icon from '../Icon'
+import { AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addCustomQuote, updateCustomQuote, deleteCustomQuote, QUOTE_CATEGORIES, subscribeToQuotes } from '../../data/adminContent'
 
 const LABELS = {
-  az: { title:'Sitatlar', sub:'Sitat generatorunda istifadə olunur', addNew:'Yeni Sitat', editItem:'Redaktə', all:'Bütün Sitatlar', arabic:'Ərəbcə', text:'Mətn', source:'Mənbə', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hələ sitat yoxdur', required:'Mətn tələb olunur', sourcePh:'Quran, hədis, Həzrət Əli...' },
+  az: { title:'Sitatlar', sub:'Sitat generatorunda istifadə olunur', addNew:'Yeni sitat', editItem:'Redaktə', all:'Bütün sitatlar', arabic:'Ərəbcə', text:'Mətn', source:'Mənbə', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hələ sitat yoxdur', required:'Mətn tələb olunur', sourcePh:'Quran, hədis, Həzrət Əli...' },
   en: { title:'Quotes', sub:'Used in Quote Generator', addNew:'New Quote', editItem:'Edit', all:'All Quotes', arabic:'Arabic', text:'Text', source:'Source', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete?', noItems:'No quotes yet', required:'Text required', sourcePh:'Quran, hadith, Ali ibn Abi Talib...' },
   ru: { title:'Цитаты', sub:'Используется в генераторе', addNew:'Новая цитата', editItem:'Изменить', all:'Все', arabic:'Арабский', text:'Текст', source:'Источник', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noItems:'Нет цитат', required:'Текст обязателен', sourcePh:'Коран, хадис, Али ибн Абу Талиб...' },
   ar: { title:'الاقتباسات', sub:'تستخدم في مولد الاقتباسات', addNew:'اقتباس جديد', editItem:'تعديل', all:'الكل', arabic:'العربية', text:'النص', source:'المصدر', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noItems:'لا توجد', required:'النص مطلوب', sourcePh:'القرآن، الحديث، علي بن أبي طالب...' },
   tr: { title:'Alıntılar', sub:'Alıntı oluşturucuda kullanılır', addNew:'Yeni Alıntı', editItem:'Düzenle', all:'Tümü', arabic:'Arapça', text:'Metin', source:'Kaynak', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin?', noItems:'Alıntı yok', required:'Metin gerekli', sourcePh:"Kur'an, hadis, Hz. Ali..." },
 }
 
-const LANGS = ['az','en','ru','ar','tr']
 const EMPTY = { ar:'', text:{az:'',en:'',ru:'',ar:'',tr:''}, source:'', category:'wisdom' }
 
 export default function QuoteManager({ onUpdate }) {
@@ -57,39 +58,24 @@ export default function QuoteManager({ onUpdate }) {
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#ec4899,#db2777)'}}>💬</div>
-          <div className="admin-header-info"><h1>{l.title}</h1><p>{l.sub}</p></div>
-        </div>
-      </div>
+      <AdminHeader icon="quotes" title={l.title} sub={l.sub} />
 
-      <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">{editingId ? '✏️' : '➕'}</span>
-          {editingId ? l.editItem : l.addNew}
-        </h2>
+      <div className="admin-section" data-reveal>
+        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
           <div className="admin-input-group">
             <label className="admin-input-label">{l.arabic}</label>
             <textarea
-              className="admin-input admin-textarea"
+              className="admin-input admin-textarea admin-input--arabic"
               value={form.ar}
               onChange={(e) => setForm({...form, ar:e.target.value})}
               placeholder="..."
-              style={{textAlign:'right', fontSize:18, lineHeight:1.8, fontFamily:'Amiri, serif'}}
               dir="rtl"
             />
           </div>
 
-          <div className="admin-lang-tabs">
-            {LANGS.map(L => (
-              <button key={L} type="button" className={`admin-lang-tab ${formLang === L ? 'active' : ''}`} onClick={() => setFormLang(L)}>
-                {L.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-input-group">
             <label className="admin-input-label">{l.text} ({formLang.toUpperCase()})</label>
@@ -109,11 +95,11 @@ export default function QuoteManager({ onUpdate }) {
             </div>
           </div>
 
-          {error && <div className="admin-login-error">⚠️ {error}</div>}
+          {error && <AdminAlert tone="bad">{error}</AdminAlert>}
 
           <div className="admin-form-actions">
-            <button type="submit" className="admin-submit-btn" style={{background:'linear-gradient(135deg,#ec4899,#db2777)'}}>
-              <span>{editingId ? '💾' : '➕'}</span> {l.save}
+            <button type="submit" className="admin-submit-btn">
+              <Icon name={editingId ? 'check' : 'plus'} /> {l.save}
             </button>
             {editingId && <button type="button" className="admin-cancel-btn" onClick={() => { setEditingId(null); setForm(EMPTY); }}>{l.cancel}</button>}
           </div>
@@ -121,34 +107,31 @@ export default function QuoteManager({ onUpdate }) {
       </div>
 
       <div className="admin-section">
-        <h2 className="admin-section-title">
-          <span className="admin-section-title-icon">💬</span>
-          {l.all} ({items.length})
-        </h2>
+        <SectionTitle icon="quotes">{l.all} <span className="admin-count">({items.length})</span></SectionTitle>
 
         {items.length === 0 ? (
-          <div className="admin-empty"><div className="admin-empty-icon">📭</div>{l.noItems}</div>
+          <AdminEmpty>{l.noItems}</AdminEmpty>
         ) : (
-          <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px,1fr))', gap:14}}>
+          <ul className="admin-items admin-items--grid">
             {items.map(q => {
               const cat = QUOTE_CATEGORIES.find(c => c.key === q.category)
               return (
-                <div key={q.id} style={{background:'var(--bg-card2)', border:'1px solid var(--border)', borderRadius:'var(--radius-lg)', padding:18, borderLeft:`4px solid ${cat?.color}`}}>
-                  <span style={{background:cat?.color+'18', color:cat?.color, padding:'3px 10px', borderRadius:999, fontSize:10, fontWeight:800, textTransform:'uppercase'}}>
-                    {cat?.label[lang]}
-                  </span>
-                  {q.ar && <div style={{fontSize:16, lineHeight:1.8, textAlign:'right', color:'var(--text)', margin:'10px 0', fontFamily:'Amiri, serif'}}>{q.ar}</div>}
-                  {/* Tərcümə cari dildə yoxdursa yer tutucu; ərəbcədə orijinal onsuz da göstərilir */}
-                  {(lang !== 'ar' || adminPick(q.text, lang)) && <div style={{fontSize:13, color:'var(--text-dim)', fontStyle:'italic', marginBottom:8}}>{adminPick(q.text, lang) ? `"${adminPick(q.text, lang)}"` : <AdminText value={q.text} lang={lang} />}</div>}
-                  {q.source && <div style={{fontSize:11, color:cat?.color, fontWeight:700}}>— {q.source}</div>}
-                  <div style={{display:'flex', gap:6, marginTop:10}}>
-                    <button className="admin-action-btn edit" onClick={() => handleEdit(q)}>✏️ {l.edit}</button>
-                    <button className="admin-action-btn delete" onClick={() => handleDelete(q.id)}>🗑️ {l.delete}</button>
+                <li key={q.id} className="admin-item">
+                  <div className="admin-item__head">
+                    <span className="ui-badge">{cat?.label[lang]}</span>
                   </div>
-                </div>
+                  {q.ar && <div className="admin-item__ar" lang="ar">{q.ar}</div>}
+                  {/* Tərcümə cari dildə yoxdursa yer tutucu; ərəbcədə orijinal onsuz da göstərilir */}
+                  {(lang !== 'ar' || (adminPick(q.text, lang) && adminPick(q.text, lang) !== q.ar)) && <p className="admin-item__text admin-item__text--quote">{adminPick(q.text, lang) ? `"${adminPick(q.text, lang)}"` : <AdminText value={q.text} lang={lang} />}</p>}
+                  {q.source && <div className="admin-item__src">— {q.source}</div>}
+                  <div className="admin-item__actions admin-item__actions--foot">
+                    <button type="button" className="admin-action-btn edit" onClick={() => handleEdit(q)}><Icon name="duajournal" /> {l.edit}</button>
+                    <button type="button" className="admin-action-btn delete" onClick={() => handleDelete(q.id)}><Icon name="trash" /> {l.delete}</button>
+                  </div>
+                </li>
               )
             })}
-          </div>
+          </ul>
         )}
       </div>
     </div>

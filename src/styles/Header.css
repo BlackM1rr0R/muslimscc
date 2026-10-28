@@ -63,6 +63,59 @@ html:root {
   box-shadow: 0 1px 0 var(--border), var(--shadow-sm);
 }
 
+/* Sürüşəndə "kiçilmə": hündürlük sabit qalır (yan panel, body boşluğu
+   --header-h-ı oxuyur — layout tullanmasın), yalnız loqo işarəsi və söz-
+   nişanı transform ilə bir az kiçilir. */
+.logo-icon,
+.logo-text-wrap {
+  transition: transform var(--dur-3, 360ms) var(--ease-out, ease);
+}
+.logo-text-wrap { transform-origin: left center; }
+[dir="rtl"] .logo-text-wrap { transform-origin: right center; }
+.header.scrolled .logo-icon { transform: scale(0.9); }
+.header.scrolled .logo-text-wrap { transform: scale(0.96); }
+@media (hover: hover) {
+  .logo:hover .logo-icon { transform: rotate(-8deg) scale(1.04); }
+}
+
+/* Oxu irəliləyişi: başlığın alt kənarında 2px zümrüd xətt səhifə sürüşdükcə
+   dolur. Sırf CSS (scroll-driven animation, compositor-da) — JS yoxdur;
+   dəstəkləməyən brauzerdə görünmür. Yalnız sürüşəndə (.scrolled) görünür. */
+.header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 60%, var(--accent)));
+  transform-origin: left center;
+  transform: scaleX(0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-2, 240ms) ease;
+}
+[dir="rtl"] .header::after,
+html[dir="rtl"] .header::after { transform-origin: right center; }
+@supports (animation-timeline: scroll()) {
+  .header::after {
+    animation: hdr-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+  .header.scrolled::after { opacity: 0.85; }
+}
+@keyframes hdr-progress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Tema ikonu dəyişəndə fırlanaraq gəlir */
+.hdr-ic-swap { display: grid; place-items: center; animation: hdr-ic-in 420ms var(--ease-spring, ease) both; }
+@keyframes hdr-ic-in {
+  from { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+  to   { opacity: 1; transform: none; }
+}
+
 
 .header-inner {
   /* Yan boşluq (gutter) — səhifə məzmunu ilə eyni (globals.css → --page-gutter) */
@@ -282,6 +335,7 @@ html:root {
    ORTA: 5 əsas link
    ══════════════════════════════════════════════════════════ */
 .nav-desktop {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -310,24 +364,33 @@ html:root {
   color: var(--text-strong);
 }
 
-/* Aktiv: yumşaq zümrüd "hap" + altında kiçik qızılı romb */
+/* Aktiv: yumşaq zümrüd "hap" + altında kiçik qızılı romb.
+   Romb ayrıca elementdir (.nav-ind, Header.jsx) — aktiv linkdən aktiv
+   linkə sürüşür; "hap" isə yerində yumşaq yanır (keçid: fon/rəng). */
 .nav-link.active {
   background: var(--brand-soft);
   color: var(--brand);
   font-weight: 600;
 }
-.nav-link.active::after {
-  content: '';
+.nav-link { transition: background-color var(--dur-2, 240ms) ease, color var(--dur-2, 240ms) ease, transform var(--dur-1, 150ms) var(--ease-out, ease); }
+.nav-link:active { transform: scale(0.96); }
+
+.nav-ind {
   position: absolute;
-  bottom: -9px;
-  left: 50%;
+  left: -2.5px;               /* fiziki: offsetLeft də fizikidir (RTL-də də) */
+  bottom: -9px;               /* nav linkin hündürlüyündədir (36px) — 9px aşağı, başlığın xəttinə yaxın */
   width: 5px;
   height: 5px;
-  margin-left: -2.5px;
   border-radius: 1px;
   background: var(--accent);
-  transform: rotate(45deg);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 420ms var(--ease-spring, cubic-bezier(0.34, 1.36, 0.64, 1)),
+    opacity var(--dur-2, 240ms) ease;
 }
+.nav-ind.is-on { opacity: 1; }
+.nav-ind.is-instant { transition: opacity var(--dur-2, 240ms) ease; }
 
 /* ══════════════════════════════════════════════════════════
    DİL MENYUSU
@@ -373,6 +436,11 @@ html:root {
 .lang-option:hover {
   background: var(--surface-2);
 }
+.lang-option { animation: hdrMenuIn 220ms var(--ease-out, ease) backwards; }
+.lang-option:nth-child(2) { animation-delay: 25ms; }
+.lang-option:nth-child(3) { animation-delay: 50ms; }
+.lang-option:nth-child(4) { animation-delay: 75ms; }
+.lang-option:nth-child(5) { animation-delay: 100ms; }
 
 .lang-option.selected {
   color: var(--brand);
@@ -594,7 +662,16 @@ html:not(.qm-input-pointer) .header .hdr-btn:focus-visible {
   .lang-option {
     transition: none;
   }
-  .lang-dropdown {
+  .lang-dropdown,
+  .lang-option,
+  .hdr-ic-swap,
+  .header::after {
     animation: none;
   }
+  .header::after { display: none; }
+  .nav-ind,
+  .logo-text-wrap { transition: none; }
+  .header.scrolled .logo-icon,
+  .header.scrolled .logo-text-wrap,
+  .logo:hover .logo-icon { transform: none; }
 }

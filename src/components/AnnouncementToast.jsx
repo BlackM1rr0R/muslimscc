@@ -3,12 +3,14 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { subscribeToAnnouncements, ANNOUNCEMENT_TYPES } from '../data/adminContent'
 import { parsePath, pathFor, PAGES } from '../seo/routes'
+import Icon from './Icon'
 import {
   usePromptSlot,
   useBottomInset,
   useAutoHide,
   engagedMs,
   wasShownThisSession,
+  exitDelay,
 } from '../utils/promptCoordinator'
 import '../styles/AnnouncementToast.css'
 
@@ -22,6 +24,8 @@ import '../styles/AnnouncementToast.css'
 //   • quraşdırma zolağı və bildiriş təklifi ilə eyni anda çıxmır
 //     (promptCoordinator); sessiyada bir elan (təcili elanlar istisna);
 //   • aşağıda yığcam zolaqdır — səhifə boşluq alır, heç nəyi örtmür.
+//   • 2-ci mərhələ: görünüş ümumi .ui-toast (ui.css §11); elan növünün
+//     emoji/göy qurşağı rəngi əvəzinə xətti ikon + palitra tokeni (TYPE_STYLE).
 // ═══════════════════════════════════════════════════════
 
 // Mövcud açar — adı dəyişmir. Əvvəl sessionStorage-da idi (hər sessiyada
@@ -43,7 +47,16 @@ const MIN_ENGAGED_MS = 5000     // sessiyada ilk ~5 s heç nə çıxmır
 const ROUTE_SETTLE_MS = 2500    // səhifə açılan kimi yox, bir az sonra
 const DURATION_MS = { normal: 8000, urgent: 14000 }
 const PRIORITY = { urgent: 1, event: 2, success: 3, reminder: 4, info: 5 }
-const CLOSE_ANIM_MS = 250
+const CLOSE_ANIM_MS = 220
+
+// Elan növü → ikon + vurğu tokeni (adminContent-dəki emoji və hex rənglərin yerinə)
+const TYPE_STYLE = {
+  info:     { icon: 'info',     accent: 'var(--brand)' },
+  urgent:   { icon: 'alert',    accent: 'var(--bad)' },
+  event:    { icon: 'calendar', accent: 'var(--accent)' },
+  success:  { icon: 'star',     accent: 'var(--ok)' },
+  reminder: { icon: 'bell',     accent: 'var(--accent)' },
+}
 
 // Elanlar səhifəsi marşrutu qeydiyyatdan keçibsə "Bütün elanlar" keçidi göstərilir
 const HAS_ANNOUNCEMENTS_PAGE = PAGES.some(p => p.key === 'announcements')
@@ -147,7 +160,7 @@ export default function AnnouncementToast() {
   const close = useCallback(() => {
     setClosing(true)
     clearTimeout(closeTimerRef.current)
-    closeTimerRef.current = setTimeout(finish, CLOSE_ANIM_MS)
+    closeTimerRef.current = setTimeout(finish, exitDelay(CLOSE_ANIM_MS))
   }, [finish])
 
   // Sakit səhifəyə (məs. ana səhifə) keçildisə dərhal gizlət
@@ -167,7 +180,7 @@ export default function AnnouncementToast() {
   const title = pick(current.title, lang)
   const message = pick(current.message, lang)
   const link = safeLink(current.link)
-  const arrow = lang === 'ar' ? '←' : '→'
+  const look = TYPE_STYLE[type.key] || TYPE_STYLE.info
 
   const goAll = () => {
     finish()
@@ -178,48 +191,50 @@ export default function AnnouncementToast() {
   return (
     <div
       ref={barRef}
-      className={`announcement-toast type-${type.key}${closing ? ' closing' : ''}`}
-      style={{ '--toast-accent': type.color, '--toast-duration': `${duration}ms` }}
+      className={`announcement-toast ui-toast type-${type.key}${closing ? ' is-leaving' : ''}`}
+      style={{ '--toast-accent': look.accent, '--toast-duration': `${duration}ms` }}
       role={urgent ? 'alert' : 'status'}
       aria-live={urgent ? 'assertive' : 'polite'}
       {...pauseProps}
     >
-      <div className="toast-inner">
-        <div className="toast-icon-wrap" aria-hidden="true">
-          <span className="toast-icon">{type.icon}</span>
-        </div>
+      <span className="ui-toast__icon toast-icon-wrap" aria-hidden="true">
+        <Icon name={look.icon} />
+      </span>
 
-        <div className="toast-body">
-          <div className="toast-type-label">{type.label[lang] || type.label.en}</div>
-          <div className="toast-title">{title}</div>
-          {message && <div className="toast-message">{message}</div>}
-          {(link || HAS_ANNOUNCEMENTS_PAGE) && (
-            <div className="toast-actions">
-              {link && (
-                <a className="toast-link" href={link} target="_blank" rel="noopener noreferrer">
-                  {l.more} {arrow}
-                </a>
-              )}
-              {HAS_ANNOUNCEMENTS_PAGE && (
-                <button type="button" className="toast-all" onClick={goAll}>
-                  {l.all}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        <button
-          type="button"
-          className="toast-close"
-          onClick={close}
-          aria-label={l.close}
-          title={l.close}
-        >✕</button>
+      <div className="ui-toast__body">
+        <span className="ui-toast__eyebrow toast-type-label">{type.label[lang] || type.label.en}</span>
+        <strong className="ui-toast__title">{title}</strong>
+        {message && <span className="ui-toast__text">{message}</span>}
+        {(link || HAS_ANNOUNCEMENTS_PAGE) && (
+          <div className="toast-actions">
+            {link && (
+              <a className="ui-link toast-link" href={link} target="_blank" rel="noopener noreferrer">
+                {l.more}
+                <Icon name="external" size={14} />
+              </a>
+            )}
+            {HAS_ANNOUNCEMENTS_PAGE && (
+              <button type="button" className="ui-link toast-all" onClick={goAll}>
+                {l.all}
+                <Icon name="arrow" size={14} className="ui-link__arrow ui-flip-rtl" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
+      <button
+        type="button"
+        className="ui-toast__close"
+        onClick={close}
+        aria-label={l.close}
+        title={l.close}
+      >
+        <Icon name="close" size={18} />
+      </button>
+
       {/* Avtomatik bağlanma göstəricisi (siçan üstündə dayanır) */}
-      <div className="toast-progress" aria-hidden="true" />
+      <span className="ui-toast__progress" aria-hidden="true" />
     </div>
   )
 }

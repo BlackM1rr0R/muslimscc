@@ -1,692 +1,211 @@
-/* ═══════════════════════════════════════════════════════════════════════
-   Qaraçuxur Məscidi — IslamicHistoryPage.css
-   İslami Tarix — Vertical timeline with expandable cards
-════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   İSLAMİ TARİX — dizayn v2 (DESIGN.md)
+   Hero .ui-page-hero (+ .ui-stat), bölmə seçimi .ui-chip, zaman xətti:
+   başlanğıc tərəfdə şaquli xətt + nöqtələr, kartlar .ui-card (tam en).
+   Fayl ui.css-dən ƏVVƏL yüklənir — .ui-* dəyişiklikləri .history-page
+   valideyni ilə gücləndirilib (DESIGN.md §4.1).
+   ══════════════════════════════════════════════════════════════════ */
 
-/* Footer-ə qədər boşluq digər səhifələrin .section-i ilə eyni (80 → 36px);
-   son kartın öz margin-bottom-u sıfırlanır (aşağıda) */
-.history-page {
-  min-height: 100vh;
-  padding-bottom: var(--section-gap);
-}
+.history-page { min-height: 60vh; }
+.history-page .ui-section--tight { padding-top: var(--space-6); }
+/* Zaman xətti hero ilə eyni kənardan başlayır, oxunaqlı enə qədər */
+.history-container .history-timeline { max-width: 900px; }
 
-/* ── Hero ── */
-.history-hero {
-  position: relative;
-  text-align: center;
-  padding: 60px var(--page-gutter) 50px;
-  overflow: hidden;
-  color: #fff;
-  background: linear-gradient(135deg, #92400e 0%, #78350f 50%, #451a03 100%);
-  box-shadow: 0 8px 32px -12px rgba(0,0,0,0.2);
-}
-.history-hero::before {
-  content:''; position:absolute; top:-120px; right:-100px;
-  width:400px; height:400px; border-radius:50%;
-  background: rgba(255,255,255,0.10);
-  pointer-events:none;
-}
-.history-hero::after {
-  content:'📜'; position:absolute; bottom:-60px; left:-40px;
-  font-size:240px; opacity:0.08; pointer-events:none; transform:rotate(-12deg);
-}
-.history-hero-bg { display: none; }
-.history-hero-icon {
-  position: relative;
-  z-index: 1;
-  font-size: 3rem;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25));
-}
-.history-title {
-  position: relative;
-  z-index: 1;
-  font-size: 2.4rem;
-  font-weight: 900;
-  color: #fff;
-  margin: 0 0 8px;
-  letter-spacing: -0.5px;
-  text-shadow: 0 2px 16px rgba(0,0,0,0.2);
-}
-.history-subtitle {
-  position: relative;
-  z-index: 1;
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.92);
-  margin: 0;
-  font-weight: 500;
-}
-/* ── Tab Toggle ── */
-.history-tabs {
+/* ── Hero statistikası ── */
+.history-stats {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 var(--page-gutter) 40px;
+  gap: var(--space-7);
+  margin-top: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
 }
-.history-tab-btn {
-  padding: 10px 28px;
-  border-radius: 25px;
-  border: 1.5px solid var(--primary-border);
-  background: var(--bg-card);
-  color: var(--text-dim);
-  font-size: 14px;
-  font-weight: 600;
-  font-family: var(--font);
-  cursor: pointer;
-  transition: all 0.25s ease;
-  display: inline-flex;
-  align-items: center;
-  /* emoji ilə ad arasında bir boşluq eni (əvvəl ikisi bir mətn idi) */
-  gap: 4px;
+.history-page .history-stats .ui-stat__num { color: var(--brand); }
+
+/* ── Bölmə seçimi ── */
+.history-tabs { margin-bottom: var(--space-6); }
+.history-tabs-track { display: flex; flex-wrap: wrap; gap: 8px; }
+.history-page .history-tab-btn { min-height: 40px; padding-inline: 16px; font-weight: 600; }
+.history-page .history-tab-btn:active { transform: scale(0.97); }
+.history-tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding-inline: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+  font-size: 11.5px;
+  font-weight: 700;
 }
-.history-tab-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: var(--primary-bg);
-}
-/* --on-primary: işıqlıda ağ, tünddə (parlaq yaşılda) tünd mətn */
-.history-tab-btn.active {
-  background: var(--primary);
-  color: var(--on-primary);
-  border-color: var(--primary);
-  box-shadow: 0 3px 12px rgba(26,107,58,0.25);
+.history-tab-btn[aria-pressed="true"] .history-tab-count {
+  background: color-mix(in srgb, var(--surface-1) 22%, transparent);
+  color: inherit;
 }
 
-/* ── Timeline Container ── */
+/* ── Zaman xətti ── */
 .history-timeline {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 var(--page-gutter);
+  --tl-x: 11px;               /* xəttin başlanğıcdan məsafəsi */
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-inline-start: 40px;
+  list-style: none;
 }
-
-/* Vertical line */
 .history-timeline::before {
   content: '';
   position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(to bottom, var(--primary-border), var(--primary), var(--primary-border));
-  transform: translateX(-50%);
-  border-radius: 2px;
+  inset-block: 14px 14px;
+  inset-inline-start: var(--tl-x);
+  width: 2px;
+  border-radius: 1px;
+  background: linear-gradient(180deg, var(--accent-line), var(--brand-line) 12%, var(--brand-line) 88%, transparent);
 }
 
-/* ── Timeline Entry ── */
-.history-entry {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 40px;
-  position: relative;
-  animation: fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
-}
-.history-entry:last-child { margin-bottom: 0; }
-.history-entry:nth-child(odd) {
-  flex-direction: row;
-}
-.history-entry:nth-child(even) {
-  flex-direction: row-reverse;
-}
-
-/* The connector dot */
+.history-entry { position: relative; }
+/* Nöqtə — xəttin üstündə, kartın başlığı səviyyəsində */
 .history-dot {
   position: absolute;
-  left: 50%;
-  top: 24px;
-  width: 16px;
-  height: 16px;
-  background: var(--primary);
-  border: 3px solid var(--bg);
+  top: 22px;
+  inset-inline-start: calc(var(--tl-x) - 40px - 6px);
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  box-shadow: 0 0 0 4px var(--primary-bg2);
-  transition: all 0.3s;
+  background: var(--surface-0);
+  border: 2px solid var(--brand);
+  transition: transform var(--dur-2) var(--ease-spring), background-color var(--dur-2) ease;
 }
-.history-entry:hover .history-dot {
-  transform: translateX(-50%) scale(1.3);
-  box-shadow: 0 0 0 6px var(--primary-bg2);
+.history-entry.is-open .history-dot { background: var(--brand); transform: scale(1.15); }
+/* Giriş görünəndə nöqtə yüngül "doğulur" (yalnız transform) */
+.history-entry[data-revealed=""] .history-dot { animation: history-dot-in var(--dur-3) var(--ease-spring) backwards; animation-delay: calc(var(--reveal-delay, 0ms) + 120ms); }
+@keyframes history-dot-in { from { transform: scale(0); } }
+
+.history-page .history-card { padding: var(--space-4) var(--space-5) var(--space-5); }
+.history-page .history-entry.is-open .history-card { border-color: var(--brand-line); box-shadow: var(--shadow-2); }
+@media (hover: hover) {
+  .history-entry:hover .history-dot { transform: scale(1.2); }
 }
 
-/* Card positioning */
-.history-card-wrap {
-  width: calc(50% - 32px);
-}
-.history-entry:nth-child(odd) .history-card-wrap {
-  margin-right: auto;
-  padding-right: 0;
-}
-.history-entry:nth-child(even) .history-card-wrap {
-  margin-left: auto;
-  padding-left: 0;
-}
-
-/* ── Card ── */
-.history-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
-  position: relative;
-  overflow: hidden;
-}
-.history-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary), var(--gold));
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.history-card:hover {
-  box-shadow: var(--shadow);
-  transform: translateY(-3px);
-  border-color: var(--primary-border);
-}
-.history-card:hover::before {
-  opacity: 1;
-}
-.history-card.expanded {
-  border-color: var(--primary-border);
-  box-shadow: var(--shadow-lg);
-}
-.history-card.expanded::before {
-  opacity: 1;
-}
-/* Klaviatura fokusu (kart role="button"-dur) */
-.history-card:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 3px;
-}
-
-/* Date badge */
-.history-date-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  background: var(--primary-bg);
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: 1px solid var(--primary-border);
-  margin-bottom: 10px;
-  letter-spacing: 0.5px;
-}
-
-/* Card header */
-.history-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-.history-card-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 4px;
-  line-height: 1.4;
-}
-.history-card-arabic {
-  font-family: var(--font-arabic);
-  font-size: 1.2rem;
-  color: var(--primary);
-  direction: rtl;
-  margin-bottom: 8px;
-  line-height: 1.6;
-}
-.history-card-desc {
-  font-size: 14px;
-  color: var(--text-dim);
-  line-height: 1.65;
-  margin-bottom: 8px;
-}
-
-/* Expand toggle */
-.history-expand-icon {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--primary-bg);
+.history-card-top {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: var(--primary);
-  transition: all 0.3s;
-  border: 1px solid var(--primary-border);
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: var(--space-3);
 }
-.history-card.expanded .history-expand-icon {
-  background: var(--primary);
-  color: var(--on-primary);
-  transform: rotate(180deg);
-}
-
-/* Expanded details */
-.history-details {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease, opacity 0.3s;
-  opacity: 0;
-}
-.history-card.expanded .history-details {
-  max-height: 500px;
-  opacity: 1;
-  margin-top: 12px;
-}
-.history-detail-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 12px 0;
-}
-.history-detail-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.history-detail-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--primary);
-  background: var(--primary-bg);
-  padding: 3px 8px;
-  border-radius: 6px;
-  white-space: nowrap;
+.history-page .history-date-badge { height: auto; min-height: 24px; padding-block: 3px; white-space: normal; line-height: 1.3; }
+.history-expand-icon {
   flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition: transform var(--dur-2) var(--ease-out), color var(--dur-1) ease;
 }
-.history-detail-value {
-  font-size: 14px;
-  color: var(--text-dim);
-  line-height: 1.6;
+.history-entry.is-open .history-expand-icon { transform: rotate(180deg); color: var(--brand); }
+
+.history-card-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 6px;
+}
+.history-prophet-num {
+  align-self: center;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-soft-2);
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 700;
+}
+.history-card-title {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1.25;
+}
+[dir="rtl"] .history-card-title { font-family: var(--font-arabic-ui); font-size: var(--step-1); }
+.history-card-arabic {
+  margin-inline-start: auto;
+  color: var(--accent-text);
+  font-size: 22px;
+  line-height: 1.4;
+}
+.history-card-desc {
+  max-width: 70ch;
+  color: var(--text-secondary);
+  font-size: var(--step-0);
+  line-height: 1.65;
 }
 
-/* Quran reference badge */
-.history-quran-badge {
+/* Açılan hissə — görünəndə yüngül sürüşüb gəlir (transform/opacity) */
+.history-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+  animation: history-details-in var(--dur-3) var(--ease-out);
+}
+@keyframes history-details-in { from { opacity: 0; transform: translateY(-6px); } }
+.history-detail-row { display: flex; flex-direction: column; gap: 6px; }
+.history-detail-label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  background: var(--gold-bg);
-  color: var(--gold-dark);
-  font-size: 12px;
+  color: var(--accent-text);
+  font-size: var(--step--2);
   font-weight: 600;
-  border-radius: 10px;
-  border: 1px solid rgba(184,134,11,0.2);
-  margin-top: 6px;
-}
-
-/* Prophet number circle */
-.history-prophet-num {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(26,107,58,0.3);
-}
-
-/* ── Stats Bar ── */
-/* Hero-dan sonra nəfəs yeri (əvvəl rəqəmlər hero-nun alt kənarına yapışırdı) */
-.history-stats {
-  display: flex;
-  justify-content: center;
-  gap: 32px;
-  padding: 32px var(--page-gutter) 28px;
-  flex-wrap: wrap;
-}
-.history-stat {
-  text-align: center;
-}
-.history-stat-num {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--primary);
-}
-.history-stat-label {
-  font-size: 12px;
-  color: var(--text-muted);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
+[dir="rtl"] .history-detail-label { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
+.history-detail-value { color: var(--text-body); font-size: var(--step-0); line-height: 1.6; }
+.history-page .history-quran-badge { height: auto; min-height: 26px; padding: 4px 10px; white-space: normal; line-height: 1.35; }
 
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .history-hero {
-    padding: 44px var(--page-gutter) 32px;
-  }
-  .history-title {
-    font-size: 1.8rem;
-  }
-  .history-tabs {
-    padding: 0 var(--page-gutter) 28px;
-  }
-  .history-tab-btn {
-    padding: 8px 20px;
-    font-size: 13px;
-  }
-
-  /* Tək sütunlu xətt. Xətt .history-timeline-a (padding daxil), nöqtə isə
-     .history-entry-yə görə yerləşir — ikisi də gutter + 16px-də olmalıdır
-     (əvvəl nöqtə xəttdən 24px sağda "üzürdü") */
-  .history-timeline::before {
-    left: calc(var(--page-gutter) + 16px);
-  }
-  .history-entry,
-  .history-entry:nth-child(odd),
-  .history-entry:nth-child(even) {
-    flex-direction: row;
-    padding-left: 36px;
-  }
-  .history-dot {
-    left: 16px;
-  }
-  .history-card-wrap,
-  .history-entry:nth-child(odd) .history-card-wrap,
-  .history-entry:nth-child(even) .history-card-wrap {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-  .history-entry {
-    margin-bottom: 28px;
-  }
-  .history-entry:last-child { margin-bottom: 0; }
-  .history-card {
-    padding: 16px;
-  }
-  .history-stats {
-    gap: 20px;
-    padding: 24px var(--page-gutter) 20px;
-  }
-
-  /* Ərəbcə (RTL): xətt, nöqtə və kartın boşluğu sağa güzgülənir */
-  [dir="rtl"] .history-timeline::before {
-    left: auto;
-    right: calc(var(--page-gutter) + 16px);
-    transform: translateX(50%);
-  }
-  [dir="rtl"] .history-entry,
-  [dir="rtl"] .history-entry:nth-child(odd),
-  [dir="rtl"] .history-entry:nth-child(even) {
-    padding-left: 0;
-    padding-right: 36px;
-  }
-  [dir="rtl"] .history-dot {
-    left: auto;
-    right: 16px;
-    transform: translateX(50%);
-  }
-  [dir="rtl"] .history-entry:hover .history-dot {
-    transform: translateX(50%) scale(1.3);
-  }
-}
-
-@media (max-width: 480px) {
-  /* Hero kompakt: 72px emoji + böyük boşluq ekranın üçdə birini tuturdu */
-  .history-hero {
-    padding: 36px var(--page-gutter) 30px;
-  }
-  .history-hero-icon {
-    font-size: 2rem;
-    margin-bottom: 6px;
-  }
-  .history-title {
-    font-size: 1.5rem;
-  }
-  .history-subtitle {
-    font-size: 0.95rem;
-  }
-  .history-tab-btn {
-    padding: 9px 16px;
-    font-size: 13px;
-  }
-}
-
-/* ── Dark mode ── */
-[data-theme="dark"] .history-hero-bg {
-  background: linear-gradient(160deg, rgba(46,204,113,0.06) 0%, transparent 50%, rgba(240,192,64,0.04) 100%);
-}
-[data-theme="dark"] .history-card {
-  background: var(--bg-card);
-  border-color: var(--border);
-}
-[data-theme="dark"] .history-card:hover {
-  border-color: var(--primary-border);
-}
-[data-theme="dark"] .history-dot {
-  border-color: var(--bg);
-}
-[data-theme="dark"] .history-quran-badge {
-  background: rgba(240,192,64,0.1);
-  border-color: rgba(240,192,64,0.2);
-  color: var(--gold);
-}
-[data-theme="dark"] .history-tab-btn.active {
-  box-shadow: 0 3px 12px rgba(46,204,113,0.3);
-}
-
-/* Bölmə sayğacı yalnız telefonda (kompüterdə yuxarıda ayrıca statistika var);
-   track kompüterdə görünməz qabdır — düymələr əvvəlki kimi .history-tabs-in
-   mərkəzləşdirilmiş flex sırasındadır */
-.history-tab-count { display: none; }
-.history-tabs-track { display: contents; }
-
-/* Kartlar sürüşdükcə görünür (JSX: data-reveal) — köhnə fadeUp (soldan
-   sürüşmə) əvəzinə motion.css-in yumşaq qalxma animasiyası */
-.history-entry[data-reveal] { animation: none; }
-
-/* ══════════════════════════════════════════════════════
-   TELEFON / KİÇİK PLANŞET (<768px) — müasir tətbiq görünüşü
-   • Hero yığcam, məzmunu növbə ilə qalxır
-   • Statistika seqment idarəsinə köçür (hər bölmənin sayı düymədə)
-   • Seqment idarəsi başlığın altında YAPIŞIR; ağ "həb" seçilənə sürüşür
-     (yalnız transform)
-   • Xətt kartları: yumşaq kölgə, barmaq altında yüngül sıxılma; açılanda
-     hündürlük animasiyası yox — məzmun yumşaq qalxır
-   Kompüter (≥1024px) görünüşü dəyişmir.
-   ══════════════════════════════════════════════════════ */
+/* ══ TELEFON (<768px) — bölmə seçimi yapışqan seqment, xətt daha dar ══ */
 @media (max-width: 767.98px) {
-  .history-hero { padding: 24px var(--page-gutter) 22px; }
-  .history-hero-icon { font-size: 1.75rem; margin-bottom: 4px; }
-  .history-title { font-size: clamp(22px, 6.2vw, 26px); margin-bottom: 4px; }
-  .history-subtitle { font-size: 13.5px; line-height: 1.5; }
-  .history-hero > * { animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards; }
-  .history-hero > :nth-child(3) { animation-delay: 40ms; }
-  .history-hero > :nth-child(n+4) { animation-delay: 80ms; }
-
-  .history-stats { display: none; }
-
-  /* Yapışqan şüşə zolaq */
+  .history-stats { gap: var(--space-6); }
   .history-tabs {
     position: sticky;
-    /* Başlıq gizlənəndə 0 — amma PWA-da (viewport-fit=cover) telefonun
-       status zolağının altına girməsin */
     top: max(var(--header-offset, var(--header-h)), env(safe-area-inset-top, 0px));
     z-index: 20;
-    display: block;
-    margin: 8px 0 16px;
-    padding: 10px var(--page-gutter);
-    background: var(--bg);
-    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    margin-inline: calc(-1 * var(--page-gutter));
+    margin-bottom: var(--space-4);
+    padding: 8px var(--page-gutter);
+    background: var(--surface-0);
+    background: color-mix(in srgb, var(--surface-0) 88%, transparent);
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
-    box-shadow: 0 1px 0 var(--hairline);
+    box-shadow: 0 1px 0 var(--line);
     transition: top var(--dur-3) var(--ease-out);
   }
-  .history-tabs-track {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    max-width: 480px;
-    margin-inline: auto;
-    padding: 3px;
-    border-radius: 12px;
-    background: var(--bg-card2);
-  }
-  [data-theme="dark"] .history-tabs-track { background: var(--surface); }
-  /* Sürüşən ağ həb — seçilmiş seqmentin altında */
-  .history-tabs-track::before {
-    content: '';
-    position: absolute;
-    top: 3px;
-    bottom: 3px;
-    inset-inline-start: 3px;
-    width: calc(50% - 3px);
-    border-radius: 9px;
-    background: var(--bg-card);
-    box-shadow: var(--shadow-sm);
-    transition: transform var(--dur-2) var(--ease-out);
-  }
-  .history-tabs-track[data-active="events"]::before { transform: translateX(100%); }
-  [dir="rtl"] .history-tabs-track[data-active="events"]::before { transform: translateX(-100%); }
-
-  .history-tab-btn {
-    position: relative;
-    z-index: 1;
-    justify-content: center;
-    gap: 6px;
-    min-width: 0;
-    min-height: 40px;
-    padding: 0 8px;
-    border: 0;
-    border-radius: 9px;
-    background: transparent;
-    color: var(--text-dim);
-    font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
-    box-shadow: none;
-    transition: color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
-  }
-  .history-tab-btn:hover { border-color: transparent; background: transparent; color: var(--text); }
-  .history-tab-btn.active,
-  [data-theme="dark"] .history-tab-btn.active { background: transparent; color: var(--primary-dark); box-shadow: none; }
-  [data-theme="dark"] .history-tab-btn.active { color: var(--primary); }
-  .history-tab-btn:active { transform: scale(var(--press-scale)); }
-  .history-tab-emoji { display: none; }
-  .history-tab-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-  .history-tab-count {
-    display: inline-grid;
-    place-items: center;
-    flex-shrink: 0;
-    min-width: 24px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: var(--hairline);
-    color: var(--text-muted);
-    font-size: 12px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    transition: background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
-  }
-  .history-tab-btn.active .history-tab-count { background: var(--primary-bg2); color: var(--primary-dark); }
-  [data-theme="dark"] .history-tab-btn.active .history-tab-count { color: var(--primary); }
-
-  /* Xətt yapışqan zolağın altında qalmasın (bölmə dəyişəndə scrollIntoView) */
-  .history-timeline { scroll-margin-top: 76px; }
-  .history-timeline::before { width: 2px; opacity: 0.8; }
-  .history-entry { margin-bottom: 14px; }
-  .history-entry:last-child { margin-bottom: 0; }
-  .history-dot {
-    top: 22px;
-    width: 12px;
-    height: 12px;
-    border-width: 2px;
-    box-shadow: 0 0 0 3px var(--primary-bg2);
-  }
-  .history-entry:hover .history-dot { transform: translateX(-50%); box-shadow: 0 0 0 3px var(--primary-bg2); }
-  [dir="rtl"] .history-entry:hover .history-dot { transform: translateX(50%); }
-
-  .history-card {
-    padding: 14px 14px 14px 16px;
-    border-radius: 16px;
-    transition: transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
-  }
-  [dir="rtl"] .history-card { padding: 14px 16px 14px 14px; }
-  .history-card:hover,
-  [data-theme="dark"] .history-card:hover { transform: none; box-shadow: var(--shadow-sm); border-color: var(--border); }
-  .history-card:hover::before { opacity: 0; }
-  .history-card:active { transform: scale(0.985); }
-  .history-card.expanded,
-  .history-card.expanded:hover,
-  [data-theme="dark"] .history-card.expanded:hover { border-color: var(--primary-border); box-shadow: var(--shadow); }
-  .history-card.expanded::before { opacity: 1; }
-
-  .history-date-badge {
-    margin-bottom: 8px;
-    padding: 3px 10px;
-    border: 0;
-    background: var(--primary-bg2);
-    color: var(--primary-dark);
-    font-size: 12px;
-    letter-spacing: 0.2px;
-    font-variant-numeric: tabular-nums;
-  }
-  [data-theme="dark"] .history-date-badge { color: var(--primary); }
-  .history-prophet-num {
-    width: 28px;
-    height: 28px;
-    font-size: 12.5px;
-    font-variant-numeric: tabular-nums;
-    box-shadow: none;
-  }
-  .history-card-title { font-size: 16px; }
-  .history-card-arabic { font-size: 1.15rem; margin-bottom: 4px; }
-  .history-card-desc { font-size: 14px; margin-bottom: 0; }
-
-  /* Açma işarəsi: ▼ əvəzinə nazik CSS ox, açılanda fırlanır */
-  .history-expand-icon {
-    width: 30px;
-    height: 30px;
-    border: 0;
-    font-size: 0;
-    color: var(--primary);
-    transition: transform var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
-  }
-  .history-expand-icon::after {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: translateY(-2px) rotate(45deg);
-  }
-
-  /* Detallar: hündürlük animasiya olunmur — məzmun yumşaq qalxır */
-  .history-details { transition: none; }
-  .history-card.expanded .history-details { margin-top: 6px; }
-  .history-card.expanded .history-details > * {
-    animation: qm-reveal-up var(--dur-2) var(--ease-out) backwards;
-  }
-  .history-card.expanded .history-details > :nth-child(2) { animation-delay: 40ms; }
-  .history-card.expanded .history-details > :nth-child(n+3) { animation-delay: 80ms; }
-  .history-detail-divider { margin: 6px 0 12px; background: var(--hairline); }
-  .history-detail-row { flex-wrap: wrap; gap: 6px 8px; }
-  .history-detail-label { font-size: 12px; letter-spacing: 0.6px; }
-  .history-detail-value { font-size: 14px; }
-  .history-quran-badge { font-size: 12.5px; }
+  .history-tabs-track { flex-wrap: nowrap; }
+  .history-page .history-tab-btn { flex: 1 1 0; justify-content: center; min-width: 0; }
+  .history-tab-label { overflow: hidden; text-overflow: ellipsis; }
+  /* Dar telefonda say nişanı gizlənir — ad tam görünsün */
+  .history-page .history-tab-btn { gap: 6px; padding-inline: 12px; }
+  .history-timeline { --tl-x: 7px; padding-inline-start: 28px; gap: var(--space-3); scroll-margin-top: 130px; }
+  .history-dot { inset-inline-start: calc(var(--tl-x) - 28px - 6px); top: 20px; }
+  .history-page .history-card { padding: var(--space-3) var(--space-4) var(--space-4); }
+  .history-card-title { font-size: var(--step-1); }
+  .history-card-arabic { font-size: 19px; }
+  .history-card-desc { font-size: 15px; }
+}
+@media (max-width: 419.98px) {
+  .history-tab-count { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .history-tabs,
-  .history-tabs-track::before { transition: none; }
-  .history-card.expanded .history-details > * { animation: none; }
+  .history-dot,
+  .history-expand-icon,
+  .history-tabs { transition: none; }
+  .history-entry[data-revealed=""] .history-dot,
+  .history-details { animation: none; }
 }

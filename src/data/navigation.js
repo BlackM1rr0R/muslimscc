@@ -35,7 +35,7 @@ export const NAV_GROUPS = [
       { key: 'prayer', icon: '🕐',
         label: { az: 'Namaz vaxtları', en: 'Prayer Times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz Vakitleri' } },
       { key: 'jamaat', icon: '🤝',
-        label: { az: 'Camaat və Cümə', en: 'Congregation & Friday', ru: 'Джамаат и Джума', ar: 'الجماعة والجمعة', tr: 'Cemaat ve Cuma' } },
+        label: { az: 'Camaat və cümə', en: 'Congregation & Friday', ru: 'Джамаат и Джума', ar: 'الجماعة والجمعة', tr: 'Cemaat ve Cuma' } },
       { key: 'announcements', icon: '📢',
         label: { az: 'Elanlar', en: 'Announcements', ru: 'Объявления', ar: 'الإعلانات', tr: 'Duyurular' } },
       { key: 'donate', icon: '💝',

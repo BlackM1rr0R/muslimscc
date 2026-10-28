@@ -35,7 +35,7 @@
 //   verilməyibsə "qm-open-search" hadisəsi göndərilir (Header.jsx dinləyir).
 // ═══════════════════════════════════════════════════════
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
@@ -410,6 +410,36 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
     return () => window.clearTimeout(t)
   }, [currentGroup, currentPage, isRail])
 
+  // ── Yan panel: cari sətrin qızılı göstəricisi SÜRÜŞÜR ──
+  // Bir element (.qm-sn-ind) sürüşən qutunun içində cari sətrin hündürlüyünün
+  // ortasına translateY ilə gedir (yalnız transform). Qrup açılıb-bağlananda
+  // sətirlər yerini dəyişir — animasiya bitəndə (EXPAND_MS) yenidən ölçülür.
+  // Cari səhifə bağlı qrupdadırsa və ya paneldə yoxdursa — göstərici solur.
+  const [ind, setInd] = useState({ y: 0, on: false, instant: true })
+  useLayoutEffect(() => {
+    if (!isRail) return undefined
+    const measure = () => {
+      const box = bodyRef.current
+      const cur = box?.querySelector('.qm-sn-group.is-expanded .qm-sn-item.is-current')
+      if (!cur || !cur.offsetHeight) { setInd(p => (p.on ? { ...p, on: false } : p)); return }
+      // Qutunun məzmununa nisbətən (sürüşmə də nəzərə alınır)
+      const b = box.getBoundingClientRect()
+      const r = cur.getBoundingClientRect()
+      const y = Math.round(r.top - b.top + box.scrollTop + r.height / 2)
+      setInd(p => (p.y === y && p.on ? p : { y, on: true, instant: !p.on }))
+    }
+    measure()
+    // qrupun açılma animasiyası və panelin ilk giriş animasiyası bitəndə
+    const t1 = window.setTimeout(measure, EXPAND_MS)
+    const t2 = window.setTimeout(measure, 900)
+    return () => { window.clearTimeout(t1); window.clearTimeout(t2) }
+  }, [isRail, currentPage, expanded, lang])
+  useEffect(() => {
+    if (!ind.instant || !ind.on) return undefined
+    const r = requestAnimationFrame(() => setInd(p => ({ ...p, instant: false })))
+    return () => cancelAnimationFrame(r)
+  }, [ind.instant, ind.on])
+
   // ── Menyu: açılış / bağlanış — animasiya, fokus, scroll kilidi ──
   useEffect(() => {
     if (isRail) return undefined
@@ -645,7 +675,12 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
             <kbd className="qm-sn-kbd" aria-hidden="true">{IS_MAC ? '⌘K' : 'Ctrl K'}</kbd>
           </button>
         </div>
-        <div className="qm-sn-body" ref={bodyRef}>
+        <div className={`qm-sn-body${ind.on ? ' has-ind' : ''}`} ref={bodyRef}>
+          <span
+            className={`qm-sn-ind${ind.on ? ' is-on' : ''}${ind.instant ? ' is-instant' : ''}`}
+            style={{ transform: `translate3d(0, ${ind.y}px, 0)` }}
+            aria-hidden="true"
+          />
           {groups}
         </div>
       </nav>

@@ -2,14 +2,15 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { GLOSSARY } from '../data/glossary'
 import Pagination from '../components/Pagination'
+import Icon from '../components/Icon'
 import '../styles/GlossaryPage.css'
 
 const LABELS = {
-  az: { title:'İslami Söz Lüğəti', subtitle:'İslami terminlərin izahı', search:'Termin axtar...', all:'Hamısı', noResults:'Nəticə tapılmadı', terms:'termin', definition:'Tərif', transliteration:'Transliterasiya', letters:'Hərflər' },
-  en: { title:'Islamic Glossary', subtitle:'Explanation of Islamic terms', search:'Search terms...', all:'All', noResults:'No results found', terms:'terms', definition:'Definition', transliteration:'Transliteration', letters:'Letters' },
-  ru: { title:'Исламский Глоссарий', subtitle:'Объяснение исламских терминов', search:'Поиск терминов...', all:'Все', noResults:'Ничего не найдено', terms:'терминов', definition:'Определение', transliteration:'Транслитерация', letters:'Буквы' },
-  ar: { title:'قاموس إسلامي', subtitle:'شرح المصطلحات الإسلامية', search:'ابحث عن مصطلح...', all:'الكل', noResults:'لم يتم العثور على نتائج', terms:'مصطلح', definition:'التعريف', transliteration:'النقل الحرفي', letters:'الحروف' },
-  tr: { title:'İslami Sözlük', subtitle:'İslami terimlerin açıklaması', search:'Terim ara...', all:'Tümü', noResults:'Sonuç bulunamadı', terms:'terim', definition:'Tanım', transliteration:'Transliterasyon', letters:'Harfler' },
+  az: { eyebrow:'Hədis və bilik', clear:'Filtri təmizlə', title:'İslami söz lüğəti', subtitle:'İslami terminlərin izahı', search:'Termin axtar...', all:'Hamısı', noResults:'Nəticə tapılmadı', terms:'termin', definition:'Tərif', transliteration:'Transliterasiya', letters:'Hərflər' },
+  en: { eyebrow:'Hadith & knowledge', clear:'Clear filter', title:'Islamic Glossary', subtitle:'Explanation of Islamic terms', search:'Search terms...', all:'All', noResults:'No results found', terms:'terms', definition:'Definition', transliteration:'Transliteration', letters:'Letters' },
+  ru: { eyebrow:'Хадисы и знание', clear:'Сбросить фильтр', title:'Исламский Глоссарий', subtitle:'Объяснение исламских терминов', search:'Поиск терминов...', all:'Все', noResults:'Ничего не найдено', terms:'терминов', definition:'Определение', transliteration:'Транслитерация', letters:'Буквы' },
+  ar: { eyebrow:'الحديث والعلم', clear:'مسح التصفية', title:'قاموس إسلامي', subtitle:'شرح المصطلحات الإسلامية', search:'ابحث عن مصطلح...', all:'الكل', noResults:'لم يتم العثور على نتائج', terms:'مصطلح', definition:'التعريف', transliteration:'النقل الحرفي', letters:'الحروف' },
+  tr: { eyebrow:'Hadis ve ilim', clear:'Filtreyi temizle', title:'İslami Sözlük', subtitle:'İslami terimlerin açıklaması', search:'Terim ara...', all:'Tümü', noResults:'Sonuç bulunamadı', terms:'terim', definition:'Tanım', transliteration:'Transliterasyon', letters:'Harfler' },
 }
 
 const LATIN_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
@@ -27,7 +28,8 @@ const revealProps = (i) => ({
 
 // Kartın başlığı: item.term yalnız azərbaycancadır — başqa dillərdə
 // beynəlxalq transliterasiya (Tawhid, Salah…) göstərilir
-const headlineOf = (item, lang) => (lang === 'az' ? item.term : item.translit)
+// ərəbcədə başlıq ərəbcə terminin özüdür, transliterasiya altında qalır
+const headlineOf = (item, lang) => (lang === 'az' ? item.term : lang === 'ar' ? item.ar : item.translit)
 
 // Termin bu hərflə başlayırmı? Ərəbcədə "ال" artikli nəzərə alınmır;
 // az-da həm termin, həm transliterasiya; digər dillərdə başlıq (translit)
@@ -107,36 +109,45 @@ export default function GlossaryPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero theme-glossary hero-compact">
-        <div className="page-hero-arabic">قاموس المصطلحات الإسلامية</div>
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+      <header className="ui-page-hero glo-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container">
+          <span className="ui-eyebrow">{t.eyebrow}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          {!isArabic && <p className="glo-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">قاموس المصطلحات الإسلامية</p>}
+          <p className="ui-lead">{t.subtitle}</p>
+        </div>
+      </header>
 
-      <div className="section">
-        <div className="section-inner">
-          {/* Search */}
+      <div className="ui-section ui-section--tight glossary-page">
+        <div className="ui-container">
+          {/* Axtarış + say */}
           <div className="glossary-search-wrap" ref={topRef}>
-            <div className="input-wrap">
-              <span className="input-icon" aria-hidden="true">🔍</span>
+            <div className="glossary-search">
+              <Icon name="search" size={19} className="glossary-search__icon" />
               <input
-                className="input-base input-with-icon"
+                className="ui-input glossary-search__input"
+                type="search"
                 aria-label={t.search}
                 placeholder={t.search}
                 enterKeyHint="search"
                 value={search}
                 onChange={e => { setSearch(e.target.value); setActiveLetter(null) }}
               />
+              {search && (
+                <button type="button" className="ui-icon-btn glossary-search__clear" onClick={() => setSearch('')} aria-label={t.clear} title={t.clear}>
+                  <Icon name="close" size={16} />
+                </button>
+              )}
             </div>
-            <span className="glossary-count">{filtered.length} {t.terms}</span>
+            <span className="glossary-count ui-num" aria-live="polite">{filtered.length} {t.terms}</span>
           </div>
 
-          {/* Alphabetical filter */}
-          {/* Telefonda bu zolaq başlığın altında yapışır (şüşə fon) */}
-          <div className="glossary-alpha-bar" ref={alphaRef} role="group" aria-label={t.letters}>
+          {/* Əlifba filtri — telefonda başlığın altında yapışır (şüşə fon) */}
+          <div className="glossary-alpha-bar" ref={alphaRef} role="group" aria-label={t.letters} data-reveal="stagger-fade">
             <button
               type="button"
-              className={`glossary-alpha-btn ${!activeLetter ? 'active' : ''}`}
+              className="ui-chip glossary-alpha-btn glossary-alpha-btn--all"
               aria-pressed={!activeLetter}
               onClick={() => { setActiveLetter(null); toGridTop() }}
             >
@@ -146,7 +157,7 @@ export default function GlossaryPage({ setPage }) {
               <button
                 type="button"
                 key={letter}
-                className={`glossary-alpha-btn ${activeLetter === letter ? 'active' : ''}`}
+                className="ui-chip glossary-alpha-btn"
                 aria-pressed={activeLetter === letter}
                 onClick={() => { setActiveLetter(letter === activeLetter ? null : letter); setSearch(''); toGridTop() }}
               >
@@ -155,31 +166,36 @@ export default function GlossaryPage({ setPage }) {
             ))}
           </div>
 
-          {/* Terms grid */}
-          <div className="glossary-grid">
+          {/* Terminlər — açar filtr/səhifə dəyişəndə şəbəkəni yenidən qurur (keçid) */}
+          <div className="glossary-grid" key={`${activeLetter || ''}|${current}`}>
             {paged.map((item, idx) => (
-              <div key={item.term} className="glossary-card" {...revealProps(idx)}>
+              <article key={item.term} className="ui-card glossary-card" {...revealProps(idx)}>
                 <div className="glossary-card-header">
-                  <div className="glossary-arabic-text" lang="ar">{item.ar}</div>
-                  <div className="glossary-term-name">{headlineOf(item, lang)}</div>
-                  {/* Transliterasiya yalnız az-da ayrıca sətirdir (başqa dillərdə başlığın özüdür) */}
-                  {lang === 'az' && <div className="glossary-translit">{item.translit}</div>}
+                  <div className="glossary-card-names">
+                    <h2 className={`glossary-term-name${isArabic ? ' ui-arabic' : ''}`}>{headlineOf(item, lang)}</h2>
+                    {/* Transliterasiya yalnız az-da ayrıca sətirdir (başqa dillərdə başlığın özüdür) */}
+                    {(lang === 'az' || lang === 'ar') && <span className="glossary-translit" dir="ltr">{item.translit}</span>}
+                  </div>
+                  {!isArabic && <span className="glossary-arabic-text ui-arabic" lang="ar" dir="rtl">{item.ar}</span>}
                 </div>
-                <div className="glossary-card-body">
-                  <p className="glossary-definition">{item.def[lang] || item.def.en}</p>
-                </div>
-              </div>
+                <p className="glossary-definition">{item.def[lang] || item.def.en}</p>
+              </article>
             ))}
           </div>
 
           {filtered.length === 0 && (
-            <div className="glossary-empty">
-              <span>📚</span>
+            <div className="ui-card ui-card--sunken glossary-empty" data-reveal="scale">
+              <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="glossary" /></span>
               <p>{t.noResults}</p>
+              {(search || activeLetter) && (
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => { setSearch(''); setActiveLetter(null) }}>
+                  <Icon name="close" className="ui-btn__icon" /> {t.clear}
+                </button>
+              )}
             </div>
           )}
 
-          <Pagination current={current} total={totalPages} onChange={goPage} color="var(--primary)" />
+          <Pagination current={current} total={totalPages} onChange={goPage} color="var(--brand)" />
         </div>
       </div>
     </>

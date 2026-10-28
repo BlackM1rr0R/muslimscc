@@ -1,546 +1,432 @@
 /* ═══════════════════════════════════════════════════════
-   NOTIFICATION SETTINGS WIDGET
-   FAB stacked above Accessibility, above AI chat
+   BİLDİRİŞ AYARLARI PANELİ — dizayn sistemi v2
 
-   Rənglər YALNIZ globals.css dəyişənlərindəndir (yaşıl --primary,
-   qızılı --gold, --bg-card / --surface / --text / --border …) —
-   tünd rejim ([data-theme="dark"]) avtomatik işləyir. Əvvəl ~17 sabit
-   narıncı rəng var idi. Görünüş Əlçatanlıq paneli ilə eynidir.
-
-   Status kartı: JSX data-status verir (granted | default | denied |
-   unsupported), rəng burada seçilir. Status mətni rəngi --text ilə
-   qarışdırılır (color-mix) — işıqlıda tündləşir, tündə açılır, hər
-   iki rejimdə AA (4.5:1+).
+   • Əlçatanlıq paneli ilə eyni quruluş: kağız fon, ağ başlıq + incə
+     qızılı xətt, ağ bölmə kartları, zümrüd açarlar.
+   • Rənglər YALNIZ semantik tokenlərdən — qaranlıq rejim avtomatik.
+   • Vəziyyət kartının rəngi data-status-dan: granted (--ok), denied
+     (--bad), default (--accent — "diqqət"), unsupported (neytral).
+     Vəziyyət mətni rəngi tokenlə mətn rənginin qarışığıdır → AA.
+   • Hərəkət yalnız transform/opacity; "hərəkəti azalt"da söndürülür.
    ═══════════════════════════════════════════════════════ */
 
-.notif-panel,
-.notif-fab {
-  /* Fokus halqası — FloatingDock və yan menyu ilə eyni */
-  --notif-ring: color-mix(in srgb, var(--primary) 55%, transparent);
-  --notif-glow: 0 4px 14px color-mix(in srgb, var(--primary) 28%, transparent);
-  /* Xəta mətni: qırmızı + mətn rəngi → hər iki rejimdə AA */
-  --notif-danger-ink: color-mix(in srgb, var(--danger) 65%, var(--text));
+.notif-panel {
+  --notif-ring: var(--ring);
 }
 
-/* ─── FAB (yalnız köhnə müstəqil rejim üçün stil; hazırda dokdan açılır) ─── */
-.notif-fab {
-  position: fixed;
-  bottom: 200px;
-  right: 24px;
-  z-index: 100000;
-  width: 56px; height: 56px;
-  border: 1px solid var(--primary-border);
-  border-radius: 50%;
-  background: var(--primary);
-  color: var(--on-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-lg);
-  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s, background 0.2s;
-  animation: notif-fab-in 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
-}
-
-.notif-fab:hover {
-  background: var(--primary-dark);
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: var(--shadow-xl);
-}
-
-.notif-fab:active { transform: scale(0.95); }
-.notif-fab:focus-visible { outline: 2px solid var(--notif-ring); outline-offset: 3px; }
-
-@keyframes notif-fab-in {
-  0% { opacity: 0; transform: translateY(60px) scale(0.4); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.notif-fab-ring {
-  position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--on-primary) 18%, transparent);
-  pointer-events: none;
-  animation: notif-pulse 2.8s ease-in-out infinite 2s;
-}
-
-@keyframes notif-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.2); opacity: 0; }
-}
-
-.notif-fab svg {
-  position: relative;
-  z-index: 1;
-}
-
-/* "Diqqət tələb edir" nöqtəsi (icazə hələ soruşulmayıb) */
-.notif-fab-dot {
-  position: absolute;
-  top: 6px; right: 6px;
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background: var(--danger);
-  border: 2px solid var(--bg-card);
-  z-index: 2;
-  animation: notif-bell-shake 1.5s ease-in-out infinite;
-}
-
-@keyframes notif-bell-shake {
-  0%, 100% { transform: scale(1); }
-  10%, 30% { transform: scale(1.2); }
-  20% { transform: scale(0.9); }
-}
-
-/* Abunəlik aktivdirsə — işarə */
-.notif-fab-check {
-  position: absolute;
-  bottom: 4px; right: 4px;
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  background: var(--bg-card);
-  color: var(--primary);
-  font-size: 11px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--primary);
-  z-index: 2;
-}
-
-/* ─── Backdrop ─── */
+/* ─── Arxa fon ─── */
 .notif-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   z-index: 9992;
-  animation: notif-fade 0.25s ease;
+  background: color-mix(in srgb, var(--night-950) 42%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  animation: notif-fade var(--dur-3) var(--ease-out) both;
 }
-
 @keyframes notif-fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* ─── Panel ─── */
 .notif-panel {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  inset-inline-end: 20px;
   z-index: 9993;
-  width: 380px;
+  width: 384px;
   max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 48px);
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  box-shadow: 0 30px 80px -10px rgba(0,0,0,0.35), 0 12px 28px -8px rgba(0,0,0,0.18);
+  max-height: calc(100dvh - 40px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: notif-panel-in 0.32s cubic-bezier(0.34,1.56,0.64,1);
+  background: var(--surface-0);
+  color: var(--text-body);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-4);
+  transform-origin: bottom right;
+  animation: notif-panel-in var(--dur-3) var(--ease-out) both;
 }
+[dir="rtl"] .notif-panel { transform-origin: bottom left; }
 
 @keyframes notif-panel-in {
-  0% { opacity: 0; transform: translateX(-30px) scale(0.94); }
-  100% { opacity: 1; transform: translateX(0) scale(1); }
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.97); }
+  to   { opacity: 1; transform: none; }
 }
 
-/* ─── Header ───
-   Sakit kart başlığı + aşağıda qızılı xətt (səhifə hero-larındakı kimi);
-   ikon dairəsi yan menyunun "Alətlər" ikonları ilə eynidir */
+/* ─── Başlıq ─── */
 .notif-header {
-  background: var(--bg-card);
-  color: var(--text);
-  padding-block: 14px;
-  padding-inline: 16px 14px;
+  position: relative;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  flex-shrink: 0;
-  position: relative;
-  border-bottom: 1px solid var(--border);
+  padding-block: 16px 14px;
+  padding-inline: 20px 14px;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--line);
 }
-
 .notif-header::after {
   content: '';
   position: absolute;
   inset-inline: 0;
   bottom: -1px;
-  height: 2px;
-  background: linear-gradient(to right, var(--gold), transparent 75%);
-  opacity: 0.7;
-  pointer-events: none;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent-line), transparent 70%);
+}
+[dir="rtl"] .notif-header::after { background: linear-gradient(270deg, var(--accent-line), transparent 70%); }
+
+.notif-header-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.notif-header-icon {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand-soft-2);
+  color: var(--brand);
+}
+/* Panel açılanda zəng bir dəfə yüngülcə yellənir */
+.notif-header-icon svg {
+  transform-origin: 50% 12%;
+  animation: notif-bell-swing 900ms var(--ease-out) 200ms 1 both;
+}
+@keyframes notif-bell-swing {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(12deg); }
+  40% { transform: rotate(-9deg); }
+  60% { transform: rotate(5deg); }
+  80% { transform: rotate(-2deg); }
 }
 
-[dir="rtl"] .notif-header::after,
-html[lang="ar"] .notif-header::after {
-  background: linear-gradient(to left, var(--gold), transparent 75%);
+.notif-name {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+}
+.notif-tagline { margin-top: 2px; font-size: 12.5px; line-height: 1.35; color: var(--text-tertiary); }
+
+.notif-close {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease, color var(--dur-1) ease, border-color var(--dur-1) ease, transform var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) {
+  .notif-close:hover { background: var(--surface-2); border-color: var(--line-strong); color: var(--text-strong); transform: rotate(90deg); }
+}
+.notif-close:active { transform: scale(0.94); }
+
+/* ─── Gövdə ─── */
+.notif-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 14px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.notif-body > * { flex-shrink: 0; }
+.notif-body::-webkit-scrollbar { width: 6px; }
+.notif-body::-webkit-scrollbar-track { background: transparent; }
+.notif-body::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+
+/* Məzmun növbə ilə yumşaq qalxır */
+.notif-body > * { animation: notif-item-in var(--dur-3) var(--ease-out) backwards; }
+.notif-body > :nth-child(2) { animation-delay: 40ms; }
+.notif-body > :nth-child(3) { animation-delay: 80ms; }
+.notif-body > :nth-child(n+4) { animation-delay: 120ms; }
+@keyframes notif-item-in {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to   { opacity: 1; transform: none; }
 }
 
-.notif-header-info {
+/* ─── Vəziyyət kartı ─── */
+.notif-status-card {
+  --st: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--st) 28%, var(--line));
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--st) 9%, transparent), transparent 75%),
+    var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+[dir="rtl"] .notif-status-card {
+  background:
+    linear-gradient(270deg, color-mix(in srgb, var(--st) 9%, transparent), transparent 75%),
+    var(--surface-1);
+}
+.notif-status-card[data-status="granted"]     { --st: var(--ok); }
+.notif-status-card[data-status="denied"]      { --st: var(--bad); }
+.notif-status-card[data-status="default"]     { --st: var(--accent); }
+.notif-status-card[data-status="unsupported"] { --st: var(--text-tertiary); }
+
+.notif-status-icon {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--st) 14%, var(--surface-1));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--st) 30%, transparent);
+  color: color-mix(in srgb, var(--st) 75%, var(--text-strong));
+}
+.notif-status-card[data-status="granted"] .notif-status-icon {
+  animation: notif-pop var(--dur-3) var(--ease-spring) 120ms backwards;
+}
+@keyframes notif-pop {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+.notif-status-body { min-width: 0; }
+.notif-status-label {
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .notif-status-label { letter-spacing: 0; font-size: 13px; }
+.notif-status-text {
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--st) 55%, var(--text-strong));
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ─── Düymələr ─── */
+.notif-primary-btn,
+.notif-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease, box-shadow var(--dur-2) ease, transform var(--dur-1) var(--ease-out);
+}
+.notif-primary-btn {
+  border: 1px solid transparent;
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.notif-secondary-btn {
+  border: 1px solid var(--line-strong);
+  background: var(--surface-1);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-1);
+}
+@media (hover: hover) {
+  .notif-primary-btn:hover:not(:disabled) { background: var(--brand-hover); box-shadow: var(--shadow-2); }
+  .notif-secondary-btn:hover:not(:disabled) { background: var(--surface-2); border-color: var(--text-tertiary); }
+  .notif-primary-btn:hover:not(:disabled) svg { animation: notif-bell-swing 700ms var(--ease-out) 1; transform-origin: 50% 12%; }
+}
+.notif-primary-btn:active,
+.notif-secondary-btn:active { transform: translateY(1px) scale(0.99); }
+.notif-primary-btn:disabled,
+.notif-secondary-btn:disabled { opacity: 0.7; cursor: progress; }
+
+/* Gözləmə göstəricisi (aktivləşdirmə zamanı) */
+.notif-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--on-brand) 35%, transparent);
+  border-top-color: var(--on-brand);
+  animation: notif-spin 0.7s linear infinite;
+}
+@keyframes notif-spin { to { transform: rotate(360deg); } }
+
+/* ─── Kömək və rəy mesajları ─── */
+.notif-help,
+.notif-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.notif-help svg,
+.notif-feedback svg { flex-shrink: 0; margin-top: 1px; }
+.notif-help {
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--text-body);
+}
+.notif-help svg { color: var(--accent-text); }
+.notif-feedback { animation: notif-item-in var(--dur-2) var(--ease-out) both; }
+.notif-feedback.ok {
+  border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
+  background: color-mix(in srgb, var(--ok) 9%, var(--surface-1));
+  color: color-mix(in srgb, var(--ok) 50%, var(--text-strong));
+}
+.notif-feedback.err {
+  border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent);
+  background: color-mix(in srgb, var(--bad) 8%, var(--surface-1));
+  color: color-mix(in srgb, var(--bad) 55%, var(--text-strong));
+  overflow-wrap: anywhere;
+}
+
+/* ─── Bölmə kartı ─── */
+.notif-section {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+.notif-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--text-strong);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+.notif-section-title svg { color: var(--accent); flex-shrink: 0; }
+[dir="rtl"] .notif-section-title { letter-spacing: 0; font-size: 13px; }
+
+.notif-toggles { display: flex; flex-direction: column; gap: 2px; }
+
+/* ─── Açar sətirləri ─── */
+.notif-toggle {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0;
-}
-
-.notif-header-icon {
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  background: var(--primary-bg2);
-  color: var(--primary-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-[data-theme="dark"] .notif-header-icon { color: var(--primary); }
-
-.notif-name {
-  font-weight: 800;
-  font-size: 17px;
-  letter-spacing: 0.2px;
-  color: var(--text);
-  line-height: 1.25;
-}
-
-.notif-tagline {
-  font-size: 12.5px;
-  color: var(--text-muted);
-  margin-top: 2px;
-  line-height: 1.3;
-}
-
-.notif-close {
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
-}
-
-.notif-close:hover {
-  background: var(--primary-bg2);
-  border-color: var(--primary-border);
-  color: var(--primary);
-  transform: rotate(90deg);
-}
-
-.notif-close:focus-visible { outline: 2px solid var(--notif-ring); outline-offset: 2px; }
-
-/* ─── Body ─── */
-.notif-body {
-  flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 16px;
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* Sütunlu flex + overflow: kartlar hündürlük azalanda sıxılmasın */
-.notif-body > * { flex-shrink: 0; }
-
-.notif-body::-webkit-scrollbar { width: 6px; }
-.notif-body::-webkit-scrollbar-track { background: transparent; }
-.notif-body::-webkit-scrollbar-thumb { background: var(--primary-border); border-radius: 3px; }
-
-/* ─── Status card ───
-   --st: statusun rəngi; --st-ink: onun mətn üçün AA variantı */
-.notif-status-card {
-  --st: var(--gold);
-  --st-ink: color-mix(in srgb, var(--st) 65%, var(--text));
-  background: color-mix(in srgb, var(--st) 6%, var(--bg-card));
-  border: 1.5px solid color-mix(in srgb, var(--st) 45%, var(--border));
-  border-radius: 14px;
-  padding: 14px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: var(--shadow-sm);
-}
-
-.notif-status-card[data-status="granted"]     { --st: var(--primary); }
-.notif-status-card[data-status="default"]     { --st: var(--gold); }
-.notif-status-card[data-status="denied"]      { --st: var(--danger); }
-.notif-status-card[data-status="unsupported"] { --st: var(--text-muted); }
-
-.notif-status-icon {
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--st) 16%, var(--bg-card));
-  color: var(--st-ink);
-  border: 1px solid color-mix(in srgb, var(--st) 30%, transparent);
-  font-size: 22px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.notif-status-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.notif-status-label {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-}
-
-.notif-status-text {
-  font-size: 16px;
-  font-weight: 800;
-  margin-top: 2px;
-  color: var(--st-ink);
-}
-
-/* ─── Buttons ─── */
-.notif-primary-btn {
-  background: var(--primary);
-  color: var(--on-primary);
-  border: 1px solid var(--primary);
-  border-radius: 12px;
-  padding: 13px;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-  box-shadow: var(--notif-glow);
-}
-
-.notif-primary-btn:hover:not(:disabled) {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 35%, transparent);
-}
-
-.notif-primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.notif-secondary-btn {
-  background: var(--bg-card);
-  border: 1.5px solid var(--border-md);
-  color: var(--text);
-  border-radius: 12px;
-  padding: 13px;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
-}
-
-/* "Söndür" — üzərinə gələndə yumşaq xəbərdarlıq rəngi */
-.notif-secondary-btn:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
-  color: var(--notif-danger-ink);
-  background: color-mix(in srgb, var(--danger) 7%, var(--bg-card));
-}
-
-.notif-secondary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-/* ─── Help / feedback messages ─── */
-.notif-help {
-  background: var(--gold-bg);
-  border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
-  color: var(--text);
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.notif-feedback {
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 700;
-  border: 1px solid transparent;
-}
-
-.notif-feedback.ok {
-  background: var(--primary-bg);
-  border-color: var(--primary-border);
-  color: var(--primary);
-}
-
-.notif-feedback.err {
-  background: color-mix(in srgb, var(--danger) 9%, var(--bg-card));
-  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
-  color: var(--notif-danger-ink);
-}
-
-/* ─── Section ─── */
-.notif-section {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  box-shadow: var(--shadow-sm);
-}
-
-.notif-section-title {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text);
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-}
-
-.notif-toggles {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* ─── Toggle ─── */
-.notif-toggle {
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 9px 11px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-  text-align: start;
   width: 100%;
-  color: var(--text);
+  min-height: 54px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease;
 }
-
-.notif-toggle:hover { border-color: var(--primary-border); background: var(--primary-bg); }
-.notif-toggle.on { background: var(--primary-bg); border-color: var(--primary-border); }
+@media (hover: hover) {
+  .notif-toggle:hover { background: var(--surface-2); }
+}
+.notif-toggle:active { background: var(--surface-3); }
 
 .notif-toggle-icon {
-  font-size: 18px;
-  width: 26px;
   flex-shrink: 0;
-  text-align: center;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--text-secondary);
+  transition: background-color var(--dur-2) ease, color var(--dur-2) ease;
 }
+.notif-toggle.on .notif-toggle-icon { background: var(--brand-soft); color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand-soft-2); }
+.notif-toggle-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.notif-toggle-label { color: var(--text-strong); font-size: 14px; font-weight: 600; line-height: 1.3; }
+.notif-toggle-sub { margin-top: 1px; color: var(--text-tertiary); font-size: 12px; line-height: 1.35; }
 
-.notif-toggle-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.notif-toggle-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-/* --text-dim: --text-muted tünd rejimdə yaşıl fonlu (.on) kafeldə 4.3:1 idi */
-.notif-toggle-sub {
-  font-size: 11px;
-  color: var(--text-dim);
-  margin-top: 1px;
-  line-height: 1.3;
-}
-
-/* Açar: sönülü — boz sərhədli zolaq + boz düymə; açıq — yaşıl zolaq.
-   Hər iki halda düymə fonla ≥3:1 kontrastdadır (WCAG 1.4.11). */
 .notif-toggle-switch {
-  width: 36px; height: 20px;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1.5px var(--border-md);
-  border-radius: 999px;
   position: relative;
   flex-shrink: 0;
-  transition: background 0.2s, box-shadow 0.2s;
+  width: 40px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  transition: background-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease;
 }
-
-.notif-toggle.on .notif-toggle-switch {
-  background: var(--primary);
-  box-shadow: inset 0 0 0 1.5px var(--primary);
-}
-
+.notif-toggle.on .notif-toggle-switch { background: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
 .notif-toggle-knob {
   position: absolute;
   top: 3px;
   inset-inline-start: 3px;
-  width: 14px; height: 14px;
-  background: var(--text-muted);
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
+  background: var(--surface-1);
+  box-shadow: var(--shadow-2);
+  transition: transform var(--dur-2) var(--ease-spring);
 }
+.notif-toggle.on .notif-toggle-knob { transform: translateX(16px); }
+[dir="rtl"] .notif-toggle.on .notif-toggle-knob { transform: translateX(-16px); }
 
-.notif-toggle.on .notif-toggle-knob {
-  background: var(--on-primary);
-  transform: translateX(16px);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-}
-
-[dir="rtl"] .notif-toggle.on .notif-toggle-knob,
-html[lang="ar"] .notif-toggle.on .notif-toggle-knob { transform: translateX(-16px); }
-
-/* ─── Test button ─── */
+/* ─── Sınaq bildirişi ─── */
 .notif-test-btn {
-  background: var(--gold-bg);
-  border: 1.5px dashed color-mix(in srgb, var(--gold) 60%, transparent);
-  color: var(--text);
-  border-radius: 12px;
-  padding: 12px;
   display: flex;
   align-items: center;
   gap: 12px;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
   text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease, transform var(--dur-1) ease;
 }
-
-.notif-test-btn:hover {
-  background: color-mix(in srgb, var(--gold) 16%, var(--bg-card));
-  border-color: var(--gold);
+@media (hover: hover) {
+  .notif-test-btn:hover { background: var(--surface-1); border-color: var(--brand-line); }
 }
-
+.notif-test-btn:active { transform: scale(0.99); }
 .notif-test-icon {
-  font-size: 22px;
-  width: 32px;
   flex-shrink: 0;
-  text-align: center;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+  color: var(--accent-text);
 }
+.notif-test-text { display: flex; flex-direction: column; min-width: 0; }
+.notif-test-sub { color: var(--text-tertiary); font-size: 12px; font-weight: 500; }
 
-.notif-test-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.notif-test-text > span:first-child {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text);
-}
-
-.notif-test-sub {
-  font-size: 11px;
-  color: var(--text-dim);
-  margin-top: 1px;
-}
-
-/* Klaviatura fokusu — panel daxilindəki bütün düymələr */
+/* ─── Klaviatura fokusu ─── */
+.notif-close:focus-visible,
 .notif-primary-btn:focus-visible,
 .notif-secondary-btn:focus-visible,
 .notif-toggle:focus-visible,
@@ -549,36 +435,34 @@ html[lang="ar"] .notif-toggle.on .notif-toggle-knob { transform: translateX(-16p
   outline-offset: 2px;
 }
 
-/* ─── Responsive ─── */
+/* ─── Telefon: tam ekran vərəq ─── */
 @media (max-width: 640px) {
-  .notif-fab {
-    bottom: 250px; /* Bildirişlər stack-in yuxarısında — kifayət qədər boşluq */
-    right: 16px;
-    width: 50px; height: 50px;
-  }
   .notif-panel {
-    bottom: 0; right: 0; left: 0; top: 0;
+    inset: 0;
     width: 100%;
     max-width: 100%;
     max-height: 100%;
+    border: 0;
     border-radius: 0;
-    border: none;
+    animation-name: notif-sheet-in;
   }
-  /* Tam ekran vərəq: başlıq çentikin, son kart ev zolağının altında qalmasın */
   .notif-header { padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
   .notif-body { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
 }
+@keyframes notif-sheet-in {
+  from { opacity: 0; transform: translate3d(0, 24px, 0); }
+  to   { opacity: 1; transform: none; }
+}
 
-/* RTL */
-[dir="rtl"] .notif-fab,
-html[lang="ar"] .notif-fab { right: auto; left: 24px; }
-[dir="rtl"] .notif-panel,
-html[lang="ar"] .notif-panel { right: auto; left: 24px; }
-
-@media (max-width: 640px) {
-  [dir="rtl"] .notif-fab,
-  html[lang="ar"] .notif-fab { left: 16px; }
-  /* Mobil tam ekran vərəq — yuxarıdakı RTL "left: 24px" onu ekrandan kənara itələməsin */
-  [dir="rtl"] .notif-panel,
-  html[lang="ar"] .notif-panel { left: 0; right: 0; }
+/* ─── Hərəkəti azalt ─── */
+@media (prefers-reduced-motion: reduce) {
+  .notif-panel,
+  .notif-backdrop,
+  .notif-body > *,
+  .notif-feedback,
+  .notif-header-icon svg,
+  .notif-status-icon,
+  .notif-primary-btn svg { animation: none !important; }
+  .notif-close,
+  .notif-toggle-knob { transition: none; }
 }

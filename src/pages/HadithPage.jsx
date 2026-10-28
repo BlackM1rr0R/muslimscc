@@ -8,6 +8,7 @@ import { localizeSource } from '../utils/sourceNames'
 import { uniqueHadithsFor, hadithAliases, staticHadithKeys, hadithKeys, dedupeList } from '../utils/uniqueHadiths'
 import Pagination from '../components/Pagination'
 import { haptic } from '../hooks/useHaptic'
+import Icon from '../components/Icon'
 import '../styles/HadithPage.css'
 import { pickLang } from '../utils/pickLang'
 
@@ -17,6 +18,15 @@ const CATS_RU = ['Все','Вера','Характер','Поклонение','
 const CATS_AR = ['الكل','الإيمان','الأخلاق','العبادة','الصلاة','القرآن','العلم','الصيام','الزكاة','الذكر','الصدقة','الصبر','الدنيا','الآخرة','الصلاة على النبي','السفر']
 const CATS_TR = ['Tümü','İman','Ahlak','İbadet','Namaz','Kuran','İlim','Oruç','Zekat','Zikir','Sadaka','Sabır','Dünya','Ahiret','Salavat','Seyahat']
 const CATS_MAP = { az:CATS_AZ, en:CATS_EN, ru:CATS_RU, ar:CATS_AR, tr:CATS_TR }
+
+// Hero eyebrow-u, boş sevimlilər ipucu və "kopyalandı" bildirişi — 5 dil
+const UI_LABELS = {
+  az: { eyebrow:'Hədis və bilik', favEmpty:'Bəyəndiyiniz hədisləri ürək düyməsi ilə burada saxlayın.', copied:'Kopyalandı', clear:'Axtarışı təmizlə' },
+  en: { eyebrow:'Hadith & knowledge', favEmpty:'Save the hadiths you love here with the heart button.', copied:'Copied', clear:'Clear search' },
+  ru: { eyebrow:'Хадисы и знание', favEmpty:'Сохраняйте понравившиеся хадисы здесь кнопкой с сердцем.', copied:'Скопировано', clear:'Очистить поиск' },
+  ar: { eyebrow:'الحديث والعلم', favEmpty:'احفظ الأحاديث التي تحبها هنا بزر القلب.', copied:'تم النسخ', clear:'مسح البحث' },
+  tr: { eyebrow:'Hadis ve ilim', favEmpty:'Beğendiğiniz hadisleri kalp düğmesiyle burada saklayın.', copied:'Kopyalandı', clear:'Aramayı temizle' },
+}
 
 const FAV_LABELS = { az:'Sevimlilər', en:'Favorites', ru:'Избранные', ar:'المفضلة', tr:'Favoriler' }
 
@@ -46,20 +56,12 @@ function localizeCat(cat, lang) {
 // rəngini (currentColor) götürür: sönük kontur, seçiləndə qırmızı dolu ürək.
 function HeartIcon({ filled }) {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.75"strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>
     </svg>
   )
 }
 
-function ShareIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-      <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>
-    </svg>
-  )
-}
 
 // Kartın bütün id-ləri (birləşdirilmiş dublikatda həm Firebase, həm yerli id)
 const idsOf = (h) => h._ids || [h.id]
@@ -80,38 +82,43 @@ function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, lang, ind
   const showBody = text && text !== (hadith.ar || '').trim()
   const source = localizeSource(hadith.source, lang)
   return (
-    <div className="hadith-card" {...revealProps(index)}>
+    // Kart: yuxarıda nömrə + kateqoriya + əməllər, ortada ərəbcə (Amiri) və
+    // tərcümə (display şrifti), aşağıda mənbə — oxu ritmi sitat kimi
+    <article className="ui-card hadith-card" {...revealProps(index)}>
       <div className="hadith-top">
-        <div className="hadith-num">#{displayNum}</div>
-        <div className="hadith-cat-badge">{localizeCat(hadith.cat, lang)}</div>
-        <div className="hadith-source" title={source}>{source}</div>
-        <button
-          type="button"
-          className={`hadith-fav-btn ${isFav ? 'active' : ''}`}
-          onClick={() => onToggleFav(hadith)}
-          aria-pressed={isFav}
-          aria-label={isFav ? b.unfav : b.fav}
-          title={isFav ? b.unfav : b.fav}
-        >
-          <HeartIcon filled={isFav} />
-        </button>
-        <button
-          type="button"
-          className="hadith-share-btn"
-          onClick={(e) => { e.stopPropagation(); onShare(hadith) }}
-          aria-label={b.share}
-          title={b.share}
-        >
-          <ShareIcon />
-        </button>
-      </div>
-      <p className="hadith-arabic">{hadith.ar}</p>
-      {showBody && (
-        <div className="hadith-body">
-          <p className="hadith-text">{hadith.text}</p>
+        <span className="hadith-num ui-num">#{displayNum}</span>
+        {hadith.cat && <span className="ui-badge ui-badge--brand hadith-cat-badge">{localizeCat(hadith.cat, lang)}</span>}
+        <div className="hadith-actions">
+          <button
+            type="button"
+            className={`ui-icon-btn hadith-fav-btn ${isFav ? 'active' : ''}`}
+            onClick={() => onToggleFav(hadith)}
+            aria-pressed={isFav}
+            aria-label={isFav ? b.unfav : b.fav}
+            title={isFav ? b.unfav : b.fav}
+          >
+            <HeartIcon filled={isFav} />
+          </button>
+          <button
+            type="button"
+            className="ui-icon-btn hadith-share-btn"
+            onClick={(e) => { e.stopPropagation(); onShare(hadith) }}
+            aria-label={b.share}
+            title={b.share}
+          >
+            <Icon name="share" size={19} />
+          </button>
         </div>
+      </div>
+      <p className="hadith-arabic ui-arabic" lang="ar" dir="rtl">{hadith.ar}</p>
+      {showBody && <p className="hadith-text">{hadith.text}</p>}
+      {source && (
+        <p className="hadith-source" title={source}>
+          <span className="hadith-source__dash" aria-hidden="true" />
+          {source}
+        </p>
       )}
-    </div>
+    </article>
   )
 }
 
@@ -134,6 +141,10 @@ export default function HadithPage({ setPage }) {
   })
   const [showFavs, setShowFavs] = useState(false)
   const [customHadiths, setCustomHadiths] = useState([])
+  const [copied, setCopied] = useState(false)
+  const copiedTimer = useRef(null)
+  useEffect(() => () => clearTimeout(copiedTimer.current), [])
+  const u = UI_LABELS[lang] || UI_LABELS.en
   const PER = 20
 
   useEffect(() => {
@@ -162,7 +173,13 @@ export default function HadithPage({ setPage }) {
     if (navigator.share) {
       try { await navigator.share({ text }) } catch {}
     } else {
-      try { await navigator.clipboard.writeText(text); alert(lang === 'az' ? 'Kopyalandı!' : lang === 'ru' ? 'Скопировано!' : lang === 'ar' ? 'تم النسخ!' : lang === 'tr' ? 'Kopyalandı!' : 'Copied!') } catch {}
+      // alert() əvəzinə sakit bildiriş (2 san.) — axını kəsmir
+      try {
+        await navigator.clipboard.writeText(text)
+        setCopied(true)
+        clearTimeout(copiedTimer.current)
+        copiedTimer.current = setTimeout(() => setCopied(false), 2000)
+      } catch { /* panoya yazmaq bağlıdır */ }
     }
   }
 
@@ -218,6 +235,8 @@ export default function HadithPage({ setPage }) {
     })
   }, [list, cat, search, lang, showFavs, favs])
 
+  // Sevimlilər çipindəki say — yalnız siyahıda həqiqətən olan hədislər
+  const favCount = useMemo(() => list.filter(isFav).length, [list, favs]) // eslint-disable-line react-hooks/exhaustive-deps
   const total = Math.ceil(filtered.length / PER)
   // Sevimlidən çıxarılanda son səhifə boşala bilər — mövcud səhifəyə sıxırıq
   const current = Math.min(pageNum, Math.max(1, total))
@@ -256,44 +275,71 @@ export default function HadithPage({ setPage }) {
 
   return (
     <>
-      <div className="page-hero theme-hadith hero-compact">
-        <div className="page-hero-arabic">كُتُبُ الحَدِيث</div>
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+      <header className="ui-page-hero hadith-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container">
+          <span className="ui-eyebrow">{u.eyebrow}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          {/* Ərəbcədə başlığın özü ərəbcədir — bəzək sətri təkrarlanmasın */}
+          {lang !== 'ar' && <p className="hadith-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">كُتُبُ الحَدِيث</p>}
+          <p className="ui-lead">{t.subtitle}</p>
+        </div>
+      </header>
 
-      <div className="section">
-        <div className="section-inner">
+      <div className="hadith-page ui-section ui-section--tight">
+        <div className="ui-container">
           <div className="hadith-search">
-            <div className="input-wrap">
-              <span className="input-icon" aria-hidden="true">🔍</span>
-              <input className="input-base input-with-icon" placeholder={t.searchPh}
-                aria-label={t.searchPh} enterKeyHint="search"
-                value={search} onChange={e => setSearch(e.target.value)} />
-            </div>
+            <Icon name="search" size={19} className="hadith-search__icon" />
+            <input className="ui-input hadith-search__input" type="search" placeholder={t.searchPh}
+              aria-label={t.searchPh} enterKeyHint="search"
+              value={search} onChange={e => setSearch(e.target.value)} />
+            {search && (
+              <button type="button" className="ui-icon-btn hadith-search__clear" onClick={() => setSearch('')}
+                aria-label={u.clear} title={u.clear}>
+                <Icon name="close" size={16} />
+              </button>
+            )}
           </div>
 
           {/* Telefonda bu zolaq başlığın altında yapışır (şüşə fon) */}
           <div className="hadith-filterbar" ref={barRef}>
-            <div className="tag-filters hadith-chips" role="group" aria-label={CATS_LABEL[lang] || CATS_LABEL.en}>
-              <button type="button" className={`tag-btn ${showFavs ? 'active' : ''}`}
+            <div className="hadith-chips" role="group" aria-label={CATS_LABEL[lang] || CATS_LABEL.en} data-reveal="stagger-fade">
+              <button type="button" className="ui-chip hadith-chip-fav"
                 aria-pressed={showFavs}
                 onClick={() => { setShowFavs(f => !f); toListTop() }}>
-                ❤️ {FAV_LABELS[lang] || FAV_LABELS.en}
+                <HeartIcon filled={showFavs} />
+                {FAV_LABELS[lang] || FAV_LABELS.en}
+                {favCount > 0 && <span className="hadith-chip-count ui-num">{favCount}</span>}
               </button>
+              <span className="hadith-chips__sep" aria-hidden="true" />
               {cats.map(c => (
-                <button type="button" key={c} className={`tag-btn ${cat === c && !showFavs ? 'active' : ''}`}
+                <button type="button" key={c} className="ui-chip"
                   aria-pressed={cat === c && !showFavs}
                   onClick={() => { setCat(c); setShowFavs(false); toListTop() }}>{c}</button>
               ))}
             </div>
           </div>
 
-          <p className="result-count hadith-count" ref={countRef}>{countText}</p>
+          <p className="hadith-count ui-num" ref={countRef} aria-live="polite">{countText}</p>
 
-          <div className="hadiths-list">
+          {/* Açar filtr/səhifə dəyişəndə siyahını yenidən qurur — kartlar
+              yenidən növbə ilə görünür (siyahı keçidi) */}
+          <div className="hadiths-list" key={`${cat}|${showFavs}|${current}`}>
             {paged.length === 0
-              ? <div className="empty-state"><span>📚</span><p>{t.noResult}</p></div>
+              ? (
+                <div className="ui-card ui-card--sunken hadith-empty" data-reveal="scale">
+                  <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral">
+                    {showFavs ? <HeartIcon /> : <Icon name="hadith" />}
+                  </span>
+                  <p className="hadith-empty__title">{t.noResult}</p>
+                  {showFavs && !search && <p className="hadith-empty__text">{u.favEmpty}</p>}
+                  {search && (
+                    <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setSearch('')}>
+                      <Icon name="close" className="ui-btn__icon" /> {u.clear}
+                    </button>
+                  )}
+                </div>
+              )
               : paged.map((h, i) => (
                   <HadithCard
                     key={h.id}
@@ -310,8 +356,13 @@ export default function HadithPage({ setPage }) {
           </div>
 
           {/* Ümumi səhifələmə (Kitablar/Videolar ilə eyni): "…" ilə qısa, 44px-ə yaxın düymələr */}
-          <Pagination current={current} total={total} onChange={goPage} color="var(--primary)" />
+          <Pagination current={current} total={total} onChange={goPage} color="var(--brand)" />
         </div>
+      </div>
+
+      {/* "Kopyalandı" bildirişi (navigator.share olmayan brauzerlər) */}
+      <div className={`hadith-toast${copied ? ' is-on' : ''}`} role="status" aria-live="polite">
+        {copied && <><Icon name="check" size={18} /> {u.copied}</>}
       </div>
     </>
   )

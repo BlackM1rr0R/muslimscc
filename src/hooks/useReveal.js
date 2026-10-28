@@ -5,8 +5,13 @@
 //   <section data-reveal>…</section>                 yumşaq görünmə + 12px qalxma
 //   <div data-reveal="fade">…</div>                   yalnız görünmə
 //   <div data-reveal="scale">…</div>                  görünmə + .97 → 1
-//   <ul data-reveal="stagger">…</ul>                  UŞAQLAR növbə ilə (40ms, ən çox 8)
+//   <div data-reveal="down|left|right|zoom|blur">     istiqamət / böyümə / bulanıqdan aydınlaşma
+//   <ul data-reveal="stagger">…</ul>                  UŞAQLAR növbə ilə (45ms, ən çox 10)
+//   <ul data-reveal="stagger-zoom|-fade|-left|-right|-blur">  uşaqlar növbə ilə, uyğun hərəkətlə
 //   <div data-reveal data-reveal-delay="120">         əlavə gecikmə (ms, ≤ 400)
+//   <span data-count="6236">6 236</span>              RƏQƏM SAYĞACI: görünəndə 0-dan sayır
+//       data-count-duration="1600" (ms) — sonda mətn ƏVVƏLKİ KİMİ qalır
+// Stillər: motion.css §5 (variantlar), §16 (sayğac). Sənəd: DESIGN.md → "Hərəkət".
 //
 // Təhlükəsizlik: element ƏVVƏLCƏ görünür. Gizli başlanğıc vəziyyəti
 // (motion.css → [data-reveal-ready]:not([data-revealed])) yalnız müşahidəçi
@@ -26,7 +31,9 @@
 import { useCallback } from 'react'
 
 const SELECTOR = '[data-reveal]:not([data-reveal-ready])'
+const COUNT_SELECTOR = '[data-count]:not([data-count-ready])'
 const MAX_DELAY = 400
+const COUNT_MS = 1200
 
 let io = null
 let started = false
@@ -60,9 +67,56 @@ function track(el) {
   io.observe(el)
 }
 
+// ── Rəqəm sayğacı ────────────────────────────────────
+// React-in idarə etdiyi mətn düyününü ƏVƏZ ETMİRİK (textContent = … yeni
+// düyün yaradardı və React sonrakı yeniləməni "itmiş" düyünə yazardı) —
+// mövcud düyünün nodeValue-sunu dəyişirik və sonda ilkin mətni qaytarırıq.
+let countIo = null
+
+function formatLike(sample, value, decimals) {
+  // İlkin mətndəki minlik ayırıcısını və onluq işarəsini saxla ("6 236", "6,236", "4,8")
+  const g = sample.match(/\d([\s\u00a0\u202f.,'])\d{3}(?!\d)/)
+  const group = g ? g[1] : ''
+  const mark = group === ',' ? '.' : group === '.' ? ',' : (sample.includes(',') ? ',' : '.')
+  const [int, frac] = value.toFixed(decimals).split('.')
+  const grouped = group ? int.replace(/\B(?=(\d{3})+(?!\d))/g, group) : int
+  return frac ? grouped + mark + frac : grouped
+}
+
+function runCount(el) {
+  countIo?.unobserve(el)
+  const node = el.firstChild
+  const target = parseFloat(el.getAttribute('data-count'))
+  if (!node || node.nodeType !== 3 || el.childNodes.length !== 1 || !Number.isFinite(target)) return
+  const original = node.nodeValue
+  const m = original.match(/^(\D*)([\d\s\u00a0\u202f.,']*\d)(.*)$/s)
+  if (!m) return
+  const [, pre, numText, post] = m
+  const decimals = (String(target).split('.')[1] || '').length
+  const dur = Math.min(4000, parseInt(el.getAttribute('data-count-duration'), 10) || COUNT_MS)
+  const t0 = performance.now()
+  const ease = (t) => 1 - Math.pow(1 - t, 3)
+  const step = (now) => {
+    if (!el.isConnected || node.parentNode !== el) return
+    const t = Math.min(1, (now - t0) / dur)
+    if (t >= 1) { node.nodeValue = original; return }
+    node.nodeValue = pre + formatLike(numText, target * ease(t), decimals) + post
+    requestAnimationFrame(step)
+  }
+  node.nodeValue = pre + formatLike(numText, 0, decimals) + post
+  requestAnimationFrame(step)
+}
+
+function trackCount(el) {
+  if (!countIo || el.hasAttribute('data-count-ready')) return
+  el.setAttribute('data-count-ready', '')
+  countIo.observe(el)
+}
+
 function scan(root = document) {
   if (!io) return
   root.querySelectorAll?.(SELECTOR).forEach(track)
+  root.querySelectorAll?.(COUNT_SELECTOR).forEach(trackCount)
 }
 
 /**
@@ -78,7 +132,17 @@ export function initReveal() {
     for (const e of entries) {
       if (e.isIntersecting || e.boundingClientRect.bottom < 0) reveal(e.target)
     }
-  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.08 })
+    // threshold 0: elementin İSTƏNİLƏN hissəsi görünən kimi aç. Əvvəl 0.08 idi —
+    // ekrandan ~12 dəfə hündür element (uzun siyahı, admin cədvəli) heç vaxt
+    // 8% görünə bilmirdi və məzmun həmişəlik GİZLİ qalırdı.
+    // rootMargin 0: əvvəl ekranın altında -6%-lik "ölü zolaq" vardı — səhifənin
+    // ən sonundakı kart o zolağa düşəndə (daha aşağı sürüşmək mümkün deyil)
+    // heç vaxt açılmırdı. Hər iki halı tests/e2e/reveal.spec.js tutur.
+  }, { rootMargin: '0px', threshold: 0 })
+
+  countIo = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) runCount(e.target)
+  }, { threshold: 0.6 })
 
   document.documentElement.classList.add('qm-reveal-on')
 
@@ -90,7 +154,7 @@ export function initReveal() {
   const mo = new MutationObserver(schedule)
   const attach = () => {
     scan()
-    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-reveal'] })
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-reveal', 'data-count'] })
   }
   if (document.body) attach()
   else window.addEventListener('DOMContentLoaded', attach, { once: true })

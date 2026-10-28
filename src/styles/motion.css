@@ -12,7 +12,12 @@
      çip · --dur-3 (360) səhifə, menyu, görünmə. Giriş ease-out,
      çıxış ease-in; "yay" yalnız kiçik elementlərdə (☰→✕, işarə).
    • Uzun/dövri dekorativ animasiya YOXDUR (fonda fırlanan ulduz və s.).
-   • Növbəli görünmə: element başına ≤ 40ms, ən çox 8 element.
+   • Növbəli görünmə: element başına 40–50ms, ən çox 10 addım.
+   • 2-ci mərhələ (sahibin istəyi: "animasiyaları çoxaldaq"): sürüşəndə
+     görünmənin 12 variantı, səhifə keçidi, toast/dialoq/menyu giriş-çıxışı,
+     rəqəm sayğacı, skeleton parıltısı, fokus halqasının "yerinə oturması".
+     Hamısı ləyaqətli və qısadır; dövri dekor yalnız hero təsvirinin çox
+     yavaş "nəfəsi"dir (heroes.css).
    • prefers-reduced-motion: reduce → bütün hərəkət söndürülür (aşağıda).
    • Rənglər yalnız globals.css dəyişənlərindən — tünd rejim avtomatik.
    • Məntiqi xassələr (inset-inline, padding-inline) — ərəbcə (RTL) güzgülənir.
@@ -32,7 +37,9 @@
     12. .skeleton — yüklənmə parıltısı
     13. .m-sheet — aşağıdan qalxan vərəq köməkçiləri
     14. Mobil hero (kompakt)
-    15. "Hərəkəti azalt" — qlobal söndürmə
+    15. Giriş/çıxış animasiya sinifləri (.ui-enter-*, .is-leaving)
+    16. Rəqəm sayğacı ([data-count]) və kiçik hərəkət köməkçiləri
+    17. "Hərəkəti azalt" — qlobal söndürmə
    ══════════════════════════════════════════════════════════════ */
 
 /* ══ 1. HƏRƏKƏT TOKENLƏRİ ══════════════════════════════════════ */
@@ -46,8 +53,13 @@
   --dur-1: 150ms;   /* basılma, rəng, kiçik ikon */
   --dur-2: 240ms;   /* düymə, çip, işarə qutusu */
   --dur-3: 360ms;   /* səhifə keçidi, vərəq, görünmə */
+  --dur-4: 560ms;   /* sürüşəndə görünmə (data-reveal) — sakit, uzun nəfəs */
 
-  --stagger: 40ms;
+  --stagger: 45ms;
+
+  /* Sürüşəndə görünmə məsafələri */
+  --reveal-y: 16px;
+  --reveal-x: 22px;
 
   /* Basılma rəngi (xananın üstünə yarımşəffaf örtük) — brend tonundan */
   --press-tint:  color-mix(in srgb, var(--brand) 8%, transparent);
@@ -87,6 +99,15 @@
 }
 
 :where(:focus:not(:focus-visible)) { outline: none; }
+
+/* Halqa "yerinə oturur": 6px uzaqdan 2px-ə, şəffafdan tama (180ms).
+   Spesifiklik 0 — öz animasiyası olan elementlərdə (dok bəndi və s.) işləmir. */
+:where(:focus-visible) {
+  animation: qm-ring-in 180ms var(--ease-out) both;
+}
+@keyframes qm-ring-in {
+  from { outline-offset: 6px; outline-color: transparent; }
+}
 
 html.qm-input-pointer:not(.a11y-highlight-focus) :focus:not(input, textarea, select, [contenteditable="true"]) {
   outline: none;
@@ -132,6 +153,17 @@ html[lang="ar"] .page-enter {
   to   { opacity: 1; transform: none; }
 }
 
+/* Yeni hero (.ui-page-hero) məzmunu səhifə açılanda növbə ilə qalxır:
+   breadcrumb → eyebrow → h1 → lead → düymələr
+   (köhnə .page-hero üçün eynisini heroes.css edir) */
+.page-enter .ui-page-hero .ui-container > * {
+  animation: qm-reveal-up var(--dur-4) var(--ease-out) backwards;
+}
+.page-enter .ui-page-hero .ui-container > :nth-child(2) { animation-delay: 60ms; }
+.page-enter .ui-page-hero .ui-container > :nth-child(3) { animation-delay: 120ms; }
+.page-enter .ui-page-hero .ui-container > :nth-child(4) { animation-delay: 180ms; }
+.page-enter .ui-page-hero .ui-container > :nth-child(n+5) { animation-delay: 240ms; }
+
 /* Hərəkət azaldılıbsa — yalnız qısa görünmə */
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
@@ -144,35 +176,71 @@ html[lang="ar"] .page-enter {
    Gizli başlanğıc yalnız müşahidəçi elementi götürəndə ([data-reveal-ready])
    və html.qm-reveal-on olanda — JS olmasa məzmun görünür qalır.
    Animasiya fill-mode: backwards — bitəndən sonra elementin öz
-   transform/hover effektlərinə toxunmur. */
-html.qm-reveal-on [data-reveal][data-reveal-ready]:not([data-revealed]):not([data-reveal="stagger"]),
-html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]) > * {
+   transform/hover effektlərinə toxunmur.
+
+   VARİANTLAR (atributun dəyəri):
+     (boş) / up   aşağıdan 16px qalxır + görünür        <section data-reveal>
+     down         yuxarıdan enir                         data-reveal="down"
+     left         başlanğıc tərəfdən (ərəbcədə sağdan)  data-reveal="left"
+     right        son tərəfdən                           data-reveal="right"
+     zoom         .94 → 1 böyüyür                        data-reveal="zoom"
+     scale        .97 → 1 (köhnə, yüngül zoom)           data-reveal="scale"
+     blur         bulanıqdan aydınlaşır + 8px qalxır     data-reveal="blur"
+     fade         yalnız görünür                         data-reveal="fade"
+     stagger      UŞAQLAR növbə ilə (up)                 data-reveal="stagger"
+     stagger-zoom · stagger-fade · stagger-left · stagger-right · stagger-blur
+                  uşaqlar növbə ilə, uyğun hərəkətlə
+   Əlavə: data-reveal-delay="120" (ms, ≤ 400) · style="--reveal-dur: 800ms"
+   "left/right" məntiqi istiqamətdir — RTL-də güzgülənir. */
+html.qm-reveal-on [data-reveal][data-reveal-ready]:not([data-revealed]):not([data-reveal^="stagger"]),
+html.qm-reveal-on [data-reveal^="stagger"][data-reveal-ready]:not([data-revealed]) > * {
   opacity: 0;
 }
 
-[data-reveal][data-revealed=""]:not([data-reveal="stagger"]) {
-  animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+[data-reveal][data-revealed=""]:not([data-reveal^="stagger"]) {
+  animation: var(--reveal-anim, qm-reveal-up) var(--reveal-dur, var(--dur-4)) var(--ease-out) backwards;
   animation-delay: var(--reveal-delay, 0ms);
 }
-[data-reveal="fade"][data-revealed=""]  { animation-name: qm-reveal-fade; }
-[data-reveal="scale"][data-revealed=""] { animation-name: qm-reveal-scale; }
 
-[data-reveal="stagger"][data-revealed=""] > * {
-  animation: qm-reveal-up var(--dur-3) var(--ease-out) backwards;
+[data-reveal^="stagger"][data-revealed=""] > * {
+  animation: var(--reveal-anim, qm-reveal-up) var(--reveal-dur, var(--dur-4)) var(--ease-out) backwards;
   animation-delay: calc(var(--reveal-delay, 0ms) + var(--reveal-i, 0) * var(--stagger));
 }
 
-/* Növbə indeksi — CSS ilə, ən çox 8 addım (qalanları 8-ci ilə birlikdə) */
-[data-reveal="stagger"] > :nth-child(2) { --reveal-i: 1; }
-[data-reveal="stagger"] > :nth-child(3) { --reveal-i: 2; }
-[data-reveal="stagger"] > :nth-child(4) { --reveal-i: 3; }
-[data-reveal="stagger"] > :nth-child(5) { --reveal-i: 4; }
-[data-reveal="stagger"] > :nth-child(6) { --reveal-i: 5; }
-[data-reveal="stagger"] > :nth-child(7) { --reveal-i: 6; }
-[data-reveal="stagger"] > :nth-child(n+8) { --reveal-i: 7; }
+/* Variant → keyframe (uşaqlar dəyişəni valideyndən irsən alır) */
+[data-reveal="down"]                                 { --reveal-anim: qm-reveal-down; }
+[data-reveal="left"],  [data-reveal="stagger-left"]  { --reveal-anim: qm-reveal-start; }
+[data-reveal="right"], [data-reveal="stagger-right"] { --reveal-anim: qm-reveal-end; }
+[data-reveal="zoom"],  [data-reveal="stagger-zoom"]  { --reveal-anim: qm-reveal-zoom; }
+[data-reveal="scale"]                                { --reveal-anim: qm-reveal-scale; }
+[data-reveal="blur"],  [data-reveal="stagger-blur"]  { --reveal-anim: qm-reveal-blur; }
+[data-reveal="fade"],  [data-reveal="stagger-fade"]  { --reveal-anim: qm-reveal-fade; }
+
+/* Növbə indeksi — CSS ilə, ən çox 10 addım (qalanları 10-cu ilə birlikdə) */
+[data-reveal^="stagger"] > :nth-child(2) { --reveal-i: 1; }
+[data-reveal^="stagger"] > :nth-child(3) { --reveal-i: 2; }
+[data-reveal^="stagger"] > :nth-child(4) { --reveal-i: 3; }
+[data-reveal^="stagger"] > :nth-child(5) { --reveal-i: 4; }
+[data-reveal^="stagger"] > :nth-child(6) { --reveal-i: 5; }
+[data-reveal^="stagger"] > :nth-child(7) { --reveal-i: 6; }
+[data-reveal^="stagger"] > :nth-child(8) { --reveal-i: 7; }
+[data-reveal^="stagger"] > :nth-child(9) { --reveal-i: 8; }
+[data-reveal^="stagger"] > :nth-child(n+10) { --reveal-i: 9; }
 
 @keyframes qm-reveal-up {
-  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  from { opacity: 0; transform: translate3d(0, var(--reveal-y, 16px), 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-reveal-down {
+  from { opacity: 0; transform: translate3d(0, calc(-1 * var(--reveal-y, 16px)), 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-reveal-start {
+  from { opacity: 0; transform: translate3d(calc(-1 * var(--reveal-x, 22px)), 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-reveal-end {
+  from { opacity: 0; transform: translate3d(var(--reveal-x, 22px), 0, 0); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes qm-reveal-fade {
@@ -182,6 +250,40 @@ html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]
 @keyframes qm-reveal-scale {
   from { opacity: 0; transform: scale(0.97); }
   to   { opacity: 1; transform: none; }
+}
+@keyframes qm-reveal-zoom {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-reveal-blur {
+  from { opacity: 0; filter: blur(8px); transform: translate3d(0, 8px, 0); }
+  to   { opacity: 1; filter: none; transform: none; }
+}
+
+/* RTL: "left" = başlanğıc tərəf → ərəbcədə sağdan gəlir */
+[dir="rtl"] { --reveal-x: -22px; }
+
+/* Ornament ayırıcı (data-reveal ilə): xətlər mərkəzdən açılır, ulduz fırlanıb oturur
+   <div class="ui-ornament" data-reveal aria-hidden="true"><span class="ui-ornament__star"></span></div> */
+.ui-ornament[data-reveal][data-revealed=""] { animation: none; }
+.ui-ornament[data-revealed=""]::before,
+.ui-ornament[data-revealed=""]::after {
+  animation: qm-line-grow 700ms var(--ease-out) backwards 80ms;
+}
+.ui-ornament[data-revealed=""]::before { transform-origin: 100% 50%; }
+.ui-ornament[data-revealed=""]::after  { transform-origin: 0 50%; }
+[dir="rtl"] .ui-ornament[data-revealed=""]::before { transform-origin: 0 50%; }
+[dir="rtl"] .ui-ornament[data-revealed=""]::after  { transform-origin: 100% 50%; }
+.ui-ornament[data-revealed=""] .ui-ornament__star {
+  animation: qm-star-settle 700ms var(--ease-spring) backwards;
+}
+@keyframes qm-line-grow {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+@keyframes qm-star-settle {
+  from { transform: rotate(-90deg) scale(0.4); opacity: 0; }
+  to   { transform: none; opacity: 1; }
 }
 
 /* ══ 6. .icon-tile — RƏNGLİ İKON KAFELİ ════════════════════════
@@ -210,21 +312,21 @@ html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]
 
 .icon-tile svg { width: 20px; height: 20px; }
 
-.icon-tile--gold   { --tile: #c28a0e; }
-.icon-tile--blue   { --tile: #2f6fd6; }
-.icon-tile--teal   { --tile: #0f8f83; }
-.icon-tile--violet { --tile: #7457d6; }
-.icon-tile--rose   { --tile: #d24a6a; }
-.icon-tile--orange { --tile: #e0701f; }
-.icon-tile--slate  { --tile: #5b6b73; }
+/* v2: köhnə "göy qurşağı" tonları yeni palitraya bağlanıb — səhifələr hələ
+   bu sinifləri işlədirsə də rənglər sakit və vahiddir (tünd rejim tokenlə) */
+.icon-tile--gold   { --tile: var(--accent); }
+.icon-tile--blue   { --tile: var(--brand); }
+.icon-tile--teal   { --tile: var(--brand); }
+.icon-tile--violet { --tile: var(--text-secondary); }
+.icon-tile--rose   { --tile: var(--bad, var(--accent)); }
+.icon-tile--orange { --tile: var(--accent); }
+.icon-tile--slate  { --tile: var(--text-tertiary); }
 
-[data-theme="dark"] .icon-tile--gold   { --tile: #f0c040; }
-[data-theme="dark"] .icon-tile--blue   { --tile: #7aa7ff; }
-[data-theme="dark"] .icon-tile--teal   { --tile: #4fd1c5; }
-[data-theme="dark"] .icon-tile--violet { --tile: #a996ff; }
-[data-theme="dark"] .icon-tile--rose   { --tile: #ff8fa8; }
-[data-theme="dark"] .icon-tile--orange { --tile: #ffab6b; }
-[data-theme="dark"] .icon-tile--slate  { --tile: #a9b6bd; }
+/* Hover canlanması: kafel daxil olduğu keçid/kart üzərinə gələndə */
+.icon-tile { transition: transform var(--dur-2) var(--ease-spring), background-color var(--dur-2) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  :is(a, button, .m-card, .card, .m-row):hover > .icon-tile { transform: translateY(-1px) scale(1.06); }
+}
 
 .icon-tile--sm { width: 32px; height: 32px; border-radius: 10px; font-size: 16px; }
 .icon-tile--sm svg { width: 16px; height: 16px; }
@@ -622,33 +724,44 @@ html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]
   :is(a, button).m-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--primary-border); }
 }
 
-/* ══ 12. .skeleton — YÜKLƏNMƏ PARILTISI ═══════════════════════
-   <div class="skeleton" style="height:56px"></div>
-   <span class="skeleton skeleton--text"></span>   (bir sətir mətn)
-   <span class="skeleton skeleton--circle" style="width:40px;height:40px"></span>
-   Parıltı transform ilə hərəkət edir (background-position yox). */
-.skeleton {
+/* ══ 12. .skeleton / .ui-skeleton — YÜKLƏNMƏ PARILTISI ═════════
+   <div class="ui-skeleton" style="height:56px"></div>
+   <span class="ui-skeleton ui-skeleton--text"></span>      (bir sətir mətn; --w ilə en: style="--w:60%")
+   <span class="ui-skeleton ui-skeleton--circle" style="width:40px;height:40px"></span>
+   <div class="ui-skeleton ui-skeleton--card"></div>        (kart boyda, 120px)
+   Köhnə ad .skeleton (--text, --circle) eyni işləyir.
+   Parıltı transform ilə hərəkət edir (background-position yox), 1.6 s,
+   ərəbcədə sağdan sola. Hərəkəti azaldanda — sakit, parıltısız. */
+.skeleton,
+.ui-skeleton {
   position: relative;
   display: block;
   overflow: hidden;
-  border-radius: 12px;
-  background: var(--bg-card2);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-2);
   isolation: isolate;
 }
-[data-theme="dark"] .skeleton { background: var(--surface); }
-
-.skeleton::after {
+.skeleton::after,
+.ui-skeleton::after {
   content: '';
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg-card) 70%, transparent), transparent);
-  animation: qm-shimmer 1.4s var(--ease-in-out) infinite;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface-1) 75%, transparent), transparent);
+  animation: qm-shimmer 1.6s var(--ease-in-out) infinite;
 }
-[dir="rtl"] .skeleton::after { animation-direction: reverse; }
+[data-theme="dark"] .skeleton::after,
+[data-theme="dark"] .ui-skeleton::after {
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface-3) 80%, transparent), transparent);
+}
+[dir="rtl"] .skeleton::after,
+[dir="rtl"] .ui-skeleton::after { animation-direction: reverse; }
 
-.skeleton--text { height: 0.9em; margin-block: 0.35em; border-radius: 6px; }
-.skeleton--circle { border-radius: 50%; }
+.skeleton--text,
+.ui-skeleton--text { width: var(--w, 100%); height: 0.9em; margin-block: 0.35em; border-radius: 6px; }
+.skeleton--circle,
+.ui-skeleton--circle { border-radius: 50%; }
+.ui-skeleton--card { height: 120px; border-radius: var(--radius-lg); }
 
 @keyframes qm-shimmer {
   to { transform: translateX(100%); }
@@ -780,7 +893,115 @@ html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]
   .page-hero > :nth-child(n+4) { animation-delay: 120ms; }
 }
 
-/* ══ 15. "HƏRƏKƏTİ AZALT" — QLOBAL SÖNDÜRMƏ ═══════════════════
+/* ══ 15. GİRİŞ / ÇIXIŞ ANİMASİYA SİNİFLƏRİ ═══════════════════════
+   Dialoq, menyu, toast, vərəq üçün hazır giriş animasiyaları. Elementin
+   ÖZÜNƏ qoyulur; bağlanarkən .is-leaving əlavə et və ~200ms sonra DOM-dan çıxar
+   (promptCoordinator → exitDelay() hərəkət azaldılıbsa 0 qaytarır).
+     .ui-enter-fade     yalnız görünmə (arxa fon / backdrop)
+     .ui-enter-rise     aşağıdan 12px qalxır (toast, aşağı kart)
+     .ui-enter-drop     yuxarıdan 8px enir + .98 (açılan menyu, popover)
+     .ui-enter-pop      .94 → 1 yay ilə (kiçik dialoq, nişan, işarə)
+     .ui-enter-dialog   .97 + 10px → yerinə (mərkəzi modal)
+     .ui-enter-sheet    aşağıdan tam qalxır (telefon vərəqi)
+   Menyu üçün transform-origin özün ver (məs. "top right"). */
+.ui-enter-fade   { animation: qm-reveal-fade var(--dur-2) var(--ease-out) both; }
+.ui-enter-rise   { animation: qm-enter-rise var(--dur-3) var(--ease-spring) both; }
+.ui-enter-drop   { animation: qm-enter-drop var(--dur-2) var(--ease-out) both; transform-origin: top center; }
+.ui-enter-pop    { animation: qm-enter-pop var(--dur-3) var(--ease-spring) both; }
+.ui-enter-dialog { animation: qm-enter-dialog var(--dur-3) var(--ease-out) both; }
+.ui-enter-sheet  { animation: qm-enter-sheet 460ms var(--ease-sheet) both; }
+
+:is(.ui-enter-fade, .ui-enter-rise, .ui-enter-drop, .ui-enter-pop, .ui-enter-dialog, .ui-enter-sheet).is-leaving {
+  animation: qm-leave 200ms var(--ease-in) forwards;
+  pointer-events: none;
+}
+.ui-enter-sheet.is-leaving { animation: qm-leave-sheet 240ms var(--ease-in) forwards; }
+
+@keyframes qm-enter-rise {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-enter-drop {
+  from { opacity: 0; transform: translate3d(0, -8px, 0) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-enter-pop {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-enter-dialog {
+  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-enter-sheet {
+  from { transform: translate3d(0, 100%, 0); }
+  to   { transform: none; }
+}
+@keyframes qm-leave {
+  to { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.98); }
+}
+@keyframes qm-leave-sheet {
+  to { transform: translate3d(0, 100%, 0); }
+}
+
+/* ══ 16. RƏQƏM SAYĞACI + KİÇİK HƏRƏKƏT KÖMƏKÇİLƏRİ ═══════════════
+   Rəqəm sayğacı (count-up) — JS: hooks/useReveal.js (eyni müşahidəçi).
+     <span class="ui-stat__num" data-count="6236">6 236</span>
+   Görünəndə 0-dan hədəfə 1.2 s-də sayır (ease-out), sonda MƏTN əvvəlki
+   kimi qalır (SEO, ekran oxuyucu üçün HTML-də həmişə son dəyər var).
+   data-count-duration="1600" — müddət; ondalıq: data-count="4.8".
+   Hərəkət azaldılıbsa sayma olmur. Element tabular-nums alır (tullanmasın).
+
+   .ui-lift        hover-də 2px qalxır + kölgə (hər hansı blok üçün)
+   .ui-press       basılanda .97 sıxılır (toxunma rəyi; köhnə .press eynidir)
+   .ui-underline   link altında xətt başlanğıcdan "çəkilir"
+   .ui-spin        kiçik yüklənmə fırlanması (yalnız göstərici üçün) */
+[data-count] { font-variant-numeric: tabular-nums; }
+
+.ui-lift {
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ui-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); }
+}
+
+.ui-press { transition: transform var(--dur-1) var(--ease-out); }
+.ui-press:active { transform: scale(var(--press-scale)); }
+
+.ui-underline {
+  position: relative;
+  text-decoration: none;
+}
+.ui-underline::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -2px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+[dir="rtl"] .ui-underline::after { transform-origin: right center; }
+@media (hover: hover) {
+  .ui-underline:hover::after { transform: scaleX(1); }
+}
+.ui-underline:focus-visible::after { transform: scaleX(1); }
+
+.ui-spin {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--brand-soft-2);
+  border-top-color: var(--brand);
+  animation: qm-spin 0.8s linear infinite;
+}
+@keyframes qm-spin { to { transform: rotate(360deg); } }
+
+/* ══ 17. "HƏRƏKƏTİ AZALT" — QLOBAL SÖNDÜRMƏ ═══════════════════
    Sistem ayarında hərəkət azaldılıbsa bütün animasiya və keçidlər
    dərhal bitir (vəziyyətlər dəyişir, amma hərəkət görünmür). */
 @media (prefers-reduced-motion: reduce) {
@@ -796,7 +1017,10 @@ html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]
     scroll-behavior: auto !important;
   }
   html.qm-reveal-on [data-reveal][data-reveal-ready]:not([data-revealed]),
-  html.qm-reveal-on [data-reveal="stagger"][data-reveal-ready]:not([data-revealed]) > * {
+  html.qm-reveal-on [data-reveal^="stagger"][data-reveal-ready]:not([data-revealed]) > * {
     opacity: 1;
   }
+  /* Parıltı dayanır — sakit boz blok qalır */
+  .skeleton::after,
+  .ui-skeleton::after { display: none; }
 }

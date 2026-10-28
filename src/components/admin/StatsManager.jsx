@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLang } from '../../contexts/LangContext'
+import { AdminHeader, SectionTitle } from './AdminUi'
+import Icon from '../Icon'
 import { getUserStats } from '../../data/adminContent'
 
 const LABELS = {
@@ -38,22 +40,22 @@ export default function StatsManager() {
   const refresh = () => setStats(getUserStats())
 
   const groups = [
-    { title:l.prayer, color:'#3b82f6', icon:'🕌', items:[
+    { title:l.prayer, icon:'prayer', items:[
       { label:l.prayerDays,    value:stats.prayerDays },
       { label:l.totalPrayers,  value:stats.totalPrayers },
     ]},
-    { title:l.quran, color:'#10b981', icon:'📖', items:[
+    { title:l.quran, icon:'quran', items:[
       { label:l.quranSessions, value:stats.quranSessions },
       { label:l.quranSurahs,   value:stats.quranSurahs },
       { label:l.hifzMemorized, value:stats.hifzMemorized },
     ]},
-    { title:l.interaction, color:'#8b5cf6', icon:'💖', items:[
+    { title:l.interaction, icon:'donate', items:[
       { label:l.hadithFavs,    value:stats.hadithFavorites },
       { label:l.duaFavs,       value:stats.duaFavorites },
       { label:l.dhikrSessions, value:stats.dhikrSessions },
       { label:l.totalDhikr,    value:stats.totalDhikr },
     ]},
-    { title:l.misc, color:'#f59e0b', icon:'🎁', items:[
+    { title:l.misc, icon:'gift', items:[
       { label:l.charityDeeds, value:stats.charityDeeds },
       { label:l.charityTotal, value:stats.charityTotal },
     ]},
@@ -61,59 +63,34 @@ export default function StatsManager() {
 
   return (
     <div>
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <div className="admin-badge" style={{background:'linear-gradient(135deg,#a855f7,#9333ea)'}}>📊</div>
-          <div className="admin-header-info"><h1>{l.title}</h1><p>{l.sub}</p></div>
-        </div>
-        <button onClick={refresh} className="admin-logout-btn">
-          <span>🔄</span> {l.refresh}
+      <AdminHeader icon="analytics" title={l.title} sub={l.sub}>
+        <button type="button" onClick={refresh} className="ui-btn ui-btn--secondary ui-btn--sm">
+          <Icon name="refresh" className="ui-btn__icon" /> {l.refresh}
         </button>
-      </div>
+      </AdminHeader>
 
-      {/* Storage size card */}
-      <div className="admin-section" style={{
-        background:'linear-gradient(135deg, #a855f7, #7c3aed)',
-        color:'#fff',
-        position:'relative',
-        overflow:'hidden',
-      }}>
-        <div style={{position:'absolute', width:200, height:200, borderRadius:'50%', background:'rgba(255,255,255,0.1)', top:-60, right:-40}} />
-        <div style={{position:'relative'}}>
-          <div style={{fontSize:11, fontWeight:800, letterSpacing:1.5, textTransform:'uppercase', opacity:0.9, marginBottom:6}}>
-            💾 {l.storage}
-          </div>
-          <div style={{fontSize:36, fontWeight:800, letterSpacing:-1}}>{formatBytes(stats.storageSize, lang)}</div>
-          <div style={{fontSize:13, opacity:0.85, marginTop:4}}>{l.storageSize}</div>
+      {/* Yaddaş ölçüsü — tünd zümrüd zolaq */}
+      <section className="admin-hero" data-reveal="scale" aria-label={l.storage}>
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div>
+          <div className="admin-hero-label">{l.storage}</div>
+          <div className="admin-hero-num">{formatBytes(stats.storageSize, lang)}</div>
+          <div className="admin-hero-sub">{l.storageSize}</div>
         </div>
-      </div>
+      </section>
 
-      {/* Stats groups */}
+      {/* Qruplar — rəqəm/etiket cədvəli (dl) */}
       {groups.map(group => (
-        <div key={group.title} className="admin-section">
-          <h2 className="admin-section-title">
-            <span className="admin-section-title-icon" style={{background:group.color+'18'}}>{group.icon}</span>
-            <span style={{color:group.color}}>{group.title}</span>
-          </h2>
-
-          <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:12}}>
+        <div key={group.title} className="admin-section" data-reveal>
+          <SectionTitle icon={group.icon}>{group.title}</SectionTitle>
+          <dl className="admin-metrics">
             {group.items.map(item => (
-              <div key={item.label} style={{
-                background:'var(--bg-card2)',
-                border:`1.5px solid ${group.color}25`,
-                borderRadius:'var(--radius)',
-                padding:18,
-                borderLeft:`4px solid ${group.color}`,
-              }}>
-                <div style={{fontSize:28, fontWeight:800, color:group.color, letterSpacing:-1}}>
-                  {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
-                </div>
-                <div style={{fontSize:11, fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:0.5, marginTop:4}}>
-                  {item.label}
-                </div>
+              <div key={item.label} className="admin-metric">
+                <dt>{item.label}</dt>
+                <dd>{typeof item.value === 'number' ? String(item.value) : item.value}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         </div>
       ))}
     </div>

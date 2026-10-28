@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import { subscribeToSettings } from '../data/adminContent'
 import { BRAND, tr } from '../config/brand'
+import Icon from '../components/Icon'
 import '../styles/AIChatPage.css'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
@@ -10,7 +11,11 @@ const FALLBACK_API_URL = import.meta.env.VITE_API_URL || ''
 
 const LABELS = {
   az: {
-    title:'İslami AI Köməkçi',
+    retry:'Yenidən göndər',
+    offline:'AI xidməti hazırda cavab vermir. Bir az sonra yenidən cəhd edin.',
+    eyebrow:'Quran və Sünnə əsasında',
+    you:'Siz',
+    title:'İslami AI köməkçi',
     subtitle:'Quran və hədis əsasında suallarınızın cavabı',
     placeholder:'Sualınızı yazın... (məs. "Səbr haqqında hədis")',
     send:'Göndər',
@@ -27,6 +32,10 @@ const LABELS = {
     rateLimitShort:'Gözləyin... {s}s',
   },
   en: {
+    retry:'Send again',
+    offline:'The AI service is not responding right now. Please try again in a moment.',
+    eyebrow:'Grounded in the Quran and Sunnah',
+    you:'You',
     title:'Islamic AI Assistant',
     subtitle:'Answers based on Quran and Hadith',
     placeholder:'Type your question... (e.g. "Hadith about patience")',
@@ -44,23 +53,31 @@ const LABELS = {
     rateLimitShort:'Wait... {s}s',
   },
   ru: {
-    title:'Исламский AI помощник',
+    retry:'Отправить снова',
+    offline:'Сервис ИИ сейчас не отвечает. Попробуйте ещё раз чуть позже.',
+    eyebrow:'На основе Корана и Сунны',
+    you:'Вы',
+    title:'Исламский ИИ-помощник',
     subtitle:'Ответы на основе Корана и Хадисов',
     placeholder:'Напишите свой вопрос... (напр. "Хадис о терпении")',
     send:'Отправить',
     thinking:'Думаю...',
-    welcome:'Ас-саляму алейкум! Я ваш исламский AI помощник. Можете задавать вопросы о Коране, хадисах, фикхе и акыде.',
+    welcome:'Ас-саляму алейкум! Я ваш исламский ИИ-помощник. Можете задавать вопросы о Коране, хадисах, фикхе и акыде.',
     suggest1:'Как научиться совершать намаз?',
     suggest2:'Хадисы о терпении',
     suggest3:'Каковы основы Таухида?',
     suggest4:'Какие дуа самые добродетельные?',
     clear:'Очистить чат',
     error:'Произошла ошибка. Попробуйте снова.',
-    noBackend:'AI сервис ещё не настроен',
+    noBackend:'Сервис ИИ ещё не настроен',
     rateLimit:'Вы пишете слишком быстро. Пожалуйста, подождите — попробуйте через {s} сек.',
     rateLimitShort:'Подождите... {s}с',
   },
   ar: {
+    retry:'أعد الإرسال',
+    offline:'خدمة الذكاء الاصطناعي لا تستجيب الآن. حاول مرة أخرى بعد قليل.',
+    eyebrow:'استنادًا إلى القرآن والسنة',
+    you:'أنت',
     title:'مساعد إسلامي بالذكاء الاصطناعي',
     subtitle:'إجابات مبنية على القرآن والحديث',
     placeholder:'اكتب سؤالك... (مثلاً "حديث عن الصبر")',
@@ -78,6 +95,10 @@ const LABELS = {
     rateLimitShort:'انتظر... {s} ث',
   },
   tr: {
+    retry:'Tekrar gönder',
+    offline:'AI hizmeti şu anda yanıt vermiyor. Lütfen biraz sonra tekrar deneyin.',
+    eyebrow:'Kuran ve Sünnet temelinde',
+    you:'Siz',
     title:'İslami AI Asistan',
     subtitle:'Kuran ve Hadis temelli cevaplar',
     placeholder:'Sorunuzu yazın... (örn. "Sabırla ilgili hadis")',
@@ -98,14 +119,8 @@ const LABELS = {
 
 const STORAGE_KEY = 'muslim_cc_ai_chat'
 
-// Təkliflərin ikonları — yalnız telefonda (siyahı xanası kimi) görünür;
-// ≥768px-də gizlidir, geniş ekran əvvəlki kimi qalır
-const SUGGEST_ICONS = [
-  { icon: '🕌', tone: '' },
-  { icon: '📜', tone: ' icon-tile--gold' },
-  { icon: '☝️', tone: ' icon-tile--blue' },
-  { icon: '🤲', tone: ' icon-tile--teal' },
-]
+// Təkliflərin xətti ikonları (Icon.jsx) — namaz, hədis, tövhid, dua
+const SUGGEST_ICONS = ['prayer', 'hadith', 'names', 'duas']
 
 export default function AIChatPage({ setPage }) {
   const { lang } = useLang()
@@ -121,6 +136,8 @@ export default function AIChatPage({ setPage }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // Son göndərmə alınmadı — "Yenidən göndər" düyməsi görünür
+  const [failed, setFailed] = useState(false)
   const [cooldown, setCooldown] = useState(0)
   const [apiUrl, setApiUrl] = useState(FALLBACK_API_URL)
   const scrollRef = useRef(null)
@@ -176,7 +193,8 @@ export default function AIChatPage({ setPage }) {
     return () => clearInterval(interval)
   }, [cooldown])
 
-  const sendMessage = async (text) => {
+  // base — mesajın əlavə olunacağı söhbət (təkrar cəhddə son sual çıxarılır)
+  const sendMessage = async (text, base = messages) => {
     const msg = (text ?? input).trim()
     if (!msg || loading || cooldown > 0) return
     if (!apiUrl) {
@@ -194,9 +212,10 @@ export default function AIChatPage({ setPage }) {
     }
 
     setError('')
+    setFailed(false)
     setInput('')
     const userMessage = { role:'user', content: msg, time: Date.now() }
-    const updated = [...messages, userMessage]
+    const updated = [...base, userMessage]
     setMessages(updated)
     setLoading(true)
     recordMessage()
@@ -211,12 +230,14 @@ export default function AIChatPage({ setPage }) {
           lang,
         }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'API error')
+      // Server HTML/boş cavab qaytarsa json() atır — bu da "xidmət cavab vermir"dir
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || typeof data.reply !== 'string' || !data.reply.trim()) throw new Error(data.error || 'API error')
 
       setMessages([...updated, { role:'assistant', content: data.reply, time: Date.now() }])
-    } catch (e) {
-      setError(`${l.error} (${e.message})`)
+    } catch {
+      setError(l.offline)
+      setFailed(true)
     }
     setLoading(false)
     inputRef.current?.focus({ preventScroll: true })
@@ -229,69 +250,101 @@ export default function AIChatPage({ setPage }) {
 
   const handleClear = () => {
     setMessages([])
-    localStorage.removeItem(STORAGE_KEY)
+    setError('')
+    setFailed(false)
+    try { localStorage.removeItem(STORAGE_KEY) } catch {}
   }
+
+  // Son (cavabsız) sualı yenidən göndər — söhbətdə təkrarlanmasın
+  const retryLast = () => {
+    const last = messages[messages.length - 1]
+    if (!last || last.role !== 'user') return
+    sendMessage(last.content, messages.slice(0, -1))
+  }
+  const canRetry = failed && messages.length > 0 && messages[messages.length - 1].role === 'user'
 
   const suggestions = [l.suggest1, l.suggest2, l.suggest3, l.suggest4]
 
   return (
     <div className="ai-chat-page">
 
-      {/* Hero */}
-      <div className="page-hero theme-quran hero-compact">
-        <div className="page-hero-arabic">المُسَاعِدُ الإِسْلَامِيُّ</div>
-        <h1>{l.title}</h1>
-        <p>{l.subtitle}</p>
-      </div>
+      {/* Hero — yığcam, söhbətə yer qalsın */}
+      <header className="ui-page-hero aic-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <div className="ui-container aic-hero-in">
+          <span className="ui-eyebrow">{l.eyebrow}</span>
+          <h1 className="ui-display">{l.title}</h1>
+          <p className="ui-lead">{l.subtitle}</p>
+        </div>
+      </header>
 
       <div className="aic-container">
 
-        {/* Chat window */}
-        <div className="aic-chat" ref={scrollRef}>
-          {messages.length === 0 ? (
-            <div className="aic-welcome">
-              <div className="aic-welcome-icon">🌙</div>
-              <p className="aic-welcome-text">{l.welcome}</p>
-              <div className="aic-suggestions">
-                {suggestions.map((s, i) => (
-                  <button key={i} type="button" className="aic-suggest-btn" style={{ '--i': i }} onClick={() => sendMessage(s)}>
-                    <span className={`aic-suggest-ico icon-tile icon-tile--sm${SUGGEST_ICONS[i]?.tone || ''}`} aria-hidden="true">{SUGGEST_ICONS[i]?.icon}</span>
-                    <span className="aic-suggest-text">{s}</span>
-                    <span className="aic-suggest-chev m-row-chev" aria-hidden="true" />
-                  </button>
-                ))}
-              </div>
+        {/* Söhbət pəncərəsi */}
+        <section className="aic-chat-card" aria-label={l.title}>
+          <div className="aic-chat-head">
+            <span className="aic-avatar aic-avatar--lg" aria-hidden="true"><Icon name="aichat" size={20} /></span>
+            <div className="aic-chat-id">
+              <span className="aic-chat-name"><span className="aic-status-dot" aria-hidden="true" /> {tr(BRAND.aiName, lang)}</span>
             </div>
-          ) : (
-            <>
-              {messages.map((m, i) => (
-                <div key={i} className={`aic-msg aic-msg-${m.role}`}>
-                  {m.role === 'assistant' && <div className="aic-avatar">🌙</div>}
-                  <div className="aic-bubble">
-                    <div className="aic-content">{m.content}</div>
-                  </div>
-                </div>
-              ))}
-              {loading && (
-                <div className="aic-msg aic-msg-assistant">
-                  <div className="aic-avatar">🌙</div>
-                  <div className="aic-bubble aic-thinking">
-                    <span className="aic-dot"></span>
-                    <span className="aic-dot"></span>
-                    <span className="aic-dot"></span>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+            {messages.length > 0 && (
+              <button type="button" onClick={handleClear} className="ui-btn ui-btn--ghost ui-btn--sm aic-clear-btn">
+                <Icon name="trash" size={16} className="ui-btn__icon" /> {l.clear}
+              </button>
+            )}
+          </div>
 
-        {/* Cooldown / Error */}
+          <div className="aic-chat" ref={scrollRef} role="log" aria-live="polite" aria-busy={loading}>
+            {messages.length === 0 ? (
+              <div className="aic-welcome">
+                <div className="aic-welcome-art" aria-hidden="true">
+                  <span className="aic-welcome-ring" />
+                  <span className="aic-avatar aic-avatar--xl"><Icon name="aichat" size={30} strokeWidth={1.6} /></span>
+                </div>
+                <p className="aic-welcome-text">{l.welcome}</p>
+                <div className="aic-suggestions">
+                  {suggestions.map((s, i) => (
+                    <button key={i} type="button" className="aic-suggest-btn" style={{ '--i': i }} onClick={() => sendMessage(s)}>
+                      <span className="ui-icon-tile ui-icon-tile--sm aic-suggest-ico" aria-hidden="true"><Icon name={SUGGEST_ICONS[i]} /></span>
+                      <span className="aic-suggest-text">{s}</span>
+                      <Icon name="arrow" size={16} className="aic-suggest-chev ui-flip-rtl" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                {messages.map((m, i) => (
+                  <div key={i} className={`aic-msg aic-msg-${m.role}`}>
+                    {m.role === 'assistant' && <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>}
+                    <div className="aic-bubble">
+                      <span className="ui-sr-only">{m.role === 'assistant' ? tr(BRAND.aiName, lang) : l.you}: </span>
+                      <div className="aic-content">{m.content}</div>
+                    </div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="aic-msg aic-msg-assistant aic-msg-typing">
+                    <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>
+                    <div className="aic-bubble aic-thinking" role="status">
+                      <span className="ui-sr-only">{l.thinking}</span>
+                      <span className="aic-dot" aria-hidden="true"></span>
+                      <span className="aic-dot" aria-hidden="true"></span>
+                      <span className="aic-dot" aria-hidden="true"></span>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* Gözləmə / xəta */}
         {cooldown > 0 ? (
-          <div className="aic-cooldown">
-            <div className="aic-cooldown-icon">⏳</div>
+          <div className="aic-cooldown" role="status">
+            <span className="aic-cooldown-icon" aria-hidden="true"><Icon name="clock" size={22} /></span>
             <div className="aic-cooldown-text">{l.rateLimit.replace('{s}', cooldown)}</div>
-            <div className="aic-cooldown-ring">
+            <div className="aic-cooldown-ring" aria-hidden="true">
               <svg viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="15" className="aic-cooldown-bg" />
                 <circle
@@ -304,10 +357,20 @@ export default function AIChatPage({ setPage }) {
             </div>
           </div>
         ) : (
-          error && <div className="aic-error">⚠️ {error}</div>
+          error && (
+            <div className="aic-error" role="alert">
+              <Icon name="alert" size={18} />
+              <span className="aic-error-text">{error}</span>
+              {canRetry && (
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm aic-retry" onClick={retryLast}>
+                  <Icon name="refresh" size={16} className="ui-btn__icon" /> {l.retry}
+                </button>
+              )}
+            </div>
+          )
         )}
 
-        {/* Input form */}
+        {/* Yazı sahəsi */}
         <form className="aic-form" onSubmit={handleSubmit}>
           <input
             ref={inputRef}
@@ -329,27 +392,16 @@ export default function AIChatPage({ setPage }) {
             {loading ? (
               <span className="aic-send-spinner" aria-hidden="true" />
             ) : cooldown > 0 ? (
-              cooldown
+              <span className="ui-num">{cooldown}</span>
             ) : (
-              /* Göndər oxu — ərəbcədə CSS ilə güzgülənir (sahəyə tərəf baxsın) */
-              <svg className="aic-send-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              /* Göndər ikonu — ərəbcədə güzgülənir (sahəyə tərəf baxsın) */
+              <Icon name="send" size={20} strokeWidth={2} className="aic-send-icon" />
             )}
           </button>
         </form>
 
-        {/* Actions — boş olanda yer tutmasın */}
-        {messages.length > 0 && (
-          <div className="aic-actions">
-            <button type="button" onClick={handleClear} className="aic-clear-btn">
-              🗑️ {l.clear}
-            </button>
-          </div>
-        )}
-
         {/* Xəbərdarlıq — AI cavabları fətva deyil (BRAND.aiDisclaimer) */}
-        <p className="aic-disclaimer">⚠️ {tr(BRAND.aiDisclaimer, lang)}</p>
+        <p className="aic-disclaimer"><Icon name="shield" size={16} /> <span>{tr(BRAND.aiDisclaimer, lang)}</span></p>
       </div>
     </div>
   )

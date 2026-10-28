@@ -1,15 +1,26 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
+import Icon from '../components/Icon'
 import '../styles/QuizPage.css'
 
 const LABELS = {
-  az: { title:'İslami Kviz', subtitle:'Biliyini test et', categories:'Kateqoriya seç', quran:'Quran', hadith:'Hədis', names:'99 Ad', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', playAgain:'Yenidən', question:'Sual', of:'/', bestScore:'Ən yaxşı nəticə', newBest:'Yeni rekord!', back:'Geri', selectAnswer:'Cavab seçin', exit:'Kateqoriyalar' },
+  az: { title:'İslami kviz', subtitle:'Biliyini test et', categories:'Kateqoriya seç', quran:'Quran', hadith:'Hədis', names:'99 Ad', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', playAgain:'Yenidən', question:'Sual', of:'/', bestScore:'Ən yaxşı nəticə', newBest:'Yeni rekord!', back:'Geri', selectAnswer:'Cavab seçin', exit:'Kateqoriyalar' },
   en: { title:'Islamic Quiz', subtitle:'Test your knowledge', categories:'Choose category', quran:'Quran', hadith:'Hadith', names:'99 Names', start:'Start', next:'Next', finish:'Finish', score:'Score', correct:'Correct', wrong:'Wrong', playAgain:'Play Again', question:'Question', of:'/', bestScore:'Best score', newBest:'New record!', back:'Back', selectAnswer:'Select an answer', exit:'Categories' },
   ru: { title:'Исламская Викторина', subtitle:'Проверь свои знания', categories:'Выберите категорию', quran:'Коран', hadith:'Хадис', names:'99 Имён', start:'Начать', next:'Далее', finish:'Завершить', score:'Баллы', correct:'Правильно', wrong:'Неправильно', playAgain:'Играть снова', question:'Вопрос', of:'/', bestScore:'Лучший результат', newBest:'Новый рекорд!', back:'Назад', selectAnswer:'Выберите ответ', exit:'Категории' },
   ar: { title:'اختبار إسلامي', subtitle:'اختبر معلوماتك', categories:'اختر الفئة', quran:'القرآن', hadith:'الحديث', names:'٩٩ اسم', start:'ابدأ', next:'التالي', finish:'إنهاء', score:'النقاط', correct:'صحيح', wrong:'خطأ', playAgain:'أعد اللعب', question:'سؤال', of:'/', bestScore:'أفضل نتيجة', newBest:'رقم قياسي!', back:'رجوع', selectAnswer:'اختر إجابة', exit:'الفئات' },
   tr: { title:'İslami Bilgi Yarışması', subtitle:'Bilgini test et', categories:'Kategori seç', quran:'Kuran', hadith:'Hadis', names:'99 İsim', start:'Başla', next:'Sonraki', finish:'Bitir', score:'Puan', correct:'Doğru', wrong:'Yanlış', playAgain:'Tekrar Oyna', question:'Soru', of:'/', bestScore:'En iyi skor', newBest:'Yeni rekor!', back:'Geri', selectAnswer:'Bir cevap seçin', exit:'Kategoriler' },
 }
+
+// Bir raundda sual sayı
+const ROUND_SIZE = 10
+
+// Kateqoriya kartındakı say yazısı ("40 sual") — cəm forması dilə görə
+// (əvvəl t.question.toLowerCase() idi: "40 question", "40 вопрос")
+const QUESTIONS_WORD = { az: 'sual', en: 'questions', ru: 'вопросов', ar: 'سؤالًا', tr: 'soru' }
+
+// Kateqoriya ikonları (Icon.jsx; əvvəl 📖 📜 ✨ emojiləri)
+const CATEGORY_ICONS = { quran: 'quran', hadith: 'hadith', names: 'names' }
 
 const QUESTIONS = {
   quran: [
@@ -863,11 +874,14 @@ export default function QuizPage({ setPage }) {
   const [correctCount, setCorrectCount] = useState(0)
   const [wrongCount, setWrongCount] = useState(0)
   const [isNewBest, setIsNewBest] = useState(false)
+  // Raund sayğacı — "Yenidən" eyni kateqoriyanı YENİ suallarla başlatsın
+  // (əvvəl "Yenidən" düyməsi kateqoriya seçiminə qaytarırdı)
+  const [round, setRound] = useState(0)
 
   const questions = useMemo(() => {
     if (!category) return []
-    return shuffleArray(QUESTIONS[category]).slice(0, 10)
-  }, [category])
+    return shuffleArray(QUESTIONS[category]).slice(0, ROUND_SIZE)
+  }, [category, round])
 
   const scores = loadScores()
   const containerRef = useRef(null)
@@ -902,6 +916,7 @@ export default function QuizPage({ setPage }) {
     setCorrectCount(0)
     setWrongCount(0)
     setIsNewBest(false)
+    setRound(r => r + 1)
     setPhase('quiz')
     scrollToTop()
   }
@@ -946,39 +961,54 @@ export default function QuizPage({ setPage }) {
   const totalQ = questions.length
   const progress = totalQ > 0 ? ((currentQ + (answered ? 1 : 0)) / totalQ) * 100 : 0
 
-  const categoryIcons = { quran: '📖', hadith: '📜', names: '✨' }
-  // Telefonda ikon kafelinin rəngi (motion.css → .icon-tile--*)
-  const categoryTones = { quran: '', hadith: ' icon-tile--gold', names: ' icon-tile--violet' }
   const categoryKeys = ['quran', 'hadith', 'names']
+  const qWord = QUESTIONS_WORD[lang] || QUESTIONS_WORD.az
+
+  // Sakit kağız hero (dizayn v2) — bütün mərhələlərdə eyni, bir h1.
+  // Test/nəticə zamanı yığcam (lead yox), eyebrow — seçilmiş kateqoriya.
+  const hero = (
+    <header className={`ui-page-hero quiz-hero${phase !== 'categories' ? ' quiz-hero--compact' : ''}`}>
+      <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+      {phase === 'categories' && lang !== 'ar' && (
+        <span className="quiz-hero__art" lang="ar" aria-hidden="true">اختبر معلوماتك</span>
+      )}
+      <div className="ui-container">
+        {phase !== 'categories' && category && <span className="ui-eyebrow">{t[category]}</span>}
+        <h1 className="ui-display">{t.title}</h1>
+        {phase === 'categories' && <p className="ui-lead">{t.subtitle}</p>}
+      </div>
+    </header>
+  )
 
   // --- RENDER ---
   if (phase === 'categories') {
     return (
       <>
-        <div className="page-hero theme-quiz hero-compact">
-          <div className="page-hero-arabic">اختبر معلوماتك الإسلامية</div>
-          <h1>{t.title}</h1>
-          <p>{t.subtitle}</p>
-        </div>
-        <div className="section">
+        {hero}
+        <div className="section quiz-section">
           <div className="section-inner">
-            <h2 className="quiz-categories-title">{t.categories}</h2>
-            <div className="quiz-categories-grid">
-              {categoryKeys.map((key, i) => (
-                <button key={key} className="quiz-category-card" style={{ '--i': i }} onClick={() => startQuiz(key)}>
-                  <span className={`quiz-category-icon icon-tile icon-tile--lg${categoryTones[key]}`} aria-hidden="true">{categoryIcons[key]}</span>
-                  <span className="quiz-category-name">{t[key]}</span>
-                  <span className="quiz-category-count">
-                    {QUESTIONS[key].length} {t.question.toLowerCase()}{QUESTIONS[key].length !== 1 ? '' : ''}
-                  </span>
-                  {scores[key] !== undefined && (
-                    <span className="quiz-category-best">{t.bestScore}: {scores[key]}/{QUESTIONS[key].length}</span>
-                  )}
-                  <span className="quiz-category-start">
-                    {t.start} <span className="qm-dir-arrow" aria-hidden="true">&rarr;</span>
-                  </span>
-                </button>
-              ))}
+            <h2 className="ui-title ui-title--sm quiz-categories-title" data-reveal="">{t.categories}</h2>
+            <div className="quiz-categories-grid" data-reveal="stagger-zoom">
+              {categoryKeys.map((key) => {
+                const total = QUESTIONS[key].length
+                return (
+                  <button type="button" key={key} className="ui-card ui-card--interactive quiz-category-card" onClick={() => startQuiz(key)}>
+                    <span className={`ui-icon-tile ui-icon-tile--lg quiz-category-icon quiz-category-icon--${key}`} aria-hidden="true">
+                      <Icon name={CATEGORY_ICONS[key]} />
+                    </span>
+                    <span className="quiz-category-name">{t[key]}</span>
+                    <span className="quiz-category-count ui-num">{total} {qWord}</span>
+                    {/* Ən yaxşı nəticə raunddakı sual sayına görədir (əvvəl ümumi
+                        sual sayına bölünürdü: "8/40") */}
+                    {scores[key] !== undefined && (
+                      <span className="ui-badge ui-badge--accent quiz-category-best ui-num">{t.bestScore}: <bdi dir="ltr">{scores[key]}/{Math.min(ROUND_SIZE, total)}</bdi></span>
+                    )}
+                    <span className="quiz-category-start">
+                      {t.start} <Icon name="arrow" size={16} className="quiz-arrow ui-flip-rtl" />
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -990,49 +1020,55 @@ export default function QuizPage({ setPage }) {
     const q = questions[currentQ]
     return (
       <>
-        <div className="page-hero quiz-hero-compact hero-compact">
-          <h1>{t.title} — {t[category]}</h1>
-        </div>
-        <div className="section">
+        {hero}
+        <div className="section quiz-section">
           <div className="section-inner quiz-container" ref={containerRef}>
             {/* Testdən çıxış — kateqoriya seçiminə qayıt */}
             <div className="quiz-toolbar">
-              <button type="button" className="btn-ghost quiz-exit" onClick={handleReplay}>
-                <span className="qm-dir-arrow" aria-hidden="true">&larr;</span> {t.exit}
+              <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm quiz-exit" onClick={handleReplay}>
+                <Icon name="arrow" size={16} className="quiz-arrow quiz-arrow--back" /> {t.exit}
               </button>
             </div>
             {/* İrəliləyiş — telefonda başlığın altına yapışan şüşə zolaq.
                 key — say dəyişəndə kiçik "pop" animasiyası yenidən oynasın */}
             <div className="quiz-progress-wrap">
               <div className="quiz-progress-info">
-                <span className="quiz-progress-count">{t.question} {currentQ + 1} {t.of} {totalQ}</span>
-                <span className="quiz-tally">
-                  <span key={`c${correctCount}`} className="quiz-tally-item is-correct">{t.correct}: {correctCount}</span>
-                  <span className="quiz-tally-sep" aria-hidden="true"> | </span>
-                  <span key={`w${wrongCount}`} className="quiz-tally-item is-wrong">{t.wrong}: {wrongCount}</span>
+                <span className="quiz-progress-count ui-num">{t.question} <bdi dir="ltr">{currentQ + 1} {t.of} {totalQ}</bdi></span>
+                <span className="quiz-tally ui-num">
+                  <span key={`c${correctCount}`} className="quiz-tally-item is-correct">
+                    <Icon name="check" size={14} strokeWidth={2.4} /><span className="ui-sr-only">{t.correct}: </span>{correctCount}
+                  </span>
+                  <span key={`w${wrongCount}`} className="quiz-tally-item is-wrong">
+                    <Icon name="close" size={14} strokeWidth={2.4} /><span className="ui-sr-only">{t.wrong}: </span>{wrongCount}
+                  </span>
                 </span>
               </div>
               {/* Doluluq transform (scaleX) ilə — layout animasiyası yox */}
-              <div className="quiz-progress-bar">
+              <div className="quiz-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={totalQ} aria-valuenow={currentQ + (answered ? 1 : 0)}>
                 <div className="quiz-progress-fill" style={{ transform: `scaleX(${progress / 100})` }} />
               </div>
             </div>
 
             {/* key — hər yeni sualda giriş animasiyası yenidən oynasın */}
-            <div className="quiz-question-card" key={currentQ}>
-              <h3 className="quiz-question-text">{q.q[lang] || q.q.en}</h3>
-              <div className="quiz-options">
+            <div className="ui-card quiz-question-card" key={`${round}-${currentQ}`}>
+              <h2 className="quiz-question-text">{q.q[lang] || q.q.en}</h2>
+              <div className="quiz-options" role="group" aria-label={t.selectAnswer}>
                 {q.options.map((opt, idx) => {
+                  const isRight = idx === q.correct
+                  const isPicked = idx === selected
                   let cls = 'quiz-option'
                   if (answered) {
-                    if (idx === q.correct) cls += ' quiz-option-correct'
-                    else if (idx === selected) cls += ' quiz-option-wrong'
-                  } else if (idx === selected) {
-                    cls += ' quiz-option-selected'
+                    if (isRight) cls += ' quiz-option-correct'
+                    else if (isPicked) cls += ' quiz-option-wrong'
+                    else cls += ' quiz-option-faded'
                   }
                   return (
-                    <button key={idx} className={cls} style={{ '--i': idx }} onClick={() => handleSelect(idx)} disabled={answered}>
-                      <span className="quiz-option-letter">{String.fromCharCode(65 + idx)}</span>
+                    <button type="button" key={idx} className={cls} style={{ '--i': idx }} onClick={() => handleSelect(idx)} disabled={answered}>
+                      <span className="quiz-option-letter" aria-hidden="true">
+                        {answered && isRight ? <Icon name="check" size={16} strokeWidth={2.4} />
+                          : answered && isPicked ? <Icon name="close" size={16} strokeWidth={2.4} />
+                          : String.fromCharCode(65 + idx)}
+                      </span>
                       <span className="quiz-option-text">{getOptionText(opt, lang)}</span>
                     </button>
                   )
@@ -1042,8 +1078,8 @@ export default function QuizPage({ setPage }) {
 
             <div className="quiz-actions">
               {answered && (
-                <button ref={nextRef} className="btn-primary quiz-next-btn" onClick={handleNext}>
-                  {currentQ + 1 >= totalQ ? t.finish : t.next} <span className="qm-dir-arrow" aria-hidden="true">&rarr;</span>
+                <button type="button" ref={nextRef} className="ui-btn ui-btn--primary ui-btn--lg quiz-next-btn" onClick={handleNext}>
+                  {currentQ + 1 >= totalQ ? t.finish : t.next} <Icon name="arrow" size={18} className="quiz-arrow ui-flip-rtl" />
                 </button>
               )}
             </div>
@@ -1058,15 +1094,18 @@ export default function QuizPage({ setPage }) {
     const pct = total > 0 ? Math.round((correctCount / total) * 100) : 0
     return (
       <>
-        <div className="page-hero theme-quiz hero-compact">
-          <h1>{t.title}</h1>
-        </div>
-        <div className="section">
+        {hero}
+        <div className="section quiz-section">
           <div className="section-inner quiz-container" ref={containerRef}>
-            <div className="quiz-results-card">
-              {isNewBest && <div className="quiz-new-best">{t.newBest}</div>}
-              <div className="quiz-results-score">{pct}%</div>
+            <div className="ui-card quiz-results-card">
+              <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+              {isNewBest && <span className="ui-badge ui-badge--accent quiz-new-best"><Icon name="star" size={14} />{t.newBest}</span>}
+              <div className="quiz-results-score ui-num">{pct}%</div>
               <div className="quiz-results-label">{t.score}</div>
+              {/* Düzgün cavabların payı — zolaq sıfırdan dolur (transform) */}
+              <div className="quiz-results-bar" aria-hidden="true">
+                <span style={{ transform: `scaleX(${pct / 100})` }} />
+              </div>
               <div className="quiz-results-stats">
                 <div className="quiz-stat quiz-stat-correct">
                   <span className="quiz-stat-num">{correctCount}</span>
@@ -1081,9 +1120,14 @@ export default function QuizPage({ setPage }) {
                   <span className="quiz-stat-label">{t.question}</span>
                 </div>
               </div>
-              <button className="btn-primary quiz-replay-btn" onClick={handleReplay}>
-                {t.playAgain}
-              </button>
+              <div className="quiz-results-actions">
+                <button type="button" className="ui-btn ui-btn--primary ui-btn--lg quiz-replay-btn" onClick={() => startQuiz(category)}>
+                  <Icon name="refresh" className="ui-btn__icon" />{t.playAgain}
+                </button>
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--lg" onClick={handleReplay}>
+                  {t.exit}
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1,34 +1,34 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/CharityPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import Icon from '../components/Icon'
+import { navGroupLabel, navGroupOf } from '../data/navigation'
 
+// Əməl növləri. icon — Icon.jsx adı (emoji əvəzinə: rəngi tokendən,
+// bütün sistemlərdə eyni). Dəqiq ikonu olmayanlar üçün ən yaxın:
+// yemək → leaf, gülüş → kids (təbəssüm), geyim → gift
 const DEED_TYPES = [
-  { key:'money', icon:'💰', az:'Pul', en:'Money', ru:'Деньги', ar:'مال', tr:'Para' },
-  { key:'food', icon:'🍞', az:'Yemək', en:'Food', ru:'Еда', ar:'طعام', tr:'Yemek' },
-  { key:'smile', icon:'😊', az:'Gülüş', en:'Smile', ru:'Улыбка', ar:'ابتسامة', tr:'Gülümseme' },
-  { key:'knowledge', icon:'📚', az:'Elm', en:'Knowledge', ru:'Знание', ar:'علم', tr:'İlim' },
-  { key:'dua', icon:'🤲', az:'Dua', en:'Dua', ru:'Дуа', ar:'دعاء', tr:'Dua' },
-  { key:'helping', icon:'🤝', az:'Kömək', en:'Helping', ru:'Помощь', ar:'مساعدة', tr:'Yardım' },
-  { key:'clothing', icon:'👕', az:'Geyim', en:'Clothing', ru:'Одежда', ar:'ملابس', tr:'Giyim' },
-  { key:'other', icon:'✨', az:'Digər', en:'Other', ru:'Другое', ar:'أخرى', tr:'Diğer' },
+  { key:'money', icon:'zakat', az:'Pul', en:'Money', ru:'Деньги', ar:'مال', tr:'Para' },
+  { key:'food', icon:'leaf', az:'Yemək', en:'Food', ru:'Еда', ar:'طعام', tr:'Yemek' },
+  { key:'smile', icon:'kids', az:'Gülüş', en:'Smile', ru:'Улыбка', ar:'ابتسامة', tr:'Gülümseme' },
+  { key:'knowledge', icon:'books', az:'Elm', en:'Knowledge', ru:'Знание', ar:'علم', tr:'İlim' },
+  { key:'dua', icon:'duas', az:'Dua', en:'Dua', ru:'Дуа', ar:'دعاء', tr:'Dua' },
+  { key:'helping', icon:'jamaat', az:'Kömək', en:'Helping', ru:'Помощь', ar:'مساعدة', tr:'Yardım' },
+  { key:'clothing', icon:'gift', az:'Geyim', en:'Clothing', ru:'Одежда', ar:'ملابس', tr:'Giyim' },
+  { key:'other', icon:'sparkle', az:'Digər', en:'Other', ru:'Другое', ar:'أخرى', tr:'Diğer' },
 ]
 
-// Telefonda qeyd sətirlərindəki ikon kafelinin rəng tonu (motion.css → .icon-tile--*).
-// Boş sətir — susma yaşıl ton.
-const DEED_TONE = {
-  money: 'gold', food: 'orange', smile: 'rose', knowledge: 'blue',
-  dua: '', helping: 'teal', clothing: 'violet', other: 'slate',
-}
-const tileClass = (key) => `icon-tile${DEED_TONE[key] ? ` icon-tile--${DEED_TONE[key]}` : ''}`
+// İkon kafelinin variantı: pul — qızılı, qalanları — brend (bir vurğu rəngi)
+const tileClass = (key) => `ui-icon-tile${key === 'money' ? ' ui-icon-tile--accent' : ''}`
 
 const LABELS = {
-  az: { title:'Sədəqə Gündəliyi', subtitle:'Gündəlik xeyir əməllərinizi qeyd edin', heroArabic:'صَدَقَة', total:'Ümumi əməl', totalAmount:'Ümumi məbləğ', streak:'Ardıcıl gün', addTitle:'Yeni əməl əlavə et', date:'Tarix', type:'Növ', amount:'Məbləğ (istəyə bağlı)', description:'Təsvir', add:'Əlavə et', entries:'Qeydlər', noEntries:'Hələ heç bir qeyd yoxdur', delete:'Sil', all:'Hamısı', filterBy:'Süzgəc' },
-  en: { title:'Charity Diary', subtitle:'Track your daily good deeds', heroArabic:'صَدَقَة', total:'Total Deeds', totalAmount:'Total Amount', streak:'Day Streak', addTitle:'Add New Deed', date:'Date', type:'Type', amount:'Amount (optional)', description:'Description', add:'Add', entries:'Entries', noEntries:'No entries yet', delete:'Delete', all:'All', filterBy:'Filter' },
-  ru: { title:'Дневник милостыни', subtitle:'Записывайте ваши ежедневные добрые дела', heroArabic:'صَدَقَة', total:'Всего дел', totalAmount:'Общая сумма', streak:'Дней подряд', addTitle:'Добавить дело', date:'Дата', type:'Тип', amount:'Сумма (необязательно)', description:'Описание', add:'Добавить', entries:'Записи', noEntries:'Пока нет записей', delete:'Удалить', all:'Все', filterBy:'Фильтр' },
-  ar: { title:'يوميات الصدقة', subtitle:'سجّل أعمالك الخيرية اليومية', heroArabic:'صَدَقَة', total:'إجمالي الأعمال', totalAmount:'المبلغ الإجمالي', streak:'أيام متتالية', addTitle:'أضف عملاً جديداً', date:'التاريخ', type:'النوع', amount:'المبلغ (اختياري)', description:'الوصف', add:'أضف', entries:'السجلات', noEntries:'لا توجد سجلات بعد', delete:'حذف', all:'الكل', filterBy:'تصفية' },
-  tr: { title:'Sadaka Günlüğü', subtitle:'Günlük hayır işlerinizi kaydedin', heroArabic:'صَدَقَة', total:'Toplam İş', totalAmount:'Toplam Tutar', streak:'Ardışık Gün', addTitle:'Yeni İş Ekle', date:'Tarih', type:'Tür', amount:'Tutar (isteğe bağlı)', description:'Açıklama', add:'Ekle', entries:'Kayıtlar', noEntries:'Henüz kayıt yok', delete:'Sil', all:'Tümü', filterBy:'Filtre' },
+  az: { title:'Sədəqə gündəliyi', subtitle:'Gündəlik xeyir əməllərinizi qeyd edin', heroArabic:'صَدَقَة', total:'Ümumi əməl', totalAmount:'Ümumi məbləğ', streak:'Ardıcıl gün', addTitle:'Yeni əməl əlavə et', date:'Tarix', type:'Növ', amount:'Məbləğ (istəyə bağlı)', description:'Təsvir', add:'Əlavə et', entries:'Qeydlər', noEntries:'Hələ heç bir qeyd yoxdur', delete:'Sil', all:'Hamısı', filterBy:'Süzgəc', descPh:'Məs.: qonşuya yemək apardım', added:'Əlavə edildi' },
+  en: { title:'Charity Diary', subtitle:'Track your daily good deeds', heroArabic:'صَدَقَة', total:'Total Deeds', totalAmount:'Total Amount', streak:'Day Streak', addTitle:'Add New Deed', date:'Date', type:'Type', amount:'Amount (optional)', description:'Description', add:'Add', entries:'Entries', noEntries:'No entries yet', delete:'Delete', all:'All', filterBy:'Filter', descPh:'E.g. took food to a neighbour', added:'Added' },
+  ru: { title:'Дневник милостыни', subtitle:'Записывайте ваши ежедневные добрые дела', heroArabic:'صَدَقَة', total:'Всего дел', totalAmount:'Общая сумма', streak:'Дней подряд', addTitle:'Добавить дело', date:'Дата', type:'Тип', amount:'Сумма (необязательно)', description:'Описание', add:'Добавить', entries:'Записи', noEntries:'Пока нет записей', delete:'Удалить', all:'Все', filterBy:'Фильтр', descPh:'Напр.: отнёс еду соседу', added:'Добавлено' },
+  ar: { title:'يوميات الصدقة', subtitle:'سجّل أعمالك الخيرية اليومية', heroArabic:'صَدَقَة', total:'إجمالي الأعمال', totalAmount:'المبلغ الإجمالي', streak:'أيام متتالية', addTitle:'أضف عملاً جديداً', date:'التاريخ', type:'النوع', amount:'المبلغ (اختياري)', description:'الوصف', add:'أضف', entries:'السجلات', noEntries:'لا توجد سجلات بعد', delete:'حذف', all:'الكل', filterBy:'تصفية', descPh:'مثال: أخذت طعاماً إلى الجار', added:'تمت الإضافة' },
+  tr: { title:'Sadaka Günlüğü', subtitle:'Günlük hayır işlerinizi kaydedin', heroArabic:'صَدَقَة', total:'Toplam İş', totalAmount:'Toplam Tutar', streak:'Ardışık Gün', addTitle:'Yeni İş Ekle', date:'Tarih', type:'Tür', amount:'Tutar (isteğe bağlı)', description:'Açıklama', add:'Ekle', entries:'Kayıtlar', noEntries:'Henüz kayıt yok', delete:'Sil', all:'Tümü', filterBy:'Filtre', descPh:'Örn.: komşuya yemek götürdüm', added:'Eklendi' },
 }
 
 // Yerli tarix (YYYY-MM-DD). toISOString() UTC-dir — Bakıda (UTC+4) gecə
@@ -89,6 +89,10 @@ export default function CharityPage({ setPage }) {
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [filterType, setFilterType] = useState('all')
+  // Əlavə təsdiqi: hər əlavədə yeni açar (mesaj animasiyası yenidən başlayır), 2.4 san. sonra gizlənir
+  const [justAdded, setJustAdded] = useState(0)
+  const addedTimer = useRef(0)
+  useEffect(() => () => clearTimeout(addedTimer.current), [])
 
   useEffect(() => {
     try { localStorage.setItem('charity_log', JSON.stringify(entries)) } catch { /* yaddaş bağlıdır */ }
@@ -121,6 +125,9 @@ export default function CharityPage({ setPage }) {
     setAmount('')
     setDescription('')
     haptic()
+    setJustAdded(entry.id)
+    clearTimeout(addedTimer.current)
+    addedTimer.current = setTimeout(() => setJustAdded(0), 2400)
   }
 
   const handleDelete = (id) => {
@@ -130,177 +137,202 @@ export default function CharityPage({ setPage }) {
   const getDeedType = (key) => DEED_TYPES.find(d => d.key === key) || DEED_TYPES[7]
 
   return (
-    <>
-      {/* Hero */}
-      <div className="page-hero hero-compact theme-charity">
-        <Breadcrumb setPage={setPage} current={t.title} />
-        <div className="page-hero-arabic">{t.heroArabic}</div>
-        <h1>{t.title}</h1>
-        <p>{t.subtitle}</p>
-      </div>
+    <div className="ch-page">
+      {/* Hero — dizayn v2: sakit kağız fon + xatəm naxışı, bir <h1> */}
+      <header className="ui-page-hero ch-hero">
+        <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <div className="ui-container" data-reveal="stagger">
+          <Breadcrumb setPage={setPage} current={t.title} />
+          <span className="ui-eyebrow">{navGroupLabel(navGroupOf('charity'), lang)}</span>
+          <h1 className="ui-display">{t.title}</h1>
+          {lang !== 'ar' && <p className="ch-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">{t.heroArabic}</p>}
+          <p className="ui-lead">{t.subtitle}</p>
+        </div>
+      </header>
 
-      <section className="section">
-        <div className="section-inner ch-container">
+      <section className="ui-section ui-section--tight">
+        <div className="ui-container ch-container">
 
-          {/* Stats — telefonda üç xanalı tək kart (CharityPage.css);
-              səhifə girişini App.jsx-in .page-enter keçidi verir */}
-          <div className="ch-stats">
-            <div className="ch-stat-card">
-              <span className="ch-stat-icon icon-tile" aria-hidden="true">🤲</span>
-              <span className="ch-stat-value">{stats.total}</span>
-              <span className="ch-stat-label">{t.total}</span>
+          {/* Statistika — bir kartda üç göstərici */}
+          <div className="ui-card ch-stats" data-reveal="stagger">
+            <div className="ch-stat">
+              <span className="ui-icon-tile"><Icon name="charity" /></span>
+              <div className="ui-stat">
+                <span className="ui-stat__num">{stats.total}</span>
+                <span className="ui-stat__label">{t.total}</span>
+              </div>
             </div>
-            <div className="ch-stat-card">
-              <span className="ch-stat-icon icon-tile icon-tile--gold" aria-hidden="true">💰</span>
-              <span className="ch-stat-value">{stats.totalAmount > 0 ? stats.totalAmount.toFixed(2) : '0'}</span>
-              <span className="ch-stat-label">{t.totalAmount}</span>
+            <div className="ch-stat">
+              <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="zakat" /></span>
+              <div className="ui-stat">
+                <span className="ui-stat__num">{stats.totalAmount > 0 ? stats.totalAmount.toFixed(2) : '0'}</span>
+                <span className="ui-stat__label">{t.totalAmount}</span>
+              </div>
             </div>
-            <div className="ch-stat-card">
-              <span className="ch-stat-icon icon-tile icon-tile--orange" aria-hidden="true">🔥</span>
-              <span className="ch-stat-value">{stats.streak}</span>
-              <span className="ch-stat-label">{t.streak}</span>
+            <div className="ch-stat">
+              <span className="ui-icon-tile"><Icon name="bolt" /></span>
+              <div className="ui-stat">
+                <span className="ui-stat__num">{stats.streak}</span>
+                <span className="ui-stat__label">{t.streak}</span>
+              </div>
             </div>
           </div>
 
-          {/* Add Form */}
-          <div className="ch-form-card">
-            <h2 className="ch-form-title">{t.addTitle}</h2>
-            <form className="ch-form" onSubmit={handleAdd}>
-              <div className="ch-form-row">
-                <div className="ch-form-group">
-                  <label className="ch-label" htmlFor="ch-date">{t.date}</label>
-                  <input
-                    id="ch-date"
-                    type="date"
-                    className="input-base"
-                    value={date}
-                    onChange={e => setDate(e.target.value)}
-                    required
-                  />
+          <div className="ch-layout">
+            {/* Əlavə forması (genişdə yan sütunda yapışqan) */}
+            <div className="ui-card ch-form-card" data-reveal="">
+              <h2 className="ch-form-title">{t.addTitle}</h2>
+              <form className="ch-form" onSubmit={handleAdd}>
+                <div className="ch-form-row">
+                  <label className="ui-field" htmlFor="ch-date">
+                    <span className="ui-field__label">{t.date}</span>
+                    <input
+                      id="ch-date"
+                      type="date"
+                      className="ui-input"
+                      value={date}
+                      onChange={e => setDate(e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label className="ui-field" htmlFor="ch-amount">
+                    <span className="ui-field__label">{t.amount}</span>
+                    <input
+                      id="ch-amount"
+                      type="number"
+                      inputMode="decimal"
+                      className="ui-input"
+                      value={amount}
+                      onChange={e => setAmount(e.target.value)}
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01"
+                    />
+                  </label>
                 </div>
-                <div className="ch-form-group">
-                  <label className="ch-label" htmlFor="ch-amount">{t.amount}</label>
-                  <input
-                    id="ch-amount"
-                    type="number"
-                    inputMode="decimal"
-                    className="input-base"
-                    value={amount}
-                    onChange={e => setAmount(e.target.value)}
-                    placeholder="0.00"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-              </div>
 
-              <div className="ch-form-group">
-                <span className="ch-label" id="ch-type-label">{t.type}</span>
-                <div className="ch-type-grid" role="group" aria-labelledby="ch-type-label">
+                <div className="ui-field">
+                  <span className="ui-field__label" id="ch-type-label">{t.type}</span>
+                  <div className="ch-type-grid" role="group" aria-labelledby="ch-type-label">
+                    {DEED_TYPES.map(dt => (
+                      <button
+                        key={dt.key}
+                        type="button"
+                        className="ch-type-btn"
+                        aria-pressed={type === dt.key}
+                        onClick={() => setType(dt.key)}
+                      >
+                        <Icon name={dt.icon} size={20} />
+                        <span>{dt[lang] || dt.en}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <label className="ui-field" htmlFor="ch-desc">
+                  <span className="ui-field__label">{t.description}</span>
+                  <input
+                    id="ch-desc"
+                    type="text"
+                    className="ui-input"
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder={t.descPh}
+                    maxLength={200}
+                  />
+                </label>
+
+                <div className="ch-form-foot">
+                  <button type="submit" className="ui-btn ui-btn--primary ch-add-btn">
+                    <Icon name="plus" className="ui-btn__icon" /> {t.add}
+                  </button>
+                  {/* Əlavə olunanda qısa təsdiq (ekran oxuyucusu da eşidir) */}
+                  <span className="ch-added" role="status" aria-live="polite">
+                    {justAdded && <span key={justAdded} className="ch-added-msg"><Icon name="check" size={16} /> {t.added}</span>}
+                  </span>
+                </div>
+              </form>
+            </div>
+
+            <div className="ch-main">
+              {/* Süzgəc — telefonda bir sətirdə üfüqi sürüşən çiplər, genişdə sarınır */}
+              <div className="ch-filter">
+                <span className="ch-filter-label" id="ch-filter-label">{t.filterBy}</span>
+                <div className="chip-scroll wrap-desktop ch-chips" role="group" aria-labelledby="ch-filter-label">
+                  <button
+                    type="button"
+                    className="ui-chip"
+                    aria-pressed={filterType === 'all'}
+                    onClick={() => setFilterType('all')}
+                  >
+                    {t.all}
+                  </button>
                   {DEED_TYPES.map(dt => (
                     <button
                       key={dt.key}
                       type="button"
-                      className={`ch-type-btn press${type === dt.key ? ' active' : ''}`}
-                      aria-pressed={type === dt.key}
-                      onClick={() => setType(dt.key)}
+                      className="ui-chip"
+                      aria-pressed={filterType === dt.key}
+                      onClick={() => setFilterType(dt.key)}
                     >
-                      <span aria-hidden="true">{dt.icon}</span>
-                      <span>{dt[lang] || dt.en}</span>
+                      <Icon name={dt.icon} size={15} /> {dt[lang] || dt.en}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="ch-form-group">
-                <label className="ch-label" htmlFor="ch-desc">{t.description}</label>
-                <input
-                  id="ch-desc"
-                  type="text"
-                  className="input-base"
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  placeholder="..."
-                />
-              </div>
-
-              <button type="submit" className="btn-primary ch-add-btn">{t.add}</button>
-            </form>
-          </div>
-
-          {/* Filter — telefonda bir sətirdə üfüqi sürüşən çiplər, genişdə sarınır */}
-          <div className="ch-filter" data-reveal>
-            <span className="ch-filter-label" id="ch-filter-label">{t.filterBy}:</span>
-            <div className="tag-filters chip-scroll wrap-desktop" role="group" aria-labelledby="ch-filter-label">
-              <button
-                className={`tag-btn${filterType === 'all' ? ' active' : ''}`}
-                aria-pressed={filterType === 'all'}
-                onClick={() => setFilterType('all')}
-              >
-                {t.all}
-              </button>
-              {DEED_TYPES.map(dt => (
-                <button
-                  key={dt.key}
-                  className={`tag-btn${filterType === dt.key ? ' active' : ''}`}
-                  aria-pressed={filterType === dt.key}
-                  onClick={() => setFilterType(dt.key)}
-                >
-                  {dt.icon} {dt[lang] || dt.en}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Entries — telefonda qruplaşdırılmış siyahı xanaları (.m-list/.m-row),
-              genişdə əvvəlki ayrı kartlar (CharityPage.css ≥768px) */}
-          <div className="ch-entries">
-            <h2 className="ch-entries-title">{t.entries} ({filteredEntries.length})</h2>
-            {filteredEntries.length === 0 && (
-              <div className="ch-empty" data-reveal="fade">
-                <span className="ch-empty-icon icon-tile icon-tile--lg icon-tile--round" aria-hidden="true">🤲</span>
-                <p>{t.noEntries}</p>
-              </div>
-            )}
-            {filteredEntries.length > 0 && (
-              <ul className="ch-entry-list m-list" data-reveal="stagger">
-                {filteredEntries.map(entry => {
-                  const dt = getDeedType(entry.type)
-                  return (
-                    <li key={entry.id}>
-                      <div className="ch-entry-card m-row">
-                        <span className={`ch-entry-icon ${tileClass(dt.key)}`} aria-hidden="true">{dt.icon}</span>
-                        <div className="ch-entry-body">
-                          <div className="ch-entry-top">
-                            <span className="ch-entry-type">{dt[lang] || dt.en}</span>
-                            <time className="ch-entry-date" dateTime={entry.date}>{formatEntryDate(entry.date, lang)}</time>
+              {/* Qeydlər — yeni əlavə olunan sətir yumşaq "açılır" */}
+              <div className="ch-entries">
+                <h2 className="ch-entries-title">
+                  {t.entries} <span className="ui-badge ui-num">{filteredEntries.length}</span>
+                </h2>
+                {filteredEntries.length === 0 && (
+                  <div className="ch-empty" data-reveal="fade">
+                    <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="charity" /></span>
+                    <p>{t.noEntries}</p>
+                  </div>
+                )}
+                {filteredEntries.length > 0 && (
+                  <ul className="ch-entry-list" data-reveal="stagger">
+                    {filteredEntries.map(entry => {
+                      const dt = getDeedType(entry.type)
+                      return (
+                        <li key={entry.id} className="ch-entry">
+                          <div className="ui-card ch-entry-card">
+                            <span className={tileClass(dt.key)}><Icon name={dt.icon} /></span>
+                            <div className="ch-entry-body">
+                              <div className="ch-entry-top">
+                                <span className="ch-entry-type">{dt[lang] || dt.en}</span>
+                                <time className="ch-entry-date" dateTime={entry.date}>{formatEntryDate(entry.date, lang)}</time>
+                              </div>
+                              {entry.description && (
+                                <p className="ch-entry-desc">{entry.description}</p>
+                              )}
+                            </div>
+                            {entry.amount != null && entry.amount > 0 && (
+                              <span className="ch-entry-amount ui-num">{entry.amount.toFixed(2)}</span>
+                            )}
+                            <button
+                              type="button"
+                              className="ui-icon-btn ch-entry-delete"
+                              onClick={() => handleDelete(entry.id)}
+                              title={t.delete}
+                              aria-label={t.delete}
+                            >
+                              <Icon name="trash" size={18} />
+                            </button>
                           </div>
-                          {entry.description && (
-                            <p className="ch-entry-desc">{entry.description}</p>
-                          )}
-                          {entry.amount != null && entry.amount > 0 && (
-                            <span className="ch-entry-amount">{entry.amount.toFixed(2)}</span>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          className="ch-entry-delete press"
-                          onClick={() => handleDelete(entry.id)}
-                          title={t.delete}
-                          aria-label={t.delete}
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </div>
+            </div>
           </div>
 
         </div>
       </section>
-    </>
+    </div>
   )
 }
