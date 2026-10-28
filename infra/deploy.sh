@@ -40,6 +40,13 @@ smoke() {
   [ "$($C https://muslims.cc:$P/)" = 200 ]            || { log "ana səhifə açılmır"; return 1; }
   [ "$($C https://muslims.cc:$P/en/quran)" = 200 ]    || { log "/en/quran açılmır"; return 1; }
   [ "$($C https://muslims.cc:$P/bu-sehife-yoxdur)" = 404 ] || { log "naməlum ünvan 404 qaytarmır"; return 1; }
+  # 301-in HARA getdiyi də yoxlanılır: əvvəl Location-a konteynerin daxili portu
+  # düşürdü ("https://muslims.cc:8443/about") və bütün yönləndirmələr ölü idi —
+  # status kodu düzgün (301) olduğu üçün köhnə yoxlama bunu görmürdü.
+  LOC=$(curl -sS -o /dev/null -w '%{redirect_url}' --max-time 10 -k --resolve "muslims.cc:$P:127.0.0.1" "https://muslims.cc:$P/mosque")
+  case "$LOC" in
+    *:8443*|*:8080*|"") log "yönləndirmə səhv ünvana gedir: '$LOC'"; return 1 ;;
+  esac
   curl -sS --max-time 10 -k --resolve "muslims.cc:$P:127.0.0.1" "https://muslims.cc:$P/api/health" | grep -q '"ok"'                                                        || { log "API cavab vermir"; return 1; }
   return 0
 }
