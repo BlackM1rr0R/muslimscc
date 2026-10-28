@@ -4,6 +4,8 @@ import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateL
 import { subscribeToSettings } from '../data/adminContent'
 import { BRAND, tr } from '../config/brand'
 import Icon from '../components/Icon'
+import AIMarkdown from '../components/AIMarkdown'
+import { askAI } from '../utils/aiStream'
 import '../styles/AIChatPage.css'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
@@ -12,6 +14,8 @@ const FALLBACK_API_URL = import.meta.env.VITE_API_URL || ''
 const LABELS = {
   az: {
     retry:'Yenidən göndər',
+    stop:'Dayandır',
+    timeout:'Cavab çox gecikdi. Yenidən cəhd edin.',
     offline:'AI xidməti hazırda cavab vermir. Bir az sonra yenidən cəhd edin.',
     eyebrow:'Quran və Sünnə əsasında',
     you:'Siz',
@@ -33,6 +37,8 @@ const LABELS = {
   },
   en: {
     retry:'Send again',
+    stop:'Stop',
+    timeout:'The answer took too long. Please try again.',
     offline:'The AI service is not responding right now. Please try again in a moment.',
     eyebrow:'Grounded in the Quran and Sunnah',
     you:'You',
@@ -54,6 +60,8 @@ const LABELS = {
   },
   ru: {
     retry:'Отправить снова',
+    stop:'Остановить',
+    timeout:'Ответ занял слишком много времени. Попробуйте ещё раз.',
     offline:'Сервис ИИ сейчас не отвечает. Попробуйте ещё раз чуть позже.',
     eyebrow:'На основе Корана и Сунны',
     you:'Вы',
@@ -75,6 +83,8 @@ const LABELS = {
   },
   ar: {
     retry:'أعد الإرسال',
+    stop:'إيقاف',
+    timeout:'استغرق الرد وقتًا طويلًا. حاول مرة أخرى.',
     offline:'خدمة الذكاء الاصطناعي لا تستجيب الآن. حاول مرة أخرى بعد قليل.',
     eyebrow:'استنادًا إلى القرآن والسنة',
     you:'أنت',
@@ -96,6 +106,8 @@ const LABELS = {
   },
   tr: {
     retry:'Tekrar gönder',
+    stop:'Durdur',
+    timeout:'Cevap çok gecikti. Lütfen tekrar deneyin.',
     offline:'AI hizmeti şu anda yanıt vermiyor. Lütfen biraz sonra tekrar deneyin.',
     eyebrow:'Kuran ve Sünnet temelinde',
     you:'Siz',
@@ -140,8 +152,16 @@ export default function AIChatPage({ setPage }) {
   const [failed, setFailed] = useState(false)
   const [cooldown, setCooldown] = useState(0)
   const [apiUrl, setApiUrl] = useState(FALLBACK_API_URL)
+  // Axında gələn (hələ bitməmiş) cavab; null — axın yoxdur
+  const [streamText, setStreamText] = useState(null)
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
+  const abortRef = useRef(null)
+  // İstifadəçi aşağıdadırsa yeni mətnlə aşağıda qal; yuxarı sürüşdürübsə — məcbur etmə
+  const stickRef = useRef(true)
+
+  // Səhifədən çıxanda yarımçıq sorğunu kəs
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   // Admin Firebase Settings-dən API URL-i real-time oxu (mobile ilə eyni)
   useEffect(() => {
@@ -155,10 +175,23 @@ export default function AIChatPage({ setPage }) {
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)) } catch {}
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
   }, [messages])
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el && stickRef.current) el.scrollTop = el.scrollHeight
+  }, [messages, streamText, loading])
+
+  // Yalnız istifadəçi YUXARI sürüşdürəndə "yapışmanı" burax (hamar avtomatik
+  // sürüşmə scrollTop-u azaltmır); yenidən aşağı enəndə qayıt
+  const lastTopRef = useRef(0)
+  const onChatScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) stickRef.current = true
+    else if (el.scrollTop < lastTopRef.current - 2) stickRef.current = false
+    lastTopRef.current = el.scrollTop
+  }
 
   // Check existing cooldown on mount
   useEffect(() => {
@@ -218,30 +251,39 @@ export default function AIChatPage({ setPage }) {
     const updated = [...base, userMessage]
     setMessages(updated)
     setLoading(true)
+    setStreamText(null)
+    stickRef.current = true
     recordMessage()
 
+    const ac = new AbortController()
+    abortRef.current = ac
     try {
-      const res = await fetch(`${apiUrl.replace(/\/$/, '')}/api/ask-ai`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: msg,
-          history: updated.slice(-10).map(m => ({ role: m.role, content: m.content })),
-          lang,
-        }),
+      // Server son 6 mesajı götürür (+ cari sual) — artığını göndərməyə dəyməz
+      const reply = await askAI({
+        apiUrl,
+        message: msg,
+        history: updated.slice(-7).map(m => ({ role: m.role, content: m.content })),
+        lang,
+        signal: ac.signal,
+        onDelta: (t) => setStreamText(t),
       })
-      // Server HTML/boş cavab qaytarsa json() atır — bu da "xidmət cavab vermir"dir
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok || typeof data.reply !== 'string' || !data.reply.trim()) throw new Error(data.error || 'API error')
-
-      setMessages([...updated, { role:'assistant', content: data.reply, time: Date.now() }])
-    } catch {
-      setError(l.offline)
-      setFailed(true)
+      setMessages([...updated, { role:'assistant', content: reply, time: Date.now() }])
+    } catch (e) {
+      if (e?.code === 'aborted') {
+        // "Dayandır" — gəlmiş hissə söhbətdə qalsın
+        if (e.partial?.trim()) setMessages([...updated, { role:'assistant', content: e.partial.trim(), time: Date.now() }])
+      } else {
+        setError(e?.code === 'timeout' ? l.timeout : l.offline)
+        setFailed(true)
+      }
     }
+    if (abortRef.current === ac) abortRef.current = null
+    setStreamText(null)
     setLoading(false)
     inputRef.current?.focus({ preventScroll: true })
   }
+
+  const stopStreaming = () => abortRef.current?.abort()
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -294,7 +336,7 @@ export default function AIChatPage({ setPage }) {
             )}
           </div>
 
-          <div className="aic-chat" ref={scrollRef} role="log" aria-live="polite" aria-busy={loading}>
+          <div className="aic-chat" ref={scrollRef} onScroll={onChatScroll} role="log" aria-live="polite" aria-busy={loading}>
             {messages.length === 0 ? (
               <div className="aic-welcome">
                 <div className="aic-welcome-art" aria-hidden="true">
@@ -314,26 +356,34 @@ export default function AIChatPage({ setPage }) {
               </div>
             ) : (
               <>
-                {messages.map((m, i) => (
-                  <div key={i} className={`aic-msg aic-msg-${m.role}`}>
-                    {m.role === 'assistant' && <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>}
-                    <div className="aic-bubble">
-                      <span className="ui-sr-only">{m.role === 'assistant' ? tr(BRAND.aiName, lang) : l.you}: </span>
-                      <div className="aic-content">{m.content}</div>
+                {/* Axında gələn cavab da eyni siyahının sonuncu elementidir (eyni key) —
+                    bitəndə DOM dəyişmir, giriş animasiyası təkrarlanmır.
+                    İlk tokenə qədər "yazır" nöqtələri, sonra mətn + yanıb-sönən kursor. */}
+                {(loading ? [...messages, { role: 'assistant', pending: true, content: streamText || '' }] : messages).map((m, i) => (
+                  m.pending && !m.content ? (
+                    <div key={i} className="aic-msg aic-msg-assistant aic-msg-typing">
+                      <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>
+                      <div className="aic-bubble aic-thinking" role="status">
+                        <span className="ui-sr-only">{l.thinking}</span>
+                        <span className="aic-dot" aria-hidden="true"></span>
+                        <span className="aic-dot" aria-hidden="true"></span>
+                        <span className="aic-dot" aria-hidden="true"></span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div key={i} className={`aic-msg aic-msg-${m.role}`}>
+                      {m.role === 'assistant' && <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>}
+                      <div className="aic-bubble">
+                        <span className="ui-sr-only">{m.role === 'assistant' ? tr(BRAND.aiName, lang) : l.you}: </span>
+                        <div className="aic-content">
+                          {m.role === 'assistant'
+                            ? <AIMarkdown text={m.content} tail={m.pending ? <span className="ai-cursor" aria-hidden="true" /> : null} />
+                            : m.content}
+                        </div>
+                      </div>
+                    </div>
+                  )
                 ))}
-                {loading && (
-                  <div className="aic-msg aic-msg-assistant aic-msg-typing">
-                    <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>
-                    <div className="aic-bubble aic-thinking" role="status">
-                      <span className="ui-sr-only">{l.thinking}</span>
-                      <span className="aic-dot" aria-hidden="true"></span>
-                      <span className="aic-dot" aria-hidden="true"></span>
-                      <span className="aic-dot" aria-hidden="true"></span>
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </div>
@@ -383,21 +433,26 @@ export default function AIChatPage({ setPage }) {
             aria-label={l.placeholder}
             enterKeyHint="send"
           />
-          <button
-            type="submit"
-            className="aic-send-btn"
-            disabled={loading || cooldown > 0 || !input.trim()}
-            aria-label={loading ? l.thinking : l.send}
-          >
-            {loading ? (
-              <span className="aic-send-spinner" aria-hidden="true" />
-            ) : cooldown > 0 ? (
-              <span className="ui-num">{cooldown}</span>
-            ) : (
-              /* Göndər ikonu — ərəbcədə güzgülənir (sahəyə tərəf baxsın) */
-              <Icon name="send" size={20} strokeWidth={2} className="aic-send-icon" />
-            )}
-          </button>
+          {loading ? (
+            /* Cavab gəlir — "Dayandır" (AbortController) */
+            <button type="button" className="aic-send-btn aic-stop-btn" onClick={stopStreaming} aria-label={l.stop} title={l.stop}>
+              <span className="aic-stop-sq" aria-hidden="true" />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="aic-send-btn"
+              disabled={cooldown > 0 || !input.trim()}
+              aria-label={l.send}
+            >
+              {cooldown > 0 ? (
+                <span className="ui-num">{cooldown}</span>
+              ) : (
+                /* Göndər ikonu — ərəbcədə güzgülənir (sahəyə tərəf baxsın) */
+                <Icon name="send" size={20} strokeWidth={2} className="aic-send-icon" />
+              )}
+            </button>
+          )}
         </form>
 
         {/* Xəbərdarlıq — AI cavabları fətva deyil (BRAND.aiDisclaimer) */}

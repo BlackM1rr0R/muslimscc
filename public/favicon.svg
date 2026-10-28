@@ -1,14 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Arxa fon: dəyirmi yaşıl -->
-  <rect width="64" height="64" rx="14" fill="#16a34a"/>
-
-  <!-- Ay (hilal) -->
-  <text
-    x="32"
-    y="46"
-    text-anchor="middle"
-    font-size="42"
-    font-family="serif"
-    fill="#ffffff"
-  >☽</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Muslims.cc BrandMark (src/components/Icon.jsx): zümrüd kafel + qum rəngli xatəm + mərkəzdə nöqtə -->
+  <style>
+    .t { fill: #0f5a47 }
+    .s { fill: none; stroke: #e6cc95; stroke-width: 1.6; stroke-linejoin: round }
+    .d { fill: #d8b46a }
+    @media (prefers-color-scheme: dark) {
+      .t { fill: #13705a }
+      .s { stroke: #f0dcae }
+    }
+  </style>
+  <rect class="t" width="32" height="32" rx="9"/>
+  <path class="s" d="M9.4 9.4h13.2v13.2H9.4zM16 6.7 25.3 16 16 25.3 6.7 16z"/>
+  <circle class="d" cx="16" cy="16" r="2.2"/>
 </svg>

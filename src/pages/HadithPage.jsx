@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react'
+import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
 import { T } from '../data/i18n'
@@ -6,7 +7,9 @@ import { HADITHS } from '../data/hadiths'
 import { subscribeToHadiths } from '../data/adminContent'
 import { localizeSource } from '../utils/sourceNames'
 import { uniqueHadithsFor, hadithAliases, staticHadithKeys, hadithKeys, dedupeList } from '../utils/uniqueHadiths'
-import Pagination from '../components/Pagination'
+import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
+import ListMore from '../components/ListMore'
+import BackToTop from '../components/BackToTop'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
 import '../styles/HadithPage.css'
@@ -21,11 +24,11 @@ const CATS_MAP = { az:CATS_AZ, en:CATS_EN, ru:CATS_RU, ar:CATS_AR, tr:CATS_TR }
 
 // Hero eyebrow-u, boş sevimlilər ipucu və "kopyalandı" bildirişi — 5 dil
 const UI_LABELS = {
-  az: { eyebrow:'Hədis və bilik', favEmpty:'Bəyəndiyiniz hədisləri ürək düyməsi ilə burada saxlayın.', copied:'Kopyalandı', clear:'Axtarışı təmizlə' },
-  en: { eyebrow:'Hadith & knowledge', favEmpty:'Save the hadiths you love here with the heart button.', copied:'Copied', clear:'Clear search' },
-  ru: { eyebrow:'Хадисы и знание', favEmpty:'Сохраняйте понравившиеся хадисы здесь кнопкой с сердцем.', copied:'Скопировано', clear:'Очистить поиск' },
-  ar: { eyebrow:'الحديث والعلم', favEmpty:'احفظ الأحاديث التي تحبها هنا بزر القلب.', copied:'تم النسخ', clear:'مسح البحث' },
-  tr: { eyebrow:'Hadis ve ilim', favEmpty:'Beğendiğiniz hadisleri kalp düğmesiyle burada saklayın.', copied:'Kopyalandı', clear:'Aramayı temizle' },
+  az: { eyebrow:'Hədis və bilik', favEmpty:'Bəyəndiyiniz hədisləri ürək düyməsi ilə burada saxlayın.', copied:'Kopyalandı', clear:'Axtarışı təmizlə', all:'Bütün hədislər' },
+  en: { eyebrow:'Hadith & knowledge', favEmpty:'Save the hadiths you love here with the heart button.', copied:'Copied', clear:'Clear search', all:'All hadiths' },
+  ru: { eyebrow:'Хадисы и знание', favEmpty:'Сохраняйте понравившиеся хадисы здесь кнопкой с сердцем.', copied:'Скопировано', clear:'Очистить поиск', all:'Все хадисы' },
+  ar: { eyebrow:'الحديث والعلم', favEmpty:'احفظ الأحاديث التي تحبها هنا بزر القلب.', copied:'تم النسخ', clear:'مسح البحث', all:'كل الأحاديث' },
+  tr: { eyebrow:'Hadis ve ilim', favEmpty:'Beğendiğiniz hadisleri kalp düğmesiyle burada saklayın.', copied:'Kopyalandı', clear:'Aramayı temizle', all:'Tüm hadisler' },
 }
 
 const FAV_LABELS = { az:'Sevimlilər', en:'Favorites', ru:'Избранные', ar:'المفضلة', tr:'Favoriler' }
@@ -66,16 +69,40 @@ function HeartIcon({ filled }) {
 // Kartın bütün id-ləri (birləşdirilmiş dublikatda həm Firebase, həm yerli id)
 const idsOf = (h) => h._ids || [h.id]
 
-// Sürüşdükcə görünmə (motion.css → data-reveal): hər kart ayrıca izlənir —
-// ilk ekrandakılar 40ms növbə ilə, qalanları ekrana girəndə gecikməsiz.
-// (Bütün uzun siyahıya bir "stagger" vermirik: müşahidəçi elementin 8%-ni
-// görməlidir, 5000px-lik siyahıda bu ilk kartları gizli saxlayardı.)
-const revealProps = (i) => ({
-  'data-reveal': '',
-  ...(i > 0 && i < 6 ? { 'data-reveal-delay': String(i * 40) } : {}),
-})
+// Sonsuz sürüşmənin bir partiyası (1445 hədisin hamısı birdən DOM-a qoyulmur)
+const BATCH = 24
 
-function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, lang, index }) {
+// ── Axtarış normallaşdırması ──
+// Latın/kiril: kiçik hərf, "İ"-nin nöqtəsi (U+0307) atılır, ı → i, ё → е —
+// "Iman", "iman", "İman" eyni tapılır. Ərəbcə: hərəkələr (fəthə, kəsrə …),
+// təṭvil və əlif formaları (أ إ آ ٱ → ا), ى → ي — istifadəçi hərəkəsiz yazır.
+const fold = (s) => String(s || '').toLowerCase().replace(/̇/g, '').replace(/ı/g, 'i').replace(/ё/g, 'е')
+const AR_MARKS = /[ؐ-ًؚ-ٰٟۖ-ۭـ]/g
+const foldAr = (s) => String(s || '').replace(AR_MARKS, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي')
+
+// Axtarış yazılarkən hər hərfdə 1445 qeydi süzməyək — 180ms sakitlikdən sonra
+function useDebounced(value, ms) {
+  const [v, setV] = useState(value)
+  useEffect(() => {
+    // Təmizləyəndə gözləmədən
+    const t = setTimeout(() => setV(value), value ? ms : 0)
+    return () => clearTimeout(t)
+  }, [value, ms])
+  return v
+}
+
+// Sürüşdükcə görünmə (motion.css → data-reveal): hər kart ayrıca izlənir.
+// Hər yeni partiyanın ilk 6 kartı 40ms növbə ilə qalxır, qalanları ekrana
+// girəndə gecikməsiz. (Bütün uzun siyahıya bir "stagger" vermirik: uzun
+// siyahıda yalnız ilk 10 uşaq növbə alır, qalanları ekrandan kənarda oynayardı.)
+const revealProps = (i) => {
+  const j = i % BATCH
+  return { 'data-reveal': '', ...(j > 0 && j < 6 ? { 'data-reveal-delay': String(j * 40) } : {}) }
+}
+
+// memo: yeni partiya əlavə olunanda və ya bir kart sevimliyə düşəndə
+// köhnə kartlar yenidən render olunmur (callback-lar sabitdir)
+const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, lang, index }) {
   const b = BTN_LABELS[lang] || BTN_LABELS.en
   // Ərəbcədə hadith.text elə hadith.ar-ın özüdür — eyni mətni iki dəfə göstərməyək
   const text = (hadith.text || '').trim()
@@ -120,15 +147,18 @@ function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, lang, ind
       )}
     </article>
   )
-}
+})
 
 export default function HadithPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.hadith || T.az.hadith
   const cats = CATS_MAP[lang] || CATS_EN
-  const [cat,     setCat]     = useState(cats[0])
-  const [search,  setSearch]  = useState('')
-  const [pageNum, setPageNum] = useState(1)
+  // Kateqoriya İNDEKSLƏ saxlanılır: əvvəl adla idi və dil dəyişəndə ("Namaz" →
+  // "Prayer") heç bir çip seçilmiş görünmürdü. Filtrlər sessionStorage-də —
+  // geri qayıdanda (useInfiniteList-in mövqe yaddaşı ilə birlikdə) bərpa olunur.
+  const [catIdx,  setCatIdx]  = useSessionState('hadith:cat', 0)
+  const [search,  setSearch]  = useSessionState('hadith:q', '')
+  const query = useDebounced(search, 180)
   // Sevimlilər id ilə saxlanılır. Təkrar (atılmış) hədisin id-si
   // saxlanılan surətin id-sinə köçürülür — köhnə sevimli itməsin.
   const [favs,    setFavs]    = useState(() => {
@@ -139,13 +169,12 @@ export default function HadithPage({ setPage }) {
       return [...new Set(saved.map(id => (aliases.has(id) ? aliases.get(id) : id)))]
     } catch { return [] }
   })
-  const [showFavs, setShowFavs] = useState(false)
+  const [showFavs, setShowFavs] = useSessionState('hadith:fav', false)
   const [customHadiths, setCustomHadiths] = useState([])
   const [copied, setCopied] = useState(false)
   const copiedTimer = useRef(null)
   useEffect(() => () => clearTimeout(copiedTimer.current), [])
   const u = UI_LABELS[lang] || UI_LABELS.en
-  const PER = 20
 
   useEffect(() => {
     try { localStorage.setItem('hadith_favs', JSON.stringify(favs)) } catch { /* yaddaş bağlıdır */ }
@@ -157,23 +186,24 @@ export default function HadithPage({ setPage }) {
     return () => unsubscribe?.()
   }, [])
 
-  const isFav = (h) => idsOf(h).some(id => favs.includes(id))
+  // Set: 1445 kartın hər biri üçün massivdə axtarış etməyək
+  const favSet = useMemo(() => new Set(favs), [favs])
+  const isFav = useCallback((h) => idsOf(h).some(id => favSet.has(id)), [favSet])
 
-  // Sevimli — əsas keçid: telefonda yüngül titrəmə ilə "hiss" olunur
-  const toggleFav = (h) => {
+  // Sevimli — əsas keçid: telefonda yüngül titrəmə ilə "hiss" olunur.
+  // Sabit callback (memo kartlar yenidən render olunmasın)
+  const toggleFav = useCallback((h) => {
     haptic()
     const ids = idsOf(h)
     setFavs(f => (ids.some(id => f.includes(id)) ? f.filter(x => !ids.includes(x)) : [...f, h.id]))
-  }
+  }, [])
 
-  const shareHadith = async (hadith) => {
+  const shareHadith = useCallback(async (hadith) => {
     // Ərəbcədə "tərcümə" elə ərəb mətnidir — iki dəfə yazılmasın
     const body = hadith.text && hadith.text !== hadith.ar ? `${hadith.text}\n\n` : ''
     const text = `${hadith.ar}\n\n${body}— ${localizeSource(hadith.source, lang)}\n\n${brandName(lang)} — muslims.cc`
-    if (navigator.share) {
-      try { await navigator.share({ text }) } catch {}
-    } else {
-      // alert() əvəzinə sakit bildiriş (2 san.) — axını kəsmir
+    // alert() əvəzinə sakit bildiriş (2 san.) — axını kəsmir
+    const copy = async () => {
       try {
         await navigator.clipboard.writeText(text)
         setCopied(true)
@@ -181,7 +211,14 @@ export default function HadithPage({ setPage }) {
         copiedTimer.current = setTimeout(() => setCopied(false), 2000)
       } catch { /* panoya yazmaq bağlıdır */ }
     }
-  }
+    if (navigator.share) {
+      // İstifadəçi pəncərəni bağlayıbsa (AbortError) — heç nə; paylaşma
+      // bağlıdırsa (NotAllowedError, iframe) — panoya köçür
+      try { await navigator.share({ text }) } catch (e) { if (e?.name !== 'AbortError') await copy() }
+    } else {
+      await copy()
+    }
+  }, [lang])
 
   // Firebase custom hadithləri uyğun formata çevirək
   const customForLang = useMemo(() => {
@@ -221,55 +258,53 @@ export default function HadithPage({ setPage }) {
     }).items
   }, [customForLang, staticList])
 
+  // Axtarış indeksi — hər hədis üçün bir dəfə (hər hərfdə yenidən yox).
+  // Mənbə həm orijinal ("Buxari"), həm cari dildəki yazılışla ("Bukhari") tapılır.
+  const index = useMemo(() => list.map(h => ({
+    hay: fold(`${h.text || ''}\n${h.source || ''}\n${localizeSource(h.source, lang)}`),
+    ar: foldAr(h.ar),
+  })), [list, lang])
+
+  // Sevimlilər filtri yalnız açıq olanda favSet-dən asılıdır — əks halda
+  // ürəyə basmaq bütün siyahını yenidən süzdürməsin
+  const favFilter = showFavs ? favSet : null
+  const safeCat = catIdx > 0 && catIdx < cats.length ? catIdx : 0
   const filtered = useMemo(() => {
-    const q = search.toLowerCase()
-    const idx = cats.indexOf(cat)
-    const enCat = idx <= 0 ? null : CATS_EN[idx] || null
-    return list.filter(h => {
-      if (showFavs && !isFav(h)) return false
-      // Mənbə həm orijinal ("Buxari"), həm cari dildəki yazılışla ("Bukhari") tapılır
-      const mq = !q || (h.text || '').toLowerCase().includes(q) || (h.ar || '').includes(q) ||
-        (h.source || '').toLowerCase().includes(q) || localizeSource(h.source, lang).toLowerCase().includes(q)
-      const mc = !enCat || h.cat === enCat?.toLowerCase() || h.cat === enCat
-      return mq && mc
+    const q = fold(query.trim())
+    const qa = foldAr(query.trim())
+    const enCat = safeCat > 0 ? CATS_EN[safeCat].toLowerCase() : null
+    return list.filter((h, i) => {
+      if (favFilter && !idsOf(h).some(id => favFilter.has(id))) return false
+      if (enCat && String(h.cat || '').toLowerCase() !== enCat) return false
+      return !q || index[i].hay.includes(q) || (qa && index[i].ar.includes(qa))
     })
-  }, [list, cat, search, lang, showFavs, favs])
+  }, [list, index, safeCat, query, favFilter])
 
   // Sevimlilər çipindəki say — yalnız siyahıda həqiqətən olan hədislər
-  const favCount = useMemo(() => list.filter(isFav).length, [list, favs]) // eslint-disable-line react-hooks/exhaustive-deps
-  const total = Math.ceil(filtered.length / PER)
-  // Sevimlidən çıxarılanda son səhifə boşala bilər — mövcud səhifəyə sıxırıq
-  const current = Math.min(pageNum, Math.max(1, total))
-  const paged = filtered.slice((current - 1) * PER, current * PER)
+  const favCount = useMemo(() => list.filter(isFav).length, [list, isFav])
 
-  // Filtr, axtarış, dil və ya "Sevimlilər" dəyişəndə 1-ci səhifəyə qayıt
-  useEffect(() => { setPageNum(1) }, [cat, search, lang, showFavs])
-
-  // Səhifə dəyişəndə siyahının əvvəlinə qalx (əks halda ziyarətçi
-  // yeni səhifənin sonunda — #40-da qalırdı)
+  // Telefonda çip zolağı yapışqandır (sticky) — onun altı; kompüterdə başlıq.
   const countRef = useRef(null)
-  const goPage = (p) => {
-    setPageNum(p)
-    requestAnimationFrame(() => {
-      // html-in scroll-padding-top-u sabit başlığı nəzərə alır
-      countRef.current?.scrollIntoView({ block: 'start' })
-    })
-  }
-
-  // Telefonda çip zolağı yapışqandır (sticky): siyahının ortasında başqa
-  // kateqoriya seçiləndə yeni nəticələrin əvvəlinə qalx. Kompüterdə zolaq
-  // yapışmır — orada bu yoxlama heç nə etmir.
   const barRef = useRef(null)
-  const toListTop = () => {
-    requestAnimationFrame(() => {
-      const bar = barRef.current
+
+  // Sonsuz sürüşmə: filtr/axtarış/dil/"Sevimlilər" dəyişəndə siyahı əvvəldən
+  // başlayır və (siyahının ortasında idisə) nəticələrin əvvəlinə qalxır
+  const inf = useInfiniteList({
+    total: filtered.length,
+    batch: BATCH,
+    resetKey: `${lang}|${safeCat}|${showFavs ? 1 : 0}|${query.trim()}`,
+    storageKey: 'hadith',
+    onReset: () => {
       const el = countRef.current
-      if (!bar || !el || getComputedStyle(bar).position !== 'sticky') return
-      if (el.getBoundingClientRect().top < bar.getBoundingClientRect().bottom) {
-        el.scrollIntoView({ block: 'start' })
-      }
-    })
-  }
+      if (!el) return
+      const bar = barRef.current
+      const sticky = bar && getComputedStyle(bar).position === 'sticky'
+      const limit = sticky ? bar.getBoundingClientRect().bottom : 80
+      // html-in scroll-padding-top-u / scroll-margin sabit başlığı nəzərə alır
+      if (el.getBoundingClientRect().top < limit) el.scrollIntoView({ block: 'start' })
+    },
+  })
+  const visible = filtered.slice(0, inf.count)
 
   const countText = lang==='az' ? `${filtered.length} hədis` : lang==='ru' ? `${filtered.length} хадисов` : lang==='ar' ? `${filtered.length} حديثاً` : lang==='tr' ? `${filtered.length} hadis` : `${filtered.length} hadiths`
 
@@ -306,26 +341,27 @@ export default function HadithPage({ setPage }) {
             <div className="hadith-chips" role="group" aria-label={CATS_LABEL[lang] || CATS_LABEL.en} data-reveal="stagger-fade">
               <button type="button" className="ui-chip hadith-chip-fav"
                 aria-pressed={showFavs}
-                onClick={() => { setShowFavs(f => !f); toListTop() }}>
+                onClick={() => setShowFavs(f => !f)}>
                 <HeartIcon filled={showFavs} />
                 {FAV_LABELS[lang] || FAV_LABELS.en}
                 {favCount > 0 && <span className="hadith-chip-count ui-num">{favCount}</span>}
               </button>
               <span className="hadith-chips__sep" aria-hidden="true" />
-              {cats.map(c => (
+              {cats.map((c, i) => (
                 <button type="button" key={c} className="ui-chip"
-                  aria-pressed={cat === c && !showFavs}
-                  onClick={() => { setCat(c); setShowFavs(false); toListTop() }}>{c}</button>
+                  aria-pressed={safeCat === i && !showFavs}
+                  onClick={() => { setCatIdx(i); setShowFavs(false) }}>{c}</button>
               ))}
             </div>
           </div>
 
           <p className="hadith-count ui-num" ref={countRef} aria-live="polite">{countText}</p>
 
-          {/* Açar filtr/səhifə dəyişəndə siyahını yenidən qurur — kartlar
-              yenidən növbə ilə görünür (siyahı keçidi) */}
-          <div className="hadiths-list" key={`${cat}|${showFavs}|${current}`}>
-            {paged.length === 0
+          {/* Açar filtr dəyişəndə siyahını yenidən qurur — kartlar yenidən
+              növbə ilə görünür (siyahı keçidi). Axtarış açara daxil deyil:
+              hər hərfdə bütün kartlar yenidən oynamasın. */}
+          <div className="hadiths-list" key={`${safeCat}|${showFavs}`}>
+            {visible.length === 0
               ? (
                 <div className="ui-card ui-card--sunken hadith-empty" data-reveal="scale">
                   <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral">
@@ -333,6 +369,11 @@ export default function HadithPage({ setPage }) {
                   </span>
                   <p className="hadith-empty__title">{t.noResult}</p>
                   {showFavs && !search && <p className="hadith-empty__text">{u.favEmpty}</p>}
+                  {showFavs && !search && (
+                    <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setShowFavs(false)}>
+                      <Icon name="hadith" className="ui-btn__icon" /> {u.all}
+                    </button>
+                  )}
                   {search && (
                     <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setSearch('')}>
                       <Icon name="close" className="ui-btn__icon" /> {u.clear}
@@ -340,13 +381,13 @@ export default function HadithPage({ setPage }) {
                   )}
                 </div>
               )
-              : paged.map((h, i) => (
+              : visible.map((h, i) => (
                   <HadithCard
                     key={h.id}
                     hadith={h}
                     lang={lang}
                     index={i}
-                    displayNum={(current - 1) * PER + i + 1}
+                    displayNum={i + 1}
                     isFav={isFav(h)}
                     onToggleFav={toggleFav}
                     onShare={shareHadith}
@@ -355,15 +396,33 @@ export default function HadithPage({ setPage }) {
             }
           </div>
 
-          {/* Ümumi səhifələmə (Kitablar/Videolar ilə eyni): "…" ilə qısa, 44px-ə yaxın düymələr */}
-          <Pagination current={current} total={total} onChange={goPage} color="var(--brand)" />
+          {/* Sonsuz sürüşmə: altda skeleton + "Daha çox göstər", sonda "Hamısı göstərildi" */}
+          <ListMore {...inf} endText={countText} minForEnd={BATCH} skeleton={
+            <>
+              <div className="ui-card hadith-card hadith-skel">
+                <span className="ui-skeleton ui-skeleton--text" style={{ '--w': '22%' }} />
+                <span className="ui-skeleton ui-skeleton--text hadith-skel__ar" style={{ '--w': '92%' }} />
+                <span className="ui-skeleton ui-skeleton--text hadith-skel__ar" style={{ '--w': '70%' }} />
+                <span className="ui-skeleton ui-skeleton--text" style={{ '--w': '85%' }} />
+                <span className="ui-skeleton ui-skeleton--text" style={{ '--w': '40%' }} />
+              </div>
+            </>
+          } />
         </div>
       </div>
 
-      {/* "Kopyalandı" bildirişi (navigator.share olmayan brauzerlər) */}
-      <div className={`hadith-toast${copied ? ' is-on' : ''}`} role="status" aria-live="polite">
-        {copied && <><Icon name="check" size={18} /> {u.copied}</>}
-      </div>
+      <BackToTop />
+
+      {/* "Kopyalandı" bildirişi (navigator.share olmayan brauzerlər).
+          <body>-yə portal: <main>-in keçid animasiyası (fill: both, transform)
+          position: fixed-i özünə bağlayırdı — bildiriş ekranın yox, səhifənin
+          altında (~4500px aşağıda) çıxırdı və görünmürdü. */}
+      {createPortal(
+        <div className={`hadith-toast${copied ? ' is-on' : ''}`} role="status" aria-live="polite">
+          {copied && <><Icon name="check" size={18} /> {u.copied}</>}
+        </div>,
+        document.body
+      )}
     </>
   )
 }

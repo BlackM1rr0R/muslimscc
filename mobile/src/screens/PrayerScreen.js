@@ -10,8 +10,8 @@ import { T } from '../data/i18n';
 import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, FadeIn, ScaleIn, Float, Pulse, PressableCard, AnimatedNumber, BreathingDot, AnimatedProgressBar } from '../components/Animated';
-import { PRAYER_CITIES, usePrayerLocation, setPrayerCity } from '../services/prayerLocation';
-import { tr } from '../config/brand';
+import { usePrayerLocation, setPrayerCity } from '../services/prayerLocation';
+import CityPicker from '../components/CityPicker';
 
 // Şəhərlər — tətbiqin ortaq siyahısı və seçimi (services/prayerLocation).
 // Burada seçilən şəhər ana səhifənin namaz kartına, "Camaat və Cümə namazı"
@@ -36,7 +36,6 @@ export default function PrayerScreen() {
   const shL = dark ? Shadows.dark.lg : Shadows.lg;
 
   const loc = usePrayerLocation();
-  const cityIdx = Math.max(0, PRAYER_CITIES.findIndex(x => x.id === loc.id));
   const [times, setTimes] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
@@ -48,7 +47,7 @@ export default function PrayerScreen() {
   }, []);
 
   // İstifadəçinin seçimi — bütün tətbiq üçün yadda saxlanılır
-  const pickCity = (idx) => { setPrayerCity(PRAYER_CITIES[idx].id) }
+  const pickCity = (id) => { setPrayerCity(id) }
 
   useEffect(() => {
     AsyncStorage.getItem('muslim_cc_prayer_stats').then(v => {
@@ -58,7 +57,8 @@ export default function PrayerScreen() {
 
   useEffect(() => {
     setLoading(true);
-    const city = PRAYER_CITIES[cityIdx];
+    // Seçilmiş yer (services/prayerLocation) — siyahıda 98 şəhər var
+    const city = loc;
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -69,7 +69,7 @@ export default function PrayerScreen() {
       .then(d => setTimes(d.data.timings))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [cityIdx]);
+  }, [loc.lat, loc.lng, loc.method]);
 
   const getNextPrayer = () => {
     if (!times) return null;
@@ -130,25 +130,8 @@ export default function PrayerScreen() {
           <Text style={[styles.sectionLabel, { color: c.textMuted }]}>
             {lang==='az'?'ŞƏHƏR':lang==='ru'?'ГОРОД':lang==='ar'?'المدينة':lang==='tr'?'ŞEHİR':'CITY'}
           </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cityRow}>
-            {PRAYER_CITIES.map((city, i) => {
-              const active = cityIdx === i;
-              return (
-                <PressableCard
-                  key={i}
-                  style={[
-                    styles.cityBtn,
-                    { backgroundColor: active ? c.primary : c.card, borderColor: active ? c.primary : c.cardBorder },
-                    active ? Shadows.button : (dark ? Shadows.dark.sm : Shadows.sm),
-                  ]}
-                  onPress={() => pickCity(i)}
-                >
-                  <AppIcon name="location" size={14} color={active ? '#fff' : c.textMuted} />
-                  <Text style={[styles.cityText, { color: active ? '#fff' : c.text }]}>{tr(city.label, lang)}</Text>
-                </PressableCard>
-              );
-            })}
-          </ScrollView>
+          {/* ~100 şəhər — çip zolağı yerinə axtarışlı seçici (components/CityPicker) */}
+          <CityPicker value={loc.id} onSelect={pickCity} lang={lang} dark={dark} />
         </FadeUp>
 
         {/* ═══ NEXT PRAYER — big countdown card ═══ */}
@@ -337,9 +320,6 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1.5, marginBottom: 10 },
 
   // City
-  cityRow: { gap: 8, paddingBottom: 8 },
-  cityBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: BorderRadius.full, borderWidth: 1.5 },
-  cityText: { fontSize: 13, fontWeight: '700' },
 
   // Next prayer card
   nextCard: {

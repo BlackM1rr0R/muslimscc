@@ -17,7 +17,6 @@
 
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
 
 // ⚠️ BURADA ÖZ FIREBASE CONFIG-İNİZİ YERLƏŞDIRIN ⚠️
 const firebaseConfig = {
@@ -35,8 +34,12 @@ const app = initializeApp(firebaseConfig)
 // Firestore database
 export const db = getFirestore(app)
 
-// Auth (admin login üçün)
-export const auth = getAuth(app)
+// Auth QƏSDƏN YOXDUR (performans): əvvəl burada `getAuth(app)` çağırılırdı,
+// amma `auth` heç yerdə istifadə olunmurdu (admin girişi Firebase Auth-la deyil).
+// Buna baxmayaraq getAuth hər səhifədə apis.google.com/js/api.js, auth iframe-i
+// (~93 KB iframe.js) və identitytoolkit getProjectConfig sorğusunu yükləyirdi,
+// firebase chunk-ına da auth SDK-sı düşürdü. Lazım olarsa — yalnız admin
+// səhifəsində dinamik import('firebase/auth') ilə.
 
 // Konfiqurasiya təsdiqi
 export const isFirebaseConfigured = () => {

@@ -1,0 +1,228 @@
+/* ═══════════════════════════════════════════════════════
+   CityPicker — axtarışlı şəhər seçicisi (components/CityPicker.jsx)
+   • Kompüter: düymənin altında açılan panel (position: fixed, JS yerləşdirir)
+   • Telefon (< 640px): alt vərəq + arxa fon
+   • z-index 1290: header (1000), dok (990), SideNav (1200) üstündə,
+     Ctrl+K axtarışı (1300) altında
+   Yalnız tokenlər (DESIGN.md); hərəkət motion.css-in .ui-enter-* sinifləri ilə.
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Düymə ── */
+.cp-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cp-trigger__chev { flex-shrink: 0; transition: transform var(--dur-2) var(--ease-out); }
+.cp-trigger[aria-expanded="true"] .cp-trigger__chev { transform: rotate(180deg); }
+
+/* field — sahəyə bənzər iri düymə (/prayer, /qibla) */
+.cp-trigger--field {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  color: var(--text-strong);
+  text-align: start;
+  box-shadow: inset 0 1px 2px rgba(17, 24, 21, 0.04);
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
+}
+.cp-trigger--field:active { transform: scale(0.99); }
+@media (hover: hover) { .cp-trigger--field:hover { border-color: var(--text-tertiary); } }
+.cp-trigger--field[aria-expanded="true"] { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft-2); }
+.cp-trigger__pin { flex-shrink: 0; color: var(--accent); }
+.cp-trigger__text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.cp-trigger__name {
+  font-weight: 600;
+  font-size: var(--step-0);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-trigger__sub { color: var(--text-tertiary); font-size: 13px; line-height: 1.3; }
+.cp-trigger--field .cp-trigger__chev { color: var(--text-tertiary); }
+
+/* inline — mətnin içində şəhər adı (ana səhifənin kartı, /jamaat) */
+.cp-trigger--inline {
+  gap: 3px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--brand-line);
+  text-underline-offset: 3px;
+  transition: background-color var(--dur-1) ease, color var(--dur-1) ease;
+}
+.cp-trigger--inline .cp-trigger__name { font-size: inherit; font-weight: inherit; white-space: normal; }
+@media (hover: hover) { .cp-trigger--inline:hover { background: var(--brand-soft); text-decoration-color: currentColor; } }
+
+/* ── Qat ── */
+.cp-layer { position: fixed; inset: 0; z-index: 1290; pointer-events: none; }
+.cp-layer--sheet { pointer-events: auto; }
+.cp-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 16, 14, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+/* ── Panel ── */
+.cp-panel {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  background: var(--surface-raised);
+  color: var(--text-body);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-4);
+  overflow: hidden;
+}
+.cp-panel--pop { border-radius: var(--radius-lg); max-height: 520px; }
+.cp-panel--pop.is-up { transform-origin: bottom center; }
+.cp-panel--sheet {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: min(86dvh, 680px);
+  height: min(86dvh, 680px);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  border-bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.cp-grip {
+  align-self: center;
+  width: 40px;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--line-strong);
+}
+
+.cp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 10px 2px 16px;
+  padding-inline: 16px 10px;
+}
+.cp-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-1);
+  color: var(--text-strong);
+}
+.cp-panel--pop .cp-title { font-family: var(--font-sans); font-size: 14px; color: var(--text-secondary); }
+.cp-close { flex-shrink: 0; }
+
+.cp-search { position: relative; padding: 8px 12px 10px; border-bottom: 1px solid var(--line); }
+.cp-search__ic {
+  position: absolute;
+  inset-inline-start: 26px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-top: -1px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+.cp-panel .cp-input { padding-inline-start: 42px; padding-inline-end: 40px; }
+.cp-search .cp-spin { position: absolute; inset-inline-end: 26px; top: 50%; margin-top: -8px; }
+
+/* ── Siyahı ── */
+.cp-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px 6px 10px;
+  scroll-padding-block: 34px 8px;
+}
+.cp-group + .cp-group { margin-top: 4px; }
+.cp-group__label {
+  position: sticky;
+  top: -6px;
+  z-index: 1;
+  padding: 10px 12px 6px;
+  background: var(--surface-raised);
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+html[lang="ar"] .cp-group__label { letter-spacing: 0; text-transform: none; font-size: 13px; }
+
+.cp-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--tap);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-body);
+  transition: background-color var(--dur-1) ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.cp-opt.is-active { background: var(--surface-3); }
+.cp-opt:active { background: var(--brand-soft-2); }
+.cp-opt.is-current { color: var(--brand); }
+.cp-opt.is-current .cp-opt__name { font-weight: 600; }
+.cp-opt__ic {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.cp-opt__text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.cp-opt__name { line-height: 1.3; overflow-wrap: anywhere; }
+.cp-opt__sub { color: var(--text-tertiary); font-size: 13px; line-height: 1.35; }
+.cp-opt.is-error .cp-opt__sub { color: var(--bad); }
+.cp-opt__check { flex-shrink: 0; color: var(--brand); }
+.cp-opt .cp-spin { flex-shrink: 0; }
+.cp-opt--geo, .cp-opt--searchWorld { font-weight: 600; }
+.cp-opt--geo .cp-opt__sub, .cp-opt--searchWorld .cp-opt__sub { font-weight: 400; }
+.cp-group--geo { padding-bottom: 4px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
+.cp-group--search { border-top: 1px solid var(--line); padding-top: 4px; margin-top: 6px; }
+
+.cp-empty, .cp-hint {
+  margin: 10px 12px 4px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.cp-spin {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--brand-line);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-trigger__chev, .cp-opt { transition: none; }
+}
+
+/* Valideynin "svg { color }" qaydası oxu boyamasın (məs. ana səhifənin kartı) */
+.cp-trigger--inline .cp-trigger__chev { color: inherit; }
+
+/* /qibla xəta kartında seçici (QiblaPage.css-ə toxunmadan) */
+.qibla-city-pick { width: min(100%, 320px); margin: 12px auto 0; }

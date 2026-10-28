@@ -199,10 +199,10 @@
 .hadith-empty__text { max-width: 42ch; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
 .hadith-empty .ui-icon-tile svg { width: 26px; height: 26px; }
 
-/* ── Səhifələmə (ümumi komponent) — aktiv düymə brend tokenləri ilə ── */
-.hadith-page .pagination { margin-top: var(--space-7); }
-.hadith-page .pg-btn { border: 1px solid var(--line-strong); background: var(--surface-1); color: var(--text-body); border-radius: var(--radius-md); font-weight: 600; }
-.hadith-page .pg-btn.active { background: var(--brand); border-color: var(--brand); color: var(--on-brand); box-shadow: var(--shadow-1); }
+/* ── Sonsuz sürüşmə: növbəti partiyanın skeleton kartı (ListMore sentinel-i) ── */
+.hadith-page .hadith-skel { display: flex; flex-direction: column; gap: 6px; box-shadow: none; }
+.hadith-page .hadith-skel .hadith-skel__ar { height: 1.4em; margin-left: auto; } /* ərəbcə mətn hər dildə sağdadır */
+.hadith-page .lm { margin-top: var(--space-4); }
 
 /* ── "Kopyalandı" bildirişi — aşağıda ortada, yalnız transform/opacity ── */
 .hadith-toast {

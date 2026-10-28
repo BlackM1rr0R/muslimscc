@@ -54,3 +54,4 @@ scripts/social/state/
 test-results/
 playwright-report/
 blob-report/
+scripts/.icon-preview/

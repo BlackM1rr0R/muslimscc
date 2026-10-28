@@ -88,7 +88,7 @@ export default async function handler(req, res) {
           fcmOptions: { link: url },
           notification: {
             icon: '/android-chrome-192x192.png',
-            badge: '/favicon-32x32.png',
+            badge: '/badge-96x96.png?v=2',   // ağ monoxrom — Android rəngli şəkli ağ kvadrat göstərir
             requireInteraction: priority === 'high',
           },
         },

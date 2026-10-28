@@ -216,10 +216,8 @@
 .vp-skel-thumb { aspect-ratio: 16 / 9; border-radius: 0; }
 .vp-skel-body { display: flex; flex-direction: column; gap: 8px; padding: var(--space-3) var(--space-4) var(--space-4); }
 
-/* ── Səhifələmə ── */
-.videos-page .pagination { margin-top: var(--space-7); }
-.videos-page .pg-btn { border: 1px solid var(--line-strong); background: var(--surface-1); color: var(--text-body); border-radius: var(--radius-md); font-weight: 600; }
-.videos-page .pg-btn.active { background: var(--brand); border-color: var(--brand); color: var(--on-brand); box-shadow: var(--shadow-1); }
+/* Sonsuz sürüşmə (ListMore) — skeleton kartlar şəbəkənin özü kimi */
+.videos-page .lm { margin-top: var(--space-5); }
 
 /* ═══ PƏNCƏRƏ (kompüter) ═══ */
 .vp-modal {

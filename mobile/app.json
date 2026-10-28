@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1a6b3a"
+      "backgroundColor": "#f7f5ef"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -25,7 +25,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1a6b3a"
+        "backgroundColor": "#0f5a47"
       },
       "package": "cc.muslim.app",
       "permissions": [
@@ -43,6 +43,9 @@
     ],
     "extra": {
       "apiUrl": "https://muslims.cc"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }

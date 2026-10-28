@@ -4,6 +4,8 @@ import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateL
 import { subscribeToSettings } from '../data/adminContent'
 import { BRAND } from '../config/brand'
 import Icon from './Icon'
+import AIMarkdown from './AIMarkdown'
+import { askAI } from '../utils/aiStream'
 import '../styles/AIChatWidget.css'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
@@ -49,6 +51,10 @@ const SEND_LABEL = { az:'Göndər', en:'Send', ru:'Отправить', ar:'إر
 const LABELS = {
   az: {
     botName:BRAND.aiName.az,
+    stop:'Dayandır',
+    retry:'Yenidən göndər',
+    offline:'AI xidməti hazırda cavab vermir. Bir az sonra yenidən cəhd edin.',
+    timeout:'Cavab çox gecikdi. Yenidən cəhd edin.',
     tagline:'İslami AI köməkçi',
     placeholder:'Sualınızı yazın...',
     welcome:`Salam aleykum! Mən ${BRAND.name.az} saytının AI köməkçisiyəm. Quran, hədis, namaz, dua haqqında soruşa bilərsiniz.`,
@@ -70,6 +76,10 @@ const LABELS = {
   },
   en: {
     botName:BRAND.aiName.en,
+    stop:'Stop',
+    retry:'Send again',
+    offline:'The AI service is not responding right now. Please try again in a moment.',
+    timeout:'The answer took too long. Please try again.',
     tagline:'Islamic AI assistant',
     placeholder:'Type your question...',
     welcome:`Assalamu alaikum! I am the AI assistant of the ${BRAND.name.en} website. You can ask about Quran, Hadith, prayer, duas.`,
@@ -91,6 +101,10 @@ const LABELS = {
   },
   ru: {
     botName:BRAND.aiName.ru,
+    stop:'Остановить',
+    retry:'Отправить снова',
+    offline:'Сервис ИИ сейчас не отвечает. Попробуйте ещё раз чуть позже.',
+    timeout:'Ответ занял слишком много времени. Попробуйте ещё раз.',
     tagline:'Исламский AI помощник',
     placeholder:'Напишите вопрос...',
     welcome:`Ас-саляму алейкум! Я ИИ-помощник сайта «${BRAND.name.ru}». Спрашивайте о Коране, хадисах, намазе, дуа.`,
@@ -112,6 +126,10 @@ const LABELS = {
   },
   ar: {
     botName:BRAND.aiName.ar,
+    stop:'إيقاف',
+    retry:'أعد الإرسال',
+    offline:'خدمة الذكاء الاصطناعي لا تستجيب الآن. حاول مرة أخرى بعد قليل.',
+    timeout:'استغرق الرد وقتًا طويلًا. حاول مرة أخرى.',
     tagline:'مساعد ذكاء اصطناعي إسلامي',
     placeholder:'اكتب سؤالك...',
     welcome:`السلام عليكم! أنا المساعد الذكي لموقع ${BRAND.name.ar}. اسألني عن القرآن، الحديث، الصلاة، الأدعية.`,
@@ -133,6 +151,10 @@ const LABELS = {
   },
   tr: {
     botName:BRAND.aiName.tr,
+    stop:'Durdur',
+    retry:'Tekrar gönder',
+    offline:'AI hizmeti şu anda yanıt vermiyor. Lütfen biraz sonra tekrar deneyin.',
+    timeout:'Cevap çok gecikti. Lütfen tekrar deneyin.',
     tagline:'İslami AI asistan',
     placeholder:'Sorunuzu yazın...',
     welcome:`Selamün aleyküm! Ben ${BRAND.name.tr} web sitesinin yapay zekâ asistanıyım. Kuran, hadis, namaz, dua hakkında sorabilirsiniz.`,
@@ -194,8 +216,19 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
   const [error, setError] = useState('')
   const [cooldown, setCooldown] = useState(0) // saniyə qaldı
   const [apiUrl, setApiUrl] = useState(FALLBACK_API_URL)
+  // Son göndərmə alınmadı — "Yenidən göndər" düyməsi görünür
+  const [failed, setFailed] = useState(false)
+  // Axında gələn (hələ bitməmiş) cavab; null — axın yoxdur
+  const [streamText, setStreamText] = useState(null)
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
+  const abortRef = useRef(null)
+  // İstifadəçi aşağıdadırsa yeni mətnlə aşağıda qal; yuxarı sürüşdürübsə — məcbur etmə
+  const stickRef = useRef(true)
+  const lastTopRef = useRef(0)
+
+  // Komponent çıxanda yarımçıq sorğunu kəs
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   // Admin Firebase Settings-dən API URL-i real-time oxu (mobile ilə eyni)
   useEffect(() => {
@@ -209,11 +242,22 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)) } catch {}
-    // Boş söhbətdə salamlama ekranı yuxarıdan görünsün — aşağı sürüşdürmə yalnız mesaj olanda
-    if (scrollRef.current && messages.length > 0) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
   }, [messages])
+
+  // Boş söhbətdə salamlama ekranı yuxarıdan görünsün — aşağı sürüşdürmə yalnız mesaj olanda
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el && messages.length > 0 && stickRef.current) el.scrollTop = el.scrollHeight
+  }, [messages, streamText, loading])
+
+  // Yalnız istifadəçi YUXARI sürüşdürəndə "yapışmanı" burax; aşağı enəndə qayıt
+  const onBodyScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) stickRef.current = true
+    else if (el.scrollTop < lastTopRef.current - 2) stickRef.current = false
+    lastTopRef.current = el.scrollTop
+  }
 
   useEffect(() => {
     if (open) {
@@ -301,7 +345,8 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
     if (open && !controlled) window.dispatchEvent(new CustomEvent('close-other-panels', { detail: 'ai' }))
   }, [open, controlled])
 
-  const sendMessage = async (text) => {
+  // base — mesajın əlavə olunacağı söhbət (təkrar cəhddə son sual çıxarılır)
+  const sendMessage = async (text, base = messages) => {
     const msg = (text ?? input).trim()
     if (!msg || loading || cooldown > 0) return
     if (!apiUrl) { setError(l.noBackend); return }
@@ -316,36 +361,57 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
     }
 
     setError('')
+    setFailed(false)
     setInput('')
     const userMessage = { role:'user', content: msg, time: Date.now(), lang }
-    const updated = [...messages, userMessage]
+    const updated = [...base, userMessage]
     setMessages(updated)
     setLoading(true)
+    setStreamText(null)
+    stickRef.current = true
     recordMessage()
 
+    const ac = new AbortController()
+    abortRef.current = ac
     try {
       // Yalnız cari dildəki mesajları kontekst kimi göndər ki, Gemini cavabı
       // keçmiş söhbətdəki dilə uyğunlaşdırmasın. Köhnə mesajlar (lang işarəsi olmadan) az sayılır.
-      const sameLangHistory = updated.filter(m => (m.lang || 'az') === lang).slice(-10)
-      const res = await fetch(`${apiUrl.replace(/\/$/, '')}/api/ask-ai`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: msg,
-          history: sameLangHistory.map(m => ({ role: m.role, content: m.content })),
-          lang,
-        }),
+      // Server son 6 mesajı götürür (+ cari sual) — artığını göndərməyə dəyməz
+      const sameLangHistory = updated.filter(m => (m.lang || 'az') === lang).slice(-7)
+      const reply = await askAI({
+        apiUrl,
+        message: msg,
+        history: sameLangHistory.map(m => ({ role: m.role, content: m.content })),
+        lang,
+        signal: ac.signal,
+        onDelta: (t) => setStreamText(t),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'API error')
-      setMessages([...updated, { role:'assistant', content: data.reply, time: Date.now(), lang }])
+      setMessages([...updated, { role:'assistant', content: reply, time: Date.now(), lang }])
       if (!openRef.current) setHasUnread(true)
     } catch (e) {
-      setError(`${l.error} (${e.message})`)
+      if (e?.code === 'aborted') {
+        // "Dayandır" — gəlmiş hissə söhbətdə qalsın
+        if (e.partial?.trim()) setMessages([...updated, { role:'assistant', content: e.partial.trim(), time: Date.now(), lang }])
+      } else {
+        setError(e?.code === 'timeout' ? l.timeout : l.offline)
+        setFailed(true)
+      }
     }
+    if (abortRef.current === ac) abortRef.current = null
+    setStreamText(null)
     setLoading(false)
-    inputRef.current?.focus()
+    inputRef.current?.focus({ preventScroll: true })
   }
+
+  const stopStreaming = () => abortRef.current?.abort()
+
+  // Son (cavabsız) sualı yenidən göndər — söhbətdə təkrarlanmasın
+  const retryLast = () => {
+    const last = messages[messages.length - 1]
+    if (!last || last.role !== 'user') return
+    sendMessage(last.content, messages.slice(0, -1))
+  }
+  const canRetry = failed && messages.length > 0 && messages[messages.length - 1].role === 'user'
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -354,6 +420,8 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
 
   const handleClear = () => {
     setMessages([])
+    setError('')
+    setFailed(false)
     try { localStorage.removeItem(STORAGE_KEY) } catch { /* yaddaş bağlıdır */ }
   }
 
@@ -409,7 +477,7 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
           </div>
 
           {/* Messages */}
-          <div className="aiw-body" ref={scrollRef}>
+          <div className="aiw-body" ref={scrollRef} onScroll={onBodyScroll} aria-busy={loading}>
             {messages.length === 0 ? (
               <div className="aiw-welcome">
                 <div className="aiw-welcome-icon">
@@ -430,22 +498,27 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
               </div>
             ) : (
               <>
-                {messages.map((m, i) => (
+                {/* Axında gələn cavab da eyni siyahının sonuncu elementidir (eyni key) —
+                    bitəndə DOM dəyişmir, giriş animasiyası təkrarlanmır.
+                    İlk tokenə qədər "yazır" nöqtələri, sonra mətn + yanıb-sönən kursor. */}
+                {(loading ? [...messages, { role: 'assistant', pending: true, content: streamText || '' }] : messages).map((m, i) => (
                   <div key={i} className={`aiw-msg aiw-msg-${m.role}`}>
                     {m.role === 'assistant' && <div className="aiw-msg-avatar" aria-hidden="true"><Icon name="sparkle" size={15} /></div>}
-                    <div className="aiw-bubble" dir="auto">{m.content}</div>
+                    {m.pending && !m.content ? (
+                      <div className="aiw-bubble aiw-thinking" role="status" aria-label={l.typing}>
+                        <span className="aiw-dot"></span>
+                        <span className="aiw-dot"></span>
+                        <span className="aiw-dot"></span>
+                      </div>
+                    ) : m.role === 'assistant' ? (
+                      <div className="aiw-bubble aiw-md" dir="auto">
+                        <AIMarkdown text={m.content} tail={m.pending ? <span className="ai-cursor" aria-hidden="true" /> : null} />
+                      </div>
+                    ) : (
+                      <div className="aiw-bubble" dir="auto">{m.content}</div>
+                    )}
                   </div>
                 ))}
-                {loading && (
-                  <div className="aiw-msg aiw-msg-assistant">
-                    <div className="aiw-msg-avatar" aria-hidden="true"><Icon name="sparkle" size={15} /></div>
-                    <div className="aiw-bubble aiw-thinking">
-                      <span className="aiw-dot"></span>
-                      <span className="aiw-dot"></span>
-                      <span className="aiw-dot"></span>
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </div>
@@ -471,7 +544,14 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
           )}
 
           {cooldown === 0 && error && (
-            <div className="aiw-error" role="alert"><Icon name="alert" size={16} /><span>{error}</span></div>
+            <div className="aiw-error" role="alert">
+              <Icon name="alert" size={16} /><span>{error}</span>
+              {canRetry && (
+                <button type="button" className="aiw-retry" onClick={retryLast}>
+                  <Icon name="refresh" size={14} /> {l.retry}
+                </button>
+              )}
+            </div>
           )}
 
           {/* Input */}
@@ -491,11 +571,16 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
               enterKeyHint="send"
               inputMode="text"
             />
-            <button type="submit" className="aiw-send" disabled={loading || cooldown > 0 || !input.trim()} aria-label={SEND_LABEL[lang]}>
-              {loading
-                ? <span className="aiw-spinner" aria-hidden="true" />
-                : cooldown > 0 ? cooldown : <Icon name="send" size={18} className="ui-flip-rtl" />}
-            </button>
+            {loading ? (
+              /* Cavab gəlir — "Dayandır" (AbortController) */
+              <button type="button" className="aiw-send aiw-stop" onClick={stopStreaming} aria-label={l.stop} title={l.stop}>
+                <span className="aiw-stop-sq" aria-hidden="true" />
+              </button>
+            ) : (
+              <button type="submit" className="aiw-send" disabled={cooldown > 0 || !input.trim()} aria-label={SEND_LABEL[lang]}>
+                {cooldown > 0 ? cooldown : <Icon name="send" size={18} className="ui-flip-rtl" />}
+              </button>
+            )}
           </form>
 
           <div className="aiw-disclaimer">{l.disclaimer}</div>

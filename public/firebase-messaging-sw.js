@@ -29,8 +29,8 @@ messaging.onBackgroundMessage((payload) => {
   const title = payload.notification?.title || payload.data?.title || 'Muslims.cc'
   const options = {
     body: payload.notification?.body || payload.data?.body || '',
-    icon: '/android-chrome-192x192.png',
-    badge: '/favicon-32x32.png',
+    icon: '/android-chrome-192x192.png?v=2',
+    badge: '/badge-96x96.png?v=2',
     tag: payload.data?.tag || 'muslim-cc',
     data: payload.data || {},
     requireInteraction: payload.data?.priority === 'high',

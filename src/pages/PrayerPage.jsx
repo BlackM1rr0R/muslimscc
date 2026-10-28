@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { subscribeToSettings } from '../data/adminContent'
 import usePrayerTimes from '../hooks/usePrayerTimes'
-import { PRAYER_CITIES, usePrayerLocation, setPrayerCity, setAdminDefaultCity } from '../utils/prayerLocation'
+import { usePrayerLocation, setAdminDefaultCity, locationSig } from '../utils/prayerLocation'
+import CityPicker from '../components/CityPicker'
 import { haptic } from '../hooks/useHaptic'
 import { pathFor } from '../seo/routes'
 import { navGroupLabel } from '../data/navigation'
@@ -267,8 +268,8 @@ export default function PrayerPage({ setPage }) {
 
   // Seçilmiş şəhər — bütün saytda ortaq (utils/prayerLocation.js)
   const loc = usePrayerLocation()
-  const sel = loc.id
-  const choose = (id) => setPrayerCity(id)
+  // Siyahı açarı: şəhər dəyişəndə vaxtlar yumşaq yenidən görünsün (xüsusi yer də daxil)
+  const sel = locationSig(loc)
 
   // Admin Settings-dəki standart şəhər — yalnız istifadəçi özü seçməyibsə
   // tətbiq olunur (setAdminDefaultCity bunu özü yoxlayır və yadda saxlayır).
@@ -312,27 +313,6 @@ export default function PrayerPage({ setPage }) {
   const [now, setNow] = useState(new Date())
   useEffect(() => { const id=setInterval(()=>setNow(new Date()),1000); return ()=>clearInterval(id) }, [])
 
-  // Telefonda şəhərlər üfüqi zolaqdadır — seçilmiş çip görünmürsə ora sürüşdür
-  // (yalnız zolağın özü sürüşür, səhifə yerində qalır)
-  // Seçim dəyişəndə də: yarımçıq görünən çipə toxunulubsa zolaq onu yumşaq ortalayır
-  const cityGridRef = useRef(null)
-  const cityScrolled = useRef(false)
-  useEffect(() => {
-    const grid = cityGridRef.current
-    if (!grid || grid.scrollWidth <= grid.clientWidth + 1) return
-    const chip = grid.querySelector('.city-btn.active')
-    if (!chip) return
-    const g = grid.getBoundingClientRect()
-    const c = chip.getBoundingClientRect()
-    const first = !cityScrolled.current
-    cityScrolled.current = true
-    if (c.left >= g.left + 8 && c.right <= g.right - 8) return
-    const left = grid.scrollLeft + (c.left - g.left) - (g.width - c.width) / 2
-    let smooth = !first
-    try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) smooth = false } catch { /* köhnə brauzer */ }
-    if (typeof grid.scrollTo === 'function') grid.scrollTo({ left, behavior: smooth ? 'smooth' : 'auto' })
-    else grid.scrollLeft = left
-  }, [sel])
 
   const STAT_NAMES = {
     Fajr:    { az:'Sübh',   ru:'Фаджр',  ar:'الفجر',   tr:'Sabah',  en:'Fajr'    },
@@ -512,14 +492,8 @@ export default function PrayerPage({ setPage }) {
                   <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="pin" /></span>
                   <h2 className="prayer-city-label" id="prayer-city-label">{t.selectCity}</h2>
                 </div>
-                <div className="city-grid" ref={cityGridRef} role="group" aria-labelledby="prayer-city-label">
-                  {PRAYER_CITIES.map(c => (
-                    <button key={c.id} type="button" className={`ui-chip city-btn ${sel === c.id ? 'active' : ''}`}
-                      aria-pressed={sel === c.id} onClick={() => { if (sel !== c.id) haptic(); choose(c.id) }}>
-                      {c.label[lang] || c.label.en}
-                    </button>
-                  ))}
-                </div>
+                {/* 100-ə yaxın şəhər — çip zolağı yerinə axtarışlı seçici (components/CityPicker) */}
+                <CityPicker triggerId="prayer-city-trigger" />
               </div>
 
               {/* Əzan: ayarlar sətri — ikon kafeli, ad + alt yazı, sonda açar (switch).

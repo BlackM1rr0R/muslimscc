@@ -22,6 +22,7 @@ import { JAMAAT_VIRTUES, JUMUA_VIRTUES } from '../data/jamaatVirtues'
 import { VerseCard, HadithCard } from '../components/VirtueCards'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
+import CityPicker from '../components/CityPicker'
 import '../styles/JamaatPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 
@@ -433,7 +434,8 @@ export default function JamaatPage({ setPage }) {
               <p className="jm-foot jm-foot--geo">
                 <Icon name="pin" size={15} className="jm-foot-ic" /> {l.cityLine(city)}
                 <span aria-hidden="true"> · </span>
-                <button type="button" className="jm-inline-link" onClick={() => go('prayer')}>{l.changeCity}</button>
+                {/* Şəhər burada da dəyişir — /prayer-ə keçmədən (components/CityPicker) */}
+                <CityPicker renderTrigger={(p) => <button {...p} className="jm-inline-link">{l.changeCity}</button>} />
               </p>
             </section>
           )}

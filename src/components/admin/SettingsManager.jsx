@@ -4,32 +4,17 @@ import { AdminHeader, SectionTitle, AdminSwitch, AdminToast, SAVE_FAILED } from 
 import Icon from '../Icon'
 import { getAppSettings, saveAppSettings } from '../../data/adminContent'
 import { BRAND, tr } from '../../config/brand'
+import { PRAYER_CITIES, COUNTRY_NAMES } from '../../utils/prayerLocation'
 
-// Şəhərlər: name/country — saxlanan dəyər (namaz API-si üçün, dəyişmir);
-// label/countryLabel — admin siyahısında cari dildə göstərilən ad
-const COUNTRY = {
-  AZ: {az:'Azərbaycan',en:'Azerbaijan',ru:'Азербайджан',ar:'أذربيجان',tr:'Azerbaycan'},
-  TR: {az:'Türkiyə',en:'Türkiye',ru:'Турция',ar:'تركيا',tr:'Türkiye'},
-  SA: {az:'Səudiyyə Ərəbistanı',en:'Saudi Arabia',ru:'Саудовская Аравия',ar:'السعودية',tr:'Suudi Arabistan'},
-  EG: {az:'Misir',en:'Egypt',ru:'Египет',ar:'مصر',tr:'Mısır'},
-  AE: {az:'BƏƏ',en:'UAE',ru:'ОАЭ',ar:'الإمارات',tr:'BAE'},
-  RU: {az:'Rusiya',en:'Russia',ru:'Россия',ar:'روسيا',tr:'Rusya'},
-  GB: {az:'Böyük Britaniya',en:'United Kingdom',ru:'Великобритания',ar:'بريطانيا',tr:'Birleşik Krallık'},
-  US: {az:'ABŞ',en:'USA',ru:'США',ar:'الولايات المتحدة',tr:'ABD'},
-}
-
-const CITIES = [
-  { name:'Baku', country:'Azerbaijan', label:{az:'Bakı',en:'Baku',ru:'Баку',ar:'باكو',tr:'Bakü'}, countryLabel:COUNTRY.AZ },
-  { name:'Istanbul', country:'Turkey', label:{az:'İstanbul',en:'Istanbul',ru:'Стамбул',ar:'إسطنبول',tr:'İstanbul'}, countryLabel:COUNTRY.TR },
-  { name:'Makkah', country:'Saudi Arabia', label:{az:'Məkkə',en:'Makkah',ru:'Мекка',ar:'مكة المكرمة',tr:'Mekke'}, countryLabel:COUNTRY.SA },
-  { name:'Madinah', country:'Saudi Arabia', label:{az:'Mədinə',en:'Madinah',ru:'Медина',ar:'المدينة المنورة',tr:'Medine'}, countryLabel:COUNTRY.SA },
-  { name:'Cairo', country:'Egypt', label:{az:'Qahirə',en:'Cairo',ru:'Каир',ar:'القاهرة',tr:'Kahire'}, countryLabel:COUNTRY.EG },
-  { name:'Dubai', country:'UAE', label:{az:'Dubay',en:'Dubai',ru:'Дубай',ar:'دبي',tr:'Dubai'}, countryLabel:COUNTRY.AE },
-  { name:'Ankara', country:'Turkey', label:{az:'Ankara',en:'Ankara',ru:'Анкара',ar:'أنقرة',tr:'Ankara'}, countryLabel:COUNTRY.TR },
-  { name:'Moscow', country:'Russia', label:{az:'Moskva',en:'Moscow',ru:'Москва',ar:'موسكو',tr:'Moskova'}, countryLabel:COUNTRY.RU },
-  { name:'London', country:'UK', label:{az:'London',en:'London',ru:'Лондон',ar:'لندن',tr:'Londra'}, countryLabel:COUNTRY.GB },
-  { name:'New York', country:'US', label:{az:'Nyu-York',en:'New York',ru:'Нью-Йорк',ar:'نيويورك',tr:'New York'}, countryLabel:COUNTRY.US },
+// Standart şəhər: saytın namaz şəhərləri siyahısı (src/utils/prayerLocation.js —
+// 98 şəhər). Əvvəl burada ayrıca 11 şəhərlik siyahı vardı; id-ləri fərqli idi
+// (məs. 'Makkah' ↔ 'Mecca') və seçilən standart səssizcə nəzərə alınmırdı.
+// Saxlanan dəyər şəhərin id-sidir (namaz kodu setAdminDefaultCity-yə ötürür).
+const CITY_GROUPS = [
+  { key: 'AZ', cities: PRAYER_CITIES.filter(c => c.country === 'AZ') },
+  { key: 'WORLD', cities: PRAYER_CITIES.filter(c => c.country !== 'AZ') },
 ]
+const WORLD_LABEL = { az: 'Dünya', en: 'World', ru: 'Мир', ar: 'العالم', tr: 'Dünya' }
 
 // Namaz vaxtı hesablama metodları (aladhan.com nömrələri) — 5 dildə ad
 const PRAYER_METHODS = [
@@ -93,10 +78,18 @@ export default function SettingsManager() {
             <div className="admin-input-group">
               <label className="admin-input-label">{l.defaultCity}</label>
               <select className="admin-input admin-select" value={settings.defaultCity} onChange={(e) => {
-                const city = CITIES.find(c => c.name === e.target.value)
-                if (city) setSettings({...settings, defaultCity:city.name, defaultCountry:city.country})
+                const city = PRAYER_CITIES.find(c => c.id === e.target.value)
+                if (city) setSettings({ ...settings, defaultCity: city.id, defaultCountry: COUNTRY_NAMES[city.country]?.en || city.country })
               }}>
-                {CITIES.map(c => <option key={c.name} value={c.name}>{c.label[lang]}, {c.countryLabel[lang]}</option>)}
+                {CITY_GROUPS.map(g => (
+                  <optgroup key={g.key} label={g.key === 'AZ' ? COUNTRY_NAMES.AZ[lang] : WORLD_LABEL[lang]}>
+                    {g.cities.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.label[lang]}{g.key === 'AZ' ? '' : `, ${COUNTRY_NAMES[c.country]?.[lang] || c.country}`}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
             <div className="admin-input-group">

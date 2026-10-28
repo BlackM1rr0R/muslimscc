@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, memo } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { SURAH_AZ, getSurahLocal } from '../data/surahNamesAz'
@@ -34,6 +35,74 @@ const BOOKMARK_LABELS = {
   ar: 'أكمل القراءة',
   tr: 'Okumaya devam et'
 }
+
+// "Ayəyə keç" idarəsi (oxuyucunun panelində) və ayə nömrəsinin linki
+const JUMP_LABELS = {
+  az: { jump:'Ayəyə keç', field:'Ayənin nömrəsi', go:'Keç', pick:'Və ya siyahıdan seçin', link:'Bu ayənin linki', range: n => `1 ilə ${n} arasında rəqəm yazın` },
+  en: { jump:'Go to verse', field:'Verse number', go:'Go', pick:'Or pick from the list', link:'Link to this verse', range: n => `Enter a number from 1 to ${n}` },
+  ru: { jump:'Перейти к аяту', field:'Номер аята', go:'Перейти', pick:'Или выберите из списка', link:'Ссылка на этот аят', range: n => `Введите число от 1 до ${n}` },
+  ar: { jump:'انتقل إلى آية', field:'رقم الآية', go:'انتقل', pick:'أو اختر من القائمة', link:'رابط هذه الآية', range: n => `أدخل رقمًا من 1 إلى ${n}` },
+  tr: { jump:'Ayete git', field:'Ayet numarası', go:'Git', pick:'Ya da listeden seçin', link:'Bu ayetin bağlantısı', range: n => `1 ile ${n} arasında bir sayı yazın` },
+}
+
+// Azərbaycan dilində sıra şəkilçisi rəqəmin oxunuşuna görədir:
+// 1-ci, 3-cü, 6-cı, 9-cu, 10-cu, 40-cı, 100-cü (ayə ən çox 286-dır)
+const AZ_ONES = ['', 'ci', 'ci', 'cü', 'cü', 'ci', 'cı', 'ci', 'ci', 'cu']
+const AZ_TENS = ['', 'cu', 'ci', 'cu', 'cı', 'ci', 'cı', 'ci', 'ci', 'cı']
+function azOrdinal(n) {
+  if (n % 10) return `${n}-${AZ_ONES[n % 10]}`
+  if (n % 100) return `${n}-${AZ_TENS[(n % 100) / 10]}`
+  return `${n}-cü`
+}
+// "50-ci ayə" / "verse 50" / "аят 50" / "الآية 50" / "50. ayet"
+function ayahLabel(n, lang) {
+  switch (lang) {
+    case 'az': return `${azOrdinal(n)} ayə`
+    case 'ru': return `аят ${n}`
+    case 'ar': return `الآية ${n}`
+    case 'tr': return `${n}. ayet`
+    default:   return `verse ${n}`
+  }
+}
+// "Bəqərə, 50-ci ayə" (ərəbcədə ərəb vergülü)
+const placeLabel = (name, n, lang) => `${name}${lang === 'ar' ? '، ' : ', '}${ayahLabel(n, lang)}`
+const capFirst = s => s.charAt(0).toLocaleUpperCase() + s.slice(1)
+
+// ── Oxuma yeri (əlfəcin) ──
+// Açar köhnədir: 'quran_bookmark' = { surah, name, time }. İndi ayah da
+// yazılır (oxuduqca, ekranın yuxarısındakı ilk ayə). Köhnə yazıda ayah
+// yoxdursa surə əvvəldən açılır — geriyə uyğundur. Mobil tətbiq eyni formadadır.
+const BOOKMARK_KEY = 'quran_bookmark'
+function readBookmark() {
+  try {
+    const bm = JSON.parse(localStorage.getItem(BOOKMARK_KEY))
+    const surah = Number(bm?.surah)
+    if (!Number.isInteger(surah) || surah < 1 || surah > 114) return null
+    const ayah = Number(bm.ayah)
+    return { ...bm, surah, ayah: Number.isInteger(ayah) && ayah > 1 ? ayah : undefined }
+  } catch { return null }
+}
+function writeBookmark(bm) {
+  try { localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bm)) } catch { /* yaddaş bağlıdır */ }
+}
+
+// ── Ünvan: /quran?s=2&a=90 ──
+// parsePath yalnız birinci seqmentə baxır — query marşrutu, canonical-ı və
+// prerender-i dəyişmir. s = surə (1–114), a = ayə (≥ 1; surə yüklənəndə sıxılır).
+function readQuery(search) {
+  const p = new URLSearchParams(search || '')
+  const s = Number(p.get('s'))
+  if (!Number.isInteger(s) || s < 1 || s > 114) return { s: null, a: null }
+  const a = Number(p.get('a'))
+  return { s, a: Number.isInteger(a) && a >= 1 ? a : null }
+}
+const queryFor = (s, a) => (s ? `?s=${s}${a ? `&a=${a}` : ''}` : '')
+
+const prefersReducedMotion = () => {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false }
+}
+// Yazı sahəsindədirsə qısayol işləmir (Header.jsx-dəki "/" ilə eyni qayda)
+const isTyping = el => !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
 
 const TAFSIR_LABELS = {
   az: 'Təfsir',
@@ -208,7 +277,9 @@ function useSurah(num, lang, attempt = 0) {
   const [error,   setError]   = useState(null)
   const edition = EDITION_MAP[lang]
   useEffect(() => {
-    if (!num) return
+    // Oxuyucu bağlandı — köhnə cavab qalmasın (eyni surə təkrar açılanda
+    // yenisi gələnə qədər "hazır" sayılmasın)
+    if (!num) { setData(null); setError(null); setLoading(false); return }
     if (!edition) { setError('no-edition'); return }
     // Tez-tez "Növbəti" basılanda köhnə cavab yenisinin üstünə yazılmasın
     let cancelled = false
@@ -223,7 +294,7 @@ function useSurah(num, lang, attempt = 0) {
         if (!arabic?.ayahs || trans?.edition?.identifier !== edition || trans.ayahs?.length !== arabic.ayahs.length) {
           throw new Error('edition-unavailable')
         }
-        setData({ ...arabic, verses: arabic.ayahs.map((v,i) => {
+        setData({ ...arabic, _key: `${num}|${lang}`, verses: arabic.ayahs.map((v,i) => {
           // Fatihənin 1-ci ayəsi BOM (U+FEFF) ilə başlayır
           const text = v.text.replace(/^\uFEFF/, '')
           return {
@@ -238,48 +309,28 @@ function useSurah(num, lang, attempt = 0) {
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [num, lang, attempt])
-  return { data, loading, error }
+  // Yalnız istənilən surənin (və dilin) cavabını qaytar: oxuyucu bağlanıb eyni
+  // surə yenidən açılanda köhnə cavab bir render "hazır" görünürdü — gözləyən
+  // ayəyə keçid köhnə DOM-da edilib itirdi
+  return { data: data && data._key === `${num}|${lang}` ? data : null, loading, error }
 }
 
-function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, playLabels }) {
-  const [playing, setPlaying] = useState(false)
-  const audioRef = useRef(null)
-
-  const getAudio = () => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(verse.audio)
-      audioRef.current.onended = () => setPlaying(false)
-      audioRef.current.onerror = () => setPlaying(false)
-    }
-    return audioRef.current
-  }
-
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.src = ''
-        audioRef.current = null
-      }
-    }
-  }, [verse.audio])
-
-  const toggle = () => {
-    haptic()
-    const audio = getAudio()
-    if (playing) {
-      audio.pause()
-      setPlaying(false)
-    } else {
-      audio.play().catch(() => setPlaying(false))
-      setPlaying(true)
-    }
-  }
+// Səs artıq səhifə səviyyəsində tək <audio>-dadır (QuranPage): əvvəl hər kartın
+// öz Audio-su var idi və iki ayə eyni anda səslənə bilirdi; ayə bitəndə növbəti
+// özü başlamırdı. memo: oxuduqca yer yadda saxlananda 286 kart təkrar çəkilməsin.
+// flash — "Ayəyə keç"-dən sonra kartın qısa qızılı vurğusu (0 = yoxdur).
+const AyahCard = memo(function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, playLabels, playing, flash, numLabel, linkLabel, onToggle, onNumber }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
   return (
-    // data-reveal: sürüşdükcə ayə kartı yumşaq görünür (motion.css)
-    <div className={`ayah-card${playing ? ' is-playing' : ''}`} data-reveal="">
-      <div className="ayah-num">{verse.n}</div>
+    // data-reveal: sürüşdükcə ayə kartı yumşaq görünür (motion.css).
+    // id + data-ayah: "Ayəyə keç" hədəfi və oxuma yerinin müşahidəçisi üçün
+    <div id={`ayah-${verse.n}`} data-ayah={verse.n} tabIndex={-1}
+      className={`ayah-card${playing ? ' is-playing' : ''}${flash ? ' is-target' : ''}`} data-reveal="">
+      {/* Qızılı halqa solur; key — eyni ayəyə təkrar keçəndə animasiya yenidən başlasın */}
+      {flash ? <span key={flash} className="ayah-flash" aria-hidden="true" /> : null}
+      {/* Nömrəyə klik: ünvana ?a=N yazılır (link paylaşmaq üçün) və yer yadda qalır */}
+      <button type="button" className="ayah-num" onClick={() => onNumber(verse.n)}
+        aria-label={`${numLabel} — ${linkLabel}`} title={linkLabel}>{verse.n}</button>
       <div className="ayah-body">
         <p className="ayah-arabic" lang="ar" style={{ fontSize: `${fontSize}rem` }}>{verse.ar}</p>
         {showTrans && verse.tr && !showTafsir && <p className="ayah-trans">{verse.tr}</p>}
@@ -291,11 +342,83 @@ function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, playLab
         )}
       </div>
       {verse.audio && (
-        <button type="button" className={`ayah-play press ${playing ? 'playing' : ''}`} onClick={toggle}
-          aria-label={playLabel} title={playLabel}>
+        <button type="button" className={`ayah-play press ${playing ? 'playing' : ''}`} onClick={() => onToggle(verse.n)}
+          aria-label={playLabel} title={playLabel} aria-pressed={playing}>
           <PlayIcon playing={playing} />
         </button>
       )}
+    </div>
+  )
+})
+
+// ── "Ayəyə keç" paneli ──
+// Rəqəm sahəsi (Enter ilə, 1…N yoxlaması) + ayə nömrələrinin şəbəkəsi
+// (uzun surədə — məs. 286 ayə — barmaqla seçmək rahat olsun). Panel
+// yapışqan panelin altında açılır; Esc və ya kənara klik bağlayır.
+function AyahJump({ total, current, labels, onJump, onClose, inputRef, triggerRef, lang }) {
+  const [value, setValue] = useState('')
+  const [error, setError] = useState(false)
+  const panelRef = useRef(null)
+  const gridRef = useRef(null)
+
+  // Açılanda: sahəyə fokus, şəbəkədə cari ayə görünsün
+  useEffect(() => {
+    inputRef.current?.focus({ preventScroll: true })
+    const grid = gridRef.current
+    const cur = grid?.querySelector('[aria-current="true"]')
+    if (cur) {
+      const off = cur.getBoundingClientRect().top - grid.getBoundingClientRect().top + grid.scrollTop
+      grid.scrollTop = off - grid.clientHeight / 2 + cur.offsetHeight / 2
+    }
+  }, [inputRef])
+
+  // Kənara klik / Esc → bağla (Esc-də fokus açan düyməyə qayıdır)
+  useEffect(() => {
+    const onDown = e => {
+      if (panelRef.current?.contains(e.target) || triggerRef.current?.contains(e.target)) return
+      onClose(false)
+    }
+    const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); onClose(true) } }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [onClose, triggerRef])
+
+  const submit = e => {
+    e.preventDefault()
+    const n = Number(String(value).trim())
+    if (!Number.isInteger(n) || n < 1 || n > total) { setError(true); inputRef.current?.focus(); return }
+    onJump(n)
+  }
+  const nums = useMemo(() => Array.from({ length: total }, (_, i) => i + 1), [total])
+  const hintId = 'qp-jump-hint'
+  return (
+    <div className="qp-jump ui-enter-drop" ref={panelRef} id="qp-jump" role="dialog" aria-label={labels.jump}>
+      <form className="qp-jump__form" onSubmit={submit} noValidate>
+        <label className="ui-field qp-jump__field">
+          <span className="ui-field__label">{labels.field}</span>
+          <span className="qp-jump__row">
+            <input ref={inputRef} className="ui-input qp-jump__input" type="number" inputMode="numeric"
+              min={1} max={total} step={1} dir="ltr" placeholder={current ? String(current) : '1'}
+              value={value} aria-invalid={error || undefined} aria-describedby={hintId}
+              onChange={e => { setValue(e.target.value); setError(false) }} />
+            <span className="qp-jump__of ui-num" dir="ltr" aria-hidden="true">/ {total}</span>
+          </span>
+        </label>
+        <button type="submit" className="ui-btn ui-btn--primary qp-jump__go">
+          {labels.go}<DirArrow />
+        </button>
+        <span id={hintId} className={`ui-field__hint qp-jump__hint${error ? ' is-error' : ''}`} role={error ? 'alert' : undefined}>
+          {labels.range(total)}
+        </span>
+      </form>
+      <p className="qp-jump__sub">{labels.pick}</p>
+      <div className="qp-jump__grid" ref={gridRef} role="group" aria-label={labels.pick}>
+        {nums.map(n => (
+          <button type="button" key={n} className="qp-jump__num ui-num" aria-current={n === current ? 'true' : undefined}
+            aria-label={capFirst(ayahLabel(n, lang))} onClick={() => onJump(n)}>{n}</button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -328,10 +451,18 @@ export default function QuranPage({ setPage }) {
   const t = T[lang]?.quran || T.az.quran
   const [listAttempt, setListAttempt] = useState(0)
   const { surahs, loading: listLoading, error: listError } = useQuranList(listAttempt)
-  const [bookmark, setBookmark] = useState(() => { try { return JSON.parse(localStorage.getItem('quran_bookmark')) } catch { return null } })
-  const [selected, setSelected] = useState(null)
+  const location = useLocation()
+  const routerNavigate = useNavigate()
+  const [bookmark, setBookmark] = useState(readBookmark)
+  // Açıq surə ünvandan gəlir (/quran?s=2&a=90) — link paylaşmaq, yeniləmək
+  // və Geri düyməsi (oxuyucu → siyahı) işləsin
+  const [selected, setSelected] = useState(() => readQuery(location.search).s)
+  // Surə yüklənəndən sonra keçiləcək ayə (davam et, ?a=, ayə axtarışı)
+  const [pendingAyah, setPendingAyah] = useState(() => readQuery(location.search).a)
   // Siyahıdakı sürüşmə yeri — oxuyucudan qayıdanda ora dönürük
   const listScrollRef = useRef(0)
+  const selectedRef = useRef(selected)
+  selectedRef.current = selected
 
   // ── Quran oxuma statistikası ──
   const [stats, setStats] = useState(() => {
@@ -372,6 +503,281 @@ export default function QuranPage({ setPage }) {
   // Real təfsir yalnız ərəbcədədir (ar.muyassar). Digər dillərin nəşri
   // tərcümədir — onu "Təfsir" adı ilə göstərmək yanıldıcı olardı.
   const hasTafsir = lang === 'ar'
+  const jl = JUMP_LABELS[lang] || JUMP_LABELS.az
+
+  const surahsRef = useRef(surahs)
+  surahsRef.current = surahs
+  const langRef = useRef(lang)
+  langRef.current = lang
+
+  // Yeri yaz: ayah verilməyibsə və eyni surədirsə köhnə ayə saxlanılır —
+  // siyahıdan təsadüfən açıb çıxmaq dünənki 50-ci ayəni silməsin
+  const saveBookmark = useCallback((num, ayah, { render = true } = {}) => {
+    const prev = readBookmark()
+    const keep = ayah === undefined && prev?.surah === num ? prev.ayah : ayah
+    const s = surahsRef.current.find(x => x.number === num)
+    const bm = { surah: num, ...(keep > 1 ? { ayah: keep } : {}), name: surahTitle(s, langRef.current) || prev?.name || '', time: Date.now() }
+    writeBookmark(bm)
+    if (render) setBookmark(bm)
+  }, [])
+
+  // Ünvanı yenilə (s, a). Siyahıdan açılış — yeni tarixçə girişi (Geri →
+  // siyahı); oxuyucunun içində (növbəti surə, ayəyə keç) — replace.
+  const setQuery = useCallback((s, a, { push = false } = {}) => {
+    const search = queryFor(s, a)
+    if (search === window.location.search) return
+    routerNavigate({ pathname: window.location.pathname, search, hash: window.location.hash },
+      push ? { state: { qpReader: true } } : { replace: true, state: window.history.state?.usr ?? null })
+  }, [routerNavigate])
+
+  // ── Oxuyucunun idarəsi: ayəyə keçid, oxuma yeri, səs ──
+  const ready = !!(selected && surah && surah.number === selected)
+  const verses = ready ? surah.verses : null
+  const readerRef = useRef(null)
+  const toolbarRef = useRef(null)
+  const listRef = useRef(null)
+  const jumpBtnRef = useRef(null)
+  const jumpInputRef = useRef(null)
+  const [jumpOpen, setJumpOpen] = useState(false)
+  const [flash, setFlash] = useState({ n: 0, k: 0 })
+  const currentAyahRef = useRef(null)     // ekranın yuxarısındakı ilk ayə
+  const jumpingRef = useRef(false)        // proqram sürüşdürür — yer yazılmır
+  const armedRef = useRef(false)          // yer yalnız istifadəçi özü sürüşdürəndən sonra yazılır
+  const ignoreScrollUntilRef = useRef(0)
+  const userInputAtRef = useRef(0)
+  const pendingSaveRef = useRef(null)
+  const saveTimerRef = useRef(null)
+  const lastSaveRef = useRef(0)
+
+  // Yazma throttle: ən çox saniyədə bir dəfə, sonuncu dəyər itmir
+  const flushSave = useCallback(() => {
+    clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = null
+    const p = pendingSaveRef.current
+    if (!p) return
+    pendingSaveRef.current = null
+    lastSaveRef.current = Date.now()
+    saveBookmark(p.s, p.n, { render: false })
+  }, [saveBookmark])
+  const queueSave = useCallback((n) => {
+    if (!selectedRef.current) return
+    pendingSaveRef.current = { s: selectedRef.current, n }
+    const wait = 1000 - (Date.now() - lastSaveRef.current)
+    if (wait <= 0) flushSave()
+    else if (!saveTimerRef.current) saveTimerRef.current = setTimeout(flushSave, wait)
+  }, [flushSave])
+
+  // Ayəyə keç: hamar sürüşmə (hərəkət azaldılıbsa və ya yüklənmədən sonra — dərhal),
+  // scroll-margin-top yapışqan panelin altında saxlayır (CSS), kart qısa vurğulanır
+  const flashTimerRef = useRef(null)
+  const goToAyah = useCallback((n, { smooth = true } = {}) => {
+    const el = document.getElementById(`ayah-${n}`)
+    if (!el) return false
+    const instant = !smooth || prefersReducedMotion()
+    const startedAt = performance.now()
+    jumpingRef.current = true
+    const end = () => {
+      if (!jumpingRef.current) return
+      jumpingRef.current = false
+      ignoreScrollUntilRef.current = performance.now() + 150
+    }
+    el.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' })
+    el.focus({ preventScroll: true })
+    if (!instant && 'onscrollend' in window) window.addEventListener('scrollend', end, { once: true })
+    setTimeout(end, instant ? 120 : 1500)
+    // Şriftlər (Amiri) sonra yüklənib kartları uzadırsa — istifadəçi özü
+    // sürüşdürməyibsə yerini düzəlt
+    if (instant && document.fonts && document.fonts.status !== 'loaded') {
+      document.fonts.ready.then(() => {
+        if (userInputAtRef.current < startedAt && el.isConnected) el.scrollIntoView({ block: 'start' })
+      }).catch(() => {})
+    }
+    currentAyahRef.current = n
+    saveBookmark(selectedRef.current, n, { render: false })
+    setQuery(selectedRef.current, n)
+    setFlash(f => {
+      const k = f.k + 1
+      clearTimeout(flashTimerRef.current)
+      flashTimerRef.current = setTimeout(() => setFlash(x => (x.k === k ? { n: 0, k } : x)), 2600)
+      return { n, k }
+    })
+    return true
+  }, [saveBookmark, setQuery])
+
+  // Ayə nömrəsinə klik: ünvan ?a=N olur (link paylaşmaq üçün), yer yazılır
+  const onAyahNumber = useCallback((n) => {
+    haptic()
+    currentAyahRef.current = n
+    saveBookmark(selectedRef.current, n, { render: false })
+    setQuery(selectedRef.current, n)
+    setFlash(f => {
+      const k = f.k + 1
+      clearTimeout(flashTimerRef.current)
+      flashTimerRef.current = setTimeout(() => setFlash(x => (x.k === k ? { n: 0, k } : x)), 2600)
+      return { n, k }
+    })
+  }, [saveBookmark, setQuery])
+
+  // Surə yükləndi və gözləyən ayə var (davam et, ?a=, axtarış nəticəsi) — ona keç
+  useEffect(() => {
+    if (!ready || !pendingAyah) return
+    const n = Math.min(pendingAyah, surah.numberOfAyahs || surah.verses.length)
+    jumpingRef.current = true
+    requestAnimationFrame(() => {
+      setPendingAyah(null)
+      if (!goToAyah(n, { smooth: false })) jumpingRef.current = false
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, pendingAyah])
+
+  // Yapışqan panelin hündürlüyü → --qp-toolbar-h (ayənin scroll-margin-top-u)
+  useLayoutEffect(() => {
+    const tb = toolbarRef.current
+    const root = readerRef.current
+    if (!tb || !root) return undefined
+    const set = () => root.style.setProperty('--qp-toolbar-h', `${Math.round(tb.offsetHeight)}px`)
+    set()
+    if (typeof ResizeObserver === 'undefined') return undefined
+    const ro = new ResizeObserver(set)
+    ro.observe(tb)
+    return () => ro.disconnect()
+  }, [selected])
+
+  // Oxuma yeri: ekranın yuxarı zolağındakı (paneldən aşağı) ilk görünən ayə
+  useEffect(() => {
+    if (!ready || !listRef.current || typeof IntersectionObserver === 'undefined') return undefined
+    armedRef.current = false
+    const vh = window.innerHeight
+    const top = Math.max(0, Math.round(toolbarRef.current?.getBoundingClientRect().bottom ?? 0))
+    const band = Math.max(80, Math.round((vh - top) * 0.35))
+    const bottom = Math.max(0, vh - top - band)
+    const visible = new Set()
+    const io = new IntersectionObserver(entries => {
+      for (const e of entries) {
+        const n = Number(e.target.dataset.ayah)
+        if (e.isIntersecting) visible.add(n); else visible.delete(n)
+      }
+      if (!visible.size) return
+      // Zolaqdakı ilk ayə — amma panelin altından yalnız quyruğu (< 48px)
+      // görünürsə, növbətisi "cari" sayılır. Panelin yeri canlı oxunur:
+      // başlıq gizlənəndə panel yuxarı qalxır
+      const barBottom = toolbarRef.current?.getBoundingClientRect().bottom ?? top
+      const sorted = [...visible].sort((a, b) => a - b)
+      const cur = sorted.find(n => {
+        const r = document.getElementById(`ayah-${n}`)?.getBoundingClientRect()
+        return r && r.bottom > barBottom + 48
+      }) ?? sorted[sorted.length - 1]
+      currentAyahRef.current = cur
+      if (armedRef.current && !jumpingRef.current) queueSave(cur)
+    }, { rootMargin: `-${top}px 0px -${bottom}px 0px` })
+    listRef.current.querySelectorAll('[data-ayah]').forEach(el => io.observe(el))
+    const onScroll = () => {
+      if (jumpingRef.current || performance.now() < ignoreScrollUntilRef.current) return
+      armedRef.current = true
+      if (currentAyahRef.current) queueSave(currentAyahRef.current)
+    }
+    // İstifadəçinin real girişi (təkər, toxunuş, klaviatura) — yazma dərhal
+    // "silahlanır", proqram sürüşməsinin gözləmə pəncərəsi ləğv olunur
+    const onInput = () => {
+      userInputAtRef.current = performance.now()
+      ignoreScrollUntilRef.current = 0
+      if (!jumpingRef.current) armedRef.current = true
+    }
+    // Klaviaturada yalnız sürüşdürən düymələr (Tab, hərflər sayılmır)
+    const onKeyScroll = (e) => {
+      if (!isTyping(e.target) && /^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End| )$/.test(e.key)) onInput()
+    }
+    const onHide =() => { if (document.visibilityState !== 'visible') flushSave() }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('wheel', onInput, { passive: true })
+    window.addEventListener('touchmove', onInput, { passive: true })
+    window.addEventListener('keydown', onKeyScroll)
+    window.addEventListener('pagehide', flushSave)
+    document.addEventListener('visibilitychange', onHide)
+    return () => {
+      io.disconnect()
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('wheel', onInput)
+      window.removeEventListener('touchmove', onInput)
+      window.removeEventListener('keydown', onKeyScroll)
+      window.removeEventListener('pagehide', flushSave)
+      document.removeEventListener('visibilitychange', onHide)
+      flushSave()
+    }
+  }, [ready, surah, queueSave, flushSave])
+
+  // ── Səs: tək <audio>, ayə bitəndə növbəti başlayır ──
+  const audioRef = useRef(null)
+  const audioNRef = useRef(null)
+  const [playingN, setPlayingN] = useState(null)
+  const playingNRef = useRef(null)
+  playingNRef.current = playingN
+  const versesRef = useRef(null)
+  versesRef.current = verses
+  const playAyahRef = useRef(null)
+  // Növbəti ayə ekrandan kənardadırsa ona sürüşdür (dinləyən də "oxuyur")
+  const followAyah = (n) => {
+    const el = document.getElementById(`ayah-${n}`)
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const top = toolbarRef.current?.getBoundingClientRect().bottom ?? 0
+    if (r.top < top || r.bottom > window.innerHeight) {
+      el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
+    }
+  }
+  playAyahRef.current = (n) => {
+    const v = versesRef.current?.find(x => x.n === n)
+    if (!v?.audio) { setPlayingN(null); return }
+    let a = audioRef.current
+    if (!a) { a = new Audio(); a.preload = 'auto'; audioRef.current = a }
+    if (audioNRef.current !== n) { a.src = v.audio; audioNRef.current = n }
+    a.onended = () => {
+      const next = n + 1
+      if (versesRef.current?.some(x => x.n === next)) { playAyahRef.current(next); followAyah(next) }
+      else { setPlayingN(null); audioNRef.current = null }
+    }
+    a.onerror = () => setPlayingN(p => (p === n ? null : p))
+    setPlayingN(n)
+    const p = a.play()
+    if (p?.catch) p.catch(err => { if (err?.name !== 'AbortError') setPlayingN(x => (x === n ? null : x)) })
+  }
+  const toggleAyah = useCallback((n) => {
+    haptic()
+    if (playingNRef.current === n) { audioRef.current?.pause(); setPlayingN(null) }
+    else playAyahRef.current(n)
+  }, [])
+  // Surə dəyişəndə / oxuyucu bağlananda səs dayanır
+  useEffect(() => () => {
+    const a = audioRef.current
+    if (a) { a.onended = a.onerror = null; a.pause(); a.removeAttribute('src'); try { a.load() } catch { /* köhnə brauzer */ } }
+    audioRef.current = null
+    audioNRef.current = null
+    setPlayingN(null)
+  }, [selected])
+
+  // ── "Ayəyə keç" paneli: G qısayolu, bağlanış ──
+  useEffect(() => { setJumpOpen(false) }, [selected])
+  useEffect(() => {
+    if (!selected) return undefined
+    const onKey = (e) => {
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing || isTyping(e.target)) return
+      if (e.code === 'KeyG' || (e.key || '').toLowerCase() === 'g') {
+        e.preventDefault()
+        setJumpOpen(true)
+        jumpInputRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selected])
+  const closeJump = useCallback((returnFocus) => {
+    setJumpOpen(false)
+    if (returnFocus) jumpBtnRef.current?.focus()
+  }, [])
+  const onJump = useCallback((n) => {
+    setJumpOpen(false)
+    goToAyah(n)
+  }, [goToAyah])
 
   useEffect(() => {
     if (searchMode !== 'verse') return
@@ -398,28 +804,71 @@ export default function QuranPage({ setPage }) {
 
   const surahByNum = n => surahs.find(s => s.number === n)
 
-  const saveBookmark = (num) => {
-    const bm = { surah: num, name: surahTitle(surahByNum(num), lang), time: Date.now() }
-    try { localStorage.setItem('quran_bookmark', JSON.stringify(bm)) } catch {}
-    setBookmark(bm)
-  }
-
-  const openSurah = (num) => {
+  const openSurah = (num, ayah) => {
     if (!num) return
     // Siyahıdan açılırsa yeri yadda saxla (əvvəlki/növbəti surədə yox)
-    if (!selected) listScrollRef.current = window.scrollY
+    const fromList = !selected
+    if (fromList) listScrollRef.current = window.scrollY
     setSelected(num)
-    saveBookmark(num)
+    setPendingAyah(ayah > 1 ? ayah : null)
+    saveBookmark(num, ayah > 1 ? ayah : undefined)
     trackRead(num)
-    // Surə həmişə əvvəldən açılır — əvvəl siyahının sürüşmə yerində qalırdı
+    setQuery(num, ayah > 1 ? ayah : null, { push: fromList })
+    // Surə əvvəldən açılır (ayə verilibsə — yüklənəndən sonra ona keçilir).
+    // Bu sürüşmə "oxuma" sayılmır — yer yazılmasın
+    ignoreScrollUntilRef.current = performance.now() + 500
     window.scrollTo(0, 0)
   }
 
   const closeReader = () => {
+    // Siyahıdan açılmışdısa — tarixçədə geri (Geri düyməsi ilə eyni nəticə)
+    if (location.state?.qpReader) { routerNavigate(-1); return }
     setSelected(null)
+    setQuery(null, null)
+  }
+
+  // Ünvan dəyişdi (Geri/İrəli, dil dəyişimi, ilk açılış)
+  const prevLangRef = useRef(lang)
+  useEffect(() => {
+    const { s, a } = readQuery(location.search)
+    const langChanged = prevLangRef.current !== lang
+    prevLangRef.current = lang
+    // Dil dəyişimi (LangContext) yalnız yolu dəyişir, query-ni atır —
+    // oxuyucu açıq qalsın, ünvana surə yenidən yazılsın. Surə yeni dildə
+    // təzədən yüklənir — oxunan ayəyə qayıdırıq
+    if (langChanged && !s && selectedRef.current) {
+      const cur = currentAyahRef.current
+      if (cur > 1) setPendingAyah(cur)
+      setQuery(selectedRef.current, cur > 1 ? cur : null)
+      return
+    }
+    if (s !== selectedRef.current) {
+      setSelected(s)
+      if (s) { setPendingAyah(a); window.scrollTo(0, 0) }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search, lang])
+
+  // Birbaşa linklə açılış (/quran?s=2&a=90) — oxuma kimi sayılsın, yer yazılsın
+  const deepLinkRef = useRef(false)
+  useEffect(() => {
+    if (deepLinkRef.current || !selected) return
+    deepLinkRef.current = true
+    trackRead(selected)
+    saveBookmark(selected, pendingAyah || undefined)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Oxuyucu bağlandı → siyahının əvvəlki yerinə qayıt; bəlləkdəki yeri yenilə
+  const wasOpenRef = useRef(!!selected)
+  useEffect(() => {
+    if (selected) { wasOpenRef.current = true; return }
+    if (!wasOpenRef.current) return
+    wasOpenRef.current = false
+    setBookmark(readBookmark())
     const y = listScrollRef.current
     requestAnimationFrame(() => window.scrollTo(0, y))
-  }
+  }, [selected])
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
@@ -441,7 +890,6 @@ export default function QuranPage({ setPage }) {
   // Surə yüklənərkən də açılır (spinner ilə) — əvvəl yüklənənə qədər
   // siyahı ekranda qalırdı və toxunuşun heç nə etmədiyi görünürdü.
   if (selected) {
-    const ready = surah && surah.number === selected
     const prevS = surahByNum(selected - 1)
     const nextS = surahByNum(selected + 1)
     const prevLabel = stripArrows(t.prevSurah)
@@ -451,12 +899,18 @@ export default function QuranPage({ setPage }) {
     // Məna adla eynidirsə (məs. "Yasin") təkrarlamırıq
     const meaning = ready && rawMeaning !== surahTitle(surah, lang) ? rawMeaning : ''
     return (
-      <div className="quran-reader">
-        <div className="reader-toolbar">
+      <div className="quran-reader" ref={readerRef}>
+        <div className="reader-toolbar" ref={toolbarRef}>
           <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm reader-back" onClick={closeReader}>
             <DirArrow back /> {stripArrows(t.backBtn)}
           </button>
           <div className="reader-controls">
+            {/* Ayəyə keç (qısayol: G) — surə yüklənənə qədər söndürülür */}
+            <button type="button" ref={jumpBtnRef} className={`ctrl-btn ctrl-jump ${jumpOpen ? 'active' : ''}`}
+              disabled={!ready} aria-expanded={jumpOpen} aria-controls="qp-jump" aria-keyshortcuts="G"
+              title={`${jl.jump} (G)`} onClick={() => { haptic(); setJumpOpen(o => !o) }}>
+              <Icon name="target" size={16} /><span className="ctrl-jump__label">{jl.jump}</span>
+            </button>
             {/* dir="ltr": ərəbcədə "A−" bidi qaydası ilə "−A" kimi görünürdü.
                 Həddə çatanda düymə söndürülür (əvvəl basılırdı, heç nə olmurdu) */}
             <button type="button" className="ctrl-btn" dir="ltr" aria-label={fl.smaller} title={fl.smaller}
@@ -484,11 +938,15 @@ export default function QuranPage({ setPage }) {
             </button>
             {/* Əlfəcin — "hifz" ikonundakı lent (Icon.jsx-də ayrıca əlfəcin ikonu yoxdur) */}
             <button type="button" className={`ctrl-btn ctrl-bookmark ${bookmark && bookmark.surah === selected ? 'active' : ''}`}
-              onClick={() => { haptic(); saveBookmark(selected) }} title={bmLabel} aria-label={bmLabel}
+              onClick={() => { haptic(); saveBookmark(selected, currentAyahRef.current || undefined) }} title={bmLabel} aria-label={bmLabel}
               aria-pressed={!!bookmark && bookmark.surah === selected}>
               <Icon name="hifz" size={18} />
             </button>
           </div>
+          {jumpOpen && ready && (
+            <AyahJump total={surah.verses.length} current={currentAyahRef.current} labels={jl} lang={lang}
+              onJump={onJump} onClose={closeJump} inputRef={jumpInputRef} triggerRef={jumpBtnRef} />
+          )}
         </div>
         {surahError && (
           <QEmpty icon="alert" bad action={
@@ -523,10 +981,13 @@ export default function QuranPage({ setPage }) {
                 {lang !== 'ar' && <span className="basmalah-tr">{t.basmalah}</span>}
               </div>
             )}
-            <div className="ayahs-list">
+            <div className="ayahs-list" ref={listRef}>
               {surah.verses?.map(v => (
                 <AyahCard key={v.n} verse={v} fontSize={fontSize} tafsirLabel={tafsirLabel} playLabels={playLabels}
-                  showTrans={!hasTafsir && showTrans} showTafsir={hasTafsir && showTafsir} />
+                  showTrans={!hasTafsir && showTrans} showTafsir={hasTafsir && showTafsir}
+                  playing={playingN === v.n} flash={flash.n === v.n ? flash.k : 0}
+                  numLabel={capFirst(ayahLabel(v.n, lang))} linkLabel={jl.link}
+                  onToggle={toggleAyah} onNumber={onAyahNumber} />
               ))}
             </div>
             {/* Surənin sonunda: əvvəlki / növbəti surə (telefonda paneldə yalnız ox görünür) */}
@@ -550,7 +1011,12 @@ export default function QuranPage({ setPage }) {
     )
   }
 
-  const bookmarkName = bookmark ? (surahTitle(surahByNum(bookmark.surah), lang) || bookmark.name) : ''
+  // "Bəqərə, 50-ci ayə" — ayə yoxdursa (köhnə əlfəcin, surənin əvvəli) yalnız ad
+  const bmSurah = bookmark ? surahByNum(bookmark.surah) : null
+  const bmTitle = bookmark ? (surahTitle(bmSurah, lang) || bookmark.name || String(bookmark.surah)) : ''
+  const bookmarkName = bookmark?.ayah ? placeLabel(bmTitle, bookmark.ayah, lang) : bmTitle
+  // Surədə irəliləyiş (düymənin altındakı nazik xətt)
+  const bmProgress = bookmark?.ayah && bmSurah?.numberOfAyahs ? Math.min(1, bookmark.ayah / bmSurah.numberOfAyahs) : 0
   const mostReadName = (() => {
     const n = +getMostRead(stats.reads)
     if (!n) return '-'
@@ -571,11 +1037,13 @@ export default function QuranPage({ setPage }) {
           <p className="ui-lead">{t.subtitle}</p>
           {bookmark && (
             <div className="ui-page-hero__actions">
-              <button type="button" className="ui-btn ui-btn--primary ui-btn--lg qp-continue" onClick={() => openSurah(bookmark.surah)}>
+              {/* Klikdə surə açılır və yüklənəndən sonra dəqiq həmin ayəyə keçilir */}
+              <button type="button" className="ui-btn ui-btn--primary ui-btn--lg qp-continue" onClick={() => openSurah(bookmark.surah, bookmark.ayah)}>
                 <Icon name="hifz" className="ui-btn__icon" />
                 <span className="qp-continue__label">{BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en}</span>
                 {bookmarkName && <span className="qp-continue__name">{bookmarkName}</span>}
                 <DirArrow />
+                {bmProgress > 0 && <span className="qp-continue__bar" style={{ '--p': bmProgress.toFixed(3) }} aria-hidden="true" />}
               </button>
             </div>
           )}
@@ -713,7 +1181,7 @@ export default function QuranPage({ setPage }) {
                     const isQuranText = v.edition?.type === 'quran'
                     return (
                       <button type="button" key={v.number} className="verse-result-card" style={{'--i': Math.min(i, 7)}}
-                        onClick={() => openSurah(v.surah.number)}>
+                        onClick={() => openSurah(v.surah.number, v.numberInSurah)}>
                         <span className="vr-header">
                           <span className="vr-surah">
                             {surahTitle(v.surah, lang)}

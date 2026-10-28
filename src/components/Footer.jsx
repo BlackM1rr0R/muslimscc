@@ -100,7 +100,7 @@ function Footer({ setPage }) {
             <div className="ft-col">
               <h4>{fl.contact}</h4>
               {filled(BRAND.instagram) && (
-                <a href={`https://instagram.com/${BRAND.instagram}`} target="_blank" rel="noopener noreferrer"><Icon name="instagram" size={16} /> Instagram</a>
+                <a href={`https://instagram.com/${BRAND.instagram}`} target="_blank" rel="noopener noreferrer"><Icon name="instagram" size={16} /><span>Instagram</span></a>
               )}
               <span className="ft-contact-line"><Icon name="globe" size={16} /> {BRAND.domain}</span>
               {navLink('about')}
@@ -110,9 +110,11 @@ function Footer({ setPage }) {
         </div>
       </div>
 
-      <div className="ft-bottom">
-        <p>{`© ${new Date().getFullYear()} ${brand} — ${fl.copy}`}</p>
-        <span className="ft-made"><Icon name="donate" size={14} className="ft-heart" /> {fl.made}</span>
+      <div className="ft-bottom-wrap">
+        <div className="ft-bottom" data-reveal="fade">
+          <p>{`© ${new Date().getFullYear()} ${brand} — ${fl.copy}`}</p>
+          <span className="ft-made"><Icon name="donate" size={14} className="ft-heart" /> {fl.made}</span>
+        </div>
       </div>
     </footer>
   )

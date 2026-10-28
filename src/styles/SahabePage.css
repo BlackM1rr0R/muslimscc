@@ -1,8 +1,11 @@
 /* ══════════════════════════════════════════════════════════════════
    SƏHABƏLƏR — dizayn v2 (DESIGN.md)
-   Siyahı: .ui-page-hero + axtarış (.ui-input) + kart şəbəkəsi (.ui-card);
-   telefonda (<768px) eyni kartlar üfüqi sətirlərə çevrilir.
-   Profil: hero (monoqram + ad), bölmələr .ui-card, hədislər .ui-quote.
+   Siyahı: .ui-page-hero + axtarış (.ui-input) + filtr çipləri + kart
+   şəbəkəsi (.ui-card); telefonda (<768px) kartlar üfüqi sətirlərə çevrilir.
+   Profil ("kitab səhifəsi"): medalyonlu hero → Bir baxışda → Həyatı
+   (böyük ilk hərf, çıxarış) → Faktlar (şaquli xətt) → Hədislər
+   (.ui-quote) → Mənbələr → Əvvəlki/Növbəti; geniş ekranda yapışqan
+   "İçindəkilər". Hərəkət yalnız transform/opacity, reduced-motion-da yox.
    Fayl ui.css-dən ƏVVƏL yüklənir — .ui-* dəyişiklikləri .sahabe-page
    valideyni ilə gücləndirilib (DESIGN.md §4.1).
    ══════════════════════════════════════════════════════════════════ */
@@ -10,7 +13,7 @@
 .sahabe-page { min-height: 60vh; }
 .sahabe-page .ui-section--tight { padding-top: var(--space-6); }
 
-/* ── Hero ── */
+/* ── Siyahı hero-su ── */
 .sahabe-hero__ar {
   margin-top: -4px;
   color: var(--accent-text);
@@ -18,22 +21,73 @@
   line-height: 1.5;
 }
 
-/* Monoqram kafeli — adın ilk hərfi, display şriftində */
-.sahabe-page .sahabe-mono {
+/* ══ MEDALYON — 8 guşəli ulduz + disk + ilk hərf ══ */
+.sp-medal {
+  --m: 64px;
+  --tone: var(--brand);
+  --tone-text: var(--brand);
+  --tone-soft: var(--brand-soft-2);
+  --tone-line: var(--brand-line);
+  position: relative;
+  isolation: isolate;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: var(--m);
+  height: var(--m);
+}
+.sp-medal--gold {
+  --tone: var(--accent);
+  --tone-text: var(--accent-text);
+  --tone-soft: var(--accent-soft);
+  --tone-line: var(--accent-line);
+}
+.sp-medal--sm { --m: 44px; }
+.sp-medal--lg { --m: 148px; }
+
+.sp-medal__star {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--tone-soft);
+  -webkit-mask: var(--ui-star) center / contain no-repeat;
+  mask: var(--ui-star) center / contain no-repeat;
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.sp-medal__letter {
+  display: grid;
+  place-items: center;
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--tone-line), var(--shadow-1);
+  color: var(--tone-text);
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: calc(var(--m) * 0.3);
   font-weight: 600;
   line-height: 1;
 }
-.sahabe-page .sahabe-mono.ui-icon-tile--lg { width: 72px; height: 72px; font-size: 32px; border-radius: var(--radius-xl); }
-[dir="rtl"] .sahabe-page .sahabe-mono { font-family: var(--font-arabic); font-size: 22px; }
-[dir="rtl"] .sahabe-page .sahabe-mono.ui-icon-tile--lg { font-size: 36px; }
+/* İri medalyonda ikinci incə halqa */
+.sp-medal--lg .sp-medal__letter {
+  box-shadow: inset 0 0 0 1px var(--tone-line), inset 0 0 0 6px var(--surface-1), inset 0 0 0 7px var(--tone-line), var(--shadow-2);
+  font-size: calc(var(--m) * 0.34);
+  font-weight: 500;
+}
+[dir="rtl"] .sp-medal__letter { font-family: var(--font-arabic); font-size: calc(var(--m) * 0.34); }
 
-/* ── Axtarış ── */
+/* ══ SİYAHI ══ */
+.sp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  margin-bottom: var(--space-6);
+}
 .sahabe-search-wrap {
   position: relative;
-  max-width: 560px;
-  margin-bottom: var(--space-6);
+  flex: 1 1 320px;
+  max-width: 460px;
 }
 .sahabe-search-icon {
   position: absolute;
@@ -57,10 +111,17 @@
   transform: translateY(-50%);
 }
 
-/* ── Kart şəbəkəsi ── */
+.sp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.sp-chip__n {
+  margin-inline-start: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.66;
+}
+
 .sahabe-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 232px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
   gap: var(--space-4);
   list-style: none;
 }
@@ -71,21 +132,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  padding: var(--space-6) var(--space-4) var(--space-5);
+  padding: var(--space-6) var(--space-5) var(--space-4);
   font: inherit;
   text-align: center;
 }
-.sahabe-card-number {
-  position: absolute;
-  top: 12px;
-  inset-inline-end: 14px;
-  color: var(--text-tertiary);
-  font-size: 12px;
-  font-weight: 600;
-}
-.sahabe-card-body { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.sahabe-card-body { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
 .sahabe-card-arabic {
   color: var(--brand);
   font-size: 21px;
@@ -93,25 +146,50 @@
 }
 .sahabe-card-name {
   color: var(--text-strong);
-  font-size: var(--step-0);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
   font-weight: 600;
   line-height: var(--lh-snug);
 }
 .sahabe-card-title {
-  margin-top: 4px;
-  color: var(--text-tertiary);
+  color: var(--accent-text);
   font-size: 13px;
+  font-weight: 600;
   line-height: 1.4;
 }
+.sahabe-card-line {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sahabe-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+.sahabe-card-meta { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); }
+.sahabe-card-read { display: inline-flex; align-items: center; gap: 4px; color: var(--brand); font-weight: 600; }
+.sahabe-card-read .ui-link__arrow { transition: transform var(--dur-2) var(--ease-out); }
 .sahabe-card-chev { display: none; color: var(--text-tertiary); flex-shrink: 0; }
 
-/* Monoqram hover-də yüngül böyüyür (yalnız transform) */
-.sahabe-page .sahabe-card .sahabe-mono { transition: transform var(--dur-2) var(--ease-out); }
+/* Kart hover: ulduz yüngül dönür, ox irəli gedir (yalnız transform) */
 @media (hover: hover) {
-  .sahabe-page .sahabe-card:hover .sahabe-mono { transform: scale(1.06); }
+  .sahabe-page .sahabe-card:hover .sp-medal__star { transform: rotate(22.5deg) scale(1.06); }
+  .sahabe-page .sahabe-card:hover .ui-link__arrow { transform: translateX(3px); }
+  [dir="rtl"] .sahabe-page .sahabe-card:hover .ui-link__arrow { transform: scaleX(-1) translateX(3px); }
 }
 
-/* ── Boş vəziyyət ── */
 .sahabe-page .sahabe-no-results {
   display: flex;
   flex-direction: column;
@@ -124,61 +202,394 @@
   font-weight: 600;
 }
 
-/* ══ PROFİL ══ */
-.sahabe-page .sahabe-back-btn { margin-inline-start: -14px; margin-bottom: var(--space-2); }
-/* Ox "geri" göstərsin: LTR-də sola, RTL-də sağa */
-.sahabe-back-ic { transform: scaleX(-1); }
-[dir="rtl"] .sahabe-back-ic { transform: none; }
-
-.sahabe-hero__id { display: flex; align-items: center; gap: var(--space-5); }
-.sahabe-hero__text { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
-.sahabe-hero__text .ui-display { font-size: var(--step-4); overflow-wrap: anywhere; }
-
-.sahabe-profile { display: flex; flex-direction: column; gap: var(--space-4); }
-
-.sahabe-section-title {
-  display: flex;
+/* ══ PROFİL — HERO ══ */
+.sp-crumb-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: var(--space-4);
+  gap: 6px;
+  min-height: 36px;
+  padding-inline: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-1) 72%, transparent);
+  color: var(--text-secondary);
+  font: 500 14px/1 var(--font-sans);
+  cursor: pointer;
+  transition: color var(--dur-1) ease, border-color var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
+}
+@media (hover: hover) {
+  .sp-crumb-btn:hover { color: var(--brand); border-color: var(--brand-line); }
+  .sp-crumb-btn:hover .sp-back-ic { transform: scaleX(-1) translateX(2px); }
+  [dir="rtl"] .sp-crumb-btn:hover .sp-back-ic { transform: translateX(-2px); }
+}
+.sp-crumb-btn:active { transform: scale(0.97); }
+@media (pointer: coarse) { .sp-crumb-btn { min-height: 44px; } }
+/* Ox "geri" göstərsin: LTR-də sola, RTL-də sağa */
+.sp-back-ic { transform: scaleX(-1); transition: transform var(--dur-2) var(--ease-out); }
+[dir="rtl"] .sp-back-ic { transform: none; }
+
+.sahabe-page .sp-hero { padding-block: clamp(28px, 4vw, 56px) clamp(32px, 4.5vw, 64px); }
+.sp-hero__grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-7);
+  width: 100%;
+  margin-top: var(--space-3);
+}
+.sp-hero__text { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.sahabe-page .sp-hero__name {
+  font-size: clamp(34px, 4.2vw, 58px);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.sp-hero__ar {
+  color: var(--accent-text);
+  font-size: clamp(22px, 2.4vw, 30px);
+  line-height: 1.6;
+}
+.sahabe-page .sp-hero__lead { max-width: 62ch; margin-top: 4px; text-wrap: pretty; }
+.sp-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 10px;
+}
+.sp-hero__meta { color: var(--text-tertiary); font-size: var(--step--1); }
+
+/* Hero girişi: elementlər növbə ilə qalxır, medalyon yumşaq "oturur" */
+.sp-in {
+  animation: qm-reveal-up var(--dur-4) var(--ease-out) backwards;
+  animation-delay: calc(80ms + var(--i, 0) * 70ms);
+}
+.sp-hero .sp-medal { animation: sp-seat 900ms var(--ease-spring) backwards 60ms; }
+.sp-hero .sp-medal__star { animation: sp-star 1200ms var(--ease-out) backwards 140ms; }
+/* Kartdan "uçub gələn" medalyon (View Transition) öz girişini təkrarlamasın */
+.sp-morph .sp-hero .sp-medal,
+.sp-morph .sp-hero .sp-medal__star { animation: none; }
+@keyframes sp-seat {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.82); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes sp-star {
+  from { opacity: 0; transform: rotate(-45deg) scale(0.7); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Oxu irəliləyişi — səhifə sürüşdükcə başlığın altında qızılı xətt dolur */
+.sp-progress { display: none; }
+@supports (animation-timeline: scroll()) {
+  .sp-progress {
+    display: block;
+    position: fixed;
+    z-index: 40;
+    top: var(--header-h, 64px);
+    inset-inline: 0;
+    height: 2px;
+    background: var(--accent);
+    transform-origin: 0 50%;
+    pointer-events: none;
+    animation: sp-progress linear both;
+    animation-timeline: scroll(root);
+  }
+  [dir="rtl"] .sp-progress { transform-origin: 100% 50%; }
+}
+@keyframes sp-progress {
+  from { transform: scaleX(0); }
+  to   { transform: none; }
+}
+
+/* ══ PROFİL — GÖVDƏ ══ */
+.sahabe-page .sp-body { padding-top: var(--space-7); }
+.sp-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  max-width: calc(780px + 2 * var(--page-gutter));
+}
+.sp-article { display: flex; flex-direction: column; gap: var(--space-8); min-width: 0; }
+.sp-sec { scroll-margin-top: calc(var(--header-h, 64px) + 20px); }
+
+.sp-sec__title {
+  margin-bottom: var(--space-5);
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: var(--tracking-tight);
+}
+[dir="rtl"] .sp-sec__title { letter-spacing: 0; }
+.sp-sec__title::after {
+  content: '';
+  display: block;
+  width: 44px;
+  height: 2px;
+  margin-top: 12px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform-origin: 0 50%;
+}
+[dir="rtl"] .sp-sec__title::after { transform-origin: 100% 50%; }
+.sp-sec__title[data-revealed=""]::after { animation: qm-line-grow 700ms var(--ease-out) 160ms backwards; }
+.sp-sec__title:focus { outline: none; }
+.sp-sec__title:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: 4px; }
+
+/* İçindəkilər — dar ekranda üfüqi çip zolağı */
+.sp-toc__title { display: none; }
+.sp-toc__list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  list-style: none;
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding: 2px var(--page-gutter) 6px;
+  scrollbar-width: none;
+}
+.sp-toc__list::-webkit-scrollbar { display: none; }
+.sp-toc__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color var(--dur-1) ease, background-color var(--dur-1) ease, border-color var(--dur-1) ease;
+}
+.sp-toc__link svg { flex-shrink: 0; opacity: 0.8; }
+.sp-toc__link[aria-current="true"] { color: var(--brand); border-color: var(--brand-line); background: var(--brand-soft); }
+@media (hover: hover) { .sp-toc__link:hover { color: var(--text-strong); } }
+
+/* Geniş ekran: yan sütunda yapışqan siyahı, aktiv bölmədə zümrüd xətt */
+@media (min-width: 1280px) {
+  .sp-layout {
+    grid-template-columns: 200px minmax(0, 780px);
+    justify-content: center;
+    gap: var(--space-8);
+    max-width: calc(var(--container) + 2 * var(--page-gutter));
+  }
+  .sp-toc nav { position: sticky; top: calc(var(--header-h, 64px) + 28px); }
+  .sp-toc__title {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+  [dir="rtl"] .sp-toc__title { letter-spacing: 0; text-transform: none; font-size: 13px; }
+  .sp-toc__list {
+    flex-direction: column;
+    gap: 2px;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    border-inline-start: 1px solid var(--line);
+  }
+  .sp-toc__link {
+    position: relative;
+    display: flex;
+    min-height: 40px;
+    padding: 0 12px;
+    margin-inline-start: -1px;
+    border: 0;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    background: transparent;
+    white-space: normal;
+    line-height: 1.3;
+  }
+  [dir="rtl"] .sp-toc__link { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .sp-toc__link::before {
+    content: '';
+    position: absolute;
+    inset-block: 6px;
+    inset-inline-start: 0;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--brand);
+    transform: scaleY(0);
+    transition: transform var(--dur-3) var(--ease-out);
+  }
+  .sp-toc__link[aria-current="true"] { background: var(--brand-soft); font-weight: 600; }
+  .sp-toc__link[aria-current="true"]::before { transform: none; }
+}
+
+/* ── Bir baxışda ── */
+.sahabe-page .sp-glance { padding: var(--space-6); }
+.sahabe-page .sp-glance .sp-sec__title { font-size: var(--step-2); margin-bottom: var(--space-4); }
+.sp-glance__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-auto-flow: dense;
+  gap: var(--space-4) var(--space-6);
+}
+.sp-glance__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.sp-glance__item--wide { grid-column: 1 / -1; }
+.sp-glance__item dt {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .sp-glance__item dt { letter-spacing: 0; text-transform: none; font-size: 13px; }
+.sp-glance__item dd {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 500;
+  line-height: 1.4;
+}
+.sp-glance__item--wide dd { font-family: var(--font-sans); font-size: var(--step-0); font-weight: 400; color: var(--text-body); line-height: 1.6; }
+.sp-glance__item--num dd {
+  font-size: var(--step-3);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.sp-glance__note {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* ── Həyatı: kitab mətni ── */
+.sp-prose p {
+  margin-bottom: 1.1em;
+  color: var(--text-body);
+  font-size: clamp(17px, 1.2vw, 19px);
+  line-height: 1.8;
+  text-wrap: pretty;
+}
+/* Böyük ilk hərf (drop cap) — ərəbcədə yox: birləşik hərfləri qırar */
+.sp-prose > p:first-child::first-letter {
+  float: left;
+  margin: 0.08em 0.12em 0 0;
+  color: var(--brand);
+  font-family: var(--font-display);
+  font-size: 3.5em;
+  font-weight: 600;
+  line-height: 0.82;
+}
+[dir="rtl"] .sp-prose > p:first-child::first-letter { float: none; margin: 0; color: inherit; font: inherit; }
+.sp-pull {
+  margin: var(--space-6) 0;
+  padding: var(--space-4) var(--space-5);
+  border-inline-start: 3px solid var(--accent);
+  border-start-end-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-md);
+  background: var(--accent-soft);
   color: var(--text-strong);
   font-family: var(--font-display);
   font-size: var(--step-2);
-  font-weight: 600;
-  line-height: 1.25;
+  font-style: italic;
+  line-height: 1.45;
+  text-wrap: balance;
 }
-.sahabe-bio {
-  color: var(--text-body);
-  font-size: 17px;
-  line-height: var(--lh-body);
-}
+[dir="rtl"] .sp-pull { font-style: normal; }
+.sp-prose + .ui-ornament { margin-top: var(--space-5); }
 
-.sahabe-facts-list { display: flex; flex-direction: column; gap: 10px; list-style: none; }
-.sahabe-fact-item {
+/* ── Əsas faktlar: şaquli xətt ── */
+.sp-line {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  color: var(--text-body);
-  font-size: var(--step-0);
-  line-height: 1.55;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
 }
-.sahabe-fact-bullet {
-  flex-shrink: 0;
-  display: inline-grid;
+.sp-line::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 17px;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(var(--accent), var(--brand-line));
+  transform-origin: 50% 0;
+}
+.sp-line__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+.sp-line__dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
-  margin-top: -1px;
-  border-radius: var(--radius-pill);
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px var(--accent-line);
+  width: 36px;
+  height: 36px;
+  margin-top: 8px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1.5px var(--accent-line), var(--shadow-1);
   color: var(--accent-text);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
+.sp-line__text {
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  color: var(--text-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+}
+/* Xətt "çəkilir": sürüşməyə bağlı (dəstəklənirsə), yoxsa görünəndə bir dəfə */
+html.qm-reveal-on .sp-line[data-reveal-ready]:not([data-revealed])::before { transform: scaleY(0); }
+.sp-line[data-revealed=""]::before { animation: sp-draw 1100ms var(--ease-out) both; }
+@supports (animation-timeline: view()) {
+  .sp-line[data-revealed]::before {
+    animation: sp-draw linear both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 50%;
+  }
+}
+@keyframes sp-draw {
+  from { transform: scaleY(0); }
+  to   { transform: none; }
+}
 
-.sahabe-hadiths-list { display: flex; flex-direction: column; gap: var(--space-6); }
-.sahabe-hadith-number {
+/* ── Hədislər ── */
+.sahabe-page .sp-quote--featured {
+  margin-bottom: var(--space-7);
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  border: 1px solid var(--line);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-2);
+}
+.sahabe-page .sp-quote__ar { text-align: right; font-size: clamp(21px, 2vw, 25px); }
+.sahabe-page .sp-quote--featured .sp-quote__ar { font-size: clamp(24px, 2.6vw, 32px); }
+.sp-quote__num {
   display: block;
   margin-bottom: 6px;
   color: var(--text-tertiary);
@@ -187,42 +598,153 @@
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
-[dir="rtl"] .sahabe-hadith-number { letter-spacing: 0; text-transform: none; font-size: 13px; }
-.sahabe-page .sahabe-hadith-arabic { text-align: right; font-size: clamp(21px, 2vw, 25px); }
-.sahabe-hadith-translation {
+[dir="rtl"] .sp-quote__num { letter-spacing: 0; text-transform: none; font-size: 13px; }
+.sp-quotes { display: flex; flex-direction: column; gap: var(--space-6); }
+.sp-quote__text {
   margin-top: 6px;
   color: var(--text-body);
   font-size: var(--step-0);
   line-height: 1.65;
 }
 
-/* ══ TELEFON (<768px): kartlar üfüqi sətir — monoqram · ad/vəzifə · ox ══ */
-@media (max-width: 767.98px) {
-  .sahabe-search-wrap { max-width: none; margin-bottom: var(--space-4); }
-  .sahabe-grid { grid-template-columns: 1fr; gap: var(--space-2); }
+/* ── Mənbələr ── */
+.sahabe-page .sp-sources { padding: var(--space-6); }
+.sahabe-page .sp-sources .sp-sec__title { font-size: var(--step-2); margin-bottom: var(--space-3); }
+.sp-sources__note { margin-bottom: var(--space-4); color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.sp-sources__list { display: grid; gap: 10px; list-style: none; }
+.sp-sources__list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text-body);
+  font-size: var(--step-0);
+  line-height: 1.5;
+}
+.sp-sources__list svg { flex-shrink: 0; margin-top: 3px; color: var(--accent); }
+.sp-sources__list strong { color: var(--text-strong); font-weight: 600; }
+.sp-sources__list .ui-num { color: var(--text-secondary); }
 
+/* ── Əvvəlki / Növbəti ── */
+.sp-pager-wrap { margin-top: var(--space-8); max-width: calc(980px + 2 * var(--page-gutter)); }
+.sp-pager { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.sahabe-page .sp-pager__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 18px 20px;
+  font: inherit;
+  text-align: start;
+}
+.sahabe-page .sp-pager__card--next { align-items: flex-end; text-align: end; }
+.sp-pager__dir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .sp-pager__dir { letter-spacing: 0; text-transform: none; font-size: 13px; }
+.sp-pager__who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.sp-pager__card--next .sp-pager__who { flex-direction: row-reverse; }
+.sp-pager__name {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+@media (hover: hover) {
+  .sahabe-page .sp-pager__card:hover .sp-medal__star { transform: rotate(22.5deg) scale(1.08); }
+}
+.sp-all { display: flex; justify-content: center; margin-top: var(--space-5); }
+
+/* ── Keçid (View Transitions) — yalnız bu səhifənin keçidlərində ── */
+html.sp-vt-in .sp-hero .sp-medal { view-transition-name: sp-medal; }
+::view-transition-group(sp-medal) {
+  animation-duration: 560ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+html.sp-vt::view-transition-old(root) { animation: 200ms ease-in both sp-vt-out; }
+html.sp-vt::view-transition-new(root) { animation: 360ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both sp-vt-in; }
+@keyframes sp-vt-out { to { opacity: 0; } }
+@keyframes sp-vt-in { from { opacity: 0; } }
+
+/* Siyahıya qayıdanda yumşaq görünmə */
+.sp-list .sp-toolbar { animation: qm-reveal-fade var(--dur-3) var(--ease-out) backwards; }
+
+/* ══ TELEFON (<768px) ══ */
+@media (max-width: 767.98px) {
+  .sp-toolbar { flex-direction: column; flex-wrap: nowrap; align-items: stretch; margin-bottom: var(--space-4); }
+  .sp-toolbar > * { min-width: 0; }
+  .sahabe-search-wrap { max-width: none; flex-basis: auto; }
+  .sp-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding: 2px var(--page-gutter) 4px;
+    scrollbar-width: none;
+  }
+  .sp-chips::-webkit-scrollbar { display: none; }
+  .sp-chips .ui-chip { flex-shrink: 0; }
+
+  /* Kartlar üfüqi sətir — medalyon · ad/vəzifə · ox */
+  .sahabe-grid { grid-template-columns: 1fr; gap: var(--space-2); }
   .sahabe-page .sahabe-card {
     flex-direction: row;
     align-items: center;
     gap: 14px;
-    min-height: 72px;
-    padding: 12px 14px;
+    min-height: 76px;
+    padding: 10px 14px;
     text-align: start;
   }
-  .sahabe-card-number { display: none; }
+  .sahabe-card .sp-medal { --m: 52px; }
   .sahabe-card-body { flex: 1; align-items: flex-start; gap: 1px; }
-  /* Ərəbcə ad telefonda adın altında, kiçik */
   .sahabe-card-arabic { order: 3; font-size: 16px; line-height: 1.5; color: var(--text-secondary); }
-  .sahabe-card-title { margin-top: 0; }
+  .sahabe-card-name { font-size: var(--step-0); }
+  .sahabe-card-line,
+  .sahabe-card-foot { display: none; }
   .sahabe-card-chev { display: block; }
 
-  .sahabe-hero__id { gap: var(--space-4); }
-  .sahabe-page .sahabe-mono.ui-icon-tile--lg { width: 56px; height: 56px; font-size: 26px; }
-  .sahabe-hero__text .ui-display { font-size: var(--step-3); }
-  .sahabe-bio { font-size: 16px; }
+  .sp-hero__grid { grid-template-columns: 1fr; gap: var(--space-4); }
+  .sp-medal--lg { --m: 104px; }
+  .sahabe-page .sp-hero__name { font-size: clamp(30px, 8.4vw, 40px); }
+  .sp-article { gap: var(--space-7); }
+  .sahabe-page .sp-glance,
+  .sahabe-page .sp-sources { padding: var(--space-5); }
+  .sp-glance__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+  .sp-prose p { font-size: 17px; line-height: 1.75; }
+  .sp-pull { font-size: var(--step-1); }
+  .sahabe-page .sp-quote--featured { padding: var(--space-5) var(--space-4) var(--space-4); }
+  .sp-line__text { padding: 12px 14px; }
+}
+@media (max-width: 520px) {
+  .sp-pager { grid-template-columns: 1fr; }
+  .sahabe-page .sp-pager__card--next { align-items: flex-start; text-align: start; }
+  .sp-pager__card--next .sp-pager__who { flex-direction: row; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sahabe-page .sahabe-card .sahabe-mono { transition: none; }
-  .sahabe-page .sahabe-card:hover .sahabe-mono { transform: none; }
+  .sp-in,
+  .sp-hero .sp-medal,
+  .sp-hero .sp-medal__star,
+  .sp-list .sp-toolbar,
+  .sp-sec__title[data-revealed=""]::after,
+  .sp-line[data-revealed]::before { animation: none; }
+  .sp-progress { display: none; }
+  .sp-medal__star,
+  .sp-back-ic,
+  .sp-toc__link::before,
+  .sahabe-card-read .ui-link__arrow { transition: none; }
+  .sahabe-page .sahabe-card:hover .sp-medal__star,
+  .sahabe-page .sp-pager__card:hover .sp-medal__star { transform: none; }
 }
+
+/* Mətn rəqəmlə başlayırsa ("2 286 hədis…") böyük ilk hərf olmasın */
+.sp-prose--nocap > p:first-child::first-letter { float: none; margin: 0; color: inherit; font: inherit; }
+.sp-glance__v[dir="ltr"] { unicode-bidi: isolate; }

@@ -16,14 +16,55 @@ import InstallBanner from './components/InstallBanner'
 // Adi import: dok özü yüngüldür, ağır panelləri (AI, bildirişlər) içəridə tənbəl yükləyir,
 // əlçatanlıq tərcihləri isə ilk boyamadan tətbiq olunmalıdır.
 import FloatingDock from './components/FloatingDock'
-import HomePage from './pages/HomePage'
 
 // ── Marşrut əsaslı kod bölgüsü ──
 // Əvvəl 31 səhifənin hamısı tək 2.7 MB-lıq bundle-da gəlirdi; ziyarətçi
 // yalnız bir səhifəyə baxsa belə hamısını yükləyirdi. İndi hər səhifə
 // ayrıca chunk-dır — ilk yüklənmə kiçilir, Core Web Vitals yaxşılaşır.
-// HomePage qəsdən eager saxlanılıb: ən çox açılan səhifədir və onu da
-// lazy etmək ilk boyanmaya artıq bir gediş-gəliş əlavə edərdi.
+// PERFORMANS: HomePage də artıq lazy-dir. Əvvəl eager idi ("artıq gediş-gəliş
+// olmasın" deyə), amma onda HomePage.jsx (+ HomePage.css, AdminPage.css ~93 KB
+// xam CSS) HƏR səhifənin əsas paketinə düşürdü. Gediş-gəliş problemi indi
+// prerender-də həll olunur: scripts/prerender.mjs hər marşrutun HTML-inə öz
+// səhifə chunk-ı və CSS-i üçün <link rel="modulepreload"/"preload"> yazır —
+// chunk index.js ilə PARALEL yüklənir.
+// Ana səhifədə ilk render isə chunk hazır olana qədər gözləyir (main.jsx →
+// preloadInitialPage): spinner yanıb-sönmür, footer yuxarıdan aşağı
+// "tullanmır" (CLS yoxdur) — davranış eager import-dakı kimidir.
+const HomePage = lazyPage(() => import('./pages/HomePage'))
+
+/**
+ * React.lazy + preload: modul artıq yüklənibsə, komponent Suspense-siz,
+ * birbaşa render olunur (React.lazy ilk render-də HƏMİŞƏ bir dəfə suspend edir).
+ */
+function lazyPage(factory) {
+  let Loaded = null
+  let promise = null
+  const preload = () => {
+    if (!promise) {
+      promise = factory().then((m) => { Loaded = m.default; return m })
+      promise.catch(() => { promise = null })
+    }
+    return promise
+  }
+  const Lazy = lazy(preload)
+  function Page(props) {
+    return Loaded ? <Loaded {...props} /> : <Lazy {...props} />
+  }
+  Page.preload = preload
+  return Page
+}
+
+/**
+ * main.jsx ilk render-dən əvvəl çağırır: açılan ünvan ana səhifədirsə, onun
+ * chunk-ını gözlə (prerender HTML-i onu artıq modulepreload ilə yükləyir).
+ * Digər səhifələr gözlənilmir — ağır səhifə (məs. /hadith) başlığın görünməsini
+ * ləngitməsin; onlarda əvvəlki kimi Suspense fallback göstərilir.
+ */
+export function preloadInitialPage(pathname, hash) {
+  const { key, known } = parsePath(pathname)
+  if (!known || key !== 'home' || hash === ADMIN_HASH || hash === '#/admin') return Promise.resolve()
+  return HomePage.preload()
+}
 // "Əsas" bölmələri (namaz vaxtları aşağıdadır)
 const JamaatPage = lazy(() => import('./pages/JamaatPage'))
 const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'))
@@ -70,7 +111,9 @@ const NotificationPrompt = lazy(() => import('./components/NotificationPrompt'))
 /** Chunk yüklənənədək göstərilən yüngül keçid vəziyyəti. */
 function PageFallback() {
   return (
-    <div className="spinner-wrap" role="status" aria-live="polite">
+    // <main> kimi tam hündürlük — chunk yüklənərkən footer ekranda görünüb
+    // sonra aşağı "tullanmasın" (CLS, bax: MAIN_STYLE)
+    <div className="spinner-wrap" role="status" aria-live="polite" style={FALLBACK_STYLE}>
       <div className="spinner" />
     </div>
   )
@@ -82,6 +125,10 @@ const ADMIN_HASH = '#admin'
 // "Məzmuna keç" linki — klaviatura ilə başlığı və yan paneli atlamaq üçün
 const SKIP_LABEL = { az: 'Məzmuna keç', en: 'Skip to content', ru: 'Перейти к содержимому', ar: 'انتقل إلى المحتوى', tr: 'İçeriğe geç' }
 const MAIN_ID = 'qm-main'
+// Bax: pageMain-dəki CLS şərhi (--header-h: globals.css, 64px)
+const MAIN_STYLE = { minHeight: 'calc(100vh - var(--header-h, 64px))' }
+// spinner əvvəlki yerində (yuxarıda) qalsın — .spinner-wrap şaquli mərkəzləyir
+const FALLBACK_STYLE = { ...MAIN_STYLE, justifyContent: 'flex-start' }
 
 // Köhnə "/mosque" (Qaraçuxur dövründəki "Məscid haqqında") səhifəsi silinib.
 // Marşrut routes.js-də artıq yoxdur, ona görə yol birbaşa yoxlanır:
@@ -191,7 +238,12 @@ function AppInner() {
   // yalnız ilk açılışda (hələ heç nə göstərilməyibsə) görünür.
   const pageMain = (
     <Suspense fallback={<PageFallback />}>
-      <main key={page} id={MAIN_ID} tabIndex={-1} className="page-enter">
+      {/* PERFORMANS (CLS): <main> ən azı görünən sahə hündürlüyündədir — footer
+          ilk kadrda ekranın ALTINDAN başlayır. Əvvəl səhifə chunk-ı / məlumatı
+          yüklənərkən <main> qısa olurdu, footer ekranın ortasında görünür, sonra
+          məzmun gələndə aşağı itələnirdi: Lighthouse masaüstü /quran-da
+          CLS 0.528 (bal 5/100). Hündür səhifələrdə heç nə dəyişmir. */}
+      <main key={page} id={MAIN_ID} tabIndex={-1} className="page-enter" style={MAIN_STYLE}>
         {renderPage()}
       </main>
     </Suspense>

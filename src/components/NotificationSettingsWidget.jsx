@@ -317,7 +317,7 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     new Notification(brandName(lang), {
       body: l.testBody,
       icon: '/android-chrome-192x192.png',
-      badge: '/favicon-32x32.png',
+      badge: '/badge-96x96.png?v=2',   // ağ monoxrom — Android rəngli şəkli ağ kvadrat göstərir
     })
     setFeedback({ ok: true, text: l.testSent })
     setTimeout(() => setFeedback(null), 2500)

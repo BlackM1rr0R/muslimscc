@@ -9,7 +9,7 @@ ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-COPY server.js prompts.js prayer-utils.js ./
+COPY server.js prompts.js prayer-utils.js ai-utils.js ./
 
 USER node
 EXPOSE 3001

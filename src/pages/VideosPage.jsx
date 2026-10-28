@@ -2,7 +2,9 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import { VIDEO_CATEGORIES, getThumbnail, getEmbedUrl, DEFAULT_VIDEOS, subscribeToVideos } from '../data/videos'
-import Pagination from '../components/Pagination'
+import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
+import ListMore from '../components/ListMore'
+import BackToTop from '../components/BackToTop'
 import { useBackToClose } from '../utils/useBackToClose'
 import { useSheetDrag } from '../hooks/useSheetDrag'
 import Icon from '../components/Icon'
@@ -18,12 +20,15 @@ const LABELS = {
   tr: { eyebrow:'Hadis ve ilim', title:'Video Kütüphanesi', subtitle:'İslami konferanslar, Kuran tilavetleri ve daha fazlası', search:'Video ara...', all:'Tümü', featured:'Öne çıkanlar', latest:'En yeni', allVideos:'Tüm videolar', moreVideos:'Diğer videolar', filter:'Filtre', noResults:'Video bulunamadı', loading:'Yükleniyor...', videos:'video', watchNow:'Şimdi izle', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
 }
 
+// Sonsuz sürüşmənin bir partiyası
+const BATCH = 12
+
 // Sürüşdükcə görünmə (motion.css → data-reveal): hər kart ayrıca izlənir —
-// ilk ekrandakılar 40ms növbə ilə, qalanları ekrana girəndə gecikməsiz
-const revealProps = (i) => ({
-  'data-reveal': '',
-  ...(i > 0 && i < 6 ? { 'data-reveal-delay': String(i * 40) } : {}),
-})
+// hər yeni partiyanın ilk 6 kartı 40ms növbə ilə, qalanları ekrana girəndə gecikməsiz
+const revealProps = (i) => {
+  const j = i % BATCH
+  return { 'data-reveal': '', ...(j > 0 && j < 6 ? { 'data-reveal-delay': String(j * 40) } : {}) }
+}
 
 // Telefonda (<768px) video pəncərəsi aşağıdan qalxan vərəqdir (VideosPage.css):
 // tutacaqdan aşağı çəkib bağlamaq olar, bağlananda aşağı sürüşüb gedir.
@@ -49,15 +54,11 @@ export default function VideosPage({ setPage }) {
   // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)
   const videos = useMemo(() => allVideos.filter(v => hasLang(v.title, lang)), [allVideos, lang])
   const [loading, setLoading] = useState(true)
-  const [selectedCat, setSelectedCat] = useState('all')
-  const [search, setSearch] = useState('')
+  // Filtrlər sessionStorage-də — geri qayıdanda siyahının mövqeyi ilə birlikdə bərpa olunur
+  const [selectedCat, setSelectedCat] = useSessionState('videos:cat', 'all')
+  const [search, setSearch] = useSessionState('videos:q', '')
   const [playingVideo, setPlayingVideo] = useState(null)
   const [shareToast, setShareToast] = useState(false)
-  const [page, setPageNum] = useState(1)
-  const PER_PAGE = 12
-
-  // Filter dəyişəndə pagination-u sıfırla
-  useEffect(() => { setPageNum(1) }, [selectedCat, search])
 
   useEffect(() => {
     const unsubscribe = subscribeToVideos((items) => {
@@ -99,16 +100,21 @@ export default function VideosPage({ setPage }) {
     return list
   }, [videos, featured, selectedCat, search, lang])
 
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
-  const currentPage = Math.min(page, totalPages)
-  const paginated = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
-  // Səhifə dəyişəndə şəbəkənin başlığına qalx (hero-ya yox)
+  // Sonsuz sürüşmə — filtr/axtarış/dil dəyişəndə siyahı əvvəldən başlayır və
+  // (şəbəkənin ortasında idisə) onun başlığına qalxır (hero-ya yox)
   const gridTopRef = useRef(null)
-  const goToPage = (n) => {
-    setPageNum(n)
-    requestAnimationFrame(() => gridTopRef.current?.scrollIntoView({ block: 'start' }))
-  }
+  const inf = useInfiniteList({
+    total: filtered.length,
+    batch: BATCH,
+    resetKey: `${lang}|${selectedCat}|${search.trim()}`,
+    storageKey: 'videos',
+    ready: !loading,
+    onReset: () => {
+      const el = gridTopRef.current
+      if (el && el.getBoundingClientRect().top < 80) el.scrollIntoView({ block: 'start' })
+    },
+  })
+  const paginated = filtered.slice(0, inf.count)
 
   // Video pəncərəsi: telefonda "Geri" və klaviaturada Esc onu bağlasın.
   // Telefonda vərəq əvvəlcə aşağı sürüşür (is-closing), sonra silinir.
@@ -331,7 +337,7 @@ export default function VideosPage({ setPage }) {
             </div>
           ) : (
             // Açar filtr/səhifə dəyişəndə şəbəkəni yenidən qurur — kartlar yenidən növbə ilə görünür
-            <div className="vp-grid" key={`${selectedCat}|${currentPage}`}>
+            <div className="vp-grid" key={selectedCat}>
               {paginated.map((v, i) => (
                 <article key={v.id} className="ui-card ui-card--flush ui-card--interactive vp-card" onClick={() => setPlayingVideo(v)} {...revealProps(i)}>
                   <div className="vp-thumb">
@@ -363,8 +369,21 @@ export default function VideosPage({ setPage }) {
             </div>
           )}
 
-          {!loading && totalPages > 1 && (
-            <Pagination current={currentPage} total={totalPages} onChange={goToPage} color="var(--brand)" />
+          {/* Sonsuz sürüşmə: altda skeleton + "Daha çox göstər", sonda "Hamısı göstərildi" */}
+          {!loading && (
+            <ListMore {...inf} endText={`${filtered.length} ${l.videos}`} minForEnd={BATCH} skeleton={
+              <div className="vp-grid" aria-hidden="true">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="ui-card ui-card--flush vp-skel-card">
+                    <div className="skeleton vp-skel-thumb" />
+                    <div className="vp-skel-body">
+                      <span className="skeleton skeleton--text" style={{ width: '80%' }} />
+                      <span className="skeleton skeleton--text" style={{ width: '50%' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            } />
           )}
         </section>
       </div>
@@ -419,6 +438,8 @@ export default function VideosPage({ setPage }) {
         </div>,
         document.body
       )}
+
+      <BackToTop />
     </div>
   )
 }

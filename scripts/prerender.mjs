@@ -20,6 +20,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import zlib from 'node:zlib'
 
 import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, pathFor } from '../src/seo/routes.js'
 import { titleFor, descFor, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
@@ -173,6 +174,8 @@ function renderPage(template, key, lang, noindex = false) {
   html = notFound
     ? html.replace(/[ \t]*<!--SEO:HEAD-->[ \t]*\r?\n?/, '')
     : html.replace('<!--SEO:HEAD-->', headFor(key, lang))
+  // Səhifə chunk-ı + şrift preload-ları (yuxarıdakı PERFORMANS bölməsi)
+  html = html.replace(/[ \t]*<!--PERF:PRELOAD-->/, () => preloadFor(key, lang))
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`)
   html = html.replace(/<html([^>]*)\slang="[^"]*"/i, '<html$1')
   html = html.replace(/<html([^>]*)>/i, `<html$1 lang="${lang}" dir="${dir}">`)
@@ -213,6 +216,108 @@ function renderPage(template, key, lang, noindex = false) {
 
   return html
 }
+
+// ═══════════════════════════════════════════════════════
+// PERFORMANS: səhifəyə xas preload-lar (<!--PERF:PRELOAD-->)
+//
+// NƏ: hər statik HTML-ə həmin marşrutun səhifə chunk-ı (+ onun statik
+// asılılıqları) üçün <link rel="modulepreload"> və CSS-i üçün
+// <link rel="preload" as="style">, üstəlik cari dilin əsas şrift faylları
+// üçün <link rel="preload" as="font"> yazılır.
+// NİYƏ: səhifələr React.lazy ilə ayrıca chunk-dır (App.jsx). Preload olmadan
+// zəncir belə idi: HTML → index.js → (icra) → import('QuranPage') → onun CSS-i
+// — yəni 2 əlavə gediş-gəliş (mobil 4G-də hər biri ~150+ ms). İndi brauzer
+// səhifə chunk-ını index.js ilə PARALEL yükləyir; Vite-in preload köməkçisi
+// mövcud <link href>-i görüb təkrar yükləmir. Şriftlər isə adətən CSS + JS
+// render olunandan sonra kəşf olunur — preload onları da paralel başladır.
+// Manifest (vite build → .vite/manifest.json) yoxdursa — heç nə yazılmır.
+// ═══════════════════════════════════════════════════════
+
+/** App.jsx-dən: səhifə açarı → src/pages/X.jsx (yalnız React.lazy olanlar). */
+function pageModules() {
+  const src = fs.readFileSync(path.join(ROOT, 'src', 'App.jsx'), 'utf8')
+  const lazyMap = {}
+  // lazy(...) və ya lazyPage(...) (App.jsx — preload-lu variant, məs. HomePage)
+  for (const m of src.matchAll(/const\s+(\w+)\s*=\s*lazy(?:Page)?\(\s*\(\)\s*=>\s*import\(\s*['"]\.\/pages\/(\w+)['"]/g)) {
+    lazyMap[m[1]] = `src/pages/${m[2]}.jsx`
+  }
+  const byKey = {}
+  for (const m of src.matchAll(/case\s+'(\w+)':\s*return\s*<(\w+)/g)) {
+    if (lazyMap[m[2]]) byKey[m[1]] = lazyMap[m[2]]
+  }
+  return byKey
+}
+
+function readManifest() {
+  const p = path.join(DIST, '.vite', 'manifest.json')
+  if (!fs.existsSync(p)) return null
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')) } catch { return null }
+}
+
+/** Manifest girişinin statik asılılıq qapanışı: { js:Set, css:Set } (giriş özü daxil). */
+function closure(manifest, key, acc = { js: new Set(), css: new Set() }) {
+  const e = manifest[key]
+  if (!e || acc.js.has(e.file)) return acc
+  acc.js.add(e.file)
+  for (const c of e.css || []) acc.css.add(c)
+  for (const i of e.imports || []) closure(manifest, i, acc)
+  return acc
+}
+
+// Dil → ilk ekranda mütləq lazım olan şrift faylları (src/assets/fonts/fonts.css).
+// Yalnız əsas interfeys şrifti (Inter / ərəbcə IBM Plex): başlıq (Literata) və
+// Quran (Amiri) şriftləri səhifədən asılıdır — preload olunsa, istifadə
+// olunmayan səhifədə boş yerə bant genişliyi yeyərdi.
+const FONT_PRELOAD = {
+  az: ['inter-latin-var', 'inter-az-var'],
+  tr: ['inter-latin-var', 'inter-az-var'],
+  en: ['inter-latin-var'],
+  ru: ['inter-latin-var', 'inter-cyrillic-var'],
+  ar: ['ibm-plex-sans-arabic-arabic-400'],
+}
+
+function makePreloader() {
+  const manifest = readManifest()
+  if (!manifest) return () => ''
+  const entryKey = Object.keys(manifest).find(k => manifest[k].isEntry)
+  const entry = entryKey ? closure(manifest, entryKey) : { js: new Set(), css: new Set() }
+  const modules = pageModules()
+  const assets = fs.existsSync(path.join(DIST, 'assets')) ? fs.readdirSync(path.join(DIST, 'assets')) : []
+  // Vite adı: <ad>-<8 simvollu hash>.woff2 ("inter-latin-var-…" ≠ "inter-latin-ext-var-…")
+  const fontFile = (base) => assets.find(f => f.startsWith(base + '-') && f.endsWith('.woff2') &&
+    /^[\w-]{8}$/.test(f.slice(base.length + 1, -'.woff2'.length)))
+
+  // Manifest açarı adətən mənbə yoludur (src/pages/X.jsx), amma bəzən Vite
+  // dinamik chunk-ı "_X-<hash>.js" adı ilə yazır (src sahəsi olmadan, məs.
+  // HomePage) — onda chunk adı ilə axtarılır
+  const manifestKey = (src) => {
+    if (!src) return null
+    if (manifest[src]) return src
+    const name = path.basename(src).replace(/\.\w+$/, '')
+    return Object.keys(manifest).find(k => manifest[k].isDynamicEntry && manifest[k].name === name &&
+      manifest[k].file.endsWith('.js')) || null
+  }
+
+  return (key, lang) => {
+    const lines = []
+    for (const base of FONT_PRELOAD[lang] || FONT_PRELOAD.az) {
+      const f = fontFile(base)
+      if (f) lines.push(`<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`)
+    }
+    const mod = manifestKey(modules[key])
+    if (mod) {
+      const { js, css } = closure(manifest, mod)
+      for (const f of js) if (!entry.js.has(f)) lines.push(`<link rel="modulepreload" crossorigin href="/${f}" />`)
+      // crossorigin VAR: Vite-in köməkçisi CSS <link>-ini də crossorigin ilə
+      // yaradır — rejim uyğun gəlməsə, preload istifadə olunmur (Chrome:
+      // "credentials mode does not match") və fayl iki dəfə yüklənir (yoxlanılıb)
+      for (const f of css) if (!entry.css.has(f)) lines.push(`<link rel="preload" as="style" crossorigin href="/${f}" />`)
+    }
+    return lines.map(l => '    ' + l).join('\n')
+  }
+}
+
+const preloadFor = makePreloader()
 
 /** dist içində URL yoluna uyğun index.html yaz. */
 function writeRoute(html, urlPath) {
@@ -291,3 +396,27 @@ count++
 
 const sitemapUrls = buildSitemap()
 console.log(`✓ Prerender: ${count} statik HTML (404.html daxil), sitemap.xml-də ${sitemapUrls} URL`)
+
+// ── Əvvəlcədən sıxılma (nginx gzip_static) ──
+// NƏ: dist-dəki hər mətn faylının yanına maksimum səviyyəli (9) .gz surəti.
+// NİYƏ: nginx (infra/nginx/muslims.cc.conf → gzip_static on) hazır .gz-ni
+// verir — hər sorğuda yenidən sıxmır (CPU və TTFB), həm də səviyyə 6 əvəzinə
+// 9 (bir neçə % kiçik). Brotli üçün nginx-unprivileged image-ində modul
+// yoxdur; ziyarətçiyə brotli/zstd-ni onsuz da Cloudflare özü verir.
+// nginx-in gzip_min_length (1024) həddindən kiçik və ya sıxılanda
+// kiçilməyən fayllar üçün .gz yazılmır.
+const COMPRESSIBLE = /\.(html|js|css|svg|json|xml|txt|webmanifest)$/
+function precompress(dir) {
+  let n = 0
+  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, ent.name)
+    if (ent.isDirectory()) { if (!ent.name.startsWith('.')) n += precompress(p); continue }
+    if (!COMPRESSIBLE.test(ent.name)) continue
+    const buf = fs.readFileSync(p)
+    if (buf.length < 1024) continue
+    const gz = zlib.gzipSync(buf, { level: 9 })
+    if (gz.length < buf.length * 0.95) { fs.writeFileSync(p + '.gz', gz); n++ }
+  }
+  return n
+}
+console.log(`✓ Əvvəlcədən sıxılma: ${precompress(DIST)} .gz faylı`)

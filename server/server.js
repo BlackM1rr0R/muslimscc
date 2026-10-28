@@ -42,39 +42,164 @@ app.use('/api/send-notification', rateLimit({ windowMs: 60000, max: 5, message: 
 const { SYSTEM_PROMPTS } = require('./prompts')
 
 
-app.post('/api/ask-ai', async (req, res) => {
+const ai = require('./ai-utils')
+const OPENROUTER_API_URL = process.env.OPENROUTER_API_URL || ai.OPENROUTER_URL
+const OPENROUTER_REASONING = process.env.OPENROUTER_REASONING || ''
+const AI_MAX_TOKENS = Number(process.env.OPENROUTER_MAX_TOKENS) || ai.LIMITS.maxTokens
+
+// Modelin reasoning imkanları (mandatory / supported_efforts) — OpenRouter-in
+// açıq /models siyahısından bir dəfə oxunur (açar lazım deyil), 6 saatlıq keş.
+let modelMeta = null
+let modelMetaAt = 0
+async function refreshModelMeta() {
+  if (Date.now() - modelMetaAt < 6 * 3600e3) return
+  modelMetaAt = Date.now()
   try {
-    const { message, history = [], lang = 'az' } = req.body
-    if (!message) return res.status(400).json({ error: 'message required' })
-    const msgs = [{ role: 'system', content: SYSTEM_PROMPTS[lang] || SYSTEM_PROMPTS.az }]
-    const prev = history.slice(0, -1).slice(-8)
-    for (const m of prev) {
-      if (m.role === 'user' || m.role === 'assistant') {
-        msgs.push({ role: m.role, content: String(m.content || '').slice(0, 2000) })
+    const r = await fetch(ai.OPENROUTER_MODELS_URL, { signal: AbortSignal.timeout(8000) })
+    if (!r.ok) throw new Error('models ' + r.status)
+    const j = await r.json()
+    const m = (j.data || []).find(x => x.id === OPENROUTER_MODEL)
+    modelMeta = m ? (m.reasoning || { mandatory: false }) : null
+    console.log('AI model:', OPENROUTER_MODEL, 'reasoning →', JSON.stringify(ai.pickReasoning(OPENROUTER_MODEL, modelMeta, OPENROUTER_REASONING)))
+  } catch {
+    // şəbəkə yoxdur — ad üzrə təxmin istifadə olunur; 5 dəqiqədən sonra yenə cəhd
+    modelMetaAt = Date.now() - 6 * 3600e3 + 5 * 60e3
+  }
+}
+refreshModelMeta()
+
+// OpenRouter-ə sorğu; reasoning parametrinə 400 cavabı gəlsə, bir dəfə onsuz təkrarla
+async function callOpenRouter(messages, stream, signal) {
+  const send = (reasoning) => fetch(OPENROUTER_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + OPENROUTER_KEY,
+      'HTTP-Referer': 'https://muslims.cc',
+      'X-Title': 'Muslims.cc',
+    },
+    body: JSON.stringify(ai.buildOpenRouterBody({ model: OPENROUTER_MODEL, messages, stream, reasoning, maxTokens: AI_MAX_TOKENS })),
+    signal,
+  })
+  const reasoning = ai.pickReasoning(OPENROUTER_MODEL, modelMeta, OPENROUTER_REASONING)
+  let r = await send(reasoning)
+  if (r.status === 400 && reasoning) {
+    const t = await r.text().catch(() => '')
+    console.error('AI 400 (reasoning ilə), onsuz təkrar:', t.slice(0, 300))
+    r = await send(undefined)
+  }
+  return r
+}
+
+app.post('/api/ask-ai', async (req, res) => {
+  const body = req.body || {}
+  const lang = ai.normLang(body.lang)
+  const message = typeof body.message === 'string' ? body.message.trim() : ''
+  const stream = ai.wantsStream(body, req.headers.accept)
+  if (!message) return res.status(400).json({ error: ai.errorText('bad_request', lang), code: 'bad_request' })
+  refreshModelMeta()
+
+  const messages = ai.buildMessages({ message, history: body.history, lang, prompts: SYSTEM_PROMPTS })
+  // Klient bağlantını kəsəndə (Dayandır / səhifədən çıxdı) yuxarı axını da kəs
+  const ac = new AbortController()
+  let timedOut = false
+  let timer = setTimeout(() => { timedOut = true; ac.abort() }, ai.TIMEOUTS.firstTokenMs)
+  res.on('close', () => { if (!res.writableFinished) ac.abort() })
+  const t0 = Date.now()
+
+  if (!stream) {
+    // ─── Köhnə JSON rejimi (mobil tətbiq) ───
+    try {
+      const r = await callOpenRouter(messages, false, ac.signal)
+      if (!r.ok) {
+        const e = await r.text().catch(() => '')
+        console.error('AI error:', r.status, e.slice(0, 300))
+        return res.status(502).json({ error: ai.errorText('upstream', lang), code: 'upstream' })
+      }
+      const data = await r.json()
+      const reply = data?.choices?.[0]?.message?.content
+      if (!reply || !String(reply).trim()) return res.status(502).json({ error: ai.errorText('empty', lang), code: 'empty' })
+      res.json({ reply })
+    } catch (e) {
+      if (res.headersSent || res.destroyed) return
+      const code = timedOut ? 'timeout' : 'upstream'
+      if (!timedOut) console.error('AI error:', e?.message)
+      res.status(code === 'timeout' ? 504 : 502).json({ error: ai.errorText(code, lang), code })
+    } finally {
+      clearTimeout(timer)
+      console.log(`AI json ${Date.now() - t0}ms`)
+    }
+    return
+  }
+
+  // ─── Axın (SSE) rejimi ───
+  let started = false
+  let ttft = 0
+  let total = ''
+  const start = () => {
+    if (started) return
+    started = true
+    res.status(200).set({
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    })
+    res.flushHeaders()
+    res.write(': ok\n\n')
+  }
+  const fail = (code, status) => {
+    if (res.writableEnded || res.destroyed) return
+    if (!started) return res.status(status).json({ error: ai.errorText(code, lang), code })
+    res.write(ai.sseEvent({ error: ai.errorText(code, lang), code }))
+    res.end()
+  }
+
+  try {
+    const r = await callOpenRouter(messages, true, ac.signal)
+    if (!r.ok || !r.body) {
+      const e = await r.text().catch(() => '')
+      console.error('AI error:', r.status, e.slice(0, 300))
+      return fail('upstream', 502)
+    }
+    start()
+    let upstreamError = ''
+    const parser = ai.createSSEParser((ev) => {
+      if (ev.error) upstreamError = ev.error
+      if (ev.delta) {
+        if (!ttft) {
+          ttft = Date.now() - t0
+          // İlk tokendən sonra: parçalar arası boşluq + ümumi hədd
+          clearTimeout(timer)
+        }
+        total += ev.delta
+        res.write(ai.sseEvent({ t: ev.delta }))
+      }
+    })
+    const decoder = new TextDecoder()
+    const deadline = t0 + ai.TIMEOUTS.totalMs
+    for await (const chunk of r.body) {
+      parser.push(decoder.decode(chunk, { stream: true }))
+      if (ttft) {
+        clearTimeout(timer)
+        const left = Math.min(ai.TIMEOUTS.idleMs, deadline - Date.now())
+        timer = setTimeout(() => { timedOut = true; ac.abort() }, Math.max(0, left))
       }
     }
-    msgs.push({ role: 'user', content: message })
-    const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + OPENROUTER_KEY,
-        'HTTP-Referer': 'https://muslims.cc'
-      },
-      body: JSON.stringify({ model: OPENROUTER_MODEL, messages: msgs, max_tokens: 1024 })
-    })
-    if (!r.ok) {
-      const e = await r.text()
-      console.error('AI error:', r.status, e)
-      return res.status(502).json({ error: 'AI xetasi' })
-    }
-    const data = await r.json()
-    const reply = data?.choices?.[0]?.message?.content
-    if (!reply) return res.status(502).json({ error: 'Bos cavab' })
-    res.json({ reply })
+    parser.end()
+    // Axının ortasında xəta (finish_reason: "error") — yarımçıq cavabı tam kimi göstərmə
+    if (upstreamError) { console.error('AI stream error:', upstreamError.slice(0, 300)); return fail('upstream', 502) }
+    if (!total.trim()) return fail('empty', 502)
+    res.write(ai.sseEvent({ done: true }))
+    res.end()
   } catch (e) {
-    console.error('Error:', e)
-    res.status(500).json({ error: e.message })
+    if (res.destroyed) return // klient özü kəsdi
+    if (timedOut) return fail('timeout', 504)
+    console.error('AI stream error:', e?.message)
+    fail('upstream', 502)
+  } finally {
+    clearTimeout(timer)
+    console.log(`AI stream ttft=${ttft}ms total=${Date.now() - t0}ms chars=${total.length}`)
   }
 })
 

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { View, Text, TouchableOpacity, TextInput, FlatList, StyleSheet, ActivityIndicator, Animated, AccessibilityInfo } from 'react-native';
 import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLang } from '../contexts/LangContext';
@@ -21,6 +21,55 @@ const SEARCH_LABELS = {
 const BOOKMARK_LABELS = { az:'Oxumağa davam et', en:'Continue reading', ru:'Продолжить чтение', ar:'أكمل القراءة', tr:'Okumaya devam et' };
 const TAFSIR_LABELS = { az:'Təfsir', en:'Tafsir', ru:'Тафсир', ar:'تفسير', tr:'Tefsir' };
 
+// "Ayəyə keç" (veb QuranPage.jsx ilə eyni mətnlər)
+const JUMP_LABELS = {
+  az: { jump:'Ayəyə keç', field:'Ayənin nömrəsi', go:'Keç', range: n => `1 ilə ${n} arasında rəqəm yazın` },
+  en: { jump:'Go to verse', field:'Verse number', go:'Go', range: n => `Enter a number from 1 to ${n}` },
+  ru: { jump:'Перейти к аяту', field:'Номер аята', go:'Перейти', range: n => `Введите число от 1 до ${n}` },
+  ar: { jump:'انتقل إلى آية', field:'رقم الآية', go:'انتقل', range: n => `أدخل رقمًا من 1 إلى ${n}` },
+  tr: { jump:'Ayete git', field:'Ayet numarası', go:'Git', range: n => `1 ile ${n} arasında bir sayı yazın` },
+};
+const ERROR_LABELS = {
+  az: { msg:'Surə yüklənmədi. İnternet bağlantısını yoxlayın.', retry:'Yenidən cəhd et' },
+  en: { msg:'The surah could not be loaded. Please check your connection.', retry:'Try again' },
+  ru: { msg:'Не удалось загрузить суру. Проверьте подключение к интернету.', retry:'Повторить' },
+  ar: { msg:'تعذّر تحميل السورة. تحقّق من الاتصال بالإنترنت.', retry:'أعد المحاولة' },
+  tr: { msg:'Sure yüklenemedi. İnternet bağlantınızı kontrol edin.', retry:'Tekrar dene' },
+};
+
+// Azərbaycan dilində sıra şəkilçisi rəqəmin oxunuşuna görədir: 1-ci, 3-cü, 6-cı, 9-cu, 40-cı, 100-cü
+const AZ_ONES = ['', 'ci', 'ci', 'cü', 'cü', 'ci', 'cı', 'ci', 'ci', 'cu'];
+const AZ_TENS = ['', 'cu', 'ci', 'cu', 'cı', 'ci', 'cı', 'ci', 'ci', 'cı'];
+function azOrdinal(n) {
+  if (n % 10) return `${n}-${AZ_ONES[n % 10]}`;
+  if (n % 100) return `${n}-${AZ_TENS[(n % 100) / 10]}`;
+  return `${n}-cü`;
+}
+function ayahLabel(n, lang) {
+  switch (lang) {
+    case 'az': return `${azOrdinal(n)} ayə`;
+    case 'ru': return `аят ${n}`;
+    case 'ar': return `الآية ${n}`;
+    case 'tr': return `${n}. ayet`;
+    default:   return `verse ${n}`;
+  }
+}
+// "Bəqərə, 50-ci ayə"
+const placeLabel = (name, n, lang) => `${name}${lang === 'ar' ? '، ' : ', '}${ayahLabel(n, lang)}`;
+
+// ── Oxuma yeri ── açar veb ilə eynidir: { surah, ayah?, time }. Köhnə yazıda
+// ayah yoxdursa surə əvvəldən açılır (geriyə uyğun).
+const BOOKMARK_KEY = 'quran_bookmark';
+function parseBookmark(raw) {
+  try {
+    const bm = JSON.parse(raw);
+    const surah = Number(bm?.surah);
+    if (!Number.isInteger(surah) || surah < 1 || surah > 114) return null;
+    const ayah = Number(bm.ayah);
+    return { ...bm, surah, ayah: Number.isInteger(ayah) && ayah > 1 ? ayah : undefined };
+  } catch { return null; }
+}
+
 // ── Surənin adı və mənası cari dildə (veb QuranPage.jsx ilə eyni) ──
 // az/ru/tr: yerli yazılış (surahNamesAz.js); ar: API-dəki ərəb adı ("سُورَةُ" sözü olmadan);
 // en: API-nin transliterasiyası və mənası. ru/tr/ar-da ingiliscə məna göstərilmir.
@@ -39,7 +88,30 @@ function surahMeaning(s, lang) {
   return lang === 'en' ? s.englishNameTranslation : '';
 }
 
-function AyahCard({ verse, showTrans, showTafsir, hasTafsir, tafsirLabel, fontSize, dark }) {
+// Keçid edilən ayənin qızılı halqası: görünür və solur (yalnız opacity, native driver).
+// Hərəkət azaldılıbsa — sabit görünür və 2.4 s sonra götürülür.
+function AyahFlash({ flash, color }) {
+  const op = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!flash) { op.setValue(0); return undefined; }
+    let alive = true;
+    let timer = null;
+    AccessibilityInfo.isReduceMotionEnabled().catch(() => false).then(reduce => {
+      if (!alive) return;
+      if (reduce) { op.setValue(1); timer = setTimeout(() => op.setValue(0), 2400); return; }
+      op.setValue(0);
+      Animated.sequence([
+        Animated.timing(op, { toValue: 1, duration: 280, useNativeDriver: true }),
+        Animated.delay(1200),
+        Animated.timing(op, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ]).start();
+    });
+    return () => { alive = false; if (timer) clearTimeout(timer); };
+  }, [flash, op]);
+  return <Animated.View pointerEvents="none" style={[styles.ayahFlash, { borderColor: color, opacity: op }]} />;
+}
+
+function AyahCard({ verse, showTrans, showTafsir, hasTafsir, tafsirLabel, fontSize, dark, flash }) {
   const [playing, setPlaying] = useState(false);
   const soundRef = useRef(null);
   const c = dark ? Colors.dark : Colors.light;
@@ -67,6 +139,7 @@ function AyahCard({ verse, showTrans, showTafsir, hasTafsir, tafsirLabel, fontSi
 
   return (
     <View style={[styles.ayahCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+      <AyahFlash flash={flash} color={c.gold} />
       <View style={[styles.ayahNum, { backgroundColor: c.primary }]}>
         <Text style={styles.ayahNumText}>{verse.n}</Text>
       </View>
@@ -117,13 +190,107 @@ export default function QuranScreen({ navigation }) {
   const [verseResults, setVerseResults] = useState([]);
   const [verseSearching, setVerseSearching] = useState(false);
   const verseTimerRef = useRef(null);
+  const [surahError, setSurahError] = useState(false);
+  const jl = JUMP_LABELS[lang] || JUMP_LABELS.az;
+  const el = ERROR_LABELS[lang] || ERROR_LABELS.az;
+
+  // ── Ayəyə keçid və oxuma yeri ──
+  const listRef = useRef(null);
+  const [pendingAyah, setPendingAyah] = useState(null);   // surə yüklənəndən sonra keçiləcək ayə
+  const [jumpOpen, setJumpOpen] = useState(false);
+  const [jumpValue, setJumpValue] = useState('');
+  const [jumpError, setJumpError] = useState(false);
+  const [flash, setFlash] = useState({ n: 0, k: 0 });
+  const currentAyahRef = useRef(null);
+  const armedRef = useRef(false);        // yer yalnız istifadəçi özü sürüşdürəndən sonra yazılır
+  const selectedRef = useRef(null);
+  selectedRef.current = selected;
+  const bookmarkRef = useRef(null);
+  bookmarkRef.current = bookmark;
+  const saveTimerRef = useRef(null);
+  const pendingSaveRef = useRef(null);
+  const lastSaveRef = useRef(0);
+  const reqRef = useRef(0);
+
+  // Yeri yaz. ayah verilməyibsə və eyni surədirsə köhnə ayə saxlanılır.
+  const saveBookmark = useCallback((num, ayah) => {
+    const prev = bookmarkRef.current;
+    const keep = ayah === undefined && prev?.surah === num ? prev.ayah : ayah;
+    const bm = { surah: num, ...(keep > 1 ? { ayah: keep } : {}), time: Date.now() };
+    bookmarkRef.current = bm;
+    setBookmark(bm);
+    AsyncStorage.setItem(BOOKMARK_KEY, JSON.stringify(bm)).catch(() => {});
+  }, []);
+  // Throttle: ən çox saniyədə bir yazı, sonuncu dəyər itmir
+  const flushSave = useCallback(() => {
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = null;
+    const p = pendingSaveRef.current;
+    if (!p) return;
+    pendingSaveRef.current = null;
+    lastSaveRef.current = Date.now();
+    saveBookmark(p.s, p.n);
+  }, [saveBookmark]);
+  const queueSave = useCallback((n) => {
+    if (!selectedRef.current) return;
+    pendingSaveRef.current = { s: selectedRef.current, n };
+    const wait = 1000 - (Date.now() - lastSaveRef.current);
+    if (wait <= 0) flushSave();
+    else if (!saveTimerRef.current) saveTimerRef.current = setTimeout(flushSave, wait);
+  }, [flushSave]);
+  useEffect(() => () => flushSave(), [selected, flushSave]);
+
+  // FlatList bu funksiyanın dəyişməsinə icazə vermir — ref ilə sabit saxlanılır
+  const queueSaveRef = useRef(queueSave);
+  queueSaveRef.current = queueSave;
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    const first = viewableItems.filter(v => v.isViewable && v.item?.n).sort((a, b) => a.index - b.index)[0];
+    if (!first) return;
+    currentAyahRef.current = first.item.n;
+    if (armedRef.current) queueSaveRef.current(first.item.n);
+  }).current;
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 30, minimumViewTime: 150 }).current;
+
+  const goToAyah = useCallback((n, { animated = true } = {}) => {
+    if (!listRef.current) return;
+    listRef.current.scrollToIndex({ index: n - 1, animated, viewPosition: 0, viewOffset: 8 });
+    currentAyahRef.current = n;
+    saveBookmark(selectedRef.current, n);
+    setFlash(f => ({ n, k: f.k + 1 }));
+  }, [saveBookmark]);
+  // Hündürlüklər hələ ölçülməyibsə scrollToIndex alınmır: təxmini yerə
+  // sürüşdür, sətirlər ölçüləndən sonra yenidən cəhd et
+  const onScrollToIndexFailed = useCallback((info) => {
+    listRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: false });
+    setTimeout(() => {
+      listRef.current?.scrollToIndex({ index: info.index, animated: false, viewPosition: 0, viewOffset: 8 });
+    }, 120);
+  }, []);
+
+  // Surə yükləndi və gözləyən ayə var ("davam et", axtarış nəticəsi)
+  useEffect(() => {
+    if (!surah || surah.number !== selected || !pendingAyah) return undefined;
+    const n = Math.min(pendingAyah, surah.verses.length);
+    const t = setTimeout(() => { setPendingAyah(null); goToAyah(n, { animated: false }); }, 60);
+    return () => clearTimeout(t);
+  }, [surah, selected, pendingAyah, goToAyah]);
+
+  const submitJump = () => {
+    const total = surah?.verses?.length || 0;
+    const n = Number(String(jumpValue).trim());
+    if (!Number.isInteger(n) || n < 1 || n > total) { setJumpError(true); return; }
+    setJumpOpen(false);
+    setJumpValue('');
+    setJumpError(false);
+    goToAyah(n);
+  };
 
   useEffect(() => {
     fetch('https://api.alquran.cloud/v1/surah')
-      .then(r => r.json()).then(d => setSurahs(d.data))
+      .then(r => r.json()).then(d => setSurahs(Array.isArray(d?.data) ? d.data : []))
       .catch(() => {})
       .finally(() => setListLoading(false));
-    AsyncStorage.getItem('quran_bookmark').then(v => { try { if (v) setBookmark(JSON.parse(v)); } catch {} });
+    AsyncStorage.getItem(BOOKMARK_KEY).then(v => { const bm = v ? parseBookmark(v) : null; if (bm) setBookmark(bm); }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -142,14 +309,26 @@ export default function QuranScreen({ navigation }) {
     return () => { if (verseTimerRef.current) clearTimeout(verseTimerRef.current); };
   }, [verseSearch, searchMode, lang]);
 
-  const openSurah = async (num) => {
+  // ayah > 1 verilibsə surə yüklənəndən sonra həmin ayəyə keçilir
+  const openSurah = async (num, ayah) => {
+    if (!num) return;
+    const req = ++reqRef.current;   // tez-tez "Növbəti" basılanda köhnə cavab yenisini əzməsin
     setSelected(num);
+    setSurah(null);
+    setSurahError(false);
+    setJumpOpen(false);
+    setPendingAyah(ayah > 1 ? ayah : null);
+    armedRef.current = false;
+    currentAyahRef.current = null;
+    // Siyahıdan təsadüfən açıb çıxmaq dünənki ayəni silməsin (eyni surədə saxlanılır)
+    saveBookmark(num, ayah > 1 ? ayah : undefined);
     setSurahLoading(true);
     const edition = EDITION_MAP[lang];
     const eds = lang === 'ar' ? 'ar.alafasy,ar.muyassar' : `ar.alafasy,${edition}`;
     try {
       const res = await fetch(`https://api.alquran.cloud/v1/surah/${num}/editions/${eds}`);
       const d = await res.json();
+      if (req !== reqRef.current) return;
       const [arabic, trans] = Array.isArray(d?.data) ? d.data : [];
       // Tərcümə məhz seçilmiş dilin nəşrindən gəlməlidir — başqa nəşrə düşmür
       if (!arabic?.ayahs || trans?.edition?.identifier !== edition) throw new Error('edition-unavailable');
@@ -162,12 +341,12 @@ export default function QuranScreen({ navigation }) {
         }))
       });
       // Ad saxlanmır — göstərərkən cari dildə hesablanır (dil dəyişəndə köhnə dil qalmasın)
-      const bm = { surah: num, time: Date.now() };
-      await AsyncStorage.setItem('quran_bookmark', JSON.stringify(bm));
-      setBookmark(bm);
-    } catch {}
-    setSurahLoading(false);
+    } catch {
+      if (req === reqRef.current) setSurahError(true);
+    }
+    if (req === reqRef.current) setSurahLoading(false);
   };
+  const closeReader = () => { flushSave(); reqRef.current++; setSelected(null); setSurah(null); setJumpOpen(false); };
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -180,15 +359,42 @@ export default function QuranScreen({ navigation }) {
     });
   }, [surahs, search, filter]);
 
-  // Reader view
-  if (selected && surah) {
+  // Reader view — surə yüklənərkən də açılır (əvvəl siyahı ekranda qalırdı və
+  // toxunuşun heç nə etmədiyi görünürdü)
+  if (selected) {
+    const ready = !!surah && surah.number === selected;
+    const total = ready ? surah.verses.length : 0;
+    // Başlıq və Bəsmələ siyahının içindədir (əvvəl ekranın üstündə sabit idi və
+    // telefonda oxuma sahəsinin üçdə birini tuturdu)
+    const listHeader = ready ? (
+      <View>
+        <View style={[styles.readerHeader, { backgroundColor: c.primary }]}>
+          <View style={styles.readerNumBadge}><Text style={styles.readerNum}>{surah.number}</Text></View>
+          <Text style={styles.readerArabicName}>{surah.name}</Text>
+          {lang !== 'ar' ? <Text style={styles.readerEnName}>{surahTitle(surah, lang)}</Text> : null}
+          <Text style={styles.readerMeta}>{[surahMeaning(surah, lang), `${surah.numberOfAyahs} ${t.verses}`].filter(Boolean).join(' · ')}</Text>
+        </View>
+        {/* Fatihədə Bəsmələ 1-ci ayənin özüdür, Tövbədə isə oxunmur (veb ilə eyni) */}
+        {surah.number !== 1 && surah.number !== 9 && (
+          <View style={[styles.basmalah, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+            <Text style={[styles.basmalahAr, { color: c.text }]}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</Text>
+            {lang !== 'ar' ? <Text style={[styles.basmalahTr, { color: c.textSecondary }]}>{t.basmalah}</Text> : null}
+          </View>
+        )}
+      </View>
+    ) : null;
     return (
       <View style={[styles.container, { backgroundColor: c.background }]}>
         <View style={[styles.toolbar, { backgroundColor: c.surface, borderBottomColor: c.border }]}>
-          <TouchableOpacity onPress={() => { setSelected(null); setSurah(null); }}>
+          <TouchableOpacity onPress={closeReader} style={styles.toolbarTap} accessibilityRole="button">
             <Text style={[styles.backBtn, { color: c.primary }]}>{t.backBtn}</Text>
           </TouchableOpacity>
           <View style={styles.controls}>
+            <TouchableOpacity style={[styles.ctrlBtn, jumpOpen && { backgroundColor: c.primary + '30' }]} disabled={!ready}
+              accessibilityRole="button" accessibilityLabel={jl.jump} accessibilityState={{ expanded: jumpOpen, disabled: !ready }}
+              onPress={() => { setJumpOpen(o => !o); setJumpError(false); }}>
+              <Text style={{ color: ready ? c.text : c.textMuted, fontSize: 11, fontWeight: '600' }}>{jl.jump}</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.ctrlBtn} onPress={() => setFontSize(f => Math.max(f - 0.1, 1.2))}>
               <Text style={{ color: c.text }}>A-</Text>
             </TouchableOpacity>
@@ -207,29 +413,77 @@ export default function QuranScreen({ navigation }) {
           </View>
         </View>
 
-        <View style={[styles.readerHeader, { backgroundColor: c.primary }]}>
-          <View style={styles.readerNumBadge}><Text style={styles.readerNum}>{surah.number}</Text></View>
-          <Text style={styles.readerArabicName}>{surah.name}</Text>
-          {lang !== 'ar' ? <Text style={styles.readerEnName}>{surahTitle(surah, lang)}</Text> : null}
-          <Text style={styles.readerMeta}>{[surahMeaning(surah, lang), `${surah.numberOfAyahs} ${t.verses}`].filter(Boolean).join(' · ')}</Text>
-        </View>
-
-        {surah.number !== 9 && (
-          <View style={[styles.basmalah, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
-            <Text style={[styles.basmalahAr, { color: c.text }]}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</Text>
-            <Text style={[styles.basmalahTr, { color: c.textSecondary }]}>{t.basmalah}</Text>
+        {/* "Ayəyə keç": rəqəm sahəsi (1…N yoxlaması) + nömrələrin üfüqi siyahısı */}
+        {jumpOpen && ready && (
+          <View style={[styles.jumpPanel, { backgroundColor: c.surface, borderBottomColor: c.border }]}>
+            <Text style={[styles.jumpLabel, { color: c.textSecondary }]}>{jl.field}</Text>
+            <View style={styles.jumpRow}>
+              <TextInput
+                style={[styles.jumpInput, { color: c.text, backgroundColor: c.inputBg, borderColor: jumpError ? c.error : c.border }]}
+                value={jumpValue} onChangeText={v => { setJumpValue(v.replace(/[^0-9]/g, '')); setJumpError(false); }}
+                keyboardType="number-pad" returnKeyType="go" autoFocus maxLength={3}
+                placeholder={currentAyahRef.current ? String(currentAyahRef.current) : '1'} placeholderTextColor={c.textMuted}
+                onSubmitEditing={submitJump} accessibilityLabel={jl.field}
+              />
+              <Text style={[styles.jumpOf, { color: c.textMuted }]}>/ {total}</Text>
+              <TouchableOpacity style={[styles.jumpGo, { backgroundColor: c.primary }]} onPress={submitJump} accessibilityRole="button">
+                <Text style={styles.jumpGoText}>{jl.go}</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={[styles.jumpHint, { color: jumpError ? c.error : c.textMuted }]} accessibilityLiveRegion={jumpError ? 'polite' : 'none'}>
+              {jl.range(total)}
+            </Text>
+            <FlatList
+              horizontal
+              data={surah.verses}
+              keyExtractor={v => `j${v.n}`}
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              initialNumToRender={20}
+              contentContainerStyle={{ gap: 6, paddingTop: 8 }}
+              renderItem={({ item }) => {
+                const cur = item.n === currentAyahRef.current;
+                return (
+                  <TouchableOpacity onPress={() => { setJumpOpen(false); goToAyah(item.n); }}
+                    style={[styles.jumpChip, { borderColor: cur ? c.primary : c.border, backgroundColor: cur ? c.primary + '22' : c.card }]}
+                    accessibilityRole="button" accessibilityLabel={ayahLabel(item.n, lang)}>
+                    <Text style={{ color: cur ? c.primary : c.textSecondary, fontWeight: '600', fontSize: 13 }}>{item.n}</Text>
+                  </TouchableOpacity>
+                );
+              }}
+            />
           </View>
         )}
 
-        {surahLoading ? (
+        {surahError ? (
+          <View style={styles.emptyState}>
+            <Text style={{ color: c.textSecondary, textAlign: 'center', marginHorizontal: 24 }}>{el.msg}</Text>
+            <TouchableOpacity style={[styles.jumpGo, { backgroundColor: c.primary, marginTop: 14 }]} onPress={() => openSurah(selected, pendingAyah || undefined)}>
+              <Text style={styles.jumpGoText}>{el.retry}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : !ready || surahLoading ? (
           <ActivityIndicator size="large" color={c.primary} style={{ marginTop: 40 }} />
         ) : (
           <FlatList
+            ref={listRef}
             data={surah.verses}
             keyExtractor={v => String(v.n)}
+            ListHeaderComponent={listHeader}
             renderItem={({ item }) => (
-              <AyahCard verse={item} showTrans={showTrans} showTafsir={showTafsir} hasTafsir={hasTafsir} tafsirLabel={TAFSIR_LABELS[lang]} fontSize={fontSize} dark={dark} />
+              <AyahCard verse={item} showTrans={showTrans} showTafsir={showTafsir} hasTafsir={hasTafsir} tafsirLabel={TAFSIR_LABELS[lang]} fontSize={fontSize} dark={dark}
+                flash={flash.n === item.n ? flash.k : 0} />
             )}
+            extraData={flash}
+            // Uzaq ayəyə keçid üçün: əvvəlcə daha çox sətir çək, ölçülməyibsə ehtiyat yol
+            initialNumToRender={Math.min(total, Math.max(12, (pendingAyah || 0) + 4))}
+            windowSize={11}
+            onScrollToIndexFailed={onScrollToIndexFailed}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            // Yer yalnız istifadəçinin öz sürüşməsindən sonra yazılır
+            onScrollBeginDrag={() => { armedRef.current = true; }}
+            onMomentumScrollEnd={() => { if (armedRef.current && currentAyahRef.current) queueSave(currentAyahRef.current); }}
             contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           />
         )}
@@ -253,11 +507,16 @@ export default function QuranScreen({ navigation }) {
 
       <View style={styles.content}>
         {bookmark && (
-          <TouchableOpacity style={[styles.bookmarkCard, { backgroundColor: c.card, borderColor: c.gold }]} onPress={() => openSurah(bookmark.surah)}>
+          // Klikdə surə açılır və yüklənəndən sonra dəqiq həmin ayəyə keçilir
+          <TouchableOpacity style={[styles.bookmarkCard, { backgroundColor: c.card, borderColor: c.gold }]} onPress={() => openSurah(bookmark.surah, bookmark.ayah)}
+            accessibilityRole="button">
             <Text style={{ fontSize: 24 }}>🔖</Text>
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={[styles.bookmarkLabel, { color: c.textSecondary }]}>{BOOKMARK_LABELS[lang]}</Text>
-              <Text style={[styles.bookmarkName, { color: c.text }]}>{surahTitle(surahs.find(s => s.number === bookmark.surah), lang) || `${bookmark.surah}`}</Text>
+              <Text style={[styles.bookmarkName, { color: c.text }]}>{(() => {
+                const name = surahTitle(surahs.find(s => s.number === bookmark.surah), lang) || `${bookmark.surah}`;
+                return bookmark.ayah ? placeLabel(name, bookmark.ayah, lang) : name;
+              })()}</Text>
             </View>
             <Text style={{ color: c.textMuted, fontSize: 20 }}>→</Text>
           </TouchableOpacity>
@@ -336,7 +595,7 @@ export default function QuranScreen({ navigation }) {
                 keyExtractor={(v, i) => String(i)}
                 ListHeaderComponent={<Text style={[styles.resultsCount, { color: c.textSecondary }]}>{verseResults.length} {sl.result}</Text>}
                 renderItem={({ item }) => (
-                  <TouchableOpacity style={[styles.verseResultCard, { backgroundColor: c.card, borderColor: c.cardBorder }]} onPress={() => openSurah(item.surah.number)}>
+                  <TouchableOpacity style={[styles.verseResultCard, { backgroundColor: c.card, borderColor: c.cardBorder }]} onPress={() => openSurah(item.surah.number, item.numberInSurah)}>
                     <View style={styles.vrHeader}>
                       <Text style={[styles.vrSurah, { color: c.primary }]}>{lang === 'ar' ? stripSurahWord(item.surah.name) : `${surahTitle(item.surah, lang)} (${item.surah.name})`}</Text>
                       <Text style={[styles.vrAyah, { color: c.textMuted }]}>{item.numberInSurah}</Text>
@@ -371,6 +630,18 @@ const styles = StyleSheet.create({
   basmalahAr: { fontSize: 22 },
   basmalahTr: { fontSize: 13, marginTop: 4 },
   ayahCard: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, borderRadius: 12, borderWidth: 1, marginBottom: 10 },
+  // Keçid edilən ayənin qızılı halqası (AyahFlash)
+  ayahFlash: { position: 'absolute', top: -1, left: -1, right: -1, bottom: -1, borderRadius: 12, borderWidth: 2 },
+  toolbarTap: { minHeight: 44, justifyContent: 'center', paddingRight: 8 },
+  jumpPanel: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, borderBottomWidth: 1 },
+  jumpLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6 },
+  jumpRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  jumpInput: { flex: 1, height: 44, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, fontSize: 16 },
+  jumpOf: { fontSize: 14, fontWeight: '500' },
+  jumpGo: { minHeight: 44, paddingHorizontal: 18, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  jumpGoText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  jumpHint: { fontSize: 12, marginTop: 6 },
+  jumpChip: { minWidth: 44, height: 44, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   ayahNum: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   ayahNumText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   ayahBody: { flex: 1 },

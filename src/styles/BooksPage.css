@@ -193,10 +193,8 @@
 .bp-skel-cover { aspect-ratio: 2 / 3; border-radius: 0; }
 .bp-skel-body { display: flex; flex-direction: column; gap: 8px; padding: var(--space-3) var(--space-4) var(--space-4); }
 
-/* ── Səhifələmə (ümumi komponent) ── */
-.books-page .pagination { margin-top: var(--space-7); }
-.books-page .pg-btn { border: 1px solid var(--line-strong); background: var(--surface-1); color: var(--text-body); border-radius: var(--radius-md); font-weight: 600; }
-.books-page .pg-btn.active { background: var(--brand); border-color: var(--brand); color: var(--on-brand); box-shadow: var(--shadow-1); }
+/* Sonsuz sürüşmə (ListMore) — skeleton kartlar şəbəkənin özü kimi */
+.books-page .lm { margin-top: var(--space-5); }
 
 /* ═══ PƏNCƏRƏ (kompüter) ═══ */
 .bp-modal {

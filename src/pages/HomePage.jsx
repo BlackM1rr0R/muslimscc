@@ -16,6 +16,7 @@ import { localizeSource } from '../utils/sourceNames'
 import { haptic } from '../hooks/useHaptic'
 import { DailyReminderBarSkeleton } from '../components/DailyReminderBarSkeleton'
 import Icon from '../components/Icon'
+import CityPicker from '../components/CityPicker'
 import { HADITH_COUNT } from '../data/siteStats'
 // Günün xatırlatmaları zolağı quotes.js və duas.js-i (~235 KB) yükləyir —
 // tənbəl yüklənir; yer tutucu (skeleton) hündürlüyü əvvəlcədən saxlayır.
@@ -302,7 +303,8 @@ function PrayerWidget({ lang, l, onMore }) {
       <div className="hp-pc-hdr">
         <div className="hp-pc-hdr-l">
           <h2 id="hp-pc-ttl" className="hp-pc-ttl">{l.pcTitle}</h2>
-          <span className="hp-pc-sub">{city ? <><Icon name="pin" size={14} /> {city} · {l.calc}</> : l.calc}</span>
+          {/* Şəhər adı — seçici açan düymə (components/CityPicker; seçim bütün saytda ortaqdır) */}
+          <span className="hp-pc-sub">{city ? <><Icon name="pin" size={14} /> <CityPicker variant="inline" className="hp-pc-city" /> · {l.calc}</> : l.calc}</span>
         </div>
         <span className="hp-pc-ic ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="prayer" size={18} /></span>
       </div>

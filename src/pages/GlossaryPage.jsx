@@ -1,7 +1,9 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { GLOSSARY } from '../data/glossary'
-import Pagination from '../components/Pagination'
+import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
+import ListMore from '../components/ListMore'
+import BackToTop from '../components/BackToTop'
 import Icon from '../components/Icon'
 import '../styles/GlossaryPage.css'
 
@@ -16,15 +18,15 @@ const LABELS = {
 const LATIN_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 const ARABIC_LETTERS = ['ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي']
 
-// Bir səhifədə neçə kart (107 kartın hamısı birdən telefonda 26 000px idi)
-const PER_PAGE = 24
+// Sonsuz sürüşmənin bir partiyası (107 kartın hamısı birdən telefonda 26 000px idi)
+const BATCH = 24
 
 // Sürüşdükcə görünmə (motion.css → data-reveal): hər kart ayrıca izlənir —
-// ilk ekrandakılar 40ms növbə ilə, qalanları ekrana girəndə gecikməsiz
-const revealProps = (i) => ({
-  'data-reveal': '',
-  ...(i > 0 && i < 6 ? { 'data-reveal-delay': String(i * 40) } : {}),
-})
+// hər yeni partiyanın ilk 6 kartı 40ms növbə ilə, qalanları ekrana girəndə gecikməsiz
+const revealProps = (i) => {
+  const j = i % BATCH
+  return { 'data-reveal': '', ...(j > 0 && j < 6 ? { 'data-reveal-delay': String(j * 40) } : {}) }
+}
 
 // Kartın başlığı: item.term yalnız azərbaycancadır — başqa dillərdə
 // beynəlxalq transliterasiya (Tawhid, Salah…) göstərilir
@@ -47,9 +49,9 @@ export default function GlossaryPage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
 
-  const [search, setSearch] = useState('')
-  const [activeLetter, setActiveLetter] = useState(null)
-  const [pageNum, setPageNum] = useState(1)
+  // Filtrlər sessionStorage-də — geri qayıdanda siyahının mövqeyi ilə birlikdə bərpa olunur
+  const [search, setSearch] = useSessionState('glossary:q', '')
+  const [activeLetter, setActiveLetter] = useSessionState('glossary:letter', null)
 
   const isArabic = lang === 'ar'
   // Yalnız ən azı bir termini olan hərflər (boş hərf "0 termin" verirdi)
@@ -59,8 +61,14 @@ export default function GlossaryPage({ setPage }) {
     [isArabic, lang]
   )
 
-  // Dil dəyişəndə seçilmiş hərf yeni siyahıda olmaya bilər
-  useEffect(() => { setActiveLetter(null) }, [lang])
+  // Dil dəyişəndə seçilmiş hərf yeni siyahıda olmaya bilər (ilk render-də
+  // toxunmuruq — əks halda geri qayıdanda bərpa olunan hərf silinərdi)
+  const langRef = useRef(lang)
+  useEffect(() => {
+    if (langRef.current === lang) return
+    langRef.current = lang
+    setActiveLetter(null)
+  }, [lang, setActiveLetter])
 
   const filtered = useMemo(() => {
     let list = GLOSSARY
@@ -79,33 +87,26 @@ export default function GlossaryPage({ setPage }) {
     return list
   }, [search, activeLetter, lang])
 
-  // Səhifələmə — axtarış, hərf və ya dil dəyişəndə 1-ci səhifə
-  useEffect(() => { setPageNum(1) }, [search, activeLetter, lang])
-  const totalPages = Math.ceil(filtered.length / PER_PAGE)
-  const current = Math.min(pageNum, Math.max(1, totalPages))
-  const paged = filtered.slice((current - 1) * PER_PAGE, current * PER_PAGE)
-
-  // Səhifə dəyişəndə şəbəkənin əvvəlinə qalx (scroll-padding başlığı nəzərə alır)
+  // Sonsuz sürüşmə — axtarış, hərf və ya dil dəyişəndə siyahı əvvəldən başlayır
+  // və (şəbəkənin ortasında idisə) onun əvvəlinə qalxır. Telefonda hərf zolağı
+  // yapışqandır (sticky) — sərhəd onun altıdır, kompüterdə başlığın altı.
   const topRef = useRef(null)
-  const goPage = (p) => {
-    setPageNum(p)
-    requestAnimationFrame(() => topRef.current?.scrollIntoView({ block: 'start' }))
-  }
-
-  // Telefonda hərf zolağı yapışqandır (sticky): siyahının ortasında hərf
-  // seçiləndə yeni nəticələrin əvvəlinə qalx. Kompüterdə zolaq yapışmır —
-  // orada bu yoxlama heç nə etmir.
   const alphaRef = useRef(null)
-  const toGridTop = () => {
-    requestAnimationFrame(() => {
+  const gridRef = useRef(null)
+  const inf = useInfiniteList({
+    total: filtered.length,
+    batch: BATCH,
+    resetKey: `${lang}|${activeLetter || ''}|${search.trim()}`,
+    storageKey: 'glossary',
+    onReset: () => {
       const bar = alphaRef.current
-      if (!bar || getComputedStyle(bar).position !== 'sticky') return
-      const grid = bar.nextElementSibling
-      if (grid && grid.getBoundingClientRect().top < bar.getBoundingClientRect().bottom) {
-        topRef.current?.scrollIntoView({ block: 'start' })
-      }
-    })
-  }
+      const grid = gridRef.current
+      if (!bar || !grid) return
+      const limit = getComputedStyle(bar).position === 'sticky' ? bar.getBoundingClientRect().bottom : 80
+      if (grid.getBoundingClientRect().top < limit) topRef.current?.scrollIntoView({ block: 'start' })
+    },
+  })
+  const paged = filtered.slice(0, inf.count)
 
   return (
     <>
@@ -149,7 +150,7 @@ export default function GlossaryPage({ setPage }) {
               type="button"
               className="ui-chip glossary-alpha-btn glossary-alpha-btn--all"
               aria-pressed={!activeLetter}
-              onClick={() => { setActiveLetter(null); toGridTop() }}
+              onClick={() => setActiveLetter(null)}
             >
               {t.all}
             </button>
@@ -159,15 +160,15 @@ export default function GlossaryPage({ setPage }) {
                 key={letter}
                 className="ui-chip glossary-alpha-btn"
                 aria-pressed={activeLetter === letter}
-                onClick={() => { setActiveLetter(letter === activeLetter ? null : letter); setSearch(''); toGridTop() }}
+                onClick={() => { setActiveLetter(letter === activeLetter ? null : letter); setSearch('') }}
               >
                 {letter}
               </button>
             ))}
           </div>
 
-          {/* Terminlər — açar filtr/səhifə dəyişəndə şəbəkəni yenidən qurur (keçid) */}
-          <div className="glossary-grid" key={`${activeLetter || ''}|${current}`}>
+          {/* Terminlər — açar hərf dəyişəndə şəbəkəni yenidən qurur (keçid) */}
+          <div className="glossary-grid" ref={gridRef} key={activeLetter || ''}>
             {paged.map((item, idx) => (
               <article key={item.term} className="ui-card glossary-card" {...revealProps(idx)}>
                 <div className="glossary-card-header">
@@ -195,9 +196,16 @@ export default function GlossaryPage({ setPage }) {
             </div>
           )}
 
-          <Pagination current={current} total={totalPages} onChange={goPage} color="var(--brand)" />
+          {/* Sonsuz sürüşmə: altda skeleton + "Daha çox göstər", sonda "Hamısı göstərildi" */}
+          <ListMore {...inf} endText={`${filtered.length} ${t.terms}`} minForEnd={BATCH} className="glossary-more" skeleton={
+            <div className="glossary-grid glossary-skel-grid">
+              {[0, 1, 2].map(i => <div key={i} className="ui-skeleton ui-skeleton--card glossary-skel" />)}
+            </div>
+          } />
         </div>
       </div>
+
+      <BackToTop />
     </>
   )
 }

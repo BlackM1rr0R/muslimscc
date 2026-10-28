@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import { getPrayerLocation } from '../utils/prayerLocation'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
+import CityPicker from '../components/CityPicker'
 import '../styles/QiblaPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 
@@ -319,6 +320,8 @@ export default function QiblaPage({ setPage }) {
               <button type="button" className="ui-btn ui-btn--primary" onClick={startWatching}><Icon name="pin" className="ui-btn__icon" /> {l.grant}</button>
               <button type="button" className="ui-btn ui-btn--secondary" onClick={pickCity}>{l.manual}</button>
             </div>
+            {/* Başqa şəhər seçmək olar — seçiləndə qiblə həmin şəhərdən hesablanır */}
+            <div className="qibla-city-pick"><CityPicker onSelect={pickCity} /></div>
           </div>
         )}
 
@@ -428,7 +431,7 @@ export default function QiblaPage({ setPage }) {
                 <span className="qibla-coords-cap">{x.coords}</span>
                 {/* Koordinatlar ərəbcədə də soldan sağa oxunsun */}
                 {coords && <bdi dir="ltr" className="ui-num">{formatCoord(coords.lat, 'N', 'S')}, {formatCoord(coords.lon, 'E', 'W')}</bdi>}
-                {!accuracy && fallbackCity && <span className="qibla-fallback-note"><Icon name="pin" size={13} /> {fallbackCity} · {x.city}</span>}
+                {!accuracy && fallbackCity && <span className="qibla-fallback-note"><Icon name="pin" size={13} /> <CityPicker variant="inline" onSelect={pickCity} /> · {x.city}</span>}
               </p>
               <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm qibla-refresh-btn" onClick={startWatching}>
                 <Icon name="refresh" className="ui-btn__icon" /> {l.refreshLocation}

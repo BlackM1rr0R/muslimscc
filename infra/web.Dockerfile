@@ -14,7 +14,10 @@ COPY . .
 # Vite istehsal build-ində .env.production.local-ı oxuyur.
 RUN cp .env.public .env.production.local
 
-RUN npm run build && test -f dist/404.html && test -f dist/index.html
+# Əvvəlcədən sıxılmış .gz surətləri (scripts/prerender.mjs → nginx gzip_static)
+# dist ilə birlikdə image-ə düşür; yoxdursa build dayansın — əks halda nginx
+# səssizcə hər sorğuda dinamik sıxmağa qayıdardı.
+RUN npm run build && test -f dist/404.html && test -f dist/index.html  && test -f dist/index.html.gz && ls dist/assets/*.js.gz > /dev/null
 
 # ── 2) Serve ──
 # stable-alpine: hər deploy-da təzə build olunur → nginx təhlükəsizlik

@@ -15,12 +15,13 @@ from PIL import Image, ImageDraw, ImageFont
 W, H = 1200, 630
 OUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'public')
 
-# Brend rəngləri — theme-color #16a34a ilə eyni ailə
-DEEP = (6, 59, 36)
-MID = (13, 110, 62)
-ACCENT = (22, 163, 74)
-GOLD = (218, 179, 94)
-CREAM = (245, 242, 232)
+# Brend rəngləri — dizayn sistemi v2 (src/styles/globals.css, DESIGN.md)
+DEEP = (10, 61, 49)      # --emerald-900 / --surface-inverse
+MID = (15, 90, 71)       # --emerald-700 (BrandMark kafeli)
+GOLD = (216, 180, 106)   # --sand-400
+SAND = (230, 204, 149)   # --sand-300 (xatəm xətti)
+CREAM = (243, 239, 230)  # --text-on-inverse
+DIM = (214, 210, 199)    # --text-on-inverse-dim (tünd fonda)
 
 
 def load_font(names, size):
@@ -36,6 +37,7 @@ def load_font(names, size):
     return ImageFont.load_default()
 
 
+DISPLAY = ['georgiab.ttf', 'cambriab.ttf', 'segoeuib.ttf', 'DejaVuSerif-Bold.ttf']
 BOLD = ['segoeuib.ttf', 'seguisb.ttf', 'arialbd.ttf', 'DejaVuSans-Bold.ttf']
 REG = ['segoeui.ttf', 'arial.ttf', 'DejaVuSans.ttf']
 
@@ -69,42 +71,31 @@ def pattern(img):
     for row, cy in enumerate(range(-40, H + 80, step)):
         offset = (step // 2) if row % 2 else 0
         for cx in range(-40 + offset, W + 80, step):
-            star8(d, cx, cy, 34, (255, 255, 255, 16), width=2)
+            star8(d, cx, cy, 34, SAND + (14,), width=2)
     img.alpha_composite(layer)
 
 
-def crescent(img, cx, cy, r):
-    """Aypara — böyük dairədən sürüşdürülmüş dairəni çıxararaq."""
-    s = 4  # supersampling — kənarlar hamar olsun
-    size = int(r * 2.6) * s
-    m = Image.new('L', (size, size), 0)
-    dm = ImageDraw.Draw(m)
-    R = r * s
-    c = size / 2
-    dm.ellipse([c - R, c - R, c + R, c + R], fill=255)
-    dm.ellipse([c - R + 0.42 * R, c - R * 0.94, c + R + 0.42 * R, c + R * 0.94], fill=0)
-    m = m.resize((size // s, size // s), Image.LANCZOS)
-
-    tile = Image.new('RGBA', m.size, GOLD + (255,))
-    img.paste(tile, (int(cx - m.size[0] / 2), int(cy - m.size[1] / 2)), m)
-
-
-def star5(img, cx, cy, r, color):
-    """Ayparanın yanındakı beşguşəli ulduz."""
+def brand_mark(img, cx, cy, size):
+    """BrandMark (src/components/Icon.jsx) — zümrüd kafel + qum rəngli xatəm
+    (kvadrat + 45° romb) + mərkəzdə nöqtə. 32 vahidlik şəbəkə, supersampling."""
     s = 4
-    size = int(r * 3) * s
-    m = Image.new('L', (size, size), 0)
+    S = size * s
+    u = S / 32.0
+    m = Image.new('RGBA', (S, S), (0, 0, 0, 0))
     dm = ImageDraw.Draw(m)
-    c = size / 2
-    pts = []
-    for i in range(10):
-        rad = (r * s) if i % 2 == 0 else (r * s * 0.42)
-        a = -math.pi / 2 + i * math.pi / 5
-        pts.append((c + rad * math.cos(a), c + rad * math.sin(a)))
-    dm.polygon(pts, fill=255)
-    m = m.resize((size // s, size // s), Image.LANCZOS)
-    tile = Image.new('RGBA', m.size, color + (255,))
-    img.paste(tile, (int(cx - m.size[0] / 2), int(cy - m.size[1] / 2)), m)
+    dm.rounded_rectangle([0, 0, S - 1, S - 1], radius=9 * u, fill=MID + (255,),
+                         outline=SAND + (90,), width=max(1, int(0.35 * u)))
+    w = max(1, round(1.5 * u))
+    for poly in ([(9.4, 9.4), (22.6, 9.4), (22.6, 22.6), (9.4, 22.6)],
+                 [(16, 6.7), (25.3, 16), (16, 25.3), (6.7, 16)]):
+        pts = [(x * u, y * u) for x, y in poly]
+        dm.line(pts + [pts[0], pts[1]], fill=SAND + (255,), width=w, joint='curve')
+        for x, y in pts:
+            dm.ellipse([x - w / 2, y - w / 2, x + w / 2, y + w / 2], fill=SAND + (255,))
+    r = 2.1 * u
+    dm.ellipse([S / 2 - r, S / 2 - r, S / 2 + r, S / 2 + r], fill=GOLD + (255,))
+    m = m.resize((size, size), Image.LANCZOS)
+    img.alpha_composite(m, (int(cx - size / 2), int(cy - size / 2)))
 
 
 # ── Dil başına mətnlər ──
@@ -173,17 +164,13 @@ def render(lang):
     d = ImageDraw.Draw(img)
 
     # Üstdə və altda incə zolaq — kart çərçivəsi hissi
-    d.rectangle([0, 0, W, 7], fill=GOLD)
-    d.rectangle([0, H - 7, W, H], fill=ACCENT)
+    d.rectangle([0, 0, W, 5], fill=GOLD)
 
-    # ── Emblem ── ulduz ayparanın qövsünün içinə oturur
-    # Aypara güzgülənmir (açıq tərəfi həmişə sağdadır), ona görə ulduz RTL-də
-    # də ayparanın mərkəzindən +46 px sağda — açıq qövsün içində qalır
-    crescent(img, mx(140), 196, 66)
-    star5(img, mx(140) + 46, 196, 21, GOLD)
+    # ── Emblem ── saytın loqosu (BrandMark), wordmark-ın başlanğıcında
+    brand_mark(img, mx(136), 180, 128)
 
     # ── Wordmark ── (domen adı — tərcümə olunmur, Latın qalır)
-    f_brand = load_font(BOLD, 96)
+    f_brand = load_font(DISPLAY, 92)
     d.text((mx(262), 172), BRAND, font=f_brand, fill=CREAM, anchor=side + 's')
 
     # ── Alt başlıq ── wordmark-ın altında, qızılı
@@ -192,7 +179,7 @@ def render(lang):
 
     # ── Şüar ──
     f_tag = load_font(REG, 36)
-    d.text((mx(72), 316), sh(t['tag']), font=f_tag, fill=(203, 232, 213), anchor=side + 'm')
+    d.text((mx(72), 316), sh(t['tag']), font=f_tag, fill=DIM, anchor=side + 'm')
 
     # ── Xidmət çipləri ──
     # Çiplər ayrı RGBA qatında çəkilir: ImageDraw şəffaflığı qarışdırmır,
@@ -209,7 +196,7 @@ def render(lang):
             x, y = 72, y + 66
         x0, x1 = (W - x - w, W - x) if rtl else (x, x + w)
         dc.rounded_rectangle([x0, y, x1, y + 54], radius=27,
-                             fill=(255, 255, 255, 30), outline=(255, 255, 255, 90), width=2)
+                             fill=(255, 255, 255, 18), outline=SAND + (110,), width=2)
         placed.append(((x0 + x1) / 2, y + 27, c))
         x += w + 14
     img.alpha_composite(chip_layer)
@@ -218,7 +205,7 @@ def render(lang):
 
     # ── Alt sətir ──
     f_foot = load_font(REG, 28)
-    d.text((mx(72), H - 62), sh(t['foot']), font=f_foot, fill=(168, 214, 184), anchor=side + 'm')
+    d.text((mx(72), H - 62), sh(t['foot']), font=f_foot, fill=DIM, anchor=side + 'm')
     d.text((mx(W - 72), H - 62), 'muslims.cc', font=load_font(BOLD, 30), fill=GOLD,
            anchor=('l' if rtl else 'r') + 'm')
 

@@ -135,10 +135,8 @@
   text-align: center;
 }
 
-/* ── Səhifələmə (ümumi komponent) — brend tokenləri ── */
-.glossary-page .pagination { margin-top: var(--space-7); }
-.glossary-page .pg-btn { border: 1px solid var(--line-strong); background: var(--surface-1); color: var(--text-body); border-radius: var(--radius-md); font-weight: 600; }
-.glossary-page .pg-btn.active { background: var(--brand); border-color: var(--brand); color: var(--on-brand); box-shadow: var(--shadow-1); }
+/* Sonsuz sürüşmə (ListMore): skeleton kartlar şəbəkənin özü kimi düzülür */
+.glossary-page .glossary-skel { height: 150px; }
 
 /* ══ TELEFON (<768px): əlifba bir sürüşən sətir, başlığın altında yapışır ══ */
 @media (max-width: 767.98px) {

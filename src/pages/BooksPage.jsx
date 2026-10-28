@@ -2,7 +2,9 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import { BOOK_CATEGORIES, DEFAULT_BOOKS, subscribeToBooks, getDefaultCover } from '../data/books'
-import Pagination from '../components/Pagination'
+import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
+import ListMore from '../components/ListMore'
+import BackToTop from '../components/BackToTop'
 import { useBackToClose } from '../utils/useBackToClose'
 import { useSheetDrag } from '../hooks/useSheetDrag'
 import Icon from '../components/Icon'
@@ -18,12 +20,15 @@ const LABELS = {
   tr: { eyebrow:'Hadis ve ilim', title:'Kütüphane', subtitle:'İslami kitaplar, tefsirler ve ilmi eserler', search:'Kitap ara...', filter:'Filtre', featured:'Öne Çıkan Kitaplar', allBooks:'Tüm Kitaplar', moreBooks:'Diğer kitaplar', noResults:'Kitap bulunamadı', loading:'Yükleniyor...', books:'kitap', author:'Yazar', read:'Oku', preview:'Önizle', readPdf:'PDF aç', noPdf:'PDF mevcut değil', pages:'sayfa', year:'Yıl', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
 }
 
+// Sonsuz sürüşmənin bir partiyası
+const BATCH = 12
+
 // Sürüşdükcə görünmə (motion.css → data-reveal): hər kart ayrıca izlənir —
-// ilk ekrandakılar 40ms növbə ilə, qalanları ekrana girəndə gecikməsiz
-const revealProps = (i) => ({
-  'data-reveal': '',
-  ...(i > 0 && i < 6 ? { 'data-reveal-delay': String(i * 40) } : {}),
-})
+// hər yeni partiyanın ilk 6 kartı 40ms növbə ilə, qalanları ekrana girəndə gecikməsiz
+const revealProps = (i) => {
+  const j = i % BATCH
+  return { 'data-reveal': '', ...(j > 0 && j < 6 ? { 'data-reveal-delay': String(j * 40) } : {}) }
+}
 
 // Telefonda (<768px) kitab pəncərəsi aşağıdan qalxan vərəqdir (BooksPage.css):
 // tutacaqdan aşağı çəkib bağlamaq olar, bağlananda aşağı sürüşüb gedir.
@@ -49,15 +54,11 @@ export default function BooksPage({ setPage }) {
   // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)
   const books = useMemo(() => allBooks.filter(b => hasLang(b.title, lang)), [allBooks, lang])
   const [loading, setLoading] = useState(true)
-  const [selectedCat, setSelectedCat] = useState('all')
-  const [search, setSearch] = useState('')
+  // Filtrlər sessionStorage-də — geri qayıdanda siyahının mövqeyi ilə birlikdə bərpa olunur
+  const [selectedCat, setSelectedCat] = useSessionState('books:cat', 'all')
+  const [search, setSearch] = useSessionState('books:q', '')
   const [selectedBook, setSelectedBook] = useState(null)
   const [shareToast, setShareToast] = useState(false)
-  const [pageNum, setPageNum] = useState(1)
-  const PER_PAGE = 12
-
-  // Filter dəyişəndə pagination-u sıfırla
-  useEffect(() => { setPageNum(1) }, [selectedCat, search])
 
   useEffect(() => {
     const unsubscribe = subscribeToBooks((items) => {
@@ -99,16 +100,21 @@ export default function BooksPage({ setPage }) {
     return list
   }, [books, featured, selectedCat, search, lang])
 
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
-  const currentPage = Math.min(pageNum, totalPages)
-  const paginated = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
-  // Səhifə dəyişəndə şəbəkənin başlığına qalx (səhifənin ən yuxarısına — hero-ya yox)
+  // Sonsuz sürüşmə — filtr/axtarış/dil dəyişəndə siyahı əvvəldən başlayır və
+  // (şəbəkənin ortasında idisə) onun başlığına qalxır (hero-ya yox)
   const gridTopRef = useRef(null)
-  const goToPage = (n) => {
-    setPageNum(n)
-    requestAnimationFrame(() => gridTopRef.current?.scrollIntoView({ block: 'start' }))
-  }
+  const inf = useInfiniteList({
+    total: filtered.length,
+    batch: BATCH,
+    resetKey: `${lang}|${selectedCat}|${search.trim()}`,
+    storageKey: 'books',
+    ready: !loading,
+    onReset: () => {
+      const el = gridTopRef.current
+      if (el && el.getBoundingClientRect().top < 80) el.scrollIntoView({ block: 'start' })
+    },
+  })
+  const paginated = filtered.slice(0, inf.count)
 
   // Modal: telefonda "Geri" və klaviaturada Esc onu bağlasın.
   // Telefonda vərəq əvvəlcə aşağı sürüşür (is-closing), sonra silinir.
@@ -344,7 +350,7 @@ export default function BooksPage({ setPage }) {
             </div>
           ) : (
             // Açar filtr/səhifə dəyişəndə şəbəkəni yenidən qurur — kartlar yenidən növbə ilə görünür
-            <div className="bp-grid" key={`${selectedCat}|${currentPage}`}>
+            <div className="bp-grid" key={selectedCat}>
               {paginated.map((b, i) => (
                 <article key={b.id} className="ui-card ui-card--flush ui-card--interactive bp-card" onClick={() => setSelectedBook(b)} {...revealProps(i)}>
                   <div className="bp-cover">
@@ -380,8 +386,21 @@ export default function BooksPage({ setPage }) {
             </div>
           )}
 
-          {!loading && totalPages > 1 && (
-            <Pagination current={currentPage} total={totalPages} onChange={goToPage} color="var(--brand)" />
+          {/* Sonsuz sürüşmə: altda skeleton + "Daha çox göstər", sonda "Hamısı göstərildi" */}
+          {!loading && (
+            <ListMore {...inf} endText={`${filtered.length} ${l.books}`} minForEnd={BATCH} skeleton={
+              <div className="bp-grid" aria-hidden="true">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="ui-card ui-card--flush bp-skel-card">
+                    <div className="skeleton bp-skel-cover" />
+                    <div className="bp-skel-body">
+                      <span className="skeleton skeleton--text" style={{ width: '85%' }} />
+                      <span className="skeleton skeleton--text" style={{ width: '55%' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            } />
           )}
         </section>
       </div>
@@ -460,6 +479,8 @@ export default function BooksPage({ setPage }) {
         </div>,
         document.body
       )}
+
+      <BackToTop />
     </div>
   )
 }

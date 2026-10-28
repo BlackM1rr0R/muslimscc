@@ -442,6 +442,52 @@
   animation: aiw-rise var(--dur-2) var(--ease-out) backwards;
 }
 .aiw-error svg { flex-shrink: 0; margin-top: 1px; }
+.aiw-error > span { flex: 1; min-width: 0; }
+.aiw-retry {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-block: -3px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--bad);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.aiw-retry svg { margin: 0; }
+
+/* ─── AI cavabının markdown-u (AIMarkdown — yalnız React elementləri) ─── */
+.aiw-md p,
+.aiw-md ul,
+.aiw-md ol,
+.aiw-md blockquote { margin: 0 0 .6em; unicode-bidi: plaintext; text-align: start; }
+.aiw-md > :last-child { margin-bottom: 0; }
+.aiw-md ul,
+.aiw-md ol { padding-inline-start: 1.2em; }
+.aiw-md li { margin-bottom: .2em; }
+.aiw-md li::marker { color: var(--brand); }
+.aiw-md strong { font-weight: 650; }
+.aiw-md blockquote { padding-inline-start: .7em; border-inline-start: 3px solid var(--line-strong, var(--line)); }
+
+/* Axında yanıb-sönən kursor */
+.aiw-panel .ai-cursor {
+  display: inline-block;
+  width: .45em;
+  height: 1em;
+  margin-inline-start: 2px;
+  vertical-align: -.15em;
+  border-radius: 2px;
+  background: var(--brand);
+  animation: aiw-blink 1s steps(2, jump-none) infinite;
+}
+@keyframes aiw-blink { 0% { opacity: .85; } 100% { opacity: 0; } }
+
+/* "Dayandır" düyməsi (göndər düyməsinin yerində) */
+.aiw-stop-sq { width: 11px; height: 11px; border-radius: 3px; background: var(--surface-1); }
 
 /* ─── Sürət həddi (cooldown) ─── */
 .aiw-cooldown {
@@ -610,6 +656,7 @@
   .aiw-error,
   .aiw-cooldown { animation: none; }
   .aiw-dot { animation: none; opacity: 0.7; }
+  .aiw-panel .ai-cursor { animation: none; opacity: 0.6; }
   .aiw-suggest,
   .aiw-send,
   .aiw-icon-btn { transition: none; }

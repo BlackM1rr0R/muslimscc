@@ -8,8 +8,8 @@ import AppIcon from '../components/Icon';
 import PageHero from '../components/PageHero';
 import { FadeUp, ScaleIn, Pulse } from '../components/Animated';
 import { loadNotifSettings, saveNotifSettings, setupNotifications, sendTestNotification, requestPermissions } from '../services/NotificationService';
-import { PRAYER_CITIES } from '../services/prayerLocation';
-import { tr } from '../config/brand';
+import CityPicker from '../components/CityPicker';
+import { usePrayerLocation } from '../services/prayerLocation';
 
 // Şəhərlər — tətbiqin ortaq siyahısı (services/prayerLocation; Namaz ekranı ilə eyni).
 // Burada seçilən şəhər bütün tətbiq üçün seçimdir (saveNotifSettings → setPrayerCity).
@@ -26,6 +26,8 @@ export default function NotificationsScreen() {
   const { lang, dark } = useLang();
   const c = dark ? Colors.dark : Colors.light;
   const l = LABELS[lang] || LABELS.az;
+  // Bildiriş ayarında şəhər yoxdursa — tətbiqdə seçilmiş şəhər göstərilir
+  const prayerLoc = usePrayerLocation();
   const sh = dark ? Shadows.dark.md : Shadows.md;
   const shS = dark ? Shadows.dark.sm : Shadows.sm;
 
@@ -193,29 +195,8 @@ export default function NotificationsScreen() {
               <Text style={[styles.sectionLabel, { color: c.textMuted, marginTop: 12 }]}>
                 {l.city.toUpperCase()}
               </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cityRow}>
-                {PRAYER_CITIES.map((city) => {
-                  const active = settings.city === city.id;
-                  return (
-                    <TouchableOpacity
-                      key={city.id}
-                      style={[
-                        styles.cityBtn,
-                        {
-                          backgroundColor: active ? c.primary : c.card,
-                          borderColor: active ? c.primary : c.cardBorder,
-                        },
-                        active && Shadows.button,
-                      ]}
-                      onPress={() => selectCity(city)}
-                      activeOpacity={0.8}
-                    >
-                      <AppIcon name="location" size={14} color={active ? '#fff' : c.textMuted} />
-                      <Text style={[styles.cityText, { color: active ? '#fff' : c.text }]}>{tr(city.label, lang)}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+              {/* Axtarışlı seçici — Namaz ekranı ilə eyni siyahı (components/CityPicker) */}
+              <CityPicker value={settings.city || prayerLoc.id} onSelect={(id) => selectCity({ id })} lang={lang} dark={dark} />
             </FadeUp>
 
             {/* Save button */}
@@ -345,9 +326,6 @@ const styles = StyleSheet.create({
   settingDesc: { fontSize: 12, fontWeight: '500' },
 
   // City
-  cityRow: { gap: 8, paddingBottom: 8, paddingHorizontal: 4 },
-  cityBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 10, borderRadius: BorderRadius.full, borderWidth: 1.5 },
-  cityText: { fontSize: 13, fontWeight: '700' },
 
   // Save
   saveBtn: { borderRadius: BorderRadius.xl, overflow: 'hidden', marginTop: 16 },

@@ -15,8 +15,10 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Icon from './Icon'
 import { useLang } from '../contexts/LangContext'
-import { QUOTES } from '../data/quotes'
-import { DUAS_DATA } from '../data/duas'
+// PERFORMANS: bütöv QUOTES/DUAS_DATA əvəzinə build zamanı hesablanmış hovuzlar
+// (vite.config.js → dailyPoolsPlugin, qayda: src/utils/dailyPools.js) —
+// ana səhifədə ~72 KB gzip əvəzinə ~40 KB, quotes/duas chunk-ları yüklənmir.
+import { AYAH_POOL, HADITH_POOL, DUA_POOL } from 'virtual:daily-pools'
 import { DHIKRS } from '../data/dhikr'
 import { subscribeToDailyContent } from '../data/adminContent'
 import { filled, tr } from '../config/brand'
@@ -25,7 +27,6 @@ import { isDailyBarHiddenToday, hideDailyBarForToday } from './DailyReminderBarS
 import '../styles/DailyReminderBar.css'
 
 const ROTATE_MS = 8000
-const TEXT_LANGS = ['az', 'en', 'ru', 'tr']
 
 const LABELS = {
   az: {
@@ -72,19 +73,8 @@ export function dayNumber(d = new Date()) {
   return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000)
 }
 
-// Bütün dillərdə ən uzun tərcümə — seçim dildən asılı olmasın deyə
-const maxLen = (texts) => Math.max(0, ...TEXT_LANGS.map(l => (texts?.[l] || '').length))
-
-/** Qısa mətnlərə üstünlük ver; heç biri uyğun gəlmirsə bütün siyahı */
-function preferShort(list, getTexts, limit) {
-  const short = list.filter(x => maxLen(getTexts(x)) <= limit)
-  return short.length ? short : list
-}
-
-// Hovuzlar modul yüklənəndə bir dəfə qurulur (sıra data faylındakı kimidir)
-const AYAH_POOL = preferShort(QUOTES.filter(q => q.cat === 'quran' && q.ar && q.source), q => q.text, 140)
-const HADITH_POOL = preferShort(QUOTES.filter(q => q.cat === 'hadith' && q.ar && q.source), q => q.text, 100)
-const DUA_POOL = preferShort(DUAS_DATA.filter(d => d.ar && d.source), d => d, 140)
+// Hovuzlar (AYAH_POOL, HADITH_POOL, DUA_POOL) build zamanı qurulur — qayda
+// (filtr, qısalıq həddi 140/100/140, data faylındakı sıra) src/utils/dailyPools.js-dədir.
 
 const pick = (pool, day, offset = 0) =>
   pool.length ? pool[(((day + offset) % pool.length) + pool.length) % pool.length] : null
