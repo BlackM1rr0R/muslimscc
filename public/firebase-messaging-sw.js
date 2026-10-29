@@ -25,7 +25,12 @@ firebase.initializeApp({
 const messaging = firebase.messaging()
 
 // Background-da mesaj gəldikdə bildirişi göstər
+// Payload-da "notification" varsa bildirişi Firebase SDK ÖZÜ göstərir (ikon,
+// tag, klik linki serverdəki webpush.notification / fcmOptions-dan gəlir).
+// Burada yenidən göstərsək, telefonda eyni azan bildirişi İKİ dəfə görünürdü.
+// Ona görə yalnız data-only mesajlar burada göstərilir.
 messaging.onBackgroundMessage((payload) => {
+  if (payload.notification) return
   const title = payload.notification?.title || payload.data?.title || 'Muslims.cc'
   const options = {
     body: payload.notification?.body || payload.data?.body || '',

@@ -76,8 +76,8 @@ export default function SettingsManager() {
         <div className="admin-form">
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.defaultCity}</label>
-              <select className="admin-input admin-select" value={settings.defaultCity} onChange={(e) => {
+              <label className="admin-input-label" htmlFor="adm-settings-1">{l.defaultCity}</label>
+              <select id="adm-settings-1" className="admin-input admin-select" value={settings.defaultCity} onChange={(e) => {
                 const city = PRAYER_CITIES.find(c => c.id === e.target.value)
                 if (city) setSettings({ ...settings, defaultCity: city.id, defaultCountry: COUNTRY_NAMES[city.country]?.en || city.country })
               }}>
@@ -93,8 +93,8 @@ export default function SettingsManager() {
               </select>
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.defaultLang}</label>
-              <select className="admin-input admin-select" value={settings.defaultLang} onChange={(e) => update('defaultLang', e.target.value)}>
+              <label className="admin-input-label" htmlFor="adm-settings-2">{l.defaultLang}</label>
+              <select id="adm-settings-2" className="admin-input admin-select" value={settings.defaultLang} onChange={(e) => update('defaultLang', e.target.value)}>
                 <option value="az">Azərbaycan</option>
                 <option value="en">English</option>
                 <option value="ru">Русский</option>
@@ -105,8 +105,8 @@ export default function SettingsManager() {
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.prayerMethod}</label>
-            <select className="admin-input admin-select" value={settings.prayerMethod} onChange={(e) => update('prayerMethod', parseInt(e.target.value))}>
+            <label className="admin-input-label" htmlFor="adm-settings-3">{l.prayerMethod}</label>
+            <select id="adm-settings-3" className="admin-input admin-select" value={settings.prayerMethod} onChange={(e) => update('prayerMethod', parseInt(e.target.value))}>
               {PRAYER_METHODS.map(m => <option key={m.value} value={m.value}>{m.name[lang]}</option>)}
             </select>
           </div>
@@ -133,17 +133,17 @@ export default function SettingsManager() {
         <div className="admin-form">
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.primaryColor}</label>
+              <label className="admin-input-label" htmlFor="adm-settings-4">{l.primaryColor}</label>
               <div className="admin-color-row">
-                <input type="color" value={settings.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} className="admin-color" aria-label={l.primaryColor} />
-                <input type="text" className="admin-input" value={settings.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} />
+                <input id="adm-settings-4" type="color" value={settings.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} className="admin-color" aria-label={l.primaryColor} />
+                <input type="text" className="admin-input" value={settings.primaryColor} onChange={(e) => update('primaryColor', e.target.value)} aria-label={`${l.primaryColor} (HEX)`} spellCheck={false} />
               </div>
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.goldColor}</label>
+              <label className="admin-input-label" htmlFor="adm-settings-5">{l.goldColor}</label>
               <div className="admin-color-row">
-                <input type="color" value={settings.goldColor} onChange={(e) => update('goldColor', e.target.value)} className="admin-color" aria-label={l.goldColor} />
-                <input type="text" className="admin-input" value={settings.goldColor} onChange={(e) => update('goldColor', e.target.value)} />
+                <input id="adm-settings-5" type="color" value={settings.goldColor} onChange={(e) => update('goldColor', e.target.value)} className="admin-color" aria-label={l.goldColor} />
+                <input type="text" className="admin-input" value={settings.goldColor} onChange={(e) => update('goldColor', e.target.value)} aria-label={`${l.goldColor} (HEX)`} spellCheck={false} />
               </div>
             </div>
           </div>
@@ -154,10 +154,10 @@ export default function SettingsManager() {
       <div className="admin-section" data-reveal>
           <SectionTitle icon="aichat">{l.aiTitle}</SectionTitle>
           <div className="admin-input-group">
-            <label className="admin-input-label">
+            <label className="admin-input-label" htmlFor="adm-settings-6">
               {l.apiLabel}
             </label>
-            <input
+            <input id="adm-settings-6"
               type="text"
               className="admin-input"
               value={settings.apiUrl || ''}

@@ -1,6 +1,7 @@
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import '../styles/NotFoundPage.css'
+import PageLink from '../components/PageLink'
 
 // ═══════════════════════════════════════════════════════
 // 404 — tanınmayan ünvan (/nope, /ru/nope/deeper, /Quran).
@@ -51,12 +52,12 @@ export default function NotFoundPage({ setPage }) {
         <h1 id="nf-title" className="ui-display nf-title">{t.h}</h1>
         <p className="ui-lead nf-lead">{t.p}</p>
         <div className="nf-actions">
-          <button type="button" className="ui-btn ui-btn--primary" onClick={() => setPage('home')}>
+          <PageLink className="ui-btn ui-btn--primary" to="home" setPage={setPage}>
             <Icon name="home" className="ui-btn__icon" /> {t.home}
-          </button>
-          <button type="button" className="ui-btn ui-btn--secondary" onClick={() => setPage('jamaat')}>
+          </PageLink>
+          <PageLink className="ui-btn ui-btn--secondary" to="jamaat" setPage={setPage}>
             <Icon name="jamaat" className="ui-btn__icon" /> {t.jamaat}
-          </button>
+          </PageLink>
           <button
             type="button"
             className="ui-btn ui-btn--ghost"

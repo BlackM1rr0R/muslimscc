@@ -157,6 +157,19 @@
   .dua-journal-page .dua-delete-btn:hover { color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); }
 }
 
+/* Redaktə olunan kart — formada açıq olduğunu göstərən sakit vurğu */
+.dua-journal-page .dj-card.is-editing { border-color: var(--brand-line); box-shadow: 0 0 0 3px var(--brand-soft); }
+
+/* Qəbul olunan / silinən kart: yumşaq kiçilib sönür, sonra siyahıdan çıxır
+   (JS 220ms gözləyir — utils/promptCoordinator.js → exitDelay) */
+.dua-journal-page .dj-list .dj-card.is-leaving {
+  pointer-events: none;
+  animation: djCardOut 220ms var(--ease-in) forwards;
+}
+@keyframes djCardOut {
+  to { opacity: 0; transform: translate3d(0, -6px, 0) scale(0.97); }
+}
+
 /* ══ TELEFON (<768) ═══════════════════════════════════════════════ */
 @media (max-width: 767.98px) {
   .dj-hero .breadcrumb { display: none; }
@@ -171,8 +184,14 @@
   .dua-journal-page .dj-card { padding: 16px; }
   .dua-empty { padding-block: var(--space-7); }
 }
+/* 320–360px: "Qəbul olunanlar 0" seqmentə sığmırdı (kəsilirdi) */
+@media (max-width: 360px) {
+  .dua-journal-page .dua-tab { gap: 5px; padding-inline: 6px; font-size: 13px; }
+  .dua-tab-count { min-width: 20px; padding-inline: 5px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .dua-journal-page .dua-form { animation: none; }
+  .dua-journal-page .dua-form,
+  .dua-journal-page .dj-list .dj-card.is-leaving { animation: none; }
   .dua-journal-page .dj-card { transition: none; }
 }

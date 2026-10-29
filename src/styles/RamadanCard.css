@@ -1,0 +1,232 @@
+/* ═══════════════════════════════════════════════════════
+   RamadanCard — Ramazan rejimi kartı (components/RamadanCard.jsx)
+   Tünd zümrüd panel (namaz səhifəsinin "indi" paneli ilə eyni dil),
+   incə ay + ulduz motivi, geri sayım rəqəmləri dəyişəndə yumşaq düşür.
+   Yalnız tokenlər; hərəkət prefers-reduced-motion-da söndürülür.
+   ═══════════════════════════════════════════════════════ */
+
+.rc {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+}
+
+/* ── Ramazan və bayram: tünd panel ── */
+.rc--ramadan,
+.rc--eid {
+  background: var(--surface-inverse);
+  color: var(--text-on-inverse);
+  box-shadow: var(--shadow-3);
+}
+.rc--ramadan::before,
+.rc--eid::before {
+  /* incə xatəm izi */
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--sand-300) 7%, transparent);
+  -webkit-mask: var(--ui-khatam) 0 0 / 56px 56px;
+  mask: var(--ui-khatam) 0 0 / 56px 56px;
+}
+[data-theme="dark"] .rc--ramadan,
+[data-theme="dark"] .rc--eid { box-shadow: var(--shadow-3), inset 0 0 0 1px var(--brand-line); }
+
+.rc-body {
+  position: relative;
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Ay + ulduzlar — yuxarı son küncdə, çox incə */
+.rc-sky {
+  position: absolute;
+  inset-block-start: var(--space-4);
+  inset-inline-end: var(--space-4);
+  width: 128px;
+  height: 128px;
+  z-index: -1;
+  opacity: 0.9;
+  pointer-events: none;
+}
+[dir="rtl"] .rc-sky { transform: scaleX(-1); }
+.rc-moon { fill: color-mix(in srgb, var(--sand-300) 22%, transparent); }
+.rc-star { fill: var(--sand-300); opacity: 0.55; transform-box: fill-box; transform-origin: center; }
+.rc-star--1 { animation: rc-twinkle 6s ease-in-out infinite; }
+.rc-star--2 { animation: rc-twinkle 7.5s ease-in-out 1.2s infinite; }
+.rc-star--3 { animation: rc-twinkle 9s ease-in-out 2.4s infinite; }
+@keyframes rc-twinkle {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.2; transform: scale(0.82); }
+}
+
+.rc-head { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.rc-cap {
+  color: var(--sand-300);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+html[lang="ar"] .rc-cap { letter-spacing: 0; text-transform: none; }
+.rc-badge { margin-inline-start: 0; }
+/* Tünd paneldə nişan qum rəngində (vurğu nişanı ağ səth üçündür) */
+.rc--ramadan .rc-badge,
+.rc--eid .rc-badge { background: rgba(230, 204, 149, 0.16); color: var(--sand-300); }
+.rc--eid > .rc-badge { position: absolute; inset-block-start: var(--space-4); inset-inline-end: var(--space-4); }
+
+.rc-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-3);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-on-inverse);
+  max-width: 22ch;
+}
+html[lang="ar"] .rc-title { letter-spacing: 0; }
+.rc-sub { margin: 0; color: var(--text-on-inverse-dim); font-size: var(--step--1); }
+.rc-ar { margin: var(--space-2) 0 0; color: var(--sand-300); font-size: var(--step-2); }
+
+/* ── Geri sayım ── */
+.rc-count {
+  margin: var(--space-2) 0 0;
+  font-size: var(--step-1);
+  color: var(--text-on-inverse);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 0.4em;
+}
+.rc-count--done { font-size: var(--step-0); color: var(--text-on-inverse-dim); }
+.rc-count-note { color: var(--text-on-inverse-dim); font-size: var(--step--1); }
+.rc-digits {
+  display: inline-flex;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-4);
+  line-height: 1.05;
+  color: var(--sand-300);
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+.rc-digit {
+  display: inline-block;
+  min-width: 0.62em;
+  text-align: center;
+  animation: rc-digit-in var(--dur-3) var(--ease-out) both;
+}
+.rc-colon { opacity: 0.6; padding-inline: 0.04em; }
+@keyframes rc-digit-in {
+  from { opacity: 0; transform: translateY(-0.28em); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Orucun gedişi: imsakdan iftara */
+.rc-bar {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: rgba(243, 239, 230, 0.14);
+  overflow: hidden;
+}
+.rc-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--sand-300);
+  transform-origin: left center;
+  transition: transform var(--dur-4) var(--ease-out);
+}
+[dir="rtl"] .rc-bar > span { transform-origin: right center; }
+
+/* ── Səhur / iftar vaxtları ── */
+.rc-times {
+  margin: var(--space-2) 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.rc-time {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: rgba(243, 239, 230, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(243, 239, 230, 0.12);
+  transition: background var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+.rc-time.is-next { background: rgba(230, 204, 149, 0.12); box-shadow: inset 0 0 0 1px rgba(230, 204, 149, 0.45); }
+.rc-time dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-on-inverse-dim);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+.rc-time dt svg { color: var(--sand-300); flex: none; }
+.rc-time-sub { opacity: 0.85; font-weight: 400; }
+.rc-time dd {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-3);
+  line-height: 1.1;
+  color: var(--text-on-inverse);
+}
+
+.rc-foot {
+  margin-top: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.rc-note { color: var(--text-on-inverse-dim); font-size: var(--step--2); }
+
+/* ── "Ramazana N gün" — sakit ağ kart ── */
+.rc--soon {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+}
+.rc-soon-body { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rc-soon-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-2);
+  line-height: var(--lh-snug);
+  color: var(--text-strong, var(--text-body));
+}
+.rc-soon-text { margin: 0; color: var(--text-secondary); font-size: var(--step--1); }
+.rc--soon .rc-badge { margin-inline-start: 0; }
+/* Tünd paneldə nişan qum rəngində (vurğu nişanı ağ səth üçündür) */
+.rc--ramadan .rc-badge,
+.rc--eid .rc-badge { background: rgba(230, 204, 149, 0.16); color: var(--sand-300); }
+
+/* Telefon */
+@media (max-width: 767.98px) {
+  .rc-body { padding: var(--space-5) var(--space-4) var(--space-4); }
+  .rc-sky { width: 92px; height: 92px; inset-block-start: var(--space-3); inset-inline-end: var(--space-3); }
+  .rc-digits { font-size: 40px; }
+  .rc-time { padding: var(--space-3); }
+  .rc-time dd { font-size: 26px; }
+  .rc--soon { padding: var(--space-4); }
+  .rc-soon-btn { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-star, .rc-digit { animation: none; }
+}
+
+@media print {
+  .rc-sky, .rc-foot .ui-btn, .rc-soon-btn { display: none !important; }
+}

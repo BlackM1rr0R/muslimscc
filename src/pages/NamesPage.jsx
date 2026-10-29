@@ -5,6 +5,7 @@ import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
+import { useBackToClose } from '../utils/useBackToClose'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import '../styles/NamesPage.css'
 
@@ -73,12 +74,25 @@ export default function NamesPage({ setPage }) {
     const rtl = document.documentElement.dir === 'rtl'
     const onKey = (e) => {
       if (e.key === 'Escape') { e.preventDefault(); closeName() }
+      // Fokus pəncərədən çıxmasın (Tab arxadakı səhifəyə keçirdi)
+      else if (e.key === 'Tab') {
+        const card = document.querySelector('.names-modal-card')
+        const items = card ? [...card.querySelectorAll('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')] : []
+        if (!items.length) return
+        const first = items[0], last = items[items.length - 1]
+        if (!card.contains(document.activeElement)) { e.preventDefault(); first.focus() }
+        else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+      }
       else if (e.key === 'ArrowRight') step(rtl ? -1 : 1)
       else if (e.key === 'ArrowLeft') step(rtl ? 1 : -1)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [openIdx == null, closeName, step]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Telefonda "Geri" (jest / düymə) pəncərəni bağlasın, səhifədən çıxarmasın
+  // (kitab və video pəncərələri ilə eyni davranış)
+  useBackToClose(openIdx != null, closeName)
 
   return (
     <div className="names-page">

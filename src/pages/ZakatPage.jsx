@@ -25,6 +25,7 @@ const CURRENCIES = [
   { code:'GBP', symbol:'£'   },
   { code:'AED', symbol:'د.إ' },
 ]
+const NUM_LOCALES = { az: 'az-AZ', en: 'en-US', ru: 'ru-RU', tr: 'tr-TR', ar: 'ar-u-nu-latn' }
 const FALLBACK = { USD:1, AZN:1.70, EUR:0.92, RUB:91, TRY:32, SAR:3.75, GBP:0.79, AED:3.67 }
 
 const L = {
@@ -175,6 +176,7 @@ function ZakatField({ icon, tone = '', label, prefix, value, onChange, placehold
         <span className="zakat-cur-prefix" aria-hidden="true"><bdi>{prefix}</bdi></span>
         <input type="number" inputMode="decimal" className="ui-input zakat-input"
           min="0" value={value} placeholder={placeholder}
+          aria-invalid={parseFloat(value) < 0 || undefined}
           onChange={e => onChange(e.target.value)} />
       </span>
       {hint && <span className="ui-field__hint zakat-field-hint">{hint}</span>}
@@ -237,7 +239,9 @@ export default function ZakatPage({ setPage }) {
   const rate     = rates[currency] || 1
   const nisabLoc = NISAB_USD * rate  // nisab seçilmiş valyutada
 
-  const n = v => parseFloat(v) || 0
+  // Mənfi, sonsuz (1e999) və ya boş dəyər hesabı pozmasın: yalnız sonlu, ≥ 0 ədəd.
+  // Əvvəl "-5000" yığımı cəmdən çıxırdı, mənfi borc isə cəmə əlavə olunurdu.
+  const n = v => { const x = parseFloat(v); return Number.isFinite(x) && x > 0 ? x : 0 }
 
   const salaryMonth  = n(salary)
   const salaryAnnual = salaryMonth * 12
@@ -258,9 +262,11 @@ export default function ZakatPage({ setPage }) {
   // Fitrə
   const FITR_USD    = 12 // ~$12 per person
   const fitrPerPerson = FITR_USD * rate
-  const fitrTotal   = fitrPerPerson * n(fitrPeople)
+  const fitrTotal   = fitrPerPerson * Math.floor(n(fitrPeople))   // 2.5 nəfər olmur
 
-  const fmt = v => v === 0 ? '0.00' : v.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2 })
+  // Rəqəm formatı saytın dilinə görədir (əvvəl brauzerin dili idi: ru səhifədə "1,234.56",
+  // sıfır isə həmişə "0.00" — eyni kartda iki fərqli format). Ərəbcədə latın rəqəmləri.
+  const fmt = v => (Number.isFinite(v) ? v : 0).toLocaleString(NUM_LOCALES[lang] || 'en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })
   const pct  = Math.min((total / nisabLoc) * 100, 100)
 
   const reset = () => { setSalary(''); setSavings(''); setOther(''); setGold(''); setSilver(''); setStocks(''); setRent(''); setDebt(''); setFitrPeople('1') }
@@ -413,7 +419,7 @@ export default function ZakatPage({ setPage }) {
                 </>
               ) : (
                 <>
-                  <div className="zakat-due-amount zakat-money ui-num">{cur.symbol}0.00</div>
+                  <div className="zakat-due-amount zakat-money ui-num">{cur.symbol}{fmt(0)}</div>
                   <p className="zakat-due-note">{s('nisabNote',l)}</p>
                 </>
               )}

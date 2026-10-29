@@ -810,7 +810,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
                       className={`qm-sn-lang${current ? ' is-current' : ''}`}
                       onClick={() => pickLang(x.code)}
                       aria-pressed={current}
-                      aria-label={x.native}
+                      aria-label={`${x.label} — ${x.native}`}
                       lang={x.code}
                     >
                       {x.label}

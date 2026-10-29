@@ -70,37 +70,37 @@ export default function EventManager({ onUpdate }) {
       <AdminHeader icon="calendar" title={l.title} sub={l.sub} />
 
       <div className="admin-section" data-reveal>
-        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
+        <SectionTitle icon={editingId ? 'edit' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
           <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.name} ({formLang.toUpperCase()})</label>
-            <input type="text" className="admin-input" value={form.name[formLang]} onChange={(e) => setForm({...form, name:{...form.name, [formLang]:e.target.value}})} placeholder={l.name} />
+            <label className="admin-input-label" htmlFor="adm-event-1">{l.name} ({formLang.toUpperCase()})</label>
+            <input id="adm-event-1" type="text" className="admin-input" value={form.name[formLang]} onChange={(e) => setForm({...form, name:{...form.name, [formLang]:e.target.value}})} placeholder={l.name} />
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.desc} ({formLang.toUpperCase()})</label>
-            <textarea className="admin-input admin-textarea" value={form.desc[formLang]} onChange={(e) => setForm({...form, desc:{...form.desc, [formLang]:e.target.value}})} placeholder={l.desc} />
+            <label className="admin-input-label" htmlFor="adm-event-2">{l.desc} ({formLang.toUpperCase()})</label>
+            <textarea id="adm-event-2" className="admin-input admin-textarea" value={form.desc[formLang]} onChange={(e) => setForm({...form, desc:{...form.desc, [formLang]:e.target.value}})} placeholder={l.desc} />
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.month}</label>
-              <select className="admin-input admin-select" value={form.month} onChange={(e) => setForm({...form, month:parseInt(e.target.value)})}>
+              <label className="admin-input-label" htmlFor="adm-event-3">{l.month}</label>
+              <select id="adm-event-3" className="admin-input admin-select" value={form.month} onChange={(e) => setForm({...form, month:parseInt(e.target.value)})}>
                 {HIJRI_MONTHS.map(m => (
                   <option key={m.num} value={m.num}>{m.num}. {m[lang]}</option>
                 ))}
               </select>
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.day}</label>
-              <input type="number" className="admin-input" value={form.day} onChange={(e) => setForm({...form, day:parseInt(e.target.value) || 1})} min="1" max="30" />
+              <label className="admin-input-label" htmlFor="adm-event-4">{l.day}</label>
+              <input id="adm-event-4" type="number" className="admin-input" value={form.day} onChange={(e) => setForm({...form, day:parseInt(e.target.value) || 1})} min="1" max="30" />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.type}</label>
-              <select className="admin-input admin-select" value={form.type} onChange={(e) => setForm({...form, type:e.target.value})}>
+              <label className="admin-input-label" htmlFor="adm-event-5">{l.type}</label>
+              <select id="adm-event-5" className="admin-input admin-select" value={form.type} onChange={(e) => setForm({...form, type:e.target.value})}>
                 {EVENT_TYPES.map(t => <option key={t.key} value={t.key}>{t.label[lang]}</option>)}
               </select>
             </div>
@@ -139,7 +139,7 @@ export default function EventManager({ onUpdate }) {
                     {adminPick(ev.desc, lang) && <p className="admin-item__text">{adminPick(ev.desc, lang)}</p>}
                   </div>
                   <div className="admin-item__actions">
-                    <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(ev)} title={l.edit} aria-label={l.edit}><Icon name="duajournal" /></button>
+                    <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(ev)} title={l.edit} aria-label={l.edit}><Icon name="edit" /></button>
                     <button type="button" className="admin-action-btn admin-action-btn--icon delete" onClick={() => handleDelete(ev.id)} title={l.delete} aria-label={l.delete}><Icon name="trash" /></button>
                   </div>
                 </li>

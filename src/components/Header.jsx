@@ -475,7 +475,8 @@ function Header({ currentPage, setPage }) {
                 type="button"
                 className={`hdr-btn lang-btn${langOpen ? " open" : ""}`}
                 onClick={() => setLangOpen(o => !o)}
-                aria-label={`${l.changeLang}: ${currentLang.native}`}
+                // Görünən kod (AZ) adın əvvəlində — səslə idarədə "AZ" deyəndə tapılsın (WCAG 2.5.3)
+                aria-label={`${currentLang.label} — ${l.changeLang}: ${currentLang.native}`}
                 title={langOpen ? undefined : l.changeLang}
                 aria-expanded={langOpen}
                 aria-controls="hdr-lang-menu"

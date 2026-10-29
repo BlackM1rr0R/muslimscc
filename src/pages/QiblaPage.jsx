@@ -148,7 +148,7 @@ export default function QiblaPage({ setPage }) {
       pos => {
         const { latitude, longitude, accuracy: acc } = pos.coords
         setCoords({ lat: latitude, lon: longitude })
-        setAccuracy(Math.round(acc))
+        setAccuracy(Number.isFinite(acc) ? Math.round(acc) : null)
         const q = calcQibla(latitude, longitude)
         setQibla(q)
         qiblaRef.current = q
@@ -393,7 +393,8 @@ export default function QiblaPage({ setPage }) {
 
               {/* Qiblə açısı kompasın altındakı nişanda artıq göstərilir — ayrıca kart yoxdur */}
 
-              {accuracy && (
+              {/* != null: dəqiqlik 0 olanda React kartın yerinə tək "0" yazırdı */}
+              {accuracy != null && (
                 <div className="qibla-info-card ui-card">
                   <div className="qibla-info-icon ui-icon-tile" aria-hidden="true"><Icon name="target" /></div>
                   <div className="qibla-info-body">
@@ -418,9 +419,10 @@ export default function QiblaPage({ setPage }) {
               <div className={`qibla-info-card ui-card is-status ${hasOrient ? 'live' : 'no-sensor'}`}>
                 <div className={`qibla-info-icon ui-icon-tile${hasOrient ? '' : ' ui-icon-tile--accent'}`} aria-hidden="true"><Icon name={hasOrient ? 'check' : 'info'} /></div>
                 <div className="qibla-info-body">
-                  <span className="qibla-info-label">{hasOrient ? l.live : l.noSensor}</span>
+                  {/* İcazə gözlənilirkən "sensor yoxdur" demə — yuxarıdakı düymə ilə ziddiyyət idi */}
+                  <span className="qibla-info-label">{hasOrient ? l.live : needsIOSPermission ? l.enableCompass : l.noSensor}</span>
                   <span className="qibla-info-val qibla-info-desc">
-                    {hasOrient ? l.liveDesc : l.noSensorSub}
+                    {hasOrient || needsIOSPermission ? l.liveDesc : l.noSensorSub}
                   </span>
                 </div>
               </div>
@@ -431,7 +433,7 @@ export default function QiblaPage({ setPage }) {
                 <span className="qibla-coords-cap">{x.coords}</span>
                 {/* Koordinatlar ərəbcədə də soldan sağa oxunsun */}
                 {coords && <bdi dir="ltr" className="ui-num">{formatCoord(coords.lat, 'N', 'S')}, {formatCoord(coords.lon, 'E', 'W')}</bdi>}
-                {!accuracy && fallbackCity && <span className="qibla-fallback-note"><Icon name="pin" size={13} /> <CityPicker variant="inline" onSelect={pickCity} /> · {x.city}</span>}
+                {accuracy == null && fallbackCity && <span className="qibla-fallback-note"><Icon name="pin" size={13} /> <CityPicker variant="inline" onSelect={pickCity} /> · {x.city}</span>}
               </p>
               <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm qibla-refresh-btn" onClick={startWatching}>
                 <Icon name="refresh" className="ui-btn__icon" /> {l.refreshLocation}

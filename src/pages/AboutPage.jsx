@@ -5,6 +5,7 @@ import { HADITH_COUNT } from '../data/siteStats'
 import { INDEXABLE } from '../seo/routes'
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AboutPage.css'
+import PageLink from '../components/PageLink'
 
 // ── Ayə: api.alquran.cloud-dan gətirilir (yaddaşdan yazılmır) ──
 // Nəşrlər QuranPage/JamaatPage ilə eyni; ərəbcədə yalnız ərəb mətni.
@@ -188,7 +189,8 @@ export function AboutPage({ setPage }) {
       <header className="ui-page-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
-          <span className="ui-eyebrow ab-brand">{brand}</span>
+          {/* Latın brend adı BÖYÜK hərflə az/tr lokalında "MUSLİMS.CC" (nöqtəli İ) olurdu — lang="en" */}
+          <span className="ui-eyebrow ab-brand" lang={/^[A-Za-z]/.test(brand) ? 'en' : undefined}>{brand}</span>
           <h1 className="ui-display">{t.title}</h1>
           <p className="ui-lead">{t.subtitle.replace('{brand}', brand)}</p>
           {/* Ərəbcə dekorativ şüar ar dilində h1-i təkrarlamasın */}
@@ -259,9 +261,9 @@ export function AboutPage({ setPage }) {
                 <span className="skeleton skeleton--text" /><span className="skeleton skeleton--text" /><span className="skeleton skeleton--text" />
               </div>
             ) : null}
-            <button type="button" className="ui-btn ui-btn--inverse ui-btn--lg" onClick={() => { setPage('quran'); window.scrollTo({top:0,behavior:'smooth'}) }}>
+            <PageLink className="ui-btn ui-btn--inverse ui-btn--lg" to="quran" setPage={setPage} onNavigate={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               <Icon name="quran" className="ui-btn__icon" /> {READ_QURAN[lang] || READ_QURAN.en}
-            </button>
+            </PageLink>
           </div>
           {/* Saytı hazırlayan */}
           <div className="ab-team" data-reveal>

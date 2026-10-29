@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { getPrayerLocation } from '../utils/prayerLocation'
 import { navGroupLabel } from '../data/navigation'
@@ -79,6 +79,14 @@ export default function MosqueFinderPage({ setPage }) {
   const [userPos, setUserPos] = useState(null)
   // Axtarış hansı nöqtədən: 'gps' — cihazın yeri, 'city' — seçilmiş şəhər
   const [origin, setOrigin] = useState('gps')
+  // Nəticə/xəta gələndə basılan düymə DOM-dan çıxır və fokus <body>-yə düşürdü —
+  // klaviatura və ekran oxuyucusu istifadəçisi yeri itirirdi. Fokus nəticə başlığına keçir.
+  const outcomeRef = useRef(null)
+  useEffect(() => {
+    if (status !== 'done' && status !== 'error') return
+    const a = document.activeElement
+    if (!a || a === document.body) outcomeRef.current?.focus({ preventScroll: true })
+  }, [status])
 
   // errorMsg: 'geo' (məkan yoxdur) | 'api' (Overpass cavab vermədi)
   const searchMosques = useCallback(async (useCity = false) => {
@@ -210,7 +218,7 @@ export default function MosqueFinderPage({ setPage }) {
 
           {/* Error */}
           {status === 'error' && (
-            <div className="mosque-error ui-card" role="alert">
+            <div className="mosque-error ui-card" role="alert" ref={outcomeRef} tabIndex={-1}>
               <span className="mosque-error-icon ui-icon-tile ui-icon-tile--lg ui-icon-tile--accent" aria-hidden="true"><Icon name={errorMsg === 'geo' ? 'pin' : 'alert'} /></span>
               <p className="mosque-error-title">{errorMsg === 'geo' ? x.geoError : x.apiError}</p>
               <p className="mosque-error-sub">{errorMsg === 'geo' ? x.geoSub : x.apiSub}</p>
@@ -227,7 +235,7 @@ export default function MosqueFinderPage({ setPage }) {
           {status === 'done' && (
             <div className="mosque-results anim-fadeUp">
               <div className="mosque-results-header">
-                <span className="mosque-results-count ui-badge ui-badge--brand">
+                <span className="mosque-results-count ui-badge ui-badge--brand" ref={outcomeRef} tabIndex={-1}>
                   <span className="ui-num">{mosques.length}</span> {t.found}
                 </span>
                 {origin === 'city' && (

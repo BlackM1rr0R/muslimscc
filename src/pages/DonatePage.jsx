@@ -4,6 +4,7 @@ import { VerseCard, HadithCard } from '../components/VirtueCards'
 import '../styles/DonatePage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
+import PageLink from '../components/PageLink'
 
 // ═══════════════════════════════════════════════════════
 // Xeyriyyə və ianə — /donate (ümumi bələdçi)
@@ -136,7 +137,7 @@ const LABELS = {
 export default function DonatePage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.en
-  const go = (key) => { setPage?.(key); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
   // Əlaqəli bölmələr — ikonlar Icon.jsx-dən (marşrut açarı ilə eyni ad)
   const links = [
@@ -194,14 +195,14 @@ export default function DonatePage({ setPage }) {
           <h2 id="dn-links-title" className="dn-links-title ui-eyebrow">{t.seeAlso}</h2>
           <div className="dn-links-grid" data-reveal="stagger">
             {links.map(k => (
-              <button key={k.key} type="button" className="ui-card ui-card--interactive dn-link" onClick={() => go(k.key)}>
+              <PageLink key={k.key} className="ui-card ui-card--interactive dn-link" to={k.key} setPage={setPage} onNavigate={toTop}>
                 <span className="ui-icon-tile" aria-hidden="true"><Icon name={k.icon} /></span>
                 <span className="dn-link-body">
                   <span className="dn-link-title">{k.title}</span>
                   <span className="dn-link-desc">{k.desc}</span>
                 </span>
                 <Icon name="arrow" size={18} className="dn-link-arrow ui-flip-rtl" />
-              </button>
+              </PageLink>
             ))}
           </div>
         </nav>

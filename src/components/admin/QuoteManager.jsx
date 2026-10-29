@@ -61,12 +61,12 @@ export default function QuoteManager({ onUpdate }) {
       <AdminHeader icon="quotes" title={l.title} sub={l.sub} />
 
       <div className="admin-section" data-reveal>
-        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
+        <SectionTitle icon={editingId ? 'edit' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.arabic}</label>
-            <textarea
+            <label className="admin-input-label" htmlFor="adm-quote-1">{l.arabic}</label>
+            <textarea id="adm-quote-1"
               className="admin-input admin-textarea admin-input--arabic"
               value={form.ar}
               onChange={(e) => setForm({...form, ar:e.target.value})}
@@ -78,18 +78,18 @@ export default function QuoteManager({ onUpdate }) {
           <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.text} ({formLang.toUpperCase()})</label>
-            <textarea className="admin-input admin-textarea" value={form.text[formLang]} onChange={(e) => setForm({...form, text:{...form.text, [formLang]:e.target.value}})} placeholder={l.text} />
+            <label className="admin-input-label" htmlFor="adm-quote-2">{l.text} ({formLang.toUpperCase()})</label>
+            <textarea id="adm-quote-2" className="admin-input admin-textarea" value={form.text[formLang]} onChange={(e) => setForm({...form, text:{...form.text, [formLang]:e.target.value}})} placeholder={l.text} />
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.source}</label>
-              <input type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder={l.sourcePh} />
+              <label className="admin-input-label" htmlFor="adm-quote-3">{l.source}</label>
+              <input id="adm-quote-3" type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder={l.sourcePh} />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.category}</label>
-              <select className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
+              <label className="admin-input-label" htmlFor="adm-quote-4">{l.category}</label>
+              <select id="adm-quote-4" className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
                 {QUOTE_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label[lang]}</option>)}
               </select>
             </div>
@@ -125,7 +125,7 @@ export default function QuoteManager({ onUpdate }) {
                   {(lang !== 'ar' || (adminPick(q.text, lang) && adminPick(q.text, lang) !== q.ar)) && <p className="admin-item__text admin-item__text--quote">{adminPick(q.text, lang) ? `"${adminPick(q.text, lang)}"` : <AdminText value={q.text} lang={lang} />}</p>}
                   {q.source && <div className="admin-item__src">— {q.source}</div>}
                   <div className="admin-item__actions admin-item__actions--foot">
-                    <button type="button" className="admin-action-btn edit" onClick={() => handleEdit(q)}><Icon name="duajournal" /> {l.edit}</button>
+                    <button type="button" className="admin-action-btn edit" onClick={() => handleEdit(q)}><Icon name="edit" /> {l.edit}</button>
                     <button type="button" className="admin-action-btn delete" onClick={() => handleDelete(q.id)}><Icon name="trash" /> {l.delete}</button>
                   </div>
                 </li>

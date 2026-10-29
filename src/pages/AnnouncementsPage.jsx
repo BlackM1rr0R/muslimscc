@@ -24,6 +24,7 @@ import {
 import '../styles/AnnouncementsPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
+import PageLink from '../components/PageLink'
 
 const LABELS = {
   az: {
@@ -409,9 +410,9 @@ export default function AnnouncementsPage({ setPage }) {
             <h2 id="anp-help-title" className="anp-help-title">{l.helpTitle}</h2>
             <p className="anp-help-text">{l.helpText}</p>
           </div>
-          <button type="button" className="ui-btn ui-btn--primary anp-help-btn" onClick={() => setPage?.('donate')}>
+          <PageLink className="ui-btn ui-btn--primary anp-help-btn" to="donate" setPage={setPage}>
             {l.helpDonate} <Icon name="arrow" size={18} className="ui-btn__icon ui-btn__icon--end ui-flip-rtl" />
-          </button>
+          </PageLink>
         </section>
 
         {/* ═══ ELANLAR ═══ */}
@@ -442,9 +443,9 @@ export default function AnnouncementsPage({ setPage }) {
                     <Icon name="bell" className="ui-btn__icon" /> {l.enableNotif}
                   </button>
                 )}
-                <button type="button" className="ui-btn ui-btn--secondary" onClick={() => setPage?.('prayer')}>
+                <PageLink className="ui-btn ui-btn--secondary" to="prayer" setPage={setPage}>
                   <Icon name="prayer" className="ui-btn__icon" /> {l.seeTimes}
-                </button>
+                </PageLink>
               </div>
             </div>
           ) : (
@@ -528,9 +529,9 @@ export default function AnnouncementsPage({ setPage }) {
                 <span className="ui-eyebrow">{l.eventsEyebrow}</span>
                 <h2 id="anp-events-title" className="ui-title ui-title--sm">{l.eventsTitle}</h2>
               </div>
-              <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm anp-link-btn" onClick={() => setPage?.('calendar')}>
+              <PageLink className="ui-btn ui-btn--ghost ui-btn--sm anp-link-btn" to="calendar" setPage={setPage}>
                 {l.fullCalendar} <Icon name="arrow" size={16} className="ui-btn__icon ui-btn__icon--end ui-flip-rtl" />
-              </button>
+              </PageLink>
             </div>
 
             <ul className="anp-events" data-reveal="stagger">

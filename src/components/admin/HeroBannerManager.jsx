@@ -97,29 +97,30 @@ export default function HeroBannerManager() {
 
         <div className="admin-form">
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.titleField} ({formLang.toUpperCase()})</label>
-            <input type="text" className="admin-input" value={hero.title?.[formLang] || ''} onChange={(e) => updateText('title', formLang, e.target.value)} placeholder={l.titleField} />
+            <label className="admin-input-label" htmlFor="adm-herobanner-1">{l.titleField} ({formLang.toUpperCase()})</label>
+            <input id="adm-herobanner-1" type="text" className="admin-input" value={hero.title?.[formLang] || ''} onChange={(e) => updateText('title', formLang, e.target.value)} placeholder={l.titleField} />
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.subtitle} ({formLang.toUpperCase()})</label>
-            <input type="text" className="admin-input" value={hero.subtitle?.[formLang] || ''} onChange={(e) => updateText('subtitle', formLang, e.target.value)} placeholder={l.subtitle} />
+            <label className="admin-input-label" htmlFor="adm-herobanner-2">{l.subtitle} ({formLang.toUpperCase()})</label>
+            <input id="adm-herobanner-2" type="text" className="admin-input" value={hero.subtitle?.[formLang] || ''} onChange={(e) => updateText('subtitle', formLang, e.target.value)} placeholder={l.subtitle} />
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.ctaText} ({formLang.toUpperCase()})</label>
-              <input type="text" className="admin-input" value={hero.ctaText?.[formLang] || ''} onChange={(e) => updateText('ctaText', formLang, e.target.value)} placeholder={l.ctaText} />
+              <label className="admin-input-label" htmlFor="adm-herobanner-3">{l.ctaText} ({formLang.toUpperCase()})</label>
+              <input id="adm-herobanner-3" type="text" className="admin-input" value={hero.ctaText?.[formLang] || ''} onChange={(e) => updateText('ctaText', formLang, e.target.value)} placeholder={l.ctaText} />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.ctaLink}</label>
-              <input type="text" className="admin-input" value={hero.ctaLink} onChange={(e) => setHero({...hero, ctaLink:e.target.value})} placeholder="quran, hadith, https://..." />
+              <label className="admin-input-label" htmlFor="adm-herobanner-4">{l.ctaLink}</label>
+              <input id="adm-herobanner-4" type="text" className="admin-input" value={hero.ctaLink} onChange={(e) => setHero({...hero, ctaLink:e.target.value})} placeholder="quran, hadith, https://..." />
             </div>
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.gradient}</label>
-            <div className="admin-swatches" role="group" aria-label={l.gradient}>
+            {/* Düymə qrupu — <label> yalnız sahəyə bağlanır, burada adı qrup daşıyır */}
+            <span className="admin-input-label" id="adm-hero-gradient">{l.gradient}</span>
+            <div className="admin-swatches" role="group" aria-labelledby="adm-hero-gradient">
               {HERO_GRADIENTS.map(g => (
                 <button
                   key={g.key}

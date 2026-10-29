@@ -313,6 +313,13 @@ function makePreloader() {
       // "credentials mode does not match") və fayl iki dəfə yüklənir (yoxlanılıb)
       for (const f of css) if (!entry.css.has(f)) lines.push(`<link rel="preload" as="style" crossorigin href="/${f}" />`)
     }
+    // PERFORMANS: /hadith — cari dilin hədis modulu (vite.config.js →
+    // "virtual:hadiths/<dil>", chunk "hadiths-<dil>") HadithPage chunk-ı ilə
+    // PARALEL yüklənsin; yoxsa chunk → məlumat ardıcıl iki gediş-gəliş olardı.
+    if (key === 'hadith') {
+      const hk = `virtual:hadiths/${lang}.js`
+      if (manifest[hk]) lines.push(`<link rel="modulepreload" crossorigin href="/${manifest[hk].file}" />`)
+    }
     return lines.map(l => '    ' + l).join('\n')
   }
 }

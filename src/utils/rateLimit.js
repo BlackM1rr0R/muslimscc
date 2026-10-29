@@ -9,9 +9,17 @@ const MAX_MESSAGES_PER_MINUTE = 5
 const COOLDOWN_SECONDS = 30
 const MIN_DELAY_BETWEEN = 2
 
+// Yaddaşdakı vəziyyət yoxlanılır: "null", massiv və ya pozuq dəyər əvvəl AI səhifəsini
+// ağ ekrana çevirirdi (null.cooldownUntil). Gələcəyə çox uzanan gözləmə 30 san. ilə kəsilir.
 function readState() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+    const now = Date.now()
+    const timestamps = Array.isArray(raw.timestamps) ? raw.timestamps.filter(t => Number.isFinite(t) && t <= now) : []
+    let cooldownUntil = Number.isFinite(raw.cooldownUntil) ? raw.cooldownUntil : null
+    if (cooldownUntil && cooldownUntil > now + COOLDOWN_SECONDS * 1000) cooldownUntil = now + COOLDOWN_SECONDS * 1000
+    return { timestamps, cooldownUntil }
   } catch {
     return {}
   }

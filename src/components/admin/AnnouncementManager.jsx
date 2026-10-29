@@ -86,29 +86,29 @@ export default function AnnouncementManager({ onUpdate }) {
       <AdminHeader icon="announcements" title={l.title} sub={l.sub} />
 
       <div className="admin-section" data-reveal>
-        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
+        <SectionTitle icon={editingId ? 'edit' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
           <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.titleField} ({formLang.toUpperCase()})</label>
-            <input type="text" className="admin-input" value={form.title[formLang]} onChange={(e) => setForm({...form, title:{...form.title, [formLang]:e.target.value}})} placeholder={l.titleField} />
+            <label className="admin-input-label" htmlFor="adm-announcement-1">{l.titleField} ({formLang.toUpperCase()})</label>
+            <input id="adm-announcement-1" type="text" className="admin-input" value={form.title[formLang]} onChange={(e) => setForm({...form, title:{...form.title, [formLang]:e.target.value}})} placeholder={l.titleField} />
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.message} ({formLang.toUpperCase()})</label>
-            <textarea className="admin-input admin-textarea" value={form.message[formLang]} onChange={(e) => setForm({...form, message:{...form.message, [formLang]:e.target.value}})} placeholder={l.message} />
+            <label className="admin-input-label" htmlFor="adm-announcement-2">{l.message} ({formLang.toUpperCase()})</label>
+            <textarea id="adm-announcement-2" className="admin-input admin-textarea" value={form.message[formLang]} onChange={(e) => setForm({...form, message:{...form.message, [formLang]:e.target.value}})} placeholder={l.message} />
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.link}</label>
-              <input type="text" className="admin-input" value={form.link} onChange={(e) => setForm({...form, link:e.target.value})} placeholder="https://..." />
+              <label className="admin-input-label" htmlFor="adm-announcement-3">{l.link}</label>
+              <input id="adm-announcement-3" type="text" className="admin-input" value={form.link} onChange={(e) => setForm({...form, link:e.target.value})} placeholder="https://..." />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.type}</label>
-              <select className="admin-input admin-select" value={form.type} onChange={(e) => setForm({...form, type:e.target.value})}>
+              <label className="admin-input-label" htmlFor="adm-announcement-4">{l.type}</label>
+              <select id="adm-announcement-4" className="admin-input admin-select" value={form.type} onChange={(e) => setForm({...form, type:e.target.value})}>
                 {ANNOUNCEMENT_TYPES.map(t => (
                   <option key={t.key} value={t.key}>{t.label[lang]}</option>
                 ))}
@@ -163,7 +163,7 @@ export default function AnnouncementManager({ onUpdate }) {
                       <button type="button" className={`admin-action-btn admin-action-btn--icon${a.active ? ' is-on' : ''}`} onClick={() => toggleActive(a)} title={l.active} aria-label={l.active} aria-pressed={!!a.active}>
                         <Icon name={a.active ? 'eye' : 'close'} />
                       </button>
-                      <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(a)} title={l.edit} aria-label={l.edit}><Icon name="duajournal" /></button>
+                      <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(a)} title={l.edit} aria-label={l.edit}><Icon name="edit" /></button>
                       <button type="button" className="admin-action-btn admin-action-btn--icon delete" onClick={() => handleDelete(a.id)} title={l.delete} aria-label={l.delete}><Icon name="trash" /></button>
                     </div>
                   </div>

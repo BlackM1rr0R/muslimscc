@@ -10,6 +10,7 @@ import {
   highlightSegments, snippetSegments, hasArabic,
 } from '../utils/search'
 import { localizeSource, QURAN_WORD } from '../utils/sourceNames'
+import { loadHadithData, hadithLangOf } from '../utils/hadithData'
 import Icon from './Icon'
 import '../styles/GlobalSearch.css'
 
@@ -18,7 +19,9 @@ import '../styles/GlobalSearch.css'
 //
 // Mənbələr (hamısı YALNIZ dialoq açılanda dinamik import ilə yüklənir):
 //   • Səhifələr  — src/seo/routes.js + navigation.js başlıqları + meta.js təsviri
-//   • Hədis      — src/data/hadiths.js (2000 qeyd; təkrarlar utils/uniqueHadiths ilə çıxarılır)
+//   • Hədis      — yalnız CARİ dilin build-zamanı təkrarsızlaşdırılmış modulu
+//                  (utils/hadithData.js → "virtual:hadiths/<dil>", 67–135 KB gzip;
+//                  əvvəl bütöv src/data/hadiths.js — 5 dil, ~400 KB gzip — yüklənirdi)
 //   • Quran      — src/data/quotes.js-dəki yoxlanılmış ayələr + Quranın TAM
 //                  mətni (api.alquran.cloud, QuranPage.jsx ilə eyni nəşr)
 //   • Dua        — src/data/duas.js
@@ -192,30 +195,34 @@ const LABELS = {
 
 // ── Modul səviyyəli keş (dialoq bağlanıb açılanda yenidən yüklənmir) ──
 
-let dataPromise = null
-let dataCache = null
+let dataPromise = null              // dildən asılı olmayan məlumat (dua, ayə, 99 ad, lüğət)
+const dataCache = new Map()         // hədis dili → { lang, hadithList, quotes, ... }
 const indexCache = new Map()     // lang → indeks
 const editionCache = new Map()   // nəşr → { status, entries, promise, ctrl }
 let lastQuery = ''
 
-/** Ağır məlumat faylları — yalnız dialoq ilk dəfə açılanda. */
-function loadData() {
-  if (dataCache) return Promise.resolve(dataCache)
+/**
+ * Ağır məlumat faylları — yalnız dialoq ilk dəfə açılanda. Hədislər dil
+ * üzrə yüklənir (hadithList — uniqueHadithsFor(HADITHS, lang) ilə eyni siyahı).
+ */
+function loadData(lang) {
+  const hl = hadithLangOf(lang)
+  if (dataCache.has(hl)) return Promise.resolve(dataCache.get(hl))
   if (!dataPromise) {
     dataPromise = Promise.all([
-      import('../data/hadiths'),
       import('../data/quotes'),
       import('../data/duas'),
       import('../data/names99'),
       import('../data/glossary'),
-    ]).then(([h, q, d, n, g]) => {
-      dataCache = { hadiths: h.HADITHS, quotes: q.QUOTES, duas: d.DUAS_DATA, names: n.NAMES_99, glossary: g.GLOSSARY }
-      return dataCache
-    })
+    ]).then(([q, d, n, g]) => ({ quotes: q.QUOTES, duas: d.DUAS_DATA, names: n.NAMES_99, glossary: g.GLOSSARY }))
     // Uğursuz olsa, növbəti cəhd yenidən yükləsin
     dataPromise.catch(() => { dataPromise = null })
   }
-  return dataPromise
+  return Promise.all([dataPromise, loadHadithData(hl)]).then(([common, h]) => {
+    const d = { ...common, lang: hl, hadithList: h.list }
+    dataCache.set(hl, d)
+    return d
+  })
 }
 
 const pickLabel = (obj, lang) => (obj && (obj[lang] || obj.az || obj.en)) || ''
@@ -460,7 +467,11 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
   const [query, setQuery] = useState(() => (initialQuery ? String(initialQuery) : lastQuery))
   const [filter, setFilter] = useState('all')
   const [limit, setLimit] = useState(PAGE_SIZE)
-  const [data, setData] = useState(dataCache)
+  // Yüklənmiş məlumat yalnız öz dilində istifadə olunur — dialoq açıqkən dil
+  // dəyişsə, yeni dilin hədisləri gələnə qədər yalnız səhifələr axtarılır
+  const hl = hadithLangOf(lang)
+  const [loaded, setLoaded] = useState(() => dataCache.get(hl) || null)
+  const data = loaded && loaded.lang === hl ? loaded : null
   const [dataErr, setDataErr] = useState(false)
   const [dataTry, setDataTry] = useState(0)
   const [active, setActive] = useState(0)
@@ -513,12 +524,12 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
   useEffect(() => {
     if (data) return undefined
     let alive = true
-    loadData().then(
-      d => { if (alive) { setData(d); setDataErr(false) } },
+    loadData(hl).then(
+      d => { if (alive) { setLoaded(d); setDataErr(false) } },
       () => { if (alive) setDataErr(true) },
     )
     return () => { alive = false }
-  }, [data, dataTry])
+  }, [data, dataTry, hl])
 
   // ── Axtarış ──
   const deferredQuery = useDeferredValue(query)

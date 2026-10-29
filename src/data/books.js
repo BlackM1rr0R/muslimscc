@@ -23,6 +23,10 @@ function esc(s) {
 
 export function makeCover({ title, author, color = '#11604c' }) {
   const lines = wrapTitle(title, 15)
+  // Uzun tək söz ("Жизнеописание", "Peygamberimizin") 27px-də çərçivədən
+  // çıxırdı — ən uzun sətrə görə şrift kiçildilir (ən azı 19px)
+  const longest = Math.max(1, ...lines.map(l => l.length))
+  const titleSize = longest > 11 ? Math.max(19, Math.round(27 * 11 / longest)) : 27
   const startY = 235 - (lines.length - 1) * 17
   const titleTspans = lines.map((ln, i) =>
     `<tspan x='150' y='${startY + i * 34}'>${esc(ln)}</tspan>`
@@ -63,7 +67,7 @@ export function makeCover({ title, author, color = '#11604c' }) {
         fill='none' stroke='${gold}' stroke-opacity='0.25' stroke-width='1.5'/>
 
   <text text-anchor='middle' font-family='Georgia, "Times New Roman", serif' font-weight='700'
-        font-size='27' fill='#ffffff' letter-spacing='0.3'>
+        font-size='${titleSize}' fill='#ffffff' letter-spacing='0.3'>
     ${titleTspans}
   </text>
 

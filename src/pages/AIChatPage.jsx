@@ -139,9 +139,13 @@ export default function AIChatPage({ setPage }) {
   const l = LABELS[lang] || LABELS.az
 
   const [messages, setMessages] = useState(() => {
+    // Yalnız {role, content: mətn} formalı mesajlar — pozuq yaddaş ({}, null element)
+    // əvvəl səhifəni ağ ekrana çevirirdi (messages.map xətası)
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) return JSON.parse(saved)
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
+      if (Array.isArray(saved)) {
+        return saved.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      }
     } catch {}
     return []
   })
@@ -273,15 +277,31 @@ export default function AIChatPage({ setPage }) {
         // "Dayandır" — gəlmiş hissə söhbətdə qalsın
         if (e.partial?.trim()) setMessages([...updated, { role:'assistant', content: e.partial.trim(), time: Date.now() }])
       } else {
-        setError(e?.code === 'timeout' ? l.timeout : l.offline)
+        if (e?.code === 'rate') {
+          // Server limiti (429) — "xidmət cavab vermir" yox, gözləmə vaxtı göstərilir
+          setError(l.rateLimit.replace('{s}', 30))
+          setCooldown(30)
+        } else setError(e?.code === 'timeout' ? l.timeout : l.offline)
         setFailed(true)
       }
     }
     if (abortRef.current === ac) abortRef.current = null
     setStreamText(null)
     setLoading(false)
-    inputRef.current?.focus({ preventScroll: true })
+    refocusRef.current = true
   }
+
+  // Cavab bitəndə fokus yazı sahəsinə qayıtsın. Əvvəl dərhal focus() çağırılırdı, amma
+  // sahə hələ disabled idi — fokus <body>-yə düşürdü ("Dayandır" düyməsi də yox olurdu).
+  // Telefonda klaviatura cavabı örtməsin deyə yalnız siçanlı cihazda.
+  const refocusRef = useRef(false)
+  useEffect(() => {
+    if (loading || !refocusRef.current) return
+    refocusRef.current = false
+    try {
+      if (window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) inputRef.current?.focus({ preventScroll: true })
+    } catch { /* köhnə brauzer */ }
+  }, [loading])
 
   const stopStreaming = () => abortRef.current?.abort()
 

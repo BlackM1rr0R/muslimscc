@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react'
+import { Component, Suspense, lazy as reactLazy } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
 import { LANGS, parsePath, pathFor } from './seo/routes'
@@ -16,6 +16,15 @@ import InstallBanner from './components/InstallBanner'
 // Adi import: dok özü yüngüldür, ağır panelləri (AI, bildirişlər) içəridə tənbəl yükləyir,
 // əlçatanlıq tərcihləri isə ilk boyamadan tətbiq olunmalıdır.
 import FloatingDock from './components/FloatingDock'
+import { lazyWhenIdle } from './utils/idle'
+import { withChunkRetry } from './utils/chunkRetry'
+
+// Bütün tənbəl modullar (səhifələr, widget-lər) chunk xətasında bir dəfə
+// avtomatik yenilənir (utils/chunkRetry.js — deploydan sonra köhnə tabda
+// hash-li fayl yoxdur). İkinci uğursuzluq xəta kimi atılır → PageErrorBoundary.
+// Ad qəsdən "lazy" qalır: scripts/prerender.mjs bu faylda
+// "lazy(() => import('./pages/X'))" nümunəsini oxuyur.
+const lazy = (factory) => reactLazy(withChunkRetry(factory))
 
 // ── Marşrut əsaslı kod bölgüsü ──
 // Əvvəl 31 səhifənin hamısı tək 2.7 MB-lıq bundle-da gəlirdi; ziyarətçi
@@ -39,14 +48,15 @@ const HomePage = lazyPage(() => import('./pages/HomePage'))
 function lazyPage(factory) {
   let Loaded = null
   let promise = null
+  const load = withChunkRetry(factory)
   const preload = () => {
     if (!promise) {
-      promise = factory().then((m) => { Loaded = m.default; return m })
+      promise = load().then((m) => { Loaded = m.default; return m })
       promise.catch(() => { promise = null })
     }
     return promise
   }
-  const Lazy = lazy(preload)
+  const Lazy = reactLazy(preload)
   function Page(props) {
     return Loaded ? <Loaded {...props} /> : <Lazy {...props} />
   }
@@ -72,6 +82,7 @@ const DonatePage = lazy(() => import('./pages/DonatePage'))
 const QuranPage = lazy(() => import('./pages/QuranPage'))
 const HadithPage = lazy(() => import('./pages/HadithPage'))
 const PrayerPage = lazy(() => import('./pages/PrayerPage'))
+const RamadanPage = lazy(() => import('./pages/RamadanPage'))
 const DuasPage = lazy(() => import('./pages/DuasPage'))
 const DhikrPage = lazy(() => import('./pages/DhikrPage'))
 const NamesPage = lazy(() => import('./pages/NamesPage'))
@@ -101,12 +112,62 @@ const VideosPage = lazy(() => import('./pages/VideosPage'))
 const BooksPage = lazy(() => import('./pages/BooksPage'))
 const AIChatPage = lazy(() => import('./pages/AIChatPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
+const TermsPage = lazy(() => import('./pages/TermsPage'))
+const LicensesPage = lazy(() => import('./pages/LicensesPage'))
 
 // Bu widget-ler her sehifede render olunur ve Firebase-i cekir (~470 KB).
 // Statik import edilse, Firebase ilk yuklenme paketine dusur; halbuki
 // hec biri ilk ekran ucun vacib deyil. Ona gore tex ire salinirlar.
-const AnnouncementToast = lazy(() => import('./components/AnnouncementToast'))
-const NotificationPrompt = lazy(() => import('./components/NotificationPrompt'))
+// PERFORMANS: üstəlik chunk-ları yalnız "load"-dan sonra, boş vaxtda
+// (utils/idle.js) yüklənir — əvvəl ilk render-də yüklənirdi və Firebase SDK
+// (~90 KB gzip) hər səhifədə LCP resursları ilə yarışırdı. Hər ikisi
+// fallback={null} ilə üzən elementdir (axında yer tutmur — CLS yoxdur);
+// bildiriş onsuz da promptCoordinator ilə gecikmə ilə göstərilir.
+const AnnouncementToast = lazy(lazyWhenIdle(() => import('./components/AnnouncementToast')))
+const NotificationPrompt = lazy(lazyWhenIdle(() => import('./components/NotificationPrompt')))
+
+// ── Marşrut səviyyəsində xəta sərhədi ──
+// Səhifənin render xətası (və ya ikinci dəfə yüklənməyən chunk) bütün saytı
+// ağ ekrana çevirməsin: başlıq, yan menyu və footer işləməyə davam edir,
+// yalnız səhifə hissəsində sakit xəta kartı + "Yenidən yüklə" görünür.
+// Başqa səhifəyə keçəndə (page dəyişəndə) sərhəd özü sıfırlanır.
+const ERROR_TEXT = {
+  az: { title: 'Bu səhifə açılmadı', text: 'Gözlənilməz xəta baş verdi. Səhifəni yenidən yükləyin — adətən bu kifayətdir.', retry: 'Yenidən yüklə' },
+  en: { title: 'This page could not be opened', text: 'An unexpected error occurred. Please reload the page — that usually fixes it.', retry: 'Reload' },
+  ru: { title: 'Не удалось открыть страницу', text: 'Произошла непредвиденная ошибка. Перезагрузите страницу — обычно это помогает.', retry: 'Перезагрузить' },
+  ar: { title: 'تعذّر فتح هذه الصفحة', text: 'حدث خطأ غير متوقع. أعد تحميل الصفحة — عادةً ما يحل ذلك المشكلة.', retry: 'إعادة التحميل' },
+  tr: { title: 'Bu sayfa açılamadı', text: 'Beklenmeyen bir hata oluştu. Sayfayı yeniden yükleyin — genellikle bu yeterlidir.', retry: 'Yeniden yükle' },
+}
+const ERROR_CARD_STYLE = { maxWidth: 520, margin: '48px auto', textAlign: 'center' }
+
+class PageErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { error: null }
+  }
+  static getDerivedStateFromError(error) { return { error } }
+  componentDidCatch(error) {
+    // Konsola bir dəfə (hər tutulan xəta üçün)
+    console.error('[Muslims.cc] səhifə xətası:', error)
+  }
+  componentDidUpdate(prev) {
+    if (this.state.error && prev.page !== this.props.page) this.setState({ error: null })
+  }
+  render() {
+    if (!this.state.error) return this.props.children
+    const t = ERROR_TEXT[this.props.lang] || ERROR_TEXT.az
+    return (
+      <main id={MAIN_ID} tabIndex={-1} style={MAIN_STYLE}>
+        <div className="ui-card" role="alert" style={ERROR_CARD_STYLE} data-page-error="">
+          <h1 className="ui-title ui-title--sm">{t.title}</h1>
+          <p className="ui-lead">{t.text}</p>
+          <button type="button" className="ui-btn ui-btn--primary" onClick={() => window.location.reload()}>{t.retry}</button>
+        </div>
+      </main>
+    )
+  }
+}
 
 /** Chunk yüklənənədək göstərilən yüngül keçid vəziyyəti. */
 function PageFallback() {
@@ -192,6 +253,7 @@ function AppInner() {
       case 'quran':    return <QuranPage    setPage={navigate} />
       case 'hadith':   return <HadithPage   setPage={navigate} />
       case 'prayer':   return <PrayerPage   setPage={navigate} />
+      case 'ramadan':  return <RamadanPage  setPage={navigate} />
       case 'duas':     return <DuasPage     setPage={navigate} />
       case 'dhikr':    return <DhikrPage    setPage={navigate} />
       case 'names':    return <NamesPage    setPage={navigate} />
@@ -220,6 +282,9 @@ function AppInner() {
       case 'videos':        return <VideosPage        setPage={navigate} />
       case 'books':         return <BooksPage         setPage={navigate} />
       case 'aichat':        return <AIChatPage        setPage={navigate} />
+      case 'privacy':       return <PrivacyPage       setPage={navigate} />
+      case 'terms':         return <TermsPage         setPage={navigate} />
+      case 'licenses':      return <LicensesPage      setPage={navigate} />
       case 'notfound':      return <NotFoundPage      setPage={navigate} />
       default:              return <HomePage          setPage={navigate} />
     }
@@ -237,6 +302,7 @@ function AppInner() {
   // saxlayır — arada boş ekran / spinner "yanıb-sönməsi" olmur. Spinner
   // yalnız ilk açılışda (hələ heç nə göstərilməyibsə) görünür.
   const pageMain = (
+    <PageErrorBoundary page={page} lang={lang}>
     <Suspense fallback={<PageFallback />}>
       {/* PERFORMANS (CLS): <main> ən azı görünən sahə hündürlüyündədir — footer
           ilk kadrda ekranın ALTINDAN başlayır. Əvvəl səhifə chunk-ı / məlumatı
@@ -247,6 +313,7 @@ function AppInner() {
         {renderPage()}
       </main>
     </Suspense>
+    </PageErrorBoundary>
   )
 
   if (isAdminPage) {

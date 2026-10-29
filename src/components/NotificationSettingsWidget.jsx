@@ -7,19 +7,28 @@ import {
   requestNotificationPermission,
   getStoredToken,
   clearStoredToken,
+  updateTokenDaily,
 } from '../firebase/messaging'
 import { deleteDocument } from '../firebase/firestore'
 import Icon from './Icon'
 import '../styles/NotificationSettingsWidget.css'
+import { showLocalNotification } from '../utils/notify'
 
 const PREFS_KEY = 'muslim_cc_notif_prefs'
 
+// "Günün ayəsi" yeganə serverə yazılan seçimdir (token sənədi → daily) —
+// icazəsiz spam olmasın deyə susmaya görə SÖNÜLÜ. Saat şəhərin yerli saatıdır.
+const AYAH_HOURS = [7, 8, 9, 20]   // server/daily-ayah.js → HOURS ilə eyni
+
 const DEFAULT_PREFS = {
   prayer: true,
-  daily: true,
+  ayah: false,
+  ayahHour: 8,
   announcements: true,
   events: true,
 }
+
+const hourLabel = (h) => `${String(h).padStart(2, '0')}:00`
 
 const LABELS = {
   az: {
@@ -39,8 +48,13 @@ const LABELS = {
     types:'Bildiriş növləri',
     typePrayer:'Namaz vaxtları',
     typePrayerSub:'5 vaxt namazı üçün xatırlatma',
-    typeDaily:'Günün ayəsi və duası',
-    typeDailySub:'Hər səhər yeni məzmun',
+    typeAyah:'Günün ayəsi',
+    typeAyahSub:'Hər gün bir ayə və tərcüməsi',
+    ayahTime:'Bildiriş vaxtı',
+    ayahTimeHint:'Şəhərinizin saatı ilə',
+    ayahNeedsToken:'Ayə bildirişi üçün əvvəlcə yuxarıdan bildirişlərə icazə verin. Seçiminiz yadda qalacaq.',
+    ayahUnsupported:'Bu brauzer veb bildirişlərini dəstəkləmir. Seçiminiz yadda qaldı, amma bildiriş gəlməyəcək.',
+    ayahSaveFailed:'Seçimi saxlamaq alınmadı. Yenidən cəhd edin.',
     typeAnnouncements:'Elanlar',
     typeAnnouncementsSub:'Yeni xəbərlər və yenilənmələr',
     typeEvents:'Mübarək günlər',
@@ -71,8 +85,13 @@ const LABELS = {
     types:'Notification types',
     typePrayer:'Prayer times',
     typePrayerSub:'Reminders for 5 daily prayers',
-    typeDaily:'Verse and dua of the day',
-    typeDailySub:'New content every morning',
+    typeAyah:'Verse of the day',
+    typeAyahSub:'One verse with its translation every day',
+    ayahTime:'Notification time',
+    ayahTimeHint:'Local time in your city',
+    ayahNeedsToken:'To get the daily verse, allow notifications above first. Your choice will be saved.',
+    ayahUnsupported:'This browser does not support push notifications. Your choice is saved, but no notifications will arrive.',
+    ayahSaveFailed:'Could not save your choice. Please try again.',
     typeAnnouncements:'Announcements',
     typeAnnouncementsSub:'News and updates',
     typeEvents:'Blessed days',
@@ -103,8 +122,13 @@ const LABELS = {
     types:'Типы уведомлений',
     typePrayer:'Время намаза',
     typePrayerSub:'Напоминания для 5 намазов',
-    typeDaily:'Аят/дуа дня',
-    typeDailySub:'Новый контент каждое утро',
+    typeAyah:'Аят дня',
+    typeAyahSub:'Каждый день один аят с переводом',
+    ayahTime:'Время уведомления',
+    ayahTimeHint:'По времени вашего города',
+    ayahNeedsToken:'Чтобы получать аят дня, сначала разрешите уведомления выше. Ваш выбор сохранится.',
+    ayahUnsupported:'Этот браузер не поддерживает веб-уведомления. Выбор сохранён, но уведомления приходить не будут.',
+    ayahSaveFailed:'Не удалось сохранить выбор. Попробуйте ещё раз.',
     typeAnnouncements:'Объявления',
     typeAnnouncementsSub:'Новости и обновления',
     typeEvents:'Благословенные дни',
@@ -135,8 +159,13 @@ const LABELS = {
     types:'أنواع الإشعارات',
     typePrayer:'أوقات الصلاة',
     typePrayerSub:'تذكير الصلوات الخمس',
-    typeDaily:'آية/دعاء اليوم',
-    typeDailySub:'محتوى جديد كل صباح',
+    typeAyah:'آية اليوم',
+    typeAyahSub:'آية مع ترجمتها كل يوم',
+    ayahTime:'وقت الإشعار',
+    ayahTimeHint:'بتوقيت مدينتك',
+    ayahNeedsToken:'لتلقي آية اليوم، اسمح بالإشعارات أعلاه أولاً. سيُحفظ اختيارك.',
+    ayahUnsupported:'هذا المتصفح لا يدعم إشعارات الدفع. حُفظ اختيارك، لكن الإشعارات لن تصل.',
+    ayahSaveFailed:'تعذّر حفظ اختيارك. حاول مرة أخرى.',
     typeAnnouncements:'الإعلانات',
     typeAnnouncementsSub:'أخبار وتحديثات',
     typeEvents:'الأحداث',
@@ -167,8 +196,13 @@ const LABELS = {
     types:'Bildirim türleri',
     typePrayer:'Namaz vakitleri',
     typePrayerSub:'5 vakit için hatırlatma',
-    typeDaily:'Günün ayeti/duası',
-    typeDailySub:'Her sabah yeni içerik',
+    typeAyah:'Günün ayeti',
+    typeAyahSub:'Her gün bir ayet ve meali',
+    ayahTime:'Bildirim saati',
+    ayahTimeHint:'Şehrinizin saatiyle',
+    ayahNeedsToken:'Günün ayeti için önce yukarıdan bildirimlere izin verin. Seçiminiz kaydedilecek.',
+    ayahUnsupported:'Bu tarayıcı anlık bildirimleri desteklemiyor. Seçiminiz kaydedildi, ancak bildirim gelmeyecek.',
+    ayahSaveFailed:'Seçiminiz kaydedilemedi. Lütfen tekrar deneyin.',
     typeAnnouncements:'Duyurular',
     typeAnnouncementsSub:'Haberler ve güncellemeler',
     typeEvents:'Mübarek günler',
@@ -295,6 +329,8 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     if (!result.ok && result.reason !== 'denied') {
       setFeedback({ ok: false, text: result.reason || 'failed' })
     }
+    // Token indi yarandı — icazədən əvvəl seçilmiş "Günün ayəsi" serverə də yazılsın
+    if (result.ok && prefs.ayah) updateTokenDaily({ ayah: true, hour: prefs.ayahHour })
   }
 
   const handleDisable = async () => {
@@ -309,21 +345,32 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     setBusy(false)
   }
 
-  const handleTest = () => {
+  const handleTest = async () => {
     if (permission !== 'granted') {
       setFeedback({ ok: false, text: l.permissionNeeded })
       return
     }
-    new Notification(brandName(lang), {
+    // Android-də `new Notification()` xəta atırdı — sınaq səssiz qırılırdı (utils/notify.js)
+    const shown = await showLocalNotification(brandName(lang), {
       body: l.testBody,
       icon: '/android-chrome-192x192.png',
       badge: '/badge-96x96.png?v=2',   // ağ monoxrom — Android rəngli şəkli ağ kvadrat göstərir
     })
+    if (!shown) { setFeedback({ ok: false, text: l.permissionNeeded }); return }
     setFeedback({ ok: true, text: l.testSent })
     setTimeout(() => setFeedback(null), 2500)
   }
 
   const togglePref = (key) => setPrefs(p => ({ ...p, [key]: !p[key] }))
+
+  // "Günün ayəsi": seçim həmişə lokal yadda qalır; token varsa sənədə də yazılır
+  const setAyah = async (patch) => {
+    const next = { ayah: prefs.ayah, hour: prefs.ayahHour, ...patch }
+    setPrefs(p => ({ ...p, ayah: next.ayah, ayahHour: next.hour }))
+    if (!getStoredToken()) return
+    const ok = await updateTokenDaily(next)
+    if (!ok) setFeedback({ ok: false, text: l.ayahSaveFailed })
+  }
 
   // Rəng burada deyil — CSS data-status-a görə seçir (NotificationSettingsWidget.css)
   const statusInfo = (() => {
@@ -408,8 +455,30 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
                 <div className="notif-toggles">
                   <PrefToggle icon="prayer" label={l.typePrayer} sub={l.typePrayerSub}
                     on={prefs.prayer} onClick={() => togglePref('prayer')} />
-                  <PrefToggle icon="quran" label={l.typeDaily} sub={l.typeDailySub}
-                    on={prefs.daily} onClick={() => togglePref('daily')} />
+                  <PrefToggle icon="quran" label={l.typeAyah} sub={l.typeAyahSub}
+                    on={prefs.ayah} onClick={() => setAyah({ ayah: !prefs.ayah })} />
+                  {prefs.ayah && (
+                    <div className="notif-ayah">
+                      <div className="notif-ayah-head" id="notif-ayah-time">
+                        <span>{l.ayahTime}</span>
+                        <span className="notif-ayah-hint">{l.ayahTimeHint}</span>
+                      </div>
+                      <div className="notif-ayah-hours" role="radiogroup" aria-labelledby="notif-ayah-time">
+                        {AYAH_HOURS.map(h => (
+                          <button key={h} type="button" role="radio" aria-checked={prefs.ayahHour === h}
+                            className={`notif-ayah-hour ${prefs.ayahHour === h ? 'on' : ''}`}
+                            onClick={() => setAyah({ hour: h })}>
+                            {hourLabel(h)}
+                          </button>
+                        ))}
+                      </div>
+                      {!hasToken && (
+                        <div className="notif-ayah-note" role="note">
+                          <Icon name="info" size={16} /> <span>{supported ? l.ayahNeedsToken : l.ayahUnsupported}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <PrefToggle icon="megaphone" label={l.typeAnnouncements} sub={l.typeAnnouncementsSub}
                     on={prefs.announcements} onClick={() => togglePref('announcements')} />
                   <PrefToggle icon="calendar" label={l.typeEvents} sub={l.typeEventsSub}

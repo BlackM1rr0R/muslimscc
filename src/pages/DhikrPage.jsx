@@ -13,11 +13,30 @@ function loadSession() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     const data = raw ? JSON.parse(raw) : null
-    return data && typeof data === 'object' ? data : { count: 0, selIdx: 0, log: [] }
+    if (!data || typeof data !== 'object') return { count: 0, selIdx: 0, log: [] }
+    // Pozuq / köhnə məlumat səhifəni çökdürməsin: hər sahə yoxlanılır
+    const selIdx = Number.isInteger(Number(data.selIdx)) && DHIKRS[Number(data.selIdx)] ? Number(data.selIdx) : 0
+    const count = Math.max(0, Math.min(Number(data.count) || 0, DHIKRS[selIdx].target))
+    const log = (Array.isArray(data.log) ? data.log : [])
+      .filter(e => e && typeof e === 'object')
+      .map(e => ({ id: e.id, idx: Number.isInteger(e.idx) ? e.idx : undefined, name: typeof e.name === 'string' ? e.name : '', count: Number(e.count) || 0, time: typeof e.time === 'string' ? e.time : '' }))
+      .slice(0, 10)
+    return { count, selIdx, log }
   } catch { return { count: 0, selIdx: 0, log: [] } }
 }
 function saveSession(data) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch {}
+}
+
+// Ömürlük zikr sayı — /analytics "Zikr ustası" nailiyyəti üçün oxuyur
+// (AnalyticsPage 'dhikr_count*' açarlarını cəmləyir). Jurnal yalnız son 10
+// dövrəni saxladığı üçün ayrıca sayğac lazımdır.
+const TOTAL_KEY = 'dhikr_count_total'
+function bumpLifetime() {
+  try {
+    const n = parseInt(localStorage.getItem(TOTAL_KEY), 10)
+    localStorage.setItem(TOTAL_KEY, String((Number.isFinite(n) && n > 0 ? n : 0) + 1))
+  } catch {}
 }
 
 // Vibrasiya — yalnız istifadəçi səhifəyə toxunandan sonra (əks halda brauzer
@@ -82,10 +101,11 @@ export default function DhikrPage({ setPage }) {
   const handleTap = useCallback(() => {
     const next = count >= dhikr.target ? 1 : count + 1
     setCount(next)
+    bumpLifetime()
     if (next === dhikr.target) {
       const time = new Date().toLocaleTimeString(LOCALE[lang] || 'az-AZ', { hour: '2-digit', minute: '2-digit' })
       // id — siyahıda sabit açar (yeni sətir yuxarıdan yumşaq daxil olur)
-      setLog(l => [{ id: Date.now(), name: dhikr[lang] || dhikr.en, count: dhikr.target, time }, ...l.slice(0, 9)])
+      setLog(l => [{ id: Date.now(), idx: selIdx, name: dhikr[lang] || dhikr.en, count: dhikr.target, time }, ...l.slice(0, 9)])
       setBurst(b => b + 1)
       // Hədəf tamamlandı — uzun vibrasiya
       vibrate([100, 50, 100])
@@ -95,7 +115,7 @@ export default function DhikrPage({ setPage }) {
     setTap(true)
     setTapId(n => n + 1)
     setTimeout(() => setTap(false), 120)
-  }, [count, dhikr, lang])
+  }, [count, dhikr, lang, selIdx])
 
   return (
     <div className="dhikr-page">
@@ -216,7 +236,8 @@ export default function DhikrPage({ setPage }) {
                   <li key={entry.id ?? `${entry.time}-${i}`} className="dhikr-log-row">
                     <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="check" /></span>
                     <span className="dhikr-log-body">
-                      <span className="dhikr-log-name">{entry.name}</span>
+                      {/* Ad cari interfeys dilində (dil dəyişəndə köhnə dildə qalmasın) */}
+                      <span className="dhikr-log-name">{DHIKRS[entry.idx]?.[lang] || DHIKRS[entry.idx]?.en || entry.name}</span>
                       <span className="dhikr-log-time ui-num">{entry.time}</span>
                     </span>
                     <span className="dhikr-log-count ui-num">×{entry.count}</span>

@@ -141,7 +141,8 @@ export default function GlossaryPage({ setPage }) {
                 </button>
               )}
             </div>
-            <span className="glossary-count ui-num" aria-live="polite">{filtered.length} {t.terms}</span>
+            {/* key — say dəyişəndə kiçik "pop" (filtr nəticəsinin rəyi) */}
+            <span key={filtered.length} className="glossary-count ui-num ui-enter-pop" aria-live="polite">{filtered.length} {t.terms}</span>
           </div>
 
           {/* Əlifba filtri — telefonda başlığın altında yapışır (şüşə fon) */}

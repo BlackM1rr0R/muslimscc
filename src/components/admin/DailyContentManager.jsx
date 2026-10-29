@@ -75,8 +75,8 @@ export default function DailyContentManager() {
 
         <div className="admin-form">
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.arabic}</label>
-            <textarea
+            <label className="admin-input-label" htmlFor="adm-dailycontent-1">{l.arabic}</label>
+            <textarea id="adm-dailycontent-1"
               className="admin-input admin-textarea admin-input--arabic"
               value={content.ayah.ar}
               onChange={(e) => updateField('ayah', 'ar', e.target.value)}
@@ -86,8 +86,8 @@ export default function DailyContentManager() {
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.translation} ({formLang.toUpperCase()})</label>
-            <textarea
+            <label className="admin-input-label" htmlFor="adm-dailycontent-2">{l.translation} ({formLang.toUpperCase()})</label>
+            <textarea id="adm-dailycontent-2"
               className="admin-input admin-textarea"
               value={content.ayah.text[formLang]}
               onChange={(e) => updateText('ayah', formLang, e.target.value)}
@@ -96,8 +96,8 @@ export default function DailyContentManager() {
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.source}</label>
-            <input
+            <label className="admin-input-label" htmlFor="adm-dailycontent-3">{l.source}</label>
+            <input id="adm-dailycontent-3"
               type="text"
               className="admin-input"
               value={content.ayah.source}
@@ -114,8 +114,8 @@ export default function DailyContentManager() {
 
         <div className="admin-form">
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.arabic}</label>
-            <input
+            <label className="admin-input-label" htmlFor="adm-dailycontent-4">{l.arabic}</label>
+            <input id="adm-dailycontent-4"
               type="text"
               className="admin-input admin-input--arabic"
               value={content.dhikr.ar}
@@ -127,8 +127,8 @@ export default function DailyContentManager() {
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.translit}</label>
-              <input
+              <label className="admin-input-label" htmlFor="adm-dailycontent-5">{l.translit}</label>
+              <input id="adm-dailycontent-5"
                 type="text"
                 className="admin-input"
                 value={content.dhikr.translit}
@@ -137,8 +137,8 @@ export default function DailyContentManager() {
               />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.count}</label>
-              <input
+              <label className="admin-input-label" htmlFor="adm-dailycontent-6">{l.count}</label>
+              <input id="adm-dailycontent-6"
                 type="number"
                 className="admin-input"
                 value={content.dhikr.count}
@@ -150,8 +150,8 @@ export default function DailyContentManager() {
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.translation} ({formLang.toUpperCase()})</label>
-            <input
+            <label className="admin-input-label" htmlFor="adm-dailycontent-7">{l.translation} ({formLang.toUpperCase()})</label>
+            <input id="adm-dailycontent-7"
               type="text"
               className="admin-input"
               value={content.dhikr.text[formLang]}
@@ -168,8 +168,8 @@ export default function DailyContentManager() {
 
         <div className="admin-form">
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.arabic}</label>
-            <textarea
+            <label className="admin-input-label" htmlFor="adm-dailycontent-8">{l.arabic}</label>
+            <textarea id="adm-dailycontent-8"
               className="admin-input admin-textarea admin-input--arabic"
               value={content.quote.ar}
               onChange={(e) => updateField('quote', 'ar', e.target.value)}
@@ -179,8 +179,8 @@ export default function DailyContentManager() {
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.translation} ({formLang.toUpperCase()})</label>
-            <textarea
+            <label className="admin-input-label" htmlFor="adm-dailycontent-9">{l.translation} ({formLang.toUpperCase()})</label>
+            <textarea id="adm-dailycontent-9"
               className="admin-input admin-textarea"
               value={content.quote.text[formLang]}
               onChange={(e) => updateText('quote', formLang, e.target.value)}
@@ -189,8 +189,8 @@ export default function DailyContentManager() {
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.source}</label>
-            <input
+            <label className="admin-input-label" htmlFor="adm-dailycontent-10">{l.source}</label>
+            <input id="adm-dailycontent-10"
               type="text"
               className="admin-input"
               value={content.quote.source}

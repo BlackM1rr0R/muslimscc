@@ -694,3 +694,9 @@
 
 /* 0%-də yuvarlaq xətt ucu dairədə "nöqtə" çəkirdi — gizlət */
 .stat-circle-fill.is-empty { opacity: 0; }
+
+/* Ramazan rejimi kartı (components/RamadanCard) — iki sütunun üstündə */
+.pp-root .pp-ramadan { margin-bottom: var(--space-5); }
+@media (max-width: 767.98px) {
+  .pp-root .pp-ramadan { margin-bottom: var(--space-4); }
+}

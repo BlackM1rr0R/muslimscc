@@ -422,3 +422,6 @@
   .zakat-due-card.active { animation: none; }
   .nisab-bar { transition: none; }
 }
+
+/* Mənfi dəyər hesaba düşmür — sahə qırmızı haşiyə ilə bunu bildirir */
+.zakat-page .zakat-input[aria-invalid="true"] { border-color: var(--bad); }

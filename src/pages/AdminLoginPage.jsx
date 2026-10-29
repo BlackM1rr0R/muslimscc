@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { adminLogin } from '../data/videos'
 import Icon, { BrandMark } from '../components/Icon'
@@ -22,6 +22,9 @@ export default function AdminLoginPage({ setPage }) {
   // Hər yanlış cəhddə xəta qutusu yenidən "silkələnsin" (key dəyişir)
   const [errKey, setErrKey] = useState(0)
   const [reveal, setReveal] = useState(false)
+  // Ardıcıl yanlış cəhdlərdə əvvəlki taymer yeni xətanı vaxtından əvvəl gizlədirdi
+  const errTimer = useRef(0)
+  useEffect(() => () => clearTimeout(errTimer.current), [])
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -30,7 +33,8 @@ export default function AdminLoginPage({ setPage }) {
     } else {
       setError(true)
       setErrKey(k => k + 1)
-      setTimeout(() => setError(false), 3000)
+      clearTimeout(errTimer.current)
+      errTimer.current = setTimeout(() => setError(false), 3000)
     }
   }
 

@@ -95,6 +95,20 @@ export const BRAND = {
 
   // Ərəbcə dekorativ başlıq (hero, şəkillər)
   arabicMotto: 'بِسْمِ اللَّهِ',
+
+  // Hüquqi səhifələr (Məxfilik siyasəti, İstifadə şərtləri) üçün sahib məlumatı.
+  // BOŞ sahə səhifədə GÖSTƏRİLMİR (heç vaxt "XXX" və ya uydurma ünvan yox):
+  //   operator      — xidməti idarə edən şəxsin/təşkilatın hüquqi adı
+  //   email         — məxfilik və hüquqi sorğular üçün e-poçt (boşdursa Instagram göstərilir)
+  //   country       — sahibin ölkəsi; ya sətir, ya 5 dilli obyekt { az, en, ru, ar, tr }.
+  //                   Boşdursa "Tətbiq olunan qanun" bəndi səhifədə görünmür
+  //   effectiveDate — sənədlərin qüvvəyə minmə / son yenilənmə tarixi (YYYY-MM-DD)
+  legal: {
+    operator: { az: 'Elçin Abdullayev', en: 'Elchin Abdullayev', ru: 'Эльчин Абдуллаев', ar: 'Elchin Abdullayev', tr: 'Elçin Abdullayev' }, // lang-ok: şəxs adı ərəb mətnində latınca qalır (pasportdakı yazılış)
+    email: 'abdllyevv@gmail.com',
+    country: { az: 'Azərbaycan Respublikası', en: 'the Republic of Azerbaijan', ru: 'Азербайджанская Республика', ar: 'جمهورية أذربيجان', tr: 'Azerbaycan Cumhuriyeti' },
+    effectiveDate: '2026-10-30',
+  },
 }
 
 // ── Namaz vaxtı: standart yer ────────────────────────

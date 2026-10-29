@@ -81,12 +81,12 @@ export default function DuaManager({ onUpdate }) {
       <AdminHeader icon="duas" title={l.title} sub={l.sub} />
 
       <div className="admin-section" data-reveal>
-        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
+        <SectionTitle icon={editingId ? 'edit' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.arabicText}</label>
-            <textarea
+            <label className="admin-input-label" htmlFor="adm-dua-1">{l.arabicText}</label>
+            <textarea id="adm-dua-1"
               className="admin-input admin-textarea admin-input--arabic"
               value={form.ar}
               onChange={(e) => setForm({...form, ar:e.target.value})}
@@ -96,25 +96,25 @@ export default function DuaManager({ onUpdate }) {
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.translit}</label>
-            <input type="text" className="admin-input" value={form.translit} onChange={(e) => setForm({...form, translit:e.target.value})} placeholder="Rabbana atina fi'd-dunya..." />
+            <label className="admin-input-label" htmlFor="adm-dua-2">{l.translit}</label>
+            <input id="adm-dua-2" type="text" className="admin-input" value={form.translit} onChange={(e) => setForm({...form, translit:e.target.value})} placeholder="Rabbana atina fi'd-dunya..." />
           </div>
 
           <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.translation} ({formLang.toUpperCase()})</label>
-            <textarea className="admin-input admin-textarea" value={form.text[formLang]} onChange={(e) => setForm({...form, text:{...form.text, [formLang]:e.target.value}})} placeholder={l.translation} />
+            <label className="admin-input-label" htmlFor="adm-dua-3">{l.translation} ({formLang.toUpperCase()})</label>
+            <textarea id="adm-dua-3" className="admin-input admin-textarea" value={form.text[formLang]} onChange={(e) => setForm({...form, text:{...form.text, [formLang]:e.target.value}})} placeholder={l.translation} />
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.source}</label>
-              <input type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder={l.sourcePh} />
+              <label className="admin-input-label" htmlFor="adm-dua-4">{l.source}</label>
+              <input id="adm-dua-4" type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder={l.sourcePh} />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.category}</label>
-              <select className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
+              <label className="admin-input-label" htmlFor="adm-dua-5">{l.category}</label>
+              <select id="adm-dua-5" className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
                 {CUSTOM_DUA_CATS.map(c => (
                   <option key={c.key} value={c.key}>{c.label[lang]}</option>
                 ))}
@@ -149,7 +149,7 @@ export default function DuaManager({ onUpdate }) {
                   <div className="admin-item__head">
                     <span className="ui-badge">{cat?.label[lang]}</span>
                     <div className="admin-item__actions">
-                      <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(d)} title={l.edit} aria-label={l.edit}><Icon name="duajournal" /></button>
+                      <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(d)} title={l.edit} aria-label={l.edit}><Icon name="edit" /></button>
                       <button type="button" className="admin-action-btn admin-action-btn--icon delete" onClick={() => handleDelete(d.id)} title={l.delete} aria-label={l.delete}><Icon name="trash" /></button>
                     </div>
                   </div>

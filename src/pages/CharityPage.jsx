@@ -5,6 +5,7 @@ import '../styles/CharityPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
+import { exitDelay } from '../utils/promptCoordinator'
 
 // Əməl növləri. icon — Icon.jsx adı (emoji əvəzinə: rəngi tokendən,
 // bütün sistemlərdə eyni). Dəqiq ikonu olmayanlar üçün ən yaxın:
@@ -78,9 +79,24 @@ export default function CharityPage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
 
+  // Yaddaşdakı qeydlər yoxlanılır: pozuq/köhnə forma ({}, "x", null element,
+  // mətn məbləğ) əvvəl səhifəni tam ağ ekrana çevirirdi (reduce/toFixed xətası)
   const [entries, setEntries] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('charity_log')) || []
+      const raw = JSON.parse(localStorage.getItem('charity_log'))
+      if (!Array.isArray(raw)) return []
+      return raw
+        .filter(e => e && typeof e === 'object' && /^\d{4}-\d{2}-\d{2}$/.test(String(e.date)))
+        .map((e, i) => {
+          const amt = parseFloat(e.amount)
+          return {
+            id: Number.isFinite(Number(e.id)) ? Number(e.id) : i + 1,
+            date: e.date,
+            type: DEED_TYPES.some(d => d.key === e.type) ? e.type : 'other',
+            amount: Number.isFinite(amt) && amt > 0 ? amt : null,
+            description: typeof e.description === 'string' ? e.description : '',
+          }
+        })
     } catch { return [] }
   })
 
@@ -130,8 +146,25 @@ export default function CharityPage({ setPage }) {
     addedTimer.current = setTimeout(() => setJustAdded(0), 2400)
   }
 
-  const handleDelete = (id) => {
-    setEntries(prev => prev.filter(e => e.id !== id))
+  // Silmə: sətir əvvəl yumşaq sönür (yalnız transform/opacity), sonra siyahıdan çıxır.
+  // Fokus itməsin deyə növbəti (yoxdursa əvvəlki) sətrin "Sil" düyməsinə, siyahı
+  // boşalırsa başlığa keçir — əvvəl fokus <body>-yə düşürdü.
+  const [leaving, setLeaving] = useState(() => new Set())
+  const entriesTitleRef = useRef(null)
+  const leaveTimers = useRef([])
+  useEffect(() => () => leaveTimers.current.forEach(clearTimeout), [])
+  const handleDelete = (id, ev) => {
+    if (leaving.has(id)) return
+    const li = ev?.currentTarget?.closest('li')
+    const sib = li?.nextElementSibling || li?.previousElementSibling
+    setLeaving(prev => new Set(prev).add(id))
+    leaveTimers.current.push(setTimeout(() => {
+      setEntries(prev => prev.filter(e => e.id !== id))
+      setLeaving(prev => { const n = new Set(prev); n.delete(id); return n })
+      const next = sib?.isConnected && sib.querySelector('.ch-entry-delete')
+      if (next) next.focus({ preventScroll: true })
+      else entriesTitleRef.current?.focus({ preventScroll: true })
+    }, exitDelay(220)))
   }
 
   const getDeedType = (key) => DEED_TYPES.find(d => d.key === key) || DEED_TYPES[7]
@@ -158,21 +191,22 @@ export default function CharityPage({ setPage }) {
             <div className="ch-stat">
               <span className="ui-icon-tile"><Icon name="charity" /></span>
               <div className="ui-stat">
-                <span className="ui-stat__num">{stats.total}</span>
+                {/* key: dəyər dəyişəndə rəqəm bir dəfə yumşaq "döyünür" (CharityPage.css → .ch-bump) */}
+                <span className="ui-stat__num ui-num ch-bump" key={stats.total}>{stats.total}</span>
                 <span className="ui-stat__label">{t.total}</span>
               </div>
             </div>
             <div className="ch-stat">
               <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="zakat" /></span>
               <div className="ui-stat">
-                <span className="ui-stat__num">{stats.totalAmount > 0 ? stats.totalAmount.toFixed(2) : '0'}</span>
+                <span className="ui-stat__num ui-num ch-bump" key={stats.totalAmount}>{stats.totalAmount > 0 && Number.isFinite(stats.totalAmount) ? stats.totalAmount.toFixed(2) : '0'}</span>
                 <span className="ui-stat__label">{t.totalAmount}</span>
               </div>
             </div>
             <div className="ch-stat">
               <span className="ui-icon-tile"><Icon name="bolt" /></span>
               <div className="ui-stat">
-                <span className="ui-stat__num">{stats.streak}</span>
+                <span className="ui-stat__num ui-num ch-bump" key={stats.streak}>{stats.streak}</span>
                 <span className="ui-stat__label">{t.streak}</span>
               </div>
             </div>
@@ -283,7 +317,7 @@ export default function CharityPage({ setPage }) {
 
               {/* Qeydlər — yeni əlavə olunan sətir yumşaq "açılır" */}
               <div className="ch-entries">
-                <h2 className="ch-entries-title">
+                <h2 className="ch-entries-title" ref={entriesTitleRef} tabIndex={-1}>
                   {t.entries} <span className="ui-badge ui-num">{filteredEntries.length}</span>
                 </h2>
                 {filteredEntries.length === 0 && (
@@ -297,7 +331,7 @@ export default function CharityPage({ setPage }) {
                     {filteredEntries.map(entry => {
                       const dt = getDeedType(entry.type)
                       return (
-                        <li key={entry.id} className="ch-entry">
+                        <li key={entry.id} className={`ch-entry${entry.id === justAdded ? ' is-new' : ''}${leaving.has(entry.id) ? ' is-leaving' : ''}`}>
                           <div className="ui-card ch-entry-card">
                             <span className={tileClass(dt.key)}><Icon name={dt.icon} /></span>
                             <div className="ch-entry-body">
@@ -315,7 +349,7 @@ export default function CharityPage({ setPage }) {
                             <button
                               type="button"
                               className="ui-icon-btn ch-entry-delete"
-                              onClick={() => handleDelete(entry.id)}
+                              onClick={(ev) => handleDelete(entry.id, ev)}
                               title={t.delete}
                               aria-label={t.delete}
                             >

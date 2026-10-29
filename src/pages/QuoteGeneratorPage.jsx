@@ -15,11 +15,11 @@ const translationOf = (q, lang) => (lang === 'ar' ? '' : pickLang(q?.text, lang)
 
 /* ── Labels ── */
 const LABELS = {
-  az: { eyebrow:'Paylaş və yay', title:'Sitat generatoru', subtitle:'Gözəl İslami sitatlar yaradın', generate:'Yeni sitat', copy:'Kopyala', share:'Paylaş', download:'Yüklə', copied:'Kopyalandı!', theme:'Rəng', category:'Kateqoriya', layout:'Dizayn', custom:'Fərdiləşdir', quran:'Quran', hadith:'Hədis', dua:'Dua', wisdom:'Hikmət', all:'Hamısı', watermark:`${BRAND.name.az} · ${BRAND.domain}`, fontSize:'Yazı ölçüsü', bgColor:'Arxa plan', textColor:'Yazı rəngi', borderWidth:'Sərhəd', borderColor:'Sərhəd rəngi', opacity:'Şəffaflıq', reset:'Sıfırla', customBg:'Öz rəng', arText:'Ərəb', trText:'Tərcümə' },
-  en: { eyebrow:'Share the good', title:'Quote Generator', subtitle:'Create beautiful Islamic quotes', generate:'New quote', copy:'Copy', share:'Share', download:'Download', copied:'Copied!', theme:'Color', category:'Category', layout:'Layout', custom:'Customize', quran:'Quran', hadith:'Hadith', dua:'Dua', wisdom:'Wisdom', all:'All', watermark:`${BRAND.name.en} · ${BRAND.domain}`, fontSize:'Font size', bgColor:'Background', textColor:'Text color', borderWidth:'Border', borderColor:'Border color', opacity:'Opacity', reset:'Reset', customBg:'Custom color', arText:'Arabic', trText:'Translation' },
-  ru: { eyebrow:'Делитесь добром', title:'Генератор цитат', subtitle:'Создавайте красивые исламские цитаты', generate:'Новая цитата', copy:'Копировать', share:'Поделиться', download:'Скачать', copied:'Скопировано!', theme:'Цвет', category:'Категория', layout:'Дизайн', custom:'Настроить', quran:'Коран', hadith:'Хадис', dua:'Дуа', wisdom:'Мудрость', all:'Все', watermark:`${BRAND.name.ru} · ${BRAND.domain}`, fontSize:'Размер шрифта', bgColor:'Фон', textColor:'Цвет текста', borderWidth:'Рамка', borderColor:'Цвет рамки', opacity:'Прозрачность', reset:'Сбросить', customBg:'Свой цвет', arText:'Арабский', trText:'Перевод' },
-  ar: { eyebrow:'انشر الخير', title:'مولد الاقتباسات', subtitle:'أنشئ اقتباسات إسلامية جميلة', generate:'اقتباس جديد', copy:'نسخ', share:'مشاركة', download:'تحميل', copied:'تم النسخ!', theme:'اللون', category:'الفئة', layout:'التصميم', custom:'تخصيص', quran:'القرآن', hadith:'الحديث', dua:'الدعاء', wisdom:'حكمة', all:'الكل', watermark:`${BRAND.name.ar} · ${BRAND.domain}`, fontSize:'حجم الخط', bgColor:'الخلفية', textColor:'لون النص', borderWidth:'الإطار', borderColor:'لون الإطار', opacity:'الشفافية', reset:'إعادة ضبط', customBg:'لون مخصص', arText:'العربية', trText:'الترجمة' },
-  tr: { eyebrow:'Paylaş ve yay', title:'Alıntı Oluşturucu', subtitle:'Güzel İslami alıntılar oluşturun', generate:'Yeni alıntı', copy:'Kopyala', share:'Paylaş', download:'İndir', copied:'Kopyalandı!', theme:'Renk', category:'Kategori', layout:'Tasarım', custom:'Özelleştir', quran:'Kuran', hadith:'Hadis', dua:'Dua', wisdom:'Hikmet', all:'Tümü', watermark:`${BRAND.name.tr} · ${BRAND.domain}`, fontSize:'Yazı boyutu', bgColor:'Arka plan', textColor:'Yazı rengi', borderWidth:'Kenarlık', borderColor:'Kenarlık rengi', opacity:'Saydamlık', reset:'Sıfırla', customBg:'Özel renk', arText:'Arapça', trText:'Çeviri' },
+  az: { eyebrow:'Paylaş və yay', title:'Sitat generatoru', subtitle:'Gözəl İslami sitatlar yaradın', generate:'Yeni sitat', copy:'Kopyala', share:'Paylaş', download:'Yüklə', copied:'Kopyalandı!', downloaded:'Yükləndi!', theme:'Rəng', category:'Kateqoriya', layout:'Dizayn', custom:'Fərdiləşdir', quran:'Quran', hadith:'Hədis', dua:'Dua', wisdom:'Hikmət', all:'Hamısı', watermark:`${BRAND.name.az} · ${BRAND.domain}`, fontSize:'Yazı ölçüsü', bgColor:'Arxa plan', textColor:'Yazı rəngi', borderWidth:'Sərhəd', borderColor:'Sərhəd rəngi', opacity:'Şəffaflıq', reset:'Sıfırla', customBg:'Öz rəng', arText:'Ərəb', trText:'Tərcümə' },
+  en: { eyebrow:'Share the good', title:'Quote Generator', subtitle:'Create beautiful Islamic quotes', generate:'New quote', copy:'Copy', share:'Share', download:'Download', copied:'Copied!', downloaded:'Downloaded!', theme:'Color', category:'Category', layout:'Layout', custom:'Customize', quran:'Quran', hadith:'Hadith', dua:'Dua', wisdom:'Wisdom', all:'All', watermark:`${BRAND.name.en} · ${BRAND.domain}`, fontSize:'Font size', bgColor:'Background', textColor:'Text color', borderWidth:'Border', borderColor:'Border color', opacity:'Opacity', reset:'Reset', customBg:'Custom color', arText:'Arabic', trText:'Translation' },
+  ru: { eyebrow:'Делитесь добром', title:'Генератор цитат', subtitle:'Создавайте красивые исламские цитаты', generate:'Новая цитата', copy:'Копировать', share:'Поделиться', download:'Скачать', copied:'Скопировано!', downloaded:'Скачано!', theme:'Цвет', category:'Категория', layout:'Дизайн', custom:'Настроить', quran:'Коран', hadith:'Хадис', dua:'Дуа', wisdom:'Мудрость', all:'Все', watermark:`${BRAND.name.ru} · ${BRAND.domain}`, fontSize:'Размер шрифта', bgColor:'Фон', textColor:'Цвет текста', borderWidth:'Рамка', borderColor:'Цвет рамки', opacity:'Прозрачность', reset:'Сбросить', customBg:'Свой цвет', arText:'Арабский', trText:'Перевод' },
+  ar: { eyebrow:'انشر الخير', title:'مولد الاقتباسات', subtitle:'أنشئ اقتباسات إسلامية جميلة', generate:'اقتباس جديد', copy:'نسخ', share:'مشاركة', download:'تحميل', copied:'تم النسخ!', downloaded:'تم التحميل!', theme:'اللون', category:'الفئة', layout:'التصميم', custom:'تخصيص', quran:'القرآن', hadith:'الحديث', dua:'الدعاء', wisdom:'حكمة', all:'الكل', watermark:`${BRAND.name.ar} · ${BRAND.domain}`, fontSize:'حجم الخط', bgColor:'الخلفية', textColor:'لون النص', borderWidth:'الإطار', borderColor:'لون الإطار', opacity:'الشفافية', reset:'إعادة ضبط', customBg:'لون مخصص', arText:'العربية', trText:'الترجمة' },
+  tr: { eyebrow:'Paylaş ve yay', title:'Alıntı Oluşturucu', subtitle:'Güzel İslami alıntılar oluşturun', generate:'Yeni alıntı', copy:'Kopyala', share:'Paylaş', download:'İndir', copied:'Kopyalandı!', downloaded:'İndirildi!', theme:'Renk', category:'Kategori', layout:'Tasarım', custom:'Özelleştir', quran:'Kuran', hadith:'Hadis', dua:'Dua', wisdom:'Hikmet', all:'Tümü', watermark:`${BRAND.name.tr} · ${BRAND.domain}`, fontSize:'Yazı boyutu', bgColor:'Arka plan', textColor:'Yazı rengi', borderWidth:'Kenarlık', borderColor:'Kenarlık rengi', opacity:'Saydamlık', reset:'Sıfırla', customBg:'Özel renk', arText:'Arapça', trText:'Çeviri' },
 }
 
 /* ── Theme configs — 12 tema ── */
@@ -185,6 +185,9 @@ export default function QuoteGeneratorPage({ setPage }) {
   const [customQuotes, setCustomQuotes] = useState([])
   const [quoteIdx, setQuoteIdx] = useState(() => Math.floor(Math.random() * STATIC_QUOTES.length))
   const [copied, setCopied] = useState(false)
+  // "Yüklə" rəyi və təkrar klikə qarşı qoruma (kətan çəkilərkən ikinci şəkil yaranmasın)
+  const [downloaded, setDownloaded] = useState(false)
+  const busyRef = useRef(false)
   const [animKey, setAnimKey] = useState(0)
   const [showCustom, setShowCustom] = useState(false)
 
@@ -243,11 +246,26 @@ export default function QuoteGeneratorPage({ setPage }) {
   /* ── Copy text ── */
   const copyText = useCallback(async () => {
     const text = [quote.ar, translationOf(quote, lang), `— ${localizeSource(quote.source, lang)}`].filter(Boolean).join('\n\n')
-    try {
-      await navigator.clipboard.writeText(text)
+    let ok = false
+    try { await navigator.clipboard.writeText(text); ok = true } catch { /* aşağıdakı ehtiyat yol */ }
+    // Clipboard API bağlıdırsa (http, iframe, köhnə brauzer) — gizli textarea ilə.
+    // Əvvəl bu halda heç bir rəy olmurdu: düymə "işləmirdi"
+    if (!ok) {
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = text
+        ta.setAttribute('readonly', '')
+        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none'
+        document.body.appendChild(ta)
+        ta.select()
+        ok = document.execCommand('copy')
+        ta.remove()
+      } catch { ok = false }
+    }
+    if (ok) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch { /* fallback */ }
+    }
   }, [quote, lang])
 
   /* ── Share via Web Share API ── */
@@ -263,6 +281,9 @@ export default function QuoteGeneratorPage({ setPage }) {
 
   /* ── Download as image via Canvas API ── */
   const downloadQuote = useCallback(async () => {
+    if (busyRef.current) return
+    busyRef.current = true
+    try {
     const canvas = document.createElement('canvas')
     canvas.width = 1080
     canvas.height = 1080
@@ -298,28 +319,43 @@ export default function QuoteGeneratorPage({ setPage }) {
     ctx.textAlign = 'center'
     ctx.fillText('﷽', 540, 140)
 
-    // Arabic text
-    ctx.font = '48px Amiri, serif'
+    // Mətn ölçüsü məzmuna görə seçilir: uzun sitat əvvəl kətanın altından
+    // çıxırdı (mənbə və su nişanı ilə üst-üstə düşürdü). Ölçü kiçildilir ki,
+    // ərəb mətni + tərcümə + mənbə 190…900 px zolağına sığsın, sonra şaquli mərkəzlənir
+    const translation = translationOf(quote, lang)
+    const TOP = 190, BOTTOM = 900
+    let ar = 48, tr = 32, arLines = [], trLines = [], blockH = 0
+    for (let step = 0; step < 12; step++) {
+      ctx.font = `${ar}px Amiri, serif`
+      arLines = quote.ar ? wrapText(ctx, quote.ar, 880) : []
+      ctx.font = `${tr}px Inter, sans-serif`
+      trLines = translation ? wrapText(ctx, translation, 860) : []
+      blockH = arLines.length * ar * 1.5 + (trLines.length ? 40 + trLines.length * tr * 1.5 : 0) + 90
+      if (blockH <= BOTTOM - TOP) break
+      ar = Math.max(30, Math.round(ar * 0.9)); tr = Math.max(20, Math.round(tr * 0.9))
+    }
+    let y = TOP + Math.max(0, (BOTTOM - TOP - blockH) / 2) + ar
+
+    // Ərəb mətni — sağdan sola (durğu işarələri düzgün yerdə qalsın)
+    ctx.direction = 'rtl'
+    ctx.font = `${ar}px Amiri, serif`
     ctx.fillStyle = textColor
     ctx.textAlign = 'center'
-    const arLines = wrapText(ctx, quote.ar, 880)
-    let arY = 300
-    if (arLines.length > 3) arY = 240
     for (const line of arLines) {
-      ctx.fillText(line, 540, arY)
-      arY += 72
+      ctx.fillText(line, 540, y)
+      y += ar * 1.5
     }
 
-    // Translation
-    const translation = translationOf(quote, lang)
-    ctx.font = '32px Inter, sans-serif'
+    // Tərcümə (ərəb interfeysində də sağdan sola)
+    ctx.direction = lang === 'ar' ? 'rtl' : 'ltr'
+    ctx.font = `${tr}px Inter, sans-serif`
     ctx.fillStyle = dimColor
-    const trLines = wrapText(ctx, translation, 860)
-    let trY = arY + 40
+    let trY = y + (trLines.length ? 40 - ar * 0.5 + tr : 0)
     for (const line of trLines) {
       ctx.fillText(line, 540, trY)
-      trY += 48
+      trY += tr * 1.5
     }
+    trY -= tr * 0.5
 
     // Divider
     ctx.fillStyle = theme.id === 'minimal' ? 'rgba(26,107,58,0.3)' : 'rgba(255,255,255,0.4)'
@@ -346,7 +382,14 @@ export default function QuoteGeneratorPage({ setPage }) {
     const link = document.createElement('a')
     link.download = 'muslims-cc-quote.png'
     link.href = canvas.toDataURL('image/png')
+    document.body.appendChild(link)
     link.click()
+    link.remove()
+    setDownloaded(true)
+    setTimeout(() => setDownloaded(false), 2000)
+    } finally {
+      busyRef.current = false
+    }
   }, [quote, theme, lang, custom])
 
   /* ── Category change resets quote ── */
@@ -469,8 +512,8 @@ export default function QuoteGeneratorPage({ setPage }) {
               <button type="button" className="ui-btn ui-btn--secondary qg-action-btn" onClick={shareQuote}>
                 <Icon name="share" className="ui-btn__icon qg-action-ico" /> {t.share}
               </button>
-              <button type="button" className="ui-btn ui-btn--secondary qg-action-btn" onClick={downloadQuote}>
-                <Icon name="download" className="ui-btn__icon qg-action-ico" /> {t.download}
+              <button type="button" className={`ui-btn ui-btn--secondary qg-action-btn${downloaded ? ' copied' : ''}`} onClick={downloadQuote} aria-live="polite">
+                <Icon name={downloaded ? 'check' : 'download'} className="ui-btn__icon qg-action-ico" /> {downloaded ? t.downloaded : t.download}
               </button>
             </div>
           </div>

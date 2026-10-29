@@ -78,11 +78,29 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease;
+  transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease, transform var(--dur-2) var(--ease-out);
 }
 @media (hover: hover) {
-  .glossary-page .glossary-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); }
+  .glossary-page .glossary-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-2px); }
+  /* Hover: başlıq xətti başlanğıc tərəfdən zümrüd rənglə "çəkilir", ərəb yazısı bir az irəli gəlir */
+  .glossary-page .glossary-card:hover .glossary-card-header::after { transform: scaleX(1); }
+  .glossary-page .glossary-card:hover .glossary-arabic-text { transform: translateY(-1px) scale(1.04); }
 }
+.glossary-card-header { position: relative; }
+.glossary-card-header::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--brand);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-3) var(--ease-out);
+}
+[dir="rtl"] .glossary-card-header::after { transform-origin: right center; }
+.glossary-arabic-text { transition: transform var(--dur-2) var(--ease-out); transform-origin: right center; }
+.glossary-count { display: inline-block; }
 .glossary-card-header {
   display: flex;
   align-items: flex-start;
@@ -163,12 +181,17 @@
     transition: top var(--dur-3) var(--ease-out);
   }
   .glossary-alpha-bar::-webkit-scrollbar { display: none; }
-  .glossary-page .glossary-alpha-btn { flex: 0 0 auto; }
+  /* Telefonda barmaq hədəfi ən azı 44×44 (əvvəl 38px idi) */
+  .glossary-page .glossary-alpha-btn { flex: 0 0 auto; min-width: var(--tap, 44px); min-height: var(--tap, 44px); }
   .glossary-grid { gap: var(--space-3); }
   .glossary-search-wrap { scroll-margin-top: 80px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .glossary-alpha-bar { transition: none; }
+  .glossary-page .glossary-card,
+  .glossary-card-header::after,
+  .glossary-arabic-text { transition: none; }
+  .glossary-page .glossary-card:hover { transform: none; }
   .glossary-page .glossary-alpha-btn:active { transform: none; }
 }

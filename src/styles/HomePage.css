@@ -125,6 +125,17 @@
   animation: hpIn 520ms var(--ease-out) backwards;
 }
 .hp-hero-title  { animation-delay: 60ms; }
+/* PERFORMANS (LCP): hero başlığı ("Muslims") səhifənin LCP elementidir.
+   Chrome şəffaf (opacity: 0) elementi LCP saymır — başlıq solaraq girəndə
+   LCP animasiya başlayana qədər gecikirdi. İndi başlıq yalnız transform ilə
+   eyni 10px-lik qalxışı edir, opacity əvvəldən 1-dir: hərəkət hissi qalır,
+   mətn ilk kadrda görünür. (.hp-hero-content > … — yuxarıdakı ümumi
+   qaydadan güclü olsun deyə.) */
+.hp-hero-content > .hp-hero-title { animation-name: hpRise; }
+@keyframes hpRise {
+  from { transform: translate3d(0, 10px, 0); }
+  to   { transform: none; }
+}
 .hp-hero-sub    { animation-delay: 140ms; }
 .hp-hero-ayah   { animation-delay: 200ms; }
 .hp-hero-btns > :nth-child(1) { animation-delay: 260ms; }
@@ -1267,6 +1278,8 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
     animation: hpFadeIn 300ms ease-out backwards !important;
   }
   .hp-hero-title  { animation-delay: 50ms !important; }
+  /* LCP: başlıq bu rejimdə də solmur — dərhal görünür (yuxarıdakı PERFORMANS qeydi) */
+  .hp-hero-content > .hp-hero-title { animation: none !important; }
   .hp-hero-sub    { animation-delay: 100ms !important; }
   .hp-hero-visual { animation-delay: 120ms !important; }
   .hp-hero-ayah   { animation-delay: 150ms !important; }

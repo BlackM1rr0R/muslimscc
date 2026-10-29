@@ -13,11 +13,11 @@ import '../styles/VideosPage.css'
 import { pickLang, hasLang } from '../utils/pickLang'
 
 const LABELS = {
-  az: { eyebrow:'Hədis və bilik', title:'Video kitabxana', subtitle:'İslami mühazirələr, Quran tilavətləri və daha çox', search:'Video axtar...', all:'Hamısı', featured:'Seçilmişlər', latest:'Ən son', allVideos:'Bütün videolar', moreVideos:'Digər videolar', filter:'Filtr', noResults:'Video tapılmadı', loading:'Yüklənir...', videos:'video', watchNow:'İndi izlə', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
-  en: { eyebrow:'Hadith & knowledge', title:'Video Library', subtitle:'Islamic lectures, Quran recitations and more', search:'Search videos...', all:'All', featured:'Featured', latest:'Latest', allVideos:'All Videos', moreVideos:'More videos', filter:'Filter', noResults:'No videos found', loading:'Loading...', videos:'videos', watchNow:'Watch Now', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
-  ru: { eyebrow:'Хадисы и знание', title:'Видео Библиотека', subtitle:'Исламские лекции, чтение Корана и многое другое', search:'Поиск видео...', all:'Все', featured:'Избранные', latest:'Последние', allVideos:'Все видео', moreVideos:'Другие видео', filter:'Фильтр', noResults:'Видео не найдены', loading:'Загрузка...', videos:'видео', watchNow:'Смотреть', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
-  ar: { eyebrow:'الحديث والعلم', title:'مكتبة الفيديو', subtitle:'محاضرات إسلامية وتلاوات قرآنية والمزيد', search:'البحث عن فيديو...', all:'الكل', featured:'مميز', latest:'الأحدث', allVideos:'كل الفيديوهات', moreVideos:'فيديوهات أخرى', filter:'تصفية', noResults:'لا توجد فيديوهات', loading:'جارٍ التحميل...', videos:'فيديو', watchNow:'شاهد الآن', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
-  tr: { eyebrow:'Hadis ve ilim', title:'Video Kütüphanesi', subtitle:'İslami konferanslar, Kuran tilavetleri ve daha fazlası', search:'Video ara...', all:'Tümü', featured:'Öne çıkanlar', latest:'En yeni', allVideos:'Tüm videolar', moreVideos:'Diğer videolar', filter:'Filtre', noResults:'Video bulunamadı', loading:'Yükleniyor...', videos:'video', watchNow:'Şimdi izle', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
+  az: { eyebrow:'Hədis və bilik', title:'Video kitabxana', subtitle:'İslami mühazirələr, Quran tilavətləri və daha çox', search:'Video axtar...', all:'Hamısı', featured:'Seçilmişlər', latest:'Ən son', allVideos:'Bütün videolar', moreVideos:'Digər videolar', filter:'Filtr', noResults:'Video tapılmadı', noVideos:'Hələ video əlavə olunmayıb', loading:'Yüklənir...', videos:'video', watchNow:'İndi izlə', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
+  en: { eyebrow:'Hadith & knowledge', title:'Video Library', subtitle:'Islamic lectures, Quran recitations and more', search:'Search videos...', all:'All', featured:'Featured', latest:'Latest', allVideos:'All Videos', moreVideos:'More videos', filter:'Filter', noResults:'No videos found', noVideos:'No videos have been added yet', loading:'Loading...', videos:'videos', watchNow:'Watch Now', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
+  ru: { eyebrow:'Хадисы и знание', title:'Видео Библиотека', subtitle:'Исламские лекции, чтение Корана и многое другое', search:'Поиск видео...', all:'Все', featured:'Избранные', latest:'Последние', allVideos:'Все видео', moreVideos:'Другие видео', filter:'Фильтр', noResults:'Видео не найдены', noVideos:'Видео пока не добавлены', loading:'Загрузка...', videos:'видео', watchNow:'Смотреть', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
+  ar: { eyebrow:'الحديث والعلم', title:'مكتبة الفيديو', subtitle:'محاضرات إسلامية وتلاوات قرآنية والمزيد', search:'البحث عن فيديو...', all:'الكل', featured:'مميز', latest:'الأحدث', allVideos:'كل الفيديوهات', moreVideos:'فيديوهات أخرى', filter:'تصفية', noResults:'لا توجد فيديوهات', noVideos:'لم تُضَف فيديوهات بعد', loading:'جارٍ التحميل...', videos:'فيديو', watchNow:'شاهد الآن', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
+  tr: { eyebrow:'Hadis ve ilim', title:'Video Kütüphanesi', subtitle:'İslami konferanslar, Kuran tilavetleri ve daha fazlası', search:'Video ara...', all:'Tümü', featured:'Öne çıkanlar', latest:'En yeni', allVideos:'Tüm videolar', moreVideos:'Diğer videolar', filter:'Filtre', noResults:'Video bulunamadı', noVideos:'Henüz video eklenmedi', loading:'Yükleniyor...', videos:'video', watchNow:'Şimdi izle', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
 }
 
 // Sonsuz sürüşmənin bir partiyası
@@ -222,8 +222,8 @@ export default function VideosPage({ setPage }) {
 
       <div className="ui-container vp-container">
 
-        {/* ═══ AXTARIŞ ═══ */}
-        <div className="vp-search-wrap">
+        {/* ═══ AXTARIŞ ═══ (kitabxana boşdursa axtarış mənasızdır — gizlənir) */}
+        {(loading || videos.length > 0) && <div className="vp-search-wrap">
           <Icon name="search" size={19} className="vp-search-icon" />
           <input
             type="search"
@@ -239,7 +239,7 @@ export default function VideosPage({ setPage }) {
               <Icon name="close" size={16} />
             </button>
           )}
-        </div>
+        </div>}
 
         {/* ═══ SEÇİLMİŞLƏR (axtarış yox, "Hamısı" seçili və video > 6) ═══ */}
         {featured.length > 0 && (
@@ -309,7 +309,7 @@ export default function VideosPage({ setPage }) {
                 ? VIDEO_CATEGORIES.find(c => c.key === selectedCat)?.label[lang]
                 : featured.length ? l.moreVideos : l.allVideos}
             </h2>
-            {!loading && <span className="ui-badge vp-section-count ui-num">{filtered.length}</span>}
+            {!loading && videos.length > 0 && <span className="ui-badge vp-section-count ui-num">{filtered.length}</span>}
           </div>
 
           {loading ? (
@@ -328,7 +328,9 @@ export default function VideosPage({ setPage }) {
           ) : filtered.length === 0 ? (
             <div className="ui-card ui-card--sunken vp-empty" data-reveal="scale">
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="videos" /></span>
-              <p className="vp-empty-title">{l.noResults}</p>
+              {/* Kitabxana ümumiyyətlə boşdursa (admin hələ video əlavə etməyib və ya
+                  baza əlçatmazdır) "Video tapılmadı" axtarış nəticəsi kimi görünürdü */}
+              <p className="vp-empty-title">{videos.length === 0 ? l.noVideos : l.noResults}</p>
               {(search || selectedCat !== 'all') && (
                 <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => { setSearch(''); setSelectedCat('all') }}>
                   <Icon name="close" className="ui-btn__icon" /> {l.clear}

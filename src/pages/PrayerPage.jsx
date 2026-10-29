@@ -6,11 +6,16 @@ import usePrayerTimes from '../hooks/usePrayerTimes'
 import { usePrayerLocation, setAdminDefaultCity, locationSig } from '../utils/prayerLocation'
 import CityPicker from '../components/CityPicker'
 import { haptic } from '../hooks/useHaptic'
-import { pathFor } from '../seo/routes'
+import { pathFor, PAGES } from '../seo/routes'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import '../styles/PrayerPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import { showLocalNotification } from '../utils/notify'
+import RamadanCard from '../components/RamadanCard'
+
+// İmsakiyyə səhifəsi (/ramadan) marşrutlara qoşulubsa kartda ona keçid görünür
+const HAS_RAMADAN_PAGE = PAGES.some(p => p.key === 'ramadan')
 
 // Şəhər seçimi bütün saytda ortaqdır (utils/prayerLocation.js): burada
 // seçilən şəhər ana səhifənin namaz kartında, /jamaat-da və push
@@ -323,15 +328,15 @@ export default function PrayerPage({ setPage }) {
   }
 
   // ── Əzan bildirişi ──
-  const [azanEnabled, setAzanEnabled] = useState(() => localStorage.getItem('azan_enabled') === '1')
+  const [azanEnabled, setAzanEnabled] = useState(() => { try { return localStorage.getItem('azan_enabled') === '1' } catch { return false } })
 
   const toggleAzan = () => {
     haptic()
     const next = !azanEnabled
     setAzanEnabled(next)
-    localStorage.setItem('azan_enabled', next ? '1' : '0')
+    try { localStorage.setItem('azan_enabled', next ? '1' : '0') } catch { /* yaddaş bağlıdır */ }
     if (next && typeof Notification !== 'undefined' && Notification.permission === 'default') {
-      Notification.requestPermission()
+      try { Notification.requestPermission()?.catch?.(() => {}) } catch { /* köhnə brauzer */ }
     }
   }
 
@@ -344,13 +349,13 @@ export default function PrayerPage({ setPage }) {
       STAT_KEYS.forEach((key) => {
         const time = times[key]
         if (time && time.slice(0,5) === nowStr) {
-          const lastNotif = localStorage.getItem('last_azan_notif')
+          let lastNotif = null
+          try { lastNotif = localStorage.getItem('last_azan_notif') } catch { /* yaddaş bağlıdır */ }
           const notifKey = `${nowStr}-${key}`
           if (lastNotif !== notifKey) {
-            localStorage.setItem('last_azan_notif', notifKey)
-            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-              new Notification(`🕌 ${STAT_NAMES[key][lk]}`, { body: `${time.slice(0,5)} — ${TXT.notifBody[lk]}` })
-            }
+            try { localStorage.setItem('last_azan_notif', notifKey) } catch { /* yaddaş bağlıdır */ }
+            // Android-də `new Notification()` xəta atırdı və əzan səsi heç çalmırdı — utils/notify.js
+            showLocalNotification(`🕌 ${STAT_NAMES[key][lk]}`, { body: `${time.slice(0,5)} — ${TXT.notifBody[lk]}` })
             // Əzan melodiyası — Web Audio API ilə
             try {
               const ctx = new AudioContext()
@@ -446,6 +451,10 @@ export default function PrayerPage({ setPage }) {
 
       <section className="ui-section pp-main">
         <div className="ui-container">
+          {/* Ramazan rejimi: Ramazanda səhur/iftar + geri sayım; Şabanda sakit
+              "Ramazana N gün"; bayram günləri təbrik. Qalan vaxt heç nə göstərmir. */}
+          <RamadanCard className="pp-ramadan"
+            onOpenTimetable={HAS_RAMADAN_PAGE && setPage ? () => setPage('ramadan') : undefined} />
           {/* Masaüstü: iki sütun. ≤900px: bir sütun, CSS order ilə
               saat → növbəti namaz → vaxtlar → şəhər → əzan → statistika */}
           <div className="prayer-layout">

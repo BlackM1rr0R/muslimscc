@@ -6,6 +6,7 @@ import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import '../styles/CalendarPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import { showLocalNotification } from '../utils/notify'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
 // Yalnız ehtiyat üçündür: Umm al-Qura-dan 1–2 gün fərqlənə bilər.
@@ -185,8 +186,14 @@ export function CalendarPage({ setPage }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const hijri = useMemo(() => hijriOf(new Date()), [todayKey])
   const [selMonth, setSelMonth] = useState(() => hijri.month - 1)
+  // Pozuq yaddaş ({}, "x", null element) əvvəl səhifəni ağ ekrana çevirirdi (reminders.some xətası)
   const [reminders, setReminders] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('calendar_reminders')) || [] } catch { return [] }
+    try {
+      const raw = JSON.parse(localStorage.getItem('calendar_reminders'))
+      return Array.isArray(raw)
+        ? raw.filter(r => r && typeof r === 'object' && typeof r.key === 'string' && Number.isInteger(r.month) && Number.isInteger(r.day))
+        : []
+    } catch { return [] }
   })
   const nl = NOTIFY_LABELS[lang] || NOTIFY_LABELS.en
 
@@ -199,11 +206,11 @@ export function CalendarPage({ setPage }) {
         next = prev.filter(r => r.key !== key)
       } else {
         if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-          Notification.requestPermission()
+          try { Notification.requestPermission()?.catch?.(() => {}) } catch { /* köhnə brauzer */ }
         }
         next = [...prev, { key, month: e.month, day: e.day, name: e[lang] || e.en }]
       }
-      localStorage.setItem('calendar_reminders', JSON.stringify(next))
+      try { localStorage.setItem('calendar_reminders', JSON.stringify(next)) } catch { /* yaddaş bağlıdır */ }
       return next
     })
   }, [lang])
@@ -220,10 +227,9 @@ export function CalendarPage({ setPage }) {
     reminders.forEach(r => {
       // month in EVENTS is 0-indexed, hijri.month is 1-indexed
       if (r.month === (hijriToday.month - 1) && r.day === hijriToday.day) {
-        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          // icon URL olmalıdır (əvvəl emoji idi — brauzer onu ünvan kimi yükləməyə çalışırdı)
-          new Notification(r.name, { body: nl.today, icon: '/android-chrome-192x192.png' })
-        }
+        // icon URL olmalıdır (əvvəl emoji idi). Android-də `new Notification()` xəta atır və
+        // effektdə tutulmamış xəta bütün tətbiqi söndürürdü — utils/notify.js təhlükəsizdir.
+        showLocalNotification(String(r.name || ''), { body: nl.today, icon: '/android-chrome-192x192.png' })
       }
     })
   }, []) // only on mount
@@ -401,10 +407,13 @@ export function CalendarPage({ setPage }) {
                         className={`cal-day${isToday ? ' is-today' : ''}${sel ? ' is-selected' : ''}${evs.length ? ' has-event' : ''}${evs.some(e => TYPE_ACCENT[e.type]) ? ' is-major' : ''}`}
                         aria-pressed={sel}
                         aria-current={isToday ? 'date' : undefined}
-                        aria-label={`${day} ${hijriMonthNames[selMonth]} — ${formatGregorian(date, lang)}${evs.length ? ` — ${evs.map(e => e[lang] || e.en).join(', ')}` : ''}`}
                         onClick={() => { haptic(); setSelDay(day) }}>
+                        {/* Ad məzmundan qurulur: görünən rəqəmlər adın içində qalır (WCAG 2.5.3),
+                            ay adı, il və hadisələr yalnız ekran oxuyucusu üçündür */}
                         <span className="cal-day-h ui-num">{day}</span>
+                        <span className="ui-sr-only"> {hijriMonthNames[selMonth]} — </span>
                         <span className="cal-day-g">{shortGregorian(date, lang)}</span>
+                        <span className="ui-sr-only"> {date.getFullYear()}{evs.length ? ` — ${evs.map(e => e[lang] || e.en).join(', ')}` : ''}</span>
                         {evs.length > 0 && <span className="cal-day-dot" aria-hidden="true" />}
                       </button>
                     )

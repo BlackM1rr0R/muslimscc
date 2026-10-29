@@ -266,6 +266,23 @@
 @keyframes hifz-bump-a { 0% { transform: scale(0.97); } 60% { transform: scale(1.015); } 100% { transform: none; } }
 @keyframes hifz-bump-b { 0% { transform: scale(0.97); } 60% { transform: scale(1.015); } 100% { transform: none; } }
 
+/* Surə "əzbərləndi" olanda — işarənin ətrafında qızılı halqa bir dəfə
+   genişlənib sönür (yüngül qeyd anı; yalnız transform/opacity) */
+.hifz-check.is-celebrate::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  animation: hifz-celebrate 700ms var(--ease-out);
+}
+@keyframes hifz-celebrate {
+  0%   { opacity: .9; transform: scale(.7); }
+  100% { opacity: 0;  transform: scale(1.9); }
+}
+
 /* Boş süzgəc */
 .hifz-empty {
   display: flex;
@@ -377,10 +394,18 @@
   .hifz-card:focus-visible { outline-offset: -2px; }
 }
 
+/* 320–360px: "200 аятов · Джуз 3" ərəb adının yanında kəsilirdi */
+@media (max-width: 360px) {
+  .hifz-card-meta { flex-wrap: wrap; white-space: normal; font-size: 12px; }
+  .hifz-card-arabic { font-size: 1.05rem; }
+  .hifz-grid > .hifz-card { padding-inline: 12px; gap: 10px; }
+}
+
 @keyframes hifz-bar-in { from { transform: scaleX(0); } }
 
 @media (prefers-reduced-motion: reduce) {
   .hifz-check.is-partial::after,
+  .hifz-check.is-celebrate::before,
   .hifz-stats[data-revealed=""] .hifz-progress-fill,
   .hifz-grid .hifz-card.is-bump-a,
   .hifz-grid .hifz-card.is-bump-b,

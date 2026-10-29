@@ -3,6 +3,7 @@ import { BRAND, filled, tr, brandName } from '../config/brand'
 import { navLabel, navGroupLabel } from '../data/navigation'
 import { pathFor } from '../seo/routes'
 import Icon, { BrandMark } from './Icon'
+import { LEGAL_KEYS, LEGAL_TITLES, legalPath, isRouted } from './legalLinks'
 import '../styles/Footer.css'
 
 // Footer linkləri həqiqi <a href> linkləridir (başlıq, yan panel və aşağı
@@ -19,11 +20,11 @@ function isPlainClick(e) {
 // made — emoji (💚) əvəzinə mətn + xətti ürək ikonu (dizayn sistemi: emoji yox)
 // Təsvir (desc) brend konfiqindən gəlir — BRAND.tagline
 const FOOTER_LABELS = {
-  az: { nav:'Saytın bölmələri', content:'Məzmun', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'Bütün hüquqlar qorunur.', made:'Ümmət üçün sevgi ilə hazırlandı' },
-  en: { nav:'Site sections', content:'Content', tools:'Tools', learn:'Learn', contact:'Contact', copy:'All rights reserved.', made:'Made with love for the Ummah' },
-  ru: { nav:'Разделы сайта', content:'Материалы', tools:'Инструменты', learn:'Обучение', contact:'Контакты', copy:'Все права защищены.', made:'Сделано с любовью для уммы' },
-  ar: { nav:'أقسام الموقع', content:'المحتوى', tools:'أدوات', learn:'تعلّم', contact:'تواصل', copy:'جميع الحقوق محفوظة.', made:'صُنع بحبّ للأمة' },
-  tr: { nav:'Site bölümleri', content:'İçerik', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'Tüm hakları saklıdır.', made:'Ümmet için sevgiyle yapıldı' },
+  az: { legal:'Hüquqi məlumat', nav:'Saytın bölmələri', content:'Məzmun', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'Bütün hüquqlar qorunur.', made:'Ümmət üçün sevgi ilə hazırlandı' },
+  en: { legal:'Legal', nav:'Site sections', content:'Content', tools:'Tools', learn:'Learn', contact:'Contact', copy:'All rights reserved.', made:'Made with love for the Ummah' },
+  ru: { legal:'Правовая информация', nav:'Разделы сайта', content:'Материалы', tools:'Инструменты', learn:'Обучение', contact:'Контакты', copy:'Все права защищены.', made:'Сделано с любовью для уммы' },
+  ar: { legal:'معلومات قانونية', nav:'أقسام الموقع', content:'المحتوى', tools:'أدوات', learn:'تعلّم', contact:'تواصل', copy:'جميع الحقوق محفوظة.', made:'صُنع بحبّ للأمة' },
+  tr: { legal:'Yasal bilgiler', nav:'Site bölümleri', content:'İçerik', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'Tüm hakları saklıdır.', made:'Ümmet için sevgiyle yapıldı' },
 }
 
 // "Əsas" sütunu — yan paneldəki "Əsas" qrupu ilə eyni (ana səhifə loqodadır).
@@ -113,6 +114,16 @@ function Footer({ setPage }) {
       <div className="ft-bottom-wrap">
         <div className="ft-bottom" data-reveal="fade">
           <p>{`© ${new Date().getFullYear()} ${brand} — ${fl.copy}`}</p>
+          {/* Hüquqi sənədlər — həqiqi <a href>; marşrut routes.js-də varsa adi klik SPA ilə */}
+          <nav className="ft-legal" aria-label={fl.legal}>
+            {LEGAL_KEYS.map(k => (
+              <a
+                key={k}
+                href={legalPath(k, lang)}
+                onClick={(e) => { if (isRouted(k) && isPlainClick(e)) { e.preventDefault(); goTo(k) } }}
+              >{tr(LEGAL_TITLES[k], lang)}</a>
+            ))}
+          </nav>
           <span className="ft-made"><Icon name="donate" size={14} className="ft-heart" /> {fl.made}</span>
         </div>
       </div>

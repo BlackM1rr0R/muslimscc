@@ -3,10 +3,12 @@ import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
 import { T } from '../data/i18n'
-import { HADITHS } from '../data/hadiths'
-import { subscribeToHadiths } from '../data/adminContent'
+// PERFORMANS: bütöv data/hadiths.js (5 dil) əvəzinə yalnız cari dilin
+// build-zamanı hazırlanmış təkrarsız siyahısı (utils/hadithData.js)
+import { useHadithData, loadHadithKeys } from '../utils/hadithData'
+import { whenIdle } from '../utils/idle'
 import { localizeSource } from '../utils/sourceNames'
-import { uniqueHadithsFor, hadithAliases, staticHadithKeys, hadithKeys, dedupeList } from '../utils/uniqueHadiths'
+import { customHadithKeyHashes, dedupeList } from '../utils/uniqueHadiths'
 import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
 import ListMore from '../components/ListMore'
 import BackToTop from '../components/BackToTop'
@@ -153,6 +155,8 @@ export default function HadithPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.hadith || T.az.hadith
   const cats = CATS_MAP[lang] || CATS_EN
+  // Cari dilin hədisləri (hazır deyilsə Suspense gözləyir — bax utils/hadithData.js)
+  const hadithData = useHadithData(lang)
   // Kateqoriya İNDEKSLƏ saxlanılır: əvvəl adla idi və dil dəyişəndə ("Namaz" →
   // "Prayer") heç bir çip seçilmiş görünmürdü. Filtrlər sessionStorage-də —
   // geri qayıdanda (useInfiniteList-in mövqe yaddaşı ilə birlikdə) bərpa olunur.
@@ -165,7 +169,7 @@ export default function HadithPage({ setPage }) {
     try {
       const saved = JSON.parse(localStorage.getItem('hadith_favs'))
       if (!Array.isArray(saved)) return []
-      const aliases = hadithAliases(HADITHS)
+      const aliases = hadithData.aliases
       return [...new Set(saved.map(id => (aliases.has(id) ? aliases.get(id) : id)))]
     } catch { return [] }
   })
@@ -180,11 +184,38 @@ export default function HadithPage({ setPage }) {
     try { localStorage.setItem('hadith_favs', JSON.stringify(favs)) } catch { /* yaddaş bağlıdır */ }
   }, [favs])
 
-  // Firebase real-time custom hadiths
+  // Firebase real-time custom hadiths.
+  // PERFORMANS: adminContent (→ Firebase SDK, ~90 KB gzip) statik import
+  // edilmir — "load"-dan sonra, boş vaxtda yüklənir (utils/idle.js). Əvvəl
+  // /hadith-in kritik yolunda idi; admin hədisləri onsuz da şəbəkədən sonra
+  // gəlirdi və siyahının əvvəlinə əlavə olunurdu (davranış eynidir).
   useEffect(() => {
-    const unsubscribe = subscribeToHadiths((items) => setCustomHadiths(items))
-    return () => unsubscribe?.()
+    let unsubscribe = null
+    let alive = true
+    whenIdle()
+      .then(() => import('../data/adminContent'))
+      .then(({ subscribeToHadiths }) => {
+        if (alive) unsubscribe = subscribeToHadiths((items) => setCustomHadiths(items))
+      })
+      .catch(() => { /* chunk yüklənmədi — yalnız yerli hədislər */ })
+    return () => { alive = false; unsubscribe?.() }
   }, [])
+
+  // Yerli hədislərin birləşmə açarları (utils/hadithData.js → loadHadithKeys):
+  // yalnız Firebase-dən admin hədisi gələndə yüklənir (~31 KB gzip) — admin
+  // hədisi yoxdursa heç vaxt. Yüklənə bilməsə, admin hədisləri birləşməsiz
+  // göstərilir (itmir).
+  const [staticKeysOf, setStaticKeysOf] = useState(null)
+  const needKeys = customHadiths.length > 0 && !staticKeysOf
+  useEffect(() => {
+    if (!needKeys) return undefined
+    let alive = true
+    loadHadithKeys().then(
+      (fn) => { if (alive) setStaticKeysOf(() => fn) },
+      () => { if (alive) setStaticKeysOf(() => () => []) },
+    )
+    return () => { alive = false }
+  }, [needKeys])
 
   // Set: 1445 kartın hər biri üçün massivdə axtarış etməyək
   const favSet = useMemo(() => new Set(favs), [favs])
@@ -238,7 +269,8 @@ export default function HadithPage({ setPage }) {
 
   // Yerli siyahı təkrarsız (utils/uniqueHadiths): 2000 qeyddə eyni hədis
   // bir neçə id ilə təkrarlanır — hər hədis bir dəfə göstərilir
-  const staticList = useMemo(() => uniqueHadithsFor(HADITHS, lang), [lang])
+  // (build zamanı hesablanıb: uniqueHadithsFor(HADITHS, lang) ilə eyni siyahı)
+  const staticList = hadithData.list
 
   // Firebase-dən gələnləri əvvəl göstər. Admin paneli yerli hədisləri
   // Firebase-ə "toxum" kimi köçürə bilir — belə surət yerli hədislə bir
@@ -246,8 +278,11 @@ export default function HadithPage({ setPage }) {
   // üstündür, boş sahələr yerli nüsxədən doldurulur; kateqoriya yerli
   // nüsxədən götürülür (admin panelində kateqoriyalar daha azdır).
   const list = useMemo(() => {
-    const all = [...customForLang, ...staticList].map(h => ({ ...h, _ids: [h.id] }))
-    const keysOf = (h) => (h._custom ? hadithKeys(h.ar, h._az, h.source) : staticHadithKeys(HADITHS, h.id))
+    // Açarlar hələ yüklənməyibsə admin hədisləri bir anlıq gözləyir (yerli
+    // nüsxə ilə birləşmədən ikinci kart kimi görünməsinlər)
+    const all = [...(staticKeysOf ? customForLang : []), ...staticList].map(h => ({ ...h, _ids: [h.id] }))
+    // Açarlar həşlənmiş formadadır (hər iki tərəf eyni hashKey ilə) — müqayisə eynidir
+    const keysOf = (h) => (h._custom ? customHadithKeyHashes(h.ar, h._az, h.source) : (staticKeysOf ? staticKeysOf(h.id) : []))
     return dedupeList(all, keysOf, {
       onDuplicate: (kept, dup) => {
         kept._ids.push(dup.id)
@@ -256,7 +291,7 @@ export default function HadithPage({ setPage }) {
         if (kept._custom && !dup._custom && dup.cat) kept.cat = dup.cat
       },
     }).items
-  }, [customForLang, staticList])
+  }, [customForLang, staticList, staticKeysOf])
 
   // Axtarış indeksi — hər hədis üçün bir dəfə (hər hərfdə yenidən yox).
   // Mənbə həm orijinal ("Buxari"), həm cari dildəki yazılışla ("Bukhari") tapılır.

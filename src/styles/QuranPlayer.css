@@ -1,0 +1,308 @@
+/* ═══════════════════════════════════════════════════════
+   QURAN MİNİ-PLEYERİ (components/QuranPlayer.jsx)
+   • Oxuyucunun sonunda position: sticky; bottom — ekranın aşağısında qalır,
+     surənin sonuna çatanda öz yerinə oturur. Üzən kart varsa (--bottom-clear)
+     onun üstünə qalxır.
+   • Yalnız tokenlər; hərəkət — transform/opacity; reduced-motion-a hörmət.
+   • Məntiqi xassələr — ərəbcədə (RTL) güzgülənir.
+   ═══════════════════════════════════════════════════════ */
+
+.qpl {
+  position: sticky;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px) + var(--bottom-clear, 0px));
+  z-index: 40;
+  margin-top: 24px;
+}
+
+/* ── Zolaq ── */
+.qpl__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px 10px;
+  padding-inline: 10px 8px;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-3);
+}
+.qpl__transport { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.qpl__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: var(--lh-snug);
+}
+.qpl__verse { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.qpl__verse-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.qpl__verse-of { flex-shrink: 0; font-size: var(--step--2); color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.qpl__reciter {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--step--2);
+  color: var(--text-secondary);
+}
+.qpl.is-idle .qpl__reciter { font-size: var(--step--1); }
+.qpl__extra { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+
+/* ── Düymələr ── */
+.qpl__btn {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap, 44px);
+  height: var(--tap, 44px);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out);
+  position: relative;
+  isolation: isolate;
+}
+.qpl__btn::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  z-index: -1;
+  border-radius: 50%;
+  background: var(--surface-3);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity var(--dur-1) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) {
+  .qpl__btn:not(:disabled):hover { color: var(--text-strong); }
+  .qpl__btn:not(:disabled):hover::before { opacity: 1; transform: none; }
+}
+.qpl__btn.is-active { color: var(--brand); }
+.qpl__btn.is-active::before { opacity: 1; transform: none; background: var(--brand-soft-2); }
+.qpl__btn:not(:disabled):active { transform: scale(0.92); }
+.qpl__btn:disabled { opacity: 0.4; cursor: default; }
+.qpl__btn svg { width: 20px; height: 20px; display: block; }
+.qpl__btn--sm { width: 36px; height: 36px; }
+.qpl__rate {
+  width: auto;
+  min-width: var(--tap, 44px);
+  padding-inline: 8px;
+  border-radius: var(--radius-pill);
+  font: 600 var(--step--1) / 1 var(--font-sans);
+  color: var(--text-body);
+}
+.qpl__rate::before { border-radius: var(--radius-pill); }
+
+/* Əsas düymə: oynat / dayandır (ikonlar bir-birinə keçir) */
+.qpl__main {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: var(--on-brand);
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-1) var(--ease-out);
+}
+.qpl__main--wide { width: auto; padding-inline: 16px 20px; font: 600 var(--step--1) / 1 var(--font-sans); }
+@media (hover: hover) { .qpl__main:hover { transform: translateY(-1px); } }
+.qpl__main:active { transform: scale(0.95); }
+.qpl__main-icon { position: relative; width: 20px; height: 20px; flex-shrink: 0; }
+.qpl__glyph {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(0.5) rotate(-45deg);
+  transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-3) var(--ease-spring);
+}
+.qpl__glyph.is-on { opacity: 1; transform: none; }
+.qpl__glyph svg { width: 100%; height: 100%; display: block; }
+/* Yüklənir: düymə ətrafında nazik fırlanan halqa */
+.qpl__spin {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--on-brand);
+  opacity: 0.85;
+  animation: qpl-spin 0.9s linear infinite;
+}
+@keyframes qpl-spin { to { transform: rotate(360deg); } }
+
+/* Əvvəlki / növbəti — ərəbcədə güzgülənir */
+.qpl-flip--back { transform: scaleX(-1); }
+[dir="rtl"] .qpl-flip { transform: scaleX(-1); }
+[dir="rtl"] .qpl-flip--back { transform: none; }
+
+/* Təkrar / aralıq nişanı */
+.qpl__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding-inline: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-soft-2);
+  color: var(--brand);
+  font: 600 var(--step--2) / 1 var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  margin-inline-end: 4px;
+}
+.qpl__badge svg { width: 14px; height: 14px; }
+.qpl__badge--range { background: var(--accent-soft); color: var(--accent-text); }
+
+/* ── Cari ayəyə qayıt ── */
+.qpl__back {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  inset-inline: 0;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  margin-inline: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface-inverse);
+  color: var(--text-on-inverse);
+  font: 600 var(--step--1) / 1.2 var(--font-sans);
+  box-shadow: var(--shadow-3);
+  cursor: pointer;
+  transition: transform var(--dur-1) var(--ease-out);
+}
+.qpl__back:active { transform: scale(0.96); }
+
+/* ── Xəta ── */
+.qpl__error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  background: var(--surface-raised);
+  border: 1px solid var(--line-strong);
+  border-inline-start: 3px solid var(--bad);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  color: var(--text-body);
+  font-size: var(--step--1);
+  animation: qm-enter-rise var(--dur-3) var(--ease-out) both;
+}
+.qpl__error > svg { color: var(--bad); flex-shrink: 0; }
+.qpl__error-text { flex: 1; min-width: 180px; }
+
+/* ── Ayarlar paneli (zolağın üstündə açılır) ── */
+.qpl__panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  inset-inline-end: 0;
+  width: min(400px, 100%);
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-4);
+  transform-origin: bottom right;
+}
+[dir="rtl"] .qpl__panel { transform-origin: bottom left; }
+.qpl__panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: -6px; }
+.qpl__panel-title { font: 600 var(--step-0) / 1.3 var(--font-display); color: var(--text-strong); }
+.qpl__select { width: 100%; }
+.qpl__row { display: grid; gap: 8px; }
+.qpl__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.qpl__range { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.qpl__range legend { padding: 0; margin-bottom: 8px; }
+.qpl__range-row { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+.qpl__range-field { display: grid; gap: 4px; width: 88px; }
+.qpl__range-field .ui-input { width: 100%; }
+.qpl__range-label { font-size: var(--step--2); color: var(--text-tertiary); }
+.qpl__range-dash { padding-bottom: 12px; color: var(--text-tertiary); }
+.qpl__hint-bad { color: var(--bad); }
+
+/* Keçid (növbəti surəyə keç) */
+.qpl__switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--tap, 44px);
+  font-size: var(--step--1);
+  color: var(--text-body);
+  cursor: pointer;
+}
+.qpl__switch input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.qpl__switch-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  transition: background-color var(--dur-2) var(--ease-out);
+}
+.qpl__switch-thumb {
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+.qpl__switch input:checked + .qpl__switch-track { background: var(--brand); border-color: var(--brand); }
+.qpl__switch input:checked + .qpl__switch-track .qpl__switch-thumb { transform: translateX(16px); }
+[dir="rtl"] .qpl__switch input:checked + .qpl__switch-track .qpl__switch-thumb { transform: translateX(-16px); }
+.qpl__switch input:focus-visible + .qpl__switch-track { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* ── Telefon ── */
+@media (max-width: 639.98px) {
+  .qpl { margin-inline: calc(-1 * var(--page-gutter) + 8px); }
+  .qpl__bar { gap: 6px; min-height: 60px; padding: 6px; padding-inline: 6px 4px; border-radius: var(--radius-lg); }
+  .qpl__transport { gap: 0; }
+  .qpl__btn { width: 40px; height: 40px; }
+  .qpl__main { width: 44px; height: 44px; }
+  .qpl__main--wide { width: auto; }
+  /* Sürət və aralıq ayarlar panelindədir — dar zolaqda yer saxlanılır */
+  .qpl__rate, .qpl__badge--range { display: none; }
+  .qpl__verse-of { display: none; }
+  .qpl__panel { inset-inline: 0; width: auto; max-height: 64vh; }
+}
+@media (max-width: 379.98px) {
+  .qpl__badge { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qpl__glyph, .qpl__btn, .qpl__btn::before, .qpl__main, .qpl__switch-thumb, .qpl__switch-track, .qpl__back { transition: none; }
+  .qpl__spin { animation: none; border-color: transparent; border-top-color: var(--on-brand); }
+  .qpl__error { animation: none; }
+}

@@ -166,6 +166,9 @@
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+  /* Dar kartda uzun söz ("Жизнеописание") kənardan kəsilməsin — hecalanır */
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 .bp-author { color: var(--text-tertiary); font-size: 13.5px; line-height: 1.4; }
 .bp-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--text-tertiary); font-size: 12.5px; }
@@ -176,7 +179,9 @@
   margin-top: auto;
   padding-top: var(--space-3);
 }
-.books-page .bp-read-btn { flex: 1; }
+.books-page .bp-read-btn { flex: 1; min-width: 0; }
+/* Paylaş düyməsi sıxılmasın: dar kartda (320px) 18px-ə qədər əzilirdi */
+.books-page .bp-share-btn { flex: 0 0 auto; min-width: var(--tap, 44px); min-height: var(--tap, 44px); }
 
 /* ── Boş vəziyyət ── */
 .books-page .bp-empty {
@@ -353,6 +358,8 @@
   .bp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .bp-body, .bp-featured-body { padding: 10px 12px 12px; }
   .bp-title { font-size: 14.5px; }
+  .books-page .bp-actions { gap: 4px; }
+  .books-page .bp-read-btn { padding-inline: 8px; }
   .bp-author { font-size: 12.5px; }
   .books-page .bp-card:active,
   .books-page .bp-featured-card:active { transform: scale(var(--press-scale, 0.98)); }
@@ -436,4 +443,9 @@
   .bp-cover img { transition: none; }
   .books-page .bp-card:hover .bp-cover img,
   .books-page .bp-featured-card:hover .bp-cover img { transform: none; }
+}
+
+/* Çox dar telefon (≤360px): "Oxu" düyməsində ikon yer tutmasın */
+@media (max-width: 360px) {
+  .books-page .bp-read-btn .ui-btn__icon { display: none; }
 }

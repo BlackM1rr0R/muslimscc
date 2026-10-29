@@ -1,0 +1,286 @@
+/* ══════════════════════════════════════════════════════
+   HÜQUQİ SƏNƏDLƏR — Məxfilik, Şərtlər, Mənbələr (LegalDocument.jsx)
+
+   • Oxunaqlı "sənəd" üslubu: dar mətn sütunu (~68 simvol), sakit
+     hairline-lar, nömrəli bölmələr, hər başlıqda lövbər (#).
+   • ≥1024px: solda yapışqan məzmun cədvəli (cari bölmə vurğulanır);
+     dar ekranda yuxarıda açılan <details> siyahısı.
+   • Yalnız tokenlər (DESIGN.md §2) — qaranlıq rejim və RTL özü işləyir.
+   • Animasiya minimaldır: bölmələr yalnız yumşaq görünür (data-reveal="fade").
+   • @media print — naviqasiya, başlıq, footer, düymələr gizlənir; ağ fon.
+   ══════════════════════════════════════════════════════ */
+
+.lg-root {
+  --lg-measure: 68ch;
+  background: var(--surface-0);
+  padding-bottom: var(--section-gap, 72px);
+}
+
+/* ── Hero ── */
+.lg-hero__meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  margin-top: 6px;
+}
+.lg-updated {
+  font-size: var(--step--1);
+  color: var(--text-tertiary);
+}
+.lg-updated time { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+
+/* ── Düzülüş ── */
+.lg-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5, 24px);
+  padding-top: var(--space-6, 32px);
+}
+@media (min-width: 1024px) {
+  .lg-layout {
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: var(--space-8, 64px);
+    padding-top: var(--space-7, 48px);
+    align-items: start;
+  }
+}
+
+/* ── Məzmun cədvəli ── */
+.lg-toc__title {
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide, 0.08em);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 0 0 10px;
+}
+[dir="rtl"] .lg-toc__title { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
+
+.lg-toc__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.lg-toc__list a {
+  display: flex; align-items: baseline; gap: 10px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm, 8px);
+  border-inline-start: 2px solid transparent;
+  font-size: var(--step--1);
+  line-height: var(--lh-snug, 1.3);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease, border-color var(--dur-1, 150ms) ease;
+}
+.lg-toc__num { flex: 0 0 auto; min-width: 1.4em; color: var(--text-tertiary); font-size: var(--step--2); }
+@media (hover: hover) {
+  .lg-toc__list a:hover { background: var(--surface-2); color: var(--text-strong); }
+}
+.lg-toc__list a[aria-current] {
+  background: var(--brand-soft);
+  border-inline-start-color: var(--brand);
+  color: var(--brand);
+  font-weight: 600;
+}
+.lg-toc__list a[aria-current] .lg-toc__num { color: var(--brand); }
+
+/* Geniş ekran: yapışqan yan siyahı; dar ekranda gizli */
+.lg-toc--side { display: none; }
+@media (min-width: 1024px) {
+  .lg-toc--side {
+    display: block;
+    position: sticky;
+    top: calc(var(--header-h, 64px) + 24px);
+    max-height: calc(100vh - var(--header-h, 64px) - 48px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-inline-end: 4px;
+  }
+  .lg-toc--inline { display: none; }
+}
+
+/* Dar ekran: açılan siyahı */
+.lg-toc--inline {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--shadow-1);
+}
+.lg-toc--inline summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  min-height: var(--tap, 44px);
+  padding: 10px 16px;
+  margin: 0;
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--radius-lg, 16px);
+}
+.lg-toc--inline summary::-webkit-details-marker { display: none; }
+.lg-toc__chev { transform: rotate(90deg); transition: transform var(--dur-2, 240ms) var(--ease-out, ease); color: var(--text-tertiary); }
+.lg-toc--inline[open] .lg-toc__chev { transform: rotate(-90deg); }
+.lg-toc--inline nav { padding: 0 8px 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+
+/* ── Mətn ── */
+.lg-article { min-width: 0; max-width: var(--lg-measure); }
+
+.lg-section {
+  padding-block: var(--space-5, 24px);
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: calc(var(--header-h, 64px) + 16px);
+  outline: none;
+}
+.lg-section:first-child { padding-top: 0; }
+.lg-section:focus-visible { box-shadow: 0 0 0 2px var(--ring); border-radius: var(--radius-sm, 8px); }
+
+.lg-h2 {
+  position: relative;
+  display: flex; align-items: baseline; gap: 10px;
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: var(--lh-snug, 1.3);
+  letter-spacing: var(--tracking-tight, -0.02em);
+  color: var(--text-strong);
+  margin: 0 0 12px;
+}
+[dir="rtl"] .lg-h2 { letter-spacing: 0; }
+.lg-h2__num { flex: 0 0 auto; color: var(--accent-text); font-size: 0.8em; }
+.lg-anchor {
+  margin-inline-start: 4px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: 0.7em;
+  opacity: 0;
+  transition: opacity var(--dur-1, 150ms) ease;
+}
+.lg-h2:hover .lg-anchor { opacity: 1; }
+@media (hover: none) { .lg-anchor { display: none; } }
+
+.lg-section p,
+.lg-section li {
+  font-size: var(--step-0);
+  line-height: var(--lh-body, 1.65);
+  color: var(--text-body);
+}
+.lg-section p { margin: 0 0 12px; }
+.lg-section p:last-child { margin-bottom: 0; }
+.lg-section ul { margin: 0 0 12px; padding-inline-start: 1.25em; }
+.lg-section li { margin-bottom: 6px; }
+.lg-section li::marker { color: var(--accent); }
+.lg-section strong { color: var(--text-strong); font-weight: 600; }
+.lg-section a { color: var(--brand); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; overflow-wrap: anywhere; }
+@media (hover: hover) { .lg-section a:hover { color: var(--brand-hover); } }
+
+/* Latın domen/hesab adı ərəbcədə də soldan sağa */
+.lg-ltr { direction: ltr; unicode-bidi: isolate; }
+
+/* Qeyd qutusu */
+.lg-note {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: var(--radius-md, 12px);
+  font-size: var(--step--1) !important;
+  color: var(--text-secondary) !important;
+}
+.lg-note__icon { flex: 0 0 auto; margin-top: 3px; color: var(--accent); }
+
+/* Cədvəl */
+.lg-table-wrap {
+  margin: 4px 0 14px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-1);
+}
+.lg-table-wrap:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.lg-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: var(--step--1); line-height: 1.5; }
+.lg-table caption { text-align: start; padding: 10px 14px 0; color: var(--text-tertiary); font-size: var(--step--2); }
+.lg-table th,
+.lg-table td { padding: 10px 14px; text-align: start; vertical-align: top; border-bottom: 1px solid var(--line); color: var(--text-body); }
+.lg-table thead th {
+  background: var(--surface-2);
+  color: var(--text-strong);
+  font-weight: 600;
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-wide, 0.08em);
+  text-transform: uppercase;
+}
+[dir="rtl"] .lg-table thead th { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
+.lg-table tbody th { font-weight: 600; color: var(--text-strong); min-width: 150px; }
+.lg-table tbody tr:last-child > * { border-bottom: 0; }
+
+/* Əlaqə siyahısı */
+.lg-contact {
+  display: grid; gap: 0;
+  margin: 4px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-1);
+}
+.lg-contact > div { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.lg-contact > div:last-child { border-bottom: 0; }
+.lg-contact dt { flex: 0 0 160px; color: var(--text-tertiary); font-size: var(--step--1); }
+.lg-contact dd { margin: 0; color: var(--text-body); }
+
+/* Mənbə kartları */
+.lg-credits { list-style: none; padding: 0 !important; margin: 4px 0 12px; display: grid; gap: 10px; }
+.lg-credit {
+  margin: 0 !important;
+  padding: 14px 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 12px);
+}
+.lg-credit__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+.lg-credit__name { font-weight: 600; color: var(--text-strong); }
+.lg-section .lg-credit__lic a { color: inherit; text-decoration: none; }
+.lg-section .lg-credit__by,
+.lg-section .lg-credit__note { margin: 4px 0 0; font-size: var(--step--1); color: var(--text-secondary); }
+
+/* Xarici link işarəsi — kiçik ox (ikon fontu yox, mətn simvolu) */
+.lg-ext::after { content: '\2197'; display: inline-block; margin-inline-start: 2px; font-size: 0.8em; text-decoration: none; }
+[dir="rtl"] .lg-ext::after { content: '\2196'; }
+
+/* ── Digər sənədlər ── */
+.lg-others { margin-top: var(--space-6, 32px); }
+.lg-others__title { font-size: var(--step--1); color: var(--text-tertiary); margin: 0 0 10px; }
+.lg-others__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.lg-root .lg-others__card {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 18px;
+  color: var(--text-strong);
+  font-weight: 600;
+  text-decoration: none;
+}
+.lg-others__card svg { color: var(--brand); flex-shrink: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-toc__list a,
+  .lg-toc__chev,
+  .lg-anchor { transition: none; }
+}
+
+/* ── Çap ── */
+@media print {
+  body:has(.lg-root) header:not(.lg-hero),
+  body:has(.lg-root) .footer,
+  body:has(.lg-root) .qm-sn,
+  body:has(.lg-root) .qm-dock,
+  .lg-aside,
+  .lg-print,
+  .lg-anchor,
+  .lg-others,
+  .lg-hero .ui-pattern,
+  .lg-hero .ui-page-hero__crumbs { display: none !important; }
+
+  .lg-root, .lg-hero { background: #fff !important; color: #000; }
+  .lg-hero { border: 0; padding-block: 0 12pt; }
+  .lg-hero::after { display: none; }
+  .lg-layout { display: block; padding: 0; }
+  .lg-article { max-width: none; }
+  .lg-section { break-inside: auto; padding-block: 10pt; opacity: 1 !important; transform: none !important; }
+  .lg-h2 { break-after: avoid; }
+  .lg-section p, .lg-section li, .lg-table th, .lg-table td { color: #000 !important; font-size: 10.5pt; }
+  .lg-table { min-width: 0; }
+  .lg-table-wrap { overflow: visible; }
+  .lg-ext::after { content: ' (' attr(href) ')'; font-size: 8.5pt; }
+}

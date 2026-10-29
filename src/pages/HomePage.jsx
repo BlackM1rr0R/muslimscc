@@ -18,18 +18,48 @@ import { DailyReminderBarSkeleton } from '../components/DailyReminderBarSkeleton
 import Icon from '../components/Icon'
 import CityPicker from '../components/CityPicker'
 import { HADITH_COUNT } from '../data/siteStats'
+import { lazyWhenIdle } from '../utils/idle'
+
+// PERFORMANS: hero-dan aşağıdakı bölmələr .ui-cv (ui.css → content-visibility:
+// auto) alır — ekrandan uzaq olanda brauzer onların style/layout/paint işini
+// atlayır. Rəqəmlər render olunmamış bölmənin təxmini hündürlüyüdür (ölçülüb:
+// telefon / masaüstü orta qiyməti) — sürüşdürmə zolağı "atılmasın"; bölmə bir
+// dəfə render olunandan sonra brauzer əsl hündürlüyü yadda saxlayır ("auto").
+// Əlçatanlıq: "Tövhid" bölməsinin telefonda üfüqi sürüşən iki zolağı —
+// içində fokuslana bilən element yoxdur, ona görə zolağın özü fokuslanır
+// (tabIndex=0) ki, klaviatura ilə ox düymələri ilə sürüşdürmək olsun
+// (axe: scrollable-region-focusable). role="region" + ad — ekran oxuyucusu üçün.
+const TW_REGION = {
+  facts: { az: 'Tövhid haqqında faktlar', en: 'Facts about Tawheed', ru: 'Факты о Таухиде', ar: 'حقائق عن التوحيد', tr: 'Tevhid hakkında gerçekler' },
+  info:  { az: 'Tövhid haqqında məlumat kartları', en: 'Information cards about Tawheed', ru: 'Карточки о Таухиде', ar: 'بطاقات معلومات عن التوحيد', tr: 'Tevhid hakkında bilgi kartları' },
+}
+
+const CV = {
+  feats: { '--cv-h': '1150px' },
+  stats: { '--cv-h': '240px' },
+  tw:    { '--cv-h': '1500px' },
+  names: { '--cv-h': '680px' },
+  cta:   { '--cv-h': '560px' },
+}
 // Günün xatırlatmaları zolağı quotes.js və duas.js-i (~235 KB) yükləyir —
 // tənbəl yüklənir; yer tutucu (skeleton) hündürlüyü əvvəlcədən saxlayır.
 const DailyReminderBar = lazy(() => import('../components/DailyReminderBar'))
 // Bu bolmeler Firestore-dan melumat cekir (Firebase ~470 KB) ve hec biri
 // ilk ekranda deyil. Lazy edilmesi Firebase-i ilk yuklenmeden cixarir.
-const VideoSection = lazy(() => import('../components/VideoSection'))
-const BookSection = lazy(() => import('../components/BookSection'))
-const DailyContentDisplay = lazy(() => import('../components/AdminContentDisplay').then(m => ({ default: m.DailyContentDisplay })))
-const AnnouncementSection = lazy(() => import('../components/AnnouncementSection'))
-const HeroBannerDisplay = lazy(() => import('../components/HeroBannerDisplay'))
+// PERFORMANS: bu 5 bölmə Firestore-dan gəlir (hər biri Firebase SDK-nı, ~90 KB
+// gzip, statik çəkir) və ekranın ALTINDADIR — chunk-ları "load"-dan sonra,
+// boş vaxtda yüklənir (utils/idle.js). Əvvəl ana səhifənin ilk render-ində
+// yüklənib LCP resursları ilə yarışırdı. Məzmun gələndə CTA-dan yuxarıda
+// əlavə olunur — ekranın altında olduğu üçün görünən sıçrayış (CLS) yoxdur.
+const VideoSection = lazy(lazyWhenIdle(() => import('../components/VideoSection')))
+const BookSection = lazy(lazyWhenIdle(() => import('../components/BookSection')))
+const DailyContentDisplay = lazy(lazyWhenIdle(() => import('../components/AdminContentDisplay').then(m => ({ default: m.DailyContentDisplay }))))
+const AnnouncementSection = lazy(lazyWhenIdle(() => import('../components/AnnouncementSection')))
+const HeroBannerDisplay = lazy(lazyWhenIdle(() => import('../components/HeroBannerDisplay')))
 import '../styles/HomePage.css'
-import '../styles/AdminPage.css'
+// PERFORMANS: AdminPage.css (47 KB) yox — yalnız ana səhifənin istifadə etdiyi
+// .video-* qaydaları (HomeVideo.css, ~1.8 KB gzip; bax faylın başlığı)
+import '../styles/HomeVideo.css'
 
 // "Hərəkəti azalt" seçilibsə rəqəmlər saymır — dərhal son dəyər görünür
 const reducedMotion = () => {
@@ -580,7 +610,7 @@ export default function HomePage({ setPage }) {
           "Quran oxu" düyməsini saxlayır (Quran zolağının məzmunu); qalan
           bölmələr kiçik kafellərdir. Rəngli emoji/rəng kodları yoxdur —
           xətti ikonlar (Icon.jsx), hamısı eyni sakit palitrada. */}
-      <section className="hp-feats" aria-labelledby="hp-feats-ttl">
+      <section className="hp-feats ui-cv" style={CV.feats} aria-labelledby="hp-feats-ttl">
         <div className="hp-sec-in">
           <div className="hp-sec-hd" data-reveal>
             <span className="ui-eyebrow">{l.featEy}</span>
@@ -645,7 +675,7 @@ export default function HomePage({ setPage }) {
       </div>
 
       {/* ═══ STATS ══════════════════════════════════════════════════════ */}
-      <section className="hp-stats">
+      <section className="hp-stats ui-cv" style={CV.stats}>
         <div className="hp-stats-in" data-reveal="stagger">
           {stats.map((s,i)=>(
             <div key={i} className="hp-stat">
@@ -657,7 +687,7 @@ export default function HomePage({ setPage }) {
       </section>
 
       {/* ═══ TAWHEED ════════════════════════════════════════════════════ */}
-      <section className="hp-tw">
+      <section className="hp-tw ui-cv" style={CV.tw}>
         {/* v2: tünd zümrüd "inverse" bölmə + incə xatəm naxışı (ui.css) */}
         <div className="ui-pattern hp-tw-pattern" aria-hidden="true" />
         <div className="hp-sec-in">
@@ -727,7 +757,7 @@ export default function HomePage({ setPage }) {
           </div>
 
           {/* Faktlar — telefonda üfüqi sürüşən sıra */}
-          <div className="hp-tw-facts" data-reveal="stagger">
+          <div className="hp-tw-facts" data-reveal="stagger" tabIndex={0} role="region" aria-label={L(TW_REGION.facts)}>
             {TAWHEED_FACTS.map((f,i)=>(
               <div key={i} className="hp-tw-fact">
                 <div className="hp-twf-ar" lang="ar" dir="rtl">{f.ar}</div>
@@ -737,7 +767,7 @@ export default function HomePage({ setPage }) {
           </div>
 
           {/* Kartlar — telefonda üfüqi sürüşən sıra */}
-          <div className="hp-tw-info" data-reveal="stagger">
+          <div className="hp-tw-info" data-reveal="stagger" tabIndex={0} role="region" aria-label={L(TW_REGION.info)}>
             <div className="hp-twi-card">
               <span className="hp-twi-ic ui-icon-tile ui-icon-tile--accent" aria-hidden="true"><Icon name="names" /></span>
               <h4>{lk==='az'?'Niyə Tövhid?':lk==='ru'?'Почему Таухид?':lk==='ar'?'لماذا التوحيد؟':lk==='tr'?'Neden Tevhid?':'Why Tawheed?'}</h4>
@@ -772,7 +802,7 @@ export default function HomePage({ setPage }) {
 
 
       {/* ═══ 99 NAMES ════════════════════════════════════════════════════ */}
-      <section className="hp-names">
+      <section className="hp-names ui-cv" style={CV.names}>
         <div className="hp-sec-in">
           <div className="hp-sec-hd" data-reveal>
             <div className="ui-eyebrow"><span lang="ar" dir="rtl">أسماء الله الحسنى</span></div>
@@ -830,7 +860,7 @@ export default function HomePage({ setPage }) {
       {/* ═══ CTA ══════════════════════════════════════════════════════════ */}
       {/* v2: tünd zümrüd panel (kənarlardan içəri, yuvarlaq künclü), incə
           xatəm naxışı; emoji əvəzinə xətti ikonlar */}
-      <section className="hp-cta">
+      <section className="hp-cta ui-cv" style={CV.cta}>
         <div className="hp-cta-in" data-reveal>
           <div className="ui-pattern hp-cta-pat" aria-hidden="true" />
           <div className="hp-cta-ar" lang="ar" dir="rtl">{BRAND.arabicMotto}</div>

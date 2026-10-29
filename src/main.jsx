@@ -11,11 +11,18 @@ import './styles/heroes.css'
 import './styles/motion.css'
 import { initReveal } from './hooks/useReveal'
 import { initInputModality } from './hooks/useInputModality'
+import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
 
 // Fokus halqası yalnız klaviatura ilə (toxunuşdan sonra narıncı halqa yox)
 // və [data-reveal] elementləri üçün tək qlobal IntersectionObserver
 initInputModality()
 initReveal()
+
+// Saxlanmış əlçatanlıq tərcihləri (şrift ölçüsü, kontrast, tema …) İLK
+// RENDER-DƏN ƏVVƏL <html>-ə tətbiq olunur. PERFORMANS: panelin UI-si artıq
+// tənbəl chunk-dır (AccessibilityWidget.jsx); əvvəl tərcihlər panel
+// komponentinin useEffect-ində — ilk commit-dən sonra — tətbiq olunurdu.
+applyA11yPrefs(readA11yPrefs())
 
 // ── Service Worker qeydiyyatı (PWA) ──
 if ('serviceWorker' in navigator) {

@@ -889,7 +889,12 @@ const TIME_PER_Q = 30
 function loadScores() {
   try {
     const raw = localStorage.getItem(STORAGE_SCORES)
-    return raw ? JSON.parse(raw) : { complete: 0, surah: 0 }
+    const v = raw ? JSON.parse(raw) : null
+    // Pozuq yaddaş (null, sətir, səhv tip) səhifəni çökdürməsin — yalnız rəqəmlər
+    return {
+      complete: Number.isFinite(v?.complete) ? v.complete : 0,
+      surah: Number.isFinite(v?.surah) ? v.surah : 0,
+    }
   } catch { return { complete: 0, surah: 0 } }
 }
 
@@ -1012,6 +1017,23 @@ export default function QuranGamePage({ setPage }) {
       reveal('.qgame-layout', 'start')
     }
   }, [qIdx, questions, correctCount, mode, scores])
+
+  // Klaviatura: 1–4 və ya A–D — variant, Enter — növbəti sual
+  const keyRef = useRef({})
+  keyRef.current = { phase, answered, q: questions[qIdx], handleAnswer, nextQuestion }
+  useEffect(() => {
+    const onKey = (e) => {
+      const k = keyRef.current
+      if (k.phase !== 'playing' || !k.q || e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return
+      const key = e.key.toLowerCase()
+      const idx = /^[1-9]$/.test(key) ? Number(key) - 1 : 'abcd'.indexOf(key)
+      if (!k.answered && idx >= 0 && idx < k.q.options.length) { e.preventDefault(); k.handleAnswer(idx) }
+      else if (k.answered && e.key === 'Enter' && e.target?.tagName !== 'BUTTON') { e.preventDefault(); k.nextQuestion() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const backToMenu = useCallback(() => {
     setPhase('menu')

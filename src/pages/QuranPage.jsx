@@ -6,6 +6,7 @@ import { SURAH_AZ, getSurahLocal } from '../data/surahNamesAz'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
+import QuranPlayer, { useQuranPlayer } from '../components/QuranPlayer'
 import '../styles/QuranPage.css'
 
 // Hər dilin ÖZ tərcümə nəşri. Nəşr alınmasa başqa dilə (ingilis/türk)
@@ -21,11 +22,11 @@ const RETRY_LABELS = {
 }
 
 const SEARCH_LABELS = {
-  az: { surahSearch: 'Surə axtar', verseSearch: 'Ayə axtar', searching: 'Axtarılır...', noResults: 'Nəticə tapılmadı', result: 'nəticə', minChars: 'Axtarmaq üçün ən azı 3 hərf yazın', mode: 'Axtarış növü', place: 'Nazil olma yeri' },
-  en: { surahSearch: 'Search surahs', verseSearch: 'Search verses', searching: 'Searching...', noResults: 'No results found', result: 'results', minChars: 'Type at least 3 letters to search', mode: 'Search type', place: 'Place of revelation' },
-  ru: { surahSearch: 'Поиск сур', verseSearch: 'Поиск аятов', searching: 'Поиск...', noResults: 'Ничего не найдено', result: 'результатов', minChars: 'Введите не менее 3 букв для поиска', mode: 'Тип поиска', place: 'Место ниспослания' },
-  ar: { surahSearch: 'بحث السور', verseSearch: 'بحث الآيات', searching: 'جارٍ البحث...', noResults: 'لا نتائج', result: 'نتائج', minChars: 'اكتب ثلاثة أحرف على الأقل للبحث', mode: 'نوع البحث', place: 'مكان النزول' },
-  tr: { surahSearch: 'Sure ara', verseSearch: 'Ayet ara', searching: 'Aranıyor...', noResults: 'Sonuç bulunamadı', result: 'sonuç', minChars: 'Aramak için en az 3 harf yazın', mode: 'Arama türü', place: 'İniş yeri' },
+  az: { surahSearch: 'Surə axtar', verseSearch: 'Ayə axtar', searching: 'Axtarılır...', noResults: 'Nəticə tapılmadı', searchError: 'Axtarış alınmadı. İnternet bağlantısını yoxlayın.', result: 'nəticə', minChars: 'Axtarmaq üçün ən azı 3 hərf yazın', mode: 'Axtarış növü', place: 'Nazil olma yeri' },
+  en: { surahSearch: 'Search surahs', verseSearch: 'Search verses', searching: 'Searching...', noResults: 'No results found', searchError: 'The search failed. Please check your connection.', result: 'results', minChars: 'Type at least 3 letters to search', mode: 'Search type', place: 'Place of revelation' },
+  ru: { surahSearch: 'Поиск сур', verseSearch: 'Поиск аятов', searching: 'Поиск...', noResults: 'Ничего не найдено', searchError: 'Поиск не удался. Проверьте подключение к интернету.', result: 'результатов', minChars: 'Введите не менее 3 букв для поиска', mode: 'Тип поиска', place: 'Место ниспослания' },
+  ar: { surahSearch: 'بحث السور', verseSearch: 'بحث الآيات', searching: 'جارٍ البحث...', noResults: 'لا نتائج', searchError: 'تعذّر البحث. تحقّق من الاتصال بالإنترنت.', result: 'نتائج', minChars: 'اكتب ثلاثة أحرف على الأقل للبحث', mode: 'نوع البحث', place: 'مكان النزول' },
+  tr: { surahSearch: 'Sure ara', verseSearch: 'Ayet ara', searching: 'Aranıyor...', noResults: 'Sonuç bulunamadı', searchError: 'Arama yapılamadı. İnternet bağlantınızı kontrol edin.', result: 'sonuç', minChars: 'Aramak için en az 3 harf yazın', mode: 'Arama türü', place: 'İniş yeri' },
 }
 
 const BOOKMARK_LABELS = {
@@ -254,14 +255,26 @@ function withoutLeadingBasmala(text) {
   return text
 }
 
+// Şəbəkə sorğusu vaxt limiti ilə: API cavab verməsə (asılı qalan bağlantı)
+// yükləmə əbədi fırlanmasın — 15 san. sonra xəta + "Yenidən cəhd et"
+const FETCH_TIMEOUT = 15000
+function fetchJSON(url, signal) {
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT)
+  const onAbort = () => ctrl.abort()
+  signal?.addEventListener('abort', onAbort)
+  return fetch(url, { signal: ctrl.signal })
+    .then(r => r.json())
+    .finally(() => { clearTimeout(timer); signal?.removeEventListener('abort', onAbort) })
+}
+
 function useQuranList(attempt = 0) {
   const [surahs,  setSurahs]  = useState([])
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState(null)
   useEffect(() => {
     setLoading(true); setError(null)
-    fetch('https://api.alquran.cloud/v1/surah')
-      .then(r => r.json())
+    fetchJSON('https://api.alquran.cloud/v1/surah')
       // Cavab gözlənilən formada deyilsə — xəta (əvvəl surahs = undefined
       // olurdu və .filter səhifəni çökdürürdü)
       .then(d => { if (!Array.isArray(d?.data)) throw new Error('bad-response'); setSurahs(d.data) })
@@ -285,8 +298,7 @@ function useSurah(num, lang, attempt = 0) {
     let cancelled = false
     setLoading(true); setData(null); setError(null)
     const eds = lang === 'ar' ? 'ar.alafasy,ar.muyassar' : `ar.alafasy,${edition}`
-    fetch(`https://api.alquran.cloud/v1/surah/${num}/editions/${eds}`)
-      .then(r => r.json())
+    fetchJSON(`https://api.alquran.cloud/v1/surah/${num}/editions/${eds}`)
       .then(d => {
         if (cancelled) return
         const [arabic, trans] = Array.isArray(d?.data) ? d.data : []
@@ -300,7 +312,8 @@ function useSurah(num, lang, attempt = 0) {
           return {
             n: v.numberInSurah,
             ar: (i === 0 && num !== 1 && num !== 9) ? withoutLeadingBasmala(text) : text,
-            audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${v.number}.mp3`,
+            // Quranda ümumi ayə nömrəsi — səs faylının ünvanı ondan qurulur (utils/quranAudio.js)
+            g: v.number,
             tr: trans?.ayahs[i]?.text || ''
           }
         }) })
@@ -315,17 +328,18 @@ function useSurah(num, lang, attempt = 0) {
   return { data: data && data._key === `${num}|${lang}` ? data : null, loading, error }
 }
 
-// Səs artıq səhifə səviyyəsində tək <audio>-dadır (QuranPage): əvvəl hər kartın
-// öz Audio-su var idi və iki ayə eyni anda səslənə bilirdi; ayə bitəndə növbəti
-// özü başlamırdı. memo: oxuduqca yer yadda saxlananda 286 kart təkrar çəkilməsin.
+// Səs səhifə səviyyəsindədir (useQuranPlayer — components/QuranPlayer.jsx): kartın
+// düyməsi həmin ayədən ardıcıl dinləməni başladır / dayandırır. active — cari
+// ayə (vurğu), playing — hazırda səslənir (ikon). memo: oxuduqca yer yadda saxlananda 286 kart təkrar çəkilməsin.
 // flash — "Ayəyə keç"-dən sonra kartın qısa qızılı vurğusu (0 = yoxdur).
-const AyahCard = memo(function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, playLabels, playing, flash, numLabel, linkLabel, onToggle, onNumber }) {
+const AyahCard = memo(function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
   return (
     // data-reveal: sürüşdükcə ayə kartı yumşaq görünür (motion.css).
     // id + data-ayah: "Ayəyə keç" hədəfi və oxuma yerinin müşahidəçisi üçün
     <div id={`ayah-${verse.n}`} data-ayah={verse.n} tabIndex={-1}
-      className={`ayah-card${playing ? ' is-playing' : ''}${flash ? ' is-target' : ''}`} data-reveal="">
+      className={`ayah-card${active ? ' is-playing' : ''}${flash ? ' is-target' : ''}`} data-reveal=""
+      aria-current={active ? 'true' : undefined}>
       {/* Qızılı halqa solur; key — eyni ayəyə təkrar keçəndə animasiya yenidən başlasın */}
       {flash ? <span key={flash} className="ayah-flash" aria-hidden="true" /> : null}
       {/* Nömrəyə klik: ünvana ?a=N yazılır (link paylaşmaq üçün) və yer yadda qalır */}
@@ -341,12 +355,10 @@ const AyahCard = memo(function AyahCard({ verse, showTrans, showTafsir, tafsirLa
           </div>
         )}
       </div>
-      {verse.audio && (
-        <button type="button" className={`ayah-play press ${playing ? 'playing' : ''}`} onClick={() => onToggle(verse.n)}
-          aria-label={playLabel} title={playLabel} aria-pressed={playing}>
-          <PlayIcon playing={playing} />
-        </button>
-      )}
+      <button type="button" className={`ayah-play press ${playing ? 'playing' : ''}`} onClick={() => onToggle(verse.n)}
+        aria-label={playLabel} title={playLabel} aria-pressed={playing}>
+        <PlayIcon playing={playing} />
+      </button>
     </div>
   )
 })
@@ -425,8 +437,10 @@ function AyahJump({ total, current, labels, onJump, onClose, inputRef, triggerRe
 
 function calcStreak(dates) {
   if (!dates.length) return 0
-  const sorted = [...dates].sort().reverse()
-  const today = new Date().toISOString().slice(0,10)
+  // Təkrarlar silinir; "bu gün" yerli tarixlə (trackRead də yerli tarix yazır)
+  const sorted = [...new Set(dates)].sort().reverse()
+  const now = new Date()
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   if (sorted[0] !== today) return 0
   let streak = 1
   for (let i = 1; i < sorted.length; i++) {
@@ -465,13 +479,25 @@ export default function QuranPage({ setPage }) {
   selectedRef.current = selected
 
   // ── Quran oxuma statistikası ──
+  // Pozuq yaddaş (səhv JSON, null, massiv) oxuyucunu çökdürməsin — hər sahə yoxlanılır
   const [stats, setStats] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('quran_stats')) || { reads: {}, sessions: 0, dates: [] } } catch { return { reads: {}, sessions: 0, dates: [] } }
+    const empty = { reads: {}, sessions: 0, dates: [] }
+    try {
+      const v = JSON.parse(localStorage.getItem('quran_stats'))
+      if (!v || typeof v !== 'object' || Array.isArray(v)) return empty
+      return {
+        reads: v.reads && typeof v.reads === 'object' && !Array.isArray(v.reads) ? v.reads : {},
+        sessions: Number(v.sessions) || 0,
+        dates: Array.isArray(v.dates) ? v.dates.filter(d => typeof d === 'string') : [],
+      }
+    } catch { return empty }
   })
 
   const trackRead = (surahNum) => {
     setStats(prev => {
-      const today = new Date().toISOString().slice(0,10)
+      // Yerli tarix (toISOString UTC-dir: Bakıda gecə 00:00–04:00 oxunan surə dünənə yazılırdı)
+      const now = new Date()
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
       const reads = { ...prev.reads }
       reads[surahNum] = (reads[surahNum] || 0) + 1
       const dates = prev.dates.includes(today) ? prev.dates : [...prev.dates, today]
@@ -485,6 +511,9 @@ export default function QuranPage({ setPage }) {
   const [verseSearch, setVerseSearch] = useState('')
   const [verseResults, setVerseResults] = useState([])
   const [verseSearching, setVerseSearching] = useState(false)
+  // Ayə axtarışında şəbəkə xətası (boş nəticə ilə qarışdırılmasın) və təkrar cəhd sayğacı
+  const [verseError, setVerseError] = useState(false)
+  const [verseAttempt, setVerseAttempt] = useState(0)
   const verseTimerRef = useRef(null)
   // Dil dəyişəndə t.all/t.meccan/t.medinan-ın label-i dəyişir; ona görə
   // filter state-i tərcüməsiz key ('all'|'meccan'|'medinan') saxlayırıq.
@@ -706,54 +735,31 @@ export default function QuranPage({ setPage }) {
     }
   }, [ready, surah, queueSave, flushSave])
 
-  // ── Səs: tək <audio>, ayə bitəndə növbəti başlayır ──
-  const audioRef = useRef(null)
-  const audioNRef = useRef(null)
-  const [playingN, setPlayingN] = useState(null)
-  const playingNRef = useRef(null)
-  playingNRef.current = playingN
-  const versesRef = useRef(null)
-  versesRef.current = verses
-  const playAyahRef = useRef(null)
-  // Növbəti ayə ekrandan kənardadırsa ona sürüşdür (dinləyən də "oxuyur")
-  const followAyah = (n) => {
+  // ── Səs: useQuranPlayer (qari, ardıcıl dinləmə, təkrar, sürət, Media Session) ──
+  // Cari ayə ekrandan kənardadırsa ona sürüşdür (dinləyən də "oxuyur" — yer yazılır).
+  // Bu proqram sürüşməsidir: istifadəçinin sürüşməsi kimi sayılmır
+  const followAyah = useCallback((n, { force = false } = {}) => {
     const el = document.getElementById(`ayah-${n}`)
     if (!el) return
     const r = el.getBoundingClientRect()
     const top = toolbarRef.current?.getBoundingClientRect().bottom ?? 0
-    if (r.top < top || r.bottom > window.innerHeight) {
+    const bottom = window.innerHeight - 120    // aşağıdakı mini-pleyer
+    if (force || r.top < top || r.bottom > bottom) {
+      ignoreScrollUntilRef.current = performance.now() + 900
       el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
     }
-  }
-  playAyahRef.current = (n) => {
-    const v = versesRef.current?.find(x => x.n === n)
-    if (!v?.audio) { setPlayingN(null); return }
-    let a = audioRef.current
-    if (!a) { a = new Audio(); a.preload = 'auto'; audioRef.current = a }
-    if (audioNRef.current !== n) { a.src = v.audio; audioNRef.current = n }
-    a.onended = () => {
-      const next = n + 1
-      if (versesRef.current?.some(x => x.n === next)) { playAyahRef.current(next); followAyah(next) }
-      else { setPlayingN(null); audioNRef.current = null }
-    }
-    a.onerror = () => setPlayingN(p => (p === n ? null : p))
-    setPlayingN(n)
-    const p = a.play()
-    if (p?.catch) p.catch(err => { if (err?.name !== 'AbortError') setPlayingN(x => (x === n ? null : x)) })
-  }
-  const toggleAyah = useCallback((n) => {
-    haptic()
-    if (playingNRef.current === n) { audioRef.current?.pause(); setPlayingN(null) }
-    else playAyahRef.current(n)
+    currentAyahRef.current = n
+    queueSave(n)
+  }, [queueSave])
+  const surahEndRef = useRef(null)
+  const onSurahEnd = useCallback(() => surahEndRef.current?.(), [])
+  const mediaTitle = useCallback((n) => {
+    const s = surahsRef.current.find(x => x.number === selectedRef.current)
+    return placeLabel(surahTitle(s, langRef.current) || String(selectedRef.current), n, langRef.current)
   }, [])
-  // Surə dəyişəndə / oxuyucu bağlananda səs dayanır
-  useEffect(() => () => {
-    const a = audioRef.current
-    if (a) { a.onended = a.onerror = null; a.pause(); a.removeAttribute('src'); try { a.load() } catch { /* köhnə brauzer */ } }
-    audioRef.current = null
-    audioNRef.current = null
-    setPlayingN(null)
-  }, [selected])
+  const player = useQuranPlayer({ surahNumber: selected, verses, lang, onFollow: followAyah, onSurahEnd, mediaTitle })
+  const playerBusy = player.status === 'playing' || player.status === 'loading'
+  const toggleAyah = useCallback((n) => { haptic(); player.toggle(n) }, [player.toggle])
 
   // ── "Ayəyə keç" paneli: G qısayolu, bağlanış ──
   useEffect(() => { setJumpOpen(false) }, [selected])
@@ -781,26 +787,26 @@ export default function QuranPage({ setPage }) {
 
   useEffect(() => {
     if (searchMode !== 'verse') return
+    setVerseError(false)
     if (verseSearch.length < 3) { setVerseResults([]); setVerseSearching(false); return }
     setVerseSearching(true)
     if (verseTimerRef.current) clearTimeout(verseTimerRef.current)
+    // Köhnə sorğunun gec gələn cavabı yeni axtarışın nəticəsini əzməsin
+    const ctrl = new AbortController()
     verseTimerRef.current = setTimeout(() => {
       // Axtarış seçilmiş dilin nəşrində aparılır (başqa dilə düşmür)
       const edition = EDITION_MAP[lang]
-      fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(verseSearch)}/all/${edition}`)
-        .then(r => r.json())
+      fetchJSON(`https://api.alquran.cloud/v1/search/${encodeURIComponent(verseSearch)}/all/${edition}`, ctrl.signal)
         .then(d => {
-          if (d.code === 200 && d.data?.matches) {
-            setVerseResults(d.data.matches)
-          } else {
-            setVerseResults([])
-          }
+          if (ctrl.signal.aborted) return
+          // API tapılmayanda 404 JSON qaytarır — bu "nəticə yoxdur"dur, xəta deyil
+          setVerseResults(d?.code === 200 && Array.isArray(d.data?.matches) ? d.data.matches : [])
         })
-        .catch(() => setVerseResults([]))
-        .finally(() => setVerseSearching(false))
+        .catch(() => { if (!ctrl.signal.aborted) { setVerseResults([]); setVerseError(true) } })
+        .finally(() => { if (!ctrl.signal.aborted) setVerseSearching(false) })
     }, 500)
-    return () => { if (verseTimerRef.current) clearTimeout(verseTimerRef.current) }
-  }, [verseSearch, searchMode, lang])
+    return () => { ctrl.abort(); if (verseTimerRef.current) clearTimeout(verseTimerRef.current) }
+  }, [verseSearch, searchMode, lang, verseAttempt])
 
   const surahByNum = n => surahs.find(s => s.number === n)
 
@@ -819,6 +825,8 @@ export default function QuranPage({ setPage }) {
     ignoreScrollUntilRef.current = performance.now() + 500
     window.scrollTo(0, 0)
   }
+  // Surə bitdi və "növbəti surəyə keç" seçilib — pleyer 1-ci ayədən davam edir
+  surahEndRef.current = () => { if (selectedRef.current < 114) openSurah(selectedRef.current + 1) }
 
   const closeReader = () => {
     // Siyahıdan açılmışdısa — tarixçədə geri (Geri düyməsi ilə eyni nəticə)
@@ -985,7 +993,8 @@ export default function QuranPage({ setPage }) {
               {surah.verses?.map(v => (
                 <AyahCard key={v.n} verse={v} fontSize={fontSize} tafsirLabel={tafsirLabel} playLabels={playLabels}
                   showTrans={!hasTafsir && showTrans} showTafsir={hasTafsir && showTafsir}
-                  playing={playingN === v.n} flash={flash.n === v.n ? flash.k : 0}
+                  active={player.current === v.n} playing={playerBusy && player.current === v.n}
+                  flash={flash.n === v.n ? flash.k : 0}
                   numLabel={capFirst(ayahLabel(v.n, lang))} linkLabel={jl.link}
                   onToggle={toggleAyah} onNumber={onAyahNumber} />
               ))}
@@ -1005,6 +1014,9 @@ export default function QuranPage({ setPage }) {
                 </button>
               )}
             </div>
+            {/* Yapışqan mini-pleyer — oxuyucunun altında, ekranın aşağısında qalır */}
+            <QuranPlayer player={player} lang={lang} total={surah.verses.length}
+              verseLabel={n => capFirst(ayahLabel(n, lang))} />
           </>
         )}
       </div>
@@ -1168,7 +1180,14 @@ export default function QuranPage({ setPage }) {
                   <ListSkeleton label={sl.searching} />
                 </>
               )}
-              {!verseSearching && verseSearch.length >= 3 && verseResults.length === 0 && (
+              {!verseSearching && verseSearch.length >= 3 && verseError && (
+                <QEmpty icon="alert" bad action={
+                  <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setVerseAttempt(a => a + 1)}>
+                    <Icon name="refresh" className="ui-btn__icon" />{rl.retry}
+                  </button>
+                }>{sl.searchError}</QEmpty>
+              )}
+              {!verseSearching && verseSearch.length >= 3 && !verseError && verseResults.length === 0 && (
                 <QEmpty icon="search">{sl.noResults}</QEmpty>
               )}
               {!verseSearching && verseResults.length > 0 && (

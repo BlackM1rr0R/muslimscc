@@ -12,7 +12,16 @@ function loadProgress() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return {}
-    return JSON.parse(raw)
+    const data = JSON.parse(raw)
+    // Pozuq məlumat (null, massiv, sətir, səhv status) səhifəni çökdürməsin —
+    // yalnız 1..114 surə nömrəsi və 1/2 statusu saxlanılır
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return {}
+    const clean = {}
+    for (const [k, v] of Object.entries(data)) {
+      const n = Number(k), st = Number(v)
+      if (Number.isInteger(n) && n >= 1 && n <= 114 && (st === 1 || st === 2)) clean[n] = st
+    }
+    return clean
   } catch { return {} }
 }
 function saveProgress(data) {
@@ -301,7 +310,7 @@ export default function HifzPage({ setPage }) {
                     <span className="hifz-card-arabic" lang="ar">{s.name}</span>
                   </span>
                   {/* Status dairəsi: boş → yarım (davam edir) → ✓ (əzbər) */}
-                  <span className={`m-check hifz-check${st === 2 ? ' is-checked' : st === 1 ? ' is-partial' : ''}`} aria-hidden="true">
+                  <span className={`m-check hifz-check${st === 2 ? ' is-checked' : st === 1 ? ' is-partial' : ''}${bumped && st === 2 ? ' is-celebrate' : ''}`} aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M6.5 12.5l3.8 3.8L17.5 8.5"/></svg>
                   </span>
                 </button>

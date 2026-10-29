@@ -195,3 +195,99 @@ export function hadithAliases(HADITHS) {
 export function staticHadithKeys(HADITHS, id) {
   return hadithInfo(HADITHS).keysById.get(id) || []
 }
+
+// ═══════════════════════════════════════════════════════
+// PERFORMANS: dillərə bölünmüş hədis modulları (build zamanı)
+//
+// NƏ: vite.config.js → "virtual:hadiths/<dil>" modulu buildHadithLangData()
+// ilə qurulur: yalnız həmin dilin TƏKRARSIZ siyahısı (id, cat, source, ar,
+// text) və atılan id → saxlanılan id cədvəli. Firebase birləşməsi üçün
+// müqayisə açarlarının qısa həşləri dildən asılı deyil — ayrıca
+// "virtual:hadiths/keys" modulundadır (buildHadithMergeKeys, ~31 KB gzip) və
+// yalnız /hadith-də, ilk boyamadan sonra yüklənir. Veb (HadithPage,
+// GlobalSearch) modulları src/utils/hadithData.js ilə dinamik yükləyir.
+// NİYƏ: əvvəl /hadith bütöv hadiths.js-i (5 dilin hamısı, ~1.2 MB xam /
+// ~400 KB gzip) yükləyirdi və təkrarsızlaşdırmanı (bütün dillərin mətnini
+// normallaşdırmaqla) brauzerdə hesablayırdı. İndi bir dil 67–135 KB gzip-dir (ölçülüb) və
+// hesablama build zamanı bir dəfə aparılır. Ölçülmüş fayda: cavabda/PR-da.
+//
+// Nəticə köhnə runtime funksiyaları ilə EYNİDİR (tests/unit/hadith-lang-data
+// .test.js 5 dil üçün müqayisə edir). Orijinal src/data/hadiths.js QALIR —
+// Instagram skripti, mobil tətbiq və admin "toxum" paneli onu oxuyur.
+// ═══════════════════════════════════════════════════════
+
+/**
+ * Açar sətrinin qısa həşi (cyrb53, 53 bit → base36, ~11 simvol).
+ * NİYƏ: staticHadithKeys tam normallaşdırılmış mətni qaytarır — hər dil
+ * moduluna onları yazmaq Azərbaycanca + ərəbcə mətni ikinci dəfə daşımaq
+ * olardı. Müqayisə yalnız bərabərlikdir, ona görə həş kifayətdir
+ * (~5000 açarda toqquşma ehtimalı ~1e-9).
+ */
+export function hashKey(str) {
+  let h1 = 0xdeadbeef
+  let h2 = 0x41c6ce57
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i)
+    h1 = Math.imul(h1 ^ ch, 2654435761)
+    h2 = Math.imul(h2 ^ ch, 1597334677)
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36)
+}
+
+// Firebase (admin) hədisinin açarları yalnız bu prefikslərlə olur
+// (hadithKeys: ar / az / tx). Yerli qeydlərin en/ru/tr açarları heç bir admin
+// açarı ilə üst-üstə düşə bilməz, saxlanılan yerli hədislər isə öz aralarında
+// artıq ortaq açarsızdır (union-find qrupları) — ona görə o açarlar birləşmə
+// nəticəsini dəyişmir və modula yazılmır.
+const MERGE_PREFIX = /^(ar|az|tx):/
+
+/** Admin (Firebase) hədisinin həşlənmiş açarları — dil modulundakı açarlarla müqayisə üçün. */
+export function customHadithKeyHashes(ar, azText, source) {
+  return hadithKeys(ar, azText, source).map(hashKey)
+}
+
+/**
+ * Bir dilin build-zamanı məlumatı (JSON-a yazıla bilən):
+ *   list    — uniqueHadithsFor(HADITHS, lang) ilə eyni sıra və sahələr;
+ *             ərəbcədə text === ar olanda text yazılmır (yükləyici bərpa edir)
+ *   aliases — [[atılan id, saxlanılan id], ...] (hadithAliases ilə eyni)
+ */
+export function buildHadithLangData(HADITHS, lang) {
+  const info = hadithInfo(HADITHS)
+  const list = uniqueHadithsFor(HADITHS, lang).map(h => {
+    const row = { id: h.id, cat: h.cat, source: h.source, ar: h.ar, text: h.text }
+    if (row.text === row.ar && row.ar) delete row.text
+    return row
+  })
+  return { list, aliases: [...info.aliases] }
+}
+
+/**
+ * Firebase birləşməsi üçün açarlar (bütün dillər üçün eyni):
+ * { id: [həş, ...] } — staticHadithKeys(HADITHS, id)-nin ar/az/tx açarları, həşlənmiş.
+ */
+export function buildHadithMergeKeys(HADITHS) {
+  const info = hadithInfo(HADITHS)
+  const keys = {}
+  for (const id of info.keep) {
+    const ks = [...new Set((info.keysById.get(id) || []).filter(k => MERGE_PREFIX.test(k)).map(hashKey))]
+    if (ks.length) keys[id] = ks
+  }
+  return keys
+}
+
+/** buildHadithLangData() nəticəsini runtime formasına çevir (yükləyici və testlər üçün). */
+export function reviveHadithLangData(raw) {
+  return {
+    list: raw.list.map(h => ('text' in h ? h : { ...h, text: h.ar })),
+    aliases: new Map(raw.aliases),
+  }
+}
+
+/** buildHadithMergeKeys() nəticəsi → keysOf(id) funksiyası. */
+export function reviveHadithMergeKeys(raw) {
+  const keyMap = new Map(Object.entries(raw).map(([id, ks]) => [Number(id), ks]))
+  return (id) => keyMap.get(id) || []
+}

@@ -20,7 +20,12 @@ import { useLang } from '../contexts/LangContext'
 // ana səhifədə ~72 KB gzip əvəzinə ~40 KB, quotes/duas chunk-ları yüklənmir.
 import { AYAH_POOL, HADITH_POOL, DUA_POOL } from 'virtual:daily-pools'
 import { DHIKRS } from '../data/dhikr'
-import { subscribeToDailyContent } from '../data/adminContent'
+// PERFORMANS: adminContent (→ Firebase SDK, ~90 KB gzip) statik import edilmir —
+// zolaq ana səhifənin ən yuxarısındadır və onun chunk-ı ilk ekranda lazımdır;
+// admin "Günün məzmunu" abunəliyi "load"-dan sonra, boş vaxtda başlayır
+// (utils/idle.js). Zolaq o vaxta qədər repo məlumatı ilə göstərilir (əvvəlki
+// kimi — Firebase cavabı onsuz da şəbəkədən sonra gəlirdi); hündürlüyü sabitdir.
+import { whenIdle } from '../utils/idle'
 import { filled, tr } from '../config/brand'
 import { localizeSource } from '../utils/sourceNames'
 import { isDailyBarHiddenToday, hideDailyBarForToday } from './DailyReminderBarSkeleton'
@@ -200,11 +205,18 @@ export default function DailyReminderBar({ setPage }) {
   // Admin "Günün məzmunu" — Firebase yoxdursa DEFAULT (boş) qaytarır
   useEffect(() => {
     let unsub = () => {}
-    try {
-      const u = subscribeToDailyContent((data) => setAdmin(data || null))
-      if (typeof u === 'function') unsub = u
-    } catch { /* Firebase əlçatan deyil — repo məlumatı ilə davam */ }
-    return () => { try { unsub() } catch { /* */ } }
+    let alive = true
+    whenIdle()
+      .then(() => import('../data/adminContent'))
+      .then(({ subscribeToDailyContent }) => {
+        if (!alive) return
+        try {
+          const u = subscribeToDailyContent((data) => setAdmin(data || null))
+          if (typeof u === 'function') unsub = u
+        } catch { /* Firebase əlçatan deyil — repo məlumatı ilə davam */ }
+      })
+      .catch(() => { /* chunk yüklənmədi — repo məlumatı ilə davam */ })
+    return () => { alive = false; try { unsub() } catch { /* */ } }
   }, [])
 
   // Səhifə gecə yarısından sonra yenidən açılarsa — yeni günün dördlüyü

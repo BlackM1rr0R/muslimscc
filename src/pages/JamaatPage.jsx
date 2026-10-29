@@ -25,6 +25,7 @@ import Icon from '../components/Icon'
 import CityPicker from '../components/CityPicker'
 import '../styles/JamaatPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import PageLink from '../components/PageLink'
 
 const LABELS = {
   az: {
@@ -290,16 +291,17 @@ function TimeRow({ p, l, name, time, isNext, isPassed, jumuaTag, note }) {
 }
 
 /** Keçid sətri (düymə — SPA naviqasiyası) */
-function LinkRow({ icon, title, sub, onClick }) {
+// Həqiqi link (PageLink): Ctrl/orta klik yeni tabda açır
+function LinkRow({ icon, title, sub, to, setPage, onNavigate }) {
   return (
-    <button type="button" className="jm-link" onClick={onClick}>
+    <PageLink className="jm-link" to={to} setPage={setPage} onNavigate={onNavigate}>
       <span className="jm-link-icon ui-icon-tile" aria-hidden="true"><Icon name={icon} /></span>
       <span className="jm-link-text">
         <strong>{title}</strong>
         <small>{sub}</small>
       </span>
       <Icon name="chevron" size={18} className="jm-link-arrow ui-flip-rtl" />
-    </button>
+    </PageLink>
   )
 }
 
@@ -311,7 +313,7 @@ export default function JamaatPage({ setPage }) {
     isFriday, nextJumua, nowSecs, method, location, reload,
   } = usePrayerTimes()
 
-  const go = (key) => { setPage?.(key); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
   const name = (key) => PRAYER_NAMES[key]?.[lang] || key
 
   const brand = brandName(lang)
@@ -471,9 +473,9 @@ export default function JamaatPage({ setPage }) {
               <span>{l.khutbahBefore}</span>
             </p>
 
-            <button type="button" className="ui-btn ui-btn--secondary jm-friday-btn" onClick={() => go('mosques')}>
+            <PageLink className="ui-btn ui-btn--secondary jm-friday-btn" to="mosques" setPage={setPage} onNavigate={toTop}>
               <Icon name="mosques" className="ui-btn__icon" /> {l.findMosque}
-            </button>
+            </PageLink>
           </section>
         </div>
 
@@ -481,9 +483,9 @@ export default function JamaatPage({ setPage }) {
         <nav className="jm-card jm-links" data-reveal aria-labelledby="jm-links-title">
           <h2 id="jm-links-title" className="jm-card-title jm-links-title">{l.more}</h2>
           <div className="jm-links-list" data-reveal="stagger-zoom">
-            <LinkRow icon="mosques" title={l.findMosque} sub={l.findMosqueSub} onClick={() => go('mosques')} />
-            <LinkRow icon="prayer" title={l.otherCities} sub={l.otherCitiesSub} onClick={() => go('prayer')} />
-            <LinkRow icon="qibla" title={l.qibla} sub={l.qiblaSub} onClick={() => go('qibla')} />
+            <LinkRow icon="mosques" title={l.findMosque} sub={l.findMosqueSub} to="mosques" setPage={setPage} onNavigate={toTop} />
+            <LinkRow icon="prayer" title={l.otherCities} sub={l.otherCitiesSub} to="prayer" setPage={setPage} onNavigate={toTop} />
+            <LinkRow icon="qibla" title={l.qibla} sub={l.qiblaSub} to="qibla" setPage={setPage} onNavigate={toTop} />
           </div>
         </nav>
 

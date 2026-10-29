@@ -47,16 +47,26 @@ const QG_MODES = {
 }
 const labelOf = (map, key, lang) => map[key]?.[lang] || map[key]?.en || key
 
+// localStorage oxuması: dəyər gözlənilən formada deyilsə (pozuq JSON, null,
+// massiv əvəzinə obyekt …) ehtiyat dəyər qaytarılır — səhifə çökməsin
 function safeJSON(key, fallback) {
   try {
-    const v = localStorage.getItem(key)
-    return v ? JSON.parse(v) : fallback
+    const raw = localStorage.getItem(key)
+    if (!raw) return fallback
+    const v = JSON.parse(raw)
+    if (Array.isArray(fallback)) return Array.isArray(v) ? v : fallback
+    if (fallback && typeof fallback === 'object') return v && typeof v === 'object' && !Array.isArray(v) ? v : fallback
+    return v ?? fallback
   } catch { return fallback }
 }
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+// Gün açarı YERLİ tarixlə — digər səhifələr (DailyTracker, Prayer) belə yazır.
+// toISOString() UTC-dir: Bakıda 00:00–03:59 arası "bu gün" dünən sayılırdı
+function localDate(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
+function todayStr() { return localDate() }
 
 function getWeekDates() {
   const d = new Date(); const dates = []
@@ -64,10 +74,14 @@ function getWeekDates() {
   const mon = new Date(d); mon.setDate(d.getDate() - day + 1)
   for (let i = 0; i < 7; i++) {
     const dd = new Date(mon); dd.setDate(mon.getDate() + i)
-    dates.push(dd.toISOString().slice(0, 10))
+    dates.push(localDate(dd))
   }
   return dates
 }
+
+// Gündəlik izləyicidəki fəaliyyətlərin sayı (DailyTrackerPage.jsx → ACTIVITIES)
+const TRACKER_ITEMS = 10
+const PRAYER_NAMES = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
 
 function getMonthPrefix() {
   const d = new Date()
@@ -81,7 +95,7 @@ function calcStreak(dates) {
   for (let i = 0; i < sorted.length; i++) {
     const expected = new Date(today)
     expected.setDate(today.getDate() - i)
-    if (sorted[i] === expected.toISOString().slice(0, 10)) streak++
+    if (sorted[i] === localDate(expected)) streak++
     else break
   }
   return streak
@@ -89,7 +103,8 @@ function calcStreak(dates) {
 
 function calcBestStreak(dates) {
   if (!dates || !dates.length) return 0
-  const sorted = [...new Set(dates)].sort()
+  const sorted = [...new Set(dates)].filter(d => DATE_RE.test(d)).sort()
+  if (!sorted.length) return 0
   let best = 1, cur = 1
   for (let i = 1; i < sorted.length; i++) {
     const prev = new Date(sorted[i - 1])
@@ -106,9 +121,21 @@ export default function AnalyticsPage({ setPage }) {
   const t = LABELS[lang] || LABELS.az
 
   const data = useMemo(() => {
-    // 1. Prayer stats
-    const prayerStats = safeJSON('prayer_stats', {})
-    const prayerDates = Object.keys(prayerStats)
+    // 1. Namaz: /prayer ('muslim_cc_prayer_stats' → { 'YYYY-MM-DD_Fajr': true })
+    // və /dailytracker ('daily_tracker' → { 'YYYY-MM-DD': { fajr: true } }) birləşdirilir.
+    // Əvvəl mövcud olmayan 'prayer_stats' açarı oxunurdu — namaz sayı həmişə 0 idi
+    const dailyTracker = safeJSON('daily_tracker', {})
+    const prayerByDate = {}
+    const markPrayer = (date, p) => { (prayerByDate[date] ||= new Set()).add(p) }
+    for (const [k, v] of Object.entries(safeJSON('muslim_cc_prayer_stats', {}))) {
+      const m = /^(\d{4}-\d{2}-\d{2})_(Fajr|Dhuhr|Asr|Maghrib|Isha)$/.exec(k)
+      if (m && v) markPrayer(m[1], m[2].toLowerCase())
+    }
+    for (const [date, day] of Object.entries(dailyTracker)) {
+      if (!DATE_RE.test(date) || !day || typeof day !== 'object') continue
+      for (const p of PRAYER_NAMES) if (day[p] === true) markPrayer(date, p)
+    }
+    const prayerDates = Object.keys(prayerByDate)
     let totalPrayers = 0
     let weekPrayers = 0
     let monthPrayers = 0
@@ -116,8 +143,8 @@ export default function AnalyticsPage({ setPage }) {
     const monthPfx = getMonthPrefix()
     const maxDaily = 5
 
-    for (const [date, vals] of Object.entries(prayerStats)) {
-      const dayCount = Object.values(vals).filter(v => v === 1 || v === true).length
+    for (const [date, set] of Object.entries(prayerByDate)) {
+      const dayCount = set.size
       totalPrayers += dayCount
       if (weekDates.includes(date)) weekPrayers += dayCount
       if (date.startsWith(monthPfx)) monthPrayers += dayCount
@@ -127,10 +154,10 @@ export default function AnalyticsPage({ setPage }) {
 
     // 2. Quran stats
     const quranStats = safeJSON('quran_stats', { reads: {}, sessions: 0, dates: [] })
-    const quranSessions = quranStats.sessions || 0
-    const quranReads = quranStats.reads || {}
-    const uniqueSurahs = Object.keys(quranReads).length
-    const quranDates = quranStats.dates || []
+    const quranSessions = Number(quranStats.sessions) || 0
+    const quranReads = quranStats.reads && typeof quranStats.reads === 'object' ? quranStats.reads : {}
+    const uniqueSurahs = Math.min(114, Object.keys(quranReads).length)
+    const quranDates = Array.isArray(quranStats.dates) ? quranStats.dates.filter(d => typeof d === 'string' && DATE_RE.test(d)) : []
     const quranStreak = calcStreak(quranDates)
 
     // 3. Hifz progress
@@ -141,6 +168,8 @@ export default function AnalyticsPage({ setPage }) {
       if (v === 2) hifzMemorized++
       else if (v === 1) hifzInProgress++
     }
+    hifzMemorized = Math.min(hifzMemorized, totalSurahs)
+    hifzInProgress = Math.min(hifzInProgress, totalSurahs - hifzMemorized)
     hifzNotStarted = totalSurahs - hifzMemorized - hifzInProgress
 
     // 4. Hadith favs
@@ -151,45 +180,47 @@ export default function AnalyticsPage({ setPage }) {
 
     // 6. Dua journal
     const duaJournal = safeJSON('dua_journal', { duas: [] })
-    const journalDuas = duaJournal.duas || []
+    const journalDuas = Array.isArray(duaJournal.duas) ? duaJournal.duas.filter(d => d && typeof d === 'object') : []
     const duaActive = journalDuas.filter(d => !d.answered).length
     const duaAnswered = journalDuas.filter(d => d.answered).length
 
     // 7. Charity log
-    const charityLog = safeJSON('charity_log', [])
+    const charityLog = safeJSON('charity_log', []).filter(e => e && typeof e === 'object')
     const totalCharity = charityLog.length
     const totalAmount = charityLog.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0)
-    const charityDates = charityLog.map(e => e.date).filter(Boolean)
+    const charityDates = charityLog.map(e => e.date).filter(d => typeof d === 'string' && DATE_RE.test(d))
     const charityStreak = calcStreak(charityDates)
     const charityByType = {}
     for (const e of charityLog) {
-      const tp = e.type || 'other'
+      const tp = typeof e.type === 'string' && e.type ? e.type : 'other'
       charityByType[tp] = (charityByType[tp] || 0) + 1
     }
     const maxTypeCount = Math.max(1, ...Object.values(charityByType))
 
-    // 8. Daily tracker
-    const dailyTracker = safeJSON('daily_tracker', {})
+    // 8. Gündəlik izləyici — faiz 10 fəaliyyətə görə (əvvəl yalnız saxlanmış
+    // açarlara bölünürdü: bir qeyd işarələnən kimi "100%" görünürdü).
+    // /prayer-də işarələnən namazlar da sayılır (iki səhifə sinxrondur)
+    const doneOn = (date) => {
+      const dd = dailyTracker[date] && typeof dailyTracker[date] === 'object' ? dailyTracker[date] : {}
+      const keys = new Set(Object.keys(dd).filter(k => dd[k] === true))
+      prayerByDate[date]?.forEach(p => keys.add(p))
+      return Math.min(TRACKER_ITEMS, keys.size)
+    }
     const todayKey = todayStr()
-    const todayData = dailyTracker[todayKey] || {}
-    const todayItems = Object.values(todayData)
-    const todayTotal = todayItems.length
-    const todayDone = todayItems.filter(v => v === true).length
-    const todayPct = todayTotal > 0 ? Math.round((todayDone / todayTotal) * 100) : 0
+    const todayTotal = TRACKER_ITEMS
+    const todayDone = doneOn(todayKey)
+    const todayPct = Math.round((todayDone / todayTotal) * 100)
 
-    const weekAvgItems = weekDates.map(wd => {
-      const dd = dailyTracker[wd] || {}
-      const items = Object.values(dd)
-      return items.length > 0 ? items.filter(v => v === true).length / items.length : 0
-    })
+    const weekAvgItems = weekDates.map(wd => doneOn(wd) / TRACKER_ITEMS)
     const weekAvg = Math.round((weekAvgItems.reduce((a, b) => a + b, 0) / 7) * 100)
 
-    // 9. Dhikr
+    // 9. Zikr — /dhikr ömürlük sayğacı 'dhikr_count_total'-a yazır (aşağıdakı
+    // 'dhikr_count*' dövrü onu oxuyur); 'dhikr_sessions' köhnə formatdır
     let dhikrTotal = 0
     const dhikrSessions = safeJSON('dhikr_sessions', null)
     if (dhikrSessions && typeof dhikrSessions === 'object') {
       if (Array.isArray(dhikrSessions)) {
-        dhikrTotal = dhikrSessions.reduce((s, e) => s + (e.count || 0), 0)
+        dhikrTotal = dhikrSessions.reduce((s, e) => s + (Number(e?.count) || 0), 0)
       } else {
         dhikrTotal = Object.values(dhikrSessions).reduce((s, v) => s + (typeof v === 'number' ? v : 0), 0)
       }
@@ -203,26 +234,29 @@ export default function AnalyticsPage({ setPage }) {
     }
 
     // 10. Quiz scores
-    const quizScores = safeJSON('quiz_scores', {})
-    const quranGameScores = safeJSON('quran_game_scores', {})
+    // Yalnız rəqəm xallar (obyekt/sətir "[object Object]" kimi görünməsin)
+    const numbersOnly = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => Number.isFinite(v)))
+    const quizScores = numbersOnly(safeJSON('quiz_scores', {}))
+    // Quran müsabiqəsi ilk açılışda { complete: 0, surah: 0 } yazır — 0 xal göstərilmir
+    const quranGameScores = Object.fromEntries(Object.entries(numbersOnly(safeJSON('quran_game_scores', {}))).filter(([, v]) => v > 0))
 
     // Collect all unique dates
     const allDatesSet = new Set()
     prayerDates.forEach(d => allDatesSet.add(d))
     quranDates.forEach(d => allDatesSet.add(d))
-    Object.keys(dailyTracker).forEach(d => allDatesSet.add(d))
-    charityDates.forEach(d => allDatesSet.add(d))
+    Object.keys(dailyTracker).filter(d => DATE_RE.test(d) && doneOn(d) > 0).forEach(d => allDatesSet.add(d))
+    charityDates.filter(d => typeof d === 'string' && DATE_RE.test(d)).forEach(d => allDatesSet.add(d))
     const daysActive = allDatesSet.size
 
     // Any streak >= 7 or 30
-    const allStreaks = [prayerStreak, quranStreak, charityStreak, calcBestStreak(Object.keys(dailyTracker))]
+    const allStreaks = [prayerStreak, quranStreak, charityStreak, calcBestStreak(Object.keys(dailyTracker).filter(d => doneOn(d) > 0))]
     const maxStreak = Math.max(0, ...allStreaks)
 
     return {
       daysActive, totalPrayers, weekPrayers, monthPrayers, prayerRate, prayerStreak,
       quranSessions, uniqueSurahs, quranStreak,
       hifzMemorized, hifzInProgress, hifzNotStarted,
-      hadithFavs: hadithFavs.length, duaFavs: duaFavs.length,
+      hadithFavs: Array.isArray(hadithFavs) ? hadithFavs.length : 0, duaFavs: Array.isArray(duaFavs) ? duaFavs.length : 0,
       duaActive, duaAnswered, journalTotal: journalDuas.length,
       quizScores, quranGameScores,
       totalCharity, totalAmount, charityStreak, charityByType, maxTypeCount,
@@ -231,7 +265,11 @@ export default function AnalyticsPage({ setPage }) {
     }
   }, [])
 
-  const hasData = data.daysActive > 0
+  // Hər hansı bir bölmədə məlumat varsa "məlumat yoxdur" göstərilmir
+  // (əvvəl yalnız tarixli fəaliyyətə baxılırdı: sevimlilər, hifz, zikr nəzərə alınmırdı)
+  const hasData = data.daysActive > 0 || data.hadithFavs > 0 || data.duaFavs > 0 || data.journalTotal > 0 ||
+    data.hifzMemorized + data.hifzInProgress > 0 || data.dhikrTotal > 0 || Object.keys(data.quizScores).length > 0 ||
+    Object.keys(data.quranGameScores).length > 0
 
   // Achievements
   const achievements = useMemo(() => [
@@ -325,7 +363,7 @@ export default function AnalyticsPage({ setPage }) {
               <div className="analytics-card-body">
                 <div className="analytics-stat-row">
                   <span className="analytics-stat-label">{t.total}</span>
-                  <span className="analytics-stat-value highlight">{data.totalPrayers}</span>
+                  <span className="analytics-stat-value highlight ui-num" data-count={data.totalPrayers}>{data.totalPrayers}</span>
                 </div>
                 <div className="analytics-stat-row">
                   <span className="analytics-stat-label">{t.thisWeek}</span>
@@ -357,7 +395,7 @@ export default function AnalyticsPage({ setPage }) {
               <div className="analytics-card-body">
                 <div className="analytics-stat-row">
                   <span className="analytics-stat-label">{t.sessions}</span>
-                  <span className="analytics-stat-value highlight">{data.quranSessions}</span>
+                  <span className="analytics-stat-value highlight ui-num" data-count={data.quranSessions}>{data.quranSessions}</span>
                 </div>
                 <div className="analytics-stat-row">
                   <span className="analytics-stat-label">{t.surahs}</span>
@@ -404,7 +442,7 @@ export default function AnalyticsPage({ setPage }) {
               <div className="analytics-card-body">
                 <div className="analytics-stat-row">
                   <span className="analytics-stat-label">{t.favHadiths}</span>
-                  <span className="analytics-stat-value highlight">{data.hadithFavs}</span>
+                  <span className="analytics-stat-value highlight ui-num" data-count={data.hadithFavs}>{data.hadithFavs}</span>
                 </div>
                 <div className="analytics-stat-row">
                   <span className="analytics-stat-label">{t.duasSaved}</span>
@@ -449,7 +487,7 @@ export default function AnalyticsPage({ setPage }) {
               <div className="analytics-card-body">
                 <div className="analytics-stat-row">
                   <span className="analytics-stat-label">{t.total}</span>
-                  <span className="analytics-stat-value highlight">{data.totalCharity}</span>
+                  <span className="analytics-stat-value highlight ui-num" data-count={data.totalCharity}>{data.totalCharity}</span>
                 </div>
                 <div className="analytics-stat-row">
                   <span className="analytics-stat-label">{t.totalAmount}</span>

@@ -217,6 +217,9 @@ if (!admin.apps.length) {
 }
 const adminDb = admin.firestore()
 const adminMsg = admin.messaging()
+// Bildirişi brauzerdə Firebase SDK göstərir (firebase-messaging-sw.js) — ikon
+// və nişan buradan gəlir; mobil bildiriş zolağında saytın loqosu görünsün.
+const WEBPUSH_ICONS = { icon: '/android-chrome-192x192.png?v=2', badge: '/badge-96x96.png?v=2' }
 
 app.post('/api/send-notification', async (req, res) => {
   try {
@@ -235,7 +238,7 @@ app.post('/api/send-notification', async (req, res) => {
       const result = await adminMsg.sendEachForMulticast({
         tokens: chunk,
         notification: { title, body },
-        webpush: { fcmOptions: { link: url || '/' } }
+        webpush: { notification: { ...WEBPUSH_ICONS, tag: 'muslim-cc' }, fcmOptions: { link: url || '/' } }
       })
       successCount += result.successCount
       failureCount += result.failureCount
@@ -261,6 +264,8 @@ app.post('/api/send-notification', async (req, res) => {
 // • Ölü tokenlər (tətbiq silinib, icazə geri alınıb) Firestore-dan silinir.
 
 const { DEFAULT_LOC, LANGS, PRAYERS, PUSH_TEXTS, normLoc, locKey, nowIn, addDay } = require('./prayer-utils')
+const dailyAyah = require('./daily-ayah')   // "Günün ayəsi" planlayıcısı (aşağıda)
+const { normDaily } = dailyAyah
 const TOKENS_TTL_MS = 10 * 60 * 1000   // abunəçi siyahısı 10 dəqiqədə bir təzələnir
 
 /** aladhan-dan bir yerin bir günlük vaxtları → { fajr:'05:32', ... } | null */
@@ -296,7 +301,10 @@ async function loadTokens() {
     const loc = normLoc(d.loc)
     const key = locKey(loc)
     if (!groups.has(key)) groups.set(key, { loc, entries: [] })
-    groups.get(key).entries.push({ id: doc.id, token: d.token, lang: LANGS.includes(d.lang) ? d.lang : 'az' })
+    groups.get(key).entries.push({
+      id: doc.id, token: d.token, lang: LANGS.includes(d.lang) ? d.lang : 'az',
+      daily: normDaily(d.daily),   // "Günün ayəsi" seçimi — aşağıdakı planlayıcı üçün
+    })
   }
   tokenGroups = groups
   tokensLoadedAt = Date.now()
@@ -352,6 +360,7 @@ async function sendPrayerPush(group, prayer, now, day) {
         webpush: {
           // 20 dəqiqədən gec çatan azan bildirişinin mənası yoxdur
           headers: { Urgency: 'high', TTL: '1200' },
+          notification: { ...WEBPUSH_ICONS, tag: `azan-${prayer}` },
           fcmOptions: { link },
         },
       })
@@ -400,6 +409,117 @@ async function prayerTick() {
 // Hər 20 saniyədən bir yoxla (dəqiqə dəyişən kimi tutsun); başlanğıcda da bir dəfə
 setInterval(prayerTick, 20000)
 prayerTick()
+
+// ═══ GÜNÜN AYƏSİ PUSH PLANLAYICISI ═══════════════════════════════════
+// İstifadəçi bildiriş ayarlarında "Günün ayəsi"ni açıb saat seçəndə token
+// sənədinə daily:{ ayah:true, hour:8 } yazılır (susmaya görə sönülü).
+// • Abunəçilər namaz planlayıcısının yer qruplarından (tokenGroups) götürülür;
+//   hər qrupda yerli saat hour:00 olanda həmin saatı seçənlərə push gedir.
+// • Ayə: yerli tarixə görə deterministik (server/daily-ayah.js → ayahForDate).
+// • Mətn alquran.cloud-dan (hər ayə üçün bir sorğu bütün dilləri gətirir),
+//   keşlənir; API çatmasa həmin gün o saat üçün göndərilmir (uydurma mətn yox).
+// • tag 'daily-ayah' — eyni dəqiqədə gələn azan bildirişini əvəz etməsin.
+
+const ayahCache = new Map()      // ref → { data, at } | { failedAt }
+const ayahSentKeys = new Set()   // `${locKey}|${dateKey}|${hour}`
+
+async function fetchAyahPart(s, a) {
+  try {
+    const r = await fetch(dailyAyah.ayahApiUrl(s, a), { signal: AbortSignal.timeout(15000) })
+    if (!r.ok) return null
+    return dailyAyah.parseAyahResponse(await r.json(), s, a)
+  } catch (e) {
+    console.error('alquran.cloud fetch failed:', e.message)
+    return null
+  }
+}
+
+/** Günün ayəsinin mətnləri (keşdən və ya API-dən) | null */
+async function ayahDataFor(pick) {
+  const c = ayahCache.get(pick.ref)
+  if (c && c.data) return c.data
+  if (c && c.failedAt && Date.now() - c.failedAt < 2 * 60 * 1000) return null  // 2 dəq gözlə
+  const parts = []
+  for (let a = pick.a; a <= pick.to; a++) parts.push(await fetchAyahPart(pick.s, a))
+  const data = dailyAyah.mergeAyahParts(parts)
+  ayahCache.set(pick.ref, data ? { data, at: Date.now() } : { failedAt: Date.now() })
+  // 2 gündən köhnə keşi at (yaddaş böyüməsin; müxtəlif saat qurşaqları üçün 2 gün kifayətdir)
+  for (const [k, v] of ayahCache) if (v.at && Date.now() - v.at > 2 * 86400000) ayahCache.delete(k)
+  return data
+}
+
+async function sendAyahPush(group, list, pick, data) {
+  const byLang = new Map()
+  for (const e of list) {
+    if (!byLang.has(e.lang)) byLang.set(e.lang, [])
+    byLang.get(e.lang).push(e)
+  }
+  const dead = []
+  for (const [lang, entries] of byLang) {
+    const title = dailyAyah.ayahTitle(lang, pick, data.names)
+    const body = dailyAyah.truncateWords(data.texts[lang] || data.texts.ar)
+    const link = dailyAyah.ayahLink(lang, pick)
+    for (let i = 0; i < entries.length; i += 500) {
+      const chunk = entries.slice(i, i + 500)
+      const result = await adminMsg.sendEachForMulticast({
+        tokens: chunk.map(e => e.token),
+        notification: { title, body },
+        // firebase-messaging-sw.js öz bildirişini data.tag/data.url ilə göstərir
+        data: { tag: 'daily-ayah', url: link },
+        webpush: {
+          headers: { TTL: '21600' },   // 6 saatdan gec çatsa da mənalıdır
+          notification: { ...WEBPUSH_ICONS, tag: 'daily-ayah' },
+          fcmOptions: { link },
+        },
+      })
+      result.responses.forEach((r, j) => {
+        const code = (r.error && r.error.code) || ''
+        if (/registration-token-not-registered|invalid-registration-token|invalid-argument/.test(code)) dead.push(chunk[j].id)
+      })
+      console.log(`Push ayah ${pick.ref} [${lang} · ${group.loc.tz}]: ${result.successCount} çatdı, ${result.failureCount} alınmadı`)
+    }
+  }
+  for (const id of dead) {
+    try { await adminDb.collection('fcm_tokens').doc(id).delete() } catch { /* boş ver */ }
+  }
+  if (dead.length) {
+    console.log(`${dead.length} ölü token silindi`)
+    tokensLoadedAt = 0   // siyahı növbəti dövrdə təzələnsin
+  }
+}
+
+let ayahBusy = false
+async function dailyAyahTick() {
+  if (ayahBusy) return
+  ayahBusy = true
+  try {
+    for (const [key, group] of tokenGroups) {
+      const subs = group.entries.filter(e => e.daily)
+      if (!subs.length) continue
+      const now = nowIn(group.loc.tz)
+      const pick = dailyAyah.ayahForDate(now.dateKey)
+      // Mətni əvvəlcədən çək (gün başlayan kimi) — göndərmə dəqiqəsində API ləngiməsin
+      const data = await ayahDataFor(pick)
+      const hours = [...new Set(subs.map(e => e.daily.hour))]
+      for (const hour of hours) {
+        if (!dailyAyah.isDueNow(now.hhmm, hour)) continue
+        const sk = `${key}|${now.dateKey}|${hour}`
+        if (ayahSentKeys.has(sk)) continue
+        ayahSentKeys.add(sk)
+        if (!data) { console.warn(`Ayah ${pick.ref} [${group.loc.tz} ${hour}:00]: mətn alınmadı — göndərilmədi`); continue }
+        await sendAyahPush(group, subs.filter(e => e.daily.hour === hour), pick, data)
+      }
+      for (const k of ayahSentKeys) if (k.startsWith(key + '|') && !k.startsWith(`${key}|${now.dateKey}|`)) ayahSentKeys.delete(k)
+    }
+  } catch (e) {
+    console.error('dailyAyahTick error:', e)
+  } finally {
+    ayahBusy = false
+  }
+}
+
+// Abunəçi siyahısını prayerTick yükləyir; bu planlayıcı da hər 20 saniyədə yoxlayır
+setInterval(dailyAyahTick, 20000)
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API running on port ${PORT}`)

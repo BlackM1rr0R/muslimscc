@@ -192,6 +192,26 @@
 .ft-bottom p,
 .ft-made { font-size: 12.5px; color: var(--text-tertiary); }
 .ft-made { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Hüquqi linklər (Məxfilik · Şərtlər · Mənbələr) — hüquq sətrinin yanında, sakit */
+.ft-legal { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; }
+.ft-legal a {
+  display: inline-flex; align-items: center;
+  min-height: 32px; padding-inline: 6px;
+  font-size: 12.5px; color: var(--text-tertiary);
+  text-decoration: none;
+  border-radius: var(--radius-xs, 6px);
+  transition: color var(--dur-1, 150ms) ease;
+}
+.ft-legal a + a::before {
+  display: inline-block;
+  content: '·'; margin-inline-end: 10px; margin-inline-start: -4px;
+  color: var(--line-strong);
+}
+@media (hover: hover) {
+  .ft-legal a:hover { color: var(--text-strong); text-decoration: underline; text-underline-offset: 3px; }
+}
+@media (pointer: coarse) { .ft-legal a { min-height: 40px; } }
 .ft-heart { flex-shrink: 0; color: var(--accent); }
 @media (hover: hover) {
   .ft-made:hover .ft-heart { animation: ftBeat 700ms var(--ease-spring, ease) 1; }
@@ -218,6 +238,7 @@
   .ft-col a,
   .ft-col .ft-contact-line { min-height: 36px; font-size: 14.5px; }
   .ft-bottom { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .ft-legal { margin-inline-start: -6px; }
 }
 
 /* ── Ehtiyat: konteyner sorğusu olmayan brauzerlər ── */

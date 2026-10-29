@@ -558,11 +558,25 @@
   box-shadow: var(--shadow-1);
   transition: border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
 }
-/* Oxunan ayə: kart yumşaq vurğulanır */
-.ayah-card.is-playing {
-  border-color: var(--brand-line);
-  box-shadow: 0 0 0 3px var(--brand-soft-2), var(--shadow-1);
+/* Dinlənən ayə: kart yumşaq vurğulanır — halqa + başlanğıc kənarda zümrüd
+   xətt ayrıca qatdadır və yalnız opacity/transform ilə görünür (ayədən
+   ayəyə keçəndə vurğu "axır", yenidən çəkilmir) */
+.ayah-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1px var(--brand-line), 0 0 0 4px var(--brand-soft-2);
+  background: linear-gradient(var(--brand), var(--brand)) no-repeat;
+  background-size: 3px calc(100% - 32px);
+  background-position: 0 16px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.985);
+  transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-out);
 }
+[dir="rtl"] .ayah-card::after { background-position: 100% 16px; }
+.ayah-card.is-playing::after { opacity: 1; transform: none; }
 /* Keçid edilən ayə: qızılı halqa + yumşaq fon görünür və solur
    (yalnız opacity/transform; hərəkət azaldılıbsa — sabit, JS 2.6 s sonra götürür) */
 .ayah-flash {
@@ -908,6 +922,7 @@
 /* Sakit hərəkət: xüsusi animasiyalar söndürülür (motion.css §15 qalanını dayandırır) */
 @media (prefers-reduced-motion: reduce) {
   .ayah-play.playing::after { animation: none; opacity: 0; }
+  .ayah-card::after { transition: none; transform: none; }
   .verse-result-card,
   .qp-empty__icon,
   .ctrl-check,

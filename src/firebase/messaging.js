@@ -96,9 +96,12 @@ function readLS(key) {
 /** Sənədə yazılan namaz yeri — yalnız serverə lazım olan sahələr. */
 function locationPayload() {
   const loc = getPrayerLocation()
+  // MƏXFİLİK: dəqiq GPS nöqtəsi serverə getmir — 2 onluq rəqəm (~1 km)
+  // namaz vaxtı üçün kifayətdir (fərq saniyələrlə ölçülür)
+  const r2 = (v) => Math.round(Number(v) * 100) / 100
   return {
-    lat: loc.lat,
-    lng: loc.lng,
+    lat: r2(loc.lat),
+    lng: r2(loc.lng),
     tz: loc.tz,
     method: loc.method,
     city: { ...loc.city },
@@ -148,6 +151,26 @@ export async function updateTokenLocation() {
     return true
   } catch (e) {
     console.warn('FCM location update failed:', e.message)
+    return false
+  }
+}
+
+/**
+ * "Günün ayəsi" seçimi → token sənədində `daily: { ayah, hour }` (merge —
+ * digər sahələr, o cümlədən loc və createdAt, pozulmur). Server həmin saatda
+ * (istifadəçinin şəhərinin saatı ilə) push göndərir. Token yoxdursa false.
+ */
+export async function updateTokenDaily({ ayah, hour }) {
+  const token = readLS(TOKEN_KEY)
+  if (!token || !db || !isFirebaseConfigured()) return false
+  try {
+    await setDoc(doc(db, TOKENS_COLLECTION, token), {
+      daily: { ayah: Boolean(ayah), hour: Number(hour) },
+      updatedAt: serverTimestamp(),
+    }, { merge: true })
+    return true
+  } catch (e) {
+    console.warn('FCM daily update failed:', e.message)
     return false
   }
 }

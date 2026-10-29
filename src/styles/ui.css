@@ -966,3 +966,19 @@ button.ui-card:active,
   .ui-toast__progress { display: none; }
 }
 
+
+/* ── .ui-cv — ekrandan kənar bölmələrin render-ini təxirə sal ──
+   PERFORMANS: content-visibility: auto — bölmə görünən sahədən uzaqda
+   olanda brauzer onun daxili style/layout/paint işini atlayır (ana səhifədə
+   aşağı bölmələr ilk yüklənmədə ~1.3 s mobil style/layout işinin böyük
+   hissəsi idi). contain-intrinsic-size — render olunmamış bölmənin təxmini
+   hündürlüyü (sürüşdürmə zolağı "atılmasın"); "auto" — bir dəfə render
+   olunandan sonra brauzer əsl hündürlüyü yadda saxlayır. Hündürlüyü
+   istifadə edən yerdə --cv-h ilə dəqiqləşdirilir.
+   Diqqət: content-visibility paint containment verir — bölmədən kənara
+   çıxan kölgə/bəzək kəsilir; yalnız öz sərhədləri içində çəkilən
+   bölmələrə tətbiq et. */
+.ui-cv {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--cv-h, 600px);
+}

@@ -129,8 +129,8 @@ export default function PushNotificationManager() {
 
         <form onSubmit={handleSend} className="admin-form">
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.titleField}</label>
-            <input
+            <label className="admin-input-label" htmlFor="adm-pushnotification-1">{l.titleField}</label>
+            <input id="adm-pushnotification-1"
               type="text"
               className="admin-input"
               value={form.title}
@@ -141,8 +141,8 @@ export default function PushNotificationManager() {
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.bodyField}</label>
-            <textarea
+            <label className="admin-input-label" htmlFor="adm-pushnotification-2">{l.bodyField}</label>
+            <textarea id="adm-pushnotification-2"
               className="admin-input admin-textarea"
               value={form.body}
               onChange={(e) => setForm({...form, body:e.target.value})}
@@ -155,8 +155,8 @@ export default function PushNotificationManager() {
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.urlField}</label>
-              <input
+              <label className="admin-input-label" htmlFor="adm-pushnotification-3">{l.urlField}</label>
+              <input id="adm-pushnotification-3"
                 type="text"
                 className="admin-input"
                 value={form.url}
@@ -165,8 +165,8 @@ export default function PushNotificationManager() {
               />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.priorityHigh}</label>
-              <select
+              <label className="admin-input-label" htmlFor="adm-pushnotification-4">{l.priorityHigh}</label>
+              <select id="adm-pushnotification-4"
                 className="admin-input admin-select"
                 value={form.priority}
                 onChange={(e) => setForm({...form, priority:e.target.value})}

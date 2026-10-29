@@ -111,35 +111,35 @@ export default function VideoManager({ onUpdate }) {
       <AdminHeader icon="videos" title={l.title} sub={l.sub} />
 
       <div className="admin-section" data-reveal>
-        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editVideo : l.addNew}</SectionTitle>
+        <SectionTitle icon={editingId ? 'edit' : 'plus'}>{editingId ? l.editVideo : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
           <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.titleField} ({formLang.toUpperCase()})</label>
-              <input type="text" className="admin-input" value={form.title[formLang]} onChange={(e) => setForm({...form, title:{...form.title, [formLang]:e.target.value}})} placeholder={l.titleField} />
+              <label className="admin-input-label" htmlFor="adm-video-1">{l.titleField} ({formLang.toUpperCase()})</label>
+              <input id="adm-video-1" type="text" className="admin-input" value={form.title[formLang]} onChange={(e) => setForm({...form, title:{...form.title, [formLang]:e.target.value}})} placeholder={l.titleField} />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.duration}</label>
-              <input type="text" className="admin-input" value={form.duration} onChange={(e) => setForm({...form, duration:e.target.value})} placeholder="12:34" />
+              <label className="admin-input-label" htmlFor="adm-video-2">{l.duration}</label>
+              <input id="adm-video-2" type="text" className="admin-input" value={form.duration} onChange={(e) => setForm({...form, duration:e.target.value})} placeholder="12:34" />
             </div>
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.descField} ({formLang.toUpperCase()})</label>
-            <textarea className="admin-input admin-textarea" value={form.description[formLang]} onChange={(e) => setForm({...form, description:{...form.description, [formLang]:e.target.value}})} placeholder={l.descField} />
+            <label className="admin-input-label" htmlFor="adm-video-3">{l.descField} ({formLang.toUpperCase()})</label>
+            <textarea id="adm-video-3" className="admin-input admin-textarea" value={form.description[formLang]} onChange={(e) => setForm({...form, description:{...form.description, [formLang]:e.target.value}})} placeholder={l.descField} />
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.youtubeUrl}</label>
-              <input type="text" className="admin-input" value={form.youtubeUrl} onChange={(e) => setForm({...form, youtubeUrl:e.target.value})} placeholder="https://www.youtube.com/watch?v=..." />
+              <label className="admin-input-label" htmlFor="adm-video-4">{l.youtubeUrl}</label>
+              <input id="adm-video-4" type="text" className="admin-input" value={form.youtubeUrl} onChange={(e) => setForm({...form, youtubeUrl:e.target.value})} placeholder="https://www.youtube.com/watch?v=..." />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.category}</label>
-              <select className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
+              <label className="admin-input-label" htmlFor="adm-video-5">{l.category}</label>
+              <select id="adm-video-5" className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
                 {VIDEO_CATEGORIES.filter(c => c.key !== 'all').map(c => (
                   <option key={c.key} value={c.key}>{c.label[lang]}</option>
                 ))}
@@ -185,7 +185,7 @@ export default function VideoManager({ onUpdate }) {
                     {adminPick(v.description, lang) && <p className="admin-video-desc">{adminPick(v.description, lang)}</p>}
                     {!isDefault && (
                       <div className="admin-video-actions">
-                        <button className="admin-action-btn edit" onClick={() => handleEdit(v)}><Icon name="duajournal" /> {l.edit}</button>
+                        <button className="admin-action-btn edit" onClick={() => handleEdit(v)}><Icon name="edit" /> {l.edit}</button>
                         <button className="admin-action-btn delete" onClick={() => handleDelete(v.id)}><Icon name="trash" /> {l.delete}</button>
                       </div>
                     )}

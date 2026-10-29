@@ -34,6 +34,7 @@ export const PAGES = [
   { key: 'donate',        path: 'donate',        priority: 0.70, changefreq: 'monthly' },
   { key: 'quran',        path: 'quran',        priority: 0.95, changefreq: 'weekly'  },
   { key: 'prayer',       path: 'prayer',       priority: 0.95, changefreq: 'daily'   },
+  { key: 'ramadan',      path: 'ramadan',      priority: 0.8,  changefreq: 'daily'   },
   { key: 'hadith',       path: 'hadith',       priority: 0.90, changefreq: 'weekly'  },
   { key: 'duas',         path: 'duas',         priority: 0.90, changefreq: 'weekly'  },
   { key: 'dhikr',        path: 'dhikr',        priority: 0.85, changefreq: 'monthly' },
@@ -61,6 +62,9 @@ export const PAGES = [
   { key: 'aichat',       path: 'aichat',       priority: 0.75, changefreq: 'monthly' },
   { key: 'kids',         path: 'kids',         priority: 0.70, changefreq: 'monthly' },
   { key: 'about',        path: 'about',        priority: 0.50, changefreq: 'monthly' },
+  { key: 'privacy',      path: 'privacy',      priority: 0.30, changefreq: 'yearly'  },
+  { key: 'terms',        path: 'terms',        priority: 0.30, changefreq: 'yearly'  },
+  { key: 'licenses',     path: 'licenses',     priority: 0.30, changefreq: 'yearly'  },
 
   // Admin — indekslənmir, sitemap-a düşmür
   { key: 'adminlogin',   path: 'adminlogin',   noindex: true },

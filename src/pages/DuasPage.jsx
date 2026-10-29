@@ -153,7 +153,8 @@ export default function DuasPage({ setPage }) {
   const l = lk(lang)
   const ui = UI[l]
   const [selectedCat, setSelectedCat] = useState('All')
-  const [favs, setFavs] = useState(() => { try { return JSON.parse(localStorage.getItem('dua_favs')) || [] } catch { return [] } })
+  // Pozuq yaddaş (massiv deyilsə) sevimliləri sıfırlayır — .includes çökməsin
+  const [favs, setFavs] = useState(() => { try { const v = JSON.parse(localStorage.getItem('dua_favs')); return Array.isArray(v) ? v : [] } catch { return [] } })
   const [showFavs, setShowFavs] = useState(false)
   const [customDuas, setCustomDuas] = useState([])
   const [query, setQuery] = useState('')

@@ -200,6 +200,11 @@
 }
 @media (max-width: 419.98px) {
   .history-tab-count { display: none; }
+  /* Dar telefonda (320–420px) ad kəsilirdi ("Peyğəmbərl…", "Исторические соб…"):
+     ikon gizlənir, ad lazım olsa iki sətrə keçir */
+  .history-page .history-tab-btn { padding-inline: 8px; }
+  .history-page .history-tab-btn > svg { display: none; }
+  .history-tab-label { overflow: visible; text-overflow: clip; white-space: normal; text-align: center; line-height: 1.2; }
 }
 
 @media (prefers-reduced-motion: reduce) {

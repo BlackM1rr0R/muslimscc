@@ -312,6 +312,7 @@
   color: var(--text-body);
   font: inherit;
   text-align: start;
+  text-decoration: none;   /* indi həqiqi <a> — alt xətt olmasın */
   cursor: pointer;
   transition: border-color var(--dur-2) ease, background-color var(--dur-2) ease, transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease;
 }

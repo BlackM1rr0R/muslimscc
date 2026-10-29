@@ -120,6 +120,29 @@
   to   { opacity: 1; transform: none; }
 }
 
+/* ── Qeyd sətrinin girişi/çıxışı və rəqəm "döyüntüsü" (yalnız transform/opacity) ──
+   Yeni qeyd yuxarıdan yumşaq enir; silinən sola/sağa sürüşüb sönür (sonra DOM-dan çıxır —
+   CharityPage.jsx → handleDelete, exitDelay). Seçici gücləndirilib: stagger qaydası
+   (motion.css) uşaqlara öz animasiyasını verir. */
+.ch-page .ch-entry-list > .ch-entry.is-new { animation: chEntryIn var(--dur-3) var(--ease-spring) both; }
+.ch-page .ch-entry-list > .ch-entry.is-leaving {
+  animation: chEntryOut 220ms var(--ease-in) forwards;
+  pointer-events: none;
+}
+@keyframes chEntryIn {
+  from { opacity: 0; transform: translate3d(0, -10px, 0) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes chEntryOut {
+  to { opacity: 0; transform: translate3d(calc(var(--ch-out-dir, 1) * 24px), 0, 0) scale(.98); }
+}
+[dir="rtl"] .ch-page .ch-entry-list > .ch-entry.is-leaving { --ch-out-dir: -1; }
+.ch-page .ch-bump { display: inline-block; animation: chBump var(--dur-3) var(--ease-spring) both; }
+@keyframes chBump {
+  from { opacity: .4; transform: translate3d(0, 6px, 0) scale(.92); }
+  to   { opacity: 1; transform: none; }
+}
+
 /* ── Süzgəc ── */
 .ch-filter { margin-bottom: var(--space-4); }
 .ch-filter-label {
@@ -224,7 +247,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ch-added-msg { animation: none; }
+  .ch-added-msg,
+  .ch-page .ch-bump,
+  .ch-page .ch-entry-list > .ch-entry.is-new,
+  .ch-page .ch-entry-list > .ch-entry.is-leaving { animation: none; }
   .ch-type-btn, .ch-type-btn svg, .ch-page .ch-entry-card { transition: none; }
   .ch-type-btn[aria-pressed="true"] svg { transform: none; }
 }

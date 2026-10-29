@@ -34,6 +34,8 @@ export const NAV_GROUPS = [
         label: { az: 'Ana səhifə', en: 'Home', ru: 'Главная', ar: 'الصفحة الرئيسية', tr: 'Ana Sayfa' } },
       { key: 'prayer', icon: '🕐',
         label: { az: 'Namaz vaxtları', en: 'Prayer Times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz Vakitleri' } },
+      { key: 'ramadan', icon: '🌙',
+        label: { az: 'İmsakiyyə', en: 'Ramadan Timetable', ru: 'Расписание на Рамадан', ar: 'إمساكية رمضان', tr: 'İmsakiye' } },
       { key: 'jamaat', icon: '🤝',
         label: { az: 'Camaat və cümə', en: 'Congregation & Friday', ru: 'Джамаат и Джума', ar: 'الجماعة والجمعة', tr: 'Cemaat ve Cuma' } },
       { key: 'announcements', icon: '📢',

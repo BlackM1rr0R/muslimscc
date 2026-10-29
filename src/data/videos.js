@@ -95,5 +95,5 @@ export function getEmbedUrl(youtubeId, opts = {}) {
     modestbranding: '1',      // sade YouTube logo
     enablejsapi: '1',
   })
-  return `https://www.youtube.com/embed/${youtubeId}?${params.toString()}`
+  return `https://www.youtube-nocookie.com/embed/${youtubeId}?${params.toString()}`
 }

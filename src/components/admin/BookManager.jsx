@@ -118,54 +118,54 @@ export default function BookManager({ onUpdate }) {
       <AdminHeader icon="books" title={l.title} sub={l.sub} />
 
       <div className="admin-section" data-reveal>
-        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editBook : l.addNew}</SectionTitle>
+        <SectionTitle icon={editingId ? 'edit' : 'plus'}>{editingId ? l.editBook : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
           <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.titleField} ({formLang.toUpperCase()})</label>
-              <input type="text" className="admin-input" value={form.title[formLang]} onChange={(e) => setForm({...form, title:{...form.title, [formLang]:e.target.value}})} placeholder={l.titleField} />
+              <label className="admin-input-label" htmlFor="adm-book-1">{l.titleField} ({formLang.toUpperCase()})</label>
+              <input id="adm-book-1" type="text" className="admin-input" value={form.title[formLang]} onChange={(e) => setForm({...form, title:{...form.title, [formLang]:e.target.value}})} placeholder={l.titleField} />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.authorField} ({formLang.toUpperCase()})</label>
-              <input type="text" className="admin-input" value={form.author[formLang]} onChange={(e) => setForm({...form, author:{...form.author, [formLang]:e.target.value}})} placeholder={l.authorField} />
+              <label className="admin-input-label" htmlFor="adm-book-2">{l.authorField} ({formLang.toUpperCase()})</label>
+              <input id="adm-book-2" type="text" className="admin-input" value={form.author[formLang]} onChange={(e) => setForm({...form, author:{...form.author, [formLang]:e.target.value}})} placeholder={l.authorField} />
             </div>
           </div>
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.descField} ({formLang.toUpperCase()})</label>
-            <textarea className="admin-input admin-textarea" value={form.description[formLang]} onChange={(e) => setForm({...form, description:{...form.description, [formLang]:e.target.value}})} placeholder={l.descField} rows={3} />
+            <label className="admin-input-label" htmlFor="adm-book-3">{l.descField} ({formLang.toUpperCase()})</label>
+            <textarea id="adm-book-3" className="admin-input admin-textarea" value={form.description[formLang]} onChange={(e) => setForm({...form, description:{...form.description, [formLang]:e.target.value}})} placeholder={l.descField} rows={3} />
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.coverUrl}</label>
-              <input type="text" className="admin-input" value={form.coverUrl} onChange={(e) => setForm({...form, coverUrl:e.target.value})} placeholder="https://..." />
+              <label className="admin-input-label" htmlFor="adm-book-4">{l.coverUrl}</label>
+              <input id="adm-book-4" type="text" className="admin-input" value={form.coverUrl} onChange={(e) => setForm({...form, coverUrl:e.target.value})} placeholder="https://..." />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.pdfUrl}</label>
-              <input type="text" className="admin-input" value={form.pdfUrl} onChange={(e) => setForm({...form, pdfUrl:e.target.value})} placeholder="https://.../book.pdf" />
+              <label className="admin-input-label" htmlFor="adm-book-5">{l.pdfUrl}</label>
+              <input id="adm-book-5" type="text" className="admin-input" value={form.pdfUrl} onChange={(e) => setForm({...form, pdfUrl:e.target.value})} placeholder="https://.../book.pdf" />
             </div>
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.category}</label>
-              <select className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
+              <label className="admin-input-label" htmlFor="adm-book-6">{l.category}</label>
+              <select id="adm-book-6" className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
                 {BOOK_CATEGORIES.filter(c => c.key !== 'all').map(c => (
                   <option key={c.key} value={c.key}>{c.label[lang]}</option>
                 ))}
               </select>
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.pages}</label>
-              <input type="number" min="1" className="admin-input" value={form.pages} onChange={(e) => setForm({...form, pages:e.target.value})} placeholder="240" />
+              <label className="admin-input-label" htmlFor="adm-book-7">{l.pages}</label>
+              <input id="adm-book-7" type="number" min="1" className="admin-input" value={form.pages} onChange={(e) => setForm({...form, pages:e.target.value})} placeholder="240" />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.year}</label>
-              <input type="number" className="admin-input" value={form.year} onChange={(e) => setForm({...form, year:e.target.value})} placeholder="2020" />
+              <label className="admin-input-label" htmlFor="adm-book-8">{l.year}</label>
+              <input id="adm-book-8" type="number" className="admin-input" value={form.year} onChange={(e) => setForm({...form, year:e.target.value})} placeholder="2020" />
             </div>
           </div>
 
@@ -219,7 +219,7 @@ export default function BookManager({ onUpdate }) {
                     {adminPick(b.description, lang) && <p className="admin-video-desc">{adminPick(b.description, lang)}</p>}
                     {!isDefault && (
                       <div className="admin-video-actions">
-                        <button className="admin-action-btn edit" onClick={() => handleEdit(b)}><Icon name="duajournal" /> {l.edit}</button>
+                        <button className="admin-action-btn edit" onClick={() => handleEdit(b)}><Icon name="edit" /> {l.edit}</button>
                         <button className="admin-action-btn delete" onClick={() => handleDelete(b.id)}><Icon name="trash" /> {l.delete}</button>
                       </div>
                     )}

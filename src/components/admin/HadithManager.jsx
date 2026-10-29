@@ -81,12 +81,12 @@ export default function HadithManager({ onUpdate }) {
       <AdminHeader icon="hadith" title={l.title} sub={l.sub} />
 
       <div className="admin-section" data-reveal>
-        <SectionTitle icon={editingId ? 'duajournal' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
+        <SectionTitle icon={editingId ? 'edit' : 'plus'}>{editingId ? l.editItem : l.addNew}</SectionTitle>
 
         <form onSubmit={handleSubmit} className="admin-form">
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.arabicText}</label>
-            <textarea
+            <label className="admin-input-label" htmlFor="adm-hadith-1">{l.arabicText}</label>
+            <textarea id="adm-hadith-1"
               className="admin-input admin-textarea admin-input--arabic"
               value={form.ar}
               onChange={(e) => setForm({...form, ar:e.target.value})}
@@ -98,18 +98,18 @@ export default function HadithManager({ onUpdate }) {
           <LangTabs value={formLang} onChange={setFormLang} />
 
           <div className="admin-input-group">
-            <label className="admin-input-label">{l.translation} ({formLang.toUpperCase()})</label>
-            <textarea className="admin-input admin-textarea" value={form.text[formLang]} onChange={(e) => setForm({...form, text:{...form.text, [formLang]:e.target.value}})} placeholder={l.translation} />
+            <label className="admin-input-label" htmlFor="adm-hadith-2">{l.translation} ({formLang.toUpperCase()})</label>
+            <textarea id="adm-hadith-2" className="admin-input admin-textarea" value={form.text[formLang]} onChange={(e) => setForm({...form, text:{...form.text, [formLang]:e.target.value}})} placeholder={l.translation} />
           </div>
 
           <div className="admin-form-row">
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.source}</label>
-              <input type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder={l.sourcePh} />
+              <label className="admin-input-label" htmlFor="adm-hadith-3">{l.source}</label>
+              <input id="adm-hadith-3" type="text" className="admin-input" value={form.source} onChange={(e) => setForm({...form, source:e.target.value})} placeholder={l.sourcePh} />
             </div>
             <div className="admin-input-group">
-              <label className="admin-input-label">{l.category}</label>
-              <select className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
+              <label className="admin-input-label" htmlFor="adm-hadith-4">{l.category}</label>
+              <select id="adm-hadith-4" className="admin-input admin-select" value={form.category} onChange={(e) => setForm({...form, category:e.target.value})}>
                 {CUSTOM_HADITH_CATS.map(c => (
                   <option key={c.key} value={c.key}>{c.label[lang]}</option>
                 ))}
@@ -144,7 +144,7 @@ export default function HadithManager({ onUpdate }) {
                   <div className="admin-item__head">
                     <span className="ui-badge">{cat?.label[lang]}</span>
                     <div className="admin-item__actions">
-                      <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(h)} title={l.edit} aria-label={l.edit}><Icon name="duajournal" /></button>
+                      <button type="button" className="admin-action-btn admin-action-btn--icon edit" onClick={() => handleEdit(h)} title={l.edit} aria-label={l.edit}><Icon name="edit" /></button>
                       <button type="button" className="admin-action-btn admin-action-btn--icon delete" onClick={() => handleDelete(h.id)} title={l.delete} aria-label={l.delete}><Icon name="trash" /></button>
                     </div>
                   </div>

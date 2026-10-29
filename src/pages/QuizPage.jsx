@@ -848,15 +848,21 @@ function getOptionText(opt, lang) {
 
 function loadScores() {
   try {
-    return JSON.parse(localStorage.getItem('quiz_scores')) || {}
+    const v = JSON.parse(localStorage.getItem('quiz_scores'))
+    // Pozuq yaddaş: obyekt deyilsə (rəqəm, sətir, massiv) sıfırdan başla —
+    // əks halda xal yazanda TypeError atılırdı
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return {}
+    return Object.fromEntries(Object.entries(v).filter(([, n]) => Number.isFinite(n)))
   } catch { return {} }
 }
 
 function saveScore(category, score) {
   const scores = loadScores()
-  if (!scores[category] || score > scores[category]) {
+  // Əvvəlki nəticə yoxdursa və ya yeni nəticə böyükdürsə — rekord.
+  // (Əvvəl "!scores[category]" idi: rekord 0 olanda yenə 0 toplamaq "Yeni rekord!" sayılırdı)
+  if (!Number.isFinite(scores[category]) || score > scores[category]) {
     scores[category] = score
-    localStorage.setItem('quiz_scores', JSON.stringify(scores))
+    try { localStorage.setItem('quiz_scores', JSON.stringify(scores)) } catch { /* yaddaş bağlıdır */ }
     return true
   }
   return false
@@ -951,6 +957,26 @@ export default function QuizPage({ setPage }) {
       scrollToQuestion()
     }
   }
+
+  // Klaviatura: 1–4 və ya A–D — variant seçir, Enter — növbəti sual
+  // (yazı sahəsində deyilsə və modifikator düyməsi basılmayıbsa)
+  const keyRef = useRef({})
+  keyRef.current = { phase, answered, questions, currentQ, handleSelect, handleNext }
+  useEffect(() => {
+    const onKey = (e) => {
+      const k = keyRef.current
+      if (k.phase !== 'quiz' || e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return
+      const q = k.questions[k.currentQ]
+      if (!q) return
+      const key = e.key.toLowerCase()
+      const idx = /^[1-9]$/.test(key) ? Number(key) - 1 : 'abcd'.indexOf(key)
+      if (!k.answered && idx >= 0 && idx < q.options.length) { e.preventDefault(); k.handleSelect(idx) }
+      else if (k.answered && e.key === 'Enter' && e.target?.tagName !== 'BUTTON') { e.preventDefault(); k.handleNext() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const handleReplay = () => {
     setPhase('categories')
@@ -1100,7 +1126,8 @@ export default function QuizPage({ setPage }) {
             <div className="ui-card quiz-results-card">
               <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
               {isNewBest && <span className="ui-badge ui-badge--accent quiz-new-best"><Icon name="star" size={14} />{t.newBest}</span>}
-              <div className="quiz-results-score ui-num">{pct}%</div>
+              {/* Faiz 0-dan sayaraq çıxır (data-count — hərəkət azaldılıbsa dərhal) */}
+              <div className="quiz-results-score ui-num" data-count={pct}>{`${pct}%`}</div>
               <div className="quiz-results-label">{t.score}</div>
               {/* Düzgün cavabların payı — zolaq sıfırdan dolur (transform) */}
               <div className="quiz-results-bar" aria-hidden="true">
@@ -1108,7 +1135,7 @@ export default function QuizPage({ setPage }) {
               </div>
               <div className="quiz-results-stats">
                 <div className="quiz-stat quiz-stat-correct">
-                  <span className="quiz-stat-num">{correctCount}</span>
+                  <span className="quiz-stat-num" data-count={correctCount}>{correctCount}</span>
                   <span className="quiz-stat-label">{t.correct}</span>
                 </div>
                 <div className="quiz-stat quiz-stat-wrong">

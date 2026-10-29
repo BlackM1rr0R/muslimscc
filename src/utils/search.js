@@ -407,7 +407,7 @@ export function isNotHadith(source) {
 
 /**
  * Yerli məlumatdan axtarış elementləri.
- * data  = { hadiths: HADITHS, quotes: QUOTES, duas: DUAS_DATA, names: NAMES_99, glossary: GLOSSARY }
+ * data  = { hadiths: HADITHS | hadithList: təkrarsız siyahı, quotes: QUOTES, duas: DUAS_DATA, names: NAMES_99, glossary: GLOSSARY }
  * pages = [{ key, title, desc, group, icon, keywords }]
  */
 export function buildSources(data, lang, pages = []) {
@@ -429,7 +429,10 @@ export function buildSources(data, lang, pages = []) {
   // tərcümə eynidirsə — bir hədis; ilk rast gələn qalır).
   // Mənbə həm orijinal ("Buxari 645"), həm cari dildəki yazılışla ("Bukhari 645") tapılır.
   const srcAlt = (s) => { const l = localizeSource(s, lang); return l !== s ? l : '' }
-  const hadiths = data.hadiths ? uniqueHadithsFor(data.hadiths, lang) : []
+  // data.hadithList — cari dilin build-zamanı hazırlanmış təkrarsız siyahısı
+  // (GlobalSearch → utils/hadithData.js); data.hadiths (bütöv HADITHS) — köhnə yol
+  // (Node / testlər), nəticə eynidir
+  const hadiths = data.hadithList || (data.hadiths ? uniqueHadithsFor(data.hadiths, lang) : [])
   for (const h of hadiths) {
     // Hədis olmayanlar "Hədislər" qrupuna düşmür:
     //   • mənbəsi surə + ayə olanlar ("Bəqərə 155", "Quran, Hucurat 13") —
