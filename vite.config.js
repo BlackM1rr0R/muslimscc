@@ -91,8 +91,27 @@ function hadithLangPlugin() {
   }
 }
 
+// ── Versiya nömrəsi (ana ekrandakı tətbiqin yenilənməsi üçün) ──
+// Hər build-in unikal ID-si koda (__BUILD_ID__) və dist/version.json-a yazılır.
+// Açıq tətbiq vaxtaşırı version.json-u oxuyur; fərqlidirsə yeni versiya
+// çıxıb — bax src/utils/appUpdate.js.
+const BUILD_ID = process.env.GITHUB_SHA
+  ? `${process.env.GITHUB_SHA.slice(0, 12)}-${Date.now().toString(36)}`
+  : `local-${Date.now().toString(36)}`
+
+function versionFilePlugin() {
+  return {
+    name: 'muslims-version-file',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ build: BUILD_ID }) })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), dailyPoolsPlugin(), hadithLangPlugin()],
+  plugins: [react(), dailyPoolsPlugin(), hadithLangPlugin(), versionFilePlugin()],
+  define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
 
   // Firebase ilə yalnız bir React nüsxəsi olsun deyə
   resolve: {

@@ -26,7 +26,7 @@ if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 }
 
 const { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL } = process.env
-const FIREBASE_PRIVATE_KEY = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\n/g, '\n')
+const FIREBASE_PRIVATE_KEY = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')   // env-də "\n" iki simvoldur (server.js ilə eyni)
 if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
   console.error('XƏTA: FIREBASE_PROJECT_ID / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY env-də yoxdur')
   process.exit(1)

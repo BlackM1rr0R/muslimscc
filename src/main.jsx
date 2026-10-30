@@ -12,6 +12,7 @@ import './styles/motion.css'
 import { initReveal } from './hooks/useReveal'
 import { initInputModality } from './hooks/useInputModality'
 import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
+import { startUpdateWatcher } from './utils/appUpdate'
 
 // Fokus halqası yalnız klaviatura ilə (toxunuşdan sonra narıncı halqa yox)
 // və [data-reveal] elementləri üçün tək qlobal IntersectionObserver
@@ -30,6 +31,9 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {})
   })
 }
+
+// Yeni versiya çıxanda açıq sayt / ana ekrandakı tətbiq özü yenilənsin
+startUpdateWatcher()
 
 function render() {
   const root = ReactDOM.createRoot(document.getElementById('root'))
