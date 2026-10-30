@@ -2,7 +2,8 @@
 // VERCEL SERVERLESS FUNCTION — Send Push Notifications
 // ═══════════════════════════════════════════════════════
 // Endpoint: POST /api/send-notification
-// Body: { title, body, url, priority, adminToken }
+// Header: Authorization: Bearer <Firebase ID token> (admin: true claim)
+// Body: { title, body, url, priority }
 // Response: { successCount, failureCount }
 //
 // Setup:
@@ -13,13 +14,13 @@
 //      FIREBASE_PROJECT_ID
 //      FIREBASE_CLIENT_EMAIL
 //      FIREBASE_PRIVATE_KEY     (multi-line dəstəyi üçün \n istifadə et)
-//      ADMIN_TOKEN              (sizin müəyyən etdiyiniz açar — sızdırmayın)
 //      ALLOWED_ORIGIN           (məs. https://muslims.cc)
 // ═══════════════════════════════════════════════════════
 
 import { initializeApp, cert, getApps } from 'firebase-admin/app'
 import { getMessaging } from 'firebase-admin/messaging'
 import { getFirestore } from 'firebase-admin/firestore'
+import { getAuth } from 'firebase-admin/auth'
 
 function initFirebaseAdmin() {
   if (getApps().length > 0) return
@@ -38,22 +39,24 @@ export default async function handler(req, res) {
   const origin = process.env.ALLOWED_ORIGIN || '*'
   res.setHeader('Access-Control-Allow-Origin', origin)
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
-    const { title, body, url = '/', priority = 'normal', adminToken } = req.body || {}
+    const { title, body, url = '/', priority = 'normal' } = req.body || {}
 
-    // Admin auth (admin paneldən yalnız aktiv adminlər göndərə bilsin)
-    if (!process.env.ADMIN_TOKEN || adminToken !== process.env.ADMIN_TOKEN) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
+    // Admin auth: Firebase ID tokeni + `admin: true` claim (docs/ADMIN-SECURITY.md)
+    initFirebaseAdmin()
+    const m = /^Bearer\s+(.+)$/i.exec(req.headers.authorization || '')
+    if (!m) return res.status(401).json({ error: 'Unauthorized' })
+    let decoded
+    try { decoded = await getAuth().verifyIdToken(m[1], true) } catch { return res.status(401).json({ error: 'Unauthorized' }) }
+    if (decoded.admin !== true) return res.status(403).json({ error: 'Forbidden' })
     if (!title || !body) {
       return res.status(400).json({ error: 'title and body required' })
     }
 
-    initFirebaseAdmin()
     const db = getFirestore()
     const messaging = getMessaging()
 

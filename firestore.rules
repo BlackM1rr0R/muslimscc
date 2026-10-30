@@ -1,0 +1,123 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════════
+// Muslims.cc — Firestore təhlükəsizlik qaydaları
+//
+// • İctimai məzmun (admin panelindən idarə olunur): hamı oxuyur, yalnız
+//   admin yazır. Admin = Firebase Auth istifadəçisi + custom claim
+//   `admin: true` (server/scripts/set-admin.js ilə verilir).
+// • fcm_tokens: brauzer YALNIZ öz tokenini yaza/silə bilər; heç kim oxuya
+//   bilməz (server Admin SDK ilə oxuyur — Admin SDK qaydalardan asılı deyil).
+// • Qalan hər şey bağlıdır.
+//
+// Yayımlama: docs/ADMIN-SECURITY.md (ardıcıllıq vacibdir!)
+// Test: npm run test:rules (Firestore emulyatoru, Java tələb edir)
+// ═══════════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Köməkçilər ────────────────────────────────────────────────────
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Mətndir və uzunluğu n-dən çox deyil
+    function strMax(v, n) {
+      return v is string && v.size() <= n;
+    }
+
+    // ── İctimai məzmun: hamı oxuyur, admin yazır ─────────────────────
+    match /videos/{id}        { allow read: if true; allow write: if isAdmin(); }
+    match /books/{id}         { allow read: if true; allow write: if isAdmin(); }
+    match /hadiths/{id}       { allow read: if true; allow write: if isAdmin(); }
+    match /duas/{id}          { allow read: if true; allow write: if isAdmin(); }
+    match /quotes/{id}        { allow read: if true; allow write: if isAdmin(); }
+    match /announcements/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /events/{id}        { allow read: if true; allow write: if isAdmin(); }
+    match /places/{id}        { allow read: if true; allow write: if isAdmin(); }
+
+    // Tək sənədlər: singletons/daily, singletons/hero, singletons/settings
+    match /singletons/{id} {
+      allow read: if true;
+      allow write: if isAdmin() && id in ['daily', 'hero', 'settings'];
+    }
+
+    // ── Yalnız admin ─────────────────────────────────────────────────
+    // Göndərilmiş push bildirişlərinin tarixçəsi (admin paneli)
+    match /notification_history/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // ── Push abunəlikləri: fcm_tokens/<token> ────────────────────────
+    // Sənədin ID-si FCM tokenin özüdür — onu bilməyən başqasının sənədinə
+    // toxuna bilməz. Oxuma tam bağlıdır (yer, dil, brauzer — məxfi məlumat).
+    match /fcm_tokens/{token} {
+      allow get, list: if false;
+
+      // Yeni sənəd: yalnız icazəli sahələr, token = sənəd ID-si
+      allow create: if request.resource.data.keys().hasOnly(TOKEN_FIELDS())
+                    && validTokenDoc(token, request.resource.data, request.resource.data.keys());
+
+      // Yeniləmə (setDoc merge): yalnız DƏYİŞƏN sahələr yoxlanır — köhnə
+      // sənədlərdəki tanış olmayan sahələr yeniləməni bloklamasın.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(TOKEN_FIELDS())
+                    && validTokenDoc(token, request.resource.data,
+                                     request.resource.data.diff(resource.data).affectedKeys());
+
+      // "Söndür" düyməsi — ID-ni (tokeni) bilən silə bilər
+      allow delete: if true;
+    }
+
+    function TOKEN_FIELDS() {
+      return ['token', 'userAgent', 'lang', 'loc', 'daily', 'azan', 'createdAt', 'updatedAt'];
+    }
+
+    // d — yekun sənəd, ch — yoxlanacaq sahələr (create: hamısı; update: dəyişənlər)
+    function validTokenDoc(token, d, ch) {
+      return d.token == token
+        && token.size() <= 1024
+        && (!('userAgent' in ch) || strMax(d.userAgent, 512))
+        && (!('lang' in ch)      || d.lang in ['az', 'en', 'ru', 'ar', 'tr'])
+        && (!('loc' in ch)       || validLoc(d.loc))
+        && (!('daily' in ch)     || validDaily(d.daily))
+        && (!('azan' in ch)      || d.azan is bool)
+        && (!('createdAt' in ch) || d.createdAt is int)
+        && (!('updatedAt' in ch) || d.updatedAt is timestamp);
+    }
+
+    function validLoc(l) {
+      return l is map
+        && l.keys().hasOnly(['lat', 'lng', 'tz', 'method', 'city'])
+        && (!('lat' in l)    || (l.lat is number && l.lat >= -90 && l.lat <= 90))
+        && (!('lng' in l)    || (l.lng is number && l.lng >= -180 && l.lng <= 180))
+        && (!('tz' in l)     || strMax(l.tz, 64))
+        && (!('method' in l) || (l.method is number && l.method >= 0 && l.method <= 99))
+        && (!('city' in l)   || validCity(l.city));
+    }
+
+    // Şəhər adı 5 dildə: { az, en, ru, ar, tr } — hər biri qısa mətn
+    function validCity(c) {
+      return c is map
+        && c.keys().hasOnly(['az', 'en', 'ru', 'ar', 'tr'])
+        && (!('az' in c) || strMax(c.az, 120))
+        && (!('en' in c) || strMax(c.en, 120))
+        && (!('ru' in c) || strMax(c.ru, 120))
+        && (!('ar' in c) || strMax(c.ar, 120))
+        && (!('tr' in c) || strMax(c.tr, 120));
+    }
+
+    // "Günün ayəsi": { ayah: bool, hour: 0..23 }
+    function validDaily(x) {
+      return x is map
+        && x.keys().hasOnly(['ayah', 'hour'])
+        && (!('ayah' in x) || x.ayah is bool)
+        && (!('hour' in x) || (x.hour is int && x.hour >= 0 && x.hour <= 23));
+    }
+
+    // ── Qalan hər şey bağlıdır ───────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -108,6 +108,20 @@ const PRAYER = [
       tr: 'Namaz vakitleri, imsakiye ve hicri tarihler seçilen konumun koordinatlarına göre hesaplanır (varsayılan yöntem: Diyanet İşleri Başkanlığı).',
     },
   },
+  {
+    // Commons-dakı əsl ad: "The Adhan - Muslim Call to Prayer - Aaqib Azeez" (link onu açır)
+    name: 'Adhan — Aaqib Azeez',
+    url: 'https://commons.wikimedia.org/wiki/File:The_Adhan_-_Muslim_Call_to_Prayer_-_Aaqib_Azeez.mp3',
+    license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    by: 'Aaqib Azeez · Wikimedia Commons (Atcovi)',
+    note: {
+      az: 'Sayt açıq olanda namaz vaxtı oxunan əzan səsi. Fayl dəyişdirilmədən istifadə olunur.',
+      en: 'The adhan recording played at prayer time while the site is open. The file is used unmodified.',
+      ru: 'Запись азана, которая звучит во время намаза, когда сайт открыт. Файл используется без изменений.',
+      ar: 'تسجيل الأذان الذي يُشغَّل عند دخول وقت الصلاة والموقع مفتوح. يُستخدم الملف دون تعديل.',
+      tr: 'Site açıkken namaz vaktinde çalan ezan kaydı. Dosya değiştirilmeden kullanılır.',
+    },
+  },
 ]
 
 // ── Xəritə və yer ──

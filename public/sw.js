@@ -157,6 +157,9 @@ self.addEventListener('fetch', (e) => {
 
   // Öz API-miz (/api/ → AI və s.) — həmişə canlı
   if (url.pathname.startsWith('/api/')) return
+  // Səs faylları (əzan) — brauzer onları hissə-hissə (Range) istəyir; keşdən
+  // tam cavab vermək Safari-də oxutmanı pozur. Birbaşa şəbəkə/HTTP keşi.
+  if (url.pathname.startsWith('/audio/')) return
 
   if (url.pathname.startsWith('/assets/')) {
     e.respondWith(cacheFirst(request))
@@ -191,19 +194,84 @@ self.addEventListener('message', (e) => {
   }
 })
 
+// ── PUSH (Firebase Cloud Messaging) ──
+// SAYTIN YEGANƏ service worker-i budur. Əvvəl push üçün ayrıca
+// /firebase-messaging-sw.js vardı və o da "/" əhatəsində qeyd olunurdu —
+// brauzer bir əhatədə yalnız BİR SW saxlayır, ona görə hər səhifə açılışında
+// /sw.js onu əvəz edirdi, bu faylda isə "push" dinləyicisi yox idi: bildirişlər
+// "gah gəlir, gah gəlmir"di, iPhone-da Safari görünməyən push-lara görə
+// abunəliyi ləğv edə bilirdi. İndi push-u Firebase SDK-sız özümüz göstəririk
+// (FCM web push payload-u adi JSON-dur) və HƏR push-da bildiriş MÜTLƏQ görünür.
+function parsePush(e) {
+  let p = {}
+  try { p = e.data ? e.data.json() : {} } catch {
+    try { p = { notification: { body: e.data.text() } } } catch { p = {} }
+  }
+  const n = p.notification || {}
+  const d = p.data || {}
+  const url = d.url || (p.fcmOptions && p.fcmOptions.link) || n.click_action || '/'
+  return {
+    title: n.title || d.title || 'Muslims.cc',
+    body: n.body || d.body || '',
+    tag: n.tag || d.tag || 'muslims-cc',
+    icon: n.icon || '/android-chrome-192x192.png?v=2',
+    badge: n.badge || '/badge-96x96.png?v=2',
+    url,
+    data: d,
+  }
+}
+
+self.addEventListener('push', (e) => {
+  const m = parsePush(e)
+  const isAzan = m.tag.startsWith('azan-')
+  e.waitUntil((async () => {
+    await self.registration.showNotification(m.title, {
+      body: m.body,
+      icon: m.icon,
+      badge: m.badge,
+      tag: m.tag,
+      // Eyni tag-lı köhnə bildirişi əvəz etsə də yenidən səs/vibrasiya versin
+      renotify: true,
+      // Əzan bildirişi istifadəçi baxana qədər ekranda qalsın (Android/masaüstü)
+      requireInteraction: isAzan,
+      silent: false,
+      vibrate: isAzan ? [400, 150, 400, 150, 400, 300, 800] : [200, 100, 200],
+      timestamp: Date.now(),
+      data: { ...m.data, url: m.url },
+    })
+    // Sayt (və ya ana ekrandakı tətbiq) açıqdırsa — oraya xəbər ver:
+    // səhifə əzanın səsini oxuda bilsin (bildiriş öz səsini çala bilmir)
+    const wins = await clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const w of wins) w.postMessage({ type: 'PUSH', tag: m.tag, title: m.title, body: m.body, url: m.url })
+  })())
+})
+
+// Brauzer push abunəliyini özü yeniləyəndə (açar dövriyyəsi) — açıq səhifə
+// növbəti açılışda tokeni Firestore-a yenidən yazır (messaging.js → ensureToken)
+self.addEventListener('pushsubscriptionchange', (e) => {
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true })
+    .then((wins) => wins.forEach((w) => w.postMessage({ type: 'PUSH_RESUBSCRIBE' }))))
+})
+
 // ── Notification click ──
 self.addEventListener('notificationclick', (e) => {
   e.notification.close()
+  const raw = (e.notification.data && e.notification.data.url) || '/'
+  let target
+  try { target = new URL(raw, self.location.origin) } catch { target = new URL('/', self.location.origin) }
+  if (target.origin !== self.location.origin) target = new URL('/', self.location.origin)
+  // Əzan bildirişindən açılanda səhifə əzanı oxusun (klik istifadəçi jestidir)
+  if ((e.notification.tag || '').startsWith('azan-')) target.searchParams.set('azan', '1')
   e.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Əgər artıq açıqdırsa, fokusla
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clientList) => {
       for (const client of clientList) {
-        if (client.url.includes('muslims.cc') && 'focus' in client) {
-          return client.focus()
+        if (new URL(client.url).origin === self.location.origin && 'focus' in client) {
+          await client.focus()
+          if ('navigate' in client) return client.navigate(target.href).catch(() => {})
+          return
         }
       }
-      // Yoxdursa, yeni tab aç
-      return clients.openWindow('/')
+      return clients.openWindow(target.href)
     })
   )
 })

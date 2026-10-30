@@ -8,6 +8,7 @@ import {
   getStoredToken,
   clearStoredToken,
   updateTokenDaily,
+  updateTokenPrefs,
 } from '../firebase/messaging'
 import { deleteDocument } from '../firebase/firestore'
 import Icon from './Icon'
@@ -363,6 +364,15 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
 
   const togglePref = (key) => setPrefs(p => ({ ...p, [key]: !p[key] }))
 
+  // Azan bildirişi: serverə də yazılır (token sənədi → azan: false olanda göndərilmir)
+  const setAzan = async () => {
+    const next = !prefs.prayer
+    setPrefs(p => ({ ...p, prayer: next }))
+    if (!getStoredToken()) return
+    const ok = await updateTokenPrefs({ azan: next })
+    if (!ok) setFeedback({ ok: false, text: l.ayahSaveFailed })
+  }
+
   // "Günün ayəsi": seçim həmişə lokal yadda qalır; token varsa sənədə də yazılır
   const setAyah = async (patch) => {
     const next = { ayah: prefs.ayah, hour: prefs.ayahHour, ...patch }
@@ -454,7 +464,7 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
                 <div className="notif-section-title"><Icon name="list" size={15} /> {l.types}</div>
                 <div className="notif-toggles">
                   <PrefToggle icon="prayer" label={l.typePrayer} sub={l.typePrayerSub}
-                    on={prefs.prayer} onClick={() => togglePref('prayer')} />
+                    on={prefs.prayer} onClick={setAzan} />
                   <PrefToggle icon="quran" label={l.typeAyah} sub={l.typeAyahSub}
                     on={prefs.ayah} onClick={() => setAyah({ ayah: !prefs.ayah })} />
                   {prefs.ayah && (

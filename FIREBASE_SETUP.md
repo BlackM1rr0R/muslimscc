@@ -48,7 +48,7 @@ VITE_FIREBASE_APP_ID=1:123456789:web:abc...
 
 1. Sol menyudan **"Firestore Database"** seçin
 2. **"Create database"** düyməsini basın
-3. **"Start in test mode"** seçin (30 gün hamıya icazə var)
+3. **"Start in production mode"** seçin (test mode HAMIYA yazmağa icazə verir — istifadə etməyin)
 4. Region: ən yaxın olanı seçin
    - Avropa: `eur3 (europe-west)`
    - Rusiya/Türkiyə: `eur3` və ya `asia-south1`
@@ -65,44 +65,16 @@ npm run dev
 - **Hamı dərhal görür** (real-time)
 - Mobil tətbiq də eyni Firebase-i çəkir
 
-## 6️⃣ Təhlükəsizlik Qaydaları (1 həftə sonra)
+## 6️⃣ Təhlükəsizlik Qaydaları və Admin Girişi
 
-Test mode 30 günə avtomatik bağlanır. Production üçün:
+⚠️ `allow read, write: if true` kimi **açıq qaydalar istifadə etməyin** — istənilən ziyarətçi
+bütün məzmunu silə və ya dəyişə, push abunəçilərinin məlumatını (yer, dil) oxuya bilər.
 
-1. Firestore Database → **"Rules"** tab
-2. Bu qaydanı yapışdırın:
+Qaydalar repoda saxlanılır: **`firestore.rules`** (ictimai məzmun — hamı oxuyur, yalnız admin
+yazır; `fcm_tokens` — heç kim oxumur, brauzer yalnız öz tokenini yazır/silir; qalan hər şey bağlı).
+Admin = Firebase Authentication istifadəçisi + `admin: true` custom claim.
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Hamı oxuya bilər
-    match /{document=**} {
-      allow read: if true;
-      allow write: if false;  // Yazmaq qadağandır
-    }
-  }
-}
-```
-
-**Daha yaxşı variant** — Firebase Auth ilə admin authentication:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Hamı oxuya bilər
-    match /{document=**} {
-      allow read: if true;
-    }
-    // Yalnız admin yaza bilər
-    match /{collection}/{docId} {
-      allow write: if request.auth != null
-                   && request.auth.token.email == 'admin@yourdomain.com';
-    }
-  }
-}
-```
+Quraşdırma, yayımlama və **düzgün ardıcıllıq** üçün: **[docs/ADMIN-SECURITY.md](docs/ADMIN-SECURITY.md)**.
 
 ## 🎯 Mobile-da da İstifadə Etmək
 
@@ -128,15 +100,16 @@ C: Bəli! Firebase Spark plan tamamilə pulsuzdur:
 C: Hosting paneldə **Environment Variables** bölməsinə `VITE_FIREBASE_*` dəyişənlərini əlavə edin.
 
 **S: Test mode bitdi, nə edim?**
-C: Firestore Rules-u yuxarıdakı kod ilə yeniləyin.
+C: `firestore.rules`-u yayımlayın — bax [docs/ADMIN-SECURITY.md](docs/ADMIN-SECURITY.md).
 
 **S: Admin şifrəsini necə dəyişim?**
-C: `src/data/videos.js` faylında `ADMIN_PASSWORD = 'muslim2025'` sətrini dəyişin. Daha təhlükəsiz variant — Firebase Auth istifadə edin.
+C: Admin girişi Firebase Authentication ilədir: giriş səhifəsində "Şifrəni unutmusunuz?" linki
+və ya Firebase Console → Authentication → Users. Koddakı parol yoxdur.
 
 ## 🐛 Problem Yaşayırsınız?
 
 - `apiKey not valid` → `.env` faylını yoxlayın, dəyərləri düzgün kopyaladığınızdan əmin olun
-- `permission denied` → Firestore Rules-u "test mode"-a qoyduğunuza əmin olun
+- `permission denied` (admin paneldə) → admin hesabına `admin: true` claim verildiyini yoxlayın, çıxıb yenidən daxil olun (docs/ADMIN-SECURITY.md)
 - `tətbiq açılmır` → `npm run dev` yeniləyin, brauzer cache-ni təmizləyin
 
 ---

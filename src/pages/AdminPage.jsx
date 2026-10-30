@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
-import { isAdminLoggedIn, adminLogout, getVideos } from '../data/videos'
+import { getVideos } from '../data/videos'
+import { watchAdmin, signOutAdmin } from '../firebase/auth'
 import { getBooks } from '../data/books'
 import {
   getCustomHadiths, getCustomDuas, getAnnouncements,
@@ -22,15 +23,16 @@ import SettingsManager from '../components/admin/SettingsManager'
 import BackupManager from '../components/admin/BackupManager'
 import StatsManager from '../components/admin/StatsManager'
 import SeedManager from '../components/admin/SeedManager'
+import { AdminEmpty } from '../components/admin/AdminUi'
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AdminPage.css'
 
 const LABELS = {
-  az: { dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli', sections:'Admin bölmələri', dark:'Qaranlıq rejim', light:'İşıqlı rejim' },
-  en: { dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero banner', system:'SYSTEM', settings:'Settings', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Log out', adminPanel:'Admin Panel', sections:'Admin sections', dark:'Dark mode', light:'Light mode' },
-  ru: { dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель', sections:'Разделы админки', dark:'Тёмная тема', light:'Светлая тема' },
-  ar: { dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة', sections:'أقسام الإدارة', dark:'الوضع الداكن', light:'الوضع الفاتح' },
-  tr: { dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli', sections:'Yönetim bölümleri', dark:'Karanlık mod', light:'Aydınlık mod' },
+  az: { checking:'Giriş yoxlanılır...', dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli', sections:'Admin bölmələri', dark:'Qaranlıq rejim', light:'İşıqlı rejim' },
+  en: { checking:'Checking sign-in...', dashboard:'Dashboard', content:'CONTENT', videos:'Videos', books:'Books', hadiths:'Hadiths', duas:'Duas', quotes:'Quotes', announcements:'Announcements', events:'Events', daily:'Daily Content', customization:'CUSTOMIZATION', hero:'Hero banner', system:'SYSTEM', settings:'Settings', stats:'Statistics', backup:'Backup & Restore', seed:'Seed Data', pushNotif:'Push Notifications', logout:'Log out', adminPanel:'Admin Panel', sections:'Admin sections', dark:'Dark mode', light:'Light mode' },
+  ru: { checking:'Проверка входа...', dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель', sections:'Разделы админки', dark:'Тёмная тема', light:'Светлая тема' },
+  ar: { checking:'جارٍ التحقق من تسجيل الدخول...', dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة', sections:'أقسام الإدارة', dark:'الوضع الداكن', light:'الوضع الفاتح' },
+  tr: { checking:'Giriş kontrol ediliyor...', dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli', sections:'Yönetim bölümleri', dark:'Karanlık mod', light:'Aydınlık mod' },
 }
 
 const NAV_GROUPS = [
@@ -79,10 +81,20 @@ export default function AdminPage({ setPage }) {
   const [counts, setCounts] = useState({ videos:0, books:0, hadiths:0, duas:0, quotes:0, announcements:0, events:0, places:0 })
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  // Firebase Auth: yalnız `admin: true` claim-i olan daxil olmuş istifadəçi.
+  // Qalan hallarda (çıxılıb, admin deyil, Firebase yoxdur) — giriş səhifəsinə.
+  const [authStatus, setAuthStatus] = useState('loading')
+  useEffect(() => watchAdmin(({ status }) => {
+    setAuthStatus(status)
+    if (status === 'loading' || status === 'admin') return
+    if (status === 'notAdmin') signOutAdmin()
+    setPage('adminlogin')
+  }), [])
+  const isAdmin = authStatus === 'admin'
+
   useEffect(() => {
-    if (!isAdminLoggedIn()) { setPage('adminlogin'); return }
-    refreshCounts()
-  }, [activeTab])
+    if (isAdmin) refreshCounts()
+  }, [activeTab, isAdmin])
 
   const refreshCounts = async () => {
     const [v, b, h, d, q, a, e, p] = await Promise.all([
@@ -95,7 +107,7 @@ export default function AdminPage({ setPage }) {
     })
   }
 
-  const handleLogout = () => { adminLogout(); setPage('home') }
+  const handleLogout = async () => { await signOutAdmin(); setPage('home') }
 
   const renderTab = () => {
     switch (activeTab) {
@@ -120,6 +132,15 @@ export default function AdminPage({ setPage }) {
 
   // Telefonda menyu düyməsində cari bölmə görünür
   const activeItem = NAV_GROUPS.flatMap(g => g.items).find(it => it.key === activeTab) || NAV_GROUPS[0].items[0]
+
+  // Giriş təsdiqlənənə qədər panel (və idarəedicilər) render olunmur
+  if (!isAdmin) {
+    return (
+      <div className="admin-page">
+        <AdminEmpty icon="shield" busy>{l.checking}</AdminEmpty>
+      </div>
+    )
+  }
 
   return (
     <div className="admin-page">

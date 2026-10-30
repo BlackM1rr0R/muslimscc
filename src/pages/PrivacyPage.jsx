@@ -5,7 +5,7 @@ import LegalDocument, { IF_EMAIL, IF_NO_EMAIL, IF_OPERATOR } from '../components
 // Məxfilik siyasəti — saytın REAL məlumat axınına uyğun (2026-10 kod auditi):
 //   • hesab/qeydiyyat yoxdur; tərcihlər yalnız brauzerdə (localStorage / sessionStorage)
 //   • kuki qoyulmur, analitika/reklam/izləmə yoxdur → razılıq banneri lazım deyil
-//   • push: Firestore fcm_tokens/<token> { token, userAgent, lang, loc, daily?, createdAt, updatedAt }
+//   • push: Firestore fcm_tokens/<token> { token, userAgent, lang, loc, daily?, azan?, createdAt, updatedAt }
 //     (src/firebase/messaging.js); "Söndür" sənədi silir; ölü token server tərəfindən silinir
 //   • AI: sual + söhbətin son mesajları → server/server.js → OpenRouter → model (standart: Google Gemini);
 //     server mətni saxlamır və loglamır; rate limit {ip}-ni 1 dəqiqə yaddaşda tutur

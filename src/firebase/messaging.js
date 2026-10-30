@@ -58,10 +58,12 @@ export async function requestNotificationPermission() {
     return { ok: false, reason: 'no-vapid-key' }
   }
 
-  // Service Worker qeydiyyatı (Firebase üçün ayrıca SW)
+  // Saytın YEGANƏ service worker-i — push-u da o göstərir (public/sw.js).
+  // Əvvəl burada ayrıca /firebase-messaging-sw.js qeyd olunurdu; eyni "/"
+  // əhatəsində /sw.js ilə bir-birini əvəz edirdilər və bildirişlər itirdi.
   let swReg
   try {
-    swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
+    swReg = await navigator.serviceWorker.register('/sw.js')
   } catch (e) {
     return { ok: false, reason: 'sw-failed', error: e.message }
   }
@@ -112,6 +114,17 @@ function currentLang() {
   return readLS(LANG_KEY) || 'az'
 }
 
+/** Bildiriş ayarları (NotificationSettingsWidget ilə eyni açar) — yeni
+ *  token yaranırsa seçimlər ona da köçsün (əks halda "Günün ayəsi" və
+ *  azan seçimi token dəyişəndə itirdi). */
+const PREFS_KEY = 'muslim_cc_notif_prefs'
+function serverPrefs() {
+  let p = {}
+  try { p = JSON.parse(readLS(PREFS_KEY) || '{}') || {} } catch { p = {} }
+  const hour = Number.isInteger(p.ayahHour) ? p.ayahHour : 8
+  return { azan: p.prayer !== false, daily: { ayah: p.ayah === true, hour } }
+}
+
 // ─── Token-i Firestore-da unikal şəkildə saxla ───
 async function saveTokenToFirestore(token) {
   try {
@@ -122,9 +135,10 @@ async function saveTokenToFirestore(token) {
     const isNew = readLS(TOKEN_KEY) !== token
     await setDoc(doc(db, TOKENS_COLLECTION, token), {
       token,
-      userAgent: navigator.userAgent,
+      userAgent: String(navigator.userAgent || '').slice(0, 512),   // firestore.rules: ≤512
       lang: currentLang(),
       loc: locationPayload(),
+      ...serverPrefs(),
       ...(isNew ? { createdAt: now } : {}),
       updatedAt: serverTimestamp(),
     }, { merge: true })
@@ -171,6 +185,45 @@ export async function updateTokenDaily({ ayah, hour }) {
     return true
   } catch (e) {
     console.warn('FCM daily update failed:', e.message)
+    return false
+  }
+}
+
+/**
+ * Azan bildirişi açıq/söndürülü → token sənədində `azan` (server false olanda
+ * həmin abunəçiyə azan push-u göndərmir). Token yoxdursa false.
+ */
+export async function updateTokenPrefs(patch) {
+  const token = readLS(TOKEN_KEY)
+  if (!token || !db || !isFirebaseConfigured()) return false
+  try {
+    await setDoc(doc(db, TOKENS_COLLECTION, token), { ...patch, updatedAt: serverTimestamp() }, { merge: true })
+    return true
+  } catch (e) {
+    console.warn('FCM prefs update failed:', e.message)
+    return false
+  }
+}
+
+/**
+ * Hər açılışda (icazə varsa) tokeni yoxla və təzələ. Brauzer push abunəliyini
+ * vaxtaşırı dəyişir; köhnə token "ölür" və bildirişlər səssizcə kəsilirdi.
+ * Eyni tokendirsə yalnız updatedAt/loc yenilənir; fərqlidirsə yenisi yazılır
+ * (köhnəsini server ilk uğursuz göndərişdə özü silir).
+ */
+export async function refreshPushToken() {
+  if (typeof window === 'undefined' || getPermissionStatus() !== 'granted') return false
+  if (!readLS(TOKEN_KEY) || !VAPID_KEY) return false   // istifadəçi abunə olmayıb və ya söndürüb
+  try {
+    const messaging = await getMessagingInstance()
+    if (!messaging) return false
+    const swReg = await navigator.serviceWorker.register('/sw.js')
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg })
+    if (!token) return false
+    await saveTokenToFirestore(token)
+    return true
+  } catch (e) {
+    console.warn('FCM token refresh failed:', e.message)
     return false
   }
 }

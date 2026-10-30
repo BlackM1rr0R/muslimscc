@@ -12,6 +12,7 @@
     "test": "npm run check && npm run test:unit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "test:rules": "npx -y firebase-tools@15 emulators:exec --only firestore --project demo-muslims-cc \"node --test tests/rules/firestore.rules.test.js\"",
     "check": "node scripts/check-config-sync.mjs && node scripts/check-lang.mjs",
     "check:lang": "node scripts/check-lang.mjs"
   },
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
+    "@firebase/rules-unit-testing": "^3.0.4",
     "@playwright/test": "^1.64.1",
     "@vitejs/plugin-react": "^4.2.1",
     "vite": "^5.1.0",

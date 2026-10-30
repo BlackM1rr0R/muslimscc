@@ -44,25 +44,7 @@ export function subscribeToVideos(callback) {
   })
 }
 
-// ═══ ADMIN AUTH (localStorage-də qalır, sadəlik üçün) ═══
-const ADMIN_KEY = 'muslim_cc_admin'
-const ADMIN_PASSWORD = 'muslim2025'
-
-export function isAdminLoggedIn() {
-  return sessionStorage.getItem(ADMIN_KEY) === 'true'
-}
-
-export function adminLogin(password) {
-  if (password === ADMIN_PASSWORD) {
-    sessionStorage.setItem(ADMIN_KEY, 'true')
-    return true
-  }
-  return false
-}
-
-export function adminLogout() {
-  sessionStorage.removeItem(ADMIN_KEY)
-}
+// Admin girişi: src/firebase/auth.js (Firebase Authentication + admin claim)
 
 // ═══ YouTube helpers ═══
 export function getYouTubeId(url) {

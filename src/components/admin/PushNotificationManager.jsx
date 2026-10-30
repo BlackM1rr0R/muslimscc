@@ -3,26 +3,26 @@ import { useLang } from '../../contexts/LangContext'
 import { AdminHeader, SectionTitle, AdminNotice, AdminAlert, AdminEmpty } from './AdminUi'
 import Icon, { BrandMark } from '../Icon'
 import { brandName } from '../../config/brand'
-import { getAll, addDocument, COLLECTIONS } from '../../firebase/firestore'
+import { getAll, addDocument } from '../../firebase/firestore'
+import { getAdminIdToken } from '../../firebase/auth'
 import { isFirebaseConfigured } from '../../firebase/config'
 
 const API_URL = import.meta.env.VITE_API_URL || ''
 
-// Göndərmə açarı (serverin ADMIN_TOKEN-i) sessiya yaddaşında saxlanır —
-// sekmə bağlananda silinir. QƏSDƏN kodda/env-də DEYİL: VITE_* dəyərləri
-// hamıya açıq JS faylına düşür; açar orada olsaydı, istənilən ziyarətçi
-// onu oxuyub bütün abunəçilərə bildiriş göndərə bilərdi.
-const TOKEN_KEY = 'qm_admin_push_token'
-const readStoredPushToken = () => {
-  try { return sessionStorage.getItem(TOKEN_KEY) || '' } catch { return '' }
+// Server API-si admini Firebase ID tokeni ilə tanıyır (Authorization: Bearer).
+// Ayrıca "göndərmə açarı" yoxdur — giriş edən adminin sessiyası kifayətdir.
+const apiBase = () => API_URL.replace(/\/$/, '')
+async function authHeaders() {
+  const idToken = await getAdminIdToken()
+  return idToken ? { Authorization: `Bearer ${idToken}` } : {}
 }
 
 const LABELS = {
-  az: { tokenField:'Göndərmə açarı', tokenHint:'Serverdə təyin olunmuş admin açarı. Yalnız bu sekmədə yadda qalır.', tokenRequired:'Göndərmə açarını daxil et', tokenWrong:'Açar yanlışdır — serverdəki admin açarı ilə eyni olmalıdır', title:'Anlıq bildirişlər', sub:'Bütün abunəçilərə bildiriş göndərin', send:'Bildiriş göndər', subscribers:'Abunəçi sayı', titleField:'Başlıq', bodyField:'Mesaj', urlField:'Açılacaq ünvan (istəyə bağlı)', priorityHigh:'Prioritet', normal:'Adi', high:'Yüksək', preview:'Önbaxış', now:'indi', sending:'Göndərilir...', sent:'Göndərildi:', failed:'Xəta:', sendFailed:'Göndərmək alınmadı', history:'Tarixçə', noHistory:'Hələ bildiriş göndərilməyib', titleRequired:'Başlıq tələb olunur', bodyRequired:'Mesaj tələb olunur', noBackend:'Server API-si qoşulmayıb. .env faylında VITE_API_URL təyin edin.', noFirebase:'Firebase qoşulmayıb', phTitle:'🕌 Namaz vaxtı', phBody:'Zöhr namazının vaxtı çatdı' },
-  en: { tokenField:'Send key', tokenHint:'The admin key set on the server. Kept only in this tab.', tokenRequired:'Enter the send key', tokenWrong:'Wrong key — must match the admin key on the server', title:'Push notifications', sub:'Send notifications to all subscribers', send:'Send notification', subscribers:'Subscribers', titleField:'Title', bodyField:'Message', urlField:'URL to open (optional)', priorityHigh:'Priority', normal:'Normal', high:'High', preview:'Preview', now:'now', sending:'Sending...', sent:'Sent to:', failed:'Failed:', sendFailed:'Sending failed', history:'History', noHistory:'No notifications sent yet', titleRequired:'Title required', bodyRequired:'Message required', noBackend:'Server API not configured. Set VITE_API_URL in .env.', noFirebase:'Firebase is not connected', phTitle:'🕌 Prayer time', phBody:'It is time for the Dhuhr prayer' },
-  ru: { tokenField:'Ключ отправки', tokenHint:'Ключ администратора, заданный на сервере. Хранится только в этой вкладке.', tokenRequired:'Введите ключ отправки', tokenWrong:'Неверный ключ — он должен совпадать с ключом администратора на сервере', title:'Мгновенные уведомления', sub:'Отправить уведомления всем подписчикам', send:'Отправить уведомление', subscribers:'Подписчики', titleField:'Заголовок', bodyField:'Сообщение', urlField:'Открываемый адрес (необязательно)', priorityHigh:'Приоритет', normal:'Обычный', high:'Высокий', preview:'Предпросмотр', now:'сейчас', sending:'Отправка...', sent:'Отправлено:', failed:'Ошибка:', sendFailed:'Не удалось отправить', history:'История', noHistory:'Уведомления ещё не отправлялись', titleRequired:'Заголовок обязателен', bodyRequired:'Сообщение обязательно', noBackend:'Адрес API сервера не настроен.', noFirebase:'Firebase не подключён', phTitle:'🕌 Время намаза', phBody:'Наступило время полуденного намаза (Зухр)' },
-  ar: { tokenField:'مفتاح الإرسال', tokenHint:'مفتاح المسؤول المحدد على الخادم. يُحفظ في هذا التبويب فقط.', tokenRequired:'أدخل مفتاح الإرسال', tokenWrong:'المفتاح غير صحيح — يجب أن يطابق مفتاح المسؤول على الخادم', title:'الإشعارات الفورية', sub:'إرسال إشعارات لجميع المشتركين', send:'إرسال إشعار', subscribers:'المشتركون', titleField:'العنوان', bodyField:'الرسالة', urlField:'الرابط المراد فتحه (اختياري)', priorityHigh:'الأولوية', normal:'عادية', high:'عالية', preview:'معاينة', now:'الآن', sending:'جارٍ الإرسال...', sent:'تم الإرسال إلى:', failed:'فشل:', sendFailed:'تعذّر الإرسال', history:'السجل', noHistory:'لم تُرسل أي إشعارات بعد', titleRequired:'العنوان مطلوب', bodyRequired:'الرسالة مطلوبة', noBackend:'عنوان API للخادم غير مُعدّ.', noFirebase:'Firebase غير متصل', phTitle:'🕌 وقت الصلاة', phBody:'حان وقت صلاة الظهر' },
-  tr: { tokenField:'Gönderim anahtarı', tokenHint:'Sunucuda tanımlı yönetici anahtarı. Yalnızca bu sekmede saklanır.', tokenRequired:'Gönderim anahtarını girin', tokenWrong:'Anahtar yanlış — sunucudaki yönetici anahtarıyla aynı olmalı', title:'Anlık bildirimler', sub:'Tüm abonelere bildirim gönderin', send:'Bildirim gönder', subscribers:'Aboneler', titleField:'Başlık', bodyField:'Mesaj', urlField:'Açılacak adres (isteğe bağlı)', priorityHigh:'Öncelik', normal:'Normal', high:'Yüksek', preview:'Önizleme', now:'şimdi', sending:'Gönderiliyor...', sent:'Gönderildi:', failed:'Hata:', sendFailed:'Gönderilemedi', history:'Geçmiş', noHistory:'Henüz bildirim gönderilmedi', titleRequired:'Başlık gerekli', bodyRequired:'Mesaj gerekli', noBackend:'Sunucu API adresi yapılandırılmamış. .env dosyasında VITE_API_URL tanımlayın.', noFirebase:'Firebase bağlı değil', phTitle:'🕌 Namaz vakti', phBody:'Öğle namazının vakti girdi' },
+  az: { authWrong:'Sessiya bitib və ya admin icazəsi yoxdur — çıxıb yenidən daxil olun', title:'Anlıq bildirişlər', sub:'Bütün abunəçilərə bildiriş göndərin', send:'Bildiriş göndər', subscribers:'Abunəçi sayı', titleField:'Başlıq', bodyField:'Mesaj', urlField:'Açılacaq ünvan (istəyə bağlı)', priorityHigh:'Prioritet', normal:'Adi', high:'Yüksək', preview:'Önbaxış', now:'indi', sending:'Göndərilir...', sent:'Göndərildi:', failed:'Xəta:', sendFailed:'Göndərmək alınmadı', history:'Tarixçə', noHistory:'Hələ bildiriş göndərilməyib', titleRequired:'Başlıq tələb olunur', bodyRequired:'Mesaj tələb olunur', noBackend:'Server API-si qoşulmayıb. .env faylında VITE_API_URL təyin edin.', noFirebase:'Firebase qoşulmayıb', phTitle:'🕌 Namaz vaxtı', phBody:'Zöhr namazının vaxtı çatdı' },
+  en: { authWrong:'Session expired or no admin access — sign out and sign in again', title:'Push notifications', sub:'Send notifications to all subscribers', send:'Send notification', subscribers:'Subscribers', titleField:'Title', bodyField:'Message', urlField:'URL to open (optional)', priorityHigh:'Priority', normal:'Normal', high:'High', preview:'Preview', now:'now', sending:'Sending...', sent:'Sent to:', failed:'Failed:', sendFailed:'Sending failed', history:'History', noHistory:'No notifications sent yet', titleRequired:'Title required', bodyRequired:'Message required', noBackend:'Server API not configured. Set VITE_API_URL in .env.', noFirebase:'Firebase is not connected', phTitle:'🕌 Prayer time', phBody:'It is time for the Dhuhr prayer' },
+  ru: { authWrong:'Сессия истекла или нет прав администратора — выйдите и войдите снова', title:'Мгновенные уведомления', sub:'Отправить уведомления всем подписчикам', send:'Отправить уведомление', subscribers:'Подписчики', titleField:'Заголовок', bodyField:'Сообщение', urlField:'Открываемый адрес (необязательно)', priorityHigh:'Приоритет', normal:'Обычный', high:'Высокий', preview:'Предпросмотр', now:'сейчас', sending:'Отправка...', sent:'Отправлено:', failed:'Ошибка:', sendFailed:'Не удалось отправить', history:'История', noHistory:'Уведомления ещё не отправлялись', titleRequired:'Заголовок обязателен', bodyRequired:'Сообщение обязательно', noBackend:'Адрес API сервера не настроен.', noFirebase:'Firebase не подключён', phTitle:'🕌 Время намаза', phBody:'Наступило время полуденного намаза (Зухр)' },
+  ar: { authWrong:'انتهت الجلسة أو لا توجد صلاحية إدارة — سجّل الخروج ثم ادخل مجددًا', title:'الإشعارات الفورية', sub:'إرسال إشعارات لجميع المشتركين', send:'إرسال إشعار', subscribers:'المشتركون', titleField:'العنوان', bodyField:'الرسالة', urlField:'الرابط المراد فتحه (اختياري)', priorityHigh:'الأولوية', normal:'عادية', high:'عالية', preview:'معاينة', now:'الآن', sending:'جارٍ الإرسال...', sent:'تم الإرسال إلى:', failed:'فشل:', sendFailed:'تعذّر الإرسال', history:'السجل', noHistory:'لم تُرسل أي إشعارات بعد', titleRequired:'العنوان مطلوب', bodyRequired:'الرسالة مطلوبة', noBackend:'عنوان API للخادم غير مُعدّ.', noFirebase:'Firebase غير متصل', phTitle:'🕌 وقت الصلاة', phBody:'حان وقت صلاة الظهر' },
+  tr: { authWrong:'Oturum sona erdi veya yönetici yetkisi yok — çıkış yapıp yeniden giriş yapın', title:'Anlık bildirimler', sub:'Tüm abonelere bildirim gönderin', send:'Bildirim gönder', subscribers:'Aboneler', titleField:'Başlık', bodyField:'Mesaj', urlField:'Açılacak adres (isteğe bağlı)', priorityHigh:'Öncelik', normal:'Normal', high:'Yüksek', preview:'Önizleme', now:'şimdi', sending:'Gönderiliyor...', sent:'Gönderildi:', failed:'Hata:', sendFailed:'Gönderilemedi', history:'Geçmiş', noHistory:'Henüz bildirim gönderilmedi', titleRequired:'Başlık gerekli', bodyRequired:'Mesaj gerekli', noBackend:'Sunucu API adresi yapılandırılmamış. .env dosyasında VITE_API_URL tanımlayın.', noFirebase:'Firebase bağlı değil', phTitle:'🕌 Namaz vakti', phBody:'Öğle namazının vakti girdi' },
 }
 
 export default function PushNotificationManager() {
@@ -30,10 +30,9 @@ export default function PushNotificationManager() {
   const l = LABELS[lang] || LABELS.az
   const configured = isFirebaseConfigured()
 
-  const [tokens, setTokens] = useState([])
   const [history, setHistory] = useState([])
   const [form, setForm] = useState({ title:'', body:'', url:'', priority:'normal' })
-  const [adminToken, setAdminToken] = useState(readStoredPushToken)
+  const [subscribers, setSubscribers] = useState(null)
   const [sending, setSending] = useState(false)
   const [feedback, setFeedback] = useState(null) // { ok, text }
 
@@ -43,10 +42,16 @@ export default function PushNotificationManager() {
   }, [])
 
   const refresh = async () => {
-    try {
-      const tks = await getAll('fcm_tokens', 'createdAt')
-      setTokens(tks)
-    } catch {}
+    // Abunəçi sayı serverdən: fcm_tokens brauzerə bağlıdır (firestore.rules)
+    if (API_URL) {
+      try {
+        const res = await fetch(`${apiBase()}/api/admin/subscribers`, { headers: await authHeaders() })
+        if (res.ok) {
+          const data = await res.json()
+          setSubscribers(Number(data.count) || 0)
+        }
+      } catch {}
+    }
     try {
       const h = await getAll('notification_history', 'createdAt')
       setHistory(h)
@@ -58,14 +63,13 @@ export default function PushNotificationManager() {
     setFeedback(null)
     if (!form.title.trim()) { setFeedback({ ok:false, text: l.titleRequired }); return }
     if (!form.body.trim()) { setFeedback({ ok:false, text: l.bodyRequired }); return }
-    if (!adminToken.trim()) { setFeedback({ ok:false, text: l.tokenRequired }); return }
     if (!API_URL) { setFeedback({ ok:false, text: l.noBackend }); return }
 
     setSending(true)
     try {
-      const res = await fetch(`${API_URL.replace(/\/$/, '')}/api/send-notification`, {
+      const res = await fetch(`${apiBase()}/api/send-notification`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken.trim() },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({
           title: form.title.trim(),
           body: form.body.trim(),
@@ -73,12 +77,9 @@ export default function PushNotificationManager() {
           priority: form.priority,
         }),
       })
-      const data = await res.json()
-      if (res.status === 401) throw new Error(l.tokenWrong)
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 401 || res.status === 403) throw new Error(l.authWrong)
       if (!res.ok) throw new Error(data.error || l.sendFailed)
-
-      // Açar doğrudur — bu sekmədə yadda saxla ki, hər dəfə yazılmasın
-      try { sessionStorage.setItem(TOKEN_KEY, adminToken.trim()) } catch { /* yaddaş bağlıdır */ }
 
       // Tarixçəyə əlavə et
       await addDocument('notification_history', {
@@ -113,7 +114,7 @@ export default function PushNotificationManager() {
       <div className="admin-stats" data-reveal="stagger">
         <div className="admin-stat-card">
           <span className="ui-icon-tile admin-stat-icon" aria-hidden="true"><Icon name="user" /></span>
-          <div className="admin-stat-num"><span key={tokens.length} data-count={tokens.length}>{tokens.length}</span></div>
+          <div className="admin-stat-num">{subscribers == null ? '—' : <span key={subscribers} data-count={subscribers}>{subscribers}</span>}</div>
           <div className="admin-stat-label">{l.subscribers}</div>
         </div>
         <div className="admin-stat-card">
@@ -177,20 +178,6 @@ export default function PushNotificationManager() {
             </div>
           </div>
 
-          <div className="admin-input-group">
-            <label className="admin-input-label" htmlFor="push-token">{l.tokenField}</label>
-            <input
-              id="push-token"
-              type="password"
-              className="admin-input"
-              value={adminToken}
-              onChange={(e) => setAdminToken(e.target.value)}
-              autoComplete="off"
-              placeholder="ADMIN_TOKEN"
-            />
-            <div className="admin-hint"><Icon name="shield" size={14} /> {l.tokenHint}</div>
-          </div>
-
           {/* Live preview */}
           {(form.title || form.body) && (
             <div className="admin-notif-preview">
@@ -206,8 +193,8 @@ export default function PushNotificationManager() {
           {feedback && <AdminAlert tone={feedback.ok ? 'ok' : 'bad'}>{feedback.text}</AdminAlert>}
 
           <div className="admin-form-actions">
-            <button type="submit" className="admin-submit-btn" disabled={sending || tokens.length === 0}>
-              <Icon name="send" className="ui-flip-rtl" /> {sending ? l.sending : `${l.send} (${tokens.length})`}
+            <button type="submit" className="admin-submit-btn" disabled={sending || subscribers === 0}>
+              <Icon name="send" className="ui-flip-rtl" /> {sending ? l.sending : (subscribers == null ? l.send : `${l.send} (${subscribers})`)}
             </button>
           </div>
         </form>

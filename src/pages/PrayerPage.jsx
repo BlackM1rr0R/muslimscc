@@ -12,6 +12,7 @@ import Icon from '../components/Icon'
 import '../styles/PrayerPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import { showLocalNotification } from '../utils/notify'
+import { playAzan } from '../utils/azanAudio'
 import RamadanCard from '../components/RamadanCard'
 
 // İmsakiyyə səhifəsi (/ramadan) marşrutlara qoşulubsa kartda ona keçid görünür
@@ -355,43 +356,12 @@ export default function PrayerPage({ setPage }) {
           if (lastNotif !== notifKey) {
             try { localStorage.setItem('last_azan_notif', notifKey) } catch { /* yaddaş bağlıdır */ }
             // Android-də `new Notification()` xəta atırdı və əzan səsi heç çalmırdı — utils/notify.js
-            showLocalNotification(`🕌 ${STAT_NAMES[key][lk]}`, { body: `${time.slice(0,5)} — ${TXT.notifBody[lk]}` })
-            // Əzan melodiyası — Web Audio API ilə
-            try {
-              const ctx = new AudioContext()
-              const now = ctx.currentTime
-              // Əzan notaları (Allahu Akbar melodiyası)
-              const notes = [
-                { freq: 440, start: 0,    dur: 0.6 },  // A4
-                { freq: 523, start: 0.7,  dur: 0.6 },  // C5
-                { freq: 587, start: 1.4,  dur: 0.8 },  // D5
-                { freq: 523, start: 2.3,  dur: 0.6 },  // C5
-                { freq: 440, start: 3.0,  dur: 0.8 },  // A4
-                { freq: 392, start: 3.9,  dur: 0.6 },  // G4
-                { freq: 440, start: 4.6,  dur: 1.0 },  // A4
-                // İkinci fraza
-                { freq: 523, start: 5.8,  dur: 0.6 },  // C5
-                { freq: 587, start: 6.5,  dur: 0.8 },  // D5
-                { freq: 659, start: 7.4,  dur: 0.6 },  // E5
-                { freq: 587, start: 8.1,  dur: 0.6 },  // D5
-                { freq: 523, start: 8.8,  dur: 0.6 },  // C5
-                { freq: 440, start: 9.5,  dur: 1.2 },  // A4
-              ]
-              notes.forEach(n => {
-                const osc = ctx.createOscillator()
-                const gain = ctx.createGain()
-                osc.type = 'sine'
-                osc.frequency.value = n.freq
-                osc.connect(gain)
-                gain.connect(ctx.destination)
-                gain.gain.setValueAtTime(0, now + n.start)
-                gain.gain.linearRampToValueAtTime(0.25, now + n.start + 0.05)
-                gain.gain.linearRampToValueAtTime(0.2, now + n.start + n.dur * 0.7)
-                gain.gain.linearRampToValueAtTime(0, now + n.start + n.dur)
-                osc.start(now + n.start)
-                osc.stop(now + n.start + n.dur + 0.01)
-              })
-            } catch {}
+            // tag push bildirişi ilə eynidir (azan-fajr …): server push-u da gəlsə
+            // ekranda İKİ bildiriş yox, bir bildiriş qalır
+            showLocalNotification(`🕌 ${STAT_NAMES[key][lk]}`, { body: `${time.slice(0,5)} — ${TXT.notifBody[lk]}`, tag: `azan-${key.toLowerCase()}` })
+            // Həqiqi əzan səsi (əvvəl 13 notalı sintetik melodiya idi) — push
+            // da gələrsə eyni namaz üçün bir dəfə oxunur (utils/azanAudio.js)
+            playAzan(key.toLowerCase())
           }
         }
       })

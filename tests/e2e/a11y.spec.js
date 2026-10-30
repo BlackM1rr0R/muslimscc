@@ -11,6 +11,7 @@
 // ═══════════════════════════════════════════════════════
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, settle } from './fixtures.js'
+import { fakeFirebaseAuth, adminSignIn } from './adminAuth.js'
 
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']
 
@@ -66,13 +67,15 @@ for (const theme of ['light', 'dark']) {
   })
 }
 
-// Admin paneli: hər bölmə (formalar daxil). Giriş sessionStorage ilə;
-// Firestore fikstürdə bağlıdır — heç nə yazılmır.
+// Admin paneli: hər bölmə (formalar daxil). Giriş saxta Firebase Auth cavabı
+// ilə (adminAuth.js); Firestore fikstürdə bağlıdır — heç nə yazılmır.
 test('admin paneli: bütün bölmələrdə sahələrin adı var, ciddi pozuntu yoxdur', async ({ page }, info) => {
   test.skip(info.project.name === 'mobile', 'masaüstü kifayətdir')
   test.setTimeout(90_000)
-  await page.addInitScript(() => sessionStorage.setItem('muslim_cc_admin', 'true'))
+  await fakeFirebaseAuth(page, 'admin')
   await page.goto('/admin')
+  await adminSignIn(page)
+  await expect(page.locator('.admin-nav-btn').first()).toBeVisible()
   await settle(page)
   const nav = page.locator('.admin-nav-btn')
   const n = await nav.count()

@@ -65,7 +65,6 @@ VITE_FIREBASE_APP_ID=1:123456789:web:abc...
 
 VITE_FCM_VAPID_KEY=BFx...
 VITE_API_URL=https://your-project.vercel.app
-VITE_ADMIN_TOKEN=siz-secret-bir-soz-yazin-1234
 ```
 
 ---
@@ -96,7 +95,6 @@ VITE_ADMIN_TOKEN=siz-secret-bir-soz-yazin-1234
 | `FIREBASE_PROJECT_ID` | (JSON-dan project_id) |
 | `FIREBASE_CLIENT_EMAIL` | (JSON-dan client_email) |
 | `FIREBASE_PRIVATE_KEY` | (JSON-dan private_key — `\n` saxlayın) |
-| `ADMIN_TOKEN` | (sizin müəyyən etdiyiniz gizli açar) |
 | `ALLOWED_ORIGIN` | `https://muslims.cc` |
 | `VITE_FIREBASE_API_KEY` | (`.env`-dəki) |
 | `VITE_FIREBASE_AUTH_DOMAIN` | (`.env`-dəki) |
@@ -106,7 +104,8 @@ VITE_ADMIN_TOKEN=siz-secret-bir-soz-yazin-1234
 | `VITE_FIREBASE_APP_ID` | (`.env`-dəki) |
 | `VITE_FCM_VAPID_KEY` | (`.env`-dəki) |
 | `VITE_API_URL` | (deploy-dan sonra alacağınız Vercel URL) |
-| `VITE_ADMIN_TOKEN` | (`ADMIN_TOKEN` ilə eyni) |
+
+> Admin girişi və push göndərmə Firebase Authentication ilədir (`ADMIN_TOKEN` yoxdur) — bax `docs/ADMIN-SECURITY.md`.
 
 6. **"Deploy"** basın
 7. ~2 dəqiqə sonra siteniz hazır olacaq: `https://muslim-cc-xxx.vercel.app`

@@ -10,6 +10,8 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY server.js prompts.js prayer-utils.js ai-utils.js daily-ayah.js ./
+# Bir dəfəlik admin skriptləri (set-admin.js — docs/ADMIN-SECURITY.md)
+COPY scripts ./scripts
 
 USER node
 EXPOSE 3001

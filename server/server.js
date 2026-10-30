@@ -10,14 +10,13 @@ app.set('trust proxy', 1)
 // ─── Config (env-dən oxunur — heç bir açar kodda yoxdur) ─────────────
 const PORT = process.env.PORT || 3001
 const OPENROUTER_KEY = process.env.OPENROUTER_KEY
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID
 const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL
 const FIREBASE_PRIVATE_KEY = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash'
 
 // Vacib env dəyişənləri yoxdursa serveri başlatma (səssiz sınıqdan yaxşıdır)
-for (const [k, v] of Object.entries({ OPENROUTER_KEY, ADMIN_TOKEN, FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY })) {
+for (const [k, v] of Object.entries({ OPENROUTER_KEY, FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY })) {
   if (!v) { console.error(`FATAL: env dəyişəni yoxdur → ${k}`); process.exit(1) }
 }
 
@@ -37,6 +36,7 @@ app.use(express.json())
 
 app.use('/api/ask-ai', rateLimit({ windowMs: 60000, max: 10, message: { error: 'Cox sorgu. 1 deqiqe gozleyin.' } }))
 app.use('/api/send-notification', rateLimit({ windowMs: 60000, max: 5, message: { error: 'Limit' } }))
+app.use('/api/admin', rateLimit({ windowMs: 60000, max: 30, message: { error: 'Limit' } }))
 
 // AI sistem promptları (hər dil öz dilində) — server/prompts.js
 const { SYSTEM_PROMPTS } = require('./prompts')
@@ -221,13 +221,37 @@ const adminMsg = admin.messaging()
 // və nişan buradan gəlir; mobil bildiriş zolağında saytın loqosu görünsün.
 const WEBPUSH_ICONS = { icon: '/android-chrome-192x192.png?v=2', badge: '/badge-96x96.png?v=2' }
 
-app.post('/api/send-notification', async (req, res) => {
+// ─── Admin yoxlaması: Firebase ID tokeni + `admin: true` custom claim ───
+// Klient (admin paneli) `Authorization: Bearer <ID token>` göndərir. Claim
+// server/scripts/set-admin.js ilə verilir (docs/ADMIN-SECURITY.md).
+// checkRevoked=true: parol dəyişəndə / sessiyalar ləğv ediləndə köhnə token keçmir.
+async function requireAdmin(req, res, next) {
+  const m = /^Bearer\s+(.+)$/i.exec(req.headers.authorization || '')
+  if (!m) return res.status(401).json({ error: 'Unauthorized' })
   try {
-    const { title, body, url } = req.body
-    const adminToken = req.headers['x-admin-token'] || req.body.adminToken
-    if (adminToken !== ADMIN_TOKEN) {
-      return res.status(401).json({ error: 'Unauthorized' })
-    }
+    const decoded = await admin.auth().verifyIdToken(m[1], true)
+    if (decoded.admin !== true) return res.status(403).json({ error: 'Forbidden' })
+    req.adminUser = { uid: decoded.uid, email: decoded.email || '' }
+    return next()
+  } catch {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+}
+
+// Abunəçi sayı (admin paneli) — fcm_tokens brauzerə bağlıdır (firestore.rules)
+app.get('/api/admin/subscribers', requireAdmin, async (req, res) => {
+  try {
+    const agg = await adminDb.collection('fcm_tokens').count().get()
+    res.json({ count: agg.data().count })
+  } catch (e) {
+    console.error('Subscribers count error:', e.message)
+    res.status(500).json({ error: 'count failed' })
+  }
+})
+
+app.post('/api/send-notification', requireAdmin, async (req, res) => {
+  try {
+    const { title, body, url } = req.body || {}
     if (!title || !body) return res.status(400).json({ error: 'title and body required' })
     const snap = await adminDb.collection('fcm_tokens').get()
     const tokens = snap.docs.map(d => d.data().token).filter(Boolean)
@@ -304,6 +328,7 @@ async function loadTokens() {
     groups.get(key).entries.push({
       id: doc.id, token: d.token, lang: LANGS.includes(d.lang) ? d.lang : 'az',
       daily: normDaily(d.daily),   // "Günün ayəsi" seçimi — aşağıdakı planlayıcı üçün
+      azan: d.azan !== false,      // ayarlarda "Namaz vaxtı" söndürülübsə azan göndərilmir
     })
   }
   tokenGroups = groups
@@ -337,6 +362,7 @@ async function sendPrayerPush(group, prayer, now, day) {
 
   const byLang = new Map()
   for (const e of entries) {
+    if (!e.azan) continue
     if (!byLang.has(e.lang)) byLang.set(e.lang, [])
     byLang.get(e.lang).push(e)
   }
