@@ -4,6 +4,8 @@ import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import '../styles/DailyTrackerPage.css'
+import { setPrayerStatus } from '../utils/prayerTracker'
+import { usePendingCheckinSync } from '../hooks/usePrayerTracker'
 import Breadcrumb from '../components/Breadcrumb'
 
 // ── i18n Labels ──
@@ -86,18 +88,12 @@ function saveData(data) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch {}
 }
 
-/** Namaz işarəsini /prayer statistikasına da yaz və o səhifəyə xəbər ver. */
+/** Namaz işarəsini ortaq izləyici qatı ilə yaz (utils/prayerTracker.js):
+ *  /prayer statistikası + /prayer-tracker-in "qəza/qılmadım" qeydi ardıcıl
+ *  qalır və digər səhifələrə hadisə ilə xəbər verilir. */
 function syncPrayerStat(dateStr, key, done) {
-  const name = PRAYER_STAT_NAMES[key]
-  if (!name) return
-  try {
-    const stats = readJSON(PRAYER_STATS_KEY)
-    const k = `${dateStr}_${name}`
-    if (done) stats[k] = true
-    else delete stats[k]
-    localStorage.setItem(PRAYER_STATS_KEY, JSON.stringify(stats))
-    window.dispatchEvent(new Event(PRAYER_SYNC_EVENT))
-  } catch { /* yaddaş bağlıdır */ }
+  if (!PRAYER_STAT_NAMES[key]) return
+  setPrayerStatus(dateStr, key, done ? 'prayed' : null)
 }
 
 function getLast7Days() {
@@ -146,6 +142,8 @@ export default function DailyTrackerPage({ setPage }) {
   const [justDone, setJustDone] = useState('')
 
   const [data, setData] = useState(loadData)
+  // Bildirişdəki "✅ Qıldım" qeydlərini (IndexedDB) izləyiciyə köçür
+  usePendingCheckinSync()
 
   useEffect(() => { saveData(data) }, [data])
 

@@ -1,5 +1,7 @@
 import { useLang } from '../contexts/LangContext'
 import LegalDocument from '../components/LegalDocument'
+import { ARABIC_AUDIO_SOURCES } from '../data/arabicCourseCredits'
+import { AUDIO_CREDITS, CREDIT_ORDER } from '../data/prayerGuideCredits'
 
 // ═══════════════════════════════════════════════════════
 // Mənbələr və lisenziyalar (atribusiya)
@@ -125,6 +127,15 @@ const PRAYER = [
 ]
 
 // ── Xəritə və yer ──
+// Ərəb kursu və namaz bələdçisindəki səs yazıları (Wikimedia Commons / Lingua Libre)
+AUDIO.push(
+  ...ARABIC_AUDIO_SOURCES,
+  ...CREDIT_ORDER.filter((k) => AUDIO_CREDITS[k] && AUDIO_CREDITS[k].license).map((k) => {
+    const c = AUDIO_CREDITS[k]
+    return { name: `${c.title} — ${c.site}`, url: c.url, license: c.license, licenseUrl: c.licenseUrl, by: c.author }
+  }),
+)
+
 const MAPS = [
   {
     name: 'OpenStreetMap', url: 'https://www.openstreetmap.org/copyright', license: 'ODbL 1.0', licenseUrl: 'https://opendatacommons.org/licenses/odbl/1-0/',

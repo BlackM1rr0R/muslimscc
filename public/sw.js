@@ -221,9 +221,50 @@ function parsePush(e) {
   }
 }
 
+// ── "Qıldınızmı?" (server/checkin.js) ──
+// tag: checkin-<namaz>-<YYYY-MM-DD>. Android Chrome və masaüstündə bildirişdə
+// "✅ Qıldım" / "Sonra" düymələri var; iOS-da düymə YOXDUR — toxunuş
+// /prayer?checkin=… səhifəsini açır və orada "Qıldınızmı?" kartı görünür.
+// "Qıldım" basılanda pəncərə açılmır: SW localStorage-a çata bilmir, ona görə
+// qeyd IndexedDB-yə yazılır ('muslims-tracker' → 'pending'); sayt açılanda
+// src/utils/prayerTracker.js → syncPendingCheckins() onu izləyiciyə köçürür
+// (idempotent) və qeydi silir. Bu məlumat heç yerə göndərilmir.
+const TRACKER_DB = 'muslims-tracker'
+const TRACKER_STORE = 'pending'
+const CHECKIN_PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
+const isCheckinTag = (tag) => /^checkin-/.test(tag || '')
+
+function openTrackerDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(TRACKER_DB, 1)
+    req.onupgradeneeded = () => {
+      const db = req.result
+      if (!db.objectStoreNames.contains(TRACKER_STORE)) db.createObjectStore(TRACKER_STORE, { keyPath: 'id' })
+    }
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function savePendingCheckin(prayer, date) {
+  if (!CHECKIN_PRAYERS.includes(prayer) || !/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return false
+  const db = await openTrackerDb()
+  try {
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(TRACKER_STORE, 'readwrite')
+      // id = gün|namaz — eyni düyməyə iki dəfə basmaq bir qeyd yaradır
+      tx.objectStore(TRACKER_STORE).put({ id: `${date}|${prayer}`, date, prayer, status: 'prayed', at: Date.now() })
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+    })
+  } finally { db.close() }
+  return true
+}
+
 self.addEventListener('push', (e) => {
   const m = parsePush(e)
   const isAzan = m.tag.startsWith('azan-')
+  const isCheckin = isCheckinTag(m.tag)
   e.waitUntil((async () => {
     await self.registration.showNotification(m.title, {
       body: m.body,
@@ -238,6 +279,11 @@ self.addEventListener('push', (e) => {
       vibrate: isAzan ? [400, 150, 400, 150, 400, 300, 800] : [200, 100, 200],
       timestamp: Date.now(),
       data: { ...m.data, url: m.url },
+      // Yalnız "Qıldınızmı?" üçün düymələr (mətnlər push-un data-sından — 5 dil)
+      ...(isCheckin ? { actions: [
+        { action: 'prayed', title: m.data.actPrayed || '✅ Qıldım' },
+        { action: 'later', title: m.data.actLater || 'Sonra' },
+      ] } : {}),
     })
     // Sayt (və ya ana ekrandakı tətbiq) açıqdırsa — oraya xəbər ver:
     // səhifə əzanın səsini oxuda bilsin (bildiriş öz səsini çala bilmir)
@@ -256,7 +302,32 @@ self.addEventListener('pushsubscriptionchange', (e) => {
 // ── Notification click ──
 self.addEventListener('notificationclick', (e) => {
   e.notification.close()
-  const raw = (e.notification.data && e.notification.data.url) || '/'
+  const nd = e.notification.data || {}
+  if (isCheckinTag(e.notification.tag) && e.action === 'later') return
+  if (isCheckinTag(e.notification.tag) && e.action === 'prayed') {
+    // Pəncərə açmadan qeyd et; açıq səhifə varsa dərhal köçürsün
+    e.waitUntil((async () => {
+      let ok = false
+      try { ok = await savePendingCheckin(nd.prayer, nd.date) } catch (_) { ok = false }
+      const wins = await clients.matchAll({ type: 'window', includeUncontrolled: true })
+      for (const w of wins) w.postMessage({ type: 'CHECKIN', prayer: nd.prayer, date: nd.date })
+      if (!ok) return clients.openWindow(nd.url || '/prayer')   // IndexedDB yoxdur — saytda qeyd etsin
+      // Sakit təsdiq: səssiz, titrəməsiz, bir neçə saniyədən sonra özü bağlanır
+      if (nd.doneTitle) {
+        const tag = `checkin-done-${nd.prayer}`
+        await self.registration.showNotification(nd.doneTitle, {
+          tag, silent: true, renotify: false, requireInteraction: false,
+          icon: '/android-chrome-192x192.png?v=2', badge: '/badge-96x96.png?v=2',
+          data: { url: nd.url || '/prayer' },
+        })
+        await new Promise((r) => setTimeout(r, 4000))
+        const shown = await self.registration.getNotifications({ tag })
+        shown.forEach((n) => n.close())
+      }
+    })())
+    return
+  }
+  const raw = nd.url || '/'
   let target
   try { target = new URL(raw, self.location.origin) } catch { target = new URL('/', self.location.origin) }
   if (target.origin !== self.location.origin) target = new URL('/', self.location.origin)

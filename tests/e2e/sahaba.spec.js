@@ -1,14 +1,14 @@
 // ═══════════════════════════════════════════════════════
 // Səhabələr: siyahı ↔ profil naviqasiyası
-//   • kartdan profilə keçid, URL-də ?id=<ad>, h1 = səhabənin adı
+//   • kartdan profilə keçid, URL /sahaba/<slug>, h1 = səhabənin adı
 //   • brauzerin "geri" düyməsi siyahıya qaytarır və sürüşmə yeri bərpa olunur
 //   • Əvvəlki / Növbəti səhabə işləyir, "geri" yenə siyahıya aparır
-//   • paylaşılan keçid (/sahaba?id=…) birbaşa profili açır
+//   • paylaşılan keçid (/sahaba/<slug>, köhnə /sahaba?id=…) birbaşa profili açır
 //   • filtr çipləri siyahını daraldır
 // ═══════════════════════════════════════════════════════
 import { test, expect, expectCleanConsole, settle } from './fixtures.js'
 
-test('kartdan profilə keçid, URL-də id, geri siyahıya qaytarır', async ({ page, consoleProblems }) => {
+test('kartdan profilə keçid, URL /sahaba/<slug>, geri siyahıya qaytarır', async ({ page, consoleProblems }) => {
   await page.goto('/sahaba')
   await settle(page)
   await expect(page.locator('h1')).toHaveText('Səhabələr')
@@ -19,7 +19,7 @@ test('kartdan profilə keçid, URL-də id, geri siyahıya qaytarır', async ({ p
   const yBefore = await page.evaluate(() => window.scrollY)
   await card.click()
 
-  await expect(page).toHaveURL(/\/sahaba\?id=bilal-ibn-rabah$/)
+  await expect(page).toHaveURL(/\/sahaba\/bilal-ibn-rabah$/)
   await expect(page.locator('h1')).toHaveText(/Bilal/)
   await expect(page.locator('h1')).toHaveCount(1)
   // Profil yuxarıdan açılır
@@ -39,18 +39,18 @@ test('əvvəlki / növbəti səhabə işləyir, geri yenə siyahıdır', async (
   await page.goto('/sahaba')
   await settle(page)
   await page.locator('.sahabe-card', { hasText: 'Ömər ibn əl-Xəttab' }).click()
-  await expect(page).toHaveURL(/id=umar-ibn-al-khattab/)
+  await expect(page).toHaveURL(/\/sahaba\/umar-ibn-al-khattab$/)
 
-  await page.getByRole('button', { name: /Növbəti səhabə/ }).click()
-  await expect(page).toHaveURL(/id=uthman-ibn-affan/)
+  await page.getByRole('link', { name: /Növbəti səhabə/ }).click()
+  await expect(page).toHaveURL(/\/sahaba\/uthman-ibn-affan$/)
   await expect(page.locator('h1')).toHaveText(/Osman/)
 
-  await page.getByRole('button', { name: /Əvvəlki səhabə/ }).click()
-  await expect(page).toHaveURL(/id=umar-ibn-al-khattab/)
-  await page.getByRole('button', { name: /Əvvəlki səhabə/ }).click()
-  await expect(page).toHaveURL(/id=abu-bakr-as-siddiq/)
+  await page.getByRole('link', { name: /Əvvəlki səhabə/ }).click()
+  await expect(page).toHaveURL(/\/sahaba\/umar-ibn-al-khattab$/)
+  await page.getByRole('link', { name: /Əvvəlki səhabə/ }).click()
+  await expect(page).toHaveURL(/\/sahaba\/abu-bakr-as-siddiq$/)
   // Birinci səhabədə "Əvvəlki" yoxdur
-  await expect(page.getByRole('button', { name: /Əvvəlki səhabə/ })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: /Əvvəlki səhabə/ })).toHaveCount(0)
 
   await page.goBack()
   await expect(page).toHaveURL(/\/sahaba$/)
@@ -59,8 +59,10 @@ test('əvvəlki / növbəti səhabə işləyir, geri yenə siyahıdır', async (
 })
 
 test('paylaşılan keçid profili birbaşa açır; "Bütün səhabələr" siyahıya aparır', async ({ page, consoleProblems }) => {
+  // Köhnə ünvan (?id=) yeni /en/sahaba/<slug> ünvanına çevrilir
   await page.goto('/en/sahaba?id=aisha-bint-abi-bakr')
   await settle(page)
+  await expect(page).toHaveURL(/\/en\/sahaba\/aisha-bint-abi-bakr$/)
   await expect(page.locator('h1')).toHaveText(/Aisha/)
   await expect(page.locator('#sp-glance')).toBeVisible()
   await expect(page.locator('#sp-sources li').first()).toBeVisible()
@@ -95,7 +97,7 @@ test.describe('animasiya açıq', () => {
     await page.goto('/sahaba')
     await settle(page)
     await page.locator('.sahabe-card', { hasText: 'Ənəs ibn Malik' }).click()
-    await expect(page).toHaveURL(/id=anas-ibn-malik/)
+    await expect(page).toHaveURL(/\/sahaba\/anas-ibn-malik$/)
     await expect(page.locator('h1')).toHaveText(/Ənəs/)
 
     const stuck = await page.evaluate(async () => {

@@ -228,6 +228,32 @@ export const META = {
           d: 'اعرف تاريخ اليوم بالهجري إلى جانب التقويم الميلادي، وتابع رمضان وعيد الفطر وعيد الأضحى وعاشوراء وغيرها مع التذكيرات.' },
   },
 
+  tracker: {
+    az: { t: 'Namaz İzləyicisi — Seriya, Hesabat və Qəza Sayğacı',
+          d: 'Beş vaxt namazı qeyd et: vaxtında, qəza və ya qılınmayıb. Ardıcıl gün seriyası, həftəlik və aylıq hesabat, qəza sayğacı. Məlumat yalnız cihazında qalır.' },
+    en: { t: 'Prayer Tracker — Streaks, Reports & Qada Counter',
+          d: 'Log the five daily prayers as on time, made up or missed. Day streaks, weekly and monthly reports and a qada counter. Your data stays on your device.' },
+    ru: { t: 'Трекер намазов — серии, отчёты и счётчик каза',
+          d: 'Отмечайте пять намазов: вовремя, каза или пропущен. Серии дней, недельный и месячный отчёт, счётчик каза. Данные остаются на вашем устройстве.' },
+    tr: { t: 'Namaz Takibi — Seri, Rapor ve Kaza Sayacı',
+          d: 'Beş vakit namazı işaretle: vaktinde, kaza veya kılınmadı. Gün serisi, haftalık ve aylık rapor, kaza sayacı. Verilerin cihazında kalır.' },
+    ar: { t: 'متابعة الصلاة — السلاسل والتقارير وعدّاد القضاء',
+          d: 'سجّل الصلوات الخمس: في وقتها أو قضاءً أو فائتة. أيام متتالية وتقرير أسبوعي وشهري وعدّاد للقضاء. تبقى بياناتك على جهازك.' },
+  },
+
+  arabic: {
+    az: { t: 'Ərəb əlifbası və Quran oxumağı öyrən — pulsuz kurs',
+          d: 'Yeni müsəlmanlar və uşaqlar üçün addım-addım: 28 hərf və səsləri, hərəkələr, hecalar, Fatihə və qısa surələr söz-söz, təcvidin əsasları və yoxlama oyunları.' },
+    en: { t: 'Learn the Arabic Alphabet and Quran Reading — Free Course',
+          d: 'A step-by-step course for new Muslims and kids: the 28 letters with audio, vowel marks, syllables, Al-Fatiha and short surahs word by word, tajweed basics and quizzes.' },
+    ru: { t: 'Арабский алфавит и чтение Корана — бесплатный курс',
+          d: 'Пошаговый курс для новых мусульман и детей: 28 букв с озвучкой, огласовки, слоги, Аль-Фатиха и короткие суры слово за словом, основы таджвида и проверочные тесты.' },
+    ar: { t: 'تعلّم الحروف العربية وقراءة القرآن — دورة مجانية',
+          d: 'دورة متدرجة للمسلمين الجدد والأطفال: الحروف الثمانية والعشرون بالصوت، والحركات، والمقاطع، والفاتحة والسور القصيرة كلمةً كلمة، وأساسيات التجويد واختبارات قصيرة.' },
+    tr: { t: 'Arap Alfabesi ve Kur’an Okumayı Öğren — Ücretsiz Kurs',
+          d: 'Yeni Müslümanlar ve çocuklar için adım adım: sesli 28 harf, harekeler, heceler, Fâtiha ve kısa sureler kelime kelime, tecvidin temelleri ve kısa sınavlar.' },
+  },
+
   prayerguide: {
     az: { t: 'Namaz Necə Qılınır — Addım-Addım Namaz Öyrən',
           d: 'Namazı sıfırdan öyrən: dəstəmaz, qiyam, rüku, səcdə və təşəhhüd addım-addım. Hər rükət üçün ərəb duaları, oxunuşu və tərcüməsi ilə.' },

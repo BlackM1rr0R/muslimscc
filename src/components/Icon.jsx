@@ -37,6 +37,8 @@ const P = {
   prayerguide: <><path d="M21.5 9.5 12 4.5 2.5 9.5 12 14.5z" /><path d="M6.5 11.8V16c3 2.7 8 2.7 11 0v-4.2" /><path d="M21.5 9.5V15" /></>,
   qibla: <><circle cx="12" cy="12" r="8.5" /><path d="m15.6 8.4-2 5.2-5.2 2 2-5.2z" /></>,
   calendar: <><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M8 3v4M16 3v4M3.5 10h17" /><path d="M14 13.5a2.5 2.5 0 1 0 1.5 4.5 2.2 2.2 0 0 1-1.5-4.5z" /></>,
+  // Namaz izləyicisi (/prayer-tracker) — dairə içində ✓
+  tracker: <><circle cx="12" cy="12" r="8.5" /><path d="m8.4 12.2 2.5 2.5 4.9-5" /></>,
   dailytracker: <><path d="m3.5 7 1.8 1.8 3.2-3.3M3.5 16.5l1.8 1.8 3.2-3.3" /><path d="M12.5 7h8M12.5 12h8M12.5 17h8" /></>,
   duas: <><path d="M12.5 3.5a7 7 0 1 0 8 8 5.5 5.5 0 1 1-8-8z" /><path d="m18 3 .7 1.6 1.6.7-1.6.7L18 7.6l-.7-1.6-1.6-.7 1.6-.7z" /></>,
   dhikr: <><circle cx="12" cy="4.2" r="1.6" /><circle cx="16.6" cy="6.1" r="1.6" /><circle cx="18.5" cy="10.6" r="1.6" /><circle cx="16.6" cy="15.1" r="1.6" /><circle cx="7.4" cy="15.1" r="1.6" /><circle cx="5.5" cy="10.6" r="1.6" /><circle cx="7.4" cy="6.1" r="1.6" /><path d="M12 16.5v3M10.3 21.5h3.4" /></>,
@@ -51,6 +53,8 @@ const P = {
   quiz: <><circle cx="12" cy="12" r="8.5" /><path d="M9.4 9.3a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.6-2.6 2.6" /><path d="M12 16.6h.01" strokeWidth="2.4" /></>,
   quotes: <><path d="M10 11.5H5.5V6.5H10v5.5a5 5 0 0 1-4.5 5" /><path d="M19.5 11.5H15V6.5h4.5v5.5a5 5 0 0 1-4.5 5" /></>,
   kids: <><circle cx="12" cy="12" r="8.5" /><path d="M8.5 14s1.3 2 3.5 2 3.5-2 3.5-2" /><path d="M9.2 9.5h.01M14.8 9.5h.01" strokeWidth="2.4" /></>,
+  // Ərəb kursu: "ب" hərfinin cizgisi — çanaq + alt nöqtə
+  arabic: <><path d="M3.5 9.5c0 4.6 3.2 6.5 8.5 6.5s8.5-1.9 8.5-6.5" /><path d="M12 20.2h.01" strokeWidth="2.8" /></>,
   about: <><circle cx="12" cy="12" r="8.5" /><path d="M12 16.5V11.5" /><path d="M12 8h.01" strokeWidth="2.4" /></>,
 
   // ── Ümumi ──

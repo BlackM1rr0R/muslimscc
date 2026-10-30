@@ -70,7 +70,7 @@ service cloud.firestore {
     }
 
     function TOKEN_FIELDS() {
-      return ['token', 'userAgent', 'lang', 'loc', 'daily', 'azan', 'createdAt', 'updatedAt'];
+      return ['token', 'userAgent', 'lang', 'loc', 'daily', 'azan', 'checkin', 'createdAt', 'updatedAt'];
     }
 
     // d — yekun sənəd, ch — yoxlanacaq sahələr (create: hamısı; update: dəyişənlər)
@@ -82,6 +82,9 @@ service cloud.firestore {
         && (!('loc' in ch)       || validLoc(d.loc))
         && (!('daily' in ch)     || validDaily(d.daily))
         && (!('azan' in ch)      || d.azan is bool)
+        // "Qıldınızmı?" xatırlatması (server/checkin.js) — yalnız açıq/sönülü;
+        // namazın qılınıb-qılınmadığı serverə yazılmır
+        && (!('checkin' in ch)   || d.checkin is bool)
         && (!('createdAt' in ch) || d.createdAt is int)
         && (!('updatedAt' in ch) || d.updatedAt is timestamp);
     }

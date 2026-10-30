@@ -1,638 +1,430 @@
+// ═══════════════════════════════════════════════════════
+// /quotes — İslami sitat kartı generatoru (dizayn v2, 2026-10 yenidən qurulub)
+//
+// Sahibin şikayəti: "Telefonda nə düzəltdiyimi görə bilmirəm, hər dəfə
+// yuxarı qalxıb baxmalıyam." Həll:
+//  • Telefonda (<1024px) önizləmə ekranın yuxarısında YAPIŞQANDIR (~40%),
+//    altında bölmə sekmələri (Mətn · Şablon · Ölçü · Üslub) də yapışqandır,
+//    düymələr (Paylaş · Yüklə · Kopyala) aşağıda yapışqan zolaqdadır —
+//    hansı idarəni dəyişsən, nəticə həmişə görünür.
+//  • Masaüstündə iki sütun: solda yapışqan önizləmə, sağda idarələr.
+//  • Önizləmə və PNG eyni kanvas funksiyası ilə çəkilir (utils/quoteCard).
+//
+// Məzmun: quotes.js + admin sitatları, ayə (alquran.cloud), hədis
+// (utils/hadithData), istifadəçinin öz mətni. ShareCardButton başqa
+// səhifələrdən ?ayah= / ?hadith= / ?text=&src= ilə bura gətirir.
+// ═══════════════════════════════════════════════════════
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
-import { BRAND, brandName } from '../config/brand'
+import { BRAND } from '../config/brand'
 import { QUOTES as STATIC_QUOTES } from '../data/quotes'
 import { subscribeToQuotes } from '../data/adminContent'
-import { localizeSource } from '../utils/sourceNames'
 import { pickLang } from '../utils/pickLang'
 import { dedupeList, hadithKeys } from '../utils/uniqueHadiths'
+import { loadHadithData } from '../utils/hadithData'
+import {
+  TEMPLATES, FORMATS, DEFAULT_STYLE, templateById, formatById, mostlyArabic,
+  renderPng, saveBlob, preopenWindow, canShareFile,
+} from '../utils/quoteCard'
+import { LABELS, TEMPLATE_NAMES } from '../components/quote/labels'
+import { refLabel, fetchAyah, readParams, parseAyahRef } from '../components/quote/content'
+import QuotePreview from '../components/quote/QuotePreview'
+import TemplatePicker from '../components/quote/TemplatePicker'
+import SourcePanel from '../components/quote/SourcePanel'
+import { FormatPicker, StylePanel } from '../components/quote/StylePanel'
 import Icon from '../components/Icon'
 import '../styles/QuoteGeneratorPage.css'
 
-// Sitatın tərcüməsi YALNIZ cari dildə. Ərəbcədə orijinal mətn onsuz da göstərilir —
-// tərcümə sətri yoxdur (əvvəl ar istifadəçisi ingiliscə tərcümə görürdü).
+// Sitatın tərcüməsi YALNIZ cari dildə. Ərəbcədə orijinal mətn onsuz da
+// göstərilir — tərcümə sətri yoxdur.
 const translationOf = (q, lang) => (lang === 'ar' ? '' : pickLang(q?.text, lang))
 
-/* ── Labels ── */
-const LABELS = {
-  az: { eyebrow:'Paylaş və yay', title:'Sitat generatoru', subtitle:'Gözəl İslami sitatlar yaradın', generate:'Yeni sitat', copy:'Kopyala', share:'Paylaş', download:'Yüklə', copied:'Kopyalandı!', downloaded:'Yükləndi!', theme:'Rəng', category:'Kateqoriya', layout:'Dizayn', custom:'Fərdiləşdir', quran:'Quran', hadith:'Hədis', dua:'Dua', wisdom:'Hikmət', all:'Hamısı', watermark:`${BRAND.name.az} · ${BRAND.domain}`, fontSize:'Yazı ölçüsü', bgColor:'Arxa plan', textColor:'Yazı rəngi', borderWidth:'Sərhəd', borderColor:'Sərhəd rəngi', opacity:'Şəffaflıq', reset:'Sıfırla', customBg:'Öz rəng', arText:'Ərəb', trText:'Tərcümə' },
-  en: { eyebrow:'Share the good', title:'Quote Generator', subtitle:'Create beautiful Islamic quotes', generate:'New quote', copy:'Copy', share:'Share', download:'Download', copied:'Copied!', downloaded:'Downloaded!', theme:'Color', category:'Category', layout:'Layout', custom:'Customize', quran:'Quran', hadith:'Hadith', dua:'Dua', wisdom:'Wisdom', all:'All', watermark:`${BRAND.name.en} · ${BRAND.domain}`, fontSize:'Font size', bgColor:'Background', textColor:'Text color', borderWidth:'Border', borderColor:'Border color', opacity:'Opacity', reset:'Reset', customBg:'Custom color', arText:'Arabic', trText:'Translation' },
-  ru: { eyebrow:'Делитесь добром', title:'Генератор цитат', subtitle:'Создавайте красивые исламские цитаты', generate:'Новая цитата', copy:'Копировать', share:'Поделиться', download:'Скачать', copied:'Скопировано!', downloaded:'Скачано!', theme:'Цвет', category:'Категория', layout:'Дизайн', custom:'Настроить', quran:'Коран', hadith:'Хадис', dua:'Дуа', wisdom:'Мудрость', all:'Все', watermark:`${BRAND.name.ru} · ${BRAND.domain}`, fontSize:'Размер шрифта', bgColor:'Фон', textColor:'Цвет текста', borderWidth:'Рамка', borderColor:'Цвет рамки', opacity:'Прозрачность', reset:'Сбросить', customBg:'Свой цвет', arText:'Арабский', trText:'Перевод' },
-  ar: { eyebrow:'انشر الخير', title:'مولد الاقتباسات', subtitle:'أنشئ اقتباسات إسلامية جميلة', generate:'اقتباس جديد', copy:'نسخ', share:'مشاركة', download:'تحميل', copied:'تم النسخ!', downloaded:'تم التحميل!', theme:'اللون', category:'الفئة', layout:'التصميم', custom:'تخصيص', quran:'القرآن', hadith:'الحديث', dua:'الدعاء', wisdom:'حكمة', all:'الكل', watermark:`${BRAND.name.ar} · ${BRAND.domain}`, fontSize:'حجم الخط', bgColor:'الخلفية', textColor:'لون النص', borderWidth:'الإطار', borderColor:'لون الإطار', opacity:'الشفافية', reset:'إعادة ضبط', customBg:'لون مخصص', arText:'العربية', trText:'الترجمة' },
-  tr: { eyebrow:'Paylaş ve yay', title:'Alıntı Oluşturucu', subtitle:'Güzel İslami alıntılar oluşturun', generate:'Yeni alıntı', copy:'Kopyala', share:'Paylaş', download:'İndir', copied:'Kopyalandı!', downloaded:'İndirildi!', theme:'Renk', category:'Kategori', layout:'Tasarım', custom:'Özelleştir', quran:'Kuran', hadith:'Hadis', dua:'Dua', wisdom:'Hikmet', all:'Tümü', watermark:`${BRAND.name.tr} · ${BRAND.domain}`, fontSize:'Yazı boyutu', bgColor:'Arka plan', textColor:'Yazı rengi', borderWidth:'Kenarlık', borderColor:'Kenarlık rengi', opacity:'Saydamlık', reset:'Sıfırla', customBg:'Özel renk', arText:'Arapça', trText:'Çeviri' },
-}
-
-/* ── Theme configs — 12 tema ── */
-const THEMES = [
-  { id:'green',   gradient:['#0d4a27','#1a6b3a','#22874a'], textColor:'#ffffff' },
-  { id:'gold',    gradient:['#8b6508','#b8860b','#d4a017'], textColor:'#ffffff' },
-  { id:'dark',    gradient:['#1a1a2e','#16213e','#0f3460'], textColor:'#ffffff' },
-  { id:'mosque',  gradient:['#2d5016','#1a6b3a'],           textColor:'#ffffff' },
-  { id:'geo',     gradient:['#4a148c','#6a1b9a','#8e24aa'], textColor:'#ffffff' },
-  { id:'minimal', gradient:['#f7f8f5','#f7f8f5'],           textColor:'#1a2e1e' },
-  { id:'ocean',   gradient:['#0c4a6e','#0369a1','#0284c7'], textColor:'#ffffff' },
-  { id:'sunset',  gradient:['#7c2d12','#9a3412','#ea580c'], textColor:'#ffffff' },
-  { id:'rose',    gradient:['#881337','#be123c','#e11d48'], textColor:'#ffffff' },
-  { id:'emerald', gradient:['#065f46','#059669','#34d399'], textColor:'#ffffff' },
-  { id:'slate',   gradient:['#0f172a','#1e293b','#475569'], textColor:'#ffffff' },
-  { id:'sand',    gradient:['#92400e','#d4a017','#fef3c7'], textColor:'#1a2e1e' },
+const KIND_BY_CAT = { quran: 'kindVerse', hadith: 'kindHadith', dua: 'kindDua', wisdom: 'kindWisdom' }
+const TABS = [
+  { id: 'content', icon: 'type', label: 'tabContent' },
+  { id: 'template', icon: 'image', label: 'tabTemplate' },
+  { id: 'format', icon: 'ruler', label: 'tabFormat' },
+  { id: 'style', icon: 'palette', label: 'tabStyle' },
 ]
 
-const CATEGORIES = ['all','quran','hadith','dua','wisdom']
-
-/* ── Rəng və dizayn adları — [az, en, ru, ar, tr] ──
-   Düymələrdə yalnız rəng dairəsi / simvol görünür; ad title və
-   aria-label-da (əvvəl yalnız ingiliscə id idi) */
-const LANG_IDX = { az:0, en:1, ru:2, ar:3, tr:4 }
-const THEME_NAMES = {
-  green:   ['Yaşıl','Green','Зелёный','أخضر','Yeşil'],
-  gold:    ['Qızılı','Gold','Золотой','ذهبي','Altın'],
-  dark:    ['Tünd','Dark','Тёмный','داكن','Koyu'],
-  mosque:  ['Məscid','Mosque','Мечеть','مسجد','Cami'],
-  geo:     ['Bənövşəyi','Purple','Фиолетовый','بنفسجي','Mor'],
-  minimal: ['Açıq','Light','Светлый','فاتح','Açık'],
-  ocean:   ['Okean','Ocean','Океан','محيط','Okyanus'],
-  sunset:  ['Qürub','Sunset','Закат','غروب','Gün batımı'],
-  rose:    ['Qızılgül','Rose','Роза','وردي','Gül'],
-  emerald: ['Zümrüd','Emerald','Изумруд','زمردي','Zümrüt'],
-  slate:   ['Boz','Slate','Графит','رمادي','Arduvaz'],
-  sand:    ['Qum','Sand','Песок','رملي','Kum'],
-}
-const LAYOUT_NAMES = {
-  square:['Kvadrat','Square','Квадрат','مربع','Kare'],
-  portrait:['İnstagram 4:5','Instagram 4:5','Instagram 4:5','إنستغرام 4:5','Instagram 4:5'],
-  story:['Story 9:16','Story 9:16','Сторис 9:16','قصة 9:16','Hikâye 9:16'],
-  landscape:['Geniş 16:9','Wide 16:9','Широкий 16:9','عريض 16:9','Geniş 16:9'],
-  circle:['Dairə','Circle','Круг','دائرة','Daire'],
-  rounded:['Yumru künc','Rounded','Скруглённый','زوايا مستديرة','Yuvarlak köşe'],
-  flat:['Düz künc','Sharp corners','Прямые углы','زوايا حادة','Düz köşe'],
-  pill:['Oval','Pill','Овал','بيضاوي','Oval'],
-  'frame-thin':['Nazik çərçivə','Thin frame','Тонкая рамка','إطار رفيع','İnce çerçeve'],
-  'frame-thick':['Qalın çərçivə','Thick frame','Толстая рамка','إطار سميك','Kalın çerçeve'],
-  'frame-double':['İkiqat çərçivə','Double frame','Двойная рамка','إطار مزدوج','Çift çerçeve'],
-  'frame-gradient':['Gradient çərçivə','Gradient frame','Градиентная рамка','إطار متدرج','Gradyan çerçeve'],
-  'frame-neon':['Neon çərçivə','Neon frame','Неоновая рамка','إطار نيون','Neon çerçeve'],
-  'frame-dashed':['Kəsik çərçivə','Dashed frame','Пунктирная рамка','إطار متقطع','Kesikli çerçeve'],
-  'frame-corner':['Künc çərçivə','Corner frame','Угловая рамка','إطار الزوايا','Köşe çerçeve'],
-  'frame-shadow':['Dərin kölgə','Deep shadow','Глубокая тень','ظل عميق','Derin gölge'],
-  bismillah:['Bismillah','Bismillah','Бисмиллях','البسملة','Besmele'],
-  ornament:['Ornament','Ornament','Орнамент','زخرفة','Süsleme'],
-  quotemark:['Dırnaq','Quote mark','Кавычка','علامة اقتباس','Tırnak'],
-  topbar:['Üst xətt','Top bar','Верхняя линия','شريط علوي','Üst çizgi'],
-  sideline:['Yan xətt','Side line','Боковая линия','خط جانبي','Yan çizgi'],
-  dots:['Nöqtələr','Dots','Точки','نقاط','Noktalar'],
-  diamond:['Romb','Diamond','Ромб','معين','Elmas'],
-  stars:['Ulduzlar','Stars','Звёзды','نجوم','Yıldızlar'],
-  grid:['Tor','Grid','Сетка','شبكة','Izgara'],
-  hex:['Altıbucaq','Hexagon','Шестиугольник','سداسي','Altıgen'],
-  diagonal:['Diaqonal','Diagonal','Диагональ','قطري','Çapraz'],
-  'circles-bg':['Dairələr','Circles','Круги','دوائر','Daireler'],
-  wave:['Dalğa','Wave','Волна','موجة','Dalga'],
-  noise:['Toxunuş','Texture','Текстура','ملمس','Doku'],
-  vignette:['Kölgə kənar','Vignette','Виньетка','تظليل الحواف','Vinyet'],
-  spotlight:['İşıq','Spotlight','Прожектор','بقعة ضوء','Spot ışık'],
-  'ar-big':['Böyük ərəb','Large Arabic','Крупный арабский','عربي كبير','Büyük Arapça'],
-  'ar-small':['Kiçik ərəb','Small Arabic','Мелкий арабский','عربي صغير','Küçük Arapça'],
-  'ar-only':['Yalnız ərəb','Arabic only','Только арабский','العربية فقط','Yalnız Arapça'],
-  'tr-only':['Yalnız tərcümə','Translation only','Только перевод','الترجمة فقط','Yalnız çeviri'],
-  minimal:['Minimal','Minimal','Минимализм','بسيط','Minimal'],
-  paper:['Kağız','Paper','Бумага','ورق','Kâğıt'],
-  ticket:['Bilet','Ticket','Билет','تذكرة','Bilet'],
-  split:['Bölünmüş','Split','Разделённый','مقسوم','Bölünmüş'],
-}
-const nameOf = (map, id, lang) => (map[id] || [])[LANG_IDX[lang] ?? 1] || (map[id] || [])[1] || id
-
-/* ── Layout / Dizayn seçimləri — 40 fərqli stil ── */
-const LAYOUTS = [
-  // ── FORMA (8) ──
-  { id:'square',     label:'1:1',   ratio:'1/1',   radius:'20px',  decor:'bismillah', desc:'Kvadrat' },
-  { id:'portrait',   label:'4:5',   ratio:'4/5',   radius:'20px',  decor:'bismillah', desc:'İnstagram' },
-  { id:'story',      label:'9:16',  ratio:'9/16',  radius:'20px',  decor:'bismillah', desc:'Story' },
-  { id:'landscape',  label:'16:9',  ratio:'16/9',  radius:'20px',  decor:'bismillah', desc:'Geniş' },
-  { id:'circle',     label:'◯',     ratio:'1/1',   radius:'50%',   decor:'none',      desc:'Dairə' },
-  { id:'rounded',    label:'▢',     ratio:'1/1',   radius:'60px',  decor:'bismillah', desc:'Yumru' },
-  { id:'flat',       label:'□',     ratio:'1/1',   radius:'0',     decor:'none',      desc:'Düz' },
-  { id:'pill',       label:'⏺',    ratio:'2/1',   radius:'999px', decor:'none',      desc:'Oval' },
-
-  // ── ÇƏRÇİVƏ (8) ──
-  { id:'frame-thin',   label:'▫',  ratio:'1/1', radius:'20px', decor:'frame',          desc:'Nazik çərçivə' },
-  { id:'frame-thick',  label:'▪',  ratio:'1/1', radius:'20px', decor:'thickborder',    desc:'Qalın çərçivə' },
-  { id:'frame-double', label:'⧈',  ratio:'1/1', radius:'20px', decor:'doubleframe',    desc:'İkiqat çərçivə' },
-  { id:'frame-gradient',label:'◐', ratio:'1/1', radius:'20px', decor:'gradientborder', desc:'Gradient çərçivə' },
-  { id:'frame-neon',   label:'◈',  ratio:'1/1', radius:'20px', decor:'neon',           desc:'Neon çərçivə' },
-  { id:'frame-dashed', label:'▦',  ratio:'1/1', radius:'20px', decor:'dashedframe',    desc:'Kəsik çərçivə' },
-  { id:'frame-corner', label:'⌜',  ratio:'1/1', radius:'0',    decor:'cornerframe',    desc:'Künc çərçivə' },
-  { id:'frame-shadow', label:'▨',  ratio:'1/1', radius:'24px', decor:'bismillah',      desc:'Dərin kölgə', shadow:'deep' },
-
-  // ── DEKOR (8) ──
-  { id:'bismillah',  label:'بسم',  ratio:'1/1', radius:'20px', decor:'bismillah',  desc:'Bismillah' },
-  { id:'ornament',   label:'❋',   ratio:'1/1', radius:'20px', decor:'ornament',   desc:'Ornament' },
-  { id:'quotemark',  label:'❝',   ratio:'1/1', radius:'20px', decor:'quotemark',  desc:'Dırnaq' },
-  { id:'topbar',     label:'▔',   ratio:'1/1', radius:'20px', decor:'topbar',     desc:'Üst xətt' },
-  { id:'sideline',   label:'▏',   ratio:'4/5', radius:'20px', decor:'sideline',   desc:'Yan xətt' },
-  { id:'dots',       label:'⋯',   ratio:'1/1', radius:'20px', decor:'dots',       desc:'Nöqtələr' },
-  { id:'diamond',    label:'◇',   ratio:'1/1', radius:'20px', decor:'diamond',    desc:'Romb' },
-  { id:'stars',      label:'✧',   ratio:'1/1', radius:'20px', decor:'starbg',     desc:'Ulduzlar' },
-
-  // ── OVERLAY/TEXTURE (8) ──
-  { id:'grid',       label:'⊞',   ratio:'1/1', radius:'20px', decor:'grid',       desc:'Tor' },
-  { id:'hex',        label:'⬡',   ratio:'1/1', radius:'20px', decor:'hex',        desc:'Altıbucaq' },
-  { id:'diagonal',   label:'╱',   ratio:'1/1', radius:'20px', decor:'diagonal',   desc:'Diaqonal' },
-  { id:'circles-bg', label:'◎',   ratio:'1/1', radius:'20px', decor:'circlesbg',  desc:'Dairələr' },
-  { id:'wave',       label:'〰',  ratio:'1/1', radius:'20px', decor:'wave',       desc:'Dalğa' },
-  { id:'noise',      label:'░',   ratio:'1/1', radius:'20px', decor:'noise',      desc:'Toxunuş' },
-  { id:'vignette',   label:'◉',   ratio:'1/1', radius:'20px', decor:'vignette',   desc:'Kölgə kənar' },
-  { id:'spotlight',  label:'◍',   ratio:'1/1', radius:'20px', decor:'spotlight',  desc:'İşıq' },
-
-  // ── YAZMA STİLİ (8) ──
-  { id:'ar-big',     label:'عـ',   ratio:'1/1', radius:'20px', decor:'bismillah',  desc:'Böyük ərəb', arSize:'clamp(28px,5.5vw,42px)' },
-  { id:'ar-small',   label:'عَ',   ratio:'1/1', radius:'20px', decor:'ornament',   desc:'Kiçik ərəb', arSize:'clamp(15px,2.5vw,20px)' },
-  { id:'ar-only',    label:'ع',    ratio:'1/1', radius:'20px', decor:'none',       desc:'Yalnız ərəb', hideTranslation:true },
-  { id:'tr-only',    label:'Aa',   ratio:'1/1', radius:'20px', decor:'bismillah',  desc:'Yalnız tərcümə', hideArabic:true },
-  { id:'minimal',    label:'—',    ratio:'1/1', radius:'20px', decor:'none',       desc:'Minimal' },
-  { id:'paper',      label:'❏',   ratio:'4/5', radius:'4px',  decor:'paper',      desc:'Kağız' },
-  { id:'ticket',     label:'▭',   ratio:'5/2', radius:'16px', decor:'line',       desc:'Bilet' },
-  { id:'split',      label:'◧',    ratio:'1/1', radius:'20px', decor:'split',      desc:'Bölünmüş' },
-]
-
-/* ── Canvas text wrapping helper ── */
-function wrapText(ctx, text, maxWidth) {
-  const words = text.split(' ')
-  const lines = []
-  let currentLine = ''
-  for (const word of words) {
-    const testLine = currentLine ? currentLine + ' ' + word : word
-    if (ctx.measureText(testLine).width > maxWidth && currentLine) {
-      lines.push(currentLine)
-      currentLine = word
-    } else {
-      currentLine = testLine
+// Seçilmiş şablon / ölçü / üslub yadda qalır (növbəti açılışda eyni görünüş)
+const PREFS_KEY = 'qm_qcard_prefs'
+function readPrefs() {
+  try {
+    const p = JSON.parse(localStorage.getItem(PREFS_KEY) || 'null') || {}
+    return {
+      tpl: TEMPLATES.some(x => x.id === p.tpl) ? p.tpl : 'emerald',
+      fmt: FORMATS.some(x => x.id === p.fmt) ? p.fmt : 'square',
+      style: { ...DEFAULT_STYLE, ...(p.style && typeof p.style === 'object' ? p.style : {}) },
     }
+  } catch {
+    return { tpl: 'emerald', fmt: 'square', style: { ...DEFAULT_STYLE } }
   }
-  if (currentLine) lines.push(currentLine)
-  return lines
+}
+
+async function copyToClipboard(text) {
+  try { await navigator.clipboard.writeText(text); return true } catch { /* aşağıdakı ehtiyat yol */ }
+  // Clipboard API bağlıdırsa (http, iframe, köhnə brauzer) — gizli textarea ilə
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.setAttribute('readonly', '')
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none'
+    document.body.appendChild(ta)
+    ta.select()
+    const ok = document.execCommand('copy')
+    ta.remove()
+    return ok
+  } catch { return false }
 }
 
 /* ══════════════════════════════════════════════════════ */
-export default function QuoteGeneratorPage({ setPage }) {
+export default function QuoteGeneratorPage() {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
-  const cardRef = useRef(null)
+  const location = useLocation()
+  // URL parametrləri yalnız ilk açılışda oxunur
+  const [initial] = useState(() => readParams(location.search))
+  const [prefs] = useState(readPrefs)
 
-  const [category, setCategory] = useState('all')
-  const [themeIdx, setThemeIdx] = useState(0)
-  const [layoutIdx, setLayoutIdx] = useState(0)
-  const [customQuotes, setCustomQuotes] = useState([])
-  const [quoteIdx, setQuoteIdx] = useState(() => Math.floor(Math.random() * STATIC_QUOTES.length))
-  const [copied, setCopied] = useState(false)
-  // "Yüklə" rəyi və təkrar klikə qarşı qoruma (kətan çəkilərkən ikinci şəkil yaranmasın)
-  const [downloaded, setDownloaded] = useState(false)
-  const busyRef = useRef(false)
+  const [tplId, setTplId] = useState(() => (TEMPLATES.some(x => x.id === initial.tpl) ? initial.tpl : prefs.tpl))
+  const [fmtId, setFmtId] = useState(() => (FORMATS.some(x => x.id === initial.fmt) ? initial.fmt : prefs.fmt))
+  const [style, setStyle] = useState(prefs.style)
+  const [tab, setTab] = useState('content')
+  const [source, setSource] = useState(() => (
+    initial.ayah ? 'ayah' : initial.hadith != null ? 'hadith' : (initial.text || initial.ar) ? 'custom' : 'library'
+  ))
   const [animKey, setAnimKey] = useState(0)
-  const [showCustom, setShowCustom] = useState(false)
+  const bump = () => setAnimKey(k => k + 1)
 
-  // Firebase real-time custom quotes
+  useEffect(() => {
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify({ tpl: tplId, fmt: fmtId, style })) } catch { /* yaddaş bağlıdır */ }
+  }, [tplId, fmtId, style])
+
+  /* ── 1. Sitatlar kitabxanası (quotes.js + admin Firebase) ── */
+  const [customQuotes, setCustomQuotes] = useState([])
   useEffect(() => {
     const unsubscribe = subscribeToQuotes((items) => {
-      // Firebase format → app format
-      const mapped = items.map(q => ({
+      setCustomQuotes(items.map(q => ({
         ar: q.ar || '',
-        text: q.text || { en:'', az:'', ru:'', ar:'', tr:'' },
+        text: q.text || { en: '', az: '', ru: '', ar: '', tr: '' },
         source: q.source || '',
         cat: q.category || 'wisdom',
         _custom: true,
-      }))
-      setCustomQuotes(mapped)
+      })))
     })
     return () => unsubscribe?.()
   }, [])
-
-  // Birləşmiş quotes (Firebase + static). Admin paneli yerli sitatları
-  // Firebase-ə köçürə bilir — surətlər bir dəfə sayılsın (ərəb mətni və ya
-  // Azərbaycanca mətn eynidirsə; utils/uniqueHadiths ilə eyni qayda)
+  // Admin paneli yerli sitatları Firebase-ə köçürə bilir — surətlər bir dəfə sayılsın
   const QUOTES = useMemo(
     () => dedupeList([...customQuotes, ...STATIC_QUOTES], q => hadithKeys(q.ar, q.text?.az, q.source), { idOf: q => q }).items
       // Cari dildə mətni olmayan admin sitatı bu dildə göstərilmir (ərəbcədə — orijinal varsa)
       .filter(q => (lang === 'ar' ? q.ar : pickLang(q.text, lang, { warn: false }))),
     [customQuotes, lang],
   )
-  const [custom, setCustom] = useState({
-    arFontSize: 24,    // px
-    trFontSize: 15,    // px
-    bgColor: '',       // override background (empty = use theme)
-    textColor: '',     // override text color
-    borderWidth: 0,    // px
-    borderColor: '#ffffff',
-    opacity: 100,      // %
-  })
+  const [category, setCategory] = useState('all')
+  const [quoteIdx, setQuoteIdx] = useState(() => Math.floor(Math.random() * STATIC_QUOTES.length))
+  const pool = useMemo(() => (category === 'all' ? QUOTES : QUOTES.filter(q => q.cat === category)), [QUOTES, category])
+  const poolIdx = pool.length ? ((quoteIdx % pool.length) + pool.length) % pool.length : 0
+  const quote = pool[poolIdx] || QUOTES[0]
 
-  const updateCustom = (key, val) => setCustom(prev => ({ ...prev, [key]: val }))
-  const resetCustom = () => setCustom({ arFontSize: 24, trFontSize: 15, bgColor: '', textColor: '', borderWidth: 0, borderColor: '#ffffff', opacity: 100 })
-
-  const theme = THEMES[themeIdx]
-  const layout = LAYOUTS[layoutIdx]
-  const filtered = category === 'all' ? QUOTES : QUOTES.filter(q => q.cat === category)
-  const quote = filtered[quoteIdx % filtered.length] || QUOTES[0]
-
-  /* ── Generate new random quote ── */
-  const generateNew = useCallback(() => {
-    const pool = category === 'all' ? QUOTES : QUOTES.filter(q => q.cat === category)
-    let next
-    do { next = Math.floor(Math.random() * pool.length) } while (next === quoteIdx && pool.length > 1)
-    setQuoteIdx(next)
-    setAnimKey(k => k + 1)
-  }, [category, quoteIdx, QUOTES])
-
-  /* ── Copy text ── */
-  const copyText = useCallback(async () => {
-    const text = [quote.ar, translationOf(quote, lang), `— ${localizeSource(quote.source, lang)}`].filter(Boolean).join('\n\n')
-    let ok = false
-    try { await navigator.clipboard.writeText(text); ok = true } catch { /* aşağıdakı ehtiyat yol */ }
-    // Clipboard API bağlıdırsa (http, iframe, köhnə brauzer) — gizli textarea ilə.
-    // Əvvəl bu halda heç bir rəy olmurdu: düymə "işləmirdi"
-    if (!ok) {
-      try {
-        const ta = document.createElement('textarea')
-        ta.value = text
-        ta.setAttribute('readonly', '')
-        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none'
-        document.body.appendChild(ta)
-        ta.select()
-        ok = document.execCommand('copy')
-        ta.remove()
-      } catch { ok = false }
-    }
-    if (ok) {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    }
-  }, [quote, lang])
-
-  /* ── Share via Web Share API ── */
-  const shareQuote = useCallback(async () => {
-    const text = [quote.ar, translationOf(quote, lang), `— ${localizeSource(quote.source, lang)}`, `${brandName(lang)} — muslims.cc`].filter(Boolean).join('\n\n')
-    if (navigator.share) {
-      try { await navigator.share({ title: t.title, text }) } catch { /* user cancelled */ }
-    } else {
-      // Fallback: copy
-      copyText()
-    }
-  }, [quote, lang, t.title, copyText])
-
-  /* ── Download as image via Canvas API ── */
-  const downloadQuote = useCallback(async () => {
-    if (busyRef.current) return
-    busyRef.current = true
-    try {
-    const canvas = document.createElement('canvas')
-    canvas.width = 1080
-    canvas.height = 1080
-    const ctx = canvas.getContext('2d')
-
-    // Amiri/Inter hələ yüklənməyibsə kətan ehtiyat şriftlə çəkirdi — əvvəlcə gözlə
-    try { await Promise.all([document.fonts?.load('48px Amiri'), document.fonts?.load('32px Inter')]) } catch { /* şrift yüklənmədi */ }
-
-    // Draw gradient background
-    const grad = ctx.createLinearGradient(0, 0, 1080, 1080)
-    const colors = theme.gradient
-    colors.forEach((c, i) => grad.addColorStop(i / (colors.length - 1 || 1), c))
-    // Önizləmədəki 'Öz rəng' seçilibsə — şəkil də həmin rənglə (əvvəl nəzərə alınmırdı)
-    ctx.fillStyle = custom.bgColor || grad
-    ctx.fillRect(0, 0, 1080, 1080)
-
-    // Grid pattern for mosque/geo themes
-    if (theme.id === 'mosque' || theme.id === 'geo') {
-      ctx.strokeStyle = 'rgba(255,255,255,0.05)'
-      ctx.lineWidth = 1
-      for (let i = 0; i <= 1080; i += 40) {
-        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1080); ctx.stroke()
-        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1080, i); ctx.stroke()
-      }
-    }
-
-    const textColor = custom.textColor || theme.textColor
-    const dimColor = theme.id === 'minimal' ? '#4a6052' : 'rgba(255,255,255,0.7)'
-
-    // Decorative ornament top
-    ctx.font = '48px serif'
-    ctx.fillStyle = theme.id === 'minimal' ? 'rgba(26,107,58,0.4)' : 'rgba(255,255,255,0.3)'
-    ctx.textAlign = 'center'
-    ctx.fillText('﷽', 540, 140)
-
-    // Mətn ölçüsü məzmuna görə seçilir: uzun sitat əvvəl kətanın altından
-    // çıxırdı (mənbə və su nişanı ilə üst-üstə düşürdü). Ölçü kiçildilir ki,
-    // ərəb mətni + tərcümə + mənbə 190…900 px zolağına sığsın, sonra şaquli mərkəzlənir
-    const translation = translationOf(quote, lang)
-    const TOP = 190, BOTTOM = 900
-    let ar = 48, tr = 32, arLines = [], trLines = [], blockH = 0
-    for (let step = 0; step < 12; step++) {
-      ctx.font = `${ar}px Amiri, serif`
-      arLines = quote.ar ? wrapText(ctx, quote.ar, 880) : []
-      ctx.font = `${tr}px Inter, sans-serif`
-      trLines = translation ? wrapText(ctx, translation, 860) : []
-      blockH = arLines.length * ar * 1.5 + (trLines.length ? 40 + trLines.length * tr * 1.5 : 0) + 90
-      if (blockH <= BOTTOM - TOP) break
-      ar = Math.max(30, Math.round(ar * 0.9)); tr = Math.max(20, Math.round(tr * 0.9))
-    }
-    let y = TOP + Math.max(0, (BOTTOM - TOP - blockH) / 2) + ar
-
-    // Ərəb mətni — sağdan sola (durğu işarələri düzgün yerdə qalsın)
-    ctx.direction = 'rtl'
-    ctx.font = `${ar}px Amiri, serif`
-    ctx.fillStyle = textColor
-    ctx.textAlign = 'center'
-    for (const line of arLines) {
-      ctx.fillText(line, 540, y)
-      y += ar * 1.5
-    }
-
-    // Tərcümə (ərəb interfeysində də sağdan sola)
-    ctx.direction = lang === 'ar' ? 'rtl' : 'ltr'
-    ctx.font = `${tr}px Inter, sans-serif`
-    ctx.fillStyle = dimColor
-    let trY = y + (trLines.length ? 40 - ar * 0.5 + tr : 0)
-    for (const line of trLines) {
-      ctx.fillText(line, 540, trY)
-      trY += tr * 1.5
-    }
-    trY -= tr * 0.5
-
-    // Divider
-    ctx.fillStyle = theme.id === 'minimal' ? 'rgba(26,107,58,0.3)' : 'rgba(255,255,255,0.4)'
-    ctx.fillRect(516, trY + 10, 48, 3)
-
-    // Source
-    ctx.font = '600 26px Inter, sans-serif'
-    ctx.fillStyle = dimColor
-    ctx.fillText('— ' + localizeSource(quote.source, lang), 540, trY + 60)
-
-    // Watermark
-    ctx.font = '700 22px Inter, sans-serif'
-    ctx.fillStyle = theme.id === 'minimal' ? 'rgba(26,107,58,0.2)' : 'rgba(255,255,255,0.25)'
-    ctx.textAlign = 'right'
-    ctx.fillText(`${brandName(lang)} · ${BRAND.domain}`, 1050, 1050)
-
-    // Decorative ornament bottom
-    ctx.font = '36px serif'
-    ctx.fillStyle = theme.id === 'minimal' ? 'rgba(26,107,58,0.4)' : 'rgba(255,255,255,0.3)'
-    ctx.textAlign = 'center'
-    ctx.fillText('❁', 540, 1000)
-
-    // Download
-    const link = document.createElement('a')
-    link.download = 'muslims-cc-quote.png'
-    link.href = canvas.toDataURL('image/png')
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    setDownloaded(true)
-    setTimeout(() => setDownloaded(false), 2000)
-    } finally {
-      busyRef.current = false
-    }
-  }, [quote, theme, lang, custom])
-
-  /* ── Category change resets quote ── */
-  const handleCategoryChange = useCallback((cat) => {
+  const shuffle = useCallback(() => {
+    setQuoteIdx(i => {
+      if (pool.length < 2) return i
+      let n
+      do { n = Math.floor(Math.random() * pool.length) } while (n === ((i % pool.length) + pool.length) % pool.length)
+      return n
+    })
+    setSource('library')
+    bump()
+  }, [pool.length])
+  const step = useCallback((d) => { setQuoteIdx(i => i + d); setSource('library'); bump() }, [])
+  const changeCategory = useCallback((cat) => {
     setCategory(cat)
-    const pool = cat === 'all' ? QUOTES : QUOTES.filter(q => q.cat === cat)
-    setQuoteIdx(Math.floor(Math.random() * pool.length))
-    setAnimKey(k => k + 1)
+    const n = cat === 'all' ? QUOTES.length : QUOTES.filter(q => q.cat === cat).length
+    setQuoteIdx(Math.floor(Math.random() * Math.max(1, n)))
+    bump()
   }, [QUOTES])
 
-  const translation = translationOf(quote, lang)
-  // En/hündürlük nisbəti — hündür dizayn (9:16) ekrana sığsın deyə kartın
-  // maksimum eni CSS-də bu ədədlə hesablanır
-  const [ratioW, ratioH] = String(layout.ratio).split('/').map(Number)
-  const ratio = ratioW > 0 && ratioH > 0 ? ratioW / ratioH : 1
+  /* ── 2. Ayə (alquran.cloud) ── */
+  const [ayahForm, setAyahForm] = useState(() => (initial.ayah ? { s: String(initial.ayah.s), a: String(initial.ayah.a) } : { s: '2', a: '255' }))
+  const [ayahReq, setAyahReq] = useState(() => (initial.ayah ? { ref: `${initial.ayah.s}:${initial.ayah.a}`, n: 0 } : null))
+  const [ayahState, setAyahState] = useState({ status: 'idle', data: null, ref: '' })
+  useEffect(() => {
+    if (!ayahReq) return undefined
+    const [s, a] = ayahReq.ref.split(':').map(Number)
+    const ctrl = new AbortController()
+    setAyahState(st => ({ ...st, status: 'loading' }))
+    fetchAyah(s, a, lang, ctrl.signal)
+      .then(data => { if (!ctrl.signal.aborted) { setAyahState({ status: 'ok', data, ref: ayahReq.ref }); bump() } })
+      .catch(() => { if (!ctrl.signal.aborted) setAyahState(st => ({ ...st, status: 'error' })) })
+    return () => ctrl.abort()
+  }, [ayahReq, lang])
+  const submitAyah = useCallback((override) => {
+    const form = override || ayahForm
+    if (override) setAyahForm({ s: String(override.s), a: String(override.a) })
+    const p = parseAyahRef(`${form.s}:${form.a}`)
+    if (!p) { setAyahState(st => ({ ...st, status: 'error' })); return }
+    setAyahReq(r => ({ ref: `${p.s}:${p.a}`, n: (r?.n || 0) + 1 }))
+  }, [ayahForm])
+
+  /* ── 3. Hədis (layihənin hədis bazası, cari dil) ── */
+  const [hadithData, setHadithData] = useState(null)
+  const [hadithId, setHadithId] = useState(initial.hadith)
+  const needHadith = source === 'hadith'
+  useEffect(() => {
+    if (!needHadith) return undefined
+    let alive = true
+    loadHadithData(lang).then(d => {
+      if (!alive) return
+      setHadithData(d)
+      setHadithId(id => {
+        const real = id != null ? (d.aliases.get(id) ?? id) : null
+        if (real != null && d.list.some(h => h.id === real)) return real
+        return d.list[Math.floor(Math.random() * d.list.length)]?.id ?? null
+      })
+    }).catch(() => { /* şəbəkə: siyahı boş qalır, istifadəçi təkrar seçə bilər */ })
+    return () => { alive = false }
+  }, [needHadith, lang])
+  const hadith = useMemo(() => hadithData?.list.find(h => h.id === hadithId) || null, [hadithData, hadithId])
+  const pickHadith = useCallback((h) => { setHadithId(h.id); bump() }, [])
+  const randomHadith = useCallback(() => {
+    const list = hadithData?.list
+    if (list?.length) { setHadithId(list[Math.floor(Math.random() * list.length)].id); bump() }
+  }, [hadithData])
+
+  /* ── 4. Öz mətnim ── */
+  const [custom, setCustom] = useState(() => ({ text: initial.text, ar: initial.ar, src: initial.src }))
+
+  /* ── Kartın məzmunu ── */
+  const lastContent = useRef(null)
+  const content = useMemo(() => {
+    let c = null
+    if (source === 'library' && quote) {
+      c = { ar: quote.ar || '', text: translationOf(quote, lang), ref: refLabel(quote.source, lang), kicker: t[KIND_BY_CAT[quote.cat]] || '' }
+    } else if (source === 'ayah' && ayahState.data) {
+      c = { ar: ayahState.data.ar, text: lang === 'ar' ? '' : ayahState.data.text, ref: ayahState.data.ref, kicker: t.kindVerse }
+    } else if (source === 'hadith' && hadith) {
+      c = { ar: hadith.ar || '', text: lang === 'ar' ? '' : (hadith.text || ''), ref: refLabel(hadith.source, lang), kicker: t.kindHadith }
+      if (c.text === c.ar) c.text = ''
+    } else if (source === 'custom') {
+      const txt = String(custom.text || '').trim()
+      const ar = String(custom.ar || '').trim()
+      if (!txt && !ar) return { ar: '', text: t.emptyCard, ref: '', kicker: '', empty: true }
+      // Öz mətn: mənbə yazılmayıbsa istinad və "Ayə/Hədis" etiketi çəkilmir
+      c = mostlyArabic(txt) && !ar ? { ar: txt, text: '' } : { ar, text: txt }
+      c.ref = String(custom.src || '').trim()
+      c.kicker = ''
+    }
+    if (c) { lastContent.current = c; return c }
+    // Ayə/hədis hələ yüklənir — əvvəlki kart qalır
+    return lastContent.current || { ar: '', text: '', ref: '', kicker: '' }
+  }, [source, quote, ayahState.data, hadith, custom, lang, t])
+
+  const template = templateById(tplId)
+  const format = formatById(fmtId)
+  const card = useMemo(() => ({
+    template, style, lang,
+    ar: content.ar, text: content.text, ref: content.ref, kicker: content.kicker,
+    watermark: BRAND.domain,
+  }), [template, style, lang, content])
+
+  const [overflow, setOverflow] = useState(false)
+  const onOverflow = useCallback((v) => setOverflow(Boolean(v)), [])
+
+  /* ── Paylaşma / yükləmə ── */
+  const [busy, setBusy] = useState('')         // '' | 'share' | 'download'
+  const [flash, setFlash] = useState('')       // 'copied' | 'downloaded' | 'tab'
+  const flashTimer = useRef(0)
+  const showFlash = (k, ms = 2200) => {
+    setFlash(k)
+    clearTimeout(flashTimer.current)
+    flashTimer.current = setTimeout(() => setFlash(''), ms)
+  }
+  useEffect(() => () => clearTimeout(flashTimer.current), [])
+
+  const fileName = `muslims-cc-${source === 'custom' ? 'card' : source === 'library' ? (quote?.cat || 'quote') : source}-${format.id}.png`
+  const shareText = [content.ref ? `— ${content.ref}` : '', `${BRAND.domain}`].filter(Boolean).join('\n')
+
+  // Telefonda paylaşma üçün fayl əvvəlcədən hazırlanır: Safari navigator.share()
+  // çağırışını yalnız klikdən dərhal sonra qəbul edir — klikdən sonra uzun
+  // çəkiliş "istifadəçi jesti"ni itirə bilər.
+  const prepared = useRef({ card: null, format: null, file: null })
+  useEffect(() => {
+    if (content.empty || typeof navigator === 'undefined' || !navigator.canShare) return undefined
+    // Yalnız toxunma ekranında (telefon/planşet) — masaüstündə hər dəyişiklikdə PNG çəkmək lazımsızdır
+    if (!window.matchMedia?.('(pointer: coarse)').matches) return undefined
+    const id = setTimeout(() => {
+      renderPng(card, format).then(blob => {
+        prepared.current = { card, format, file: new File([blob], fileName, { type: 'image/png' }) }
+      }).catch(() => { /* klikdə yenidən cəhd olunacaq */ })
+    }, 500)
+    return () => clearTimeout(id)
+  }, [card, format, fileName, content.empty])
+
+  const makeFile = async () => {
+    const p = prepared.current
+    if (p.file && p.card === card && p.format === format) return p.file
+    const blob = await renderPng(card, format)
+    return new File([blob], fileName, { type: 'image/png' })
+  }
+
+  const download = async () => {
+    if (busy || content.empty) return
+    const win = preopenWindow()
+    setBusy('download')
+    try {
+      const file = await makeFile()
+      const how = saveBlob(file, fileName, win)
+      showFlash(how === 'tab' ? 'tab' : 'downloaded', how === 'tab' ? 6000 : 2200)
+    } catch {
+      win?.close()
+    } finally {
+      setBusy('')
+    }
+  }
+
+  const share = async () => {
+    if (busy || content.empty) return
+    setBusy('share')
+    try {
+      const file = await makeFile()
+      if (canShareFile(file)) {
+        try {
+          await navigator.share({ files: [file], title: t.title, text: shareText })
+        } catch (e) {
+          // İstifadəçi pəncərəni bağladı — heç nə etmə; başqa xəta — faylı yüklə
+          if (e?.name !== 'AbortError') showFlash(saveBlob(file, fileName) === 'tab' ? 'tab' : 'downloaded')
+        }
+      } else {
+        // Brauzer faylla paylaşmanı dəstəkləmir — şəkil yüklənir
+        const how = saveBlob(file, fileName)
+        showFlash(how === 'tab' ? 'tab' : 'downloaded', how === 'tab' ? 6000 : 2200)
+      }
+    } catch { /* çəkiliş alınmadı */ } finally {
+      setBusy('')
+    }
+  }
+
+  const copy = async () => {
+    if (content.empty) return
+    const text = [content.ar, content.text, content.ref ? `— ${content.ref}` : ''].filter(Boolean).join('\n\n')
+    if (await copyToClipboard(text)) showFlash('copied')
+  }
+
+  /* ── Sekmələr (ox düymələri ilə də) ── */
+  const tabRefs = useRef({})
+  const onTabKey = (e) => {
+    const i = TABS.findIndex(x => x.id === tab)
+    const dir = document.documentElement.dir === 'rtl' ? -1 : 1
+    let n = null
+    if (e.key === 'ArrowRight') n = i + dir
+    else if (e.key === 'ArrowLeft') n = i - dir
+    else if (e.key === 'Home') n = 0
+    else if (e.key === 'End') n = TABS.length - 1
+    if (n == null) return
+    e.preventDefault()
+    const next = TABS[(n + TABS.length) % TABS.length]
+    setTab(next.id)
+    tabRefs.current[next.id]?.focus()
+  }
+
+  const chooseTemplate = (id) => { setTplId(id); setStyle(s => (s.bgColor ? { ...s, bgColor: '' } : s)) }
+  const libraryPos = pool.length ? `${poolIdx + 1} / ${pool.length}` : ''
+  const tplName = TEMPLATE_NAMES[tplId]?.[lang] || ''
+  const ariaCard = [content.ar, content.text, content.ref].filter(Boolean).join(' — ')
+  const hasAr = Boolean(content.ar)
+  const hasTr = Boolean(content.text) && !content.empty
 
   return (
     <>
-      {/* Hero */}
-      <header className="ui-page-hero qg-hero">
-        <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
-        <div className="ui-container">
-          <span className="ui-eyebrow">{t.eyebrow}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          {lang !== 'ar' && <p className="qg-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">اقْتِبَاسَات</p>}
-          <p className="ui-lead">{t.subtitle}</p>
-        </div>
-      </header>
+      <div className="ui-container qg-studio" data-template={tplId} data-format={fmtId} data-source={source}>
+        {/* Sol: önizləmə + düymələr (telefonda display:contents — hər biri ayrıca yapışqan) */}
+        <div className="qg-left">
+          <figure className="qg-stage">
+            <QuotePreview
+              card={card}
+              format={format}
+              label={`${t.preview}: ${ariaCard}`}
+              onOverflow={onOverflow}
+              swapKey={`${tplId}-${fmtId}-${animKey}`}
+            />
+            <figcaption className="qg-caption">
+              {content.ref
+                ? <span className="qg-caption__ref" data-testid="quote-ref"><Icon name="check" size={14} /> <bdi>{content.ref}</bdi></span>
+                : <span className="qg-caption__ref is-empty" />}
+              <span className="qg-caption__meta"><span>{tplName}</span> · <span className="ui-num">{format.w}×{format.h}</span></span>
+            </figcaption>
+            {overflow && !content.empty && <p className="qg-warn" role="status">{t.overflow}</p>}
+          </figure>
 
-      <div className="ui-section ui-section--tight qg-page">
-        <div className="ui-container qg-layout">
-
-          {/* Önizləmə + düymələr — telefonda əvvəldə, geniş ekranda sağda yapışqan */}
-          <div className="qg-preview">
-            {/* Quote Card Preview */}
-            <div className="qg-card-wrap" key={animKey} ref={cardRef}>
-              <div
-                className={`qg-card qt-theme-${theme.id} qg-decor-${layout.decor} ${layout.shadow === 'deep' ? 'qg-shadow-deep' : ''}`}
-                style={{
-                  aspectRatio: layout.ratio,
-                  borderRadius: layout.radius,
-                  '--qg-ratio': ratio,
-                  ...(layout.arSize ? { '--qg-ar-size': layout.arSize } : {}),
-                  ...(custom.bgColor ? { background: custom.bgColor } : {}),
-                  ...(custom.textColor ? { color: custom.textColor, '--qg-text': custom.textColor } : {}),
-                  ...(custom.borderWidth > 0 ? { border: `${custom.borderWidth}px solid ${custom.borderColor}` } : {}),
-                  ...(custom.opacity < 100 ? { opacity: custom.opacity / 100 } : {}),
-                }}
-              >
-                <div className="qg-card-overlay" />
-
-                {layout.decor === 'frame' && <div className="qg-frame-border" />}
-                {layout.decor === 'topbar' && <div className="qg-topbar" />}
-                {layout.decor === 'sideline' && <div className="qg-sideline" />}
-                {layout.decor === 'quotemark' && <div className="qg-quotemark">❝</div>}
-                {layout.decor === 'neon' && <div className="qg-neon-border" />}
-                {layout.decor === 'gradientborder' && <div className="qg-gradient-border" />}
-
-                {/* Top dekor */}
-                {layout.decor === 'bismillah' && <div className="qg-card-decor-top">﷽</div>}
-                {layout.decor === 'ornament' && <div className="qg-card-decor-top">✦ ❋ ✦</div>}
-                {layout.decor === 'dots' && <div className="qg-card-decor-top">· · · · ·</div>}
-                {layout.decor === 'lines' && <div className="qg-card-decor-top">━━━</div>}
-                {layout.decor === 'diamond' && <div className="qg-card-decor-top">◆</div>}
-                {layout.decor === 'arch' && <div className="qg-card-decor-top">⌓</div>}
-                {layout.decor === 'line' && <div className="qg-card-decor-top">───</div>}
-                {layout.decor === 'hex' && <div className="qg-card-decor-top">⬡ ⬢ ⬡</div>}
-                {layout.decor === 'wave' && <div className="qg-card-decor-top">〰〰〰</div>}
-                {layout.decor === 'starbg' && <div className="qg-card-decor-top">✧ ✦ ✧</div>}
-                {layout.decor === 'minimaldot' && <div className="qg-card-decor-top">·</div>}
-                {layout.decor === 'paper' && <div className="qg-card-decor-top" style={{fontFamily:'serif',fontSize:20}}>❦</div>}
-                {layout.decor === 'split' && <div className="qg-split-line" />}
-
-                {/* Ərəb mətni */}
-                {!layout.hideArabic && (
-                  <div className="qg-card-arabic" style={{
-                    fontSize: layout.arSize || `${custom.arFontSize}px`,
-                    ...(custom.textColor ? { color: custom.textColor } : {}),
-                  }}>
-                    {quote.ar}
-                  </div>
-                )}
-
-                {/* Tərcümə */}
-                {!layout.hideTranslation && translation && (
-                  <div className="qg-card-translation" style={{
-                    fontSize: `${custom.trFontSize}px`,
-                    ...(custom.textColor ? { color: custom.textColor, opacity: 0.8 } : {}),
-                  }}>
-                    {translation}
-                  </div>
-                )}
-
-                <div className="qg-card-divider" />
-                <div className="qg-card-source">— <bdi>{localizeSource(quote.source, lang)}</bdi></div>
-
-                {/* Bottom dekor */}
-                {layout.decor === 'bismillah' && <div className="qg-card-decor-bottom">❁</div>}
-                {layout.decor === 'ornament' && <div className="qg-card-decor-bottom">✦ ❋ ✦</div>}
-                {layout.decor === 'thickborder' && <div className="qg-card-decor-bottom">▪ ▪ ▪</div>}
-
-                <div className="qg-card-watermark">{t.watermark}</div>
-              </div>
-            </div>
-
-            {/* Action Buttons — simvollar ayrıca <span>-da: telefonda ikon
-                üstdə, ad altda (tətbiqdəki "paylaş" sırası kimi) */}
-            <div className="qg-actions">
-              <button type="button" className="ui-btn ui-btn--primary qg-action-btn qg-action-btn--gen" onClick={generateNew}>
-                <Icon name="sparkle" className="ui-btn__icon qg-action-ico" /> {t.generate}
-              </button>
-              <button
-                type="button"
-                className={`ui-btn ui-btn--secondary qg-action-btn${copied ? ' copied' : ''}`}
-                onClick={copyText}
-                aria-live="polite"
-              >
-                <Icon name={copied ? 'check' : 'copy'} className="ui-btn__icon qg-action-ico" /> {copied ? t.copied : t.copy}
-              </button>
-              <button type="button" className="ui-btn ui-btn--secondary qg-action-btn" onClick={shareQuote}>
-                <Icon name="share" className="ui-btn__icon qg-action-ico" /> {t.share}
-              </button>
-              <button type="button" className={`ui-btn ui-btn--secondary qg-action-btn${downloaded ? ' copied' : ''}`} onClick={downloadQuote} aria-live="polite">
-                <Icon name={downloaded ? 'check' : 'download'} className="ui-btn__icon qg-action-ico" /> {downloaded ? t.downloaded : t.download}
-              </button>
-            </div>
+          <div className="qg-actions">
+            <button type="button" className="ui-btn ui-btn--primary qg-act qg-act--share" onClick={share} disabled={Boolean(busy) || content.empty}>
+              {busy === 'share' ? <span className="ui-spin" aria-hidden="true" /> : <Icon name="share" className="ui-btn__icon" />}
+              {t.share}
+            </button>
+            <button type="button" className="ui-btn ui-btn--secondary qg-act qg-act--download" onClick={download} disabled={Boolean(busy) || content.empty} aria-label={t.download}>
+              {busy === 'download' ? <span className="ui-spin" aria-hidden="true" /> : <Icon name={flash === 'downloaded' ? 'check' : 'download'} className="ui-btn__icon" />}
+              <span className="qg-act__long">{t.download}</span>
+              <span className="qg-act__short" aria-hidden="true">{t.downloadShort}</span>
+            </button>
+            <button type="button" className="ui-icon-btn qg-act qg-act--copy" onClick={copy} disabled={content.empty} aria-label={t.copy} title={t.copy}>
+              <Icon name={flash === 'copied' ? 'check' : 'copy'} />
+            </button>
+            <p className="qg-flash" role="status" aria-live="polite">
+              {flash === 'copied' ? t.copied : flash === 'downloaded' ? t.downloaded : flash === 'tab' ? t.openedTab : ''}
+            </p>
           </div>
+        </div>
 
-          {/* Seçimlər — kateqoriya, rəng, dizayn, fərdiləşdirmə */}
-          <div className="qg-panel" data-reveal="up">
-            {/* Controls */}
-            <div className="qg-controls">
-              {/* Category filter */}
-              <div className="qg-control-group">
-                <span className="qg-control-label">{t.category}</span>
-                {/* Telefonda bir sətirdə barmaqla sürüşən çiplər (motion.css) */}
-                <div className="qg-categories chip-scroll wrap-desktop" role="group" aria-label={t.category}>
-                  {CATEGORIES.map(cat => (
-                    <button
-                      type="button"
-                      key={cat}
-                      className="ui-chip"
-                      aria-pressed={category === cat}
-                      onClick={() => handleCategoryChange(cat)}
-                    >
-                      {t[cat]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Theme selector */}
-              <div className="qg-control-group">
-                <span className="qg-control-label">{t.theme}</span>
-                <div className="qg-themes chip-scroll wrap-desktop" role="group" aria-label={t.theme}>
-                  {THEMES.map((th, i) => (
-                    <button
-                      key={th.id}
-                      type="button"
-                      className={`qg-theme-btn ${themeIdx === i ? 'active' : ''}`}
-                      data-theme-id={th.id}
-                      onClick={() => setThemeIdx(i)}
-                      title={nameOf(THEME_NAMES, th.id, lang)}
-                      aria-label={nameOf(THEME_NAMES, th.id, lang)}
-                      aria-pressed={themeIdx === i}
-                    />
-                  ))}
-                </div>
-              </div>
+        {/* Sağ: başlıq + sekmələr + idarələr. Başlıq bu sütundadır ki, masaüstündə
+            soldakı önizləmə ilk ekranda tam görünsün (telefonda ən yuxarıda qalır) */}
+        <div className="qg-right">
+          <header className="qg-intro">
+            <span className="ui-eyebrow">{t.eyebrow}</span>
+            <h1 className="ui-display qg-title">{t.title}</h1>
+            <p className="ui-lead qg-lead">{t.subtitle}</p>
+          </header>
+          <div className="qg-editor">
+            <div className="qg-tabs" role="tablist" aria-label={t.tabsLabel} onKeyDown={onTabKey}>
+              {TABS.map(x => (
+                <button
+                  key={x.id}
+                  ref={el => { tabRefs.current[x.id] = el }}
+                  type="button"
+                  role="tab"
+                  id={`qg-tab-${x.id}`}
+                  aria-controls={`qg-panel-${x.id}`}
+                  aria-selected={tab === x.id}
+                  tabIndex={tab === x.id ? 0 : -1}
+                  className="qg-tab"
+                  onClick={() => setTab(x.id)}
+                >
+                  <Icon name={x.icon} size={18} className="qg-tab__icon" />
+                  <span>{t[x.label]}</span>
+                </button>
+              ))}
             </div>
 
-            {/* Layout selector */}
-            <div className="qg-control-group qg-layout-group">
-              <span className="qg-control-label">{t.layout}</span>
-              <div className="qg-layouts">
-                {LAYOUTS.map((ly, i) => (
-                  <button
-                    key={ly.id}
-                    type="button"
-                className={`qg-layout-btn ${layoutIdx === i ? 'active' : ''}`}
-                    data-layout-id={ly.id}
-                    onClick={() => { setLayoutIdx(i); setAnimKey(k => k + 1) }}
-                    title={nameOf(LAYOUT_NAMES, ly.id, lang)}
-                    aria-label={nameOf(LAYOUT_NAMES, ly.id, lang)}
-                    aria-pressed={layoutIdx === i}
-                  >
-                    {ly.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Customization Panel */}
-            <div className="qg-custom-section">
-              <button
-                className={`qg-custom-toggle ${showCustom ? 'open' : ''}`}
-                aria-expanded={showCustom}
-                onClick={() => setShowCustom(!showCustom)}
-              >
-                <span className="ui-icon-tile ui-icon-tile--sm qg-custom-ico" aria-hidden="true"><Icon name="palette" /></span> {t.custom}
-                <Icon name="chevronDown" size={18} className="qg-custom-chevron" />
-              </button>
-              {showCustom && (
-                <div className="qg-custom-panel">
-                  <div className="qg-custom-row">
-                    <label className="qg-custom-label" htmlFor="qg-c-ar">{t.fontSize} ({t.arText})</label>
-                    <input id="qg-c-ar" type="range" min="14" max="48" value={custom.arFontSize} onChange={e => updateCustom('arFontSize', +e.target.value)} className="qg-custom-range" />
-                    <span className="qg-custom-value">{custom.arFontSize}px</span>
-                  </div>
-                  <div className="qg-custom-row">
-                    <label className="qg-custom-label" htmlFor="qg-c-tr">{t.fontSize} ({t.trText})</label>
-                    <input id="qg-c-tr" type="range" min="10" max="28" value={custom.trFontSize} onChange={e => updateCustom('trFontSize', +e.target.value)} className="qg-custom-range" />
-                    <span className="qg-custom-value">{custom.trFontSize}px</span>
-                  </div>
-                  <div className="qg-custom-row">
-                    <label className="qg-custom-label" htmlFor="qg-c-bg">{t.customBg}</label>
-                    <input id="qg-c-bg" type="color" value={custom.bgColor || theme.gradient[0]} onChange={e => updateCustom('bgColor', e.target.value)} className="qg-custom-color" />
-                    {custom.bgColor && <button type="button" className="ui-icon-btn qg-custom-clear" aria-label={t.reset} title={t.reset} onClick={() => updateCustom('bgColor', '')}><Icon name="close" size={16} /></button>}
-                  </div>
-                  <div className="qg-custom-row">
-                    <label className="qg-custom-label" htmlFor="qg-c-text">{t.textColor}</label>
-                    <input id="qg-c-text" type="color" value={custom.textColor || theme.textColor} onChange={e => updateCustom('textColor', e.target.value)} className="qg-custom-color" />
-                    {custom.textColor && <button type="button" className="ui-icon-btn qg-custom-clear" aria-label={t.reset} title={t.reset} onClick={() => updateCustom('textColor', '')}><Icon name="close" size={16} /></button>}
-                  </div>
-                  <div className="qg-custom-row">
-                    <label className="qg-custom-label" htmlFor="qg-c-bw">{t.borderWidth}</label>
-                    <input id="qg-c-bw" type="range" min="0" max="10" value={custom.borderWidth} onChange={e => updateCustom('borderWidth', +e.target.value)} className="qg-custom-range" />
-                    <span className="qg-custom-value">{custom.borderWidth}px</span>
-                  </div>
-                  {custom.borderWidth > 0 && (
-                    <div className="qg-custom-row">
-                      <label className="qg-custom-label" htmlFor="qg-c-bc">{t.borderColor}</label>
-                      <input id="qg-c-bc" type="color" value={custom.borderColor} onChange={e => updateCustom('borderColor', e.target.value)} className="qg-custom-color" />
-                    </div>
-                  )}
-                  <div className="qg-custom-row">
-                    <label className="qg-custom-label" htmlFor="qg-c-op">{t.opacity}</label>
-                    <input id="qg-c-op" type="range" min="30" max="100" value={custom.opacity} onChange={e => updateCustom('opacity', +e.target.value)} className="qg-custom-range" />
-                    <span className="qg-custom-value">{custom.opacity}%</span>
-                  </div>
-                  <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm qg-custom-reset" onClick={resetCustom}><Icon name="refresh" className="ui-btn__icon" /> {t.reset}</button>
-                </div>
+            <div className="qg-panel" role="tabpanel" id={`qg-panel-${tab}`} aria-labelledby={`qg-tab-${tab}`} key={tab}>
+              {tab === 'content' && (
+                <SourcePanel
+                  t={t} lang={lang} source={source}
+                  onSource={(s) => {
+                    setSource(s)
+                    if (s === 'ayah' && !ayahReq) submitAyah()
+                    bump()
+                  }}
+                  category={category} onCategory={changeCategory} onShuffle={shuffle} onStep={step} libraryPos={libraryPos}
+                  ayahForm={ayahForm} onAyahForm={setAyahForm} onAyahSubmit={submitAyah} ayahState={ayahState}
+                  hadiths={hadithData?.list || null} hadithId={hadithId} onHadith={pickHadith} onRandomHadith={randomHadith}
+                  custom={custom} onCustom={setCustom}
+                />
               )}
+              {tab === 'template' && <TemplatePicker value={tplId} onChange={chooseTemplate} lang={lang} label={t.tabTemplate} />}
+              {tab === 'format' && <FormatPicker t={t} value={fmtId} onChange={setFmtId} />}
+              {tab === 'style' && <StylePanel t={t} style={style} onStyle={setStyle} hasAr={hasAr} hasTr={hasTr} template={template} />}
             </div>
           </div>
         </div>

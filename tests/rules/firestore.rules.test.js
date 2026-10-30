@@ -111,6 +111,7 @@ const fullDoc = (over = {}) => ({
   lang: 'az',
   loc: LOC,
   azan: true,
+  checkin: false,
   daily: { ayah: false, hour: 8 },
   createdAt: Date.now(),
   updatedAt: serverTimestamp(),
@@ -139,6 +140,9 @@ test('fcm_tokens: icazəsiz sahə və yanlış tiplər rədd edilir', async () =
   await assertFails(setDoc(ref, fullDoc({ userAgent: 'x'.repeat(513) })))
   await assertFails(setDoc(ref, fullDoc({ lang: 'de' })))
   await assertFails(setDoc(ref, fullDoc({ azan: 'yes' })))
+  await assertFails(setDoc(ref, fullDoc({ checkin: 'yes' })))
+  await assertFails(setDoc(ref, fullDoc({ checkin: 1 })))
+  await assertFails(setDoc(ref, fullDoc({ checkinLog: { '2026-10-30': ['dhuhr'] } })))   // qeyd serverə yazılmır
   await assertFails(setDoc(ref, fullDoc({ createdAt: 'now' })))
   await assertFails(setDoc(ref, fullDoc({ updatedAt: 123 })))
   await assertFails(setDoc(ref, fullDoc({ loc: 'Baku' })))
@@ -153,12 +157,14 @@ test('fcm_tokens: icazəsiz sahə və yanlış tiplər rədd edilir', async () =
   await assertSucceeds(setDoc(ref, noCreated))
 })
 
-test('fcm_tokens: merge yeniləmələri (yer, günün ayəsi, azan) keçir', async () => {
+test('fcm_tokens: merge yeniləmələri (yer, günün ayəsi, azan, qıldınızmı) keçir', async () => {
   await seed(`fcm_tokens/${TOKEN}`, { token: TOKEN, lang: 'az', azan: true })
   const ref = doc(anon(), 'fcm_tokens', TOKEN)
   await assertSucceeds(setDoc(ref, { lang: 'ru', loc: LOC, updatedAt: serverTimestamp() }, { merge: true }))
   await assertSucceeds(setDoc(ref, { daily: { ayah: true, hour: 7 }, updatedAt: serverTimestamp() }, { merge: true }))
   await assertSucceeds(setDoc(ref, { azan: false, updatedAt: serverTimestamp() }, { merge: true }))
+  await assertSucceeds(setDoc(ref, { checkin: true, updatedAt: serverTimestamp() }, { merge: true }))
+  await assertFails(setDoc(ref, { checkin: 'on', updatedAt: serverTimestamp() }, { merge: true }))
   await assertFails(setDoc(ref, { token: 'stolen', updatedAt: serverTimestamp() }, { merge: true }))
   await assertFails(setDoc(ref, { lang: 'xx' }, { merge: true }))
   await assertFails(setDoc(ref, { admin: true }, { merge: true }))

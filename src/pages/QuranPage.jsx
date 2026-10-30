@@ -6,6 +6,9 @@ import { SURAH_AZ, getSurahLocal } from '../data/surahNamesAz'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
+import { isPlainClick } from '../components/PageLink'
+import { parsePath, pathFor } from '../seo/routes'
+import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala } from '../utils/quranText'
 import QuranPlayer, { useQuranPlayer } from '../components/QuranPlayer'
 import '../styles/QuranPage.css'
 
@@ -87,17 +90,19 @@ function writeBookmark(bm) {
   try { localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bm)) } catch { /* yaddaş bağlıdır */ }
 }
 
-// ── Ünvan: /quran?s=2&a=90 ──
-// parsePath yalnız birinci seqmentə baxır — query marşrutu, canonical-ı və
-// prerender-i dəyişmir. s = surə (1–114), a = ayə (≥ 1; surə yüklənəndə sıxılır).
-function readQuery(search) {
-  const p = new URLSearchParams(search || '')
-  const s = Number(p.get('s'))
-  if (!Number.isInteger(s) || s < 1 || s > 114) return { s: null, a: null }
-  const a = Number(p.get('a'))
+// ── Ünvan: /quran/2-al-baqara?a=90 ──
+// Surə yolun özündədir (src/seo/routes.js → DETAILS.quran): hər surənin
+// indekslənən, prerender olunmuş öz səhifəsi var. a = ayə (≥ 1; surə
+// yüklənəndə sıxılır) — query-də qalır, canonical-a təsir etmir.
+// Köhnə /quran?s=2&a=90 linklərini App.jsx yeni ünvana replace ilə çevirir.
+function readLoc(pathname, search) {
+  const { key, param } = parsePath(pathname)
+  const s = key === 'quran' && param ? param : null
+  if (!s) return { s: null, a: null }
+  const a = Number(new URLSearchParams(search || '').get('a'))
   return { s, a: Number.isInteger(a) && a >= 1 ? a : null }
 }
-const queryFor = (s, a) => (s ? `?s=${s}${a ? `&a=${a}` : ''}` : '')
+const searchFor = (a) => (a ? `?a=${a}` : '')
 
 const prefersReducedMotion = () => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false }
@@ -238,22 +243,8 @@ function DirArrow({ back = false }) {
   return <Icon name="arrow" size={16} className={back ? 'qp-arrow qp-arrow--back' : 'qp-arrow ui-flip-rtl'} />
 }
 
-// ── Bəsmələnin təkrarlanmaması ──
-// API (ar.alafasy) Fatihə və Tövbədən başqa 112 surədə 1-ci ayənin mətninin
-// əvvəlinə Bəsmələni yapışdırır. Oxuyucuda Bəsmələ ayrıca kartda olduğu üçün
-// 1-ci ayədə onun ilk dörd sözünü göstərmirik (mətn dəyişmir, yalnız təkrar
-// gizlənir). Müqayisə hərəkələrsiz aparılır: 95 və 97-ci surələrdə yazılış
-// "بِّسْمِ" kimidir.
-const AR_MARKS = /[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g
-const plainArabic = s => s.replace(AR_MARKS, '').replace(/\u0671/g, '\u0627')
-const BASMALA_PLAIN = 'بسم الله الرحمن الرحيم'
-function withoutLeadingBasmala(text) {
-  const words = text.split(' ')
-  if (words.length > 4 && plainArabic(words.slice(0, 4).join(' ')) === BASMALA_PLAIN) {
-    return words.slice(4).join(' ')
-  }
-  return text
-}
+// Bəsmələ və BOM qaydası — utils/quranText.js (statik SEO səhifələri də
+// eyni qaydanı işlədir: scripts/prerender.mjs)
 
 // Şəbəkə sorğusu vaxt limiti ilə: API cavab verməsə (asılı qalan bağlantı)
 // yükləmə əbədi fırlanmasın — 15 san. sonra xəta + "Yenidən cəhd et"
@@ -307,11 +298,10 @@ function useSurah(num, lang, attempt = 0) {
           throw new Error('edition-unavailable')
         }
         setData({ ...arabic, _key: `${num}|${lang}`, verses: arabic.ayahs.map((v,i) => {
-          // Fatihənin 1-ci ayəsi BOM (U+FEFF) ilə başlayır
-          const text = v.text.replace(/^\uFEFF/, '')
           return {
             n: v.numberInSurah,
-            ar: (i === 0 && num !== 1 && num !== 9) ? withoutLeadingBasmala(text) : text,
+            // BOM və 1-ci ayədəki təkrar Bəsmələ — utils/quranText.js
+            ar: displayAyah(v.text, num, i),
             // Quranda ümumi ayə nömrəsi — səs faylının ünvanı ondan qurulur (utils/quranAudio.js)
             g: v.number,
             tr: trans?.ayahs[i]?.text || ''
@@ -470,9 +460,9 @@ export default function QuranPage({ setPage }) {
   const [bookmark, setBookmark] = useState(readBookmark)
   // Açıq surə ünvandan gəlir (/quran?s=2&a=90) — link paylaşmaq, yeniləmək
   // və Geri düyməsi (oxuyucu → siyahı) işləsin
-  const [selected, setSelected] = useState(() => readQuery(location.search).s)
+  const [selected, setSelected] = useState(() => readLoc(location.pathname, location.search).s)
   // Surə yüklənəndən sonra keçiləcək ayə (davam et, ?a=, ayə axtarışı)
-  const [pendingAyah, setPendingAyah] = useState(() => readQuery(location.search).a)
+  const [pendingAyah, setPendingAyah] = useState(() => readLoc(location.pathname, location.search).a)
   // Siyahıdakı sürüşmə yeri — oxuyucudan qayıdanda ora dönürük
   const listScrollRef = useRef(0)
   const selectedRef = useRef(selected)
@@ -550,12 +540,14 @@ export default function QuranPage({ setPage }) {
     if (render) setBookmark(bm)
   }, [])
 
-  // Ünvanı yenilə (s, a). Siyahıdan açılış — yeni tarixçə girişi (Geri →
-  // siyahı); oxuyucunun içində (növbəti surə, ayəyə keç) — replace.
+  // Ünvanı yenilə (s, a): /quran/<s>-<slug>?a=N. Siyahıdan açılış — yeni
+  // tarixçə girişi (Geri → siyahı); oxuyucunun içində (növbəti surə, ayəyə
+  // keç) — replace. Yol dəyişəndə (başqa surə) Seo.jsx meta-nı yeniləyir.
   const setQuery = useCallback((s, a, { push = false } = {}) => {
-    const search = queryFor(s, a)
-    if (search === window.location.search) return
-    routerNavigate({ pathname: window.location.pathname, search, hash: window.location.hash },
+    const pathname = pathFor('quran', langRef.current, s || undefined)
+    const search = searchFor(s ? a : null)
+    if (pathname === window.location.pathname && search === window.location.search) return
+    routerNavigate({ pathname, search, hash: window.location.hash },
       push ? { state: { qpReader: true } } : { replace: true, state: window.history.state?.usr ?? null })
   }, [routerNavigate])
 
@@ -825,6 +817,12 @@ export default function QuranPage({ setPage }) {
     ignoreScrollUntilRef.current = performance.now() + 500
     window.scrollTo(0, 0)
   }
+  // Surə linki (<a href>): adi klik SPA ilə açır, Ctrl/orta klik — yeni tabda
+  const linkTo = (num) => (e) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    openSurah(num)
+  }
   // Surə bitdi və "növbəti surəyə keç" seçilib — pleyer 1-ci ayədən davam edir
   surahEndRef.current = () => { if (selectedRef.current < 114) openSurah(selectedRef.current + 1) }
 
@@ -838,16 +836,14 @@ export default function QuranPage({ setPage }) {
   // Ünvan dəyişdi (Geri/İrəli, dil dəyişimi, ilk açılış)
   const prevLangRef = useRef(lang)
   useEffect(() => {
-    const { s, a } = readQuery(location.search)
+    const { s, a } = readLoc(location.pathname, location.search)
     const langChanged = prevLangRef.current !== lang
     prevLangRef.current = lang
-    // Dil dəyişimi (LangContext) yalnız yolu dəyişir, query-ni atır —
-    // oxuyucu açıq qalsın, ünvana surə yenidən yazılsın. Surə yeni dildə
-    // təzədən yüklənir — oxunan ayəyə qayıdırıq
-    if (langChanged && !s && selectedRef.current) {
+    // Dil dəyişimi (LangContext) surəni yolda saxlayır, amma query-ni (?a=)
+    // atır — surə yeni dildə təzədən yüklənir, oxunan ayəyə qayıdırıq
+    if (langChanged && s && s === selectedRef.current && !a) {
       const cur = currentAyahRef.current
-      if (cur > 1) setPendingAyah(cur)
-      setQuery(selectedRef.current, cur > 1 ? cur : null)
+      if (cur > 1) { setPendingAyah(cur); setQuery(s, cur) }
       return
     }
     if (s !== selectedRef.current) {
@@ -855,9 +851,9 @@ export default function QuranPage({ setPage }) {
       if (s) { setPendingAyah(a); window.scrollTo(0, 0) }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.search, lang])
+  }, [location.pathname, location.search, lang])
 
-  // Birbaşa linklə açılış (/quran?s=2&a=90) — oxuma kimi sayılsın, yer yazılsın
+  // Birbaşa linklə açılış (/quran/2-al-baqara?a=90) — oxuma kimi sayılsın, yer yazılsın
   const deepLinkRef = useRef(false)
   useEffect(() => {
     if (deepLinkRef.current || !selected) return
@@ -983,9 +979,9 @@ export default function QuranPage({ setPage }) {
               </div>
             </div>
             {/* Fatihədə Bəsmələ 1-ci ayənin özüdür, Tövbədə isə oxunmur */}
-            {surah.number !== 1 && surah.number !== 9 && (
+            {hasSeparateBasmala(surah.number) && (
               <div className="reader-basmalah" data-reveal="fade">
-                <span className="basmalah-ar" lang="ar">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</span>
+                <span className="basmalah-ar" lang="ar">{BASMALA_DISPLAY}</span>
                 {lang !== 'ar' && <span className="basmalah-tr">{t.basmalah}</span>}
               </div>
             )}
@@ -1002,16 +998,16 @@ export default function QuranPage({ setPage }) {
             {/* Surənin sonunda: əvvəlki / növbəti surə (telefonda paneldə yalnız ox görünür) */}
             <div className="reader-pager" data-reveal="">
               {selected > 1 && (
-                <button type="button" className="reader-pager-btn prev" onClick={() => openSurah(selected - 1)}>
+                <a className="reader-pager-btn prev" href={pathFor('quran', lang, selected - 1)} onClick={linkTo(selected - 1)}>
                   <span className="reader-pager-dir"><DirArrow back /> {prevLabel}</span>
                   <span className="reader-pager-name">{surahTitle(prevS, lang) || selected - 1}</span>
-                </button>
+                </a>
               )}
               {selected < 114 && (
-                <button type="button" className="reader-pager-btn next" onClick={() => openSurah(selected + 1)}>
+                <a className="reader-pager-btn next" href={pathFor('quran', lang, selected + 1)} onClick={linkTo(selected + 1)}>
                   <span className="reader-pager-dir">{nextLabel} <DirArrow /></span>
                   <span className="reader-pager-name">{surahTitle(nextS, lang) || selected + 1}</span>
-                </button>
+                </a>
               )}
             </div>
             {/* Yapışqan mini-pleyer — oxuyucunun altında, ekranın aşağısında qalır */}
@@ -1150,15 +1146,15 @@ export default function QuranPage({ setPage }) {
                     ? `${s.numberOfAyahs} ${t.verses} · ${revelationLabel(s.revelationType, lang)}`
                     : [surahMeaning(s, lang), `${s.numberOfAyahs} ${t.verses}`].filter(Boolean).join(' · ')
                   return (
-                    <button type="button" key={s.number} className="surah-card"
-                      onClick={() => openSurah(s.number)}>
+                    <a key={s.number} className="surah-card" href={pathFor('quran', lang, s.number)}
+                      onClick={linkTo(s.number)}>
                       <span className="surah-num">{s.number}</span>
                       <span className="surah-body">
                         <span className={`surah-name-en${isAr ? ' is-ar' : ''}`}>{displayName}</span>
                         <span className="surah-meta">{displayMeta}</span>
                       </span>
                       {!isAr && <span className="surah-name-ar" lang="ar">{s.name}</span>}
-                    </button>
+                    </a>
                   )
                 })}
               </div>

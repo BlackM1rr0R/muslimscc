@@ -290,6 +290,7 @@ app.post('/api/send-notification', requireAdmin, async (req, res) => {
 const { DEFAULT_LOC, LANGS, PRAYERS, PUSH_TEXTS, normLoc, locKey, nowIn, addDay } = require('./prayer-utils')
 const dailyAyah = require('./daily-ayah')   // "Günün ayəsi" planlayıcısı (aşağıda)
 const { normDaily } = dailyAyah
+const checkin = require('./checkin')       // "Qıldınızmı?" xatırlatması (aşağıda)
 const TOKENS_TTL_MS = 10 * 60 * 1000   // abunəçi siyahısı 10 dəqiqədə bir təzələnir
 
 /** aladhan-dan bir yerin bir günlük vaxtları → { fajr:'05:32', ... } | null */
@@ -329,6 +330,7 @@ async function loadTokens() {
       id: doc.id, token: d.token, lang: LANGS.includes(d.lang) ? d.lang : 'az',
       daily: normDaily(d.daily),   // "Günün ayəsi" seçimi — aşağıdakı planlayıcı üçün
       azan: d.azan !== false,      // ayarlarda "Namaz vaxtı" söndürülübsə azan göndərilmir
+      checkin: checkin.normCheckin(d.checkin),   // "Qıldınızmı?" — susmaya görə sönülü
     })
   }
   tokenGroups = groups
@@ -407,6 +409,41 @@ async function sendPrayerPush(group, prayer, now, day) {
   }
 }
 
+// ── "Qıldınızmı?" xatırlatması ──
+// Azandan 20 dəqiqə sonra (server/checkin.js), yalnız checkin:true olanlara.
+// Əlavə Firestore oxuması yoxdur: abunəçilər və vaxtlar azan planlayıcısının
+// keşindən (tokenGroups, dayTimes) götürülür. Qeyd serverə QAYITMIR —
+// "Qıldım" düyməsi cihazda (IndexedDB → localStorage) yazılır.
+async function sendCheckinPush(group, prayer, now) {
+  const subs = group.entries.filter(e => e.checkin)
+  if (!subs.length) return
+  const byLang = new Map()
+  for (const e of subs) {
+    if (!byLang.has(e.lang)) byLang.set(e.lang, [])
+    byLang.get(e.lang).push(e)
+  }
+  const dead = []
+  for (const [lang, list] of byLang) {
+    const msg = checkin.buildCheckinMessage(lang, prayer, now.dateKey, WEBPUSH_ICONS)
+    for (let i = 0; i < list.length; i += 500) {
+      const chunk = list.slice(i, i + 500)
+      const result = await adminMsg.sendEachForMulticast({ tokens: chunk.map(e => e.token), ...msg })
+      result.responses.forEach((r, j) => {
+        const code = (r.error && r.error.code) || ''
+        if (/registration-token-not-registered|invalid-registration-token|invalid-argument/.test(code)) dead.push(chunk[j].id)
+      })
+      console.log(`Push checkin ${prayer} [${lang} · ${group.loc.tz}]: ${result.successCount} çatdı, ${result.failureCount} alınmadı`)
+    }
+  }
+  for (const id of dead) {
+    try { await adminDb.collection('fcm_tokens').doc(id).delete() } catch { /* boş ver */ }
+  }
+  if (dead.length) {
+    console.log(`${dead.length} ölü token silindi`)
+    tokensLoadedAt = 0
+  }
+}
+
 let tickBusy = false
 async function prayerTick() {
   if (tickBusy) return
@@ -422,6 +459,15 @@ async function prayerTick() {
         if (day.times[prayer] === now.hhmm && !sentKeys.has(sk)) {
           sentKeys.add(sk)
           await sendPrayerPush(group, prayer, now, day)
+        }
+      }
+      // "Qıldınızmı?" — açarın prefiksi azanla eynidir (timesFor köhnə günləri təmizləyir)
+      if (group.entries.some(e => e.checkin)) {
+        for (const prayer of checkin.dueCheckins(day.times, now.hhmm)) {
+          const ck = `${key}|${now.dateKey}|checkin-${prayer}`
+          if (sentKeys.has(ck)) continue
+          sentKeys.add(ck)
+          await sendCheckinPush(group, prayer, now)
         }
       }
     }

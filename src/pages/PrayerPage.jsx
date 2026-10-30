@@ -14,9 +14,14 @@ import Breadcrumb from '../components/Breadcrumb'
 import { showLocalNotification } from '../utils/notify'
 import { playAzan } from '../utils/azanAudio'
 import RamadanCard from '../components/RamadanCard'
+import PrayerCheckinCard from '../components/PrayerCheckinCard'
+import { setPrayerStatus } from '../utils/prayerTracker'
+import { usePendingCheckinSync } from '../hooks/usePrayerTracker'
 
 // İmsakiyyə səhifəsi (/ramadan) marşrutlara qoşulubsa kartda ona keçid görünür
 const HAS_RAMADAN_PAGE = PAGES.some(p => p.key === 'ramadan')
+// Namaz izləyicisi (/prayer-tracker) marşrutlara qoşulubsa statistika kartında keçid
+const HAS_TRACKER_PAGE = PAGES.some(p => p.key === 'tracker')
 
 // Şəhər seçimi bütün saytda ortaqdır (utils/prayerLocation.js): burada
 // seçilən şəhər ana səhifənin namaz kartında, /jamaat-da və push
@@ -136,21 +141,13 @@ function usePrayerStats() {
     }
   }, [])
 
+  // Yazı ortaq izləyici qatı ilə (utils/prayerTracker.js): hər iki köhnə açar
+  // + /prayer-tracker-in "qəza/qılmadım" qeydi ardıcıl qalır; hadisə atılır
   const toggle = (prayer) => {
     const date = todayKey()
-    const key = `${date}_${prayer}`
-    const done = !data[key]
-    const next = { ...data }
-    if (done) next[key] = true
-    else delete next[key]
-    try {
-      localStorage.setItem(STATS_KEY, JSON.stringify(next))
-      const tracker = readJSON(TRACKER_KEY)
-      tracker[date] = { ...(tracker[date] || {}), [prayer.toLowerCase()]: done }
-      localStorage.setItem(TRACKER_KEY, JSON.stringify(tracker))
-      window.dispatchEvent(new Event(PRAYER_SYNC_EVENT))
-    } catch { /* yaddaş bağlıdır — işarə yalnız bu açılışda qalır */ }
-    setData(next)
+    const done = !data[`${date}_${prayer}`]
+    setPrayerStatus(date, prayer.toLowerCase(), done ? 'prayed' : null)
+    setData(loadStats())
   }
 
   const isDone = (prayer, dateStr) => !!data[`${dateStr}_${prayer}`]
@@ -232,7 +229,6 @@ const PRAYER_DUAS = [
   { name:{ az:'Səcdə duası', en:'Sujud Dua', ru:'Дуа суджуд', ar:'دعاء السجود', tr:'Secde duası' }, ar:'سُبْحَانَ رَبِّيَ الأَعْلَى', trans:{ az:'Ən Uca Rəbbim nöqsansızdır.', en:'Glory be to my Lord, the Most High.', ru:'Пречист мой Господь Всевышний.', ar:'سبحان ربي الأعلى', tr:'Yüce Rabbim noksansızdır.' }},
   { name:{ az:'Təşəhhüd', en:'Tashahhud', ru:'Ташаххуд', ar:'التشهد', tr:'Tahiyyat' }, ar:'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلاَمُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ', trans:{ az:'Bütün salamlar, namazlar və yaxşılıqlar Allaha məxsusdur. Ey Peyğəmbər, sənə Allahın salamı, rəhməti və bərəkəti olsun.', en:'All greetings, prayers and good deeds are for Allah. Peace be upon you, O Prophet, and the mercy of Allah and His blessings.', ru:'Все приветствия, молитвы и благие дела — Аллаху. Мир тебе, о Пророк, и милость Аллаха, и Его благословения.', ar:'التحيات لله والصلوات والطيبات، السلام عليك أيها النبي ورحمة الله وبركاته', tr:'Tahiyyat, salavat ve tayyibat Allah\'a aittir. Ey Peygamber, Allah\'ın selamı, rahmeti ve bereketi senin üzerine olsun.' }},
   { name:{ az:'Salavat', en:'Salawat', ru:'Салават', ar:'الصلاة الإبراهيمية', tr:'Salli-Barik' }, ar:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ', trans:{ az:'Allahım, İbrahimə salavat gətirdiyin kimi, Muhammədə və ailəsinə də salavat gətir.', en:'O Allah, send blessings upon Muhammad and his family as You sent blessings upon Ibrahim.', ru:'О Аллах, благослови Мухаммада и его семью, как Ты благословил Ибрахима.', ar:'اللهم صل على محمد وعلى آل محمد كما صليت على إبراهيم', tr:'Allah\'ım, İbrahim\'e salat ettiğin gibi Muhammed\'e ve ailesine de salat et.' }},
-  { name:{ az:'Qunut duası', en:'Qunut Dua', ru:'Дуа Кунут', ar:'دعاء القنوت', tr:'Kunut duası' }, ar:'اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ وَعَافِنِي فِيمَنْ عَافَيْتَ وَتَوَلَّنِي فِيمَنْ تَوَلَّيْتَ', trans:{ az:'Allahım, hidayət etdiklərinlə birlikdə mənə də hidayət et, afiyət verdiklərinlə birlikdə mənə də afiyət ver.', en:'O Allah, guide me among those You have guided, grant me wellness among those You have granted wellness.', ru:'О Аллах, наставь меня среди тех, кого Ты наставил, и дай мне благополучие среди тех, кому Ты его дал.', ar:'اللهم اهدني فيمن هديت وعافني فيمن عافيت وتولني فيمن توليت', tr:'Allah\'ım, hidayet ettiklerin arasında bana da hidayet et, afiyet verdiklerin arasında bana da afiyet ver.' }},
 ]
 
 const SUNNAH_LABELS = { az:'Sünnə namazları', en:'Sunnah Prayers', ru:'Сунна-намазы', ar:'صلوات السنة', tr:'Sünnet Namazları' }
@@ -258,6 +254,7 @@ const TXT = {
   nextBadge:  { az:'Növbəti', en:'Next', ru:'Следующий', ar:'التالي', tr:'Sonraki' },
   tomorrow:   { az:'sabah', en:'tomorrow', ru:'завтра', ar:'غدًا', tr:'yarın' },
   now:        { az:'İndi', en:'Now', ru:'Сейчас', ar:'الآن', tr:'Şu an' },
+  trackerLink:{ az:'Namaz izləyicisi: hesabat və qəza sayğacı', en:'Prayer tracker: reports and qada counter', ru:'Трекер намазов: отчёты и счётчик каза', ar:'متابعة الصلاة: التقارير وعدّاد القضاء', tr:'Namaz takibi: raporlar ve kaza sayacı' },
   allDone:    { az:'Bu günün beş namazı qılındı', en:'All five prayers done today', ru:'Все пять намазов сегодня выполнены', ar:'أُدِّيَت الصلوات الخمس اليوم', tr:'Bugünün beş vakit namazı kılındı' },
 }
 
@@ -315,6 +312,8 @@ export default function PrayerPage({ setPage }) {
   const next = pt.next ? { name: API_NAME[pt.next.key], time: pt.next.adhan } : null
   const countdown = useCountdownTo(pt.next?.at)
   const { toggle, isDone, todayDone, totalDone, totalPossible, pct, data } = usePrayerStats()
+  // Bildirişdəki "✅ Qıldım" qeydlərini (IndexedDB) izləyiciyə köçür
+  usePendingCheckinSync()
   const weeklyStats = useWeeklyStats(data)
   const [now, setNow] = useState(new Date())
   useEffect(() => { const id=setInterval(()=>setNow(new Date()),1000); return ()=>clearInterval(id) }, [])
@@ -423,6 +422,10 @@ export default function PrayerPage({ setPage }) {
         <div className="ui-container">
           {/* Ramazan rejimi: Ramazanda səhur/iftar + geri sayım; Şabanda sakit
               "Ramazana N gün"; bayram günləri təbrik. Qalan vaxt heç nə göstərmir. */}
+          {/* "Qıldınızmı?" push-una toxunuşdan (?checkin=dhuhr&d=…) — Qıldım / Qılmadım */}
+          <PrayerCheckinCard
+            trackerHref={HAS_TRACKER_PAGE ? pathFor('tracker', lang) : null}
+            onOpenTracker={HAS_TRACKER_PAGE && setPage ? () => setPage('tracker') : undefined} />
           <RamadanCard className="pp-ramadan"
             onOpenTimetable={HAS_RAMADAN_PAGE && setPage ? () => setPage('ramadan') : undefined} />
           {/* Masaüstü: iki sütun. ≤900px: bir sütun, CSS order ilə
@@ -606,6 +609,12 @@ export default function PrayerPage({ setPage }) {
                     )
                   })}
                 </div>
+                {HAS_TRACKER_PAGE && (
+                  <a className="ui-link pp-tracker-link" href={pathFor('tracker', lang)}
+                    onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); setPage?.('tracker') } }}>
+                    {TXT.trackerLink[lk]} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+                  </a>
+                )}
               </div>
             </div>
           </div>

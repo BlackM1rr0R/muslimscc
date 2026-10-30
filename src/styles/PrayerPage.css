@@ -700,3 +700,6 @@
 @media (max-width: 767.98px) {
   .pp-root .pp-ramadan { margin-bottom: var(--space-4); }
 }
+
+/* Namaz izləyicisinə keçid (statistika kartının altı; marşrut qoşulanda görünür) */
+.stat-card .pp-tracker-link { display: inline-flex; margin-top: var(--space-4); font-size: 14px; }

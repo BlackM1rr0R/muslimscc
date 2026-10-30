@@ -60,7 +60,7 @@ const card = (page, n) => page.locator(`#ayah-${n}`)
 const activeSrc = page => page.evaluate(() => window.__audio.active()?.src || '')
 const end = page => page.evaluate(() => window.__audio.end())
 
-async function openFatiha(page, path = '/quran?s=1') {
+async function openFatiha(page, path = '/quran/1-al-faatiha') {
   await page.goto(path)
   await settle(page)
   await expect(card(page, 7)).toBeVisible()
@@ -305,7 +305,7 @@ test.describe('stub ilə', () => {
       await expect(card(page, n)).toHaveClass(/is-playing/)
       await end(page)
     }
-    await expect(page).toHaveURL(/[?&]s=2\b/)
+    await expect(page).toHaveURL(/\/quran\/2-al-baqara$/)
     await expect(card(page, 1)).toHaveClass(/is-playing/)
     // Bəqərənin 1-ci ayəsi — Quranda 8-ci ayə
     await expect.poll(() => activeSrc(page)).toMatch(/\/ar\.alafasy\/8\.mp3$/)
@@ -316,7 +316,7 @@ test.describe('stub ilə', () => {
     await openFatiha(page)
     await player(page).getByRole('button', { name: 'Surəni dinlə' }).click()
     await expect(card(page, 1)).toHaveClass(/is-playing/)
-    await page.goto('/en/quran?s=1')
+    await page.goto('/en/quran/1-al-faatiha')
     await settle(page)
     await expect(card(page, 7)).toBeVisible()
     await expect(player(page).getByRole('button', { name: 'Listen to the surah' })).toBeVisible()

@@ -23,6 +23,7 @@ const AYAH_HOURS = [7, 8, 9, 20]   // server/daily-ayah.js → HOURS ilə eyni
 
 const DEFAULT_PREFS = {
   prayer: true,
+  checkin: false,   // "Qıldınızmı?" — serverə yazılır (token → checkin), susmaya görə sönülü
   ayah: false,
   ayahHour: 8,
   announcements: true,
@@ -49,6 +50,9 @@ const LABELS = {
     types:'Bildiriş növləri',
     typePrayer:'Namaz vaxtları',
     typePrayerSub:'5 vaxt namazı üçün xatırlatma',
+    typeCheckin:'Qıldınızmı? xatırlatması',
+    typeCheckinSub:'Namaz vaxtından 20 dəqiqə sonra soruşur — bir toxunuşla qeyd edin',
+    checkinNeedsToken:'Xatırlatma üçün əvvəlcə yuxarıdan bildirişlərə icazə verin. Seçiminiz yadda qalacaq.',
     typeAyah:'Günün ayəsi',
     typeAyahSub:'Hər gün bir ayə və tərcüməsi',
     ayahTime:'Bildiriş vaxtı',
@@ -86,6 +90,9 @@ const LABELS = {
     types:'Notification types',
     typePrayer:'Prayer times',
     typePrayerSub:'Reminders for 5 daily prayers',
+    typeCheckin:'Did you pray? reminder',
+    typeCheckinSub:'Asks 20 minutes after each prayer time — mark it with one tap',
+    checkinNeedsToken:'To get the reminder, allow notifications above first. Your choice will be saved.',
     typeAyah:'Verse of the day',
     typeAyahSub:'One verse with its translation every day',
     ayahTime:'Notification time',
@@ -123,6 +130,9 @@ const LABELS = {
     types:'Типы уведомлений',
     typePrayer:'Время намаза',
     typePrayerSub:'Напоминания для 5 намазов',
+    typeCheckin:'Напоминание «Намаз совершён?»',
+    typeCheckinSub:'Спрашивает через 20 минут после времени намаза — отметка одним касанием',
+    checkinNeedsToken:'Чтобы получать напоминание, сначала разрешите уведомления выше. Ваш выбор сохранится.',
     typeAyah:'Аят дня',
     typeAyahSub:'Каждый день один аят с переводом',
     ayahTime:'Время уведомления',
@@ -160,6 +170,9 @@ const LABELS = {
     types:'أنواع الإشعارات',
     typePrayer:'أوقات الصلاة',
     typePrayerSub:'تذكير الصلوات الخمس',
+    typeCheckin:'تذكير «هل صليت؟»',
+    typeCheckinSub:'يسأل بعد ٢٠ دقيقة من دخول وقت الصلاة — سجّلها بلمسة واحدة',
+    checkinNeedsToken:'لتلقي التذكير، اسمح بالإشعارات أعلاه أولاً. سيُحفظ اختيارك.',
     typeAyah:'آية اليوم',
     typeAyahSub:'آية مع ترجمتها كل يوم',
     ayahTime:'وقت الإشعار',
@@ -197,6 +210,9 @@ const LABELS = {
     types:'Bildirim türleri',
     typePrayer:'Namaz vakitleri',
     typePrayerSub:'5 vakit için hatırlatma',
+    typeCheckin:'Kıldınız mı? hatırlatması',
+    typeCheckinSub:'Namaz vaktinden 20 dakika sonra sorar — tek dokunuşla işaretleyin',
+    checkinNeedsToken:'Hatırlatma için önce yukarıdan bildirimlere izin verin. Seçiminiz kaydedilecek.',
     typeAyah:'Günün ayeti',
     typeAyahSub:'Her gün bir ayet ve meali',
     ayahTime:'Bildirim saati',
@@ -332,6 +348,7 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     }
     // Token indi yarandı — icazədən əvvəl seçilmiş "Günün ayəsi" serverə də yazılsın
     if (result.ok && prefs.ayah) updateTokenDaily({ ayah: true, hour: prefs.ayahHour })
+    // checkin isə saveTokenToFirestore → serverPrefs() ilə artıq yazılıb
   }
 
   const handleDisable = async () => {
@@ -370,6 +387,16 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     setPrefs(p => ({ ...p, prayer: next }))
     if (!getStoredToken()) return
     const ok = await updateTokenPrefs({ azan: next })
+    if (!ok) setFeedback({ ok: false, text: l.ayahSaveFailed })
+  }
+
+  // "Qıldınızmı?" xatırlatması: lokal yadda qalır; token varsa sənədə də yazılır
+  // (yalnız açıq/sönülü — qıldım qeydləri serverə getmir)
+  const setCheckin = async () => {
+    const next = !prefs.checkin
+    setPrefs(p => ({ ...p, checkin: next }))
+    if (!getStoredToken()) return
+    const ok = await updateTokenPrefs({ checkin: next })
     if (!ok) setFeedback({ ok: false, text: l.ayahSaveFailed })
   }
 
@@ -465,6 +492,13 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
                 <div className="notif-toggles">
                   <PrefToggle icon="prayer" label={l.typePrayer} sub={l.typePrayerSub}
                     on={prefs.prayer} onClick={setAzan} />
+                  <PrefToggle icon="check" label={l.typeCheckin} sub={l.typeCheckinSub}
+                    on={prefs.checkin} onClick={setCheckin} />
+                  {prefs.checkin && !hasToken && (
+                    <div className="notif-ayah-note" role="note">
+                      <Icon name="info" size={16} /> <span>{supported ? l.checkinNeedsToken : l.ayahUnsupported}</span>
+                    </div>
+                  )}
                   <PrefToggle icon="quran" label={l.typeAyah} sub={l.typeAyahSub}
                     on={prefs.ayah} onClick={() => setAyah({ ayah: !prefs.ayah })} />
                   {prefs.ayah && (

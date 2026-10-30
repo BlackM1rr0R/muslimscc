@@ -1,0 +1,633 @@
+/* ══════════════════════════════════════════════════════════════════
+   Ərəb əlifbası və Quran oxumağı öyrən — /learn-arabic
+   (src/pages/ArabicCoursePage.jsx + src/components/arabic/*)
+
+   Qaydalar (DESIGN.md): yalnız tokenlər və .ui-* sinifləri; animasiya —
+   yalnız transform/opacity; "hərəkəti azalt" seçilibsə hamısı sönür.
+   Ərəb mətni — .ui-arabic (Amiri), hərflər iri və aydın.
+   Səhifə CSS-i ui.css-dən ƏVVƏL yüklənir — .ui-* sinfini dəyişmək üçün
+   .ac-root ilə gücləndirilir. Toxunma hədəfi ≥ 44px.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── 0. Hərəkət açarları ── */
+@keyframes ac-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes ac-pop { 0% { opacity: 0; transform: scale(.86); } 60% { opacity: 1; transform: scale(1.04); } 100% { transform: scale(1); } }
+@keyframes ac-pulse { 0% { transform: scale(1); } 40% { transform: scale(1.04); } 100% { transform: scale(1); } }
+@keyframes ac-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+@keyframes ac-slide { from { opacity: 0; transform: translateX(var(--ac-slide, 18px)); } to { opacity: 1; transform: none; } }
+@keyframes ac-letter-in { from { opacity: 0; transform: translateY(18px) scale(.9); } to { opacity: var(--o, 1); transform: none; } }
+@keyframes ac-eq { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+[dir="rtl"] .ac-root { --ac-slide: -18px; }
+
+.ac-root { --ac-ar-xl: clamp(64px, 12vw, 92px); }
+
+/* Geri ox: LTR-də sola baxsın, RTL-də (ui-flip-rtl olmadan) özü sağa */
+.ac-back { transform: scaleX(-1); }
+[dir="rtl"] .ac-back { transform: none; }
+
+.ac-muted { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.ac-small { font-size: var(--step--2); color: var(--text-tertiary); }
+.ac-text { color: var(--text-body); font-size: var(--step-0); line-height: var(--lh-body); }
+.ac-h3 {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+  margin: 0 0 12px;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+.ac-h3__ar { font-size: 0.85em; color: var(--accent-text); font-weight: 400; }
+.ac-h4 {
+  margin: 20px 0 8px;
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .ac-h4 { letter-spacing: 0; font-size: var(--step--1); }
+.ac-tl {
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--step--1);
+  font-style: italic;
+  letter-spacing: 0;
+  unicode-bidi: isolate;
+}
+.ac-ref { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 500; white-space: nowrap; }
+
+/* Çiplər: toxunmada 44px */
+.ac-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 12px; }
+.ac-root .ui-chip { min-height: 44px; padding-inline: 16px; }
+.ac-root .ui-badge { height: auto; min-height: 24px; padding: 4px 10px; white-space: normal; line-height: 1.3; text-align: start; }
+
+/* ── 1. Hero ── */
+.ac-hero { overflow: hidden; }
+.ac-hero__letters {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: max(var(--page-gutter), calc((100vw - var(--container)) / 2));
+  z-index: -1;
+  display: flex;
+  gap: 0.18em;
+  transform: translateY(-50%);
+  color: var(--brand);
+  font-size: clamp(110px, 16vw, 210px);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.ac-hero__letters span { --o: .09; opacity: var(--o); animation: ac-letter-in 900ms var(--ease-out) both; }
+.ac-hero__letters span:nth-child(2) { animation-delay: 120ms; --o: .13; }
+.ac-hero__letters span:nth-child(3) { animation-delay: 240ms; --o: .07; }
+@media (max-width: 760px) {
+  .ac-hero__letters { inset-block-start: 26px; transform: none; font-size: 92px; }
+}
+
+.ac-hero__actions { align-items: stretch; gap: 14px; }
+.ac-cta { align-self: center; }
+.ac-cta__sub { font-weight: 500; opacity: .85; }
+.ac-progress {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-width: min(100%, 260px);
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+.ac-progress__row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.ac-progress__label { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+[dir="rtl"] .ac-progress__label { letter-spacing: 0; }
+.ac-progress__num { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-2); font-weight: 600; line-height: 1; }
+.ac-progress__sub { color: var(--text-secondary); font-size: var(--step--2); }
+
+/* Ortaq zolaq: <div class="…bar"><span style="--p: .4"></span></div> — yalnız transform */
+.ac-progress__bar, .ac-quiz__bar, .ac-result__bar, .ac-lesson-card__meter {
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+}
+.ac-progress__bar > span, .ac-quiz__bar > span, .ac-result__bar > span, .ac-lesson-card__meter > span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--brand);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left center;
+  transition: transform 700ms var(--ease-out);
+}
+[dir="rtl"] .ac-progress__bar > span, [dir="rtl"] .ac-quiz__bar > span,
+[dir="rtl"] .ac-result__bar > span, [dir="rtl"] .ac-lesson-card__meter > span { transform-origin: right center; }
+
+/* ── 2. Dərs kartları ── */
+.ac-lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ac-lesson-grid > li { display: flex; }
+.ac-lesson-card { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.ac-lesson-card__top { display: flex; align-items: center; gap: 10px; }
+.ac-lesson-card__n {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1;
+}
+.ac-lesson-card__badge { margin-inline-start: auto; }
+.ac-lesson-card__glyph {
+  margin: 4px 0 0;
+  color: var(--brand);
+  font-size: 40px;
+  line-height: 1.5;
+  text-align: start;
+  transition: transform var(--dur-2) var(--ease-out);
+  transform-origin: right center;
+}
+@media (hover: hover) { .ac-lesson-card:hover .ac-lesson-card__glyph { transform: scale(1.06); } }
+.ac-lesson-card__eyebrow { margin-top: 2px; }
+.ac-lesson-card .ui-card__text { flex: 1; }
+.ac-lesson-card__meter { height: 4px; margin-top: 6px; }
+.ac-lesson-card__link { margin-top: 4px; }
+.ac-root .ac-lesson-card.is-done { border-color: var(--brand-line); }
+.ac-root .ac-lesson-card.is-active { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand), var(--shadow-2); }
+
+.ac-credits { max-width: 76ch; margin-top: var(--space-7); color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.6; }
+.ac-credits .ui-link { font-size: inherit; }
+
+/* ── 3. Açıq dərs ── */
+.ac-lesson { scroll-margin-top: calc(var(--header-h, 64px) + 8px); padding-block-end: var(--section-gap-sm); }
+.ac-lesson__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-bottom: var(--space-6);
+}
+.ac-lesson__titles { display: flex; flex-direction: column; gap: 8px; max-width: 62ch; }
+.ac-lesson__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ac-lesson__body { animation: ac-rise 420ms var(--ease-out) both; }
+.ac-lesson__end { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: var(--space-8); }
+.ac-lesson__pager { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.ac-skeleton { height: 320px; }
+
+/* Seqment düyməsi: Öyrən | Yoxla */
+.ac-seg {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.ac-seg__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font: 600 var(--step--1) / 1 var(--font-sans);
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease, color var(--dur-1) ease, transform var(--dur-1) ease;
+}
+.ac-seg__btn:active { transform: scale(.97); }
+.ac-seg__btn[aria-pressed="true"] { background: var(--surface-1); color: var(--text-strong); box-shadow: var(--shadow-1); }
+.ac-seg__ok { color: var(--ok); }
+
+/* ── 4. Dərs 1: hərflər ── */
+.ac-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+@media (min-width: 960px) {
+  .ac-split { grid-template-columns: minmax(340px, 440px) minmax(0, 1fr); }
+  .ac-detail { position: sticky; top: calc(var(--header-h, 64px) + 16px); }
+}
+.ac-detail { scroll-margin-top: calc(var(--header-h, 64px) + 12px); }
+.ac-detail__top { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
+.ac-detail__glyph-wrap {
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  flex-shrink: 0;
+  border-radius: var(--radius-xl);
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand-soft-2);
+  animation: ac-pop 460ms var(--ease-spring, var(--ease-out)) both;
+}
+.ac-detail__glyph { color: var(--brand); font-size: 84px; line-height: 1; transform: translateY(-4px); }
+.ac-detail__id { display: flex; flex: 1; min-width: 180px; flex-direction: column; align-items: flex-start; gap: 6px; }
+.ac-detail__num { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; }
+.ac-detail__name {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  line-height: 1.15;
+}
+.ac-detail__name-ar { color: var(--accent-text); font-size: 0.8em; font-weight: 400; line-height: 1.4; }
+.ac-detail__badges { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 2px 4px; }
+.ac-root .ac-badge-heavy { background: var(--accent-soft); color: var(--accent-text); }
+.ac-detail__nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+
+/* 4 forma — kitablardakı kimi sağdan sola */
+.ac-forms {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  direction: rtl;
+  animation: ac-rise 380ms var(--ease-out) both;
+}
+.ac-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.ac-form__glyph { color: var(--text-strong); font-size: clamp(34px, 5vw, 44px); line-height: 1.6; }
+.ac-form__label { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; text-align: center; unicode-bidi: plaintext; }
+
+/* Hərflər şəbəkəsi */
+.ac-grid-col { min-width: 0; }
+.ac-letter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 10px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ac-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 84px;
+  padding: 6px 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  color: var(--text-strong);
+  cursor: pointer;
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-1) ease, background-color var(--dur-1) ease;
+}
+@media (hover: hover) { .ac-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line-strong); } }
+.ac-tile:active { transform: scale(.95); }
+.ac-tile[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 1px var(--brand); }
+.ac-tile[aria-pressed="true"] .ac-tile__glyph { color: var(--brand); }
+.ac-tile__glyph { font-size: 38px; line-height: 1.35; transition: transform var(--dur-2) var(--ease-out); }
+@media (hover: hover) { .ac-tile:hover .ac-tile__glyph { transform: scale(1.08); } }
+.ac-tile__name { color: var(--text-tertiary); font-size: 12px; font-weight: 500; line-height: 1.2; }
+/* Bitişməyən hərf — küncdə qızılı nöqtə */
+.ac-tile.is-nonjoin::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-start: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+
+.ac-notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--space-4); margin-top: var(--space-7); }
+.ac-note .ac-h4 { margin-top: 0; }
+.ac-note__letters { margin-top: 8px; color: var(--accent-text); font-size: 34px; line-height: 1.6; word-spacing: .35em; text-align: start; }
+
+/* Qurandan nümunə söz */
+.ac-qex {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 14px;
+  padding: 8px 10px 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+[dir="rtl"] .ac-qex { padding: 8px 16px 8px 10px; }
+.ac-qex__ar { margin: 0; font-size: 36px; line-height: 1.75; }
+.ac-qex--sm .ac-qex__ar { font-size: 28px; }
+.ac-qex__meta { display: flex; align-items: center; gap: 10px; margin-inline-start: auto; }
+
+/* Səs düymələri */
+.ac-root .ac-audio-icon { color: var(--brand); }
+.ac-root .ac-audio-icon.is-playing { background: var(--brand-soft-2); color: var(--brand-strong); animation: ac-pulse 1.2s var(--ease-out) infinite; }
+.ac-audio-btn.is-playing { gap: 8px; }
+.ac-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+.ac-eq i { display: block; width: 3px; height: 100%; border-radius: 2px; background: currentColor; transform-origin: bottom; animation: ac-eq 900ms ease-in-out infinite; }
+.ac-eq i:nth-child(2) { animation-delay: -300ms; }
+.ac-eq i:nth-child(3) { animation-delay: -600ms; }
+
+/* ── 5. Dərs 2: hərəkələr ── */
+.ac-hk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--space-4); margin-bottom: var(--space-8); }
+.ac-hk { display: flex; flex-direction: column; gap: 12px; }
+.ac-hk__head { display: flex; align-items: center; gap: 14px; }
+.ac-hk__mark {
+  display: grid;
+  place-items: center;
+  min-width: 64px;
+  height: 64px;
+  padding-inline: 8px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+  color: var(--accent-text);
+  font-size: 40px;
+  line-height: 1;
+}
+.ac-hk__name { margin: 0; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; }
+.ac-hk__term { color: var(--text-tertiary); font-size: 18px; line-height: 1.6; }
+.ac-hk__samples { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 6px 20px; }
+.ac-hk__ex { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+.ac-syl { display: inline-flex; flex-direction: column; align-items: center; gap: 0; }
+.ac-syl__ar { color: var(--text-strong); font-size: 38px; line-height: 1.6; }
+.ac-syl .ac-tl { font-size: 13px; }
+
+.ac-table-sec { margin-top: var(--space-6); }
+.ac-syl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ac-syl-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  animation: ac-pop 380ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 14ms);
+}
+.ac-syl-cell__letter { align-self: flex-start; color: var(--text-tertiary); font-size: 18px; line-height: 1.2; }
+.ac-syl-cell__list { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; }
+.ac-syl-cell .ac-syl__ar { font-size: 32px; }
+
+/* ── 6. Dərs 3: oxu ── */
+.ac-row-between { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; margin-bottom: var(--space-4); }
+.ac-switch { position: relative; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--text-body); font-size: var(--step--1); font-weight: 500; cursor: pointer; }
+.ac-switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.ac-switch__track {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  transition: background-color var(--dur-2) ease;
+}
+.ac-switch__thumb {
+  position: absolute;
+  inset-block-start: 3px;
+  inset-inline-start: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur-2) var(--ease-spring, var(--ease-out));
+}
+.ac-switch input:checked + .ac-switch__track { background: var(--brand); box-shadow: none; }
+.ac-switch input:checked + .ac-switch__track .ac-switch__thumb { transform: translateX(18px); }
+[dir="rtl"] .ac-switch input:checked + .ac-switch__track .ac-switch__thumb { transform: translateX(-18px); }
+.ac-switch input:focus-visible + .ac-switch__track { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+.ac-words-sec { margin-bottom: var(--space-6); }
+.ac-words {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ac-word-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 8px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+.ac-word-card__ref { display: inline-flex; align-items: center; gap: 2px; color: var(--text-tertiary); font-size: 12px; }
+.ac-word {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 2px 10px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-strong);
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease, border-color var(--dur-1) ease, transform var(--dur-1) ease;
+}
+@media (hover: hover) { .ac-word:hover { background: var(--surface-2); border-color: var(--line); } }
+.ac-word:active { transform: scale(.96); }
+.ac-word.is-open { background: var(--brand-soft); border-color: var(--brand-soft-2); }
+.ac-word__ar { font-size: 38px; line-height: 1.6; }
+.ac-word__tl {
+  min-height: 1.4em;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--dur-2) ease, transform var(--dur-2) var(--ease-out);
+}
+.ac-word.is-open .ac-word__tl { opacity: 1; transform: none; color: var(--brand-strong); }
+[data-theme="dark"] .ac-word.is-open .ac-word__tl { color: var(--brand); }
+
+.ac-surah-sec { margin-top: var(--space-7); }
+.ac-ayahs { display: grid; gap: 12px; margin: 12px 0 20px; padding: 0; list-style: none; }
+.ac-ayah { animation: ac-rise 420ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 50ms); }
+.ac-ayah__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.ac-ayah__num {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+  color: var(--accent-text);
+  font-size: var(--step--1);
+  font-weight: 700;
+}
+.ac-ayah__words { display: flex; flex-wrap: wrap; gap: 4px 2px; }
+.ac-ayah .ac-word__ar { font-size: clamp(28px, 4vw, 34px); }
+
+/* ── 7. Dərs 4: təcvid ── */
+.ac-tajweed-lesson > .ac-note { margin-bottom: 8px; }
+@media (max-width: 640px) {
+  .ac-chips--scroll { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(-1 * var(--page-gutter)); padding-inline: var(--page-gutter); scrollbar-width: none; }
+  .ac-chips--scroll::-webkit-scrollbar { display: none; }
+}
+.ac-tj-group { margin-top: var(--space-5); animation: ac-rise 380ms var(--ease-out) both; }
+.ac-tj-rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--space-4); margin-top: 12px; }
+.ac-rule { display: flex; flex-direction: column; gap: 10px; animation: ac-rise 420ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms); }
+.ac-rule__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.ac-rule__name { margin: 0; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; }
+.ac-rule__term { color: var(--accent-text); font-size: 20px; line-height: 1.6; }
+.ac-rule__facts { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; }
+.ac-rule__facts dt { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+[dir="rtl"] .ac-rule__facts dt { letter-spacing: 0; }
+.ac-rule__facts dd { margin: 2px 0 0; color: var(--text-body); font-weight: 500; }
+.ac-rule__letters { color: var(--brand); font-size: 26px; line-height: 1.6; word-spacing: .3em; }
+.ac-rule__ex { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+
+/* ── 8. Yoxlama ── */
+.ac-quiz { max-width: 760px; margin-inline: auto; padding: clamp(18px, 3vw, 32px); }
+.ac-quiz__top { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.ac-quiz__count { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; white-space: nowrap; }
+.ac-quiz__bar { flex: 1; height: 6px; }
+.ac-quiz__q { animation: ac-slide 360ms var(--ease-out) both; }
+.ac-quiz__text { margin: 0; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; text-align: center; }
+.ac-quiz__ar { margin: 6px 0 0; color: var(--brand); font-size: var(--ac-ar-xl); line-height: 1.6; text-align: center; animation: ac-pop 460ms var(--ease-out) both; }
+.ac-quiz__q > .ac-ref { margin-top: -4px; text-align: center; }
+.ac-quiz__q > .ac-audio-btn { display: flex; margin: 16px auto 4px; }
+
+.ac-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+@media (max-width: 460px) { .ac-options:not(.ac-options--ar) { grid-template-columns: minmax(0, 1fr); } }
+.ac-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  color: var(--text-strong);
+  font: 500 var(--step-0) / 1.35 var(--font-sans);
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--dur-1) ease, border-color var(--dur-1) ease, background-color var(--dur-1) ease, opacity var(--dur-2) ease;
+}
+@media (hover: hover) { .ac-option:not(:disabled):hover { border-color: var(--brand); transform: translateY(-1px); } }
+.ac-option:active { transform: scale(.98); }
+.ac-option:disabled { cursor: default; }
+.ac-option__n {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.ac-option__label { flex: 1; }
+.ac-option__ar { flex: 1; font-size: 40px; line-height: 1.4; text-align: center; }
+.ac-option__mark { flex-shrink: 0; }
+.ac-option.is-correct {
+  border-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 10%, var(--surface-1));
+  animation: ac-pulse 420ms var(--ease-out);
+}
+.ac-option.is-correct .ac-option__mark, .ac-option.is-correct .ac-option__n { color: var(--ok); }
+.ac-option.is-wrong {
+  border-color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 8%, var(--surface-1));
+  animation: ac-shake 420ms ease;
+}
+.ac-option.is-wrong .ac-option__mark { color: var(--bad); }
+.ac-option.is-dim { opacity: .5; }
+
+.ac-quiz__feedback { min-height: 32px; margin-top: 14px; text-align: center; }
+.ac-feedback { margin: 0; font-weight: 600; animation: ac-rise 260ms var(--ease-out) both; }
+.ac-feedback.is-right { color: var(--ok); }
+.ac-feedback.is-wrong { color: var(--bad); }
+.ac-feedback strong { color: var(--text-strong); }
+.ac-quiz__actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+/* Nəticə */
+.ac-result { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.ac-result__ring {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--brand-soft-2);
+  color: var(--brand);
+  animation: ac-pop 560ms var(--ease-out) both;
+}
+.ac-result.is-fail .ac-result__ring { background: var(--accent-soft); color: var(--accent-text); }
+.ac-result__title { margin: 6px 0 0; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-3); font-weight: 600; outline: none; }
+.ac-result__score { margin: 0; color: var(--text-secondary); font-weight: 600; }
+.ac-result__bar { width: min(100%, 320px); margin-block: 6px; }
+.ac-result.is-fail .ac-result__bar > span { background: var(--accent); }
+.ac-result__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
+
+/* ── 9. Telefon ── */
+@media (max-width: 640px) {
+  .ac-lesson__tools { width: 100%; justify-content: space-between; }
+  .ac-detail__glyph-wrap { width: 104px; height: 104px; }
+  .ac-detail__glyph { font-size: 68px; }
+  .ac-letter-grid { grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 8px; }
+  .ac-tile { min-height: 76px; }
+  .ac-tile__glyph { font-size: 34px; }
+  .ac-words { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  .ac-option__ar { font-size: 34px; }
+  .ac-quiz__actions .ui-btn { width: 100%; justify-content: center; }
+}
+
+/* ── 10. Hərəkəti azalt — hər şey dərhal görünür ── */
+@media (prefers-reduced-motion: reduce) {
+  .ac-root *, .ac-root *::before, .ac-root *::after { animation: none !important; transition: none !important; }
+  .ac-hero__letters span { opacity: var(--o); }
+}

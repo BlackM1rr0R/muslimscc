@@ -169,6 +169,18 @@ export default function NotificationPrompt() {
   // bildirişlərin səssizcə kəsilməsinin əsas səbəblərindən biri idi
   useEffect(() => { refreshPushToken() }, [])
 
+  // Bildirişdəki "✅ Qıldım" düyməsi (public/sw.js) qeydi IndexedDB-yə yazır —
+  // hansı səhifə açılırsa açılsın, onu cihazdakı namaz izləyicisinə köçür
+  // (idempotent; namaz səhifələri bunu özləri də edir). Modul kiçikdir, gec yüklənir.
+  useEffect(() => {
+    const run = () => import('../utils/prayerTracker').then(m => m.syncPendingCheckins()).catch(() => {})
+    run()
+    const sw = typeof navigator !== 'undefined' ? navigator.serviceWorker : null
+    const onMsg = (e) => { if (e.data?.type === 'CHECKIN') run() }
+    sw?.addEventListener?.('message', onMsg)
+    return () => sw?.removeEventListener?.('message', onMsg)
+  }, [])
+
   const handleEnable = async () => {
     setBusy(true)
     try {

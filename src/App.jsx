@@ -1,7 +1,7 @@
 import { Component, Suspense, lazy as reactLazy } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
-import { LANGS, parsePath, pathFor } from './seo/routes'
+import { LANGS, parsePath, pathFor, legacyDetailParam } from './seo/routes'
 import Seo from './seo/Seo'
 import { isOverlayEntry } from './utils/useBackToClose'
 import Header from './components/Header'
@@ -97,6 +97,8 @@ const HifzPage = lazy(() => import('./pages/HifzPage'))
 const KidsPage = lazy(() => import('./pages/KidsPage'))
 const HolyPlacesPage = lazy(() => import('./pages/HolyPlacesPage').then(m => ({ default: m.HolyPlacesPage })))
 const DailyTrackerPage = lazy(() => import('./pages/DailyTrackerPage'))
+const PrayerTrackerPage = lazy(() => import('./pages/PrayerTrackerPage'))
+const ArabicCoursePage = lazy(() => import('./pages/ArabicCoursePage'))
 const QuranGamePage = lazy(() => import('./pages/QuranGamePage'))
 const CharityPage = lazy(() => import('./pages/CharityPage'))
 const HajjGuidePage = lazy(() => import('./pages/HajjGuidePage'))
@@ -197,6 +199,25 @@ const FALLBACK_STYLE = { ...MAIN_STYLE, justifyContent: 'flex-start' }
 // düyməsi silinmiş ünvana qayıtmasın). Sorğu sətri və hash saxlanmır.
 const LEGACY_REDIRECTS = { mosque: 'about' }
 
+// Detal səhifələrinin köhnə query ünvanları (/quran?s=2&a=90, /sahaba?id=…)
+// və səhv yazılmış slug (/quran/2-sehv) → kanonik yol, replace ilə (301 yox —
+// server statik fayl verir; canonical onsuz da düzgün URL-i göstərir).
+// Sorğunun qalan hissəsi (?a=90) və hash saxlanılır.
+function canonicalDetail(location, key, lang, param) {
+  let p = param
+  const params = new URLSearchParams(location.search)
+  if (p == null) {
+    p = legacyDetailParam(key, params)
+    if (p == null) return null
+    params.delete(key === 'quran' ? 's' : 'id')
+  }
+  const pathname = pathFor(key, lang, p)
+  const legacyQuery = param == null
+  if (!legacyQuery && pathname === location.pathname) return null
+  const search = params.toString()
+  return { pathname, search: search ? `?${search}` : '', hash: location.hash }
+}
+
 /** Köhnə ünvandırsa { lang, to } qaytarır, yoxsa null. */
 function legacyRedirect(pathname) {
   const parts = String(pathname || '/').split('/').filter(Boolean)
@@ -216,7 +237,7 @@ function AppInner() {
 
   // Səhifə və dil artıq URL-dən oxunur — hər səhifənin öz ünvanı var
   // (/quran, /ru/quran) ki, Google onları ayrıca indeksləyə bilsin.
-  const { lang, key, known } = parsePath(location.pathname)
+  const { lang, key, known, param } = parsePath(location.pathname)
   const hash = location.hash
   const isAdminKey = key === 'admin' || key === 'adminlogin'
   // "#admin" istənilən səhifədən gizli girişi açır, amma /admin marşrutunun
@@ -267,7 +288,9 @@ function AppInner() {
       case 'hifz':        return <HifzPage        setPage={navigate} />
       case 'kids':        return <KidsPage        setPage={navigate} />
       case 'holyplaces':    return <HolyPlacesPage    setPage={navigate} />
+      case 'tracker':       return <PrayerTrackerPage setPage={navigate} />
       case 'dailytracker':  return <DailyTrackerPage  setPage={navigate} />
+      case 'arabic':        return <ArabicCoursePage  setPage={navigate} />
       case 'qurangame':     return <QuranGamePage     setPage={navigate} />
       case 'charity':       return <CharityPage       setPage={navigate} />
       case 'hajjguide':     return <HajjGuidePage     setPage={navigate} />
@@ -291,6 +314,8 @@ function AppInner() {
   }
 
   if (legacy) return <Navigate to={pathFor(legacy.to, legacy.lang)} replace />
+  const detailFix = known ? canonicalDetail(location, key, lang, param) : null
+  if (detailFix) return <Navigate to={detailFix} replace state={location.state} />
 
   // Admin səhifələri Header/Footer göstərmir — nə yan panel, nə çəkmə menyu
   const isAdminPage = page === 'adminlogin' || page === 'admin'
@@ -319,7 +344,7 @@ function AppInner() {
   if (isAdminPage) {
     return (
       <>
-        <Seo page={page} lang={lang} />
+        <Seo page={page} lang={lang} param={page === key ? param : null} />
         {pageMain}
       </>
     )
@@ -327,7 +352,7 @@ function AppInner() {
 
   return (
     <>
-      <Seo page={page} lang={lang} />
+      <Seo page={page} lang={lang} param={page === key ? param : null} />
       <a className="qm-skip" href={`#${MAIN_ID}`} onClick={skipToMain}>{SKIP_LABEL[lang] || SKIP_LABEL.az}</a>
       <Header currentPage={page} setPage={navigate} />
 

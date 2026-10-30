@@ -2,7 +2,10 @@
 //
 // Token Firestore-da `fcm_tokens/<token>` sənədində saxlanılır:
 //   { token, userAgent, lang, loc:{ lat, lng, tz, method, city:{az,en,ru,ar,tr} },
+//     azan:bool, checkin:bool, daily:{ ayah, hour },
 //     createdAt:<ms>, updatedAt:<serverTimestamp> }
+// `checkin` yalnız "Qıldınızmı?" push-unu açır/söndürür — namaz qeydləri
+// (qıldım/qəza/heyz) serverə HEÇ VAXT getmir, yalnız cihazda qalır.
 // `loc` istifadəçinin seçdiyi namaz yeridir (utils/prayerLocation.js) — server
 // hər istifadəçiyə ÖZ şəhərinin azan vaxtında push göndərir. İstifadəçi
 // şəhəri dəyişəndə setPrayerCity() → updateTokenLocation() sənədi yeniləyir
@@ -122,7 +125,8 @@ function serverPrefs() {
   let p = {}
   try { p = JSON.parse(readLS(PREFS_KEY) || '{}') || {} } catch { p = {} }
   const hour = Number.isInteger(p.ayahHour) ? p.ayahHour : 8
-  return { azan: p.prayer !== false, daily: { ayah: p.ayah === true, hour } }
+  // checkin — "Qıldınızmı?" xatırlatması (server/checkin.js), susmaya görə sönülü
+  return { azan: p.prayer !== false, checkin: p.checkin === true, daily: { ayah: p.ayah === true, hour } }
 }
 
 // ─── Token-i Firestore-da unikal şəkildə saxla ───
@@ -190,8 +194,9 @@ export async function updateTokenDaily({ ayah, hour }) {
 }
 
 /**
- * Azan bildirişi açıq/söndürülü → token sənədində `azan` (server false olanda
- * həmin abunəçiyə azan push-u göndərmir). Token yoxdursa false.
+ * Bildiriş seçimləri → token sənədində `azan` (false olanda azan push-u
+ * göndərilmir) və `checkin` ("Qıldınızmı?" — true olanda azandan 20 dəq sonra
+ * xatırlatma gedir). Token yoxdursa false.
  */
 export async function updateTokenPrefs(patch) {
   const token = readLS(TOKEN_KEY)

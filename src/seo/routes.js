@@ -8,6 +8,9 @@
 // Yeni səhifə əlavə edərkən yalnız burada bir sətir yaz.
 // ═══════════════════════════════════════════════════════
 
+import { SURAH_SLUGS } from './surahSlugs.js'
+import { NAME_SLUGS, SAHABA_SLUGS } from './detailSlugs.js'
+
 export const SITE = 'https://muslims.cc'
 
 export const LANGS = ['az', 'en', 'ru', 'ar', 'tr']
@@ -45,6 +48,7 @@ export const PAGES = [
   { key: 'prayerguide',  path: 'prayerguide',  priority: 0.85, changefreq: 'monthly' },
   { key: 'hajjguide',    path: 'hajjguide',    priority: 0.85, changefreq: 'monthly' },
   { key: 'hifz',         path: 'hifz',         priority: 0.80, changefreq: 'monthly' },
+  { key: 'arabic',       path: 'learn-arabic', priority: 0.80, changefreq: 'monthly' },
   { key: 'quiz',         path: 'quiz',         priority: 0.80, changefreq: 'monthly' },
   { key: 'qurangame',    path: 'qurangame',    priority: 0.75, changefreq: 'monthly' },
   { key: 'glossary',     path: 'glossary',     priority: 0.75, changefreq: 'monthly' },
@@ -52,6 +56,7 @@ export const PAGES = [
   { key: 'sahaba',       path: 'sahaba',       priority: 0.85, changefreq: 'monthly' },
   { key: 'holyplaces',   path: 'holyplaces',   priority: 0.75, changefreq: 'monthly' },
   { key: 'mosques',      path: 'mosques',      priority: 0.80, changefreq: 'weekly'  },
+  { key: 'tracker',      path: 'prayer-tracker', priority: 0.80, changefreq: 'daily' },
   { key: 'dailytracker', path: 'dailytracker', priority: 0.80, changefreq: 'daily'   },
   { key: 'charity',      path: 'charity',      priority: 0.75, changefreq: 'weekly'  },
   { key: 'duajournal',   path: 'duajournal',   priority: 0.75, changefreq: 'weekly'  },
@@ -73,25 +78,102 @@ export const PAGES = [
 
 export const INDEXABLE = PAGES.filter(p => !p.noindex)
 
+// ── Detal səhifələri ─────────────────────────────────
+// Siyahı səhifəsinin altında hər element üçün ayrıca, indekslənən URL:
+//   /quran/<n>-<slug>    — 114 surə     (param: surənin nömrəsi, 1–114)
+//   /names/<n>-<slug>    — 99 ad        (param: adın nömrəsi, 1–99)
+//   /sahaba/<slug>       — səhabələr    (param: slug)
+// Rəqəmli növlərdə NÖMRƏ həqiqət mənbəyidir: slug səhv yazılsa belə
+// (/quran/2-bilmirem) səhifə surə 2-ni açır, canonical isə düzgün slug-u
+// göstərir. Naməlum nömrə / slug → known:false (404).
+// Hər dildə eyni slug (ASCII, kiçik hərf, defislə).
+export const DETAILS = {
+  quran:  { kind: 'number', count: 114, slug: (n) => SURAH_SLUGS[n - 1] },
+  names:  { kind: 'number', count: 99,  slug: (n) => NAME_SLUGS[n - 1] },
+  sahaba: { kind: 'slug',   slugs: SAHABA_SLUGS },
+}
+
+/** Detal parametri düzgündürmü (surə 1–114, ad 1–99, mövcud səhabə slug-u)? */
+export function isDetailParam(key, param) {
+  const d = DETAILS[key]
+  if (!d || param == null || param === '') return false
+  if (d.kind === 'number') return Number.isInteger(param) && param >= 1 && param <= d.count
+  return d.slugs.includes(param)
+}
+
+/** Detalın URL seqmenti: (quran, 2) → '2-al-baqara'; düzgün deyilsə null. */
+export function detailSegment(key, param) {
+  if (!isDetailParam(key, param)) return null
+  const d = DETAILS[key]
+  return d.kind === 'number' ? `${param}-${d.slug(param)}` : param
+}
+
+/** URL seqmentindən parametr: '2-al-baqara' / '2' / '2-sehv' → 2; tanınmırsa null. */
+export function parseDetailSegment(key, seg) {
+  const d = DETAILS[key]
+  if (!d || !seg) return null
+  let s = seg
+  try { s = decodeURIComponent(seg) } catch { /* pozuq % — olduğu kimi */ }
+  if (d.kind === 'number') {
+    const m = /^(\d{1,3})(?:-.*)?$/.exec(s)
+    const n = m ? Number(m[1]) : NaN
+    return isDetailParam(key, n) ? n : null
+  }
+  const slug = s.toLowerCase()
+  return isDetailParam(key, slug) ? slug : null
+}
+
+/**
+ * Köhnə query ünvanından detal parametri: /quran?s=2 → 2, /sahaba?id=<slug|id> → slug.
+ * Tanınmırsa null (səhifə siyahı kimi açılır).
+ */
+export function legacyDetailParam(key, params) {
+  if (key === 'quran') {
+    const s = Number(params.get('s'))
+    return isDetailParam('quran', s) ? s : null
+  }
+  if (key === 'sahaba') {
+    const v = String(params.get('id') || '').toLowerCase()
+    if (!v) return null
+    if (isDetailParam('sahaba', v)) return v
+    const n = Number(v)
+    return Number.isInteger(n) && SAHABA_SLUGS[n - 1] ? SAHABA_SLUGS[n - 1] : null
+  }
+  return null
+}
+
+/** Bütün detal parametrləri (prerender və sitemap üçün). */
+export function detailParams(key) {
+  const d = DETAILS[key]
+  if (!d) return []
+  return d.kind === 'number' ? Array.from({ length: d.count }, (_, i) => i + 1) : [...d.slugs]
+}
+
 // ── URL yardımçıları ─────────────────────────────────
 
-/** Səhifə + dil → tam yol. az = prefiksiz (kanonik kök). */
-export function pathFor(key, lang = DEFAULT_LANG) {
+/**
+ * Səhifə + dil (+ detal parametri) → tam yol. az = prefiksiz (kanonik kök).
+ * param verilməyibsə və ya düzgün deyilsə — siyahı səhifəsinin yolu.
+ */
+export function pathFor(key, lang = DEFAULT_LANG, param) {
   const page = PAGES.find(p => p.key === key)
   const slug = page ? page.path : ''
   const prefix = lang === DEFAULT_LANG ? '' : `/${lang}`
   if (!slug) return prefix || '/'
-  return `${prefix}/${slug}`
+  const seg = param == null ? null : detailSegment(key, param)
+  return seg ? `${prefix}/${slug}/${seg}` : `${prefix}/${slug}`
 }
 
-/** Səhifə + dil → tam mütləq URL (canonical / sitemap üçün). */
-export function urlFor(key, lang = DEFAULT_LANG) {
-  return SITE + pathFor(key, lang)
+/** Səhifə + dil (+ param) → tam mütləq URL (canonical / sitemap üçün). */
+export function urlFor(key, lang = DEFAULT_LANG, param) {
+  return SITE + pathFor(key, lang, param)
 }
 
 /**
- * Brauzer yolunu ayrış: '/ru/quran' → { lang:'ru', key:'quran' }
- * Tanınmayan yol üçün home qaytarır (404 əvəzinə — SPA davranışı saxlanılır).
+ * Brauzer yolunu ayrış: '/ru/quran' → { lang:'ru', key:'quran', known:true, param:null }
+ * '/en/quran/36-yaseen' → { …, key:'quran', param:36 }
+ * Tanınmayan yol üçün key 'home', known:false (App.jsx onu 404 göstərir).
+ * Detal səhifəsi olmayan bölmələrdə əlavə seqment əvvəlki kimi nəzərə alınmır.
  */
 export function parsePath(pathname) {
   const parts = String(pathname || '/').split('/').filter(Boolean)
@@ -103,5 +185,10 @@ export function parsePath(pathname) {
   }
   const slug = parts[0] || ''
   const page = PAGES.find(p => p.path === slug)
-  return { lang, key: page ? page.key : 'home', known: Boolean(page) || slug === '' }
+  if (!page) return { lang, key: 'home', known: slug === '', param: null }
+  const rest = parts.slice(1)
+  if (!DETAILS[page.key] || rest.length === 0) return { lang, key: page.key, known: true, param: null }
+  // Detal: düz bir seqment olmalıdır (/quran/2-al-baqara); qalanı 404
+  const param = rest.length === 1 ? parseDetailSegment(page.key, rest[0]) : null
+  return { lang, key: page.key, known: param != null, param }
 }

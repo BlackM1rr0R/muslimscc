@@ -9,7 +9,7 @@ import { useLang } from '../contexts/LangContext'
 import { pathFor } from '../seo/routes'
 
 /** Adi sol klikdirmi? (Ctrl/⌘/Shift/orta klik — brauzer linki özü açsın) */
-const isPlainClick = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
+export const isPlainClick = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 
 /**
  * @param {{ to: string, setPage?: (key: string) => void, onNavigate?: () => void,

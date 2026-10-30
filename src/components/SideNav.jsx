@@ -40,7 +40,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
 import { NAV_GROUPS, navGroupOf } from '../data/navigation'
-import { pathFor } from '../seo/routes'
+import { pathFor, parsePath } from '../seo/routes'
 import { isOverlayEntry } from '../utils/useBackToClose'
 import Icon, { BrandMark } from './Icon'
 import '../styles/SideNav.css'
@@ -590,7 +590,8 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
     if (code === lang) return
     if (!isRail && isOverlayEntry()) {
       try { window.localStorage.setItem(LANG_PREF_KEY, code) } catch { /* yaddaş bağlıdır */ }
-      routerNavigate(pathFor(currentPage, code), { replace: true })
+      // Detal səhifəsində (/quran/2-…) eyni surə yeni dildə açılsın
+      routerNavigate(pathFor(currentPage, code, parsePath(window.location.pathname).param), { replace: true })
       return
     }
     setLang?.(code)

@@ -10,9 +10,19 @@
 // isə praktik olaraq etmir. Statik fayl olmadan bütün URL-lər eyni
 // başlıq və təsviri qaytarır — yəni duplicate content.
 //
-// Bu SSR deyil: <body> hələ də SPA tərəfindən doldurulur. Fərq odur ki,
-// hər URL indi özünə xas <title>, description, canonical, hreflang,
-// Open Graph və JSON-LD ilə cavab verir; robotlar üçün əsas olan budur.
+// Bu SSR deyil: <body>-ni SPA doldurur. Fərq odur ki, hər URL özünə xas
+// <title>, description, canonical, hreflang, Open Graph və JSON-LD ilə
+// cavab verir; robotlar üçün əsas olan budur.
+//
+// DETAL SƏHİFƏLƏRİ: hər surə (/quran/<n>-<slug>), hər ad (/names/<n>-<slug>)
+// və hər səhabə (/sahaba/<slug>) 5 dildə ayrıca HTML alır — öz meta-sı və
+// <div id="root"> içində HƏQİQİ statik məzmunla (scripts/seo-body.mjs):
+// surənin ərəbcə mətni + tərcüməsi, adın mənası, səhabənin həyatı. Siyahı
+// səhifələri (/quran, /names, /sahaba) bütün detallara linkləri alır.
+// React yüklənəndə bu blok tətbiqin öz görünüşü ilə əvəzlənir.
+//
+// SITEMAP: sitemap.xml — indeks (robots.txt və Search Console onu göstərir),
+// altında sitemap-pages.xml, sitemap-quran.xml, sitemap-names.xml, sitemap-sahaba.xml.
 //
 // İşə düşür: npm run build (bax package.json)
 // ═══════════════════════════════════════════════════════
@@ -22,9 +32,11 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import zlib from 'node:zlib'
 
-import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, pathFor } from '../src/seo/routes.js'
+import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor, detailParams } from '../src/seo/routes.js'
 import { titleFor, descFor, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
 import { brandName, siteJsonLd } from '../src/config/brand.js'
+import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detail.js'
+import { staticBodyFor, hasQuranData } from './seo-body.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 // Çıxış qovluğu: susmaya görə dist/. `--out <qovluq>` (və ya PRERENDER_DIST
@@ -51,6 +63,7 @@ const esc = (s) => String(s)
   .replace(/</g, '&lt;')
   .replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;') // replaceMeta-nın regex-i content-də ' görməsin
 
 /** Mövcud <meta ...content="..."> dəyərini əvəz et; teq yoxdursa toxunma. */
 function replaceMeta(html, attr, key, value) {
@@ -85,18 +98,25 @@ function breadcrumbFor(key, lang, title) {
   }
 }
 
-/** Bir səhifə + dil üçün <head> parçası. */
-function headFor(key, lang) {
-  const canonical = SITE + pathFor(key, lang)
+/** Səhifənin title/description-u (detal səhifəsində — src/seo/detail.js). */
+function textsFor(key, lang, param) {
+  if (param != null) return { title: titleForDetail(key, lang, param), desc: detailMeta(key, lang, param).d }
+  return { title: titleFor(key, lang), desc: descFor(key, lang) }
+}
+
+/** Bir səhifə + dil (+ detal parametri) üçün <head> parçası. */
+function headFor(key, lang, param = null) {
+  const p = param ?? undefined
+  const canonical = SITE + pathFor(key, lang, p)
   const alts = [
-    ...LANGS.map(l => `    <link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l)}" data-seo="alt" />`),
-    `    <link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, DEFAULT_LANG)}" data-seo="alt" />`,
+    ...LANGS.map(l => `    <link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}" data-seo="alt" />`),
+    `    <link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, DEFAULT_LANG, p)}" data-seo="alt" />`,
   ].join('\n')
 
-  const title = titleFor(key, lang)
-  const desc = descFor(key, lang)
+  const { title, desc } = textsFor(key, lang, param)
 
-  const jsonld = {
+  // Detal: WebPage + breadcrumb (3 addım) + mainEntity (Chapter / DefinedTerm / Person)
+  const jsonld = param != null ? detailJsonLd(key, lang, param) : {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: title,
@@ -127,7 +147,7 @@ function headFor(key, lang) {
  * isə daxili linklərin krawl oluna bilən qrafını verir (anchor mətni = həmin
  * səhifənin adı), üstəlik dil variantlarına keçidlə.
  */
-function noscriptFor(key, lang) {
+function noscriptFor(key, lang, withBody = false) {
   const ui = UI[lang] || UI.az
   const links = INDEXABLE
     .filter(p => p.key !== key)
@@ -140,6 +160,18 @@ function noscriptFor(key, lang) {
     .filter(l => l !== lang)
     .map(l => `<a href="${pathFor(key, l)}" hreflang="${l}">${l.toUpperCase()}</a>`)
     .join(' · ')
+
+  // Statik <body> bloku olan səhifədə h1/təsvir onsuz da görünür — burada
+  // yalnız bölmələrin naviqasiyası qalır (ikinci h1 olmasın)
+  if (withBody) {
+    return `<noscript>
+      <div style="font-family:system-ui,sans-serif;max-width:820px;margin:40px auto;padding:20px;line-height:1.7">
+        <h2>${esc(ui.nav)}</h2>
+        <ul>${links}</ul>
+        <p><em>${esc(ui.js)}</em></p>
+      </div>
+    </noscript>`
+  }
 
   return `<noscript>
       <div style="font-family:system-ui,sans-serif;max-width:820px;margin:40px auto;padding:20px;line-height:1.7">
@@ -162,18 +194,17 @@ function noscriptFor(key, lang) {
  * (Seo.jsx brauzerdə canonical/hreflang/sxem üçün eyni qaydanı tətbiq edir).
  * Həmişə noindex.
  */
-function renderPage(template, key, lang, noindex = false) {
+function renderPage(template, key, lang, noindex = false, param = null) {
   const notFound = key === NOT_FOUND
-  const title = titleFor(key, lang)
-  const desc = descFor(key, lang)
-  const canonical = SITE + pathFor(key, lang)
+  const { title, desc } = notFound ? { title: titleFor(key, lang), desc: descFor(key, lang) } : textsFor(key, lang, param)
+  const canonical = SITE + pathFor(key, lang, param ?? undefined)
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
 
   let html = template
 
   html = notFound
     ? html.replace(/[ \t]*<!--SEO:HEAD-->[ \t]*\r?\n?/, '')
-    : html.replace('<!--SEO:HEAD-->', headFor(key, lang))
+    : html.replace('<!--SEO:HEAD-->', () => headFor(key, lang, param))
   // Səhifə chunk-ı + şrift preload-ları (yuxarıdakı PERFORMANS bölməsi)
   html = html.replace(/[ \t]*<!--PERF:PRELOAD-->/, () => preloadFor(key, lang))
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`)
@@ -206,8 +237,13 @@ function renderPage(template, key, lang, noindex = false) {
   html = replaceMeta(html, 'name', 'twitter:image', ogImageFor(lang))
   html = replaceMeta(html, 'name', 'twitter:image:alt', ogAlt)
 
+  // Statik məzmun (detal və siyahı səhifələri) — <div id="root"> içinə;
+  // React (main.jsx → createRoot) yüklənəndə onu tətbiqlə əvəz edir
+  const body = notFound || noindex ? '' : staticBodyFor(key, lang, param)
+  if (body) html = html.replace('<div id="root"></div>', () => `<div id="root">${body}</div>`)
+
   // Statik noscript blokunu səhifəyə uyğun olanı ilə əvəz et
-  html = html.replace(/<noscript>[\s\S]*?<\/noscript>/i, () => noscriptFor(key, lang))
+  html = html.replace(/<noscript>[\s\S]*?<\/noscript>/i, () => noscriptFor(key, lang, Boolean(body)))
 
   if (noindex || notFound) {
     html = replaceMeta(html, 'name', 'robots', 'noindex, nofollow')
@@ -333,38 +369,76 @@ function writeRoute(html, urlPath) {
   fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8')
 }
 
-function buildSitemap() {
-  const today = new Date().toISOString().slice(0, 10)
-  const urls = []
+// Detal səhifələrinin sitemap parametrləri (siyahı səhifəsindən bir az aşağı)
+const DETAIL_SITEMAP = {
+  quran:  { file: 'sitemap-quran.xml',  priority: 0.8,  changefreq: 'monthly' },
+  names:  { file: 'sitemap-names.xml',  priority: 0.7,  changefreq: 'monthly' },
+  sahaba: { file: 'sitemap-sahaba.xml', priority: 0.7,  changefreq: 'monthly' },
+}
 
-  for (const p of INDEXABLE) {
-    for (const lang of LANGS) {
-      const loc = SITE + pathFor(p.key, lang)
-      const alts = [
-        ...LANGS.map(l => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SITE + pathFor(p.key, l)}"/>`),
-        `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE + pathFor(p.key, DEFAULT_LANG)}"/>`,
-      ].join('\n')
-      urls.push(
-        `  <url>\n` +
-        `    <loc>${loc}</loc>\n` +
-        `    <lastmod>${today}</lastmod>\n` +
-        `    <changefreq>${p.changefreq}</changefreq>\n` +
-        `    <priority>${p.priority.toFixed(2)}</priority>\n` +
-        `${alts}\n` +
-        `  </url>`,
-      )
-    }
-  }
+/** Bir URL girişi (5 dil + x-default hreflang alternativləri ilə). */
+function urlEntry(key, lang, param, today, changefreq, priority) {
+  const p = param ?? undefined
+  const alts = [
+    ...LANGS.map(l => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}"/>`),
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, DEFAULT_LANG, p)}"/>`,
+  ].join('\n')
+  return `  <url>\n` +
+    `    <loc>${SITE + pathFor(key, lang, p)}</loc>\n` +
+    `    <lastmod>${today}</lastmod>\n` +
+    `    <changefreq>${changefreq}</changefreq>\n` +
+    `    <priority>${priority.toFixed(2)}</priority>\n` +
+    `${alts}\n` +
+    `  </url>`
+}
 
+function writeUrlset(file, urls) {
   const xml =
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<!-- Avtomatik yaradılır: scripts/prerender.js. Əl ilə redaktə etmə. -->\n` +
+    `<!-- Avtomatik yaradılır: scripts/prerender.mjs. Əl ilə redaktə etmə. -->\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n` +
     `        xmlns:xhtml="http://www.w3.org/1999/xhtml">\n` +
     urls.join('\n') + `\n</urlset>\n`
+  fs.writeFileSync(path.join(DIST, file), xml, 'utf8')
+}
 
-  fs.writeFileSync(path.join(DIST, 'sitemap.xml'), xml, 'utf8')
-  return urls.length
+/**
+ * sitemap.xml — sitemap İNDEKSİ (robots.txt "Sitemap:" sətri və Search Console
+ * onu göstərir), altında bölmələr üzrə ayrıca fayllar: oxunaqlıdır və hər
+ * bölmənin indekslənməsi Search Console-da ayrıca görünür.
+ */
+function buildSitemap() {
+  const today = new Date().toISOString().slice(0, 10)
+  const files = []
+  let total = 0
+
+  const pages = []
+  for (const p of INDEXABLE) {
+    for (const lang of LANGS) pages.push(urlEntry(p.key, lang, null, today, p.changefreq, p.priority))
+  }
+  writeUrlset('sitemap-pages.xml', pages)
+  files.push('sitemap-pages.xml')
+  total += pages.length
+
+  for (const key of Object.keys(DETAILS)) {
+    const cfg = DETAIL_SITEMAP[key]
+    const urls = []
+    for (const param of detailParams(key)) {
+      for (const lang of LANGS) urls.push(urlEntry(key, lang, param, today, cfg.changefreq, cfg.priority))
+    }
+    writeUrlset(cfg.file, urls)
+    files.push(cfg.file)
+    total += urls.length
+  }
+
+  const index =
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<!-- Avtomatik yaradılır: scripts/prerender.mjs. Əl ilə redaktə etmə. -->\n` +
+    `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    files.map(f => `  <sitemap>\n    <loc>${SITE}/${f}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`).join('\n') +
+    `\n</sitemapindex>\n`
+  fs.writeFileSync(path.join(DIST, 'sitemap.xml'), index, 'utf8')
+  return { total, files }
 }
 
 // ── İcra ─────────────────────────────────────────────
@@ -381,6 +455,12 @@ if (!template.includes('<!--SEO:HEAD-->')) {
   process.exit(1)
 }
 
+if (!hasQuranData()) {
+  console.error('✗ seo-data/quran/ yoxdur — node scripts/fetch-quran-seo.mjs işlət (məlumat repoya commit olunur).')
+  process.exit(1)
+}
+
+const t0 = Date.now()
 let count = 0
 for (const p of PAGES) {
   // Admin marşrutları da HƏR DİLDƏ statik yazılır: server artıq naməlum
@@ -393,6 +473,18 @@ for (const p of PAGES) {
   }
 }
 
+// ── Detal səhifələri: surələr, 99 ad, səhabələr × 5 dil ──
+let detailCount = 0
+for (const key of Object.keys(DETAILS)) {
+  for (const param of detailParams(key)) {
+    for (const lang of LANGS) {
+      writeRoute(renderPage(template, key, lang, false, param), pathFor(key, lang, param))
+      detailCount++
+    }
+  }
+}
+count += detailCount
+
 // ── 404 səhifəsi ──
 // nginx: error_page 404 /404.html · Apache: ErrorDocument 404 /404.html.
 // Tanınmayan ünvan (/nope, /ru/nope) HTTP 404 statusu ilə bu SPA qabığını
@@ -401,8 +493,9 @@ for (const p of PAGES) {
 fs.writeFileSync(path.join(DIST, '404.html'), renderPage(template, NOT_FOUND, DEFAULT_LANG), 'utf8')
 count++
 
-const sitemapUrls = buildSitemap()
-console.log(`✓ Prerender: ${count} statik HTML (404.html daxil), sitemap.xml-də ${sitemapUrls} URL`)
+const sitemap = buildSitemap()
+console.log(`✓ Prerender: ${count} statik HTML (404.html daxil; ${detailCount} detal səhifəsi), ${((Date.now() - t0) / 1000).toFixed(1)} san.`)
+console.log(`✓ Sitemap: sitemap.xml (indeks) → ${sitemap.files.join(', ')} — cəmi ${sitemap.total} URL`)
 
 // ── Əvvəlcədən sıxılma (nginx gzip_static) ──
 // NƏ: dist-dəki hər mətn faylının yanına maksimum səviyyəli (9) .gz surəti.

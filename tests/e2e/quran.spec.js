@@ -2,7 +2,8 @@
 // Quran oxuyucusu: "Ayəyə keç" və dəqiq yerdən "Oxumağa davam et".
 // Fikstür hər surədə 7 ayə qaytarır — burada Bəqərə üçün 286 ayəlik
 // cavab veririk (uzun surədə sürüşmə və yoxlama real olsun).
-// Ünvan formatı: /quran?s=2&a=90; yaddaş açarı: localStorage.quran_bookmark
+// Ünvan formatı: /quran/2-al-baqara?a=90 (köhnə /quran?s=2&a=90 ora çevrilir);
+// yaddaş açarı: localStorage.quran_bookmark
 // ═══════════════════════════════════════════════════════
 import { test, expect, expectCleanConsole, settle } from './fixtures.js'
 
@@ -54,7 +55,7 @@ async function expectAyahOnTop(page, n) {
 }
 
 test('ayəyə keçid: 90 yazıb Enter → həmin ayə görünür, ünvanda a=90', async ({ page, consoleProblems }) => {
-  await page.goto('/quran?s=2')
+  await page.goto('/quran/2-al-baqara')
   await settle(page)
   await expect(page.locator('#ayah-1')).toBeVisible()
 
@@ -65,7 +66,7 @@ test('ayəyə keçid: 90 yazıb Enter → həmin ayə görünür, ünvanda a=90'
   await field.press('Enter')
 
   await expectAyahOnTop(page, 90)
-  await expect(page).toHaveURL(/[?&]s=2&a=90\b/)
+  await expect(page).toHaveURL(/\/quran\/2-al-baqara\?a=90$/)
   // Vurğu (qızılı halqa) yalnız hədəf ayədədir
   await expect(page.locator('#ayah-90.is-target')).toHaveCount(1)
   // Yer yadda qaldı
@@ -75,7 +76,7 @@ test('ayəyə keçid: 90 yazıb Enter → həmin ayə görünür, ünvanda a=90'
 })
 
 test('ayəyə keçid: hədddən kənar rəqəm qəbul edilmir, siyahıdan seçmək işləyir', async ({ page, consoleProblems }) => {
-  await page.goto('/quran?s=2')
+  await page.goto('/quran/2-al-baqara')
   await settle(page)
   await page.getByRole('button', { name: 'Ayəyə keç' }).click()
   const field = page.getByRole('spinbutton', { name: 'Ayənin nömrəsi' })
@@ -93,7 +94,7 @@ test('ayəyə keçid: hədddən kənar rəqəm qəbul edilmir, siyahıdan seçm�
 })
 
 test('G qısayolu sahəni fokuslayır, Esc paneli bağlayır', async ({ page }) => {
-  await page.goto('/quran?s=2')
+  await page.goto('/quran/2-al-baqara')
   await settle(page)
   await expect(page.locator('#ayah-1')).toBeVisible()
   await page.keyboard.press('g')
@@ -103,9 +104,10 @@ test('G qısayolu sahəni fokuslayır, Esc paneli bağlayır', async ({ page }) 
   await expect(page.getByRole('button', { name: 'Ayəyə keç' })).toBeFocused()
 })
 
-test('paylaşılan link /quran?s=2&a=120 birbaşa həmin ayəni açır', async ({ page, consoleProblems }) => {
+test('paylaşılan köhnə link /quran?s=2&a=120 yeni ünvana keçir və həmin ayəni açır', async ({ page, consoleProblems }) => {
   await page.goto('/quran?s=2&a=120')
   await settle(page)
+  await expect(page).toHaveURL(/\/quran\/2-al-baqara\?a=120$/)
   await expectAyahOnTop(page, 120)
   await expect(page.locator('h1')).toHaveCount(1)
   expectCleanConsole(consoleProblems)
@@ -113,21 +115,21 @@ test('paylaşılan link /quran?s=2&a=120 birbaşa həmin ayəni açır', async (
 
 test('dil dəyişəndə oxuyucu açıq qalır və oxunan ayəyə qayıdır', async ({ page, consoleProblems, isMobile }) => {
   test.skip(isMobile, 'dil menyusu telefonda çəkmə menyunun içindədir — kompüterdə yoxlanır')
-  await page.goto('/quran?s=2&a=60')
+  await page.goto('/quran/2-al-baqara?a=60')
   await settle(page)
   await expectAyahOnTop(page, 60)
   await page.getByRole('button', { name: 'Dili dəyiş' }).click()
   await page.getByRole('menuitemradio', { name: 'English' }).or(page.getByRole('menuitem', { name: 'English' })).or(page.getByRole('button', { name: 'English' })).first().click()
-  await expect(page).toHaveURL(/\/en\/quran\?s=2&a=60$/)
+  await expect(page).toHaveURL(/\/en\/quran\/2-al-baqara\?a=60$/)
   await expectAyahOnTop(page, 60)
   expectCleanConsole(consoleProblems)
 })
 
 test('ayə nömrəsinə klik ünvanı yeniləyir', async ({ page }) => {
-  await page.goto('/quran?s=2')
+  await page.goto('/quran/2-al-baqara')
   await settle(page)
   await page.locator('#ayah-3 .ayah-num').click()
-  await expect(page).toHaveURL(/[?&]s=2&a=3\b/)
+  await expect(page).toHaveURL(/\/quran\/2-al-baqara\?a=3$/)
 })
 
 test('dəqiq yerdən davam: yaddaşdakı 50-ci ayə → reload → "Oxumağa davam et" → 50-ci ayə', async ({ page, consoleProblems }) => {
@@ -142,7 +144,7 @@ test('dəqiq yerdən davam: yaddaşdakı 50-ci ayə → reload → "Oxumağa dav
   await cont.click()
 
   await expectAyahOnTop(page, 50)
-  await expect(page).toHaveURL(/[?&]s=2&a=50\b/)
+  await expect(page).toHaveURL(/\/quran\/2-al-baqara\?a=50$/)
   expectCleanConsole(consoleProblems)
 })
 
@@ -157,7 +159,7 @@ test('köhnə əlfəcin (ayəsiz) surəni əvvəldən açır', async ({ page }) 
   await expect(cont).not.toContainText('ayə')
   await cont.click()
   await expect(page.locator('#ayah-1')).toBeInViewport()
-  await expect(page).toHaveURL(/[?&]s=2$/)
+  await expect(page).toHaveURL(/\/quran\/2-al-baqara$/)
 })
 
 test('oxuduqca yer yadda qalır, Geri → siyahı, davam et həmin yerə qaytarır', async ({ page, consoleProblems }) => {
@@ -165,7 +167,7 @@ test('oxuduqca yer yadda qalır, Geri → siyahı, davam et həmin yerə qaytar�
   await settle(page)
   // Siyahıdan aç (tarixçə girişi yaranır — Geri siyahıya qaytarmalıdır)
   await page.locator('.surah-card').nth(1).click()
-  await expect(page).toHaveURL(/[?&]s=2$/)
+  await expect(page).toHaveURL(/\/quran\/2-al-baqara$/)
   await expect(page.locator('#ayah-1')).toBeVisible()
 
   // İstifadəçi kimi aşağı sürüşdür (təkərlə)

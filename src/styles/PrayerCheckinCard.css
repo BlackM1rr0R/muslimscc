@@ -1,0 +1,31 @@
+/* "Qıldınızmı?" kartı (/prayer?checkin=…) — tokenlər və .ui-* (DESIGN.md) */
+.pc-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  margin-bottom: var(--space-5);
+  border-color: var(--brand-line);
+  background: var(--brand-soft);
+}
+.pc-q {
+  margin: 4px 0 0;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+.pc-date { margin: 2px 0 0; color: var(--text-tertiary); font-size: 13px; }
+.pc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: var(--space-3); }
+.pc-saved { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-weight: 500; }
+.pc-saved.is-yes { color: var(--brand); }
+.pc-link { margin-inline-start: auto; }
+.pc-close { margin: -4px -4px 0 0; }
+@media (max-width: 767.98px) {
+  .pc-card { grid-template-columns: minmax(0, 1fr) auto; }
+  .pc-ic { display: none; }
+  .pc-actions .ui-btn--primary, .pc-actions .ui-btn--secondary { flex: 1 1 0; justify-content: center; }
+  .pc-link { margin-inline-start: 0; }
+}

@@ -42,7 +42,7 @@ export function LangProvider({ children }) {
   // Dil artıq URL-dən gəlir (/ru/quran → 'ru'), localStorage-dan yox.
   // Səbəb: Google hər dil variantını ayrıca URL kimi indeksləməlidir —
   // localStorage-a bağlı dil bütün dilləri eyni URL-də gizlədirdi.
-  const { lang, key } = parsePath(location.pathname)
+  const { lang, key, param } = parsePath(location.pathname)
 
   // Yaddaş bağlı ola bilər (brauzer sayt məlumatını bloklayır) — o halda
   // localStorage xəta atır; kök provayder çökməsin deyə hər müraciət qorunur.
@@ -52,11 +52,11 @@ export function LangProvider({ children }) {
   // MutationObserver-in görməsi üçün cari tema (bax aşağıda)
   const darkRef = useRef(dark)
 
-  /** Dili dəyiş = eyni səhifənin başqa dildəki URL-inə keç. */
+  /** Dili dəyiş = eyni səhifənin (detal səhifəsində — eyni surənin/adın/səhabənin) başqa dildəki URL-inə keç. */
   const setLang = (l) => {
     if (!LANGS.includes(l)) return
     try { localStorage.setItem('muslim_cc_lang', l) } catch { /* yaddaş bağlıdır */ } // növbəti gəlişdə tərcih kimi
-    navigate(pathFor(key, l))
+    navigate(pathFor(key, l, param))
     // Push açıqdırsa, serverdəki abunəlik də yeni dilə keçsin — azan
     // bildirişi istifadəçinin indiki dilində gəlsin. Token yoxdursa
     // Firebase modulu ümumiyyətlə yüklənmir.
@@ -151,10 +151,10 @@ export function useStoredLangRedirect() {
     let saved = null
     try { saved = localStorage.getItem('muslim_cc_lang') } catch { /* yaddaş bağlıdır */ }
     if (!saved || saved === DEFAULT_LANG || !LANGS.includes(saved)) return
-    const { lang, key } = parsePath(location.pathname)
+    const { lang, key, param } = parsePath(location.pathname)
     if (lang !== DEFAULT_LANG) return
-    if (location.pathname !== pathFor(key, DEFAULT_LANG)) return
-    navigate(pathFor(key, saved), { replace: true })
+    if (location.pathname !== pathFor(key, DEFAULT_LANG, param)) return
+    navigate(pathFor(key, saved, param), { replace: true })
     // Yalnız bir dəfə — sonrakı naviqasiyalarda URL hakimdir
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
