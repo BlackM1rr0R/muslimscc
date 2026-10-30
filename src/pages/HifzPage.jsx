@@ -4,6 +4,7 @@ import { haptic } from '../hooks/useHaptic'
 import { getSurahLocal } from '../data/surahNamesAz'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
+import { AYAH_WORDS, ayahCountText } from '../utils/quranText'
 import '../styles/HifzPage.css'
 
 // ── localStorage helpers ──
@@ -37,6 +38,9 @@ const LABELS = {
 }
 
 // status: 0 = not started, 1 = in progress, 2 = memorized
+// Ayə sayı rəqəmə uyğun formada ("123 аята", "7 آيات"); ingiliscədə bu səhifə "ayahs" deyir
+const HIFZ_AYAH_WORDS = { ...AYAH_WORDS, en: { one: 'ayah', few: 'ayahs', many: 'ayahs', other: 'ayahs' } }
+
 const STATUS_LABELS = {
   az: ['Başlanmayıb','Davam edir','Əzbərləmişəm'],
   en: ['Not Started','In Progress','Memorized'],
@@ -252,12 +256,12 @@ export default function HifzPage({ setPage }) {
             <div className="hifz-stat-card memorized">
               <span className="hifz-stat-num ui-num">{stats.memorized}</span>
               <span className="hifz-stat-label">{t.memorized}</span>
-              <span className="hifz-stat-ayahs">{stats.memAyahs} {t.ayahCount}</span>
+              <span className="hifz-stat-ayahs">{ayahCountText(stats.memAyahs, lang, HIFZ_AYAH_WORDS)}</span>
             </div>
             <div className="hifz-stat-card in-progress">
               <span className="hifz-stat-num ui-num">{stats.inProg}</span>
               <span className="hifz-stat-label">{t.inProgress}</span>
-              <span className="hifz-stat-ayahs">{stats.progAyahs} {t.ayahCount}</span>
+              <span className="hifz-stat-ayahs">{ayahCountText(stats.progAyahs, lang, HIFZ_AYAH_WORDS)}</span>
             </div>
             <div className="hifz-stat-card not-started">
               <span className="hifz-stat-num ui-num">{stats.notStarted}</span>
@@ -298,13 +302,16 @@ export default function HifzPage({ setPage }) {
               return (
                 <button type="button" key={s.num} className={`hifz-card ${statusClass(st)}${bumped}`}
                   onClick={() => cycleStatus(s.num)}
-                  title={sl[st]} aria-label={`${s.num}. ${lang === 'ar' ? s.name : localName(s)} — ${sl[st]}`}>
+                  title={sl[st]}>
+                  {/* Əlçatan ad kartın görünən mətnindən qurulur (əvvəl aria-label
+                      görünən mətni — ayə sayı, cüz, ərəb adı — əhatə etmirdi:
+                      WCAG 2.5.3); status ekran oxuyucusu üçün sonda */}
                   <span className="hifz-card-num ui-num">{s.num}</span>
                   <span className={`hifz-card-body${lang === 'ar' ? ' is-ar' : ''}`}>
                     {/* Ərəbcədə latın adı artıqdır — ərəb adı başlıqdır */}
                     {lang !== 'ar' && <span className="hifz-card-en">{localName(s)}</span>}
                     <span className="hifz-card-meta">
-                      <span>{s.ayahs} {t.ayahCount}</span>
+                      <span>{ayahCountText(s.ayahs, lang, HIFZ_AYAH_WORDS)}</span>
                       <span>{t.juz} {s.juz}</span>
                     </span>
                     <span className="hifz-card-arabic" lang="ar">{s.name}</span>
@@ -313,6 +320,7 @@ export default function HifzPage({ setPage }) {
                   <span className={`m-check hifz-check${st === 2 ? ' is-checked' : st === 1 ? ' is-partial' : ''}${bumped && st === 2 ? ' is-celebrate' : ''}`} aria-hidden="true">
                     <svg viewBox="0 0 24 24"><path d="M6.5 12.5l3.8 3.8L17.5 8.5"/></svg>
                   </span>
+                  <span className="ui-sr-only"> — {sl[st]}</span>
                 </button>
               )
             })}

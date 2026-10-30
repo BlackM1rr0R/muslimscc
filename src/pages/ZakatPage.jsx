@@ -7,12 +7,26 @@ import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 
-// Təxmini qiymətlər (USD / qram). Nisab eyni qızıl qiyməti ilə hesablanır —
-// əvvəl nisab $50/q, qızıl varlığı isə $75/q ilə sayılırdı (85q qızıl nisabdan
-// xeyli yuxarı çıxırdı).
+// ═══ ZƏKAT HESABI — Sələf alimlərinin fətvalarına uyğun ═══
+// • Zəkat nisaba çatan və üzərindən bir hicri il (hövl) keçən mala düşür. Aylıq maaş
+//   (və icarə gəliri) ×12 edilib zəkat malına qatılmır — maaşın özü zəkat malı deyil,
+//   ondan yığılıb əldə bir il qalan hissə sayılır (Daimi Komitə, Fətvalar 9/280 —
+//   https://islamqa.info/en/answers/26113). Əvvəlki "maaş × 12" və "icarə × 12" sahələri çıxarıldı.
+// • Kağız pulun nisabı: 85 q qızıl VƏ YA 595 q gümüşün dəyəri; kasıblar üçün hansı daha
+//   faydalıdırsa o götürülür (Daimi Komitə, Fətvalar 9/254, 9/257 —
+//   https://islamqa.info/en/answers/2795). Bu gün gümüş nisabı aşağıdır — standart seçim gümüşdür,
+//   istifadəçi qızılı seçə bilər.
+// • Fitrə pulla deyil, ərzaqla verilir: hər nəfərə bir sa' (≈3 kq) əsas qida
+//   (Buxari 1503, 1506 — https://islamqa.info/en/answers/1396; yerli əsas qida —
+//   https://islamqa.info/en/answers/145564, İbn Useymin, Məcmu Fətava 18/282).
+//
+// Təxmini qiymətlər (USD / qram) — istifadəçi bugünkü bazar qiymətini özü yaza bilər.
 const GOLD_USD_PER_G   = 75
 const SILVER_USD_PER_G = 0.90
-const NISAB_USD        = 85 * GOLD_USD_PER_G   // 85q qızıl
+const NISAB_GOLD_G   = 85
+const NISAB_SILVER_G = 595
+// Bir sa' ≈ 3 kq (https://islamqa.info/en/answers/1396)
+const SAA_KG = 3
 
 // Bayraq emojiləri çıxarıldı: Windows-da iki hərf kimi görünür ("AZ AZN ₼")
 const CURRENCIES = [
@@ -29,22 +43,32 @@ const NUM_LOCALES = { az: 'az-AZ', en: 'en-US', ru: 'ru-RU', tr: 'tr-TR', ar: 'a
 const FALLBACK = { USD:1, AZN:1.70, EUR:0.92, RUB:91, TRY:32, SAR:3.75, GBP:0.79, AED:3.67 }
 
 const L = {
-  salaryLabel:  { az:'Aylıq maaş',           ru:'Зарплата (в месяц)',   ar:'الراتب الشهري',      tr:'Aylık Maaş',          en:'Monthly Salary'      },
   savingsLabel: { az:'Yığım / bank hesabı',   ru:'Сбережения / Банк',   ar:'المدخرات / البنك',   tr:'Birikim / Banka',      en:'Savings / Bank'      },
   otherLabel:   { az:'Digər pul varlıqları',  ru:'Прочие активы',       ar:'أصول أخرى',          tr:'Diğer Varlıklar',      en:'Other Assets'        },
   goldLabel:    { az:'Qızıl (qram)',          ru:'Золото (граммы)',      ar:'الذهب (غرام)',       tr:'Altın (gram)',          en:'Gold (grams)'        },
   silverLabel:  { az:'Gümüş (qram)',          ru:'Серебро (граммы)',     ar:'الفضة (غرام)',       tr:'Gümüş (gram)',          en:'Silver (grams)'      },
-  stocksLabel:  { az:'Səhmlər / investisiya', ru:'Акции / Инвестиции',  ar:'أسهم / استثمارات',   tr:'Hisse / Yatırım',       en:'Stocks / Investments'},
-  rentLabel:    { az:'İcarə gəliri (aylıq)',  ru:'Доход от аренды (мес.)', ar:'دخل الإيجار (شهري)', tr:'Kira Geliri (aylık)', en:'Rental Income (monthly)' },
+  stocksLabel:  { az:'Ticarət malları / səhmlər', ru:'Товары для торговли / акции', ar:'عروض التجارة / الأسهم', tr:'Ticaret malları / hisseler', en:'Trade goods / shares' },
+  stocksHint:   { az:'Satış üçün saxlanılan malın bugünkü bazar dəyəri', ru:'Текущая рыночная стоимость товара, хранимого для продажи', ar:'القيمة السوقية الحالية لما يُعدّ للبيع', tr:'Satış için tutulan malın bugünkü piyasa değeri', en:'Current market value of goods held for sale' },
+  hawlTitle:    { az:'Zəkat hansı mala düşür?', ru:'С какого имущества выплачивается закят?', ar:'على أي مال تجب الزكاة؟', tr:'Zekât hangi mala düşer?', en:'What is zakat due on?' },
+  hawlNote:     { az:'Zəkat nisaba çatan və üzərindən bir hicri il (hövl) keçən pul, qızıl, gümüş və ticarət malına düşür. Maaşın və icarə gəlirinin özü zəkat malı deyil: onlardan yığılıb əlinizdə bir il qalan hissəni "Yığım" sahəsinə yazın.', ru:'Закят выплачивается с денег, золота, серебра и товаров для торговли, достигших нисаба, если над ними прошёл один лунный год (хауль). Зарплата и арендный доход сами по себе не являются имуществом для закята: впишите в поле «Сбережения» ту их часть, которая накоплена и пролежала у вас год.', ar:'تجب الزكاة في النقود والذهب والفضة وعروض التجارة إذا بلغت النصاب وحال عليها الحول الهجري. والراتب ودخل الإيجار ليسا مالًا زكويًا بذاتهما: اكتب في خانة «المدخرات» ما ادّخرته منهما وبقي عندك حولًا.', tr:'Zekât, nisaba ulaşan ve üzerinden bir hicri yıl (havl) geçen para, altın, gümüş ve ticaret malına düşer. Maaş ve kira gelirinin kendisi zekât malı değildir: bunlardan biriktirip elinizde bir yıl kalan kısmı "Birikim" alanına yazın.', en:'Zakat is due on money, gold, silver and trade goods that reach the nisab and have been held for one lunar year (hawl). A salary or rental income is not itself zakatable: enter the part you have saved and held for a year under "Savings".' },
+  hawlSrc:      { az:'Daimi Komitə fətvaları, 9/280', ru:'Фетвы Постоянного комитета, 9/280', ar:'فتاوى اللجنة الدائمة، ٩/٢٨٠', tr:'Daimi Komite fetvaları, 9/280', en:'Fatawa al-Lajnah al-Daimah, 9/280' },
+  nisabBasis:   { az:'Nisab nəyə görə hesablansın?', ru:'По чему считать нисаб?', ar:'على أي أساس يُحسب النصاب؟', tr:'Nisap neye göre hesaplansın?', en:'Calculate the nisab by' },
+  basisSilver:  { az:'Gümüş — 595 q', ru:'Серебро — 595 г', ar:'الفضة — ٥٩٥ غ', tr:'Gümüş — 595 g', en:'Silver — 595 g' },
+  basisGold:    { az:'Qızıl — 85 q', ru:'Золото — 85 г', ar:'الذهب — ٨٥ غ', tr:'Altın — 85 g', en:'Gold — 85 g' },
+  nisabExplain: { az:'Kağız pulun nisabı 85 q qızılın və ya 595 q gümüşün dəyəridir. Daimi Komitə hansı kasıblar üçün daha faydalıdırsa onu əsas götürməyi bildirib; bu gün bu, adətən gümüşdür.', ru:'Нисаб бумажных денег — стоимость 85 г золота или 595 г серебра. Постоянный комитет указал брать то, что полезнее для бедных; сегодня это обычно серебро.', ar:'نصاب الأوراق النقدية قيمة ٨٥ غرامًا من الذهب أو ٥٩٥ غرامًا من الفضة، وقد أفتت اللجنة الدائمة بالأخذ بالأنفع للفقراء، وهو اليوم غالبًا الفضة.', tr:'Kâğıt paranın nisabı 85 g altının veya 595 g gümüşün değeridir. Daimi Komite fakirler için hangisi daha faydalıysa onun esas alınmasını bildirmiştir; bugün bu genellikle gümüştür.', en:'The nisab for paper money is the value of 85 g of gold or 595 g of silver. The Permanent Committee advised using whichever is more beneficial to the poor; today that is usually silver.' },
+  nisabSrc:     { az:'Daimi Komitə fətvaları, 9/254, 9/257', ru:'Фетвы Постоянного комитета, 9/254, 9/257', ar:'فتاوى اللجنة الدائمة، ٩/٢٥٤، ٩/٢٥٧', tr:'Daimi Komite fetvaları, 9/254, 9/257', en:'Fatawa al-Lajnah al-Daimah, 9/254, 9/257' },
+  priceHint:    { az:'Bugünkü bazar qiymətini yaza bilərsiniz', ru:'Можно указать сегодняшнюю рыночную цену', ar:'يمكنك إدخال سعر السوق اليوم', tr:'Bugünkü piyasa fiyatını yazabilirsiniz', en:'You can enter today’s market price' },
   debtLabel:    { az:'Borclar (çıxılacaq)',   ru:'Долги (вычитаются)',  ar:'الديون (تخصم)',      tr:'Borçlar (düşülecek)',    en:'Debts (deducted)'    },
   fitrTitle:    { az:'Fitrə zəkatı',          ru:'Закят аль-Фитр',      ar:'زكاة الفطر',         tr:'Fıtır Sadakası',        en:'Zakat al-Fitr'       },
-  fitrDesc:     { az:'Ramazan sonunda hər şəxs üçün ödənir', ru:'Выплачивается в конце Рамадана за каждого', ar:'تُدفع في نهاية رمضان عن كل فرد', tr:'Ramazan sonunda her birey için ödenir', en:'Paid at the end of Ramadan per person' },
+  fitrDesc:     { az:"Bayram namazından əvvəl hər ailə üzvü üçün bir sa' (≈3 kq) əsas qida verilir", ru:"До праздничной молитвы за каждого члена семьи выдаётся один са' (≈3 кг) основной еды", ar:'تُخرج قبل صلاة العيد صاعًا (≈٣ كغ) من قوت البلد عن كل فرد', tr:"Bayram namazından önce her aile üyesi için bir sâ' (≈3 kg) temel gıda verilir", en:"One saa' (≈3 kg) of staple food per family member, given before the Eid prayer" },
   fitrPeople:   { az:'Ailə üzvləri sayı',     ru:'Кол-во членов семьи', ar:'عدد أفراد الأسرة',   tr:'Aile üyesi sayısı',     en:'Number of family members' },
-  fitrAmount:   { az:'Fitrə məbləği (1 nəfər)', ru:'Сумма фитра (1 чел.)', ar:'مبلغ الفطرة (شخص)', tr:'Fıtır miktarı (1 kişi)', en:'Fitr amount (per person)' },
-  fitrTotal:    { az:'Ümumi fitrə',            ru:'Общий фитр',           ar:'إجمالي الفطرة',      tr:'Toplam fıtır',           en:'Total fitr'          },
+  fitrAmount:   { az:'Hər nəfərə', ru:'На одного человека', ar:'عن كل فرد', tr:'Kişi başına', en:'Per person' },
+  fitrTotal:    { az:'Cəmi əsas qida', ru:'Всего основной еды', ar:'إجمالي القوت', tr:'Toplam temel gıda', en:'Total staple food' },
+  kg:           { az:'kq', ru:'кг', ar:'كغ', tr:'kg', en:'kg' },
+  fitrNote:     { az:'Sünnəyə görə fitrə pulla deyil, ərzaqla (düyü, un, xurma, buğda və s. — yerli əsas qida) verilir.', ru:'По Сунне закят аль-фитр выдаётся не деньгами, а едой (рис, мука, финики, пшеница и т. п. — местная основная пища).', ar:'السنة إخراج زكاة الفطر طعامًا لا نقودًا: من قوت البلد كالأرز والدقيق والتمر والقمح.', tr:'Sünnete göre fıtır sadakası parayla değil, gıdayla (pirinç, un, hurma, buğday vb. — yerel temel gıda) verilir.', en:'According to the Sunnah, zakat al-fitr is given as food, not money (rice, flour, dates, wheat etc. — the local staple).' },
+  sourceLabel:  { az:'Mənbə', ru:'Источник', ar:'المصدر', tr:'Kaynak', en:'Source' },
   goldPrice:    { az:'Qızıl qiyməti / qram',   ru:'Цена золота / грамм', ar:'سعر الذهب / غرام',  tr:'Altın fiyatı / gram',    en:'Gold price / gram'   },
   silverPrice:  { az:'Gümüş qiyməti / qram',   ru:'Цена серебра / грамм', ar:'سعر الفضة / غرام', tr:'Gümüş fiyatı / gram',   en:'Silver price / gram'  },
-  annualIncome: { az:'İllik gəlir',           ru:'Годовой доход',        ar:'الدخل السنوي',       tr:'Yıllık Gelir',         en:'Annual Income'       },
   totalLabel:   { az:'Zəkat hesabı üçün cəm', ru:'Итого для расчёта',  ar:'المجموع للحساب',     tr:'Hesap Toplamı',        en:'Total for Zakat'     },
   nisabLabel:   { az:'Nisab həddi',            ru:'Порог Нисаба',         ar:'حد النصاب',          tr:'Nisap Sınırı',         en:'Nisab Threshold'     },
   aboveNisab:   { az:'Nisab üzərindədir',     ru:'Выше нисаба',          ar:'يبلغ النصاب',        tr:'Nisap üzerinde',       en:'Above Nisab'         },
@@ -55,10 +79,8 @@ const L = {
   rateLabel:    { az:'1 USD =',               ru:'1 USD =',               ar:'1 دولار =',            tr:'1 USD =',               en:'1 USD ='             },
   rateLoading:  { az:'Yüklənir...',           ru:'Загрузка...',           ar:'تحميل...',           tr:'Yükleniyor...',         en:'Loading...'          },
   assetsTitle:  { az:'Varlıqlarınız',         ru:'Ваши активы',           ar:'أصولك',              tr:'Varlıklarınız',         en:'Your Assets'         },
-  monthlyX12:   { az:'× 12 ay',              ru:'× 12 мес.',             ar:'× ١٢ شهراً',         tr:'× 12 ay',              en:'× 12 months'         },
   resultTitle:  { az:'Zəkat nəticəsi',        ru:'Расчёт закята',         ar:'نتيجة الزكاة',       tr:'Zekât Sonucu',          en:'Zakat Result'        },
-  perYear:      { az:'/ il',                  ru:'/ год',                  ar:'/ سنة',              tr:'/ yıl',                 en:'/ year'              },
-  perMonth:     { az:'/ ay',                  ru:'/ мес.',                 ar:'/ شهر',              tr:'/ ay',                  en:'/ month'             },
+  perYear:      { az:'/ hicri il',            ru:'/ лунный год',           ar:'/ حول',              tr:'/ hicri yıl',           en:'/ lunar year'        },
   reset:        { az:'Sıfırla',               ru:'Сброс',                  ar:'إعادة',              tr:'Sıfırla',               en:'Reset'               },
   priceNote:    { az:'Qiymətlər təxminidir: qızıl ≈ {g}/q, gümüş ≈ {s}/q', ru:'Цены приблизительные: золото ≈ {g}/г, серебро ≈ {s}/г', ar:'الأسعار تقريبية: الذهب ≈ {g}/غ، الفضة ≈ {s}/غ', tr:'Fiyatlar yaklaşıktır: altın ≈ {g}/g, gümüş ≈ {s}/g', en:'Prices are approximate: gold ≈ {g}/g, silver ≈ {s}/g' },
 }
@@ -165,7 +187,7 @@ function Money({ value, symbol, fmt, className = '' }) {
 // ── Varlıq sahəsi (dizayn v2): ikon + etiket → valyuta önəkli sahə → izah.
 // Bütün blok <label>-dir: ikona və ya yazıya toxunmaq da sahəni fokuslayır.
 // tone — ikon kafelinin variantı (ui-icon-tile--accent | --neutral | susma brend)
-function ZakatField({ icon, tone = '', label, prefix, value, onChange, placeholder = '0.00', hint = null, className = '' }) {
+function ZakatField({ icon, tone = '', label, prefix, value, onChange, placeholder = '0', hint = null, className = '' }) {
   return (
     <label className={`ui-field zakat-field${className ? ' ' + className : ''}`}>
       <span className="zakat-field-head">
@@ -192,17 +214,18 @@ export default function ZakatPage({ setPage }) {
   const [currency,    setCurrency]    = useState('AZN')
   const [rates,       setRates]       = useState(FALLBACK)
   const [rateLoading, setRateLoading] = useState(true)
-  const [salary,      setSalary]      = useState('')
   const [savings,     setSavings]     = useState('')
   const [other,       setOther]       = useState('')
   const [gold,        setGold]        = useState('')
   const [silver,      setSilver]      = useState('')
   const [stocks,      setStocks]      = useState('')
-  const [rent,        setRent]        = useState('')
   const [debt,        setDebt]        = useState('')
   const [fitrPeople,  setFitrPeople]  = useState('1')
-  const goldPrice   = GOLD_USD_PER_G
-  const silverPrice = SILVER_USD_PER_G
+  // Nisab əsası: 'silver' (kasıblar üçün daha faydalı — standart) və ya 'gold'
+  const [nisabBasis,  setNisabBasis]  = useState('silver')
+  // İstifadəçinin yazdığı qiymət (seçilmiş valyutada, 1 qram); boşdursa təxmini qiymət
+  const [goldPriceIn,   setGoldPriceIn]   = useState('')
+  const [silverPriceIn, setSilverPriceIn] = useState('')
   const ayah = useAyah('2:43', lang)
   const dueRef = useRef(null)
 
@@ -237,49 +260,51 @@ export default function ZakatPage({ setPage }) {
 
   const cur      = CURRENCIES.find(c => c.code === currency) || CURRENCIES[0]
   const rate     = rates[currency] || 1
-  const nisabLoc = NISAB_USD * rate  // nisab seçilmiş valyutada
 
   // Mənfi, sonsuz (1e999) və ya boş dəyər hesabı pozmasın: yalnız sonlu, ≥ 0 ədəd.
   // Əvvəl "-5000" yığımı cəmdən çıxırdı, mənfi borc isə cəmə əlavə olunurdu.
   const n = v => { const x = parseFloat(v); return Number.isFinite(x) && x > 0 ? x : 0 }
 
-  const salaryMonth  = n(salary)
-  const salaryAnnual = salaryMonth * 12
+  // 1 qramın qiyməti seçilmiş valyutada (istifadəçi yazıbsa — onun dəyəri)
+  const goldPrice   = n(goldPriceIn)   || GOLD_USD_PER_G * rate
+  const silverPrice = n(silverPriceIn) || SILVER_USD_PER_G * rate
+  const nisabLoc = nisabBasis === 'gold' ? NISAB_GOLD_G * goldPrice : NISAB_SILVER_G * silverPrice
+
+  // Yalnız bir il saxlanılan varlıqlar (maaş/icarə ×12 YOXDUR — bax faylın başı)
   const savingsVal   = n(savings)
   const otherVal     = n(other)
-  const goldVal      = n(gold) * goldPrice * rate
-  const silverVal    = n(silver) * silverPrice * rate
+  const goldVal      = n(gold) * goldPrice
+  const silverVal    = n(silver) * silverPrice
   const stocksVal    = n(stocks)
-  const rentVal      = n(rent) * 12
   const debtVal      = n(debt)
 
-  const totalAssets = salaryAnnual + savingsVal + otherVal + goldVal + silverVal + stocksVal + rentVal
+  const totalAssets = savingsVal + otherVal + goldVal + silverVal + stocksVal
   const total       = Math.max(totalAssets - debtVal, 0)
   const aboveNisab  = total >= nisabLoc
   const zakatYear   = aboveNisab ? total * 0.025 : 0
-  const zakatMonth  = zakatYear / 12
 
-  // Fitrə
-  const FITR_USD    = 12 // ~$12 per person
-  const fitrPerPerson = FITR_USD * rate
-  const fitrTotal   = fitrPerPerson * Math.floor(n(fitrPeople))   // 2.5 nəfər olmur
+  // Fitrə — ərzaqla: hər nəfərə bir sa' (≈3 kq) əsas qida
+  const fitrCount   = Math.floor(n(fitrPeople))   // 2.5 nəfər olmur
+  const fitrTotalKg = SAA_KG * fitrCount
+  const fmtKg = v => `${v.toLocaleString(NUM_LOCALES[lang] || 'en-US', { maximumFractionDigits: 1 })} ${s('kg', l)}`
 
   // Rəqəm formatı saytın dilinə görədir (əvvəl brauzerin dili idi: ru səhifədə "1,234.56",
   // sıfır isə həmişə "0.00" — eyni kartda iki fərqli format). Ərəbcədə latın rəqəmləri.
   const fmt = v => (Number.isFinite(v) ? v : 0).toLocaleString(NUM_LOCALES[lang] || 'en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })
   const pct  = Math.min((total / nisabLoc) * 100, 100)
+  // Pul sahələrinin yer tutucusu da saytın dilinə görə ("0,00" ru/az/tr-də;
+  // əvvəl hər dildə "0.00" idi, nəticə kartlarında isə "0,00")
+  const moneyPh = fmt(0)
 
-  const reset = () => { setSalary(''); setSavings(''); setOther(''); setGold(''); setSilver(''); setStocks(''); setRent(''); setDebt(''); setFitrPeople('1') }
+  const reset = () => { setSavings(''); setOther(''); setGold(''); setSilver(''); setStocks(''); setDebt(''); setFitrPeople('1'); setGoldPriceIn(''); setSilverPriceIn('') }
 
   // Cəm cədvəlinin sətirləri (sıfır olan isteğe bağlı sətirlər gizlənir)
   const rows = [
-    { k: 'salary',  icon: 'user',      label: s('salaryLabel',l),  val: salaryAnnual, sub: `${cur.symbol}${fmt(salaryMonth)} × 12`, show: true },
     { k: 'savings', icon: 'shield',    label: s('savingsLabel',l), val: savingsVal, show: true },
     { k: 'other',   icon: 'list',      label: s('otherLabel',l),   val: otherVal, show: true },
     { k: 'gold',    icon: 'zakat',     label: s('goldLabel',l),    val: goldVal, show: n(gold) > 0 },
     { k: 'silver',  icon: 'zakat',     label: s('silverLabel',l),  val: silverVal, show: n(silver) > 0 },
     { k: 'stocks',  icon: 'analytics', label: s('stocksLabel',l),  val: stocksVal, show: n(stocks) > 0 },
-    { k: 'rent',    icon: 'home',      label: s('rentLabel',l),    val: rentVal, show: n(rent) > 0 },
   ]
 
   return (
@@ -329,24 +354,25 @@ export default function ZakatPage({ setPage }) {
 
             {/* Sahələr */}
             <h2 className="zakat-block-label zakat-assets-title">{s('assetsTitle',l)}</h2>
+            {/* Hövl qaydası: yalnız bir il saxlanılan mal (maaş/icarə ×12 deyil) */}
+            <div className="zakat-hawl-note" role="note">
+              <strong>{s('hawlTitle',l)}</strong>
+              <p>{s('hawlNote',l)}</p>
+              <p className="zakat-src">{s('sourceLabel',l)}: <a href="https://islamqa.info/en/answers/26113" target="_blank" rel="noopener noreferrer">{s('hawlSrc',l)}</a></p>
+            </div>
             <div className="zakat-fields" data-reveal="stagger">
 
-              {/* Maaş — aylıq */}
-              <ZakatField icon="user" label={s('salaryLabel',l)} prefix={cur.symbol}
-                value={salary} onChange={setSalary}
-                hint={salaryMonth > 0 && <>{s('monthlyX12',l)} = <b className="zakat-ltr ui-num">{cur.symbol}{fmt(salaryAnnual)}</b></>} />
-
               {/* Yığım */}
-              <ZakatField icon="shield" label={s('savingsLabel',l)} prefix={cur.symbol}
+              <ZakatField icon="shield" label={s('savingsLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
                 value={savings} onChange={setSavings} />
 
               {/* Digər */}
-              <ZakatField icon="list" label={s('otherLabel',l)} prefix={cur.symbol}
+              <ZakatField icon="list" label={s('otherLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
                 value={other} onChange={setOther} />
 
               {/* Səhmlər */}
-              <ZakatField icon="analytics" label={s('stocksLabel',l)} prefix={cur.symbol}
-                value={stocks} onChange={setStocks} />
+              <ZakatField icon="analytics" label={s('stocksLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
+                value={stocks} onChange={setStocks} hint={s('stocksHint',l)} />
 
               {/* Qızıl */}
               <ZakatField icon="zakat" tone="accent" label={s('goldLabel',l)} prefix="g" placeholder="0"
@@ -358,13 +384,14 @@ export default function ZakatPage({ setPage }) {
                 value={silver} onChange={setSilver}
                 hint={n(silver) > 0 && <b className="zakat-ltr ui-num">≈ {cur.symbol}{fmt(silverVal)}</b>} />
 
-              {/* İcarə gəliri */}
-              <ZakatField icon="home" label={s('rentLabel',l)} prefix={cur.symbol}
-                value={rent} onChange={setRent}
-                hint={n(rent) > 0 && <>{s('monthlyX12',l)} = <b className="zakat-ltr ui-num">{cur.symbol}{fmt(rentVal)}</b></>} />
+              {/* Qızıl və gümüşün 1 qram qiyməti — istifadəçi bugünkü qiyməti yaza bilər */}
+              <ZakatField icon="zakat" tone="accent" label={s('goldPrice',l)} prefix={cur.symbol} placeholder={fmt(GOLD_USD_PER_G * rate)}
+                value={goldPriceIn} onChange={setGoldPriceIn} hint={s('priceHint',l)} />
+              <ZakatField icon="zakat" tone="neutral" label={s('silverPrice',l)} prefix={cur.symbol} placeholder={fmt(SILVER_USD_PER_G * rate)}
+                value={silverPriceIn} onChange={setSilverPriceIn} hint={s('priceHint',l)} />
 
               {/* Borclar */}
-              <ZakatField icon="minus" tone="neutral" label={s('debtLabel',l)} prefix={`−${cur.symbol}`}
+              <ZakatField icon="minus" tone="neutral" label={s('debtLabel',l)} prefix={`−${cur.symbol}`} placeholder={moneyPh}
                 value={debt} onChange={setDebt} className="zakat-field-debt" />
             </div>
 
@@ -409,11 +436,6 @@ export default function ZakatPage({ setPage }) {
                       <Money value={zakatYear} symbol={cur.symbol} fmt={fmt} className="zakat-due-amount" />
                       <div className="zakat-due-period">{s('perYear',l)}</div>
                     </div>
-                    <div className="zakat-due-divider" aria-hidden="true" />
-                    <div className="zakat-due-block">
-                      <Money value={zakatMonth} symbol={cur.symbol} fmt={fmt} className="zakat-due-amount zakat-due-sm" />
-                      <div className="zakat-due-period">{s('perMonth',l)}</div>
-                    </div>
                   </div>
                   <span className="zakat-due-pct ui-num">2.5%</span>
                 </>
@@ -434,6 +456,18 @@ export default function ZakatPage({ setPage }) {
                   {aboveNisab ? s('aboveNisab',l) : s('belowNisab',l)}
                 </span>
               </div>
+              {/* Nisab əsası seçimi — gümüş (standart) və ya qızıl */}
+              <div className="nisab-basis" role="group" aria-label={s('nisabBasis',l)}>
+                <span className="nisab-basis-label">{s('nisabBasis',l)}</span>
+                <div className="nisab-basis-opts">
+                  {['silver', 'gold'].map(b => (
+                    <button key={b} type="button" className="ui-chip nisab-basis-btn" aria-pressed={nisabBasis === b}
+                      onClick={() => setNisabBasis(b)}>
+                      {s(b === 'silver' ? 'basisSilver' : 'basisGold', l)}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="nisab-value zakat-money ui-num">{cur.symbol}{fmt(nisabLoc)}</div>
               {/* Doluluq transform ilə (layout yox) — ZakatPage.css → .nisab-bar */}
               <div className="nisab-bar-wrap" role="progressbar" aria-label={s('nisabLabel',l)}
@@ -445,10 +479,12 @@ export default function ZakatPage({ setPage }) {
                 <span className="zakat-ltr">{cur.symbol}{fmt(nisabLoc)}</span>
               </div>
               <p className="nisab-note">{t.note}</p>
+              <p className="nisab-note">{s('nisabExplain',l)}</p>
+              <p className="nisab-note zakat-src">{s('sourceLabel',l)}: <a href="https://islamqa.info/en/answers/2795" target="_blank" rel="noopener noreferrer">{s('nisabSrc',l)}</a></p>
               <p className="nisab-note nisab-price-note">
                 {s('priceNote',l)
-                  .replace('{g}', `${cur.symbol}${fmt(goldPrice * rate)}`)
-                  .replace('{s}', `${cur.symbol}${fmt(silverPrice * rate)}`)}
+                  .replace('{g}', `${cur.symbol}${fmt(goldPrice)}`)
+                  .replace('{s}', `${cur.symbol}${fmt(silverPrice)}`)}
               </p>
             </div>
 
@@ -499,12 +535,14 @@ export default function ZakatPage({ setPage }) {
             </div>
             <div className="fitr-row">
               <span className="fitr-label">{s('fitrAmount',l)}</span>
-              <span className="fitr-val ui-num">{cur.symbol}{fmt(fitrPerPerson)}</span>
+              <span className="fitr-val ui-num">≈ {fmtKg(SAA_KG)}</span>
             </div>
             <div className="fitr-total-row">
               <span className="fitr-label">{s('fitrTotal',l)}</span>
-              <Money value={fitrTotal} symbol={cur.symbol} fmt={fmt} className="fitr-total-val" />
+              <span className="fitr-total-val zakat-money ui-num">≈ {fmtKg(fitrTotalKg)}</span>
             </div>
+            <p className="fitr-note">{s('fitrNote',l)}</p>
+            <p className="fitr-note zakat-src">{s('sourceLabel',l)}: {localizeSource('Buxari 1503, 1506', lang)} · <a href="https://islamqa.info/en/answers/1396" target="_blank" rel="noopener noreferrer">islamqa.info 1396</a></p>
           </div>
         </div>
 

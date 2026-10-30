@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { BRAND, brandName } from '../config/brand'
+import { BRAND, brandName, tr } from '../config/brand'
 import { HADITH_COUNT } from '../data/siteStats'
 import { INDEXABLE } from '../seo/routes'
 import Icon, { BrandMark } from '../components/Icon'
@@ -96,6 +96,8 @@ const ABOUT = {
     title: 'Haqqımızda', subtitle: '{brand} — pulsuz və reklamsız İslami platforma',
     mission: 'Missiyamız',
     missionText: 'Hər müsəlmana — harada yaşamasından asılı olmayaraq — Quranı, namaz vaxtlarını, hədis və duaları öz dilində, gözəl və diqqəti dağıtmayan mühitdə çatdırmaq.',
+    manhaj: 'Mənhəcimiz',
+    manhajText: 'Saytımızdakı dini məzmun Quran və səhih Sünnəyə, səhabələrin və onlara gözəl şəkildə tabe olan ilk nəsillərin — Sələfi-salehin anlayışına əsaslanır (Tövbə 9:100; Buxari 2652). Əqidədə Allahın adlarını və sifətlərini təhrif, təətil, keyfiyyət soruşmaq və bənzətmə olmadan isbat edirik; ibadətdə Peyğəmbərin ﷺ sünnəsinə tabe olub bidətlərdən çəkinirik. Fiqhi məsələlərdə dəlilə əsaslanan görüşləri İbn Baz, İbn Useymin, Albani və Daimi Fətva Komitəsi kimi alimlərin şərhlərinə istinadla təqdim edirik. Bütün müsəlmanlara hörmətlə yanaşırıq; bir səhvimizi görsəniz, bizə bildirməyinizi xahiş edirik.',
     values: 'Dəyərlərimiz',
     v1t: 'Etibarlılıq', v1d: 'Quran, hədis mənbələri və alimlərin əsərlərinə əsaslanan məzmun.',
     v2t: 'Pulsuz', v2d: 'Heç bir abunə, reklam və ya ödəniş yoxdur.',
@@ -106,6 +108,8 @@ const ABOUT = {
     title: 'About Us', subtitle: '{brand} — a free, ad-free Islamic platform',
     mission: 'Our Mission',
     missionText: 'To bring the Quran, prayer times, hadith and duas to every Muslim — wherever they live — in their own language, in a beautiful, distraction-free environment.',
+    manhaj: 'Our Methodology',
+    manhajText: 'The religious content on our site is based on the Quran and the authentic Sunnah, as understood by the Companions and the early generations who followed them in goodness — the Salaf as-Salih (At-Tawbah 9:100; Bukhari 2652). In creed, we affirm Allah\'s Names and Attributes without distortion, denial, asking how, or likening Him to creation; in worship, we follow the Sunnah of the Prophet ﷺ and avoid innovations. In matters of fiqh, we present evidence-based positions with reference to the explanations of scholars such as Ibn Baz, Ibn Uthaymeen, al-Albani and the Permanent Committee for Fatwa. We treat all Muslims with respect; if you notice a mistake, please let us know.',
     values: 'Our Values',
     v1t: 'Reliability', v1d: 'Content based on the Quran, hadith collections and the works of scholars.',
     v2t: 'Free', v2d: 'No subscriptions, no ads, no payments.',
@@ -116,6 +120,8 @@ const ABOUT = {
     title: 'О нас', subtitle: '{brand} — бесплатная исламская платформа без рекламы',
     mission: 'Наша миссия',
     missionText: 'Донести Коран, время намаза, хадисы и дуа до каждого мусульманина — где бы он ни жил — на его родном языке, в красивой среде без отвлечений.',
+    manhaj: 'Наш путь (манхадж)',
+    manhajText: 'Религиозное содержание нашего сайта основано на Коране и достоверной Сунне в понимании сподвижников и первых поколений, последовавших за ними в добре, — праведных предшественников (ас-саляф ас-салих) (ат-Тауба 9:100; Бухари 2652). В вероубеждении мы утверждаем имена и атрибуты Аллаха без искажения, отрицания, вопроса «как» и уподобления творению; в поклонении следуем Сунне Пророка ﷺ и избегаем нововведений. В вопросах фикха мы приводим мнения, основанные на доводах, со ссылкой на разъяснения таких учёных, как Ибн Баз, Ибн Усеймин, аль-Альбани и Постоянный комитет по фетвам. Мы относимся ко всем мусульманам с уважением; если вы заметили ошибку, пожалуйста, сообщите нам.',
     values: 'Наши ценности',
     v1t: 'Достоверность', v1d: 'Содержание основано на Коране, сборниках хадисов и трудах учёных.',
     v2t: 'Бесплатно', v2d: 'Без подписок, рекламы и платежей.',
@@ -126,6 +132,8 @@ const ABOUT = {
     title: 'عن الموقع', subtitle: '{brand} — منصة إسلامية مجانية بلا إعلانات',
     mission: 'رسالتنا',
     missionText: 'إيصال القرآن ومواقيت الصلاة والأحاديث والأدعية إلى كل مسلم — أينما كان — بلغته، في بيئة جميلة خالية من المشتتات.',
+    manhaj: 'منهجنا',
+    manhajText: 'يقوم المحتوى الديني في موقعنا على القرآن الكريم والسنة الصحيحة بفهم الصحابة ومن تبعهم بإحسان من القرون الأولى — السلف الصالح (التوبة: 100؛ البخاري 2652). ففي الاعتقاد نثبت أسماء الله وصفاته من غير تحريف ولا تعطيل ولا تكييف ولا تمثيل، وفي العبادة نتبع سنة النبي ﷺ ونجتنب البدع. وفي المسائل الفقهية نعرض الأقوال المبنية على الدليل مع الإحالة إلى شروح العلماء كابن باز وابن عثيمين والألباني واللجنة الدائمة للإفتاء. ونحترم جميع المسلمين، وإن رأيتم خطأً فنرجو أن تنبهونا إليه.',
     values: 'قيمنا',
     v1t: 'الموثوقية', v1d: 'محتوى مبني على القرآن وكتب الحديث ومؤلفات العلماء.',
     v2t: 'مجاني', v2d: 'لا اشتراكات ولا إعلانات ولا مدفوعات.',
@@ -136,6 +144,8 @@ const ABOUT = {
     title: 'Hakkımızda', subtitle: '{brand} — ücretsiz ve reklamsız İslami platform',
     mission: 'Misyonumuz',
     missionText: 'Kur’an’ı, namaz vakitlerini, hadisleri ve duaları her Müslümana — nerede yaşarsa yaşasın — kendi dilinde, güzel ve dikkat dağıtmayan bir ortamda ulaştırmak.',
+    manhaj: 'Menhecimiz',
+    manhajText: 'Sitemizdeki dinî içerik, Kur’an’a ve sahih Sünnet’e, sahabenin ve onlara güzellikle tabi olan ilk nesillerin — Selef-i Salihin’in anlayışına dayanır (Tevbe 9:100; Buhari 2652). Akidede Allah’ın isim ve sıfatlarını tahrif, tatil, keyfiyet sormak ve benzetme olmadan ispat ederiz; ibadette Peygamber’in ﷺ sünnetine uyar, bidatlerden sakınırız. Fıkhî meselelerde delile dayanan görüşleri İbn Baz, İbn Useymin, Elbânî ve Daimî Fetva Komitesi gibi âlimlerin açıklamalarına atıfla sunarız. Bütün Müslümanlara saygıyla yaklaşırız; bir hatamızı görürseniz bize bildirmenizi rica ederiz.',
     values: 'Değerlerimiz',
     v1t: 'Güvenilirlik', v1d: 'Kur’an, hadis kaynakları ve âlimlerin eserlerine dayanan içerik.',
     v2t: 'Ücretsiz', v2d: 'Abonelik, reklam veya ödeme yok.',
@@ -169,7 +179,11 @@ export function AboutPage({ setPage }) {
     { icon:'phone',  title:t.v4t, desc:t.v4d },
   ]
 
-  const member = { initials:'EA', name:'Elchin Abdullayev', role: DEV_ROLE[lang] || DEV_ROLE.en }
+  // Ad hüquqi səhifələrdəki ilə eyni mənbədən (brand.js → legal.operator):
+  // az/tr-də "Elçin", ru-da kirillə — əvvəl hər dildə "Elchin" yazılırdı
+  const memberName = tr(BRAND.legal.operator, lang) || 'Elchin Abdullayev'
+  const initials = memberName.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  const member = { initials, name: memberName, role: DEV_ROLE[lang] || DEV_ROLE.en }
 
   const stats = [
     // Bölmə sayı — sitemap-a düşən (indekslənən) səhifələr, seo/routes.js-dən;
@@ -214,11 +228,21 @@ export function AboutPage({ setPage }) {
             {stats.map((s,i) => (
               <div key={i} className="ab-stat">
                 <dt className="ui-stat__label">{s.label}</dt>
-                {/* Təmiz rəqəm sayğacla (data-count) sayılır; "1350+" olduğu kimi qalır */}
+                {/* Təmiz rəqəm sayğacla (data-count) sayılır; "1250+" olduğu kimi qalır */}
                 <dd className="ui-stat__num ab-stat-num">{/^\d+$/.test(s.num) ? <span data-count={s.num}>{s.num}</span> : s.num}</dd>
               </div>
             ))}
           </dl>
+        </div>
+      </section>
+
+      {/* Mənhəc — saytın Sələf mənhəcinə əsaslandığını bildirir (Tövbə 9:100; Buxari 2652) */}
+      <section className="ui-section ab-manhaj-sec" aria-labelledby="ab-manhaj-title">
+        <div className="ui-container">
+          <article className="ui-card ab-manhaj" data-reveal>
+            <h2 id="ab-manhaj-title" className="ui-title ui-title--sm">{t.manhaj}</h2>
+            <p>{t.manhajText}</p>
+          </article>
         </div>
       </section>
 

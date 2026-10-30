@@ -159,3 +159,8 @@
   .holy-page .holy-card:hover,
   .holy-card:hover .holy-card-icon { transform: none; }
 }
+
+/* Ziyarət ədəbi qeydi (Sələf mövqeyi — üç məscid, təbərrük yoxdur) */
+.holy-adab { margin: 0 0 var(--space-5, 24px); padding: 18px 20px; border-inline-start: 3px solid var(--accent, currentColor); }
+.holy-adab-title { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 16px; }
+.holy-adab-text { margin: 0; line-height: 1.7; }

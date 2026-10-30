@@ -510,5 +510,9 @@
   /* Hərəkələr yuxarıda kəsilməsin: ərəbcə sətir 26px, tərcümə 2×17px (cəmi 60px) */
   .drb-body-in > .drb-ar { height: 26px; line-height: 26px; }
   .drb-body-in > .drb-tx { line-height: 17px; max-height: 34px; }
+  /* Tərcümə yoxdursa (ərəb dili) ərəbcə mətn 2 sətrə qədərdir (yuxarıdakı
+     .drb--notx qaydası). Yuxarıdakı 26px hündürlük onu bir sətrə kəsirdi —
+     ikinci sətir və "…" görünmür, ayə sözün ortasında qırılırdı */
+  .drb--notx .drb-body-in > .drb-ar { height: auto; max-height: 56px; line-height: 28px; }
   .drb--open .drb-body { align-items: flex-start; }
 }

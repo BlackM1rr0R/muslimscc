@@ -3,8 +3,11 @@
 #
 # İki konteyner:
 #   web — root-suz nginx: sayt + /api/ proksi. Yeganə internetə açıq xidmət.
-#   api — Node (server.js): AI, push bildirişləri, azan planlayıcısı.
-#         Heç bir port açmır — yalnız "web" ona Docker şəbəkəsində çatır.
+#   api — Node (server.js): AI, məzmun API-si (SQLite), admin girişi, push
+#         bildirişləri, azan planlayıcısı. Heç bir port açmır — yalnız "web"
+#         ona Docker şəbəkəsində çatır. Baza: named volume api-data → /data
+#         (kök fayl sistemi read-only-dir; yazıla bilən yeganə yer /data).
+#         Gündəlik ehtiyat nüsxə: backup.sh (docs/FIREBASE-EXIT.md).
 #
 # Image-lər CI-da (GitHub Actions) build olunur və serverə tar kimi
 # göndərilir (server 1 CPU / 1 GB — build üçün kiçikdir). Versiya: TAG
@@ -33,7 +36,14 @@ services:
     image: muslimscc-api:${TAG:?TAG verilməyib}
     env_file: ./api.env          # 600, root — sirlər yalnız burada
     tmpfs: [/tmp]
+    volumes:
+      # SQLite bazası (muslims.db + WAL). Image-də /data "node"-a məxsusdur —
+      # volume ilk dəfə yaradılanda sahiblik oradan köçür. DİQQƏT:
+      # "docker compose down -v" bazanı da silər!
+      - api-data:/data
     mem_limit: 320m
+    # Healthcheck Dockerfile-dadır: /api/health — o, DB-ni də yoxlayır (SELECT 1)
+    stop_grace_period: 15s    # SIGTERM → WAL checkpoint + DB səliqəli bağlanır
     networks: [backend]
 
   web:
@@ -59,3 +69,6 @@ services:
 
 networks:
   backend: {}
+
+volumes:
+  api-data: {}     # Docker adı: muslimscc_api-data

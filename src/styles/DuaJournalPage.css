@@ -153,6 +153,13 @@
   border-top: 1px solid var(--line);
 }
 .dua-journal-page .dua-delete-btn { margin-inline-start: auto; color: var(--text-tertiary); }
+@media (max-width: 479.98px) {
+  .dua-journal-page .dua-delete-btn { min-width: var(--tap, 44px); padding-inline: 10px; }
+  .dua-journal-page .dua-delete-label {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+}
 @media (hover: hover) {
   .dua-journal-page .dua-delete-btn:hover { color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); }
 }

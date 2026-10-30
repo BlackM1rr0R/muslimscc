@@ -172,6 +172,9 @@
 }
 .bp-author { color: var(--text-tertiary); font-size: 13.5px; line-height: 1.4; }
 .bp-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--text-tertiary); font-size: 12.5px; }
+/* Səhifə sayı · il — aralarında incə ayırıcı nöqtə */
+.bp-meta > span + span::before { content: '·'; margin-inline-end: 8px; color: var(--text-tertiary); }
+.bp-meta { column-gap: 8px; }
 .bp-actions {
   display: flex;
   align-items: center;

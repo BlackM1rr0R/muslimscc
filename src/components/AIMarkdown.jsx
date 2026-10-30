@@ -1,8 +1,22 @@
 // AI cavabı üçün təhlükəsiz, kiçik markdown renderi — HTML YOX (dangerouslySetInnerHTML
-// işlədilmir), yalnız React elementləri: abzas, siyahı, başlıq, sitat, **qalın**, *kursiv*.
+// işlədilmir), yalnız React elementləri: abzas, siyahı, başlıq, sitat, **qalın**, *kursiv*,
+// [mətn](ünvan) linki.
 // `tail` — son blokun sonuna əlavə olunan element (axında yanıb-sönən kursor).
 
-const INLINE = /\*\*([^*\n]+)\*\*|\*([^*\s][^*\n]*?)\*/g
+const INLINE = /\[([^\]\n]+)\]\(([^()\s]+)\)|\*\*([^*\n]+)\*\*|\*([^*\s][^*\n]*?)\*/g
+
+// Link yalnız təhlükəsiz ünvana: http(s) və ya saytın daxili yolu ("/quran").
+// javascript:, data:, "//başqa-sayt" və s. — link YOX, yalnız mətn göstərilir.
+const SAFE_EXTERNAL = /^https?:\/\/[^\s]+$/i
+const SAFE_INTERNAL = /^\/(?![/\\])[^\s]*$/
+
+function link(label, href, key) {
+  if (SAFE_INTERNAL.test(href)) return <a key={key} href={href}>{label}</a>
+  if (SAFE_EXTERNAL.test(href)) {
+    return <a key={key} href={href} target="_blank" rel="noopener noreferrer">{label}</a>
+  }
+  return label
+}
 
 function inline(text, key) {
   const out = []
@@ -11,8 +25,9 @@ function inline(text, key) {
   INLINE.lastIndex = 0
   while ((m = INLINE.exec(text))) {
     if (m.index > last) out.push(text.slice(last, m.index))
-    if (m[1] != null) out.push(<strong key={`${key}-${m.index}`}>{m[1]}</strong>)
-    else out.push(<em key={`${key}-${m.index}`}>{m[2]}</em>)
+    if (m[1] != null) out.push(link(m[1], m[2], `${key}-${m.index}`))
+    else if (m[3] != null) out.push(<strong key={`${key}-${m.index}`}>{m[3]}</strong>)
+    else out.push(<em key={`${key}-${m.index}`}>{m[4]}</em>)
     last = m.index + m[0].length
   }
   if (last < text.length) out.push(text.slice(last))

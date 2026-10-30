@@ -475,7 +475,7 @@ const ALLAH_NAMES = [
   { ar:'ٱلْوَدُود',  translit:'Vədud',  color:'#a855f7', meaning:{ az:'Sevən',              en:'The Loving',                 ru:'Любящий',               ar:'الودود',                    tr:'Vedûd' } },
   { ar:'ٱلْحَكِيم',  translit:'Həkim',  color:'#6366f1', meaning:{ az:'Hikmət sahibi',      en:'The Wise',                   ru:'Мудрый',                ar:'الحكيم',                    tr:'Hakîm' } },
   { ar:'ٱلتَّوَّاب', translit:'Tövvab', color:'#84cc16', meaning:{ az:'Tövbələri qəbul edən', en:'The Acceptor of Repentance', ru:'Принимающий покаяние', ar:'التواب',                    tr:'Tevvâb' } },
-  { ar:'ٱلنُّور',    translit:'Nur',    color:'#fbbf24', meaning:{ az:'Nur (İşıq)',         en:'The Light',                  ru:'Свет',                  ar:'النور',                     tr:'Nûr' } },
+  { ar:'ٱلْكَرِيم',  translit:'Kərim',  color:'#fbbf24', meaning:{ az:'Kərəmli',            en:'The Generous',               ru:'Щедрый',                ar:'الكريم',                    tr:'Kerîm' } },
 ]
 
 export default function HomePage({ setPage }) {
@@ -512,7 +512,7 @@ export default function HomePage({ setPage }) {
   const stats=[
     {num:114,  s:'',  l:{az:'Quran surəsi',  en:'Quran Surahs',   ru:'Сур Корана',    tr:'Sure',         ar:'سورة'}},
     {num:6236, s:'',  l:{az:'Quran ayəsi',   en:'Quran Verses',   ru:'Аятов Корана',  tr:'Ayet',         ar:'آية'}},
-    // Təkrarsız 1394 hədis — "1350+" (bax: data/siteStats.js)
+    // Təkrarsız 1255 hədis — "1250+" (bax: data/siteStats.js)
     {num:HADITH_COUNT, s:'+', l:{az:'Hədis',  en:'Hadiths',        ru:'Хадисов',       tr:'Hadis',        ar:'حديث'}},
     {num:99,   s:'',  l:{az:"Allahın adı",   en:"Names of Allah", ru:'Имён Аллаха',   tr:"Allah'ın İsmi",ar:'اسمًا لله'}},
     {num:5,    s:'',  l:{az:'Dil',            en:'Languages',      ru:'Языков',        tr:'Dil',          ar:'لغات'}},

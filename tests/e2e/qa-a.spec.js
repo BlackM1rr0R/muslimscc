@@ -43,15 +43,15 @@ test('dua gündəliyi: əlavə et → redaktə → qəbul oldu → sil', async (
   await page.goto('/duajournal')
   await settle(page)
   await page.getByRole('button', { name: 'Dua əlavə et' }).click()
-  await page.getByPlaceholder('Duanı yaz...').fill('Sınaq duası')
+  await page.getByPlaceholder('Duanızı yazın...').fill('Sınaq duası')
   await page.getByRole('button', { name: 'Saxla' }).click()
   const card = page.locator('.dj-card').filter({ hasText: 'Sınaq duası' })
   await expect(card).toBeVisible()
 
   // Redaktə: forma köhnə mətnlə açılır, yeni mətn saxlanılır
   await card.getByRole('button', { name: 'Redaktə et' }).click()
-  await expect(page.getByPlaceholder('Duanı yaz...')).toHaveValue('Sınaq duası')
-  await page.getByPlaceholder('Duanı yaz...').fill('Düzəldilmiş dua')
+  await expect(page.getByPlaceholder('Duanızı yazın...')).toHaveValue('Sınaq duası')
+  await page.getByPlaceholder('Duanızı yazın...').fill('Düzəldilmiş dua')
   await page.getByRole('button', { name: 'Saxla' }).click()
   await expect(page.locator('.dj-card').filter({ hasText: 'Düzəldilmiş dua' })).toBeVisible()
   await expect(page.locator('.dj-card').filter({ hasText: 'Sınaq duası' })).toHaveCount(0)

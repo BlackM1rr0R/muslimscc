@@ -36,7 +36,7 @@ import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor,
 import { titleFor, descFor, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
 import { brandName, siteJsonLd } from '../src/config/brand.js'
 import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detail.js'
-import { staticBodyFor, hasQuranData } from './seo-body.mjs'
+import { staticBodyFor, staticPreloadFor, hasQuranData } from './seo-body.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 // Çıxış qovluğu: susmaya görə dist/. `--out <qovluq>` (və ya PRERENDER_DIST
@@ -206,7 +206,8 @@ function renderPage(template, key, lang, noindex = false, param = null) {
     ? html.replace(/[ \t]*<!--SEO:HEAD-->[ \t]*\r?\n?/, '')
     : html.replace('<!--SEO:HEAD-->', () => headFor(key, lang, param))
   // Səhifə chunk-ı + şrift preload-ları (yuxarıdakı PERFORMANS bölməsi)
-  html = html.replace(/[ \t]*<!--PERF:PRELOAD-->/, () => preloadFor(key, lang))
+  // + Quran səhifələrində alquran.cloud məlumat preload-ları (seo-body.mjs → staticPreloadFor)
+  html = html.replace(/[ \t]*<!--PERF:PRELOAD-->/, () => preloadFor(key, lang) + (notFound || noindex ? '' : staticPreloadFor(key, lang, param)))
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`)
   html = html.replace(/<html([^>]*)\slang="[^"]*"/i, '<html$1')
   html = html.replace(/<html([^>]*)>/i, `<html$1 lang="${lang}" dir="${dir}">`)

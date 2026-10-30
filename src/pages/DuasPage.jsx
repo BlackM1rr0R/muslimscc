@@ -45,11 +45,11 @@ const FAV_LABELS = { az:'Sevimlilər', en:'Favorites', ru:'Избранные', 
 
 // ── Səhifənin kiçik mətnləri (5 dil) ──
 const UI = {
-  az: { share:'Paylaş', favAdd:'Sevimlilərə əlavə et', favRemove:'Sevimlilərdən çıxar', copied:'Kopyalandı!', more:'Daha çox göstər', emptyFav:'Hələ sevimli dua yoxdur — kartdakı ürək düyməsinə toxunun', notFound:'Dua tapılmadı', search:'Dua axtar', cats:'Kateqoriyalar', count:'dua' },
-  en: { share:'Share', favAdd:'Add to favourites', favRemove:'Remove from favourites', copied:'Copied!', more:'Show more', emptyFav:'No favourite duas yet — tap the heart on a card', notFound:'No duas found', search:'Search duas', cats:'Categories', count:'duas' },
-  ru: { share:'Поделиться', favAdd:'Добавить в избранное', favRemove:'Убрать из избранного', copied:'Скопировано!', more:'Показать ещё', emptyFav:'Пока нет избранных дуа — нажмите на сердечко на карточке', notFound:'Дуа не найдены', search:'Поиск дуа', cats:'Категории', count:'дуа' },
-  ar: { share:'مشاركة', favAdd:'أضف إلى المفضلة', favRemove:'إزالة من المفضلة', copied:'تم النسخ!', more:'عرض المزيد', emptyFav:'لا توجد أدعية مفضلة بعد — اضغط على رمز القلب في البطاقة', notFound:'لم يتم العثور على أدعية', search:'ابحث عن دعاء', cats:'الفئات', count:'دعاء' },
-  tr: { share:'Paylaş', favAdd:'Favorilere ekle', favRemove:'Favorilerden çıkar', copied:'Kopyalandı!', more:'Daha fazla göster', emptyFav:'Henüz favori dua yok — karttaki kalp simgesine dokunun', notFound:'Dua bulunamadı', search:'Dua ara', cats:'Kategoriler', count:'dua' },
+  az: { share:'Paylaş', favAdd:'Sevimlilərə əlavə et', favRemove:'Sevimlilərdən çıxar', copied:'Kopyalandı!', more:'Daha çox göstər', emptyFav:'Hələ sevimli dua yoxdur — kartdakı ürək düyməsinə toxunun', notFound:'Dua tapılmadı', search:'Dua axtar', cats:'Kateqoriyalar', clear:'Təmizlə', count:'dua' },
+  en: { share:'Share', favAdd:'Add to favourites', favRemove:'Remove from favourites', copied:'Copied!', more:'Show more', emptyFav:'No favourite duas yet — tap the heart on a card', notFound:'No duas found', search:'Search duas', cats:'Categories', clear:'Clear', count:'duas' },
+  ru: { share:'Поделиться', favAdd:'Добавить в избранное', favRemove:'Убрать из избранного', copied:'Скопировано!', more:'Показать ещё', emptyFav:'Пока нет избранных дуа — нажмите на сердечко на карточке', notFound:'Дуа не найдены', search:'Поиск дуа', cats:'Категории', clear:'Очистить', count:'дуа' },
+  ar: { share:'مشاركة', favAdd:'أضف إلى المفضلة', favRemove:'إزالة من المفضلة', copied:'تم النسخ!', more:'عرض المزيد', emptyFav:'لا توجد أدعية مفضلة بعد — اضغط على رمز القلب في البطاقة', notFound:'لم يتم العثور على أدعية', search:'ابحث عن دعاء', cats:'الفئات', clear:'مسح', count:'دعاء' },
+  tr: { share:'Paylaş', favAdd:'Favorilere ekle', favRemove:'Favorilerden çıkar', copied:'Kopyalandı!', more:'Daha fazla göster', emptyFav:'Henüz favori dua yok — karttaki kalp simgesine dokunun', notFound:'Dua bulunamadı', search:'Dua ara', cats:'Kategoriler', clear:'Temizle', count:'dua' },
 }
 
 // "Hərəkəti azalt" seçilibsə sürüşmə dərhal olsun (animasiyasız)
@@ -323,17 +323,25 @@ export default function DuasPage({ setPage }) {
 
           {/* Yan sütun (genişdə yapışqan): axtarış + kateqoriyalar */}
           <aside className="duas-side">
-            <label className="duas-search">
-              <span className="ui-sr-only">{ui.search}</span>
+            {/* Brauzerin göy "×" düyməsi əvəzinə dizayn sistemindən təmizləmə düyməsi */}
+            <div className="duas-search">
               <Icon name="search" size={18} className="duas-search-ic" />
               <input
                 type="search"
                 className="ui-input"
+                aria-label={ui.search}
+                enterKeyHint="search"
                 placeholder={t.searchPh}
                 value={query}
                 onChange={e => setQuery(e.target.value)}
               />
-            </label>
+              {query && (
+                <button type="button" className="ui-icon-btn duas-search-clear" onClick={() => setQuery('')}
+                  aria-label={ui.clear} title={ui.clear}>
+                  <Icon name="close" size={16} />
+                </button>
+              )}
+            </div>
 
             {/* Kateqoriya çipləri — telefonda başlığın altına yapışan, üfüqi
                 sürüşən zolaq; genişdə yan sütunda sətirlərə sarınır */}

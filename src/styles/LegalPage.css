@@ -21,6 +21,10 @@
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
   margin-top: 6px;
 }
+/* "Çap et" — ghost düymənin daxili boşluğu qədər geri çəkilir: mətn tarixlə
+   eyni xətdə 16px aralı, telefonda yeni sətrə düşəndə isə sol kənarla bərabər
+   olur (əvvəl 14px içəri sürüşmüş görünürdü) */
+.lg-hero__meta .lg-print { margin-inline-start: -14px; }
 .lg-updated {
   font-size: var(--step--1);
   color: var(--text-tertiary);

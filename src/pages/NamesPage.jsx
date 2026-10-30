@@ -22,6 +22,16 @@ const HAS_ARABIC = /[؀-ۿ]/
 // Başqa dilə (ingiliscəyə) düşmür — hər dilin öz mətni var.
 const meaningOf = (name, lang) => lang === 'ar' ? '' : lang === 'tr' ? (name.tr_meaning || '') : (name[lang] || '')
 
+// Siyahının mənbəyi (bax: src/data/names99.js başlığı). Tirmizi 3507-dəki
+// sadalama ravinin əlavəsidir; adlar 99-la məhdud deyil (Əhməd 3712).
+const LIST_SOURCE = {
+  az: 'Siyahı: Şeyx İbn Useymin, «əl-Qavaid əl-Musla» — Quran və səhih Sünnədən toplanmış 99 ad. Allahın adları 99-la məhdud deyil (Əhməd, 3712).',
+  en: 'List: Shaykh Ibn Uthaymeen, “al-Qawaid al-Muthla” — 99 names gathered from the Quran and the authentic Sunnah. Allah’s names are not limited to 99 (Ahmad, 3712).',
+  ru: 'Список: шейх Ибн Усеймин, «аль-Кава‘ид аль-Мусля» — 99 имён, собранных из Корана и достоверной Сунны. Имена Аллаха не ограничены числом 99 (Ахмад, 3712).',
+  ar: 'القائمة: الشيخ ابن عثيمين، «القواعد المثلى» — تسعة وتسعون اسمًا جُمعت من الكتاب والسنة الصحيحة. وأسماء الله غير محصورة بعدد معين (أحمد، ٣٧١٢).',
+  tr: 'Liste: Şeyh İbn Useymin, “el-Kavâidü’l-Müslâ” — Kur’an ve sahih Sünnet’ten derlenen 99 isim. Allah’ın isimleri 99 ile sınırlı değildir (Ahmed, 3712).',
+}
+
 // Kartın açılan pəncərəsinin kiçik mətnləri (5 dil)
 const UI = {
   az: { open:'Ətraflı bax', close:'Bağla', prev:'Əvvəlki ad', next:'Növbəti ad', count:'ad', of:'/ 99' },
@@ -150,6 +160,7 @@ export default function NamesPage({ setPage }) {
             <div className="ui-ornament" data-reveal="" aria-hidden="true"><span className="ui-ornament__star" /></div>
             <blockquote className="names-hadith-text">{t.hadith}</blockquote>
             <figcaption className="names-hadith-ref">— {t.hadithRef}</figcaption>
+            <p className="names-hadith-ref names-list-source">{LIST_SOURCE[lang] || LIST_SOURCE.az}</p>
           </figure>
 
           <div className="names-toolbar">
@@ -179,12 +190,15 @@ export default function NamesPage({ setPage }) {
                 <li key={name.n} data-reveal="zoom" data-reveal-delay={i < 8 ? i * 40 : (i % 4) * 40}>
                   <a className="name-card" href={pathFor('names', lang, name.n)}
                     onClick={onCardClick(name.n)}
-                    aria-haspopup="dialog"
-                    aria-label={`${name.n}. ${name.tr}${meaning ? ' — ' + meaning : ''}. ${ui.open}`}>
-                    <span className="name-num ui-num" aria-hidden="true">{name.n}</span>
-                    <span className="name-arabic" lang="ar" dir="rtl" aria-hidden="true">{name.ar}</span>
-                    <span className="name-translit" dir="ltr" aria-hidden="true">{name.tr}</span>
-                    {meaning && <span className="name-meaning" aria-hidden="true">{meaning}</span>}
+                    aria-haspopup="dialog">
+                    {/* Əlçatan ad kartın görünən mətnidir (nömrə, ərəbcə ad,
+                        transliterasiya, məna) + gizli "Ətraflı bax". Əvvəl ayrıca
+                        aria-label ərəbcə adı daşımırdı (WCAG 2.5.3 "Label in Name") */}
+                    <span className="name-num ui-num">{name.n}</span>
+                    <span className="name-arabic" lang="ar" dir="rtl">{name.ar}</span>
+                    <span className="name-translit" dir="ltr">{name.tr}</span>
+                    {meaning && <span className="name-meaning">{meaning}</span>}
+                    <span className="ui-sr-only">{ui.open}</span>
                   </a>
                 </li>
               )

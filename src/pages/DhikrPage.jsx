@@ -5,6 +5,7 @@ import { DHIKRS } from '../data/dhikr'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
+import { localizeSource } from '../utils/sourceNames'
 import '../styles/DhikrPage.css'
 
 // ── localStorage helper-ləri ──
@@ -57,6 +58,19 @@ const STAT_LABELS = {
   sessions: { az:'Sessiya', en:'Sessions', ru:'Сессий',  ar:'جلسات',    tr:'Oturum' },
   total:    { az:'Ümumi',   en:'Total',    ru:'Всего',   ar:'الإجمالي', tr:'Toplam' },
 }
+
+// Fəzilətin mənbəyi və sünnə qeydi (Sələf alimlərinin çoxu zikri barmaqla
+// saymağı üstün tutur — Əbu Davud 1501, Albani: həsən; 1502, Albani: səhih).
+// Sayğac silinmir — yalnız yardımçı vasitə kimi təqdim olunur.
+const SOURCE_LABEL = { az:'Mənbə', en:'Source', ru:'Источник', ar:'المصدر', tr:'Kaynak' }
+const FINGER_NOTE = {
+  az:'Sünnə: Peyğəmbər ﷺ təsbehi sağ əlinin barmaqları ilə sayardı və barmaqların Qiyamətdə dilə gətiriləcəyini xəbər vermişdir. Bu sayğac yalnız yardımçıdır.',
+  en:'Sunnah: the Prophet ﷺ counted tasbih on the fingers of his right hand and said the fingers will be made to speak on the Day of Judgement. This counter is only an aid.',
+  ru:'Сунна: Пророк ﷺ считал тасбих на пальцах правой руки и сообщил, что в Судный день пальцы заговорят. Этот счётчик — лишь вспомогательное средство.',
+  ar:'السنة: كان النبي ﷺ يعقد التسبيح بيمينه، وأخبر أن الأنامل مسؤولات مستنطقات. هذا العداد وسيلة مساعدة فقط.',
+  tr:'Sünnet: Peygamber ﷺ tesbihi sağ elinin parmaklarıyla sayardı ve parmakların Kıyamet günü konuşturulacağını bildirdi. Bu sayaç yalnızca yardımcıdır.',
+}
+const FINGER_SOURCE = 'Əbu Davud 1501, 1502'
 
 export default function DhikrPage({ setPage }) {
   const { lang } = useLang()
@@ -190,6 +204,12 @@ export default function DhikrPage({ setPage }) {
               <p className="dhikr-virtue">
                 <Icon name="sparkle" size={16} />
                 <span>{dhikr.virtue[lang] || dhikr.virtue.en}</span>
+              </p>
+              {dhikr.source && (
+                <p className="dhikr-source">{SOURCE_LABEL[lang] || SOURCE_LABEL.en}: {localizeSource(dhikr.source, lang)}</p>
+              )}
+              <p className="dhikr-sunnah-note">
+                {FINGER_NOTE[lang] || FINGER_NOTE.en} <span className="dhikr-source">({localizeSource(FINGER_SOURCE, lang)})</span>
               </p>
               {complete && (
                 <p className="dhikr-complete-badge" role="status">

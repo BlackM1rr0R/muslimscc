@@ -222,11 +222,13 @@ function Block({ b, v, lang, t, setPage }) {
   if (b.credits) {
     return (
       <ul className="lg-credits">
-        {b.credits.map((raw) => {
+        {b.credits.map((raw, i) => {
           // Sahələr ya sətir, ya 5 dilli obyekt ola bilər
           const c = { ...raw, name: tr(raw.name, lang), by: tr(raw.by, lang), note: tr(raw.note, lang) }
           return (
-          <li key={raw.url || c.name} className="lg-credit">
+          // Açarda indeks də var: bir neçə mənbə eyni URL-i paylaşır
+          // (məs. alquran.cloud/translations) — React təkrar açar xətası verirdi
+          <li key={`${i}-${raw.url || c.name}`} className="lg-credit">
             <div className="lg-credit__head">
               <span className="lg-credit__name">
                 {c.url

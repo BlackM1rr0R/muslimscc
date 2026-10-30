@@ -560,8 +560,10 @@ export default function AnalyticsPage({ setPage }) {
                 {t.achievements} <span className="analytics-count ui-num" dir="ltr">{achievedCount}/{achievements.length}</span>
               </CardHead>
               <div className="analytics-card-body">
-                {/* Telefonda üfüqi sürüşən nişan zolağı */}
-                <ul className="analytics-achievements" data-reveal="stagger-zoom">
+                {/* Telefonda üfüqi sürüşən nişan zolağı. tabIndex: klaviatura ilə
+                    də sürüşdürmək olsun (içində fokuslanan element yoxdur — axe
+                    "scrollable-region-focusable") */}
+                <ul className="analytics-achievements" data-reveal="stagger-zoom" tabIndex={0} aria-label={t.achievements}>
                   {achievements.map((a, i) => (
                     <li key={i} className={`analytics-badge ${a.check ? 'achieved' : 'locked'}`}>
                       <span className="analytics-badge-icon" aria-hidden="true">

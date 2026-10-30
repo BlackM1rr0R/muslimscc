@@ -625,7 +625,19 @@ html.qm-reveal-on .sp-line[data-reveal-ready]:not([data-revealed])::before { tra
 .sp-sources__list .ui-num { color: var(--text-secondary); }
 
 /* ── Əvvəlki / Növbəti ── */
-.sp-pager-wrap { margin-top: var(--space-8); max-width: calc(980px + 2 * var(--page-gutter)); }
+/* Əvvəlki/Növbəti məqalə sütunu ilə eyni eni və kənarı tutur — əvvəl 980px
+   idi və mərkəzləndiyi üçün nə məqalə, nə də "İçindəkilər" ilə düz gəlirdi */
+.sp-pager-wrap { margin-top: var(--space-8); max-width: calc(780px + 2 * var(--page-gutter)); }
+@media (min-width: 1280px) {
+  .sp-pager-wrap {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 780px);
+    justify-content: center;
+    column-gap: var(--space-8);
+    max-width: calc(var(--container) + 2 * var(--page-gutter));
+  }
+  .sp-pager-wrap > * { grid-column: 2; }
+}
 .sp-pager { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 .sahabe-page .sp-pager__card {
   display: flex;

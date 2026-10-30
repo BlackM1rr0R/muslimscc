@@ -66,11 +66,14 @@ test.describe('xam prerender HTML (JS-siz robotun gördüyü)', () => {
     expect((root.match(/<li id="ayah-/g) || []).length).toBe(7)
   })
 
-  test('/en/names/2-ar-rahman və /sahaba/bilal-ibn-rabah: h1 və məlumat', async ({ request }) => {
-    const n = await raw(request, '/en/names/2-ar-rahman')
+  test('/en/names/30-ar-rahman və /sahaba/bilal-ibn-rabah: h1 və məlumat', async ({ request }) => {
+    const n = await raw(request, '/en/names/30-ar-rahman')
     expect(n).toContain('<h1>Ar-Rahman — The Most Gracious</h1>')
     expect(n).toContain('ٱلرَّحۡمَٰنُ')
-    expect(n).toContain('<link rel="canonical" href="https://muslims.cc/en/names/2-ar-rahman"')
+    expect(n).toContain('<link rel="canonical" href="https://muslims.cc/en/names/30-ar-rahman"')
+    // Siyahı İbn Useyminin siyahısıdır: 82-ci ad — əl-Cəmil (Müslim 91)
+    const j = await raw(request, '/names/82-al-jamil')
+    expect(j).toContain('ٱلۡجَمِيلُ')
 
     const s = await raw(request, '/sahaba/bilal-ibn-rabah')
     expect(s).toContain('<h1>Bilal ibn Rəbah</h1>')
@@ -158,18 +161,18 @@ test('surə siyahısından daxili klik URL-i dəyişir, Geri siyahıya qaytarır
 })
 
 test('99 ad: birbaşa link pəncərəni açır, növbəti ad URL-i yeniləyir, bağlamaq siyahıya qaytarır', async ({ page, consoleProblems }) => {
-  await page.goto('/en/names/2-ar-rahman')
+  await page.goto('/en/names/30-ar-rahman')
   await settle(page)
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   await expect(dialog.locator('#names-modal-title')).toHaveText('Ar-Rahman')
-  await expect(page).toHaveTitle(/^Ar-Rahman \(.+\) — Meaning of the 2nd Name of Allah \| Muslims\.cc$/)
-  await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/en/names/2-ar-rahman')
+  await expect(page).toHaveTitle(/^Ar-Rahman \(.+\) — Meaning of the 30th Name of Allah \| Muslims\.cc$/)
+  await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/en/names/30-ar-rahman')
 
   await dialog.getByRole('button', { name: 'Next name' }).click()
-  await expect(page).toHaveURL(/\/en\/names\/3-ar-rahim$/)
+  await expect(page).toHaveURL(/\/en\/names\/31-ar-rahim$/)
   await expect(dialog.locator('#names-modal-title')).toHaveText('Ar-Rahim')
-  await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/en/names/3-ar-rahim')
+  await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/en/names/31-ar-rahim')
 
   await dialog.getByRole('button', { name: 'Close' }).click()
   await expect(page).toHaveURL(/\/en\/names$/)
@@ -180,13 +183,33 @@ test('99 ad: birbaşa link pəncərəni açır, növbəti ad URL-i yeniləyir, b
 test('99 ad: kartdan açılış — Geri düyməsi pəncərəni bağlayır', async ({ page, consoleProblems }) => {
   await page.goto('/names')
   await settle(page)
-  await page.locator('a.name-card[href="/names/5-al-quddus"]').click()
-  await expect(page).toHaveURL(/\/names\/5-al-quddus$/)
+  await page.locator('a.name-card[href="/names/52-al-quddus"]').click()
+  await expect(page).toHaveURL(/\/names\/52-al-quddus$/)
   await expect(page.getByRole('dialog')).toBeVisible()
   await page.goBack()
   await expect(page).toHaveURL(/\/names$/)
   await expect(page.getByRole('dialog')).toHaveCount(0)
   expectCleanConsole(consoleProblems)
+})
+
+// Siyahı İbn Useyminin siyahısı ilə əvəz olunanda nömrələr dəyişdi — köhnə
+// ünvanlar (Google indeksi, kənar linklər) slug-a görə düzgün ada düşür
+test('99 ad: köhnə nömrəli ünvan yeni kanonik ünvana keçir', async ({ page, consoleProblems }) => {
+  await page.goto('/en/names/2-ar-rahman')
+  await settle(page)
+  await expect(page).toHaveURL(/\/en\/names\/30-ar-rahman$/)
+  await expect(page.getByRole('dialog').locator('#names-modal-title')).toHaveText('Ar-Rahman')
+  await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/en/names/30-ar-rahman')
+  expectCleanConsole(consoleProblems)
+})
+
+test('99 ad: siyahıdan çıxarılmış adın köhnə ünvanı → /names siyahısı', async ({ page }) => {
+  await page.goto('/ru/names/23-al-khafid')
+  await settle(page)
+  await expect(page).toHaveURL(/\/ru\/names$/)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('a.name-card').first()).toBeVisible()
+  await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/ru/names')
 })
 
 test('səhabə: birbaşa link profili açır, sxem Person-dur', async ({ page, consoleProblems }) => {

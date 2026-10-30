@@ -520,6 +520,7 @@
 .sunnah-info { flex: 1; min-width: 0; }
 .sunnah-name { color: var(--text-strong); font-size: 15px; font-weight: 600; line-height: 1.35; }
 .sunnah-desc { margin-top: 2px; color: var(--text-tertiary); font-size: 13px; line-height: 1.45; }
+.sunnah-source { margin-top: 2px; color: var(--text-tertiary); font-size: 12px; }
 .sunnah-rakat {
   flex-shrink: 0;
   min-width: 40px;
@@ -584,6 +585,7 @@
 [dir="rtl"] .prayer-dua-name { letter-spacing: 0; font-size: var(--step--1); }
 .prayer-dua-ar { margin-bottom: 6px; font-size: clamp(20px, 1.7vw, 24px); text-align: right; }
 .prayer-dua-trans { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+.prayer-dua-source { margin-top: 4px; color: var(--text-tertiary); font-size: 12px; }
 
 /* Ayə */
 .prayer-reminder {

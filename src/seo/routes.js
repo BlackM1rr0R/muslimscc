@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { SURAH_SLUGS } from './surahSlugs.js'
-import { NAME_SLUGS, SAHABA_SLUGS } from './detailSlugs.js'
+import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS } from './detailSlugs.js'
 
 export const SITE = 'https://muslims.cc'
 
@@ -86,10 +86,16 @@ export const INDEXABLE = PAGES.filter(p => !p.noindex)
 // Rəqəmli növlərdə NÖMRƏ həqiqət mənbəyidir: slug səhv yazılsa belə
 // (/quran/2-bilmirem) səhifə surə 2-ni açır, canonical isə düzgün slug-u
 // göstərir. Naməlum nömrə / slug → known:false (404).
+// İSTİSNA — 99 ad (slugs): siyahı İbn Useyminin "əl-Qavaid əl-Musla"
+// siyahısı ilə əvəz olunanda nömrələr dəyişdi. Köhnə ünvanlar (Google indeksi,
+// kənar linklər) itməsin deyə burada tanınan SLUG nömrədən üstündür:
+// /names/20-al-alim (köhnə nömrə) → əl-Əlim-in yeni nömrəsi (44), App.jsx
+// kanonik ünvana replace edir. Köhnə siyahıdan çıxarılmış adın slug-ı
+// (removed) → parsePath { removed: true }, App.jsx /names siyahısına keçirir.
 // Hər dildə eyni slug (ASCII, kiçik hərf, defislə).
 export const DETAILS = {
   quran:  { kind: 'number', count: 114, slug: (n) => SURAH_SLUGS[n - 1] },
-  names:  { kind: 'number', count: 99,  slug: (n) => NAME_SLUGS[n - 1] },
+  names:  { kind: 'number', count: 99,  slug: (n) => NAME_SLUGS[n - 1], slugs: NAME_SLUGS, removed: REMOVED_NAME_SLUGS },
   sahaba: { kind: 'slug',   slugs: SAHABA_SLUGS },
 }
 
@@ -115,12 +121,34 @@ export function parseDetailSegment(key, seg) {
   let s = seg
   try { s = decodeURIComponent(seg) } catch { /* pozuq % — olduğu kimi */ }
   if (d.kind === 'number') {
-    const m = /^(\d{1,3})(?:-.*)?$/.exec(s)
-    const n = m ? Number(m[1]) : NaN
+    const m = /^(\d{1,3})(?:-(.*))?$/.exec(s)
+    if (!m) return null
+    if (d.slugs && m[2]) {
+      const slug = m[2].toLowerCase()
+      // Tanınan slug nömrədən üstündür (köhnə nömrəli ünvan düzgün ada düşsün)
+      const i = d.slugs.indexOf(slug)
+      if (i >= 0) return i + 1
+      // Siyahıdan çıxarılmış ad nömrəyə düşmür — o nömrə indi başqa addır
+      if (d.removed && d.removed.includes(slug)) return null
+    }
+    const n = Number(m[1])
     return isDetailParam(key, n) ? n : null
   }
   const slug = s.toLowerCase()
   return isDetailParam(key, slug) ? slug : null
+}
+
+/**
+ * Seqment köhnə siyahıdan çıxarılmış detala aiddirmi? ('23-al-khafid' → true).
+ * Belə ünvan bölmənin siyahısına yönləndirilir (App.jsx, replace).
+ */
+export function isRemovedDetailSegment(key, seg) {
+  const d = DETAILS[key]
+  if (!d || !d.removed || !seg) return false
+  let s = seg
+  try { s = decodeURIComponent(seg) } catch { /* pozuq % — olduğu kimi */ }
+  const m = /^\d{1,3}-(.+)$/.exec(s)
+  return !!m && d.removed.includes(m[1].toLowerCase())
 }
 
 /**
@@ -190,5 +218,9 @@ export function parsePath(pathname) {
   if (!DETAILS[page.key] || rest.length === 0) return { lang, key: page.key, known: true, param: null }
   // Detal: düz bir seqment olmalıdır (/quran/2-al-baqara); qalanı 404
   const param = rest.length === 1 ? parseDetailSegment(page.key, rest[0]) : null
+  // Köhnə siyahıdan çıxarılmış ad (/names/23-al-khafid) — siyahıya yönləndirilir
+  if (param == null && rest.length === 1 && isRemovedDetailSegment(page.key, rest[0])) {
+    return { lang, key: page.key, known: true, param: null, removed: true }
+  }
   return { lang, key: page.key, known: param != null, param }
 }

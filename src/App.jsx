@@ -237,7 +237,7 @@ function AppInner() {
 
   // Səhifə və dil artıq URL-dən oxunur — hər səhifənin öz ünvanı var
   // (/quran, /ru/quran) ki, Google onları ayrıca indeksləyə bilsin.
-  const { lang, key, known, param } = parsePath(location.pathname)
+  const { lang, key, known, param, removed } = parsePath(location.pathname)
   const hash = location.hash
   const isAdminKey = key === 'admin' || key === 'adminlogin'
   // "#admin" istənilən səhifədən gizli girişi açır, amma /admin marşrutunun
@@ -314,6 +314,8 @@ function AppInner() {
   }
 
   if (legacy) return <Navigate to={pathFor(legacy.to, legacy.lang)} replace />
+  // Köhnə siyahıdan çıxarılmış ad (/names/23-al-khafid) → /names siyahısı (replace)
+  if (removed) return <Navigate to={pathFor(key, lang)} replace />
   const detailFix = known ? canonicalDetail(location, key, lang, param) : null
   if (detailFix) return <Navigate to={detailFix} replace state={location.state} />
 

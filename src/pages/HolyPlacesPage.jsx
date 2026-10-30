@@ -6,11 +6,11 @@ import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 
 const LABELS = {
-  az: { title:'Müqəddəs yerlər', subtitle:'İslamın müqəddəs məkanları', openMaps:'Xəritədə aç', significance:'Əhəmiyyəti', reference:'İstinad' },
-  en: { title:'Holy Places', subtitle:'Sacred places of Islam', openMaps:'Open in Maps', significance:'Significance', reference:'Reference' },
-  ru: { title:'Святые Места', subtitle:'Священные места ислама', openMaps:'Открыть на карте', significance:'Значение', reference:'Ссылка' },
-  ar: { title:'الأماكن المقدسة', subtitle:'الأماكن المقدسة في الإسلام', openMaps:'افتح في الخريطة', significance:'الأهمية', reference:'المرجع' },
-  tr: { title:'Kutsal Yerler', subtitle:'İslam\'ın kutsal mekanları', openMaps:'Haritada aç', significance:'Önemi', reference:'Referans' },
+  az: { title:'Müqəddəs yerlər', subtitle:'İslamın müqəddəs məkanları', openMaps:'Xəritədə aç', significance:'Əhəmiyyəti', reference:'İstinad', adabTitle:'Ziyarət ədəbi', adabText:'İbadət niyyəti ilə səfərə yalnız üç məscidə çıxılır: Məscidül-Haram, Peyğəmbər ﷺ məscidi və Məscidül-Əqsa (Buxari 1189, Müslim 1397). Mağaralar, dağlar, daşlar və qəbirlər təbərrük yeri deyil — onlara toxunub bərəkət ummaq və ya oradan torpaq-daş götürmək sünnədə yoxdur (Tirmizi 2180). Qəbirlər isə sünnəyə uyğun ziyarət edilir: ölülərə salam verilir, onlar üçün dua edilir və axirət xatırlanır (Müslim 974, 976).' },
+  en: { title:'Holy Places', subtitle:'Sacred places of Islam', openMaps:'Open in Maps', significance:'Significance', reference:'Reference', adabTitle:'Etiquette of visiting', adabText:'One may set out on a journey for the purpose of worship only to three mosques: Masjid al-Haram, the Mosque of the Prophet ﷺ and Masjid al-Aqsa (Bukhari 1189, Muslim 1397). Caves, mountains, stones and graves are not places of tabarruk — touching them seeking blessing or taking soil or stones from them has no basis in the Sunnah (Tirmidhi 2180). Graves are visited according to the Sunnah: greeting the dead with salam, supplicating for them and remembering the Hereafter (Muslim 974, 976).' },
+  ru: { title:'Святые Места', subtitle:'Священные места ислама', openMaps:'Открыть на карте', significance:'Значение', reference:'Ссылка', adabTitle:'Этикет посещения', adabText:'Отправляться в путь ради поклонения можно лишь к трём мечетям: Заповедной мечети, мечети Пророка ﷺ и мечети аль-Акса (Бухари 1189, Муслим 1397). Пещеры, горы, камни и могилы не являются местами для поиска благодати — прикасаться к ним ради благословения или брать оттуда землю и камни не имеет основы в Сунне (Тирмизи 2180). Могилы посещают согласно Сунне: приветствуют умерших, молятся за них и вспоминают о Последней жизни (Муслим 974, 976).' },
+  ar: { title:'الأماكن المقدسة', subtitle:'الأماكن المقدسة في الإسلام', openMaps:'افتح في الخريطة', significance:'الأهمية', reference:'المرجع', adabTitle:'آداب الزيارة', adabText:'لا تُشدّ الرحال بقصد العبادة إلا إلى ثلاثة مساجد: المسجد الحرام، ومسجد النبي ﷺ، والمسجد الأقصى (البخاري 1189، مسلم 1397). والغيران والجبال والأحجار والقبور ليست مواضع للتبرك، فالتمسح بها رجاء البركة أو أخذ ترابها وأحجارها لا أصل له في السنة (الترمذي 2180). وتُزار القبور على وفق السنة: بالسلام على أهلها والدعاء لهم وتذكّر الآخرة (مسلم 974، 976).' },
+  tr: { title:'Kutsal Yerler', subtitle:'İslam\'ın kutsal mekanları', openMaps:'Haritada aç', significance:'Önemi', reference:'Referans', adabTitle:'Ziyaret adabı', adabText:'İbadet niyetiyle yolculuk yalnızca üç mescide yapılır: Mescid-i Haram, Peygamber ﷺ mescidi ve Mescid-i Aksa (Buhari 1189, Müslim 1397). Mağaralar, dağlar, taşlar ve kabirler teberrük yeri değildir — onlara dokunarak bereket ummak ya da oradan toprak ve taş almak sünnette yoktur (Tirmizi 2180). Kabirler ise sünnete uygun ziyaret edilir: ölülere selam verilir, onlar için dua edilir ve ahiret hatırlanır (Müslim 974, 976).' },
 }
 
 const PLACES = [
@@ -109,18 +109,18 @@ const PLACES = [
     lat: 21.4574, lon: 39.8582,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
-      az:'Peyğəmbərimizə (s.a.s) ilk vəhyin nazil olduğu mağara. Nur dağının zirvəsində yerləşir. Hz. Muhəmməd (s.a.s) burada ibadət və təfəkkür edərdi.',
-      en:'The cave where the first revelation was sent down to Prophet Muhammad (PBUH). Located at the peak of Jabal an-Nur. The Prophet used to worship and contemplate here.',
-      ru:'Пещера, в которой Пророку Мухаммаду (мир ему) было ниспослано первое откровение. Расположена на вершине горы Нур. Пророк совершал здесь поклонение и размышления.',
-      ar:'الغار الذي نزل فيه الوحي الأول على النبي ﷺ. يقع على قمة جبل النور. كان النبي ﷺ يتعبد ويتأمل فيه.',
-      tr:'Hz. Peygamber\'e (s.a.s) ilk vahyin indirildiği mağara. Nur Dağı\'nın zirvesinde yer alır. Hz. Muhammed (s.a.s) burada ibadet ve tefekkür ederdi.',
+      az:'Peyğəmbərimizə (s.a.s) ilk vəhyin nazil olduğu mağara. Nur dağının zirvəsində yerləşir. Peyğəmbərlikdən əvvəl Hz. Muhəmməd (s.a.s) burada tənha qalıb ibadət edərdi (Buxari 3).',
+      en:'The cave where the first revelation was sent down to Prophet Muhammad (PBUH). Located at the peak of Jabal an-Nur. Before prophethood, he used to seclude himself here in worship (Bukhari 3).',
+      ru:'Пещера, в которой Пророку Мухаммаду (мир ему) было ниспослано первое откровение. Расположена на вершине горы Нур. До пророчества он уединялся здесь для поклонения (аль-Бухари 3).',
+      ar:'الغار الذي نزل فيه الوحي الأول على النبي ﷺ. يقع على قمة جبل النور. كان النبي ﷺ قبل البعثة يخلو فيه فيتحنّث (البخاري 3).',
+      tr:'Hz. Peygamber\'e (s.a.s) ilk vahyin indirildiği mağara. Nur Dağı\'nın zirvesinde yer alır. Peygamberlikten önce Hz. Muhammed (s.a.s) burada inzivaya çekilip ibadet ederdi (Buhârî 3).',
     },
     significance: {
-      az:'İlk nazil olan Quran ayələri burada endirilmişdir — Ələq surəsinin ilk beş ayəsi.',
-      en:'The first verses of the Quran were revealed here — the first five verses of Surah Al-Alaq.',
-      ru:'Первые аяты Корана были ниспосланы здесь — первые пять аятов суры Аль-Алак.',
-      ar:'أُنزلت هنا أول آيات القرآن الكريم — الآيات الخمس الأولى من سورة العلق.',
-      tr:'İlk Kur\'an ayetleri burada indirilmiştir — Alak suresinin ilk beş ayeti.',
+      az:'İlk nazil olan Quran ayələri burada endirilmişdir — Ələq surəsinin ilk beş ayəsi. Peyğəmbərlikdən sonra nə Peyğəmbər ﷺ, nə də səhabələr bu mağaraya ibadət üçün çıxmayıblar — ora çıxmaq ibadət deyil.',
+      en:'The first verses of the Quran were revealed here — the first five verses of Surah Al-Alaq. After prophethood neither the Prophet ﷺ nor his Companions climbed to this cave for worship — going up to it is not an act of worship.',
+      ru:'Первые аяты Корана были ниспосланы здесь — первые пять аятов суры Аль-Алак. После начала пророчества ни Пророк ﷺ, ни сподвижники не поднимались в эту пещеру ради поклонения — подъём туда не является поклонением.',
+      ar:'أُنزلت هنا أول آيات القرآن الكريم — الآيات الخمس الأولى من سورة العلق. ولم يصعد إليه النبي ﷺ ولا أصحابه بعد البعثة للتعبد، فصعوده ليس عبادة.',
+      tr:'İlk Kur\'an ayetleri burada indirilmiştir — Alak suresinin ilk beş ayeti. Peygamberlikten sonra ne Peygamber ﷺ ne de sahabeler bu mağaraya ibadet için çıktı — oraya çıkmak ibadet değildir.',
     },
     reference: { az:'Ələq 1-5', en:'Al-Alaq 1-5', ru:'Аль-Алак 1-5', ar:'العلق ١-٥', tr:'Alak 1-5' },
   },
@@ -138,11 +138,11 @@ const PLACES = [
       tr:'Hz. Muhammed (s.a.s) ve Hz. Ebu Bekir\'in (r.a.) Medine\'ye hicret ederken üç gün gizlendikleri mağara. Allah onları müşriklerin gözünden korumuştur.',
     },
     significance: {
-      az:'Qurani-Kərimdə "ikinin ikincisi" ifadəsi ilə xatırlanır. Allahın möcüzəvi qoruması burada təcəlli etmişdir.',
-      en:'Mentioned in the Quran with the phrase "the second of the two." Allah\'s miraculous protection was manifested here.',
-      ru:'Упоминается в Коране фразой «второй из двоих». Чудесная защита Аллаха проявилась здесь.',
-      ar:'ذُكر في القرآن بعبارة "ثاني اثنين". تجلت حماية الله المعجزة هنا.',
-      tr:'Kur\'an\'da "ikinin ikincisi" ifadesiyle anılır. Allah\'ın mucizevi koruması burada tecelli etmiştir.',
+      az:'Qurani-Kərimdə "ikinin ikincisi" ifadəsi ilə xatırlanır. Allahın qoruması burada təcəlli etmişdir. Bu mağaraya ibadət niyyəti ilə çıxmaq sünnədə yoxdur.',
+      en:'Mentioned in the Quran with the phrase "the second of the two." Allah\'s protection was manifested here. Going up to this cave with the intention of worship has no basis in the Sunnah.',
+      ru:'Упоминается в Коране фразой «второй из двоих». Здесь проявилась защита Аллаха. Подниматься в эту пещеру с намерением поклонения не имеет основы в Сунне.',
+      ar:'ذُكر في القرآن بعبارة "ثاني اثنين". تجلت هنا حماية الله لنبيه ﷺ. وقصد هذا الغار بنية التعبد لا أصل له في السنة.',
+      tr:'Kur\'an\'da "ikinin ikincisi" ifadesiyle anılır. Allah\'ın koruması burada tecelli etmiştir. Bu mağaraya ibadet niyetiyle çıkmanın sünnette aslı yoktur.',
     },
     reference: { az:'Tövbə 40', en:'At-Tawbah 40', ru:'Ат-Тауба 40', ar:'التوبة ٤٠', tr:'Tevbe 40' },
   },
@@ -182,11 +182,11 @@ const PLACES = [
       tr:'Hac sırasında hacıların şeytan taşlama (Cemerat) merasimini ifa ettikleri yer. Teşrik günlerinde hacılar burada kalırlar. "Çadırlar şehri" olarak da bilinir.',
     },
     significance: {
-      az:'Hz. İbrahimin (ə.s) şeytana daş atdığı yer olaraq İslam tarixində mühüm yer tutur.',
-      en:'Holds an important place in Islamic history as the location where Prophet Ibrahim (AS) stoned the devil.',
-      ru:'Занимает важное место в истории ислама как место, где Пророк Ибрахим (мир ему) бросал камни в дьявола.',
-      ar:'يحتل مكانة مهمة في تاريخ الإسلام باعتباره المكان الذي رمى فيه النبي إبراهيم عليه السلام الشيطان.',
-      tr:'Hz. İbrahim\'in (a.s.) şeytana taş attığı yer olarak İslam tarihinde önemli bir yere sahiptir.',
+      az:'Təşriq günlərində burada Allah zikr olunur (Bəqərə 2:203) və cəmərələrə daş atılır.',
+      en:'During the days of Tashreeq Allah is remembered here (Al-Baqarah 2:203) and the Jamarat are stoned.',
+      ru:'В дни ташрика здесь поминают Аллаха (аль-Бакара 2:203) и бросают камешки в джамараты.',
+      ar:'يُذكر الله هنا في أيام التشريق (البقرة ٢٠٣) وتُرمى الجمرات.',
+      tr:'Teşrik günlerinde burada Allah zikredilir (Bakara 2:203) ve cemrelere taş atılır.',
     },
     reference: { az:'Bəqərə 203', en:'Al-Baqarah 203', ru:'Аль-Бакара 203', ar:'البقرة ٢٠٣', tr:'Bakara 203' },
   },
@@ -197,11 +197,11 @@ const PLACES = [
     lat: 21.3992, lon: 39.9089,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
-      az:'Ərəfat ilə Mina arasında yerləşən açıq sahə. Hacılar Ərəfatdan sonra burada gecələyir və daş toplayırlar. Burada Məğrib və İşa namazları cəm edilərək qılınır.',
-      en:'An open area between Arafat and Mina. Pilgrims spend the night here after Arafat and collect pebbles. Maghrib and Isha prayers are combined and performed here.',
-      ru:'Открытая территория между Арафатом и Миной. Паломники проводят здесь ночь после Арафата и собирают камешки. Молитвы Магриб и Иша объединяются и совершаются здесь.',
-      ar:'منطقة مفتوحة بين عرفات ومنى. يبيت الحجاج هنا بعد عرفة ويجمعون الحصى. تُصلى صلاتا المغرب والعشاء جمعاً هنا.',
-      tr:'Arafat ile Mina arasında yer alan açık alan. Hacılar Arafat\'tan sonra burada geceleyip taş toplarlar. Akşam ve yatsı namazları burada cem edilerek kılınır.',
+      az:'Ərəfat ilə Mina arasında yerləşən açıq sahə. Hacılar Ərəfatdan sonra burada gecələyirlər. Burada Məğrib və İşa namazları cəm edilərək qılınır.',
+      en:'An open area between Arafat and Mina. Pilgrims spend the night here after Arafat. Maghrib and Isha prayers are combined and performed here.',
+      ru:'Открытая территория между Арафатом и Миной. Паломники проводят здесь ночь после Арафата. Молитвы Магриб и Иша объединяются и совершаются здесь.',
+      ar:'منطقة مفتوحة بين عرفات ومنى. يبيت الحجاج هنا بعد عرفة. تُصلى صلاتا المغرب والعشاء جمعاً هنا.',
+      tr:'Arafat ile Mina arasında yer alan açık alan. Hacılar Arafat\'tan sonra burada gecelerler. Akşam ve yatsı namazları burada cem edilerek kılınır.',
     },
     significance: {
       az:'Məşərul-Haram burada yerləşir. Qurani-Kərimdə zikr olunmuş müqəddəs məkandır.',
@@ -219,11 +219,11 @@ const PLACES = [
     lat: 24.4667, lon: 39.6150,
     city: { az:'Mədinə', en:'Medina', ru:'Медина', ar:'المدينة المنورة', tr:'Medine' },
     desc: {
-      az:'Mədinədə yerləşən ən qədim və ən müqəddəs İslam qəbiristanlığı. Peyğəmbərimizin (s.a.s) ailə üzvləri, səhabələr və tabeinlər burada dəfn edilmişdir. On mindən çox səhabənin məzarı burada yerləşir.',
-      en:'The oldest and most sacred Islamic cemetery in Medina. Family members of the Prophet (PBUH), companions, and followers are buried here. Over ten thousand companions rest here.',
-      ru:'Самое древнее и священное исламское кладбище в Медине. Здесь похоронены члены семьи Пророка (мир ему), сподвижники и последователи. Здесь покоятся более десяти тысяч сподвижников.',
-      ar:'أقدم وأقدس مقبرة إسلامية في المدينة المنورة. دُفن هنا أفراد من عائلة النبي ﷺ والصحابة والتابعون. يرقد هنا أكثر من عشرة آلاف صحابي.',
-      tr:'Medine\'deki en eski ve en kutsal İslam kabristanı. Hz. Peygamber\'in (s.a.s) aile üyeleri, sahâbîler ve tâbiîn burada defnedilmiştir. On binden fazla sahâbînin kabri burada bulunmaktadır.',
+      az:'Mədinədə yerləşən ən qədim İslam qəbiristanlığı. Peyğəmbərimizin (s.a.s) ailə üzvləri, səhabələr və tabeinlər burada dəfn edilmişdir.',
+      en:'The oldest Islamic cemetery in Medina. Family members of the Prophet (PBUH), companions, and followers are buried here.',
+      ru:'Самое древнее исламское кладбище в Медине. Здесь похоронены члены семьи Пророка (мир ему), сподвижники и последователи.',
+      ar:'أقدم مقبرة إسلامية في المدينة المنورة. دُفن هنا أفراد من عائلة النبي ﷺ والصحابة والتابعون.',
+      tr:'Medine\'deki en eski İslam kabristanı. Hz. Peygamber\'in (s.a.s) aile üyeleri, sahâbîler ve tâbiîn burada defnedilmiştir.',
     },
     significance: {
       az:'Peyğəmbərimiz (s.a.s) tez-tez buranı ziyarət edər və Bəqi əhli üçün dua edərdi.',
@@ -290,6 +290,12 @@ export function HolyPlacesPage({ setPage }) {
               </button>
             ))}
           </div>
+
+          {/* Ziyarət ədəbi — Sələf mövqeyi: səfər niyyəti yalnız üç məscidə; yerlərdən təbərrük yoxdur */}
+          <aside className="ui-card holy-adab" role="note">
+            <h2 className="holy-adab-title"><Icon name="books" size={16} /> {lb.adabTitle}</h2>
+            <p className="holy-adab-text">{lb.adabText}</p>
+          </aside>
 
           <div className="holy-grid">
             {filtered.map((place, i) => (

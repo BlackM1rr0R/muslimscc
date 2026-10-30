@@ -48,6 +48,8 @@ smoke() {
     *:8443*|*:8080*|"") log "yönləndirmə səhv ünvana gedir: '$LOC'"; return 1 ;;
   esac
   curl -sS --max-time 10 -k --resolve "muslims.cc:$P:127.0.0.1" "https://muslims.cc:$P/api/health" | grep -q '"ok"'                                                        || { log "API cavab vermir"; return 1; }
+  # Məzmun API-si (SQLite) — baza açılır və oxunur
+  [ "$($C https://muslims.cc:$P/api/content/announcements)" = 200 ] || { log "/api/content/announcements 200 qaytarmır"; return 1; }
   return 0
 }
 

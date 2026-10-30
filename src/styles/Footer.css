@@ -51,7 +51,11 @@
 }
 
 /* ── Main ── */
-.ft-main { padding: 64px var(--page-gutter, 24px) 44px; }
+.ft-main {
+  padding-block: 64px 44px;
+  /* son kənarda üzən dok üçün zolaq (globals.css → --page-gutter-end); məntiqi — ərəbcədə güzgülənir */
+  padding-inline: var(--page-gutter, 24px) var(--page-gutter-end, var(--page-gutter, 24px));
+}
 .ft-inner {
   max-width: var(--container, 1200px); margin: 0 auto;
   display: flex; gap: 64px; align-items: flex-start;
@@ -136,7 +140,11 @@
   font-size: 14px; line-height: 1.35;
   color: var(--text-secondary);
   text-decoration: none;
-  overflow-wrap: anywhere;
+  /* Uzun söz (ru "Благотворительность") dar sütunda hərf-hərf qırılmasın:
+     əvvəl dilin heca qaydası ilə defislə bölünür, yalnız sığmayanda qırılır */
+  overflow-wrap: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 .ft-col .ft-contact-line { color: var(--text-tertiary); }
 .ft-col a {
@@ -183,7 +191,8 @@
 /* ── Alt sətir (hüquq) ── */
 .ft-bottom-wrap { border-top: 1px solid var(--line); }
 .ft-bottom {
-  padding: 18px var(--page-gutter, 24px);
+  padding-block: 18px;
+  padding-inline: var(--page-gutter, 24px) var(--page-gutter-end, var(--page-gutter, 24px));
   max-width: calc(var(--container, 1200px) + 2 * var(--page-gutter, 24px));
   margin: 0 auto;
   display: flex; justify-content: space-between;
@@ -238,7 +247,11 @@
   .ft-col a,
   .ft-col .ft-contact-line { min-height: 36px; font-size: 14.5px; }
   .ft-bottom { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .ft-legal { margin-inline-start: -6px; }
+  .ft-legal { margin-inline-start: -6px; gap: 0 10px; }
+  /* Dar ekranda linklər iki sətrə bölünür — "·" ayırıcısı ikinci sətrin
+     əvvəlində tək qalırdı ("· Mənbələr və lisenziyalar"). Burada ayırıcı yox,
+     yalnız aralıq */
+  .ft-legal a + a::before { content: none; }
 }
 
 /* ── Ehtiyat: konteyner sorğusu olmayan brauzerlər ── */

@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, memo } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, memo, startTransition } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
@@ -8,7 +8,7 @@ import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { parsePath, pathFor } from '../seo/routes'
-import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala } from '../utils/quranText'
+import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala, ayahCountText } from '../utils/quranText'
 import QuranPlayer, { useQuranPlayer } from '../components/QuranPlayer'
 import '../styles/QuranPage.css'
 
@@ -297,7 +297,10 @@ function useSurah(num, lang, attempt = 0) {
         if (!arabic?.ayahs || trans?.edition?.identifier !== edition || trans.ayahs?.length !== arabic.ayahs.length) {
           throw new Error('edition-unavailable')
         }
-        setData({ ...arabic, _key: `${num}|${lang}`, verses: arabic.ayahs.map((v,i) => {
+        // PERFORMANS (TBT): uzun surənin (Bəqərə — 286 kart) ilk render-i
+        // keçid kimi — React işi ~5 ms-lik hissələrə bölür, arada brauzer
+        // girişə cavab verir (əvvəl telefonda bir neçə yüz ms-lik tək tapşırıq idi)
+        const verses = arabic.ayahs.map((v,i) => {
           return {
             n: v.numberInSurah,
             // BOM və 1-ci ayədəki təkrar Bəsmələ — utils/quranText.js
@@ -306,7 +309,8 @@ function useSurah(num, lang, attempt = 0) {
             g: v.number,
             tr: trans?.ayahs[i]?.text || ''
           }
-        }) })
+        })
+        startTransition(() => setData({ ...arabic, _key: `${num}|${lang}`, verses }))
       })
       .catch(e => { if (!cancelled) setError(e.message) })
       .finally(() => { if (!cancelled) setLoading(false) })
@@ -322,13 +326,18 @@ function useSurah(num, lang, attempt = 0) {
 // düyməsi həmin ayədən ardıcıl dinləməni başladır / dayandırır. active — cari
 // ayə (vurğu), playing — hazırda səslənir (ikon). memo: oxuduqca yer yadda saxlananda 286 kart təkrar çəkilməsin.
 // flash — "Ayəyə keç"-dən sonra kartın qısa qızılı vurğusu (0 = yoxdur).
+// Neçə ilk ayə kartı sürüşəndə görünmə animasiyası alır (bax AyahCard)
+const REVEAL_CARDS = 8
 const AyahCard = memo(function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
   return (
-    // data-reveal: sürüşdükcə ayə kartı yumşaq görünür (motion.css).
+    // data-reveal: ilk kartlar yumşaq görünür (motion.css). PERFORMANS: yalnız
+    // ilk ekranın kartları — useReveal hər elementi izləməyə götürəndə
+    // getBoundingClientRect çağırır; 286 kartda bu 286 məcburi düzülüş idi
+    // (telefonda ~750 ms-lik tək tapşırıq, Bəqərə). Qalan kartlar dərhal görünür.
     // id + data-ayah: "Ayəyə keç" hədəfi və oxuma yerinin müşahidəçisi üçün
     <div id={`ayah-${verse.n}`} data-ayah={verse.n} tabIndex={-1}
-      className={`ayah-card${active ? ' is-playing' : ''}${flash ? ' is-target' : ''}`} data-reveal=""
+      className={`ayah-card${active ? ' is-playing' : ''}${flash ? ' is-target' : ''}`} data-reveal={verse.n <= REVEAL_CARDS ? '' : undefined}
       aria-current={active ? 'true' : undefined}>
       {/* Qızılı halqa solur; key — eyni ayəyə təkrar keçəndə animasiya yenidən başlasın */}
       {flash ? <span key={flash} className="ayah-flash" aria-hidden="true" /> : null}
@@ -597,13 +606,40 @@ export default function QuranPage({ setPage }) {
     const instant = !smooth || prefersReducedMotion()
     const startedAt = performance.now()
     jumpingRef.current = true
+    // Yerini dəqiqləşdir: kartların mətni ekrana yaxınlaşanda ölçülür
+    // (QuranPage.css → .ayah-body content-visibility), hədəfin yuxarısındakı
+    // qonşu kartların hündürlüyü təxmindən realına keçəndə hədəf yerindən
+    // sürüşə bilər. Üstəlik telefonda başlıq aşağı sürüşəndə gizlənir və panel
+    // yuxarı qalxır — scroll-padding isə başlığın yerini saxlayırdı (kartla
+    // panel arasında ~70px boşluq). Hər kadrda kart yapışqan panelin HAZIRKI
+    // altından 8px aşağı gətirilir — iki kadr yerində qalana qədər (ən çox ~30);
+    // istifadəçi özü sürüşdürsə — dayanır
+    const settle = () => {
+      let frames = 0, stable = 0, last = null
+      const tick = () => {
+        if (!el.isConnected || userInputAtRef.current > startedAt) return
+        const top = el.getBoundingClientRect().top
+        stable = last !== null && Math.abs(top - last) < 1 ? stable + 1 : 0
+        last = top
+        if (stable >= 2 || ++frames > 30) return
+        const want = (toolbarRef.current?.getBoundingClientRect().bottom ?? 0) + 8
+        if (Math.abs(top - want) >= 1) {
+          ignoreScrollUntilRef.current = performance.now() + 150
+          window.scrollBy(0, top - want)
+        }
+        requestAnimationFrame(tick)
+      }
+      requestAnimationFrame(tick)
+    }
     const end = () => {
       if (!jumpingRef.current) return
       jumpingRef.current = false
       ignoreScrollUntilRef.current = performance.now() + 150
+      if (!instant) settle()
     }
     el.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' })
     el.focus({ preventScroll: true })
+    if (instant) settle()
     if (!instant && 'onscrollend' in window) window.addEventListener('scrollend', end, { once: true })
     setTimeout(end, instant ? 120 : 1500)
     // Şriftlər (Amiri) sonra yüklənib kartları uzadırsa — istifadəçi özü
@@ -650,6 +686,28 @@ export default function QuranPage({ setPage }) {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, pendingAyah])
+
+  // Telefonda panel düymələri bir sətirdir və sığmayanda yana sürüşür — əvvəl
+  // "Tərcümə" yarıda kəsilirdi, əvvəlki/növbəti oxları isə ümumiyyətlə
+  // görünmürdü. Daha düymə olan tərəf yumşaq solur (data-more-start/-end,
+  // CSS mask) — sürüşdürmək olduğunu göstərir. RTL-də scrollLeft mənfidir.
+  const controlsRef = useRef(null)
+  useLayoutEffect(() => {
+    const el = controlsRef.current
+    if (!el) return undefined
+    const update = () => {
+      const max = el.scrollWidth - el.clientWidth
+      const pos = Math.abs(el.scrollLeft)
+      el.toggleAttribute('data-more-start', max > 1 && pos > 1)
+      el.toggleAttribute('data-more-end', max > 1 && pos < max - 1)
+    }
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null
+    // Konteynerin özü + düymələr (məs. "Tərcümə"-nin ✓ işarəsi eni dəyişir)
+    if (ro) [el, ...el.children].forEach(c => ro.observe(c))
+    return () => { el.removeEventListener('scroll', update); ro?.disconnect() }
+  }, [selected, lang])
 
   // Yapışqan panelin hündürlüyü → --qp-toolbar-h (ayənin scroll-margin-top-u)
   useLayoutEffect(() => {
@@ -908,7 +966,7 @@ export default function QuranPage({ setPage }) {
           <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm reader-back" onClick={closeReader}>
             <DirArrow back /> {stripArrows(t.backBtn)}
           </button>
-          <div className="reader-controls">
+          <div className="reader-controls" ref={controlsRef}>
             {/* Ayəyə keç (qısayol: G) — surə yüklənənə qədər söndürülür */}
             <button type="button" ref={jumpBtnRef} className={`ctrl-btn ctrl-jump ${jumpOpen ? 'active' : ''}`}
               disabled={!ready} aria-expanded={jumpOpen} aria-controls="qp-jump" aria-keyshortcuts="G"
@@ -917,9 +975,11 @@ export default function QuranPage({ setPage }) {
             </button>
             {/* dir="ltr": ərəbcədə "A−" bidi qaydası ilə "−A" kimi görünürdü.
                 Həddə çatanda düymə söndürülür (əvvəl basılırdı, heç nə olmurdu) */}
-            <button type="button" className="ctrl-btn" dir="ltr" aria-label={fl.smaller} title={fl.smaller}
+            {/* Əlçatan ad görünən yazını da daşıyır (WCAG 2.5.3 "Label in Name" —
+                səsli idarədə "A− düyməsi" deyə bilmək üçün) */}
+            <button type="button" className="ctrl-btn" dir="ltr" aria-label={`A− · ${fl.smaller}`} title={fl.smaller}
               disabled={fontSize <= 1.21} onClick={() => setFontSize(f => Math.max(f - .1, 1.2))}>A−</button>
-            <button type="button" className="ctrl-btn" dir="ltr" aria-label={fl.larger} title={fl.larger}
+            <button type="button" className="ctrl-btn" dir="ltr" aria-label={`A+ · ${fl.larger}`} title={fl.larger}
               disabled={fontSize >= 2.19} onClick={() => setFontSize(f => Math.min(f + .1, 2.2))}>A+</button>
             {hasTafsir ? (
               <button type="button" className={`ctrl-btn ${showTafsir ? 'active' : ''}`} aria-pressed={showTafsir}
@@ -974,7 +1034,7 @@ export default function QuranPage({ setPage }) {
                 <h1 className="reader-arabic" lang="ar">{surah.name}</h1>
                 {lang !== 'ar' && <h2 className="reader-english">{surahTitle(surah, lang)}</h2>}
                 <p className="reader-meta">
-                  {[meaning, `${surah.numberOfAyahs} ${t.verses}`, revelationLabel(surah.revelationType, lang)].filter(Boolean).join(' · ')}
+                  {[meaning, ayahCountText(surah.numberOfAyahs, lang), revelationLabel(surah.revelationType, lang)].filter(Boolean).join(' · ')}
                 </p>
               </div>
             </div>
@@ -1143,8 +1203,8 @@ export default function QuranPage({ setPage }) {
                   const displayName = surahTitle(s, lang)
                   // ərəbcədə ingiliscə məna yox, "7 آيات · مكية"
                   const displayMeta = isAr
-                    ? `${s.numberOfAyahs} ${t.verses} · ${revelationLabel(s.revelationType, lang)}`
-                    : [surahMeaning(s, lang), `${s.numberOfAyahs} ${t.verses}`].filter(Boolean).join(' · ')
+                    ? `${ayahCountText(s.numberOfAyahs, lang)} · ${revelationLabel(s.revelationType, lang)}`
+                    : [surahMeaning(s, lang), ayahCountText(s.numberOfAyahs, lang)].filter(Boolean).join(' · ')
                   return (
                     <a key={s.number} className="surah-card" href={pathFor('quran', lang, s.number)}
                       onClick={linkTo(s.number)}>

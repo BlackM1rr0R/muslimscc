@@ -113,7 +113,7 @@ test('zəkat: mənfi və sonsuz dəyər cəmi azaltmır/pozmur, fitrə tam nəf�
   await field('Borclar (çıxılacaq)').fill('-3000')
   await expect(total).toHaveText(/20[\s., ]?000[.,]00/)
   // Sonsuz dəyər (1e999) — "∞" / NaN göstərilmir
-  await field('Səhmlər / investisiya').fill('1e999')
+  await field('Ticarət malları / səhmlər').fill('1e999')
   await expect(total).toHaveText(/20[\s., ]?000[.,]00/)
   await expect(page.locator('main')).not.toContainText(/NaN|Infinity|∞/)
 

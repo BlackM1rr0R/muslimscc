@@ -117,7 +117,8 @@ export default function RamadanPage({ setPage }) {
                 {Array.from({ length: 6 }, (_, i) => <span key={i} className="ui-skeleton ui-skeleton--text" style={{ '--w': `${90 - i * 6}%` }} />)}
               </div>
             ) : (
-              <div className="rp-scroll ui-card ui-card--flush">
+              <div className="rp-scroll ui-card ui-card--flush" tabIndex={0} role="region" aria-labelledby="rp-table-title">
+                {/* tabIndex — sürüşən sahə klaviatura ilə də sürüşsün (axe: scrollable-region-focusable) */}
                 <table className="rp-table" aria-labelledby="rp-table-title" data-testid="ramadan-table">
                   <thead>
                     <tr>

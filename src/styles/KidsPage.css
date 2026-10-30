@@ -115,10 +115,12 @@
   transition: transform var(--dur-3) var(--ease-out);
 }
 
-/* Allahın adları / Peyğəmbərlər — kart şəbəkəsi */
+/* Allahın adları / Peyğəmbərlər — kart şəbəkəsi.
+   180px: masaüstündə 5 sütun — 25 kart 5×5 tam düzülür (220px-də 4 sütun
+   idi və sonuncu sətirdə tək kart qalırdı) */
 .kids-names-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
   gap: 12px;
 }
 .kids-name-card {

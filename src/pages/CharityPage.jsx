@@ -27,7 +27,7 @@ const tileClass = (key) => `ui-icon-tile${key === 'money' ? ' ui-icon-tile--acce
 const LABELS = {
   az: { title:'Sədəqə gündəliyi', subtitle:'Gündəlik xeyir əməllərinizi qeyd edin', heroArabic:'صَدَقَة', total:'Ümumi əməl', totalAmount:'Ümumi məbləğ', streak:'Ardıcıl gün', addTitle:'Yeni əməl əlavə et', date:'Tarix', type:'Növ', amount:'Məbləğ (istəyə bağlı)', description:'Təsvir', add:'Əlavə et', entries:'Qeydlər', noEntries:'Hələ heç bir qeyd yoxdur', delete:'Sil', all:'Hamısı', filterBy:'Süzgəc', descPh:'Məs.: qonşuya yemək apardım', added:'Əlavə edildi' },
   en: { title:'Charity Diary', subtitle:'Track your daily good deeds', heroArabic:'صَدَقَة', total:'Total Deeds', totalAmount:'Total Amount', streak:'Day Streak', addTitle:'Add New Deed', date:'Date', type:'Type', amount:'Amount (optional)', description:'Description', add:'Add', entries:'Entries', noEntries:'No entries yet', delete:'Delete', all:'All', filterBy:'Filter', descPh:'E.g. took food to a neighbour', added:'Added' },
-  ru: { title:'Дневник милостыни', subtitle:'Записывайте ваши ежедневные добрые дела', heroArabic:'صَدَقَة', total:'Всего дел', totalAmount:'Общая сумма', streak:'Дней подряд', addTitle:'Добавить дело', date:'Дата', type:'Тип', amount:'Сумма (необязательно)', description:'Описание', add:'Добавить', entries:'Записи', noEntries:'Пока нет записей', delete:'Удалить', all:'Все', filterBy:'Фильтр', descPh:'Напр.: отнёс еду соседу', added:'Добавлено' },
+  ru: { title:'Дневник садаки', subtitle:'Записывайте ваши ежедневные добрые дела', heroArabic:'صَدَقَة', total:'Всего дел', totalAmount:'Общая сумма', streak:'Дней подряд', addTitle:'Добавить дело', date:'Дата', type:'Тип', amount:'Сумма (необязательно)', description:'Описание', add:'Добавить', entries:'Записи', noEntries:'Пока нет записей', delete:'Удалить', all:'Все', filterBy:'Фильтр', descPh:'Напр.: отнёс еду соседу', added:'Добавлено' },
   ar: { title:'يوميات الصدقة', subtitle:'سجّل أعمالك الخيرية اليومية', heroArabic:'صَدَقَة', total:'إجمالي الأعمال', totalAmount:'المبلغ الإجمالي', streak:'أيام متتالية', addTitle:'أضف عملاً جديداً', date:'التاريخ', type:'النوع', amount:'المبلغ (اختياري)', description:'الوصف', add:'أضف', entries:'السجلات', noEntries:'لا توجد سجلات بعد', delete:'حذف', all:'الكل', filterBy:'تصفية', descPh:'مثال: أخذت طعاماً إلى الجار', added:'تمت الإضافة' },
   tr: { title:'Sadaka Günlüğü', subtitle:'Günlük hayır işlerinizi kaydedin', heroArabic:'صَدَقَة', total:'Toplam İş', totalAmount:'Toplam Tutar', streak:'Ardışık Gün', addTitle:'Yeni İş Ekle', date:'Tarih', type:'Tür', amount:'Tutar (isteğe bağlı)', description:'Açıklama', add:'Ekle', entries:'Kayıtlar', noEntries:'Henüz kayıt yok', delete:'Sil', all:'Tümü', filterBy:'Filtre', descPh:'Örn.: komşuya yemek götürdüm', added:'Eklendi' },
 }
@@ -46,6 +46,13 @@ function getToday() {
 // yoxdur ("2026 M09 19" çıxır) — ona görə azərbaycanca ay adları əl ilə yazılır.
 const AZ_MONTHS_SHORT = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avq', 'sen', 'okt', 'noy', 'dek']
 const DATE_LOCALES = { en: 'en-GB', ru: 'ru-RU', ar: 'ar-u-nu-latn', tr: 'tr-TR' }
+
+// Məbləğ saytın dilinə görə (Zəkat kalkulyatoru ilə eyni lokallar; ərəbcədə latın rəqəmləri)
+const NUM_LOCALES = { az: 'az-AZ', en: 'en-US', ru: 'ru-RU', tr: 'tr-TR', ar: 'ar-u-nu-latn' }
+function formatAmount(v, lang) {
+  const x = Number.isFinite(v) ? v : 0
+  try { return x.toLocaleString(NUM_LOCALES[lang] || 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) } catch { return x.toFixed(2) }
+}
 
 function formatEntryDate(key, lang) {
   const [y, m, d] = String(key || '').split('-').map(Number)
@@ -134,7 +141,8 @@ export default function CharityPage({ setPage }) {
       id: Date.now(),
       date,
       type,
-      amount: amount ? parseFloat(amount) : null,
+      // Yalnız sonlu, müsbət məbləğ ("1e999" → Infinity, mənfi — saxlanmır)
+      amount: Number.isFinite(parseFloat(amount)) && parseFloat(amount) > 0 ? parseFloat(amount) : null,
       description: description.trim(),
     }
     setEntries(prev => [...prev, entry])
@@ -199,7 +207,7 @@ export default function CharityPage({ setPage }) {
             <div className="ch-stat">
               <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="zakat" /></span>
               <div className="ui-stat">
-                <span className="ui-stat__num ui-num ch-bump" key={stats.totalAmount}>{stats.totalAmount > 0 && Number.isFinite(stats.totalAmount) ? stats.totalAmount.toFixed(2) : '0'}</span>
+                <span className="ui-stat__num ui-num ch-bump" key={stats.totalAmount}>{stats.totalAmount > 0 && Number.isFinite(stats.totalAmount) ? formatAmount(stats.totalAmount, lang) : '0'}</span>
                 <span className="ui-stat__label">{t.totalAmount}</span>
               </div>
             </div>
@@ -238,7 +246,7 @@ export default function CharityPage({ setPage }) {
                       className="ui-input"
                       value={amount}
                       onChange={e => setAmount(e.target.value)}
-                      placeholder="0.00"
+                      placeholder={formatAmount(0, lang)}
                       min="0"
                       step="0.01"
                     />
@@ -282,7 +290,7 @@ export default function CharityPage({ setPage }) {
                   </button>
                   {/* Əlavə olunanda qısa təsdiq (ekran oxuyucusu da eşidir) */}
                   <span className="ch-added" role="status" aria-live="polite">
-                    {justAdded && <span key={justAdded} className="ch-added-msg"><Icon name="check" size={16} /> {t.added}</span>}
+                    {justAdded > 0 && <span key={justAdded} className="ch-added-msg"><Icon name="check" size={16} /> {t.added}</span>}
                   </span>
                 </div>
               </form>
@@ -344,7 +352,7 @@ export default function CharityPage({ setPage }) {
                               )}
                             </div>
                             {entry.amount != null && entry.amount > 0 && (
-                              <span className="ch-entry-amount ui-num">{entry.amount.toFixed(2)}</span>
+                              <span className="ch-entry-amount ui-num">{formatAmount(entry.amount, lang)}</span>
                             )}
                             <button
                               type="button"

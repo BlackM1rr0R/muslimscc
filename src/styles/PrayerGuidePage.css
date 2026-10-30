@@ -26,13 +26,13 @@
 /* ══ Rejim seqmenti ═══════════════════════════════════════════════
    Seçilmiş düymənin altında "hap" (thumb) translateX ilə sürüşür (--i) */
 .pg-mode-toggle {
-  --n: 3;
+  --n: 2;   /* Namaz · Dəstəmaz (qunut sekməsi çıxarıldı) */
   position: relative;
   isolation: isolate;
   display: grid;
   grid-template-columns: repeat(var(--n), minmax(0, 1fr));
   gap: 0;
-  width: min(100%, 520px);
+  width: min(100%, 360px);
   margin: 0 auto var(--space-6);
   padding: 4px;
   border-radius: var(--radius-pill);

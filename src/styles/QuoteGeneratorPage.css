@@ -195,6 +195,8 @@
 .qg-studio .ui-chip { min-height: 44px; }
 .qg-studio .ui-icon-btn { min-width: 44px; min-height: 44px; }
 .qg-seg { width: 100%; }
+/* Dar telefonda (360) 4 bölmənin uzun adları ("Свой текст") ellipsis ilə kəsilirdi */
+@media (max-width: 399.98px) { .qg-studio .m-seg-btn { padding-inline: 3px; font-size: 12.5px; line-height: 1.15; white-space: normal; } }
 
 .qg-chips { display: flex; gap: 8px; }
 @media (min-width: 1024px) { .qg-chips { flex-wrap: wrap; } }

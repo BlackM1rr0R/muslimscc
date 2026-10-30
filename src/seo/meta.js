@@ -42,15 +42,15 @@ const FALLBACK = {
 export const META = {
   home: {
     az: { t: 'Quran, Namaz Vaxtları, Hədis və Dua — İslami Platforma',
-          d: '5 dildə 30-dan çox bölməli pulsuz İslami platforma: Quran oxu və dinlə, namaz vaxtları, 1350+ hədis, dua, zikr sayğacı, zəkat və qiblə. Reklamsız.' },
+          d: '5 dildə 30-dan çox bölməli pulsuz İslami platforma: Quran oxu və dinlə, namaz vaxtları, 1250+ hədis, dua, zikr sayğacı, zəkat və qiblə. Reklamsız.' },
     en: { t: 'Quran, Prayer Times, Hadith & Dua — Islamic Platform',
-          d: 'A free Islamic platform with 30+ sections in 5 languages: read and listen to the Quran, prayer times, 1350+ hadith, duas, dhikr, zakat and qibla. No ads.' },
+          d: 'A free Islamic platform with 30+ sections in 5 languages: read and listen to the Quran, prayer times, 1250+ hadith, duas, dhikr, zakat and qibla. No ads.' },
     ru: { t: 'Коран, время намаза, хадисы и дуа — исламская платформа',
-          d: 'Бесплатная исламская платформа: более 30 разделов на 5 языках. Читайте и слушайте Коран, время намаза, 1350+ хадисов, дуа, зикр, закят и кибла.' },
+          d: 'Бесплатная исламская платформа: более 30 разделов на 5 языках. Читайте и слушайте Коран, время намаза, 1250+ хадисов, дуа, зикр, закят и кибла.' },
     tr: { t: 'Kuran, Namaz Vakitleri, Hadis ve Dua — İslami Platform',
-          d: '5 dilde 30’dan fazla bölümlü ücretsiz İslami platform: Kuran oku ve dinle, namaz vakitleri, 1350+ hadis, dua, zikir, zekât ve kıble. Reklamsız.' },
+          d: '5 dilde 30’dan fazla bölümlü ücretsiz İslami platform: Kuran oku ve dinle, namaz vakitleri, 1250+ hadis, dua, zikir, zekât ve kıble. Reklamsız.' },
     ar: { t: 'القرآن ومواقيت الصلاة والحديث والدعاء — منصة إسلامية',
-          d: 'منصة إسلامية مجانية بأكثر من ٣٠ قسماً بخمس لغات: اقرأ القرآن واستمع إليه، ومواقيت الصلاة، وأكثر من ١٣٥٠ حديثاً، والأدعية والأذكار والزكاة والقبلة. بلا إعلانات.' },
+          d: 'منصة إسلامية مجانية بأكثر من ٣٠ قسماً بخمس لغات: اقرأ القرآن واستمع إليه، ومواقيت الصلاة، وأكثر من ١٢٥٠ حديثاً، والأدعية والأذكار والزكاة والقبلة. بلا إعلانات.' },
   },
 
   // ── Camaat, elanlar, ianə ──
@@ -135,32 +135,32 @@ export const META = {
   },
 
   // Say: təkrarsız 1394 hədis (Quran ayələri və "Məşhur" sözlər sayılmır) →
-  // "1350+" — data/siteStats.js-dəki HADITH_COUNT ilə eyni. 15 mövzu.
+  // "1250+" — data/siteStats.js-dəki HADITH_COUNT ilə eyni. 15 mövzu.
   // "Səhih" yazılmır — toplu yalnız səhih hədislərdən ibarət deyil.
   hadith: {
-    az: { t: 'Hədis Toplusu — 1350+ Hədis, 15 Mövzu',
-          d: '1350-dən çox hədisi mövzu üzrə oxu: iman, namaz, əxlaq, ailə, elm və daha çox. Axtarış, favoritlər və paylaşma ilə. Buxari və Müslim mənbələri.' },
-    en: { t: 'Hadith Collection — 1350+ Hadith by Topic',
-          d: 'Browse over 1350 hadith across 15 topics: faith, prayer, character, family, knowledge and more. Full-text search, favourites and one-tap sharing.' },
-    ru: { t: 'Сборник хадисов — 1350+ хадисов по темам',
-          d: 'Более 1350 хадисов по 15 темам: вера, намаз, нравственность, семья, знание и другое. Поиск по тексту, избранное и быстрый обмен.' },
-    tr: { t: 'Hadis Koleksiyonu — 1350+ Hadis, 15 Konu',
-          d: '1350’den fazla hadisi konularına göre oku: iman, namaz, ahlak, aile, ilim ve daha fazlası. Arama, favoriler ve paylaşma özellikleriyle.' },
-    ar: { t: 'مجموعة الأحاديث — أكثر من ١٣٥٠ حديثًا',
-          d: 'تصفح أكثر من ١٣٥٠ حديثًا في ١٥ موضوعاً: الإيمان والصلاة والأخلاق والأسرة والعلم وغيرها، مع البحث الكامل والمفضلة والمشاركة.' },
+    az: { t: 'Hədis Toplusu — 1250+ Hədis, 15 Mövzu',
+          d: '1250-dən çox hədisi mövzu üzrə oxu: iman, namaz, əxlaq, ailə, elm və daha çox. Axtarış, favoritlər və paylaşma ilə. Buxari və Müslim mənbələri.' },
+    en: { t: 'Hadith Collection — 1250+ Hadith by Topic',
+          d: 'Browse over 1250 hadith across 15 topics: faith, prayer, character, family, knowledge and more. Full-text search, favourites and one-tap sharing.' },
+    ru: { t: 'Сборник хадисов — 1250+ хадисов по темам',
+          d: 'Более 1250 хадисов по 15 темам: вера, намаз, нравственность, семья, знание и другое. Поиск по тексту, избранное и быстрый обмен.' },
+    tr: { t: 'Hadis Koleksiyonu — 1250+ Hadis, 15 Konu',
+          d: '1250’den fazla hadisi konularına göre oku: iman, namaz, ahlak, aile, ilim ve daha fazlası. Arama, favoriler ve paylaşma özellikleriyle.' },
+    ar: { t: 'مجموعة الأحاديث — أكثر من ١٢٥٠ حديثًا',
+          d: 'تصفح أكثر من ١٢٥٠ حديثًا في ١٥ موضوعاً: الإيمان والصلاة والأخلاق والأسرة والعلم وغيرها، مع البحث الكامل والمفضلة والمشاركة.' },
   },
 
   duas: {
-    az: { t: 'Dualar və Əzkar — 100+ Gündəlik Dua',
-          d: 'Gündəlik həyat üçün 100+ dua və zikr: səhər-axşam əzkarı, yemək, yuxu, səfər, çətinlik duaları. Ərəb mətni, transkripsiya və tərcümə ilə.' },
-    en: { t: 'Duas & Adhkar — 100+ Daily Supplications',
-          d: 'Over 100 duas and adhkar for daily life: morning and evening remembrance, food, sleep, travel and hardship. With Arabic text, transliteration and translation.' },
-    ru: { t: 'Дуа и азкары — более 100 ежедневных молитв',
-          d: 'Более 100 дуа и азкаров на каждый день: утренние и вечерние поминания, еда, сон, путешествие, трудности. С арабским текстом и переводом.' },
-    tr: { t: 'Dualar ve Ezkâr — 100+ Günlük Dua',
-          d: 'Günlük hayat için 100+ dua ve zikir: sabah-akşam ezkârı, yemek, uyku, yolculuk ve sıkıntı duaları. Arapça metin, okunuşu ve meali ile.' },
-    ar: { t: 'الأدعية والأذكار — أكثر من ١٠٠ دعاء يومي',
-          d: 'أكثر من ١٠٠ دعاء وذكر للحياة اليومية: أذكار الصباح والمساء، والطعام، والنوم، والسفر، والكرب، مع النص العربي والترجمة.' },
+    az: { t: 'Dualar və Əzkar — 80+ Səhih Gündəlik Dua',
+          d: 'Quran və səhih sünnədən gündəlik həyat üçün 80+ dua və zikr: səhər-axşam əzkarı, yemək, yuxu, səfər, çətinlik duaları. Ərəb mətni, transkripsiya və tərcümə ilə.' },
+    en: { t: 'Duas & Adhkar — 80+ Authentic Daily Supplications',
+          d: 'Over 80 duas and adhkar from the Quran and authentic Sunnah for daily life: morning and evening remembrance, food, sleep, travel and hardship. With Arabic text, transliteration and translation.' },
+    ru: { t: 'Дуа и азкары — более 80 достоверных ежедневных мольб',
+          d: 'Более 80 дуа и азкаров из Корана и достоверной Сунны на каждый день: утренние и вечерние поминания, еда, сон, путешествие, трудности. С арабским текстом и переводом.' },
+    tr: { t: 'Dualar ve Ezkâr — 80+ Sahih Günlük Dua',
+          d: 'Kuran ve sahih sünnetten günlük hayat için 80+ dua ve zikir: sabah-akşam ezkârı, yemek, uyku, yolculuk ve sıkıntı duaları. Arapça metin, okunuşu ve meali ile.' },
+    ar: { t: 'الأدعية والأذكار — أكثر من ٨٠ دعاءً يوميًا صحيحًا',
+          d: 'أكثر من ٨٠ دعاءً وذكرًا من القرآن والسنة الصحيحة للحياة اليومية: أذكار الصباح والمساء، والطعام، والنوم، والسفر، والكرب، مع النص العربي والترجمة.' },
   },
 
   dhikr: {

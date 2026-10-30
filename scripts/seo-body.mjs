@@ -119,6 +119,12 @@ function surahBody(lang, n) {
       ? `<p class="seo-static__basmala ui-arabic" lang="ar" dir="rtl">${BASMALA_DISPLAY}</p>` +
         (L.basmalah ? `<p class="seo-static__basmala-tr">${esc(L.basmalah)}</p>` : '')
       : '') +
+    // PERFORMANS: uzun surədə (Bəqərə — 286 ayə) ekrandan kənar ayələrin
+    // üslub/düzülüş hesabı brauzer görənədək təxirə salınır (content-visibility).
+    // Mətn HTML-də tam qalır — robotlar, axtarış (Ctrl+F) və ekran oxuyucusu
+    // onu görür. Qayda statik blokla birgə silinir (React onu əvəz edəndə);
+    // .seo-static üslubu globals.css-dədir, bu yalnız surə siyahısına aiddir.
+    `<style>.seo-static__list>li{content-visibility:auto;contain-intrinsic-block-size:auto 300px}</style>` +
     `<ol class="seo-static__list">${ayahs}</ol>` +
     // Ərəbcədə nəşrin adı onsuz da "التفسير الميسر" yazısıdır — təkrar edilmir
     `<p class="seo-static__src">${esc(L.textSource)} ${lang === 'ar' ? '' : `${esc(L.translation)}: ${esc(trName)}. `}` +
@@ -258,4 +264,25 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'names') return param ? nameBody(lang, param) : namesListBody(lang)
   if (key === 'sahaba') return param ? sahabaBody(lang, param) : sahabaListBody(lang)
   return ''
+}
+
+/**
+ * <head> üçün məlumat preload-ları (scripts/prerender.mjs → PERF:PRELOAD).
+ *
+ * PERFORMANS (LCP): Quran səhifəsi (QuranPage.jsx → useQuranList / useSurah)
+ * alquran.cloud sorğularını JS yüklənəndən SONRA göndərirdi; preload onları
+ * HTML oxunan kimi başladır — oxuyucu surəni daha tez göstərir. URL-lər
+ * fetch-dəkilərlə hərfbəhərf eyni olmalıdır (nəşrlər: QuranPage.jsx →
+ * EDITION_MAP; ərəbcədə ikinci nəşr ar.muyassar — EDITION.ar ilə eyni).
+ * crossorigin="anonymous" — fetch()-in cors / same-origin rejimi ilə uyğun.
+ * <head>-də olmalıdır: <body>-dəki statik blokda olanda React bloku silir
+ * və preload istifadə olunmurdu (sorğu iki dəfə gedirdi — yoxlanılıb).
+ */
+export function staticPreloadFor(key, lang, param = null) {
+  if (key !== 'quran' || !LANGS.includes(lang)) return ''
+  const api = 'https://api.alquran.cloud/v1'
+  const links = [`<link rel="preconnect" href="https://api.alquran.cloud" crossorigin />`]
+  if (param) links.push(`<link rel="preload" as="fetch" crossorigin="anonymous" href="${api}/surah/${param}/editions/ar.alafasy,${EDITION[lang]}" />`)
+  links.push(`<link rel="preload" as="fetch" crossorigin="anonymous" href="${api}/surah" />`)
+  return links.map(l => '\n    ' + l).join('')
 }

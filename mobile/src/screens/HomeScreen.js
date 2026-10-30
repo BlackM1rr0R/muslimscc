@@ -277,7 +277,7 @@ const ALLAH_NAMES = [
   { ar:'ٱلْغَفُور',  name:'Ğafur',  color:'#14b8a6', meaning:{ az:'Bağışlayan',          en:'The Forgiving',              ru:'Прощающий',             ar:'الغفور', tr:'Gafûr' } },
   { ar:'ٱلْوَدُود',  name:'Vədud',  color:'#a855f7', meaning:{ az:'Sevən',               en:'The Loving',                 ru:'Любящий',               ar:'الودود', tr:'Vedûd' } },
   { ar:'ٱلْحَكِيم',  name:'Həkim',  color:'#6366f1', meaning:{ az:'Hikmət sahibi',       en:'The Wise',                   ru:'Мудрый',                ar:'الحكيم', tr:'Hakîm' } },
-  { ar:'ٱلنُّور',    name:'Nur',    color:'#fbbf24', meaning:{ az:'Nur (İşıq)',          en:'The Light',                  ru:'Свет',                  ar:'النور',  tr:'Nûr' } },
+  { ar:'ٱلْكَرِيم',  name:'Kərim',  color:'#fbbf24', meaning:{ az:'Kərəmli',             en:'The Generous',               ru:'Щедрый',                ar:'الكريم', tr:'Kerîm' } },
   { ar:'ٱلتَّوَّاب', name:'Tövvab', color:'#84cc16', meaning:{ az:'Tövbələri qəbul edən', en:'The Acceptor of Repentance', ru:'Принимающий покаяние', ar:'التواب', tr:'Tevvâb' } },
   { ar:'ٱلْمُؤْمِن', name:'Mömin',  color:'#ef4444', meaning:{ az:'Güvən verən',         en:'The Granter of Security',    ru:'Дарующий веру',         ar:'المؤمن', tr:"Mü'min" } },
 ];

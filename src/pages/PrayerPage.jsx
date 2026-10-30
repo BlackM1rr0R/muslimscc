@@ -12,6 +12,7 @@ import Icon from '../components/Icon'
 import '../styles/PrayerPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import { showLocalNotification } from '../utils/notify'
+import { localizeSource } from '../utils/sourceNames'
 import { playAzan } from '../utils/azanAudio'
 import RamadanCard from '../components/RamadanCard'
 import PrayerCheckinCard from '../components/PrayerCheckinCard'
@@ -212,23 +213,25 @@ const PRAYER_ICONS = { Fajr:'sunrise', Sunrise:'sun', Dhuhr:'sun', Asr:'sunLow',
 // .m-check-in ✓ xətti (motion.css)
 const CHECK_PATH = 'M6.5 12.5l3.8 3.8L17.5 8.5'
 
+// Sünnə namazları və namaz duaları — hər birinin mənbəyi source sahəsindədir (sunnah.com ilə
+// yoxlanılıb). Vitr: rükət sayı 1-dən başlayır (Muslim 752), təhəccüdün yuxarı həddi yoxdur (Buxari 990).
 const SUNNAH_PRAYERS = [
-  { icon:'sunrise', rakat:'2', name:{ az:'Sübh sünnəsi', en:'Fajr Sunnah', ru:'Сунна Фаджр', ar:'سنة الفجر', tr:'Sabah sünneti' }, desc:{ az:'Fərz namazdan əvvəl 2 rükət', en:'2 rakat before Fajr', ru:'2 ракаата до Фаджр', ar:'ركعتان قبل الفجر', tr:'Farzdan önce 2 rekât' }},
-  { icon:'sun', rakat:'4+2', name:{ az:'Zöhr sünnəsi', en:'Dhuhr Sunnah', ru:'Сунна Зухр', ar:'سنة الظهر', tr:'Öğle sünneti' }, desc:{ az:'Fərzdən əvvəl 4, sonra 2 rükət', en:'4 before, 2 after Dhuhr', ru:'4 до и 2 после Зухр', ar:'أربع قبل وركعتان بعد الظهر', tr:'Farzdan önce 4, sonra 2 rekât' }},
-  { icon:'sunLow', rakat:'4', name:{ az:'Əsr sünnəsi', en:'Asr Sunnah', ru:'Сунна Аср', ar:'سنة العصر', tr:'İkindi sünneti' }, desc:{ az:'Müstəhəb — 4 rükət əvvəl', en:'Recommended — 4 rakat before', ru:'Рекомендуется — 4 ракаата до', ar:'مستحب — أربع ركعات قبل', tr:'Müstehap — farzdan önce 4 rekât' }},
-  { icon:'sunset', rakat:'2', name:{ az:'Məğrib sünnəsi', en:'Maghrib Sunnah', ru:'Сунна Магриб', ar:'سنة المغرب', tr:'Akşam sünneti' }, desc:{ az:'Fərzdən sonra 2 rükət', en:'2 rakat after Maghrib', ru:'2 ракаата после Магриб', ar:'ركعتان بعد المغرب', tr:'Farzdan sonra 2 rekât' }},
-  { icon:'moon', rakat:'2', name:{ az:'İşa sünnəsi', en:'Isha Sunnah', ru:'Сунна Иша', ar:'سنة العشاء', tr:'Yatsı sünneti' }, desc:{ az:'Fərzdən sonra 2 rükət', en:'2 rakat after Isha', ru:'2 ракаата после Иша', ar:'ركعتان بعد العشاء', tr:'Farzdan sonra 2 rekât' }},
-  { icon:'moon', rakat:'3', name:{ az:'Vitr namazı', en:'Witr Prayer', ru:'Витр намаз', ar:'صلاة الوتر', tr:'Vitir namazı' }, desc:{ az:'İşadan sonra, yatmadan əvvəl', en:'After Isha, before sleeping', ru:'После Иша, перед сном', ar:'بعد العشاء وقبل النوم', tr:'Yatsıdan sonra, yatmadan önce' }},
-  { icon:'duas', rakat:'2–8', name:{ az:'Təhəccüd', en:'Tahajjud', ru:'Тахаджуд', ar:'تهجد', tr:'Teheccüd' }, desc:{ az:'Gecə namazı — ən fəzilətli nafilə', en:'Night prayer — most virtuous voluntary prayer', ru:'Ночной намаз — самая достойная добровольная молитва', ar:'صلاة الليل — أفضل النوافل', tr:'Gece namazı — en faziletli nafile' }},
-  { icon:'sun', rakat:'2', name:{ az:'Duha namazı', en:'Duha Prayer', ru:'Намаз Духа', ar:'صلاة الضحى', tr:'Kuşluk namazı' }, desc:{ az:'Günəş doğandan 15 dəq sonra — zöhrdən əvvəl', en:'15 min after sunrise until before Dhuhr', ru:'Через 15 мин после рассвета до Зухр', ar:'بعد شروق الشمس بربع ساعة حتى قبل الظهر', tr:'Güneş doğduktan 15 dk sonra — öğleye kadar' }},
+  { icon:'sunrise', rakat:'2', name:{ az:'Sübh sünnəsi', en:'Fajr Sunnah', ru:'Сунна Фаджр', ar:'سنة الفجر', tr:'Sabah sünneti' }, desc:{ az:'Fərz namazdan əvvəl 2 rükət', en:'2 rakat before Fajr', ru:'2 ракаата до Фаджр', ar:'ركعتان قبل الفجر', tr:'Farzdan önce 2 rekât' }, source:'Muslim 725' },
+  { icon:'sun', rakat:'4+2', name:{ az:'Zöhr sünnəsi', en:'Dhuhr Sunnah', ru:'Сунна Зухр', ar:'سنة الظهر', tr:'Öğle sünneti' }, desc:{ az:'Fərzdən əvvəl 4, sonra 2 rükət', en:'4 before, 2 after Dhuhr', ru:'4 до и 2 после Зухр', ar:'أربع قبل وركعتان بعد الظهر', tr:'Farzdan önce 4, sonra 2 rekât' }, source:'Tirmizi 415' },
+  { icon:'sunLow', rakat:'4', name:{ az:'Əsr sünnəsi', en:'Asr Sunnah', ru:'Сунна Аср', ar:'سنة العصر', tr:'İkindi sünneti' }, desc:{ az:'Müstəhəb — 4 rükət əvvəl', en:'Recommended — 4 rakat before', ru:'Рекомендуется — 4 ракаата до', ar:'مستحب — أربع ركعات قبل', tr:'Müstehap — farzdan önce 4 rekât' }, source:'Əbu Davud 1271' },
+  { icon:'sunset', rakat:'2', name:{ az:'Məğrib sünnəsi', en:'Maghrib Sunnah', ru:'Сунна Магриб', ar:'سنة المغرب', tr:'Akşam sünneti' }, desc:{ az:'Fərzdən sonra 2 rükət', en:'2 rakat after Maghrib', ru:'2 ракаата после Магриб', ar:'ركعتان بعد المغرب', tr:'Farzdan sonra 2 rekât' }, source:'Tirmizi 415' },
+  { icon:'moon', rakat:'2', name:{ az:'İşa sünnəsi', en:'Isha Sunnah', ru:'Сунна Иша', ar:'سنة العشاء', tr:'Yatsı sünneti' }, desc:{ az:'Fərzdən sonra 2 rükət', en:'2 rakat after Isha', ru:'2 ракаата после Иша', ar:'ركعتان بعد العشاء', tr:'Farzdan sonra 2 rekât' }, source:'Tirmizi 415' },
+  { icon:'moon', rakat:'1+', name:{ az:'Vitr namazı', en:'Witr Prayer', ru:'Витр намаз', ar:'صلاة الوتر', tr:'Vitir namazı' }, desc:{ az:'İşadan fəcrə qədər, ən azı 1 rükət; oyanacağına əmin olan üçün gecənin sonunda əfzəldir', en:'From Isha until Fajr, at least 1 rakat; best at the end of the night for one sure to wake', ru:'От Иша до рассвета, минимум 1 ракаат; лучше в конце ночи, если уверен, что проснётся', ar:'من العشاء إلى الفجر، أقله ركعة، وآخر الليل أفضل لمن طمع أن يقوم', tr:'Yatsıdan fecre kadar, en az 1 rekât; kalkacağından emin olan için gecenin sonunda efdaldir' }, source:'Muslim 752, 755' },
+  { icon:'duas', rakat:'2+', name:{ az:'Təhəccüd', en:'Tahajjud', ru:'Тахаджуд', ar:'تهجد', tr:'Teheccüd' }, desc:{ az:'Gecə namazı — ən fəzilətli nafilə', en:'Night prayer — most virtuous voluntary prayer', ru:'Ночной намаз — самая достойная добровольная молитва', ar:'صلاة الليل — أفضل النوافل', tr:'Gece namazı — en faziletli nafile' }, source:'Muslim 1163; Buxari 990' },
+  { icon:'sun', rakat:'2', name:{ az:'Duha namazı', en:'Duha Prayer', ru:'Намаз Духа', ar:'صلاة الضحى', tr:'Kuşluk namazı' }, desc:{ az:'Günəş doğandan 15 dəq sonra — zöhrdən əvvəl', en:'15 min after sunrise until before Dhuhr', ru:'Через 15 мин после рассвета до Зухр', ar:'بعد شروق الشمس بربع ساعة حتى قبل الظهر', tr:'Güneş doğduktan 15 dk sonra — öğleye kadar' }, source:'Muslim 720, 748' },
 ]
 
 const PRAYER_DUAS = [
-  { name:{ az:'İstiftah duası', en:'Opening Dua (Istiftah)', ru:'Дуа Истифтах', ar:'دعاء الاستفتاح', tr:'İstiftah duası' }, ar:'سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ وَتَبَارَكَ اسْمُكَ وَتَعَالَى جَدُّكَ وَلاَ إِلَهَ غَيْرُكَ', trans:{ az:'Allahım, Səni təsbih edir, Sənə həmd edirəm. Adın mübarəkdir, şanın ucadır, Səndən başqa ilah yoxdur.', en:'Glory be to You O Allah, and praise. Blessed is Your name, exalted is Your majesty, there is no god but You.', ru:'Пречист Ты, о Аллах, и хвала Тебе. Благословенно имя Твоё, возвышено величие Твоё, и нет бога, кроме Тебя.', ar:'سبحانك اللهم وبحمدك، تبارك اسمك وتعالى جدك، ولا إله غيرك', tr:'Seni tesbih ederim Allah\'ım ve Sana hamd ederim. Adın mübarektir, şanın yücedir, Senden başka ilah yoktur.' }},
-  { name:{ az:'Rüku duası', en:'Ruku Dua', ru:'Дуа руку', ar:'دعاء الركوع', tr:'Rükû duası' }, ar:'سُبْحَانَ رَبِّيَ الْعَظِيم', trans:{ az:'Uca Rəbbim nöqsansızdır.', en:'Glory be to my Lord, the Most Great.', ru:'Пречист мой Господь Великий.', ar:'سبحان ربي العظيم', tr:'Ulu Rabbim noksansızdır.' }},
-  { name:{ az:'Səcdə duası', en:'Sujud Dua', ru:'Дуа суджуд', ar:'دعاء السجود', tr:'Secde duası' }, ar:'سُبْحَانَ رَبِّيَ الأَعْلَى', trans:{ az:'Ən Uca Rəbbim nöqsansızdır.', en:'Glory be to my Lord, the Most High.', ru:'Пречист мой Господь Всевышний.', ar:'سبحان ربي الأعلى', tr:'Yüce Rabbim noksansızdır.' }},
-  { name:{ az:'Təşəhhüd', en:'Tashahhud', ru:'Ташаххуд', ar:'التشهد', tr:'Tahiyyat' }, ar:'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلاَمُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ', trans:{ az:'Bütün salamlar, namazlar və yaxşılıqlar Allaha məxsusdur. Ey Peyğəmbər, sənə Allahın salamı, rəhməti və bərəkəti olsun.', en:'All greetings, prayers and good deeds are for Allah. Peace be upon you, O Prophet, and the mercy of Allah and His blessings.', ru:'Все приветствия, молитвы и благие дела — Аллаху. Мир тебе, о Пророк, и милость Аллаха, и Его благословения.', ar:'التحيات لله والصلوات والطيبات، السلام عليك أيها النبي ورحمة الله وبركاته', tr:'Tahiyyat, salavat ve tayyibat Allah\'a aittir. Ey Peygamber, Allah\'ın selamı, rahmeti ve bereketi senin üzerine olsun.' }},
-  { name:{ az:'Salavat', en:'Salawat', ru:'Салават', ar:'الصلاة الإبراهيمية', tr:'Salli-Barik' }, ar:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ', trans:{ az:'Allahım, İbrahimə salavat gətirdiyin kimi, Muhammədə və ailəsinə də salavat gətir.', en:'O Allah, send blessings upon Muhammad and his family as You sent blessings upon Ibrahim.', ru:'О Аллах, благослови Мухаммада и его семью, как Ты благословил Ибрахима.', ar:'اللهم صل على محمد وعلى آل محمد كما صليت على إبراهيم', tr:'Allah\'ım, İbrahim\'e salat ettiğin gibi Muhammed\'e ve ailesine de salat et.' }},
+  { name:{ az:'İstiftah duası', en:'Opening Dua (Istiftah)', ru:'Дуа Истифтах', ar:'دعاء الاستفتاح', tr:'İstiftah duası' }, ar:'سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ وَتَبَارَكَ اسْمُكَ وَتَعَالَى جَدُّكَ وَلاَ إِلَهَ غَيْرُكَ', trans:{ az:'Allahım, Səni təsbih edir, Sənə həmd edirəm. Adın mübarəkdir, şanın ucadır, Səndən başqa ilah yoxdur.', en:'Glory be to You O Allah, and praise. Blessed is Your name, exalted is Your majesty, there is no god but You.', ru:'Пречист Ты, о Аллах, и хвала Тебе. Благословенно имя Твоё, возвышено величие Твоё, и нет бога, кроме Тебя.', ar:'سبحانك اللهم وبحمدك، تبارك اسمك وتعالى جدك، ولا إله غيرك', tr:'Seni tesbih ederim Allah\'ım ve Sana hamd ederim. Adın mübarektir, şanın yücedir, Senden başka ilah yoktur.' }, source:'Əbu Davud 775' },
+  { name:{ az:'Rüku duası', en:'Ruku Dua', ru:'Дуа руку', ar:'دعاء الركوع', tr:'Rükû duası' }, ar:'سُبْحَانَ رَبِّيَ الْعَظِيم', trans:{ az:'Uca Rəbbim nöqsansızdır.', en:'Glory be to my Lord, the Most Great.', ru:'Пречист мой Господь Великий.', ar:'سبحان ربي العظيم', tr:'Ulu Rabbim noksansızdır.' }, source:'Muslim 772' },
+  { name:{ az:'Səcdə duası', en:'Sujud Dua', ru:'Дуа суджуд', ar:'دعاء السجود', tr:'Secde duası' }, ar:'سُبْحَانَ رَبِّيَ الأَعْلَى', trans:{ az:'Ən Uca Rəbbim nöqsansızdır.', en:'Glory be to my Lord, the Most High.', ru:'Пречист мой Господь Всевышний.', ar:'سبحان ربي الأعلى', tr:'Yüce Rabbim noksansızdır.' }, source:'Muslim 772' },
+  { name:{ az:'Təşəhhüd', en:'Tashahhud', ru:'Ташаххуд', ar:'التشهد', tr:'Tahiyyat' }, ar:'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلاَمُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ', trans:{ az:'Bütün salamlar, namazlar və yaxşılıqlar Allaha məxsusdur. Ey Peyğəmbər, sənə Allahın salamı, rəhməti və bərəkəti olsun.', en:'All greetings, prayers and good deeds are for Allah. Peace be upon you, O Prophet, and the mercy of Allah and His blessings.', ru:'Все приветствия, молитвы и благие дела — Аллаху. Мир тебе, о Пророк, и милость Аллаха, и Его благословения.', ar:'التحيات لله والصلوات والطيبات، السلام عليك أيها النبي ورحمة الله وبركاته', tr:'Tahiyyat, salavat ve tayyibat Allah\'a aittir. Ey Peygamber, Allah\'ın selamı, rahmeti ve bereketi senin üzerine olsun.' }, source:'Buxari 831' },
+  { name:{ az:'Salavat', en:'Salawat', ru:'Салават', ar:'الصلاة الإبراهيمية', tr:'Salli-Barik' }, ar:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ', trans:{ az:'Allahım, İbrahimə salavat gətirdiyin kimi, Muhammədə və ailəsinə də salavat gətir.', en:'O Allah, send blessings upon Muhammad and his family as You sent blessings upon Ibrahim.', ru:'О Аллах, благослови Мухаммада и его семью, как Ты благословил Ибрахима.', ar:'اللهم صل على محمد وعلى آل محمد كما صليت على إبراهيم', tr:'Allah\'ım, İbrahim\'e salat ettiğin gibi Muhammed\'e ve ailesine de salat et.' }, source:'Buxari 3370' },
 ]
 
 const SUNNAH_LABELS = { az:'Sünnə namazları', en:'Sunnah Prayers', ru:'Сунна-намазы', ar:'صلوات السنة', tr:'Sünnet Namazları' }
@@ -386,7 +389,7 @@ export default function PrayerPage({ setPage }) {
     done:       { az:'qılındı',          ru:'выполнено',           ar:'مُؤدَّاة',           tr:'kılındı',          en:'completed'            },
     of:         { az:'/',               ru:'из',                  ar:'من',               tr:'/',                en:'of'                   },
     monthStat:  { az:'bu ay',           ru:'в этом месяце',       ar:'هذا الشهر',        tr:'bu ay',            en:'this month'           },
-    tapHint:    { az:'Klik edərək işarələyin', ru:'Нажмите, чтобы отметить', ar:'اضغط للتحديد', tr:'İşaretlemek için tıklayın', en:'Tap to mark' },
+    tapHint:    { az:'İşarələmək üçün toxunun', ru:'Нажмите, чтобы отметить', ar:'اضغط للتحديد', tr:'İşaretlemek için dokunun', en:'Tap to mark' },
   }
   const s = (k) => L[k][lk]
 
@@ -633,6 +636,7 @@ export default function PrayerPage({ setPage }) {
                       <div className="sunnah-info">
                         <div className="sunnah-name">{sp.name[lk] || sp.name.en}</div>
                         <div className="sunnah-desc">{sp.desc[lk] || sp.desc.en}</div>
+                        {sp.source && <div className="sunnah-source">{localizeSource(sp.source, lang)}</div>}
                       </div>
                       <span className="sunnah-rakat ui-num">{sp.rakat}</span>
                     </li>
@@ -676,6 +680,7 @@ export default function PrayerPage({ setPage }) {
                       <p className="prayer-dua-ar ui-arabic" lang="ar" dir="rtl">{d.ar}</p>
                       {/* Ərəbcə saytda tərcümə sətri ərəbcə mətnin təkrarıdır — göstərilmir */}
                       {lang !== 'ar' && <p className="prayer-dua-trans">{d.trans[lk] || d.trans.en}</p>}
+                      {d.source && <p className="prayer-dua-source">{localizeSource(d.source, lang)}</p>}
                     </div>
                   ))}
                 </div>

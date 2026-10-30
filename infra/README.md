@@ -11,7 +11,7 @@
 | Konteyner | Image | Nə edir |
 |---|---|---|
 | `web` | `infra/web.Dockerfile` | Sayt (Vite build + prerender) + `/api/` proksi. Yeganə açıq xidmət. |
-| `api` | `server/Dockerfile` | `server/server.js`: AI köməkçi, admin push, **azan push planlayıcısı** (hər abunəçiyə öz şəhərinin vaxtında). Port açmır. |
+| `api` | `server/Dockerfile` | `server/server.js`: AI köməkçi, məzmun API-si və admin girişi (SQLite, volume `api-data` → `/data`), admin push, **azan push planlayıcısı** (hər abunəçiyə öz şəhərinin vaxtında). Port açmır. Firebase-dən çıxış: [docs/FIREBASE-EXIT.md](../docs/FIREBASE-EXIT.md). |
 
 Serverdə hər şey `/opt/muslimscc/`-dədir:
 
@@ -23,6 +23,7 @@ Serverdə hər şey `/opt/muslimscc/`-dədir:
 | `deploy.sh`, `ci-gate.sh` | `infra/`-dan |
 | `releases/<TAG>/` | CI-ın yüklədiyi image-lər (son 3 versiya saxlanılır) |
 | `.current_tag`, `.previous_tag` | canlı və əvvəlki versiya |
+| `backup.sh`, `backups/` | SQLite-ın gündəlik ehtiyat nüsxəsi (systemd timer `muslimscc-backup`, 14 gün) — docs/FIREBASE-EXIT.md |
 
 ## Deploy — avtomatik
 

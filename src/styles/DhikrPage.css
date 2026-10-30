@@ -261,6 +261,20 @@
   line-height: 1.6;
 }
 .dhikr-virtue svg { flex-shrink: 0; margin-top: 3px; color: var(--accent); }
+/* Fəzilətin mənbəyi və barmaqla sayma sünnəsi haqqında qeyd */
+.dhikr-source {
+  margin: 4px 0 0;
+  color: var(--text-muted, var(--text-secondary));
+  font-size: var(--step--2, 0.8rem);
+}
+.dhikr-sunnah-note {
+  max-width: 52ch;
+  margin: var(--space-1, 8px) auto 0;
+  color: var(--text-secondary);
+  font-size: var(--step--2, 0.8rem);
+  line-height: 1.55;
+}
+.dhikr-sunnah-note .dhikr-source { display: inline; margin: 0; }
 .dhikr-complete-badge {
   display: inline-flex;
   align-items: center;

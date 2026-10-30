@@ -126,7 +126,7 @@ export function buildDailyItems(lang, day, admin) {
   const d = pick(DUA_POOL, day, 2)
   if (d) items.push({ type: 'dua', page: 'duas', ar: d.ar, name: '', text: lang === 'ar' ? '' : (d[lang] || d.en), source: d.source })
 
-  // 4) Günün zikri — admin doldurubsa onu, yoxsa DHIKRS (mənbə sahəsi yoxdur — uydurmuruq)
+  // 4) Günün zikri — admin doldurubsa onu, yoxsa DHIKRS (fəzilətin mənbəyi data/dhikr.js-dəki source sahəsidir)
   const ad = admin?.dhikr
   const adminDhikr = ad && (filled(ad.ar) || filled(ad.translit))
     ? { type: 'dhikr', page: 'dhikr', ar: str(ad.ar), name: lang === 'ar' ? '' : str(ad.translit), text: textFor(ad.text, lang, ad.ar), source: '' }
@@ -140,7 +140,7 @@ export function buildDailyItems(lang, day, admin) {
       // ərəb dilində ad elə ərəbcə zikrin özüdür — təkrar etmirik
       name: lang === 'ar' ? '' : (z[lang] || z.en),
       text: z.virtue?.[lang] || z.virtue?.en || '',
-      source: '',
+      source: z.source || '',
     })
   }
 

@@ -11,7 +11,7 @@
 
 .anp-page .ui-page-hero__crumbs .breadcrumb { justify-content: flex-start; margin: 0; }
 .anp-page .ui-page-hero__crumbs .bc-list { justify-content: flex-start; }
-.anp-hero-ar { color: var(--accent-text); font-size: clamp(20px, 2vw, 24px); line-height: 1.5; }
+.anp-hero-ar { margin-top: -2px; color: var(--accent-text); font-size: clamp(20px, 2vw, 24px); line-height: 1.5; }
 
 .anp-wrap {
   display: flex;

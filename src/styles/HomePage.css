@@ -33,7 +33,8 @@
   width: 100%;
   max-width: calc(var(--hp-maxw) + 2 * var(--page-gutter));
   margin-inline: auto;
-  padding-inline: var(--page-gutter);
+  /* son kənarda üzən dok üçün zolaq — globals.css → --page-gutter-end */
+  padding-inline: var(--page-gutter) var(--page-gutter-end, var(--page-gutter));
 }
 
 /* Bölmə başlığı: eyebrow → başlıq → alt mətn, mərkəzdə */

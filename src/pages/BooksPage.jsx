@@ -46,6 +46,27 @@ function sheetExitMs() {
   } catch { return 0 }
 }
 
+// Say + isim uzlaşması (ru: 1 книга · 3 книги · 5 книг; ar: 3–10 cəm, 11+ tək
+// mənsub; en: 1 book). Digər dillərdə etiket olduğu kimi qalır.
+// (az/tr-də say ilə isim dəyişmir — orada LABELS-dəki söz işlənir)
+const PLURAL_FORMS = {
+  books_ru: ['книга', 'книги', 'книг'], books_ar: ['كتاب', 'كتب', 'كتابًا'], books_en: ['book', 'books'],
+  pages_ru: ['страница', 'страницы', 'страниц'], pages_ar: ['صفحة', 'صفحات', 'صفحةً'], pages_en: ['page', 'pages'],
+}
+function countWord(n, key, lang, fallback) {
+  const f = PLURAL_FORMS[`${key}_${lang}`]
+  const x = Number(n)
+  if (!f || !Number.isFinite(x)) return fallback
+  if (lang === 'en') return x === 1 ? f[0] : f[1]
+  if (lang === 'ru') {
+    const a = x % 100, b = x % 10
+    return a > 10 && a < 20 ? f[2] : b === 1 ? f[0] : b >= 2 && b <= 4 ? f[1] : f[2]
+  }
+  // ar
+  const a = x % 100
+  return a >= 3 && a <= 10 ? f[1] : x > 10 ? f[2] : f[0]
+}
+
 export default function BooksPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
@@ -228,7 +249,7 @@ export default function BooksPage({ setPage }) {
             <div className="bp-hero-stats" data-reveal="fade">
               <div className="ui-stat">
                 <span className="ui-stat__num" data-count={books.length}>{books.length}</span>
-                <span className="ui-stat__label">{l.books}</span>
+                <span className="ui-stat__label">{countWord(books.length, 'books', lang, l.books)}</span>
               </div>
             </div>
           )}
@@ -362,8 +383,9 @@ export default function BooksPage({ setPage }) {
                     <p className="bp-author">{pickLang(b.author, lang, { warn: false })}</p>
                     {(b.pages || b.year) && (
                       <div className="bp-meta ui-num">
-                        {b.pages && <span>{b.pages} {l.pages}</span>}
-                        {b.year && <span>{b.year}</span>}
+                        {b.pages && <span>{b.pages} {countWord(b.pages, 'pages', lang, l.pages)}</span>}
+                        {/* İl rəqəmi tək qalanda nə olduğu bilinmirdi ("604 səhifə 1973") — ipucu + ekran oxuyucusu üçün etiket */}
+                        {b.year && <span title={l.year}><span className="ui-sr-only">{l.year}: </span>{b.year}</span>}
                       </div>
                     )}
                     <div className="bp-actions">
@@ -388,7 +410,7 @@ export default function BooksPage({ setPage }) {
 
           {/* Sonsuz sürüşmə: altda skeleton + "Daha çox göstər", sonda "Hamısı göstərildi" */}
           {!loading && (
-            <ListMore {...inf} endText={`${filtered.length} ${l.books}`} minForEnd={BATCH} skeleton={
+            <ListMore {...inf} endText={`${filtered.length} ${countWord(filtered.length, 'books', lang, l.books)}`} minForEnd={BATCH} skeleton={
               <div className="bp-grid" aria-hidden="true">
                 {[0, 1, 2].map(i => (
                   <div key={i} className="ui-card ui-card--flush bp-skel-card">
@@ -441,7 +463,7 @@ export default function BooksPage({ setPage }) {
 
                   {(selectedBook.pages || selectedBook.year) && (
                     <div className="bp-modal-meta ui-num">
-                      {selectedBook.pages && <span className="ui-badge">{selectedBook.pages} {l.pages}</span>}
+                      {selectedBook.pages && <span className="ui-badge">{selectedBook.pages} {countWord(selectedBook.pages, 'pages', lang, l.pages)}</span>}
                       {selectedBook.year && <span className="ui-badge"><Icon name="calendar" size={13} /> {selectedBook.year}</span>}
                     </div>
                   )}

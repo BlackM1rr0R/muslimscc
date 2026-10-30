@@ -611,7 +611,15 @@
 .ayah-num::before { inset: 4px; }
 @media (hover: hover) { .ayah-num:hover::before { transform: rotate(22.5deg); } }
 .ayah-num:active { transform: scale(0.94); }
-.ayah-body { flex: 1; min-width: 0; }
+/* PERFORMANS: uzun surədə (Bəqərə — 286 ayə) ekrandan kənar kartların ərəb
+   mətninin düzülüşü brauzer ora çatanadək təxirə salınır (telefonda 286 kartın
+   düzülüşü ~2 s-lik tapşırıq idi — 4x CPU). Kartın özünə yox, mətn blokuna
+   verilir: content-visibility "paint containment" gətirir və kartın kənara
+   çıxan halqalarını (dinlənən ayə, "Ayəyə keç" vurğusu) kəsərdi. Mətn DOM-da
+   qalır — axtarış (Ctrl+F) və ekran oxuyucusu görür; "auto" bir dəfə ölçülmüş
+   real hündürlüyü yadda saxlayır. Təxmini hündürlük orta ayəyə yaxındır;
+   "Ayəyə keç" hədəfi sonra dəqiqləşdirir (QuranPage.jsx → goToAyah → settle). */
+.ayah-body { flex: 1; min-width: 0; content-visibility: auto; contain-intrinsic-block-size: auto 260px; }
 .ayah-arabic {
   margin-bottom: 10px;
   font-family: var(--font-arabic);
@@ -866,6 +874,20 @@
     overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
   }
   .reader-controls::-webkit-scrollbar { display: none; }
+  /* Sığmayan düymələr: daha düymə olan kənar solur (JS: data-more-start/-end).
+     Fiziki istiqamət: "start" LTR-də sol, RTL-də sağ tərəfdir */
+  .reader-controls[data-more-end] { -webkit-mask-image: linear-gradient(to left, transparent, #000 32px); mask-image: linear-gradient(to left, transparent, #000 32px); }
+  .reader-controls[data-more-start] { -webkit-mask-image: linear-gradient(to right, transparent, #000 32px); mask-image: linear-gradient(to right, transparent, #000 32px); }
+  .reader-controls[data-more-start][data-more-end] {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+  }
+  [dir="rtl"] .reader-controls[data-more-end] { -webkit-mask-image: linear-gradient(to right, transparent, #000 32px); mask-image: linear-gradient(to right, transparent, #000 32px); }
+  [dir="rtl"] .reader-controls[data-more-start] { -webkit-mask-image: linear-gradient(to left, transparent, #000 32px); mask-image: linear-gradient(to left, transparent, #000 32px); }
+  [dir="rtl"] .reader-controls[data-more-start][data-more-end] {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+  }
   .ctrl-btn { flex-shrink: 0; padding-inline: 11px; border-radius: var(--radius-pill); }
   .ctrl-nav { min-width: 44px; padding-inline: 10px; }
   .ctrl-nav .ctrl-label { display: none; }

@@ -1,0 +1,11 @@
+# Hər gün 02:30 UTC (±10 dəq) — kompüter sönülü olubsa, açılanda bir dəfə (Persistent)
+[Unit]
+Description=Muslims.cc SQLite backup (daily)
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 UTC
+RandomizedDelaySec=600
+Persistent=true
+
+[Install]
+WantedBy=timers.target

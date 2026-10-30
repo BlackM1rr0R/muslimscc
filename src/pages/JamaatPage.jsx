@@ -173,7 +173,7 @@ const HIJRI_MONTHS = {
 // aladhan hesablama metodları (saytda istifadə olunan)
 const METHOD_NAMES = {
   13: {
-    az: 'Diyanet İşləri Başqanlığı (Türkiyə)',
+    az: 'Türkiyə Diyanət İşləri Başqanlığı',
     en: 'Diyanet (Presidency of Religious Affairs, Türkiye)',
     ru: 'Диянет (Управление по делам религии Турции)',
     ar: 'رئاسة الشؤون الدينية التركية (ديانت)',

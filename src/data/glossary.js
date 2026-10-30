@@ -10,41 +10,41 @@ export const GLOSSARY = [
   {
     term: 'Tövhid', ar: 'التوحيد', translit: 'Tawhid',
     def: {
-      az: 'Allahın birliyinə iman etmək. İslamın ən əsas prinsipi olub, Allahdan başqa ilah olmadığını qəbul etməkdir.',
-      en: 'Belief in the oneness of God. The most fundamental concept in Islam, affirming that there is no deity except Allah.',
-      ru: 'Вера в единство Бога. Самый фундаментальный принцип Ислама, утверждающий, что нет божества, кроме Аллаха.',
-      ar: 'الإيمان بوحدانية الله. أهم مبدأ في الإسلام وهو الإقرار بأنه لا إله إلا الله.',
-      tr: 'Allah\'ın birliğine iman etmek. İslam\'ın en temel ilkesi olup, Allah\'tan başka ilah olmadığını kabul etmektir.',
+      az: 'Allahı tək tanımaq: Rübubiyyətdə (yaratmaq, ruzi vermək, idarə etmək yalnız Ona aiddir), Uluhiyyətdə (ibadət yalnız Ona edilir) və Əsma-sifatda (Onun adları və sifətləri təhrifsiz, təətilsiz, keyfiyyət soruşmadan və bənzətmədən isbat edilir). İslamın ən əsas prinsipidir.',
+      en: 'Singling out Allah in His Lordship (He alone creates, provides and governs), in worship (all worship is for Him alone), and in His Names and Attributes (affirmed without distortion, denial, asking how, or likening Him to creation). The most fundamental principle of Islam.',
+      ru: 'Признание единственности Аллаха в господстве (лишь Он творит, наделяет уделом и управляет), в поклонении (всякое поклонение — только Ему) и в именах и атрибутах (они утверждаются без искажения, отрицания, вопроса «как» и уподобления творению). Самый фундаментальный принцип Ислама.',
+      ar: 'إفراد الله بالربوبية (الخلق والرزق والتدبير) وبالألوهية (العبادة) وبالأسماء والصفات (إثباتها من غير تحريف ولا تعطيل ولا تكييف ولا تمثيل). وهو أهم أصول الإسلام.',
+      tr: 'Allah\'ı Rubûbiyette (yaratma, rızık verme ve idare yalnız O\'na aittir), Ulûhiyette (ibadet yalnız O\'na yapılır) ve İsim ve Sıfatlarda (tahrif, tatil, keyfiyet sormadan ve benzetmeden ispat edilir) tek kılmak. İslam\'ın en temel ilkesidir.',
     }
   },
   {
     term: 'Şirk', ar: 'الشرك', translit: 'Shirk',
     def: {
-      az: 'Allaha şərik qoşmaq. İslamda ən böyük günah hesab olunur.',
-      en: 'Associating partners with Allah. Considered the greatest sin in Islam.',
-      ru: 'Придание Аллаху сотоварищей. Считается величайшим грехом в Исламе.',
-      ar: 'الإشراك بالله. يُعتبر أعظم ذنب في الإسلام.',
-      tr: 'Allah\'a ortak koşmak. İslam\'da en büyük günah kabul edilir.',
+      az: 'Allaha şərik qoşmaq: Allaha məxsus olan bir şeyi (ibadət, dua, nəzir, qurban və s.) başqasına yönəltmək. İslamda ən böyük günahdır; tövbəsiz ölənə bağışlanmaz (Nisa 4:48).',
+      en: 'Associating partners with Allah: directing anything that belongs to Allah alone (worship, supplication, vows, sacrifice, etc.) to another. The greatest sin in Islam; it is not forgiven for one who dies upon it without repentance (An-Nisa 4:48).',
+      ru: 'Придание Аллаху сотоварищей: обращение того, что принадлежит только Аллаху (поклонение, мольба, обет, жертвоприношение и т. д.), к кому-то другому. Величайший грех в Исламе; он не прощается тому, кто умер с ним без покаяния (ан-Ниса 4:48).',
+      ar: 'الإشراك بالله: صرف شيء مما يختص بالله (كالعبادة والدعاء والنذر والذبح) لغيره. وهو أعظم الذنوب، ولا يُغفر لمن مات عليه دون توبة (النساء: 48).',
+      tr: 'Allah\'a ortak koşmak: yalnız Allah\'a ait olan bir şeyi (ibadet, dua, adak, kurban vb.) başkasına yöneltmek. İslam\'da en büyük günahtır; tövbe etmeden ölen için bağışlanmaz (Nisâ 4:48).',
     }
   },
   {
     term: 'Bidət', ar: 'البدعة', translit: 'Bid\'ah',
     def: {
-      az: 'Dində olmayan yenilik. Peyğəmbərin (s.a.s) və səhabələrin etmədiyi ibadət formaları.',
-      en: 'Innovation in religion. Forms of worship not practiced by the Prophet (PBUH) and his companions.',
-      ru: 'Нововведение в религии. Формы поклонения, которые не практиковал Пророк (мир ему) и его сподвижники.',
-      ar: 'الابتداع في الدين. أشكال العبادة التي لم يمارسها النبي ﷺ وأصحابه.',
-      tr: 'Dinde yenilik. Hz. Peygamber (s.a.s) ve ashabının yapmadığı ibadet şekilleri.',
+      az: 'Dində olmayan yenilik. Peyğəmbərin (s.a.s) və səhabələrin etmədiyi, Allaha yaxınlaşmaq niyyəti ilə dinə əlavə edilən ibadət formaları. Peyğəmbər (s.a.s) buyurub: «Hər bidət zəlalətdir» (Müslim 867).',
+      en: 'Innovation in religion. Forms of worship added to the religion as a means of drawing closer to Allah that were not practiced by the Prophet (PBUH) and his companions. The Prophet (PBUH) said: «Every innovation is misguidance» (Muslim 867).',
+      ru: 'Нововведение в религии. Формы поклонения, добавленные в религию ради приближения к Аллаху, которые не практиковали Пророк (мир ему) и его сподвижники. Пророк (мир ему) сказал: «Всякое нововведение — заблуждение» (Муслим 867).',
+      ar: 'الابتداع في الدين. ما أُحدث في الدين من العبادات بقصد التقرب إلى الله ولم يفعله النبي ﷺ وأصحابه. قال ﷺ: «وكل بدعة ضلالة» (مسلم 867).',
+      tr: 'Dinde yenilik. Hz. Peygamber (s.a.s) ve ashabının yapmadığı, Allah\'a yaklaşma niyetiyle dine eklenen ibadet şekilleri. Peygamber (s.a.s) şöyle buyurmuştur: «Her bidat sapıklıktır» (Müslim 867).',
     }
   },
   {
     term: 'İman', ar: 'الإيمان', translit: 'Iman',
     def: {
-      az: 'İnanc, etiqad. Allaha, mələklərə, kitablara, peyğəmbərlərə, axirət gününə və qədərə inanmaq.',
-      en: 'Faith, belief. Believing in Allah, angels, holy books, prophets, the Day of Judgment, and divine decree.',
-      ru: 'Вера. Вера в Аллаха, ангелов, священные книги, пророков, Судный день и предопределение.',
-      ar: 'الاعتقاد والتصديق. الإيمان بالله وملائكته وكتبه ورسله واليوم الآخر والقدر.',
-      tr: 'İnanç. Allah\'a, meleklere, kitaplara, peygamberlere, ahiret gününe ve kadere inanmak.',
+      az: 'Allaha, mələklərə, kitablara, peyğəmbərlərə, axirət gününə və qədərə inanmaq. Əhli-Sünnəyə görə iman qəlblə təsdiq, dillə söz və əzalarla əməldir; itaətlə artır, günahla azalır (Buxari, «Kitab əl-İman», 1-ci bab).',
+      en: 'Believing in Allah, His angels, books, prophets, the Last Day and divine decree. According to Ahl as-Sunnah, faith is belief in the heart, speech of the tongue and action of the limbs; it increases with obedience and decreases with sin (Bukhari, «Book of Faith», chapter 1).',
+      ru: 'Вера в Аллаха, ангелов, Писания, пророков, Последний день и предопределение. Согласно Ахль ас-Сунна, вера — это убеждённость сердцем, слово языком и дела членами тела; она увеличивается от покорности и уменьшается от грехов (Бухари, «Книга веры», глава 1).',
+      ar: 'الإيمان بالله وملائكته وكتبه ورسله واليوم الآخر والقدر. وهو عند أهل السنة: اعتقاد بالقلب وقول باللسان وعمل بالجوارح، يزيد بالطاعة وينقص بالمعصية (البخاري، كتاب الإيمان، الباب الأول).',
+      tr: 'Allah\'a, meleklere, kitaplara, peygamberlere, ahiret gününe ve kadere inanmak. Ehl-i Sünnet\'e göre iman kalple tasdik, dille ikrar ve azalarla ameldir; itaatle artar, günahla azalır (Buhari, «İman Kitabı», 1. bab).',
     }
   },
   {
@@ -310,11 +310,11 @@ export const GLOSSARY = [
   {
     term: 'Səhabə', ar: 'الصحابة', translit: 'Sahabah',
     def: {
-      az: 'Hz. Peyğəmbəri (s.a.s) görüb müsəlman olan şəxslər. İslamın ilk nəsli.',
-      en: 'The Companions of Prophet Muhammad (PBUH). Those who met him and accepted Islam.',
-      ru: 'Сподвижники Пророка Мухаммада (мир ему). Те, кто встречал его и принял Ислам.',
-      ar: 'أصحاب النبي ﷺ. الذين لقوه وآمنوا به.',
-      tr: 'Hz. Peygamber\'i (s.a.s) görüp Müslüman olan kişiler. İslam\'ın ilk nesli.',
+      az: 'Hz. Peyğəmbəri (s.a.s) iman edərək görən və müsəlman kimi vəfat edən şəxslər. İslamın ilk və ən fəzilətli nəsli. Peyğəmbər (s.a.s) buyurub: «Səhabələrimi söyməyin» (Buxari 3673).',
+      en: 'The Companions of Prophet Muhammad (PBUH): those who met him as believers and died as Muslims. The first and most virtuous generation of Islam. The Prophet (PBUH) said: «Do not revile my Companions» (Bukhari 3673).',
+      ru: 'Сподвижники Пророка Мухаммада (мир ему): те, кто встретил его, уверовав в него, и умер мусульманином. Первое и самое достойное поколение Ислама. Пророк (мир ему) сказал: «Не поносите моих сподвижников» (Бухари 3673).',
+      ar: 'أصحاب النبي ﷺ: من لقيه مؤمنًا به ومات على الإسلام. وهم خير أجيال الأمة. قال ﷺ: «لا تسبوا أصحابي» (البخاري 3673).',
+      tr: 'Hz. Peygamber\'i (s.a.s) iman ederek gören ve Müslüman olarak vefat eden kişiler. İslam\'ın ilk ve en faziletli nesli. Peygamber (s.a.s) şöyle buyurmuştur: «Ashabıma sövmeyin» (Buhari 3673).',
     }
   },
   {
@@ -381,11 +381,11 @@ export const GLOSSARY = [
   {
     term: 'Ruh', ar: 'الروح', translit: 'Ruh',
     def: {
-      az: 'Ruh, can. Allahın insana üfürdüyü ilahi nəfəs, bədəni canlandıran qüvvə.',
-      en: 'The soul, spirit. The divine breath that Allah breathed into humanity, the force that gives life to the body.',
-      ru: 'Душа, дух. Божественное дыхание, которое Аллах вдохнул в человека, сила, оживляющая тело.',
-      ar: 'الروح. النفخة الإلهية التي نفخها الله في الإنسان والقوة التي تحيي الجسد.',
-      tr: 'Ruh, can. Allah\'ın insana üflediği ilahi nefes, bedeni canlandıran güç.',
+      az: 'Ruh, can. Allahın yaratdığı və bədənə üfürdüyü, bədəni canlandıran məxluq. «Ruhumdan üfürdüm» (Hicr 15:29) ifadəsi şərəfləndirmə izafətidir: ruh Allahın sifəti deyil, Onun məxluqudur.',
+      en: 'The soul, spirit. A creation of Allah that He breathed into the body, giving it life. «I breathed into him of My spirit» (Al-Hijr 15:29) is an attribution of honor: the soul is not an attribute of Allah but His creation.',
+      ru: 'Душа, дух. Творение Аллаха, которое Он вдохнул в тело, оживляя его. Слова «вдохнул в него от Моего духа» (аль-Хиджр 15:29) — присоединение ради почёта: душа не атрибут Аллаха, а Его творение.',
+      ar: 'الروح. مخلوق خلقه الله ونفخه في الجسد فحيي به. وإضافتها إلى الله في قوله: «ونفخت فيه من روحي» (الحجر: 29) إضافة تشريف، فهي مخلوقة وليست صفة لله.',
+      tr: 'Ruh, can. Allah\'ın yarattığı ve bedene üflediği, bedeni canlandıran mahluk. «Ona ruhumdan üfledim» (Hicr 15:29) ifadesi şereflendirme izafetidir: ruh Allah\'ın sıfatı değil, O\'nun yarattığıdır.',
     }
   },
   {
@@ -421,31 +421,31 @@ export const GLOSSARY = [
   {
     term: 'Şəfaət', ar: 'الشفاعة', translit: 'Shafa\'ah',
     def: {
-      az: 'Şəfaət, vasitəçilik. Qiyamət günü peyğəmbərlərin və salehlərin möminlər üçün Allahdan bağışlanma diləməsi.',
-      en: 'Intercession. The act of prophets and righteous people seeking Allah\'s forgiveness on behalf of believers on the Day of Judgment.',
-      ru: 'Заступничество. Просьба пророков и праведников о прощении верующих перед Аллахом в Судный день.',
-      ar: 'الشفاعة. طلب الأنبياء والصالحين العفو من الله للمؤمنين يوم القيامة.',
-      tr: 'Şefaat. Kıyamet gününde peygamberlerin ve salih kişilerin müminler için Allah\'tan bağışlanma dilemesi.',
+      az: 'Şəfaət, vasitəçilik. Qiyamət günü peyğəmbərlərin və salehlərin möminlər üçün Allahdan bağışlanma diləməsi. Şəfaət yalnız Allahın izni ilə və Onun razı olduğu kəs üçün olur (Bəqərə 2:255; Nəcm 53:26).',
+      en: 'Intercession. The act of prophets and righteous people seeking Allah\'s forgiveness on behalf of believers on the Day of Judgment. It occurs only with Allah\'s permission and for those He is pleased with (Al-Baqarah 2:255; An-Najm 53:26).',
+      ru: 'Заступничество. Просьба пророков и праведников о прощении верующих перед Аллахом в Судный день. Оно бывает лишь с дозволения Аллаха и за тех, кем Он доволен (аль-Бакара 2:255; ан-Наджм 53:26).',
+      ar: 'الشفاعة. طلب الأنبياء والصالحين العفو من الله للمؤمنين يوم القيامة. ولا تكون إلا بإذن الله ولمن يرضى عنه (البقرة: 255؛ النجم: 26).',
+      tr: 'Şefaat. Kıyamet gününde peygamberlerin ve salih kişilerin müminler için Allah\'tan bağışlanma dilemesi. Ancak Allah\'ın izniyle ve O\'nun razı olduğu kimse için olur (Bakara 2:255; Necm 53:26).',
     }
   },
   {
     term: 'Ərş', ar: 'العرش', translit: 'Arsh',
     def: {
-      az: 'Allahın taxtı. Yaradılışın ən böyük varlığı, Allahın hakimiyyətinin rəmzi.',
-      en: 'The Throne of Allah. The greatest of all creations, symbolizing Allah\'s sovereignty.',
-      ru: 'Трон Аллаха. Величайшее из всех творений, символизирующее власть Аллаха.',
-      ar: 'عرش الله. أعظم المخلوقات ورمز سلطان الله.',
-      tr: 'Allah\'ın Arşı. Yaratılmışların en büyüğü, Allah\'ın hâkimiyetinin sembolü.',
+      az: 'Allahın Ərşi. Məxluqatın ən böyüyü və ən ucası olan həqiqi taxt; Allah onun üzərinə istiva etmişdir (Taha 20:5) — necəliyi soruşulmadan və məxluqa bənzədilmədən.',
+      en: 'The Throne of Allah. A real throne, the greatest and highest of all creations; Allah rose over it (Ta-Ha 20:5) without asking how and without likening Him to creation.',
+      ru: 'Трон Аллаха. Настоящий трон, величайшее и наивысшее из творений; Аллах вознёсся над ним (Та Ха 20:5) — без вопроса «как» и без уподобления творению.',
+      ar: 'عرش الله. سرير حقيقي، وهو أعظم المخلوقات وأعلاها، استوى الله عليه (طه: 5) استواءً يليق بجلاله من غير تكييف ولا تمثيل.',
+      tr: 'Allah\'ın Arşı. Yaratılmışların en büyüğü ve en yücesi olan gerçek taht; Allah onun üzerine istiva etmiştir (Tâhâ 20:5) — nasıl olduğu sorulmadan ve yaratılmışlara benzetilmeden.',
     }
   },
   {
     term: 'Kürsi', ar: 'الكرسي', translit: 'Kursi',
     def: {
-      az: 'Kürsi. Allahın elmi və hakimiyyətinin əhatə etdiyi geniş məkan; Ərşdən kiçik, göylərdən və yerdən böyükdür.',
-      en: 'The Footstool. The vast dominion of Allah\'s knowledge and authority; smaller than the Throne but greater than the heavens and earth.',
-      ru: 'Курси. Обширная область владычества и знания Аллаха; меньше Трона, но больше небес и земли.',
-      ar: 'الكرسي. مكان واسع يشمل علم الله وسلطانه؛ أصغر من العرش وأكبر من السماوات والأرض.',
-      tr: 'Kürsî. Allah\'ın ilim ve hâkimiyetinin kapsadığı geniş alan; Arş\'tan küçük, göklerden ve yerden büyüktür.',
+      az: 'Kürsi. İbn Abbasın (r.a.) səhih rəvayətinə görə «iki qədəmin yeri»dir; Ərşdən kiçik, göylərdən və yerdən böyükdür (Bəqərə 2:255).',
+      en: 'The Footstool. According to the authentic report from Ibn Abbas (RA), it is «the place of the two Feet»; it is smaller than the Throne but greater than the heavens and earth (Al-Baqarah 2:255).',
+      ru: 'Курси (Подножие). Согласно достоверному сообщению от Ибн Аббаса (да будет доволен им Аллах), это «место двух Стоп»; оно меньше Трона, но больше небес и земли (аль-Бакара 2:255).',
+      ar: 'الكرسي. قال ابن عباس رضي الله عنهما: «الكرسي موضع القدمين» (صححه الألباني موقوفًا في مختصر العلو)؛ وهو أصغر من العرش وأكبر من السماوات والأرض (البقرة: 255).',
+      tr: 'Kürsî. İbn Abbas\'tan (r.a.) gelen sahih rivayete göre «iki ayağın yeri»dir; Arş\'tan küçük, göklerden ve yerden büyüktür (Bakara 2:255).',
     }
   },
   {
@@ -753,11 +753,11 @@ export const GLOSSARY = [
   {
     term: 'Mütəşabih', ar: 'المتشابه', translit: 'Mutashabih',
     def: {
-      az: 'Mübhəm, çoxmənalı ayə. Mənası ilk baxışda aydın olmayan, şərhə ehtiyacı olan ayələr.',
-      en: 'Ambiguous verse. Verses whose meaning is not immediately clear and requires scholarly interpretation.',
-      ru: 'Неясный аят. Аяты, смысл которых не очевиден сразу и требует учёного толкования.',
-      ar: 'المتشابه. الآيات التي لا يتضح معناها لأول وهلة وتحتاج إلى تفسير علمي.',
-      tr: 'Müteşabih. Anlamı ilk bakışta açık olmayan, yoruma ihtiyaç duyan ayetler.',
+      az: 'Mənası bəzi insanlara aydın olmayan ayələr; möhkəm ayələrə qaytarılaraq anlaşılır (Ali İmran 3:7). Allahın sifət ayələrinin mənası məlumdur, keyfiyyəti isə yalnız Allaha məlumdur.',
+      en: 'Verses whose meaning is unclear to some people; they are understood by referring them back to the clear (muhkam) verses (Al Imran 3:7). The meanings of the verses on Allah\'s attributes are known, while their «how» is known only to Allah.',
+      ru: 'Аяты, смысл которых неясен для некоторых людей; они понимаются через возвращение к ясным (мухкам) аятам (Аль Имран 3:7). Смысл аятов об атрибутах Аллаха известен, а их образ («как») ведом лишь Аллаху.',
+      ar: 'المتشابه. الآيات التي يخفى معناها على بعض الناس، فتُرد إلى المحكم ليتضح معناها (آل عمران: 7). وآيات الصفات معلومة المعنى، أما كيفيتها فلا يعلمها إلا الله.',
+      tr: 'Müteşabih. Anlamı bazı insanlara açık olmayan ayetler; muhkem ayetlere döndürülerek anlaşılır (Âl-i İmrân 3:7). Allah\'ın sıfat ayetlerinin anlamı bilinir, keyfiyeti ise yalnız Allah\'a malumdur.',
     }
   },
   {
@@ -813,11 +813,11 @@ export const GLOSSARY = [
   {
     term: 'Səcdə Tilavət', ar: 'سجدة التلاوة', translit: 'Sajdah Tilawah',
     def: {
-      az: 'Tilavət səcdəsi. Quranda səcdə ayəsi oxunduqda edilməsi vacib olan səcdə.',
-      en: 'Prostration of recitation. A prostration required when reciting or hearing a verse of prostration in the Quran.',
-      ru: 'Земной поклон при чтении. Поклон, обязательный при чтении или слушании аята поклона в Коране.',
-      ar: 'سجدة التلاوة. السجود الواجب عند قراءة أو سماع آية سجدة في القرآن.',
-      tr: 'Tilavet secdesi. Kuran\'da secde ayeti okunduğunda yapılması gereken secde.',
+      az: 'Tilavət səcdəsi. Quranda səcdə ayəsi oxunduqda və ya dinlənildikdə edilən səcdə. Alimlərin çoxuna görə sünnədir (Ömər r.a.: «Allah səcdəni bizə fərz etməyib, istəsək edərik» — Buxari 1077); Hənəfilərə görə vacibdir.',
+      en: 'Prostration of recitation. A prostration made when reciting or hearing a verse of prostration in the Quran. Most scholars hold it is sunnah (Umar (RA): «Allah has not made prostration obligatory on us unless we wish» — Bukhari 1077); the Hanafis hold it is obligatory.',
+      ru: 'Земной поклон при чтении. Поклон, совершаемый при чтении или слушании аята поклона в Коране. Большинство учёных считают его сунной (Умар: «Аллах не вменил нам поклон в обязанность, но если пожелаем — совершим» — Бухари 1077); ханафиты считают его обязательным.',
+      ar: 'سجدة التلاوة. السجود عند قراءة أو سماع آية سجدة في القرآن. وهي سنة عند جمهور العلماء لقول عمر رضي الله عنه: «إن الله لم يفرض السجود إلا أن نشاء» (البخاري 1077)، وأوجبها الحنفية.',
+      tr: 'Tilavet secdesi. Kuran\'da secde ayeti okunduğunda veya dinlendiğinde yapılan secde. Âlimlerin çoğunluğuna göre sünnettir (Hz. Ömer: «Allah secdeyi bize farz kılmadı, dilersek yaparız» — Buhari 1077); Hanefilere göre vaciptir.',
     }
   },
   // ── Hadith Sciences ──
@@ -894,11 +894,11 @@ export const GLOSSARY = [
   {
     term: 'Ahad', ar: 'الآحاد', translit: 'Ahad',
     def: {
-      az: 'Ahad hədis. Mütəvatir dərəcəsinə çatmayan, bir və ya bir neçə ravinin rəvayət etdiyi hədis.',
-      en: 'Solitary hadith. A hadith narrated by one or a few narrators, not reaching the level of mutawatir.',
-      ru: 'Единичный хадис. Хадис, переданный одним или несколькими передатчиками, не достигающий уровня мутаватир.',
-      ar: 'حديث الآحاد. الحديث الذي لم يبلغ درجة المتواتر ورواه عدد قليل من الرواة.',
-      tr: 'Âhad hadis. Mütevatir derecesine ulaşmayan, bir veya birkaç ravinin rivayet ettiği hadis.',
+      az: 'Ahad hədis. Mütəvatir dərəcəsinə çatmayan, bir və ya bir neçə ravinin rəvayət etdiyi hədis. Əhli-Sünnəyə görə səhih ahad hədis həm hökmlərdə, həm də əqidədə dəlildir.',
+      en: 'Solitary hadith. A hadith narrated by one or a few narrators, not reaching the level of mutawatir. According to Ahl as-Sunnah, an authentic ahad hadith is proof both in rulings and in creed.',
+      ru: 'Единичный хадис. Хадис, переданный одним или несколькими передатчиками, не достигающий уровня мутаватир. Согласно Ахль ас-Сунна, достоверный единичный хадис является доводом и в законоположениях, и в вероубеждении.',
+      ar: 'حديث الآحاد. الحديث الذي لم يبلغ درجة المتواتر ورواه عدد قليل من الرواة. وهو إذا صح حجة عند أهل السنة في الأحكام والعقائد.',
+      tr: 'Âhad hadis. Mütevatir derecesine ulaşmayan, bir veya birkaç ravinin rivayet ettiği hadis. Ehl-i Sünnet\'e göre sahih âhad hadis hem hükümlerde hem de akidede delildir.',
     }
   },
   {
@@ -1056,11 +1056,11 @@ export const GLOSSARY = [
   {
     term: 'Cihad', ar: 'الجهاد', translit: 'Jihad',
     def: {
-      az: 'Cəhd göstərmək, çalışmaq. Allah yolunda nəfslə, malla və lazım gəldikdə müdafiə ilə səy göstərmək; ən böyük cihad nəfslə mübarizədir.',
-      en: 'Striving in the way of Allah. Struggling against one\'s own ego, spending wealth for good, and defending when necessary; the greatest jihad is the struggle against the self.',
-      ru: 'Усердие на пути Аллаха. Борьба с собственным эго, расходование средств на благое и защита при необходимости; величайший джихад — борьба с собственной душой.',
-      ar: 'الجهاد. بذل الجهد في سبيل الله بالنفس والمال والدفاع عند الحاجة؛ وأعظم الجهاد جهاد النفس.',
-      tr: 'Allah yolunda çaba göstermek. Nefisle, malla ve gerektiğinde savunmayla gayret etmek; en büyük cihat nefisle mücadeledir.',
+      az: 'Cəhd göstərmək, çalışmaq. Allah yolunda nəfslə, malla və lazım gəldikdə müdafiə ilə səy göstərmək.',
+      en: 'Striving in the way of Allah. Struggling against one\'s own ego, spending wealth for good, and defending when necessary.',
+      ru: 'Усердие на пути Аллаха. Борьба с собственным эго, расходование средств на благое и защита при необходимости.',
+      ar: 'الجهاد. بذل الجهد في سبيل الله بالنفس والمال والدفاع عند الحاجة.',
+      tr: 'Allah yolunda çaba göstermek. Nefisle, malla ve gerektiğinde savunmayla gayret etmek.',
     }
   },
   {

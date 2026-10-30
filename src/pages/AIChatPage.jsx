@@ -34,6 +34,7 @@ const LABELS = {
     noBackend:'AI xidməti hələ qurulmayıb',
     rateLimit:'Çox sürətli yazırsınız. Zəhmət olmasa gözləyin, {s} saniyə sonra yenidən cəhd edin.',
     rateLimitShort:'Gözləyin... {s}s',
+    rateServer:'Hazırda sorğu çoxdur. {s} saniyə sonra yenidən cəhd edin.',
   },
   en: {
     retry:'Send again',
@@ -57,6 +58,7 @@ const LABELS = {
     noBackend:'AI service is not yet configured',
     rateLimit:'You are sending too fast. Please wait — try again in {s} seconds.',
     rateLimitShort:'Wait... {s}s',
+    rateServer:'Too many requests right now. Please try again in {s} seconds.',
   },
   ru: {
     retry:'Отправить снова',
@@ -80,6 +82,7 @@ const LABELS = {
     noBackend:'Сервис ИИ ещё не настроен',
     rateLimit:'Вы пишете слишком быстро. Пожалуйста, подождите — попробуйте через {s} сек.',
     rateLimitShort:'Подождите... {s}с',
+    rateServer:'Сейчас слишком много запросов. Попробуйте через {s} сек.',
   },
   ar: {
     retry:'أعد الإرسال',
@@ -100,9 +103,10 @@ const LABELS = {
     suggest4:'ما أفضل الأدعية؟',
     clear:'مسح المحادثة',
     error:'حدث خطأ. حاول مرة أخرى.',
-    noBackend:'خدمة AI غير مكونة بعد',
+    noBackend:'خدمة الذكاء الاصطناعي غير مهيأة بعد',
     rateLimit:'تكتب بسرعة كبيرة. يُرجى الانتظار — حاول مرة أخرى بعد {s} ثانية.',
     rateLimitShort:'انتظر... {s} ث',
+    rateServer:'الطلبات كثيرة الآن. حاول مرة أخرى بعد {s} ثانية.',
   },
   tr: {
     retry:'Tekrar gönder',
@@ -126,6 +130,7 @@ const LABELS = {
     noBackend:'AI servisi henüz yapılandırılmadı',
     rateLimit:'Çok hızlı yazıyorsunuz. Lütfen {s} saniye bekleyin ve tekrar deneyin.',
     rateLimitShort:'Bekleyin... {s}s',
+    rateServer:'Şu anda çok fazla istek var. Lütfen {s} saniye sonra tekrar deneyin.',
   },
 }
 
@@ -155,6 +160,8 @@ export default function AIChatPage({ setPage }) {
   // Son göndərmə alınmadı — "Yenidən göndər" düyməsi görünür
   const [failed, setFailed] = useState(false)
   const [cooldown, setCooldown] = useState(0)
+  // Gözləmə serverin 429 cavabındandır (yerli limitdən yox) — uyğun mətn göstərilir
+  const [serverRate, setServerRate] = useState(false)
   const [apiUrl, setApiUrl] = useState(FALLBACK_API_URL)
   // Axında gələn (hələ bitməmiş) cavab; null — axın yoxdur
   const [streamText, setStreamText] = useState(null)
@@ -222,6 +229,7 @@ export default function AIChatPage({ setPage }) {
         if (prev <= 1) {
           clearInterval(interval)
           setError('')
+          setServerRate(false)
           return 0
         }
         return prev - 1
@@ -244,6 +252,7 @@ export default function AIChatPage({ setPage }) {
     if (!rl.allowed) {
       const tmpl = rl.kind === 'cooldown' ? l.rateLimit : l.rateLimitShort
       setError(tmpl.replace('{s}', rl.remaining))
+      setServerRate(false)
       setCooldown(rl.remaining)
       return
     }
@@ -278,8 +287,11 @@ export default function AIChatPage({ setPage }) {
         if (e.partial?.trim()) setMessages([...updated, { role:'assistant', content: e.partial.trim(), time: Date.now() }])
       } else {
         if (e?.code === 'rate') {
-          // Server limiti (429) — "xidmət cavab vermir" yox, gözləmə vaxtı göstərilir
-          setError(l.rateLimit.replace('{s}', 30))
+          // Server limiti (429) — "xidmət cavab vermir" yox, gözləmə vaxtı göstərilir.
+          // Mətn "çox sürətli yazırsınız" DEYİL: 429 ilk mesajda da gələ bilər
+          // (serverin ümumi limiti) — istifadəçini günahlandırmırıq
+          setError(l.rateServer.replace('{s}', 30))
+          setServerRate(true)
           setCooldown(30)
         } else setError(e?.code === 'timeout' ? l.timeout : l.offline)
         setFailed(true)
@@ -413,7 +425,7 @@ export default function AIChatPage({ setPage }) {
         {cooldown > 0 ? (
           <div className="aic-cooldown" role="status">
             <span className="aic-cooldown-icon" aria-hidden="true"><Icon name="clock" size={22} /></span>
-            <div className="aic-cooldown-text">{l.rateLimit.replace('{s}', cooldown)}</div>
+            <div className="aic-cooldown-text">{(serverRate ? l.rateServer : l.rateLimit).replace('{s}', cooldown)}</div>
             <div className="aic-cooldown-ring" aria-hidden="true">
               <svg viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="15" className="aic-cooldown-bg" />
@@ -425,6 +437,14 @@ export default function AIChatPage({ setPage }) {
               </svg>
               <span className="aic-cooldown-num">{cooldown}</span>
             </div>
+          </div>
+        ) : !error && canRetry ? (
+          /* Server gözləməsi (429) bitdi — xəta mətni silinir, amma cavabsız sual
+             söhbətdə qalır: "Yenidən göndər" əvvəl xəta ilə birlikdə yox olurdu */
+          <div className="aic-retry-row">
+            <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm aic-retry" onClick={retryLast}>
+              <Icon name="refresh" size={16} className="ui-btn__icon" /> {l.retry}
+            </button>
           </div>
         ) : (
           error && (

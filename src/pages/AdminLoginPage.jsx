@@ -50,7 +50,14 @@ export default function AdminLoginPage({ setPage }) {
   const [errKey, setErrKey] = useState(0)
   const [reveal, setReveal] = useState(false)
   const mounted = useRef(true)
-  useEffect(() => () => { mounted.current = false }, [])
+  // Effekt gövdəsində yenidən true: React StrictMode (dev) effekti iki dəfə
+  // işlədir — əvvəl ilk təmizləmə ref-i həmişəlik false qoyurdu və giriş
+  // xətası / "admin deyil" / sıfırlama mesajı heç vaxt göstərilmir,
+  // düymə "Yoxlanılır..." vəziyyətində qalırdı
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
 
   // Panelə keçid bir dəfə (giriş və onAuthStateChanged eyni anda xəbər verir)
   const navigated = useRef(false)

@@ -22,7 +22,8 @@ describe('detal marşrutları — pathFor / parsePath', () => {
   it('nümunələr', () => {
     expect(pathFor('quran', 'az', 2)).toBe('/quran/2-al-baqara')
     expect(pathFor('quran', 'en', 36)).toBe('/en/quran/36-yaseen')
-    expect(pathFor('names', 'az', 2)).toBe('/names/2-ar-rahman')
+    expect(pathFor('names', 'az', 30)).toBe('/names/30-ar-rahman')
+    expect(pathFor('names', 'en', 99)).toBe('/en/names/99-al-witr')
     expect(pathFor('names', 'ru', 1)).toBe('/ru/names/1-allah')
     expect(pathFor('sahaba', 'ar', 'bilal-ibn-rabah')).toBe('/ar/sahaba/bilal-ibn-rabah')
     expect(urlFor('quran', 'tr', 114)).toBe('https://muslims.cc/tr/quran/114-an-naas')
@@ -58,9 +59,34 @@ describe('detal marşrutları — pathFor / parsePath', () => {
     expect(parsePath('/quran/2-al-baqarah')).toMatchObject({ key: 'quran', known: true, param: 2 })
     expect(parsePath('/en/quran/36-ya-sin')).toMatchObject({ lang: 'en', param: 36, known: true })
     expect(parsePath('/quran/2')).toMatchObject({ param: 2, known: true })
-    expect(parsePath('/names/1-ar-rahman')).toMatchObject({ key: 'names', param: 1, known: true })
+    expect(parsePath('/names/1-ar-rahmaan')).toMatchObject({ key: 'names', param: 1, known: true })
     // kanonik yol isə düzgün slug-dur
     expect(pathFor('quran', 'az', parsePath('/quran/2-al-baqarah').param)).toBe('/quran/2-al-baqara')
+  })
+
+  // 99 ad İbn Useyminin siyahısı ilə əvəz olunanda nömrələr dəyişdi:
+  // köhnə ünvanlarda TANINAN slug nömrədən üstündür
+  it('99 ad: köhnə nömrəli ünvan slug-a görə yeni nömrəyə düşür', () => {
+    expect(parsePath('/names/2-ar-rahman')).toEqual({ lang: 'az', key: 'names', known: true, param: 30 })
+    expect(parsePath('/en/names/20-al-alim')).toMatchObject({ lang: 'en', param: 44, known: true })
+    expect(parsePath('/ru/names/49-al-majid')).toMatchObject({ param: 65, known: true })
+    expect(parsePath('/names/1-allah')).toMatchObject({ param: 1, known: true })
+    expect(pathFor('names', 'en', parsePath('/en/names/20-al-alim').param)).toBe('/en/names/44-al-alim')
+    // Böyük hərf və % kodlaşdırması
+    expect(parseDetailSegment('names', '2-Ar-Rahman')).toBe(30)
+  })
+
+  it('99 ad: köhnə siyahıdan çıxarılmış adın ünvanı → { removed: true } (App.jsx siyahıya keçirir)', () => {
+    for (const p of ['/names/23-al-khafid', '/en/names/94-an-nur', '/ru/names/86-dhul-jalali-wal-ikram', '/names/99-ar-rashid']) {
+      const r = parsePath(p)
+      expect(r, p).toMatchObject({ key: 'names', known: true, param: null, removed: true })
+    }
+    // çıxarılmış ad nömrəyə düşmür (23 indi başqa addır)
+    expect(parseDetailSegment('names', '23-al-khafid')).toBeNull()
+    // yeni ünvanlarda removed yoxdur
+    expect(parsePath('/names/30-ar-rahman').removed).toBeUndefined()
+    // Quranda slug üstünlüyü yoxdur
+    expect(parsePath('/quran/2-al-fatiha')).toMatchObject({ param: 2 })
   })
 
   it('naməlum nömrə / slug / artıq seqment → known:false (404)', () => {
@@ -156,7 +182,8 @@ describe('detal meta-sı (5 dil)', () => {
     expect(titleForDetail('quran', 'az', 2)).toBe('Bəqərə surəsi — ərəbcə mətn və Azərbaycan dilində tərcümə | Muslims.cc')
     expect(detailMeta('quran', 'en', 36).t).toBe('Surah Yaseen — Arabic Text & English Translation')
     expect(detailMeta('quran', 'tr', 2).h1).toBe('Bakara Suresi')
-    expect(detailMeta('names', 'az', 2).d).toContain('Rəhman (Çox Rəhimli)')
+    expect(detailMeta('names', 'az', 30).d).toContain('Rəhman (Çox Rəhimli)')
+    expect(detailMeta('names', 'en', 82).h1).toBe('Al-Jamil — The Beautiful')
     expect(detailMeta('sahaba', 'en', 'bilal-ibn-rabah').h1).toBe('Bilal ibn Rabah')
   })
 

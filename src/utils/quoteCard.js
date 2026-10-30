@@ -16,7 +16,7 @@
 // ── Kart ölçüləri (Instagram / sosial şəbəkə) ──
 export const FORMATS = [
   { id: 'square',   w: 1080, h: 1080 },
-  { id: 'portrait', w: 1080, h: 1350 },
+  { id: 'portrait', w: 1080, h: 1250 },
   { id: 'story',    w: 1080, h: 1920 },
   { id: 'post',     w: 1200, h: 630 },
 ]

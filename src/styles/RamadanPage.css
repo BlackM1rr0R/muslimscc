@@ -87,6 +87,22 @@ html[lang="ar"] .rp-table thead th { letter-spacing: 0; text-transform: none; }
   .rp-table th, .rp-table td { padding: 9px 10px; }
   .rp-scroll { max-height: none; }
   .rp-table thead th { position: static; }
+  /* Telefonda cədvəl üfüqi sürüşür (iftar və işa sağda qalır) — gün
+     nömrəsi sütunu yerində qalsın ki, sətir hansı günə aiddir itməsin */
+  .rp-table thead th:first-child,
+  .rp-table tbody th {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    background: var(--surface-1);
+    box-shadow: inset -1px 0 0 var(--line);
+  }
+  [dir="rtl"] .rp-table thead th:first-child,
+  [dir="rtl"] .rp-table tbody th { box-shadow: inset 1px 0 0 var(--line); }
+  .rp-table thead th:first-child { background: var(--surface-2, var(--surface-1)); }
+  .rp-table tr.is-today > th { background: color-mix(in srgb, var(--brand) 12%, var(--surface-1)); }
+  .rp-table tr.is-today > :first-child { box-shadow: inset 3px 0 0 var(--brand), inset -1px 0 0 var(--line); }
+  [dir="rtl"] .rp-table tr.is-today > :first-child { box-shadow: inset -3px 0 0 var(--brand), inset 1px 0 0 var(--line); }
 }
 
 /* ── Çap: yalnız imsakiyyə, qara-ağ ── */

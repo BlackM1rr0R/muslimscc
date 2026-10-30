@@ -28,6 +28,7 @@ import PageLink from '../components/PageLink'
 
 const LABELS = {
   az: {
+    eyebrow: 'Platforma xəbərləri',
     title: 'Elanlar',
     subtitle: 'Muslims.cc-dən son xəbərlər və elanlar',
     latest: 'Son elanlar',
@@ -54,6 +55,7 @@ const LABELS = {
     helpDonate: 'Bələdçini oxu',
   },
   en: {
+    eyebrow: 'Site news',
     title: 'Announcements',
     subtitle: 'Latest news and announcements from Muslims.cc',
     latest: 'Latest announcements',
@@ -80,6 +82,7 @@ const LABELS = {
     helpDonate: 'Read the guide',
   },
   ru: {
+    eyebrow: 'Новости платформы',
     title: 'Объявления',
     subtitle: 'Последние новости и объявления Muslims.cc',
     latest: 'Последние объявления',
@@ -106,6 +109,7 @@ const LABELS = {
     helpDonate: 'Читать руководство',
   },
   ar: {
+    eyebrow: 'أخبار المنصة',
     title: 'الإعلانات',
     subtitle: 'آخر الأخبار والإعلانات من Muslims.cc',
     latest: 'أحدث الإعلانات',
@@ -132,6 +136,7 @@ const LABELS = {
     helpDonate: 'اقرأ الدليل',
   },
   tr: {
+    eyebrow: 'Platform haberleri',
     title: 'Duyurular',
     subtitle: 'Muslims.cc’den son haberler ve duyurular',
     latest: 'Son duyurular',
@@ -390,9 +395,12 @@ export default function AnnouncementsPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container anp-container">
           <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={l.title} /></div>
-          {/* Ərəbcə dekorativ başlıq — ar dilində h1 ilə təkrar olmasın deyə gizlədilir */}
-          {!isRtl && <span className="anp-hero-ar ui-arabic" lang="ar" dir="rtl">الإعلانات</span>}
+          {/* Digər səhifələrlə eyni ardıcıllıq: eyebrow → h1 → ərəbcə bəzək.
+              Əvvəl ərəbcə sətir h1-in ÜSTÜNDƏ idi və eyebrow yox idi.
+              Ərəbcə bəzək ar dilində h1 ilə təkrar olmasın deyə gizlədilir */}
+          <span className="ui-eyebrow">{l.eyebrow}</span>
           <h1 className="ui-display">{l.title}</h1>
+          {!isRtl && <p className="anp-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الإعلانات</p>}
           <p className="ui-lead">{l.subtitle}</p>
         </div>
       </header>

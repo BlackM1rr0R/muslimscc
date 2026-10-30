@@ -7,7 +7,7 @@ import '../styles/QuizPage.css'
 const LABELS = {
   az: { title:'İslami kviz', subtitle:'Biliyini test et', categories:'Kateqoriya seç', quran:'Quran', hadith:'Hədis', names:'99 Ad', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', playAgain:'Yenidən', question:'Sual', of:'/', bestScore:'Ən yaxşı nəticə', newBest:'Yeni rekord!', back:'Geri', selectAnswer:'Cavab seçin', exit:'Kateqoriyalar' },
   en: { title:'Islamic Quiz', subtitle:'Test your knowledge', categories:'Choose category', quran:'Quran', hadith:'Hadith', names:'99 Names', start:'Start', next:'Next', finish:'Finish', score:'Score', correct:'Correct', wrong:'Wrong', playAgain:'Play Again', question:'Question', of:'/', bestScore:'Best score', newBest:'New record!', back:'Back', selectAnswer:'Select an answer', exit:'Categories' },
-  ru: { title:'Исламская Викторина', subtitle:'Проверь свои знания', categories:'Выберите категорию', quran:'Коран', hadith:'Хадис', names:'99 Имён', start:'Начать', next:'Далее', finish:'Завершить', score:'Баллы', correct:'Правильно', wrong:'Неправильно', playAgain:'Играть снова', question:'Вопрос', of:'/', bestScore:'Лучший результат', newBest:'Новый рекорд!', back:'Назад', selectAnswer:'Выберите ответ', exit:'Категории' },
+  ru: { title:'Исламская викторина', subtitle:'Проверь свои знания', categories:'Выберите категорию', quran:'Коран', hadith:'Хадис', names:'99 Имён', start:'Начать', next:'Далее', finish:'Завершить', score:'Баллы', correct:'Правильно', wrong:'Неверно', playAgain:'Играть снова', question:'Вопрос', of:'/', bestScore:'Лучший результат', newBest:'Новый рекорд!', back:'Назад', selectAnswer:'Выберите ответ', exit:'Категории' },
   ar: { title:'اختبار إسلامي', subtitle:'اختبر معلوماتك', categories:'اختر الفئة', quran:'القرآن', hadith:'الحديث', names:'٩٩ اسم', start:'ابدأ', next:'التالي', finish:'إنهاء', score:'النقاط', correct:'صحيح', wrong:'خطأ', playAgain:'أعد اللعب', question:'سؤال', of:'/', bestScore:'أفضل نتيجة', newBest:'رقم قياسي!', back:'رجوع', selectAnswer:'اختر إجابة', exit:'الفئات' },
   tr: { title:'İslami Bilgi Yarışması', subtitle:'Bilgini test et', categories:'Kategori seç', quran:'Kuran', hadith:'Hadis', names:'99 İsim', start:'Başla', next:'Sonraki', finish:'Bitir', score:'Puan', correct:'Doğru', wrong:'Yanlış', playAgain:'Tekrar Oyna', question:'Soru', of:'/', bestScore:'En iyi skor', newBest:'Yeni rekor!', back:'Geri', selectAnswer:'Bir cevap seçin', exit:'Kategoriler' },
 }
@@ -18,6 +18,19 @@ const ROUND_SIZE = 10
 // Kateqoriya kartındakı say yazısı ("40 sual") — cəm forması dilə görə
 // (əvvəl t.question.toLowerCase() idi: "40 question", "40 вопрос")
 const QUESTIONS_WORD = { az: 'sual', en: 'questions', ru: 'вопросов', ar: 'سؤالًا', tr: 'soru' }
+// Nəticə kartında sayın altındakı etiket: "10 / Questions", "10 / Вопросов"
+// (əvvəl tək forma idi: "10 Question", "10 Вопрос")
+function totalLabel(n, lang, fallback) {
+  if (lang === 'en') return n === 1 ? 'Question' : 'Questions'
+  if (lang === 'ru') { const w = ruQuestions(n); return w[0].toUpperCase() + w.slice(1) }
+  if (lang === 'ar') return 'الأسئلة'
+  return fallback
+}
+// ru: "33 вопроса" (əvvəl hər sayda "вопросов" idi)
+function ruQuestions(n) {
+  const a = n % 100, b = n % 10
+  return a > 10 && a < 20 ? 'вопросов' : b === 1 ? 'вопрос' : b >= 2 && b <= 4 ? 'вопроса' : 'вопросов'
+}
 
 // Kateqoriya ikonları (Icon.jsx; əvvəl 📖 📜 ✨ emojiləri)
 const CATEGORY_ICONS = { quran: 'quran', hadith: 'hadith', names: 'names' }
@@ -749,12 +762,14 @@ const QUESTIONS = {
       options: ['Ar-Rahman','Al-Malik','Allah','Al-Quddus'], correct: 2
     },
     {
-      q: { az:'Allahın 99 adlarının sonuncusu hansıdır?', en:'What is the last of the 99 Names of Allah?', ru:'Какое последнее из 99 имён Аллаха?', ar:'ما آخر اسم من أسماء الله الحسنى؟', tr:'Allah\'ın 99 isminin sonuncusu hangisidir?' },
+      // Sual İbn Useyminin siyahısına bağlıdır (src/data/names99.js) — Tirmizi
+      // 3507-dəki sadalama ravinin əlavəsidir, ona görə "sonuncu ad" orada sual deyil
+      q: { az:'İbn Useyminin «əl-Qavaid əl-Musla» siyahısında sonuncu ad hansıdır?', en:'Which name is the last in Ibn Uthaymeen’s list (“al-Qawaid al-Muthla”)?', ru:'Какое имя последнее в списке Ибн Усеймина («аль-Кава‘ид аль-Мусля»)?', ar:'ما آخر اسم في قائمة ابن عثيمين في «القواعد المثلى»؟', tr:'İbn Useymin’in “el-Kavâidü’l-Müslâ” listesindeki son isim hangisidir?' },
       options: [
         { az:'Əl-Varis', en:'Al-Warith', ru:'Аль-Варис', ar:'الوارث', tr:'El-Varis' },
-        { az:'Ər-Rəşid', en:'Ar-Rashid', ru:'Ар-Рашид', ar:'الرشيد', tr:'Er-Reşid' },
-        { az:'Əs-Sabur', en:'As-Sabur', ru:'Ас-Сабур', ar:'الصبور', tr:'Es-Sabur' },
-        { az:'Ən-Nafi', en:'An-Nafi', ru:'Ан-Нафи', ar:'النافع', tr:'En-Nafi' }
+        { az:'Əl-Mənnan', en:'Al-Mannan', ru:'Аль-Маннан', ar:'المنان', tr:'El-Mennan' },
+        { az:'Əl-Vitr', en:'Al-Witr', ru:'Аль-Витр', ar:'الوتر', tr:'El-Vitr' },
+        { az:'Əl-Vəhhab', en:'Al-Wahhab', ru:'Аль-Ваххаб', ar:'الوهاب', tr:'El-Vehhab' }
       ], correct: 2
     },
     {
@@ -1023,7 +1038,7 @@ export default function QuizPage({ setPage }) {
                       <Icon name={CATEGORY_ICONS[key]} />
                     </span>
                     <span className="quiz-category-name">{t[key]}</span>
-                    <span className="quiz-category-count ui-num">{total} {qWord}</span>
+                    <span className="quiz-category-count ui-num">{total} {lang === 'ru' ? ruQuestions(total) : qWord}</span>
                     {/* Ən yaxşı nəticə raunddakı sual sayına görədir (əvvəl ümumi
                         sual sayına bölünürdü: "8/40") */}
                     {scores[key] !== undefined && (
@@ -1144,7 +1159,7 @@ export default function QuizPage({ setPage }) {
                 </div>
                 <div className="quiz-stat quiz-stat-total">
                   <span className="quiz-stat-num">{total}</span>
-                  <span className="quiz-stat-label">{t.question}</span>
+                  <span className="quiz-stat-label">{totalLabel(total, lang, t.question)}</span>
                 </div>
               </div>
               <div className="quiz-results-actions">

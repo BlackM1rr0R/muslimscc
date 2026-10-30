@@ -287,6 +287,18 @@
   :root { --page-gutter: 32px; }
 }
 
+/* --page-gutter-end — məzmunun SON kənarındakı (sağ; ərəbcədə sol) boşluq.
+   ≥1024px-də sağ aşağıda üzən dok düyməsi (FloatingDock: 46px + 16px kənar)
+   var; boşluq 24–32px olanda düymə kartların kənarını örtürdü (/zakat,
+   /charity, ana səhifə "Əsas" kartları, footer-in son sətri). Dok üçün
+   64px-lik "zolaq" saxlanılır. ≥1600px-də konteyner (1200px) onsuz da
+   kənardan kifayət qədər aralıdır — orada adi boşluq. Fon/hero hələ də
+   tam endədir: yalnız daxili konteynerin padding-i dəyişir. */
+:root { --page-gutter-end: var(--page-gutter); }
+@media (min-width: 1024px) and (max-width: 1599.98px) {
+  :root { --page-gutter-end: max(var(--page-gutter), 64px); }
+}
+
 @media (max-width: 1023.98px) {
   :root {
     --sidenav-w:    0px;

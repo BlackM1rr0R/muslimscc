@@ -1,5 +1,7 @@
 # Admin paneli və Firestore təhlükəsizliyi
 
+> **Yeni (Firebase-dən çıxış):** admin girişi öz serverimizə keçir — e-poçt + şifrə, `server/scripts/admin-user.js`. Keçid dövründə aşağıdakı Firebase mexanizmi də işləyir. Bax: [FIREBASE-EXIT.md](FIREBASE-EXIT.md).
+
 Bu sənəd admin panelinin yeni giriş sistemini və Firestore qaydalarını necə işə salacağınızı
 addım-addım izah edir. **Addımların ardıcıllığı vacibdir** — aşağıya baxın.
 

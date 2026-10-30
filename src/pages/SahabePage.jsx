@@ -72,6 +72,32 @@ function ruPlural(n, one, few, many) {
   return many
 }
 // Ərəb dilində "il" sözü saya görə: 2 → سنتان, 3–10 → سنوات, qalanları → سنة
+// Hero-dakı "5 fakt · 3 hədis · 2 mənbə" sətri — say ilə isim uzlaşması.
+// Əvvəl ru-da həmişə "фактов/хадисов/источников" ("1 источников"), en-də
+// "1 sources", ar-da həmişə cəm forma ("1 مصادر") yazılırdı.
+function heroMeta(lang, f, h, src, L) {
+  if (lang === 'ru') {
+    return [
+      `${f} ${ruPlural(f, 'факт', 'факта', 'фактов')}`,
+      `${h} ${ruPlural(h, 'хадис', 'хадиса', 'хадисов')}`,
+      `${src} ${ruPlural(src, 'источник', 'источника', 'источников')}`,
+    ].join(' · ')
+  }
+  if (lang === 'en') {
+    return [`${f} ${f === 1 ? 'fact' : 'facts'}`, `${h} ${h === 1 ? 'hadith' : 'hadiths'}`, `${src} ${src === 1 ? 'source' : 'sources'}`].join(' · ')
+  }
+  if (lang === 'ar') {
+    // 1 → مفرد، 2 → مثنى، 3–10 → جمع، 11+ → مفرد منصوب
+    const ar = (n, one, two, few, many) => (n === 1 ? one : n === 2 ? two : n % 100 >= 3 && n % 100 <= 10 ? `${n} ${few}` : `${n} ${many}`)
+    return [
+      ar(f, 'حقيقة واحدة', 'حقيقتان', 'حقائق', 'حقيقةً'),
+      ar(h, 'حديث واحد', 'حديثان', 'أحاديث', 'حديثًا'),
+      ar(src, 'مصدر واحد', 'مصدران', 'مصادر', 'مصدرًا'),
+    ].join(' · ')
+  }
+  return `${f} ${L.nFacts} · ${h} ${L.nHadiths} · ${src} ${L.nSources}`
+}
+
 function arYears(n) {
   if (n === 2) return 'سنتان'
   if (n % 100 >= 3 && n % 100 <= 10) return `${n} سنوات`
@@ -424,15 +450,35 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
 
   /* ── Aktiv bölmə (İçindəkilər vurğusu) ── */
   const [active, setActive] = useState(sections[0].id)
+  // Sürüşmə mövqeyinə görə: başlanğıcı ekranın yuxarı 30%-dən yuxarıda qalan
+  // SON bölmə aktivdir; heç biri hələ çatmayıbsa — birincisi. Əvvəl
+  // IntersectionObserver yalnız "zolağa girən" bölməni yazırdı: səhifənin
+  // başına qayıdanda heç bir bölmə zolaqda olmurdu və vurğu sonuncuda
+  // ("Mənbələr") ilişib qalırdı. Səhifənin sonunda — sonuncu bölmə.
   useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return undefined
-    const els = sections.map(x => document.getElementById(x.id)).filter(Boolean)
-    const io = new IntersectionObserver((entries) => {
-      const vis = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-      if (vis[0]) setActive(vis[0].target.id)
-    }, { rootMargin: '-25% 0px -60% 0px', threshold: 0 })
-    els.forEach(el => io.observe(el))
-    return () => io.disconnect()
+    const ids = sections.map(x => x.id)
+    let raf = 0
+    const update = () => {
+      raf = 0
+      const line = window.innerHeight * 0.3
+      let cur = ids[0]
+      for (const id of ids) {
+        const el = document.getElementById(id)
+        if (el && el.getBoundingClientRect().top <= line) cur = id
+      }
+      const doc = document.documentElement
+      if (window.scrollY > 0 && window.innerHeight + window.scrollY >= doc.scrollHeight - 4) cur = ids[ids.length - 1]
+      setActive(cur)
+    }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update) }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.id, lang])
 
@@ -500,7 +546,7 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
                   <Icon name="share" className="ui-btn__icon" /> {L.share}
                 </button>
                 <span className="sp-hero__meta ui-num">
-                  {s.facts.length} {L.nFacts} · {s.hadiths.length} {L.nHadiths} · {sources.length} {L.nSources}
+                  {heroMeta(lang, s.facts.length, s.hadiths.length, sources.length, L)}
                 </span>
               </div>
             </div>

@@ -71,6 +71,26 @@ function HeartIcon({ filled }) {
 // Kartın bütün id-ləri (birləşdirilmiş dublikatda həm Firebase, həm yerli id)
 const idsOf = (h) => h._ids || [h.id]
 
+// Say + isim uzlaşması: ru "1 хадис · 3 хадиса · 5 хадисов",
+// ar "حديث واحد · حديثان · 3 أحاديث · 11 حديثًا", en "1 hadith · 2 hadiths".
+// Əvvəl hər say üçün bir forma idi ("1 хадисов", "3 حديثاً").
+function hadithCount(n, lang) {
+  if (lang === 'ru') {
+    const a = n % 100, b = n % 10
+    const w = a > 10 && a < 20 ? 'хадисов' : b === 1 ? 'хадис' : b >= 2 && b <= 4 ? 'хадиса' : 'хадисов'
+    return `${n} ${w}`
+  }
+  if (lang === 'ar') {
+    if (n === 1) return 'حديث واحد'
+    if (n === 2) return 'حديثان'
+    const a = n % 100
+    return a >= 3 && a <= 10 ? `${n} أحاديث` : `${n} حديثًا`
+  }
+  if (lang === 'az') return `${n} hədis`
+  if (lang === 'tr') return `${n} hadis`
+  return `${n} ${n === 1 ? 'hadith' : 'hadiths'}`
+}
+
 // Sonsuz sürüşmənin bir partiyası (1445 hədisin hamısı birdən DOM-a qoyulmur)
 const BATCH = 24
 
@@ -341,7 +361,7 @@ export default function HadithPage({ setPage }) {
   })
   const visible = filtered.slice(0, inf.count)
 
-  const countText = lang==='az' ? `${filtered.length} hədis` : lang==='ru' ? `${filtered.length} хадисов` : lang==='ar' ? `${filtered.length} حديثاً` : lang==='tr' ? `${filtered.length} hadis` : `${filtered.length} hadiths`
+  const countText = hadithCount(filtered.length, lang)
 
   return (
     <>

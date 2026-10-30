@@ -46,7 +46,7 @@ export default function StatsManager() {
     ]},
     { title:l.quran, icon:'quran', items:[
       { label:l.quranSessions, value:stats.quranSessions },
-      { label:l.quranSurahs,   value:stats.quranSurahs },
+      { label:l.quranSurahs,   value:stats.quranSurahsRead }, // açar adminContent.js-dəki getStats() ilə eyni (əvvəl boş görünürdü)
       { label:l.hifzMemorized, value:stats.hifzMemorized },
     ]},
     { title:l.interaction, icon:'donate', items:[

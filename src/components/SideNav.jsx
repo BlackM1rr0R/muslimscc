@@ -209,6 +209,27 @@ function revealCurrent(box) {
   const r = cur.getBoundingClientRect()
   if (r.top >= b.top && r.bottom <= b.bottom) return
   box.scrollTop += (r.top - b.top) - (b.height - r.height) / 2
+  // Yapışqan qrup başlığı (rail) yuxarıda yarıkəsik qalmasın: əvvəlki qrup
+  // elə sonda bitirsə ki, onun başlığı axtarış sahəsinin altında yarımçıq
+  // görünür (məs. ru "НАМАЗ И ПОКЛОНЕНИЕ"), qutunu həmin qrupun sonuna qədər
+  // sürüşdür — başlıq tam çıxır, növbəti qrupun başlığı yuxarıda tam görünür.
+  const top = box.getBoundingClientRect().top
+  for (const g of box.querySelectorAll('.qm-sn-group')) {
+    const gr = g.getBoundingClientRect()
+    if (gr.top < top && gr.bottom > top) {
+      const h = g.querySelector('.qm-sn-group-h')
+      const hr = h && h.getBoundingClientRect()
+      // Başlıq qrupun sonuna sıxılıb yuxarı itələnir (yarımçıq) — qrupun sonuna sür
+      if (hr && hr.top < top + 1 && gr.bottom - top < hr.height + 4) {
+        const before = box.scrollTop
+        box.scrollTop += gr.bottom - top
+        // Qutu artıq sonuna çatıbsa (aşağı sürüşmür) — əksinə, bir az yuxarı
+        // sür ki, həmin başlıq tam görünsün
+        if (box.scrollTop === before) box.scrollTop -= hr.height - (gr.bottom - top) + 2
+      }
+      break
+    }
+  }
 }
 
 /**

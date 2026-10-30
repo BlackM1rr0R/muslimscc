@@ -91,34 +91,53 @@ const HIJRI_MONTHS = {
   tr: ['Muharrem','Safer','Rebiülevvel','Rebiülahir','Cemaziyelevvel','Cemaziyelahir','Recep','Şaban','Ramazan','Şevval','Zilkade','Zilhicce'],
 }
 
+// ═══ İSLAMİ TƏQVİM HADİSƏLƏRİ (Sələf mənhəcinə uyğun) ═══
+// Yalnız şəriətdə əsli olan günlər. Çıxarılanlar və səbəbi:
+//  • Merac gecəsi (27 Rəcəb), Bərat gecəsi (15 Şaban) — bu gecələri xüsusi ibadət/bayram
+//    kimi qeyd etməyin dəlili yoxdur: "Kim bizim bu işimizdə ondan olmayan bir şey icad etsə,
+//    o, rədd olunur" (Buxari 2697, Muslim 1718). İsra-Merac gecəsinin tarixi səhih rəvayətlə
+//    bilinmir və onu qeyd etmək bidətdir — İbn Baz (https://islamqa.info/en/answers/60288);
+//    15 Şaban gecəsinin fəziləti barədə səhih mərfu hədis yoxdur, onu ibadətlə xüsusiləşdirmək
+//    şəriətdə yoxdur — İbn Cibrin (https://islamqa.info/en/answers/8907). Mövlud
+//    (https://islamqa.info/en/answers/70317) və Rəğaib təqvimdə onsuz da yox idi.
+//  • "Ramazanın ortası" — şəri əhəmiyyəti olan gün deyil.
+//  • Qədr gecəsi — tarixi qəti deyil; son on gecədə, xüsusilə tək gecələrdə axtarılır
+//    (Buxari 2017, 2020; https://islamqa.info/en/answers/50693). "27-ci gecə — ən ehtimallı"
+//    kimi qəti işarə çıxarıldı.
+//  • Ramazan bayramının 2–3-cü günləri — şəri bayram 1 Şəvvaldır (Buxari 1992).
+// Əlavə edilənlər: Tasua və Aşura orucu (Muslim 1134, 1162), Şəvvalın 6 günü (Muslim 1164),
+// Zülhiccənin ilk 10 günü (Buxari 969), ağ günlər (Nəsai 2420).
+// Hicri yeni il yalnız tarix kimi göstərilir (bayram deyil).
 const EVENTS = [
-  { month:0, day:1,  en:'Islamic New Year',                 az:'Hicri yeni il',                 ru:'Исламский Новый год',           ar:'رأس السنة الهجرية',        tr:'Hicri Yılbaşı',         icon:'🌙', type:'major' },
+  { month:0, day:1,  en:'1 Muharram — start of the Hijri year', az:'1 Məhərrəm — hicri ilin başlanğıcı', ru:'1 Мухаррама — начало года хиджры', ar:'غرة محرم — بداية السنة الهجرية', tr:'1 Muharrem — hicri yılın başlangıcı', icon:'📅', type:'month' },
+  { month:0, day:9,  en:"Tasu'a — fasting the 9th of Muharram", az:'Tasua — Məhərrəmin 9-u (Aşura ilə birlikdə oruc)', ru:'Тасуа — 9 Мухаррама (пост вместе с Ашурой)', ar:'تاسوعاء — صيام التاسع من محرم', tr:"Tasua — Muharremin 9'u (Aşure ile birlikte oruç)", icon:'📿', type:'sunnah' },
+  { month:0, day:10, en:'Ashura — fasting the 10th of Muharram', az:'Aşura — Məhərrəmin 10-u (oruc)', ru:'Ашура — пост 10 Мухаррама', ar:'عاشوراء — صيام العاشر من محرم', tr:"Aşure — Muharremin 10'u (oruç)", icon:'📿', type:'sunnah' },
   { month:1, day:1,  en:'First of Safar',                    az:'Səfər ayının başlanğıcı',        ru:'Начало месяца Сафар',           ar:'غرة صفر',                  tr:'Safer ayı başlangıcı',  icon:'📅', type:'month' },
   { month:2, day:1,  en:'First of Rabi al-Awwal',           az:'Rəbiül-Əvvəl başlanğıcı',       ru:'Начало Раби аль-Авваль',        ar:'غرة ربيع الأول',           tr:'Rebiülevvel başlangıcı', icon:'📅', type:'month' },
   { month:5, day:1,  en:'First of Jumada al-Thani',         az:'Cəmadiyül-Axir başlanğıcı',     ru:'Начало Джумада ас-Сани',        ar:'غرة جمادى الآخرة',         tr:'Cemaziyelahir başlangıcı', icon:'📅', type:'month' },
   { month:6, day:1,  en:'First of Rajab',                    az:'Rəcəb ayının başlanğıcı',        ru:'Начало месяца Раджаб',          ar:'غرة رجب',                  tr:'Recep ayı başlangıcı',  icon:'🌙', type:'month' },
-  { month:6, day:27, en:'Laylat al-Miraj',                   az:'Merac gecəsi',                   ru:'Лейлят аль-Мирадж',            ar:'ليلة الإسراء والمعراج',    tr:'Miraç Kandili',         icon:'✨', type:'night' },
   { month:7, day:1,  en:'First of Shaban',                   az:'Şaban ayının başlanğıcı',        ru:'Начало месяца Шабан',           ar:'غرة شعبان',                tr:'Şaban ayı başlangıcı',  icon:'🌙', type:'month' },
-  { month:7, day:15, en:'Laylat al-Baraat',                  az:'Bərat gecəsi',                   ru:'Лейлят аль-Бараат',            ar:'ليلة البراءة',             tr:'Berat Kandili',         icon:'💫', type:'night' },
   { month:8, day:1,  en:'First Day of Ramadan',              az:'Ramazanın birinci günü',         ru:'Первый день Рамадана',          ar:'أول رمضان',                tr:'Ramazan Başlangıcı',    icon:'🌙', type:'major' },
-  { month:8, day:15, en:'Mid-Ramadan',                       az:'Ramazanın ortası',               ru:'Середина Рамадана',             ar:'نصف رمضان',                tr:'Ramazan ortası',        icon:'📿', type:'minor' },
-  { month:8, day:21, en:'Laylat al-Qadr (estimated)',        az:'Qədr Gecəsi (təxmini)',          ru:'Лейлят аль-Кадр (примерно)',   ar:'ليلة القدر (تقديرية)',     tr:'Kadir Gecesi (tahmini)', icon:'💎', type:'night' },
-  { month:8, day:23, en:'Laylat al-Qadr (estimated)',        az:'Qədr Gecəsi (təxmini)',          ru:'Лейлят аль-Кадр (примерно)',   ar:'ليلة القدر (تقديرية)',     tr:'Kadir Gecesi (tahmini)', icon:'💎', type:'night' },
-  { month:8, day:25, en:'Laylat al-Qadr (estimated)',        az:'Qədr Gecəsi (təxmini)',          ru:'Лейлят аль-Кадр (примерно)',   ar:'ليلة القدر (تقديرية)',     tr:'Kadir Gecesi (tahmini)', icon:'💎', type:'night' },
-  { month:8, day:27, en:'Laylat al-Qadr (most likely)',      az:'Qədr Gecəsi (ən ehtimallı)',     ru:'Лейлят аль-Кадр (наиболее вероятно)', ar:'ليلة القدر (الأرجح)', tr:'Kadir Gecesi (en muhtemel)', icon:'💎', type:'night' },
-  { month:8, day:29, en:'Laylat al-Qadr (estimated)',        az:'Qədr Gecəsi (təxmini)',          ru:'Лейлят аль-Кадр (примерно)',   ar:'ليلة القدر (تقديرية)',     tr:'Kadir Gecesi (tahmini)', icon:'💎', type:'night' },
-  { month:9, day:1,  en:'Eid al-Fitr',                       az:'Ramazan bayramı',                ru:'Праздник Разговения',           ar:'عيد الفطر',                tr:'Ramazan Bayramı',       icon:'🎉', type:'major' },
-  { month:9, day:2,  en:'Eid al-Fitr (Day 2)',               az:'Ramazan Bayramı (2-ci gün)',     ru:'Ид аль-Фитр (день 2)',         ar:'عيد الفطر (اليوم ٢)',      tr:'Ramazan Bayramı (2. gün)', icon:'🎉', type:'major' },
-  { month:9, day:3,  en:'Eid al-Fitr (Day 3)',               az:'Ramazan Bayramı (3-cü gün)',     ru:'Ид аль-Фитр (день 3)',         ar:'عيد الفطر (اليوم ٣)',      tr:'Ramazan Bayramı (3. gün)', icon:'🎉', type:'major' },
-  { month:9, day:6,  en:'Fasting 6 Days of Shawwal begins',  az:'Şəvval orucunun başlanğıcı',    ru:'Пост 6 дней Шавваля',          ar:'بدء صيام ست من شوال',      tr:'Şevval orucunun başlangıcı', icon:'📿', type:'sunnah' },
-  { month:11,day:1,  en:'First of Dhu al-Hijjah',            az:'Zülhiccə ayının başlanğıcı',     ru:'Начало Зуль-Хиджа',            ar:'غرة ذو الحجة',             tr:'Zilhicce ayı başlangıcı', icon:'🕌', type:'month' },
+  { month:8, day:21, en:'Last ten nights of Ramadan — seek Laylat al-Qadr (especially the odd nights)', az:'Ramazanın son on gecəsi — Qədr gecəsi axtarılır (xüsusilə tək gecələr)', ru:'Последние десять ночей Рамадана — поиск Ночи Предопределения (особенно нечётные)', ar:'العشر الأواخر من رمضان — تحرّي ليلة القدر (لا سيما الأوتار)', tr:'Ramazanın son on gecesi — Kadir Gecesi aranır (özellikle tek geceler)', icon:'💎', type:'night' },
+  { month:9, day:1,  en:'Eid al-Fitr',                       az:'Ramazan bayramı',                ru:'Ураза-байрам',           ar:'عيد الفطر',                tr:'Ramazan Bayramı',       icon:'🎉', type:'major' },
+  { month:9, day:2,  en:'Six days of Shawwal fasting (from the 2nd)', az:'Şəvvalın 6 günlük orucu (2-ci gündən)', ru:'Пост шести дней Шавваля (со 2-го числа)', ar:'صيام ست من شوال (من اليوم الثاني)', tr:"Şevval'in 6 gün orucu (2. günden)", icon:'📿', type:'sunnah' },
+  { month:11,day:1,  en:'First ten days of Dhu al-Hijjah begin', az:'Zülhiccənin ilk on günü başlayır', ru:'Начало первых десяти дней Зуль-Хиджа', ar:'بداية العشر الأوائل من ذي الحجة', tr:'Zilhiccenin ilk on günü başlıyor', icon:'🕌', type:'sunnah' },
   { month:11,day:8,  en:'Day of Tarwiyah',                   az:'Tərviyə günü',                   ru:'День Тарвия',                   ar:'يوم التروية',              tr:'Terviye Günü',          icon:'🕌', type:'hajj' },
   { month:11,day:9,  en:'Day of Arafah',                     az:'Ərəfə günü',                     ru:'День Арафа',                    ar:'يوم عرفة',                 tr:'Arefe Günü',            icon:'🕌', type:'major' },
-  { month:11,day:10, en:'Eid al-Adha',                       az:'Qurban bayramı',                 ru:'Праздник Жертвоприношения',     ar:'عيد الأضحى',               tr:'Kurban Bayramı',        icon:'🐑', type:'major' },
+  { month:11,day:10, en:'Eid al-Adha',                       az:'Qurban bayramı',                 ru:'Курбан-байрам',     ar:'عيد الأضحى',               tr:'Kurban Bayramı',        icon:'🐑', type:'major' },
   { month:11,day:11, en:'Days of Tashreeq (1)',              az:'Təşriq günləri (1)',              ru:'Дни Ташрика (1)',               ar:'أيام التشريق (١)',          tr:'Teşrik günleri (1)',     icon:'🐑', type:'hajj' },
   { month:11,day:12, en:'Days of Tashreeq (2)',              az:'Təşriq günləri (2)',              ru:'Дни Ташрика (2)',               ar:'أيام التشريق (٢)',          tr:'Teşrik günleri (2)',     icon:'🐑', type:'hajj' },
   { month:11,day:13, en:'Days of Tashreeq (3)',              az:'Təşriq günləri (3)',              ru:'Дни Ташрика (3)',               ar:'أيام التشريق (٣)',          tr:'Teşrik günleri (3)',     icon:'🐑', type:'hajj' },
 ]
+
+// Ağ günlər (əyyamul-biyd) — hər hicri ayın 13, 14, 15-i oruc (Nəsai 2420, Tirmizi 761).
+// Zülhiccənin 13-ü təşriq günüdür, orucu qadağandır (Muslim 1141) — o ay üçün əlavə olunmur.
+// Ramazan ayında oruc onsuz da fərzdir — orada da göstərilmir.
+for (let m = 0; m < 12; m++) {
+  if (m === 8 || m === 11) continue
+  EVENTS.push({ month:m, day:13, en:'White days (13–15) — sunnah fasting', az:'Ağ günlər (13–15) — sünnə orucu', ru:'Белые дни (13–15) — желательный пост', ar:'الأيام البيض (١٣–١٥) — صيام مستحب', tr:'Beyaz günler (13–15) — sünnet oruç', icon:'📿', type:'sunnah' })
+}
+EVENTS.sort((a, b) => a.month - b.month || a.day - b.day)
 
 // v2: hadisə ikonu növə görə — xətti ikon (Icon.jsx) və sakit ton
 // (göy qurşağı kafelləri əvəzinə: əsas/gecə — qızılı, qalanları brend)
@@ -192,6 +211,8 @@ export function CalendarPage({ setPage }) {
       const raw = JSON.parse(localStorage.getItem('calendar_reminders'))
       return Array.isArray(raw)
         ? raw.filter(r => r && typeof r === 'object' && typeof r.key === 'string' && Number.isInteger(r.month) && Number.isInteger(r.day))
+          // təqvimdən çıxarılmış hadisələrin (məs. Merac/Bərat gecəsi) köhnə xatırladıcıları atılır
+          .filter(r => EVENTS.some(e => e.month === r.month && e.day === r.day))
         : []
     } catch { return [] }
   })

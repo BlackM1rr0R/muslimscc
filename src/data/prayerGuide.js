@@ -523,7 +523,7 @@ export const PRAYERS = [
   { key: 'fajr', rakats: 2, icon: 'sunrise', name: { az: 'Sübh', en: 'Fajr', ru: 'Фаджр', ar: 'الفجر', tr: 'Sabah' } },
   { key: 'dhuhr', rakats: 4, icon: 'sun', name: { az: 'Zöhr', en: 'Dhuhr', ru: 'Зухр', ar: 'الظهر', tr: 'Öğle' } },
   { key: 'asr', rakats: 4, icon: 'sunLow', name: { az: 'Əsr', en: 'Asr', ru: 'Аср', ar: 'العصر', tr: 'İkindi' } },
-  { key: 'maghrib', rakats: 3, icon: 'sunset', name: { az: 'Axşam', en: 'Maghrib', ru: 'Магриб', ar: 'المغرب', tr: 'Akşam' } },
+  { key: 'maghrib', rakats: 3, icon: 'sunset', name: { az: 'Məğrib', en: 'Maghrib', ru: 'Магриб', ar: 'المغرب', tr: 'Akşam' } },
   { key: 'isha', rakats: 4, icon: 'moon', name: { az: 'İşa', en: 'Isha', ru: 'Иша', ar: 'العشاء', tr: 'Yatsı' } },
 ]
 

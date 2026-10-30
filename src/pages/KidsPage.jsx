@@ -113,11 +113,11 @@ const SHORT_SURAHS = [
     ar_desc:'عن نصر الله والفتح.',
     tr:'Allah\'ın yardımı ve zafer hakkında.' },
   { num:109, name:'الكافرون', en:'Al-Kafirun', emoji:'🚫', ayahs:6,
-    az:'Din azadlığı haqqında. "Sizin dininiz sizə, mənim dinim mənə."',
-    en_desc:'About freedom of religion. "To you your religion, to me mine."',
-    ru:'О свободе вероисповедания. "Вам ваша вера, а мне моя."',
-    ar_desc:'عن حرية الدين. "لكم دينكم ولي دين."',
-    tr:'Din özgürlüğü hakkında. "Sizin dininiz size, benim dinim bana."' },
+    az:'Şirkdən uzaq olmaq (bəraət) haqqında. "Sizin dininiz sizə, mənim dinim mənə."',
+    en_desc:'About disowning shirk (idolatry). "To you your religion, to me mine."',
+    ru:'Об отречении от многобожия. "Вам ваша вера, а мне моя."',
+    ar_desc:'سورة البراءة من الشرك. "لكم دينكم ولي دين."',
+    tr:'Şirkten uzak durmak (beraat) hakkında. "Sizin dininiz size, benim dinim bana."' },
   { num:95, name:'التين', en:'At-Tin', emoji:'🫒', ayahs:8,
     az:'Əncir və zeytuna and içir. İnsanın ən gözəl şəkildə yaradıldığını bildirir.',
     en_desc:'Swears by the fig and olive. States man was created in the best form.',
@@ -247,7 +247,7 @@ const DAILY_DUAS = [
 ]
 
 const PILLARS = [
-  { emoji:'☝️', az:'Şəhadət — Allahın tək olduğuna inanmaq', en:'Shahada — Believing Allah is One', ru:'Шахада — Верить, что Аллах Един', ar:'الشهادة — الإيمان بأن الله واحد', tr:'Şehadet — Allah\'ın tek olduğuna inanmak' },
+  { emoji:'☝️', az:'Şəhadət — Allahdan başqa ibadətə layiq heç kim olmadığına və Muhəmmədin ﷺ Allahın elçisi olduğuna şahidlik etmək', en:'Shahada — Testifying that none deserves worship except Allah and that Muhammad ﷺ is His Messenger', ru:'Шахада — Свидетельствовать, что нет достойного поклонения, кроме Аллаха, и что Мухаммад ﷺ — Его посланник', ar:'الشهادة — شهادة أن لا إله إلا الله وأن محمدًا رسول الله', tr:'Şehadet — Allah\'tan başka ibadete layık kimse olmadığına ve Muhammed\'in ﷺ O\'nun elçisi olduğuna şahitlik etmek' },
   { emoji:'🕌', az:'Namaz — Gündə 5 dəfə namaz qılmaq', en:'Salah — Praying 5 times a day', ru:'Салят — Молиться 5 раз в день', ar:'الصلاة — خمس صلوات في اليوم', tr:'Namaz — Günde 5 vakit namaz kılmak' },
   { emoji:'🌙', az:'Oruc — Ramazanda oruc tutmaq', en:'Sawm — Fasting in Ramadan', ru:'Саум — Поститься в Рамадан', ar:'الصيام — صيام رمضان', tr:'Oruç — Ramazanda oruç tutmak' },
   { emoji:'💰', az:'Zəkat — Kasıblara kömək etmək', en:'Zakat — Helping the poor', ru:'Закят — Помогать бедным', ar:'الزكاة — مساعدة الفقراء', tr:'Zekat — Fakirlere yardım etmek' },
@@ -264,7 +264,7 @@ const QUIZ = [
     options:['3','4','5','7'], answer:2
   },
   {
-    az_q:'Allahın neçə gözəl adı var?', en_q:'How many Names of Allah are there?', ru_q:'Сколько прекрасных имён у Аллаха?', ar_q:'كم عدد أسماء الله الحسنى؟', tr_q:'Allah\'ın kaç güzel ismi vardır?',
+    az_q:'Peyğəmbər ﷺ Allahın neçə adını sayıb-əzbərləyənin Cənnətə girəcəyini bildirib?', en_q:'The Prophet ﷺ said whoever learns how many Names of Allah will enter Paradise?', ru_q:'Пророк ﷺ сказал, что тот, кто выучит сколько имён Аллаха, войдёт в Рай?', ar_q:'كم اسمًا لله أخبر النبي ﷺ أن من أحصاها دخل الجنة؟', tr_q:'Peygamber ﷺ Allah\'ın kaç ismini ezberleyenin Cennete gireceğini bildirdi?',
     options:['50','77','99','114'], answer:2
   },
   {

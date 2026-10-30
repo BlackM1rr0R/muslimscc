@@ -74,15 +74,15 @@ const SAHABA = [
     id:4, category:'caliph',
     name:{ az:'Əli ibn Əbu Talib', en:'Ali ibn Abi Talib', ru:'Али ибн Абу Талиб', ar:'علي بن أبي طالب', tr:'Ali ibn Ebi Talib' },
     arName:'علي بن أبي طالب رضي الله عنه',
-    title:{ az:'4-cü Xəlifə — Elmin qapısı', en:'4th Caliph — Gate of Knowledge', ru:'4-й халиф — Врата знания', ar:'الخليفة الرابع — باب العلم', tr:'4. Halife — İlmin kapısı' },
+    title:{ az:'4-cü raşid xəlifə', en:'4th Rightly-Guided Caliph', ru:'4-й праведный халиф', ar:'الخليفة الراشد الرابع', tr:'4. Râşid Halife' },
     years:'601-661', color:'#ef4444', gradient:['#ef4444','#dc2626'],
     short:{ az:'Peyğəmbərin əmisi oğlu və kürəkəni', en:"Prophet's cousin and son-in-law", ru:'Двоюродный брат и зять Пророка', ar:'ابن عم النبي وزوج ابنته', tr:'Peygamber\'in amca oğlu ve damadı' },
     bio:{
-      az:'Peyğəmbərin əmisi oğlu və Hz. Fatimə ilə evlənən. İlk uşaq müsəlman (10 yaşında). "Elmin qapısı" deyilirdi. Cəsur bir döyüşçü idi. Xeybər qalasının qapısını tək başına qopardı. 4 il 9 ay xilafət etdi. Cənnət müjdəli 10 səhabələrdən biri.',
-      en:"Cousin of the Prophet and husband of Fatima. First child Muslim (at age 10). Known as 'Gate of Knowledge'. Brave warrior. Alone pulled off the gate of Khaybar fortress. Ruled for 4 years 9 months. One of the 10 companions promised Paradise.",
-      ru:'Двоюродный брат Пророка и муж Фатимы. Первый ребёнок-мусульманин (в 10 лет). Известен как "Врата знания". Храбрый воин. В одиночку сорвал ворота крепости Хайбар. Правил 4 года 9 месяцев. Один из 10 сподвижников, обещанных Раем.',
-      ar:'ابن عم النبي ﷺ وزوج ابنته فاطمة. أول الصبيان إسلاماً (وهو ابن ١٠ سنوات). لُقب بباب العلم. كان مقاتلاً شجاعاً. قلع باب خيبر وحده. حكم ٤ سنوات و٩ أشهر. من العشرة المبشرين بالجنة.',
-      tr:'Peygamber\'in amca oğlu ve Hz. Fatıma\'nın eşi. İlk çocuk Müslüman (10 yaşında). "İlmin kapısı" denilirdi. Cesur bir savaşçıydı. Hayber Kalesi\'nin kapısını tek başına kopardı. 4 yıl 9 ay halifelik yaptı. Aşere-i mübeşşere\'den biri.'
+      az:'Peyğəmbərin əmisi oğlu və Hz. Fatimə ilə evlənən. İlk müsəlman olan uşaqlardandır. Cəsur bir döyüşçü idi. Xeybərdə Peyğəmbər ﷺ bayrağı ona verdi və fəth onun əli ilə oldu (Buxari 4210). 4 il 9 ay xilafət etdi. Cənnət müjdəli 10 səhabələrdən biri.',
+      en:"Cousin of the Prophet and husband of Fatima. Among the first children to embrace Islam. Brave warrior. At Khaybar the Prophet ﷺ gave him the banner and the victory came through him (Bukhari 4210). Ruled for 4 years 9 months. One of the 10 companions promised Paradise.",
+      ru:'Двоюродный брат Пророка и муж Фатимы. Одним из первых среди детей принял ислам. Храбрый воин. При Хайбаре Пророк ﷺ вручил ему знамя, и победа пришла через него (аль-Бухари 4210). Правил 4 года 9 месяцев. Один из 10 сподвижников, обещанных Раем.',
+      ar:'ابن عم النبي ﷺ وزوج ابنته فاطمة. أول الصبيان إسلاماً. كان مقاتلاً شجاعاً. أعطاه النبي ﷺ الراية يوم خيبر ففتح الله على يديه (البخاري ٤٢١٠). حكم ٤ سنوات و٩ أشهر. من العشرة المبشرين بالجنة.',
+      tr:'Peygamber\'in amca oğlu ve Hz. Fatıma\'nın eşi. İlk Müslüman olan çocuklardandır. Cesur bir savaşçıydı. Hayber\'de Peygamber ﷺ sancağı ona verdi ve fetih onun eliyle oldu (Buhârî 4210). 4 yıl 9 ay halifelik yaptı. Aşere-i mübeşşere\'den biri.'
     },
     facts:[
       { az:'İlk uşaq müsəlman', en:'First child Muslim', ru:'Первый ребёнок-мусульманин', ar:'أول الصبيان إسلاماً', tr:'İlk çocuk Müslüman' },
@@ -156,16 +156,15 @@ const SAHABA = [
     arName:'خالد بن الوليد رضي الله عنه',
     title:{ az:'Allahın Qılıncı', en:"Sword of Allah", ru:'Меч Аллаха', ar:'سيف الله المسلول', tr:'Allah\'ın Kılıcı' },
     years:'592-642', color:'#dc2626', gradient:['#dc2626','#991b1b'],
-    short:{ az:'Məğlub olunmayan sərkərdə', en:'Undefeated general', ru:'Непобедимый полководец', ar:'القائد الذي لم يُهزم', tr:'Yenilmez komutan' },
+    short:{ az:'Peyğəmbərin ﷺ "Allahın qılıncı" adlandırdığı sərkərdə', en:'The commander the Prophet ﷺ called "a sword of Allah"', ru:'Полководец, которого Пророк ﷺ назвал «мечом Аллаха»', ar:'القائد الذي سمّاه النبي ﷺ سيف الله', tr:'Peygamber\'in ﷺ "Allah\'ın kılıcı" dediği komutan' },
     bio:{
-      az:'İslamın ən böyük sərkərdələrindən biri. 100-dən çox döyüşdə iştirak etdi, heç birində məğlub olmadı. Peyğəmbər ﷺ ona "Allahın Qılıncı" ləqəbini verdi. Rəddə müharibələrində, Yarmuk və Qadisiyyə döyüşlərində böyük rol oynadı. Bizans və Fars orduları onun qarşısında müqavimət göstərə bilmədi.',
-      en:"One of Islam's greatest military commanders. Fought in over 100 battles, never defeated. The Prophet ﷺ gave him the title 'Sword of Allah'. Played a major role in Ridda wars and Battles of Yarmouk and Qadisiyyah. Byzantine and Persian armies could not stand against him.",
-      ru:'Один из величайших полководцев ислама. Участвовал в более чем 100 сражениях, никогда не был побеждён. Пророк ﷺ дал ему титул "Меч Аллаха". Сыграл большую роль в войнах Ридда и битвах при Ярмуке и Кадисии.',
-      ar:'من أعظم قادة الإسلام. شارك في أكثر من ١٠٠ معركة ولم يُهزم قط. لقّبه النبي ﷺ بسيف الله. لعب دوراً كبيراً في حروب الردة ومعارك اليرموك والقادسية.',
-      tr:'İslam\'ın en büyük komutanlarından biri. 100\'den fazla savaşa katıldı, hiçbirinde yenilmedi. Peygamber ﷺ ona "Allah\'ın Kılıcı" lakabını verdi. Ridde savaşları ile Yarmuk ve Kadisiye\'de büyük rol oynadı.'
+      az:'İslamın ən böyük sərkərdələrindən biri. Peyğəmbər ﷺ onu "Allahın qılınclarından bir qılınc" adlandırdı (Buxari 3757). Riddə müharibələrində və Yərmuk döyüşündə böyük rol oynadı.',
+      en:"One of Islam's greatest military commanders. The Prophet ﷺ called him 'one of the swords of Allah' (Bukhari 3757). Played a major role in the Ridda wars and the Battle of Yarmouk.",
+      ru:'Один из величайших полководцев ислама. Пророк ﷺ назвал его "одним из мечей Аллаха" (аль-Бухари 3757). Сыграл большую роль в войнах Ридда и битве при Ярмуке.',
+      ar:'من أعظم قادة الإسلام. سمّاه النبي ﷺ سيفًا من سيوف الله (البخاري ٣٧٥٧). لعب دوراً كبيراً في حروب الردة ومعركة اليرموك.',
+      tr:'İslam\'ın en büyük komutanlarından biri. Peygamber ﷺ onu "Allah\'ın kılıçlarından bir kılıç" diye andı (Buhârî 3757). Ridde savaşlarında ve Yermük Savaşı\'nda büyük rol oynadı.'
     },
     facts:[
-      { az:'100+ döyüşdə məğlubiyyətsiz', en:'Undefeated in 100+ battles', ru:'Не побеждён в 100+ сражениях', ar:'لم يهزم في ١٠٠+ معركة', tr:'100+ savaşta yenilmedi' },
       { az:'Yarmuk döyüşünün qalibi', en:'Victor of Battle of Yarmouk', ru:'Победитель битвы при Ярмуке', ar:'بطل معركة اليرموك', tr:'Yarmuk Savaşı\'nın galibi' },
     ],
   },

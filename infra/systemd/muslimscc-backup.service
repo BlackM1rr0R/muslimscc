@@ -1,0 +1,10 @@
+# Muslims.cc — SQLite ehtiyat nüsxəsi (infra/backup.sh)
+# Quraşdırma: docs/FIREBASE-EXIT.md → "Ehtiyat nüsxə"
+[Unit]
+Description=Muslims.cc SQLite backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/muslimscc/backup.sh

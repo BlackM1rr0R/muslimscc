@@ -282,7 +282,10 @@ html[lang="ar"] .pt-rulings-title { letter-spacing: 0; text-transform: none; }
   .pt-prayer { grid-template-columns: minmax(0, 1fr); }
   .pt-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .pt-seg-btn { justify-content: center; padding: 0 6px; }
-  .pt-sum { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* 5 xana: 3 + 2 — ikinci sətir boş yer qoymadan tam eni tutur */
+  .pt-sum { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .pt-sum > div { grid-column: span 2; }
+  .pt-sum > div:nth-child(n + 4) { grid-column: span 3; }
   .pt-qada-row { grid-template-columns: minmax(0, 1fr) auto; }
   .pt-qada-done { grid-column: 1 / -1; justify-self: stretch; }
   .pt-bulk-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }

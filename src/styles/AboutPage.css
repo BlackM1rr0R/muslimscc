@@ -185,3 +185,7 @@
   .ab-root .ab-value + .ab-value { border-top: 1px solid var(--line); }
   .ab-value .ui-icon-tile { grid-row: 1 / span 2; margin: 0; }
 }
+
+/* Mənhəc bölməsi (Sələf mənhəci) */
+.ab-manhaj { padding: 24px 28px; }
+.ab-manhaj p { margin: 8px 0 0; line-height: 1.75; }
