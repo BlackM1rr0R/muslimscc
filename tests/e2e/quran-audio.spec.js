@@ -260,7 +260,10 @@ test.describe('stub ilə', () => {
     await page.evaluate(() => { window.__audio.fail(); window.__audio.fail(); window.__audio.fail() })
     await expect(player(page).getByRole('alert')).toContainText('İnternet bağlantısı yoxdur')
     await context.setOffline(false)
-    expectCleanConsole(consoleProblems)
+    // Oflayn anında arxa planda gec yüklənən hissələrin (bildiriş, elan —
+    // idle-dan sonra) sorğuları "ERR_INTERNET_DISCONNECTED" yazır: bu, testin
+    // özünün yaratdığı gözlənilən haldır (sayt bağlantı qayıdanda onları yükləyir)
+    expectCleanConsole(consoleProblems.filter((m) => !m.includes('ERR_INTERNET_DISCONNECTED')))
   })
 
   test('Media Session: başlıq surə + ayə, ifaçı qari, düymələr işləyir', async ({ page, consoleProblems }) => {
