@@ -29,14 +29,24 @@ mkdir -p "$DIR"
 chmod 700 "$DIR"
 
 export TAG="$(cat .current_tag)"
-# -T: TTY yoxdur (binar axın pozulmasın)
-if ! docker compose exec -T api node scripts/backup-db.js | gzip -9 > "$TMP"; then
-  rm -f "$TMP"; log "XƏTA: surət çıxarılmadı"; exit 1
+# -T: TTY yoxdur (binar axın pozulmasın). stderr ayrıca fayla: orada
+# "OK: <bayt> bayt" sətri var — arxivin TAM olduğunu ölçü ilə yoxlayırıq.
+# (2026-10-31: köhnə backup-db.js boruya yarımçıq yazırdı, başlıq yoxlaması
+#  bunu tutmurdu — arxiv "malformed" çıxırdı.)
+ERR="$OUT.err"
+if ! docker compose exec -T api node scripts/backup-db.js 2>"$ERR" | gzip -9 > "$TMP"; then
+  rm -f "$TMP" "$ERR"; log "XƏTA: surət çıxarılmadı"; exit 1
 fi
-# Boş və ya pozuq arxiv saxlanmasın
-# (SQLite faylının başlığı "SQLite format 3\0" — ilk 15 bayt yoxlanılır)
-if ! gzip -t "$TMP" || [ "$(gunzip -c "$TMP" | head -c 15)" != "SQLite format 3" ]; then
-  rm -f "$TMP"; log "XƏTA: arxiv yararsızdır"; exit 1
+EXPECT=$(sed -n 's/^OK: \([0-9][0-9]*\) bayt.*/\1/p' "$ERR" | tail -n 1)
+rm -f "$ERR"
+if [ -z "$EXPECT" ]; then
+  rm -f "$TMP"; log "XƏTA: backup-db.js uğur bildirmədi"; exit 1
+fi
+# Boş, kəsik və ya pozuq arxiv saxlanmasın: gzip bütövlüyü, SQLite başlığı
+# ("SQLite format 3\0" — ilk 15 bayt) və açılmış ölçü = bildirilən ölçü
+GOT=$(gunzip -c "$TMP" 2>/dev/null | wc -c | tr -d ' ')
+if ! gzip -t "$TMP" || [ "$(gunzip -c "$TMP" | head -c 15)" != "SQLite format 3" ] || [ "$GOT" != "$EXPECT" ]; then
+  rm -f "$TMP"; log "XƏTA: arxiv yararsızdır (ölçü $GOT, gözlənilən $EXPECT)"; exit 1
 fi
 mv "$TMP" "$OUT"
 log "OK: $OUT ($(du -h "$OUT" | cut -f1))"
