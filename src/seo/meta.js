@@ -553,19 +553,6 @@ export const META = {
           d: 'تحقّق من مصدر المضافات الغذائية (أرقام E) واطّلع على مكوّنات المنتج بالباركود: حيواني أو نباتي أو مشتبه، مع القواعد الفقهية.' },
   },
 
-  opendata: {
-    az: { t: 'Açıq məlumat — hədis, dua və 99 ad JSON formatında',
-          d: 'Saytın açıq məlumatı: hədislərin ərəb mətni və mənbələri, dualar, Allahın 99 adı, Nəvəvinin 40 hədisi və dərslərin siyahısı — pulsuz statik JSON faylları.' },
-    en: { t: 'Open Data — Hadith, Duas and the 99 Names as JSON',
-          d: 'The site’s open data: hadith Arabic texts and references, duas, the 99 Names of Allah, an-Nawawi’s Forty Hadith and the lesson index — free static JSON files.' },
-    ru: { t: 'Открытые данные — хадисы, дуа и 99 имён в JSON',
-          d: 'Открытые данные сайта: арабские тексты хадисов и источники, дуа, 99 имён Аллаха, 40 хадисов ан-Навави и список уроков — бесплатные статические файлы JSON.' },
-    tr: { t: 'Açık Veri — Hadis, Dua ve 99 İsim JSON Olarak',
-          d: 'Sitenin açık verisi: hadislerin Arapça metni ve kaynakları, dualar, Allah’ın 99 ismi, Nevevî’nin Kırk Hadis’i ve ders listesi — ücretsiz statik JSON dosyaları.' },
-    ar: { t: 'البيانات المفتوحة — الأحاديث والأدعية والأسماء الحسنى',
-          d: 'البيانات المفتوحة للموقع: نصوص الأحاديث العربية ومصادرها، والأدعية، وأسماء الله الحسنى، والأربعون النووية، وقائمة الدروس، في ملفات JSON مجانية.' },
-  },
-
   holyplaces: {
     az: { t: 'Müqəddəs Yerlər — Kəbə, Məscidi-Nəbəvi və s.',
           d: 'İslamın müqəddəs məkanlarını tanı: Məscidül-Həram, Məscidi-Nəbəvi, Məscidül-Əqsa, Ərəfat, Hira mağarası və 10 müqəddəs yer.' },

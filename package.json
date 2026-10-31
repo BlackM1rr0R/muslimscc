@@ -4,7 +4,7 @@
   "description": "Muslims.cc — 5 dildə pulsuz İslami platforma: Quran, namaz vaxtları, hədis, dua, zikr və İslami bilik",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/prerender.mjs && node scripts/build-open-data.mjs",
+    "build": "vite build && node scripts/prerender.mjs",
     "prerender": "node scripts/prerender.mjs",
     "social:pool": "node -e \"import('./scripts/social/content.mjs').then(m=>m.writePool()).then(n=>console.log('pool.json:',n,'element'))\"",
     "social:post": "node scripts/social/run.mjs",
