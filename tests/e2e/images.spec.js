@@ -66,6 +66,8 @@ test('səhabə: kartda və profildə xəttatlıq lövhəsi (canlı təsvir yoxdu
 for (const theme of ['light', 'dark']) {
   test(`axe (${theme}): müqəddəs yerlər, həcc, tarix, səhabə — ciddi pozuntu yoxdur`, async ({ page }, info) => {
     test.skip(info.project.name === 'mobile', 'kompüterdə kifayətdir')
+    // 6 ağır səhifədə axe — CI-da 30 san. azdır (səhifələr genişləndikcə uzanıb)
+    test.setTimeout(120_000)
     await page.addInitScript((t) => { try { localStorage.setItem('muslim_cc_theme', t) } catch { /* yaddaş bağlıdır */ } }, theme)
     for (const url of ['/holyplaces', '/hajjguide', '/history', '/sahaba', '/sahaba/abu-bakr-as-siddiq', '/ar/holyplaces']) {
       await page.goto(url)
