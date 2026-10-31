@@ -15,9 +15,12 @@ import { PAGES } from '../../src/seo/routes.js'
 // (PW_TRACKER_ROUTE=1 — marşrutu test serverində qoşanda məcburi işlət)
 const HAS_ROUTE = PAGES.some(p => p.key === 'tracker') || process.env.PW_TRACKER_ROUTE === '1'
 
-// Bakı vaxtı ilə gün açarı (konfiqdə timezoneId: 'Asia/Baku')
+// Bakı vaxtı ilə gün açarı (konfiqdə timezoneId: 'Asia/Baku').
+// FIXED_NOW — saatı sabitlənən testlər üçün (ay dəyişəndə təqvim keçən ayın
+// günlərini göstərmir — 1 noyabrda "3 gün əvvəl" görünmürdü)
+let FIXED_NOW = null
 const keyIn = (offsetDays = 0) => {
-  const d = new Date(Date.now() + offsetDays * 86400000)
+  const d = new Date((FIXED_NOW ?? Date.now()) + offsetDays * 86400000)
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d)
 }
 const ls = (page, key) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) || 'null'), key)
@@ -165,6 +168,11 @@ test.describe('/prayer-tracker', () => {
   })
 
   test('heyz günləri seriyanı qırmır; bölmə yalnız cihazdadır', async ({ page, consoleProblems }) => {
+    // Ayın ortası: "2–4 gün əvvəl" həmişə cari ayın təqvimində olsun
+    FIXED_NOW = Date.parse('2026-10-20T09:00:00Z')
+    test.info().annotations.push({ type: 'clock', description: '2026-10-20 (sabit)' })
+    await page.clock.install({ time: FIXED_NOW })
+    try {
     await page.goto('/prayer-tracker')
     // 1 və 5 gün əvvəl tam; 2–4 gün əvvəl heyz
     await seedFullDays(page, [1, 5], {
@@ -184,6 +192,7 @@ test.describe('/prayer-tracker', () => {
     await hayd.getByRole('button', { name: 'Dövr bitdi' }).click()
     await expect(hayd.getByRole('button', { name: 'Dövrü başlat' })).toBeVisible()
     expectCleanConsole(consoleProblems)
+    } finally { FIXED_NOW = null }
   })
 
   test('qəza sayğacı: +/−, "qəza qıldım", toplu daxiletmə təsdiqlə', async ({ page, consoleProblems }) => {
