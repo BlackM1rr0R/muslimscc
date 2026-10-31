@@ -35,6 +35,7 @@ export const PAGES = [
   { key: 'jamaat',        path: 'jamaat',        priority: 0.95, changefreq: 'daily'   },
   { key: 'mosquetv',     path: 'mosque-tv',    priority: 0.60, changefreq: 'monthly' },
   { key: 'widget',       path: 'widget',       priority: 0.60, changefreq: 'monthly' },
+  { key: 'opendata',     path: 'open-data',    priority: 0.40, changefreq: 'monthly' },
   { key: 'announcements', path: 'announcements', priority: 0.90, changefreq: 'daily'   },
   { key: 'donate',        path: 'donate',        priority: 0.70, changefreq: 'monthly' },
   { key: 'quran',        path: 'quran',        priority: 0.95, changefreq: 'weekly'  },

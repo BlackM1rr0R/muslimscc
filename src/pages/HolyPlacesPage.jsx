@@ -46,7 +46,7 @@ const PLACES = [
     icon: 'holyplaces',
     nameAr: 'المسجد النبوي',
     name: { az:'Məscidün-Nəbəvi', en:'Al-Masjid an-Nabawi', ru:'Масджид ан-Набави', ar:'المسجد النبوي', tr:'Mescid-i Nebevî' },
-    photo: 'masjid-an-nabawi',
+    // Foto qəsdən yoxdur: məscidin şəkillərində qəbir üzərindəki günbəz görünür (sahibin qərarı)
     lat: 24.4672, lon: 39.6112,
     city: { az:'Mədinə', en:'Medina', ru:'Медина', ar:'المدينة المنورة', tr:'Medine' },
     desc: {

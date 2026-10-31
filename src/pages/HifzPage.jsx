@@ -9,7 +9,7 @@ import { ayahSources, readAudioPrefs, reciterName } from '../utils/quranAudio'
 import {
   loadState as loadSrs, saveState as saveSrs, dateKey, todayStats, streak, perSurahCounts,
   memorisedSeries, dueItems, nextNewAyahs, gradeItem, setGoal, seedItems, previewIntervals,
-  newItem, splitAyahWords, compareRecitation, GRADES, GOAL_MIN, GOAL_MAX,
+  newItem, splitAyahWords, GRADES, GOAL_MIN, GOAL_MAX,
 } from '../utils/hifzSrs'
 import '../styles/HifzPage.css'
 
@@ -192,9 +192,6 @@ const SMART = {
     revealNext:'Növbəti söz', revealAll:'Hamısını göstər', hideAll:'Yenidən gizlət', tapHint:'Gizli sözü açmaq üçün ona toxunun', hiddenWord:'Gizli söz, açmaq üçün toxunun',
     compare:'Səs müqayisəsi', reciter:'Qari', you:'Sizin qiraətiniz', record:'Yazmağa başla', stopRec:'Yazını bitir', recAgain:'Yenidən yaz', noRec:'Hələ yazı yoxdur',
     recNote:'Yazı yalnız bu səhifənin yaddaşında qalır, heç yerə göndərilmir.', micDenied:'Mikrofona icazə verilmədi',
-    autoCheck:'Avtomatik yoxla', stopCheck:'Dinləməni bitir', listening:'Dinlənilir — ayəni oxuyun…', approx:'Təxmini',
-    autoNote:'Təxmini yoxlama: yalnız sözlərin tanınıb-tanınmadığına baxır, təcvidi və məxrəcləri qiymətləndirmir. Nitqi brauzerin öz xidməti tanıyır (bəzi brauzerlər səsi öz serverinə göndərir).',
-    matchResult:'{n} sözdən {m} tanındı', noSpeech:'Səs tanınmadı — yenidən cəhd edin', checkFailed:'Yoxlama alınmadı', heard:'Tanınan mətn',
     gradeQ:'Necə oxudunuz?', again:'Yenidən', hard:'Çətin', good:'Yaxşı', easy:'Asan', now:'bu gün',
     doneTitle:'Sessiya bitdi', doneText:'Verilən qiymət: {n}. Allah bərəkət versin!',
     loading:'Ayə yüklənir…', loadError:'Ayəni yükləmək alınmadı', retry:'Yenidən cəhd et',
@@ -213,9 +210,6 @@ const SMART = {
     revealNext:'Next word', revealAll:'Show all', hideAll:'Hide again', tapHint:'Tap a hidden word to reveal it', hiddenWord:'Hidden word, tap to reveal',
     compare:'Voice comparison', reciter:'Reciter', you:'Your recitation', record:'Start recording', stopRec:'Stop recording', recAgain:'Record again', noRec:'No recording yet',
     recNote:'The recording stays only in this page’s memory and is never uploaded.', micDenied:'Microphone access was denied',
-    autoCheck:'Automatic check', stopCheck:'Stop listening', listening:'Listening — recite the ayah…', approx:'Approximate',
-    autoNote:'Approximate check: it only looks at whether the words were recognised and does not judge tajweed or articulation. Speech is recognised by your browser’s own service (some browsers send the audio to their server).',
-    matchResult:'{m} of {n} words recognised', noSpeech:'No speech recognised — try again', checkFailed:'The check failed', heard:'Recognised text',
     gradeQ:'How did you recite?', again:'Again', hard:'Hard', good:'Good', easy:'Easy', now:'today',
     doneTitle:'Session complete', doneText:'Grades given: {n}. May Allah bless you!',
     loading:'Loading ayah…', loadError:'Could not load the ayah', retry:'Try again',
@@ -234,9 +228,6 @@ const SMART = {
     revealNext:'Следующее слово', revealAll:'Показать всё', hideAll:'Скрыть снова', tapHint:'Нажмите на скрытое слово, чтобы открыть его', hiddenWord:'Скрытое слово, нажмите, чтобы открыть',
     compare:'Сравнение чтения', reciter:'Чтец', you:'Ваше чтение', record:'Начать запись', stopRec:'Остановить запись', recAgain:'Записать заново', noRec:'Записи пока нет',
     recNote:'Запись хранится только в памяти этой страницы и никуда не отправляется.', micDenied:'Нет доступа к микрофону',
-    autoCheck:'Проверить автоматически', stopCheck:'Остановить', listening:'Слушаю — читайте аят…', approx:'Приблизительно',
-    autoNote:'Приблизительная проверка: смотрит лишь, распознаны ли слова, и не оценивает таджвид и махраджи. Речь распознаёт сам браузер (некоторые браузеры отправляют звук на свой сервер).',
-    matchResult:'Распознано слов: {m} из {n}', noSpeech:'Речь не распознана — попробуйте ещё раз', checkFailed:'Проверка не удалась', heard:'Распознанный текст',
     gradeQ:'Как вы прочитали?', again:'Снова', hard:'Трудно', good:'Хорошо', easy:'Легко', now:'сегодня',
     doneTitle:'Сессия завершена', doneText:'Оценок: {n}. Да благословит вас Аллах!',
     loading:'Загрузка аята…', loadError:'Не удалось загрузить аят', retry:'Повторить',
@@ -255,9 +246,6 @@ const SMART = {
     revealNext:'الكلمة التالية', revealAll:'إظهار الكل', hideAll:'إخفاء من جديد', tapHint:'اضغط على الكلمة المخفية لإظهارها', hiddenWord:'كلمة مخفية، اضغط لإظهارها',
     compare:'مقارنة التلاوة', reciter:'القارئ', you:'تلاوتك', record:'ابدأ التسجيل', stopRec:'أوقف التسجيل', recAgain:'سجّل من جديد', noRec:'لا يوجد تسجيل بعد',
     recNote:'يبقى التسجيل في ذاكرة هذه الصفحة فقط ولا يُرسل إلى أي مكان.', micDenied:'لم يُسمح باستخدام الميكروفون',
-    autoCheck:'تحقق تلقائي', stopCheck:'إيقاف الاستماع', listening:'جارٍ الاستماع — اقرأ الآية…', approx:'تقريبي',
-    autoNote:'تحقق تقريبي: ينظر فقط هل تم التعرف على الكلمات، ولا يحكم على التجويد ومخارج الحروف. يتعرّف المتصفح نفسه على الكلام عبر خدمته (بعض المتصفحات ترسل الصوت إلى خوادمها).',
-    matchResult:'تم التعرف على {m} من {n} كلمة', noSpeech:'لم يتم التعرف على الكلام — حاول مرة أخرى', checkFailed:'تعذّر التحقق', heard:'النص المتعرَّف عليه',
     gradeQ:'كيف كانت تلاوتك؟', again:'أعد', hard:'صعب', good:'جيد', easy:'سهل', now:'اليوم',
     doneTitle:'انتهت الجلسة', doneText:'عدد التقييمات: {n}. بارك الله فيك!',
     loading:'جارٍ تحميل الآية…', loadError:'تعذّر تحميل الآية', retry:'إعادة المحاولة',
@@ -276,9 +264,6 @@ const SMART = {
     revealNext:'Sonraki kelime', revealAll:'Tümünü göster', hideAll:'Yeniden gizle', tapHint:'Gizli kelimeyi açmak için ona dokunun', hiddenWord:'Gizli kelime, açmak için dokunun',
     compare:'Ses karşılaştırması', reciter:'Kari', you:'Sizin okuyuşunuz', record:'Kayda başla', stopRec:'Kaydı bitir', recAgain:'Yeniden kaydet', noRec:'Henüz kayıt yok',
     recNote:'Kayıt yalnızca bu sayfanın belleğinde kalır, hiçbir yere gönderilmez.', micDenied:'Mikrofon izni verilmedi',
-    autoCheck:'Otomatik kontrol', stopCheck:'Dinlemeyi bitir', listening:'Dinleniyor — ayeti okuyun…', approx:'Yaklaşık',
-    autoNote:'Yaklaşık kontrol: yalnızca kelimelerin tanınıp tanınmadığına bakar, tecvidi ve mahreçleri değerlendirmez. Konuşmayı tarayıcının kendi hizmeti tanır (bazı tarayıcılar sesi kendi sunucusuna gönderir).',
-    matchResult:'{n} kelimeden {m} tanındı', noSpeech:'Ses tanınmadı — tekrar deneyin', checkFailed:'Kontrol başarısız oldu', heard:'Tanınan metin',
     gradeQ:'Nasıl okudunuz?', again:'Yeniden', hard:'Zor', good:'İyi', easy:'Kolay', now:'bugün',
     doneTitle:'Oturum bitti', doneText:'Verilen not: {n}. Allah bereketli kılsın!',
     loading:'Ayet yükleniyor…', loadError:'Ayet yüklenemedi', retry:'Tekrar dene',
@@ -329,14 +314,12 @@ function useAyah(s, a, attempt) {
 }
 
 // ── Brauzer imkanları (yalnız müştəridə; prerender-də hamısı yox sayılır) ──
+// Avtomatik nitq tanıma QƏSDƏN yoxdur: brauzer (Chrome) səsi öz serverinə
+// göndərir — sayt sahibinin qərarı ilə çıxarılıb. Yazı yalnız cihazda qalır.
 function useCapabilities() {
-  const [caps, setCaps] = useState({ record: false, speech: null })
+  const [caps, setCaps] = useState({ record: false })
   useEffect(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    setCaps({
-      record: !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder),
-      speech: SR || null,
-    })
+    setCaps({ record: !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder) })
   }, [])
   return caps
 }
@@ -392,42 +375,10 @@ function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, on
   const stopRec = () => { try { recRef.current?.stop() } catch { /* artıq dayanıb */ } setRecording(false) }
 
   // Təxmini avtomatik yoxlama (Web Speech API, ar-SA)
-  const srRef = useRef(null)
-  const heardRef = useRef([])
-  const [listening, setListening] = useState(false)
-  const [check, setCheck] = useState(null)
-  const [checkErr, setCheckErr] = useState(null)
-  const startCheck = () => {
-    if (!caps.speech || !verse) return
-    setCheck(null); setCheckErr(null); heardRef.current = []
-    let rec
-    try { rec = new caps.speech() } catch { setCheckErr('checkFailed'); return }
-    rec.lang = 'ar-SA'
-    rec.continuous = true
-    rec.interimResults = false
-    rec.maxAlternatives = 1
-    rec.onresult = e => {
-      for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) heardRef.current.push(e.results[i][0].transcript)
-    }
-    rec.onerror = e => setCheckErr(e.error === 'no-speech' ? 'noSpeech' : e.error === 'not-allowed' || e.error === 'service-not-allowed' ? 'micDenied' : e.error === 'aborted' ? null : 'checkFailed')
-    rec.onend = () => {
-      setListening(false)
-      if (srRef.current !== rec) return
-      const heard = heardRef.current.join(' ').trim()
-      if (heard) setCheck({ ...compareRecitation(verse.ar, heard), heard })
-      else setCheckErr(prev => prev || 'noSpeech')
-    }
-    srRef.current = rec
-    try { rec.start(); setListening(true) } catch { setCheckErr('checkFailed') }
-  }
-  const stopCheck = () => { try { srRef.current?.stop() } catch { /* artıq dayanıb */ } }
-
-  // Kart bağlananda: yazını, tanımanı dayandır, Blob URL-i burax
+  // Kart bağlananda: yazını dayandır, Blob URL-i burax
   useEffect(() => () => {
     const mr = recRef.current; recRef.current = null
     try { if (mr && mr.state !== 'inactive') mr.stop() } catch { /* artıq dayanıb */ }
-    const sr = srRef.current; srRef.current = null
-    try { sr?.abort() } catch { /* artıq dayanıb */ }
     if (urlRef.current) URL.revokeObjectURL(urlRef.current)
   }, [])
 
@@ -507,25 +458,6 @@ function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, on
           </section>
           {caps.record && <p className="hifz-note"><Icon name="shield" size={14} /> {sm.recNote}</p>}
 
-          {caps.speech && (
-            <section className="hifz-autocheck" aria-label={sm.autoCheck}>
-              <div className="hifz-autocheck__row">
-                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={listening ? stopCheck : startCheck} aria-pressed={listening}>
-                  <Icon name={listening ? 'pause' : 'target'} className="ui-btn__icon" />{listening ? sm.stopCheck : sm.autoCheck}
-                </button>
-                <span className="ui-badge">{sm.approx}</span>
-                {listening && <span className="hifz-autocheck__live" role="status">{sm.listening}</span>}
-              </div>
-              {check && (
-                <p className="hifz-autocheck__result" role="status">
-                  <strong className="ui-num">{fill(sm.matchResult, { m: check.matched, n: check.total })}</strong>
-                  <span className="hifz-autocheck__heard"> · {sm.heard}: <span lang="ar" dir="rtl">{check.heard}</span></span>
-                </p>
-              )}
-              {checkErr && <p className="hifz-voice__err" role="alert">{sm[checkErr]}</p>}
-              <p className="hifz-note"><Icon name="info" size={14} /> {sm.autoNote}</p>
-            </section>
-          )}
         </>
       )}
 

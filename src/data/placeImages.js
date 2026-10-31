@@ -22,16 +22,6 @@ export const PLACE_PHOTOS = {
       tr: 'Gece yukarıdan görünüm: Mescid-i Haram, ortada Kâbe ve ışıklı avlu',
     },
   },
-  'masjid-an-nabawi': {
-    name: { az: 'Məscidün-Nəbəvi', en: 'Al-Masjid an-Nabawi', ru: 'Масджид ан-Набави', ar: 'المسجد النبوي', tr: 'Mescid-i Nebevî' },
-    alt: {
-      az: 'Məscidün-Nəbəvinin ağ günbəzli damları və minarələri, arxada Mədinə dağları',
-      en: 'The white domed roofs and minarets of al-Masjid an-Nabawi with the mountains of Medina behind',
-      ru: 'Белые купольные крыши и минареты Масджид ан-Набави, за ними горы Медины',
-      ar: 'أسطح المسجد النبوي البيضاء ذات القباب ومآذنه، وخلفها جبال المدينة',
-      tr: 'Mescid-i Nebevî’nin beyaz kubbeli çatıları ve minareleri, arkada Medine dağları',
-    },
-  },
   quba: {
     name: { az: 'Quba məscidi', en: 'Quba Mosque', ru: 'Мечеть Куба', ar: 'مسجد قباء', tr: 'Kuba Mescidi' },
     alt: {

@@ -1,0 +1,70 @@
+/* Açıq məlumat — OpenDataPage.jsx. Yalnız tokenlər (DESIGN.md).
+   Səhifə CSS-i ui.css-dən əvvəl yüklənir → .ui-* dəyişikliyi .od-page ilə gücləndirilir. */
+
+.od-layout { display: flex; flex-direction: column; gap: var(--space-5); }
+
+.od-page code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ── Cədvəl ── */
+.od-table-wrap { overflow-x: auto; }
+.od-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+.od-table th,
+.od-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  text-align: start;
+  vertical-align: top;
+  line-height: 1.5;
+}
+.od-table thead th {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.od-table tbody tr:last-child th,
+.od-table tbody tr:last-child td { border-bottom: 0; }
+.od-table tbody th { color: var(--text-strong); font-weight: 600; white-space: nowrap; }
+.od-table td { color: var(--text-body); }
+.od-table a { color: var(--brand); }
+.od-langs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: var(--space-2); }
+.od-langs .ui-badge { text-decoration: none; }
+.od-fields { display: flex; flex-wrap: wrap; gap: 4px; }
+.od-fields code {
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+
+.od-note { color: var(--text-tertiary); font-size: var(--step--1); }
+
+/* ── Kartlar ── */
+.od-page .od-card { display: flex; flex-direction: column; gap: var(--space-3); color: var(--text-body); line-height: var(--lh-body); }
+.od-page .od-card a:not(.ui-link) { color: var(--brand); }
+.od-list { display: flex; flex-direction: column; gap: var(--space-2); padding-inline-start: 1.2em; list-style: disc; }
+.od-list li::marker { color: var(--accent); }
+
+.od-pre {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-strong);
+  font-size: var(--step--1);
+  line-height: 1.6;
+  white-space: pre;
+}
+
+.od-page .od-widget { flex-direction: row; align-items: flex-start; gap: var(--space-4); }
+.od-widget > div { display: flex; flex-direction: column; gap: var(--space-2); }

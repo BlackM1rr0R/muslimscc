@@ -42,6 +42,8 @@ export const NAV_GROUPS = [
         label: { az: 'Məscid ekranı', en: 'Mosque display', ru: 'Экран мечети', ar: 'شاشة المسجد', tr: 'Cami ekranı' } },
       { key: 'widget', icon: '🧩',
         label: { az: 'Sayt üçün namaz bloku', en: 'Prayer times widget', ru: 'Виджет времени намаза', ar: 'أداة مواقيت الصلاة', tr: 'Namaz vakitleri aracı' } },
+      { key: 'opendata', icon: '🗂️',
+        label: { az: 'Açıq məlumat', en: 'Open data', ru: 'Открытые данные', ar: 'البيانات المفتوحة', tr: 'Açık veri' } },
       { key: 'announcements', icon: '📢',
         label: { az: 'Elanlar', en: 'Announcements', ru: 'Объявления', ar: 'الإعلانات', tr: 'Duyurular' } },
       { key: 'donate', icon: '💝',

@@ -26,7 +26,6 @@ const MAX_BYTES = 150 * 1024
 // açar → Commons faylı; crop: əvvəlcə kəsiləcək hissə (nisbi), pos: 3:2 kəsimdə fokus
 const IMAGES = [
   { key: 'masjid-al-haram', file: 'Masjidul-HaramAerialView (cropped).jpg', pos: 'centre' },
-  { key: 'masjid-an-nabawi', file: 'Outsideofmasjedolnabi6.JPG', pos: 'centre' },
   { key: 'quba', file: 'Quba Mosque Full Picture (2024).jpg', pos: 'top' },
   { key: 'al-aqsa', file: 'Jerusalem-2013-Temple Mount-Al-Aqsa Mosque (NE exposure).jpg', pos: 'centre' },
   { key: 'jabal-an-nur', file: 'Jabal al-Nur, Mecca, Saudi Arabia (2).jpg', pos: 'centre' },

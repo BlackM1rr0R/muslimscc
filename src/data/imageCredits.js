@@ -26,26 +26,6 @@ export const IMAGE_CREDITS = {
       }
     }
   },
-  "masjid-an-nabawi": {
-    "key": "masjid-an-nabawi",
-    "file": "File:Outsideofmasjedolnabi6.JPG",
-    "page": "https://commons.wikimedia.org/wiki/File:Outsideofmasjedolnabi6.JPG",
-    "author": "Mardetanha",
-    "license": "CC BY-SA 3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sizes": {
-      "800": {
-        "w": 800,
-        "h": 533,
-        "kb": 41
-      },
-      "1600": {
-        "w": 1600,
-        "h": 1067,
-        "kb": 125
-      }
-    }
-  },
   "quba": {
     "key": "quba",
     "file": "File:Quba Mosque Full Picture (2024).jpg",
