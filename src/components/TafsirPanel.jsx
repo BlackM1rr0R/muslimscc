@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
+import ReportErrorButton from './ReportErrorButton'
 import { exitDelay } from '../utils/promptCoordinator'
 import {
   TAFSIRS, getTafsir, fetchTafsir, getCachedTafsir, plainLength, hasNativeTafsir,
@@ -24,8 +25,9 @@ export const TAFSIR_UI = {
     notfound: 'Bu təfsirdə həmin ayə üçün ayrıca izah tapılmadı. Başqa təfsir seçin.',
     empty: 'Bu ayənin izahı əvvəlki ayə ilə birlikdə verilib.',
     group: { pre: 'Bu izah', post: 'ayələrini birlikdə əhatə edir.' },
-    noNative: 'Azərbaycan dilində Sələf təfsirinin etibarlı mətni hələ yoxdur — maşın tərcüməsi göstərmirik. Rus, ingilis və ya ərəb dilində təfsir seçin.',
-    langNames: { arabic: 'ərəbcə', english: 'ingiliscə', russian: 'rusca' },
+    noNative: '',
+    aiNote: 'Bu tərcümə əl-Müyəssərin ərəb əslindən süni intellektin köməyi ilə hazırlanıb və redaktə olunur. Səhv görsəniz, bizə yazın; dəqiq məna üçün ərəb əslinə baxın.',
+    langNames: { azerbaijani: 'azərbaycanca', arabic: 'ərəbcə', english: 'ingiliscə', russian: 'rusca' },
   },
   en: {
     open: 'Tafsir', choose: 'Choose a tafsir', source: 'Source',
@@ -37,7 +39,8 @@ export const TAFSIR_UI = {
     empty: 'This verse is explained together with the previous one.',
     group: { pre: 'This commentary covers verses', post: 'together.' },
     noNative: '',
-    langNames: { arabic: 'Arabic', english: 'English', russian: 'Russian' },
+    aiNote: 'This Azerbaijani translation of al-Muyassar was prepared from the Arabic original with the help of AI and is being reviewed. If you spot an error, please tell us.',
+    langNames: { azerbaijani: 'Azerbaijani', arabic: 'Arabic', english: 'English', russian: 'Russian' },
   },
   ru: {
     open: 'Тафсир', choose: 'Выберите тафсир', source: 'Источник',
@@ -49,7 +52,8 @@ export const TAFSIR_UI = {
     empty: 'Этот аят истолкован вместе с предыдущим.',
     group: { pre: 'Это толкование охватывает аяты', post: 'вместе.' },
     noNative: '',
-    langNames: { arabic: 'на арабском', english: 'на английском', russian: 'на русском' },
+    aiNote: 'Этот перевод аль-Муяссара на азербайджанский подготовлен с арабского оригинала с помощью ИИ и проходит редактуру. Если заметите ошибку, сообщите нам.',
+    langNames: { azerbaijani: 'на азербайджанском', arabic: 'на арабском', english: 'на английском', russian: 'на русском' },
   },
   ar: {
     open: 'تفسير', choose: 'اختر التفسير', source: 'المصدر',
@@ -61,7 +65,8 @@ export const TAFSIR_UI = {
     empty: 'فُسِّرت هذه الآية مع الآية السابقة.',
     group: { pre: 'يشمل هذا التفسير الآيات', post: 'معًا.' },
     noNative: '',
-    langNames: { arabic: 'بالعربية', english: 'بالإنجليزية', russian: 'بالروسية' },
+    aiNote: 'أُعدّت هذه الترجمة الأذربيجانية للتفسير الميسر من الأصل العربي بمساعدة الذكاء الاصطناعي، وهي قيد المراجعة. إن وجدت خطأً فأخبرنا.',
+    langNames: { azerbaijani: 'بالأذربيجانية', arabic: 'بالعربية', english: 'بالإنجليزية', russian: 'بالروسية' },
   },
   tr: {
     open: 'Tefsir', choose: 'Tefsir seçin', source: 'Kaynak',
@@ -73,12 +78,13 @@ export const TAFSIR_UI = {
     empty: 'Bu ayet bir önceki ayetle birlikte açıklanmıştır.',
     group: { pre: 'Bu açıklama', post: 'ayetlerini birlikte kapsar.' },
     noNative: 'Türkçe Selef tefsirinin güvenilir dijital metni henüz yok; makine çevirisi göstermiyoruz. Rusça, İngilizce veya Arapça bir tefsir seçin.',
-    langNames: { arabic: 'Arapça', english: 'İngilizce', russian: 'Rusça' },
+    aiNote: 'Müyesser’in bu Azerbaycanca çevirisi Arapça aslından yapay zekâ yardımıyla hazırlanmıştır ve gözden geçirilmektedir. Bir hata görürseniz bize bildirin.',
+    langNames: { azerbaijani: 'Azerbaycanca', arabic: 'Arapça', english: 'İngilizce', russian: 'Rusça' },
   },
 }
 
 const COLLAPSE_AT = 1200           // bu qədər simvoldan uzun mətn qısaldılmış açılır
-const LANG_ORDER = [['ar', 'arabic'], ['en', 'english'], ['ru', 'russian']]
+const LANG_ORDER = [['az', 'azerbaijani'], ['ar', 'arabic'], ['en', 'english'], ['ru', 'russian']]
 
 // "2:8–2:9" → ərəbcədə də rəqəmlər LTR qalsın
 function rangeText(verses) {
@@ -209,11 +215,15 @@ export function TafsirPanel({ id, surah, ayah, lang, tafsirId, onChangeTafsir, l
       {showNoNative && meta.lang !== lang && (
         <p className="tf-note"><Icon name="info" size={16} className="tf-note__icon" />{ui.noNative}</p>
       )}
+      {meta.local && ui.aiNote && (
+        <p className="tf-note"><Icon name="info" size={16} className="tf-note__icon" />{ui.aiNote}</p>
+      )}
       <TafsirBody key={`${meta.id}`} surah={surah} ayah={ayah} tafsirId={meta.id} lang={lang} ui={ui} />
       <p className="tf-src">
         {ui.source}:{' '}
         <a href={`https://quran.com/${surah}:${ayah}/tafsirs/${meta.slug}`} target="_blank" rel="noopener noreferrer"
           className="tf-src__link" dir="ltr">quran.com<Icon name="external" size={13} className="tf-src__icon" /></a>
+        {meta.local && <ReportErrorButton compact refText={`${meta.name[lang] || meta.name.en} — ${surah}:${ayah}`} kind="translation" className="tf-src__report" />}
       </p>
     </section>
   )

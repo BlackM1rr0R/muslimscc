@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { SURAH_SLUGS } from './surahSlugs.js'
-import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS } from './detailSlugs.js'
+import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS } from './detailSlugs.js'
 
 export const SITE = 'https://muslims.cc'
 
@@ -33,18 +33,26 @@ export const PAGES = [
   // /mosque və /<dil>/mosque ünvanlarını eyni dildə /about-a 301 ilə
   // yönləndirir ki, Google köhnə URL-i düzgün köçürsün.
   { key: 'jamaat',        path: 'jamaat',        priority: 0.95, changefreq: 'daily'   },
+  { key: 'mosquetv',     path: 'mosque-tv',    priority: 0.60, changefreq: 'monthly' },
+  { key: 'widget',       path: 'widget',       priority: 0.60, changefreq: 'monthly' },
   { key: 'announcements', path: 'announcements', priority: 0.90, changefreq: 'daily'   },
   { key: 'donate',        path: 'donate',        priority: 0.70, changefreq: 'monthly' },
   { key: 'quran',        path: 'quran',        priority: 0.95, changefreq: 'weekly'  },
+  { key: 'mushaf',       path: 'mushaf',       priority: 0.85, changefreq: 'monthly' },
+  { key: 'quranroots',   path: 'quran-roots',  priority: 0.80, changefreq: 'monthly' },
   { key: 'prayer',       path: 'prayer',       priority: 0.95, changefreq: 'daily'   },
   { key: 'ramadan',      path: 'ramadan',      priority: 0.8,  changefreq: 'daily'   },
   { key: 'hadith',       path: 'hadith',       priority: 0.90, changefreq: 'weekly'  },
+  { key: 'nawawi40',     path: 'nawawi40',     priority: 0.85, changefreq: 'monthly' },
   { key: 'duas',         path: 'duas',         priority: 0.90, changefreq: 'weekly'  },
+  { key: 'hisn',         path: 'hisnul-muslim', priority: 0.90, changefreq: 'monthly' },
   { key: 'dhikr',        path: 'dhikr',        priority: 0.85, changefreq: 'monthly' },
   { key: 'names',        path: 'names',        priority: 0.85, changefreq: 'monthly' },
   { key: 'zakat',        path: 'zakat',        priority: 0.85, changefreq: 'monthly' },
+  { key: 'inheritance',  path: 'inheritance',  priority: 0.85, changefreq: 'monthly' },
   { key: 'qibla',        path: 'qibla',        priority: 0.85, changefreq: 'monthly' },
   { key: 'calendar',     path: 'calendar',     priority: 0.85, changefreq: 'daily'   },
+  { key: 'hijri',        path: 'hijri-converter', priority: 0.80, changefreq: 'daily' },
   { key: 'prayerguide',  path: 'prayerguide',  priority: 0.85, changefreq: 'monthly' },
   { key: 'hajjguide',    path: 'hajjguide',    priority: 0.85, changefreq: 'monthly' },
   { key: 'hifz',         path: 'hifz',         priority: 0.80, changefreq: 'monthly' },
@@ -55,12 +63,17 @@ export const PAGES = [
   { key: 'history',      path: 'history',      priority: 0.85, changefreq: 'monthly' },
   { key: 'sahaba',       path: 'sahaba',       priority: 0.85, changefreq: 'monthly' },
   { key: 'scholars',     path: 'scholars',     priority: 0.85, changefreq: 'monthly' },
+  { key: 'group',        path: 'group',        priority: 0.60, changefreq: 'monthly' },
+  { key: 'learn',        path: 'learn',        priority: 0.85, changefreq: 'weekly'  },
   { key: 'holyplaces',   path: 'holyplaces',   priority: 0.75, changefreq: 'monthly' },
   { key: 'mosques',      path: 'mosques',      priority: 0.80, changefreq: 'weekly'  },
   { key: 'tracker',      path: 'prayer-tracker', priority: 0.80, changefreq: 'daily' },
+  { key: 'qada',         path: 'qada',         priority: 0.75, changefreq: 'weekly' },
   { key: 'dailytracker', path: 'dailytracker', priority: 0.80, changefreq: 'daily'   },
   { key: 'charity',      path: 'charity',      priority: 0.75, changefreq: 'weekly'  },
+  { key: 'halalcheck',   path: 'halal-check',  priority: 0.70, changefreq: 'monthly' },
   { key: 'duajournal',   path: 'duajournal',   priority: 0.75, changefreq: 'weekly'  },
+  { key: 'muhasabah',    path: 'muhasabah',    priority: 0.70, changefreq: 'monthly' },
   { key: 'quotes',       path: 'quotes',       priority: 0.70, changefreq: 'weekly'  },
   { key: 'analytics',    path: 'analytics',    priority: 0.65, changefreq: 'weekly'  },
   { key: 'videos',       path: 'videos',       priority: 0.85, changefreq: 'weekly'  },
@@ -84,7 +97,8 @@ export const INDEXABLE = PAGES.filter(p => !p.noindex)
 //   /quran/<n>-<slug>    — 114 surə     (param: surənin nömrəsi, 1–114)
 //   /names/<n>-<slug>    — 99 ad        (param: adın nömrəsi, 1–99)
 //   /sahaba/<slug>       — səhabələr    (param: slug)
-//   /scholars/<slug>     — Sələf alimləri (param: slug)
+//   /scholars/<slug>     — alimlər (param: slug)
+//   /learn/<slug>        — dərslər (param: slug; src/data/lessons/*.js)
 // Rəqəmli növlərdə NÖMRƏ həqiqət mənbəyidir: slug səhv yazılsa belə
 // (/quran/2-bilmirem) səhifə surə 2-ni açır, canonical isə düzgün slug-u
 // göstərir. Naməlum nömrə / slug → known:false (404).
@@ -100,6 +114,10 @@ export const DETAILS = {
   names:  { kind: 'number', count: 99,  slug: (n) => NAME_SLUGS[n - 1], slugs: NAME_SLUGS, removed: REMOVED_NAME_SLUGS },
   sahaba: { kind: 'slug',   slugs: SAHABA_SLUGS },
   scholars: { kind: 'slug', slugs: SCHOLAR_SLUGS },
+  learn:  { kind: 'slug',   slugs: LESSON_SLUGS },
+  // Qrup otağı (/group/<id>) — istifadəçinin yaratdığı otaq: indekslənmir,
+  // prerender və sitemap-a düşmür (detailParams → [])
+  group:  { kind: 'id', pattern: /^[a-z0-9]{10}$/, noindex: true },
 }
 
 /** Detal parametri düzgündürmü (surə 1–114, ad 1–99, mövcud səhabə slug-u)? */
@@ -107,6 +125,7 @@ export function isDetailParam(key, param) {
   const d = DETAILS[key]
   if (!d || param == null || param === '') return false
   if (d.kind === 'number') return Number.isInteger(param) && param >= 1 && param <= d.count
+  if (d.kind === 'id') return typeof param === 'string' && d.pattern.test(param)
   return d.slugs.includes(param)
 }
 
@@ -176,7 +195,7 @@ export function legacyDetailParam(key, params) {
 /** Bütün detal parametrləri (prerender və sitemap üçün). */
 export function detailParams(key) {
   const d = DETAILS[key]
-  if (!d) return []
+  if (!d || d.kind === 'id') return []
   return d.kind === 'number' ? Array.from({ length: d.count }, (_, i) => i + 1) : [...d.slugs]
 }
 

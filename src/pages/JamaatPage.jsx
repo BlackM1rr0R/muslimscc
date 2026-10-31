@@ -172,6 +172,13 @@ const HIJRI_MONTHS = {
 
 // aladhan hesablama metodları (saytda istifadə olunan)
 const METHOD_NAMES = {
+  99: {
+    az: 'Bakı, Əbu Bəkr məscidinin cədvəli (Ümmül-Qura: sübh 18.5°, işa məğribdən 90 dəq. sonra)',
+    en: 'Abu Bakr Mosque, Baku timetable (Umm al-Qura: Fajr 18.5°, Isha 90 min after Maghrib)',
+    ru: 'Расписание мечети Абу Бакр, Баку (Умм аль-Кура: фаджр 18,5°, иша через 90 мин после магриба)',
+    ar: 'جدول مسجد أبي بكر في باكو (أم القرى: الفجر 18.5°، العشاء بعد المغرب بـ90 دقيقة)',
+    tr: 'Bakü Ebu Bekir Camii takvimi (Ümmü’l-Kurâ: sabah 18,5°, yatsı akşamdan 90 dk sonra)',
+  },
   13: {
     az: 'Türkiyə Diyanət İşləri Başqanlığı',
     en: 'Diyanet (Presidency of Religious Affairs, Türkiye)',

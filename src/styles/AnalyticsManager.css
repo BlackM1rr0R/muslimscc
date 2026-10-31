@@ -1,0 +1,220 @@
+/* ═══════════════════════════════════════════════════════
+   Sayt statistikası (admin) — components/admin/AnalyticsManager.jsx
+   Yalnız tokenlər. Seriya rəngləri dataviz validatoru ilə yoxlanılıb
+   (işıqlı #fff və qaranlıq #111921 səthdə: işıqlıq zolağı, xroma,
+   CVD ΔE 8.8, normal görmə ΔE 15.8, kontrast ≥ 3:1 — hamısı PASS):
+     --an-s1  baxışlar     = --emerald-500
+     --an-s2  ziyarətçilər = --sand-600
+   Mətn heç vaxt seriya rəngində deyil — yalnız mətn tokenləri.
+   ═══════════════════════════════════════════════════════ */
+
+.an-root {
+  --an-s1: var(--emerald-500);
+  --an-s2: var(--sand-600);
+  --an-grid: var(--line);
+  --an-axis: var(--line-strong);
+  --an-ring: var(--surface-1);
+}
+
+/* Yenilənəndə əvvəlki görüntü solğun qalır — sıçrayış yoxdur */
+.an-root .an-body { transition: opacity var(--dur-2) var(--ease-out); }
+.an-root.is-busy .an-body { opacity: .55; }
+
+/* ── Filtr sətri ── */
+.an-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+/* ── KPI kafelləri ── */
+.an-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: var(--space-3);
+  margin: 0 0 20px;
+}
+.an-kpi {
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  min-width: 0;
+}
+.an-kpi dt {
+  font-size: var(--step--1);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+}
+.an-kpi dd { margin: 0; }
+.an-kpi__value {
+  font-family: var(--font-sans);
+  font-size: var(--step-3);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+.an-kpi__value--text { font-size: var(--step-2); }
+.an-kpi__hint {
+  margin-top: var(--space-1) !important;
+  font-size: var(--step--2);
+  color: var(--text-tertiary);
+}
+
+/* ── Qrafik kartları ── */
+.an-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 0 20px;
+}
+.an-card { min-width: 0; }
+.an-figure { margin: 0; }
+.an-muted { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); }
+
+.an-chart {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--radius-sm);
+  touch-action: pan-y;
+}
+.an-svg { display: block; overflow: visible; }
+
+/* Əfsanə — xətt üçün xətt açarı */
+.an-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+  font-size: var(--step--1);
+  color: var(--text-secondary);
+}
+.an-legend li { display: inline-flex; align-items: center; gap: var(--space-2); }
+.an-key {
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+}
+.an-key--s1, .an-tip__key--s1 { background: var(--an-s1); }
+.an-key--s2, .an-tip__key--s2 { background: var(--an-s2); }
+
+/* Ox, şəbəkə — sakit hairline */
+.an-svg .an-gridline { stroke: var(--an-grid); stroke-width: 1; shape-rendering: crispEdges; }
+.an-svg .an-baseline { stroke: var(--an-axis); stroke-width: 1; shape-rendering: crispEdges; }
+.an-axis-text {
+  fill: var(--text-tertiary);
+  font-size: 11px;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+.an-end-text {
+  fill: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+}
+
+/* Xətlər və sahə */
+.an-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.an-line--s1 { stroke: var(--an-s1); }
+.an-line--s2 { stroke: var(--an-s2); }
+.an-area { fill: var(--an-s1); fill-opacity: .1; }
+.an-dot { stroke: var(--an-ring); stroke-width: 2; }
+.an-dot--s1 { fill: var(--an-s1); }
+.an-dot--s2 { fill: var(--an-s2); }
+.an-cross-line { stroke: var(--an-axis); stroke-width: 1; shape-rendering: crispEdges; }
+
+/* Zolaqlar */
+.an-bar { fill: var(--an-s1); transition: opacity var(--dur-1) var(--ease-out); }
+.an-hit { fill: transparent; }
+.an-bar-row { cursor: default; outline: none; }
+.an-bar-row.is-active .an-bar { opacity: .78; }
+.an-bar-row:focus-visible .an-hit { stroke: var(--ring); stroke-width: 2; rx: 6px; }
+.an-bar-label {
+  fill: var(--text-body);
+  font-size: 13px;
+  font-family: var(--font-sans);
+}
+.an-bar-value {
+  fill: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+html[lang="ar"] .an-bar-label { font-family: var(--font-arabic-ui, var(--font-sans)); }
+
+/* Fokus — qrafik qrupu */
+.an-chart[tabindex]:focus-visible { box-shadow: 0 0 0 2px var(--ring); }
+
+/* ── İpucu: dəyər öndə, ad arxada ── */
+.an-tip {
+  position: absolute;
+  z-index: 2;
+  transform: translateX(12px);
+  min-width: 150px;
+  max-width: 260px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-3);
+  font-size: var(--step--1);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.an-tip.is-flip { transform: translateX(calc(-100% - 12px)); }
+.an-tip--bar { inset-inline-end: 0; transform: none; }
+.an-tip__head { color: var(--text-tertiary); font-size: var(--step--2); margin-bottom: 2px; overflow-wrap: anywhere; }
+.an-tip--bar .an-tip__head { margin: 2px 0 0; }
+.an-tip__row { display: flex; align-items: center; gap: var(--space-2); line-height: 1.5; }
+.an-tip__row strong { color: var(--text-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
+.an-tip__key { display: inline-block; width: 12px; height: 2px; border-radius: 1px; flex: none; }
+
+/* ── Cədvəl görünüşü ── */
+.an-table-wrap { margin-top: var(--space-3); }
+.an-table-wrap > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  cursor: pointer;
+  font-size: var(--step--1);
+  color: var(--brand);
+}
+.an-table-scroll { max-height: 360px; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius-md); }
+.an-table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+.an-table th, .an-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--line);
+  text-align: start;
+  color: var(--text-body);
+}
+.an-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.an-table tbody th { font-weight: 400; overflow-wrap: anywhere; }
+.an-table td { font-variant-numeric: tabular-nums; text-align: end; white-space: nowrap; }
+.an-table thead th:not(:first-child) { text-align: end; }
+.an-table tbody tr:last-child > * { border-bottom: 0; }
+
+/* Ərəbcədə böyük hərf/aralıq yoxdur */
+html[lang="ar"] .an-kpi dt { letter-spacing: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .an-root .an-body, .an-bar { transition: none; }
+}
+@media (forced-colors: active) {
+  .an-line--s1, .an-line--s2 { stroke: CanvasText; }
+  .an-line--s2 { stroke-dasharray: 6 4; }
+  .an-bar { fill: CanvasText; }
+}

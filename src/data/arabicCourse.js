@@ -620,6 +620,62 @@ export const LESSONS = [
       tr: '«El» takısı, sakin nun ve tenvin, sakin mim, kalkale ve med çeşitleri.',
     },
   },
+  // ── Qrammatika və lüğət dərsləri (məzmun: src/data/arabicGrammar.js, src/data/quranWords.js) ──
+  {
+    id: 'pronouns', glyph: 'هُوَ',
+    title: { az: 'Əvəzliklər', en: 'Pronouns', ru: 'Местоимения', ar: 'الضمائر', tr: 'Zamirler' },
+    desc: {
+      az: 'Ayrı və bitişik şəxs əvəzlikləri — hər biri Qurandan nümunə ilə.',
+      en: 'Separate and attached personal pronouns — each with an example from the Quran.',
+      ru: 'Отдельные и слитные личные местоимения — каждое с примером из Корана.',
+      ar: 'الضمائر المنفصلة والمتصلة، لكل منها مثال من القرآن.',
+      tr: 'Ayrı ve bitişik şahıs zamirleri — her biri Kur’an’dan bir örnekle.',
+    },
+  },
+  {
+    id: 'demonstratives', glyph: 'ذَٰلِكَ',
+    title: { az: 'İşarə əvəzlikləri', en: 'Demonstratives', ru: 'Указательные местоимения', ar: 'أسماء الإشارة', tr: 'İşaret zamirleri' },
+    desc: {
+      az: 'Bu, o, bunlar, onlar: yaxın və uzaq işarə; «bu kitab» ilə «bu, kitabdır» fərqi.',
+      en: 'This, that, these, those: near and far; the difference between “this book” and “this is a book”.',
+      ru: 'Этот, тот, эти, те: близкое и далёкое; разница между «эта книга» и «это — книга».',
+      ar: 'هذا وذلك وهؤلاء وأولئك: القريب والبعيد، والفرق بين «هذا الكتاب» و«هذا كتاب».',
+      tr: 'Bu, şu, bunlar, onlar: yakın ve uzak; “bu kitap” ile “bu bir kitaptır” farkı.',
+    },
+  },
+  {
+    id: 'nominal', glyph: 'ٱللَّهُ ٱلصَّمَدُ',
+    title: { az: 'İsmi cümlə', en: 'The nominal sentence', ru: 'Именное предложение', ar: 'الجملة الاسمية', tr: 'İsim cümlesi' },
+    desc: {
+      az: 'Mübtəda və xəbər: Quran ayələrində cümlənin hissələrini tanı.',
+      en: 'Subject and predicate: recognise the parts of the sentence in Quranic verses.',
+      ru: 'Подлежащее и сказуемое: находи части предложения в аятах Корана.',
+      ar: 'المبتدأ والخبر: تعرّف على ركني الجملة في آيات القرآن.',
+      tr: 'Mübteda ve haber: Kur’an ayetlerinde cümlenin öğelerini tanı.',
+    },
+  },
+  {
+    id: 'verbal', glyph: 'خَلَقَ',
+    title: { az: 'Feli cümlə', en: 'The verbal sentence', ru: 'Глагольное предложение', ar: 'الجملة الفعلية', tr: 'Fiil cümlesi' },
+    desc: {
+      az: 'Fel, fail və məful; keçmiş, indiki zaman və əmr forması.',
+      en: 'Verb, doer and object; past, present and imperative.',
+      ru: 'Глагол, деятель и объект; прошедшее, настоящее и повелительное наклонение.',
+      ar: 'الفعل والفاعل والمفعول به، والماضي والمضارع والأمر.',
+      tr: 'Fiil, fail ve meful; geçmiş, şimdiki zaman ve emir kipi.',
+    },
+  },
+  {
+    id: 'vocab', glyph: 'مِن فِي',
+    title: { az: 'Quranın ən çox işlənən 100 sözü', en: 'The 100 most frequent Quranic words', ru: '100 самых частых слов Корана', ar: 'أكثر مائة كلمة ورودًا في القرآن', tr: 'Kur’an’da en sık geçen 100 kelime' },
+    desc: {
+      az: 'Quran sözlərinin yarıdan çoxunu təşkil edən 100 söz — mənası, sayı və ilk ayəsi ilə.',
+      en: '100 words that make up more than half of the Quran’s words — with meaning, count and first verse.',
+      ru: '100 слов, составляющих больше половины слов Корана, — со значением, частотой и первым аятом.',
+      ar: 'مائة كلمة تشكّل أكثر من نصف كلمات القرآن، مع معناها وعدد ورودها وأول آية وردت فيها.',
+      tr: 'Kur’an kelimelerinin yarısından fazlasını oluşturan 100 kelime — anlamı, sayısı ve ilk ayetiyle.',
+    },
+  },
 ]
 
 // ── AVTOMATİK YARADILIB: Quran sözləri (api.alquran.cloud, nəşr quran-uthmani, 2026-10-30) ──

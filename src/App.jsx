@@ -17,6 +17,7 @@ import InstallBanner from './components/InstallBanner'
 // əlçatanlıq tərcihləri isə ilk boyamadan tətbiq olunmalıdır.
 import FloatingDock from './components/FloatingDock'
 import { lazyWhenIdle } from './utils/idle'
+import { usePageviews } from './api/analytics'
 import { withChunkRetry } from './utils/chunkRetry'
 
 // Bütün tənbəl modullar (səhifələr, widget-lər) chunk xətasında bir dəfə
@@ -108,6 +109,19 @@ const MosqueFinderPage = lazy(() => import('./pages/MosqueFinderPage'))
 const IslamicHistoryPage = lazy(() => import('./pages/IslamicHistoryPage'))
 const SahabePage = lazy(() => import('./pages/SahabePage'))
 const ScholarsPage = lazy(() => import('./pages/ScholarsPage'))
+const HalalCheckPage = lazy(() => import('./pages/HalalCheckPage'))
+const MuhasabahPage = lazy(() => import('./pages/MuhasabahPage'))
+const GroupPage = lazy(() => import('./pages/GroupPage'))
+const WidgetPage = lazy(() => import('./pages/WidgetPage'))
+const MosqueTvPage = lazy(() => import('./pages/MosqueTvPage'))
+const QuranRootsPage = lazy(() => import('./pages/QuranRootsPage'))
+const MushafPage = lazy(() => import('./pages/MushafPage'))
+const HijriPage = lazy(() => import('./pages/HijriPage'))
+const QadaPage = lazy(() => import('./pages/QadaPage'))
+const InheritancePage = lazy(() => import('./pages/InheritancePage'))
+const Nawawi40Page = lazy(() => import('./pages/Nawawi40Page'))
+const HisnPage = lazy(() => import('./pages/HisnPage'))
+const LessonsPage = lazy(() => import('./pages/LessonsPage'))
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
@@ -129,6 +143,8 @@ const LicensesPage = lazy(() => import('./pages/LicensesPage'))
 // bildiriş onsuz da promptCoordinator ilə gecikmə ilə göstərilir.
 const AnnouncementToast = lazy(lazyWhenIdle(() => import('./components/AnnouncementToast')))
 const NotificationPrompt = lazy(lazyWhenIdle(() => import('./components/NotificationPrompt')))
+// "Səhv bildir" — bütün sayt üçün tək dialoq (düymələr yalnız hadisə göndərir)
+const ReportErrorHost = lazy(lazyWhenIdle(() => import('./components/ReportErrorButton').then(m => ({ default: m.ReportErrorHost }))))
 
 // ── Marşrut səviyyəsində xəta sərhədi ──
 // Səhifənin render xətası (və ya ikinci dəfə yüklənməyən chunk) bütün saytı
@@ -245,6 +261,8 @@ function AppInner() {
   // özünü ələ keçirmir — əks halda login-dən sonra sonsuz dövrə yaranardı.
   // Tanınmayan ünvan → 'notfound' (404 səhifəsi, noindex) — əvvəl səssizcə ana səhifə açılırdı
   const page = (!isAdminKey && (hash === ADMIN_HASH || hash === '#/admin')) ? 'adminlogin' : (known ? key : 'notfound')
+  // Kukisiz statistika: hər yeni ünvan üçün bir mayak (admin sayılmır, 404 → '/404')
+  usePageviews(location.pathname, { skip: isAdminKey || page === 'adminlogin', notFound: page === 'notfound' })
 
   // Səhifələr hələ də setPage('quran') çağırır — API dəyişmir,
   // sadəcə altında state yerinə həqiqi URL naviqasiyası var.
@@ -301,6 +319,19 @@ function AppInner() {
       case 'history':       return <IslamicHistoryPage setPage={navigate} />
       case 'sahaba':        return <SahabePage         setPage={navigate} />
       case 'scholars':      return <ScholarsPage       setPage={navigate} />
+      case 'halalcheck': return <HalalCheckPage setPage={navigate} />
+      case 'muhasabah':  return <MuhasabahPage setPage={navigate} />
+      case 'group':      return <GroupPage setPage={navigate} />
+      case 'widget':     return <WidgetPage setPage={navigate} />
+      case 'mosquetv':   return <MosqueTvPage setPage={navigate} />
+      case 'quranroots': return <QuranRootsPage setPage={navigate} />
+      case 'mushaf':     return <MushafPage setPage={navigate} />
+      case 'hijri':      return <HijriPage setPage={navigate} />
+      case 'qada':       return <QadaPage setPage={navigate} />
+      case 'inheritance': return <InheritancePage setPage={navigate} />
+      case 'nawawi40':   return <Nawawi40Page setPage={navigate} />
+      case 'hisn':       return <HisnPage setPage={navigate} />
+      case 'learn':         return <LessonsPage        setPage={navigate} />
       case 'analytics':     return <AnalyticsPage      setPage={navigate} />
       case 'adminlogin':    return <AdminLoginPage    setPage={navigate} />
       case 'admin':         return <AdminPage         setPage={navigate} />
@@ -323,6 +354,8 @@ function AppInner() {
 
   // Admin səhifələri Header/Footer göstərmir — nə yan panel, nə çəkmə menyu
   const isAdminPage = page === 'adminlogin' || page === 'admin'
+  // Məscid ekranı (televizor/iframe) — başlıq, menyu və köməkçilər olmadan, tam ekran
+  const isBarePage = isAdminPage || page === 'mosquetv'
 
   // Səhifə keçidi (motion.css → .page-enter): yeni <main> 10px aşağıdan
   // yumşaq qalxır. Suspense qəsdən <main>-dən KƏNARDADIR: naviqasiya
@@ -345,7 +378,7 @@ function AppInner() {
     </PageErrorBoundary>
   )
 
-  if (isAdminPage) {
+  if (isBarePage) {
     return (
       <>
         <Seo page={page} lang={lang} param={page === key ? param : null} />
@@ -383,6 +416,7 @@ function AppInner() {
             göstərilir (src/utils/promptCoordinator.js) — üst-üstə düşmürlər */}
         <AnnouncementToast />
         <NotificationPrompt />
+        <ReportErrorHost />
       </Suspense>
     </>
   )

@@ -61,3 +61,6 @@ export const SCHOLAR_SLUGS = [
   "muhammad-al-amin-ash-shanqiti", "ibn-baz", "al-albani", "ibn-uthaymin", "muqbil-al-wadii",
   "abd-al-muhsin-al-abbad", "salih-al-fawzan", "bakr-abu-zayd", "salih-al-ash-shaykh",
 ]
+
+// Dərslər — src/data/lessons/*.js (scripts/gen-lessons-index.mjs yazır)
+export const LESSON_SLUGS = ["usul-ath-thalatha","al-qawaid-al-arba","nawaqid-al-islam","kitab-at-tawhid","ghusl","tayammum","istikhara","eid-prayer","kusuf-prayer","istisqa-prayer","adhkar-after-salah","travel-prayer","sunnah-fasts","dhul-hijjah-ten","udhiyah","aqiqah","kaffarah-fidyah","nikah","hijab","ruqyah","sick-fiqh","wasiyyah","janazah","tawbah","adab-al-mufrad","birr-al-walidayn","muhasabah","mustalah","bidah","hilyat-talib-al-ilm","doubts-youth","fiqh-faq","intro-to-islam","new-muslim"]

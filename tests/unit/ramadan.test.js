@@ -71,6 +71,8 @@ describe('normalizeCalendar (aladhan hijriCalendar)', () => {
   it('endpoint: hicri il / 9-cu ay, koordinat, metod, saat qurşağı', () => {
     expect(calendarUrl(1448, { lat: 40.4093, lng: 49.8671, method: 13, tz: 'Asia/Baku' }))
       .toBe('https://api.aladhan.com/v1/hijriCalendar/1448/9?latitude=40.4093&longitude=49.8671&method=13&timezonestring=Asia%2FBaku')
+    expect(calendarUrl(1448, { lat: 40.3953, lng: 49.8822, method: 99, tz: 'Asia/Baku' }))
+      .toBe('https://api.aladhan.com/v1/hijriCalendar/1448/9?latitude=40.3953&longitude=49.8822&method=99&methodSettings=18.5%2Cnull%2C90%20min&timezonestring=Asia%2FBaku')
   })
 })
 

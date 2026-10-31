@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react'
+import ReportErrorButton from '../components/ReportErrorButton'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
@@ -157,6 +158,7 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
           >
             <Icon name="share" size={19} />
           </button>
+          <ReportErrorButton compact kind="hadith" refText={`${source || ''} #${displayNum}`.trim()} className="hadith-report-btn" />
         </div>
       </div>
       <p className="hadith-arabic ui-arabic" lang="ar" dir="rtl">{hadith.ar}</p>

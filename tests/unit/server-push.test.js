@@ -69,6 +69,11 @@ describe('endpoint və açar validasiyası', () => {
     expect(push.validPrefs({ daily: { hour: 24 } })).toBeUndefined()
     expect(push.validPrefs({ azan: 'yes' })).toBeUndefined()
     expect(push.validPrefs({ admin: true })).toBeUndefined()
+    // Sünnə orucu xatırlatması (server/fasting.js) — yalnız bool
+    expect(push.validPrefs({ fasting: true })).toEqual({ fasting: true })
+    expect(push.validPrefs({ checkin: false, fasting: false })).toEqual({ checkin: false, fasting: false })
+    expect(push.validPrefs({ fasting: 'yes' })).toBeUndefined()
+    expect(push.validPrefs({ fasting: 1 })).toBeUndefined()
   })
   it('subscribe gövdəsi: həm { subscription }, həm düz PushSubscription.toJSON()', () => {
     const a = push.validateSubscribeBody({ subscription: { endpoint: EP.chrome, keys: KEYS }, lang: 'ru' })
@@ -178,6 +183,9 @@ describe('HTTP: /api/push/*', () => {
     expect((await post('/api/push/subscription', { endpoint: EP.firefox, prefs: { checkin: true } }, 'PATCH')).status).toBe(200)
     const s = store.get(EP.firefox)
     expect(s.prefs).toEqual({ azan: true, daily: { ayah: true, hour: 8 }, checkin: true })
+    expect((await post('/api/push/subscription', { endpoint: EP.firefox, prefs: { fasting: true } }, 'PATCH')).status).toBe(200)
+    expect(store.get(EP.firefox).prefs).toEqual({ azan: true, daily: { ayah: true, hour: 8 }, checkin: true, fasting: true })
+    expect((await post('/api/push/subscription', { endpoint: EP.firefox, prefs: { fasting: 'on' } }, 'PATCH')).status).toBe(400)
     expect(s.lang).toBe('tr')
     expect(s.loc.city).toEqual({ tr: 'İstanbul' })
     expect(store.all()[0]).toMatchObject({ endpoint: EP.firefox, keys: KEYS })

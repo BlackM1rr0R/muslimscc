@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
-import { DHIKRS } from '../data/dhikr'
+import { DHIKRS, AFTER_PRAYER, AFTER_PRAYER_VIRTUE } from '../data/dhikr'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
@@ -72,6 +72,179 @@ const FINGER_NOTE = {
 }
 const FINGER_SOURCE = 'Əbu Davud 1501, 1502'
 
+// ═══ Rejimlər: zikr seçimi (köhnə sayğac) · namazdan sonra · sərbəst təsbeh ═══
+const MODES = [
+  { id: 'select', icon: 'list',   label: { az: 'Zikr seçimi', en: 'Choose dhikr', ru: 'Выбор зикра', ar: 'اختيار الذكر', tr: 'Zikir seçimi' } },
+  { id: 'after',  icon: 'prayer', label: { az: 'Namazdan sonra', en: 'After prayer', ru: 'После намаза', ar: 'بعد الصلاة', tr: 'Namazdan sonra' } },
+  { id: 'free',   icon: 'dhikr',  label: { az: 'Sərbəst təsbeh', en: 'Free tasbih', ru: 'Свободный тасбих', ar: 'تسبيح حر', tr: 'Serbest tesbih' } },
+]
+const MODE_LABEL = { az: 'Sayğac rejimi', en: 'Counter mode', ru: 'Режим счётчика', ar: 'وضع العداد', tr: 'Sayaç modu' }
+
+const AP_TXT = {
+  title:   { az: 'Fərz namazından sonra zikrlər', en: 'Dhikr after the obligatory prayer', ru: 'Зикр после обязательной молитвы', ar: 'الأذكار بعد الصلاة المكتوبة', tr: 'Farz namazdan sonra zikirler' },
+  lead:    { az: 'Düyməyə toxunun — say tamamlananda növbəti zikrə özü keçir. Ardıcıllıq Muslim 591 və 597 hədislərinə əsaslanır.', en: 'Tap the button — when a count is complete it moves on to the next dhikr by itself. The sequence follows Muslim 591 and 597.', ru: 'Нажимайте на кнопку — по завершении счёта счётчик сам переходит к следующему зикру. Порядок — по хадисам Муслима 591 и 597.', ar: 'اضغط على الزر، وعند اكتمال العدد ينتقل العداد تلقائيًا إلى الذكر التالي. الترتيب وفق حديثي مسلم 591 و597.', tr: 'Düğmeye dokunun — sayı tamamlanınca bir sonraki zikre kendiliğinden geçer. Sıralama Müslim 591 ve 597 hadislerine dayanır.' },
+  step:    { az: 'Addım {i} / {n}', en: 'Step {i} of {n}', ru: 'Шаг {i} из {n}', ar: 'الخطوة {i} من {n}', tr: 'Adım {i} / {n}' },
+  tap:     { az: 'Saymaq üçün toxunun', en: 'Tap to count', ru: 'Нажмите, чтобы считать', ar: 'اضغط للعدّ', tr: 'Saymak için dokunun' },
+  undo:    { az: 'Bir geri', en: 'Undo one', ru: 'На один назад', ar: 'تراجع واحدة', tr: 'Bir geri' },
+  restart: { az: 'Yenidən başla', en: 'Start again', ru: 'Начать заново', ar: 'ابدأ من جديد', tr: 'Yeniden başla' },
+  done:    { az: 'Tamamlandı! Allah qəbul etsin.', en: 'Completed! May Allah accept it.', ru: 'Завершено! Да примет Аллах.', ar: 'تمّ! تقبّل الله منك.', tr: 'Tamamlandı! Allah kabul etsin.' },
+  goTo:    { az: 'Bu addıma keç', en: 'Go to this step', ru: 'Перейти к этому шагу', ar: 'انتقل إلى هذه الخطوة', tr: 'Bu adıma geç' },
+  steps:   { az: 'Ardıcıllıq', en: 'Sequence', ru: 'Порядок', ar: 'الترتيب', tr: 'Sıralama' },
+}
+const FREE_TXT = {
+  title:    { az: 'Sərbəst təsbeh', en: 'Free tasbih', ru: 'Свободный тасбих', ar: 'تسبيح حر', tr: 'Serbest tesbih' },
+  lead:     { az: 'Hədəfsiz sayğac: istədiyiniz zikri sayın. Hər 33-də qısa, hər 100-də uzun vibrasiya olur (cihaz dəstəkləyirsə). Say bu cihazda saxlanılır.', en: 'A counter without a target: count any dhikr you like. A short vibration every 33 and a longer one every 100 (if your device supports it). The count is saved on this device.', ru: 'Счётчик без цели: считайте любой зикр. Короткая вибрация каждые 33 и длинная каждые 100 (если устройство поддерживает). Счёт сохраняется на этом устройстве.', ar: 'عداد بلا هدف: عُدّ أيّ ذكر تشاء. اهتزاز قصير كل 33 وطويل كل 100 (إن كان جهازك يدعمه). يُحفظ العدد على هذا الجهاز.', tr: 'Hedefsiz sayaç: dilediğiniz zikri sayın. Her 33’te kısa, her 100’de uzun titreşim olur (cihaz destekliyorsa). Sayı bu cihazda saklanır.' },
+  hundreds: { az: 'Yüzlük', en: 'Hundreds', ru: 'Сотни', ar: 'المئات', tr: 'Yüzlük' },
+  rounds:   { az: '33-lük dövrə', en: 'Rounds of 33', ru: 'Кругов по 33', ar: 'دورات الـ33', tr: '33’lük tur' },
+}
+const tx = (o, lang) => o[lang] || o.en
+
+// ── "Namazdan sonra" — ardıcıl, avtomatik keçən sayğac (Muslim 591, 597) ──
+function AfterPrayerCounter({ lang }) {
+  const [pos, setPos] = useState({ step: 0, count: 0, done: false })
+  const [pulse, setPulse] = useState(0)
+  const cur = AFTER_PRAYER[pos.step]
+  const total = AFTER_PRAYER.length
+
+  // Hədəfə çatan toxunuş növbəti addıma keçirir; sonuncu addım bitəndə — "tamamlandı"
+  const tap = () => {
+    if (pos.done) return
+    bumpLifetime()
+    setPulse(p => p + 1)
+    const next = pos.count + 1
+    if (next < cur.count) { setPos({ ...pos, count: next }); vibrate(25); return }
+    if (pos.step + 1 < total) {
+      setPos({ step: pos.step + 1, count: 0, done: false })
+      vibrate([60, 40, 60])
+    } else {
+      setPos({ step: pos.step, count: next, done: true })
+      vibrate([100, 50, 100, 50, 200])
+    }
+  }
+  const undo = () => {
+    if (pos.done) { setPos({ step: total - 1, count: AFTER_PRAYER[total - 1].count - 1, done: false }); return }
+    if (pos.count > 0) { setPos({ ...pos, count: pos.count - 1 }); return }
+    if (pos.step > 0) setPos({ step: pos.step - 1, count: AFTER_PRAYER[pos.step - 1].count - 1, done: false })
+  }
+  const restart = () => setPos({ step: 0, count: 0, done: false })
+  const canUndo = pos.done || pos.count > 0 || pos.step > 0
+  const shown = pos.done ? cur.count : pos.count
+  const pct = Math.min(100, (shown / cur.count) * 100)
+  const label = (d) => d[lang] || d.en
+  const stepText = tx(AP_TXT.step, lang).replace('{i}', pos.step + 1).replace('{n}', total)
+
+  return (
+    <div className="ui-card dk-mode-card dk-ap" data-testid="after-prayer">
+      <div className="dk-mode-head">
+        <h2 className="dk-mode-title">{tx(AP_TXT.title, lang)}</h2>
+        <p className="dk-mode-lead">{tx(AP_TXT.lead, lang)}</p>
+      </div>
+
+      <div className="dk-ap-body">
+        <button type="button" className={`dk-tap${pos.done ? ' is-done' : ''}`} onClick={tap}
+          aria-describedby="dk-ap-status" data-testid="after-prayer-tap">
+          <span className="dk-tap__step ui-num" data-testid="after-prayer-step">{stepText}</span>
+          <span className="dk-tap__ar" lang="ar" dir="rtl">{cur.arabic}</span>
+          {lang !== 'ar' && <span className="dk-tap__name">{label(cur)}</span>}
+          <span key={pulse} className="dk-tap__count ui-num" data-testid="after-prayer-count">{shown}<span className="dk-tap__of"> / {cur.count}</span></span>
+          <span className="dk-tap__bar" aria-hidden="true"><span style={{ transform: `scaleX(${pct / 100})` }} /></span>
+          <span className="dk-tap__hint">{tx(AP_TXT.tap, lang)}</span>
+        </button>
+
+        <div className="dk-ap-side">
+          <p className="dk-ap-meaning">
+            {lang !== 'ar' && <>{tx(cur.meaning, lang)} </>}
+            <span className="dhikr-source">({localizeSource(cur.source, lang)})</span>
+          </p>
+          <p id="dk-ap-status" className="ui-sr-only" aria-live="polite">{pos.done ? tx(AP_TXT.done, lang) : `${stepText}: ${label(cur)}`}</p>
+          {pos.done && (
+            <div className="dk-ap-done" role="status">
+              <p className="dhikr-complete-badge"><Icon name="check" size={16} /> {tx(AP_TXT.done, lang)}</p>
+              <p className="dk-ap-virtue" lang={lang === 'ar' ? 'ar' : undefined}>{tx(AFTER_PRAYER_VIRTUE, lang)} <span className="dhikr-source">({localizeSource('Muslim 597', lang)})</span></p>
+            </div>
+          )}
+          <p className="dk-steps-label" id="dk-steps-label">{tx(AP_TXT.steps, lang)}</p>
+          <ol className="dk-steps" aria-labelledby="dk-steps-label">
+            {AFTER_PRAYER.map((d, i) => {
+              const state = pos.done || i < pos.step ? 'done' : i === pos.step ? 'current' : 'next'
+              return (
+                <li key={d.id} className={`dk-step is-${state}`}>
+                  <button type="button" className="dk-step__btn" onClick={() => setPos({ step: i, count: 0, done: false })}
+                    aria-current={state === 'current' ? 'step' : undefined} title={tx(AP_TXT.goTo, lang)}>
+                    <span className="dk-step__mark" aria-hidden="true">{state === 'done' ? <Icon name="check" size={14} /> : <span className="ui-num">{i + 1}</span>}</span>
+                    <span className="dk-step__text">
+                      <span className="dk-step__ar" lang="ar" dir="rtl">{d.arabic}</span>
+                      {lang !== 'ar' && <span className="dk-step__name">{label(d)}</span>}
+                    </span>
+                    <span className="dk-step__count ui-num">×{d.count}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+          <div className="dk-actions">
+            <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={undo} disabled={!canUndo}>
+              <Icon name="minus" className="ui-btn__icon" /> {tx(AP_TXT.undo, lang)}
+            </button>
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={restart} disabled={!canUndo}>
+              <Icon name="refresh" className="ui-btn__icon" /> {tx(AP_TXT.restart, lang)}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Sərbəst təsbeh — hədəfsiz sayğac (localStorage 'dhikr_free_v1';
+//    'dhikr_count*' adı İŞLƏNMİR — /analytics o açarları cəmləyir) ──
+const FREE_KEY = 'dhikr_free_v1'
+function loadFree() {
+  try { const n = parseInt(localStorage.getItem(FREE_KEY), 10); return Number.isFinite(n) && n > 0 ? n : 0 } catch { return 0 }
+}
+function FreeCounter({ lang, t }) {
+  const [n, setN] = useState(loadFree)
+  useEffect(() => { try { localStorage.setItem(FREE_KEY, String(n)) } catch { /* yaddaş bağlıdır */ } }, [n])
+  const tap = () => {
+    const next = n + 1
+    setN(next)
+    bumpLifetime()
+    if (next % 100 === 0) vibrate([100, 50, 100])
+    else if (next % 33 === 0) vibrate([50, 40, 50])
+    else vibrate(20)
+  }
+  return (
+    <div className="ui-card dk-mode-card dk-free" data-testid="free-tasbih">
+      <div className="dk-mode-head">
+        <h2 className="dk-mode-title">{tx(FREE_TXT.title, lang)}</h2>
+        <p className="dk-mode-lead">{tx(FREE_TXT.lead, lang)}</p>
+      </div>
+      <button type="button" className="dk-tap dk-tap--free" onClick={tap} data-testid="free-tap">
+        <span key={n} className="dk-tap__count ui-num" data-testid="free-count">{n}</span>
+        <span className="dk-tap__hint">{tx(AP_TXT.tap, lang)}</span>
+      </button>
+      <div className="dhikr-total-bar">
+        <div className="ui-stat dhikr-total-item">
+          <span className="ui-stat__num dhikr-total-num">{Math.floor(n / 33)}</span>
+          <span className="ui-stat__label">{tx(FREE_TXT.rounds, lang)}</span>
+        </div>
+        <div className="ui-stat dhikr-total-item">
+          <span className="ui-stat__num dhikr-total-num">{Math.floor(n / 100)}</span>
+          <span className="ui-stat__label">{tx(FREE_TXT.hundreds, lang)}</span>
+        </div>
+      </div>
+      <div className="dk-actions">
+        <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setN(v => Math.max(0, v - 1))} disabled={n === 0}>
+          <Icon name="minus" className="ui-btn__icon" /> {tx(AP_TXT.undo, lang)}
+        </button>
+        <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setN(0)} disabled={n === 0}>
+          <Icon name="refresh" className="ui-btn__icon" /> {t.reset}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function DhikrPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.dhikr || T.az.dhikr
@@ -86,6 +259,8 @@ export default function DhikrPage({ setPage }) {
   const [burst,  setBurst]  = useState(0)
   const [log,    setLog]    = useState(() => (Array.isArray(saved.log) ? saved.log : []))
   const stat = (k) => STAT_LABELS[k][lang] || STAT_LABELS[k].en
+  // Sayğac rejimi — həmişə "Zikr seçimi" ilə açılır (köhnə davranış)
+  const [mode, setMode] = useState('select')
 
   // Hər dəyişiklikdə localStorage-ə yaz
   useEffect(() => {
@@ -146,6 +321,19 @@ export default function DhikrPage({ setPage }) {
       </header>
 
       <section className="ui-section ui-section--tight">
+        <div className="ui-container dk-modes-wrap">
+          <div className="dk-modes" role="group" aria-label={tx(MODE_LABEL, lang)}>
+            {MODES.map(m => (
+              <button key={m.id} type="button" className="ui-chip dk-mode-chip" aria-pressed={mode === m.id}
+                onClick={() => setMode(m.id)} data-testid={`dhikr-mode-${m.id}`}>
+                <Icon name={m.icon} size={16} /> {tx(m.label, lang)}
+              </button>
+            ))}
+          </div>
+        </div>
+        {mode === 'after' && <div className="ui-container"><AfterPrayerCounter lang={lang} /></div>}
+        {mode === 'free' && <div className="ui-container"><FreeCounter lang={lang} t={t} /></div>}
+        {mode === 'select' && (
         <div className="ui-container dhikr-layout">
 
           {/* Zikr seçicisi — genişdə şaquli siyahı, telefonda üfüqi zolaq */}
@@ -267,6 +455,7 @@ export default function DhikrPage({ setPage }) {
             </section>
           )}
         </div>
+        )}
       </section>
     </div>
   )

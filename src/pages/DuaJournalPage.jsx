@@ -5,15 +5,21 @@ import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
+import PageLink, { isPlainClick } from '../components/PageLink'
+import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
+import { useNavigate } from 'react-router-dom'
+import { pathFor } from '../seo/routes'
+import { DUA_GUIDE, DUA_GUIDE_LINKS } from '../data/pageGuides/DuaJournalPage'
+import '../styles/LessonsPage.css'
 import '../styles/DuaJournalPage.css'
 
 // ── i18n Labels ──
 const LABELS = {
-  az: { title:'Dua gündəliyi', subtitle:'Şəxsi dualarınızı yazın və izləyin', active:'Aktiv dualar', answered:'Qəbul olunanlar', edit:'Redaktə et', editTitle:'Duanı redaktə et', add:'Dua əlavə et', placeholder:'Duanızı yazın...', personal:'Şəxsi', family:'Ailə', health:'Sağlamlıq', work:'İş', ummah:'Ümmət', low:'Aşağı', medium:'Orta', high:'Yüksək', markAnswered:'Qəbul oldu', delete:'Sil', noActive:'Aktiv dua yoxdur', noAnswered:'Hələ qəbul olunan yoxdur', answeredOn:'Qəbul tarixi', priority:'Prioritet', category:'Kateqoriya', total:'Ümumi', save:'Saxla', cancel:'Ləğv et', confirmDelete:'Bu dua silinsin?' },
-  en: { title:'Dua Journal', subtitle:'Write and track your personal duas', active:'Active Duas', answered:'Answered', edit:'Edit', editTitle:'Edit dua', add:'Add dua', placeholder:'Write your dua...', personal:'Personal', family:'Family', health:'Health', work:'Work', ummah:'Ummah', low:'Low', medium:'Medium', high:'High', markAnswered:'Answered', delete:'Delete', noActive:'No active duas', noAnswered:'No answered duas yet', answeredOn:'Answered on', priority:'Priority', category:'Category', total:'Total', save:'Save', cancel:'Cancel', confirmDelete:'Delete this dua?' },
-  ru: { title:'Дневник дуа', subtitle:'Записывайте и отслеживайте свои дуа', active:'Активные', answered:'Отвеченные', edit:'Изменить', editTitle:'Изменить дуа', add:'Добавить дуа', placeholder:'Напишите дуа...', personal:'Личное', family:'Семья', health:'Здоровье', work:'Работа', ummah:'Умма', low:'Низкий', medium:'Средний', high:'Высокий', markAnswered:'Отвечено', delete:'Удалить', noActive:'Нет активных дуа', noAnswered:'Пока нет отвеченных', answeredOn:'Дата ответа', priority:'Приоритет', category:'Категория', total:'Всего', save:'Сохранить', cancel:'Отмена', confirmDelete:'Удалить это дуа?' },
-  ar: { title:'مذكرة الدعاء', subtitle:'اكتب وتتبع أدعيتك الشخصية', active:'أدعية نشطة', answered:'مستجابة', edit:'تعديل', editTitle:'تعديل الدعاء', add:'أضف دعاء', placeholder:'اكتب دعاءك...', personal:'شخصي', family:'عائلة', health:'صحة', work:'عمل', ummah:'أمة', low:'منخفض', medium:'متوسط', high:'عالي', markAnswered:'استُجيب', delete:'حذف', noActive:'لا أدعية نشطة', noAnswered:'لا أدعية مستجابة بعد', answeredOn:'تاريخ الإجابة', priority:'الأولوية', category:'الفئة', total:'الإجمالي', save:'حفظ', cancel:'إلغاء', confirmDelete:'هل تريد حذف هذا الدعاء؟' },
-  tr: { title:'Dua Günlüğü', subtitle:'Kişisel dualarınızı yazın ve takip edin', active:'Aktif dualar', answered:'Kabul edilenler', edit:'Düzenle', editTitle:'Duayı düzenle', add:'Dua ekle', placeholder:'Duanızı yazın...', personal:'Kişisel', family:'Aile', health:'Sağlık', work:'İş', ummah:'Ümmet', low:'Düşük', medium:'Orta', high:'Yüksek', markAnswered:'Kabul edildi', delete:'Sil', noActive:'Aktif dua yok', noAnswered:'Henüz kabul edilen yok', answeredOn:'Kabul tarihi', priority:'Öncelik', category:'Kategori', total:'Toplam', save:'Kaydet', cancel:'İptal', confirmDelete:'Bu dua silinsin mi?' },
+  az: { title:'Dua gündəliyi', subtitle:'Şəxsi dualarınızı yazın və izləyin', active:'Aktiv dualar', answered:'Qəbul olunanlar', edit:'Redaktə et', editTitle:'Duanı redaktə et', add:'Dua əlavə et', placeholder:'Duanızı yazın...', personal:'Şəxsi', family:'Ailə', health:'Sağlamlıq', work:'İş', ummah:'Ümmət', low:'Aşağı', medium:'Orta', high:'Yüksək', markAnswered:'Qəbul oldu', delete:'Sil', noActive:'Aktiv dua yoxdur', noAnswered:'Hələ qəbul olunan yoxdur', answeredOn:'Qəbul tarixi', priority:'Prioritet', category:'Kateqoriya', total:'Ümumi', save:'Saxla', cancel:'Ləğv et', confirmDelete:'Bu dua silinsin?', guideMore:'Ətraflı' },
+  en: { title:'Dua Journal', subtitle:'Write and track your personal duas', active:'Active Duas', answered:'Answered', edit:'Edit', editTitle:'Edit dua', add:'Add dua', placeholder:'Write your dua...', personal:'Personal', family:'Family', health:'Health', work:'Work', ummah:'Ummah', low:'Low', medium:'Medium', high:'High', markAnswered:'Answered', delete:'Delete', noActive:'No active duas', noAnswered:'No answered duas yet', answeredOn:'Answered on', priority:'Priority', category:'Category', total:'Total', save:'Save', cancel:'Cancel', confirmDelete:'Delete this dua?', guideMore:'Read more' },
+  ru: { title:'Дневник дуа', subtitle:'Записывайте и отслеживайте свои дуа', active:'Активные', answered:'Отвеченные', edit:'Изменить', editTitle:'Изменить дуа', add:'Добавить дуа', placeholder:'Напишите дуа...', personal:'Личное', family:'Семья', health:'Здоровье', work:'Работа', ummah:'Умма', low:'Низкий', medium:'Средний', high:'Высокий', markAnswered:'Отвечено', delete:'Удалить', noActive:'Нет активных дуа', noAnswered:'Пока нет отвеченных', answeredOn:'Дата ответа', priority:'Приоритет', category:'Категория', total:'Всего', save:'Сохранить', cancel:'Отмена', confirmDelete:'Удалить это дуа?', guideMore:'Подробнее' },
+  ar: { title:'مذكرة الدعاء', subtitle:'اكتب وتتبع أدعيتك الشخصية', active:'أدعية نشطة', answered:'مستجابة', edit:'تعديل', editTitle:'تعديل الدعاء', add:'أضف دعاء', placeholder:'اكتب دعاءك...', personal:'شخصي', family:'عائلة', health:'صحة', work:'عمل', ummah:'أمة', low:'منخفض', medium:'متوسط', high:'عالي', markAnswered:'استُجيب', delete:'حذف', noActive:'لا أدعية نشطة', noAnswered:'لا أدعية مستجابة بعد', answeredOn:'تاريخ الإجابة', priority:'الأولوية', category:'الفئة', total:'الإجمالي', save:'حفظ', cancel:'إلغاء', confirmDelete:'هل تريد حذف هذا الدعاء؟', guideMore:'للمزيد' },
+  tr: { title:'Dua Günlüğü', subtitle:'Kişisel dualarınızı yazın ve takip edin', active:'Aktif dualar', answered:'Kabul edilenler', edit:'Düzenle', editTitle:'Duayı düzenle', add:'Dua ekle', placeholder:'Duanızı yazın...', personal:'Kişisel', family:'Aile', health:'Sağlık', work:'İş', ummah:'Ümmet', low:'Düşük', medium:'Orta', high:'Yüksek', markAnswered:'Kabul edildi', delete:'Sil', noActive:'Aktif dua yok', noAnswered:'Henüz kabul edilen yok', answeredOn:'Kabul tarihi', priority:'Öncelik', category:'Kategori', total:'Toplam', save:'Kaydet', cancel:'İptal', confirmDelete:'Bu dua silinsin mi?', guideMore:'Daha fazlası' },
 }
 
 const CATEGORIES = ['personal', 'family', 'health', 'work', 'ummah']
@@ -79,6 +85,14 @@ export default function DuaJournalPage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
   const fmtDate = (iso) => formatDate(iso, lang)
+  const navigate = useNavigate()
+  // Dərsə keçid — həqiqi <a href>, adi klikdə SPA ilə
+  const openLesson = (e, slug) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(pathFor('learn', lang, slug))
+    window.scrollTo(0, 0)
+  }
 
   const [duas, setDuas] = useState([])
   const [tab, setTab] = useState('active')
@@ -346,6 +360,22 @@ export default function DuaJournalPage({ setPage }) {
                 </div>
               </article>
             ))}
+          </div>
+
+          {/* Duanın ədəbi və qəbul vaxtları — mətnlər Hisnul-Müslimdədir (təkrarlanmır) */}
+          <div className="dj-guide">
+            {DUA_GUIDE.map(sec => (
+              <section key={sec.id} id={`dj-${sec.id}`} className="dj-guide-sec" aria-labelledby={`dj-${sec.id}-title`}>
+                <h2 id={`dj-${sec.id}-title`} className="dj-guide-title">{pick(sec.title, lang)}</h2>
+                <LessonBlocks blocks={sec.blocks} lang={lang} />
+              </section>
+            ))}
+            <div className="dj-guide-links">
+              <span className="dj-guide-links-label">{t.guideMore}:</span>
+              {DUA_GUIDE_LINKS.map((l, i) => l.learn
+                ? <a key={i} className="ui-chip dj-guide-chip" href={pathFor('learn', lang, l.learn)} onClick={(e) => openLesson(e, l.learn)}><Icon name="learn" size={15} /> {pick(l.label, lang)}</a>
+                : <PageLink key={i} className="ui-chip dj-guide-chip" to={l.to} setPage={setPage} onNavigate={() => window.scrollTo(0, 0)}><Icon name={l.to} size={15} /> {pick(l.label, lang)}</PageLink>)}
+            </div>
           </div>
         </div>
       </section>

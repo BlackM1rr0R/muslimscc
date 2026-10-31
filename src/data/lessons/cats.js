@@ -1,0 +1,25 @@
+// Dərslərin kateqoriyaları (/learn siyahısında qruplar) — sıra burada olduğu kimidir
+export const LESSON_CATS = [
+  { key: 'aqidah', icon: 'shield',
+    label: { az: 'Əqidə', en: 'Creed (Aqidah)', ru: 'Вероубеждение (акыда)', ar: 'العقيدة', tr: 'Akide' },
+    desc: { az: 'Tövhid, imanın əsasları və İslamı pozan şeylər — Sələf alimlərinin əsərləri əsasında.', en: 'Tawhid, the foundations of faith and what nullifies Islam — based on the works of the scholars of the Salaf.', ru: 'Таухид, основы веры и то, что разрушает ислам, — по трудам учёных саляфа.', ar: 'التوحيد وأصول الإيمان ونواقض الإسلام، من كتب علماء السلف.', tr: 'Tevhid, imanın esasları ve İslam’ı bozan şeyler — Selef âlimlerinin eserlerine göre.' } },
+  { key: 'tahara', icon: 'drop',
+    label: { az: 'Təharət və namaz', en: 'Purification & Prayer', ru: 'Очищение и намаз', ar: 'الطهارة والصلاة', tr: 'Taharet ve Namaz' },
+    desc: { az: 'Qüsl, təyəmmüm, xüsusi namazlar və namazdan sonrakı zikrlər — dəlilləri ilə.', en: 'Ghusl, tayammum, special prayers and the remembrance after prayer — with evidence.', ru: 'Гусль, таяммум, особые намазы и поминания после намаза — с доказательствами.', ar: 'الغسل والتيمم والصلوات الخاصة والأذكار بعد الصلاة، بأدلتها.', tr: 'Gusül, teyemmüm, özel namazlar ve namazdan sonraki zikirler — delilleriyle.' } },
+  { key: 'seasons', icon: 'moonStar',
+    label: { az: 'Oruc, qurban və mövsümlər', en: 'Fasting, Sacrifice & Seasons', ru: 'Пост, жертвоприношение и сезоны', ar: 'الصيام والأضاحي والمواسم', tr: 'Oruç, Kurban ve Mevsimler' },
+    desc: { az: 'Sünnə orucları, Zülhiccənin on günü, qurban və əqiqə, kəffarə və fidyə.', en: 'Sunnah fasts, the ten days of Dhul-Hijjah, udhiyah and aqiqah, expiation and fidyah.', ru: 'Желательные посты, десять дней зуль-хиджи, жертвоприношение и акыка, искупление и фидья.', ar: 'صيام التطوع وعشر ذي الحجة والأضحية والعقيقة والكفارات والفدية.', tr: 'Nafile oruçlar, Zilhicce’nin on günü, kurban ve akika, kefaret ve fidye.' } },
+  { key: 'family', icon: 'jamaat',
+    label: { az: 'Ailə, sağlamlıq və həyat', en: 'Family, Health & Life', ru: 'Семья, здоровье и жизнь', ar: 'الأسرة والصحة والحياة', tr: 'Aile, Sağlık ve Hayat' },
+    desc: { az: 'Nikah, hicab, xəstənin fiqhi, şəri rüqyə, vəsiyyət və cənazə.', en: 'Marriage, hijab, rulings for the sick, Shar‘i ruqyah, the will and the funeral.', ru: 'Брак, хиджаб, положения для больного, шариатская рукья, завещание и похороны.', ar: 'النكاح والحجاب وأحكام المريض والرقية الشرعية والوصية والجنائز.', tr: 'Nikâh, tesettür, hastanın fıkhı, şer‘î rukye, vasiyet ve cenaze.' } },
+  { key: 'heart', icon: 'sparkle',
+    label: { az: 'Əxlaq və qəlb', en: 'Character & the Heart', ru: 'Нрав и сердце', ar: 'الأخلاق والقلب', tr: 'Ahlak ve Kalp' },
+    desc: { az: 'Tövbə, əxlaq və ədəb, valideyn və qonşu haqları, nəfsi hesaba çəkmək.', en: 'Repentance, manners, the rights of parents and neighbours, self-accounting.', ru: 'Покаяние, нравы, права родителей и соседей, отчёт перед собой.', ar: 'التوبة والأخلاق والآداب وحقوق الوالدين والجيران ومحاسبة النفس.', tr: 'Tövbe, ahlak ve edep, anne-baba ve komşu hakları, nefis muhasebesi.' } },
+  { key: 'knowledge', icon: 'books',
+    label: { az: 'Elm və metod', en: 'Knowledge & Method', ru: 'Знание и метод', ar: 'العلم والمنهج', tr: 'İlim ve Metot' },
+    desc: { az: 'Hədis elminin əsasları, bidətlər, elm tələbəsinin ədəbi və şübhələrə cavab.', en: 'Basics of hadith science, innovations, the etiquette of the student and answers to doubts.', ru: 'Основы науки о хадисах, нововведения, этика ищущего знание и ответы на сомнения.', ar: 'مبادئ علم الحديث والبدع وآداب طالب العلم والرد على الشبهات.', tr: 'Hadis usulünün esasları, bid‘atler, ilim talebesinin edebi ve şüphelere cevaplar.' } },
+  { key: 'dawah', icon: 'globe',
+    label: { az: 'Yeni müsəlmanlar və dəvət', en: 'New Muslims & Da‘wah', ru: 'Новым мусульманам и призыв', ar: 'المسلم الجديد والدعوة', tr: 'Yeni Müslümanlar ve Davet' },
+    desc: { az: 'İslamla ilk tanışlıq, yeni müsəlmanın ilk addımları və dəvət üçün vəsaitlər.', en: 'A first introduction to Islam, first steps for a new Muslim and da‘wah materials.', ru: 'Первое знакомство с исламом, первые шаги нового мусульманина и материалы для призыва.', ar: 'تعريف أولي بالإسلام، وأولى خطوات المسلم الجديد، ومواد للدعوة.', tr: 'İslam’a ilk bakış, yeni Müslümanın ilk adımları ve davet materyalleri.' } },
+]
+export const CAT_BY_KEY = Object.fromEntries(LESSON_CATS.map(c => [c.key, c]))

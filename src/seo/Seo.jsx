@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { SITE, LANGS, LOCALES, DEFAULT_LANG, urlFor, pathFor } from './routes'
+import { SITE, LANGS, LOCALES, DEFAULT_LANG, DETAILS, urlFor, pathFor } from './routes'
 import { titleFor, descFor, ogImageFor, OG_ALT } from './meta'
 import { brandName, siteJsonLd } from '../config/brand'
 
@@ -96,15 +96,17 @@ function applySeo(page, lang, param, detail) {
   const meta = detail ? detail.detailMeta(page, lang, param) : null
   const title = meta ? detail.titleForDetail(page, lang, param) : titleFor(page, lang)
   const desc = meta ? meta.d : descFor(page, lang)
-  const canonical = urlFor(page, lang, param ?? undefined)
+  const canonical = urlFor(page, lang, DETAILS[page]?.noindex ? undefined : (param ?? undefined))
   // Tanınmayan ünvan (404): indekslənmir, canonical/hreflang/sxem yazılmır —
   // əks halda Google onu ana səhifənin dublikatı ("soft-404") sayardı
   const isNotFound = page === 'notfound'
+  // İstifadəçi məzmunu (qrup otağı və s.) — indekslənmir, kanonik siyahı səhifəsidir
+  const isPrivateDetail = param != null && DETAILS[page]?.noindex
 
   document.title = title
   setMeta('name', 'description', desc)
   setMeta('name', 'robots',
-    page === 'adminlogin' || page === 'admin' || isNotFound
+    page === 'adminlogin' || page === 'admin' || isNotFound || isPrivateDetail
       ? 'noindex, nofollow'
       : 'index, follow, max-image-preview:large, max-snippet:-1')
 

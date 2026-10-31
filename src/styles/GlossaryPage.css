@@ -195,3 +195,89 @@
   .glossary-page .glossary-card:hover { transform: none; }
   .glossary-page .glossary-alpha-btn:active { transform: none; }
 }
+
+/* ══ Kateqoriyalar, seçilmiş termin, əlaqəli terminlər, dərs keçidi ══ */
+.glossary-cat-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--space-4);
+}
+.glossary-page .glossary-cat-btn { gap: 6px; min-height: 40px; }
+.glossary-cat-n {
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-weight: 500;
+}
+.glossary-page .glossary-cat-btn[aria-pressed="true"] .glossary-cat-n { color: inherit; opacity: 0.8; }
+
+.glossary-page .glossary-focus-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+.glossary-focus-bar__text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+
+.glossary-page .glossary-card { scroll-margin-top: calc(var(--header-h) + 72px); }
+.glossary-page .glossary-card.is-focus {
+  border-color: var(--brand-line);
+  box-shadow: 0 0 0 1px var(--brand-line), var(--shadow-2);
+  background: linear-gradient(var(--brand-soft), var(--brand-soft)), var(--surface-1);
+}
+.glossary-term-link { color: inherit; text-decoration: none; }
+.glossary-term-link:hover { color: var(--brand); }
+
+.glossary-page .glossary-cat-badge { align-self: flex-start; }
+
+.glossary-card-foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--line);
+}
+.glossary-rel { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.glossary-rel__label { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
+.glossary-rel__list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.glossary-rel__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 2px 10px;
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-pill);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--dur-1) ease, color var(--dur-1) ease;
+}
+.glossary-rel__chip:hover { background: var(--brand-soft-2); color: var(--brand-hover); }
+.glossary-rel__chip .ui-arabic { font-size: 17px; line-height: 1.4; }
+.glossary-lesson { display: inline-flex; align-items: center; gap: 6px; font-size: var(--step--1); font-weight: 600; }
+
+@media (max-width: 767.98px) {
+  .glossary-cat-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding: 2px var(--page-gutter) 6px;
+    scrollbar-width: none;
+  }
+  .glossary-cat-bar::-webkit-scrollbar { display: none; }
+  .glossary-page .glossary-cat-btn { flex: 0 0 auto; min-height: var(--tap, 44px); }
+  .glossary-rel__chip { min-height: 36px; }
+}

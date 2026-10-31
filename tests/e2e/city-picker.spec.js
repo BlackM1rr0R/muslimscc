@@ -6,7 +6,7 @@
 //   • Esc bağlayır, reload-dan sonra seçim qalır
 //   • siyahıda olmayan şəhər — Open-Meteo geocoding (saxta cavab) ilə
 // ═══════════════════════════════════════════════════════
-import { test, expect, expectCleanConsole, settle } from './fixtures.js'
+import { test, expect, expectCleanConsole, settle, azTimes, SHEKI } from './fixtures.js'
 
 // Open-Meteo geocoding — sabit cavab (Vyana)
 const VIENNA = { id: 2761369, name: 'Vyana', latitude: 48.20849, longitude: 16.37208, feature_code: 'PPLC', country_code: 'AT', country: 'Avstriya', admin1: 'Vyana', timezone: 'Europe/Vienna' }
@@ -47,7 +47,8 @@ test('ana səhifədə şəhər seçilir, vaxtlar yeni koordinatla gəlir, seçim
   await expect(dialog).toBeHidden()
   await expect(trigger(page)).toContainText('Şəki')
   await expect(trigger(page)).toBeFocused()
-  await expect(page.getByText('05:32', { exact: true }).first()).toBeVisible()
+  // Şəki (Azərbaycan) — vaxtlar yerli hesabdan; aladhan sorğusu yalnız hicri tarix üçündür
+  await expect(page.getByText(azTimes(new Date(), SHEKI).fajr, { exact: true }).first()).toBeVisible()
 
   await page.reload()
   await settle(page)

@@ -31,3 +31,41 @@ export const DHIKRS = [
   { az:'Salavat', en:'Salawat', ru:'Салават', ar:'اللَّهُمَّ صَلِّ عَلَى مُحَمَّد', tr:'Salavat', arabic:'ٱللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ', target:100, source:'Muslim 408', virtue:{ az:'Bir salavat deyənə Allah on salavat edər', en:'Whoever sends one salawat, Allah sends ten upon him', ru:'Кто произнесёт один салават, тому Аллах воздаст десятью', ar:'من صلى عليّ واحدة صلى الله عليه عشرًا', tr:"Bir salavat getirene Allah on salavat eder" } },
   { az:'Həsbunallahu və niməl vəkil', en:'Hasbunallahu wa ni\'mal wakeel', ru:'ХасбунАллаху ва ни\'маль вакиль', ar:'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيل', tr:'Hasbünallahü ve ni\'mel vekil', arabic:'حَسۡبُنَا ٱللَّهُ وَنِعۡمَ ٱلۡوَكِيلُ', target:33, source:'Buxari 4563', virtue:{ az:'İbrahimin atəşə atılarkən dediyi söz', en:'What Ibrahim said when thrown into the fire', ru:'Слова Ибрахима, когда его бросили в огонь', ar:'قالها إبراهيم حين ألقي في النار', tr:'İbrahim ateşe atıldığında söylediği söz' } },
 ]
+
+// ═══ FƏRZ NAMAZINDAN SONRA — ardıcıl sayğac (DhikrPage, "Namazdan sonra" rejimi) ═══
+// Yoxlanılıb (fawazahmed0/hadith-api, ara-muslim; Fuad Əbdülbaqi nömrəsi):
+//   Muslim 591 — Səvban: Peyğəmbər ﷺ namazı bitirəndə üç dəfə istiğfar edər
+//     (əl-Əvzai: "Əstəğfirullah, Əstəğfirullah" deyirsən), sonra
+//     "Allahummə əntəs-saləm və minkəs-saləm, təbarəktə zəl-cələli vəl-ikram" deyərdi.
+//   Muslim 597 — Əbu Hureyrə: 33 təsbih, 33 təhmid, 33 təkbir = 99, yüzü
+//     "Lə ilahə illəllahu vahdəhu lə şərikə ləh…" tamamlayır; günahlar dəniz
+//     köpüyü qədər olsa da bağışlanır.
+export const AFTER_PRAYER = [
+  { id: 'istighfar', count: 3, source: 'Muslim 591', arabic: 'أَسْتَغْفِرُ اللَّهَ',
+    az: 'Əstəğfirullah', en: 'Astaghfirullah', ru: 'Астагфируллах', ar: 'أَسْتَغْفِرُ اللَّه', tr: 'Estağfirullah',
+    meaning: { az: 'Allahdan bağışlanma diləyirəm', en: 'I seek Allah’s forgiveness', ru: 'Прошу прощения у Аллаха', tr: 'Allah’tan bağışlanma dilerim' } },
+  { id: 'salam', count: 1, source: 'Muslim 591', arabic: 'اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ، تَبَارَكْتَ ذَا الْجَلَالِ وَالْإِكْرَامِ',
+    az: 'Allahummə əntəs-saləm və minkəs-saləm, təbarəktə zəl-cələli vəl-ikram', en: 'Allahumma anta as-salam wa minka as-salam, tabarakta dhal-jalali wal-ikram', ru: 'Аллахумма анта-с-салям ва минка-с-салям, табаракта за-ль-джаляли валь-икрам', ar: 'اللَّهُمَّ أَنْتَ السَّلَام', tr: 'Allahümme ente’s-selâm ve minke’s-selâm, tebârekte ze’l-celâli ve’l-ikrâm',
+    meaning: { az: 'Allahım, Sən Salamsan (hər nöqsandan uzaqsan), salamatlıq da Səndəndir. Ey əzəmət və ikram sahibi, Sən nə bərəkətlisən!', en: 'O Allah, You are as-Salam (free of every flaw) and from You is all peace. Blessed are You, Possessor of majesty and honour.', ru: 'О Аллах, Ты — Мир (свободный от всех недостатков), и от Тебя — мир. Благословен Ты, Обладатель величия и щедрости!', tr: 'Allah’ım! Sen Selâm’sın (her eksiklikten uzaksın), esenlik de Sendendir. Ey celâl ve ikram sahibi, Sen ne yücesin!' } },
+  { id: 'subhan', count: 33, source: 'Muslim 597', arabic: 'سُبْحَانَ اللَّهِ',
+    az: 'Sübhanəllah', en: 'SubhanAllah', ru: 'СубханАллах', ar: 'سُبْحَانَ اللَّه', tr: 'Sübhanallah',
+    meaning: { az: 'Allah hər nöqsandan uzaqdır', en: 'Glory be to Allah', ru: 'Пречист Аллах', tr: 'Allah her eksiklikten münezzehtir' } },
+  { id: 'hamd', count: 33, source: 'Muslim 597', arabic: 'الْحَمْدُ لِلَّهِ',
+    az: 'Əlhəmdulillah', en: 'Alhamdulillah', ru: 'Альхамдулиллях', ar: 'الحَمْدُ لِلَّه', tr: 'Elhamdülillah',
+    meaning: { az: 'Həmd Allaha məxsusdur', en: 'All praise is for Allah', ru: 'Хвала Аллаху', tr: 'Hamd Allah’a mahsustur' } },
+  { id: 'takbir', count: 33, source: 'Muslim 597', arabic: 'اللَّهُ أَكْبَرُ',
+    az: 'Allahu Əkbər', en: 'Allahu Akbar', ru: 'Аллаху Акбар', ar: 'اللَّهُ أَكْبَر', tr: 'Allahu Ekber',
+    meaning: { az: 'Allah ən böyükdür', en: 'Allah is the Greatest', ru: 'Аллах велик', tr: 'Allah en büyüktür' } },
+  { id: 'tahlil', count: 1, source: 'Muslim 597', arabic: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ',
+    az: 'Lə ilahə illəllahu vahdəhu lə şərikə ləh, ləhul-mulku və ləhul-həmdu və huvə alə kulli şeyin qadir', en: 'La ilaha illallahu wahdahu la sharika lah, lahul-mulku wa lahul-hamdu wa huwa ‘ala kulli shay’in qadir', ru: 'Ля иляха илля-Ллаху вахдаху ля шарика лях, ляху-ль-мульку ва ляху-ль-хамду ва хуа аля кулли шайин кадир', ar: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ', tr: 'Lâ ilâhe illallâhu vahdehû lâ şerîke leh, lehü’l-mülkü ve lehü’l-hamdü ve hüve alâ külli şey’in kadîr',
+    meaning: { az: 'Allahdan başqa haqq ilah yoxdur, Onun şəriki yoxdur. Mülk də, həmd də Onundur və O, hər şeyə qadirdir', en: 'None has the right to be worshipped but Allah alone, without partner. His is the dominion and His is the praise, and He is able to do all things', ru: 'Нет божества, достойного поклонения, кроме одного лишь Аллаха, у которого нет сотоварища. Ему принадлежит власть, Ему хвала, и Он всё может', tr: 'Allah’tan başka hak ilah yoktur, O tektir, ortağı yoktur. Mülk O’nundur, hamd O’nadır ve O her şeye kadirdir' } },
+]
+
+// Ardıcıllığın fəziləti (Muslim 597)
+export const AFTER_PRAYER_VIRTUE = {
+  az: 'Kim hər namazdan sonra 33 dəfə Sübhanəllah, 33 dəfə Əlhəmdulillah, 33 dəfə Allahu Əkbər deyib yüzü «Lə ilahə illəllahu vahdəhu…» ilə tamamlasa, günahları dəniz köpüyü qədər olsa belə bağışlanar.',
+  en: 'Whoever says SubhanAllah 33 times, Alhamdulillah 33 times and Allahu Akbar 33 times after every prayer, and completes the hundred with “La ilaha illallahu wahdahu…”, his sins are forgiven even if they are like the foam of the sea.',
+  ru: 'Кто после каждой молитвы скажет 33 раза «СубханАллах», 33 раза «Альхамдулиллях», 33 раза «Аллаху Акбар» и завершит сотню словами «Ля иляха илля-Ллаху вахдаху…», тому простятся грехи, даже если их будет столько, сколько морской пены.',
+  ar: 'مَنْ سَبَّحَ اللَّهَ فِي دُبُرِ كُلِّ صَلَاةٍ ثَلَاثًا وَثَلَاثِينَ، وَحَمِدَ اللَّهَ ثَلَاثًا وَثَلَاثِينَ، وَكَبَّرَ اللَّهَ ثَلَاثًا وَثَلَاثِينَ… وَقَالَ تَمَامَ الْمِائَةِ: لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ… غُفِرَتْ خَطَايَاهُ وَإِنْ كَانَتْ مِثْلَ زَبَدِ الْبَحْرِ',
+  tr: 'Kim her namazdan sonra 33 defa Sübhanallah, 33 defa Elhamdülillah, 33 defa Allahu Ekber der ve yüzü “Lâ ilâhe illallâhu vahdehû…” ile tamamlarsa, günahları deniz köpüğü kadar olsa bile bağışlanır.',
+}

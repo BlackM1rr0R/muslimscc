@@ -6,6 +6,12 @@ import { INDEXABLE } from '../seo/routes'
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AboutPage.css'
 import PageLink from '../components/PageLink'
+import ReportErrorButton from '../components/ReportErrorButton'
+import { NAV_GROUPS } from '../data/navigation'
+import { GROUP_DESC, EDITORIAL, ABOUT_EXTRA } from '../data/pageGuides/AboutPage'
+
+// Xəritədə göstərilməyən marşrutlar: ana səhifə (loqo) və bu səhifənin özü
+const MAP_SKIP = new Set(['home', 'about'])
 
 // ── Ayə: api.alquran.cloud-dan gətirilir (yaddaşdan yazılmır) ──
 // Nəşrlər QuranPage/JamaatPage ilə eyni; ərəbcədə yalnız ərəb mətni.
@@ -168,7 +174,10 @@ const READ_QURAN = { az: 'Quran oxu', en: 'Read the Quran', ru: 'Читать К
 export function AboutPage({ setPage }) {
   const { lang } = useLang()
   const t = ABOUT[lang] || ABOUT.en
+  const x = ABOUT_EXTRA[lang] || ABOUT_EXTRA.en
   const brand = brandName(lang)
+  const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+  const pickL = (o) => (o && (o[lang] || o.en || o.az)) || ''
   const verse = useVerse(CTA_AYAH, lang)
 
   // Dəyərlər — xətti ikonlar (Icon.jsx), hamısı eyni brend tonunda
@@ -242,6 +251,96 @@ export function AboutPage({ setPage }) {
           <article className="ui-card ab-manhaj" data-reveal>
             <h2 id="ab-manhaj-title" className="ui-title ui-title--sm">{t.manhaj}</h2>
             <p>{t.manhajText}</p>
+          </article>
+        </div>
+      </section>
+
+      {/* Saytın xəritəsi — bütün bölmələr navigation.js → NAV_GROUPS-dan (yeni bölmə özü düşür) */}
+      <section className="ui-section ui-section--alt ab-map-sec" aria-labelledby="ab-map-title">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <h2 id="ab-map-title" className="ui-title">{x.mapTitle}</h2>
+            <p className="ui-lead">{x.mapLead}</p>
+          </div>
+          <div className="ab-map">
+            {NAV_GROUPS.map(g => {
+              const items = g.items.filter(it => !MAP_SKIP.has(it.key))
+              if (!items.length) return null
+              return (
+                <section key={g.key} className="ui-card ab-map-group" aria-labelledby={`ab-map-${g.key}`}>
+                  <h3 id={`ab-map-${g.key}`} className="ab-map-title">{pickL(g.label)}</h3>
+                  {GROUP_DESC[g.key] && <p className="ab-map-desc">{pickL(GROUP_DESC[g.key])}</p>}
+                  <ul className="ab-map-list">
+                    {items.map(it => (
+                      <li key={it.key}>
+                        <PageLink to={it.key} setPage={setPage} onNavigate={toTop} className="ab-map-link">
+                          <Icon name={it.key} size={16} />
+                          <span>{pickL(it.label)}</span>
+                        </PageLink>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Redaksiya prinsipləri — mənbələr, hədis dərəcəsi, AI tərcümələr, səhv bildirmək */}
+      <section className="ui-section ab-editorial-sec" aria-labelledby="ab-editorial-title">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <h2 id="ab-editorial-title" className="ui-title">{x.editorialTitle}</h2>
+          </div>
+          <ol className="ab-editorial">
+            {EDITORIAL.map((e, i) => (
+              <li key={i} className="ui-card ab-principle">
+                <span className="ui-icon-tile" aria-hidden="true"><Icon name={e.icon} /></span>
+                <div className="ab-principle-body">
+                  <h3 className="ui-card__title">{pickL(e.title)}</h3>
+                  <p className="ui-card__text">{pickL(e.text)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="ab-report">
+            <ReportErrorButton refText={x.reportRef} kind="other" />
+          </div>
+        </div>
+      </section>
+
+      {/* Məxfilik xülasəsi + əlaqə (tam mətn /privacy-də) */}
+      <section className="ui-section ab-info-sec" aria-label={`${x.privacyTitle} · ${x.contactTitle}`}>
+        <div className="ui-container ab-info-grid">
+          <article className="ui-card ab-info-card" aria-labelledby="ab-privacy-title">
+            <span className="ui-icon-tile" aria-hidden="true"><Icon name="shield" /></span>
+            <h2 id="ab-privacy-title" className="ui-title ui-title--sm">{x.privacyTitle}</h2>
+            <p>{x.privacyText}</p>
+            <p className="ab-info-links">
+              <PageLink to="privacy" setPage={setPage} onNavigate={toTop} className="ui-link">{x.privacyLink} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" /></PageLink>
+              <PageLink to="terms" setPage={setPage} onNavigate={toTop} className="ui-link">{x.termsLink}</PageLink>
+              <PageLink to="licenses" setPage={setPage} onNavigate={toTop} className="ui-link">{x.licensesLink}</PageLink>
+            </p>
+          </article>
+          <article className="ui-card ab-info-card" aria-labelledby="ab-contact-title">
+            <span className="ui-icon-tile ui-icon-tile--accent" aria-hidden="true"><Icon name="send" /></span>
+            <h2 id="ab-contact-title" className="ui-title ui-title--sm">{x.contactTitle}</h2>
+            <p>{x.contactText}</p>
+            <ul className="ab-contact-list">
+              {BRAND.legal?.email && (
+                <li>
+                  <span className="ab-contact-label">{x.email}</span>
+                  <a href={`mailto:${BRAND.legal.email}`} className="ui-link" dir="ltr">{BRAND.legal.email}</a>
+                </li>
+              )}
+              {BRAND.instagram && (
+                <li>
+                  <span className="ab-contact-label">Instagram</span>
+                  <a href={`https://instagram.com/${BRAND.instagram}`} className="ui-link" target="_blank" rel="noopener noreferrer" dir="ltr">@{BRAND.instagram} <Icon name="external" size={14} /></a>
+                </li>
+              )}
+            </ul>
           </article>
         </div>
       </section>

@@ -1,9 +1,16 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { guessLang } from '../utils/textLang'
+import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
+import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
+import { isPlainClick } from '../components/PageLink'
+import { pathFor } from '../seo/routes'
+import { CAL_EVENT_INFO, CAL_GUIDE_TXT, CAL_HIJRI_LINK, CAL_MONTHS_GUIDE, CAL_SOURCES, eventInfoKey } from '../data/guides/CalendarPage'
+import '../styles/LessonsPage.css'
 import '../styles/CalendarPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import { showLocalNotification } from '../utils/notify'
@@ -195,6 +202,121 @@ const NOTIFY_LABELS = {
   tr: { remind:'Hatırlat', reminded:'Hatırlatma ayarlandı', today:'Bugün!', upcoming:'Yaklaşıyor', removeReminder:'Kaldır' },
 }
 
+// ═══ Hadisələrin izahı və hicri aylar bələdçisi ═══
+// Mətnlər data/guides/CalendarPage.js-dədir (LessonBlocks formatı).
+
+/** Saytdaxili keçid (SPA ilə; Ctrl-klik yeni tabda açır). variant: 'card' | 'chip' */
+function GuideLink({ link, lang, variant = 'card' }) {
+  const navigate = useNavigate()
+  const href = link.kind === 'lesson' ? pathFor('learn', lang, link.slug) : pathFor(link.key, lang)
+  const onClick = (e) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(href)
+    window.scrollTo(0, 0)
+  }
+  const icon = link.kind === 'lesson' ? 'learn' : link.key
+  if (variant === 'chip') {
+    return (
+      <a href={href} onClick={onClick} className="ui-chip cal-info-chip">
+        <Icon name={icon} size={14} /> {pick(link.label, lang)}
+      </a>
+    )
+  }
+  return (
+    <a href={href} onClick={onClick} className="ui-card ui-card--interactive cal-guide-link">
+      <Icon name={icon} size={20} className="cal-guide-link__icon" />
+      <span>{pick(link.label, lang)}</span>
+      <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+    </a>
+  )
+}
+
+/** Hadisə kartında açılan izah: Sünnədə olan / əsli olmayan + dəlil və keçidlər */
+function EventInfo({ e, lang }) {
+  const info = CAL_EVENT_INFO[eventInfoKey(e)]
+  if (!info) return null
+  const g = CAL_GUIDE_TXT
+  return (
+    <details className="cal-info">
+      <summary className="cal-info__sum">
+        <Icon name="info" size={14} /> <span>{pick(g.info, lang)}</span>
+        <Icon name="chevronDown" size={14} className="cal-info__chev" />
+      </summary>
+      <div className="cal-info__body">
+        <p className="cal-info__p"><strong className="cal-info__lbl">{pick(g.ok, lang)}.</strong> {pick(info.ok, lang)}</p>
+        {info.no && <p className="cal-info__p cal-info__p--no"><strong className="cal-info__lbl cal-info__lbl--no">{pick(g.no, lang)}.</strong> {pick(info.no, lang)}</p>}
+        {(info.url || info.links?.length > 0) && (
+          <div className="cal-info__links">
+            {info.url && (
+              <a href={info.url} target="_blank" rel="noopener noreferrer nofollow" className="ui-chip cal-info-chip">
+                <Icon name="external" size={14} /> {pick(g.fatwa, lang)}
+              </a>
+            )}
+            {info.links?.map((l, i) => <GuideLink key={i} link={l} lang={lang} variant="chip" />)}
+          </div>
+        )}
+      </div>
+    </details>
+  )
+}
+
+function MonthsGuide({ lang }) {
+  const g = CAL_GUIDE_TXT
+  const jump = (e, id) => {
+    if (!isPlainClick(e)) return
+    const el = document.getElementById(`cal-g-${id}`)
+    if (!el) return
+    e.preventDefault()
+    el.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+    el.querySelector('.ls-sec__title')?.focus({ preventScroll: true })
+  }
+  return (
+    <section className="ui-section cal-guide" aria-labelledby="cal-guide-title">
+      <div className="ui-container cal-guide__inner">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{pick(g.eyebrow, lang)}</span>
+          <h2 id="cal-guide-title" className="ui-title">{pick(g.title, lang)}</h2>
+          <p className="ui-lead">{pick(g.lead, lang)}</p>
+        </div>
+
+        <nav className="cal-guide-nav" aria-label={pick(g.contents, lang)}>
+          <ul className="cal-guide-nav__list">
+            {CAL_MONTHS_GUIDE.map(s => (
+              <li key={s.id}>
+                <a href={`#cal-g-${s.id}`} className="ui-chip cal-guide-nav__chip" onClick={(e) => jump(e, s.id)}>
+                  <Icon name={s.icon} size={15} /> {pick(s.title, lang)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="ls-article cal-guide__article">
+          {CAL_MONTHS_GUIDE.map(s => (
+            <section key={s.id} id={`cal-g-${s.id}`} className="ls-sec cal-guide__sec" aria-labelledby={`cal-g-${s.id}-h`}>
+              <h3 id={`cal-g-${s.id}-h`} className="ls-sec__title" tabIndex={-1}>{pick(s.title, lang)}</h3>
+              <LessonBlocks blocks={s.blocks} lang={lang} />
+              {s.links?.map((l, i) => <GuideLink key={i} link={l} lang={lang} />)}
+            </section>
+          ))}
+          <section className="ls-sec ui-card ui-card--sunken ls-sources" aria-labelledby="cal-g-sources-h">
+            <h3 id="cal-g-sources-h" className="ls-sec__title" tabIndex={-1}>{pick(g.sources, lang)}</h3>
+            <ul className="ls-sources__list">
+              {CAL_SOURCES.map((r, i) => (
+                <li key={i}>
+                  <Icon name="external" size={15} />
+                  <a href={r.url} target="_blank" rel="noopener noreferrer nofollow" dir="auto" lang={guessLang(r.label)}>{r.label}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function CalendarPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.calendar || T.az.calendar
@@ -375,6 +497,11 @@ export function CalendarPage({ setPage }) {
           )}
           </div>
 
+          {/* Tarix çevirici — /hijri-converter */}
+          <div className="cal-convert">
+            <GuideLink link={CAL_HIJRI_LINK} lang={lang} />
+          </div>
+
           {/* Növ filtri — telefonda bir sətirlik sürüşən çiplər (.chip-scroll) */}
           {/* Aylar: masaüstündə 6 × 2 şəbəkə, telefonda üfüqi zolaq */}
           <div className="cal-months chip-scroll wrap-desktop" ref={monthsRef} data-reveal="stagger-fade">
@@ -477,6 +604,7 @@ export function CalendarPage({ setPage }) {
                       <div className="cal-event-body">
                         <div className="cal-event-name">{e[lang] || e.en}</div>
                         <div className="cal-event-date">{eventDate(e)}</div>
+                        <EventInfo e={e} lang={lang} />
                       </div>
                       <button type="button" className={`cal-remind-btn ${reminded ? 'active' : ''}`} onClick={() => onToggleReminder(e)}
                         aria-pressed={reminded} aria-label={`${reminded ? nl.reminded : nl.remind}: ${e[lang] || e.en}`}>
@@ -528,6 +656,9 @@ export function CalendarPage({ setPage }) {
           </div>
         </div>
       </section>
+
+      {/* Hicri aylar: haram aylar, hilal, hər ayın Sünnəsi və əsli olmayan adətlər */}
+      <MonthsGuide lang={lang} />
     </>
   )
 }

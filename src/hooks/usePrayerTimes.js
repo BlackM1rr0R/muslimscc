@@ -26,6 +26,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { usePrayerLocation, locationSig } from '../utils/prayerLocation'
+import { METHOD_ABUBAKR, aladhanMethodQuery, computeTimes, CALC_METHODS, tzOffsetHours } from '../utils/prayCalc'
 
 export const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
 
@@ -149,12 +150,41 @@ function writeCache(dateKey, loc, data) {
   try { sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify(data)) } catch { /* yaddaş bağlıdır */ }
 }
 
-async function fetchDay(dateKey, loc, signal) {
+function parseHijri(json) {
+  const h = json?.data?.date?.hijri
+  return h ? {
+    day: String(h.day || ''),
+    month: Number(h.month?.number) || null,
+    monthEn: h.month?.en || '',
+    monthAr: h.month?.ar || '',
+    year: String(h.year || ''),
+  } : null
+}
+
+const aladhanUrl = (dateKey, loc) =>
+  `https://api.aladhan.com/v1/timings/${dateKey}` +
+  `?latitude=${loc.lat}&longitude=${loc.lng}&${aladhanMethodQuery(loc.method)}` +
   // timezonestring: aladhan vaxtları məhz şəhərin saat qurşağında qaytarsın
-  const url = `https://api.aladhan.com/v1/timings/${dateKey}` +
-    `?latitude=${loc.lat}&longitude=${loc.lng}&method=${loc.method}` +
-    (loc.tz ? `&timezonestring=${encodeURIComponent(loc.tz)}` : '')
-  const res = await fetch(url, { signal })
+  (loc.tz ? `&timezonestring=${encodeURIComponent(loc.tz)}` : '')
+
+async function fetchDay(dateKey, loc, signal) {
+  // Azərbaycan (Əbu Bəkr məscidinin cədvəli): vaxtlar yerli hesablanır —
+  // şəbəkə yalnız hicri tarix üçündür, o da alınmasa vaxtlar yenə göstərilir
+  if (Number(loc.method) === METHOD_ABUBAKR) {
+    const [d, m, y] = dateKey.split('-').map(Number)
+    const tz = tzOffsetHours(loc.tz || 'Asia/Baku', y, m, d)
+    const t = computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng, tz, CALC_METHODS.abubakr)
+    const timings = {}
+    for (const k of PRAYER_KEYS) timings[k] = t[k] || ''
+    let hijri = null
+    try {
+      const res = await fetch(aladhanUrl(dateKey, loc), { signal })
+      if (res.ok) hijri = parseHijri(await res.json())
+    } catch { /* hicri tarix olmadan da işləyir */ }
+    return { date: dateKey, loc: locationSig(loc), timings, hijri }
+  }
+
+  const res = await fetch(aladhanUrl(dateKey, loc), { signal })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
   const t = json?.data?.timings
@@ -164,16 +194,7 @@ async function fetchDay(dateKey, loc, signal) {
   for (const k of PRAYER_KEYS) timings[k] = cleanTime(t[API_KEY[k]])
   if (FARD.some(k => !timings[k])) throw new Error('bad response')
 
-  const h = json.data.date?.hijri
-  const hijri = h ? {
-    day: String(h.day || ''),
-    month: Number(h.month?.number) || null,
-    monthEn: h.month?.en || '',
-    monthAr: h.month?.ar || '',
-    year: String(h.year || ''),
-  } : null
-
-  return { date: dateKey, loc: locationSig(loc), timings, hijri }
+  return { date: dateKey, loc: locationSig(loc), timings, hijri: parseHijri(json) }
 }
 
 /**

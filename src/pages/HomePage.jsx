@@ -56,6 +56,8 @@ const BookSection = lazy(lazyWhenIdle(() => import('../components/BookSection'))
 const DailyContentDisplay = lazy(lazyWhenIdle(() => import('../components/AdminContentDisplay').then(m => ({ default: m.DailyContentDisplay }))))
 const AnnouncementSection = lazy(lazyWhenIdle(() => import('../components/AnnouncementSection')))
 const HeroBannerDisplay = lazy(lazyWhenIdle(() => import('../components/HeroBannerDisplay')))
+// Günün təddəbür sualı — ekranın altında, şəbəkəsiz (məlumat faylın özündədir)
+const TadabburCard = lazy(lazyWhenIdle(() => import('../components/TadabburCard')))
 import '../styles/HomePage.css'
 // PERFORMANS: AdminPage.css (47 KB) yox — yalnız ana səhifənin istifadə etdiyi
 // .video-* qaydaları (HomeVideo.css, ~1.8 KB gzip; bax faylın başlığı)
@@ -849,6 +851,11 @@ export default function HomePage({ setPage }) {
 
         {/* ═══ DAILY ADMIN CONTENT ═══ */}
         <DailyContentDisplay />
+
+        {/* ═══ GÜNÜN TƏDDƏBÜR SUALI ═══ */}
+        <section className="ui-section ui-section--tight hp-tadabbur">
+          <div className="ui-container"><TadabburCard /></div>
+        </section>
 
         {/* ═══ VIDEO SECTION ═══ */}
         <VideoSection setPage={goTo} />

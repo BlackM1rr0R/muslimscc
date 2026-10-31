@@ -80,12 +80,24 @@ app.use('/api', authLib.createAuthRouter({ store: authStore, requireAdmin, allow
 // Vaxtı keçmiş sessiyaları saatda bir təmizlə
 setInterval(() => { try { authStore.purgeExpired() } catch { /* */ } }, 3600e3).unref()
 
+// ─── Kukisiz sayt statistikası (server/analytics.js) ─────────────────
+const analytics = require('./analytics')
+analytics.migrate(db, { allowedOrigins: ALLOWED })
+app.post('/api/a', analytics.handleCollect)
+app.get('/api/admin/analytics', requireAdmin, analytics.handleStats)
+
 // ─── Məzmun API-si (server/content.js) — öz JSON parser-i (1 MB) var ──
 const content = require('./content')
 app.use('/api', content.createContentRouter({
   db, requireAdmin,
   onChange: ({ collection, id, action, admin }) => console.log(`content ${action} ${collection}/${id} (${admin || '?'})`),
 }))
+
+// ─── "Səhv bildir" (server/feedback.js) — öz limiti var (IP üzrə, yaddaşda) ──
+app.use('/api', require('./feedback').createFeedbackRouter({ db, requireAdmin }))
+
+// ─── Qrup xətmi və ortaq hədəflər (server/groups.js) — hesabsız otaqlar, öz limiti var ──
+app.use('/api', require('./groups').createGroupsRouter({ db }))
 
 // ─── Web Push (server/push.js) ───────────────────────────────────────
 const push = require('./push')
@@ -330,13 +342,14 @@ const FCM_DEAD = /registration-token-not-registered|invalid-registration-token|i
 
 let fcmCache = []     // son uğurlu Firestore oxuması (Firestore əlçatmaz olanda istifadə olunur)
 
-/** Bütün abunəçilər (xam): [{ kind:'wp'|'fcm', id, sub?, token?, lang, loc, azan, daily, checkin }] */
+/** Bütün abunəçilər (xam): [{ kind:'wp'|'fcm', id, sub?, token?, lang, loc, azan, daily, checkin, fasting }] */
 async function loadAllSubscribers() {
   const out = []
   for (const s of pushStore.all()) {
     out.push({
       kind: 'wp', id: s.endpoint, sub: { endpoint: s.endpoint, keys: s.keys },
       lang: s.lang, loc: s.loc, azan: s.prefs.azan, daily: s.prefs.daily, checkin: s.prefs.checkin,
+      fasting: s.prefs.fasting,
     })
   }
   if (adminDb) {
@@ -346,7 +359,7 @@ async function loadAllSubscribers() {
       for (const doc of snap.docs) {
         const d = doc.data()
         if (!d.token) continue
-        fcmCache.push({ kind: 'fcm', id: doc.id, token: d.token, lang: d.lang, loc: d.loc, azan: d.azan, daily: d.daily, checkin: d.checkin })
+        fcmCache.push({ kind: 'fcm', id: doc.id, token: d.token, lang: d.lang, loc: d.loc, azan: d.azan, daily: d.daily, checkin: d.checkin, fasting: d.fasting })
       }
     } catch (e) {
       console.error('Firestore fcm_tokens oxunmadı — əvvəlki siyahı istifadə olunur:', e.message)
@@ -508,13 +521,25 @@ const { LANGS, PRAYERS, PUSH_TEXTS, normLoc, locKey, nowIn, addDay } = require('
 const dailyAyah = require('./daily-ayah')   // "Günün ayəsi" planlayıcısı (aşağıda)
 const { normDaily } = dailyAyah
 const checkin = require('./checkin')       // "Qıldınızmı?" xatırlatması (aşağıda)
+const fasting = require('./fasting')       // Sünnə orucu xatırlatması (aşağıda)
 const { newId } = require('./db')
+const prayCalc = require('./prayCalc')   // Azərbaycan: Əbu Bəkr məscidinin cədvəli
 const TOKENS_TTL_MS = 10 * 60 * 1000   // abunəçi siyahısı 10 dəqiqədə bir təzələnir
 
-/** aladhan-dan bir yerin bir günlük vaxtları → { fajr:'05:32', ... } | null */
+/** Bir yerin bir günlük vaxtları → { fajr:'05:32', ... } | null.
+ *  Azərbaycan (metod 99, Əbu Bəkr məscidi) — yerli hesab (sayt ilə eyni, şəbəkəsiz);
+ *  qalanları — aladhan. */
 async function fetchTimings(loc, ddmmyyyy) {
+  if (loc.method === prayCalc.METHOD_ABUBAKR) {
+    const [d, m, y] = ddmmyyyy.split('-').map(Number)
+    const t = prayCalc.computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng,
+      prayCalc.tzOffsetHours(loc.tz, y, m, d), prayCalc.CALC_METHODS.abubakr)
+    const out = {}
+    for (const [key] of PRAYERS) out[key] = t[key]
+    return Object.values(out).every(Boolean) ? out : null
+  }
   const url = `https://api.aladhan.com/v1/timings/${ddmmyyyy}` +
-    `?latitude=${loc.lat}&longitude=${loc.lng}&method=${loc.method}&timezonestring=${encodeURIComponent(loc.tz)}`
+    `?latitude=${loc.lat}&longitude=${loc.lng}&${prayCalc.aladhanMethodQuery(loc.method)}&timezonestring=${encodeURIComponent(loc.tz)}`
   try {
     const r = await fetch(url, { signal: AbortSignal.timeout(15000) })
     if (!r.ok) return null
@@ -547,6 +572,7 @@ async function loadTokens() {
       daily: normDaily(d.daily),   // "Günün ayəsi" seçimi — aşağıdakı planlayıcı üçün
       azan: d.azan !== false,      // ayarlarda "Namaz vaxtı" söndürülübsə azan göndərilmir
       checkin: checkin.normCheckin(d.checkin),   // "Qıldınızmı?" — susmaya görə sönülü
+      fasting: fasting.normFasting(d.fasting),   // Sünnə orucu xatırlatması — susmaya görə sönülü
     })
   }
   tokenGroups = groups
@@ -622,6 +648,21 @@ async function sendCheckinPush(group, prayer, now) {
   }
 }
 
+// ── Sünnə orucu xatırlatması ──
+// Oruc gününün əvvəlki axşamı yerli 20:00-da (server/fasting.js), yalnız
+// fasting:true olanlara. Sabah sünnə orucu yoxdursa (və ya Ramazan, bayram,
+// təşriq günüdürsə) heç nə getmir.
+async function sendFastingPush(group, now) {
+  const subs = group.entries.filter(e => e.fasting)
+  if (!subs.length) return
+  const fast = fasting.fastingForTomorrow(now.dateKey)
+  if (!fast) return
+  for (const [lang, list] of groupByLang(subs)) {
+    const msg = fasting.buildFastingMessage(lang, fast.kind, fast.date, WEBPUSH_ICONS)
+    if (msg) await deliver(list, msg, `fasting ${fast.kind} [${lang} · ${group.loc.tz}]`)
+  }
+}
+
 let tickBusy = false
 async function prayerTick() {
   if (tickBusy) return
@@ -630,6 +671,15 @@ async function prayerTick() {
     if (Date.now() - tokensLoadedAt > TOKENS_TTL_MS) await loadTokens()
     for (const [key, group] of tokenGroups) {
       const now = nowIn(group.loc.tz)
+      // Sünnə orucu — yerli 20:00-da, gündə bir dəfə; namaz vaxtlarından asılı
+      // deyil (aladhan çatmasa da gedir). Açar timesFor-da köhnə günlərlə təmizlənir.
+      if (fasting.isDueNow(now.hhmm) && group.entries.some(e => e.fasting)) {
+        const fk = `${key}|${now.dateKey}|fasting`
+        if (!sentKeys.has(fk)) {
+          sentKeys.add(fk)
+          await sendFastingPush(group, now)
+        }
+      }
       const day = await timesFor(key, group.loc, now)
       if (!day) continue
       for (const [prayer] of PRAYERS) {

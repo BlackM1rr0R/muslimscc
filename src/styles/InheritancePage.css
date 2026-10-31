@@ -1,0 +1,276 @@
+/* ═══ Miras (fəraiz) hesablayıcısı — dizayn v2 (yalnız tokenlər və .ui-* sinifləri) ═══
+   Səhifə CSS-i ui.css-dən əvvəl yüklənir: .ui-* dəyişiklikləri .inh-page ilə gücləndirilir. */
+
+.inh-hero-ar {
+  margin: 0 0 var(--space-2);
+  font-size: var(--step-2);
+  color: var(--accent-text);
+  line-height: var(--lh-arabic);
+}
+
+.inh-layout {
+  display: grid;
+  gap: var(--space-5);
+  align-items: start;
+}
+@media (min-width: 1080px) {
+  .inh-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+  .inh-result { position: sticky; top: calc(var(--space-6) + 56px); }
+}
+
+.inh-inputs,
+.inh-result { display: grid; gap: var(--space-4); min-width: 0; }
+
+.inh-card { display: grid; gap: var(--space-3); }
+.inh-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.inh-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-1);
+  color: var(--text-strong);
+}
+.inh-card__title svg { color: var(--brand); flex: none; }
+.inh-muted { margin: 0; font-size: var(--step--1); color: var(--text-tertiary); line-height: var(--lh-body); }
+
+/* ── Mal sahələri ── */
+.inh-fields {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.inh-input { font-variant-numeric: tabular-nums; }
+
+/* ── Ölənin cinsi ── */
+.inh-gender { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.inh-page .inh-gender__btn { min-height: var(--tap); padding-inline: var(--space-5); font-size: var(--step-0); }
+
+/* ── Varislər ── */
+.inh-group {
+  margin: 0;
+  padding: var(--space-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+.inh-group__title {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+html[lang="ar"] .inh-group__title { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
+
+.inh-heirs {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.inh-heir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 52px;
+  padding: 4px 4px 4px var(--space-3);
+  padding-inline: var(--space-3) 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  color: var(--text-body);
+  font: inherit;
+  text-align: start;
+  transition: border-color var(--dur-1) var(--ease-out), background-color var(--dur-1) var(--ease-out);
+}
+.inh-heir.is-on { border-color: var(--brand-line); background: var(--brand-soft); }
+.inh-heir__label { font-size: var(--step--1); line-height: var(--lh-snug); color: var(--text-strong); }
+
+.inh-toggle { width: 100%; cursor: pointer; padding-inline: var(--space-3); }
+.inh-toggle__state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: var(--tap);
+  min-height: 32px;
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-weight: 600;
+  flex: none;
+}
+.inh-toggle.is-on .inh-toggle__state { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+@media (hover: hover) {
+  .inh-toggle:hover { border-color: var(--line-strong); }
+}
+
+.inh-stepper { display: inline-flex; align-items: center; flex: none; }
+.inh-page .inh-stepper__btn {
+  width: var(--tap);
+  height: var(--tap);
+  color: var(--brand);
+}
+.inh-page .inh-stepper__btn:disabled { color: var(--text-tertiary); opacity: .5; cursor: default; }
+.inh-stepper__val {
+  min-width: 2ch;
+  text-align: center;
+  font-weight: 600;
+  font-size: var(--step-0);
+  color: var(--text-strong);
+}
+
+/* ── Nəticə ── */
+.inh-empty { margin: 0; color: var(--text-secondary); line-height: var(--lh-body); }
+
+.inh-summary { margin: 0; display: grid; gap: 4px; }
+.inh-summary > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--step--1);
+  color: var(--text-secondary);
+}
+.inh-summary dt, .inh-summary dd { margin: 0; }
+.inh-summary__net {
+  padding-top: var(--space-2);
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+}
+.inh-page .inh-summary__net { font-size: var(--step-1); color: var(--text-strong); font-weight: 600; }
+
+.inh-frac { font-weight: 600; color: var(--text-strong); unicode-bidi: isolate; }
+
+/* Üfüqi yığılmış qrafik */
+.inh-bar {
+  display: flex;
+  height: 18px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  gap: 2px;
+}
+.inh-bar__seg { flex-grow: 0; flex-shrink: 1; min-width: 3px; }
+.inh-tone-0 { background: var(--brand); }
+.inh-tone-1 { background: var(--accent); }
+.inh-tone-2 { background: color-mix(in srgb, var(--brand) 60%, var(--surface-1)); }
+.inh-tone-3 { background: color-mix(in srgb, var(--accent) 55%, var(--surface-1)); }
+.inh-tone-4 { background: var(--brand-strong); }
+.inh-tone-5 { background: color-mix(in srgb, var(--brand) 35%, var(--surface-1)); }
+.inh-tone-6 { background: var(--accent-text); }
+.inh-tone-7 { background: color-mix(in srgb, var(--accent) 30%, var(--surface-1)); }
+.inh-tone-rest {
+  background: repeating-linear-gradient(135deg, var(--surface-3) 0 4px, var(--line-strong) 4px 6px);
+}
+
+.inh-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--step--2);
+  color: var(--text-secondary);
+}
+.inh-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.inh-legend__dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+/* Cədvəl */
+.inh-table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+.inh-table th, .inh-table td {
+  padding: var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--line);
+  text-align: start;
+  vertical-align: top;
+}
+.inh-table thead th {
+  font-size: var(--step--2);
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+html[lang="ar"] .inh-table thead th { letter-spacing: 0; text-transform: none; }
+.inh-table td:nth-child(3), .inh-table td:nth-child(4),
+.inh-table thead th:nth-child(3), .inh-table thead th:nth-child(4) { text-align: end; white-space: nowrap; }
+.inh-table__heir { font-weight: 400; }
+.inh-table__name { display: block; font-weight: 600; color: var(--text-strong); }
+.inh-table__why { display: block; margin-top: 2px; font-size: var(--step--2); color: var(--text-tertiary); line-height: var(--lh-snug); }
+.inh-table__kind { display: block; margin-top: 2px; font-size: var(--step--2); color: var(--text-tertiary); }
+.inh-table__kind .inh-frac { font-weight: 500; color: inherit; }
+.inh-table__total { font-weight: 600; color: var(--brand); }
+.inh-table__rest .inh-table__name { color: var(--text-secondary); }
+
+/* Telefonda cədvəl sətri kart kimi: ad yuxarıda, üç dəyər altda */
+@media (max-width: 599.98px) {
+  .inh-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .inh-table tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-1) var(--space-2);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--line);
+  }
+  .inh-table th, .inh-table td { padding: 0; border: 0; }
+  .inh-table tbody th { grid-column: 1 / -1; }
+  .inh-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: var(--step--2);
+    color: var(--text-tertiary);
+  }
+  .inh-table td:nth-child(3), .inh-table td:nth-child(4) { text-align: start; }
+}
+
+/* Məhrumlar */
+.inh-blocked { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.inh-blocked li {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: var(--step--1);
+}
+.inh-blocked strong { color: var(--text-strong); font-weight: 600; }
+.inh-blocked span { color: var(--text-secondary); }
+
+/* Qeydlər */
+.inh-notes ul { margin: 0; padding-inline-start: 1.2em; display: grid; gap: var(--space-2); }
+.inh-notes li { font-size: var(--step--1); line-height: var(--lh-body); color: var(--text-body); }
+.inh-notes li::marker { color: var(--accent); }
+
+/* Xəbərdarlıq */
+.inh-disclaimer {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--accent-line);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
+}
+.inh-disclaimer > svg { color: var(--accent-text); flex: none; margin-top: 2px; }
+.inh-disclaimer strong { display: block; color: var(--text-strong); margin-bottom: 4px; }
+.inh-disclaimer p { margin: 0; font-size: var(--step--1); line-height: var(--lh-body); color: var(--text-body); }
+
+/* ── Dəlillər ── */
+.inh-verses { display: grid; gap: var(--space-6); margin-top: var(--space-5); }
+.inh-page .inh-verse .ui-quote__ar { line-height: var(--lh-arabic); }
+.inh-translator { color: var(--text-tertiary); }
+.inh-method { margin-top: var(--space-6); }
+.inh-method p { margin: 0; line-height: var(--lh-body); color: var(--text-body); font-size: var(--step--1); }

@@ -176,6 +176,66 @@ test('hifz: surə "əzbər" olur, statistika və yaddaş yenilənir', async ({ p
   expectCleanConsole(consoleProblems)
 })
 
+test('ağıllı hifz: gizli söz açılır, qiymət təkrarı planlaşdırır, köhnə izləyici yüksəlir', async ({ page, consoleProblems }, info) => {
+  test.skip(info.project.name === 'mobile', 'masaüstü kifayətdir')
+  // Fatihənin ilk iki ayəsi (ərəbcə mətn — gizlət/aç sözlərə bölünsün)
+  const AR = ['بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ', 'ٱلۡحَمۡدُ لِلَّهِ رَبِّ ٱلۡعَٰلَمِينَ']
+  await page.route(/api\.alquran\.cloud\/v1\/surah\/1\/editions\//, route => route.fulfill({ json: { code: 200, data: [{
+    number: 1, ayahs: Array.from({ length: 7 }, (_, i) => ({ number: i + 1, numberInSurah: i + 1, text: AR[i] || AR[1] })),
+  }] } }))
+  // Köhnə formatdakı məlumat itməməlidir
+  await page.addInitScript(() => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('hifz_progress', '{"114":2}'); sessionStorage.setItem('seeded', '1') } })
+  await page.goto('/hifz')
+  await settle(page)
+  await expect(page.locator('.hifz-card').last()).toHaveClass(/memorized/)
+
+  // Gündəlik hədəfi 2-yə endir və Fatihəni öyrənməyə başla
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Hədəfi azalt' }).click()
+  await page.locator('.hifz-plan__surah select').selectOption('1')
+  await page.getByRole('button', { name: 'Əzbərləməyə başla' }).click()
+  const card = page.locator('.hifz-practice')
+  await expect(card).toContainText('1 / 2')
+
+  // "İlk söz" rejimi: 1 söz görünür, qalan 3-ü gizlidir; toxunanda açılır
+  await expect(card.locator('.hifz-word.is-hidden')).toHaveCount(3)
+  await card.locator('.hifz-word.is-hidden').first().click()
+  await expect(card.locator('.hifz-word.is-hidden')).toHaveCount(2)
+  await card.getByRole('button', { name: 'Hamısını göstər' }).click()
+  await expect(card.locator('.hifz-word.is-hidden')).toHaveCount(0)
+
+  await card.locator('.hifz-grade__btn.is-good').click()
+  await expect(card).toContainText('2 / 2')
+  await card.locator('.hifz-grade__btn.is-again').click()   // "Yenidən" — növbənin sonuna qayıdır
+  await expect(card).toContainText('3 / 3')
+  await card.locator('.hifz-grade__btn.is-easy').click()
+  await expect(page.locator('.hifz-done')).toBeVisible()
+
+  const srs = await page.evaluate(() => JSON.parse(localStorage.getItem('hifz_srs')))
+  expect(Object.keys(srs.items).sort()).toEqual(['1:1', '1:2'])
+  expect(srs.items['1:1'].interval).toBe(1)
+  expect(srs.log[Object.keys(srs.log)[0]]).toEqual({ reviews: 1, new: 2 })
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('hifz_progress')))).toEqual({ 1: 1, 114: 2 })
+  await expect(page.locator('.hifz-today__label', { hasText: 'Bu gün yeni' })).toBeVisible()
+  await expect(page.locator('.hifz-chart__now')).toHaveText('2')
+
+  // Köhnə "əzbər" surənin ayələri təkrar siyahısına köçürülür (6 ayə)
+  await expect(page.locator('.hifz-seed')).toContainText('6')
+  await page.getByRole('button', { name: 'Təkrar siyahısına əlavə et' }).click()
+  await expect(page.locator('.hifz-seed')).toHaveCount(0)
+  expect(Object.keys((await page.evaluate(() => JSON.parse(localStorage.getItem('hifz_srs')))).items)).toHaveLength(8)
+  expectCleanConsole(consoleProblems)
+})
+
+test('ağıllı hifz: pozuq hifz_srs səhifəni çökdürmür', async ({ page, consoleProblems }, info) => {
+  test.skip(info.project.name === 'mobile', 'masaüstü kifayətdir')
+  await page.addInitScript(() => localStorage.setItem('hifz_srs', '{"items":{"1:1":{"due":"x"},"zz":5},"log":[1],"goal":"abc"}'))
+  await page.goto('/hifz')
+  await settle(page)
+  await expect(page.locator('.hifz-today')).toBeVisible()
+  await expect(page.locator('main')).not.toContainText('NaN')
+  expectCleanConsole(consoleProblems)
+})
+
 test('telefon: kitab kartında "Paylaş" düyməsi sıxılmır, lüğət hərfləri ≥ 44px', async ({ page }, info) => {
   test.skip(info.project.name !== 'mobile', 'yalnız telefon')
   await page.setViewportSize({ width: 320, height: 640 })

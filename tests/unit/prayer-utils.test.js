@@ -12,6 +12,8 @@ describe('normLoc', () => {
   it('düzgün yeri saxlayır, sətir rəqəmləri çevirir', () => {
     const l = u.normLoc({ lat: '41.01', lng: 28.97, tz: 'Europe/Istanbul', method: 13, city: { az: 'İstanbul' } })
     expect(l).toMatchObject({ lat: 41.01, lng: 28.97, tz: 'Europe/Istanbul', method: 13 })
+    // Azərbaycan: köhnə abunəliklərin Diyanet (13) metodu Əbu Bəkr məscidi cədvəlinə (99) keçir
+    expect(u.normLoc({ lat: 40.4, lng: 49.87, tz: 'Asia/Baku', method: 13 }).method).toBe(99)
   })
   it('yararsız yer → standart (Bakı)', () => {
     for (const bad of [null, {}, { lat: 999, lng: 0 }, { lat: 'x', lng: 1 }]) {

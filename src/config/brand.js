@@ -103,17 +103,18 @@ export const BRAND = {
     operator: { az: 'Elçin Abdullayev', en: 'Elchin Abdullayev', ru: 'Эльчин Абдуллаев', ar: 'Elchin Abdullayev', tr: 'Elçin Abdullayev' }, // lang-ok: şəxs adı ərəb mətnində latınca qalır (pasportdakı yazılış)
     email: 'abdllyevv@gmail.com',
     country: { az: 'Azərbaycan Respublikası', en: 'the Republic of Azerbaijan', ru: 'Азербайджанская Республика', ar: 'جمهورية أذربيجان', tr: 'Azerbaycan Cumhuriyeti' },
-    effectiveDate: '2026-10-31',
+    effectiveDate: '2026-11-01',
   },
 }
 
 // ── Namaz vaxtı: standart yer ────────────────────────
 // İstifadəçi şəhər seçməyibsə və yeri məlum deyilsə, Bakı mərkəzi götürülür
-// (saytın əsas auditoriyası). method: aladhan.com metodu (13 = Diyanet).
+// (saytın əsas auditoriyası). method 99 — Bakıdakı Əbu Bəkr məscidinin
+// cədvəli (src/utils/prayCalc.js); koordinatlar məscid cədvəlinin Bakı nöqtəsidir.
 export const DEFAULT_PRAYER_LOCATION = {
-  lat: 40.4093,
-  lng: 49.8671,
-  method: 13,
+  lat: 40.3953,
+  lng: 49.8822,
+  method: 99,
   tz: 'Asia/Baku',
   city: { az: 'Bakı', en: 'Baku', ru: 'Баку', tr: 'Bakü', ar: 'باكو' },
 }

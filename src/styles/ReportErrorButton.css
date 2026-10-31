@@ -1,0 +1,23 @@
+/* "Səhv bildir" dialoqu — dizayn v2, yalnız tokenlər */
+.rep-btn { color: var(--text-tertiary); }
+.rep-btn:hover { color: var(--brand); }
+.rep-dlg {
+  width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 0;
+  border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--surface-raised);
+  color: var(--text-body); box-shadow: var(--shadow-4); overflow: auto;
+}
+.rep-dlg::backdrop { background: color-mix(in srgb, #000 45%, transparent); }
+.rep-dlg[open] { animation: rep-in var(--dur-3) var(--ease-out); }
+@keyframes rep-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+@media (prefers-reduced-motion: reduce) { .rep-dlg[open] { animation: none; } }
+.rep-form { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); }
+.rep-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rep-title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-2); font-weight: 600; }
+.rep-ref { padding: 8px 12px; border-radius: var(--radius-md); background: var(--surface-2); color: var(--text-secondary); font-size: var(--step--1); overflow-wrap: anywhere; }
+.rep-ref span { font-weight: 600; }
+.rep-text { min-height: 120px; resize: vertical; font: inherit; line-height: 1.55; }
+.rep-privacy { display: flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-size: 13px; }
+.rep-err { color: var(--bad); font-size: var(--step--1); font-weight: 500; }
+.rep-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.rep-done { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-5) 0; text-align: center; color: var(--text-strong); font-weight: 500; }
+@media (max-width: 480px) { .rep-actions > * { flex: 1; } }

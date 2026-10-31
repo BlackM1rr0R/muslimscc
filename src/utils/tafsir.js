@@ -9,8 +9,10 @@
 // (İsrar Əhməd). Zəməxşəri, Razi, sufi və şiə təfsirləri API-də də yoxdur.
 //
 // DİL: API-də Azərbaycan və türk dilində Sələf təfsiri YOXDUR (yoxlanılıb:
-// /resources/tafsirs). Maşın tərcüməsi göstərmirik — az/tr istifadəçisi
-// rusca (əs-Sədi), ingiliscə (İbn Kəsir) və ya ərəbcə təfsiri özü seçir.
+// /resources/tafsirs). Azərbaycan dili üçün əl-Müyəssərin ərəb əslindən
+// tərcüməsi saytın özündədir (public/tafsir/az-muyassar/<surə>.json — qurulma:
+// scripts/build-tafsir-az.mjs); panel bunun süni intellekt köməyi ilə edilmiş
+// tərcümə olduğunu açıq yazır. tr istifadəçisi ingiliscə/rusca/ərəbcə seçir.
 //
 // Keş: yaddaş (Map) + sessionStorage; eyni ayə/təfsir təkrar sorğulanmır.
 // Sanitizer: API HTML qaytarır — yalnız ağ siyahıdakı teqlər qalır.
@@ -35,8 +37,21 @@ const BY_IBN_KATHIR = {
   tr: 'İmâdüddîn İsmâil b. Kesîr (vefatı 774 h.)',
 }
 
-// Kataloq. lang — təfsir mətninin dili; slug — quran.com-dakı ad (mənbə linki)
+// Kataloq. lang — təfsir mətninin dili; slug — quran.com-dakı ad (mənbə linki);
+// local — mətn saytın öz faylındadır (LOCAL_TAFSIR_BASE/<surə>.json)
+export const LOCAL_TAFSIR_BASE = '/tafsir/az-muyassar'
 export const TAFSIRS = [
+  {
+    id: 1016, lang: 'az', slug: 'ar-tafsir-muyassar', local: true,
+    name: { az: 'Əl-Təfsir əl-Müyəssər (azərbaycanca)', en: 'Al-Tafsir al-Muyassar (Azerbaijani)', ru: 'Тафсир аль-Муяссар (на азербайджанском)', ar: 'التفسير الميسر (بالأذربيجانية)', tr: 'Tefsîr-i Müyesser (Azerbaycanca)' },
+    by: {
+      az: 'Kral Fəhd Kompleksinin alimlər heyəti · ərəbcədən tərcümə: Muslims.cc',
+      en: 'King Fahd Complex committee of scholars · translated from Arabic by Muslims.cc',
+      ru: 'Коллектив учёных Комплекса короля Фахда · перевод с арабского: Muslims.cc',
+      ar: 'نخبة من العلماء — مجمع الملك فهد · الترجمة من العربية: Muslims.cc',
+      tr: 'Kral Fahd Kompleksi âlimler heyeti · Arapçadan çeviri: Muslims.cc',
+    },
+  },
   {
     id: 16, lang: 'ar', slug: 'ar-tafsir-muyassar',
     name: { az: 'Əl-Təfsir əl-Müyəssər', en: 'Al-Tafsir al-Muyassar', ru: 'Тафсир аль-Муяссар', ar: 'التفسير الميسر', tr: 'Tefsîr-i Müyesser' },
@@ -89,9 +104,9 @@ export const TAFSIRS = [
 export const TAFSIR_IDS = TAFSIRS.map(t => t.id)
 export const getTafsir = id => TAFSIRS.find(t => t.id === Number(id)) || null
 
-// Susmaya görə seçim. az/tr — öz dilində yoxdur: az üçün rusca əs-Sədi
-// (Azərbaycanda rus dili daha geniş anlaşılır), tr üçün ingiliscə İbn Kəsir
-export const DEFAULT_TAFSIR = { az: 170, en: 169, ru: 170, ar: 16, tr: 169 }
+// Susmaya görə seçim. az — azərbaycanca əl-Müyəssər; tr — öz dilində yoxdur,
+// ingiliscə İbn Kəsir
+export const DEFAULT_TAFSIR = { az: 1016, en: 169, ru: 170, ar: 16, tr: 169 }
 // Saytın bu dilində təfsir mətni varmı (yoxdursa panel dürüst qeyd göstərir)
 export const hasNativeTafsir = lang => TAFSIRS.some(t => t.lang === lang)
 
@@ -227,6 +242,39 @@ const verseSort = (x, y) => {
   return a1 - a2 || b1 - b2
 }
 
+// Saytın öz təfsir faylı (bütöv surə bir dəfə yüklənir): { "1": "mətn", "67": 66 }
+// — rəqəm "bu ayə həmin ayə ilə birlikdə izah olunub" deməkdir
+const localSurahs = new Map()     // `${id}:${s}` → Promise<object>
+const escapeHtml = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+async function fetchLocalTafsir(id, s, a, doFetch) {
+  const sk = `${id}:${s}`
+  if (!localSurahs.has(sk)) {
+    localSurahs.set(sk, (async () => {
+      let res
+      try {
+        res = await doFetch(`${LOCAL_TAFSIR_BASE}/${Number(s)}.json`)
+      } catch (e) {
+        throw new TafsirError(typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'network', e?.message)
+      }
+      if (res.status === 404) throw new TafsirError('notfound')
+      if (!res.ok) throw new TafsirError('network', `HTTP ${res.status}`)
+      try { return await res.json() } catch { throw new TafsirError('bad-response') }
+    })())
+    localSurahs.get(sk).catch(() => localSurahs.delete(sk))
+  }
+  const data = await localSurahs.get(sk)
+  const own = data?.[String(a)]
+  const base = typeof own === 'number' ? own : Number(a)
+  const text = data?.[String(base)]
+  if (typeof text !== 'string' || !text) throw new TafsirError('notfound')
+  const verses = [base, ...Object.keys(data).filter(k => data[k] === base).map(Number)]
+    .sort((x, y) => x - y).map(v => `${s}:${v}`)
+  const value = { html: `<p>${escapeHtml(text)}</p>`, verses }
+  for (const vk of verses) memory.set(cacheKey(id, ...vk.split(':')), value)
+  return value
+}
+
 /**
  * Bir ayənin təfsiri: { html (təmizlənmiş), verses: ['2:8','2:9'] } —
  * verses birdən çoxdursa təfsir ayələri birlikdə izah edir.
@@ -238,6 +286,12 @@ export function fetchTafsir(id, s, a, { fetchImpl } = {}) {
   if (hit) return Promise.resolve(hit)
   if (inflight.has(key)) return inflight.get(key)
   const doFetch = fetchImpl || globalThis.fetch
+  if (getTafsir(id)?.local) {
+    const p = fetchLocalTafsir(id, s, a, doFetch)
+    inflight.set(key, p)
+    p.finally(() => inflight.delete(key)).catch(() => {})
+    return p
+  }
   const p = (async () => {
     if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new TafsirError('offline')
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null

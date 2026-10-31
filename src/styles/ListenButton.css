@@ -1,0 +1,50 @@
+/* Səsli oxu düyməsi — ListenButton.jsx. Yalnız tokenlər (DESIGN.md). */
+
+.lb-root {
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Söndürülmüş vəziyyət: fokuslanır (izahı oxumaq üçün), amma sönük görünür */
+.lb-root--off .lb-btn {
+  color: var(--text-tertiary);
+  cursor: help;
+}
+
+.lb-tip {
+  position: absolute;
+  inset-inline-start: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  width: max-content;
+  max-width: min(320px, 80vw);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-3);
+  color: var(--text-body);
+  font-size: var(--step--1);
+  line-height: 1.45;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out), visibility 0s linear var(--dur-1);
+  pointer-events: none;
+}
+.lb-root--off:hover .lb-tip,
+.lb-root--off:focus-within .lb-tip,
+.lb-tip.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.lb-empty {
+  color: var(--text-tertiary);
+  font-size: var(--step--1);
+}

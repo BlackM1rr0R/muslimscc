@@ -430,3 +430,189 @@
   .dhikr-ripple,
   .dhikr-halo { display: none; }
 }
+
+/* ══════════════════════════════════════════════════════
+   Sayğac rejimləri: "Zikr seçimi" (yuxarıdakı köhnə sayğac),
+   "Namazdan sonra" (ardıcıl, avtomatik keçən) və "Sərbəst təsbeh".
+   İri toxunma sahəsi (.dk-tap) — hər iki yeni rejimdə ortaqdır.
+   ══════════════════════════════════════════════════════ */
+.dk-modes-wrap { margin-bottom: var(--space-5); }
+.dk-modes {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 6px;
+  scrollbar-width: none;
+}
+.dk-modes::-webkit-scrollbar { display: none; }
+.dhikr-page .dk-mode-chip { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+
+.dhikr-page .dk-mode-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 980px;
+  margin-inline: auto;
+}
+.dk-mode-head { display: flex; flex-direction: column; gap: 6px; }
+.dk-mode-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  color: var(--text-strong);
+}
+.dk-mode-lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); max-width: 70ch; }
+
+.dk-ap-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+@media (max-width: 860px) { .dk-ap-body { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); } }
+
+/* ── İri toxunma sahəsi ── */
+.dk-tap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: clamp(260px, 42vh, 380px);
+  padding: var(--space-6) var(--space-5);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-xl);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: transform var(--dur-1) var(--ease-out), background-color var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+@media (hover: hover) { .dk-tap:hover { background: var(--brand-soft-2); } }
+.dk-tap:active { transform: scale(0.985); }
+.dk-tap.is-done { background: var(--accent-soft); border-color: var(--accent-line); cursor: default; }
+.dk-tap--free { min-height: clamp(240px, 38vh, 340px); }
+
+.dk-tap__step {
+  color: var(--text-secondary);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .dk-tap__step { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
+.dk-tap__ar {
+  font-family: var(--font-arabic);
+  font-size: clamp(24px, 1.2rem + 1.6vw, 38px);
+  line-height: var(--lh-arabic);
+  color: var(--text-strong);
+  max-width: 28ch;
+}
+.dk-tap__name { color: var(--text-secondary); font-size: var(--step--1); max-width: 40ch; }
+.dk-tap__count {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 2rem + 4vw, 84px);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--brand);
+  animation: dk-count-in var(--dur-2) var(--ease-out);
+}
+.dk-tap.is-done .dk-tap__count { color: var(--accent-text); }
+.dk-tap__of { font-size: 0.4em; color: var(--text-secondary); font-weight: 500; }
+.dk-tap__bar {
+  width: min(260px, 80%);
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  overflow: hidden;
+}
+.dk-tap__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  border-radius: inherit;
+  transform-origin: left center;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+[dir="rtl"] .dk-tap__bar > span { transform-origin: right center; }
+.dk-tap.is-done .dk-tap__bar > span { background: var(--accent); }
+.dk-tap__hint { color: var(--text-secondary); font-size: var(--step--2); }
+@keyframes dk-count-in { from { opacity: 0.4; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ── Yan panel: məna, ardıcıllıq, düymələr ── */
+.dk-ap-side { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.dk-ap-meaning { margin: 0; color: var(--text-body); line-height: var(--lh-body); }
+.dk-ap-done { display: flex; flex-direction: column; gap: 8px; }
+.dk-ap-done .dhikr-complete-badge { margin: 0; align-self: flex-start; }
+.dk-ap-virtue { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: var(--lh-body); }
+.dk-steps-label {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .dk-steps-label { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
+.dk-steps { display: flex; flex-direction: column; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.dk-step__btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 8px 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  color: var(--text-body);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease;
+}
+@media (hover: hover) { .dk-step__btn:hover { border-color: var(--line-strong); } }
+.dk-step.is-current .dk-step__btn { border-color: var(--brand); background: var(--brand-soft); }
+.dk-step.is-done .dk-step__btn { opacity: 0.78; }
+.dk-step__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: var(--step--2);
+  font-weight: 600;
+}
+.dk-step.is-current .dk-step__mark { background: var(--brand); color: var(--on-brand); }
+.dk-step.is-done .dk-step__mark { background: var(--brand-soft-2); color: var(--brand); }
+.dk-step__text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.dk-step__ar {
+  font-family: var(--font-arabic);
+  font-size: var(--step-0);
+  line-height: 1.7;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dk-step__name { color: var(--text-tertiary); font-size: var(--step--2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dk-step__count { flex-shrink: 0; color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
+.dk-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dk-tap, .dk-tap__bar > span, .dk-step__btn { transition: none; }
+  .dk-tap__count { animation: none; }
+  .dk-tap:active { transform: none; }
+}

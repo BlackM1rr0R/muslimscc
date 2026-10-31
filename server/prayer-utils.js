@@ -3,8 +3,9 @@
 'use strict'
 
 // src/config/brand.js → DEFAULT_PRAYER_LOCATION ilə eyni
+// (method 99 — Bakıdakı Əbu Bəkr məscidinin cədvəli, server/prayCalc.js)
 const DEFAULT_LOC = {
-  lat: 40.4093, lng: 49.8671, tz: 'Asia/Baku', method: 13,
+  lat: 40.3953, lng: 49.8822, tz: 'Asia/Baku', method: 99,
   city: { az: 'Bakı', en: 'Baku', ru: 'Баку', tr: 'Bakü', ar: 'باكو' },
 }
 const LANGS = ['az', 'en', 'ru', 'ar', 'tr']
@@ -39,7 +40,10 @@ function normLoc(raw) {
   const lat = Number(raw && raw.lat), lng = Number(raw && raw.lng)
   if (!raw || !Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return DEFAULT_LOC
   const tz = typeof raw.tz === 'string' && validTz(raw.tz) ? raw.tz : DEFAULT_LOC.tz
-  const method = Number.isInteger(Number(raw.method)) ? Number(raw.method) : DEFAULT_LOC.method
+  let method = Number.isInteger(Number(raw.method)) ? Number(raw.method) : DEFAULT_LOC.method
+  // 2026-11-dən əvvəlki abunəliklər Azərbaycan üçün də Diyanet (13) saxlayırdı —
+  // sayt artıq Əbu Bəkr məscidinin cədvəlini göstərir, bildiriş də eyni olsun
+  if (tz === 'Asia/Baku' && method === 13) method = 99
   const city = raw.city && typeof raw.city === 'object' ? raw.city : {}
   return { lat, lng, tz, method, city }
 }

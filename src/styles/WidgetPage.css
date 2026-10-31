@@ -1,0 +1,181 @@
+/* ═══════════════════════════════════════════════════════
+   Vidcet səhifəsi — /widget (WidgetPage.jsx)
+   Yalnız tokenlər və .ui-* sinifləri (DESIGN.md). .ui-* sinfini
+   dəyişmək lazım gələndə valideynlə gücləndirilir (.wg-page …).
+   ═══════════════════════════════════════════════════════ */
+
+.wg-wrap {
+  display: grid;
+  gap: var(--space-8);
+  padding-block: var(--space-7) var(--section-gap);
+}
+
+/* ── Generator ── */
+.wg-page .wg-gen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'form  preview'
+    'embed embed';
+  gap: var(--space-6);
+}
+.wg-form { grid-area: form; display: grid; gap: var(--space-5); align-content: start; }
+.wg-form .ui-title { margin: 0; }
+.wg-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.wg-preview {
+  grid-area: preview;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.wg-preview-label {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.wg-preview-stage {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 340px;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  border: 1px dashed var(--line-strong);
+}
+.wg-preview-host { width: 100%; max-width: 340px; }
+.wg-preview-msg {
+  position: absolute;
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: var(--step--1);
+}
+
+.wg-embed { grid-area: embed; display: grid; gap: var(--space-2); }
+.wg-h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.wg-hint { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: var(--lh-body); }
+
+.wg-code {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+.wg-pre {
+  width: 100%;
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-inverse);
+  color: var(--text-on-inverse);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  text-align: left;
+  overflow-x: auto;
+}
+.wg-pre code { font: inherit; }
+
+/* ── Bölmələr ── */
+.wg-section { display: grid; gap: var(--space-4); }
+.wg-section .ui-title { margin: 0; }
+.wg-tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .8em;
+  color: var(--brand);
+  unicode-bidi: isolate;
+}
+
+.wg-table-wrap { overflow-x: auto; }
+.wg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+.wg-table th,
+.wg-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  text-align: start;
+  vertical-align: top;
+}
+.wg-table tr:last-child th,
+.wg-table tr:last-child td { border-bottom: 0; }
+.wg-table th { width: 32%; white-space: nowrap; font-weight: 500; }
+.wg-table code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--brand);
+}
+.wg-table td { color: var(--text-body); }
+.wg-ex {
+  display: block;
+  margin-top: 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-align: start;
+  unicode-bidi: isolate;
+}
+
+.wg-iframe-frame {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+}
+.wg-iframe-frame iframe {
+  display: block;
+  width: 100%;
+  height: 280px;
+  border: 0;
+}
+
+/* ── Məscid ekranı CTA ── */
+.wg-page .wg-tv {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  padding: var(--space-6);
+}
+.wg-tv .ui-pattern { --pattern-color: rgba(230, 204, 149, .1); }
+.wg-tv-text { flex: 1 1 320px; }
+.wg-tv-title {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  color: #e6cc95; /* qum başlıq — DESIGN.md kontrast cədvəli */
+}
+.wg-tv-text p { margin: 0; color: var(--text-on-inverse-dim); line-height: var(--lh-body); }
+
+.wg-note {
+  margin: 0;
+  text-align: center;
+  font-size: var(--step--1);
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 860px) {
+  .wg-page .wg-gen {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'form' 'preview' 'embed';
+  }
+  .wg-preview-stage { min-height: 300px; }
+  .wg-table th { width: auto; }
+}

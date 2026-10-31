@@ -382,3 +382,83 @@
     mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   Hicri aylar bələdçisi (bütün hadisələrin altında) — bloklar LessonsPage.css-dən (.ls-sec, .ls-p, .ui-quote …);
+   burada yalnız düzülüş, bölmə naviqasiyası və keçid kartı.
+   ═══════════════════════════════════════════════════════ */
+.cal-guide { min-height: 0; padding-top: 0; }
+.cal-guide__inner { display: flex; flex-direction: column; gap: var(--space-6); }
+.cal-guide__inner > .ui-section-head { margin-bottom: 0; }
+.cal-guide__article { max-width: 820px; width: 100%; margin-inline: auto; }
+.cal-guide__sec .ls-sec__title { font-size: var(--step-2); }
+/* Ayə istinadı mətn içində keçiddir — yalnız rəngə güvənməsin (axe: link-in-text-block) */
+.cal-guide .ls-ref { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* Bölmə çipləri — dar ekranda üfüqi zolaq, genişdə sətirlərə bölünür */
+.cal-guide-nav__list {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 2px 0 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cal-guide-nav__list::-webkit-scrollbar { display: none; }
+@media (min-width: 900px) { .cal-guide-nav__list { flex-wrap: wrap; overflow: visible; } }
+.cal-guide-nav__chip { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; text-decoration: none; }
+.cal-guide-nav__chip svg { color: var(--accent); }
+
+/* Başqa dərsə / səhifəyə keçid */
+.cal-guide-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px 18px;
+  color: var(--text-strong);
+  font-weight: 600;
+  text-decoration: none;
+}
+.cal-guide-link > span { flex: 1; min-width: 0; }
+.cal-guide-link__icon { color: var(--brand); flex-shrink: 0; }
+.cal-guide-link .ui-link__arrow { color: var(--brand); flex-shrink: 0; transition: transform var(--dur-2) var(--ease-out); }
+@media (hover: hover) {
+  .cal-guide-link:hover .ui-link__arrow { transform: translateX(3px); }
+  [dir="rtl"] .cal-guide-link:hover .ui-link__arrow { transform: scaleX(-1) translateX(3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cal-guide-link .ui-link__arrow { transition: none; }
+}
+
+/* «Tarixi çevir» kartı — üst sıranın altında */
+.cal-convert { margin-block: calc(-1 * var(--space-2)) var(--space-4); }
+
+/* ── Hadisə kartında izah (details) ── */
+.cal-event-card:has(.cal-info[open]) { align-items: flex-start; }
+.cal-info { margin-top: 6px; }
+.cal-info__sum {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--radius-sm);
+}
+.cal-info__sum::-webkit-details-marker { display: none; }
+.cal-info__sum:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.cal-info__chev { transition: transform var(--dur-2) var(--ease-out); }
+.cal-info[open] .cal-info__chev { transform: rotate(180deg); }
+.cal-info__body { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+.cal-info__p { margin: 0; color: var(--text-body); font-size: 14px; line-height: 1.6; }
+.cal-info__lbl { color: var(--brand-strong); font-weight: 700; }
+[data-theme="dark"] .cal-info__lbl { color: var(--brand); }
+.cal-info__lbl--no { color: var(--accent-text); }
+.cal-info__links { display: flex; flex-wrap: wrap; gap: 6px; }
+.cal-info-chip { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.cal-info-chip svg { color: var(--accent); flex-shrink: 0; }
+@media (prefers-reduced-motion: reduce) { .cal-info__chev { transition: none; } }

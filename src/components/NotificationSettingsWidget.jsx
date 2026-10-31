@@ -24,6 +24,7 @@ const AYAH_HOURS = [7, 8, 9, 20]   // server/daily-ayah.js → HOURS ilə eyni
 const DEFAULT_PREFS = {
   prayer: true,
   checkin: false,   // "Qıldınızmı?" — serverə yazılır (token → checkin), susmaya görə sönülü
+  fasting: false,   // Sünnə orucu xatırlatması — serverə yazılır (prefs.fasting), susmaya görə sönülü
   ayah: false,
   ayahHour: 8,
   announcements: true,
@@ -53,6 +54,8 @@ const LABELS = {
     typeCheckin:'Qıldınızmı? xatırlatması',
     typeCheckinSub:'Namaz vaxtından 20 dəqiqə sonra soruşur — bir toxunuşla qeyd edin',
     checkinNeedsToken:'Xatırlatma üçün əvvəlcə yuxarıdan bildirişlərə icazə verin. Seçiminiz yadda qalacaq.',
+    typeFasting:'Sünnə orucu xatırlatması',
+    typeFastingSub:'Bazar ertəsi, cümə axşamı, ağ günlər, Ərəfə və Aşuradan əvvəlki axşam saat 20:00-da',
     typeAyah:'Günün ayəsi',
     typeAyahSub:'Hər gün bir ayə və tərcüməsi',
     ayahTime:'Bildiriş vaxtı',
@@ -93,6 +96,8 @@ const LABELS = {
     typeCheckin:'Did you pray? reminder',
     typeCheckinSub:'Asks 20 minutes after each prayer time — mark it with one tap',
     checkinNeedsToken:'To get the reminder, allow notifications above first. Your choice will be saved.',
+    typeFasting:'Sunnah fasting reminder',
+    typeFastingSub:'The evening before Mondays, Thursdays, the white days, Arafah and Ashura — at 20:00',
     typeAyah:'Verse of the day',
     typeAyahSub:'One verse with its translation every day',
     ayahTime:'Notification time',
@@ -133,6 +138,8 @@ const LABELS = {
     typeCheckin:'Напоминание «Намаз совершён?»',
     typeCheckinSub:'Спрашивает через 20 минут после времени намаза — отметка одним касанием',
     checkinNeedsToken:'Чтобы получать напоминание, сначала разрешите уведомления выше. Ваш выбор сохранится.',
+    typeFasting:'Напоминание о желательном посте',
+    typeFastingSub:'Накануне понедельника, четверга, белых дней, Арафы и Ашуры — в 20:00',
     typeAyah:'Аят дня',
     typeAyahSub:'Каждый день один аят с переводом',
     ayahTime:'Время уведомления',
@@ -173,6 +180,8 @@ const LABELS = {
     typeCheckin:'تذكير «هل صليت؟»',
     typeCheckinSub:'يسأل بعد ٢٠ دقيقة من دخول وقت الصلاة — سجّلها بلمسة واحدة',
     checkinNeedsToken:'لتلقي التذكير، اسمح بالإشعارات أعلاه أولاً. سيُحفظ اختيارك.',
+    typeFasting:'تذكير بصيام التطوع',
+    typeFastingSub:'مساء اليوم السابق للاثنين والخميس والأيام البيض وعرفة وعاشوراء — الساعة 20:00',
     typeAyah:'آية اليوم',
     typeAyahSub:'آية مع ترجمتها كل يوم',
     ayahTime:'وقت الإشعار',
@@ -213,6 +222,8 @@ const LABELS = {
     typeCheckin:'Kıldınız mı? hatırlatması',
     typeCheckinSub:'Namaz vaktinden 20 dakika sonra sorar — tek dokunuşla işaretleyin',
     checkinNeedsToken:'Hatırlatma için önce yukarıdan bildirimlere izin verin. Seçiminiz kaydedilecek.',
+    typeFasting:'Nafile oruç hatırlatması',
+    typeFastingSub:'Pazartesi, perşembe, eyyâm-ı bîz, Arefe ve Aşure öncesi akşam saat 20:00’de',
     typeAyah:'Günün ayeti',
     typeAyahSub:'Her gün bir ayet ve meali',
     ayahTime:'Bildirim saati',
@@ -348,7 +359,7 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     }
     // Token indi yarandı — icazədən əvvəl seçilmiş "Günün ayəsi" serverə də yazılsın
     if (result.ok && prefs.ayah) updateTokenDaily({ ayah: true, hour: prefs.ayahHour })
-    // checkin isə abunəlik yazılanda serverPrefs() ilə artıq gedib
+    // checkin və fasting isə abunəlik yazılanda serverPrefs() ilə artıq gedib
   }
 
   const handleDisable = async () => {
@@ -394,6 +405,16 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     setPrefs(p => ({ ...p, checkin: next }))
     if (!getStoredToken()) return
     const ok = await updateTokenPrefs({ checkin: next })
+    if (!ok) setFeedback({ ok: false, text: l.ayahSaveFailed })
+  }
+
+  // Sünnə orucu xatırlatması (server/fasting.js): lokal yadda qalır; token varsa
+  // abunəliyə də yazılır (prefs.fasting)
+  const setFasting = async () => {
+    const next = !prefs.fasting
+    setPrefs(p => ({ ...p, fasting: next }))
+    if (!getStoredToken()) return
+    const ok = await updateTokenPrefs({ fasting: next })
     if (!ok) setFeedback({ ok: false, text: l.ayahSaveFailed })
   }
 
@@ -492,6 +513,13 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
                   <PrefToggle icon="check" label={l.typeCheckin} sub={l.typeCheckinSub}
                     on={prefs.checkin} onClick={setCheckin} />
                   {prefs.checkin && !hasToken && (
+                    <div className="notif-ayah-note" role="note">
+                      <Icon name="info" size={16} /> <span>{supported ? l.checkinNeedsToken : l.ayahUnsupported}</span>
+                    </div>
+                  )}
+                  <PrefToggle icon="moon" label={l.typeFasting} sub={l.typeFastingSub}
+                    on={prefs.fasting} onClick={setFasting} />
+                  {prefs.fasting && !hasToken && (
                     <div className="notif-ayah-note" role="note">
                       <Icon name="info" size={16} /> <span>{supported ? l.checkinNeedsToken : l.ayahUnsupported}</span>
                     </div>

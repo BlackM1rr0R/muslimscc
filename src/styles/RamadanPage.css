@@ -137,3 +137,148 @@ html[lang="ar"] .rp-table thead th { letter-spacing: 0; text-transform: none; }
   .rp-wd { color: #000 !important; }
   .rp-note { color: #000 !important; font-size: 8pt; }
 }
+
+/* ═══════════════════════════════════════════════════════
+   Ramazan bələdçisi (cədvəlin altında) — bloklar LessonsPage.css-dən
+   (.ls-sec, .ls-p, .ui-quote …); burada yalnız düzülüş, bölmə naviqasiyası,
+   başqa dərsə keçid kartı və 30 günlük xətm planı.
+   ═══════════════════════════════════════════════════════ */
+.rp-guide { min-height: 0; }
+.rp-guide__inner { display: flex; flex-direction: column; gap: var(--space-6); }
+.rp-guide__inner > .ui-section-head { margin-bottom: 0; }
+.rp-guide__article { max-width: 820px; width: 100%; margin-inline: auto; }
+.rp-guide__sec .ls-sec__title { font-size: var(--step-2); }
+/* Ayə istinadı mətn içində keçiddir — yalnız rəngə güvənməsin (axe: link-in-text-block) */
+.rp-guide .ls-ref { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* Bölmə çipləri — dar ekranda üfüqi zolaq, genişdə sətirlərə bölünür */
+.rp-guide-nav__list {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 2px 0 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rp-guide-nav__list::-webkit-scrollbar { display: none; }
+@media (min-width: 900px) { .rp-guide-nav__list { flex-wrap: wrap; overflow: visible; } }
+.rp-guide-nav__chip { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; text-decoration: none; }
+.rp-guide-nav__chip svg { color: var(--accent); }
+
+/* Başqa dərsə / səhifəyə keçid */
+.rp-guide-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px 18px;
+  color: var(--text-strong);
+  font-weight: 600;
+  text-decoration: none;
+}
+.rp-guide-link > span { flex: 1; min-width: 0; }
+.rp-guide-link__icon { color: var(--brand); flex-shrink: 0; }
+.rp-guide-link .ui-link__arrow { color: var(--brand); flex-shrink: 0; transition: transform var(--dur-2) var(--ease-out); }
+@media (hover: hover) {
+  .rp-guide-link:hover .ui-link__arrow { transform: translateX(3px); }
+  [dir="rtl"] .rp-guide-link:hover .ui-link__arrow { transform: scaleX(-1) translateX(3px); }
+}
+
+/* ── 30 günlük xətm planı ── */
+.rp-khatm { display: flex; flex-direction: column; gap: var(--space-4); }
+.rp-khatm__head { display: flex; align-items: flex-start; gap: var(--space-3); }
+.rp-khatm__intro { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rp-khatm__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  color: var(--text-strong);
+}
+.rp-khatm__lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); max-width: 70ch; }
+.rp-khatm__progress { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.rp-khatm__bar {
+  flex: 1 1 200px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.rp-khatm__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  border-radius: inherit;
+  transform-origin: left center;
+  transition: transform var(--dur-3) var(--ease-out);
+}
+[dir="rtl"] .rp-khatm__bar > span { transform-origin: right center; }
+.rp-khatm__count { color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
+.rp-khatm__done {
+  display: flex; align-items: center; gap: 8px; margin: 0;
+  padding: 10px 14px; border-radius: var(--radius-md);
+  background: var(--brand-soft); color: var(--brand-strong); font-weight: 600;
+}
+[data-theme="dark"] .rp-khatm__done { color: var(--brand); }
+
+.rp-khatm__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 168px), 1fr));
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.rp-juz {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease;
+}
+.rp-juz.is-done { background: var(--brand-soft); border-color: var(--brand-line); }
+.rp-juz.is-today { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+.rp-juz__label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 4px 10px 12px;
+  min-height: var(--tap);
+  cursor: pointer;
+}
+[dir="rtl"] .rp-juz__label { padding: 10px 12px 10px 4px; }
+.rp-juz__check {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--brand);
+  cursor: pointer;
+}
+.rp-juz__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rp-juz__name { font-weight: 600; color: var(--text-strong); font-size: var(--step--1); }
+.rp-juz__range { color: var(--text-tertiary); font-size: var(--step--2); }
+html[dir="rtl"] .rp-juz__range { text-align: end; }
+.rp-juz__today { align-self: flex-start; margin-top: 4px; }
+.rp-juz.is-done .rp-juz__name { color: var(--brand-strong); }
+[data-theme="dark"] .rp-juz.is-done .rp-juz__name { color: var(--brand); }
+.rp-juz__open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  flex-shrink: 0;
+  color: var(--brand);
+  border-inline-start: 1px solid var(--line);
+  border-start-end-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-md);
+  transition: background-color var(--dur-1) ease;
+}
+@media (hover: hover) { .rp-juz__open:hover { background: var(--brand-soft); } }
+@media (prefers-reduced-motion: reduce) {
+  .rp-khatm__bar > span, .rp-juz, .rp-guide-link .ui-link__arrow { transition: none; }
+}

@@ -257,6 +257,50 @@ const OTHER = [
       tr: 'Videolar YouTube üzerinden gösterilir; hakları sahiplerine ve kanallarına aittir.',
     },
   },
+  {
+    name: 'Hisn al-Muslim (حصن المسلم)', url: 'https://github.com/rn0x/hisn_almuslim_json',
+    by: 'Sa‘id ibn Ali ibn Wahf al-Qahtani',
+    note: {
+      az: 'Hisnul-Müslim bölməsinin ərəb mətni və təxrici kitabdandır. Müəllif kitabın pulsuz yayılmasına icazə verib; tərcümələr Muslims.cc tərəfindən süni intellektin köməyi ilə hazırlanıb.',
+      en: 'The Arabic text and takhrij of the Hisn al-Muslim section come from the book. The author permits free distribution; translations were prepared by Muslims.cc with the help of AI.',
+      ru: 'Арабский текст и тахридж раздела «Хиснуль-муслим» взяты из книги. Автор разрешил бесплатное распространение; переводы подготовлены Muslims.cc с помощью ИИ.',
+      ar: 'النص العربي والتخريج في قسم حصن المسلم من الكتاب، وقد أذن المؤلف بنشره مجانًا، والترجمات من إعداد Muslims.cc بمساعدة الذكاء الاصطناعي.',
+      tr: 'Hısnu’l-Müslim bölümünün Arapça metni ve tahrici kitaptandır. Yazar ücretsiz dağıtıma izin vermiştir; çeviriler Muslims.cc tarafından yapay zekâ yardımıyla hazırlanmıştır.',
+    },
+  },
+  {
+    name: 'Hadith API (fawazahmed0)', url: 'https://github.com/fawazahmed0/hadith-api',
+    by: 'Fawaz Ahmed',
+    note: {
+      az: 'Ən-Nəvəvinin 40 hədisinin ərəb mətni və hədis nömrələrinin yoxlanması üçün istifadə olunub; sərbəst lisenziyalıdır.',
+      en: 'Used for the Arabic text of an-Nawawi’s Forty Hadith and to verify hadith numbers; public-domain licence.',
+      ru: 'Использован для арабского текста 40 хадисов ан-Навави и проверки номеров хадисов; свободная лицензия.',
+      ar: 'استُخدم لنص الأربعين النووية العربي وللتحقق من أرقام الأحاديث، وترخيصه حر.',
+      tr: 'Nevevî’nin Kırk Hadis’inin Arapça metni ve hadis numaralarının doğrulanması için kullanıldı; serbest lisanslıdır.',
+    },
+  },
+  {
+    name: 'Quranic Arabic Corpus', url: 'https://corpus.quran.com/',
+    by: 'corpus.quran.com · GNU GPL v3',
+    note: {
+      az: 'Kök axtarışı bölməsindəki söz kökləri və morfologiya bu korpusdan götürülüb; GPL lisenziyası ilə.',
+      en: 'The word roots and morphology in the root search come from this corpus, under the GNU GPL v3.',
+      ru: 'Корни слов и морфология в поиске по корню взяты из этого корпуса; свободная лицензия ГПЛ.',
+      ar: 'جذور الكلمات وصرفها في البحث بالجذر مأخوذة من هذه المدونة بترخيص حر.',
+      tr: 'Kök aramasındaki kelime kökleri ve morfoloji bu derlemden alınmıştır; GPL lisansıyla.',
+    },
+  },
+  {
+    name: 'Open Food Facts', url: 'https://world.openfoodfacts.org/',
+    by: 'Open Food Facts · ODbL',
+    note: {
+      az: 'Halal yoxlamasındakı qida əlavələri (E-kodlar) siyahısı və barkodla məhsul məlumatı; məlumat könüllülər tərəfindən toplanır, açıq məlumat bazası lisenziyası ilə.',
+      en: 'The food-additive (E-number) list and barcode product data in the halal check; the data is collected by volunteers (Open Database License).',
+      ru: 'Список пищевых добавок (E-коды) и данные о продуктах по штрихкоду в халяль-проверке; данные собирают добровольцы, открытая лицензия базы данных.',
+      ar: 'قائمة المضافات الغذائية (أرقام E) وبيانات المنتجات بالباركود في فحص الحلال؛ يجمعها متطوعون، بترخيص قاعدة بيانات مفتوح.',
+      tr: 'Helal kontrolündeki gıda katkı maddeleri (E-kodları) listesi ve barkodla ürün bilgisi; veriler gönüllüler tarafından toplanır, açık veritabanı lisansıyla.',
+    },
+  },
 ]
 
 // ── Şriftlər (öz serverimizdən verilir) ──
@@ -291,7 +335,7 @@ const DOC = {
       translations: { h: 'Quran tərcümələri və təfsir', body: [
         'Tərcümələr {alquran} vasitəsilə yüklənir və **məna tərcüməsidir**. Müəllif hüquqları tərcüməçilərə və naşirlərə məxsusdur.',
         { credits: TRANSLATIONS },
-        'Ayələrin altındakı təfsir (Sələf alimlərinin təfsirləri) Quran.com vasitəsilə yüklənir. Azərbaycan dilində bu təfsirlərin etibarlı mətni olmadığından maşın tərcüməsi göstərilmir — ərəb, rus və ya ingilis dilindəki mətn seçilir.',
+        'Ayələrin altındakı təfsir (Sələf alimlərinin təfsirləri) Quran.com vasitəsilə yüklənir. Azərbaycan dilindəki əl-Təfsir əl-Müyəssər (Kral Fəhd Kompleksinin alimlər heyəti) ərəb əslindən Muslims.cc tərəfindən süni intellektin köməyi ilə tərcümə olunub və saytın özündə saxlanılır; tərcümə redaktə olunur və panel bunu açıq qeyd edir.',
         { credits: TAFSIR_SOURCES },
       ] },
       audio: { h: 'Qiraət səsləri', body: [

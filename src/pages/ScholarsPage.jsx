@@ -26,7 +26,7 @@ import '../styles/ScholarsPage.css'
 
 const LABELS = {
   az: {
-    eyebrow: 'Hədis və bilik', title: 'Sələf alimləri',
+    eyebrow: 'Hədis və bilik', title: 'Alimlər',
     subtitle: 'Əhli-sünnə vəl-cəmaat yolunda olan alimlər — tabiinlərdən müasir dövrədək: həyatı, müəllimləri, əsərləri və alimlərin onlar haqqında sözləri, mənbələri ilə.',
     search: 'Alim axtar...', clear: 'Axtarışı təmizlə', filter: 'Dövr', all: 'Hamısı', noResults: 'Nəticə tapılmadı',
     read: 'Həyatını oxu', allScholars: 'Bütün alimlər', share: 'Paylaş', copied: 'Keçid kopyalandı', copyFail: 'Keçidi kopyalamaq alınmadı',
@@ -38,7 +38,7 @@ const LABELS = {
     sameEra: 'Eyni dövrdən', count: (n) => `${n} alim`, noPhoto: 'Alimlərin şəkli göstərilmir — yalnız adının ərəbcə yazılışı.',
   },
   en: {
-    eyebrow: 'Hadith & knowledge', title: 'Scholars of the Salaf',
+    eyebrow: 'Hadith & knowledge', title: 'Scholars',
     subtitle: 'Scholars upon the way of Ahl as-Sunnah wal-Jama‘ah — from the Tabi‘un to our time: their lives, teachers, works and what other scholars said about them, with sources.',
     search: 'Search scholars...', clear: 'Clear search', filter: 'Era', all: 'All', noResults: 'No results found',
     read: 'Read biography', allScholars: 'All scholars', share: 'Share', copied: 'Link copied', copyFail: 'Could not copy the link',
@@ -50,7 +50,7 @@ const LABELS = {
     sameEra: 'From the same era', count: (n) => `${n} ${n === 1 ? 'scholar' : 'scholars'}`, noPhoto: 'No pictures of the scholars are shown — only their names in Arabic script.',
   },
   ru: {
-    eyebrow: 'Хадисы и знание', title: 'Учёные саляфа',
+    eyebrow: 'Хадисы и знание', title: 'Учёные',
     subtitle: 'Учёные пути ахлю-сунна валь-джамаа — от табиинов до нашего времени: их жизнь, учителя, труды и слова других учёных о них, с источниками.',
     search: 'Поиск учёных...', clear: 'Очистить поиск', filter: 'Эпоха', all: 'Все', noResults: 'Результаты не найдены',
     read: 'Читать биографию', allScholars: 'Все учёные', share: 'Поделиться', copied: 'Ссылка скопирована', copyFail: 'Не удалось скопировать ссылку',
@@ -62,7 +62,7 @@ const LABELS = {
     sameEra: 'Из той же эпохи', count: (n) => `${n} ${ruPlural(n, 'учёный', 'учёных', 'учёных')}`, noPhoto: 'Изображения учёных не показываются — только их имена арабским письмом.',
   },
   ar: {
-    eyebrow: 'الحديث والعلم', title: 'علماء السلف',
+    eyebrow: 'الحديث والعلم', title: 'العلماء',
     subtitle: 'علماء على طريقة أهل السنة والجماعة، من التابعين إلى عصرنا: سيرهم وشيوخهم ومؤلفاتهم وثناء العلماء عليهم، مع المصادر.',
     search: 'ابحث عن عالم...', clear: 'مسح البحث', filter: 'الحقبة', all: 'الكل', noResults: 'لم يتم العثور على نتائج',
     read: 'اقرأ السيرة', allScholars: 'جميع العلماء', share: 'مشاركة', copied: 'تم نسخ الرابط', copyFail: 'تعذّر نسخ الرابط',
@@ -74,7 +74,7 @@ const LABELS = {
     sameEra: 'من الحقبة نفسها', count: (n) => arCount(n), noPhoto: 'لا تُعرض صور العلماء، وإنما أسماؤهم بالخط العربي.',
   },
   tr: {
-    eyebrow: 'Hadis ve ilim', title: 'Selef Âlimleri',
+    eyebrow: 'Hadis ve ilim', title: 'Âlimler',
     subtitle: 'Ehl-i sünnet ve’l-cemaat yolundaki âlimler — tâbiînden günümüze: hayatları, hocaları, eserleri ve diğer âlimlerin onlar hakkındaki sözleri, kaynaklarıyla.',
     search: 'Âlim ara...', clear: 'Aramayı temizle', filter: 'Dönem', all: 'Tümü', noResults: 'Sonuç bulunamadı',
     read: 'Hayatını oku', allScholars: 'Tüm âlimler', share: 'Paylaş', copied: 'Bağlantı kopyalandı', copyFail: 'Bağlantı kopyalanamadı',

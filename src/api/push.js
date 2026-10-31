@@ -102,7 +102,8 @@ function serverPrefs() {
   try { p = JSON.parse(readLS(PREFS_KEY) || '{}') || {} } catch { p = {} }
   const hour = Number.isInteger(p.ayahHour) ? p.ayahHour : 8
   // checkin — "Qıldınızmı?" xatırlatması (server/checkin.js), susmaya görə sönülü
-  return { azan: p.prayer !== false, checkin: p.checkin === true, daily: { ayah: p.ayah === true, hour } }
+  // fasting — sünnə orucu xatırlatması (server/fasting.js), susmaya görə sönülü
+  return { azan: p.prayer !== false, checkin: p.checkin === true, fasting: p.fasting === true, daily: { ayah: p.ayah === true, hour } }
 }
 
 /**
@@ -216,11 +217,12 @@ export function updateTokenDaily({ ayah, hour }) {
   return patchSubscription({ prefs: { daily: { ayah: Boolean(ayah), hour: Number(hour) } } })
 }
 
-/** Bildiriş seçimləri → prefs.azan / prefs.checkin. */
+/** Bildiriş seçimləri → prefs.azan / prefs.checkin / prefs.fasting. */
 export function updateTokenPrefs(patch) {
   const prefs = {}
   if ('azan' in patch) prefs.azan = Boolean(patch.azan)
   if ('checkin' in patch) prefs.checkin = Boolean(patch.checkin)
+  if ('fasting' in patch) prefs.fasting = Boolean(patch.fasting)
   return patchSubscription({ prefs })
 }
 

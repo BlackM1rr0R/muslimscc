@@ -414,3 +414,202 @@
   .hifz-progress-fill { transition: none; }
   .hifz-card:hover { transform: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   AĞILLI HİFZ — bu günün planı, məşq kartı, səs müqayisəsi, qrafik
+   Yalnız tokenlər; vurğu — zümrüd (--brand), qızılı yalnız kiçik detallarda.
+   ══════════════════════════════════════════════════════════════════ */
+.hifz-smart { display: flex; flex-direction: column; gap: var(--space-4); }
+.hifz-smart__head { display: flex; flex-direction: column; gap: 6px; }
+.hifz-smart__head .ui-title,
+.hifz-tracker-title { margin: 0; }
+.hifz-smart__lead { margin: 0; max-width: 62ch; color: var(--text-secondary); font-size: var(--step-0); line-height: var(--lh-body); }
+.hifz-tracker-title { margin-top: var(--space-5); }
+
+/* ── Bu günün göstəriciləri ── */
+.hifz-today {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.hifz-today__cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 18px 20px; }
+.hifz-today__cell + .hifz-today__cell { border-inline-start: 1px solid var(--line); }
+.hifz-today__num {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 500;
+  line-height: 1.05;
+}
+.hifz-today__num small { color: var(--text-tertiary); font-size: var(--step-0); font-weight: 500; }
+.hifz-today__cell.is-due .hifz-today__num { color: var(--brand); }
+.hifz-today__label { color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+
+/* ── Plan kartları ── */
+.hifz-plan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-4); }
+.hifz-plan__card { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+.hifz-plan__title,
+.hifz-chart__title { margin: 0; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; }
+.hifz-plan__muted { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--text-secondary); font-size: 14px; }
+.hifz-plan__fields { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: var(--space-3); width: 100%; }
+.hifz-start-review__n {
+  min-width: 24px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--on-brand) 20%, transparent);
+  font-size: 13px;
+  line-height: 1.2;
+  text-align: center;
+}
+.hifz-seed {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+}
+.hifz-seed p { margin: 0; color: var(--text-body); font-size: 14px; }
+.hifz-goal { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hifz-goal__label { margin-inline-end: 4px; color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+.hifz-goal__val { min-width: 2ch; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; text-align: center; }
+.hifz-goal__unit { color: var(--text-tertiary); font-size: 14px; }
+
+/* ── Məşq kartı ── */
+.hifz-session { scroll-margin-top: calc(var(--space-8) + 16px); }
+.hifz-practice { display: flex; flex-direction: column; gap: var(--space-4); }
+.hifz-practice__head { display: flex; align-items: flex-start; gap: 12px; }
+.hifz-practice__heading { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1; min-width: 0; }
+.hifz-practice__title { margin: 0; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-2); font-weight: 600; }
+.hifz-practice__pos { align-self: center; color: var(--text-tertiary); font-size: 14px; }
+.hifz-practice__views { display: flex; gap: 8px; flex-wrap: wrap; }
+.hifz-practice__status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0; color: var(--text-secondary); }
+
+.hifz-ayah {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-strong);
+  font-family: var(--font-arabic);
+  font-size: clamp(24px, 3.4vw, 32px);
+  line-height: var(--lh-arabic);
+}
+.hifz-word { border-radius: var(--radius-xs); padding: 0 2px; }
+button.hifz-word {
+  min-height: var(--tap);
+  margin: 0;
+  border: 0;
+  background: var(--surface-3);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.hifz-word.is-hidden { color: transparent; text-shadow: 0 0 14px color-mix(in srgb, var(--text-strong) 45%, transparent); user-select: none; }
+.hifz-word.is-hit { background: var(--brand-soft-2); color: var(--brand); }
+.hifz-word.is-miss { background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad); text-decoration: underline wavy; text-underline-offset: 6px; }
+.hifz-ayah__num { color: var(--accent); font-size: 0.8em; }
+.hifz-practice__reveal { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hifz-practice__hint { margin-inline-end: auto; color: var(--text-tertiary); font-size: 13px; }
+
+/* Səs müqayisəsi: qari və istifadəçi yan-yana */
+.hifz-voice { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-3); }
+.hifz-voice__col {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.hifz-voice__label { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+.hifz-voice__audio { width: 100%; height: 40px; }
+.hifz-voice__empty { display: flex; align-items: center; min-height: 40px; color: var(--text-tertiary); font-size: 14px; }
+.hifz-voice__err { margin: 0; color: var(--bad); font-size: 13px; }
+.hifz-note { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: 13px; line-height: 1.5; }
+.hifz-note svg { flex-shrink: 0; margin-top: 2px; }
+
+.hifz-autocheck { display: flex; flex-direction: column; gap: 10px; padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.hifz-autocheck__row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hifz-autocheck__live { color: var(--brand); font-size: 14px; }
+.hifz-autocheck__result { margin: 0; color: var(--text-body); font-size: 14px; }
+.hifz-autocheck__heard { color: var(--text-secondary); }
+
+/* Qiymət düymələri */
+.hifz-grade { display: flex; flex-direction: column; gap: 10px; padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.hifz-grade__q { color: var(--text-strong); font-weight: 600; }
+.hifz-grade__btns { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.hifz-grade__btn.ui-btn { flex-direction: column; gap: 2px; height: auto; min-height: 56px; padding-block: 8px; }
+.hifz-grade__when { color: var(--text-tertiary); font-size: 12px; font-weight: 500; }
+.hifz-grade__btn.is-again { color: var(--bad); }
+.hifz-grade__btn.is-good { border-color: var(--brand-line); color: var(--brand); }
+
+.hifz-done { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.hifz-done__body { flex: 1; min-width: 200px; }
+.hifz-done__title { margin: 0 0 4px; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); }
+.hifz-done p { margin: 0; color: var(--text-secondary); }
+
+/* ── Qrafik və surə zolaqları ── */
+.hifz-insights { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+.hifz-chart { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; }
+.hifz-chart__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.hifz-chart__sub { color: var(--text-tertiary); font-size: 13px; }
+.hifz-chart__now { margin-inline-start: auto; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-2); font-weight: 500; }
+.hifz-chart__empty { margin: 0; color: var(--text-tertiary); font-size: 14px; }
+.hifz-chart__plot { position: relative; }
+.hifz-chart__plot svg { display: block; width: 100%; height: 160px; overflow: visible; }
+.hifz-chart__base { stroke: var(--line-strong); stroke-width: 1; }
+.hifz-chart__area { fill: var(--brand-soft-2); }
+.hifz-chart__line { fill: none; stroke: var(--brand); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.hifz-chart__cross { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 3 3; }
+.hifz-chart__tip { position: absolute; width: 0; height: 0; pointer-events: none; }
+.hifz-chart__dot {
+  position: absolute; left: -5px; top: -5px; width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 2px var(--surface-1);
+}
+.hifz-chart__tipbox {
+  position: absolute; bottom: 12px; left: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-2);
+  color: var(--text-body);
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.hifz-chart__axis { display: flex; justify-content: space-between; margin-top: 6px; color: var(--text-tertiary); font-size: 12px; }
+
+.hifz-bars { display: flex; flex-direction: column; gap: var(--space-3); }
+.hifz-bars__list { display: flex; flex-direction: column; gap: 12px; max-height: 320px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.hifz-bars__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name val" "bar bar"; gap: 4px 8px; }
+.hifz-bars__name { grid-area: name; overflow: hidden; color: var(--text-body); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.hifz-bars__name .ui-num { color: var(--text-tertiary); }
+.hifz-bars__val { grid-area: val; color: var(--text-tertiary); font-size: 13px; }
+.hifz-bars__row .hifz-progress-bar { height: 6px; margin-top: 0; }
+
+@media (max-width: 899.98px) {
+  .hifz-plan, .hifz-insights { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767.98px) {
+  .hifz-today { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hifz-today__cell:nth-child(3) { border-inline-start: 0; }
+  .hifz-today__cell:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  .hifz-grade__btns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hifz-plan__fields { grid-template-columns: minmax(0, 1fr) 110px; }
+}
+@media (forced-colors: active) {
+  .hifz-word.is-hidden { color: CanvasText; text-shadow: none; filter: blur(6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hifz-today .hifz-progress-fill,
+  .hifz-bars .hifz-progress-fill { transition: none; }
+}

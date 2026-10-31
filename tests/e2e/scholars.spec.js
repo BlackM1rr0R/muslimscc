@@ -13,7 +13,7 @@ const canonical = (page) => page.locator('link[rel="canonical"]')
 test('siyahı: dövr qrupları, axtarış və filtr', async ({ page, consoleProblems }) => {
   await page.goto('/scholars')
   await settle(page)
-  await expect(page.locator('h1')).toHaveText('Sələf alimləri')
+  await expect(page.locator('h1')).toHaveText('Alimlər')
   await expect(page.locator('h1')).toHaveCount(1)
   // 4 dövr başlığı
   await expect(page.locator('.sc-group__title')).toHaveCount(4)
@@ -63,7 +63,7 @@ test('kartdan profilə, bölmələr və mənbələr; geri siyahıya', async ({ p
 
   await page.goBack()
   await expect(page).toHaveURL(/\/scholars$/)
-  await expect(page.locator('h1')).toHaveText('Sələf alimləri')
+  await expect(page.locator('h1')).toHaveText('Alimlər')
   expectCleanConsole(consoleProblems)
 })
 

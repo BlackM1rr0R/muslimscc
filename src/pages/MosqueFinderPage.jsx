@@ -1,10 +1,94 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { guessLang } from '../utils/textLang'
+import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { getPrayerLocation } from '../utils/prayerLocation'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
+import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
+import { isPlainClick } from '../components/PageLink'
+import { pathFor } from '../seo/routes'
+import { MOSQUE_GUIDE, MOSQUE_GUIDE_TXT, MOSQUE_SOURCES } from '../data/guides/MosqueFinderPage'
+import '../styles/LessonsPage.css'
 import '../styles/MosqueFinderPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+
+// ═══ Məscid ədəbləri bələdçisi — mətnlər data/guides/MosqueFinderPage.js-dədir ═══
+
+/** Başqa səhifəyə / dərsə keçid kartı (SPA ilə; Ctrl-klik yeni tabda açır) */
+function GuideLink({ link, lang }) {
+  const navigate = useNavigate()
+  const href = link.kind === 'lesson' ? pathFor('learn', lang, link.slug) : pathFor(link.key, lang)
+  const onClick = (e) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(href)
+    window.scrollTo(0, 0)
+  }
+  return (
+    <a href={href} onClick={onClick} className="ui-card ui-card--interactive mf-guide-link">
+      <Icon name={link.kind === 'lesson' ? 'learn' : link.key} size={20} className="mf-guide-link__icon" />
+      <span>{pick(link.label, lang)}</span>
+      <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+    </a>
+  )
+}
+
+function MosqueGuide({ lang }) {
+  const g = MOSQUE_GUIDE_TXT
+  const jump = (e, id) => {
+    if (!isPlainClick(e)) return
+    const el = document.getElementById(`mf-g-${id}`)
+    if (!el) return
+    e.preventDefault()
+    el.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+    el.querySelector('.ls-sec__title')?.focus({ preventScroll: true })
+  }
+  return (
+    <section className="ui-section mf-guide" aria-labelledby="mf-guide-title">
+      <div className="ui-container mf-guide__inner">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{pick(g.eyebrow, lang)}</span>
+          <h2 id="mf-guide-title" className="ui-title">{pick(g.title, lang)}</h2>
+          <p className="ui-lead">{pick(g.lead, lang)}</p>
+        </div>
+
+        <nav className="mf-guide-nav" aria-label={pick(g.contents, lang)}>
+          <ul className="mf-guide-nav__list">
+            {MOSQUE_GUIDE.map(s => (
+              <li key={s.id}>
+                <a href={`#mf-g-${s.id}`} className="ui-chip mf-guide-nav__chip" onClick={(e) => jump(e, s.id)}>
+                  <Icon name={s.icon} size={15} /> {pick(s.title, lang)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="ls-article mf-guide__article">
+          {MOSQUE_GUIDE.map(s => (
+            <section key={s.id} id={`mf-g-${s.id}`} className="ls-sec mf-guide__sec" aria-labelledby={`mf-g-${s.id}-h`}>
+              <h3 id={`mf-g-${s.id}-h`} className="ls-sec__title" tabIndex={-1}>{pick(s.title, lang)}</h3>
+              <LessonBlocks blocks={s.blocks} lang={lang} />
+              {s.links?.map((l, i) => <GuideLink key={i} link={l} lang={lang} />)}
+            </section>
+          ))}
+          <section className="ls-sec ui-card ui-card--sunken ls-sources" aria-labelledby="mf-g-sources-h">
+            <h3 id="mf-g-sources-h" className="ls-sec__title" tabIndex={-1}>{pick(g.sources, lang)}</h3>
+            <ul className="ls-sources__list">
+              {MOSQUE_SOURCES.map((r, i) => (
+                <li key={i}>
+                  <Icon name="external" size={15} />
+                  <a href={r.url} target="_blank" rel="noopener noreferrer nofollow" dir="auto" lang={guessLang(r.label)}>{r.label}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 // ── i18n Labels ──
 const LABELS = {
@@ -285,6 +369,9 @@ export default function MosqueFinderPage({ setPage }) {
           )}
         </div>
       </section>
+
+      {/* Ədəblər və fəzilətlər — axtarışdan asılı olmayaraq göstərilir */}
+      <MosqueGuide lang={lang} />
     </div>
   )
 }

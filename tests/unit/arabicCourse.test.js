@@ -175,8 +175,8 @@ describe('təcvid və dərslər', () => {
     expect(TAJWEED.find(g => g.id === 'qalqala').rules[0].letters).toBe('ق ط ب ج د')
   })
 
-  it('4 dərs, başlıq və təsvir 5 dildə', () => {
-    expect(LESSONS.map(l => l.id)).toEqual(['letters', 'harakat', 'reading', 'tajweed'])
+  it('9 dərs, başlıq və təsvir 5 dildə', () => {
+    expect(LESSONS.map(l => l.id)).toEqual(['letters', 'harakat', 'reading', 'tajweed', 'pronouns', 'demonstratives', 'nominal', 'verbal', 'vocab'])
     for (const l of LESSONS) { expect(filled5(l.title)).toBe(true); expect(filled5(l.desc)).toBe(true) }
   })
 
@@ -268,7 +268,7 @@ describe('irəliləyiş (localStorage)', () => {
     p = withResult(p, 'letters', 40)
     expect(p.best.letters).toBe(90)
     expect(resumeLesson(p)).toBe('harakat')
-    expect(percentDone(p)).toBe(25)
+    expect(percentDone(p)).toBe(Math.round(100 / LESSONS.length)) // 1 / 9 dərs
     writeProgress(p)
     expect(readProgress()).toEqual(p)
   })

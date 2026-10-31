@@ -1,13 +1,14 @@
 // ═══════════════════════════════════════════════════════
-// Əsas funksiyalar: namaz vaxtları (sabit fikstür: Fajr 05:32 ...),
+// Əsas funksiyalar: namaz vaxtları (Bakı — yerli hesab, fixtures.js → azTimes),
 // Quran (seçilmiş dilin nəşri), hədis axtarışı.
 // ═══════════════════════════════════════════════════════
-import { test, expect, expectCleanConsole, settle } from './fixtures.js'
+import { test, expect, expectCleanConsole, settle, azTimes } from './fixtures.js'
 
 test('ana səhifədə namaz vaxtları görünür', async ({ page, consoleProblems }) => {
   await page.goto('/')
   await settle(page)
-  for (const t of ['05:32', '12:29', '15:24', '17:51', '19:10']) {
+  const t0 = azTimes()
+  for (const t of [t0.fajr, t0.dhuhr, t0.asr, t0.maghrib, t0.isha]) {
     await expect(page.getByText(t, { exact: true }).first()).toBeVisible()
   }
   expectCleanConsole(consoleProblems)
@@ -16,7 +17,7 @@ test('ana səhifədə namaz vaxtları görünür', async ({ page, consoleProblem
 test('namaz səhifəsi fikstür vaxtlarını göstərir', async ({ page, consoleProblems }) => {
   await page.goto('/prayer')
   await settle(page)
-  await expect(page.getByText('05:32', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText(azTimes().fajr, { exact: true }).first()).toBeVisible()
   expectCleanConsole(consoleProblems)
 })
 

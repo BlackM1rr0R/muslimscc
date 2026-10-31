@@ -1,0 +1,596 @@
+// ═══════════════════════════════════════════════════════
+// İslami söz lüğəti — ƏQİDƏ terminləri (5 dil).
+//
+// Təriflər Əhli-Sünnə vəl-Camaanın, yəni Sələfin əqidəsinə uyğundur:
+// Allahın adları və sifətləri təhrifsiz, təətilsiz, təkyifsiz və təmsilsiz
+// isbat edilir; xələfin təvili və mənanın təfvizi qəbul edilmir.
+// Ayələr api.quran.com-dan, hədis nömrələri fawazahmed0/hadith-api
+// (ara-bukhari) ilə yoxlanılıb. Yoxlanılmayan istinad yazılmır.
+//
+// Sahələr: term (az), ar, translit, cat, def{az,en,ru,ar,tr},
+// rel — əlaqəli terminlərin id-ləri (translit → kiçik hərf, apostrofsuz,
+// boşluq → "-"), lesson — /learn/<slug> dərsi (varsa).
+// ═══════════════════════════════════════════════════════
+
+export const GLOSSARY_AQIDAH = [
+  {
+    term: 'Rübubiyyət', ar: 'توحيد الربوبية', translit: 'Rububiyyah', cat: 'aqidah',
+    def: {
+      az: 'Allahı Öz işlərində tək tanımaq: yaratmaq, mülk sahibi olmaq, ruzi vermək, diriltmək, öldürmək və kainatı idarə etmək yalnız Ona məxsusdur. Məkkə müşrikləri də bunu qəbul edirdilər, lakin bu, ibadətdə tövhid olmadan insanı müsəlman etmir.',
+      en: 'Singling out Allah in His actions: creating, owning, providing, giving life and death, and governing the universe belong to Him alone. Even the pagans of Makkah acknowledged this, but without tawhid in worship it does not make a person Muslim.',
+      ru: 'Признание единственности Аллаха в Его действиях: творение, владычество, наделение уделом, оживление, умерщвление и управление вселенной принадлежат только Ему. Это признавали даже мекканские многобожники, но без единобожия в поклонении это не делает человека мусульманином.',
+      ar: 'إفراد الله بأفعاله: الخلق والملك والرزق والإحياء والإماتة وتدبير الكون. وقد أقرّ به مشركو مكة، لكنه لا يُدخل في الإسلام دون توحيد العبادة.',
+      tr: 'Allah\'ı fiillerinde tek kılmak: yaratmak, mülk sahibi olmak, rızık vermek, diriltmek, öldürmek ve kâinatı yönetmek yalnız O\'na aittir. Mekke müşrikleri de bunu kabul ediyordu; ancak ibadette tevhid olmadan bu, kişiyi Müslüman yapmaz.',
+    },
+    rel: ['tawhid', 'uluhiyyah', 'al-asma-was-sifat'],
+  },
+  {
+    term: 'Üluhiyyət', ar: 'توحيد الألوهية', translit: 'Uluhiyyah', cat: 'aqidah',
+    def: {
+      az: 'Bütün ibadətləri — dua, qurban, nəzir, qorxu, ümid, təvəkkül və s. — yalnız Allaha yönəltmək. «Lə iləhə illəllah» kəlməsinin mənası budur; peyğəmbərlər məhz buna dəvət etmək üçün göndərilib (Nəhl 16:36).',
+      en: 'Directing all acts of worship — supplication, sacrifice, vows, fear, hope, reliance and so on — to Allah alone. This is the meaning of «la ilaha illallah», and it is what every messenger was sent to call to (An-Nahl 16:36).',
+      ru: 'Обращение всех видов поклонения — мольбы, жертвоприношения, обета, страха, надежды, упования и т. д. — только к Аллаху. Таков смысл слов «ля иляха илляллах»; именно к этому призывали все посланники (ан-Нахль 16:36).',
+      ar: 'إفراد الله بالعبادة كلها: الدعاء والذبح والنذر والخوف والرجاء والتوكل وغيرها. وهو معنى «لا إله إلا الله»، ولأجله بُعثت الرسل (النحل: 36).',
+      tr: 'Bütün ibadetleri — dua, kurban, adak, korku, ümit, tevekkül vb. — yalnız Allah\'a yöneltmek. «Lâ ilâhe illallah» kelimesinin anlamı budur; bütün peygamberler buna davet için gönderilmiştir (Nahl 16:36).',
+    },
+    rel: ['tawhid', 'rububiyyah', 'ibadah', 'shirk'],
+    lesson: 'kitab-at-tawhid',
+  },
+  {
+    term: 'Əsma və Sifat', ar: 'توحيد الأسماء والصفات', translit: 'Al-Asma was-Sifat', cat: 'aqidah',
+    def: {
+      az: 'Allahın Özünü və Peyğəmbərinin ﷺ Onu vəsf etdiyi adları və sifətləri təhrifsiz, təətilsiz, keyfiyyətini soruşmadan və yaradılmışlara bənzətmədən isbat etmək. Qayda: «Onun bənzəri heç bir şey yoxdur. O, Eşidəndir, Görəndir» (Şura 42:11).',
+      en: 'Affirming the names and attributes with which Allah described Himself or His Messenger ﷺ described Him, without distortion, denial, asking how, or likening Him to creation. The rule: «There is nothing like Him, and He is the All-Hearing, the All-Seeing» (Ash-Shura 42:11).',
+      ru: 'Утверждение имён и атрибутов, которыми Аллах описал Себя или описал Его Посланник ﷺ, без искажения, отрицания, вопроса «как» и уподобления творению. Правило: «Нет ничего подобного Ему, и Он — Слышащий, Видящий» (аш-Шура 42:11).',
+      ar: 'إثبات ما أثبته الله لنفسه أو أثبته له رسوله ﷺ من الأسماء والصفات من غير تحريف ولا تعطيل ولا تكييف ولا تمثيل، على قاعدة: ﴿لَيْسَ كَمِثْلِهِۦ شَىْءٌ ۖ وَهُوَ ٱلسَّمِيعُ ٱلْبَصِيرُ﴾ (الشورى: 11).',
+      tr: 'Allah\'ın kendisini veya Peygamberi\'nin ﷺ O\'nu nitelediği isim ve sıfatları tahrif, tatil, keyfiyet sormak ve yaratılmışlara benzetmek olmaksızın ispat etmek. Kaide: «O\'nun benzeri hiçbir şey yoktur; O, işitendir, görendir» (Şûrâ 42:11).',
+    },
+    rel: ['tawhid', 'tahrif', 'tatil', 'tamthil'],
+  },
+  {
+    term: 'İstiva', ar: 'الاستواء', translit: 'Istiwa', cat: 'aqidah',
+    def: {
+      az: 'Allahın Ərş üzərinə ucalması: «Rəhman Ərş üzərinə istiva etdi» (Taha 20:5). Sələf onu «ucaldı, yüksəldi» deyə izah edib; necəliyi bilinmir. İmam Malikin sözü: «İstiva məlumdur, keyfiyyəti məchuldur, ona iman vacibdir, bu barədə sual bidətdir». «Ələ keçirdi» kimi təvil rədd edilir.',
+      en: 'Allah\'s rising over the Throne: «The Most Merciful rose over the Throne» (Ta-Ha 20:5). The Salaf explained it as «He ascended and rose high»; how is unknown. Imam Malik said: «Istiwa is known, its how is unknown, believing in it is obligatory and asking about it is an innovation.» Reinterpreting it as «took control» is rejected.',
+      ru: 'Вознесение Аллаха над Троном: «Милостивый вознёсся над Троном» (Та Ха 20:5). Саляф объясняли это как «возвысился и поднялся»; как — неизвестно. Имам Малик сказал: «Истива известна, её образ неизвестен, вера в неё обязательна, а вопрос о ней — нововведение». Толкование как «овладел» отвергается.',
+      ar: 'علوّ الله على عرشه: ﴿ٱلرَّحْمَـٰنُ عَلَى ٱلْعَرْشِ ٱسْتَوَىٰ﴾ (طه: 5). وفسّره السلف بـ«علا وارتفع» بلا تكييف، قال الإمام مالك: «الاستواء معلوم، والكيف مجهول، والإيمان به واجب، والسؤال عنه بدعة». وتأويله بـ«استولى» مردود.',
+      tr: 'Allah\'ın Arş üzerine yükselmesi: «Rahmân Arş\'a istivâ etti» (Tâhâ 20:5). Selef bunu «yükseldi, üstün oldu» diye açıklamıştır; nasıl olduğu bilinmez. İmam Mâlik: «İstivâ bilinmektedir, keyfiyeti meçhuldür, ona iman vaciptir, onu sormak bidattir.» «Hâkim oldu» şeklindeki tevil reddedilir.',
+    },
+    rel: ['arsh', 'uluww', 'al-asma-was-sifat', 'tawil'],
+  },
+  {
+    term: 'Nüzul', ar: 'النزول', translit: 'Nuzul', cat: 'aqidah',
+    def: {
+      az: 'Allahın hər gecənin son üçdə birində dünya səmasına enməsi və «Kim Mənə dua edir ki, ona cavab verim?» deməsi (Buxari 1145). Əhli-Sünnə bunu Ona layiq şəkildə, necəliyini soruşmadan isbat edir; «rəhmətinin enməsi» kimi təvil edilmir.',
+      en: 'Allah\'s descending to the lowest heaven in the last third of every night, saying: «Who is calling upon Me, that I may answer him?» (Bukhari 1145). Ahl as-Sunnah affirm it as befits Him, without asking how, and do not reinterpret it as «His mercy descends».',
+      ru: 'Нисхождение Аллаха к нижнему небу в последнюю треть каждой ночи со словами: «Кто взывает ко Мне, чтобы Я ответил ему?» (Бухари 1145). Ахль ас-Сунна утверждают его так, как подобает Ему, не спрашивая «как», и не толкуют как «нисхождение милости».',
+      ar: 'نزول الله تعالى إلى السماء الدنيا كل ليلة حين يبقى ثلث الليل الآخر فيقول: «من يدعوني فأستجيب له» (البخاري 1145). يثبته أهل السنة على ما يليق به بلا تكييف، ولا يؤولونه بنزول الرحمة.',
+      tr: 'Allah\'ın her gecenin son üçte birinde dünya semasına inmesi ve «Bana dua eden yok mu, ona icabet edeyim?» buyurması (Buhârî 1145). Ehl-i Sünnet bunu O\'na yakışır şekilde, keyfiyet sormadan ispat eder; «rahmetinin inmesi» diye tevil etmez.',
+    },
+    rel: ['al-asma-was-sifat', 'uluww', 'qiyam-al-layl'],
+  },
+  {
+    term: 'Üluvv', ar: 'العلو', translit: 'Uluww', cat: 'aqidah',
+    def: {
+      az: 'Allahın hər mənada uca olması: zatı ilə yaratdıqlarının üstündə, Ərş üzərindədir; qüdrəti və şanı da ucadır. Bununla yanaşı, elmi, eşitməsi və görməsi ilə hər şeyi əhatə edir. «Allah hər yerdədir» sözü Sələfin sözü deyil.',
+      en: 'Allah\'s highness in every sense: He is above His creation, over the Throne, in His very Self, and exalted in power and rank. At the same time He encompasses everything with His knowledge, hearing and sight. «Allah is everywhere» is not the statement of the Salaf.',
+      ru: 'Возвышенность Аллаха во всех смыслах: Он Сам над Своими творениями, над Троном, и возвышен могуществом и достоинством. При этом Он объемлет всё Своим знанием, слухом и зрением. Слова «Аллах повсюду» не являются словами саляфов.',
+      ar: 'علوّ الله بكل معانيه: علوّ الذات فوق خلقه مستويًا على عرشه، وعلوّ القهر والقدر. وهو مع ذلك محيط بكل شيء علمًا وسمعًا وبصرًا. وقول «الله في كل مكان» ليس من قول السلف.',
+      tr: 'Allah\'ın her anlamda yüce olması: zatıyla yaratıklarının üstünde, Arş üzerindedir; kudret ve şan bakımından da yücedir. Bununla birlikte ilmi, işitmesi ve görmesiyle her şeyi kuşatır. «Allah her yerdedir» sözü Selef\'in sözü değildir.',
+    },
+    rel: ['istiwa', 'arsh', 'nuzul'],
+  },
+  {
+    term: 'Rüyət', ar: 'رؤية الله', translit: 'Ru\'yah', cat: 'aqidah',
+    def: {
+      az: 'Möminlərin Qiyamət günü və Cənnətdə Allahı gözləri ilə görməsi: «O gün üzlər parlayacaq, Rəbbinə baxacaq» (Qiyamə 75:22–23). Bu dünyada heç kim Allahı görmür. Cəhmiyyə və Mötəzilə bunu inkar edib.',
+      en: 'The believers seeing Allah with their eyes on the Day of Resurrection and in Paradise: «Faces that Day will be radiant, looking at their Lord» (Al-Qiyamah 75:22–23). No one sees Allah in this world. The Jahmiyyah and Mu\'tazilah denied it.',
+      ru: 'Лицезрение Аллаха верующими своими глазами в Судный день и в Раю: «В тот день одни лица будут сиять, взирая на своего Господа» (аль-Кыяма 75:22–23). В этом мире никто не видит Аллаха. Джахмиты и мутазилиты это отрицали.',
+      ar: 'رؤية المؤمنين ربَّهم بأبصارهم يوم القيامة وفي الجنة: ﴿وُجُوهٌ يَوْمَئِذٍ نَّاضِرَةٌ ۝ إِلَىٰ رَبِّهَا نَاظِرَةٌ﴾ (القيامة: 22–23). ولا يراه أحد في الدنيا، وقد أنكرها الجهمية والمعتزلة.',
+      tr: 'Müminlerin Kıyamet günü ve Cennet\'te Allah\'ı gözleriyle görmesi: «O gün bazı yüzler parlaktır, Rablerine bakarlar» (Kıyâme 75:22–23). Bu dünyada kimse Allah\'ı görmez. Cehmiyye ve Mutezile bunu inkâr etmiştir.',
+    },
+    rel: ['jannah', 'qiyamah', 'jahmiyyah', 'mutazilah'],
+  },
+  {
+    term: 'Kəlamullah', ar: 'كلام الله', translit: 'Kalam Allah', cat: 'aqidah',
+    def: {
+      az: 'Allahın həqiqi sifəti olan sözü: O, istədiyi vaxt, istədiyi şəkildə, hərf və səslə danışır. Quran Allahın kəlamıdır, nazil edilib, yaradılmış deyil; Ondan başlayıb və Ona qayıdacaq (Tövbə 9:6).',
+      en: 'Allah\'s speech, a real attribute of His: He speaks when He wills, as He wills, with letters and sound. The Quran is the speech of Allah, revealed and not created; it came from Him and will return to Him (At-Tawbah 9:6).',
+      ru: 'Речь Аллаха — Его истинный атрибут: Он говорит, когда пожелает и как пожелает, буквами и звуком. Коран — речь Аллаха, ниспосланная, а не сотворённая; от Него она исходит и к Нему вернётся (ат-Тауба 9:6).',
+      ar: 'صفة حقيقية لله: يتكلم متى شاء كيف شاء بحرف وصوت. والقرآن كلام الله منزَّل غير مخلوق، منه بدأ وإليه يعود (التوبة: 6).',
+      tr: 'Allah\'ın hakiki sıfatı olan kelamı: dilediği zaman, dilediği şekilde, harf ve sesle konuşur. Kur\'an Allah\'ın kelamıdır, indirilmiştir, yaratılmış değildir; O\'ndan başlamış ve O\'na dönecektir (Tevbe 9:6).',
+    },
+    rel: ['quran', 'wahy', 'mutazilah'],
+  },
+  {
+    term: 'Təətil', ar: 'التعطيل', translit: 'Ta\'til', cat: 'aqidah',
+    def: {
+      az: 'Allahın adlarını və ya sifətlərini tamamilə, yaxud qismən inkar etmək, onları mənasız saymaq. Cəhmiyyə adları da, sifətləri də, Mötəzilə isə sifətləri inkar edib. Əhli-Sünnə bunun əksinə hamısını isbat edir.',
+      en: 'Denying Allah\'s names or attributes, wholly or partly, or emptying them of meaning. The Jahmiyyah denied both names and attributes; the Mu\'tazilah denied the attributes. Ahl as-Sunnah affirm them all.',
+      ru: 'Отрицание имён или атрибутов Аллаха полностью или частично, лишение их смысла. Джахмиты отрицали и имена, и атрибуты, мутазилиты — атрибуты. Ахль ас-Сунна утверждают их все.',
+      ar: 'نفي أسماء الله أو صفاته كلها أو بعضها وتجريدها من معانيها. فالجهمية نفت الأسماء والصفات، والمعتزلة نفت الصفات، وأهل السنة يثبتونها جميعًا.',
+      tr: 'Allah\'ın isimlerini veya sıfatlarını tamamen ya da kısmen inkâr etmek, onları anlamsız saymak. Cehmiyye hem isimleri hem sıfatları, Mutezile ise sıfatları inkâr etmiştir. Ehl-i Sünnet hepsini ispat eder.',
+    },
+    rel: ['al-asma-was-sifat', 'tahrif', 'jahmiyyah'],
+  },
+  {
+    term: 'Təhrif', ar: 'التحريف', translit: 'Tahrif', cat: 'aqidah',
+    def: {
+      az: 'Mətnin sözünü və ya mənasını dəyişdirmək. Sifətlərdə: ayə və hədisi Allahın və Rəsulunun murad etmədiyi mənaya yozmaq, məsələn, «əl»i «nemət», «istiva»nı «ələ keçirmə» kimi izah etmək.',
+      en: 'Altering the wording or meaning of a text. In the attributes: twisting a verse or hadith to a meaning Allah and His Messenger did not intend, e.g. explaining «hand» as «favour» or «istiwa» as «taking control».',
+      ru: 'Изменение слов или смысла текста. В вопросе атрибутов — придание аяту или хадису смысла, которого не подразумевали Аллах и Его Посланник, например толкование «руки» как «милости», а «истивы» как «овладения».',
+      ar: 'تغيير لفظ النص أو معناه. وفي الصفات: صرف الآية أو الحديث إلى معنى لم يُرده الله ورسوله، كتفسير اليد بالنعمة والاستواء بالاستيلاء.',
+      tr: 'Metnin lafzını veya anlamını değiştirmek. Sıfatlarda: ayet ve hadisi Allah\'ın ve Resulü\'nün kastetmediği bir anlama çekmek; örneğin «el»i «nimet», «istivâ»yı «hâkim olma» diye açıklamak.',
+    },
+    rel: ['tawil', 'tatil', 'al-asma-was-sifat'],
+  },
+  {
+    term: 'Təkyif', ar: 'التكييف', translit: 'Takyif', cat: 'aqidah',
+    def: {
+      az: 'Allahın sifətlərinin necəliyini (keyfiyyətini) müəyyən etmək və ya bunu soruşmaq. Sifətlərin mənası məlumdur, necəliyi isə yalnız Allaha məlumdur; ona görə Əhli-Sünnə «necə?» sualını vermir.',
+      en: 'Specifying or asking about the «how» of Allah\'s attributes. The meanings of the attributes are known, while their how is known only to Allah; so Ahl as-Sunnah do not ask «how?».',
+      ru: 'Определение или выяснение образа («как») атрибутов Аллаха. Смысл атрибутов известен, а их образ знает лишь Аллах, поэтому Ахль ас-Сунна не задают вопрос «как?».',
+      ar: 'تعيين كيفية صفات الله أو السؤال عنها. فمعاني الصفات معلومة، وكيفيتها لا يعلمها إلا الله، فلا يسأل أهل السنة عنها بـ«كيف».',
+      tr: 'Allah\'ın sıfatlarının nasıllığını (keyfiyetini) belirlemek veya bunu sormak. Sıfatların anlamı bilinir, nasıllığını ise yalnız Allah bilir; bu yüzden Ehl-i Sünnet «nasıl?» diye sormaz.',
+    },
+    rel: ['tamthil', 'istiwa', 'al-asma-was-sifat'],
+  },
+  {
+    term: 'Təmsil', ar: 'التمثيل', translit: 'Tamthil', cat: 'aqidah',
+    def: {
+      az: 'Allahı və ya sifətlərini yaradılmışlara bənzətmək (təşbih də deyilir). «Onun bənzəri heç bir şey yoxdur» (Şura 42:11) ayəsi ilə rədd edilir. Sifəti isbat etmək təmsil deyil: Allahın eşitməsi var, amma yaradılmışların eşitməsinə bənzəmir.',
+      en: 'Likening Allah or His attributes to creation (also called tashbih). It is refuted by «There is nothing like Him» (Ash-Shura 42:11). Affirming an attribute is not tamthil: Allah hears, but His hearing is not like that of creation.',
+      ru: 'Уподобление Аллаха или Его атрибутов творениям (также ташбих). Опровергается аятом «Нет ничего подобного Ему» (аш-Шура 42:11). Утверждение атрибута не является уподоблением: Аллах слышит, но Его слух не подобен слуху творений.',
+      ar: 'تشبيه الله أو صفاته بصفات المخلوقين، ويُردّ بقوله: ﴿لَيْسَ كَمِثْلِهِۦ شَىْءٌ﴾ (الشورى: 11). وإثبات الصفة ليس تمثيلًا؛ فلله سمع لا يشبه سمع المخلوقين.',
+      tr: 'Allah\'ı veya sıfatlarını yaratılmışlara benzetmek (teşbih de denir). «O\'nun benzeri hiçbir şey yoktur» (Şûrâ 42:11) ayetiyle reddedilir. Sıfatı ispat etmek temsil değildir: Allah işitir, ama işitmesi yaratılmışlarınkine benzemez.',
+    },
+    rel: ['takyif', 'al-asma-was-sifat', 'tatil'],
+  },
+  {
+    term: 'Təvil', ar: 'التأويل', translit: 'Ta\'wil', cat: 'aqidah',
+    def: {
+      az: 'Quranda və Sələfin dilində iki mənası var: təfsir (izah) və xəbər verilən şeyin həqiqəti, yəni gerçəkləşməsi. Sonrakı kəlamçıların istilahındakı təvil — sözü zahiri mənasından dəlilsiz başqa mənaya çevirmək — sifətlərdə təhrif sayılır və rədd edilir.',
+      en: 'In the Quran and the usage of the Salaf it has two meanings: tafsir (explanation) and the actual reality of what is spoken of. The later theologians\' ta\'wil — turning a word from its apparent meaning to another without evidence — is, in the attributes, a form of distortion and is rejected.',
+      ru: 'В Коране и у саляфов имеет два значения: тафсир (разъяснение) и реальность того, о чём сообщается. Тавиль поздних богословов — отведение слова от явного смысла к другому без довода — в вопросе атрибутов является искажением и отвергается.',
+      ar: 'له في القرآن ولغة السلف معنيان: التفسير، وحقيقة ما يؤول إليه الكلام. أما تأويل المتأخرين من أهل الكلام — صرف اللفظ عن ظاهره إلى معنى آخر بلا دليل — فهو في الصفات تحريف مردود.',
+      tr: 'Kur\'an\'da ve Selef\'in dilinde iki anlamı vardır: tefsir (açıklama) ve haber verilen şeyin gerçekleşen hakikati. Sonraki kelamcıların tevili — sözü zahirî anlamından delilsiz başka bir anlama çevirmek — sıfatlarda tahriftir ve reddedilir.',
+    },
+    rel: ['tahrif', 'tafwid', 'tafsir', 'mutashabih'],
+  },
+  {
+    term: 'Təfviz', ar: 'التفويض', translit: 'Tafwid', cat: 'aqidah',
+    def: {
+      az: 'Sifətlərin mənasını bilinməz sayıb Allaha həvalə etmək. Bu, Sələfin yolu deyil: onlar sifətlərin mənasını bilib izah edirdilər, yalnız necəliyini (keyfiyyətini) Allaha həvalə edirdilər.',
+      en: 'Consigning the meaning of the attributes to Allah, treating it as unknowable. This was not the way of the Salaf: they knew and explained the meanings and consigned only the «how» to Allah.',
+      ru: 'Предоставление Аллаху знания о смысле атрибутов как о чём-то непостижимом. Это не путь саляфов: они знали и разъясняли смысл, а Аллаху предоставляли лишь знание об образе («как»).',
+      ar: 'تفويض معاني الصفات إلى الله واعتقاد أنها مجهولة. وليس هذا مذهب السلف؛ فقد كانوا يعلمون المعاني ويفسرونها، وإنما يفوّضون الكيفية.',
+      tr: 'Sıfatların anlamını bilinemez sayıp Allah\'a havale etmek. Bu, Selef\'in yolu değildir: onlar sıfatların anlamını bilip açıklar, yalnızca nasıllığını Allah\'a havale ederlerdi.',
+    },
+    rel: ['tawil', 'takyif', 'salaf'],
+  },
+  {
+    term: 'Təvəssül', ar: 'التوسل', translit: 'Tawassul', cat: 'aqidah',
+    def: {
+      az: 'Allaha yaxınlaşmaq üçün vasitə tutmaq. Caiz növləri: Allahın adları və sifətləri ilə, insanın öz saleh əməlləri ilə və diri saleh insandan dua istəməklə. Ölüdən və ya qaibdən dua istəmək şirkdir; birinin «haqqı» və ya «məqamı» ilə təvəssül isə bidətdir və şirkə vasitədir.',
+      en: 'Seeking a means of nearness to Allah. Lawful kinds: by Allah\'s names and attributes, by one\'s own righteous deeds, and by asking a living righteous person to supplicate. Asking the dead or absent is shirk; tawassul by someone\'s «right» or «status» is an innovation and a path to shirk.',
+      ru: 'Поиск средства приближения к Аллаху. Дозволенные виды: именами и атрибутами Аллаха, собственными праведными делами и просьбой к живому праведнику сделать дуа. Просьба к умершим или отсутствующим — ширк; тавассуль чьим-то «правом» или «положением» — нововведение и путь к ширку.',
+      ar: 'اتخاذ الوسيلة إلى الله. ومنه المشروع: التوسل بأسماء الله وصفاته، وبالعمل الصالح، وبدعاء الرجل الصالح الحيّ. ومنه الممنوع: دعاء الأموات والغائبين وهو شرك، والتوسل بجاه فلان أو حقه وهو بدعة ووسيلة إلى الشرك.',
+      tr: 'Allah\'a yaklaşmak için vesile edinmek. Meşru türleri: Allah\'ın isim ve sıfatlarıyla, kişinin kendi salih amelleriyle ve hayattaki salih bir kimseden dua istemekle. Ölüden veya orada olmayandan istemek şirktir; birinin «hakkı» ya da «makamı» ile tevessül ise bidattir ve şirke vesiledir.',
+    },
+    rel: ['dua', 'istighathah', 'shirk', 'bidah'],
+    lesson: 'al-qawaid-al-arba',
+  },
+  {
+    term: 'İstiğasə', ar: 'الاستغاثة', translit: 'Istighathah', cat: 'aqidah',
+    def: {
+      az: 'Çətinlik və bəla anında kömək diləmək. Yalnız Allahın gücü çatan işdə (şəfa, ruzi, xilas) Allahdan başqasından kömək diləmək böyük şirkdir. Diri və hazır olan insandan onun gücü çatan işdə kömək istəmək isə caizdir.',
+      en: 'Calling for rescue in hardship. Seeking rescue from other than Allah in what only Allah can do (healing, provision, deliverance) is major shirk. Asking a living, present person for help in what he is able to do is permissible.',
+      ru: 'Призыв о спасении в беде. Просить о спасении не у Аллаха в том, что под силу только Ему (исцеление, удел, избавление), — великий ширк. Просить живого присутствующего человека о том, что ему по силам, дозволено.',
+      ar: 'طلب الغوث عند الشدة. وطلبه من غير الله فيما لا يقدر عليه إلا الله — كالشفاء والرزق والنجاة — شرك أكبر، وطلبه من الحيّ الحاضر فيما يقدر عليه جائز.',
+      tr: 'Sıkıntı ve bela anında yardım dilemek. Yalnız Allah\'ın gücü yeten bir işte (şifa, rızık, kurtuluş) Allah\'tan başkasından yardım dilemek büyük şirktir. Hayatta ve hazır olan birinden gücü yettiği bir işte yardım istemek ise caizdir.',
+    },
+    rel: ['tawassul', 'dua', 'shirk'],
+    lesson: 'al-qawaid-al-arba',
+  },
+  {
+    term: 'Vəla və Bəra', ar: 'الولاء والبراء', translit: 'Al-Wala\' wal-Bara\'', cat: 'aqidah',
+    def: {
+      az: 'Allah, Rəsulu və möminləri sevmək, onlara dost olmaq; küfrdən, şirkdən və onun əhlinin dinindən uzaq olmaq (Mümtəhinə 60:4). Bu, kafirlərə haqsızlıq etməyi və ya onlarla ədalətli, gözəl davranışı qadağan etmək demək deyil.',
+      en: 'Loving and allying with Allah, His Messenger and the believers, and disassociating from disbelief, shirk and the religion of its people (Al-Mumtahanah 60:4). It does not mean wronging non-Muslims or forbidding justice and kindness towards them.',
+      ru: 'Любовь и близость к Аллаху, Его Посланнику и верующим и непричастность к неверию, ширку и религии их приверженцев (аль-Мумтахана 60:4). Это не означает несправедливости к немусульманам и не запрещает справедливое и доброе обращение с ними.',
+      ar: 'محبة الله ورسوله والمؤمنين وموالاتهم، والبراءة من الكفر والشرك ومن دين أهله (الممتحنة: 4). ولا يعني ذلك ظلم غير المسلمين ولا ترك العدل والإحسان إليهم.',
+      tr: 'Allah\'ı, Resulü\'nü ve müminleri sevmek, onlara dost olmak; küfürden, şirkten ve ehlinin dininden uzak durmak (Mümtehine 60:4). Bu, gayrimüslimlere haksızlık etmek ya da onlara adaletli ve iyi davranmayı yasaklamak anlamına gelmez.',
+    },
+    rel: ['iman', 'tawhid', 'kufr'],
+  },
+  {
+    term: 'Küfr', ar: 'الكفر', translit: 'Kufr', cat: 'aqidah',
+    def: {
+      az: 'İmanın ziddi: Allaha və Rəsuluna iman etməmək — inkar, təkəbbür, şübhə, üz çevirmə və ya nifaq yolu ilə. Böyük küfr insanı dindən çıxarır; kiçik küfr (məsələn, nemətə nankorluq) çıxarmır, lakin böyük günahdır.',
+      en: 'The opposite of faith: not believing in Allah and His Messenger — through denial, arrogance, doubt, turning away or hypocrisy. Major kufr takes a person out of Islam; minor kufr (e.g. ingratitude for blessings) does not, but is a grave sin.',
+      ru: 'Противоположность веры: неверие в Аллаха и Его Посланника — через отрицание, высокомерие, сомнение, отвращение или лицемерие. Большое неверие выводит из Ислама; малое (например, неблагодарность за милости) не выводит, но является тяжким грехом.',
+      ar: 'ضد الإيمان: عدم الإيمان بالله ورسوله تكذيبًا أو استكبارًا أو شكًّا أو إعراضًا أو نفاقًا. والكفر الأكبر مخرج من الملة، والأصغر — ككفر النعمة — لا يخرج منها لكنه كبيرة.',
+      tr: 'İmanın zıddı: Allah\'a ve Resulü\'ne inanmamak — yalanlama, kibir, şüphe, yüz çevirme veya nifak yoluyla. Büyük küfür kişiyi dinden çıkarır; küçük küfür (örneğin nimete nankörlük) çıkarmaz ama büyük günahtır.',
+    },
+    rel: ['iman', 'nifaq', 'takfir', 'shirk'],
+  },
+  {
+    term: 'Nifaq', ar: 'النفاق', translit: 'Nifaq', cat: 'aqidah',
+    def: {
+      az: 'Zahirdə İslamı göstərib batində başqa şey gizlətmək. Əqidədə nifaq (qəlbdə küfrü gizlətmək) dindən çıxarır və sahibi Cəhənnəmin ən aşağı təbəqəsindədir; əməldə nifaq (yalan, vədə xilaf çıxmaq, əmanətə xəyanət) günahdır, lakin dindən çıxarmır.',
+      en: 'Showing Islam outwardly while concealing something else inwardly. Nifaq in belief (hiding disbelief) takes one out of Islam, and its people are in the lowest depth of Hell; nifaq in deeds (lying, breaking promises, betraying trusts) is sinful but does not take one out of Islam.',
+      ru: 'Демонстрация Ислама внешне при сокрытии иного внутри. Лицемерие в убеждениях (сокрытие неверия) выводит из Ислама, и его носители — в самой нижней части Ада; лицемерие в делах (ложь, нарушение обещаний, предательство доверия) — грех, но не выводит из Ислама.',
+      ar: 'إظهار الإسلام وإبطان خلافه. فالنفاق الاعتقادي — إبطان الكفر — مخرج من الملة وأهله في الدرك الأسفل من النار، والنفاق العملي — كالكذب وإخلاف الوعد وخيانة الأمانة — معصية لا تخرج من الملة.',
+      tr: 'Dışta İslam\'ı gösterip içte başka bir şey gizlemek. İtikadi nifak (kalpte küfrü gizlemek) dinden çıkarır ve sahibi Cehennem\'in en alt tabakasındadır; amelî nifak (yalan, sözünde durmamak, emanete hıyanet) günahtır ama dinden çıkarmaz.',
+    },
+    rel: ['kufr', 'iman', 'riya'],
+  },
+  {
+    term: 'Kiçik şirk', ar: 'الشرك الأصغر', translit: 'Shirk Asghar', cat: 'aqidah',
+    def: {
+      az: 'Dəlillərdə şirk adlandırılan, lakin böyük şirk dərəcəsinə çatmayan əməl: azacıq riya, Allahdan başqası ilə and içmək, «Allah və sən istədin» demək, təmimə taxmaq (səbəb sayaraq). Dindən çıxarmır, lakin böyük günahlardan daha ağırdır.',
+      en: 'Acts called shirk in the texts that do not reach major shirk: slight showing off, swearing by other than Allah, saying «as Allah and you willed», wearing an amulet believing it a mere cause. It does not take one out of Islam but is graver than the major sins.',
+      ru: 'Дела, названные в текстах ширком, но не достигающие большого ширка: небольшое показное поклонение, клятва не Аллахом, слова «как пожелали Аллах и ты», ношение амулета как «причины». Не выводит из Ислама, но тяжелее больших грехов.',
+      ar: 'ما سُمّي في النصوص شركًا ولم يبلغ الشرك الأكبر: كيسير الرياء، والحلف بغير الله، وقول «ما شاء الله وشئت»، ولبس التميمة على أنها سبب. لا يخرج من الملة لكنه أعظم من الكبائر.',
+      tr: 'Delillerde şirk diye adlandırılan ama büyük şirk derecesine varmayan ameller: az miktarda riya, Allah\'tan başkası adına yemin, «Allah ve sen diledin» demek, muskayı sebep sayarak takmak. Dinden çıkarmaz ama büyük günahlardan daha ağırdır.',
+    },
+    rel: ['shirk', 'riya', 'tamimah', 'yamin'],
+  },
+  {
+    term: 'Riya', ar: 'الرياء', translit: 'Riya\'', cat: 'aqidah',
+    def: {
+      az: 'İbadəti insanlar görsün və tərifləsin deyə etmək. İxlasın ziddidir və kiçik şirkdəndir; qarışdığı əməlin savabını puç edir. Əməli insanlara görə tərk etmək də riyanın bir növü sayılıb.',
+      en: 'Performing worship so that people see and praise it. It is the opposite of sincerity and a form of minor shirk; it nullifies the reward of the deed it enters. Abandoning a deed because of people has also been counted as a kind of it.',
+      ru: 'Совершение поклонения ради того, чтобы люди видели и хвалили. Противоположность искренности и вид малого ширка; лишает награды дело, к которому примешивается. Оставление дела из-за людей также относили к его разновидностям.',
+      ar: 'أن يعمل العبادة ليراه الناس فيحمدوه. وهو ضد الإخلاص ومن الشرك الأصغر، ويُحبط ثواب العمل الذي خالطه.',
+      tr: 'İbadeti insanlar görsün ve övsün diye yapmak. İhlasın zıddıdır ve küçük şirktendir; karıştığı amelin sevabını boşa çıkarır. Ameli insanlar yüzünden terk etmek de onun bir türü sayılmıştır.',
+    },
+    rel: ['ikhlas', 'shirk-asghar', 'ujb'],
+  },
+  {
+    term: 'Tağut', ar: 'الطاغوت', translit: 'Taghut', cat: 'aqidah',
+    def: {
+      az: 'Allahdan başqa ibadət edilən və buna razı olan hər şey: şeytan, özünə ibadətə çağıran, Allahın hökmündən başqası ilə hökm verən, qeybi bildiyini iddia edən. Tağutu inkar etmək tövhidin şərtidir (Nəhl 16:36).',
+      en: 'Everything worshipped besides Allah while being pleased with it: Satan, one who calls to his own worship, one who judges by other than Allah\'s law, one who claims knowledge of the unseen. Rejecting taghut is a condition of tawhid (An-Nahl 16:36).',
+      ru: 'Всё, чему поклоняются помимо Аллаха и что этим довольно: шайтан, призывающий к поклонению себе, судящий не по закону Аллаха, притязающий на знание сокровенного. Отвержение тагута — условие единобожия (ан-Нахль 16:36).',
+      ar: 'كل ما عُبد من دون الله وهو راضٍ: كالشيطان، والداعي إلى عبادة نفسه، والحاكم بغير ما أنزل الله، ومدّعي علم الغيب. والكفر بالطاغوت شرط في التوحيد (النحل: 36).',
+      tr: 'Allah\'tan başka ibadet edilen ve buna razı olan her şey: şeytan, kendisine ibadete çağıran, Allah\'ın hükmünden başkasıyla hükmeden, gaybı bildiğini iddia eden. Tağutu inkâr etmek tevhidin şartıdır (Nahl 16:36).',
+    },
+    rel: ['uluhiyyah', 'shirk', 'shahadah'],
+    lesson: 'usul-ath-thalatha',
+  },
+  {
+    term: 'Sehr', ar: 'السحر', translit: 'Sihr', cat: 'aqidah',
+    def: {
+      az: 'Şeytanların köməyi ilə edilən, bədənə, ağla və qəlbə təsir göstərən düyün, ovsun və vasitələr; Allahın izni olmadan heç kimə zərər vermir (Bəqərə 2:102). Sehr etmək və öyrənmək küfrdür, sehrbaza müraciət etmək haramdır.',
+      en: 'Knots, spells and means worked through devils that affect the body, mind and heart; they harm no one except by Allah\'s permission (Al-Baqarah 2:102). Practising or learning sorcery is kufr, and going to a sorcerer is forbidden.',
+      ru: 'Узлы, заклинания и средства, совершаемые с помощью шайтанов и воздействующие на тело, разум и сердце; они никому не вредят без дозволения Аллаха (аль-Бакара 2:102). Колдовство и его изучение — неверие, обращение к колдуну запрещено.',
+      ar: 'عُقد ورُقى وأسباب يُستعان فيها بالشياطين، تؤثر في البدن والعقل والقلب، ولا تضرّ أحدًا إلا بإذن الله (البقرة: 102). وتعاطيه وتعلّمه كفر، والذهاب إلى الساحر محرّم.',
+      tr: 'Şeytanların yardımıyla yapılan, bedene, akla ve kalbe etki eden düğüm, efsun ve vasıtalar; Allah\'ın izni olmadan kimseye zarar vermez (Bakara 2:102). Sihir yapmak ve öğrenmek küfürdür, sihirbaza gitmek haramdır.',
+    },
+    rel: ['kahanah', 'ruqyah', 'jinn'],
+  },
+  {
+    term: 'Kahinlik', ar: 'الكهانة', translit: 'Kahanah', cat: 'aqidah',
+    def: {
+      az: 'Gələcəkdən və qeybdən xəbər verdiyini iddia etmək — cinlərdən, falçılıqdan, ulduzlardan və s. istifadə edərək. Qeybi yalnız Allah bilir; kahinə və falçıya gedib onu təsdiq etmək Məhəmmədə ﷺ nazil olana küfr sayılıb.',
+      en: 'Claiming to tell the future and the unseen — via jinn, fortune-telling, the stars and the like. Only Allah knows the unseen; going to a soothsayer or fortune-teller and believing him has been described as disbelief in what was revealed to Muhammad ﷺ.',
+      ru: 'Притязание на знание будущего и сокровенного — через джиннов, гадание, звёзды и т. п. Сокровенное знает только Аллах; обращение к прорицателю или гадалке с верой в их слова названо неверием в ниспосланное Мухаммаду ﷺ.',
+      ar: 'ادّعاء علم الغيب والإخبار عن المستقبل بالاستعانة بالجن أو العرافة أو النجوم ونحوها. ولا يعلم الغيب إلا الله، ومن أتى كاهنًا فصدّقه فقد كفر بما أُنزل على محمد ﷺ.',
+      tr: 'Gelecekten ve gaybdan haber verdiğini iddia etmek — cinler, falcılık, yıldızlar vb. aracılığıyla. Gaybı yalnız Allah bilir; kâhine veya falcıya gidip onu tasdik etmek Muhammed\'e ﷺ indirilene küfür sayılmıştır.',
+    },
+    rel: ['ghayb', 'sihr', 'tiyarah'],
+  },
+  {
+    term: 'Təmimə (tilsim)', ar: 'التميمة', translit: 'Tamimah', cat: 'aqidah',
+    def: {
+      az: 'Bəladan qorunmaq və ya onu dəf etmək üçün taxılan muncuq, nal, «göz» muncuğu, sap və s. Onu təsir edən səbəb saymaq kiçik şirk, özü fayda verir demək isə böyük şirkdir. Qurandan olan tilsimi də Səhabələrin bir qismi qadağan edib, ehtiyat onu tərk etməkdir.',
+      en: 'Beads, horseshoes, «evil eye» charms, threads and the like worn to ward off harm. Believing it a cause is minor shirk; believing it benefits by itself is major shirk. Some Companions forbade even amulets of Quran, and the safer way is to leave them.',
+      ru: 'Бусы, подковы, «глаз от сглаза», нити и т. п., носимые для защиты от беды. Считать их причиной — малый ширк, а считать, что они сами приносят пользу, — большой ширк. Часть сподвижников запрещала даже амулеты с Кораном; осторожнее их оставить.',
+      ar: 'ما يُعلَّق من خرز أو حدوة أو خيط ونحوها لدفع البلاء أو رفعه. واعتقاد أنها سبب شرك أصغر، واعتقاد أنها تنفع بذاتها شرك أكبر. وقد منع بعض الصحابة التمائم من القرآن أيضًا، والأحوط تركها.',
+      tr: 'Beladan korunmak veya onu gidermek için takılan boncuk, nal, nazarlık, ip vb. Onu etkili bir sebep saymak küçük şirk, bizzat fayda verir demek büyük şirktir. Bazı sahabiler Kur\'an\'dan olan muskayı da yasaklamıştır; ihtiyatlı olan onu terk etmektir.',
+    },
+    rel: ['shirk-asghar', 'ruqyah', 'ayn'],
+  },
+  {
+    term: 'Tiyərə (uğursuzluq inancı)', ar: 'الطيرة', translit: 'Tiyarah', cat: 'aqidah',
+    def: {
+      az: 'Quşdan, gündən, rəqəmdən və ya rast gəlinən şeydən uğursuzluq çıxarıb buna görə işdən çəkinmək. Peyğəmbər ﷺ buyurub: «Yoluxma (öz-özünə) yoxdur, tiyərə yoxdur; mənim xoşuma fəl — gözəl söz gəlir» (Buxari 5776). Kiçik şirkdəndir.',
+      en: 'Drawing bad omens from birds, days, numbers or things encountered and being held back by them. The Prophet ﷺ said: «There is no contagion (by itself) and no tiyarah, and I like optimism — a good word» (Bukhari 5776). It is a form of minor shirk.',
+      ru: 'Вывод дурных примет из птиц, дней, чисел или встреченного и отказ из-за них от дела. Пророк ﷺ сказал: «Нет заразы (самой по себе) и нет дурных примет, а нравится мне добрый знак — хорошее слово» (Бухари 5776). Относится к малому ширку.',
+      ar: 'التشاؤم بالطيور أو الأيام أو الأرقام أو المرئيات والانصراف بسببه عن الحاجة. قال ﷺ: «لا عدوى ولا طيرة، ويعجبني الفأل: الكلمة الطيبة» (البخاري 5776). وهي من الشرك الأصغر.',
+      tr: 'Kuştan, günden, rakamdan veya karşılaşılan şeyden uğursuzluk çıkarıp bu yüzden işten vazgeçmek. Peygamber ﷺ: «Hastalık (kendiliğinden) bulaşmaz, uğursuzluk yoktur; bana fe\'l — güzel söz hoş gelir» buyurmuştur (Buhârî 5776). Küçük şirktendir.',
+    },
+    rel: ['shirk-asghar', 'tawakkul', 'qadr'],
+  },
+  {
+    term: 'Göz dəyməsi (Ayn)', ar: 'العين', translit: 'Ayn', cat: 'aqidah',
+    def: {
+      az: 'Həsəd və ya heyranlıqla baxan gözün Allahın izni ilə zərər verməsi. Peyğəmbər ﷺ buyurub: «Göz dəyməsi haqdır» (Buxari 5740). Qorunmaq üçün bəyənilən şeyə bərəkət diləmək, zikr və rüqyə edilir, muncuq yox.',
+      en: 'Harm caused, by Allah\'s permission, by an envious or admiring gaze. The Prophet ﷺ said: «The evil eye is real» (Bukhari 5740). Protection is by asking blessing for what one admires, by dhikr and ruqyah — not by charms.',
+      ru: 'Вред, причиняемый с дозволения Аллаха завистливым или восхищённым взглядом. Пророк ﷺ сказал: «Сглаз — истина» (Бухари 5740). Защищаются пожеланием благодати тому, что понравилось, поминанием Аллаха и рукьёй, а не амулетами.',
+      ar: 'إصابة العائن غيرَه بنظرة حسد أو إعجاب بإذن الله. قال ﷺ: «العين حق» (البخاري 5740). ويُتّقى بالتبريك على ما يُعجب، وبالأذكار والرقية، لا بالتمائم.',
+      tr: 'Haset veya hayranlıkla bakan gözün Allah\'ın izniyle zarar vermesi. Peygamber ﷺ: «Nazar haktır» buyurmuştur (Buhârî 5740). Korunmak için beğenilen şeye bereket dilenir, zikir ve rukye yapılır; nazarlık takılmaz.',
+    },
+    rel: ['ruqyah', 'hasad', 'tamimah'],
+  },
+  {
+    term: 'Cin', ar: 'الجن', translit: 'Jinn', cat: 'aqidah',
+    def: {
+      az: 'Allahın alovdan yaratdığı, gözə görünməyən, mükəlləf varlıqlar; içlərində mömin də, kafir də var, şeytanlar da onlardandır. Onlar da Allaha ibadət üçün yaradılıb (Zariyat 51:56). Cinlərə sığınmaq və onlardan kömək diləmək şirkdir (Cin 72:6).',
+      en: 'Unseen, accountable beings created by Allah from fire; among them are believers and disbelievers, and the devils are from them. They too were created to worship Allah (Adh-Dhariyat 51:56). Seeking refuge in jinn or help from them is shirk (Al-Jinn 72:6).',
+      ru: 'Невидимые, обременённые обязанностями существа, сотворённые Аллахом из огня; среди них есть верующие и неверующие, шайтаны тоже из них. Они также созданы для поклонения Аллаху (аз-Зарийат 51:56). Искать защиты у джиннов и просить у них помощи — ширк (аль-Джинн 72:6).',
+      ar: 'خلق غيبي مكلَّف خلقه الله من نار، منهم المؤمن والكافر، والشياطين منهم. خُلقوا لعبادة الله (الذاريات: 56)، والاستعاذة بهم وطلب العون منهم شرك (الجن: 6).',
+      tr: 'Allah\'ın ateşten yarattığı, gözle görünmeyen, mükellef varlıklar; aralarında mümin de kâfir de vardır, şeytanlar da onlardandır. Onlar da Allah\'a ibadet için yaratılmıştır (Zâriyât 51:56). Cinlere sığınmak ve onlardan yardım istemek şirktir (Cin 72:6).',
+    },
+    rel: ['ghayb', 'sihr', 'ruqyah', 'malaikah'],
+  },
+  {
+    term: 'Mələklər', ar: 'الملائكة', translit: 'Mala\'ikah', cat: 'aqidah',
+    def: {
+      az: 'Allahın nurdan yaratdığı, Ona heç vaxt asi olmayan, əmrlərini yerinə yetirən qeybi varlıqlar. Onlara iman imanın altı rüknündən biridir: adı bildirilənlərə (Cəbrayıl, Mikail, İsrafil və b.) adları ilə, qalanlarına ümumi şəkildə iman edilir.',
+      en: 'Unseen beings created by Allah from light, who never disobey Him and carry out His commands. Belief in them is one of the six pillars of faith: in those named (Jibril, Mika\'il, Israfil and others) by name, and in the rest in general.',
+      ru: 'Сокровенные существа, сотворённые Аллахом из света, которые никогда не ослушиваются Его и исполняют Его повеления. Вера в них — один из шести столпов веры: в названных (Джибриль, Микаиль, Исрафиль и др.) — поимённо, в остальных — в целом.',
+      ar: 'عالم غيبي خلقهم الله من نور، لا يعصونه ويفعلون ما يؤمرون. والإيمان بهم أحد أركان الإيمان الستة: بمن سُمّي منهم كجبريل وميكائيل وإسرافيل تفصيلًا، وبالباقين إجمالًا.',
+      tr: 'Allah\'ın nurdan yarattığı, O\'na asla isyan etmeyen ve emirlerini yerine getiren gaybi varlıklar. Onlara iman, imanın altı rüknünden biridir: adı bildirilenlere (Cebrâil, Mîkâil, İsrâfil vb.) isimleriyle, diğerlerine toptan iman edilir.',
+    },
+    rel: ['iman', 'ghayb', 'wahy'],
+  },
+  {
+    term: 'Nəbi və Rəsul', ar: 'النبي والرسول', translit: 'Nabi wa Rasul', cat: 'aqidah',
+    def: {
+      az: 'Allahın vəhy etdiyi seçilmiş insanlar. Alimlərin məşhur izahına görə rəsul müxalif qövmə yeni şəriətlə göndərilən, nəbi isə özündən əvvəlki şəriəti təbliğ edən peyğəmbərdir; hər rəsul nəbidir, hər nəbi rəsul deyil. Hamısına iman vacibdir, aralarında fərq qoyulmur.',
+      en: 'Chosen men to whom Allah gave revelation. In a well-known explanation of the scholars, a rasul is sent with a new law to an opposing people, while a nabi conveys the previous law; every rasul is a nabi but not vice versa. Belief in all of them is obligatory, without distinguishing between them.',
+      ru: 'Избранные люди, которым Аллах ниспосылал откровение. Согласно известному разъяснению учёных, расуль послан с новым законом к противящемуся народу, а наби передаёт прежний закон; каждый расуль — наби, но не наоборот. Вера во всех обязательна, без различия между ними.',
+      ar: 'رجال اصطفاهم الله بالوحي. والمشهور عند العلماء أن الرسول من أُرسل بشرع جديد إلى قوم مخالفين، والنبي من بُعث بتقرير شرع من قبله؛ فكل رسول نبي ولا عكس. والإيمان بهم جميعًا واجب بلا تفريق.',
+      tr: 'Allah\'ın vahiy verdiği seçkin insanlar. Âlimlerin meşhur açıklamasına göre resul, muhalif bir kavme yeni bir şeriatla gönderilen; nebi ise önceki şeriatı tebliğ eden peygamberdir. Her resul nebidir, her nebi resul değildir. Hepsine iman vaciptir, aralarında ayrım yapılmaz.',
+    },
+    rel: ['wahy', 'mujizah', 'khatm-an-nubuwwah', 'iman'],
+  },
+  {
+    term: 'Möcüzə', ar: 'المعجزة', translit: 'Mu\'jizah', cat: 'aqidah',
+    def: {
+      az: 'Allahın peyğəmbərin doğruluğunu təsdiq etmək üçün onun əli ilə göstərdiyi, adi qanunları aşan və bənzərini gətirmək mümkün olmayan iş (alimlər «ayə» və «bürhan» da deyirlər). Peyğəmbərimizin ﷺ ən böyük möcüzəsi Qurandır.',
+      en: 'An extraordinary event Allah brings about at the hands of a prophet to confirm his truthfulness, which cannot be matched (scholars also call it «ayah» or «burhan»). The greatest miracle of our Prophet ﷺ is the Quran.',
+      ru: 'Сверхъестественное событие, которое Аллах являет через пророка в подтверждение его правдивости и которому невозможно противопоставить подобное (учёные называют его также «аят» и «бурхан»). Величайшее чудо нашего Пророка ﷺ — Коран.',
+      ar: 'أمر خارق للعادة يُجريه الله على يد النبي تصديقًا له، لا يُستطاع الإتيان بمثله، ويسميه العلماء أيضًا آية وبرهانًا. وأعظم معجزات نبينا ﷺ القرآن.',
+      tr: 'Allah\'ın bir peygamberin doğruluğunu tasdik için onun eliyle gösterdiği, olağan kanunları aşan ve benzeri getirilemeyen olay (âlimler «âyet» ve «burhan» da der). Peygamberimizin ﷺ en büyük mucizesi Kur\'an\'dır.',
+    },
+    rel: ['nabi-wa-rasul', 'karamah', 'ijaz-al-quran'],
+  },
+  {
+    term: 'Kəramət', ar: 'الكرامة', translit: 'Karamah', cat: 'aqidah',
+    def: {
+      az: 'Allahın Sünnəyə tabe olan saleh mömin bəndəsinə ikram olaraq göstərdiyi adi olmayan iş. Əhli-Sünnə kəramətlərə inanır, lakin bu, sahibinin məsum olduğunu və ya ona ibadət edilə biləcəyini göstərmir. Sünnəyə zidd yolda olandan çıxan qəribə iş isə şeytani hal ola bilər.',
+      en: 'An extraordinary event Allah grants as an honour to a righteous believer who follows the Sunnah. Ahl as-Sunnah believe in karamat, but they do not make their owner infallible or a proper object of worship. Strange feats from someone opposing the Sunnah may be satanic.',
+      ru: 'Необычное событие, которое Аллах дарует в знак почёта праведному верующему, следующему Сунне. Ахль ас-Сунна верят в чудеса праведников, но это не делает их безгрешными и не даёт права поклоняться им. Странные явления от противника Сунны могут быть шайтанскими.',
+      ar: 'أمر خارق للعادة يُجريه الله إكرامًا لعبد صالح متبع للسنة. ويؤمن بها أهل السنة، لكنها لا تدل على عصمة صاحبها ولا تُسوّغ عبادته، وما يظهر على يد المخالف للسنة قد يكون حالًا شيطانية.',
+      tr: 'Allah\'ın Sünnet\'e uyan salih bir mümin kuluna ikram olarak gösterdiği olağanüstü olay. Ehl-i Sünnet kerametlere inanır; ancak bu, sahibinin masum olduğunu veya ona ibadet edilebileceğini göstermez. Sünnet\'e aykırı yoldaki birinden çıkan tuhaf olay şeytani bir hal olabilir.',
+    },
+    rel: ['wali', 'mujizah', 'sunnah'],
+  },
+  {
+    term: 'Vəli', ar: 'الولي', translit: 'Wali', cat: 'aqidah',
+    def: {
+      az: 'Allahın dostu: «Allahın dostlarına qorxu yoxdur, onlar kədərlənməzlər. Onlar iman gətirib təqvalı olanlardır» (Yunus 10:62–63). Hər təqvalı mömin imanı qədər vəlidir; vəlilik xüsusi zümrəyə məxsus deyil, vəlilərə dua etmək və qəbirlərinə ibadət etmək şirkdir.',
+      en: 'A friend of Allah: «Surely the allies of Allah — no fear will there be concerning them, nor will they grieve: those who believed and were fearing Allah» (Yunus 10:62–63). Every God-fearing believer is a wali in proportion to his faith; it is not a special caste, and calling upon awliya or worshipping at their graves is shirk.',
+      ru: 'Приближённый Аллаха: «Воистину, над приближёнными Аллаха нет страха, и они не будут печалиться — те, которые уверовали и были богобоязненны» (Юнус 10:62–63). Каждый богобоязненный верующий — вали соразмерно своей вере; это не особое сословие, а мольба к «святым» и поклонение у их могил — ширк.',
+      ar: 'وليّ الله: ﴿أَلَآ إِنَّ أَوْلِيَآءَ ٱللَّهِ لَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ ۝ ٱلَّذِينَ ءَامَنُوا۟ وَكَانُوا۟ يَتَّقُونَ﴾ (يونس: 62–63). فكل مؤمن تقي وليّ بقدر إيمانه، وليست الولاية لطبقة خاصة، ودعاء الأولياء وعبادتهم عند قبورهم شرك.',
+      tr: 'Allah\'ın dostu: «Bilin ki Allah\'ın dostlarına korku yoktur, onlar üzülmeyeceklerdir. Onlar iman edip takvaya erenlerdir» (Yûnus 10:62–63). Her takva sahibi mümin imanı ölçüsünde velidir; velilik özel bir zümreye ait değildir, velilere dua etmek ve kabirlerinde ibadet etmek şirktir.',
+    },
+    rel: ['taqwa', 'karamah', 'al-wala-wal-bara'],
+  },
+  {
+    term: 'Təkfir', ar: 'التكفير', translit: 'Takfir', cat: 'aqidah',
+    def: {
+      az: 'Müəyyən bir müsəlmanın kafir olduğuna hökm vermək. Bu, alimlərin işidir: küfr əməli ilə onu edən şəxs arasında fərq qoyulur — şəxsə hökm üçün şərtlər (bilmək, qəsd, ixtiyar) olmalı, maneələr (cəhalət, xəta, məcburiyyət, təvil) olmamalıdır. Təkfirə tələsmək Xavaricin yoludur.',
+      en: 'Ruling that a specific Muslim has become a disbeliever. It is the task of scholars: a distinction is made between an act of kufr and the person who does it — conditions (knowledge, intent, free choice) must be met and preventers (ignorance, error, coercion, misinterpretation) absent. Rushing to takfir is the way of the Khawarij.',
+      ru: 'Вынесение суждения о неверии конкретного мусульманина. Это дело учёных: различают действие неверия и совершившего его — должны выполняться условия (знание, намерение, свобода выбора) и отсутствовать препятствия (невежество, ошибка, принуждение, толкование). Поспешность в такфире — путь хариджитов.',
+      ar: 'الحكم على مسلم معيّن بالكفر. وهو من شأن العلماء، ويُفرَّق فيه بين الفعل والفاعل: فلا بد من توفر الشروط (العلم والقصد والاختيار) وانتفاء الموانع (الجهل والخطأ والإكراه والتأويل). والتسرع فيه طريقة الخوارج.',
+      tr: 'Belirli bir Müslümanın kâfir olduğuna hükmetmek. Bu, âlimlerin işidir: küfür ameli ile onu işleyen kişi ayrılır — kişiye hüküm için şartlar (bilgi, kasıt, irade) bulunmalı, engeller (cehalet, hata, zorlama, tevil) olmamalıdır. Tekfire acele etmek Hâricîlerin yoludur.',
+    },
+    rel: ['kufr', 'khawarij', 'iman'],
+    lesson: 'nawaqid-al-islam',
+  },
+  {
+    term: 'Əhli-Sünnə vəl-Camaa', ar: 'أهل السنة والجماعة', translit: 'Ahl as-Sunnah wal-Jama\'ah', cat: 'aqidah',
+    def: {
+      az: 'Peyğəmbərin ﷺ və səhabələrinin yolunda olanlar: Sünnədən yapışır, haqq üzərində birləşir və bidət əhlindən ayrılırlar. Əqidəni Quran, Sünnə və Sələfin anlayışından alır, ağlı və kəlamı nəssin önünə keçirmirlər.',
+      en: 'Those upon the way of the Prophet ﷺ and his Companions: they hold to the Sunnah, unite upon the truth and keep apart from the people of innovation. They take their creed from the Quran, the Sunnah and the understanding of the Salaf, and do not put reason or theology before the texts.',
+      ru: 'Те, кто на пути Пророка ﷺ и его сподвижников: держатся Сунны, объединяются на истине и отделяются от приверженцев нововведений. Вероубеждение берут из Корана, Сунны и понимания саляфов, не ставя разум и калям выше текстов.',
+      ar: 'من كان على ما كان عليه النبي ﷺ وأصحابه: تمسكوا بالسنة واجتمعوا على الحق وفارقوا أهل البدع. يأخذون العقيدة من الكتاب والسنة بفهم السلف، ولا يقدّمون العقل ولا علم الكلام على النصوص.',
+      tr: 'Peygamber\'in ﷺ ve ashabının yolunda olanlar: Sünnet\'e sarılır, hak üzerinde birleşir ve bidat ehlinden ayrılırlar. Akideyi Kur\'an, Sünnet ve Selef\'in anlayışından alır; aklı ve kelamı nassların önüne geçirmezler.',
+    },
+    rel: ['sunnah', 'salaf', 'manhaj', 'bidah'],
+  },
+  {
+    term: 'Sələf', ar: 'السلف', translit: 'Salaf', cat: 'aqidah',
+    def: {
+      az: 'İlk üç fəzilətli nəslin — səhabələr, tabiinlər və onlara tabe olanların — imamları və onların yolu. Sələfilik ayrıca məzhəb deyil, dini onların anladığı kimi anlamaq və onlara Quran və Sünnədə tabe olmaqdır.',
+      en: 'The first three virtuous generations — the Companions, the Tabi\'un and their followers — with their imams and their way. Following the Salaf is not a separate school but understanding the religion as they understood it and following them in the Quran and Sunnah.',
+      ru: 'Первые три достойных поколения — сподвижники, табиины и их последователи — с их имамами и их путём. Следование саляфам — не отдельный мазхаб, а понимание религии так, как понимали они, и следование им в Коране и Сунне.',
+      ar: 'القرون الثلاثة المفضلة: الصحابة والتابعون وأتباعهم، وأئمتهم وطريقتهم. واتباع السلف ليس مذهبًا مستقلًا، بل هو فهم الدين كما فهموه واتباعهم في الكتاب والسنة.',
+      tr: 'İlk üç faziletli nesil — sahabe, tâbiîn ve onlara uyanlar — ile onların imamları ve yolu. Selefe uymak ayrı bir mezhep değil, dini onların anladığı gibi anlamak ve Kur\'an ve Sünnet\'te onlara uymaktır.',
+    },
+    rel: ['sahabah', 'tabiun', 'atba-at-tabiin', 'manhaj'],
+  },
+  {
+    term: 'Mənhəc', ar: 'المنهج', translit: 'Manhaj', cat: 'aqidah',
+    def: {
+      az: 'Dini anlama, dəlil götürmə, dəvət etmə və davranış yolu. Sələf mənhəci: Quran və Sünnəni səhabələrin anlayışı ilə qəbul etmək, bidətdən çəkinmək, elmə, ədalətə və müsəlmanların birliyinə üstünlük vermək.',
+      en: 'The methodology of understanding the religion, taking evidence, calling others and conduct. The manhaj of the Salaf: accepting the Quran and Sunnah with the understanding of the Companions, avoiding innovation, and prioritising knowledge, justice and the unity of the Muslims.',
+      ru: 'Метод понимания религии, извлечения доводов, призыва и поведения. Манхадж саляфов: принимать Коран и Сунну в понимании сподвижников, остерегаться нововведений, отдавать приоритет знанию, справедливости и единству мусульман.',
+      ar: 'طريقة فهم الدين والاستدلال والدعوة والسلوك. ومنهج السلف: أخذ الكتاب والسنة بفهم الصحابة، واجتناب البدع، وتقديم العلم والعدل ووحدة المسلمين.',
+      tr: 'Dini anlama, delil alma, davet ve davranış yöntemi. Selef menheci: Kur\'an ve Sünnet\'i sahabenin anlayışıyla kabul etmek, bidatten sakınmak, ilme, adalete ve Müslümanların birliğine öncelik vermek.',
+    },
+    rel: ['salaf', 'ahl-as-sunnah-wal-jamaah', 'ittiba'],
+  },
+  {
+    term: 'Xavariclər', ar: 'الخوارج', translit: 'Khawarij', cat: 'aqidah',
+    def: {
+      az: 'Əlinin (r.a.) dövründə ortaya çıxan ilk firqə. Əsas əqidələri: böyük günah sahibini kafir saymaq, onun əbədi Cəhənnəmdə qalacağını demək və müsəlman hökmdarlara qarşı silahlı üsyanı caiz bilmək.',
+      en: 'The first sect, which appeared in the time of Ali (may Allah be pleased with him). Their core doctrines: declaring the committer of a major sin a disbeliever, saying he will abide in Hell forever, and permitting armed revolt against Muslim rulers.',
+      ru: 'Первая секта, появившаяся во времена Али (да будет доволен им Аллах). Основные убеждения: объявление совершившего большой грех неверующим, утверждение, что он навечно в Аду, и дозволение вооружённого восстания против мусульманских правителей.',
+      ar: 'أول فرقة ظهرت في خلافة علي رضي الله عنه. ومن أصولهم: تكفير مرتكب الكبيرة والحكم بخلوده في النار، واستحلال الخروج المسلح على ولاة المسلمين.',
+      tr: 'Hz. Ali (r.a.) döneminde ortaya çıkan ilk fırka. Temel inançları: büyük günah işleyeni kâfir saymak, onun ebediyen Cehennem\'de kalacağını söylemek ve Müslüman yöneticilere silahlı isyanı caiz görmek.',
+    },
+    rel: ['takfir', 'murjiah', 'bayah'],
+  },
+  {
+    term: 'Mürciə', ar: 'المرجئة', translit: 'Murji\'ah', cat: 'aqidah',
+    def: {
+      az: 'Əməli imandan ayıran firqə: onlara görə iman yalnız qəlbin təsdiqi (və ya dilin sözü) dir, artıb-azalmır, günah imana zərər vermir. Əhli-Sünnəyə görə isə iman söz, əqidə və əməldir.',
+      en: 'The sect that separates deeds from faith: for them faith is only the heart\'s assent (or the tongue\'s statement), it does not increase or decrease, and sins do not harm it. For Ahl as-Sunnah faith is statement, belief and action.',
+      ru: 'Секта, отделяющая дела от веры: по их мнению, вера — лишь признание сердцем (или словами), она не увеличивается и не уменьшается, а грехи ей не вредят. Согласно Ахль ас-Сунна, вера — это слово, убеждение и дело.',
+      ar: 'فرقة أخرجت العمل من مسمى الإيمان، فجعلته التصديق بالقلب أو القول باللسان فقط، لا يزيد ولا ينقص ولا تضره المعصية. والإيمان عند أهل السنة قول واعتقاد وعمل.',
+      tr: 'Ameli imandan ayıran fırka: onlara göre iman yalnızca kalbin tasdiki (veya dilin ikrarı)dır, artıp eksilmez, günah imana zarar vermez. Ehl-i Sünnet\'e göre ise iman söz, inanç ve ameldir.',
+    },
+    rel: ['iman', 'khawarij', 'kufr'],
+  },
+  {
+    term: 'Cəhmiyyə', ar: 'الجهمية', translit: 'Jahmiyyah', cat: 'aqidah',
+    def: {
+      az: 'Cəhm ibn Safvana nisbət edilən firqə. Allahın sifətlərini inkar edib, Quranın yaradılmış olduğunu, Allahın hər yerdə olduğunu deyib; qədərdə insanı məcbur (cəbr) sayıb. Sələf imamları onları şiddətlə rədd ediblər.',
+      en: 'A sect attributed to Jahm ibn Safwan. They denied Allah\'s attributes, said the Quran is created and that Allah is everywhere, and held that man is compelled in his actions (jabr). The imams of the Salaf strongly refuted them.',
+      ru: 'Секта, возводимая к Джахму ибн Сафвану. Отрицали атрибуты Аллаха, утверждали сотворённость Корана и то, что Аллах повсюду, и считали человека принуждённым в поступках (джабр). Имамы саляфов решительно опровергали их.',
+      ar: 'فرقة تُنسب إلى الجهم بن صفوان، نفت صفات الله، وقالت بخلق القرآن وبأن الله في كل مكان، وبالجبر في أفعال العباد. وقد اشتد نكير أئمة السلف عليهم.',
+      tr: 'Cehm b. Safvân\'a nispet edilen fırka. Allah\'ın sıfatlarını inkâr etmiş, Kur\'an\'ın yaratılmış olduğunu ve Allah\'ın her yerde olduğunu söylemiş, kulun fiillerinde mecbur olduğunu (cebr) savunmuştur. Selef imamları onları şiddetle reddetmiştir.',
+    },
+    rel: ['tatil', 'mutazilah', 'kalam-allah'],
+  },
+  {
+    term: 'Mötəzilə', ar: 'المعتزلة', translit: 'Mu\'tazilah', cat: 'aqidah',
+    def: {
+      az: 'Vasil ibn Ataya nisbət edilən kəlam firqəsi. Ağlı nəssin önünə keçirib sifətləri inkar ediblər, Quranın yaradıldığını, Allahın axirətdə görülməyəcəyini, böyük günah sahibinin iki məqam arasında qaldığını və insanın öz əməllərini yaratdığını deyiblər.',
+      en: 'A theological sect attributed to Wasil ibn Ata. Putting reason before the texts, they denied the attributes and said the Quran is created, Allah will not be seen in the Hereafter, the major sinner is in a station between two stations, and man creates his own deeds.',
+      ru: 'Богословская секта, возводимая к Василю ибн Ата. Ставя разум выше текстов, отрицали атрибуты, утверждали сотворённость Корана, невозможность лицезрения Аллаха в Вечной жизни, положение совершившего большой грех «между двумя положениями» и то, что человек сам творит свои дела.',
+      ar: 'فرقة كلامية تُنسب إلى واصل بن عطاء، قدّمت العقل على النقل، فنفت الصفات، وقالت بخلق القرآن، ونفي الرؤية، والمنزلة بين المنزلتين لمرتكب الكبيرة، وأن العبد يخلق فعله.',
+      tr: 'Vâsıl b. Atâ\'ya nispet edilen kelam fırkası. Aklı nassın önüne geçirerek sıfatları inkâr etmiş; Kur\'an\'ın yaratıldığını, Allah\'ın ahirette görülmeyeceğini, büyük günah işleyenin iki yer arasında bir yerde olduğunu ve kulun kendi fiillerini yarattığını söylemiştir.',
+    },
+    rel: ['jahmiyyah', 'qadariyyah', 'ruyah'],
+  },
+  {
+    term: 'Qədəriyyə', ar: 'القدرية', translit: 'Qadariyyah', cat: 'aqidah',
+    def: {
+      az: 'Qədəri inkar edən firqə: ilk qrupu Allahın əşyaları baş verməzdən əvvəl bildiyini də inkar edib, sonrakılar insanın əməllərinin Allahın iradəsi və yaratması xaricində olduğunu deyiblər. Əhli-Sünnə qədərin dörd mərtəbəsinə — elm, yazı, iradə və yaratma — iman edir.',
+      en: 'The sect that denied divine decree: the earliest of them denied even Allah\'s prior knowledge of things, and later ones said human deeds lie outside Allah\'s will and creation. Ahl as-Sunnah believe in the four levels of decree — knowledge, writing, will and creation.',
+      ru: 'Секта, отрицавшая предопределение: первые из них отрицали даже предвечное знание Аллаха, а последующие утверждали, что дела людей вне воли и творения Аллаха. Ахль ас-Сунна верят в четыре ступени предопределения — знание, запись, волю и творение.',
+      ar: 'فرقة نفت القدر: غلاتهم الأوائل أنكروا علم الله السابق، ومتأخروهم أخرجوا أفعال العباد عن مشيئة الله وخلقه. وأهل السنة يؤمنون بمراتب القدر الأربع: العلم والكتابة والمشيئة والخلق.',
+      tr: 'Kaderi inkâr eden fırka: ilkleri Allah\'ın olaylardan önceki ilmini bile inkâr etmiş, sonrakiler kulların fiillerinin Allah\'ın dilemesi ve yaratması dışında olduğunu söylemiştir. Ehl-i Sünnet kaderin dört mertebesine — ilim, yazma, dileme ve yaratma — iman eder.',
+    },
+    rel: ['qadr', 'mutazilah', 'lawh-mahfuz'],
+  },
+  {
+    term: 'Şəhadət', ar: 'الشهادتان', translit: 'Shahadah', cat: 'aqidah',
+    def: {
+      az: '«Əşhədu ən lə iləhə illəllah və əşhədu ənnə Muhəmmədən rəsulullah» — İslamın birinci rüknü. Birinci hissə Allahdan başqa haqq məbud olmadığını, ikinci hissə Peyğəmbərə ﷺ itaət etməyi, xəbərlərini təsdiqləməyi və Allaha yalnız onun Sünnəsi ilə ibadət etməyi tələb edir.',
+      en: '«I bear witness that there is no deity worthy of worship except Allah, and that Muhammad is the Messenger of Allah» — the first pillar of Islam. The first part negates every true deity but Allah; the second requires obeying the Prophet ﷺ, believing his reports, and worshipping Allah only by his Sunnah.',
+      ru: '«Свидетельствую, что нет божества, достойного поклонения, кроме Аллаха, и свидетельствую, что Мухаммад — Посланник Аллаха» — первый столп Ислама. Первая часть отрицает всякое истинное божество, кроме Аллаха; вторая требует повиноваться Пророку ﷺ, верить его сообщениям и поклоняться Аллаху лишь согласно его Сунне.',
+      ar: 'شهادة أن لا إله إلا الله وأن محمدًا رسول الله، وهي الركن الأول من أركان الإسلام. فالأولى تنفي استحقاق العبادة عن كل ما سوى الله وتثبتها له وحده، والثانية تقتضي طاعة النبي ﷺ وتصديقه فيما أخبر وألا يُعبد الله إلا بما شرع.',
+      tr: '«Eşhedü en lâ ilâhe illallah ve eşhedü enne Muhammeden Resûlullah» — İslam\'ın ilk şartı. Birinci kısım Allah\'tan başka hak ilah olmadığını; ikinci kısım Peygamber\'e ﷺ itaat etmeyi, haberlerini tasdik etmeyi ve Allah\'a yalnız onun Sünnet\'iyle ibadet etmeyi gerektirir.',
+    },
+    rel: ['islam', 'uluhiyyah', 'taghut', 'ittiba'],
+    lesson: 'usul-ath-thalatha',
+  },
+  {
+    term: 'İbadət', ar: 'العبادة', translit: 'Ibadah', cat: 'aqidah',
+    def: {
+      az: 'Allahın sevdiyi və razı qaldığı, zahiri və batini bütün söz və əməllərin ümumi adı (İbn Teymiyyə). İnsan və cin yalnız Allaha ibadət üçün yaradılıb (Zariyat 51:56). İbadətin qəbulu üçün iki şərt var: ixlas və Sünnəyə uyğunluq.',
+      en: 'A comprehensive term for every outward and inward word and deed that Allah loves and is pleased with (Ibn Taymiyyah). Jinn and humans were created only to worship Allah (Adh-Dhariyat 51:56). Worship is accepted with two conditions: sincerity and conformity to the Sunnah.',
+      ru: 'Общее название всех внешних и внутренних слов и дел, которые любит Аллах и которыми Он доволен (Ибн Таймийя). Джинны и люди сотворены только для поклонения Аллаху (аз-Зарийат 51:56). Условия принятия поклонения — искренность и соответствие Сунне.',
+      ar: 'اسم جامع لكل ما يحبه الله ويرضاه من الأقوال والأعمال الظاهرة والباطنة (ابن تيمية). وما خُلق الجن والإنس إلا لها (الذاريات: 56)، وشرط قبولها: الإخلاص والمتابعة.',
+      tr: 'Allah\'ın sevdiği ve razı olduğu, görünen ve görünmeyen bütün söz ve amellerin genel adı (İbn Teymiyye). Cinler ve insanlar yalnız Allah\'a ibadet için yaratılmıştır (Zâriyât 51:56). İbadetin kabulü için iki şart vardır: ihlas ve Sünnet\'e uygunluk.',
+    },
+    rel: ['uluhiyyah', 'ikhlas', 'ittiba'],
+    lesson: 'al-qawaid-al-arba',
+  },
+  {
+    term: 'Dəccal', ar: 'المسيح الدجال', translit: 'Dajjal', cat: 'aqidah',
+    def: {
+      az: 'Axır zamanda çıxacaq, rəbblik iddia edəcək, sağ gözü kor, alnında «kafir» yazılmış yalançı Məsih. Onun fitnəsi Adəmdən bəri ən böyük fitnədir; İsa (ə) onu öldürəcək. Namazın son təşəhhüdündə ondan Allaha sığınmaq Sünnədir.',
+      en: 'The false Messiah who will appear at the end of time claiming lordship, blind in the right eye, with «kafir» written between his eyes. His trial is the greatest since Adam; Isa (peace be upon him) will kill him. Seeking refuge from him in the final tashahhud of prayer is Sunnah.',
+      ru: 'Лжемессия, который появится в конце времён, притязая на божественность; он слеп на правый глаз, а между глазами у него написано «кафир». Его смута — величайшая со времён Адама; Иса (мир ему) убьёт его. Просить защиты от него в последнем ташаххуде молитвы — Сунна.',
+      ar: 'المسيح الكذاب الذي يخرج آخر الزمان مدّعيًا الربوبية، أعور العين اليمنى، مكتوب بين عينيه «كافر». فتنته أعظم فتنة منذ آدم، ويقتله عيسى عليه السلام. ويُسنّ التعوذ منه في التشهد الأخير.',
+      tr: 'Ahir zamanda çıkacak, rablik iddia edecek, sağ gözü kör, iki gözü arasında «kâfir» yazılı sahte Mesih. Fitnesi Âdem\'den beri en büyük fitnedir; Îsâ (a.s.) onu öldürecektir. Namazın son teşehhüdünde ondan Allah\'a sığınmak sünnettir.',
+    },
+    rel: ['ashrat-as-saah', 'qiyamah', 'tashahhud'],
+  },
+  {
+    term: 'Qiyamətin əlamətləri', ar: 'أشراط الساعة', translit: 'Ashrat as-Sa\'ah', cat: 'aqidah',
+    def: {
+      az: 'Qiyamətin yaxınlaşdığını göstərən, Peyğəmbərin ﷺ xəbər verdiyi hadisələr. Kiçik əlamətlər (Peyğəmbərin ﷺ göndərilməsi, cəhalətin yayılması, yüksək binalarda yarışmaq və s.) və böyük əlamətlər (Dəccal, İsanın (ə) enməsi, Yəcuc və Məcuc, günəşin qərbdən doğması və s.) var. Vaxtını yalnız Allah bilir.',
+      en: 'Events foretold by the Prophet ﷺ that show the Hour is near. There are minor signs (his own sending, the spread of ignorance, competing in tall buildings, etc.) and major signs (the Dajjal, the descent of Isa, Gog and Magog, the sun rising from the west, etc.). Only Allah knows its time.',
+      ru: 'События, о которых сообщил Пророк ﷺ и которые указывают на близость Часа. Есть малые признаки (его собственное посланничество, распространение невежества, соревнование в высоте зданий и др.) и большие (Даджжаль, нисхождение Исы, Яджудж и Маджудж, восход солнца с запада и др.). Время Часа знает лишь Аллах.',
+      ar: 'علامات قرب الساعة التي أخبر بها النبي ﷺ، منها صغرى كبعثته ﷺ وفشوّ الجهل والتطاول في البنيان، وكبرى كالدجال ونزول عيسى ويأجوج ومأجوج وطلوع الشمس من مغربها. ولا يعلم وقتها إلا الله.',
+      tr: 'Peygamber\'in ﷺ haber verdiği, Kıyamet\'in yaklaştığını gösteren olaylar. Küçük alametler (onun gönderilişi, cehaletin yayılması, yüksek binalarda yarışma vb.) ve büyük alametler (Deccâl, Îsâ\'nın inişi, Ye\'cûc ve Me\'cûc, güneşin batıdan doğması vb.) vardır. Vaktini yalnız Allah bilir.',
+    },
+    rel: ['qiyamah', 'dajjal', 'ghayb'],
+  },
+  {
+    term: 'Hövz', ar: 'الحوض', translit: 'Hawd', cat: 'aqidah',
+    def: {
+      az: 'Qiyamət günü Peyğəmbərimizə ﷺ veriləcək böyük hovuz: suyu süddən ağ, baldan şirindir, ondan içən bir daha susamaz. Ümmətindən Sünnəsinə tabe olanlar ondan içəcək, dində sonradan yeniliklər edənlər isə ondan uzaqlaşdırılacaq.',
+      en: 'The great pool given to our Prophet ﷺ on the Day of Resurrection: its water is whiter than milk and sweeter than honey, and whoever drinks from it will never thirst again. Those of his nation who followed his Sunnah will drink from it, while those who introduced innovations will be driven away.',
+      ru: 'Великий водоём, который будет дарован нашему Пророку ﷺ в Судный день: его вода белее молока и слаще мёда, и выпивший из него больше не почувствует жажды. Из него будут пить следовавшие его Сунне, а вносившие нововведения будут отогнаны.',
+      ar: 'حوض عظيم يُعطاه نبينا ﷺ يوم القيامة، ماؤه أبيض من اللبن وأحلى من العسل، من شرب منه لم يظمأ بعدها أبدًا. يرده المتبعون لسنته، ويُذاد عنه من أحدث في الدين.',
+      tr: 'Kıyamet günü Peygamberimize ﷺ verilecek büyük havuz: suyu sütten beyaz, baldan tatlıdır; ondan içen bir daha susamaz. Ümmetinden Sünnet\'ine uyanlar ondan içecek, dinde sonradan yenilik çıkaranlar ise uzaklaştırılacaktır.',
+    },
+    rel: ['qiyamah', 'shafaah', 'bidah'],
+  },
+  {
+    term: 'Qəbir əzabı', ar: 'عذاب القبر', translit: 'Adhab al-Qabr', cat: 'aqidah',
+    def: {
+      az: 'Bərzəxdə ruha və bədənə birlikdə yetişən əzab və ya nemət; ondan əvvəl iki mələyin «Rəbbin kimdir, dinin nədir, peyğəmbərin kimdir?» sualı (qəbir sınağı) gəlir. Əhli-Sünnə buna iman edir; Peyğəmbər ﷺ namazda ondan Allaha sığınardı.',
+      en: 'Punishment or bliss in the barzakh that reaches both soul and body, preceded by the questioning of the two angels: «Who is your Lord, what is your religion, who is your prophet?» Ahl as-Sunnah believe in it; the Prophet ﷺ sought refuge from it in prayer.',
+      ru: 'Наказание или блаженство в барзахе, постигающее и душу, и тело; перед этим — вопросы двух ангелов: «Кто твой Господь, какова твоя религия, кто твой пророк?» Ахль ас-Сунна верят в это; Пророк ﷺ просил в молитве защиты от него.',
+      ar: 'عذاب أو نعيم في البرزخ يقع على الروح والبدن، يسبقه سؤال الملكين: من ربك؟ وما دينك؟ ومن نبيك؟ ويؤمن به أهل السنة، وكان النبي ﷺ يستعيذ منه في صلاته.',
+      tr: 'Berzahta ruha ve bedene birlikte ulaşan azap veya nimet; öncesinde iki meleğin «Rabbin kim, dinin ne, peygamberin kim?» sorgusu vardır. Ehl-i Sünnet buna iman eder; Peygamber ﷺ namazda ondan Allah\'a sığınırdı.',
+    },
+    rel: ['barzakh', 'malaikah', 'bath'],
+  },
+  {
+    term: 'Bəs (dirilmə)', ar: 'البعث', translit: 'Ba\'th', cat: 'aqidah',
+    def: {
+      az: 'Qiyamət günü Allahın ölüləri bədənləri ilə dirildib qəbirlərindən çıxarması və hesab üçün toplaması. Axirət gününə imanın əsasıdır; onu inkar etmək küfrdür.',
+      en: 'Allah raising the dead with their bodies from their graves on the Day of Resurrection and gathering them for reckoning. It is a foundation of belief in the Last Day; denying it is disbelief.',
+      ru: 'Воскрешение Аллахом умерших вместе с телами из могил в Судный день и собрание их для расчёта. Основа веры в Последний день; его отрицание — неверие.',
+      ar: 'إحياء الله الموتى بأجسادهم وإخراجهم من قبورهم يوم القيامة وحشرهم للحساب. وهو أصل الإيمان باليوم الآخر، وإنكاره كفر.',
+      tr: 'Kıyamet günü Allah\'ın ölüleri bedenleriyle diriltip kabirlerinden çıkarması ve hesap için toplaması. Ahiret gününe imanın temelidir; onu inkâr etmek küfürdür.',
+    },
+    rel: ['qiyamah', 'mizan', 'adhab-al-qabr'],
+  },
+  {
+    term: 'Xatmün-Nübüvvə', ar: 'ختم النبوة', translit: 'Khatm an-Nubuwwah', cat: 'aqidah',
+    def: {
+      az: 'Məhəmmədin ﷺ peyğəmbərlərin sonuncusu olması: «...lakin o, Allahın Rəsulu və peyğəmbərlərin möhürüdür» (Əhzab 33:40). Ondan sonra peyğəmbərlik iddia edən yalançıdır; İsanın (ə) axır zamanda enməsi bununla zidd deyil, çünki o, Məhəmmədin ﷺ şəriətinə tabe olacaq.',
+      en: 'Muhammad ﷺ being the last of the prophets: «...but he is the Messenger of Allah and the seal of the prophets» (Al-Ahzab 33:40). Anyone claiming prophethood after him is a liar; the descent of Isa at the end of time does not contradict this, since he will follow the law of Muhammad ﷺ.',
+      ru: 'То, что Мухаммад ﷺ — последний из пророков: «...но он — Посланник Аллаха и печать пророков» (аль-Ахзаб 33:40). Всякий, кто после него притязает на пророчество, — лжец; нисхождение Исы в конце времён этому не противоречит, ведь он будет следовать закону Мухаммада ﷺ.',
+      ar: 'كون محمد ﷺ آخر الأنبياء: ﴿وَلَـٰكِن رَّسُولَ ٱللَّهِ وَخَاتَمَ ٱلنَّبِيِّـۧنَ﴾ (الأحزاب: 40). فكل من ادعى النبوة بعده كذاب، ولا ينافيه نزول عيسى عليه السلام آخر الزمان لأنه يحكم بشريعة محمد ﷺ.',
+      tr: 'Muhammed\'in ﷺ peygamberlerin sonuncusu olması: «...fakat o, Allah\'ın Resulü ve peygamberlerin sonuncusudur» (Ahzâb 33:40). Ondan sonra peygamberlik iddia eden yalancıdır; Îsâ\'nın (a.s.) ahir zamanda inmesi buna aykırı değildir, çünkü o, Muhammed\'in ﷺ şeriatına uyacaktır.',
+    },
+    rel: ['nabi-wa-rasul', 'wahy', 'ashrat-as-saah'],
+  },
+  {
+    term: 'Əhli-Kitab', ar: 'أهل الكتاب', translit: 'Ahl al-Kitab', cat: 'aqidah',
+    def: {
+      az: 'Yəhudilər və xristianlar — Tövrat və İncil verilmiş ümmətlər. Onların kitabları təhrif olunub, Quran isə onları nəsx edib; Məhəmmədə ﷺ iman etməyən Əhli-Kitab kafirdir. Fiqhdə onların kəsdiyi heyvanın ətinin halal olması və iffətli qadınları ilə evlənmənin caizliyi kimi xüsusi hökmlər var.',
+      en: 'Jews and Christians — the nations given the Torah and the Gospel. Their scriptures were altered and the Quran abrogated them; those of them who do not believe in Muhammad ﷺ are disbelievers. In fiqh they have particular rulings, such as their slaughtered meat being lawful and marriage to their chaste women being permitted.',
+      ru: 'Иудеи и христиане — народы, которым были даны Таурат и Инджиль. Их Писания искажены, а Коран отменил их; те из них, кто не уверовал в Мухаммада ﷺ, — неверующие. В фикхе для них есть особые положения: дозволенность мяса их забоя и брака с их целомудренными женщинами.',
+      ar: 'اليهود والنصارى الذين أوتوا التوراة والإنجيل. وقد حُرّفت كتبهم ونسخها القرآن، ومن لم يؤمن منهم بمحمد ﷺ فهو كافر. ولهم في الفقه أحكام خاصة كحلّ ذبائحهم ونكاح المحصنات من نسائهم.',
+      tr: 'Yahudiler ve Hristiyanlar — Tevrat ve İncil verilmiş ümmetler. Kitapları tahrif edilmiş, Kur\'an onları neshetmiştir; Muhammed\'e ﷺ iman etmeyenleri kâfirdir. Fıkıhta kestiklerinin helal olması ve iffetli kadınlarıyla evliliğin caiz olması gibi özel hükümleri vardır.',
+    },
+    rel: ['kufr', 'nasikh', 'dhabihah'],
+  },
+  {
+    term: 'Rüqyə', ar: 'الرقية', translit: 'Ruqyah', cat: 'aqidah',
+    def: {
+      az: 'Xəstəyə, sehrə və göz dəyməsinə qarşı Quran ayələri, Allahın adları və Sünnədə gələn dualarla oxunan şəfa duası. Şərtləri: şirk qarışmamalı, mənası anlaşılan sözlərlə olmalı və təsirin yalnız Allahdan olduğuna inanılmalıdır. İnsanın özünə rüqyə etməsi daha fəzilətlidir.',
+      en: 'Recitation for healing against illness, sorcery and the evil eye, using Quranic verses, Allah\'s names and supplications from the Sunnah. Its conditions: free of shirk, in understandable words, and with the belief that effect comes only from Allah. Doing ruqyah for oneself is more virtuous.',
+      ru: 'Чтение ради исцеления от болезни, колдовства и сглаза аятами Корана, именами Аллаха и мольбами из Сунны. Условия: без примеси ширка, понятными словами и с убеждением, что воздействие — только от Аллаха. Читать рукью самому себе достойнее.',
+      ar: 'ما يُقرأ للاستشفاء من المرض والسحر والعين من آيات القرآن وأسماء الله والأدعية المأثورة. وشروطها: خلوّها من الشرك، وأن تكون بكلام مفهوم، واعتقاد أن التأثير بقدر الله وحده. ورقية المرء نفسه أفضل.',
+      tr: 'Hastalığa, sihre ve nazara karşı Kur\'an ayetleri, Allah\'ın isimleri ve Sünnet\'teki dualarla yapılan şifa okuması. Şartları: şirk karışmaması, anlamı anlaşılır sözlerle olması ve etkinin yalnız Allah\'tan olduğuna inanılması. Kişinin kendisine rukye yapması daha faziletlidir.',
+    },
+    rel: ['ayn', 'sihr', 'tamimah', 'dua'],
+    lesson: 'ruqyah',
+  },
+]

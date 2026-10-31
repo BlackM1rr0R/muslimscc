@@ -1,20 +1,44 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
+import PageLink, { isPlainClick } from '../components/PageLink'
+import { useNavigate } from 'react-router-dom'
+import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
+import { pathFor } from '../seo/routes'
+import { KIDS_DUAS, STORIES, IMAN_PILLARS, PILLARS_SOURCES, MANNERS, PARENTS } from '../data/pageGuides/KidsPage'
+import '../styles/LessonsPage.css'
 import '../styles/KidsPage.css'
 
-// Rüknlərin və davranışların ikonları (Icon.jsx) — məlumatdakı emoji sahələri
-// artıq göstərilmir (dizayn v2: emoji ikon yoxdur). Sıra PILLARS / GOOD_MANNERS ilədir.
+// Rüknlərin ikonları (Icon.jsx) — məlumatdakı emoji sahələri
+// artıq göstərilmir (dizayn v2: emoji ikon yoxdur). Sıra PILLARS ilədir.
 const PILLAR_ICONS = ['names', 'prayer', 'moon', 'zakat', 'hajjguide']
-const MANNER_ICONS = ['jamaat', 'check', 'home', 'donate', 'leaf', 'gift', 'kids', 'drop', 'shield', 'clock']
+
+// "Gözəl davranışlar" oyunu — bu günün işarələri cihazda saxlanılır (gün dəyişəndə sıfırlanır)
+const MANNERS_KEY = 'kids_manners'
+const todayKey = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+function loadManners() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(MANNERS_KEY))
+    if (!raw || raw.date !== todayKey() || !Array.isArray(raw.done)) return []
+    return raw.done.filter(id => MANNERS.some(m => m.id === id))
+  } catch { return [] }
+}
 
 const LABELS = {
-  az: { title:'Uşaq bölməsi', subtitle:'Kiçiklər üçün İslam', namesTitle:'Allahın gözəl adları', surahsTitle:'Qısa surələr', duasTitle:'Gündəlik dualar', rulesTitle:'İslamın 5 şərti', quizTitle:'Mini kviz', prophetsTitle:'Peyğəmbərlər', mannersTitle:'Gözəl davranışlar', learn:'Öyrən', correct:'Afərin!', wrong:'Yenidən cəhd et', next:'Növbəti' },
-  en: { title:'Kids Section', subtitle:'Islam for little ones', namesTitle:'Beautiful Names of Allah', surahsTitle:'Short Surahs', duasTitle:'Daily Duas', rulesTitle:'5 Pillars of Islam', quizTitle:'Mini Quiz', prophetsTitle:'Prophets', mannersTitle:'Good Manners', learn:'Learn', correct:'Well done!', wrong:'Try again', next:'Next' },
-  ru: { title:'Детский раздел', subtitle:'Ислам для малышей', namesTitle:'Прекрасные Имена Аллаха', surahsTitle:'Короткие суры', duasTitle:'Ежедневные дуа', rulesTitle:'5 Столпов Ислама', quizTitle:'Мини-викторина', prophetsTitle:'Пророки', mannersTitle:'Хорошие манеры', learn:'Учи', correct:'Молодец!', wrong:'Попробуй ещё', next:'Далее' },
-  ar: { title:'قسم الأطفال', subtitle:'الإسلام للصغار', namesTitle:'أسماء الله الحسنى', surahsTitle:'سور قصيرة', duasTitle:'أدعية يومية', rulesTitle:'أركان الإسلام', quizTitle:'اختبار صغير', prophetsTitle:'الأنبياء', mannersTitle:'الآداب الحسنة', learn:'تعلم', correct:'أحسنت!', wrong:'حاول مرة أخرى', next:'التالي' },
-  tr: { title:'Çocuk Bölümü', subtitle:'Küçükler için İslam', namesTitle:'Allah\'ın Güzel İsimleri', surahsTitle:'Kısa Sureler', duasTitle:'Günlük Dualar', rulesTitle:'İslam\'ın 5 Şartı', quizTitle:'Mini Bilgi Yarışması', prophetsTitle:'Peygamberler', mannersTitle:'Güzel Davranışlar', learn:'Öğren', correct:'Aferin!', wrong:'Tekrar dene', next:'Sonraki' },
+  az: { title:'Uşaq bölməsi', subtitle:'Kiçiklər üçün İslam', namesTitle:'Allahın gözəl adları', surahsTitle:'Qısa surələr', duasTitle:'Gündəlik dualar', rulesTitle:'İslamın və imanın rüknləri', quizTitle:'Mini kviz', prophetsTitle:'Peyğəmbərlər', storiesTitle:'Peyğəmbər hekayələri', mannersTitle:'Gözəl davranışlar', parentsTitle:'Valideyn guşəsi', learn:'Öyrən', correct:'Afərin!', wrong:'Yenidən cəhd et', next:'Növbəti',
+        islamPillars:'İslamın 5 rüknü', imanPillars:'İmanın 6 rüknü', source:'Mənbə', grade:'Dərəcəsi', lessonLbl:'Dərs', storiesNote:'Hekayələr yalnız Qurandan danışılır — ayələrə istinad altdadır; İsrailiyyat rəvayətləri əlavə olunmayıb.', moreDuas:'Daha çox dua: Hisnul-Müslim', mannersLead:'Bu gün etdiyin gözəl işləri işarələ! Hər işarə bir ulduzdur. Sabah siyahı yenidən başlayır.', mannersDone:'Bu gün', mannersAll:'Maşallah! Bu gün hamısını etdin!', mannersReset:'Sıfırla', parentsLead:'Uşaq tərbiyəsi barədə Quran və səhih Sünnədən qısa bələdçi.', seeAlso:'Ətraflı' },
+  en: { title:'Kids Section', subtitle:'Islam for little ones', namesTitle:'Beautiful Names of Allah', surahsTitle:'Short Surahs', duasTitle:'Daily Duas', rulesTitle:'Pillars of Islam and Iman', quizTitle:'Mini Quiz', prophetsTitle:'Prophets', storiesTitle:'Stories of the Prophets', mannersTitle:'Good Manners', parentsTitle:'Parents’ Corner', learn:'Learn', correct:'Well done!', wrong:'Try again', next:'Next',
+        islamPillars:'The 5 pillars of Islam', imanPillars:'The 6 pillars of Iman', source:'Source', grade:'Grade', lessonLbl:'Lesson', storiesNote:'These stories are told only from the Quran — the verse references are below each one; no Israiliyyat reports have been added.', moreDuas:'More duas: Hisn al-Muslim', mannersLead:'Tick the good things you did today! Each tick is a star. The list starts again tomorrow.', mannersDone:'Today', mannersAll:'Masha’Allah! You did them all today!', mannersReset:'Reset', parentsLead:'A short guide to raising children from the Quran and the authentic Sunnah.', seeAlso:'Read more' },
+  ru: { title:'Детский раздел', subtitle:'Ислам для малышей', namesTitle:'Прекрасные Имена Аллаха', surahsTitle:'Короткие суры', duasTitle:'Ежедневные дуа', rulesTitle:'Столпы ислама и имана', quizTitle:'Мини-викторина', prophetsTitle:'Пророки', storiesTitle:'Рассказы о пророках', mannersTitle:'Хорошие манеры', parentsTitle:'Уголок родителей', learn:'Учи', correct:'Молодец!', wrong:'Попробуй ещё', next:'Далее',
+        islamPillars:'5 столпов ислама', imanPillars:'6 столпов имана', source:'Источник', grade:'Степень', lessonLbl:'Урок', storiesNote:'Рассказы передаются только по Корану — ссылки на аяты под каждым; преданий из «исраилийят» не добавлено.', moreDuas:'Больше дуа: Хиснуль-муслим', mannersLead:'Отметь хорошие дела, которые ты сделал(а) сегодня! Каждая отметка — звезда. Завтра список начнётся заново.', mannersDone:'Сегодня', mannersAll:'Ма шаа Аллах! Сегодня ты сделал(а) всё!', mannersReset:'Сбросить', parentsLead:'Краткое руководство по воспитанию детей по Корану и достоверной Сунне.', seeAlso:'Подробнее' },
+  ar: { title:'قسم الأطفال', subtitle:'الإسلام للصغار', namesTitle:'أسماء الله الحسنى', surahsTitle:'سور قصيرة', duasTitle:'أدعية يومية', rulesTitle:'أركان الإسلام والإيمان', quizTitle:'اختبار صغير', prophetsTitle:'الأنبياء', storiesTitle:'قصص الأنبياء', mannersTitle:'الآداب الحسنة', parentsTitle:'ركن الوالدين', learn:'تعلم', correct:'أحسنت!', wrong:'حاول مرة أخرى', next:'التالي',
+        islamPillars:'أركان الإسلام الخمسة', imanPillars:'أركان الإيمان الستة', source:'المصدر', grade:'الدرجة', lessonLbl:'درس', storiesNote:'تُروى هذه القصص من القرآن فقط مع الإحالة إلى الآيات تحت كل قصة، ولم نُضف شيئًا من الإسرائيليات.', moreDuas:'المزيد من الأدعية: حصن المسلم', mannersLead:'ضع علامة على الأعمال الطيبة التي فعلتها اليوم! كل علامة نجمة، وتبدأ القائمة من جديد غدًا.', mannersDone:'اليوم', mannersAll:'ما شاء الله! فعلتها كلها اليوم!', mannersReset:'إعادة', parentsLead:'دليل مختصر في تربية الأولاد من القرآن والسنة الصحيحة.', seeAlso:'للمزيد' },
+  tr: { title:'Çocuk Bölümü', subtitle:'Küçükler için İslam', namesTitle:'Allah\'ın Güzel İsimleri', surahsTitle:'Kısa Sureler', duasTitle:'Günlük Dualar', rulesTitle:'İslam\'ın ve imanın şartları', quizTitle:'Mini Bilgi Yarışması', prophetsTitle:'Peygamberler', storiesTitle:'Peygamber Kıssaları', mannersTitle:'Güzel Davranışlar', parentsTitle:'Anne-Baba Köşesi', learn:'Öğren', correct:'Aferin!', wrong:'Tekrar dene', next:'Sonraki',
+        islamPillars:'İslam\'ın 5 şartı', imanPillars:'İmanın 6 şartı', source:'Kaynak', grade:'Derecesi', lessonLbl:'Ders', storiesNote:'Kıssalar yalnızca Kur’an’dan anlatılır — ayet atıfları her birinin altındadır; İsrailiyat rivayetleri eklenmemiştir.', moreDuas:'Daha fazla dua: Hısnu’l-Müslim', mannersLead:'Bugün yaptığın güzel işleri işaretle! Her işaret bir yıldızdır. Yarın liste yeniden başlar.', mannersDone:'Bugün', mannersAll:'Maşallah! Bugün hepsini yaptın!', mannersReset:'Sıfırla', parentsLead:'Kur’an ve sahih Sünnetten çocuk terbiyesine dair kısa bir rehber.', seeAlso:'Daha fazlası' },
 }
 
 const NAMES_OF_ALLAH = [
@@ -138,113 +162,8 @@ const SHORT_SURAHS = [
     tr:'Kadir gecesi hakkında. Bin aydan daha hayırlıdır.' },
 ]
 
-const DAILY_DUAS = [
-  { emoji:'🍽️',
-    az_title:'Yemək duası', ar:'بِسْمِ اللَّهِ',
-    az:'Bismillah — Allahın adı ilə',
-    en_title:'Before eating', en_desc:'Bismillah — In the name of Allah',
-    ru_title:'Перед едой', ru_desc:'Бисмиллях — Во имя Аллаха',
-    ar_title:'دعاء الطعام', ar_desc:'بسم الله',
-    tr_title:'Yemek duası', tr_desc:'Bismillah — Allah\'ın adıyla' },
-  { emoji:'😴',
-    az_title:'Yatmaq duası', ar:'بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا',
-    az:'Allahım, Sənin adınla ölürəm və dirilirəm',
-    en_title:'Before sleeping', en_desc:'O Allah, in Your name I die and live',
-    ru_title:'Перед сном', ru_desc:'О Аллах, с Твоим именем я умираю и оживаю',
-    ar_title:'دعاء النوم', ar_desc:'اللهم باسمك أموت وأحيا',
-    tr_title:'Uyku duası', tr_desc:'Allah\'ım, Senin adınla ölür ve dirilirim' },
-  { emoji:'☀️',
-    az_title:'Oyanma duası', ar:'الحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا',
-    az:'Bizi dirildən Allaha həmd olsun',
-    en_title:'Waking up', en_desc:'Praise to Allah who gave us life',
-    ru_title:'При пробуждении', ru_desc:'Хвала Аллаху, который оживил нас',
-    ar_title:'دعاء الاستيقاظ', ar_desc:'الحمد لله الذي أحيانا بعد ما أماتنا',
-    tr_title:'Uyanma duası', tr_desc:'Bizi dirilten Allah\'a hamd olsun' },
-  { emoji:'🚪',
-    az_title:'Evdən çıxma', ar:'بِسْمِ اللَّهِ تَوَكَّلْتُ عَلَى اللَّهِ',
-    az:'Allahın adı ilə, Allaha təvəkkül etdim',
-    en_title:'Leaving home', en_desc:'In the name of Allah, I put my trust in Allah',
-    ru_title:'Выход из дома', ru_desc:'С именем Аллаха, я уповаю на Аллаха',
-    ar_title:'دعاء الخروج', ar_desc:'بسم الله توكلت على الله',
-    tr_title:'Evden çıkış', tr_desc:'Allah\'ın adıyla, Allah\'a tevekkül ettim' },
-  { emoji:'🤧',
-    az_title:'Asqıranda', ar:'الحَمْدُ لِلَّهِ',
-    az:'Əlhəmdulillah — Allaha həmd olsun',
-    en_title:'When sneezing', en_desc:'Alhamdulillah — Praise be to Allah',
-    ru_title:'При чихании', ru_desc:'Альхамдулиллях — Хвала Аллаху',
-    ar_title:'عند العطس', ar_desc:'الحمد لله',
-    tr_title:'Hapşırınca', tr_desc:'Elhamdülillah — Allah\'a hamd olsun' },
-  { emoji:'🚿',
-    az_title:'Tualetə girəndə', ar:'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ',
-    az:'Allahım, pis şeylərdən Sənə sığınıram',
-    en_title:'Entering bathroom', en_desc:'O Allah, I seek refuge in You from evil',
-    ru_title:'При входе в туалет', ru_desc:'О Аллах, я прибегаю к Тебе от зла',
-    ar_title:'دعاء دخول الخلاء', ar_desc:'اللهم إني أعوذ بك من الخبث والخبائث',
-    tr_title:'Tuvalete girerken', tr_desc:'Allah\'ım, kötülüklerden Sana sığınırım' },
-  { emoji:'🚶',
-    az_title:'Tualetdən çıxanda', ar:'غُفْرَانَكَ',
-    az:'Ğufranəkə — Bağışlanmanı istəyirəm',
-    en_title:'Leaving bathroom', en_desc:'Ghufranaka — I seek Your forgiveness',
-    ru_title:'При выходе из туалета', ru_desc:'Гуфранака — Прошу Твоего прощения',
-    ar_title:'دعاء الخروج من الخلاء', ar_desc:'غفرانك',
-    tr_title:'Tuvaletten çıkarken', tr_desc:'Gufraneke — Bağışlanmanı dilerim' },
-  { emoji:'🕌',
-    az_title:'Məscidə girəndə', ar:'اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ',
-    az:'Allahım, mənə rəhmət qapılarını aç',
-    en_title:'Entering mosque', en_desc:'O Allah, open the gates of Your mercy for me',
-    ru_title:'При входе в мечеть', ru_desc:'О Аллах, открой мне врата Твоей милости',
-    ar_title:'دعاء دخول المسجد', ar_desc:'اللهم افتح لي أبواب رحمتك',
-    tr_title:'Camiye girerken', tr_desc:'Allah\'ım, bana rahmet kapılarını aç' },
-  { emoji:'🏠',
-    az_title:'Məsciddən çıxanda', ar:'اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ',
-    az:'Allahım, Səndən lütfünü istəyirəm',
-    en_title:'Leaving mosque', en_desc:'O Allah, I ask You for Your bounty',
-    ru_title:'При выходе из мечети', ru_desc:'О Аллах, я прошу Тебя о Твоей милости',
-    ar_title:'دعاء الخروج من المسجد', ar_desc:'اللهم إني أسألك من فضلك',
-    tr_title:'Camiden çıkarken', tr_desc:'Allah\'ım, Senden lütfunu isterim' },
-  { emoji:'✈️',
-    az_title:'Səfərə çıxanda', ar:'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا',
-    az:'Bunu bizə ram edəni təsbih edirəm',
-    en_title:'Before travel', en_desc:'Glory to Him who has subjected this to us',
-    ru_title:'Перед путешествием', ru_desc:'Пречист Тот, кто подчинил нам это',
-    ar_title:'دعاء السفر', ar_desc:'سبحان الذي سخر لنا هذا وما كنا له مقرنين',
-    tr_title:'Yolculuğa çıkarken', tr_desc:'Bunu bize boyun eğdireni tespih ederim' },
-  { emoji:'🌙',
-    az_title:'Yeni ayı görəndə', ar:'اللَّهُمَّ أَهِلَّهُ عَلَيْنَا بِالْأَمْنِ وَالْإِيمَانِ',
-    az:'Allahım, bu ayı bizə əmin-amanlıq və imanla doğdur',
-    en_title:'Seeing new moon', en_desc:'O Allah, bring this moon with safety and faith',
-    ru_title:'При виде новой луны', ru_desc:'О Аллах, яви нам этот месяц с миром и верой',
-    ar_title:'دعاء رؤية الهلال', ar_desc:'اللهم أهله علينا بالأمن والإيمان',
-    tr_title:'Yeni ayı görünce', tr_desc:'Allah\'ım, bu ayı bize güvenlik ve imanla doğdur' },
-  { emoji:'⛈️',
-    az_title:'Gök gurultusu eşidəndə', ar:'سُبْحَانَ الَّذِي يُسَبِّحُ الرَّعْدُ بِحَمْدِهِ',
-    az:'Göy gurultusu həmd ilə təsbih edən Allahı təsbih edirəm',
-    en_title:'Hearing thunder', en_desc:'Glory to Him whom thunder praises',
-    ru_title:'При звуке грома', ru_desc:'Пречист Тот, кого гром восхваляет',
-    ar_title:'دعاء سماع الرعد', ar_desc:'سبحان الذي يسبح الرعد بحمده',
-    tr_title:'Gök gürültüsü duyunca', tr_desc:'Gök gürültüsünün hamd ile tespih ettiği Allah\'ı tespih ederim' },
-  { emoji:'🙏',
-    az_title:'Kiməsə təşəkkür edəndə', ar:'جَزَاكَ اللَّهُ خَيْرًا',
-    az:'Cəzakallahu xeyran — Allah sənə xeyir versin',
-    en_title:'Thanking someone', en_desc:'Jazakallahu khayran — May Allah reward you with good',
-    ru_title:'Благодарность', ru_desc:'Джазакаллаху хайран — Да воздаст тебе Аллах добром',
-    ar_title:'شكر الآخرين', ar_desc:'جزاك الله خيرًا',
-    tr_title:'Birine teşekkür ederken', tr_desc:'Cezakallahu hayran — Allah sana hayır versin' },
-  { emoji:'👔',
-    az_title:'Yeni paltar geyəndə', ar:'الحَمْدُ لِلَّهِ الَّذِي كَسَانِي',
-    az:'Mənə bu paltarı geyindirən Allaha həmd olsun',
-    en_title:'Wearing new clothes', en_desc:'Praise to Allah who clothed me with this',
-    ru_title:'Надевая новую одежду', ru_desc:'Хвала Аллаху, который одел меня в это',
-    ar_title:'دعاء لبس الثوب', ar_desc:'الحمد لله الذي كساني هذا',
-    tr_title:'Yeni elbise giyerken', tr_desc:'Bana bu elbiseyi giydiren Allah\'a hamd olsun' },
-  { emoji:'🪞',
-    az_title:'Güzgüyə baxanda', ar:'اللَّهُمَّ حَسِّنْ خُلُقِي كَمَا حَسَّنْتَ خَلْقِي',
-    az:'Allahım, xilqətimi gözəl etdiyin kimi əxlaqımı da gözəlləşdir',
-    en_title:'Looking in mirror', en_desc:'O Allah, beautify my character as You beautified my form',
-    ru_title:'Глядя в зеркало', ru_desc:'О Аллах, укрась мой нрав, как Ты украсил мой облик',
-    ar_title:'دعاء النظر في المرآة', ar_desc:'اللهم حسن خلقي كما حسنت خلقي',
-    tr_title:'Aynaya bakarken', tr_desc:'Allah\'ım, yaratılışımı güzelleştirdiğin gibi ahlakımı da güzelleştir' },
-]
+// Gündəlik dualar, hekayələr, iman rüknləri, davranışlar oyunu və valideyn guşəsi —
+// src/data/pageGuides/KidsPage.js (hər birinin mənbəyi ilə)
 
 const PILLARS = [
   { emoji:'☝️', az:'Şəhadət — Allahdan başqa ibadətə layiq heç kim olmadığına və Muhəmmədin ﷺ Allahın elçisi olduğuna şahidlik etmək', en:'Shahada — Testifying that none deserves worship except Allah and that Muhammad ﷺ is His Messenger', ru:'Шахада — Свидетельствовать, что нет достойного поклонения, кроме Аллаха, и что Мухаммад ﷺ — Его посланник', ar:'الشهادة — شهادة أن لا إله إلا الله وأن محمدًا رسول الله', tr:'Şehadet — Allah\'tan başka ibadete layık kimse olmadığına ve Muhammed\'in ﷺ O\'nun elçisi olduğuna şahitlik etmek' },
@@ -317,13 +236,9 @@ const QUIZ = [
     options:['100','500','1000','10000'], answer:2
   },
   {
-    az_q:'Quranın ən qısa surəsinin adı nədir?', en_q:'What is the name of the shortest surah?', ru_q:'Как называется самая короткая сура?', ar_q:'ما اسم أقصر سورة؟', tr_q:'En kısa surenin adı nedir?',
-    options:['Fatihə','Kövsər','İxlas','Nas'],
-    en_options:['Al-Fatiha','Al-Kawthar','Al-Ikhlas','An-Nas'],
-    ru_options:['Аль-Фатиха','Аль-Каусар','Аль-Ихлас','Ан-Нас'],
-    ar_options:['الفاتحة','الكوثر','الإخلاص','الناس'],
-    tr_options:['Fatiha','Kevser','İhlas','Nas'],
-    answer:1
+    // Əvvəl "ən qısa surə" sualı iki dəfə soruşulurdu — əvəzinə iman rüknləri
+    az_q:'İmanın neçə rüknü var?', en_q:'How many pillars of iman are there?', ru_q:'Сколько столпов у имана?', ar_q:'كم عدد أركان الإيمان؟', tr_q:'İmanın kaç şartı vardır?',
+    options:['4','5','6','7'], answer:2
   },
   {
     az_q:'Quran hansı dildə nazil olub?', en_q:'In which language was the Quran revealed?', ru_q:'На каком языке был ниспослан Коран?', ar_q:'بأي لغة نزل القرآن؟', tr_q:'Kuran hangi dilde indirildi?',
@@ -379,7 +294,7 @@ const QUIZ = [
     options:['20','25','30','40'], answer:2
   },
   {
-    az_q:'Hansı peyğəmbər balığın qarnında qaldı?', en_q:'Which prophet was in the belly of a whale?', ru_q:'Какой пророк был в чреве кита?', ar_q:'أي نبي بقي في بطن الحوت؟', tr_q:'Hangi peygamber balığın karnında kaldı?',
+    az_q:'Hansı peyğəmbər balığın qarnında qaldı?', en_q:'Which prophet was in the belly of a big fish?', ru_q:'Какой пророк был во чреве большой рыбы?', ar_q:'أي نبي بقي في بطن الحوت؟', tr_q:'Hangi peygamber balığın karnında kaldı?',
     options:['İbrahim','Musa','Yunus','Davud'],
     en_options:['Ibrahim','Musa','Yunus','Dawud'],
     ru_options:['Ибрахим','Муса','Юнус','Давуд'],
@@ -414,28 +329,16 @@ const PROPHETS_FOR_KIDS = [
   { name:'Ismail', ar:'إسماعيل', emoji:'💧', az:'İbrahimin oğlu, Kəbəni tikməyə kömək etdi', en:'Son of Ibrahim, helped build the Kaaba', ru:'Сын Ибрахима, помогал строить Каабу', ar_desc:'ابن إبراهيم، ساعد في بناء الكعبة', tr:'İbrahim\'in oğlu, Kabe\'yi inşa etmeye yardım etti' },
   { name:'Musa', ar:'موسى', emoji:'🌊', az:'Dənizi yaran peyğəmbər', en:'The prophet who parted the sea', ru:'Пророк, раздвинувший море', ar_desc:'النبي الذي شق البحر', tr:'Denizi yaran peygamber' },
   { name:'Dawud', ar:'داود', emoji:'🎵', az:'Gözəl səsi olan peyğəmbər, Zəbur verildi', en:'The prophet with a beautiful voice, given the Psalms', ru:'Пророк с прекрасным голосом, ему даны Псалмы', ar_desc:'النبي ذو الصوت الجميل، أنزل عليه الزبور', tr:'Güzel sesli peygamber, Zebur verildi' },
-  { name:'Sulayman', ar:'سليمان', emoji:'🐜', az:'Heyvanlarla danışan peyğəmbər', en:'The prophet who could talk to animals', ru:'Пророк, говоривший с животными', ar_desc:'النبي الذي كان يتكلم مع الحيوانات', tr:'Hayvanlarla konuşan peygamber' },
-  { name:'Yunus', ar:'يونس', emoji:'🐋', az:'Balığın qarnında qalan peyğəmbər', en:'The prophet who was in the belly of a whale', ru:'Пророк, который был в чреве кита', ar_desc:'النبي الذي بقي في بطن الحوت', tr:'Balığın karnında kalan peygamber' },
+  { name:'Sulayman', ar:'سليمان', emoji:'🐜', az:'Quşların dilini anlayan peyğəmbər', en:'The prophet taught the language of birds', ru:'Пророк, обученный языку птиц', ar_desc:'النبي الذي عُلِّم منطق الطير', tr:'Kuşların dilini anlayan peygamber' },
+  { name:'Yunus', ar:'يونس', emoji:'🐋', az:'Balığın qarnında qalan peyğəmbər', en:'The prophet who was in the belly of a big fish', ru:'Пророк, который был во чреве большой рыбы', ar_desc:'النبي الذي بقي في بطن الحوت', tr:'Balığın karnında kalan peygamber' },
   { name:'Isa', ar:'عيسى', emoji:'✨', az:'Möcüzələrlə göndərilən peyğəmbər, İncil verildi', en:'The prophet sent with miracles, given the Gospel', ru:'Пророк, посланный с чудесами, ему дано Евангелие', ar_desc:'النبي المرسل بالمعجزات، أنزل عليه الإنجيل', tr:'Mucizelerle gönderilen peygamber, İncil verildi' },
   { name:'Muhammad ﷺ', ar:'محمد ﷺ', emoji:'🌙', az:'Son peyğəmbər, Quran verildi', en:'The last prophet, given the Quran', ru:'Последний пророк, ему дан Коран', ar_desc:'آخر الأنبياء، أنزل عليه القرآن', tr:'Son peygamber, Kuran verildi' },
-]
-
-const GOOD_MANNERS = [
-  { emoji:'🤝', az:'Salam ver — "Əssalamu aleykum" de', en:'Say Salam — "Assalamu Alaikum"', ru:'Приветствуй — "Ассаляму алейкум"', ar:'قل السلام — السلام عليكم', tr:'Selam ver — "Esselamu aleyküm" de' },
-  { emoji:'✅', az:'Həmişə doğru danış', en:'Always be honest', ru:'Всегда будь честным', ar:'كن صادقًا دائمًا', tr:'Her zaman doğru söyle' },
-  { emoji:'👨‍👩‍👧', az:'Valideynlərini hörmət et', en:'Respect your parents', ru:'Уважай своих родителей', ar:'احترم والديك', tr:'Anne babana saygı göster' },
-  { emoji:'🫶', az:'Başqalarına kömək et', en:'Help others', ru:'Помогай другим', ar:'ساعد الآخرين', tr:'Başkalarına yardım et' },
-  { emoji:'🐱', az:'Heyvanlara yaxşı davran', en:'Be kind to animals', ru:'Будь добр к животным', ar:'كن رفيقًا بالحيوانات', tr:'Hayvanlara iyi davran' },
-  { emoji:'🍞', az:'Yeməyini başqaları ilə paylaş', en:'Share your food', ru:'Делись своей едой', ar:'شارك طعامك مع الآخرين', tr:'Yemeğini başkalarıyla paylaş' },
-  { emoji:'😊', az:'Gülümsə — bu da sədəqədir', en:'Smile — it is charity too', ru:'Улыбайся — это тоже милостыня', ar:'ابتسم — فالابتسامة صدقة', tr:'Gülümse — bu da sadakadır' },
-  { emoji:'🧼', az:'Təmizliyə diqqət et', en:'Keep yourself clean', ru:'Соблюдай чистоту', ar:'حافظ على النظافة', tr:'Temizliğe dikkat et' },
-  { emoji:'🚫', az:'Yalan danışma', en:'Do not lie', ru:'Не лги', ar:'لا تكذب', tr:'Yalan söyleme' },
-  { emoji:'🕊️', az:'Səbirli ol', en:'Be patient', ru:'Будь терпелив', ar:'كن صبورًا', tr:'Sabırlı ol' },
 ]
 
 export default function KidsPage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
+  const navigate = useNavigate()
 
   const [openSection, setOpenSection] = useState('names')
   const [quizIdx, setQuizIdx] = useState(0)
@@ -443,6 +346,15 @@ export default function KidsPage({ setPage }) {
   const [score, setScore] = useState(0)
   const [quizDone, setQuizDone] = useState(false)
   const [picked, setPicked] = useState(null) // seçilən variant (səhvi göstərmək üçün)
+  // Gözəl davranışlar oyunu — bu gün işarələnənlər
+  const [mannersDone, setMannersDone] = useState(loadManners)
+  useEffect(() => {
+    try { localStorage.setItem(MANNERS_KEY, JSON.stringify({ date: todayKey(), done: mannersDone })) } catch { /* yaddaş bağlıdır */ }
+  }, [mannersDone])
+  const toggleManner = (id) => {
+    haptic(8)
+    setMannersDone(cur => cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id])
+  }
 
   const layoutRef = useRef(null)
   const tabsRef = useRef(null)
@@ -519,10 +431,25 @@ export default function KidsPage({ setPage }) {
     { key:'surahs', icon:'quran', title:t.surahsTitle },
     { key:'duas', icon:'duas', title:t.duasTitle },
     { key:'rules', icon:'holyplaces', title:t.rulesTitle },
+    { key:'stories', icon:'books', title:t.storiesTitle },
     { key:'prophets', icon:'history', title:t.prophetsTitle },
     { key:'manners', icon:'donate', title:t.mannersTitle },
     { key:'quiz', icon:'quiz', title:t.quizTitle },
+    { key:'parents', icon:'jamaat', title:t.parentsTitle },
   ]
+  // Ayə istinadı → Quran səhifəsindəki surəyə keçid ("2:30-37")
+  const ayahLink = (ref) => {
+    const n = Number(String(ref).split(':')[0])
+    return <a key={ref} href={pathFor('quran', lang, n)} className="kids-ref ui-num" dir="ltr">{ref}</a>
+  }
+  // Dərsə keçid — həqiqi <a href>, adi klikdə SPA ilə (LessonsPage ilə eyni)
+  const learnHref = (slug) => pathFor('learn', lang, slug)
+  const openLesson = (e, slug) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(learnHref(slug))
+    window.scrollTo(0, 0)
+  }
   const current = sections.find(s => s.key === openSection) || sections[0]
   // Ayə sözü — rus dilində say ilə uzlaşır (əvvəl həmişə 'аятов': '4 аятов')
   const ayahWord = (n) => lang === 'ar' ? 'آية' : lang === 'tr' ? 'ayet' : lang === 'en' ? 'ayahs' : lang === 'ru'
@@ -619,28 +546,32 @@ export default function KidsPage({ setPage }) {
             <section className="kids-section" key="duas">
               <SectionTitle />
               <div className="kids-duas-list" data-reveal="stagger">
-                {DAILY_DUAS.map((d, i) => (
+                {KIDS_DUAS.map((d, i) => (
                   <div key={i} className="kids-dua-card">
-                    <span className="ui-icon-tile ui-icon-tile--accent kids-dua-icon" aria-hidden="true"><Icon name="duas" /></span>
+                    <span className="ui-icon-tile ui-icon-tile--accent kids-dua-icon" aria-hidden="true"><Icon name={d.icon || 'duas'} /></span>
                     <div className="kids-dua-body">
-                      <h3 className="kids-dua-title">
-                        {lang === 'ar' ? d.ar_title : lang === 'en' ? d.en_title : lang === 'ru' ? d.ru_title : lang === 'tr' ? d.tr_title : d.az_title}
-                      </h3>
-                      <div className="kids-dua-arabic" lang="ar">{d.ar}</div>
-                      <p className="kids-dua-meaning">
-                        {lang === 'ar' ? d.ar_desc : lang === 'en' ? d.en_desc : lang === 'ru' ? d.ru_desc : lang === 'tr' ? d.tr_desc : d.az}
+                      <h3 className="kids-dua-title">{pick(d.title, lang)}</h3>
+                      <div className="kids-dua-arabic" lang="ar" dir="rtl">{d.ar}</div>
+                      <p className="kids-dua-meaning">{pick(d.text, lang)}</p>
+                      <p className="kids-dua-src">
+                        {t.source}: <cite>{pick(d.src, lang)}</cite>
+                        {d.grade && <> · {t.grade}: {pick(d.grade, lang)}</>}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
+              <PageLink to="hisn" setPage={setPage} className="ui-link kids-more-link">
+                {t.moreDuas} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+              </PageLink>
             </section>
           )}
 
-          {/* İslamın 5 şərti */}
+          {/* İslamın 5 və imanın 6 rüknü */}
           {openSection === 'rules' && (
             <section className="kids-section" key="rules">
               <SectionTitle />
+              <h3 className="kids-sub-title">{t.islamPillars}</h3>
               <ol className="kids-pillars-list" data-reveal="stagger">
                 {PILLARS.map((p, i) => (
                   <li key={i} className="kids-pillar-card">
@@ -650,10 +581,57 @@ export default function KidsPage({ setPage }) {
                   </li>
                 ))}
               </ol>
+              <p className="kids-src-line">{t.source}: <cite>{pick(PILLARS_SOURCES.islam, lang)}</cite></p>
+
+              <h3 className="kids-sub-title">{t.imanPillars}</h3>
+              <ol className="kids-iman-grid" data-reveal="stagger">
+                {IMAN_PILLARS.map((p, i) => (
+                  <li key={i} className="ui-card kids-iman-card">
+                    <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={p.icon} /></span>
+                    <span className="kids-iman-body">
+                      <strong className="kids-iman-title"><span className="ui-num">{i + 1}.</span> {pick(p.title, lang)}</strong>
+                      <span className="kids-iman-text">{pick(p.text, lang)}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p className="kids-src-line">
+                {t.source}: <cite>{pick(PILLARS_SOURCES.iman, lang)}</cite> ·{' '}
+                <PageLink to="nawawi40" setPage={setPage} className="ui-link">{t.seeAlso}: {lang === 'ar' ? 'الأربعون النووية ٢' : lang === 'ru' ? '40 хадисов, № 2' : lang === 'tr' ? '40 Hadis, 2' : lang === 'en' ? '40 Hadith, No. 2' : '40 hədis, 2'}</PageLink>
+              </p>
             </section>
           )}
 
           {/* Peyğəmbərlər */}
+          {/* Peyğəmbər hekayələri — yalnız Qurandan */}
+          {openSection === 'stories' && (
+            <section className="kids-section" key="stories">
+              <SectionTitle />
+              <p className="kids-lead">{t.storiesNote}</p>
+              <div className="kids-stories" data-reveal="stagger">
+                {STORIES.map((st, i) => (
+                  <article key={i} className="ui-card kids-story">
+                    <header className="kids-story-head">
+                      <span className="kids-name-arabic kids-story-ar" lang="ar" dir="rtl">{st.ar}</span>
+                      <span>
+                        {lang !== 'ar' && <span className="kids-story-name">{pick(st.name, lang)}</span>}
+                        <h3 className="kids-story-title">{pick(st.title, lang)}</h3>
+                      </span>
+                    </header>
+                    <p className="kids-story-text">{pick(st.text, lang)}</p>
+                    <p className="kids-story-lesson">
+                      <Icon name="bulb" size={18} />
+                      <span>{pick(st.lesson, lang)}</span>
+                    </p>
+                    <p className="kids-src-line">
+                      {lang === 'ar' ? 'القرآن' : lang === 'ru' ? 'Коран' : lang === 'tr' ? 'Kur’an' : 'Quran'}: {st.refs.map((r, k) => <span key={r}>{k > 0 && ', '}{ayahLink(r)}</span>)}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
           {openSection === 'prophets' && (
             <section className="kids-section" key="prophets">
               <SectionTitle />
@@ -676,15 +654,39 @@ export default function KidsPage({ setPage }) {
           {openSection === 'manners' && (
             <section className="kids-section" key="manners">
               <SectionTitle />
-              <ol className="kids-pillars-list" data-reveal="stagger">
-                {GOOD_MANNERS.map((m, i) => (
-                  <li key={i} className="kids-pillar-card">
-                    <span className="kids-pillar-num ui-num" aria-hidden="true">{i + 1}</span>
-                    <span className="kids-pillar-icon" aria-hidden="true"><Icon name={MANNER_ICONS[i] || 'donate'} /></span>
-                    <span className="kids-pillar-text">{lang === 'ar' ? m.ar : lang === 'en' ? m.en : lang === 'ru' ? m.ru : lang === 'tr' ? m.tr : m.az}</span>
-                  </li>
-                ))}
-              </ol>
+              <p className="kids-lead">{t.mannersLead}</p>
+              <div className="ui-card kids-mgame-top">
+                <span className="kids-mgame-count ui-num">
+                  <Icon name="star" size={18} /> {t.mannersDone}: <bdi dir="ltr">{mannersDone.length} / {MANNERS.length}</bdi>
+                </span>
+                <div className="kids-quiz-bar kids-mgame-bar" aria-hidden="true">
+                  <span style={{ transform: `scaleX(${mannersDone.length / MANNERS.length})` }} />
+                </div>
+                {mannersDone.length > 0 && (
+                  <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setMannersDone([])}>
+                    <Icon name="refresh" className="ui-btn__icon" /> {t.mannersReset}
+                  </button>
+                )}
+              </div>
+              {mannersDone.length === MANNERS.length && (
+                <p className="kids-mgame-all" role="status"><Icon name="sparkle" size={18} /> {t.mannersAll}</p>
+              )}
+              <ul className="kids-mgame-list">
+                {MANNERS.map(m => {
+                  const on = mannersDone.includes(m.id)
+                  return (
+                    <li key={m.id}>
+                      <button type="button" className={`kids-mgame-item${on ? ' is-on' : ''}`} aria-pressed={on} onClick={() => toggleManner(m.id)}>
+                        <span className="kids-mgame-check" aria-hidden="true"><Icon name={on ? 'check' : m.icon} size={18} /></span>
+                        <span className="kids-mgame-body">
+                          <span className="kids-mgame-text">{pick(m.text, lang)}</span>
+                          <span className="kids-mgame-why">{pick(m.why, lang)} <cite className="kids-mgame-src">({pick(m.src, lang)})</cite></span>
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
             </section>
           )}
 
@@ -752,6 +754,32 @@ export default function KidsPage({ setPage }) {
                   )}
                 </div>
               )}
+            </section>
+          )}
+
+          {/* Valideyn guşəsi — LessonBlocks formatında (ayə, hədis, addımlar) */}
+          {openSection === 'parents' && (
+            <section className="kids-section kids-parents" key="parents">
+              <SectionTitle />
+              <p className="kids-lead">{t.parentsLead}</p>
+              {PARENTS.sections.map(sec => (
+                <section key={sec.id} className="kids-guide-sec" aria-labelledby={`kids-p-${sec.id}`}>
+                  <h3 id={`kids-p-${sec.id}`} className="kids-sub-title">{pick(sec.title, lang)}</h3>
+                  <LessonBlocks blocks={sec.blocks} lang={lang} />
+                </section>
+              ))}
+              <nav className="kids-guide-links" aria-label={t.seeAlso}>
+                <h3 className="kids-sub-title">{t.seeAlso}</h3>
+                <ul>
+                  {PARENTS.links.map((l, i) => (
+                    <li key={i}>
+                      {l.learn
+                        ? <a className="ui-chip kids-guide-chip" href={learnHref(l.learn)} onClick={(e) => openLesson(e, l.learn)}><Icon name="learn" size={15} /> {pick(l.label, lang)}</a>
+                        : <PageLink to={l.to} setPage={setPage} className="ui-chip kids-guide-chip"><Icon name={l.to} size={15} /> {pick(l.label, lang)}</PageLink>}
+                    </li>
+                  ))}
+                </ul>
+              </nav>
             </section>
           )}
 

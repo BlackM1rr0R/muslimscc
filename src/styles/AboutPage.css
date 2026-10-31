@@ -189,3 +189,48 @@
 /* Mənhəc bölməsi (Sələf mənhəci) */
 .ab-manhaj { padding: 24px 28px; }
 .ab-manhaj p { margin: 8px 0 0; line-height: 1.75; }
+
+/* ── Saytın xəritəsi (NAV_GROUPS) ── */
+.ab-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+.ab-root .ab-map-group { display: flex; flex-direction: column; gap: 8px; padding: 20px 22px; }
+.ab-map-title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; line-height: var(--lh-snug); }
+.ab-map-desc { color: var(--text-secondary); font-size: 14.5px; line-height: 1.55; }
+.ab-map-list { display: flex; flex-direction: column; margin: 6px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.ab-map-list li + li { border-top: 1px solid var(--line); }
+.ab-map-link {
+  display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 6px 2px;
+  color: var(--text-body); font-size: 15px; text-decoration: none;
+  transition: color var(--dur-1) ease;
+}
+.ab-map-link svg { flex-shrink: 0; color: var(--brand); }
+.ab-map-link:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: var(--radius-xs); }
+@media (hover: hover) { .ab-map-link:hover { color: var(--brand); } }
+
+/* ── Redaksiya prinsipləri ── */
+.ab-editorial { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; max-width: 860px; }
+.ab-root .ab-principle { display: flex; align-items: flex-start; gap: 16px; padding: 20px 22px; }
+.ab-principle-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ab-principle-body .ui-card__text { line-height: 1.7; }
+.ab-report { margin-top: var(--space-4); }
+
+/* ── Məxfilik xülasəsi + əlaqə ── */
+.ab-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--space-4); }
+.ab-root .ab-info-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 24px 26px; }
+.ab-info-card p { line-height: 1.7; }
+.ab-info-links { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.ab-info-links .ui-link { display: inline-flex; align-items: center; gap: 4px; }
+.ab-contact-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ab-contact-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.ab-contact-label { min-width: 90px; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; }
+.ab-contact-list a { display: inline-flex; align-items: center; gap: 4px; overflow-wrap: anywhere; }
+
+@media (max-width: 599.98px) {
+  .ab-root .ab-map-group, .ab-root .ab-principle, .ab-root .ab-info-card { padding: 16px; }
+  .ab-root .ab-principle { gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .ab-map-link { transition: none; } }

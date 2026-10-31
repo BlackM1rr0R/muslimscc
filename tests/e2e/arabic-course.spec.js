@@ -27,12 +27,12 @@ const lessonSection = (page) => page.locator('section.ac-lesson')
 
 test.beforeEach(async ({ page }) => { await page.addInitScript(stubMedia) })
 
-test('başlanğıc: bir h1, 4 dərs kartı, 0% irəliləyiş, "Başla" birinci dərsi açır', async ({ page, consoleProblems }) => {
+test('başlanğıc: bir h1, 9 dərs kartı, 0% irəliləyiş, "Başla" birinci dərsi açır', async ({ page, consoleProblems }) => {
   await page.goto('/learn-arabic')
   await settle(page)
   await expect(page.locator('h1')).toHaveCount(1)
   await expect(page.locator('h1')).toHaveText('Ərəb əlifbası və Quran oxumağı öyrən')
-  await expect(page.locator('.ac-lesson-card')).toHaveCount(4)
+  await expect(page.locator('.ac-lesson-card')).toHaveCount(9)
   await expect(page.locator('.ac-progress__num')).toHaveText('0%')
   await expect(lessonSection(page)).toHaveCount(0)
 
@@ -134,7 +134,7 @@ test('irəliləyiş bərpa olunur: "Davam et" tamamlanmamış dərsə aparır', 
   await page.addInitScript(() => localStorage.setItem('arabic_course_v1', JSON.stringify({ best: { letters: 100, harakat: 80 }, last: 'harakat' })))
   await page.goto('/learn-arabic')
   await settle(page)
-  await expect(page.locator('.ac-progress__num')).toHaveText('50%')
+  await expect(page.locator('.ac-progress__num')).toHaveText('22%')
   await expect(page.locator('.ac-lesson-card.is-done')).toHaveCount(2)
   await page.getByRole('link', { name: /Davam et/ }).click()
   await expect(page).toHaveURL(/#reading$/)
@@ -165,3 +165,31 @@ for (const [prefix, h1, dir] of [
     expectCleanConsole(consoleProblems)
   })
 }
+
+test('qrammatika dərsləri: əvəzliklər, cümlə hissələri, 100 söz və yoxlama nəticəsi yaddaşda', async ({ page, consoleProblems }) => {
+  await page.goto('/learn-arabic#pronouns')
+  await settle(page)
+  await expect(lessonSection(page).getByRole('heading', { level: 2 })).toHaveText('Əvəzliklər')
+  await expect(page.locator('.ag-card')).toHaveCount(16)
+  await page.goto('/learn-arabic#nominal')
+  await settle(page)
+  await expect(page.locator('.ag-sent')).toHaveCount(5)
+  await expect(page.locator('.ag-part--k').first()).toBeVisible()
+  await page.goto('/learn-arabic#vocab')
+  await settle(page)
+  await expect(page.locator('.ag-vocab__row')).toHaveCount(100)
+  await page.getByRole('button', { name: 'Fellər', exact: true }).click()
+  expect(await page.locator('.ag-vocab__row').count()).toBeLessThan(100)
+  // Yoxlama: hər sualda bir variant seç, sonda nəticə yaddaşa yazılır
+  await lessonSection(page).getByRole('button', { name: 'Yoxla', exact: true }).click()
+  const quiz = page.locator('.ac-quiz')
+  for (let i = 0; i < 10; i++) {
+    await quiz.locator('.ac-option').first().click()
+    await expect(quiz.locator('.ac-option.is-correct')).toHaveCount(1)
+    await quiz.locator('.ac-quiz__actions .ui-btn').click()
+  }
+  await expect(page.locator('.ac-result')).toBeVisible()
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('arabic_course_v1')))
+  expect(saved.best.vocab).toBeGreaterThanOrEqual(0)
+  expectCleanConsole(consoleProblems)
+})

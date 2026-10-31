@@ -1,0 +1,118 @@
+/* ══════════════════════════════════════════════════════════════════
+   HALAL QİDA YOXLAMASI — dizayn v2 (DESIGN.md). Yalnız tokenlər və .ui-*.
+   Qrup rəngi yalnız kiçik nöqtədədir (mənşə qrupu — hökm deyil).
+   ══════════════════════════════════════════════════════════════════ */
+.hc-page { min-height: 60vh; }
+.hc-page .hc-hero .ui-lead { max-width: 64ch; }
+.hc-layout { max-width: calc(860px + 2 * var(--page-gutter)); display: flex; flex-direction: column; gap: var(--space-4); }
+.hc-page .hc-block { scroll-margin-top: calc(var(--header-h, 64px) + 8px); }
+.hc-page .ui-section--tight { padding-top: var(--space-7); }
+
+.hc-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--space-4); }
+.hc-jump .ui-chip { text-decoration: none; }
+
+/* Xəbərdarlıq */
+.hc-page .hc-disc { display: flex; align-items: flex-start; gap: var(--space-3); margin-top: var(--space-5); padding: var(--space-5); border-inline-start: 3px solid var(--accent); background: var(--surface-1); }
+.hc-disc__icon { flex-shrink: 0; color: var(--accent); margin-top: 2px; }
+.hc-disc__title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; line-height: var(--lh-snug); }
+.hc-disc__text { margin-top: 6px; color: var(--text-body); line-height: var(--lh-body); }
+
+/* Axtarış */
+.hc-search { position: relative; }
+.hc-search__icon { position: absolute; inset-inline-start: 14px; top: 14px; color: var(--text-tertiary); pointer-events: none; }
+.hc-page .hc-search__input { display: block; width: 100%; min-height: 48px; padding-block: 12px; padding-inline: 44px; resize: vertical; line-height: 1.5; font-family: var(--font-sans); }
+.hc-page .hc-search__clear { position: absolute; z-index: 1; inset-inline-end: 4px; top: 2px; }
+
+.hc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.hc-page .hc-chip { display: inline-flex; align-items: center; gap: 6px; }
+.hc-chip__n { color: var(--text-tertiary); font-size: 12px; }
+.hc-results { color: var(--text-secondary); font-weight: 500; }
+.hc-missing { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: var(--step--1); }
+.hc-missing svg { color: var(--warn); flex-shrink: 0; }
+.hc-loading { display: grid; gap: var(--space-4); }
+.hc-page .hc-empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-6) var(--space-5); text-align: center; }
+.hc-page .hc-more { align-self: center; }
+.hc-muted { color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.55; }
+
+/* Qrup nişanı */
+.hc-cat { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 2px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: var(--surface-2); color: var(--text-strong); font-size: 13px; font-weight: 600; line-height: 1.3; }
+.hc-cat__dot { display: inline-block; flex-shrink: 0; width: 9px; height: 9px; border-radius: 50%; background: var(--text-tertiary); }
+.hc-cat--none .hc-cat__dot, .hc-cat__dot.hc-cat--none { background: var(--ok); }
+.hc-cat--maybe .hc-cat__dot, .hc-cat__dot.hc-cat--maybe { background: var(--warn); }
+.hc-cat--animal .hc-cat__dot, .hc-cat__dot.hc-cat--animal,
+.hc-cat--insect .hc-cat__dot, .hc-cat__dot.hc-cat--insect,
+.hc-cat--alcohol .hc-cat__dot, .hc-cat__dot.hc-cat--alcohol { background: var(--bad); }
+.hc-cat--unknown .hc-cat__dot, .hc-cat__dot.hc-cat--unknown { background: var(--text-tertiary); }
+
+/* E-kod kartı */
+.hc-codes { display: flex; flex-direction: column; gap: var(--space-3); }
+.hc-page .hc-code { display: flex; flex-direction: column; gap: 10px; padding: var(--space-4) var(--space-5); }
+.hc-code__head { display: flex; align-items: flex-start; gap: 12px; }
+.hc-code__id { flex-shrink: 0; min-width: 64px; padding: 4px 10px; border-radius: var(--radius-sm); background: var(--brand-soft); color: var(--brand); font-weight: 700; font-size: 15px; text-align: center; direction: ltr; unicode-bidi: isolate; }
+.hc-code__main { flex: 1; min-width: 0; }
+.hc-code__name { color: var(--text-strong); font-size: var(--step-0); font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.hc-code__en, .hc-code__hint { margin-top: 2px; color: var(--text-tertiary); font-size: 13px; line-height: 1.4; }
+.hc-code__note { display: flex; align-items: flex-start; gap: 6px; color: var(--text-secondary); font-size: var(--step--1); }
+.hc-code__note svg { flex-shrink: 0; margin-top: 2px; }
+.hc-code__tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.hc-code__why { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.5; }
+
+.hc-fields { border-top: 1px solid var(--line); padding-top: 6px; }
+.hc-fields__sum { display: flex; align-items: center; gap: 8px; min-height: var(--tap); color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; cursor: pointer; list-style: none; }
+.hc-fields__sum::-webkit-details-marker { display: none; }
+.hc-fields__chev { margin-inline-start: auto; color: var(--text-tertiary); transition: transform var(--dur-2) var(--ease-out); }
+.hc-fields[open] .hc-fields__chev { transform: rotate(180deg); }
+.hc-fields__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 16px; margin: 4px 0 8px; }
+.hc-fields__list > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.hc-fields__list .hc-fields__wide { grid-column: 1 / -1; }
+.hc-fields__list dt { color: var(--text-tertiary); font-size: 12px; font-weight: 600; }
+.hc-fields__list dd { margin: 0; color: var(--text-body); font-size: var(--step--1); line-height: 1.55; overflow-wrap: anywhere; }
+.hc-fields__links { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--step--1); }
+
+/* Ştrixkod */
+.hc-bc { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); }
+.hc-page .hc-bc__field { flex: 1 1 260px; }
+.hc-bc__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.hc-page .hc-bc__warn { color: var(--accent-text); }
+.hc-page .hc-bc__skeleton { display: block; }
+.hc-spin { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-inline-end-color: transparent; border-radius: 50%; }
+
+.hc-scan { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
+.hc-scan__frame { position: relative; width: min(100%, 420px); aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--radius-lg); background: var(--surface-inverse); box-shadow: var(--shadow-2); }
+.hc-scan__video { width: 100%; height: 100%; object-fit: cover; }
+.hc-scan__box { position: absolute; inset: 30% 12%; border: 2px solid var(--text-on-inverse); border-radius: var(--radius-md); opacity: .85; }
+.hc-scan__hint { color: var(--text-secondary); font-size: var(--step--1); }
+.hc-scan__err { color: var(--text-body); text-align: center; }
+
+.hc-page .hc-product { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); }
+.hc-product__head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.hc-product__name { margin-top: 4px; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-2); font-weight: 600; line-height: var(--lh-snug); }
+.hc-product__brand { color: var(--text-secondary); }
+.hc-product__code { color: var(--text-tertiary); font-size: 13px; }
+.hc-product__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
+.hc-product__h { margin-bottom: 6px; color: var(--text-strong); font-size: var(--step-0); font-weight: 600; }
+.hc-product__an { display: flex; flex-wrap: wrap; gap: 6px; }
+.hc-product__ingr { padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-2); color: var(--text-body); line-height: var(--lh-body); overflow-wrap: anywhere; }
+.hc-page .hc-tag { margin-inline: 2px; }
+.hc-crowd { display: flex; align-items: flex-start; gap: 6px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--accent-soft); color: var(--text-body); font-size: var(--step--1); line-height: 1.5; }
+.hc-crowd svg { flex-shrink: 0; margin-top: 2px; color: var(--accent); }
+
+/* Fiqh */
+.hc-page .hc-fiqh { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5) var(--space-6); scroll-margin-top: calc(var(--header-h, 64px) + 8px); }
+.hc-fiqh__title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-2); font-weight: 600; line-height: var(--lh-snug); }
+.hc-fiqh__p { color: var(--text-body); line-height: var(--lh-body); }
+.hc-fiqh__refs { padding-top: 10px; border-top: 1px solid var(--line); color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.6; }
+.hc-page .hc-quote { margin: 4px 0; }
+.hc-page .hc-quote .ui-quote__ar { font-size: clamp(19px, 2vw, 23px); line-height: var(--lh-arabic); }
+.hc-page .hc-quote--fatwa .ui-quote__ar { font-size: clamp(18px, 1.8vw, 21px); }
+.hc-quote .ui-quote__src a { color: inherit; }
+
+/* Mənbələr */
+.hc-sources { display: flex; flex-direction: column; gap: 8px; padding-inline-start: 1.2em; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6; }
+.hc-sources li::marker { color: var(--accent); }
+.hc-sources a { overflow-wrap: anywhere; }
+
+@media (max-width: 767.98px) {
+  .hc-page .hc-code, .hc-page .hc-product { padding: var(--space-4); }
+  .hc-page .hc-fiqh { padding: var(--space-4); }
+}

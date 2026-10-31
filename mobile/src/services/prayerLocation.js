@@ -33,8 +33,11 @@ import { subscribeToSettings } from '../data/adminContent'
 const CITY_KEY = 'muslim_cc_selected_city'
 const ADMIN_DEFAULT_KEY = 'muslim_cc_admin_default_city'
 
-// Hesablama metodu bütün şəhərlər üçün eynidir (aladhan 13 = Diyanet)
-const DEFAULT_METHOD = DEFAULT_PRAYER_LOCATION.method || 13
+// Hesablama metodu: Azərbaycan şəhərləri — Bakıdakı Əbu Bəkr məscidinin
+// cədvəli (99, utils/prayCalc.js); qalan ölkələr — aladhan 13 (Diyanet)
+const DEFAULT_METHOD = 13
+const METHOD_ABUBAKR = 99
+const methodFor = (country, own) => own || (country === 'AZ' ? METHOD_ABUBAKR : DEFAULT_METHOD)
 
 // Koordinatlar şəhər mərkəzidir. utcOffsetMin — standart (qış) UTC fərqi:
 // yalnız ilk aladhan cavabı gələnə qədər işlədilir; əsl fərq (yay vaxtı
@@ -43,7 +46,7 @@ const DEFAULT_METHOD = DEFAULT_PRAYER_LOCATION.method || 13
 export const PRAYER_CITIES = [
   // ── Azərbaycan (75) ──
   /* @@AZ_CITIES@@ */
-  { id:'Baku', country:'AZ', lat:40.4093, lng:49.8671, utcOffsetMin:240, label:{ az:'Bakı', en:'Baku', ru:'Баку', ar:'باكو', tr:'Bakü' } },
+  { id:'Baku', country:'AZ', lat:40.3953, lng:49.8822, utcOffsetMin:240, label:{ az:'Bakı', en:'Baku', ru:'Баку', ar:'باكو', tr:'Bakü' } },
   { id:'Sumgait', country:'AZ', lat:40.5897, lng:49.6686, utcOffsetMin:240, label:{ az:'Sumqayıt', en:'Sumgait', ru:'Сумгаит', ar:'سومغايت', tr:'Sumgayıt' }, alt:['Sumqayit','Sumgayit'] },
   { id:'Ganja', country:'AZ', lat:40.6828, lng:46.3606, utcOffsetMin:240, label:{ az:'Gəncə', en:'Ganja', ru:'Гянджа', ar:'كنجة', tr:'Gence' }, alt:['Gyandzha'] },
   { id:'Aghjabadi', country:'AZ', lat:40.0502, lng:47.4594, utcOffsetMin:240, label:{ az:'Ağcabədi', en:'Aghjabadi', ru:'Агджабеди', ar:'أغجابيدي', tr:'Ağcabedi' }, alt:['Agjabadi'] },
@@ -241,7 +244,7 @@ function fromCity(c, isDefault) {
     lat: c.lat,
     lng: c.lng,
     utcOffsetMin: c.utcOffsetMin,
-    method: c.method || DEFAULT_METHOD,
+    method: methodFor(c.country, c.method),
     city: c.label,
     isDefault,
   }
@@ -257,7 +260,7 @@ export function getPrayerLocation() {
   const d = DEFAULT_PRAYER_LOCATION
   const same = PRAYER_CITIES.find(c => Math.abs(c.lat - d.lat) < 0.05 && Math.abs(c.lng - d.lng) < 0.05)
   if (same) return fromCity(same, true)
-  return { id: null, lat: d.lat, lng: d.lng, utcOffsetMin: 240, method: d.method || DEFAULT_METHOD, city: d.city, isDefault: true }
+  return { id: null, lat: d.lat, lng: d.lng, utcOffsetMin: 240, method: d.method || METHOD_ABUBAKR, city: d.city, isDefault: true }
 }
 
 /** İstifadəçinin özü seçdiyi şəhərin id-si; seçməyibsə null. */

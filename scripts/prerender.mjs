@@ -377,6 +377,7 @@ const DETAIL_SITEMAP = {
   names:  { file: 'sitemap-names.xml',  priority: 0.7,  changefreq: 'monthly' },
   sahaba: { file: 'sitemap-sahaba.xml', priority: 0.7,  changefreq: 'monthly' },
   scholars: { file: 'sitemap-scholars.xml', priority: 0.7, changefreq: 'monthly' },
+  learn:  { file: 'sitemap-learn.xml',  priority: 0.75, changefreq: 'monthly' },
 }
 
 /** Bir URL girişi (5 dil + x-default hreflang alternativləri ilə). */
@@ -425,6 +426,8 @@ function buildSitemap() {
 
   for (const key of Object.keys(DETAILS)) {
     const cfg = DETAIL_SITEMAP[key]
+    // İndekslənməyən detallar (qrup otaqları və s.) sitemap-a düşmür
+    if (!cfg || DETAILS[key].noindex) continue
     const urls = []
     for (const param of detailParams(key)) {
       for (const lang of LANGS) urls.push(urlEntry(key, lang, param, today, cfg.changefreq, cfg.priority))

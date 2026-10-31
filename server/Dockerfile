@@ -17,7 +17,7 @@ ENV DB_PATH=/data/muslims.db
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-COPY server.js prompts.js prayer-utils.js ai-utils.js daily-ayah.js checkin.js db.js auth.js content.js push.js ./
+COPY server.js prompts.js prayer-utils.js ai-utils.js daily-ayah.js checkin.js db.js auth.js content.js push.js prayCalc.js feedback.js groups.js fasting.js analytics.js ./
 # Admin/xidmət skriptləri (admin-user.js, migrate-from-firestore.js, backup-db.js, gen-vapid.js, set-admin.js)
 COPY scripts ./scripts
 

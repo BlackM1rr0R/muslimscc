@@ -1,0 +1,88 @@
+/* Günün təddəbür sualı — TadabburCard.jsx. Yalnız tokenlər (DESIGN.md).
+   Səhifə CSS-i ui.css-dən əvvəl yüklənir → .ui-* dəyişikliyi .tdb-card ilə gücləndirilir. */
+
+.ui-card.tdb-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.tdb-pattern { opacity: 0.6; }
+
+.tdb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.tdb-ref { direction: ltr; unicode-bidi: isolate; }
+
+.tdb-ayah { margin: 0; }
+.tdb-ayah blockquote { margin: 0; }
+.tdb-ar {
+  margin: 0;
+  font-size: clamp(22px, 2.2vw, 30px);
+  text-align: center;
+}
+.tdb-trans {
+  margin-top: var(--space-3);
+  color: var(--text-body);
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  line-height: var(--lh-body);
+  text-align: start;
+}
+.tdb-src {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--space-3);
+  margin-top: var(--space-2);
+  color: var(--text-tertiary);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+.tdb-src__by { font-weight: 400; }
+
+.tdb-question {
+  padding: var(--space-4);
+  padding-inline-start: calc(var(--space-4) + 2px);
+  border-inline-start: 2px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.tdb-question__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-text);
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+.tdb-question__icon { color: var(--accent); }
+.tdb-question__text {
+  margin-top: var(--space-2);
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  line-height: var(--lh-snug);
+}
+.tdb-question__note {
+  margin-top: var(--space-2);
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  line-height: 1.5;
+}
+
+.tdb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tdb-tafsir { margin-top: calc(var(--space-2) * -1); }
+.tdb-loading { color: var(--text-tertiary); font-size: var(--step--1); }
+
+html[lang="ar"] .tdb-question__text,
+html[lang="ar"] .tdb-trans { font-family: var(--font-arabic-ui); }

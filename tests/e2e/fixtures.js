@@ -9,6 +9,19 @@
 //     sonunda `consoleProblems` boş olmalıdır (bax: expectCleanConsole)
 // ═══════════════════════════════════════════════════════
 import { test as base, expect } from '@playwright/test'
+import { computeTimes } from '../../src/utils/prayCalc.js'
+
+// Azərbaycan şəhərlərinin vaxtları aladhan-dan deyil, yerli hesabdan gəlir
+// (Əbu Bəkr məscidinin cədvəli — src/utils/prayCalc.js). Testlər gözlənilən
+// vaxtı eyni funksiya ilə hesablayır.
+export const BAKU = { lat: 40.3953, lng: 49.8822 }
+export const SHEKI = { lat: 41.1919, lng: 47.1706 }
+/** Bakı vaxtı ilə verilən anın (susmaya görə — indi) təqvim günü üçün vaxtlar. */
+export function azTimes(at = new Date(), loc = BAKU) {
+  const p = {}
+  for (const x of new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Baku', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(at)) p[x.type] = x.value
+  return computeTimes({ year: +p.year, month: +p.month, day: +p.day }, loc.lat, loc.lng, 4)
+}
 
 // aladhan.com /timings cavabının bizə lazım olan hissəsi
 const TIMINGS = {

@@ -47,12 +47,13 @@ for (const page of PUBLIC) {
       await expect(p.locator('html')).toHaveAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr')
       await expect(p).toHaveTitle(/Muslims\.cc/)
 
-      // Ərəbcə ayə/hədis blokları (lang="ar") istisnadır — orijinal mətndir
-      const text = await p.locator('main, #root').first().evaluate((root) => {
+      // Ərəbcə ayə/hədis blokları (lang="ar") və başqa dildə olduğu açıq
+      // işarələnmiş elementlər (məs. dil seçicisində "Русский", lang="ru") istisnadır
+      const text = await p.locator('main, #root').first().evaluate((root, pageLang) => {
         const clone = root.cloneNode(true)
-        clone.querySelectorAll('[lang="ar"], script, style, [aria-hidden="true"]').forEach(n => n.remove())
+        clone.querySelectorAll(`[lang]:not([lang="${pageLang}"]), script, style, [aria-hidden="true"]`).forEach(n => n.remove())
         return clone.innerText
-      })
+      }, lang)
       expect(text, 'Qaraçuxur izi qalmamalıdır').not.toMatch(/qara[cç]uxur|garachukhur|карачух|karaçuh|قاراچوخور/i)
       expect(leaksIn(lang, text), `${lang} səhifəsində başqa dilin izi`).toEqual([])
 

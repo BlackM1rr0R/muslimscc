@@ -1,9 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { guessLang } from '../utils/textLang'
+import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
-import { getPrayerLocation } from '../utils/prayerLocation'
+import { getPrayerLocation, PRAYER_CITIES } from '../utils/prayerLocation'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import CityPicker from '../components/CityPicker'
+import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
+import { isPlainClick } from '../components/PageLink'
+import { pathFor } from '../seo/routes'
+import { QIBLA_GUIDE, QIBLA_GUIDE_TXT, QIBLA_SOURCES, QIBLA_TABLE_CITIES } from '../data/guides/QiblaPage'
+import '../styles/LessonsPage.css'
 import '../styles/QiblaPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 
@@ -62,6 +69,123 @@ function calcDistance(lat1, lon1, lat2, lon2) {
   const dLon = toRad(lon2 - lon1)
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
+}
+
+// ═══ Bələdçi: hökmlər, hesablama, kompas qaydaları, şəhər cədvəli ═══
+// Mətnlər data/guides/QiblaPage.js-dədir (LessonBlocks formatı).
+
+/** Başqa səhifəyə / dərsə keçid kartı (SPA ilə; Ctrl-klik yeni tabda açır) */
+function GuideLink({ link, lang }) {
+  const navigate = useNavigate()
+  const href = link.kind === 'lesson' ? pathFor('learn', lang, link.slug) : pathFor(link.key, lang)
+  const onClick = (e) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(href)
+    window.scrollTo(0, 0)
+  }
+  return (
+    <a href={href} onClick={onClick} className="ui-card ui-card--interactive qb-guide-link">
+      <Icon name={link.kind === 'lesson' ? 'learn' : link.key} size={20} className="qb-guide-link__icon" />
+      <span>{pick(link.label, lang)}</span>
+      <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+    </a>
+  )
+}
+
+/** Cənubdan qərbə sapma: 205° → «25°» (yalnız 180°–270° aralığında mənalıdır) */
+function westOfSouth(deg) {
+  return deg > 180 && deg < 270 ? `${Math.round(deg - 180)}°` : '—'
+}
+
+/** Azərbaycan şəhərləri üçün qiblə bucağı — kompasla EYNİ funksiyalar (calcQibla, calcDistance) */
+function CityTable({ lang }) {
+  const g = QIBLA_GUIDE_TXT
+  const rows = QIBLA_TABLE_CITIES
+    .map(id => PRAYER_CITIES.find(c => c.id === id))
+    .filter(Boolean)
+    .map(c => ({ id: c.id, name: c.label?.[lang] || c.label?.en || c.id, q: calcQibla(c.lat, c.lng), d: calcDistance(c.lat, c.lng, KAABA.lat, KAABA.lon) }))
+  return (
+    <div className="ls-table-wrap" tabIndex={0}>
+      <table className="ls-table qb-city-table">
+        <thead>
+          <tr>
+            <th scope="col">{pick(g.city, lang)}</th>
+            <th scope="col">{pick(g.bearing, lang)}</th>
+            <th scope="col">{pick(g.side, lang)}</th>
+            <th scope="col">{pick(g.dist, lang)}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.id}>
+              <th scope="row">{r.name}</th>
+              <td className="ui-num"><bdi dir="ltr">{r.q.toFixed(1)}°</bdi></td>
+              <td className="ui-num"><bdi dir="ltr">{westOfSouth(r.q)}</bdi></td>
+              <td className="ui-num"><bdi dir="ltr">{formatKm(r.d, lang)} {KM[lang] || KM.en}</bdi></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function QiblaGuide({ lang }) {
+  const g = QIBLA_GUIDE_TXT
+  const jump = (e, id) => {
+    if (!isPlainClick(e)) return
+    const el = document.getElementById(`qb-g-${id}`)
+    if (!el) return
+    e.preventDefault()
+    el.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+    el.querySelector('.ls-sec__title')?.focus({ preventScroll: true })
+  }
+  return (
+    <section className="ui-section qb-guide" aria-labelledby="qb-guide-title">
+      <div className="ui-container qb-guide__inner">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{pick(g.eyebrow, lang)}</span>
+          <h2 id="qb-guide-title" className="ui-title">{pick(g.title, lang)}</h2>
+          <p className="ui-lead">{pick(g.lead, lang)}</p>
+        </div>
+
+        <nav className="qb-guide-nav" aria-label={pick(g.contents, lang)}>
+          <ul className="qb-guide-nav__list">
+            {QIBLA_GUIDE.map(s => (
+              <li key={s.id}>
+                <a href={`#qb-g-${s.id}`} className="ui-chip qb-guide-nav__chip" onClick={(e) => jump(e, s.id)}>
+                  <Icon name={s.icon} size={15} /> {pick(s.title, lang)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="ls-article qb-guide__article">
+          {QIBLA_GUIDE.map(s => (
+            <section key={s.id} id={`qb-g-${s.id}`} className="ls-sec qb-guide__sec" aria-labelledby={`qb-g-${s.id}-h`}>
+              <h3 id={`qb-g-${s.id}-h`} className="ls-sec__title" tabIndex={-1}>{pick(s.title, lang)}</h3>
+              <LessonBlocks blocks={s.blocks} lang={lang} />
+              {s.cityTable && <CityTable lang={lang} />}
+              {s.links?.map((l, i) => <GuideLink key={i} link={l} lang={lang} />)}
+            </section>
+          ))}
+          <section className="ls-sec ui-card ui-card--sunken ls-sources" aria-labelledby="qb-g-sources-h">
+            <h3 id="qb-g-sources-h" className="ls-sec__title" tabIndex={-1}>{pick(g.sources, lang)}</h3>
+            <ul className="ls-sources__list">
+              {QIBLA_SOURCES.map((r, i) => (
+                <li key={i}>
+                  <Icon name="external" size={15} />
+                  <a href={r.url} target="_blank" rel="noopener noreferrer nofollow" dir="auto" lang={guessLang(r.label)}>{r.label}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 const LABELS = {
@@ -444,6 +568,9 @@ export default function QiblaPage({ setPage }) {
           </div>
         )}
       </div>
+
+      {/* Hökmlər və tövsiyələr — məkan tapılmasa da göstərilir */}
+      <QiblaGuide lang={lang} />
     </div>
   )
 }

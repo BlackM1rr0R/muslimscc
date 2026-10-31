@@ -6,6 +6,12 @@ import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import { exitDelay } from '../utils/promptCoordinator'
+import PageLink, { isPlainClick } from '../components/PageLink'
+import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
+import { useNavigate } from 'react-router-dom'
+import { pathFor } from '../seo/routes'
+import { CHARITY_GUIDE, CHARITY_GUIDE_LINKS } from '../data/pageGuides/CharityPage'
+import '../styles/LessonsPage.css'
 
 // Əməl növləri. icon — Icon.jsx adı (emoji əvəzinə: rəngi tokendən,
 // bütün sistemlərdə eyni). Dəqiq ikonu olmayanlar üçün ən yaxın:
@@ -25,11 +31,11 @@ const DEED_TYPES = [
 const tileClass = (key) => `ui-icon-tile${key === 'money' ? ' ui-icon-tile--accent' : ''}`
 
 const LABELS = {
-  az: { title:'Sədəqə gündəliyi', subtitle:'Gündəlik xeyir əməllərinizi qeyd edin', heroArabic:'صَدَقَة', total:'Ümumi əməl', totalAmount:'Ümumi məbləğ', streak:'Ardıcıl gün', addTitle:'Yeni əməl əlavə et', date:'Tarix', type:'Növ', amount:'Məbləğ (istəyə bağlı)', description:'Təsvir', add:'Əlavə et', entries:'Qeydlər', noEntries:'Hələ heç bir qeyd yoxdur', delete:'Sil', all:'Hamısı', filterBy:'Süzgəc', descPh:'Məs.: qonşuya yemək apardım', added:'Əlavə edildi' },
-  en: { title:'Charity Diary', subtitle:'Track your daily good deeds', heroArabic:'صَدَقَة', total:'Total Deeds', totalAmount:'Total Amount', streak:'Day Streak', addTitle:'Add New Deed', date:'Date', type:'Type', amount:'Amount (optional)', description:'Description', add:'Add', entries:'Entries', noEntries:'No entries yet', delete:'Delete', all:'All', filterBy:'Filter', descPh:'E.g. took food to a neighbour', added:'Added' },
-  ru: { title:'Дневник садаки', subtitle:'Записывайте ваши ежедневные добрые дела', heroArabic:'صَدَقَة', total:'Всего дел', totalAmount:'Общая сумма', streak:'Дней подряд', addTitle:'Добавить дело', date:'Дата', type:'Тип', amount:'Сумма (необязательно)', description:'Описание', add:'Добавить', entries:'Записи', noEntries:'Пока нет записей', delete:'Удалить', all:'Все', filterBy:'Фильтр', descPh:'Напр.: отнёс еду соседу', added:'Добавлено' },
-  ar: { title:'يوميات الصدقة', subtitle:'سجّل أعمالك الخيرية اليومية', heroArabic:'صَدَقَة', total:'إجمالي الأعمال', totalAmount:'المبلغ الإجمالي', streak:'أيام متتالية', addTitle:'أضف عملاً جديداً', date:'التاريخ', type:'النوع', amount:'المبلغ (اختياري)', description:'الوصف', add:'أضف', entries:'السجلات', noEntries:'لا توجد سجلات بعد', delete:'حذف', all:'الكل', filterBy:'تصفية', descPh:'مثال: أخذت طعاماً إلى الجار', added:'تمت الإضافة' },
-  tr: { title:'Sadaka Günlüğü', subtitle:'Günlük hayır işlerinizi kaydedin', heroArabic:'صَدَقَة', total:'Toplam İş', totalAmount:'Toplam Tutar', streak:'Ardışık Gün', addTitle:'Yeni İş Ekle', date:'Tarih', type:'Tür', amount:'Tutar (isteğe bağlı)', description:'Açıklama', add:'Ekle', entries:'Kayıtlar', noEntries:'Henüz kayıt yok', delete:'Sil', all:'Tümü', filterBy:'Filtre', descPh:'Örn.: komşuya yemek götürdüm', added:'Eklendi' },
+  az: { title:'Sədəqə gündəliyi', subtitle:'Gündəlik xeyir əməllərinizi qeyd edin', heroArabic:'صَدَقَة', total:'Ümumi əməl', totalAmount:'Ümumi məbləğ', streak:'Ardıcıl gün', addTitle:'Yeni əməl əlavə et', date:'Tarix', type:'Növ', amount:'Məbləğ (istəyə bağlı)', description:'Təsvir', add:'Əlavə et', entries:'Qeydlər', noEntries:'Hələ heç bir qeyd yoxdur', delete:'Sil', all:'Hamısı', filterBy:'Süzgəc', descPh:'Məs.: qonşuya yemək apardım', added:'Əlavə edildi', guideMore:'Ətraflı' },
+  en: { title:'Charity Diary', subtitle:'Track your daily good deeds', heroArabic:'صَدَقَة', total:'Total Deeds', totalAmount:'Total Amount', streak:'Day Streak', addTitle:'Add New Deed', date:'Date', type:'Type', amount:'Amount (optional)', description:'Description', add:'Add', entries:'Entries', noEntries:'No entries yet', delete:'Delete', all:'All', filterBy:'Filter', descPh:'E.g. took food to a neighbour', added:'Added', guideMore:'Read more' },
+  ru: { title:'Дневник садаки', subtitle:'Записывайте ваши ежедневные добрые дела', heroArabic:'صَدَقَة', total:'Всего дел', totalAmount:'Общая сумма', streak:'Дней подряд', addTitle:'Добавить дело', date:'Дата', type:'Тип', amount:'Сумма (необязательно)', description:'Описание', add:'Добавить', entries:'Записи', noEntries:'Пока нет записей', delete:'Удалить', all:'Все', filterBy:'Фильтр', descPh:'Напр.: отнёс еду соседу', added:'Добавлено', guideMore:'Подробнее' },
+  ar: { title:'يوميات الصدقة', subtitle:'سجّل أعمالك الخيرية اليومية', heroArabic:'صَدَقَة', total:'إجمالي الأعمال', totalAmount:'المبلغ الإجمالي', streak:'أيام متتالية', addTitle:'أضف عملاً جديداً', date:'التاريخ', type:'النوع', amount:'المبلغ (اختياري)', description:'الوصف', add:'أضف', entries:'السجلات', noEntries:'لا توجد سجلات بعد', delete:'حذف', all:'الكل', filterBy:'تصفية', descPh:'مثال: أخذت طعاماً إلى الجار', added:'تمت الإضافة', guideMore:'للمزيد' },
+  tr: { title:'Sadaka Günlüğü', subtitle:'Günlük hayır işlerinizi kaydedin', heroArabic:'صَدَقَة', total:'Toplam İş', totalAmount:'Toplam Tutar', streak:'Ardışık Gün', addTitle:'Yeni İş Ekle', date:'Tarih', type:'Tür', amount:'Tutar (isteğe bağlı)', description:'Açıklama', add:'Ekle', entries:'Kayıtlar', noEntries:'Henüz kayıt yok', delete:'Sil', all:'Tümü', filterBy:'Filtre', descPh:'Örn.: komşuya yemek götürdüm', added:'Eklendi', guideMore:'Daha fazlası' },
 }
 
 // Yerli tarix (YYYY-MM-DD). toISOString() UTC-dir — Bakıda (UTC+4) gecə
@@ -85,6 +91,14 @@ function calcStreak(entries) {
 export default function CharityPage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
+  const navigate = useNavigate()
+  // Dərsə keçid — həqiqi <a href>, adi klikdə SPA ilə
+  const openLesson = (e, slug) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(pathFor('learn', lang, slug))
+    window.scrollTo(0, 0)
+  }
 
   // Yaddaşdakı qeydlər yoxlanılır: pozuq/köhnə forma ({}, "x", null element,
   // mətn məbləğ) əvvəl səhifəni tam ağ ekrana çevirirdi (reduce/toFixed xətası)
@@ -370,6 +384,22 @@ export default function CharityPage({ setPage }) {
                   </ul>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* "Nələr sədəqədir?" — gündəlikdəki növlərin dəlili (LessonBlocks formatı) */}
+          <div className="ch-guide">
+            {CHARITY_GUIDE.map(sec => (
+              <section key={sec.id} id={`ch-${sec.id}`} className="ch-guide-sec" aria-labelledby={`ch-${sec.id}-title`}>
+                <h2 id={`ch-${sec.id}-title`} className="ch-guide-title">{pick(sec.title, lang)}</h2>
+                <LessonBlocks blocks={sec.blocks} lang={lang} />
+              </section>
+            ))}
+            <div className="ch-guide-links">
+              <span className="ch-guide-links-label">{t.guideMore}:</span>
+              {CHARITY_GUIDE_LINKS.map((l, i) => l.learn
+                ? <a key={i} className="ui-chip ch-guide-chip" href={pathFor('learn', lang, l.learn)} onClick={(e) => openLesson(e, l.learn)}><Icon name="learn" size={15} /> {pick(l.label, lang)}</a>
+                : <PageLink key={i} className="ui-chip ch-guide-chip" to={l.to} setPage={setPage} onNavigate={() => window.scrollTo(0, 0)}><Icon name={l.to} size={15} /> {pick(l.label, lang)}</PageLink>)}
             </div>
           </div>
 

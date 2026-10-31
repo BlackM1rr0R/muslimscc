@@ -36,6 +36,7 @@
 
 import { useEffect, useState } from 'react'
 import { DEFAULT_PRAYER_LOCATION } from '../config/brand'
+import { METHOD_ABUBAKR } from './prayCalc'
 
 const CITY_KEY = 'muslim_cc_selected_city'
 const CUSTOM_KEY = 'muslim_cc_custom_city'
@@ -49,10 +50,11 @@ const FCM_TOKEN_KEY = 'muslim_cc_fcm_token'
 const CUSTOM_ID = 'custom'
 const LANG_LIST = ['az', 'en', 'ru', 'ar', 'tr']
 
-// Hesablama metodu bütün şəhərlər üçün eynidir (əvvəlki /prayer səhifəsi
-// kimi — aladhan 13 = Diyanet). Şəhər üçün başqa metod lazım olsa,
-// həmin şəhərə `method` sahəsi əlavə et.
-const DEFAULT_METHOD = DEFAULT_PRAYER_LOCATION.method || 13
+// Hesablama metodu: Azərbaycan şəhərləri — Bakıdakı Əbu Bəkr məscidinin
+// cədvəli (99, utils/prayCalc.js); qalan ölkələr — aladhan 13 (Diyanet).
+// Şəhər üçün başqa metod lazım olsa, həmin şəhərə `method` sahəsi əlavə et.
+const DEFAULT_METHOD = 13
+const methodFor = (country, own) => own || (country === 'AZ' ? METHOD_ABUBAKR : DEFAULT_METHOD)
 
 export const COUNTRY_NAMES = {
   AZ: { az:'Azərbaycan',  en:'Azerbaijan',     ru:'Азербайджан',   ar:'أذربيجان',  tr:'Azerbaycan' },
@@ -83,7 +85,7 @@ export const COUNTRY_NAMES = {
 export const PRAYER_CITIES = [
   // ── Azərbaycan (75) ──
   /* @@AZ_CITIES@@ */
-  { id:'Baku', country:'AZ', lat:40.4093, lng:49.8671, tz:'Asia/Baku', label:{ az:'Bakı', en:'Baku', ru:'Баку', ar:'باكو', tr:'Bakü' } },
+  { id:'Baku', country:'AZ', lat:40.3953, lng:49.8822, tz:'Asia/Baku', label:{ az:'Bakı', en:'Baku', ru:'Баку', ar:'باكو', tr:'Bakü' } },
   { id:'Sumgait', country:'AZ', lat:40.5897, lng:49.6686, tz:'Asia/Baku', label:{ az:'Sumqayıt', en:'Sumgait', ru:'Сумгаит', ar:'سومغايت', tr:'Sumgayıt' }, alt:['Sumqayit','Sumgayit'] },
   { id:'Ganja', country:'AZ', lat:40.6828, lng:46.3606, tz:'Asia/Baku', label:{ az:'Gəncə', en:'Ganja', ru:'Гянджа', ar:'كنجة', tr:'Gence' }, alt:['Gyandzha'] },
   { id:'Aghjabadi', country:'AZ', lat:40.0502, lng:47.4594, tz:'Asia/Baku', label:{ az:'Ağcabədi', en:'Aghjabadi', ru:'Агджабеди', ar:'أغجابيدي', tr:'Ağcabedi' }, alt:['Agjabadi'] },
@@ -280,7 +282,7 @@ function fromCity(c, isDefault) {
     lat: c.lat,
     lng: c.lng,
     tz: c.tz,
-    method: c.method || DEFAULT_METHOD,
+    method: methodFor(c.country, c.method),
     city: c.label,
     country: c.country,
     isDefault,
@@ -294,7 +296,7 @@ function fromCustom(p) {
     lat: p.lat,
     lng: p.lng,
     tz: p.tz,
-    method: p.method || DEFAULT_METHOD,
+    method: methodFor(p.country, p.method),
     city: p.label,
     country: p.country || '',
     isDefault: false,
@@ -321,7 +323,7 @@ export function getPrayerLocation() {
     lat: d.lat,
     lng: d.lng,
     tz: d.tz,
-    method: d.method || DEFAULT_METHOD,
+    method: methodFor(same ? same.country : '', d.method),
     city: same ? same.label : d.city,
     country: same ? same.country : '',
     isDefault: true,

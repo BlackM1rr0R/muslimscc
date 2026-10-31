@@ -1,0 +1,83 @@
+/* ══════════════════════════════════════════════════════════════════
+   KÖK AXTARIŞI — dizayn v2 (DESIGN.md). Axtarış kartı → kökün xülasəsi
+   (iri ərəb kökü + statistika) → forma çipləri → ayə kartları (vurğulu söz).
+   Yalnız tokenlər.
+   ══════════════════════════════════════════════════════════════════ */
+.qr-page { min-height: 60vh; }
+.qr-page .ui-section--tight { padding-top: var(--space-6); }
+.qr-page .qr-hero .ui-lead { max-width: 62ch; }
+.qr-layout { max-width: calc(860px + 2 * var(--page-gutter)); display: flex; flex-direction: column; gap: var(--space-5); }
+.qr-muted { color: var(--text-tertiary); font-weight: 400; }
+
+/* ── Axtarış ── */
+.qr-page .qr-search { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); }
+.qr-search__row { display: flex; gap: var(--space-2); }
+.qr-page .qr-search__input { flex: 1; min-width: 0; font-size: 20px; font-family: var(--font-arabic), var(--font-sans); }
+.qr-page .qr-search__input::placeholder { font-family: var(--font-sans); font-size: var(--step-0); }
+.qr-search__input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.qr-kb { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.qr-kb__pad { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; padding: var(--space-3); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-2); }
+.qr-kb__key {
+  display: grid; place-items: center; min-height: var(--tap); padding: 0;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  background: var(--surface-1); color: var(--text-strong); font-size: 22px; line-height: 1; cursor: pointer;
+  transition: background-color var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
+}
+.qr-kb__key:hover { background: var(--brand-soft); border-color: var(--brand-line); }
+.qr-kb__key:active { transform: scale(0.94); }
+.qr-kb__key:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.qr-kb__key--wide { grid-column: span 2; color: var(--text-secondary); }
+.qr-examples { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.qr-examples__label { color: var(--text-secondary); font-size: var(--step--1); font-weight: 500; }
+.qr-page .qr-root-chip { font-size: 18px; word-spacing: 0.2em; }
+.qr-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+
+/* ── Nəticə ── */
+.qr-results { display: flex; flex-direction: column; gap: var(--space-5); }
+.qr-status { margin: 0; color: var(--text-secondary); text-align: center; }
+.qr-page .qr-empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-6) var(--space-5); text-align: center; }
+.qr-empty p { margin: 0; }
+
+.qr-page .qr-summary { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); padding: var(--space-6) var(--space-5); text-align: center; }
+.qr-summary__root { margin: 0; color: var(--brand); font-size: clamp(40px, 7vw, 64px); font-weight: 400; line-height: 1.4; word-spacing: 0.3em; }
+.qr-summary__stats { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-4) var(--space-7); }
+.qr-summary__note { display: flex; gap: 6px; align-items: flex-start; max-width: 60ch; margin: 0; font-size: var(--step--1); text-align: start; }
+.qr-summary__note svg { flex-shrink: 0; margin-top: 3px; }
+
+.qr-forms, .qr-ayahs { display: flex; flex-direction: column; gap: var(--space-3); }
+.qr-forms__list { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.qr-page .qr-form { min-height: 44px; gap: 8px; }
+.qr-form__lemma { font-size: 20px; line-height: 1.5; }
+.qr-form__cat { color: var(--text-tertiary); font-size: var(--step--2); }
+.qr-forms__n { color: var(--text-secondary); font-size: var(--step--2); font-weight: 600; }
+.qr-page .ui-chip[aria-pressed="true"] .qr-form__cat,
+.qr-page .ui-chip[aria-pressed="true"] .qr-forms__n { color: inherit; }
+
+.qr-ayahs__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.qr-ayahs__list { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.qr-page .qr-ayah { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4) var(--space-5); }
+.qr-ayah__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.qr-ayah__ref { display: inline-flex; align-items: baseline; gap: 8px; color: var(--text-strong); font-weight: 600; text-decoration: none; }
+.qr-ayah__ref:hover .qr-ayah__surah { color: var(--brand); text-decoration: underline; }
+.qr-ayah__key { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
+.qr-ayah__lemmas { color: var(--accent-text); font-size: 17px; line-height: 1.5; }
+.qr-ayah__text { margin: 0; color: var(--text-strong); font-size: clamp(21px, 2.3vw, 26px); line-height: 2.1; }
+.qr-hit { padding: 0 2px; border-radius: var(--radius-xs); background: var(--brand-soft-2); color: var(--brand); }
+.qr-ayah__end { color: var(--accent-text); font-size: 0.8em; }
+.qr-ayah__skel { display: flex; flex-direction: column; gap: 10px; }
+.qr-ayah__err { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; color: var(--bad); }
+.qr-ayah__open { align-self: flex-start; font-size: var(--step--1); }
+.qr-page .qr-more { align-self: center; }
+
+.qr-credit { padding-top: var(--space-4); border-top: 1px solid var(--line); color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.6; }
+.qr-credit p { margin: 0; }
+.qr-credit__links { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin-top: var(--space-2) !important; }
+.qr-credit__links svg { vertical-align: -2px; }
+
+@media (max-width: 767.98px) {
+  .qr-page .qr-search, .qr-page .qr-ayah { padding: var(--space-4); }
+  .qr-search__row { flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qr-kb__key { transition: none; }
+}

@@ -11,6 +11,8 @@
 //   "Ramazana N gün" kartı; ?ramadan=eid — bayram kartı. Yalnız UI-dir.
 // ═══════════════════════════════════════════════════════
 
+import { METHOD_ABUBAKR, aladhanMethodQuery, computeTimes, CALC_METHODS, tzOffsetHours } from './prayCalc'
+
 export const SHABAN = 8
 export const RAMADAN = 9
 export const SHAWWAL = 10
@@ -224,7 +226,7 @@ const inflight = new Map()
 
 export function calendarUrl(year, loc) {
   return `https://api.aladhan.com/v1/hijriCalendar/${year}/${RAMADAN}` +
-    `?latitude=${loc.lat}&longitude=${loc.lng}&method=${loc.method}` +
+    `?latitude=${loc.lat}&longitude=${loc.lng}&${aladhanMethodQuery(loc.method)}` +
     (loc.tz ? `&timezonestring=${encodeURIComponent(loc.tz)}` : '')
 }
 
@@ -241,6 +243,21 @@ export function readCalendarCache(year, loc) {
   return null
 }
 
+/**
+ * Azərbaycan (Əbu Bəkr məscidinin cədvəli): günlər aladhan-dan, vaxtlar yerli
+ * hesabdan — /prayer ilə dəqiqəsinədək eyni olsun. Məscid cədvəlində səhurun
+ * sonu sübh azanıdır (Quran 2:187 — "dan ağarana qədər"), ona görə imsak = sübh.
+ */
+export function applyLocalTimes(cal, loc) {
+  if (!cal || Number(loc?.method) !== METHOD_ABUBAKR) return cal
+  return cal.map(row => {
+    const [d, m, y] = row.date.split('-').map(Number)
+    const t = computeTimes({ year: y, month: m, day: d }, loc.lat, loc.lng,
+      tzOffsetHours(loc.tz || 'Asia/Baku', y, m, d), CALC_METHODS.abubakr)
+    return { ...row, times: { ...t, imsak: t.fajr } }
+  })
+}
+
 /** Ramazan ayının imsakiyyəsi (normalizeCalendar formatında); xətada atır. */
 export function loadRamadanCalendar(year, loc, timeoutMs = 15000) {
   const cached = readCalendarCache(year, loc)
@@ -252,7 +269,7 @@ export function loadRamadanCalendar(year, loc, timeoutMs = 15000) {
   const p = fetch(calendarUrl(year, loc), { signal: ctrl?.signal })
     .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
     .then(json => {
-      const cal = normalizeCalendar(json)
+      const cal = applyLocalTimes(normalizeCalendar(json), loc)
       if (!cal) throw new Error('bad response')
       mem.set(key, cal)
       try { sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify(cal)) } catch { /* */ }

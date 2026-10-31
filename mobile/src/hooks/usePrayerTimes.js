@@ -29,6 +29,7 @@
 //   (daysAway 0), əks halda gələn cümə; dhuhr — həmin cümənin zöhr azanı.
 // ═══════════════════════════════════════════════════════
 
+import { METHOD_ABUBAKR, aladhanMethodQuery, computeTimes, CALC_METHODS } from '../utils/prayCalc'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppState } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -177,7 +178,7 @@ function writeStored(key, data) {
 
 async function fetchDay(dateKey, city, signal) {
   const url = `https://api.aladhan.com/v1/timings/${dateKey}` +
-    `?latitude=${city.lat}&longitude=${city.lng}&method=${city.method}&iso8601=true`
+    `?latitude=${city.lat}&longitude=${city.lng}&${aladhanMethodQuery(city.method)}&iso8601=true`
   const res = await fetch(url, { signal })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
@@ -187,6 +188,15 @@ async function fetchDay(dateKey, city, signal) {
   const timings = {}
   for (const k of PRAYER_KEYS) timings[k] = cleanTime(t[API_KEY[k]])
   if (FARD.some(k => !timings[k])) throw new Error('bad response')
+  const offsetMin = isoOffsetMin(t.Fajr)
+
+  // Azərbaycan (Əbu Bəkr məscidinin cədvəli): vaxtlar sayt və serverlə eyni
+  // yerli hesabdan — aladhan əsri bəzən 1 dəqiqə fərqli yuvarlaqlaşdırır
+  if (Number(city.method) === METHOD_ABUBAKR && Number.isFinite(offsetMin)) {
+    const [d, m, y] = dateKey.split('-').map(Number)
+    const local = computeTimes({ year: y, month: m, day: d }, city.lat, city.lng, offsetMin / 60, CALC_METHODS.abubakr)
+    for (const k of PRAYER_KEYS) if (local[k]) timings[k] = local[k]
+  }
 
   const h = json.data.date?.hijri
   const hijri = h ? {
@@ -197,7 +207,7 @@ async function fetchDay(dateKey, city, signal) {
     year: String(h.year || ''),
   } : null
 
-  return { date: dateKey, loc: locSig(city), timings, hijri, offsetMin: isoOffsetMin(t.Fajr) }
+  return { date: dateKey, loc: locSig(city), timings, hijri, offsetMin }
 }
 
 function remember(mk, d, city) {

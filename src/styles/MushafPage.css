@@ -1,0 +1,264 @@
+/* ══════════════════════════════════════════════════════════════════
+   MUSHAF GÖRÜNÜŞÜ — dizayn v2 (DESIGN.md). Kağız vərəq (--surface-1),
+   qızılı hairline çərçivə, 15 sətir iki tərəfə düzlənir (flex space-between),
+   daşan sətri JS (useFitLines) kiçildir. Yalnız tokenlər.
+   İSTİSNA: təcvid rəngləri — dizayn sistemində qarşılığı yoxdur (məzmun
+   rəngləridir, Darul-Marifə ənənəsinə yaxın); yalnız bu səhifədə
+   --tj-* dəyişənləri kimi təyin olunur, qaranlıq rejim üçün açıq çalarlar.
+   ══════════════════════════════════════════════════════════════════ */
+.mp-page {
+  min-height: 60vh;
+  --tj-silent: #8b918d;
+  --tj-madd2: #a0701c;
+  --tj-madd246: #d0670a;
+  --tj-madd45: #c4321f;
+  --tj-madd6: #8f1414;
+  --tj-ghunnah: #23863a;
+  --tj-ikhfa: #0f7d74;
+  --tj-idghamG: #7b3fb3;
+  --tj-idgham: #5d6c86;
+  --tj-iqlab: #2160c4;
+  --tj-qalqalah: #0b8cc1;
+}
+[data-theme="dark"] .mp-page {
+  --tj-silent: #7c8682;
+  --tj-madd2: #d8b46a;
+  --tj-madd246: #f39a4c;
+  --tj-madd45: #f07263;
+  --tj-madd6: #e0524f;
+  --tj-ghunnah: #6fcf86;
+  --tj-ikhfa: #4fd1c1;
+  --tj-idghamG: #c39af0;
+  --tj-idgham: #9fb0c9;
+  --tj-iqlab: #7fb0ff;
+  --tj-qalqalah: #63c7f2;
+}
+
+.mp-page .ui-section--tight { padding-top: var(--space-6); }
+.mp-page .mp-hero .ui-lead { max-width: 62ch; }
+.mp-layout { max-width: calc(760px + 2 * var(--page-gutter)); display: flex; flex-direction: column; gap: var(--space-4); }
+
+/* ── İdarə paneli ── */
+.mp-page .mp-controls { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); }
+.mp-go { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(180px, 1.6fr) minmax(110px, 0.8fr); gap: var(--space-3); align-items: start; }
+.mp-go__field { min-width: 0; }
+.mp-go__row { display: flex; gap: var(--space-2); }
+.mp-page .mp-go__input { width: 100%; min-width: 0; }
+.mp-go__input::-webkit-inner-spin-button { opacity: .6; }
+.mp-page .mp-go__err { color: var(--bad); }
+.mp-page .mp-go .ui-select { width: 100%; }
+.mp-modes { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.mp-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: var(--space-3) 0 0; border-top: 1px solid var(--line); list-style: none; }
+.mp-legend__item { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.4; }
+.mp-legend__dot { flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; background: currentColor; }
+.tj-g-silent { color: var(--tj-silent); }
+.tj-g-madd2 { color: var(--tj-madd2); }
+.tj-g-madd246 { color: var(--tj-madd246); }
+.tj-g-madd45 { color: var(--tj-madd45); }
+.tj-g-madd6 { color: var(--tj-madd6); }
+.tj-g-ghunnah { color: var(--tj-ghunnah); }
+.tj-g-ikhfa { color: var(--tj-ikhfa); }
+.tj-g-idghamG { color: var(--tj-idghamG); }
+.tj-g-idgham { color: var(--tj-idgham); }
+.tj-g-iqlab { color: var(--tj-iqlab); }
+.tj-g-qalqalah { color: var(--tj-qalqalah); }
+
+.mp-note { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.5; }
+.mp-note svg { flex-shrink: 0; margin-top: 2px; }
+.mp-note--center { justify-content: center; text-align: center; }
+.mp-source { margin: 0; color: var(--text-tertiary); font-size: var(--step--2); text-align: center; }
+
+/* ── Vərəqləmə ── */
+.mp-pager { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.mp-pager__pos { margin: 0; color: var(--text-strong); font-weight: 600; font-size: var(--step-1); white-space: nowrap; }
+.mp-pager__of { color: var(--text-tertiary); font-weight: 500; font-size: var(--step--1); }
+.mp-page .mp-pager__btn { gap: 6px; }
+
+/* ── Vərəq ── */
+.mp-stage { position: relative; touch-action: pan-y; }
+.mp-sheet {
+  container-type: inline-size;
+  position: relative;
+  max-width: 640px;
+  margin-inline: auto;
+  padding: var(--space-4) clamp(14px, 4.5vw, 36px) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-2);
+}
+/* İkiqat qızılı çərçivə — çap mushafının haşiyəsi kimi */
+.mp-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px solid var(--accent-line);
+  border-radius: calc(var(--radius-lg) - 6px);
+  pointer-events: none;
+}
+.mp-sheet__head, .mp-sheet__foot { position: relative; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); color: var(--text-secondary); }
+.mp-sheet__head { padding-bottom: var(--space-2); margin-bottom: var(--space-2); border-bottom: 1px solid var(--line); font-size: var(--step--1); }
+.mp-sheet__surah { color: var(--accent-text); font-size: 17px; line-height: 1.6; }
+.mp-sheet__juz { font-weight: 500; }
+.mp-sheet__foot { justify-content: center; margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--line); }
+.mp-sheet__num { color: var(--accent-text); font-size: 17px; line-height: 1.4; }
+
+.mp-sheet__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-arabic);
+  font-size: clamp(16px, 4.9cqi, 31px);
+  color: var(--text-strong);
+}
+.mp-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 0.18em;
+  min-height: 2.05em;
+  line-height: 2.05;
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+.mp-line.is-centered { justify-content: center; column-gap: 0.32em; }
+.mp-line--blank { min-height: 2.05em; }
+.mp-line--header { justify-content: center; }
+.mp-surah-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(78%, 22em);
+  padding: 0 1.2em;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.82em;
+  line-height: 2.1;
+}
+.mp-line--basmala { justify-content: center; font-size: 0.92em; color: var(--text-strong); }
+
+.mp-word {
+  flex: 0 0 auto;
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+}
+button.mp-word {
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: background-color var(--dur-1) ease, color var(--dur-1) ease;
+}
+@media (hover: hover) {
+  button.mp-word:hover { background: var(--brand-soft); }
+}
+button.mp-word.is-active { background: var(--brand-soft-2); color: var(--brand); }
+button.mp-word:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+
+/* Ayə sonu nişanı — dairəvi qızılı haşiyə içində ərəb rəqəmi */
+.mp-end {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.45em;
+  height: 1.45em;
+  padding: 0 0.2em;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-pill);
+  color: var(--accent-text);
+  font-size: 0.62em;
+  line-height: 1;
+}
+
+/* Təcvid rəngləri (utils/mushaf.js → sanitizeTajweed: <span class="tj tj-<qayda>">) */
+.mp-sheet:not(.is-tajweed) .tj { color: inherit; }
+.is-tajweed .tj-ham_wasl, .is-tajweed .tj-slnt, .is-tajweed .tj-laam_shamsiyah { color: var(--tj-silent); }
+.is-tajweed .tj-madda_normal { color: var(--tj-madd2); }
+.is-tajweed .tj-madda_permissible { color: var(--tj-madd246); }
+.is-tajweed .tj-madda_obligatory_mottasel, .is-tajweed .tj-madda_obligatory_monfasel { color: var(--tj-madd45); }
+.is-tajweed .tj-madda_necessary { color: var(--tj-madd6); }
+.is-tajweed .tj-ghunnah { color: var(--tj-ghunnah); }
+.is-tajweed .tj-ikhafa, .is-tajweed .tj-ikhafa_shafawi { color: var(--tj-ikhfa); }
+.is-tajweed .tj-idgham_ghunnah, .is-tajweed .tj-idgham_shafawi, .is-tajweed .tj-idgham_mutajanisayn, .is-tajweed .tj-idgham_mutaqaribayn { color: var(--tj-idghamG); }
+.is-tajweed .tj-idgham_wo_ghunnah { color: var(--tj-idgham); }
+.is-tajweed .tj-iqlab { color: var(--tj-iqlab); }
+.is-tajweed .tj-qalaqah { color: var(--tj-qalqalah); }
+
+/* ── Yüklənmə / xəta ── */
+.mp-skel { display: flex; flex-direction: column; justify-content: space-around; gap: 0; }
+.mp-page .mp-skel__line { display: block; height: 0.9em; margin: 0.575em 0; border-radius: var(--radius-xs); }
+.mp-skel__line:nth-child(3n + 1) { width: 100%; }
+.mp-skel__line:nth-child(3n + 2) { width: 96%; margin-inline-start: auto; }
+.mp-error { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3); min-height: 24em; font-family: var(--font-sans); font-size: var(--step-0); color: var(--text-body); text-align: center; }
+.mp-error p { margin: 0; max-width: 36ch; }
+
+/* ── Söz pəncərəsi ── */
+.mp-pop {
+  position: absolute;
+  z-index: 20;
+  top: var(--pop-top, 40%);
+  inset-inline-start: auto;
+  left: var(--pop-left, 50%);
+  width: var(--pop-width, 300px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--space-4);
+  padding-inline-end: calc(var(--space-4) + 28px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-4);
+  color: var(--text-body);
+  font-size: var(--step--1);
+  line-height: 1.5;
+}
+.mp-pop:focus { outline: none; }
+.mp-pop:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.mp-pop p { margin: 0; }
+.mp-page .mp-pop__close { position: absolute; top: 6px; inset-inline-end: 6px; }
+.mp-pop__ar { color: var(--text-strong); font-size: 30px; line-height: 1.7; }
+.mp-pop__tl { color: var(--text-secondary); font-style: italic; }
+.mp-pop__tr { display: flex; flex-direction: column; gap: 2px; color: var(--text-strong); font-size: var(--step-0); }
+.mp-pop__label { display: block; color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+html[lang="ar"] .mp-pop__label { letter-spacing: 0; text-transform: none; }
+.mp-pop__note { display: flex; gap: 6px; align-items: flex-start; color: var(--text-tertiary); font-size: var(--step--2); }
+.mp-pop__note svg { flex-shrink: 0; margin-top: 2px; }
+.mp-pop__root { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+.mp-pop__rootval { color: var(--brand); font-size: 22px; line-height: 1.6; word-spacing: 0.25em; }
+.mp-pop__lemma { color: var(--text-strong); font-size: 19px; line-height: 1.6; }
+.mp-pop__muted { color: var(--text-tertiary); }
+.mp-pop__link { font-size: var(--step--1); }
+
+@media (max-width: 767.98px) {
+  .mp-go { grid-template-columns: 1fr 1fr; }
+  .mp-go__field:first-child { grid-column: 1 / -1; }
+  .mp-page .mp-controls { padding: var(--space-4); }
+  .mp-pager__txt { display: none; }
+  .mp-page .mp-pager__btn { min-width: var(--tap); padding-inline: 12px; }
+  .mp-sheet { padding-inline: 10px; border-radius: var(--radius-md); }
+  .mp-sheet::before { inset: 4px; border-radius: calc(var(--radius-md) - 3px); }
+  /* Telefonda söz pəncərəsi — alt vərəq */
+  .mp-pop {
+    position: fixed;
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+}
+@media (max-width: 479.98px) {
+  .mp-go { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  button.mp-word { transition: none; }
+}

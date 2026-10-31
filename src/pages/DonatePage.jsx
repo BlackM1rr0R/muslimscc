@@ -4,7 +4,12 @@ import { VerseCard, HadithCard } from '../components/VirtueCards'
 import '../styles/DonatePage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
-import PageLink from '../components/PageLink'
+import PageLink, { isPlainClick } from '../components/PageLink'
+import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
+import { useNavigate } from 'react-router-dom'
+import { pathFor } from '../seo/routes'
+import { DONATE_GUIDE, DONATE_GUIDE_LINKS } from '../data/pageGuides/DonatePage'
+import '../styles/LessonsPage.css'
 
 // ═══════════════════════════════════════════════════════
 // Xeyriyyə və ianə — /donate (ümumi bələdçi)
@@ -14,6 +19,9 @@ import PageLink from '../components/PageLink'
 // • sədəqənin fəzilətini göstərir — ayə api.alquran.cloud-dan gətirilir
 //   (yaddaşdan yazılmır), hədislər src/data/hadiths.js-dən OLDUĞU KİMİ
 //   köçürülüb (id ilə; 1.2 MB-lıq faylı bir səhifəyə görə yükləməmək üçün);
+// • sədəqə bələdçisi (src/data/pageGuides/DonatePage.js): daha üç fəzilət,
+//   davamlı sədəqə (sədəqeyi-cariyə), vermənin ədəbi — hamısı mənbə ilə;
+//   "nələr sədəqədir" /charity-də, zəkat hökmləri /zakat-da (təkrarlanmır);
 // • etibarlı xeyriyyəyə necə vermək barədə qısa ümumi (dini hökm olmayan)
 //   tövsiyələr verir;
 // • zəkat kalkulyatoruna, sədəqə gündəliyinə və yaxınlıqdakı məscidlərə aparır.
@@ -42,7 +50,8 @@ const LABELS = {
     title: 'Xeyriyyə və ianə',
     subtitle: 'Sədəqənin fəziləti və etibarlı xeyriyyəyə necə vermək',
     virtues: 'Sədəqənin fəziləti',
-    tipsTitle: 'Necə vermək olar',
+    guide: 'Sədəqə bələdçisi', guideMore: 'Ətraflı',
+    tipsTitle: 'Etibarlı xeyriyyəyə necə vermək olar',
     tips: [
       'Etibarlı, rəsmi qeydiyyatda olan xeyriyyə təşkilatı və ya tanıdığınız məscid seçin.',
       'İanənin nəyə xərcləndiyini soruşun; mümkünsə qəbz və ya hesabat istəyin.',
@@ -61,7 +70,8 @@ const LABELS = {
     title: 'Charity & Giving',
     subtitle: 'The virtue of charity and how to give to a trustworthy cause',
     virtues: 'The virtue of charity',
-    tipsTitle: 'How to give',
+    guide: 'A guide to charity', guideMore: 'Read more',
+    tipsTitle: 'How to give to a trustworthy cause',
     tips: [
       'Choose a trustworthy, officially registered charity or a mosque you know.',
       'Ask how the donation will be spent; if possible, request a receipt or a report.',
@@ -80,7 +90,8 @@ const LABELS = {
     title: 'Благотворительность',
     subtitle: 'Достоинство садаки и как жертвовать надёжным организациям',
     virtues: 'Достоинство садаки',
-    tipsTitle: 'Как жертвовать',
+    guide: 'Руководство по садаке', guideMore: 'Подробнее',
+    tipsTitle: 'Как жертвовать надёжным организациям',
     tips: [
       'Выбирайте надёжную, официально зарегистрированную благотворительную организацию или знакомую вам мечеть.',
       'Спрашивайте, на что пойдёт пожертвование; по возможности просите квитанцию или отчёт.',
@@ -99,7 +110,8 @@ const LABELS = {
     title: 'الصدقة والتبرع',
     subtitle: 'فضل الصدقة وكيف تتبرع لجهة موثوقة',
     virtues: 'فضل الصدقة',
-    tipsTitle: 'كيف تتبرع',
+    guide: 'دليل الصدقة', guideMore: 'للمزيد',
+    tipsTitle: 'كيف تتبرع لجهة موثوقة',
     tips: [
       'اختر جمعية خيرية موثوقة ومسجّلة رسميًا أو مسجدًا تعرفه.',
       'اسأل كيف سيُنفق تبرعك، واطلب إيصالًا أو تقريرًا إن أمكن.',
@@ -118,7 +130,8 @@ const LABELS = {
     title: 'Hayır ve Bağış',
     subtitle: 'Sadakanın fazileti ve güvenilir bir hayır kurumuna nasıl bağış yapılır',
     virtues: 'Sadakanın fazileti',
-    tipsTitle: 'Nasıl bağış yapılır',
+    guide: 'Sadaka rehberi', guideMore: 'Daha fazlası',
+    tipsTitle: 'Güvenilir bir kuruma nasıl bağış yapılır',
     tips: [
       'Güvenilir, resmî olarak kayıtlı bir hayır kurumu ya da tanıdığınız bir cami seçin.',
       'Bağışın nereye harcanacağını sorun; mümkünse makbuz veya rapor isteyin.',
@@ -138,6 +151,14 @@ export default function DonatePage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.en
   const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+  const navigate = useNavigate()
+  // Dərsə keçid — həqiqi <a href>, adi klikdə SPA ilə
+  const openLesson = (e, slug) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(pathFor('learn', lang, slug))
+    window.scrollTo(0, 0)
+  }
 
   // Əlaqəli bölmələr — ikonlar Icon.jsx-dən (marşrut açarı ilə eyni ad)
   const links = [
@@ -172,6 +193,26 @@ export default function DonatePage({ setPage }) {
           <div className="dn-vlist" data-reveal="stagger">
             <VerseCard verseRef={CHARITY_VERSE} lang={lang} />
             {CHARITY_HADITHS.map(h => <HadithCard key={h.id} h={h} lang={lang} />)}
+          </div>
+        </section>
+
+        {/* Sədəqə bələdçisi — fəzilətlər (yuxarıdakılardan əlavə), davamlı sədəqə, ədəb */}
+        <section className="dn-guide" aria-labelledby="dn-guide-title">
+          <div className="dn-head" data-reveal>
+            <span className="ui-icon-tile" aria-hidden="true"><Icon name="learn" /></span>
+            <h2 id="dn-guide-title" className="ui-title ui-title--sm">{t.guide}</h2>
+          </div>
+          {DONATE_GUIDE.map(sec => (
+            <section key={sec.id} id={`dn-${sec.id}`} className="dn-guide-sec" aria-labelledby={`dn-${sec.id}-title`}>
+              <h3 id={`dn-${sec.id}-title`} className="dn-guide-title">{pick(sec.title, lang)}</h3>
+              <LessonBlocks blocks={sec.blocks} lang={lang} />
+            </section>
+          ))}
+          <div className="dn-guide-links">
+            <span className="dn-guide-links-label">{t.guideMore}:</span>
+            {DONATE_GUIDE_LINKS.map((l, i) => l.learn
+              ? <a key={i} className="ui-chip dn-guide-chip" href={pathFor('learn', lang, l.learn)} onClick={(e) => openLesson(e, l.learn)}><Icon name="learn" size={15} /> {pick(l.label, lang)}</a>
+              : <PageLink key={i} className="ui-chip dn-guide-chip" to={l.to} setPage={setPage} onNavigate={toTop}><Icon name={l.to} size={15} /> {pick(l.label, lang)}</PageLink>)}
           </div>
         </section>
 

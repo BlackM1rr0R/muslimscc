@@ -4,9 +4,22 @@
 //
 // GlossaryPage.jsx-dən OLDUĞU KİMİ çıxarıldı ki, qlobal axtarış
 // (GlobalSearch) da bu terminləri tapa bilsin. Mətnləri burada redaktə et.
+//
+// Əsas 107 termin bu fayldadır; yeni terminlər kateqoriyalar üzrə ayrı
+// fayllardadır (glossaryAqidah, glossaryWorship, glossaryFiqh,
+// glossaryHadithQuran, glossaryAkhlaqHistory) və aşağıda birləşdirilir.
+// Hər termin: { term, ar, translit, cat, def{az,en,ru,ar,tr}, rel?, lesson?, id }.
+// Təriflər Sələfin (Əhli-Sünnənin) anlayışına uyğundur; sitatlar API ilə yoxlanılıb.
+// Yoxlama: tests/unit/glossary.test.js
 // ═══════════════════════════════════════════════════════
 
-export const GLOSSARY = [
+import { GLOSSARY_AQIDAH } from './glossaryAqidah.js'
+import { GLOSSARY_WORSHIP } from './glossaryWorship.js'
+import { GLOSSARY_FIQH } from './glossaryFiqh.js'
+import { GLOSSARY_HADITH_QURAN } from './glossaryHadithQuran.js'
+import { GLOSSARY_AKHLAQ_HISTORY } from './glossaryAkhlaqHistory.js'
+
+const BASE = [
   {
     term: 'Tövhid', ar: 'التوحيد', translit: 'Tawhid',
     def: {
@@ -70,7 +83,7 @@ export const GLOSSARY = [
   {
     term: 'Sünnə', ar: 'السنة', translit: 'Sunnah',
     def: {
-      az: 'Hz. Peyğəmbərin (s.a.s) söz, əməl və təqrir yolu. Qurandən sonra ikinci mənbə.',
+      az: 'Hz. Peyğəmbərin (s.a.s) söz, əməl və təqrir yolu. Qurandan sonra ikinci mənbə.',
       en: 'The way of Prophet Muhammad (PBUH) including his sayings, actions, and approvals. The second source after the Quran.',
       ru: 'Путь Пророка Мухаммада (мир ему), включая его высказывания, действия и одобрения. Второй источник после Корана.',
       ar: 'طريقة النبي ﷺ من أقوال وأفعال وتقريرات. المصدر الثاني بعد القرآن.',
@@ -90,11 +103,11 @@ export const GLOSSARY = [
   {
     term: 'Vacib', ar: 'الواجب', translit: 'Wajib',
     def: {
-      az: 'Fərzə yaxın dərəcədə vacib olan əməl. Tərk edənə günah yazılır.',
-      en: 'A near-obligatory act, slightly below fard. Abandoning it is sinful.',
-      ru: 'Почти обязательное действие, чуть ниже фарда. Оставление его является грехом.',
-      ar: 'عمل قريب من الفرض. يأثم تاركه.',
-      tr: 'Farza yakın derecede zorunlu amel. Terk eden günahkâr olur.',
+      az: 'Şəriətin qəti şəkildə tələb etdiyi əməl: edənə savab yazılır, üzrsüz tərk edən günaha düşür. Alimlərin çoxuna görə fərzlə eyni mənadadır; Hənəfilər isə qəti dəlillə sabit olana fərz, zənni dəlillə sabit olana vacib deyirlər.',
+      en: 'An act the Sharia demands decisively: the doer is rewarded and whoever leaves it without excuse is sinful. According to most scholars it is synonymous with fard; the Hanafis call what is established by definitive evidence fard and what is established by probable evidence wajib.',
+      ru: 'Действие, которое шариат требует категорично: совершающий получает награду, а оставивший без уважительной причины грешит. По мнению большинства учёных, это синоним фарда; ханафиты же называют фардом установленное категоричным доводом, а ваджибом — установленное предположительным доводом.',
+      ar: 'ما طلبه الشارع طلبًا جازمًا، يُثاب فاعله ويأثم تاركه بلا عذر. وهو عند الجمهور مرادف للفرض، وفرّق الحنفية فجعلوا الفرض ما ثبت بدليل قطعي والواجب ما ثبت بدليل ظني.',
+      tr: 'Şeriatın kesin olarak istediği amel: yapan sevap kazanır, mazeretsiz terk eden günahkâr olur. Âlimlerin çoğuna göre farzla aynı anlamdadır; Hanefîler ise kesin delille sabit olana farz, zannî delille sabit olana vacip derler.',
     }
   },
   {
@@ -1056,11 +1069,11 @@ export const GLOSSARY = [
   {
     term: 'Cihad', ar: 'الجهاد', translit: 'Jihad',
     def: {
-      az: 'Cəhd göstərmək, çalışmaq. Allah yolunda nəfslə, malla və lazım gəldikdə müdafiə ilə səy göstərmək.',
-      en: 'Striving in the way of Allah. Struggling against one\'s own ego, spending wealth for good, and defending when necessary.',
-      ru: 'Усердие на пути Аллаха. Борьба с собственным эго, расходование средств на благое и защита при необходимости.',
-      ar: 'الجهاد. بذل الجهد في سبيل الله بالنفس والمال والدفاع عند الحاجة.',
-      tr: 'Allah yolunda çaba göstermek. Nefisle, malla ve gerektiğinde savunmayla gayret etmek.',
+      az: 'Allah yolunda bütün gücü sərf etmək. Nəfslə (onu itaətə vadar edib günahdan çəkindirməklə), şeytanla, dillə və malla mübarizəni əhatə edir. Döyüş mənasında cihad isə şəriətin şərtləri ilə, qanuni hökmdarın (vəliyyül-əmrin) bayrağı altında olur — fərdlərin özbaşına qərarı ilə deyil.',
+      en: 'Exerting every effort in the way of Allah. It includes striving against one’s own soul (making it obey and keeping it from sin), against Shaytan, and with one’s tongue and wealth. Jihad in the sense of fighting is carried out under its Sharia conditions and under the banner of the legitimate ruler — not on the initiative of individuals.',
+      ru: 'Приложение всех сил на пути Аллаха. Включает борьбу с собственной душой (принуждая её к покорности и удерживая от греха), с шайтаном, словом и имуществом. Джихад в смысле сражения ведётся по условиям шариата под знаменем законного правителя — а не по самовольному решению отдельных лиц.',
+      ar: 'بذل الجهد في سبيل الله. ويشمل جهاد النفس على الطاعة وترك المعصية، وجهاد الشيطان، والجهاد باللسان والمال. أما جهاد القتال فيكون بشروطه الشرعية وتحت راية ولي الأمر، لا باجتهاد الأفراد.',
+      tr: 'Allah yolunda bütün gücü sarf etmek. Nefisle (onu itaate zorlayıp günahtan alıkoyarak), şeytanla, dille ve malla mücadeleyi kapsar. Savaş anlamındaki cihat ise şer’î şartlarıyla, meşru yöneticinin sancağı altında yapılır — bireylerin kendi kararıyla değil.',
     }
   },
   {
@@ -1084,3 +1097,139 @@ export const GLOSSARY = [
     }
   },
 ]
+
+// ── Əsas terminlərin kateqoriyası, əlaqəli terminləri və dərs keçidi ──
+// Açar — terminin id-si (glossaryId: translit → kiçik hərf, apostrofsuz, boşluq → "-")
+// rel — əlaqəli terminlərin id-ləri; lesson — /learn/<slug> dərsi (mövzu orada ətraflı izah olunur;
+// dərs hələ saytda yoxdursa keçid göstərilmir — GlossaryPage LESSON_SLUGS ilə yoxlayır)
+const META = {
+  tawhid: { cat: 'aqidah', rel: ['rububiyyah', 'uluhiyyah', 'al-asma-was-sifat', 'shirk'], lesson: 'kitab-at-tawhid' },
+  shirk: { cat: 'aqidah', rel: ['tawhid', 'shirk-asghar', 'riya', 'kufr'], lesson: 'al-qawaid-al-arba' },
+  bidah: { cat: 'aqidah', rel: ['sunnah', 'ittiba', 'salaf', 'manhaj'], lesson: 'bidah' },
+  iman: { cat: 'aqidah', rel: ['islam', 'ihsan', 'malaikah', 'qadr'], lesson: 'usul-ath-thalatha' },
+  islam: { cat: 'aqidah', rel: ['iman', 'ihsan', 'shahadah'], lesson: 'intro-to-islam' },
+  ihsan: { cat: 'aqidah', rel: ['iman', 'islam', 'muraqabah', 'ikhlas'], lesson: 'usul-ath-thalatha' },
+  sunnah: { cat: 'fiqh', rel: ['hadith', 'bidah', 'ittiba', 'ahl-as-sunnah-wal-jamaah'] },
+  fard: { cat: 'fiqh', rel: ['wajib', 'mustahab', 'mukallaf'] },
+  wajib: { cat: 'fiqh', rel: ['fard', 'mustahab', 'haram'] },
+  haram: { cat: 'fiqh', rel: ['halal', 'makruh', 'sadd-adh-dharai'] },
+  halal: { cat: 'fiqh', rel: ['haram', 'mubah', 'dhabihah'] },
+  makruh: { cat: 'fiqh', rel: ['haram', 'mubah', 'mustahab'] },
+  mustahab: { cat: 'fiqh', rel: ['wajib', 'mubah', 'sunan-ar-rawatib'] },
+  salah: { cat: 'worship', rel: ['wudu', 'rakah', 'takbirat-al-ihram', 'khushu'] },
+  sawm: { cat: 'worship', rel: ['suhur', 'iftar', 'laylat-al-qadr', 'fidyah'], lesson: 'sunnah-fasts' },
+  zakat: { cat: 'worship', rel: ['nisab', 'zakat-al-fitr', 'sadaqah'] },
+  hajj: { cat: 'worship', rel: ['ihram', 'tawaf', 'arafah', 'umrah'], lesson: 'dhul-hijjah-ten' },
+  umrah: { cat: 'worship', rel: ['hajj', 'ihram', 'tawaf', 'say'] },
+  quran: { cat: 'quran', rel: ['kalam-allah', 'wahy', 'mushaf', 'tafsir'] },
+  hadith: { cat: 'hadith', rel: ['sunnah', 'isnad', 'matn', 'mustalah-al-hadith'] },
+  tafsir: { cat: 'quran', rel: ['tafsir-bil-mathur', 'tafsir-bir-ray', 'asbab-an-nuzul'] },
+  fiqh: { cat: 'fiqh', rel: ['usul-al-fiqh', 'ijtihad', 'madhhab', 'fatwa'], lesson: 'fiqh-faq' },
+  tawbah: { cat: 'akhlaq', rel: ['istighfar', 'inabah', 'muhasabah'], lesson: 'tawbah' },
+  tawakkul: { cat: 'akhlaq', rel: ['yaqin', 'sabr', 'raja'] },
+  ikhlas: { cat: 'akhlaq', rel: ['riya', 'niyyah', 'ujb'] },
+  taqwa: { cat: 'akhlaq', rel: ['khawf', 'khashyah', 'muraqabah'] },
+  jannah: { cat: 'aqidah', rel: ['jahannam', 'ruyah', 'qiyamah'] },
+  jahannam: { cat: 'aqidah', rel: ['jannah', 'sirat', 'shafaah'] },
+  qiyamah: { cat: 'aqidah', rel: ['ashrat-as-saah', 'bath', 'mizan', 'hawd'] },
+  sirat: { cat: 'aqidah', rel: ['qiyamah', 'jahannam', 'mizan'] },
+  sahabah: { cat: 'history', rel: ['tabiun', 'muhajirun', 'ansar', 'salaf'] },
+  tabiun: { cat: 'history', rel: ['sahabah', 'atba-at-tabiin', 'salaf'] },
+  qadr: { cat: 'aqidah', rel: ['qada', 'lawh-mahfuz', 'qadariyyah'] },
+  qada: { cat: 'aqidah', rel: ['qadr', 'ridha', 'sabr'] },
+  yaqin: { cat: 'akhlaq', rel: ['iman', 'tawakkul', 'ghayb'] },
+  ghayb: { cat: 'aqidah', rel: ['iman', 'kahanah', 'malaikah', 'jinn'] },
+  fitrah: { cat: 'aqidah', rel: ['tawhid', 'islam', 'nafs'] },
+  ruh: { cat: 'aqidah', rel: ['nafs', 'barzakh', 'bath'] },
+  nafs: { cat: 'akhlaq', rel: ['tazkiyah', 'muhasabah', 'ruh'] },
+  barzakh: { cat: 'aqidah', rel: ['adhab-al-qabr', 'ruh', 'bath'], lesson: 'janazah' },
+  mizan: { cat: 'aqidah', rel: ['qiyamah', 'sirat', 'hawd'] },
+  shafaah: { cat: 'aqidah', rel: ['qiyamah', 'tawassul', 'hawd'] },
+  arsh: { cat: 'aqidah', rel: ['istiwa', 'kursi', 'uluww'] },
+  kursi: { cat: 'aqidah', rel: ['arsh', 'istiwa', 'uluww'] },
+  'lawh-mahfuz': { cat: 'aqidah', rel: ['qadr', 'qada', 'ghayb'] },
+  tahara: { cat: 'worship', rel: ['wudu', 'ghusl', 'najasah', 'hadath'] },
+  ghusl: { cat: 'worship', rel: ['tahara', 'wudu', 'hayd', 'tayammum'], lesson: 'ghusl' },
+  tayammum: { cat: 'worship', rel: ['wudu', 'ghusl', 'rukhsah'], lesson: 'tayammum' },
+  adhan: { cat: 'worship', rel: ['iqamah', 'salat-al-jamaah', 'salah'] },
+  iqamah: { cat: 'worship', rel: ['adhan', 'takbirat-al-ihram', 'salat-al-jamaah'] },
+  qiblah: { cat: 'worship', rel: ['kabah', 'al-masjid-al-haram', 'salah'] },
+  rakah: { cat: 'worship', rel: ['ruku', 'sujud', 'tashahhud'] },
+  sujud: { cat: 'worship', rel: ['ruku', 'sujud-as-sahw', 'sajdah-tilawah'] },
+  ruku: { cat: 'worship', rel: ['sujud', 'rakah', 'khushu'] },
+  qunut: { cat: 'worship', rel: ['witr', 'dua', 'qiyam-al-layl'] },
+  janazah: { cat: 'worship', rel: ['kafan', 'barzakh', 'wasiyyah'], lesson: 'janazah' },
+  kafan: { cat: 'worship', rel: ['janazah', 'ghusl'], lesson: 'janazah' },
+  nikah: { cat: 'fiqh', rel: ['mahr', 'wali-an-nikah', 'talaq', 'mahram'], lesson: 'nikah' },
+  talaq: { cat: 'fiqh', rel: ['iddah', 'rajah', 'khula'] },
+  mahr: { cat: 'fiqh', rel: ['nikah', 'khula', 'nafaqah'], lesson: 'nikah' },
+  khula: { cat: 'fiqh', rel: ['talaq', 'mahr', 'iddah'] },
+  iddah: { cat: 'fiqh', rel: ['talaq', 'rajah', 'hadanah'] },
+  nafaqah: { cat: 'fiqh', rel: ['nikah', 'hadanah', 'birr-al-walidayn'] },
+  hadanah: { cat: 'fiqh', rel: ['talaq', 'nafaqah', 'iddah'] },
+  wasiyyah: { cat: 'fiqh', rel: ['mirath', 'waqf', 'hibah'], lesson: 'wasiyyah' },
+  mirath: { cat: 'fiqh', rel: ['wasiyyah', 'hibah', 'waqf'] },
+  waqf: { cat: 'fiqh', rel: ['sadaqah', 'wasiyyah', 'hibah'] },
+  hibah: { cat: 'fiqh', rel: ['sadaqah', 'waqf', 'wasiyyah'] },
+  tajwid: { cat: 'quran', rel: ['tartil', 'qiraat', 'waqf-wa-ibtida'] },
+  hifz: { cat: 'quran', rel: ['tajwid', 'khatm-al-quran', 'mushaf'] },
+  'asbab-an-nuzul': { cat: 'quran', rel: ['tafsir', 'makki', 'madani'] },
+  nasikh: { cat: 'quran', rel: ['mansukh', 'muhkam', 'ulum-al-quran'] },
+  mansukh: { cat: 'quran', rel: ['nasikh', 'muhkam'] },
+  muhkam: { cat: 'quran', rel: ['mutashabih', 'nasikh'] },
+  mutashabih: { cat: 'quran', rel: ['muhkam', 'tawil', 'al-asma-was-sifat'] },
+  makki: { cat: 'quran', rel: ['madani', 'asbab-an-nuzul', 'surah'] },
+  madani: { cat: 'quran', rel: ['makki', 'asbab-an-nuzul', 'surah'] },
+  juz: { cat: 'quran', rel: ['hizb', 'manzil', 'khatm-al-quran'] },
+  hizb: { cat: 'quran', rel: ['juz', 'manzil'] },
+  manzil: { cat: 'quran', rel: ['juz', 'hizb', 'khatm-al-quran'] },
+  'sajdah-tilawah': { cat: 'worship', rel: ['sujud', 'sujud-as-sahw', 'ayah'] },
+  isnad: { cat: 'hadith', rel: ['matn', 'rawi', 'muttasil'], lesson: 'mustalah' },
+  matn: { cat: 'hadith', rel: ['isnad', 'shadhdh', 'illah'], lesson: 'mustalah' },
+  sahih: { cat: 'hadith', rel: ['hasan', 'thiqah', 'sahihayn'], lesson: 'mustalah' },
+  hasan: { cat: 'hadith', rel: ['sahih', 'daif', 'dabt'], lesson: 'mustalah' },
+  daif: { cat: 'hadith', rel: ['hasan', 'mawdu', 'munkar'], lesson: 'mustalah' },
+  mawdu: { cat: 'hadith', rel: ['daif', 'al-jarh-wat-tadil', 'isnad'], lesson: 'mustalah' },
+  mutawatir: { cat: 'hadith', rel: ['ahad', 'mashhur'], lesson: 'mustalah' },
+  ahad: { cat: 'hadith', rel: ['mutawatir', 'gharib', 'aziz', 'mashhur'], lesson: 'mustalah' },
+  mursal: { cat: 'hadith', rel: ['munqati', 'mudal', 'tabiun'], lesson: 'mustalah' },
+  muttasil: { cat: 'hadith', rel: ['isnad', 'munqati', 'marfu'], lesson: 'mustalah' },
+  muallaq: { cat: 'hadith', rel: ['munqati', 'mudal', 'sahihayn'], lesson: 'mustalah' },
+  munqati: { cat: 'hadith', rel: ['muttasil', 'mursal', 'mudal'], lesson: 'mustalah' },
+  zuhd: { cat: 'akhlaq', rel: ['tazkiyah', 'ithar', 'khawf'] },
+  khushu: { cat: 'akhlaq', rel: ['salah', 'khashyah', 'muraqabah'] },
+  muraqabah: { cat: 'akhlaq', rel: ['ihsan', 'muhasabah', 'taqwa'] },
+  muhasabah: { cat: 'akhlaq', rel: ['muraqabah', 'tawbah', 'tazkiyah'], lesson: 'muhasabah' },
+  shukr: { cat: 'akhlaq', rel: ['sabr', 'ridha', 'dhikr'] },
+  ridha: { cat: 'akhlaq', rel: ['qada', 'sabr', 'shukr'] },
+  tafakkur: { cat: 'akhlaq', rel: ['tadabbur', 'dhikr', 'yaqin'] },
+  ummah: { cat: 'history', rel: ['ahl-as-sunnah-wal-jamaah', 'khalifah', 'bayah'] },
+  khalifah: { cat: 'history', rel: ['al-khulafa-ar-rashidun', 'bayah', 'shura'] },
+  shura: { cat: 'history', rel: ['khalifah', 'bayah', 'nasihah'] },
+  dawah: { cat: 'akhlaq', rel: ['al-amr-bil-maruf', 'nasihah', 'ilm'] },
+  jihad: { cat: 'fiqh', rel: ['nafs', 'bayah', 'hijrah'] },
+  hijrah: { cat: 'history', rel: ['muhajirun', 'ansar', 'at-taqwim-al-hijri'] },
+  mubah: { cat: 'fiqh', rel: ['halal', 'makruh', 'urf'] },
+}
+
+/** Terminin sabit id-si (əlaqəli terminlər, #ünvan): "Al-Wala' wal-Bara'" → "al-wala-wal-bara" */
+export const glossaryId = (translit) => String(translit)
+  .normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .toLowerCase().replace(/['‘’ʿʾ`]/g, '')
+  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+// Kateqoriyalar (sıra — süzgəc çiplərinin sırası)
+export const GLOSSARY_CATS = ['aqidah', 'worship', 'fiqh', 'quran', 'hadith', 'akhlaq', 'history']
+
+// DİQQƏT: əvvəlki 107 termin əvvəldə və eyni sırada qalır — qlobal axtarışın
+// nəticələri indeksə görə id alır (src/utils/search.js → 'g:' + i).
+export const GLOSSARY = [
+  ...BASE.map(x => ({ ...x, ...META[glossaryId(x.translit)] })),
+  ...GLOSSARY_AQIDAH,
+  ...GLOSSARY_WORSHIP,
+  ...GLOSSARY_FIQH,
+  ...GLOSSARY_HADITH_QURAN,
+  ...GLOSSARY_AKHLAQ_HISTORY,
+].map(x => ({ ...x, id: glossaryId(x.translit) }))
+
+export const GLOSSARY_BY_ID = new Map(GLOSSARY.map(x => [x.id, x]))

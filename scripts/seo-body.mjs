@@ -29,6 +29,7 @@ import {
 } from '../src/seo/detail.js'
 import { SAHABA, slugOf } from '../src/data/sahaba.js'
 import { SCHOLARS, ERAS, ERA_LABEL, ERA_SPAN, dateText, lifeSpan } from '../src/data/scholars.js'
+import { LESSONS, LESSON_CATS, CAT_BY_KEY } from '../src/data/lessons/index.js'
 import { localizeSource } from '../src/utils/sourceNames.js'
 import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala } from '../src/utils/quranText.js'
 
@@ -315,6 +316,72 @@ function scholarsListBody(lang) {
   )
 }
 
+// ═══ Dərs ═══
+// Dərsin bütün mətni (bölmələr, ayə/hədis/sitat, mənbələr) — LessonsPage.jsx
+// ilə eyni məlumat. Mətnlər Node-da birbaşa import olunur (Vite-siz).
+const LESSON_BODY = Object.fromEntries(await Promise.all(LESSONS.map(async (l) =>
+  [l.slug, (await import(`../src/data/lessons/${l.slug}.js`)).default])))
+
+function lessonBlock(b, lang) {
+  const p = (o) => esc(pick(o, lang))
+  const ar = (t) => (t ? `<p class="ui-arabic" lang="ar" dir="rtl">${esc(t)}</p>` : '')
+  const tr = (o, hasAr) => (lang === 'ar' && hasAr ? '' : `<p>${p(o)}</p>`)
+  switch (b.t) {
+    case 'p': return `<p>${p(b.text)}</p>`
+    case 'list': { const t = b.ordered ? 'ol' : 'ul'; return `<${t}>${b.items.map(i => `<li>${p(i)}</li>`).join('')}</${t}>` }
+    case 'steps': return `<ol>${b.items.map(i => `<li>${i.title ? `<strong>${p(i.title)}</strong> ` : ''}${i.text ? p(i.text) : ''}</li>`).join('')}</ol>`
+    case 'ayah': return `<blockquote class="seo-static__quote">${ar(b.ar)}${tr(b.text, b.ar)}<cite>— ${esc(b.ref)}</cite></blockquote>`
+    case 'hadith': return `<blockquote class="seo-static__quote">${ar(b.ar)}${tr(b.text, b.ar)}<cite>— ${p(b.src)}${b.grade ? ` · ${p(b.grade)}` : ''}</cite></blockquote>`
+    case 'quote': return `<blockquote class="seo-static__quote">${ar(b.ar)}${tr(b.text, b.ar)}<cite>— ${p(b.by)}${b.ref ? `, ${p(b.ref)}` : ''}</cite></blockquote>`
+    case 'dua': return `<blockquote class="seo-static__quote">${ar(b.ar)}${lang === 'ar' ? '' : `<p>${p(b.text)}</p>`}${b.src ? `<cite>— ${p(b.src)}</cite>` : ''}</blockquote>`
+    case 'note': return `<p><strong>※</strong> ${p(b.text)}</p>`
+    case 'table': return `<table>${b.head ? `<thead><tr>${b.head.map(h => `<th>${p(h)}</th>`).join('')}</tr></thead>` : ''}<tbody>${b.rows.map(r => `<tr>${r.map(c => `<td>${p(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`
+    case 'qa': return b.items.map(i => `<h3>${p(i.q)}</h3><p>${p(i.a)}</p>${i.ref ? `<p><cite>${p(i.ref)}</cite></p>` : ''}`).join('')
+    default: return ''
+  }
+}
+
+function lessonBody(lang, slug) {
+  const L = ui(lang)
+  const m = LESSONS.find(l => l.slug === slug)
+  const body = LESSON_BODY[slug]
+  const idx = LESSONS.indexOf(m)
+  const near = (y, label) => y && { href: pathFor('learn', lang, y.slug), label, name: pick(y.title, lang) }
+  const same = LESSONS.filter(y => y !== m && y.cat === m.cat)
+  return shell(lang,
+    detailCrumbs('learn', lang, slug) +
+    `<header>` +
+    `<p class="seo-static__eyebrow">${esc(pick(CAT_BY_KEY[m.cat]?.label, lang))}</p>` +
+    `<h1>${esc(pick(m.title, lang))}</h1>` +
+    (lang === 'ar' || !m.arTitle ? '' : `<p class="seo-static__ar ui-arabic" lang="ar" dir="rtl">${esc(m.arTitle)}</p>`) +
+    `<p class="seo-static__lead">${esc(pick(m.summary, lang))}</p>` +
+    `</header>` +
+    body.sections.map(sec => `<h2>${esc(pick(sec.title, lang))}</h2>${sec.blocks.map(b => lessonBlock(b, lang)).join('')}`).join('') +
+    (body.sources?.length ? `<h2>${esc(L.sources)}</h2><ul>${body.sources.map(r => `<li>${r.url ? `<a href="${esc(r.url)}" rel="noopener nofollow">${esc(r.label)}</a>` : esc(r.label)}</li>`).join('')}</ul>` : '') +
+    (same.length ? `<h2>${esc(L.sameLesson)}</h2><ul>${same.map(y => `<li><a href="${pathFor('learn', lang, y.slug)}">${esc(pick(y.title, lang))}</a></li>`).join('')}</ul>` : '') +
+    pager(near(LESSONS[idx - 1], L.prevLesson), near(LESSONS[idx + 1], L.nextLesson)) +
+    `<p><a href="${pathFor('learn', lang)}">${esc(L.allLessons)}</a></p>`,
+  )
+}
+
+/** Siyahı: kateqoriyalar üzrə qruplar (h3 + hər dərsə link). */
+function lessonsListBody(lang) {
+  const L = ui(lang)
+  const groups = LESSON_CATS.map(c => {
+    const items = LESSONS.filter(l => l.cat === c.key).map(l =>
+      `<li><a href="${pathFor('learn', lang, l.slug)}">${esc(pick(l.title, lang))}</a> — ${esc(pick(l.summary, lang))}</li>`).join('')
+    return items ? `<h3>${esc(pick(c.label, lang))}</h3><p>${esc(pick(c.desc, lang))}</p><ul>${items}</ul>` : ''
+  }).join('')
+  return shell(lang,
+    crumbs(lang, [
+      { name: brandName(lang), href: pathFor('home', lang) },
+      { name: SECTION_LABEL.learn[lang] || SECTION_LABEL.learn.az },
+    ]) +
+    `<header><h1>${esc(shortName('learn', lang))}</h1><p class="seo-static__lead">${esc(descFor('learn', lang))}</p></header>` +
+    `<h2>${esc(L.lessonList)}</h2>${groups}`,
+  )
+}
+
 // ── Siyahı səhifəsi: h1 + təsvir + bütün detallara linklər (krawl yolu) ──
 function listShell(key, lang, heading, items) {
   return shell(lang,
@@ -337,6 +404,7 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'names') return param ? nameBody(lang, param) : namesListBody(lang)
   if (key === 'sahaba') return param ? sahabaBody(lang, param) : sahabaListBody(lang)
   if (key === 'scholars') return param ? scholarBody(lang, param) : scholarsListBody(lang)
+  if (key === 'learn') return param ? lessonBody(lang, param) : lessonsListBody(lang)
   return ''
 }
 

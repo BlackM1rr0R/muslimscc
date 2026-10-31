@@ -24,6 +24,7 @@ import { getSurahLocal } from '../data/surahNamesAz.js'
 import { NAMES_99 } from '../data/names99.js'
 import { SAHABA, slugOf } from '../data/sahaba.js'
 import { scholarBySlug, lifeSpan } from '../data/scholars.js'
+import { lessonBySlug, CAT_BY_KEY } from '../data/lessons/index.js'
 import { brandName } from '../config/brand.js'
 
 // Title-ın səhifə hissəsi üçün hədd (brend şəkilçisi bundan sonra gəlir)
@@ -229,6 +230,19 @@ function scholarDesc(x, lang) {
   return clamp(`${pick(x.name, lang)}${span ? ` (${span})` : ''} — ${pick(x.summary, lang)}`)
 }
 
+// ═══ Dərs ═══════════════════════════════════════════
+
+/** Dərsin meta məlumatı (slug ilə). */
+export const lessonInfo = (slug) => lessonBySlug(slug)
+
+const LESSON_T = {
+  az: { t: (n) => fit(`${n} — dərs`, n) },
+  en: { t: (n) => fit(`${n} — Lesson`, n) },
+  ru: { t: (n) => fit(`${n} — урок`, n) },
+  tr: { t: (n) => fit(`${n} — Ders`, n) },
+  ar: { t: (n) => fit(`${n} — درس`, n) },
+}
+
 // ═══ Ümumi API ══════════════════════════════════════
 
 /**
@@ -256,6 +270,13 @@ export function detailMeta(key, lang, param) {
     const d = withMore.length <= 160 ? withMore : lead
     return { t: L.t(n, pick(s.title, lang), isWoman(s)), d, h1: n, intro: pick(s.title, lang), crumb: n }
   }
+  if (key === 'learn') {
+    const x = lessonInfo(param)
+    if (!x) return null
+    const n = pick(x.title, lang)
+    const L = LESSON_T[lang] || LESSON_T.az
+    return { t: L.t(n), d: clamp(pick(x.summary, lang)), h1: n, intro: pick(x.summary, lang), crumb: n }
+  }
   if (key === 'scholars') {
     const x = scholarInfo(param)
     if (!x) return null
@@ -277,7 +298,8 @@ export const SECTION_LABEL = {
   quran:  { az: 'Quran', en: 'Quran', ru: 'Коран', ar: 'القرآن الكريم', tr: 'Kur’an' },
   names:  { az: 'Allahın 99 adı', en: '99 Names of Allah', ru: '99 имён Аллаха', ar: 'أسماء الله الحسنى', tr: 'Allah’ın 99 İsmi' },
   sahaba: { az: 'Səhabələr', en: 'Companions', ru: 'Сахабы', ar: 'الصحابة', tr: 'Sahabeler' },
-  scholars: { az: 'Sələf alimləri', en: 'Scholars of the Salaf', ru: 'Учёные саляфа', ar: 'علماء السلف', tr: 'Selef Âlimleri' },
+  scholars: { az: 'Alimlər', en: 'Scholars', ru: 'Учёные', ar: 'العلماء', tr: 'Âlimler' },
+  learn:  { az: 'Dərslər', en: 'Lessons', ru: 'Уроки', ar: 'الدروس', tr: 'Dersler' },
 }
 
 /** İz: Ana səhifə → bölmə → detal (hər addım { name, url }). */
@@ -341,6 +363,18 @@ export function detailJsonLd(key, lang, param) {
       ...(pick(s.title, lang) ? { description: pick(s.title, lang) } : {}),
       url,
     }
+  } else if (key === 'learn') {
+    const x = lessonInfo(param)
+    main = {
+      '@type': 'LearningResource',
+      name: m.h1,
+      description: m.d,
+      inLanguage: lang,
+      learningResourceType: 'lesson',
+      ...(CAT_BY_KEY[x.cat] ? { about: pick(CAT_BY_KEY[x.cat].label, lang) } : {}),
+      ...(x.minutes ? { timeRequired: `PT${x.minutes}M` } : {}),
+      url,
+    }
   } else if (key === 'scholars') {
     const x = scholarInfo(param)
     const alt = [lang !== 'ar' ? x.name.ar : null, pick(x.fullName, lang)].filter(v => v && v !== m.h1)
@@ -378,6 +412,7 @@ export function detailJsonLd(key, lang, param) {
 // Tətbiq yüklənəndə React bu bloku öz görünüşü ilə əvəz edir.
 export const BODY_UI = {
   az: {
+    prevLesson: 'Əvvəlki dərs', nextLesson: 'Növbəti dərs', allLessons: 'Bütün dərslər', sameLesson: 'Bu bölmədən', lessonList: 'Dərslərin siyahısı',
     crumbs: 'Səhifənin yeri', number: 'Sıra nömrəsi', ayahs: 'Ayə sayı', place: 'Nazil olma yeri', meaning: 'Mənası',
     mecca: 'Məkkə', medina: 'Mədinə', prevSurah: 'Əvvəlki surə', nextSurah: 'Növbəti surə', allSurahs: 'Bütün 114 surə',
     basmalah: 'Bismillahir-Rahmanir-Rahim', translation: 'Tərcümə', textSource: 'Ərəbcə mətn: Tanzil layihəsi (CC BY 3.0), dəyişdirilmədən göstərilir.',
@@ -391,6 +426,7 @@ export const BODY_UI = {
     allScholars: 'Bütün alimlər', sameEra: 'Eyni dövrdən', scholarList: 'Alimlərin siyahısı',
   },
   en: {
+    prevLesson: 'Previous lesson', nextLesson: 'Next lesson', allLessons: 'All lessons', sameLesson: 'From this section', lessonList: 'List of lessons',
     crumbs: 'You are here', number: 'Number', ayahs: 'Verses', place: 'Place of revelation', meaning: 'Meaning',
     mecca: 'Mecca', medina: 'Medina', prevSurah: 'Previous surah', nextSurah: 'Next surah', allSurahs: 'All 114 surahs',
     basmalah: 'In the Name of Allah, the Most Gracious, the Most Merciful', translation: 'Translation', textSource: 'Arabic text: Tanzil Project (CC BY 3.0), shown unchanged.',
@@ -404,6 +440,7 @@ export const BODY_UI = {
     allScholars: 'All scholars', sameEra: 'From the same era', scholarList: 'List of scholars',
   },
   ru: {
+    prevLesson: 'Предыдущий урок', nextLesson: 'Следующий урок', allLessons: 'Все уроки', sameLesson: 'Из этого раздела', lessonList: 'Список уроков',
     crumbs: 'Вы здесь', number: 'Порядковый номер', ayahs: 'Число аятов', place: 'Место ниспослания', meaning: 'Значение',
     mecca: 'Мекка', medina: 'Медина', prevSurah: 'Предыдущая сура', nextSurah: 'Следующая сура', allSurahs: 'Все 114 сур',
     // lang-ok[BY]: lisenziyanın rəsmi adı (CC BY 3.0) tərcümə olunmur
@@ -418,6 +455,7 @@ export const BODY_UI = {
     allScholars: 'Все учёные', sameEra: 'Из той же эпохи', scholarList: 'Список учёных',
   },
   tr: {
+    prevLesson: 'Önceki ders', nextLesson: 'Sonraki ders', allLessons: 'Tüm dersler', sameLesson: 'Bu bölümden', lessonList: 'Ders listesi',
     crumbs: 'Buradasınız', number: 'Sıra numarası', ayahs: 'Ayet sayısı', place: 'İniş yeri', meaning: 'Anlamı',
     mecca: 'Mekke', medina: 'Medine', prevSurah: 'Önceki sure', nextSurah: 'Sonraki sure', allSurahs: 'Tüm 114 sure',
     basmalah: 'Bismillahirrahmanirrahim', translation: 'Meal', textSource: 'Arapça metin: Tanzil projesi (CC BY 3.0), değiştirilmeden gösterilir.',
@@ -431,6 +469,7 @@ export const BODY_UI = {
     allScholars: 'Tüm âlimler', sameEra: 'Aynı dönemden', scholarList: 'Âlimlerin listesi',
   },
   ar: {
+    prevLesson: 'الدرس السابق', nextLesson: 'الدرس التالي', allLessons: 'جميع الدروس', sameLesson: 'من هذا القسم', lessonList: 'قائمة الدروس',
     crumbs: 'أنت هنا', number: 'رقم السورة', ayahs: 'عدد الآيات', place: 'مكان النزول', meaning: 'المعنى',
     mecca: 'مكية', medina: 'مدنية', prevSurah: 'السورة السابقة', nextSurah: 'السورة التالية', allSurahs: 'جميع السور الـ114',
     // lang-ok[BY]: lisenziyanın rəsmi adı (CC BY 3.0) tərcümə olunmur

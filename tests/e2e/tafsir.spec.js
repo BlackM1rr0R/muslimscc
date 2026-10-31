@@ -19,8 +19,13 @@ function tafsirJson(id, s, a, extra = '') {
   }
 }
 
-/** Sorğuları sayır; fail(n) — ilk n sorğu 500 qaytarır */
+/** Sorğuları sayır; fail(n) — ilk n sorğu 500 qaytarır.
+ *  az üçün susmaya görə təfsir saytın öz faylıdır (1016); API testləri üçün
+ *  seçim əvvəlcədən rusca əs-Sədi (170) edilir — yalnız seçim yoxdursa. */
 async function mockTafsir(page, { fail = 0, extra = '' } = {}) {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('quran_tafsir')) localStorage.setItem('quran_tafsir', JSON.stringify({ az: 170 }))
+  })
   const calls = []
   await page.route(TAFSIR_RE, route => {
     const [, id, s, a] = route.request().url().match(TAFSIR_RE)
@@ -31,35 +36,65 @@ async function mockTafsir(page, { fail = 0, extra = '' } = {}) {
   return calls
 }
 
-test('düymə paneli açır: susmaya görə təfsir, təhlükəsiz HTML, mənbə linki; yalnız klikdə sorğu', async ({ page, consoleProblems }) => {
-  const calls = await mockTafsir(page)
+test('az: susmaya görə azərbaycanca əl-Müyəssər (saytın öz faylı), qrup ayələr, dürüst qeyd', async ({ page, consoleProblems }) => {
+  const files = []
+  await page.route(/\/tafsir\/az-muyassar\/(\d+)\.json$/, route => {
+    files.push(route.request().url().match(/(\d+)\.json$/)[1])
+    // 1-ci ayə ayrıca, 2–3 birlikdə izah olunub; <script> mətn kimi qalmalıdır
+    route.fulfill({ json: { 1: 'AZ-TAFSIR-1 <script>window.__xss = 1</script>', 2: 'AZ-TAFSIR-2-3', 3: 2 } })
+  })
+  const api = []
+  await page.route(TAFSIR_RE, route => { api.push(route.request().url()); route.abort() })
   await page.goto('/quran/1-al-faatiha')
   await settle(page)
-  const card = page.locator('#ayah-2')
-  await expect(card).toBeVisible()
-  // Açılmamış panel yoxdur və heç bir sorğu getməyib
+  const card = page.locator('#ayah-3')
   await expect(page.locator('.tf-panel')).toHaveCount(0)
-  expect(calls).toEqual([])
+  expect(files).toEqual([])
 
   const btn = card.getByRole('button', { name: /Təfsir/ })
   await expect(btn).toHaveAttribute('aria-expanded', 'false')
   await btn.click()
   await expect(btn).toHaveAttribute('aria-expanded', 'true')
   const panel = card.locator('.tf-panel')
+  await expect(panel.locator('.tf-text')).toContainText('AZ-TAFSIR-2-3')
+  await expect(panel.locator('.tf-name')).toHaveText('Əl-Təfsir əl-Müyəssər (azərbaycanca)')
+  await expect(panel.locator('.tf-note')).toContainText('süni intellektin köməyi ilə')
+  await expect(panel).toContainText('1:2–1:3')
+  await expect(panel.locator('.tf-src a')).toHaveAttribute('href', 'https://quran.com/1:3/tafsirs/ar-tafsir-muyassar')
+  // Toxunma hədəfi ≥ 44px
+  const box = await btn.boundingBox()
+  expect(box.height).toBeGreaterThanOrEqual(44)
+
+  // Başqa ayə: eyni surə faylı təkrar yüklənmir; HTML mətn kimi göstərilir
+  await page.locator('#ayah-1').getByRole('button', { name: /Təfsir/ }).click()
+  await expect(page.locator('#ayah-1 .tf-text')).toContainText('AZ-TAFSIR-1 <script>')
+  expect(await page.evaluate(() => window.__xss)).toBeUndefined()
+  expect(files).toEqual(['1'])
+  expect(api, 'quran.com API-yə sorğu getməməlidir').toEqual([])
+  expectCleanConsole(consoleProblems)
+})
+
+test('API təfsiri: təhlükəsiz HTML, mənbə linki; yalnız klikdə sorğu', async ({ page, consoleProblems }) => {
+  const calls = await mockTafsir(page)
+  await page.goto('/quran/1-al-faatiha')
+  await settle(page)
+  const card = page.locator('#ayah-2')
+  await expect(card).toBeVisible()
+  await expect(page.locator('.tf-panel')).toHaveCount(0)
+  expect(calls).toEqual([])
+
+  const btn = card.getByRole('button', { name: /Təfsir/ })
+  await btn.click()
+  const panel = card.locator('.tf-panel')
   await expect(panel).toBeVisible()
-  // az üçün susmaya görə rusca əs-Sədi (170) + dürüst qeyd
   await expect(panel.locator('.tf-text')).toContainText('TAFSIR-170-1:2')
   await expect(panel.locator('.tf-name')).toHaveText('Təfsir əs-Sədi')
-  await expect(panel.locator('.tf-note')).toContainText('maşın tərcüməsi göstərmirik')
   await expect(panel.locator('.tf-text')).toHaveAttribute('lang', 'ru')
   // Sanitizer: script/img/onclick yoxdur, XSS işləməyib
   expect(await panel.locator('script, img, [onclick], [onerror]').count()).toBe(0)
   expect(await page.evaluate(() => window.__xss)).toBeUndefined()
   await expect(panel.locator('.tf-text h3')).toHaveText('Test 170')
   await expect(panel.locator('.tf-src a')).toHaveAttribute('href', 'https://quran.com/1:2/tafsirs/ru-tafseer-al-saddi')
-  // Toxunma hədəfi ≥ 44px
-  const box = await btn.boundingBox()
-  expect(box.height).toBeGreaterThanOrEqual(44)
 
   // Bağla → yenidən aç: keşdən gəlir, təkrar sorğu yoxdur
   await btn.click()

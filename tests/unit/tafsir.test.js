@@ -76,7 +76,7 @@ describe('plainLength', () => {
 describe('kataloq və seçim', () => {
   it('yalnız Sələf təfsirləri — Qurtubi, Vəsit, Məarif, Zilal yoxdur', () => {
     const ids = TAFSIRS.map(t => t.id)
-    expect(ids.sort((a, b) => a - b)).toEqual([14, 15, 16, 91, 94, 169, 170])
+    expect(ids.sort((a, b) => a - b)).toEqual([14, 15, 16, 91, 94, 169, 170, 1016])
     for (const bad of [90, 93, 168, 157, 817, 159]) expect(getTafsir(bad)).toBeNull()
   })
   it('hər təfsirin 5 dildə adı və müəllifi var', () => {
@@ -89,7 +89,8 @@ describe('kataloq və seçim', () => {
     expect(tafsirFor('ar', {})).toBe(16)
     expect(tafsirFor('en', {})).toBe(169)
     expect(tafsirFor('ru', {})).toBe(170)
-    expect(DEFAULT_TAFSIR.az).toBeTruthy()
+    expect(DEFAULT_TAFSIR.az).toBe(1016)
+    expect(getTafsir(1016)).toMatchObject({ lang: 'az', local: true })
   })
   it('seçim localStorage-da dil üzrə saxlanılır, səhv id atılır', () => {
     saveTafsirChoice('az', 169)
@@ -145,5 +146,26 @@ describe('fetchTafsir — keş', () => {
   it('gözlənilməz cavab → bad-response', async () => {
     const f = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ nope: 1 }) }))
     await expect(fetchTafsir(16, 5, 5, { fetchImpl: f })).rejects.toMatchObject({ kind: 'bad-response' })
+  })
+})
+
+describe('azərbaycanca əl-Müyəssər (saytın öz faylı)', () => {
+  const file = { 1: 'Birinci <b>izah</b>', 2: 'İkinci və üçüncü', 3: 2, 4: 'Dördüncü' }
+  const fakeFetch = (calls) => async (url) => { calls.push(url); return { ok: true, status: 200, json: async () => file } }
+
+  it('qrup ayə əsas ayənin mətnini və bütün qrupu qaytarır; surə faylı bir dəfə yüklənir', async () => {
+    const calls = []
+    const f = fakeFetch(calls)
+    const a3 = await fetchTafsir(1016, 99, 3, { fetchImpl: f })
+    expect(a3.verses).toEqual(['99:2', '99:3'])
+    expect(a3.html).toBe('<p>İkinci və üçüncü</p>')
+    const a1 = await fetchTafsir(1016, 99, 1, { fetchImpl: f })
+    expect(a1.html).toBe('<p>Birinci &lt;b&gt;izah&lt;/b&gt;</p>')
+    await fetchTafsir(1016, 99, 4, { fetchImpl: f })
+    expect(calls).toEqual(['/tafsir/az-muyassar/99.json'])
+  })
+
+  it('faylda olmayan ayə — notfound', async () => {
+    await expect(fetchTafsir(1016, 98, 9, { fetchImpl: fakeFetch([]) })).rejects.toMatchObject({ kind: 'notfound' })
   })
 })

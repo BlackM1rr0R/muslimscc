@@ -1,0 +1,202 @@
+/* ══ Qəza izləyicisi (/qada) — yalnız tokenlər və .ui-* (DESIGN.md) ══
+   Namaz — brend (zümrüd), oruc — vurğu (qızılı, yalnız kiçik detal: zolaq, nöqtə). */
+
+.qd-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
+.qd-main.ui-section { padding-block: var(--space-6) var(--section-gap); }
+
+.qd-privacy,
+.qd-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 var(--space-5);
+  padding: 12px 16px;
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-md);
+  background: var(--brand-soft);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.qd-privacy svg { flex-shrink: 0; margin-top: 2px; color: var(--brand); }
+.qd-alert { border-color: var(--line-strong); background: var(--surface-2); color: var(--text-body); }
+.qd-alert svg { flex-shrink: 0; margin-top: 2px; color: var(--bad); }
+
+.qd-legacy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: var(--space-5);
+  color: var(--text-body);
+  font-size: 14px;
+}
+
+.qd-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-areas:
+    "counters goal"
+    "counters history"
+    "est      backup";
+  gap: var(--space-5) var(--space-6);
+  align-items: start;
+}
+.qd-counters { grid-area: counters; }
+.qd-goal { grid-area: goal; }
+.qd-history { grid-area: history; }
+.qd-est { grid-area: est; }
+.qd-backup { grid-area: backup; }
+
+.qd-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+.qd-card-title svg { flex-shrink: 0; color: var(--brand); }
+.qd-card-lead { margin: 6px 0 var(--space-4); color: var(--text-secondary); font-size: 14px; line-height: 1.55; }
+.qd-note { margin: var(--space-2) 0 0; color: var(--text-tertiary); font-size: 13px; line-height: 1.5; }
+.qd-note--top { margin: 0 0 var(--space-3); }
+.qd-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: var(--space-3); }
+
+/* ── Sayğac sətirləri ── */
+.qd-rows { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.qd-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name    stepper"
+    "progress actions";
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+}
+.qd-row--fast { margin-top: var(--space-2); background: var(--surface-2); }
+.qd-row-name { grid-area: name; display: flex; align-items: center; gap: 10px; color: var(--text-strong); font-weight: 600; }
+.qd-row-ic {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-soft);
+  color: var(--brand);
+  flex-shrink: 0;
+}
+.qd-row--fast .qd-row-ic { background: var(--accent-soft); color: var(--accent); }
+.qd-stepper { grid-area: stepper; display: inline-flex; align-items: center; gap: 4px; }
+.qd-row-actions { grid-area: actions; display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.qd-row-progress { grid-area: progress; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.qd-row-meta { color: var(--text-tertiary); font-size: 12px; }
+
+.qd-root .qd-count {
+  width: 5.5em;
+  min-height: 40px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-strong);
+  font: inherit;
+  font-size: var(--step-1);
+  font-weight: 600;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.qd-root .qd-count::-webkit-outer-spin-button,
+.qd-root .qd-count::-webkit-inner-spin-button { margin: 0; -webkit-appearance: none; }
+.qd-root .qd-count:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft-2); }
+
+/* ── Zolaqlar ── */
+.qd-bar {
+  position: relative;
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+}
+.qd-bar--sm { height: 6px; }
+.qd-bar > span {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: var(--brand);
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.qd-bar--accent > span { background: var(--accent); }
+[dir="rtl"] .qd-bar > span { transform-origin: right center; }
+
+/* ── Hədəf ── */
+.qd-goal-field { margin-top: var(--space-4); }
+.qd-root .qd-goal-input { max-width: 8em; }
+.qd-today, .qd-overall { margin-top: var(--space-4); }
+.qd-bar-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; color: var(--text-secondary); font-size: 14px; }
+.qd-msg { min-height: 1.4em; margin: 6px 0 0; color: var(--brand); font-size: 13px; font-weight: 600; }
+
+/* ── Qrafik ── */
+.qd-chart { display: block; width: 100%; height: auto; margin-top: var(--space-3); overflow: visible; }
+.qd-axis { stroke: var(--line-strong); stroke-width: 1; }
+.qd-goal-line { stroke: var(--text-tertiary); stroke-width: 1; stroke-dasharray: 4 4; }
+.qd-bar-p { fill: var(--brand); }
+.qd-bar-f { fill: var(--accent); }
+.qd-chart-day { fill: var(--text-tertiary); font-size: 12px; font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
+.qd-chart-day.is-today { fill: var(--brand); font-weight: 700; }
+.qd-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: var(--space-3) 0 0; padding: 0; list-style: none; color: var(--text-secondary); font-size: 12px; }
+.qd-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.qd-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.qd-dot--p { background: var(--brand); }
+.qd-dot--f { background: var(--accent); }
+.qd-dash { display: inline-block; width: 16px; border-top: 1px dashed var(--text-tertiary); }
+
+/* ── Hesablayıcı ── */
+.qd-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.qd-est-body { margin-top: var(--space-4); }
+.qd-est-grid, .qd-manual-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.qd-manual-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+.qd-same { max-width: 16em; margin-bottom: var(--space-4); }
+.qd-est-body .qd-alert { margin: var(--space-3) 0 0; }
+.qd-result {
+  margin-top: var(--space-4);
+  padding: 14px 16px;
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-md);
+  background: var(--brand-soft);
+}
+.qd-result-text { margin: 0; color: var(--text-strong); font-weight: 600; line-height: 1.5; }
+.qd-result .qd-actions { margin-top: var(--space-2); }
+
+.qd-reset { margin-inline-start: auto; }
+
+/* ── Hökmlər ── */
+.qd-rules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); align-items: start; }
+.qd-rule--wide { grid-column: span 1; }
+.qd-rule > p { margin: var(--space-2) 0 0; color: var(--text-body); line-height: var(--lh-body); }
+.qd-root .qd-quote { margin: var(--space-4) 0 0; }
+.qd-views { display: grid; gap: 8px; margin: var(--space-3) 0 0; padding-inline-start: 1.25em; color: var(--text-body); line-height: var(--lh-body); }
+.qd-src-inline { color: var(--text-tertiary); font-size: 13px; }
+.qd-src { margin: var(--space-3) 0 0; color: var(--text-tertiary); font-size: 13px; }
+.qd-ltr { direction: ltr; unicode-bidi: isolate; }
+
+@media (max-width: 960px) {
+  .qd-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "counters" "goal" "history" "est" "backup"; }
+  .qd-rules-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .qd-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "stepper" "progress" "actions"; }
+  .qd-row-actions { justify-content: flex-start; }
+  .qd-est-grid { grid-template-columns: minmax(0, 1fr); }
+  .qd-manual-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .qd-reset { margin-inline-start: 0; }
+}

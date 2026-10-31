@@ -1,10 +1,16 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { getSurahLocal } from '../data/surahNamesAz'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
-import { AYAH_WORDS, ayahCountText } from '../utils/quranText'
+import { AYAH_WORDS, ayahCountText, pluralWord, displayAyah } from '../utils/quranText'
+import { ayahSources, readAudioPrefs, reciterName } from '../utils/quranAudio'
+import {
+  loadState as loadSrs, saveState as saveSrs, dateKey, todayStats, streak, perSurahCounts,
+  memorisedSeries, dueItems, nextNewAyahs, gradeItem, setGoal, seedItems, previewIntervals,
+  newItem, splitAyahWords, compareRecitation, GRADES, GOAL_MIN, GOAL_MAX,
+} from '../utils/hifzSrs'
 import '../styles/HifzPage.css'
 
 // ── localStorage helpers ──
@@ -166,6 +172,623 @@ const SURAHS = [
   { num:114, name:'الناس', en:'An-Nas', ayahs:6, juz:30 },
 ]
 
+// ═══════════════════════════════════════════════════════
+// AĞILLI HİFZ — aralıqlı təkrar (utils/hifzSrs.js), gizlət/aç məşqi,
+// səs müqayisəsi (qari ↔ istifadəçinin yazısı) və təxmini avtomatik yoxlama.
+// Yaddaş: 'hifz_srs' (yeni açar). Köhnə 'hifz_progress' olduğu kimi qalır və
+// SRS-də qiymət veriləndə yalnız YÜKSƏLDİLİR (0 → 1 → 2), heç vaxt endirilmir.
+// Səs yazısı yalnız yaddaşdadır (Blob URL), heç yerə göndərilmir.
+// ═══════════════════════════════════════════════════════
+const SMART = {
+  az: {
+    smartEyebrow:'Ağıllı hifz', smartTitle:'Bu günün planı', smartLead:'Hər ayəni oxuduqdan sonra özünüzə qiymət verin — növbəti təkrarın vaxtını sayt özü planlaşdıracaq.',
+    due:'Bu gün təkrar', learned:'Bu gün yeni', streak:'Ardıcıllıq', total:'Siyahıda',
+    goal:'Gündəlik hədəf', goalDec:'Hədəfi azalt', goalInc:'Hədəfi artır', goalUnit:'yeni ayə',
+    startReview:'Təkrara başla', noDue:'Bu gün təkrar ediləcək ayə yoxdur',
+    learnTitle:'Yeni ayə əzbərlə', surah:'Surə', fromAyah:'Başlanğıc ayə', learnBtn:'Əzbərləməyə başla', surahAllIn:'Bu surənin bütün ayələri artıq siyahıdadır',
+    seedText:'Əzbər işarələnmiş surələrdə təkrar siyahısına düşməmiş ayələr: {n}.', seedBtn:'Təkrar siyahısına əlavə et',
+    review:'Təkrar', learn:'Yeni ayə', ayah:'Ayə', close:'Sessiyanı bağla',
+    view:'Mətn görünüşü', viewFull:'Tam mətn', viewFirst:'İlk söz', viewBlur:'Gizli mətn',
+    revealNext:'Növbəti söz', revealAll:'Hamısını göstər', hideAll:'Yenidən gizlət', tapHint:'Gizli sözü açmaq üçün ona toxunun', hiddenWord:'Gizli söz, açmaq üçün toxunun',
+    compare:'Səs müqayisəsi', reciter:'Qari', you:'Sizin qiraətiniz', record:'Yazmağa başla', stopRec:'Yazını bitir', recAgain:'Yenidən yaz', noRec:'Hələ yazı yoxdur',
+    recNote:'Yazı yalnız bu səhifənin yaddaşında qalır, heç yerə göndərilmir.', micDenied:'Mikrofona icazə verilmədi',
+    autoCheck:'Avtomatik yoxla', stopCheck:'Dinləməni bitir', listening:'Dinlənilir — ayəni oxuyun…', approx:'Təxmini',
+    autoNote:'Təxmini yoxlama: yalnız sözlərin tanınıb-tanınmadığına baxır, təcvidi və məxrəcləri qiymətləndirmir. Nitqi brauzerin öz xidməti tanıyır (bəzi brauzerlər səsi öz serverinə göndərir).',
+    matchResult:'{n} sözdən {m} tanındı', noSpeech:'Səs tanınmadı — yenidən cəhd edin', checkFailed:'Yoxlama alınmadı', heard:'Tanınan mətn',
+    gradeQ:'Necə oxudunuz?', again:'Yenidən', hard:'Çətin', good:'Yaxşı', easy:'Asan', now:'bu gün',
+    doneTitle:'Sessiya bitdi', doneText:'Verilən qiymət: {n}. Allah bərəkət versin!',
+    loading:'Ayə yüklənir…', loadError:'Ayəni yükləmək alınmadı', retry:'Yenidən cəhd et',
+    chartTitle:'Əzbərlənən ayələr', chartSub:'son 30 gündə', chartEmpty:'Qrafik ilk qiymətdən sonra görünəcək.', date:'Tarix', count:'Ayə sayı',
+    bars:'Surələr üzrə irəliləyiş', barsEmpty:'Hələ heç bir surəyə başlanmayıb.', trackerTitle:'Surə izləyicisi',
+  },
+  en: {
+    smartEyebrow:'Smart hifz', smartTitle:'Today’s plan', smartLead:'Grade yourself after reciting each ayah — the site schedules the next review for you.',
+    due:'Today’s reviews', learned:'New today', streak:'Streak', total:'In your list',
+    goal:'Daily goal', goalDec:'Decrease goal', goalInc:'Increase goal', goalUnit:'new ayahs',
+    startReview:'Start review', noDue:'No ayahs to review today',
+    learnTitle:'Memorize new ayahs', surah:'Surah', fromAyah:'Starting ayah', learnBtn:'Start memorizing', surahAllIn:'All ayahs of this surah are already in your list',
+    seedText:'Ayahs from surahs marked memorized that are not yet in your review list: {n}.', seedBtn:'Add to reviews',
+    review:'Review', learn:'New ayah', ayah:'Ayah', close:'Close session',
+    view:'Text view', viewFull:'Full text', viewFirst:'First word', viewBlur:'Hidden text',
+    revealNext:'Next word', revealAll:'Show all', hideAll:'Hide again', tapHint:'Tap a hidden word to reveal it', hiddenWord:'Hidden word, tap to reveal',
+    compare:'Voice comparison', reciter:'Reciter', you:'Your recitation', record:'Start recording', stopRec:'Stop recording', recAgain:'Record again', noRec:'No recording yet',
+    recNote:'The recording stays only in this page’s memory and is never uploaded.', micDenied:'Microphone access was denied',
+    autoCheck:'Automatic check', stopCheck:'Stop listening', listening:'Listening — recite the ayah…', approx:'Approximate',
+    autoNote:'Approximate check: it only looks at whether the words were recognised and does not judge tajweed or articulation. Speech is recognised by your browser’s own service (some browsers send the audio to their server).',
+    matchResult:'{m} of {n} words recognised', noSpeech:'No speech recognised — try again', checkFailed:'The check failed', heard:'Recognised text',
+    gradeQ:'How did you recite?', again:'Again', hard:'Hard', good:'Good', easy:'Easy', now:'today',
+    doneTitle:'Session complete', doneText:'Grades given: {n}. May Allah bless you!',
+    loading:'Loading ayah…', loadError:'Could not load the ayah', retry:'Try again',
+    chartTitle:'Ayahs memorized', chartSub:'last 30 days', chartEmpty:'The chart appears after your first grade.', date:'Date', count:'Ayahs',
+    bars:'Progress by surah', barsEmpty:'No surah started yet.', trackerTitle:'Surah tracker',
+  },
+  ru: {
+    smartEyebrow:'Умный хифз', smartTitle:'План на сегодня', smartLead:'После чтения каждого аята оцените себя — сайт сам запланирует следующее повторение.',
+    due:'Повторить сегодня', learned:'Новых сегодня', streak:'Серия', total:'В списке',
+    goal:'Дневная цель', goalDec:'Уменьшить цель', goalInc:'Увеличить цель', goalUnit:'новых аятов',
+    startReview:'Начать повторение', noDue:'Сегодня нет аятов для повторения',
+    learnTitle:'Выучить новые аяты', surah:'Сура', fromAyah:'С аята', learnBtn:'Начать заучивание', surahAllIn:'Все аяты этой суры уже в списке',
+    seedText:'Аятов из выученных сур, которых ещё нет в списке повторения: {n}.', seedBtn:'Добавить в повторение',
+    review:'Повторение', learn:'Новый аят', ayah:'Аят', close:'Закрыть сессию',
+    view:'Вид текста', viewFull:'Весь текст', viewFirst:'Первое слово', viewBlur:'Скрытый текст',
+    revealNext:'Следующее слово', revealAll:'Показать всё', hideAll:'Скрыть снова', tapHint:'Нажмите на скрытое слово, чтобы открыть его', hiddenWord:'Скрытое слово, нажмите, чтобы открыть',
+    compare:'Сравнение чтения', reciter:'Чтец', you:'Ваше чтение', record:'Начать запись', stopRec:'Остановить запись', recAgain:'Записать заново', noRec:'Записи пока нет',
+    recNote:'Запись хранится только в памяти этой страницы и никуда не отправляется.', micDenied:'Нет доступа к микрофону',
+    autoCheck:'Проверить автоматически', stopCheck:'Остановить', listening:'Слушаю — читайте аят…', approx:'Приблизительно',
+    autoNote:'Приблизительная проверка: смотрит лишь, распознаны ли слова, и не оценивает таджвид и махраджи. Речь распознаёт сам браузер (некоторые браузеры отправляют звук на свой сервер).',
+    matchResult:'Распознано слов: {m} из {n}', noSpeech:'Речь не распознана — попробуйте ещё раз', checkFailed:'Проверка не удалась', heard:'Распознанный текст',
+    gradeQ:'Как вы прочитали?', again:'Снова', hard:'Трудно', good:'Хорошо', easy:'Легко', now:'сегодня',
+    doneTitle:'Сессия завершена', doneText:'Оценок: {n}. Да благословит вас Аллах!',
+    loading:'Загрузка аята…', loadError:'Не удалось загрузить аят', retry:'Повторить',
+    chartTitle:'Выученные аяты', chartSub:'за последние 30 дней', chartEmpty:'График появится после первой оценки.', date:'Дата', count:'Аятов',
+    bars:'Прогресс по сурам', barsEmpty:'Пока ни одна сура не начата.', trackerTitle:'Трекер сур',
+  },
+  ar: {
+    smartEyebrow:'الحفظ الذكي', smartTitle:'خطة اليوم', smartLead:'بعد تلاوة كل آية قيّم قراءتك، وسيجدول الموقع موعد المراجعة التالية.',
+    due:'مراجعة اليوم', learned:'جديد اليوم', streak:'أيام متتالية', total:'في القائمة',
+    goal:'الهدف اليومي', goalDec:'إنقاص الهدف', goalInc:'زيادة الهدف', goalUnit:'آيات جديدة',
+    startReview:'ابدأ المراجعة', noDue:'لا توجد آيات للمراجعة اليوم',
+    learnTitle:'حفظ آيات جديدة', surah:'السورة', fromAyah:'من الآية', learnBtn:'ابدأ الحفظ', surahAllIn:'جميع آيات هذه السورة في القائمة بالفعل',
+    seedText:'آيات من السور المحفوظة ليست في قائمة المراجعة بعد: {n}.', seedBtn:'أضفها إلى المراجعة',
+    review:'مراجعة', learn:'آية جديدة', ayah:'الآية', close:'إغلاق الجلسة',
+    view:'طريقة العرض', viewFull:'النص كاملًا', viewFirst:'الكلمة الأولى', viewBlur:'نص مخفي',
+    revealNext:'الكلمة التالية', revealAll:'إظهار الكل', hideAll:'إخفاء من جديد', tapHint:'اضغط على الكلمة المخفية لإظهارها', hiddenWord:'كلمة مخفية، اضغط لإظهارها',
+    compare:'مقارنة التلاوة', reciter:'القارئ', you:'تلاوتك', record:'ابدأ التسجيل', stopRec:'أوقف التسجيل', recAgain:'سجّل من جديد', noRec:'لا يوجد تسجيل بعد',
+    recNote:'يبقى التسجيل في ذاكرة هذه الصفحة فقط ولا يُرسل إلى أي مكان.', micDenied:'لم يُسمح باستخدام الميكروفون',
+    autoCheck:'تحقق تلقائي', stopCheck:'إيقاف الاستماع', listening:'جارٍ الاستماع — اقرأ الآية…', approx:'تقريبي',
+    autoNote:'تحقق تقريبي: ينظر فقط هل تم التعرف على الكلمات، ولا يحكم على التجويد ومخارج الحروف. يتعرّف المتصفح نفسه على الكلام عبر خدمته (بعض المتصفحات ترسل الصوت إلى خوادمها).',
+    matchResult:'تم التعرف على {m} من {n} كلمة', noSpeech:'لم يتم التعرف على الكلام — حاول مرة أخرى', checkFailed:'تعذّر التحقق', heard:'النص المتعرَّف عليه',
+    gradeQ:'كيف كانت تلاوتك؟', again:'أعد', hard:'صعب', good:'جيد', easy:'سهل', now:'اليوم',
+    doneTitle:'انتهت الجلسة', doneText:'عدد التقييمات: {n}. بارك الله فيك!',
+    loading:'جارٍ تحميل الآية…', loadError:'تعذّر تحميل الآية', retry:'إعادة المحاولة',
+    chartTitle:'الآيات المحفوظة', chartSub:'آخر 30 يومًا', chartEmpty:'يظهر الرسم بعد أول تقييم.', date:'التاريخ', count:'عدد الآيات',
+    bars:'التقدم حسب السور', barsEmpty:'لم تبدأ أي سورة بعد.', trackerTitle:'متابعة السور',
+  },
+  tr: {
+    smartEyebrow:'Akıllı hıfz', smartTitle:'Bugünün planı', smartLead:'Her ayeti okuduktan sonra kendinize not verin; bir sonraki tekrarın zamanını site kendisi planlar.',
+    due:'Bugün tekrar', learned:'Bugün yeni', streak:'Seri', total:'Listede',
+    goal:'Günlük hedef', goalDec:'Hedefi azalt', goalInc:'Hedefi artır', goalUnit:'yeni ayet',
+    startReview:'Tekrara başla', noDue:'Bugün tekrar edilecek ayet yok',
+    learnTitle:'Yeni ayet ezberle', surah:'Sure', fromAyah:'Başlangıç ayeti', learnBtn:'Ezberlemeye başla', surahAllIn:'Bu surenin tüm ayetleri zaten listede',
+    seedText:'Ezberlendi olarak işaretlenen surelerden tekrar listesinde olmayan ayetler: {n}.', seedBtn:'Tekrar listesine ekle',
+    review:'Tekrar', learn:'Yeni ayet', ayah:'Ayet', close:'Oturumu kapat',
+    view:'Metin görünümü', viewFull:'Tam metin', viewFirst:'İlk kelime', viewBlur:'Gizli metin',
+    revealNext:'Sonraki kelime', revealAll:'Tümünü göster', hideAll:'Yeniden gizle', tapHint:'Gizli kelimeyi açmak için ona dokunun', hiddenWord:'Gizli kelime, açmak için dokunun',
+    compare:'Ses karşılaştırması', reciter:'Kari', you:'Sizin okuyuşunuz', record:'Kayda başla', stopRec:'Kaydı bitir', recAgain:'Yeniden kaydet', noRec:'Henüz kayıt yok',
+    recNote:'Kayıt yalnızca bu sayfanın belleğinde kalır, hiçbir yere gönderilmez.', micDenied:'Mikrofon izni verilmedi',
+    autoCheck:'Otomatik kontrol', stopCheck:'Dinlemeyi bitir', listening:'Dinleniyor — ayeti okuyun…', approx:'Yaklaşık',
+    autoNote:'Yaklaşık kontrol: yalnızca kelimelerin tanınıp tanınmadığına bakar, tecvidi ve mahreçleri değerlendirmez. Konuşmayı tarayıcının kendi hizmeti tanır (bazı tarayıcılar sesi kendi sunucusuna gönderir).',
+    matchResult:'{n} kelimeden {m} tanındı', noSpeech:'Ses tanınmadı — tekrar deneyin', checkFailed:'Kontrol başarısız oldu', heard:'Tanınan metin',
+    gradeQ:'Nasıl okudunuz?', again:'Yeniden', hard:'Zor', good:'İyi', easy:'Kolay', now:'bugün',
+    doneTitle:'Oturum bitti', doneText:'Verilen not: {n}. Allah bereketli kılsın!',
+    loading:'Ayet yükleniyor…', loadError:'Ayet yüklenemedi', retry:'Tekrar dene',
+    chartTitle:'Ezberlenen ayetler', chartSub:'son 30 günde', chartEmpty:'Grafik ilk değerlendirmeden sonra görünecek.', date:'Tarih', count:'Ayet sayısı',
+    bars:'Surelere göre ilerleme', barsEmpty:'Henüz hiçbir sureye başlanmadı.', trackerTitle:'Sure takibi',
+  },
+}
+
+// Gün sözü rəqəmə uyğun (Intl.PluralRules kateqoriyaları)
+const DAY_WORDS = {
+  az: 'gün', // lang-ok: az və tr-də söz eynidir
+  en: { zero: 'days', one: 'day', two: 'days', few: 'days', many: 'days', other: 'days' },
+  ru: { zero: 'дней', one: 'день', two: 'дня', few: 'дня', many: 'дней', other: 'дня' },
+  ar: { zero: 'يوم', one: 'يوم', two: 'يومان', few: 'أيام', many: 'يومًا', other: 'يوم' },
+  tr: 'gün', // lang-ok: az və tr-də söz eynidir
+}
+const LOCALES = { az: 'az-Latn-AZ', en: 'en-GB', ru: 'ru-RU', ar: 'ar', tr: 'tr-TR' }
+const fill = (s, vars) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''))
+const reduceMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+// ── Surə mətni (alquran.cloud, Quran səhifəsi ilə eyni nəşr: ar.alafasy) ──
+// Modul səviyyəsində keş: eyni surə bir dəfə gətirilir; xəta keşdə qalmır.
+const SURAH_CACHE = new Map()
+function fetchSurahText(s) {
+  if (SURAH_CACHE.has(s)) return SURAH_CACHE.get(s)
+  const p = fetch(`https://api.alquran.cloud/v1/surah/${s}/editions/ar.alafasy`)
+    .then(r => { if (!r.ok) throw new Error('http'); return r.json() })
+    .then(d => {
+      const ed = Array.isArray(d?.data) ? d.data[0] : null
+      if (!Array.isArray(ed?.ayahs)) throw new Error('bad-response')
+      return ed.ayahs.map((v, i) => ({ a: v.numberInSurah, g: v.number, ar: displayAyah(v.text, s, i) }))
+    })
+  SURAH_CACHE.set(s, p)
+  p.catch(() => SURAH_CACHE.delete(s))
+  return p
+}
+function useAyah(s, a, attempt) {
+  const [st, setSt] = useState({ verse: null, loading: true, error: false })
+  useEffect(() => {
+    let off = false
+    setSt({ verse: null, loading: true, error: false })
+    fetchSurahText(s)
+      .then(list => { if (!off) { const v = list.find(x => x.a === a); setSt({ verse: v || null, loading: false, error: !v }) } })
+      .catch(() => { if (!off) setSt({ verse: null, loading: false, error: true }) })
+    return () => { off = true }
+  }, [s, a, attempt])
+  return st
+}
+
+// ── Brauzer imkanları (yalnız müştəridə; prerender-də hamısı yox sayılır) ──
+function useCapabilities() {
+  const [caps, setCaps] = useState({ record: false, speech: null })
+  useEffect(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    setCaps({
+      record: !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder),
+      speech: SR || null,
+    })
+  }, [])
+  return caps
+}
+
+// ── Məşq kartı: bir ayə ── (key ilə hər ayədə sıfırlanır)
+function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, onGrade, onClose, today }) {
+  const sm = SMART[lang] || SMART.az
+  const [attempt, setAttempt] = useState(0)
+  const { verse, loading, error } = useAyah(item.s, item.a, attempt)
+  const words = useMemo(() => (verse ? splitAyahWords(verse.ar) : []), [verse])
+  const caps = useCapabilities()
+
+  // Gizlət/aç: açılmış söz indeksləri
+  const [shown, setShown] = useState(() => new Set())
+  useEffect(() => { setShown(view === 'first' ? new Set([0]) : new Set()) }, [view, verse])
+  const isShown = i => view === 'full' || shown.has(i)
+  const hiddenLeft = view === 'full' ? 0 : words.filter((_, i) => !shown.has(i)).length
+  const revealOne = i => setShown(prev => new Set(prev).add(i))
+  const revealNext = () => { const i = words.findIndex((_, k) => !shown.has(k)); if (i >= 0) revealOne(i) }
+  const revealAll = () => setShown(new Set(words.map((_, i) => i)))
+  const hideAll = () => setShown(view === 'first' ? new Set([0]) : new Set())
+
+  // Qari səsi: əsas mənbə xəta versə ehtiyata keçir (utils/quranAudio.js)
+  const reciter = useMemo(() => readAudioPrefs().reciter, [])
+  const sources = verse ? ayahSources(reciter, { g: verse.g, s: item.s, a: item.a }) : []
+  const [srcIdx, setSrcIdx] = useState(0)
+
+  // İstifadəçinin yazısı — yalnız yaddaşda
+  const recRef = useRef(null)
+  const urlRef = useRef(null)
+  const [recUrl, setRecUrl] = useState(null)
+  const [recording, setRecording] = useState(false)
+  const [recErr, setRecErr] = useState(false)
+  const startRec = async () => {
+    setRecErr(false)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mr = new MediaRecorder(stream)
+      const chunks = []
+      mr.ondataavailable = e => { if (e.data?.size) chunks.push(e.data) }
+      mr.onstop = () => {
+        stream.getTracks().forEach(tr => tr.stop())
+        if (!chunks.length || recRef.current !== mr) return
+        if (urlRef.current) URL.revokeObjectURL(urlRef.current)
+        urlRef.current = URL.createObjectURL(new Blob(chunks, { type: mr.mimeType || 'audio/webm' }))
+        setRecUrl(urlRef.current)
+      }
+      recRef.current = mr
+      mr.start()
+      setRecording(true)
+    } catch { setRecErr(true); setRecording(false) }
+  }
+  const stopRec = () => { try { recRef.current?.stop() } catch { /* artıq dayanıb */ } setRecording(false) }
+
+  // Təxmini avtomatik yoxlama (Web Speech API, ar-SA)
+  const srRef = useRef(null)
+  const heardRef = useRef([])
+  const [listening, setListening] = useState(false)
+  const [check, setCheck] = useState(null)
+  const [checkErr, setCheckErr] = useState(null)
+  const startCheck = () => {
+    if (!caps.speech || !verse) return
+    setCheck(null); setCheckErr(null); heardRef.current = []
+    let rec
+    try { rec = new caps.speech() } catch { setCheckErr('checkFailed'); return }
+    rec.lang = 'ar-SA'
+    rec.continuous = true
+    rec.interimResults = false
+    rec.maxAlternatives = 1
+    rec.onresult = e => {
+      for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) heardRef.current.push(e.results[i][0].transcript)
+    }
+    rec.onerror = e => setCheckErr(e.error === 'no-speech' ? 'noSpeech' : e.error === 'not-allowed' || e.error === 'service-not-allowed' ? 'micDenied' : e.error === 'aborted' ? null : 'checkFailed')
+    rec.onend = () => {
+      setListening(false)
+      if (srRef.current !== rec) return
+      const heard = heardRef.current.join(' ').trim()
+      if (heard) setCheck({ ...compareRecitation(verse.ar, heard), heard })
+      else setCheckErr(prev => prev || 'noSpeech')
+    }
+    srRef.current = rec
+    try { rec.start(); setListening(true) } catch { setCheckErr('checkFailed') }
+  }
+  const stopCheck = () => { try { srRef.current?.stop() } catch { /* artıq dayanıb */ } }
+
+  // Kart bağlananda: yazını, tanımanı dayandır, Blob URL-i burax
+  useEffect(() => () => {
+    const mr = recRef.current; recRef.current = null
+    try { if (mr && mr.state !== 'inactive') mr.stop() } catch { /* artıq dayanıb */ }
+    const sr = srRef.current; srRef.current = null
+    try { sr?.abort() } catch { /* artıq dayanıb */ }
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current)
+  }, [])
+
+  const preview = previewIntervals(srsItem || newItem(item.s, item.a, today))
+  const dayText = n => (n === 0 ? sm.now : `${n} ${pluralWord(n, lang, DAY_WORDS)}`)
+  const surahName = lang === 'ar' ? SURAHS[item.s - 1].name : (getSurahLocal(item.s, lang)?.name || SURAHS[item.s - 1].en)
+  const matchedAt = i => (check ? check.words[i]?.matched : undefined)
+
+  return (
+    <article className="hifz-practice ui-card" aria-labelledby="hifz-practice-title">
+      <header className="hifz-practice__head">
+        <div className="hifz-practice__heading">
+          <span className={`ui-badge${kind === 'review' ? ' ui-badge--brand' : ''}`}>{kind === 'review' ? sm.review : sm.learn}</span>
+          <h3 id="hifz-practice-title" className="hifz-practice__title">{surahName} · {sm.ayah} {item.a}</h3>
+        </div>
+        <span className="hifz-practice__pos ui-num"><bdi dir="ltr">{pos} / {total}</bdi></span>
+        <button type="button" className="ui-icon-btn" aria-label={sm.close} onClick={onClose}><Icon name="close" /></button>
+      </header>
+
+      <div className="hifz-practice__views" role="group" aria-label={sm.view}>
+        {[['full', sm.viewFull], ['first', sm.viewFirst], ['blur', sm.viewBlur]].map(([v, label]) => (
+          <button type="button" key={v} className="ui-chip" aria-pressed={view === v} onClick={() => setView(v)}>{label}</button>
+        ))}
+      </div>
+
+      {loading && <p className="hifz-practice__status" role="status"><span className="ui-spin" aria-hidden="true" /> {sm.loading}</p>}
+      {error && (
+        <div className="hifz-practice__status" role="alert">
+          <span>{sm.loadError}</span>
+          <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setAttempt(n => n + 1)}>{sm.retry}</button>
+        </div>
+      )}
+
+      {verse && (
+        <>
+          <p className="hifz-ayah ui-arabic" lang="ar" dir="rtl">
+            {words.map((w, i) => {
+              const m = matchedAt(i)
+              const cls = m === true ? ' is-hit' : m === false ? ' is-miss' : ''
+              return isShown(i) || check
+                ? <span key={i} className={`hifz-word${cls}`}>{w}</span>
+                : <button type="button" key={i} className="hifz-word is-hidden" onClick={() => revealOne(i)} aria-label={sm.hiddenWord}>{w}</button>
+            })}
+            <span className="hifz-ayah__num ui-num" aria-hidden="true">﴿{item.a}﴾</span>
+          </p>
+          {view !== 'full' && !check && (
+            <div className="hifz-practice__reveal">
+              <span className="hifz-practice__hint">{sm.tapHint}</span>
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={revealNext} disabled={!hiddenLeft}>{sm.revealNext}</button>
+              <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={hiddenLeft ? revealAll : hideAll}>
+                {hiddenLeft ? sm.revealAll : sm.hideAll}
+              </button>
+            </div>
+          )}
+
+          {/* Səs müqayisəsi: qari və istifadəçi yan-yana */}
+          <section className="hifz-voice" aria-label={sm.compare}>
+            <div className="hifz-voice__col">
+              <span className="hifz-voice__label"><Icon name="volume" size={16} /> {sm.reciter} — {reciterName(reciter, lang)}</span>
+              {sources[srcIdx] && (
+                <audio key={srcIdx} className="hifz-voice__audio" controls preload="none" src={sources[srcIdx]}
+                  onError={() => setSrcIdx(i => (i + 1 < sources.length ? i + 1 : i))} />
+              )}
+            </div>
+            {caps.record && (
+              <div className="hifz-voice__col">
+                <span className="hifz-voice__label"><Icon name="mic" size={16} /> {sm.you}</span>
+                {recUrl ? <audio className="hifz-voice__audio" controls src={recUrl} /> : <span className="hifz-voice__empty">{sm.noRec}</span>}
+                <button type="button" className={`ui-btn ui-btn--sm ${recording ? 'ui-btn--primary' : 'ui-btn--secondary'}`}
+                  onClick={recording ? stopRec : startRec} aria-pressed={recording}>
+                  <Icon name={recording ? 'pause' : 'mic'} className="ui-btn__icon" />
+                  {recording ? sm.stopRec : recUrl ? sm.recAgain : sm.record}
+                </button>
+                {recErr && <span className="hifz-voice__err" role="alert">{sm.micDenied}</span>}
+              </div>
+            )}
+          </section>
+          {caps.record && <p className="hifz-note"><Icon name="shield" size={14} /> {sm.recNote}</p>}
+
+          {caps.speech && (
+            <section className="hifz-autocheck" aria-label={sm.autoCheck}>
+              <div className="hifz-autocheck__row">
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={listening ? stopCheck : startCheck} aria-pressed={listening}>
+                  <Icon name={listening ? 'pause' : 'target'} className="ui-btn__icon" />{listening ? sm.stopCheck : sm.autoCheck}
+                </button>
+                <span className="ui-badge">{sm.approx}</span>
+                {listening && <span className="hifz-autocheck__live" role="status">{sm.listening}</span>}
+              </div>
+              {check && (
+                <p className="hifz-autocheck__result" role="status">
+                  <strong className="ui-num">{fill(sm.matchResult, { m: check.matched, n: check.total })}</strong>
+                  <span className="hifz-autocheck__heard"> · {sm.heard}: <span lang="ar" dir="rtl">{check.heard}</span></span>
+                </p>
+              )}
+              {checkErr && <p className="hifz-voice__err" role="alert">{sm[checkErr]}</p>}
+              <p className="hifz-note"><Icon name="info" size={14} /> {sm.autoNote}</p>
+            </section>
+          )}
+        </>
+      )}
+
+      {/* Qiymət: dörd düymə, altında növbəti təkrarın vaxtı */}
+      <div className="hifz-grade">
+        <span className="hifz-grade__q">{sm.gradeQ}</span>
+        <div className="hifz-grade__btns">
+          {GRADES.map(g => (
+            <button type="button" key={g} className={`ui-btn ui-btn--secondary hifz-grade__btn is-${g}`} disabled={!verse}
+              onClick={() => onGrade(g)}>
+              <span>{sm[g]}</span>
+              <span className="hifz-grade__when">{dayText(preview[g])}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </article>
+  )
+}
+
+// ── Qrafik: son 30 gündə yığılan əzbər ayələri (tək seriya: sahə + xətt) ──
+function ProgressChart({ series, lang, sm }) {
+  const [hover, setHover] = useState(null)
+  const W = 600, H = 160, PAD_T = 12, PAD_B = 8
+  const max = Math.max(1, ...series.map(p => p.count))
+  const x = i => (series.length > 1 ? (i / (series.length - 1)) * W : W / 2)
+  const y = c => PAD_T + (1 - c / max) * (H - PAD_T - PAD_B)
+  const line = series.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.count).toFixed(1)}`).join(' ')
+  const area = `${line} L${W},${H - PAD_B} L0,${H - PAD_B} Z`
+  const fmt = d => { try { return new Date(d + 'T12:00:00').toLocaleDateString(LOCALES[lang] || 'en-GB', { day: '2-digit', month: '2-digit' }) } catch { return d } }
+  const last = series[series.length - 1]?.count ?? 0
+  const h = hover != null ? series[hover] : null
+
+  return (
+    <figure className="hifz-chart ui-card">
+      <figcaption className="hifz-chart__head">
+        <span className="hifz-chart__title">{sm.chartTitle}</span>
+        <span className="hifz-chart__sub">{sm.chartSub}</span>
+        <span className="hifz-chart__now ui-num">{last}</span>
+      </figcaption>
+      {last === 0 ? <p className="hifz-chart__empty">{sm.chartEmpty}</p> : (
+        <div className="hifz-chart__plot" dir="ltr" onMouseLeave={() => setHover(null)}>
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <line className="hifz-chart__base" x1="0" x2={W} y1={H - PAD_B} y2={H - PAD_B} vectorEffect="non-scaling-stroke" />
+            <path className="hifz-chart__area" d={area} />
+            <path className="hifz-chart__line" d={line} vectorEffect="non-scaling-stroke" />
+            {h && <line className="hifz-chart__cross" x1={x(hover)} x2={x(hover)} y1={0} y2={H - PAD_B} vectorEffect="non-scaling-stroke" />}
+            {series.map((p, i) => (
+              <rect key={p.date} x={x(i) - W / series.length / 2} y="0" width={W / series.length} height={H}
+                fill="transparent" onMouseEnter={() => setHover(i)} onTouchStart={() => setHover(i)} />
+            ))}
+          </svg>
+          {h && (
+            <span className="hifz-chart__tip" style={{ left: `${(x(hover) / W) * 100}%`, top: `${(y(h.count) / H) * 100}%` }}>
+              <span className="hifz-chart__dot" />
+              <span className="hifz-chart__tipbox"><b className="ui-num">{h.count}</b> · {fmt(h.date)}</span>
+            </span>
+          )}
+          <div className="hifz-chart__axis"><span>{fmt(series[0].date)}</span><span>{fmt(series[series.length - 1].date)}</span></div>
+        </div>
+      )}
+      {/* Cədvəl görünüşü — ekran oxuyucusu üçün */}
+      <table className="ui-sr-only">
+        <caption>{sm.chartTitle} — {sm.chartSub}</caption>
+        <thead><tr><th scope="col">{sm.date}</th><th scope="col">{sm.count}</th></tr></thead>
+        <tbody>{series.map(p => <tr key={p.date}><td>{fmt(p.date)}</td><td>{p.count}</td></tr>)}</tbody>
+      </table>
+    </figure>
+  )
+}
+
+// ── Ağıllı hifz bölməsi ──
+function SmartHifz({ lang, progress, setProgress }) {
+  const sm = SMART[lang] || SMART.az
+  const [srs, setSrs] = useState(() => loadSrs())
+  useEffect(() => { saveSrs(srs) }, [srs])
+  const today = dateKey()
+  const stats = todayStats(srs, today)
+  const days = streak(srs, today)
+  const counts = useMemo(() => perSurahCounts(srs), [srs])
+  const series = useMemo(() => memorisedSeries(srs, today, 30), [srs, today])
+
+  const [session, setSession] = useState(null) // { kind, queue: [{s,a}], idx, graded }
+  const [view, setView] = useState('first')
+  const [pick, setPick] = useState(() => {
+    const inProg = SURAHS.find(s => progress[s.num] === 1)
+    return inProg ? inProg.num : 1
+  })
+  const [from, setFrom] = useState(1)
+  const [msg, setMsg] = useState('')
+  const sessionRef = useRef(null)
+  const pickMax = SURAHS[pick - 1].ayahs
+  const sessionId = session?.id
+
+  useEffect(() => {
+    if (sessionId && sessionRef.current?.scrollIntoView) sessionRef.current.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' })
+  }, [sessionId])
+
+  const startReview = () => {
+    const queue = dueItems(srs, today).map(({ s, a }) => ({ s, a }))
+    if (queue.length) { setMsg(''); setSession({ id: Date.now(), kind: 'review', queue, idx: 0, graded: 0 }) }
+  }
+  const startLearn = () => {
+    const limit = stats.goalLeft || stats.goal
+    const queue = nextNewAyahs(srs, pick, pickMax, Math.min(Math.max(1, from), pickMax), limit)
+    if (!queue.length) { setMsg(sm.surahAllIn); return }
+    setMsg('')
+    setSession({ id: Date.now(), kind: 'learn', queue, idx: 0, graded: 0 })
+  }
+  const onGrade = (grade) => {
+    if (!session) return
+    haptic()
+    const cur = session.queue[session.idx]
+    const next = gradeItem(srs, cur.s, cur.a, grade, today)
+    setSrs(next)
+    // Köhnə izləyici ilə əlaqə: surə statusu yalnız yüksəlir
+    const have = perSurahCounts(next)[cur.s] || 0
+    const want = have >= SURAHS[cur.s - 1].ayahs ? 2 : 1
+    setProgress(prev => ((prev[cur.s] || 0) >= want ? prev : { ...prev, [cur.s]: want }))
+    setSession(sess => ({
+      ...sess,
+      queue: grade === 'again' ? [...sess.queue, cur] : sess.queue,
+      idx: sess.idx + 1,
+      graded: sess.graded + 1,
+    }))
+  }
+
+  // Köhnə izləyicidə "əzbər" olan surələrin hələ siyahıda olmayan ayələri
+  const seedRefs = useMemo(() => {
+    const refs = []
+    for (const s of SURAHS) {
+      if (progress[s.num] !== 2 || (counts[s.num] || 0) >= s.ayahs) continue
+      for (let a = 1; a <= s.ayahs; a++) if (!srs.items[`${s.num}:${a}`]) refs.push({ s: s.num, a })
+    }
+    return refs
+  }, [progress, counts, srs.items])
+  const seed = () => setSrs(prev => seedItems(prev, seedRefs, today))
+
+  const localName = s => (lang === 'ar' ? s.name : (getSurahLocal(s.num, lang)?.name || s.en))
+  const barSurahs = SURAHS.filter(s => counts[s.num] || progress[s.num])
+  const cur = session && session.idx < session.queue.length ? session.queue[session.idx] : null
+
+  return (
+    <section className="hifz-smart" aria-labelledby="hifz-smart-title">
+      <div className="hifz-smart__head">
+        <span className="ui-eyebrow">{sm.smartEyebrow}</span>
+        <h2 id="hifz-smart-title" className="ui-title">{sm.smartTitle}</h2>
+        <p className="hifz-smart__lead">{sm.smartLead}</p>
+      </div>
+
+      {/* Bu günün göstəriciləri */}
+      <div className="hifz-today">
+        <div className="hifz-today__cell is-due">
+          <span className="hifz-today__num ui-num">{stats.due}</span>
+          <span className="hifz-today__label">{sm.due}</span>
+        </div>
+        <div className="hifz-today__cell">
+          <span className="hifz-today__num ui-num"><bdi dir="ltr">{stats.learned}<small> / {stats.goal}</small></bdi></span>
+          <span className="hifz-today__label">{sm.learned}</span>
+          <div className="hifz-progress-bar" role="progressbar" aria-label={sm.learned} aria-valuemin={0} aria-valuemax={stats.goal} aria-valuenow={Math.min(stats.learned, stats.goal)}>
+            <div className="hifz-progress-fill" style={{ transform: `scaleX(${Math.min(1, stats.learned / stats.goal)})` }} />
+          </div>
+        </div>
+        <div className="hifz-today__cell">
+          <span className="hifz-today__num ui-num">{days}</span>
+          <span className="hifz-today__label">{sm.streak} · {pluralWord(days, lang, DAY_WORDS)}</span>
+        </div>
+        <div className="hifz-today__cell">
+          <span className="hifz-today__num ui-num">{stats.total}</span>
+          <span className="hifz-today__label">{sm.total}</span>
+        </div>
+      </div>
+
+      <div className="hifz-plan">
+        <div className="hifz-plan__card ui-card">
+          <h3 className="hifz-plan__title">{sm.due}</h3>
+          {stats.due
+            ? <button type="button" className="ui-btn ui-btn--primary hifz-start-review" onClick={startReview}>
+                <Icon name="refresh" className="ui-btn__icon" />{sm.startReview}<span className="hifz-start-review__n ui-num">{stats.due}</span>
+              </button>
+            : <p className="hifz-plan__muted"><Icon name="check" size={16} /> {sm.noDue}</p>}
+          {seedRefs.length > 0 && (
+            <div className="hifz-seed">
+              <p>{fill(sm.seedText, { n: seedRefs.length })}</p>
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={seed}><Icon name="plus" className="ui-btn__icon" />{sm.seedBtn}</button>
+            </div>
+          )}
+        </div>
+
+        <div className="hifz-plan__card ui-card">
+          <h3 className="hifz-plan__title">{sm.learnTitle}</h3>
+          <div className="hifz-plan__fields">
+            <label className="ui-field hifz-plan__surah">
+              <span className="ui-field__label">{sm.surah}</span>
+              <select className="ui-select" value={pick} onChange={e => { setPick(Number(e.target.value)); setFrom(1); setMsg('') }}>
+                {SURAHS.map(s => <option key={s.num} value={s.num}>{s.num}. {localName(s)}</option>)}
+              </select>
+            </label>
+            <label className="ui-field hifz-plan__from">
+              <span className="ui-field__label">{sm.fromAyah}</span>
+              <input className="ui-input" type="number" inputMode="numeric" min={1} max={pickMax} value={from}
+                onChange={e => setFrom(Math.min(pickMax, Math.max(1, Number(e.target.value) || 1)))} />
+            </label>
+          </div>
+          <div className="hifz-goal">
+            <span className="hifz-goal__label">{sm.goal}</span>
+            <button type="button" className="ui-icon-btn" aria-label={sm.goalDec} onClick={() => setSrs(p => setGoal(p, p.goal - 1))} disabled={stats.goal <= GOAL_MIN}><Icon name="minus" /></button>
+            <span className="hifz-goal__val ui-num" aria-live="polite">{stats.goal}</span>
+            <button type="button" className="ui-icon-btn" aria-label={sm.goalInc} onClick={() => setSrs(p => setGoal(p, p.goal + 1))} disabled={stats.goal >= GOAL_MAX}><Icon name="plus" /></button>
+            <span className="hifz-goal__unit">{sm.goalUnit}</span>
+          </div>
+          <button type="button" className="ui-btn ui-btn--secondary hifz-start-learn" onClick={startLearn}>
+            <Icon name="hifz" className="ui-btn__icon" />{sm.learnBtn}
+          </button>
+          {msg && <p className="hifz-plan__muted" role="status">{msg}</p>}
+        </div>
+      </div>
+
+      {session && (
+        <div ref={sessionRef} className="hifz-session">
+          {cur ? (
+            <PracticeCard key={`${session.id}:${session.idx}`} item={cur} srsItem={srs.items[`${cur.s}:${cur.a}`]}
+              kind={session.kind} pos={session.idx + 1} total={session.queue.length} view={view} setView={setView}
+              lang={lang} onGrade={onGrade} onClose={() => setSession(null)} today={today} />
+          ) : (
+            <div className="hifz-done ui-card" role="status">
+              <span className="ui-icon-tile" aria-hidden="true"><Icon name="check" /></span>
+              <div className="hifz-done__body">
+                <h3 className="hifz-done__title">{sm.doneTitle}</h3>
+                <p>{fill(sm.doneText, { n: session.graded })}</p>
+              </div>
+              <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setSession(null)}>{sm.close}</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="hifz-insights">
+        <ProgressChart series={series} lang={lang} sm={sm} />
+        <div className="hifz-bars ui-card">
+          <h3 className="hifz-chart__title">{sm.bars}</h3>
+          {barSurahs.length === 0 ? <p className="hifz-chart__empty">{sm.barsEmpty}</p> : (
+            <ul className="hifz-bars__list">
+              {barSurahs.map(s => {
+                const done = Math.min(s.ayahs, progress[s.num] === 2 ? s.ayahs : (counts[s.num] || 0))
+                return (
+                  <li key={s.num} className="hifz-bars__row">
+                    <span className="hifz-bars__name"><span className="ui-num">{s.num}.</span> {localName(s)}</span>
+                    <span className="hifz-bars__val ui-num"><bdi dir="ltr">{done} / {s.ayahs}</bdi></span>
+                    <div className="hifz-progress-bar" role="progressbar" aria-label={localName(s)} aria-valuemin={0} aria-valuemax={s.ayahs} aria-valuenow={done}>
+                      <div className="hifz-progress-fill" style={{ transform: `scaleX(${done / s.ayahs})` }} />
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function HifzPage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
@@ -241,6 +864,11 @@ export default function HifzPage({ setPage }) {
 
       <div className="section hifz-section">
         <div className="section-inner hifz-layout">
+
+          {/* Ağıllı hifz: bu günün planı, məşq, qrafik */}
+          <SmartHifz lang={lang} progress={progress} setProgress={setProgress} />
+
+          <h2 className="hifz-tracker-title ui-title">{(SMART[lang] || SMART.az).trackerTitle}</h2>
 
           {/* Xülasə paneli: faiz + zolaq (əsas) və üç status sətri.
               Zolaq scaleX ilə dolur (yalnız transform) */}

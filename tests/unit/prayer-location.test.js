@@ -37,8 +37,8 @@ describe('şəhər siyahısı', () => {
     }
   })
 
-  it('köhnə 20 şəhərin id-si və koordinatı qalıb', () => {
-    const old = { Baku: [40.4093, 49.8671], Ganja: [40.6828, 46.3606], Istanbul: [41.0082, 28.9784], Mecca: [21.4225, 39.8262], 'Kuala Lumpur': [3.139, 101.6869], Sheki: [41.1919, 47.1706] }
+  it('köhnə 20 şəhərin id-si və koordinatı qalıb (Bakı — Əbu Bəkr məscidi cədvəlinin nöqtəsi)', () => {
+    const old = { Baku: [40.3953, 49.8822], Ganja: [40.6828, 46.3606], Istanbul: [41.0082, 28.9784], Mecca: [21.4225, 39.8262], 'Kuala Lumpur': [3.139, 101.6869], Sheki: [41.1919, 47.1706] }
     for (const [id, [lat, lng]] of Object.entries(old)) {
       const c = PRAYER_CITIES.find(x => x.id === id)
       expect(c, id).toBeTruthy()

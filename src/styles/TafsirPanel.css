@@ -188,6 +188,10 @@ html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
 
 /* Atribusiya */
 .tf-src {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
   margin: 10px 0 0;
   padding-top: 8px;
   border-top: 1px solid var(--line);
@@ -217,3 +221,4 @@ html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
   .tf-panel, .tf-panel.is-leaving { animation: none; }
   .tf-toggle, .tf-toggle__chev, .tf-more__icon, .tf-toggle::before { transition: none; }
 }
+.tf-src__report { margin-inline-start: auto; }

@@ -4,7 +4,8 @@ import LegalDocument, { IF_EMAIL, IF_NO_EMAIL, IF_OPERATOR } from '../components
 // ═══════════════════════════════════════════════════════
 // Məxfilik siyasəti — saytın REAL məlumat axınına uyğun (2026-10 kod auditi):
 //   • hesab/qeydiyyat yoxdur; tərcihlər yalnız brauzerdə (localStorage / sessionStorage)
-//   • kuki qoyulmur, analitika/reklam/izləmə yoxdur → razılıq banneri lazım deyil
+//   • kuki qoyulmur, reklam/izləmə yoxdur; yalnız kukisiz, cəmlənmiş ziyarət
+//     statistikası (server/analytics.js) → razılıq banneri lazım deyil
 //   • push: standart Web Push — serverin SQLite bazasında push_subs { endpoint, keys, userAgent, lang, loc,
 //     prefs{azan,checkin,daily}, created_at, updated_at } (src/api/push.js → server/push.js); "Söndür" qeydi
 //     silir; ölü abunəlik (404/410) server tərəfindən silinir. Məzmun da öz serverimizdən (/api/content).
@@ -24,7 +25,7 @@ const DOC = {
       summary: { h: 'Qısaca', body: [
         { ul: [
           '**Hesab və qeydiyyat yoxdur.** Adınızı, e-poçtunuzu və ya telefon nömrənizi soruşmuruq.',
-          '**Reklam, analitika və izləmə yoxdur.** Saytda izləmə kukisi, reklam şəbəkəsi və ya ziyarətçi statistikası xidməti işləmir.',
+          '**Reklam və izləmə yoxdur.** İzləmə kukisi və reklam şəbəkəsi yoxdur; yalnız öz serverimizdə anonim, kukisiz ziyarət statistikası aparılır (aşağıda).',
           '**Tərcihləriniz cihazınızda qalır.** Dil, tema, şəhər, sevimlilər, zikr, hifz, dua gündəliyi və s. yalnız brauzerinizin yaddaşında saxlanılır.',
           '**Serverə yalnız zəruri olan gedir:** bildirişləri açsanız — bildiriş ünvanı və seçdiyiniz şəhər; AI köməkçiyə sual versəniz — sualınızın mətni.',
         ] },
@@ -54,8 +55,14 @@ const DOC = {
         { note: 'Bu qeydlərin ehtiyat nüsxəsi bizdə yoxdur: cihazı və ya brauzeri dəyişsəniz, onlar yeni cihaza köçmür.' },
       ] },
       cookies: { h: 'Kukilər', body: [
-        '{brand} **kuki qoymur** və izləmə, reklam və ya analitika məqsədli heç bir texnologiya istifadə etmir. Yuxarıda təsvir olunan yerli yaddaş yalnız sizin istədiyiniz funksiyaların işləməsi üçündür, ona görə də ayrıca "kuki razılığı" pəncərəsi göstərmirik.',
+        '{brand} **kuki qoymur** və izləmə və ya reklam məqsədli heç bir texnologiya istifadə etmir. Yuxarıda təsvir olunan yerli yaddaş yalnız sizin istədiyiniz funksiyaların işləməsi üçündür, ona görə də ayrıca "kuki razılığı" pəncərəsi göstərmirik.',
         'Üçüncü tərəflər öz kukilərini qoya bilər: {cloudflare} saytı hücumlardan qorumaq üçün zəruri texniki kuki yaza bilər; {youtube} isə videonu oynatmağa başlayanda öz qaydalarına uyğun kuki istifadə edə bilər.',
+      ] },
+      analytics: { h: 'Ziyarət statistikası', body: [
+        'Saytın hansı bölmələrinin faydalı olduğunu anlamaq üçün öz serverimizdə sadə, **kukisiz** ziyarət statistikası aparırıq; üçüncü tərəf analitika xidməti istifadə olunmur. Səhifə açılanda serverə yalnız səhifənin ünvanı (sorğu sətri olmadan), interfeys dili və sizi göndərən saytın yalnız əsas ünvanı gedir; brauzerin təsvirindən yalnız cihaz növü və brauzer ailəsi çıxarılır, ölkə və yer təyin edilmir. Gündəlik unikal ziyarətçiləri saymaq üçün {ip} ünvanınızdan, brauzerin təsvirindən və tarixdən hər gün yenilənən gizli açarla birtərəfli heş hesablanır — o, yalnız serverin yaddaşında, ən çox bir gün qalır və diskə yazılmır. Bazada yalnız cəmlər saxlanılır və 400 gündən sonra silinir. Kuki, tanıdıcı nömrə və ya "barmaq izi" yoxdur; brauzerinizdə izləmə qadağası (Do Not Track və ya Global Privacy Control) açıqdırsa, ziyarətiniz sayılmır.',
+      ] },
+      groups: { h: 'Qrup xətmi və ortaq hədəflər', body: [
+        'Qrup otağı yaradanda və ona qoşulanda serverdə yalnız sizin yazdığınız görünən ad (məsələn, "Əli") və qeydləriniz (hansı cüzü götürdüyünüz, hansı günləri işarələdiyiniz) saxlanılır. Hesab yaradılmır, {ip} ünvanı və başqa şəxsi məlumat yazılmır. İdarəetmə və iştirak açarları yalnız brauzerinizin yerli yaddaşında qalır. Otaq son fəaliyyətdən 180 gün sonra avtomatik silinir; onu yaradan istənilən vaxt silə bilər.',
       ] },
       push: { h: 'Push bildirişləri', body: [
         'Bildirişlər yalnız siz icazə verəndə açılır. İcazə verdikdə brauzerinizin öz push xidməti ({pushsvc}) brauzerinizə bildiriş ünvanı (cihaza bildiriş çatdırmaq üçün təsadüfi simvollardan ibarət açar) verir və biz öz serverimizin verilənlər bazasında belə bir qeyd saxlayırıq:',
@@ -159,7 +166,7 @@ const DOC = {
       summary: { h: 'In short', body: [
         { ul: [
           '**No accounts, no sign-up.** We never ask for your name, email or phone number.',
-          '**No ads, analytics or tracking.** The site runs no tracking cookies, ad networks or visitor-statistics services.',
+          '**No ads or tracking.** No tracking cookies or ad networks; we only keep anonymous, cookieless visit statistics on our own server (see below).',
           '**Your preferences stay on your device.** Language, theme, city, favourites, dhikr, hifz, your dua journal and so on are stored only in your browser.',
           '**Only what is necessary reaches our server:** if you turn on notifications — a notification address and your chosen city; if you ask the AI assistant — the text of your question.',
         ] },
@@ -189,8 +196,14 @@ const DOC = {
         { note: 'We keep no backup of this data: if you switch devices or browsers, it does not move with you.' },
       ] },
       cookies: { h: 'Cookies', body: [
-        '{brand} **sets no cookies** and uses no technology for tracking, advertising or analytics. The local storage described above serves only the features you choose to use, which is why we do not show a separate “cookie consent” banner.',
+        '{brand} **sets no cookies** and uses no technology for tracking or advertising. The local storage described above serves only the features you choose to use, which is why we do not show a separate “cookie consent” banner.',
         'Third parties may set their own cookies: {cloudflare} may set a strictly necessary technical cookie to protect the site from attacks, and {youtube} may use cookies under its own rules once you start playing a video.',
+      ] },
+      analytics: { h: 'Visit statistics', body: [
+        'To understand which parts of the site are useful, we keep simple, **cookieless** visit statistics on our own server; no third-party analytics service is used. When a page opens, the server receives only the page address (without the query string), the interface language and the domain name alone of the site that referred you; from the browser description we derive only the device type and browser family, and we do not determine your country or location. To count daily unique visitors, a one-way hash is computed from your {ip}, browser description and the date, using a secret key that changes every day — it lives only in the server’s memory for at most one day and is never written to disk. Only aggregate totals are stored, and they are deleted after 400 days. There are no cookies, identifiers or fingerprinting; if your browser sends “Do Not Track” or Global Privacy Control, your visit is not counted at all.',
+      ] },
+      groups: { h: 'Group khatm and shared goals', body: [
+        'When you create or join a room, only the display name you type (e.g. “Ali”) and your marks (which juz you claimed, which days you ticked) are stored on the server. No account is created and no {ip} address or other personal data is recorded. The management and participation keys stay only in your browser’s local storage. A room is deleted automatically 180 days after its last activity, and its creator can delete it at any time.',
       ] },
       push: { h: 'Push notifications', body: [
         'Notifications are turned on only when you give permission. When you do, your browser’s own push service ({pushsvc}) gives your browser a notification address (a random key used to deliver notifications to your device), and we store a record like this in our own server’s database:',
@@ -294,7 +307,7 @@ const DOC = {
       summary: { h: 'Коротко', body: [
         { ul: [
           '**Нет учётных записей и регистрации.** Мы не спрашиваем ваше имя, почту или номер телефона.',
-          '**Нет рекламы, аналитики и отслеживания.** На сайте не работают отслеживающие куки, рекламные сети и сервисы статистики посещений.',
+          '**Нет рекламы и отслеживания.** Нет отслеживающих куки и рекламных сетей; мы ведём только анонимную статистику посещений без куки на собственном сервере (см. ниже).',
           '**Ваши настройки остаются на устройстве.** Язык, тема, город, избранное, зикр, хифз, дневник дуа и прочее хранятся только в вашем браузере.',
           '**На сервер попадает только необходимое:** если вы включите уведомления — адрес для уведомлений и выбранный город; если зададите вопрос ИИ-помощнику — текст вопроса.',
         ] },
@@ -324,8 +337,15 @@ const DOC = {
         { note: 'Резервных копий этих данных у нас нет: при смене устройства или браузера они не переносятся.' },
       ] },
       cookies: { h: 'Файлы куки', body: [
-        '{brand} **не устанавливает файлы куки** и не использует никаких технологий для отслеживания, рекламы или аналитики. Описанное выше локальное хранилище служит только функциям, которыми вы пользуетесь, поэтому отдельное окно «согласия на куки» мы не показываем.',
+        '{brand} **не устанавливает файлы куки** и не использует никаких технологий для отслеживания или рекламы. Описанное выше локальное хранилище служит только функциям, которыми вы пользуетесь, поэтому отдельное окно «согласия на куки» мы не показываем.',
         'Сторонние сервисы могут устанавливать свои куки: {cloudflare} может записать строго необходимый технический файл куки для защиты сайта от атак, а {youtube} — использовать куки по своим правилам, когда вы запускаете видео.',
+      ] },
+      analytics: { h: 'Статистика посещений', body: [
+        // lang-ok[Do,Not,Track,Global,Privacy,Control]: стандартные названия
+        'Чтобы понимать, какие разделы сайта полезны, мы ведём простую статистику посещений **без куки** на собственном сервере; сторонние сервисы аналитики не используются. При открытии страницы на сервер передаются только адрес страницы (без строки запроса), язык интерфейса и лишь доменное имя сайта, с которого вы пришли; из описания браузера извлекаются только тип устройства и семейство браузера, страна и местоположение не определяются. Для подсчёта уникальных посетителей за день из вашего адреса {ip}, описания браузера и даты вычисляется односторонний хеш с секретным ключом, который меняется каждый день, — он хранится только в памяти сервера не дольше суток и не записывается на диск. В базе хранятся только итоговые суммы, которые удаляются через 400 дней. Куки, идентификаторов и «отпечатков» нет; если в браузере включён «Do Not Track» или Global Privacy Control, посещение не учитывается вовсе.',
+      ] },
+      groups: { h: 'Общий хатм и общие цели', body: [
+        'При создании комнаты или присоединении к ней на сервере хранится только введённое вами отображаемое имя (например, «Али») и ваши отметки (какой джуз вы взяли, какие дни отметили). Учётная запись не создаётся, адрес {ip} и другие личные данные не записываются. Ключи управления и участия остаются только в локальном хранилище вашего браузера. Комната удаляется автоматически через 180 дней после последней активности; её создатель может удалить её в любое время.',
       ] },
       push: { h: 'Пуш-уведомления', body: [
         'Уведомления включаются только с вашего разрешения. После этого собственная пуш-служба вашего браузера ({pushsvc}) выдаёт браузеру адрес для уведомлений (случайный ключ для доставки уведомлений на ваше устройство), а мы сохраняем в базе данных нашего сервера запись следующего вида:',
@@ -429,7 +449,7 @@ const DOC = {
       summary: { h: 'باختصار', body: [
         { ul: [
           '**لا حسابات ولا تسجيل.** لا نطلب اسمك ولا بريدك الإلكتروني ولا رقم هاتفك.',
-          '**لا إعلانات ولا تحليلات ولا تتبّع.** لا يعمل في الموقع أي ملف تعريف ارتباط للتتبّع ولا شبكة إعلانية ولا خدمة لإحصاء الزوار.',
+          '**لا إعلانات ولا تتبّع.** لا ملفات تعريف ارتباط للتتبّع ولا شبكات إعلانية؛ نحتفظ فقط بإحصائيات زيارات مجهولة وبلا ملفات تعريف ارتباط على خادمنا الخاص (انظر أدناه).',
           '**تفضيلاتك تبقى على جهازك.** اللغة والمظهر والمدينة والمفضّلة والأذكار والحفظ ومفكّرة الدعاء وغيرها تُحفظ في متصفحك فقط.',
           '**لا يصل إلى خادمنا إلا الضروري:** إذا فعّلت الإشعارات — عنوان الإشعارات والمدينة التي اخترتها؛ وإذا سألت المساعد الذكي — نص سؤالك.',
         ] },
@@ -459,8 +479,15 @@ const DOC = {
         { note: 'لا نحتفظ بأي نسخة احتياطية من هذه البيانات: إذا غيّرت جهازك أو متصفحك فلن تنتقل معك.' },
       ] },
       cookies: { h: 'ملفات تعريف الارتباط', body: [
-        '**لا يضع {brand} أي ملفات تعريف ارتباط**، ولا يستخدم أي تقنية للتتبّع أو الإعلانات أو التحليلات. والتخزين المحلي الموصوف أعلاه يخدم فقط الميزات التي تختار استخدامها، ولهذا لا نعرض نافذة منفصلة لـ«الموافقة على ملفات تعريف الارتباط».',
+        '**لا يضع {brand} أي ملفات تعريف ارتباط**، ولا يستخدم أي تقنية للتتبّع أو الإعلانات. والتخزين المحلي الموصوف أعلاه يخدم فقط الميزات التي تختار استخدامها، ولهذا لا نعرض نافذة منفصلة لـ«الموافقة على ملفات تعريف الارتباط».',
         'قد تضع جهات خارجية ملفاتها الخاصة: فقد يكتب {cloudflare} ملفاً تقنياً ضرورياً لحماية الموقع من الهجمات، وقد يستخدم {youtube} ملفات تعريف الارتباط وفق قواعده عند بدء تشغيل مقطع فيديو.',
+      ] },
+      analytics: { h: 'إحصائيات الزيارات', body: [
+        // lang-ok[Do,Not,Track,Global,Privacy,Control]: أسماء قياسية
+        'لمعرفة أقسام الموقع المفيدة نحتفظ بإحصائيات زيارات بسيطة **بلا ملفات تعريف ارتباط** على خادمنا الخاص، ولا نستخدم أي خدمة تحليلات خارجية. عند فتح صفحة يصل إلى الخادم عنوان الصفحة فقط (دون سلسلة الاستعلام) ولغة الواجهة واسم نطاق الموقع المُحيل وحده؛ ومن وصف المتصفح نستخرج نوع الجهاز وعائلة المتصفح فقط، ولا نحدد بلدك أو موقعك. ولعدّ الزوار الفريدين يوميًا تُحسب تجزئة أحادية الاتجاه من عنوان {ip} ووصف المتصفح والتاريخ بمفتاح سري يتجدد كل يوم، وتبقى في ذاكرة الخادم فقط مدة أقصاها يوم واحد ولا تُكتب على القرص. لا تُحفظ في قاعدة البيانات إلا المجاميع، وتُحذف بعد 400 يوم. لا ملفات تعريف ارتباط ولا معرّفات ولا بصمة للجهاز؛ وإن كان متصفحك يرسل «Do Not Track» أو Global Privacy Control فلا تُحتسب زيارتك أصلًا.',
+      ] },
+      groups: { h: 'الختمة الجماعية والأهداف المشتركة', body: [
+        'عند إنشاء غرفة أو الانضمام إليها لا يُحفظ على الخادم إلا الاسم الظاهر الذي تكتبه (مثل «علي») وعلاماتك (الجزء الذي أخذته والأيام التي علّمتها). لا يُنشأ حساب، ولا يُسجَّل عنوان {ip} ولا أي بيانات شخصية أخرى. تبقى مفاتيح الإدارة والمشاركة في التخزين المحلي لمتصفحك فقط. تُحذف الغرفة تلقائيًا بعد 180 يومًا من آخر نشاط، ويستطيع منشئها حذفها في أي وقت.',
       ] },
       push: { h: 'الإشعارات الفورية', body: [
         'لا تُفعَّل الإشعارات إلا بإذنك. عند منح الإذن تعطي خدمة الإشعارات الخاصة بمتصفحك ({pushsvc}) متصفحك عنواناً للإشعارات (مفتاحاً عشوائياً لإيصال الإشعارات إلى جهازك)، ونحفظ في قاعدة بيانات خادمنا سجلاً يتضمّن:',
@@ -564,7 +591,7 @@ const DOC = {
       summary: { h: 'Kısaca', body: [
         { ul: [
           '**Hesap ve üyelik yok.** Adınızı, e-posta adresinizi veya telefon numaranızı sormuyoruz.',
-          '**Reklam, analitik ve takip yok.** Sitede takip çerezi, reklam ağı veya ziyaretçi istatistiği hizmeti çalışmaz.',
+          '**Reklam ve takip yok.** Takip çerezi ve reklam ağı yoktur; yalnızca kendi sunucumuzda anonim, çerezsiz ziyaret istatistikleri tutulur (aşağıda).',
           '**Tercihleriniz cihazınızda kalır.** Dil, tema, şehir, favoriler, zikir, hıfz, dua günlüğü vb. yalnızca tarayıcınızda saklanır.',
           '**Sunucumuza yalnızca gerekli olan ulaşır:** bildirimleri açarsanız bildirim adresi ve seçtiğiniz şehir; yapay zekâ asistanına soru sorarsanız sorunuzun metni.',
         ] },
@@ -594,8 +621,14 @@ const DOC = {
         { note: 'Bu verilerin yedeği bizde yoktur: cihaz veya tarayıcı değiştirirseniz yeni cihaza taşınmazlar.' },
       ] },
       cookies: { h: 'Çerezler', body: [
-        '{brand} **çerez kullanmaz**; takip, reklam veya analitik amaçlı hiçbir teknoloji kullanmaz. Yukarıda anlatılan yerel depolama yalnızca sizin kullandığınız özellikler içindir; bu nedenle ayrı bir “çerez onayı” penceresi göstermiyoruz.',
+        '{brand} **çerez kullanmaz**; takip veya reklam amaçlı hiçbir teknoloji kullanmaz. Yukarıda anlatılan yerel depolama yalnızca sizin kullandığınız özellikler içindir; bu nedenle ayrı bir “çerez onayı” penceresi göstermiyoruz.',
         'Üçüncü taraflar kendi çerezlerini kullanabilir: {cloudflare} siteyi saldırılara karşı korumak için zorunlu bir teknik çerez yazabilir; {youtube} ise bir videoyu oynatmaya başladığınızda kendi kurallarına göre çerez kullanabilir.',
+      ] },
+      analytics: { h: 'Ziyaret istatistikleri', body: [
+        'Sitenin hangi bölümlerinin faydalı olduğunu anlamak için kendi sunucumuzda basit, **çerezsiz** ziyaret istatistikleri tutuyoruz; üçüncü taraf analitik hizmeti kullanılmaz. Bir sayfa açıldığında sunucuya yalnızca sayfa adresi (sorgu dizesi olmadan), arayüz dili ve sizi yönlendiren sitenin yalnızca alan adı gider; tarayıcı tanımından yalnızca cihaz türü ve tarayıcı ailesi çıkarılır, ülke ve konum belirlenmez. Günlük tekil ziyaretçileri saymak için {ip} adresinizden, tarayıcı tanımından ve tarihten, her gün yenilenen gizli bir anahtarla tek yönlü bir özet (hash) hesaplanır; bu değer yalnızca sunucunun belleğinde en fazla bir gün kalır ve diske yazılmaz. Veritabanında yalnızca toplamlar tutulur ve 400 gün sonra silinir. Çerez, kimlik veya parmak izi yoktur; tarayıcınız “Do Not Track” ya da Global Privacy Control gönderiyorsa ziyaretiniz hiç sayılmaz.',
+      ] },
+      groups: { h: 'Grup hatmi ve ortak hedefler', body: [
+        'Bir oda oluşturduğunuzda veya bir odaya katıldığınızda sunucuda yalnızca yazdığınız görünen ad (örneğin “Ali”) ve işaretleriniz (hangi cüzü aldığınız, hangi günleri işaretlediğiniz) saklanır. Hesap oluşturulmaz; {ip} adresi ve diğer kişisel veriler kaydedilmez. Yönetim ve katılım anahtarları yalnızca tarayıcınızın yerel deposunda kalır. Oda, son etkinlikten 180 gün sonra otomatik olarak silinir; odayı oluşturan kişi onu istediği zaman silebilir.',
       ] },
       push: { h: 'Anlık bildirimler', body: [
         'Bildirimler yalnızca siz izin verdiğinizde açılır. İzin verdiğinizde tarayıcınızın kendi anlık bildirim hizmeti ({pushsvc}) tarayıcınıza bir bildirim adresi (bildirimleri cihazınıza ulaştırmak için rastgele bir anahtar) verir ve biz kendi sunucumuzun veri tabanında şu bilgileri içeren bir kayıt saklarız:',
