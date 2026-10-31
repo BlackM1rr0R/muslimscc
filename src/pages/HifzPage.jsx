@@ -385,7 +385,6 @@ function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, on
   const preview = previewIntervals(srsItem || newItem(item.s, item.a, today))
   const dayText = n => (n === 0 ? sm.now : `${n} ${pluralWord(n, lang, DAY_WORDS)}`)
   const surahName = lang === 'ar' ? SURAHS[item.s - 1].name : (getSurahLocal(item.s, lang)?.name || SURAHS[item.s - 1].en)
-  const matchedAt = i => (check ? check.words[i]?.matched : undefined)
 
   return (
     <article className="hifz-practice ui-card" aria-labelledby="hifz-practice-title">
@@ -416,15 +415,13 @@ function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, on
         <>
           <p className="hifz-ayah ui-arabic" lang="ar" dir="rtl">
             {words.map((w, i) => {
-              const m = matchedAt(i)
-              const cls = m === true ? ' is-hit' : m === false ? ' is-miss' : ''
-              return isShown(i) || check
-                ? <span key={i} className={`hifz-word${cls}`}>{w}</span>
+              return isShown(i)
+                ? <span key={i} className="hifz-word">{w}</span>
                 : <button type="button" key={i} className="hifz-word is-hidden" onClick={() => revealOne(i)} aria-label={sm.hiddenWord}>{w}</button>
             })}
             <span className="hifz-ayah__num ui-num" aria-hidden="true">﴿{item.a}﴾</span>
           </p>
-          {view !== 'full' && !check && (
+          {view !== 'full' && (
             <div className="hifz-practice__reveal">
               <span className="hifz-practice__hint">{sm.tapHint}</span>
               <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={revealNext} disabled={!hiddenLeft}>{sm.revealNext}</button>

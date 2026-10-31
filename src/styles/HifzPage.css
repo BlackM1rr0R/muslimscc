@@ -513,8 +513,6 @@ button.hifz-word {
   cursor: pointer;
 }
 .hifz-word.is-hidden { color: transparent; text-shadow: 0 0 14px color-mix(in srgb, var(--text-strong) 45%, transparent); user-select: none; }
-.hifz-word.is-hit { background: var(--brand-soft-2); color: var(--brand); }
-.hifz-word.is-miss { background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad); text-decoration: underline wavy; text-underline-offset: 6px; }
 .hifz-ayah__num { color: var(--accent); font-size: 0.8em; }
 .hifz-practice__reveal { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .hifz-practice__hint { margin-inline-end: auto; color: var(--text-tertiary); font-size: 13px; }
