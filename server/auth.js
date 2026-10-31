@@ -14,6 +14,10 @@
 //   başlığı başqa sayt CORS preflight-sız göndərə bilməz, CORS isə onu rədd edir).
 // • KEÇİD DÖVRÜ: requireAdmin köhnə Firebase ID tokenini də (Authorization:
 //   Bearer) qəbul edir — klient (2-ci mərhələ) keçənə qədər admin paneli işləsin.
+// • Müvəqqəti şifrə: admin-user.js (create / set-password) ilə qoyulan şifrə
+//   `must_change=1` olur. Belə sessiya yalnız /me, /password, /logout-a çata
+//   bilər (requireAdmin.allowTemp); qalan admin API-ləri 403 { code:'must_change' }.
+//   POST /api/admin/password — cari + yeni şifrə; digər sessiyalar ləğv olunur.
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
 
@@ -124,16 +128,19 @@ function csrfRejected(req, allowedOrigins) {
 function createAuthStore(db) {
   const raw = db.raw
   const st = {
-    byEmail: raw.prepare('SELECT id, email, pass_hash FROM admins WHERE email = ?'),
+    byEmail: raw.prepare('SELECT id, email, pass_hash, must_change FROM admins WHERE email = ?'),
     byId: raw.prepare('SELECT id, email FROM admins WHERE id = ?'),
-    insert: raw.prepare('INSERT INTO admins (email, pass_hash, created_at, updated_at) VALUES (?, ?, ?, ?)'),
-    setPass: raw.prepare('UPDATE admins SET pass_hash = ?, updated_at = ? WHERE email = ?'),
+    hashById: raw.prepare('SELECT pass_hash FROM admins WHERE id = ?'),
+    insert: raw.prepare('INSERT INTO admins (email, pass_hash, must_change, created_at, updated_at) VALUES (?, ?, ?, ?, ?)'),
+    setPass: raw.prepare('UPDATE admins SET pass_hash = ?, must_change = ?, updated_at = ? WHERE email = ?'),
+    setPassById: raw.prepare('UPDATE admins SET pass_hash = ?, must_change = 0, updated_at = ? WHERE id = ?'),
+    delOtherSessions: raw.prepare('DELETE FROM sessions WHERE admin_id = ? AND id_hash <> ?'),
     del: raw.prepare('DELETE FROM admins WHERE email = ?'),
     list: raw.prepare(`SELECT a.id, a.email, a.created_at, a.updated_at,
       (SELECT COUNT(*) FROM sessions s WHERE s.admin_id = a.id AND s.expires_at > ?) AS sessions
       FROM admins a ORDER BY a.id`),
     newSession: raw.prepare('INSERT INTO sessions (id_hash, admin_id, expires_at, created_at) VALUES (?, ?, ?, ?)'),
-    session: raw.prepare(`SELECT s.admin_id, s.expires_at, a.email FROM sessions s
+    session: raw.prepare(`SELECT s.admin_id, s.expires_at, a.email, a.must_change FROM sessions s
       JOIN admins a ON a.id = s.admin_id WHERE s.id_hash = ?`),
     delSession: raw.prepare('DELETE FROM sessions WHERE id_hash = ?'),
     delSessionsOf: raw.prepare('DELETE FROM sessions WHERE admin_id = (SELECT id FROM admins WHERE email = ?)'),
@@ -141,22 +148,41 @@ function createAuthStore(db) {
   }
   return {
     findByEmail: (email) => st.byEmail.get(normEmail(email)) || null,
-    async createAdmin(email, password, now = Date.now()) {
+    /** opts.temporary — ilk girişdə dəyişdirilməli şifrə (admin-user.js). */
+    async createAdmin(email, password, now = Date.now(), { temporary = false } = {}) {
       const e = normEmail(email)
       if (!validEmail(e)) throw new Error('E-poçt yararsızdır')
       if (st.byEmail.get(e)) throw new Error('Bu e-poçtla admin artıq var')
       const hash = await hashPassword(password)
-      return Number(st.insert.run(e, hash, now, now).lastInsertRowid)
+      return Number(st.insert.run(e, hash, temporary ? 1 : 0, now, now).lastInsertRowid)
     },
     /** Şifrəni dəyiş və BÜTÜN sessiyaları ləğv et. */
-    async setPassword(email, password, now = Date.now()) {
+    async setPassword(email, password, now = Date.now(), { temporary = false } = {}) {
       const e = normEmail(email)
       const hash = await hashPassword(password)
       return db.tx(() => {
-        const ok = st.setPass.run(hash, now, e).changes > 0
+        const ok = st.setPass.run(hash, temporary ? 1 : 0, now, e).changes > 0
         if (ok) st.delSessionsOf.run(e)
         return ok
       })
+    },
+    /**
+     * Admin öz şifrəsini paneldən dəyişir: cari şifrə yoxlanır, yenisi yazılır,
+     * must_change sıfırlanır, CARİ sessiyadan başqa hamısı ləğv olunur.
+     * → 'ok' | 'wrong' (cari şifrə səhvdir) | 'same' (yeni = köhnə) | 'missing'.
+     * Yeni şifrə qaydaya uymursa hashPassword atır.
+     */
+    async changePassword(adminId, currentPassword, newPassword, keepToken, now = Date.now()) {
+      const row = st.hashById.get(adminId)
+      if (!row) return 'missing'
+      if (!(await verifyPassword(currentPassword, row.pass_hash))) return 'wrong'
+      if (await verifyPassword(newPassword, row.pass_hash)) return 'same'
+      const hash = await hashPassword(newPassword)
+      db.tx(() => {
+        st.setPassById.run(hash, now, adminId)
+        st.delOtherSessions.run(adminId, typeof keepToken === 'string' ? sha256(keepToken) : '')
+      })
+      return 'ok'
     },
     deleteAdmin: (email) => st.del.run(normEmail(email)).changes > 0,   // sessiyalar CASCADE ilə silinir
     listAdmins: (now = Date.now()) => st.list.all(now),
@@ -172,7 +198,7 @@ function createAuthStore(db) {
       const s = st.session.get(h)
       if (!s) return null
       if (s.expires_at <= now) { st.delSession.run(h); return null }
-      return { id: s.admin_id, email: s.email }
+      return { id: s.admin_id, email: s.email, mustChange: s.must_change === 1 }
     },
     destroySession: (token) => (typeof token === 'string' ? st.delSession.run(sha256(token)).changes > 0 : false),
     purgeExpired: (now = Date.now()) => st.purge.run(now).changes,
@@ -186,13 +212,18 @@ function createAuthStore(db) {
  *  üçün; verilməyibsə yalnız yeni sessiya qəbul olunur.
  */
 function createRequireAdmin({ store, allowedOrigins = [], verifyFirebaseToken = null }) {
-  return async function requireAdmin(req, res, next) {
+  const make = (allowTemp) => async function requireAdmin(req, res, next) {
     const token = parseCookies(req.headers.cookie)[COOKIE_NAME]
     if (token) {
       const user = store.sessionUser(token)
       if (user) {
         if (csrfRejected(req, allowedOrigins)) return res.status(403).json({ error: 'Forbidden' })
-        req.adminUser = { id: user.id, email: user.email, via: 'session' }
+        req.adminUser = { id: user.id, email: user.email, via: 'session', mustChange: user.mustChange }
+        req.adminToken = token
+        // Müvəqqəti şifrə ilə yalnız şifrəni dəyişmək (və /me, /logout) olar
+        if (user.mustChange && !allowTemp) {
+          return res.status(403).json({ error: 'Password change required', code: 'must_change' })
+        }
         return next()
       }
     }
@@ -209,10 +240,14 @@ function createRequireAdmin({ store, allowedOrigins = [], verifyFirebaseToken = 
     }
     return res.status(401).json({ error: 'Unauthorized' })
   }
+  const requireAdmin = make(false)
+  // /me, /password: müvəqqəti şifrəli sessiya da keçir
+  requireAdmin.allowTemp = make(true)
+  return requireAdmin
 }
 
 /**
- * /api/admin/login, /logout, /me.
+ * /api/admin/login, /logout, /me, /password.
  *  opts.limits — { ipMax, emailMax, windowMs } (testlər üçün dəyişilə bilər)
  */
 function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {} }) {
@@ -248,7 +283,7 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
       const token = store.createSession(admin.id)
       res.set('Set-Cookie', sessionCookie(token, Math.floor(SESSION_TTL_MS / 1000)))
       res.set('Cache-Control', 'no-store')
-      return res.json({ ok: true, email: admin.email })
+      return res.json({ ok: true, email: admin.email, mustChangePassword: admin.must_change === 1 })
     } catch (e) {
       console.error('login error:', e && e.message)
       return res.status(500).json({ error: 'Server error' })
@@ -263,9 +298,44 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
     return res.json({ ok: true })
   })
 
-  router.get('/admin/me', requireAdmin, (req, res) => {
+  const requireAny = requireAdmin.allowTemp || requireAdmin
+  const pwLimiter = createFailureLimiter({ max: limits.emailMax || 5, windowMs })
+
+  router.get('/admin/me', requireAny, (req, res) => {
     res.set('Cache-Control', 'no-store')
-    res.json({ email: req.adminUser.email, via: req.adminUser.via })
+    res.json({ email: req.adminUser.email, via: req.adminUser.via, mustChangePassword: Boolean(req.adminUser.mustChange) })
+  })
+
+  // Şifrəni dəyiş: { currentPassword, newPassword } — yalnız sessiya ilə (köhnə
+  // Firebase tokeni ilə yox). CSRF requireAdmin-dədir. Uğurlu olanda digər
+  // sessiyalar ləğv olunur, cari sessiya qalır.
+  router.post('/admin/password', requireAny, json, async (req, res) => {
+    res.set('Cache-Control', 'no-store')
+    if (req.adminUser.via !== 'session') return res.status(403).json({ error: 'Session required' })
+    const cur = req.body && req.body.currentPassword
+    const next = req.body && req.body.newPassword
+    if (typeof cur !== 'string' || !cur || cur.length > MAX_PASSWORD || typeof next !== 'string') {
+      return res.status(400).json({ error: 'Bad request' })
+    }
+    if (next.length < MIN_PASSWORD || next.length > MAX_PASSWORD) {
+      return res.status(400).json({ error: 'Weak password', code: 'weak', min: MIN_PASSWORD })
+    }
+    const key = 'pw:' + req.adminUser.id
+    if (pwLimiter.blocked(key)) {
+      res.set('Retry-After', String(pwLimiter.retryAfterSec(key)))
+      return res.status(429).json({ error: 'Too many attempts' })
+    }
+    try {
+      const r = await store.changePassword(req.adminUser.id, cur, next, req.adminToken)
+      if (r === 'wrong') { pwLimiter.fail(key); return res.status(400).json({ error: 'Wrong password', code: 'wrong' }) }
+      if (r === 'same') return res.status(400).json({ error: 'Same password', code: 'same' })
+      if (r !== 'ok') return res.status(401).json({ error: 'Unauthorized' })
+      pwLimiter.reset(key)
+      return res.json({ ok: true })
+    } catch (e) {
+      console.error('password change error:', e && e.message)
+      return res.status(500).json({ error: 'Server error' })
+    }
   })
 
   return router

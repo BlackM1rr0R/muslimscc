@@ -1,34 +1,25 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
-import { AdminHeader, SectionTitle, AdminNotice, AdminAlert, AdminEmpty } from './AdminUi'
+import { AdminHeader, SectionTitle, AdminAlert, AdminEmpty } from './AdminUi'
 import Icon, { BrandMark } from '../Icon'
 import { brandName } from '../../config/brand'
-import { getAll, addDocument } from '../../firebase/firestore'
-import { getAdminIdToken } from '../../firebase/auth'
-import { isFirebaseConfigured } from '../../firebase/config'
+import { getAll } from '../../api/content'
+import { apiFetch, ApiError } from '../../api/http'
 
-const API_URL = import.meta.env.VITE_API_URL || ''
-
-// Server API-si admini Firebase ID tokeni ilə tanıyır (Authorization: Bearer).
-// Ayrıca "göndərmə açarı" yoxdur — giriş edən adminin sessiyası kifayətdir.
-const apiBase = () => API_URL.replace(/\/$/, '')
-async function authHeaders() {
-  const idToken = await getAdminIdToken()
-  return idToken ? { Authorization: `Bearer ${idToken}` } : {}
-}
+// Server API-si admini sessiya cookie-si ilə tanıyır (eyni origin, /api/...).
+// Tarixçəni server özü yazır (notification_history) — klient yazmır.
 
 const LABELS = {
-  az: { authWrong:'Sessiya bitib və ya admin icazəsi yoxdur — çıxıb yenidən daxil olun', title:'Anlıq bildirişlər', sub:'Bütün abunəçilərə bildiriş göndərin', send:'Bildiriş göndər', subscribers:'Abunəçi sayı', titleField:'Başlıq', bodyField:'Mesaj', urlField:'Açılacaq ünvan (istəyə bağlı)', priorityHigh:'Prioritet', normal:'Adi', high:'Yüksək', preview:'Önbaxış', now:'indi', sending:'Göndərilir...', sent:'Göndərildi:', failed:'Xəta:', sendFailed:'Göndərmək alınmadı', history:'Tarixçə', noHistory:'Hələ bildiriş göndərilməyib', titleRequired:'Başlıq tələb olunur', bodyRequired:'Mesaj tələb olunur', noBackend:'Server API-si qoşulmayıb. .env faylında VITE_API_URL təyin edin.', noFirebase:'Firebase qoşulmayıb', phTitle:'🕌 Namaz vaxtı', phBody:'Zöhr namazının vaxtı çatdı' },
-  en: { authWrong:'Session expired or no admin access — sign out and sign in again', title:'Push notifications', sub:'Send notifications to all subscribers', send:'Send notification', subscribers:'Subscribers', titleField:'Title', bodyField:'Message', urlField:'URL to open (optional)', priorityHigh:'Priority', normal:'Normal', high:'High', preview:'Preview', now:'now', sending:'Sending...', sent:'Sent to:', failed:'Failed:', sendFailed:'Sending failed', history:'History', noHistory:'No notifications sent yet', titleRequired:'Title required', bodyRequired:'Message required', noBackend:'Server API not configured. Set VITE_API_URL in .env.', noFirebase:'Firebase is not connected', phTitle:'🕌 Prayer time', phBody:'It is time for the Dhuhr prayer' },
-  ru: { authWrong:'Сессия истекла или нет прав администратора — выйдите и войдите снова', title:'Мгновенные уведомления', sub:'Отправить уведомления всем подписчикам', send:'Отправить уведомление', subscribers:'Подписчики', titleField:'Заголовок', bodyField:'Сообщение', urlField:'Открываемый адрес (необязательно)', priorityHigh:'Приоритет', normal:'Обычный', high:'Высокий', preview:'Предпросмотр', now:'сейчас', sending:'Отправка...', sent:'Отправлено:', failed:'Ошибка:', sendFailed:'Не удалось отправить', history:'История', noHistory:'Уведомления ещё не отправлялись', titleRequired:'Заголовок обязателен', bodyRequired:'Сообщение обязательно', noBackend:'Адрес API сервера не настроен.', noFirebase:'Firebase не подключён', phTitle:'🕌 Время намаза', phBody:'Наступило время полуденного намаза (Зухр)' },
-  ar: { authWrong:'انتهت الجلسة أو لا توجد صلاحية إدارة — سجّل الخروج ثم ادخل مجددًا', title:'الإشعارات الفورية', sub:'إرسال إشعارات لجميع المشتركين', send:'إرسال إشعار', subscribers:'المشتركون', titleField:'العنوان', bodyField:'الرسالة', urlField:'الرابط المراد فتحه (اختياري)', priorityHigh:'الأولوية', normal:'عادية', high:'عالية', preview:'معاينة', now:'الآن', sending:'جارٍ الإرسال...', sent:'تم الإرسال إلى:', failed:'فشل:', sendFailed:'تعذّر الإرسال', history:'السجل', noHistory:'لم تُرسل أي إشعارات بعد', titleRequired:'العنوان مطلوب', bodyRequired:'الرسالة مطلوبة', noBackend:'عنوان API للخادم غير مُعدّ.', noFirebase:'Firebase غير متصل', phTitle:'🕌 وقت الصلاة', phBody:'حان وقت صلاة الظهر' },
-  tr: { authWrong:'Oturum sona erdi veya yönetici yetkisi yok — çıkış yapıp yeniden giriş yapın', title:'Anlık bildirimler', sub:'Tüm abonelere bildirim gönderin', send:'Bildirim gönder', subscribers:'Aboneler', titleField:'Başlık', bodyField:'Mesaj', urlField:'Açılacak adres (isteğe bağlı)', priorityHigh:'Öncelik', normal:'Normal', high:'Yüksek', preview:'Önizleme', now:'şimdi', sending:'Gönderiliyor...', sent:'Gönderildi:', failed:'Hata:', sendFailed:'Gönderilemedi', history:'Geçmiş', noHistory:'Henüz bildirim gönderilmedi', titleRequired:'Başlık gerekli', bodyRequired:'Mesaj gerekli', noBackend:'Sunucu API adresi yapılandırılmamış. .env dosyasında VITE_API_URL tanımlayın.', noFirebase:'Firebase bağlı değil', phTitle:'🕌 Namaz vakti', phBody:'Öğle namazının vakti girdi' },
+  az: { authWrong:'Sessiya bitib və ya admin icazəsi yoxdur — çıxıb yenidən daxil olun', title:'Anlıq bildirişlər', sub:'Bütün abunəçilərə bildiriş göndərin', send:'Bildiriş göndər', subscribers:'Abunəçi sayı', titleField:'Başlıq', bodyField:'Mesaj', urlField:'Açılacaq ünvan (istəyə bağlı)', priorityHigh:'Prioritet', normal:'Adi', high:'Yüksək', preview:'Önbaxış', now:'indi', sending:'Göndərilir...', sent:'Göndərildi:', failed:'Xəta:', sendFailed:'Göndərmək alınmadı', history:'Tarixçə', noHistory:'Hələ bildiriş göndərilməyib', titleRequired:'Başlıq tələb olunur', bodyRequired:'Mesaj tələb olunur', phTitle:'🕌 Namaz vaxtı', phBody:'Zöhr namazının vaxtı çatdı' },
+  en: { authWrong:'Session expired or no admin access — sign out and sign in again', title:'Push notifications', sub:'Send notifications to all subscribers', send:'Send notification', subscribers:'Subscribers', titleField:'Title', bodyField:'Message', urlField:'URL to open (optional)', priorityHigh:'Priority', normal:'Normal', high:'High', preview:'Preview', now:'now', sending:'Sending...', sent:'Sent to:', failed:'Failed:', sendFailed:'Sending failed', history:'History', noHistory:'No notifications sent yet', titleRequired:'Title required', bodyRequired:'Message required', phTitle:'🕌 Prayer time', phBody:'It is time for the Dhuhr prayer' },
+  ru: { authWrong:'Сессия истекла или нет прав администратора — выйдите и войдите снова', title:'Мгновенные уведомления', sub:'Отправить уведомления всем подписчикам', send:'Отправить уведомление', subscribers:'Подписчики', titleField:'Заголовок', bodyField:'Сообщение', urlField:'Открываемый адрес (необязательно)', priorityHigh:'Приоритет', normal:'Обычный', high:'Высокий', preview:'Предпросмотр', now:'сейчас', sending:'Отправка...', sent:'Отправлено:', failed:'Ошибка:', sendFailed:'Не удалось отправить', history:'История', noHistory:'Уведомления ещё не отправлялись', titleRequired:'Заголовок обязателен', bodyRequired:'Сообщение обязательно', phTitle:'🕌 Время намаза', phBody:'Наступило время полуденного намаза (Зухр)' },
+  ar: { authWrong:'انتهت الجلسة أو لا توجد صلاحية إدارة — سجّل الخروج ثم ادخل مجددًا', title:'الإشعارات الفورية', sub:'إرسال إشعارات لجميع المشتركين', send:'إرسال إشعار', subscribers:'المشتركون', titleField:'العنوان', bodyField:'الرسالة', urlField:'الرابط المراد فتحه (اختياري)', priorityHigh:'الأولوية', normal:'عادية', high:'عالية', preview:'معاينة', now:'الآن', sending:'جارٍ الإرسال...', sent:'تم الإرسال إلى:', failed:'فشل:', sendFailed:'تعذّر الإرسال', history:'السجل', noHistory:'لم تُرسل أي إشعارات بعد', titleRequired:'العنوان مطلوب', bodyRequired:'الرسالة مطلوبة', phTitle:'🕌 وقت الصلاة', phBody:'حان وقت صلاة الظهر' },
+  tr: { authWrong:'Oturum sona erdi veya yönetici yetkisi yok — çıkış yapıp yeniden giriş yapın', title:'Anlık bildirimler', sub:'Tüm abonelere bildirim gönderin', send:'Bildirim gönder', subscribers:'Aboneler', titleField:'Başlık', bodyField:'Mesaj', urlField:'Açılacak adres (isteğe bağlı)', priorityHigh:'Öncelik', normal:'Normal', high:'Yüksek', preview:'Önizleme', now:'şimdi', sending:'Gönderiliyor...', sent:'Gönderildi:', failed:'Hata:', sendFailed:'Gönderilemedi', history:'Geçmiş', noHistory:'Henüz bildirim gönderilmedi', titleRequired:'Başlık gerekli', bodyRequired:'Mesaj gerekli', phTitle:'🕌 Namaz vakti', phBody:'Öğle namazının vakti girdi' },
 }
 
 export default function PushNotificationManager() {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
-  const configured = isFirebaseConfigured()
 
   const [history, setHistory] = useState([])
   const [form, setForm] = useState({ title:'', body:'', url:'', priority:'normal' })
@@ -37,21 +28,15 @@ export default function PushNotificationManager() {
   const [feedback, setFeedback] = useState(null) // { ok, text }
 
   useEffect(() => {
-    if (!configured) return
     refresh()
   }, [])
 
   const refresh = async () => {
-    // Abunəçi sayı serverdən: fcm_tokens brauzerə bağlıdır (firestore.rules)
-    if (API_URL) {
-      try {
-        const res = await fetch(`${apiBase()}/api/admin/subscribers`, { headers: await authHeaders() })
-        if (res.ok) {
-          const data = await res.json()
-          setSubscribers(Number(data.count) || 0)
-        }
-      } catch {}
-    }
+    // Abunəçi sayı serverdən (Web Push + keçid dövründə FCM)
+    try {
+      const data = await apiFetch('/api/admin/subscribers', { admin: true })
+      setSubscribers(Number(data?.count) || 0)
+    } catch {}
     try {
       const h = await getAll('notification_history', 'createdAt')
       setHistory(h)
@@ -63,33 +48,25 @@ export default function PushNotificationManager() {
     setFeedback(null)
     if (!form.title.trim()) { setFeedback({ ok:false, text: l.titleRequired }); return }
     if (!form.body.trim()) { setFeedback({ ok:false, text: l.bodyRequired }); return }
-    if (!API_URL) { setFeedback({ ok:false, text: l.noBackend }); return }
 
     setSending(true)
     try {
-      const res = await fetch(`${apiBase()}/api/send-notification`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-        body: JSON.stringify({
-          title: form.title.trim(),
-          body: form.body.trim(),
-          url: form.url.trim() || '/',
-          priority: form.priority,
-        }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (res.status === 401 || res.status === 403) throw new Error(l.authWrong)
-      if (!res.ok) throw new Error(data.error || l.sendFailed)
-
-      // Tarixçəyə əlavə et
-      await addDocument('notification_history', {
-        title: form.title.trim(),
-        body: form.body.trim(),
-        url: form.url.trim() || '/',
-        priority: form.priority,
-        sentTo: data.successCount || 0,
-        failed: data.failureCount || 0,
-      })
+      let data
+      try {
+        data = await apiFetch('/api/send-notification', {
+          method: 'POST',
+          admin: true,
+          body: {
+            title: form.title.trim(),
+            body: form.body.trim(),
+            url: form.url.trim() || '/',
+            priority: form.priority,
+          },
+        })
+      } catch (err) {
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) throw new Error(l.authWrong)
+        throw new Error(err instanceof ApiError ? (err.body?.error || l.sendFailed) : l.sendFailed)
+      }
 
       setFeedback({ ok:true, text: `${l.sent} ${data.successCount || 0}` })
       setForm({ title:'', body:'', url:'', priority:'normal' })
@@ -98,12 +75,6 @@ export default function PushNotificationManager() {
       setFeedback({ ok:false, text: `${l.failed} ${e.message}` })
     }
     setSending(false)
-  }
-
-  if (!configured) {
-    return (
-      <AdminNotice title={l.noFirebase} />
-    )
   }
 
   return (

@@ -21,7 +21,7 @@
 //   getPrayerCityId()                → istifadəçinin seçdiyi id ('custom' daxil) və ya null
 //   setPrayerCity(idOrPlace)         — id (siyahıdan) və ya xüsusi yer obyekti
 //                                      { lat, lng, tz, label|name, country?, method? }; seçimi yaz,
-//                                      abunəçilərə xəbər ver, FCM sənədini yenilə
+//                                      abunəçilərə xəbər ver, push abunəliyini yenilə
 //   setAdminDefaultCity(id)          — admin standartını yadda saxla (istifadəçi seçməyibsə tətbiq olunur)
 //   subscribePrayerLocation(cb)      → unsubscribe; cb(getPrayerLocation()) — dəyişəndə
 //   usePrayerLocation()              → React hook: cari yer (dəyişəndə yenidən render)
@@ -42,7 +42,9 @@ const CUSTOM_KEY = 'muslim_cc_custom_city'
 const RECENT_KEY = 'muslim_cc_recent_cities'
 const ADMIN_DEFAULT_KEY = 'muslim_cc_admin_default_city'
 const CHANGE_EVENT = 'qm-prayer-location'
-// Firebase messaging.js ilə eyni açar — token yoxdursa Firebase heç yüklənmir
+// src/api/push.js ilə eyni açarlar — abunəlik yoxdursa push modulu heç yüklənmir
+// (köhnə FCM tokeni — keçid hələ olmayıbsa; modul onu özü Web Push-a keçirir)
+const PUSH_ENDPOINT_KEY = 'muslim_cc_push_endpoint'
 const FCM_TOKEN_KEY = 'muslim_cc_fcm_token'
 const CUSTOM_ID = 'custom'
 const LANG_LIST = ['az', 'en', 'ru', 'ar', 'tr']
@@ -337,13 +339,13 @@ function emitChange() {
 }
 
 /**
- * Push bildirişləri açıqdırsa (token var), Firestore-dakı fcm_tokens sənədinə
+ * Push bildirişləri açıqdırsa, serverdəki abunəliyə (PATCH /api/push/subscription)
  * yeni yeri yaz — server hər istifadəçiyə ÖZ şəhərinin azan vaxtında göndərir.
- * Token yoxdursa Firebase modulu ümumiyyətlə yüklənmir.
+ * Abunəlik yoxdursa push modulu ümumiyyətlə yüklənmir.
  */
 function syncPushLocation() {
-  if (!readLS(FCM_TOKEN_KEY)) return
-  import('../firebase/messaging')
+  if (!readLS(PUSH_ENDPOINT_KEY) && !readLS(FCM_TOKEN_KEY)) return
+  import('../api/push')
     .then(m => m.updateTokenLocation?.())
     .catch(() => { /* şəbəkə yoxdur — növbəti token yazılışında yenilənəcək */ })
 }

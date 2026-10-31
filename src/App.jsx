@@ -107,6 +107,7 @@ const DuaJournalPage = lazy(() => import('./pages/DuaJournalPage'))
 const MosqueFinderPage = lazy(() => import('./pages/MosqueFinderPage'))
 const IslamicHistoryPage = lazy(() => import('./pages/IslamicHistoryPage'))
 const SahabePage = lazy(() => import('./pages/SahabePage'))
+const ScholarsPage = lazy(() => import('./pages/ScholarsPage'))
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
@@ -299,6 +300,7 @@ function AppInner() {
       case 'mosques':       return <MosqueFinderPage  setPage={navigate} />
       case 'history':       return <IslamicHistoryPage setPage={navigate} />
       case 'sahaba':        return <SahabePage         setPage={navigate} />
+      case 'scholars':      return <ScholarsPage       setPage={navigate} />
       case 'analytics':     return <AnalyticsPage      setPage={navigate} />
       case 'adminlogin':    return <AdminLoginPage    setPage={navigate} />
       case 'admin':         return <AdminPage         setPage={navigate} />

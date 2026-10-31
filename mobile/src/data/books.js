@@ -1,8 +1,7 @@
-// ═══ BOOKS — Firebase real-time + default fallback ═══
-import { getAll, subscribeToCollection, COLLECTIONS } from '../firebase/firestore'
-import { isFirebaseConfigured } from '../firebase/config'
+// ═══ BOOKS — məzmun API-si (sayt ilə eyni server) + default fallback ═══
+import { getAll, subscribeToCollection, COLLECTIONS } from '../api/content'
 
-// Firebase real-time subscription
+// Abunə: ilk yükləmədə + tətbiq ön plana qayıdanda (src/api/content.js)
 export function subscribeToBooks(callback) {
   return subscribeToCollection(COLLECTIONS.BOOKS, (items) => {
     callback(items.length > 0 ? items : DEFAULT_BOOKS)
@@ -11,12 +10,11 @@ export function subscribeToBooks(callback) {
 
 // Async fetch (admin əlavə etməyibsə default-lar qayıdır)
 export async function getBooks() {
-  if (!isFirebaseConfigured()) return DEFAULT_BOOKS
   const items = await getAll(COLLECTIONS.BOOKS)
   return items.length > 0 ? items : DEFAULT_BOOKS
 }
 
-// ═══ DEFAULT BOOKS (Firebase boşdursa fallback) ═══
+// ═══ DEFAULT BOOKS (serverdə kitab yoxdursa fallback) ═══
 export const DEFAULT_BOOKS = [
   {
     id: 'default-b1',

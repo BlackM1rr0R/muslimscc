@@ -1,6 +1,10 @@
 // ═══════════════════════════════════════════════════════
 // Ortaq e2e fikstürü:
 //   • xarici API-ləri sabit cavabla əvəzləyir (deterministik testlər)
+//   • öz API-mizi (/api/content, /api/singletons, /api/push, /api/admin) susmaya
+//     görə "boş" cavabla əvəzləyir — dev serverin /api proksisi canlı sayta
+//     getməsin, preview-da 404 konsol xətası olmasın. Testlər öz page.route-ları
+//     ilə bunu əvəz edə bilər (Playwright-da SONRA qeyd olunan marşrut birinci işləyir).
 //   • konsol xətalarını və [i18n] xəbərdarlıqlarını toplayır — hər test
 //     sonunda `consoleProblems` boş olmalıdır (bax: expectCleanConsole)
 // ═══════════════════════════════════════════════════════
@@ -68,8 +72,23 @@ export const test = base.extend({
         ? { number: 1, name: 'سُورَةُ ٱلْفَاتِحَةِ', englishName: 'Al-Faatiha', englishNameTranslation: 'The Opening', numberOfAyahs: 7, revelationType: 'Meccan' }
         : { number: i + 1, name: 'سورة', englishName: `Surah ${i + 1}`, englishNameTranslation: 'Test', numberOfAyahs: 7, revelationType: i % 3 ? 'Medinan' : 'Meccan' })) },
     }))
-    // Firebase (admin məzmunu, push) testdə bağlıdır: nəticə xarici bazadan
-    // asılı olmasın, sayt onsuz da Firebase-siz də işləməlidir (oflayn rejim)
+    // Öz API-miz (src/api/*) — susmaya görə boş məzmun: nəticə serverdəki
+    // məlumatdan asılı olmasın. Formalar server/content.js ilə eynidir:
+    //   /api/content/<kolleksiya> → []   /api/content/version → { version, collections }
+    //   /api/singletons/<id>      → null (sənəd yoxdur — klient standartı göstərir;
+    //                                server 404 verir, amma 404 konsol xətası yaradır)
+    // Yalnız yolun ƏVVƏLİ /api/... (dev-də /src/api/content.js modulu da var — onu tutmamalı)
+    await page.route((u) => /^\/api\/(content|singletons|push|admin)(\/|$)/.test(u.pathname), (route) => {
+      const url = new URL(route.request().url())
+      if (url.pathname === '/api/content/version') return route.fulfill({ json: { version: 0, collections: {} } })
+      if (url.pathname.startsWith('/api/content/')) return route.fulfill({ json: url.pathname.split('/').length > 4 ? null : [] })
+      if (url.pathname.startsWith('/api/singletons/')) return route.fulfill({ json: null })
+      if (url.pathname === '/api/push/vapid-public-key') return route.fulfill({ status: 503, json: { error: 'Web Push not configured' } })
+      if (url.pathname.startsWith('/api/push/')) return route.fulfill({ json: { ok: true } })
+      // Admin: daxil olunmayıb (adminAuth.js-dəki saxta sessiya bunu əvəz edir)
+      return route.fulfill({ status: 401, json: { error: 'Unauthorized' } })
+    })
+    // Köhnə Firebase ünvanları (köhnə SW keşi və s.) — bağlıdır
     await page.route(/firestore\.googleapis\.com|firebaseinstallations|fcmregistrations|identitytoolkit/, route => route.abort())
     // Səs faylları və xarici şriftlər testdə lazım deyil
     await page.route(/\.(mp3|ogg|wav)(\?|$)/, route => route.abort())

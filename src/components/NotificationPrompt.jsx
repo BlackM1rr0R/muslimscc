@@ -8,7 +8,7 @@ import {
   requestNotificationPermission,
   getStoredToken,
   refreshPushToken,
-} from '../firebase/messaging'
+} from '../api/push'
 import { playAzan, stopAzan, onAzanChange, azanKeyFromTag } from '../utils/azanAudio'
 import {
   usePromptSlot,
@@ -56,8 +56,6 @@ const RETURN_VISIT_MS = 10000     // təkrar gəliş: ~10 s
 const AUTO_HIDE_MS = 30000        // toxunulmasa sakitcə gizlənir (sessiyada yenidən çıxmır)
 const TOAST_MS = 6000
 
-// VAPID açarı yoxdursa icazə istəmək mənasızdır — düymə heç nə etməzdi
-const HAS_VAPID = Boolean(import.meta.env.VITE_FCM_VAPID_KEY)
 
 function dismissedRecently() {
   return isSnoozed(DISMISS_KEY, LEGACY_DAYS)
@@ -90,12 +88,12 @@ export default function NotificationPrompt() {
       const status = getPermissionStatus()
 
       if (status === 'granted') {
-        // Artıq icazəlidir — sakitcə FCM token-i yenilə
+        // Artıq icazəlidir — sakitcə push abunəliyini yarat
         if (!getStoredToken()) requestNotificationPermission().catch(() => {})
         return
       }
       if (status !== 'default') return // rədd edilib — bezdirməyək
-      if (!HAS_VAPID || dismissedRecently()) return
+      if (dismissedRecently()) return
       setCanAsk(true)
     })()
     return () => { alive = false }
@@ -133,7 +131,7 @@ export default function NotificationPrompt() {
 
   // Ön planda gələn push (service worker → {type:'PUSH'}): bildiriş sistemdə
   // onsuz da göstərilib; burada saytın içində toast + əzan bildirişidirsə əzan səsi.
-  // Brauzer push abunəliyini dəyişəndə (PUSH_RESUBSCRIBE) token təzələnir.
+  // Brauzer push abunəliyini dəyişəndə (PUSH_RESUBSCRIBE) yenidən abunə olunur.
   useEffect(() => {
     const sw = typeof navigator !== 'undefined' ? navigator.serviceWorker : null
     if (!sw) return undefined
@@ -165,8 +163,9 @@ export default function NotificationPrompt() {
     } catch { /* köhnə brauzer */ }
   }, [])
 
-  // Hər açılışda push tokenini təzələ (icazə varsa) — köhnəlmiş token
-  // bildirişlərin səssizcə kəsilməsinin əsas səbəblərindən biri idi
+  // Hər açılışda push abunəliyini təzələ (icazə varsa) — köhnəlmiş abunəlik
+  // bildirişlərin səssizcə kəsilməsinin əsas səbəblərindən biri idi. Köhnə
+  // FCM tokeni varsa burada səssizcə Web Push-a keçilir (api/push.js)
   useEffect(() => { refreshPushToken() }, [])
 
   // Bildirişdəki "✅ Qıldım" düyməsi (public/sw.js) qeydi IndexedDB-yə yazır —

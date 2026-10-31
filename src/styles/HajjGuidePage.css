@@ -469,3 +469,13 @@
   .hg-step-chip.is-done .hg-step-chip-num svg { animation: none; }
   .hg-topbar, .hg-progress-fill, .hg-rail-fill, .hg-select-go { transition: none; }
 }
+
+/* ══ Media: hero fotosu, həcc xəritəsi və Mina fotosu (components/media) ══ */
+.hg-media { margin-top: var(--space-8); }
+.hg-media-grid { display: grid; gap: var(--space-5); align-items: start; }
+@media (min-width: 1024px) {
+  .hg-media-grid { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+}
+@media (max-width: 767.98px) {
+  .hg-media { margin-top: var(--space-6); }
+}

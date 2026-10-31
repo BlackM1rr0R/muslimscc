@@ -8,7 +8,7 @@ import {
   parseDetailSegment, isDetailParam, legacyDetailParam,
 } from '../../src/seo/routes.js'
 import { SURAH_SLUGS } from '../../src/seo/surahSlugs.js'
-import { NAME_SLUGS, SAHABA_SLUGS } from '../../src/seo/detailSlugs.js'
+import { NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS } from '../../src/seo/detailSlugs.js'
 import { SURAH_META } from '../../src/seo/surahMeta.js'
 import { NAMES_99 } from '../../src/data/names99.js'
 import { SAHABA, slugOf } from '../../src/data/sahaba.js'
@@ -121,8 +121,8 @@ describe('detal marşrutları — pathFor / parsePath', () => {
   it('URL-lər təkrarlanmır, hamısı ASCII kiçik hərf və defisdir', () => {
     const urls = Object.keys(DETAILS).flatMap(k => detailParams(k).flatMap(p => LANGS.map(l => pathFor(k, l, p))))
     expect(new Set(urls).size).toBe(urls.length)
-    expect(urls.length).toBe((114 + 99 + SAHABA.length) * LANGS.length)
-    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba)\/[a-z0-9-]+$/)
+    expect(urls.length).toBe((114 + 99 + SAHABA.length + SCHOLAR_SLUGS.length) * LANGS.length)
+    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba|scholars)\/[a-z0-9-]+$/)
   })
 })
 

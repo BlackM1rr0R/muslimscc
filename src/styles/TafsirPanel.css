@@ -1,0 +1,219 @@
+/* ═══════════════════════════════════════════════════════
+   Ayənin altındakı təfsir (components/TafsirPanel.jsx)
+   Yalnız tokenlər; hərəkət — yalnız transform/opacity; RTL — məntiqi xassələr.
+   Bu fayl ui.css-dən ƏVVƏL yüklənir: .ui-* sinfini dəyişəndə valideynlə gücləndirilir.
+   ═══════════════════════════════════════════════════════ */
+
+.tf-wrap { margin-top: 10px; }
+
+/* Düymə: sakit "hap", toxunma hündürlüyü 44px (görünən 36px) */
+.tf-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tap, 44px);
+  margin-block: -4px;
+  margin-inline-start: -10px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--brand);
+  font: 500 14px/1 var(--font-sans);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  isolation: isolate;
+  transition: color var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out);
+}
+.tf-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 4px 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--brand-soft);
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) { .tf-toggle:hover::before { opacity: 1; } }
+.tf-toggle.is-open::before { opacity: 1; background: var(--brand-soft-2); }
+.tf-toggle:active { transform: scale(0.97); }
+.tf-toggle__chev { transition: transform var(--dur-2) var(--ease-out); }
+.tf-toggle.is-open .tf-toggle__chev { transform: rotate(180deg); }
+html[lang="ar"] .tf-toggle { font-family: var(--font-arabic-ui); }
+
+/* Panel: yumşaq açılır (opacity + transform), bağlananda .is-leaving */
+.tf-panel {
+  margin-top: 8px;
+  padding: 16px 18px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  color: var(--text-body);
+  transform-origin: top center;
+  animation: tf-open var(--dur-2) var(--ease-out) both;
+}
+.tf-panel.is-leaving { animation: tf-close 180ms var(--ease-in) forwards; pointer-events: none; }
+@keyframes tf-open {
+  from { opacity: 0; transform: translate3d(0, -6px, 0) scale(0.99); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes tf-close {
+  to { opacity: 0; transform: translate3d(0, -4px, 0) scale(0.99); }
+}
+
+.tf-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.tf-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tf-name { font-family: var(--font-display); font-weight: 600; font-size: var(--step-0); color: var(--text-strong); line-height: var(--lh-snug); }
+html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
+.tf-author { font-size: 13px; color: var(--text-tertiary); }
+
+/* Təfsir seçimi — native select (telefonda sistem siyahısı açılır) */
+.tf-pick { position: relative; display: block; flex: 0 1 260px; min-width: 0; }
+.tf-pick .tf-select {
+  min-height: 44px;
+  padding-block: 0;
+  padding-inline: 12px 36px;
+  font-size: 14px;
+  background: var(--surface-1);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+.tf-select__icon {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+/* Dürüst qeyd (az/tr: öz dilində təfsir yoxdur) */
+.tf-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.tf-note__icon { flex-shrink: 0; margin-top: 2px; color: var(--accent-text); }
+
+.tf-group {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 0 0 10px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+.tf-group__icon { flex-shrink: 0; margin-top: 1px; }
+
+/* Mətn */
+.tf-text {
+  position: relative;
+  font-size: 15px;
+  line-height: var(--lh-body);
+  color: var(--text-body);
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.tf-text > :first-child { margin-top: 0; }
+.tf-text p { margin: 0 0 0.75em; }
+.tf-text :is(h3, h4, h5, h6) {
+  margin: 1.1em 0 0.4em;
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  color: var(--text-strong);
+}
+.tf-text--ar {
+  font-family: var(--font-arabic);
+  font-size: 1.15rem;
+  line-height: var(--lh-arabic);
+  letter-spacing: 0;
+}
+.tf-text--ar :is(h3, h4, h5, h6) { font-family: var(--font-arabic); }
+/* API sinifləri sanitizerdə "tfc-" önəki alır */
+.tf-text :is(.tfc-arabic, .tfc-qpc-hafs) { font-family: var(--font-arabic); color: var(--text-strong); }
+.tf-text:not(.tf-text--ar) :is(.tfc-arabic, .tfc-qpc-hafs) { font-size: 1.12em; }
+.tf-text :is(.tfc-blue, .tfc-green) { color: var(--brand); }
+.tf-text :is(.tfc-red, .tfc-brown) { color: var(--accent-text); }
+.tf-text .tfc-reference { color: var(--text-tertiary); font-size: 0.9em; }
+
+/* Uzun mətn: qısaldılmış görünüş + aşağıda solma */
+.tf-text.is-collapsed {
+  max-height: 17em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+.tf-text--ar.is-collapsed { max-height: 15em; }
+.tf-panel .tf-more { margin-top: 4px; margin-inline-start: -10px; color: var(--brand); }
+.tf-more__icon { transition: transform var(--dur-2) var(--ease-out); }
+.tf-more__icon.is-up { transform: rotate(180deg); }
+
+/* Yüklənmə / xəta */
+.tf-skel { display: grid; gap: 10px; padding-block: 4px 8px; }
+.tf-msg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+}
+.tf-msg__icon { flex-shrink: 0; color: var(--text-tertiary); }
+.tf-msg--bad .tf-msg__icon { color: var(--bad); }
+.tf-msg__text { flex: 1 1 220px; margin: 0; line-height: 1.55; }
+.tf-empty { color: var(--text-secondary); font-size: 14.5px; }
+
+/* Atribusiya */
+.tf-src {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  color: var(--text-tertiary);
+  font-size: 12.5px;
+}
+.tf-src__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 32px;
+  color: var(--brand);
+  text-decoration: none;
+  unicode-bidi: isolate;
+}
+@media (hover: hover) { .tf-src__link:hover { text-decoration: underline; } }
+
+@media (max-width: 767.98px) {
+  .tf-panel { padding: 14px 14px 10px; margin-inline: -2px; }
+  .tf-pick { flex-basis: 100%; }
+  .tf-text { font-size: 14.5px; }
+  .tf-text--ar { font-size: 1.08rem; }
+  .tf-src__link { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tf-panel, .tf-panel.is-leaving { animation: none; }
+  .tf-toggle, .tf-toggle__chev, .tf-more__icon, .tf-toggle::before { transition: none; }
+}

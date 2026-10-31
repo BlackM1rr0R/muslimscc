@@ -77,7 +77,7 @@ function useWakeLock(active) {
   return status
 }
 
-export default function PaperMode({ lang, t, onClose, gender = 'm' }) {
+export default function PaperMode({ lang, t, onClose }) {
   const prefs = useMemo(readPrefs, [])
   const [prayerKey, setPrayerKey] = useState(prefs.prayer || 'fajr')
   const [advance, setAdvance] = useState(prefs.advance === 'auto' ? 'auto' : 'tap')
@@ -229,7 +229,7 @@ export default function PaperMode({ lang, t, onClose, gender = 'm' }) {
 
           {step && (
             <div className="pm-body" key={i} aria-live="polite">
-              <div className={`pm-figure ${sz === 'is-s' || sz === 'is-m' ? 'pm-figure--sm' : ''}`}><PrayerPose pose={step.pose} gender={gender} /></div>
+              <div className={`pm-figure ${sz === 'is-s' || sz === 'is-m' ? 'pm-figure--sm' : ''}`}><PrayerPose pose={step.pose} /></div>
               <h2 className="pm-action">{a.name[lang] || a.name.en}</h2>
               {a.lead && (
                 <p className="pm-lead">{lang === 'ar' ? ZIKR[a.lead].ar : `${ZIKR[a.lead].tl[lang] || ZIKR[a.lead].tl.en} · `}{lang !== 'ar' && <span lang="ar" dir="rtl">{ZIKR[a.lead].ar}</span>}</p>

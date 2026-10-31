@@ -7,6 +7,8 @@ import { isPlainClick } from '../components/PageLink'
 import { parsePath, pathFor } from '../seo/routes'
 // Profillər (məlumat) — src/data/sahaba.js: prerender (Node) də oxuyur
 import { SAHABA, slugOf } from '../data/sahaba'
+// Xəttatlıq lövhəsi (ərəbcə ad + رضي الله عنه/عنها) — canlı təsvir yoxdur
+import CalligraphyPlaque from '../components/media/CalligraphyPlaque'
 import '../styles/SahabePage.css'
 
 /* ── Etiketlər (UI mətnləri, 5 dil) ── */
@@ -398,6 +400,8 @@ export default function SahabePage() {
                 return (
                   <li key={s.id}>
                     <a className="ui-card ui-card--interactive sahabe-card" href={pathFor('sahaba', lang, slugOf(s))} onClick={(e) => openProfile(s, e)}>
+                      {/* Kompüterdə kartın üstü — xəttatlıq lövhəsi; telefonda (sətir-kart) gizlidir */}
+                      <CalligraphyPlaque ar={s.name.ar} female={isWoman(s)} className="sahabe-card-cq" />
                       <Medal s={s} name={n} />
                       <span className="sahabe-card-body">
                         {!isAr && <span className="sahabe-card-arabic ui-arabic" lang="ar" dir="rtl">{s.name.ar}</span>}
@@ -549,6 +553,10 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
                   {heroMeta(lang, s.facts.length, s.hadiths.length, sources.length, L)}
                 </span>
               </div>
+            </div>
+            {/* Xəttatlıq lövhəsi: ərəbcə ad + dua (bəzək, aria-hidden) */}
+            <div className="sp-hero__cq">
+              <CalligraphyPlaque ar={s.name.ar} female={isWoman(s)} variant="hero" />
             </div>
           </div>
         </div>

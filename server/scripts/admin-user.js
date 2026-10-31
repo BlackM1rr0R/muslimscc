@@ -14,6 +14,9 @@
 //   • --password-stdin — stdin-in ilk sətri (məs. parol menecerindən boru ilə):
 //       pass show muslimscc/admin | docker compose exec -T api node scripts/admin-user.js create <email> --password-stdin
 // set-password və delete həmin adminin BÜTÜN sessiyalarını ləğv edir.
+// create və set-password ilə qoyulan şifrə MÜVƏQQƏTİDİR: ilk girişdə admin
+// paneli yalnız "Şifrəni dəyiş" formasını göstərir (server/auth.js → must_change).
+// --permanent — şifrə müvəqqəti sayılmasın (məs. parol menecerindən gələn güclü şifrə).
 // DB yolu: env DB_PATH (susmaya görə /data/muslims.db — server.js ilə eyni).
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
@@ -21,7 +24,7 @@
 const { openDb } = require('../db')
 const auth = require('../auth')
 
-const USAGE = 'İstifadə: node scripts/admin-user.js <create|set-password|list|delete> [email] [--password-stdin]'
+const USAGE = 'İstifadə: node scripts/admin-user.js <create|set-password|list|delete> [email] [--password-stdin] [--permanent]'
 
 /** Terminalda gizli oxu (simvollar ekrana çıxmır). */
 function readHidden(prompt) {
@@ -75,6 +78,7 @@ async function main() {
   const cmd = args[0]
   const email = args.find((a, i) => i > 0 && !a.startsWith('--'))
   const fromStdin = args.includes('--password-stdin')
+  const temporary = !args.includes('--permanent')
   // Şifrəni arqument kimi verməyə cəhdin qarşısını al (shell tarixçəsinə düşür)
   if (args.some((a) => /^--pass(word)?=/.test(a))) {
     console.error('XƏTA: şifrə arqumentdə verilmir — stdin və ya gizli sorğu istifadə edin')
@@ -113,11 +117,13 @@ async function main() {
     }
     const password = await readPassword(fromStdin)
     if (cmd === 'create') {
-      await store.createAdmin(email, password)
-      console.log(`OK: admin yaradıldı → ${auth.normEmail(email)}`)
+      await store.createAdmin(email, password, Date.now(), { temporary })
+      console.log(`OK: admin yaradıldı → ${auth.normEmail(email)}` +
+        (temporary ? ' (şifrə müvəqqətidir — ilk girişdə paneldə dəyişdirilməlidir)' : ''))
     } else {
-      await store.setPassword(email, password)
-      console.log(`OK: ${auth.normEmail(email)} — şifrə dəyişdi, bütün sessiyalar ləğv edildi.`)
+      await store.setPassword(email, password, Date.now(), { temporary })
+      console.log(`OK: ${auth.normEmail(email)} — şifrə dəyişdi, bütün sessiyalar ləğv edildi.` +
+        (temporary ? ' Şifrə müvəqqətidir — ilk girişdə paneldə dəyişdirilməlidir.' : ''))
     }
   } finally {
     db.close()

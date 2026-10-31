@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { SURAH_SLUGS } from './surahSlugs.js'
-import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS } from './detailSlugs.js'
+import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS } from './detailSlugs.js'
 
 export const SITE = 'https://muslims.cc'
 
@@ -54,6 +54,7 @@ export const PAGES = [
   { key: 'glossary',     path: 'glossary',     priority: 0.75, changefreq: 'monthly' },
   { key: 'history',      path: 'history',      priority: 0.85, changefreq: 'monthly' },
   { key: 'sahaba',       path: 'sahaba',       priority: 0.85, changefreq: 'monthly' },
+  { key: 'scholars',     path: 'scholars',     priority: 0.85, changefreq: 'monthly' },
   { key: 'holyplaces',   path: 'holyplaces',   priority: 0.75, changefreq: 'monthly' },
   { key: 'mosques',      path: 'mosques',      priority: 0.80, changefreq: 'weekly'  },
   { key: 'tracker',      path: 'prayer-tracker', priority: 0.80, changefreq: 'daily' },
@@ -83,6 +84,7 @@ export const INDEXABLE = PAGES.filter(p => !p.noindex)
 //   /quran/<n>-<slug>    — 114 surə     (param: surənin nömrəsi, 1–114)
 //   /names/<n>-<slug>    — 99 ad        (param: adın nömrəsi, 1–99)
 //   /sahaba/<slug>       — səhabələr    (param: slug)
+//   /scholars/<slug>     — Sələf alimləri (param: slug)
 // Rəqəmli növlərdə NÖMRƏ həqiqət mənbəyidir: slug səhv yazılsa belə
 // (/quran/2-bilmirem) səhifə surə 2-ni açır, canonical isə düzgün slug-u
 // göstərir. Naməlum nömrə / slug → known:false (404).
@@ -97,6 +99,7 @@ export const DETAILS = {
   quran:  { kind: 'number', count: 114, slug: (n) => SURAH_SLUGS[n - 1] },
   names:  { kind: 'number', count: 99,  slug: (n) => NAME_SLUGS[n - 1], slugs: NAME_SLUGS, removed: REMOVED_NAME_SLUGS },
   sahaba: { kind: 'slug',   slugs: SAHABA_SLUGS },
+  scholars: { kind: 'slug', slugs: SCHOLAR_SLUGS },
 }
 
 /** Detal parametri düzgündürmü (surə 1–114, ad 1–99, mövcud səhabə slug-u)? */

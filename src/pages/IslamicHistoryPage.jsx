@@ -2,6 +2,29 @@ import { useState, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import '../styles/IslamicHistoryPage.css'
+// Yer fotoları (Wikimedia Commons) və siyər xəritələri (öz SVG) — canlı təsvir yoxdur
+import PlacePhoto from '../components/media/PlacePhoto'
+import { HijraMap, SirahMap, SpreadMap } from '../components/media/SiraMaps'
+import { PLACE_PHOTOS } from '../data/placeImages'
+
+// Hadisə → yer fotosu (yalnız hadisənin baş verdiyi məlum yer)
+const EVENT_PHOTO = {
+  'First Revelation': 'jabal-an-nur',
+  'Isra and Miraj': 'al-aqsa',
+  'Hijra to Medina': 'jabal-thawr',
+  'Battle of Badr': 'badr',
+  'Battle of Uhud': 'uhud',
+  'Conquest of Mecca': 'masjid-al-haram',
+  "Farewell Hajj & Prophet's Passing": 'mina',
+}
+// "Xəritələr və yerlər" bölməsi (5 dil)
+const MAPS_L = {
+  az: { eyebrow: 'Xəritələr', title: 'Siyərin coğrafiyası', lead: 'Hicrət yolu, döyüşlərin yerləri və İslamın yayılması — sxematik xəritələrdə.', places: 'Siyər yerləri' },
+  en: { eyebrow: 'Maps', title: 'The geography of the Sirah', lead: 'The route of the Hijrah, the sites of the battles and the spread of Islam — on schematic maps.', places: 'Places of the Sirah' },
+  ru: { eyebrow: 'Карты', title: 'География сиры', lead: 'Путь хиджры, места сражений и распространение ислама — на схематичных картах.', places: 'Места сиры' },
+  ar: { eyebrow: 'خرائط', title: 'جغرافيا السيرة', lead: 'طريق الهجرة ومواضع الغزوات وانتشار الإسلام — في خرائط تخطيطية.', places: 'أماكن من السيرة' },
+  tr: { eyebrow: 'Haritalar', title: 'Siyerin coğrafyası', lead: 'Hicret yolu, savaşların yerleri ve İslam’ın yayılışı — şematik haritalarda.', places: 'Siyer mekânları' },
+}
 
 /* ── Labels ── */
 const LABELS = {
@@ -872,10 +895,16 @@ export default function IslamicHistoryPage({ setPage }) {
   })
 
   // Bir zaman xətti girişi (peyğəmbər və ya hadisə) — eyni kart quruluşu
-  const renderEntry = (i, { badge, num, title, arabic, desc, keyFact, quranRef }) => (
+  const renderEntry = (i, { badge, num, title, arabic, desc, keyFact, quranRef, photo }) => (
     <li className={`history-entry${expanded === i ? ' is-open' : ''}`} key={`${tab}${i}`} {...revealProps(i)}>
       <span className="history-dot" aria-hidden="true" />
-      <div className="ui-card ui-card--interactive history-card" {...cardProps(i)}>
+      <div className={`ui-card ui-card--interactive history-card${photo ? ' history-card--media' : ''}`} {...cardProps(i)}>
+        {/* Kart düymədir: atribusiyada keçid yoxdur (iç-içə interaktiv olmasın) */}
+        {photo && (
+          <div className="history-card-media">
+            <PlacePhoto id={photo} lang={lang} className="ph--zoom" creditLinks={false} sizes="(min-width: 768px) 200px, 100vw" />
+          </div>
+        )}
         <div className="history-card-top">
           <span className="ui-badge ui-badge--accent history-date-badge">{badge}</span>
           <Icon name="chevronDown" size={18} className="history-expand-icon" />
@@ -912,7 +941,8 @@ export default function IslamicHistoryPage({ setPage }) {
       {/* Hero — breadcrumb yoxdur: yan panel / ☰ menyu onsuz da yeri göstərir */}
       <header className="ui-page-hero hist-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
-        <div className="ui-container">
+        <div className="ui-container mh-grid">
+          <div>
           <span className="ui-eyebrow">{L.eyebrow}</span>
           <h1 className="ui-display">{L.title}</h1>
           <p className="ui-lead">{L.subtitle}</p>
@@ -925,6 +955,10 @@ export default function IslamicHistoryPage({ setPage }) {
               <span className="ui-stat__num" data-count={EVENTS.length}>{EVENTS.length}</span>
               <span className="ui-stat__label">{L.events}</span>
             </div>
+          </div>
+          </div>
+          <div className="mh-media">
+            <PlacePhoto id="quba" lang={lang} eager sizes="(min-width: 1024px) 460px, 100vw" />
           </div>
         </div>
       </header>
@@ -972,8 +1006,34 @@ export default function IslamicHistoryPage({ setPage }) {
               title: e.title[lang] || e.title.en,
               desc: e.desc[lang] || e.desc.en,
               keyFact: e.keyFact[lang] || e.keyFact.en,
+              photo: EVENT_PHOTO[e.title.en],
             }))}
           </ol>
+
+          {/* Xəritələr və yerlər — yalnız "Tarixi hadisələr" bölməsində */}
+          {tab === 'events' && (
+            <section className="history-maps" aria-labelledby="history-maps-h">
+              <div className="ui-section-head" data-reveal>
+                <span className="ui-eyebrow">{(MAPS_L[lang] || MAPS_L.en).eyebrow}</span>
+                <h2 id="history-maps-h" className="ui-title">{(MAPS_L[lang] || MAPS_L.en).title}</h2>
+                <p className="ui-lead">{(MAPS_L[lang] || MAPS_L.en).lead}</p>
+              </div>
+              <div className="history-maps-pair">
+                <HijraMap lang={lang} />
+                <SirahMap lang={lang} />
+              </div>
+              <SpreadMap lang={lang} />
+              <h3 className="history-places-title">{(MAPS_L[lang] || MAPS_L.en).places}</h3>
+              <div className="ph-strip" data-reveal="stagger">
+                {['taif', 'al-baqi'].map(k => (
+                  <div key={k}>
+                    <PlacePhoto id={k} lang={lang} className="ph--zoom" sizes="(min-width: 1024px) 300px, 100vw" />
+                    <p className="ph-strip__cap">{PLACE_PHOTOS[k].name[lang] || PLACE_PHOTOS[k].name.en}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>

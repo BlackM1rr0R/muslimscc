@@ -124,7 +124,7 @@
   overflow: hidden;
 }
 .pg-paper-cta-fig { width: 150px; }
-.pg-paper-cta-fig .pp-svg { --pp-halo: color-mix(in srgb, var(--text-on-inverse) 8%, transparent); --pp-garment: var(--emerald-300); --pp-garment-far: var(--emerald-500); }
+.pg-paper-cta-fig .pp-svg { --pp-halo: color-mix(in srgb, var(--text-on-inverse) 8%, transparent); --pp-bar: var(--emerald-300); --pp-bar-hi: var(--emerald-100); }
 .pg-paper-cta-title { margin-bottom: 6px; color: var(--sand-300); font-family: var(--font-display); font-size: var(--step-2); font-weight: 600; line-height: 1.25; }
 .pg-paper-cta-body p { margin-bottom: var(--space-4); color: var(--text-on-inverse-dim); font-size: var(--step-0); line-height: 1.6; }
 
@@ -176,9 +176,6 @@
 .pg-prev-ic { transform: scaleX(-1); }
 [dir="rtl"] .pg-back-ic,
 [dir="rtl"] .pg-prev-ic { transform: none; }
-
-.pg-gender { display: inline-flex; gap: 6px; }
-.pg-root .pg-gender-btn { min-height: 36px; }
 
 /* Addım kartı: solda fiqur (yerində qalır — mövqe yumşaq dəyişir), sağda mətn */
 .pg-step-card {
@@ -583,56 +580,64 @@ html[lang="ar"] .pm-say.is-m .pm-ar, html[lang="ar"] .pm-say.is-s .pm-ar { font-
   .pg-prayer-chev { transition: none; }
 }
 
-/* ══ Namaz fiquru (components/prayer/PrayerPose.jsx, WuduPose.jsx) ══════
-   Rənglər yalnız tokenlərdən — işıqlı/qaranlıq rejimə özü uyğunlaşır.
-   Oynaqlar (.pp-j) CSS transform ilə keçir: mövqe dəyişəndə fiqur yumşaq
-   "hərəkət edir". Hərəkəti azaltma seçilibsə keçid yoxdur. */
+/* ══ Namaz sxemi (components/prayer/PrayerPose.jsx, WuduPose.jsx) ══════
+   Canlı təsviri yoxdur: baş/üz/bədən forması çəkilmir — duruş xətti, ovuc
+   işarələri, yerə toxunan üzv nöqtələri; dəstəmazda yalnız əllər, su və
+   sözlü nişanlar. Rənglər yalnız tokenlərdən — işıqlı/qaranlıq rejimə özü
+   uyğunlaşır. Hissələr (.pp-j) CSS transform ilə keçir: mövqe dəyişəndə
+   sxem yumşaq dəyişir. Hərəkəti azaltma seçilibsə keçid yoxdur. */
 .pp-svg {
-  --pp-garment: color-mix(in srgb, var(--brand) 90%, var(--surface-0));
-  --pp-garment-far: color-mix(in srgb, var(--brand) 62%, var(--surface-2));
-  --pp-skin: var(--sand-300);
-  --pp-skin-far: color-mix(in srgb, var(--sand-300) 70%, var(--sand-500));
-  --pp-hair: color-mix(in srgb, var(--ink-900) 80%, var(--sand-700));
-  --pp-cap: var(--paper-50);
-  --pp-khimar: color-mix(in srgb, var(--brand) 58%, var(--night-950));
-  --pp-sock: color-mix(in srgb, var(--brand) 55%, var(--text-strong));
-  --pp-fold: color-mix(in srgb, var(--brand) 55%, var(--surface-1));
+  --pp-bar: color-mix(in srgb, var(--brand) 88%, var(--surface-0));
+  --pp-bar-hi: color-mix(in srgb, var(--brand) 40%, var(--surface-0));
+  --pp-hand: var(--sand-300);
+  --pp-hand-edge: color-mix(in srgb, var(--sand-500) 80%, var(--ink-900));
+  --pp-dot: var(--accent);
+  --pp-vessel: color-mix(in srgb, var(--brand) 88%, var(--surface-0));
+  --pp-vessel-far: color-mix(in srgb, var(--brand) 60%, var(--surface-2));
+  --pp-limb: color-mix(in srgb, var(--brand) 70%, var(--text-strong));
+  --pp-chip: var(--surface-1);
+  --pp-chip-edge: color-mix(in srgb, var(--brand) 55%, var(--surface-1));
+  --pp-chip-text: var(--text-strong);
   --pp-halo: var(--surface-2);
   --pp-rug: color-mix(in srgb, var(--accent) 26%, var(--surface-1));
   --pp-rug-line: color-mix(in srgb, var(--accent) 70%, var(--surface-1));
   --pp-arrow: var(--accent);
+  --pp-guide: color-mix(in srgb, var(--text-strong) 40%, transparent);
   --pp-water: color-mix(in srgb, var(--note) 70%, var(--surface-1));
   display: block;
   width: 100%;
   height: auto;
   overflow: visible;
 }
-.pp-svg--f { --pp-garment: color-mix(in srgb, var(--brand) 78%, var(--sand-300)); --pp-garment-far: color-mix(in srgb, var(--brand) 50%, var(--surface-2)); }
 .pp-halo { fill: var(--pp-halo); }
 .pp-rug { fill: var(--pp-rug); }
 .pp-rug-line { stroke: var(--pp-rug-line); }
-.pp-garment { fill: var(--pp-garment); stroke: var(--pp-garment); }
-.pp-garment-far { fill: var(--pp-garment-far); stroke: var(--pp-garment-far); }
-path.pp-garment, path.pp-garment-far, rect.pp-garment, rect.pp-garment-far { stroke: none; }
-path.pp-garment[fill="none"], path.pp-garment-far[fill="none"] { stroke: var(--pp-garment); }
-path.pp-garment-far[fill="none"] { stroke: var(--pp-garment-far); }
-.pp-skin { fill: var(--pp-skin); stroke: var(--pp-skin); }
-.pp-skin-far { fill: var(--pp-skin-far); stroke: var(--pp-skin-far); }
-path.pp-skin, rect.pp-skin, ellipse.pp-skin, circle.pp-skin, path.pp-skin-far, ellipse.pp-skin-far, circle.pp-skin-far { stroke: none; }
-line.pp-skin { stroke: var(--pp-skin); }
-.pp-skin-line { stroke: var(--pp-skin); }
-.pp-sock { stroke: var(--pp-sock); }
-.pp-sock-far { stroke: color-mix(in srgb, var(--pp-sock) 70%, var(--surface-2)); }
-.pp-hair { fill: var(--pp-hair); }
-.pp-cap { fill: var(--pp-cap); }
-.pp-khimar { fill: var(--pp-khimar); }
-.pp-fold { stroke: var(--pp-fold); }
+.pp-bar { stroke: var(--pp-bar); fill: var(--pp-bar); }
+.pp-bar-hi { stroke: var(--pp-bar-hi); opacity: 0.4; }
+.pp-palm path { fill: var(--pp-hand); stroke: var(--pp-hand-edge); stroke-width: 1.1; stroke-linejoin: round; }
+.pp-palm--far { opacity: 0.6; }
+.pp-finger { stroke: var(--pp-arrow); fill: var(--pp-arrow); }
+.pp-dot-core { fill: var(--pp-dot); }
+.pp-dot-ring { fill: color-mix(in srgb, var(--pp-dot) 18%, transparent); stroke: color-mix(in srgb, var(--pp-dot) 55%, transparent); stroke-width: 1.2; }
+.pp-dot.is-seven .pp-dot-ring { stroke: var(--pp-dot); stroke-width: 1.6; }
+.pp-seat { fill: var(--pp-dot); }
+.pp-angle { stroke: var(--pp-arrow); }
+.pp-guide { stroke: var(--pp-guide); }
+.pp-qibla { fill: var(--ink-900); stroke: color-mix(in srgb, var(--sand-300) 70%, transparent); stroke-width: 1.2; }
+.pp-qibla-band { stroke: var(--sand-300); }
+.pp-vessel { fill: var(--pp-vessel); }
+.pp-vessel-far { fill: var(--pp-vessel-far); }
+.pp-vessel-stroke { stroke: var(--pp-vessel); fill: none; }
+.pp-limb { fill: color-mix(in srgb, var(--pp-limb) 10%, transparent); stroke: var(--pp-limb); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.pp-chip { fill: var(--pp-chip); stroke: var(--pp-chip-edge); stroke-width: 1.6; }
+.pp-chip-text { fill: var(--pp-chip-text); font: 600 17px/1 var(--font-sans); }
 .pp-arrow { stroke: var(--pp-arrow); }
 .pp-ring { stroke: var(--pp-arrow); }
 .pp-water { fill: var(--pp-water); }
 .pp-count { fill: var(--accent-text); font: 600 15px/1 var(--font-sans); letter-spacing: 0.02em; }
 .pp-j { transform-origin: 0 0; transform-box: view-box; transition: transform 620ms var(--ease-out); }
-.pp-seg { transform-origin: 0 0; transform-box: view-box; transition: transform 620ms var(--ease-out); }
+.pp-hand, .pp-dot, .pp-seat, .pp-angle, .pp-cue, .pp-finger { transition: opacity 360ms var(--ease-out); }
+.pp-hand.is-hidden, .pp-dot.is-hidden, .pp-seat.is-hidden, .pp-angle.is-hidden, .pp-cue.is-hidden, .pp-finger.is-hidden { opacity: 0; }
 .pp-layer { transition: opacity 360ms var(--ease-out); }
 .pp-layer.is-hidden { opacity: 0; }
 .pp-turn { animation: pp-turn 1.6s var(--ease-out) both; }
@@ -640,6 +645,6 @@ line.pp-skin { stroke: var(--pp-skin); }
 .wp-scene { animation: wp-in var(--dur-3) var(--ease-out) both; }
 @keyframes wp-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .pp-j, .pp-seg, .pp-layer { transition: none; }
+  .pp-j, .pp-layer, .pp-hand, .pp-dot, .pp-seat, .pp-angle, .pp-cue, .pp-finger { transition: none; }
   .pp-turn, .wp-scene { animation: none; }
 }

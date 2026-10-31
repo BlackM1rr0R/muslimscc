@@ -1,66 +1,67 @@
 // ═══════════════════════════════════════════════════════
-// E2E köməkçisi: Firebase Authentication-un saxta cavabları
+// E2E köməkçisi: admin sessiyası API-sinin saxta cavabları
 //
-// Testdə Firebase şəbəkəsi bağlıdır (fixtures.js). Admin panelinə daxil olmaq
-// üçün identitytoolkit / securetoken REST sorğularına saxta cavab verilir.
-// Klient SDK ID tokenin imzasını YOXLAMIR (yalnız payload-u oxuyur) — saxta
-// JWT-də `admin: true` claim-i panelin açılması üçün kifayətdir. Real
-// təhlükəsizlik serverdə (verifyIdToken) və firestore.rules-dadır — bu
-// testlər yalnız UI axınını yoxlayır.
+// Admin girişi öz serverimizdədir (server/auth.js): POST /api/admin/login →
+// HttpOnly cookie, GET /api/admin/me, POST /api/admin/logout,
+// POST /api/admin/password. Testdə server yoxdur — bu marşrutlar page.route
+// ilə saxtalaşdırılır, sessiya vəziyyəti isə burada (yaddaşda) saxlanılır.
+// Real təhlükəsizlik (scrypt, cookie, CSRF, rate-limit) serverdədir və
+// tests/unit/server-auth.test.js-də yoxlanır — bu testlər yalnız UI axınıdır.
+// fixtures.js-dəki ümumi "/api/admin → 401" marşrutundan SONRA qeyd olunur.
 // ═══════════════════════════════════════════════════════
 
-const b64url = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64url')
-
-function fakeIdToken({ uid, email, admin }) {
-  const now = Math.floor(Date.now() / 1000)
-  const payload = {
-    iss: 'https://securetoken.google.com/test', aud: 'test',
-    auth_time: now, iat: now, exp: now + 3600,
-    user_id: uid, sub: uid, email, email_verified: true,
-    firebase: { identities: { email: [email] }, sign_in_provider: 'password' },
-    ...(admin ? { admin: true } : {}),
-  }
-  return `${b64url({ alg: 'RS256', kid: 'test', typ: 'JWT' })}.${b64url(payload)}.c2ln`
-}
+export const ADMIN_EMAIL = 'admin@example.com'
 
 /**
- * Saxta Auth qur. mode: 'admin' | 'user' (claim-siz) | 'wrong' (yanlış parol).
- * fixtures.js-dəki ümumi "identitytoolkit → abort" marşrutundan SONRA
- * qeydiyyat olunur — Playwright-da sonuncu marşrut birinci işləyir.
+ * Saxta admin sessiyası. mode:
+ *   'admin' — düzgün giriş, adi şifrə
+ *   'temp'  — düzgün giriş, müvəqqəti şifrə (əvvəlcə "Şifrəni dəyiş" forması)
+ *   'wrong' — yanlış şifrə (401)
+ * Qaytarır: state ({ signedIn, mustChange, requests }) — testlər yoxlaya bilər.
  */
-export async function fakeFirebaseAuth(page, mode = 'admin') {
-  const uid = 'test-admin-uid'
-  const email = 'admin@example.com'
-  const idToken = () => fakeIdToken({ uid, email, admin: mode === 'admin' })
+export async function fakeAdminSession(page, mode = 'admin') {
+  const state = { signedIn: false, mustChange: mode === 'temp', requests: [] }
+  const me = () => ({ email: ADMIN_EMAIL, via: 'session', mustChangePassword: state.mustChange })
 
-  await page.route(/identitytoolkit\.googleapis\.com\/v1\/accounts:signInWithPassword/, (route) => {
-    if (mode === 'wrong') {
-      return route.fulfill({ status: 400, json: { error: { code: 400, message: 'INVALID_LOGIN_CREDENTIALS', errors: [] } } })
+  await page.route((u) => u.pathname.startsWith('/api/admin/'), async (route) => {
+    const req = route.request()
+    const { pathname } = new URL(req.url())
+    const method = req.method()
+    state.requests.push(`${method} ${pathname}`)
+    // CSRF qaydası (server/auth.js): vəziyyət dəyişən sorğuda X-Requested-With mütləqdir
+    if (method !== 'GET' && !req.headers()['x-requested-with']) return route.fulfill({ status: 403, json: { error: 'Forbidden' } })
+
+    if (pathname === '/api/admin/login' && method === 'POST') {
+      if (mode === 'wrong') return route.fulfill({ status: 401, json: { error: 'Invalid credentials' } })
+      state.signedIn = true
+      return route.fulfill({ json: { ok: true, email: ADMIN_EMAIL, mustChangePassword: state.mustChange } })
     }
-    return route.fulfill({ json: {
-      kind: 'identitytoolkit#VerifyPasswordResponse', localId: uid, email, displayName: '',
-      idToken: idToken(), registered: true, refreshToken: 'fake-refresh', expiresIn: '3600',
-    } })
+    if (pathname === '/api/admin/logout') {
+      state.signedIn = false
+      return route.fulfill({ json: { ok: true } })
+    }
+    if (!state.signedIn) return route.fulfill({ status: 401, json: { error: 'Unauthorized' } })
+    if (pathname === '/api/admin/me') return route.fulfill({ json: me() })
+    if (pathname === '/api/admin/password' && method === 'POST') {
+      const body = req.postDataJSON() || {}
+      if (body.currentPassword !== 'test-password') return route.fulfill({ status: 400, json: { error: 'Wrong password', code: 'wrong' } })
+      state.mustChange = false
+      return route.fulfill({ json: { ok: true } })
+    }
+    if (state.mustChange) return route.fulfill({ status: 403, json: { error: 'Password change required', code: 'must_change' } })
+    if (pathname === '/api/admin/subscribers') return route.fulfill({ json: { count: 0, fcm: 0, webpush: 0 } })
+    if (pathname === '/api/admin/notification-history') return route.fulfill({ json: [] })
+    // Məzmun yazıları — testdə heç nə yazılmır, sadəcə uğur
+    if (pathname.startsWith('/api/admin/content/') || pathname.startsWith('/api/admin/singletons/')) {
+      return route.fulfill({ status: method === 'POST' ? 201 : 200, json: { id: 'test-id', ...(req.postDataJSON() || {}) } })
+    }
+    return route.fulfill({ status: 404, json: { error: 'Not found' } })
   })
-  await page.route(/identitytoolkit\.googleapis\.com\/v1\/accounts:lookup/, (route) => route.fulfill({ json: {
-    kind: 'identitytoolkit#GetAccountInfoResponse',
-    users: [{
-      localId: uid, email, emailVerified: true,
-      providerUserInfo: [{ providerId: 'password', email, federatedId: email, rawId: email }],
-      lastLoginAt: String(Date.now()), createdAt: String(Date.now()),
-    }],
-  } }))
-  await page.route(/identitytoolkit\.googleapis\.com\/v1\/accounts:sendOobCode/, (route) => route.fulfill({ json: {
-    kind: 'identitytoolkit#GetOobConfirmationCodeResponse', email,
-  } }))
-  await page.route(/securetoken\.googleapis\.com\/v1\/token/, (route) => route.fulfill({ json: {
-    access_token: idToken(), expires_in: '3600', token_type: 'Bearer',
-    refresh_token: 'fake-refresh', id_token: idToken(), user_id: uid, project_id: 'test',
-  } }))
+  return state
 }
 
 /** Giriş formunu doldurub göndər (giriş səhifəsində olmalısan). */
-export async function adminSignIn(page, { email = 'admin@example.com', password = 'test-password' } = {}) {
+export async function adminSignIn(page, { email = ADMIN_EMAIL, password = 'test-password' } = {}) {
   await page.getByLabel('E-poçt').fill(email)
   await page.getByLabel('Şifrə', { exact: true }).fill(password)
   await page.getByRole('button', { name: 'Daxil ol' }).click()

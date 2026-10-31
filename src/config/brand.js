@@ -103,7 +103,7 @@ export const BRAND = {
     operator: { az: 'Elçin Abdullayev', en: 'Elchin Abdullayev', ru: 'Эльчин Абдуллаев', ar: 'Elchin Abdullayev', tr: 'Elçin Abdullayev' }, // lang-ok: şəxs adı ərəb mətnində latınca qalır (pasportdakı yazılış)
     email: 'abdllyevv@gmail.com',
     country: { az: 'Azərbaycan Respublikası', en: 'the Republic of Azerbaijan', ru: 'Азербайджанская Республика', ar: 'جمهورية أذربيجان', tr: 'Azerbaycan Cumhuriyeti' },
-    effectiveDate: '2026-10-30',
+    effectiveDate: '2026-10-31',
   },
 }
 

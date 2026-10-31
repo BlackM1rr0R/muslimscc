@@ -10,6 +10,8 @@ import { isPlainClick } from '../components/PageLink'
 import { parsePath, pathFor } from '../seo/routes'
 import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala, ayahCountText } from '../utils/quranText'
 import QuranPlayer, { useQuranPlayer } from '../components/QuranPlayer'
+import AyahTafsir from '../components/TafsirPanel'
+import { readTafsirChoices, tafsirFor, saveTafsirChoice } from '../utils/tafsir'
 import '../styles/QuranPage.css'
 
 // Hər dilin ÖZ tərcümə nəşri. Nəşr alınmasa başqa dilə (ingilis/türk)
@@ -328,7 +330,9 @@ function useSurah(num, lang, attempt = 0) {
 // flash — "Ayəyə keç"-dən sonra kartın qısa qızılı vurğusu (0 = yoxdur).
 // Neçə ilk ayə kartı sürüşəndə görünmə animasiyası alır (bax AyahCard)
 const REVEAL_CARDS = 8
-const AyahCard = memo(function AyahCard({ verse, showTrans, showTafsir, tafsirLabel, fontSize, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber }) {
+// Təfsir paneli (components/TafsirPanel.jsx): bağlı kartda tafsirId = 0 —
+// seçim dəyişəndə yalnız açıq kartlar yenidən çəkilir; panel yalnız açılanda render olunur
+const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, showTafsir, tafsirLabel, fontSize, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
   return (
     // data-reveal: ilk kartlar yumşaq görünür (motion.css). PERFORMANS: yalnız
@@ -353,6 +357,8 @@ const AyahCard = memo(function AyahCard({ verse, showTrans, showTafsir, tafsirLa
             {verse.tr}
           </div>
         )}
+        <AyahTafsir surah={surahNum} ayah={verse.n} lang={lang} open={tafsirOpen} tafsirId={tafsirId}
+          onToggle={onTafsirToggle} onChangeTafsir={onTafsirChange} ayahName={numLabel} />
       </div>
       <button type="button" className={`ayah-play press ${playing ? 'playing' : ''}`} onClick={() => onToggle(verse.n)}
         aria-label={playLabel} title={playLabel} aria-pressed={playing}>
@@ -532,6 +538,23 @@ export default function QuranPage({ setPage }) {
   // tərcümədir — onu "Təfsir" adı ilə göstərmək yanıldıcı olardı.
   const hasTafsir = lang === 'ar'
   const jl = JUMP_LABELS[lang] || JUMP_LABELS.az
+
+  // ── Ayə təfsiri: açıq panellər (ayə nömrələri) və seçilmiş təfsir (dil üzrə, localStorage) ──
+  const [tafsirOpen, setTafsirOpen] = useState(() => new Set())
+  const [tafsirChoices, setTafsirChoices] = useState(readTafsirChoices)
+  const tafsirId = tafsirFor(lang, tafsirChoices)
+  useEffect(() => { setTafsirOpen(new Set()) }, [selected])
+  const toggleTafsir = useCallback((n) => {
+    haptic()
+    setTafsirOpen(prev => {
+      const next = new Set(prev)
+      if (next.has(n)) next.delete(n); else next.add(n)
+      return next
+    })
+  }, [])
+  const changeTafsir = useCallback((id) => {
+    setTafsirChoices(saveTafsirChoice(langRef.current, id))
+  }, [])
 
   const surahsRef = useRef(surahs)
   surahsRef.current = surahs
@@ -1047,12 +1070,14 @@ export default function QuranPage({ setPage }) {
             )}
             <div className="ayahs-list" ref={listRef}>
               {surah.verses?.map(v => (
-                <AyahCard key={v.n} verse={v} fontSize={fontSize} tafsirLabel={tafsirLabel} playLabels={playLabels}
+                <AyahCard key={v.n} verse={v} surahNum={surah.number} lang={lang} fontSize={fontSize} tafsirLabel={tafsirLabel} playLabels={playLabels}
                   showTrans={!hasTafsir && showTrans} showTafsir={hasTafsir && showTafsir}
                   active={player.current === v.n} playing={playerBusy && player.current === v.n}
                   flash={flash.n === v.n ? flash.k : 0}
                   numLabel={capFirst(ayahLabel(v.n, lang))} linkLabel={jl.link}
-                  onToggle={toggleAyah} onNumber={onAyahNumber} />
+                  onToggle={toggleAyah} onNumber={onAyahNumber}
+                  tafsirOpen={tafsirOpen.has(v.n)} tafsirId={tafsirOpen.has(v.n) ? tafsirId : 0}
+                  onTafsirToggle={toggleTafsir} onTafsirChange={changeTafsir} />
               ))}
             </div>
             {/* Surənin sonunda: əvvəlki / növbəti surə (telefonda paneldə yalnız ox görünür) */}

@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
 import Icon from '../Icon'
-import { AdminHeader, SectionTitle, AdminEmpty, AdminNotice, LangTabs, AdminAlert } from './AdminUi'
+import { AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
-import { addBook, updateBook, deleteBook, BOOK_CATEGORIES, subscribeToBooks, DEFAULT_BOOKS } from '../../data/books'
-import { isFirebaseConfigured } from '../../firebase/config'
+import { addBook, updateBook, deleteBook, BOOK_CATEGORIES, subscribeToBooks } from '../../data/books'
 
 const LABELS = {
-  az: { title:'Kitablar', sub:'Kitab məzmununu idarə edin', addNew:'Yeni kitab', editBook:'Redaktə et', all:'Bütün kitablar', titleField:'Başlıq', authorField:'Müəllif', descField:'Təsvir', coverUrl:'Üz qabığı (şəkil URL)', pdfUrl:'PDF linki (istəyə bağlı)', pages:'Səhifə sayı', year:'İl', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu kitabı silmək istəyirsiniz?', noBooks:'Hələ kitab yoxdur', titleRequired:'Başlıq tələb olunur', authorRequired:'Müəllif tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.', setupHint:'Ətraflı: FIREBASE_SETUP.md faylı', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)', pagesShort:'səh.' },
-  en: { title:'Books', sub:'Manage book content', addNew:'New Book', editBook:'Edit Book', all:'All Books', titleField:'Title', authorField:'Author', descField:'Description', coverUrl:'Cover image URL', pdfUrl:'PDF link (optional)', pages:'Pages', year:'Year', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this book?', noBooks:'No books yet', titleRequired:'Title required', authorRequired:'Author required', loading:'Loading...', saving:'Saving...', notConfigured:'Firebase not configured. Check .env file.', setupHint:'See FIREBASE_SETUP.md', preview:'Preview', readOnly:'Default (read-only)', pagesShort:'p.' },
-  ru: { title:'Книги', sub:'Управление книгами', addNew:'Новая книга', editBook:'Редактировать', all:'Все книги', titleField:'Название', authorField:'Автор', descField:'Описание', coverUrl:'Обложка (URL)', pdfUrl:'Ссылка на PDF (необязательно)', pages:'Страниц', year:'Год', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noBooks:'Нет книг', titleRequired:'Название обязательно', authorRequired:'Автор обязателен', loading:'Загрузка...', saving:'Сохранение...', notConfigured:'Firebase не настроен', setupHint:'Подробнее в инструкции по настройке Firebase', preview:'Предпросмотр', readOnly:'Встроенная (только чтение)', pagesShort:'стр.' },
-  ar: { title:'الكتب', sub:'إدارة الكتب', addNew:'كتاب جديد', editBook:'تعديل', all:'كل الكتب', titleField:'العنوان', authorField:'المؤلف', descField:'الوصف', coverUrl:'رابط الغلاف', pdfUrl:'رابط PDF (اختياري)', pages:'الصفحات', year:'السنة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noBooks:'لا توجد كتب', titleRequired:'العنوان مطلوب', authorRequired:'المؤلف مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', notConfigured:'Firebase غير مكون', setupHint:'راجع دليل إعداد Firebase', preview:'معاينة', readOnly:'افتراضي (للقراءة فقط)', pagesShort:'ص' },
-  tr: { title:'Kitaplar', sub:'Kitap yönetimi', addNew:'Yeni Kitap', editBook:'Düzenle', all:'Tüm Kitaplar', titleField:'Başlık', authorField:'Yazar', descField:'Açıklama', coverUrl:'Kapak resmi (URL)', pdfUrl:'PDF bağlantısı (isteğe bağlı)', pages:'Sayfa', year:'Yıl', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noBooks:'Kitap yok', titleRequired:'Başlık gerekli', authorRequired:'Yazar gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', notConfigured:'Firebase yapılandırılmamış', setupHint:'Ayrıntılar: FIREBASE_SETUP.md dosyası', preview:'Önizleme', readOnly:'Varsayılan (salt okunur)', pagesShort:'syf.' },
+  az: { title:'Kitablar', sub:'Kitab məzmununu idarə edin', addNew:'Yeni kitab', editBook:'Redaktə et', all:'Bütün kitablar', titleField:'Başlıq', authorField:'Müəllif', descField:'Təsvir', coverUrl:'Üz qabığı (şəkil URL)', pdfUrl:'PDF linki (istəyə bağlı)', pages:'Səhifə sayı', year:'İl', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu kitabı silmək istəyirsiniz?', noBooks:'Hələ kitab yoxdur', titleRequired:'Başlıq tələb olunur', authorRequired:'Müəllif tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)', pagesShort:'səh.' },
+  en: { title:'Books', sub:'Manage book content', addNew:'New Book', editBook:'Edit Book', all:'All Books', titleField:'Title', authorField:'Author', descField:'Description', coverUrl:'Cover image URL', pdfUrl:'PDF link (optional)', pages:'Pages', year:'Year', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this book?', noBooks:'No books yet', titleRequired:'Title required', authorRequired:'Author required', loading:'Loading...', saving:'Saving...', preview:'Preview', readOnly:'Default (read-only)', pagesShort:'p.' },
+  ru: { title:'Книги', sub:'Управление книгами', addNew:'Новая книга', editBook:'Редактировать', all:'Все книги', titleField:'Название', authorField:'Автор', descField:'Описание', coverUrl:'Обложка (URL)', pdfUrl:'Ссылка на PDF (необязательно)', pages:'Страниц', year:'Год', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noBooks:'Нет книг', titleRequired:'Название обязательно', authorRequired:'Автор обязателен', loading:'Загрузка...', saving:'Сохранение...', preview:'Предпросмотр', readOnly:'Встроенная (только чтение)', pagesShort:'стр.' },
+  ar: { title:'الكتب', sub:'إدارة الكتب', addNew:'كتاب جديد', editBook:'تعديل', all:'كل الكتب', titleField:'العنوان', authorField:'المؤلف', descField:'الوصف', coverUrl:'رابط الغلاف', pdfUrl:'رابط PDF (اختياري)', pages:'الصفحات', year:'السنة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noBooks:'لا توجد كتب', titleRequired:'العنوان مطلوب', authorRequired:'المؤلف مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', preview:'معاينة', readOnly:'افتراضي (للقراءة فقط)', pagesShort:'ص' },
+  tr: { title:'Kitaplar', sub:'Kitap yönetimi', addNew:'Yeni Kitap', editBook:'Düzenle', all:'Tüm Kitaplar', titleField:'Başlık', authorField:'Yazar', descField:'Açıklama', coverUrl:'Kapak resmi (URL)', pdfUrl:'PDF bağlantısı (isteğe bağlı)', pages:'Sayfa', year:'Yıl', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noBooks:'Kitap yok', titleRequired:'Başlık gerekli', authorRequired:'Yazar gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', preview:'Önizleme', readOnly:'Varsayılan (salt okunur)', pagesShort:'syf.' },
 }
 
 const EMPTY_FORM = {
@@ -28,7 +27,6 @@ const EMPTY_FORM = {
 export default function BookManager({ onUpdate }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
-  const configured = isFirebaseConfigured()
 
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
@@ -39,11 +37,6 @@ export default function BookManager({ onUpdate }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!configured) {
-      setBooks(DEFAULT_BOOKS)
-      setLoading(false)
-      return
-    }
     const unsubscribe = subscribeToBooks((items) => {
       setBooks(items)
       setLoading(false)
@@ -105,12 +98,6 @@ export default function BookManager({ onUpdate }) {
       await deleteBook(id)
       onUpdate?.()
     }
-  }
-
-  if (!configured) {
-    return (
-      <AdminNotice title={l.notConfigured} text={l.setupHint} />
-    )
   }
 
   return (

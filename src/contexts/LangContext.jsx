@@ -58,12 +58,12 @@ export function LangProvider({ children }) {
     try { localStorage.setItem('muslim_cc_lang', l) } catch { /* yaddaş bağlıdır */ } // növbəti gəlişdə tərcih kimi
     navigate(pathFor(key, l, param))
     // Push açıqdırsa, serverdəki abunəlik də yeni dilə keçsin — azan
-    // bildirişi istifadəçinin indiki dilində gəlsin. Token yoxdursa
-    // Firebase modulu ümumiyyətlə yüklənmir.
+    // bildirişi istifadəçinin indiki dilində gəlsin. Abunəlik yoxdursa
+    // push modulu ümumiyyətlə yüklənmir (açarlar: src/api/push.js)
     let hasToken = false
-    try { hasToken = Boolean(localStorage.getItem('muslim_cc_fcm_token')) } catch { /* yaddaş bağlıdır */ }
+    try { hasToken = Boolean(localStorage.getItem('muslim_cc_push_endpoint') || localStorage.getItem('muslim_cc_fcm_token')) } catch { /* yaddaş bağlıdır */ }
     if (hasToken) {
-      import('../firebase/messaging')
+      import('../api/push')
         .then(m => m.updateTokenLocation?.())
         .catch(() => { /* şəbəkə yoxdur — növbəti yazılışda yenilənəcək */ })
     }

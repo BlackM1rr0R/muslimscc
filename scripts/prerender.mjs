@@ -22,7 +22,8 @@
 // React yüklənəndə bu blok tətbiqin öz görünüşü ilə əvəzlənir.
 //
 // SITEMAP: sitemap.xml — indeks (robots.txt və Search Console onu göstərir),
-// altında sitemap-pages.xml, sitemap-quran.xml, sitemap-names.xml, sitemap-sahaba.xml.
+// altında sitemap-pages.xml, sitemap-quran.xml, sitemap-names.xml, sitemap-sahaba.xml,
+// sitemap-scholars.xml (Sələf alimləri — /scholars/<slug>).
 //
 // İşə düşür: npm run build (bax package.json)
 // ═══════════════════════════════════════════════════════
@@ -375,6 +376,7 @@ const DETAIL_SITEMAP = {
   quran:  { file: 'sitemap-quran.xml',  priority: 0.8,  changefreq: 'monthly' },
   names:  { file: 'sitemap-names.xml',  priority: 0.7,  changefreq: 'monthly' },
   sahaba: { file: 'sitemap-sahaba.xml', priority: 0.7,  changefreq: 'monthly' },
+  scholars: { file: 'sitemap-scholars.xml', priority: 0.7, changefreq: 'monthly' },
 }
 
 /** Bir URL girişi (5 dil + x-default hreflang alternativləri ilə). */

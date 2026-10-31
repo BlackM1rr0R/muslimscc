@@ -113,7 +113,7 @@ export default defineConfig({
   plugins: [react(), dailyPoolsPlugin(), hadithLangPlugin(), versionFilePlugin()],
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
 
-  // Firebase ilə yalnız bir React nüsxəsi olsun deyə
+  // Yalnız bir React nüsxəsi olsun deyə
   resolve: {
     dedupe: ['react', 'react-dom'],
     alias: {
@@ -127,8 +127,6 @@ export default defineConfig({
       'react',
       'react-dom',
       'react-dom/client',
-      'firebase/app',
-      'firebase/firestore',
     ],
   },
 
@@ -145,10 +143,6 @@ export default defineConfig({
           // Hədis dil modulları: sabit ad "hadiths-<dil>" (prerender preload-u tapır)
           if (id.startsWith('\0' + HADITH_PREFIX)) return 'hadiths-' + id.slice(1 + HADITH_PREFIX.length, -3)
           if (!id.includes('node_modules')) return
-          // Auth SDK yalnız admin girişində dinamik yüklənir (src/firebase/auth.js) —
-          // ümumi "firebase" chunk-ına düşüb hər səhifəyə yük olmasın
-          if (/[\\/]@?firebase[\\/]auth[\\/]/.test(id)) return 'firebase-auth'
-          if (id.includes('firebase') || id.includes('@firebase')) return 'firebase'
           if (id.includes('react-router')) return 'router'
           if (id.includes('/react/') || id.includes('/react-dom/') ||
               id.includes('scheduler')) return 'react'
@@ -163,5 +157,11 @@ export default defineConfig({
     port: 5173,
     strictPort: false,
     hmr: { overlay: true },
+    // Məzmun, admin və push API-si eyni origin-də olmalıdır (admin cookie-si
+    // __Host-mcc_admin SameSite=Strict-dir) — dev-də /api proksi ilə gedir.
+    // Susmaya görə canlı server; lokal API üçün: VITE_DEV_API=http://localhost:3001
+    proxy: {
+      '/api': { target: process.env.VITE_DEV_API || 'https://muslims.cc', changeOrigin: true, secure: true },
+    },
   },
 })

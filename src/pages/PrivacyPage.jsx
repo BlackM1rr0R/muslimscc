@@ -5,8 +5,9 @@ import LegalDocument, { IF_EMAIL, IF_NO_EMAIL, IF_OPERATOR } from '../components
 // Məxfilik siyasəti — saytın REAL məlumat axınına uyğun (2026-10 kod auditi):
 //   • hesab/qeydiyyat yoxdur; tərcihlər yalnız brauzerdə (localStorage / sessionStorage)
 //   • kuki qoyulmur, analitika/reklam/izləmə yoxdur → razılıq banneri lazım deyil
-//   • push: Firestore fcm_tokens/<token> { token, userAgent, lang, loc, daily?, azan?, createdAt, updatedAt }
-//     (src/firebase/messaging.js); "Söndür" sənədi silir; ölü token server tərəfindən silinir
+//   • push: standart Web Push — serverin SQLite bazasında push_subs { endpoint, keys, userAgent, lang, loc,
+//     prefs{azan,checkin,daily}, created_at, updated_at } (src/api/push.js → server/push.js); "Söndür" qeydi
+//     silir; ölü abunəlik (404/410) server tərəfindən silinir. Məzmun da öz serverimizdən (/api/content).
 //   • AI: sual + söhbətin son mesajları → server/server.js → OpenRouter → model (standart: Google Gemini);
 //     server mətni saxlamır və loglamır; rate limit {ip}-ni 1 dəqiqə yaddaşda tutur
 //   • nginx access log (statik fayllar loglanmır) — Docker json-file, 10 MB × 3 fayl
@@ -57,7 +58,7 @@ const DOC = {
         'Üçüncü tərəflər öz kukilərini qoya bilər: {cloudflare} saytı hücumlardan qorumaq üçün zəruri texniki kuki yaza bilər; {youtube} isə videonu oynatmağa başlayanda öz qaydalarına uyğun kuki istifadə edə bilər.',
       ] },
       push: { h: 'Push bildirişləri', body: [
-        'Bildirişlər yalnız siz icazə verəndə açılır. İcazə verdikdə {fcm} brauzerinizə bildiriş ünvanı (cihaza bildiriş çatdırmaq üçün təsadüfi simvollardan ibarət açar) verir və biz {firestore} verilənlər bazasında belə bir qeyd saxlayırıq:',
+        'Bildirişlər yalnız siz icazə verəndə açılır. İcazə verdikdə brauzerinizin öz push xidməti ({pushsvc}) brauzerinizə bildiriş ünvanı (cihaza bildiriş çatdırmaq üçün təsadüfi simvollardan ibarət açar) verir və biz öz serverimizin verilənlər bazasında belə bir qeyd saxlayırıq:',
         { ul: [
           'bildiriş ünvanı;',
           'brauzerin texniki təsviri (brauzerin və əməliyyat sisteminin adı, versiyası);',
@@ -96,7 +97,7 @@ const DOC = {
           head: ['Xidmət', 'Nə üçün', 'Nə ötürülür'],
           rows: [
             ['{cloudflare}', 'Saytın çatdırılması (CDN) və hücumlardan qorunma', 'Sayta edilən bütün sorğular'],
-            ['{firebase} ({firestore}, {fcm})', 'Elanlar, videolar, kitablar kimi məzmunun oxunması; push bildirişləri', 'Məzmun sorğuları; bildiriş açılıbsa — yuxarıdakı qeyd'],
+            ['{pushsvc}', 'Push bildirişlərinin cihazınıza çatdırılması (brauzerinizin öz xidməti)', 'Bildiriş açılıbsa — şifrələnmiş bildiriş mətni və bildiriş ünvanı'],
             ['{openrouter}, {gemini}', 'AI köməkçinin cavabları', 'Sual və söhbətin son mesajları (serverimiz vasitəsilə)'],
             ['aladhan.com', 'Namaz vaxtlarının hesablanması', 'Seçilmiş yerin koordinatları, saat qurşağı, metod'],
             ['{alquran}, {islamicnetwork}, {qurancom}', 'Quran mətni, tərcümələr, qiraət səsləri', 'Surə/ayə sorğuları'],
@@ -192,7 +193,7 @@ const DOC = {
         'Third parties may set their own cookies: {cloudflare} may set a strictly necessary technical cookie to protect the site from attacks, and {youtube} may use cookies under its own rules once you start playing a video.',
       ] },
       push: { h: 'Push notifications', body: [
-        'Notifications are turned on only when you give permission. When you do, {fcm} gives your browser a notification address (a random key used to deliver notifications to your device), and we store a record like this in the {firestore} database:',
+        'Notifications are turned on only when you give permission. When you do, your browser’s own push service ({pushsvc}) gives your browser a notification address (a random key used to deliver notifications to your device), and we store a record like this in our own server’s database:',
         { ul: [
           'the notification address;',
           'a technical description of your browser (user agent: browser and operating system name and version);',
@@ -231,7 +232,7 @@ const DOC = {
           head: ['Service', 'Purpose', 'What is sent'],
           rows: [
             ['{cloudflare}', 'Delivering the site (CDN) and protecting it from attacks', 'All requests to the site'],
-            ['{firebase} ({firestore}, {fcm})', 'Loading content such as announcements, videos and books; push notifications', 'Content requests; if notifications are on — the record above'],
+            ['{pushsvc}', 'Delivering push notifications to your device (your browser’s own service)', 'If notifications are on — the encrypted notification text and the notification address'],
             ['{openrouter}, {gemini}', 'AI assistant answers', 'Your question and the last messages of the chat (via our server)'],
             ['aladhan.com', 'Calculating prayer times', 'Coordinates of the chosen location, time zone, method'],
             ['{alquran}, {islamicnetwork}, {qurancom}', 'Quran text, translations, recitation audio', 'Surah/verse requests'],
@@ -327,7 +328,7 @@ const DOC = {
         'Сторонние сервисы могут устанавливать свои куки: {cloudflare} может записать строго необходимый технический файл куки для защиты сайта от атак, а {youtube} — использовать куки по своим правилам, когда вы запускаете видео.',
       ] },
       push: { h: 'Пуш-уведомления', body: [
-        'Уведомления включаются только с вашего разрешения. После этого {fcm} выдаёт браузеру адрес для уведомлений (случайный ключ для доставки уведомлений на ваше устройство), а мы сохраняем в базе данных {firestore} запись следующего вида:',
+        'Уведомления включаются только с вашего разрешения. После этого собственная пуш-служба вашего браузера ({pushsvc}) выдаёт браузеру адрес для уведомлений (случайный ключ для доставки уведомлений на ваше устройство), а мы сохраняем в базе данных нашего сервера запись следующего вида:',
         { ul: [
           'адрес для уведомлений;',
           'техническое описание браузера (название и версия браузера и операционной системы);',
@@ -366,7 +367,7 @@ const DOC = {
           head: ['Сервис', 'Зачем', 'Что передаётся'],
           rows: [
             ['{cloudflare}', 'Доставка сайта (CDN) и защита от атак', 'Все запросы к сайту'],
-            ['{firebase} ({firestore}, {fcm})', 'Загрузка объявлений, видео, книг и другого содержимого; пуш-уведомления', 'Запросы содержимого; если уведомления включены — запись выше'],
+            ['{pushsvc}', 'Доставка пуш-уведомлений на ваше устройство (собственная служба браузера)', 'Если уведомления включены — зашифрованный текст уведомления и адрес для уведомлений'],
             ['{openrouter}, {gemini}', 'Ответы ИИ-помощника', 'Вопрос и последние сообщения чата (через наш сервер)'],
             ['aladhan.com', 'Расчёт времени намаза', 'Координаты выбранного места, часовой пояс, метод'],
             ['{alquran}, {islamicnetwork}, {qurancom}', 'Текст Корана, переводы, аудио чтения', 'Запросы сур и аятов'],
@@ -462,7 +463,7 @@ const DOC = {
         'قد تضع جهات خارجية ملفاتها الخاصة: فقد يكتب {cloudflare} ملفاً تقنياً ضرورياً لحماية الموقع من الهجمات، وقد يستخدم {youtube} ملفات تعريف الارتباط وفق قواعده عند بدء تشغيل مقطع فيديو.',
       ] },
       push: { h: 'الإشعارات الفورية', body: [
-        'لا تُفعَّل الإشعارات إلا بإذنك. عند منح الإذن تعطي خدمة {fcm} متصفحك عنواناً للإشعارات (مفتاحاً عشوائياً لإيصال الإشعارات إلى جهازك)، ونحفظ في قاعدة بيانات {firestore} سجلاً يتضمّن:',
+        'لا تُفعَّل الإشعارات إلا بإذنك. عند منح الإذن تعطي خدمة الإشعارات الخاصة بمتصفحك ({pushsvc}) متصفحك عنواناً للإشعارات (مفتاحاً عشوائياً لإيصال الإشعارات إلى جهازك)، ونحفظ في قاعدة بيانات خادمنا سجلاً يتضمّن:',
         { ul: [
           'عنوان الإشعارات؛',
           'وصفاً تقنياً لمتصفحك (اسم المتصفح ونظام التشغيل وإصدارهما)؛',
@@ -501,7 +502,7 @@ const DOC = {
           head: ['الخدمة', 'الغرض', 'ما يُرسَل'],
           rows: [
             ['{cloudflare}', 'إيصال الموقع (شبكة توزيع المحتوى) وحمايته من الهجمات', 'جميع الطلبات إلى الموقع'],
-            ['{firebase} ({firestore}، {fcm})', 'تحميل الإعلانات والفيديوهات والكتب وغيرها؛ الإشعارات الفورية', 'طلبات المحتوى؛ وإذا كانت الإشعارات مفعّلة — السجل المذكور أعلاه'],
+            ['{pushsvc}', 'إيصال الإشعارات الفورية إلى جهازك (خدمة متصفحك نفسه)', 'إذا كانت الإشعارات مفعّلة — نص الإشعار مشفّراً وعنوان الإشعارات'],
             ['{openrouter}، {gemini}', 'إجابات المساعد الذكي', 'السؤال وآخر رسائل المحادثة (عبر خادمنا)'],
             ['aladhan.com', 'حساب مواقيت الصلاة', 'إحداثيات الموقع المختار، المنطقة الزمنية، طريقة الحساب'],
             ['{alquran}، {islamicnetwork}، {qurancom}', 'نص القرآن والترجمات وتسجيلات التلاوة', 'طلبات السور والآيات'],
@@ -597,7 +598,7 @@ const DOC = {
         'Üçüncü taraflar kendi çerezlerini kullanabilir: {cloudflare} siteyi saldırılara karşı korumak için zorunlu bir teknik çerez yazabilir; {youtube} ise bir videoyu oynatmaya başladığınızda kendi kurallarına göre çerez kullanabilir.',
       ] },
       push: { h: 'Anlık bildirimler', body: [
-        'Bildirimler yalnızca siz izin verdiğinizde açılır. İzin verdiğinizde {fcm} tarayıcınıza bir bildirim adresi (bildirimleri cihazınıza ulaştırmak için rastgele bir anahtar) verir ve biz {firestore} veri tabanında şu bilgileri içeren bir kayıt saklarız:',
+        'Bildirimler yalnızca siz izin verdiğinizde açılır. İzin verdiğinizde tarayıcınızın kendi anlık bildirim hizmeti ({pushsvc}) tarayıcınıza bir bildirim adresi (bildirimleri cihazınıza ulaştırmak için rastgele bir anahtar) verir ve biz kendi sunucumuzun veri tabanında şu bilgileri içeren bir kayıt saklarız:',
         { ul: [
           'bildirim adresi;',
           'tarayıcınızın teknik tanımı (user agent: tarayıcı ve işletim sisteminin adı ve sürümü);',
@@ -636,7 +637,7 @@ const DOC = {
           head: ['Hizmet', 'Amaç', 'Ne iletilir'],
           rows: [
             ['{cloudflare}', 'Sitenin iletimi (CDN) ve saldırılara karşı koruma', 'Siteye yapılan tüm istekler'],
-            ['{firebase} ({firestore}, {fcm})', 'Duyurular, videolar, kitaplar gibi içeriklerin yüklenmesi; anlık bildirimler', 'İçerik istekleri; bildirimler açıksa yukarıdaki kayıt'],
+            ['{pushsvc}', 'Anlık bildirimlerin cihazınıza ulaştırılması (tarayıcınızın kendi hizmeti)', 'Bildirimler açıksa — şifrelenmiş bildirim metni ve bildirim adresi'],
             ['{openrouter}, {gemini}', 'Yapay zekâ asistanının cevapları', 'Soru ve sohbetin son mesajları (sunucumuz üzerinden)'],
             ['aladhan.com', 'Namaz vakitlerinin hesaplanması', 'Seçilen konumun koordinatları, saat dilimi, yöntem'],
             ['{alquran}, {islamicnetwork}, {qurancom}', 'Kur’an metni, mealler, kıraat sesleri', 'Sure/ayet istekleri'],

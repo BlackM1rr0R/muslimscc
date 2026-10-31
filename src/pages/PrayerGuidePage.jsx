@@ -2,7 +2,9 @@
 // /prayerguide — Namaz necə qılınır (5 dil)
 //
 // • Namaz: namaz seçimi (2/3/4 rükət) → tam addım ardıcıllığı (buildSequence):
-//   hər addımda təsvir (PrayerPose — oynaqlı SVG, mövqelər arası yumşaq keçid),
+//   hər addımda təsvir (PrayerPose — başsız abstrakt sxem: duruş xətti, ovuclar,
+//   yerə toxunan üzv nöqtələri; mövqelər arası yumşaq keçid). Kişi/qadın seçimi
+//   yoxdur — sxemdə fərq yoxdur, fərqlər mətndədir.
 //   nə edilir, nə deyilir (ərəbcə + transliterasiya + məna + səs), mənbələr.
 // • Kağızla namaz: ?mode=paper — tam ekran köməkçi (components/prayer/PaperMode).
 // • Dəstəmaz: 8 addım, eyni üslubda təsvir (WuduPose) və dəlillər.
@@ -25,8 +27,6 @@ import {
 } from '../data/prayerGuide'
 import { AUDIO_CREDITS, CREDIT_ORDER } from '../data/prayerGuideCredits'
 import '../styles/PrayerGuidePage.css'
-
-const GENDER_KEY = 'qm_pg_gender'
 
 // ── Surənin tam mənası (Fatihə, İxlas) ──
 // Ayələrin mənası yaddaşdan yazılmır: alquran.cloud-dan (QuranPage ilə eyni
@@ -141,17 +141,6 @@ function Note({ note, ask, lang, t }) {
   )
 }
 
-// Fiqur seçimi (kişi / qadın)
-function GenderSwitch({ gender, setGender, t }) {
-  return (
-    <div className="pg-gender" role="group" aria-label={t.figure}>
-      {[['m', t.male], ['f', t.female]].map(([g, label]) => (
-        <button key={g} type="button" className="ui-chip pg-gender-btn" aria-pressed={gender === g} onClick={() => setGender(g)}>{label}</button>
-      ))}
-    </div>
-  )
-}
-
 // Rükətlərə bölünmüş irəliləyiş zolağı
 function Progress({ seq, index, t, title }) {
   const total = seq.length
@@ -186,13 +175,8 @@ export default function PrayerGuidePage({ setPage }) {
   const [step, setStep] = useState(0)
   const [wuduStep, setWuduStep] = useState(0)
   const [dir, setDir] = useState('')
-  const [gender, setGenderState] = useState('m')
   const pushedPaper = useRef(false)
 
-  useEffect(() => {
-    try { if (localStorage.getItem(GENDER_KEY) === 'f') setGenderState('f') } catch { /* yox */ }
-  }, [])
-  const setGender = (g) => { setGenderState(g); try { localStorage.setItem(GENDER_KEY, g) } catch { /* yox */ } }
 
   // ── Kağızla namaz: ?mode=paper ──
   const paperOpen = new URLSearchParams(location.search).get('mode') === 'paper'
@@ -302,7 +286,7 @@ export default function PrayerGuidePage({ setPage }) {
 
               {/* Kağızla namaz dəvəti */}
               <div className="pg-paper-cta ui-card ui-card--inverse">
-                <div className="pg-paper-cta-fig" aria-hidden="true"><PrayerPose pose="qiyam" gender={gender} /></div>
+                <div className="pg-paper-cta-fig" aria-hidden="true"><PrayerPose pose="qiyam" /></div>
                 <div className="pg-paper-cta-body">
                   <h3 className="pg-paper-cta-title">{t.paperCta}</h3>
                   <p>{t.paperCtaSub}</p>
@@ -321,12 +305,11 @@ export default function PrayerGuidePage({ setPage }) {
                 <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm pg-back-btn" onClick={() => { setPrayerKey(null); setStep(0) }}>
                   <Icon name="arrow" size={16} className="pg-back-ic ui-flip-rtl" /> {t.back}
                 </button>
-                <GenderSwitch gender={gender} setGender={setGender} t={t} />
               </div>
 
               <article className="pg-step-card" data-dir={dir || undefined} data-step={cur.id} aria-labelledby="pg-step-title">
                 <div className="pg-step-fig">
-                  <PrayerPose pose={cur.pose} gender={gender} label={action.name[lang] || action.name.en} />
+                  <PrayerPose pose={cur.pose} label={action.name[lang] || action.name.en} />
                 </div>
                 <div className="pg-step-body" key={`${prayer.key}-${step}`}>
                   <span className="pg-step-eyebrow ui-num">{t.rakat} {cur.rakat} · {t.step} {step + 1}</span>
@@ -488,7 +471,7 @@ export default function PrayerGuidePage({ setPage }) {
         </div>
       </section>
 
-      {paperOpen && <PaperMode lang={lang} t={t} gender={gender} onClose={closePaper} />}
+      {paperOpen && <PaperMode lang={lang} t={t} onClose={closePaper} />}
     </div>
   )
 }

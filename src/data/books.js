@@ -1,6 +1,5 @@
-// ═══ BOOKS — Firebase Firestore ilə ═══
-import { getAll, addDocument, updateDocument, deleteDocument, subscribeToCollection, COLLECTIONS } from '../firebase/firestore'
-import { isFirebaseConfigured } from '../firebase/config'
+// ═══ BOOKS — məzmun API-si ilə (src/api/content.js) ═══
+import { getAll, addDocument, updateDocument, deleteDocument, subscribeToCollection, COLLECTIONS } from '../api/content'
 
 // ═══ İSLAMİ SVG ÜZ QABIĞI GENERATORU ═══
 // Şəkil linki olmayan kitablar üçün öz-özünə işləyən, sınmayan cover.
@@ -197,7 +196,6 @@ function withCovers(items) {
 
 // ═══ ASYNC CRUD ═══
 export async function getBooks() {
-  if (!isFirebaseConfigured()) return withCovers(DEFAULT_BOOKS)
   const items = await getAll(COLLECTIONS.BOOKS)
   return withCovers(items.length > 0 ? items : DEFAULT_BOOKS)
 }

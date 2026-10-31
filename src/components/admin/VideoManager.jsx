@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../../contexts/LangContext'
 import Icon from '../Icon'
-import { AdminHeader, SectionTitle, AdminEmpty, AdminNotice, LangTabs, AdminAlert } from './AdminUi'
+import { AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
-import { addVideo, updateVideo, deleteVideo, getYouTubeId, getThumbnail, VIDEO_CATEGORIES, subscribeToVideos, DEFAULT_VIDEOS } from '../../data/videos'
-import { isFirebaseConfigured } from '../../firebase/config'
+import { addVideo, updateVideo, deleteVideo, getYouTubeId, getThumbnail, VIDEO_CATEGORIES, subscribeToVideos } from '../../data/videos'
 
 const LABELS = {
-  az: { title:'Videolar', sub:'Video məzmununu idarə edin', addNew:'Yeni video', editVideo:'Redaktə et', all:'Bütün videolar', titleField:'Başlıq', descField:'Təsvir', youtubeUrl:'YouTube linki', duration:'Müddət', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu videonu silmək istəyirsiniz?', noVideos:'Hələ video yoxdur', invalidUrl:'YouTube linki yanlışdır', titleRequired:'Başlıq tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', notConfigured:'Firebase qoşulmayıb. Lütfən .env faylını yoxlayın.', setupHint:'Ətraflı: FIREBASE_SETUP.md faylı', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)' },
-  en: { title:'Videos', sub:'Manage video content', addNew:'New Video', editVideo:'Edit', all:'All Videos', titleField:'Title', descField:'Description', youtubeUrl:'YouTube URL', duration:'Duration', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this video?', noVideos:'No videos yet', invalidUrl:'Invalid YouTube URL', titleRequired:'Title required', loading:'Loading...', saving:'Saving...', notConfigured:'Firebase not configured. Check .env file.', setupHint:'See FIREBASE_SETUP.md', preview:'Preview', readOnly:'Default (read-only)' },
-  ru: { title:'Видео', sub:'Управление видео', addNew:'Новое видео', editVideo:'Изменить', all:'Все видео', titleField:'Заголовок', descField:'Описание', youtubeUrl:'Ссылка на YouTube', duration:'Длительность', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noVideos:'Нет видео', invalidUrl:'Неверная ссылка на YouTube', titleRequired:'Заголовок обязателен', loading:'Загрузка...', saving:'Сохранение...', notConfigured:'Firebase не настроен', setupHint:'Подробнее в инструкции по настройке Firebase', preview:'Предпросмотр', readOnly:'Встроенная (только чтение)' },
-  ar: { title:'الفيديوهات', sub:'إدارة الفيديوهات', addNew:'فيديو جديد', editVideo:'تعديل', all:'كل الفيديوهات', titleField:'العنوان', descField:'الوصف', youtubeUrl:'رابط YouTube', duration:'المدة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noVideos:'لا توجد فيديوهات', invalidUrl:'رابط غير صحيح', titleRequired:'العنوان مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', notConfigured:'Firebase غير مكون', setupHint:'راجع دليل إعداد Firebase', preview:'معاينة', readOnly:'افتراضي (للقراءة فقط)' },
-  tr: { title:'Videolar', sub:'Video yönetimi', addNew:'Yeni Video', editVideo:'Düzenle', all:'Tüm Videolar', titleField:'Başlık', descField:'Açıklama', youtubeUrl:'YouTube bağlantısı', duration:'Süre', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noVideos:'Video yok', invalidUrl:'Geçersiz YouTube bağlantısı', titleRequired:'Başlık gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', notConfigured:'Firebase yapılandırılmamış', setupHint:'Ayrıntılar: FIREBASE_SETUP.md dosyası', preview:'Önizleme', readOnly:'Varsayılan (salt okunur)' },
+  az: { title:'Videolar', sub:'Video məzmununu idarə edin', addNew:'Yeni video', editVideo:'Redaktə et', all:'Bütün videolar', titleField:'Başlıq', descField:'Təsvir', youtubeUrl:'YouTube linki', duration:'Müddət', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu videonu silmək istəyirsiniz?', noVideos:'Hələ video yoxdur', invalidUrl:'YouTube linki yanlışdır', titleRequired:'Başlıq tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)' },
+  en: { title:'Videos', sub:'Manage video content', addNew:'New Video', editVideo:'Edit', all:'All Videos', titleField:'Title', descField:'Description', youtubeUrl:'YouTube URL', duration:'Duration', category:'Category', save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', confirmDelete:'Delete this video?', noVideos:'No videos yet', invalidUrl:'Invalid YouTube URL', titleRequired:'Title required', loading:'Loading...', saving:'Saving...', preview:'Preview', readOnly:'Default (read-only)' },
+  ru: { title:'Видео', sub:'Управление видео', addNew:'Новое видео', editVideo:'Изменить', all:'Все видео', titleField:'Заголовок', descField:'Описание', youtubeUrl:'Ссылка на YouTube', duration:'Длительность', category:'Категория', save:'Сохранить', cancel:'Отмена', edit:'Изменить', delete:'Удалить', confirmDelete:'Удалить?', noVideos:'Нет видео', invalidUrl:'Неверная ссылка на YouTube', titleRequired:'Заголовок обязателен', loading:'Загрузка...', saving:'Сохранение...', preview:'Предпросмотр', readOnly:'Встроенная (только чтение)' },
+  ar: { title:'الفيديوهات', sub:'إدارة الفيديوهات', addNew:'فيديو جديد', editVideo:'تعديل', all:'كل الفيديوهات', titleField:'العنوان', descField:'الوصف', youtubeUrl:'رابط YouTube', duration:'المدة', category:'الفئة', save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', confirmDelete:'حذف؟', noVideos:'لا توجد فيديوهات', invalidUrl:'رابط غير صحيح', titleRequired:'العنوان مطلوب', loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', preview:'معاينة', readOnly:'افتراضي (للقراءة فقط)' },
+  tr: { title:'Videolar', sub:'Video yönetimi', addNew:'Yeni Video', editVideo:'Düzenle', all:'Tüm Videolar', titleField:'Başlık', descField:'Açıklama', youtubeUrl:'YouTube bağlantısı', duration:'Süre', category:'Kategori', save:'Kaydet', cancel:'İptal', edit:'Düzenle', delete:'Sil', confirmDelete:'Silinsin mi?', noVideos:'Video yok', invalidUrl:'Geçersiz YouTube bağlantısı', titleRequired:'Başlık gerekli', loading:'Yükleniyor...', saving:'Kaydediliyor...', preview:'Önizleme', readOnly:'Varsayılan (salt okunur)' },
 }
 
 const EMPTY_FORM = {
@@ -25,7 +24,6 @@ const EMPTY_FORM = {
 export default function VideoManager({ onUpdate }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
-  const configured = isFirebaseConfigured()
 
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -36,11 +34,6 @@ export default function VideoManager({ onUpdate }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!configured) {
-      setVideos(DEFAULT_VIDEOS)
-      setLoading(false)
-      return
-    }
     const unsubscribe = subscribeToVideos((items) => {
       setVideos(items)
       setLoading(false)
@@ -98,12 +91,6 @@ export default function VideoManager({ onUpdate }) {
       await deleteVideo(id)
       onUpdate?.()
     }
-  }
-
-  if (!configured) {
-    return (
-      <AdminNotice title={l.notConfigured} text={l.setupHint} />
-    )
   }
 
   return (

@@ -8,6 +8,7 @@
 //   NAME_SLUGS[n - 1]   — /names/<n>-<slug> (names99.js → "tr" transliterasiyası)
 //   REMOVED_NAME_SLUGS  — köhnə siyahıdan çıxarılmış adlar (köhnə URL-lər üçün)
 //   SAHABA_SLUGS[id - 1] — /sahaba/<slug>    (sahaba.js → slugOf, ingiliscə ad)
+//   SCHOLAR_SLUGS       — /scholars/<slug>  (scholars.js → slug; SCHOLARS sırası ilə)
 // ═══════════════════════════════════════════════════════
 
 export const NAME_SLUGS = [
@@ -48,4 +49,15 @@ export const SAHABA_SLUGS = [
   "fatimah-bint-muhammad", "bilal-ibn-rabah", "abu-hurairah", "abdullah-ibn-masud", "salman-al-farisi", "abu-dharr-al-ghifari",
   "muadh-ibn-jabal", "zaid-ibn-harithah", "khalid-ibn-al-walid", "saad-ibn-abi-waqqas", "talha-ibn-ubaydullah", "zubayr-ibn-al-awwam",
   "anas-ibn-malik", "abu-ubaidah-ibn-al-jarrah",
+]
+
+// Sələf alimləri — src/data/scholars.js → SCHOLARS sırası (dövr, sonra doğum ili)
+export const SCHOLAR_SLUGS = [
+  "said-ibn-al-musayyib", "al-hasan-al-basri", "muhammad-ibn-sirin", "abu-hanifa", "malik-ibn-anas",
+  "sufyan-ath-thawri", "ash-shafii", "ahmad-ibn-hanbal", "al-bukhari", "abu-dawud",
+  "muslim-ibn-al-hajjaj", "ibn-majah", "at-tirmidhi", "an-nasai", "ibn-khuzaymah",
+  "at-tabari", "an-nawawi", "ibn-taymiyyah", "adh-dhahabi", "ibn-al-qayyim",
+  "ibn-kathir", "ibn-rajab", "ibn-hajar", "muhammad-ibn-abd-al-wahhab", "abd-ar-rahman-as-sadi",
+  "muhammad-al-amin-ash-shanqiti", "ibn-baz", "al-albani", "ibn-uthaymin", "muqbil-al-wadii",
+  "abd-al-muhsin-al-abbad", "salih-al-fawzan", "bakr-abu-zayd", "salih-al-ash-shaykh",
 ]

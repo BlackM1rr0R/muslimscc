@@ -164,3 +164,11 @@
 .holy-adab { margin: 0 0 var(--space-5, 24px); padding: 18px 20px; border-inline-start: 3px solid var(--accent, currentColor); }
 .holy-adab-title { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 16px; }
 .holy-adab-text { margin: 0; line-height: 1.7; }
+
+/* ══ Media: hero fotosu və kart üz qabığı (components/media) ══ */
+.holy-card-media { margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) var(--space-4); }
+.holy-card-media .ph__frame { border-radius: var(--radius-md); }
+.holy-card-media .smap__canvas { aspect-ratio: 3 / 2; border-radius: var(--radius-md); display: grid; place-items: center; background: var(--surface-1); border: 1px solid var(--line); }
+@media (max-width: 767.98px) {
+  .holy-card-media { margin: 0 0 var(--space-3); }
+}

@@ -2,6 +2,8 @@ import { useLang } from '../contexts/LangContext'
 import LegalDocument from '../components/LegalDocument'
 import { ARABIC_AUDIO_SOURCES } from '../data/arabicCourseCredits'
 import { AUDIO_CREDITS, CREDIT_ORDER } from '../data/prayerGuideCredits'
+import { IMAGE_CREDITS } from '../data/imageCredits'
+import { PLACE_PHOTOS } from '../data/placeImages'
 
 // ═══════════════════════════════════════════════════════
 // Mənbələr və lisenziyalar (atribusiya)
@@ -72,6 +74,47 @@ const TRANSLATIONS = [
     name: { az: 'Əl-Təfsir əl-Müyəssər', en: 'Al-Tafsir al-Muyassar', ru: 'Тафсир аль-Муяссар', ar: 'التفسير الميسر', tr: 'Tefsîr-i Müyesser' },
     url: 'https://alquran.cloud/translations',
     by: { az: 'Kral Fəhd Quran Çap Kompleksi — ərəb dilində qısa təfsir', en: 'King Fahd Glorious Quran Printing Complex — a concise tafsir in Arabic', ru: 'Комплекс короля Фахда по изданию Корана — краткий тафсир на арабском языке', ar: 'مجمع الملك فهد لطباعة المصحف الشريف', tr: 'Kral Fahd Kur’an-ı Kerim Basım Kompleksi — Arapça muhtasar tefsir' },
+  },
+]
+
+// Ayə təfsirləri — Quran.com API v4 (yalnız Sələf / Əhli-sünnə təfsirləri;
+// kataloq: src/utils/tafsir.js). Hüquqlar müəlliflərə, tərcüməçilərə və naşirlərə məxsusdur.
+const TAFSIR_SOURCES = [
+  {
+    name: 'Quran.com API', url: 'https://api-docs.quran.foundation/',
+    by: 'Quran.com · Quran Foundation',
+    note: {
+      az: 'Ayələrin altındakı təfsir mətni bu API vasitəsilə yüklənir və dəyişdirilmədən (yalnız təhlükəsizlik üçün HTML təmizlənərək) göstərilir. Hər paneldə quran.com-a mənbə linki var.',
+      en: 'The tafsir shown under the verses is loaded through this API and displayed unchanged (the HTML is only cleaned for safety). Every panel links to its source on quran.com.',
+      ru: 'Тафсир под аятами загружается через этот интерфейс и показывается без изменений (HTML лишь очищается ради безопасности). В каждой панели есть ссылка на источник на quran.com.',
+      ar: 'يُحمَّل التفسير المعروض تحت الآيات عبر هذه الواجهة ويُعرض دون تعديل (مع تنقية الشيفرة لأجل الأمان فقط)، وفي كل لوحة رابط إلى مصدره على quran.com.',
+      tr: 'Ayetlerin altındaki tefsir metni bu API üzerinden yüklenir ve değiştirilmeden gösterilir (HTML yalnızca güvenlik için temizlenir). Her panelde quran.com’daki kaynağa bağlantı vardır.',
+    },
+  },
+  {
+    name: { az: 'Təfsir İbn Kəsir', en: 'Tafsir Ibn Kathir', ru: 'Тафсир Ибн Касира', ar: 'تفسير ابن كثير', tr: 'İbn Kesîr Tefsiri' },
+    url: 'https://quran.com/1:1/tafsirs/ar-tafsir-ibn-kathir',
+    by: { az: 'İsmail ibn Kəsir (vəfatı 774 h.) · ərəbcə tam mətn; ingiliscə ixtisarlı tərcümə — Darussalam', en: 'Isma’il ibn Kathir (d. 774 AH) · full Arabic text; abridged English translation by Darussalam', ru: 'Исмаил ибн Касир (ум. 774 г. х.) · полный арабский текст; сокращённый английский перевод — «Даруссалам»', ar: 'إسماعيل بن كثير (ت ٧٧٤هـ) · النص العربي الكامل، والترجمة الإنجليزية المختصرة لدار السلام', tr: 'İsmâil b. Kesîr (vefatı 774 h.) · Arapça tam metin; İngilizce muhtasar tercüme — Darussalam' },
+  },
+  {
+    name: { az: 'Təfsir əs-Sədi', en: 'Tafsir al-Sa’di', ru: 'Тафсир ас-Саади', ar: 'تفسير السعدي', tr: 'Sa’dî Tefsiri' },
+    url: 'https://quran.com/1:1/tafsirs/ar-tafseer-al-saddi',
+    by: { az: 'Əbdürrəhman əs-Sədi (vəfatı 1376 h.) · ərəbcə mətn və rus dilinə tərcümə', en: 'Abd al-Rahman al-Sa’di (d. 1376 AH) · Arabic text and Russian translation', ru: 'Абдуррахман ас-Саади (ум. 1376 г. х.) · арабский текст и перевод на русский язык', ar: 'عبد الرحمن السعدي (ت ١٣٧٦هـ) · النص العربي والترجمة الروسية', tr: 'Abdurrahman es-Sa’dî (vefatı 1376 h.) · Arapça metin ve Rusça tercüme' },
+  },
+  {
+    name: { az: 'Əl-Təfsir əl-Müyəssər', en: 'Al-Tafsir al-Muyassar', ru: 'Тафсир аль-Муяссар', ar: 'التفسير الميسر', tr: 'Tefsîr-i Müyesser' },
+    url: 'https://quran.com/1:1/tafsirs/ar-tafsir-muyassar',
+    by: { az: 'Kral Fəhd Quran Çap Kompleksinin alimlər heyəti · ərəbcə', en: 'A committee of scholars, King Fahd Quran Printing Complex · Arabic', ru: 'Коллектив учёных Комплекса короля Фахда · на арабском', ar: 'نخبة من العلماء — مجمع الملك فهد لطباعة المصحف الشريف', tr: 'Kral Fahd Kur’an Basım Kompleksi âlimler heyeti · Arapça' },
+  },
+  {
+    name: { az: 'Təfsir əl-Bəğəvi', en: 'Tafsir al-Baghawi', ru: 'Тафсир аль-Багави', ar: 'تفسير البغوي', tr: 'Begavî Tefsiri' },
+    url: 'https://quran.com/1:1/tafsirs/ar-tafsir-al-baghawi',
+    by: { az: 'Hüseyn ibn Məsud əl-Bəğəvi (vəfatı 516 h.) · ərəbcə', en: 'Al-Husayn ibn Mas’ud al-Baghawi (d. 516 AH) · Arabic', ru: 'Аль-Хусейн аль-Багави (ум. 516 г. х.) · на арабском', ar: 'الحسين بن مسعود البغوي (ت ٥١٦هـ)', tr: 'Hüseyin b. Mes’ûd el-Begavî (vefatı 516 h.) · Arapça' },
+  },
+  {
+    name: { az: 'Təfsir ət-Təbəri', en: 'Tafsir al-Tabari', ru: 'Тафсир ат-Табари', ar: 'تفسير الطبري', tr: 'Taberî Tefsiri' },
+    url: 'https://quran.com/1:1/tafsirs/ar-tafsir-al-tabari',
+    by: { az: 'Muhəmməd ibn Cərir ət-Təbəri (vəfatı 310 h.) · ərəbcə', en: 'Muhammad ibn Jarir al-Tabari (d. 310 AH) · Arabic', ru: 'Мухаммад ибн Джарир ат-Табари (ум. 310 г. х.) · на арабском', ar: 'محمد بن جرير الطبري (ت ٣١٠هـ)', tr: 'Muhammed b. Cerîr et-Taberî (vefatı 310 h.) · Arapça' },
   },
 ]
 
@@ -181,6 +224,16 @@ const MAPS = [
   },
 ]
 
+// ── Yer fotoşəkilləri (Wikimedia Commons) — src/data/imageCredits.js ──
+// Səhifələrdə (müqəddəs yerlər, həcc, İslam tarixi) şəklin altında da göstərilir
+const PHOTOS = Object.values(IMAGE_CREDITS).map((c) => ({
+  name: PLACE_PHOTOS[c.key]?.name || c.file,
+  url: c.page,
+  license: c.license,
+  licenseUrl: c.licenseUrl || undefined,
+  by: c.author,
+}))
+
 // ── Digər məlumat ──
 const OTHER = [
   {
@@ -238,6 +291,8 @@ const DOC = {
       translations: { h: 'Quran tərcümələri və təfsir', body: [
         'Tərcümələr {alquran} vasitəsilə yüklənir və **məna tərcüməsidir**. Müəllif hüquqları tərcüməçilərə və naşirlərə məxsusdur.',
         { credits: TRANSLATIONS },
+        'Ayələrin altındakı təfsir (Sələf alimlərinin təfsirləri) Quran.com vasitəsilə yüklənir. Azərbaycan dilində bu təfsirlərin etibarlı mətni olmadığından maşın tərcüməsi göstərilmir — ərəb, rus və ya ingilis dilindəki mətn seçilir.',
+        { credits: TAFSIR_SOURCES },
       ] },
       audio: { h: 'Qiraət səsləri', body: [
         'Qiraət səs yazılarının hüquqları qarilərə və ya onların hüquq varislərinə məxsusdur; onlar pulsuz, qeyri-kommersiya yayımı üçün təqdim olunub.',
@@ -251,6 +306,11 @@ const DOC = {
         'Təqvim səhifəsindəki hicri tarix brauzerin daxili Ümmül-Qura təqvimi ilə hesablanır.',
       ] },
       maps: { h: 'Xəritə və yer məlumatı', body: [{ credits: MAPS }] },
+      photos: { h: 'Yer fotoşəkilləri', body: [
+        // lang-ok[Wikimedia]: Wikimedia Commons — layihənin rəsmi adı
+        'Müqəddəs yerlərin fotoşəkilləri Wikimedia Commons-dan açıq lisenziya ilə götürülüb və kəsilərək kiçildilib. Siyər və həcc xəritələri, səhabə adlarının xəttatlıq lövhələri {brand} tərəfindən hazırlanıb.',
+        { credits: PHOTOS },
+      ] },
       other: { h: 'Digər məlumatlar və videolar', body: [{ credits: OTHER }] },
       fonts: { h: 'Şriftlər', body: [
         'Bütün şriftlər {ofl} ilə yayılır və saytın öz serverindən verilir.',
@@ -276,6 +336,8 @@ const DOC = {
       translations: { h: 'Quran translations and tafsir', body: [
         'Translations are loaded through {alquran} and are **translations of the meaning**. Copyright belongs to the translators and publishers.',
         { credits: TRANSLATIONS },
+        'The tafsir under the verses (commentaries by scholars of the Salaf methodology) is loaded through Quran.com.',
+        { credits: TAFSIR_SOURCES },
       ] },
       audio: { h: 'Recitations', body: [
         'Rights to the recitation recordings belong to the reciters or their successors in title; they are made available for free, non-commercial distribution.',
@@ -289,6 +351,10 @@ const DOC = {
         'The Hijri date on the calendar page is calculated with the browser’s built-in Umm al-Qura calendar.',
       ] },
       maps: { h: 'Maps and location data', body: [{ credits: MAPS }] },
+      photos: { h: 'Photographs of places', body: [
+        'Photographs of the holy places come from Wikimedia Commons under open licences and have been cropped and resized. The Sirah and Hajj maps and the calligraphy plaques of the Companions’ names are made by {brand}.',
+        { credits: PHOTOS },
+      ] },
       other: { h: 'Other data and videos', body: [{ credits: OTHER }] },
       fonts: { h: 'Fonts', body: [
         'All fonts are distributed under the {ofl} and are served from the site’s own server.',
@@ -314,6 +380,9 @@ const DOC = {
       translations: { h: 'Переводы Корана и тафсир', body: [
         'Переводы загружаются через {alquran} и являются **переводами смыслов**. Авторские права принадлежат переводчикам и издателям.',
         { credits: TRANSLATIONS },
+        // lang-ok[Quran]: Quran.com — saytın rəsmi adı (domen)
+        'Тафсир под аятами (толкования учёных, следовавших пути саляфов) загружается через Quran.com.',
+        { credits: TAFSIR_SOURCES },
       ] },
       audio: { h: 'Аудиозаписи чтения', body: [
         'Права на аудиозаписи чтения принадлежат чтецам или их правопреемникам; записи предоставлены для бесплатного некоммерческого распространения.',
@@ -327,6 +396,10 @@ const DOC = {
         'Дата по хиджре на странице календаря рассчитывается встроенным в браузер календарём Умм аль-Кура.',
       ] },
       maps: { h: 'Карты и данные о местоположении', body: [{ credits: MAPS }] },
+      photos: { h: 'Фотографии мест', body: [
+        'Фотографии святых мест взяты с Викисклада по открытым лицензиям, обрезаны и уменьшены. Карты сиры и хаджа, а также каллиграфические таблички с именами сподвижников подготовлены {brand}.',
+        { credits: PHOTOS },
+      ] },
       other: { h: 'Прочие данные и видео', body: [{ credits: OTHER }] },
       fonts: { h: 'Шрифты', body: [
         'Все шрифты распространяются по лицензии {ofl} и загружаются с собственного сервера сайта.',
@@ -352,6 +425,9 @@ const DOC = {
       translations: { h: 'ترجمات معاني القرآن والتفسير', body: [
         'تُحمَّل الترجمات عبر {alquran}، وهي **ترجمات لمعاني القرآن**. وحقوقها محفوظة للمترجمين والناشرين.',
         { credits: TRANSLATIONS },
+        // lang-ok[Quran]: Quran.com — saytın rəsmi adı (domen)
+        'يُحمَّل التفسير المعروض تحت الآيات (من تفاسير أهل العلم على منهج السلف) عبر Quran.com.',
+        { credits: TAFSIR_SOURCES },
       ] },
       audio: { h: 'تسجيلات التلاوة', body: [
         'حقوق تسجيلات التلاوة محفوظة للقرّاء أو لورثتهم، وقد أُتيحت للنشر المجاني غير التجاري.',
@@ -365,6 +441,10 @@ const DOC = {
         'يُحسب التاريخ الهجري في صفحة التقويم بتقويم أم القرى المدمج في المتصفح.',
       ] },
       maps: { h: 'الخرائط وبيانات الموقع', body: [{ credits: MAPS }] },
+      photos: { h: 'صور الأماكن', body: [
+        'صور الأماكن المقدسة مأخوذة من ويكيميديا كومنز بتراخيص مفتوحة، وقد قُصّت وصُغّرت. أما خرائط السيرة والحج ولوحات أسماء الصحابة الخطية فمن إعداد {brand}.',
+        { credits: PHOTOS },
+      ] },
       other: { h: 'بيانات أخرى ومقاطع الفيديو', body: [{ credits: OTHER }] },
       fonts: { h: 'الخطوط', body: [
         'تُوزَّع جميع الخطوط بموجب رخصة الخطوط المفتوحة ({ofl})، وتُقدَّم من خادم الموقع نفسه.',
@@ -390,6 +470,9 @@ const DOC = {
       translations: { h: 'Kur’an mealleri ve tefsir', body: [
         'Mealler {alquran} üzerinden yüklenir ve **anlam tercümesidir**. Telif hakları mütercimlere ve yayıncılara aittir.',
         { credits: TRANSLATIONS },
+        // lang-ok[Quran]: Quran.com — saytın rəsmi adı (domen)
+        'Ayetlerin altındaki tefsir (Selef âlimlerinin tefsirleri) Quran.com üzerinden yüklenir. Bu tefsirlerin güvenilir Türkçe metni bulunmadığından makine çevirisi gösterilmez; Arapça, Rusça veya İngilizce metin seçilir.',
+        { credits: TAFSIR_SOURCES },
       ] },
       audio: { h: 'Kıraat kayıtları', body: [
         'Kıraat kayıtlarının hakları kârilere veya onların hak sahiplerine aittir; ücretsiz ve ticari olmayan yayın için sunulmuştur.',
@@ -403,6 +486,10 @@ const DOC = {
         'Takvim sayfasındaki hicri tarih, tarayıcının yerleşik Ümmü’l-Kurâ takvimiyle hesaplanır.',
       ] },
       maps: { h: 'Harita ve konum verileri', body: [{ credits: MAPS }] },
+      photos: { h: 'Mekân fotoğrafları', body: [
+        'Kutsal mekânların fotoğrafları açık lisanslarla Wikimedia Commons’tan alınmış, kırpılıp küçültülmüştür. Siyer ve hac haritaları ile sahabe adlarının hat levhaları {brand} tarafından hazırlanmıştır.',
+        { credits: PHOTOS },
+      ] },
       other: { h: 'Diğer veriler ve videolar', body: [{ credits: OTHER }] },
       fonts: { h: 'Yazı tipleri', body: [
         'Tüm yazı tipleri {ofl} ile dağıtılır ve sitenin kendi sunucusundan sunulur.',

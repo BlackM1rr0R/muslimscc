@@ -47,7 +47,7 @@ export function AdminEmpty({ icon = 'list', children, busy = false }) {
   )
 }
 
-/** Firebase qoşulmayıb — xəbərdarlıq kartı */
+/** Xəbərdarlıq kartı (başlıq + izah) */
 export function AdminNotice({ title, text }) {
   return (
     <div className="admin-section admin-notice" role="status">

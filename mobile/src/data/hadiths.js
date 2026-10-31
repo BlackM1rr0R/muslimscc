@@ -4,7 +4,7 @@
 //                Afterlife | Salawat | Travel
 
 // ═══ Firebase real-time əlavə hədislər (admin paneldən) ═══
-import { subscribeToCollection, COLLECTIONS } from '../firebase/firestore'
+import { subscribeToCollection, COLLECTIONS } from '../api/content'
 
 // Admin paneldən əlavə edilmiş custom hədisləri dinləmək (default-lara əlavə)
 export function subscribeToCustomHadiths(callback) {

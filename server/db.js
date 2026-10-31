@@ -77,6 +77,11 @@ const MIGRATIONS = [
   );
   CREATE INDEX history_by_created ON notification_history(created_at DESC);
   `,
+  // 2 — müvəqqəti şifrə: admin-user.js (create / set-password) ilə qoyulan şifrə
+  // ilk girişdə panelin "Şifrəni dəyiş" formasında dəyişdirilməlidir
+  `
+  ALTER TABLE admins ADD COLUMN must_change INTEGER NOT NULL DEFAULT 0;
+  `,
 ]
 
 const SCHEMA_VERSION = MIGRATIONS.length

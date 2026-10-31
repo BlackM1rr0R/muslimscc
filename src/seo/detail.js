@@ -1,12 +1,13 @@
 // ═══════════════════════════════════════════════════════
 // Detal səhifələrinin SEO mətnləri: /quran/<n>-<slug>, /names/<n>-<slug>,
-// /sahaba/<slug> — 5 dildə title, description, h1, JSON-LD və statik
+// /sahaba/<slug>, /scholars/<slug> — 5 dildə title, description, h1, JSON-LD və statik
 // <body> blokunun (scripts/prerender.mjs) interfeys yazıları.
 //
 // Hər mətn ŞABLONDAN qurulur, amma yalnız layihədəki məlumatla:
 //   surə  — src/seo/surahMeta.js (alquran.cloud), src/data/surahNamesAz.js
 //   ad    — src/data/names99.js
 //   səhabə — src/data/sahaba.js
+//   alim   — src/data/scholars.js
 // Heç bir fakt, məna və ya izah UYDURULMUR — məlumatda olmayan sahə yazılmır.
 //
 // Tətbiqdə bu modul Seo.jsx tərəfindən TƏNBƏL yüklənir (yalnız detal
@@ -22,6 +23,7 @@ import { SURAH_META } from './surahMeta.js'
 import { getSurahLocal } from '../data/surahNamesAz.js'
 import { NAMES_99 } from '../data/names99.js'
 import { SAHABA, slugOf } from '../data/sahaba.js'
+import { scholarBySlug, lifeSpan } from '../data/scholars.js'
 import { brandName } from '../config/brand.js'
 
 // Title-ın səhifə hissəsi üçün hədd (brend şəkilçisi bundan sonra gəlir)
@@ -208,6 +210,25 @@ const SAHABA_T = {
   },
 }
 
+// ═══ Sələf alimi ════════════════════════════════════
+
+/** Alimin profili (slug ilə). */
+export const scholarInfo = (slug) => scholarBySlug(slug)
+
+const SCHOLAR_T = {
+  az: { t: (n, ti) => fit(`${n} — ${ti}: həyatı və əsərləri`, `${n} — həyatı və əsərləri`) },
+  en: { t: (n, ti) => fit(`${n} — ${ti}: Life and Works`, `${n} — Life and Works`) },
+  ru: { t: (n, ti) => fit(`${n} — ${ti}: жизнь и труды`, `${n} — жизнь и труды`) },
+  tr: { t: (n, ti) => fit(`${n} — ${ti}: Hayatı ve Eserleri`, `${n} — Hayatı ve Eserleri`) },
+  ar: { t: (n, ti) => fit(`${n} — ${ti}: سيرته ومؤلفاته`, `${n} — سيرته ومؤلفاته`) },
+}
+
+/** Description: ömür aralığı + bir cümləlik xülasə (yalnız məlumatdan). */
+function scholarDesc(x, lang) {
+  const span = lifeSpan(x, lang)
+  return clamp(`${pick(x.name, lang)}${span ? ` (${span})` : ''} — ${pick(x.summary, lang)}`)
+}
+
 // ═══ Ümumi API ══════════════════════════════════════
 
 /**
@@ -235,6 +256,13 @@ export function detailMeta(key, lang, param) {
     const d = withMore.length <= 160 ? withMore : lead
     return { t: L.t(n, pick(s.title, lang), isWoman(s)), d, h1: n, intro: pick(s.title, lang), crumb: n }
   }
+  if (key === 'scholars') {
+    const x = scholarInfo(param)
+    if (!x) return null
+    const n = pick(x.name, lang)
+    const L = SCHOLAR_T[lang] || SCHOLAR_T.az
+    return { t: L.t(n, pick(x.title, lang)), d: scholarDesc(x, lang), h1: n, intro: pick(x.summary, lang), crumb: n }
+  }
   return null
 }
 
@@ -249,6 +277,7 @@ export const SECTION_LABEL = {
   quran:  { az: 'Quran', en: 'Quran', ru: 'Коран', ar: 'القرآن الكريم', tr: 'Kur’an' },
   names:  { az: 'Allahın 99 adı', en: '99 Names of Allah', ru: '99 имён Аллаха', ar: 'أسماء الله الحسنى', tr: 'Allah’ın 99 İsmi' },
   sahaba: { az: 'Səhabələr', en: 'Companions', ru: 'Сахабы', ar: 'الصحابة', tr: 'Sahabeler' },
+  scholars: { az: 'Sələf alimləri', en: 'Scholars of the Salaf', ru: 'Учёные саляфа', ar: 'علماء السلف', tr: 'Selef Âlimleri' },
 }
 
 /** İz: Ana səhifə → bölmə → detal (hər addım { name, url }). */
@@ -271,6 +300,8 @@ const NAMES_SET = { az: 'Allahın 99 gözəl adı (Əsmaül Hüsna)', en: 'The 9
  *   surə  → Chapter (isPartOf: Book "Quran"), position = surənin nömrəsi
  *   ad    → DefinedTerm (inDefinedTermSet: 99 ad), termCode = nömrə
  *   səhabə → Person (yalnız məlumatdakı sahələr: ad, ərəbcə ad, vəzifə)
+ *   alim   → Person (ad, ərəbcə/tam ad, ləqəb, doğum/vəfat ili və yeri —
+ *            yalnız məlumatda olan; "təxminən" il yazılmır)
  * Saxta Article/FAQ yoxdur — sxem yalnız səhifədə görünən məzmunu təsvir edir.
  */
 export function detailJsonLd(key, lang, param) {
@@ -310,6 +341,21 @@ export function detailJsonLd(key, lang, param) {
       ...(pick(s.title, lang) ? { description: pick(s.title, lang) } : {}),
       url,
     }
+  } else if (key === 'scholars') {
+    const x = scholarInfo(param)
+    const alt = [lang !== 'ar' ? x.name.ar : null, pick(x.fullName, lang)].filter(v => v && v !== m.h1)
+    const place = (p) => (p ? { '@type': 'Place', name: pick(p, lang) } : null)
+    main = {
+      '@type': 'Person',
+      name: m.h1,
+      ...(alt.length ? { alternateName: alt } : {}),
+      ...(pick(x.title, lang) ? { jobTitle: pick(x.title, lang) } : {}),
+      description: pick(x.summary, lang),
+      ...(x.born && !x.born.approx && x.born.g ? { birthDate: String(x.born.g) } : {}),
+      ...(x.died && !x.died.approx && x.died.g ? { deathDate: String(x.died.g) } : {}),
+      ...(place(x.birthplace) ? { birthPlace: place(x.birthplace) } : {}),
+      url,
+    }
   }
   return {
     '@context': 'https://schema.org',
@@ -339,6 +385,10 @@ export const BODY_UI = {
     bio: 'Həyatı', facts: 'Əsas faktlar', hadiths: 'Hədislər və rəvayətlər', sources: 'Mənbələr', prevSahaba: 'Əvvəlki səhabə',
     nextSahaba: 'Növbəti səhabə', allSahaba: 'Bütün səhabələr', related: 'Digər səhabələr', surahList: 'Quranın 114 surəsi',
     nameList: 'Allahın 99 gözəl adı', sahabaList: 'Səhabələrin siyahısı', open: 'Tətbiqdə aç',
+    life: 'Həyatı', contribution: 'Elmə töhfəsi', teachers: 'Müəllimləri', students: 'Tələbələri', works: 'Əsas əsərləri',
+    praise: 'Alimlər onun haqqında', note: 'Qeyd', born: 'Doğulub', died: 'Vəfat edib', birthplace: 'Doğulduğu yer',
+    city: 'Yaşadığı yer', era: 'Dövr', fullName: 'Tam adı', prevScholar: 'Əvvəlki alim', nextScholar: 'Növbəti alim',
+    allScholars: 'Bütün alimlər', sameEra: 'Eyni dövrdən', scholarList: 'Alimlərin siyahısı',
   },
   en: {
     crumbs: 'You are here', number: 'Number', ayahs: 'Verses', place: 'Place of revelation', meaning: 'Meaning',
@@ -348,6 +398,10 @@ export const BODY_UI = {
     bio: 'Biography', facts: 'Key facts', hadiths: 'Hadiths and narrations', sources: 'Sources', prevSahaba: 'Previous companion',
     nextSahaba: 'Next companion', allSahaba: 'All companions', related: 'Other companions', surahList: 'The 114 surahs of the Quran',
     nameList: 'The 99 beautiful Names of Allah', sahabaList: 'List of companions', open: 'Open in the app',
+    life: 'Biography', contribution: 'Contribution to knowledge', teachers: 'Teachers', students: 'Students', works: 'Major works',
+    praise: 'What scholars said about him', note: 'Note', born: 'Born', died: 'Died', birthplace: 'Birthplace',
+    city: 'Lived in', era: 'Era', fullName: 'Full name', prevScholar: 'Previous scholar', nextScholar: 'Next scholar',
+    allScholars: 'All scholars', sameEra: 'From the same era', scholarList: 'List of scholars',
   },
   ru: {
     crumbs: 'Вы здесь', number: 'Порядковый номер', ayahs: 'Число аятов', place: 'Место ниспослания', meaning: 'Значение',
@@ -358,6 +412,10 @@ export const BODY_UI = {
     bio: 'Биография', facts: 'Ключевые факты', hadiths: 'Хадисы и предания', sources: 'Источники', prevSahaba: 'Предыдущий сахаба',
     nextSahaba: 'Следующий сахаба', allSahaba: 'Все сахабы', related: 'Другие сахабы', surahList: '114 сур Корана',
     nameList: '99 прекрасных имён Аллаха', sahabaList: 'Список сахабов', open: 'Открыть в приложении',
+    life: 'Биография', contribution: 'Вклад в науку', teachers: 'Учителя', students: 'Ученики', works: 'Основные труды',
+    praise: 'Учёные о нём', note: 'Примечание', born: 'Родился', died: 'Скончался', birthplace: 'Место рождения',
+    city: 'Жил в', era: 'Эпоха', fullName: 'Полное имя', prevScholar: 'Предыдущий учёный', nextScholar: 'Следующий учёный',
+    allScholars: 'Все учёные', sameEra: 'Из той же эпохи', scholarList: 'Список учёных',
   },
   tr: {
     crumbs: 'Buradasınız', number: 'Sıra numarası', ayahs: 'Ayet sayısı', place: 'İniş yeri', meaning: 'Anlamı',
@@ -367,6 +425,10 @@ export const BODY_UI = {
     bio: 'Hayatı', facts: 'Temel bilgiler', hadiths: 'Hadisler ve rivayetler', sources: 'Kaynaklar', prevSahaba: 'Önceki sahabe',
     nextSahaba: 'Sonraki sahabe', allSahaba: 'Tüm sahabeler', related: 'Diğer sahabeler', surahList: 'Kur’an’ın 114 suresi',
     nameList: 'Allah’ın 99 güzel ismi', sahabaList: 'Sahabelerin listesi', open: 'Uygulamada aç',
+    life: 'Hayatı', contribution: 'İlme katkısı', teachers: 'Hocaları', students: 'Talebeleri', works: 'Başlıca eserleri',
+    praise: 'Âlimler onun hakkında', note: 'Not', born: 'Doğumu', died: 'Vefatı', birthplace: 'Doğum yeri',
+    city: 'Yaşadığı yer', era: 'Dönem', fullName: 'Tam adı', prevScholar: 'Önceki âlim', nextScholar: 'Sonraki âlim',
+    allScholars: 'Tüm âlimler', sameEra: 'Aynı dönemden', scholarList: 'Âlimlerin listesi',
   },
   ar: {
     crumbs: 'أنت هنا', number: 'رقم السورة', ayahs: 'عدد الآيات', place: 'مكان النزول', meaning: 'المعنى',
@@ -377,5 +439,9 @@ export const BODY_UI = {
     bio: 'السيرة', facts: 'حقائق أساسية', hadiths: 'الأحاديث والآثار', sources: 'المصادر', prevSahaba: 'الصحابي السابق',
     nextSahaba: 'الصحابي التالي', allSahaba: 'جميع الصحابة', related: 'صحابة آخرون', surahList: 'سور القرآن الكريم الـ114',
     nameList: 'أسماء الله الحسنى التسعة والتسعون', sahabaList: 'قائمة الصحابة', open: 'افتح في التطبيق',
+    life: 'السيرة', contribution: 'أثره في العلم', teachers: 'شيوخه', students: 'تلاميذه', works: 'أبرز مؤلفاته',
+    praise: 'ثناء العلماء عليه', note: 'تنبيه', born: 'المولد', died: 'الوفاة', birthplace: 'مكان المولد',
+    city: 'موطنه', era: 'الحقبة', fullName: 'الاسم الكامل', prevScholar: 'العالم السابق', nextScholar: 'العالم التالي',
+    allScholars: 'جميع العلماء', sameEra: 'من الحقبة نفسها', scholarList: 'قائمة العلماء',
   },
 }

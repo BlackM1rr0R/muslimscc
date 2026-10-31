@@ -4,6 +4,9 @@ import '../styles/HolyPlacesPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
+// Yer fotoları (Wikimedia Commons, açıq lisenziya) və öz SVG xəritəmiz
+import PlacePhoto from '../components/media/PlacePhoto'
+import { HajjRouteMap } from '../components/media/SiraMaps'
 
 const LABELS = {
   az: { title:'Müqəddəs yerlər', subtitle:'İslamın müqəddəs məkanları', openMaps:'Xəritədə aç', significance:'Əhəmiyyəti', reference:'İstinad', adabTitle:'Ziyarət ədəbi', adabText:'İbadət niyyəti ilə səfərə yalnız üç məscidə çıxılır: Məscidül-Haram, Peyğəmbər ﷺ məscidi və Məscidül-Əqsa (Buxari 1189, Müslim 1397). Mağaralar, dağlar, daşlar və qəbirlər təbərrük yeri deyil — onlara toxunub bərəkət ummaq və ya oradan torpaq-daş götürmək sünnədə yoxdur (Tirmizi 2180). Qəbirlər isə sünnəyə uyğun ziyarət edilir: ölülərə salam verilir, onlar üçün dua edilir və axirət xatırlanır (Müslim 974, 976).' },
@@ -13,11 +16,14 @@ const LABELS = {
   tr: { title:'Kutsal Yerler', subtitle:'İslam\'ın kutsal mekanları', openMaps:'Haritada aç', significance:'Önemi', reference:'Referans', adabTitle:'Ziyaret adabı', adabText:'İbadet niyetiyle yolculuk yalnızca üç mescide yapılır: Mescid-i Haram, Peygamber ﷺ mescidi ve Mescid-i Aksa (Buhari 1189, Müslim 1397). Mağaralar, dağlar, taşlar ve kabirler teberrük yeri değildir — onlara dokunarak bereket ummak ya da oradan toprak ve taş almak sünnette yoktur (Tirmizi 2180). Kabirler ise sünnete uygun ziyaret edilir: ölülere selam verilir, onlar için dua edilir ve ahiret hatırlanır (Müslim 974, 976).' },
 }
 
+// photo: public/images/places/<açar> (src/data/placeImages.js);
+// mapFocus: canlı təsvirsiz uyğun foto tapılmayan yerlər — həcc xəritəsində həmin sahə vurğulanır
 const PLACES = [
   {
     icon: 'hajjguide',
     nameAr: 'الكعبة المشرفة / المسجد الحرام',
     name: { az:'Kəbə / Məscidül-Haram', en:'Kaaba / Masjid al-Haram', ru:'Кааба / Масджид аль-Харам', ar:'الكعبة المشرفة / المسجد الحرام', tr:'Kâbe / Mescid-i Haram' },
+    photo: 'masjid-al-haram',
     lat: 21.4225, lon: 39.8262,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
@@ -40,6 +46,7 @@ const PLACES = [
     icon: 'holyplaces',
     nameAr: 'المسجد النبوي',
     name: { az:'Məscidün-Nəbəvi', en:'Al-Masjid an-Nabawi', ru:'Масджид ан-Набави', ar:'المسجد النبوي', tr:'Mescid-i Nebevî' },
+    photo: 'masjid-an-nabawi',
     lat: 24.4672, lon: 39.6112,
     city: { az:'Mədinə', en:'Medina', ru:'Медина', ar:'المدينة المنورة', tr:'Medine' },
     desc: {
@@ -62,6 +69,7 @@ const PLACES = [
     icon: 'holyplaces',
     nameAr: 'المسجد الأقصى',
     name: { az:'Məscidül-Əqsa', en:'Al-Aqsa Mosque', ru:'Масджид аль-Акса', ar:'المسجد الأقصى', tr:'Mescid-i Aksâ' },
+    photo: 'al-aqsa',
     lat: 31.7761, lon: 35.2358,
     city: { az:'Qüds', en:'Jerusalem', ru:'Иерусалим', ar:'القدس', tr:'Kudüs' },
     desc: {
@@ -84,6 +92,7 @@ const PLACES = [
     icon: 'holyplaces',
     nameAr: 'مسجد قباء',
     name: { az:'Quba məscidi', en:'Quba Mosque', ru:'Мечеть Куба', ar:'مسجد قباء', tr:'Kuba Mescidi' },
+    photo: 'quba',
     lat: 24.4397, lon: 39.6166,
     city: { az:'Mədinə', en:'Medina', ru:'Медина', ar:'المدينة المنورة', tr:'Medine' },
     desc: {
@@ -106,6 +115,7 @@ const PLACES = [
     icon: 'quran',
     nameAr: 'غار حراء',
     name: { az:'Həra mağarası', en:'Cave of Hira', ru:'Пещера Хира', ar:'غار حراء', tr:'Hira Mağarası' },
+    photo: 'jabal-an-nur',
     lat: 21.4574, lon: 39.8582,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
@@ -128,6 +138,7 @@ const PLACES = [
     icon: 'shield',
     nameAr: 'غار ثور',
     name: { az:'Sevr mağarası', en:'Cave of Thawr', ru:'Пещера Саур', ar:'غار ثور', tr:'Sevr Mağarası' },
+    photo: 'jabal-thawr',
     lat: 21.3771, lon: 39.8214,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
@@ -150,6 +161,7 @@ const PLACES = [
     icon: 'sun',
     nameAr: 'جبل عرفات',
     name: { az:'Ərəfat dağı', en:'Mount Arafat', ru:'Гора Арафат', ar:'جبل عرفات', tr:'Arafat Dağı' },
+    mapFocus: 'arafat',
     lat: 21.3549, lon: 39.9841,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
@@ -172,6 +184,7 @@ const PLACES = [
     icon: 'jamaat',
     nameAr: 'منى',
     name: { az:'Mina', en:'Mina', ru:'Мина', ar:'منى', tr:'Mina' },
+    photo: 'mina',
     lat: 21.4134, lon: 39.8933,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
@@ -194,6 +207,7 @@ const PLACES = [
     icon: 'moon',
     nameAr: 'مزدلفة',
     name: { az:'Müzdəlifə', en:'Muzdalifah', ru:'Муздалифа', ar:'مزدلفة', tr:'Müzdelife' },
+    mapFocus: 'muzdalifah',
     lat: 21.3992, lon: 39.9089,
     city: { az:'Məkkə', en:'Mecca', ru:'Мекка', ar:'مكة المكرمة', tr:'Mekke' },
     desc: {
@@ -216,6 +230,7 @@ const PLACES = [
     icon: 'leaf',
     nameAr: 'جنة البقيع',
     name: { az:'Cənnətül-Bəqi', en:'Jannat al-Baqi', ru:'Джаннат аль-Баки', ar:'جنة البقيع', tr:'Cennetü\'l-Bakî' },
+    photo: 'al-baqi',
     lat: 24.4667, lon: 39.6150,
     city: { az:'Mədinə', en:'Medina', ru:'Медина', ar:'المدينة المنورة', tr:'Medine' },
     desc: {
@@ -255,12 +270,17 @@ export function HolyPlacesPage({ setPage }) {
           Ərəbcə sətir bəzəkdir: ərəb dilində başlıq onsuz da ərəbcədir */}
       <header className="ui-page-hero holy-hero-v2">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        <div className="ui-container" data-reveal="stagger">
-          <Breadcrumb setPage={setPage} current={lb.title} />
-          <span className="ui-eyebrow">{navGroupLabel(navGroupOf('holyplaces'), lk)}</span>
-          <h1 className="ui-display">{lb.title}</h1>
-          {lk !== 'ar' && <p className="holy-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الأماكن المقدسة</p>}
-          <p className="ui-lead">{lb.subtitle}</p>
+        <div className="ui-container mh-grid">
+          <div data-reveal="stagger">
+            <Breadcrumb setPage={setPage} current={lb.title} />
+            <span className="ui-eyebrow">{navGroupLabel(navGroupOf('holyplaces'), lk)}</span>
+            <h1 className="ui-display">{lb.title}</h1>
+            {lk !== 'ar' && <p className="holy-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الأماكن المقدسة</p>}
+            <p className="ui-lead">{lb.subtitle}</p>
+          </div>
+          <div className="mh-media">
+            <PlacePhoto id="masjid-al-haram" lang={lk} eager sizes="(min-width: 1024px) 480px, 100vw" />
+          </div>
         </div>
       </header>
 
@@ -301,6 +321,11 @@ export function HolyPlacesPage({ setPage }) {
             {filtered.map((place, i) => (
               // Sabit açar: süzgəc dəyişəndə yeni kartlar görünmə animasiyası ilə gəlir
               <article key={place.name.en} className="ui-card holy-card" data-reveal="" data-reveal-delay={(i % 3) * 60}>
+                <div className="holy-card-media">
+                  {place.photo
+                    ? <PlacePhoto id={place.photo} lang={lk} className="ph--zoom" sizes="(min-width: 1200px) 380px, (min-width: 768px) 46vw, 100vw" />
+                    : <HajjRouteMap lang={lk} highlight={place.mapFocus} compact />}
+                </div>
                 <div className="holy-card-header">
                   <span className="ui-icon-tile ui-icon-tile--lg holy-card-icon"><Icon name={place.icon} /></span>
                   <div className="holy-card-titles">

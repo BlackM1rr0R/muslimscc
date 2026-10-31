@@ -760,3 +760,40 @@ html.sp-vt::view-transition-new(root) { animation: 360ms cubic-bezier(0.22, 1, 0
 /* Mətn rəqəmlə başlayırsa ("2 286 hədis…") böyük ilk hərf olmasın */
 .sp-prose--nocap > p:first-child::first-letter { float: none; margin: 0; color: inherit; font: inherit; }
 .sp-glance__v[dir="ltr"] { unicode-bidi: isolate; }
+
+/* ══ Xəttatlıq lövhəsi (components/media/CalligraphyPlaque) ══
+   Kart: lövhə kartın üst hissəsidir, medalyon onun alt kənarına "oturur";
+   lövhədə ərəbcə ad olduğu üçün kartdakı ayrıca ərəbcə sətir gizlənir.
+   Telefonda (sətir-kartlar) lövhə gizlidir, ərəbcə sətir qalır. */
+.sahabe-page .sahabe-card { padding-top: var(--space-3); }
+.sahabe-card-cq { margin-bottom: -40px; }
+.sahabe-card-cq + .sp-medal { box-shadow: 0 0 0 4px var(--surface-1); border-radius: 50%; }
+@media (min-width: 768px) {
+  .sahabe-card-arabic { display: none; }
+}
+@media (max-width: 767.98px) {
+  .sahabe-card-cq { display: none; }
+  .sahabe-page .sahabe-card { padding-top: 10px; }
+}
+
+/* Profil hero-su: medalyon · mətn · lövhə (geniş ekranda üç sütun) */
+.sp-hero__cq { min-width: 0; }
+@media (min-width: 1180px) {
+  .sp-hero__grid { grid-template-columns: auto minmax(0, 1fr) minmax(260px, 360px); }
+}
+@media (max-width: 1179.98px) {
+  .sp-hero__cq { grid-column: 1 / -1; max-width: 560px; }
+}
+@media (max-width: 767.98px) {
+  .sp-hero__cq .cq--hero { min-height: 150px; }
+}
+/* Hero-da ərəbcə ad lövhədə görünür — sətir yalnız ekran oxuyucu üçün qalır
+   (lövhə bəzəkdir, aria-hidden) */
+.sahabe-page .sp-hero__ar {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

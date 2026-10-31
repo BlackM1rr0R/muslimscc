@@ -67,7 +67,7 @@ describe('sessiya anbarı', () => {
     expect(rows).toHaveLength(1)
     expect(rows[0].id_hash).not.toContain(tok)
     expect(rows[0].id_hash).toMatch(/^[0-9a-f]{64}$/)
-    expect(store.sessionUser(tok, 2000)).toEqual({ id, email: 'admin@example.com' })
+    expect(store.sessionUser(tok, 2000)).toEqual({ id, email: 'admin@example.com', mustChange: false })
     expect(store.sessionUser(tok, 1000 + auth.SESSION_TTL_MS + 1)).toBeNull()
     const tok2 = store.createSession(id)
     expect(store.sessionUser(tok2)).not.toBeNull()
@@ -110,7 +110,7 @@ describe('HTTP: login / me / logout / requireAdmin', () => {
     expect(cookie).toMatch(/^__Host-mcc_admin=/)
 
     let me = await fetch(srv.url + '/api/admin/me', { headers: { cookie } })
-    expect(await me.json()).toEqual({ email: 'admin@example.com', via: 'session' })
+    expect(await me.json()).toEqual({ email: 'admin@example.com', via: 'session', mustChangePassword: false })
 
     // CSRF: başlıqsız və ya yad Origin-li POST rədd
     expect((await fetch(srv.url + '/api/admin/thing', { method: 'POST', headers: { cookie } })).status).toBe(403)
@@ -138,6 +138,44 @@ describe('HTTP: login / me / logout / requireAdmin', () => {
     const r = await login('limit@example.com', 'səhv-şifrə-xxxxxxx')
     expect(r.status).toBe(429)
     expect(Number(r.headers.get('retry-after'))).toBeGreaterThan(0)
+  })
+
+  it('müvəqqəti şifrə: yalnız /me və /password; dəyişəndən sonra panel açılır, digər sessiyalar ləğv olunur', async () => {
+    const TEMP = 'müvəqqəti-şifrə-12345'
+    const NEW = 'yeni-güclü-şifrə-67890'
+    await store.createAdmin('temp@example.com', TEMP, Date.now(), { temporary: true })
+    const r1 = await login('temp@example.com', TEMP)
+    expect(await r1.json()).toMatchObject({ ok: true, mustChangePassword: true })
+    const c1 = cookieOf(r1)
+    const c2 = cookieOf(await login('temp@example.com', TEMP))   // ikinci cihaz
+    const me = await fetch(srv.url + '/api/admin/me', { headers: { cookie: c1 } })
+    expect(await me.json()).toMatchObject({ mustChangePassword: true })
+    const thing = await fetch(srv.url + '/api/admin/thing', { method: 'POST', headers: { cookie: c1, 'x-requested-with': 'fetch' } })
+    expect(thing.status).toBe(403)
+    expect(await thing.json()).toMatchObject({ code: 'must_change' })
+
+    const change = (cookie, body, extra = { 'x-requested-with': 'fetch' }) => fetch(srv.url + '/api/admin/password', {
+      method: 'POST', headers: { cookie, 'content-type': 'application/json', ...extra }, body: JSON.stringify(body) })
+    expect((await change(c1, { currentPassword: TEMP, newPassword: NEW }, {})).status).toBe(403)        // CSRF başlığı yoxdur
+    expect((await change('', { currentPassword: TEMP, newPassword: NEW })).status).toBe(401)            // sessiya yoxdur
+    expect(await (await change(c1, { currentPassword: TEMP, newPassword: 'qisa' })).json()).toMatchObject({ code: 'weak' })
+    expect(await (await change(c1, { currentPassword: 'səhv-şifrə-xxxxxx', newPassword: NEW })).json()).toMatchObject({ code: 'wrong' })
+    expect(await (await change(c1, { currentPassword: TEMP, newPassword: TEMP })).json()).toMatchObject({ code: 'same' })
+    const ok = await change(c1, { currentPassword: TEMP, newPassword: NEW })
+    expect(ok.status).toBe(200)
+
+    // Cari sessiya qalır və artıq məhdud deyil; ikinci cihazın sessiyası ləğv olunub
+    expect((await fetch(srv.url + '/api/admin/thing', { method: 'POST', headers: { cookie: c1, 'x-requested-with': 'fetch' } })).status).toBe(200)
+    expect((await fetch(srv.url + '/api/admin/me', { headers: { cookie: c2 } })).status).toBe(401)
+    expect((await login('temp@example.com', TEMP)).status).toBe(401)
+    expect(await (await login('temp@example.com', NEW)).json()).toMatchObject({ ok: true, mustChangePassword: false })
+  })
+
+  it('şifrə dəyişmə köhnə Firebase tokeni ilə olmur', async () => {
+    const r = await fetch(srv.url + '/api/admin/password', { method: 'POST',
+      headers: { authorization: 'Bearer firebase-admin-token-xxxxxxxx', 'content-type': 'application/json' },
+      body: JSON.stringify({ currentPassword: 'a'.repeat(12), newPassword: 'b'.repeat(12) }) })
+    expect(r.status).toBe(403)
   })
 
   it('KEÇİD DÖVRÜ: köhnə Firebase ID tokeni (Bearer) qəbul olunur', async () => {

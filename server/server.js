@@ -108,6 +108,14 @@ app.use('/api', push.createPushRouter({
   publicKey: webPush.enabled ? process.env.VAPID_PUBLIC_KEY : '',
   extraHosts: PUSH_EXTRA_HOSTS,
   onChange: () => { tokensLoadedAt = 0 },   // planlayıcı siyahını növbəti dövrdə təzələsin
+  // KEÇİD: Web Push-a keçən klient köhnə FCM tokenini göndərir — Firestore-dan
+  // silinir ki, cihaza ikiqat bildiriş getməsin. FCM sönülüdürsə (adminDb yox) — heç nə.
+  onLegacyToken: async (token) => {
+    if (!adminDb) return
+    await adminDb.collection('fcm_tokens').doc(token).delete()
+    fcmCache = fcmCache.filter((e) => e.id !== token)
+    tokensLoadedAt = 0
+  },
 }))
 
 app.use(express.json())

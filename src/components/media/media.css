@@ -1,0 +1,350 @@
+/* ══════════════════════════════════════════════════════
+   Media: yer fotoları (.ph), xəttatlıq lövhəsi (.cq), xəritələr (.smap),
+   hero-da foto sütunu (.mh-*). Yalnız semantik tokenlər (DESIGN.md) —
+   qaranlıq rejim avtomatikdir. Hərəkət yalnız transform/opacity;
+   prefers-reduced-motion: hamısı söndürülür (sonda).
+   ══════════════════════════════════════════════════════ */
+
+/* ── 1. Foto ── */
+.ph { --ph-ratio: 3 / 2; margin: 0; min-width: 0; }
+.ph__frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: var(--ph-ratio);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  isolation: isolate;
+}
+/* Yüklənənə qədər incə xatəm naxışı — boş boz qutu görünməsin */
+.ph__frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--pattern-color);
+  -webkit-mask-image: var(--ui-khatam);
+  mask-image: var(--ui-khatam);
+  -webkit-mask-size: 48px 48px;
+  mask-size: 48px 48px;
+}
+.ph__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.03);
+  transition: opacity 600ms var(--ease-out), transform 900ms var(--ease-out);
+}
+.ph.is-loaded .ph__img { opacity: 1; transform: none; }
+.ph__credit {
+  margin-top: 6px;
+  color: var(--text-tertiary);
+  font-size: 11.5px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.ph__credit a { color: inherit; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 2px; }
+@media (hover: hover) { .ph__credit a:hover { color: var(--text-secondary); } }
+
+/* Kartda: hover-də foto çox yavaş yaxınlaşır (yalnız transform) */
+@media (hover: hover) {
+  .ph--zoom .ph__img { transition: opacity 600ms var(--ease-out), transform 700ms var(--ease-out); }
+  :is(a, article, button, .ui-card):hover > .ph--zoom.is-loaded .ph__img,
+  :is(a, article, button, .ui-card):hover .ph--zoom.is-loaded .ph__img { transform: scale(1.04); }
+}
+
+/* ── 2. Hero: mətn + foto sütunu ──
+   ui.css-dəki .ui-page-hero .ui-container (flex) qaydasını üstələmək üçün
+   üç sinifli seçici (DESIGN.md §4.1 — bu fayl ui.css-dən əvvəl yüklənir) */
+.ui-page-hero .ui-container.mh-grid { display: grid; gap: var(--space-6); align-items: center; }
+.mh-grid > * { min-width: 0; }
+.mh-media { min-width: 0; }
+.mh-media .ph__frame { box-shadow: var(--shadow-2); }
+@media (min-width: 1024px) {
+  .ui-page-hero .ui-container.mh-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: var(--space-8); }
+  .mh-media .ph { --ph-ratio: 4 / 3; }
+  .mh-media .ph__frame { border-radius: var(--radius-xl); }
+}
+@media (max-width: 1023.98px) {
+  .mh-media .ph { --ph-ratio: 16 / 9; }
+}
+
+/* ── 3. Foto zolağı (qalereya) ── */
+.ph-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--space-4);
+}
+.ph-strip__cap {
+  margin-top: 8px;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+
+/* ── 4. Xəttatlıq lövhəsi ── */
+.cq {
+  --cq-gold: var(--sand-300);
+  --cq-line: color-mix(in srgb, var(--sand-300) 55%, transparent);
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--emerald-700, #13705a) 55%, transparent), transparent 70%),
+    var(--surface-inverse);
+  color: var(--cq-gold);
+  text-align: center;
+}
+.cq__pattern {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--cq-gold);
+  opacity: 0.13;
+  -webkit-mask-image: var(--ui-khatam), radial-gradient(closest-side, transparent 35%, #000 100%);
+  mask-image: var(--ui-khatam), radial-gradient(closest-side, transparent 35%, #000 100%);
+  -webkit-mask-size: 36px 36px, 100% 100%;
+  mask-size: 36px 36px, 100% 100%;
+  -webkit-mask-repeat: repeat, no-repeat;
+  mask-repeat: repeat, no-repeat;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  transition: transform 1.2s var(--ease-out);
+}
+/* İkiqat qızılı çərçivə */
+.cq__frame {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid var(--cq-line);
+  border-radius: calc(var(--radius-lg) - 6px);
+  pointer-events: none;
+}
+.cq__frame::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid color-mix(in srgb, var(--sand-300) 25%, transparent);
+  border-radius: calc(var(--radius-lg) - 9px);
+}
+.cq__corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  fill: var(--surface-inverse);
+  stroke: var(--cq-gold);
+  stroke-width: 1.4;
+}
+.cq__corner circle { fill: var(--cq-gold); stroke: none; }
+.cq__corner--tl { top: 2px; left: 2px; }
+.cq__corner--tr { top: 2px; right: 2px; }
+.cq__corner--bl { bottom: 2px; left: 2px; }
+.cq__corner--br { bottom: 2px; right: 2px; }
+.cq__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 18px 26px;
+  font-family: var(--font-arabic);
+  letter-spacing: 0;
+}
+.cq__name {
+  font-size: var(--cq-size, 30px);
+  font-weight: 700;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+.cq--mid { --cq-size: 26px; }
+.cq--long { --cq-size: 23px; }
+.cq__rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 70%;
+  color: var(--cq-line);
+}
+.cq__rule::before,
+.cq__rule::after { content: ""; flex: 1; height: 1px; background: currentColor; }
+.cq__rule-star { width: 10px; height: 10px; fill: var(--cq-gold); }
+.cq__rule-star circle { fill: var(--surface-inverse); }
+.cq__honor {
+  color: color-mix(in srgb, var(--sand-300) 82%, var(--text-on-inverse));
+  font-size: calc(var(--cq-size, 30px) * 0.52);
+  line-height: 1.7;
+}
+
+/* Kart variantı: kartın üst "üz qabığı" */
+.cq--card { width: 100%; min-height: 118px; }
+/* Hero variantı: iri lövhə */
+.cq--hero { width: 100%; min-height: 220px; border-radius: var(--radius-xl); box-shadow: var(--shadow-2); }
+.cq--hero { --cq-size: clamp(34px, 3.4vw, 46px); }
+.cq--hero.cq--mid { --cq-size: clamp(30px, 3vw, 40px); }
+.cq--hero.cq--long { --cq-size: clamp(26px, 2.6vw, 36px); }
+.cq--hero .cq__frame { inset: 12px; border-radius: calc(var(--radius-xl) - 10px); }
+.cq--hero .cq__frame::after { inset: 5px; border-radius: calc(var(--radius-xl) - 14px); }
+.cq--hero .cq__corner { width: 20px; height: 20px; }
+.cq--hero .cq__corner--tl { top: 3px; left: 3px; }
+.cq--hero .cq__corner--tr { top: 3px; right: 3px; }
+.cq--hero .cq__corner--bl { bottom: 3px; left: 3px; }
+.cq--hero .cq__corner--br { bottom: 3px; right: 3px; }
+.cq--hero .cq__text { padding: 30px 36px; gap: 6px; }
+
+/* Hover (kartda): naxış çox yavaş fırlanır, lövhə yerində */
+@media (hover: hover) {
+  :is(a, button):hover .cq__pattern { transform: rotate(8deg) scale(1.08); }
+}
+/* Giriş: hero lövhəsi yumşaq görünür */
+.cq--hero { animation: cq-in 900ms var(--ease-out) backwards 120ms; }
+@keyframes cq-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } }
+
+/* ── 5. Xəritələr ── */
+.smap { margin: 0; min-width: 0; }
+.smap__canvas {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+}
+.smap svg { display: block; width: 100%; height: auto; font-family: var(--font-sans); }
+.smap--tall .smap__canvas { max-width: 430px; margin-inline: auto; }
+.smap--tall .smap__cap { max-width: 430px; margin-inline: auto; }
+.smap__bg { fill: var(--surface-1); }
+.smap__grid { fill: none; stroke: var(--line); stroke-width: 0.6; opacity: 0.55; }
+.smap__grat { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 5; }
+.smap__sea { fill: color-mix(in srgb, var(--brand) 9%, var(--surface-1)); }
+.smap__coast { fill: none; stroke: color-mix(in srgb, var(--brand) 35%, transparent); stroke-width: 1.4; }
+.smap__sea-label {
+  fill: color-mix(in srgb, var(--brand) 60%, var(--text-tertiary));
+  font-size: 13px;
+  font-style: italic;
+  letter-spacing: 0.12em;
+}
+.smap__route {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.smap__route--approx { stroke-dasharray: 8 7; }
+.smap__arrow { fill: var(--brand); }
+.smap__leader { fill: none; stroke: var(--text-tertiary); stroke-width: 1; stroke-dasharray: 3 4; }
+.smap__pt circle { fill: var(--surface-1); stroke: var(--brand); stroke-width: 2.4; }
+.smap__pt--major circle { fill: var(--brand); stroke: var(--surface-1); stroke-width: 2.5; }
+.smap__pt--ghost circle { stroke: var(--text-tertiary); stroke-width: 1.6; }
+.smap__pt--ghost .smap__label { fill: var(--text-tertiary); font-weight: 500; }
+.smap__star { fill: var(--accent); stroke: var(--surface-1); stroke-width: 1.5; }
+/* Yazılar: fon rəngində "halo" — xətlərin üstündə də oxunsun */
+.smap__label,
+.smap__sub,
+.smap__north text {
+  paint-order: stroke;
+  stroke: var(--surface-1);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.smap__label { fill: var(--text-strong); font-size: 14px; font-weight: 600; }
+.smap__label--sm { font-size: 12.5px; }
+.smap__sub { fill: var(--text-secondary); font-size: 11.5px; font-weight: 500; }
+.smap__sub--strong { fill: var(--accent-text); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+html[lang="ar"] .smap__sub--strong { letter-spacing: 0; text-transform: none; }
+html[lang="ar"] .smap svg { font-family: var(--font-arabic-ui); }
+.smap__north path { fill: var(--text-tertiary); }
+.smap__north text { fill: var(--text-tertiary); font-size: 11px; font-weight: 700; }
+.smap__area { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: var(--accent-line, color-mix(in srgb, var(--accent) 40%, transparent)); stroke-width: 1; stroke-dasharray: 4 4; transition: opacity var(--dur-2) ease; }
+.smap__area.is-hl { fill: color-mix(in srgb, var(--accent) 26%, transparent); stroke: var(--accent); stroke-dasharray: none; }
+.smap__area.is-dim { opacity: 0.45; }
+.smap__num circle { fill: var(--accent); stroke: var(--surface-1); stroke-width: 2; }
+.smap__num text { fill: var(--surface-1); font-size: 12px; font-weight: 700; }
+.smap__num--sm text { font-size: 10.5px; }
+.smap__dot { fill: var(--surface-1); stroke: var(--text-secondary); stroke-width: 1.6; }
+.smap__steps--plan { grid-template-columns: 1fr; gap: 4px; font-size: 13px; }
+.smap__inset-bg { fill: var(--surface-0); stroke: var(--line-strong); stroke-width: 1; }
+.smap__harra { fill: color-mix(in srgb, var(--text-tertiary) 16%, transparent); }
+.smap__mount { fill: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); stroke: var(--accent); stroke-width: 1; }
+.smap__trench { fill: none; stroke: var(--bad, #b3402e); stroke-width: 2.5; stroke-dasharray: 6 4; stroke-linecap: round; }
+.smap__arc { fill: none; stroke-width: 1.8; stroke-linecap: round; opacity: 0.85; }
+.smap__arc--nabi, .smap__city--nabi circle { stroke: var(--brand); }
+.smap__arc--rashidun, .smap__city--rashidun circle { stroke: var(--accent); }
+.smap__arc--umayyad, .smap__city--umayyad circle { stroke: var(--note, #3a6ea5); }
+.smap__arc--abbasid, .smap__city--abbasid circle { stroke: var(--text-secondary); }
+.smap__city circle { fill: var(--surface-1); stroke-width: 2.6; }
+
+/* İzah (figcaption) */
+.smap__cap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--space-3);
+  color: var(--text-secondary);
+  font-size: var(--step--1);
+  line-height: 1.6;
+}
+.smap__title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; }
+.smap__note { color: var(--text-tertiary); font-size: 13px; }
+.smap__legends { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.smap__legend { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+.smap__key { display: inline-block; width: 26px; height: 0; border-top: 3px solid var(--brand); }
+.smap__key--route { border-top-style: dashed; }
+.smap__key--trench { border-top: 3px dashed var(--bad, #b3402e); }
+.smap__key--nabi { border-color: var(--brand); }
+.smap__key--rashidun { border-color: var(--accent); }
+.smap__key--umayyad { border-color: var(--note, #3a6ea5); }
+.smap__key--abbasid { border-color: var(--text-secondary); }
+.smap__steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 6px 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.smap__steps li { display: flex; align-items: flex-start; gap: 8px; color: var(--text-body); }
+.smap__badge {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-soft, color-mix(in srgb, var(--accent) 15%, transparent));
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+.smap--compact .smap__canvas { border: 0; border-radius: 0; }
+/* Kiçik (kart) variantı: SVG ~2 dəfə kiçilir — yazı və nöqtələr iri */
+.smap--compact .smap__label { font-size: 26px; stroke-width: 7px; }
+.smap--compact .smap__route { stroke-width: 5; }
+.smap--compact .smap__pt circle { r: 9px; }
+.smap--compact .smap__north { display: none; }
+
+/* Yol "çəkilir" — xəritə görünəndə (data-revealed="" — animasiyalı görünmə) */
+.smap[data-revealed=""] .smap__draw {
+  animation: smap-draw 1.4s var(--ease-out) backwards;
+  animation-delay: calc(250ms + var(--d, 0ms));
+}
+@keyframes smap-draw { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+.smap[data-revealed=""] .smap__draw--up { animation-name: smap-draw-up; }
+@keyframes smap-draw-up { from { opacity: 0; clip-path: inset(100% 0 0 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+
+/* ── Hərəkət azaldılıb: heç nə hərəkət etmir, şəkil dərhal görünür ── */
+@media (prefers-reduced-motion: reduce) {
+  .ph__img { opacity: 1; transform: none; transition: none; }
+  .ph--zoom .ph__img,
+  :is(a, article, button, .ui-card):hover .ph--zoom.is-loaded .ph__img { transform: none; transition: none; }
+  .cq__pattern { transition: none; }
+  :is(a, button):hover .cq__pattern { transform: none; }
+  .cq--hero { animation: none; }
+  .smap[data-revealed=""] .smap__draw { animation: none; }
+}
+
+/* Kart lövhəsində yazı bir az yuxarıda — altına medalyon "oturur" */
+.cq--card .cq__text { padding: 12px 22px 34px; }
+.cq--card { min-height: 128px; }

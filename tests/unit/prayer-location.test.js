@@ -125,7 +125,7 @@ describe('seçim və xüsusi şəhər', () => {
   it('server normLoc xüsusi yerin push payload-unu olduğu kimi qəbul edir', () => {
     setPrayerCity({ lat: 48.2082, lng: 16.3738, tz: 'Europe/Vienna', label: { en: 'Vienna' } })
     const loc = getPrayerLocation()
-    // src/firebase/messaging.js → locationPayload() ilə eyni forma
+    // src/api/push.js → locationPayload() ilə eyni forma
     const payload = { lat: loc.lat, lng: loc.lng, tz: loc.tz, method: loc.method, city: { ...loc.city } }
     const n = normLoc(payload)
     expect(n).toEqual({ lat: 48.2082, lng: 16.3738, tz: 'Europe/Vienna', method: 13, city: payload.city })

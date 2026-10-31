@@ -1,41 +1,35 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { watchAdmin, signInAdmin, signOutAdmin, sendAdminPasswordReset } from '../firebase/auth'
+import { watchAdmin, signInAdmin } from '../api/adminAuth'
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AdminPage.css'
 
-// Giriş — Firebase Authentication (e-poçt + parol). Admin olmaq üçün hesabda
-// `admin: true` claim-i olmalıdır (server/scripts/set-admin.js).
+// Giriş — öz serverimiz (POST /api/admin/login, server/auth.js): e-poçt + şifrə,
+// HttpOnly cookie sessiyası. Admin hesabı serverdə yaradılır:
+// server/scripts/admin-user.js create <e-poçt> (müvəqqəti şifrə — ilk girişdə
+// panel onu dəyişdirməyi tələb edir). E-poçt xidməti YOXDUR: "Şifrəni
+// unutmusunuz?" sıfırlama linki göndərmir — şifrəni serverdə dəyişməyi izah edir.
 // Mətnlərdə ox simvolu yoxdur — ox <Icon> ilədir (ərəbcədə güzgülənir)
 const LABELS = {
   az: { title:'Admin paneli', sub:'Davam etmək üçün hesabınıza daxil olun', email:'E-poçt', password:'Şifrə', login:'Daxil ol', signingIn:'Yoxlanılır...', forgot:'Şifrəni unutmusunuz?', back:'Sayta qayıt', show:'Şifrəni göstər', hide:'Şifrəni gizlət',
-    errCreds:'E-poçt və ya şifrə yanlışdır', errMany:'Çox cəhd edildi. Bir az sonra yenidən sınayın', errNet:'Şəbəkə xətası. İnternet bağlantısını yoxlayın', errNotAdmin:'Bu hesabın admin icazəsi yoxdur', errUnavailable:'Giriş xidməti qoşulmayıb', errUnknown:'Daxil olmaq alınmadı', errEmail:'Əvvəlcə e-poçt ünvanını yazın', resetSent:'Bu ünvanla hesab varsa, şifrəni yeniləmə linki e-poçtunuza göndərildi', hint:'Yalnız admin üçündür.' },
+    // lang-ok: serverdəki əmrin və sənədin adı tərcümə olunmur
+    errCreds:'E-poçt və ya şifrə yanlışdır', errMany:'Çox cəhd edildi. Bir az sonra yenidən sınayın', errNet:'Şəbəkə xətası. İnternet bağlantısını yoxlayın', errUnknown:'Daxil olmaq alınmadı', errEmail:'Əvvəlcə e-poçt ünvanını yazın', forgotInfo:'E-poçtla bərpa yoxdur. Şifrəni serverdə admin-user.js set-password əmri ilə dəyişin — admin sənədinə baxın (docs/FIREBASE-EXIT.md).', hint:'Yalnız admin üçündür.' },
   en: { title:'Admin Panel', sub:'Sign in to your account to continue', email:'Email', password:'Password', login:'Sign in', signingIn:'Checking...', forgot:'Forgot your password?', back:'Back to the site', show:'Show password', hide:'Hide password',
-    errCreds:'Incorrect email or password', errMany:'Too many attempts. Please try again later', errNet:'Network error. Check your internet connection', errNotAdmin:'This account does not have admin access', errUnavailable:'Sign-in service is not connected', errUnknown:'Could not sign in', errEmail:'Enter your email address first', resetSent:'If an account exists for this address, a password reset link has been sent', hint:'For admin only.' },
+    errCreds:'Incorrect email or password', errMany:'Too many attempts. Please try again later', errNet:'Network error. Check your internet connection', errUnknown:'Could not sign in', errEmail:'Enter your email address first', forgotInfo:'There is no email recovery. Change the password on the server with the admin-user.js set-password command — see the admin docs (docs/FIREBASE-EXIT.md).', hint:'For admin only.' },
   ru: { title:'Админ-панель', sub:'Войдите в свой аккаунт, чтобы продолжить', email:'Эл. почта', password:'Пароль', login:'Войти', signingIn:'Проверка...', forgot:'Забыли пароль?', back:'Вернуться на сайт', show:'Показать пароль', hide:'Скрыть пароль',
-    errCreds:'Неверная почта или пароль', errMany:'Слишком много попыток. Повторите позже', errNet:'Ошибка сети. Проверьте подключение к интернету', errNotAdmin:'У этого аккаунта нет прав администратора', errUnavailable:'Служба входа не подключена', errUnknown:'Не удалось войти', errEmail:'Сначала введите адрес почты', resetSent:'Если аккаунт с этим адресом существует, ссылка для сброса пароля отправлена', hint:'Только для администратора.' },
+    // lang-ok: serverdəki əmrin və sənədin adı tərcümə olunmur
+    errCreds:'Неверная почта или пароль', errMany:'Слишком много попыток. Повторите позже', errNet:'Ошибка сети. Проверьте подключение к интернету', errUnknown:'Не удалось войти', errEmail:'Сначала введите адрес почты', forgotInfo:'Восстановления по почте нет. Смените пароль на сервере командой admin-user.js set-password — см. документацию администратора (docs/FIREBASE-EXIT.md).', hint:'Только для администратора.' },
   ar: { title:'لوحة الإدارة', sub:'سجّل الدخول إلى حسابك للمتابعة', email:'البريد الإلكتروني', password:'كلمة المرور', login:'دخول', signingIn:'جارٍ التحقق...', forgot:'هل نسيت كلمة المرور؟', back:'العودة إلى الموقع', show:'إظهار كلمة المرور', hide:'إخفاء كلمة المرور',
-    errCreds:'البريد الإلكتروني أو كلمة المرور غير صحيحة', errMany:'محاولات كثيرة جدًا. حاول مرة أخرى لاحقًا', errNet:'خطأ في الشبكة. تحقق من اتصالك بالإنترنت', errNotAdmin:'هذا الحساب لا يملك صلاحية الإدارة', errUnavailable:'خدمة تسجيل الدخول غير متصلة', errUnknown:'تعذّر تسجيل الدخول', errEmail:'أدخل عنوان البريد الإلكتروني أولًا', resetSent:'إذا كان هناك حساب بهذا العنوان، فقد أُرسل رابط إعادة تعيين كلمة المرور', hint:'للمسؤولين فقط' },
+    // lang-ok: serverdəki əmrin və sənədin adı tərcümə olunmur
+    errCreds:'البريد الإلكتروني أو كلمة المرور غير صحيحة', errMany:'محاولات كثيرة جدًا. حاول مرة أخرى لاحقًا', errNet:'خطأ في الشبكة. تحقق من اتصالك بالإنترنت', errUnknown:'تعذّر تسجيل الدخول', errEmail:'أدخل عنوان البريد الإلكتروني أولًا', forgotInfo:'لا توجد استعادة عبر البريد. غيّر كلمة المرور على الخادم بالأمر admin-user.js set-password — راجع توثيق الإدارة (docs/FIREBASE-EXIT.md).', hint:'للمسؤولين فقط' },
   tr: { title:'Yönetim Paneli', sub:'Devam etmek için hesabınıza giriş yapın', email:'E-posta', password:'Şifre', login:'Giriş yap', signingIn:'Kontrol ediliyor...', forgot:'Şifrenizi mi unuttunuz?', back:'Siteye dön', show:'Şifreyi göster', hide:'Şifreyi gizle',
-    errCreds:'E-posta veya şifre yanlış', errMany:'Çok fazla deneme yapıldı. Biraz sonra tekrar deneyin', errNet:'Ağ hatası. İnternet bağlantınızı kontrol edin', errNotAdmin:'Bu hesabın yönetici yetkisi yok', errUnavailable:'Giriş hizmeti bağlı değil', errUnknown:'Giriş yapılamadı', errEmail:'Önce e-posta adresinizi yazın', resetSent:'Bu adrese ait bir hesap varsa, şifre sıfırlama bağlantısı gönderildi', hint:'Sadece yöneticiler için.' },
+    // lang-ok: serverdəki əmrin və sənədin adı tərcümə olunmur
+    errCreds:'E-posta veya şifre yanlış', errMany:'Çok fazla deneme yapıldı. Biraz sonra tekrar deneyin', errNet:'Ağ hatası. İnternet bağlantınızı kontrol edin', errUnknown:'Giriş yapılamadı', errEmail:'Önce e-posta adresinizi yazın', forgotInfo:'E-postayla kurtarma yok. Şifreyi sunucuda admin-user.js set-password komutuyla değiştirin — yönetici belgelerine bakın (docs/FIREBASE-EXIT.md).', hint:'Sadece yöneticiler için.' },
 }
 
-// Firebase xəta kodu → mətn açarı
-function errKeyOf(code) {
-  switch (code) {
-    case 'auth/invalid-credential':
-    case 'auth/invalid-login-credentials':
-    case 'auth/wrong-password':
-    case 'auth/user-not-found':
-    case 'auth/invalid-email':
-    case 'auth/user-disabled':
-      return 'errCreds'
-    case 'auth/too-many-requests': return 'errMany'
-    case 'auth/network-request-failed': return 'errNet'
-    case 'unavailable': return 'errUnavailable'
-    default: return 'errUnknown'
-  }
-}
+// api/adminAuth.js xəta kodu → mətn açarı
+const ERR_KEY = { creds: 'errCreds', many: 'errMany', net: 'errNet' }
+const errKeyOf = (code) => ERR_KEY[code] || 'errUnknown'
 
 export default function AdminLoginPage({ setPage }) {
   const { lang } = useLang()
@@ -59,7 +53,7 @@ export default function AdminLoginPage({ setPage }) {
     return () => { mounted.current = false }
   }, [])
 
-  // Panelə keçid bir dəfə (giriş və onAuthStateChanged eyni anda xəbər verir)
+  // Panelə keçid bir dəfə (giriş və sessiya yoxlaması eyni anda xəbər verə bilər)
   const navigated = useRef(false)
   const goAdmin = () => {
     if (navigated.current) return
@@ -87,25 +81,12 @@ export default function AdminLoginPage({ setPage }) {
     if (!mounted.current) return
     setBusy(false)
     if (!res.ok) { showError(errKeyOf(res.code)); return }
-    if (!res.admin) {
-      // Hesab var, amma admin deyil — sessiyanı saxlama
-      await signOutAdmin()
-      showError('errNotAdmin')
-      return
-    }
+    // Müvəqqəti şifrədirsə panel özü "Şifrəni dəyiş" formasını göstərir
     goAdmin()
   }
 
-  const handleReset = async () => {
-    if (!email.trim()) { showError('errEmail'); return }
-    setBusy(true)
-    const res = await sendAdminPasswordReset(email)
-    if (!mounted.current) return
-    setBusy(false)
-    // Hesabın mövcudluğu açıqlanmır: "user-not-found" da uğur kimi göstərilir
-    if (res.ok || res.code === 'auth/user-not-found') setMsg({ tone: 'ok', key: 'resetSent' })
-    else showError(errKeyOf(res.code))
-  }
+  // E-poçt xidməti yoxdur — sıfırlama linki əvəzinə dürüst izah
+  const handleReset = () => setMsg({ tone: 'note', key: 'forgotInfo' })
 
   return (
     <div className="admin-login-page">
@@ -121,7 +102,7 @@ export default function AdminLoginPage({ setPage }) {
             className={`admin-alert admin-alert--${msg.tone}${msg.tone === 'bad' ? ' admin-login-error' : ''}`}
             role={msg.tone === 'bad' ? 'alert' : 'status'}
           >
-            <Icon name={msg.tone === 'bad' ? 'alert' : 'check'} size={18} /> {l[msg.key]}
+            <Icon name={msg.tone === 'bad' ? 'alert' : msg.tone === 'note' ? 'info' : 'check'} size={18} /> {l[msg.key]}
           </div>
         )}
 

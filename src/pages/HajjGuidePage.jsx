@@ -7,6 +7,19 @@ import '../styles/HajjGuidePage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
+// Yer fotoları (Wikimedia Commons) və həcc mərhələləri xəritəsi (öz SVG)
+import PlacePhoto from '../components/media/PlacePhoto'
+import { HajjRouteMap } from '../components/media/SiraMaps'
+import { PLACE_PHOTOS } from '../data/placeImages'
+
+// Seçim ekranındakı "Yerlər və yol" bölməsi (5 dil); hero-da Mina, yanda Məscidül-Haram
+const MEDIA_L = {
+  az: { eyebrow: 'Xəritə', title: 'Həcc yolu: Məkkədən Ərəfata və geri', lead: 'Mərhələlər Məkkənin şərqində, bir neçə kilometrlik ərazidə keçir.' },
+  en: { eyebrow: 'Map', title: 'The Hajj route: from Mecca to Arafat and back', lead: 'The stages take place east of Mecca, within a few kilometres of each other.' },
+  ru: { eyebrow: 'Карта', title: 'Путь хаджа: из Мекки к Арафату и обратно', lead: 'Все этапы проходят к востоку от Мекки, в нескольких километрах друг от друга.' },
+  ar: { eyebrow: 'خريطة', title: 'طريق الحج: من مكة إلى عرفات والعودة', lead: 'تقع المشاعر شرق مكة على مسافة بضعة كيلومترات بعضها من بعض.' },
+  tr: { eyebrow: 'Harita', title: 'Hac yolu: Mekke’den Arafat’a ve geri', lead: 'Aşamalar Mekke’nin doğusunda, birkaç kilometrelik bir alanda gerçekleşir.' },
+}
 
 const LABELS = {
   az: { title:'Həcc və ümrə bələdçisi', subtitle:'Addım-addım həcc və ümrə qaydası', heroArabic:'الْحَجّ', hajj:'Həcc', umrah:'Ümrə', step:'Addım', recite:'Oxu', prev:'Əvvəlki', next:'Növbəti', of:'/', notes:'Qeydlər', complete:'Tamamlandı!', restart:'Yenidən başla', backToSteps:'Addımlara qayıt', steps:'Addımlar' },
@@ -400,12 +413,17 @@ export default function HajjGuidePage({ setPage }) {
       {/* Hero — dizayn v2: sakit kağız fon + xatəm naxışı, bir <h1> */}
       <header className="ui-page-hero hg-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        <div className="ui-container" data-reveal="stagger">
-          <Breadcrumb setPage={setPage} current={t.title} />
-          <span className="ui-eyebrow">{navGroupLabel(navGroupOf('hajjguide'), lang)}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          {lang !== 'ar' && <p className="hg-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">{t.heroArabic}</p>}
-          <p className="ui-lead">{t.subtitle}</p>
+        <div className="ui-container mh-grid">
+          <div data-reveal="stagger">
+            <Breadcrumb setPage={setPage} current={t.title} />
+            <span className="ui-eyebrow">{navGroupLabel(navGroupOf('hajjguide'), lang)}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            {lang !== 'ar' && <p className="hg-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">{t.heroArabic}</p>}
+            <p className="ui-lead">{t.subtitle}</p>
+          </div>
+          <div className="mh-media">
+            <PlacePhoto id="mina" lang={lang} eager sizes="(min-width: 1024px) 480px, 100vw" />
+          </div>
         </div>
       </header>
 
@@ -434,6 +452,28 @@ export default function HajjGuidePage({ setPage }) {
                 </button>
               ))}
             </div>
+          )}
+
+          {/* Yerlər və yol: mərhələlər xəritəsi + Məscidül-Haram fotosu (yalnız seçim ekranında) */}
+          {mode === null && (
+            <section className="hg-media" aria-labelledby="hg-media-h">
+              <div className="ui-section-head" data-reveal>
+                <span className="ui-eyebrow">{(MEDIA_L[lang] || MEDIA_L.en).eyebrow}</span>
+                <h2 id="hg-media-h" className="ui-title">{(MEDIA_L[lang] || MEDIA_L.en).title}</h2>
+                <p className="ui-lead">{(MEDIA_L[lang] || MEDIA_L.en).lead}</p>
+              </div>
+              <div className="hg-media-grid">
+                <HajjRouteMap lang={lang} />
+                <div className="hg-media-side" data-reveal="stagger">
+                  {['masjid-al-haram'].map(k => (
+                    <div key={k}>
+                      <PlacePhoto id={k} lang={lang} className="ph--zoom" sizes="(min-width: 1024px) 360px, 100vw" />
+                      <p className="ph-strip__cap">{PLACE_PHOTOS[k].name[lang] || PLACE_PHOTOS[k].name.en}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
           )}
 
           {/* Addım-addım bələdçi */}

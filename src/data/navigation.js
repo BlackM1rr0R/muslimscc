@@ -70,6 +70,8 @@ export const NAV_GROUPS = [
         label: { az: 'Hədis', en: 'Hadith', ru: 'Хадисы', ar: 'الحديث', tr: 'Hadis' } },
       { key: 'sahaba', icon: '🏅',
         label: { az: 'Səhabələr', en: 'Companions', ru: 'Сахабы', ar: 'الصحابة', tr: 'Sahabeler' } },
+      { key: 'scholars', icon: '🎓',
+        label: { az: 'Sələf alimləri', en: 'Scholars of the Salaf', ru: 'Учёные саляфа', ar: 'علماء السلف', tr: 'Selef Âlimleri' } },
       { key: 'history', icon: '📜',
         label: { az: 'İslam tarixi', en: 'Islamic History', ru: 'История ислама', ar: 'التاريخ الإسلامي', tr: 'İslam Tarihi' } },
       { key: 'glossary', icon: '🔤',

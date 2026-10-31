@@ -1,8 +1,7 @@
-// ═══ VIDEOS — Firebase real-time + default fallback ═══
-import { getAll, subscribeToCollection, COLLECTIONS } from '../firebase/firestore'
-import { isFirebaseConfigured } from '../firebase/config'
+// ═══ VIDEOS — məzmun API-si (sayt ilə eyni server) + default fallback ═══
+import { getAll, subscribeToCollection, COLLECTIONS } from '../api/content'
 
-// Firebase real-time subscription (web admin əlavə edəndə dərhal görünür)
+// Abunə: ilk yükləmədə + tətbiq ön plana qayıdanda (src/api/content.js)
 export function subscribeToVideos(callback) {
   return subscribeToCollection(COLLECTIONS.VIDEOS, (items) => {
     callback(items.length > 0 ? items : VIDEOS)
@@ -10,15 +9,14 @@ export function subscribeToVideos(callback) {
 }
 
 export async function getVideos() {
-  if (!isFirebaseConfigured()) return VIDEOS
   const items = await getAll(COLLECTIONS.VIDEOS)
   return items.length > 0 ? items : VIDEOS
 }
 
-// Default videolar (Firebase boşdursa fallback)
+// Default videolar (serverdə video yoxdursa fallback)
 // Əvvəl burada 6 standart video vardı — 2026-10-27 yoxlamasında HAMISI YouTube-da
 // mövcud deyildi (thumbnail və oEmbed 404). Uydurma ID yazılmır; videolar admin
-// paneldən (Firestore) gəlir — veb src/data/videos.js ilə eyni qərar.
+// paneldən (server API-si) gəlir — veb src/data/videos.js ilə eyni qərar.
 export const VIDEOS = [];
 
 export const VIDEO_CATEGORIES = [

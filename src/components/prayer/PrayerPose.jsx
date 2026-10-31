@@ -1,219 +1,145 @@
 // ═══════════════════════════════════════════════════════
-// Namaz mövqeləri — öz çəkilmiş inline SVG (xarici şəkil yoxdur)
+// Namaz mövqeləri — abstrakt sxem (öz çəkilmiş inline SVG, xarici şəkil yoxdur)
 //
-// Fiqur "oynaqlı" qurulub: omba → gövdə → çiyin → qol → biləyin, omba → bud →
-// baldır → ayaq. Hər oynaq ayrıca <g>-dir və bucağı CSS `transform` ilə verilir
-// — mövqe dəyişəndə brauzer bucaqları yumşaq keçirir (yalnız transform; hərəkəti
-// azaltma seçilibsə CSS keçidi söndürür). Salam önden görünüşdür — yan fiqurla
-// arasında yalnız opacity keçidi olur.
+// Mənhəc qaydası: canlı təsviri yoxdur. Baş, üz və insan bədəni forması
+// ÇƏKİLMİR (İbn Useymin: başı olmayan, şəxsləşdirilməmiş forma). Mövqe üç
+// hissəli "duruş xətti" ilə (bel · bud · baldır — həndəsi bucaq), əllərin yeri
+// sadə ovuc işarəsi ilə, yerə toxunan üzvlər isə nöqtələrlə göstərilir.
+// Səcdədə yeddi üzv nöqtəsi: alın (burunla), iki əl, iki diz, iki ayağın
+// barmaqları (Buxari 812, Muslim 490) — alın da yalnız nöqtədir.
 //
-// İslami ədəbə uyğun: üz cizgisi YOXDUR (baş sadə formadır). Kişi — uzun köynək
-// (thobe) və araqçın; qadın — başı, boynu və çiyinləri örtən ximar, uzun paltar,
-// ayaqlar örtülü. Rənglər yalnız CSS dəyişənləridir (PrayerGuidePage.css,
-// .pp-svg) — işıqlı/qaranlıq rejimə avtomatik uyğunlaşır.
+// Animasiya: xəttin hissələri ayrıca <g>-dir, bucağı CSS `transform` ilə
+// verilir; əl işarələri və nöqtələr də transform ilə yer dəyişir — mövqelər
+// arası keçid yumşaqdır (yalnız transform/opacity; hərəkəti azaltma seçilibsə
+// CSS keçidi söndürür). Salam — yuxarıdan baxış sxemi (xalça + qiblə + dönmə
+// oxu), yan sxemlə arasında yalnız opacity keçidi olur.
+// Rənglər yalnız CSS dəyişənləridir (PrayerGuidePage.css, .pp-svg).
 //
-// Bucaq qaydası (dərəcə, "mütləq"): əza üçün 0 = aşağı, müsbət = arxaya (fiqur
-// sağa — qibləyə baxır); gövdə üçün 0 = yuxarı, müsbət = irəli əyilmə.
+// Bucaq qaydası (dərəcə, "mütləq"): bel üçün 0 = yuxarı, müsbət = irəli
+// (qibləyə — sağa) əyilmə; bud/baldır üçün 0 = aşağı, müsbət = arxaya.
 // ═══════════════════════════════════════════════════════
 
-const UA = 32   // çiyin → dirsək
-const FA = 30   // dirsək → bilək
-const TH = 44   // bud
-const SH = 42   // baldır
-const FT = 16   // ayaq
-const TO = 56   // omba → çiyin
+const BACK = 74  // omba → bel xəttinin ucu
+const TH = 52    // bud
+const SH = 50    // baldır
 const GROUND = 214
+const G = GROUND - 3 // duruş xəttinin yerə dəydiyi səviyyə
+const GD = GROUND + 3 // yerə toxunan nöqtələrin səviyyəsi (xalçanın üzü)
 
-// Mövqelər (mütləq bucaqlar). s/fs — qol hissəsinin "dərinliyə" getdiyi üçün
-// qısalması (yan görünüşdə proyeksiya).
+// Əl işarəsi: [x, y, fırlanma] — biləyin yeri; 0° = barmaqlar yuxarı.
+// Nöqtələr (7): alın, sağ əl, sol əl, sağ diz, sol diz, sağ ayaq, sol ayaq —
+// [x, görünür]; hamısı xalçanın üzündədir (GD).
+const UP = G - TH - SH // ayaq üstə omba hündürlüyü
+const FEET = (x) => [[x, 0], [x, 0], [x, 0], [x, 0], [x, 0], [x + 4, 1], [x - 4, 1]]
+const STAND = { hip: [120, UP], torso: 0, th: 0, sh: 0, dots: FEET(120) }
+const SIT = { hip: [98, 192], torso: -2, th: -75.5, sh: 88 }
+const SIT_DOTS = [[148, 0], [148, 0], [148, 0], [150, 1], [144, 1], [101, 1], [94, 1]]
 const POSES = {
-  stand: {
-    hip: [118, GROUND - 3 - TH - SH], torso: 0, head: 0,
-    armN: -5, faN: -9, armF: 3, faF: -2,
-    thN: -1, shN: -1, ftN: -90, thF: 3, shF: 3, ftF: -90,
-  },
-  takbir: {
-    hip: [118, GROUND - 3 - TH - SH], torso: 0, head: 0,
-    armN: -40, faN: -170, armF: -34, faF: -166,
-    thN: -1, shN: -1, ftN: -90, thF: 3, shF: 3, ftF: -90, palms: true,
-  },
-  qiyam: {
-    hip: [118, GROUND - 3 - TH - SH], torso: 0, head: 6,
-    armN: -10, faN: -154, fsN: 0.72, armF: -4, faF: -150, fsF: 0.62,
-    thN: -1, shN: -1, ftN: -90, thF: 3, shF: 3, ftF: -90,
-  },
-  ruku: {
-    hip: [88, GROUND - 3 - TH - SH], torso: 89, head: 1,
-    armN: 52, faN: 54, armF: 49, faF: 51,
-    thN: 0, shN: 0, ftN: -90, thF: 3, shF: 3, ftF: -90,
-  },
-  itidal: {
-    hip: [118, GROUND - 3 - TH - SH], torso: 0, head: 0,
-    armN: -40, faN: -170, armF: -34, faF: -166,
-    thN: -1, shN: -1, ftN: -90, thF: 3, shF: 3, ftF: -90, palms: true,
-  },
+  // Niyyət — dik duruş, əllər yanda
+  stand: { ...STAND, handN: [137, 104, 180], handF: [131, 101, 180], hands: 1 },
+  // Təkbir — əllər çiyin/qulaq bərabərində qaldırılıb, ovuclar qibləyə
+  takbir: { ...STAND, handN: [141, 68, 0], handF: [134, 64, 0], hands: 1, raise: 1 },
+  // Qiyam — sağ əl sol əlin üstündə, sinə üzərində
+  qiyam: { ...STAND, handN: [143, 66, -90], handF: [144, 73, -90], hands: 1 },
+  // Rüku — bel üfüqi (90°), əllər dizlərdə
+  ruku: { ...STAND, hip: [96, UP], torso: 90, handN: [105, 148, 180], handF: [101, 146, 180], hands: 1, angle: 1, dots: FEET(96) },
+  // İtidal — rükudan qalxarkən əllər qaldırılır
+  itidal: { ...STAND, handN: [141, 68, 0], handF: [134, 64, 0], hands: 1, raise: 1 },
+  // Səcdə — yeddi üzv yerə toxunur (əl işarəsi gizlənir, əllər nöqtədir)
   sujud: {
-    hip: [96, 166], torso: 113, head: 30,
-    armN: 47, faN: -58, usN: 0.5, fsN: 0.72, armF: 40, faF: -52, usF: 0.42, fsF: 0.66,
-    thN: -8, shN: 96, ftN: -32, thF: -5, shF: 95, ftF: -28, handFlat: true,
+    hip: [92, 157.5], torso: 130, th: -8, sh: 92,
+    handN: [138, G - 4, 90], handF: [131, G - 4, 90], hands: 0, seven: 1,
+    dots: [[156, 1], [138, 1], [129, 1], [102, 1], [94, 1], [50, 1], [42, 1]],
   },
-  jalsa: {
-    hip: [100, 188], torso: -2, head: 4,
-    armN: -32, faN: -46, armF: -28, faF: -42,
-    thN: -80, shN: 102, ftN: -14, thF: -82, shF: 89, ftF: 92,
-  },
-  tashahhud: {
-    hip: [100, 188], torso: -2, head: 6,
-    armN: -32, faN: -46, armF: -28, faF: -42,
-    thN: -80, shN: 102, ftN: -14, thF: -82, shF: 89, ftF: 92, finger: true,
-  },
-  // Son təşəhhüd (3–4 rükətli namazda) — təvərrük: omba yerdə, sol ayaq sağ baldırın altından çıxır
+  // İki səcdə arası oturuş — sol ayaq üstündə, əllər budlarda
+  jalsa: { ...SIT, handN: [121, 193, 90], handF: [116, 189, 90], hands: 1, dots: SIT_DOTS },
+  // Təşəhhüd — eyni oturuş, sağ əlin şəhadət barmağı işarə edir
+  tashahhud: { ...SIT, handN: [121, 193, 90], handF: [116, 189, 90], hands: 1, finger: 1, dots: SIT_DOTS },
+  // Son təşəhhüd (3–4 rükətli namazda) — təvərrük: oturaq yerdə, sol ayaq
+  // sağ baldırın altından çıxır
   tawarruk: {
-    hip: [98, 196], torso: -3, head: 6,
-    armN: -34, faN: -50, armF: -30, faF: -46,
-    thN: -82, shN: 100, ftN: -14, thF: -86, shF: 88, ftF: -90, finger: true,
+    hip: [98, 201], torso: -3, th: -85.6, sh: 88, finger: 1, seat: 1,
+    handN: [121, 199, 90], handF: [116, 195, 90], hands: 1,
+    dots: [[150, 0], [150, 0], [150, 0], [151, 1], [150, 0], [104, 1], [128, 1]],
   },
 }
 
 const SIDE_POSES = new Set(Object.keys(POSES))
 export const POSE_NAMES = [...SIDE_POSES, 'salamR', 'salamL']
 
-// Bucaq/yerdəyişməni CSS transform sətrinə çevirir
-const tr = (x, y, deg = 0, sy = 1) =>
-  `translate(${x}px, ${y}px) rotate(${deg}deg)${sy !== 1 ? ` scale(1, ${sy})` : ''}`
+const tr = (x, y, deg = 0) => `translate(${x}px, ${y}px) rotate(${deg}deg)`
 
-// Seqment: yuxarıdan aşağı (0,0)→(0,len) kapsul. k — proyeksiya qısalması
-// (yalnız xəttin özünə tətbiq olunur, uşaq oynaqlara keçmir — əyilmə olmasın)
-function Seg({ len, w, cls, k = 1 }) {
+// Duruş xəttinin bir hissəsi: (0,0)→(0,len); iki qat — əsas zolaq + işıq xətti
+function Bar({ len }) {
   return (
-    <line
-      x1="0" y1="0" x2="0" y2={len}
-      className={`${cls} pp-seg`}
-      strokeWidth={w}
-      strokeLinecap="round"
-      style={{ transform: `scale(1, ${k})` }}
-    />
+    <>
+      <line x1="0" y1="0" x2="0" y2={len} className="pp-bar" strokeWidth="13" strokeLinecap="round" />
+      <line x1="0" y1={Math.sign(len) * 4} x2="0" y2={len - Math.sign(len) * 4} className="pp-bar-hi" strokeWidth="2.4" strokeLinecap="round" />
+    </>
   )
 }
 
-// Bir qol: çiyin oynağının içində çəkilir. Bucaqlar nisbi verilir.
-function Arm({ rel, relFa, us = 1, fs = 1, far, finger, palms, handFlat, female }) {
-  const sleeve = far ? 'pp-garment-far' : 'pp-garment'
-  const skin = far ? 'pp-skin-far' : 'pp-skin'
+// Ovuc işarəsi (barmaqlar bitişik, sadə forma; 0° = barmaqlar yuxarı)
+function Palm({ far, finger }) {
   return (
-    <g className="pp-j" style={{ transform: tr(0, 0, rel) }}>
-      <Seg len={UA} k={us} w={female ? 15 : 14} cls={sleeve} />
-      <g className="pp-j" style={{ transform: tr(0, UA * us, relFa) }}>
-        <Seg len={FA} k={fs} w={female ? 13 : 12} cls={sleeve} />
-        {/* əl — biləkdən sonra; ovuc qiyamda yuxarı (qibləyə), səcdədə yerə düz */}
-        <g className="pp-j" style={{ transform: tr(0, FA * fs + 2) }}>
-          {handFlat
-            ? <ellipse cx="0" cy="2" rx="4.4" ry="6.6" className={skin} />
-            : <rect x="-4" y="-1" width="8" height={palms ? 12 : 11} rx="4" className={skin} />}
-          {finger && !far && <line x1="0" y1="8" x2="0" y2="16" className="pp-skin-line" strokeWidth="2.6" strokeLinecap="round" />}
+    <g className={far ? 'pp-palm pp-palm--far' : 'pp-palm'} transform="scale(1.3)">
+      <path d="M -5 0 C -5.6 -8 -5.4 -15 -3.2 -19.4 C -2 -21.6 1 -21.6 1.6 -19.4 L 2.2 -16.4 C 3.4 -18 6 -17.4 6 -14.8 L 5.6 -6.8 C 7.2 -8.4 9.4 -7.2 8.8 -5 C 7.8 -1 5 2.2 2.2 3.2 L -3.2 3.2 C -4.4 2.6 -5 1.6 -5 0 Z" />
+      {!far && (
+        <g className={`pp-finger ${finger ? '' : 'is-hidden'}`}>
+          <line x1="0" y1="-21" x2="0" y2="-31" strokeWidth="2.4" strokeLinecap="round" />
+          <circle cx="0" cy="-35" r="2.2" />
         </g>
-      </g>
+      )}
     </g>
   )
 }
 
-function Leg({ rel, relSh, relFt, far, female }) {
-  const cloth = far ? 'pp-garment-far' : 'pp-garment'
-  // Qadında ayaq örtülüdür (corab/paltar), kişidə açıq
-  const foot = female ? (far ? 'pp-sock-far' : 'pp-sock') : (far ? 'pp-skin-far' : 'pp-skin')
-  return (
-    <g className="pp-j" style={{ transform: tr(0, 0, rel) }}>
-      <Seg len={TH} w={female ? 30 : 27} cls={cloth} />
-      <g className="pp-j" style={{ transform: tr(0, TH, relSh) }}>
-        <Seg len={SH} w={female ? 26 : 22} cls={cloth} />
-        <g className="pp-j" style={{ transform: tr(0, SH, relFt) }}>
-          <Seg len={FT} w="9" cls={foot} />
-        </g>
-      </g>
-    </g>
-  )
-}
-
-// Yan görünüşlü fiqur (bütün mövqelər salamdan başqa)
-function SideFigure({ p, female }) {
-  const t = p.torso
-  return (
-    <g className="pp-j" style={{ transform: tr(p.hip[0], p.hip[1]) }}>
-      {/* arxa əzalar (solğun) */}
-      <Leg rel={p.thF} relSh={p.shF - p.thF} relFt={p.ftF - p.shF} far female={female} />
-      <g className="pp-j" style={{ transform: tr(0, 0, t) }}>
-        <g className="pp-j" style={{ transform: tr(0, -TO + 6) }}>
-          <Arm rel={p.armF - t} relFa={p.faF - p.armF} us={p.usF} fs={p.fsF} far palms={p.palms} handFlat={p.handFlat} female={female} />
-        </g>
-        {/* gövdə: thobe / uzun paltar (yuvarlaq uclar çiyni və ombanı formalaşdırır) */}
-        <line x1="0" y1="-6" x2="0" y2={-TO + 17} className="pp-garment" strokeWidth={female ? 40 : 37} strokeLinecap="round" />
-        {/* bel qatı — gövdəyə həcm verir */}
-        <line x1="-10" y1="-22" x2="12" y2="-22" className="pp-fold" strokeWidth="1.4" strokeLinecap="round" />
-      </g>
-      {/* ön ayaq gövdənin önündə */}
-      <Leg rel={p.thN} relSh={p.shN - p.thN} relFt={p.ftN - p.shN} female={female} />
-      <g className="pp-j" style={{ transform: tr(0, 0, t) }}>
-        {/* baş + boyun — üz cizgisi yoxdur */}
-        <g className="pp-j" style={{ transform: tr(0, -TO + 1, p.head) }}>
-          {female ? (
-            <>
-              {/* ximar: başı, boynu, çiyinləri örtür; üz yeri — cizgisiz açıq oval */}
-              <path d="M -19 8 C -22 -10 -18 -37 1 -37 C 20 -37 23 -12 19 8 C 12 13 -12 13 -19 8 Z" className="pp-khimar" />
-              <ellipse cx="9" cy="-20" rx="6.2" ry="8.6" className="pp-skin" />
-            </>
-          ) : (
-            <>
-              <line x1="0" y1="2" x2="0" y2="-10" className="pp-skin" strokeWidth="11" strokeLinecap="round" />
-              <circle cx="1.5" cy="-21" r="13.2" className="pp-skin" />
-              {/* araqçın */}
-              <path d="M -11.6 -24 A 13.2 13.2 0 0 1 14.6 -24.6 C 6 -27.6 -4 -27.6 -11.6 -24 Z" className="pp-cap" />
-            </>
-          )}
-        </g>
-        <g className="pp-j" style={{ transform: tr(0, -TO + 6) }}>
-          <Arm rel={p.armN - t} relFa={p.faN - p.armN} us={p.usN} fs={p.fsN} finger={p.finger} palms={p.palms} handFlat={p.handFlat} female={female} />
-        </g>
-        {female && (
-          // ximarın çiyinlərə düşən hissəsi qolun yuxarısını örtür
-          <path d={`M -21 ${-TO + 2} C -24 ${-TO + 24} -16 ${-TO + 38} 1 ${-TO + 40} C 16 ${-TO + 38} 23 ${-TO + 24} 20 ${-TO + 2} C 10 ${-TO - 4} -10 ${-TO - 4} -21 ${-TO + 2} Z`} className="pp-khimar" />
-        )}
-      </g>
-    </g>
-  )
-}
-
-// Salam — önden, oturuş; baş sağa/sola çevrilir (yalnız baş yerini dəyişir)
-function FrontFigure({ side, female }) {
-  const dx = side === 'R' ? 7 : -7
+// Yan sxem (salamdan başqa bütün mövqelər)
+function SideScheme({ p }) {
+  const [hx, hy] = p.hip
   return (
     <g>
-      {/* qatlanmış ayaqlar — enli əsas */}
-      <path d="M 66 206 C 70 186 92 178 120 178 C 148 178 170 186 174 206 C 160 212 80 212 66 206 Z" className="pp-garment-far" />
-      {/* gövdə */}
-      <path d="M 96 120 C 104 114 136 114 144 120 L 152 192 C 136 198 104 198 88 192 Z" className="pp-garment" />
-      {/* qollar və dizdə əllər */}
-      <path d="M 98 124 C 88 140 86 162 90 186" className="pp-garment" strokeWidth="13" strokeLinecap="round" fill="none" />
-      <path d="M 142 124 C 152 140 154 162 150 186" className="pp-garment" strokeWidth="13" strokeLinecap="round" fill="none" />
-      <ellipse cx="91" cy="192" rx="7" ry="5.5" className="pp-skin" />
-      <ellipse cx="149" cy="192" rx="7" ry="5.5" className="pp-skin" />
-      <g className="pp-j" style={{ transform: `translate(${dx}px, 0px)` }}>
-        {female ? (
-          <>
-            <path d="M 98 132 C 94 108 100 76 120 76 C 140 76 146 108 142 132 C 130 140 110 140 98 132 Z" className="pp-khimar" />
-            <ellipse cx={120 + dx * 0.9} cy="100" rx="9" ry="12" className="pp-skin" />
-          </>
-        ) : (
-          <>
-            <rect x="113" y="104" width="14" height="14" rx="6" className="pp-skin" />
-            <ellipse cx="120" cy="94" rx="15" ry="17" className="pp-skin" />
-            <path d="M 105 90 C 106 76 134 76 135 90 C 126 86 114 86 105 90 Z" className="pp-cap" />
-          </>
-        )}
+      {/* yerə toxunan üzvlər — nöqtələr */}
+      {p.dots.map(([x, on], i) => (
+        <g key={i} className="pp-j" style={{ transform: tr(x, GD) }}>
+          <g className={`pp-dot ${on ? '' : 'is-hidden'} ${p.seven ? 'is-seven' : ''}`}>
+            <circle r="7.5" className="pp-dot-ring" />
+            <circle r="3.6" className="pp-dot-core" />
+          </g>
+        </g>
+      ))}
+      {/* təvərrük: oturaq yerdədir */}
+      <g className="pp-j" style={{ transform: tr(hx, GD) }}>
+        <rect x="-12" y="-2" width="24" height="4" rx="2" className={`pp-seat ${p.seat ? '' : 'is-hidden'}`} />
       </g>
-      {/* başın döndüyü tərəf — qövs ox */}
-      <g className={`pp-turn pp-turn--${side}`}>
-        <path d={side === 'R' ? 'M 150 78 C 162 82 168 92 168 104' : 'M 90 78 C 78 82 72 92 72 104'} className="pp-arrow" fill="none" strokeWidth="2.6" strokeLinecap="round" />
-        <path d={side === 'R' ? 'M 162 100 L 168 108 L 173 99' : 'M 67 99 L 72 108 L 78 100'} className="pp-arrow" fill="none" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* duruş xətti: omba → bel; omba → bud → baldır */}
+      <g className="pp-j" style={{ transform: tr(hx, hy) }}>
+        <g className="pp-j" style={{ transform: tr(0, 0, p.th) }}>
+          <Bar len={TH} />
+          <g className="pp-j" style={{ transform: tr(0, TH, p.sh - p.th) }}>
+            <Bar len={SH} />
+          </g>
+        </g>
+        <g className="pp-j" style={{ transform: tr(0, 0, p.torso) }}>
+          <Bar len={-BACK} />
+        </g>
+        {/* rüku: bel ilə ayaq arasında düz bucaq */}
+        <path d="M 17 0 L 17 17 L 0 17" className={`pp-angle ${p.angle ? '' : 'is-hidden'}`} fill="none" strokeWidth="2" strokeLinejoin="round" />
+      </g>
+
+      {/* əllər */}
+      <g className="pp-j" style={{ transform: tr(...p.handF) }}>
+        <g className={`pp-hand ${p.hands ? '' : 'is-hidden'}`}><Palm far /></g>
+      </g>
+      <g className="pp-j" style={{ transform: tr(...p.handN) }}>
+        <g className={`pp-hand ${p.hands ? '' : 'is-hidden'}`}><Palm finger={p.finger} /></g>
+      </g>
+
+      {/* təkbir/itidal: əllərin qaldırılması — yuxarı ox */}
+      <g className={`pp-cue ${p.raise ? '' : 'is-hidden'}`}>
+        <path d="M 162 96 L 162 56" className="pp-arrow" fill="none" strokeWidth="2.6" strokeLinecap="round" />
+        <path d="M 155.5 63 L 162 55.5 L 168.5 63" className="pp-arrow" fill="none" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
       </g>
     </g>
   )
@@ -233,19 +159,45 @@ function Rug() {
   )
 }
 
+// Salam — yuxarıdan baxış: xalça, qiblə (yuxarı) və sağa/sola dönmə oxu.
+// Namaz qılanın yeri yalnız "buradasınız" işarəsidir (bədən forması yoxdur).
+function SalamScheme({ side }) {
+  const R = side === 'R'
+  const tip = R ? 182 : 58
+  return (
+    <g>
+      {/* xalça yuxarıdan; mehrab tağı qiblə tərəfdə */}
+      <rect x="82" y="66" width="76" height="140" rx="10" className="pp-rug" />
+      <rect x="89" y="73" width="62" height="126" rx="6" className="pp-rug-line" fill="none" strokeWidth="1.2" />
+      <path d="M 102 104 L 102 90 Q 120 70 138 90 L 138 104" className="pp-rug-line" fill="none" strokeWidth="1.2" />
+      {/* qiblə istiqaməti — Kəbə işarəsi */}
+      <rect x="111" y="30" width="18" height="18" rx="2.5" className="pp-qibla" />
+      <line x1="111" y1="36" x2="129" y2="36" className="pp-qibla-band" strokeWidth="2.4" />
+      <path d="M 120 132 L 120 56" className="pp-guide" fill="none" strokeWidth="1.6" strokeDasharray="3 5" strokeLinecap="round" />
+      {/* buradasınız */}
+      <circle cx="120" cy="150" r="11" className="pp-dot-ring" />
+      <circle cx="120" cy="150" r="5" className="pp-dot-core" />
+      {/* dönmə oxu */}
+      <g className={`pp-turn pp-turn--${side}`}>
+        <path d={`M 120 132 C 120 112 ${R ? 136 : 104} 104 ${tip} 104`} className="pp-arrow" fill="none" strokeWidth="3.2" strokeLinecap="round" />
+        <path d={R ? `M ${tip - 9} 96 L ${tip + 1} 104 L ${tip - 9} 112` : `M ${tip + 9} 96 L ${tip - 1} 104 L ${tip + 9} 112`} className="pp-arrow" fill="none" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+      </g>
+    </g>
+  )
+}
+
 /**
- * <PrayerPose pose="ruku" gender="m|f" label="Rüku" />
+ * <PrayerPose pose="ruku" label="Rüku" />
  * pose: stand | takbir | qiyam | ruku | itidal | sujud | jalsa | tashahhud | tawarruk | salamR | salamL
  */
-export default function PrayerPose({ pose = 'stand', gender = 'm', label, className = '' }) {
-  const female = gender === 'f'
+export default function PrayerPose({ pose = 'stand', label, className = '' }) {
   const front = pose === 'salamR' || pose === 'salamL'
-  // Salamda yan fiqur gizlənir, amma son oturuş mövqeyində qalır — geri qayıdanda keçid yumşaq olsun
+  // Salamda yan sxem gizlənir, amma son oturuş mövqeyində qalır — geri qayıdanda keçid yumşaq olsun
   const p = POSES[front ? 'tashahhud' : pose] || POSES.stand
   return (
     <svg
       viewBox="0 0 240 240"
-      className={`pp-svg ${female ? 'pp-svg--f' : 'pp-svg--m'} ${className}`}
+      className={`pp-svg ${className}`}
       role={label ? 'img' : undefined}
       aria-label={label || undefined}
       aria-hidden={label ? undefined : 'true'}
@@ -253,12 +205,12 @@ export default function PrayerPose({ pose = 'stand', gender = 'm', label, classN
       focusable="false"
     >
       <circle cx="120" cy="124" r="100" className="pp-halo" />
-      <Rug />
       <g className={`pp-layer ${front ? 'is-hidden' : ''}`}>
-        <SideFigure p={p} female={female} />
+        <Rug />
+        <SideScheme p={p} />
       </g>
       <g className={`pp-layer ${front ? '' : 'is-hidden'}`}>
-        <FrontFigure side={pose === 'salamL' ? 'L' : 'R'} female={female} />
+        <SalamScheme side={pose === 'salamL' ? 'L' : 'R'} />
       </g>
     </svg>
   )

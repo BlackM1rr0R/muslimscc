@@ -1,10 +1,9 @@
-// ═══ ADMIN CONTENT — Firebase Firestore ═══
+// ═══ ADMIN CONTENT — öz məzmun API-miz (src/api/content.js → server/content.js) ═══
 import {
   getAll, addDocument, updateDocument, deleteDocument,
   subscribeToCollection, getSingleDoc, setSingleDoc, subscribeSingleDoc,
   COLLECTIONS,
-} from '../firebase/firestore'
-import { isFirebaseConfigured } from '../firebase/config'
+} from '../api/content'
 
 // ═══ HADITHS ═══
 export const getCustomHadiths = () => getAll(COLLECTIONS.HADITHS)
@@ -117,7 +116,7 @@ export function subscribeToSettings(cb) {
   })
 }
 
-// ═══ KATEQORIYALAR (static — Firebase-də saxlanılmır) ═══
+// ═══ KATEQORIYALAR (static — serverdə saxlanılmır) ═══
 export const ANNOUNCEMENT_TYPES = [
   { key:'info',    label:{az:'Məlumat',en:'Info',ru:'Информация',ar:'معلومات',tr:'Bilgi'}, color:'#3b82f6', icon:'ℹ️' },
   { key:'urgent',  label:{az:'Vacib',en:'Urgent',ru:'Срочно',ar:'عاجل',tr:'Acil'}, color:'#ef4444', icon:'⚠️' },
@@ -193,7 +192,7 @@ export const HERO_GRADIENTS = [
 // ═══ BACKUP & RESTORE ═══
 export async function exportAllData() {
   const data = {
-    version: '2.0-firestore',
+    version: '3.0-api',
     exportedAt: new Date().toISOString(),
     videos: await getAll(COLLECTIONS.VIDEOS),
     hadiths: await getAll(COLLECTIONS.HADITHS),
@@ -236,4 +235,3 @@ export function getUserStats() {
   }
 }
 
-export { isFirebaseConfigured }

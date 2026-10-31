@@ -39,6 +39,8 @@
 }
 
 .admin-main { min-width: 0; animation: admin-fade var(--dur-3) var(--ease-out) both; }
+/* Müvəqqəti şifrə: yan menyusuz, tək forma (AccountManager forced) */
+.admin-main--solo { max-width: 760px; margin-inline: auto; }
 .admin-page .admin-theme-btn { margin-bottom: 2px; }
 
 /* ══ 2. YAN MENYU ══════════════════════════════════════════════════ */

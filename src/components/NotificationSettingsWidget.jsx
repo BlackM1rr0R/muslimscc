@@ -9,8 +9,8 @@ import {
   clearStoredToken,
   updateTokenDaily,
   updateTokenPrefs,
-} from '../firebase/messaging'
-import { deleteDocument } from '../firebase/firestore'
+  disablePush,
+} from '../api/push'
 import Icon from './Icon'
 import '../styles/NotificationSettingsWidget.css'
 import { showLocalNotification } from '../utils/notify'
@@ -348,17 +348,14 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     }
     // Token indi yarandı — icazədən əvvəl seçilmiş "Günün ayəsi" serverə də yazılsın
     if (result.ok && prefs.ayah) updateTokenDaily({ ayah: true, hour: prefs.ayahHour })
-    // checkin isə saveTokenToFirestore → serverPrefs() ilə artıq yazılıb
+    // checkin isə abunəlik yazılanda serverPrefs() ilə artıq gedib
   }
 
   const handleDisable = async () => {
     if (!window.confirm(l.confirmDisable)) return
     setBusy(true)
-    const token = getStoredToken()
-    if (token) {
-      try { await deleteDocument('fcm_tokens', token) } catch {}
-      clearStoredToken()
-    }
+    // Brauzer abunəliyi ləğv olunur, serverdən silinir (api/push.js)
+    try { await disablePush() } catch { clearStoredToken() }
     setHasToken(false)
     setBusy(false)
   }

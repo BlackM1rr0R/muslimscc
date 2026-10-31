@@ -68,6 +68,8 @@ export const NAMES = {
   firebase: 'Google Firebase',
   firestore: 'Cloud Firestore',
   fcm: 'Firebase Cloud Messaging',
+  // Brauzerlərin öz push xidmətləri (Web Push — server/push.js → PUSH_HOSTS)
+  pushsvc: 'Google, Mozilla, Apple, Microsoft',
   openrouter: 'OpenRouter',
   gemini: 'Google Gemini',
   aladhan: 'AlAdhan',

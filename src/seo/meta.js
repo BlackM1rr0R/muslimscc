@@ -371,6 +371,19 @@ export const META = {
           d: 'تعرّف على صحابة النبي ﷺ: حياة أبي بكر وعمر وعثمان وعلي وغيرهم، وخدمتهم للإسلام والدروس المستفادة من سيرهم.' },
   },
 
+  scholars: {
+    az: { t: 'Sələf alimləri — İslam alimlərinin həyatı və əsərləri',
+          d: 'Sələf yolunun alimlərini tanı: İmam Əhməd, əl-Buxari, İbn Teymiyyə, İbn Baz, İbn Useymin və başqalarının həyatı, müəllimləri, əsərləri və elmə töhfəsi.' },
+    en: { t: 'Scholars of the Salaf — Lives and Works',
+          d: 'Meet the scholars of the Salaf: Imam Ahmad, al-Bukhari, Ibn Taymiyyah, Ibn Baz, Ibn Uthaymin and others — their lives, teachers, works and legacy, with sources.' },
+    ru: { t: 'Учёные саляфа — жизнь и труды',
+          d: 'Познакомьтесь с учёными саляфа: имам Ахмад, аль-Бухари, Ибн Таймия, Ибн Баз, Ибн Усаймин и другие — их жизнь, учителя, труды и вклад в науку, с источниками.' },
+    tr: { t: 'Selef Âlimleri — Hayatları ve Eserleri',
+          d: 'Selef yolunun âlimlerini tanı: İmam Ahmed, Buhârî, İbn Teymiyye, İbn Bâz, İbn Useymîn ve diğerlerinin hayatı, hocaları, eserleri ve ilme katkıları.' },
+    ar: { t: 'علماء السلف — سيرهم ومؤلفاتهم',
+          d: 'تعرّف على علماء السلف: الإمام أحمد والبخاري وابن تيمية وابن باز وابن عثيمين وغيرهم؛ سيرهم وشيوخهم وتلاميذهم ومؤلفاتهم وأثرهم في العلم، مع المصادر.' },
+  },
+
   holyplaces: {
     az: { t: 'Müqəddəs Yerlər — Kəbə, Məscidi-Nəbəvi və s.',
           d: 'İslamın müqəddəs məkanlarını tanı: Məscidül-Həram, Məscidi-Nəbəvi, Məscidül-Əqsa, Ərəfat, Hira mağarası və 10 müqəddəs yer.' },

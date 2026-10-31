@@ -1,11 +1,10 @@
-// ═══ VIDEOS — Firebase Firestore ilə ═══
-import { getAll, addDocument, updateDocument, deleteDocument, subscribeToCollection, COLLECTIONS } from '../firebase/firestore'
-import { isFirebaseConfigured } from '../firebase/config'
+// ═══ VIDEOS — məzmun API-si ilə (src/api/content.js) ═══
+import { getAll, addDocument, updateDocument, deleteDocument, subscribeToCollection, COLLECTIONS } from '../api/content'
 
-// ═══ DEFAULT VIDEOS (Firebase qoşulmadıqda fallback) ═══
+// ═══ DEFAULT VIDEOS (server cavab vermədikdə fallback) ═══
 // Əvvəl burada 6 standart video vardı — 2026-10-27 yoxlamasında HAMISI YouTube-da
 // mövcud deyildi (thumbnail və oEmbed 404): istifadəçi boş kartlar görürdü.
-// Uydurma ID yazılmır; videolar admin paneldən (Firestore) əlavə olunur,
+// Uydurma ID yazılmır; videolar admin paneldən əlavə olunur,
 // siyahı boşdursa səhifə "video yoxdur" vəziyyətini göstərir.
 export const DEFAULT_VIDEOS = []
 
@@ -20,7 +19,6 @@ export const VIDEO_CATEGORIES = [
 
 // ═══ ASYNC CRUD ═══
 export async function getVideos() {
-  if (!isFirebaseConfigured()) return DEFAULT_VIDEOS
   const items = await getAll(COLLECTIONS.VIDEOS)
   return items.length > 0 ? items : DEFAULT_VIDEOS
 }
@@ -44,7 +42,7 @@ export function subscribeToVideos(callback) {
   })
 }
 
-// Admin girişi: src/firebase/auth.js (Firebase Authentication + admin claim)
+// Admin girişi: src/api/adminAuth.js (server sessiyası, server/auth.js)
 
 // ═══ YouTube helpers ═══
 export function getYouTubeId(url) {

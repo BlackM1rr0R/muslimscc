@@ -2,7 +2,8 @@
 // Statik <body> məzmunu — scripts/prerender.mjs üçün
 //
 // NƏ: detal səhifələrinin (/quran/<n>-<slug>, /names/<n>-<slug>,
-// /sahaba/<slug>) və siyahı səhifələrinin (/quran, /names, /sahaba)
+// /sahaba/<slug>, /scholars/<slug>) və siyahı səhifələrinin (/quran, /names,
+// /sahaba, /scholars)
 // prerender HTML-ində <div id="root"> içinə HƏQİQİ mətn: h1, giriş, əsas
 // məzmun, iz (breadcrumb) və əlaqəli linklər.
 //
@@ -27,6 +28,7 @@ import {
   BODY_UI, SECTION_LABEL, detailMeta, crumbsFor, surahInfo, nameInfo, sahabaInfo, sentencesOf,
 } from '../src/seo/detail.js'
 import { SAHABA, slugOf } from '../src/data/sahaba.js'
+import { SCHOLARS, ERAS, ERA_LABEL, ERA_SPAN, dateText, lifeSpan } from '../src/data/scholars.js'
 import { localizeSource } from '../src/utils/sourceNames.js'
 import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala } from '../src/utils/quranText.js'
 
@@ -242,6 +244,77 @@ function sahabaListBody(lang) {
   return listShell('sahaba', lang, L.sahabaList, items)
 }
 
+// ═══ Sələf alimi ═══
+// Profilin bütün mətni (həyatı, töhfəsi, müəllim/tələbə, əsərlər, sitatlar,
+// qeyd, mənbə linkləri) — ScholarsPage.jsx-in göstərdiyi ilə eyni məlumat.
+
+const names = (list, lang) => (list || []).map(x => pick(x, lang)).filter(Boolean)
+
+function scholarBody(lang, slug) {
+  const L = ui(lang)
+  const x = SCHOLARS.find(s => s.slug === slug)
+  const name = pick(x.name, lang)
+  const idx = SCHOLARS.indexOf(x)
+  const near = (y, label) => y && { href: pathFor('scholars', lang, y.slug), label, name: pick(y.name, lang) }
+  const sameEra = SCHOLARS.filter(y => y !== x && y.era === x.era)
+  const list = (title, items) => (items.length ? `<h2>${esc(title)}</h2><ul>${items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : '')
+
+  const praise = (x.praise || []).map(q =>
+    `<blockquote class="seo-static__quote"><p class="ui-arabic" lang="ar" dir="rtl">${esc(q.ar)}</p>` +
+    (lang === 'ar' ? '' : `<p>${esc(pick(q, lang))}</p>`) +
+    `<cite>— ${esc(pick(q.by, lang))}, ${esc(pick(q.ref, lang))}</cite></blockquote>`).join('')
+
+  return shell(lang,
+    detailCrumbs('scholars', lang, slug) +
+    `<header>` +
+    `<p class="seo-static__eyebrow">${esc(pick(ERA_LABEL[x.era], lang))} · ${esc(pick(x.title, lang))}</p>` +
+    `<h1>${esc(name)}</h1>` +
+    (lang === 'ar' ? '' : `<p class="seo-static__ar ui-arabic" lang="ar" dir="rtl">${esc(x.name.ar)}</p>`) +
+    `<p class="seo-static__lead">${esc(pick(x.summary, lang))}</p>` +
+    facts([
+      [L.fullName, pick(x.fullName, lang)],
+      [L.born, dateText(x.born, lang)],
+      [L.died, dateText(x.died, lang)],
+      [L.birthplace, x.birthplace ? pick(x.birthplace, lang) : ''],
+      [L.city, pick(x.city, lang)],
+      [L.era, `${pick(ERA_LABEL[x.era], lang)} (${pick(ERA_SPAN[x.era], lang)})`],
+    ]) +
+    `</header>` +
+    `<h2>${esc(L.life)}</h2>${(x.bio[lang] || x.bio.en).map(t => `<p>${esc(t)}</p>`).join('')}` +
+    `<h2>${esc(L.contribution)}</h2><p>${esc(pick(x.contribution, lang))}</p>` +
+    list(L.teachers, names(x.teachers, lang)) +
+    list(L.students, names(x.students, lang)) +
+    list(L.works, names(x.works, lang)) +
+    (praise ? `<h2>${esc(L.praise)}</h2>${praise}` : '') +
+    (x.note ? `<h2>${esc(L.note)}</h2><p>${esc(pick(x.note, lang))}</p>` : '') +
+    `<h2>${esc(L.sources)}</h2><ul>${x.sources.map(r => `<li><a href="${esc(r.url)}" rel="noopener nofollow">${esc(r.label)}</a></li>`).join('')}</ul>` +
+    (sameEra.length ? `<h2>${esc(L.sameEra)}</h2><ul>${sameEra.map(y =>
+      `<li><a href="${pathFor('scholars', lang, y.slug)}">${esc(pick(y.name, lang))}</a> — ${esc(lifeSpan(y, lang))}</li>`).join('')}</ul>` : '') +
+    pager(near(SCHOLARS[idx - 1], L.prevScholar), near(SCHOLARS[idx + 1], L.nextScholar)) +
+    `<p><a href="${pathFor('scholars', lang)}">${esc(L.allScholars)}</a></p>`,
+  )
+}
+
+/** Siyahı: dövr üzrə qruplar (h2 + hər alimə link). */
+function scholarsListBody(lang) {
+  const L = ui(lang)
+  const groups = ERAS.map(era => {
+    const items = SCHOLARS.filter(x => x.era === era).map(x =>
+      `<li><a href="${pathFor('scholars', lang, x.slug)}">${esc(pick(x.name, lang))}</a>` +
+      (lang === 'ar' ? '' : ` <span class="ui-arabic" lang="ar" dir="rtl">${esc(x.name.ar)}</span>`) +
+      ` — ${esc(lifeSpan(x, lang))}</li>`).join('')
+    return items ? `<h3>${esc(pick(ERA_LABEL[era], lang))} (${esc(pick(ERA_SPAN[era], lang))})</h3><ul>${items}</ul>` : ''
+  }).join('')
+  return shell(lang,
+    crumbs(lang, [
+      { name: brandName(lang), href: pathFor('home', lang) },
+      { name: SECTION_LABEL.scholars[lang] || SECTION_LABEL.scholars.az },
+    ]) +
+    `<header><h1>${esc(shortName('scholars', lang))}</h1><p class="seo-static__lead">${esc(descFor('scholars', lang))}</p></header>` +
+    `<h2>${esc(L.scholarList)}</h2>${groups}`,
+  )
+}
+
 // ── Siyahı səhifəsi: h1 + təsvir + bütün detallara linklər (krawl yolu) ──
 function listShell(key, lang, heading, items) {
   return shell(lang,
@@ -256,13 +329,14 @@ function listShell(key, lang, heading, items) {
 
 /**
  * Səhifənin statik bloku (HTML) və ya '' (statik blok yazılmayan səhifə).
- * param — detal parametri (surə/ad nömrəsi, səhabə slug-u) və ya null.
+ * param — detal parametri (surə/ad nömrəsi, səhabə/alim slug-u) və ya null.
  */
 export function staticBodyFor(key, lang, param = null) {
   if (!LANGS.includes(lang)) return ''
   if (key === 'quran') return param ? surahBody(lang, param) : quranListBody(lang)
   if (key === 'names') return param ? nameBody(lang, param) : namesListBody(lang)
   if (key === 'sahaba') return param ? sahabaBody(lang, param) : sahabaListBody(lang)
+  if (key === 'scholars') return param ? scholarBody(lang, param) : scholarsListBody(lang)
   return ''
 }
 

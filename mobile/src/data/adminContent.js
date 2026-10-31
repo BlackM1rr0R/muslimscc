@@ -1,10 +1,10 @@
 // ═══════════════════════════════════════════════════════
-// Admin content subscribers — Web ilə eyni Firestore
+// Admin content subscribers — sayt ilə eyni məzmun API-si
 // ═══════════════════════════════════════════════════════
 // Web-də admin panelinin yazdığı bütün məlumat
-// burada da real-vaxtda oxunur.
+// burada da oxunur (yükləmədə + tətbiq ön plana qayıdanda — src/api/content.js).
 
-import { subscribeToCollection, subscribeSingleDoc, COLLECTIONS } from '../firebase/firestore'
+import { subscribeToCollection, subscribeSingleDoc, COLLECTIONS } from '../api/content'
 
 // ═══ Sabitlər (web ilə eyni) ═══
 export const ANNOUNCEMENT_TYPES = [
