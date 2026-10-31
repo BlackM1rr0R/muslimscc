@@ -4,6 +4,10 @@ import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import { calculateInheritance, heirAllowed, HEIR_MAX } from '../utils/faraid'
+import { useNavigate } from 'react-router-dom'
+import PageLink, { isPlainClick } from '../components/PageLink'
+import { pathFor } from '../seo/routes'
+import { ChartFigure, BarChart, Donut } from '../components/viz'
 import '../styles/InheritancePage.css'
 
 // ═══ MİRAS (FƏRAİZ) HESABLAYICISI ═══
@@ -59,6 +63,34 @@ const L = {
   hadithSrc:  { az:'Buxari 6732, Müslim 1615', en:'al-Bukhari 6732, Muslim 1615', ru:'аль-Бухари 6732, Муслим 1615', ar:'البخاري ٦٧٣٢، مسلم ١٦١٥', tr:'Buhârî 6732, Müslim 1615' },
   disclaimerTitle:{ az:'Diqqət', en:'Important', ru:'Важно', ar:'تنبيه مهم', tr:'Dikkat' },
   disclaimer: { az:'Bu hesablayıcı adi hallar üçün köməkçi vasitədir, fətva deyil. İtkin düşmüş şəxs, cinsi bəlli olmayan (xünsa), ana bətnindəki uşaq, eyni anda (məsələn, qəzada) ölənlər, uzaq qohumlar (zəvil-ərham), qatil və ya qeyri-müsəlman varis kimi mürəkkəb hallarda mütləq alimə və ya şəriət məhkəməsinə müraciət edin.', en:'This calculator is an aid for ordinary cases, not a fatwa. For complex cases — a missing person, a person of unclear sex (khuntha), an unborn child, people who died at the same time (e.g. in an accident), distant kin (dhawu al-arham), a killer or a non-Muslim heir — be sure to consult a scholar or a sharia court.', ru:'Этот калькулятор — помощник для обычных случаев, а не фетва. В сложных случаях — пропавший без вести, человек с неясным полом (хунса), ещё не родившийся ребёнок, погибшие одновременно (например, в аварии), дальние родственники (зауль-архам), убийца или наследник-немусульманин — обязательно обратитесь к учёному или шариатскому суду.', ar:'هذه الحاسبة أداة مساعدة للمسائل المعتادة وليست فتوى. وفي المسائل المعقدة كالمفقود والخنثى المشكل والحمل والغرقى والهدمى ومن مات معًا، وذوي الأرحام، والقاتل والوارث غير المسلم، يجب الرجوع إلى أهل العلم أو المحكمة الشرعية.', tr:'Bu hesaplayıcı olağan durumlar için yardımcı bir araçtır, fetva değildir. Kayıp kişi, cinsiyeti belirsiz kişi (hünsa), anne karnındaki çocuk, aynı anda (örneğin bir kazada) ölenler, uzak akrabalar (zevi’l-erham), katil veya gayrimüslim mirasçı gibi karmaşık durumlarda mutlaka bir âlime veya şer’i mahkemeye başvurun.' },
+  // ── Dizayn v3 ──
+  how:        { az:'Malın məbləğini yazın, sonra ölüm anında sağ olan varisləri seçin — paylar, məbləğlər və hər payın səbəbi dərhal görünür.', en:'Enter the value of the estate, then select the heirs who were alive at the time of death — the shares, amounts and the reason for each share appear at once.', ru:'Введите сумму наследства и отметьте наследников, живых на момент смерти, — доли, суммы и причина каждой доли появятся сразу.', ar:'أدخل قيمة التركة ثم اختر الورثة الأحياء وقت الوفاة، فتظهر الأنصبة والمبالغ وسبب كل نصيب فورًا.', tr:'Terikenin tutarını yazın, sonra ölüm anında hayatta olan mirasçıları seçin — paylar, tutarlar ve her payın sebebi hemen görünür.' },
+  statShares: { az:'Quranda sabit pay', en:'fixed shares in the Quran', ru:'фиксированных долей в Коране', ar:'فروض مقدّرة في القرآن', tr:'Kur’an’da sabit pay' },
+  statVerses: { az:'əsas ayə (Nisa)', en:'key verses (an-Nisa)', ru:'основных аята (ан-Ниса)', ar:'آيات المواريث (النساء)', tr:'temel ayet (Nisâ)' },
+  statWill:   { az:'vəsiyyətin həddi', en:'limit of a bequest', ru:'предел завещания', ar:'حدّ الوصية', tr:'vasiyetin sınırı' },
+  actCalc:    { az:'Hesabla', en:'Calculate', ru:'Рассчитать', ar:'احسب', tr:'Hesapla' },
+  actShares:  { az:'Paylar cədvəli', en:'The shares at a glance', ru:'Таблица долей', ar:'جدول الفروض', tr:'Paylar tablosu' },
+  donutCenter:{ az:'varis', en:'heirs', ru:'наследн.', ar:'ورثة', tr:'mirasçı' },
+  others:     { az:'Digər varislər', en:'Other heirs', ru:'Другие наследники', ar:'بقية الورثة', tr:'Diğer mirasçılar' },
+  orderEy:    { az:'Ardıcıllıq', en:'Order', ru:'Порядок', ar:'الترتيب', tr:'Sıra' },
+  orderTitle: { az:'Mal necə bölünür?', en:'How is the estate settled?', ru:'Как распределяется имущество?', ar:'كيف تُقسم التركة؟', tr:'Terike nasıl paylaştırılır?' },
+  orderLead:  { az:'Varislərə çatmazdan əvvəl maldan üç hüquq çıxılır — bu sıra ilə.', en:'Three rights are taken out of the estate before the heirs receive anything — in this order.', ru:'Прежде чем наследники что-то получат, из имущества вычитаются три права — в этом порядке.', ar:'تُقدَّم ثلاثة حقوق على حق الورثة، بهذا الترتيب.', tr:'Mirasçılara geçmeden önce terikeden üç hak düşülür — bu sırayla.' },
+  o1:         { az:'Kəfən və dəfn xərcləri maldan ödənilir.', en:'The shroud and burial costs are paid from the estate.', ru:'Расходы на саван и погребение оплачиваются из имущества.', ar:'تُخرج تكاليف الكفن والدفن من التركة.', tr:'Kefen ve defin masrafları terikeden ödenir.' },
+  o2:         { az:'Sonra ölənin borcları tam ödənilir.', en:'Then the debts of the deceased are paid in full.', ru:'Затем полностью выплачиваются долги умершего.', ar:'ثم تُقضى ديون الميت كاملة.', tr:'Sonra ölenin borçları tamamen ödenir.' },
+  o3:         { az:'Qalanın ən çoxu 1/3-i — varis olmayan şəxsə.', en:'At most 1/3 of what remains — to someone who is not an heir.', ru:'Не более 1/3 остатка — тому, кто не является наследником.', ar:'في حدود ثلث الباقي، لغير وارث.', tr:'Kalanın en fazla 1/3’ü — mirasçı olmayan birine.' },
+  o4t:        { az:'Varislər', en:'The heirs', ru:'Наследники', ar:'الورثة', tr:'Mirasçılar' },
+  o4:         { az:'Qalan mal Quranda müəyyən edilmiş paylarla bölünür.', en:'The remainder is divided by the shares fixed in the Quran.', ru:'Остаток делится по долям, установленным в Коране.', ar:'يُقسم الباقي على الفروض المقدّرة في القرآن.', tr:'Kalan, Kur’an’da belirlenen paylarla bölünür.' },
+  sharesEy:   { az:'Fəraiz', en:'Faraʾid', ru:'Фараид', ar:'الفرائض', tr:'Feraiz' },
+  sharesTitle:{ az:'Altı sabit pay bir baxışda', en:'The six fixed shares at a glance', ru:'Шесть фиксированных долей', ar:'الفروض الستة في لمحة', tr:'Altı sabit pay bir bakışta' },
+  sharesLead: { az:'Quranda adı çəkilən paylar və onları kimin hansı halda aldığı. Zolaq payın malın nə qədərini tutduğunu göstərir.', en:'The shares named in the Quran and who receives each of them, and when. The bar shows how much of the estate each share is.', ru:'Доли, названные в Коране, и кто и когда их получает. Полоса показывает, какую часть имущества составляет доля.', ar:'الفروض المذكورة في القرآن ومن يستحق كلًّا منها ومتى، ويبيّن الشريط مقدار الفرض من التركة.', tr:'Kur’an’da adı geçen paylar ve onları kimin hangi durumda aldığı. Çubuk, payın terikenin ne kadarı olduğunu gösterir.' },
+  sharesNote: { az:'Övlad — oğul, qız, oğul nəvəsi və oğlun qızı deməkdir. Əsəbə (qalanı alan kişi qohum) sabit paylardan sonra qalanı alır.', en:'“Children” means sons, daughters and the children of sons. A residuary (ʿasabah) takes what is left after the fixed shares.', ru:'«Дети» — сыновья, дочери и дети сыновей. Асаба получает то, что осталось после фиксированных долей.', ar:'المراد بالفرع الوارث: الأبناء والبنات وأولاد الابن. والعصبة يأخذ ما بقي بعد الفروض.', tr:'“Çocuk” — oğul, kız ve oğlun çocukları demektir. Asabe, sabit paylardan sonra kalanı alır.' },
+  relTitle:   { az:'Əlaqəli bölmələr', en:'Related sections', ru:'Связанные разделы', ar:'أقسام ذات صلة', tr:'İlgili bölümler' },
+  relWill:    { az:'Vəsiyyət', en:'The bequest (wasiyyah)', ru:'Завещание', ar:'الوصية', tr:'Vasiyet' },
+  relWillSub: { az:'Vəsiyyətin hökmü, həddi və yazılışı', en:'Its ruling, its limit and how to write it', ru:'Его положение, предел и составление', ar:'حكمها وحدّها وكتابتها', tr:'Hükmü, sınırı ve yazılışı' },
+  relJanazah: { az:'Cənazə', en:'The funeral', ru:'Похороны', ar:'الجنائز', tr:'Cenaze' },
+  relJanazahSub:{ az:'Yumaq, kəfən, namaz və dəfn', en:'Washing, shroud, prayer and burial', ru:'Омовение, саван, молитва и погребение', ar:'الغسل والكفن والصلاة والدفن', tr:'Yıkama, kefen, namaz ve defin' },
+  relZakat:   { az:'Zəkat kalkulyatoru', en:'Zakat calculator', ru:'Калькулятор закята', ar:'حاسبة الزكاة', tr:'Zekât hesaplayıcı' },
+  relZakatSub:{ az:'Nisab və 2.5% hesabı', en:'Nisab and the 2.5% calculation', ru:'Нисаб и расчёт 2,5 %', ar:'النصاب وحساب ربع العشر', tr:'Nisap ve %2,5 hesabı' },
   methodTitle:{ az:'Hansı görüşlər əsas götürülüb?', en:'Which positions are followed?', ru:'Какие мнения взяты за основу?', ar:'ما الأقوال المعتمدة؟', tr:'Hangi görüşler esas alındı?' },
   method:     { az:'Sabit paylar, əsəbə, həcb, övl və rədd alimlərin çoxluğunun tətbiq etdiyi kimidir. Baba qardaş-bacıları ata kimi məhrum edir — Əbu Bəkr əs-Siddiq və İbn Abbasın görüşü; İbn Teymiyyə, İbn əl-Qayyim, İbn Baz və İbn Useymin bunu seçib. Müştərəkə məsələsində Hənbəli görüşü (şərikləşmə yoxdur). Atanın anası oğlu ilə birlikdə varis olur — Hənbəli məzhəbi.', en:'Fixed shares, residuaries, exclusion, ʿawl and radd follow the majority of scholars. The grandfather excludes the siblings like the father — the view of Abu Bakr as-Siddiq and Ibn ʿAbbas, chosen by Ibn Taymiyyah, Ibn al-Qayyim, Ibn Baz and Ibn ʿUthaymin. In al-mushtarakah, the Hanbali position (no sharing). The father’s mother inherits together with her son — the Hanbali position.', ru:'Фиксированные доли, асаба, лишение, ауль и радд — по мнению большинства учёных. Дед лишает братьев и сестёр, как отец, — мнение Абу Бакра ас-Сиддика и Ибн Аббаса, избранное Ибн Таймийей, Ибн аль-Каййимом, Ибн Базом и Ибн Усаймином. В вопросе «муштарака» — ханбалитское мнение (без соучастия). Мать отца наследует вместе со своим сыном — ханбалитский мазхаб.', ar:'الفروض والتعصيب والحجب والعول والرد على ما عليه جمهور العلماء. والجد يحجب الإخوة كالأب، وهو قول أبي بكر الصديق وابن عباس، واختاره ابن تيمية وابن القيم وابن باز وابن عثيمين. وفي المسألة المشتركة قول الحنابلة بعدم التشريك. وأم الأب ترث مع ابنها على مذهب الحنابلة.', tr:'Sabit paylar, asabe, hacb, avl ve red âlimlerin çoğunluğunun uyguladığı gibidir. Dede kardeşleri baba gibi mahrum eder — Ebû Bekir es-Sıddîk ve İbn Abbas’ın görüşü; İbn Teymiyye, İbnü’l-Kayyim, İbn Bâz ve İbn Useymîn bunu tercih etmiştir. Müşterekede Hanbelî görüşü (ortaklık yok). Babanın annesi oğluyla birlikte mirasçı olur — Hanbelî mezhebi.' },
 }
@@ -180,6 +212,25 @@ const VERSES = [
 ]
 const TRANSLATOR = { az:'Tərcümə: V. Məmmədəliyev, Z. Bünyadov', en:'Translation: Sahih International', ru:'Перевод: Э. Кулиев', ar:'نص المصحف العثماني', tr:'Meal: Diyanet İşleri' }
 
+// Altı sabit pay (Nisa 4:11, 4:12, 4:176 + Sünnə) — "Paylar bir baxışda" bölməsi.
+// Şərtlər qısaldılıb (dəqiq hal üçün kalkulyator — faraid.js); hamısı yuxarıdakı
+// REASON izahları ilə eynidir.
+const SUNNAH = { az:'Sünnə', en:'Sunnah', ru:'Сунна', ar:'السنة', tr:'Sünnet' }
+const SHARES = [
+  { f:'1/2', v:1/2, refs:['4:11', '4:12', '4:176'],
+    who:{ az:'Ər — övlad yoxdursa · tək qız · tək oğul qızı · tək bacı (ata-ana bir və ya ata bir) — qardaşı olmadıqda', en:'Husband — if there are no children · a single daughter · a single son’s daughter · a single full or paternal sister — when she has no brother', ru:'Муж — если нет детей · единственная дочь · единственная дочь сына · единственная полнородная или единокровная сестра — если нет брата', ar:'الزوج إن لم يكن فرع وارث · البنت الواحدة · بنت الابن الواحدة · الأخت الشقيقة أو لأب الواحدة — عند عدم المعصِّب', tr:'Koca — çocuk yoksa · tek kız · oğlun tek kızı · tek öz veya baba bir kız kardeş — erkek kardeşi yoksa' } },
+  { f:'1/4', v:1/4, refs:['4:12'],
+    who:{ az:'Ər — övlad varsa · arvad — övlad yoxdursa', en:'Husband — if there are children · wife — if there are no children', ru:'Муж — если есть дети · жена — если детей нет', ar:'الزوج مع الفرع الوارث · الزوجة مع عدمه', tr:'Koca — çocuk varsa · hanım — çocuk yoksa' } },
+  { f:'1/8', v:1/8, refs:['4:12'],
+    who:{ az:'Arvad — övlad varsa (bir neçə arvad bu payı bərabər bölür)', en:'Wife — if there are children (several wives share it equally)', ru:'Жена — если есть дети (несколько жён делят долю поровну)', ar:'الزوجة مع الفرع الوارث (وتشترك فيه الزوجات)', tr:'Hanım — çocuk varsa (birden fazla hanım bu payı eşit paylaşır)' } },
+  { f:'2/3', v:2/3, refs:['4:11', '4:176'],
+    who:{ az:'İki və daha çox qız · iki və daha çox oğul qızı · iki və daha çox bacı — qardaşları olmadıqda', en:'Two or more daughters · two or more son’s daughters · two or more sisters — when they have no brother', ru:'Две и более дочери · две и более дочери сына · две и более сестры — если нет брата', ar:'البنتان فأكثر · بنتا الابن فأكثر · الأختان فأكثر — عند عدم المعصِّب', tr:'İki veya daha fazla kız · oğlun iki veya daha fazla kızı · iki veya daha fazla kız kardeş — erkek kardeşleri yoksa' } },
+  { f:'1/3', v:1/3, refs:['4:11', '4:12'],
+    who:{ az:'Ana — övlad yoxdursa və qardaş-bacı ikidən azdırsa · iki və daha çox ana bir qardaş-bacı', en:'Mother — if there are no children and fewer than two siblings · two or more maternal siblings', ru:'Мать — если нет детей и братьев-сестёр меньше двух · двое и более единоутробных братьев и сестёр', ar:'الأم مع عدم الفرع الوارث وجمع الإخوة · الإخوة لأم اثنان فأكثر', tr:'Anne — çocuk yoksa ve kardeş ikiden azsa · iki veya daha fazla anne bir kardeş' } },
+  { f:'1/6', v:1/6, refs:['4:11', '4:12'], sunnah:true,
+    who:{ az:'Ata və ana — övlad varsa · baba · nənə(lər) · tək ana bir qardaş və ya bacı · bir qızla oğul qızı · ata-ana bir bacı ilə ata bir bacı', en:'Father and mother — if there are children · grandfather · grandmother(s) · a single maternal sibling · a son’s daughter with one daughter · a paternal sister with one full sister', ru:'Отец и мать — если есть дети · дед · бабушка (бабушки) · единственный единоутробный брат или сестра · дочь сына при одной дочери · единокровная сестра при одной полнородной', ar:'الأب والأم مع الفرع الوارث · الجد · الجدة أو الجدات · الواحد من ولد الأم · بنت الابن مع البنت · الأخت لأب مع الشقيقة', tr:'Baba ve anne — çocuk varsa · dede · nine(ler) · tek anne bir kardeş · bir kızla oğlun kızı · öz kız kardeşle baba bir kız kardeş' } },
+]
+
 const GROUPS = [
   { k: 'gSpouse',    keys: ['husband', 'wife'] },
   { k: 'gParents',   keys: ['father', 'mother', 'paternalGrandfather', 'paternalGrandmother', 'maternalGrandmother'] },
@@ -192,6 +243,18 @@ const SINGLE = new Set(['husband', 'father', 'mother', 'paternalGrandfather', 'p
 const COUNT_MAX = 20
 
 const pick = (obj, l) => obj?.[l] || obj?.en || ''
+
+// Kəsrləri topla ("1/8" + "13/120" → "7/30") — donutun "Digər varislər" payı üçün
+const gcd = (a, b) => (b ? gcd(b, a % b) : a)
+function addFracs(list) {
+  let n = 0, d = 1
+  for (const f of list) {
+    const [a, b = '1'] = String(f).split('/').map(Number)
+    n = n * b + a * d; d = d * b
+    const g = gcd(Math.abs(n), d) || 1; n /= g; d /= g
+  }
+  return d === 1 ? String(n) : `${n}/${d}`
+}
 
 // Kəsr — ərəbcədə də soldan sağa (1/8)
 function Frac({ value }) {
@@ -246,6 +309,7 @@ export default function InheritancePage({ setPage }) {
   const { lang } = useLang()
   const l = ['az', 'en', 'ru', 'ar', 'tr'].includes(lang) ? lang : 'en'
   const s = (k) => pick(L[k], l)
+  const navigate = useNavigate()
 
   const [deceased, setDeceased] = useState('male')
   const [estate, setEstate] = useState('')
@@ -269,15 +333,32 @@ export default function InheritancePage({ setPage }) {
   const blockedRows = result.shares.filter(r => r.type === 'blocked')
   const heirName = (k) => pick(HEIR[k], l)
 
-  // Qrafik seqmentləri: hər varis qrupu + bölünməmiş qalıq
+  // Donut seqmentləri: viz palitrası 4 rəngdir — ən böyük 3 pay ayrıca,
+  // qalanları "Digər varislər"də birləşir; bölünməmiş qalıq boz (muted).
   const fracNum = (f) => { const [n, d = '1'] = String(f).split('/'); return Number(n) / Number(d) }
-  const segments = active.filter(r => fracNum(r.fraction) > 0).map((r, i) => ({ key: r.heir, label: heirName(r.heir), frac: r.fraction, pct: fracNum(r.fraction) * 100, tone: i % 8 }))
-  if (fracNum(result.unallocated) > 0) segments.push({ key: 'rest', label: s('unallocated'), frac: result.unallocated, pct: fracNum(result.unallocated) * 100, tone: 'rest' })
-  const barAria = `${s('barLabel')}: ` + segments.map(x => `${x.label} ${x.frac}`).join(', ')
+  const shareSegs = active
+    .filter(r => fracNum(r.fraction) > 0)
+    .map(r => ({ key: r.heir, label: heirName(r.heir) + (r.count > 1 ? ` × ${r.count}` : ''), value: fracNum(r.fraction), frac: r.fraction }))
+    .sort((a, b) => b.value - a.value)
+  let segments = shareSegs
+  if (shareSegs.length > 4) {
+    const rest = shareSegs.slice(3)
+    segments = [...shareSegs.slice(0, 3), { key: 'others', label: `${s('others')} (${rest.length})`, value: rest.reduce((t, x) => t + x.value, 0), frac: addFracs(rest.map(x => x.frac)) }]
+  }
+  segments = segments.map((x, i) => ({ ...x, tone: i + 1 }))
+  if (fracNum(result.unallocated) > 0) segments.push({ key: 'rest', label: s('unallocated'), value: fracNum(result.unallocated), frac: result.unallocated, tone: 'muted' })
+  const fmtShare = (v, x) => x?.frac || `${Math.round(v * 1000) / 10}%`
 
   const reasonText = (r) => {
     const txt = pick(REASON[r.reasonKey], l)
     return txt.replace('{who}', r.blockedBy ? heirName(r.blockedBy) : '—')
+  }
+
+  const openLearn = (e, slug) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(pathFor('learn', lang, slug))
+    window.scrollTo(0, 0)
   }
 
   return (
@@ -288,18 +369,27 @@ export default function InheritancePage({ setPage }) {
           <Breadcrumb setPage={setPage} current={s('title')} />
           <span className="ui-eyebrow">{navGroupLabel(navGroupOf('inheritance') || navGroupOf('zakat'), lang)}</span>
           <h1 className="ui-display">{s('title')}</h1>
-          {l !== 'ar' && <p className="inh-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">عِلْمُ الفَرَائِضِ</p>}
           <p className="ui-lead">{s('lead')}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {s('how')}</p>
+          <ul className="ui-page-hero__stats">
+            <li><b className="ui-num">6</b><span>{s('statShares')}</span></li>
+            <li><b className="ui-num">3</b><span>{s('statVerses')}</span></li>
+            <li><b><Frac value="1/3" /></b><span>{s('statWill')}</span></li>
+          </ul>
+          <div className="ui-page-hero__actions">
+            <a className="ui-btn ui-btn--primary ui-btn--sm" href="#inh-calc"><Icon name="inheritance" className="ui-btn__icon" /> {s('actCalc')}</a>
+            <a className="ui-btn ui-btn--secondary ui-btn--sm" href="#inh-shares">{s('actShares')}</a>
+          </div>
         </div>
       </header>
 
-      <section className="ui-section ui-section--tight">
+      <section id="inh-calc" className="ui-section ui-section--tight">
         <div className="ui-container inh-layout">
 
-          {/* ══ Daxiletmə ══ */}
+          {/* ══ Daxiletmə: 3 nömrəli addım ══ */}
           <div className="inh-inputs">
             <div className="ui-card inh-card">
-              <h2 className="inh-card__title"><Icon name="zakat" size={18} /> {s('estateTitle')}</h2>
+              <h2 className="inh-card__title"><span className="inh-step-n ui-num" aria-hidden="true">1</span> {s('estateTitle')}</h2>
               <div className="inh-fields">
                 <MoneyField id="inh-estate" label={s('estate')} value={estate} onChange={setEstate} placeholder={moneyPh} />
                 <MoneyField id="inh-funeral" label={s('funeral')} value={funeral} onChange={setFuneral} placeholder={moneyPh} />
@@ -310,18 +400,20 @@ export default function InheritancePage({ setPage }) {
             </div>
 
             <div className="ui-card inh-card">
-              <h2 className="inh-card__title" id="inh-deceased-l"><Icon name="user" size={18} /> {s('deceased')}</h2>
-              <div className="inh-gender" role="group" aria-labelledby="inh-deceased-l">
-                {['male', 'female'].map(g => (
-                  <button key={g} type="button" className="ui-chip inh-gender__btn" aria-pressed={deceased === g}
-                    onClick={() => setDeceased(g)}>{s(g)}</button>
-                ))}
+              <div className="inh-card__head">
+                <h2 className="inh-card__title" id="inh-deceased-l"><span className="inh-step-n ui-num" aria-hidden="true">2</span> {s('deceased')}</h2>
+                <div className="ui-segmented inh-gender" role="radiogroup" aria-labelledby="inh-deceased-l">
+                  {['male', 'female'].map(g => (
+                    <button key={g} type="button" role="radio" aria-checked={deceased === g}
+                      onClick={() => setDeceased(g)}>{s(g)}</button>
+                  ))}
+                </div>
               </div>
             </div>
 
             <div className="ui-card inh-card">
               <div className="inh-card__head">
-                <h2 className="inh-card__title"><Icon name="list" size={18} /> {s('heirsTitle')}</h2>
+                <h2 className="inh-card__title"><span className="inh-step-n ui-num" aria-hidden="true">3</span> {s('heirsTitle')}</h2>
                 <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={reset}>
                   <Icon name="refresh" className="ui-btn__icon" /> {s('reset')}
                 </button>
@@ -352,7 +444,10 @@ export default function InheritancePage({ setPage }) {
               <h2 className="inh-card__title"><Icon name="analytics" size={18} /> {s('resultTitle')}</h2>
 
               {!showResult ? (
-                <p className="inh-empty">{s('emptyResult')}</p>
+                <div className="inh-empty">
+                  <Donut segments={[]} size={96} thickness={12} legend={false} label={s('emptyResult')} />
+                  <p>{s('emptyResult')}</p>
+                </div>
               ) : (
                 <>
                   <dl className="inh-summary">
@@ -364,18 +459,11 @@ export default function InheritancePage({ setPage }) {
                   </dl>
 
                   {segments.length > 0 && (
-                    <>
-                      <div className="inh-bar" role="img" aria-label={barAria}>
-                        {segments.map(x => (
-                          <span key={x.key} className={`inh-bar__seg inh-tone-${x.tone}`} style={{ flexBasis: `${x.pct}%` }} title={`${x.label} — ${x.frac}`} />
-                        ))}
-                      </div>
-                      <ul className="inh-legend" aria-hidden="true">
-                        {segments.map(x => (
-                          <li key={x.key}><span className={`inh-legend__dot inh-tone-${x.tone}`} />{x.label} <Frac value={x.frac} /></li>
-                        ))}
-                      </ul>
-                    </>
+                    <div className="inh-chart">
+                      <Donut segments={segments} format={fmtShare} size={132} thickness={18}
+                        center={{ value: String(active.reduce((t, r) => t + (r.count || 1), 0)), label: s('donutCenter') }}
+                        label={`${s('barLabel')}: ` + segments.map(x => `${x.label} ${fmtShare(x.value, x)}`).join(', ')} />
+                    </div>
                   )}
 
                   <table className="inh-table">
@@ -441,19 +529,67 @@ export default function InheritancePage({ setPage }) {
               </div>
             )}
 
-            <div className="inh-disclaimer" role="note">
-              <Icon name="alert" size={20} />
+            <aside className="ui-callout ui-callout--warn inh-disclaimer" role="note">
+              <Icon name="alert" />
               <div>
-                <strong>{s('disclaimerTitle')}</strong>
+                <strong className="ui-callout__title">{s('disclaimerTitle')}</strong>
                 <p>{s('disclaimer')}</p>
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       </section>
 
+      {/* ══ Ardıcıllıq: kəfən → borc → vəsiyyət → varislər ══ */}
+      <section className="ui-section ui-section--alt inh-order">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{s('orderEy')}</span>
+            <h2 className="ui-title">{s('orderTitle')}</h2>
+            <p className="ui-lead">{s('orderLead')}</p>
+          </div>
+          <ol className="ui-steps ui-steps--row">
+            {[['funeral', 'o1'], ['debts', 'o2'], ['wasiyyah', 'o3'], ['o4t', 'o4']].map(([tk, xk], i) => (
+              <li key={tk} className="ui-step">
+                <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                <div className="ui-step__body">
+                  <h3 className="ui-step__title">{s(tk)}</h3>
+                  <p className="ui-step__text">{s(xk)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ══ Altı sabit pay ══ */}
+      <section id="inh-shares" className="ui-section inh-shares ui-cv" style={{ '--cv-h': '760px' }}>
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{s('sharesEy')}</span>
+            <h2 className="ui-title">{s('sharesTitle')}</h2>
+            <p className="ui-lead">{s('sharesLead')}</p>
+          </div>
+          <ChartFigure note={s('sharesNote')}>
+            <BarChart
+              label={s('sharesTitle')}
+              labelWidth="64px"
+              max={1}
+              format={(v) => `${Math.round(v * 1000) / 10}%`}
+              data={SHARES.map((x, i) => ({
+                key: x.f,
+                label: <Frac value={x.f} />,
+                value: x.v,
+                tone: i < 3 ? 1 : 2,
+                note: <>{pick(x.who, l)} <span className="inh-shares__ref">({x.refs.join(' · ')}{x.sunnah ? ` · ${pick(SUNNAH, l)}` : ''})</span></>,
+              }))}
+            />
+          </ChartFigure>
+        </div>
+      </section>
+
       {/* ══ Dəlillər ══ */}
-      <section className="ui-section ui-section--alt inh-evidence">
+      <section className="ui-section ui-section--alt inh-evidence ui-cv" style={{ '--cv-h': '1600px' }}>
         <div className="ui-container ui-container--narrow">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{s('evidenceTitle')}</span>
@@ -479,10 +615,35 @@ export default function InheritancePage({ setPage }) {
             </figure>
           </div>
 
-          <div className="ui-card inh-card inh-method" data-reveal>
+          <div className="inh-method" data-reveal>
             <h3 className="inh-card__title"><Icon name="learn" size={18} /> {s('methodTitle')}</h3>
             <p>{s('method')}</p>
           </div>
+        </div>
+      </section>
+
+      {/* ══ Əlaqəli bölmələr ══ */}
+      <section className="ui-section ui-section--tight inh-related">
+        <div className="ui-container ui-container--narrow">
+          <h2 className="ui-title ui-title--sm inh-related__title">{s('relTitle')}</h2>
+          <ul className="ui-list">
+            {[['wasiyyah', 'relWill', 'list'], ['janazah', 'relJanazah', 'learn']].map(([slug, k, icon]) => (
+              <li key={slug}>
+                <a className="ui-list__item" href={pathFor('learn', lang, slug)} onClick={(e) => openLearn(e, slug)}>
+                  <Icon name={icon} />
+                  <span>{s(k)}<small>{s(k + 'Sub')}</small></span>
+                  <Icon name="chevron" className="ui-list__chev ui-flip-rtl" />
+                </a>
+              </li>
+            ))}
+            <li>
+              <PageLink className="ui-list__item" to="zakat" setPage={setPage} onNavigate={() => window.scrollTo(0, 0)}>
+                <Icon name="zakat" />
+                <span>{s('relZakat')}<small>{s('relZakatSub')}</small></span>
+                <Icon name="chevron" className="ui-list__chev ui-flip-rtl" />
+              </PageLink>
+            </li>
+          </ul>
         </div>
       </section>
     </div>

@@ -6,10 +6,12 @@ import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import {
   gregorianToHijri, hijriToGregorian, hijriMonthLength, hijriMonthGrid, shiftHijriMonth,
-  parseGKey, gKey, fromLocalDate, isApproximate, hasUmmAlQura, formatHijri, formatGregorian, weekdayName,
+  parseGKey, gKey, fromLocalDate, gDiffDays, isValidGregorian, isApproximate, hasUmmAlQura, formatHijri, formatGregorian, weekdayName,
   HIJRI_MONTHS, HIJRI_MONTHS_AR, HIJRI_MONTHS_TRANSLIT, WEEKDAYS_SHORT, G_MONTHS_SHORT,
   MIN_H_YEAR, MAX_H_YEAR, MIN_G_YEAR, MAX_G_YEAR,
 } from '../utils/hijri'
+import { BarChart, ChartFigure, ColumnChart, ProgressRing } from '../components/viz'
+import RelatedLinks from '../components/prayer/RelatedLinks'
 import '../styles/HijriPage.css'
 
 // ═══════════════════════════════════════════════════════
@@ -147,6 +149,80 @@ const LABELS = {
   },
 }
 
+// ── Dizayn v3: "Hicri il bir baxışda" və "Gələcək Ramazanlar" (5 dil) ──
+// Bütün rəqəmlər utils/hijri.js ilə HESABLANIR (Ümmül-Qura) — əl ilə yazılmış tarix yoxdur.
+// Ayə 10:5 — api.quran.com (uthmani); tərcümələr alquran.cloud: az.mammadaliyev,
+// en.sahih, ru.kuliev, tr.diyanet (2026-11-01 yoxlanılıb).
+const AYAH_10_5_AR = 'هُوَ ٱلَّذِى جَعَلَ ٱلشَّمْسَ ضِيَآءً وَٱلْقَمَرَ نُورًا وَقَدَّرَهُۥ مَنَازِلَ لِتَعْلَمُوا۟ عَدَدَ ٱلسِّنِينَ وَٱلْحِسَابَ'
+const X = {
+  az: {
+    how: 'Necə işlədilir: istiqaməti seçin, tarixi daxil edin — nəticə dərhal görünür. «Ayı şəbəkədə göstər» həmin ayın bütün günlərini açır.',
+    yearEy: 'Bir baxışda', yearTitle: 'Hicri il necə qurulub', yearLead: 'Hicri il ayın dövrünə əsaslanır: 12 ay, hər biri 29 və ya 30 gün.',
+    ringLabel: 'Hicri {y} ili', ringSub: '{d} / {n} gün keçib',
+    lenTitle: 'Ayların uzunluğu — {y}', lenSub: 'gün (Ümmül-Qura)',
+    cmpTitle: 'Hicri və miladi il', cmpSub: 'gün', cmpH: 'Hicri {y}', cmpG: 'Miladi {y}',
+    cmpNote: 'Fərq təxminən 11 gündür — ona görə Ramazan və bayramlar hər il miladi təqvimdə ~11 gün tez gəlir və təxminən 33 ilə bütün fəsilləri dolaşır.',
+    ayahTr: 'Günəşi işıqlı (parlaq), ayı nurlu edən, illərin sayını və hesabı biləsiniz deyə, ay üçün mənzillər müəyyən edən məhz Odur.', ayahSrc: 'Yunus, 10:5',
+    ramEy: 'Hesablanmış tarixlər', ramTitle: 'Gələcək Ramazanlar', ramLead: 'Ümmül-Qura təqviminə görə; ölkənizdə elan hilalın görülməsinə görə bir gün fərqlənə bilər.',
+    colYear: 'Hicri il', colStart: 'Ramazanın 1-i', colDays: 'Gün', colEid: 'Ramazan bayramı', colShift: 'Ötən ilə görə',
+    shift: (n) => `${n} gün tez`, caption: 'Hesab: Ümmül-Qura (brauzerin Intl təqvimi).',
+  },
+  en: {
+    how: 'How to use: choose a direction and enter a date — the result appears instantly. “Show the month in the grid” opens all days of that month.',
+    yearEy: 'At a glance', yearTitle: 'How the Hijri year works', yearLead: 'The Hijri year follows the moon: 12 months of 29 or 30 days each.',
+    ringLabel: 'Hijri year {y}', ringSub: '{d} / {n} days passed',
+    lenTitle: 'Month lengths — {y}', lenSub: 'days (Umm al-Qura)',
+    cmpTitle: 'Hijri and Gregorian year', cmpSub: 'days', cmpH: 'Hijri {y}', cmpG: 'Gregorian {y}',
+    cmpNote: 'The difference is about 11 days — so Ramadan and the Eids come about 11 days earlier each Gregorian year and move through every season in roughly 33 years.',
+    ayahTr: 'It is He who made the sun a shining light and the moon a derived light and determined for it phases — that you may know the number of years and account [of time].', ayahSrc: 'Yunus 10:5',
+    ramEy: 'Calculated dates', ramTitle: 'Upcoming Ramadans', ramLead: 'By the Umm al-Qura calendar; the announcement in your country may differ by a day, based on the crescent sighting.',
+    colYear: 'Hijri year', colStart: '1 Ramadan', colDays: 'Days', colEid: 'Eid al-Fitr', colShift: 'vs. previous year',
+    shift: (n) => `${n} days earlier`, caption: 'Calculation: Umm al-Qura (the browser’s Intl calendar).',
+  },
+  ru: {
+    how: 'Как пользоваться: выберите направление и введите дату — результат появится сразу. «Показать месяц в сетке» открывает все дни этого месяца.',
+    yearEy: 'С одного взгляда', yearTitle: 'Как устроен год хиджры', yearLead: 'Год хиджры следует за луной: 12 месяцев по 29 или 30 дней.',
+    ringLabel: '{y} год хиджры', ringSub: 'прошло {d} из {n} дней',
+    lenTitle: 'Длина месяцев — {y}', lenSub: 'дней (Умм аль-Кура)',
+    cmpTitle: 'Год хиджры и григорианский год', cmpSub: 'дней', cmpH: 'Хиджра {y}', cmpG: 'Григ. {y}',
+    cmpNote: 'Разница около 11 дней — поэтому Рамадан и праздники каждый год наступают примерно на 11 дней раньше и проходят все времена года примерно за 33 года.',
+    ayahTr: 'Он — Тот, Кто даровал солнцу сияние, а луне — свет. Он установил для нее фазы, чтобы вы могли вести летосчисление и знали счет.', ayahSrc: 'Юнус, 10:5',
+    ramEy: 'Расчётные даты', ramTitle: 'Ближайшие Рамаданы', ramLead: 'По календарю Умм аль-Кура; объявление в вашей стране может отличаться на день — по наблюдению молодого месяца.',
+    colYear: 'Год хиджры', colStart: '1 Рамадана', colDays: 'Дней', colEid: 'Ураза-байрам', colShift: 'К прошлому году',
+    shift: (n) => `на ${n} дн. раньше`, caption: 'Расчёт: Умм аль-Кура (встроенный календарь браузера).',
+  },
+  ar: {
+    how: 'طريقة الاستعمال: اختر اتجاه التحويل وأدخل التاريخ فتظهر النتيجة فورًا، و«اعرض الشهر في الجدول» يعرض أيام ذلك الشهر كلها.',
+    yearEy: 'في لمحة', yearTitle: 'كيف تتكون السنة الهجرية', yearLead: 'السنة الهجرية قمرية: اثنا عشر شهرًا، كل شهر تسعة وعشرون أو ثلاثون يومًا.',
+    ringLabel: 'سنة {y}', ringSub: 'مضى {d} من {n} يومًا',
+    lenTitle: 'أطوال الشهور — {y}', lenSub: 'يومًا (أم القرى)',
+    cmpTitle: 'السنة الهجرية والميلادية', cmpSub: 'يومًا', cmpH: 'هجري {y}', cmpG: 'ميلادي {y}',
+    cmpNote: 'الفرق نحو أحد عشر يومًا، ولذا يتقدم رمضان والعيدان كل سنة ميلادية نحو أحد عشر يومًا، ويدورون على الفصول كلها في نحو ثلاث وثلاثين سنة.',
+    ayahTr: '', ayahSrc: 'يونس: 5',
+    ramEy: 'تواريخ محسوبة', ramTitle: 'رمضان في السنوات القادمة', ramLead: 'وفق تقويم أم القرى، وقد يختلف الإعلان في بلدك بيوم بحسب رؤية الهلال.',
+    colYear: 'السنة الهجرية', colStart: 'أول رمضان', colDays: 'الأيام', colEid: 'عيد الفطر', colShift: 'مقارنة بالسنة السابقة',
+    shift: (n) => `أبكر بـ ${n} يومًا`, caption: 'الحساب: أم القرى (تقويم المتصفح المدمج).',
+  },
+  tr: {
+    how: 'Nasıl kullanılır: yönü seçin, tarihi girin — sonuç hemen görünür. “Ayı tabloda göster” o ayın bütün günlerini açar.',
+    yearEy: 'Bir bakışta', yearTitle: 'Hicri yıl nasıl kurulur', yearLead: 'Hicri yıl aya dayanır: her biri 29 veya 30 gün olan 12 ay.',
+    ringLabel: 'Hicri {y} yılı', ringSub: '{n} günün {d} günü geçti',
+    lenTitle: 'Ayların uzunluğu — {y}', lenSub: 'gün (Ümmü’l-Kurâ)',
+    cmpTitle: 'Hicri ve miladi yıl', cmpSub: 'gün', cmpH: 'Hicri {y}', cmpG: 'Miladi {y}',
+    cmpNote: 'Fark yaklaşık 11 gündür — bu yüzden Ramazan ve bayramlar her yıl miladi takvimde ~11 gün erken gelir ve yaklaşık 33 yılda bütün mevsimleri dolaşır.',
+    ayahTr: 'Güneşi ışıklı ve ayı nurlu yapan; yılların sayısını ve hesabı bilmeniz için, aya konak yerleri düzenleyen O’dur.', ayahSrc: 'Yunus, 10:5',
+    ramEy: 'Hesaplanmış tarihler', ramTitle: 'Gelecek Ramazanlar', ramLead: 'Ümmü’l-Kurâ takvimine göre; ülkenizdeki ilan hilalin görülmesine göre bir gün farklı olabilir.',
+    colYear: 'Hicri yıl', colStart: '1 Ramazan', colDays: 'Gün', colEid: 'Ramazan Bayramı', colShift: 'Önceki yıla göre',
+    shift: (n) => `${n} gün erken`, caption: 'Hesap: Ümmü’l-Kurâ (tarayıcının Intl takvimi).',
+  },
+}
+const HJ_RELATED = [
+  { key: 'calendar', title: { az: 'İslami təqvim', en: 'Islamic calendar', ru: 'Исламский календарь', ar: 'التقويم الإسلامي', tr: 'İslami takvim' }, text: { az: 'Bayramlar və mübarək günlər', en: 'Eids and blessed days', ru: 'Праздники и благословенные дни', ar: 'الأعياد والأيام الفاضلة', tr: 'Bayramlar ve mübarek günler' } },
+  { key: 'ramadan', title: { az: 'İmsakiyyə', en: 'Ramadan timetable', ru: 'Расписание Рамадана', ar: 'إمساكية رمضان', tr: 'İmsakiye' }, text: { az: 'Ramazan vaxtları', en: 'Ramadan times', ru: 'Время в Рамадан', ar: 'أوقات رمضان', tr: 'Ramazan vakitleri' } },
+  { key: 'history', title: { az: 'İslam tarixi', en: 'Islamic history', ru: 'История ислама', ar: 'التاريخ الإسلامي', tr: 'İslam tarihi' }, text: { az: 'Hicrət və sonrası', en: 'The Hijrah and after', ru: 'Хиджра и после', ar: 'الهجرة وما بعدها', tr: 'Hicret ve sonrası' } },
+  { lesson: 'sunnah-fasts', title: { az: 'Sünnə orucları', en: 'Sunnah fasts', ru: 'Желательные посты', ar: 'صيام التطوع', tr: 'Sünnet oruçlar' }, text: { az: 'Dərs', en: 'Lesson', ru: 'Урок', ar: 'درس', tr: 'Ders' } },
+]
+
 const todayG = () => fromLocalDate(new Date())
 
 export default function HijriPage({ setPage }) {
@@ -171,36 +247,149 @@ export default function HijriPage({ setPage }) {
 
   return (
     <div className="hj-root">
-      <header className="ui-page-hero hj-hero">
+      <header className="ui-page-hero ui-page-hero--split hj-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
-          <Breadcrumb setPage={setPage} current={t.title} />
-          <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          {lk !== 'ar' && <p className="hj-hero-ar ui-arabic" lang="ar" aria-hidden="true">التَّقْوِيمُ الهِجْرِيّ</p>}
-          <p className="ui-lead">{t.lead}</p>
+          <div className="ui-page-hero__text">
+            <Breadcrumb setPage={setPage} current={t.title} />
+            <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            <p className="ui-lead">{t.lead}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> {(X[lk] || X.en).how}</p>
+          </div>
+          <div className="ui-page-hero__aside">
+            <TodayCard t={t} lang={lk} g={now} h={hToday} />
+          </div>
         </div>
       </header>
 
       <section className="ui-section hj-main">
         <div className="ui-container hj-layout">
-          <TodayCard t={t} lang={lk} g={now} h={hToday} />
           <Converter t={t} lang={lk} today={now} onShowMonth={(ym) => {
             setView(ym)
             requestAnimationFrame(() => document.getElementById('hj-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
           }} />
           <MonthGrid t={t} lang={lk} view={view} setView={setView} today={now} hToday={hToday} firstDow={firstDow} />
+        </div>
+      </section>
+
+      <YearGlance lang={lk} g={now} h={hToday} />
+      <Ramadans lang={lk} h={hToday} />
+
+      <section className="ui-section ui-section--tight hj-more">
+        <div className="ui-container hj-more-grid">
           <SightingNote t={t} lang={lk} setPage={setPage} />
           <MonthNames t={t} lang={lk} current={hToday.month} />
         </div>
       </section>
+
+      <RelatedLinks items={HJ_RELATED} lang={lk} id="hj-related" />
     </div>
+  )
+}
+
+// ── Hicri il bir baxışda: ilin irəliləyişi, ayların uzunluğu, iki təqvimin müqayisəsi ──
+function YearGlance({ lang, g, h }) {
+  const x = X[lang] || X.en
+  const lens = useMemo(() => Array.from({ length: 12 }, (_, i) => hijriMonthLength(h.year, i + 1)), [h.year])
+  const yearLen = lens.reduce((a, b) => a + b, 0)
+  const doy = lens.slice(0, h.month - 1).reduce((a, b) => a + b, 0) + h.day
+  const gLen = (g.year % 4 === 0 && g.year % 100 !== 0) || g.year % 400 === 0 ? 366 : 365
+  return (
+    <section className="ui-section ui-section--tight ui-section--alt hj-year" aria-labelledby="hj-year-title">
+      <div className="ui-container">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{x.yearEy}</span>
+          <h2 id="hj-year-title" className="ui-title">{x.yearTitle}</h2>
+          <p className="ui-lead">{x.yearLead}</p>
+        </div>
+        <div className="hj-year-grid">
+          <div className="hj-year-ring ui-card">
+            <ProgressRing value={doy} max={yearLen} size={120} thickness={12}
+              label={fill(x.ringLabel, { y: h.year })} sub={fill(x.ringSub, { d: doy, n: yearLen })} />
+          </div>
+          <ChartFigure className="hj-year-fig" title={fill(x.lenTitle, { y: h.year })} sub={x.lenSub}>
+            <ColumnChart height={90} label={`${fill(x.lenTitle, { y: h.year })}: ${lens.join(', ')}`}
+              data={lens.map((v, i) => ({ key: i, label: String(i + 1), value: v, current: i + 1 === h.month, tone: v === 30 ? 1 : 2 }))} />
+          </ChartFigure>
+          <ChartFigure className="hj-year-fig" title={x.cmpTitle} sub={x.cmpSub} note={x.cmpNote}>
+            <BarChart max={gLen} format={(v) => String(v)} label={x.cmpTitle}
+              data={[{ label: fill(x.cmpH, { y: h.year }), value: yearLen }, { label: fill(x.cmpG, { y: g.year }), value: gLen, tone: 2 }]} />
+          </ChartFigure>
+        </div>
+        <figure className="ui-quote hj-quote hj-ayah">
+          <blockquote>
+            <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{AYAH_10_5_AR}</p>
+            {x.ayahTr && <p className="ui-quote__text">«{x.ayahTr}»</p>}
+          </blockquote>
+          <figcaption className="ui-quote__src">— {x.ayahSrc}</figcaption>
+        </figure>
+      </div>
+    </section>
+  )
+}
+
+// ── Gələcək Ramazanlar: hesablanmış başlanğıc, gün sayı, bayram, miladi sürüşmə ──
+function Ramadans({ lang, h }) {
+  const x = X[lang] || X.en
+  const rows = useMemo(() => {
+    const first = h.month <= 9 ? h.year : h.year + 1
+    const out = []
+    for (let y = first; y < first + 6 && y <= MAX_H_YEAR; y++) {
+      const start = hijriToGregorian({ year: y, month: 9, day: 1 })
+      const eid = hijriToGregorian({ year: y, month: 10, day: 1 })
+      const prev = hijriToGregorian({ year: y - 1, month: 9, day: 1 })
+      if (!start || !eid) continue
+      let shift = null
+      if (prev) {
+        const same = { year: prev.year + 1, month: prev.month, day: prev.day }
+        if (isValidGregorian(same)) shift = gDiffDays(start, same)
+      }
+      out.push({ y, start, eid, days: hijriMonthLength(y, 9), shift })
+    }
+    return out
+  }, [h.year, h.month])
+  return (
+    <section className="ui-section ui-section--tight hj-ram" aria-labelledby="hj-ram-title">
+      <div className="ui-container">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{x.ramEy}</span>
+          <h2 id="hj-ram-title" className="ui-title">{x.ramTitle}</h2>
+          <p className="ui-lead">{x.ramLead}</p>
+        </div>
+        <div className="ui-table-wrap" tabIndex={0} role="region" aria-labelledby="hj-ram-title">
+          <table className="ui-table ui-table--compact">
+            <caption>{x.caption}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{x.colYear}</th>
+                <th scope="col">{x.colStart}</th>
+                <th scope="col" className="is-num">{x.colDays}</th>
+                <th scope="col">{x.colEid}</th>
+                <th scope="col">{x.colShift}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={r.y} className={i === 0 ? 'is-current' : undefined}>
+                  <th scope="row" className="ui-num">{r.y}</th>
+                  <td>{formatGregorian(r.start, lang)} <span className="hj-wd">· {weekdayName(r.start, lang)}</span></td>
+                  <td className="is-num">{r.days}</td>
+                  <td>{formatGregorian(r.eid, lang)}</td>
+                  <td className="hj-shift">{r.shift != null ? x.shift(r.shift) : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   )
 }
 
 function TodayCard({ t, lang, g, h }) {
   return (
-    <div className="hj-today ui-card ui-card--inverse" data-reveal>
+    <div className="hj-today ui-card ui-card--inverse">
       <span className="hj-today-label">{t.todayTitle} · {weekdayName(g, lang)}</span>
       <p className="hj-today-h" data-testid="hj-today">{formatHijri(h, lang)}</p>
       {lang !== 'ar' && <p className="hj-today-ar ui-arabic" lang="ar" dir="rtl">{h.day} {HIJRI_MONTHS_AR[h.month - 1]} {h.year} هـ</p>}

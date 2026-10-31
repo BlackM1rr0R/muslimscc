@@ -1,201 +1,187 @@
 /* ══════════════════════════════════════════════════════════════════
-   AnalyticsPage.css — Statistika paneli, dizayn v2
-   Bir vurğu rəngi (zümrüd); qızılı yalnız nailiyyətlərdə. Zolaqlar
-   transform: scaleX ilə dolur (JSX style) və kart görünəndə sıfırdan
-   böyüyür — yalnız transform/opacity. ui.css-dən ƏVVƏL yüklənir.
+   AnalyticsPage.css — Statistika paneli, dizayn v3
+   Kompakt split hero (bugünkü halqa) → 4 tematik bölmə (fəaliyyət
+   xəritəsi + qrafiklər, ibadət, Quran və elm, hədis/dua/sədəqə) →
+   nailiyyətlər. Qrafiklər components/viz-dən; burada yalnız düzülüş.
+   Ölçülər --step-* tokenləri ilə. ui.css-dən ƏVVƏL yüklənir.
    ══════════════════════════════════════════════════════════════════ */
 
 /* ── 1. HERO ─────────────────────────────────────────────────────── */
-.analytics-hero .breadcrumb { justify-content: flex-start; margin: 0; font-size: 13px; color: var(--text-tertiary); }
+.analytics-hero .breadcrumb { justify-content: flex-start; margin: 0; font-size: var(--step--1); color: var(--text-tertiary); }
 .analytics-hero .bc-list { justify-content: flex-start; }
 .analytics-hero .bc-home { color: var(--text-secondary); font-weight: 600; }
 @media (hover: hover) { .analytics-hero .bc-home:hover { color: var(--brand); } }
 
-.analytics-section.section { padding-top: clamp(24px, 3vw, 36px); }
+.analytics-today {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 340px;
+  padding: var(--card-pad);
+}
+.analytics-today .ui-viz-ring { gap: 16px; }
 
 /* ── 2. MƏLUMAT YOXDUR ───────────────────────────────────────────── */
+.analytics-nodata-wrap { padding-top: var(--space-5); }
 .analytics-nodata {
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: var(--space-5);
-  padding: 20px 22px;
+  padding: 18px 20px;
   background: var(--surface-1);
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius-lg);
 }
 .analytics-nodata-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.analytics-nodata-text { color: var(--text-secondary); font-size: 15px; line-height: 1.55; }
+.analytics-nodata-text { color: var(--text-secondary); font-size: var(--step-0); line-height: 1.55; }
 .analytics-nodata-links { display: flex; flex-wrap: wrap; gap: 8px; }
 
-/* ── 3. ÜMUMİ BAXIŞ ──────────────────────────────────────────────── */
-.analytics-overview {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: var(--space-5);
-}
-.analytics-ov-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  min-width: 0;
-  padding: 18px 16px 16px;
-  background: var(--surface-1);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
-  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
-}
-@media (hover: hover) {
-  .analytics-ov-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line-strong); }
-}
-.analytics-ov-icon { margin-bottom: 6px; }
-/* Sıfır dəyərli kartda ikon sakit (boz) — məlumatı olan kart seçilsin */
-.analytics-ov-card:not(.has-value) .analytics-ov-icon {
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--text-tertiary);
-}
-.analytics-ov-value {
-  color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: var(--step-3);
-  font-weight: 500;
-  line-height: 1.05;
-}
-.analytics-ov-card.has-value .analytics-ov-value { color: var(--brand); }
-.analytics-ov-label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; line-height: 1.3; }
+/* ── 3. BÖLMƏLƏR ─────────────────────────────────────────────────── */
+.analytics-sec + .analytics-sec { padding-top: 0; }
+.analytics-overview { margin-bottom: var(--space-5); }
+.analytics-page .analytics-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 560px) { .analytics-page .analytics-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .analytics-page .analytics-overview { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
-/* ── 4. BÖLMƏ KARTLARI ───────────────────────────────────────────── */
+/* Fəaliyyət: xəritə geniş, iki sütun qrafiki yanında */
+.analytics-act-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+@media (min-width: 900px) {
+  .analytics-act-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+/* Fəaliyyət xəritəsi — 12 sütun (həftə) × 7 sətir (gün) */
+.analytics-heat {
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+  max-width: 420px;
+}
+.analytics-heat__cell {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  min-width: 10px;
+  border-radius: 3px;
+  background: var(--viz-track);
+  overflow: hidden;
+}
+.analytics-heat__cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--viz-1);
+  opacity: 0;
+}
+.analytics-heat__cell.l1::after { opacity: 0.3; }
+.analytics-heat__cell.l2::after { opacity: 0.55; }
+.analytics-heat__cell.l3::after { opacity: 0.8; }
+.analytics-heat__cell.l4::after { opacity: 1; }
+.analytics-heat__cell.is-future { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+.analytics-heat-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--space-3);
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+}
+.analytics-heat-legend .analytics-heat__cell { width: 12px; min-width: 12px; }
+.analytics-heat-legend > span:first-child { margin-inline-end: 4px; }
+.analytics-heat-legend > span:last-child { margin-inline-start: 4px; }
+
+/* Kart şəbəkəsi */
 .analytics-sections {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-5);
-  align-items: stretch;   /* bir sırada kartlar eyni hündürlükdə — boş "dəlik" qalmasın */
+  gap: var(--space-4);
+  align-items: start;
 }
-.analytics-card {
-  min-width: 0;
-  background: var(--surface-1);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
-  overflow: hidden;
-}
-.analytics-card.full-width { grid-column: 1 / -1; }
+.analytics-stack { display: grid; gap: var(--space-4); min-width: 0; }
 
-.analytics-card-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 18px 22px 6px;
-}
+.analytics-card { display: flex; flex-direction: column; min-width: 0; padding: 0; }
+.analytics-card-header { display: flex; align-items: center; gap: 12px; padding: 16px var(--card-pad) 4px; }
 .analytics-card-title {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
+  margin: 0;
   color: var(--text-strong);
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-size: var(--step-1);
   font-weight: 600;
   line-height: 1.3;
 }
-.analytics-count { color: var(--text-tertiary); font-family: var(--font-sans); font-size: 14px; font-weight: 500; }
-.analytics-card-body { padding: 6px 22px 20px; }
+.analytics-card-body { display: flex; flex-direction: column; gap: var(--space-4); padding: 8px var(--card-pad) var(--card-pad); }
+.analytics-card .ui-figure--plain .ui-figure__head { margin-bottom: var(--space-3); }
+.analytics-count { color: var(--text-tertiary); font-size: var(--step-0); font-weight: 500; }
 
-/* Kart içindəki kiçik alt başlıq ("Növə görə", "Kviz xalları") */
-.analytics-subhead {
-  margin: 16px 0 4px;
-  color: var(--accent-text);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
+/* Rəqəm sırası (dt/dd) — 2–4 kiçik kafel yan-yana */
+.analytics-nums {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
 }
-[dir="rtl"] .analytics-subhead { letter-spacing: 0; font-size: 13px; }
-
-/* Tam enli kartda iki blok yan-yana (Gündəlik izləyici) */
-.analytics-split { display: grid; grid-template-columns: 1fr; gap: 8px; }
-@media (min-width: 769px) {
-  .analytics-split { grid-template-columns: 1fr 1fr; column-gap: 40px; }
-}
-
-/* Statistika sətirləri */
-.analytics-stat-row {
+.analytics-nums--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1200px) { .analytics-nums--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.analytics-num {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  min-height: 46px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--line);
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
 }
-.analytics-stat-row:last-child { border-bottom: none; }
-.analytics-stat-label { min-width: 0; color: var(--text-secondary); font-size: 14.5px; font-weight: 500; }
-.analytics-stat-value { flex-shrink: 0; color: var(--text-strong); font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.analytics-stat-label { min-width: 0; color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.35; }
+.analytics-stat-value {
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-num);
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
 .analytics-stat-value.highlight { color: var(--brand); }
 
-/* İrəliləyiş zolağı */
-.analytics-progress-wrap { margin: 14px 0 4px; }
-.analytics-progress-label {
+.analytics-meter { display: flex; flex-direction: column; gap: 6px; }
+.analytics-meter__row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  color: var(--text-tertiary);
-  font-size: 13px;
-  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: var(--step--1);
 }
-.analytics-progress-bar,
-.analytics-bar-track {
-  position: relative;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-3);
-  overflow: hidden;
-}
-.analytics-progress-fill,
-.analytics-bar-fill {
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--brand);
-  transform-origin: left center;
-  transition: transform 600ms var(--ease-out);
-}
-[dir="rtl"] .analytics-progress-fill,
-[dir="rtl"] .analytics-bar-fill { transform-origin: right center; }
-/* Kart görünəndə zolaq sıfırdan dolur (yalnız "from" — sonda inline dəyər qalır) */
-.analytics-card[data-revealed=""] .analytics-progress-fill,
-.analytics-card[data-revealed=""] .analytics-bar-fill {
-  animation: an-bar-in 800ms var(--ease-out) 240ms backwards;
-}
+.analytics-meter__row b { color: var(--text-strong); font-weight: 600; }
 
-/* Hifz üç sətri */
-.analytics-hifz-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
-.analytics-hifz-item { display: flex; align-items: center; gap: 10px; }
-.analytics-hifz-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-.analytics-hifz-dot.memorized { background: var(--brand); }
-.analytics-hifz-dot.in-progress { background: var(--accent); }
-.analytics-hifz-dot.not-started { background: var(--line-strong); }
-.analytics-hifz-label { flex: 1; color: var(--text-secondary); font-size: 14px; }
-.analytics-hifz-count { color: var(--text-strong); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.analytics-ring-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.analytics-note { margin: 0; max-width: 34ch; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.analytics-empty-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 
-/* Sədəqə növləri — yatay zolaqlar */
-.analytics-bar-chart { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-.analytics-bar-item { display: grid; grid-template-columns: 88px minmax(0, 1fr) 28px; align-items: center; gap: 10px; }
-.analytics-bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 13px; font-weight: 500; }
-.analytics-bar-track { height: 10px; }
-.analytics-bar-count { color: var(--text-strong); font-size: 13px; font-weight: 600; text-align: end; }
+/* Gündəlik izləyici: bu gün · həftəlik orta */
+.analytics-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.analytics-split-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+}
+.analytics-split-sub { color: var(--text-tertiary); font-size: var(--step--2); }
 
-/* ── 5. NAİLİYYƏTLƏR ─────────────────────────────────────────────── */
+/* ── 4. NAİLİYYƏTLƏR ─────────────────────────────────────────────── */
 .analytics-achievements {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-  margin: 8px 0 0;
+  gap: 10px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -203,119 +189,88 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
-  padding: 16px 10px 14px;
+  padding: 14px 10px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: var(--surface-2);
+  background: var(--surface-1);
   text-align: center;
-  transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) ease;
 }
-@media (hover: hover) { .analytics-badge:hover { transform: translateY(-2px); } }
+.analytics-badge.locked { background: var(--surface-2); border-color: transparent; }
 .analytics-badge.achieved { background: var(--accent-soft); border-color: var(--accent-line); }
 .analytics-badge-icon {
   position: relative;
   display: inline-grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: var(--surface-1);
   box-shadow: inset 0 0 0 1px var(--line);
   color: var(--text-tertiary);
 }
 .analytics-badge.achieved .analytics-badge-icon { box-shadow: inset 0 0 0 1px var(--accent-line); color: var(--accent-text); }
-/* Qazanılan nişanın küncündə kiçik ✓ — görünəndə "pop" edir */
 .analytics-badge-tick {
   position: absolute;
   top: -2px;
   inset-inline-end: -2px;
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: var(--brand);
   color: var(--on-brand);
   box-shadow: 0 0 0 2px var(--surface-1);
 }
 .analytics-achievements[data-revealed=""] .analytics-badge-tick { animation: an-pop-in var(--dur-3) var(--ease-spring) 320ms backwards; }
-.analytics-badge-name { color: var(--text-secondary); font-size: 13px; font-weight: 600; line-height: 1.3; }
+.analytics-badge-name { color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; line-height: 1.3; }
 .analytics-badge.achieved .analytics-badge-name { color: var(--text-strong); }
 .analytics-badge-status {
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-1);
   color: var(--text-tertiary);
-  font-size: 11.5px;
-  font-weight: 600;
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  letter-spacing: 0.04em;
 }
-.analytics-badge.achieved .analytics-badge-status { background: var(--brand-soft-2); color: var(--brand-strong); }
-[data-theme="dark"] .analytics-badge.achieved .analytics-badge-status { color: var(--brand); }
+[dir="rtl"] .analytics-badge-status { letter-spacing: 0; }
+.analytics-badge.achieved .analytics-badge-status { color: var(--brand); }
 
-/* ── 6. CAVABDEHLİK ──────────────────────────────────────────────── */
+/* ── 5. CAVABDEHLİK ──────────────────────────────────────────────── */
 @media (max-width: 1099.98px) {
-  .analytics-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .analytics-achievements { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-
+@media (max-width: 899.98px) {
+  .analytics-sections { grid-template-columns: minmax(0, 1fr); }
+  .analytics-today { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; max-width: none; padding: 12px 16px; }
+  .analytics-today .ui-viz-ring svg { width: 60px; height: 60px; }
+}
 @media (max-width: 767.98px) {
   .analytics-hero .ui-page-hero__crumbs { display: none; }
-  .analytics-section.section { padding-top: 20px; }
-
   .analytics-nodata { flex-direction: column; gap: 12px; padding: 16px; }
   .analytics-nodata .ui-icon-tile--lg { width: 44px; height: 44px; }
+  .analytics-heat { max-width: none; gap: 3px; }
 
-  /* Ümumi baxış — yığcam üfüqi kartlar: kafel · rəqəm · ad */
-  .analytics-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
-  .analytics-ov-card {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas: "icon value" "icon label";
-    align-items: center;
-    column-gap: 12px;
-    row-gap: 0;
-    min-height: 68px;
-    padding: 12px;
-  }
-  .analytics-ov-icon { grid-area: icon; margin: 0; width: 38px; height: 38px; }
-  .analytics-ov-value { grid-area: value; align-self: end; font-size: 22px; }
-  .analytics-ov-label { grid-area: label; align-self: start; }
-
-  .analytics-sections { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .analytics-card-header { padding: 14px 16px 4px; }
-  .analytics-card-body { padding: 4px 16px 16px; }
-  .analytics-bar-item { grid-template-columns: 76px minmax(0, 1fr) 24px; }
-
-  /* Nailiyyətlər — üfüqi sürüşən nişan zolağı (kartın kənarına qədər) */
+  /* Nailiyyətlər — üfüqi sürüşən nişan zolağı */
   .analytics-achievements {
     display: flex;
     gap: 10px;
-    margin: 4px -16px 0;
-    padding: 4px 16px 6px;
+    margin-inline: calc(var(--page-gutter) * -1);
+    padding: 4px var(--page-gutter) 6px;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-snap-type: x proximity;
-    scroll-padding-inline: 16px;
+    scroll-padding-inline: var(--page-gutter);
     scrollbar-width: none;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
-            mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
   }
   .analytics-achievements::-webkit-scrollbar { display: none; }
-  .analytics-badge { flex: 0 0 116px; scroll-snap-align: start; }
+  .analytics-badge { flex: 0 0 112px; scroll-snap-align: start; }
 }
 
-@keyframes an-bar-in { from { transform: scaleX(0); } }
 @keyframes an-pop-in {
   from { opacity: 0; transform: scale(0.4); }
   to   { opacity: 1; transform: none; }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .analytics-card[data-revealed=""] .analytics-progress-fill,
-  .analytics-card[data-revealed=""] .analytics-bar-fill,
   .analytics-achievements[data-revealed=""] .analytics-badge-tick { animation: none; }
-  .analytics-ov-card, .analytics-badge, .analytics-progress-fill, .analytics-bar-fill { transition: none; }
-  .analytics-ov-card:hover, .analytics-badge:hover { transform: none; }
 }

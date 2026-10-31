@@ -1,36 +1,69 @@
 /* ══════════════════════════════════════════════════════
-   DonatePage — Xeyriyyə və ianə (dizayn v2)
+   DonatePage — Xeyriyyə və ianə (dizayn v3)
    Hero: ui.css → .ui-page-hero. Fəzilət kartları: VirtueCards.css.
+   Bölmələr: vermə yolları (4 nömrəli kart) → zəkat/sədəqə cədvəli →
+   fəzilətlər → bələdçi (LessonBlocks) → 5 yoxlama + əlaqəli keçidlər.
    Yalnız tokenlər; qaranlıq rejim və RTL avtomatikdir.
    .ui-* sinifləri valideynlə (.dn-root …) dəyişdirilir — səhifə CSS-i
-   ui.css-dən əvvəl yüklənir (DESIGN.md §4.1).
+   ui.css-dən əvvəl yüklənir (DESIGN.md §8.1).
    ══════════════════════════════════════════════════════ */
 
 /* Çörək qırıntısı hero-da başlanğıca düzlənir (qlobal .breadcrumb ortadadır) */
 .dn-root .ui-page-hero__crumbs .breadcrumb { justify-content: flex-start; margin: 0; }
 .dn-root .ui-page-hero__crumbs .bc-list { justify-content: flex-start; }
 
-.dn-hero-ar {
-  margin-top: 2px;
-  color: var(--accent-text);
-  font-size: clamp(20px, 2vw, 24px);
-  line-height: 1.6;
+/* ── Vermə yolları: 4 nömrəli kart ── */
+.dn-path-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-
-.dn-wrap {
+.dn-path-list > li { display: flex; }
+.dn-root .dn-path {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: clamp(28px, 4vw, 44px);
-  padding-block: var(--hero-gap) var(--page-pad-bottom);
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  padding: var(--card-pad);
+  color: inherit;
+  text-decoration: none;
 }
+.dn-path .ui-icon-tile { margin-bottom: 6px; }
+.dn-path__n {
+  position: absolute;
+  top: var(--card-pad);
+  inset-inline-end: var(--card-pad);
+  color: var(--text-tertiary);
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1;
+}
+.dn-path__badge {
+  color: var(--accent-text);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .dn-path__badge { letter-spacing: 0; }
+.dn-path__title {
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.dn-path__text { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
 
-/* Bölmə başlığı: ikon kafeli + h2 */
-.dn-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-}
+/* ── Zəkat / sədəqə cədvəli ── */
+.dn-cmp { max-width: 880px; }
+.dn-cmp td { color: var(--text-body); font-size: var(--step--1); line-height: 1.55; }
 
 /* ── Fəzilətlər: ayə tam en, hədislər iki sütun ── */
 .dn-vlist {
@@ -40,128 +73,27 @@
 }
 .dn-vlist > :first-child { grid-column: 1 / -1; }
 
-/* ── Tövsiyələr: nömrələr zümrüd dairələrdə ── */
-.dn-root .dn-card { padding: clamp(20px, 3vw, 32px); }
-.dn-tips {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: dn-tip;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.dn-tips li {
-  counter-increment: dn-tip;
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  column-gap: 14px;
-  align-items: start;
-  color: var(--text-body);
-  font-size: var(--step-0);
-  line-height: 1.6;
-}
-.dn-tips li::before {
-  content: counter(dn-tip);
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  margin-top: -2px;
-  border-radius: 50%;
-  background: var(--brand-soft-2);
-  color: var(--brand);
-  font-size: 14px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
+/* ── Verməzdən əvvəl: 5 addım ── */
+.dn-tip { color: var(--text-body); font-size: var(--step-0); line-height: 1.6; }
+.dn-root .dn-footnote { margin-top: var(--space-5); }
 
-.dn-footnote {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 22px;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  background: var(--accent-soft);
-  border-inline-start: 3px solid var(--accent);
-  color: var(--text-secondary);
-  font-size: var(--step--1);
-  line-height: 1.55;
-}
-.dn-footnote svg { flex-shrink: 0; margin-top: 1px; color: var(--accent-text); }
-
-/* ── Faydalı keçidlər ── */
-.dn-links-title { margin-bottom: 14px; }
+/* ── Faydalı keçidlər (.ui-tile --row) ── */
+.dn-links { margin-top: var(--space-7); }
+.dn-links-title { display: block; margin-bottom: var(--space-3); }
 .dn-links-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
   gap: 12px;
-}
-/* Geniş ekranda kafel: ikon yuxarıda, ox küncdə (dar sütunda mətn sıxılmasın) */
-.dn-root .dn-link {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  width: 100%;
-  padding: 18px;
-  font: inherit;
-}
-.dn-root .dn-link .dn-link-arrow { position: absolute; top: 20px; inset-inline-end: 18px; }
-.dn-link-body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.dn-link-title { color: var(--text-strong); font-size: 15px; font-weight: 600; line-height: 1.35; }
-.dn-link-desc { color: var(--text-secondary); font-size: 13px; line-height: 1.45; }
-.dn-link-arrow {
-  flex-shrink: 0;
-  color: var(--text-tertiary);
-  transition: transform var(--dur-2) var(--ease-out), color var(--dur-2) ease;
-}
-@media (hover: hover) {
-  .dn-link:hover .dn-link-arrow { color: var(--brand); transform: translateX(3px); }
-  [dir="rtl"] .dn-link:hover .dn-link-arrow { transform: scaleX(-1) translateX(3px); }
-}
-
-/* ── Telefon: keçidlər bir qruplaşdırılmış siyahı ── */
-@media (max-width: 599.98px) {
-  .dn-links-grid {
-    gap: 0;
-    background: var(--surface-1);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-1);
-    overflow: hidden;
-  }
-  .dn-root .dn-link {
-    flex-direction: row;
-    align-items: center;
-    min-height: 68px;
-    padding: 12px 16px;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
-  }
-  .dn-root .dn-link + .dn-link { border-top: 1px solid var(--line); }
-  .dn-root .dn-link .dn-link-arrow { position: static; }
-  .dn-root .dn-link:hover { transform: none; box-shadow: none; }
-  .dn-root .dn-link:active { background: var(--surface-2); transform: none; }
-  .dn-tips li { font-size: 15px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dn-link-arrow { transition: none; }
 }
 
 /* ── Sədəqə bələdçisi (LessonBlocks — LessonsPage.css; .ls-page altındakı qaydaların eynisi) ── */
-.dn-guide { display: flex; flex-direction: column; gap: var(--space-6); }
-.dn-guide > .dn-head { margin-bottom: 0; }
+.dn-guide .ui-container { display: flex; flex-direction: column; gap: var(--space-6); }
+.dn-guide .ui-section-head { margin-bottom: 0; }
 .dn-guide-sec { display: flex; flex-direction: column; gap: var(--space-4); scroll-margin-top: calc(var(--header-h, 64px) + 20px); }
 .dn-guide-title {
   margin: 0;
   color: var(--text-strong);
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-size: var(--step-2);
   font-weight: 600;
   line-height: var(--lh-snug);
@@ -171,3 +103,11 @@
 .dn-guide-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .dn-guide-links-label { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; }
 .dn-root .dn-guide-chip { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; }
+[id^="dn-"] { scroll-margin-top: calc(var(--header-h, 64px) + 16px); }
+
+/* Telefon: kartlar yığcam — ikon solda, mətn sağda */
+@media (max-width: 599.98px) {
+  .dn-root .dn-path { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; row-gap: 2px; }
+  .dn-path .ui-icon-tile { grid-row: span 3; margin: 0; }
+  .dn-path__n { top: 14px; font-size: var(--step-0); }
+}

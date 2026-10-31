@@ -879,6 +879,16 @@ export default {
             tr: 'İkinci esas: İslam dinini delilleriyle tanımak. İslam; tevhitle Allah’a teslim olmak, itaatle O’na boyun eğmek, şirkten ve şirk ehlinden uzak durmaktır. Üç mertebedir: İslam, iman ve ihsan. Her mertebenin rükünleri vardır.',
           },
         },
+        // Vizual xülasə: dinin üç mərtəbəsi və rüknlərinin sayı (risalənin öz mətni — aşağıda dəlilləri ilə)
+        {
+          t: 'stats',
+          title: { az: 'Dinin üç mərtəbəsi', en: 'The three levels of the religion', ru: 'Три ступени религии', ar: 'مراتب الدين الثلاث', tr: 'Dinin üç mertebesi' },
+          items: [
+            { value: '5', label: { az: 'İslamın rüknü', en: 'pillars of Islam', ru: 'столпов ислама', ar: 'أركان الإسلام', tr: 'İslam’ın rüknü' }, hint: { az: 'şəhadət, namaz, zəkat, oruc, həcc', en: 'testimony, prayer, zakah, fasting, hajj', ru: 'свидетельство, намаз, закят, пост, хадж', ar: 'الشهادتان، الصلاة، الزكاة، الصوم، الحج', tr: 'şehadet, namaz, zekât, oruç, hac' } },
+            { value: '6', label: { az: 'imanın rüknü', en: 'pillars of iman', ru: 'столпов имана', ar: 'أركان الإيمان', tr: 'imanın rüknü' }, hint: { az: 'Allah, mələklər, kitablar, elçilər, Axirət günü, qədər', en: 'Allah, angels, books, messengers, the Last Day, the decree', ru: 'Аллах, ангелы, книги, посланники, Последний день, предопределение', ar: 'الله، الملائكة، الكتب، الرسل، اليوم الآخر، القدر', tr: 'Allah, melekler, kitaplar, peygamberler, Ahiret günü, kader' } },
+            { value: '1', label: { az: 'ehsanın rüknü', en: 'pillar of ihsan', ru: 'столп ихсана', ar: 'ركن الإحسان', tr: 'ihsanın rüknü' }, hint: { az: 'Allaha Onu görürmüş kimi ibadət etmək', en: 'worshipping Allah as though you see Him', ru: 'поклоняться Аллаху так, будто видишь Его', ar: 'أن تعبد الله كأنك تراه', tr: 'Allah’a O’nu görüyormuş gibi ibadet etmek' } },
+          ],
+        },
         {
           t: 'p',
           text: {

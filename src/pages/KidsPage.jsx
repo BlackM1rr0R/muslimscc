@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
 import { pathFor } from '../seo/routes'
 import { KIDS_DUAS, STORIES, IMAN_PILLARS, PILLARS_SOURCES, MANNERS, PARENTS } from '../data/pageGuides/KidsPage'
+import { ProgressRing } from '../components/viz'
 import '../styles/LessonsPage.css'
 import '../styles/KidsPage.css'
 
@@ -26,6 +27,30 @@ function loadManners() {
     if (!raw || raw.date !== todayKey() || !Array.isArray(raw.done)) return []
     return raw.done.filter(id => MANNERS.some(m => m.id === id))
   } catch { return [] }
+}
+
+// v3 — hero, bölmə izahları, ulduz halqası üçün əlavə mətnlər
+const KX = {
+  az: { lead:'Allahın adları, qısa surələr, dualar, Qurandakı peyğəmbər hekayələri və kiçik oyunlar — valideyn guşəsi ilə birlikdə.',
+    how:'Aşağıdakı bölmələrdən birini seçin. Hər dua və hekayənin mənbəsi göstərilib; musiqi və canlı təsvirləri yoxdur.',
+    names:'ad', surahs:'surə', duas:'dua', stories:'hekayə', todayStars:'Bu günün ulduzları', openManners:'Gözəl davranışları işarələ',
+    leads:{ names:'Allahın gözəl adlarını və mənalarını öyrən.', surahs:'Namaz üçün ilk əzbərlənən qısa surələr və onların mənası.', duas:'Yeməkdə, yuxuda, evdən çıxanda — hər gün deyilən qısa dualar.', rules:'Müsəlmanın inandığı və etdiyi əsas şeylər — iki qısa siyahıda.', prophets:'Peyğəmbərlərlə tanış ol: adları və qısa məlumat.', quiz:'Öyrəndiklərini yoxla — səhv etsən də, düz cavabı görəcəksən.' } },
+  en: { lead:'The Names of Allah, short surahs, duas, prophet stories from the Quran and small games — with a corner for parents.',
+    how:'Choose one of the sections below. Every dua and story shows its source; there is no music and no images of living beings.',
+    names:'names', surahs:'surahs', duas:'duas', stories:'stories', todayStars:'Today’s stars', openManners:'Tick your good manners',
+    leads:{ names:'Learn the Beautiful Names of Allah and what they mean.', surahs:'The short surahs children memorise first for prayer, with their meaning.', duas:'Short duas for every day — eating, sleeping, leaving home and more.', rules:'The basics a Muslim believes and does — in two short lists.', prophets:'Meet the prophets: their names and a short note about each.', quiz:'Check what you learnt — if you get one wrong, you will see the right answer.' } },
+  ru: { lead:'Имена Аллаха, короткие суры, дуа, рассказы о пророках из Корана и небольшие игры — и уголок для родителей.',
+    how:'Выберите один из разделов ниже. У каждого дуа и рассказа указан источник; здесь нет музыки и изображений живых существ.',
+    names:'имён', surahs:'сур', duas:'дуа', stories:'рассказов', todayStars:'Звёзды за сегодня', openManners:'Отметить добрые дела',
+    leads:{ names:'Узнай прекрасные имена Аллаха и их значения.', surahs:'Короткие суры, которые дети заучивают первыми для намаза, и их смысл.', duas:'Короткие дуа на каждый день — за едой, перед сном, при выходе из дома.', rules:'Основы того, во что верит и что делает мусульманин, — в двух коротких списках.', prophets:'Познакомься с пророками: их имена и краткие сведения.', quiz:'Проверь, что ты узнал: если ошибёшься, увидишь правильный ответ.' } },
+  ar: { lead:'أسماء الله، وسور قصيرة، وأدعية، وقصص الأنبياء من القرآن، وألعاب صغيرة، مع ركن للوالدين.',
+    how:'اختر أحد الأقسام أدناه. لكل دعاء وقصة مصدر مذكور، ولا موسيقى ولا صور لذوات الأرواح.',
+    names:'اسمًا', surahs:'سورة', duas:'دعاء', stories:'قصة', todayStars:'نجوم اليوم', openManners:'سجّل آدابك الحسنة',
+    leads:{ names:'تعرّف على أسماء الله الحسنى ومعانيها.', surahs:'السور القصيرة التي يحفظها الأطفال أولًا للصلاة، مع معانيها.', duas:'أدعية قصيرة لكل يوم: عند الطعام والنوم والخروج من البيت وغيرها.', rules:'أساس ما يؤمن به المسلم وما يعمله في قائمتين قصيرتين.', prophets:'تعرّف على الأنبياء: أسماؤهم ونبذة قصيرة عن كل منهم.', quiz:'اختبر ما تعلمته، وإن أخطأت فسترى الإجابة الصحيحة.' } },
+  tr: { lead:'Allah’ın isimleri, kısa sureler, dualar, Kur’an’dan peygamber kıssaları ve küçük oyunlar — anne-baba köşesiyle birlikte.',
+    how:'Aşağıdaki bölümlerden birini seçin. Her dua ve kıssanın kaynağı gösterilmiştir; müzik ve canlı tasviri yoktur.',
+    names:'isim', surahs:'sure', duas:'dua', stories:'kıssa', todayStars:'Bugünün yıldızları', openManners:'Güzel davranışlarını işaretle',
+    leads:{ names:'Allah’ın güzel isimlerini ve anlamlarını öğren.', surahs:'Namaz için ilk ezberlenen kısa sureler ve anlamları.', duas:'Her gün okunan kısa dualar — yemekte, uykuda, evden çıkarken.', rules:'Bir Müslümanın inandığı ve yaptığı temel şeyler — iki kısa listede.', prophets:'Peygamberlerle tanış: isimleri ve kısa bilgi.', quiz:'Öğrendiklerini kontrol et — yanılsan da doğru cevabı göreceksin.' } },
 }
 
 const LABELS = {
@@ -338,6 +363,7 @@ const PROPHETS_FOR_KIDS = [
 export default function KidsPage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
+  const k = KX[lang] || KX.az
   const navigate = useNavigate()
 
   const [openSection, setOpenSection] = useState('names')
@@ -461,7 +487,10 @@ export default function KidsPage({ setPage }) {
   const SectionTitle = () => (
     <div className="kids-section-head">
       <span className="ui-icon-tile kids-section-icon" aria-hidden="true"><Icon name={current.icon} /></span>
-      <h2 className="ui-title ui-title--sm kids-section-title">{current.title}</h2>
+      <div className="kids-section-titles">
+        <h2 className="ui-title ui-title--sm kids-section-title">{current.title}</h2>
+        {k.leads[current.key] && <p className="kids-section-lead">{k.leads[current.key]}</p>}
+      </div>
     </div>
   )
 
@@ -469,16 +498,31 @@ export default function KidsPage({ setPage }) {
     <>
       {/* Sakit kağız hero (dizayn v2); sonda dekorativ ikon kafelləri
           (əvvəl "🌙 ⭐ 🕌 📖 🤲" emoji sətri idi) */}
-      <header className="ui-page-hero kids-hero">
+      <header className="ui-page-hero ui-page-hero--split kids-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        <div className="kids-hero__art" aria-hidden="true">
-          {['moonStar', 'star', 'holyplaces', 'quran', 'kids'].map((n, i) => (
-            <span key={n} className={`ui-icon-tile ui-icon-tile--lg kids-hero__tile kids-hero__tile--${i + 1}`}><Icon name={n} /></span>
-          ))}
-        </div>
         <div className="ui-container">
-          <span className="ui-eyebrow">{t.subtitle}</span>
-          <h1 className="ui-display">{t.title}</h1>
+          <div className="ui-page-hero__text">
+            <span className="ui-eyebrow">{t.subtitle}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            <p className="ui-lead">{k.lead}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> {k.how}</p>
+            <ul className="ui-page-hero__stats">
+              <li><b>{NAMES_OF_ALLAH.length}</b><span>{k.names}</span></li>
+              <li><b>{SHORT_SURAHS.length}</b><span>{k.surahs}</span></li>
+              <li><b>{KIDS_DUAS.length}</b><span>{k.duas}</span></li>
+              <li><b>{STORIES.length}</b><span>{k.stories}</span></li>
+            </ul>
+          </div>
+          {/* Sağda: bu günün "ulduzları" — gözəl davranışlar oyununun halqası */}
+          <div className="ui-page-hero__aside">
+            <div className="ui-card kids-stars">
+              <ProgressRing value={mannersDone.length} max={MANNERS.length} size={84} thickness={8} tone={2}
+                label={k.todayStars} sub={<bdi dir="ltr">{mannersDone.length} / {MANNERS.length}</bdi>} />
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => toggleSection('manners', null)}>
+                <Icon name="star" className="ui-btn__icon" /> {k.openManners}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -656,12 +700,8 @@ export default function KidsPage({ setPage }) {
               <SectionTitle />
               <p className="kids-lead">{t.mannersLead}</p>
               <div className="ui-card kids-mgame-top">
-                <span className="kids-mgame-count ui-num">
-                  <Icon name="star" size={18} /> {t.mannersDone}: <bdi dir="ltr">{mannersDone.length} / {MANNERS.length}</bdi>
-                </span>
-                <div className="kids-quiz-bar kids-mgame-bar" aria-hidden="true">
-                  <span style={{ transform: `scaleX(${mannersDone.length / MANNERS.length})` }} />
-                </div>
+                <ProgressRing value={mannersDone.length} max={MANNERS.length} size={56} thickness={6} tone={2}
+                  label={t.mannersDone} sub={<bdi dir="ltr">{mannersDone.length} / {MANNERS.length}</bdi>} />
                 {mannersDone.length > 0 && (
                   <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setMannersDone([])}>
                     <Icon name="refresh" className="ui-btn__icon" /> {t.mannersReset}
@@ -696,11 +736,9 @@ export default function KidsPage({ setPage }) {
               <SectionTitle />
               {quizDone ? (
                 <div className="kids-quiz-done">
-                  <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--accent kids-quiz-done-icon" aria-hidden="true">
-                    <Icon name={score === QUIZ.length ? 'star' : score >= 3 ? 'sparkle' : 'books'} />
-                  </span>
-                  <div className="kids-quiz-result ui-num">
-                    <bdi dir="ltr">{score} / {QUIZ.length}</bdi>
+                  <div className="kids-quiz-ring">
+                    <ProgressRing value={score} max={QUIZ.length} size={112} thickness={10} showPercent={false} tone={2} />
+                    <div className="kids-quiz-result ui-num"><bdi dir="ltr">{score} / {QUIZ.length}</bdi></div>
                   </div>
                   <p className="kids-quiz-msg">
                     {score === QUIZ.length

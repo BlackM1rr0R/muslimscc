@@ -303,14 +303,14 @@ function closure(manifest, key, acc = { js: new Set(), css: new Set() }) {
 }
 
 // Dil → ilk ekranda mütləq lazım olan şrift faylları (src/assets/fonts/fonts.css).
-// Yalnız əsas interfeys şrifti (Inter / ərəbcə IBM Plex): başlıq (Literata) və
+// Yalnız əsas mətn şrifti (Ubuntu Sans / ərəbcə IBM Plex): başlıq (Ubuntu Sans Mono) və
 // Quran (Amiri) şriftləri səhifədən asılıdır — preload olunsa, istifadə
 // olunmayan səhifədə boş yerə bant genişliyi yeyərdi.
 const FONT_PRELOAD = {
-  az: ['inter-latin-var', 'inter-az-var'],
-  tr: ['inter-latin-var', 'inter-az-var'],
-  en: ['inter-latin-var'],
-  ru: ['inter-latin-var', 'inter-cyrillic-var'],
+  az: ['ubuntu-sans-latin-var', 'ubuntu-sans-az-var'],
+  tr: ['ubuntu-sans-latin-var', 'ubuntu-sans-az-var'],
+  en: ['ubuntu-sans-latin-var'],
+  ru: ['ubuntu-sans-latin-var', 'ubuntu-sans-cyrillic-var'],
   ar: ['ibm-plex-sans-arabic-arabic-400'],
 }
 

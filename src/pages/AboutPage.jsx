@@ -7,8 +7,11 @@ import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AboutPage.css'
 import PageLink from '../components/PageLink'
 import ReportErrorButton from '../components/ReportErrorButton'
-import { NAV_GROUPS } from '../data/navigation'
-import { GROUP_DESC, EDITORIAL, ABOUT_EXTRA } from '../data/pageGuides/AboutPage'
+import { NAV_GROUPS, navLabel } from '../data/navigation'
+import { GROUP_DESC, EDITORIAL, ABOUT_EXTRA, ABOUT_V3, MANHAJ_POINTS } from '../data/pageGuides/AboutPage'
+import { LIBRARY, LESSONS_BY_CAT, SCHOLARS_BY_ERA, ERA_SHORT } from '../data/pageGuides/aboutStats'
+import { LESSON_CATS } from '../data/lessons/cats'
+import { StatTile, ChartFigure, BarChart } from '../components/viz'
 
 // Xəritədə göstərilməyən marşrutlar: ana səhifə (loqo) və bu səhifənin özü
 const MAP_SKIP = new Set(['home', 'about'])
@@ -103,7 +106,6 @@ const ABOUT = {
     mission: 'Missiyamız',
     missionText: 'Hər müsəlmana — harada yaşamasından asılı olmayaraq — Quranı, namaz vaxtlarını, hədis və duaları öz dilində, gözəl və diqqəti dağıtmayan mühitdə çatdırmaq.',
     manhaj: 'Mənhəcimiz',
-    manhajText: 'Saytımızdakı dini məzmun Quran və səhih Sünnəyə, səhabələrin və onlara gözəl şəkildə tabe olan ilk nəsillərin — Sələfi-salehin anlayışına əsaslanır (Tövbə 9:100; Buxari 2652). Əqidədə Allahın adlarını və sifətlərini təhrif, təətil, keyfiyyət soruşmaq və bənzətmə olmadan isbat edirik; ibadətdə Peyğəmbərin ﷺ sünnəsinə tabe olub bidətlərdən çəkinirik. Fiqhi məsələlərdə dəlilə əsaslanan görüşləri İbn Baz, İbn Useymin, Albani və Daimi Fətva Komitəsi kimi alimlərin şərhlərinə istinadla təqdim edirik. Bütün müsəlmanlara hörmətlə yanaşırıq; bir səhvimizi görsəniz, bizə bildirməyinizi xahiş edirik.',
     values: 'Dəyərlərimiz',
     v1t: 'Etibarlılıq', v1d: 'Quran, hədis mənbələri və alimlərin əsərlərinə əsaslanan məzmun.',
     v2t: 'Pulsuz', v2d: 'Heç bir abunə, reklam və ya ödəniş yoxdur.',
@@ -115,7 +117,6 @@ const ABOUT = {
     mission: 'Our Mission',
     missionText: 'To bring the Quran, prayer times, hadith and duas to every Muslim — wherever they live — in their own language, in a beautiful, distraction-free environment.',
     manhaj: 'Our Methodology',
-    manhajText: 'The religious content on our site is based on the Quran and the authentic Sunnah, as understood by the Companions and the early generations who followed them in goodness — the Salaf as-Salih (At-Tawbah 9:100; Bukhari 2652). In creed, we affirm Allah\'s Names and Attributes without distortion, denial, asking how, or likening Him to creation; in worship, we follow the Sunnah of the Prophet ﷺ and avoid innovations. In matters of fiqh, we present evidence-based positions with reference to the explanations of scholars such as Ibn Baz, Ibn Uthaymeen, al-Albani and the Permanent Committee for Fatwa. We treat all Muslims with respect; if you notice a mistake, please let us know.',
     values: 'Our Values',
     v1t: 'Reliability', v1d: 'Content based on the Quran, hadith collections and the works of scholars.',
     v2t: 'Free', v2d: 'No subscriptions, no ads, no payments.',
@@ -127,7 +128,6 @@ const ABOUT = {
     mission: 'Наша миссия',
     missionText: 'Донести Коран, время намаза, хадисы и дуа до каждого мусульманина — где бы он ни жил — на его родном языке, в красивой среде без отвлечений.',
     manhaj: 'Наш путь (манхадж)',
-    manhajText: 'Религиозное содержание нашего сайта основано на Коране и достоверной Сунне в понимании сподвижников и первых поколений, последовавших за ними в добре, — праведных предшественников (ас-саляф ас-салих) (ат-Тауба 9:100; Бухари 2652). В вероубеждении мы утверждаем имена и атрибуты Аллаха без искажения, отрицания, вопроса «как» и уподобления творению; в поклонении следуем Сунне Пророка ﷺ и избегаем нововведений. В вопросах фикха мы приводим мнения, основанные на доводах, со ссылкой на разъяснения таких учёных, как Ибн Баз, Ибн Усеймин, аль-Альбани и Постоянный комитет по фетвам. Мы относимся ко всем мусульманам с уважением; если вы заметили ошибку, пожалуйста, сообщите нам.',
     values: 'Наши ценности',
     v1t: 'Достоверность', v1d: 'Содержание основано на Коране, сборниках хадисов и трудах учёных.',
     v2t: 'Бесплатно', v2d: 'Без подписок, рекламы и платежей.',
@@ -139,7 +139,6 @@ const ABOUT = {
     mission: 'رسالتنا',
     missionText: 'إيصال القرآن ومواقيت الصلاة والأحاديث والأدعية إلى كل مسلم — أينما كان — بلغته، في بيئة جميلة خالية من المشتتات.',
     manhaj: 'منهجنا',
-    manhajText: 'يقوم المحتوى الديني في موقعنا على القرآن الكريم والسنة الصحيحة بفهم الصحابة ومن تبعهم بإحسان من القرون الأولى — السلف الصالح (التوبة: 100؛ البخاري 2652). ففي الاعتقاد نثبت أسماء الله وصفاته من غير تحريف ولا تعطيل ولا تكييف ولا تمثيل، وفي العبادة نتبع سنة النبي ﷺ ونجتنب البدع. وفي المسائل الفقهية نعرض الأقوال المبنية على الدليل مع الإحالة إلى شروح العلماء كابن باز وابن عثيمين والألباني واللجنة الدائمة للإفتاء. ونحترم جميع المسلمين، وإن رأيتم خطأً فنرجو أن تنبهونا إليه.',
     values: 'قيمنا',
     v1t: 'الموثوقية', v1d: 'محتوى مبني على القرآن وكتب الحديث ومؤلفات العلماء.',
     v2t: 'مجاني', v2d: 'لا اشتراكات ولا إعلانات ولا مدفوعات.',
@@ -151,7 +150,6 @@ const ABOUT = {
     mission: 'Misyonumuz',
     missionText: 'Kur’an’ı, namaz vakitlerini, hadisleri ve duaları her Müslümana — nerede yaşarsa yaşasın — kendi dilinde, güzel ve dikkat dağıtmayan bir ortamda ulaştırmak.',
     manhaj: 'Menhecimiz',
-    manhajText: 'Sitemizdeki dinî içerik, Kur’an’a ve sahih Sünnet’e, sahabenin ve onlara güzellikle tabi olan ilk nesillerin — Selef-i Salihin’in anlayışına dayanır (Tevbe 9:100; Buhari 2652). Akidede Allah’ın isim ve sıfatlarını tahrif, tatil, keyfiyet sormak ve benzetme olmadan ispat ederiz; ibadette Peygamber’in ﷺ sünnetine uyar, bidatlerden sakınırız. Fıkhî meselelerde delile dayanan görüşleri İbn Baz, İbn Useymin, Elbânî ve Daimî Fetva Komitesi gibi âlimlerin açıklamalarına atıfla sunarız. Bütün Müslümanlara saygıyla yaklaşırız; bir hatamızı görürseniz bize bildirmenizi rica ederiz.',
     values: 'Değerlerimiz',
     v1t: 'Güvenilirlik', v1d: 'Kur’an, hadis kaynakları ve âlimlerin eserlerine dayanan içerik.',
     v2t: 'Ücretsiz', v2d: 'Abonelik, reklam veya ödeme yok.',
@@ -171,16 +169,30 @@ const DEV_ROLE = {
 
 const READ_QURAN = { az: 'Quran oxu', en: 'Read the Quran', ru: 'Читать Коран', ar: 'اقرأ القرآن', tr: "Kur'an oku" }
 
+
+// Xəritə qruplarının ikonu (navigation.js-də emoji var — burada xətti ikon)
+const GROUP_ICON = { main: 'prayer', quran: 'quran', knowledge: 'learn', worship: 'qibla', duas: 'duas', hajj: 'hajjguide', giving: 'zakat', other: 'sparkle' }
+
+// ═══════════════════════════════════════════════════════
+// Dizayn v3 — yuxarıdan aşağı:
+//   kompakt hero (nə + necə + 3 açar rəqəm; yanda brend lövhəsi) →
+//   "Biz kimik": missiya + üstünlüklər | mənhəc (4 bənd) →
+//   "Rəqəmlərlə": 8 StatTile + 2 zolaq qrafiki (dərslər mövzuya, alimlər
+//   dövrə görə — rəqəmlər aboutStats.js, unit testlə yoxlanılır) →
+//   saytın xəritəsi (qrup başına çiplər) → redaksiya prinsipləri →
+//   məxfilik + əlaqə (+ saytı hazırlayan) → ayə (CTA).
+// ═══════════════════════════════════════════════════════
 export function AboutPage({ setPage }) {
   const { lang } = useLang()
   const t = ABOUT[lang] || ABOUT.en
   const x = ABOUT_EXTRA[lang] || ABOUT_EXTRA.en
+  const v3 = ABOUT_V3[lang] || ABOUT_V3.en
   const brand = brandName(lang)
   const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
   const pickL = (o) => (o && (o[lang] || o.en || o.az)) || ''
   const verse = useVerse(CTA_AYAH, lang)
 
-  // Dəyərlər — xətti ikonlar (Icon.jsx), hamısı eyni brend tonunda
+  // Üstünlüklər — xətti ikonlar (Icon.jsx), hamısı eyni brend tonunda
   const values = [
     { icon:'quran',  title:t.v1t, desc:t.v1d },
     { icon:'donate', title:t.v2t, desc:t.v2d },
@@ -188,77 +200,145 @@ export function AboutPage({ setPage }) {
     { icon:'phone',  title:t.v4t, desc:t.v4d },
   ]
 
-  // Ad hüquqi səhifələrdəki ilə eyni mənbədən (brand.js → legal.operator):
-  // az/tr-də "Elçin", ru-da kirillə — əvvəl hər dildə "Elchin" yazılırdı
+  // Ad hüquqi səhifələrdəki ilə eyni mənbədən (brand.js → legal.operator)
   const memberName = tr(BRAND.legal.operator, lang) || 'Elchin Abdullayev'
   const initials = memberName.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const member = { initials, name: memberName, role: DEV_ROLE[lang] || DEV_ROLE.en }
 
-  const stats = [
-    // Bölmə sayı — sitemap-a düşən (indekslənən) səhifələr, seo/routes.js-dən;
-    // yeni bölmə əlavə olunanda rəqəm özü dəyişir
-    { num:String(INDEXABLE.length), label: lang==='az'?'Bölmə': lang==='ru'?'Разделов': lang==='ar'?'أقسام': lang==='tr'?'Bölüm':'Sections' },
-    { num:'5',   label: lang==='az'?'Dil': lang==='ru'?'Языков': lang==='ar'?'لغات': lang==='tr'?'Dil':'Languages' },
-    // Ana səhifə ilə eyni rəqəm (data/siteStats.js — təkrarsız 1394 hədis)
-    { num:`${HADITH_COUNT}+`, label: lang==='az'?'Hədis': lang==='ru'?'Хадисов': lang==='ar'?'حديث': lang==='tr'?'Hadis':'Hadiths' },
-    { num:'99',  label: lang==='az'?'Allahın Adı': lang==='ru'?'Имён Аллаха': lang==='ar'?'اسم لله': lang==='tr'?"Allah'ın İsmi":'Names of Allah' },
+  // Bölmə sayı — sitemap-a düşən (indekslənən) səhifələr, seo/routes.js-dən
+  const sections = INDEXABLE.length
+  const hours = Math.round(LIBRARY.lessonMinutes / 60)
+
+  // Kitabxana kafelləri — hər biri öz bölməsinə aparır
+  const tiles = [
+    { to: 'learn',    icon: 'learn',    value: LIBRARY.lessons,   label: v3.sLessons,  hint: `~${hours} ${v3.hLessons}` },
+    { to: 'hadith',   icon: 'hadith',   value: HADITH_COUNT, plus: true, label: v3.sHadith, hint: v3.hHadith },
+    { to: 'names',    icon: 'names',    value: LIBRARY.names,     label: v3.sNames,    hint: v3.hNames },
+    { to: 'nawawi40', icon: 'nawawi40', value: LIBRARY.nawawi,    label: v3.sNawawi,   hint: v3.hNawawi },
+    { to: 'scholars', icon: 'scholars', value: LIBRARY.scholars,  label: v3.sScholars, hint: v3.hScholars },
+    { to: 'sahaba',   icon: 'sahaba',   value: LIBRARY.sahaba,    label: v3.sSahaba,   hint: v3.hSahaba },
+    { to: 'glossary', icon: 'glossary', value: LIBRARY.glossary,  label: v3.sGlossary, hint: v3.hGlossary },
+    { to: null,       icon: 'list',     value: sections,          label: v3.sSections, hint: v3.hSections },
   ]
+
+  const lessonBars = LESSON_CATS.map(c => ({ key: c.key, label: pickL(c.label), value: LESSONS_BY_CAT[c.key] || 0 }))
+  const eraBars = Object.keys(SCHOLARS_BY_ERA).map(k => ({ key: k, label: pickL(ERA_SHORT[k]), value: SCHOLARS_BY_ERA[k] }))
 
   const ayahRef = lang === 'ar' ? `${SURAH_HUD.ar} ١١:٨٨` : `${SURAH_HUD[lang] || SURAH_HUD.en} 11:88`
   const motto = verse.data ? splitMotto(verse.data.ar) : null
+  const arrow = <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
 
   return (
     <div className="ab-root">
-      <header className="ui-page-hero">
+      <header className="ui-page-hero ui-page-hero--split ab-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
-          {/* Latın brend adı BÖYÜK hərflə az/tr lokalında "MUSLİMS.CC" (nöqtəli İ) olurdu — lang="en" */}
-          <span className="ui-eyebrow ab-brand" lang={/^[A-Za-z]/.test(brand) ? 'en' : undefined}>{brand}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          <p className="ui-lead">{t.subtitle.replace('{brand}', brand)}</p>
-          {/* Ərəbcə dekorativ şüar ar dilində h1-i təkrarlamasın */}
-          {lang !== 'ar' && <p className="ab-hero-ar ui-arabic" lang="ar" dir="rtl">{BRAND.arabicMotto}</p>}
+          <div className="ui-page-hero__text">
+            {/* Latın brend adı BÖYÜK hərflə az/tr lokalında "MUSLİMS.CC" (nöqtəli İ) olurdu — lang="en" */}
+            <span className="ui-eyebrow ab-brand" lang={/^[A-Za-z]/.test(brand) ? 'en' : undefined}>{brand}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            <p className="ui-lead">{t.subtitle.replace('{brand}', brand)}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> {v3.how}</p>
+            <ul className="ui-page-hero__stats">
+              <li><b>{sections}</b><span>{v3.sSections}</span></li>
+              <li><b>5</b><span>{v3.langs}</span></li>
+              <li><b>{LIBRARY.lessons}</b><span>{v3.sLessons}</span></li>
+            </ul>
+          </div>
+          <div className="ui-page-hero__aside ab-hero-aside" aria-hidden="true">
+            <div className="ab-plaque">
+              <BrandMark size={56} className="ab-plaque__mark" />
+              {/* Ərəbcə dekorativ şüar ar dilində h1-i təkrarlamasın */}
+              {lang !== 'ar' && <p className="ab-plaque__ar ui-arabic" lang="ar" dir="rtl">{BRAND.arabicMotto}</p>}
+              <span className="ab-plaque__chips">
+                <span>{v3.free}</span><span>{v3.noAds}</span>
+              </span>
+            </div>
+          </div>
         </div>
       </header>
 
-      <section className="ui-section ab-intro">
-        <div className="ui-container ab-intro-grid">
-          {/* Missiya */}
-          <article className="ui-card ab-mission" data-reveal>
-            <BrandMark size={52} className="ab-mission-mark" />
-            <div className="ab-mission-body">
-              <h2 className="ui-title ui-title--sm">{t.mission}</h2>
-              <p>{t.missionText}</p>
-            </div>
-          </article>
+      {/* Biz kimik: missiya + üstünlüklər | mənhəc (Tövbə 9:100; Buxari 2652) */}
+      <section className="ui-section ab-story" aria-labelledby="ab-mission-title">
+        <div className="ui-container ab-story-grid">
+          <div className="ab-mission" data-reveal>
+            <span className="ui-eyebrow">{v3.storyEy}</span>
+            <h2 id="ab-mission-title" className="ui-title">{t.mission}</h2>
+            <p className="ab-mission-text">{t.missionText}</p>
+            <ul className="ab-values">
+              {values.map((v, i) => (
+                <li key={i} className="ab-value">
+                  <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={v.icon} size={18} /></span>
+                  <span className="ab-value__body"><b>{v.title}</b><small>{v.desc}</small></span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          {/* Rəqəmlər — sürüşəndə növbə ilə görünür */}
-          <dl className="ui-card ab-stats" data-reveal="stagger">
-            {stats.map((s,i) => (
-              <div key={i} className="ab-stat">
-                <dt className="ui-stat__label">{s.label}</dt>
-                {/* Təmiz rəqəm sayğacla (data-count) sayılır; "1250+" olduğu kimi qalır */}
-                <dd className="ui-stat__num ab-stat-num">{/^\d+$/.test(s.num) ? <span data-count={s.num}>{s.num}</span> : s.num}</dd>
-              </div>
-            ))}
-          </dl>
+          <section className="ui-card ab-manhaj" data-reveal aria-labelledby="ab-manhaj-title">
+            <span className="ui-eyebrow">{v3.manhajEy}</span>
+            <h2 id="ab-manhaj-title" className="ui-title ui-title--sm">{t.manhaj}</h2>
+            <ol className="ab-manhaj-list">
+              {MANHAJ_POINTS.map((m, i) => (
+                <li key={i}>
+                  <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={m.icon} size={18} /></span>
+                  <div>
+                    <h3 className="ab-manhaj-t">{pickL(m.title)}</h3>
+                    <p>{pickL(m.text)}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="ab-manhaj-note">{v3.manhajNote}</p>
+          </section>
         </div>
       </section>
 
-      {/* Mənhəc — saytın Sələf mənhəcinə əsaslandığını bildirir (Tövbə 9:100; Buxari 2652) */}
-      <section className="ui-section ab-manhaj-sec" aria-labelledby="ab-manhaj-title">
+      {/* Rəqəmlərlə — saytdakı bilik */}
+      <section className="ui-section ui-section--alt ab-lib" aria-labelledby="ab-lib-title">
         <div className="ui-container">
-          <article className="ui-card ab-manhaj" data-reveal>
-            <h2 id="ab-manhaj-title" className="ui-title ui-title--sm">{t.manhaj}</h2>
-            <p>{t.manhajText}</p>
-          </article>
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v3.statsEy}</span>
+            <h2 id="ab-lib-title" className="ui-title">{v3.statsTitle}</h2>
+            <p className="ui-lead">{v3.statsLead}</p>
+          </div>
+          <ul className="ab-tiles" data-reveal="stagger">
+            {tiles.map((s, i) => {
+              const tile = (
+                <StatTile icon={s.icon} label={s.label} hint={s.hint}
+                  value={s.plus ? `${s.value}+` : String(s.value)} count={s.plus ? undefined : s.value} />
+              )
+              return (
+                <li key={i}>
+                  {s.to
+                    ? <PageLink to={s.to} setPage={setPage} onNavigate={toTop} className="ab-tile-link">{tile}</PageLink>
+                    : tile}
+                </li>
+              )
+            })}
+          </ul>
+          <div className="ab-charts">
+            <ChartFigure title={v3.chLessons} sub={v3.chUnitL}>
+              <BarChart data={lessonBars} label={v3.chLessons} labelWidth="44%" />
+              <PageLink to="learn" setPage={setPage} onNavigate={toTop} className="ui-link ab-chart-link">
+                {navLabel('learn', lang)} {arrow}
+              </PageLink>
+            </ChartFigure>
+            <ChartFigure title={v3.chScholars} sub={v3.chUnitS} note={v3.chNote}>
+              <BarChart data={eraBars} label={v3.chScholars} tone={2} labelWidth="34%" />
+              <PageLink to="scholars" setPage={setPage} onNavigate={toTop} className="ui-link ab-chart-link">
+                {navLabel('scholars', lang)} {arrow}
+              </PageLink>
+            </ChartFigure>
+          </div>
         </div>
       </section>
 
       {/* Saytın xəritəsi — bütün bölmələr navigation.js → NAV_GROUPS-dan (yeni bölmə özü düşür) */}
-      <section className="ui-section ui-section--alt ab-map-sec" aria-labelledby="ab-map-title">
+      <section className="ui-section ab-map-sec" aria-labelledby="ab-map-title">
         <div className="ui-container">
           <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v3.mapEy}</span>
             <h2 id="ab-map-title" className="ui-title">{x.mapTitle}</h2>
             <p className="ui-lead">{x.mapLead}</p>
           </div>
@@ -267,14 +347,18 @@ export function AboutPage({ setPage }) {
               const items = g.items.filter(it => !MAP_SKIP.has(it.key))
               if (!items.length) return null
               return (
-                <section key={g.key} className="ui-card ab-map-group" aria-labelledby={`ab-map-${g.key}`}>
-                  <h3 id={`ab-map-${g.key}`} className="ab-map-title">{pickL(g.label)}</h3>
+                <section key={g.key} className="ab-map-group" aria-labelledby={`ab-map-${g.key}`}>
+                  <div className="ab-map-head">
+                    <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={GROUP_ICON[g.key] || 'list'} size={18} /></span>
+                    <h3 id={`ab-map-${g.key}`} className="ab-map-title">{pickL(g.label)}</h3>
+                    <span className="ab-map-count ui-num" aria-hidden="true">{items.length}</span>
+                  </div>
                   {GROUP_DESC[g.key] && <p className="ab-map-desc">{pickL(GROUP_DESC[g.key])}</p>}
                   <ul className="ab-map-list">
                     {items.map(it => (
                       <li key={it.key}>
                         <PageLink to={it.key} setPage={setPage} onNavigate={toTop} className="ab-map-link">
-                          <Icon name={it.key} size={16} />
+                          <Icon name={it.key} size={15} />
                           <span>{pickL(it.label)}</span>
                         </PageLink>
                       </li>
@@ -288,14 +372,16 @@ export function AboutPage({ setPage }) {
       </section>
 
       {/* Redaksiya prinsipləri — mənbələr, hədis dərəcəsi, AI tərcümələr, səhv bildirmək */}
-      <section className="ui-section ab-editorial-sec" aria-labelledby="ab-editorial-title">
+      <section className="ui-section ui-section--alt ab-editorial-sec" aria-labelledby="ab-editorial-title">
         <div className="ui-container">
           <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v3.editorialEy}</span>
             <h2 id="ab-editorial-title" className="ui-title">{x.editorialTitle}</h2>
+            <p className="ui-lead">{v3.editorialLead}</p>
           </div>
-          <ol className="ab-editorial">
+          <ol className="ab-editorial" data-reveal="stagger">
             {EDITORIAL.map((e, i) => (
-              <li key={i} className="ui-card ab-principle">
+              <li key={i} className="ab-principle">
                 <span className="ui-icon-tile" aria-hidden="true"><Icon name={e.icon} /></span>
                 <div className="ab-principle-body">
                   <h3 className="ui-card__title">{pickL(e.title)}</h3>
@@ -314,58 +400,61 @@ export function AboutPage({ setPage }) {
       <section className="ui-section ab-info-sec" aria-label={`${x.privacyTitle} · ${x.contactTitle}`}>
         <div className="ui-container ab-info-grid">
           <article className="ui-card ab-info-card" aria-labelledby="ab-privacy-title">
-            <span className="ui-icon-tile" aria-hidden="true"><Icon name="shield" /></span>
-            <h2 id="ab-privacy-title" className="ui-title ui-title--sm">{x.privacyTitle}</h2>
+            <div className="ab-info-head">
+              <span className="ui-icon-tile" aria-hidden="true"><Icon name="shield" /></span>
+              <h2 id="ab-privacy-title" className="ui-title ui-title--sm">{x.privacyTitle}</h2>
+            </div>
             <p>{x.privacyText}</p>
-            <p className="ab-info-links">
-              <PageLink to="privacy" setPage={setPage} onNavigate={toTop} className="ui-link">{x.privacyLink} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" /></PageLink>
-              <PageLink to="terms" setPage={setPage} onNavigate={toTop} className="ui-link">{x.termsLink}</PageLink>
-              <PageLink to="licenses" setPage={setPage} onNavigate={toTop} className="ui-link">{x.licensesLink}</PageLink>
-            </p>
-          </article>
-          <article className="ui-card ab-info-card" aria-labelledby="ab-contact-title">
-            <span className="ui-icon-tile ui-icon-tile--accent" aria-hidden="true"><Icon name="send" /></span>
-            <h2 id="ab-contact-title" className="ui-title ui-title--sm">{x.contactTitle}</h2>
-            <p>{x.contactText}</p>
-            <ul className="ab-contact-list">
-              {BRAND.legal?.email && (
-                <li>
-                  <span className="ab-contact-label">{x.email}</span>
-                  <a href={`mailto:${BRAND.legal.email}`} className="ui-link" dir="ltr">{BRAND.legal.email}</a>
+            <ul className="ui-list ab-legal-list">
+              {[['privacy', x.privacyLink, 'shield'], ['terms', x.termsLink, 'list'], ['licenses', x.licensesLink, 'books']].map(([k, label, ic]) => (
+                <li key={k}>
+                  <PageLink to={k} setPage={setPage} onNavigate={toTop} className="ui-list__item">
+                    <Icon name={ic} /><span>{label}</span>
+                    <Icon name="chevron" className="ui-list__chev ui-flip-rtl" />
+                  </PageLink>
                 </li>
-              )}
-              {BRAND.instagram && (
-                <li>
-                  <span className="ab-contact-label">Instagram</span>
-                  <a href={`https://instagram.com/${BRAND.instagram}`} className="ui-link" target="_blank" rel="noopener noreferrer" dir="ltr">@{BRAND.instagram} <Icon name="external" size={14} /></a>
-                </li>
-              )}
+              ))}
             </ul>
           </article>
+          <article className="ui-card ab-info-card" aria-labelledby="ab-contact-title">
+            <div className="ab-info-head">
+              <span className="ui-icon-tile ui-icon-tile--accent" aria-hidden="true"><Icon name="send" /></span>
+              <h2 id="ab-contact-title" className="ui-title ui-title--sm">{x.contactTitle}</h2>
+            </div>
+            <p>{x.contactText}</p>
+            <dl className="ab-contact-list">
+              {BRAND.legal?.email && (
+                <div>
+                  <dt>{x.email}</dt>
+                  <dd><a href={`mailto:${BRAND.legal.email}`} className="ui-link" dir="ltr">{BRAND.legal.email}</a></dd>
+                </div>
+              )}
+              {BRAND.instagram && (
+                <div>
+                  <dt>Instagram</dt>
+                  <dd><a href={`https://instagram.com/${BRAND.instagram}`} className="ui-link" target="_blank" rel="noopener noreferrer" dir="ltr">@{BRAND.instagram} <Icon name="external" size={14} /></a></dd>
+                </div>
+              )}
+            </dl>
+            {/* Saytı hazırlayan — bir nəfər, bir vəzifə */}
+            <div className="ab-team">
+              <h3 className="ui-eyebrow">{BUILT_BY[lang] || BUILT_BY.en}</h3>
+              <div className="ab-team-card">
+                <div className="ab-avatar" aria-hidden="true">{member.initials}</div>
+                <div>
+                  <div className="ab-team-name">{member.name}</div>
+                  <div className="ab-team-role">{member.role}</div>
+                </div>
+              </div>
+            </div>
+          </article>
         </div>
       </section>
 
-      <section className="ui-section ui-section--alt ab-values-sec" aria-labelledby="ab-values-title">
+      {/* CTA — ayə API-dən; alınmasa ayə sətirləri gizlənir, düymə qalır */}
+      <section className="ui-section ab-end" aria-label={READ_QURAN[lang] || READ_QURAN.en}>
         <div className="ui-container">
-          <div className="ui-section-head" data-reveal>
-            <h2 id="ab-values-title" className="ui-title">{t.values}</h2>
-          </div>
-          <div className="ui-grid ab-values" data-reveal="stagger-zoom">
-            {values.map((v,i) => (
-              <article key={i} className="ui-card ab-value">
-                <span className="ui-icon-tile" aria-hidden="true"><Icon name={v.icon} /></span>
-                <h3 className="ui-card__title">{v.title}</h3>
-                <p className="ui-card__text">{v.desc}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="ui-section ab-end" aria-labelledby="ab-team-title">
-        <div className="ui-container ab-end-grid">
-          {/* CTA — ayə API-dən; alınmasa ayə sətirləri gizlənir, düymə qalır */}
-          <div className="ui-card ui-card--inverse ab-cta" data-reveal="scale">
+          <div className="ui-card ui-card--inverse ab-cta" data-reveal>
             <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
             {verse.data ? (
               <figure className="ab-cta-verse">
@@ -384,22 +473,10 @@ export function AboutPage({ setPage }) {
                 <span className="skeleton skeleton--text" /><span className="skeleton skeleton--text" /><span className="skeleton skeleton--text" />
               </div>
             ) : null}
-            <PageLink className="ui-btn ui-btn--inverse ui-btn--lg" to="quran" setPage={setPage} onNavigate={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <PageLink className="ui-btn ui-btn--inverse" to="quran" setPage={setPage} onNavigate={toTop}>
               <Icon name="quran" className="ui-btn__icon" /> {READ_QURAN[lang] || READ_QURAN.en}
             </PageLink>
           </div>
-          {/* Saytı hazırlayan */}
-          <div className="ab-team" data-reveal>
-            <h2 id="ab-team-title" className="ui-eyebrow">{BUILT_BY[lang] || BUILT_BY.en}</h2>
-            <div className="ui-card ab-team-card">
-              <div className="ab-avatar" aria-hidden="true">{member.initials}</div>
-              <div>
-                <div className="ab-team-name">{member.name}</div>
-                <div className="ab-team-role">{member.role}</div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </section>
     </div>

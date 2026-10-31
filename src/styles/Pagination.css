@@ -23,7 +23,7 @@
   background: var(--surface-1);
   color: var(--text-body);
   border-radius: var(--radius-md);
-  font-family: var(--font-sans);
+  font-family: var(--font-num);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;

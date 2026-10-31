@@ -15,7 +15,7 @@
 // səhifələrdən ?ayah= / ?hadith= / ?text=&src= ilə bura gətirir.
 // ═══════════════════════════════════════════════════════
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { BRAND } from '../config/brand'
 import { QUOTES as STATIC_QUOTES } from '../data/quotes'
@@ -34,11 +34,45 @@ import TemplatePicker from '../components/quote/TemplatePicker'
 import SourcePanel from '../components/quote/SourcePanel'
 import { FormatPicker, StylePanel } from '../components/quote/StylePanel'
 import Icon from '../components/Icon'
+import { isPlainClick } from '../components/PageLink'
+import { pathFor } from '../seo/routes'
 import '../styles/QuoteGeneratorPage.css'
 
 // Sitatın tərcüməsi YALNIZ cari dildə. Ərəbcədə orijinal mətn onsuz da
 // göstərilir — tərcümə sətri yoxdur.
 const translationOf = (q, lang) => (lang === 'ar' ? '' : pickLang(q?.text, lang))
+
+// ── Dizayn v3: studiyanın altında "necə işləyir" bələdçisi (yeni gələn üçün) ──
+// Addım başlıqları sekmə adlarıdır (labels.js) — eyni sözlər, iki yerdə fərqli ad yox.
+// Domen adı dil kontekstindən kənarda (hər dildə eyni yazılır)
+const AQC = 'alquran.cloud'
+const GUIDE = {
+  az: { ey: 'Necə işləyir', title: 'Kart 4 addımda', lead: 'Mətni seçin, görünüşünü dəyişin və paylaşın — hamısı brauzerdə, qeydiyyatsız.',
+    steps: ['Hazır sitatlar, Quran ayəsi (surə:ayə), hədis bazası və ya öz mətniniz.', 'Rəng və naxış şablonu — önizləmə dərhal dəyişir.', 'Kvadrat, hekayə və digər ölçülər — sosial şəbəkəyə uyğun.', 'Şrift ölçüsü, künclər və fonun şəffaflığı.'],
+    share: 'Paylaşın', shareText: 'Şəkil kimi yükləyin, paylaşın və ya mətni kopyalayın.',
+    note: `Ayələr ${AQC}-dan (Osmani yazısı və tərcümə), hədislər saytın hədis bazasından mənbəsi ilə gəlir. Öz mətninizi paylaşanda mənbəni düzgün yazın.`,
+    rel: 'Mətn tapmaq üçün', quran: 'Qurani-Kərim', hadith: 'Hədislər', duas: 'Dualar' },
+  en: { ey: 'How it works', title: 'A card in 4 steps', lead: 'Pick the text, change the look and share — all in the browser, no sign-up.',
+    steps: ['Ready quotes, a Quran verse (surah:ayah), the hadith collection or your own text.', 'A colour and pattern template — the preview changes at once.', 'Square, story and other sizes — to fit each social network.', 'Font size, corners and background opacity.'],
+    share: 'Share', shareText: 'Download it as an image, share it or copy the text.',
+    note: `Verses come from ${AQC} (Uthmani script and translation); hadiths come from the site’s hadith collection with their source. When sharing your own text, cite its source correctly.`,
+    rel: 'Find a text', quran: 'The Quran', hadith: 'Hadith', duas: 'Duas' },
+  ru: { ey: 'Как это работает', title: 'Карточка за 4 шага', lead: 'Выберите текст, измените вид и поделитесь — всё в браузере, без регистрации.',
+    steps: ['Готовые цитаты, аят Корана (сура:аят), сборник хадисов или ваш текст.', 'Шаблон цвета и узора — превью меняется сразу.', 'Квадрат, сторис и другие размеры — под каждую соцсеть.', 'Размер шрифта, углы и прозрачность фона.'],
+    share: 'Поделитесь', shareText: 'Скачайте как изображение, поделитесь или скопируйте текст.',
+    note: `Аяты загружаются с ${AQC} (османский шрифт и перевод), хадисы — из сборника сайта вместе с источником. Делясь своим текстом, указывайте источник правильно.`,
+    rel: 'Где найти текст', quran: 'Коран', hadith: 'Хадисы', duas: 'Дуа' },
+  ar: { ey: 'طريقة الاستخدام', title: 'بطاقة في ٤ خطوات', lead: 'اختر النص وغيّر المظهر ثم شارك — كل ذلك في المتصفح دون تسجيل.',
+    steps: ['اقتباسات جاهزة، أو آية (السورة:الآية)، أو حديث من المجموعة، أو نصك الخاص.', 'قالب اللون والزخرفة، وتتغير المعاينة فورًا.', 'مربع وقصة ومقاسات أخرى تناسب كل منصة.', 'حجم الخط والزوايا وشفافية الخلفية.'],
+    share: 'شارك', shareText: 'نزّلها صورة أو شاركها أو انسخ النص.',
+    note: `تُجلب الآيات من ${AQC} (بالرسم العثماني مع الترجمة)، والأحاديث من مجموعة الموقع مع مصدرها. وإذا شاركت نصك فاذكر مصدره بدقة.`,
+    rel: 'للعثور على نص', quran: 'القرآن الكريم', hadith: 'الأحاديث', duas: 'الأدعية' },
+  tr: { ey: 'Nasıl çalışır', title: '4 adımda kart', lead: 'Metni seçin, görünümü değiştirin ve paylaşın — hepsi tarayıcıda, kayıtsız.',
+    steps: ['Hazır alıntılar, Kur’an ayeti (sure:ayet), hadis koleksiyonu ya da kendi metniniz.', 'Renk ve desen şablonu — önizleme hemen değişir.', 'Kare, hikâye ve diğer boyutlar — her sosyal ağa uygun.', 'Yazı boyutu, köşeler ve arka plan saydamlığı.'],
+    share: 'Paylaşın', shareText: 'Görsel olarak indirin, paylaşın veya metni kopyalayın.',
+    note: `Ayetler ${AQC}’dan (Osmanlı hattı ve meal), hadisler sitenin hadis koleksiyonundan kaynağıyla gelir. Kendi metninizi paylaşırken kaynağını doğru yazın.`,
+    rel: 'Metin bulmak için', quran: 'Kur’an-ı Kerim', hadith: 'Hadisler', duas: 'Dualar' },
+}
 
 const KIND_BY_CAT = { quran: 'kindVerse', hadith: 'kindHadith', dua: 'kindDua', wisdom: 'kindWisdom' }
 const TABS = [
@@ -83,7 +117,9 @@ async function copyToClipboard(text) {
 export default function QuoteGeneratorPage() {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
+  const g = GUIDE[lang] || GUIDE.en
   const location = useLocation()
+  const navigate = useNavigate()
   // URL parametrləri yalnız ilk açılışda oxunur
   const [initial] = useState(() => readParams(location.search))
   const [prefs] = useState(readPrefs)
@@ -429,6 +465,37 @@ export default function QuoteGeneratorPage() {
           </div>
         </div>
       </div>
+
+      {/* ══ Necə işləyir: 4 addım (sekmə adları) + paylaşım + mənbə qeydi ══ */}
+      <section className="ui-section ui-section--tight ui-section--alt qg-guide" aria-labelledby="qg-guide-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{g.ey}</span>
+            <h2 className="ui-title" id="qg-guide-h">{g.title}</h2>
+            <p className="ui-lead">{g.lead}</p>
+          </div>
+          <ol className="ui-steps ui-steps--row qg-guide__steps">
+            {[...TABS.map((x, i) => [t[x.label], g.steps[i]]), [g.share, g.shareText]].map(([title, text], i) => (
+              <li key={i} className="ui-step">
+                <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                <div className="ui-step__body">
+                  <h3 className="ui-step__title">{title}</h3>
+                  <p className="ui-step__text">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="qg-guide__foot">
+            <p className="qg-guide__note"><Icon name="info" size={16} /> {g.note}</p>
+            <nav className="qg-guide__rel" aria-label={g.rel}>
+              <span className="qg-guide__rel-label">{g.rel}:</span>
+              {['quran', 'hadith', 'duas'].map(k => (
+                <a key={k} className="ui-chip" href={pathFor(k, lang)} onClick={(e) => { if (!isPlainClick(e)) return; e.preventDefault(); navigate(pathFor(k, lang)); window.scrollTo(0, 0) }}><Icon name={k} size={15} /> {g[k]}</a>
+              ))}
+            </nav>
+          </div>
+        </div>
+      </section>
     </>
   )
 }

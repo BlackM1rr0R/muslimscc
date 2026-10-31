@@ -1,114 +1,235 @@
 /* ══════════════════════════════════════════════════════
-   Haqqımızda — dizayn v2
-   Hero: ui.css → .ui-page-hero. Bölmələr: .ui-section, kartlar .ui-card.
+   Haqqımızda — dizayn v3
+   Hero: ui.css → .ui-page-hero--split. Bölmələr: .ui-section, kartlar .ui-card,
+   rəqəmlər <StatTile>, qrafiklər components/viz (ui.css §13–14).
    Yalnız tokenlər — qaranlıq rejim avtomatikdir; RTL məntiqi xassələrlə.
-   .ui-* sinifləri valideynlə (.ab-root …) dəyişdirilir (DESIGN.md §4.1).
+   .ui-* sinifləri valideynlə (.ab-root …) dəyişdirilir (DESIGN.md §8.1).
    ══════════════════════════════════════════════════════ */
 
 /* Brend adı latın — ərəbcədə də soldan sağa */
 .ab-brand { direction: ltr; unicode-bidi: isolate; }
-.ab-hero-ar {
-  margin-top: 2px;
+
+/* ── Hero: yanda brend lövhəsi (dekorativ, aria-hidden) ── */
+.ab-plaque {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 0%, var(--brand-soft) 0%, transparent 72%),
+    var(--surface-1);
+  text-align: center;
+}
+.ab-plaque__mark { border-radius: 14px; }
+.ab-plaque__ar {
+  margin: 0;
   color: var(--accent-text);
   font-size: clamp(20px, 2vw, 24px);
+  line-height: 1.7;
+}
+.ab-plaque__chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.ab-plaque__chips span {
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-0);
+  color: var(--text-secondary);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  letter-spacing: 0.04em;
+}
+[dir="rtl"] .ab-plaque__chips span { letter-spacing: 0; }
+@media (min-width: 900px) { .ab-hero-aside { max-width: 320px; margin-inline-start: auto; } }
+/* Telefonda lövhə hero-nu uzatmasın — gizlənir (şüar dekorativdir) */
+@media (max-width: 599.98px) { .ab-hero-aside { display: none; } }
+
+/* ── Biz kimik: missiya | mənhəc ── */
+.ab-story-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+}
+.ab-mission { display: flex; flex-direction: column; gap: var(--space-2); }
+.ab-mission-text {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--text-body);
+  font-size: var(--step-0);
+  line-height: var(--lh-body);
+}
+.ab-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4) 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+.ab-value { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.ab-value__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ab-value__body b { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step--1); font-weight: 600; }
+.ab-value__body small { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.5; }
+
+.ab-root .ab-manhaj { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--card-pad); }
+.ab-manhaj-list { display: grid; gap: var(--space-4); margin: var(--space-2) 0 0; padding: 0; list-style: none; }
+.ab-manhaj-list > li { display: flex; align-items: flex-start; gap: 12px; }
+.ab-manhaj-t {
+  margin: 2px 0 2px;
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+.ab-manhaj-list p { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.65; }
+.ab-manhaj-note {
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+  color: var(--text-tertiary);
+  font-size: var(--step--1);
   line-height: 1.6;
 }
 
-/* Bölmələr arası boşluq — hero-dan sonra çox boş qalmasın */
-.ab-root .ab-intro { padding-block: var(--hero-gap) var(--section-gap-sm); }
-.ab-root .ab-end { padding-block: var(--section-gap-sm) var(--page-pad-bottom); }
-
-/* ── Missiya + rəqəmlər ── */
-.ab-intro-grid {
+/* ── Rəqəmlərlə: kafellər + qrafiklər ── */
+.ab-tiles {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 20px;
-  align-items: stretch;
-}
-.ab-root .ab-mission {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  padding: clamp(22px, 3vw, 34px);
-  background:
-    radial-gradient(ellipse 70% 90% at 100% 0%, var(--brand-soft) 0%, transparent 70%),
-    var(--surface-1);
-}
-[dir="rtl"] .ab-root .ab-mission {
-  background:
-    radial-gradient(ellipse 70% 90% at 0% 0%, var(--brand-soft) 0%, transparent 70%),
-    var(--surface-1);
-}
-.ab-mission-mark { border-radius: 14px; box-shadow: var(--shadow-1); }
-.ab-mission-body { min-width: 0; }
-.ab-mission-body p {
-  margin-top: 10px;
-  max-width: 62ch;
-  color: var(--text-secondary);
-  font-size: var(--step-0);
-  line-height: 1.75;
-}
-
-.ab-root .ab-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--space-3);
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  list-style: none;
 }
-.ab-stat {
+.ab-tiles > li { display: flex; min-width: 0; }
+.ab-tiles .ui-stat { flex: 1; }
+/* "1250+" ərəbcədə "+1250" kimi görünməsin (bidi) */
+.ab-tiles .ui-stat__num { direction: ltr; unicode-bidi: isolate; }
+[dir="rtl"] .ab-tiles .ui-stat__num { text-align: end; }
+.ab-tile-link {
   display: flex;
-  flex-direction: column-reverse;
-  justify-content: center;
-  gap: 6px;
-  padding: clamp(18px, 2.4vw, 26px);
-  border-color: var(--line);
-  border-style: solid;
-  border-width: 0;
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--radius-lg);
+  color: inherit;
+  text-decoration: none;
 }
-.ab-stat:nth-child(odd) { border-inline-end-width: 1px; }
-.ab-stat:nth-child(-n+2) { border-bottom-width: 1px; }
-.ab-stat dd { margin: 0; }
-/* "1394+" ərəbcədə "+1394" kimi görünməsin (bidi) */
-.ab-stat-num { direction: ltr; unicode-bidi: isolate; text-align: start; color: var(--brand); }
-[dir="rtl"] .ab-stat-num { text-align: end; }
-
-/* ── Dəyərlər ── */
-.ab-values { --ui-grid-min: 240px; }
-.ab-root .ab-value { display: flex; flex-direction: column; gap: 8px; }
-.ab-value .ui-icon-tile { margin-bottom: 6px; }
-
-/* ── Hazırlayan + CTA ── */
-.ab-end-grid {
+.ab-tile-link .ui-stat { transition: border-color var(--dur-1) ease, transform var(--dur-2) var(--ease-out); }
+@media (hover: hover) {
+  .ab-tile-link:hover .ui-stat { border-color: var(--brand-line); transform: translateY(-2px); }
+}
+.ab-charts {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(28px, 4vw, 44px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
 }
-.ab-team { display: flex; flex-direction: column; gap: 12px; }
-.ab-team { align-items: flex-start; }
-.ab-root .ab-team-card {
-  display: flex;
+.ab-chart-link { display: inline-flex; align-items: center; gap: 4px; margin-top: var(--space-3); font-size: var(--step--1); }
+
+/* ── Saytın xəritəsi: qrup başına çiplər ── */
+.ab-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+  gap: var(--space-6) var(--space-5);
+  align-items: start;
+}
+.ab-map-group { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.ab-map-head { display: flex; align-items: center; gap: 10px; }
+.ab-map-title {
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+.ab-map-count {
+  margin-inline-start: auto;
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+}
+.ab-map-desc { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.ab-map-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; }
+.ab-map-link {
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
-  width: min(100%, 420px);
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 12px 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-body);
+  font-size: var(--step--1);
+  text-decoration: none;
+  transition: color var(--dur-1) ease, border-color var(--dur-1) ease, background-color var(--dur-1) ease;
 }
+.ab-map-link svg { flex-shrink: 0; color: var(--brand); }
+@media (hover: hover) {
+  .ab-map-link:hover { border-color: var(--brand-line); background: var(--brand-soft); color: var(--brand); }
+}
+@media (pointer: coarse) { .ab-map-link { min-height: 40px; } }
+
+/* ── Redaksiya prinsipləri ── */
+.ab-editorial {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-5) var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ab-principle { display: flex; align-items: flex-start; gap: 14px; min-width: 0; }
+.ab-principle-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ab-principle-body .ui-card__text { line-height: 1.65; }
+.ab-report { margin-top: var(--space-5); }
+
+/* ── Məxfilik + əlaqə ── */
+.ab-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--space-4); }
+.ab-root .ab-info-card { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--card-pad); }
+.ab-info-head { display: flex; align-items: center; gap: 12px; }
+.ab-info-card p { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.7; }
+.ab-root .ab-legal-list { margin-top: auto; }
+.ab-contact-list { display: grid; gap: 8px; margin: 0; }
+.ab-contact-list > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.ab-contact-list dt {
+  min-width: 90px;
+  color: var(--text-tertiary);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+[dir="rtl"] .ab-contact-list dt { letter-spacing: 0; text-transform: none; }
+.ab-contact-list dd { margin: 0; }
+.ab-contact-list a { display: inline-flex; align-items: center; gap: 4px; overflow-wrap: anywhere; font-size: var(--step--1); }
+
+.ab-team { display: flex; flex-direction: column; gap: 10px; margin-top: auto; padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.ab-team-card { display: flex; align-items: center; gap: 14px; }
 .ab-avatar {
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--brand-soft-2);
   box-shadow: inset 0 0 0 1px var(--brand-line);
   color: var(--brand);
-  font-family: var(--font-display);
-  font-size: 20px;
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
   font-weight: 600;
 }
-.ab-team-name { color: var(--text-strong); font-size: var(--step-1); font-weight: 600; line-height: 1.3; }
+.ab-team-name { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600; line-height: 1.3; }
 .ab-team-role { margin-top: 2px; color: var(--text-tertiary); font-size: var(--step--1); }
 
+/* ── CTA: ayə ── */
+.ab-root .ab-end { padding-block: 0 var(--page-pad-bottom, var(--section-gap)); }
 .ab-root .ab-cta {
   position: relative;
   isolation: isolate;
@@ -116,37 +237,36 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: clamp(26px, 4vw, 44px);
+  padding: clamp(24px, 4vw, 40px);
   border-radius: var(--radius-xl);
   text-align: center;
 }
 .ab-cta .ui-pattern { --pattern-color: rgba(230, 204, 149, 0.10); }
-.ab-cta-verse { margin: 0 0 24px; }
+.ab-cta-verse { margin: 0 0 20px; }
 .ab-cta-arabic {
-  margin: 0 auto 14px;
-  max-width: 46rem;
+  margin: 0 auto 12px;
+  max-width: 44rem;
   color: var(--text-on-inverse-dim);
   font-family: var(--font-arabic);
-  font-size: clamp(22px, 2.2vw, 28px);
-  line-height: 2.05;
+  font-size: clamp(20px, 2vw, 25px);
+  line-height: 2;
   letter-spacing: 0;
 }
 /* "وَمَا تَوْفِيقِيٓ إِلَّا بِٱللَّهِ" — səhifənin şüarı, qum rəngində */
 .ab-cta-motto { color: #e6cc95; }
 .ab-cta-translation {
-  margin: 0 auto 10px;
+  margin: 0 auto 8px;
   max-width: 64ch;
   color: var(--text-on-inverse);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--step-0);
   font-style: italic;
   line-height: 1.7;
 }
-.ab-cta-ref { color: var(--text-on-inverse-dim); font-size: 13px; font-weight: 500; }
+.ab-cta-ref { color: var(--text-on-inverse-dim); font-size: var(--step--1); }
 
 /* Ayə yüklənərkən yer tutucu — tünd zolaqda açıq tonlu parıltı */
-.ab-cta-skeleton { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; margin-bottom: 24px; }
+.ab-cta-skeleton { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; margin-bottom: 20px; }
 .ab-cta .ab-cta-skeleton .skeleton {
   height: 14px;
   width: min(100%, 34rem);
@@ -160,77 +280,19 @@
 
 /* ── Planşet ── */
 @media (max-width: 959.98px) {
-  .ab-intro-grid { grid-template-columns: minmax(0, 1fr); }
+  .ab-story-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ── Telefon ── */
 @media (max-width: 599.98px) {
-  .ab-root .ab-mission { flex-direction: column; gap: 14px; }
-  .ab-mission-mark { width: 44px; height: 44px; }
-  .ab-stat { padding: 16px; }
+  .ab-values { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+  .ab-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+  .ab-map { gap: var(--space-5); }
   .ab-root .ab-cta { border-radius: var(--radius-lg); }
   .ab-root .ab-cta .ui-btn { width: 100%; }
-  /* Dəyərlər — qruplaşdırılmış siyahı: ikon + başlıq + mətn */
-  .ab-values { gap: 0; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-1); box-shadow: var(--shadow-1); overflow: hidden; }
-  .ab-root .ab-value {
-    display: grid;
-    grid-template-columns: 42px minmax(0, 1fr);
-    column-gap: 14px;
-    row-gap: 2px;
-    padding: 14px 16px;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-  .ab-root .ab-value + .ab-value { border-top: 1px solid var(--line); }
-  .ab-value .ui-icon-tile { grid-row: 1 / span 2; margin: 0; }
 }
 
-/* Mənhəc bölməsi (Sələf mənhəci) */
-.ab-manhaj { padding: 24px 28px; }
-.ab-manhaj p { margin: 8px 0 0; line-height: 1.75; }
-
-/* ── Saytın xəritəsi (NAV_GROUPS) ── */
-.ab-map {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-  gap: var(--space-4);
-  align-items: start;
+@media (prefers-reduced-motion: reduce) {
+  .ab-map-link, .ab-tile-link .ui-stat { transition: none; }
+  .ab-tile-link:hover .ui-stat { transform: none; }
 }
-.ab-root .ab-map-group { display: flex; flex-direction: column; gap: 8px; padding: 20px 22px; }
-.ab-map-title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; line-height: var(--lh-snug); }
-.ab-map-desc { color: var(--text-secondary); font-size: 14.5px; line-height: 1.55; }
-.ab-map-list { display: flex; flex-direction: column; margin: 6px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
-.ab-map-list li + li { border-top: 1px solid var(--line); }
-.ab-map-link {
-  display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 6px 2px;
-  color: var(--text-body); font-size: 15px; text-decoration: none;
-  transition: color var(--dur-1) ease;
-}
-.ab-map-link svg { flex-shrink: 0; color: var(--brand); }
-.ab-map-link:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: var(--radius-xs); }
-@media (hover: hover) { .ab-map-link:hover { color: var(--brand); } }
-
-/* ── Redaksiya prinsipləri ── */
-.ab-editorial { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; max-width: 860px; }
-.ab-root .ab-principle { display: flex; align-items: flex-start; gap: 16px; padding: 20px 22px; }
-.ab-principle-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.ab-principle-body .ui-card__text { line-height: 1.7; }
-.ab-report { margin-top: var(--space-4); }
-
-/* ── Məxfilik xülasəsi + əlaqə ── */
-.ab-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--space-4); }
-.ab-root .ab-info-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 24px 26px; }
-.ab-info-card p { line-height: 1.7; }
-.ab-info-links { display: flex; flex-wrap: wrap; gap: 8px 18px; }
-.ab-info-links .ui-link { display: inline-flex; align-items: center; gap: 4px; }
-.ab-contact-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.ab-contact-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
-.ab-contact-label { min-width: 90px; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; }
-.ab-contact-list a { display: inline-flex; align-items: center; gap: 4px; overflow-wrap: anywhere; }
-
-@media (max-width: 599.98px) {
-  .ab-root .ab-map-group, .ab-root .ab-principle, .ab-root .ab-info-card { padding: 16px; }
-  .ab-root .ab-principle { gap: 12px; }
-}
-@media (prefers-reduced-motion: reduce) { .ab-map-link { transition: none; } }

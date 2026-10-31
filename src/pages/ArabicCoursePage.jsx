@@ -24,11 +24,38 @@ import { ui, pick } from '../components/arabic/strings.js'
 import { useCourseAudio } from '../components/arabic/useCourseAudio.js'
 import { buildQuiz } from '../components/arabic/quizzes.js'
 import {
-  readProgress, writeProgress, withResult, isPassed, passedCount, percentDone, resumeLesson,
+  readProgress, writeProgress, withResult, isPassed, passedCount, percentDone, resumeLesson, PASS_PERCENT,
 } from '../components/arabic/progress.js'
 import LetterLesson from '../components/arabic/LetterLesson.jsx'
 import Quiz from '../components/arabic/Quiz.jsx'
+import { ProgressRing } from '../components/viz'
 import '../styles/ArabicCourse.css'
+
+// v3 — hero izahı, açar rəqəmlər və "kursun yolu" (3 mərhələ)
+const AX = {
+  az: { how: (l, q, p) => `Hər dərsdə əvvəl «${l}» hissəsini oxu və dinlə, sonra «${q}» ilə qısa yoxlamadan keç: ${p}% və yuxarı nəticə dərsi tamamlanmış sayır. İrəliləyiş bu cihazda saxlanılır.`,
+    lessons: 'dərs', letters: 'hərf', words: 'ən çox işlənən söz', coverage: 'Quran sözlərinin payı',
+    pathEyebrow: 'Kursun yolu', pathTitle: 'Oxumaqdan anlamağa', pathLead: 'Doqquz dərs üç mərhələdədir; hər mərhələ növbətisinin bünövrəsidir.', range: (a, b) => (a === b ? `Dərs ${a}` : `Dərs ${a}–${b}`),
+    stages: [['Oxumaq', 'Hərflər, hərəkələr və hecalar — Quran mətnini səsləndirməyi öyrənirsən.'], ['Düzgün tilavət', 'Təcvidin əsas qaydaları — ayələri düzgün oxumaq üçün.'], ['Anlamaq', 'Əvəzliklər, cümlə növləri və Quranın ən çox işlənən 100 sözü.']] },
+  en: { how: (l, q, p) => `In each lesson, first read and listen in “${l}”, then take the short check in “${q}”: a score of ${p}% or more completes the lesson. Progress is saved on this device.`,
+    lessons: 'lessons', letters: 'letters', words: 'most frequent words', coverage: 'of the Quran’s words',
+    pathEyebrow: 'Course path', pathTitle: 'From reading to understanding', pathLead: 'Nine lessons in three stages; each stage is the foundation of the next.', range: (a, b) => (a === b ? `Lesson ${a}` : `Lessons ${a}–${b}`),
+    stages: [['Reading', 'Letters, vowel marks and syllables — you learn to sound out the Quranic text.'], ['Correct recitation', 'The basic rules of tajwid — to recite the verses properly.'], ['Understanding', 'Pronouns, sentence types and the 100 most frequent words of the Quran.']] },
+  ru: { how: (l, q, p) => `В каждом уроке сначала читайте и слушайте раздел «${l}», затем пройдите короткую проверку «${q}»: результат от ${p}% засчитывает урок. Прогресс сохраняется на этом устройстве.`,
+    lessons: 'уроков', letters: 'букв', words: 'самых частых слов', coverage: 'слов Корана',
+    pathEyebrow: 'Путь курса', pathTitle: 'От чтения к пониманию', pathLead: 'Девять уроков в трёх этапах; каждый этап — основа следующего.', range: (a, b) => (a === b ? `Урок ${a}` : `Уроки ${a}–${b}`),
+    stages: [['Чтение', 'Буквы, огласовки и слоги — вы учитесь озвучивать текст Корана.'], ['Правильное чтение', 'Основные правила таджвида — чтобы читать аяты правильно.'], ['Понимание', 'Местоимения, виды предложений и 100 самых частых слов Корана.']] },
+  ar: { how: (l, q, p) => `في كل درس اقرأ واستمع أولًا في «${l}»، ثم أجرِ الاختبار القصير في «${q}»: نتيجة ${p}٪ فأكثر تُتمّ الدرس. يُحفظ تقدمك على هذا الجهاز.`,
+    lessons: 'دروس', letters: 'حرفًا', words: 'كلمة الأكثر ورودًا', coverage: 'من كلمات القرآن',
+    pathEyebrow: 'مسار الدورة', pathTitle: 'من القراءة إلى الفهم', pathLead: 'تسعة دروس في ثلاث مراحل، كل مرحلة أساس لما بعدها.', range: (a, b) => (a === b ? `الدرس ${a}` : `الدروس ${a}–${b}`),
+    stages: [['القراءة', 'الحروف والحركات والمقاطع — تتعلم نطق نص القرآن.'], ['التلاوة الصحيحة', 'أصول أحكام التجويد لقراءة الآيات قراءة صحيحة.'], ['الفهم', 'الضمائر وأنواع الجمل وأكثر ١٠٠ كلمة ورودًا في القرآن.']] },
+  tr: { how: (l, q, p) => `Her derste önce “${l}” bölümünü okuyup dinleyin, sonra “${q}” ile kısa sınavı geçin: %${p} ve üzeri sonuç dersi tamamlanmış sayar. İlerleme bu cihazda saklanır.`,
+    lessons: 'ders', letters: 'harf', words: 'en sık geçen kelime', coverage: 'Kur’an kelimelerinin payı',
+    pathEyebrow: 'Kursun yolu', pathTitle: 'Okumaktan anlamaya', pathLead: 'Dokuz ders üç aşamadadır; her aşama bir sonrakinin temelidir.', range: (a, b) => (a === b ? `Ders ${a}` : `Ders ${a}–${b}`),
+    stages: [['Okuma', 'Harfler, harekeler ve heceler — Kur’an metnini seslendirmeyi öğrenirsin.'], ['Doğru tilavet', 'Tecvidin temel kuralları — ayetleri doğru okumak için.'], ['Anlama', 'Zamirler, cümle türleri ve Kur’an’ın en sık geçen 100 kelimesi.']] },
+}
+// Mərhələ → dərs indeksləri (LESSONS sırası ilə)
+const STAGES = [[0, 2], [3, 3], [4, 8]]
 
 // Ağır olmayan, amma ilk ekranda lazım olmayan dərslər ayrıca yüklənir
 const HarakatLesson = lazy(() => import('../components/arabic/HarakatLesson.jsx'))
@@ -407,35 +434,49 @@ export default function ArabicCoursePage({ setPage }) {
   const resumeId = resumeLesson(progress)
   const ctaLabel = allDone ? t.review : started ? t.resume : t.start
   const View = lesson ? LESSON_VIEW[lesson.id] : null
+  const ax = AX[lang] || AX.en
+  const coverage = Math.round((QURAN_WORDS_TOP_SUM / QURAN_WORDS_TOTAL) * 100)
 
   return (
     <div className="ac-root">
-      {/* ── Hero ── */}
-      <header className="ui-page-hero ac-hero">
+      {/* ── Hero (v3: kompakt split — solda izah və əsas düymə, sağda irəliləyiş halqası) ── */}
+      <header className="ui-page-hero ui-page-hero--split ac-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        <div className="ac-hero__letters ui-arabic" lang="ar" aria-hidden="true">
-          <span>ا</span><span>ب</span><span>ت</span>
-        </div>
         <div className="ui-container">
-          <Breadcrumb setPage={setPage} current={t.title} />
-          <span className="ui-eyebrow">{t.eyebrow}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          <p className="ui-lead">{t.lead}</p>
-          <div className="ui-page-hero__actions ac-hero__actions">
-            <a className="ui-btn ui-btn--primary ac-cta" href={`#${resumeId}`} onClick={onLessonLink(resumeId)}>
-              <Icon name={started ? 'play' : 'arrow'} className={`ui-btn__icon ${started ? '' : 'ui-flip-rtl'}`} />
-              {ctaLabel}
-              {started && !allDone && <span className="ac-cta__sub">· {pick(LESSONS.find(l => l.id === resumeId).title, lang)}</span>}
-            </a>
-            <div className="ac-progress" role="group" aria-label={t.progress}>
-              <div className="ac-progress__row">
-                <span className="ac-progress__label">{t.progress}</span>
+          <div className="ui-page-hero__text">
+            <Breadcrumb setPage={setPage} current={t.title} />
+            <span className="ui-eyebrow">{t.eyebrow}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            <p className="ui-lead">{t.lead}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> {ax.how(t.learn, t.quiz, PASS_PERCENT)}</p>
+            <ul className="ui-page-hero__stats">
+              <li><b>{LESSONS.length}</b><span>{ax.lessons}</span></li>
+              <li><b>28</b><span>{ax.letters}</span></li>
+              <li><b>{QURAN_WORDS.length}</b><span>{ax.words}</span></li>
+              <li><b>≈{coverage}%</b><span>{ax.coverage}</span></li>
+            </ul>
+            <div className="ui-page-hero__actions ac-hero__actions">
+              <a className="ui-btn ui-btn--primary ac-cta" href={`#${resumeId}`} onClick={onLessonLink(resumeId)}>
+                <Icon name={started ? 'play' : 'arrow'} className={`ui-btn__icon ${started ? '' : 'ui-flip-rtl'}`} />
+                {ctaLabel}
+                {started && !allDone && <span className="ac-cta__sub">· {pick(LESSONS.find(l => l.id === resumeId).title, lang)}</span>}
+              </a>
+            </div>
+          </div>
+          <div className="ui-page-hero__aside">
+            <div className="ui-card ac-progress" role="group" aria-label={t.progress}>
+              <div className="ac-progress__ring">
+                <ProgressRing value={pct} max={100} size={88} thickness={8} showPercent={false} />
                 <span className="ac-progress__num ui-num">{pct}%</span>
               </div>
-              <div className="ac-progress__bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={t.progress}>
-                <span style={{ '--p': pct / 100 }} />
+              <div className="ac-progress__text">
+                <span className="ac-progress__label">{t.progress}</span>
+                <span className="ac-progress__sub">{t.lessonsDone(done, LESSONS.length)}</span>
+                {/* Mərhələ nöqtələri: hər dərs bir nöqtə */}
+                <ol className="ac-progress__dots" aria-hidden="true">
+                  {LESSONS.map(l => <li key={l.id} className={isPassed(progress, l.id) ? 'is-done' : progress.best[l.id] != null ? 'is-tried' : ''} />)}
+                </ol>
               </div>
-              <span className="ac-progress__sub">{t.lessonsDone(done, LESSONS.length)}</span>
             </div>
           </div>
         </div>
@@ -507,6 +548,29 @@ export default function ArabicCoursePage({ setPage }) {
             <h2 id="ac-lessons-h" className="ui-title">{t.lessonsHead}</h2>
             <p className="ui-lead">{t.lessonsLead}</p>
           </div>
+          {!lesson && (
+            <div className="ac-path" data-reveal>
+              <span className="ui-eyebrow">{ax.pathEyebrow}</span>
+              <h3 className="ui-title ui-title--sm">{ax.pathTitle}</h3>
+              <p className="ac-muted ac-path__lead">{ax.pathLead}</p>
+              <ol className="ui-steps ui-steps--row ac-path__steps">
+                {STAGES.map(([from, to], i) => {
+                  const ids = LESSONS.slice(from, to + 1).map(l => l.id)
+                  const stageDone = ids.every(id => isPassed(progress, id))
+                  return (
+                    <li key={i} className={`ui-step${stageDone ? ' is-done' : ''}`}>
+                      <span className="ui-step__n" aria-hidden="true">{stageDone ? <Icon name="check" size={14} strokeWidth={2.6} /> : i + 1}</span>
+                      <div className="ui-step__body">
+                        <span className="ac-path__range ui-num">{ax.range(from + 1, to + 1)}</span>
+                        <h4 className="ui-step__title">{ax.stages[i][0]}</h4>
+                        <p className="ui-step__text">{ax.stages[i][1]}</p>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ol>
+            </div>
+          )}
           <ol className="ac-lesson-grid" data-reveal="stagger">
             {LESSONS.map((l, i) => {
               const best = progress.best[l.id]
@@ -524,7 +588,6 @@ export default function ArabicCoursePage({ setPage }) {
                       </span>
                     </div>
                     <p className="ac-lesson-card__glyph ui-arabic" lang="ar" aria-hidden="true">{l.glyph}</p>
-                    <span className="ui-eyebrow ac-lesson-card__eyebrow">{t.lesson(i + 1)}</span>
                     <h3 className="ui-card__title">{pick(l.title, lang)}</h3>
                     <p className="ui-card__text">{pick(l.desc, lang)}</p>
                     <div className="ac-lesson-card__meter" aria-hidden="true"><span style={{ '--p': (best ?? 0) / 100 }} /></div>

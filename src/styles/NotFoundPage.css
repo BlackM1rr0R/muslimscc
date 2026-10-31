@@ -1,22 +1,22 @@
 /* ══════════════════════════════════════════════════════
-   404 — NotFoundPage (dizayn v2)
-   Sakit kağız fon, xatəm naxışı, kompas illüstrasiyası.
+   404 — NotFoundPage (dizayn v3)
+   Kompakt: kiçik kompas, başlıq, bir cümlə, axtarış sahəsi, 3 düymə;
+   altda "Ən çox açılan bölmələr" (.ui-tiles).
    Animasiya: bir dəfəlik — kompas solub böyüyür, əqrəb yellənib
    şimala oturur (yalnız transform/opacity). Hərəkət azaldılıbsa yoxdur.
    ══════════════════════════════════════════════════════ */
-.nf-root {
+.nf-hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   display: grid;
   place-items: center;
-  min-height: min(78vh, 760px);
-  padding-block: clamp(48px, 8vw, 104px);
+  padding-block: clamp(32px, 6vw, 72px) clamp(24px, 4vw, 40px);
   background:
     radial-gradient(ellipse 55% 60% at 50% 30%, var(--brand-soft) 0%, transparent 72%),
     var(--surface-0);
 }
-.nf-root .ui-pattern--fade {
+.nf-hero .ui-pattern--fade {
   -webkit-mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 40%, #000 0%, transparent 75%);
   mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 40%, #000 0%, transparent 75%);
 }
@@ -30,9 +30,9 @@
 
 .nf-art {
   position: relative;
-  width: 160px;
-  height: 160px;
-  margin-bottom: var(--space-5);
+  width: 120px;
+  height: 120px;
+  margin-bottom: var(--space-4);
   color: var(--brand);
   animation: nf-in var(--dur-3) var(--ease-out) both;
 }
@@ -69,15 +69,38 @@
 }
 
 .nf-title { margin-top: var(--space-2); }
-.nf-root .nf-lead { margin: 12px auto 0; max-width: 46ch; }
+.nf-root .nf-lead { margin: 10px auto 0; max-width: 52ch; font-size: var(--step-0); }
+
+/* Axtarış sahəsi — Header-in axtarış dialoqunu yazılan sözlə açır */
+.nf-search {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  width: min(100%, 520px);
+  margin-top: var(--space-5);
+}
+.nf-search__icon {
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+.nf-root .nf-search__input { flex: 1; min-width: 0; padding-inline-start: 42px; }
+.nf-search__btn { flex-shrink: 0; }
 
 .nf-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
-  margin-top: var(--space-6);
+  gap: 8px;
+  margin-top: var(--space-4);
 }
+
+/* Məşhur bölmələr */
+.nf-root .nf-popular { padding-block: var(--space-6) var(--section-gap); border-top: 1px solid var(--line); }
+.nf-tiles { margin: 0; padding: 0; list-style: none; }
 
 @keyframes nf-in {
   from { opacity: 0; transform: scale(.94); }
@@ -93,9 +116,8 @@
 }
 
 @media (max-width: 480px) {
-  .nf-art { width: 128px; height: 128px; }
-  .nf-actions { flex-direction: column; align-self: stretch; }
-  .nf-actions .ui-btn { width: 100%; }
+  .nf-art { width: 96px; height: 96px; }
+  .nf-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -76,7 +76,7 @@ html[lang="ar"] .tf-toggle { font-family: var(--font-arabic-ui); }
 .tf-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .tf-name { font-family: var(--font-display); font-weight: 600; font-size: var(--step-0); color: var(--text-strong); line-height: var(--lh-snug); }
 html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
-.tf-author { font-size: 13px; color: var(--text-tertiary); }
+.tf-author { font-size: var(--step--1); color: var(--text-tertiary); }
 
 /* Təfsir seçimi — native select (telefonda sistem siyahısı açılır) */
 .tf-pick { position: relative; display: block; flex: 0 1 260px; min-width: 0; }
@@ -84,7 +84,7 @@ html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
   min-height: 44px;
   padding-block: 0;
   padding-inline: 12px 36px;
-  font-size: 14px;
+  font-size: var(--step-0);
   background: var(--surface-1);
   appearance: none;
   -webkit-appearance: none;
@@ -111,7 +111,7 @@ html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
   border: 1px solid var(--accent-line);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 13.5px;
+  font-size: var(--step--1);
   line-height: 1.55;
 }
 .tf-note__icon { flex-shrink: 0; margin-top: 2px; color: var(--accent-text); }
@@ -122,14 +122,14 @@ html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
   align-items: flex-start;
   margin: 0 0 10px;
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: var(--step--1);
 }
 .tf-group__icon { flex-shrink: 0; margin-top: 1px; }
 
 /* Mətn */
 .tf-text {
   position: relative;
-  font-size: 15px;
+  font-size: var(--step-0);
   line-height: var(--lh-body);
   color: var(--text-body);
   overflow-wrap: anywhere;
@@ -179,12 +179,12 @@ html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
   align-items: center;
   gap: 8px 10px;
   color: var(--text-secondary);
-  font-size: 14.5px;
+  font-size: var(--step-0);
 }
 .tf-msg__icon { flex-shrink: 0; color: var(--text-tertiary); }
 .tf-msg--bad .tf-msg__icon { color: var(--bad); }
 .tf-msg__text { flex: 1 1 220px; margin: 0; line-height: 1.55; }
-.tf-empty { color: var(--text-secondary); font-size: 14.5px; }
+.tf-empty { color: var(--text-secondary); font-size: var(--step-0); }
 
 /* Atribusiya */
 .tf-src {
@@ -196,7 +196,7 @@ html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
   padding-top: 8px;
   border-top: 1px solid var(--line);
   color: var(--text-tertiary);
-  font-size: 12.5px;
+  font-size: var(--step--2);
 }
 .tf-src__link {
   display: inline-flex;
@@ -212,7 +212,7 @@ html[lang="ar"] .tf-name { font-family: var(--font-arabic-ui); }
 @media (max-width: 767.98px) {
   .tf-panel { padding: 14px 14px 10px; margin-inline: -2px; }
   .tf-pick { flex-basis: 100%; }
-  .tf-text { font-size: 14.5px; }
+  .tf-text { font-size: var(--step-0); }
   .tf-text--ar { font-size: 1.08rem; }
   .tf-src__link { min-height: 44px; }
 }

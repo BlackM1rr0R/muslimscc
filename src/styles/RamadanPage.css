@@ -4,10 +4,9 @@
    Çapda: yalnız cədvəl — sadə qara-ağ, saytın qabığı gizlənir.
    ═══════════════════════════════════════════════════════ */
 
-.rp-hero-ar { margin: 0; color: var(--accent-text); font-size: var(--step-2); }
-.rp-root .rp-main { padding-block: var(--space-6) var(--space-8); }
+.rp-root .rp-main { padding-block: var(--space-5) var(--space-6); }
 .rp-stack { display: flex; flex-direction: column; gap: var(--space-5); }
-.rp-print { display: flex; flex-direction: column; gap: var(--space-4); }
+.rp-print { display: flex; flex-direction: column; gap: var(--space-3); }
 
 .rp-toolbar {
   display: flex;
@@ -21,7 +20,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: var(--step-2);
+  font-size: var(--step-1);
   line-height: var(--lh-snug);
   color: var(--text-strong);
 }
@@ -33,48 +32,17 @@
 .rp-state { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); color: var(--text-secondary); }
 .rp-state p { margin: 0; }
 
-/* ── Cədvəl ── */
-.rp-scroll { overflow: auto; max-height: min(72vh, 900px); }
-.rp-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: var(--step--1);
-  color: var(--text-body);
-}
-.rp-table th,
-.rp-table td {
-  padding: 10px 14px;
-  text-align: start;
-  white-space: nowrap;
-  border-block-end: 1px solid var(--line);
-}
-.rp-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: var(--surface-2, var(--surface-1));
-  color: var(--text-secondary);
-  font-size: var(--step--2);
-  font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-}
+/* ── Cədvəl (.ui-table + başlıq yapışqan, səhur/iftar sütunları vurğulu) ── */
+.rp-scroll { overflow: auto; max-height: min(70vh, 760px); }
+.rp-table thead th { position: sticky; top: 0; z-index: 1; }
 html[lang="ar"] .rp-table thead th { letter-spacing: 0; text-transform: none; }
-.rp-table tbody th { font-weight: 600; color: var(--text-strong); }
-.rp-table tbody tr:last-child > * { border-block-end: 0; }
-.rp-table tbody tr { transition: background var(--dur-1) var(--ease-out); }
-.rp-table tbody tr:hover { background: var(--brand-soft); }
+.rp-table th, .rp-table td { white-space: nowrap; }
 .rp-wd { color: var(--text-tertiary); }
-/* Səhur və iftar sütunları — vurğulu */
 .rp-table td.rp-col-imsak,
 .rp-table td.rp-col-maghrib { font-weight: 600; color: var(--brand); }
-.rp-table th.rp-col-imsak,
-.rp-table th.rp-col-maghrib { color: var(--brand); }
-
-.rp-table tr.is-today { background: var(--brand-soft-2); }
-.rp-table tr.is-today > :first-child { box-shadow: inset 3px 0 0 var(--brand); }
-[dir="rtl"] .rp-table tr.is-today > :first-child { box-shadow: inset -3px 0 0 var(--brand); }
+.rp-table thead th.rp-col-imsak,
+.rp-table thead th.rp-col-maghrib { color: var(--brand); }
+.rp-table td.rp-col-fast { color: var(--text-secondary); }
 .rp-today { margin-inline-start: 8px; vertical-align: middle; }
 
 .rp-note { margin: 0; color: var(--text-tertiary); font-size: var(--step--2); max-width: 75ch; }
@@ -84,7 +52,7 @@ html[lang="ar"] .rp-table thead th { letter-spacing: 0; text-transform: none; }
   .rp-root .rp-main { padding-block: var(--space-4) var(--space-7); }
   .rp-actions { width: 100%; }
   .rp-actions > * { flex: 1 1 100%; }
-  .rp-table th, .rp-table td { padding: 9px 10px; }
+  .rp-root .rp-table th, .rp-root .rp-table td { padding-inline: 10px; }
   .rp-scroll { max-height: none; }
   .rp-table thead th { position: static; }
   /* Telefonda cədvəl üfüqi sürüşür (iftar və işa sağda qalır) — gün
@@ -101,8 +69,8 @@ html[lang="ar"] .rp-table thead th { letter-spacing: 0; text-transform: none; }
   [dir="rtl"] .rp-table tbody th { box-shadow: inset 1px 0 0 var(--line); }
   .rp-table thead th:first-child { background: var(--surface-2, var(--surface-1)); }
   .rp-table tr.is-today > th { background: color-mix(in srgb, var(--brand) 12%, var(--surface-1)); }
-  .rp-table tr.is-today > :first-child { box-shadow: inset 3px 0 0 var(--brand), inset -1px 0 0 var(--line); }
-  [dir="rtl"] .rp-table tr.is-today > :first-child { box-shadow: inset -3px 0 0 var(--brand), inset 1px 0 0 var(--line); }
+  .rp-table tr.is-today > :first-child { box-shadow: inset 2px 0 0 var(--brand), inset -1px 0 0 var(--line); }
+  [dir="rtl"] .rp-table tr.is-today > :first-child { box-shadow: inset -2px 0 0 var(--brand), inset 1px 0 0 var(--line); }
 }
 
 /* ── Çap: yalnız imsakiyyə, qara-ağ ── */
@@ -191,29 +159,14 @@ html[lang="ar"] .rp-table thead th { letter-spacing: 0; text-transform: none; }
 .rp-khatm__title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--step-2);
+  font-size: var(--step-1);
   font-weight: 600;
   line-height: var(--lh-snug);
   color: var(--text-strong);
 }
 .rp-khatm__lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); max-width: 70ch; }
 .rp-khatm__progress { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
-.rp-khatm__bar {
-  flex: 1 1 200px;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-3);
-  overflow: hidden;
-}
-.rp-khatm__bar > span {
-  display: block;
-  height: 100%;
-  background: var(--brand);
-  border-radius: inherit;
-  transform-origin: left center;
-  transition: transform var(--dur-3) var(--ease-out);
-}
-[dir="rtl"] .rp-khatm__bar > span { transform-origin: right center; }
+.rp-khatm__ring .ui-viz-ring__text { display: none; }   /* ad aria-label-dədir; sayğac yanındadır */
 .rp-khatm__count { color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
 .rp-khatm__done {
   display: flex; align-items: center; gap: 8px; margin: 0;
@@ -280,5 +233,44 @@ html[dir="rtl"] .rp-juz__range { text-align: end; }
 }
 @media (hover: hover) { .rp-juz__open:hover { background: var(--brand-soft); } }
 @media (prefers-reduced-motion: reduce) {
-  .rp-khatm__bar > span, .rp-juz, .rp-guide-link .ui-link__arrow { transition: none; }
+  .rp-juz, .rp-guide-link .ui-link__arrow { transition: none; }
 }
+
+/* ── Ayın oruc saatları (MonthGlance) ── */
+.rp-root .rp-glance { padding-top: 0; }
+.rp-glance__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  gap: var(--space-4);
+  align-items: stretch;
+}
+.rp-fast { display: block; width: 100%; height: 150px; }
+.rp-fast rect { fill: var(--viz-1); opacity: 0.85; }
+.rp-fast rect.is-today { fill: var(--viz-2); opacity: 1; }
+.rp-fast__axis { display: flex; gap: 3px; margin-top: 6px; }
+.rp-fast__axis > span {
+  flex: 1 1 0;
+  min-width: 0;
+  color: var(--text-tertiary);
+  font-family: var(--font-num);
+  font-size: var(--step--2);
+  text-align: center;
+  overflow: visible;
+  white-space: nowrap;
+}
+[dir="rtl"] .rp-fast { transform: scaleX(-1); }
+.rp-glance__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+}
+.rp-root .rp-glance__stats { --ui-stats-min: 110px; }
+.rp-root .rp-glance__stats .ui-stat--tile { padding: 12px; }
+@media (max-width: 899.98px) {
+  .rp-glance__grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media print { .rp-glance { display: none !important; } }

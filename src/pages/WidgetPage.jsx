@@ -24,6 +24,30 @@ import '../styles/WidgetPage.css'
 const TV_PATH = '/mosque-tv'
 const SCRIPT_SRC = '/widget.js'
 
+// Dizayn v3: "necə işlədilir", açar rəqəmlər və 3 addım (5 dil)
+const V3 = {
+  how: {
+    az: 'Necə işlədilir: aşağıda şəhəri, dili və görünüşü seçin — canlı görünüş dərhal dəyişir. Sonra hazır kodu kopyalayıb saytınızın HTML-inə yapışdırın.',
+    en: 'How to use: pick the city, language and look below — the live preview updates at once. Then copy the ready code into your site’s HTML.',
+    ru: 'Как пользоваться: выберите ниже город, язык и оформление — превью сразу обновится. Затем скопируйте готовый код в HTML вашего сайта.',
+    ar: 'طريقة الاستخدام: اختر المدينة واللغة والمظهر أدناه فتتحدّث المعاينة فورًا، ثم انسخ الشيفرة الجاهزة إلى HTML موقعك.',
+    tr: 'Nasıl kullanılır: aşağıdan şehri, dili ve görünümü seçin — canlı önizleme hemen değişir. Sonra hazır kodu kopyalayıp sitenizin HTML’ine yapıştırın.',
+  },
+  stats: [
+    { v: '< 6 KB', l: { az: 'fayl ölçüsü', en: 'file size', ru: 'размер файла', ar: 'حجم الملف', tr: 'dosya boyutu' } },
+    { v: '0', l: { az: 'kuki və izləmə', en: 'cookies and trackers', ru: 'куки и трекеров', ar: 'ملفات تعريف وتتبّع', tr: 'çerez ve izleme' } },
+    { v: '5', l: { az: 'dil', en: 'languages', ru: 'языков', ar: 'لغات', tr: 'dil' } },
+  ],
+  steps: [
+    { t: { az: 'Seçin', en: 'Choose', ru: 'Выберите', ar: 'اختر', tr: 'Seçin' }, d: { az: 'Şəhər, dil və işıqlı/qaranlıq görünüş.', en: 'City, language and light/dark look.', ru: 'Город, язык и светлое/тёмное оформление.', ar: 'المدينة واللغة والمظهر الفاتح أو الداكن.', tr: 'Şehir, dil ve açık/koyu görünüm.' } },
+    { t: { az: 'Kopyalayın', en: 'Copy', ru: 'Скопируйте', ar: 'انسخ', tr: 'Kopyalayın' }, d: { az: '“Kopyala” düyməsi kodu panoya yazır.', en: 'The “Copy” button puts the code on your clipboard.', ru: 'Кнопка «Копировать» помещает код в буфер обмена.', ar: 'زر «نسخ» يضع الشيفرة في الحافظة.', tr: '“Kopyala” düğmesi kodu panoya alır.' } },
+    { t: { az: 'Yapışdırın', en: 'Paste', ru: 'Вставьте', ar: 'الصق', tr: 'Yapıştırın' }, d: { az: 'Saytınızın HTML-ində blokun görünəcəyi yerə.', en: 'Into your site’s HTML where the widget should appear.', ru: 'В HTML сайта — туда, где должен быть блок.', ar: 'في HTML موقعك حيث تريد ظهور الأداة.', tr: 'Sitenizin HTML’inde bloğun görüneceği yere.' } },
+  ],
+  stepsLabel: { az: 'Üç addımda', en: 'In three steps', ru: 'В три шага', ar: 'في ثلاث خطوات', tr: 'Üç adımda' },
+  colAttr: { az: 'Atribut', en: 'Attribute', ru: 'Атрибут', ar: 'الخاصية', tr: 'Öznitelik' },
+  colMeaning: { az: 'Mənası və nümunə', en: 'Meaning and example', ru: 'Значение и пример', ar: 'المعنى والمثال', tr: 'Anlamı ve örnek' },
+}
+
 const LABELS = {
   az: {
     eyebrow: 'Saytlar üçün',
@@ -266,6 +290,7 @@ function CopyBox({ code, l, id }) {
 export default function WidgetPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.en
+  const P = (o) => o[lang] || o.en
 
   const [city, setCity] = useState(() => {
     try { const loc = getPrayerLocation(); return CITY_BY_ID.has(loc?.id) ? loc.id : 'Baku' } catch { return 'Baku' }
@@ -313,10 +338,27 @@ export default function WidgetPage({ setPage }) {
           <span className="ui-eyebrow">{l.eyebrow}</span>
           <h1 className="ui-display">{l.title}</h1>
           <p className="ui-lead">{l.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {P(V3.how)}</p>
+          <ul className="ui-page-hero__stats">
+            {V3.stats.map(st => <li key={st.v}><b dir="ltr">{st.v}</b><span>{P(st.l)}</span></li>)}
+          </ul>
         </div>
       </header>
 
       <div className="ui-container wg-wrap">
+        {/* ── 3 addım ── */}
+        <ol className="ui-steps ui-steps--row wg-steps" aria-label={P(V3.stepsLabel)} data-reveal="stagger">
+          {V3.steps.map((st, i) => (
+            <li key={i} className="ui-step">
+              <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+              <div className="ui-step__body">
+                <p className="ui-step__title">{P(st.t)}</p>
+                <p className="ui-step__text">{P(st.d)}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
         {/* ── Generator + canlı görünüş ── */}
         <section className="wg-gen ui-card" aria-labelledby="wg-gen-title" data-reveal>
           <div className="wg-form">
@@ -346,11 +388,11 @@ export default function WidgetPage({ setPage }) {
 
             <div className="ui-field">
               <span className="ui-field__label" id="wg-theme-l">{l.theme}</span>
-              <div className="wg-chips" role="group" aria-labelledby="wg-theme-l">
-                <button type="button" className="ui-chip" aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>
+              <div className="ui-segmented wg-seg" role="radiogroup" aria-labelledby="wg-theme-l">
+                <button type="button" role="radio" aria-checked={theme === 'light'} onClick={() => setTheme('light')}>
                   <Icon name="sun" size={16} /> {l.light}
                 </button>
-                <button type="button" className="ui-chip" aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>
+                <button type="button" role="radio" aria-checked={theme === 'dark'} onClick={() => setTheme('dark')}>
                   <Icon name="moon" size={16} /> {l.dark}
                 </button>
               </div>
@@ -376,24 +418,25 @@ export default function WidgetPage({ setPage }) {
         {/* ── Üstünlüklər ── */}
         <section className="wg-section" aria-labelledby="wg-feat-title">
           <h2 id="wg-feat-title" className="ui-title ui-title--sm" data-reveal>{l.featTitle}</h2>
-          <div className="ui-grid wg-feats" style={{ '--ui-grid-min': '240px' }} data-reveal="stagger">
+          <ul className="ui-tiles wg-feats" style={{ '--ui-tiles-min': '240px' }} data-reveal="stagger">
             {l.feats.map((f, i) => (
-              <div key={f.title} className="ui-card">
-                <div className="ui-card__head">
-                  <span className="ui-icon-tile"><Icon name={FEAT_ICONS[i]} /></span>
-                  <h3 className="ui-card__title">{f.title}</h3>
-                </div>
-                <p className="ui-card__text">{f.text}</p>
-              </div>
+              <li key={f.title} className="ui-tile wg-feat">
+                <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={FEAT_ICONS[i]} /></span>
+                <h3 className="ui-tile__title">{f.title}</h3>
+                <p className="ui-tile__text">{f.text}</p>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
         {/* ── Parametrlər ── */}
         <section className="wg-section" aria-labelledby="wg-attrs-title">
           <h2 id="wg-attrs-title" className="ui-title ui-title--sm" data-reveal>{l.attrsTitle}</h2>
-          <div className="ui-card ui-card--flush wg-table-wrap" data-reveal>
-            <table className="wg-table">
+          <div className="ui-table-wrap" tabIndex={0} role="region" aria-labelledby="wg-attrs-title" data-reveal>
+            <table className="ui-table wg-table">
+              <thead>
+                <tr><th scope="col">{P(V3.colAttr)}</th><th scope="col">{P(V3.colMeaning)}</th></tr>
+              </thead>
               <tbody>
                 {ATTRS.map(a => (
                   <tr key={a.key}>

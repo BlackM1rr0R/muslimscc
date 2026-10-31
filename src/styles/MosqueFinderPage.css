@@ -9,7 +9,6 @@
 /* ── Hero ── */
 .mosque-hero .breadcrumb { justify-content: flex-start; margin: 0 0 4px; }
 .mosque-hero .bc-list { justify-content: flex-start; }
-.mosque-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
 .mosque-page.ui-section { padding-block: var(--space-6) var(--section-gap); }
 
 .mosque-layout {
@@ -19,44 +18,27 @@
   gap: var(--space-4);
 }
 
-/* ══ Axtarış kartı ════════════════════════════════════════════════ */
+/* ══ Axtarış kartı (v3: sakit, başlanğıca düzlənmiş) ══════════════
+   ikon + radius + izah → 3 addım → düymələr */
 .mosque-page .mosque-search-area {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: var(--space-7) var(--space-5) var(--space-6);
+  gap: var(--space-5);
+  padding: var(--card-pad);
   border-radius: var(--radius-xl);
-  background: radial-gradient(ellipse 70% 70% at 50% 0%, var(--brand-soft) 0%, transparent 70%), var(--surface-1);
-  text-align: center;
 }
-.mosque-search-area::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--pattern-color);
-  -webkit-mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 0%, #000 0%, transparent 75%);
-  mask-image: var(--ui-khatam), radial-gradient(ellipse 60% 70% at 50% 0%, #000 0%, transparent 75%);
-  -webkit-mask-size: 64px 64px, 100% 100%;
-  mask-size: 64px 64px, 100% 100%;
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-}
+.mosque-search-head { display: flex; align-items: center; gap: 14px; }
 .mosque-search-icon {
   position: relative;
+  flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 76px;
-  height: 76px;
-  margin-bottom: 4px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--surface-inverse);
   color: var(--sand-300);
-  box-shadow: 0 0 0 8px var(--brand-soft-2), var(--shadow-2);
+  box-shadow: 0 0 0 6px var(--brand-soft);
 }
 /* Axtarış gedərkən halqa ikondan çölə yayılır (yalnız transform/opacity) */
 .mosque-radar {
@@ -72,9 +54,16 @@
   0% { transform: scale(1); opacity: 0.9; }
   100% { transform: scale(2.1); opacity: 0; }
 }
-.mosque-page .mosque-search-radius { height: 26px; padding: 0 10px; font-size: 12.5px; }
-.mosque-search-hint { max-width: 46ch; color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
-.mosque-search-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.mosque-search-radius {
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+.mosque-search-hint { max-width: 56ch; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.mosque-page .mosque-how { margin: 0; }
+.mosque-search-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+
 .mosque-page .mosque-search-btn:disabled { opacity: 0.85; cursor: wait; }
 .mosque-btn-spin {
   width: 18px;
@@ -114,7 +103,7 @@
 }
 .mosque-error-title { color: var(--text-strong); font-size: var(--step-1); font-weight: 600; }
 .mosque-error-sub,
-.mosque-empty p { max-width: 44ch; color: var(--text-secondary); font-size: 15px; line-height: 1.55; }
+.mosque-empty p { max-width: 44ch; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
 .mosque-error-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
 @keyframes mosque-in {
   from { opacity: 0; transform: translate3d(0, 8px, 0); }
@@ -146,7 +135,7 @@
 .mosque-row:active { background: var(--surface-3); }
 .mosque-row:focus-visible { outline-offset: -2px; }
 .mosque-card-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.mosque-card-name { color: var(--text-strong); font-size: 15.5px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.mosque-card-name { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
 .mosque-card-distance { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-size: 13px; }
 .mosque-card-distance svg { flex-shrink: 0; }
 /* İlk (ən yaxın) nəticə — brend vurğusu */
@@ -174,9 +163,8 @@
 @media (max-width: 767.98px) {
   .mosque-hero .breadcrumb { display: none; }
   .mosque-page.ui-section { padding-block: var(--space-4) var(--space-7); }
-  .mosque-page .mosque-search-area { padding: var(--space-6) var(--space-4) var(--space-5); border-radius: var(--radius-lg); }
-  .mosque-search-icon { width: 64px; height: 64px; }
-  .mosque-search-hint { font-size: 14.5px; }
+  .mosque-page .mosque-search-area { border-radius: var(--radius-lg); }
+  .mosque-search-icon { width: 46px; height: 46px; }
   .mosque-search-btns { flex-direction: column; align-self: stretch; }
   .mosque-search-btns .ui-btn { width: 100%; white-space: normal; }
   .mosque-error-btns { flex-direction: column; align-self: stretch; }

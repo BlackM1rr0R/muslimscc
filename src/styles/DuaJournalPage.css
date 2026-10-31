@@ -5,36 +5,41 @@
    dəyişəndə valideyn ilə gücləndirilir (.dua-journal-page …, DESIGN.md §4.1).
    ══════════════════════════════════════════════════════ */
 
-/* ── Hero ── */
+/* ── Hero (v3 --split) ── */
 .dj-hero .breadcrumb { justify-content: flex-start; margin: 0 0 2px; }
 .dj-hero .bc-list { justify-content: flex-start; }
-.dj-hero-ar {
-  margin-top: -2px;
-  color: var(--accent-text);
-  font-size: clamp(22px, 1.4rem + 0.8vw, 32px);
-  line-height: 1.5;
+.dua-journal-page .dj-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-6);
+  padding: var(--card-pad);
 }
-[dir="rtl"] .dj-hero-ar { font-size: clamp(20px, 1.2rem + 0.6vw, 28px); }
+.dj-summary__kv { display: grid; grid-template-columns: repeat(3, auto); gap: 4px var(--space-5); margin: 0; }
+.dj-summary__kv > div { display: flex; flex-direction: column-reverse; gap: 2px; }
+.dj-summary__kv dt { color: var(--text-tertiary); font-size: var(--step--2); }
+.dj-summary__kv dd { margin: 0; color: var(--text-strong); font-family: var(--font-num); font-size: var(--step-2); font-weight: 600; line-height: 1.1; }
 
+/* ── Gündəlik + yan panel ── */
+.dj-split { display: grid; gap: var(--space-6); align-items: start; }
+@media (min-width: 1000px) {
+  .dj-split { grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-7); }
+  .dj-side { position: sticky; top: calc(var(--header-h, 64px) + 16px); }
+}
 .dua-journal-layout {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-4);
+  min-width: 0;
 }
-
-/* ── Statistika — bir kartda üç sütun, aralarında hairline ── */
-.dua-journal-page .dua-stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding: 20px 8px;
-}
-.dua-journal-page .dua-stat-card { align-items: center; gap: 6px; min-width: 0; text-align: center; }
-.dua-stat-card + .dua-stat-card { border-inline-start: 1px solid var(--line); }
-.dua-journal-page .dua-stat-value { font-size: clamp(26px, 1.4rem + 0.8vw, 34px); }
-.dua-journal-page .dua-stat-answered .dua-stat-value { color: var(--brand); }
+.dj-side { display: grid; gap: var(--space-4); min-width: 0; }
+.dj-side .ui-figure { margin: 0; }
+.dj-side__empty { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.55; }
+.dj-side__rate { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.dj-side__rate b { color: var(--brand); font-size: var(--step-1); font-weight: 600; }
 
 /* ── Əlavə et ── */
-.dua-add-btn { align-self: center; min-width: 220px; }
+.dua-add-btn { align-self: flex-start; }
 
 /* ── Forma (açılanda yumşaq qalxır) ── */
 .dua-journal-page .dua-form {
@@ -78,43 +83,13 @@
 .dj-dot--medium { background: var(--warn); }
 .dj-dot--high   { background: var(--bad); }
 
-/* ── Tablar — seqment idarəsi (.m-seg, motion.css) ── */
-.dua-journal-page .dua-tabs { background: var(--surface-2); border: 1px solid var(--line); }
-.dua-journal-page .dua-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: var(--tap);
-  font-size: 14px;
-  font-weight: 600;
-}
-.dua-tab-count {
-  min-width: 22px;
-  padding: 2px 7px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-3);
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-}
-.dua-tab.active .dua-tab-count,
-.dua-tab[aria-selected="true"] .dua-tab-count { background: var(--brand-soft-2); color: var(--brand); }
+/* ── Tablar (.ui-tabs) ── */
+.dua-journal-page .dua-tab { gap: 6px; }
 
 /* ── Siyahı ── */
 .dj-list { display: flex; flex-direction: column; gap: var(--space-3); }
 
-.dua-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-8) var(--space-4);
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--radius-lg);
-  color: var(--text-secondary);
-  text-align: center;
-}
+.dua-journal-page .dua-empty p { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); }
 
 .dua-journal-page .dj-card {
   display: flex;
@@ -129,8 +104,20 @@
 .dua-journal-page .dj-card-answered { border-inline-start: 3px solid var(--brand); }
 
 .dj-card-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
-.dua-category-badge { gap: 5px; }
-.dj-prio { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-size: 12.5px; font-weight: 600; }
+.dua-category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .dua-category-badge { letter-spacing: 0; text-transform: none; }
+.dua-category-badge svg { color: var(--brand); }
+.dj-prio { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; }
 
 .dj-card-text {
   color: var(--text-body);
@@ -140,7 +127,7 @@
   overflow-wrap: anywhere;
 }
 
-.dj-card-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--text-tertiary); font-size: 13px; }
+.dj-card-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--text-tertiary); font-size: var(--step--1); }
 .dj-card-date,
 .dj-card-answered-date { display: inline-flex; align-items: center; gap: 6px; }
 .dj-card-answered-date { color: var(--brand); font-weight: 600; }
@@ -180,49 +167,34 @@
 /* ══ TELEFON (<768) ═══════════════════════════════════════════════ */
 @media (max-width: 767.98px) {
   .dj-hero .breadcrumb { display: none; }
-  .dj-hero-ar { font-size: 20px; }
-
-  .dua-journal-layout { gap: var(--space-4); }
-  .dua-journal-page .dua-stats-row { padding: 16px 4px; }
-  .dua-journal-page .dua-stat-value { font-size: 24px; }
   .dua-add-btn { align-self: stretch; }
+  .dua-journal-page .dj-summary { padding: 12px 14px; gap: 12px 20px; }
+  .dua-journal-page .dj-summary .ui-viz-ring svg { width: 60px; height: 60px; }
   .dua-journal-page .dua-form { padding: 18px 16px; }
   .dua-form-actions > .ui-btn { flex: 1 1 0; }
   .dua-journal-page .dj-card { padding: 16px; }
   .dua-empty { padding-block: var(--space-7); }
 }
-/* 320–360px: "Qəbul olunanlar 0" seqmentə sığmırdı (kəsilirdi) */
-@media (max-width: 360px) {
-  .dua-journal-page .dua-tab { gap: 5px; padding-inline: 6px; font-size: 13px; }
-  .dua-tab-count { min-width: 20px; padding-inline: 5px; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .dua-journal-page .dua-form,
   .dua-journal-page .dj-list .dj-card.is-leaving { animation: none; }
   .dua-journal-page .dj-card { transition: none; }
 }
 
-/* ── Duanın ədəbi və qəbul vaxtları (LessonBlocks — LessonsPage.css; .ls-page altındakı qaydaların eynisi) ── */
-.dj-guide {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-7);
-  margin-top: var(--space-7);
-  padding-top: var(--space-7);
-  border-top: 1px solid var(--line);
+/* ── Duanın ədəbi və qəbul vaxtları (LessonBlocks — LessonsPage.css) ── */
+.dj-guide-sec { scroll-margin-top: calc(var(--header-h, 64px) + 20px); }
+.dj-guide-sec .ui-container > * + * { margin-top: var(--space-4); }
+.dj-guide-sec .ui-section-head + * { margin-top: var(--space-5); }
+
+/* Telefon: hero qısa (halqa gizli — rəqəmlər qalır), kart düymələri bir sətirdə */
+@media (max-width: 599.98px) {
+  .dua-journal-page .dj-summary .ui-viz-ring { display: none; }
 }
-.dj-guide-sec { display: flex; flex-direction: column; gap: var(--space-4); scroll-margin-top: calc(var(--header-h, 64px) + 20px); }
-.dj-guide-title {
-  margin: 0;
-  color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: var(--step-3);
-  font-weight: 600;
-  line-height: var(--lh-snug);
+@media (max-width: 479.98px) {
+  .dj-card-actions { flex-wrap: nowrap; gap: 4px; }
+  .dua-journal-page .dj-card-actions .ui-btn--sm { padding-inline: 10px; }
+  .dua-journal-page .dj-card { padding: 14px; }
 }
-.dj-guide-title::after { content: ''; display: block; width: 44px; height: 2px; margin-top: 12px; border-radius: 2px; background: var(--accent); }
-.dj-guide .ls-ayah, .dj-guide .ls-hadith, .dj-guide .ls-quote { margin: 0; }
-.dj-guide-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.dj-guide-links-label { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; }
-.dua-journal-page .dj-guide-chip { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; }
+
+/* Planşet: hero vizualı tam enə yayılmasın */
+@media (max-width: 899.98px) { .dua-journal-page .ui-page-hero__aside { max-width: 440px; } }

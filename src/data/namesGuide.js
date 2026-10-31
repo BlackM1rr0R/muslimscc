@@ -269,3 +269,32 @@ export const ATTR_RULES = [
     ayah: { ref: '20:5', ar: 'ٱلرَّحْمَـٰنُ عَلَى ٱلْعَرْشِ ٱسْتَوَىٰ' },
   },
 ]
+
+// ═══════════════════════════════════════════════════════
+// "Adlarla dua" — Qurandakı duaların istəyə uyğun adla bitməsi (Əraf 7:180:
+// «Ən gözəl adlar Allahındır, Ona onlarla dua edin»). Ayə sonluqları
+// api.quran.com (text_uthmani) ilə hərfi-hərfinə yoxlanılıb — əl ilə DƏYİŞMƏ.
+// names — NAMES_99-dakı nömrələr (ad səhifəsinə link üçün).
+// ═══════════════════════════════════════════════════════
+export const DUA_BY_NAMES = [
+  {
+    ref: '2:127', ar: 'رَبَّنَا تَقَبَّلْ مِنَّآ ۖ إِنَّكَ أَنتَ ٱلسَّمِيعُ ٱلْعَلِيمُ', names: [35, 44],
+    ask: { az: 'Əməlin qəbulu', en: 'Acceptance of a deed', ru: 'Принятие деяния', ar: 'قبول العمل', tr: 'Amelin kabulü' },
+    who: { az: 'İbrahim və İsmail — Kəbənin təməlini qaldırarkən', en: 'Ibrahim and Isma‘il — raising the foundations of the Ka‘bah', ru: 'Ибрахим и Исмаил — возводя основы Каабы', ar: 'إبراهيم وإسماعيل عند رفع قواعد البيت', tr: 'İbrahim ve İsmail — Kâbe’nin temellerini yükseltirken' },
+  },
+  {
+    ref: '2:128', ar: 'وَتُبْ عَلَيْنَآ ۖ إِنَّكَ أَنتَ ٱلتَّوَّابُ ٱلرَّحِيمُ', names: [13, 31],
+    ask: { az: 'Tövbənin qəbulu', en: 'Acceptance of repentance', ru: 'Принятие покаяния', ar: 'قبول التوبة', tr: 'Tövbenin kabulü' },
+    who: { az: 'İbrahim və İsmail', en: 'Ibrahim and Isma‘il', ru: 'Ибрахим и Исмаил', ar: 'إبراهيم وإسماعيل', tr: 'İbrahim ve İsmail' },
+  },
+  {
+    ref: '3:8', ar: 'وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً ۚ إِنَّكَ أَنتَ ٱلْوَهَّابُ', names: [81],
+    ask: { az: 'Rəhmət bağışlanması', en: 'Being granted mercy', ru: 'Дарование милости', ar: 'هبة الرحمة', tr: 'Rahmet bağışlanması' },
+    who: { az: 'Elmdə dərin olanlar', en: 'Those firmly grounded in knowledge', ru: 'Утверждённые в знании', ar: 'الراسخون في العلم', tr: 'İlimde derinleşenler' },
+  },
+  {
+    ref: '60:5', ar: 'وَٱغْفِرْ لَنَا رَبَّنَآ ۖ إِنَّكَ أَنتَ ٱلْعَزِيزُ ٱلْحَكِيمُ', names: [41, 21],
+    ask: { az: 'Bağışlanma və fitnədən qorunma', en: 'Forgiveness and protection from trial', ru: 'Прощение и защита от испытания', ar: 'المغفرة والسلامة من الفتنة', tr: 'Bağışlanma ve fitneden korunma' },
+    who: { az: 'İbrahim və onunla olanlar', en: 'Ibrahim and those with him', ru: 'Ибрахим и те, кто был с ним', ar: 'إبراهيم والذين معه', tr: 'İbrahim ve onunla birlikte olanlar' },
+  },
+]

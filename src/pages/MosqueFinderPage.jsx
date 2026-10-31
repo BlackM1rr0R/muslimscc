@@ -108,6 +108,15 @@ const EXTRA = {
   tr: { lead: 'Bulunduğunuz yerin 10 km çevresindeki camiler — en yakından başlayarak. Yol tarifi için satıra dokunun.', geoError: 'Konumunuz belirlenemedi', geoSub: 'Tarayıcıda konum izni verin veya namaz vakitleri için seçtiğiniz şehrin çevresinde arayın.', apiError: 'Cami listesi yüklenemedi', apiSub: 'İnternet bağlantınızı kontrol edip tekrar deneyin.', useCity: (c) => `${c} çevresinde ara`, around: (c) => `${c} merkezinden`, source: 'Veri: OpenStreetMap katkıcıları' },
 }
 
+// v3: hero-da məxfilik qeydi və açar rəqəmlər; axtarış kartında "necə işləyir" (3 addım)
+const V3 = {
+  az: { privacy: 'Məkanınız serverimizdə saxlanmır — yalnız koordinatlar məscidləri tapmaq üçün OpenStreetMap axtarış xidmətinə göndərilir.', km: '10 km', radius: 'axtarış radiusu', osm: 'açıq xəritə məlumatı', steps: ['Məkan icazəsi verin (və ya şəhərinizi seçin)', '10 km-dəki məscidlər məsafəyə görə düzülür', 'Sətrə toxunun — yol tarifi xəritədə açılır'] },
+  en: { privacy: 'Your location is not stored on our server — only the coordinates are sent to OpenStreetMap’s search service (Overpass) to find mosques.', km: '10 km', radius: 'search radius', osm: 'open map data', steps: ['Allow location (or use your city)', 'Mosques within 10 km are sorted by distance', 'Tap a row — directions open in Maps'] },
+  ru: { privacy: 'Ваше местоположение не хранится на нашем сервере — только координаты отправляются в поисковый сервис OpenStreetMap для поиска мечетей.', km: '10 км', radius: 'радиус поиска', osm: 'открытые картографические данные', steps: ['Разрешите геолокацию (или выберите город)', 'Мечети в радиусе 10 км сортируются по расстоянию', 'Нажмите на строку — маршрут откроется на карте'] },
+  ar: { privacy: 'لا يُحفظ موقعك على خادمنا، وإنما تُرسل الإحداثيات فقط إلى خدمة البحث في OpenStreetMap للبحث عن المساجد.', km: '١٠ كم', radius: 'نطاق البحث', osm: 'بيانات خرائط مفتوحة', steps: ['اسمح بالموقع (أو اختر مدينتك)', 'تُرتّب المساجد ضمن ١٠ كم حسب المسافة', 'اضغط على السطر لتفتح الاتجاهات في الخريطة'] },
+  tr: { privacy: 'Konumunuz sunucumuzda saklanmaz — camileri bulmak için yalnızca koordinatlar OpenStreetMap’in arama hizmetine gönderilir.', km: '10 km', radius: 'arama yarıçapı', osm: 'açık harita verisi', steps: ['Konum izni verin (veya şehrinizi seçin)', '10 km içindeki camiler mesafeye göre sıralanır', 'Satıra dokunun — yol tarifi haritada açılır'] },
+}
+
 // Overpass serverləri: əsas server cavab verməsə (yüklənmə, 406/429) ehtiyat güzgü
 const OVERPASS_URLS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
 const OVERPASS_TIMEOUT_MS = 15000
@@ -245,9 +254,12 @@ export default function MosqueFinderPage({ setPage }) {
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel('hajj', lang)}</span>
           <h1 className="ui-display">{t.title}</h1>
-          {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
-          {lang !== 'ar' && <p className="mosque-hero-ar ui-arabic" lang="ar" aria-hidden="true">الْمَسَاجِد</p>}
           <p className="ui-lead">{x.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="shield" size={16} /> <span>{V3[lang]?.privacy || V3.en.privacy}</span></p>
+          <ul className="ui-page-hero__stats">
+            <li><b>{(V3[lang] || V3.en).km}</b><span>{(V3[lang] || V3.en).radius}</span></li>
+            <li><b>OSM</b><span>{V3[lang]?.osm || V3.en.osm}</span></li>
+          </ul>
         </div>
       </header>
 
@@ -255,12 +267,25 @@ export default function MosqueFinderPage({ setPage }) {
         <div className="ui-container mosque-layout">
           {/* Axtarış kartı: radar ikonu, radius, izah, əsas düymə + şəhərlə axtarış */}
           <div className={`mosque-search-area ui-card${status === 'loading' ? ' is-searching' : ''}`} data-reveal="scale">
-            <div className="mosque-search-icon" aria-hidden="true">
-              <span className="mosque-radar" />
-              <Icon name="mosques" size={30} />
+            <div className="mosque-search-head">
+              <div className="mosque-search-icon" aria-hidden="true">
+                <span className="mosque-radar" />
+                <Icon name="mosques" size={24} />
+              </div>
+              <div>
+                <p className="mosque-search-radius">{t.searchRadius}</p>
+                <p className="mosque-search-hint">{t.hint}</p>
+              </div>
             </div>
-            <p className="mosque-search-radius ui-badge ui-badge--brand"><Icon name="target" size={13} /> {t.searchRadius}</p>
-            <p className="mosque-search-hint">{t.hint}</p>
+            {/* Necə işləyir — 3 addım */}
+            <ol className="ui-steps ui-steps--row mosque-how">
+              {(V3[lang] || V3.en).steps.map((s, i) => (
+                <li key={i} className="ui-step">
+                  <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                  <div className="ui-step__body"><p className="ui-step__text">{s}</p></div>
+                </li>
+              ))}
+            </ol>
             <div className="mosque-search-btns">
               <button type="button" className="ui-btn ui-btn--primary ui-btn--lg mosque-search-btn" onClick={() => searchMosques(false)} disabled={status === 'loading'}>
                 {status === 'loading' ? (

@@ -11,12 +11,11 @@
 /* ── Hero ── */
 .qibla-hero .breadcrumb { justify-content: flex-start; margin: 0 0 4px; }
 .qibla-hero .bc-list { justify-content: flex-start; }
-.qibla-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
 
 .qibla-wrap {
   max-width: calc(1040px + 2 * var(--page-gutter));
   margin: 0 auto;
-  padding: var(--space-6) var(--page-gutter) var(--section-gap);
+  padding: var(--space-6) var(--page-gutter) var(--section-gap-sm);
 }
 
 /* ── Yüklənmə / xəta ── */
@@ -37,7 +36,7 @@
   font-size: var(--step-2);
   font-weight: 600;
 }
-.qibla-center p { max-width: 40ch; color: var(--text-secondary); font-size: 15px; line-height: 1.55; }
+.qibla-center p { max-width: 40ch; color: var(--text-secondary); font-size: var(--step-0); line-height: 1.55; }
 .qibla-error-icon { margin-bottom: 4px; }
 .qibla-error-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
 
@@ -51,7 +50,7 @@
   animation: spin .9s linear infinite;
 }
 .qibla-loader-icon { display: grid; place-items: center; color: var(--brand); }
-.qibla-status-text { color: var(--text-secondary); font-size: 15px; }
+.qibla-status-text { color: var(--text-secondary); font-size: var(--step-0); }
 
 @keyframes qb-in {
   from { opacity: 0; transform: translate3d(0, 10px, 0); }
@@ -78,25 +77,8 @@
   gap: var(--space-5);
   padding: var(--space-6) var(--space-5);
   border-radius: var(--radius-xl);
-  background: radial-gradient(ellipse 70% 60% at 50% 40%, var(--brand-soft) 0%, transparent 70%), var(--surface-1);
+  background: var(--surface-1);
 }
-.qibla-compass-wrap::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--pattern-color);
-  -webkit-mask: var(--ui-khatam) 0 0 / 64px 64px;
-  mask: var(--ui-khatam) 0 0 / 64px 64px;
-  -webkit-mask-image: var(--ui-khatam), radial-gradient(circle at 50% 42%, transparent 34%, #000 70%);
-  mask-image: var(--ui-khatam), radial-gradient(circle at 50% 42%, transparent 34%, #000 70%);
-  -webkit-mask-size: 64px 64px, 100% 100%;
-  mask-size: 64px 64px, 100% 100%;
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  opacity: 0.8;
-}
-
 .qibla-compass {
   --r: 150px;           /* yarımdiametr — cizgilər və yazılar bundan hesablanır */
   position: relative;
@@ -107,8 +89,7 @@
   box-shadow:
     inset 0 0 0 1px var(--line-strong),
     0 0 0 10px var(--surface-1),
-    0 0 0 11px var(--line),
-    var(--shadow-3);
+    0 0 0 11px var(--line);
 }
 
 /* Cizgi halqası — rAF ilə birbaşa fırladılır, sensor yoxdursa sabit */
@@ -220,12 +201,12 @@
   line-height: 1;
   letter-spacing: var(--tracking-tight);
 }
-.qibla-angle-label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; }
+.qibla-angle-label { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
 
 .qibla-page .qibla-ios-btn { align-self: stretch; }
 
 /* ══ Məlumat kartları ═════════════════════════════════════════════ */
-.qibla-info-grid { display: flex; flex-direction: column; gap: var(--space-3); }
+.qibla-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: var(--space-3); }
 .qibla-page .qibla-info-card {
   display: flex;
   align-items: center;
@@ -233,7 +214,7 @@
   padding: 16px 18px;
 }
 .qibla-info-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.qibla-info-label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; }
+.qibla-info-label { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 500; }
 .qibla-info-val {
   color: var(--text-strong);
   font-family: var(--font-display);
@@ -242,9 +223,9 @@
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
 }
-.qibla-info-val small { color: var(--text-tertiary); font-family: var(--font-sans); font-size: 13px; font-weight: 500; }
-.qibla-info-card.is-status .qibla-info-label { color: var(--text-strong); font-size: 15px; font-weight: 600; }
-.qibla-info-card .qibla-info-desc { color: var(--text-secondary); font-family: var(--font-sans); font-size: 13.5px; font-weight: 400; line-height: 1.45; }
+.qibla-info-val small { color: var(--text-tertiary); font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; }
+.qibla-info-card.is-status .qibla-info-label { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600; }
+.qibla-info-card .qibla-info-desc { color: var(--text-secondary); font-family: var(--font-sans); font-size: var(--step--1); font-weight: 400; line-height: 1.45; }
 .qibla-page .qibla-info-card.live { border-color: var(--brand-line); }
 .qibla-page .qibla-info-card.no-sensor { background: var(--surface-2); box-shadow: none; }
 
@@ -259,9 +240,28 @@
   border-radius: var(--radius-lg);
   border: 1px dashed var(--line-strong);
 }
-.qibla-coords { display: flex; flex-direction: column; gap: 2px; color: var(--text-secondary); font-size: 14px; }
-.qibla-coords-cap { color: var(--text-tertiary); font-size: 12.5px; font-weight: 500; }
-.qibla-fallback-note { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-text); font-size: 13px; font-weight: 500; }
+.qibla-coords { display: flex; flex-direction: column; gap: 2px; color: var(--text-secondary); font-size: var(--step--1); }
+.qibla-coords-cap { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 500; }
+.qibla-fallback-note { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-text); font-size: var(--step--1); font-weight: 500; }
+
+/* ══ İstiqamət lenti (0°–360°) ══ */
+.qibla-page .qibla-dir { display: grid; gap: var(--space-4); padding: 16px 18px 22px; }
+.qibla-dir-head { display: grid; gap: 2px; }
+.qibla-dir-text { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-2); font-weight: 600; line-height: 1.25; }
+.qibla-dir-sub { color: var(--text-tertiary); font-size: var(--step--1); }
+.qibla-tape { position: relative; height: 54px; margin-inline: 10px; }
+.qibla-tape::before { content: ''; position: absolute; left: 0; right: 0; top: 18px; height: 6px; border-radius: var(--radius-pill); background: var(--viz-track); }
+.qibla-tape-arc { position: absolute; left: 0; top: 18px; width: var(--w); height: 6px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--viz-1) 45%, var(--surface-1)); }
+.qibla-tape-mark { position: absolute; top: 0; left: var(--x); display: grid; justify-items: center; transform: translateX(-50%); }
+.qibla-tape-mark::before { content: ''; order: 2; width: 2px; height: 14px; margin-top: 2px; background: var(--line-strong); }
+.qibla-tape-mark.is-north::before { background: var(--bad); }
+.qibla-tape-label { order: 1; color: var(--text-secondary); font-family: var(--font-label); font-size: 11px; line-height: 1; }
+.qibla-tape-deg { order: 3; margin-top: 4px; color: var(--text-tertiary); font-size: 11px; line-height: 1; }
+.qibla-tape-pin { position: absolute; top: 9px; left: var(--x); display: grid; place-items: center; width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--surface-inverse); color: var(--sand-300); box-shadow: 0 0 0 3px var(--surface-1); transform: translateX(-50%); }
+
+/* ══ Kompas addımları ══ */
+.qibla-steps-wrap { padding-top: var(--space-2); }
+.qibla-steps-title { margin: 0 0 var(--space-3); color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; }
 
 /* ══ Responsiv ════════════════════════════════════════════════════ */
 @media (max-width: 1100px) {
@@ -340,3 +340,10 @@
 }
 /* Şəhər cədvəli: rəqəm sütunları sağa (ərəbcədə sola) */
 .qb-city-table td.ui-num { white-space: nowrap; text-align: end; }
+.qibla-steps-more { display: inline-flex; margin-top: var(--space-3); font-size: var(--step--1); }
+.qibla-main-col { display: grid; gap: var(--space-5); min-width: 0; }
+.qibla-page .qibla-info-card.is-status { grid-column: 1 / -1; }
+@media (max-width: 1100px) {
+  .qibla-main-col { display: contents; }
+  .qibla-steps-wrap { order: 3; }
+}

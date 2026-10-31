@@ -134,10 +134,60 @@ const LABELS = {
   },
 }
 
-const STORAGE_KEY = 'muslim_cc_ai_chat'
+// ── Dizayn v3: qısa izah, mövzulara görə nümunə suallar, imkanlar sətri ──
+// "Sayt" sualları server/prompts.js → SAYT BƏLƏDÇİSİ-ndə olan bölmələrə aiddir
+// (uydurma funksiya soruşulmur).
+const V3 = {
+  az: {
+    lead: 'Quran, hədis, namaz, dua, əqidə və bu saytın istifadəsi haqqında sual ver — qısa, mənbəli cavab al.',
+    how: 'Sualını aşağıya yaz və ya nümunələrdən birinə toxun. Cavab fətva deyil: vacib məsələdə alimə müraciət et.',
+    groups: { site: 'Sayt haqqında', worship: 'İbadət', aqidah: 'Əqidə' },
+    site: ['Namaz vaxtları üçün şəhəri necə seçim?', 'Bildirişləri necə açım?', 'Allahın adlarını harada əzbərləyə bilərəm?'],
+    aqidah2: 'Bidət nədir və niyə təhlükəlidir?',
+    caps: ['Ayə və hədisi mənbəsi ilə göstərir', 'Fətva vermir', 'Söhbət yalnız bu cihazda saxlanılır'],
+    pick: 'Nümunə suallar',
+  },
+  en: {
+    lead: 'Ask about the Quran, hadith, prayer, dua, aqidah or how to use this site — and get a short answer with sources.',
+    how: 'Type your question below or tap one of the examples. Answers are not fatwas: for important matters, ask a scholar.',
+    groups: { site: 'About the site', worship: 'Worship', aqidah: 'Aqidah' },
+    site: ['How do I choose my city for prayer times?', 'How do I turn on notifications?', 'Where can I memorise the names of Allah?'],
+    aqidah2: 'What is bid‘ah and why is it dangerous?',
+    caps: ['Cites verses and hadith with their source', 'Does not give fatwas', 'The chat is saved on this device only'],
+    pick: 'Example questions',
+  },
+  ru: {
+    lead: 'Спросите о Коране, хадисах, намазе, дуа, акыде или о том, как пользоваться сайтом, — и получите краткий ответ с источниками.',
+    how: 'Напишите вопрос ниже или нажмите на пример. Ответ — не фетва: в важных вопросах обращайтесь к учёному.',
+    groups: { site: 'О сайте', worship: 'Поклонение', aqidah: 'Акыда' },
+    site: ['Как выбрать город для времени намаза?', 'Как включить уведомления?', 'Где можно выучить имена Аллаха?'],
+    aqidah2: 'Что такое бид‘а и чем она опасна?',
+    caps: ['Приводит аяты и хадисы с источником', 'Не выносит фетв', 'Чат хранится только на этом устройстве'],
+    pick: 'Примеры вопросов',
+  },
+  ar: {
+    lead: 'اسأل عن القرآن والحديث والصلاة والدعاء والعقيدة أو عن استخدام هذا الموقع، واحصل على جواب مختصر مع المصدر.',
+    how: 'اكتب سؤالك في الأسفل أو اضغط على أحد الأمثلة. الجواب ليس فتوى: في المسائل المهمة ارجع إلى أهل العلم.',
+    groups: { site: 'عن الموقع', worship: 'العبادة', aqidah: 'العقيدة' },
+    site: ['كيف أختار مدينتي لمواقيت الصلاة؟', 'كيف أفعّل التنبيهات؟', 'أين أحفظ أسماء الله الحسنى؟'],
+    aqidah2: 'ما البدعة ولماذا هي خطيرة؟',
+    caps: ['يذكر الآيات والأحاديث بمصادرها', 'لا يُصدر فتاوى', 'تُحفظ المحادثة على هذا الجهاز فقط'],
+    pick: 'أسئلة مقترحة',
+  },
+  tr: {
+    lead: 'Kur’an, hadis, namaz, dua, akide veya bu sitenin kullanımı hakkında sor — kısa ve kaynaklı bir cevap al.',
+    how: 'Sorunu aşağıya yaz veya örneklerden birine dokun. Cevap fetva değildir: önemli konularda bir âlime danış.',
+    groups: { site: 'Site hakkında', worship: 'İbadet', aqidah: 'Akide' },
+    site: ['Namaz vakitleri için şehri nasıl seçerim?', 'Bildirimleri nasıl açarım?', 'Allah’ın isimlerini nerede ezberleyebilirim?'],
+    aqidah2: 'Bidat nedir ve neden tehlikelidir?',
+    caps: ['Ayet ve hadisi kaynağıyla gösterir', 'Fetva vermez', 'Sohbet yalnızca bu cihazda saklanır'],
+    pick: 'Örnek sorular',
+  },
+}
+const GROUP_ICONS = { site: 'globe', worship: 'prayer', aqidah: 'names' }
+const CAP_ICONS = ['hadith', 'shield', 'user']
 
-// Təkliflərin xətti ikonları (Icon.jsx) — namaz, hədis, tövhid, dua
-const SUGGEST_ICONS = ['prayer', 'hadith', 'names', 'duas']
+const STORAGE_KEY = 'muslim_cc_ai_chat'
 
 export default function AIChatPage({ setPage }) {
   const { lang } = useLang()
@@ -190,7 +240,8 @@ export default function AIChatPage({ setPage }) {
 
   useEffect(() => {
     const el = scrollRef.current
-    if (el && stickRef.current) el.scrollTop = el.scrollHeight
+    // Boş söhbətdə (nümunə suallar) yuxarıdan başla — aşağı atma
+    if (el && stickRef.current && (messages.length || loading)) el.scrollTop = el.scrollHeight
   }, [messages, streamText, loading])
 
   // Yalnız istifadəçi YUXARI sürüşdürəndə "yapışmanı" burax (hamar avtomatik
@@ -337,7 +388,12 @@ export default function AIChatPage({ setPage }) {
   }
   const canRetry = failed && messages.length > 0 && messages[messages.length - 1].role === 'user'
 
-  const suggestions = [l.suggest1, l.suggest2, l.suggest3, l.suggest4]
+  const v = V3[lang] || V3.en
+  const groups = [
+    ['worship', [l.suggest1, l.suggest2, l.suggest4]],
+    ['aqidah', [l.suggest3, v.aqidah2]],
+    ['site', v.site],
+  ]
 
   return (
     <div className="ai-chat-page">
@@ -348,7 +404,8 @@ export default function AIChatPage({ setPage }) {
         <div className="ui-container aic-hero-in">
           <span className="ui-eyebrow">{l.eyebrow}</span>
           <h1 className="ui-display">{l.title}</h1>
-          <p className="ui-lead">{l.subtitle}</p>
+          <p className="ui-lead">{v.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {v.how}</p>
         </div>
       </header>
 
@@ -376,13 +433,22 @@ export default function AIChatPage({ setPage }) {
                   <span className="aic-avatar aic-avatar--xl"><Icon name="aichat" size={30} strokeWidth={1.6} /></span>
                 </div>
                 <p className="aic-welcome-text">{l.welcome}</p>
-                <div className="aic-suggestions">
-                  {suggestions.map((s, i) => (
-                    <button key={i} type="button" className="aic-suggest-btn" style={{ '--i': i }} onClick={() => sendMessage(s)}>
-                      <span className="ui-icon-tile ui-icon-tile--sm aic-suggest-ico" aria-hidden="true"><Icon name={SUGGEST_ICONS[i]} /></span>
-                      <span className="aic-suggest-text">{s}</span>
-                      <Icon name="arrow" size={16} className="aic-suggest-chev ui-flip-rtl" />
-                    </button>
+                <h2 className="ui-sr-only">{v.pick}</h2>
+                <div className="aic-groups">
+                  {groups.map(([key, qs], gi) => (
+                    <div key={key} className="aic-group" role="group" aria-labelledby={`aic-g-${key}`}>
+                      <span className="aic-group__label" id={`aic-g-${key}`}><Icon name={GROUP_ICONS[key]} size={15} /> {v.groups[key]}</span>
+                      <ul className="aic-group__list">
+                        {qs.map((q, i) => (
+                          <li key={i}>
+                            <button type="button" className="aic-suggest-btn" style={{ '--i': gi * 3 + i }} onClick={() => sendMessage(q)}>
+                              <span className="aic-suggest-text">{q}</span>
+                              <Icon name="arrow" size={15} className="aic-suggest-chev ui-flip-rtl" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -496,6 +562,9 @@ export default function AIChatPage({ setPage }) {
         </form>
 
         {/* Xəbərdarlıq — AI cavabları fətva deyil (BRAND.aiDisclaimer) */}
+        <ul className="aic-caps">
+          {v.caps.map((c, i) => <li key={i}><Icon name={CAP_ICONS[i]} size={15} /> {c}</li>)}
+        </ul>
         <p className="aic-disclaimer"><Icon name="shield" size={16} /> <span>{tr(BRAND.aiDisclaimer, lang)}</span></p>
       </div>
     </div>

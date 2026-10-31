@@ -297,6 +297,8 @@ export const PARENTS = {
     { learn: 'aqiqah', label: { az: 'Əqiqə və yeni doğulanın sünnələri', en: 'Aqiqah and the Sunnahs of the newborn', ru: 'Акыка и сунны новорождённого', ar: 'العقيقة وسنن المولود', tr: 'Akika ve yeni doğanın sünnetleri' } },
     { learn: 'birr-al-walidayn', label: { az: 'Valideynə yaxşılıq', en: 'Kindness to parents', ru: 'Почтение к родителям', ar: 'بر الوالدين', tr: 'Anne-babaya iyilik' } },
     { learn: 'adab-al-mufrad', label: { az: 'əl-Ədəb əl-Müfrəd: gündəlik ədəb', en: 'Al-Adab al-Mufrad: everyday manners', ru: 'Аль-Адаб аль-Муфрад: повседневные манеры', ar: 'الأدب المفرد: آداب يومية', tr: 'el-Edebü’l-Müfred: günlük edep' } },
+    { to: 'arabic', label: { az: 'Ərəb əlifbası və Quran oxumağı öyrən', en: 'Learn the Arabic alphabet and Quran reading', ru: 'Учим арабский алфавит и чтение Корана', ar: 'تعلّم الحروف العربية وقراءة القرآن', tr: 'Arap alfabesini ve Kur’an okumayı öğren' } },
+    { to: 'qurangame', label: { az: 'Quran müsabiqəsi: ayəni tamamla', en: 'Quran quiz: complete the verse', ru: 'Викторина по Корану: заверши аят', ar: 'مسابقة القرآن: أكمل الآية', tr: 'Kur’an yarışması: ayeti tamamla' } },
     { to: 'prayerguide', label: { az: 'Namaz öyrən (addım-addım)', en: 'Learn Prayer (step by step)', ru: 'Учись молиться (пошагово)', ar: 'تعلم الصلاة خطوة خطوة', tr: 'Namaz öğren (adım adım)' } },
     { to: 'nawawi40', label: { az: '40 hədis — 19-cu: «Ey oğlan, Allahı qoru…»', en: '40 Hadith — No. 19: “Young man, guard Allah…”', ru: '40 хадисов — № 19: «Мальчик, оберегай Аллаха…»', ar: 'الأربعون — ١٩: «يا غلام احفظ الله…»', tr: '40 Hadis — 19: “Evlat, Allah’ı koru…”' } },
   ],

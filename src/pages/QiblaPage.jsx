@@ -13,6 +13,7 @@ import { QIBLA_GUIDE, QIBLA_GUIDE_TXT, QIBLA_SOURCES, QIBLA_TABLE_CITIES } from 
 import '../styles/LessonsPage.css'
 import '../styles/QiblaPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import RelatedLinks from '../components/prayer/RelatedLinks'
 
 const KAABA = { lat: 21.3891, lon: 39.8579 }
 
@@ -50,6 +51,60 @@ const EXTRA = {
   ar: { lead: 'الاتجاه الدقيق والمسافة إلى الكعبة من مكانك. على الهاتف تدور البوصلة مع جهازك.', compass: 'البوصلة', details: 'التفاصيل', coords: 'الإحداثيات', city: 'المدينة المختارة' },
   tr: { lead: 'Bulunduğunuz yerden Kâbe’ye tam yön ve mesafe. Telefonda pusula cihazınızla birlikte döner.', compass: 'Pusula', details: 'Bilgiler', coords: 'Koordinatlar', city: 'seçili şehir' },
 }
+
+// ── Dizayn v3: istiqamətin sözlə izahı, istifadə addımları, əlaqəli bölmələr ──
+const DIR_TXT = {
+  az: { how: 'Necə işlədilir: telefonu üfüqi tutun və Kəbə nişanı yuxarıdakı xəttə gələnə qədər öz oxunuz ətrafında dönün. Sensor yoxdursa, aşağıdakı bucağı adi kompasla tapın.', title: 'İstiqamət sözlə', sub: 'Şimaldan saat əqrəbi istiqamətində ölçülür', N: 'Şimal', E: 'Şərq', S: 'Cənub', W: 'Qərb', from: { N: 'Şimaldan', S: 'Cənubdan' }, to: { E: 'şərqə', W: 'qərbə' }, phrase: (f, d, t) => `${f} ${d}° ${t}`, steps: [['Düz tutun', 'Telefonu stolun üstündəki kimi üfüqi tutun.'], ['Metaldan uzaq', 'Maqnit, dəmir və elektron cihazlar kompası yayındırır.'], ['Dönün', 'Kəbə nişanı yuxarıya — xəttin üstünə gələndə qibləyə üzünüz var.']], stepsTitle: 'Kompası düzgün işlətmək', more: 'Kalibrləmə və maneələr — ətraflı' },
+  en: { how: 'How to use: hold the phone flat and turn on the spot until the Kaaba marker reaches the line at the top. Without a sensor, find the bearing below with an ordinary compass.', title: 'The direction in words', sub: 'Measured clockwise from north', N: 'North', E: 'East', S: 'South', W: 'West', from: { N: 'north', S: 'south' }, to: { E: 'east', W: 'west' }, phrase: (f, d, t) => `${d}° ${t} of ${f}`, steps: [['Hold it flat', 'Keep the phone level, as if lying on a table.'], ['Away from metal', 'Magnets, iron and electric devices deflect a compass.'], ['Turn', 'When the Kaaba marker is at the top line, you are facing the qibla.']], stepsTitle: 'Using the compass correctly', more: 'Calibration and interference — details' },
+  ru: { how: 'Как пользоваться: держите телефон горизонтально и поворачивайтесь на месте, пока значок Каабы не окажется у верхней черты. Если датчика нет, найдите указанный ниже угол обычным компасом.', title: 'Направление словами', sub: 'Отсчитывается от севера по часовой стрелке', N: 'Север', E: 'Восток', S: 'Юг', W: 'Запад', from: { N: 'севера', S: 'юга' }, to: { E: 'востоку', W: 'западу' }, phrase: (f, d, t) => `${d}° к ${t} от ${f}`, steps: [['Держите ровно', 'Телефон должен лежать горизонтально, как на столе.'], ['Подальше от металла', 'Магниты, железо и электроприборы отклоняют компас.'], ['Повернитесь', 'Когда значок Каабы у верхней черты — вы обращены к кибле.']], stepsTitle: 'Как правильно пользоваться компасом', more: 'Калибровка и помехи — подробнее' },
+  ar: { how: 'طريقة الاستعمال: أمسك الهاتف أفقيًا ودُر في مكانك حتى تصل علامة الكعبة إلى الخط في الأعلى، وإن لم يكن في جهازك مستشعر فاستخرج الزاوية أدناه ببوصلة عادية.', title: 'الاتجاه بالكلمات', sub: 'تُقاس من الشمال باتجاه عقارب الساعة', N: 'الشمال', E: 'الشرق', S: 'الجنوب', W: 'الغرب', from: { N: 'الشمال', S: 'الجنوب' }, to: { E: 'الشرق', W: 'الغرب' }, phrase: (f, d, t) => `من ${f} ${d}° نحو ${t}`, steps: [['أمسكه مستويًا', 'اجعل الهاتف أفقيًا كأنه على طاولة.'], ['بعيدًا عن المعادن', 'المغناطيس والحديد والأجهزة الكهربائية تحرف البوصلة.'], ['استدر', 'إذا صارت علامة الكعبة عند الخط العلوي فأنت مستقبل القبلة.']], stepsTitle: 'استعمال البوصلة استعمالًا صحيحًا', more: 'المعايرة والمؤثرات — التفصيل' },
+  tr: { how: 'Nasıl kullanılır: telefonu yatay tutun ve Kâbe işareti üstteki çizgiye gelene kadar olduğunuz yerde dönün. Sensör yoksa aşağıdaki açıyı sıradan bir pusulayla bulun.', title: 'Yön kelimelerle', sub: 'Kuzeyden saat yönünde ölçülür', N: 'Kuzey', E: 'Doğu', S: 'Güney', W: 'Batı', from: { N: 'Kuzeyden', S: 'Güneyden' }, to: { E: 'doğuya', W: 'batıya' }, phrase: (f, d, t) => `${f} ${d}° ${t}`, steps: [['Düz tutun', 'Telefonu masada duruyormuş gibi yatay tutun.'], ['Metalden uzak', 'Mıknatıs, demir ve elektrikli cihazlar pusulayı saptırır.'], ['Dönün', 'Kâbe işareti üstteki çizgiye geldiğinde kıbleye yönelmişsiniz.']], stepsTitle: 'Pusulayı doğru kullanmak', more: 'Kalibrasyon ve engeller — ayrıntılı' },
+}
+
+/** 205° → { from: 'S', deg: 25, to: 'W' } — şimal/cənubdan şərqə/qərbə sapma */
+function quadrant(b) {
+  const x = ((b % 360) + 360) % 360
+  if (x <= 90) return { from: 'N', deg: Math.round(x), to: 'E' }
+  if (x <= 180) return { from: 'S', deg: Math.round(180 - x), to: 'E' }
+  if (x <= 270) return { from: 'S', deg: Math.round(x - 180), to: 'W' }
+  return { from: 'N', deg: Math.round(360 - x), to: 'W' }
+}
+
+/** Üfüqi "istiqamət lenti": 0°–360°, dörd əsas istiqamət və qiblə nişanı */
+function BearingTape({ bearing, d }) {
+  const q = quadrant(bearing)
+  const text = d.phrase(d.from[q.from], q.deg, d.to[q.to])
+  const marks = [['N', 0], ['E', 90], ['S', 180], ['W', 270], ['N', 360]]
+  return (
+    <div className="qibla-dir ui-card">
+      <div className="qibla-dir-head">
+        <span className="qibla-info-label">{d.title}</span>
+        <span className="qibla-dir-text">{text}</span>
+        <span className="qibla-dir-sub">{d.sub}</span>
+      </div>
+      <div className="qibla-tape" dir="ltr" role="img" aria-label={`${text} (${Math.round(bearing)}°)`}>
+        <span className="qibla-tape-arc" style={{ '--w': `${(bearing / 360) * 100}%` }} aria-hidden="true" />
+        {marks.map(([k, deg], i) => (
+          <span key={i} className={`qibla-tape-mark${k === 'N' ? ' is-north' : ''}`} style={{ '--x': `${(deg / 360) * 100}%` }} aria-hidden="true">
+            <span className="qibla-tape-label">{d[k]}</span>
+            <span className="qibla-tape-deg ui-num">{`${deg}°`}</span>
+          </span>
+        ))}
+        <span className="qibla-tape-pin" style={{ '--x': `${(bearing / 360) * 100}%` }} aria-hidden="true">
+          <Icon name="hajjguide" size={14} />
+        </span>
+      </div>
+    </div>
+  )
+}
+
+const RELATED = [
+  { key: 'prayerguide', title: { az: 'Namaz necə qılınır', en: 'How to pray', ru: 'Как совершать намаз', ar: 'كيف تصلي', tr: 'Namaz nasıl kılınır' }, text: { az: 'Addım-addım bələdçi', en: 'Step-by-step guide', ru: 'Пошаговое руководство', ar: 'دليل خطوة بخطوة', tr: 'Adım adım rehber' } },
+  { key: 'prayer', title: { az: 'Namaz vaxtları', en: 'Prayer times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz vakitleri' }, text: { az: 'Bu günün vaxtları', en: 'Today’s times', ru: 'Время на сегодня', ar: 'أوقات اليوم', tr: 'Bugünün vakitleri' } },
+  { key: 'mosques', title: { az: 'Yaxınlıqdakı məscidlər', en: 'Nearby mosques', ru: 'Мечети рядом', ar: 'المساجد القريبة', tr: 'Yakındaki camiler' }, text: { az: 'Xəritədə axtarış', en: 'Search on the map', ru: 'Поиск на карте', ar: 'البحث في الخريطة', tr: 'Haritada arama' } },
+  { key: 'holyplaces', title: { az: 'Müqəddəs yerlər', en: 'Holy places', ru: 'Святые места', ar: 'الأماكن المقدسة', tr: 'Kutsal yerler' }, text: { az: 'Məkkə və Mədinə', en: 'Makkah and Madinah', ru: 'Мекка и Медина', ar: 'مكة والمدينة', tr: 'Mekke ve Medine' } },
+  { lesson: 'travel-prayer', title: { az: 'Səfər namazı', en: 'Prayer while travelling', ru: 'Намаз в пути', ar: 'صلاة المسافر', tr: 'Yolculuk namazı' }, text: { az: 'Dərs', en: 'Lesson', ru: 'Урок', ar: 'درس', tr: 'Ders' } },
+]
 
 function toRad(deg) { return deg * (Math.PI / 180) }
 function toDeg(rad) { return rad * (180 / Math.PI) }
@@ -200,6 +255,7 @@ export default function QiblaPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.en
   const x = EXTRA[lang] || EXTRA.en
+  const dt = DIR_TXT[lang] || DIR_TXT.en
 
   const [status, setStatus]       = useState('idle')
   const [coords, setCoords]       = useState(null)
@@ -415,9 +471,8 @@ export default function QiblaPage({ setPage }) {
           <Breadcrumb setPage={setPage} current={l.title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
           <h1 className="ui-display">{l.title}</h1>
-          {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
-          {lang !== 'ar' && <p className="qibla-hero-ar ui-arabic" lang="ar" aria-hidden="true">الْقِبْلَة</p>}
           <p className="ui-lead">{x.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {dt.how}</p>
         </div>
       </header>
 
@@ -452,6 +507,7 @@ export default function QiblaPage({ setPage }) {
         {status === 'ready' && qibla !== null && (
           <div className="qibla-content">
 
+            <div className="qibla-main-col">
             <section className="qibla-compass-wrap ui-card" data-reveal="scale" aria-label={x.compass}>
               {needsIOSPermission && (
                 <button type="button" className="ui-btn ui-btn--primary qibla-ios-btn" onClick={requestIOSCompass}>
@@ -500,8 +556,25 @@ export default function QiblaPage({ setPage }) {
                 <span className="qibla-angle-label">{l.fromNorth}</span>
               </div>
             </section>
+            <div className="qibla-steps-wrap">
+              <h2 className="qibla-steps-title">{dt.stepsTitle}</h2>
+              <ol className="ui-steps qibla-steps">
+                {dt.steps.map(([h, p], i) => (
+                  <li key={i} className="ui-step">
+                    <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                    <div className="ui-step__body">
+                      <h3 className="ui-step__title">{h}</h3>
+                      <p className="ui-step__text">{p}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <a className="ui-link qibla-steps-more" href="#qb-g-compass">{dt.more} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" /></a>
+            </div>
 
             <div className="qibla-side">
+
+            <BearingTape bearing={qibla} d={dt} />
 
             {/* Telefonda qruplu "inset" siyahı: ikon kafeli · ad · dəyər (sonda) */}
             <div className="qibla-info-grid" data-reveal="stagger">
@@ -563,6 +636,8 @@ export default function QiblaPage({ setPage }) {
                 <Icon name="refresh" className="ui-btn__icon" /> {l.refreshLocation}
               </button>
             </div>
+
+            </div>
             </div>
 
           </div>
@@ -571,6 +646,7 @@ export default function QiblaPage({ setPage }) {
 
       {/* Hökmlər və tövsiyələr — məkan tapılmasa da göstərilir */}
       <QiblaGuide lang={lang} />
+      <RelatedLinks items={RELATED} lang={lang} id="qb-related" />
     </div>
   )
 }

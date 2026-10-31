@@ -2,14 +2,42 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
+import Breadcrumb from '../components/Breadcrumb'
+import PageLink from '../components/PageLink'
+import { ProgressRing } from '../components/viz'
+import { navLabel } from '../data/navigation'
+
+// v3 — hero, addımlar, nəticə icmalı üçün əlavə mətnlər
+const QX = {
+  az: { prep:{ quran:'Tərcümə, tilavət və təfsir', hadith:'Səhih hədislər və mənbələri', names:'Hər adın mənası və dəlili', ibadah:'Dəstəmaz və namaz addım-addım' }, eyebrow:'Bilik', how:'Mövzu seçin, 10 suala cavab verin, sonda hansıları düz tapdığınızı və düzgün cavabları görün. Klaviaturada 1–4 variant seçir, ↵ — növbəti sual.', topics:'mövzu', questions:'sual', perRound:'sual bir raundda',
+    stepsTitle:'Necə oynanılır', steps:[['Mövzu seçin','Quran, hədis, Allahın adları və ya ibadət fiqhi.'],['10 suala cavab verin','Hər raundda suallar qarışdırılır — təkrar oynamaq olar.'],['Nəticəyə baxın','Səhv cavabların düzgün variantı və mənbəsi göstərilir; ən yaxşı nəticə bu cihazda saxlanılır.']],
+    prepEyebrow:'Hazırlaş', prepTitle:'Əvvəlcə oxumaq istəyirsiniz?', prepLead:'Sualların mövzuları saytın bu bölmələrində ətraflı izah olunur.',
+    best:'Ən yaxşı', notPlayed:'Hələ oynanmayıb', review:'Cavablarınız', yours:'Sizin cavabınız', right:'Düzgün cavab', source:'Mənbə', chooseHead:'Mövzu seçin', chooseLead:'Hər mövzuda ən yaxşı nəticəniz halqada görünür.' },
+  en: { prep:{ quran:'Translation, recitation and tafsir', hadith:'Authentic hadiths and their sources', names:'Each Name’s meaning and evidence', ibadah:'Wudu and prayer step by step' }, eyebrow:'Knowledge', how:'Pick a topic, answer 10 questions, then see which you got right along with the correct answers. On a keyboard, 1–4 picks an option and Enter goes to the next question.', topics:'topics', questions:'questions', perRound:'questions per round',
+    stepsTitle:'How to play', steps:[['Pick a topic','The Quran, hadith, the Names of Allah or the fiqh of worship.'],['Answer 10 questions','Questions are shuffled every round, so you can play again.'],['Review your result','Wrong answers show the correct option and its source; your best score is kept on this device.']],
+    prepEyebrow:'Prepare', prepTitle:'Want to read first?', prepLead:'The topics of the questions are explained in detail in these sections of the site.',
+    best:'Best', notPlayed:'Not played yet', review:'Your answers', yours:'Your answer', right:'Correct answer', source:'Source', chooseHead:'Choose a topic', chooseLead:'Your best result for each topic is shown in the ring.' },
+  ru: { prep:{ quran:'Перевод, чтение и тафсир', hadith:'Достоверные хадисы и их источники', names:'Значение и доказательство каждого имени', ibadah:'Омовение и намаз шаг за шагом' }, eyebrow:'Знание', how:'Выберите тему, ответьте на 10 вопросов и посмотрите, какие ответы верны, вместе с правильными вариантами. На клавиатуре 1–4 выбирают вариант, ↵ — следующий вопрос.', topics:'темы', questions:'вопросов', perRound:'вопросов в раунде',
+    stepsTitle:'Как играть', steps:[['Выберите тему','Коран, хадисы, имена Аллаха или фикх поклонения.'],['Ответьте на 10 вопросов','Вопросы перемешиваются каждый раунд — можно играть снова.'],['Посмотрите итог','Для ошибок показан верный ответ и источник; лучший результат хранится на этом устройстве.']],
+    prepEyebrow:'Подготовка', prepTitle:'Хотите сначала почитать?', prepLead:'Темы вопросов подробно раскрыты в этих разделах сайта.',
+    best:'Лучший', notPlayed:'Ещё не играли', review:'Ваши ответы', yours:'Ваш ответ', right:'Правильный ответ', source:'Источник', chooseHead:'Выберите тему', chooseLead:'Лучший результат по каждой теме показан в кольце.' },
+  ar: { prep:{ quran:'الترجمة والتلاوة والتفسير', hadith:'الأحاديث الصحيحة ومصادرها', names:'معنى كل اسم ودليله', ibadah:'الوضوء والصلاة خطوة بخطوة' }, eyebrow:'العلم', how:'اختر موضوعًا، وأجب عن ١٠ أسئلة، ثم اطّلع على ما أصبت فيه مع الإجابات الصحيحة. في لوحة المفاتيح: ١–٤ لاختيار الإجابة، و↵ للسؤال التالي.', topics:'مواضيع', questions:'سؤالًا', perRound:'أسئلة في كل جولة',
+    stepsTitle:'طريقة اللعب', steps:[['اختر موضوعًا','القرآن، أو الحديث، أو أسماء الله، أو فقه العبادات.'],['أجب عن ١٠ أسئلة','تُخلط الأسئلة في كل جولة، فيمكنك اللعب مرة أخرى.'],['راجع نتيجتك','تظهر الإجابة الصحيحة ومصدرها عند الخطأ، وتُحفظ أفضل نتيجة على هذا الجهاز.']],
+    prepEyebrow:'استعد', prepTitle:'هل تريد القراءة أولًا؟', prepLead:'مواضيع الأسئلة مشروحة بالتفصيل في هذه الأقسام من الموقع.',
+    best:'الأفضل', notPlayed:'لم تلعب بعد', review:'إجاباتك', yours:'إجابتك', right:'الإجابة الصحيحة', source:'المصدر', chooseHead:'اختر موضوعًا', chooseLead:'تظهر أفضل نتيجة لكل موضوع في الحلقة.' },
+  tr: { prep:{ quran:'Meal, tilavet ve tefsir', hadith:'Sahih hadisler ve kaynakları', names:'Her ismin anlamı ve delili', ibadah:'Abdest ve namaz adım adım' }, eyebrow:'İlim', how:'Bir konu seçin, 10 soruyu cevaplayın, sonunda hangilerini doğru bildiğinizi ve doğru cevapları görün. Klavyede 1–4 seçenek seçer, ↵ sonraki soruya geçer.', topics:'konu', questions:'soru', perRound:'soru bir turda',
+    stepsTitle:'Nasıl oynanır', steps:[['Konu seçin','Kur’an, hadis, Allah’ın isimleri veya ibadet fıkhı.'],['10 soruyu cevaplayın','Sorular her turda karıştırılır — tekrar oynayabilirsiniz.'],['Sonuca bakın','Yanlış cevaplarda doğru seçenek ve kaynağı gösterilir; en iyi sonucunuz bu cihazda saklanır.']],
+    prepEyebrow:'Hazırlan', prepTitle:'Önce okumak ister misiniz?', prepLead:'Soruların konuları sitenin bu bölümlerinde ayrıntılı anlatılır.',
+    best:'En iyi', notPlayed:'Henüz oynanmadı', review:'Cevaplarınız', yours:'Sizin cevabınız', right:'Doğru cevap', source:'Kaynak', chooseHead:'Konu seçin', chooseLead:'Her konudaki en iyi sonucunuz halkada görünür.' },
+}
 import '../styles/QuizPage.css'
 
 const LABELS = {
-  az: { title:'İslami kviz', subtitle:'Biliyini test et', categories:'Kateqoriya seç', quran:'Quran', hadith:'Hədis', names:'99 Ad', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', playAgain:'Yenidən', question:'Sual', of:'/', bestScore:'Ən yaxşı nəticə', newBest:'Yeni rekord!', back:'Geri', selectAnswer:'Cavab seçin', exit:'Kateqoriyalar' },
-  en: { title:'Islamic Quiz', subtitle:'Test your knowledge', categories:'Choose category', quran:'Quran', hadith:'Hadith', names:'99 Names', start:'Start', next:'Next', finish:'Finish', score:'Score', correct:'Correct', wrong:'Wrong', playAgain:'Play Again', question:'Question', of:'/', bestScore:'Best score', newBest:'New record!', back:'Back', selectAnswer:'Select an answer', exit:'Categories' },
-  ru: { title:'Исламская викторина', subtitle:'Проверь свои знания', categories:'Выберите категорию', quran:'Коран', hadith:'Хадис', names:'99 Имён', start:'Начать', next:'Далее', finish:'Завершить', score:'Баллы', correct:'Правильно', wrong:'Неверно', playAgain:'Играть снова', question:'Вопрос', of:'/', bestScore:'Лучший результат', newBest:'Новый рекорд!', back:'Назад', selectAnswer:'Выберите ответ', exit:'Категории' },
-  ar: { title:'اختبار إسلامي', subtitle:'اختبر معلوماتك', categories:'اختر الفئة', quran:'القرآن', hadith:'الحديث', names:'٩٩ اسم', start:'ابدأ', next:'التالي', finish:'إنهاء', score:'النقاط', correct:'صحيح', wrong:'خطأ', playAgain:'أعد اللعب', question:'سؤال', of:'/', bestScore:'أفضل نتيجة', newBest:'رقم قياسي!', back:'رجوع', selectAnswer:'اختر إجابة', exit:'الفئات' },
-  tr: { title:'İslami Bilgi Yarışması', subtitle:'Bilgini test et', categories:'Kategori seç', quran:'Kuran', hadith:'Hadis', names:'99 İsim', start:'Başla', next:'Sonraki', finish:'Bitir', score:'Puan', correct:'Doğru', wrong:'Yanlış', playAgain:'Tekrar Oyna', question:'Soru', of:'/', bestScore:'En iyi skor', newBest:'Yeni rekor!', back:'Geri', selectAnswer:'Bir cevap seçin', exit:'Kategoriler' },
+  az: { title:'İslami kviz', subtitle:'Biliyini test et', categories:'Kateqoriya seç', quran:'Quran', hadith:'Hədis', names:'99 Ad', ibadah:'İbadət fiqhi', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', playAgain:'Yenidən', question:'Sual', of:'/', bestScore:'Ən yaxşı nəticə', newBest:'Yeni rekord!', back:'Geri', selectAnswer:'Cavab seçin', exit:'Kateqoriyalar' },
+  en: { title:'Islamic Quiz', subtitle:'Test your knowledge', categories:'Choose category', quran:'Quran', hadith:'Hadith', names:'99 Names', ibadah:'Fiqh of worship', start:'Start', next:'Next', finish:'Finish', score:'Score', correct:'Correct', wrong:'Wrong', playAgain:'Play Again', question:'Question', of:'/', bestScore:'Best score', newBest:'New record!', back:'Back', selectAnswer:'Select an answer', exit:'Categories' },
+  ru: { title:'Исламская викторина', subtitle:'Проверь свои знания', categories:'Выберите категорию', quran:'Коран', hadith:'Хадис', names:'99 Имён', ibadah:'Фикх поклонения', start:'Начать', next:'Далее', finish:'Завершить', score:'Баллы', correct:'Правильно', wrong:'Неверно', playAgain:'Играть снова', question:'Вопрос', of:'/', bestScore:'Лучший результат', newBest:'Новый рекорд!', back:'Назад', selectAnswer:'Выберите ответ', exit:'Категории' },
+  ar: { title:'اختبار إسلامي', subtitle:'اختبر معلوماتك', categories:'اختر الفئة', quran:'القرآن', hadith:'الحديث', names:'٩٩ اسم', ibadah:'فقه العبادات', start:'ابدأ', next:'التالي', finish:'إنهاء', score:'النقاط', correct:'صحيح', wrong:'خطأ', playAgain:'أعد اللعب', question:'سؤال', of:'/', bestScore:'أفضل نتيجة', newBest:'رقم قياسي!', back:'رجوع', selectAnswer:'اختر إجابة', exit:'الفئات' },
+  tr: { title:'İslami Bilgi Yarışması', subtitle:'Bilgini test et', categories:'Kategori seç', quran:'Kuran', hadith:'Hadis', names:'99 İsim', ibadah:'İbadet fıkhı', start:'Başla', next:'Sonraki', finish:'Bitir', score:'Puan', correct:'Doğru', wrong:'Yanlış', playAgain:'Tekrar Oyna', question:'Soru', of:'/', bestScore:'En iyi skor', newBest:'Yeni rekor!', back:'Geri', selectAnswer:'Bir cevap seçin', exit:'Kategoriler' },
 }
 
 // Bir raundda sual sayı
@@ -33,7 +61,9 @@ function ruQuestions(n) {
 }
 
 // Kateqoriya ikonları (Icon.jsx; əvvəl 📖 📜 ✨ emojiləri)
-const CATEGORY_ICONS = { quran: 'quran', hadith: 'hadith', names: 'names' }
+const CATEGORY_ICONS = { quran: 'quran', hadith: 'hadith', names: 'names', ibadah: 'prayerguide' }
+// Hazırlaşmaq üçün bölmələr (kateqoriya → səhifə açarı)
+const CATEGORY_PAGE = { quran: 'quran', hadith: 'hadith', names: 'names', ibadah: 'prayerguide' }
 
 const QUESTIONS = {
   quran: [
@@ -845,6 +875,107 @@ const QUESTIONS = {
       ], correct: 0
     },
   ],
+  // İbadət fiqhi (v3, yeni) — hər sualın dəlili `src`-də (nəticə ekranında göstərilir).
+  // Hədis nömrələri hadith-api ilə yoxlanılıb (Muslim — Abdulbaqi nömrəsi).
+  ibadah: [
+    {
+      q: { az:'Gündə neçə vaxt fərz namaz var?', en:'How many obligatory prayers are there each day?', ru:'Сколько обязательных намазов в сутки?', ar:'كم عدد الصلوات المفروضة في اليوم والليلة؟', tr:'Günde kaç vakit farz namaz vardır?' },
+      options: ['3','4','5','6'], correct: 2, src: 'Bukhari 46 · Muslim 11'
+    },
+    {
+      q: { az:'Məğrib namazının fərzi neçə rükətdir?', en:'How many rak‘ahs is the obligatory Maghrib prayer?', ru:'Сколько ракаатов в обязательном вечернем намазе (магриб)?', ar:'كم ركعة صلاة المغرب؟', tr:'Akşam namazının farzı kaç rekâttır?' },
+      options: ['2','3','4','5'], correct: 1, src: 'Bukhari 1091'
+    },
+    {
+      q: { az:'Namazın hər rükətində hansı surə oxunmalıdır?', en:'Which surah must be recited in every rak‘ah?', ru:'Какую суру обязательно читать в каждом ракаате?', ar:'ما السورة التي تجب قراءتها في كل ركعة؟', tr:'Namazın her rekâtında hangi sure okunmalıdır?' },
+      options: [
+        { az:'İxlas', en:'Al-Ikhlas', ru:'Аль-Ихлас', ar:'الإخلاص', tr:'İhlas' },
+        { az:'Fatihə', en:'Al-Fatihah', ru:'Аль-Фатиха', ar:'الفاتحة', tr:'Fatiha' },
+        { az:'Kövsər', en:'Al-Kawthar', ru:'Аль-Каусар', ar:'الكوثر', tr:'Kevser' },
+        { az:'Nas', en:'An-Nas', ru:'Ан-Нас', ar:'الناس', tr:'Nas' }
+      ], correct: 1, src: 'Bukhari 756 · Muslim 394'
+    },
+    {
+      q: { az:'Namaza hansı sözlə başlanılır?', en:'With which words does one enter the prayer?', ru:'С каких слов начинают намаз?', ar:'بماذا يُدخل في الصلاة؟', tr:'Namaza hangi sözle başlanır?' },
+      options: [
+        { az:'Allahu əkbər', en:'Allahu akbar', ru:'Аллаху акбар', ar:'الله أكبر', tr:'Allahu ekber' },
+        { az:'Bismillah', en:'Bismillah', ru:'Бисмиллях', ar:'بسم الله', tr:'Bismillah' },
+        { az:'Sübhanallah', en:'Subhanallah', ru:'Субханаллах', ar:'سبحان الله', tr:'Sübhanallah' },
+        { az:'Əlhəmdulillah', en:'Alhamdulillah', ru:'Альхамдулиллях', ar:'الحمد لله', tr:'Elhamdülillah' }
+      ], correct: 0, src: 'Abu Dawud 61 · Tirmidhi 3'
+    },
+    {
+      q: { az:'Namazda üz hansı tərəfə tutulur?', en:'Which direction do Muslims face in prayer?', ru:'В какую сторону обращаются во время намаза?', ar:'إلى أي جهة يستقبل المسلم في صلاته؟', tr:'Namazda hangi yöne dönülür?' },
+      options: [
+        { az:'Məscidi-Əqsaya', en:'Al-Aqsa Mosque', ru:'К мечети Аль-Акса', ar:'المسجد الأقصى', tr:'Mescid-i Aksa’ya' },
+        { az:'Kəbəyə (Məscidi-Həram)', en:'The Kaaba (al-Masjid al-Haram)', ru:'К Каабе (Запретная мечеть)', ar:'الكعبة (المسجد الحرام)', tr:'Kâbe’ye (Mescid-i Haram)' },
+        { az:'Günəşin çıxdığı tərəfə', en:'Towards the sunrise', ru:'К восходу солнца', ar:'جهة المشرق', tr:'Güneşin doğduğu yöne' },
+        { az:'Məscidi-Nəbəviyə', en:'The Prophet’s Mosque', ru:'К мечети Пророка', ar:'المسجد النبوي', tr:'Mescid-i Nebevi’ye' }
+      ], correct: 1, src: 'Quran 2:144'
+    },
+    {
+      q: { az:'Su olmayanda dəstəmazın yerinə nə edilir?', en:'What replaces wudu when there is no water?', ru:'Что совершают вместо омовения, если нет воды?', ar:'ماذا يُفعل بدل الوضوء عند فقد الماء؟', tr:'Su bulunmadığında abdestin yerine ne yapılır?' },
+      options: [
+        { az:'Təyəmmüm', en:'Tayammum', ru:'Таяммум', ar:'التيمم', tr:'Teyemmüm' },
+        { az:'Qüsl', en:'Ghusl', ru:'Гусль', ar:'الغسل', tr:'Gusül' },
+        { az:'Namaz təxirə salınır', en:'The prayer is postponed', ru:'Намаз откладывают', ar:'تؤخر الصلاة', tr:'Namaz ertelenir' },
+        { az:'Heç nə — namaz düşür', en:'Nothing — the prayer is dropped', ru:'Ничего — намаз отменяется', ar:'لا شيء، تسقط الصلاة', tr:'Hiçbir şey — namaz düşer' }
+      ], correct: 0, src: 'Quran 4:43 · 5:6'
+    },
+    {
+      q: { az:'Cümə namazı hansı namazın vaxtında qılınır?', en:'The Friday (Jumu‘ah) prayer is held at the time of which prayer?', ru:'Во время какого намаза совершается пятничная молитва (джума)?', ar:'في وقت أي صلاة تُصلّى الجمعة؟', tr:'Cuma namazı hangi namazın vaktinde kılınır?' },
+      options: [
+        { az:'Sübh', en:'Fajr', ru:'Фаджр', ar:'الفجر', tr:'Sabah' },
+        { az:'Zöhr', en:'Dhuhr', ru:'Зухр', ar:'الظهر', tr:'Öğle' },
+        { az:'Əsr', en:'Asr', ru:'Аср', ar:'العصر', tr:'İkindi' },
+        { az:'İşa', en:'Isha', ru:'Иша', ar:'العشاء', tr:'Yatsı' }
+      ], correct: 1, src: 'Quran 62:9 · Bukhari 904'
+    },
+    {
+      q: { az:'Oruc hansı ayda fərzdir?', en:'In which month is fasting obligatory?', ru:'В каком месяце пост обязателен?', ar:'في أي شهر فُرض الصيام؟', tr:'Oruç hangi ayda farzdır?' },
+      options: [
+        { az:'Şəban', en:'Sha‘ban', ru:'Шабан', ar:'شعبان', tr:'Şaban' },
+        { az:'Ramazan', en:'Ramadan', ru:'Рамадан', ar:'رمضان', tr:'Ramazan' },
+        { az:'Məhərrəm', en:'Muharram', ru:'Мухаррам', ar:'المحرم', tr:'Muharrem' },
+        { az:'Zülhiccə', en:'Dhu al-Hijjah', ru:'Зуль-хиджа', ar:'ذو الحجة', tr:'Zilhicce' }
+      ], correct: 1, src: 'Quran 2:185'
+    },
+    {
+      q: { az:'Orucluq gün ərzində nə vaxt açılır?', en:'When is the fast broken each day?', ru:'Когда разговляются в день поста?', ar:'متى يُفطر الصائم؟', tr:'Oruç gün içinde ne zaman açılır?' },
+      options: [
+        { az:'Günorta', en:'At midday', ru:'В полдень', ar:'عند الظهر', tr:'Öğle vakti' },
+        { az:'Günəş batanda', en:'At sunset', ru:'На закате солнца', ar:'عند غروب الشمس', tr:'Güneş batınca' },
+        { az:'Gecə yarısı', en:'At midnight', ru:'В полночь', ar:'عند منتصف الليل', tr:'Gece yarısı' },
+        { az:'İşa vaxtı', en:'At Isha time', ru:'Во время иша', ar:'وقت العشاء', tr:'Yatsı vakti' }
+      ], correct: 1, src: 'Quran 2:187 · Bukhari 1954'
+    },
+    {
+      q: { az:'İl tamam olan pul və gümüşdən zəkat nə qədərdir?', en:'What is the zakat rate on money and silver held for a full year?', ru:'Каков закят с денег и серебра, пролежавших год?', ar:'كم مقدار الزكاة في النقود والفضة إذا حال عليها الحول؟', tr:'Üzerinden yıl geçen para ve gümüşün zekâtı ne kadardır?' },
+      options: ['1%','2.5%','5%','10%'], correct: 1, src: 'Bukhari 1454 · Abu Dawud 1573'
+    },
+    {
+      q: { az:'Fitrə zəkatı nə qədərdir?', en:'How much is Zakat al-Fitr?', ru:'Каков размер закят-уль-фитр?', ar:'ما مقدار زكاة الفطر؟', tr:'Fıtır sadakası ne kadardır?' },
+      options: [
+        { az:'Bir sa‘ (ölçü) yemək', en:'One sa‘ (measure) of food', ru:'Один са‘ (мера) пищи', ar:'صاع من طعام', tr:'Bir sa‘ (ölçek) yiyecek' },
+        { az:'Malın 2.5%-i', en:'2.5% of wealth', ru:'2,5% имущества', ar:'ربع العشر من المال', tr:'Malın %2,5’i' },
+        { az:'Bir dirhəm', en:'One dirham', ru:'Один дирхам', ar:'درهم واحد', tr:'Bir dirhem' },
+        { az:'Bir qoyun', en:'One sheep', ru:'Одна овца', ar:'شاة واحدة', tr:'Bir koyun' }
+      ], correct: 0, src: 'Bukhari 1503 · Muslim 984'
+    },
+    {
+      q: { az:'Gücü çatan müsəlmana həcc ömründə neçə dəfə fərzdir?', en:'How many times in a lifetime is Hajj obligatory for one who is able?', ru:'Сколько раз в жизни хадж обязателен для способного?', ar:'كم مرة يجب الحج على المستطيع في العمر؟', tr:'Gücü yeten Müslümana hac ömründe kaç kez farzdır?' },
+      options: [
+        { az:'Hər il', en:'Every year', ru:'Каждый год', ar:'كل عام', tr:'Her yıl' },
+        { az:'Bir dəfə', en:'Once', ru:'Один раз', ar:'مرة واحدة', tr:'Bir kez' },
+        { az:'Üç dəfə', en:'Three times', ru:'Три раза', ar:'ثلاث مرات', tr:'Üç kez' },
+        { az:'Yeddi dəfə', en:'Seven times', ru:'Семь раз', ar:'سبع مرات', tr:'Yedi kez' }
+      ], correct: 1, src: 'Muslim 1337'
+    },
+    {
+      q: { az:'Kəbənin ətrafında təvaf neçə dövrədir?', en:'How many circuits are there in tawaf around the Kaaba?', ru:'Сколько кругов в тавафе вокруг Каабы?', ar:'كم شوطًا في الطواف حول الكعبة؟', tr:'Kâbe’nin etrafındaki tavaf kaç şavttır?' },
+      options: ['3','5','7','9'], correct: 2, src: 'Bukhari 1616 · Muslim 1261'
+    },
+  ],
 }
 
 function shuffleArray(arr) {
@@ -898,6 +1029,8 @@ export default function QuizPage({ setPage }) {
   // Raund sayğacı — "Yenidən" eyni kateqoriyanı YENİ suallarla başlatsın
   // (əvvəl "Yenidən" düyməsi kateqoriya seçiminə qaytarırdı)
   const [round, setRound] = useState(0)
+  // Raunddakı cavablar — nəticə ekranında icmal (sual, seçilən variant)
+  const [answers, setAnswers] = useState([])
 
   const questions = useMemo(() => {
     if (!category) return []
@@ -937,6 +1070,7 @@ export default function QuizPage({ setPage }) {
     setCorrectCount(0)
     setWrongCount(0)
     setIsNewBest(false)
+    setAnswers([])
     setRound(r => r + 1)
     setPhase('quiz')
     scrollToTop()
@@ -946,6 +1080,7 @@ export default function QuizPage({ setPage }) {
     if (answered) return
     setSelected(idx)
     setAnswered(true)
+    setAnswers(a => [...a, { q: questions[currentQ], picked: idx }])
     if (idx === questions[currentQ].correct) {
       haptic()
       setCorrectCount(c => c + 1)
@@ -1002,21 +1137,31 @@ export default function QuizPage({ setPage }) {
   const totalQ = questions.length
   const progress = totalQ > 0 ? ((currentQ + (answered ? 1 : 0)) / totalQ) * 100 : 0
 
-  const categoryKeys = ['quran', 'hadith', 'names']
+  const categoryKeys = ['quran', 'hadith', 'names', 'ibadah']
   const qWord = QUESTIONS_WORD[lang] || QUESTIONS_WORD.az
+  const x = QX[lang] || QX.az
+  const allQuestions = categoryKeys.reduce((n, k) => n + QUESTIONS[k].length, 0)
 
-  // Sakit kağız hero (dizayn v2) — bütün mərhələlərdə eyni, bir h1.
+  // Kompakt hero (dizayn v3) — bütün mərhələlərdə eyni, bir h1.
   // Test/nəticə zamanı yığcam (lead yox), eyebrow — seçilmiş kateqoriya.
   const hero = (
     <header className={`ui-page-hero quiz-hero${phase !== 'categories' ? ' quiz-hero--compact' : ''}`}>
       <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-      {phase === 'categories' && lang !== 'ar' && (
-        <span className="quiz-hero__art" lang="ar" aria-hidden="true">اختبر معلوماتك</span>
-      )}
       <div className="ui-container">
-        {phase !== 'categories' && category && <span className="ui-eyebrow">{t[category]}</span>}
+        {phase === 'categories' && <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>}
+        <span className="ui-eyebrow">{phase !== 'categories' && category ? t[category] : x.eyebrow}</span>
         <h1 className="ui-display">{t.title}</h1>
-        {phase === 'categories' && <p className="ui-lead">{t.subtitle}</p>}
+        {phase === 'categories' && (
+          <>
+            <p className="ui-lead">{t.subtitle}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> {x.how}</p>
+            <ul className="ui-page-hero__stats">
+              <li><b>{categoryKeys.length}</b><span>{x.topics}</span></li>
+              <li><b>{allQuestions}</b><span>{x.questions}</span></li>
+              <li><b>{ROUND_SIZE}</b><span>{x.perRound}</span></li>
+            </ul>
+          </>
+        )}
       </div>
     </header>
   )
@@ -1026,24 +1171,35 @@ export default function QuizPage({ setPage }) {
     return (
       <>
         {hero}
-        <div className="section quiz-section">
-          <div className="section-inner">
-            <h2 className="ui-title ui-title--sm quiz-categories-title" data-reveal="">{t.categories}</h2>
-            <div className="quiz-categories-grid" data-reveal="stagger-zoom">
+        <section className="ui-section ui-section--tight quiz-section" aria-labelledby="quiz-cat-h">
+          <div className="ui-container">
+            <div className="ui-section-head" data-reveal="">
+              <h2 id="quiz-cat-h" className="ui-title quiz-categories-title">{x.chooseHead}</h2>
+              <p className="ui-lead">{x.chooseLead}</p>
+            </div>
+            <div className="quiz-categories-grid" data-reveal="stagger">
               {categoryKeys.map((key) => {
                 const total = QUESTIONS[key].length
+                const max = Math.min(ROUND_SIZE, total)
+                const best = scores[key]
                 return (
                   <button type="button" key={key} className="ui-card ui-card--interactive quiz-category-card" onClick={() => startQuiz(key)}>
-                    <span className={`ui-icon-tile ui-icon-tile--lg quiz-category-icon quiz-category-icon--${key}`} aria-hidden="true">
+                    <span className={`ui-icon-tile quiz-category-icon quiz-category-icon--${key}`} aria-hidden="true">
                       <Icon name={CATEGORY_ICONS[key]} />
                     </span>
-                    <span className="quiz-category-name">{t[key]}</span>
-                    <span className="quiz-category-count ui-num">{total} {lang === 'ru' ? ruQuestions(total) : qWord}</span>
-                    {/* Ən yaxşı nəticə raunddakı sual sayına görədir (əvvəl ümumi
-                        sual sayına bölünürdü: "8/40") */}
-                    {scores[key] !== undefined && (
-                      <span className="ui-badge ui-badge--accent quiz-category-best ui-num">{t.bestScore}: <bdi dir="ltr">{scores[key]}/{Math.min(ROUND_SIZE, total)}</bdi></span>
-                    )}
+                    <span className="quiz-category-body">
+                      <span className="quiz-category-name">{t[key]}</span>
+                      <span className="quiz-category-count ui-num">{total} {lang === 'ru' ? ruQuestions(total) : qWord}</span>
+                    </span>
+                    {/* Ən yaxşı nəticə raunddakı sual sayına görədir */}
+                    <span className="quiz-category-best">
+                      <span aria-hidden="true" className="quiz-category-ring">
+                        <ProgressRing value={best ?? 0} max={max} size={44} thickness={5} showPercent={false} tone={best != null ? 1 : 'muted'} />
+                      </span>
+                      <span className="quiz-category-best__text ui-num">
+                        {best != null ? <><span className="ui-sr-only">{t.bestScore}: </span><bdi dir="ltr">{best}/{max}</bdi></> : x.notPlayed}
+                      </span>
+                    </span>
                     <span className="quiz-category-start">
                       {t.start} <Icon name="arrow" size={16} className="quiz-arrow ui-flip-rtl" />
                     </span>
@@ -1052,7 +1208,49 @@ export default function QuizPage({ setPage }) {
               })}
             </div>
           </div>
-        </div>
+        </section>
+
+        <section className="ui-section ui-section--tight ui-section--alt quiz-how" aria-labelledby="quiz-how-h">
+          <div className="ui-container">
+            <div className="ui-section-head" data-reveal="">
+              <h2 id="quiz-how-h" className="ui-title ui-title--sm">{x.stepsTitle}</h2>
+            </div>
+            <ol className="ui-steps ui-steps--row">
+              {x.steps.map(([title, text], i) => (
+                <li key={i} className="ui-step">
+                  <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                  <div className="ui-step__body">
+                    <h3 className="ui-step__title">{title}</h3>
+                    <p className="ui-step__text">{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section className="ui-section ui-section--tight quiz-prep" aria-labelledby="quiz-prep-h">
+          <div className="ui-container">
+            <div className="ui-section-head" data-reveal="">
+              <span className="ui-eyebrow">{x.prepEyebrow}</span>
+              <h2 id="quiz-prep-h" className="ui-title ui-title--sm">{x.prepTitle}</h2>
+              <p className="ui-lead">{x.prepLead}</p>
+            </div>
+            <ul className="ui-tiles quiz-prep-tiles" style={{ '--ui-tiles-min': '200px' }}>
+              {categoryKeys.map(k => (
+                <li key={k}>
+                  <PageLink to={CATEGORY_PAGE[k]} setPage={setPage} className="ui-tile ui-tile--row">
+                    <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={CATEGORY_PAGE[k]} /></span>
+                    <span className="ui-tile__body">
+                      <span className="ui-tile__title">{navLabel(CATEGORY_PAGE[k], lang)}</span>
+                      <span className="ui-tile__text">{x.prep[k]}</span>
+                    </span>
+                  </PageLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
       </>
     )
   }
@@ -1084,7 +1282,14 @@ export default function QuizPage({ setPage }) {
                   </span>
                 </span>
               </div>
-              {/* Doluluq transform (scaleX) ilə — layout animasiyası yox */}
+              {/* Raund xəritəsi: hər sual bir nöqtə (düz / səhv / cari) */}
+              <ol className="quiz-dots" aria-hidden="true">
+                {questions.map((_, i) => {
+                  const a = answers[i]
+                  const st = a ? (a.picked === a.q.correct ? 'is-ok' : 'is-bad') : i === currentQ ? 'is-current' : ''
+                  return <li key={i} className={st} />
+                })}
+              </ol>
               <div className="quiz-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={totalQ} aria-valuenow={currentQ + (answered ? 1 : 0)}>
                 <div className="quiz-progress-fill" style={{ transform: `scaleX(${progress / 100})` }} />
               </div>
@@ -1115,6 +1320,9 @@ export default function QuizPage({ setPage }) {
                   )
                 })}
               </div>
+              {answered && q.src && (
+                <p className="quiz-src"><Icon name="books" size={14} /> {x.source}: <bdi>{q.src}</bdi></p>
+              )}
             </div>
 
             <div className="quiz-actions">
@@ -1139,15 +1347,11 @@ export default function QuizPage({ setPage }) {
         <div className="section quiz-section">
           <div className="section-inner quiz-container" ref={containerRef}>
             <div className="ui-card quiz-results-card">
-              <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
               {isNewBest && <span className="ui-badge ui-badge--accent quiz-new-best"><Icon name="star" size={14} />{t.newBest}</span>}
-              {/* Faiz 0-dan sayaraq çıxır (data-count — hərəkət azaldılıbsa dərhal) */}
+              {/* Halqa — düzgün cavabların payı; faiz mətn kimi də yazılır */}
+              <ProgressRing value={correctCount} max={total || 1} size={128} thickness={11} showPercent={false} className="quiz-results-ring" />
               <div className="quiz-results-score ui-num" data-count={pct}>{`${pct}%`}</div>
               <div className="quiz-results-label">{t.score}</div>
-              {/* Düzgün cavabların payı — zolaq sıfırdan dolur (transform) */}
-              <div className="quiz-results-bar" aria-hidden="true">
-                <span style={{ transform: `scaleX(${pct / 100})` }} />
-              </div>
               <div className="quiz-results-stats">
                 <div className="quiz-stat quiz-stat-correct">
                   <span className="quiz-stat-num" data-count={correctCount}>{correctCount}</span>
@@ -1171,6 +1375,29 @@ export default function QuizPage({ setPage }) {
                 </button>
               </div>
             </div>
+
+            {/* Cavabların icmalı — səhvdə düzgün cavab və (varsa) mənbə */}
+            {answers.length > 0 && (
+              <section className="quiz-review" aria-labelledby="quiz-review-h">
+                <h2 id="quiz-review-h" className="ui-title ui-title--sm">{x.review}</h2>
+                <ol className="quiz-review-list">
+                  {answers.map((a, i) => {
+                    const ok = a.picked === a.q.correct
+                    return (
+                      <li key={i} className={`quiz-review-item ${ok ? 'is-ok' : 'is-bad'}`}>
+                        <span className="quiz-review-mark" aria-hidden="true"><Icon name={ok ? 'check' : 'close'} size={14} strokeWidth={2.6} /></span>
+                        <div className="quiz-review-body">
+                          <p className="quiz-review-q">{a.q.q[lang] || a.q.q.en}</p>
+                          {!ok && <p className="quiz-review-a is-bad"><span>{x.yours}:</span> {getOptionText(a.q.options[a.picked], lang)}</p>}
+                          <p className="quiz-review-a"><span>{ok ? t.correct : x.right}:</span> {getOptionText(a.q.options[a.q.correct], lang)}</p>
+                          {a.q.src && <p className="quiz-review-src">{x.source}: <bdi>{a.q.src}</bdi></p>}
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ol>
+              </section>
+            )}
           </div>
         </div>
       </>

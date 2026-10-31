@@ -7,6 +7,13 @@ import { navGroupLabel, navGroupOf } from '../data/navigation'
 // Yer fotoları (Wikimedia Commons, açıq lisenziya) və öz SVG xəritəmiz
 import PlacePhoto from '../components/media/PlacePhoto'
 import { HajjRouteMap } from '../components/media/SiraMaps'
+// v3: savab kafelləri, məsafə qrafiki (koordinatlardan), əlaqəli bölmələr
+// Yoxlanılıb (hadith-api): Buxari 1189, 1190; Müslim 1397; İbn Macə 1406, 1412 (əl-Albani: səhih)
+import { StatTile, ChartFigure, BarChart } from '../components/viz'
+import PageLink from '../components/PageLink'
+import { localizeSource } from '../utils/sourceNames'
+
+const SAHIH = { az: 'səhih (əl-Albani)', en: 'sahih (al-Albani)', ru: 'достоверный (аль-Альбани)', ar: 'صحيح (الألباني)', tr: 'sahih (Elbânî)' }
 
 const LABELS = {
   az: { title:'Müqəddəs yerlər', subtitle:'İslamın müqəddəs məkanları', openMaps:'Xəritədə aç', significance:'Əhəmiyyəti', reference:'İstinad', adabTitle:'Ziyarət ədəbi', adabText:'İbadət niyyəti ilə səfərə yalnız üç məscidə çıxılır: Məscidül-Haram, Peyğəmbər ﷺ məscidi və Məscidül-Əqsa (Buxari 1189, Müslim 1397). Mağaralar, dağlar, daşlar və qəbirlər təbərrük yeri deyil — onlara toxunub bərəkət ummaq və ya oradan torpaq-daş götürmək sünnədə yoxdur (Tirmizi 2180). Qəbirlər isə sünnəyə uyğun ziyarət edilir: ölülərə salam verilir, onlar üçün dua edilir və axirət xatırlanır (Müslim 974, 976).' },
@@ -251,8 +258,77 @@ const PLACES = [
   },
 ]
 
-// "Hamısı" süzgəcinin adı (5 dil)
+/// "Hamısı" süzgəcinin adı (5 dil)
 const ALL_LABEL = { az: 'Hamısı', en: 'All', ru: 'Все', ar: 'الكل', tr: 'Tümü' }
+
+// ── v3 mətnləri (5 dil) ──────────────────────────────────
+const V3 = {
+  how: {
+    az: 'Şəhərə görə süzün. Hər kartda yerin nə üçün mühüm olduğu, Quran və ya səhih hədisdən dəlili və xəritə keçidi var.',
+    en: 'Filter by city. Each card shows why the place matters, its evidence from the Quran or an authentic hadith, and a map link.',
+    ru: 'Фильтруйте по городу. В каждой карточке — чем важно место, довод из Корана или достоверного хадиса и ссылка на карту.',
+    ar: 'صفِّ حسب المدينة. في كل بطاقة سبب أهمية المكان ودليله من القرآن أو الحديث الصحيح ورابط الخريطة.',
+    tr: 'Şehre göre süzün. Her kartta yerin neden önemli olduğu, Kur’an veya sahih hadisten delili ve harita bağlantısı var.',
+  },
+  places: { az: 'yer', en: 'places', ru: 'мест', ar: 'أماكن', tr: 'yer' },
+  cities: { az: 'şəhər', en: 'cities', ru: 'города', ar: 'مدن', tr: 'şehir' },
+  mosques3: { az: 'səfər edilən məscid', en: 'mosques worth a journey', ru: 'мечети для поездки', ar: 'مساجد تُشدّ إليها الرحال', tr: 'yolculuk yapılan mescit' },
+  // Üç məscid
+  virtueEyebrow: { az: 'Namazın savabı', en: 'Reward of prayer', ru: 'Награда за молитву', ar: 'فضل الصلاة', tr: 'Namazın sevabı' },
+  virtueTitle: { az: 'Bir namaz — neçə namaza bərabər?', en: 'One prayer — worth how many?', ru: 'Одна молитва — скольким равна?', ar: 'صلاة واحدة تعدل كم صلاة؟', tr: 'Bir namaz — kaç namaza denk?' },
+  virtueLead: {
+    az: 'Başqa məscidlərdə qılınan namazla müqayisədə — səhih hədislərə görə.',
+    en: 'Compared with prayer in other mosques — according to authentic hadiths.',
+    ru: 'В сравнении с молитвой в других мечетях — по достоверным хадисам.',
+    ar: 'مقارنةً بالصلاة في سائر المساجد، بحسب الأحاديث الصحيحة.',
+    tr: 'Diğer mescitlerde kılınan namaza göre — sahih hadislere dayanarak.',
+  },
+  haram: { az: 'Məscidül-Haram', en: 'Masjid al-Haram', ru: 'Масджид аль-Харам', ar: 'المسجد الحرام', tr: 'Mescid-i Haram' },
+  nabawi: { az: 'Peyğəmbər ﷺ məscidi', en: 'The Prophet’s ﷺ Mosque', ru: 'Мечеть Пророка ﷺ', ar: 'المسجد النبوي', tr: 'Peygamber ﷺ mescidi' },
+  quba: { az: 'Quba məscidi', en: 'Quba Mosque', ru: 'Мечеть Куба', ar: 'مسجد قباء', tr: 'Kuba Mescidi' },
+  times: { az: 'qat', en: '×', ru: 'раз', ar: 'ضعف', tr: 'kat' },
+  umrah: { az: 'ümrə', en: 'Umrah', ru: 'умра', ar: 'عمرة', tr: 'umre' },
+  qubaHint: { az: 'evdə dəstəmaz alıb gəlib bir namaz qılan üçün', en: 'for one who purifies at home, then comes and prays', ru: 'тому, кто совершил омовение дома и пришёл помолиться', ar: 'لمن تطهّر في بيته ثم أتاه فصلّى', tr: 'evinde abdest alıp gelerek namaz kılana' },
+  // Yerlər
+  placesEyebrow: { az: 'Yerlər', en: 'Places', ru: 'Места', ar: 'الأماكن', tr: 'Yerler' },
+  placesTitle: { az: 'Məkkə, Mədinə və Qüds', en: 'Mecca, Medina and Jerusalem', ru: 'Мекка, Медина и Иерусалим', ar: 'مكة والمدينة والقدس', tr: 'Mekke, Medine ve Kudüs' },
+  // Məsafələr
+  distEyebrow: { az: 'Məsafələr', en: 'Distances', ru: 'Расстояния', ar: 'المسافات', tr: 'Mesafeler' },
+  distTitle: { az: 'Kəbədən nə qədər uzaqdır?', en: 'How far from the Kaaba?', ru: 'Как далеко от Каабы?', ar: 'كم تبعد عن الكعبة؟', tr: 'Kâbe’ye ne kadar uzak?' },
+  distLead: {
+    az: 'Düz xətlə, yuxarıdakı koordinatlardan hesablanıb; yol məsafəsi daha uzundur.',
+    en: 'In a straight line, calculated from the coordinates above; the road distance is longer.',
+    ru: 'По прямой, рассчитано по координатам выше; по дороге — длиннее.',
+    ar: 'بخط مستقيم، محسوبة من الإحداثيات أعلاه، والمسافة على الطريق أطول.',
+    tr: 'Kuş uçuşu, yukarıdaki koordinatlardan hesaplanmıştır; yol mesafesi daha uzundur.',
+  },
+  aroundMecca: { az: 'Məkkə ətrafı', en: 'Around Mecca', ru: 'Вокруг Мекки', ar: 'حول مكة', tr: 'Mekke çevresi' },
+  farther: { az: 'Uzaq məscidlər', en: 'Farther mosques', ru: 'Дальние мечети', ar: 'المساجد البعيدة', tr: 'Uzak mescitler' },
+  km: { az: 'km', en: 'km', ru: 'км', ar: 'كم', tr: 'km' },
+  // Ədəb
+  adabPoints: [
+    { az: 'İbadət niyyəti ilə səfər yalnız üç məscidə', en: 'Travel for worship only to three mosques', ru: 'Поездка ради поклонения — только к трём мечетям', ar: 'لا تُشدّ الرحال للعبادة إلا إلى ثلاثة مساجد', tr: 'İbadet niyetiyle yolculuk yalnız üç mescide' },
+    { az: 'Mağara, dağ, daş və qəbirdən təbərrük yoxdur', en: 'No seeking blessing from caves, mountains, stones or graves', ru: 'Нет поиска благодати от пещер, гор, камней и могил', ar: 'لا تبرّك بالغيران والجبال والأحجار والقبور', tr: 'Mağara, dağ, taş ve kabirden teberrük yoktur' },
+    { az: 'Qəbir ziyarəti: salam, dua, axirəti xatırlamaq', en: 'Visiting graves: salam, supplication, remembering the Hereafter', ru: 'Посещение могил: приветствие, мольба, память о Последней жизни', ar: 'زيارة القبور: السلام والدعاء وتذكّر الآخرة', tr: 'Kabir ziyareti: selam, dua, ahireti hatırlamak' },
+  ],
+  related: { az: 'Əlaqəli bölmələr', en: 'Related sections', ru: 'Связанные разделы', ar: 'أقسام ذات صلة', tr: 'İlgili bölümler' },
+}
+const RELATED = [
+  { to: 'hajjguide', title: { az: 'Həcc və ümrə bələdçisi', en: 'Hajj & Umrah guide', ru: 'Хадж и умра', ar: 'دليل الحج والعمرة', tr: 'Hac ve umre rehberi' }, text: { az: 'Günbəgün plan və ihram qaydaları', en: 'Day-by-day plan and rules of ihram', ru: 'План по дням и правила ихрама', ar: 'خطة الأيام وأحكام الإحرام', tr: 'Günbegün plan ve ihram kuralları' } },
+  { to: 'qibla', title: { az: 'Qiblə', en: 'Qibla', ru: 'Кибла', ar: 'القبلة', tr: 'Kıble' }, text: { az: 'Kəbənin istiqaməti və məsafəsi', en: 'Direction and distance to the Kaaba', ru: 'Направление и расстояние до Каабы', ar: 'اتجاه الكعبة والمسافة إليها', tr: 'Kâbe’nin yönü ve uzaklığı' } },
+  { to: 'history', title: { az: 'İslam tarixi', en: 'Islamic history', ru: 'История ислама', ar: 'التاريخ الإسلامي', tr: 'İslam tarihi' }, text: { az: 'Hicrət yolu və siyər xəritələri', en: 'The Hijrah route and sirah maps', ru: 'Путь хиджры и карты сиры', ar: 'طريق الهجرة وخرائط السيرة', tr: 'Hicret yolu ve siyer haritaları' } },
+  { to: 'mosques', title: { az: 'Yaxındakı məscidlər', en: 'Nearby mosques', ru: 'Мечети рядом', ar: 'المساجد القريبة', tr: 'Yakındaki camiler' }, text: { az: 'Ətrafınızdakı məscidi tapın', en: 'Find a mosque around you', ru: 'Найдите мечеть рядом', ar: 'ابحث عن مسجد قريب', tr: 'Çevrenizdeki camiyi bulun' } },
+]
+
+const P = (o, lang) => (o && (o[lang] || o.en || o.az)) || ''
+
+/** İki nöqtə arasında düz xətlə məsafə (km, haversine) */
+function distKm(a, b) {
+  const R = 6371, rad = (v) => (v * Math.PI) / 180
+  const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon)
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(h))
+}
 
 export function HolyPlacesPage({ setPage }) {
   const { lang } = useLang()
@@ -263,59 +339,94 @@ export function HolyPlacesPage({ setPage }) {
   const cities = [...new Set(PLACES.map(p => p.city.en))]
   const filtered = filter === 'all' ? PLACES : PLACES.filter(p => p.city.en === filter)
   const countOf = (c) => PLACES.filter(p => p.city.en === c).length
+  const num = (n) => n.toLocaleString(lk === 'ar' ? 'ar-EG' : lk === 'az' ? 'az-Latn-AZ' : lk, { maximumFractionDigits: n < 100 ? 1 : 0 })
+
+  // Kəbədən məsafələr — PLACES-in öz koordinatlarından
+  const kaaba = PLACES[0]
+  const near = PLACES.filter(p => p.city.en === 'Mecca' && p !== kaaba)
+    .map(p => ({ key: p.name.en, label: p.name[lk] || p.name.en, value: Math.round(distKm(kaaba, p) * 10) / 10 }))
+    .sort((a, b) => a.value - b.value)
+  const far = PLACES.filter(p => p.city.en !== 'Mecca' && p.icon === 'holyplaces')
+    .map(p => ({ key: p.name.en, label: p.name[lk] || p.name.en, value: Math.round(distKm(kaaba, p)) }))
+  const kmFmt = (v) => `${num(v)} ${P(V3.km, lk)}`
 
   return (
     <div className="holy-page">
-      {/* Hero — dizayn v2: sakit kağız fon + xatəm naxışı, bir <h1>.
-          Ərəbcə sətir bəzəkdir: ərəb dilində başlıq onsuz da ərəbcədir */}
-      <header className="ui-page-hero holy-hero-v2">
+      {/* Hero — v3: kompakt split; foto yalnız ≥900px (telefonda hero qısa qalır) */}
+      <header className="ui-page-hero ui-page-hero--split holy-hero-v2">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        <div className="ui-container mh-grid">
-          <div data-reveal="stagger">
+        <div className="ui-container">
+          <div className="ui-page-hero__text" data-reveal="stagger">
             <Breadcrumb setPage={setPage} current={lb.title} />
             <span className="ui-eyebrow">{navGroupLabel(navGroupOf('holyplaces'), lk)}</span>
             <h1 className="ui-display">{lb.title}</h1>
-            {lk !== 'ar' && <p className="holy-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الأماكن المقدسة</p>}
             <p className="ui-lead">{lb.subtitle}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{P(V3.how, lk)}</span></p>
+            <ul className="ui-page-hero__stats">
+              <li><b>{PLACES.length}</b><span>{P(V3.places, lk)}</span></li>
+              <li><b>{cities.length}</b><span>{P(V3.cities, lk)}</span></li>
+              <li><b>3</b><span>{P(V3.mosques3, lk)}</span></li>
+            </ul>
           </div>
-          <div className="mh-media">
-            <PlacePhoto id="masjid-al-haram" lang={lk} eager sizes="(min-width: 1024px) 480px, 100vw" />
+          <div className="ui-page-hero__aside holy-hero-photo">
+            <PlacePhoto id="masjid-al-haram" lang={lk} sizes="(min-width: 900px) 440px, 100vw" />
           </div>
         </div>
       </header>
 
-      <section className="ui-section ui-section--tight">
+      {/* ═══ Üç məscid: namazın savabı + ziyarət ədəbi ═══ */}
+      <section className="ui-section ui-section--tight" aria-labelledby="holy-virtue-h">
         <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{P(V3.virtueEyebrow, lk)}</span>
+            <h2 id="holy-virtue-h" className="ui-title">{P(V3.virtueTitle, lk)}</h2>
+            <p className="ui-lead">{P(V3.virtueLead, lk)}</p>
+          </div>
+          <div className="ui-stats holy-stats" data-reveal="stagger">
+            <StatTile icon="hajjguide" label={P(V3.haram, lk)} value={num(100000)} unit={P(V3.times, lk)}
+              hint={`${localizeSource('İbn Macə 1406', lk)} · ${P(SAHIH, lk)}`} tone="brand" />
+            <StatTile icon="holyplaces" label={P(V3.nabawi, lk)} value={num(1000)} unit={P(V3.times, lk)}
+              hint={localizeSource('Buxari 1190', lk)} />
+            <StatTile icon="holyplaces" label={P(V3.quba, lk)} value={`= 1`} unit={P(V3.umrah, lk)}
+              hint={`${P(V3.qubaHint, lk)} — ${localizeSource('İbn Macə 1412', lk)}`} tone="accent" />
+          </div>
+
+          {/* Ziyarət ədəbi — Sələf mövqeyi: səfər niyyəti yalnız üç məscidə; yerlərdən təbərrük yoxdur */}
+          <aside className="ui-callout ui-callout--accent holy-adab" aria-labelledby="holy-adab-h">
+            <Icon name="books" />
+            <div>
+              <strong id="holy-adab-h" className="ui-callout__title">{lb.adabTitle}</strong>
+              <ul className="holy-adab-points">
+                {V3.adabPoints.map((p, i) => <li key={i}><Icon name="check" size={14} strokeWidth={2.4} /> {P(p, lk)}</li>)}
+              </ul>
+              <p className="holy-adab-text">{lb.adabText}</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      {/* ═══ Yerlər ═══ */}
+      <section className="ui-section ui-section--alt" aria-labelledby="holy-places-h">
+        <div className="ui-container">
+          <div className="ui-section-head ui-section-head--row" data-reveal>
+            <div>
+              <span className="ui-eyebrow">{P(V3.placesEyebrow, lk)}</span>
+              <h2 id="holy-places-h" className="ui-title">{P(V3.placesTitle, lk)}</h2>
+            </div>
+          </div>
           {/* Süzgəc: telefonda bir sətirdə sürüşən çiplər, genişdə sarınır */}
           <div className="holy-filters chip-scroll wrap-desktop" role="group" aria-label={lb.title}>
-            <button
-              type="button"
-              className="ui-chip"
-              aria-pressed={filter === 'all'}
-              onClick={() => setFilter('all')}
-            >
+            <button type="button" className="ui-chip" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>
               {ALL_LABEL[lk] || ALL_LABEL.en}
               <span className="holy-chip-num ui-num">{PLACES.length}</span>
             </button>
             {cities.map(c => (
-              <button
-                key={c}
-                type="button"
-                className="ui-chip"
-                aria-pressed={filter === c}
-                onClick={() => setFilter(c)}
-              >
+              <button key={c} type="button" className="ui-chip" aria-pressed={filter === c} onClick={() => setFilter(c)}>
                 {PLACES.find(p => p.city.en === c).city[lk] || c}
                 <span className="holy-chip-num ui-num">{countOf(c)}</span>
               </button>
             ))}
           </div>
-
-          {/* Ziyarət ədəbi — Sələf mövqeyi: səfər niyyəti yalnız üç məscidə; yerlərdən təbərrük yoxdur */}
-          <aside className="ui-card holy-adab" role="note">
-            <h2 className="holy-adab-title"><Icon name="books" size={16} /> {lb.adabTitle}</h2>
-            <p className="holy-adab-text">{lb.adabText}</p>
-          </aside>
 
           <div className="holy-grid">
             {filtered.map((place, i) => (
@@ -324,43 +435,85 @@ export function HolyPlacesPage({ setPage }) {
                 <div className="holy-card-media">
                   {place.photo
                     ? <PlacePhoto id={place.photo} lang={lk} className="ph--zoom" sizes="(min-width: 1200px) 380px, (min-width: 768px) 46vw, 100vw" />
-                    : <HajjRouteMap lang={lk} highlight={place.mapFocus} compact />}
+                    : place.mapFocus
+                      ? <HajjRouteMap lang={lk} highlight={place.mapFocus} compact />
+                      // Foto və xəritə yoxdursa (Məscidün-Nəbəvi) — yalnız yazılı lövhə, canlı təsvir yox
+                      : <span className="holy-card-plaque" aria-hidden="true">
+                          <span className="ui-pattern" />
+                          <span className="holy-card-plaque__ar ui-arabic" lang="ar" dir="rtl">{place.nameAr}</span>
+                        </span>}
                 </div>
-                <div className="holy-card-header">
-                  <span className="ui-icon-tile ui-icon-tile--lg holy-card-icon"><Icon name={place.icon} /></span>
+                <div className="holy-card-body">
                   <div className="holy-card-titles">
-                    <h2 className="holy-card-name">{place.name[lk] || place.name.az}</h2>
+                    <span className="holy-card-city"><Icon name="pin" size={13} /> {place.city[lk] || place.city.az}</span>
+                    <h3 className="holy-card-name">{place.name[lk] || place.name.az}</h3>
                     {/* Ərəbcədə başlıq onsuz da ərəbcədir — eyni adı ikinci dəfə göstərmə */}
                     {lk !== 'ar' && <p className="holy-card-ar ui-arabic" lang="ar" dir="rtl">{place.nameAr}</p>}
-                    <span className="holy-card-city"><Icon name="pin" size={14} /> {place.city[lk] || place.city.az}</span>
+                  </div>
+
+                  <p className="holy-card-desc">{place.desc[lk] || place.desc.az}</p>
+
+                  <div className="holy-card-sig">
+                    <span className="holy-card-label"><Icon name="star" size={13} /> {lb.significance}</span>
+                    <p>{place.significance[lk] || place.significance.az}</p>
+                  </div>
+
+                  <div className="holy-card-foot">
+                    <span className="holy-card-ref" title={lb.reference}>
+                      <Icon name="books" size={13} /> <span className="ui-sr-only">{lb.reference}: </span>{place.reference[lk] || place.reference.az}
+                    </span>
+                    <a
+                      className="ui-link holy-card-maps"
+                      href={`https://www.google.com/maps?q=${place.lat},${place.lon}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {lb.openMaps} <Icon name="external" size={14} />
+                    </a>
                   </div>
                 </div>
-
-                <p className="holy-card-desc">{place.desc[lk] || place.desc.az}</p>
-
-                <div className="holy-card-section">
-                  <h3 className="holy-card-section-title"><Icon name="star" size={14} /> {lb.significance}</h3>
-                  <p className="holy-card-significance">{place.significance[lk] || place.significance.az}</p>
-                </div>
-
-                <div className="holy-card-section holy-card-section--ref">
-                  <h3 className="holy-card-section-title"><Icon name="books" size={14} /> {lb.reference}</h3>
-                  <p className="holy-card-ref">{place.reference[lk] || place.reference.az}</p>
-                </div>
-
-                <a
-                  className="ui-btn ui-btn--secondary holy-card-maps"
-                  href={`https://www.google.com/maps?q=${place.lat},${place.lon}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Icon name="pin" size={18} className="ui-btn__icon" />
-                  {lb.openMaps}
-                  <Icon name="external" size={15} className="holy-card-ext" />
-                </a>
               </article>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ═══ Məsafələr (koordinatlardan hesablanır) ═══ */}
+      <section className="ui-section ui-cv" style={{ '--cv-h': '560px' }} aria-labelledby="holy-dist-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{P(V3.distEyebrow, lk)}</span>
+            <h2 id="holy-dist-h" className="ui-title">{P(V3.distTitle, lk)}</h2>
+            <p className="ui-lead">{P(V3.distLead, lk)}</p>
+          </div>
+          <div className="holy-dist">
+            <ChartFigure title={P(V3.aroundMecca, lk)} sub={P(V3.km, lk)}>
+              <BarChart data={near} format={kmFmt} label={P(V3.aroundMecca, lk)} labelWidth="38%" />
+            </ChartFigure>
+            <ChartFigure title={P(V3.farther, lk)} sub={P(V3.km, lk)}>
+              <BarChart data={far} format={kmFmt} label={P(V3.farther, lk)} tone={2} labelWidth="38%" />
+            </ChartFigure>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Əlaqəli bölmələr ═══ */}
+      <section className="ui-section ui-section--tight holy-related" aria-labelledby="holy-rel-h">
+        <div className="ui-container">
+          <h2 id="holy-rel-h" className="ui-eyebrow holy-related__h">{P(V3.related, lk)}</h2>
+          <ul className="ui-tiles" style={{ '--ui-tiles-min': '220px' }} data-reveal="stagger">
+            {RELATED.map(r => (
+              <li key={r.to}>
+                <PageLink className="ui-tile ui-tile--row" to={r.to} setPage={setPage} onNavigate={() => window.scrollTo(0, 0)}>
+                  <span className="ui-icon-tile" aria-hidden="true"><Icon name={r.to} /></span>
+                  <span className="ui-tile__body">
+                    <span className="ui-tile__title">{P(r.title, lk)}</span>
+                    <span className="ui-tile__text">{P(r.text, lk)}</span>
+                  </span>
+                </PageLink>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
     </div>

@@ -73,7 +73,7 @@
 
 /* Panelin eni 256px-dir: böyük hərfli ən uzun qrup adı (az: "HƏCC VƏ
    MÜQƏDDƏS YERLƏR") bir sətrə sığsın */
-.qm-sn--rail .qm-sn-group-btn { letter-spacing: 0.06em; }
+.qm-sn--rail .qm-sn-group-btn { letter-spacing: 0.04em; }
 
 /* ── Axtarış sahəsi: ağ "sahə", fokusda zümrüd halqa ── */
 .qm-sn--rail .qm-sn-search-wrap {
@@ -118,7 +118,11 @@
 }
 
 /* Qruplar arasında nəfəs yeri (ayırıcı xətt əvəzinə boşluq — sakit ritm) */
-.qm-sn--rail .qm-sn-group + .qm-sn-group { margin-top: 12px; }
+.qm-sn--rail .qm-sn-group + .qm-sn-group { margin-top: 8px; }
+/* v3: yan panel sıx — 50+ bəndi bir baxışda görmək üçün 34px sətir
+   (siçan üçün; toxunma ekranında rail yoxdur) */
+.qm-sn--rail .qm-sn-item { min-height: 34px; padding-block: 6px; font-size: 13.5px; gap: 10px; }
+.qm-sn--rail .qm-sn-items { gap: 1px; }
 
 /* ── Sətir: ikon yumşaq kafeldə, üstünə gələndə oxu istiqamətinə sürüşür.
    Kafel və cari sətir bəzəyi HƏR İKİ rejimdə eynidir (menyuda da, yan
@@ -288,11 +292,11 @@
   border-radius: var(--radius-sm);
   background: none;
   color: var(--text-tertiary);
-  font-family: var(--font-sans);
+  font-family: var(--font-label);   /* v3: mono qrup etiketi */
   font-size: 11px;
   font-weight: 600;
   line-height: 1.3;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   text-align: start;
   cursor: pointer;
@@ -391,8 +395,8 @@
    kartın başlanğıc kənarında qısa qızılı xətt (.qm-sn-items overflow:hidden
    olduğu üçün xətt kartın İÇİNDƏ çəkilir) */
 .qm-sn-item.is-current {
-  background: var(--qm-sn-current);
-  box-shadow: var(--shadow-1), inset 0 0 0 1px var(--line);
+  background: var(--brand-soft);
+  box-shadow: none;
   color: var(--brand);
   font-weight: 600;
 }

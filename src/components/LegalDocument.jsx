@@ -4,6 +4,7 @@ import { BRAND, filled, tr, brandName } from '../config/brand'
 import { LEGAL_KEYS, LEGAL_TITLES, legalPath, isRouted } from './legalLinks'
 import Breadcrumb from './Breadcrumb'
 import Icon from './Icon'
+import { ChartFigure, BarChart, ProgressBar } from './viz'
 import '../styles/LegalPage.css'
 
 // ═══════════════════════════════════════════════════════
@@ -36,6 +37,59 @@ const L = {
   ru: { crumbs: 'Правовая информация', updated: 'Последнее обновление', toc: 'Содержание', print: 'Распечатать', other: 'Другие правовые документы', email: 'Эл. почта', operator: 'Оператор сервиса', instagram: 'Инстаграм', site: 'Сайт', license: 'Лицензия', source: 'Источник', top: 'Наверх' },
   ar: { crumbs: 'معلومات قانونية', updated: 'آخر تحديث', toc: 'المحتويات', print: 'طباعة', other: 'وثائق قانونية أخرى', email: 'البريد الإلكتروني', operator: 'الجهة المشغِّلة', instagram: 'إنستغرام', site: 'الموقع', license: 'الترخيص', source: 'المصدر', top: 'العودة إلى الأعلى' },
   tr: { crumbs: 'Yasal bilgiler', updated: 'Son güncelleme', toc: 'İçindekiler', print: 'Yazdır', other: 'Diğer yasal belgeler', email: 'E-posta', operator: 'Hizmeti yürüten', instagram: 'Instagram', site: 'Site', license: 'Lisans', source: 'Kaynak', top: 'Başa dön' },
+}
+
+// Dizayn v3: hero rəqəmləri, oxu irəliləyişi, lisenziya bölgüsü qrafiki
+const L3 = {
+  az: { sections: 'bölmə', minutes: 'dəq oxu', sources: 'mənbə', progress: 'Oxu irəliləyişi', of: (a, b) => `${a} / ${b}`,
+    chart: 'Mənbələr lisenziyaya görə', chartSub: 'mənbə sayı', chartNote: 'Bu səhifədəki kartlardan avtomatik sayılır.',
+    fam: { open: 'Açıq məlumat ({cc}, {odbl})', font: 'Şrift lisenziyası ({ofl})', code: 'Proqram ({mit}, {apache})', rights: 'Hüquq müəllifə məxsus' } },
+  en: { sections: 'sections', minutes: 'min read', sources: 'sources', progress: 'Reading progress', of: (a, b) => `${a} / ${b}`,
+    chart: 'Sources by licence', chartSub: 'number of sources', chartNote: 'Counted automatically from the cards on this page.',
+    fam: { open: 'Open data ({cc}, {odbl})', font: 'Font licence ({ofl})', code: 'Software ({mit}, {apache})', rights: 'Rights held by the author' } },
+  ru: { sections: 'разделов', minutes: 'мин чтения', sources: 'источников', progress: 'Прогресс чтения', of: (a, b) => `${a} / ${b}`,
+    chart: 'Источники по лицензиям', chartSub: 'число источников', chartNote: 'Подсчитано автоматически по карточкам на этой странице.',
+    fam: { open: 'Открытые данные ({cc}, {odbl})', font: 'Шрифтовая лицензия ({ofl})', code: 'Программы ({mit}, {apache})', rights: 'Права у автора' } },
+  ar: { sections: 'أقسام', minutes: 'دقائق قراءة', sources: 'مصدرًا', progress: 'تقدّم القراءة', of: (a, b) => `${a} / ${b}`,
+    chart: 'المصادر حسب الترخيص', chartSub: 'عدد المصادر', chartNote: 'يُحسب تلقائيًا من البطاقات في هذه الصفحة.',
+    fam: { open: 'بيانات مفتوحة ({cc} و{odbl})', font: 'ترخيص خطوط ({ofl})', code: 'برمجيات ({mit} و{apache})', rights: 'الحقوق لأصحابها' } },
+  tr: { sections: 'bölüm', minutes: 'dk okuma', sources: 'kaynak', progress: 'Okuma ilerlemesi', of: (a, b) => `${a} / ${b}`,
+    chart: 'Lisansa göre kaynaklar', chartSub: 'kaynak sayısı', chartNote: 'Bu sayfadaki kartlardan otomatik sayılır.',
+    fam: { open: 'Açık veri ({cc}, {odbl})', font: 'Yazı tipi lisansı ({ofl})', code: 'Yazılım ({mit}, {apache})', rights: 'Haklar sahibine ait' } },
+}
+
+// Lisenziya adları — xüsusi isimlər, mətndə {cc} kimi yazılır
+const LIC_NAMES = { cc: 'CC', odbl: 'ODbL', ofl: 'OFL', mit: 'MIT', apache: 'Apache' }
+const famLabel = (str) => str.replace(/\{(\w+)\}/g, (m, k) => LIC_NAMES[k] ?? m)
+
+// Lisenziya adı → ailə (qrafik 4 kateqoriyadan çox olmasın — DESIGN.md §5)
+function licenseFamily(lic) {
+  const x = String(lic || '').toLowerCase()
+  if (!x) return 'rights'
+  if (x.includes('cc ') || x.startsWith('cc') || x.includes('odbl') || x.includes('creative')) return 'open'
+  if (x.includes('ofl') || x.includes('font')) return 'font'
+  if (x.includes('mit') || x.includes('apache') || x.includes('bsd') || x.includes('isc')) return 'code'
+  return 'rights'
+}
+
+// Sənədin bütün mətni (oxu müddəti üçün) — sətirlər, siyahılar, cədvəllər, kartlar
+function docText(sections) {
+  const out = []
+  const walk = (b) => {
+    if (b == null) return
+    if (typeof b === 'string') { out.push(b); return }
+    if (Array.isArray(b)) { b.forEach(walk); return }
+    if (typeof b === 'object') {
+      if (b.p) walk(b.p)
+      if (b.li) walk(b.li)
+      if (b.ul) walk(b.ul)
+      if (b.note) walk(b.note)
+      if (b.table) { walk(b.table.head); b.table.rows.forEach(walk) }
+      if (b.credits) b.credits.forEach(c => out.push([c.name, c.by, c.note].map(v => (v && typeof v === 'object') ? Object.values(v)[0] : v).filter(Boolean).join(' ')))
+    }
+  }
+  sections.forEach(s => { out.push(s.h); walk(s.body) })
+  return out.join(' ')
 }
 
 const DATE_LOCALE = { az: 'az-Latn-AZ', en: 'en-GB', ru: 'ru-RU', ar: 'ar', tr: 'tr-TR' }
@@ -313,12 +367,24 @@ export default function LegalDocument({ docKey, doc, setPage }) {
   )
 
   const others = LEGAL_KEYS.filter(k => k !== docKey)
+  const t3 = L3[lang] || L3.az
+  // Oxu müddəti: ~200 söz/dəq (ərəbcə də təxminən eyni), ən azı 1 dəq
+  const words = docText(sections).split(/\s+/).filter(Boolean).length
+  const minutes = Math.max(1, Math.round(words / 200))
+  // Mənbə kartları (yalnız "Mənbələr" sənədində olur) → lisenziya ailələri
+  const credits = sections.flatMap(s => s.body.filter(b => b && b.credits).flatMap(b => b.credits))
+  const famCount = credits.reduce((acc, c) => { const f = licenseFamily(c.license); acc[f] = (acc[f] || 0) + 1; return acc }, {})
+  const famBars = ['open', 'font', 'code', 'rights']
+    .filter(f => famCount[f])
+    .map((f, i) => ({ key: f, label: famLabel(t3.fam[f]), value: famCount[f], tone: i + 1 }))
+  const activeIdx = Math.max(0, sections.findIndex(s => s.id === active))
 
   return (
     <div className="lg-root">
-      <header className="ui-page-hero lg-hero">
+      <header className={`ui-page-hero lg-hero${famBars.length ? ' ui-page-hero--split' : ''}`}>
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
+          <div className="ui-page-hero__text">
           <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={doc.title} /></div>
           <span className="ui-eyebrow">{doc.eyebrow || t.crumbs}</span>
           <h1 className="ui-display">{doc.title}</h1>
@@ -333,6 +399,19 @@ export default function LegalDocument({ docKey, doc, setPage }) {
               {t.print}
             </button>
           </div>
+          <ul className="ui-page-hero__stats lg-stats">
+            <li><b>{sections.length}</b><span>{t3.sections}</span></li>
+            <li><b>~{minutes}</b><span>{t3.minutes}</span></li>
+            {credits.length > 0 && <li><b>{credits.length}</b><span>{t3.sources}</span></li>}
+          </ul>
+          </div>
+          {famBars.length > 0 && (
+            <div className="ui-page-hero__aside lg-hero__aside">
+              <ChartFigure title={t3.chart} sub={t3.chartSub} note={t3.chartNote}>
+                <BarChart data={famBars} label={t3.chart} labelWidth="52%" />
+              </ChartFigure>
+            </div>
+          )}
         </div>
       </header>
 
@@ -340,7 +419,11 @@ export default function LegalDocument({ docKey, doc, setPage }) {
         <aside className="lg-aside">
           {/* Geniş ekran: yapışqan siyahı */}
           <nav className="lg-toc lg-toc--side" aria-label={t.toc}>
-            <p className="lg-toc__title">{t.toc}</p>
+            <p className="lg-toc__title">
+              <span>{t.toc}</span>
+              <span className="lg-toc__pos ui-num" aria-hidden="true">{t3.of(activeIdx + 1, sections.length)}</span>
+            </p>
+            <ProgressBar value={activeIdx + 1} max={sections.length} size="sm" label={t3.progress} className="lg-toc__meter" />
             {tocLinks}
           </nav>
           {/* Telefon/planşet: açılan siyahı (eyni linklər) */}

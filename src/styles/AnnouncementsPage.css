@@ -11,7 +11,6 @@
 
 .anp-page .ui-page-hero__crumbs .breadcrumb { justify-content: flex-start; margin: 0; }
 .anp-page .ui-page-hero__crumbs .bc-list { justify-content: flex-start; }
-.anp-hero-ar { margin-top: -2px; color: var(--accent-text); font-size: clamp(20px, 2vw, 24px); line-height: 1.5; }
 
 .anp-wrap {
   display: flex;
@@ -40,7 +39,8 @@
 .anp-help-text { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
 
 /* ── Bölmə başlığı ── */
-.anp-section-head { margin-bottom: 16px; }
+.anp-page .anp-section-head { margin-bottom: 16px; }
+.anp-page .anp-stay-btn { width: 100%; font: inherit; text-align: start; cursor: pointer; }
 .anp-section-head--row {
   display: flex;
   align-items: flex-end;
@@ -141,7 +141,6 @@
 .anp-empty-icon { margin-bottom: 8px; }
 .anp-empty-title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; }
 .anp-empty-sub { color: var(--text-secondary); font-size: var(--step--1); }
-.anp-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 16px; }
 
 /* ── Hicri günlər ── */
 .anp-events {
@@ -171,14 +170,14 @@
   color: var(--brand);
   text-align: center;
 }
-.anp-event-day { font-family: var(--font-display); font-size: 24px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
-.anp-event-month { margin-top: 4px; font-size: 11px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.anp-event-day { font-family: var(--font-display); font-size: var(--step-2); font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.anp-event-month { margin-top: 4px; font-size: var(--step--2); font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
 .anp-event-body { flex: 1; min-width: 0; }
 .anp-event-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.anp-event-name { color: var(--text-strong); font-size: 15.5px; font-weight: 600; line-height: 1.35; }
+.anp-event-name { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600; line-height: 1.35; }
 .anp-event-meta { margin-top: 4px; }
-.anp-event-type { display: inline-flex; align-items: center; gap: 5px; color: var(--text-tertiary); font-size: 13px; }
-.anp-event-desc { margin-top: 6px; color: var(--text-secondary); font-size: 14px; line-height: 1.55; }
+.anp-event-type { display: inline-flex; align-items: center; gap: 5px; color: var(--text-tertiary); font-size: var(--step--1); }
+.anp-event-desc { margin-top: 6px; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
 .anp-more { margin-top: 14px; }
 .anp-note {
   display: flex;

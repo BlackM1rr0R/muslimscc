@@ -5,6 +5,7 @@ import { navGroupLabel } from '../data/navigation'
 import { PRAYER_NAMES } from '../data/prayerTrackerText'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
+import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
 import {
   PRAYERS, QADA_V1_KEY, MAX_GOAL, loadQada, saveQada, loadLegacy, adjustOwed, setOwed, makeUp, undoMakeUp,
   applyEstimate, setGoal, qadaTotals, slotPct, lastDays, todayCount, daysToFinish, estimateDays,
@@ -55,6 +56,15 @@ const AR = {
   hayd: 'كَانَ يُصِيبُنَا ذَلِكَ فَنُؤْمَرُ بِقَضَاءِ الصَّوْمِ وَلَا نُؤْمَرُ بِقَضَاءِ الصَّلَاةِ',
   ayah: 'فَمَن كَانَ مِنكُم مَّرِيضًا أَوْ عَلَىٰ سَفَرٍ فَعِدَّةٌ مِّنْ أَيَّامٍ أُخَرَ',
   aisha: 'كَانَ يَكُونُ عَلَيَّ الصَّوْمُ مِنْ رَمَضَانَ، فَمَا أَسْتَطِيعُ أَنْ أَقْضِيَ إِلَّا فِي شَعْبَانَ',
+}
+
+// ── v3: hero statistikası, "necə işləyir" addımları, borcun bölgüsü qrafiki ──
+const V3 = {
+  az: { how: 'Üç addım: 1) təxmini hesablayıcı ilə borcu tapın, 2) gündəlik hədəf qoyun, 3) hər qəza namazından sonra «Birini qıldım»a toxunun.', owed: 'qalan namaz', done: 'qəza edildi', fasts: 'qalan oruc', days: 'gün (təxmini)', ring: 'Ümumi irəliləyiş', ringSub: '{d} / {t} namaz', stepsTitle: 'Necə işləyir?', s1: 'Borcu hesablayın', s1t: 'Tarixlərlə və ya əl ilə — dəqiq bilmirsinizsə, ehtiyatlı təxmin yazın.', s2: 'Hədəf qoyun', s2t: 'Məsələn, hər fərzlə bir qəza — gündə 5. Qrafik tempi göstərir.', s3: 'Qəza etdikcə azaldın', s3t: 'Hər qəzadan sonra bir toxunuş; səhv olsa, «Geri al».', chartTitle: 'Namazlar üzrə qalan borc', chartSub: 'hər fərz namaz üçün ayrıca' },
+  en: { how: 'Three steps: 1) find your total with the estimator, 2) set a daily goal, 3) tap “I made one up” after each make-up prayer.', owed: 'prayers left', done: 'made up', fasts: 'fasts left', days: 'days (approx.)', ring: 'Overall progress', ringSub: '{d} / {t} prayers', stepsTitle: 'How it works', s1: 'Estimate what you owe', s1t: 'By dates or manually — if unsure, enter a cautious estimate.', s2: 'Set a goal', s2t: 'For example one make-up with each obligatory prayer — 5 a day. The chart shows your pace.', s3: 'Count down as you make up', s3t: 'One tap after each make-up; if you slip, use “Undo”.', chartTitle: 'Remaining by prayer', chartSub: 'a separate count for each obligatory prayer' },
+  ru: { how: 'Три шага: 1) оцените долг калькулятором, 2) задайте цель на день, 3) после каждого восполненного намаза нажимайте «Восполнил один».', owed: 'намазов осталось', done: 'восполнено', fasts: 'постов осталось', days: 'дней (примерно)', ring: 'Общий прогресс', ringSub: '{d} / {t} намазов', stepsTitle: 'Как это работает', s1: 'Оцените долг', s1t: 'По датам или вручную — если не уверены, укажите осторожную оценку.', s2: 'Задайте цель', s2t: 'Например, по одному восполнению с каждым обязательным намазом — 5 в день. График покажет темп.', s3: 'Уменьшайте по мере возмещения', s3t: 'Одно нажатие после каждого возмещения; ошиблись — «Отменить».', chartTitle: 'Остаток по намазам', chartSub: 'отдельно для каждого обязательного намаза' },
+  ar: { how: 'ثلاث خطوات: 1) قدّر ما عليك بالحاسبة، 2) ضع هدفًا يوميًا، 3) اضغط «قضيتُ واحدة» بعد كل صلاة مقضية.', owed: 'صلاة متبقية', done: 'تم قضاؤها', fasts: 'يوم صيام متبقٍ', days: 'يومًا (تقريبًا)', ring: 'التقدم العام', ringSub: '{d} / {t} صلاة', stepsTitle: 'كيف تعمل؟', s1: 'قدّر ما عليك', s1t: 'بالتواريخ أو يدويًا — وإن لم تتيقن فاكتب تقديرًا احتياطيًا.', s2: 'ضع هدفًا', s2t: 'مثلًا: صلاة مقضية مع كل فريضة — خمس في اليوم. ويُظهر الرسم وتيرتك.', s3: 'أنقص كلما قضيت', s3t: 'ضغطة بعد كل قضاء؛ وإن أخطأت فاضغط «تراجع».', chartTitle: 'المتبقي لكل صلاة', chartSub: 'عدّاد مستقل لكل فريضة' },
+  tr: { how: 'Üç adım: 1) tahmini hesaplayıcıyla borcu bulun, 2) günlük hedef koyun, 3) her kaza namazından sonra «Birini kıldım»a dokunun.', owed: 'kalan namaz', done: 'kaza edildi', fasts: 'kalan oruç', days: 'gün (tahmini)', ring: 'Genel ilerleme', ringSub: '{d} / {t} namaz', stepsTitle: 'Nasıl çalışır?', s1: 'Borcu hesaplayın', s1t: 'Tarihlerle veya elle — emin değilseniz ihtiyatlı bir tahmin yazın.', s2: 'Hedef koyun', s2t: 'Örneğin her farzla bir kaza — günde 5. Grafik hızınızı gösterir.', s3: 'Kaza ettikçe azaltın', s3t: 'Her kazadan sonra bir dokunuş; yanlışlıkta «Geri al».', chartTitle: 'Namazlara göre kalan borç', chartSub: 'her farz namaz için ayrı' },
 }
 
 const LABELS = {
@@ -400,6 +410,7 @@ export default function QadaPage({ setPage }) {
   const lk = LABELS[lang] ? lang : 'en'
   const t = LABELS[lk]
   const names = PRAYER_NAMES[lk] || PRAYER_NAMES.en
+  const v = V3[lk]
 
   const [state, setState] = useState(() => loadQada())
   const [saveOk, setSaveOk] = useState(true)
@@ -435,16 +446,47 @@ export default function QadaPage({ setPage }) {
 
   return (
     <div className="qd-root">
-      <header className="ui-page-hero qd-hero">
+      <header className="ui-page-hero ui-page-hero--split qd-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
-          <Breadcrumb setPage={setPage} current={t.title} />
-          <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          {lk !== 'ar' && <p className="qd-hero-ar ui-arabic" lang="ar" aria-hidden="true">قَضَاءُ الفَوَائِت</p>}
-          <p className="ui-lead">{t.lead}</p>
+          <div className="ui-page-hero__text">
+            <Breadcrumb setPage={setPage} current={t.title} />
+            <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            {lk !== 'ar' && <p className="qd-hero-ar ui-arabic" lang="ar" aria-hidden="true">قَضَاءُ الفَوَائِت</p>}
+            <p className="ui-lead">{t.lead}</p>
+          </div>
+          <div className="ui-page-hero__aside qd-hero-aside">
+            <ProgressRing value={totals.done} max={Math.max(1, totals.owed + totals.done)} size={104} thickness={10}
+              label={v.ring} sub={fill(v.ringSub, { d: fmtNum(totals.done, lk), t: fmtNum(totals.owed + totals.done, lk) })} />
+            <ul className="ui-page-hero__stats qd-hero-stats">
+              <li><b className="ui-num" data-testid="qd-hero-owed">{fmtNum(totals.owed, lk)}</b><span>{v.owed}</span></li>
+              <li><b className="ui-num">{fmtNum(totals.done, lk)}</b><span>{v.done}</span></li>
+              <li><b className="ui-num">{fmtNum(totals.fastsOwed, lk)}</b><span>{v.fasts}</span></li>
+              <li><b className="ui-num">{totals.owed ? fmtNum(daysToFinish(totals.owed, state.goal), lk) : '—'}</b><span>{v.days}</span></li>
+            </ul>
+          </div>
         </div>
       </header>
+
+      <section className="ui-section ui-section--tight qd-how" aria-labelledby="qd-how-title">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <h2 className="ui-title ui-title--sm" id="qd-how-title">{v.stepsTitle}</h2>
+          </div>
+          <ol className="ui-steps ui-steps--row" data-reveal="stagger">
+            {[['s1', 's1t'], ['s2', 's2t'], ['s3', 's3t']].map(([a, b], i) => (
+              <li key={a} className="ui-step">
+                <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                <div className="ui-step__body">
+                  <h3 className="ui-step__title">{v[a]}</h3>
+                  <p className="ui-step__text">{v[b]}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
 
       <section className="ui-section qd-main">
         <div className="ui-container">
@@ -518,6 +560,16 @@ export default function QadaPage({ setPage }) {
                   <Bar pct={totals.fastsPct} label={t.fastsProgress} accent />
                 </div>
               )}
+            </div>
+
+            {/* ── Borcun namazlar üzrə bölgüsü ── */}
+            <div className="qd-chart-card ui-card" data-reveal>
+              <ChartFigure plain title={v.chartTitle} sub={v.chartSub}>
+                <BarChart label={v.chartTitle} labelWidth="30%"
+                  data={PRAYERS.map(p => ({ key: p, label: names[p], value: state.prayers[p].owed }))}
+                  max={Math.max(1, ...PRAYERS.map(p => state.prayers[p].owed))}
+                  format={(n) => fmtNum(n, lk)} />
+              </ChartFigure>
             </div>
 
             {/* ── Son 30 gün ── */}

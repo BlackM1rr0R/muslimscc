@@ -13,7 +13,42 @@ import {
   fetchMushafPage, getCachedPage, prefetchMushafPage,
 } from '../utils/mushaf'
 import { loadWordIndex, spacedRoot, ROOT_CAT_LABELS, verbFormLabel } from '../utils/quranRoots'
+import { ProgressBar, StatTile } from '../components/viz'
 import '../styles/MushafPage.css'
+
+// v3: hero rəqəmləri və "Mushafın quruluşu" bölməsi.
+// 604 səhifə / 30 cüz — src/data/mushafIndex.js; 60 hizb, 240 rübʿ — ənənəvi bölgü
+// (hər cüz 2 hizb, hər hizb 4 rübʿ). Mətn və sətir düzülüşü: Quran.com API (Həfs rəvayəti).
+const MP_TXT = {
+  stats: [
+    { v: '604', l: { az: 'səhifə', en: 'pages', ru: 'страницы', ar: 'صفحات', tr: 'sayfa' } },
+    { v: '15', l: { az: 'sətir hər səhifədə', en: 'lines per page', ru: 'строк на странице', ar: 'سطرًا في الصفحة', tr: 'satır her sayfada' } },
+    { v: '11', l: { az: 'təcvid rəngi', en: 'tajweed colours', ru: 'цветов таджвида', ar: 'لونًا للتجويد', tr: 'tecvit rengi' } },
+  ],
+  pos: { az: 'Mushafda irəliləyiş', en: 'Position in the mushaf', ru: 'Позиция в мусхафе', ar: 'موضعك في المصحف', tr: 'Mushaftaki ilerleme' },
+  eyebrow: { az: 'Quruluş', en: 'Structure', ru: 'Структура', ar: 'البنية', tr: 'Yapı' },
+  title: { az: 'Mushaf necə bölünür', en: 'How the mushaf is divided', ru: 'Как делится мусхаф', ar: 'كيف يُقسَّم المصحف', tr: 'Mushaf nasıl bölünür' },
+  lead: {
+    az: 'Bu görünüş Mədinə mushafının (Həfs rəvayəti) səhifə düzülüşünü təkrarlayır: hər səhifə çap nüsxəsindəki kimi eyni sözlə başlayıb bitir. Bu, hafizlər üçün vacibdir — səhifənin «şəkli» yadda qalır.',
+    en: 'This view follows the page layout of the Madani mushaf (narration of Hafs): each page starts and ends with the same word as the printed copy. This matters to memorisers — the “shape” of the page stays in memory.',
+    ru: 'Этот вид повторяет вёрстку мединского мусхафа (чтение Хафса): каждая страница начинается и заканчивается тем же словом, что и в печатном издании. Это важно для хафизов — «облик» страницы остаётся в памяти.',
+    ar: 'يحاكي هذا العرض صفحات مصحف المدينة (رواية حفص)، فكل صفحة تبدأ وتنتهي بالكلمة نفسها كما في النسخة المطبوعة، وهذا مهم للحفّاظ إذ تبقى صورة الصفحة في الذاكرة.',
+    tr: 'Bu görünüm Medine mushafının (Hafs rivayeti) sayfa düzenini izler: her sayfa basılı nüshadaki gibi aynı kelimeyle başlar ve biter. Bu, hafızlar için önemlidir — sayfanın “şekli” akılda kalır.',
+  },
+  units: [
+    { v: '30', l: { az: 'cüz', en: 'juz', ru: 'джузов', ar: 'جزءًا', tr: 'cüz' }, h: { az: '≈ 20 səhifə', en: '≈ 20 pages', ru: '≈ 20 страниц', ar: '≈ ٢٠ صفحة', tr: '≈ 20 sayfa' } },
+    { v: '60', l: { az: 'hizb', en: 'hizb', ru: 'хизбов', ar: 'حزبًا', tr: 'hizb' }, h: { az: 'hər cüzdə 2', en: '2 in each juz', ru: 'по 2 в джузе', ar: 'حزبان في كل جزء', tr: 'her cüzde 2' } },
+    { v: '240', l: { az: 'rübʿ (dörddəbir)', en: 'rubʿ (quarters)', ru: 'рубʿ (четвертей)', ar: 'ربعًا', tr: 'rubʿ (çeyrek)' }, h: { az: 'hər hizbdə 4', en: '4 in each hizb', ru: 'по 4 в хизбе', ar: 'أربعة في كل حزب', tr: 'her hizbde 4' } },
+    { v: '604', l: { az: 'səhifə', en: 'pages', ru: 'страницы', ar: 'صفحات', tr: 'sayfa' }, h: { az: 'hər birində 15 sətir', en: '15 lines each', ru: 'по 15 строк', ar: '١٥ سطرًا في كل صفحة', tr: 'her birinde 15 satır' } },
+  ],
+  tips: { az: 'Necə istifadə etməli', en: 'How to use it', ru: 'Как пользоваться', ar: 'كيف تستخدمه', tr: 'Nasıl kullanılır' },
+  tipItems: [
+    { i: 'palette', t: { az: '«Təcvid rəngləri» qaydaları rənglə göstərir — rənglərin izahı səhifənin üstündədir.', en: '“Tajweed colours” highlight the rules — the legend is above the page.', ru: '«Цвета таджвида» выделяют правила — легенда над страницей.', ar: '«ألوان التجويد» تُبرز الأحكام، ومفتاح الألوان فوق الصفحة.', tr: '“Tecvit renkleri” kuralları renkle gösterir — açıklama sayfanın üstündedir.' } },
+    { i: 'touch', t: { az: '«Söz-söz» rejimində sözə toxunun: tərcümə, oxunuş və kök açılır.', en: 'In “Word by word” mode tap a word: translation, transliteration and root open.', ru: 'В режиме «Пословно» нажмите на слово: откроются перевод, транслитерация и корень.', ar: 'في وضع «كلمة كلمة» اضغط على الكلمة لترى معناها ونطقها وجذرها.', tr: '“Kelime kelime” modunda kelimeye dokunun: anlamı, okunuşu ve kökü açılır.' } },
+    { i: 'hifz', t: { az: 'Son açdığınız səhifə yadda qalır — növbəti dəfə oradan davam edin.', en: 'The last page you opened is remembered — continue from there next time.', ru: 'Последняя открытая страница запоминается — в следующий раз продолжите с неё.', ar: 'تُحفظ آخر صفحة فتحتها لتكمل منها لاحقًا.', tr: 'Son açtığınız sayfa hatırlanır — bir dahaki sefere oradan devam edin.' } },
+  ],
+}
+const pk = (o, lang) => (o == null ? '' : typeof o === 'string' ? o : (o[lang] !== undefined ? o[lang] : o.az))
 
 /* ══════════════════════════════════════════════════════════════════
    MUSHAF GÖRÜNÜŞÜ — /mushaf?p=<səhifə>
@@ -414,6 +449,10 @@ export default function MushafPage() {
           <span className="ui-eyebrow">{L.eyebrow}</span>
           <h1 className="ui-display">{L.title}</h1>
           <p className="ui-lead">{L.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} />{L.hint}</p>
+          <ul className="ui-page-hero__stats">
+            {MP_TXT.stats.map(x => <li key={x.v}><b>{x.v}</b><span>{pk(x.l, lang)}</span></li>)}
+          </ul>
         </div>
       </header>
 
@@ -484,6 +523,8 @@ export default function MushafPage() {
               <span className="mp-pager__txt">{L.prev}</span> <Icon name="chevron" size={18} />
             </button>
           </nav>
+          {/* Mushafda irəliləyiş: səhifə / 604 (nazik zolaq) */}
+          <ProgressBar className="mp-progress" value={page} max={MUSHAF_PAGES} size="sm" label={`${pk(MP_TXT.pos, lang)}: ${page} / ${MUSHAF_PAGES}`} />
 
           <div className="mp-stage" ref={stageRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onClick={onAyahLink}>
             <article className={`mp-sheet${prefs.tajweed ? ' is-tajweed' : ''}${prefs.wbw ? ' is-wbw' : ''}`}
@@ -553,10 +594,29 @@ export default function MushafPage() {
             )}
           </div>
 
-          <p className="mp-note mp-note--center"><Icon name="info" size={15} /> {L.hint}</p>
           <p className="mp-source">{L.source}</p>
         </div>
       </div>
+
+      {/* Mushafın quruluşu — bölgü vahidləri bir baxışda + istifadə qeydləri */}
+      <section className="ui-section ui-section--alt mp-about ui-cv" style={{ '--cv-h': '520px' }} aria-labelledby="mp-about-title">
+        <div className="ui-container">
+          <div className="ui-section-head">
+            <span className="ui-eyebrow">{pk(MP_TXT.eyebrow, lang)}</span>
+            <h2 id="mp-about-title" className="ui-title">{pk(MP_TXT.title, lang)}</h2>
+            <p className="ui-lead">{pk(MP_TXT.lead, lang)}</p>
+          </div>
+          <div className="ui-stats mp-units">
+            {MP_TXT.units.map(u => <StatTile key={u.v} value={u.v} label={pk(u.l, lang)} hint={pk(u.h, lang)} />)}
+          </div>
+          <h3 className="ui-title ui-title--sm mp-tips__title">{pk(MP_TXT.tips, lang)}</h3>
+          <ul className="mp-tips">
+            {MP_TXT.tipItems.map(x => (
+              <li key={x.i}><span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={x.i} /></span><span>{pk(x.t, lang)}</span></li>
+            ))}
+          </ul>
+        </div>
+      </section>
     </div>
   )
 }

@@ -7,6 +7,7 @@ import {
   CATEGORIES, displayECode, extractECodes, lookupECode, offTagToCode, parseAnalysisTags,
   halalLabelTags, normalizeBarcode, gtinCheckOk, fetchProduct, ProductError,
 } from '../utils/ecodes'
+import { ChartFigure, BarChart } from '../components/viz'
 import '../styles/HalalCheckPage.css'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -34,6 +35,17 @@ const HADITH_API = 'hadith-api (fawazahmed0)'
 
 const LABELS = {
   az: {
+    how: 'E-kodu yazın və ya tərkib siyahısını yapışdırın — hər əlavənin mənşə qrupu (bitki, heyvan, həşərat…) görünəcək. Bu, hökm deyil, məlumatdır.',
+    statCodes: 'E-kod bazada', statNone: 'heyvan mənşəli deyil', statCheck: 'mənbəyi yoxlanmalıdır',
+    ovTitle: 'Bazada nə var?', ovSub: 'mənşə qrupuna görə E-kodların sayı',
+    clsTitle: 'Əlavələr nə üçündür?', clsSub: 'ən çox rast gələn 8 funksiya — bir əlavənin bir neçə funksiyası ola bilər',
+    stepsTitle: 'Məhsulu necə yoxlamalı?', stepsLead: 'Dörd addım — qablaşdırmadan nəticəyə qədər.',
+    steps: [
+      ['Tərkibi oxuyun', 'Qablaşdırmadakı tərkib siyahısında E-kodları və ya əlavələrin adlarını tapın.'],
+      ['Burada yoxlayın', 'Kodları və ya bütün tərkib siyahısını «E-kod yoxlayıcısı» sahəsinə yapışdırın, ya da ştrixkodu yazın.'],
+      ['Mənşəyə baxın', '«Heyvan mənşəli» və ya «ola bilər» qrupundakı əlavənin mənbəyini məhsulu buraxan şirkətdən soruşun və ya halal sertifikatına baxın.'],
+      ['Dəlili oxuyun', 'İstihalə, jelatin, spirt və şübhəli şeylər barədə qaydalar «Fiqhi izah» bölməsindədir.'],
+    ],
     eyebrow: 'Halal qida', title: 'Halal qida yoxlaması',
     lead: 'E-kodları (qida əlavələrini) və məhsulun ştrixkodunu yoxlayın: əlavənin mənşəyi barədə açıq məlumat, tərkib və fiqhi izah — dəlilləri ilə.',
     jump: { codes: 'E-kodlar', barcode: 'Ştrixkod', fiqh: 'Fiqhi izah', sources: 'Mənbələr' },
@@ -88,6 +100,17 @@ const LABELS = {
     srcHadith: `Hədis mətni: ${HADITH_API} nəşri üzrə yoxlanılıb.`,
   },
   en: {
+    how: 'Type an E-code or paste an ingredients list — you will see the origin group of each additive (plant, animal, insect…). This is information, not a ruling.',
+    statCodes: 'E-codes in the database', statNone: 'of no animal origin', statCheck: 'need their source checked',
+    ovTitle: 'What is in the database?', ovSub: 'number of E-codes by origin group',
+    clsTitle: 'What are additives for?', clsSub: 'the 8 most common functions — one additive can have several',
+    stepsTitle: 'How to check a product', stepsLead: 'Four steps — from the label to an answer.',
+    steps: [
+      ['Read the ingredients', 'Find the E-codes or additive names in the ingredients list on the pack.'],
+      ['Check them here', 'Paste the codes or the whole ingredients list into the E-number checker, or type the barcode.'],
+      ['Look at the origin', 'For an additive in the “animal origin” or “may be” group, ask the company that makes the product or look for a halal certificate.'],
+      ['Read the evidence', 'The principles on istihala, gelatin, alcohol and doubtful matters are in the “Fiqh guide” section.'],
+    ],
     eyebrow: 'Halal food', title: 'Halal food check',
     lead: 'Check E-numbers (food additives) and product barcodes: open data on where an additive comes from, the ingredients, and a fiqh guide with its evidence.',
     jump: { codes: 'E-numbers', barcode: 'Barcode', fiqh: 'Fiqh guide', sources: 'Sources' },
@@ -137,6 +160,17 @@ const LABELS = {
     srcHadith: `Hadith texts checked against the ${HADITH_API} editions.`,
   },
   ru: {
+    how: 'Введите Е-код или вставьте состав — увидите группу происхождения каждой добавки (растительная, животная, из насекомых…). Это сведения, а не решение.',
+    statCodes: 'Е-кодов в базе', statNone: 'не животного происхождения', statCheck: 'требуют проверки источника',
+    ovTitle: 'Что есть в базе?', ovSub: 'число Е-кодов по группам происхождения',
+    clsTitle: 'Зачем нужны добавки?', clsSub: '8 самых частых функций — у одной добавки их может быть несколько',
+    stepsTitle: 'Как проверить продукт', stepsLead: 'Четыре шага — от этикетки до ответа.',
+    steps: [
+      ['Прочитайте состав', 'Найдите на упаковке в составе Е-коды или названия добавок.'],
+      ['Проверьте здесь', 'Вставьте коды или весь состав в поле «Проверка Е-кодов» либо введите штрихкод.'],
+      ['Посмотрите происхождение', 'Если добавка в группе «животного происхождения» или «может быть», спросите компанию-изготовителя или ищите сертификат халяль.'],
+      ['Прочитайте доводы', 'Правила об истихале, желатине, спирте и сомнительном — в разделе «Фикх».'],
+    ],
     eyebrow: 'Халяльная еда', title: 'Проверка продуктов на халяль',
     lead: 'Проверьте Е-коды (пищевые добавки) и штрихкод продукта: открытые данные о происхождении добавки, состав и фикх-пояснение с доводами.',
     jump: { codes: 'Е-коды', barcode: 'Штрихкод', fiqh: 'Фикх', sources: 'Источники' },
@@ -186,6 +220,17 @@ const LABELS = {
     srcHadith: `Тексты хадисов сверены по изданиям ${HADITH_API}.`,
   },
   ar: {
+    how: 'اكتب رمز E أو الصق قائمة المكونات لترى مجموعة أصل كل مضاف (نباتي، حيواني، حشري…). هذه معلومات وليست حكمًا.',
+    statCodes: 'رمز E في القاعدة', statNone: 'ليست من أصل حيواني', statCheck: 'يلزم التحقق من مصدرها',
+    ovTitle: 'ماذا في قاعدة البيانات؟', ovSub: 'عدد رموز E حسب مجموعة الأصل',
+    clsTitle: 'ما وظيفة المضافات؟', clsSub: 'أكثر ٨ وظائف شيوعًا، وقد يكون للمضاف الواحد أكثر من وظيفة',
+    stepsTitle: 'كيف تفحص منتجًا؟', stepsLead: 'أربع خطوات من الملصق إلى النتيجة.',
+    steps: [
+      ['اقرأ المكونات', 'ابحث في قائمة المكونات على العبوة عن رموز E أو أسماء المضافات.'],
+      ['افحصها هنا', 'الصق الرموز أو قائمة المكونات كاملة في حقل «فاحص رموز E»، أو اكتب الرمز الشريطي.'],
+      ['انظر إلى الأصل', 'إن كان المضاف في مجموعة «من أصل حيواني» أو «قد يكون»، فاسأل الشركة المنتجة أو ابحث عن شهادة الحلال.'],
+      ['اقرأ الدليل', 'قواعد الاستحالة والجيلاتين والكحول والمشتبهات في قسم «الأحكام الفقهية».'],
+    ],
     eyebrow: 'الطعام الحلال', title: 'فحص الأطعمة الحلال',
     lead: 'افحص رموز E (المضافات الغذائية) والرمز الشريطي للمنتج: بيانات مفتوحة عن أصل المضاف، والمكوّنات، وبيان فقهي بأدلته.',
     jump: { codes: 'رموز E', barcode: 'الرمز الشريطي', fiqh: 'البيان الفقهي', sources: 'المصادر' },
@@ -235,6 +280,17 @@ const LABELS = {
     srcHadith: `نصوص الأحاديث مقابلة على نشرة ${HADITH_API}.`,
   },
   tr: {
+    how: 'Bir E-kodu yazın veya içindekiler listesini yapıştırın — her katkı maddesinin kaynak grubu (bitkisel, hayvansal, böcek…) görünür. Bu bir hüküm değil, bilgidir.',
+    statCodes: 'E-kodu veri tabanında', statNone: 'hayvansal kaynaklı değil', statCheck: 'kaynağı sorulmalı',
+    ovTitle: 'Veri tabanında ne var?', ovSub: 'kaynak grubuna göre E-kodu sayısı',
+    clsTitle: 'Katkı maddeleri ne işe yarar?', clsSub: 'en sık görülen 8 işlev — bir katkının birden fazla işlevi olabilir',
+    stepsTitle: 'Bir ürün nasıl kontrol edilir?', stepsLead: 'Dört adım — etiketten sonuca kadar.',
+    steps: [
+      ['İçindekileri okuyun', 'Ambalajdaki içindekiler listesinde E-kodlarını veya katkı adlarını bulun.'],
+      ['Burada kontrol edin', 'Kodları veya içindekiler listesinin tamamını “E-kodu sorgulama” alanına yapıştırın ya da barkodu yazın.'],
+      ['Kaynağa bakın', '“Hayvansal kaynaklı” veya “olabilir” grubundaki bir katkının kaynağını üretici firmaya sorun ya da helal sertifikasına bakın.'],
+      ['Delili okuyun', 'İstihale, jelatin, alkol ve şüpheli şeylerle ilgili kurallar “Fıkhi açıklama” bölümündedir.'],
+    ],
     eyebrow: 'Helal gıda', title: 'Helal gıda kontrolü',
     lead: 'E-kodlarını (gıda katkı maddelerini) ve ürün barkodunu kontrol edin: katkının kaynağına dair açık veri, içindekiler ve delilleriyle fıkhî açıklama.',
     jump: { codes: 'E-kodları', barcode: 'Barkod', fiqh: 'Fıkhî açıklama', sources: 'Kaynaklar' },
@@ -1102,6 +1158,59 @@ const FIQH_EXTRA_REFS = {
   doubt: ['iq114129'],
 }
 
+// ── Dizayn v3: bazanın xülasəsi (qrafiklər) + "məhsulu necə yoxlamalı" addımları ──
+// Rəqəmlər yalnız ecodes.json-dan (OFF taksonomiyası) hesablanır — uydurma yox.
+// Qrup rəngi viz palitrasındandır (status rəngi yox — bu, hökm deyil):
+// heyvan mənşəli deyil → 1, ola bilər → 2, spirt → 3, heyvan/həşərat → 4, naməlum → boz.
+const CAT_TONE = { none: 1, maybe: 2, alcohol: 3, animal: 4, insect: 4, unknown: 'muted' }
+
+function OverviewSection({ data, lang, L }) {
+  const cats = useMemo(() => {
+    const counts = data?.meta?.counts || {}
+    return CATEGORIES.map((c) => ({ key: c, label: (CAT[lang] || CAT.en)[c][0], value: counts[c] || 0, tone: CAT_TONE[c] }))
+      .sort((a, b) => b.value - a.value)
+  }, [data, lang])
+  const classes = useMemo(() => {
+    if (!data) return []
+    const n = {}
+    for (const e of Object.values(data.items)) for (const c of e.cls || []) n[c] = (n[c] || 0) + 1
+    return Object.entries(n).sort((a, b) => b[1] - a[1]).slice(0, 8)
+      .map(([c, v]) => ({ key: c, label: classLabel(c, data, lang), value: v }))
+  }, [data, lang])
+
+  return (
+    <section id="hc-overview" className="ui-section ui-section--tight ui-section--alt hc-block hc-overview" aria-labelledby="hc-steps-h">
+      <div className="ui-container">
+        <div className="ui-section-head" data-reveal>
+          <h2 id="hc-steps-h" className="ui-title">{L.stepsTitle}</h2>
+          <p className="ui-lead">{L.stepsLead}</p>
+        </div>
+        <ol className="ui-steps ui-steps--row hc-steps">
+          {L.steps.map(([title, text], i) => (
+            <li key={i} className="ui-step">
+              <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+              <div className="ui-step__body">
+                <h3 className="ui-step__title">{title}</h3>
+                <p className="ui-step__text">{text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        {data && (
+          <div className="hc-charts">
+            <ChartFigure title={L.ovTitle} sub={L.ovSub} note={`${OFF} · ${ODBL} · ${data.meta.built}`}>
+              <BarChart data={cats} labelWidth="42%" label={`${L.ovTitle}: ${L.ovSub}`} />
+            </ChartFigure>
+            <ChartFigure title={L.clsTitle} sub={L.clsSub} note={`${OFF} · ${ODBL}`}>
+              <BarChart data={classes} labelWidth="42%" label={`${L.clsTitle}: ${L.clsSub}`} />
+            </ChartFigure>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 export default function HalalCheckPage() {
   const { lang } = useLang()
   const L = LABELS[lang] || LABELS.en
@@ -1118,6 +1227,9 @@ export default function HalalCheckPage() {
     return () => { live = false }
   }, [attempt])
 
+  const counts = data?.meta?.counts || {}
+  const toCheck = (counts.maybe || 0) + (counts.animal || 0) + (counts.insect || 0) + (counts.alcohol || 0)
+
   return (
     <div className="hc-page">
       <header className="ui-page-hero hc-hero">
@@ -1126,6 +1238,14 @@ export default function HalalCheckPage() {
           <span className="ui-eyebrow">{L.eyebrow}</span>
           <h1 className="ui-display">{L.title}</h1>
           <p className="ui-lead">{L.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {L.how}</p>
+          {data && (
+            <ul className="ui-page-hero__stats">
+              <li><b className="ui-num">{data.meta.count}</b><span>{L.statCodes}</span></li>
+              <li><b className="ui-num">{counts.none || 0}</b><span>{L.statNone}</span></li>
+              <li><b className="ui-num">{toCheck}</b><span>{L.statCheck}</span></li>
+            </ul>
+          )}
           <nav className="hc-jump" aria-label={L.title}>
             {['codes', 'barcode', 'fiqh', 'sources'].map((k) => (
               <a key={k} className="ui-chip" href={`#hc-${k}`}>{L.jump[k]}</a>
@@ -1135,10 +1255,10 @@ export default function HalalCheckPage() {
       </header>
 
       <div className="ui-container hc-layout">
-        <aside className="ui-card hc-disc" role="note" aria-labelledby="hc-disc-h">
-          <Icon name="shield" size={22} className="hc-disc__icon" />
+        <aside className="ui-callout ui-callout--warn hc-disc" role="note" aria-labelledby="hc-disc-h">
+          <Icon name="shield" />
           <div>
-            <h2 id="hc-disc-h" className="hc-disc__title">{L.discTitle}</h2>
+            <h2 id="hc-disc-h" className="ui-callout__title hc-disc__title">{L.discTitle}</h2>
             <p className="hc-disc__text">{L.disc}</p>
           </div>
         </aside>
@@ -1146,6 +1266,7 @@ export default function HalalCheckPage() {
 
       <ECodeSection data={data} status={status} retry={() => setAttempt((a) => a + 1)} lang={lang} L={L} />
       <BarcodeSection data={data} lang={lang} L={L} />
+      <OverviewSection data={data} lang={lang} L={L} />
       <FiqhSection data={data} lang={lang} L={L} />
 
       <section id="hc-sources" className="ui-section ui-section--tight ui-section--alt hc-block" aria-labelledby="hc-sources-h">

@@ -18,7 +18,7 @@
 .dhikr-hero-ar {
   margin-top: -2px;
   color: var(--accent-text);
-  font-size: clamp(22px, 1.4rem + 0.8vw, 32px);
+  font-size: clamp(18px, 1.1rem + 0.4vw, 22px);
   line-height: 1.5;
 }
 
@@ -95,7 +95,7 @@
   text-align: right;
 }
 .dhikr-sel-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.dhikr-sel-label { min-width: 0; color: var(--text-secondary); font-size: 13px; font-weight: 600; line-height: 1.35; }
+.dhikr-sel-label { min-width: 0; color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; line-height: 1.35; }
 .dhikr-sel-btn.active .dhikr-sel-label { color: var(--brand); }
 .dhikr-sel-target { flex-shrink: 0; margin-inline-start: auto; color: var(--text-tertiary); font-size: 12px; font-weight: 600; }
 
@@ -193,7 +193,7 @@
 .dhikr-tap-count {
   color: var(--text-strong);
   font-family: var(--font-display);
-  font-size: clamp(2.8rem, 2rem + 2vw, 3.6rem);
+  font-size: clamp(2.5rem, 2rem + 1.4vw, 3.1rem);
   font-weight: 500;
   line-height: 1;
   letter-spacing: var(--tracking-tight);
@@ -204,7 +204,7 @@
   from { opacity: 0.35; transform: translateY(8px) scale(0.96); }
   to   { opacity: 1; transform: none; }
 }
-.dhikr-tap-target { color: var(--text-tertiary); font-size: 13px; font-weight: 500; }
+.dhikr-tap-target { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
 
 /* Toxunuş dalğası — düymənin ölçüsündən halqaya qədər yayılıb sönür */
 .dhikr-ripple {
@@ -321,7 +321,7 @@
 }
 .dhikr-page .dhikr-total-item { align-items: center; gap: 6px; text-align: center; }
 .dhikr-total-item + .dhikr-total-item { border-inline-start: 1px solid var(--line); }
-.dhikr-page .dhikr-total-num { font-size: 24px; }
+.dhikr-page .dhikr-total-num { font-size: var(--step-2); }
 
 /* ── Jurnal ── */
 .dhikr-log-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: var(--space-2); }
@@ -341,8 +341,8 @@
 }
 .dhikr-log-row + .dhikr-log-row { border-top: 1px solid var(--line); }
 .dhikr-log-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.dhikr-log-name { color: var(--text-strong); font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
-.dhikr-log-time { color: var(--text-tertiary); font-size: 13px; }
+.dhikr-log-name { color: var(--text-strong); font-size: var(--step-0); font-weight: 600; overflow-wrap: anywhere; }
+.dhikr-log-time { color: var(--text-tertiary); font-size: var(--step--1); }
 .dhikr-log-count { color: var(--brand); font-size: 15px; font-weight: 600; }
 
 /* ══ PLANŞET (768–1023) — dar sütunda halqa bir az kiçik ══ */
@@ -407,7 +407,7 @@
   .dhikr-progress-ring { --dhikr-ring: 262px; --dhikr-btn: 188px; }
   .dhikr-name { font-size: 1.3rem; }
   .dhikr-total-bar { max-width: none; }
-  .dhikr-page .dhikr-total-num { font-size: 21px; }
+  .dhikr-page .dhikr-total-num { font-size: var(--step-1); }
   .dhikr-page .dhikr-log { padding: 16px; }
 }
 
@@ -437,15 +437,12 @@
    İri toxunma sahəsi (.dk-tap) — hər iki yeni rejimdə ortaqdır.
    ══════════════════════════════════════════════════════ */
 .dk-modes-wrap { margin-bottom: var(--space-5); }
-.dk-modes {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 2px 0 6px;
-  scrollbar-width: none;
-}
+.dhikr-page .dk-modes { scrollbar-width: none; }
 .dk-modes::-webkit-scrollbar { display: none; }
-.dhikr-page .dk-mode-chip { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.dhikr-page .dk-mode-chip { display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
+.dhikr-page .dk-log-chart { display: flex; flex-direction: column; gap: 8px; padding-bottom: var(--space-3); border-bottom: 1px solid var(--line); margin-bottom: var(--space-2); }
+.dhikr-page .dk-when { padding-top: 0; }
+@media (max-width: 480px) { .dhikr-page .dk-modes { display: flex; width: 100%; } .dhikr-page .dk-mode-chip { flex: 1 1 0; min-width: 0; padding-inline: 6px; white-space: normal; line-height: 1.2; text-align: center; font-size: var(--step--2); } .dhikr-page .dk-mode-chip svg { display: none; } }
 
 .dhikr-page .dk-mode-card {
   display: flex;
@@ -511,7 +508,7 @@
 [dir="rtl"] .dk-tap__step { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 .dk-tap__ar {
   font-family: var(--font-arabic);
-  font-size: clamp(24px, 1.2rem + 1.6vw, 38px);
+  font-size: clamp(22px, 1.1rem + 0.9vw, 30px);
   line-height: var(--lh-arabic);
   color: var(--text-strong);
   max-width: 28ch;
@@ -519,7 +516,7 @@
 .dk-tap__name { color: var(--text-secondary); font-size: var(--step--1); max-width: 40ch; }
 .dk-tap__count {
   font-family: var(--font-display);
-  font-size: clamp(48px, 2rem + 4vw, 84px);
+  font-size: clamp(44px, 2rem + 2.4vw, 64px);
   font-weight: 600;
   line-height: 1;
   color: var(--brand);

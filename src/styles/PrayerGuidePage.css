@@ -11,9 +11,8 @@
 /* ── Hero ── */
 .pg-hero .breadcrumb { justify-content: flex-start; margin: 0 0 4px; }
 .pg-hero .bc-list { justify-content: flex-start; }
-.pg-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
 
-.pg-root .pg-main { padding-block: var(--space-6) var(--section-gap); }
+.pg-root .pg-main { padding-block: var(--space-6) var(--section-gap-sm); }
 .pg-container { max-width: calc(1040px + 2 * var(--page-gutter)); }
 
 /* Rejim/addım dəyişəndə məzmun yumşaq görünür */
@@ -66,7 +65,8 @@
   background: transparent;
   color: var(--text-secondary);
   font: inherit;
-  font-size: 14.5px;
+  font-family: var(--font-label);
+  font-size: var(--step--1);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -81,15 +81,14 @@
 .pg-mode-head { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: var(--space-5); text-align: center; }
 .pg-select-title {
   color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: var(--step-3);
+  font-family: var(--font-heading);
+  font-size: var(--step-2);
   font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: var(--tracking-tight);
+  line-height: 1.25;
 }
-.pg-mode-sub { color: var(--text-secondary); font-size: var(--step-0); }
+.pg-mode-sub { color: var(--text-secondary); font-size: var(--step--1); }
 
-.pg-prayer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: var(--space-3); }
+.pg-prayer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 176px), 1fr)); gap: var(--space-3); }
 .pg-root .pg-prayer-btn {
   display: flex;
   align-items: center;
@@ -101,8 +100,10 @@
   text-align: start;
 }
 .pg-prayer-text { display: flex; flex: 1; flex-direction: column; gap: 2px; min-width: 0; }
-.pg-prayer-name { color: var(--text-strong); font-size: 16px; font-weight: 600; line-height: 1.3; }
-.pg-prayer-rak { color: var(--text-tertiary); font-size: 13.5px; }
+.pg-prayer-name { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; line-height: 1.3; }
+.pg-prayer-rak { display: inline-flex; align-items: center; gap: 8px; color: var(--text-tertiary); font-size: var(--step--1); }
+.pg-rak-dots { display: inline-flex; gap: 3px; }
+.pg-rak-dots i { width: 8px; height: 8px; border-radius: 2px; background: var(--viz-1); }
 .pg-prayer-chev { flex-shrink: 0; color: var(--text-tertiary); transition: transform var(--dur-2) var(--ease-out), color var(--dur-2) ease; }
 @media (hover: hover) {
   .pg-root .pg-prayer-btn:hover { border-color: var(--brand-line); }
@@ -116,33 +117,27 @@
 /* Kağızla namaz dəvəti (seçim ekranında) */
 .pg-root .pg-paper-cta {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
+  grid-template-columns: 120px minmax(0, 1fr);
   align-items: center;
   gap: var(--space-5);
   margin-top: var(--space-6);
   padding: var(--space-5) var(--space-6);
   overflow: hidden;
 }
-.pg-paper-cta-fig { width: 150px; }
+.pg-paper-cta-fig { width: 120px; }
 .pg-paper-cta-fig .pp-svg { --pp-halo: color-mix(in srgb, var(--text-on-inverse) 8%, transparent); --pp-bar: var(--emerald-300); --pp-bar-hi: var(--emerald-100); }
-.pg-paper-cta-title { margin-bottom: 6px; color: var(--sand-300); font-family: var(--font-display); font-size: var(--step-2); font-weight: 600; line-height: 1.25; }
+.pg-paper-cta-title { margin-bottom: 6px; color: var(--sand-300); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; line-height: 1.25; }
 .pg-paper-cta-body p { margin-bottom: var(--space-4); color: var(--text-on-inverse-dim); font-size: var(--step-0); line-height: 1.6; }
 
 /* ══ Addım bələdçisi ══════════════════════════════════════════════ */
 .pg-guide { display: flex; flex-direction: column; }
 
 .pg-progress-wrap { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--space-3); scroll-margin-top: calc(var(--header-h, 64px) + 72px); }
-.pg-progress-bar {
-  position: relative;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--line);
-  overflow: hidden;
-}
+.pg-progress-bar { display: flex; gap: 3px; height: 8px; }
+.pg-progress-seg { position: relative; flex: 1 1 0; min-width: 6px; overflow: hidden; border-radius: var(--radius-pill); background: var(--surface-3); }
 .pg-progress-fill {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   border-radius: inherit;
   background: var(--brand);
   transform: scaleX(var(--p, 0));
@@ -150,25 +145,16 @@
   transition: transform var(--dur-3) var(--ease-out);
 }
 [dir="rtl"] .pg-progress-fill { transform-origin: 100% 50%; }
-/* rükət sərhədləri */
-.pg-progress-mark {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  inset-inline-start: calc(var(--x) * 100%);
-  width: 2px;
-  background: var(--surface-1);
-}
 .pg-progress-text {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 4px 12px;
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: var(--step--1);
   font-weight: 500;
 }
-.pg-progress-name { color: var(--text-strong); font-weight: 600; }
+.pg-progress-name { color: var(--text-strong); font-family: var(--font-heading); font-weight: 600; }
 
 .pg-guide-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: var(--space-3); }
 .pg-root .pg-back-btn { margin-inline-start: -8px; }
@@ -187,7 +173,6 @@
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-2);
 }
 .pg-step-card--single { grid-template-columns: minmax(0, 1fr); }
 .pg-step-fig {
@@ -195,10 +180,9 @@
   top: calc(var(--header-h, 64px) + 16px);
   padding: var(--space-4);
   border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--surface-2);
 }
-.pg-step-fig .pp-svg { max-width: 360px; margin-inline: auto; }
+.pg-step-fig .pp-svg { max-width: 320px; margin-inline: auto; }
 
 .pg-step-body { min-width: 0; animation: pg-step-in var(--dur-3) var(--ease-out) both; }
 .pg-step-card[data-dir="next"] .pg-step-body { --pg-dx: 20px; }
@@ -210,15 +194,14 @@
   to   { opacity: 1; transform: none; }
 }
 
-.pg-step-eyebrow { display: inline-block; margin-bottom: 6px; color: var(--accent-text); font-size: 13px; font-weight: 600; }
+.pg-step-eyebrow { display: inline-block; margin-bottom: 6px; color: var(--accent-text); font-size: var(--step--1); font-weight: 600; }
 .pg-step-name {
   margin-bottom: var(--space-4);
   color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: var(--step-3);
+  font-family: var(--font-heading);
+  font-size: var(--step-2);
   font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: var(--tracking-tight);
+  line-height: 1.25;
 }
 .pg-step-sub { margin: -8px 0 var(--space-4); color: var(--text-secondary); }
 
@@ -234,7 +217,7 @@
 [dir="rtl"] .pg-label { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 
 .pg-block { margin-bottom: var(--space-5); }
-.pg-do { color: var(--text-body); font-size: var(--step-1); line-height: 1.6; }
+.pg-do { color: var(--text-body); font-size: var(--step-0); line-height: var(--lh-body); max-width: 68ch; }
 .pg-block .pg-repeat { margin-top: 10px; }
 
 /* Zikr: ərəbcə (iri), transliterasiya, məna, təkrar, səs */
@@ -245,19 +228,19 @@
   background: var(--brand-soft);
   box-shadow: inset 0 0 0 1px var(--brand-soft-2);
 }
-.pg-zikr-ar { color: var(--text-strong); font-size: clamp(24px, 2.4vw, 30px); line-height: var(--lh-arabic); text-align: right; }
-.pg-zikr-tl { margin-top: 6px; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-style: italic; line-height: 1.55; }
+.pg-zikr-ar { color: var(--text-strong); font-size: clamp(21px, 2vw, 25px); line-height: var(--lh-arabic); text-align: right; }
+.pg-zikr-tl { margin-top: 6px; color: var(--text-strong); font-family: var(--font-sans); font-size: var(--step-0); font-style: italic; line-height: 1.55; }
 .pg-zikr-mean { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--brand-line); }
-.pg-zikr-mean--short, .pg-zikr-mean p { color: var(--text-secondary); font-size: 15px; line-height: 1.65; }
-.pg-ayah-num { color: var(--accent-text); font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.pg-meaning-src { display: block; margin-top: 6px; color: var(--text-tertiary); font-size: 13px; }
+.pg-zikr-mean--short, .pg-zikr-mean p { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.65; }
+.pg-ayah-num { color: var(--accent-text); font-size: var(--step--2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.pg-meaning-src { display: block; margin-top: 6px; color: var(--text-tertiary); font-size: var(--step--2); }
 .pg-zikr-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
 .pg-zikr--compact { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-top: 0; padding: 10px 16px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
-.pg-zikr--compact .pg-zikr-ar { order: 2; font-size: 22px; line-height: 1.6; }
+.pg-zikr--compact .pg-zikr-ar { order: 2; font-size: 20px; line-height: 1.6; }
 .pg-zikr--compact .pg-zikr-tl { margin: 0; font-size: var(--step-0); }
 .pg-zikr--compact .pg-zikr-meta { order: 3; flex-basis: 100%; margin-top: 2px; }
 .pg-lead-row { margin-bottom: 4px; }
-.pg-lead-label { display: block; margin: 0 0 4px; color: var(--text-tertiary); font-size: 13px; }
+.pg-lead-label { display: block; margin: 0 0 4px; color: var(--text-tertiary); font-size: var(--step--1); }
 
 /* Səs düyməsi */
 .pg-root .pg-audio { gap: 8px; }
@@ -278,12 +261,12 @@
   background: var(--surface-2);
   border-inline-start: 3px solid var(--line-strong);
   color: var(--text-secondary);
-  font-size: 14.5px;
+  font-size: var(--step--1);
   line-height: 1.6;
 }
 .pg-note--ask { background: var(--accent-soft); border-inline-start-color: var(--accent); }
 .pg-note-ic { flex-shrink: 0; margin-top: 2px; color: var(--accent-text); }
-.pg-note-title { display: block; margin-bottom: 2px; color: var(--accent-text); font-size: 13px; font-weight: 600; }
+.pg-note-title { display: block; margin-bottom: 2px; color: var(--accent-text); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; }
 
 /* Mənbələr */
 .pg-refs { margin-top: var(--space-2); }
@@ -298,7 +281,7 @@
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--line);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: var(--step--2);
   font-weight: 500;
   text-decoration: none;
 }
@@ -313,13 +296,13 @@
 
 /* Addımların siyahısı */
 .pg-outline { margin-top: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-1); }
-.pg-outline summary { display: flex; align-items: center; min-height: var(--tap); padding: 0 var(--space-4); color: var(--text-strong); font-weight: 600; cursor: pointer; }
+.pg-outline summary { display: flex; align-items: center; min-height: var(--tap); padding: 0 var(--space-4); color: var(--text-strong); font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; cursor: pointer; }
 .pg-outline-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 12px; margin: 0; padding: 0 var(--space-4) var(--space-4); list-style: none; }
-.pg-outline-rak { display: block; margin-top: 8px; color: var(--accent-text); font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: var(--tracking-wide); }
+.pg-outline-rak { display: block; margin-top: 8px; color: var(--accent-text); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; text-transform: uppercase; letter-spacing: var(--tracking-wide); }
 [dir="rtl"] .pg-outline-rak { letter-spacing: 0; }
 .pg-outline-list .pg-outline-head { grid-column: 1 / -1; }
-.pg-outline-btn { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 4px 8px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); font: inherit; font-size: 14px; text-align: start; cursor: pointer; }
-.pg-outline-btn .ui-num { min-width: 22px; color: var(--text-tertiary); font-size: 12.5px; }
+.pg-outline-btn { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; padding: 4px 8px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--step--1); text-align: start; cursor: pointer; }
+.pg-outline-btn .ui-num { min-width: 22px; color: var(--text-tertiary); font-size: var(--step--2); }
 .pg-outline-btn[aria-current] { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
 @media (hover: hover) { .pg-outline-btn:hover { background: var(--surface-2); } }
 
@@ -336,8 +319,8 @@
 .pg-complete-icon {
   display: grid;
   place-items: center;
-  width: 72px;
-  height: 72px;
+  width: 60px;
+  height: 60px;
   margin-bottom: 6px;
   border-radius: 50%;
   background: var(--brand);
@@ -352,8 +335,8 @@
   100% { transform: none; }
 }
 @keyframes pg-draw { to { stroke-dashoffset: 0; } }
-.pg-complete-title { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-3); font-weight: 600; line-height: 1.2; }
-.pg-complete-prayer { margin-bottom: var(--space-3); color: var(--text-secondary); font-size: var(--step-1); }
+.pg-complete-title { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-2); font-weight: 600; line-height: 1.2; }
+.pg-complete-prayer { margin-bottom: var(--space-3); color: var(--text-secondary); font-size: var(--step-0); }
 .pg-complete-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .pg-root .pg-complete-btn { margin-top: var(--space-4); }
 .pg-root .pg-complete .pg-note, .pg-root .pg-complete .pg-refs { width: 100%; text-align: start; }
@@ -364,18 +347,58 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: var(--space-4) var(--space-6);
-  margin-top: var(--space-7);
+  margin-block: 0 var(--space-6);
   padding-top: var(--space-5);
   border-top: 1px solid var(--line);
   color: var(--text-tertiary);
-  font-size: 13.5px;
+  font-size: var(--step--1);
   line-height: 1.6;
 }
-.pg-sources-title { margin-bottom: 6px; color: var(--text-secondary); font-size: 13px; font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+.pg-sources-title { margin-bottom: 6px; color: var(--text-secondary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
 [dir="rtl"] .pg-sources-title { letter-spacing: 0; text-transform: none; }
 .pg-sources ul { margin: 0; padding-inline-start: 18px; }
 .pg-sources a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 2px; }
 [dir="rtl"] .pg-sources li[dir="ltr"] { text-align: right; }
+
+/* ══ Dizayn v3: "Bir baxışda" — rükət qrafiki + bir rükətin 6 hərəkəti ══ */
+.pg-overview-grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: var(--space-5); align-items: start; }
+.pg-root .pg-rakat-fig, .pg-root .pg-rakah { margin: 0; }
+.pg-rakah-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-2); margin: var(--space-3) 0 0; padding: 0; list-style: none; counter-reset: none; }
+.pg-rakah-step { position: relative; display: grid; justify-items: center; gap: 4px; text-align: center; min-width: 0; }
+.pg-rakah-step + .pg-rakah-step::before {
+  content: '';
+  position: absolute;
+  top: 34%;
+  inset-inline-start: calc(-1 * var(--space-2) / 2 - 4px);
+  width: 8px;
+  height: 8px;
+  border-top: 1.5px solid var(--line-strong);
+  border-inline-end: 1.5px solid var(--line-strong);
+  transform: rotate(45deg);
+}
+[dir="rtl"] .pg-rakah-step + .pg-rakah-step::before { transform: rotate(-45deg); }
+.pg-rakah-fig { display: block; width: 100%; max-width: 110px; }
+.pg-rakah-fig .pp-svg { --pp-halo: transparent; }
+.pg-rakah-n { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); font-size: var(--step--2); font-weight: 600; }
+.pg-rakah-name { color: var(--text-secondary); font-size: var(--step--2); line-height: 1.35; overflow-wrap: anywhere; }
+
+/* ══ Şərt · rükn · vacib ══ */
+.pg-pillar-tabs { margin-bottom: var(--space-4); }
+.pg-pillar-panel { animation: pg-enter var(--dur-3) var(--ease-out) both; }
+.pg-pillar-rule { display: flex; gap: 10px; align-items: flex-start; max-width: 68ch; margin: 0 0 var(--space-4); color: var(--text-body); font-size: var(--step-0); line-height: 1.6; }
+.pg-pillar-rule svg { flex-shrink: 0; margin-top: 3px; color: var(--accent); }
+.pg-pillar-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 0 var(--space-5); margin: 0; padding: 0; list-style: none; }
+.pg-pillar-list li { display: flex; align-items: baseline; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); color: var(--text-body); font-size: var(--step--1); line-height: 1.5; }
+.pg-pillar-n { flex-shrink: 0; min-width: 2ch; color: var(--accent-text); font-size: var(--step--1); font-weight: 600; }
+.pg-pillar-src { max-width: 68ch; margin: var(--space-4) 0 0; color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.6; }
+
+@media (max-width: 899.98px) {
+  .pg-overview-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 559.98px) {
+  .pg-rakah-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: var(--space-4); }
+  .pg-rakah-step:nth-child(4)::before { display: none; }
+}
 
 /* ══ KAĞIZLA NAMAZ (tam ekran) ════════════════════════════════════ */
 .pm-root {
@@ -525,10 +548,9 @@ html[lang="ar"] .pm-say.is-m .pm-ar, html[lang="ar"] .pm-say.is-s .pm-ar { font-
     box-shadow: inset 0 0 0 1px var(--line), var(--shadow-2);
     transition: top var(--dur-3) var(--ease-out);
   }
-  .pg-mode-btn { gap: 6px; padding: 0 8px; font-size: 13.5px; }
+  .pg-mode-btn { gap: 6px; padding: 0 8px; }
 
   .pg-mode-head { align-items: flex-start; text-align: start; margin-bottom: var(--space-4); }
-  .pg-select-title { font-size: var(--step-2); }
   .pg-prayer-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .pg-root .pg-prayer-btn { min-height: 64px; padding: 12px 14px; }
   .pg-root .pg-paper-cta { grid-template-columns: 96px minmax(0, 1fr); gap: var(--space-3); padding: var(--space-4); }
@@ -537,8 +559,7 @@ html[lang="ar"] .pm-say.is-m .pm-ar, html[lang="ar"] .pm-say.is-s .pm-ar { font-
   .pg-step-card { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: 14px 14px 18px; border-radius: var(--radius-lg); }
   .pg-step-fig { position: relative; top: auto; padding: 6px; }
   .pg-step-fig .pp-svg { max-width: 230px; }
-  .pg-step-name { font-size: var(--step-2); margin-bottom: var(--space-3); }
-  .pg-do { font-size: 16px; }
+  .pg-step-name { margin-bottom: var(--space-3); }
   .pg-zikr { padding: 14px 14px; }
 
   .pg-nav {
@@ -567,6 +588,7 @@ html[lang="ar"] .pm-say.is-m .pm-ar, html[lang="ar"] .pm-say.is-s .pm-ar { font-
 
 @media (prefers-reduced-motion: reduce) {
   .pg-enter,
+  .pg-pillar-panel,
   .pg-step-body,
   .pg-root .pg-complete,
   .pg-complete-icon,

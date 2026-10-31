@@ -110,7 +110,7 @@ test('zəkat: mənfi və sonsuz dəyər cəmi azaltmır/pozmur, fitrə tam nəf�
   await expect(total).toHaveText(/20[\s., ]?000[.,]00/)
   await expect(field('Digər pul varlıqları')).toHaveAttribute('aria-invalid', 'true')
   // Mənfi borc — əvvəl cəmə ƏLAVƏ olunurdu
-  await field('Borclar (çıxılacaq)').fill('-3000')
+  await field('Zəkat günündən əvvəl ödədiyiniz borc').fill('-3000')
   await expect(total).toHaveText(/20[\s., ]?000[.,]00/)
   // Sonsuz dəyər (1e999) — "∞" / NaN göstərilmir
   await field('Ticarət malları / səhmlər').fill('1e999')

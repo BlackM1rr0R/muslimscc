@@ -192,6 +192,19 @@ export default {
           { az: 'Diyə ölənin varislərinə verilir və onlar bağışlaya bilər; kəffarə isə Allahın haqqıdır və bağışlanmaqla düşmür.', en: 'The blood money is paid to the heirs of the deceased, who may waive it; the expiation is Allah’s right and does not drop by their waiver.', ru: 'Выкуп выплачивается наследникам погибшего, и они могут его простить; искупление же — право Аллаха и не отменяется их прощением.', ar: 'الدية لورثة المقتول ولهم العفو عنها، أما الكفارة فحق لله لا تسقط بعفوهم.', tr: 'Diyet ölenin mirasçılarına verilir ve onlar bağışlayabilir; kefaret ise Allah’ın hakkıdır ve bağışlamakla düşmez.' },
           { az: 'Daimi Komitə kimi müasir alimlər bu hökmü sürücünün səhlənkarlığı və ya xətası ilə baş verən yol qəzalarındakı ölümlərə də tətbiq etmişlər.', en: 'Contemporary scholars such as the Permanent Committee have applied this ruling to deaths in traffic accidents caused by the driver’s negligence or error.', ru: 'Современные учёные, например Постоянный комитет, применяли это положение к гибели в дорожных авариях по небрежности или ошибке водителя.', ar: 'وطبّق العلماء المعاصرون كاللجنة الدائمة هذا الحكم على الوفاة في حوادث السير إذا كانت بتفريط السائق أو خطئه.', tr: 'Daimi Komite gibi çağdaş âlimler bu hükmü, sürücünün ihmali veya hatasıyla meydana gelen trafik kazalarındaki ölümlere de uygulamıştır.' },
         ] },
+        // Vizual xülasə: yedirmə variantında neçə kasıb (Maidə 5:89, Mücadilə 58:4, Müslim 1111; Nisa 4:92-də yedirmə yoxdur)
+        { t: 'chart', kind: 'bar',
+          title: { az: 'Yedirmə ilə kəffarədə kasıbların sayı', en: 'Number of poor people fed in each expiation', ru: 'Сколько бедняков кормят в каждом искуплении', ar: 'عدد المساكين في كفارة الإطعام', tr: 'Doyurmalı kefarette fakir sayısı' },
+          sub: { az: 'yalnız əvvəlki variantlara gücü çatmayanda', en: 'only when the earlier options are not possible', ru: 'только при невозможности предыдущих вариантов', ar: 'عند العجز عما قبله', tr: 'yalnızca önceki seçeneklere güç yetmeyince' },
+          unit: { az: 'kasıb', en: 'poor', ru: 'бедн.', ar: 'مسكينًا', tr: 'fakir' },
+          note: { az: 'Mənbə: Maidə 5:89, Mücadilə 58:4, Müslim 1111, Nisa 4:92.', en: 'Source: al-Ma’idah 5:89, al-Mujadilah 58:4, Muslim 1111, an-Nisa’ 4:92.', ru: 'Источник: аль-Маида 5:89, аль-Муджадаля 58:4, Муслим 1111, ан-Ниса 4:92.', ar: 'المصدر: المائدة 5:89، المجادلة 58:4، مسلم 1111، النساء 4:92.', tr: 'Kaynak: Mâide 5:89, Mücâdele 58:4, Müslim 1111, Nisâ 4:92.' },
+          data: [
+            { label: { az: 'And kəffarəsi', en: 'Broken oath', ru: 'Нарушенная клятва', ar: 'كفارة اليمين', tr: 'Yemin kefareti' }, value: 10 },
+            { label: { az: 'Ramazan gündüzü cima', en: 'Intercourse on a Ramadan day', ru: 'Близость днём в рамадан', ar: 'الجماع في نهار رمضان', tr: 'Ramazan gündüzü ilişki' }, value: 60 },
+            { label: { az: 'Zihar', en: 'Zihar', ru: 'Зихар', ar: 'الظهار', tr: 'Zıhar' }, value: 60 },
+            { label: { az: 'Xəta ilə öldürmə', en: 'Accidental killing', ru: 'Убийство по ошибке', ar: 'القتل الخطأ', tr: 'Hata ile öldürme' }, value: 0, muted: true,
+              display: { az: 'yedirmə yoxdur', en: 'no feeding option', ru: 'кормления нет', ar: 'لا إطعام فيها', tr: 'doyurma yok' } },
+          ] },
       ],
     },
     {

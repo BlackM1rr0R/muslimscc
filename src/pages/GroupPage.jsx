@@ -7,6 +7,7 @@ import {
   GROUP_ID_RE, createGroup, getGroup, claimJuz, markDone, releaseJuz, joinGoal, tickDay, leaveGoal, adminAction,
   localRoom, saveLocalRoom, forgetLocalRoom, localRooms, savedName, saveName, localDate, streakOf,
 } from '../api/groups'
+import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
 import '../styles/GroupPage.css'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -229,6 +230,135 @@ const LABELS = {
   },
 }
 
+// ── Dizayn v3: təqdimat (addımlar, nümunə xəritə, temp qrafiki), otaq xəritəsi ──
+// Hədis: «Quranı bir ayda oxu» … «yeddi gündə oxu, bundan artıq etmə» —
+// əl-Buxari 5054 (Abdullah ibn Amr), fawazahmed0/hadith-api ilə yoxlanılıb.
+const PACE_AR = 'اقْرَإِ الْقُرْآنَ فِي شَهْرٍ … فَاقْرَأْهُ فِي سَبْعٍ وَلاَ تَزِدْ عَلَى ذَلِكَ'
+const PACE_GROUPS = [1, 3, 5, 10, 15, 30]
+const V3 = {
+  az: {
+    lead: 'Ailə, dostlar və ya icma ilə Quranı 30 cüzə bölüb birlikdə xətm edin, ya da bir vərdişi birgə davam etdirin.',
+    how: 'Hesab lazım deyil: otaq yarat, keçidi paylaş — hər kəs adını yazıb cüz götürür və ya hər gün işarə qoyur.',
+    sampleTitle: 'Nümunə otaq', sampleSub: (d, r) => `${d} cüz oxunub · ${r} oxunur`,
+    stepsEyebrow: 'Necə işləyir', stepsTitle: 'Dörd addımda qrup xətmi',
+    steps: [
+      { title: 'Otaq yarat', text: 'Növü seç (xətm və ya hədəf) və otağa ad ver.' },
+      { title: 'Keçidi paylaş', text: 'Keçidi ailə və ya dostlarla mesajla göndər.' },
+      { title: 'Cüz götür', text: 'Hər kəs adını yazır və boş cüzlərdən birini götürür.' },
+      { title: '«Oxudum» işarələ', text: '30 cüzün hamısı işarələnəndə xətm tamamlanır.' },
+    ],
+    createEyebrow: 'Başla',
+    paceEyebrow: 'Temp', paceTitle: 'Qrup böyüdükcə yük yüngülləşir', paceLead: 'Bir xətmdə 30 cüz var: iştirakçı çox olduqca hər kəsə düşən hissə azalır.',
+    paceChart: 'Bir nəfərə düşən cüz', paceSub: 'Bir xətm üçün, iştirakçı sayına görə', people: (n) => `${n} nəfər`, juz: (n) => `${n} cüz`,
+    paceNote: 'Hesab: 30 ÷ iştirakçı sayı.',
+    hadithText: '«Quranı bir ayda oxu.» Abdullah: «Mən daha çoxuna güc tapıram», — dedi. Peyğəmbər ﷺ: «Onda yeddi gündə oxu, bundan artıq etmə», — buyurdu.',
+    hadithSrc: 'əl-Buxari 5054 — Abdullah ibn Amrdan',
+    mapTitle: '30 cüz xəritəsi', legendDone: 'Oxunub', legendReading: 'Oxunur', legendFree: 'Boş',
+  },
+  en: {
+    lead: 'Split the Qur’an into 30 juz and complete a khatm together with family, friends or your community — or keep a habit going together.',
+    how: 'No account needed: create a room and share the link — everyone types a name and claims a juz, or ticks once a day.',
+    sampleTitle: 'Sample room', sampleSub: (d, r) => `${d} juz read · ${r} in progress`,
+    stepsEyebrow: 'How it works', stepsTitle: 'A group khatm in four steps',
+    steps: [
+      { title: 'Create a room', text: 'Choose the type (khatm or goal) and name the room.' },
+      { title: 'Share the link', text: 'Send the link to family or friends in a message.' },
+      { title: 'Claim a juz', text: 'Everyone types a name and claims one of the free juz.' },
+      { title: 'Mark «I read it»', text: 'When all 30 juz are marked, the khatm is complete.' },
+    ],
+    createEyebrow: 'Start',
+    paceEyebrow: 'Pace', paceTitle: 'The bigger the group, the lighter the load', paceLead: 'A khatm has 30 juz: the more participants, the smaller each person’s share.',
+    paceChart: 'Juz per person', paceSub: 'For one khatm, by number of participants', people: (n) => `${n} ${n === 1 ? 'person' : 'people'}`, juz: (n) => `${n} juz`,
+    paceNote: 'Calculation: 30 ÷ number of participants.',
+    hadithText: '“Read the Qur’an in a month.” Abdullah said: “I find myself able to do more.” He ﷺ said: “Then read it in seven days and do not go beyond that.”',
+    hadithSrc: 'al-Bukhari 5054 — from Abdullah ibn Amr',
+    mapTitle: 'Map of the 30 juz', legendDone: 'Read', legendReading: 'In progress', legendFree: 'Free',
+  },
+  ru: {
+    lead: 'Разделите Коран на 30 джузов и завершите хатм вместе с семьёй, друзьями или общиной — или поддерживайте общую привычку.',
+    how: 'Учётная запись не нужна: создайте комнату и поделитесь ссылкой — каждый пишет имя и берёт джуз или отмечается раз в день.',
+    sampleTitle: 'Пример комнаты', sampleSub: (d, r) => `прочитано джузов: ${d} · читается: ${r}`,
+    stepsEyebrow: 'Как это работает', stepsTitle: 'Коллективный хатм в четыре шага',
+    steps: [
+      { title: 'Создайте комнату', text: 'Выберите тип (хатм или цель) и назовите комнату.' },
+      { title: 'Поделитесь ссылкой', text: 'Отправьте ссылку семье или друзьям в сообщении.' },
+      { title: 'Возьмите джуз', text: 'Каждый пишет имя и берёт один из свободных джузов.' },
+      { title: 'Отметьте «Прочитал»', text: 'Когда отмечены все 30 джузов, хатм завершён.' },
+    ],
+    createEyebrow: 'Начать',
+    paceEyebrow: 'Темп', paceTitle: 'Чем больше группа, тем легче доля', paceLead: 'В хатме 30 джузов: чем больше участников, тем меньше доля каждого.',
+    paceChart: 'Джузов на человека', paceSub: 'Для одного хатма, по числу участников', people: (n) => `${n} чел.`, juz: (n) => `${n} джуз.`,
+    paceNote: 'Расчёт: 30 ÷ число участников.',
+    hadithText: '«Читай Коран за месяц». Абдуллах сказал: «Я в силах на большее». Он ﷺ сказал: «Тогда читай его за семь дней и не превышай этого».',
+    hadithSrc: 'аль-Бухари 5054 — от Абдуллаха ибн Амра',
+    mapTitle: 'Карта 30 джузов', legendDone: 'Прочитан', legendReading: 'Читается', legendFree: 'Свободен',
+  },
+  ar: {
+    lead: 'قسّموا القرآن ثلاثين جزءًا واختموه معًا مع الأهل أو الأصدقاء أو الجماعة — أو حافظوا على عادة مشتركة.',
+    how: 'لا حاجة إلى حساب: أنشئ غرفة وشارك الرابط — يكتب كل واحد اسمه ويأخذ جزءًا، أو يعلّم مرة كل يوم.',
+    sampleTitle: 'غرفة مثال', sampleSub: (d, r) => `قُرئ ${d} جزءًا · قيد القراءة ${r}`,
+    stepsEyebrow: 'طريقة العمل', stepsTitle: 'الختمة الجماعية في أربع خطوات',
+    steps: [
+      { title: 'أنشئ غرفة', text: 'اختر النوع (ختمة أو هدف) وسمِّ الغرفة.' },
+      { title: 'شارك الرابط', text: 'أرسل الرابط إلى الأهل أو الأصدقاء في رسالة.' },
+      { title: 'خذ جزءًا', text: 'يكتب كل واحد اسمه ويأخذ أحد الأجزاء المتاحة.' },
+      { title: 'علِّم «قرأته»', text: 'إذا عُلِّمت الأجزاء الثلاثون تمّت الختمة.' },
+    ],
+    createEyebrow: 'ابدأ',
+    paceEyebrow: 'الوتيرة', paceTitle: 'كلما كبرت المجموعة خفّ النصيب', paceLead: 'في الختمة ثلاثون جزءًا: كلما زاد المشاركون قلّ نصيب كل واحد.',
+    paceChart: 'الأجزاء لكل مشارك', paceSub: 'لختمة واحدة بحسب عدد المشاركين', people: (n) => `${n} مشارك`, juz: (n) => `${n} جزء`,
+    paceNote: 'الحساب: ٣٠ ÷ عدد المشاركين.',
+    hadithText: 'قال عبد الله: إني أجد قوة، فقال ﷺ: فاقرأه في سبع ولا تزد على ذلك.',
+    hadithSrc: 'البخاري ٥٠٥٤ — عن عبد الله بن عمرو',
+    mapTitle: 'خريطة الأجزاء الثلاثين', legendDone: 'مقروء', legendReading: 'قيد القراءة', legendFree: 'متاح',
+  },
+  tr: {
+    lead: 'Kur’an’ı 30 cüze bölüp aileniz, arkadaşlarınız veya cemaatinizle birlikte hatmedin — ya da bir alışkanlığı birlikte sürdürün.',
+    how: 'Hesap gerekmez: oda oluşturun, bağlantıyı paylaşın — herkes adını yazıp bir cüz alır veya günde bir kez işaret koyar.',
+    sampleTitle: 'Örnek oda', sampleSub: (d, r) => `${d} cüz okundu · ${r} okunuyor`,
+    stepsEyebrow: 'Nasıl işler', stepsTitle: 'Dört adımda grup hatmi',
+    steps: [
+      { title: 'Oda oluştur', text: 'Türü seç (hatim veya hedef) ve odaya ad ver.' },
+      { title: 'Bağlantıyı paylaş', text: 'Bağlantıyı aileye veya arkadaşlara mesajla gönder.' },
+      { title: 'Cüz al', text: 'Herkes adını yazar ve boş cüzlerden birini alır.' },
+      { title: '«Okudum» işaretle', text: '30 cüzün hepsi işaretlenince hatim tamamlanır.' },
+    ],
+    createEyebrow: 'Başla',
+    paceEyebrow: 'Tempo', paceTitle: 'Grup büyüdükçe yük hafifler', paceLead: 'Bir hatimde 30 cüz vardır: katılımcı arttıkça herkese düşen pay azalır.',
+    paceChart: 'Kişi başına cüz', paceSub: 'Bir hatim için, katılımcı sayısına göre', people: (n) => `${n} kişi`, juz: (n) => `${n} cüz`,
+    paceNote: 'Hesap: 30 ÷ katılımcı sayısı.',
+    hadithText: '“Kur’an’ı bir ayda oku.” Abdullah: “Daha fazlasına gücüm yetiyor” dedi. Peygamber ﷺ: “O hâlde yedi günde oku, bundan fazlasını yapma” buyurdu.',
+    hadithSrc: 'Buhârî 5054 — Abdullah b. Amr’dan',
+    mapTitle: '30 cüz haritası', legendDone: 'Okundu', legendReading: 'Okunuyor', legendFree: 'Boşta',
+  },
+}
+
+// Nümunə xəritə (təqdimat hero-su) — illüstrasiya, real məlumat deyil
+const SAMPLE = Array.from({ length: 30 }, (_, i) => (i < 18 ? 'done' : i < 24 ? 'reading' : 'free'))
+
+/** 30 cüzün kiçik xəritəsi: hər xana bir cüz (rəng + nömrə; legend mətnlə) */
+function JuzMap({ cells, label, compact = false }) {
+  return (
+    <ol className={`gp-map${compact ? ' gp-map--compact' : ''}`} aria-label={label}>
+      {cells.map((st, i) => (
+        <li key={i} className={`gp-map__cell is-${st}`}>
+          <span className="ui-num">{i + 1}</span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+function JuzLegend({ v, counts }) {
+  return (
+    <ul className="ui-legend gp-legend">
+      <li><span className="ui-swatch" style={{ '--swatch': 'var(--viz-1)' }} aria-hidden="true" /><span>{v.legendDone}</span> <b>{counts.done}</b></li>
+      <li><span className="ui-swatch" style={{ '--swatch': 'var(--viz-2)' }} aria-hidden="true" /><span>{v.legendReading}</span> <b>{counts.reading}</b></li>
+      <li><span className="ui-swatch" style={{ '--swatch': 'var(--viz-track)' }} aria-hidden="true" /><span>{v.legendFree}</span> <b>{counts.free}</b></li>
+    </ul>
+  )
+}
+
 const roomPath = (lang, id) => `${lang === 'az' ? '' : `/${lang}`}/group${id ? `/${id}` : ''}`
 
 /** /group/<id> → id (lider marşrutu qeydə alana qədər yolun özündən də oxunur) */
@@ -315,39 +445,83 @@ function Landing({ L, lang }) {
     }
   }
 
+  const v = V3[lang] || V3.en
+  const sampleCounts = { done: SAMPLE.filter(x => x === 'done').length, reading: SAMPLE.filter(x => x === 'reading').length, free: SAMPLE.filter(x => x === 'free').length }
+
   return (
     <div className="gp-root">
-      <header className="ui-page-hero gp-hero">
+      <header className="ui-page-hero ui-page-hero--split gp-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
-          <span className="ui-eyebrow">{L.eyebrow}</span>
-          <h1 className="ui-display">{L.title}</h1>
-          <p className="ui-lead">{L.lead}</p>
+          <div className="ui-page-hero__text">
+            <span className="ui-eyebrow">{L.eyebrow}</span>
+            <h1 className="ui-display">{L.title}</h1>
+            <p className="ui-lead">{v.lead}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> {v.how}</p>
+            <div className="ui-page-hero__actions">
+              <a className="ui-btn ui-btn--primary" href="#gp-create"><Icon name="plus" className="ui-btn__icon" /> {L.createTitle}</a>
+            </div>
+          </div>
+          <div className="ui-page-hero__aside">
+            {/* Nümunə — dekorativ illüstrasiya (ekran oxuyucusundan gizli) */}
+            <div className="ui-card gp-sample" aria-hidden="true">
+              <div className="gp-sample__head">
+                <span className="gp-sample__title">{v.sampleTitle}</span>
+                <span className="gp-muted">{v.sampleSub(sampleCounts.done, sampleCounts.reading)}</span>
+              </div>
+              <JuzMap cells={SAMPLE} compact />
+              <JuzLegend v={v} counts={sampleCounts} />
+            </div>
+          </div>
         </div>
       </header>
 
-      <section className="ui-section ui-section--tight">
+      {/* Necə işləyir — dörd addım */}
+      <section className="ui-section ui-section--tight" aria-labelledby="gp-steps-h">
         <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v.stepsEyebrow}</span>
+            <h2 className="ui-title" id="gp-steps-h">{v.stepsTitle}</h2>
+          </div>
+          <ol className="ui-steps ui-steps--row gp-steps">
+            {v.steps.map((s, i) => (
+              <li key={i} className="ui-step">
+                <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                <div className="ui-step__body">
+                  <h3 className="ui-step__title">{s.title}</h3>
+                  <p className="ui-step__text">{s.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="ui-section ui-section--tight ui-section--alt" id="gp-create" aria-labelledby="gp-create-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v.createEyebrow}</span>
+            <h2 className="ui-title" id="gp-create-h">{L.createTitle}</h2>
+          </div>
           <div className="ui-grid gp-types" style={{ '--ui-grid-min': '280px' }} data-reveal="stagger">
             <div className="ui-card">
               <div className="ui-card__head">
                 <span className="ui-icon-tile"><Icon name="quran" /></span>
-                <h2 className="ui-card__title">{L.khatmTitle}</h2>
+                <h3 className="ui-card__title">{L.khatmTitle}</h3>
               </div>
               <p className="ui-card__text">{L.khatmText}</p>
             </div>
             <div className="ui-card">
               <div className="ui-card__head">
                 <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="target" /></span>
-                <h2 className="ui-card__title">{L.goalTitle}</h2>
+                <h3 className="ui-card__title">{L.goalTitle}</h3>
               </div>
               <p className="ui-card__text">{L.goalText}</p>
             </div>
           </div>
 
           <div className="gp-layout">
-            <form className="ui-card gp-form" onSubmit={submit} noValidate>
-              <h2 className="gp-h2">{L.createTitle}</h2>
+            <form className="ui-card gp-form" onSubmit={submit} noValidate aria-label={L.createTitle}>
               <div className="gp-field">
                 <span className="ui-field__label" id="gp-type-l">{L.type}</span>
                 <div className="gp-chips" role="group" aria-labelledby="gp-type-l">
@@ -411,6 +585,31 @@ function Landing({ L, lang }) {
               )}
               <p className="gp-note"><Icon name="shield" size={18} /> <span>{L.privacyNote}</span></p>
             </aside>
+          </div>
+        </div>
+      </section>
+
+      {/* Temp — iştirakçı sayına görə bir nəfərə düşən cüz + Buxari 5054 */}
+      <section className="ui-section ui-section--tight" aria-labelledby="gp-pace-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v.paceEyebrow}</span>
+            <h2 className="ui-title" id="gp-pace-h">{v.paceTitle}</h2>
+            <p className="ui-lead">{v.paceLead}</p>
+          </div>
+          <div className="gp-pace">
+            <ChartFigure title={v.paceChart} sub={v.paceSub} note={v.paceNote}>
+              <BarChart labelWidth="30%" label={v.paceChart}
+                data={PACE_GROUPS.map(n => ({ key: n, label: v.people(n), value: 30 / n }))}
+                max={30} format={(x) => v.juz(Number.isInteger(x) ? x : x.toFixed(1))} />
+            </ChartFigure>
+            <figure className="ui-quote gp-quote">
+              <blockquote>
+                <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{PACE_AR}</p>
+                {lang !== 'ar' && <p className="ui-quote__text">{v.hadithText}</p>}
+              </blockquote>
+              <figcaption className="ui-quote__src">— {v.hadithSrc}</figcaption>
+            </figure>
           </div>
         </div>
       </section>
@@ -550,7 +749,7 @@ function Room({ id, L, lang }) {
         <div className="ui-container">
           {data.closed && <p className="gp-banner" role="status"><Icon name="info" size={18} /> {L.closedNote}</p>}
           {data.type === 'khatm'
-            ? <Khatm data={data} L={L} local={local} updateLocal={updateLocal} run={run} busy={busy} isAdmin={isAdmin} admin={admin} flash={flash} id={id} />
+            ? <Khatm data={data} L={L} lang={lang} local={local} updateLocal={updateLocal} run={run} busy={busy} isAdmin={isAdmin} admin={admin} flash={flash} id={id} />
             : <Goal data={data} L={L} lang={lang} local={local} updateLocal={updateLocal} run={run} busy={busy} isAdmin={isAdmin} admin={admin} id={id} />}
 
           {isAdmin && (
@@ -592,11 +791,13 @@ function NameField({ L, name, setName }) {
 }
 
 /* ── Xətm görünüşü ── */
-function Khatm({ data, L, local, updateLocal, run, busy, isAdmin, admin, flash, id }) {
+function Khatm({ data, L, lang, local, updateLocal, run, busy, isAdmin, admin, flash, id }) {
   const [name, setName] = useState(savedName)
   const k = data.khatm
   const doneCount = k.juz.filter(j => j.done).length
-  const pct = Math.round((doneCount / 30) * 100)
+  const v = V3[lang] || V3.en
+  const cells = k.juz.map(j => (j.done ? 'done' : j.name ? 'reading' : 'free'))
+  const counts = { done: doneCount, reading: cells.filter(c => c === 'reading').length, free: cells.filter(c => c === 'free').length }
   const closed = data.closed
   const finished = !!k.completedAt
   const claims = local.claims || {}
@@ -628,12 +829,13 @@ function Khatm({ data, L, local, updateLocal, run, busy, isAdmin, admin, flash, 
         </div>
       )}
 
-      <div className="gp-summary">
-        <div className="gp-summary__text">
-          <strong className="ui-num">{L.progress(doneCount)}</strong>
-          {(k.round > 1 || k.completions > 0) && <span className="gp-muted">{L.round(k.round)} · {L.completions(k.completions)}</span>}
+      <div className="ui-card gp-overview">
+        <div className="gp-overview__head">
+          <ProgressRing value={doneCount} max={30} size={88} thickness={8} label={L.progress(doneCount)}
+            sub={(k.round > 1 || k.completions > 0) ? `${L.round(k.round)} · ${L.completions(k.completions)}` : undefined} />
+          <JuzLegend v={v} counts={counts} />
         </div>
-        <Bar value={pct} label={L.progress(doneCount)} />
+        <JuzMap cells={cells} label={v.mapTitle} />
       </div>
 
       {!closed && !finished && <NameField L={L} name={name} setName={setName} />}

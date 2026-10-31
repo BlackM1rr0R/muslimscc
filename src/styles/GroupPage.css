@@ -128,3 +128,57 @@
 .gp-root .gp-danger { color: var(--bad); }
 
 .gp-root .gp-hero .ui-badge { align-self: center; }
+
+/* ══ Dizayn v3 ═══════════════════════════════════════════ */
+.gp-root .gp-hero .ui-lead { max-width: 56ch; }
+#gp-create { scroll-margin-top: calc(var(--header-h, 64px) + 12px); }
+.gp-root .gp-sample { display: grid; gap: var(--space-3); padding: var(--card-pad); }
+.gp-sample__head { display: flex; flex-direction: column; gap: 2px; }
+.gp-sample__title { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600; }
+
+/* 30 cüz xəritəsi — rəng + nömrə; legend mətnlə */
+.gp-map {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gp-map__cell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-width: 0;
+  border-radius: 6px;
+  background: var(--viz-track);
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-weight: 600;
+}
+.gp-map__cell.is-done { background: var(--viz-1); color: var(--on-brand); }
+.gp-map__cell.is-reading { background: color-mix(in srgb, var(--viz-2) 30%, var(--surface-1)); color: var(--accent-text); box-shadow: inset 0 0 0 1.5px var(--viz-2); }
+.gp-map--compact { gap: 3px; }
+.gp-map--compact .gp-map__cell { border-radius: 4px; font-size: 10px; }
+@media (min-width: 900px) { .gp-map:not(.gp-map--compact) { grid-template-columns: repeat(15, minmax(0, 1fr)); } }
+.gp-legend { margin: 0; }
+
+.gp-root .gp-overview { display: grid; gap: var(--space-4); margin-bottom: var(--space-5); }
+.gp-overview__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-6); }
+
+.gp-steps { margin: 0; }
+.gp-pace { display: grid; gap: var(--space-6); align-items: start; }
+@media (min-width: 900px) { .gp-pace { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }
+.gp-root .gp-pace .ui-figure, .gp-root .gp-quote { margin: 0; }
+.gp-root .gp-quote .ui-quote__ar { font-size: clamp(20px, 1.1rem + 0.8vw, 24px); }
+.gp-root .gp-form .ui-btn--primary { margin-top: var(--space-1); }
+.gp-map:not(.gp-map--compact) { max-width: 640px; }
+.gp-root .gp-juz { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.gp-root .gp-juz__cell { min-height: 0; gap: 6px; }
+.gp-root .gp-juz__n { font-family: var(--font-heading); font-size: var(--step--1); }
+.gp-root .gp-juz__name { font-size: var(--step--1); }
+
+/* Planşet: hero vizualı tam enə yayılmasın */
+@media (max-width: 899.98px) { .gp-root .ui-page-hero__aside { max-width: 440px; } }
+/* Telefon: hero qısa qalsın — nümunə xəritə yalnız ≥600px */
+@media (max-width: 599.98px) { .gp-root .gp-hero .ui-page-hero__aside:has(.gp-sample) { display: none; } }

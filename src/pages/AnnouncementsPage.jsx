@@ -164,6 +164,15 @@ const LABELS = {
   },
 }
 
+// v3: hero izahı, açar rəqəmlərin adları, "xəbərdar qalmaq" kafelləri
+const V3 = {
+  az: { how: 'Sayt rəhbərliyinin elanları və İslami günlər burada görünür. Yeni elanı qaçırmamaq üçün bildirişləri açın.', active: 'aktiv elan', dates: 'qeyd edilmiş gün', stayEyebrow: 'Xəbərdar qalın', stayTitle: 'Heç nəyi qaçırmayın', notifText: 'Yeni elan gələndə xəbər alın', calText: 'Hicri ay, oruc və bayram günləri', prayerText: 'Şəhəriniz üçün bugünkü vaxtlar' },
+  en: { how: 'Announcements from the site team and Islamic dates appear here. Turn on notifications so you don’t miss a new one.', active: 'active announcements', dates: 'marked dates', stayEyebrow: 'Stay informed', stayTitle: 'Don’t miss anything', notifText: 'Get notified when a new announcement is posted', calText: 'Hijri months, fasts and Eid days', prayerText: 'Today’s times for your city' },
+  ru: { how: 'Здесь появляются объявления команды сайта и исламские даты. Включите уведомления, чтобы не пропустить новое.', active: 'активных объявлений', dates: 'отмеченных дат', stayEyebrow: 'Будьте в курсе', stayTitle: 'Ничего не пропустите', notifText: 'Получайте уведомление о новом объявлении', calText: 'Месяцы хиджры, посты и праздники', prayerText: 'Время на сегодня для вашего города' },
+  ar: { how: 'تظهر هنا إعلانات فريق الموقع والمناسبات الإسلامية، ففعّل الإشعارات حتى لا يفوتك جديد.', active: 'إعلانات فعّالة', dates: 'مناسبات مسجّلة', stayEyebrow: 'ابقَ على اطلاع', stayTitle: 'لا يفوتك شيء', notifText: 'تنبيه عند نشر إعلان جديد', calText: 'الأشهر الهجرية والصيام والأعياد', prayerText: 'مواقيت اليوم لمدينتك' },
+  tr: { how: 'Site ekibinin duyuruları ve İslami günler burada görünür. Yeni bir duyuruyu kaçırmamak için bildirimleri açın.', active: 'aktif duyuru', dates: 'işaretli gün', stayEyebrow: 'Haberdar olun', stayTitle: 'Hiçbir şeyi kaçırmayın', notifText: 'Yeni duyuru gelince haberdar olun', calText: 'Hicri aylar, oruç ve bayram günleri', prayerText: 'Şehriniz için bugünün vakitleri' },
+}
+
 // Hicri ay adları — CalendarPage ilə eyni yazılış
 const HIJRI_MONTH_NAMES = {
   az: ['Məhərrəm','Səfər','Rəbiül-Əvvəl','Rəbiül-Axir','Cəmadiyül-Əvvəl','Cəmadiyül-Axir','Rəcəb','Şaban','Ramazan','Şəvval','Zülqədə','Zülhiccə'],
@@ -400,8 +409,14 @@ export default function AnnouncementsPage({ setPage }) {
               Ərəbcə bəzək ar dilində h1 ilə təkrar olmasın deyə gizlədilir */}
           <span className="ui-eyebrow">{l.eyebrow}</span>
           <h1 className="ui-display">{l.title}</h1>
-          {!isRtl && <p className="anp-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الإعلانات</p>}
           <p className="ui-lead">{l.subtitle}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{(V3[lang] || V3.en).how}</span></p>
+          {loaded && (announcements.length > 0 || events.length > 0) && (
+            <ul className="ui-page-hero__stats">
+              <li><b>{announcements.length}</b><span>{(V3[lang] || V3.en).active}</span></li>
+              {events.length > 0 && <li><b>{events.length}</b><span>{(V3[lang] || V3.en).dates}</span></li>}
+            </ul>
+          )}
         </div>
       </header>
 
@@ -425,8 +440,8 @@ export default function AnnouncementsPage({ setPage }) {
 
         {/* ═══ ELANLAR ═══ */}
         <section className="anp-section" aria-labelledby="anp-latest-title">
-          <div className="anp-section-head" data-reveal>
-            <h2 id="anp-latest-title" className="ui-title ui-title--sm">{l.latest}</h2>
+          <div className="ui-section-head anp-section-head" data-reveal>
+            <h2 id="anp-latest-title" className="ui-title">{l.latest}</h2>
           </div>
 
           {!loaded ? (
@@ -445,16 +460,6 @@ export default function AnnouncementsPage({ setPage }) {
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral anp-empty-icon" aria-hidden="true"><Icon name="announcements" /></span>
               <p className="anp-empty-title">{l.empty}</p>
               <p className="anp-empty-sub">{l.emptySub}</p>
-              <div className="anp-empty-actions">
-                {offerNotif && (
-                  <button type="button" className="ui-btn ui-btn--primary" onClick={openNotifications}>
-                    <Icon name="bell" className="ui-btn__icon" /> {l.enableNotif}
-                  </button>
-                )}
-                <PageLink className="ui-btn ui-btn--secondary" to="prayer" setPage={setPage}>
-                  <Icon name="prayer" className="ui-btn__icon" /> {l.seeTimes}
-                </PageLink>
-              </div>
             </div>
           ) : (
             <>
@@ -581,6 +586,41 @@ export default function AnnouncementsPage({ setPage }) {
             <p className="anp-note"><Icon name="info" size={16} /> <span>{l.eventsNote}</span></p>
           </section>
         )}
+
+        {/* ═══ Xəbərdar qalmaq — bildiriş, təqvim, namaz vaxtları ═══ */}
+        <section className="anp-section" aria-labelledby="anp-stay-title">
+          <div className="ui-section-head anp-section-head" data-reveal>
+            <span className="ui-eyebrow">{(V3[lang] || V3.en).stayEyebrow}</span>
+            <h2 id="anp-stay-title" className="ui-title">{(V3[lang] || V3.en).stayTitle}</h2>
+          </div>
+          <ul className="ui-tiles anp-stay" style={{ '--ui-tiles-min': '200px' }} data-reveal="stagger">
+            {offerNotif && (
+              <li>
+                <button type="button" className="ui-tile ui-tile--row anp-stay-btn" onClick={openNotifications}>
+                  <span className="ui-icon-tile" aria-hidden="true"><Icon name="bell" /></span>
+                  <span className="ui-tile__body">
+                    <span className="ui-tile__title">{l.enableNotif}</span>
+                    <span className="ui-tile__text">{(V3[lang] || V3.en).notifText}</span>
+                  </span>
+                </button>
+              </li>
+            )}
+            {[
+              { to: 'calendar', title: l.fullCalendar, text: (V3[lang] || V3.en).calText },
+              { to: 'prayer', title: l.seeTimes, text: (V3[lang] || V3.en).prayerText },
+            ].map(k => (
+              <li key={k.to}>
+                <PageLink className="ui-tile ui-tile--row" to={k.to} setPage={setPage}>
+                  <span className="ui-icon-tile" aria-hidden="true"><Icon name={k.to} /></span>
+                  <span className="ui-tile__body">
+                    <span className="ui-tile__title">{k.title}</span>
+                    <span className="ui-tile__text">{k.text}</span>
+                  </span>
+                </PageLink>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     </div>
   )

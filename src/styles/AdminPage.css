@@ -54,7 +54,6 @@
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
   scrollbar-width: thin;
 }
 
@@ -70,14 +69,14 @@
 .admin-sidebar-id { min-width: 0; }
 .admin-sidebar-title {
   color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: 16px;
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
   font-weight: 600;
   line-height: 1.25;
 }
 .admin-sidebar-sub {
   color: var(--text-tertiary);
-  font-size: 12.5px;
+  font-size: var(--step--2);
   font-weight: 500;
   direction: ltr;
   unicode-bidi: isolate;
@@ -91,6 +90,7 @@
 .admin-nav-section-label {
   padding: 8px 10px 6px;
   color: var(--text-tertiary);
+  font-family: var(--font-label);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
@@ -101,18 +101,18 @@
 .admin-nav-btn {
   position: relative;
   width: 100%;
-  min-height: 40px;
+  min-height: 36px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 2px;
-  padding: 8px 10px;
+  gap: 10px;
+  margin-bottom: 1px;
+  padding: 6px 10px;
   background: transparent;
   border: 0;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--step--1);
   font-weight: 500;
   line-height: 1.3;
   text-align: start;
@@ -140,7 +140,7 @@
 }
 [dir="rtl"] .admin-nav-btn.active::before { border-radius: 3px 0 0 3px; }
 
-.admin-nav-icon { flex-shrink: 0; width: 20px; height: 20px; color: var(--text-tertiary); }
+.admin-nav-icon { flex-shrink: 0; width: 18px; height: 18px; color: var(--text-tertiary); }
 .admin-nav-btn.active .admin-nav-icon,
 .admin-nav-btn:hover .admin-nav-icon { color: inherit; }
 .admin-nav-text { flex: 1; min-width: 0; }
@@ -261,7 +261,6 @@
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
 }
 .admin-section--flush { padding: 0; overflow: hidden; }
 .admin-section--tight { padding: 12px; }
@@ -282,112 +281,126 @@
 
 .admin-section-lead { margin: -8px 0 16px; color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
 
-/* Ümumi məzmun — tünd zümrüd zolaq (hər iki rejimdə tünd) */
-.admin-hero {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 18px 28px;
-  margin-bottom: 20px;
-  padding: clamp(20px, 3vw, 30px);
-  border-radius: var(--radius-xl);
-  background: var(--surface-inverse);
-  color: var(--text-on-inverse);
-  box-shadow: var(--shadow-2);
+/* ── İdarə paneli (DashboardOverview, dizayn v3) ──
+   Ümumi rəqəm + növ kafelləri bir sətirdə; altda qrafik | sürətli əməllər */
+.admin-dash-stats {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
 }
-.admin-hero .ui-pattern { --pattern-color: rgba(230, 204, 149, 0.12); }
-.admin-hero-label {
-  color: #e6cc95;
-  font-size: 12px;
+.admin-dash-total {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand-line);
+}
+.admin-dash-total__label {
+  color: var(--brand);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
-[dir="rtl"] .admin-hero-label { letter-spacing: 0; font-size: 13px; }
-.admin-hero-num {
-  margin-top: 6px;
-  font-family: var(--font-display);
-  font-size: clamp(40px, 5vw, 56px);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: var(--tracking-tight);
-  font-variant-numeric: tabular-nums;
-}
-.admin-hero-sub { margin-top: 8px; color: var(--text-on-inverse-dim); font-size: 14px; }
-.admin-hero-breakdown {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.admin-hero-breakdown li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid rgba(243, 239, 230, 0.18);
-  border-radius: var(--radius-pill);
-  color: var(--text-on-inverse);
-  font-size: 13px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-.admin-hero-breakdown svg { color: #e6cc95; }
+[dir="rtl"] .admin-dash-total__label { letter-spacing: 0; text-transform: none; }
+.admin-dash-total__num { color: var(--text-strong); font-size: var(--step-4); font-weight: 500; line-height: 1; }
+.admin-dash-total__hint { color: var(--text-secondary); font-size: var(--step--1); }
 
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 168px), 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 132px), 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
 }
+.admin-dash-stats .admin-stats { margin: 0; }
 .admin-stat-card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 8px;
   width: 100%;
-  padding: 18px;
+  height: 100%;
+  padding: 14px 16px;
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
   color: var(--text-body);
   font: inherit;
   text-align: start;
 }
 button.admin-stat-card {
   cursor: pointer;
-  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+  transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) ease;
 }
 @media (hover: hover) {
-  button.admin-stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); border-color: var(--line-strong); }
+  button.admin-stat-card:hover { transform: translateY(-2px); border-color: var(--brand-line); }
 }
 button.admin-stat-card:active { transform: scale(0.98); }
-.admin-stat-icon { margin-bottom: 10px; }
+.admin-stat-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
+.admin-stat-head .admin-stat-icon { flex-shrink: 0; color: var(--text-tertiary); }
+.ui-icon-tile.admin-stat-icon { margin-bottom: 2px; }
 .admin-stat-num {
   color: var(--text-strong);
-  font-family: var(--font-display);
+  font-family: var(--font-num, var(--font-display));
   font-size: var(--step-3);
   font-weight: 500;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
-.admin-stat-label { color: var(--text-tertiary); font-size: 13px; font-weight: 500; }
+.admin-stat-label { color: var(--text-secondary); font-size: var(--step--1); font-weight: 500; }
 
-/* Sürətli əməliyyatlar */
-.admin-quick {
+.admin-dash-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
-  gap: 10px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
 }
-.admin-page .admin-quick .ui-btn { justify-content: flex-start; white-space: normal; text-align: start; }
-.admin-quick .ui-btn__icon { color: var(--brand); }
+.admin-dash-grid .ui-figure { margin: 0; }
+.admin-dash-grid .admin-section { margin: 0; }
+.admin-dash-actions .admin-section-title { margin-bottom: 10px; }
+.admin-dash-actions .admin-quick + .admin-section-title { margin-top: 20px; }
+
+/* Sürətli əməliyyatlar — ikonlu sətirlər */
+.admin-quick { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.admin-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-strong);
+  font-family: var(--font-label);
+  font-size: var(--step--1);
+  font-weight: 500;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-1) ease;
+}
+@media (hover: hover) { .admin-quick-btn:hover { background: var(--surface-2); } }
+.admin-quick-chev { margin-inline-start: auto; color: var(--text-tertiary); }
+@media (max-width: 1099.98px) {
+  .admin-dash-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 599.98px) {
+  .admin-dash-stats { grid-template-columns: minmax(0, 1fr); }
+  .admin-dash-total { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 14px 16px; }
+  .admin-dash-total__num { font-size: var(--step-3); }
+  .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .admin-stat-card { padding: 12px 14px; }
+  /* Telefonda qrafik kafellərdəki rəqəmləri təkrarlayır — gizlənir */
+  .admin-dash-chart { display: none; }
+}
 
 /* Statistika qrupu: rəqəm + etiket xanaları */
 .admin-metrics {
@@ -645,7 +658,6 @@ button.admin-stat-card:active { transform: scale(0.98); }
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
   transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
 }
 @media (hover: hover) {

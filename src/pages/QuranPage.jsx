@@ -12,7 +12,19 @@ import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala, ayahCountText } from 
 import QuranPlayer, { useQuranPlayer } from '../components/QuranPlayer'
 import AyahTafsir from '../components/TafsirPanel'
 import { readTafsirChoices, tafsirFor, saveTafsirChoice } from '../utils/tafsir'
+import { ChartFigure, BarChart, Donut, ProgressRing, StatTile, Timeline } from '../components/viz'
+import { SURAH_TABLE } from '../data/mushafIndex'
+import { JUZ_VERSES, juzOfSurah } from '../data/juzMap'
+import { QURAN_GUIDE } from '../data/guides/QuranPage'
 import '../styles/QuranPage.css'
+
+// 5 dilli sahə: { az, en, … } → cari dil ('' — qəsdən boş, məs. ərəbcədə məna təkrarlanmır)
+const pk = (o, lang) => (o == null ? '' : typeof o === 'string' ? o : (o[lang] !== undefined ? o[lang] : o.az)) || ''
+// API siyahısı hələ yoxdursa surənin adı (yerli cədvəl / mushaf indeksi)
+function staticSurahName(n, lang) {
+  if (lang === 'ar') return SURAH_TABLE[n - 1]?.[4] || String(n)
+  return getSurahLocal(n, lang)?.name || (lang === 'az' && SURAH_AZ[n] ? SURAH_AZ[n].name : SURAH_TABLE[n - 1]?.[5]) || String(n)
+}
 
 // Hər dilin ÖZ tərcümə nəşri. Nəşr alınmasa başqa dilə (ingilis/türk)
 // DÜŞMÜRÜK — dürüst xəta + "Yenidən cəhd et" göstərilir.
@@ -111,6 +123,18 @@ const prefersReducedMotion = () => {
 }
 // Yazı sahəsindədirsə qısayol işləmir (Header.jsx-dəki "/" ilə eyni qayda)
 const isTyping = el => !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
+
+// Ərəb mətninin miqyası (A− / A+): 0.8…1.5, addım 0.1 — yadda qalır
+const FONT_KEY = 'quran_font_scale'
+const FONT_MIN = 0.8
+const FONT_MAX = 1.5
+const stepFont = (f, d) => Math.round(Math.min(FONT_MAX, Math.max(FONT_MIN, f + d * 0.1)) * 10) / 10
+function readFontScale() {
+  try {
+    const v = Number(localStorage.getItem(FONT_KEY))
+    return v >= FONT_MIN && v <= FONT_MAX ? v : 1
+  } catch { return 1 }
+}
 
 const TAFSIR_LABELS = {
   az: 'Təfsir',
@@ -332,7 +356,7 @@ function useSurah(num, lang, attempt = 0) {
 const REVEAL_CARDS = 8
 // Təfsir paneli (components/TafsirPanel.jsx): bağlı kartda tafsirId = 0 —
 // seçim dəyişəndə yalnız açıq kartlar yenidən çəkilir; panel yalnız açılanda render olunur
-const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, showTafsir, tafsirLabel, fontSize, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange }) {
+const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
   return (
     // data-reveal: ilk kartlar yumşaq görünür (motion.css). PERFORMANS: yalnız
@@ -349,7 +373,7 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, show
       <button type="button" className="ayah-num" onClick={() => onNumber(verse.n)}
         aria-label={`${numLabel} — ${linkLabel}`} title={linkLabel}>{verse.n}</button>
       <div className="ayah-body">
-        <p className="ayah-arabic" lang="ar" style={{ fontSize: `${fontSize}rem` }}>{verse.ar}</p>
+        <p className="ayah-arabic" lang="ar">{verse.ar}</p>
         {showTrans && verse.tr && !showTafsir && <p className="ayah-trans">{verse.tr}</p>}
         {showTafsir && verse.tr && (
           <div className="ayah-tafsir">
@@ -523,9 +547,13 @@ export default function QuranPage({ setPage }) {
   // Dil dəyişəndə t.all/t.meccan/t.medinan-ın label-i dəyişir; ona görə
   // filter state-i tərcüməsiz key ('all'|'meccan'|'medinan') saxlayırıq.
   const [filter,   setFilter]   = useState('all')
+  const [juz, setJuz] = useState(0)          // 0 — bütün cüzlər
   const [showTrans, setShowTrans] = useState(true)
   const [showTafsir, setShowTafsir] = useState(false)
-  const [fontSize,  setFontSize]  = useState(1.65)
+  // Ərəb mətninin miqyası (1 = baza ölçü — CSS: --qp-ar; telefonda kiçik baza).
+  // Kartlara prop kimi ötürülmür — .ayahs-list-də CSS dəyişəni (286 kart yenidən çəkilmir)
+  const [fontSize,  setFontSize]  = useState(readFontScale)
+  useEffect(() => { try { localStorage.setItem(FONT_KEY, String(fontSize)) } catch { /* yaddaş bağlıdır */ } }, [fontSize])
   const [attempt, setAttempt] = useState(0)
   const { data: surah, loading: surahLoading, error: surahError } = useSurah(selected, lang, attempt)
   const rl = RETRY_LABELS[lang] || RETRY_LABELS.az
@@ -594,6 +622,14 @@ export default function QuranPage({ setPage }) {
   const [jumpOpen, setJumpOpen] = useState(false)
   const [flash, setFlash] = useState({ n: 0, k: 0 })
   const currentAyahRef = useRef(null)     // ekranın yuxarısındakı ilk ayə
+  const progressRef = useRef(null)        // paneldəki irəliləyiş xətti
+  // React state-siz: sürüşdükcə 286 kart yenidən çəkilməsin
+  const paintProgress = useCallback((n) => {
+    const el = progressRef.current
+    const total = surahsRef.current.find(x => x.number === selectedRef.current)?.numberOfAyahs
+      || document.querySelectorAll('.ayahs-list [data-ayah]').length
+    if (el && total) el.style.transform = `scaleX(${Math.min(1, Math.max(0, n / total)).toFixed(4)})`
+  }, [])
   const jumpingRef = useRef(false)        // proqram sürüşdürür — yer yazılmır
   const armedRef = useRef(false)          // yer yalnız istifadəçi özü sürüşdürəndən sonra yazılır
   const ignoreScrollUntilRef = useRef(0)
@@ -770,6 +806,7 @@ export default function QuranPage({ setPage }) {
         return r && r.bottom > barBottom + 48
       }) ?? sorted[sorted.length - 1]
       currentAyahRef.current = cur
+      paintProgress(cur)
       if (armedRef.current && !jumpingRef.current) queueSave(cur)
     }, { rootMargin: `-${top}px 0px -${bottom}px 0px` })
     listRef.current.querySelectorAll('[data-ayah]').forEach(el => io.observe(el))
@@ -806,7 +843,7 @@ export default function QuranPage({ setPage }) {
       document.removeEventListener('visibilitychange', onHide)
       flushSave()
     }
-  }, [ready, surah, queueSave, flushSave])
+  }, [ready, surah, queueSave, flushSave, paintProgress])
 
   // ── Səs: useQuranPlayer (qari, ardıcıl dinləmə, təkrar, sürət, Media Session) ──
   // Cari ayə ekrandan kənardadırsa ona sürüşdür (dinləyən də "oxuyur" — yer yazılır).
@@ -967,9 +1004,20 @@ export default function QuranPage({ setPage }) {
       const matchF = filter === 'all' ||
         (filter === 'meccan' && s.revelationType === 'Meccan') ||
         (filter === 'medinan' && s.revelationType === 'Medinan')
-      return matchQ && matchF
+      const matchJ = !juz || JUZ_VERSES[juz - 1].some(p => p[0] === s.number)
+      return matchQ && matchF && matchJ
     })
-  }, [surahs, search, filter, lang])
+  }, [surahs, search, filter, juz, lang])
+
+  // Hero-dakı "Quran haqqında" — bələdçiyə hamar keçid (ünvan dəyişmir)
+  const jumpToAbout = (e) => {
+    if (!isPlainClick(e)) return
+    const el = document.getElementById('qp-about')
+    if (!el) return
+    e.preventDefault()
+    el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
+    el.focus({ preventScroll: true })
+  }
 
   // ── Oxuyucu ──
   // Surə yüklənərkən də açılır (spinner ilə) — əvvəl yüklənənə qədər
@@ -983,6 +1031,11 @@ export default function QuranPage({ setPage }) {
     const rawMeaning = !ready ? '' : surahMeaning(surah, lang)
     // Məna adla eynidirsə (məs. "Yasin") təkrarlamırıq
     const meaning = ready && rawMeaning !== surahTitle(surah, lang) ? rawMeaning : ''
+    // Mədinə mushafında səhifələr və cüzlər (yerli cədvəllər — şəbəkəsiz)
+    const row = SURAH_TABLE[selected - 1]
+    const surahPages = row ? (row[0] === row[1] ? String(row[0]) : `${row[0]}–${row[1]}`) : ''
+    const jz = juzOfSurah(selected)
+    const surahJuz = jz.length ? (jz.length === 1 ? String(jz[0]) : `${jz[0]}–${jz[jz.length - 1]}`) : ''
     return (
       <div className="quran-reader" ref={readerRef}>
         <div className="reader-toolbar" ref={toolbarRef}>
@@ -1001,9 +1054,9 @@ export default function QuranPage({ setPage }) {
             {/* Əlçatan ad görünən yazını da daşıyır (WCAG 2.5.3 "Label in Name" —
                 səsli idarədə "A− düyməsi" deyə bilmək üçün) */}
             <button type="button" className="ctrl-btn" dir="ltr" aria-label={`A− · ${fl.smaller}`} title={fl.smaller}
-              disabled={fontSize <= 1.21} onClick={() => setFontSize(f => Math.max(f - .1, 1.2))}>A−</button>
+              disabled={fontSize <= FONT_MIN + 0.01} onClick={() => setFontSize(f => stepFont(f, -1))}>A−</button>
             <button type="button" className="ctrl-btn" dir="ltr" aria-label={`A+ · ${fl.larger}`} title={fl.larger}
-              disabled={fontSize >= 2.19} onClick={() => setFontSize(f => Math.min(f + .1, 2.2))}>A+</button>
+              disabled={fontSize >= FONT_MAX - 0.01} onClick={() => setFontSize(f => stepFont(f, 1))}>A+</button>
             {hasTafsir ? (
               <button type="button" className={`ctrl-btn ${showTafsir ? 'active' : ''}`} aria-pressed={showTafsir}
                 onClick={() => { haptic(); setShowTafsir(s => !s) }}>
@@ -1030,6 +1083,8 @@ export default function QuranPage({ setPage }) {
               <Icon name="hifz" size={18} />
             </button>
           </div>
+          {/* Surədə irəliləyiş — panelin alt kənarında nazik xətt (JS birbaşa transform yazır) */}
+          <span className="reader-progress" aria-hidden="true"><span ref={progressRef} /></span>
           {jumpOpen && ready && (
             <AyahJump total={surah.verses.length} current={currentAyahRef.current} labels={jl} lang={lang}
               onJump={onJump} onClose={closeJump} inputRef={jumpInputRef} triggerRef={jumpBtnRef} />
@@ -1050,17 +1105,28 @@ export default function QuranPage({ setPage }) {
         )}
         {ready && (
           <>
-            <div className="reader-header" data-reveal="scale">
+            <header className="reader-header" data-reveal="scale">
               <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-              <div className="reader-number">{surah.number}</div>
-              <div className="reader-info">
-                <h1 className="reader-arabic" lang="ar">{surah.name}</h1>
-                {lang !== 'ar' && <h2 className="reader-english">{surahTitle(surah, lang)}</h2>}
-                <p className="reader-meta">
-                  {[meaning, ayahCountText(surah.numberOfAyahs, lang), revelationLabel(surah.revelationType, lang)].filter(Boolean).join(' · ')}
-                </p>
+              <div className="reader-header__top">
+                <span className="reader-number ui-num">{surah.number}</span>
+                <div className="reader-info">
+                  <h1 className="reader-arabic" lang="ar">{surah.name}</h1>
+                  {lang !== 'ar' && (
+                    <h2 className="reader-english">
+                      {surahTitle(surah, lang)}
+                      {meaning && <span className="reader-meaning"> · {meaning}</span>}
+                    </h2>
+                  )}
+                </div>
               </div>
-            </div>
+              {/* Surənin açar göstəriciləri (mono rəqəm + kiçik etiket) */}
+              <dl className="reader-facts">
+                <div><dt>{pk(QURAN_GUIDE.facts.items[1].label, lang)}</dt><dd className="ui-num">{surah.numberOfAyahs}</dd></div>
+                <div><dt>{sl.place}</dt><dd>{revelationLabel(surah.revelationType, lang)}</dd></div>
+                {surahPages && <div><dt>{pk(QURAN_GUIDE.ui.pages, lang)}</dt><dd className="ui-num" dir="ltr">{surahPages}</dd></div>}
+                {surahJuz && <div><dt>{pk(QURAN_GUIDE.ui.juzLabel, lang)}</dt><dd className="ui-num" dir="ltr">{surahJuz}</dd></div>}
+              </dl>
+            </header>
             {/* Fatihədə Bəsmələ 1-ci ayənin özüdür, Tövbədə isə oxunmur */}
             {hasSeparateBasmala(surah.number) && (
               <div className="reader-basmalah" data-reveal="fade">
@@ -1068,9 +1134,9 @@ export default function QuranPage({ setPage }) {
                 {lang !== 'ar' && <span className="basmalah-tr">{t.basmalah}</span>}
               </div>
             )}
-            <div className="ayahs-list" ref={listRef}>
+            <div className="ayahs-list" ref={listRef} style={{ '--qp-scale': fontSize }}>
               {surah.verses?.map(v => (
-                <AyahCard key={v.n} verse={v} surahNum={surah.number} lang={lang} fontSize={fontSize} tafsirLabel={tafsirLabel} playLabels={playLabels}
+                <AyahCard key={v.n} verse={v} surahNum={surah.number} lang={lang} tafsirLabel={tafsirLabel} playLabels={playLabels}
                   showTrans={!hasTafsir && showTrans} showTafsir={hasTafsir && showTafsir}
                   active={player.current === v.n} playing={playerBusy && player.current === v.n}
                   flash={flash.n === v.n ? flash.k : 0}
@@ -1113,67 +1179,86 @@ export default function QuranPage({ setPage }) {
   const mostReadName = (() => {
     const n = +getMostRead(stats.reads)
     if (!n) return '-'
-    return surahTitle(surahByNum(n), lang) || (lang === 'az' && SURAH_AZ[n] ? SURAH_AZ[n].name : String(n))
+    return surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)
   })()
+  const readCount = Object.keys(stats.reads).length
+  const streakDays = calcStreak(stats.dates)
+  const ui = QURAN_GUIDE.ui
+  // Seçilmiş cüzün surə hissələri (qrafik): ən uzun 10 hissə, surə sırası ilə
+  const juzParts = juz ? JUZ_VERSES[juz - 1] : null
+  const juzBars = juzParts
+    ? [...juzParts].sort((a, b) => (b[2] - b[1]) - (a[2] - a[1])).slice(0, 10).sort((a, b) => a[0] - b[0])
+      .map(([s, f, l]) => ({
+        key: s,
+        label: `${s}. ${surahTitle(surahByNum(s), lang) || staticSurahName(s, lang)}`,
+        value: l - f + 1,
+        note: (f > 1 || l < (SURAH_TABLE[s - 1]?.[2] || l)) ? `${f}–${l}` : undefined,
+      }))
+    : null
 
   return (
     <>
-      {/* Sakit kağız hero (dizayn v2): naxış + eyebrow + bir h1 + lead.
-          "Oxumağa davam et" əvvəl ayrıca kart idi — indi hero-nun əsas düyməsidir */}
-      <header className="ui-page-hero qp-hero">
+      {/* Kompakt hero (dizayn v3): eyebrow · h1 · bir cümlə · necə işlədilir · 4 açar rəqəm.
+          Sağda (≥900px) — oxuma statistikası (varsa) və ya xəttatlıq lövhəsi */}
+      <header className="ui-page-hero ui-page-hero--split qp-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        {/* Dekorativ xəttatlıq (ərəbcədə başlığın özüdür — təkrarlanmır) */}
-        {lang !== 'ar' && <span className="qp-hero__art" lang="ar" aria-hidden="true">القرآن الكريم</span>}
         <div className="ui-container">
-          <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          <p className="ui-lead">{t.subtitle}</p>
-          {bookmark && (
+          <div className="ui-page-hero__text">
+            <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            <p className="ui-lead">{pk(QURAN_GUIDE.ui.lead, lang)}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} />{pk(ui.how, lang)}</p>
+            <ul className="ui-page-hero__stats">
+              {QURAN_GUIDE.facts.items.slice(0, 4).map(f => (
+                <li key={f.value} title={f.hint ? pk(f.hint, lang) : undefined}><b>{f.value}</b><span>{pk(f.label, lang)}</span></li>
+              ))}
+            </ul>
             <div className="ui-page-hero__actions">
-              {/* Klikdə surə açılır və yüklənəndən sonra dəqiq həmin ayəyə keçilir */}
-              <button type="button" className="ui-btn ui-btn--primary ui-btn--lg qp-continue" onClick={() => openSurah(bookmark.surah, bookmark.ayah)}>
-                <Icon name="hifz" className="ui-btn__icon" />
-                <span className="qp-continue__label">{BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en}</span>
-                {bookmarkName && <span className="qp-continue__name">{bookmarkName}</span>}
-                <DirArrow />
-                {bmProgress > 0 && <span className="qp-continue__bar" style={{ '--p': bmProgress.toFixed(3) }} aria-hidden="true" />}
-              </button>
+              {bookmark && (
+                // Klikdə surə açılır və yüklənəndən sonra dəqiq həmin ayəyə keçilir
+                <button type="button" className="ui-btn ui-btn--primary qp-continue" onClick={() => openSurah(bookmark.surah, bookmark.ayah)}>
+                  <Icon name="hifz" className="ui-btn__icon" />
+                  <span className="qp-continue__label">{BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en}</span>
+                  {bookmarkName && <span className="qp-continue__name">{bookmarkName}</span>}
+                  <DirArrow />
+                  {bmProgress > 0 && <span className="qp-continue__bar" style={{ '--p': bmProgress.toFixed(3) }} aria-hidden="true" />}
+                </button>
+              )}
+              <a className={`ui-btn ui-btn--sm ${bookmark ? 'ui-btn--ghost' : 'ui-btn--secondary'} qp-about-link`} href="#qp-about" onClick={jumpToAbout}>
+                <Icon name="learn" className="ui-btn__icon" />{pk(QURAN_GUIDE.nav, lang)}
+              </a>
             </div>
-          )}
+          </div>
+          <div className="ui-page-hero__aside qp-hero__aside">
+            {stats.sessions > 0 ? (
+              <section className="qp-mystats" aria-label={pk(ui.yourReading, lang)}>
+                <ProgressRing value={readCount} max={114} size={84} thickness={8}
+                  label={pk(ui.yourReading, lang)} sub={`${readCount} / 114 ${pk(ui.surahsWord, lang)}`} />
+                <dl className="ui-kv qp-mystats__kv">
+                  <div><dt>{st.reads}</dt><dd className="ui-num" data-count={stats.sessions}>{stats.sessions}</dd></div>
+                  <div><dt>{st.streak}</dt><dd className="ui-num" data-count={streakDays}>{streakDays}</dd></div>
+                  <div><dt>{st.most}</dt><dd className="qp-mystats__name">{mostReadName}</dd></div>
+                </dl>
+                <p className="qp-mystats__note">{pk(ui.readingNote, lang)}</p>
+              </section>
+            ) : lang !== 'ar' ? (
+              <div className="qp-plaque" aria-hidden="true">
+                <span className="qp-plaque__ar" lang="ar">القرآن الكريم</span>
+              </div>
+            ) : null}
+          </div>
         </div>
       </header>
-      <div className="quran-list-wrap section">
-        <div className="section-inner">
-          {stats.sessions > 0 && (
-            <div className="quran-stats-bar" data-reveal="stagger">
-              <div className="qs-item">
-                <span className="qs-num" data-count={stats.sessions}>{stats.sessions}</span>
-                <span className="qs-label">{st.reads}</span>
-              </div>
-              <div className="qs-item">
-                <span className="qs-num" data-count={Object.keys(stats.reads).length}>{Object.keys(stats.reads).length}</span>
-                <span className="qs-label">{st.surahs}</span>
-              </div>
-              <div className="qs-item">
-                <span className="qs-num" data-count={calcStreak(stats.dates)}>{calcStreak(stats.dates)}</span>
-                <span className="qs-label">{st.streak}</span>
-              </div>
-              <div className="qs-item qs-item--name">
-                <span className="qs-num qs-name">{mostReadName}</span>
-                <span className="qs-label">{st.most}</span>
-              </div>
-            </div>
-          )}
-          {/* Axtarış paneli: seqment (surə / ayə) + sahə. Seqmentdə ağ "hap"
-              aktiv seçimə sürüşür (data-active) — bütün ekranlarda */}
-          <div className="qp-toolbar" data-reveal="">
-            <div className="quran-search-mode" role="group" aria-label={sl.mode} data-active={searchMode}>
-              <button type="button" className={`search-mode-btn ${searchMode === 'surah' ? 'active' : ''}`}
-                aria-pressed={searchMode === 'surah'} onClick={() => setSearchMode('surah')}>
+
+      <section className="ui-section ui-section--tight qp-list" aria-label={t.title}>
+        <div className="ui-container">
+          {/* Axtarış paneli: seqment (surə / ayə) + sahə */}
+          <div className="qp-toolbar">
+            <div className="ui-segmented qp-mode" role="group" aria-label={sl.mode}>
+              <button type="button" aria-pressed={searchMode === 'surah'} onClick={() => setSearchMode('surah')}>
                 {sl.surahSearch}
               </button>
-              <button type="button" className={`search-mode-btn ${searchMode === 'verse' ? 'active' : ''}`}
-                aria-pressed={searchMode === 'verse'} onClick={() => setSearchMode('verse')}>
+              <button type="button" aria-pressed={searchMode === 'verse'} onClick={() => setSearchMode('verse')}>
                 {sl.verseSearch}
               </button>
             </div>
@@ -1190,7 +1275,7 @@ export default function QuranPage({ setPage }) {
           </div>
           {searchMode === 'surah' && (
             <>
-              <div className="qp-filters" data-reveal="fade">
+              <div className="qp-filters">
                 <div className="qp-chips" role="group" aria-label={sl.place}>
                   {[
                     { key:'all',     label: t.all },
@@ -1201,12 +1286,27 @@ export default function QuranPage({ setPage }) {
                       aria-pressed={filter === f.key} onClick={() => setFilter(f.key)}>{f.label}</button>
                   ))}
                 </div>
+                <label className="qp-juz">
+                  <span className="ui-sr-only">{pk(ui.juz, lang)}</span>
+                  <select className="ui-select qp-juz__select" value={juz} onChange={e => setJuz(Number(e.target.value))}>
+                    <option value={0}>{pk(ui.allJuz, lang)}</option>
+                    {JUZ_VERSES.map((_, i) => <option key={i + 1} value={i + 1}>{ui.juzN[lang] ? ui.juzN[lang](i + 1) : ui.juzN.az(i + 1)}</option>)}
+                  </select>
+                </label>
                 {!listLoading && !listError && (
                   <span className="qp-count ui-num" aria-live="polite">
                     {filtered.length} {String(st.surahs).toLocaleLowerCase(lang)}
                   </span>
                 )}
               </div>
+              {/* Seçilmiş cüz: hansı surədən neçə ayə düşür (bir baxışda) */}
+              {juzBars && (
+                <ChartFigure className="qp-juzchart" title={(ui.juzChart[lang] || ui.juzChart.az)(juz)}
+                  sub={pk(ui.juzChartSub, lang)}
+                  note={`${juzParts.length > juzBars.length ? `${(ui.juzMore[lang] || ui.juzMore.az)(juzParts.length - juzBars.length)} · ` : ''}${pk(ui.juzSrc, lang)}`}>
+                  <BarChart data={juzBars} format={v => `${v}`} labelWidth="46%" label={(ui.juzChart[lang] || ui.juzChart.az)(juz)} />
+                </ChartFigure>
+              )}
               {listLoading && (
                 <>
                   <div className="spinner-wrap q-spinner"><div className="spinner"/><span className="spinner-text">{t.loading}</span></div>
@@ -1220,8 +1320,7 @@ export default function QuranPage({ setPage }) {
                   </button>
                 }>{rl.listMsg}</QEmpty>
               )}
-              {/* Kart şəbəkəsi (telefonda qruplaşdırılmış siyahı). data-reveal="stagger":
-                  ilk kartlar növbə ilə qalxır; süzgəcdən sonra yeni kartlar da */}
+              {/* Kart şəbəkəsi (telefonda qruplaşdırılmış siyahı) */}
               <div className="surah-grid" data-reveal="stagger">
                 {filtered.map((s) => {
                   const isAr = lang === 'ar'
@@ -1230,10 +1329,11 @@ export default function QuranPage({ setPage }) {
                   const displayMeta = isAr
                     ? `${ayahCountText(s.numberOfAyahs, lang)} · ${revelationLabel(s.revelationType, lang)}`
                     : [surahMeaning(s, lang), ayahCountText(s.numberOfAyahs, lang)].filter(Boolean).join(' · ')
+                  const isMadani = s.revelationType === 'Medinan'
                   return (
                     <a key={s.number} className="surah-card" href={pathFor('quran', lang, s.number)}
                       onClick={linkTo(s.number)}>
-                      <span className="surah-num">{s.number}</span>
+                      <span className={`surah-num${isMadani ? ' is-madani' : ''}`}>{s.number}</span>
                       <span className="surah-body">
                         <span className={`surah-name-en${isAr ? ' is-ar' : ''}`}>{displayName}</span>
                         <span className="surah-meta">{displayMeta}</span>
@@ -1243,7 +1343,6 @@ export default function QuranPage({ setPage }) {
                   )
                 })}
               </div>
-              {/* Əvvəl t.noResult quran bölməsində yox idi — bütün dillərdə "Not found" görünürdü */}
               {!listLoading && !listError && filtered.length === 0 && (
                 <QEmpty icon="search">{sl.noResults}</QEmpty>
               )}
@@ -1251,7 +1350,6 @@ export default function QuranPage({ setPage }) {
           )}
           {searchMode === 'verse' && (
             <>
-              {/* Hələ 3 hərf yazılmayıb — boş ekran əvəzinə ipucu */}
               {verseSearch.length < 3 && (
                 <QEmpty icon="search">{sl.minChars}</QEmpty>
               )}
@@ -1277,7 +1375,6 @@ export default function QuranPage({ setPage }) {
                   {verseResults.map((v, i) => {
                     // Axtarış yalnız seçilmiş nəşrin mətnini qaytarır (tərcümə və ya
                     // ərəbcədə təfsir) — onu bir dəfə, adi yazı kimi göstəririk.
-                    // Ərəb Quran xətti yalnız nəşr Quran mətninin özü olanda.
                     const isQuranText = v.edition?.type === 'quran'
                     return (
                       <button type="button" key={v.number} className="verse-result-card" style={{'--i': Math.min(i, 7)}}
@@ -1298,7 +1395,158 @@ export default function QuranPage({ setPage }) {
             </>
           )}
         </div>
-      </div>
+      </section>
+
+      <QuranGuide lang={lang} />
     </>
+  )
+}
+
+// ═══════════════════════════════════════════════════════
+// Bələdçi (siyahının altında): Quran nədir · tarix · ədəb · fəzilət ·
+// oxuyucunu necə işlətmək · əlaqəli bölmələr. Mətnlər: data/guides/QuranPage.js
+// ═══════════════════════════════════════════════════════
+function SectionHead({ eyebrow, title, lead, id }) {
+  return (
+    <div className="ui-section-head" data-reveal="">
+      {eyebrow && <span className="ui-eyebrow">{eyebrow}</span>}
+      <h2 className="ui-title" id={id}>{title}</h2>
+      {lead && <p className="ui-lead">{lead}</p>}
+    </div>
+  )
+}
+
+// Ayə və ya hədis sitatı (.ui-quote): ərəbcə + məna + mənbə
+function QQuote({ q, lang, kind = 'quran' }) {
+  const ui = QURAN_GUIDE.ui
+  // Ərəbcədə məna ayrıca yazılmır — ərəb mətninin özü kifayətdir
+  const text = lang === 'ar' ? '' : pk(q.text, lang)
+  const href = q.ref ? `${pathFor('quran', lang, Number(String(q.ref).split(':')[0]))}?a=${String(q.ref).split(':')[1].split('-')[0]}` : null
+  return (
+    <figure className={`ui-quote qp-quote qp-quote--${kind}`}>
+      <blockquote>
+        <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{q.ar}</p>
+        {text && <p className="ui-quote__text">{text}</p>}
+      </blockquote>
+      <figcaption className="ui-quote__src">
+        {kind === 'quran'
+          ? <>{pk(ui.quran, lang)}, <a href={href} dir="ltr" className="qp-quote__ref">{q.ref}</a></>
+          : <><cite>{pk(q.src, lang)}</cite>{q.grade && <> · {pk(ui.grade, lang)}: {pk(q.grade, lang)}</>}</>}
+      </figcaption>
+    </figure>
+  )
+}
+
+function QuranGuide({ lang }) {
+  const navigate = useNavigate()
+  const g = QURAN_GUIDE
+  const go = href => e => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(href)
+  }
+  return (
+    <div id="qp-about" className="qp-guide" tabIndex={-1}>
+      {/* Quran nədir + Məkki/Mədəni tərkibi */}
+      <section className="ui-section ui-section--alt qp-sec" aria-labelledby="qp-about-h">
+        <div className="ui-container qp-about">
+          <div className="qp-about__text">
+            <SectionHead eyebrow={pk(g.about.eyebrow, lang)} title={pk(g.about.title, lang)} id="qp-about-h" />
+            <p className="qp-p">{pk(g.about.text, lang)}</p>
+            {g.about.quotes.map(q => <QQuote key={q.ref} q={q} lang={lang} />)}
+          </div>
+          <div className="qp-about__aside">
+            <ChartFigure title={pk(g.facts.donutTitle, lang)} sub={pk(g.facts.donutSub, lang)} note={pk(g.facts.donutNote, lang)}>
+              <Donut size={148} thickness={18}
+                segments={[
+                  { label: revelationLabel('Meccan', lang), value: 86, tone: 1 },
+                  { label: revelationLabel('Medinan', lang), value: 28, tone: 2 },
+                ]}
+                center={{ value: '114', label: pk(g.facts.items[0].label, lang) }} />
+            </ChartFigure>
+            <StatTile variant="sunken" tone="accent" value={g.facts.items[4].value}
+              label={pk(g.facts.items[4].label, lang)} hint={pk(g.facts.items[4].hint, lang)} />
+          </div>
+        </div>
+      </section>
+
+      {/* Tarix — zaman xətti */}
+      <section className="ui-section qp-sec ui-cv" style={{ '--cv-h': '760px' }} aria-labelledby="qp-history-h">
+        <div className="ui-container qp-narrow">
+          <SectionHead eyebrow={pk(g.history.eyebrow, lang)} title={pk(g.history.title, lang)} lead={pk(g.history.lead, lang)} id="qp-history-h" />
+          <Timeline wide items={g.history.items.map((it, i) => ({
+            key: i, when: it.when, title: pk(it.title, lang), text: pk(it.text, lang), highlight: it.highlight,
+          }))} />
+        </div>
+      </section>
+
+      {/* Ədəb — 6 kart: nə etmək + dəlil */}
+      <section className="ui-section ui-section--alt qp-sec ui-cv" style={{ '--cv-h': '1400px' }} aria-labelledby="qp-adab-h">
+        <div className="ui-container">
+          <SectionHead eyebrow={pk(g.adab.eyebrow, lang)} title={pk(g.adab.title, lang)} lead={pk(g.adab.lead, lang)} id="qp-adab-h" />
+          <ol className="qp-adab">
+            {g.adab.items.map((it, i) => (
+              <li key={i} className="ui-card qp-adab__item">
+                <div className="qp-adab__head">
+                  <span className="ui-icon-tile" aria-hidden="true"><Icon name={it.icon} /></span>
+                  <h3 className="ui-card__title"><span className="qp-adab__n ui-num" aria-hidden="true">{i + 1}</span>{pk(it.title, lang)}</h3>
+                </div>
+                <p className="qp-adab__how">{pk(it.how, lang)}</p>
+                <QQuote q={it} lang={lang} kind={it.hadith ? 'hadith' : 'quran'} />
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Fəzilət */}
+      <section className="ui-section qp-sec ui-cv" style={{ '--cv-h': '700px' }} aria-labelledby="qp-virtue-h">
+        <div className="ui-container">
+          <SectionHead eyebrow={pk(g.virtues.eyebrow, lang)} title={pk(g.virtues.title, lang)} id="qp-virtue-h" />
+          <div className="qp-virtues">
+            {g.virtues.items.map((q, i) => <QQuote key={i} q={q} lang={lang} kind="hadith" />)}
+          </div>
+        </div>
+      </section>
+
+      {/* Necə işlədilir — addımlar */}
+      <section className="ui-section ui-section--alt qp-sec ui-cv" style={{ '--cv-h': '520px' }} aria-labelledby="qp-howto-h">
+        <div className="ui-container">
+          <SectionHead eyebrow={pk(g.howto.eyebrow, lang)} title={pk(g.howto.title, lang)} id="qp-howto-h" />
+          <ol className="ui-steps ui-steps--row">
+            {g.howto.steps.map((s, i) => (
+              <li key={i} className="ui-step">
+                <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                <div className="ui-step__body">
+                  <h3 className="ui-step__title">{pk(s.title, lang)}</h3>
+                  <p className="ui-step__text">{pk(s.text, lang)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Əlaqəli bölmələr — məzmunu təkrarlamır, keçid verir */}
+      <section className="ui-section qp-sec ui-cv" style={{ '--cv-h': '360px' }} aria-labelledby="qp-related-h">
+        <div className="ui-container">
+          <SectionHead eyebrow={pk(g.related.eyebrow, lang)} title={pk(g.related.title, lang)} id="qp-related-h" />
+          <ul className="ui-tiles" style={{ '--ui-tiles-min': '168px' }}>
+            {g.related.items.map(it => {
+              const href = pathFor(it.key, lang)
+              return (
+                <li key={it.key}>
+                  <a className="ui-tile" href={href} onClick={go(href)}>
+                    <span className="ui-icon-tile" aria-hidden="true"><Icon name={it.icon} /></span>
+                    <span className="ui-tile__title">{pk(it.title, lang)}</span>
+                    <span className="ui-tile__text">{pk(it.text, lang)}</span>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </section>
+    </div>
   )
 }

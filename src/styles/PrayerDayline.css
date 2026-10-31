@@ -1,0 +1,131 @@
+/* PrayerDayline — günün 24 saatlıq xətti (components/PrayerDayline.jsx).
+   Sıralar: [yuxarı etiketlər] [zolaq] [aşağı etiketlər] [saat oxu + "indi"].
+   Rənglər yalnız tokenlərdən (viz palitrası) — qaranlıq rejim avtomatikdir. */
+.pdl {
+  --pdl-row: 38px;
+  --pdl-track: 14px;
+  --pdl-night: color-mix(in srgb, var(--viz-3) 26%, var(--surface-2));
+  --pdl-day: color-mix(in srgb, var(--viz-2) 30%, var(--surface-1));
+  position: relative;
+  padding-block: var(--pdl-row) 0;
+  margin-inline: 22px;           /* kənardakı etiketlər kəsilməsin */
+}
+.pdl__track {
+  position: relative;
+  height: var(--pdl-track);
+  border-radius: var(--radius-pill);
+  background: var(--pdl-night);
+  margin-bottom: var(--pdl-row);
+}
+.pdl__band { position: absolute; inset-block: 0; }
+.pdl__band:first-child { border-start-start-radius: var(--radius-pill); border-end-start-radius: var(--radius-pill); }
+.pdl__band:last-of-type { border-start-end-radius: var(--radius-pill); border-end-end-radius: var(--radius-pill); }
+.pdl__band--night { background: var(--pdl-night); }
+.pdl__band--day { background: var(--pdl-day); }
+.pdl__band--dawn { background: linear-gradient(to right, var(--pdl-night), var(--pdl-day)); }
+.pdl__band--dusk { background: linear-gradient(to right, var(--pdl-day), var(--pdl-night)); }
+[dir="rtl"] .pdl__band--dawn { background: linear-gradient(to left, var(--pdl-night), var(--pdl-day)); }
+[dir="rtl"] .pdl__band--dusk { background: linear-gradient(to left, var(--pdl-day), var(--pdl-night)); }
+
+/* Vaxt nişanı: zolağı kəsən incə xətt + etiket (yuxarı və ya aşağı) */
+.pdl__mark { position: absolute; top: 0; height: 100%; width: 0; }
+.pdl__tick {
+  position: absolute;
+  inset-inline-start: -1px;
+  width: 2px;
+  background: var(--text-secondary);
+  border-radius: 2px;
+}
+.pdl__mark--up .pdl__tick { bottom: 0; height: calc(var(--pdl-track) + 8px); }
+.pdl__mark--down .pdl__tick { top: 0; height: calc(var(--pdl-track) + 8px); }
+.pdl__label {
+  position: absolute;
+  inset-inline-start: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+[dir="rtl"] .pdl__label { transform: translateX(50%); }
+.pdl__mark--up .pdl__label { bottom: calc(var(--pdl-track) + 10px); flex-direction: column-reverse; }
+.pdl__mark--down .pdl__label { top: calc(var(--pdl-track) + 10px); }
+.pdl__name { color: var(--text-secondary); font-size: var(--step--2); }
+.pdl__time {
+  color: var(--text-strong);
+  font-family: var(--font-num);
+  font-size: var(--step--1);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.pdl__mark.is-aux .pdl__tick { background: var(--line-strong); }
+.pdl__mark.is-aux .pdl__time { color: var(--text-secondary); font-weight: 500; }
+.pdl__mark.is-next .pdl__tick { background: var(--brand); }
+.pdl__mark.is-next .pdl__name { color: var(--brand); font-weight: 600; }
+.pdl__mark.is-next .pdl__time { color: var(--brand); }
+
+/* İndi — zümrüd şaquli xətt + aşağıda (saat oxunda) kiçik həb */
+.pdl__now {
+  position: absolute;
+  top: -6px;
+  bottom: calc(-1 * var(--pdl-row) - 4px);
+  width: 0;
+  z-index: 2;
+}
+.pdl__now::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -1px;
+  width: 2px;
+  background: var(--brand);
+  opacity: 0.55;
+}
+.pdl__now-dot {
+  position: absolute;
+  top: calc(6px + var(--pdl-track) / 2 - 6px);
+  inset-inline-start: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 3px var(--surface-1);
+}
+.pdl__now-label {
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 0;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: var(--on-brand);
+  font-family: var(--font-num);
+  font-size: var(--step--2);
+  font-weight: 600;
+  white-space: nowrap;
+}
+[dir="rtl"] .pdl__now-label { transform: translateX(50%); }
+/* Günün kənarlarında həb xəttdən kənara çıxmasın */
+.pdl__now.is-start .pdl__now-label { transform: translateX(-12px); }
+.pdl__now.is-end .pdl__now-label { transform: translateX(calc(-100% + 12px)); }
+[dir="rtl"] .pdl__now.is-start .pdl__now-label { transform: translateX(12px); }
+[dir="rtl"] .pdl__now.is-end .pdl__now-label { transform: translateX(calc(100% - 12px)); }
+
+.pdl__axis { position: relative; height: 24px; }
+.pdl__axis > span {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  color: var(--text-tertiary);
+  font-family: var(--font-num);
+  font-size: var(--step--2);
+}
+[dir="rtl"] .pdl__axis > span { transform: translateX(50%); }
+
+@media (max-width: 480px) {
+  .pdl { --pdl-row: 36px; margin-inline: 18px; }
+  .pdl__time { font-size: var(--step--2); }
+  .pdl__axis > span:nth-child(even) { display: none; }   /* 06 və 18 — sıx ekranda gizli */
+}

@@ -5,6 +5,112 @@ import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navLabel } from '../data/navigation'
 import { pathFor } from '../seo/routes.js'
+import { ChartFigure, BarChart, ColumnChart, ProgressRing, ProgressBar, StackedBar, StatTile } from '../components/viz'
+import { getSurahLocal } from '../data/surahNamesAz.js'
+import { SURAH_TABLE } from '../data/mushafIndex.js'
+import { LESSONS } from '../data/arabicCourse.js'
+import { readProgress, passedCount, percentDone } from '../components/arabic/progress.js'
+
+// v3 — qrafiklər və bölmələr üçün əlavə mətnlər (5 dildə)
+const X = {
+  az: {
+    how: 'Burada yalnız bu cihazda qeyd etdikləriniz sayılır: Quran oxuma, namaz və gündəlik izləyici, zikr, sədəqə gündəliyi, kvizlər. Heç nə serverə göndərilmir.',
+    bestStreak: 'Ən uzun seriya', days: 'gün', achievements: 'Nailiyyət',
+    actEyebrow: 'Fəaliyyət', actTitle: 'Son həftələriniz', actLead: 'Hər kvadrat bir gündür: nə qədər tünddürsə, o gün bir o qədər çox əməl qeyd olunub.',
+    heatTitle: 'Son 12 həftə', heatAria: (n) => `Son 12 həftədə ${n} aktiv gün`, less: 'Az', more: 'Çox',
+    last7: 'Son 7 gün', last7Sub: 'gün ərzində qeyd olunan əməllər', months: 'Aylar üzrə aktiv günlər', monthsSub: 'son 6 ay',
+    worshipEyebrow: 'İbadət', worshipTitle: 'Namaz və gündəlik ibadət', worshipLead: 'Namaz vaxtları və gündəlik izləyici səhifələrində işarələdiyiniz qeydlər birlikdə sayılır.',
+    perPrayer: 'Namazlar üzrə', perPrayerSub: 'neçə gün işarələnib', weekByDay: 'Bu həftə günlər üzrə', weekByDaySub: '10 əməldən neçə faizi',
+    learnEyebrow: 'Quran və elm', learnTitle: 'Oxu və öyrənmə', learnLead: 'Quran oxucusunda açdığınız surələr, hifz, ərəb dili kursu və kvizlər.',
+    coverage: 'Açılan surələr', ayahs: (n) => `bu surələrdə ${n} ayə var (Quranın ${Math.round(n / 62.36)}%-i)`,
+    topSurahs: 'Ən çox oxunan surələr', topSurahsSub: 'neçə dəfə açılıb', hifz: 'Hifz (əzbər)',
+    course: 'Ərəb dili kursu', lessons: (a, b) => `${b} dərsdən ${a}-i keçilib`, openCourse: 'Kursa keç',
+    games: 'Kviz və müsabiqə', gamesSub: 'ən yaxşı nəticə, 10 sualdan', noGames: 'Hələ kviz oynanmayıb.', play: 'Kvizi aç',
+    otherEyebrow: 'Hədis, dua, sədəqə', otherTitle: 'Saxladıqlarınız və xeyirləriniz', otherLead: 'Sevimli hədis və dualar, dua gündəliyi, zikr və sədəqə qeydləri.',
+    dhikr: 'Zikr (cəmi)', none: 'Hələ qeyd yoxdur.',
+    achEyebrow: 'Motivasiya', achLead: 'Nişanlar ardıcıllığı xatırlatmaq üçündür; əsl ölçü niyyət və ixlasdır.',
+  },
+  en: {
+    how: 'Only what you mark on this device is counted here: Quran reading, prayer and daily trackers, dhikr, the charity log and quizzes. Nothing is sent to a server.',
+    bestStreak: 'Best streak', days: 'days', achievements: 'Achievements',
+    actEyebrow: 'Activity', actTitle: 'Your recent weeks', actLead: 'Each square is a day: the darker it is, the more deeds you marked that day.',
+    heatTitle: 'Last 12 weeks', heatAria: (n) => `${n} active days in the last 12 weeks`, less: 'Less', more: 'More',
+    last7: 'Last 7 days', last7Sub: 'deeds marked per day', months: 'Active days by month', monthsSub: 'last 6 months',
+    worshipEyebrow: 'Worship', worshipTitle: 'Prayer and daily worship', worshipLead: 'Marks from the prayer times page and the daily tracker are counted together.',
+    perPrayer: 'By prayer', perPrayerSub: 'days marked', weekByDay: 'This week by day', weekByDaySub: 'share of the 10 deeds',
+    learnEyebrow: 'Quran and knowledge', learnTitle: 'Reading and learning', learnLead: 'Surahs you opened in the Quran reader, hifz, the Arabic course and quizzes.',
+    coverage: 'Surahs opened', ayahs: (n) => `these surahs contain ${n} ayahs (${Math.round(n / 62.36)}% of the Quran)`,
+    topSurahs: 'Most-read surahs', topSurahsSub: 'times opened', hifz: 'Hifz (memorisation)',
+    course: 'Arabic course', lessons: (a, b) => `${a} of ${b} lessons passed`, openCourse: 'Go to the course',
+    games: 'Quizzes', gamesSub: 'best result out of 10', noGames: 'No quiz played yet.', play: 'Open the quiz',
+    otherEyebrow: 'Hadith, dua, charity', otherTitle: 'What you saved and gave', otherLead: 'Favourite hadiths and duas, the dua journal, dhikr and charity records.',
+    dhikr: 'Dhikr (total)', none: 'No records yet.',
+    achEyebrow: 'Motivation', achLead: 'Badges are a reminder to stay consistent; the real measure is intention and sincerity.',
+  },
+  ru: {
+    how: 'Здесь учитывается только то, что вы отмечаете на этом устройстве: чтение Корана, трекеры намаза и дня, зикр, дневник садаки и викторины. Ничего не отправляется на сервер.',
+    bestStreak: 'Лучшая серия', days: 'дн.', achievements: 'Достижения',
+    actEyebrow: 'Активность', actTitle: 'Ваши последние недели', actLead: 'Каждый квадрат — день: чем он темнее, тем больше дел отмечено в этот день.',
+    heatTitle: 'Последние 12 недель', heatAria: (n) => `Активных дней за 12 недель: ${n}`, less: 'Меньше', more: 'Больше',
+    last7: 'Последние 7 дней', last7Sub: 'отмеченных дел за день', months: 'Активные дни по месяцам', monthsSub: 'последние 6 месяцев',
+    worshipEyebrow: 'Поклонение', worshipTitle: 'Намаз и ежедневное поклонение', worshipLead: 'Отметки со страницы времени намаза и из ежедневного трекера считаются вместе.',
+    perPrayer: 'По намазам', perPrayerSub: 'сколько дней отмечено', weekByDay: 'Эта неделя по дням', weekByDaySub: 'доля из 10 дел',
+    learnEyebrow: 'Коран и знание', learnTitle: 'Чтение и учёба', learnLead: 'Суры, открытые в читалке Корана, хифз, курс арабского и викторины.',
+    coverage: 'Открытые суры', ayahs: (n) => `в этих сурах ${n} аятов (${Math.round(n / 62.36)}% Корана)`,
+    topSurahs: 'Чаще всего читаемые суры', topSurahsSub: 'сколько раз открыта', hifz: 'Хифз (заучивание)',
+    course: 'Курс арабского', lessons: (a, b) => `пройдено уроков: ${a} из ${b}`, openCourse: 'Перейти к курсу',
+    games: 'Викторины', gamesSub: 'лучший результат из 10', noGames: 'Викторины ещё не пройдены.', play: 'Открыть викторину',
+    otherEyebrow: 'Хадисы, дуа, садака', otherTitle: 'Сохранённое и благие дела', otherLead: 'Избранные хадисы и дуа, дневник дуа, зикр и записи садаки.',
+    dhikr: 'Зикр (всего)', none: 'Записей пока нет.',
+    achEyebrow: 'Мотивация', achLead: 'Значки лишь напоминают о постоянстве; истинная мера — намерение и искренность.',
+  },
+  ar: {
+    how: 'تُحسب هنا فقط الأعمال التي تسجّلها على هذا الجهاز: قراءة القرآن، ومتابعة الصلاة واليوم، والذكر، وسجل الصدقة، والاختبارات. لا يُرسل شيء إلى الخادم.',
+    bestStreak: 'أطول سلسلة', days: 'يوم', achievements: 'الإنجازات',
+    actEyebrow: 'النشاط', actTitle: 'أسابيعك الأخيرة', actLead: 'كل مربع يوم: كلما كان أغمق كانت الأعمال المسجّلة في ذلك اليوم أكثر.',
+    heatTitle: 'آخر ١٢ أسبوعًا', heatAria: (n) => `أيام النشاط في آخر ١٢ أسبوعًا: ${n}`, less: 'أقل', more: 'أكثر',
+    last7: 'آخر ٧ أيام', last7Sub: 'الأعمال المسجّلة في اليوم', months: 'أيام النشاط حسب الشهر', monthsSub: 'آخر ستة أشهر',
+    worshipEyebrow: 'العبادة', worshipTitle: 'الصلاة والعبادة اليومية', worshipLead: 'تُجمع علامات صفحة مواقيت الصلاة مع علامات المتابعة اليومية.',
+    perPrayer: 'حسب الصلاة', perPrayerSub: 'عدد الأيام المسجّلة', weekByDay: 'هذا الأسبوع يومًا بيوم', weekByDaySub: 'النسبة من الأعمال العشرة',
+    learnEyebrow: 'القرآن والعلم', learnTitle: 'القراءة والتعلّم', learnLead: 'السور التي فتحتها في قارئ القرآن، والحفظ، ودورة العربية، والاختبارات.',
+    coverage: 'السور المفتوحة', ayahs: (n) => `في هذه السور ${n} آية (${Math.round(n / 62.36)}٪ من القرآن)`,
+    topSurahs: 'أكثر السور قراءة', topSurahsSub: 'عدد مرات الفتح', hifz: 'الحفظ',
+    course: 'دورة اللغة العربية', lessons: (a, b) => `اجتزت ${a} من ${b} دروس`, openCourse: 'اذهب إلى الدورة',
+    games: 'الاختبارات', gamesSub: 'أفضل نتيجة من ١٠', noGames: 'لم تُجرِ أي اختبار بعد.', play: 'افتح الاختبار',
+    otherEyebrow: 'الحديث والدعاء والصدقة', otherTitle: 'ما حفظته وما قدّمته', otherLead: 'الأحاديث والأدعية المفضلة، ومذكرة الدعاء، والذكر، وسجل الصدقة.',
+    dhikr: 'الذكر (المجموع)', none: 'لا سجلات بعد.',
+    achEyebrow: 'التحفيز', achLead: 'الشارات تذكير بالمداومة؛ والميزان الحقيقي النية والإخلاص.',
+  },
+  tr: {
+    how: 'Burada yalnızca bu cihazda işaretledikleriniz sayılır: Kur’an okuma, namaz ve günlük takip, zikir, sadaka günlüğü ve bilgi yarışmaları. Hiçbir şey sunucuya gönderilmez.',
+    bestStreak: 'En uzun seri', days: 'gün', achievements: 'Başarılar',
+    actEyebrow: 'Aktivite', actTitle: 'Son haftalarınız', actLead: 'Her kare bir gündür: ne kadar koyuysa o gün o kadar çok amel işaretlenmiştir.',
+    heatTitle: 'Son 12 hafta', heatAria: (n) => `Son 12 haftada ${n} aktif gün`, less: 'Az', more: 'Çok',
+    last7: 'Son 7 gün', last7Sub: 'günde işaretlenen ameller', months: 'Aylara göre aktif günler', monthsSub: 'son 6 ay',
+    worshipEyebrow: 'İbadet', worshipTitle: 'Namaz ve günlük ibadet', worshipLead: 'Namaz vakitleri sayfasındaki ve günlük takipteki işaretler birlikte sayılır.',
+    perPrayer: 'Namazlara göre', perPrayerSub: 'kaç gün işaretlendi', weekByDay: 'Bu hafta günlere göre', weekByDaySub: '10 amelden yüzde kaçı',
+    learnEyebrow: 'Kur’an ve ilim', learnTitle: 'Okuma ve öğrenme', learnLead: 'Kur’an okuyucuda açtığınız sureler, hıfz, Arapça kursu ve bilgi yarışmaları.',
+    coverage: 'Açılan sureler', ayahs: (n) => `bu surelerde ${n} ayet var (Kur’an’ın %${Math.round(n / 62.36)}’i)`,
+    topSurahs: 'En çok okunan sureler', topSurahsSub: 'kaç kez açıldı', hifz: 'Hıfz (ezber)',
+    course: 'Arapça kursu', lessons: (a, b) => `${b} dersten ${a} tanesi geçildi`, openCourse: 'Kursa git',
+    games: 'Bilgi yarışmaları', gamesSub: '10 sorudan en iyi sonuç', noGames: 'Henüz yarışma oynanmadı.', play: 'Yarışmayı aç',
+    otherEyebrow: 'Hadis, dua, sadaka', otherTitle: 'Kaydettikleriniz ve hayırlarınız', otherLead: 'Favori hadis ve dualar, dua günlüğü, zikir ve sadaka kayıtları.',
+    dhikr: 'Zikir (toplam)', none: 'Henüz kayıt yok.',
+    achEyebrow: 'Motivasyon', achLead: 'Rozetler düzenliliği hatırlatmak içindir; asıl ölçü niyet ve ihlastır.',
+  },
+}
+const PRAYER_LABEL = {
+  az: ['Sübh', 'Zöhr', 'Əsr', 'Məğrib', 'İşa'],
+  en: ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'],
+  ru: ['Фаджр', 'Зухр', 'Аср', 'Магриб', 'Иша'],
+  ar: ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء'],
+  tr: ['Sabah', 'Öğle', 'İkindi', 'Akşam', 'Yatsı'],
+}
+const LOCALE = { az: 'az-Latn-AZ', en: 'en-GB', ru: 'ru-RU', ar: 'ar-u-nu-latn', tr: 'tr-TR' }
+// Brauzerlərin bəzisində 'az' lokalı yoxdur (Chromium "Mon", "M06" yazır) — az üçün öz qısaltmalarımız
+const AZ_WD = ['Baz', 'B.e', 'Ç.a', 'Çər', 'C.a', 'Cüm', 'Şən']
+const AZ_MON = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen', 'Okt', 'Noy', 'Dek']
+const surahName = (n, lang) => getSurahLocal(n, lang)?.name || SURAH_TABLE[n - 1]?.[lang === 'ar' ? 4 : 5] || String(n)
 
 // Boş vəziyyətdəki "haradan başlamaq olar" keçidləri (adlar navigation.js-dən — 5 dildə)
 const START_KEYS = ['quran', 'dailytracker', 'dhikr']
@@ -39,6 +145,7 @@ const QUIZ_CATEGORIES = {
   quran:  { az:'Quran', en:'Quran', ru:'Коран', ar:'القرآن', tr:'Kuran' },
   hadith: { az:'Hədis', en:'Hadith', ru:'Хадис', ar:'الحديث', tr:'Hadis' },
   names:  { az:'99 Ad', en:'99 Names', ru:'99 Имён', ar:'٩٩ اسم', tr:'99 İsim' },
+  ibadah: { az:'İbadət fiqhi', en:'Fiqh of worship', ru:'Фикх поклонения', ar:'فقه العبادات', tr:'İbadet fıkhı' },
 }
 // Quran müsabiqəsinin rejimləri — QuranGamePage.jsx-dəki adlar
 const QG_MODES = {
@@ -252,7 +359,28 @@ export default function AnalyticsPage({ setPage }) {
     const allStreaks = [prayerStreak, quranStreak, charityStreak, calcBestStreak(Object.keys(dailyTracker).filter(d => doneOn(d) > 0))]
     const maxStreak = Math.max(0, ...allStreaks)
 
+    // ── v3 qrafikləri üçün ──
+    // Namazlar üzrə: hər namaz neçə gün işarələnib
+    const perPrayer = PRAYER_NAMES.map(p => Object.values(prayerByDate).filter(set => set.has(p)).length)
+    // Günün "çəkisi": izləyici əməlləri (namazlar daxil) + Quran + sədəqə
+    const quranDateSet = new Set(quranDates)
+    const charityPerDay = {}
+    for (const d of charityDates) charityPerDay[d] = (charityPerDay[d] || 0) + 1
+    const dayScore = (date) => doneOn(date) + (quranDateSet.has(date) ? 1 : 0) + (charityPerDay[date] || 0)
+    const weekPct = weekDates.map(wd => Math.round((doneOn(wd) / TRACKER_ITEMS) * 100))
+    // Ən çox oxunan surələr (ilk 5) və açılan surələrdəki ayə sayı
+    const topSurahs = Object.entries(quranReads)
+      .map(([k, v]) => [Number(k), Number(v) || 0])
+      .filter(([k, v]) => k >= 1 && k <= 114 && v > 0)
+      .sort((a, b) => b[1] - a[1] || a[0] - b[0])
+      .slice(0, 5)
+    const ayahsOpened = Object.keys(quranReads).map(Number).filter(k => k >= 1 && k <= 114)
+      .reduce((s, k) => s + (SURAH_TABLE[k - 1]?.[2] || 0), 0)
+    const course = readProgress()
+
     return {
+      perPrayer, dayScore, weekPct, topSurahs, ayahsOpened, weekDates,
+      coursePassed: passedCount(course), coursePct: percentDone(course), courseStarted: Object.keys(course.best).length > 0 || !!course.last,
       daysActive, totalPrayers, weekPrayers, monthPrayers, prayerRate, prayerStreak,
       quranSessions, uniqueSurahs, quranStreak,
       hifzMemorized, hifzInProgress, hifzNotStarted,
@@ -269,7 +397,7 @@ export default function AnalyticsPage({ setPage }) {
   // (əvvəl yalnız tarixli fəaliyyətə baxılırdı: sevimlilər, hifz, zikr nəzərə alınmırdı)
   const hasData = data.daysActive > 0 || data.hadithFavs > 0 || data.duaFavs > 0 || data.journalTotal > 0 ||
     data.hifzMemorized + data.hifzInProgress > 0 || data.dhikrTotal > 0 || Object.keys(data.quizScores).length > 0 ||
-    Object.keys(data.quranGameScores).length > 0
+    Object.keys(data.quranGameScores).length > 0 || data.courseStarted
 
   // Achievements
   const achievements = useMemo(() => [
@@ -296,291 +424,371 @@ export default function AnalyticsPage({ setPage }) {
     setPage(key)
   }
 
-  // Bölmə kartının başlığı (ikon kafeli + h2)
-  const CardHead = ({ icon, tone = '', children }) => (
-    <div className="analytics-card-header">
-      <span className={`ui-icon-tile ui-icon-tile--sm${tone ? ` ui-icon-tile--${tone}` : ''}`} aria-hidden="true"><Icon name={icon} /></span>
-      <h2 className="analytics-card-title">{children}</h2>
-    </div>
-  )
+  const x = X[lang] || X.az
+  const locale = LOCALE[lang] || LOCALE.az
+  const fmtDay = (d, opt) => {
+    if (lang === 'az') {
+      if (opt.weekday) return AZ_WD[d.getDay()]
+      if (opt.day) return `${d.getDate()} ${AZ_MON[d.getMonth()]}`
+      return AZ_MON[d.getMonth()]
+    }
+    try { return new Intl.DateTimeFormat(locale, opt).format(d) } catch { return '' }
+  }
+
+  // ── Fəaliyyət xəritəsi: son 12 həftə (bazar ertəsindən başlayır), gələcək günlər boş ──
+  const heat = useMemo(() => {
+    const today = new Date(); today.setHours(0, 0, 0, 0)
+    const dow = (today.getDay() + 6) % 7          // 0 = bazar ertəsi
+    const start = new Date(today); start.setDate(today.getDate() - dow - 7 * 11)
+    const cells = []
+    let active = 0
+    for (let i = 0; i < 84; i++) {
+      const d = new Date(start); d.setDate(start.getDate() + i)
+      const key = localDate(d)
+      const future = d > today
+      const score = future ? 0 : data.dayScore(key)
+      if (score > 0) active++
+      const level = score === 0 ? 0 : score <= 2 ? 1 : score <= 5 ? 2 : score <= 8 ? 3 : 4
+      cells.push({ key, level, future, title: `${fmtDay(d, { day: 'numeric', month: 'short' })}: ${score}` })
+    }
+    return { cells, active }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, lang])
+
+  const last7 = useMemo(() => {
+    const out = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i)
+      out.push({ key: i, label: fmtDay(d, { weekday: 'short' }), value: data.dayScore(localDate(d)), current: i === 0 })
+    }
+    return out
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, lang])
+
+  const months = useMemo(() => {
+    const out = []
+    const now = new Date()
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const pfx = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      // Ayın çəkisi > 0 olan günlərinin sayı
+      const daysIn = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+      let n = 0
+      for (let k = 1; k <= daysIn; k++) if (data.dayScore(`${pfx}-${String(k).padStart(2, '0')}`) > 0) n++
+      out.push({ key: pfx, label: fmtDay(d, { month: 'short' }), value: n, current: i === 0 })
+    }
+    return out
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, lang])
+
+  const quizRows = [
+    ...Object.entries(data.quizScores).map(([k, v]) => ({ key: `q-${k}`, label: labelOf(QUIZ_CATEGORIES, k, lang), value: Math.min(10, v) })),
+    ...Object.entries(data.quranGameScores).map(([k, v]) => ({ key: `g-${k}`, label: `${t.quranGame}: ${labelOf(QG_MODES, k, lang)}`, value: Math.min(10, v), tone: 2 })),
+  ]
+  const charityRows = Object.entries(data.charityByType).sort((a, b) => b[1] - a[1])
+    .map(([type, count]) => ({ key: type, label: labelOf(CHARITY_TYPES, type, lang), value: count }))
+
+  const today = todayStr()
 
   return (
     <div className="analytics-page">
-      {/* Sakit kağız hero (dizayn v2): çörək qırıntısı, eyebrow, bir h1, lead */}
-      <header className="ui-page-hero analytics-hero">
+      {/* v3: kompakt split hero — solda izah və açar rəqəmlər, sağda bugünkü halqa */}
+      <header className="ui-page-hero ui-page-hero--split analytics-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
-          <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>
-          <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          <p className="ui-lead">{t.subtitle}</p>
+          <div className="ui-page-hero__text">
+            <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>
+            <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            <p className="ui-lead">{t.subtitle}</p>
+            <p className="ui-page-hero__how"><Icon name="shield" size={16} /> {x.how}</p>
+            <ul className="ui-page-hero__stats">
+              <li><b className="ui-num">{data.daysActive}</b><span>{t.daysActive}</span></li>
+              <li><b className="ui-num">{data.maxStreak}</b><span>{x.bestStreak}</span></li>
+              <li><b className="ui-num" dir="ltr">{achievedCount}/{achievements.length}</b><span>{x.achievements}</span></li>
+            </ul>
+          </div>
+          <div className="ui-page-hero__aside analytics-hero__aside">
+            <div className="ui-card analytics-today">
+              <ProgressRing value={data.todayDone} max={data.todayTotal} size={96} thickness={9} label={t.today}
+                sub={<bdi dir="ltr">{data.todayDone} / {data.todayTotal}</bdi>} />
+              <a className="ui-link" href={pathFor('dailytracker', lang)} onClick={go('dailytracker')}>
+                {navLabel('dailytracker', lang)} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+              </a>
+            </div>
+          </div>
         </div>
       </header>
 
-      <div className="section analytics-section">
-        <div className="section-inner">
-
-          {/* Məlumat yoxdur — izah + haradan başlamaq olar (əvvəl yalnız bir sətir idi) */}
-          {!hasData && (
-            <div className="analytics-nodata" role="status" data-reveal="">
-              <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--accent" aria-hidden="true"><Icon name="analytics" /></span>
-              <div className="analytics-nodata-body">
-                <p className="analytics-nodata-text">{t.noData}</p>
-                <div className="analytics-nodata-links" aria-label={START_TITLE[lang] || START_TITLE.az} role="group">
-                  {START_KEYS.map(k => (
-                    <a key={k} className="ui-btn ui-btn--secondary ui-btn--sm" href={pathFor(k, lang)} onClick={go(k)}>
-                      <Icon name={k} className="ui-btn__icon" />{navLabel(k, lang)}
-                    </a>
-                  ))}
-                </div>
+      {/* Məlumat yoxdur — izah + haradan başlamaq olar */}
+      {!hasData && (
+        <div className="ui-container analytics-nodata-wrap">
+          <div className="analytics-nodata" role="status" data-reveal="">
+            <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--accent" aria-hidden="true"><Icon name="analytics" /></span>
+            <div className="analytics-nodata-body">
+              <p className="analytics-nodata-text">{t.noData}</p>
+              <div className="analytics-nodata-links" aria-label={START_TITLE[lang] || START_TITLE.az} role="group">
+                {START_KEYS.map(k => (
+                  <a key={k} className="ui-btn ui-btn--secondary ui-btn--sm" href={pathFor(k, lang)} onClick={go(k)}>
+                    <Icon name={k} className="ui-btn__icon" />{navLabel(k, lang)}
+                  </a>
+                ))}
               </div>
             </div>
-          )}
-
-          {/* ── Ümumi baxış ── data-reveal="stagger": kartlar növbə ilə qalxır */}
-          <div className="analytics-overview" data-reveal="stagger">
-            {[
-              { icon: 'calendar', value: data.daysActive, label: t.daysActive },
-              { icon: 'prayer',   value: data.totalPrayers, label: t.prayers },
-              { icon: 'quran',    value: data.quranSessions, label: t.quranSessions },
-              { icon: 'hadith',   value: data.hadithFavs, label: t.favHadiths },
-              { icon: 'duas',     value: data.duaFavs, label: t.duasSaved },
-              { icon: 'donate',   value: data.totalCharity, label: t.charityDeeds },
-            ].map((c, i) => (
-              <div key={i} className={`analytics-ov-card${c.value > 0 ? ' has-value' : ''}`}>
-                <span className="ui-icon-tile analytics-ov-icon" aria-hidden="true"><Icon name={c.icon} /></span>
-                <span className="analytics-ov-value ui-num" data-count={c.value}>{c.value}</span>
-                <span className="analytics-ov-label">{c.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="analytics-sections">
-
-            {/* ── Namaz ── */}
-            <section data-reveal="up" className="analytics-card">
-              <CardHead icon="prayer">{t.prayerStats}</CardHead>
-              <div className="analytics-card-body">
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.total}</span>
-                  <span className="analytics-stat-value highlight ui-num" data-count={data.totalPrayers}>{data.totalPrayers}</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.thisWeek}</span>
-                  <span className="analytics-stat-value">{data.weekPrayers}</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.thisMonth}</span>
-                  <span className="analytics-stat-value">{data.monthPrayers}</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.streak}</span>
-                  <span className="analytics-stat-value">{data.prayerStreak}</span>
-                </div>
-                <div className="analytics-progress-wrap">
-                  <div className="analytics-progress-label">
-                    <span>{t.rate}</span>
-                    <span className="ui-num">{data.prayerRate}%</span>
-                  </div>
-                  <div className="analytics-progress-bar">
-                    <div className="analytics-progress-fill" style={{ transform: `scaleX(${data.prayerRate / 100})` }} />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* ── Quran ── */}
-            <section data-reveal="up" className="analytics-card">
-              <CardHead icon="quran">{t.quranStats}</CardHead>
-              <div className="analytics-card-body">
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.sessions}</span>
-                  <span className="analytics-stat-value highlight ui-num" data-count={data.quranSessions}>{data.quranSessions}</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.surahs}</span>
-                  <span className="analytics-stat-value" dir="ltr">{data.uniqueSurahs} / 114</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.streak}</span>
-                  <span className="analytics-stat-value">{data.quranStreak}</span>
-                </div>
-
-                <div className="analytics-progress-wrap">
-                  <div className="analytics-progress-label">
-                    <span>{t.hifzProgress}</span>
-                    <span className="ui-num" dir="ltr">{data.hifzMemorized} / 114</span>
-                  </div>
-                  <div className="analytics-progress-bar">
-                    <div className="analytics-progress-fill" style={{ transform: `scaleX(${data.hifzMemorized / 114})` }} />
-                  </div>
-                </div>
-
-                <div className="analytics-hifz-bars">
-                  <div className="analytics-hifz-item">
-                    <span className="analytics-hifz-dot memorized" />
-                    <span className="analytics-hifz-label">{t.memorized}</span>
-                    <span className="analytics-hifz-count">{data.hifzMemorized}</span>
-                  </div>
-                  <div className="analytics-hifz-item">
-                    <span className="analytics-hifz-dot in-progress" />
-                    <span className="analytics-hifz-label">{t.inProgress}</span>
-                    <span className="analytics-hifz-count">{data.hifzInProgress}</span>
-                  </div>
-                  <div className="analytics-hifz-item">
-                    <span className="analytics-hifz-dot not-started" />
-                    <span className="analytics-hifz-label">{t.notStarted}</span>
-                    <span className="analytics-hifz-count">{data.hifzNotStarted}</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* ── Hədis və dua ── */}
-            <section data-reveal="up" className="analytics-card">
-              <CardHead icon="hadith">{t.hadithDua}</CardHead>
-              <div className="analytics-card-body">
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.favHadiths}</span>
-                  <span className="analytics-stat-value highlight ui-num" data-count={data.hadithFavs}>{data.hadithFavs}</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.duasSaved}</span>
-                  <span className="analytics-stat-value">{data.duaFavs}</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.duaJournal} — {t.active}</span>
-                  <span className="analytics-stat-value">{data.duaActive}</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.duaJournal} — {t.answered}</span>
-                  <span className="analytics-stat-value">{data.duaAnswered}</span>
-                </div>
-                {Object.keys(data.quizScores).length > 0 && (
-                  <>
-                    <h3 className="analytics-subhead">{t.quizScores}</h3>
-                    {Object.entries(data.quizScores).map(([k, v]) => (
-                      <div className="analytics-stat-row" key={k}>
-                        <span className="analytics-stat-label">{labelOf(QUIZ_CATEGORIES, k, lang)}</span>
-                        <span className="analytics-stat-value">{t.bestScore}: {v}</span>
-                      </div>
-                    ))}
-                  </>
-                )}
-                {Object.keys(data.quranGameScores).length > 0 && (
-                  <>
-                    <h3 className="analytics-subhead">{t.quranGame}</h3>
-                    {Object.entries(data.quranGameScores).map(([k, v]) => (
-                      <div className="analytics-stat-row" key={`qg-${k}`}>
-                        <span className="analytics-stat-label">{labelOf(QG_MODES, k, lang)}</span>
-                        <span className="analytics-stat-value">{t.bestScore}: {v}</span>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            </section>
-
-            {/* ── Sədəqə ── */}
-            <section data-reveal="up" className="analytics-card">
-              <CardHead icon="donate">{t.charityStats}</CardHead>
-              <div className="analytics-card-body">
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.total}</span>
-                  <span className="analytics-stat-value highlight ui-num" data-count={data.totalCharity}>{data.totalCharity}</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.totalAmount}</span>
-                  <span className="analytics-stat-value">{data.totalAmount.toFixed(2)}</span>
-                </div>
-                <div className="analytics-stat-row">
-                  <span className="analytics-stat-label">{t.streak}</span>
-                  <span className="analytics-stat-value">{data.charityStreak}</span>
-                </div>
-
-                {Object.keys(data.charityByType).length > 0 && (
-                  <>
-                    <h3 className="analytics-subhead">{t.byType}</h3>
-                    <div className="analytics-bar-chart">
-                      {Object.entries(data.charityByType).map(([type, count]) => (
-                        <div className="analytics-bar-item" key={type}>
-                          <span className="analytics-bar-label">{labelOf(CHARITY_TYPES, type, lang)}</span>
-                          <div className="analytics-bar-track">
-                            <div className="analytics-bar-fill" style={{ transform: `scaleX(${count / data.maxTypeCount})` }} />
-                          </div>
-                          <span className="analytics-bar-count ui-num">{count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </section>
-
-            {/* ── Gündəlik izləyici ── tam en; geniş ekranda iki blok yan-yana */}
-            <section data-reveal="up" className="analytics-card full-width">
-              <CardHead icon="dailytracker">{t.dailyTracker}</CardHead>
-              <div className="analytics-card-body analytics-split">
-                <div className="analytics-split-col">
-                  <div className="analytics-stat-row">
-                    <span className="analytics-stat-label">{t.today}</span>
-                    <span className="analytics-stat-value highlight">{data.todayPct}%</span>
-                  </div>
-                  <div className="analytics-progress-wrap">
-                    <div className="analytics-progress-label">
-                      <span className="ui-num" dir="ltr">{data.todayDone} / {data.todayTotal}</span>
-                      <span className="ui-num">{data.todayPct}%</span>
-                    </div>
-                    <div className="analytics-progress-bar">
-                      <div className="analytics-progress-fill" style={{ transform: `scaleX(${data.todayPct / 100})` }} />
-                    </div>
-                  </div>
-                </div>
-                <div className="analytics-split-col">
-                  <div className="analytics-stat-row">
-                    <span className="analytics-stat-label">{t.weekAvg}</span>
-                    <span className="analytics-stat-value">{data.weekAvg}%</span>
-                  </div>
-                  <div className="analytics-progress-wrap">
-                    <div className="analytics-progress-label">
-                      <span>{t.thisWeek}</span>
-                      <span className="ui-num">{data.weekAvg}%</span>
-                    </div>
-                    <div className="analytics-progress-bar">
-                      <div className="analytics-progress-fill" style={{ transform: `scaleX(${data.weekAvg / 100})` }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* ── Nailiyyətlər ── */}
-            <section data-reveal="up" className="analytics-card full-width">
-              <CardHead icon="sahaba" tone="accent">
-                {t.achievements} <span className="analytics-count ui-num" dir="ltr">{achievedCount}/{achievements.length}</span>
-              </CardHead>
-              <div className="analytics-card-body">
-                {/* Telefonda üfüqi sürüşən nişan zolağı. tabIndex: klaviatura ilə
-                    də sürüşdürmək olsun (içində fokuslanan element yoxdur — axe
-                    "scrollable-region-focusable") */}
-                <ul className="analytics-achievements" data-reveal="stagger-zoom" tabIndex={0} aria-label={t.achievements}>
-                  {achievements.map((a, i) => (
-                    <li key={i} className={`analytics-badge ${a.check ? 'achieved' : 'locked'}`}>
-                      <span className="analytics-badge-icon" aria-hidden="true">
-                        <Icon name={a.icon} size={22} />
-                        {a.check && <span className="analytics-badge-tick"><Icon name="check" size={12} strokeWidth={3} /></span>}
-                      </span>
-                      <span className="analytics-badge-name">{a.name[lang] || a.name.az}</span>
-                      <span className="analytics-badge-status">{a.check ? t.achieved : t.locked}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ── 1. Fəaliyyət ── */}
+      <section className="ui-section ui-section--tight analytics-sec" aria-labelledby="an-act">
+        <div className="ui-container">
+          <SecHead id="an-act" eyebrow={x.actEyebrow} title={x.actTitle} lead={x.actLead} />
+          <div className="ui-stats analytics-overview" data-reveal="stagger">
+            <StatTile icon="calendar" label={t.daysActive} value={data.daysActive} count={data.daysActive} />
+            <StatTile icon="prayer" label={t.prayers} value={data.totalPrayers} count={data.totalPrayers} />
+            <StatTile icon="quran" label={t.quranSessions} value={data.quranSessions} count={data.quranSessions} />
+            <StatTile icon="dhikr" label={x.dhikr} value={data.dhikrTotal} count={data.dhikrTotal} />
+            <StatTile icon="hadith" label={t.favHadiths} value={data.hadithFavs} count={data.hadithFavs} />
+            <StatTile icon="donate" label={t.charityDeeds} value={data.totalCharity} count={data.totalCharity} />
+          </div>
+
+          <div className="analytics-act-grid">
+            <ChartFigure title={x.heatTitle} sub={x.heatAria(heat.active)} className="analytics-heat-fig">
+              <div className="analytics-heat" role="img" aria-label={x.heatAria(heat.active)}>
+                {heat.cells.map(c => (
+                  <span key={c.key} className={`analytics-heat__cell l${c.level}${c.future ? ' is-future' : ''}`} title={c.future ? undefined : c.title} />
+                ))}
+              </div>
+              <div className="analytics-heat-legend" aria-hidden="true">
+                <span>{x.less}</span>
+                {[0, 1, 2, 3, 4].map(l => <span key={l} className={`analytics-heat__cell l${l}`} />)}
+                <span>{x.more}</span>
+              </div>
+            </ChartFigure>
+            <ChartFigure title={x.last7} sub={x.last7Sub}>
+              <ColumnChart data={last7} height={110} label={x.last7} />
+            </ChartFigure>
+            <ChartFigure title={x.months} sub={x.monthsSub}>
+              <ColumnChart data={months} height={110} label={x.months} tone={3} />
+            </ChartFigure>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 2. İbadət: namaz + gündəlik izləyici ── */}
+      <section className="ui-section ui-section--tight analytics-sec" aria-labelledby="an-wor">
+        <div className="ui-container">
+          <SecHead id="an-wor" eyebrow={x.worshipEyebrow} title={x.worshipTitle} lead={x.worshipLead} />
+          <div className="analytics-sections">
+            <Card icon="prayer" title={t.prayerStats}>
+              <Nums items={[
+                { label: t.total, value: data.totalPrayers, hl: true, count: data.totalPrayers },
+                { label: t.thisWeek, value: data.weekPrayers },
+                { label: t.thisMonth, value: data.monthPrayers },
+                { label: t.streak, value: data.prayerStreak },
+              ]} />
+              <div className="analytics-meter">
+                <span className="analytics-meter__row"><span>{t.rate}</span><b className="ui-num">{data.prayerRate}%</b></span>
+                <ProgressBar value={data.prayerRate} label={t.rate} />
+              </div>
+              <ChartFigure title={x.perPrayer} sub={x.perPrayerSub} plain>
+                <BarChart data={(PRAYER_LABEL[lang] || PRAYER_LABEL.az).map((label, i) => ({ key: i, label, value: data.perPrayer[i] }))}
+                  max={Math.max(1, ...data.perPrayer)} label={x.perPrayer} />
+              </ChartFigure>
+            </Card>
+
+            <Card icon="dailytracker" title={t.dailyTracker}>
+              <div className="analytics-split">
+                <div className="analytics-split-col">
+                  <span className="analytics-stat-label">{t.today}</span>
+                  <span className="analytics-stat-value highlight ui-num">{data.todayPct}%</span>
+                  <ProgressBar value={data.todayDone} max={data.todayTotal} label={t.today} />
+                  <span className="analytics-split-sub ui-num" dir="ltr">{data.todayDone} / {data.todayTotal}</span>
+                </div>
+                <div className="analytics-split-col">
+                  <span className="analytics-stat-label">{t.weekAvg}</span>
+                  <span className="analytics-stat-value ui-num">{data.weekAvg}%</span>
+                  <ProgressBar value={data.weekAvg} label={t.weekAvg} tone={2} />
+                  <span className="analytics-split-sub">{t.thisWeek}</span>
+                </div>
+              </div>
+              <ChartFigure title={x.weekByDay} sub={x.weekByDaySub} plain>
+                <ColumnChart height={100} max={100} label={x.weekByDay} format={v => `${v}%`}
+                  data={data.weekDates.map((wd, i) => {
+                    const [y, m, d] = wd.split('-').map(Number)
+                    return { key: wd, label: fmtDay(new Date(y, m - 1, d), { weekday: 'short' }), value: data.weekPct[i], current: wd === today }
+                  })} />
+              </ChartFigure>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 3. Quran və elm ── */}
+      <section className="ui-section ui-section--tight analytics-sec" aria-labelledby="an-learn">
+        <div className="ui-container">
+          <SecHead id="an-learn" eyebrow={x.learnEyebrow} title={x.learnTitle} lead={x.learnLead} />
+          <div className="analytics-sections">
+            <Card icon="quran" title={t.quranStats}>
+              <div className="analytics-ring-row">
+                <ProgressRing value={data.uniqueSurahs} max={114} size={84} thickness={8} label={x.coverage}
+                  sub={<bdi dir="ltr">{data.uniqueSurahs} / 114</bdi>} />
+                <p className="analytics-note">{x.ayahs(data.ayahsOpened)}</p>
+              </div>
+              <Nums items={[
+                { label: t.sessions, value: data.quranSessions, hl: true, count: data.quranSessions },
+                { label: t.surahs, value: `${data.uniqueSurahs} / 114`, ltr: true },
+                { label: t.streak, value: data.quranStreak },
+              ]} />
+              <ChartFigure title={x.topSurahs} sub={x.topSurahsSub} plain>
+                {data.topSurahs.length
+                  ? <BarChart data={data.topSurahs.map(([n, v]) => ({ key: n, label: `${n}. ${surahName(n, lang)}`, value: v }))} label={x.topSurahs} />
+                  : <p className="analytics-note">{x.none}</p>}
+              </ChartFigure>
+            </Card>
+
+            <div className="analytics-stack">
+              <Card icon="hifz" title={x.hifz}>
+                <div className="analytics-ring-row">
+                  <ProgressRing value={data.hifzMemorized} max={114} size={72} thickness={7} label={t.memorized}
+                    sub={<bdi dir="ltr">{data.hifzMemorized} / 114</bdi>} />
+                  <a className="ui-link" href={pathFor('hifz', lang)} onClick={go('hifz')}>
+                    {navLabel('hifz', lang)} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+                  </a>
+                </div>
+                <StackedBar label={x.hifz} segments={[
+                  { label: t.memorized, value: data.hifzMemorized, tone: 1 },
+                  { label: t.inProgress, value: data.hifzInProgress, tone: 2 },
+                  { label: t.notStarted, value: data.hifzNotStarted, tone: 'muted' },
+                ]} />
+              </Card>
+
+              <Card icon="arabic" title={x.course}>
+                <div className="analytics-ring-row">
+                  <ProgressRing value={data.coursePct} max={100} size={72} thickness={7} label={x.course}
+                    sub={x.lessons(data.coursePassed, LESSONS.length)} />
+                  <a className="ui-link" href={pathFor('arabic', lang)} onClick={go('arabic')}>
+                    {x.openCourse} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+                  </a>
+                </div>
+              </Card>
+
+              <Card icon="quiz" title={x.games}>
+                {quizRows.length ? (
+                  <ChartFigure sub={x.gamesSub} plain>
+                    <BarChart data={quizRows} max={10} format={v => `${v}/10`} label={x.games} />
+                  </ChartFigure>
+                ) : (
+                  <div className="analytics-empty-row">
+                    <p className="analytics-note">{x.noGames}</p>
+                    <a className="ui-btn ui-btn--secondary ui-btn--sm" href={pathFor('quiz', lang)} onClick={go('quiz')}>
+                      <Icon name="quiz" className="ui-btn__icon" />{x.play}
+                    </a>
+                  </div>
+                )}
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. Hədis, dua, sədəqə ── */}
+      <section className="ui-section ui-section--tight analytics-sec" aria-labelledby="an-other">
+        <div className="ui-container">
+          <SecHead id="an-other" eyebrow={x.otherEyebrow} title={x.otherTitle} lead={x.otherLead} />
+          <div className="analytics-sections">
+            <Card icon="hadith" title={t.hadithDua}>
+              <Nums items={[
+                { label: t.favHadiths, value: data.hadithFavs, hl: true, count: data.hadithFavs },
+                { label: t.duasSaved, value: data.duaFavs },
+                { label: `${t.duaJournal} — ${t.active}`, value: data.duaActive },
+                { label: `${t.duaJournal} — ${t.answered}`, value: data.duaAnswered },
+              ]} />
+              {data.journalTotal > 0 && (
+                <StackedBar label={t.duaJournal} segments={[
+                  { label: t.active, value: data.duaActive, tone: 3 },
+                  { label: t.answered, value: data.duaAnswered, tone: 1 },
+                ]} />
+              )}
+            </Card>
+
+            <Card icon="donate" title={t.charityStats}>
+              <Nums items={[
+                { label: t.total, value: data.totalCharity, hl: true, count: data.totalCharity },
+                { label: t.totalAmount, value: data.totalAmount.toFixed(2) },
+                { label: t.streak, value: data.charityStreak },
+              ]} />
+              {charityRows.length > 0 && (
+                <ChartFigure title={t.byType} plain>
+                  <BarChart data={charityRows} tone={2} label={t.byType} />
+                </ChartFigure>
+              )}
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. Nailiyyətlər ── */}
+      <section className="ui-section ui-section--tight analytics-sec" aria-labelledby="an-ach">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{x.achEyebrow}</span>
+            <h2 className="ui-title" id="an-ach">{t.achievements} <span className="analytics-count ui-num" dir="ltr">{achievedCount}/{achievements.length}</span></h2>
+            <p className="ui-lead">{x.achLead}</p>
+          </div>
+          {/* Telefonda üfüqi sürüşən nişan zolağı. tabIndex: klaviatura ilə
+              də sürüşdürmək olsun (axe "scrollable-region-focusable") */}
+          <ul className="analytics-achievements" data-reveal="stagger-zoom" tabIndex={0} aria-label={t.achievements}>
+            {achievements.map((a, i) => (
+              <li key={i} className={`analytics-badge ${a.check ? 'achieved' : 'locked'}`}>
+                <span className="analytics-badge-icon" aria-hidden="true">
+                  <Icon name={a.icon} size={20} />
+                  {a.check && <span className="analytics-badge-tick"><Icon name="check" size={12} strokeWidth={3} /></span>}
+                </span>
+                <span className="analytics-badge-name">{a.name[lang] || a.name.az}</span>
+                <span className="analytics-badge-status">{a.check ? t.achieved : t.locked}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
     </div>
+  )
+}
+
+// ── Kiçik tərtibat komponentləri (render-də yenidən yaradılmasın deyə xaricdə) ──
+function SecHead({ eyebrow, title, lead, id }) {
+  return (
+    <div className="ui-section-head" data-reveal>
+      <span className="ui-eyebrow">{eyebrow}</span>
+      <h2 className="ui-title" id={id}>{title}</h2>
+      {lead && <p className="ui-lead">{lead}</p>}
+    </div>
+  )
+}
+// Bölmə kartı: ikon kafeli + h3
+function Card({ icon, title, tone = '', children }) {
+  return (
+    <section className="ui-card analytics-card" data-reveal="up">
+      <div className="analytics-card-header">
+        <span className={`ui-icon-tile ui-icon-tile--sm${tone ? ` ui-icon-tile--${tone}` : ''}`} aria-hidden="true"><Icon name={icon} /></span>
+        <h3 className="analytics-card-title">{title}</h3>
+      </div>
+      <div className="analytics-card-body">{children}</div>
+    </section>
+  )
+}
+// Kartın rəqəm sırası (dt/dd). hl — vurğulu rəqəm (e2e testi bu sinfə baxır)
+function Nums({ items }) {
+  return (
+    <dl className={`analytics-nums analytics-nums--${items.length}`}>
+      {items.map((it, i) => (
+        <div key={i} className="analytics-num">
+          <dt className="analytics-stat-label">{it.label}</dt>
+          <dd className={`analytics-stat-value ui-num${it.hl ? ' highlight' : ''}`} dir={it.ltr ? 'ltr' : undefined}
+            {...(it.count != null ? { 'data-count': it.count } : {})}>{it.value}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }

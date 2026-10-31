@@ -9,7 +9,7 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
 }
 
 /* ── Ramazan və bayram: tünd panel ── */
@@ -17,7 +17,6 @@
 .rc--eid {
   background: var(--surface-inverse);
   color: var(--text-on-inverse);
-  box-shadow: var(--shadow-3);
 }
 .rc--ramadan::before,
 .rc--eid::before {
@@ -31,11 +30,11 @@
   mask: var(--ui-khatam) 0 0 / 56px 56px;
 }
 [data-theme="dark"] .rc--ramadan,
-[data-theme="dark"] .rc--eid { box-shadow: var(--shadow-3), inset 0 0 0 1px var(--brand-line); }
+[data-theme="dark"] .rc--eid { box-shadow: inset 0 0 0 1px var(--brand-line); }
 
 .rc-body {
   position: relative;
-  padding: var(--space-6) var(--space-6) var(--space-5);
+  padding: var(--space-5) var(--space-5) var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -46,8 +45,8 @@
   position: absolute;
   inset-block-start: var(--space-4);
   inset-inline-end: var(--space-4);
-  width: 128px;
-  height: 128px;
+  width: 104px;
+  height: 104px;
   z-index: -1;
   opacity: 0.9;
   pointer-events: none;
@@ -82,7 +81,7 @@ html[lang="ar"] .rc-cap { letter-spacing: 0; text-transform: none; }
   margin: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: var(--step-3);
+  font-size: var(--step-2);
   line-height: var(--lh-tight);
   letter-spacing: var(--tracking-tight);
   color: var(--text-on-inverse);
@@ -106,7 +105,7 @@ html[lang="ar"] .rc-title { letter-spacing: 0; }
 .rc-count-note { color: var(--text-on-inverse-dim); font-size: var(--step--1); }
 .rc-digits {
   display: inline-flex;
-  font-family: var(--font-display);
+  font-family: var(--font-num);
   font-weight: 600;
   font-size: var(--step-4);
   line-height: 1.05;
@@ -169,9 +168,9 @@ html[lang="ar"] .rc-title { letter-spacing: 0; }
 .rc-time-sub { opacity: 0.85; font-weight: 400; }
 .rc-time dd {
   margin: 4px 0 0;
-  font-family: var(--font-display);
+  font-family: var(--font-num);
   font-weight: 600;
-  font-size: var(--step-3);
+  font-size: var(--step-2);
   line-height: 1.1;
   color: var(--text-on-inverse);
 }
@@ -195,7 +194,6 @@ html[lang="ar"] .rc-title { letter-spacing: 0; }
   padding: var(--space-4) var(--space-5);
   background: var(--surface-1);
   border: 1px solid var(--line);
-  box-shadow: var(--shadow-1);
 }
 .rc-soon-body { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .rc-soon-title {
@@ -216,9 +214,8 @@ html[lang="ar"] .rc-title { letter-spacing: 0; }
 @media (max-width: 767.98px) {
   .rc-body { padding: var(--space-5) var(--space-4) var(--space-4); }
   .rc-sky { width: 92px; height: 92px; inset-block-start: var(--space-3); inset-inline-end: var(--space-3); }
-  .rc-digits { font-size: 40px; }
+  .rc-digits { font-size: var(--step-4); }
   .rc-time { padding: var(--space-3); }
-  .rc-time dd { font-size: 26px; }
   .rc--soon { padding: var(--space-4); }
   .rc-soon-btn { width: 100%; }
 }

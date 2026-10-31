@@ -8,17 +8,55 @@ import BackToTop from '../components/BackToTop'
 import { useBackToClose } from '../utils/useBackToClose'
 import { useSheetDrag } from '../hooks/useSheetDrag'
 import Icon from '../components/Icon'
+import { ChartFigure, BarChart } from '../components/viz'
+import RelatedLinks from '../components/media/RelatedLinks'
+import { pathFor } from '../seo/routes'
+import { isPlainClick } from '../components/PageLink'
+import { useNavigate } from 'react-router-dom'
 import '../styles/BooksPage.css'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
 
 const LABELS = {
-  az: { eyebrow:'Hədis və bilik', title:'Kitabxana', subtitle:'İslami kitablar, təfsirlər və elm əsərləri', search:'Kitab axtar...', filter:'Filtr', featured:'Seçilmiş kitablar', allBooks:'Bütün kitablar', moreBooks:'Digər kitablar', noResults:'Kitab tapılmadı', loading:'Yüklənir...', books:'kitab', author:'Müəllif', read:'Oxu', preview:'Önizlə', readPdf:'PDF açın', noPdf:'PDF mövcud deyil', pages:'səhifə', year:'İl', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
-  en: { eyebrow:'Hadith & knowledge', title:'Library', subtitle:'Islamic books, tafsirs and scholarly works', search:'Search books...', filter:'Filter', featured:'Featured Books', allBooks:'All Books', moreBooks:'More books', noResults:'No books found', loading:'Loading...', books:'books', author:'Author', read:'Read', preview:'Preview', readPdf:'Open PDF', noPdf:'PDF not available', pages:'pages', year:'Year', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
-  ru: { eyebrow:'Хадисы и знание', title:'Библиотека', subtitle:'Исламские книги, тафсиры и научные труды', search:'Поиск книг...', filter:'Фильтр', featured:'Избранные книги', allBooks:'Все книги', moreBooks:'Другие книги', noResults:'Книги не найдены', loading:'Загрузка...', books:'книг', author:'Автор', read:'Читать', preview:'Просмотр', readPdf:'Открыть PDF', noPdf:'PDF недоступен', pages:'страниц', year:'Год', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
-  ar: { eyebrow:'الحديث والعلم', title:'المكتبة', subtitle:'كتب إسلامية وتفاسير وأعمال علمية', search:'البحث عن كتاب...', filter:'تصفية', featured:'كتب مميزة', allBooks:'كل الكتب', moreBooks:'كتب أخرى', noResults:'لا توجد كتب', loading:'جارٍ التحميل...', books:'كتاب', author:'المؤلف', read:'اقرأ', preview:'معاينة', readPdf:'فتح PDF', noPdf:'PDF غير متاح', pages:'صفحة', year:'السنة', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
-  tr: { eyebrow:'Hadis ve ilim', title:'Kütüphane', subtitle:'İslami kitaplar, tefsirler ve ilmi eserler', search:'Kitap ara...', filter:'Filtre', featured:'Öne Çıkan Kitaplar', allBooks:'Tüm Kitaplar', moreBooks:'Diğer kitaplar', noResults:'Kitap bulunamadı', loading:'Yükleniyor...', books:'kitap', author:'Yazar', read:'Oku', preview:'Önizle', readPdf:'PDF aç', noPdf:'PDF mevcut değil', pages:'sayfa', year:'Yıl', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
+  az: { how:'Kartı seçin — kitab haqqında qısa məlumat və (varsa) PDF açılır. Bölmə çipləri siyahını daraldır.', statCats:'bölmə', statPdf:'PDF ilə', chartTitle:'Bölmələr üzrə kitablar', chartSub:'kitab sayı', pathEyebrow:'Haradan başlamalı?', pathTitle:'Başlanğıc üçün oxu yolu', pathLead:'Alimlərin tələbəyə tövsiyə etdiyi klassik ardıcıllıq: qısa mətndən geniş əsərə. Müəllifin adına toxunsanız, həyatı açılır.', relEyebrow:'Davamı', relTitle:'Əlaqəli bölmələr', eyebrow:'Hədis və bilik', title:'Kitabxana', subtitle:'İslami kitablar, təfsirlər və elm əsərləri', search:'Kitab axtar...', filter:'Filtr', featured:'Seçilmiş kitablar', allBooks:'Bütün kitablar', moreBooks:'Digər kitablar', noResults:'Kitab tapılmadı', loading:'Yüklənir...', books:'kitab', author:'Müəllif', read:'Oxu', preview:'Önizlə', readPdf:'PDF açın', noPdf:'PDF mövcud deyil', pages:'səhifə', year:'İl', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
+  en: { how:'Pick a card to open a short description and the PDF (if available). Category chips narrow the list.', statCats:'categories', statPdf:'with PDF', chartTitle:'Books by category', chartSub:'number of books', pathEyebrow:'Where to start?', pathTitle:'A reading path for beginners', pathLead:'The classical order scholars recommend to students: from short texts to larger works. Tap an author’s name to read their biography.', relEyebrow:'Continue', relTitle:'Related sections', eyebrow:'Hadith & knowledge', title:'Library', subtitle:'Islamic books, tafsirs and scholarly works', search:'Search books...', filter:'Filter', featured:'Featured Books', allBooks:'All Books', moreBooks:'More books', noResults:'No books found', loading:'Loading...', books:'books', author:'Author', read:'Read', preview:'Preview', readPdf:'Open PDF', noPdf:'PDF not available', pages:'pages', year:'Year', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
+  ru: { how:'Выберите карточку — откроется краткое описание и PDF (если есть). Чипы разделов сужают список.', statCats:'разделов', statPdf:'с PDF', chartTitle:'Книги по разделам', chartSub:'число книг', pathEyebrow:'С чего начать?', pathTitle:'Путь чтения для начинающих', pathLead:'Классический порядок, который учёные советуют ученикам: от кратких текстов к большим трудам. Нажмите на имя автора, чтобы открыть его биографию.', relEyebrow:'Дальше', relTitle:'Связанные разделы', eyebrow:'Хадисы и знание', title:'Библиотека', subtitle:'Исламские книги, тафсиры и научные труды', search:'Поиск книг...', filter:'Фильтр', featured:'Избранные книги', allBooks:'Все книги', moreBooks:'Другие книги', noResults:'Книги не найдены', loading:'Загрузка...', books:'книг', author:'Автор', read:'Читать', preview:'Просмотр', readPdf:'Открыть PDF', noPdf:'PDF недоступен', pages:'страниц', year:'Год', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
+  ar: { how:'اختر بطاقة لتظهر نبذة عن الكتاب وملف PDF إن وُجد. أزرار الأقسام تضيّق القائمة.', statCats:'أقسام', statPdf:'بصيغة PDF', chartTitle:'الكتب حسب الأقسام', chartSub:'عدد الكتب', pathEyebrow:'من أين تبدأ؟', pathTitle:'طريق القراءة للمبتدئ', pathLead:'الترتيب الذي يوصي به العلماء طلابهم: من المتون المختصرة إلى الكتب المطولة. اضغط على اسم المؤلف لتقرأ سيرته.', relEyebrow:'للمتابعة', relTitle:'أقسام ذات صلة', eyebrow:'الحديث والعلم', title:'المكتبة', subtitle:'كتب إسلامية وتفاسير وأعمال علمية', search:'البحث عن كتاب...', filter:'تصفية', featured:'كتب مميزة', allBooks:'كل الكتب', moreBooks:'كتب أخرى', noResults:'لا توجد كتب', loading:'جارٍ التحميل...', books:'كتاب', author:'المؤلف', read:'اقرأ', preview:'معاينة', readPdf:'فتح PDF', noPdf:'PDF غير متاح', pages:'صفحة', year:'السنة', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
+  tr: { how:'Bir kart seçin — kitap hakkında kısa bilgi ve (varsa) PDF açılır. Bölüm çipleri listeyi daraltır.', statCats:'bölüm', statPdf:'PDF’li', chartTitle:'Bölümlere göre kitaplar', chartSub:'kitap sayısı', pathEyebrow:'Nereden başlamalı?', pathTitle:'Yeni başlayanlar için okuma yolu', pathLead:'Âlimlerin talebelere tavsiye ettiği klasik sıra: kısa metinden geniş esere. Yazarın adına dokunursanız hayatı açılır.', relEyebrow:'Devamı', relTitle:'İlgili bölümler', eyebrow:'Hadis ve ilim', title:'Kütüphane', subtitle:'İslami kitaplar, tefsirler ve ilmi eserler', search:'Kitap ara...', filter:'Filtre', featured:'Öne Çıkan Kitaplar', allBooks:'Tüm Kitaplar', moreBooks:'Diğer kitaplar', noResults:'Kitap bulunamadı', loading:'Yükleniyor...', books:'kitap', author:'Yazar', read:'Oku', preview:'Önizle', readPdf:'PDF aç', noPdf:'PDF mevcut değil', pages:'sayfa', year:'Yıl', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
 }
+
+
+// "Başlanğıc üçün oxu yolu" — klassik mətnlər (müəllif → /scholars profili
+// və ya saytdakı bölmə). Kitabların özü başqa yerdə təkrarlanmır.
+const READING_PATH = [
+  { title: { az: 'Üç əsas (əl-Üsulus-Səlasə)', en: 'The Three Fundamental Principles', ru: 'Три основы', ar: 'الأصول الثلاثة', tr: 'Üç Esas (el-Usûlü’s-Selâse)' },
+    text: { az: 'Rəbbini, dinini və Peyğəmbərini ﷺ tanımaq — hər müsəlmanın ilk dərsi.', en: 'Knowing your Lord, your religion and your Prophet ﷺ — every Muslim’s first lesson.', ru: 'Знание своего Господа, своей религии и своего Пророка ﷺ — первый урок каждого мусульманина.', ar: 'معرفة العبد ربه ودينه ونبيه ﷺ — أول درس لكل مسلم.', tr: 'Rabbini, dinini ve Peygamberini ﷺ tanımak — her Müslümanın ilk dersi.' },
+    author: { az: 'Muhəmməd ibn Əbdülvəhhab', en: 'Muhammad ibn Abd al-Wahhab', ru: 'Мухаммад ибн Абд аль-Ваххаб', ar: 'محمد بن عبد الوهاب', tr: 'Muhammed b. Abdülvehhâb' }, slug: 'muhammad-ibn-abd-al-wahhab' },
+  { title: { az: 'Kitabut-Tövhid', en: 'Kitab at-Tawhid', ru: 'Книга единобожия', ar: 'كتاب التوحيد', tr: 'Kitâbü’t-Tevhîd' },
+    text: { az: 'Tövhidin mənası və onu pozan şeylər — ayə və hədislərlə, fəsil-fəsil.', en: 'The meaning of tawhid and what nullifies it — chapter by chapter, with verses and hadiths.', ru: 'Смысл единобожия и то, что его нарушает, — по главам, с аятами и хадисами.', ar: 'معنى التوحيد وما ينافيه — بابًا بابًا بالآيات والأحاديث.', tr: 'Tevhidin anlamı ve onu bozan şeyler — bölüm bölüm, ayet ve hadislerle.' },
+    author: { az: 'Muhəmməd ibn Əbdülvəhhab', en: 'Muhammad ibn Abd al-Wahhab', ru: 'Мухаммад ибн Абд аль-Ваххаб', ar: 'محمد بن عبد الوهاب', tr: 'Muhammed b. Abdülvehhâb' }, slug: 'muhammad-ibn-abd-al-wahhab' },
+  { title: { az: 'Qırx hədis (əl-Ərbəun ən-Nəvəviyyə)', en: 'The Forty Hadith of an-Nawawi', ru: 'Сорок хадисов ан-Навави', ar: 'الأربعون النووية', tr: 'Kırk Hadis (el-Erbaûn en-Neveviyye)' },
+    text: { az: 'Dinin əsaslarını toplayan 42 hədis — saytda şərhi ilə oxuya bilərsiniz.', en: '42 hadiths that gather the foundations of the religion — read them on this site with commentary.', ru: '42 хадиса, собравшие основы религии, — читайте на сайте с пояснением.', ar: 'اثنان وأربعون حديثًا جمعت أصول الدين — اقرأها في الموقع مع الشرح.', tr: 'Dinin esaslarını toplayan 42 hadis — sitede şerhiyle okuyabilirsiniz.' },
+    author: { az: 'İmam ən-Nəvəvi', en: 'Imam an-Nawawi', ru: 'Имам ан-Навави', ar: 'الإمام النووي', tr: 'İmam Nevevî' }, slug: 'an-nawawi', page: 'nawawi40' },
+  { title: { az: 'əl-Əqidətul-Vasitiyyə', en: 'Al-Aqidah al-Wasitiyyah', ru: 'Аль-Акыда аль-Васитыйя', ar: 'العقيدة الواسطية', tr: 'el-Akîdetü’l-Vâsıtıyye' },
+    text: { az: 'Allahın isim və sifətlərinə dair Əhli-sünnənin əqidəsi — qısa və dəlilli.', en: 'The creed of Ahl as-Sunnah on Allah’s names and attributes — concise and evidence-based.', ru: 'Вероубеждение ахль ас-сунна об именах и атрибутах Аллаха — кратко и с доводами.', ar: 'عقيدة أهل السنة في أسماء الله وصفاته — مختصرة بالأدلة.', tr: 'Allah’ın isim ve sıfatlarına dair Ehl-i sünnet akidesi — kısa ve delilli.' },
+    author: { az: 'İbn Teymiyyə', en: 'Ibn Taymiyyah', ru: 'Ибн Таймия', ar: 'ابن تيمية', tr: 'İbn Teymiyye' }, slug: 'ibn-taymiyyah' },
+  { title: { az: 'Riyazus-Salihin', en: 'Riyad as-Salihin', ru: 'Рияд ас-Салихин', ar: 'رياض الصالحين', tr: 'Riyâzü’s-Sâlihîn' },
+    text: { az: 'Əxlaq, ibadət və adaba dair seçilmiş hədislər — hər evdə olmalı kitab.', en: 'Selected hadiths on character, worship and manners — a book for every home.', ru: 'Избранные хадисы о нравственности, поклонении и этикете — книга для каждого дома.', ar: 'أحاديث مختارة في الأخلاق والعبادة والآداب — كتاب لكل بيت.', tr: 'Ahlak, ibadet ve adaba dair seçilmiş hadisler — her evde olması gereken kitap.' },
+    author: { az: 'İmam ən-Nəvəvi', en: 'Imam an-Nawawi', ru: 'Имам ан-Навави', ar: 'الإمام النووي', tr: 'İmam Nevevî' }, slug: 'an-nawawi' },
+]
+
+const RELATED = [
+  { page: 'scholars', title: { az: 'Alimlər', en: 'Scholars', ru: 'Учёные', ar: 'العلماء', tr: 'Âlimler' },
+    text: { az: 'Kitab müəlliflərinin həyatı və əsərləri', en: 'Lives and works of the authors', ru: 'Жизнь и труды авторов книг', ar: 'سير المؤلفين ومؤلفاتهم', tr: 'Yazarların hayatı ve eserleri' } },
+  { page: 'learn', title: { az: 'Dərslər', en: 'Lessons', ru: 'Уроки', ar: 'الدروس', tr: 'Dersler' },
+    text: { az: 'Əqidə, fiqh və əxlaqa dair qısa dərslər', en: 'Short lessons on creed, fiqh and character', ru: 'Короткие уроки по акыде, фикху и нравственности', ar: 'دروس قصيرة في العقيدة والفقه والأخلاق', tr: 'Akide, fıkıh ve ahlaka dair kısa dersler' } },
+  { page: 'videos', title: { az: 'Video kitabxana', en: 'Video library', ru: 'Видеобиблиотека', ar: 'مكتبة الفيديو', tr: 'Video kütüphanesi' },
+    text: { az: 'Mühazirələr və tilavətlər', en: 'Lectures and recitations', ru: 'Лекции и чтение Корана', ar: 'محاضرات وتلاوات', tr: 'Konferanslar ve tilavetler' } },
+  { page: 'glossary', title: { az: 'Lüğət', en: 'Glossary', ru: 'Словарь', ar: 'المعجم', tr: 'Sözlük' },
+    text: { az: 'Kitablarda rast gəlinən İslami terminlər', en: 'Islamic terms you meet in the books', ru: 'Исламские термины, встречающиеся в книгах', ar: 'المصطلحات الإسلامية الواردة في الكتب', tr: 'Kitaplarda geçen İslami terimler' } },
+]
+const tr5 = (o, lang) => (o && (o[lang] || o.en)) || ''
 
 // Sonsuz sürüşmənin bir partiyası
 const BATCH = 12
@@ -70,6 +108,8 @@ function countWord(n, key, lang, fallback) {
 export default function BooksPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
+  const navigate = useNavigate()
+  const go = (href) => (e) => { if (isPlainClick(e)) { e.preventDefault(); navigate(href) } }
 
   const [allBooks, setBooks] = useState([])
   // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)
@@ -94,6 +134,7 @@ export default function BooksPage({ setPage }) {
   const showFeatured = !search && selectedCat === 'all' && books.length > 8
   const featured = useMemo(() => (showFeatured ? books.slice(0, 4) : []), [books, showFeatured])
 
+  const pdfCount = useMemo(() => books.filter(b => b.pdfUrl).length, [books])
   // Filtr çipləri: yalnız ən azı bir kitabı olan bölmələr (boş çip "0" nəticə verirdi)
   const categories = useMemo(
     () => BOOK_CATEGORIES.filter(c => c.key === 'all' || books.some(b => b.category === c.key)),
@@ -244,14 +285,14 @@ export default function BooksPage({ setPage }) {
           <h1 className="ui-display">{l.title}</h1>
           {lang !== 'ar' && <p className="bp-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">مَكْتَبَةُ الْكُتُبِ</p>}
           <p className="ui-lead">{l.subtitle}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {l.how}</p>
           {/* Yalnız real məzmun sayı (yüklənəndə gizli — "0 kitab" görünməsin) */}
           {!loading && books.length > 0 && (
-            <div className="bp-hero-stats" data-reveal="fade">
-              <div className="ui-stat">
-                <span className="ui-stat__num" data-count={books.length}>{books.length}</span>
-                <span className="ui-stat__label">{countWord(books.length, 'books', lang, l.books)}</span>
-              </div>
-            </div>
+            <ul className="ui-page-hero__stats bp-hero-stats">
+              <li><b className="ui-num">{books.length}</b><span>{countWord(books.length, 'books', lang, l.books)}</span></li>
+              <li><b className="ui-num">{categories.length - 1}</b><span>{l.statCats}</span></li>
+              {pdfCount > 0 && <li><b className="ui-num">{pdfCount}</b><span>{l.statPdf}</span></li>}
+            </ul>
           )}
         </div>
       </header>
@@ -426,6 +467,55 @@ export default function BooksPage({ setPage }) {
           )}
         </section>
       </div>
+
+      {/* ═══ BÖLMƏLƏR QRAFİKİ + OXU YOLU + ƏLAQƏLİ ═══ */}
+      <section className="ui-section ui-section--alt bp-path" aria-labelledby="bp-path-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{l.pathEyebrow}</span>
+            <h2 id="bp-path-h" className="ui-title">{l.pathTitle}</h2>
+            <p className="ui-lead">{l.pathLead}</p>
+          </div>
+          <div className="bp-path__grid">
+            <ol className="ui-steps bp-steps">
+              {READING_PATH.map((st, i) => (
+                <li key={i} className="ui-step">
+                  <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                  <div className="ui-step__body">
+                    <h3 className="ui-step__title">
+                      {st.page ? <a href={pathFor(st.page, lang)} onClick={go(pathFor(st.page, lang))}>{tr5(st.title, lang)}</a> : tr5(st.title, lang)}
+                    </h3>
+                    <p className="ui-step__text">{tr5(st.text, lang)}</p>
+                    <a className="bp-step__author" href={pathFor('scholars', lang, st.slug)} onClick={go(pathFor('scholars', lang, st.slug))}>
+                      <Icon name="scholars" size={14} /> {tr5(st.author, lang)}
+                    </a>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            {!loading && categories.length > 2 && (
+              <ChartFigure title={l.chartTitle} sub={l.chartSub} className="bp-chart">
+                <BarChart
+                  label={l.chartTitle}
+                  data={categories.filter(c => c.key !== 'all')
+                    .map(c => ({ key: c.key, label: c.label[lang], value: books.filter(b => b.category === c.key).length }))
+                    .sort((a, b) => b.value - a.value)}
+                />
+              </ChartFigure>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="ui-section ui-section--tight bp-related" aria-labelledby="bp-rel-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{l.relEyebrow}</span>
+            <h2 id="bp-rel-h" className="ui-title ui-title--sm">{l.relTitle}</h2>
+          </div>
+          <RelatedLinks items={RELATED} />
+        </div>
+      </section>
 
       {/* ═══ BOOK DETAILS MODAL ═══
           Telefonda vərəq <body>-yə köçürülür: <main>-in keçid animasiyası ayrıca

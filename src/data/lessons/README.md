@@ -44,6 +44,27 @@ Hər mətn sahəsi 5 dildə obyektdir: `{ az, en, ru, ar, tr }`.
 | `qa`       | `items:[ { q:{…}, a:{…}, ref?:{…}, url? } ]` | sual-cavab (fətva nömrəsi `ref`-də, link `url`-da) |
 | `dua`      | `ar`, `translit?:{…}`, `text:{…}`, `src:{…}` | dua (ərəbcə + oxunuş + məna + mənbə) |
 
+`table` əlavə olaraq `caption?:{…}` qəbul edir (cədvəlin altında kiçik qeyd / mənbə; həm də ekran
+oxuyucu üçün regionun adı).
+
+### Vizual bloklar (dizayn v3)
+
+Mətn divarı əvəzinə bir baxışda oxunan vizual. Hamısı `src/components/viz` qrafik dəstini işlədir
+(rəng, qaranlıq rejim, RTL avtomatikdir). **Rəqəmlər mənbəli olmalıdır** — `note`-da mənbəni yaz.
+
+| t          | sahələr | nə üçün |
+|------------|---------|---------|
+| `stats`    | `items:[ { value:'5', unit?:{…}, label:{…}, hint?:{…}, tone?:'brand'\|'accent' } ]`, `title?:{…}`, `note?:{…}` | 2–4 iri rəqəm kafeli (rüknlərin sayı, nisab, müddət) |
+| `chart`    | `kind:'bar'\|'column'\|'donut'\|'stacked'`, `title:{…}`, `sub?:{…}`, `note?:{…}` (mənbə), `unit?:{…}`, `data:[ { label:{…}, value:Number, display?:{…}, tone?:1-4, muted?:true, current?:true } ]`, `max?`, `center?:{ value, label }` (donut) | müqayisə (`bar`), ardıcıllıq ≤12 (`column`), tərkib 2–4 pay (`donut`/`stacked`). `display` dəyərin mətnini əvəz edir (məs. "yoxdur") |
+| `timeline` | `items:[ { when:'610'\|{…}, title:{…}, text?:{…}, highlight?:true } ]` | tarixi ardıcıllıq (siyər, alimin həyatı) |
+| `links`    | `items:[ { page:'learn', param?:'mustalah', hash?:'grades', title:{…}, text?:{…}, icon? } ]` və ya `{ href:'https://…', title:{…} }` | "Ətraflı" keçidləri — başqa dərsə/səhifəyə (SPA ilə), xarici mənbəyə (yeni tabda) |
+
+Nümunələr: `usul-ath-thalatha.js` (`stats` — dinin üç mərtəbəsi), `kaffarah-fidyah.js`
+(`chart` — kəffarədə kasıbların sayı). Forma seçimi: bir rəqəm → `stats`; müqayisə → `chart bar`;
+prosedur → `steps`; çox ölçülü məlumat → `table`. 4-dən çox rəngli pay olmasın (rənglər sabit
+sıradadır: `--viz-1…4`). Qeyd: SEO üçün statik HTML (`scripts/seo-body.mjs`) bu 4 bloku hələ
+göstərmir — vacib məlumatı yalnız qrafikdə saxlama, mətndə də yaz.
+
 ## Qaydalar
 - Sayt Sələf mənhəcindədir (əqidə, mənhəc, fiqh). Mənbə: Quran, səhih Sünnə, Sələf
   alimlərinin (İbn Baz, İbn Useymin, əl-Albani, əl-Fəvzan, Daimi Komitə və s.) sözləri.

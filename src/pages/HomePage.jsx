@@ -1,21 +1,27 @@
 // ═══════════════════════════════════════════════════════
 // Ana səhifə — Muslims.cc
 //
-// Yuxarıdan aşağı: günün xatırlatmaları zolağı → hero (brend, seçilmiş
-// şəhərin namaz vaxtları kartı) → "Əsas" sürətli keçidlər → İslami bölmələr.
+// Dizayn v3 — saytın "vitrin" səhifəsi. Yuxarıdan aşağı:
+//   günün xatırlatmaları zolağı → hero (bu sayt nədir + 2 əsas düymə +
+//   namaz vaxtları kartı) → "Nə axtarırsınız?" (12 bölmə, ikon kafelləri) →
+//   "Haradan başlamalı?" (4 addım) → Quran kafeli + rəqəmlər (StatTile) →
+//   Tövhid → 99 ad → admin məzmunu / təddəbür / video / kitab → CTA.
+// Ortaq komponentlər: ui.css (.ui-tiles, .ui-steps, .ui-stats) və
+// components/viz (StatTile) — digər səhifələr üçün nümunədir.
 // Heç bir element üzmür və məzmunun üstünə düşmür (sahibin istəyi):
 // üzən hero kartları və "Günün hədisi" toast-u silinib, gündəlik məzmun
 // yuxarıdakı sakit zolaqdadır.
 // Brend mətnləri yalnız src/config/brand.js-dən oxunur.
 // ═══════════════════════════════════════════════════════
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { BRAND, brandName, tr } from '../config/brand'
 import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
-import { localizeSource } from '../utils/sourceNames'
 import { haptic } from '../hooks/useHaptic'
 import { DailyReminderBarSkeleton } from '../components/DailyReminderBarSkeleton'
 import Icon from '../components/Icon'
+import { StatTile } from '../components/viz'
+import { pathFor } from '../seo/routes'
 import CityPicker from '../components/CityPicker'
 import { HADITH_COUNT } from '../data/siteStats'
 import { lazyWhenIdle } from '../utils/idle'
@@ -35,8 +41,8 @@ const TW_REGION = {
 }
 
 const CV = {
-  feats: { '--cv-h': '1150px' },
-  stats: { '--cv-h': '240px' },
+  start: { '--cv-h': '420px' },
+  feats: { '--cv-h': '560px' },
   tw:    { '--cv-h': '1500px' },
   names: { '--cv-h': '680px' },
   cta:   { '--cv-h': '560px' },
@@ -63,56 +69,13 @@ import '../styles/HomePage.css'
 // .video-* qaydaları (HomeVideo.css, ~1.8 KB gzip; bax faylın başlığı)
 import '../styles/HomeVideo.css'
 
-// "Hərəkəti azalt" seçilibsə rəqəmlər saymır — dərhal son dəyər görünür
-const reducedMotion = () => {
-  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false }
-}
-
-// Statistika rəqəmi: görünəndə 0-dan sona qədər sayır (ease-out, yalnız mətn
-// dəyişir — layout sabitdir, rəqəmlər tabular-nums). delay — sıradakı
-// rəqəmlər növbə ilə başlasın. Ekran oxuyucu yalnız son dəyəri eşidir
-// (sayılan rəqəm aria-hidden, yanında gizli son dəyər).
-function CountUp({ end, duration = 1600, delay = 0 }) {
-  const [count, setCount] = useState(() => (typeof window !== 'undefined' && !reducedMotion() && 'IntersectionObserver' in window ? 0 : end))
-  const ref = useRef(null)
-  const started = useRef(false)
-  useEffect(() => {
-    if (reducedMotion() || !('IntersectionObserver' in window)) { setCount(end); return undefined }
-    let raf = 0
-    let timer = 0
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !started.current) {
-        started.current = true
-        obs.disconnect()
-        timer = window.setTimeout(() => {
-          const start = performance.now()
-          const tick = (now) => {
-            const p = Math.min((now - start) / duration, 1)
-            const ease = 1 - Math.pow(1 - p, 3)
-            setCount(Math.round(ease * end))
-            if (p < 1) raf = requestAnimationFrame(tick)
-          }
-          raf = requestAnimationFrame(tick)
-        }, delay)
-      }
-    }, { threshold: 0.3 })
-    if (ref.current) obs.observe(ref.current)
-    return () => { obs.disconnect(); cancelAnimationFrame(raf); window.clearTimeout(timer) }
-  }, [end, duration, delay])
-  // Ayırıcısız yazılır — səhifənin qalan rəqəmləri (Quran zolağı, bölmələr)
-  // kimi. toLocaleString() brauzerin dilinə görə "6,236" yazırdı.
-  return (
-    <>
-      <span ref={ref} aria-hidden="true" className={count === end ? 'hp-cu is-done' : 'hp-cu'}>{String(count)}</span>
-      <span className="ui-sr-only">{String(end)}</span>
-    </>
-  )
-}
-
 // Görünmə animasiyaları motion.css-in data-reveal sistemi ilədir (tək qlobal
 // IntersectionObserver, hooks/useReveal.js) — səhifənin öz useInView-i silinib.
 
 const pad2 = (n) => String(n).padStart(2, '0')
+
+// Adi sol klik — SPA naviqasiyası; Ctrl/Shift/orta klik brauzerə qalır (yeni tab)
+const plainClick = (e) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 
 // Ana səhifədə yalnız 5 fərz namazı göstərilir (günəş — /jamaat səhifəsində)
 const FARD_KEYS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
@@ -143,6 +106,12 @@ const LABELS = {
     ctaDesc: 'Namaz vaxtlarını izləyin, yeni elanlardan xəbərdar olun və İslami bilikləri bir yerdə öyrənin.',
     ctaTimes: 'Namaz vaxtları', ctaNotif: 'Bildiriş ayarları',
     adFree: 'Reklamsız', free: '100% pulsuz', langs: '5 dil',
+    noSignup: 'Qeydiyyatsız', heroTrust: 'Saytın üstünlükləri',
+    quickEy: 'Bölmələr', quickTitle: 'Nə axtarırsınız?',
+    quickSub: 'Ən çox açılan bölmələr — qalanları menyudadır.',
+    startEy: 'Yeni başlayanlar üçün', startTitle: 'Haradan başlamalı?',
+    startSub: 'Dörd sadə addım — hər biri ayrıca bölməyə aparır.',
+    statsEy: 'Rəqəmlərlə', statsTitle: 'Saytda nə var',
   },
   en: {
     badge: 'A free Islamic platform',
@@ -160,6 +129,12 @@ const LABELS = {
     ctaDesc: 'Follow the prayer times, keep up with new announcements and learn about Islam — all in one place.',
     ctaTimes: 'Prayer times', ctaNotif: 'Notification settings',
     adFree: 'Ad-free', free: '100% Free', langs: '5 Languages',
+    noSignup: 'No sign-up', heroTrust: 'Why this site',
+    quickEy: 'Sections', quickTitle: 'What are you looking for?',
+    quickSub: 'The most visited sections — everything else is in the menu.',
+    startEy: 'New here?', startTitle: 'Where to start',
+    startSub: 'Four simple steps — each one opens its own section.',
+    statsEy: 'In numbers', statsTitle: 'What the site offers',
   },
   ru: {
     badge: 'Бесплатная исламская платформа',
@@ -177,6 +152,12 @@ const LABELS = {
     ctaDesc: 'Следите за временем намаза и новыми объявлениями и изучайте ислам — всё в одном месте.',
     ctaTimes: 'Время намаза', ctaNotif: 'Настройки уведомлений',
     adFree: 'Без рекламы', free: '100% бесплатно', langs: '5 языков',
+    noSignup: 'Без регистрации', heroTrust: 'Преимущества сайта',
+    quickEy: 'Разделы', quickTitle: 'Что вы ищете?',
+    quickSub: 'Самые посещаемые разделы — остальные в меню.',
+    startEy: 'Для начинающих', startTitle: 'С чего начать?',
+    startSub: 'Четыре простых шага — каждый ведёт в свой раздел.',
+    statsEy: 'В цифрах', statsTitle: 'Что есть на сайте',
   },
   ar: {
     badge: 'منصة إسلامية مجانية',
@@ -194,6 +175,12 @@ const LABELS = {
     ctaDesc: 'تابع مواقيت الصلاة والإعلانات الجديدة وتعلّم عن الإسلام — في مكان واحد.',
     ctaTimes: 'مواقيت الصلاة', ctaNotif: 'إعدادات الإشعارات',
     adFree: 'بدون إعلانات', free: 'مجاني 100%', langs: '5 لغات',
+    noSignup: 'بلا تسجيل', heroTrust: 'مزايا الموقع',
+    quickEy: 'الأقسام', quickTitle: 'عمّ تبحث؟',
+    quickSub: 'أكثر الأقسام زيارة — والبقية في القائمة.',
+    startEy: 'للمبتدئين', startTitle: 'من أين تبدأ؟',
+    startSub: 'أربع خطوات بسيطة — كل خطوة تفتح قسمها.',
+    statsEy: 'بالأرقام', statsTitle: 'ماذا في الموقع',
   },
   tr: {
     badge: 'Ücretsiz İslami platform',
@@ -211,43 +198,72 @@ const LABELS = {
     ctaDesc: 'Namaz vakitlerini takip edin, yeni duyurulardan haberdar olun ve İslam hakkında bilgi edinin — hepsi tek yerde.',
     ctaTimes: 'Namaz vakitleri', ctaNotif: 'Bildirim ayarları',
     adFree: 'Reklamsız', free: '%100 Ücretsiz', langs: '5 Dil',
+    noSignup: 'Kayıtsız', heroTrust: 'Sitenin avantajları',
+    quickEy: 'Bölümler', quickTitle: 'Ne arıyorsunuz?',
+    quickSub: 'En çok açılan bölümler — diğerleri menüde.',
+    startEy: 'Yeni başlayanlar için', startTitle: 'Nereden başlamalı?',
+    startSub: 'Dört basit adım — her biri kendi bölümüne götürür.',
+    statsEy: 'Rakamlarla', statsTitle: 'Sitede neler var',
   },
 }
 
-// Hero kartındakı hədis — src/data/quotes.js-dən (Muslim 671) olduğu kimi
-// köçürülüb. quotes.js böyükdür, ona görə import edilmir. Ərəbcə tərcümə
-// yoxdur: ərəb dilində yalnız əsl mətn göstərilir. Mənbə Azərbaycan
-// yazılışındadır — göstərərkən localizeSource() onu dilə çevirir
-// ("مسلم 671", "Муслим 671", "Müslim 671").
-const HERO_HADITH = {
-  ar: 'أَحَبُّ الْبِلَادِ إِلَى اللَّهِ مَسَاجِدُهَا',
-  text: { az: 'Allaha ən sevimli yerlər məscidlərdir', en: 'The most beloved places to Allah are the mosques', ru: 'Самые любимые места для Аллаха — мечети', tr: 'Allah\'a en sevimli yerler mescitlerdir' },
-  source: 'Muslim 671',
-}
-
-// Hero-nun altındakı "Əsas" sırası — gündəlik ən çox lazım olan bölmələr.
-// Adlar yan menyunun "Əsas" qrupu ilə uyğundur (data/navigation.js).
-const MAIN_LINKS = [
-  {
-    page: 'prayer', icon: '🕐', tone: 'teal',
+// "Nə axtarırsınız?" — ən çox açılan 12 bölmə (ikon kafelləri, .ui-tiles).
+// Adlar yan menyu ilə uyğundur (data/navigation.js); təsvir — bir qısa sətir.
+// Qalan bölmələr yan paneldə / ☰ menyudadır (təkrar olmasın deyə burada yox).
+const QUICK = [
+  { page: 'prayer',
     title: { az: 'Namaz vaxtları', en: 'Prayer times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz vakitleri' },
-    desc: { az: 'Şəhərinizin azan vaxtları və geri sayım', en: 'Adhan times for your city with a countdown', ru: 'Время азана в вашем городе и обратный отсчёт', ar: 'أوقات الأذان في مدينتك مع العدّ التنازلي', tr: 'Şehrinizin ezan vakitleri ve geri sayım' },
-  },
-  {
-    page: 'jamaat', icon: '🤝', tone: 'gold',
+    desc: { az: 'Şəhərinizin 5 vaxtı', en: 'Your city’s 5 prayers', ru: '5 намазов вашего города', ar: 'الصلوات الخمس لمدينتك', tr: 'Şehrinizin 5 vakti' } },
+  { page: 'quran',
+    title: { az: 'Quran', en: 'Quran', ru: 'Коран', ar: 'القرآن', tr: "Kur'an" },
+    desc: { az: 'Tərcümə və tilavət', en: 'Translation and recitation', ru: 'Перевод и чтение', ar: 'ترجمة وتلاوة', tr: 'Meal ve tilavet' } },
+  { page: 'learn',
+    title: { az: 'Dərslər', en: 'Lessons', ru: 'Уроки', ar: 'الدروس', tr: 'Dersler' },
+    desc: { az: 'Əqidə, fiqh, əxlaq', en: 'Creed, fiqh, character', ru: 'Акыда, фикх, нрав', ar: 'العقيدة والفقه والأخلاق', tr: 'Akide, fıkıh, ahlak' } },
+  { page: 'hadith',
+    title: { az: 'Hədislər', en: 'Hadith', ru: 'Хадисы', ar: 'الأحاديث', tr: 'Hadisler' },
+    desc: { az: 'Səhih mənbələrdən', en: 'From authentic collections', ru: 'Из достоверных сборников', ar: 'من المصادر الصحيحة', tr: 'Sahih kaynaklardan' } },
+  { page: 'prayerguide',
+    title: { az: 'Namaz öyrən', en: 'Learn prayer', ru: 'Учись молиться', ar: 'تعلّم الصلاة', tr: 'Namaz öğren' } ,
+    desc: { az: 'Dəstəmazdan salama qədər', en: 'From wudu to salam', ru: 'От омовения до салама', ar: 'من الوضوء إلى التسليم', tr: 'Abdestten selama kadar' } },
+  { page: 'duas',
+    title: { az: 'Dualar', en: "Du'as", ru: 'Дуа', ar: 'الأدعية', tr: 'Dualar' },
+    desc: { az: 'Hər məqam üçün', en: 'For every occasion', ru: 'На каждый случай', ar: 'لكل مناسبة', tr: 'Her an için' } },
+  { page: 'dhikr',
+    title: { az: 'Zikr sayğacı', en: 'Dhikr counter', ru: 'Счётчик зикра', ar: 'عداد الذكر', tr: 'Zikir sayacı' },
+    desc: { az: 'Təsbeh hər an yanınızda', en: 'Tasbih always with you', ru: 'Тасбих всегда с вами', ar: 'التسبيح معك دائمًا', tr: 'Tesbih her an yanınızda' } },
+  { page: 'names',
+    title: { az: 'Allahın 99 adı', en: '99 Names of Allah', ru: '99 имён Аллаха', ar: 'الأسماء الحسنى', tr: "Allah'ın 99 ismi" },
+    desc: { az: 'Mənaları ilə', en: 'With their meanings', ru: 'С их значениями', ar: 'مع معانيها', tr: 'Anlamlarıyla' } },
+  { page: 'qibla',
+    title: { az: 'Qiblə', en: 'Qibla', ru: 'Кибла', ar: 'القبلة', tr: 'Kıble' },
+    desc: { az: 'Kəbəyə istiqamət', en: 'Direction to the Kaaba', ru: 'Направление на Каабу', ar: 'الاتجاه نحو الكعبة', tr: 'Kâbe yönü' } },
+  { page: 'calendar',
+    title: { az: 'İslami təqvim', en: 'Islamic calendar', ru: 'Исламский календарь', ar: 'التقويم الهجري', tr: 'İslami takvim' },
+    desc: { az: 'Hicri tarix və günlər', en: 'Hijri dates and days', ru: 'Даты хиджры и дни', ar: 'التاريخ الهجري والمناسبات', tr: 'Hicri tarih ve günler' } },
+  { page: 'zakat',
+    title: { az: 'Zəkat', en: 'Zakat', ru: 'Закят', ar: 'الزكاة', tr: 'Zekât' },
+    desc: { az: 'Nisab və hesablama', en: 'Nisab and calculation', ru: 'Нисаб и расчёт', ar: 'النصاب والحساب', tr: 'Nisap ve hesaplama' } },
+  { page: 'jamaat',
     title: { az: 'Camaat və cümə', en: 'Congregation & Friday', ru: 'Джамаат и Джума', ar: 'الجماعة والجمعة', tr: 'Cemaat ve Cuma' },
-    desc: { az: 'Camaat və cümə namazının fəziləti', en: 'The virtue of congregational and Friday prayer', ru: 'Достоинства коллективного и пятничного намаза', ar: 'فضل صلاة الجماعة والجمعة', tr: 'Cemaat ve cuma namazının fazileti' },
-  },
-  {
-    page: 'announcements', icon: '📢', tone: 'orange',
-    title: { az: 'Elanlar', en: 'Announcements', ru: 'Объявления', ar: 'الإعلانات', tr: 'Duyurular' },
-    desc: { az: 'Saytın elanları və İslami günlər', en: 'Site announcements and Islamic days', ru: 'Объявления сайта и исламские дни', ar: 'إعلانات الموقع والأيام الإسلامية', tr: 'Site duyuruları ve İslami günler' },
-  },
-  {
-    page: 'donate', icon: '💝', tone: 'rose',
-    title: { az: 'Xeyriyyə və ianə', en: 'Charity & Giving', ru: 'Благотворительность', ar: 'الصدقة والتبرع', tr: 'Hayır ve Bağış' },
-    desc: { az: 'Sədəqənin fəziləti və necə vermək', en: 'The virtue of charity and how to give', ru: 'Достоинство садаки и как её давать', ar: 'فضل الصدقة وكيفية إخراجها', tr: 'Sadakanın fazileti ve nasıl verilir' },
-  },
+    desc: { az: 'Fəziləti və hökmləri', en: 'Virtues and rulings', ru: 'Достоинства и нормы', ar: 'الفضل والأحكام', tr: 'Fazileti ve hükümleri' } },
+]
+
+// "Haradan başlamalı?" — yeni gələn üçün 4 addım (.ui-steps). Hər addım
+// mövcud bölməyə aparır — məzmun təkrarlanmır, yalnız yol göstərilir.
+const START = [
+  { page: 'prayer', icon: 'pin',
+    title: { az: 'Şəhərinizi seçin', en: 'Choose your city', ru: 'Выберите свой город', ar: 'اختر مدينتك', tr: 'Şehrinizi seçin' },
+    text: { az: 'Namaz kartında şəhərin adına toxunun — beş vaxt və növbəti azana qalan vaxt görünür.', en: 'Tap the city name on the prayer card — the five times and the countdown to the next adhan appear.', ru: 'Нажмите на название города в карточке намаза — появятся пять времён и отсчёт до азана.', ar: 'اضغط على اسم المدينة في بطاقة الصلاة لتظهر الأوقات الخمسة والعدّ التنازلي للأذان.', tr: 'Namaz kartında şehir adına dokunun — beş vakit ve sonraki ezana kalan süre görünür.' } },
+  { page: 'prayerguide', icon: 'prayerguide',
+    title: { az: 'Namazı öyrənin', en: 'Learn the prayer', ru: 'Изучите намаз', ar: 'تعلّم الصلاة', tr: 'Namazı öğrenin' },
+    text: { az: 'Dəstəmazdan salama qədər hər hərəkət addım-addım, dəlilləri ilə.', en: 'Every movement from wudu to salam, step by step, with its evidence.', ru: 'Каждое действие от омовения до салама — шаг за шагом, с доводами.', ar: 'كل حركة من الوضوء إلى التسليم خطوة بخطوة مع الدليل.', tr: 'Abdestten selama her hareket adım adım, delilleriyle.' } },
+  { page: 'quran', icon: 'quran',
+    title: { az: 'Quranı oxuyun', en: 'Read the Quran', ru: 'Читайте Коран', ar: 'اقرأ القرآن', tr: "Kur'an okuyun" },
+    text: { az: '114 surə — ərəbcə mətn, tərcümə və qarilərin tilavəti.', en: '114 surahs — Arabic text, translation and recitation.', ru: '114 сур — арабский текст, перевод и чтение чтецов.', ar: '114 سورة — النص والتلاوة بأصوات القراء.', tr: '114 sure — Arapça metin, meal ve kârilerin tilaveti.' } },
+  { page: 'learn', icon: 'learn',
+    title: { az: 'Dininizi öyrənin', en: 'Learn your religion', ru: 'Изучайте религию', ar: 'تعلّم دينك', tr: 'Dininizi öğrenin' },
+    text: { az: 'Qısa dərslər: tövhid, iman, ibadət — Quran, səhih Sünnə və Sələfin anlayışı ilə.', en: 'Short lessons on tawheed, faith and worship — by the Quran, authentic Sunnah and the understanding of the Salaf.', ru: 'Короткие уроки о таухиде, вере и поклонении — по Корану, достоверной Сунне и пониманию саляфов.', ar: 'دروس قصيرة في التوحيد والإيمان والعبادة — بالقرآن والسنة الصحيحة وفهم السلف.', tr: 'Tevhid, iman ve ibadet üzerine kısa dersler — Kur\'an, sahih Sünnet ve Selef anlayışıyla.' } },
 ]
 
 // "Saytda" bölməsi — saytın İslami bölmələri (əvvəl i18n açarları səhv
@@ -509,16 +525,15 @@ export default function HomePage({ setPage }) {
   const dot = brand.lastIndexOf('.')
   const brandFirst = dot > 0 ? brand.slice(0, dot) : brand
   const brandLast = dot > 0 ? brand.slice(dot) : ''
-  const heroHadithText = lang === 'ar' ? '' : tr(HERO_HADITH.text, lang)
 
   const stats=[
-    {num:114,  s:'',  l:{az:'Quran surəsi',  en:'Quran Surahs',   ru:'Сур Корана',    tr:'Sure',         ar:'سورة'}},
-    {num:6236, s:'',  l:{az:'Quran ayəsi',   en:'Quran Verses',   ru:'Аятов Корана',  tr:'Ayet',         ar:'آية'}},
+    {num:114,  s:'',  icon:'quran', l:{az:'Quran surəsi',  en:'Quran Surahs',   ru:'Сур Корана',    tr:'Sure',         ar:'سورة'}},
+    {num:6236, s:'',  icon:'mushaf', l:{az:'Quran ayəsi',   en:'Quran Verses',   ru:'Аятов Корана',  tr:'Ayet',         ar:'آية'}},
     // Təkrarsız 1255 hədis — "1250+" (bax: data/siteStats.js)
-    {num:HADITH_COUNT, s:'+', l:{az:'Hədis',  en:'Hadiths',        ru:'Хадисов',       tr:'Hadis',        ar:'حديث'}},
-    {num:99,   s:'',  l:{az:"Allahın adı",   en:"Names of Allah", ru:'Имён Аллаха',   tr:"Allah'ın İsmi",ar:'اسمًا لله'}},
-    {num:5,    s:'',  l:{az:'Dil',            en:'Languages',      ru:'Языков',        tr:'Dil',          ar:'لغات'}},
-    {num:100,  s:'%', l:{az:'Pulsuz',         en:'Free',           ru:'Бесплатно',     tr:'Ücretsiz',     ar:'مجاناً'}},
+    {num:HADITH_COUNT, s:'+', icon:'hadith', l:{az:'Hədis',  en:'Hadiths',        ru:'Хадисов',       tr:'Hadis',        ar:'حديث'}},
+    {num:99,   s:'',  icon:'names', l:{az:"Allahın adı",   en:"Names of Allah", ru:'Имён Аллаха',   tr:"Allah'ın İsmi",ar:'اسمًا لله'}},
+    {num:5,    s:'',  icon:'globe', l:{az:'Dil',            en:'Languages',      ru:'Языков',        tr:'Dil',          ar:'لغات'}},
+    {num:100,  s:'%', icon:'gift', l:{az:'Pulsuz',         en:'Free',           ru:'Бесплатно',     tr:'Ücretsiz',     ar:'مجاناً'}},
   ]
 
   return (
@@ -534,10 +549,10 @@ export default function HomePage({ setPage }) {
           <DailyReminderBar setPage={goTo} />
         </Suspense>
 
-        {/* ═══ HERO ═══════════════════════════════════════════════════════ */}
-        {/* v2: fil sümüyü fon + yalnız İNCƏ xatəm naxışı (ui.css → .ui-pattern,
-            rəngi --pattern-color tokenindən) və bir yumşaq zümrüd işıq. Əvvəlki
-            fırlanan ulduzlar, üzən işıqlar və nöqtə şəbəkəsi götürülüb — sakitlik. */}
+        {/* ═══ HERO ═══════════════════════════════════════════════════════
+            v3: "bu sayt nədir" bir baxışda — brend, bir cümlə, iki əsas düymə,
+            üç qısa üstünlük; sağda (telefonda altda) namaz vaxtları kartı.
+            Hədis sitatı və üçüncü ("Elanlar") düymə götürülüb — sakitlik. */}
         <section className={`hp-hero ${visible?'hp-hero--vis':''}`}>
           <div className="hp-hero-bg" aria-hidden="true">
             <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
@@ -558,22 +573,16 @@ export default function HomePage({ setPage }) {
 
               <p className="hp-hero-sub">{tr(BRAND.tagline, lang)}</p>
 
-              {/* Hədis — ui.css → .ui-quote (başlanğıc kənarda qızılı xətt) */}
-              <figure className="ui-quote hp-hero-ayah">
-                <blockquote>
-                  <p className="ui-quote__ar ui-arabic hp-ha-ar" lang="ar" dir="rtl">{HERO_HADITH.ar}</p>
-                  {heroHadithText && <p className="ui-quote__text hp-ha-tr">{heroHadithText}</p>}
-                </blockquote>
-                <figcaption className="ui-quote__src hp-ha-ref">— {localizeSource(HERO_HADITH.source, lang)}</figcaption>
-              </figure>
-
               <div className="hp-hero-btns">
                 <button type="button" className="ui-btn ui-btn--primary ui-btn--lg" onClick={()=>goTo('prayer')}><Icon name="prayer" className="ui-btn__icon" /> {l.btnTimes}</button>
                 <button type="button" className="ui-btn ui-btn--secondary ui-btn--lg" onClick={()=>goTo('quran')}><Icon name="quran" className="ui-btn__icon" /> {l.btnQuran}</button>
-                <button type="button" className="ui-btn ui-btn--ghost ui-btn--lg" onClick={()=>goTo('announcements')}><Icon name="announcements" className="ui-btn__icon" /> {l.btnAnn}</button>
               </div>
-              {/* Hero-dakı qısa rəqəmlər (2000 · 6236 · 99 · 5) silinib — eyni
-                  rəqəmlər bir az aşağıdakı statistika zolağında var. */}
+
+              <ul className="hp-hero-trust" aria-label={l.heroTrust}>
+                <li><Icon name="check" size={16} /> {l.noSignup}</li>
+                <li><Icon name="shield" size={16} /> {l.adFree}</li>
+                <li><Icon name="globe" size={16} /> {l.langs}</li>
+              </ul>
             </div>
 
             <div className="hp-hero-visual">
@@ -581,110 +590,101 @@ export default function HomePage({ setPage }) {
             </div>
           </div>
         </section>
-
-        {/* ═══ ƏSAS — gündəlik bölmələrə qısa keçidlər ═══════════════════ */}
-        <nav className="hp-msq" aria-labelledby="hp-msq-ttl">
-          <div className="hp-msq-in">
-            <h2 id="hp-msq-ttl" className="hp-msq-ttl ui-eyebrow">{l.mainTitle}</h2>
-            {/* Telefonda qruplaşdırılmış siyahı (ikon + ox), kompüterdə 4 sakit kart.
-                v2: rəngli tonlar (data-tone) götürülüb — hamısı eyni zümrüd kafel */}
-            <ul className="hp-msq-grid" data-reveal="stagger">
-              {MAIN_LINKS.map(c=>(
-                <li key={c.page}>
-                  <button type="button" className="hp-msq-card" onClick={()=>goTo(c.page)}>
-                    <span className="hp-msq-ic ui-icon-tile" aria-hidden="true"><Icon name={c.page} /></span>
-                    <span className="hp-msq-txt">
-                      <strong>{L(c.title)}</strong>
-                      <small>{L(c.desc)}</small>
-                    </span>
-                    <span className="hp-msq-go" aria-hidden="true"><Icon name="arrow" size={18} className="ui-flip-rtl" /></span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </nav>
       </div>
 
-      {/* ═══ BÖLMƏLƏR — "bento" şəbəkəsi ═══════════════════════════════
-          v2: əvvəlki "Saytda" kartları + ayrıca Quran zolağı BİR şəbəkədə.
-          Böyük Quran kafeli Hicr 9 ayəsini, 114/6236/30 rəqəmlərini və
-          "Quran oxu" düyməsini saxlayır (Quran zolağının məzmunu); qalan
-          bölmələr kiçik kafellərdir. Rəngli emoji/rəng kodları yoxdur —
-          xətti ikonlar (Icon.jsx), hamısı eyni sakit palitrada. */}
-      <section className="hp-feats ui-cv" style={CV.feats} aria-labelledby="hp-feats-ttl">
-        <div className="hp-sec-in">
-          <div className="hp-sec-hd" data-reveal>
-            <span className="ui-eyebrow">{l.featEy}</span>
-            <h2 id="hp-feats-ttl" className="ui-title hp-sec-ttl">{l.featTitle}</h2>
-            <p className="hp-sec-sub">{l.featSub}</p>
-          </div>
-          <div className="hp-bento" data-reveal="stagger">
-            {/* Quran — iri kafel (2×2) */}
-            <div className="hp-bento-quran">
-              <div className="ui-pattern hp-bq-pattern" aria-hidden="true" />
-              <div className="hp-bq-top">
-                <span className="ui-icon-tile ui-icon-tile--lg hp-bq-ic" aria-hidden="true"><Icon name="quran" /></span>
-                <span className="hp-bq-ttl">{L(FEATURES[0].title)}</span>
-                <span className="hp-bq-desc">{L(FEATURES[0].desc)}</span>
-              </div>
-              <div className="hp-qban-l">
-                <div className="hp-qban-ar ui-arabic" lang="ar" dir="rtl">إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ</div>
-                {/* Ərəb dilində yalnız istinad — tərcümə ayənin təkrarı olardı.
-                    İstinad bölünmür ("— Hicr" / "9" ayrı sətirdə qalmasın) */}
-                <div className="hp-qban-tr">
-                  {!isAr && <>{L(QBAN_TR)}{' '}</>}
-                  <span className="hp-qban-ref">— {L(QBAN_REF)}</span>
-                </div>
-              </div>
-              <div className="hp-qban-r">
-                <div className="hp-qban-st">
-                  {[{n:'114',l:{az:'Surə',en:'Surahs',ru:'Сур',tr:'Sure',ar:'سورة'}},
-                    {n:'6236',l:{az:'Ayə',en:'Verses',ru:'Аятов',tr:'Ayet',ar:'آية'}},
-                    {n:'30',l:{az:'Cüz',en:'Juz',ru:'Джузов',tr:'Cüz',ar:'جزء'}},
-                  ].map((s,i)=><div key={i} className="hp-qban-s"><span>{s.n}</span>{L(s.l)}</div>)}
-                </div>
-                <button type="button" className="ui-btn ui-btn--inverse" onClick={()=>goTo('quran')}>
-                  {l.btnQuran}
-                  <Icon name="arrow" size={18} className="ui-btn__icon ui-flip-rtl" />
-                </button>
-              </div>
+      {/* ═══ NƏ AXTARIRSINIZ? — 12 əsas bölmə, ikon kafelləri ═════════════
+          Əvvəlki "Əsas" sırası + "Saytda" kafelləri BİR şəbəkədə (təkrar yox).
+          <a href> — Ctrl/orta klik yeni tabda açır; adi klik SPA ilə. */}
+      <section className="ui-section ui-section--tight hp-quick" aria-labelledby="hp-quick-ttl">
+        <div className="ui-container">
+          <div className="ui-section-head ui-section-head--row" data-reveal>
+            <div className="hp-head-text">
+              <span className="ui-eyebrow">{l.quickEy}</span>
+              <h2 id="hp-quick-ttl" className="ui-title">{l.quickTitle}</h2>
+              <p className="ui-lead">{l.quickSub}</p>
             </div>
-            {/* Qalan bölmələr — kiçik kafellər (<button>: klaviatura ilə də açılır) */}
-            {FEATURES.slice(1).map(f=>(
-              <button type="button" key={f.page} className={`hp-feat hp-feat--${f.page}`} onClick={()=>goTo(f.page)}>
-                <span className="hp-feat-top">
-                  <span className="hp-feat-ic ui-icon-tile" aria-hidden="true"><Icon name={f.page} /></span>
-                  <span className="hp-feat-go" aria-hidden="true"><Icon name="arrow" size={18} className="ui-flip-rtl" /></span>
-                </span>
-                <span className="hp-feat-ttl">{L(f.title)}</span>
-                <span className="hp-feat-desc">{L(f.desc)}</span>
-              </button>
-            ))}
           </div>
+          <ul className="ui-tiles hp-tiles" data-reveal="stagger">
+            {QUICK.map(q => (
+              <li key={q.page}>
+                <a className="ui-tile hp-tile" href={pathFor(q.page, lang)} onClick={(e) => { if (plainClick(e)) { e.preventDefault(); goTo(q.page) } }}>
+                  <span className="ui-icon-tile" aria-hidden="true"><Icon name={q.page} /></span>
+                  <span className="ui-tile__title">{L(q.title)}</span>
+                  <span className="ui-tile__text">{L(q.desc)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      {/* ═══ BISMILLAH ══════════════════════════════════════════════════ */}
-      <div className="hp-bism" data-reveal="fade">
-        <div className="ui-ornament" aria-hidden="true"><span className="ui-ornament__star" /></div>
-        <span className="hp-bism-ar" lang="ar" dir="rtl">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</span>
-        {!isAr && (
-          <span className="hp-bism-tr">
-            {lk==='az'?'Rəhman və Rəhim olan Allahın adı ilə':lk==='ru'?'Во имя Аллаха, Милостивого, Милосердного':lk==='tr'?"Rahmân ve Rahîm olan Allah'ın adıyla":'In the Name of Allah, the Most Gracious, the Most Merciful'}
-          </span>
-        )}
-      </div>
+      {/* ═══ HARADAN BAŞLAMALI? — yeni gələn üçün 4 addım ═════════════════ */}
+      <section className="ui-section ui-section--tight hp-start ui-cv" style={CV.start} aria-labelledby="hp-start-ttl">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{l.startEy}</span>
+            <h2 id="hp-start-ttl" className="ui-title">{l.startTitle}</h2>
+            <p className="ui-lead">{l.startSub}</p>
+          </div>
+          <ol className="ui-steps ui-steps--row hp-steps" data-reveal="stagger">
+            {START.map((s, i) => (
+              <li key={s.page} className="ui-step">
+                <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                <div className="ui-step__body">
+                  <h3 className="ui-step__title">
+                    <a className="hp-step-link" href={pathFor(s.page, lang)} onClick={(e) => { if (plainClick(e)) { e.preventDefault(); goTo(s.page) } }}>
+                      {L(s.title)}
+                      <Icon name="arrow" size={16} className="ui-flip-rtl" />
+                    </a>
+                  </h3>
+                  <p className="ui-step__text">{L(s.text)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
 
-      {/* ═══ STATS ══════════════════════════════════════════════════════ */}
-      <section className="hp-stats ui-cv" style={CV.stats}>
-        <div className="hp-stats-in" data-reveal="stagger">
-          {stats.map((s,i)=>(
-            <div key={i} className="hp-stat">
-              <div className="hp-stat-n"><CountUp end={s.num} delay={i * 90} />{s.s && <span className="hp-stat-sfx">{s.s}</span>}</div>
-              <div className="hp-stat-l">{L(s.l)}</div>
+      {/* ═══ QURAN + RƏQƏMLƏR ════════════════════════════════════════════
+          Solda Quran kafeli (Hicr 9 + "Quran oxu"), sağda saytın məzmunu
+          rəqəmlərlə (statistika kafelləri; görünəndə sayır — data-count). */}
+      <section className="ui-section ui-section--tight hp-feats ui-cv" style={CV.feats} aria-labelledby="hp-stats-ttl">
+        <div className="ui-container hp-qs">
+          <div className="hp-bento-quran" data-reveal>
+            <div className="ui-pattern hp-bq-pattern" aria-hidden="true" />
+            <div className="hp-bq-top">
+              <span className="ui-icon-tile ui-icon-tile--lg hp-bq-ic" aria-hidden="true"><Icon name="quran" /></span>
+              <span className="hp-bq-ttl">{L(FEATURES[0].title)}</span>
+              <span className="hp-bq-desc">{L(FEATURES[0].desc)}</span>
             </div>
-          ))}
+            <div className="hp-qban-l">
+              <div className="hp-qban-ar ui-arabic" lang="ar" dir="rtl">إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ</div>
+              {/* Ərəb dilində yalnız istinad — tərcümə ayənin təkrarı olardı.
+                  İstinad bölünmür ("— Hicr" / "9" ayrı sətirdə qalmasın) */}
+              <div className="hp-qban-tr">
+                {!isAr && <>{L(QBAN_TR)}{' '}</>}
+                <span className="hp-qban-ref">— {L(QBAN_REF)}</span>
+              </div>
+            </div>
+            <div className="hp-qban-r">
+              <button type="button" className="ui-btn ui-btn--inverse" onClick={()=>goTo('quran')}>
+                {l.btnQuran}
+                <Icon name="arrow" size={18} className="ui-btn__icon ui-btn__icon--end ui-flip-rtl" />
+              </button>
+            </div>
+          </div>
+
+          <div className="hp-stats-col">
+            <div className="hp-stats-hd" data-reveal>
+              <span className="ui-eyebrow">{l.statsEy}</span>
+              <h2 id="hp-stats-ttl" className="ui-title ui-title--sm">{l.statsTitle}</h2>
+            </div>
+            <div className="ui-stats hp-stats-grid" data-reveal="stagger">
+              {stats.map((s, i) => (
+                <StatTile key={i} icon={s.icon} label={L(s.l)} value={String(s.num)} count={s.num} unit={s.s || undefined} />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

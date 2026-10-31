@@ -12,6 +12,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import '../styles/DuasPage.css'
 import { pickLang } from '../utils/pickLang'
+import { pathFor } from '../seo/routes'
 
 // ── Kateqoriya tərcümələri ──────────────────────────────
 const CAT_LABELS = {
@@ -51,6 +52,39 @@ const UI = {
   ar: { share:'مشاركة', favAdd:'أضف إلى المفضلة', favRemove:'إزالة من المفضلة', copied:'تم النسخ!', more:'عرض المزيد', emptyFav:'لا توجد أدعية مفضلة بعد — اضغط على رمز القلب في البطاقة', notFound:'لم يتم العثور على أدعية', search:'ابحث عن دعاء', cats:'الفئات', clear:'مسح', count:'دعاء' },
   tr: { share:'Paylaş', favAdd:'Favorilere ekle', favRemove:'Favorilerden çıkar', copied:'Kopyalandı!', more:'Daha fazla göster', emptyFav:'Henüz favori dua yok — karttaki kalp simgesine dokunun', notFound:'Dua bulunamadı', search:'Dua ara', cats:'Kategoriler', clear:'Temizle', count:'dua' },
 }
+
+// ── v3: hero izahı, "hansı halda" kafelləri, peyğəmbərlərin Qurandakı duaları, əlaqəli bölmələr ──
+const PAGE_TXT = {
+  az: { how: 'Vəziyyəti seçin (məs. «Yatmaq») və ya axtarın. Hər kartda ərəb mətni, oxunuşu, mənası və mənbəyi var; ürək düyməsi duanı sevimlilərə əlavə edir.', duas: 'dua', cats: 'mövzu', favs: 'sevimli', occTitle: 'Hansı halda?', occLead: 'Ən çox axtarılan hallar — birinə toxunun, uyğun dualar aşağıda açılır.', listTitle: 'Bütün dualar', prophetsTitle: 'Peyğəmbərlərin Qurandakı duaları', prophetsLead: 'Allahın Kitabında peyğəmbərlərin dilindən gələn dualar — mətn və tərcümə Quran API-sindən gəlir.', related: 'Əlaqəli bölmələr', seeAll: 'Hamısı' },
+  en: { how: 'Pick a situation (e.g. “Sleeping”) or search. Each card has the Arabic text, transliteration, meaning and source; the heart saves a dua to your favourites.', duas: 'duas', cats: 'topics', favs: 'favourites', occTitle: 'Which occasion?', occLead: 'The most searched situations — tap one and the matching duas open below.', listTitle: 'All duas', prophetsTitle: 'Duas of the Prophets in the Quran', prophetsLead: 'Supplications on the tongues of the Prophets in the Book of Allah — text and translation come from the Quran API.', related: 'Related sections', seeAll: 'All' },
+  ru: { how: 'Выберите ситуацию (например, «Сон») или воспользуйтесь поиском. В каждой карточке — арабский текст, транслитерация, смысл и источник; сердечко добавляет дуа в избранное.', duas: 'дуа', cats: 'тем', favs: 'в избранном', occTitle: 'В какой ситуации?', occLead: 'Самые частые ситуации — нажмите, и нужные дуа откроются ниже.', listTitle: 'Все дуа', prophetsTitle: 'Мольбы пророков в Коране', prophetsLead: 'Мольбы, которые Книга Аллаха передаёт из уст пророков, — текст и перевод загружаются из API Корана.', related: 'Связанные разделы', seeAll: 'Все' },
+  ar: { how: 'اختر الموقف (مثل «النوم») أو ابحث. في كل بطاقة النص العربي والنطق والمعنى والمصدر، وزر القلب يضيف الدعاء إلى المفضلة.', duas: 'دعاء', cats: 'موضوعًا', favs: 'في المفضلة', occTitle: 'في أي موقف؟', occLead: 'أكثر المواقف بحثًا — اضغط على أحدها لتظهر الأدعية المناسبة في الأسفل.', listTitle: 'جميع الأدعية', prophetsTitle: 'أدعية الأنبياء في القرآن', prophetsLead: 'أدعية جاءت على ألسنة الأنبياء في كتاب الله — يُجلب النص من واجهة القرآن.', related: 'أقسام ذات صلة', seeAll: 'الكل' },
+  tr: { how: 'Bir durum seçin (ör. «Uyku») ya da arayın. Her kartta Arapça metin, okunuş, anlam ve kaynak var; kalp düğmesi duayı favorilere ekler.', duas: 'dua', cats: 'konu', favs: 'favori', occTitle: 'Hangi durumda?', occLead: 'En çok aranan durumlar — birine dokunun, uygun dualar aşağıda açılır.', listTitle: 'Tüm dualar', prophetsTitle: 'Peygamberlerin Kur’an’daki duaları', prophetsLead: 'Allah’ın Kitabında peygamberlerin dilinden gelen dualar — metin ve meal Kur’an API’sinden gelir.', related: 'İlgili bölümler', seeAll: 'Hepsi' },
+}
+// "Hansı halda?" — kateqoriyalardan ən çox lazım olanlar (ikonla)
+const OCCASIONS = [
+  { cat: 'Morning', icon: 'sunrise' }, { cat: 'Evening', icon: 'sunset' }, { cat: 'Sleeping', icon: 'moon' },
+  { cat: 'Waking Up', icon: 'sun' }, { cat: 'Eating', icon: 'leaf' }, { cat: 'Travel', icon: 'compass' },
+  { cat: 'Anxiety', icon: 'shield' }, { cat: 'Forgiveness', icon: 'refresh' }, { cat: 'Health', icon: 'drop' },
+  { cat: 'Family', icon: 'group' }, { cat: 'Knowledge', icon: 'learn' }, { cat: 'Protection', icon: 'hisn' },
+]
+// Peyğəmbərlərin duaları — yalnız ayə istinadı; mətn api.alquran.cloud-dan gəlir (yaddaşdan yazılmır)
+const PROPHET_DUAS = [
+  { ref: '7:23',  name: { az: 'Adəm və Həvva', en: 'Adam and Hawwa', ru: 'Адам и Хавва', ar: 'آدم وحواء', tr: 'Âdem ve Havva' }, about: { az: 'Tövbə və bağışlanma', en: 'Repentance and forgiveness', ru: 'Покаяние и прощение', ar: 'التوبة والمغفرة', tr: 'Tövbe ve bağışlanma' } },
+  { ref: '71:28', name: { az: 'Nuh', en: 'Nuh', ru: 'Нух', ar: 'نوح', tr: 'Nuh' }, about: { az: 'Özü, valideynləri və möminlər üçün', en: 'For himself, his parents and the believers', ru: 'За себя, родителей и верующих', ar: 'له ولوالديه وللمؤمنين', tr: 'Kendisi, anne-babası ve müminler için' } },
+  { ref: '14:40', name: { az: 'İbrahim', en: 'Ibrahim', ru: 'Ибрахим', ar: 'إبراهيم', tr: 'İbrahim' }, about: { az: 'Namazı qılan nəsil', en: 'Offspring who establish prayer', ru: 'Потомство, совершающее намаз', ar: 'ذرية مقيمة للصلاة', tr: 'Namazı kılan nesil' } },
+  { ref: '28:24', name: { az: 'Musa', en: 'Musa', ru: 'Муса', ar: 'موسى', tr: 'Musa' }, about: { az: 'Ehtiyac və ruzi', en: 'Need and provision', ru: 'Нужда и удел', ar: 'الحاجة والرزق', tr: 'İhtiyaç ve rızık' } },
+  { ref: '21:83', name: { az: 'Əyyub', en: 'Ayyub', ru: 'Аюб', ar: 'أيوب', tr: 'Eyyûb' }, about: { az: 'Xəstəlik və səbir', en: 'Illness and patience', ru: 'Болезнь и терпение', ar: 'المرض والصبر', tr: 'Hastalık ve sabır' } },
+  { ref: '21:87', name: { az: 'Yunus', en: 'Yunus', ru: 'Юнус', ar: 'يونس', tr: 'Yûnus' }, about: { az: 'Sıxıntı və qəmdən çıxış', en: 'Relief from distress and grief', ru: 'Избавление от беды и печали', ar: 'الخروج من الكرب والغم', tr: 'Sıkıntı ve kederden kurtuluş' } },
+]
+const RELATED = [
+  { page: 'hisn', icon: 'hisn', t: { az: 'Hisnul-Müslim', en: 'Hisn al-Muslim', ru: 'Хиснуль-муслим', ar: 'حصن المسلم', tr: 'Hısnu’l-Müslim' }, s: { az: 'Kitab tam: 133 fəsil, hər vəziyyət üçün zikr', en: 'The complete book: 133 chapters for every situation', ru: 'Полная книга: 133 главы на любую ситуацию', ar: 'الكتاب كاملًا: 133 بابًا لكل موقف', tr: 'Kitabın tamamı: her durum için 133 bölüm' } },
+  { page: 'duajournal', icon: 'duajournal', t: { az: 'Dua gündəliyi', en: 'Dua journal', ru: 'Дневник дуа', ar: 'دفتر الدعاء', tr: 'Dua günlüğü' }, s: { az: 'Duanın ədəbi və qəbul olunma vaxtları', en: 'Etiquette of dua and times of acceptance', ru: 'Этикет дуа и время принятия', ar: 'آداب الدعاء وأوقات الإجابة', tr: 'Duanın edebi ve kabul vakitleri' } },
+  { page: 'dhikr', icon: 'dhikr', t: { az: 'Zikr sayğacı', en: 'Dhikr counter', ru: 'Счётчик зикра', ar: 'عداد الذكر', tr: 'Zikir sayacı' }, s: { az: 'Təsbeh, namazdan sonrakı zikrlər', en: 'Tasbih and after-prayer adhkar', ru: 'Тасбих и зикры после намаза', ar: 'التسبيح وأذكار ما بعد الصلاة', tr: 'Tesbih ve namaz sonrası zikirler' } },
+  { page: 'names', icon: 'names', t: { az: 'Allahın 99 adı', en: 'The 99 Names of Allah', ru: '99 имён Аллаха', ar: 'أسماء الله الحسنى', tr: 'Allah’ın 99 ismi' }, s: { az: 'Allaha gözəl adları ilə dua edin (Əraf 7:180)', en: 'Call on Allah by His beautiful names (al-A‘raf 7:180)', ru: 'Взывайте к Аллаху Его прекрасными именами (7:180)', ar: 'ولله الأسماء الحسنى فادعوه بها (الأعراف 180)', tr: 'Allah’a güzel isimleriyle dua edin (A‘râf 7:180)' } },
+]
+const QURAN_L = { az: 'Quran', en: 'Quran', ru: 'Коран', ar: 'القرآن', tr: 'Kur’an' }
+const plainClick = (e) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 
 // "Hərəkəti azalt" seçilibsə sürüşmə dərhal olsun (animasiyasız)
 const scrollBehavior = () => {
@@ -137,6 +171,56 @@ function useVerse(ref, lang) {
   return { data: cached, loading: !cached }
 }
 
+/** Peyğəmbər duası kartı — ayə API-dən; yüklənərkən skelet, xəta olanda yalnız istinad qalır. */
+function ProphetDua({ item, lang }) {
+  const { data, loading } = useVerse(item.ref, lang)
+  return (
+    <article className="ui-card duas-pd">
+      <div className="duas-pd__head">
+        <span className="duas-pd__name">{item.name[lang] || item.name.en}</span>
+        <span className="duas-pd__about">{item.about[lang] || item.about.en}</span>
+      </div>
+      {data ? (
+        <>
+          <p className="duas-pd__ar ui-arabic" lang="ar" dir="rtl">{data.ar.replace(/^۞\s*/, '')}</p>
+          {lang !== 'ar' && data.text && <p className="duas-pd__text">{data.text}</p>}
+        </>
+      ) : loading ? (
+        <span className="skeleton skeleton--text duas-skel-ar" aria-hidden="true" />
+      ) : null}
+      <p className="duas-pd__ref ui-num"><Icon name="quran" size={14} /> {QURAN_L[lang] || QURAN_L.en} {item.ref}{data?.tname ? ` · ${data.tname}` : ''}</p>
+    </article>
+  )
+}
+
+/** Bölmə ekrana yaxınlaşanda kartları göstərir — 6 ayə sorğusu səhifə açılan kimi getməsin. */
+function ProphetDuas({ lang, x }) {
+  const ref = useRef(null)
+  const [on, setOn] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    if (typeof IntersectionObserver === 'undefined') { setOn(true); return undefined }
+    const io = new IntersectionObserver((es) => { if (es.some(e => e.isIntersecting)) { setOn(true); io.disconnect() } }, { rootMargin: '400px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  return (
+    <section className="ui-section ui-section--alt duas-prophets" aria-labelledby="duas-pd-h" ref={ref}>
+      <div className="ui-container">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{QURAN_L[lang] || QURAN_L.en}</span>
+          <h2 className="ui-title" id="duas-pd-h">{x.prophetsTitle}</h2>
+          <p className="ui-lead">{x.prophetsLead}</p>
+        </div>
+        <div className="duas-pd-grid">
+          {on && PROPHET_DUAS.map(it => <ProphetDua key={it.ref} item={it} lang={lang} />)}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ── Ürək ikonu: Icon.jsx-in ikonları yalnız xətlidir (fill yox), sevimli
 //    vəziyyəti isə dolu ürəklə göstərilir — ona görə yerli SVG (eyni xətt qalınlığı) ──
 function HeartIcon({ filled }) {
@@ -152,6 +236,7 @@ export default function DuasPage({ setPage }) {
   const t = T[lang]?.duas || T.az.duas
   const l = lk(lang)
   const ui = UI[l]
+  const x = PAGE_TXT[l] || PAGE_TXT.en
   const [selectedCat, setSelectedCat] = useState('All')
   // Pozuq yaddaş (massiv deyilsə) sevimliləri sıfırlayır — .includes çökməsin
   const [favs, setFavs] = useState(() => { try { const v = JSON.parse(localStorage.getItem('dua_favs')); return Array.isArray(v) ? v : [] } catch { return [] } })
@@ -166,6 +251,7 @@ export default function DuasPage({ setPage }) {
   const barRef = useRef(null)
   const listRef = useRef(null)
   const filterMounted = useRef(false)
+  const listHeadRef = useRef(null)
 
   useEffect(() => {
     try { localStorage.setItem('dua_favs', JSON.stringify(favs)) } catch { /* yaddaş bağlıdır */ }
@@ -279,6 +365,12 @@ export default function DuasPage({ setPage }) {
     return out
   }, [customForLang])
 
+  const catCounts = useMemo(() => {
+    const m = {}
+    for (const d of allDuas) m[d.cat] = (m[d.cat] || 0) + 1
+    return m
+  }, [allDuas])
+
   const filtered = useMemo(() => {
     let data = allDuas
     if (showFavs) data = data.filter(d => idsOf(d).some(id => favs.includes(id)))
@@ -315,10 +407,47 @@ export default function DuasPage({ setPage }) {
           <h1 className="ui-display">{t.title}</h1>
           {lang !== 'ar' && <p className="duas-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الأَدْعِيَة وَالأَذْكَار</p>}
           <p className="ui-lead">{t.subtitle}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{x.how}</span></p>
+          <ul className="ui-page-hero__stats">
+            <li><b className="ui-num">{allDuas.length}</b><span>{x.duas}</span></li>
+            <li><b className="ui-num">{EN_CATS.length - 1}</b><span>{x.cats}</span></li>
+            <li><b className="ui-num">{favs.length}</b><span>{x.favs}</span></li>
+          </ul>
         </div>
       </header>
 
-      <section className="ui-section ui-section--tight duas-body">
+      {/* "Hansı halda?" — kateqoriya kafelləri; seçim aşağıdakı siyahını filtrləyir */}
+      <section className="ui-section ui-section--tight duas-occ" aria-labelledby="duas-occ-h">
+        <div className="ui-container">
+          <div className="ui-section-head">
+            <h2 className="ui-title ui-title--sm" id="duas-occ-h">{x.occTitle}</h2>
+            <p className="ui-lead">{x.occLead}</p>
+          </div>
+          <ul className="ui-tiles duas-occ-tiles" data-reveal="stagger">
+            {OCCASIONS.map(o => {
+              const on = selectedCat === o.cat && !showFavs
+              const n = catCounts[o.cat] || 0
+              return (
+                <li key={o.cat}>
+                  <button type="button" className={`ui-tile ui-tile--row duas-occ-tile${on ? ' is-active' : ''}`} aria-pressed={on}
+                    onClick={() => { setSelectedCat(on ? 'All' : o.cat); setShowFavs(false); setQuery(''); requestAnimationFrame(() => listHeadRef.current?.scrollIntoView({ block: 'start', behavior: scrollBehavior() })) }}>
+                    <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={o.icon} /></span>
+                    <span className="ui-tile__body">
+                      <span className="ui-tile__title">{CAT_LABELS[o.cat][l]}</span>
+                      <span className="ui-tile__text ui-num">{n} {ui.count}</span>
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </section>
+
+      <section className="ui-section ui-section--tight duas-body" aria-labelledby="duas-list-h">
+        <div className="ui-container">
+          <h2 className="ui-title ui-title--sm duas-list-title" id="duas-list-h" ref={listHeadRef}>{x.listTitle}</h2>
+        </div>
         <div className="ui-container duas-layout">
 
           {/* Yan sütun (genişdə yapışqan): axtarış + kateqoriyalar */}
@@ -459,6 +588,26 @@ export default function DuasPage({ setPage }) {
               </div>
             ) : null}
           </div>
+        </div>
+      </section>
+
+      <ProphetDuas lang={lang} x={x} />
+
+      <section className="ui-section ui-section--tight duas-related" aria-labelledby="duas-rel-h">
+        <div className="ui-container">
+          <h2 className="ui-title ui-title--sm" id="duas-rel-h">{x.related}</h2>
+          <ul className="ui-list duas-rel-list">
+            {RELATED.map(r => (
+              <li key={r.page}>
+                <a className="ui-list__item" href={pathFor(r.page, lang)}
+                  onClick={(e) => { if (setPage && plainClick(e)) { e.preventDefault(); setPage(r.page) } }}>
+                  <Icon name={r.icon} />
+                  <span>{r.t[l] || r.t.en}<small>{r.s[l] || r.s.en}</small></span>
+                  <Icon name="chevron" className="ui-list__chev ui-flip-rtl" />
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
     </div>

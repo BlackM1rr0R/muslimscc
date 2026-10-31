@@ -7,6 +7,8 @@ import '../styles/DailyTrackerPage.css'
 import { setPrayerStatus } from '../utils/prayerTracker'
 import { usePendingCheckinSync } from '../hooks/usePrayerTracker'
 import Breadcrumb from '../components/Breadcrumb'
+import { ColumnChart, BarChart, ChartFigure } from '../components/viz'
+import { pathFor } from '../seo/routes'
 
 // ── i18n Labels ──
 const LABELS = {
@@ -47,6 +49,24 @@ const EXTRA = {
   ar: { lead: 'سجّل الصلوات الخمس وقراءة القرآن والأذكار والصدقة كل يوم — يُحفَظ التقدم والأيام المتتالية على هذا الجهاز.', allDone: 'اكتملت عبادات اليوم كلها. تقبّل الله!', saved: 'تُحفَظ السجلات على هذا الجهاز فقط وتُدمَج مع إحصاءات الصلاة في صفحة مواقيت الصلاة.', progress: 'تقدّم اليوم' },
   tr: { lead: 'Beş vakit namazı, Kuran okumayı, ezkarları ve sadakayı her gün işaretleyin — ilerleme ve seri bu cihazda saklanır.', allDone: 'Bugünün tüm ibadetleri tamamlandı. Allah kabul etsin!', saved: 'Kayıtlar yalnızca bu cihazda saklanır ve Namaz Vakitleri sayfasındaki namaz istatistiğiyle birleşir.', progress: 'Bugünün ilerlemesi' },
 }
+
+// ── v3: izah, qrafik başlıqları, "harada edim" keçidləri ──
+const V3 = {
+  az: { how: 'Hər əməli edəndə sətrə toxunun — işarə qoyulur. Namaz işarələri «Namaz izləyicisi» ilə ortaqdır. Gün bitəndə həftəlik və aylıq qrafiklərə baxın.', weekSub: 'günün tamamlanma faizi', monthTitle: 'Son 30 gündə ardıcıllıq', monthSub: 'hər əməl neçə gün edilib', monthNote: 'Ən sevimli əməl az olsa da davamlı olandır (Buxari 6464, Müslim 782).', days: 'gün', whereTitle: 'Harada edim?', whereLead: 'Hər əməl üçün saytdakı uyğun bölmə.' },
+  en: { how: 'Tap a row when you have done it — it gets ticked. Prayer ticks are shared with the Prayer tracker. Check the weekly and monthly charts as the days go by.', weekSub: 'share of the day completed', monthTitle: 'Consistency over the last 30 days', monthSub: 'on how many days each deed was done', monthNote: 'The most beloved deeds are the most constant, even if small (al-Bukhari 6464, Muslim 782).', days: 'days', whereTitle: 'Where do I do it?', whereLead: 'The matching section of the site for each deed.' },
+  ru: { how: 'Сделав дело, нажмите на строку — появится отметка. Отметки намазов общие с «Учётом намазов». По мере дней смотрите недельный и месячный графики.', weekSub: 'доля выполненного за день', monthTitle: 'Постоянство за 30 дней', monthSub: 'сколько дней совершалось каждое дело', monthNote: 'Самые любимые дела — постоянные, даже если малые (аль-Бухари 6464, Муслим 782).', days: 'дн.', whereTitle: 'Где это сделать?', whereLead: 'Подходящий раздел сайта для каждого дела.' },
+  ar: { how: 'اضغط على السطر عند أداء العمل لتوضع علامة. علامات الصلاة مشتركة مع «متابعة الصلاة». وتابع الرسمين الأسبوعي والشهري مع الأيام.', weekSub: 'نسبة ما أُنجز في اليوم', monthTitle: 'المداومة في آخر 30 يومًا', monthSub: 'عدد الأيام التي أُدي فيها كل عمل', monthNote: 'أحب الأعمال إلى الله أدومها وإن قلّ (البخاري 6464، مسلم 782).', days: 'يومًا', whereTitle: 'أين أؤديه؟', whereLead: 'القسم المناسب في الموقع لكل عمل.' },
+  tr: { how: 'Bir ameli yaptığınızda satıra dokunun — işaretlenir. Namaz işaretleri «Namaz takibi» ile ortaktır. Günler geçtikçe haftalık ve aylık grafiklere bakın.', weekSub: 'günün tamamlanma yüzdesi', monthTitle: 'Son 30 günde süreklilik', monthSub: 'her amel kaç gün yapıldı', monthNote: 'Amellerin en sevimlisi az da olsa devamlı olanıdır (Buhârî 6464, Müslim 782).', days: 'gün', whereTitle: 'Nerede yapayım?', whereLead: 'Her amel için sitedeki uygun bölüm.' },
+}
+const WHERE = [
+  { page: 'tracker', icon: 'tracker', t: { az: 'Namaz izləyicisi', en: 'Prayer tracker', ru: 'Учёт намазов', ar: 'متابعة الصلاة', tr: 'Namaz takibi' }, s: { az: 'Təqvim, seriya, qəza qeydi', en: 'Calendar, streak, missed prayers', ru: 'Календарь, серия, пропуски', ar: 'التقويم والتتابع والفوائت', tr: 'Takvim, seri, kaza kaydı' } },
+  { page: 'quran', icon: 'quran', t: { az: 'Quran', en: 'Quran', ru: 'Коран', ar: 'القرآن', tr: 'Kur’an' }, s: { az: 'Tərcümə və tilavət', en: 'Translation and recitation', ru: 'Перевод и чтение', ar: 'التفسير والتلاوة', tr: 'Meal ve tilavet' } },
+  { page: 'hisn', icon: 'hisn', hash: 'hs-28', t: { az: 'Səhər və axşam əzkarları', en: 'Morning and evening adhkar', ru: 'Утренние и вечерние азкары', ar: 'أذكار الصباح والمساء', tr: 'Sabah ve akşam ezkarları' }, s: { az: 'Hisnul-Müslim, 28-ci fəsil', en: 'Hisn al-Muslim, chapter 28', ru: 'Хиснуль-муслим, глава 28', ar: 'حصن المسلم، الباب 28', tr: 'Hısnu’l-Müslim, 28. bölüm' } },
+  { page: 'dhikr', icon: 'dhikr', t: { az: 'Zikr sayğacı', en: 'Dhikr counter', ru: 'Счётчик зикра', ar: 'عداد الذكر', tr: 'Zikir sayacı' }, s: { az: 'Təsbeh və namazdan sonrakı zikrlər', en: 'Tasbih and after-prayer adhkar', ru: 'Тасбих и зикры после намаза', ar: 'التسبيح وأذكار ما بعد الصلاة', tr: 'Tesbih ve namaz sonrası zikirler' } },
+  { page: 'charity', icon: 'charity', t: { az: 'Sədəqə qeydi', en: 'Charity log', ru: 'Учёт садаки', ar: 'سجل الصدقة', tr: 'Sadaka kaydı' }, s: { az: 'Verdiyiniz sədəqələri yazın', en: 'Record the charity you give', ru: 'Записывайте свою садаку', ar: 'سجّل ما تتصدق به', tr: 'Verdiğiniz sadakaları kaydedin' } },
+  { page: 'qada', icon: 'qada', t: { az: 'Qəza izləyicisi', en: 'Qada tracker', ru: 'Учёт возмещения', ar: 'متابعة القضاء', tr: 'Kaza takibi' }, s: { az: 'Qılınmamış namaz və oruclar', en: 'Missed prayers and fasts', ru: 'Пропущенные намазы и посты', ar: 'الصلوات والصيام الفائت', tr: 'Kılınmamış namaz ve oruçlar' } },
+]
+const plainClick = (e) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 
 const STORAGE_KEY = 'daily_tracker'
 
@@ -96,9 +116,9 @@ function syncPrayerStat(dateStr, key, done) {
   setPrayerStatus(dateStr, key, done ? 'prayed' : null)
 }
 
-function getLast7Days() {
+function getLastDays(n = 7) {
   const days = []
-  for (let i = 6; i >= 0; i--) {
+  for (let i = n - 1; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
     days.push(getDateStr(d))
@@ -164,7 +184,18 @@ export default function DailyTrackerPage({ setPage }) {
   const totalCount = ACTIVITIES.length
   const percent = Math.round((doneCount / totalCount) * 100)
   const streak = calcStreak(data)
-  const last7 = getLast7Days()
+  const last7 = getLastDays(7)
+  const last30 = getLastDays(30)
+  const v = V3[lang] || V3.en
+  const weekData = last7.map(d => {
+    const dd = data[d] || {}
+    const pct = Math.round((ACTIVITIES.filter(a => dd[a.key]).length / totalCount) * 100)
+    return { key: d, label: `${getDayLabel(d, t)} ${Number(d.slice(8))}`, value: pct, current: d === today }
+  })
+  const monthData = ACTIVITIES.map(a => ({
+    key: a.key, label: a[lang] || a.en,
+    value: last30.filter(d => data[d] && data[d][a.key]).length,
+  }))
 
   const toggle = useCallback((key) => {
     haptic() // telefonda yüngül titrəmə (yalnız həqiqi toxunuşda)
@@ -199,6 +230,7 @@ export default function DailyTrackerPage({ setPage }) {
           {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
           {lang !== 'ar' && <p className="tracker-hero-ar ui-arabic" lang="ar" aria-hidden="true">العبادات اليومية</p>}
           <p className="ui-lead">{x.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{v.how}</span></p>
         </div>
       </header>
 
@@ -290,32 +322,42 @@ export default function DailyTrackerPage({ setPage }) {
             </div>
           </div>
 
-          {/* Weekly View */}
+          {/* Həftə (sütun qrafiki) + son 30 gündə hər əməlin ardıcıllığı */}
           <div className="tracker-week">
-            <h2>{t.weekView}</h2>
-            <div className="tracker-week-grid ui-card" data-reveal="stagger-zoom">
-              {last7.map(dateStr => {
-                const dayData = data[dateStr] || {}
-                const dayDone = ACTIVITIES.filter(a => dayData[a.key]).length
-                const dayPct = Math.round((dayDone / totalCount) * 100)
-                const isToday = dateStr === today
-                const dayNum = dateStr.split('-')[2]
-                return (
-                  <div key={dateStr} className={`tracker-week-day ${isToday ? 'today' : ''} ${dayPct === 100 ? 'complete' : ''}`}>
-                    <span className="tracker-week-label">{getDayLabel(dateStr, t)}</span>
-                    <span className="tracker-week-num ui-num">{dayNum}</span>
-                    <div className="tracker-week-bar-wrap">
-                      {/* Hündürlük transform ilə (scaleY) — layout animasiyası yoxdur */}
-                      <div className="tracker-week-bar" style={{ '--p': dayPct / 100 }} />
-                    </div>
-                    <span className="tracker-week-pct ui-num">{dayPct > 0 ? `${dayPct}%` : '—'}</span>
-                  </div>
-                )
-              })}
+            <div className="tracker-charts">
+              <ChartFigure className="ui-card tracker-chart" title={t.weekView} sub={v.weekSub}>
+                <ColumnChart data={weekData} max={100} height={130} label={t.weekView} format={(n) => (n > 0 ? `${n}%` : '—')} />
+              </ChartFigure>
+              <ChartFigure className="ui-card tracker-chart" title={v.monthTitle} sub={v.monthSub} note={v.monthNote}>
+                <BarChart data={monthData} max={30} label={v.monthTitle} labelWidth="42%" format={(n) => `${n} / 30`} />
+              </ChartFigure>
             </div>
             <p className="tracker-note"><Icon name="info" size={15} /> {x.saved}</p>
           </div>
 
+        </div>
+      </section>
+
+      <section className="ui-section ui-section--tight tracker-where" aria-labelledby="tracker-where-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <h2 className="ui-title ui-title--sm" id="tracker-where-h">{v.whereTitle}</h2>
+            <p className="ui-lead">{v.whereLead}</p>
+          </div>
+          <ul className="ui-tiles" style={{ '--ui-tiles-min': '220px' }} data-reveal="stagger">
+            {WHERE.map(w => (
+              <li key={w.page}>
+                <a className="ui-tile ui-tile--row" href={`${pathFor(w.page, lang)}${w.hash ? `#${w.hash}` : ''}`}
+                  onClick={(e) => { if (!w.hash && setPage && plainClick(e)) { e.preventDefault(); setPage(w.page) } }}>
+                  <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={w.icon} /></span>
+                  <span className="ui-tile__body">
+                    <span className="ui-tile__title">{w.t[lang] || w.t.en}</span>
+                    <span className="ui-tile__text">{w.s[lang] || w.s.en}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
     </>

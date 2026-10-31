@@ -9,11 +9,21 @@ import { parsePath, pathFor } from '../seo/routes'
 import { SAHABA, slugOf } from '../data/sahaba'
 // Xəttatlıq lövhəsi (ərəbcə ad + رضي الله عنه/عنها) — canlı təsvir yoxdur
 import CalligraphyPlaque from '../components/media/CalligraphyPlaque'
+import LifespanChart from '../components/media/LifespanChart'
+import RelatedLinks from '../components/media/RelatedLinks'
+import { ChartFigure } from '../components/viz'
+import { SAHABA_DEATH, RASHIDUN_SPAN } from '../data/sahabaYears'
 import '../styles/SahabePage.css'
 
 /* ── Etiketlər (UI mətnləri, 5 dil) ── */
 const LABELS = {
   az: {
+    how:'Kartı seçin — səhabənin həyatı, əsas faktlar və onun haqqında hədislər mənbəsi ilə açılır.',
+    statCompanions:'səhabə', statCaliphs:'raşid xəlifə', statWomen:'qadın səhabə', statHadiths:'hədis və rəvayət', toTimeline:'Vəfat illəri',
+    tlEyebrow:'Bir baxışda', tlTitle:'Səhabələrin vəfat illəri', tlLead:'Hər nöqtə bir səhabənin vəfat ilidir (hicri). Qızılı zolaq — raşid xəlifələrin dövrü.',
+    tlFig:'Vəfat ili', tlSub:'hicri il üzrə; 0 — hicrət', band:'Raşid xəlifələr (h. 11–40)', mHijra:'Hicrət və Peyğəmbərin ﷺ vəfatı (h. 0, 11)',
+    tlNote:'Boş dairə — alimlər ili ixtilaf edib, ən məşhur il göstərilib. Mənbə: İbn Həcər, «Təqribut-Təhzib» və «əl-İsabə»; əz-Zəhəbi, «Siyəru əlamin-nubəla».',
+    died:'Vəfatı', relEyebrow:'Davamı', relTitle:'Əlaqəli bölmələr',
     eyebrow:'Hədis və bilik', clear:'Axtarışı təmizlə', title:'Səhabələr', subtitle:'Peyğəmbərin ﷺ əshabı', search:'Səhabə axtar...',
     bio:'Həyatı', facts:'Əsas faktlar', hadiths:'Hədislər və rəvayətlər', noResults:'Nəticə tapılmadı', hadithLabel:'Hədis',
     all:'Bütün səhabələr', glance:'Bir baxışda', role:'Rolu', islam:'İslamı qəbulu', caliphate:'Xilafət dövrü', narrated:'Rəvayət etdiyi hədis',
@@ -24,6 +34,12 @@ const LABELS = {
     years:(n) => `${n} il`, age:(n) => `${n} yaş`, hadithN:(n) => `${n} hədis`,
   },
   en: {
+    how:'Pick a card to open the companion’s life, key facts and hadiths about them, with sources.',
+    statCompanions:'companions', statCaliphs:'rightly guided caliphs', statWomen:'women companions', statHadiths:'hadiths and narrations', toTimeline:'Years of death',
+    tlEyebrow:'At a glance', tlTitle:'When the companions passed away', tlLead:'Each dot is the year a companion died (Hijri). The gold band is the era of the rightly guided caliphs.',
+    tlFig:'Year of death', tlSub:'by Hijri year; 0 = the Hijrah', band:'Rightly guided caliphs (11–40 AH)', mHijra:'The Hijrah and the Prophet’s ﷺ death (0, 11 AH)',
+    tlNote:'Hollow dot — scholars differ on the year; the best-known one is shown. Sources: Ibn Hajar, Taqrib at-Tahdhib and al-Isabah; adh-Dhahabi, Siyar A‘lam an-Nubala’.',
+    died:'Died', relEyebrow:'Continue', relTitle:'Related sections',
     eyebrow:'Hadith & knowledge', clear:'Clear search', title:'Companions', subtitle:'Companions of the Prophet ﷺ', search:'Search companions...',
     bio:'Biography', facts:'Key facts', hadiths:'Hadiths and narrations', noResults:'No results found', hadithLabel:'Hadith',
     all:'All companions', glance:'At a glance', role:'Role', islam:'Acceptance of Islam', caliphate:'Caliphate', narrated:'Hadiths narrated',
@@ -34,6 +50,12 @@ const LABELS = {
     years:(n) => `${n} ${n === 1 ? 'year' : 'years'}`, age:(n) => `${n} years`, hadithN:(n) => `${n} ${n === 1 ? 'hadith' : 'hadiths'}`,
   },
   ru: {
+    how:'Выберите карточку — откроются жизнь сподвижника, ключевые факты и хадисы о нём с источниками.',
+    statCompanions:'сахабов', statCaliphs:'праведных халифа', statWomen:'сподвижницы', statHadiths:'хадисов и преданий', toTimeline:'Годы кончины',
+    tlEyebrow:'Коротко', tlTitle:'Когда скончались сподвижники', tlLead:'Каждая точка — год кончины сподвижника (по хиджре). Золотая полоса — эпоха праведных халифов.',
+    tlFig:'Год кончины', tlSub:'по годам хиджры; 0 — хиджра', band:'Праведные халифы (11–40 г. х.)', mHijra:'Хиджра и кончина Пророка ﷺ (0 и 11 г. х.)',
+    tlNote:'Пустой кружок — учёные расходятся в годе, показан самый известный. Источники: Ибн Хаджар, «Такриб ат-Тахзиб» и «аль-Исаба»; аз-Захаби, «Сияр а‘лям ан-нубаля».',
+    died:'Кончина', relEyebrow:'Дальше', relTitle:'Связанные разделы',
     eyebrow:'Хадисы и знание', clear:'Очистить поиск', title:'Сахабы', subtitle:'Сподвижники Пророка ﷺ', search:'Поиск сахабов...',
     bio:'Биография', facts:'Ключевые факты', hadiths:'Хадисы и предания', noResults:'Результаты не найдены', hadithLabel:'Хадис',
     all:'Все сахабы', glance:'Коротко', role:'Роль', islam:'Принятие ислама', caliphate:'Халифат', narrated:'Передал хадисов',
@@ -45,6 +67,12 @@ const LABELS = {
     hadithN:(n) => `${n} ${ruPlural(n, 'хадис', 'хадиса', 'хадисов')}`,
   },
   ar: {
+    how:'اختر بطاقة لتفتح سيرة الصحابي وأبرز الحقائق والأحاديث الواردة فيه مع مصادرها.',
+    statCompanions:'صحابيًا', statCaliphs:'خلفاء راشدون', statWomen:'صحابيات', statHadiths:'حديثًا وأثرًا', toTimeline:'سنوات الوفاة',
+    tlEyebrow:'لمحة سريعة', tlTitle:'متى توفي الصحابة', tlLead:'كل نقطة سنةُ وفاة صحابي (بالهجري)، والشريط الذهبي عهد الخلفاء الراشدين.',
+    tlFig:'سنة الوفاة', tlSub:'بالسنة الهجرية؛ 0 = الهجرة', band:'الخلفاء الراشدون (11–40 هـ)', mHijra:'الهجرة ووفاة النبي ﷺ (0 و11 هـ)',
+    tlNote:'الدائرة المفرّغة: اختلف العلماء في السنة، والمعروض أشهر الأقوال. المصادر: ابن حجر «تقريب التهذيب» و«الإصابة»؛ الذهبي «سير أعلام النبلاء».',
+    died:'الوفاة', relEyebrow:'للمتابعة', relTitle:'أقسام ذات صلة',
     eyebrow:'الحديث والعلم', clear:'مسح البحث', title:'الصحابة', subtitle:'أصحاب النبي ﷺ', search:'ابحث عن صحابي...',
     bio:'السيرة', facts:'حقائق أساسية', hadiths:'الأحاديث والآثار', noResults:'لم يتم العثور على نتائج', hadithLabel:'حديث',
     all:'جميع الصحابة', glance:'لمحة سريعة', role:'المكانة', islam:'إسلامه', caliphate:'مدة الخلافة', narrated:'الأحاديث المروية',
@@ -55,6 +83,12 @@ const LABELS = {
     years:(n) => arYears(n), age:(n) => arYears(n), hadithN:(n) => `${n} ${n % 100 >= 3 && n % 100 <= 10 ? 'أحاديث' : 'حديثًا'}`,
   },
   tr: {
+    how:'Bir kart seçin — sahabenin hayatı, temel bilgiler ve hakkındaki hadisler kaynaklarıyla açılır.',
+    statCompanions:'sahabe', statCaliphs:'râşid halife', statWomen:'kadın sahabe', statHadiths:'hadis ve rivayet', toTimeline:'Vefat yılları',
+    tlEyebrow:'Bir bakışta', tlTitle:'Sahabelerin vefat yılları', tlLead:'Her nokta bir sahabenin vefat yılıdır (hicri). Altın renkli şerit râşid halifeler dönemidir.',
+    tlFig:'Vefat yılı', tlSub:'hicri yıla göre; 0 — hicret', band:'Râşid halifeler (h. 11–40)', mHijra:'Hicret ve Peygamber’in ﷺ vefatı (h. 0, 11)',
+    tlNote:'Boş daire — âlimler yılda ihtilaf etmiştir, en meşhur yıl gösterilir. Kaynak: İbn Hacer, «Takrîbü’t-Tehzîb» ve «el-İsâbe»; Zehebî, «Siyeru a‘lâmi’n-nübelâ».',
+    died:'Vefatı', relEyebrow:'Devamı', relTitle:'İlgili bölümler',
     eyebrow:'Hadis ve ilim', clear:'Aramayı temizle', title:'Sahabeler', subtitle:'Peygamberimizin ﷺ ashabı', search:'Sahabe ara...',
     bio:'Hayatı', facts:'Temel bilgiler', hadiths:'Hadisler ve rivayetler', noResults:'Sonuç bulunamadı', hadithLabel:'Hadis',
     all:'Tüm sahabeler', glance:'Bir bakışta', role:'Rolü', islam:"İslam'ı kabulü", caliphate:'Halifelik dönemi', narrated:'Rivayet ettiği hadis',
@@ -117,6 +151,10 @@ const pick = (obj, lang) => (obj && (obj[lang] || obj.en)) || ''
 // Profilin ünvanı: /sahaba/<slug> ("Abu Bakr as-Siddiq" → abu-bakr-as-siddiq).
 // Köhnə /sahaba?id=<slug|rəqəm> keçidlərini App.jsx yeni ünvana çevirir.
 const BY_SLUG = new Map(SAHABA.map(s => [slugOf(s), s]))
+const TOTAL_HADITHS = SAHABA.reduce((n, s) => n + s.hadiths.length, 0)
+// Qrafik: vəfat ilinə görə sıralanmış (eyni ildə — siyahı sırası)
+const BY_DEATH = SAHABA.filter(s => SAHABA_DEATH[slugOf(s)])
+  .sort((a, b) => SAHABA_DEATH[slugOf(a)].h - SAHABA_DEATH[slugOf(b)].h)
 
 // Kateqoriyalar — yalnız məlumatdan çıxarılır:
 //   xəlifələr: dörd raşid xəlifə (id 1–4, vəzifə sahəsində "xəlifə")
@@ -136,6 +174,33 @@ const FILTERS = [
   { key: 'caliphs', label: 'fCaliphs', test: isCaliph },
   { key: 'women', label: 'fWomen', test: isWoman },
   { key: 'narrators', label: 'fNarrators', test: (s) => Boolean(narratedOf(s)) },
+]
+
+// Vəfat ili mətni: "h. 13 · m. 634"; hicrətdən əvvəl — "hicrətdən 3 il əvvəl"
+const DEATH_FMT = {
+  az: { h: (y) => (y < 0 ? `hicrətdən ${-y} il əvvəl` : `h. ${y}`), g: (y) => `m. ${y}`, c: 'təq.' },
+  en: { h: (y) => (y < 0 ? `${-y} years before the Hijrah` : `${y} AH`), g: (y) => `${y} CE`, c: 'c.' },
+  ru: { h: (y) => (y < 0 ? `за ${-y} года до хиджры` : `${y} г. х.`), g: (y) => `${y} г.`, c: 'ок.' },
+  ar: { h: (y) => (y < 0 ? `قبل الهجرة بـ${-y} سنوات` : `${y} هـ`), g: (y) => `${y} م`, c: 'نحو' },
+  tr: { h: (y) => (y < 0 ? `hicretten ${-y} yıl önce` : `h. ${y}`), g: (y) => `m. ${y}`, c: 'yak.' },
+}
+function deathText(s, lang) {
+  const d = SAHABA_DEATH[slugOf(s)]
+  if (!d) return ''
+  const F = DEATH_FMT[lang] || DEATH_FMT.en
+  return `${d.approx ? `${F.c} ` : ''}${F.h(d.h)} · ${F.g(d.g)}`
+}
+
+// "Əlaqəli bölmələr" — məzmunu təkrarlamırıq, keçid veririk
+const RELATED = [
+  { page: 'scholars', title: { az: 'Alimlər', en: 'Scholars', ru: 'Учёные', ar: 'العلماء', tr: 'Âlimler' },
+    text: { az: 'Səhabələrdən elm alan tabiinlər və sonrakı imamlar', en: 'The Tabi‘un who learned from them and the imams after', ru: 'Табиины, учившиеся у них, и последующие имамы', ar: 'التابعون الذين أخذوا عنهم والأئمة من بعدهم', tr: 'Onlardan ilim alan tâbiîn ve sonraki imamlar' } },
+  { page: 'history', title: { az: 'İslami tarix', en: 'Islamic history', ru: 'Исламская история', ar: 'التاريخ الإسلامي', tr: 'İslam tarihi' },
+    text: { az: 'Siyərin hadisələri, xəritələr və dövrlər', en: 'Events of the Sirah, maps and eras', ru: 'События сиры, карты и эпохи', ar: 'أحداث السيرة والخرائط والعصور', tr: 'Siyer olayları, haritalar ve dönemler' } },
+  { page: 'hadith', title: { az: 'Hədislər', en: 'Hadith', ru: 'Хадисы', ar: 'الأحاديث', tr: 'Hadisler' },
+    text: { az: 'Səhabələrin rəvayət etdiyi səhih hədislər', en: 'Authentic hadiths narrated by the companions', ru: 'Достоверные хадисы, переданные сподвижниками', ar: 'الأحاديث الصحيحة التي رواها الصحابة', tr: 'Sahabelerin rivayet ettiği sahih hadisler' } },
+  { page: 'holyplaces', title: { az: 'Müqəddəs yerlər', en: 'Holy places', ru: 'Святые места', ar: 'الأماكن المقدسة', tr: 'Kutsal mekânlar' },
+    text: { az: 'Məkkə, Mədinə və Qüds — fotolar və tarix', en: 'Makkah, Madinah and Jerusalem — photos and history', ru: 'Мекка, Медина и Иерусалим — фото и история', ar: 'مكة والمدينة والقدس — صور وتاريخ', tr: 'Mekke, Medine ve Kudüs — fotoğraflar ve tarih' } },
 ]
 
 // Mətni cümlələrə böl; "Hz." kimi qısaltmalardan sonra bölmə
@@ -192,6 +257,9 @@ function glanceOf(s, lang, L) {
 
   const known = fact(/title "|called him "|name "|^"/i)
   if (known) rows.push({ key: 'known', label: L.knownAs, value: pick(known, lang), wide: true })
+
+  const died = deathText(s, lang)
+  if (died) rows.push({ key: 'died', label: L.died, value: died })
 
   const tidings = fact(/promised Paradise/i)
   if (tidings) rows.push({ key: 'tidings', label: L.tidings, value: pick(tidings, lang), wide: true })
@@ -348,6 +416,16 @@ export default function SahabePage() {
           <h1 className="ui-display">{L.title}</h1>
           {!isAr && <p className="sahabe-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الصحابة الكرام</p>}
           <p className="ui-lead">{L.subtitle}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {L.how}</p>
+          <ul className="ui-page-hero__stats">
+            <li><b className="ui-num">{SAHABA.length}</b><span>{L.statCompanions}</span></li>
+            <li><b className="ui-num">{counts.caliphs}</b><span>{L.statCaliphs}</span></li>
+            <li><b className="ui-num">{counts.women}</b><span>{L.statWomen}</span></li>
+            <li><b className="ui-num">{TOTAL_HADITHS}</b><span>{L.statHadiths}</span></li>
+            <li className="sahabe-hero__jump"><a className="ui-link" href="#sp-timeline" onClick={(e) => { e.preventDefault(); document.getElementById('sp-timeline')?.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth', block: 'start' }) }}>
+              <Icon name="history" size={16} /> {L.toTimeline} <Icon name="arrowDown" size={14} />
+            </a></li>
+          </ul>
         </div>
       </header>
 
@@ -422,6 +500,49 @@ export default function SahabePage() {
           )}
         </div>
       </div>
+
+      {/* Vəfat illəri — nöqtə qrafiki (hicri il), fonda raşid xəlifələr dövrü */}
+      <section id="sp-timeline" className="ui-section ui-section--alt sp-timeline" aria-labelledby="sp-timeline-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{L.tlEyebrow}</span>
+            <h2 id="sp-timeline-h" className="ui-title">{L.tlTitle}</h2>
+            <p className="ui-lead">{L.tlLead}</p>
+          </div>
+          <ChartFigure title={L.tlFig} sub={L.tlSub} note={L.tlNote}>
+            <LifespanChart
+              label={L.tlFig}
+              min={-5} max={95}
+              ticks={[0, 20, 40, 60, 80].map(v => ({ v, label: String(v) }))}
+              bands={[{ ...RASHIDUN_SPAN, label: L.band }]}
+              markers={[{ v: 0, label: L.mHijra }, { v: 11 }]}
+              rows={BY_DEATH.map(s => {
+                const d = SAHABA_DEATH[slugOf(s)]
+                return {
+                  key: slugOf(s),
+                  name: pick(s.name, lang),
+                  sub: deathText(s, lang),
+                  href: pathFor('sahaba', lang, slugOf(s)),
+                  onClick: (e) => openProfile(s, e),
+                  end: d.h,
+                  approx: d.approx,
+                  tone: isCaliph(s) ? 2 : 1,
+                }
+              })}
+            />
+          </ChartFigure>
+        </div>
+      </section>
+
+      <section className="ui-section ui-section--tight sp-related" aria-labelledby="sp-rel-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{L.relEyebrow}</span>
+            <h2 id="sp-rel-h" className="ui-title ui-title--sm">{L.relTitle}</h2>
+          </div>
+          <RelatedLinks items={RELATED} />
+        </div>
+      </section>
     </div>
   )
 }

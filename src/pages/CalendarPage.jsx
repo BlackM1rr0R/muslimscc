@@ -13,6 +13,7 @@ import { CAL_EVENT_INFO, CAL_GUIDE_TXT, CAL_HIJRI_LINK, CAL_MONTHS_GUIDE, CAL_SO
 import '../styles/LessonsPage.css'
 import '../styles/CalendarPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import RelatedLinks from '../components/prayer/RelatedLinks'
 import { showLocalNotification } from '../utils/notify'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
@@ -190,6 +191,23 @@ function buildHijriYear(hYear, base) {
   }
   return months
 }
+
+// ── Dizayn v3: hero "necə işlədilir", geri sayım, ay zolağı, əlaqəli bölmələr ──
+const CAL_X = {
+  az: { how: 'Necə işlədilir: ayı seçin, günə toxunun — o günün hadisələri sağda görünür. Zəng düyməsi hadisə günü xatırladır.', daysLeft: (n) => (n === 0 ? 'bu gün' : n === 1 ? 'sabah' : `${n} gün qaldı`), days: (n) => `${n} gün`, events: (n) => `${n} hadisə`, monthsLabel: 'Hicri aylar' },
+  en: { how: 'How to use: pick a month and tap a day — its events appear alongside. The bell button reminds you on the day.', daysLeft: (n) => (n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${n} days`), days: (n) => `${n} days`, events: (n) => `${n} events`, monthsLabel: 'Hijri months' },
+  ru: { how: 'Как пользоваться: выберите месяц и нажмите на день — его события появятся рядом. Кнопка с колокольчиком напомнит в этот день.', daysLeft: (n) => (n === 0 ? 'сегодня' : n === 1 ? 'завтра' : `через ${n} дн.`), days: (n) => `${n} дн.`, events: (n) => `событий: ${n}`, monthsLabel: 'Месяцы хиджры' },
+  ar: { how: 'طريقة الاستعمال: اختر الشهر ثم اليوم لتظهر أحداثه بجانبه، وزر الجرس يذكّرك في يوم الحدث.', daysLeft: (n) => (n === 0 ? 'اليوم' : n === 1 ? 'غدًا' : `بعد ${n} يومًا`), days: (n) => `${n} يومًا`, events: (n) => `${n} أحداث`, monthsLabel: 'الشهور الهجرية' },
+  tr: { how: 'Nasıl kullanılır: ayı seçin, bir güne dokunun — o günün olayları yanında görünür. Zil düğmesi olay günü hatırlatır.', daysLeft: (n) => (n === 0 ? 'bugün' : n === 1 ? 'yarın' : `${n} gün kaldı`), days: (n) => `${n} gün`, events: (n) => `${n} olay`, monthsLabel: 'Hicri aylar' },
+}
+const CAL_RELATED = [
+  { key: 'hijri', title: { az: 'Hicri tarix çevirici', en: 'Hijri date converter', ru: 'Конвертер дат хиджры', ar: 'محوّل التاريخ الهجري', tr: 'Hicri tarih çevirici' }, text: { az: 'Miladi ↔ hicri', en: 'Gregorian ↔ Hijri', ru: 'Григорианская ↔ хиджра', ar: 'ميلادي ↔ هجري', tr: 'Miladi ↔ hicri' } },
+  { key: 'ramadan', title: { az: 'İmsakiyyə', en: 'Ramadan timetable', ru: 'Расписание Рамадана', ar: 'إمساكية رمضان', tr: 'İmsakiye' }, text: { az: 'Ramazan vaxtları', en: 'Ramadan times', ru: 'Время в Рамадан', ar: 'أوقات رمضان', tr: 'Ramazan vakitleri' } },
+  { key: 'hajjguide', title: { az: 'Həcc və ümrə', en: 'Hajj and Umrah', ru: 'Хадж и умра', ar: 'الحج والعمرة', tr: 'Hac ve umre' }, text: { az: 'Addım-addım bələdçi', en: 'Step-by-step guide', ru: 'Пошаговое руководство', ar: 'دليل خطوة بخطوة', tr: 'Adım adım rehber' } },
+  { lesson: 'sunnah-fasts', title: { az: 'Sünnə orucları', en: 'Sunnah fasts', ru: 'Желательные посты', ar: 'صيام التطوع', tr: 'Sünnet oruçlar' }, text: { az: 'Dərs', en: 'Lesson', ru: 'Урок', ar: 'درس', tr: 'Ders' } },
+  { lesson: 'dhul-hijjah-ten', title: { az: 'Zülhiccənin 10 günü', en: 'The ten days of Dhul-Hijjah', ru: 'Десять дней Зуль-хиджа', ar: 'عشر ذي الحجة', tr: 'Zilhiccenin 10 günü' }, text: { az: 'Dərs', en: 'Lesson', ru: 'Урок', ar: 'درس', tr: 'Ders' } },
+  { lesson: 'eid-prayer', title: { az: 'Bayram namazı', en: 'The Eid prayer', ru: 'Праздничный намаз', ar: 'صلاة العيد', tr: 'Bayram namazı' }, text: { az: 'Dərs', en: 'Lesson', ru: 'Урок', ar: 'درس', tr: 'Ders' } },
+]
 
 // Növ filtri qrupunun ekran oxuyucu adı
 const FILTER_LABEL = { az:'Hadisə növü', en:'Event type', ru:'Тип события', ar:'نوع الحدث', tr:'Olay türü' }
@@ -402,6 +420,7 @@ export function CalendarPage({ setPage }) {
 
   const [typeFilter, setTypeFilter] = useState('all')
   const ct = CAL_TXT[lang] || CAL_TXT.en
+  const cx = CAL_X[lang] || CAL_X.en
 
   // ── Ay şəbəkəsi: seçilmiş hicri ayın günləri ──
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -436,6 +455,11 @@ export function CalendarPage({ setPage }) {
     return EVENTS[0] // növbəti il
   }, [hijri])
 
+  // Növbəti hadisəyə neçə gün qalıb (bu hicri ildədirsə)
+  const nextInfo = nextEvent ? (yearDays[nextEvent.month] || []).find(d => d.day === nextEvent.day) : null
+  const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12)
+  const daysLeft = nextInfo ? Math.round((nextInfo.date - t0) / 86400000) : null
+
   const monthEvents = EVENTS.filter(e => e.month === selMonth && (typeFilter === 'all' || e.type === typeFilter))
 
   const TYPE_LABELS = {
@@ -449,54 +473,44 @@ export function CalendarPage({ setPage }) {
 
   return (
     <>
-      {/* v2: sakit kağız hero — iz, eyebrow (hicri il), bir h1, giriş */}
-      <header className="ui-page-hero cal-hero">
+      <header className="ui-page-hero ui-page-hero--split cal-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
-          <Breadcrumb setPage={setPage} current={t.title} />
-          <span className="ui-eyebrow">{(HERO_SUBTITLE[lang] || HERO_SUBTITLE.en)(hijri.year)}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
-          {lang !== 'ar' && <p className="cal-hero-ar ui-arabic" lang="ar" aria-hidden="true">التَّقۡوِيمُ ٱلۡإِسۡلَامِيّ</p>}
-          <p className="ui-lead">{ct.lead}</p>
+          <div className="ui-page-hero__text">
+            <Breadcrumb setPage={setPage} current={t.title} />
+            <span className="ui-eyebrow">{(HERO_SUBTITLE[lang] || HERO_SUBTITLE.en)(hijri.year)}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            <p className="ui-lead">{ct.lead}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> {cx.how}</p>
+          </div>
+          <div className="ui-page-hero__aside">
+            <div className="cal-today ui-card">
+              <span className="cal-date-label">{ct.today} · {t.hijriDate}</span>
+              <span className="cal-today-h">{hijriStr}</span>
+              <span className="cal-today-g">{t.gregorianDate}: {formatGregorian(today, lang)}</span>
+              {nextEvent && (
+                <div className="cal-next-event">
+                  <span className="cal-next-icon ui-icon-tile" aria-hidden="true"><Icon name={TYPE_ICONS[nextEvent.type] || 'calendar'} /></span>
+                  <div className="cal-next-info">
+                    <div className="cal-next-label">{ct.next}{daysLeft != null && <> · <b className="ui-num">{cx.daysLeft(daysLeft)}</b></>}</div>
+                    <div className="cal-next-name">{nextEvent[lang] || nextEvent.en}</div>
+                    <div className="cal-next-date">{eventDate(nextEvent)}{nextInfo ? ` · ${formatGregorian(nextInfo.date, lang)}` : ''}</div>
+                  </div>
+                  {/* Təqvimdə həmin ayı və günü aç */}
+                  <button type="button" className="ui-icon-btn cal-next-go"
+                    aria-label={`${ct.next}: ${eventDate(nextEvent)}`}
+                    onClick={() => { pickMonth(nextEvent.month); setSelDay(nextEvent.day); document.querySelector('.cal-main')?.scrollIntoView({ block: 'start' }) }}>
+                    <Icon name="arrow" className="ui-flip-rtl" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 
       <section className="ui-section cal-page">
         <div className="ui-container">
-          {/* Current date card */}
-          <div className="cal-top" data-reveal="stagger">
-          <div className="cal-date-card ui-card">
-            <div className="cal-date-item">
-              <span className="cal-date-label">{t.hijriDate}</span>
-              <span className="cal-date-val">{hijriStr}</span>
-            </div>
-            <div className="cal-date-divider" />
-            <div className="cal-date-item">
-              <span className="cal-date-label">{t.gregorianDate}</span>
-              <span className="cal-date-val">{formatGregorian(today, lang)}</span>
-            </div>
-          </div>
-
-          {/* Növbəti hadisə */}
-          {nextEvent && (
-            <div className="cal-next-event">
-              <span className="cal-next-icon ui-icon-tile ui-icon-tile--lg" aria-hidden="true"><Icon name={TYPE_ICONS[nextEvent.type] || 'calendar'} /></span>
-              <div className="cal-next-info">
-                <div className="cal-next-label">{ct.next}</div>
-                <div className="cal-next-name">{nextEvent[lang] || nextEvent.en}</div>
-                <div className="cal-next-date">{eventDate(nextEvent)}</div>
-              </div>
-              {/* Təqvimdə həmin ayı və günü aç */}
-              <button type="button" className="ui-icon-btn cal-next-go"
-                aria-label={`${ct.next}: ${eventDate(nextEvent)}`}
-                onClick={() => { pickMonth(nextEvent.month); setSelDay(nextEvent.day) }}>
-                <Icon name="arrow" className="ui-flip-rtl" />
-              </button>
-            </div>
-          )}
-          </div>
-
           {/* Tarix çevirici — /hijri-converter */}
           <div className="cal-convert">
             <GuideLink link={CAL_HIJRI_LINK} lang={lang} />
@@ -504,9 +518,11 @@ export function CalendarPage({ setPage }) {
 
           {/* Növ filtri — telefonda bir sətirlik sürüşən çiplər (.chip-scroll) */}
           {/* Aylar: masaüstündə 6 × 2 şəbəkə, telefonda üfüqi zolaq */}
-          <div className="cal-months chip-scroll wrap-desktop" ref={monthsRef} data-reveal="stagger-fade">
+          <div className="cal-months chip-scroll wrap-desktop" ref={monthsRef} data-reveal="stagger-fade" role="group" aria-label={cx.monthsLabel}>
             {hijriMonthNames.map((m, i) => {
-              const hasEvent = EVENTS.some(e => e.month === i)
+              const nEv = EVENTS.filter(e => e.month === i).length
+              const hasEvent = nEv > 0
+              const len = (yearDays[i] || []).length
               const isCurrent = i === hijri.month - 1
               return (
                 <button key={i} type="button"
@@ -515,8 +531,14 @@ export function CalendarPage({ setPage }) {
                   aria-pressed={selMonth === i}
                   aria-current={isCurrent ? 'date' : undefined}
                   title={m}>
-                  {m}
-                  {hasEvent && <span className="cal-event-dot" aria-hidden="true" />}
+                  <span className="cal-month-top">
+                    <span className="cal-month-i ui-num" aria-hidden="true">{i + 1}</span>
+                    <span className="cal-month-label">{m}</span>
+                  </span>
+                  <span className="cal-month-meta ui-num">
+                    {len > 0 && <span>{cx.days(len)}</span>}
+                    {hasEvent && <span className="cal-month-ev"><span className="cal-event-dot" aria-hidden="true" />{nEv}<span className="ui-sr-only"> — {cx.events(nEv)}</span></span>}
+                  </span>
                 </button>
               )
             })}
@@ -536,6 +558,8 @@ export function CalendarPage({ setPage }) {
               </button>
             </div>
 
+            <div className="cal-main-grid">
+            <div className="cal-main-cal">
             {/* Ayın günləri: iri hicri gün + kiçik miladi tarix; hadisəli gün —
                 qızılı nöqtə, bu gün — halqa, seçilmiş — dolğu (key: ay dəyişəndə
                 şəbəkə yenidən görünür) */}
@@ -570,6 +594,8 @@ export function CalendarPage({ setPage }) {
               </div>
             )}
 
+            </div>
+            <div className="cal-main-side">
             {/* Seçilmiş gün */}
             {selDayInfo && (
               <div className="cal-day-panel" key={`${selMonth}-${selDay}`}>
@@ -622,6 +648,8 @@ export function CalendarPage({ setPage }) {
                 <span>{t.noEvents}</span>
               </div>
             )}
+            </div>
+            </div>
           </div>
 
           {/* All events list */}
@@ -631,25 +659,38 @@ export function CalendarPage({ setPage }) {
               <h2 className="ui-title">{ct.all}</h2>
               <p className="cal-approx">{ct.approx}</p>
             </div>
-            {/* Hadisələr — sakit kartlar; keçmiş hadisələr solğun */}
-            <div className="cal-timeline" data-reveal="stagger">
-              {EVENTS.map((e, i) => {
-                const reminded = isReminded(e)
+            {/* Hadisələr — aylar üzrə zaman xətti; keçmiş hadisələr solğun */}
+            <div className="cal-tl-groups" data-reveal="stagger">
+              {hijriMonthNames.map((mName, mi) => {
+                const list = EVENTS.filter(e => e.month === mi)
+                if (!list.length) return null
+                const isCurM = mi === hijri.month - 1
                 return (
-                  <div key={i} className={`cal-timeline-item${e.month < hijri.month - 1 || (e.month === hijri.month - 1 && e.day < hijri.day) ? ' is-past' : ''}`}>
-                    <button type="button" className="cal-tl-main" onClick={() => { pickMonth(e.month); setSelDay(e.day); monthsRef.current?.scrollIntoView?.({ block: 'nearest' }) }}>
-                    <span className={`cal-tl-icon ui-icon-tile ui-icon-tile--sm${TYPE_ACCENT[e.type] ? ' ui-icon-tile--accent' : ''}`} aria-hidden="true"><Icon name={TYPE_ICONS[e.type] || 'calendar'} /></span>
-                    <div className="cal-tl-body">
-                      <div className="cal-tl-name">{e[lang] || e.en}</div>
-                      <div className="cal-tl-date">{eventDate(e)} {hijri.year}</div>
-                    </div>
-                    </button>
-                    <button type="button" className={`cal-remind-btn ${reminded ? 'active' : ''}`} onClick={() => onToggleReminder(e)}
-                      aria-pressed={reminded} aria-label={`${reminded ? nl.reminded : nl.remind}: ${e[lang] || e.en}`}>
-                      <Icon name={reminded ? 'bell' : 'bellOff'} size={16} />
-                      <span>{reminded ? nl.reminded : nl.remind}</span>
-                    </button>
-                  </div>
+                  <section key={mi} className={`cal-tl-group${isCurM ? ' is-current' : ''}`} aria-labelledby={`cal-tl-m${mi}`}>
+                    <h3 id={`cal-tl-m${mi}`} className="cal-tl-month"><span className="ui-num">{mi + 1}</span> {mName}</h3>
+                    <ul className="cal-timeline">
+                      {list.map((e) => {
+                        const reminded = isReminded(e)
+                        const past = e.month < hijri.month - 1 || (e.month === hijri.month - 1 && e.day < hijri.day)
+                        return (
+                          <li key={`${e.month}-${e.day}`} className={`cal-timeline-item${past ? ' is-past' : ''}${TYPE_ACCENT[e.type] ? ' is-major' : ''}`}>
+                            <button type="button" className="cal-tl-main" onClick={() => { pickMonth(e.month); setSelDay(e.day); monthsRef.current?.scrollIntoView?.({ block: 'nearest' }) }}>
+                              <span className="cal-tl-day ui-num" aria-hidden="true">{e.day}</span>
+                              <span className="cal-tl-body">
+                                <span className="cal-tl-name">{e[lang] || e.en}</span>
+                                <span className="cal-tl-date">{eventDate(e)} {hijri.year}</span>
+                              </span>
+                            </button>
+                            <button type="button" className={`cal-remind-btn ${reminded ? 'active' : ''}`} onClick={() => onToggleReminder(e)}
+                              aria-pressed={reminded} aria-label={`${reminded ? nl.reminded : nl.remind}: ${e[lang] || e.en}`}>
+                              <Icon name={reminded ? 'bell' : 'bellOff'} size={16} />
+                              <span>{reminded ? nl.reminded : nl.remind}</span>
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </section>
                 )
               })}
             </div>
@@ -659,6 +700,7 @@ export function CalendarPage({ setPage }) {
 
       {/* Hicri aylar: haram aylar, hilal, hər ayın Sünnəsi və əsli olmayan adətlər */}
       <MonthsGuide lang={lang} />
+      <RelatedLinks items={CAL_RELATED} lang={lang} id="cal-related" />
     </>
   )
 }

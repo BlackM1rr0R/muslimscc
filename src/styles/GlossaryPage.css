@@ -1,16 +1,17 @@
 /* ══════════════════════════════════════════════════════════════════
-   İSLAMİ LÜĞƏT — dizayn v2 (DESIGN.md)
-   Hero .ui-page-hero, axtarış .ui-input, əlifba .ui-chip, kartlar .ui-card.
+   İSLAMİ LÜĞƏT — dizayn v3 (DESIGN.md)
+   Hero (+ açar rəqəmlər), axtarış .ui-input, bölmə kafelləri (pay zolağı ilə),
+   əlifba .ui-chip, sakit kartlar .ui-card (mono termin, Amiri ərəbcə).
    Fayl ui.css-dən ƏVVƏL yüklənir — .ui-* dəyişiklikləri .glossary-page
    valideyni ilə gücləndirilib (DESIGN.md §4.1).
    ══════════════════════════════════════════════════════════════════ */
 
-.glossary-page.ui-section--tight { padding-top: var(--space-6); }
+.glossary-page.ui-section--tight { padding-top: var(--space-5); }
 
 .glo-hero__ar {
   margin-top: -4px;
   color: var(--accent-text);
-  font-size: clamp(20px, 2.2vw, 26px);
+  font-size: clamp(19px, 1.9vw, 24px);
   line-height: 1.5;
 }
 
@@ -33,10 +34,8 @@
   pointer-events: none;
 }
 .glossary-page .glossary-search__input {
-  min-height: 48px;
+  min-height: 46px;
   padding-inline: 44px 48px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
 }
 .glossary-search__input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
 .glossary-page .glossary-search__clear {
@@ -77,11 +76,12 @@
 .glossary-page .glossary-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease, transform var(--dur-2) var(--ease-out);
+  gap: 10px;
+  padding: var(--space-4) var(--space-5);
+  transition: border-color var(--dur-2) ease;
 }
 @media (hover: hover) {
-  .glossary-page .glossary-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-2px); }
+  .glossary-page .glossary-card:hover { border-color: var(--line-strong); }
   /* Hover: başlıq xətti başlanğıc tərəfdən zümrüd rənglə "çəkilir", ərəb yazısı bir az irəli gəlir */
   .glossary-page .glossary-card:hover .glossary-card-header::after { transform: scaleX(1); }
   .glossary-page .glossary-card:hover .glossary-arabic-text { transform: translateY(-1px) scale(1.04); }
@@ -112,16 +112,16 @@
 .glossary-card-names { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .glossary-term-name {
   color: var(--text-strong);
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-size: var(--step-1);
   font-weight: 600;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
-.glossary-page .glossary-term-name.ui-arabic { font-family: var(--font-arabic); font-size: 24px; line-height: 1.5; }
+.glossary-page .glossary-term-name.ui-arabic { font-family: var(--font-arabic); font-size: 22px; line-height: 1.5; }
 .glossary-translit {
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: var(--step--1);
   font-style: italic;
   unicode-bidi: isolate;
 }
@@ -130,13 +130,13 @@
   flex-shrink: 0;
   max-width: 50%;
   color: var(--accent-text);
-  font-size: 23px;
+  font-size: 21px;
   line-height: 1.4;
   text-align: right;
 }
 .glossary-definition {
-  color: var(--text-secondary);
-  font-size: 15px;
+  color: var(--text-body);
+  font-size: var(--step--1);
   line-height: 1.65;
 }
 
@@ -191,25 +191,45 @@
   .glossary-alpha-bar { transition: none; }
   .glossary-page .glossary-card,
   .glossary-card-header::after,
-  .glossary-arabic-text { transition: none; }
-  .glossary-page .glossary-card:hover { transform: none; }
+  .glossary-arabic-text,
+  .glossary-cat-btn { transition: none; }
   .glossary-page .glossary-alpha-btn:active { transform: none; }
 }
 
 /* ══ Kateqoriyalar, seçilmiş termin, əlaqəli terminlər, dərs keçidi ══ */
+/* Bölmə kafelləri — filtr düymələri; alt zolaq: bölmənin ən böyük bölməyə nisbəti */
 .glossary-cat-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 168px), 1fr));
+  gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
-.glossary-page .glossary-cat-btn { gap: 6px; min-height: 40px; }
-.glossary-cat-n {
-  color: var(--text-tertiary);
-  font-size: var(--step--2);
-  font-weight: 500;
+.glossary-cat-btn {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 54px; padding: 8px 12px 10px;
+  border: 1px solid var(--line); border-radius: var(--radius-md);
+  background: var(--surface-1); color: var(--text-body);
+  font: inherit; text-align: start; cursor: pointer; overflow: hidden;
+  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease, transform var(--dur-1) var(--ease-out);
 }
-.glossary-page .glossary-cat-btn[aria-pressed="true"] .glossary-cat-n { color: inherit; opacity: 0.8; }
+.glossary-cat-btn:active { transform: scale(0.98); }
+@media (hover: hover) { .glossary-cat-btn:hover { border-color: var(--brand-line); } }
+.glossary-cat-btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.glossary-cat-btn__icon {
+  display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px;
+  border-radius: var(--radius-sm); background: var(--brand-soft); color: var(--brand);
+}
+.glossary-cat-btn__body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.glossary-cat-btn__label { color: var(--text-strong); font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; line-height: 1.3; }
+.glossary-cat-n { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 500; }
+.glossary-cat-btn__share {
+  position: absolute; inset-inline-start: 0; bottom: 0; height: 3px; width: var(--w, 0%);
+  background: var(--viz-1); opacity: 0.55;
+}
+.glossary-cat-btn[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-soft); }
+.glossary-cat-btn[aria-pressed="true"] .glossary-cat-btn__icon { background: var(--brand); color: var(--on-brand); }
+.glossary-cat-btn[aria-pressed="true"] .glossary-cat-btn__share { opacity: 1; }
 
 .glossary-page .glossary-focus-bar {
   display: flex;
@@ -238,7 +258,17 @@
 .glossary-term-link { color: inherit; text-decoration: none; }
 .glossary-term-link:hover { color: var(--brand); }
 
-.glossary-page .glossary-cat-badge { align-self: flex-start; }
+/* Bölmə — nişan yox, sakit mono etiket */
+.glossary-cat-badge {
+  align-self: flex-start;
+  color: var(--accent-text);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .glossary-cat-badge { letter-spacing: 0; text-transform: none; }
 
 .glossary-card-foot {
   display: flex;
@@ -271,13 +301,14 @@
 
 @media (max-width: 767.98px) {
   .glossary-cat-bar {
-    flex-wrap: nowrap;
+    display: flex;
     overflow-x: auto;
     margin-inline: calc(-1 * var(--page-gutter));
     padding: 2px var(--page-gutter) 6px;
     scrollbar-width: none;
   }
   .glossary-cat-bar::-webkit-scrollbar { display: none; }
-  .glossary-page .glossary-cat-btn { flex: 0 0 auto; min-height: var(--tap, 44px); }
+  .glossary-cat-btn { flex: 0 0 auto; max-width: 210px; min-height: 50px; }
+  .glossary-page .glossary-card { padding: var(--space-4); }
   .glossary-rel__chip { min-height: 36px; }
 }

@@ -23,6 +23,7 @@ import { weekdayOf } from '../utils/ramadan'
 import { pathFor } from '../seo/routes'
 import { isPlainClick } from '../components/PageLink'
 import LessonBlocks from '../components/lesson/LessonBlocks'
+import { ChartFigure, ProgressRing, StatTile } from '../components/viz'
 import { RAMADAN_GUIDE, RAMADAN_SOURCES, JUZ_RANGES } from '../data/ramadanGuide'
 import '../styles/LessonsPage.css'
 import '../styles/RamadanPage.css'
@@ -38,6 +39,24 @@ const TXT = {
   error:   { az: 'Cədvəli yükləmək alınmadı. İnternet bağlantısını yoxlayın.', en: 'Could not load the timetable. Please check your connection.', ru: 'Не удалось загрузить расписание. Проверьте подключение.', ar: 'تعذّر تحميل الجدول. تحقّق من الاتصال بالإنترنت.', tr: 'Tablo yüklenemedi. İnternet bağlantınızı kontrol edin.' },
   retry:   { az: 'Yenidən cəhd et', en: 'Try again', ru: 'Повторить', ar: 'أعد المحاولة', tr: 'Tekrar dene' },
   note:    { az: 'Vaxtlar şəhərin koordinatı ilə hesablanıb (aladhan.com). İmsak — səhurun son anı, iftar — məğrib azanıdır. Yerli məscidin elan etdiyi vaxtla bir neçə dəqiqə fərq ola bilər.', en: 'Times are calculated from the city coordinates (aladhan.com). Imsak marks the end of suhoor, iftar is the Maghrib adhan. Your local mosque may differ by a few minutes.', ru: 'Время рассчитано по координатам города (aladhan.com). Имсак — окончание сухура, ифтар — азан магриба. Время местной мечети может отличаться на несколько минут.', ar: 'الأوقات محسوبة وفق إحداثيات المدينة (aladhan.com). الإمساك نهاية السحور، والإفطار عند أذان المغرب. قد يختلف توقيت المسجد المحلي ببضع دقائق.', tr: 'Vakitler şehrin koordinatlarına göre hesaplanmıştır (aladhan.com). İmsak sahurun son anı, iftar akşam ezanıdır. Yerel caminin vakitleriyle birkaç dakika fark olabilir.' },
+  how:     { az: 'Necə işlədilir: şəhərinizi seçin — cədvəl o şəhər üçün qurulur. İmsak sütunu səhurun son anı, iftar sütunu məğrib azanıdır; bugünkü sətir vurğulanır.', en: 'How to use: choose your city and the table is built for it. The Imsak column is the last moment of suhoor, the Iftar column is the Maghrib adhan; today’s row is highlighted.', ru: 'Как пользоваться: выберите город — таблица строится для него. Столбец «Имсак» — последний момент сухура, «Ифтар» — азан магриба; сегодняшняя строка выделена.', ar: 'طريقة الاستخدام: اختر مدينتك فيُبنى الجدول لها. عمود الإمساك آخر وقت السحور، وعمود الإفطار أذان المغرب، وصفّ اليوم مميَّز.', tr: 'Nasıl kullanılır: şehrinizi seçin, tablo ona göre hazırlanır. İmsak sütunu sahurun son anı, iftar sütunu akşam ezanıdır; bugünün satırı vurgulanır.' },
+  stDays:  { az: 'gün oruc', en: 'days of fasting', ru: 'дней поста', ar: 'يومًا من الصيام', tr: 'gün oruç' },
+  stJuz:   { az: 'cüz — gündə biri', en: 'juz — one a day', ru: 'джузов — по одному в день', ar: 'جزءًا — جزء كل يوم', tr: 'cüz — günde bir' },
+  stNights:{ az: 'son gecə — Qədr gecəsi', en: 'last nights — Laylat al-Qadr', ru: 'последних ночей — Ночь предопределения', ar: 'ليالٍ أخيرة — ليلة القدر', tr: 'son gece — Kadir gecesi' },
+  fast:    { az: 'Oruc', en: 'Fast', ru: 'Пост', ar: 'الصيام', tr: 'Oruç' },
+  hUnit:   { az: 'saat', en: 'h', ru: 'ч', ar: 'ساعة', tr: 'saat' },
+  glEyebrow: { az: 'Bir baxışda', en: 'At a glance', ru: 'С первого взгляда', ar: 'نظرة سريعة', tr: 'Bir bakışta' },
+  glTitle: { az: 'Ayın oruc saatları', en: 'Fasting hours across the month', ru: 'Часы поста по дням месяца', ar: 'ساعات الصيام خلال الشهر', tr: 'Ay boyunca oruç saatleri' },
+  glLead:  { az: 'Hər sütun bir günün orucudur — imsakdan iftara qədər. Bugünkü gün qızılı rəngdədir.', en: 'Each column is one day’s fast, from imsak to iftar. Today is shown in gold.', ru: 'Каждый столбец — пост одного дня, от имсака до ифтара. Сегодняшний день — золотой.', ar: 'كل عمود صيام يوم واحد من الإمساك إلى الإفطار، واليوم مميَّز بالذهبي.', tr: 'Her sütun bir günün orucudur — imsaktan iftara. Bugün altın renkte.' },
+  chartTitle: { az: 'Orucun uzunluğu', en: 'Length of the fast', ru: 'Длительность поста', ar: 'مدة الصيام', tr: 'Orucun uzunluğu' },
+  chartSub: { az: 'saat:dəqiqə, {city}', en: 'hours:minutes, {city}', ru: 'часы:минуты, {city}', ar: 'ساعات:دقائق، {city}', tr: 'saat:dakika, {city}' },
+  longest: { az: 'Ən uzun', en: 'Longest', ru: 'Самый долгий', ar: 'الأطول', tr: 'En uzun' },
+  shortest:{ az: 'Ən qısa', en: 'Shortest', ru: 'Самый короткий', ar: 'الأقصر', tr: 'En kısa' },
+  dayN:    { az: '{n}-ci gün', en: 'day {n}', ru: 'день {n}', ar: 'اليوم {n}', tr: '{n}. gün' },
+  monthRing: { az: 'Ramazanın keçən hissəsi', en: 'Ramadan elapsed', ru: 'Прошло от Рамадана', ar: 'ما مضى من رمضان', tr: 'Ramazan’ın geçen kısmı' },
+  // lang-ok: rəqəm formatı az və tr-də eynidir
+  ringSub: { az: '{n} / {t} gün', en: '{n} / {t} days', ru: '{n} / {t} дней', ar: '{n} / {t} يومًا', tr: '{n} / {t} gün' },
+  ringBefore: { az: 'Ramazan hələ başlamayıb', en: 'Ramadan has not started yet', ru: 'Рамадан ещё не начался', ar: 'لم يبدأ رمضان بعد', tr: 'Ramazan henüz başlamadı' },
   wait:    { az: 'Hicri tarix müəyyən edilir…', en: 'Determining the Hijri date…', ru: 'Определяется дата по хиджре…', ar: 'جارٍ تحديد التاريخ الهجري…', tr: 'Hicri tarih belirleniyor…' },
 }
 const pick = (o, lang) => o[lang] || o.en
@@ -95,7 +114,6 @@ function KhatmPlan({ lang, todayJuz }) {
     setDone([])
     saveKhatm([])
   }
-  const pct = Math.round((done.length / 30) * 100)
   return (
     <section className="ui-card rp-khatm" aria-labelledby="rp-khatm-title" data-testid="khatm-plan" data-reveal>
       <div className="rp-khatm__head">
@@ -106,10 +124,7 @@ function KhatmPlan({ lang, todayJuz }) {
         </div>
       </div>
       <div className="rp-khatm__progress">
-        <div className="rp-khatm__bar" role="progressbar" aria-valuemin={0} aria-valuemax={30} aria-valuenow={done.length}
-          aria-label={fill(pick(GT.done, lang), done.length)}>
-          <span style={{ transform: `scaleX(${pct / 100})` }} />
-        </div>
+        <ProgressRing value={done.length} max={30} size={56} thickness={6} label={pick(GT.khatm, lang)} className="rp-khatm__ring" />
         <span className="rp-khatm__count ui-num" data-testid="khatm-count">{fill(pick(GT.done, lang), done.length)}</span>
         <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={reset} disabled={!done.length}>
           <Icon name="refresh" className="ui-btn__icon" /> {pick(GT.reset, lang)}
@@ -230,6 +245,65 @@ function colLabel(key, lang) {
   return PRAYER_NAMES[key]?.[lang] || PRAYER_NAMES[key]?.en || key
 }
 
+// Orucun uzunluğu (dəqiqə): imsakdan iftara (məğrib)
+const toMin = (hm) => { const m = /^(\d{1,2}):(\d{2})/.exec(hm || ''); return m ? +m[1] * 60 + +m[2] : null }
+function fastMinutes(e) {
+  const a = toMin(e.times.imsak || e.times.fajr), b = toMin(e.times.maghrib)
+  return a != null && b != null && b > a ? b - a : null
+}
+const pad2 = (n) => String(n).padStart(2, '0')
+const durHM = (min) => `${Math.floor(min / 60)}:${pad2(min % 60)}`
+
+/** Ayın oruc saatları: sütunlar (y oxu min–max aralığına yaxınlaşdırılıb), ring, rəqəmlər. */
+function MonthGlance({ calendar, todayDate, dayNumber, inRamadan, lang, city }) {
+  const rows = calendar.map(e => ({ day: e.day, date: e.date, min: fastMinutes(e) })).filter(r => r.min != null)
+  if (rows.length < 2) return null
+  const mins = rows.map(r => r.min)
+  const lo = Math.min(...mins), hi = Math.max(...mins)
+  const floor = Math.max(0, lo - Math.max(10, (hi - lo) * 0.6))   // sütunlar fərqi göstərsin, sıfırdan yox
+  const longest = rows.find(r => r.min === hi), shortest = rows.find(r => r.min === lo)
+  const total = calendar.length
+  const passed = inRamadan && dayNumber ? Math.min(total, dayNumber) : 0
+  const W = 600, H = 150, gap = 3
+  const bw = (W - gap * (rows.length - 1)) / rows.length
+  const y = (m) => H - ((m - floor) / (hi - floor || 1)) * (H - 8)
+  const aria = `${pick(TXT.chartTitle, lang)}: ${pick(TXT.shortest, lang)} ${durHM(lo)}, ${pick(TXT.longest, lang)} ${durHM(hi)}`
+  const dayLabel = (n) => ordFill(TXT.dayN, lang, n)
+  return (
+    <section className="ui-section ui-section--tight rp-glance" aria-labelledby="rp-glance-title">
+      <div className="ui-container">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{pick(TXT.glEyebrow, lang)}</span>
+          <h2 id="rp-glance-title" className="ui-title">{pick(TXT.glTitle, lang)}</h2>
+          <p className="ui-lead">{pick(TXT.glLead, lang)}</p>
+        </div>
+        <div className="rp-glance__grid">
+          <ChartFigure title={pick(TXT.chartTitle, lang)} sub={pick(TXT.chartSub, lang).replace('{city}', city)} className="rp-fast-fig">
+            <svg className="rp-fast" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={aria}>
+              {rows.map((r, i) => (
+                <rect key={r.day} x={i * (bw + gap)} y={y(r.min)} width={bw} height={H - y(r.min)} rx={Math.min(3, bw / 3)}
+                  className={r.date === todayDate ? 'is-today' : undefined} />
+              ))}
+            </svg>
+            <div className="rp-fast__axis" aria-hidden="true">
+              {rows.map(r => <span key={r.day}>{r.day === 1 || r.day % 5 === 0 ? r.day : ''}</span>)}
+            </div>
+          </ChartFigure>
+          <div className="rp-glance__side">
+            <ProgressRing value={passed} max={total} size={88} thickness={8}
+              label={pick(TXT.monthRing, lang)}
+              sub={passed ? pick(TXT.ringSub, lang).replace('{n}', passed).replace('{t}', total) : pick(TXT.ringBefore, lang)} />
+            <div className="ui-stats rp-glance__stats">
+              <StatTile icon="sun" label={pick(TXT.longest, lang)} value={durHM(hi)} unit={pick(TXT.hUnit, lang)} hint={dayLabel(longest.day)} variant="sunken" />
+              <StatTile icon="moon" label={pick(TXT.shortest, lang)} value={durHM(lo)} unit={pick(TXT.hUnit, lang)} hint={dayLabel(shortest.day)} variant="sunken" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // Qısa həftə günü (az — əl ilə; qalanları Intl)
 const AZ_WD = ['B.', 'B.e.', 'Ç.a.', 'Ç.', 'C.a.', 'C.', 'Ş.']
 // lang-ok: lokal kodları cədvəli, az əl ilə yazılır
@@ -266,19 +340,23 @@ export default function RamadanPage({ setPage }) {
           <Breadcrumb setPage={setPage} current={title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
           <h1 className="ui-display">{title}</h1>
-          {lang !== 'ar' && <p className="rp-hero-ar ui-arabic" lang="ar" aria-hidden="true">إِمْسَاكِيَّةُ رَمَضَان</p>}
           <p className="ui-lead">{pick(TXT.lead, lang)}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {pick(TXT.how, lang)}</p>
+          <ul className="ui-page-hero__stats">
+            <li><b>29–30</b><span>{pick(TXT.stDays, lang)}</span></li>
+            <li><b>30</b><span>{pick(TXT.stJuz, lang)}</span></li>
+            <li><b>10</b><span>{pick(TXT.stNights, lang)}</span></li>
+          </ul>
         </div>
       </header>
 
-      <section className="ui-section rp-main">
+      <section className="ui-section ui-section--tight rp-main">
         <div className="ui-container rp-stack">
           <RamadanCard state={st} />
 
           <div className="rp-print">
-            <div className="rp-toolbar ui-card" data-reveal>
+            <div className="rp-toolbar" data-reveal>
               <div className="rp-toolbar-head">
-                <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="pin" /></span>
                 <h2 className="rp-title" id="rp-table-title">
                   {year ? pick(TXT.tableOf, lang).replace('{y}', year) : title}
                   {city && <span className="rp-title-city"> · {city}</span>}
@@ -304,21 +382,23 @@ export default function RamadanPage({ setPage }) {
                 {Array.from({ length: 6 }, (_, i) => <span key={i} className="ui-skeleton ui-skeleton--text" style={{ '--w': `${90 - i * 6}%` }} />)}
               </div>
             ) : (
-              <div className="rp-scroll ui-card ui-card--flush" tabIndex={0} role="region" aria-labelledby="rp-table-title">
+              <div className="rp-scroll ui-table-wrap" tabIndex={0} role="region" aria-labelledby="rp-table-title">
                 {/* tabIndex — sürüşən sahə klaviatura ilə də sürüşsün (axe: scrollable-region-focusable) */}
-                <table className="rp-table" aria-labelledby="rp-table-title" data-testid="ramadan-table">
+                <table className="ui-table ui-table--compact ui-table--zebra rp-table" aria-labelledby="rp-table-title" data-testid="ramadan-table">
                   <thead>
                     <tr>
                       <th scope="col">{pick(TXT.day, lang)}</th>
                       <th scope="col">{pick(TXT.date, lang)}</th>
-                      {COLS.map(k => <th key={k} scope="col" className={`rp-col-${k}`}>{colLabel(k, lang)}</th>)}
+                      {COLS.map(k => <th key={k} scope="col" className={`is-num rp-col-${k}`}>{colLabel(k, lang)}</th>)}
+                      <th scope="col" className="is-num rp-col-fast">{pick(TXT.fast, lang)}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {calendar.map(e => {
                       const isToday = e.date === todayDate
+                      const fm = fastMinutes(e)
                       return (
-                        <tr key={e.date} ref={isToday ? todayRef : undefined} className={isToday ? 'is-today' : undefined}
+                        <tr key={e.date} ref={isToday ? todayRef : undefined} className={isToday ? 'is-current is-today' : undefined}
                           aria-current={isToday ? 'date' : undefined}>
                           <th scope="row" className="ui-num">
                             {e.day}
@@ -328,7 +408,8 @@ export default function RamadanPage({ setPage }) {
                             {formatGregorian(e.date, lang, { day: 'numeric', month: 'short' })}
                             <span className="rp-wd"> {shortWeekday(e.date, lang)}</span>
                           </td>
-                          {COLS.map(k => <td key={k} className={`ui-num rp-col-${k}`}>{e.times[k] || '—'}</td>)}
+                          {COLS.map(k => <td key={k} className={`is-num rp-col-${k}`}>{e.times[k] || '—'}</td>)}
+                          <td className="is-num rp-col-fast">{fm != null ? durHM(fm) : '—'}</td>
                         </tr>
                       )
                     })}
@@ -340,6 +421,11 @@ export default function RamadanPage({ setPage }) {
           </div>
         </div>
       </section>
+
+      {calendar && (
+        <MonthGlance calendar={calendar} todayDate={todayDate} dayNumber={day?.number}
+          inRamadan={st.phase?.phase === 'ramadan'} lang={lang} city={city} />
+      )}
 
       <RamadanGuide lang={lang} todayJuz={day?.number >= 1 && day.number <= 30 ? day.number : null} />
     </div>

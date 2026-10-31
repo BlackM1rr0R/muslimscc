@@ -6,8 +6,8 @@
 
 .wg-wrap {
   display: grid;
-  gap: var(--space-8);
-  padding-block: var(--space-7) var(--section-gap);
+  gap: var(--space-6);
+  padding-block: var(--space-5) var(--section-gap);
 }
 
 /* ── Generator ── */
@@ -77,8 +77,8 @@
   border-radius: var(--radius-md);
   background: var(--surface-inverse);
   color: var(--text-on-inverse);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-all;
@@ -91,39 +91,25 @@
 .wg-section { display: grid; gap: var(--space-4); }
 .wg-section .ui-title { margin: 0; }
 .wg-tag {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: .8em;
   color: var(--brand);
   unicode-bidi: isolate;
 }
 
-.wg-table-wrap { overflow-x: auto; }
-.wg-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--step--1);
-}
-.wg-table th,
-.wg-table td {
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--line);
-  text-align: start;
-  vertical-align: top;
-}
-.wg-table tr:last-child th,
-.wg-table tr:last-child td { border-bottom: 0; }
-.wg-table th { width: 32%; white-space: nowrap; font-weight: 500; }
+.wg-table th { width: 32%; white-space: nowrap; }
+.wg-table tbody th { font-weight: 500; }
 .wg-table code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
   color: var(--brand);
 }
 .wg-table td { color: var(--text-body); }
 .wg-ex {
   display: block;
   margin-top: 2px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
   color: var(--text-tertiary);
   text-align: start;
   unicode-bidi: isolate;
@@ -193,4 +179,11 @@
   .wg-table tr { border-bottom: 1px solid var(--line); }
   .wg-table tr:last-child { border-bottom: 0; }
   .wg-table td { border-bottom: 0; }
+  .wg-table thead { display: none; }
 }
+
+/* ── v3: 3 addım, mövzu seqmenti, üstünlük kafelləri ── */
+.wg-steps { margin-bottom: var(--space-2); }
+.wg-seg > button { display: inline-flex; align-items: center; gap: 6px; }
+.wg-page .wg-feat { cursor: default; }
+.wg-page .wg-feat:hover { transform: none; }

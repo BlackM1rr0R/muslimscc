@@ -5,7 +5,8 @@
 //   serverə, analitikaya, hesaba heç nə göndərilmir. İxrac / idxal JSON faylıdır.
 // • Hər gün üçün: suallar siyahısı (bəli işarəsi) + sərbəst qeyd. Əhval-ruhiyyə
 //   şkalası qəsdən yoxdur — mühasəbə əməllər üzərindədir.
-// • Son 90 günün istilik xəritəsi (SVG), cari və ən uzun ardıcıllıq.
+// • Son 90 günün istilik xəritəsi (ActivityHeatmap), cari və ən uzun ardıcıllıq,
+//   son 7 günün və son 30 gündə hər əməlin qrafiki (components/viz).
 // • Giriş: Sələfdən iki söz — mənbəyi dürüst göstərilir (Ömərin sözü məşhur
 //   əsərdir, isnadı munqatidir; hədis deyil). Ətraflı: /learn/muhasabah dərsi.
 //
@@ -19,6 +20,9 @@ import { isPlainClick } from '../components/PageLink'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
+import { ChartFigure, ProgressRing, StatTile, ColumnChart, BarChart } from '../components/viz'
+import ActivityHeatmap from '../components/ActivityHeatmap'
+import RelatedLinks from '../components/RelatedLinks'
 import '../styles/MuhasabahPage.css'
 
 export const STORAGE_KEY = 'muslim_cc_muhasabah_v1'
@@ -202,6 +206,71 @@ const L = {
   },
 }
 
+// ── Dizayn v3: hero, panel qrafikləri, bölmə başlıqları ──
+const V3 = {
+  az: {
+    lead: 'Günün sonunda bir neçə dəqiqə: səkkiz suala cavab ver, qısa qeyd yaz, irəliləyişini qrafiklərdə gör.',
+    how: 'Necə işlədilir: bu gün etdiyin əməlləri işarələ, istəsən qeyd yaz — avtomatik saxlanılır. Keçmiş günü seçmək üçün tarixə və ya xəritədəki xanaya toxun. Qeydlər yalnız bu cihazdadır.',
+    overview: 'Göstəricilər', heatSub: 'Xanaya toxun — o gün açılsın',
+    weekTitle: 'Son 7 gün', weekSub: 'Hər gün neçə sual işarələnib (8-dən)',
+    itemsTitle: 'Əməllər — son 30 gün', itemsSub: 'Hər əməl neçə gün işarələnib',
+    short: { salah: 'Fərz namazlar', quran: 'Quran', morning: 'Səhər zikrləri', evening: 'Axşam zikrləri', tongue: 'Dili qorumaq', parents: 'Valideynlər', sadaqah: 'Sədəqə', tawbah: 'Tövbə' },
+    quotesEyebrow: 'Mənbə', quotesLead: 'Mühasəbə Sələfin yoludur — iki qısa söz, mənbəyi dürüst göstərilməklə.',
+    dataEyebrow: 'Yaddaş', relEyebrow: 'Davamı', relTitle: 'Əlaqəli bölmələr',
+  },
+  en: {
+    lead: 'A few minutes at the end of the day: answer eight questions, write a short note and see your progress in charts.',
+    how: 'How to use: tick the deeds you did today and add a note if you like — it saves automatically. Tap the date or a square in the map to open a past day. Entries stay on this device only.',
+    overview: 'Overview', heatSub: 'Tap a square to open that day',
+    weekTitle: 'Last 7 days', weekSub: 'How many questions were ticked each day (of 8)',
+    itemsTitle: 'Deeds — last 30 days', itemsSub: 'On how many days each deed was ticked',
+    short: { salah: 'Obligatory prayers', quran: 'Quran', morning: 'Morning adhkar', evening: 'Evening adhkar', tongue: 'Guarding the tongue', parents: 'Parents', sadaqah: 'Charity', tawbah: 'Repentance' },
+    quotesEyebrow: 'Sources', quotesLead: 'Self-accounting is the way of the Salaf — two short sayings, with their sources stated honestly.',
+    dataEyebrow: 'Storage', relEyebrow: 'Continue', relTitle: 'Related sections',
+  },
+  ru: {
+    lead: 'Несколько минут в конце дня: ответьте на восемь вопросов, напишите короткую заметку и посмотрите прогресс на графиках.',
+    how: 'Как пользоваться: отметьте дела, совершённые сегодня, при желании добавьте заметку — сохраняется автоматически. Чтобы открыть прошлый день, выберите дату или клетку на карте. Записи хранятся только на этом устройстве.',
+    overview: 'Показатели', heatSub: 'Нажмите на клетку, чтобы открыть день',
+    weekTitle: 'Последние 7 дней', weekSub: 'Сколько вопросов отмечено за день (из 8)',
+    itemsTitle: 'Дела — последние 30 дней', itemsSub: 'Сколько дней отмечено каждое дело',
+    short: { salah: 'Обязательные молитвы', quran: 'Коран', morning: 'Утренние зикры', evening: 'Вечерние зикры', tongue: 'Хранить язык', parents: 'Родители', sadaqah: 'Милостыня', tawbah: 'Покаяние' },
+    quotesEyebrow: 'Источники', quotesLead: 'Отчёт с самого себя — путь саляфа: два кратких изречения с честно указанными источниками.',
+    dataEyebrow: 'Хранение', relEyebrow: 'Далее', relTitle: 'Связанные разделы',
+  },
+  ar: {
+    lead: 'دقائق في آخر اليوم: أجب عن ثمانية أسئلة، واكتب ملاحظة قصيرة، وانظر تقدّمك في الرسوم.',
+    how: 'طريقة الاستخدام: علِّم على الأعمال التي فعلتها اليوم، وأضف ملاحظة إن شئت — يُحفظ تلقائيًا. لفتح يوم سابق اختر التاريخ أو مربعًا في الخريطة. المدخلات على هذا الجهاز فقط.',
+    overview: 'المؤشرات', heatSub: 'اضغط على مربع لفتح ذلك اليوم',
+    weekTitle: 'آخر 7 أيام', weekSub: 'عدد الأسئلة المعلَّمة كل يوم (من 8)',
+    itemsTitle: 'الأعمال — آخر 30 يومًا', itemsSub: 'عدد الأيام التي عُلِّم فيها كل عمل',
+    short: { salah: 'الصلوات المفروضة', quran: 'القرآن', morning: 'أذكار الصباح', evening: 'أذكار المساء', tongue: 'حفظ اللسان', parents: 'الوالدان', sadaqah: 'الصدقة', tawbah: 'التوبة' },
+    quotesEyebrow: 'المصادر', quotesLead: 'محاسبة النفس طريقة السلف — قولان قصيران مع بيان مصدرهما بأمانة.',
+    dataEyebrow: 'الحفظ', relEyebrow: 'المزيد', relTitle: 'أقسام ذات صلة',
+  },
+  tr: {
+    lead: 'Gün sonunda birkaç dakika: sekiz soruyu cevapla, kısa bir not yaz ve ilerlemeni grafiklerde gör.',
+    how: 'Nasıl kullanılır: bugün yaptığın amelleri işaretle, istersen not yaz — otomatik kaydedilir. Geçmiş bir günü açmak için tarihe veya haritadaki kareye dokun. Kayıtlar yalnızca bu cihazdadır.',
+    overview: 'Göstergeler', heatSub: 'O günü açmak için kareye dokun',
+    weekTitle: 'Son 7 gün', weekSub: 'Her gün kaç soru işaretlendi (8 sorudan)',
+    itemsTitle: 'Ameller — son 30 gün', itemsSub: 'Her amel kaç gün işaretlendi',
+    short: { salah: 'Farz namazlar', quran: 'Kur’an', morning: 'Sabah zikirleri', evening: 'Akşam zikirleri', tongue: 'Dili korumak', parents: 'Anne baba', sadaqah: 'Sadaka', tawbah: 'Tövbe' },
+    quotesEyebrow: 'Kaynaklar', quotesLead: 'Nefis muhasebesi Selef’in yoludur — kaynakları dürüstçe belirtilen iki kısa söz.',
+    dataEyebrow: 'Saklama', relEyebrow: 'Devamı', relTitle: 'İlgili bölümler',
+  },
+}
+
+const MH_RELATED = [
+  { learn: 'tawbah', title: { az: 'Tövbə', en: 'Repentance (tawbah)', ru: 'Покаяние (тауба)', ar: 'التوبة', tr: 'Tövbe' },
+    sub: { az: 'Tövbənin şərtləri — dərs', en: 'The conditions of repentance — lesson', ru: 'Условия покаяния — урок', ar: 'شروط التوبة — درس', tr: 'Tövbenin şartları — ders' } },
+  { to: 'tracker', icon: 'tracker', title: { az: 'Namaz izləyicisi', en: 'Prayer tracker', ru: 'Трекер намаза', ar: 'متابعة الصلاة', tr: 'Namaz takibi' },
+    sub: { az: 'Beş namazı ayrı-ayrılıqda qeyd et', en: 'Log each of the five prayers', ru: 'Отмечайте каждую из пяти молитв', ar: 'سجّل كل صلاة من الخمس', tr: 'Beş vaktin her birini kaydet' } },
+  { to: 'hisn', title: { az: 'Hisnul-Müslim', en: 'Hisn al-Muslim', ru: 'Хиснуль-муслим', ar: 'حصن المسلم', tr: 'Hısnu’l-Müslim' },
+    sub: { az: 'Səhər və axşam zikrləri', en: 'Morning and evening adhkar', ru: 'Утренние и вечерние зикры', ar: 'أذكار الصباح والمساء', tr: 'Sabah ve akşam zikirleri' } },
+  { to: 'dailytracker', title: { az: 'Gündəlik ibadət', en: 'Daily worship', ru: 'Ежедневное поклонение', ar: 'العبادة اليومية', tr: 'Günlük ibadet' },
+    sub: { az: 'Gündəlik əməllərin izlənməsi', en: 'Track your daily deeds', ru: 'Учёт ежедневных дел', ar: 'متابعة الأعمال اليومية', tr: 'Günlük amellerin takibi' } },
+]
+
 // Sələfdən iki söz. Mənbələr:
 // • Ömər: Əhməd, «əz-Zühd» 633; İbn Əbid-Dünya, «Məhasəbətun-nəfs»; Tirmizi 2459-dan
 //   sonra isnadsız. İsnad munqatidir (Sabit ibn əl-Həccac Öməri görməyib) — məşhur
@@ -253,6 +322,7 @@ const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 const LOCALE = { az: 'az-AZ', en: 'en-GB', ru: 'ru-RU', ar: 'ar', tr: 'tr-TR' }
+const AZ_WEEKDAYS = ['B.', 'B.e.', 'Ç.a.', 'Ç.', 'C.a.', 'C.', 'Ş.']
 const AZ_MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avqust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr']
 function fmtDate(s, lang) {
   const d = parseIso(s)
@@ -304,48 +374,6 @@ export function streaks(entries, today = new Date()) {
     prev = day
   }
   return { cur, best }
-}
-
-// ── İstilik xəritəsi: 90 gün, həftələr sütun, Bazar ertəsi yuxarıda ──
-const CELL = 14
-const GAP = 3
-function Heatmap({ entries, today, selected, onPick, t, lang }) {
-  const start = addDays(today, -(DAYS - 1))
-  const offset = (start.getDay() + 6) % 7 // B.e. = 0
-  const cells = []
-  for (let i = 0; i < DAYS; i++) {
-    const d = addDays(start, i)
-    const k = iso(d)
-    const n = entries[k]?.c.length || 0
-    const has = !!entries[k]
-    const idx = i + offset
-    cells.push({ k, n, has, x: Math.floor(idx / 7) * (CELL + GAP), y: (idx % 7) * (CELL + GAP) })
-  }
-  const cols = Math.ceil((DAYS + offset) / 7)
-  const w = cols * (CELL + GAP) - GAP
-  const h = 7 * (CELL + GAP) - GAP
-  const level = (c) => (!c.has ? 0 : c.n === 0 ? 1 : Math.min(4, 1 + Math.ceil((c.n / ITEMS.length) * 3)))
-  const recorded = cells.filter(c => c.has).length
-  return (
-    <div className="mh-heat">
-      <svg className="mh-heat__svg" viewBox={`0 0 ${w} ${h}`} width={w} height={h} role="img" aria-label={t.heatAria(recorded)}>
-        {cells.map(c => (
-          <rect key={c.k} x={c.x} y={c.y} width={CELL} height={CELL} rx="3"
-            className={`mh-cell mh-cell--${level(c)}${c.k === selected ? ' is-selected' : ''}`}
-            onClick={() => onPick(c.k)}>
-            <title>{t.cellTitle(fmtDate(c.k, lang), c.n)}</title>
-          </rect>
-        ))}
-      </svg>
-      <div className="mh-heat__legend" aria-hidden="true">
-        <span>{t.heatLegendLess}</span>
-        {[0, 1, 2, 3, 4].map(l => (
-          <svg key={l} width={CELL} height={CELL} viewBox={`0 0 ${CELL} ${CELL}`}><rect width={CELL} height={CELL} rx="3" className={`mh-cell mh-cell--${l}`} /></svg>
-        ))}
-        <span>{t.heatLegendMore}</span>
-      </div>
-    </div>
-  )
 }
 
 export default function MuhasabahPage({ setPage }) {
@@ -460,109 +488,168 @@ export default function MuhasabahPage({ setPage }) {
     navigate(lessonHref)
   }
 
+  const v = V3[lang] || V3.en
   const group = navGroupLabel(navGroupOf('muhasabah'), lang)
+  const todayEntry = entries[todayIso]
+  const todayDone = todayEntry ? todayEntry.c.length : 0
+
+  // Son 30 gündə hər əməl neçə gün işarələnib (BarChart)
+  const perItem = useMemo(() => {
+    const cnt = Object.fromEntries(ITEMS.map(id => [id, 0]))
+    for (let i = 0; i < 30; i++) {
+      const e = entries[iso(addDays(today, -i))]
+      if (e) for (const id of e.c) cnt[id] += 1
+    }
+    return ITEMS.map(id => ({ key: id, label: v.short[id], value: cnt[id] }))
+  }, [entries, today, v])
+  // Son 7 gün: gündəlik tamamlanma (ColumnChart)
+  const week = useMemo(() => Array.from({ length: 7 }, (_, i) => {
+    const d = addDays(today, i - 6)
+    const k = iso(d)
+    let wd = ''
+    // az-AZ Intl bəzi brauzerlərdə ingiliscə qaytarır — öz qısaltmalarımız
+    if (lang === 'az') wd = AZ_WEEKDAYS[d.getDay()]
+    else { try { wd = d.toLocaleDateString(LOCALE[lang] || 'en-GB', { weekday: 'short' }) } catch { wd = k.slice(8) } }
+    return { key: k, label: wd, value: entries[k]?.c.length || 0, current: k === todayIso }
+  }), [entries, today, todayIso, lang])
+
+  const level = (k) => {
+    const e = entries[k]
+    if (!e) return 0
+    return e.c.length === 0 ? 1 : Math.min(4, 1 + Math.ceil((e.c.length / ITEMS.length) * 3))
+  }
 
   return (
     <div className="mh-page">
-      <header className="ui-page-hero">
+      <header className="ui-page-hero ui-page-hero--split">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        <div className="ui-container" data-reveal="stagger">
-          <Breadcrumb setPage={setPage} current={t.title} />
-          <span className="ui-eyebrow">{group || t.eyebrow}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          <p className="mh-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">مُحَاسَبَةُ النَّفْسِ</p>
-          <p className="ui-lead">{t.lead}</p>
+        <div className="ui-container">
+          <div className="ui-page-hero__text" data-reveal="stagger">
+            <Breadcrumb setPage={setPage} current={t.title} />
+            <span className="ui-eyebrow">{group || t.eyebrow}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            <p className="ui-lead">{v.lead}</p>
+            <p className="ui-page-hero__how"><Icon name="shield" size={16} /> {v.how}</p>
+          </div>
+          <div className="ui-page-hero__aside">
+            <div className="ui-card mh-summary">
+              <ProgressRing value={todayDone} max={ITEMS.length} size={84} thickness={8} label={t.today} sub={`${todayDone} / ${ITEMS.length}`} />
+              <dl className="mh-summary__kv">
+                <div><dt>{t.streak}</dt><dd className="ui-num">{cur} <small>{t.daysUnit}</small></dd></div>
+                <div><dt>{t.best}</dt><dd className="ui-num">{best} <small>{t.daysUnit}</small></dd></div>
+              </dl>
+            </div>
+          </div>
         </div>
       </header>
 
       <section className="ui-section ui-section--tight">
-        <div className="ui-container ui-container--narrow mh-layout">
-          {/* Sələfdən — qısa giriş, ətraflısı dərsdə */}
-          <div className="mh-quotes" data-reveal="stagger">
-            <h2 className="ui-title ui-title--sm">{t.quotesTitle}</h2>
-            {QUOTES.map((q, i) => (
-              <figure className="ui-quote mh-quote" key={i}>
-                <blockquote>
-                  <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{q.ar}</p>
-                  {lang !== 'ar' && <p className="ui-quote__text">{q.text[lang]}</p>}
-                </blockquote>
-                <figcaption className="ui-quote__src">
-                  — {q.by[lang]}
-                  <span className="mh-quote__ref">{q.src[lang]}</span>
-                </figcaption>
-              </figure>
-            ))}
-            <a className="ui-link mh-lesson" href={lessonHref} onClick={onLesson}>
-              <Icon name="learn" size={18} /> {t.lessonLink}
-              <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
-            </a>
-          </div>
+        <div className="ui-container mh-split">
+          {/* ── Gün: suallar + qeyd ── */}
+          <div className="mh-main">
+            {!storageOk && <p className="mh-alert" role="alert"><Icon name="alert" size={18} /> {t.storageError}</p>}
+            <div className="ui-card mh-day">
+              <div className="mh-day__nav">
+                <button type="button" className="ui-icon-btn" onClick={() => shift(-1)} disabled={date <= minIso} aria-label={t.prev} title={t.prev}>
+                  <Icon name="chevronLeft" size={20} className="ui-flip-rtl" />
+                </button>
+                <label className="mh-day__pick">
+                  <span className="ui-sr-only">{t.day}</span>
+                  <input type="date" className="ui-input mh-day__input" value={date} min={minIso} max={todayIso}
+                    onChange={e => { const val = e.target.value; if (DATE_RE.test(val) && val <= todayIso && val >= minIso) setDate(val) }} />
+                </label>
+                <button type="button" className="ui-icon-btn" onClick={() => shift(1)} disabled={date >= todayIso} aria-label={t.next} title={t.next}>
+                  <Icon name="chevron" size={20} className="ui-flip-rtl" />
+                </button>
+                {date !== todayIso && (
+                  <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setDate(todayIso)}>{t.today}</button>
+                )}
+              </div>
+              <p className="mh-day__label">{fmtDate(date, lang)} <span className="mh-day__count ui-num" aria-hidden="true">{entry.c.length} / {ITEMS.length}</span></p>
 
-          <p className="mh-privacy" role="note">
-            <Icon name="shield" size={18} className="mh-privacy__icon" /> {t.privacy}
-          </p>
-          {!storageOk && <p className="mh-alert" role="alert"><Icon name="alert" size={18} /> {t.storageError}</p>}
+              <fieldset className="mh-check">
+                <legend className="mh-check__legend">{t.checklist}</legend>
+                {ITEMS.map(id => {
+                  const on = entry.c.includes(id)
+                  return (
+                    <label key={id} className={`mh-item${on ? ' is-on' : ''}`}>
+                      <input type="checkbox" className="mh-item__box" checked={on} onChange={() => toggle(id)} />
+                      <span className="mh-item__mark" aria-hidden="true"><Icon name="check" size={16} /></span>
+                      <Icon name={ITEM_ICONS[id]} size={18} className="mh-item__icon" />
+                      <span className="mh-item__text">{t.items[id]}</span>
+                    </label>
+                  )
+                })}
+              </fieldset>
 
-          {/* Gün seçimi */}
-          <div className="ui-card mh-day">
-            <div className="mh-day__nav">
-              <button type="button" className="ui-icon-btn" onClick={() => shift(-1)} disabled={date <= minIso} aria-label={t.prev} title={t.prev}>
-                <Icon name="chevronLeft" size={20} className="ui-flip-rtl" />
-              </button>
-              <label className="mh-day__pick">
-                <span className="ui-sr-only">{t.day}</span>
-                <input type="date" className="ui-input mh-day__input" value={date} min={minIso} max={todayIso}
-                  onChange={e => { const v = e.target.value; if (DATE_RE.test(v) && v <= todayIso && v >= minIso) setDate(v) }} />
+              <label className="ui-field mh-note">
+                <span className="ui-field__label">{t.note}</span>
+                <textarea className="ui-input mh-note__input" dir="auto" rows={4} maxLength={NOTE_MAX}
+                  placeholder={t.notePh} value={entry.n} onChange={e => updateEntry({ n: e.target.value })} />
               </label>
-              <button type="button" className="ui-icon-btn" onClick={() => shift(1)} disabled={date >= todayIso} aria-label={t.next} title={t.next}>
-                <Icon name="chevron" size={20} className="ui-flip-rtl" />
-              </button>
-              {date !== todayIso && (
-                <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setDate(todayIso)}>{t.today}</button>
-              )}
+              <p className="mh-saved" role="status" aria-live="polite">
+                {savedTick > 0 && <span key={savedTick} className="ui-enter-fade"><Icon name="check" size={14} /> {t.saved}</span>}
+              </p>
             </div>
-            <p className="mh-day__label">{fmtDate(date, lang)}</p>
-
-            <fieldset className="mh-check">
-              <legend className="mh-check__legend">{t.checklist}</legend>
-              {ITEMS.map(id => {
-                const on = entry.c.includes(id)
-                return (
-                  <label key={id} className={`mh-item${on ? ' is-on' : ''}`}>
-                    <input type="checkbox" className="mh-item__box" checked={on} onChange={() => toggle(id)} />
-                    <span className="mh-item__mark" aria-hidden="true"><Icon name="check" size={16} /></span>
-                    <Icon name={ITEM_ICONS[id]} size={18} className="mh-item__icon" />
-                    <span className="mh-item__text">{t.items[id]}</span>
-                  </label>
-                )
-              })}
-            </fieldset>
-
-            <label className="ui-field mh-note">
-              <span className="ui-field__label">{t.note}</span>
-              <textarea className="ui-input mh-note__input" dir="auto" rows={4} maxLength={NOTE_MAX}
-                placeholder={t.notePh} value={entry.n} onChange={e => updateEntry({ n: e.target.value })} />
-            </label>
-            <p className="mh-saved" role="status" aria-live="polite">
-              {savedTick > 0 && <span key={savedTick} className="ui-enter-fade"><Icon name="check" size={14} /> {t.saved}</span>}
-            </p>
+            <ChartFigure title={v.itemsTitle} sub={v.itemsSub}>
+              <BarChart data={perItem} max={30} labelWidth="38%" label={v.itemsTitle} format={(n) => `${n}`} />
+            </ChartFigure>
           </div>
 
-          {/* Statistika + istilik xəritəsi */}
-          <div className="ui-card mh-stats-card">
-            <h2 className="ui-title ui-title--sm">{t.heatTitle}</h2>
-            <div className="mh-stats">
-              <div className="ui-stat"><span className="ui-stat__num">{cur}</span><span className="ui-stat__label">{t.streak} ({t.daysUnit})</span></div>
-              <div className="ui-stat"><span className="ui-stat__num">{best}</span><span className="ui-stat__label">{t.best} ({t.daysUnit})</span></div>
-              <div className="ui-stat"><span className="ui-stat__num">{stats.rec}</span><span className="ui-stat__label">{t.recorded}</span></div>
-              <div className="ui-stat"><span className="ui-stat__num">{stats.avg}%</span><span className="ui-stat__label">{t.avg}</span></div>
+          {/* ── Panel: göstəricilər və qrafiklər ── */}
+          <aside className="mh-side" aria-label={v.overview}>
+            <div className="ui-stats mh-stats">
+              <StatTile variant="sunken" value={String(stats.rec)} label={t.recorded} />
+              <StatTile variant="sunken" value={String(stats.avg)} unit="%" label={t.avg} />
             </div>
-            <Heatmap entries={entries} today={today} selected={date} onPick={setDate} t={t} lang={lang} />
-          </div>
+            <ChartFigure title={t.heatTitle} sub={v.heatSub}>
+              <ActivityHeatmap days={DAYS} today={today} levelOf={level} selected={date} onPick={setDate}
+                titleOf={(k) => t.cellTitle(fmtDate(k, lang), entries[k]?.c.length || 0)}
+                label={t.heatAria(stats.rec)} less={t.heatLegendLess} more={t.heatLegendMore} />
+            </ChartFigure>
+            <ChartFigure title={v.weekTitle} sub={v.weekSub}>
+              <ColumnChart data={week} max={ITEMS.length} height={96} label={v.weekTitle} />
+            </ChartFigure>
+          </aside>
+        </div>
+      </section>
 
-          {/* Məlumat: ixrac / idxal / sil */}
-          <div className="ui-card ui-card--sunken mh-data">
-            <h2 className="ui-title ui-title--sm">{t.data}</h2>
+      {/* ── Sələfdən — qısa giriş, ətraflısı dərsdə ── */}
+      <section className="ui-section ui-section--tight ui-section--alt" aria-labelledby="mh-quotes-h">
+        <div className="ui-container ui-container--narrow mh-quotes">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v.quotesEyebrow}</span>
+            <h2 className="ui-title" id="mh-quotes-h">{t.quotesTitle}</h2>
+            <p className="ui-lead">{v.quotesLead}</p>
+          </div>
+          {QUOTES.map((q, i) => (
+            <figure className="ui-quote mh-quote" key={i}>
+              <blockquote>
+                <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{q.ar}</p>
+                {lang !== 'ar' && <p className="ui-quote__text">{q.text[lang]}</p>}
+              </blockquote>
+              <figcaption className="ui-quote__src">
+                — {q.by[lang]}
+                <span className="mh-quote__ref">{q.src[lang]}</span>
+              </figcaption>
+            </figure>
+          ))}
+          <a className="ui-link mh-lesson" href={lessonHref} onClick={onLesson}>
+            <Icon name="learn" size={18} /> {t.lessonLink}
+            <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+          </a>
+        </div>
+      </section>
+
+      {/* ── Məlumat: ixrac / idxal / sil + əlaqəli bölmələr ── */}
+      <section className="ui-section ui-section--tight" aria-labelledby="mh-data-h">
+        <div className="ui-container mh-bottom">
+          <div className="mh-data">
+            <div className="ui-section-head">
+              <span className="ui-eyebrow">{v.dataEyebrow}</span>
+              <h2 className="ui-title ui-title--sm" id="mh-data-h">{t.data}</h2>
+              <p className="ui-lead">{t.privacy}</p>
+            </div>
             <div className="mh-data__actions">
               <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={doExport} disabled={!Object.keys(entries).length}>
                 <Icon name="download" size={16} className="ui-btn__icon" /> {t.export}
@@ -576,6 +663,13 @@ export default function MuhasabahPage({ setPage }) {
               </button>
             </div>
             {flash && <p className="mh-flash" role="status">{flash}</p>}
+          </div>
+          <div>
+            <div className="ui-section-head">
+              <span className="ui-eyebrow">{v.relEyebrow}</span>
+              <h2 className="ui-title ui-title--sm">{v.relTitle}</h2>
+            </div>
+            <RelatedLinks items={MH_RELATED} />
           </div>
         </div>
       </section>

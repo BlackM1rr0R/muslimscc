@@ -337,6 +337,11 @@ function lessonBlock(b, lang) {
     case 'note': return `<p><strong>※</strong> ${p(b.text)}</p>`
     case 'table': return `<table>${b.head ? `<thead><tr>${b.head.map(h => `<th>${p(h)}</th>`).join('')}</tr></thead>` : ''}<tbody>${b.rows.map(r => `<tr>${r.map(c => `<td>${p(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`
     case 'qa': return b.items.map(i => `<h3>${p(i.q)}</h3><p>${p(i.a)}</p>${i.ref ? `<p><cite>${p(i.ref)}</cite></p>` : ''}`).join('')
+    // Vizual bloklar (dizayn v3) — robot üçün mətn şəklində
+    case 'stats': return `${b.title ? `<p><strong>${p(b.title)}</strong></p>` : ''}<ul>${b.items.map(i => `<li><strong>${esc(String(i.value))}${i.unit ? ' ' + p(i.unit) : ''}</strong> — ${p(i.label)}${i.hint ? ` (${p(i.hint)})` : ''}</li>`).join('')}</ul>${b.note ? `<p><small>${p(b.note)}</small></p>` : ''}`
+    case 'chart': return `<p><strong>${p(b.title)}</strong>${b.sub ? ` — ${p(b.sub)}` : ''}</p><ul>${b.data.map(d => `<li>${p(d.label)}: ${d.display ? p(d.display) : esc(String(d.value))}${b.unit ? ' ' + p(b.unit) : ''}</li>`).join('')}</ul>${b.note ? `<p><small>${p(b.note)}</small></p>` : ''}`
+    case 'timeline': return `<ol>${b.items.map(i => `<li><strong>${typeof i.when === 'object' ? p(i.when) : esc(String(i.when))}</strong> — ${p(i.title)}${i.text ? `: ${p(i.text)}` : ''}</li>`).join('')}</ol>`
+    case 'links': return `<ul>${b.items.map(i => `<li><a href="${esc(i.href || pathFor(i.page, lang, i.param) + (i.hash ? '#' + i.hash : ''))}">${p(i.title)}</a>${i.text ? ` — ${p(i.text)}` : ''}</li>`).join('')}</ul>`
     default: return ''
   }
 }

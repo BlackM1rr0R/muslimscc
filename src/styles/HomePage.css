@@ -1,12 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   ANA SƏHİFƏ — Muslims.cc  |  dizayn sistemi v2 (src/styles/DESIGN.md)
+   ANA SƏHİFƏ — Muslims.cc  |  dizayn sistemi v3 (src/styles/DESIGN.md)
 
    Yuxarıdan aşağı:
-     1. .hp-top     — günün xatırlatmaları zolağı + hero (brend, hədis,
-                      düymələr | namaz vaxtları kartı) + "Əsas" keçidlər
-     2. .hp-feats   — bölmələr "bento" şəbəkəsi (iri Quran kafeli + 7 kafel)
-     3. .hp-bism    — Bismillah (ornament ayırıcı ilə)
-     4. .hp-stats   — rəqəmlər (display şriftində, hairline ayırıcılar)
+     1. .hp-top     — günün xatırlatmaları zolağı + hero (brend, şüar,
+                      2 düymə, 3 üstünlük | namaz vaxtları kartı)
+     2. .hp-quick   — "Nə axtarırsınız?" 12 bölmə (.ui-tiles)
+     3. .hp-start   — "Haradan başlamalı?" 4 addım (.ui-steps--row)
+     4. .hp-feats   — Quran kafeli + rəqəmlər (StatTile, .ui-stats)
      5. .hp-tw      — Tövhid (sakit ikinci səth, kəlmə tünd zümrüd paneldə)
      6. .hp-names   — Allahın 12 adı
      7. Firestore bölmələri (AdminPage.css) və .hp-cta (tünd zümrüd panel)
@@ -27,9 +27,7 @@
 
 /* Bölmənin içi: mərkəzləşmiş konteyner (ui.css → .ui-container ilə eyni) */
 .hp-sec-in,
-.hp-hero-inner,
-.hp-msq-in,
-.hp-stats-in {
+.hp-hero-inner {
   width: 100%;
   max-width: calc(var(--hp-maxw) + 2 * var(--page-gutter));
   margin-inline: auto;
@@ -46,7 +44,7 @@
   text-align: center;
   margin-bottom: clamp(28px, 3.4vw, 48px);
 }
-.hp-sec-ttl { max-width: 22ch; }
+.hp-sec-ttl { max-width: 32ch; }
 .hp-sec-sub {
   max-width: 58ch;
   color: var(--text-secondary);
@@ -138,7 +136,7 @@
   to   { transform: none; }
 }
 .hp-hero-sub    { animation-delay: 140ms; }
-.hp-hero-ayah   { animation-delay: 200ms; }
+.hp-hero-trust  { animation-delay: 360ms; }
 .hp-hero-btns > :nth-child(1) { animation-delay: 260ms; }
 .hp-hero-btns > :nth-child(2) { animation-delay: 310ms; }
 .hp-hero-btns > :nth-child(3) { animation-delay: 360ms; }
@@ -185,19 +183,27 @@
   text-wrap: balance;
 }
 
-.hp-hero-ayah {
-  margin-top: 32px;
-  max-width: 520px;
-}
-.hp-root .hp-ha-ar { color: var(--brand); }
-.hp-root .hp-ha-ar { font-size: clamp(22px, 2.2vw, 30px); }
-
 .hp-hero-btns {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 32px;
+  margin-top: 28px;
 }
+
+/* Üç qısa üstünlük (qeydiyyatsız · reklamsız · 5 dil) — mono, ikonla */
+.hp-hero-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-secondary);
+  font-family: var(--font-label);
+  font-size: var(--step--1);
+}
+.hp-hero-trust li { display: inline-flex; align-items: center; gap: 6px; }
+.hp-hero-trust svg { color: var(--brand); }
 
 .hp-hero-visual {
   min-width: 0;
@@ -210,13 +216,6 @@
   .hp-hero-visual { max-width: none; }
 }
 
-/* 1200–1439 (yan panelli): mətn sütunu ~490px-dir — üç iri düymə bir
-   sətrə sığsın deyə yan boşluqları bir az kiçilir ("Elanlar" tək qalmasın) */
-@media (min-width: 1200px) and (max-width: 1439.98px) {
-  .hp-hero-btns { gap: 8px; }
-  .hp-hero-btns > .ui-btn { padding-inline: 18px; }
-  .hp-hero-btns > .ui-btn--ghost { padding-inline: 12px; }
-}
 
 /* İki sütun: geniş ekran (+ yan panel) və panelsiz planşet */
 @media (min-width: 1200px), (min-width: 860px) and (max-width: 1023.98px) {
@@ -457,189 +456,59 @@
 .hp-pc-note { color: var(--text-tertiary); font-size: 12.5px; line-height: 1.5; }
 .hp-pc-more { margin-top: -2px; }
 
-/* ═══ "ƏSAS" — 4 sürətli keçid ══════════════════════════════════════ */
-.hp-msq { padding-block: 4px clamp(32px, 4vw, 48px); }
-.hp-msq-ttl { margin-bottom: 14px; }
-.hp-msq-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* ═══ 2. "NƏ AXTARIRSINIZ?" — 12 bölmə (ui.css → .ui-tiles) ══════════ */
+.hp-quick { padding-top: clamp(28px, 3.4vw, 44px); }
+.hp-head-text { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.hp-tiles { --ui-tiles-min: 168px; }
+@media (min-width: 1200px) {
+  .hp-tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
-.hp-msq-grid > li { display: flex; min-width: 0; }
+/* Telefonda tətbiq kimi 3 sütunlu ikon şəbəkəsi: ikon + ad (təsvir gizli —
+   12 bölmə bir ekranın yarısına sığır); ad ortada, 2 sətrə qədər */
+@media (max-width: 560px) {
+  .hp-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .hp-root .hp-tile { align-items: center; justify-content: flex-start; padding: 12px 6px 10px; text-align: center; gap: 2px; }
+  .hp-root .hp-tile .ui-icon-tile { width: 40px; height: 40px; margin-bottom: 6px; }
+  .hp-root .hp-tile .ui-tile__title { font-size: var(--step--1); line-height: 1.25; }
+  .hp-root .hp-tile .ui-tile__text { display: none; }
+}
 
-.hp-msq-card {
-  position: relative;
-  display: flex;
+/* ═══ 3. "HARADAN BAŞLAMALI?" — 4 addım (ui.css → .ui-steps) ════════ */
+.hp-start { border-top: 1px solid var(--line); }
+.hp-step-link {
+  display: inline-flex;
   align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-1);
-  color: var(--text-body);
-  text-align: start;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  transition:
-    transform var(--dur-2) var(--ease-out),
-    box-shadow var(--dur-2) ease,
-    border-color var(--dur-2) ease;
-}
-.hp-msq-txt { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.hp-msq-txt strong { color: var(--text-strong); font-size: 15px; font-weight: 600; line-height: 1.3; }
-.hp-msq-txt small { color: var(--text-tertiary); font-size: 13px; line-height: 1.45; }
-.hp-msq-go {
-  flex-shrink: 0;
-  display: grid;
-  color: var(--text-tertiary);
-  transition: transform var(--dur-2) var(--ease-out), color var(--dur-2) ease;
-}
-
-.hp-root .hp-msq-ic { transition: transform var(--dur-2) var(--ease-spring), background-color var(--dur-2) ease, color var(--dur-2) ease; }
-
-@media (hover: hover) {
-  .hp-msq-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--brand-line);
-    box-shadow: var(--shadow-3);
-  }
-  .hp-msq-card:hover .hp-msq-go { color: var(--brand); transform: translateX(3px); }
-  [dir="rtl"] .hp-msq-card:hover .hp-msq-go { transform: translateX(-3px); }
-  /* İkon kafeli yüngülcə "qalxır" və zümrüdlə dolur */
-  .hp-root .hp-msq-card:hover .hp-msq-ic { transform: translate3d(0, -1px, 0) scale(1.06); background: var(--brand); color: var(--on-brand); }
-}
-.hp-msq-card:active { transform: scale(0.985); }
-
-/* Sütun dar olanda 2×2 (1280–1359-da 4 kart ~230px-ə sıxılır, təsvir
-   3 sətrə düşürdü) */
-@media (max-width: 1359.98px) and (min-width: 1024px), (max-width: 900px) {
-  .hp-msq-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-/* ═══ 2. BÖLMƏLƏR — BENTO ŞƏBƏKƏSİ ══════════════════════════════════ */
-.hp-feats { padding-block: var(--section-gap); }
-
-.hp-bento {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-/* Geniş sütunda 4 sütun: Quran 2×2, sonra kafellər; zikr 2 sütun tutur */
-@media (min-width: 1160px), (min-width: 900px) and (max-width: 1023.98px) {
-  .hp-bento { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-  .hp-bento-quran { grid-row: span 2; }
-}
-.hp-bento-quran { grid-column: span 2; }
-.hp-feat--dhikr { grid-column: span 2; }
-
-/* Kiçik kafel */
-.hp-feat {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   gap: 6px;
-  min-width: 0;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-1);
-  color: var(--text-body);
-  font-family: var(--font-sans);
-  text-align: start;
-  cursor: pointer;
-  transition:
-    transform var(--dur-2) var(--ease-out),
-    box-shadow var(--dur-2) ease,
-    border-color var(--dur-2) ease;
+  color: inherit;
+  text-decoration: none;
 }
-/* İkon yuxarıda, başlıq + təsvir kafelin ALTINDA — kafel uzananda (Quran
-   kafelinin yanında) boşluq ortada qalır, mətn aşağıda balanslı durur */
-.hp-feat-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin-bottom: auto;
-  padding-bottom: 18px;
-}
-.hp-feat { overflow: hidden; isolation: isolate; }
-/* Hover-də kafelin küncündən yumşaq zümrüd işıq yanır (yalnız opacity) */
-.hp-feat::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: radial-gradient(120% 90% at 0% 0%, var(--brand-soft) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity var(--dur-3) ease;
-}
-[dir="rtl"] .hp-feat::before { background: radial-gradient(120% 90% at 100% 0%, var(--brand-soft) 0%, transparent 60%); }
-.hp-root .hp-feat-ic { transition: transform var(--dur-2) var(--ease-spring), background-color var(--dur-2) ease, color var(--dur-2) ease; }
-/* Geniş zikr kafeli: son tərəfdə sakit xatəm naxışı (boş qalmasın) */
-.hp-feat--dhikr::after {
-  content: '';
-  position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
-  width: 46%;
-  z-index: -1;
-  background: var(--pattern-color);
-  -webkit-mask: var(--ui-khatam) 0 0 / 56px 56px, linear-gradient(90deg, transparent, #000 70%);
-  mask: var(--ui-khatam) 0 0 / 56px 56px, linear-gradient(90deg, transparent, #000 70%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  transition: transform 1.2s var(--ease-out);
-}
-[dir="rtl"] .hp-feat--dhikr::after {
-  -webkit-mask: var(--ui-khatam) 0 0 / 56px 56px, linear-gradient(270deg, transparent, #000 70%);
-  mask: var(--ui-khatam) 0 0 / 56px 56px, linear-gradient(270deg, transparent, #000 70%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-}
-.hp-feat-go {
-  display: grid;
-  color: var(--text-tertiary);
-  opacity: 0.7;
-  transition: transform var(--dur-2) var(--ease-out), color var(--dur-2) ease, opacity var(--dur-2) ease;
-}
-.hp-feat-ttl {
-  color: var(--text-strong);
-  font-size: var(--step-1);
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: var(--tracking-snug);
-}
-.hp-feat-desc { color: var(--text-tertiary); font-size: 14px; line-height: 1.5; }
-
+.hp-step-link svg { color: var(--brand); transition: transform var(--dur-2) var(--ease-out); }
 @media (hover: hover) {
-  .hp-feat:hover {
-    transform: translateY(-4px);
-    border-color: var(--brand-line);
-    box-shadow: var(--shadow-3);
-  }
-  .hp-feat:hover::before { opacity: 1; }
-  .hp-feat:hover .hp-feat-go { color: var(--brand); opacity: 1; transform: translateX(4px); }
-  [dir="rtl"] .hp-feat:hover .hp-feat-go { transform: translateX(-4px); }
-  .hp-root .hp-feat:hover .hp-feat-ic { transform: translate3d(0, -2px, 0) rotate(-4deg) scale(1.08); background: var(--brand); color: var(--on-brand); }
-  .hp-feat--dhikr:hover::after { transform: translate3d(-14px, 0, 0); }
-  [dir="rtl"] .hp-feat--dhikr:hover::after { transform: translate3d(14px, 0, 0); }
-  /* Quran kafeli: naxış yavaşca sürüşür, ikon qalxır */
-  .hp-bento-quran { transition: transform var(--dur-3) var(--ease-out), box-shadow var(--dur-3) ease; }
-  .hp-bento-quran:hover { transform: translateY(-3px); box-shadow: var(--shadow-4, var(--shadow-3)); }
-  .hp-root .hp-bq-pattern { transition: transform 1.6s var(--ease-out); }
-  .hp-bento-quran:hover .hp-bq-pattern { transform: translate3d(0, -10px, 0) scale(1.08); }
-  .hp-root .hp-bento-quran:hover .hp-bq-ic { transform: translate3d(0, -2px, 0) scale(1.06); }
+  .hp-step-link:hover { color: var(--brand); }
+  .hp-step-link:hover svg { transform: translateX(3px); }
+  [dir="rtl"] .hp-step-link:hover svg { transform: scaleX(-1) translateX(3px); }
 }
-.hp-root .hp-bq-ic { transition: transform var(--dur-2) var(--ease-spring); }
-.hp-feat:active { transform: scale(0.985); }
+@media (pointer: coarse) { .hp-step-link { min-height: 44px; } }
 
+/* ═══ 4. QURAN KAFELİ + RƏQƏMLƏR ════════════════════════════════════ */
+.hp-feats { border-top: 1px solid var(--line); }
+.hp-qs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: stretch;
+}
+@media (min-width: 1160px), (min-width: 900px) and (max-width: 1023.98px) {
+  .hp-qs { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+}
+.hp-stats-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.hp-stats-hd { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.hp-stats-grid { --ui-stats-min: 150px; flex: 1; align-content: start; }
+@media (max-width: 480px) {
+  .hp-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+}
+
+/* ═══ İri Quran kafeli ═════════════════════════════════════════════ */
 /* İri Quran kafeli — tünd zümrüd ("inverse"), qum rəngli naxış */
 .hp-bento-quran {
   position: relative;
@@ -702,122 +571,7 @@
   padding-top: 18px;
   border-top: 1px solid rgba(243, 239, 230, 0.12);
 }
-.hp-qban-st { display: flex; gap: clamp(18px, 3vw, 32px); }
-.hp-qban-s {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  color: var(--text-on-inverse-dim);
-  font-size: 12.5px;
-  font-weight: 500;
-}
-.hp-qban-s > span {
-  color: var(--text-on-inverse);
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 500;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums lining-nums;
-}
 
-/* Telefonda kafellər yığcam: təsvir 2 sətirlə məhdud */
-@media (max-width: 560px) {
-  .hp-bento { gap: 10px; }
-  .hp-feat { padding: 16px; border-radius: var(--radius-lg); }
-  .hp-feat-top { margin-bottom: 8px; }
-  .hp-feat-ttl { font-size: 15.5px; }
-  .hp-feat-desc {
-    font-size: 13px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .hp-feat-go { display: none; }
-}
-
-/* ═══ 3. BISMILLAH ═══════════════════════════════════════════════════ */
-.hp-bism {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: clamp(8px, 2vw, 16px) var(--page-gutter) clamp(36px, 5vw, 64px);
-  text-align: center;
-}
-.hp-bism-ar {
-  color: var(--brand);
-  font-family: var(--font-arabic);
-  font-size: clamp(30px, 4vw, 46px);
-  line-height: 1.6;
-}
-.hp-bism-tr {
-  color: var(--text-secondary);
-  font-family: var(--font-display);
-  font-size: var(--step-1);
-  font-style: italic;
-}
-
-/* ═══ 4. STATİSTİKA ══════════════════════════════════════════════════ */
-.hp-stats { padding-bottom: calc(var(--section-gap) * 0.75); }
-.hp-stats-in {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-}
-.hp-stats-in > .hp-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 22px 12px;
-  border-top: 1px solid var(--line);
-  text-align: center;
-}
-.hp-stat-n {
-  color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: var(--step-4);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums lining-nums;
-}
-.hp-stat-l { color: var(--text-tertiary); font-size: 13.5px; font-weight: 500; }
-.hp-stat-sfx { color: var(--accent-text); font-size: 0.7em; margin-inline-start: 0.04em; }
-/* Sayma bitəndə rəqəmin altında qısa qızılı xətt "açılır" (scaleX) */
-.hp-stats-in > .hp-stat { position: relative; }
-.hp-stat-n { position: relative; }
-.hp-stat-n::after {
-  content: '';
-  position: absolute;
-  inset-inline: 30%;
-  bottom: -10px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent);
-  opacity: 0.7;
-  transform: scaleX(0);
-  transition: transform 600ms var(--ease-out);
-}
-.hp-stat-n:has(.hp-cu.is-done)::after { transform: scaleX(1); }
-.hp-stat-l { margin-top: 8px; }
-@media (hover: hover) {
-  .hp-stats-in > .hp-stat { transition: background-color var(--dur-2) ease; }
-  .hp-stats-in > .hp-stat:hover { background: color-mix(in srgb, var(--surface-1) 60%, transparent); }
-}
-html[lang="ar"] .hp-stat-l { letter-spacing: 0; }
-
-/* Geniş: 6 sütun, aralarında şaquli hairline */
-@media (min-width: 1160px), (min-width: 900px) and (max-width: 1023.98px) {
-  .hp-stats-in { grid-template-columns: repeat(6, minmax(0, 1fr)); border-block: 1px solid var(--line); }
-  .hp-stats-in > .hp-stat { border-top: 0; padding-block: 28px; }
-  .hp-stats-in > .hp-stat + .hp-stat { border-inline-start: 1px solid var(--line); }
-}
-@media (max-width: 1159.98px) and (min-width: 1024px), (max-width: 899.98px) {
-  .hp-stats-in { border-bottom: 1px solid var(--line); }
-  .hp-stats-in > .hp-stat:not(:nth-child(3n + 1)) { border-inline-start: 1px solid var(--line); }
-}
 
 /* ═══ 5. TÖVHİD ══════════════════════════════════════════════════════ */
 .hp-tw {
@@ -1051,8 +805,8 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
   background: var(--surface-1);
   box-shadow: var(--shadow-1);
 }
-.hp-twi-card h4 { color: var(--text-strong); font-size: var(--step-1); font-weight: 600; letter-spacing: var(--tracking-snug); }
-.hp-twi-card p { color: var(--text-secondary); font-size: 14.5px; line-height: 1.7; }
+.hp-twi-card h4 { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; letter-spacing: var(--tracking-snug); }
+.hp-twi-card p { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.7; }
 
 @media (max-width: 1159.98px) and (min-width: 1024px), (max-width: 900px) {
   .hp-tw-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1190,47 +944,18 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
      altına düşsün (telefonda ən çox lazım olan məlumat ilk ekranda). */
   .hp-hero-inner { gap: 0; }
   .hp-hero-content { display: contents; }
-  .hp-badge { order: 1; margin-bottom: 12px; }
-  .hp-hero-title { order: 2; font-size: clamp(40px, 12vw, 54px); }
-  .hp-hero-sub { order: 3; margin-top: 12px; font-size: 16px; }
-  .hp-hero-visual { order: 4; margin-top: 24px; max-width: none; }
-  .hp-hero-ayah { order: 5; margin-top: 28px; }
-  .hp-hero-btns { order: 6; margin-top: 24px; }
-  .hp-hero-btns > .ui-btn { flex: 1 1 auto; }
-  .hp-hero-btns > .ui-btn--primary { flex-basis: 100%; }
+  .hp-badge { order: 1; margin-bottom: 10px; }
+  .hp-hero-title { order: 2; font-size: clamp(34px, 10vw, 44px); }
+  .hp-hero-sub { order: 3; margin-top: 10px; font-size: var(--step-0); }
+  .hp-hero-visual { order: 4; margin-top: 20px; max-width: none; }
+  .hp-hero-btns { order: 5; margin-top: 20px; }
+  .hp-hero-trust { order: 6; margin-top: 16px; }
+  .hp-hero-btns > .ui-btn { flex: 1 1 0; padding-inline: 12px; }
 
   .hp-pc { padding: 16px; border-radius: var(--radius-lg); gap: 14px; }
   .hp-pc-ttl { font-size: 19px; }
   .hp-pc-next { padding: 14px 16px 12px; }
   .hp-pc-cd { font-size: 30px; }
-
-  /* "Əsas" — qruplaşdırılmış siyahı (motion.css .m-list üslubunda) */
-  .hp-msq-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    background: var(--surface-1);
-    box-shadow: var(--shadow-1);
-    overflow: hidden;
-  }
-  .hp-msq-card {
-    padding: 12px 14px;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
-  }
-  .hp-msq-grid > li + li .hp-msq-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    inset-inline: 70px 0;
-    height: 1px;
-    background: var(--line);
-  }
-  .hp-msq-card:active { background: var(--surface-2); transform: none; }
-  .hp-root .hp-msq-ic { width: 40px; height: 40px; }
 
   .hp-tw-tabs { grid-template-columns: minmax(0, 1fr); }
   /* Faktlar və izah kartları — üfüqi sürüşən sıra (scroll-snap): 7 kartın
@@ -1264,8 +989,6 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
 }
 
 @media (max-width: 380px) {
-  .hp-qban-st { gap: 14px; }
-  .hp-qban-s > span { font-size: 22px; }
   .hp-pc-cd { font-size: 26px; }
 }
 
@@ -1283,22 +1006,17 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
   .hp-hero-content > .hp-hero-title { animation: none !important; }
   .hp-hero-sub    { animation-delay: 100ms !important; }
   .hp-hero-visual { animation-delay: 120ms !important; }
-  .hp-hero-ayah   { animation-delay: 150ms !important; }
   .hp-hero-btns   { animation-delay: 200ms !important; }
   /* Kiçik dekorativ hərəkətlər tam söndürülür */
   .hp-hero-btns > *, .hp-ht-2, .hp-hero-glow, .hp-root .hp-hero-pattern,
   .hp-pc-s, .hp-pr, .hp-pc-next::after, .hp-tw-tab--on .hp-twtab-num,
   .hp-cta-in[data-revealed=""] > * { animation: none !important; }
   .hp-pc-next::after { display: none; }
-  .hp-feat, .hp-msq-card, .hp-name, .hp-feat-go, .hp-msq-go, .hp-pc-bar > span,
-  .hp-root .hp-feat-ic, .hp-root .hp-msq-ic, .hp-root .hp-bq-ic, .hp-root .hp-bq-pattern,
-  .hp-bento-quran, .hp-feat--dhikr::after, .hp-name-ar, .hp-tw-fact, .hp-twi-card,
-  .hp-root .hp-twi-ic, .hp-pr-ic, .hp-stat-n::after { transition: none; }
-  .hp-feat:hover, .hp-msq-card:hover, .hp-name:hover, .hp-bento-quran:hover,
-  .hp-feat:hover .hp-feat-go, .hp-msq-card:hover .hp-msq-go,
-  .hp-root .hp-feat:hover .hp-feat-ic, .hp-root .hp-msq-card:hover .hp-msq-ic,
-  .hp-bento-quran:hover .hp-bq-pattern, .hp-root .hp-bento-quran:hover .hp-bq-ic,
-  .hp-feat--dhikr:hover::after, .hp-name:hover .hp-name-ar,
+  .hp-name, .hp-pc-bar > span, .hp-root .hp-bq-ic, .hp-step-link svg,
+  .hp-name-ar, .hp-tw-fact, .hp-twi-card,
+  .hp-root .hp-twi-ic, .hp-pr-ic { transition: none; }
+  .hp-name:hover, .hp-step-link:hover svg,
+  .hp-name:hover .hp-name-ar,
   .hp-tw-fact:hover, .hp-twi-card:hover, .hp-root .hp-twi-card:hover .hp-twi-ic,
   .hp-pr:hover .hp-pr-ic { transform: none; }
   .hp-twp-content { animation: none !important; }

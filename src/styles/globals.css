@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-   Muslims.cc — QLOBAL ÜSLUBLAR + DİZAYN TOKENLƏRİ  (dizayn sistemi v2)
+   Muslims.cc — QLOBAL ÜSLUBLAR + DİZAYN TOKENLƏRİ  (dizayn sistemi v3)
 
    Xarakter: sakit, ləyaqətli, premium — "müasir rəqəmsal kitabxana /
    ibadət yoldaşı". Fil sümüyü (kağız) fon, dərin zümrüd əsas rəng,
@@ -35,6 +35,37 @@
 /* Şriftlər index.html-dəki <link> ilə yüklənir (display=swap) — burada
    şrift @import-u YOXDUR: əvvəlki @import eyni şrifti ikinci dəfə, CSS-dən
    sonra (ardıcıl, render-i bloklayaraq) istəyirdi. */
+
+/* ── Mono + kursiv qoruyucusu (v3) ──
+   Ubuntu Sans Mono-nun kursivi yüklənmir; köhnə səhifələrdə display
+   şriftində italic sitatlar (tərcümə, "…" alıntı) brauzerin süni əyilmiş
+   mono-su ilə çıxırdı — oxunmur. Eyni ad altında italic üz Ubuntu Sans
+   Italic fayllarına yönləndirilir: mono + italic → yumşaq sans kursiv.
+   Yeni fayl yükləmir (fayllar fonts.css-dəki ilə eynidir). */
+@font-face {
+  font-family: 'Ubuntu Sans Mono';
+  font-style: italic;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url(../assets/fonts/ubuntu-sans-italic-latin-var.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Ubuntu Sans Mono';
+  font-style: italic;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url(../assets/fonts/ubuntu-sans-italic-latin-ext-var.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Ubuntu Sans Mono';
+  font-style: italic;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url(../assets/fonts/ubuntu-sans-italic-cyrillic-var.woff2) format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
 
 :root {
   /* ══ 1. XAM PALİTRA ══════════════════════════════════════════════
@@ -129,38 +160,60 @@
   /* Həndəsi naxışın rəngi (.ui-pattern, hero, ayırıcı) — çox sakit */
   --pattern-color:  color-mix(in srgb, var(--brand) 14%, transparent);
 
-  /* ══ 3. TİPOQRAFİYA ═════════════════════════════════════════════
-     --font-sans    Inter — ə ğ ı İ ş ç ö ü + kiril yoxlanılıb, rəqəmlər
-                    cədvəl kimi (tnum) düzülür (geri sayım tullanmır)
-     --font-display Literata — Google Play Books-un kitab şrifti: "rəqəmsal
-                    kitabxana" xarakteri; latin-ext + kiril, ə/Ə yoxlanılıb.
-                    YALNIZ başlıqlar, iri rəqəm, sitat üçün (500/600)
+  /* ══ 3. TİPOQRAFİYA (dizayn v3, 2026-11 — sahibin seçimi) ═══════════
+     --font-sans    Ubuntu Sans — əsas mətn: yumşaq, oxunaqlı, ə ğ ı İ ş + kiril
+     --font-display Ubuntu Sans Mono — başlıqlar, iri rəqəmlər, etiketlər,
+                    düymələr: müasir "mono" xarakteri (uzun mətndə İSTİFADƏ ETMƏ)
+     --font-mono    eyni — saat, sayğac, kod, cədvəl rəqəmləri
      --font-arabic  Amiri — Quran/hədis üçün klassik nəsx
      --font-arabic-ui IBM Plex Sans Arabic — /ar-da interfeys mətni */
-  --font-sans:      'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display:   'Literata', 'Georgia', 'Times New Roman', serif;
+  --font-sans:      'Ubuntu Sans', 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display:   'Ubuntu Sans Mono', 'IBM Plex Sans Arabic', 'Ubuntu Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --font-mono:      'Ubuntu Sans Mono', 'IBM Plex Sans Arabic', 'Ubuntu Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
   --font-arabic:    'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif;
   --font-arabic-ui: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
 
-  /* Axıcı tip şkalası (360px → 1440px). Addım nisbəti ~1.2 (kiçik) → 1.33 (iri).
-     Mətn ölçüsünü px yazmaq əvəzinə bunları işlət. */
-  --step--2: 0.75rem;                                    /* 12  — etiket, nişan */
-  --step--1: 0.875rem;                                   /* 13–14 — köməkçi (rem: telefonda baza 15px) */
-  --step-0:  1rem;                                       /* 15–16 — əsas mətn */
-  --step-1:  clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);    /* 17–20 — kart başlığı */
-  --step-2:  clamp(1.3125rem, 1.18rem + 0.6vw, 1.625rem);/* 21–26 — h3 */
-  --step-3:  clamp(1.625rem, 1.4rem + 1vw, 2.25rem);     /* 26–36 — h2 bölmə */
-  --step-4:  clamp(2rem, 1.6rem + 1.9vw, 3.25rem);       /* 32–52 — səhifə h1 */
-  --step-5:  clamp(2.625rem, 1.9rem + 3.4vw, 4.75rem);   /* 42–76 — ana hero */
+  /* Axıcı tip şkalası (360px → 1440px) — v3: v2-dən ~15% KİÇİK (sahib: "yazılar
+     çox böyükdür, yorur"). Mətn ölçüsünü px yazmaq əvəzinə bunları işlət. */
+  --step--2: 0.75rem;                                      /* 12  — etiket, nişan */
+  --step--1: 0.8125rem;                                    /* 13  — köməkçi */
+  --step-0:  0.9375rem;                                    /* 15  — əsas mətn */
+  --step-1:  clamp(1rem, 0.96rem + 0.2vw, 1.125rem);       /* 16–18 — kart başlığı */
+  --step-2:  clamp(1.125rem, 1.05rem + 0.35vw, 1.375rem);  /* 18–22 — h3 */
+  --step-3:  clamp(1.3125rem, 1.2rem + 0.55vw, 1.75rem);   /* 21–28 — h2 bölmə */
+  --step-4:  clamp(1.625rem, 1.4rem + 1.1vw, 2.375rem);    /* 26–38 — səhifə h1 */
+  --step-5:  clamp(1.875rem, 1.5rem + 1.9vw, 3.125rem);    /* 30–50 — ana hero */
 
-  --lh-tight: 1.12;   /* iri başlıq */
+  --lh-tight: 1.2;    /* iri başlıq (mono üçün bir az açıq) */
   --lh-snug:  1.3;    /* kart başlığı, düymə */
-  --lh-body:  1.65;   /* paraqraf */
+  --lh-body:  1.7;    /* paraqraf */
   --lh-arabic: 2;     /* ərəbcə (hərəkələr üçün yer) */
 
-  --tracking-tight: -0.02em;  /* iri başlıq */
+  --tracking-tight: -0.01em;  /* iri başlıq (mono — az sıx) */
   --tracking-snug:  -0.01em;
-  --tracking-wide:  0.08em;   /* BÖYÜK HƏRFLİ etiket (ərəbcədə 0) */
+  --tracking-wide:  0.05em;   /* BÖYÜK HƏRFLİ mono etiket (ərəbcədə 0) — v3: mono özü geniş olduğu üçün 0.08 → 0.05 */
+
+  /* v3 — tipoqrafik ROLLAR (hansı element hansı şriftdə):
+     --font-heading  h1–h3, kart başlığı, bölmə başlığı
+     --font-label    eyebrow, düymə, çip, nişan, cədvəl başlığı, sekmə
+     --font-num      iri rəqəm, saat, sayğac, statistika
+     Hamısı Ubuntu Sans Mono-dur (/ar-da IBM Plex Sans Arabic — aşağıda).
+     Paraqraf, tərcümə, dərs mətni HƏMİŞƏ --font-sans. */
+  --font-heading:   var(--font-display);
+  --font-label:     var(--font-display);
+  --font-num:       var(--font-mono);
+
+  /* ── Qrafik (viz) palitrası — src/components/viz/* oxuyur ──
+     Kateqorial sıra SABİTDİR (1 → 4, dövr etmir): zümrüd · qum · göy · gavalı.
+     Yoxlanılıb (dataviz validator, ağ/--surface-1 üzərində): işıqlıq zolağı,
+     xroma, CVD ΔE ≥ 9, normal görmə ΔE ≥ 15, kontrast ≥ 3:1. Tək seriyalı
+     qrafik yalnız --viz-1 işlədir. Mətn HEÇ VAXT seriya rəngində yazılmır. */
+  --viz-1: #0f7d5e;
+  --viz-2: #b0862f;
+  --viz-3: #3f6fc4;
+  --viz-4: #a4527f;
+  --viz-track: var(--surface-3);   /* boş zolaq / halqanın fonu */
+  --viz-grid:  var(--line);         /* oxlar, şəbəkə xətləri — sakit */
 
   /* ══ 4. FORMA, KÖLGƏ, BOŞLUQ ════════════════════════════════════ */
   --radius-xs:   6px;
@@ -225,9 +278,9 @@
   --container:      1200px;
   --container-narrow: 760px;
   --measure:        68ch;      /* oxunaqlı sətir uzunluğu */
-  --section-gap:    88px;
-  --section-gap-sm: 56px;
-  --hero-gap:       40px;
+  --section-gap:    64px;
+  --section-gap-sm: 40px;
+  --hero-gap:       32px;
   --page-pad-top:   40px;
   --page-pad-bottom: 80px;
   --stack-gap:      20px;
@@ -382,6 +435,12 @@
 
   --pattern-color:  color-mix(in srgb, var(--brand) 10%, transparent);
 
+  /* Qrafik palitrası — tünd səthə ayrıca seçilib (avtomatik çevrilmə deyil) */
+  --viz-1: #26a07c;
+  --viz-2: #a8802a;
+  --viz-3: #5a82e0;
+  --viz-4: #b86a9f;
+
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 16px -4px rgba(0, 0, 0, 0.45);
   --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.3), 0 16px 36px -8px rgba(0, 0, 0, 0.55);
@@ -421,10 +480,17 @@ body {
 }
 /* /ar — interfeys ərəb sans-ı ilə; Quran/hədis öz --font-arabic-ini saxlayır */
 html[lang="ar"] body { font-family: var(--font-arabic-ui); }
-/* /ar başlıqları: Literata-da ərəb hərfi yoxdur — brauzer təsadüfi sistem
-   şriftinə düşürdü. Brauzer şrifti HƏR HƏRF üçün seçir: latın hissə
-   ("Muslims.cc") Literata ilə, ərəbcə Amiri (nəsx) ilə yazılır. */
-html[lang="ar"] { --font-display: 'Literata', 'Amiri', 'Noto Naskh Arabic', serif; }
+/* /ar başlıqları, etiketləri, düymələri: Ubuntu Sans Mono-da ərəb hərfi
+   yoxdur — brauzer təsadüfi sistem şriftinə düşərdi. /ar-da "mono" rolu
+   (--font-display → --font-heading / --font-label) IBM Plex Sans Arabic-dir.
+   Rəqəmlər (--font-num) mono qalır — latın rəqəmləri. */
+html[lang="ar"] { --font-display: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif; }
+
+/* Ərəb yazısı birləşikdir — hərf aralığı hərfləri qırır. Mono etiketlərin
+   (eyebrow, cədvəl başlığı …) letter-spacing-i içindəki ərəbcəyə keçməsin.
+   (Ubuntu Sans Mono-da ərəb hərfi yoxdur → tokenlərdə IBM Plex Sans Arabic
+   növbəti şriftdir; Quran/hədis öz --font-arabic-ini saxlayır.) */
+:where([lang="ar"]), :where([lang="ar"]) * { letter-spacing: 0 !important; text-transform: none; }
 
 a { color:inherit; text-decoration:none; }
 button { font-family:inherit; cursor:pointer; }
@@ -482,11 +548,11 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
   min-height: 42px; padding:0 20px;
   background:var(--brand); color:var(--on-brand);
   border:1px solid transparent; border-radius:var(--radius-md);
-  font-family:var(--font-sans); font-size:14.5px; font-weight:600; letter-spacing: -0.005em;
-  box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255,255,255,0.12);
+  font-family:var(--font-label); font-size:var(--step--1); font-weight:600; letter-spacing: 0;
+  box-shadow: none;
   transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
-.btn-primary:hover { background:var(--brand-hover); box-shadow: var(--shadow-2); }
+.btn-primary:hover { background:var(--brand-hover); }
 .btn-primary:active { transform:translateY(1px); }
 
 .btn-secondary {
@@ -494,8 +560,7 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
   min-height: 42px; padding:0 20px;
   background:var(--surface-1); color:var(--text-strong);
   border:1px solid var(--line-strong); border-radius:var(--radius-md);
-  font-family:var(--font-sans); font-size:14.5px; font-weight:600;
-  box-shadow: var(--shadow-1);
+  font-family:var(--font-label); font-size:var(--step--1); font-weight:600;
   transition: background-color .18s ease, border-color .18s ease;
 }
 .btn-secondary:hover { background:var(--surface-2); border-color: var(--text-tertiary); }
@@ -504,7 +569,7 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
   display:inline-flex; align-items:center; gap:6px;
   padding:8px 14px; background:transparent; color:var(--text-secondary);
   border:1px solid var(--line); border-radius:var(--radius-sm);
-  font-family:var(--font-sans); font-size:13.5px; font-weight:500;
+  font-family:var(--font-label); font-size:var(--step--1); font-weight:500;
   transition: background-color .18s ease, color .18s ease, border-color .18s ease;
 }
 .btn-ghost:hover { background:var(--surface-2); color:var(--text-strong); border-color:var(--line-strong); }
@@ -520,23 +585,27 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
 .page-hero + .section,
 .page-hero + .section-sm { padding-top: var(--hero-gap); }
 
-.section-header { text-align:center; margin-bottom:48px; }
+.section-header { text-align:center; margin-bottom:32px; }
+/* v3: pill/haşiyə yox — .ui-eyebrow ilə eyni sakit mono etiket */
 .section-eyebrow {
-  display:inline-flex; align-items:center; gap:6px;
-  font-size:var(--step--2); font-weight:600;
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-label); font-size:var(--step--2); font-weight:600;
   color:var(--accent-text); letter-spacing:var(--tracking-wide); text-transform:uppercase;
-  background:var(--accent-soft); padding:5px 12px; border-radius:var(--radius-pill);
-  border:1px solid var(--accent-line); margin-bottom:14px;
+  margin-bottom:10px;
+}
+.section-eyebrow::before {
+  content:''; width:6px; height:6px; flex-shrink:0; border-radius:1px;
+  background:var(--accent); transform:rotate(45deg);
 }
 [dir="rtl"] .section-eyebrow { letter-spacing: 0; }
 /* Səhifədaxili bölmə başlığı (h2) — display şrifti, hero h1-dən aydın kiçik */
 .section-title {
-  font-family:var(--font-display);
+  font-family:var(--font-heading);
   font-size:var(--step-3); font-weight:600;
   color:var(--text-strong); letter-spacing:var(--tracking-tight); line-height:1.2;
-  margin-bottom:12px;
+  margin-bottom:8px;
 }
-.section-subtitle { font-size:var(--step-0); color:var(--text-secondary); max-width:580px; margin:0 auto; line-height:1.7; }
+.section-subtitle { font-size:var(--step-0); color:var(--text-secondary); max-width:60ch; margin:0 auto; line-height:1.65; }
 
 /* Kart qrupunun üstündəki kiçik bölmə başlığı (h2) */
 .page-section-title {
@@ -549,12 +618,15 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
 }
 
 /* ── Cards ── */
+/* v3: kölgəsiz, yalnız hairline; hover-də haşiyə tündləşir (yerindən tərpənmir) */
 .card {
   background:var(--surface-1); border:1px solid var(--line);
-  border-radius:var(--radius-lg); box-shadow:var(--shadow-1);
-  transition: box-shadow .22s ease, transform .22s ease, border-color .22s ease;
+  border-radius:var(--radius-lg); box-shadow:none;
+  transition: box-shadow .22s ease, border-color .22s ease;
 }
-.card:hover { box-shadow:var(--shadow-2); transform:translateY(-2px); border-color:var(--line-strong); }
+@media (hover: hover) {
+  .card:hover { border-color:var(--line-strong); box-shadow:var(--shadow-1); }
+}
 /* Kart başlığı ilə məzmun arasında vahid boşluq */
 .card-title { margin-bottom: var(--card-title-gap); }
 
@@ -576,7 +648,7 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
   --hero-art-opacity: 1;
   background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-via) 50%, var(--hero-to) 100%);
   color: #fff;
-  padding:64px var(--page-gutter) 54px;
+  padding:48px var(--page-gutter) 40px;
   border-bottom: none;
   text-align:center;
   position:relative; overflow:hidden;
@@ -604,16 +676,16 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
   text-shadow: 0 2px 12px rgba(0,0,0,0.25);
 }
 .page-hero h1 {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-size:var(--step-4); font-weight:600; line-height: var(--lh-tight);
   color:#fff; margin-bottom:12px; letter-spacing:var(--tracking-tight);
   position:relative; z-index:1;
   text-shadow: 0 2px 18px rgba(0,0,0,0.28);
 }
 .page-hero p {
-  font-size:var(--step-0); color:rgba(255,255,255,0.92); max-width:580px;
-  margin:0 auto; line-height:1.7; position:relative; z-index:1;
-  font-weight:500;
+  font-size:var(--step-0); color:rgba(255,255,255,0.92); max-width:60ch;
+  margin:0 auto; line-height:1.65; position:relative; z-index:1;
+  font-weight:400;
   text-shadow: 0 1px 10px rgba(0,0,0,0.25);
 }
 
@@ -678,7 +750,7 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
 .tag-btn {
   min-height: 36px; padding:0 14px; border-radius:var(--radius-pill); border:1px solid var(--line-strong);
   background:var(--surface-1); color:var(--text-secondary);
-  font-family:var(--font-sans); font-size:13.5px; font-weight:500;
+  font-family:var(--font-label); font-size:var(--step--1); font-weight:500;
   transition: background-color .18s ease, color .18s ease, border-color .18s ease; cursor:pointer;
 }
 .tag-btn:hover { border-color:var(--brand-line); color:var(--text-strong); background:var(--brand-soft); }
@@ -687,7 +759,7 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
 /* ── CTA Section (köhnə) — tünd zümrüd zolaq ── */
 .cta-section {
   background: var(--surface-inverse);
-  padding:80px var(--page-gutter); text-align:center;
+  padding:56px var(--page-gutter); text-align:center;
 }
 .cta-inner { max-width:700px; margin:0 auto; }
 .cta-section h2 { font-family: var(--font-display); font-size:var(--step-3); font-weight:600; color:var(--text-on-inverse); margin-bottom:14px; }
@@ -701,8 +773,13 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
 
 /* ── Tablet (≤768px) ── */
 @media (max-width: 768px) {
-  /* Köhnə səhifələrin rem ölçüləri bu bazaya hesablanıb — saxlanılır */
+  /* Köhnə səhifələrin rem ölçüləri bu bazaya hesablanıb — saxlanılır.
+     v3: kiçik tokenlər isə kompensasiya olunur — əsas mətn telefonda da
+     dəqiq 15px, köməkçi 13px, etiket 12px qalır (oxunaqlılıq həddi).
+     Əlçatanlıq paneli (html.a11y-text-*) font-size-ı dəyişəndə hamısı
+     birlikdə böyüyür — rem olduğu üçün. */
   html { font-size: 15.5px; }
+  :root { --step--2: 0.7742rem; --step--1: 0.8387rem; --step-0: 0.9677rem; }
   body { line-height: 1.6; }
 
   .section-header { margin-bottom: 32px; }
@@ -713,7 +790,6 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
   /* Buttons — daha rahat tap */
   .btn-primary, .btn-secondary {
     min-height: var(--tap);
-    font-size: 14.5px;
   }
   .btn-ghost { padding: 10px 16px; min-height: var(--tap); }
 
@@ -727,8 +803,8 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
   }
 
   /* Page hero kompaktdır (yan boşluq --page-gutter-dən) */
-  .page-hero { padding-block: 36px 30px; }
-  .page-hero p { font-size: 14.5px; }
+  .page-hero { padding-block: 32px 28px; }
+  .page-hero p { font-size: var(--step-0); }
   .page-hero-arabic { font-size: clamp(18px, 4.5vw, 28px); margin-bottom: 6px; }
 
   /* Breadcrumb mobile */
@@ -744,6 +820,7 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
 /* ── Mobile (≤480px) ── */
 @media (max-width: 480px) {
   html { font-size: 15px; }
+  :root { --step--2: 0.8rem; --step--1: 0.8667rem; --step-0: 1rem; }
   /* Tam genişlikdə düymələr — primary call-to-action mobil */
   .btn-primary.btn-mobile-full,
   .btn-secondary.btn-mobile-full {
@@ -752,24 +829,20 @@ html[lang="ar"] .anim-slideInRight { animation-name: slideInLeft; }
   }
 
   /* Hero daha kompakt */
-  .page-hero { padding-block: 30px 26px; }
-  .page-hero p { font-size: 13.5px; max-width: 100%; }
+  .page-hero { padding-block: 28px 24px; }
+  .page-hero p { max-width: 100%; }
   .page-hero-arabic { font-size: clamp(16px, 5vw, 24px); }
 
   /* Cards padding kompakt */
   .card { padding: 14px; border-radius: 14px; }
-  .card-title { font-size: 15px; }
-  .card-body { font-size: 13px; }
-
-  /* Section eyebrow */
-  .section-eyebrow { font-size: 11px; padding: 4px 10px; }
+  .card-title { font-size: var(--step-1); }
+  .card-body { font-size: var(--step--1); }
 }
 
 /* ── Çox kiçik (≤360px) — köhnə telefonlar ── */
 @media (max-width: 360px) {
-  html { font-size: 14.5px; }
   .page-hero { padding-block: 26px 22px; }
-  .btn-primary, .btn-secondary { padding: 0 16px; font-size: 13.5px; }
+  .btn-primary, .btn-secondary { padding: 0 16px; }
 }
 
 /* ── Touch target minimums (WCAG 2.5.5 — 44px) ── */

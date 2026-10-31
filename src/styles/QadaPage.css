@@ -1,7 +1,7 @@
 /* ══ Qəza izləyicisi (/qada) — yalnız tokenlər və .ui-* (DESIGN.md) ══
    Namaz — brend (zümrüd), oruc — vurğu (qızılı, yalnız kiçik detal: zolaq, nöqtə). */
 
-.qd-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
+.qd-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(18px, 1.8vw, 22px); line-height: 1.6; }
 .qd-main.ui-section { padding-block: var(--space-6) var(--section-gap); }
 
 .qd-privacy,
@@ -15,7 +15,7 @@
   border-radius: var(--radius-md);
   background: var(--brand-soft);
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: var(--step--1);
   line-height: 1.55;
 }
 .qd-privacy svg { flex-shrink: 0; margin-top: 2px; color: var(--brand); }
@@ -30,7 +30,7 @@
   gap: 10px 16px;
   margin-bottom: var(--space-5);
   color: var(--text-body);
-  font-size: 14px;
+  font-size: var(--step--1);
 }
 
 .qd-layout {
@@ -38,7 +38,8 @@
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   grid-template-areas:
     "counters goal"
-    "counters history"
+    "counters chart"
+    "est      history"
     "est      backup";
   gap: var(--space-5) var(--space-6);
   align-items: start;
@@ -46,6 +47,7 @@
 .qd-counters { grid-area: counters; }
 .qd-goal { grid-area: goal; }
 .qd-history { grid-area: history; }
+.qd-chart-card { grid-area: chart; }
 .qd-est { grid-area: est; }
 .qd-backup { grid-area: backup; }
 
@@ -61,8 +63,8 @@
   line-height: var(--lh-snug);
 }
 .qd-card-title svg { flex-shrink: 0; color: var(--brand); }
-.qd-card-lead { margin: 6px 0 var(--space-4); color: var(--text-secondary); font-size: 14px; line-height: 1.55; }
-.qd-note { margin: var(--space-2) 0 0; color: var(--text-tertiary); font-size: 13px; line-height: 1.5; }
+.qd-card-lead { margin: 6px 0 var(--space-4); color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.qd-note { margin: var(--space-2) 0 0; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.5; }
 .qd-note--top { margin: 0 0 var(--space-3); }
 .qd-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: var(--space-3); }
 
@@ -97,7 +99,7 @@
 .qd-stepper { grid-area: stepper; display: inline-flex; align-items: center; gap: 4px; }
 .qd-row-actions { grid-area: actions; display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 .qd-row-progress { grid-area: progress; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.qd-row-meta { color: var(--text-tertiary); font-size: 12px; }
+.qd-row-meta { color: var(--text-tertiary); font-size: var(--step--2); }
 
 .qd-root .qd-count {
   width: 5.5em;
@@ -142,8 +144,8 @@
 .qd-goal-field { margin-top: var(--space-4); }
 .qd-root .qd-goal-input { max-width: 8em; }
 .qd-today, .qd-overall { margin-top: var(--space-4); }
-.qd-bar-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; color: var(--text-secondary); font-size: 14px; }
-.qd-msg { min-height: 1.4em; margin: 6px 0 0; color: var(--brand); font-size: 13px; font-weight: 600; }
+.qd-bar-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; color: var(--text-secondary); font-size: var(--step--1); }
+.qd-msg { min-height: 1.4em; margin: 6px 0 0; color: var(--brand); font-size: var(--step--1); font-weight: 600; }
 
 /* ── Qrafik ── */
 .qd-chart { display: block; width: 100%; height: auto; margin-top: var(--space-3); overflow: visible; }
@@ -151,9 +153,9 @@
 .qd-goal-line { stroke: var(--text-tertiary); stroke-width: 1; stroke-dasharray: 4 4; }
 .qd-bar-p { fill: var(--brand); }
 .qd-bar-f { fill: var(--accent); }
-.qd-chart-day { fill: var(--text-tertiary); font-size: 12px; font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
+.qd-chart-day { fill: var(--text-tertiary); font-size: var(--step--2); font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
 .qd-chart-day.is-today { fill: var(--brand); font-weight: 700; }
-.qd-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: var(--space-3) 0 0; padding: 0; list-style: none; color: var(--text-secondary); font-size: 12px; }
+.qd-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: var(--space-3) 0 0; padding: 0; list-style: none; color: var(--text-secondary); font-size: var(--step--2); }
 .qd-legend li { display: inline-flex; align-items: center; gap: 6px; }
 .qd-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .qd-dot--p { background: var(--brand); }
@@ -185,12 +187,12 @@
 .qd-rule > p { margin: var(--space-2) 0 0; color: var(--text-body); line-height: var(--lh-body); }
 .qd-root .qd-quote { margin: var(--space-4) 0 0; }
 .qd-views { display: grid; gap: 8px; margin: var(--space-3) 0 0; padding-inline-start: 1.25em; color: var(--text-body); line-height: var(--lh-body); }
-.qd-src-inline { color: var(--text-tertiary); font-size: 13px; }
-.qd-src { margin: var(--space-3) 0 0; color: var(--text-tertiary); font-size: 13px; }
+.qd-src-inline { color: var(--text-tertiary); font-size: var(--step--1); }
+.qd-src { margin: var(--space-3) 0 0; color: var(--text-tertiary); font-size: var(--step--1); }
 .qd-ltr { direction: ltr; unicode-bidi: isolate; }
 
 @media (max-width: 960px) {
-  .qd-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "counters" "goal" "history" "est" "backup"; }
+  .qd-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "counters" "goal" "chart" "history" "est" "backup"; }
   .qd-rules-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 520px) {
@@ -199,4 +201,21 @@
   .qd-est-grid { grid-template-columns: minmax(0, 1fr); }
   .qd-manual-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .qd-reset { margin-inline-start: 0; }
+}
+
+/* ── v3: hero yan paneli (halqa + açar rəqəmlər), "necə işləyir" ── */
+.qd-hero-aside { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-5); }
+.qd-root .qd-hero-stats { display: grid; grid-template-columns: repeat(2, minmax(0, auto)); gap: 10px 28px; margin: 0; }
+.qd-root .qd-how { padding-bottom: 0; }
+.qd-root .qd-how .ui-section-head { margin-bottom: var(--space-4); }
+.qd-root .qd-main.ui-section { padding-top: var(--space-5); }
+@media (max-width: 899.98px) {
+  .qd-hero-aside { padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-1); }
+}
+@media (max-width: 599.98px) {
+  .qd-hero-aside { gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+  .qd-hero-aside .ui-viz-ring svg { width: 72px; height: 72px; }
+  .qd-root .qd-hero-stats { grid-template-columns: repeat(4, minmax(0, auto)); gap: 6px 16px; }
+  .qd-root .qd-hero-stats b { font-size: var(--step-1); }
+  .qd-root .qd-hero-stats span { font-size: var(--step--2); line-height: 1.3; }
 }

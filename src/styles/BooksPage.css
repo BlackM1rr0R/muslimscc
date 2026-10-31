@@ -16,8 +16,8 @@
   font-size: clamp(20px, 2.2vw, 26px);
   line-height: 1.5;
 }
-.bp-hero-stats { margin-top: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--line); }
-.books-page .bp-hero-stats .ui-stat__num { color: var(--brand); }
+.bp-hero-stats { margin-top: 6px; }
+
 
 .bp-container { padding-top: var(--space-6); }
 
@@ -71,7 +71,7 @@
   border-radius: var(--radius-pill);
   background: var(--surface-2);
   color: var(--text-tertiary);
-  font-size: 11.5px;
+  font-size: var(--step--2);
   font-weight: 700;
 }
 .bp-cat-btn[aria-pressed="true"] .bp-cat-count { background: color-mix(in srgb, var(--surface-1) 22%, transparent); color: inherit; }
@@ -123,7 +123,7 @@
 }
 .bp-cover-placeholder .ui-pattern { --ui-pattern-size: 48px; opacity: 0.5; }
 .bp-cover-icon { color: var(--sand-300, currentColor); }
-.bp-cover-cat { color: var(--text-on-inverse-dim); font-size: 13px; font-weight: 600; }
+.bp-cover-cat { color: var(--text-on-inverse-dim); font-size: var(--step--1); font-weight: 600; }
 
 /* Üz qabığındakı nişanlar — sakit, yarımşəffaf səth (hər iki rejimdə oxunaqlı) */
 .bp-cover-badge,
@@ -138,7 +138,7 @@
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--surface-1) 90%, transparent);
   color: var(--text-strong);
-  font-size: 11.5px;
+  font-size: var(--step--2);
   font-weight: 600;
   line-height: 1;
   box-shadow: var(--shadow-1);
@@ -170,8 +170,8 @@
   overflow-wrap: anywhere;
   hyphens: auto;
 }
-.bp-author { color: var(--text-tertiary); font-size: 13.5px; line-height: 1.4; }
-.bp-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--text-tertiary); font-size: 12.5px; }
+.bp-author { color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.4; }
+.bp-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--text-tertiary); font-size: var(--step--1); }
 /* Səhifə sayı · il — aralarında incə ayırıcı nöqtə */
 .bp-meta > span + span::before { content: '·'; margin-inline-end: 8px; color: var(--text-tertiary); }
 .bp-meta { column-gap: 8px; }
@@ -270,7 +270,7 @@
 }
 .bp-modal-author { color: var(--text-secondary); font-size: var(--step-0); }
 .bp-modal-meta { display: flex; flex-wrap: wrap; gap: 6px; }
-.bp-modal-desc { color: var(--text-body); font-size: 15.5px; line-height: var(--lh-body); }
+.bp-modal-desc { color: var(--text-body); font-size: var(--step-0); line-height: var(--lh-body); }
 .bp-modal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--space-2); }
 .bp-ext-ic { opacity: 0.75; }
 .bp-modal-pdf-disabled {
@@ -360,10 +360,10 @@
 
   .bp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .bp-body, .bp-featured-body { padding: 10px 12px 12px; }
-  .bp-title { font-size: 14.5px; }
+  .bp-title { font-size: var(--step-0); }
   .books-page .bp-actions { gap: 4px; }
   .books-page .bp-read-btn { padding-inline: 8px; }
-  .bp-author { font-size: 12.5px; }
+  .bp-author { font-size: var(--step--1); }
   .books-page .bp-card:active,
   .books-page .bp-featured-card:active { transform: scale(var(--press-scale, 0.98)); }
 
@@ -452,3 +452,20 @@
 @media (max-width: 360px) {
   .books-page .bp-read-btn .ui-btn__icon { display: none; }
 }
+
+/* ══ v3: oxu yolu, bölmələr qrafiki, əlaqəli bölmələr ══ */
+.bp-path__grid { display: grid; gap: var(--space-6); align-items: start; }
+@media (min-width: 1000px) {
+  .bp-path__grid { grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); }
+}
+.bp-steps { max-width: 680px; }
+.books-page .bp-steps .ui-step__title a { color: inherit; text-decoration: underline; text-decoration-color: var(--brand-line); text-underline-offset: 3px; }
+.bp-step__author {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 32px; margin-top: 4px;
+  color: var(--brand); font-size: var(--step--1); font-weight: 600; text-decoration: none;
+}
+.bp-step__author svg { flex-shrink: 0; }
+@media (hover: hover) { .bp-step__author:hover { text-decoration: underline; text-underline-offset: 3px; } }
+@media (pointer: coarse) { .bp-step__author { min-height: 44px; } }
+.bp-related .ui-list { max-width: 760px; }

@@ -1,34 +1,25 @@
 /* ══════════════════════════════════════════════════════════════════
-   PrayerPage — Namaz vaxtları (dizayn sistemi v2)
-   Yalnız semantik tokenlər və .ui-* sinifləri (DESIGN.md). Bu fayl
-   ui.css-dən ƏVVƏL yüklənir — .ui-*-ni dəyişəndə .pp-root ilə gücləndirilir.
+   PrayerPage — Namaz vaxtları (dizayn v3)
+   Yalnız semantik tokenlər, --step-* ölçüləri və .ui-* sinifləri (DESIGN.md).
+   Bu fayl ui.css-dən ƏVVƏL yüklənir — .ui-*-ni dəyişəndə .pp-root ilə gücləndirilir.
 
-   Masaüstü: solda "indi" paneli (saat + növbəti namaz, tünd zümrüd —
-   ana səhifənin namaz kartı ilə eyni dil), şəhər seçimi, əzan açarı;
-   sağda bugünkü vaxtlar və aylıq statistika. Altında sünnə namazları,
-   həftəlik cədvəl, dualar, ayə.
+   Sıra: kompakt hero → [indi paneli + şəhər + əzan | bugünkü vaxtlar + bu ayın
+   namazları] → günün xətti (PrayerDayline) + 4 rəqəm → aylıq .ui-table →
+   vaxtların sərhədləri (.ui-table + qadağan vaxtlar) → sünnə .ui-table +
+   həftəlik qeyd → dualar → əlaqəli bölmələr + ayə.
    ≤900px: bir sütun (sarğılar display:contents, CSS order ilə sıra).
-   <768px: şəhər çipləri üfüqi zolaqda, sıxlaşdırılmış boşluqlar.
    ══════════════════════════════════════════════════════════════════ */
 
 /* ── Hero ── */
-.pp-hero .breadcrumb { justify-content: flex-start; margin: 0 0 4px; }
+.pp-hero .breadcrumb { justify-content: flex-start; margin: 0; }
 .pp-hero .bc-list { justify-content: flex-start; }
-.pp-hero-ar {
-  margin-top: -4px;
-  color: var(--accent);
-  font-size: clamp(22px, 2.4vw, 28px);
-  line-height: 1.6;
-}
-
-/* Hero ilə məzmun arası — tam bölmə boşluğu yox, bir az sıx */
-.pp-root .pp-main { padding-block: var(--space-6) var(--section-gap); }
+.pp-root .pp-main { padding-block: var(--space-5) var(--space-6); }
 
 /* ── Əsas düzən ── */
 .prayer-layout {
   display: grid;
-  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
-  gap: var(--space-5);
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: var(--space-4);
   align-items: start;
 }
 .prayer-left,
@@ -39,33 +30,32 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   background: var(--surface-inverse);
   color: var(--text-on-inverse);
-  box-shadow: var(--shadow-3);
 }
 .pp-now::before {
-  /* incə xatəm izi — panel "boş" görünməsin (ana səhifə ilə eyni) */
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: color-mix(in srgb, var(--sand-300) 8%, transparent);
+  background: color-mix(in srgb, var(--sand-300) 7%, transparent);
   -webkit-mask: var(--ui-khatam) 0 0 / 56px 56px;
   mask: var(--ui-khatam) 0 0 / 56px 56px;
 }
-[data-theme="dark"] .pp-now { box-shadow: var(--shadow-3), inset 0 0 0 1px var(--brand-line); }
+[data-theme="dark"] .pp-now { box-shadow: inset 0 0 0 1px var(--brand-line); }
 
 .prayer-clock {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
-  padding: var(--space-5) var(--space-5) var(--space-4);
+  gap: 4px;
+  padding: var(--space-4) var(--space-5) var(--space-3);
 }
 .pp-now-cap,
 .next-label {
   color: var(--sand-300);
+  font-family: var(--font-label);
   font-size: var(--step--2);
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
@@ -73,34 +63,33 @@
   line-height: 1.3;
 }
 [dir="rtl"] .pp-now-cap,
-[dir="rtl"] .next-label { letter-spacing: 0; font-size: var(--step--1); }
+[dir="rtl"] .next-label { letter-spacing: 0; }
 
 .clock-time {
   color: var(--text-on-inverse);
-  font-family: var(--font-display);
-  font-size: clamp(36px, 3.4vw, 46px);
+  font-family: var(--font-num);
+  font-size: var(--step-3);
   font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.01em;
+  line-height: 1.05;
   font-variant-numeric: tabular-nums lining-nums;
 }
-.clock-date { color: var(--text-on-inverse-dim); font-size: 14px; font-weight: 500; }
+.clock-date { color: var(--text-on-inverse-dim); font-size: var(--step--1); }
 .clock-hijri {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 2px 10px;
   color: var(--text-on-inverse);
-  font-size: 14px;
+  font-size: var(--step--1);
   font-weight: 600;
 }
-.clock-hijri-ar { font-family: var(--font-arabic); font-size: 18px; font-weight: 400; color: var(--sand-300); }
+.clock-hijri-ar { font-family: var(--font-arabic); font-size: var(--step-1); font-weight: 400; color: var(--sand-300); }
 
 .next-prayer-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-  padding: var(--space-4) var(--space-5) var(--space-5);
+  gap: 4px;
+  padding: var(--space-3) var(--space-5) var(--space-4);
   border-top: 1px solid color-mix(in srgb, var(--sand-200) 16%, transparent);
 }
 .next-head { display: flex; flex-direction: column; gap: 4px; }
@@ -110,7 +99,8 @@
   flex-wrap: wrap;
   gap: 8px;
   color: var(--text-on-inverse);
-  font-size: 17px;
+  font-family: var(--font-heading);
+  font-size: var(--step-1);
   font-weight: 600;
   line-height: 1.3;
 }
@@ -118,26 +108,25 @@
 .next-at {
   margin-inline-start: auto;
   color: var(--text-on-inverse-dim);
-  font-size: 15px;
+  font-size: var(--step-0);
   font-weight: 500;
 }
 .next-countdown {
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--sand-200);
-  font-family: var(--font-display);
-  font-size: clamp(38px, 3.6vw, 50px);
+  font-family: var(--font-num);
+  font-size: var(--step-4);
   font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums lining-nums;
 }
-.next-remaining-label { color: var(--text-on-inverse-dim); font-size: 13px; font-weight: 500; }
+.next-remaining-label { color: var(--text-on-inverse-dim); font-size: var(--step--1); }
 
 /* Növbəti namaza qədər ötən vaxt — hər saniyə xətti dolur */
 .pp-bar {
   display: block;
   height: 4px;
-  margin-top: 10px;
+  margin-top: 8px;
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--sand-200) 16%, transparent);
   overflow: hidden;
@@ -153,23 +142,23 @@
 [dir="rtl"] .pp-bar > span { transform-origin: right center; }
 
 /* ══ Şəhər seçimi ═════════════════════════════════════════════════ */
-.prayer-city-head { display: flex; align-items: center; gap: 10px; margin-bottom: var(--space-3); }
+.prayer-city-head { display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-3); color: var(--brand); }
 .prayer-city-label {
   color: var(--text-strong);
-  font-size: var(--step-0);
+  font-family: var(--font-label);
+  font-size: var(--step--1);
   font-weight: 600;
   line-height: 1.3;
 }
-/* Seçici düyməsi (CityPicker, variant="field") — görünüş styles/CityPicker.css-də */
 
 /* ══ Əzan açarı (ayarlar sətri) ═══════════════════════════════════ */
 .pp-root .azan-toggle {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
-  min-height: 72px;
-  padding: 14px var(--space-4);
+  min-height: 64px;
+  padding: 12px var(--space-4);
   font: inherit;
   text-align: start;
   cursor: pointer;
@@ -181,13 +170,13 @@
 .pp-root .azan-toggle:active { transform: scale(0.99); }
 .pp-root .azan-toggle.active { border-color: var(--brand-line); }
 .azan-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.azan-label { color: var(--text-strong); font-size: 15px; font-weight: 600; line-height: 1.3; }
-.azan-sub { color: var(--text-tertiary); font-size: 13px; line-height: 1.4; }
+.azan-label { color: var(--text-strong); font-size: var(--step-0); font-weight: 600; line-height: 1.3; }
+.azan-sub { color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.4; }
 .azan-switch {
   position: relative;
   flex-shrink: 0;
-  width: 46px;
-  height: 28px;
+  width: 44px;
+  height: 26px;
   border-radius: var(--radius-pill);
   background: var(--surface-3);
   box-shadow: inset 0 0 0 1px var(--line-strong);
@@ -197,17 +186,16 @@
   position: absolute;
   top: 3px;
   inset-inline-start: 3px;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: var(--surface-1);
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--shadow-1);
   transition: transform var(--dur-2) var(--ease-spring);
 }
 .azan-toggle.active .azan-switch { background: var(--brand); box-shadow: none; }
 .azan-toggle.active .azan-knob { transform: translateX(18px); }
 [dir="rtl"] .azan-toggle.active .azan-knob { transform: translateX(-18px); }
-/* Zəng ikonu yandırılanda bir dəfə yüngül "yellənir" */
 .azan-toggle.active .azan-ico svg { animation: pp-bell var(--dur-3) var(--ease-out); transform-origin: 50% 15%; }
 @keyframes pp-bell {
   0% { transform: rotate(0); }
@@ -222,18 +210,24 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 12px;
-  padding: var(--space-4) var(--space-5) var(--space-3);
+  gap: 6px 12px;
+  padding: var(--space-4) var(--space-5) var(--space-2);
 }
 .pp-times-title {
   color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: var(--step-2);
+  font-family: var(--font-heading);
+  font-size: var(--step-1);
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: var(--tracking-snug);
 }
-.pp-times-head .ui-badge svg { flex-shrink: 0; color: var(--accent); }
+.pp-times-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+}
+.pp-times-badge svg { flex-shrink: 0; color: var(--accent); }
 
 .prayer-times-list {
   display: flex;
@@ -246,10 +240,10 @@
 .prayer-time-card {
   position: relative;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto 20px;
+  grid-template-columns: 32px minmax(0, 1fr) auto 18px;
   align-items: center;
   column-gap: 12px;
-  min-height: 60px;
+  min-height: 50px;
   padding-inline: 12px;
   border-radius: var(--radius-md);
   color: var(--text-body);
@@ -259,7 +253,7 @@
   content: '';
   position: absolute;
   top: -1px;
-  inset-inline: 60px 12px;
+  inset-inline: 56px 12px;
   height: 1px;
   background: var(--line);
 }
@@ -269,179 +263,127 @@
 .pt-icon {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
-  background: var(--surface-2);
   color: var(--text-secondary);
 }
+.pt-icon svg { width: 18px; height: 18px; }
 .pt-info { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
-.pt-name { color: var(--text-strong); font-size: 16px; font-weight: 500; }
+.pt-name { color: var(--text-strong); font-size: var(--step-0); font-weight: 500; }
 .pt-next-badge {
   display: inline-flex;
   align-items: center;
-  height: 22px;
+  height: 20px;
   padding: 0 8px;
   border-radius: var(--radius-pill);
   background: var(--brand);
   color: var(--on-brand);
-  font-size: 11.5px;
+  font-family: var(--font-label);
+  font-size: var(--step--2);
   font-weight: 600;
   line-height: 1;
 }
 .pt-time {
   color: var(--text-strong);
-  font-size: 19px;
+  font-family: var(--font-num);
+  font-size: var(--step-1);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
 }
 .pt-indicator { display: grid; place-items: center; color: var(--text-tertiary); }
 
-/* Keçmiş vaxtlar sakitləşir; şuruq (namaz deyil) — köməkçi sətir */
 .prayer-time-card.is-passed .pt-name,
 .prayer-time-card.is-passed .pt-time { color: var(--text-tertiary); }
 .prayer-time-card.is-passed .pt-time { font-weight: 500; }
-.prayer-time-card.is-aux .pt-name { color: var(--text-secondary); font-size: 15px; }
-.prayer-time-card.is-aux .pt-time { font-size: 16px; font-weight: 500; color: var(--text-secondary); }
-.prayer-time-card.is-aux .pt-icon { background: transparent; }
+.prayer-time-card.is-aux .pt-name { color: var(--text-secondary); font-size: var(--step--1); }
+.prayer-time-card.is-aux .pt-time { font-size: var(--step-0); font-weight: 500; color: var(--text-secondary); }
 
-/* Növbəti namaz — yumşaq brend fonu + başlanğıc kənarında zolaq */
-.prayer-time-card.is-next {
-  background: var(--brand-soft);
-  box-shadow: inset 0 0 0 1px var(--brand-line);
-}
+.prayer-time-card.is-next { background: var(--brand-soft); }
 .prayer-time-card.is-next::after {
   content: '';
   position: absolute;
-  inset-block: 12px;
+  inset-block: 10px;
   inset-inline-start: 0;
   width: 3px;
   border-radius: var(--radius-pill);
   background: var(--brand);
 }
-.prayer-time-card.is-next .pt-icon { background: var(--brand-soft-2); color: var(--brand); }
+.prayer-time-card.is-next .pt-icon { color: var(--brand); }
 .prayer-time-card.is-next .pt-name { font-weight: 600; }
-.prayer-time-card.is-next .pt-time { color: var(--brand); font-size: 21px; }
+.prayer-time-card.is-next .pt-time { color: var(--brand); }
 
-/* Yüklənmə: vaxtın yerində parıltı */
-.pts-time { display: inline-block; width: 56px; vertical-align: middle; }
+.pts-time { display: inline-block; width: 52px; vertical-align: middle; }
 
-/* Şəhər dəyişəndə siyahı yumşaq yenidən görünür */
 .pp-swap { animation: pp-swap var(--dur-3) var(--ease-out) both; }
 @keyframes pp-swap {
   from { opacity: 0; transform: translate3d(0, 6px, 0); }
   to   { opacity: 1; transform: none; }
 }
 
-/* Siyahının altı: hesablama qeydi + camaat keçidi */
 .prayer-times-foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 16px;
-  padding: 14px var(--space-5);
+  gap: 4px 16px;
+  padding: 8px var(--space-5);
   border-top: 1px solid var(--line);
-  background: var(--surface-2);
 }
-.prayer-times-note { color: var(--text-tertiary); font-size: 13px; line-height: 1.45; }
-.pp-root .prayer-jamaat-link { min-height: var(--tap); margin-inline-start: auto; }
+.prayer-times-note { color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.45; }
+.pp-root .prayer-jamaat-link { min-height: var(--tap); margin-inline-start: auto; font-size: var(--step--1); }
 
 .prayer-error {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: var(--space-6) var(--space-5) var(--space-6);
+  padding: var(--space-6) var(--space-5);
   color: var(--text-secondary);
-  font-size: 15px;
+  font-size: var(--step-0);
   line-height: 1.5;
   text-align: center;
 }
 .prayer-error p { max-width: 36ch; }
 
-/* ══ Aylıq statistika + bu günün namazları ════════════════════════ */
+/* ══ Bu ayın namazları + bu günün 5 düyməsi ═══════════════════════ */
 .stat-card-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
 }
-.stat-card-head-l { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.stat-card-head-l { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .stat-card-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   color: var(--text-strong);
-  font-size: var(--step-0);
+  font-family: var(--font-heading);
+  font-size: var(--step-1);
   font-weight: 600;
   line-height: 1.3;
 }
 .stat-card-sub { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
 .stat-total-num {
   color: var(--brand);
-  font-family: var(--font-display);
+  font-family: var(--font-num);
   font-size: var(--step-3);
   font-weight: 500;
   line-height: 1;
 }
-.stat-total-sep { color: var(--text-secondary); font-size: 14px; }
-.stat-total-label { color: var(--text-tertiary); font-size: 13px; }
-
-/* Dairəvi faiz */
-.stat-circle { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
-.stat-circle-svg { width: 64px; height: 64px; transform: rotate(-90deg); }
-.stat-circle-bg { fill: none; stroke: var(--surface-3); stroke-width: 3.2; }
-.stat-circle-fill {
-  fill: none;
-  stroke: var(--brand);
-  stroke-width: 3.2;
-  stroke-linecap: round;
-  transition: stroke-dasharray .6s var(--ease-out);
-}
-.stat-circle-pct {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--text-strong);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* Xətti irəliləyiş — doluluq transform ilə (--p: 0…1) */
-.stat-progress-bar {
-  height: 6px;
-  margin-bottom: var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--line);
-  overflow: hidden;
-}
-.stat-progress-fill {
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--brand);
-  transform: scaleX(var(--p, 0));
-  transform-origin: 0 50%;
-  transition: transform .6s var(--ease-out);
-}
-[dir="rtl"] .stat-progress-fill { transform-origin: 100% 50%; }
+.stat-total-sep { color: var(--text-secondary); font-size: var(--step--1); }
+.stat-total-label { color: var(--text-tertiary); font-size: var(--step--1); }
+.pp-root .stat-ring { flex-shrink: 0; }
 
 .stat-today-row { display: flex; flex-direction: column; gap: 2px; margin-bottom: var(--space-3); }
-.stat-today-label { color: var(--text-strong); font-size: 14px; font-weight: 600; }
+.stat-today-label { color: var(--text-strong); font-size: var(--step--1); font-weight: 600; }
 .stat-today-count { display: inline-block; animation: pp-pop var(--dur-3) var(--ease-spring); }
-.stat-today-hint { color: var(--text-tertiary); font-size: 13px; }
+.stat-today-hint { color: var(--text-tertiary); font-size: var(--step--1); }
 @keyframes pp-pop {
   0%   { transform: scale(0.8); opacity: 0.5; }
   60%  { transform: scale(1.14); opacity: 1; }
   100% { transform: none; }
 }
 
-/* 5 namaz bir sırada: ikon, ad, animasiyalı ✓ (.m-check — motion.css) */
 .stat-prayers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .stat-prayer-btn {
   position: relative;
@@ -449,9 +391,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 92px;
-  padding: 12px 4px;
+  gap: 5px;
+  min-height: 84px;
+  padding: 10px 4px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
   background: var(--surface-1);
@@ -469,241 +411,207 @@
 .stat-prayer-name {
   max-width: 100%;
   color: var(--text-strong);
-  font-size: 13px;
+  font-size: var(--step--1);
   font-weight: 600;
   line-height: 1.2;
   overflow-wrap: anywhere;
   text-align: center;
 }
-.pp-root .stat-prayer-mcheck { --m-check-size: 22px; background: var(--surface-1); border-color: var(--line-strong); }
+.pp-root .stat-prayer-mcheck { --m-check-size: 20px; background: var(--surface-1); border-color: var(--line-strong); }
 .stat-prayer-btn.done { background: var(--brand-soft); border-color: var(--brand-line); }
 .stat-prayer-btn.done .stat-prayer-icon { color: var(--brand); }
 .pp-root .stat-prayer-btn.done .stat-prayer-mcheck { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
 
-/* Beşi də qılınanda: kart qızılı haşiyə alır, dairə bir dəfə "nəfəs alır" */
 .pp-root .stat-card.is-complete { border-color: var(--accent-line); }
-.stat-card.is-complete .stat-circle { animation: pp-pop 520ms var(--ease-spring); }
-.stat-card.is-complete .stat-circle-fill { stroke: var(--accent); }
+.stat-card.is-complete .stat-ring { animation: pp-pop 520ms var(--ease-spring); }
 .stat-card.is-complete .stat-today-hint { color: var(--accent-text); font-weight: 600; }
+.stat-card .pp-tracker-link { display: inline-flex; margin-top: var(--space-3); font-size: var(--step--1); }
 
-/* ══ Əlavə blok ═══════════════════════════════════════════════════ */
-.prayer-extras {
+.pp-root .pp-ramadan { margin-bottom: var(--space-4); }
+
+/* ══ v3 bölmələri ══════════════════════════════════════════════════ */
+.pp-root .ui-section-head { margin-bottom: var(--space-4); }
+
+/* Günün xətti */
+.pp-day-card { padding: var(--space-4) var(--space-3) var(--space-2); }
+.pp-root .pp-day-stats { --ui-stats-min: 168px; margin-top: var(--space-3); }
+
+/* Aylıq cədvəl — hündürlüyü məhdud, başlıq yapışqan */
+.pp-month-wrap { max-height: 460px; overflow: auto; }
+.pp-month-table thead th { position: sticky; top: 0; z-index: 1; }
+.pp-month-table .is-aux { color: var(--text-tertiary); }
+.pp-month-table tbody th { white-space: nowrap; }
+.pp-wd { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 400; }
+.pp-month-skel { display: grid; gap: 10px; }
+
+/* Vaxtların sərhədləri + qadağan vaxtlar */
+.pp-bounds-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--space-5);
-  margin-top: var(--space-5);
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: var(--space-4);
   align-items: start;
 }
-.prayer-extras-col { display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; }
-.prayer-extras .prayer-reminder { grid-column: 1 / -1; }
+.pp-bounds-table tbody th { white-space: nowrap; }
+.pp-forbid-list {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding-inline-start: 18px;
+  font-size: var(--step--1);
+  line-height: 1.5;
+}
+.pp-forbid-note { margin-top: 8px; font-size: var(--step--1); }
+.pp-src { color: var(--text-tertiary); font-size: var(--step--2); white-space: nowrap; }
+.pp-src--block { display: block; margin-top: 2px; }
 
+/* Sünnə cədvəli + həftəlik qeyd */
+.pp-sunnah-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+.pp-sunnah-name { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.pp-sunnah-name svg { color: var(--text-tertiary); flex-shrink: 0; }
 .pp-card-title {
-  margin-bottom: var(--space-4);
   color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: var(--step-2);
+  font-family: var(--font-heading);
+  font-size: var(--step-1);
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: var(--tracking-snug);
 }
+.pp-card-sub { margin: 4px 0 var(--space-3); color: var(--text-tertiary); font-size: var(--step--1); }
 
-/* Sünnə namazları */
-.sunnah-list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-.sunnah-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 60px;
-  padding-block: 10px;
-}
-.sunnah-item + .sunnah-item { border-top: 1px solid var(--line); }
-.sunnah-info { flex: 1; min-width: 0; }
-.sunnah-name { color: var(--text-strong); font-size: 15px; font-weight: 600; line-height: 1.35; }
-.sunnah-desc { margin-top: 2px; color: var(--text-tertiary); font-size: 13px; line-height: 1.45; }
-.sunnah-source { margin-top: 2px; color: var(--text-tertiary); font-size: 12px; }
-.sunnah-rakat {
-  flex-shrink: 0;
-  min-width: 40px;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--brand-soft);
-  box-shadow: inset 0 0 0 1px var(--brand-soft-2);
-  color: var(--brand);
-  font-size: 13.5px;
-  font-weight: 600;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* Həftəlik cədvəl */
-.prayer-week-grid { display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
+.prayer-week-grid { display: flex; flex-direction: column; gap: 5px; overflow-x: auto; }
 .pw-header,
 .pw-row {
   display: grid;
-  grid-template-columns: 76px repeat(7, minmax(28px, 1fr));
-  gap: 6px;
+  grid-template-columns: 64px repeat(7, minmax(24px, 1fr));
+  gap: 5px;
   align-items: center;
 }
 .pw-day-label {
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-family: var(--font-label);
+  font-size: var(--step--2);
   font-weight: 600;
   text-align: center;
+  min-width: 0;
 }
 .pw-day-label.is-today { color: var(--brand); }
-.pw-prayer-name { color: var(--text-secondary); font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pw-prayer-name { color: var(--text-secondary); font-size: var(--step--1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pw-cell {
   display: grid;
   place-items: center;
-  height: 34px;
+  height: 28px;
   border-radius: var(--radius-sm);
   background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--line);
   color: var(--on-brand);
   transition: background-color var(--dur-2) ease;
 }
 .pw-cell.is-today:not(.done) { box-shadow: inset 0 0 0 1.5px var(--brand-line); background: var(--brand-soft); }
-.pw-cell.done { background: var(--brand); box-shadow: none; }
+.pw-cell.done { background: var(--brand); }
 .pw-cell.done svg { animation: pp-pop var(--dur-3) var(--ease-spring); }
 
-/* Namaz duaları */
-.prayer-dua-list { display: flex; flex-direction: column; gap: var(--space-3); }
-.prayer-dua-card {
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--line);
+/* Namaz duaları — 2–3 sütunlu sakit kartlar */
+.prayer-dua-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
 }
+.prayer-dua-card { display: flex; flex-direction: column; gap: 6px; }
 .prayer-dua-name {
-  margin-bottom: 6px;
   color: var(--accent-text);
+  font-family: var(--font-label);
   font-size: var(--step--2);
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
-[dir="rtl"] .prayer-dua-name { letter-spacing: 0; font-size: var(--step--1); }
-.prayer-dua-ar { margin-bottom: 6px; font-size: clamp(20px, 1.7vw, 24px); text-align: right; }
-.prayer-dua-trans { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
-.prayer-dua-source { margin-top: 4px; color: var(--text-tertiary); font-size: 12px; }
+[dir="rtl"] .prayer-dua-name { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
+.prayer-dua-ar { font-size: calc(var(--step-0) * 1.4); line-height: var(--lh-arabic); text-align: right; }
+.prayer-dua-trans { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6; }
+.prayer-dua-source { margin-top: auto; color: var(--text-tertiary); font-size: var(--step--2); }
 
-/* Ayə */
+/* Əlaqəli bölmələr + ayə */
+.pp-root .pp-tiles { --ui-tiles-min: 240px; }
 .prayer-reminder {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin: 0;
-  padding: var(--space-6) var(--space-5);
-  border-radius: var(--radius-xl);
-  background: var(--surface-2);
-  border: 1px solid var(--line);
+  gap: 8px;
+  margin: var(--space-6) 0 0;
+  padding: var(--space-5) var(--space-4);
+  border-top: 1px solid var(--line);
   text-align: center;
 }
-.reminder-arabic { color: var(--brand); font-size: clamp(26px, 2.6vw, 34px); }
+.reminder-arabic { color: var(--brand); font-size: calc(var(--step-0) * 1.6); }
 .reminder-trans {
   max-width: 52ch;
   margin-inline: auto;
   color: var(--text-body);
-  font-family: var(--font-display);
-  font-size: var(--step-1);
+  font-size: var(--step-0);
   font-style: italic;
   line-height: 1.5;
 }
-.reminder-src { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
+.reminder-src { color: var(--text-tertiary); font-size: var(--step--1); }
 
 /* ══ Responsive ═══════════════════════════════════════════════════ */
-
-/* 1024–1199: yan panel açıqdır — iki bərabər sütun */
 @media (max-width: 1199.98px) {
   .prayer-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 
-/* ≤900: bir sütun, kartlar vahid axında: indi → vaxtlar → şəhər → əzan → statistika */
+/* ≤900: bir sütun: indi → vaxtlar → şəhər → əzan → statistika */
 @media (max-width: 900px) {
-  .prayer-layout { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-4); }
+  .prayer-layout { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-3); }
   .prayer-left, .prayer-right { display: contents; }
   .pp-now { order: 1; }
   .pp-times { order: 2; }
   .prayer-city-block { order: 3; }
   .azan-toggle { order: 4; }
   .stat-card { order: 5; }
-
-  .prayer-extras { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-4); margin-top: var(--space-4); }
-  .prayer-extras-col { display: contents; }
-  .prayer-stats-section { order: 1; }
-  .sunnah-section { order: 2; }
-  .prayer-dua-section { order: 3; }
-  .prayer-extras .prayer-reminder { order: 4; }
-
-  /* Saat və geri sayım yan-yana — panel qısalır */
-  .pp-now { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .pp-bounds-grid,
+  .pp-sunnah-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Telefon */
 @media (max-width: 767.98px) {
   .pp-hero .breadcrumb { display: none; }
-  .pp-root .pp-main { padding-block: var(--space-4) var(--space-7); }
+  .pp-root .pp-main { padding-block: var(--space-4) var(--space-5); }
 
-  .prayer-clock { padding: var(--space-4) var(--space-4) 14px; gap: 4px; }
-  .clock-time { font-size: 32px; }
-  .clock-date, .clock-hijri { font-size: 13.5px; }
-  .next-prayer-card { padding: 14px var(--space-4) var(--space-4); }
-  .next-countdown { font-size: 40px; }
+  .prayer-clock { padding: var(--space-3) var(--space-4) 10px; }
+  .next-prayer-card { padding: 10px var(--space-4) var(--space-4); }
 
-  .pp-times-head { padding: 14px var(--space-4) 10px; }
+  .pp-times-head { padding: 12px var(--space-4) 6px; }
   .prayer-times-list { padding: 0 6px 6px; }
-  .prayer-time-card { grid-template-columns: 34px minmax(0, 1fr) auto 16px; column-gap: 10px; min-height: 56px; padding-inline: 10px; }
-  .pt-icon { width: 34px; height: 34px; }
-  .prayer-time-card + .prayer-time-card::before { inset-inline-start: 54px; }
-  .pt-name { font-size: 15.5px; }
-  .pt-time { font-size: 18px; }
-  .prayer-time-card.is-next .pt-time { font-size: 19px; }
-  .prayer-times-foot { flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px var(--space-4); }
+  .prayer-time-card { grid-template-columns: 30px minmax(0, 1fr) auto 16px; column-gap: 10px; min-height: 48px; padding-inline: 10px; }
+  .pt-icon { width: 30px; height: 30px; }
+  .prayer-time-card + .prayer-time-card::before { inset-inline-start: 50px; }
+  .prayer-times-foot { flex-direction: column; align-items: flex-start; gap: 0; padding: 8px var(--space-4); }
   .pp-root .prayer-jamaat-link { margin-inline-start: 0; }
 
   .stat-prayers { gap: 6px; }
-  .stat-prayer-btn { min-height: 86px; padding: 10px 2px; }
-  .stat-prayer-name { font-size: 12.5px; }
+  .stat-prayer-btn { min-height: 78px; padding: 8px 2px; }
 
-  .pw-header, .pw-row { grid-template-columns: 62px repeat(7, minmax(26px, 1fr)); gap: 4px; }
-  .pw-cell { height: 30px; }
-  /* "Cümə" sütundan enlidir — qonşu "Şən"ə yapışırdı */
-  .pw-day-label { font-size: 11px; letter-spacing: -0.01em; min-width: 0; }
-  .pw-prayer-name { font-size: 13px; }
-
-  .prayer-reminder { padding: var(--space-5) var(--space-4); border-radius: var(--radius-lg); }
-}
-
-@media (max-width: 360px) {
-  .clock-time { font-size: 28px; }
-  .next-countdown { font-size: 34px; }
-  .stat-prayers { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .pw-header, .pw-row { grid-template-columns: 56px repeat(7, minmax(24px, 1fr)); gap: 4px; }
+  .pw-cell { height: 26px; }
+  .pp-day-card { padding-inline: 4px; }
+  .pp-root .pp-day-stats { --ui-stats-min: 140px; }
+  .pp-month-wrap { max-height: 380px; }
+  .pp-root .pp-month-table th, .pp-root .pp-month-table td { padding-inline: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .pp-bar > span,
-  .stat-progress-fill,
-  .stat-circle-fill,
   .azan-knob,
   .azan-switch { transition: none; }
   .pp-swap,
   .stat-today-count,
-  .stat-card.is-complete .stat-circle,
+  .stat-card.is-complete .stat-ring,
   .pw-cell.done svg,
   .azan-toggle.active .azan-ico svg { animation: none; }
   .stat-prayer-btn:active,
   .pp-root .azan-toggle:active { transform: none; }
 }
-
-/* 0%-də yuvarlaq xətt ucu dairədə "nöqtə" çəkirdi — gizlət */
-.stat-circle-fill.is-empty { opacity: 0; }
-
-/* Ramazan rejimi kartı (components/RamadanCard) — iki sütunun üstündə */
-.pp-root .pp-ramadan { margin-bottom: var(--space-5); }
-@media (max-width: 767.98px) {
-  .pp-root .pp-ramadan { margin-bottom: var(--space-4); }
-}
-
-/* Namaz izləyicisinə keçid (statistika kartının altı; marşrut qoşulanda görünür) */
-.stat-card .pp-tracker-link { display: inline-flex; margin-top: var(--space-4); font-size: 14px; }
+/* Halqanın görünən etiketi kartın başlığını təkrarlayır — yalnız ekran oxuyucusu üçün (aria-label) */
+.pp-root .stat-ring .ui-viz-ring__text { display: none; }

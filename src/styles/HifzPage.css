@@ -5,29 +5,47 @@
    Bu fayl ui.css-dən ƏVVƏL yüklənir (DESIGN.md §4.1).
    ══════════════════════════════════════════════════════════════════ */
 
-/* ── 1. HERO ─────────────────────────────────────────────────────── */
-/* Dekorativ xəttatlıq — solğun, iri; element özü rtl olduğu üçün fiziki tərəf */
-.hifz-hero__art {
-  position: absolute;
-  z-index: -1;
-  right: clamp(24px, 6vw, 96px);
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-arabic);
-  font-size: clamp(64px, 8vw, 128px);
-  line-height: 1.3;
-  direction: rtl;
-  color: var(--brand);
-  opacity: 0.09;
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
+/* ── 1. HERO (v3, --split) — sağda ümumi irəliləyiş paneli ───────── */
+.hifz-dash {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px 20px;
+  width: min(100%, 420px);
+  margin-inline-start: auto;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
 }
-[dir="rtl"] .hifz-hero__art { right: auto; left: clamp(24px, 6vw, 96px); }
-@media (max-width: 1099.98px) { .hifz-hero__art { display: none; } }
+.hifz-dash .ui-viz-ring { flex-direction: column; text-align: center; max-width: 130px; }
+.hifz-dash__side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.hifz-dash__amma { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; align-items: baseline; }
+.hifz-dash__amma .ui-meter { grid-column: 1 / -1; }
+.hifz-dash__label { color: var(--text-secondary); font-size: var(--step--1); }
+.hifz-dash__val { color: var(--text-strong); font-size: var(--step--1); font-weight: 600; }
+.hifz-dash__kv > div { padding-block: 5px; }
+.hifz-dash__sub { grid-column: 1 / -1; color: var(--text-tertiary); font-size: var(--step--2); }
+.hifz-dash__note { grid-column: 1 / -1; margin: 0; color: var(--text-tertiary); font-size: var(--step--2); }
+/* Telefonda yığcam: halqa + ümumi zolaq bir sətirdə; açar–dəyər və qeyd gizlənir */
+@media (max-width: 899.98px) {
+  .hifz-dash { width: 100%; margin: 0; padding: 12px 14px; column-gap: 14px; }
+  .hifz-dash svg { width: 64px; height: 64px; }
+  .hifz-dash .ui-viz-ring__label { font-size: var(--step--2); }
+  .hifz-dash__kv, .hifz-dash__note { display: none; }
+}
 
-.hifz-section.section { padding-top: clamp(24px, 3vw, 36px); }
+/* Telefonda hero yığcam qalsın (≤ ~45% ekran): ümumi panel gizlənir — eyni
+   məlumat aşağıda "Bu günün planı" və surə izləyicisinin donutunda var */
+@media (max-width: 599.98px) { .hifz-hero .ui-page-hero__aside { display: none; } }
+.hifz-section.ui-section { padding-top: clamp(24px, 3vw, 40px); }
 .hifz-layout { display: flex; flex-direction: column; gap: var(--space-5); }
+.hifz-layout > .ui-section-head { margin-bottom: 0; }
+
+/* Status cədvəli + donut yan-yana */
+.hifz-summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-4); align-items: center; }
+.hifz-donut { margin: 0; padding: var(--space-3) var(--space-4); background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+@media (max-width: 899.98px) { .hifz-summary { grid-template-columns: minmax(0, 1fr); } .hifz-donut { justify-self: stretch; } }
 
 /* ── 2. XÜLASƏ PANELİ ────────────────────────────────────────────── */
 .hifz-stats {
@@ -36,7 +54,6 @@
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
   overflow: hidden;
 }
 .hifz-stat-card {
@@ -57,8 +74,8 @@
   line-height: 1.05;
   letter-spacing: var(--tracking-tight);
 }
-.hifz-stat-label { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 14px; font-weight: 600; }
-.hifz-stat-ayahs { color: var(--text-tertiary); font-size: 13px; font-variant-numeric: tabular-nums; }
+.hifz-stat-label { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
+.hifz-stat-ayahs { color: var(--text-tertiary); font-size: var(--step--1); font-variant-numeric: tabular-nums; }
 
 /* Status nöqtəsi etiketin əvvəlində */
 .hifz-stat-card:not(.progress-card) .hifz-stat-label::before {
@@ -86,8 +103,8 @@
 [dir="rtl"] .hifz-stat-card.progress-card {
   background: radial-gradient(ellipse 80% 120% at 100% 0%, var(--brand-soft) 0%, transparent 70%), var(--surface-1);
 }
-.progress-card .hifz-stat-label { grid-area: label; color: var(--accent-text); font-size: 12px; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
-[dir="rtl"] .progress-card .hifz-stat-label { letter-spacing: 0; font-size: 13px; }
+.progress-card .hifz-stat-label { grid-area: label; color: var(--accent-text); font-size: var(--step--2); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+[dir="rtl"] .progress-card .hifz-stat-label { letter-spacing: 0; font-size: var(--step--1); }
 .progress-card .hifz-stat-num { grid-area: num; font-size: var(--step-4); color: var(--brand); }
 .progress-card .hifz-stat-ayahs { grid-area: sub; }
 .hifz-progress-bar {
@@ -122,7 +139,7 @@
   border-radius: var(--radius-pill);
   background: var(--surface-2);
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-size: var(--step--2);
   font-weight: 600;
   line-height: 1;
   text-align: center;
@@ -195,7 +212,7 @@
   border-radius: var(--radius-md);
   background: var(--surface-2);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: var(--step--1);
   font-weight: 600;
   transition: background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
 }
@@ -396,7 +413,7 @@
 
 /* 320–360px: "200 аятов · Джуз 3" ərəb adının yanında kəsilirdi */
 @media (max-width: 360px) {
-  .hifz-card-meta { flex-wrap: wrap; white-space: normal; font-size: 12px; }
+  .hifz-card-meta { flex-wrap: wrap; white-space: normal; font-size: var(--step--2); }
   .hifz-card-arabic { font-size: 1.05rem; }
   .hifz-grid > .hifz-card { padding-inline: 12px; gap: 10px; }
 }
@@ -420,11 +437,27 @@
    Yalnız tokenlər; vurğu — zümrüd (--brand), qızılı yalnız kiçik detallarda.
    ══════════════════════════════════════════════════════════════════ */
 .hifz-smart { display: flex; flex-direction: column; gap: var(--space-4); }
-.hifz-smart__head { display: flex; flex-direction: column; gap: 6px; }
-.hifz-smart__head .ui-title,
-.hifz-tracker-title { margin: 0; }
-.hifz-smart__lead { margin: 0; max-width: 62ch; color: var(--text-secondary); font-size: var(--step-0); line-height: var(--lh-body); }
-.hifz-tracker-title { margin-top: var(--space-5); }
+.hifz-smart > .ui-section-head { margin-bottom: 0; }
+
+/* Növbədəki ayələr və 7 günlük proqnoz (təkrar kartında) */
+.hifz-queue { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.hifz-queue__title { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+[dir="rtl"] .hifz-queue__title { letter-spacing: 0; text-transform: none; }
+.hifz-queue__list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.hifz-queue__item { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface-2); font-size: var(--step--1); }
+.hifz-queue__name { color: var(--text-body); }
+.hifz-queue__ref { color: var(--text-tertiary); font-size: var(--step--2); }
+.hifz-queue__more { align-self: center; color: var(--text-tertiary); font-size: var(--step--2); }
+.hifz-forecast { width: 100%; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.hifz-forecast__sub { text-transform: none; letter-spacing: 0; font-weight: 500; }
+
+/* "Necə əzbərləmək" */
+.hifz-method__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--space-6) clamp(24px, 4vw, 56px); align-items: start; }
+.hifz-method__quotes { display: flex; flex-direction: column; gap: var(--space-5); }
+.hifz-method .hifz-quote .ui-quote__ar { font-size: clamp(20px, 1.7vw, 23px); line-height: 1.9; }
+.hifz-method .hifz-quote .ui-quote__text { font-size: var(--step-0); font-style: normal; }
+.hifz-quote__ref { color: var(--brand); font-family: var(--font-num); }
+@media (max-width: 899.98px) { .hifz-method__grid { grid-template-columns: minmax(0, 1fr); } }
 
 /* ── Bu günün göstəriciləri ── */
 .hifz-today {
@@ -433,7 +466,6 @@
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
   overflow: hidden;
 }
 .hifz-today__cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 18px 20px; }
@@ -447,21 +479,21 @@
 }
 .hifz-today__num small { color: var(--text-tertiary); font-size: var(--step-0); font-weight: 500; }
 .hifz-today__cell.is-due .hifz-today__num { color: var(--brand); }
-.hifz-today__label { color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+.hifz-today__label { color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
 
 /* ── Plan kartları ── */
 .hifz-plan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-4); }
 .hifz-plan__card { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
 .hifz-plan__title,
 .hifz-chart__title { margin: 0; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; }
-.hifz-plan__muted { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--text-secondary); font-size: 14px; }
+.hifz-plan__muted { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--text-secondary); font-size: var(--step--1); }
 .hifz-plan__fields { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: var(--space-3); width: 100%; }
 .hifz-start-review__n {
   min-width: 24px;
   padding: 3px 8px;
   border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--on-brand) 20%, transparent);
-  font-size: 13px;
+  font-size: var(--step--1);
   line-height: 1.2;
   text-align: center;
 }
@@ -472,11 +504,11 @@
   border-radius: var(--radius-md);
   background: var(--accent-soft);
 }
-.hifz-seed p { margin: 0; color: var(--text-body); font-size: 14px; }
+.hifz-seed p { margin: 0; color: var(--text-body); font-size: var(--step--1); }
 .hifz-goal { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.hifz-goal__label { margin-inline-end: 4px; color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+.hifz-goal__label { margin-inline-end: 4px; color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
 .hifz-goal__val { min-width: 2ch; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; text-align: center; }
-.hifz-goal__unit { color: var(--text-tertiary); font-size: 14px; }
+.hifz-goal__unit { color: var(--text-tertiary); font-size: var(--step--1); }
 
 /* ── Məşq kartı ── */
 .hifz-session { scroll-margin-top: calc(var(--space-8) + 16px); }
@@ -484,7 +516,7 @@
 .hifz-practice__head { display: flex; align-items: flex-start; gap: 12px; }
 .hifz-practice__heading { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1; min-width: 0; }
 .hifz-practice__title { margin: 0; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-2); font-weight: 600; }
-.hifz-practice__pos { align-self: center; color: var(--text-tertiary); font-size: 14px; }
+.hifz-practice__pos { align-self: center; color: var(--text-tertiary); font-size: var(--step--1); }
 .hifz-practice__views { display: flex; gap: 8px; flex-wrap: wrap; }
 .hifz-practice__status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0; color: var(--text-secondary); }
 
@@ -515,7 +547,7 @@ button.hifz-word {
 .hifz-word.is-hidden { color: transparent; text-shadow: 0 0 14px color-mix(in srgb, var(--text-strong) 45%, transparent); user-select: none; }
 .hifz-ayah__num { color: var(--accent); font-size: 0.8em; }
 .hifz-practice__reveal { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.hifz-practice__hint { margin-inline-end: auto; color: var(--text-tertiary); font-size: 13px; }
+.hifz-practice__hint { margin-inline-end: auto; color: var(--text-tertiary); font-size: var(--step--1); }
 
 /* Səs müqayisəsi: qari və istifadəçi yan-yana */
 .hifz-voice { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-3); }
@@ -525,11 +557,11 @@ button.hifz-word {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
 }
-.hifz-voice__label { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+.hifz-voice__label { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
 .hifz-voice__audio { width: 100%; height: 40px; }
-.hifz-voice__empty { display: flex; align-items: center; min-height: 40px; color: var(--text-tertiary); font-size: 14px; }
-.hifz-voice__err { margin: 0; color: var(--bad); font-size: 13px; }
-.hifz-note { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: 13px; line-height: 1.5; }
+.hifz-voice__empty { display: flex; align-items: center; min-height: 40px; color: var(--text-tertiary); font-size: var(--step--1); }
+.hifz-voice__err { margin: 0; color: var(--bad); font-size: var(--step--1); }
+.hifz-note { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.5; }
 .hifz-note svg { flex-shrink: 0; margin-top: 2px; }
 
 
@@ -538,7 +570,7 @@ button.hifz-word {
 .hifz-grade__q { color: var(--text-strong); font-weight: 600; }
 .hifz-grade__btns { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .hifz-grade__btn.ui-btn { flex-direction: column; gap: 2px; height: auto; min-height: 56px; padding-block: 8px; }
-.hifz-grade__when { color: var(--text-tertiary); font-size: 12px; font-weight: 500; }
+.hifz-grade__when { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 500; }
 .hifz-grade__btn.is-again { color: var(--bad); }
 .hifz-grade__btn.is-good { border-color: var(--brand-line); color: var(--brand); }
 
@@ -551,9 +583,9 @@ button.hifz-word {
 .hifz-insights { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
 .hifz-chart { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; }
 .hifz-chart__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.hifz-chart__sub { color: var(--text-tertiary); font-size: 13px; }
+.hifz-chart__sub { color: var(--text-tertiary); font-size: var(--step--1); }
 .hifz-chart__now { margin-inline-start: auto; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-2); font-weight: 500; }
-.hifz-chart__empty { margin: 0; color: var(--text-tertiary); font-size: 14px; }
+.hifz-chart__empty { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); }
 .hifz-chart__plot { position: relative; }
 .hifz-chart__plot svg { display: block; width: 100%; height: 160px; overflow: visible; }
 .hifz-chart__base { stroke: var(--line-strong); stroke-width: 1; }
@@ -575,18 +607,18 @@ button.hifz-word {
   background: var(--surface-raised);
   box-shadow: var(--shadow-2);
   color: var(--text-body);
-  font-size: 12px;
+  font-size: var(--step--2);
   white-space: nowrap;
   transform: translateX(-50%);
 }
-.hifz-chart__axis { display: flex; justify-content: space-between; margin-top: 6px; color: var(--text-tertiary); font-size: 12px; }
+.hifz-chart__axis { display: flex; justify-content: space-between; margin-top: 6px; color: var(--text-tertiary); font-size: var(--step--2); }
 
 .hifz-bars { display: flex; flex-direction: column; gap: var(--space-3); }
 .hifz-bars__list { display: flex; flex-direction: column; gap: 12px; max-height: 320px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
 .hifz-bars__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name val" "bar bar"; gap: 4px 8px; }
-.hifz-bars__name { grid-area: name; overflow: hidden; color: var(--text-body); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.hifz-bars__name { grid-area: name; overflow: hidden; color: var(--text-body); font-size: var(--step--1); text-overflow: ellipsis; white-space: nowrap; }
 .hifz-bars__name .ui-num { color: var(--text-tertiary); }
-.hifz-bars__val { grid-area: val; color: var(--text-tertiary); font-size: 13px; }
+.hifz-bars__val { grid-area: val; color: var(--text-tertiary); font-size: var(--step--1); }
 .hifz-bars__row .hifz-progress-bar { height: 6px; margin-top: 0; }
 
 @media (max-width: 899.98px) {

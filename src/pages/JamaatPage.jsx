@@ -26,6 +26,48 @@ import CityPicker from '../components/CityPicker'
 import '../styles/JamaatPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import PageLink from '../components/PageLink'
+import { ChartFigure, BarChart } from '../components/viz'
+import { localizeSource } from '../utils/sourceNames'
+
+// ── Dizayn v3: yeni bölmələr (5 dil) ──
+// Hədislər yoxlanılıb (fawazahmed0/hadith-api; Müslim — Əbdülbaqi nömrəsi):
+//   Buxari 645 (27 dərəcə), 646 (25 dərəcə — Əbu Səid rəvayəti), 644 (camaata
+//   gəlməyənlər), 657 (sübh və işa münafiqlərə ağırdır), 877 (cümə qüslü),
+//   881 (cüməyə tez getmək), 934 (xütbədə susmaq), 935 (cümə günü duanın
+//   qəbul anı); Müslim 881 (cümədən sonra 4 rükət).
+const V3 = {
+  how: {
+    az: 'Necə işlədilir: seçdiyiniz şəhərin bugünkü azan vaxtları və növbəti cümə burada görünür. Camaat (iqamə) vaxtı hər məsciddə fərqlidir — onu məscidinizdən öyrənin.',
+    en: 'How to use: you see today’s adhan times and the next Friday for your chosen city. The congregation (iqamah) time differs per mosque — check it with your mosque.',
+    ru: 'Как пользоваться: здесь время азана на сегодня и ближайшая пятница для выбранного города. Время джамаата (икамы) в каждой мечети своё — уточняйте в своей мечети.',
+    ar: 'طريقة الاستخدام: تظهر هنا مواقيت الأذان اليوم والجمعة القادمة لمدينتك. وقت الإقامة يختلف من مسجد لآخر، فاسأل عنه في مسجدك.',
+    tr: 'Nasıl kullanılır: seçtiğiniz şehrin bugünkü ezan vakitleri ve sıradaki cuma burada. Cemaat (kamet) vakti her camide farklıdır — camiinizden öğrenin.',
+  },
+  stDeg: { az: 'dərəcə — camaatın üstünlüyü', en: 'degrees — the merit of congregation', ru: 'степеней — превосходство джамаата', ar: 'درجة — فضل الجماعة', tr: 'derece — cemaatin üstünlüğü' },
+  stFri: { az: 'növbəti cümə', en: 'next Friday', ru: 'ближайшая пятница', ar: 'الجمعة القادمة', tr: 'sıradaki cuma' },
+  glEyebrow: { az: 'Bir baxışda', en: 'At a glance', ru: 'С первого взгляда', ar: 'نظرة سريعة', tr: 'Bir bakışta' },
+  glTitle: { az: 'Camaatla namaz — 27 dərəcə', en: 'Prayer in congregation — 27 degrees', ru: 'Намаз в джамаате — 27 степеней', ar: 'صلاة الجماعة — سبع وعشرون درجة', tr: 'Cemaatle namaz — 27 derece' },
+  glLead: { az: 'Eyni namaz, fərqli savab: camaatla qılınan namaz tək qılınandan iyirmi yeddi dərəcə üstündür.', en: 'The same prayer, a different reward: prayer in congregation surpasses praying alone by twenty-seven degrees.', ru: 'Тот же намаз — разная награда: намаз в джамаате превосходит одиночный на двадцать семь степеней.', ar: 'الصلاة نفسها والأجر مختلف: صلاة الجماعة تفضل صلاة الفذّ بسبع وعشرين درجة.', tr: 'Aynı namaz, farklı sevap: cemaatle namaz tek başına kılınandan yirmi yedi derece üstündür.' },
+  chTitle: { az: 'Namazın dərəcəsi', en: 'The degree of the prayer', ru: 'Степень намаза', ar: 'درجة الصلاة', tr: 'Namazın derecesi' },
+  chSub: { az: 'tək namaz = 1', en: 'praying alone = 1', ru: 'одиночный намаз = 1', ar: 'صلاة الفذّ = 1', tr: 'tek namaz = 1' },
+  alone: { az: 'Tək namaz', en: 'Praying alone', ru: 'Одиночный намаз', ar: 'صلاة الفذّ', tr: 'Tek başına namaz' },
+  together: { az: 'Camaatla namaz', en: 'In congregation', ru: 'Намаз в джамаате', ar: 'صلاة الجماعة', tr: 'Cemaatle namaz' },
+  chNote: { az: 'Mənbə: Buxari 645 (İbn Ömər). Əbu Səidin rəvayətində — 25 dərəcə (Buxari 646).', en: 'Source: Bukhari 645 (Ibn Umar). In Abu Sa‘id’s narration — 25 degrees (Bukhari 646).', ru: 'Источник: Бухари 645 (Ибн Умар). В передаче Абу Саида — 25 степеней (Бухари 646).', ar: 'المصدر: البخاري 645 (ابن عمر)، وفي رواية أبي سعيد: بخمس وعشرين درجة (البخاري 646).', tr: 'Kaynak: Buhârî 645 (İbn Ömer). Ebû Saîd rivayetinde — 25 derece (Buhârî 646).' },
+  weightTitle: { az: 'Camaatın əhəmiyyəti', en: 'How important congregation is', ru: 'Важность джамаата', ar: 'أهمية الجماعة', tr: 'Cemaatin önemi' },
+  weightText: { az: 'Peyğəmbər ﷺ camaata gəlməyən kişilərin evlərini yandırmağı qəsd etdiyini bildirib (Buxari 644) və münafiqlərə ən ağır namazların sübh və işa olduğunu demişdir (Buxari 657).', en: 'The Prophet ﷺ said he was about to burn the houses of men who stayed away from the congregation (Bukhari 644), and that the heaviest prayers for the hypocrites are Fajr and Isha (Bukhari 657).', ru: 'Пророк ﷺ сказал, что хотел сжечь дома мужчин, не приходящих на джамаат (Бухари 644), и что тяжелее всего для лицемеров — утренний намаз и иша (Бухари 657).', ar: 'أخبر النبي ﷺ أنه همّ أن يحرّق على رجال لا يشهدون الجماعة بيوتهم (البخاري 644)، وأن أثقل الصلاة على المنافقين الفجر والعشاء (البخاري 657).', tr: 'Peygamber ﷺ cemaate gelmeyen adamların evlerini yakmayı düşündüğünü söyledi (Buhârî 644); münafıklara en ağır gelen namazların sabah ve yatsı olduğunu bildirdi (Buhârî 657).' },
+  stepsEyebrow: { az: 'Cümə günü', en: 'Friday', ru: 'Пятница', ar: 'يوم الجمعة', tr: 'Cuma günü' },
+  stepsTitle: { az: 'Cümə günü — addım-addım', en: 'Friday, step by step', ru: 'Пятница шаг за шагом', ar: 'يوم الجمعة خطوة بخطوة', tr: 'Cuma günü — adım adım' },
+  stepsLead: { az: 'Sünnədə gələn beş əməl — səhər qüslündən axşama qədər.', en: 'Five practices from the Sunnah — from the morning ghusl to the end of the day.', ru: 'Пять дел из Сунны — от утреннего гусля до конца дня.', ar: 'خمس سنن من الصباح إلى آخر اليوم.', tr: 'Sünnette gelen beş amel — sabah guslünden akşama kadar.' },
+  steps: [
+    { t: { az: 'Qüsl alın', en: 'Take a ghusl', ru: 'Совершите гусль', ar: 'الاغتسال', tr: 'Gusül alın' }, d: { az: '“Sizdən biriniz cüməyə gələndə qüsl etsin.”', en: '“When one of you comes to the Friday prayer, let him take a bath.”', ru: '«Когда кто-то из вас идёт на джуму, пусть совершит гусль».', ar: '«إذا جاء أحدكم الجمعة فليغتسل».', tr: '“Biriniz cumaya geldiğinde gusletsin.”' }, src: 'Buxari 877' },
+    { t: { az: 'Tez gedin', en: 'Go early', ru: 'Приходите рано', ar: 'التبكير', tr: 'Erken gidin' }, d: { az: 'İlk saatda gələn dəvə qurban kəsmiş kimidir; imam çıxanda mələklər zikri dinləməyə gəlir.', en: 'Who comes in the first hour is like one who offered a camel; when the imam comes out, the angels come to listen to the reminder.', ru: 'Пришедший в первый час подобен принёсшему в жертву верблюда; когда выходит имам, ангелы приходят слушать напоминание.', ar: 'من راح في الساعة الأولى فكأنما قرّب بدنة، فإذا خرج الإمام حضرت الملائكة يستمعون الذكر.', tr: 'İlk saatte gelen deve kurban etmiş gibidir; imam çıkınca melekler zikri dinlemeye gelir.' }, src: 'Buxari 881' },
+    { t: { az: 'Xütbəni susaraq dinləyin', en: 'Listen to the khutbah in silence', ru: 'Слушайте хутбу молча', ar: 'الإنصات للخطبة', tr: 'Hutbeyi susarak dinleyin' }, d: { az: 'İmam xütbə oxuyarkən yoldaşına “sus” desən belə, boş söz danışmış olursan.', en: 'Even saying “be quiet” to your companion while the imam is speaking is idle talk.', ru: 'Даже сказать соседу «молчи», когда имам читает хутбу, — пустословие.', ar: 'إذا قلت لصاحبك يوم الجمعة: أنصت، والإمام يخطب، فقد لغوت.', tr: 'İmam hutbe okurken arkadaşına “sus” demek bile boş söz sayılır.' }, src: 'Buxari 934' },
+    { t: { az: 'Cümədən sonra 4 rükət', en: '4 rak‘ahs after Jumu‘ah', ru: '4 ракаата после джумы', ar: 'أربع ركعات بعد الجمعة', tr: 'Cumadan sonra 4 rekât' }, d: { az: '“Sizdən biriniz cüməni qıldıqdan sonra dörd rükət qılsın.”', en: '“When one of you has prayed the Friday prayer, let him pray four after it.”', ru: '«Когда кто-то из вас совершит джуму, пусть помолится после неё четыре ракаата».', ar: '«إذا صلّى أحدكم الجمعة فليصلّ بعدها أربعًا».', tr: '“Biriniz cumayı kıldıktan sonra dört rekât kılsın.”' }, src: 'Müslim 881' },
+    { t: { az: 'Dua anını axtarın', en: 'Seek the moment of du‘a', ru: 'Ищите час дуа', ar: 'تحرّي ساعة الإجابة', tr: 'Dua anını arayın' }, d: { az: 'Cümə günü bir an var: müsəlman bəndə namazda ikən o an Allahdan nə istəsə, ona verilir.', en: 'On Friday there is a moment: no Muslim servant standing in prayer asks Allah for something in it but He gives it to him.', ru: 'В пятницу есть час: о чём бы мусульманин, стоящий в молитве, ни попросил в это время Аллаха, ему будет дано.', ar: 'فيه ساعة لا يوافقها عبد مسلم وهو قائم يصلي يسأل الله تعالى شيئًا إلا أعطاه إياه.', tr: 'Cuma gününde bir an vardır: namazda olan Müslüman kul o anda Allah’tan ne isterse verilir.' }, src: 'Buxari 935' },
+  ],
+}
+// Qüsl hədisi (Buxari 877) addımlarda göstərilir — fəzilət kartlarında təkrarlanmır
+const JUMUA_CARDS = JUMUA_VIRTUES.filter(h => h.source !== 'Buxari 877')
 
 const LABELS = {
   az: {
@@ -301,13 +343,12 @@ function TimeRow({ p, l, name, time, isNext, isPassed, jumuaTag, note }) {
 // Həqiqi link (PageLink): Ctrl/orta klik yeni tabda açır
 function LinkRow({ icon, title, sub, to, setPage, onNavigate }) {
   return (
-    <PageLink className="jm-link" to={to} setPage={setPage} onNavigate={onNavigate}>
-      <span className="jm-link-icon ui-icon-tile" aria-hidden="true"><Icon name={icon} /></span>
-      <span className="jm-link-text">
-        <strong>{title}</strong>
-        <small>{sub}</small>
+    <PageLink className="ui-tile ui-tile--row jm-link" to={to} setPage={setPage} onNavigate={onNavigate}>
+      <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={icon} /></span>
+      <span className="ui-tile__body">
+        <span className="ui-tile__title">{title}</span>
+        <span className="ui-tile__text">{sub}</span>
       </span>
-      <Icon name="chevron" size={18} className="jm-link-arrow ui-flip-rtl" />
     </PageLink>
   )
 }
@@ -342,6 +383,7 @@ export default function JamaatPage({ setPage }) {
   const nj = nextJumua || {}
   const fridayDate = formatGregorian(nj.date, lang, false)
   const fridayRel = typeof nj.inDays === 'number' ? l.rel(nj.inDays) : ''
+  const P = (o) => o[lang] || o.en
 
   return (
     <div className="jm-page">
@@ -352,13 +394,16 @@ export default function JamaatPage({ setPage }) {
           <Breadcrumb setPage={setPage} current={l.title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
           <h1 className="ui-display">{l.title}</h1>
-          {/* Ərəbcə dekorativ başlıq ar dilində h1-i təkrarlamasın */}
-          {lang !== 'ar' && <p className="jm-hero-ar ui-arabic" lang="ar" aria-hidden="true">صَلَاةُ الْجَمَاعَة</p>}
           <p className="ui-lead">{l.lead.replace('{brand}', brand)}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {P(V3.how)}</p>
+          <ul className="ui-page-hero__stats">
+            <li><b>27×</b><span>{P(V3.stDeg)}</span></li>
+            {fridayRel && <li><b>{fridayRel}</b><span>{P(V3.stFri)}</span></li>}
+          </ul>
           {(gregorian || hijriStr) && (
             <p className="jm-hero-sub">
-              {gregorian && <span className="ui-badge"><Icon name="calendar" size={13} /> {gregorian}</span>}
-              {hijriStr && <span className="ui-badge ui-badge--accent"><Icon name="moon" size={13} /> {hijriStr}</span>}
+              {gregorian && <span><Icon name="calendar" size={14} /> {gregorian}</span>}
+              {hijriStr && <span><Icon name="moon" size={14} /> {hijriStr}</span>}
             </p>
           )}
         </div>
@@ -486,15 +531,51 @@ export default function JamaatPage({ setPage }) {
           </section>
         </div>
 
-        {/* ── Keçidlər ── */}
-        <nav className="jm-card jm-links" data-reveal aria-labelledby="jm-links-title">
-          <h2 id="jm-links-title" className="jm-card-title jm-links-title">{l.more}</h2>
-          <div className="jm-links-list" data-reveal="stagger-zoom">
-            <LinkRow icon="mosques" title={l.findMosque} sub={l.findMosqueSub} to="mosques" setPage={setPage} onNavigate={toTop} />
-            <LinkRow icon="prayer" title={l.otherCities} sub={l.otherCitiesSub} to="prayer" setPage={setPage} onNavigate={toTop} />
-            <LinkRow icon="qibla" title={l.qibla} sub={l.qiblaSub} to="qibla" setPage={setPage} onNavigate={toTop} />
+        {/* ── Bir baxışda: 27 dərəcə (BarChart) + camaatın əhəmiyyəti ── */}
+        <section className="jm-glance" aria-labelledby="jm-glance-title">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{P(V3.glEyebrow)}</span>
+            <h2 id="jm-glance-title" className="ui-title">{P(V3.glTitle)}</h2>
+            <p className="ui-lead">{P(V3.glLead)}</p>
           </div>
-        </nav>
+          <div className="jm-glance-grid">
+            <ChartFigure title={P(V3.chTitle)} sub={P(V3.chSub)} note={P(V3.chNote)}>
+              <BarChart labelWidth="34%" label={P(V3.chTitle)} max={27}
+                data={[
+                  { label: P(V3.alone), value: 1, tone: 'muted' },
+                  { label: P(V3.together), value: 27 },
+                ]}
+                format={(v) => `${v}×`} />
+            </ChartFigure>
+            <aside className="ui-callout ui-callout--accent jm-weight">
+              <Icon name="jamaat" />
+              <div>
+                <strong className="ui-callout__title">{P(V3.weightTitle)}</strong>
+                <p>{P(V3.weightText)}</p>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        {/* ── Cümə günü addım-addım (.ui-steps) ── */}
+        <section className="jm-steps" aria-labelledby="jm-steps-title">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{P(V3.stepsEyebrow)}</span>
+            <h2 id="jm-steps-title" className="ui-title">{P(V3.stepsTitle)}</h2>
+            <p className="ui-lead">{P(V3.stepsLead)}</p>
+          </div>
+          <ol className="ui-steps ui-steps--row jm-steps-list" data-reveal="stagger">
+            {V3.steps.map((st, i) => (
+              <li key={i} className="ui-step">
+                <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                <div className="ui-step__body">
+                  <h3 className="ui-step__title">{P(st.t)}</h3>
+                  <p className="ui-step__text">{P(st.d)} <span className="jm-src">{localizeSource(st.src, lang)}</span></p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
 
         {/* ── Fəzilətlər: ayə + hədislər ── */}
         <section className="jm-virtues" aria-labelledby="jm-virtues-title">
@@ -520,10 +601,20 @@ export default function JamaatPage({ setPage }) {
                 {l.groupJumua}
               </h3>
               <VerseCard verseRef="62:9" lang={lang} />
-              {JUMUA_VIRTUES.map(h => <HadithCard key={h.ref} h={h} lang={lang} />)}
+              {JUMUA_CARDS.map(h => <HadithCard key={h.ref} h={h} lang={lang} />)}
             </div>
           </div>
         </section>
+
+        {/* ── Keçidlər ── */}
+        <nav className="jm-links" data-reveal aria-labelledby="jm-links-title">
+          <h2 id="jm-links-title" className="jm-links-title">{l.more}</h2>
+          <div className="jm-links-list" data-reveal="stagger">
+            <LinkRow icon="mosques" title={l.findMosque} sub={l.findMosqueSub} to="mosques" setPage={setPage} onNavigate={toTop} />
+            <LinkRow icon="prayer" title={l.otherCities} sub={l.otherCitiesSub} to="prayer" setPage={setPage} onNavigate={toTop} />
+            <LinkRow icon="qibla" title={l.qibla} sub={l.qiblaSub} to="qibla" setPage={setPage} onNavigate={toTop} />
+          </div>
+        </nav>
 
         {/* ── Mənbə qeydləri ── */}
         <div className="jm-notes" role="note">

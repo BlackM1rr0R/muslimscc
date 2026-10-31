@@ -26,6 +26,9 @@ import {
   buildSequence, refText, refUrl,
 } from '../data/prayerGuide'
 import { AUDIO_CREDITS, CREDIT_ORDER } from '../data/prayerGuideCredits'
+import { PILLARS_TXT, PILLAR_GROUPS, RAKAT_TXT } from '../data/prayerPillars'
+import { ChartFigure, ColumnChart } from '../components/viz'
+import RelatedLinks from '../components/prayer/RelatedLinks'
 import '../styles/PrayerGuidePage.css'
 
 // ── Surənin tam mənası (Fatihə, İxlas) ──
@@ -141,18 +144,133 @@ function Note({ note, ask, lang, t }) {
   )
 }
 
-// Rükətlərə bölünmüş irəliləyiş zolağı
+// ── Dizayn v3: hero və yeni bölmələrin mətnləri (5 dil) ──
+const PG_X = {
+  az: { how: 'Necə işlədilir: aşağıda namazı seçin və «Növbəti» ilə addım-addım irəliləyin; klaviaturada ← → oxları da işləyir.', sPrayers: 'fərz namaz', sRakats: 'rükət gündə', sWudu: 'dəstəmaz addımı' },
+  en: { how: 'How to use: choose a prayer below and move step by step with “Next”; the ← → keys work too.', sPrayers: 'obligatory prayers', sRakats: 'rak‘ahs a day', sWudu: 'wudu steps' },
+  ru: { how: 'Как пользоваться: выберите намаз ниже и идите шаг за шагом кнопкой «Далее»; работают и клавиши ← →.', sPrayers: 'обязательных намазов', sRakats: 'ракаатов в день', sWudu: 'шагов омовения' },
+  ar: { how: 'طريقة الاستعمال: اختر الصلاة أدناه وتقدّم خطوة خطوة بزر «التالي»، وتعمل أسهم لوحة المفاتيح أيضًا.', sPrayers: 'صلوات مفروضة', sRakats: 'ركعة في اليوم', sWudu: 'خطوات الوضوء' },
+  tr: { how: 'Nasıl kullanılır: aşağıdan namazı seçin ve “Sonraki” ile adım adım ilerleyin; klavyede ← → okları da çalışır.', sPrayers: 'farz namaz', sRakats: 'rekat günde', sWudu: 'abdest adımı' },
+}
+const pickL = (o, lang) => o[lang] || o.en
+
+// Bir rükətin 6 hərəkəti — mövcud başsız sxemlərlə (PrayerPose)
+const RAKAH_POSES = [
+  { id: 'fatiha', pose: 'qiyam' }, { id: 'ruku', pose: 'ruku' }, { id: 'itidal', pose: 'itidal' },
+  { id: 'sujud', pose: 'sujud' }, { id: 'jalsa', pose: 'jalsa' }, { id: 'sujud2', pose: 'sujud' },
+]
+
+function RakatOverview({ lang }) {
+  const total = PRAYERS.reduce((n, p) => n + p.rakats, 0)
+  return (
+    <section className="ui-section ui-section--tight ui-section--alt pg-overview" aria-labelledby="pg-overview-title">
+      <div className="ui-container pg-container">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{pickL(RAKAT_TXT.eyebrow, lang)}</span>
+          <h2 id="pg-overview-title" className="ui-title">{pickL(RAKAT_TXT.title, lang)}</h2>
+          <p className="ui-lead">{pickL(RAKAT_TXT.lead, lang)}</p>
+        </div>
+        <div className="pg-overview-grid">
+          <ChartFigure className="pg-rakat-fig" title={pickL(RAKAT_TXT.chart, lang)} sub={pickL(RAKAT_TXT.chartSub, lang)} note={pickL(RAKAT_TXT.note, lang)}>
+            <ColumnChart height={120} label={`${pickL(RAKAT_TXT.chart, lang)}: ${total}`}
+              data={PRAYERS.map(p => ({ key: p.key, label: p.name[lang] || p.name.en, value: p.rakats }))} />
+          </ChartFigure>
+          <figure className="ui-figure pg-rakah">
+            <figcaption className="ui-figure__head">
+              <span className="ui-figure__title">{pickL(RAKAT_TXT.rakahTitle, lang)}</span>
+              <span className="ui-figure__sub">{pickL(RAKAT_TXT.rakahSub, lang)}</span>
+            </figcaption>
+            <ol className="pg-rakah-strip">
+              {RAKAH_POSES.map((r, i) => (
+                <li key={i} className="pg-rakah-step">
+                  <span className="pg-rakah-fig" aria-hidden="true"><PrayerPose pose={r.pose} /></span>
+                  <span className="pg-rakah-n ui-num" aria-hidden="true">{i + 1}</span>
+                  <span className="pg-rakah-name">{ACTIONS[r.id].name[lang] || ACTIONS[r.id].name.en}</span>
+                </li>
+              ))}
+            </ol>
+          </figure>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Pillars({ lang }) {
+  const [tab, setTab] = useState(PILLAR_GROUPS[0].id)
+  const g = PILLAR_GROUPS.find(x => x.id === tab) || PILLAR_GROUPS[0]
+  return (
+    <section className="ui-section ui-section--tight pg-pillars" aria-labelledby="pg-pillars-title">
+      <div className="ui-container pg-container">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{pickL(PILLARS_TXT.eyebrow, lang)}</span>
+          <h2 id="pg-pillars-title" className="ui-title">{pickL(PILLARS_TXT.title, lang)}</h2>
+          <p className="ui-lead">{pickL(PILLARS_TXT.lead, lang)}</p>
+        </div>
+        <div className="ui-tabs pg-pillar-tabs" role="tablist" aria-label={pickL(PILLARS_TXT.tabs, lang)}>
+          {PILLAR_GROUPS.map(x => (
+            <button key={x.id} type="button" role="tab" id={`pg-tab-${x.id}`} aria-controls="pg-pillar-panel"
+              aria-selected={tab === x.id} tabIndex={tab === x.id ? 0 : -1} className="ui-tab"
+              onClick={() => setTab(x.id)}
+              onKeyDown={(e) => {
+                const i = PILLAR_GROUPS.findIndex(y => y.id === tab)
+                const rtl = document.documentElement.dir === 'rtl'
+                const d = e.key === (rtl ? 'ArrowLeft' : 'ArrowRight') ? 1 : e.key === (rtl ? 'ArrowRight' : 'ArrowLeft') ? -1 : 0
+                if (!d) return
+                e.preventDefault()
+                e.stopPropagation()
+                const n = PILLAR_GROUPS[(i + d + PILLAR_GROUPS.length) % PILLAR_GROUPS.length]
+                setTab(n.id)
+                document.getElementById(`pg-tab-${n.id}`)?.focus()
+              }}>
+              {x.name[lang] || x.name.en} <span className="ui-tab__count">{x.count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="pg-pillar-panel" id="pg-pillar-panel" role="tabpanel" aria-labelledby={`pg-tab-${g.id}`} key={g.id}>
+          <p className="pg-pillar-rule"><Icon name={g.icon} size={18} /> <span>{g.rule[lang] || g.rule.en}</span></p>
+          <ol className="pg-pillar-list">
+            {g.items.map((it, i) => (
+              <li key={i}><span className="pg-pillar-n ui-num" aria-hidden="true">{i + 1}</span><span>{it[lang] || it.en}</span></li>
+            ))}
+          </ol>
+          <p className="pg-pillar-src">{pickL(PILLARS_TXT.source, lang)}</p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const RELATED = [
+  { key: 'qibla', title: { az: 'Qiblə istiqaməti', en: 'Qibla direction', ru: 'Направление киблы', ar: 'اتجاه القبلة', tr: 'Kıble yönü' }, text: { az: 'Kompas və hökmlər', en: 'Compass and rulings', ru: 'Компас и положения', ar: 'البوصلة والأحكام', tr: 'Pusula ve hükümler' } },
+  { key: 'prayer', title: { az: 'Namaz vaxtları', en: 'Prayer times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz vakitleri' }, text: { az: 'Bu günün vaxtları', en: 'Today’s times', ru: 'Время на сегодня', ar: 'أوقات اليوم', tr: 'Bugünün vakitleri' } },
+  { key: 'tracker', title: { az: 'Namaz izləyicisi', en: 'Prayer tracker', ru: 'Трекер намазов', ar: 'متابعة الصلاة', tr: 'Namaz takibi' }, text: { az: 'Hər gün qeyd edin', en: 'Log every day', ru: 'Отмечайте каждый день', ar: 'سجّل كل يوم', tr: 'Her gün işaretleyin' } },
+  { lesson: 'ghusl', title: { az: 'Qüsl', en: 'Ghusl', ru: 'Гусль', ar: 'الغسل', tr: 'Gusül' }, text: { az: 'Tam yuyunma — dərs', en: 'Full bath — lesson', ru: 'Полное омовение — урок', ar: 'درس', tr: 'Boy abdesti — ders' } },
+  { lesson: 'tayammum', title: { az: 'Təyəmmüm', en: 'Tayammum', ru: 'Таяммум', ar: 'التيمم', tr: 'Teyemmüm' }, text: { az: 'Su olmayanda — dərs', en: 'When there is no water — lesson', ru: 'Когда нет воды — урок', ar: 'عند فقد الماء — درس', tr: 'Su yokken — ders' } },
+  { lesson: 'adhkar-after-salah', title: { az: 'Namazdan sonrakı zikrlər', en: 'Adhkar after prayer', ru: 'Зикры после намаза', ar: 'الأذكار بعد الصلاة', tr: 'Namazdan sonraki zikirler' }, text: { az: 'Dərs', en: 'Lesson', ru: 'Урок', ar: 'درس', tr: 'Ders' } },
+  { lesson: 'travel-prayer', title: { az: 'Səfər namazı', en: 'Prayer while travelling', ru: 'Намаз в пути', ar: 'صلاة المسافر', tr: 'Yolculuk namazı' }, text: { az: 'Qəsr və cəm', en: 'Shortening and combining', ru: 'Сокращение и объединение', ar: 'القصر والجمع', tr: 'Kısaltma ve birleştirme' } },
+  { lesson: 'sick-fiqh', title: { az: 'Xəstənin namazı', en: 'Prayer of the sick', ru: 'Намаз больного', ar: 'صلاة المريض', tr: 'Hastanın namazı' }, text: { az: 'Dərs', en: 'Lesson', ru: 'Урок', ar: 'درس', tr: 'Ders' } },
+]
+
+// Rükətlərə bölünmüş irəliləyiş: hər rükət ayrıca seqment (eni addım sayına mütənasib)
 function Progress({ seq, index, t, title }) {
   const total = seq.length
-  const marks = []
-  seq.forEach((s, i) => { if (i > 0 && s.rakat !== seq[i - 1].rakat) marks.push(i / total) })
   const cur = seq[Math.min(index, total - 1)]
   const rakats = seq[total - 1]?.rakat || 1
+  const groups = []
+  seq.forEach((s, i) => {
+    const last = groups[groups.length - 1]
+    if (!last || last.rakat !== s.rakat) groups.push({ rakat: s.rakat, from: i, n: 1 })
+    else last.n++
+  })
   return (
     <div className="pg-progress-wrap">
       <div className="pg-progress-bar" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={Math.min(index + 1, total)} aria-label={title}>
-        <div className="pg-progress-fill" style={{ '--p': Math.min(1, (index + 1) / total) }} />
-        {marks.map(m => <span key={m} className="pg-progress-mark" style={{ '--x': m }} />)}
+        {groups.map(g => (
+          <span key={g.from} className="pg-progress-seg" style={{ flexGrow: g.n }}>
+            <span className="pg-progress-fill" style={{ '--p': Math.max(0, Math.min(1, (index + 1 - g.from) / g.n)) }} />
+          </span>
+        ))}
       </div>
       <span className="pg-progress-text">
         <span className="pg-progress-name">{title}</span>
@@ -167,6 +285,7 @@ function Progress({ seq, index, t, title }) {
 export default function PrayerGuidePage({ setPage }) {
   const { lang } = useLang()
   const t = PG_TEXT[lang] || PG_TEXT.en
+  const x = PG_X[lang] || PG_X.en
   const location = useLocation()
   const routerNavigate = useNavigate()
 
@@ -244,6 +363,12 @@ export default function PrayerGuidePage({ setPage }) {
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
           <h1 className="ui-display">{t.title}</h1>
           <p className="ui-lead">{t.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {x.how}</p>
+          <ul className="ui-page-hero__stats">
+            <li><b className="ui-num">5</b><span>{x.sPrayers}</span></li>
+            <li><b className="ui-num">17</b><span>{x.sRakats}</span></li>
+            <li><b className="ui-num">{WUDU.length}</b><span>{x.sWudu}</span></li>
+          </ul>
           <div className="ui-page-hero__actions">
             <button type="button" className="ui-btn ui-btn--primary pg-paper-open" onClick={openPaper}>
               <Icon name="eye" className="ui-btn__icon" /> {t.paper}
@@ -277,7 +402,10 @@ export default function PrayerGuidePage({ setPage }) {
                     <span className="pg-prayer-tile ui-icon-tile" aria-hidden="true"><Icon name={p.icon} /></span>
                     <span className="pg-prayer-text">
                       <span className="pg-prayer-name">{p.name[lang] || p.name.en}</span>
-                      <span className="pg-prayer-rak">{t.rakatN(p.rakats)}</span>
+                      <span className="pg-prayer-rak">
+                        <span className="pg-rak-dots" aria-hidden="true">{Array.from({ length: p.rakats }, (_, i) => <i key={i} />)}</span>
+                        {t.rakatN(p.rakats)}
+                      </span>
                     </span>
                     <Icon name="arrow" size={18} className="pg-prayer-chev ui-flip-rtl" />
                   </button>
@@ -447,29 +575,33 @@ export default function PrayerGuidePage({ setPage }) {
             </>
           )}
 
-          {/* Əsas istinadlar və səs lisenziyaları */}
-          <aside className="pg-sources" aria-label={t.sources}>
-            <div className="pg-sources-col">
-              <h2 className="pg-sources-title">{t.basis}</h2>
-              <ul>{Object.keys(BOOKS).map(k => <li key={k}>{BOOKS[k][lang] || BOOKS[k].en}</li>)}</ul>
-            </div>
-            <div className="pg-sources-col">
-              <h2 className="pg-sources-title">{t.credits}</h2>
-              <ul>
-                {CREDIT_ORDER.map(k => {
-                  const c = AUDIO_CREDITS[k]
-                  return (
-                    <li key={k} dir="ltr" lang="en">
-                      <span className="pg-credit-title" lang={k === 'amin' ? 'ar' : undefined}>{c.title}</span> — {c.author} · <a href={c.url} target="_blank" rel="noopener noreferrer">{c.site}</a>
-                      {c.license && <> · <a href={c.licenseUrl} target="_blank" rel="noopener noreferrer license">{c.license}</a></>}
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          </aside>
         </div>
       </section>
+
+      <RakatOverview lang={lang} />
+      <Pillars lang={lang} />
+      {/* Əsas istinadlar və səs lisenziyaları */}
+      <aside className="ui-container pg-container pg-sources" aria-label={t.sources}>
+        <div className="pg-sources-col">
+          <h2 className="pg-sources-title">{t.basis}</h2>
+          <ul>{Object.keys(BOOKS).map(k => <li key={k}>{BOOKS[k][lang] || BOOKS[k].en}</li>)}</ul>
+        </div>
+        <div className="pg-sources-col">
+          <h2 className="pg-sources-title">{t.credits}</h2>
+          <ul>
+            {CREDIT_ORDER.map(k => {
+              const c = AUDIO_CREDITS[k]
+              return (
+                <li key={k} dir="ltr" lang="en">
+                  <span className="pg-credit-title" lang={k === 'amin' ? 'ar' : undefined}>{c.title}</span> — {c.author} · <a href={c.url} target="_blank" rel="noopener noreferrer">{c.site}</a>
+                  {c.license && <> · <a href={c.licenseUrl} target="_blank" rel="noopener noreferrer license">{c.license}</a></>}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </aside>
+      <RelatedLinks items={RELATED} lang={lang} id="pg-related" />
 
       {paperOpen && <PaperMode lang={lang} t={t} onClose={closePaper} />}
     </div>

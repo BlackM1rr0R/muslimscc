@@ -6,6 +6,8 @@ import { navGroupLabel, navGroupOf } from '../data/navigation'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import { localizeSource } from '../utils/sourceNames'
+import { BarChart } from '../components/viz'
+import { pathFor } from '../seo/routes'
 import '../styles/DhikrPage.css'
 
 // ── localStorage helper-ləri ──
@@ -98,6 +100,27 @@ const FREE_TXT = {
   rounds:   { az: '33-lük dövrə', en: 'Rounds of 33', ru: 'Кругов по 33', ar: 'دورات الـ33', tr: '33’lük tur' },
 }
 const tx = (o, lang) => o[lang] || o.en
+
+// ── v3: hero izahı, statistika, "nə vaxt zikr edim" keçidləri
+//    (zikr mətnləri Hisnul-Müslimdədir — təkrarlanmır, link verilir) ──
+const PAGE_TXT = {
+  how: { az: 'Rejimi seçin: hazır zikr (33/100 hədəfli), namazdan sonrakı ardıcıllıq və ya sərbəst təsbeh. Sonra iri dairəyə toxunun — hər toxunuş bir sayıdır.', en: 'Choose a mode: a set dhikr (target 33/100), the after-prayer sequence or free tasbih. Then tap the large circle — each tap is one count.', ru: 'Выберите режим: готовый зикр (цель 33/100), порядок после намаза или свободный тасбих. Затем нажимайте на большой круг — каждое нажатие считается.', ar: 'اختر الوضع: ذكر محدد (الهدف 33/100)، أو أذكار ما بعد الصلاة بالترتيب، أو تسبيح حر. ثم اضغط على الدائرة الكبيرة — كل ضغطة عدّة واحدة.', tr: 'Bir mod seçin: hazır zikir (hedef 33/100), namaz sonrası sıralama veya serbest tesbih. Sonra büyük daireye dokunun — her dokunuş bir sayıdır.' },
+  dhikrs: { az: 'zikr', en: 'adhkar', ru: 'зикров', ar: 'ذكرًا', tr: 'zikir' },
+  steps: { az: 'namazdan sonra addım', en: 'after-prayer steps', ru: 'шагов после намаза', ar: 'خطوات بعد الصلاة', tr: 'namaz sonrası adım' },
+  lifetime: { az: 'ümumi toxunuş', en: 'total taps', ru: 'всего нажатий', ar: 'مجموع الضغطات', tr: 'toplam dokunuş' },
+  whenTitle: { az: 'Nə vaxt zikr edim?', en: 'When should I remember Allah?', ru: 'Когда поминать Аллаха?', ar: 'متى أذكر الله؟', tr: 'Ne zaman zikredeyim?' },
+  whenLead: { az: 'Günün sünnə zikrləri — mətnləri Hisnul-Müslimdə, ərəbcə, tərcümə və mənbə ilə.', en: 'The Sunnah adhkar of the day — full texts in Hisn al-Muslim with Arabic, translation and source.', ru: 'Зикры Сунны в течение дня — полные тексты в «Хиснуль-муслим» с арабским, переводом и источником.', ar: 'أذكار اليوم من السنة — نصوصها كاملة في حصن المسلم مع التخريج.', tr: 'Günün sünnet zikirleri — tam metinleri Hısnu’l-Müslim’de, Arapça, meal ve kaynakla.' },
+  bySession: { az: 'Bu sessiyada zikrlər', en: 'Adhkar this session', ru: 'Зикры в этой сессии', ar: 'أذكار هذه الجلسة', tr: 'Bu oturumdaki zikirler' },
+}
+const WHEN = [
+  { ch: 28, icon: 'sunrise', t: { az: 'Səhər və axşam', en: 'Morning and evening', ru: 'Утром и вечером', ar: 'الصباح والمساء', tr: 'Sabah ve akşam' }, s: { az: 'Səhər və axşam əzkarları', en: 'The morning and evening adhkar', ru: 'Утренние и вечерние азкары', ar: 'أذكار الصباح والمساء', tr: 'Sabah ve akşam ezkarları' } },
+  { ch: 26, icon: 'prayer', t: { az: 'Namazın salamından sonra', en: 'After the salam of prayer', ru: 'После салама намаза', ar: 'بعد السلام من الصلاة', tr: 'Namazın selamından sonra' }, s: { az: 'İstiğfar, təsbeh, təhmid, təkbir', en: 'Istighfar, tasbih, tahmid, takbir', ru: 'Истигфар, тасбих, тахмид, такбир', ar: 'الاستغفار والتسبيح والتحميد والتكبير', tr: 'İstiğfar, tesbih, tahmid, tekbir' } },
+  { ch: 29, icon: 'moon', t: { az: 'Yatmazdan əvvəl', en: 'Before sleeping', ru: 'Перед сном', ar: 'قبل النوم', tr: 'Uyumadan önce' }, s: { az: 'Yuxudan əvvəlki zikrlər və dualar', en: 'Remembrance and duas before sleep', ru: 'Поминания и мольбы перед сном', ar: 'أذكار النوم وأدعيته', tr: 'Uyku öncesi zikir ve dualar' } },
+  { ch: 131, icon: 'sparkle', t: { az: 'Təsbeh və təhlilin fəziləti', en: 'Virtue of tasbih and tahlil', ru: 'Достоинство тасбиха и тахлиля', ar: 'فضل التسبيح والتهليل', tr: 'Tesbih ve tehlilin fazileti' }, s: { az: 'Səhih hədislərdə vəd olunan savab', en: 'The reward promised in authentic hadith', ru: 'Награда из достоверных хадисов', ar: 'الأجر الوارد في الأحاديث الصحيحة', tr: 'Sahih hadislerde vaat edilen sevap' } },
+]
+function readLifetime() {
+  try { const n = parseInt(localStorage.getItem(TOTAL_KEY), 10); return Number.isFinite(n) && n > 0 ? n : 0 } catch { return 0 }
+}
 
 // ── "Namazdan sonra" — ardıcıl, avtomatik keçən sayğac (Muslim 591, 597) ──
 function AfterPrayerCounter({ lang }) {
@@ -261,6 +284,17 @@ export default function DhikrPage({ setPage }) {
   const stat = (k) => STAT_LABELS[k][lang] || STAT_LABELS[k].en
   // Sayğac rejimi — həmişə "Zikr seçimi" ilə açılır (köhnə davranış)
   const [mode, setMode] = useState('select')
+  // Ömürlük sayğac (hero) — toxunuşlar localStorage-ə yazılır; səhifədəki hər klikdən sonra yenidən oxunur
+  const [lifetime, setLifetime] = useState(readLifetime)
+  const pageRef = useRef(null)
+  useEffect(() => {
+    const el = pageRef.current
+    if (!el) return undefined
+    let raf = 0
+    const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => setLifetime(readLifetime())) }
+    el.addEventListener('click', on)
+    return () => { cancelAnimationFrame(raf); el.removeEventListener('click', on) }
+  }, [])
 
   // Hər dəyişiklikdə localStorage-ə yaz
   useEffect(() => {
@@ -282,6 +316,15 @@ export default function DhikrPage({ setPage }) {
   // jurnaldadır — ikinci dəfə sayılmır (33-də "66" göstərməsin)
   const totalAll = log.reduce((s, e) => s + (e.count || 0), 0) + (complete ? 0 : count)
   const CIRC = 2 * Math.PI * 70
+  // Sessiyada zikrlər üzrə cəm (qrafik)
+  const bySession = (() => {
+    const m = new Map()
+    for (const e of log) {
+      const name = DHIKRS[e.idx]?.[lang] || DHIKRS[e.idx]?.en || e.name
+      m.set(name, (m.get(name) || 0) + (e.count || 0))
+    }
+    return [...m.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value)
+  })()
 
   // Toxunuş: hədəfə ÇATAN toxunuş jurnala bir sessiya yazır (yalnız bir dəfə).
   // Hədəf tamamlandıqdan sonrakı toxunuş yeni dövrə başlayır (1 / 33) —
@@ -307,7 +350,7 @@ export default function DhikrPage({ setPage }) {
   }, [count, dhikr, lang, selIdx])
 
   return (
-    <div className="dhikr-page">
+    <div className="dhikr-page" ref={pageRef}>
       {/* Hero — dizayn v2 (sakit kağız fon + xatəm naxışı), bir <h1> */}
       <header className="ui-page-hero dhikr-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
@@ -317,14 +360,20 @@ export default function DhikrPage({ setPage }) {
           <h1 className="ui-display">{t.title}</h1>
           {lang !== 'ar' && <p className="dhikr-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">ٱلذِّكۡرُ</p>}
           <p className="ui-lead">{t.subtitle}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{tx(PAGE_TXT.how, lang)}</span></p>
+          <ul className="ui-page-hero__stats">
+            <li><b className="ui-num">{DHIKRS.length}</b><span>{tx(PAGE_TXT.dhikrs, lang)}</span></li>
+            <li><b className="ui-num">{AFTER_PRAYER.length}</b><span>{tx(PAGE_TXT.steps, lang)}</span></li>
+            <li><b className="ui-num">{lifetime}</b><span>{tx(PAGE_TXT.lifetime, lang)}</span></li>
+          </ul>
         </div>
       </header>
 
       <section className="ui-section ui-section--tight">
         <div className="ui-container dk-modes-wrap">
-          <div className="dk-modes" role="group" aria-label={tx(MODE_LABEL, lang)}>
+          <div className="ui-segmented dk-modes" role="group" aria-label={tx(MODE_LABEL, lang)}>
             {MODES.map(m => (
-              <button key={m.id} type="button" className="ui-chip dk-mode-chip" aria-pressed={mode === m.id}
+              <button key={m.id} type="button" className="dk-mode-chip" aria-pressed={mode === m.id}
                 onClick={() => setMode(m.id)} data-testid={`dhikr-mode-${m.id}`}>
                 <Icon name={m.icon} size={16} /> {tx(m.label, lang)}
               </button>
@@ -439,6 +488,12 @@ export default function DhikrPage({ setPage }) {
                   <Icon name="trash" className="ui-btn__icon" /> {t.clearSession}
                 </button>
               </div>
+              {bySession.length > 1 && (
+                <div className="dk-log-chart">
+                  <p className="dk-steps-label">{tx(PAGE_TXT.bySession, lang)}</p>
+                  <BarChart data={bySession} label={tx(PAGE_TXT.bySession, lang)} labelWidth="45%" />
+                </div>
+              )}
               <ul className="dhikr-log-list" data-reveal="stagger">
                 {log.map((entry,i) => (
                   <li key={entry.id ?? `${entry.time}-${i}`} className="dhikr-log-row">
@@ -456,6 +511,28 @@ export default function DhikrPage({ setPage }) {
           )}
         </div>
         )}
+      </section>
+
+      <section className="ui-section ui-section--tight dk-when" aria-labelledby="dk-when-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <h2 className="ui-title ui-title--sm" id="dk-when-h">{tx(PAGE_TXT.whenTitle, lang)}</h2>
+            <p className="ui-lead">{tx(PAGE_TXT.whenLead, lang)}</p>
+          </div>
+          <ul className="ui-tiles" style={{ '--ui-tiles-min': '220px' }} data-reveal="stagger">
+            {WHEN.map(w => (
+              <li key={w.ch}>
+                <a className="ui-tile ui-tile--row" href={`${pathFor('hisn', lang)}#hs-${w.ch}`}>
+                  <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={w.icon} /></span>
+                  <span className="ui-tile__body">
+                    <span className="ui-tile__title">{tx(w.t, lang)}</span>
+                    <span className="ui-tile__text">{tx(w.s, lang)}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
     </div>
   )

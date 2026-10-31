@@ -5,6 +5,9 @@ import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { parsePath, pathFor } from '../seo/routes'
 import useActiveSection from '../hooks/useActiveSection'
+import { ChartFigure, vizColor } from '../components/viz'
+import LifespanChart from '../components/media/LifespanChart'
+import RelatedLinks from '../components/media/RelatedLinks'
 // Məlumat — src/data/scholars.js (prerender və SEO da oxuyur)
 import { SCHOLARS, ERAS, ERA_LABEL, ERA_SHORT, ERA_SPAN, scholarBySlug, dateText, lifeSpan } from '../data/scholars'
 import '../styles/ScholarsPage.css'
@@ -26,6 +29,11 @@ import '../styles/ScholarsPage.css'
 
 const LABELS = {
   az: {
+    how: 'Kartı seçin — alimin həyatı, müəllimləri, əsərləri və mənbələri açılır. Axtarış ada, ləqəbə və şəhərə görə işləyir.',
+    statScholars: 'alim', statEras: 'dövr', statCenturies: 'əsr (hicri)', toTimeline: 'Zaman xətti',
+    tlEyebrow: 'Bir baxışda', tlTitle: 'Alimlər zaman xəttində', tlLead: 'Hər zolaq bir alimin ömrüdür (doğum → vəfat, hicri il). Boşluqlar dövrlər arasındakı əsrlərdir.',
+    tlFig: 'Alimlərin ömrü', tlSub: 'hicri il üzrə; rəng — dövr', tlNote: 'Solğun başlanğıc — doğum ili təxminidir; ucu açıq zolaq — alim sağdır. Tarixlər hər profilin mənbələrindəndir.',
+    relEyebrow: 'Davamı', relTitle: 'Əlaqəli bölmələr',
     eyebrow: 'Hədis və bilik', title: 'Alimlər',
     subtitle: 'Əhli-sünnə vəl-cəmaat yolunda olan alimlər — tabiinlərdən müasir dövrədək: həyatı, müəllimləri, əsərləri və alimlərin onlar haqqında sözləri, mənbələri ilə.',
     search: 'Alim axtar...', clear: 'Axtarışı təmizlə', filter: 'Dövr', all: 'Hamısı', noResults: 'Nəticə tapılmadı',
@@ -38,6 +46,11 @@ const LABELS = {
     sameEra: 'Eyni dövrdən', count: (n) => `${n} alim`, noPhoto: 'Alimlərin şəkli göstərilmir — yalnız adının ərəbcə yazılışı.',
   },
   en: {
+    how: 'Pick a card to open the scholar’s life, teachers, works and sources. Search works by name, title and city.',
+    statScholars: 'scholars', statEras: 'eras', statCenturies: 'centuries (AH)', toTimeline: 'Timeline',
+    tlEyebrow: 'At a glance', tlTitle: 'Scholars on a timeline', tlLead: 'Each bar is one scholar’s lifetime (birth → death, Hijri year). The gaps are the centuries between the eras.',
+    tlFig: 'Lifetimes of the scholars', tlSub: 'by Hijri year; colour = era', tlNote: 'A faded start means the birth year is approximate; an open-ended bar means the scholar is alive. Dates come from each profile’s sources.',
+    relEyebrow: 'Continue', relTitle: 'Related sections',
     eyebrow: 'Hadith & knowledge', title: 'Scholars',
     subtitle: 'Scholars upon the way of Ahl as-Sunnah wal-Jama‘ah — from the Tabi‘un to our time: their lives, teachers, works and what other scholars said about them, with sources.',
     search: 'Search scholars...', clear: 'Clear search', filter: 'Era', all: 'All', noResults: 'No results found',
@@ -50,6 +63,11 @@ const LABELS = {
     sameEra: 'From the same era', count: (n) => `${n} ${n === 1 ? 'scholar' : 'scholars'}`, noPhoto: 'No pictures of the scholars are shown — only their names in Arabic script.',
   },
   ru: {
+    how: 'Выберите карточку — откроются жизнь учёного, его учителя, труды и источники. Поиск работает по имени, прозвищу и городу.',
+    statScholars: 'учёных', statEras: 'эпохи', statCenturies: 'веков (хиджры)', toTimeline: 'Шкала времени',
+    tlEyebrow: 'Коротко', tlTitle: 'Учёные на шкале времени', tlLead: 'Каждая полоса — жизнь одного учёного (рождение → смерть, год хиджры). Пробелы — века между эпохами.',
+    tlFig: 'Годы жизни учёных', tlSub: 'по годам хиджры; цвет — эпоха', tlNote: 'Бледное начало — год рождения приблизителен; открытый конец — учёный жив. Даты взяты из источников каждого профиля.',
+    relEyebrow: 'Дальше', relTitle: 'Связанные разделы',
     eyebrow: 'Хадисы и знание', title: 'Учёные',
     subtitle: 'Учёные пути ахлю-сунна валь-джамаа — от табиинов до нашего времени: их жизнь, учителя, труды и слова других учёных о них, с источниками.',
     search: 'Поиск учёных...', clear: 'Очистить поиск', filter: 'Эпоха', all: 'Все', noResults: 'Результаты не найдены',
@@ -62,6 +80,11 @@ const LABELS = {
     sameEra: 'Из той же эпохи', count: (n) => `${n} ${ruPlural(n, 'учёный', 'учёных', 'учёных')}`, noPhoto: 'Изображения учёных не показываются — только их имена арабским письмом.',
   },
   ar: {
+    how: 'اختر بطاقة لتفتح سيرة العالم وشيوخه ومؤلفاته ومصادرها. يعمل البحث بالاسم واللقب والمدينة.',
+    statScholars: 'عالمًا', statEras: 'حقب', statCenturies: 'قرنًا هجريًا', toTimeline: 'الخط الزمني',
+    tlEyebrow: 'لمحة سريعة', tlTitle: 'العلماء على خط الزمن', tlLead: 'كل شريط عمرُ عالمٍ واحد (من المولد إلى الوفاة بالسنة الهجرية)، والفراغات هي القرون بين الحقب.',
+    tlFig: 'أعمار العلماء', tlSub: 'بالسنة الهجرية؛ اللون = الحقبة', tlNote: 'البداية الباهتة: سنة المولد تقريبية؛ والشريط المفتوح الطرف: العالم حيّ. التواريخ من مصادر كل صفحة.',
+    relEyebrow: 'للمتابعة', relTitle: 'أقسام ذات صلة',
     eyebrow: 'الحديث والعلم', title: 'العلماء',
     subtitle: 'علماء على طريقة أهل السنة والجماعة، من التابعين إلى عصرنا: سيرهم وشيوخهم ومؤلفاتهم وثناء العلماء عليهم، مع المصادر.',
     search: 'ابحث عن عالم...', clear: 'مسح البحث', filter: 'الحقبة', all: 'الكل', noResults: 'لم يتم العثور على نتائج',
@@ -74,6 +97,11 @@ const LABELS = {
     sameEra: 'من الحقبة نفسها', count: (n) => arCount(n), noPhoto: 'لا تُعرض صور العلماء، وإنما أسماؤهم بالخط العربي.',
   },
   tr: {
+    how: 'Bir kart seçin — âlimin hayatı, hocaları, eserleri ve kaynakları açılır. Arama ad, lakap ve şehre göre çalışır.',
+    statScholars: 'âlim', statEras: 'dönem', statCenturies: 'asır (hicri)', toTimeline: 'Zaman çizelgesi',
+    tlEyebrow: 'Bir bakışta', tlTitle: 'Âlimler zaman çizelgesinde', tlLead: 'Her çubuk bir âlimin ömrüdür (doğum → vefat, hicri yıl). Boşluklar dönemler arasındaki asırlardır.',
+    tlFig: 'Âlimlerin ömrü', tlSub: 'hicri yıla göre; renk — dönem', tlNote: 'Soluk başlangıç — doğum yılı yaklaşıktır; ucu açık çubuk — âlim hayattadır. Tarihler her profilin kaynaklarındandır.',
+    relEyebrow: 'Devamı', relTitle: 'İlgili bölümler',
     eyebrow: 'Hadis ve ilim', title: 'Âlimler',
     subtitle: 'Ehl-i sünnet ve’l-cemaat yolundaki âlimler — tâbiînden günümüze: hayatları, hocaları, eserleri ve diğer âlimlerin onlar hakkındaki sözleri, kaynaklarıyla.',
     search: 'Âlim ara...', clear: 'Aramayı temizle', filter: 'Dönem', all: 'Tümü', noResults: 'Sonuç bulunamadı',
@@ -99,6 +127,18 @@ function arCount(n) {
   if (n % 100 >= 3 && n % 100 <= 10) return `${n} علماء`
   return `${n} عالمًا`
 }
+
+// "Əlaqəli bölmələr" — məzmunu təkrarlamırıq, keçid veririk
+const RELATED = [
+  { page: 'sahaba', title: { az: 'Səhabələr', en: 'Companions', ru: 'Сахабы', ar: 'الصحابة', tr: 'Sahabeler' },
+    text: { az: 'Alimlərin elmi götürdüyü ilk nəsil', en: 'The first generation the scholars learned from', ru: 'Первое поколение, у которого учились учёные', ar: 'الجيل الأول الذي أخذ عنه العلماء', tr: 'Âlimlerin ilmi aldığı ilk nesil' } },
+  { page: 'history', title: { az: 'İslami tarix', en: 'Islamic history', ru: 'Исламская история', ar: 'التاريخ الإسلامي', tr: 'İslam tarihi' },
+    text: { az: 'Alimlərin yaşadığı dövrlərin hadisələri', en: 'Events of the eras the scholars lived in', ru: 'События эпох, в которые жили учёные', ar: 'أحداث العصور التي عاش فيها العلماء', tr: 'Âlimlerin yaşadığı dönemlerin olayları' } },
+  { page: 'nawawi40', title: { az: 'Nəvəvinin 40 hədisi', en: 'An-Nawawi’s 40 hadith', ru: '40 хадисов ан-Навави', ar: 'الأربعون النووية', tr: 'Nevevî’nin 40 hadisi' },
+    text: { az: 'İmam Nəvəvinin məşhur toplusu — şərhi ilə', en: 'Imam an-Nawawi’s famous collection, with commentary', ru: 'Знаменитый сборник имама ан-Навави — с пояснением', ar: 'المجموعة المشهورة للإمام النووي مع الشرح', tr: 'İmam Nevevî’nin meşhur derlemesi — şerhiyle' } },
+  { page: 'books', title: { az: 'Kitabxana', en: 'Library', ru: 'Библиотека', ar: 'المكتبة', tr: 'Kütüphane' },
+    text: { az: 'Alimlərin əsərləri və tərcümələri', en: 'Works of the scholars and translations', ru: 'Труды учёных и переводы', ar: 'مؤلفات العلماء وترجماتها', tr: 'Âlimlerin eserleri ve tercümeleri' } },
+]
 
 // Dilə görə sahə (yoxdursa ingiliscə)
 const pick = (obj, lang) => (obj && (obj[lang] || obj.en)) || ''
@@ -214,6 +254,15 @@ export default function ScholarsPage() {
           <h1 className="ui-display">{L.title}</h1>
           {!isAr && <p className="sc-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">علماء السلف</p>}
           <p className="ui-lead">{L.subtitle}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {L.how}</p>
+          <ul className="ui-page-hero__stats">
+            <li><b className="ui-num">{SCHOLARS.length}</b><span>{L.statScholars}</span></li>
+            <li><b className="ui-num">{ERAS.length}</b><span>{L.statEras}</span></li>
+            <li><b className="ui-num">15</b><span>{L.statCenturies}</span></li>
+            <li className="sc-hero__jump"><a className="ui-link" href="#sc-timeline" onClick={(e) => { e.preventDefault(); document.getElementById('sc-timeline')?.scrollIntoView({ behavior: prefersReduced() ? 'auto' : 'smooth', block: 'start' }) }}>
+              <Icon name="history" size={16} /> {L.toTimeline} <Icon name="arrowDown" size={14} />
+            </a></li>
+          </ul>
         </div>
       </header>
 
@@ -278,6 +327,51 @@ export default function ScholarsPage() {
           )}
         </div>
       </div>
+
+      {/* Zaman xətti — hər alimin ömrü bir zolaqda (hicri il), rəng dövrdən */}
+      <section id="sc-timeline" className="ui-section ui-section--alt sc-timeline" aria-labelledby="sc-timeline-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{L.tlEyebrow}</span>
+            <h2 id="sc-timeline-h" className="ui-title">{L.tlTitle}</h2>
+            <p className="ui-lead">{L.tlLead}</p>
+          </div>
+          <ChartFigure title={L.tlFig} sub={L.tlSub} note={L.tlNote}>
+            <ul className="ui-legend sc-tl-legend">
+              {ERAS.map((k, i) => (
+                <li key={k}><span className="ui-swatch" style={{ '--swatch': vizColor(i + 1) }} aria-hidden="true" />{pick(ERA_SHORT[k], lang)} <b>{counts[k]}</b></li>
+              ))}
+            </ul>
+            <LifespanChart
+              label={L.tlFig}
+              min={0} max={1450}
+              ticks={[0, 250, 500, 750, 1000, 1250, 1450].map(v => ({ v, label: String(v) }))}
+              rows={SCHOLARS.map(s => ({
+                key: s.slug,
+                name: pick(s.name, lang),
+                sub: lifeSpan(s, lang),
+                href: pathFor('scholars', lang, s.slug),
+                onClick: (e) => openProfile(s, e),
+                start: s.born?.h ?? (s.died ? s.died.h - 60 : null),
+                end: s.died?.h ?? null,
+                open: !s.died,
+                approx: Boolean(s.born?.approx) || !s.born,
+                tone: ERAS.indexOf(s.era) + 1,
+              }))}
+            />
+          </ChartFigure>
+        </div>
+      </section>
+
+      <section className="ui-section ui-section--tight sc-related" aria-labelledby="sc-rel-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{L.relEyebrow}</span>
+            <h2 id="sc-rel-h" className="ui-title ui-title--sm">{L.relTitle}</h2>
+          </div>
+          <RelatedLinks items={RELATED} />
+        </div>
+      </section>
     </div>
   )
 }

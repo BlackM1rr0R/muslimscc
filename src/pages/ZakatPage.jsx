@@ -6,6 +6,10 @@ import '../styles/ZakatPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
+import { useNavigate } from 'react-router-dom'
+import PageLink, { isPlainClick } from '../components/PageLink'
+import { pathFor } from '../seo/routes'
+import { ChartFigure, BarChart, StackedBar, ProgressBar } from '../components/viz'
 
 // ═══ ZƏKAT HESABI — Sələf alimlərinin fətvalarına uyğun ═══
 // • Zəkat nisaba çatan və üzərindən bir hicri il (hövl) keçən mala düşür. Aylıq maaş
@@ -58,7 +62,7 @@ const L = {
   nisabExplain: { az:'Kağız pulun nisabı 85 q qızılın və ya 595 q gümüşün dəyəridir. Daimi Komitə hansı kasıblar üçün daha faydalıdırsa onu əsas götürməyi bildirib; bu gün bu, adətən gümüşdür.', ru:'Нисаб бумажных денег — стоимость 85 г золота или 595 г серебра. Постоянный комитет указал брать то, что полезнее для бедных; сегодня это обычно серебро.', ar:'نصاب الأوراق النقدية قيمة ٨٥ غرامًا من الذهب أو ٥٩٥ غرامًا من الفضة، وقد أفتت اللجنة الدائمة بالأخذ بالأنفع للفقراء، وهو اليوم غالبًا الفضة.', tr:'Kâğıt paranın nisabı 85 g altının veya 595 g gümüşün değeridir. Daimi Komite fakirler için hangisi daha faydalıysa onun esas alınmasını bildirmiştir; bugün bu genellikle gümüştür.', en:'The nisab for paper money is the value of 85 g of gold or 595 g of silver. The Permanent Committee advised using whichever is more beneficial to the poor; today that is usually silver.' },
   nisabSrc:     { az:'Daimi Komitə fətvaları, 9/254, 9/257', ru:'Фетвы Постоянного комитета, 9/254, 9/257', ar:'فتاوى اللجنة الدائمة، ٩/٢٥٤، ٩/٢٥٧', tr:'Daimi Komite fetvaları, 9/254, 9/257', en:'Fatawa al-Lajnah al-Daimah, 9/254, 9/257' },
   priceHint:    { az:'Bugünkü bazar qiymətini yaza bilərsiniz', ru:'Можно указать сегодняшнюю рыночную цену', ar:'يمكنك إدخال سعر السوق اليوم', tr:'Bugünkü piyasa fiyatını yazabilirsiniz', en:'You can enter today’s market price' },
-  debtLabel:    { az:'Borclar (çıxılacaq)',   ru:'Долги (вычитаются)',  ar:'الديون (تخصم)',      tr:'Borçlar (düşülecek)',    en:'Debts (deducted)'    },
+  debtLabel: { az:'Zəkat günündən əvvəl ödədiyiniz borc', ru:'Долг, выплачиваемый до дня закята', ar:'الدين الذي تقضيه قبل موعد الزكاة', tr:'Zekât gününden önce ödediğiniz borç', en:'Debt you pay off before the zakat date' },
   fitrTitle:    { az:'Fitrə zəkatı',          ru:'Закят аль-Фитр',      ar:'زكاة الفطر',         tr:'Fıtır Sadakası',        en:'Zakat al-Fitr'       },
   fitrDesc:     { az:"Bayram namazından əvvəl hər ailə üzvü üçün bir sa' (≈3 kq) əsas qida verilir", ru:"До праздничной молитвы за каждого члена семьи выдаётся один са' (≈3 кг) основной еды", ar:'تُخرج قبل صلاة العيد صاعًا (≈٣ كغ) من قوت البلد عن كل فرد', tr:"Bayram namazından önce her aile üyesi için bir sâ' (≈3 kg) temel gıda verilir", en:"One saa' (≈3 kg) of staple food per family member, given before the Eid prayer" },
   fitrPeople:   { az:'Ailə üzvləri sayı',     ru:'Кол-во членов семьи', ar:'عدد أفراد الأسرة',   tr:'Aile üyesi sayısı',     en:'Number of family members' },
@@ -83,8 +87,90 @@ const L = {
   perYear:      { az:'/ hicri il',            ru:'/ лунный год',           ar:'/ حول',              tr:'/ hicri yıl',           en:'/ lunar year'        },
   reset:        { az:'Sıfırla',               ru:'Сброс',                  ar:'إعادة',              tr:'Sıfırla',               en:'Reset'               },
   priceNote:    { az:'Qiymətlər təxminidir: qızıl ≈ {g}/q, gümüş ≈ {s}/q', ru:'Цены приблизительные: золото ≈ {g}/г, серебро ≈ {s}/г', ar:'الأسعار تقريبية: الذهب ≈ {g}/غ، الفضة ≈ {s}/غ', tr:'Fiyatlar yaklaşıktır: altın ≈ {g}/g, gümüş ≈ {s}/g', en:'Prices are approximate: gold ≈ {g}/g, silver ≈ {s}/g' },
+
+  // ── Dizayn v3: hero, addımlar, qrafiklər, yeni bölmələr ──
+  how: { az:'Yalnız əlinizdə bir hicri il qalan malı yazın. Kalkulyator cəmi nisabla müqayisə edir və 2.5%-ni göstərir. Borc zəkatı düşürmür — yalnız zəkat günündən əvvəl faktiki ödədiyiniz borc maldan çıxılır.', ru:'Вписывайте только то имущество, которое пролежало у вас лунный год. Калькулятор сравнит итог с нисабом и покажет 2,5 %. Долг не отменяет закят — вычитается лишь долг, фактически выплаченный до дня закята.', ar:'اكتب المال الذي حال عليه الحول عندك فقط، وتقارن الحاسبة المجموع بالنصاب وتُظهر ربع العشر. والدين لا يمنع الزكاة، وإنما يُخصم ما قضيته فعلًا قبل موعدها.', tr:'Yalnızca elinizde bir hicri yıl kalan malı yazın. Hesaplayıcı toplamı nisapla karşılaştırır ve %2,5’ini gösterir. Borç zekâtı düşürmez — yalnızca zekât gününden önce fiilen ödediğiniz borç maldan düşülür.', en:'Enter only wealth you have held for a full lunar year. The calculator compares the total with the nisab and shows 2.5% of it. Debt does not cancel zakat — only debt you actually pay off before the zakat date is taken out.' },
+  statRate:     { az:'zəkat dərəcəsi', ru:'ставка закята', ar:'مقدار الزكاة', tr:'zekât oranı', en:'zakat rate' },
+  statGold:     { az:'qızıl nisabı', ru:'нисаб золота', ar:'نصاب الذهب', tr:'altın nisabı', en:'gold nisab' },
+  statSilver:   { az:'gümüş nisabı', ru:'нисаб серебра', ar:'نصاب الفضة', tr:'gümüş nisabı', en:'silver nisab' },
+  statHawl:     { az:'hicri il (hövl)', ru:'лунный год (хауль)', ar:'حول هجري', tr:'hicri yıl (havl)', en:'lunar year (hawl)' },
+  gUnit:        { az:'q', ru:'г', ar:'غ', tr:'g', en:'g' },
+  actCalc:      { az:'Hesabla', ru:'Рассчитать', ar:'احسب', tr:'Hesapla', en:'Calculate' },
+  actWho:       { az:'Zəkat kimə verilir?', ru:'Кому дают закят?', ar:'لمن تُعطى الزكاة؟', tr:'Zekât kime verilir?', en:'Who receives zakat?' },
+  step1:        { az:'Valyuta və qiymətlər', ru:'Валюта и цены', ar:'العملة والأسعار', tr:'Para birimi ve fiyatlar', en:'Currency and prices' },
+  step1Text:    { az:'Pul vahidini seçin. Qızıl və gümüşün bugünkü qiymətini bilirsinizsə, yazın — bilmirsinizsə təxmini qiymət götürülür.', ru:'Выберите валюту. Если знаете сегодняшнюю цену золота и серебра, впишите её — иначе берётся приблизительная.', ar:'اختر العملة، وإن عرفت سعر الذهب والفضة اليوم فاكتبه، وإلا أُخذ سعر تقريبي.', tr:'Para birimini seçin. Altın ve gümüşün bugünkü fiyatını biliyorsanız yazın — bilmiyorsanız yaklaşık fiyat alınır.', en:'Choose the currency. If you know today’s gold and silver prices, enter them — otherwise an approximate price is used.' },
+  step2:        { az:'Bir il saxlanılan mal', ru:'Имущество, пролежавшее год', ar:'المال الذي حال عليه الحول', tr:'Bir yıl tutulan mal', en:'Wealth held for a year' },
+  step3:        { az:'Borclar', ru:'Долги', ar:'الديون', tr:'Borçlar', en:'Debts' },
+  step3Text: { az:'Borc zəkatın vacibliyinə mane olmur (İbn Baz və İbn Useyminin seçdiyi rəy). Yalnız zəkat günündən əvvəl faktiki ödədiyiniz borcu yazın — o, artıq sizin malınız deyil.', ru:'Долг не препятствует обязательности закята (мнение, избранное Ибн Базом и Ибн Усаймином). Впишите лишь долг, фактически выплачиваемый до дня закята, — это уже не ваше имущество.', ar:'الدين لا يمنع وجوب الزكاة (وهو اختيار ابن باز وابن عثيمين)، فاكتب فقط الدين الذي تقضيه فعلًا قبل موعد الزكاة لأنه لم يعد من مالك.', tr:'Borç zekâtın farziyetine engel değildir (İbn Bâz ve İbn Useymîn’in tercihi). Yalnızca zekât gününden önce fiilen ödediğiniz borcu yazın — o artık sizin malınız değildir.', en:'Debt does not prevent zakat from being due (the view chosen by Ibn Baz and Ibn Uthaymin). Enter only the debt you actually pay off before the zakat date — it is no longer your wealth.' },
+  ofNisab:      { az:'Nisabın {p}%-i', ru:'{p} % нисаба', ar:'{p}٪ من النصاب', tr:'Nisabın %{p} kadarı', en:'{p}% of the nisab' },
+  compTitle:    { az:'Varlıqların tərkibi', ru:'Состав имущества', ar:'تركيب المال', tr:'Varlıkların dağılımı', en:'What your wealth is made of' },
+  compCash:     { az:'Nağd və bank', ru:'Наличные и банк', ar:'النقد والبنك', tr:'Nakit ve banka', en:'Cash and bank' },
+  compTrade:    { az:'Ticarət malı', ru:'Товары для торговли', ar:'عروض التجارة', tr:'Ticaret malı', en:'Trade goods' },
+  compGold:     { az:'Qızıl', ru:'Золото', ar:'الذهب', tr:'Altın', en:'Gold' },
+  compSilver:   { az:'Gümüş', ru:'Серебро', ar:'الفضة', tr:'Gümüş', en:'Silver' },
+  ruleEy:       { az:'Qayda', ru:'Правило', ar:'القاعدة', tr:'Kural', en:'The rule' },
+  ruleTitle:    { az:'Zəkat necə hesablanır?', ru:'Как рассчитывается закят?', ar:'كيف تُحسب الزكاة؟', tr:'Zekât nasıl hesaplanır?', en:'How is zakat calculated?' },
+  ruleLead:     { az:'Dörd addım — kalkulyator da eyni ardıcıllıqla işləyir.', ru:'Четыре шага — калькулятор работает в том же порядке.', ar:'أربع خطوات، وتعمل الحاسبة بالترتيب نفسه.', tr:'Dört adım — hesaplayıcı da aynı sırayla çalışır.', en:'Four steps — the calculator follows the same order.' },
+  r1:           { az:'Malı toplayın', ru:'Сложите имущество', ar:'اجمع المال', tr:'Malı toplayın', en:'Add up the wealth' },
+  r1t:          { az:'Pul, bank hesabı, qızıl, gümüş və satış üçün saxlanılan malın bugünkü dəyəri.', ru:'Деньги, банковский счёт, золото, серебро и текущая стоимость товара для продажи.', ar:'النقود وحساب البنك والذهب والفضة وقيمة عروض التجارة اليوم.', tr:'Para, banka hesabı, altın, gümüş ve satış için tutulan malın bugünkü değeri.', en:'Money, bank balance, gold, silver and today’s value of goods held for sale.' },
+  r2: { az:'Ödənən borcu çıxın', ru:'Вычтите выплаченный долг', ar:'اخصم الدين المقضيّ', tr:'Ödenen borcu düşün', en:'Subtract debt paid off' },
+  r2t: { az:'Zəkat günündən əvvəl faktiki ödədiyiniz borcu cəmdən çıxın; qalan borclar zəkatı düşürmür.', ru:'Вычтите долг, выплаченный до дня закята; остальные долги закят не отменяют.', ar:'اخصم ما قضيته من الدين قبل موعد الزكاة، وبقية الديون لا تُسقطها.', tr:'Zekât gününden önce fiilen ödediğiniz borcu toplamdan düşün; kalan borçlar zekâtı düşürmez.', en:'Take out the debt you actually pay off before the zakat date; other debts do not cancel zakat.' },
+  r3:           { az:'Nisabla müqayisə edin', ru:'Сравните с нисабом', ar:'قارن بالنصاب', tr:'Nisapla karşılaştırın', en:'Compare with the nisab' },
+  r3t:          { az:'Qalan məbləğ nisaba çatıbsa və üzərindən bir hicri il keçibsə, zəkat vacibdir.', ru:'Если остаток достиг нисаба и над ним прошёл лунный год, закят обязателен.', ar:'إذا بلغ الباقي النصاب وحال عليه الحول وجبت الزكاة.', tr:'Kalan tutar nisaba ulaşmış ve üzerinden bir hicri yıl geçmişse zekât farzdır.', en:'If what remains reaches the nisab and a lunar year has passed over it, zakat is due.' },
+  r4:           { az:'Qırxda birini verin', ru:'Отдайте сороковую часть', ar:'أخرج ربع العشر', tr:'Kırkta birini verin', en:'Give one fortieth' },
+  r4t:          { az:'Məbləğin qırxda biri, yəni 2.5%-i zəkatdır.', ru:'Закят — сороковая часть суммы, то есть 2,5 %.', ar:'الزكاة ربع العشر، أي ٢٫٥٪ من المال.', tr:'Tutarın kırkta biri, yani %2,5’i zekâttır.', en:'Zakat is one fortieth of the amount, i.e. 2.5%.' },
+  nisabChart:   { az:'Bu gün nisab: qızıl və gümüş', ru:'Нисаб сегодня: золото и серебро', ar:'النصاب اليوم: الذهب والفضة', tr:'Bugün nisap: altın ve gümüş', en:'The nisab today: gold and silver' },
+  nisabChartSub:{ az:'seçilmiş valyutada, yuxarıdakı qiymətlərlə', ru:'в выбранной валюте, по ценам выше', ar:'بالعملة المختارة وبالأسعار أعلاه', tr:'seçilen para biriminde, yukarıdaki fiyatlarla', en:'in the chosen currency, at the prices above' },
+  recEy:        { az:'Tövbə, 9:60', ru:'ат-Тауба, 9:60', ar:'التوبة: ٦٠', tr:'Tevbe, 9:60', en:'at-Tawbah 9:60' },
+  recTitle:     { az:'Zəkat kimə verilir?', ru:'Кому выплачивается закят?', ar:'مصارف الزكاة', tr:'Zekât kimlere verilir?', en:'Who receives zakat?' },
+  recLead:      { az:'Zəkatın kimlərə veriləcəyini Allah Quranda Özü səkkiz növ olaraq sayıb.', ru:'Аллах Сам перечислил в Коране восемь категорий получателей закята.', ar:'تولّى الله تعالى بيان مصارف الزكاة في كتابه، وهي ثمانية أصناف.', tr:'Zekâtın kimlere verileceğini Allah Kur’an’da bizzat sekiz sınıf olarak saymıştır.', en:'Allah Himself listed in the Quran the eight kinds of people who receive zakat.' },
+  fitrEy:       { az:'Ramazanın sonu', ru:'Конец Рамадана', ar:'آخر رمضان', tr:'Ramazan’ın sonu', en:'End of Ramadan' },
+  relTitle:     { az:'Əlaqəli bölmələr', ru:'Связанные разделы', ar:'أقسام ذات صلة', tr:'İlgili bölümler', en:'Related sections' },
+  relFaq:       { az:'Zəkat haqqında suallar', ru:'Вопросы о закяте', ar:'أسئلة في الزكاة', tr:'Zekât hakkında sorular', en:'Questions about zakat' },
+  relFaqSub:    { az:'Zinət qızılı, maaşdan yığım, ev və maşın — fətva nömrələri ilə', ru:'Украшения, накопления с зарплаты, дом и машина — с номерами фетв', ar:'الحلي والادخار من الراتب والبيت والسيارة — مع أرقام الفتاوى', tr:'Ziynet altını, maaştan birikim, ev ve araba — fetva numaralarıyla', en:'Jewellery, savings from a salary, house and car — with fatwa numbers' },
+  relCharity:   { az:'Sədəqə gündəliyi', ru:'Дневник садаки', ar:'يوميات الصدقة', tr:'Sadaka günlüğü', en:'Charity diary' },
+  relCharitySub:{ az:'Könüllü sədəqələrinizi qeyd edin', ru:'Записывайте добровольную милостыню', ar:'سجّل صدقاتك التطوعية', tr:'Gönüllü sadakalarınızı kaydedin', en:'Log your voluntary charity' },
+  relDonate:    { az:'Sədəqənin fəziləti', ru:'Достоинства садаки', ar:'فضل الصدقة', tr:'Sadakanın fazileti', en:'The virtue of charity' },
+  relDonateSub: { az:'Davamlı sədəqə və vermənin ədəbi', ru:'Постоянная милостыня и этикет', ar:'الصدقة الجارية وآداب العطاء', tr:'Sadaka-i cariye ve vermenin edebi', en:'Ongoing charity and the etiquette of giving' },
+  relInh:       { az:'Miras hesablayıcısı', ru:'Калькулятор наследства', ar:'حاسبة المواريث', tr:'Miras hesaplayıcı', en:'Inheritance calculator' },
+  relInhSub:    { az:'Quran paylarına görə bölgü', ru:'Раздел по долям Корана', ar:'القسمة على فروض القرآن', tr:'Kur’an paylarına göre taksim', en:'Division by the Quranic shares' },
+  ayahTitle:    { az:'Namazı qılın, zəkatı verin', ru:'Совершайте намаз и выплачивайте закят', ar:'وأقيموا الصلاة وآتوا الزكاة', tr:'Namazı kılın, zekâtı verin', en:'Establish prayer and give zakat' },
+  muadh:        { az:'Peyğəmbər ﷺ Muazı Yəmənə göndərəndə dedi: «…onlara öyrət ki, Allah onların mallarında zəkatı fərz edib: varlılarından alınıb kasıblarına verilir».', ru:'Отправляя Муаза в Йемен, Пророк ﷺ сказал: «…научи их, что Аллах обязал их выплачивать закят с имущества: он берётся у богатых и отдаётся бедным».', ar:'لما بعث النبي ﷺ معاذًا إلى اليمن قال: «…فأعلمهم أن الله افترض عليهم صدقة في أموالهم، تؤخذ من أغنيائهم وتُرد على فقرائهم».', tr:'Peygamber ﷺ Muaz’ı Yemen’e gönderirken şöyle dedi: “…onlara Allah’ın mallarında zekâtı farz kıldığını öğret: zenginlerinden alınır, fakirlerine verilir.”', en:'When the Prophet ﷺ sent Muʿadh to Yemen he said: “…teach them that Allah has made zakat obligatory on their wealth: it is taken from their rich and given to their poor.”' },
+  muadhSrc:     { az:'Buxari 1395', ru:'аль-Бухари 1395', ar:'البخاري ١٣٩٥', tr:'Buhârî 1395', en:'al-Bukhari 1395' },
 }
+
+// Zəkatın 8 alıcısı — Tövbə 9:60 (ərəb mətni api.quran.com, Osmani yazı).
+// Qısa izahlar fiqh kitablarındakı məşhur təriflərdir (məs. fəqir — ehtiyacının
+// yarısını tapmayan, miskin — yarısını və ya çoxunu tapan, amma kifayət etməyən).
+const AYAH_9_60 = '۞ إِنَّمَا ٱلصَّدَقَـٰتُ لِلْفُقَرَآءِ وَٱلْمَسَـٰكِينِ وَٱلْعَـٰمِلِينَ عَلَيْهَا وَٱلْمُؤَلَّفَةِ قُلُوبُهُمْ وَفِى ٱلرِّقَابِ وَٱلْغَـٰرِمِينَ وَفِى سَبِيلِ ٱللَّهِ وَٱبْنِ ٱلسَّبِيلِ ۖ فَرِيضَةً مِّنَ ٱللَّهِ ۗ وَٱللَّهُ عَلِيمٌ حَكِيمٌ'
+const RECIPIENTS = [
+  { k:'fuqara', icon:'home', ar:'الفقراء',
+    t:{ az:'Fəqirlər', en:'The poor', ru:'Бедняки', ar:'الفقراء', tr:'Fakirler' },
+    d:{ az:'Heç nəyi olmayan və ya ehtiyacının yarısını belə tapmayanlar', en:'Those who have nothing, or less than half of what they need', ru:'Те, у кого нет ничего или меньше половины необходимого', ar:'من لا يجد شيئًا أو يجد أقل من نصف كفايته', tr:'Hiçbir şeyi olmayan ya da ihtiyacının yarısını bile bulamayanlar' } },
+  { k:'masakin', icon:'user', ar:'المساكين',
+    t:{ az:'Miskinlər', en:'The needy', ru:'Неимущие', ar:'المساكين', tr:'Miskinler' },
+    d:{ az:'Ehtiyacının yarısını və ya çoxunu tapan, amma kifayət etməyənlər', en:'Those who have half or more of their needs, but not enough', ru:'Те, у кого есть половина необходимого или больше, но не хватает', ar:'من يجد نصف كفايته أو أكثرها دون تمامها', tr:'İhtiyacının yarısını veya çoğunu bulup yetmeyenler' } },
+  { k:'amilin', icon:'list', ar:'العاملون عليها',
+    t:{ az:'Zəkat işçiləri', en:'Zakat workers', ru:'Сборщики закята', ar:'العاملون عليها', tr:'Zekât görevlileri' },
+    d:{ az:'Hökmdarın zəkatı toplamaq və bölmək üçün təyin etdiyi şəxslər', en:'People appointed by the ruler to collect and distribute it', ru:'Назначенные правителем для сбора и распределения закята', ar:'من يوليهم الإمام جمعها وتوزيعها', tr:'Yöneticinin zekâtı toplamak ve dağıtmak için atadığı kişiler' } },
+  { k:'muallafa', icon:'jamaat', ar:'المؤلفة قلوبهم',
+    t:{ az:'Qəlbləri isindiriləcək olanlar', en:'Those whose hearts are to be reconciled', ru:'Те, чьи сердца хотят расположить', ar:'المؤلفة قلوبهم', tr:'Kalpleri ısındırılacak olanlar' },
+    d:{ az:'Məsələn, imanı möhkəmlənsin deyə yeni müsəlman', en:'For example, a new Muslim whose faith is to be strengthened', ru:'Например, новый мусульманин, чтобы укрепить его веру', ar:'كمن أسلم حديثًا ليقوى إيمانه', tr:'Örneğin imanı güçlensin diye yeni Müslüman olan' } },
+  { k:'riqab', icon:'shield', ar:'في الرقاب',
+    t:{ az:'Azad etmək üçün', en:'Freeing those in bondage', ru:'Освобождение невольников', ar:'في الرقاب', tr:'Köle azadı için' },
+    d:{ az:'Kölələri azad etmək və müsəlman əsirləri fidyə ilə qurtarmaq', en:'Freeing slaves and ransoming Muslim captives', ru:'Освобождение рабов и выкуп пленных мусульман', ar:'عتق الرقيق وفكاك الأسرى من المسلمين', tr:'Köleleri azat etmek ve Müslüman esirleri fidyeyle kurtarmak' } },
+  { k:'gharimin', icon:'minus', ar:'الغارمون',
+    t:{ az:'Borclular', en:'Debtors', ru:'Должники', ar:'الغارمون', tr:'Borçlular' },
+    d:{ az:'Halal borcunu ödəyə bilməyənlər', en:'Those unable to repay a lawful debt', ru:'Те, кто не может выплатить дозволенный долг', ar:'من عجز عن سداد دين مباح', tr:'Helal borcunu ödeyemeyenler' } },
+  { k:'sabilillah', icon:'compass', ar:'في سبيل الله',
+    t:{ az:'Allah yolunda', en:'In the cause of Allah', ru:'На пути Аллаха', ar:'في سبيل الله', tr:'Allah yolunda' },
+    d:{ az:'Allah yolunda cihad edənlər', en:'Those striving in jihad in the path of Allah', ru:'Сражающиеся на пути Аллаха', ar:'الغزاة المجاهدون في سبيل الله', tr:'Allah yolunda cihad edenler' } },
+  { k:'ibnsabil', icon:'pin', ar:'ابن السبيل',
+    t:{ az:'Yolda qalmış müsafir', en:'The stranded traveller', ru:'Путник', ar:'ابن السبيل', tr:'Yolda kalmış yolcu' },
+    d:{ az:'Evində varlı olsa da, səfərdə pulsuz qalan', en:'One left without means on a journey, even if wealthy at home', ru:'Оставшийся без средств в пути, даже если дома богат', ar:'المسافر المنقطع ولو كان غنيًا في بلده', tr:'Memleketinde zengin olsa da yolculukta parasız kalan' } },
+]
 const s = (k, l) => L[k]?.[l] || L[k]?.en || ''
+const pickL = (o, l) => o?.[l] || o?.en || ''
 
 // ── Ayə: mətn yaddaşdan yazılmır, alquran.cloud-dan gəlir ──
 // Ərəbcə Osmani yazısı + cari dilin tərcüməsi (ərəbcədə yalnız əsl mətn).
@@ -206,10 +292,27 @@ function ZakatField({ icon, tone = '', label, prefix, value, onChange, placehold
   )
 }
 
+/** Kalkulyatorun nömrəli addımı (dizayn v3): nömrə · başlıq · bir cümlə → sahələr */
+function CalcStep({ n, title, text, id, children, className = '' }) {
+  return (
+    <li className={`ui-card zakat-step${className ? ' ' + className : ''}`} aria-labelledby={id}>
+      <div className="zakat-step__head">
+        <span className="zakat-step__n ui-num" aria-hidden="true">{n}</span>
+        <div className="zakat-step__intro">
+          <h2 className="zakat-step__title" id={id}>{title}</h2>
+          {text && <p className="zakat-step__text">{text}</p>}
+        </div>
+      </div>
+      {children}
+    </li>
+  )
+}
+
 export default function ZakatPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.zakat || T.az.zakat
   const l = ['az','ru','ar','tr'].includes(lang) ? lang : 'en'
+  const navigate = useNavigate()
 
   const [currency,    setCurrency]    = useState('AZN')
   const [rates,       setRates]       = useState(FALLBACK)
@@ -227,15 +330,8 @@ export default function ZakatPage({ setPage }) {
   const [goldPriceIn,   setGoldPriceIn]   = useState('')
   const [silverPriceIn, setSilverPriceIn] = useState('')
   const ayah = useAyah('2:43', lang)
+  const ayahRec = useAyah('9:60', lang)
   const dueRef = useRef(null)
-
-  // Tək sütunlu düzümdə (<1180px) nəticə kartları ilk ekranın altında qalır —
-  // yalnız onda sürüşəndə görünmə (data-reveal) verilir. Genişdə kartlar
-  // ilk ekrandadır və səhifə keçidi onsuz da animasiya edir.
-  const [revealResults] = useState(() => {
-    try { return window.matchMedia('(max-width: 1179.98px)').matches } catch { return false }
-  })
-  const reveal = revealResults ? { 'data-reveal': '' } : {}
 
   // Yapışqan cəm zolağına toxunanda "Ödənilməli Zəkat" kartına keç
   const scrollToDue = () => {
@@ -268,7 +364,9 @@ export default function ZakatPage({ setPage }) {
   // 1 qramın qiyməti seçilmiş valyutada (istifadəçi yazıbsa — onun dəyəri)
   const goldPrice   = n(goldPriceIn)   || GOLD_USD_PER_G * rate
   const silverPrice = n(silverPriceIn) || SILVER_USD_PER_G * rate
-  const nisabLoc = nisabBasis === 'gold' ? NISAB_GOLD_G * goldPrice : NISAB_SILVER_G * silverPrice
+  const nisabGoldVal   = NISAB_GOLD_G * goldPrice
+  const nisabSilverVal = NISAB_SILVER_G * silverPrice
+  const nisabLoc = nisabBasis === 'gold' ? nisabGoldVal : nisabSilverVal
 
   // Yalnız bir il saxlanılan varlıqlar (maaş/icarə ×12 YOXDUR — bax faylın başı)
   const savingsVal   = n(savings)
@@ -291,7 +389,8 @@ export default function ZakatPage({ setPage }) {
   // Rəqəm formatı saytın dilinə görədir (əvvəl brauzerin dili idi: ru səhifədə "1,234.56",
   // sıfır isə həmişə "0.00" — eyni kartda iki fərqli format). Ərəbcədə latın rəqəmləri.
   const fmt = v => (Number.isFinite(v) ? v : 0).toLocaleString(NUM_LOCALES[lang] || 'en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })
-  const pct  = Math.min((total / nisabLoc) * 100, 100)
+  const money = v => `${cur.symbol}${fmt(v)}`
+  const pct  = nisabLoc > 0 ? Math.min((total / nisabLoc) * 100, 100) : 0
   // Pul sahələrinin yer tutucusu da saytın dilinə görə ("0,00" ru/az/tr-də;
   // əvvəl hər dildə "0.00" idi, nəticə kartlarında isə "0,00")
   const moneyPh = fmt(0)
@@ -307,93 +406,129 @@ export default function ZakatPage({ setPage }) {
     { k: 'stocks',  icon: 'analytics', label: s('stocksLabel',l),  val: stocksVal, show: n(stocks) > 0 },
   ]
 
+  // Tərkib qrafiki — 4 qrup (viz palitrası 4 rəngdir): nağd+digər, ticarət, qızıl, gümüş
+  const comp = [
+    { key: 'cash',   label: s('compCash', l),   value: savingsVal + otherVal, tone: 1 },
+    { key: 'trade',  label: s('compTrade', l),  value: stocksVal, tone: 3 },
+    { key: 'gold',   label: s('compGold', l),   value: goldVal, tone: 2 },
+    { key: 'silver', label: s('compSilver', l), value: silverVal, tone: 4 },
+  ].filter(x => x.value > 0)
+
+  const gU = s('gUnit', l)
+  const openLearn = (e) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(pathFor('learn', lang, 'fiqh-faq') + '#zakat')
+  }
+  const related = [
+    { to: 'charity', icon: 'charity', title: s('relCharity', l), sub: s('relCharitySub', l) },
+    { to: 'donate', icon: 'donate', title: s('relDonate', l), sub: s('relDonateSub', l) },
+    { to: 'inheritance', icon: 'inheritance', title: s('relInh', l), sub: s('relInhSub', l) },
+  ]
+
   return (
     <div className="zakat-page">
-      {/* Hero — dizayn v2: sakit kağız fon + xatəm naxışı, bir <h1> */}
+      {/* Hero — v3: kompakt; eyebrow · h1 · bir cümlə · necə işlədilir · 4 açar rəqəm */}
       <header className="ui-page-hero zakat-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container" data-reveal="stagger">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel(navGroupOf('zakat'), lang)}</span>
           <h1 className="ui-display">{t.title}</h1>
-          {lang !== 'ar' && <p className="zakat-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الزَّكَاةُ</p>}
           <p className="ui-lead">{t.subtitle}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {s('how', l)}</p>
+          <ul className="ui-page-hero__stats zakat-hero-stats">
+            <li><b className="ui-num">2.5%</b><span>{s('statRate', l)}</span></li>
+            <li><b className="ui-num">{NISAB_GOLD_G} {gU}</b><span>{s('statGold', l)}</span></li>
+            <li><b className="ui-num">{NISAB_SILVER_G} {gU}</b><span>{s('statSilver', l)}</span></li>
+            <li><b className="ui-num">1</b><span>{s('statHawl', l)}</span></li>
+          </ul>
+          <div className="ui-page-hero__actions">
+            <a className="ui-btn ui-btn--primary ui-btn--sm" href="#zakat-calc">
+              <Icon name="zakat" className="ui-btn__icon" /> {s('actCalc', l)}
+            </a>
+            <a className="ui-btn ui-btn--secondary ui-btn--sm" href="#zakat-recipients">{s('actWho', l)}</a>
+          </div>
         </div>
       </header>
 
-      <section className="ui-section ui-section--tight">
+      {/* ══ Kalkulyator: 3 nömrəli addım | yapışqan nəticə sütunu ══ */}
+      <section id="zakat-calc" className="ui-section ui-section--tight zakat-calc">
         <div className="ui-container zakat-layout">
 
-          {/* ══ Daxiletmə ══ */}
-          <div className="ui-card zakat-inputs">
+          <div className="zakat-inputs">
+            <ol className="zakat-steps">
+              {/* 1 — Valyuta, nisab əsası, qiymətlər */}
+              <CalcStep n={1} id="zakat-step-1" title={s('step1', l)} text={s('step1Text', l)}>
+                <div className="zakat-currency-header">
+                  <span className="zakat-block-label" id="zakat-cur-label">
+                    <Icon name="globe" size={16} /> {s('currency',l)}
+                  </span>
+                  {rateLoading
+                    ? <span className="ui-badge zakat-rate-badge">{s('rateLoading',l)}</span>
+                    : <span className="ui-badge ui-badge--brand zakat-rate-badge">{s('rateLabel',l)} <strong className="ui-num">{fmt(rate)} {cur.symbol}</strong></span>
+                  }
+                </div>
+                <div className="zakat-currency-grid" role="group" aria-labelledby="zakat-cur-label">
+                  {CURRENCIES.map(c => (
+                    <button key={c.code} type="button"
+                      className="ui-chip zakat-cur-btn"
+                      aria-pressed={currency === c.code}
+                      onClick={() => setCurrency(c.code)}
+                    >
+                      <span>{c.code}</span>
+                      <small aria-hidden="true">{c.symbol}</small>
+                    </button>
+                  ))}
+                </div>
 
-            {/* Valyuta */}
-            <div className="zakat-currency-block">
-              <div className="zakat-currency-header">
-                <span className="zakat-block-label" id="zakat-cur-label">
-                  <Icon name="globe" size={16} /> {s('currency',l)}
-                </span>
-                {rateLoading
-                  ? <span className="ui-badge zakat-rate-badge">{s('rateLoading',l)}</span>
-                  : <span className="ui-badge ui-badge--brand zakat-rate-badge">{s('rateLabel',l)} <strong className="ui-num">{fmt(rate)} {cur.symbol}</strong></span>
-                }
-              </div>
-              <div className="zakat-currency-grid" role="group" aria-labelledby="zakat-cur-label">
-                {CURRENCIES.map(c => (
-                  <button key={c.code} type="button"
-                    className="ui-chip zakat-cur-btn"
-                    aria-pressed={currency === c.code}
-                    onClick={() => setCurrency(c.code)}
-                  >
-                    <span>{c.code}</span>
-                    <small aria-hidden="true">{c.symbol}</small>
-                  </button>
-                ))}
-              </div>
-            </div>
+                <div className="zakat-basis">
+                  <span className="zakat-block-label" id="zakat-basis-label">{s('nisabBasis',l)}</span>
+                  <div className="ui-segmented zakat-basis__seg" role="radiogroup" aria-labelledby="zakat-basis-label">
+                    {['silver', 'gold'].map(b => (
+                      <button key={b} type="button" role="radio" aria-checked={nisabBasis === b}
+                        onClick={() => setNisabBasis(b)}>
+                        {s(b === 'silver' ? 'basisSilver' : 'basisGold', l)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Sahələr */}
-            <h2 className="zakat-block-label zakat-assets-title">{s('assetsTitle',l)}</h2>
-            {/* Hövl qaydası: yalnız bir il saxlanılan mal (maaş/icarə ×12 deyil) */}
-            <div className="zakat-hawl-note" role="note">
-              <strong>{s('hawlTitle',l)}</strong>
-              <p>{s('hawlNote',l)}</p>
-              <p className="zakat-src">{s('sourceLabel',l)}: <a href="https://islamqa.info/en/answers/26113" target="_blank" rel="noopener noreferrer">{s('hawlSrc',l)}</a></p>
-            </div>
-            <div className="zakat-fields" data-reveal="stagger">
+                <div className="zakat-fields">
+                  <ZakatField icon="zakat" tone="accent" label={s('goldPrice',l)} prefix={cur.symbol} placeholder={fmt(GOLD_USD_PER_G * rate)}
+                    value={goldPriceIn} onChange={setGoldPriceIn} hint={s('priceHint',l)} />
+                  <ZakatField icon="zakat" tone="neutral" label={s('silverPrice',l)} prefix={cur.symbol} placeholder={fmt(SILVER_USD_PER_G * rate)}
+                    value={silverPriceIn} onChange={setSilverPriceIn} hint={s('priceHint',l)} />
+                </div>
+              </CalcStep>
 
-              {/* Yığım */}
-              <ZakatField icon="shield" label={s('savingsLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
-                value={savings} onChange={setSavings} />
+              {/* 2 — Bir il saxlanılan mal (hövl qaydası) */}
+              <CalcStep n={2} id="zakat-step-2" title={s('step2', l)} text={s('hawlNote', l)}>
+                <p className="zakat-src">{s('sourceLabel',l)}: <a href="https://islamqa.info/en/answers/26113" target="_blank" rel="noopener noreferrer">{s('hawlSrc',l)}</a></p>
+                <div className="zakat-fields">
+                  <ZakatField icon="shield" label={s('savingsLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
+                    value={savings} onChange={setSavings} />
+                  <ZakatField icon="list" label={s('otherLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
+                    value={other} onChange={setOther} />
+                  <ZakatField icon="analytics" label={s('stocksLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
+                    value={stocks} onChange={setStocks} hint={s('stocksHint',l)} />
+                  <ZakatField icon="zakat" tone="accent" label={s('goldLabel',l)} prefix={gU} placeholder="0"
+                    value={gold} onChange={setGold}
+                    hint={n(gold) > 0 && <b className="zakat-ltr ui-num">≈ {money(goldVal)}</b>} />
+                  <ZakatField icon="zakat" tone="neutral" label={s('silverLabel',l)} prefix={gU} placeholder="0"
+                    value={silver} onChange={setSilver}
+                    hint={n(silver) > 0 && <b className="zakat-ltr ui-num">≈ {money(silverVal)}</b>} />
+                </div>
+              </CalcStep>
 
-              {/* Digər */}
-              <ZakatField icon="list" label={s('otherLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
-                value={other} onChange={setOther} />
-
-              {/* Səhmlər */}
-              <ZakatField icon="analytics" label={s('stocksLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
-                value={stocks} onChange={setStocks} hint={s('stocksHint',l)} />
-
-              {/* Qızıl */}
-              <ZakatField icon="zakat" tone="accent" label={s('goldLabel',l)} prefix="g" placeholder="0"
-                value={gold} onChange={setGold}
-                hint={n(gold) > 0 && <b className="zakat-ltr ui-num">≈ {cur.symbol}{fmt(goldVal)}</b>} />
-
-              {/* Gümüş */}
-              <ZakatField icon="zakat" tone="neutral" label={s('silverLabel',l)} prefix="g" placeholder="0"
-                value={silver} onChange={setSilver}
-                hint={n(silver) > 0 && <b className="zakat-ltr ui-num">≈ {cur.symbol}{fmt(silverVal)}</b>} />
-
-              {/* Qızıl və gümüşün 1 qram qiyməti — istifadəçi bugünkü qiyməti yaza bilər */}
-              <ZakatField icon="zakat" tone="accent" label={s('goldPrice',l)} prefix={cur.symbol} placeholder={fmt(GOLD_USD_PER_G * rate)}
-                value={goldPriceIn} onChange={setGoldPriceIn} hint={s('priceHint',l)} />
-              <ZakatField icon="zakat" tone="neutral" label={s('silverPrice',l)} prefix={cur.symbol} placeholder={fmt(SILVER_USD_PER_G * rate)}
-                value={silverPriceIn} onChange={setSilverPriceIn} hint={s('priceHint',l)} />
-
-              {/* Borclar */}
-              <ZakatField icon="minus" tone="neutral" label={s('debtLabel',l)} prefix={`−${cur.symbol}`} placeholder={moneyPh}
-                value={debt} onChange={setDebt} className="zakat-field-debt" />
-            </div>
+              {/* 3 — Borclar */}
+              <CalcStep n={3} id="zakat-step-3" title={s('step3', l)} text={s('step3Text', l)}>
+                <div className="zakat-fields">
+                  <ZakatField icon="minus" tone="neutral" label={s('debtLabel',l)} prefix={`−${cur.symbol}`} placeholder={moneyPh}
+                    value={debt} onChange={setDebt} className="zakat-field-debt" />
+                </div>
+              </CalcStep>
+            </ol>
 
             <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm zakat-reset-btn" onClick={reset}>
               <Icon name="refresh" className="ui-btn__icon" /> {s('reset',l)}
@@ -420,95 +555,63 @@ export default function ZakatPage({ setPage }) {
           </div>
 
           {/* ══ Nəticə ══ */}
-          <div className="zakat-result">
+          <aside className="zakat-result" aria-label={s('resultTitle', l)}>
 
-            {/* Zəkat nəticəsi — həmişə görünür; nisab keçiləndə kart tünd
-                zümrüdə keçir və bir dəfə yumşaq "açılır" (key) */}
+            {/* Ödənilməli zəkat — nisab keçiləndə kart tünd zümrüdə keçir */}
             <div ref={dueRef} key={aboveNisab ? 'on' : 'off'}
-              className={`ui-card zakat-due-card ${aboveNisab ? 'ui-card--inverse active' : 'ui-card--sunken inactive'}`}
-              {...reveal}>
-              <div className="zakat-due-label">{s('zakatDue',l)}</div>
-
-              {aboveNisab ? (
-                <>
-                  <div className="zakat-due-row">
-                    <div className="zakat-due-block">
-                      <Money value={zakatYear} symbol={cur.symbol} fmt={fmt} className="zakat-due-amount" />
-                      <div className="zakat-due-period">{s('perYear',l)}</div>
-                    </div>
-                  </div>
-                  <span className="zakat-due-pct ui-num">2.5%</span>
-                </>
-              ) : (
-                <>
-                  <div className="zakat-due-amount zakat-money ui-num">{cur.symbol}{fmt(0)}</div>
-                  <p className="zakat-due-note">{s('nisabNote',l)}</p>
-                </>
-              )}
-            </div>
-
-            {/* Nisab irəliləyişi */}
-            <div className={`ui-card nisab-card ${aboveNisab ? 'above' : ''}`} {...reveal}>
-              <div className="nisab-header">
-                <span className="zakat-block-label">{s('nisabLabel',l)}</span>
-                <span className={`ui-badge nisab-badge ${aboveNisab ? 'yes' : 'no'}`}>
+              className={`ui-card zakat-due-card ${aboveNisab ? 'ui-card--inverse active' : 'inactive'}`}>
+              <div className="zakat-due-top">
+                <span className="zakat-due-label">{s('zakatDue',l)}</span>
+                <span className={`zakat-due-status ${aboveNisab ? 'yes' : 'no'}`}>
                   <Icon name={aboveNisab ? 'check' : 'info'} size={14} />
                   {aboveNisab ? s('aboveNisab',l) : s('belowNisab',l)}
                 </span>
               </div>
-              {/* Nisab əsası seçimi — gümüş (standart) və ya qızıl */}
-              <div className="nisab-basis" role="group" aria-label={s('nisabBasis',l)}>
-                <span className="nisab-basis-label">{s('nisabBasis',l)}</span>
-                <div className="nisab-basis-opts">
-                  {['silver', 'gold'].map(b => (
-                    <button key={b} type="button" className="ui-chip nisab-basis-btn" aria-pressed={nisabBasis === b}
-                      onClick={() => setNisabBasis(b)}>
-                      {s(b === 'silver' ? 'basisSilver' : 'basisGold', l)}
-                    </button>
-                  ))}
+              {aboveNisab
+                ? <Money value={zakatYear} symbol={cur.symbol} fmt={fmt} className="zakat-due-amount" />
+                : <div className="zakat-due-amount zakat-money ui-num">{money(0)}</div>}
+              <div className="zakat-due-period">
+                {aboveNisab ? <><span className="ui-num">2.5%</span> {s('perYear',l)}</> : s('nisabNote',l)}
+              </div>
+
+              {/* Nisab ölçəni — cəmin nisaba nisbəti */}
+              <div className="zakat-meter">
+                <div className="zakat-meter__row">
+                  <span>{s('nisabLabel',l)}</span>
+                  <b className="zakat-ltr ui-num">{money(nisabLoc)}</b>
+                </div>
+                <ProgressBar value={Math.round(pct)} max={100} label={s('nisabLabel',l)} tone={aboveNisab ? 2 : 1} className="zakat-meter__bar" />
+                <div className="zakat-meter__row zakat-meter__row--sub">
+                  <span>{s('ofNisab', l).replace('{p}', String(Math.round(pct)))}</span>
+                  <span className="zakat-ltr ui-num">{money(total)} / {money(nisabLoc)}</span>
                 </div>
               </div>
-              <div className="nisab-value zakat-money ui-num">{cur.symbol}{fmt(nisabLoc)}</div>
-              {/* Doluluq transform ilə (layout yox) — ZakatPage.css → .nisab-bar */}
-              <div className="nisab-bar-wrap" role="progressbar" aria-label={s('nisabLabel',l)}
-                aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)}>
-                <div className="nisab-bar" style={{ transform: `scaleX(${pct / 100})` }} />
-              </div>
-              <div className="nisab-bar-labels ui-num">
-                <span className="zakat-ltr">{cur.symbol}0</span>
-                <span className="zakat-ltr">{cur.symbol}{fmt(nisabLoc)}</span>
-              </div>
-              <p className="nisab-note">{t.note}</p>
-              <p className="nisab-note">{s('nisabExplain',l)}</p>
-              <p className="nisab-note zakat-src">{s('sourceLabel',l)}: <a href="https://islamqa.info/en/answers/2795" target="_blank" rel="noopener noreferrer">{s('nisabSrc',l)}</a></p>
-              <p className="nisab-note nisab-price-note">
-                {s('priceNote',l)
-                  .replace('{g}', `${cur.symbol}${fmt(goldPrice)}`)
-                  .replace('{s}', `${cur.symbol}${fmt(silverPrice)}`)}
-              </p>
             </div>
 
-            {/* Cəm cədvəli */}
-            <div className="ui-card zakat-breakdown" {...reveal}>
+            {/* Cəm: tərkib qrafiki + sətirlər */}
+            <div className="ui-card zakat-breakdown">
               <h2 className="zakat-block-label zakat-breakdown-title">
                 <Icon name="analytics" size={16} /> {s('resultTitle',l)}
               </h2>
+              {comp.length > 0 && (
+                <div className="zakat-comp">
+                  <span className="zakat-comp__title">{s('compTitle', l)}</span>
+                  <StackedBar segments={comp} format={money} className="zakat-comp__bar" />
+                </div>
+              )}
               <ul className="breakdown-list">
                 {rows.filter(r => r.show).map(r => (
                   <li key={r.k} className="breakdown-row">
                     <span className="breakdown-icon" aria-hidden="true"><Icon name={r.icon} size={16} /></span>
-                    <span className="breakdown-label-wrap">
-                      <span className="breakdown-label">{r.label}</span>
-                      {r.sub && <span className="breakdown-sub zakat-ltr ui-num">{r.sub}</span>}
-                    </span>
-                    <span className="breakdown-val ui-num">{cur.symbol}{fmt(r.val)}</span>
+                    <span className="breakdown-label">{r.label}</span>
+                    <span className="breakdown-val ui-num">{money(r.val)}</span>
                   </li>
                 ))}
                 {n(debt) > 0 && (
                   <li className="breakdown-row breakdown-debt">
                     <span className="breakdown-icon" aria-hidden="true"><Icon name="minus" size={16} /></span>
                     <span className="breakdown-label">{s('debtLabel',l)}</span>
-                    <span className="breakdown-val ui-num">−{cur.symbol}{fmt(debtVal)}</span>
+                    <span className="breakdown-val ui-num">−{money(debtVal)}</span>
                   </li>
                 )}
               </ul>
@@ -516,48 +619,155 @@ export default function ZakatPage({ setPage }) {
                 <span>{s('totalLabel',l)}</span>
                 <Money value={total} symbol={cur.symbol} fmt={fmt} className="total-amount" />
               </div>
+              <p className="zakat-note">{t.note}</p>
+              <p className="zakat-note">
+                {s('priceNote',l)
+                  .replace('{g}', money(goldPrice))
+                  .replace('{s}', money(silverPrice))}
+              </p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      {/* ══ Qayda: 4 addım + nisab müqayisəsi ══ */}
+      <section className="ui-section ui-section--alt zakat-rule">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{s('ruleEy', l)}</span>
+            <h2 className="ui-title">{s('ruleTitle', l)}</h2>
+            <p className="ui-lead">{s('ruleLead', l)}</p>
+          </div>
+          <ol className="ui-steps ui-steps--row zakat-rule__steps">
+            {[1, 2, 3, 4].map(i => (
+              <li key={i} className="ui-step">
+                <span className="ui-step__n" aria-hidden="true">{i}</span>
+                <div className="ui-step__body">
+                  <h3 className="ui-step__title">{s(`r${i}`, l)}</h3>
+                  <p className="ui-step__text">{s(`r${i}t`, l)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <div className="zakat-rule__grid">
+            <ChartFigure title={s('nisabChart', l)} sub={s('nisabChartSub', l)}>
+              <BarChart
+                label={s('nisabChart', l)}
+                labelWidth="32%"
+                format={money}
+                data={[
+                  { key: 'gold', label: `${s('compGold', l)} · ${NISAB_GOLD_G} ${gU}`, value: nisabGoldVal, tone: 2, muted: nisabBasis !== 'gold' },
+                  { key: 'silver', label: `${s('compSilver', l)} · ${NISAB_SILVER_G} ${gU}`, value: nisabSilverVal, tone: 4, muted: nisabBasis !== 'silver' },
+                ]}
+              />
+            </ChartFigure>
+            <div className="zakat-rule__text">
+              <p>{s('nisabExplain',l)}</p>
+              <p className="zakat-src">{s('sourceLabel',l)}: <a href="https://islamqa.info/en/answers/2795" target="_blank" rel="noopener noreferrer">{s('nisabSrc',l)}</a></p>
+              <figure className="ui-quote zakat-hadith">
+                <blockquote><p className="ui-quote__text">{s('muadh', l)}</p></blockquote>
+                <figcaption className="ui-quote__src">— {s('muadhSrc', l)}</figcaption>
+              </figure>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Fitrə kalkulyatoru */}
-          <div className="ui-card fitr-card" {...reveal}>
-            <div className="fitr-head">
-              <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="moonStar" /></span>
-              <div>
-                <h2 className="fitr-title">{s('fitrTitle',l)}</h2>
-                <p className="fitr-desc">{s('fitrDesc',l)}</p>
-              </div>
-            </div>
+      {/* ══ Zəkatın 8 alıcısı (Tövbə 9:60) ══ */}
+      <section id="zakat-recipients" className="ui-section zakat-rec ui-cv" style={{ '--cv-h': '900px' }}>
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{s('recEy', l)}</span>
+            <h2 className="ui-title">{s('recTitle', l)}</h2>
+            <p className="ui-lead">{s('recLead', l)}</p>
+          </div>
+          <ol className="zakat-rec__grid" data-reveal="stagger">
+            {RECIPIENTS.map((r, i) => (
+              <li key={r.k} className="zakat-rec__item">
+                <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={r.icon} /></span>
+                <span className="zakat-rec__body">
+                  <span className="zakat-rec__title"><span className="zakat-rec__n ui-num">{i + 1}</span> {pickL(r.t, l)}</span>
+                  {l !== 'ar' && <span className="zakat-rec__ar" lang="ar" dir="rtl">{r.ar}</span>}
+                  <span className="zakat-rec__text">{pickL(r.d, l)}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+          <figure className="ui-quote zakat-ayah">
+            <blockquote>
+              <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{ayahRec?.ar || AYAH_9_60}</p>
+              {ayahRec?.text && <p className="ui-quote__text">«{ayahRec.text}»</p>}
+            </blockquote>
+            <figcaption className="ui-quote__src">— {localizeSource('Tövbə 9:60', lang)}</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      {/* ══ Fitrə zəkatı ══ */}
+      <section id="zakat-fitr" className="ui-section ui-section--alt zakat-fitr ui-cv" style={{ '--cv-h': '520px' }}>
+        <div className="ui-container zakat-fitr__wrap">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{s('fitrEy', l)}</span>
+            <h2 className="ui-title">{s('fitrTitle',l)}</h2>
+            <p className="ui-lead">{s('fitrDesc',l)}</p>
+          </div>
+          <div className="ui-card fitr-card">
             <div className="fitr-row">
               <label className="fitr-label" htmlFor="zakat-fitr-people">{s('fitrPeople',l)}</label>
               <input id="zakat-fitr-people" type="number" inputMode="numeric" className="ui-input fitr-input" min="1" value={fitrPeople}
                 onChange={e => setFitrPeople(e.target.value)} />
             </div>
-            <div className="fitr-row">
-              <span className="fitr-label">{s('fitrAmount',l)}</span>
-              <span className="fitr-val ui-num">≈ {fmtKg(SAA_KG)}</span>
-            </div>
-            <div className="fitr-total-row">
-              <span className="fitr-label">{s('fitrTotal',l)}</span>
-              <span className="fitr-total-val zakat-money ui-num">≈ {fmtKg(fitrTotalKg)}</span>
+            <div className="fitr-stats">
+              <div className="fitr-stat">
+                <span className="fitr-label">{s('fitrAmount',l)}</span>
+                <span className="fitr-val ui-num">≈ {fmtKg(SAA_KG)}</span>
+              </div>
+              <div className="fitr-stat fitr-stat--total">
+                <span className="fitr-label">{s('fitrTotal',l)}</span>
+                <span className="fitr-total-val zakat-money ui-num">≈ {fmtKg(fitrTotalKg)}</span>
+              </div>
             </div>
             <p className="fitr-note">{s('fitrNote',l)}</p>
             <p className="fitr-note zakat-src">{s('sourceLabel',l)}: {localizeSource('Buxari 1503, 1506', lang)} · <a href="https://islamqa.info/en/answers/1396" target="_blank" rel="noopener noreferrer">islamqa.info 1396</a></p>
           </div>
         </div>
+      </section>
 
-        {/* Ayə (Bəqərə 2:43) — alquran.cloud-dan; alınmasa kart göstərilmir */}
-        {ayah && (
-          <div className="ui-container">
-            <figure className="zakat-info-box" data-reveal="scale">
-              <div className="ui-pattern" aria-hidden="true" />
-              <div className="ui-ornament" aria-hidden="true"><span className="ui-ornament__star" /></div>
-              <p className="zakat-quran-ar ui-arabic" lang="ar" dir="rtl">{ayah.ar}</p>
-              {ayah.text && <blockquote className="zakat-quran">«{ayah.text}»</blockquote>}
-              <figcaption className="zakat-quran-ref">— {localizeSource('Bəqərə 2:43', lang)}</figcaption>
+      {/* ══ Ayə + əlaqəli bölmələr ══ */}
+      <section className="ui-section ui-section--tight zakat-end ui-cv" style={{ '--cv-h': '520px' }}>
+        <div className="ui-container zakat-end__grid">
+          {ayah ? (
+            <figure className="ui-quote zakat-ayah">
+              <blockquote>
+                <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{ayah.ar}</p>
+                {ayah.text && <p className="ui-quote__text">«{ayah.text}»</p>}
+              </blockquote>
+              <figcaption className="ui-quote__src">— {localizeSource('Bəqərə 2:43', lang)}</figcaption>
             </figure>
-          </div>
-        )}
+          ) : <div />}
+          <nav aria-labelledby="zakat-rel-h">
+            <h2 id="zakat-rel-h" className="ui-title ui-title--sm zakat-rel__title">{s('relTitle', l)}</h2>
+            <ul className="ui-list">
+              <li>
+                <a className="ui-list__item" href={pathFor('learn', lang, 'fiqh-faq') + '#zakat'} onClick={openLearn}>
+                  <Icon name="learn" />
+                  <span>{s('relFaq', l)}<small>{s('relFaqSub', l)}</small></span>
+                  <Icon name="chevron" className="ui-list__chev ui-flip-rtl" />
+                </a>
+              </li>
+              {related.map(r => (
+                <li key={r.to}>
+                  <PageLink className="ui-list__item" to={r.to} setPage={setPage} onNavigate={() => window.scrollTo(0, 0)}>
+                    <Icon name={r.icon} />
+                    <span>{r.title}<small>{r.sub}</small></span>
+                    <Icon name="chevron" className="ui-list__chev ui-flip-rtl" />
+                  </PageLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
       </section>
     </div>
   )

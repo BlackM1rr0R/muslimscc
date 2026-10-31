@@ -4,7 +4,48 @@ import { haptic } from '../hooks/useHaptic'
 import '../styles/QuranGamePage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
-import { navGroupLabel } from '../data/navigation'
+import { navGroupLabel, navLabel } from '../data/navigation'
+import PageLink from '../components/PageLink'
+import { ProgressRing } from '../components/viz'
+
+// v3 — hero, addımlar, icmal üçün əlavə mətnlər
+const GX = {
+  az: { how:'İki oyun var: ayənin başlanğıcına görə davamını tapın və ya ayənin hansı surədən olduğunu tapın. Hər sual üçün 30 saniyə vaxt var; klaviaturada 1–4 variant seçir, ↵ — növbəti sual.', modes:'rejim', verses:'ayə', perQ:'saniyə hər sual',
+    descComplete:'Ayənin başlanğıcı verilir — davamını seçin.', descSurah:'Ayə verilir — hansı surədən olduğunu seçin.',
+    chooseLead:'Hər rejimdə ən yaxşı nəticəniz halqada görünür.', notPlayed:'Hələ oynanmayıb',
+    stepsTitle:'Necə oynanılır', steps:[['Rejimi seçin','«Ayəni tamamla» və ya «Surəni tap».'],['30 saniyədə cavab verin','Vaxt bitsə sual səhv sayılır; cavabdan sonra tam ayə göstərilir.'],['İcmala baxın','Sonda bütün ayələr və düzgün cavablar bir siyahıda.']],
+    relEyebrow:'Davamı', relTitle:'Ayələri öyrənməyə davam edin', relLead:'Oyundakı ayələri oxuyun, dinləyin və əzbərləyin.',
+    rel:{ quran:'Surəni oxu və dinlə', hifz:'Əzbər planı və irəliləyiş', arabic:'Ərəb əlifbası və oxu' },
+    review:'Raundun icmalı', yours:'Sizin cavabınız', right:'Düzgün cavab', timeout:'Vaxt bitdi' },
+  en: { how:'There are two games: find how a verse continues from its beginning, or find which surah a verse is from. You have 30 seconds per question; on a keyboard 1–4 picks an option and Enter goes to the next question.', modes:'modes', verses:'verses', perQ:'seconds per question',
+    descComplete:'You see the start of a verse — choose how it continues.', descSurah:'You see a verse — choose which surah it is from.',
+    chooseLead:'Your best result in each mode is shown in the ring.', notPlayed:'Not played yet',
+    stepsTitle:'How to play', steps:[['Choose a mode','“Complete the verse” or “Find the surah”.'],['Answer within 30 seconds','If time runs out the question counts as wrong; the full verse is shown after you answer.'],['Review the round','At the end, every verse and its correct answer in one list.']],
+    relEyebrow:'Keep going', relTitle:'Keep learning the verses', relLead:'Read, listen to and memorise the verses from the game.',
+    rel:{ quran:'Read and listen to the surah', hifz:'Memorisation plan and progress', arabic:'The Arabic alphabet and reading' },
+    review:'Round review', yours:'Your answer', right:'Correct answer', timeout:'Time ran out' },
+  ru: { how:'Две игры: по началу аята найдите его продолжение или определите, из какой суры аят. На каждый вопрос 30 секунд; на клавиатуре 1–4 выбирают вариант, ↵ — следующий вопрос.', modes:'режима', verses:'аятов', perQ:'секунд на вопрос',
+    descComplete:'Дано начало аята — выберите продолжение.', descSurah:'Дан аят — выберите, из какой он суры.',
+    chooseLead:'Лучший результат в каждом режиме показан в кольце.', notPlayed:'Ещё не играли',
+    stepsTitle:'Как играть', steps:[['Выберите режим','«Завершите аят» или «Найдите суру».'],['Ответьте за 30 секунд','Если время вышло, ответ считается неверным; после ответа показывается полный аят.'],['Посмотрите итог','В конце — все аяты и правильные ответы одним списком.']],
+    relEyebrow:'Дальше', relTitle:'Продолжайте изучать аяты', relLead:'Читайте, слушайте и заучивайте аяты из игры.',
+    rel:{ quran:'Читать и слушать суру', hifz:'План заучивания и прогресс', arabic:'Арабский алфавит и чтение' },
+    review:'Итоги раунда', yours:'Ваш ответ', right:'Правильный ответ', timeout:'Время вышло' },
+  ar: { how:'لعبتان: أكمل الآية من بدايتها، أو اعرف من أي سورة هي. لكل سؤال ٣٠ ثانية؛ وفي لوحة المفاتيح ١–٤ لاختيار الإجابة و↵ للسؤال التالي.', modes:'وضعان', verses:'آية', perQ:'ثانية لكل سؤال',
+    descComplete:'تُعرض بداية الآية — اختر تكملتها.', descSurah:'تُعرض آية — اختر السورة التي هي منها.',
+    chooseLead:'تظهر أفضل نتيجة لكل وضع في الحلقة.', notPlayed:'لم تلعب بعد',
+    stepsTitle:'طريقة اللعب', steps:[['اختر الوضع','«أكمل الآية» أو «اعثر على السورة».'],['أجب خلال ٣٠ ثانية','إذا انتهى الوقت حُسب السؤال خطأ، وتظهر الآية كاملة بعد الإجابة.'],['راجع الجولة','في النهاية تجد كل الآيات وإجاباتها الصحيحة في قائمة واحدة.']],
+    relEyebrow:'تابع', relTitle:'واصل تعلّم الآيات', relLead:'اقرأ آيات اللعبة واستمع إليها واحفظها.',
+    rel:{ quran:'اقرأ السورة واستمع إليها', hifz:'خطة الحفظ والتقدم', arabic:'الحروف العربية والقراءة' },
+    review:'مراجعة الجولة', yours:'إجابتك', right:'الإجابة الصحيحة', timeout:'انتهى الوقت' },
+  tr: { how:'İki oyun var: ayetin başından devamını bulun ya da ayetin hangi sureden olduğunu bulun. Her soru için 30 saniye vardır; klavyede 1–4 seçenek seçer, ↵ sonraki soruya geçer.', modes:'mod', verses:'ayet', perQ:'saniye her soru',
+    descComplete:'Ayetin başı verilir — devamını seçin.', descSurah:'Bir ayet verilir — hangi sureden olduğunu seçin.',
+    chooseLead:'Her moddaki en iyi sonucunuz halkada görünür.', notPlayed:'Henüz oynanmadı',
+    stepsTitle:'Nasıl oynanır', steps:[['Modu seçin','“Ayeti tamamla” veya “Sureyi bul”.'],['30 saniyede cevaplayın','Süre biterse soru yanlış sayılır; cevaptan sonra ayetin tamamı gösterilir.'],['Özete bakın','Sonda tüm ayetler ve doğru cevaplar tek listede.']],
+    relEyebrow:'Devam', relTitle:'Ayetleri öğrenmeye devam edin', relLead:'Oyundaki ayetleri okuyun, dinleyin ve ezberleyin.',
+    rel:{ quran:'Sureyi oku ve dinle', hifz:'Ezber planı ve ilerleme', arabic:'Arap alfabesi ve okuma' },
+    review:'Tur özeti', yours:'Sizin cevabınız', right:'Doğru cevap', timeout:'Süre doldu' },
+}
 
 // ── i18n Labels ──
 const LABELS = {
@@ -947,6 +988,8 @@ export default function QuranGamePage({ setPage }) {
   // Yeni rekord — raund bitəndə köhnə rekordla müqayisə edilir (əvvəl
   // nəticə köhnə rekorda BƏRABƏR olanda da "Yeni rekord!" yazılırdı)
   const [newBest, setNewBest] = useState(false)
+  // Raundun icmalı: hər sual + seçilən variant (vaxt bitibsə null)
+  const [answers, setAnswers] = useState([])
   const timerRef = useRef(null)
 
   // Timer
@@ -974,6 +1017,7 @@ export default function QuranGamePage({ setPage }) {
     setCorrectCount(0)
     setAnswered(false)
     setTimeLeft(TIME_PER_Q)
+    setAnswers([])
     setPhase('playing')
     reveal('.qgame-layout', 'start')
   }, [])
@@ -996,6 +1040,7 @@ export default function QuranGamePage({ setPage }) {
   }, [answered, questions, qIdx])
 
   const nextQuestion = useCallback(() => {
+    setAnswers(a => [...a, { q: questions[qIdx], picked: selected }])
     if (qIdx + 1 >= questions.length) {
       // Game over
       const finalScore = correctCount
@@ -1016,7 +1061,7 @@ export default function QuranGamePage({ setPage }) {
       setTimeLeft(TIME_PER_Q)
       reveal('.qgame-layout', 'start')
     }
-  }, [qIdx, questions, correctCount, mode, scores])
+  }, [qIdx, questions, correctCount, mode, scores, selected])
 
   // Klaviatura: 1–4 və ya A–D — variant, Enter — növbəti sual
   const keyRef = useRef({})
@@ -1048,10 +1093,12 @@ export default function QuranGamePage({ setPage }) {
   const isTimeout = answered && selected === null
 
   // Nəticəyə görə ikon (əvvəl 🏆 👍 💪 emojiləri idi)
+  const x = GX[lang] || GX.az
+  const optLabel = (opt) => (typeof opt === 'string' ? opt : (opt?.[lang] || opt?.en || ''))
   const resultIcon = correctCount >= 7 ? 'sahaba' : correctCount >= 4 ? 'star' : 'leaf'
   const modes = [
-    { key: 'complete', icon: 'duajournal', name: t.modeComplete, best: scores.complete },
-    { key: 'surah', icon: 'quran', name: t.modeSurah, best: scores.surah },
+    { key: 'complete', icon: 'duajournal', name: t.modeComplete, best: scores.complete, desc: 'descComplete', pool: COMPLETE_QUESTIONS.length },
+    { key: 'surah', icon: 'quran', name: t.modeSurah, best: scores.surah, desc: 'descSurah', pool: FIND_SURAH_QUESTIONS.length },
   ]
 
   return (
@@ -1059,13 +1106,21 @@ export default function QuranGamePage({ setPage }) {
       {/* Sakit kağız hero (dizayn v2): çörək qırıntısı, eyebrow, bir h1, lead */}
       <header className="ui-page-hero qgame-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        {/* Dekorativ xəttatlıq (ərəbcədə başlığın özüdür — təkrarlanmır) */}
-        {lang !== 'ar' && <span className="qgame-hero__art" lang="ar" aria-hidden="true">مسابقة القرآن</span>}
         <div className="ui-container">
           <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>
           <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
           <h1 className="ui-display">{t.title}</h1>
           <p className="ui-lead">{t.subtitle}</p>
+          {phase === 'menu' && (
+            <>
+              <p className="ui-page-hero__how"><Icon name="info" size={16} /> {x.how}</p>
+              <ul className="ui-page-hero__stats">
+                <li><b>2</b><span>{x.modes}</span></li>
+                <li><b>{COMPLETE_QUESTIONS.length + FIND_SURAH_QUESTIONS.length}</b><span>{x.verses}</span></li>
+                <li><b>{TIME_PER_Q}</b><span>{x.perQ}</span></li>
+              </ul>
+            </>
+          )}
         </div>
       </header>
 
@@ -1075,22 +1130,71 @@ export default function QuranGamePage({ setPage }) {
           {/* ── Rejim seçimi ── */}
           {phase === 'menu' && (
             <div className="qgame-menu">
-              <h2 className="ui-title ui-title--sm qgame-menu-title" data-reveal="">{t.selectMode}</h2>
-              <div className="qgame-modes" data-reveal="stagger-zoom">
+              <div className="ui-section-head" data-reveal="">
+                <h2 className="ui-title qgame-menu-title">{t.selectMode}</h2>
+                <p className="ui-lead">{x.chooseLead}</p>
+              </div>
+              <div className="qgame-modes" data-reveal="stagger">
                 {modes.map(m => (
                   <button type="button" key={m.key} className="ui-card ui-card--interactive qgame-mode-card" onClick={() => startGame(m.key)}>
-                    <span className="ui-icon-tile ui-icon-tile--lg qgame-mode-icon" aria-hidden="true"><Icon name={m.icon} /></span>
-                    <span className="qgame-mode-name">{m.name}</span>
-                    <span className="qgame-mode-meta ui-num">
-                      <span>{QUESTIONS_PER_ROUND} {(ROUND_META[lang] || ROUND_META.az).questions}</span>
-                      <span>{TIME_PER_Q} {(ROUND_META[lang] || ROUND_META.az).seconds}</span>
+                    <span className="ui-icon-tile qgame-mode-icon" aria-hidden="true"><Icon name={m.icon} /></span>
+                    <span className="qgame-mode-body">
+                      <span className="qgame-mode-name">{m.name}</span>
+                      <span className="qgame-mode-desc">{x[m.desc]}</span>
+                      <span className="qgame-mode-meta ui-num">
+                        <span>{QUESTIONS_PER_ROUND} {(ROUND_META[lang] || ROUND_META.az).questions}</span>
+                        <span>{TIME_PER_Q} {(ROUND_META[lang] || ROUND_META.az).seconds}</span>
+                      </span>
                     </span>
-                    <span className="ui-badge ui-badge--accent qgame-mode-best ui-num">{t.bestScore}: <bdi dir="ltr">{m.best || 0}/{QUESTIONS_PER_ROUND}</bdi></span>
+                    <span className="qgame-mode-best">
+                      <span aria-hidden="true" className="qgame-mode-ring">
+                        <ProgressRing value={m.best || 0} max={QUESTIONS_PER_ROUND} size={44} thickness={5} showPercent={false} tone={m.best ? 1 : 'muted'} />
+                      </span>
+                      <span className="qgame-mode-best__text ui-num">
+                        {m.best ? <><span className="ui-sr-only">{t.bestScore}: </span><bdi dir="ltr">{m.best}/{QUESTIONS_PER_ROUND}</bdi></> : x.notPlayed}
+                      </span>
+                    </span>
                     <span className="qgame-mode-start">
                       {t.start} <Icon name="arrow" size={16} className="qgame-arrow ui-flip-rtl" />
                     </span>
                   </button>
                 ))}
+              </div>
+
+              <div className="qgame-how">
+                <h2 className="ui-title ui-title--sm">{x.stepsTitle}</h2>
+                <ol className="ui-steps ui-steps--row">
+                  {x.steps.map(([title, text], i) => (
+                    <li key={i} className="ui-step">
+                      <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                      <div className="ui-step__body">
+                        <h3 className="ui-step__title">{title}</h3>
+                        <p className="ui-step__text">{text}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <div className="qgame-related">
+                <div className="ui-section-head">
+                  <span className="ui-eyebrow">{x.relEyebrow}</span>
+                  <h2 className="ui-title ui-title--sm">{x.relTitle}</h2>
+                  <p className="ui-lead">{x.relLead}</p>
+                </div>
+                <ul className="ui-tiles" style={{ '--ui-tiles-min': '220px' }}>
+                  {['quran', 'hifz', 'arabic'].map(k => (
+                    <li key={k}>
+                      <PageLink to={k} setPage={setPage} className="ui-tile ui-tile--row">
+                        <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={k} /></span>
+                        <span className="ui-tile__body">
+                          <span className="ui-tile__title">{navLabel(k, lang)}</span>
+                          <span className="ui-tile__text">{x.rel[k]}</span>
+                        </span>
+                      </PageLink>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           )}
@@ -1187,15 +1291,16 @@ export default function QuranGamePage({ setPage }) {
               <div className="ui-card qgame-results-card">
                 <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
                 {isNewBest && <span className="ui-badge ui-badge--accent qgame-new-best"><Icon name="star" size={14} />{t.newBest}</span>}
-                <span className="ui-icon-tile ui-icon-tile--lg qgame-results-icon" aria-hidden="true"><Icon name={resultIcon} /></span>
-                <h2 className="ui-title ui-title--sm">{t.result}</h2>
-                <div className="qgame-results-score ui-num" dir="ltr">
-                  <span className="qgame-results-num" data-count={correctCount}>{correctCount}</span>
-                  <span className="qgame-results-of">/ {questions.length}</span>
-                </div>
-                {/* Düzgün cavabların payı — zolaq sıfırdan dolur (transform) */}
-                <div className="qgame-results-bar" aria-hidden="true">
-                  <span style={{ transform: `scaleX(${questions.length ? correctCount / questions.length : 0})` }} />
+                <h2 className="ui-title ui-title--sm qgame-results-title">
+                  <Icon name={resultIcon} size={20} className="qgame-results-icon" /> {t.result}
+                </h2>
+                {/* Halqa + ortasında nəticə (mətn kimi də) */}
+                <div className="qgame-results-ring">
+                  <ProgressRing value={correctCount} max={questions.length || 1} size={128} thickness={11} showPercent={false} />
+                  <div className="qgame-results-score ui-num" dir="ltr">
+                    <span className="qgame-results-num" data-count={correctCount}>{correctCount}</span>
+                    <span className="qgame-results-of">/ {questions.length}</span>
+                  </div>
                 </div>
                 <div className="qgame-results-detail ui-num">
                   <span className="qgame-detail correct"><Icon name="check" size={16} strokeWidth={2.2} />{t.correct}: {correctCount}</span>
@@ -1208,6 +1313,33 @@ export default function QuranGamePage({ setPage }) {
                   <button type="button" className="ui-btn ui-btn--secondary" onClick={backToMenu}>{t.back}</button>
                 </div>
               </div>
+
+              {answers.length > 0 && (
+                <section className="qgame-review" aria-labelledby="qgame-review-h">
+                  <h2 id="qgame-review-h" className="ui-title ui-title--sm">{x.review}</h2>
+                  <ol className="qgame-review-list">
+                    {answers.map((a, i) => {
+                      const ok = a.picked === a.q.correct
+                      const isComplete = !!a.q.start
+                      return (
+                        <li key={i} className={`qgame-review-item ${ok ? 'is-ok' : 'is-bad'}`}>
+                          <span className="qgame-review-mark" aria-hidden="true"><Icon name={ok ? 'check' : a.picked == null ? 'clock' : 'close'} size={14} strokeWidth={2.6} /></span>
+                          <div className="qgame-review-body">
+                            <p className="qgame-review-verse ui-arabic" lang="ar" dir="rtl">{isComplete ? (a.q.fullVerse || a.q.start) : a.q.verse}</p>
+                            {isComplete && a.q.surah && <p className="qgame-review-meta">{t.fromSurah} {optLabel(a.q.surah)}</p>}
+                            {!ok && (
+                              <p className="qgame-review-meta is-bad">
+                                {a.picked == null ? x.timeout : <>{x.yours}: <span lang={isComplete ? 'ar' : undefined}>{optLabel(a.q.options[a.picked])}</span></>}
+                              </p>
+                            )}
+                            {!isComplete && <p className="qgame-review-meta">{x.right}: {optLabel(a.q.options[a.q.correct])}</p>}
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ol>
+                </section>
+              )}
             </div>
           )}
 

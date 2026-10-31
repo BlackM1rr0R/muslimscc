@@ -1,11 +1,18 @@
+import { useNavigate } from 'react-router-dom'
 import Icon from '../Icon'
+import { isPlainClick } from '../PageLink'
 import { pathFor } from '../../seo/routes'
+import { ChartFigure, BarChart, ColumnChart, Donut, StackedBar, Timeline, StatTile } from '../viz'
 
 /* ══════════════════════════════════════════════════════════════════
    Dərs blokları — src/data/lessons/README.md-dəki formatın göstərilməsi.
    Mətnlərin hamısı məlumatdandır; burada heç bir fakt əlavə olunmur.
-   Hər blok tək komponentdir — başqa səhifələr də (Hisnul-Müslim, 40 hədis)
-   eyni görünüşü işlədə bilər.
+   Hər blok tək komponentdir — başqa səhifələr də (Ramazan, Qiblə, Təqvim,
+   Məscidlər, İanə, Sədəqə, Uşaqlar, Dua gündəliyi …) eyni bloku işlədir.
+   Sinif adları (.ls-p, .ls-ayah, .ls-steps …) sabitdir — başqa səhifələrin
+   CSS-i onlara istinad edir. Stillər: src/styles/LessonsPage.css.
+
+   v3 yeni bloklar (vizual): stats · chart · timeline · links
    ══════════════════════════════════════════════════════════════════ */
 
 export const pick = (obj, lang) => (obj && (typeof obj === 'string' ? obj : (obj[lang] || obj.en || obj.az))) || ''
@@ -17,11 +24,85 @@ function ayahHref(ref, lang) {
 }
 
 const LBL = {
-  az: { quran: 'Quran', grade: 'Dərəcəsi', source: 'Mənbə', translit: 'Oxunuşu', fatwa: 'Fətva' },
-  en: { quran: 'Quran', grade: 'Grade', source: 'Source', translit: 'Transliteration', fatwa: 'Fatwa' },
-  ru: { quran: 'Коран', grade: 'Степень', source: 'Источник', translit: 'Транслитерация', fatwa: 'Фетва' },
-  ar: { quran: 'القرآن', grade: 'الدرجة', source: 'المصدر', translit: 'النطق', fatwa: 'الفتوى' },
-  tr: { quran: 'Kur’an', grade: 'Derecesi', source: 'Kaynak', translit: 'Okunuşu', fatwa: 'Fetva' },
+  az: { quran: 'Quran', hadith: 'Hədis', quote: 'Alimin sözü', dua: 'Dua', grade: 'Dərəcəsi', source: 'Mənbə', translit: 'Oxunuşu', fatwa: 'Fətva', note: 'Qeyd', warn: 'Diqqət', tip: 'Faydalı', table: 'Cədvəl' },
+  en: { quran: 'Quran', hadith: 'Hadith', quote: 'Scholar’s words', dua: 'Dua', grade: 'Grade', source: 'Source', translit: 'Transliteration', fatwa: 'Fatwa', note: 'Note', warn: 'Caution', tip: 'Tip', table: 'Table' },
+  ru: { quran: 'Коран', hadith: 'Хадис', quote: 'Слова учёного', dua: 'Дуа', grade: 'Степень', source: 'Источник', translit: 'Транслитерация', fatwa: 'Фетва', note: 'Примечание', warn: 'Внимание', tip: 'Полезно', table: 'Таблица' },
+  ar: { quran: 'القرآن', hadith: 'الحديث', quote: 'من كلام العلماء', dua: 'الدعاء', grade: 'الدرجة', source: 'المصدر', translit: 'النطق', fatwa: 'الفتوى', note: 'تنبيه', warn: 'تحذير', tip: 'فائدة', table: 'جدول' },
+  tr: { quran: 'Kur’an', hadith: 'Hadis', quote: 'Âlimin sözü', dua: 'Dua', grade: 'Derecesi', source: 'Kaynak', translit: 'Okunuşu', fatwa: 'Fetva', note: 'Not', warn: 'Dikkat', tip: 'Faydalı', table: 'Tablo' },
+}
+
+// Blokun yuxarısındakı kiçik mono etiket ("QURAN", "HƏDİS") — ekran oxuyucu
+// üçün təkrar olmasın deyə aria-hidden (mənbə figcaption-da oxunur)
+function Kicker({ icon, children }) {
+  return (
+    <span className="ls-kicker" aria-hidden="true">
+      <Icon name={icon} size={14} />
+      {children}
+    </span>
+  )
+}
+
+// Daxili keçid: { page: 'learn', param?: 'mustalah', hash?: 'grades' } — SPA ilə;
+// xarici: { href: 'https://…' } — yeni tabda
+function LinksBlock({ b, lang }) {
+  const navigate = useNavigate()
+  return (
+    <ul className="ui-list ls-links">
+      {(b.items || []).map((it, i) => {
+        const external = !!it.href
+        const href = external ? it.href : `${pathFor(it.page, lang, it.param)}${it.hash ? `#${it.hash}` : ''}`
+        const onClick = external ? undefined : (e) => {
+          if (!isPlainClick(e)) return
+          e.preventDefault()
+          navigate(href)
+        }
+        return (
+          <li key={i}>
+            <a className="ui-list__item ls-links__item" href={href} onClick={onClick}
+              {...(external ? { target: '_blank', rel: 'noopener noreferrer nofollow' } : {})}>
+              <Icon name={it.icon || (external ? 'external' : it.page === 'learn' ? 'learn' : 'link')} size={18} />
+              <span>
+                {pick(it.title, lang)}
+                {it.text && <small>{pick(it.text, lang)}</small>}
+              </span>
+              <Icon name={external ? 'external' : 'chevron'} size={16} className={`ui-list__chev${external ? '' : ' ui-flip-rtl'}`} />
+            </a>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function ChartBlock({ b, lang }) {
+  const unit = pick(b.unit, lang)
+  const fmt = (v, d) => (d && d.display ? pick(d.display, lang) : `${v}${unit ? ` ${unit}` : ''}`)
+  const data = (b.data || []).map((d, i) => ({
+    key: i, label: pick(d.label, lang), value: Number(d.value) || 0, display: d.display,
+    tone: d.tone, muted: d.muted, current: d.current, note: d.note ? pick(d.note, lang) : undefined,
+  }))
+  const title = pick(b.title, lang)
+  let chart
+  switch (b.kind) {
+    case 'column':
+      chart = <ColumnChart data={data} format={fmt} label={title} />
+      break
+    case 'donut':
+      chart = <Donut segments={data} format={fmt} label={title} size={b.size || 132}
+        center={b.center ? { value: pick(b.center.value, lang), label: pick(b.center.label, lang) } : undefined} />
+      break
+    case 'stacked':
+      chart = <StackedBar segments={data} format={fmt} label={title} />
+      break
+    default:
+      chart = <BarChart data={data} format={fmt} label={title} max={b.max} />
+  }
+  return (
+    <ChartFigure className={`ls-chart ls-chart--${b.kind || 'bar'}`} title={title}
+      sub={b.sub ? pick(b.sub, lang) : undefined} note={b.note ? pick(b.note, lang) : undefined}>
+      {chart}
+    </ChartFigure>
+  )
 }
 
 export function Block({ b, lang }) {
@@ -56,6 +137,7 @@ export function Block({ b, lang }) {
       const href = ayahHref(b.ref, lang)
       return (
         <figure className="ui-quote ls-ayah">
+          <Kicker icon="quran">{L.quran}</Kicker>
           <blockquote>
             {b.ar && <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{b.ar}</p>}
             {!(isAr && b.ar) && <p className="ui-quote__text">{pick(b.text, lang)}</p>}
@@ -69,6 +151,7 @@ export function Block({ b, lang }) {
     case 'hadith':
       return (
         <figure className="ui-quote ls-hadith">
+          <Kicker icon="hadith">{L.hadith}</Kicker>
           <blockquote>
             {b.ar && <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{b.ar}</p>}
             {!(isAr && b.ar) && <p className="ui-quote__text">{pick(b.text, lang)}</p>}
@@ -92,6 +175,7 @@ export function Block({ b, lang }) {
     case 'dua':
       return (
         <figure className="ui-card ls-dua">
+          <Kicker icon="duas">{L.dua}</Kicker>
           <p className="ls-dua__ar ui-arabic" lang="ar" dir="rtl">{b.ar}</p>
           {!isAr && b.translit && <p className="ls-dua__tr"><span className="ui-sr-only">{L.translit}: </span>{pick(b.translit, lang)}</p>}
           {!isAr && <p className="ls-dua__text">{pick(b.text, lang)}</p>}
@@ -110,10 +194,11 @@ export function Block({ b, lang }) {
     }
     case 'table':
       return (
-        <div className="ls-table-wrap" tabIndex={0}>
+        <div className="ls-table-wrap" tabIndex={0} role="region" aria-label={b.caption ? pick(b.caption, lang) : (b.head ? b.head.map(h => pick(h, lang)).join(' · ') : L.table)}>
           {/* 3+ sütunlu cədvəl telefonda kartlara çevrilir (LessonsPage.css → .ls-table--stack):
               hər xananın başlığı data-label-dən göstərilir */}
           <table className={`ls-table${b.head && b.head.length > 2 ? ' ls-table--stack' : ''}`}>
+            {b.caption && <caption className="ls-table__cap">{pick(b.caption, lang)}</caption>}
             {b.head && (
               <thead><tr>{b.head.map((h, i) => <th key={i} scope="col">{pick(h, lang)}</th>)}</tr></thead>
             )}
@@ -129,7 +214,8 @@ export function Block({ b, lang }) {
           {b.items.map((it, i) => (
             <details key={i} className="ls-qa__item">
               <summary className="ls-qa__q">
-                <span>{pick(it.q, lang)}</span>
+                <span className="ls-qa__mark" aria-hidden="true">?</span>
+                <span className="ls-qa__qtext">{pick(it.q, lang)}</span>
                 <Icon name="chevronDown" size={18} className="ls-qa__chev" />
               </summary>
               <div className="ls-qa__a">
@@ -147,6 +233,34 @@ export function Block({ b, lang }) {
           ))}
         </div>
       )
+
+    /* ── v3: vizual bloklar ── */
+    case 'stats':
+      return (
+        <div className="ls-stats">
+          {b.title && <p className="ls-stats__title">{pick(b.title, lang)}</p>}
+          <div className="ui-stats ls-stats__grid">
+            {(b.items || []).map((it, i) => (
+              <StatTile key={i} variant="sunken" tone={it.tone}
+                value={pick(it.value, lang)} unit={it.unit ? pick(it.unit, lang) : undefined}
+                label={pick(it.label, lang)} hint={it.hint ? pick(it.hint, lang) : undefined} />
+            ))}
+          </div>
+          {b.note && <p className="ls-stats__note">{pick(b.note, lang)}</p>}
+        </div>
+      )
+    case 'chart':
+      return <ChartBlock b={b} lang={lang} />
+    case 'timeline':
+      return (
+        <Timeline className="ls-timeline" headingLevel="h3"
+          items={(b.items || []).map((it, i) => ({
+            key: i, when: it.when == null ? null : pick(it.when, lang), title: pick(it.title, lang),
+            text: it.text ? pick(it.text, lang) : undefined, highlight: it.highlight,
+          }))} />
+      )
+    case 'links':
+      return <LinksBlock b={b} lang={lang} />
     default:
       return null
   }

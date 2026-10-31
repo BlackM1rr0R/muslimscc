@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-   UI KOMPONENT SİNİFLƏRİ — Muslims.cc dizayn sistemi v2
+   UI KOMPONENT SİNİFLƏRİ — Muslims.cc dizayn sistemi v3
    (globals.css-in əvvəlində @import olunur; tokenlər globals.css-dədir)
 
    Qaydalar (ətraflı: src/styles/DESIGN.md):
@@ -25,6 +25,12 @@
     10. Köməkçilər: .ui-sr-only .ui-flip-rtl
     11. Üzən kart / toast: .ui-toast (quraşdırma, bildiriş, elan)
     12. Mikro-qarşılıqlı təsirlər (hover, basılma, seçilmə) — 2-ci mərhələ
+    13. v3 komponentləri: .ui-tabs .ui-segmented .ui-table .ui-steps
+        .ui-callout .ui-meter .ui-kv .ui-stat--tile .ui-stats .ui-figure
+        .ui-legend .ui-timeline .ui-tiles/.ui-tile .ui-list .ui-empty
+    14. Qrafiklər (src/components/viz/*): .ui-viz-*
+   v3 tipoqrafiya: başlıq/etiket/düymə/çip/rəqəm — mono (--font-heading,
+   --font-label, --font-num); paraqraf — Ubuntu Sans (--font-sans).
    ══════════════════════════════════════════════════════════════════ */
 
 /* ══ 1. LAYOUT ═════════════════════════════════════════════════════ */
@@ -54,9 +60,10 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  margin-bottom: clamp(28px, 3vw, 44px);
+  gap: 8px;
+  margin-bottom: clamp(20px, 2.4vw, 32px);
 }
+.ui-section-head .ui-lead { font-size: var(--step-0); }
 .ui-section-head--center { align-items: center; text-align: center; }
 .ui-section-head--row {
   flex-direction: row;
@@ -84,7 +91,7 @@
   align-items: center;
   gap: 8px;
   color: var(--accent-text);
-  font-family: var(--font-sans);
+  font-family: var(--font-label);
   font-size: var(--step--2);
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
@@ -104,10 +111,10 @@
 
 /* Bölmə başlığı (h2) — display şrifti */
 .ui-title {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-size: var(--step-3);
   font-weight: 600;
-  line-height: 1.18;
+  line-height: 1.2;
   letter-spacing: var(--tracking-tight);
   color: var(--text-strong);
 }
@@ -115,7 +122,7 @@
 
 /* Səhifə və ya hero başlığı (h1) */
 .ui-display {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-size: var(--step-4);
   font-weight: 500;
   line-height: var(--lh-tight);
@@ -142,7 +149,7 @@
 
 /* Giriş paraqrafı — ikinci dərəcəli rəng, oxunaqlı en */
 .ui-lead {
-  max-width: 60ch;
+  max-width: 62ch;
   color: var(--text-secondary);
   font-size: var(--step-1);
   line-height: 1.6;
@@ -151,6 +158,8 @@
 
 /* Rəqəmlər bərabər enli (saat, sayğac, statistika tullanmasın) */
 .ui-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+/* Mono rəqəm (saat, say, tarix) — paraqrafın içində də */
+.ui-mono { font-family: var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0; }
 
 /* ══ 3. DÜYMƏLƏR ═══════════════════════════════════════════════════
    <button class="ui-btn ui-btn--primary">…</button>
@@ -159,7 +168,7 @@
    Ölçü: --sm (36px) · susma (44px) · --lg (52px) · --block (tam en)
    İkon: <svg class="ui-btn__icon"> — 18px, mətnlə eyni rəng */
 .ui-btn {
-  --ui-btn-h: 44px;
+  --ui-btn-h: 42px;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -171,11 +180,11 @@
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-strong);
-  font-family: var(--font-sans);
-  font-size: 15px;
+  font-family: var(--font-label);
+  font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -196,13 +205,11 @@
 .ui-btn--primary {
   background: var(--brand);
   color: var(--on-brand);
-  box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 .ui-btn--secondary {
   background: var(--surface-1);
   border-color: var(--line-strong);
   color: var(--text-strong);
-  box-shadow: var(--shadow-1);
 }
 .ui-btn--ghost { color: var(--text-secondary); }
 .ui-btn--accent {
@@ -221,7 +228,7 @@
 }
 
 @media (hover: hover) {
-  .ui-btn--primary:hover { background: var(--brand-hover); box-shadow: var(--shadow-2); }
+  .ui-btn--primary:hover { background: var(--brand-hover); }
   .ui-btn--secondary:hover { background: var(--surface-2); border-color: var(--text-tertiary); }
   .ui-btn--ghost:hover { background: var(--surface-2); color: var(--text-strong); }
   .ui-btn--accent:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
@@ -229,8 +236,8 @@
   .ui-btn--inverse-ghost:hover { background: rgba(243, 239, 230, 0.08); border-color: rgba(243, 239, 230, 0.5); }
 }
 
-.ui-btn--sm { --ui-btn-h: 36px; padding: 0 14px; font-size: 14px; border-radius: var(--radius-sm); }
-.ui-btn--lg { --ui-btn-h: 52px; padding: 0 24px; font-size: 16px; border-radius: var(--radius-md); }
+.ui-btn--sm { --ui-btn-h: 34px; padding: 0 12px; font-size: var(--step--1); border-radius: var(--radius-sm); }
+.ui-btn--lg { --ui-btn-h: 48px; padding: 0 22px; font-size: 0.9375rem; border-radius: var(--radius-md); }
 .ui-btn--block { width: 100%; }
 
 /* Toxunma ekranında kiçik düymə də 44px hədəf alır */
@@ -265,6 +272,7 @@
   align-items: center;
   gap: 6px;
   color: var(--brand);
+  font-family: var(--font-label);
   font-weight: 600;
   font-size: var(--step--1);
   text-decoration: none;
@@ -291,7 +299,7 @@
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
+  box-shadow: none;              /* v3: kölgəsiz — yalnız hairline */
   color: var(--text-body);
   text-decoration: none;
   text-align: start;
@@ -306,12 +314,14 @@
 @media (hover: hover) {
   .ui-card--interactive:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-3);
-    border-color: var(--line-strong);
+    box-shadow: var(--shadow-2);
+    border-color: var(--brand-line);
   }
 }
 .ui-card--interactive:active { transform: scale(0.99); }
-.ui-card--sunken { background: var(--surface-2); box-shadow: none; }
+.ui-card--sunken { background: var(--surface-2); border-color: transparent; box-shadow: none; }
+/* --plain: fonsuz, haşiyəsiz — yalnız məzmun qrupu (kart-içində-kart əvəzinə) */
+.ui-card--plain { background: transparent; border-color: transparent; padding: 0; }
 .ui-card--inverse {
   background: var(--surface-inverse);
   border-color: transparent;
@@ -322,6 +332,7 @@
 .ui-card__head { display: flex; align-items: center; gap: 12px; margin-bottom: var(--card-title-gap); }
 .ui-card__title {
   color: var(--text-strong);
+  font-family: var(--font-heading);
   font-size: var(--step-1);
   font-weight: 600;
   line-height: var(--lh-snug);
@@ -367,14 +378,14 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
-  padding: 0 14px;
-  border: 1px solid var(--line-strong);
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
   border-radius: var(--radius-pill);
   background: var(--surface-1);
   color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: 14px;
+  font-family: var(--font-label);
+  font-size: var(--step--1);
   font-weight: 500;
   line-height: 1.25;
   /* Qısa çip bir sətirdə qalır; konteynerdən uzun olanda (rus/az mətni 320px-də)
@@ -409,10 +420,11 @@
   border-radius: var(--radius-pill);
   background: var(--surface-2);
   color: var(--text-secondary);
-  font-size: 11.5px;
+  font-family: var(--font-label);
+  font-size: var(--step--2);
   font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 .ui-badge--brand  { background: var(--brand-soft-2); color: var(--brand-strong); }
@@ -442,8 +454,8 @@
      <span class="ui-field__hint">…</span>
    </label> */
 .ui-field { display: flex; flex-direction: column; gap: 6px; }
-.ui-field__label { color: var(--text-strong); font-size: 14px; font-weight: 600; }
-.ui-field__hint { color: var(--text-tertiary); font-size: 13px; }
+.ui-field__label { color: var(--text-strong); font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; }
+.ui-field__hint { color: var(--text-tertiary); font-size: var(--step--1); }
 
 .ui-input,
 .ui-select {
@@ -457,7 +469,7 @@
   font-family: var(--font-sans);
   font-size: 16px;   /* iOS fokusda yaxınlaşdırmasın */
   line-height: 1.4;
-  box-shadow: inset 0 1px 2px rgba(17, 24, 21, 0.04);
+  box-shadow: none;
   transition: border-color var(--dur-1, 150ms) ease, box-shadow var(--dur-1, 150ms) ease;
 }
 .ui-input::placeholder { color: var(--text-tertiary); }
@@ -564,10 +576,10 @@
 .ui-quote__ar { font-size: clamp(22px, 2vw, 28px); margin-bottom: 6px; }
 .ui-quote__text {
   color: var(--text-body);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--step-1);
   font-style: italic;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .ui-quote__src { margin-top: 8px; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
 
@@ -576,7 +588,7 @@
 .ui-stat { display: flex; flex-direction: column; gap: 4px; }
 .ui-stat__num {
   color: var(--text-strong);
-  font-family: var(--font-display);
+  font-family: var(--font-num);
   font-size: var(--step-3);
   font-weight: 500;
   line-height: 1;
@@ -602,7 +614,8 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding-block: clamp(36px, 5vw, 72px) clamp(28px, 4vw, 48px);
+  /* v3: kompakt — 360×800-də birinci ekranın ~35%-indən az */
+  padding-block: clamp(24px, 3.4vw, 48px) clamp(20px, 2.6vw, 36px);
   background:
     radial-gradient(ellipse 60% 90% at 85% 0%, var(--brand-soft) 0%, transparent 70%),
     var(--surface-0);
@@ -613,8 +626,8 @@
     radial-gradient(ellipse 60% 90% at 15% 0%, var(--brand-soft) 0%, transparent 70%),
     var(--surface-0);
 }
-.ui-page-hero .ui-container { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
-.ui-page-hero .ui-lead { margin-top: 2px; }
+.ui-page-hero .ui-container { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.ui-page-hero .ui-lead { margin-top: 0; }
 .ui-page-hero__crumbs {
   display: flex;
   flex-wrap: wrap;
@@ -625,7 +638,53 @@
 }
 .ui-page-hero__crumbs a { color: var(--text-secondary); }
 @media (hover: hover) { .ui-page-hero__crumbs a:hover { color: var(--brand); } }
-.ui-page-hero__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.ui-page-hero__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+/* Hero-da 2–4 açar rəqəm (mono): <ul class="ui-page-hero__stats"><li><b>114</b><span>surə</span></li>…</ul> */
+.ui-page-hero__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-page-hero__stats > * { display: flex; flex-direction: column; gap: 2px; }
+.ui-page-hero__stats b,
+.ui-page-hero__stats strong {
+  color: var(--text-strong);
+  font-family: var(--font-num);
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.ui-page-hero__stats span { color: var(--text-tertiary); font-size: var(--step--1); }
+/* "Bu nədir / necə işlədilir" — yeni gələn üçün bir-iki cümlə (ikon + mətn) */
+.ui-page-hero__how {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 68ch;
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  font-size: var(--step--1);
+  line-height: 1.55;
+}
+.ui-page-hero__how svg { flex-shrink: 0; margin-top: 2px; color: var(--brand); }
+/* --split: solda mətn (.ui-page-hero__text), sağda kiçik vizual (.ui-page-hero__aside) */
+.ui-page-hero__text { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.ui-page-hero__aside { width: 100%; min-width: 0; }
+@media (min-width: 900px) {
+  .ui-page-hero--split .ui-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+    column-gap: clamp(24px, 4vw, 56px);
+    align-items: center;
+  }
+}
+@media (max-width: 899.98px) {
+  .ui-page-hero__aside { margin-top: 8px; }
+}
 
 /* ══ 10. KÖMƏKÇİLƏR ════════════════════════════════════════════════ */
 .ui-sr-only {
@@ -891,15 +950,13 @@
 a.ui-card,
 button.ui-card { cursor: pointer; }
 @media (hover: hover) {
-  .ui-card:hover { box-shadow: var(--shadow-2); }
-  .ui-card--sunken:hover,
-  .ui-card--flush:hover { box-shadow: none; }
+  /* v3: sakit kart hover-də dəyişmir; yalnız klikləmə kartı canlanır */
   .ui-card--interactive:hover,
   a.ui-card:hover,
   button.ui-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-3);
-    border-color: var(--line-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+    border-color: var(--brand-line);
   }
   .ui-card--interactive:hover .ui-icon-tile,
   a.ui-card:hover .ui-icon-tile,
@@ -1004,4 +1061,639 @@ button.ui-card:active,
 .ui-cv {
   content-visibility: auto;
   contain-intrinsic-size: auto var(--cv-h, 600px);
+}
+
+
+/* ══ 13. v3 KOMPONENTLƏRİ ══════════════════════════════════════════
+   Səhifə agentləri üçün hazır naxışlar — öz kartını/cədvəlini/sekməsini
+   yazmaq əvəzinə bunları işlət (DESIGN.md §4). Hamısı token-rənglidir,
+   RTL məntiqi xassələrlə, toxunma hədəfi ≥ 44px (pointer: coarse). */
+
+/* ── 13.1 Sekmələr — bölmə daxilində görünüş dəyişmək ──
+   <div class="ui-tabs" role="tablist" aria-label="…">
+     <button class="ui-tab" role="tab" aria-selected="true" aria-controls="p1" id="t1">Hamısı <span class="ui-tab__count">34</span></button>
+   </div>
+   Alt xətt göstərici; dar ekranda üfüqi sürüşür (sətrə bölünmür). */
+.ui-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--space-5);
+}
+.ui-tabs::-webkit-scrollbar { display: none; }
+.ui-tab {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-label);
+  font-size: var(--step--1);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-1, 150ms) ease;
+}
+.ui-tab::after {
+  content: '';
+  position: absolute;
+  inset-inline: 8px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--brand);
+  transform: scaleX(0);
+  transition: transform var(--dur-2, 240ms) var(--ease-out, ease);
+}
+.ui-tab[aria-selected="true"],
+.ui-tab.is-active { color: var(--text-strong); }
+.ui-tab[aria-selected="true"]::after,
+.ui-tab.is-active::after { transform: scaleX(1); }
+@media (hover: hover) { .ui-tab:hover { color: var(--text-strong); } }
+.ui-tab__count { color: var(--text-tertiary); font-weight: 500; font-variant-numeric: tabular-nums; }
+@media (pointer: coarse) { .ui-tab { min-height: 44px; } }
+
+/* ── 13.2 Seqment idarəsi — 2–4 bərabər seçim (vahid, rejim) ──
+   <div class="ui-segmented" role="radiogroup" aria-label="…"><button role="radio" aria-checked="true">Gün</button>…</div> */
+.ui-segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  max-width: 100%;
+  overflow-x: auto;
+}
+.ui-segmented > button {
+  flex: 1 0 auto;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: calc(var(--radius-md) - 3px);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-label);
+  font-size: var(--step--1);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease;
+}
+.ui-segmented > [aria-checked="true"],
+.ui-segmented > [aria-pressed="true"],
+.ui-segmented > [aria-selected="true"],
+.ui-segmented > .is-active {
+  background: var(--surface-1);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-1);
+}
+@media (pointer: coarse) { .ui-segmented > button { min-height: 40px; } }
+
+/* ── 13.3 Cədvəl — müqayisə, vaxt cədvəli, nisab ──
+   <div class="ui-table-wrap" tabindex="0" role="region" aria-label="…">
+     <table class="ui-table"><caption>…</caption><thead>…</thead><tbody>…</tbody></table>
+   </div>
+   Rəqəm sütunu: <td class="is-num">; vurğulu sətir: <tr class="is-current">;
+   --compact (sıx), --zebra (zolaqlı). Dar ekranda wrap üfüqi sürüşür. */
+.ui-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+}
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+  line-height: 1.45;
+  color: var(--text-body);
+}
+.ui-table caption {
+  caption-side: bottom;
+  padding: 10px 16px 12px;
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  text-align: start;
+}
+.ui-table th,
+.ui-table td {
+  padding: 10px 16px;
+  text-align: start;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+.ui-table thead th {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+[dir="rtl"] .ui-table thead th { letter-spacing: 0; }
+.ui-table tbody th { color: var(--text-strong); font-weight: 600; }
+.ui-table tbody tr:last-child > * { border-bottom: 0; }
+.ui-table .is-num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  white-space: nowrap;
+}
+.ui-table tr.is-current > * { background: var(--brand-soft); }
+.ui-table tr.is-current > :first-child { box-shadow: inset 2px 0 0 var(--brand); }
+[dir="rtl"] .ui-table tr.is-current > :first-child { box-shadow: inset -2px 0 0 var(--brand); }
+.ui-table--compact th, .ui-table--compact td { padding: 7px 12px; }
+.ui-table--zebra tbody tr:nth-child(even) > * { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+
+/* ── 13.4 Addımlar — prosedur (dəstəmaz, həcc, zəkat hesabı) ──
+   <ol class="ui-steps">
+     <li class="ui-step"><span class="ui-step__n">1</span><div class="ui-step__body"><h3 class="ui-step__title">Niyyət</h3><p class="ui-step__text">…</p></div></li>
+   </ol>
+   Nömrələr mono dairədə, aralarında nazik xətt. .is-done — tamamlanıb.
+   --row: üfüqi (≥768px), telefonda şaquli. */
+.ui-steps {
+  --step-dot: 30px;
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--step-dot) minmax(0, 1fr);
+  column-gap: 14px;
+  padding-bottom: 20px;
+}
+.ui-step:last-child { padding-bottom: 0; }
+.ui-step::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: calc(var(--step-dot) / 2 - 0.5px);
+  top: calc(var(--step-dot) + 4px);
+  bottom: 4px;
+  width: 1px;
+  background: var(--line-strong);
+}
+.ui-step:last-child::before { display: none; }
+.ui-step__n {
+  display: inline-grid;
+  place-items: center;
+  width: var(--step-dot);
+  height: var(--step-dot);
+  border-radius: 50%;
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand-line);
+  color: var(--brand);
+  font-family: var(--font-num);
+  font-size: var(--step--1);
+  font-weight: 700;
+}
+.ui-step.is-done .ui-step__n { background: var(--brand); color: var(--on-brand); box-shadow: none; }
+.ui-step__body { padding-top: 4px; min-width: 0; }
+.ui-step__title {
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.ui-step__text { margin-top: 4px; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6; }
+@media (min-width: 768px) {
+  .ui-steps--row { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 16px; }
+  .ui-steps--row .ui-step { grid-template-columns: 1fr; row-gap: 10px; padding-bottom: 0; align-content: start; }
+  .ui-steps--row .ui-step::before {
+    inset-inline-start: calc(var(--step-dot) + 8px);
+    inset-inline-end: 8px;
+    top: calc(var(--step-dot) / 2);
+    bottom: auto;
+    width: auto;
+    height: 1px;
+  }
+  .ui-steps--row .ui-step__body { padding-top: 0; }
+}
+
+/* ── 13.5 Qeyd bloku (callout) — vacib qeyd, xəbərdarlıq, ipucu ──
+   <aside class="ui-callout ui-callout--warn"><Icon name="alert" /><div><strong class="ui-callout__title">…</strong><p>…</p></div></aside>
+   Variantlar: --note (göy) · --ok · --warn · --bad · --accent; susma — brend */
+.ui-callout {
+  --co: var(--brand);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--co) 7%, var(--surface-1));
+  border: 1px solid color-mix(in srgb, var(--co) 22%, transparent);
+  color: var(--text-body);
+  font-size: var(--step--1);
+  line-height: 1.6;
+}
+.ui-callout > svg { flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px; color: var(--co); }
+.ui-callout__title {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+.ui-callout p + p { margin-top: 6px; }
+.ui-callout--note { --co: var(--note); }
+.ui-callout--ok { --co: var(--ok); }
+.ui-callout--warn { --co: var(--warn); }
+.ui-callout--bad { --co: var(--bad); }
+.ui-callout--accent { --co: var(--accent); }
+
+/* ── 13.6 Ölçü zolağı (meter) — irəliləyiş, pay, nisbət ──
+   <div class="ui-meter" role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100" aria-label="…" style="--value: 62%"><span class="ui-meter__fill"></span></div>
+   (React: components/viz → <ProgressBar>) */
+.ui-meter {
+  position: relative;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--viz-track);
+  overflow: hidden;
+}
+.ui-meter__fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--value, 0%);
+  border-radius: inherit;
+  background: var(--meter-color, var(--viz-1));
+  transition: width var(--dur-4, 560ms) var(--ease-out, ease);
+}
+.ui-meter--sm { height: 4px; }
+.ui-meter--lg { height: 12px; }
+
+/* ── 13.7 Açar–dəyər siyahısı — faktlar, şərtlər, nisab ──
+   <dl class="ui-kv"><div><dt>Nisab (qızıl)</dt><dd>85 q</dd></div>…</dl>
+   --grid: kafel kimi yan-yana */
+.ui-kv { display: grid; gap: 0; margin: 0; }
+.ui-kv > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ui-kv > div:last-child { border-bottom: 0; }
+.ui-kv dt { color: var(--text-secondary); font-size: var(--step--1); }
+.ui-kv dd {
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-num);
+  font-size: var(--step-0);
+  font-weight: 600;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.ui-kv--grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 12px; }
+.ui-kv--grid > div { flex-direction: column; align-items: flex-start; gap: 2px; padding: 0; border: 0; }
+.ui-kv--grid dd { text-align: start; }
+
+/* ── 13.8 Statistika kafeli və sırası ──
+   <div class="ui-stats">
+     <div class="ui-stat ui-stat--tile"><span class="ui-stat__num" data-count="114">114</span><span class="ui-stat__label">Surə</span></div>
+   </div>
+   (React: components/viz → <StatTile>) */
+.ui-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--ui-stats-min, 140px)), 1fr));
+  gap: var(--space-3);
+}
+.ui-stat--tile {
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+}
+.ui-stat--tile .ui-stat__num { font-size: var(--step-3); font-weight: 600; }
+.ui-stat__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ui-stat__icon { color: var(--text-tertiary); }
+.ui-stat__icon svg { width: 18px; height: 18px; display: block; }
+.ui-stat__hint { color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.45; }
+.ui-stat__unit { margin-inline-start: 2px; color: var(--text-tertiary); font-size: 0.55em; font-weight: 500; }
+.ui-stat--sunken { background: var(--surface-2); border-color: transparent; }
+.ui-stat--brand .ui-stat__num { color: var(--brand); }
+.ui-stat--accent .ui-stat__num { color: var(--accent-text); }
+
+/* ── 13.9 Qrafik çərçivəsi (figure) + açar (legend) ──
+   <figure class="ui-figure">
+     <figcaption class="ui-figure__head"><span class="ui-figure__title">…</span><span class="ui-figure__sub">…</span></figcaption>
+     …qrafik…
+     <p class="ui-figure__note">Mənbə: …</p>
+   </figure> */
+.ui-figure {
+  margin: 0;
+  padding: var(--card-pad);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  min-width: 0;
+}
+.ui-figure--plain { padding: 0; background: transparent; border: 0; }
+.ui-figure__head { display: flex; flex-direction: column; gap: 2px; margin-bottom: var(--space-4); }
+.ui-figure__title {
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.ui-figure__sub { color: var(--text-tertiary); font-size: var(--step--1); }
+.ui-figure__note { margin-top: var(--space-3); color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.5; }
+
+.ui-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-secondary);
+  font-size: var(--step--1);
+}
+.ui-legend > li { display: inline-flex; align-items: center; gap: 8px; }
+.ui-legend b { color: var(--text-strong); font-family: var(--font-num); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ui-swatch {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--swatch, var(--viz-1));
+}
+
+/* ── 13.10 Zaman xətti — tarix, sira, həyat yolu ──
+   <ol class="ui-timeline">
+     <li class="ui-timeline__item"><span class="ui-timeline__when">610</span><h3 class="ui-timeline__title">…</h3><p class="ui-timeline__text">…</p></li>
+   </ol>
+   --wide: ≥768px-də tarix solda ayrıca sütunda. (React: components/viz → <Timeline>) */
+.ui-timeline {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-timeline::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 5px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--line-strong);
+}
+.ui-timeline__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  padding-inline-start: 26px;
+}
+.ui-timeline__item::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 5px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--surface-0);
+  box-shadow: inset 0 0 0 2px var(--tl-color, var(--viz-1));
+}
+.ui-timeline__item.is-key::before { background: var(--tl-color, var(--viz-1)); }
+.ui-timeline__when {
+  color: var(--accent-text);
+  font-family: var(--font-num);
+  font-size: var(--step--1);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ui-timeline__title {
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.ui-timeline__text { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6; }
+@media (min-width: 768px) {
+  .ui-timeline--wide .ui-timeline__item { grid-template-columns: 96px minmax(0, 1fr); column-gap: 16px; }
+  .ui-timeline--wide .ui-timeline__when { grid-row: span 2; padding-top: 1px; }
+}
+
+/* ── 13.11 İkon kafelləri şəbəkəsi — sürətli keçid (ana səhifə, bölmə xəritəsi) ──
+   <ul class="ui-tiles"><li><a class="ui-tile" href="/quran"><span class="ui-icon-tile"><Icon/></span><span class="ui-tile__title">Quran</span><span class="ui-tile__text">114 surə</span></a></li></ul>
+   --ui-tiles-min ilə sütun eni; .ui-tile--row — ikon solda */
+.ui-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ui-tiles-min, 168px)), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  color: var(--text-body);
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-1, 150ms) ease,
+    background-color var(--dur-1, 150ms) ease,
+    transform var(--dur-2, 240ms) var(--ease-out, ease);
+}
+.ui-tile .ui-icon-tile { margin-bottom: 6px; }
+.ui-tile__title {
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.ui-tile__text { color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.45; }
+@media (hover: hover) {
+  .ui-tile:hover { border-color: var(--brand-line); background: color-mix(in srgb, var(--brand) 3%, var(--surface-1)); }
+  .ui-tile:hover .ui-icon-tile { background: var(--brand-soft-2); }
+}
+.ui-tile:active { transform: scale(0.98); }
+.ui-tile--row { flex-direction: row; align-items: center; gap: 12px; }
+.ui-tile--row .ui-icon-tile { margin: 0; }
+.ui-tile__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+/* ── 13.12 Keçid siyahısı — "əlaqəli bölmələr", mənbələr ──
+   <ul class="ui-list"><li><a class="ui-list__item" href="…"><Icon/><span>… <small>…</small></span><Icon name="chevron" className="ui-list__chev ui-flip-rtl"/></a></li></ul> */
+.ui-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.ui-list > li { border-bottom: 1px solid var(--line); }
+.ui-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 4px;
+  color: var(--text-body);
+  font-size: var(--step-0);
+  text-decoration: none;
+}
+.ui-list__item > svg:first-child { color: var(--brand); flex-shrink: 0; }
+.ui-list__item > span { flex: 1; min-width: 0; }
+.ui-list__item small { display: block; color: var(--text-tertiary); font-size: var(--step--1); }
+.ui-list__chev { flex-shrink: 0; color: var(--text-tertiary); }
+@media (hover: hover) { .ui-list__item:hover { color: var(--brand); } }
+
+/* ── 13.13 Boş vəziyyət ── */
+.ui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  color: var(--text-tertiary);
+  text-align: center;
+  font-size: var(--step--1);
+}
+.ui-empty > svg { width: 32px; height: 32px; color: var(--line-strong); }
+.ui-empty strong { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); }
+
+/* ── 13.14 İki sütunlu məzmun + yan panel (oxu səhifələri) ──
+   <div class="ui-split"><div>əsas</div><aside>yan</aside></div> — ≥1100px yanaşı */
+.ui-split { display: grid; gap: var(--space-6); }
+@media (min-width: 1100px) {
+  .ui-split { grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); align-items: start; }
+  .ui-split > aside { position: sticky; top: calc(var(--header-h) + 16px); }
+}
+
+/* ══ 14. QRAFİKLƏR (src/components/viz/*) ══════════════════════════
+   Əl ilə yazılmış SVG/HTML, kitabxana yoxdur. Rənglər --viz-1…4 (sabit
+   sıra), iz/şəbəkə --viz-track/--viz-grid; mətn HƏMİŞƏ mətn tokenlərində.
+   Əlçatanlıq: hər qrafik <figure> + başlıq; dəyərlər görünən mətn kimi də
+   var (etiket/legend) — rəng tək daşıyıcı deyil. */
+
+/* Üfüqi zolaq qrafiki (BarChart) — HTML, RTL avtomatik */
+.ui-viz-bars-wrap { container-type: inline-size; }
+.ui-viz-bars { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ui-viz-bar {
+  display: grid;
+  grid-template-columns: minmax(0, var(--bar-label-w, 34%)) minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 12px;
+}
+.ui-viz-bar__label { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.35; overflow-wrap: anywhere; }
+.ui-viz-bar__track { display: flex; align-items: center; gap: 8px; min-height: 18px; min-width: 0; }
+.ui-viz-bar__fill {
+  flex: 0 1 auto;
+  width: var(--w, 0%);
+  min-width: 2px;
+  height: 12px;
+  border-radius: 2px 4px 4px 2px;
+  background: var(--bar-color, var(--viz-1));
+  transition: width var(--dur-4, 560ms) var(--ease-out, ease);
+}
+[dir="rtl"] .ui-viz-bar__fill { border-radius: 4px 2px 2px 4px; }
+.ui-viz-bar__value {
+  flex-shrink: 0;
+  color: var(--text-strong);
+  font-family: var(--font-num);
+  font-size: var(--step--1);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ui-viz-bar__note { grid-column: 2; color: var(--text-tertiary); font-size: var(--step--2); }
+.ui-viz-bar.is-muted .ui-viz-bar__fill { background: var(--line-strong); }
+@container (max-width: 420px) {
+  .ui-viz-bar { grid-template-columns: minmax(0, 1fr); }
+  .ui-viz-bar__note { grid-column: 1; }
+}
+
+/* Şaquli sütun qrafiki (ColumnChart) — HTML flex, kateqoriya azdırsa (≤ 12) */
+.ui-viz-cols {
+  --cols-h: 140px;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(4px, 1.5vw, 12px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-viz-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ui-viz-col__bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: var(--cols-h);
+  border-bottom: 1px solid var(--viz-grid);
+}
+.ui-viz-col__fill {
+  width: min(100%, 32px);
+  height: var(--h, 0%);
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--bar-color, var(--viz-1));
+}
+.ui-viz-col__value { color: var(--text-strong); font-family: var(--font-num); font-size: var(--step--2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ui-viz-col__label { color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.ui-viz-col.is-current .ui-viz-col__label { color: var(--text-strong); font-weight: 600; }
+.ui-viz-col.is-muted .ui-viz-col__fill { background: var(--line-strong); }
+
+/* Dairəvi qrafik (Donut) və halqa (ProgressRing) — SVG */
+.ui-viz-donut { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+.ui-viz-donut svg, .ui-viz-ring svg { display: block; flex-shrink: 0; }
+.ui-viz-donut .ui-legend { margin: 0; flex-direction: column; flex-wrap: nowrap; gap: 8px; }
+.ui-viz-arc { fill: none; transition: stroke-dasharray var(--dur-4, 560ms) var(--ease-out, ease); }
+.ui-viz-track { fill: none; stroke: var(--viz-track); }
+.ui-viz-center-num { fill: var(--text-strong); font-family: var(--font-num); font-weight: 600; }
+.ui-viz-center-label { fill: var(--text-tertiary); font-family: var(--font-sans); }
+.ui-viz-ring { display: inline-flex; align-items: center; gap: 12px; }
+.ui-viz-ring__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ui-viz-ring__label { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step--1); font-weight: 600; }
+.ui-viz-ring__sub { color: var(--text-tertiary); font-size: var(--step--2); }
+.ui-viz-ring .ui-viz-arc { stroke-linecap: round; }
+
+/* Kiçik xətt qrafiki (Sparkline) — SVG; --flip: RTL-də zaman sağdan sola */
+.ui-viz-spark { display: block; overflow: visible; }
+.ui-viz-spark__line { fill: none; stroke: var(--spark-color, var(--viz-1)); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.ui-viz-spark__area { fill: color-mix(in srgb, var(--spark-color, var(--viz-1)) 12%, transparent); stroke: none; }
+.ui-viz-spark__dot { fill: var(--spark-color, var(--viz-1)); stroke: var(--surface-1); stroke-width: 2; vector-effect: non-scaling-stroke; }
+[dir="rtl"] .ui-viz-spark--flip { transform: scaleX(-1); }
+
+/* Bir zolaqda paylar (StackedBar) — tərkib (miras payları, günün bölgüsü) */
+.ui-viz-stack { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; background: var(--viz-track); }
+.ui-viz-stack > span { flex: 0 0 auto; width: var(--w); min-width: 2px; background: var(--bar-color, var(--viz-1)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-viz-bar__fill, .ui-viz-arc, .ui-meter__fill, .ui-tab::after { transition: none; }
+}
+@media (forced-colors: active) {
+  .ui-viz-bar__fill, .ui-viz-col__fill, .ui-meter__fill, .ui-swatch, .ui-viz-stack > span { background: CanvasText; }
+  .ui-viz-arc, .ui-viz-spark__line { stroke: CanvasText; }
 }

@@ -1,5 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════
-   HƏDİS SƏHİFƏSİ — dizayn v2 (DESIGN.md)
+   HƏDİS SƏHİFƏSİ — dizayn v3 (DESIGN.md)
+   Hero (+ açar rəqəmlər) → "Bu hədislər haradandır?" paneli (dərəcələr +
+   toplular diaqramı) → axtarış + çiplər → sakit kartlar (mono nömrə və
+   mövzu, Amiri ərəbcə, sans tərcümə, mono mənbə).
    Hero .ui-page-hero, kartlar .ui-card, çiplər .ui-chip, sahə .ui-input.
    Bu fayl ui.css-dən ƏVVƏL yüklənir — .ui-* dəyişiklikləri .hadith-page
    (və ya .hadith-hero) valideyni ilə gücləndirilib (DESIGN.md §4.1).
@@ -9,11 +12,65 @@
 .hadith-hero .hadith-hero__ar {
   margin-top: -4px;
   color: var(--accent-text);
-  font-size: clamp(20px, 2.2vw, 26px);
+  font-size: clamp(19px, 1.9vw, 24px);
   line-height: 1.5;
 }
 
-.hadith-page.ui-section--tight { padding-top: var(--space-6); }
+.hadith-page.ui-section--tight { padding-top: var(--space-5); }
+
+/* ── "Bu hədislər haradandır?" — açılan panel ── */
+.hadith-about-wrap.ui-section--tight { padding-bottom: 0; padding-top: var(--space-5); }
+.hadith-about { max-width: 1040px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-1); }
+.hadith-about__sum {
+  display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 16px;
+  color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600;
+  cursor: pointer; list-style: none;
+}
+.hadith-about__sum::-webkit-details-marker { display: none; }
+.hadith-about__sumtext { flex: 1; min-width: 0; }
+.hadith-about__chev { flex-shrink: 0; color: var(--text-tertiary); transition: transform var(--dur-2) var(--ease-out); }
+.hadith-about[open] .hadith-about__chev { transform: rotate(180deg); }
+.hadith-about__sum:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: var(--radius-lg); }
+.hadith-about__body {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5);
+  padding: var(--space-5); border-top: 1px solid var(--line);
+}
+@media (min-width: 960px) { .hadith-about__body { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--space-7); } }
+.hadith-about__grades { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.hadith-about__title { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; }
+.hadith-about__lead { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6; max-width: 62ch; }
+.hadith-grades { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--space-3) var(--space-4); }
+.hadith-grades ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.hadith-grades__label {
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px;
+  font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase;
+}
+[dir="rtl"] .hadith-grades__label { letter-spacing: 0; text-transform: none; }
+.hadith-grades__label.is-ok { color: var(--ok); }
+.hadith-grades__label.is-bad { color: var(--bad); }
+.hadith-grade {
+  display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; margin-inline: -10px;
+  border-radius: var(--radius-sm); color: var(--text-body); text-decoration: none;
+  transition: background-color var(--dur-1) ease;
+}
+@media (hover: hover) { .hadith-grade:hover { background: var(--surface-2); } .hadith-grade:hover .hadith-grade__name { color: var(--brand); } }
+.hadith-grade__dot { flex-shrink: 0; width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; }
+.hadith-grade__dot.is-ok { background: var(--ok); }
+.hadith-grade__dot.is-bad { background: var(--bad); }
+.hadith-grade__body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.hadith-grade__name { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step--1); font-weight: 600; }
+.hadith-grade__text { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.5; }
+.hadith-about__note {
+  display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: var(--radius-md);
+  background: var(--surface-2); color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55;
+}
+.hadith-about__note svg { flex-shrink: 0; margin-top: 2px; color: var(--note, var(--brand)); }
+.hadith-about__links { margin-top: var(--space-1); }
+.hadith-about .hadith-about__chart { margin: 0; align-self: start; }
+.hadith-about__six { display: inline-flex; align-items: center; gap: 4px; margin-top: var(--space-3); font-size: var(--step--1); }
+@media (max-width: 767.98px) {
+  .hadith-about__body { padding: var(--space-4); }
+}
 
 /* ── Axtarış: ikon sahənin içində (başlanğıcda), təmizlə düyməsi sonda ── */
 .hadith-search {
@@ -30,10 +87,8 @@
   pointer-events: none;
 }
 .hadith-page .hadith-search__input {
-  min-height: 48px;
+  min-height: 46px;
   padding-inline: 44px 48px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
 }
 /* Brauzerin öz "x" düyməsi — bizimki var */
 .hadith-search__input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
@@ -68,7 +123,7 @@
   border-radius: var(--radius-pill);
   background: var(--brand-soft-2);
   color: var(--brand);
-  font-size: 11.5px;
+  font-size: var(--step--2);
   font-weight: 700;
 }
 .hadith-chip-fav[aria-pressed="true"] .hadith-chip-count {
@@ -91,15 +146,16 @@
 .hadiths-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  max-width: 860px;
 }
 
 .hadith-page .hadith-card {
-  padding: clamp(14px, 1.8vw, 20px) clamp(18px, 2.6vw, 30px) clamp(18px, 2.2vw, 26px);
-  transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease;
+  padding: var(--space-3) var(--space-5) var(--space-5);
+  transition: border-color var(--dur-2) ease;
 }
 @media (hover: hover) {
-  .hadith-page .hadith-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); }
+  .hadith-page .hadith-card:hover { border-color: var(--line-strong); }
 }
 
 .hadith-top {
@@ -110,9 +166,21 @@
 }
 .hadith-num {
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: var(--step--2);
   font-weight: 600;
 }
+/* Mövzu — nişan yox, sakit mono etiket */
+.hadith-cat-badge {
+  padding-inline-start: 10px;
+  border-inline-start: 1px solid var(--line-strong);
+  color: var(--accent-text);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .hadith-cat-badge { letter-spacing: 0; text-transform: none; }
 .hadith-actions {
   display: flex;
   align-items: center;
@@ -123,21 +191,19 @@
 
 /* Ərəbcə mətn — Amiri, iri, sağa düzlənmiş; başlanğıcda qızılı xətt */
 .hadith-page .hadith-arabic {
-  font-size: clamp(22px, 2.1vw, 27px);
+  font-size: clamp(20px, 1.9vw, 24px);
   line-height: 2;
   text-align: right;
   color: var(--text-strong);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--line);
 }
 /* Tərcümə yoxdursa (ərəbcə dil) — xətt mənbəyə qədər lazım deyil */
-.hadith-page .hadith-arabic:last-child { padding-bottom: 0; border-bottom: 0; }
+
 /* Tərcümə — display şrifti, oxunaqlı en; ərəbcədən hairline ilə ayrılır */
 .hadith-text {
-  max-width: 70ch;
-  margin-top: var(--space-4);
+  max-width: 68ch;
+  margin-top: var(--space-2);
   color: var(--text-body);
-  font-size: 17px;
+  font-size: var(--step-0);
   line-height: 1.7;
 }
 [dir="rtl"] .hadith-text { line-height: 1.85; }
@@ -147,9 +213,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: var(--space-4);
-  color: var(--text-tertiary);
-  font-size: var(--step--1);
+  margin-top: var(--space-3);
+  color: var(--text-secondary);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
   font-weight: 500;
   overflow-wrap: anywhere;
 }
@@ -220,7 +287,7 @@
   border-radius: var(--radius-pill);
   background: var(--surface-inverse);
   color: var(--text-on-inverse);
-  font-size: 14px;
+  font-size: var(--step--1);
   font-weight: 600;
   box-shadow: var(--shadow-4);
   opacity: 0;
@@ -270,9 +337,9 @@
   .hadith-count { margin-block: var(--space-4) var(--space-3); scroll-margin-top: 120px; }
   .hadiths-list { gap: var(--space-3); }
 
-  .hadith-page .hadith-arabic { font-size: 21px; line-height: 1.95; }
-  .hadith-page .hadith-arabic { padding-bottom: var(--space-3); }
-  .hadith-text { margin-top: var(--space-3); font-size: 16px; }
+  .hadith-page .hadith-card { padding: var(--space-2) var(--space-4) var(--space-4); }
+  .hadith-page .hadith-arabic { font-size: 20px; line-height: 1.95; }
+  .hadith-text { margin-top: var(--space-2); }
   .hadith-chips__sep { display: none; }
   .hadith-source { margin-top: var(--space-3); }
 }
@@ -285,3 +352,12 @@
   .hadith-page .hadith-fav-btn:active,
   .hadith-page .hadith-share-btn:active { transform: none; }
 }
+
+/* Panel içində diaqram kart deyil (kart-içində-kart yox) — geniş ekranda xətlə ayrılır */
+@media (min-width: 960px) {
+  .hadith-about .hadith-about__chart { padding-inline-start: var(--space-6); border-inline-start: 1px solid var(--line); border-radius: 0; }
+}
+@media (max-width: 959.98px) {
+  .hadith-about .hadith-about__chart { padding-top: var(--space-5); border-top: 1px solid var(--line); border-radius: 0; }
+}
+.hadith-grade { padding-block: 6px; }

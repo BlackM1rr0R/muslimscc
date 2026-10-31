@@ -46,6 +46,40 @@ export const CHARITY_GUIDE = [
     ],
   },
   {
+    // Dizayn v3: sədəqə ilə zəkatın fərqi — yeni gələn ən çox bunu qarışdırır.
+    // Bukhari 8 (hadith-api ilə yoxlanılıb), Tövbə 9:60 (api.quran.com).
+    // Zəkatın hesabı və 8 alıcının izahı /zakat-dadır — burada yalnız müqayisə.
+    id: 'vs-zakat',
+    title: { az: 'Sədəqə ilə zəkatın fərqi', en: 'Charity and zakat: the difference', ru: 'Чем милостыня отличается от закята', ar: 'الفرق بين الصدقة والزكاة', tr: 'Sadaka ile zekâtın farkı' },
+    blocks: [
+      { t: 'hadith', ar: 'بُنِيَ الْإِسْلَامُ عَلَى خَمْسٍ: شَهَادَةِ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَنَّ مُحَمَّدًا رَسُولُ اللَّهِ، وَإِقَامِ الصَّلَاةِ، وَإِيتَاءِ الزَّكَاةِ، وَالْحَجِّ، وَصَوْمِ رَمَضَانَ',
+        text: { az: 'İslam beş şey üzərində qurulub: Allahdan başqa haqq ilah olmadığına və Muhəmmədin Allahın Rəsulu olduğuna şəhadət vermək, namazı qılmaq, zəkatı vermək, həcc etmək və Ramazan orucunu tutmaq.', en: 'Islam is built upon five: testifying that there is no god worthy of worship but Allah and that Muhammad is the Messenger of Allah, establishing the prayer, giving zakat, Hajj and fasting Ramadan.', ru: 'Ислам основан на пяти: свидетельстве, что нет божества, достойного поклонения, кроме Аллаха и что Мухаммад — посланник Аллаха, совершении намаза, выплате закята, хаджже и посте в Рамадан.', ar: 'بني الإسلام على خمس: شهادة أن لا إله إلا الله وأن محمدًا رسول الله، وإقام الصلاة، وإيتاء الزكاة، والحج، وصوم رمضان.', tr: 'İslam beş şey üzerine kurulmuştur: Allah’tan başka hak ilah olmadığına ve Muhammed’in Allah’ın Resulü olduğuna şahitlik etmek, namazı kılmak, zekâtı vermek, hacca gitmek ve Ramazan orucunu tutmak.' },
+        src: src(['bukhari', 8]) },
+      { t: 'p', text: { az: 'Zəkat İslamın rüknlərindən biridir və şərtləri yerinə gələn hər müsəlmana fərzdir. Sədəqə isə könüllüdür: miqdarı, vaxtı və şərti yoxdur. Gündəlikdə hər ikisini yazmaq olar, amma zəkatı ayrıca hesablamaq lazımdır.', en: 'Zakat is one of the pillars of Islam and obligatory on every Muslim who meets its conditions. Charity (sadaqah) is voluntary: it has no fixed amount, time or condition. You can log both in the journal, but zakat has to be calculated separately.', ru: 'Закят — один из столпов ислама, обязательный для каждого мусульманина, отвечающего его условиям. Милостыня (садака) добровольна: у неё нет установленной суммы, срока или условий. В дневник можно записывать и то и другое, но закят нужно рассчитывать отдельно.', ar: 'الزكاة ركن من أركان الإسلام، واجبة على كل مسلم تحققت فيه شروطها. أما صدقة التطوع فلا مقدار لها ولا وقت ولا شرط. ويمكنك تسجيل الاثنين في السجل، لكن الزكاة تُحسب على حدة.', tr: 'Zekât İslam’ın rükünlerinden biridir ve şartları yerine gelen her Müslümana farzdır. Sadaka ise gönüllüdür: belirli bir miktarı, vakti ve şartı yoktur. Günlüğe ikisini de yazabilirsiniz, ama zekâtı ayrıca hesaplamak gerekir.' } },
+      { t: 'table',
+        head: [
+          { az: 'Nə', en: 'What', ru: 'Что', ar: 'الوجه', tr: 'Ne' },
+          { az: 'Zəkat', en: 'Zakat', ru: 'Закят', ar: 'الزكاة', tr: 'Zekât' },
+          { az: 'Sədəqə', en: 'Charity (sadaqah)', ru: 'Милостыня (садака)', ar: 'صدقة التطوع', tr: 'Sadaka' },
+        ],
+        rows: [
+          [{ az: 'Hökmü', en: 'Ruling', ru: 'Положение', ar: 'الحكم', tr: 'Hükmü' },
+           { az: 'Fərz, İslamın beş rüknündən biri (Buxari 8)', en: 'Obligatory, one of the five pillars (al-Bukhari 8)', ru: 'Обязателен, один из пяти столпов (аль-Бухари 8)', ar: 'فريضة وركن من أركان الإسلام الخمسة (البخاري ٨)', tr: 'Farz, beş rükünden biri (Buhârî 8)' },
+           { az: 'Könüllü, böyük savablı əməl', en: 'Voluntary, a deed of great reward', ru: 'Добровольна, дело с большой наградой', ar: 'تطوّع، وفيها أجر عظيم', tr: 'Gönüllü, sevabı büyük bir amel' }],
+          [{ az: 'Miqdarı', en: 'Amount', ru: 'Сумма', ar: 'المقدار', tr: 'Miktarı' },
+           { az: 'Müəyyəndir: pulda qırxda bir (2.5%)', en: 'Fixed: one fortieth (2.5%) on money', ru: 'Установлена: сороковая часть (2,5 %) с денег', ar: 'مقدَّرة: ربع العشر في النقود', tr: 'Bellidir: parada kırkta bir (%2,5)' },
+           { az: 'İstənilən miqdar — az da olsa', en: 'Any amount — even a little', ru: 'Любая сумма — даже малая', ar: 'أي مقدار ولو قليلًا', tr: 'Dilediğiniz miktar — az da olsa' }],
+          [{ az: 'Şərti', en: 'Condition', ru: 'Условие', ar: 'الشرط', tr: 'Şartı' },
+           { az: 'Mal nisaba çatmalı və üzərindən bir hicri il keçməlidir', en: 'The wealth must reach the nisab and be held for a lunar year', ru: 'Имущество должно достичь нисаба и пролежать лунный год', ar: 'بلوغ النصاب وحولان الحول', tr: 'Mal nisaba ulaşmalı ve üzerinden bir hicri yıl geçmelidir' },
+           { az: 'Şərt yoxdur — istənilən vaxt', en: 'No condition — at any time', ru: 'Условий нет — в любое время', ar: 'لا شرط، وفي أي وقت', tr: 'Şart yok — her zaman' }],
+          [{ az: 'Kimə verilir', en: 'Who receives it', ru: 'Кому дают', ar: 'لمن تُعطى', tr: 'Kime verilir' },
+           { az: 'Yalnız Tövbə 9:60-da sayılan səkkiz növə', en: 'Only the eight kinds listed in at-Tawbah 9:60', ru: 'Только восьми категориям из ат-Тауба 9:60', ar: 'للأصناف الثمانية في سورة التوبة: ٦٠', tr: 'Yalnızca Tevbe 9:60’ta sayılan sekiz sınıfa' },
+           { az: 'Hər xeyir yoluna — ailə və qohumlardan başlayaraq', en: 'Any good cause — starting with family and relatives', ru: 'На любое благое дело — начиная с семьи и родственников', ar: 'في كل وجوه الخير، بدءًا بالأهل والأقارب', tr: 'Her hayır yoluna — aileden ve akrabalardan başlayarak' }],
+        ] },
+      { t: 'note', kind: 'tip', text: { az: 'Zəkatınızı hesablamaq və onu alan səkkiz növün izahı üçün «Zəkat kalkulyatoru» səhifəsinə baxın.', en: 'To calculate your zakat and read about the eight kinds of recipients, see the “Zakat calculator” page.', ru: 'Чтобы рассчитать закят и узнать о восьми категориях получателей, откройте страницу «Калькулятор закята».', ar: 'لحساب زكاتك ومعرفة الأصناف الثمانية المستحقة لها، انظر صفحة «حاسبة الزكاة».', tr: 'Zekâtınızı hesaplamak ve onu alan sekiz sınıfın açıklaması için “Zekât hesaplayıcı” sayfasına bakın.' } },
+    ],
+  },
+  {
     id: 'private',
     title: { az: 'Gündəlik — riya üçün yox, nəfsi hesaba çəkmək üçün', en: 'A journal for self-accounting, not for show', ru: 'Дневник — для самоотчёта, а не напоказ', ar: 'سجلّ لمحاسبة النفس لا للرياء', tr: 'Günlük — gösteriş için değil, nefis muhasebesi için' },
     blocks: [

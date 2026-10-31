@@ -1,0 +1,24 @@
+/* Fəaliyyət xəritəsi — src/components/ActivityHeatmap.jsx (yalnız tokenlər) */
+.ahm { min-width: 0; }
+.ahm__scroll { overflow-x: auto; padding-bottom: 4px; }
+.ahm__svg { display: block; max-width: 100%; height: auto; }
+/* Ərəbcədə zaman sağdan sola axır */
+[dir="rtl"] .ahm__svg { transform: scaleX(-1); }
+.ahm-cell { stroke: transparent; stroke-width: 2; }
+.ahm-cell.is-pickable { cursor: pointer; }
+.ahm-cell--0 { fill: var(--viz-track, var(--surface-3)); }
+.ahm-cell--1 { fill: color-mix(in srgb, var(--viz-1) 22%, var(--surface-1)); }
+.ahm-cell--2 { fill: color-mix(in srgb, var(--viz-1) 45%, var(--surface-1)); }
+.ahm-cell--3 { fill: color-mix(in srgb, var(--viz-1) 72%, var(--surface-1)); }
+.ahm-cell--4 { fill: var(--viz-1); }
+.ahm-cell.is-selected { stroke: var(--accent); }
+.ahm__legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--space-2);
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+}
+.ahm__legend span:first-child { margin-inline-end: 2px; }
+.ahm__legend span:last-child { margin-inline-start: 2px; }

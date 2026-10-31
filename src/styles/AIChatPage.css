@@ -451,3 +451,54 @@
   .aic-chat { scroll-behavior: auto; }
   .aic-send-btn, .aic-send-icon, .aic-suggest-btn, .aic-suggest-chev { transition: none; }
 }
+
+/* ══ Dizayn v3: mövzulara görə nümunə suallar, imkanlar sətri ══ */
+.ai-chat-page .aic-welcome { text-align: start; }
+.ai-chat-page .aic-welcome-art { display: none; }
+.ai-chat-page .aic-welcome-text { margin: 0 auto 20px; text-align: center; font-size: var(--step--1); }
+.aic-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px 14px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.aic-group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.aic-group__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+[dir="rtl"] .aic-group__label { letter-spacing: 0; text-transform: none; }
+.aic-group__label svg { color: var(--brand); }
+.aic-group__list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ai-chat-page .aic-group .aic-suggest-btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-color: var(--line);
+  font-size: var(--step--1);
+}
+.aic-caps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-secondary);
+  font-size: var(--step--2);
+}
+.aic-caps li { display: inline-flex; align-items: center; gap: 6px; }
+.aic-caps svg { color: var(--brand); flex-shrink: 0; }
+.ai-chat-page .aic-hero .ui-page-hero__how { margin-top: 0; }
+@media (max-width: 599.98px) {
+  .ai-chat-page .aic-hero .ui-page-hero__how { display: none; }
+}

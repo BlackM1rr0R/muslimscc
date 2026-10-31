@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { getSurahLocal } from '../data/surahNamesAz'
@@ -9,9 +10,26 @@ import { ayahSources, readAudioPrefs, reciterName } from '../utils/quranAudio'
 import {
   loadState as loadSrs, saveState as saveSrs, dateKey, todayStats, streak, perSurahCounts,
   memorisedSeries, dueItems, nextNewAyahs, gradeItem, setGoal, seedItems, previewIntervals,
-  newItem, splitAyahWords, GRADES, GOAL_MIN, GOAL_MAX,
+  newItem, splitAyahWords, addDays, GRADES, GOAL_MIN, GOAL_MAX,
 } from '../utils/hifzSrs'
+import { isPlainClick } from '../components/PageLink'
+import { pathFor } from '../seo/routes'
+import { ColumnChart, Donut, ProgressRing, ProgressBar } from '../components/viz'
+import { HIFZ_GUIDE } from '../data/guides/HifzPage'
 import '../styles/HifzPage.css'
+
+// 5 dilli sahə → cari dil (funksiya da ola bilər — rəqəmli mətnlər)
+const pk = (o, lang) => (o == null ? '' : typeof o === 'string' ? o : (o[lang] !== undefined ? o[lang] : o.az))
+const pkf = (o, lang, n) => { const f = pk(o, lang); return typeof f === 'function' ? f(n) : f }
+// Quranda ümumi ayə sayı (Kufə sayı)
+const QURAN_AYAHS = 6236
+
+/** Əzbərlənmiş ayə sayı: köhnə izləyicidə "əzbər" surə — bütün ayələri; qalanı — SRS siyahısı */
+function memorisedAyahs(progress, counts) {
+  let n = 0
+  for (const s of SURAHS) n += progress[s.num] === 2 ? s.ayahs : Math.min(s.ayahs, counts[s.num] || 0)
+  return n
+}
 
 // ── localStorage helpers ──
 const STORAGE_KEY = 'hifz_progress'
@@ -171,6 +189,9 @@ const SURAHS = [
   { num:113, name:'الفلق', en:'Al-Falaq', ayahs:5, juz:30 },
   { num:114, name:'الناس', en:'An-Nas', ayahs:6, juz:30 },
 ]
+
+// 30-cu cüzün surələri (Nəbə — Nas)
+const AMMA = SURAHS.filter(s => s.num >= 78)
 
 // ═══════════════════════════════════════════════════════
 // AĞILLI HİFZ — aralıqlı təkrar (utils/hifzSrs.js), gizlət/aç məşqi,
@@ -527,10 +548,9 @@ function ProgressChart({ series, lang, sm }) {
 }
 
 // ── Ağıllı hifz bölməsi ──
-function SmartHifz({ lang, progress, setProgress }) {
+function SmartHifz({ lang, progress, setProgress, srs, setSrs }) {
   const sm = SMART[lang] || SMART.az
-  const [srs, setSrs] = useState(() => loadSrs())
-  useEffect(() => { saveSrs(srs) }, [srs])
+  const G = HIFZ_GUIDE.queue
   const today = dateKey()
   const stats = todayStats(srs, today)
   const days = streak(srs, today)
@@ -594,15 +614,28 @@ function SmartHifz({ lang, progress, setProgress }) {
   const seed = () => setSrs(prev => seedItems(prev, seedRefs, today))
 
   const localName = s => (lang === 'ar' ? s.name : (getSurahLocal(s.num, lang)?.name || s.en))
+  // Növbə: vaxtı çatmış ilk 6 ayə + gələn 7 günün təkrar proqnozu (gecikmişlər bu günə düşür)
+  const due = useMemo(() => dueItems(srs, today), [srs, today])
+  const forecast = useMemo(() => {
+    const days = Array.from({ length: 7 }, (_, i) => addDays(today, i))
+    const counts = days.map(() => 0)
+    for (const it of Object.values(srs.items)) {
+      const k = it.due <= today ? 0 : days.indexOf(it.due)
+      if (k >= 0) counts[k]++
+    }
+    const wd = d => { try { return new Date(d + 'T12:00:00').toLocaleDateString(LOCALES[lang] || 'en-GB', { weekday: 'short' }) } catch { return d.slice(5) } }
+    return days.map((d, i) => ({ key: d, label: i === 0 ? pk(G.today, lang) : wd(d), value: counts[i], current: i === 0 }))
+  }, [srs.items, today, lang, G.today])
+  const hasForecast = forecast.some(d => d.value > 0)
   const barSurahs = SURAHS.filter(s => counts[s.num] || progress[s.num])
   const cur = session && session.idx < session.queue.length ? session.queue[session.idx] : null
 
   return (
-    <section className="hifz-smart" aria-labelledby="hifz-smart-title">
-      <div className="hifz-smart__head">
+    <section className="hifz-smart" id="hifz-plan" aria-labelledby="hifz-smart-title">
+      <div className="ui-section-head" data-reveal="">
         <span className="ui-eyebrow">{sm.smartEyebrow}</span>
         <h2 id="hifz-smart-title" className="ui-title">{sm.smartTitle}</h2>
-        <p className="hifz-smart__lead">{sm.smartLead}</p>
+        <p className="ui-lead">{sm.smartLead}</p>
       </div>
 
       {/* Bu günün göstəriciləri */}
@@ -636,6 +669,26 @@ function SmartHifz({ lang, progress, setProgress }) {
                 <Icon name="refresh" className="ui-btn__icon" />{sm.startReview}<span className="hifz-start-review__n ui-num">{stats.due}</span>
               </button>
             : <p className="hifz-plan__muted"><Icon name="check" size={16} /> {sm.noDue}</p>}
+          {due.length > 0 && (
+            <div className="hifz-queue">
+              <span className="hifz-queue__title">{pk(G.title, lang)}</span>
+              <ul className="hifz-queue__list">
+                {due.slice(0, 6).map(it => (
+                  <li key={`${it.s}:${it.a}`} className="hifz-queue__item">
+                    <span className="hifz-queue__name">{localName(SURAHS[it.s - 1])}</span>
+                    <span className="ui-num hifz-queue__ref" dir="ltr">{it.s}:{it.a}</span>
+                  </li>
+                ))}
+                {due.length > 6 && <li className="hifz-queue__more ui-num">{pkf(G.more, lang, due.length - 6)}</li>}
+              </ul>
+            </div>
+          )}
+          {hasForecast && (
+            <figure className="hifz-forecast">
+              <figcaption className="hifz-queue__title">{pk(G.forecast, lang)} <span className="hifz-forecast__sub">· {pk(G.forecastSub, lang)}</span></figcaption>
+              <ColumnChart data={forecast} height={84} label={pk(G.forecast, lang)} />
+            </figure>
+          )}
           {seedRefs.length > 0 && (
             <div className="hifz-seed">
               <p>{fill(sm.seedText, { n: seedRefs.length })}</p>
@@ -725,6 +778,9 @@ export default function HifzPage({ setPage }) {
 
   const [progress, setProgress] = useState(loadProgress)
   const [filter, setFilter] = useState('all') // all, memorized, inProgress, notStarted
+  // Ağıllı hifzin vəziyyəti səhifə səviyyəsindədir — hero-dakı panel də onu göstərir
+  const [srs, setSrs] = useState(() => loadSrs())
+  useEffect(() => { saveSrs(srs) }, [srs])
 
   useEffect(() => {
     saveProgress(progress)
@@ -772,6 +828,19 @@ export default function HifzPage({ setPage }) {
     }
   }
 
+  const H = HIFZ_GUIDE.hero
+  const counts = useMemo(() => perSurahCounts(srs), [srs])
+  const memAyahs = memorisedAyahs(progress, counts)
+  const ammaDone = AMMA.filter(s => progress[s.num] === 2).length
+  const streakDays = streak(srs, dateKey())
+  // Hero keçidləri: səhifədaxili hamar sürüşmə (ünvan dəyişmir)
+  const jump = id => e => {
+    if (!isPlainClick(e)) return
+    const el = document.getElementById(id)
+    if (!el) return
+    e.preventDefault()
+    el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' })
+  }
   const statusClass = (st) => st === 2 ? 'memorized' : st === 1 ? 'in-progress' : 'not-started'
   // Surənin cari dildə adı: az/ru/tr — yerli yazılış (əvvəl hamısında
   // ingiliscə "Al-Baqarah" görünürdü), en — transliterasiya
@@ -780,25 +849,64 @@ export default function HifzPage({ setPage }) {
 
   return (
     <>
-      {/* Sakit kağız hero (dizayn v2): naxış, eyebrow, bir h1, lead */}
-      <header className="ui-page-hero hifz-hero">
+      {/* Kompakt hero (v3, --split): solda izah + keçidlər, sağda ümumi irəliləyiş paneli */}
+      <header className="ui-page-hero ui-page-hero--split hifz-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        <span className="hifz-hero__art" lang="ar" aria-hidden="true">ٱلۡحِفۡظُ</span>
         <div className="ui-container">
-          <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          <p className="ui-lead">{t.subtitle}</p>
+          <div className="ui-page-hero__text">
+            <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            <p className="ui-lead">{pk(H.lead, lang)}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} />{pk(H.how, lang)}</p>
+            <div className="ui-page-hero__actions">
+              <a className="ui-btn ui-btn--primary ui-btn--sm" href="#hifz-plan" onClick={jump('hifz-plan')}>
+                <Icon name="target" className="ui-btn__icon" />{pk(H.toPlan, lang)}
+              </a>
+              <a className="ui-btn ui-btn--secondary ui-btn--sm" href="#hifz-method" onClick={jump('hifz-method')}>
+                <Icon name="learn" className="ui-btn__icon" />{pk(H.toMethod, lang)}
+              </a>
+            </div>
+          </div>
+          <div className="ui-page-hero__aside">
+            <section className="hifz-dash" aria-label={pk(H.overall, lang)}>
+              <ProgressRing value={ammaDone} max={AMMA.length} size={88} thickness={8} tone={2}
+                label={pk(H.amma, lang)} sub={`${ammaDone} / ${AMMA.length} ${t.surahCount}`} />
+              <div className="hifz-dash__side">
+                <div className="hifz-dash__amma">
+                  <span className="hifz-dash__label">{pk(H.overall, lang)}</span>
+                  <span className="ui-num hifz-dash__val" dir="ltr">{memAyahs > 0 && memAyahs < 63 ? '<1' : Math.round((memAyahs / QURAN_AYAHS) * 100)}%</span>
+                  <ProgressBar value={memAyahs} max={QURAN_AYAHS} label={pk(H.overall, lang)} />
+                  <span className="hifz-dash__sub">{pkf(H.ayahsOf, lang, memAyahs)}</span>
+                </div>
+                <dl className="ui-kv hifz-dash__kv">
+                  <div><dt>{pk(H.surahsDone, lang)}</dt><dd className="ui-num">{stats.memorized}</dd></div>
+                  <div><dt>{pk(H.streak, lang)}</dt><dd className="ui-num">{streakDays}</dd></div>
+                </dl>
+              </div>
+              <p className="hifz-dash__note">{pk(H.note, lang)}</p>
+            </section>
+          </div>
         </div>
       </header>
 
-      <div className="section hifz-section">
-        <div className="section-inner hifz-layout">
+      <div className="ui-section hifz-section">
+        <div className="ui-container hifz-layout">
 
-          {/* Ağıllı hifz: bu günün planı, məşq, qrafik */}
-          <SmartHifz lang={lang} progress={progress} setProgress={setProgress} />
+          {/* Ağıllı hifz: bu günün planı, növbə, məşq, qrafik */}
+          <SmartHifz lang={lang} progress={progress} setProgress={setProgress} srs={srs} setSrs={setSrs} />
+        </div>
+      </div>
 
-          <h2 className="hifz-tracker-title ui-title">{(SMART[lang] || SMART.az).trackerTitle}</h2>
+      {/* Surə izləyicisi */}
+      <section className="ui-section ui-section--alt hifz-tracker" aria-labelledby="hifz-tracker-title">
+        <div className="ui-container hifz-layout">
+          <div className="ui-section-head" data-reveal="">
+            <span className="ui-eyebrow">{pk(HIFZ_GUIDE.tracker.eyebrow, lang)}</span>
+            <h2 id="hifz-tracker-title" className="ui-title">{(SMART[lang] || SMART.az).trackerTitle}</h2>
+            <p className="ui-lead">{pk(HIFZ_GUIDE.tracker.lead, lang)}</p>
+          </div>
 
+          <div className="hifz-summary">
           {/* Xülasə paneli: faiz + zolaq (əsas) və üç status sətri.
               Zolaq scaleX ilə dolur (yalnız transform) */}
           <div className="hifz-stats" data-reveal="stagger">
@@ -824,6 +932,17 @@ export default function HifzPage({ setPage }) {
               <span className="hifz-stat-num ui-num">{stats.notStarted}</span>
               <span className="hifz-stat-label">{t.notStarted}</span>
             </div>
+          </div>
+          <figure className="hifz-donut">
+            <figcaption className="ui-sr-only">{pk(HIFZ_GUIDE.tracker.donut, lang)}</figcaption>
+            <Donut size={120} thickness={14} label={pk(HIFZ_GUIDE.tracker.donut, lang)}
+              segments={[
+                { label: t.memorized, value: stats.memorized, tone: 1 },
+                { label: t.inProgress, value: stats.inProg, tone: 2 },
+                { label: t.notStarted, value: stats.notStarted, tone: 'muted' },
+              ]}
+              center={{ value: `${stats.pct}%`, label: t.progress }} />
+          </figure>
           </div>
 
           {/* Süzgəc çipləri (say nişanı ilə) + Sıfırla */}
@@ -891,7 +1010,64 @@ export default function HifzPage({ setPage }) {
           )}
 
         </div>
-      </div>
+      </section>
+
+      <HifzMethod lang={lang} />
     </>
+  )
+}
+
+// ── "Necə əzbərləmək": addımlar + dəlillər (data/guides/HifzPage.js) ──
+function HifzMethod({ lang }) {
+  const navigate = useNavigate()
+  const M = HIFZ_GUIDE.method
+  const quranHref = `${pathFor('quran', lang)}#qp-about`
+  return (
+    <section className="ui-section hifz-method ui-cv" style={{ '--cv-h': '900px' }} id="hifz-method" aria-labelledby="hifz-method-title">
+      <div className="ui-container">
+        <div className="ui-section-head" data-reveal="">
+          <span className="ui-eyebrow">{pk(M.eyebrow, lang)}</span>
+          <h2 id="hifz-method-title" className="ui-title">{pk(M.title, lang)}</h2>
+          <p className="ui-lead">{pk(M.lead, lang)}</p>
+        </div>
+        <div className="hifz-method__grid">
+          <ol className="ui-steps">
+            {M.steps.map((st, i) => (
+              <li key={i} className="ui-step">
+                <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                <div className="ui-step__body">
+                  <h3 className="ui-step__title">{pk(st.title, lang)}</h3>
+                  <p className="ui-step__text">{pk(st.text, lang)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="hifz-method__quotes">
+            {M.quotes.map((q, i) => (
+              <figure key={i} className="ui-quote hifz-quote">
+                <blockquote>
+                  <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{q.ar}</p>
+                  {lang !== 'ar' && <p className="ui-quote__text">{pk(q.text, lang)}</p>}
+                </blockquote>
+                <figcaption className="ui-quote__src">
+                  {q.kind === 'quran'
+                    ? <>{pk(HIFZ_GUIDE.quran, lang)}, <a dir="ltr" className="hifz-quote__ref" href={`${pathFor('quran', lang, 54)}?a=17`}>{q.ref}</a></>
+                    : <><cite>{pk(q.src, lang)}</cite>{q.grade && <> · {pk(HIFZ_GUIDE.grade, lang)}: {pk(q.grade, lang)}</>}</>}
+                </figcaption>
+              </figure>
+            ))}
+            <ul className="ui-list">
+              <li>
+                <a className="ui-list__item" href={quranHref} onClick={e => { if (!isPlainClick(e)) return; e.preventDefault(); navigate(quranHref) }}>
+                  <Icon name="quran" size={18} />
+                  <span>{pk(M.more, lang)}<small>{pk(M.moreText, lang)}</small></span>
+                  <Icon name="chevron" size={16} className="ui-list__chev ui-flip-rtl" />
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }

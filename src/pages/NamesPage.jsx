@@ -9,7 +9,9 @@ import Breadcrumb from '../components/Breadcrumb'
 import { isPlainClick } from '../components/PageLink'
 import { parsePath, pathFor } from '../seo/routes'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
-import { VIRTUE, IHSA, NAME_RULES, ATTR_RULES } from '../data/namesGuide'
+import { VIRTUE, IHSA, NAME_RULES, ATTR_RULES, DUA_BY_NAMES } from '../data/namesGuide'
+import { Donut } from '../components/viz'
+import RelatedLinks from '../components/RelatedLinks'
 import '../styles/NamesPage.css'
 
 // ── Yeni bölmələr: fəzilət, "ihsa" (əzbərlə · anla · ibadət et), əzbərləmə
@@ -107,6 +109,81 @@ const GUIDE = {
     proof: 'Delil', quran: 'Kur’an', sunnah: 'Sünnet', card: (i, n) => `Kart ${i} / ${n}`,
   },
 }
+
+// ── Dizayn v3: hero, mənbə bölgüsü, siyahı süzgəci, "adlarla dua", əlaqəli bölmələr ──
+const V3 = {
+  az: {
+    lead: 'Quran və səhih Sünnədən toplanmış 99 ad — ərəbcə yazılış, oxunuş, məna və dəlil. Karta toxun, ad ətraflı açılsın.',
+    how: 'Necə işlədilir: siyahıda axtar və ya mənbəyə görə süz, kartlarla əzbərlə, sonra 10 suallıq yoxlamadan keç. İrəliləyişin yalnız bu cihazda saxlanılır.',
+    srcTitle: 'Adların mənbəyi', srcSub: 'İbn Useyminin siyahısı', fromQuran: 'Qurandan', fromSunnah: 'Sünnədən', names: 'ad',
+    virtueEyebrow: 'Fəzilət', ihsaEyebrow: 'Üç mərtəbə',
+    listEyebrow: 'Siyahı', listTitle: '99 ad', listLead: 'Hər kartda ərəbcə ad, oxunuşu və mənası var. Süzgəclə yalnız Qurandan və ya Sünnədən gələn adları göstər.',
+    all: 'Hamısı', filterLabel: 'Mənbəyə görə süz', qMark: 'Quran', sMark: 'Sünnə',
+    practiceEyebrow: 'Məşq', rulesEyebrow: 'Əqidə',
+    duaEyebrow: 'Ad ilə dua', duaTitle: 'Qurandakı dualar adla necə bitir?', duaLead: 'Allah «Ən gözəl adlar Allahındır, Ona onlarla dua edin» buyurur (Əraf 7:180). Qurandakı dualar istənilən şeyə uyğun adla bitir — sən də belə dua et.',
+    colAsk: 'Nə istənilir', colEnd: 'Duanın sonu', colNames: 'Adlar', colRef: 'Ayə', duaNote: 'Ayə mətnləri: Quran.com (Osmani yazısı).',
+    relEyebrow: 'Davamı', relTitle: 'Əlaqəli bölmələr',
+  },
+  en: {
+    lead: '99 names gathered from the Quran and the authentic Sunnah — Arabic script, transliteration, meaning and evidence. Tap a card to open the name.',
+    how: 'How to use: search the list or filter by source, memorise with flashcards, then take the 10-question quiz. Your progress is saved on this device only.',
+    srcTitle: 'Where the names come from', srcSub: 'Ibn Uthaymin’s list', fromQuran: 'From the Quran', fromSunnah: 'From the Sunnah', names: 'names',
+    virtueEyebrow: 'Virtue', ihsaEyebrow: 'Three levels',
+    listEyebrow: 'The list', listTitle: '99 names', listLead: 'Each card shows the Arabic name, its transliteration and meaning. Filter to show only names from the Quran or from the Sunnah.',
+    all: 'All', filterLabel: 'Filter by source', qMark: 'Quran', sMark: 'Sunnah',
+    practiceEyebrow: 'Practice', rulesEyebrow: 'Aqidah',
+    duaEyebrow: 'Dua by the names', duaTitle: 'How the Quranic duas end with a name', duaLead: 'Allah says: “To Allah belong the best names, so call upon Him by them” (al-A‘raf 7:180). The duas in the Quran end with a name that fits what is asked — call upon Him the same way.',
+    colAsk: 'What is asked', colEnd: 'Ending of the dua', colNames: 'Names', colRef: 'Ayah', duaNote: 'Verse texts: Quran.com (Uthmani script).',
+    relEyebrow: 'Continue', relTitle: 'Related sections',
+  },
+  ru: {
+    lead: '99 имён из Корана и достоверной Сунны — арабское написание, транслитерация, смысл и довод. Нажми на карточку, чтобы открыть имя.',
+    how: 'Как пользоваться: ищи в списке или фильтруй по источнику, заучивай с карточками, затем пройди проверку из 10 вопросов. Прогресс хранится только на этом устройстве.',
+    srcTitle: 'Источник имён', srcSub: 'Список Ибн Усеймина', fromQuran: 'Из Корана', fromSunnah: 'Из Сунны', names: 'имён',
+    virtueEyebrow: 'Достоинство', ihsaEyebrow: 'Три ступени',
+    listEyebrow: 'Список', listTitle: '99 имён', listLead: 'На каждой карточке — арабское имя, транслитерация и смысл. Фильтр покажет только имена из Корана или из Сунны.',
+    all: 'Все', filterLabel: 'Фильтр по источнику', qMark: 'Коран', sMark: 'Сунна',
+    practiceEyebrow: 'Тренировка', rulesEyebrow: 'Акыда',
+    duaEyebrow: 'Мольба именами', duaTitle: 'Как мольбы в Коране завершаются именем', duaLead: 'Аллах говорит: «У Аллаха — прекраснейшие имена; взывайте же к Нему посредством их» (аль-Араф 7:180). Мольбы в Коране завершаются именем, подходящим к просьбе, — молись так же.',
+    colAsk: 'О чём просят', colEnd: 'Окончание мольбы', colNames: 'Имена', colRef: 'Аят', duaNote: 'Тексты аятов — усманским шрифтом Мусхафа.',
+    relEyebrow: 'Далее', relTitle: 'Связанные разделы',
+  },
+  ar: {
+    lead: 'تسعة وتسعون اسمًا من الكتاب والسنة الصحيحة — مع النطق والمعنى والدليل. اضغط على البطاقة لفتح الاسم.',
+    how: 'طريقة الاستخدام: ابحث في القائمة أو صفِّها بحسب المصدر، واحفظ بالبطاقات، ثم أجب عن اختبار من عشرة أسئلة. يُحفظ تقدّمك على هذا الجهاز فقط.',
+    srcTitle: 'مصدر الأسماء', srcSub: 'قائمة ابن عثيمين', fromQuran: 'من القرآن', fromSunnah: 'من السنة', names: 'اسمًا',
+    virtueEyebrow: 'الفضل', ihsaEyebrow: 'ثلاث مراتب',
+    listEyebrow: 'القائمة', listTitle: 'الأسماء التسعة والتسعون', listLead: 'في كل بطاقة الاسم ونطقه. استعمل التصفية لعرض ما ورد في القرآن أو في السنة فقط.',
+    all: 'الكل', filterLabel: 'التصفية بحسب المصدر', qMark: 'القرآن', sMark: 'السنة',
+    practiceEyebrow: 'التمرين', rulesEyebrow: 'العقيدة',
+    duaEyebrow: 'الدعاء بالأسماء', duaTitle: 'كيف تُختم الأدعية القرآنية باسم مناسب', duaLead: 'قال تعالى: ﴿وَلِلَّهِ ٱلْأَسْمَآءُ ٱلْحُسْنَىٰ فَٱدْعُوهُ بِهَا﴾ (الأعراف: ١٨٠). والأدعية في القرآن تُختم بالاسم المناسب للمطلوب، فادعُ كذلك.',
+    colAsk: 'المطلوب', colEnd: 'خاتمة الدعاء', colNames: 'الأسماء', colRef: 'الآية', duaNote: 'نصوص الآيات بالرسم العثماني.',
+    relEyebrow: 'المزيد', relTitle: 'أقسام ذات صلة',
+  },
+  tr: {
+    lead: 'Kur’an’dan ve sahih Sünnet’ten derlenen 99 isim — Arapça yazılış, okunuş, anlam ve delil. İsmi açmak için karta dokun.',
+    how: 'Nasıl kullanılır: listede ara veya kaynağa göre süz, kartlarla ezberle, sonra 10 soruluk testi çöz. İlerlemen yalnızca bu cihazda saklanır.',
+    srcTitle: 'İsimlerin kaynağı', srcSub: 'İbn Useymin’in listesi', fromQuran: 'Kur’an’dan', fromSunnah: 'Sünnet’ten', names: 'isim',
+    virtueEyebrow: 'Fazilet', ihsaEyebrow: 'Üç mertebe',
+    listEyebrow: 'Liste', listTitle: '99 isim', listLead: 'Her kartta Arapça isim, okunuşu ve anlamı var. Süzgeçle yalnızca Kur’an’dan veya Sünnet’ten gelen isimleri göster.',
+    all: 'Tümü', filterLabel: 'Kaynağa göre süz', qMark: 'Kur’an', sMark: 'Sünnet',
+    practiceEyebrow: 'Alıştırma', rulesEyebrow: 'Akide',
+    duaEyebrow: 'İsimlerle dua', duaTitle: 'Kur’an’daki dualar isimle nasıl biter?', duaLead: 'Allah “En güzel isimler Allah’ındır; O’na onlarla dua edin” buyurur (A‘râf 7:180). Kur’an’daki dualar istenen şeye uygun bir isimle biter — sen de böyle dua et.',
+    colAsk: 'Ne isteniyor', colEnd: 'Duanın sonu', colNames: 'İsimler', colRef: 'Ayet', duaNote: 'Ayet metinleri: Mushaf-ı Osmânî yazımı.',
+    relEyebrow: 'Devamı', relTitle: 'İlgili bölümler',
+  },
+}
+
+const NAMES_RELATED = [
+  { learn: 'kitab-at-tawhid', title: { az: 'Kitabut-Tövhid', en: 'Kitab at-Tawhid', ru: 'Китаб ат-Таухид', ar: 'كتاب التوحيد', tr: 'Kitâbü’t-Tevhîd' },
+    sub: { az: 'Tövhidin növləri, o cümlədən adlar və sifətlər', en: 'The categories of tawhid, including the names and attributes', ru: 'Виды таухида, в том числе имена и атрибуты', ar: 'أنواع التوحيد ومنها الأسماء والصفات', tr: 'Tevhidin kısımları, isim ve sıfatlar dahil' } },
+  { to: 'dhikr', title: { az: 'Zikr və təsbeh', en: 'Dhikr and tasbih', ru: 'Зикр и тасбих', ar: 'الذكر والتسبيح', tr: 'Zikir ve tesbih' },
+    sub: { az: 'Sünnədə gələn zikrlər və sayğac', en: 'Adhkar from the Sunnah with a counter', ru: 'Зикры из Сунны и счётчик', ar: 'أذكار من السنة مع عدّاد', tr: 'Sünnet’teki zikirler ve sayaç' } },
+  { to: 'glossary', title: { az: 'İslami terminlər lüğəti', en: 'Glossary of Islamic terms', ru: 'Словарь исламских терминов', ar: 'معجم المصطلحات', tr: 'İslami terimler sözlüğü' },
+    sub: { az: 'Tövhid, təhrif, təətil və başqa terminlər', en: 'Tawhid, tahrif, ta‘til and other terms', ru: 'Таухид, тахриф, та‘тиль и другие термины', ar: 'التوحيد والتحريف والتعطيل وغيرها', tr: 'Tevhid, tahrif, ta‘tîl ve diğer terimler' } },
+  { to: 'quiz', title: { az: 'Viktorina', en: 'Quiz', ru: 'Викторина', ar: 'مسابقة', tr: 'Bilgi yarışması' },
+    sub: { az: 'Biliklərini başqa mövzularda da yoxla', en: 'Test yourself on other topics too', ru: 'Проверь знания и в других темах', ar: 'اختبر معلوماتك في موضوعات أخرى', tr: 'Bilgini başka konularda da sına' } },
+]
 
 // Sünnə dəlilinin mənbə adları (names99.js → proof.s latın yazılışındadır)
 const BOOKS = {
@@ -267,9 +344,10 @@ function NamesPractice({ lang }) {
           {cur ? (
             <>
               <button type="button" className={`ui-card np-flash${flipped ? ' is-flipped' : ''}${knownSet.has(cur.n) ? ' is-known' : ''}`}
-                onClick={() => setFlipped(f => !f)} onKeyDown={onCardKey} aria-pressed={flipped}
-                aria-label={`${g.card(idx + 1, deck.length)} — ${g.flip}`}>
-                <span className="np-flash__count ui-num" dir="ltr">{idx + 1} / {deck.length}</span>
+                onClick={() => setFlipped(f => !f)} onKeyDown={onCardKey} aria-pressed={flipped}>
+                {/* Əlçatan ad görünən mətndən qurulur (WCAG 2.5.3) — ekran oxuyucusu üçün "Çevir" əvvəldə */}
+                <span className="ui-sr-only">{g.flip} — {g.card(idx + 1, deck.length)}: </span>
+                <span className="np-flash__count ui-num" dir="ltr" aria-hidden="true">{idx + 1} / {deck.length}</span>
                 {knownSet.has(cur.n) && <Icon name="check" size={18} strokeWidth={2.4} className="np-flash__known" />}
                 <span className="np-flash__ar ui-arabic" lang="ar" dir="rtl">{cur.ar}</span>
                 {flipped ? (
@@ -393,6 +471,9 @@ function RuleList({ rules, lang, g, idPrefix }) {
   )
 }
 
+// Qurandan gələn adların sayı (İbn Useymin: 81 Quran, 18 Sünnə)
+const Q_COUNT = NAMES_99.filter(n => n.proof?.q).length
+
 const NOT_FOUND = { az:'Ad tapılmadı', en:'Not found', ru:'Ничего не найдено', ar:'لم يتم العثور على شيء', tr:'Bulunamadı' }
 
 // Ərəb axtarışı hərəkəsiz də işləsin: "رحمن" → "ٱلرَّحۡمَٰنُ"
@@ -439,20 +520,24 @@ export default function NamesPage({ setPage }) {
   const lastFocus = useRef(null)
   const closeRef = useRef(null)
 
+  // Mənbə süzgəci: hamısı / Quran / Sünnə (proof.q — ayə, proof.s — hədis)
+  const [srcFilter, setSrcFilter] = useState('all')
+  const v3 = V3[lang] || V3.en
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return NAMES_99
+    const base = srcFilter === 'all' ? NAMES_99 : NAMES_99.filter(n => (srcFilter === 'q' ? !!n.proof?.q : !n.proof?.q))
+    if (!q) return base
     if (HAS_ARABIC.test(q)) {
       const nq = normAr(q)
-      return NAMES_99.filter(n => normAr(n.ar).includes(nq))
+      return base.filter(n => normAr(n.ar).includes(nq))
     }
-    return NAMES_99.filter(n =>
+    return base.filter(n =>
       n.tr.toLowerCase().includes(q) ||
       (lang === 'tr' ? (n.tr_meaning || '') : (n[lang] || '')).toLowerCase().includes(q) ||
       (n.en || '').toLowerCase().includes(q) ||
       String(n.n) === q
     )
-  }, [search, lang])
+  }, [search, lang, srcFilter])
 
   const opened = openIdx != null ? NAMES_99[openIdx] : null
 
@@ -523,61 +608,87 @@ export default function NamesPage({ setPage }) {
 
   return (
     <div className="names-page">
-      {/* Hero — dizayn v2 (sakit kağız fon + xatəm naxışı), bir <h1>.
-          Ərəbcədə başlıq onsuz da ərəbcədir — təkrar sətir göstərilmir */}
-      <header className="ui-page-hero names-hero">
+      {/* Hero — v3 kompakt, sağda mənbə bölgüsü (81 Quran / 18 Sünnə) */}
+      <header className="ui-page-hero ui-page-hero--split names-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        <div className="ui-container" data-reveal="stagger">
-          <Breadcrumb setPage={setPage} current={t.title} />
-          <span className="ui-eyebrow">{navGroupLabel(navGroupOf('names'), lang)}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          {lang !== 'ar' && <p className="names-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">أَسۡمَاءُ ٱللَّهِ ٱلۡحُسۡنَىٰ</p>}
-          <p className="ui-lead">{t.subtitle}</p>
+        <div className="ui-container">
+          <div className="ui-page-hero__text" data-reveal="stagger">
+            <Breadcrumb setPage={setPage} current={t.title} />
+            <span className="ui-eyebrow">{navGroupLabel(navGroupOf('names'), lang)}</span>
+            <h1 className="ui-display">{t.title}</h1>
+            {lang !== 'ar' && <p className="names-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">أَسۡمَاءُ ٱللَّهِ ٱلۡحُسۡنَىٰ</p>}
+            <p className="ui-lead">{v3.lead}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> {v3.how}</p>
+            <nav className="np-jump" aria-label={g.jump}>
+              <a className="ui-chip" href="#names-list">{g.jList}</a>
+              <a className="ui-chip" href="#names-practice">{g.jPractice}</a>
+              <a className="ui-chip" href="#names-rules">{g.jRules}</a>
+            </nav>
+          </div>
+          <div className="ui-page-hero__aside">
+            <figure className="ui-card np-src" aria-labelledby="np-src-title">
+              <figcaption className="np-src__head">
+                <span className="np-src__title" id="np-src-title">{v3.srcTitle}</span>
+                <span className="np-src__sub">{v3.srcSub}</span>
+              </figcaption>
+              <Donut size={120} thickness={14}
+                center={{ value: '99', label: v3.names }}
+                segments={[
+                  { label: v3.fromQuran, value: Q_COUNT, tone: 1 },
+                  { label: v3.fromSunnah, value: 99 - Q_COUNT, tone: 2 },
+                ]} />
+            </figure>
+          </div>
         </div>
       </header>
 
-      <section className="ui-section ui-section--tight">
-        <div className="ui-container">
-          {/* Bölmələrə keçid */}
-          <nav className="np-jump" aria-label={g.jump}>
-            <a className="ui-chip" href="#names-list">{g.jList}</a>
-            <a className="ui-chip" href="#names-practice">{g.jPractice}</a>
-            <a className="ui-chip" href="#names-rules">{g.jRules}</a>
-          </nav>
-
-          {/* Fəzilət hədisi — ortada, qızılı ornamentlə (Buxari 2736, 7392; Müslim 2677) */}
-          <figure className="names-hadith-banner" data-reveal="blur" aria-labelledby="np-virtue-h">
-            <div className="ui-ornament" data-reveal="" aria-hidden="true"><span className="ui-ornament__star" /></div>
-            <h2 className="np-h3" id="np-virtue-h">{g.virtueTitle}</h2>
-            <p className="names-hadith-ar ui-arabic" lang="ar" dir="rtl">{VIRTUE.ar}</p>
-            {lang !== 'ar' && <blockquote className="names-hadith-text">{VIRTUE.text[lang] || VIRTUE.text.en}</blockquote>}
-            <figcaption className="names-hadith-ref">— {VIRTUE.ref[lang] || VIRTUE.ref.en}</figcaption>
+      {/* Fəzilət + ihsa: solda hədis, sağda üç mərtəbə */}
+      <section className="ui-section ui-section--tight np-intro">
+        <div className="ui-container np-intro__grid">
+          <figure className="names-hadith-banner" aria-labelledby="np-virtue-h">
+            <span className="ui-eyebrow">{v3.virtueEyebrow}</span>
+            <h2 className="ui-title ui-title--sm" id="np-virtue-h">{g.virtueTitle}</h2>
+            <blockquote className="ui-quote np-virtue">
+              <p className="ui-quote__ar ui-arabic names-hadith-ar" lang="ar" dir="rtl">{VIRTUE.ar}</p>
+              {lang !== 'ar' && <p className="ui-quote__text names-hadith-text">{VIRTUE.text[lang] || VIRTUE.text.en}</p>}
+              <p className="ui-quote__src names-hadith-ref">{VIRTUE.ref[lang] || VIRTUE.ref.en}</p>
+            </blockquote>
             <ul className="np-notes">
               {(VIRTUE.notes[lang] || VIRTUE.notes.en).map((x, i) => <li key={i}>{x}</li>)}
             </ul>
-            <p className="names-hadith-ref names-list-source">{LIST_SOURCE[lang] || LIST_SOURCE.az}</p>
+            <p className="names-list-source">{LIST_SOURCE[lang] || LIST_SOURCE.az}</p>
           </figure>
 
-          {/* İhsa — üç mərtəbə */}
           <section className="np-block" aria-labelledby="np-ihsa-h">
             <div className="ui-section-head" data-reveal>
-              <h2 className="ui-title" id="np-ihsa-h">{g.ihsaTitle}</h2>
+              <span className="ui-eyebrow">{v3.ihsaEyebrow}</span>
+              <h2 className="ui-title ui-title--sm" id="np-ihsa-h">{g.ihsaTitle}</h2>
               <p className="ui-lead">{g.ihsaLead}</p>
             </div>
-            <ol className="np-ihsa" data-reveal="stagger">
+            <ol className="ui-steps np-ihsa">
               {IHSA.map((s, i) => (
-                <li key={s.id} className="ui-card np-ihsa__item">
-                  <div className="ui-card__head">
-                    <span className="ui-icon-tile ui-icon-tile--accent"><Icon name={s.icon} /></span>
-                    <h3 className="ui-card__title"><span className="ui-num np-ihsa__n">{i + 1}.</span> {s.title[lang] || s.title.en}</h3>
+                <li key={s.id} className="ui-step np-ihsa__item">
+                  <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
+                  <div className="ui-step__body">
+                    <h3 className="ui-step__title">{s.title[lang] || s.title.en}</h3>
+                    <p className="ui-step__text">{s.text[lang] || s.text.en}</p>
                   </div>
-                  <p className="ui-card__text">{s.text[lang] || s.text.en}</p>
                 </li>
               ))}
             </ol>
           </section>
+        </div>
+      </section>
 
-          <div className="names-toolbar" id="names-list">
+      {/* 99 ad — axtarış, mənbə süzgəci, şəbəkə */}
+      <section className="ui-section ui-section--tight ui-section--alt" id="names-list" aria-labelledby="np-list-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v3.listEyebrow}</span>
+            <h2 className="ui-title" id="np-list-h">{v3.listTitle}</h2>
+            <p className="ui-lead">{v3.listLead}</p>
+          </div>
+          <div className="names-toolbar">
             <label className="names-search">
               <span className="ui-sr-only">{t.searchPh}</span>
               <Icon name="search" size={18} className="names-search-ic" />
@@ -589,26 +700,34 @@ export default function NamesPage({ setPage }) {
                 onChange={e => setSearch(e.target.value)}
               />
             </label>
+            <div className="np-filter" role="group" aria-label={v3.filterLabel}>
+              {[['all', v3.all, 99], ['q', v3.qMark, Q_COUNT], ['s', v3.sMark, 99 - Q_COUNT]].map(([k, lbl, n]) => (
+                <button key={k} type="button" className="ui-chip" aria-pressed={srcFilter === k} onClick={() => setSrcFilter(k)}>
+                  {k !== 'all' && <span className={`np-dot np-dot--${k}`} aria-hidden="true" />}
+                  {lbl} <span className="np-filter__n ui-num">{n}</span>
+                </button>
+              ))}
+            </div>
             <p className="names-count" aria-live="polite">
               <span className="ui-num">{filtered.length}</span> {ui.count}
             </p>
           </div>
 
-          {/* 99 ad şəbəkəsi — kartlar ekrana girəndə yumşaq böyüyərək görünür
-              (ilk 8-i növbə ilə, sonrakılar sütuna görə kiçik fərqlə). Karta
-              toxunanda ad iri pəncərədə "açılır" */}
+          {/* Kartlar ekrana girəndə yumşaq görünür; toxunanda ad pəncərədə açılır */}
           <ol className="names-grid">
             {filtered.map((name, i) => {
               const meaning = meaningOf(name, lang)
+              const fromQ = !!name.proof?.q
               return (
                 <li key={name.n} data-reveal="zoom" data-reveal-delay={i < 8 ? i * 40 : (i % 4) * 40}>
-                  <a className="name-card" href={pathFor('names', lang, name.n)}
+                  <a className={`name-card${fromQ ? '' : ' is-sunnah'}`} href={pathFor('names', lang, name.n)}
                     onClick={onCardClick(name.n)}
                     aria-haspopup="dialog">
-                    {/* Əlçatan ad kartın görünən mətnidir (nömrə, ərəbcə ad,
-                        transliterasiya, məna) + gizli "Ətraflı bax". Əvvəl ayrıca
-                        aria-label ərəbcə adı daşımırdı (WCAG 2.5.3 "Label in Name") */}
-                    <span className="name-num ui-num">{name.n}</span>
+                    {/* Əlçatan ad kartın görünən mətnidir (WCAG 2.5.3 "Label in Name") */}
+                    <span className="name-card__top">
+                      <span className="name-num ui-num">{name.n}</span>
+                      <span className={`np-dot np-dot--${fromQ ? 'q' : 's'}`} title={fromQ ? v3.qMark : v3.sMark} aria-hidden="true" />
+                    </span>
                     <span className="name-arabic" lang="ar" dir="rtl">{name.ar}</span>
                     <span className="name-translit" dir="ltr">{name.tr}</span>
                     {meaning && <span className="name-meaning">{meaning}</span>}
@@ -629,9 +748,10 @@ export default function NamesPage({ setPage }) {
       </section>
 
       {/* Əzbərləmə məşqi — kartlar və yoxlama */}
-      <section className="ui-section ui-section--alt np-section" id="names-practice" aria-labelledby="np-practice-h">
+      <section className="ui-section np-section" id="names-practice" aria-labelledby="np-practice-h">
         <div className="ui-container">
-          <div className="ui-section-head" data-reveal>
+          <div className="ui-section-head ui-section-head--center" data-reveal>
+            <span className="ui-eyebrow">{v3.practiceEyebrow}</span>
             <h2 className="ui-title" id="np-practice-h">{g.practiceTitle}</h2>
             <p className="ui-lead">{g.practiceLead}</p>
           </div>
@@ -639,10 +759,54 @@ export default function NamesPage({ setPage }) {
         </div>
       </section>
 
+      {/* Adlarla dua — Qurandakı duaların sonluğu (Əraf 7:180) */}
+      <section className="ui-section ui-section--tight ui-section--alt np-section" aria-labelledby="np-dua-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v3.duaEyebrow}</span>
+            <h2 className="ui-title" id="np-dua-h">{v3.duaTitle}</h2>
+            <p className="ui-lead">{v3.duaLead}</p>
+          </div>
+          <div className="ui-table-wrap" tabIndex={0} role="region" aria-label={v3.duaTitle}>
+            <table className="ui-table np-dua-table">
+              <caption>{v3.duaNote}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{v3.colAsk}</th>
+                  <th scope="col">{v3.colEnd}</th>
+                  <th scope="col">{v3.colNames}</th>
+                  <th scope="col" className="is-num">{v3.colRef}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {DUA_BY_NAMES.map(d => (
+                  <tr key={d.ref}>
+                    <th scope="row">
+                      {d.ask[lang] || d.ask.en}
+                      <small className="np-dua-who">{d.who[lang] || d.who.en}</small>
+                    </th>
+                    <td><span className="np-dua-ar ui-arabic" lang="ar" dir="rtl">{d.ar}</span></td>
+                    <td>
+                      <span className="np-dua-names">
+                        {d.names.map(n => (
+                          <a key={n} href={pathFor('names', lang, n)} onClick={onCardClick(n)} dir="ltr">{NAMES_99[n - 1].tr}</a>
+                        ))}
+                      </span>
+                    </td>
+                    <td className="is-num"><bdi>{d.ref}</bdi></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* Qaydalar — İbn Useymin, «əl-Qavaid əl-Musla» */}
       <section className="ui-section np-section" id="names-rules" aria-labelledby="np-rules-h">
         <div className="ui-container">
           <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{v3.rulesEyebrow}</span>
             <h2 className="ui-title" id="np-rules-h">{g.rulesTitle}</h2>
             <p className="ui-lead">{g.rulesLead}</p>
           </div>
@@ -656,6 +820,17 @@ export default function NamesPage({ setPage }) {
               <RuleList rules={ATTR_RULES} lang={lang} g={g} idPrefix="attr-rule" />
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Əlaqəli bölmələr — məzmunu təkrarlamadan keçid */}
+      <section className="ui-section ui-section--tight np-rel" aria-labelledby="np-rel-h">
+        <div className="ui-container">
+          <div className="ui-section-head">
+            <span className="ui-eyebrow">{v3.relEyebrow}</span>
+            <h2 className="ui-title ui-title--sm" id="np-rel-h">{v3.relTitle}</h2>
+          </div>
+          <RelatedLinks items={NAMES_RELATED} />
         </div>
       </section>
 

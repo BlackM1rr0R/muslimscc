@@ -11,6 +11,15 @@ import { navGroupLabel, navGroupOf } from '../data/navigation'
 import PlacePhoto from '../components/media/PlacePhoto'
 import { HajjRouteMap } from '../components/media/SiraMaps'
 import { PLACE_PHOTOS } from '../data/placeImages'
+// v3: günbəgün plan, rüknlər siyahısı, ihram qaydaları, həcc növləri (5 dil, mənbəli)
+import { useNavigate } from 'react-router-dom'
+import { Timeline, ProgressBar } from '../components/viz'
+import { isPlainClick } from '../components/PageLink'
+import { pathFor } from '../seo/routes'
+import { HX, HAJJ_DAYS, HAJJ_RITES, IHRAM_NOT, IHRAM_OK, HAJJ_TYPES, HAJJ_VIRTUES, HAJJ_RELATED } from '../data/guides/HajjGuideExtra'
+
+/** 5 dilli obyektdən cari dil (yoxdursa en → az) */
+const P = (o, lang) => (o && (o[lang] || o.en || o.az)) || ''
 
 // Seçim ekranındakı "Yerlər və yol" bölməsi (5 dil); hero-da Mina, yanda Məscidül-Haram
 const MEDIA_L = {
@@ -174,22 +183,22 @@ const HAJJ_STEPS = [
   {
     id: 'ramy',
     icon: 'target',
-    arabic: 'رَمْي',
-    name: { az:'Rəmy', en:'Ramy (Stoning)', ru:'Рами (Бросание камней)', ar:'رمي الجمرات', tr:'Remy (Şeytan Taşlama)' },
+    arabic: 'رَمْي جَمْرَةِ الْعَقَبَة',
+    name: { az:'Rəmy (Əqəbə cəmrəsi)', en:'Ramy (Jamrat al-Aqabah)', ru:'Рами (Джамрат аль-Акаба)', ar:'رمي جمرة العقبة', tr:'Remy (Akabe cemresi)' },
     description: {
-      az: '10 Zülhiccə (Qurban bayramı) — Böyük cəmrəyə (Cəmrətül-Aqaba) 7 daş atın. Hər daş atarkən "Allahu Akbar" deyin. 11-12 Zülhiccədə hər üç cəmrəyə (kiçik, orta, böyük) 7-şər daş atın.',
-      en: '10th Dhul Hijjah (Eid al-Adha) — Throw 7 pebbles at the large pillar (Jamrat al-Aqaba). Say "Allahu Akbar" with each throw. On 11th-12th Dhul Hijjah, stone all three pillars (small, medium, large) with 7 pebbles each.',
-      ru: '10-е Зуль-Хиджа (Ид аль-Адха) — бросьте 7 камешков в большой столб (Джамрат аль-Акаба). Говорите «Аллаху Акбар» при каждом броске. 11-12 Зуль-Хиджа бросайте по 7 камешков во все три столба (малый, средний, большой).',
-      ar: '١٠ ذي الحجة (عيد الأضحى) — ارمِ جمرة العقبة الكبرى بـ٧ حصيات. كبّر مع كل حصاة. في ١١-١٢ ذي الحجة ارمِ الجمرات الثلاث (الصغرى والوسطى والكبرى) بـ٧ حصيات لكل واحدة.',
-      tr: '10 Zilhicce (Kurban Bayramı) — Büyük cemreye (Cemretül-Akabe) 7 taş atın. Her taşta "Allahu Ekber" deyin. 11-12 Zilhicce\'de üç cemreye (küçük, orta, büyük) 7\'şer taş atın.',
+      az: '10 Zülhiccə (Qurban bayramı) — səhər Müzdəlifədən Minaya gəlib yalnız Böyük cəmrəyə (Cəmrətül-Əqəbə) 7 daş atın. Hər daşla "Allahu Akbar" deyin. Digər iki cəmrəyə təşriq günlərində daş atılır.',
+      en: '10th Dhul Hijjah (Eid al-Adha) — In the morning come from Muzdalifah to Mina and throw 7 pebbles at the large pillar (Jamrat al-Aqaba) only. Say "Allahu Akbar" with each throw. The other two pillars are stoned on the days of Tashreeq.',
+      ru: '10-е Зуль-Хиджа (Ид аль-Адха) — утром придите из Муздалифы в Мину и бросьте 7 камешков только в большой столб (Джамрат аль-Акаба). Говорите «Аллаху Акбар» при каждом броске. В два других столба бросают в дни ташрика.',
+      ar: '١٠ ذي الحجة (عيد الأضحى) — تأتي صباحًا من مزدلفة إلى منى فترمي جمرة العقبة وحدها بسبع حصيات، وتكبّر مع كل حصاة. وتُرمى الجمرتان الأخريان في أيام التشريق.',
+      tr: '10 Zilhicce (Kurban Bayramı) — Sabah Müzdelife\'den Mina\'ya gelip yalnızca büyük cemreye (Cemretül-Akabe) 7 taş atın. Her taşta "Allahu Ekber" deyin. Diğer iki cemreye teşrik günlerinde taş atılır.',
     },
     recitation: 'اللَّهُ أَكْبَرُ',
     notes: {
-      az: 'Daşlar noxud boyda olmalıdır. Zöhrdən sonra atın (10-cu gün istisna).',
-      en: 'Pebbles should be chickpea-sized. Throw after Dhuhr (except on the 10th).',
-      ru: 'Камешки размером с горошину. Бросайте после Зухра (кроме 10-го дня).',
-      ar: 'الحصى بحجم الحمصة. ارمِ بعد الظهر (ما عدا يوم العاشر).',
-      tr: 'Taşlar nohut büyüklüğünde olmalıdır. Öğleden sonra atın (10. gün hariç).',
+      az: 'Daşlar noxud boyda olmalıdır. Bu gün daş günəş çıxandan sonra, zəvaldan əvvəl də atıla bilər.',
+      en: 'Pebbles should be chickpea-sized. On this day the stoning may be done after sunrise, before midday.',
+      ru: 'Камешки размером с горошину. В этот день бросать можно после восхода, ещё до полудня.',
+      ar: 'الحصى بحجم الحمصة، ويُرمى في هذا اليوم بعد طلوع الشمس ولو قبل الزوال.',
+      tr: 'Taşlar nohut büyüklüğünde olmalıdır. Bu gün taş, güneş doğduktan sonra zevalden önce de atılabilir.',
     },
   },
   {
@@ -235,7 +244,49 @@ const HAJJ_STEPS = [
     },
   },
   {
-    id: 'tawaf_ifadah',
+    id: 'ifadah',
+    icon: 'refresh',
+    arabic: 'طَوَافُ الْإِفَاضَة',
+    name: { az:'İfadə təvafı və səy', en:"Tawaf al-Ifadah and Sa'i", ru:'Таваф аль-Ифада и саи', ar:'طواف الإفاضة والسعي', tr:'İfâda tavafı ve say' },
+    description: {
+      az: 'Qurban günü (və ya ondan sonra) Məkkəyə qayıdıb Kəbəni 7 dəfə təvaf edin — bu, həccin rüknüdür, onsuz həcc tamam olmur. Təməttü edən sonra həcc üçün Səfa ilə Mərvə arasında səy edir; qiran və ifrad edən gəliş təvafından sonra səy etməyibsə, indi edir. Bundan sonra ihramın bütün qadağaları qalxır (ikinci təhəllül).',
+      en: "On the Day of Sacrifice (or later) return to Mecca and circle the Kaaba 7 times — this is a pillar of Hajj; without it the Hajj is not complete. One doing tamattu' then performs the sa'i of Hajj between Safa and Marwah; one doing qiran or ifrad performs it now if he did not do so after the arrival tawaf. After this all ihram restrictions are lifted (the second tahallul).",
+      ru: 'В день жертвоприношения (или позже) вернитесь в Мекку и обойдите Каабу 7 раз — это столп хаджа, без него хадж не завершён. Совершающий таматту затем совершает саи хаджа между Сафой и Марвой; совершающий киран или ифрад делает его сейчас, если не сделал после тавафа прибытия. После этого снимаются все запреты ихрама (второй тахаллюль).',
+      ar: 'يوم النحر (أو بعده) يرجع الحاج إلى مكة فيطوف بالبيت سبعًا، وهو ركن لا يتم الحج إلا به. ثم يسعى المتمتع بين الصفا والمروة لحجه، ويسعى القارن والمفرد إن لم يكونا سعيا بعد طواف القدوم. وبه يحل له كل شيء (التحلل الثاني).',
+      tr: 'Kurban günü (veya sonrasında) Mekke\'ye dönüp Kâbe\'yi 7 kez tavaf edin — bu haccın rüknüdür, onsuz hac tamamlanmaz. Temettu yapan ardından hac için Safa ile Merve arasında say yapar; kıran ve ifrad yapan, kudüm tavafından sonra say yapmadıysa şimdi yapar. Bundan sonra ihramın bütün yasakları kalkar (ikinci tahallül).',
+    },
+    recitation: '',
+    notes: {
+      az: 'Peyğəmbər ﷺ qurban günü Məkkəyə gedib təvaf etdi və zöhrü orada qıldı (Müslim 1218).',
+      en: 'On the Day of Sacrifice the Prophet ﷺ went to Mecca, performed tawaf and prayed Dhuhr there (Muslim 1218).',
+      ru: 'В день жертвоприношения Пророк ﷺ отправился в Мекку, совершил таваф и помолился там зухр (Муслим 1218).',
+      ar: 'أفاض النبي ﷺ يوم النحر إلى البيت فصلى بمكة الظهر (مسلم ١٢١٨).',
+      tr: 'Peygamber ﷺ kurban günü Mekke\'ye gidip tavaf etti ve öğleyi orada kıldı (Müslim 1218).',
+    },
+  },
+  {
+    id: 'tashriq',
+    icon: 'calendar',
+    arabic: 'أَيَّامُ التَّشْرِيق',
+    name: { az:'Təşriq günləri (Mina)', en:'Days of Tashreeq (Mina)', ru:'Дни ташрика (Мина)', ar:'أيام التشريق (منى)', tr:'Teşrik günleri (Mina)' },
+    description: {
+      az: '11, 12 (istəsəniz 13) Zülhiccə gecələrini Minada keçirin. Hər gün zəvaldan (zöhr vaxtı girəndən) sonra üç cəmrəyə 7-şər daş atın: əvvəl kiçik, sonra orta, sonra Əqəbə cəmrəsi; ilk ikisindən sonra qibləyə dönüb uzun dua edin (Buxari 1751). Tələsən 12-də günəş batmadan Minadan çıxa bilər (Bəqərə 2:203).',
+      en: 'Spend the nights of the 11th, 12th (and, if you wish, the 13th) in Mina. Each day after midday (when Dhuhr time begins) throw 7 pebbles at each of the three pillars: first the small, then the middle, then Jamrat al-Aqabah; after the first two, face the qiblah and supplicate at length (Bukhari 1751). One who hastens may leave Mina on the 12th before sunset (al-Baqarah 2:203).',
+      ru: 'Проведите ночи 11-го, 12-го (по желанию и 13-го) в Мине. Каждый день после полудня (с наступлением зухра) бросайте по 7 камешков в каждый из трёх столбов: сначала малый, затем средний, затем Джамрат аль-Акаба; после первых двух повернитесь к кибле и долго молитесь (аль-Бухари 1751). Спешащий может покинуть Мину 12-го до заката (аль-Бакара 2:203).',
+      ar: 'بِت ليالي الحادي عشر والثاني عشر (والثالث عشر إن شئت) بمنى، وارمِ كل يوم بعد الزوال الجمرات الثلاث بسبع سبع: الصغرى ثم الوسطى ثم جمرة العقبة، وقف بعد الأوليين مستقبل القبلة تدعو طويلًا (البخاري ١٧٥١). ومن تعجّل خرج يوم الثاني عشر قبل الغروب (البقرة: ٢٠٣).',
+      tr: '11, 12 (dilerseniz 13) Zilhicce gecelerini Mina\'da geçirin. Her gün zevalden (öğle vakti girdikten) sonra üç cemreye yedişer taş atın: önce küçük, sonra orta, sonra Akabe cemresi; ilk ikisinden sonra kıbleye dönüp uzun dua edin (Buhârî 1751). Acele eden 12\'sinde güneş batmadan Mina\'dan çıkabilir (Bakara 2:203).',
+    },
+    recitation: 'اللَّهُ أَكْبَرُ',
+    notes: {
+      az: 'Təşriq günləri yemək-içmək və Allahı zikr etmək günləridir — bu günlərdə oruc tutulmur (Müslim 1141).',
+      en: 'The days of Tashreeq are days of eating, drinking and remembering Allah — one does not fast on them (Muslim 1141).',
+      ru: 'Дни ташрика — дни еды, питья и поминания Аллаха; в эти дни не постятся (Муслим 1141).',
+      ar: 'أيام التشريق أيام أكل وشرب وذكر لله، فلا تُصام (مسلم ١١٤١).',
+      tr: 'Teşrik günleri yeme, içme ve Allah\'ı zikir günleridir — bu günlerde oruç tutulmaz (Müslim 1141).',
+    },
+  },
+  {
+    id: 'wada',
     icon: 'hajjguide',
     arabic: 'طَوَاف الْوَدَاع',
     name: { az:'Vida təvafı', en:'Farewell Tawaf', ru:'Прощальный таваф', ar:'طواف الوداع', tr:'Veda Tavafı' },
@@ -345,9 +396,84 @@ const UMRAH_STEPS = [
   },
 ]
 
+// Rüknlər yoxlama siyahısı — yalnız bu cihazda (id-lər HAJJ_RITES-dəndir)
+const CHECK_KEY = 'muslim_cc_hajj_checklist'
+function loadChecks() {
+  try {
+    const v = JSON.parse(localStorage.getItem(CHECK_KEY) || '[]')
+    return Array.isArray(v) ? v.filter(id => HAJJ_RITES.some(r => r.id === id)) : []
+  } catch { return [] }
+}
+
+/** Rüknlər və vaciblər: işarələnən siyahı + irəliləyiş zolağı */
+function RitesChecklist({ lang }) {
+  const [done, setDone] = useState([])
+  // localStorage yalnız brauzerdə (prerender HTML-i ilə uyğunsuzluq olmasın)
+  useEffect(() => { setDone(loadChecks()) }, [])
+  const save = (next) => {
+    setDone(next)
+    try { localStorage.setItem(CHECK_KEY, JSON.stringify(next)) } catch { /* yaddaş bağlıdır */ }
+  }
+  const toggle = (id) => save(done.includes(id) ? done.filter(x => x !== id) : [...done, id])
+  const groups = [
+    { kind: 'rukn', label: P(HX.rukn, lang) },
+    { kind: 'wajib', label: P(HX.wajib, lang) },
+  ]
+  return (
+    <div className="hg-rites">
+      <div className="hg-rites__meter">
+        <span className="hg-rites__count ui-num">{done.length} / {HAJJ_RITES.length} <span>{P(HX.done, lang)}</span></span>
+        <ProgressBar value={done.length} max={HAJJ_RITES.length} label={`${P(HX.ritesTitle, lang)}: ${done.length} / ${HAJJ_RITES.length}`} />
+        {done.length > 0 && (
+          <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => save([])}>
+            <Icon name="refresh" size={15} className="ui-btn__icon" /> {P(HX.reset, lang)}
+          </button>
+        )}
+      </div>
+      <div className="hg-rites__groups">
+        {groups.map(g => (
+          <fieldset key={g.kind} className={`hg-rites__group hg-rites__group--${g.kind}`}>
+            <legend className="hg-rites__legend">
+              {g.label} <span className="ui-num">{HAJJ_RITES.filter(r => r.kind === g.kind).length}</span>
+            </legend>
+            <ul className="hg-rites__list">
+              {HAJJ_RITES.filter(r => r.kind === g.kind).map(r => {
+                const on = done.includes(r.id)
+                return (
+                  <li key={r.id}>
+                    <label className={`hg-rite${on ? ' is-done' : ''}`}>
+                      <input type="checkbox" checked={on} onChange={() => toggle(r.id)} />
+                      <span className="hg-rite__box" aria-hidden="true"><Icon name="check" size={14} strokeWidth={2.6} /></span>
+                      <span className="hg-rite__name">{P(r.name, lang)}</span>
+                      <span className="hg-rite__when">{P(r.when, lang)}</span>
+                    </label>
+                  </li>
+                )
+              })}
+            </ul>
+          </fieldset>
+        ))}
+      </div>
+      <p className="hg-src">{P(HX.ritesSource, lang)}</p>
+    </div>
+  )
+}
+
+/** Bölmə başlığı (eyebrow · h2 · bir cümlə) */
+function Head({ id, eyebrow, title, lead }) {
+  return (
+    <div className="ui-section-head" data-reveal>
+      <span className="ui-eyebrow">{eyebrow}</span>
+      <h2 id={id} className="ui-title">{title}</h2>
+      {lead && <p className="ui-lead">{lead}</p>}
+    </div>
+  )
+}
+
 export default function HajjGuidePage({ setPage }) {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
+  const navigate = useNavigate()
 
   const [mode, setMode] = useState(null) // 'hajj' | 'umrah'
   const [currentStep, setCurrentStep] = useState(0)
@@ -356,6 +482,7 @@ export default function HajjGuidePage({ setPage }) {
   // Seçim ekranına geri qayıdanda yumşaq giriş; ilk yükləmədə yox (səhifə keçidi onsuz da var)
   const [visited, setVisited] = useState(false)
 
+  const guideRef = useRef(null)
   const topbarRef = useRef(null)
   const stepsRef = useRef(null)
   const cardRef = useRef(null)
@@ -372,6 +499,15 @@ export default function HajjGuidePage({ setPage }) {
     setCurrentStep(i)
   }
   const startMode = (m) => { setMode(m); setCurrentStep(0); setDir('none'); setVisited(true) }
+  // Hero düymələri: bələdçini aç və ona sürüş
+  const startFromHero = (m) => {
+    startMode(m)
+    requestAnimationFrame(() => {
+      let smooth = true
+      try { smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { /* köhnə brauzer */ }
+      guideRef.current?.scrollIntoView({ block: 'start', behavior: smooth ? 'smooth' : 'auto' })
+    })
+  }
   const handlePrev = () => { if (currentStep > 0) goTo(currentStep - 1) }
   const handleNext = () => { goTo(currentStep + 1) }
   const handleRestart = () => { setMode(null); setCurrentStep(0); setDir('none') }
@@ -408,72 +544,81 @@ export default function HajjGuidePage({ setPage }) {
   // Şaquli addım xəttinin doluluğu (0…1): ilk addımda 0, sonuncuda 1
   const railP = totalSteps > 1 ? Math.min(currentStep, totalSteps - 1) / (totalSteps - 1) : 0
 
+  // Dərsə / bölməyə keçid — həqiqi <a href>, adi klikdə SPA ilə
+  const relHref = (r) => (r.learn ? pathFor('learn', lang, r.learn) : pathFor(r.to, lang))
+  const openRel = (e, r) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    if (r.learn) navigate(pathFor('learn', lang, r.learn))
+    else setPage?.(r.to)
+    window.scrollTo(0, 0)
+  }
+
+  const media = MEDIA_L[lang] || MEDIA_L.en
+
   return (
     <div className="hg-page">
-      {/* Hero — dizayn v2: sakit kağız fon + xatəm naxışı, bir <h1> */}
-      <header className="ui-page-hero hg-hero">
+      {/* Hero — v3: kompakt; solda izah + açar rəqəmlər + iki düymə, sağda Mina fotosu (≥900px) */}
+      <header className="ui-page-hero ui-page-hero--split hg-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
-        <div className="ui-container mh-grid">
-          <div data-reveal="stagger">
+        <div className="ui-container">
+          <div className="ui-page-hero__text" data-reveal="stagger">
             <Breadcrumb setPage={setPage} current={t.title} />
             <span className="ui-eyebrow">{navGroupLabel(navGroupOf('hajjguide'), lang)}</span>
             <h1 className="ui-display">{t.title}</h1>
-            {lang !== 'ar' && <p className="hg-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">{t.heroArabic}</p>}
             <p className="ui-lead">{t.subtitle}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{P(HX.how, lang)}</span></p>
+            <ul className="ui-page-hero__stats">
+              {HX.stats.map((s, i) => <li key={i}><b dir="ltr">{s.v}</b><span>{P(s.l, lang)}</span></li>)}
+            </ul>
+            <div className="ui-page-hero__actions">
+              <button type="button" className="ui-btn ui-btn--primary" onClick={() => startFromHero('hajj')}>
+                <Icon name="hajjguide" size={18} className="ui-btn__icon" /> {P(HX.startHajj, lang)}
+              </button>
+              <button type="button" className="ui-btn ui-btn--secondary" onClick={() => startFromHero('umrah')}>
+                {P(HX.startUmrah, lang)}
+              </button>
+            </div>
           </div>
-          <div className="mh-media">
-            <PlacePhoto id="mina" lang={lang} eager sizes="(min-width: 1024px) 480px, 100vw" />
+          {/* Foto yalnız ≥900px-də görünür (telefonda hero qısa qalsın); tənbəl yüklənir —
+              gizli olanda brauzer onu heç yükləmir */}
+          <div className="ui-page-hero__aside hg-hero-photo">
+            <PlacePhoto id="mina" lang={lang} sizes="(min-width: 900px) 440px, 100vw" />
           </div>
         </div>
       </header>
 
-      <section className="ui-section ui-section--tight">
+      {/* ═══ İnteraktiv bələdçi ═══ */}
+      <section className="ui-section ui-section--tight hg-guide-sec" ref={guideRef} aria-labelledby={mode === null ? 'hg-pick-h' : undefined}>
         <div className="ui-container">
 
           {/* Seçim: Həcc və ya Ümrə */}
           {mode === null && (
-            <div className={`hg-select-grid${visited ? ' hg-view-in' : ''}`} data-reveal={visited ? undefined : 'stagger'}>
-              {[
-                { m: 'hajj', icon: 'hajjguide', ar: 'الْحَجّ', name: t.hajj, list: HAJJ_STEPS },
-                { m: 'umrah', icon: 'holyplaces', ar: 'الْعُمْرَة', name: t.umrah, list: UMRAH_STEPS },
-              ].map(o => (
-                <button key={o.m} type="button" className="ui-card ui-card--interactive hg-select-btn" onClick={() => startMode(o.m)}>
-                  <span className="ui-icon-tile ui-icon-tile--lg"><Icon name={o.icon} /></span>
-                  <span className="hg-select-arabic ui-arabic" lang="ar" dir="rtl">{o.ar}</span>
-                  <span className="hg-select-name">{o.name}</span>
-                  <span className="ui-badge ui-badge--brand hg-select-count">
-                    <span className="ui-num">{o.list.length}</span> {stepsWord(o.list.length, lang)}
-                  </span>
-                  {/* Addımların qısa zənciri — nə gözlədiyini əvvəlcədən görmək üçün */}
-                  <span className="hg-select-chain">
-                    {o.list.map(s => s.name[lang] || s.name.en).join(' · ')}
-                  </span>
-                  <span className="hg-select-go" aria-hidden="true"><Icon name="arrow" size={18} className="ui-flip-rtl" /></span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Yerlər və yol: mərhələlər xəritəsi + Məscidül-Haram fotosu (yalnız seçim ekranında) */}
-          {mode === null && (
-            <section className="hg-media" aria-labelledby="hg-media-h">
-              <div className="ui-section-head" data-reveal>
-                <span className="ui-eyebrow">{(MEDIA_L[lang] || MEDIA_L.en).eyebrow}</span>
-                <h2 id="hg-media-h" className="ui-title">{(MEDIA_L[lang] || MEDIA_L.en).title}</h2>
-                <p className="ui-lead">{(MEDIA_L[lang] || MEDIA_L.en).lead}</p>
+            <>
+              <Head id="hg-pick-h" eyebrow={P(HX.pickEyebrow, lang)} title={P(HX.pickTitle, lang)} lead={P(HX.pickLead, lang)} />
+              <div className={`hg-select-grid${visited ? ' hg-view-in' : ''}`} data-reveal={visited ? undefined : 'stagger'}>
+                {[
+                  { m: 'hajj', icon: 'hajjguide', ar: 'الْحَجّ', name: t.hajj, list: HAJJ_STEPS },
+                  { m: 'umrah', icon: 'holyplaces', ar: 'الْعُمْرَة', name: t.umrah, list: UMRAH_STEPS },
+                ].map(o => (
+                  <button key={o.m} type="button" className="ui-card ui-card--interactive hg-select-btn" onClick={() => startMode(o.m)}>
+                    <span className="hg-select-top">
+                      <span className="ui-icon-tile"><Icon name={o.icon} /></span>
+                      <span className="hg-select-titles">
+                        <span className="hg-select-name">{o.name}</span>
+                        <span className="hg-select-count"><span className="ui-num">{o.list.length}</span> {stepsWord(o.list.length, lang)}</span>
+                      </span>
+                      {lang !== 'ar' && <span className="hg-select-arabic ui-arabic" lang="ar" dir="rtl">{o.ar}</span>}
+                    </span>
+                    {/* Addımların qısa zənciri — nə gözlədiyini əvvəlcədən görmək üçün */}
+                    <span className="hg-select-chain">
+                      {o.list.map((s, i) => <span key={s.id} className="hg-select-chain__i"><span className="ui-num">{i + 1}</span>{s.name[lang] || s.name.en}</span>)}
+                    </span>
+                    <span className="hg-select-go" aria-hidden="true"><Icon name="arrow" size={18} className="ui-flip-rtl" /></span>
+                  </button>
+                ))}
               </div>
-              <div className="hg-media-grid">
-                <HajjRouteMap lang={lang} />
-                <div className="hg-media-side" data-reveal="stagger">
-                  {['masjid-al-haram'].map(k => (
-                    <div key={k}>
-                      <PlacePhoto id={k} lang={lang} className="ph--zoom" sizes="(min-width: 1024px) 360px, 100vw" />
-                      <p className="ph-strip__cap">{PLACE_PHOTOS[k].name[lang] || PLACE_PHOTOS[k].name.en}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
+            </>
           )}
 
           {/* Addım-addım bələdçi */}
@@ -518,7 +663,7 @@ export default function HajjGuidePage({ setPage }) {
                   {/* Addım kartı — açar dəyişir: hər addım istiqamətə görə yumşaq sürüşüb gəlir */}
                   <article key={`${mode}-${step.id}`} ref={cardRef} className={`ui-card hg-step-card is-${dir}`}>
                     <div className="hg-step-header">
-                      <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--accent hg-step-icon">
+                      <span className="ui-icon-tile ui-icon-tile--accent hg-step-icon">
                         <Icon name={step.icon} />
                         <span className="hg-step-number ui-num" aria-hidden="true">{currentStep + 1}</span>
                       </span>
@@ -575,7 +720,139 @@ export default function HajjGuidePage({ setPage }) {
               </button>
             </div>
           )}
+        </div>
+      </section>
 
+      {/* ═══ Günbəgün: 8–13 Zülhiccə ═══ */}
+      <section className="ui-section ui-section--alt hg-days ui-cv" style={{ '--cv-h': '900px' }} aria-labelledby="hg-days-h">
+        <div className="ui-container">
+          <Head id="hg-days-h" eyebrow={P(HX.daysEyebrow, lang)} title={P(HX.daysTitle, lang)} lead={P(HX.daysLead, lang)} />
+          <Timeline wide items={HAJJ_DAYS.map(d => ({
+            key: d.key, when: P(d.when, lang), title: P(d.title, lang), text: P(d.text, lang), highlight: d.highlight,
+          }))} />
+        </div>
+      </section>
+
+      {/* ═══ Xəritə: mərhələlər + Məscidül-Haram fotosu ═══ */}
+      <section className="ui-section hg-media" aria-labelledby="hg-media-h">
+        <div className="ui-container">
+          <Head id="hg-media-h" eyebrow={media.eyebrow} title={media.title} lead={media.lead} />
+          <div className="hg-media-grid">
+            <HajjRouteMap lang={lang} />
+            <div className="hg-media-side" data-reveal="stagger">
+              {['masjid-al-haram'].map(k => (
+                <div key={k}>
+                  <PlacePhoto id={k} lang={lang} className="ph--zoom" sizes="(min-width: 1024px) 360px, 100vw" />
+                  <p className="ph-strip__cap">{PLACE_PHOTOS[k].name[lang] || PLACE_PHOTOS[k].name.en}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Rüknlər və vaciblər ═══ */}
+      <section className="ui-section ui-section--alt" aria-labelledby="hg-rites-h">
+        <div className="ui-container">
+          <Head id="hg-rites-h" eyebrow={P(HX.ritesEyebrow, lang)} title={P(HX.ritesTitle, lang)} lead={P(HX.ritesLead, lang)} />
+          <RitesChecklist lang={lang} />
+        </div>
+      </section>
+
+      {/* ═══ İhram: olmaz / olar ═══ */}
+      <section className="ui-section" aria-labelledby="hg-ihram-h">
+        <div className="ui-container">
+          <Head id="hg-ihram-h" eyebrow={P(HX.ihramEyebrow, lang)} title={P(HX.ihramTitle, lang)} lead={P(HX.ihramLead, lang)} />
+          <div className="hg-ihram" data-reveal="stagger">
+            {[
+              { k: 'not', list: IHRAM_NOT, title: P(HX.notAllowed, lang), icon: 'close' },
+              { k: 'ok', list: IHRAM_OK, title: P(HX.allowed, lang), icon: 'check' },
+            ].map(col => (
+              <div key={col.k} className={`ui-card hg-ihram__col hg-ihram__col--${col.k}`}>
+                <h3 className="hg-ihram__title">
+                  <span className="hg-ihram__mark" aria-hidden="true"><Icon name={col.icon} size={15} strokeWidth={2.4} /></span>
+                  {col.title} <span className="ui-num hg-ihram__n">{col.list.length}</span>
+                </h3>
+                <ul className="hg-ihram__list">
+                  {col.list.map((it, i) => (
+                    <li key={i}>
+                      <span>{P(it, lang)}</span>
+                      {it.ref && <span className="hg-ref">{P(it.ref, lang)}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Həccin növləri ═══ */}
+      <section className="ui-section ui-section--alt" aria-labelledby="hg-types-h">
+        <div className="ui-container">
+          <Head id="hg-types-h" eyebrow={P(HX.typesEyebrow, lang)} title={P(HX.typesTitle, lang)} lead={P(HX.typesLead, lang)} />
+          <div className="ui-table-wrap hg-types" tabIndex={0} role="region" aria-label={P(HX.typesTitle, lang)}>
+            <table className="ui-table">
+              <thead>
+                <tr>
+                  <th scope="col">{P(HX.typeCol, lang)}</th>
+                  <th scope="col">{P(HX.ihramCol, lang)}</th>
+                  <th scope="col">{P(HX.hadyCol, lang)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {HAJJ_TYPES.map(ty => (
+                  <tr key={ty.id} className={ty.id === 'tamattu' ? 'is-current' : undefined}>
+                    <th scope="row">{P(ty.name, lang)}</th>
+                    <td>{P(ty.ihram, lang)}</td>
+                    <td><span className={`hg-hady${ty.needs ? ' is-yes' : ''}`}>{P(ty.hady, lang)}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <aside className="ui-callout hg-types-note">
+            <Icon name="info" />
+            <div><p>{P(HX.typesNote, lang)}</p></div>
+          </aside>
+        </div>
+      </section>
+
+      {/* ═══ Fəzilət: ayə + iki hədis ═══ */}
+      <section className="ui-section" aria-labelledby="hg-virtue-h">
+        <div className="ui-container">
+          <Head id="hg-virtue-h" eyebrow={P(HX.virtueEyebrow, lang)} title={P(HX.virtueTitle, lang)} />
+          <div className="hg-virtues" data-reveal="stagger">
+            {HAJJ_VIRTUES.map((v, i) => (
+              <figure key={i} className="ui-quote hg-virtue">
+                <blockquote>
+                  <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{v.ar}</p>
+                  {lang !== 'ar' && <p className="ui-quote__text">{P(v.text, lang)}</p>}
+                </blockquote>
+                <figcaption className="ui-quote__src">{P(v.src, lang)}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Əlaqəli bölmələr ═══ */}
+      <section className="ui-section ui-section--tight hg-related" aria-labelledby="hg-rel-h">
+        <div className="ui-container">
+          <h2 id="hg-rel-h" className="ui-eyebrow hg-related__h">{P(HX.related, lang)}</h2>
+          <ul className="ui-tiles" style={{ '--ui-tiles-min': '220px' }} data-reveal="stagger">
+            {HAJJ_RELATED.map((r, i) => (
+              <li key={i}>
+                <a className="ui-tile ui-tile--row" href={relHref(r)} onClick={(e) => openRel(e, r)}>
+                  <span className="ui-icon-tile" aria-hidden="true"><Icon name={r.icon} /></span>
+                  <span className="ui-tile__body">
+                    <span className="ui-tile__title">{P(r.title, lang)}</span>
+                    <span className="ui-tile__text">{P(r.text, lang)}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
     </div>

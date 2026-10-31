@@ -6,35 +6,33 @@
    .names-page-dən asılı deyil.
    ══════════════════════════════════════════════════════ */
 
-/* ── Hero ── */
+/* ── Hero (v3 --split) ── */
 .names-hero .breadcrumb { justify-content: flex-start; margin: 0 0 2px; }
 .names-hero .bc-list { justify-content: flex-start; }
 .names-hero-ar {
-  margin-top: -2px;
+  margin-top: -4px;
   color: var(--accent-text);
-  font-size: clamp(22px, 1.4rem + 0.8vw, 32px);
+  font-size: clamp(20px, 1.1rem + 0.6vw, 26px);
   line-height: 1.5;
 }
+.names-page .np-src { display: grid; gap: var(--space-4); margin: 0; padding: var(--card-pad); }
+.np-src__head { display: flex; flex-direction: column; gap: 2px; }
+.np-src__title { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600; }
+.np-src__sub { color: var(--text-tertiary); font-size: var(--step--1); }
 
-/* ── Hədis banneri ── */
-.names-hadith-banner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  max-width: 760px;
-  margin: 0 auto var(--space-6);
-  text-align: center;
+/* ── Fəzilət + ihsa ── */
+.np-intro__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: var(--space-7) var(--space-8);
+  align-items: start;
 }
-.names-hadith-banner .ui-ornament { width: min(100%, 220px); }
-.names-hadith-text {
-  color: var(--text-body);
-  font-family: var(--font-display);
-  font-size: var(--step-1);
-  font-style: italic;
-  line-height: 1.6;
-}
-.names-hadith-ref { color: var(--accent-text); font-size: 13px; font-weight: 600; }
+.names-hadith-banner { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); margin: 0; }
+.names-hadith-banner .ui-title { margin: 0; }
+.names-page .np-virtue { margin: var(--space-2) 0 0; }
+.names-hadith-ar { color: var(--text-strong); line-height: var(--lh-arabic); }
+.names-hadith-text { font-size: var(--step-0); }
+.names-list-source { color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.55; }
 
 /* ── Axtarış + say ── */
 .names-toolbar {
@@ -45,7 +43,7 @@
   gap: var(--space-3) var(--space-5);
   margin-bottom: var(--space-5);
 }
-.names-search { position: relative; display: block; flex: 1 1 280px; max-width: 440px; }
+.names-search { position: relative; display: block; flex: 1 1 260px; max-width: 380px; }
 .names-search-ic {
   position: absolute;
   inset-inline-start: 14px;
@@ -55,14 +53,14 @@
   pointer-events: none;
 }
 .names-page .names-search .ui-input { padding-inline-start: 42px; }
-.names-count { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
+.names-count { margin-inline-start: auto; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
 .names-count .ui-num { color: var(--text-strong); font-weight: 600; }
 
 /* ── 99 ad şəbəkəsi ── */
 .names-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 176px), 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 156px), 1fr));
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -75,17 +73,17 @@
   flex: 1;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   width: 100%;
   min-height: 100%;
-  padding: 16px 12px 18px;
+  padding: 10px 12px 14px;
   background: var(--surface-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
   color: var(--text-body);
   font-family: var(--font-sans);
   text-align: center;
+  text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -94,33 +92,28 @@
     border-color var(--dur-2) ease;
 }
 @media (hover: hover) {
-  .name-card:hover { transform: translateY(-3px); border-color: var(--brand-line); box-shadow: var(--shadow-3); }
-  .name-card:hover .name-arabic { transform: scale(1.06); }
+  .name-card:hover { transform: translateY(-2px); border-color: var(--brand-line); box-shadow: var(--shadow-2); }
 }
-.name-card:active { transform: scale(0.97); }
-
-.name-num {
-  display: inline-grid;
-  place-items: center;
-  min-width: 28px;
-  height: 22px;
-  margin-bottom: 4px;
-  padding: 0 8px;
-  border-radius: var(--radius-pill);
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  font-size: 12px;
-  font-weight: 600;
-}
+.name-card:active { transform: scale(0.98); }
+.name-card__top { display: flex; align-items: center; justify-content: space-between; align-self: stretch; }
+.name-num { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 500; }
 .name-arabic {
+  margin-top: 2px;
   color: var(--brand);
   font-family: var(--font-arabic);
-  font-size: 1.6rem;
+  font-size: 1.55rem;
   line-height: 1.6;
-  transition: transform var(--dur-2) var(--ease-out);
 }
-.name-translit { color: var(--text-strong); font-size: 13.5px; font-weight: 600; }
-.name-meaning { color: var(--text-tertiary); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.name-translit { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step--1); font-weight: 600; }
+.name-meaning { color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.45; overflow-wrap: anywhere; }
+
+/* Mənbə nöqtəsi: Quran (--viz-1) / Sünnə (--viz-2) — mətn süzgəcdə də yazılıb */
+.np-dot { display: inline-block; flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--viz-1); }
+.np-dot--s { background: var(--viz-2); }
+.np-filter { display: flex; flex-wrap: wrap; gap: 6px; }
+.np-filter .ui-chip { gap: 6px; }
+.np-filter__n { color: var(--text-tertiary); font-size: var(--step--2); }
+.np-filter .ui-chip[aria-pressed="true"] .np-filter__n { color: inherit; opacity: .8; }
 
 .names-empty {
   display: flex;
@@ -179,7 +172,7 @@
   padding-block: var(--space-4) var(--space-5);
   animation: namesBodyIn var(--dur-3) var(--ease-out) both;
 }
-.names-modal-ar { color: var(--brand); font-size: clamp(3rem, 2rem + 4vw, 4.2rem); line-height: 1.5; }
+.names-modal-ar { color: var(--brand); font-size: clamp(2.6rem, 2rem + 3vw, 3.6rem); line-height: 1.5; }
 .names-modal-body .ui-ornament { width: min(100%, 180px); }
 .names-modal-title {
   color: var(--text-strong);
@@ -207,18 +200,17 @@
 /* ══ TELEFON (<768) ═══════════════════════════════════════════════ */
 @media (max-width: 767.98px) {
   .names-hero .breadcrumb { display: none; }
-  .names-hero-ar { font-size: 20px; }
-  .names-hadith-banner { margin-bottom: var(--space-5); }
-  .names-hadith-text { font-size: 16px; }
+  .names-hero-ar { font-size: 19px; }
   .names-search { max-width: none; flex-basis: 100%; }
   .names-page .names-search .ui-input { min-height: 48px; }
   .names-toolbar { margin-bottom: var(--space-4); }
-  .name-arabic { font-size: 1.5rem; }
+  .name-arabic { font-size: 1.45rem; }
+  .names-count { margin-inline-start: 0; }
 }
 
 @media (max-width: 480px) {
   .names-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .name-card { padding: 12px 10px 14px; }
+  .name-card { padding: 8px 10px 12px; }
   .names-modal .names-modal-card { padding: 16px 16px 18px; }
 }
 
@@ -227,15 +219,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .name-card, .name-arabic { transition: none; }
-  .name-card:hover, .name-card:hover .name-arabic { transform: none; }
+  .name-card { transition: none; }
+  .name-card:hover { transform: none; }
   .names-modal, .names-modal .names-modal-card, .names-modal-body { animation: none; }
 }
 
 /* ══════════════════════════════════════════════════════
    Yeni bölmələr: keçid çipləri, fəzilət, ihsa, əzbərləmə məşqi, qaydalar
    ══════════════════════════════════════════════════════ */
-.np-jump { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: var(--space-5); }
+.np-jump { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .np-jump .ui-chip { text-decoration: none; }
 #names-list, #names-practice, #names-rules { scroll-margin-top: calc(var(--header-h) + 16px); }
 
@@ -251,10 +243,8 @@
 .np-notes {
   display: grid;
   gap: 8px;
-  margin: var(--space-2) 0 0;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
+  margin: 0;
+  padding: 0;
   color: var(--text-secondary);
   font-size: var(--step--1);
   line-height: 1.6;
@@ -273,16 +263,15 @@
   background: var(--accent);
 }
 
-.np-block { margin-bottom: var(--space-7); }
-.np-ihsa {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.np-ihsa__n { color: var(--accent-text); }
+.np-block { margin: 0; }
+.np-block .ui-section-head { margin-bottom: var(--space-4); }
+
+/* ── Adlarla dua (cədvəl) ── */
+.np-dua-table th[scope="row"] { min-width: 150px; }
+.np-dua-who { display: block; margin-top: 2px; color: var(--text-tertiary); font-size: var(--step--2); font-weight: 400; }
+.np-dua-ar { display: block; min-width: 200px; color: var(--text-strong); font-size: 20px; line-height: 1.8; }
+.np-dua-names { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.np-dua-names a { color: var(--brand); font-family: var(--font-heading); font-size: var(--step--1); font-weight: 600; white-space: nowrap; }
 .names-modal-proof { margin-top: var(--space-2); color: var(--text-tertiary); font-size: var(--step--1); }
 
 /* ── Əzbərləmə məşqi ── */
@@ -318,7 +307,7 @@
   justify-content: center;
   gap: var(--space-3);
   width: min(100%, 460px);
-  min-height: 280px;
+  min-height: 250px;
   padding: var(--space-6) var(--space-5);
   border: 1px solid var(--line);
   color: var(--text-body);
@@ -331,7 +320,7 @@
 .names-page .np-flash.is-flipped { border-color: var(--brand-line); background: linear-gradient(var(--brand-soft), var(--brand-soft)), var(--surface-1); }
 .np-flash__count { position: absolute; top: 12px; inset-inline-start: 16px; color: var(--text-tertiary); font-size: var(--step--1); }
 .np-flash__known { position: absolute; top: 12px; inset-inline-end: 16px; color: var(--ok); }
-.np-flash__ar { color: var(--text-strong); font-size: clamp(40px, 2rem + 3vw, 60px); line-height: 1.6; }
+.np-flash__ar { color: var(--text-strong); font-size: clamp(36px, 1.8rem + 2.4vw, 52px); line-height: 1.6; }
 .np-flash__hint { color: var(--text-tertiary); font-size: var(--step--1); }
 .np-flash__back { display: grid; gap: 6px; animation: np-rise var(--dur-3) var(--ease-out) both; }
 .np-flash__tl { color: var(--brand); font-size: var(--step-1); font-weight: 600; }
@@ -344,12 +333,12 @@
 /* ── Yoxlama ── */
 .names-page .np-quiz { padding: var(--space-5); }
 .np-quiz__intro, .np-quiz__result { display: grid; gap: var(--space-3); justify-items: center; color: var(--text-secondary); text-align: center; }
-.np-quiz__score { color: var(--brand); font-family: var(--font-display); font-size: var(--step-4); font-weight: 600; line-height: 1.1; }
+.np-quiz__score { color: var(--brand); font-family: var(--font-num); font-size: var(--step-4); font-weight: 600; line-height: 1.1; }
 .np-quiz__head { display: grid; gap: 8px; margin-bottom: var(--space-4); }
 .np-quiz__count { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
 .np-quiz__text { margin: 0; color: var(--text-secondary); font-weight: 600; text-align: center; }
 .np-quiz__prompt { margin: var(--space-2) 0 var(--space-4); color: var(--text-strong); font-size: var(--step-2); font-weight: 600; line-height: 1.4; text-align: center; }
-.np-quiz__prompt.ui-arabic { font-size: clamp(34px, 1.6rem + 2vw, 48px); font-weight: 400; line-height: 1.7; }
+.np-quiz__prompt.ui-arabic { font-size: clamp(30px, 1.5rem + 1.6vw, 42px); font-weight: 400; line-height: 1.7; }
 .np-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
 .np-option {
   display: flex;
@@ -372,7 +361,7 @@
 .np-option:disabled { cursor: default; }
 .np-option__n { display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--surface-2); color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; }
 .np-option__label { flex: 1; line-height: 1.4; }
-.np-option__ar { flex: 1; font-size: 28px; line-height: 1.6; text-align: center; }
+.np-option__ar { flex: 1; font-size: 25px; line-height: 1.6; text-align: center; }
 .np-option__mark { color: var(--ok); }
 .np-option.is-correct { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, var(--surface-1)); }
 .np-option.is-wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, var(--surface-1)); }
@@ -408,7 +397,7 @@
 .np-rule__body { display: grid; gap: var(--space-3); padding: 0 var(--space-4) var(--space-4); color: var(--text-secondary); line-height: var(--lh-body); }
 .np-rule__body > p { margin: 0; }
 .np-ayah { margin: 0; padding: var(--space-3) var(--space-4); border-inline-start: 3px solid var(--accent); border-radius: var(--radius-sm); background: var(--surface-2); }
-.np-ayah__ar { margin: 0; color: var(--text-strong); font-size: 22px; line-height: var(--lh-arabic); }
+.np-ayah__ar { margin: 0; color: var(--text-strong); font-size: 21px; line-height: var(--lh-arabic); }
 .np-ayah__ref { margin-top: 4px; color: var(--accent-text); font-size: var(--step--1); font-weight: 600; }
 
 @keyframes np-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -420,4 +409,40 @@
 @media (prefers-reduced-motion: reduce) {
   .np-flash__back { animation: none; }
   .np-meter__bar > span, .np-rule__chev, .names-page .np-flash, .np-option { transition: none; }
+}
+
+/* v3: telefonda hero kompakt — mənbə kartı bir sətir, keçid çipləri gizli */
+@media (max-width: 599.98px) {
+  .names-hero .np-jump, .names-hero .names-hero-ar { display: none; }
+  .names-page .np-src { grid-template-columns: auto; gap: 8px; padding: 12px 14px; }
+  .names-page .np-src__sub { display: none; }
+  .names-page .np-src .ui-viz-donut { flex-wrap: nowrap; gap: 16px; }
+  .names-page .np-src .ui-viz-donut svg { width: 76px; height: 76px; }
+  .names-page .np-src .ui-viz-donut .ui-legend { flex-direction: row; flex-wrap: wrap; gap: 6px 14px; }
+}
+.np-rel .ui-list { max-width: 760px; }
+.names-page .names-hadith-ar { font-size: clamp(20px, 1.1rem + 0.8vw, 25px); }
+
+/* Planşet: hero vizualı tam enə yayılmasın */
+@media (max-width: 899.98px) { .names-page .ui-page-hero__aside { max-width: 440px; } }
+
+/* Telefon: "adlarla dua" cədvəli kart kimi (ərəbcə kəsilməsin), kart naviqasiyası bir sətirdə */
+@media (max-width: 599.98px) {
+  .names-page .np-dua-table thead { display: none; }
+  .names-page .np-dua-table,
+  .names-page .np-dua-table tbody,
+  .names-page .np-dua-table tr,
+  .names-page .np-dua-table th,
+  .names-page .np-dua-table td { display: block; width: 100%; }
+  .names-page .np-dua-table tr { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .names-page .np-dua-table tbody th,
+  .names-page .np-dua-table tbody td { padding: 2px 0; border: 0; background: none; text-align: start; }
+  .names-page .np-dua-ar { min-width: 0; margin-block: 4px; }
+  .np-cards__nav { flex-wrap: nowrap; gap: 6px; }
+  .names-page .np-cards__nav .ui-btn { padding-inline: 12px; }
+}
+@media (max-width: 599.98px) {
+  .names-page table.np-dua-table { display: flex; flex-direction: column; }
+  .names-page .np-dua-table caption { order: 2; display: block; padding: 10px 14px; text-align: start; }
+  .names-page .np-dua-table tbody tr:last-child { border-bottom: 0; }
 }

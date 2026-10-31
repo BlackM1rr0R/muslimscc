@@ -1,12 +1,5 @@
-/* ═══ Miras (fəraiz) hesablayıcısı — dizayn v2 (yalnız tokenlər və .ui-* sinifləri) ═══
+/* ═══ Miras (fəraiz) hesablayıcısı — dizayn v3 (yalnız tokenlər və .ui-* sinifləri) ═══
    Səhifə CSS-i ui.css-dən əvvəl yüklənir: .ui-* dəyişiklikləri .inh-page ilə gücləndirilir. */
-
-.inh-hero-ar {
-  margin: 0 0 var(--space-2);
-  font-size: var(--step-2);
-  color: var(--accent-text);
-  line-height: var(--lh-arabic);
-}
 
 .inh-layout {
   display: grid;
@@ -15,7 +8,7 @@
 }
 @media (min-width: 1080px) {
   .inh-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
-  .inh-result { position: sticky; top: calc(var(--space-6) + 56px); }
+  .inh-result { position: sticky; top: calc(var(--header-h, 64px) + 16px); }
 }
 
 .inh-inputs,
@@ -34,7 +27,7 @@
   align-items: center;
   gap: var(--space-2);
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-weight: 600;
   font-size: var(--step-1);
   color: var(--text-strong);
@@ -50,10 +43,6 @@
 }
 .inh-input { font-variant-numeric: tabular-nums; }
 
-/* ── Ölənin cinsi ── */
-.inh-gender { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-.inh-page .inh-gender__btn { min-height: var(--tap); padding-inline: var(--space-5); font-size: var(--step-0); }
-
 /* ── Varislər ── */
 .inh-group {
   margin: 0;
@@ -63,6 +52,7 @@
   min-width: 0;
 }
 .inh-group__title {
+  font-family: var(--font-label);
   padding: 0;
   margin-bottom: var(--space-2);
   font-size: var(--step--2);
@@ -134,7 +124,40 @@ html[lang="ar"] .inh-group__title { letter-spacing: 0; text-transform: none; fon
 }
 
 /* ── Nəticə ── */
-.inh-empty { margin: 0; color: var(--text-secondary); line-height: var(--lh-body); }
+.inh-empty { display: flex; align-items: center; gap: var(--space-4); color: var(--text-secondary); font-size: var(--step--1); line-height: var(--lh-body); }
+.inh-empty p { margin: 0; max-width: 40ch; }
+
+/* Addım nömrəsi (1 · 2 · 3) */
+.inh-step-n {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: var(--step--1);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--brand-line);
+}
+.inh-page .inh-gender { flex: 0 1 240px; }
+.inh-page .inh-gender > button { flex: 1; }
+
+/* Donut + legend */
+.inh-chart { padding-block: var(--space-2); border-block: 1px solid var(--line); }
+.inh-page .inh-chart .ui-viz-donut { justify-content: flex-start; }
+.inh-page .inh-chart .ui-legend b { direction: ltr; unicode-bidi: isolate; }
+
+/* Sabit paylar qrafiki */
+.inh-page .inh-shares .ui-viz-bar__label .inh-frac { font-size: var(--step-1); color: var(--text-strong); }
+.inh-page .inh-shares .ui-viz-bar__note { max-width: 72ch; line-height: 1.5; }
+.inh-shares__ref { color: var(--text-tertiary); font-family: var(--font-num); white-space: nowrap; }
+.inh-page .inh-shares .ui-figure { max-width: 900px; }
+
+/* Əlaqəli */
+.inh-related__title { margin-bottom: var(--space-3); }
+
 
 .inh-summary { margin: 0; display: grid; gap: 4px; }
 .inh-summary > div {
@@ -153,41 +176,6 @@ html[lang="ar"] .inh-group__title { letter-spacing: 0; text-transform: none; fon
 .inh-page .inh-summary__net { font-size: var(--step-1); color: var(--text-strong); font-weight: 600; }
 
 .inh-frac { font-weight: 600; color: var(--text-strong); unicode-bidi: isolate; }
-
-/* Üfüqi yığılmış qrafik */
-.inh-bar {
-  display: flex;
-  height: 18px;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: var(--surface-2);
-  gap: 2px;
-}
-.inh-bar__seg { flex-grow: 0; flex-shrink: 1; min-width: 3px; }
-.inh-tone-0 { background: var(--brand); }
-.inh-tone-1 { background: var(--accent); }
-.inh-tone-2 { background: color-mix(in srgb, var(--brand) 60%, var(--surface-1)); }
-.inh-tone-3 { background: color-mix(in srgb, var(--accent) 55%, var(--surface-1)); }
-.inh-tone-4 { background: var(--brand-strong); }
-.inh-tone-5 { background: color-mix(in srgb, var(--brand) 35%, var(--surface-1)); }
-.inh-tone-6 { background: var(--accent-text); }
-.inh-tone-7 { background: color-mix(in srgb, var(--accent) 30%, var(--surface-1)); }
-.inh-tone-rest {
-  background: repeating-linear-gradient(135deg, var(--surface-3) 0 4px, var(--line-strong) 4px 6px);
-}
-
-.inh-legend {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-3);
-  font-size: var(--step--2);
-  color: var(--text-secondary);
-}
-.inh-legend li { display: inline-flex; align-items: center; gap: 6px; }
-.inh-legend__dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
 
 /* Cədvəl */
 .inh-table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
@@ -254,23 +242,16 @@ html[lang="ar"] .inh-table thead th { letter-spacing: 0; text-transform: none; }
 .inh-notes li { font-size: var(--step--1); line-height: var(--lh-body); color: var(--text-body); }
 .inh-notes li::marker { color: var(--accent); }
 
-/* Xəbərdarlıq */
-.inh-disclaimer {
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border: 1px solid var(--accent-line);
-  border-inline-start: 3px solid var(--accent);
-  border-radius: var(--radius-lg);
-  background: var(--accent-soft);
-}
-.inh-disclaimer > svg { color: var(--accent-text); flex: none; margin-top: 2px; }
-.inh-disclaimer strong { display: block; color: var(--text-strong); margin-bottom: 4px; }
-.inh-disclaimer p { margin: 0; font-size: var(--step--1); line-height: var(--lh-body); color: var(--text-body); }
-
 /* ── Dəlillər ── */
 .inh-verses { display: grid; gap: var(--space-6); margin-top: var(--space-5); }
 .inh-page .inh-verse .ui-quote__ar { line-height: var(--lh-arabic); }
 .inh-translator { color: var(--text-tertiary); }
-.inh-method { margin-top: var(--space-6); }
+.inh-method { display: grid; gap: var(--space-2); margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--line); }
 .inh-method p { margin: 0; line-height: var(--lh-body); color: var(--text-body); font-size: var(--step--1); }
+
+/* Telefonda hero kompakt qalsın (birinci ekranın ~45%-i) */
+@media (max-width: 767.98px) {
+  .inh-hero .breadcrumb { display: none; }
+  .inh-hero .ui-page-hero__stats { gap: 8px 20px; }
+  .inh-hero .ui-page-hero__stats > li:nth-child(2) { display: none; }
+}

@@ -15,6 +15,11 @@ import ListMore from '../components/ListMore'
 import BackToTop from '../components/BackToTop'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
+import { ChartFigure, BarChart } from '../components/viz'
+import { HADITH_COUNT } from '../data/siteStats'
+import { pathFor } from '../seo/routes'
+import { isPlainClick } from '../components/PageLink'
+import { useNavigate } from 'react-router-dom'
 import '../styles/HadithPage.css'
 import { pickLang } from '../utils/pickLang'
 
@@ -27,11 +32,89 @@ const CATS_MAP = { az:CATS_AZ, en:CATS_EN, ru:CATS_RU, ar:CATS_AR, tr:CATS_TR }
 
 // Hero eyebrow-u, boş sevimlilər ipucu və "kopyalandı" bildirişi — 5 dil
 const UI_LABELS = {
-  az: { eyebrow:'Hədis və bilik', favEmpty:'Bəyəndiyiniz hədisləri ürək düyməsi ilə burada saxlayın.', copied:'Kopyalandı', clear:'Axtarışı təmizlə', all:'Bütün hədislər' },
-  en: { eyebrow:'Hadith & knowledge', favEmpty:'Save the hadiths you love here with the heart button.', copied:'Copied', clear:'Clear search', all:'All hadiths' },
-  ru: { eyebrow:'Хадисы и знание', favEmpty:'Сохраняйте понравившиеся хадисы здесь кнопкой с сердцем.', copied:'Скопировано', clear:'Очистить поиск', all:'Все хадисы' },
-  ar: { eyebrow:'الحديث والعلم', favEmpty:'احفظ الأحاديث التي تحبها هنا بزر القلب.', copied:'تم النسخ', clear:'مسح البحث', all:'كل الأحاديث' },
-  tr: { eyebrow:'Hadis ve ilim', favEmpty:'Beğendiğiniz hadisleri kalp düğmesiyle burada saklayın.', copied:'Kopyalandı', clear:'Aramayı temizle', all:'Tüm hadisler' },
+  az: { eyebrow:'Hədis və bilik', favEmpty:'Bəyəndiyiniz hədisləri ürək düyməsi ilə burada saxlayın.', copied:'Kopyalandı', clear:'Axtarışı təmizlə', all:'Bütün hədislər',
+    lead:'Peyğəmbərin ﷺ sözləri — ərəbcə mətn, tərcümə və mənbə ilə.',
+    how:'Mövzu seçin və ya söz, mənbə («Buxari 1») yazıb axtarın. Ürək düyməsi hədisi «Sevimlilər»ə əlavə edir.',
+    statHadith:'hədis', statTopics:'mövzu', statBooks:'əsas toplu',
+    aboutSum:'Bu hədislər haradandır? Mənbələr və dərəcələr',
+    gradesTitle:'Hədisin dərəcəsi', gradesLead:'Hədis isnadına və mətninə görə qiymətləndirilir. Ətraflı — «Hədis elminin əsasları» dərsində.',
+    accepted:'Qəbul olunur', rejected:'Rədd olunur', lesson:'Hədis elminin əsasları — dərs', nawawi:'Ən-Nəvəvinin 40 hədisi',
+    note:'Zəif və uydurma rəvayətlər Sələf mühəddislərinin (ilk növbədə əl-Albaninin) hökmünə görə siyahıdan çıxarılıb. Səhv görsəniz, kartdakı bayraq düyməsi ilə bildirin.',
+    chartTitle:'Hədislər hansı toplulardandır', chartSub:'kartda göstərilən ilk mənbəyə görə', chartNote:'Hesablama bu siyahının özündəndir. «Digər» — Təbərani, Beyhəqi, Hakim və s., həmçinin Quran ayələri.', other:'Digər', sixBooks:'Kutubu-sittə nədir?' },
+  en: { eyebrow:'Hadith & knowledge', favEmpty:'Save the hadiths you love here with the heart button.', copied:'Copied', clear:'Clear search', all:'All hadiths',
+    lead:'Sayings of the Prophet ﷺ — with the Arabic text, a translation and the source.',
+    how:'Pick a topic or search by word or source (“Bukhari 1”). The heart button adds a hadith to your Favorites.',
+    statHadith:'hadiths', statTopics:'topics', statBooks:'main collections',
+    aboutSum:'Where are these hadiths from? Sources and grades',
+    gradesTitle:'Grades of hadith', gradesLead:'A hadith is graded by its chain and its text. Details — in the lesson “Basics of hadith science”.',
+    accepted:'Accepted', rejected:'Rejected', lesson:'Basics of hadith science — lesson', nawawi:'An-Nawawi’s Forty Hadith',
+    note:'Weak and fabricated narrations were removed according to the rulings of the hadith scholars of the Salaf (above all al-Albani). If you spot a mistake, report it with the flag button on the card.',
+    chartTitle:'Which collections the hadiths come from', chartSub:'by the first source shown on the card', chartNote:'Counted from this list itself. “Other” — at-Tabarani, al-Bayhaqi, al-Hakim etc., and Quran verses.', other:'Other', sixBooks:'What are the Six Books?' },
+  ru: { eyebrow:'Хадисы и знание', favEmpty:'Сохраняйте понравившиеся хадисы здесь кнопкой с сердцем.', copied:'Скопировано', clear:'Очистить поиск', all:'Все хадисы',
+    lead:'Изречения Пророка ﷺ — с арабским текстом, переводом и источником.',
+    how:'Выберите тему или ищите по слову или источнику («Бухари 1»). Кнопка с сердцем добавляет хадис в «Избранные».',
+    statHadith:'хадисов', statTopics:'тем', statBooks:'основных сборников',
+    aboutSum:'Откуда эти хадисы? Источники и степени',
+    gradesTitle:'Степени хадиса', gradesLead:'Хадис оценивается по иснаду и тексту. Подробно — в уроке «Основы науки о хадисах».',
+    accepted:'Принимается', rejected:'Отвергается', lesson:'Основы науки о хадисах — урок', nawawi:'40 хадисов ан-Навави',
+    note:'Слабые и выдуманные предания убраны согласно суждениям знатоков хадиса из саляфа (прежде всего аль-Албани). Если заметили ошибку, сообщите кнопкой с флажком на карточке.',
+    chartTitle:'Из каких сборников хадисы', chartSub:'по первому источнику на карточке', chartNote:'Подсчитано по самому списку. «Другие» — ат-Табарани, аль-Байхаки, аль-Хаким и др., а также аяты Корана.', other:'Другие', sixBooks:'Что такое «Шесть книг»?' },
+  ar: { eyebrow:'الحديث والعلم', favEmpty:'احفظ الأحاديث التي تحبها هنا بزر القلب.', copied:'تم النسخ', clear:'مسح البحث', all:'كل الأحاديث',
+    lead:'أحاديث النبي ﷺ بنصها العربي ومصدرها.',
+    how:'اختر موضوعًا أو ابحث بكلمة أو بمصدر («البخاري 1»). زر القلب يضيف الحديث إلى «المفضلة».',
+    statHadith:'حديثًا', statTopics:'موضوعًا', statBooks:'كتب أساسية',
+    aboutSum:'من أين هذه الأحاديث؟ المصادر والدرجات',
+    gradesTitle:'درجات الحديث', gradesLead:'يُحكم على الحديث بالنظر في سنده ومتنه. التفصيل في درس «مبادئ علم الحديث».',
+    accepted:'مقبول', rejected:'مردود', lesson:'مبادئ علم الحديث — درس', nawawi:'الأربعون النووية',
+    note:'حُذفت الروايات الضعيفة والموضوعة بناءً على أحكام المحدّثين من أهل السنة (وفي مقدمتهم الألباني). إن رأيت خطأً فأبلغ عنه بزر العَلَم في البطاقة.',
+    chartTitle:'من أي كتب هذه الأحاديث', chartSub:'بحسب أول مصدر في البطاقة', chartNote:'محسوب من هذه القائمة نفسها. «أخرى»: الطبراني والبيهقي والحاكم وغيرهم، وآيات من القرآن.', other:'أخرى', sixBooks:'ما الكتب الستة؟' },
+  tr: { eyebrow:'Hadis ve ilim', favEmpty:'Beğendiğiniz hadisleri kalp düğmesiyle burada saklayın.', copied:'Kopyalandı', clear:'Aramayı temizle', all:'Tüm hadisler',
+    lead:'Peygamber’in ﷺ sözleri — Arapça metin, tercüme ve kaynağıyla.',
+    how:'Bir konu seçin veya kelime ya da kaynakla («Buhârî 1») arayın. Kalp düğmesi hadisi «Favoriler»e ekler.',
+    statHadith:'hadis', statTopics:'konu', statBooks:'temel eser',
+    aboutSum:'Bu hadisler nereden? Kaynaklar ve dereceler',
+    gradesTitle:'Hadisin derecesi', gradesLead:'Hadis, senedine ve metnine göre değerlendirilir. Ayrıntısı «Hadis usulünün esasları» dersinde.',
+    accepted:'Kabul edilir', rejected:'Reddedilir', lesson:'Hadis usulünün esasları — ders', nawawi:'Nevevî’nin Kırk Hadisi',
+    note:'Zayıf ve uydurma rivayetler Selef hadis âlimlerinin (öncelikle Elbânî’nin) hükmüne göre listeden çıkarıldı. Bir hata görürseniz karttaki bayrak düğmesiyle bildirin.',
+    chartTitle:'Hadisler hangi eserlerden', chartSub:'kartta gösterilen ilk kaynağa göre', chartNote:'Bu listenin kendisinden sayıldı. «Diğer» — Taberânî, Beyhakî, Hâkim vb. ile Kur’an ayetleri.', other:'Diğer', sixBooks:'Kütüb-i Sitte nedir?' },
+}
+
+// Hədis dərəcələri — mustalah dərsindəki cədvəlin bir sətirlik xülasəsi;
+// hər biri lüğətdəki termin kartına keçid (/glossary#sahih …)
+const GRADES = [
+  { id:'sahih', ok:true, name:{ az:'Səhih', en:'Sahih', ru:'Сахих', ar:'الصحيح', tr:'Sahih' },
+    text:{ az:'İsnad bitişik, ravilər ədalətli və dəqiq; şaz və gizli qüsur yoxdur.', en:'Connected chain, upright and precise narrators; no irregularity or hidden defect.', ru:'Непрерывный иснад, праведные и точные передатчики; без отклонений и скрытых изъянов.', ar:'اتصل سنده بنقل العدل الضابط من غير شذوذ ولا علة.', tr:'Sened bitişik, râviler adil ve zabıt sahibi; şâz ve gizli kusur yok.' } },
+  { id:'hasan', ok:true, name:{ az:'Həsən', en:'Hasan', ru:'Хасан', ar:'الحسن', tr:'Hasen' },
+    text:{ az:'Səhih kimidir, amma bir ravinin dəqiqliyi bir az aşağıdır.', en:'Like sahih, but one narrator’s precision is slightly lower.', ru:'Как сахих, но точность одного из передатчиков немного ниже.', ar:'كالصحيح إلا أن ضبط بعض رواته خفّ.', tr:'Sahih gibidir, ancak bir râvinin zabtı biraz düşüktür.' } },
+  { id:'daif', ok:false, name:{ az:'Zəif', en:'Da‘if', ru:'Даиф', ar:'الضعيف', tr:'Zayıf' },
+    text:{ az:'Həsənin şərtlərindən biri yoxdur: isnad qırıqdır və ya ravi zəifdir.', en:'A condition of hasan is missing: a broken chain or a weak narrator.', ru:'Нет одного из условий хасана: разрыв в иснаде или слабый передатчик.', ar:'فقد شرطًا من شروط الحسن كانقطاع السند أو ضعف الراوي.', tr:'Hasenin bir şartı eksik: kopuk sened veya zayıf râvi.' } },
+  { id:'mawdu', ok:false, name:{ az:'Mövzu', en:'Mawdu‘', ru:'Мауду', ar:'الموضوع', tr:'Mevzu' },
+    text:{ az:'Peyğəmbərə ﷺ yalan olaraq aid edilmiş uydurma söz.', en:'A fabrication falsely attributed to the Prophet ﷺ.', ru:'Вымысел, ложно приписанный Пророку ﷺ.', ar:'المكذوب المختلق المنسوب إلى النبي ﷺ.', tr:'Peygamber’e ﷺ yalan olarak isnat edilmiş uydurma söz.' } },
+]
+
+// Toplu diaqramı: kartdakı (az yazılışlı) ilk mənbəyə görə qruplaşdırma
+const BOOKS = [
+  { key:'bukhari', re:/^Buxari/, az:'Buxari', src:'Buxari' },
+  { key:'muslim', re:/^M[uü]slim/, az:'Müslim', src:'Muslim' },
+  { key:'tirmidhi', re:/^Tirmizi/, az:'Tirmizi', src:'Tirmizi' },
+  { key:'abudawud', re:/^Əbu Davud/, az:'Əbu Davud', src:'Əbu Davud' },
+  { key:'ahmad', re:/^Əhməd/, az:'Əhməd', src:'Əhməd' },
+  { key:'nasai', re:/^N[əa]sai/, az:'Nəsai', src:'Nəsai' },
+  { key:'ibnmajah', re:/^İbn Mac[əe]/, az:'İbn Macə', src:'İbn Macə' },
+]
+function bookBreakdown(list, lang, otherLabel) {
+  const counts = Object.fromEntries(BOOKS.map(b => [b.key, 0]))
+  let other = 0
+  for (const h of list) {
+    const src = String(h.source || '').trim()
+    const b = BOOKS.find(x => x.re.test(src))
+    if (b) counts[b.key]++; else other++
+  }
+  const rows = BOOKS.filter(b => counts[b.key] > 0)
+    .map(b => ({ key: b.key, label: lang === 'az' ? b.az : localizeSource(b.src, lang), value: counts[b.key] }))
+    .sort((a, b) => b.value - a.value)
+  if (other > 0) rows.push({ key: 'other', label: otherLabel, value: other, muted: true })
+  return rows
 }
 
 const FAV_LABELS = { az:'Sevimlilər', en:'Favorites', ru:'Избранные', ar:'المفضلة', tr:'Favoriler' }
@@ -137,7 +220,7 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
     <article className="ui-card hadith-card" {...revealProps(index)}>
       <div className="hadith-top">
         <span className="hadith-num ui-num">#{displayNum}</span>
-        {hadith.cat && <span className="ui-badge ui-badge--brand hadith-cat-badge">{localizeCat(hadith.cat, lang)}</span>}
+        {hadith.cat && <span className="hadith-cat-badge">{localizeCat(hadith.cat, lang)}</span>}
         <div className="hadith-actions">
           <button
             type="button"
@@ -172,6 +255,84 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
     </article>
   )
 })
+
+// "Bu hədislər haradandır?" — dərəcələr (qəbul / rədd) + toplular diaqramı.
+// Açılan panel: geniş ekranda (≥1100px) açıq, planşet/telefonda bağlı başlayır (siyahını aşağı itələməsin).
+function HadithAbout({ u, lang, list }) {
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(() => {
+    try { return window.matchMedia('(min-width: 1100px)').matches } catch { return false }
+  })
+  const books = useMemo(() => bookBreakdown(list, lang, u.other), [list, lang, u.other])
+  const go = (href) => (e) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    navigate(href)
+  }
+  const glossHref = (id) => `${pathFor('glossary', lang)}#${id}`
+  const lessonHref = pathFor('learn', lang, 'mustalah')
+  const grade = (g) => (
+    <li key={g.id}>
+      <a className="hadith-grade" href={glossHref(g.id)} onClick={go(glossHref(g.id))}>
+        <span className={`hadith-grade__dot${g.ok ? ' is-ok' : ' is-bad'}`} aria-hidden="true" />
+        <span className="hadith-grade__body">
+          <span className="hadith-grade__name">{g.name[lang] || g.name.en}</span>
+          <span className="hadith-grade__text">{g.text[lang] || g.text.en}</span>
+        </span>
+      </a>
+    </li>
+  )
+  return (
+    <section className="ui-section ui-section--tight hadith-about-wrap" aria-label={u.aboutSum}>
+      <div className="ui-container">
+        <details className="hadith-about" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+          <summary className="hadith-about__sum">
+            <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="books" /></span>
+            <span className="hadith-about__sumtext">{u.aboutSum}</span>
+            <Icon name="chevronDown" size={18} className="hadith-about__chev" />
+          </summary>
+          <div className="hadith-about__body">
+            <div className="hadith-about__grades">
+              <h2 className="hadith-about__title">{u.gradesTitle}</h2>
+              <p className="hadith-about__lead">{u.gradesLead}</p>
+              <div className="hadith-grades">
+                <div className="hadith-grades__col">
+                  <p className="hadith-grades__label is-ok"><Icon name="check" size={14} /> {u.accepted}</p>
+                  <ul>{GRADES.filter(g => g.ok).map(grade)}</ul>
+                </div>
+                <div className="hadith-grades__col">
+                  <p className="hadith-grades__label is-bad"><Icon name="close" size={14} /> {u.rejected}</p>
+                  <ul>{GRADES.filter(g => !g.ok).map(grade)}</ul>
+                </div>
+              </div>
+              <p className="hadith-about__note"><Icon name="info" size={15} /> <span>{u.note}</span></p>
+              <ul className="ui-list hadith-about__links">
+                <li>
+                  <a className="ui-list__item" href={lessonHref} onClick={go(lessonHref)}>
+                    <Icon name="learn" size={18} /><span>{u.lesson}</span>
+                    <Icon name="chevron" size={16} className="ui-list__chev ui-flip-rtl" />
+                  </a>
+                </li>
+                <li>
+                  <a className="ui-list__item" href={pathFor('nawawi40', lang)} onClick={go(pathFor('nawawi40', lang))}>
+                    <Icon name="hadith" size={18} /><span>{u.nawawi}</span>
+                    <Icon name="chevron" size={16} className="ui-list__chev ui-flip-rtl" />
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <ChartFigure plain className="hadith-about__chart" title={u.chartTitle} sub={u.chartSub} note={u.chartNote}>
+              <BarChart data={books} label={u.chartTitle} labelWidth="34%" />
+              <a className="ui-link hadith-about__six" href={glossHref('al-kutub-as-sittah')} onClick={go(glossHref('al-kutub-as-sittah'))}>
+                {u.sixBooks} <Icon name="arrow" size={15} className="ui-link__arrow ui-flip-rtl" />
+              </a>
+            </ChartFigure>
+          </div>
+        </details>
+      </div>
+    </section>
+  )
+}
 
 export default function HadithPage({ setPage }) {
   const { lang } = useLang()
@@ -374,9 +535,17 @@ export default function HadithPage({ setPage }) {
           <h1 className="ui-display">{t.title}</h1>
           {/* Ərəbcədə başlığın özü ərəbcədir — bəzək sətri təkrarlanmasın */}
           {lang !== 'ar' && <p className="hadith-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">كُتُبُ الحَدِيث</p>}
-          <p className="ui-lead">{t.subtitle}</p>
+          <p className="ui-lead">{u.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {u.how}</p>
+          <ul className="ui-page-hero__stats">
+            <li><b className="ui-num"><bdi dir="ltr">{HADITH_COUNT}+</bdi></b><span>{u.statHadith}</span></li>
+            <li><b className="ui-num">{cats.length - 1}</b><span>{u.statTopics}</span></li>
+            <li><b className="ui-num">{BOOKS.length}</b><span>{u.statBooks}</span></li>
+          </ul>
         </div>
       </header>
+
+      <HadithAbout u={u} lang={lang} list={staticList} />
 
       <div className="hadith-page ui-section ui-section--tight">
         <div className="ui-container">

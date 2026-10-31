@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-   QuranGamePage.css — Quran müsabiqəsi, dizayn v2
+   QuranGamePage.css — Quran müsabiqəsi, dizayn v3
    Düzgün — zümrüd (--brand), səhv — --bad, vaxt bitdi — qızılı (--accent).
    Mikro-animasiyalar: düzgün variant "sıçrayır", səhv yellənir, vaxt
    zolağı əriyir, son 5 saniyədə saat döyünür — yalnız transform/opacity.
@@ -7,33 +7,15 @@
    ══════════════════════════════════════════════════════════════════ */
 
 /* ── 1. HERO ─────────────────────────────────────────────────────── */
-.qgame-hero__art {
-  position: absolute;
-  z-index: -1;
-  right: clamp(24px, 6vw, 96px);   /* element özü rtl-dir — fiziki tərəf */
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-arabic);
-  font-size: clamp(52px, 6.4vw, 104px);
-  line-height: 1.4;
-  direction: rtl;
-  color: var(--brand);
-  opacity: 0.09;
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-}
-@media (max-width: 1099.98px) { .qgame-hero__art { display: none; } }
-
 /* Çörək qırıntısı (Breadcrumb.jsx) hero-da başlanğıca düzlənir */
-.qgame-hero .breadcrumb { justify-content: flex-start; margin: 0; font-size: 13px; color: var(--text-tertiary); }
+.qgame-hero .breadcrumb { justify-content: flex-start; margin: 0; font-size: var(--step--1); color: var(--text-tertiary); }
 .qgame-hero .bc-list { justify-content: flex-start; }
 .qgame-hero .bc-home { color: var(--text-secondary); font-weight: 600; }
 @media (hover: hover) { .qgame-hero .bc-home:hover { color: var(--brand); } }
 
 .qgame-section.section { padding-top: clamp(28px, 3.5vw, 44px); }
 .qgame-layout {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
   /* Oyun başlayanda bura sürüşürük — başlığın altında qalmasın */
   scroll-margin-top: calc(var(--header-h) + 12px);
@@ -44,52 +26,57 @@
 [dir="rtl"] .qgame-arrow--back { transform: none; }
 
 /* ── 2. REJİM SEÇİMİ ─────────────────────────────────────────────── */
-.qgame-menu-title { margin-bottom: var(--space-5); text-align: center; }
-.qgame-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.qgame-layout:has(> .qgame-menu) { max-width: none; }
+.qgame-menu { display: flex; flex-direction: column; gap: var(--section-gap-sm); }
+.qgame-menu .ui-section-head { margin-bottom: var(--space-4); }
+.qgame-modes { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 900px) { .qgame-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .qgame-mode-card.ui-card {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "icon body ring" "icon start ring";
   align-items: center;
-  gap: 10px;
-  padding: 32px 24px 26px;
+  column-gap: 16px;
+  row-gap: 8px;
+  padding: 18px 20px;
   font: inherit;
-  text-align: center;
+  text-align: start;
   -webkit-tap-highlight-color: transparent;
 }
-.qgame-mode-icon { margin-bottom: 4px; }
+.qgame-mode-icon { grid-area: icon; align-self: start; }
 .qgame-modes > .qgame-mode-card:nth-child(2) .qgame-mode-icon {
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px var(--accent-line);
   color: var(--accent-text);
 }
-.qgame-mode-name {
-  color: var(--text-strong);
-  font-family: var(--font-display);
-  font-size: var(--step-2);
-  font-weight: 500;
-  line-height: 1.25;
-}
-.qgame-mode-meta { display: flex; gap: 0; color: var(--text-tertiary); font-size: 13.5px; }
+.qgame-mode-body { grid-area: body; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.qgame-mode-name { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; line-height: 1.25; }
+.qgame-mode-desc { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.5; }
+.qgame-mode-meta { display: flex; color: var(--text-tertiary); font-size: var(--step--2); }
 .qgame-mode-meta > span + span::before { content: '·'; margin-inline: 8px; }
+.qgame-mode-best { grid-area: ring; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.qgame-mode-ring { display: block; line-height: 0; }
+.qgame-mode-best__text { color: var(--text-tertiary); font-size: var(--step--2); white-space: nowrap; }
 .qgame-mode-start {
+  grid-area: start;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
   color: var(--brand);
-  font-size: 14.5px;
+  font-family: var(--font-label);
+  font-size: var(--step--1);
   font-weight: 600;
 }
 @media (hover: hover) {
-  /* İkon kafelinin hover canlanması ui.css-dədir (.ui-card--interactive) */
   .qgame-mode-card:hover .qgame-mode-start .qgame-arrow { transform: translateX(3px); }
   [dir="rtl"] .qgame-mode-card:hover .qgame-mode-start .qgame-arrow { transform: scaleX(-1) translateX(3px); }
 }
+.qgame-how .ui-title { margin-bottom: var(--space-4); }
 
 /* ── 3. OYUN PANELİ (HUD) ────────────────────────────────────────── */
 .qgame-hud { margin-bottom: var(--space-5); }
 .qgame-top-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
-.qgame-q-count { color: var(--text-secondary); font-size: 14px; font-weight: 600; }
+.qgame-q-count { color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
 .qgame-timer {
   display: inline-flex;
   align-items: center;
@@ -100,7 +87,7 @@
   border-radius: var(--radius-pill);
   background: var(--brand-soft-2);
   color: var(--brand-strong);
-  font-size: 15px;
+  font-size: var(--step-0);
   font-weight: 600;
   transition: background-color var(--dur-2) ease, color var(--dur-2) ease;
 }
@@ -152,13 +139,14 @@
 .qgame-instruction {
   margin-bottom: 14px;
   color: var(--accent-text);
-  font-size: 12.5px;
+  font-family: var(--font-label);
+  font-size: var(--step--2);
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
-[dir="rtl"] .qgame-instruction { letter-spacing: 0; font-size: 14px; }
-.qgame-verse { font-size: clamp(24px, 4vw, 34px); line-height: 2; text-align: center; }
+[dir="rtl"] .qgame-instruction { letter-spacing: 0; font-size: var(--step--1); }
+.qgame-verse { font-size: clamp(22px, 3.4vw, 28px); line-height: 2; text-align: center; }
 .qgame-blank { color: var(--brand); opacity: 0.7; }
 
 /* ── 5. VARİANTLAR ───────────────────────────────────────────────── */
@@ -206,12 +194,13 @@
   background: var(--surface-2);
   box-shadow: inset 0 0 0 1px var(--line);
   color: var(--text-secondary);
-  font-size: 13.5px;
+  font-family: var(--font-label);
+  font-size: var(--step--1);
   font-weight: 600;
   transition: background-color var(--dur-2) ease, color var(--dur-2) ease;
 }
-.qgame-option-text { flex: 1; min-width: 0; color: var(--text-strong); font-size: 16px; font-weight: 500; line-height: 1.4; }
-.qgame-option-text.ui-arabic { font-size: clamp(19px, 3vw, 23px); line-height: 1.7; }
+.qgame-option-text { flex: 1; min-width: 0; color: var(--text-strong); font-size: var(--step-0); font-weight: 500; line-height: 1.4; }
+.qgame-option-text.ui-arabic { font-size: clamp(19px, 2.6vw, 22px); line-height: 1.7; }
 
 /* Düzgün cavab yüngülcə "sıçrayır", səhv cavab bir anlıq yellənir */
 .qgame-option.correct {
@@ -250,7 +239,7 @@
   gap: 6px;
   padding: 6px 16px;
   border-radius: var(--radius-pill);
-  font-size: 15px;
+  font-size: var(--step--1);
   font-weight: 600;
   animation: qgame-pop-in var(--dur-3) var(--ease-spring) 60ms backwards;
 }
@@ -258,8 +247,8 @@
 [data-theme="dark"] .qgame-result-badge.correct { color: var(--brand); }
 .qgame-result-badge.wrong { background: color-mix(in srgb, var(--bad) 11%, transparent); color: var(--bad); }
 .qgame-result-badge.timeout { background: var(--accent-soft); color: var(--accent-text); }
-.qgame-full-verse { font-size: clamp(20px, 3vw, 26px); line-height: 2; color: var(--brand); text-align: center; }
-.qgame-surah-ref { color: var(--text-tertiary); font-size: 13.5px; font-weight: 500; }
+.qgame-full-verse { font-size: clamp(20px, 2.8vw, 24px); line-height: 2; color: var(--brand); text-align: center; }
+.qgame-surah-ref { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
 .qgame-next-btn { margin-top: 4px; min-width: 200px; }
 @media (hover: hover) {
   .qgame-next-btn:hover .qgame-arrow { transform: translateX(3px); }
@@ -267,59 +256,42 @@
 }
 
 /* ── 7. NƏTİCƏ ───────────────────────────────────────────────────── */
-.qgame-results { display: flex; justify-content: center; }
+.qgame-results { display: flex; flex-direction: column; align-items: center; gap: var(--space-6); }
 .qgame-results-card.ui-card {
   position: relative;
-  isolation: isolate;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
   width: 100%;
   max-width: 460px;
-  padding: 40px 32px 32px;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-3);
+  padding: 28px 28px 24px;
   text-align: center;
   animation: qm-reveal-scale var(--dur-3) var(--ease-out) both;
 }
-.qgame-new-best { gap: 6px; height: 26px; padding: 0 12px; font-size: 12.5px; animation: qgame-pop-in var(--dur-3) var(--ease-spring) 220ms backwards; }
-.qgame-results-icon { animation: qgame-pop-in var(--dur-3) var(--ease-spring) 120ms backwards; }
-.qgame-results-score { display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+.qgame-new-best { gap: 6px; animation: qgame-pop-in var(--dur-3) var(--ease-spring) 220ms backwards; }
+.qgame-results-title { display: inline-flex; align-items: center; gap: 8px; }
+.qgame-results-icon { color: var(--accent); }
+.qgame-results-ring { position: relative; display: grid; place-items: center; }
+.qgame-results-ring > * { grid-area: 1 / 1; }
+.qgame-results-score { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
 .qgame-results-num {
   color: var(--brand);
-  font-family: var(--font-display);
-  font-size: clamp(52px, 8vw, 68px);
-  font-weight: 500;
+  font-family: var(--font-num);
+  font-size: var(--step-4);
+  font-weight: 600;
   line-height: 1;
   animation: qgame-pop-in 480ms var(--ease-spring) 180ms backwards;
 }
-.qgame-results-of { color: var(--text-tertiary); font-family: var(--font-display); font-size: 24px; }
-.qgame-results-bar {
-  width: min(100%, 280px);
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-3);
-  overflow: hidden;
-}
-.qgame-results-bar > span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--brand);
-  transform-origin: left center;
-  animation: qgame-bar-in 800ms var(--ease-out) 260ms backwards;
-}
-[dir="rtl"] .qgame-results-bar > span { transform-origin: right center; }
-.qgame-results-detail { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 4px 0 12px; }
+.qgame-results-of { color: var(--text-tertiary); font-family: var(--font-num); font-size: var(--step-1); }
+.qgame-results-detail { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
 .qgame-detail {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
-  font-size: 14px;
+  font-size: var(--step--1);
   font-weight: 600;
 }
 .qgame-detail.correct { background: var(--brand-soft-2); color: var(--brand-strong); }
@@ -327,20 +299,27 @@
 .qgame-detail.wrong { background: color-mix(in srgb, var(--bad) 10%, transparent); color: var(--bad); }
 .qgame-results-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
+/* Raundun icmalı */
+.qgame-review { width: 100%; }
+.qgame-review .ui-title { margin-bottom: var(--space-4); }
+.qgame-review-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.qgame-review-item { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.qgame-review-mark { display: grid; place-items: center; width: 24px; height: 24px; margin-top: 6px; border-radius: 50%; color: var(--on-brand); }
+.qgame-review-item.is-ok .qgame-review-mark { background: var(--brand); }
+.qgame-review-item.is-bad .qgame-review-mark { background: var(--bad); }
+.qgame-review-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.qgame-review-verse { margin: 0; color: var(--text-strong); font-size: 21px; line-height: 1.9; text-align: start; }
+.qgame-review-meta { color: var(--text-tertiary); font-size: var(--step--1); }
+.qgame-review-meta.is-bad { color: var(--bad); }
+.qgame-review-meta [lang="ar"] { font-family: var(--font-arabic); font-size: 1.15em; }
+
 /* ── 8. TELEFON ──────────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
   .qgame-hero .ui-page-hero__crumbs { display: none; }
   .qgame-section.section { padding-top: 20px; }
 
-  /* Hər iki rejim bir ekranda yan-yana */
-  .qgame-menu-title { margin-bottom: 14px; }
-  .qgame-modes { gap: 12px; }
-  .qgame-mode-card.ui-card { padding: 20px 12px 16px; gap: 8px; }
-  .qgame-mode-icon.ui-icon-tile--lg { width: 48px; height: 48px; }
-  .qgame-mode-name { font-size: 17px; }
-  .qgame-mode-meta { flex-direction: column; font-size: 12.5px; }
-  .qgame-mode-meta > span + span::before { content: none; }
-  .qgame-mode-start { margin-top: 2px; font-size: 14px; }
+  .qgame-mode-card.ui-card { padding: 14px; column-gap: 12px; }
+  .qgame-mode-meta { flex-wrap: wrap; }
 
   /* Panel — başlığın altına yapışan şüşə zolaq; başlıq gizlənəndə
      (--header-offset → 0) yumşaq yuxarı qalxır */
@@ -363,15 +342,14 @@
   .qgame-question-card.ui-card { margin-bottom: 14px; padding: 24px 16px; }
   .qgame-options { gap: 8px; margin-bottom: 14px; }
   .qgame-option { min-height: 56px; padding: 10px 14px; gap: 12px; }
-  .qgame-option-letter { width: 30px; height: 30px; font-size: 13px; }
-  .qgame-option-text { font-size: 15.5px; }
+  .qgame-option-letter { width: 30px; height: 30px; }
   .qgame-option:hover:not(:disabled),
   [dir="rtl"] .qgame-option:hover:not(:disabled) { transform: none; }
 
   .qgame-answer-info.ui-card { padding: 18px 16px 16px; gap: 10px; }
   .qgame-next-btn { width: 100%; }
 
-  .qgame-results-card.ui-card { padding: 28px 18px 18px; border-radius: var(--radius-lg); }
+  .qgame-results-card.ui-card { padding: 22px 16px 16px; }
   .qgame-results-actions { flex-direction: column; width: 100%; }
   .qgame-results-actions > .ui-btn { width: 100%; min-height: 48px; }
 }
@@ -399,13 +377,12 @@
   from { transform: none; }
   to   { transform: scaleX(0); }
 }
-@keyframes qgame-bar-in { from { transform: scaleX(0); } }
 
 @media (prefers-reduced-motion: reduce) {
   .qgame-question-card.ui-card, .qgame-option, .qgame-option.correct, .qgame-option.wrong,
   .qgame-option.correct .qgame-option-letter, .qgame-answer-info.ui-card, .qgame-result-badge,
-  .qgame-results-card.ui-card, .qgame-results-icon, .qgame-results-num, .qgame-new-best,
-  .qgame-results-bar > span, .qgame-timer.danger .qgame-timer__num { animation: none; }
+  .qgame-results-card.ui-card, .qgame-results-num, .qgame-new-best,
+  .qgame-timer.danger .qgame-timer__num { animation: none; }
   /* Əriyən zolaq hərəkətsiz rejimdə mənasızdır — gizlənir (vaxt rəqəmlə görünür) */
   .qgame-timebar { display: none; }
   .qgame-progress-fill, .qgame-option, .qgame-arrow, .qgame-mode-icon { transition: none; }

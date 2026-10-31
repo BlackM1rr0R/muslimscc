@@ -10,7 +10,36 @@ import {
   loadRootsIndex, findRoot, rootDetails, groupByAyah, spacedRoot, looseKey, normalizeRootInput,
   fetchAyahWords, ROOT_CAT_LABELS, verbFormLabel,
 } from '../utils/quranRoots'
+import { ChartFigure, BarChart } from '../components/viz'
 import '../styles/QuranRootsPage.css'
+
+// v3: hero izahı, "kök nədir" sxemi (real məlumatla) və nəticə qrafikləri
+const RQ_TXT = {
+  how: {
+    az: 'Kökü ərəb hərfləri ilə yazın (məs. ر ح م) və ya aşağıdakı nümunələrdən birini seçin. Nəticədə: neçə dəfə işləndiyi, hansı formalarda gəldiyi və bütün ayələr.',
+    en: 'Type the root in Arabic letters (e.g. ر ح م) or pick an example below. You get: how often it occurs, in which forms, and every verse.',
+    ru: 'Введите корень арабскими буквами (напр. ر ح م) или выберите пример ниже. Вы увидите: сколько раз он встречается, в каких формах и все аяты.',
+    ar: 'اكتب الجذر بالحروف العربية (مثل: ر ح م) أو اختر مثالًا من الأسفل، فترى عدد وروده وصيغه وجميع آياته.',
+    tr: 'Kökü Arap harfleriyle yazın (örn. ر ح م) ya da aşağıdaki örneklerden birini seçin. Sonuçta: kaç kez geçtiği, hangi biçimlerde geldiği ve bütün ayetler.',
+  },
+  roots: { az: 'kök', en: 'roots', ru: 'корней', ar: 'جذرًا', tr: 'kök' },
+  words: { az: 'kökü olan söz', en: 'words with a root', ru: 'слов с корнем', ar: 'كلمة لها جذر', tr: 'köklü kelime' },
+  whatTitle: { az: 'Kök nədir?', en: 'What is a root?', ru: 'Что такое корень?', ar: 'ما الجذر؟', tr: 'Kök nedir?' },
+  whatText: {
+    az: 'Ərəb sözlərinin çoxu üç samit hərfdən ibarət kökə qurulur. Kök əsas mənanı daşıyır, ölçülər isə ondan yeni sözlər düzəldir. Məsələn, ر ح م (mərhəmət) kökündən Quranda bu formalar gəlir:',
+    en: 'Most Arabic words are built on a root of three consonants. The root carries the core meaning and patterns derive new words from it. For example, the root ر ح م (mercy) appears in the Quran in these forms:',
+    ru: 'Большинство арабских слов строится на корне из трёх согласных. Корень несёт основной смысл, а модели образуют от него новые слова. Например, корень ر ح م (милость) встречается в Коране в таких формах:',
+    ar: 'تُبنى أكثر الكلمات العربية على جذر من ثلاثة حروف يحمل المعنى الأصلي، وتُشتق منه كلمات بأوزان مختلفة. فمن جذر ر ح م (الرحمة) جاءت في القرآن هذه الصيغ:',
+    tr: 'Arapça kelimelerin çoğu üç sessiz harften oluşan bir köke dayanır. Kök temel anlamı taşır, kalıplar ondan yeni kelimeler türetir. Örneğin ر ح م (merhamet) kökünden Kur’an’da şu biçimler gelir:',
+  },
+  formsChart: { az: 'Formaların tezliyi', en: 'How often each form occurs', ru: 'Частота форм', ar: 'تكرار الصيغ', tr: 'Biçimlerin sıklığı' },
+  formsSub: { az: n => `ən çox işlənən ${n} forma`, en: n => `top ${n} forms`, ru: n => `самые частые формы: ${n}`, ar: n => `أكثر ${n} صيغ ورودًا`, tr: n => `en sık ${n} biçim` },
+  surahChart: { az: 'Ən çox hansı surələrdə', en: 'Surahs where it occurs most', ru: 'В каких сурах чаще всего', ar: 'أكثر السور ورودًا', tr: 'En çok hangi surelerde' },
+  surahSub: { az: 'işlənmə sayı', en: 'number of occurrences', ru: 'число употреблений', ar: 'عدد مرات الورود', tr: 'geçiş sayısı' },
+  times: { az: 'dəfə', en: '×', ru: 'раз', ar: 'مرة', tr: 'kez' },
+}
+const pk = (o, lang) => (o == null ? '' : typeof o === 'string' ? o : (o[lang] !== undefined ? o[lang] : o.az))
+const pkf = (o, lang, n) => { const f = pk(o, lang); return typeof f === 'function' ? f(n) : f }
 
 /* ══════════════════════════════════════════════════════════════════
    KÖK AXTARIŞI — /quran-roots?root=<kök>
@@ -256,6 +285,27 @@ export default function QuranRootsPage() {
   const cats = ROOT_CAT_LABELS[lang] || ROOT_CAT_LABELS.en
   const visible = ayahs.slice(0, shown)
 
+  // Bütün indeksdə kökü olan sözlərin sayı (hero) — bir dəfə hesablanır
+  const totalWords = useMemo(() => {
+    if (!index) return 0
+    let n = 0
+    for (const entries of Object.values(index.roots)) n += rootDetails(entries).total
+    return n
+  }, [index])
+  // "Kök nədir" sxemi: ر ح م kökünün ən çox işlənən 4 forması (real məlumat)
+  const demo = useMemo(() => (index?.roots['رحم'] ? rootDetails(index.roots['رحم']).forms.slice().sort((a, b) => b.count - a.count).slice(0, 4) : []), [index])
+  const fmtTimes = v => (lang === 'en' ? `${v}×` : `${v} ${pk(RQ_TXT.times, lang)}`)
+  // Nəticə qrafikləri: formaların tezliyi (top 8) və surələr üzrə (top 8)
+  const formBars = useMemo(() => (details ? details.forms.slice().sort((a, b) => b.count - a.count).slice(0, 8)
+    .map(f => ({ key: f.lemma, label: <><span className="ui-arabic qr-bar__lemma" lang="ar">{f.lemma}</span> <span className="qr-bar__cat">{cats[f.cat] || ''}</span></>, value: f.count })) : []), [details, cats])
+  const surahBars = useMemo(() => {
+    if (!details) return []
+    const by = new Map()
+    for (const [s] of details.locations) by.set(s, (by.get(s) || 0) + 1)
+    return [...by.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 8)
+      .map(([s, n]) => ({ key: s, label: `${s}. ${surahLabel(s, lang)}`, value: n }))
+  }, [details, lang])
+
   return (
     <div className="qr-page">
       <header className="ui-page-hero qr-hero">
@@ -264,6 +314,13 @@ export default function QuranRootsPage() {
           <span className="ui-eyebrow">{L.eyebrow}</span>
           <h1 className="ui-display">{L.title}</h1>
           <p className="ui-lead">{L.lead}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} />{pk(RQ_TXT.how, lang)}</p>
+          {index && (
+            <ul className="ui-page-hero__stats">
+              <li><b>{Object.keys(index.roots).length}</b><span>{pk(RQ_TXT.roots, lang)}</span></li>
+              <li><b>{totalWords}</b><span>{pk(RQ_TXT.words, lang)}</span></li>
+            </ul>
+          )}
         </div>
       </header>
 
@@ -313,6 +370,25 @@ export default function QuranRootsPage() {
               ))}
             </div>
           </form>
+
+          {index && !query && demo.length > 0 && (
+            <section className="ui-card ui-card--sunken qr-what" aria-labelledby="qr-what-title">
+              <h2 id="qr-what-title" className="ui-title ui-title--sm">{pk(RQ_TXT.whatTitle, lang)}</h2>
+              <p className="qr-what__text">{pk(RQ_TXT.whatText, lang)}</p>
+              {/* Sxem: kök → törəmə formalar (sayları ilə); toxunanda axtarış açılır */}
+              <div className="qr-tree">
+                <button type="button" className="qr-tree__root ui-arabic" lang="ar" dir="rtl" onClick={() => runSearch('رحم')}>{spacedRoot('رحم')}</button>
+                <ul className="qr-tree__forms">
+                  {demo.map(f => (
+                    <li key={f.lemma} className="qr-tree__form">
+                      <span className="ui-arabic qr-tree__lemma" lang="ar">{f.lemma}</span>
+                      <span className="qr-tree__meta">{cats[f.cat] || ''} · <span className="ui-num">{fmtTimes(f.count)}</span></span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )}
 
           <div ref={resultsRef} className="qr-results" aria-live="polite">
             {!index && !indexError && query && <p className="qr-status" role="status">{L.loadingIndex}</p>}
@@ -373,6 +449,15 @@ export default function QuranRootsPage() {
                   </div>
                   <p className="qr-muted qr-summary__note"><Icon name="info" size={14} /> {L.note}</p>
                 </section>
+
+                <div className="qr-charts">
+                  <ChartFigure title={pk(RQ_TXT.formsChart, lang)} sub={pkf(RQ_TXT.formsSub, lang, formBars.length)}>
+                    <BarChart data={formBars} format={fmtTimes} labelWidth="44%" label={pk(RQ_TXT.formsChart, lang)} />
+                  </ChartFigure>
+                  <ChartFigure title={pk(RQ_TXT.surahChart, lang)} sub={pk(RQ_TXT.surahSub, lang)}>
+                    <BarChart data={surahBars} format={fmtTimes} tone={2} labelWidth="44%" label={pk(RQ_TXT.surahChart, lang)} />
+                  </ChartFigure>
+                </div>
 
                 <section className="qr-forms" aria-labelledby="qr-forms-title">
                   <h2 id="qr-forms-title" className="ui-title ui-title--sm">{L.forms} <span className="qr-muted">· {L.formsCount(details.forms.length)}</span></h2>

@@ -1,278 +1,334 @@
-# Muslims.cc — Dizayn sistemi v2
+# Muslims.cc — Dizayn sistemi v3
 
-Bu sənəd qalan səhifələri yeni dizayna keçirən hər kəs (insan və ya agent) üçündür.
-Qısa qayda: **yalnız tokenləri və `.ui-*` siniflərini işlət, öz rəngini/kölgəsini/radiusunu yazma.**
+Bu sənəd səhifələri yeni dizayna keçirən hər kəs (insan və ya agent) üçündür.
+Qısa qayda: **yalnız tokenləri, `.ui-*` siniflərini və `components/viz` qrafiklərini işlət —
+öz rəngini, kölgəsini, radiusunu, şrift ölçüsünü yazma.**
+
+v3-ün məqsədi (sahibin sözləri ilə): rənglər qalır, amma səhifələr "köhnə sayt kimi" görünməsin —
+**sakit, səliqəli, kiçik mətn, çox vizual, yeni gələn üçün aydın.**
 
 | Fayl | Nə var |
 |---|---|
-| `src/styles/globals.css` | Bütün tokenlər (xam palitra → semantik → köhnə adlar), baza, qabıq (`.qm-shell`), köhnə ümumi siniflər (`.btn-primary`, `.card`, `.page-hero` …) |
-| `src/styles/ui.css` | Yeni komponent sinifləri (`.ui-*`). `globals.css`-in əvvəlində `@import` olunur |
-| `src/styles/motion.css` | Hərəkət tokenləri, fokus halqası, səhifə keçidi, `data-reveal` (12 variant), giriş/çıxış sinifləri, sayğac, skeleton, mobil dəst (`.m-row`, `.m-chip` …) |
-| `src/styles/heroes.css` | Köhnə `.page-hero` temaları — 7 palitra ailəsi (zümrüd, şam, mamır, firuzə, gecə, tunc, torpaq) + hero hərəkəti |
+| `src/styles/globals.css` | Bütün tokenlər (xam palitra → semantik → köhnə adlar), tipoqrafik rollar, viz palitrası, baza, qabıq (`.qm-shell`), köhnə ümumi siniflər (`.btn-primary`, `.card`, `.page-hero` …) |
+| `src/styles/ui.css` | Komponent sinifləri (`.ui-*`) — §1–12 əsas, **§13 v3 komponentləri, §14 qrafiklər** |
+| `src/styles/motion.css` | Hərəkət tokenləri, fokus halqası, `data-reveal`, `data-count`, skeleton |
+| `src/styles/heroes.css` | Köhnə rəngli `.page-hero` temaları (redizayn olunmamış səhifələr üçün) |
 | `src/components/Icon.jsx` | Xətti SVG ikon dəsti (`<Icon name="quran" />`) + `BrandMark` |
-| `src/pages/HomePage.jsx` + `HomePage.css` | Sistemin "nümunə səhifəsi" |
+| `src/components/viz/index.jsx` | **Qrafik dəsti**: `BarChart ColumnChart Donut ProgressRing ProgressBar Sparkline StackedBar Timeline StatTile ChartFigure` |
+| `src/pages/HomePage.jsx` + `HomePage.css` | Sistemin "vitrin" səhifəsi — `.ui-tiles`, `.ui-steps`, `StatTile` nümunələri |
 
 ---
 
 ## 1. Xarakter
 
-Sakit, ləyaqətli, premium — "müasir rəqəmsal kitabxana / ibadət yoldaşı".
-Fil sümüyü (kağız) fon, dərin zümrüd əsas rəng, isti qum-qızılı vurğu, çox ağ sahə,
-hairline xətlər, yumşaq kölgələr. İslami həndəsə (xatəm — 8 guşəli ulduz) **yalnız incə vurğu**.
+Sakit, ləyaqətli, müasir — "rəqəmsal kitabxana / ibadət yoldaşı". Fil sümüyü fon, dərin zümrüd,
+qum-qızılı vurğu, çox ağ sahə, hairline xətlər. İslami həndəsə (xatəm) yalnız incə fon naxışıdır.
 
-**ETMƏ:** neon/parlaq yaşıl, göy qurşağı rəngli kartlar, emoji ikonlar (📖 🕐 🤲 …) yeni kodda,
-fırlanan/üzən dekor, qalın qradiyent zolaqlar, `font-weight: 800/900`, mətnə kölgə (tünd hero-dan başqa).
+**ET:** bir bölmədə bir məqsəd; qısa mono başlıq + bir cümlə izah + məzmun; ağ sahə və düzlənmə
+(qutu yox); hər bölmədə ən çox ~3 vizual çəki; mətnin yerinə bir baxışda oxunan vizual (rəqəm
+kafeli, zolaq, halqa, addımlar, zaman xətti, cədvəl).
 
-**ET:** bir səhifədə bir vurğu rəngi (zümrüd), qızılı yalnız kiçik detallarda (eyebrow nöqtəsi,
-sitat xətti, ".cc"), başlıqlar display şriftində, kartlar ağ səthdə hairline ilə.
+**ETMƏ:** kart içində kart, ikiqat haşiyə, ağır kölgə, göy qurşağı rəngli kartlar, emoji ikonlar,
+çoxlu nişan (badge), iri hard-code font ölçüsü, `font-weight: 800/900`, mətnə kölgə (tünd hero-dan
+başqa), insan/heyvan təsviri, stok foto.
 
 ## 2. Tokenlər
 
-### Rəng (semantik — HƏMİŞƏ bunları işlət)
+### Rəng (dəyişməyib — sahib bəyənir)
 
 | Token | İşıqlı | Qaranlıq | İstifadə |
 |---|---|---|---|
 | `--surface-0` | `#f7f5ef` | `#0a1016` | səhifə fonu |
 | `--surface-1` | `#ffffff` | `#111921` | kart, panel |
-| `--surface-2` | `#f1eee5` | `#17212b` | sakit dolğu (sahə, ikinci bölmə) |
-| `--surface-3` | `#e8e3d6` | `#1f2b36` | hover / basılı / batıq |
-| `--surface-raised` | `#ffffff` | `#17212b` | menyu, dialoq |
-| `--surface-inverse` | `#0a3d31` | `#0c1a17` | tünd zümrüd zolaq (CTA, footer, Quran kafeli) — hər iki rejimdə tünd |
-| `--text-strong` | `#0f1d19` | `#f3efe6` | başlıqlar |
-| `--text-body` | `#1b2a25` | `#e3dfd5` | əsas mətn |
-| `--text-secondary` | `#45534d` | `#b3b8b3` | ikinci dərəcəli |
-| `--text-tertiary` | `#5c6862` | `#8f9a99` | qeyd, mənbə, placeholder |
-| `--text-on-inverse` / `-dim` | `#f3efe6` / 74% | eyni | tünd zolaqda mətn |
-| `--line` / `--line-strong` | `#e3ded2` / `#cfc8b8` | `#22303b` / `#31424f` | hairline / sahə haşiyəsi |
-| `--brand` | `#0f5a47` | `#5fc8a5` | əsas hərəkət, link, aktiv |
-| `--brand-hover`, `--brand-strong` | | | hover; brend fonunda vurğu mətni |
-| `--brand-soft`, `--brand-soft-2`, `--brand-line` | 7% / 12% / 22% | 10% / 17% / 28% | yumşaq fon, aktiv sətir, haşiyə |
-| `--on-brand` | `#ffffff` | `#06201a` | `--brand` fonunda mətn |
-| `--accent` | `#a57a22` | `#d8b46a` | qızılı ikon, xətt, iri rəqəm (≥3:1) |
-| `--accent-text` | `#7a5712` | `#d8b46a` | qızılı **mətn** (AA) |
-| `--accent-soft`, `--accent-line` | | | qızılı nişan fonu / haşiyəsi |
-| `--ok` `--warn` `--bad` `--note` | | | vəziyyət |
-| `--ring` | brend 60% | | fokus halqası |
-| `--pattern-color` | brend 14% | brend 10% | xatəm naxışının rəngi |
+| `--surface-2` | `#f1eee5` | `#17212b` | sakit dolğu (sahə, ikinci bölmə, cədvəl başlığı) |
+| `--surface-3` | `#e8e3d6` | `#1f2b36` | hover / batıq / qrafik izi |
+| `--surface-raised` | ağ | `#17212b` | menyu, dialoq |
+| `--surface-inverse` | `#0a3d31` | `#0c1a17` | tünd zümrüd zolaq (Quran kafeli, CTA) |
+| `--text-strong` / `-body` / `-secondary` / `-tertiary` | 13.7 · 13.7 · 7.4 · 5.3 :1 | 14.4 · 14.4 · 9.5 · 6.6 :1 | başlıq / mətn / ikinci / qeyd |
+| `--line` / `--line-strong` | | | hairline / sahə haşiyəsi |
+| `--brand` (+ `-hover -strong -soft -soft-2 -line`), `--on-brand` | `#0f5a47` | `#5fc8a5` | əsas hərəkət, link, aktiv |
+| `--accent` / `--accent-text` (+ `-soft -line`) | `#a57a22` / `#7a5712` | `#d8b46a` | qızılı ikon/xətt / qızılı **mətn** |
+| `--ok --warn --bad --note` | | | vəziyyət (həmişə ikon + mətnlə) |
 
-Xam palitra (`--emerald-*`, `--sand-*`, `--paper-*`, `--night-*`) yalnız token təyin edərkən işlənir.
+`--accent` mətn üçün DEYİL (kiçik mətndə < 4.5) — mətnə `--accent-text`.
+Naxışlı fonda (footer, hero) kiçik mətn üçün `--text-tertiary` yox, `--text-secondary` işlət.
 
-### Kontrast cədvəli (WCAG 2.1, hesablanıb)
+### Qrafik palitrası (v3, yeni)
 
-| Cüt | İşıqlı | Qaranlıq |
+| Token | İşıqlı | Qaranlıq | |
+|---|---|---|---|
+| `--viz-1` | `#0f7d5e` zümrüd | `#26a07c` | tək seriya, 1-ci kateqoriya |
+| `--viz-2` | `#b0862f` qum | `#a8802a` | 2-ci |
+| `--viz-3` | `#3f6fc4` göy | `#5a82e0` | 3-cü |
+| `--viz-4` | `#a4527f` gavalı | `#b86a9f` | 4-cü |
+| `--viz-track` | `--surface-3` | | boş iz (zolaq, halqa) |
+| `--viz-grid` | `--line` | | ox / şəbəkə |
+
+Yoxlanılıb (dataviz validator): işıqlıq zolağı, xroma, rəng korluğu ΔE ≥ 9, normal görmə ΔE ≥ 15,
+səthə kontrast ≥ 3:1 — hər iki rejimdə. **Sıra sabitdir** (1→4, dövr etmir); 4-dən çox kateqoriya
+olarsa "Digər"ə birləşdir və ya cədvəl göstər. Rəng **varlığa** bağlıdır, sıraya yox.
+
+### Tipoqrafiya — iki şrift, aydın rollar
+
+| Rol (token) | Şrift | Harada |
 |---|---|---|
-| `--text-body` / `--surface-0` | 13.7 | 14.4 |
-| `--text-secondary` / `--surface-0` | 7.4 | 9.5 |
-| `--text-tertiary` / `--surface-0` · `-1` · `-2` · `-3` | 5.3 · 5.8 · 5.0 · 4.5 | 6.6 · 6.1 · 5.6 · 5.0 |
-| `--brand` / `--surface-1` | 8.2 | 8.7 |
-| `--on-brand` / `--brand` (düymə) | 8.2 | 8.4 |
-| `--accent-text` / `--surface-0` · `-2` | 6.0 · 5.7 | 9.7 · 8.3 |
-| `--text-on-inverse` / `--surface-inverse` | 10.6 | 15.6 |
-| `--text-on-inverse-dim` / `--surface-inverse` | 6.6 | 9.6 |
-| qum başlıq `#e6cc95` / `--surface-inverse` | 7.8 | 11.4 |
+| `--font-sans` | **Ubuntu Sans** | paraqraf, tərcümə, dərs mətni, kart təsviri, sahə dəyəri |
+| `--font-heading` | **Ubuntu Sans Mono** | h1–h3, bölmə başlığı, kart başlığı (`.ui-title`, `.ui-display`, `.ui-card__title`) |
+| `--font-label` | Ubuntu Sans Mono | eyebrow, düymə, çip, sekmə, nişan, cədvəl başlığı, naviqasiya |
+| `--font-num` | Ubuntu Sans Mono | iri rəqəm, saat, sayğac, statistika, cədvəl rəqəmi (`.ui-mono`, `.ui-num`) |
+| `--font-arabic` | Amiri | Quran/hədis ərəbcəsi (`.ui-arabic`) |
+| `--font-arabic-ui` | IBM Plex Sans Arabic | `/ar` interfeysi; `/ar`-da bütün "mono" rollar avtomatik bu şriftə keçir |
 
-`--accent` (`#a57a22`) mətn üçün DEYİL (kiçik mətndə 4.5-dən aşağı) — mətnə `--accent-text`.
+- `--font-display` = `--font-mono` (köhnə ad, eyni şrift). Yeni kodda rol tokenlərini işlət.
+- Mono **uzun mətn üçün deyil** — paraqraf həmişə sans.
+- Mono + `italic` avtomatik Ubuntu Sans Italic ilə göstərilir (globals.css-də qoruyucu `@font-face`),
+  amma yeni kodda sitatı sans + italic yaz.
+- Ərəbcə mətndə hərf aralığı avtomatik 0-dır (`[lang="ar"]` qaydası) — `lang="ar"` qoymağı unutma.
 
-### Tipografiya
+**Şkala** (rem, axıcı; telefonda kiçik pillələr kompensasiya olunur ki, əsas mətn **həmişə 15px** qalsın):
 
-| Token | Dəyər | Niyə |
+| Token | Ölçü | Rol |
 |---|---|---|
-| `--font-sans` | Inter 400–700 | ə ğ ı İ ş ç ö ü + kiril brauzerdə yoxlanılıb; neytral, Windows-da aydın |
-| `--font-display` | Literata 500/600 | Google Play Books-un kitab şrifti → "rəqəmsal kitabxana"; latin-ext + kiril, **ə/Ə var** (Fraunces/Newsreader-də kiril, Manrope-da Ə, PT Serif-də ə yoxdur — yoxlanılıb) |
-| `--font-arabic` | Amiri | Quran/hədis — klassik nəsx |
-| `--font-arabic-ui` | IBM Plex Sans Arabic | `/ar`-da interfeys (`html[lang=ar] body`) |
+| `--step--2` | 12 | etiket, nişan, cədvəl başlığı, qrafik qeydi |
+| `--step--1` | 13 | köməkçi mətn, kart təsviri, düymə (sm), çip |
+| `--step-0` | **15** | əsas mətn |
+| `--step-1` | 16–18 | kart başlığı, `.ui-lead` |
+| `--step-2` | 18–22 | h3, `.ui-title--sm`, hero statistikası |
+| `--step-3` | 21–28 | bölmə h2 (`.ui-title`), `.ui-stat__num` |
+| `--step-4` | 26–38 | səhifə h1 (`.ui-display`) |
+| `--step-5` | 30–50 | yalnız ana səhifə hero-su |
 
-Şkala (axıcı): `--step--2` 12 · `--step--1` 14 · `--step-0` 16 · `--step-1` 17–20 · `--step-2` 21–26 ·
-`--step-3` 26–36 (bölmə h2) · `--step-4` 32–52 (səhifə h1) · `--step-5` 42–76 (ana hero).
-Sətir: `--lh-tight` 1.12, `--lh-snug` 1.3, `--lh-body` 1.65, `--lh-arabic` 2.
-Hərf aralığı: `--tracking-tight` −0.02em (iri başlıq), `--tracking-wide` 0.08em (BÖYÜK HƏRF etiket; **ərəbcədə 0**).
-Rəqəmlər (saat, sayğac): `.ui-num` və ya `font-variant-numeric: tabular-nums`.
+Düymə mətni 14px (`0.875rem`). Ərəbcə Quran/hədis mətni body-nin ~1.35–1.6×-i (təxminən 20–26px),
+daha iri yox. Sətir uzunluğu ≤ 68ch (`--measure`). Sətir: `--lh-tight` 1.2, `--lh-snug` 1.3,
+`--lh-body` 1.7, `--lh-arabic` 2. Hərf aralığı: `--tracking-wide` 0.05em (BÖYÜK HƏRF mono etiket).
 
 ### Forma, kölgə, boşluq
 
-- Radius: `--radius-xs` 6 · `-sm` 8 · `-md` 12 (düymə, sahə) · `-lg` 16 (kart) · `-xl` 24 (iri panel) · `-2xl` 32 (CTA) · `-pill`.
-- Kölgə: `--shadow-1` (sakit kart) → `-2` (hover) → `-3` (üzən kart) → `-4` (menyu/dialoq). Rəngsizdir (yaşıl çalar yoxdur).
-- Boşluq: `--space-1…9` (4…96), `--page-gutter` (32/24/20/16), `--container` 1200, `--section-gap` 88→56→44→36, `--card-pad`, `--tap` 44.
+- Radius: `--radius-sm` 8 (çip içi) · `-md` 12 (düymə, sahə) · `-lg` 16 (kart) · `-xl` 24 (iri panel) · `-pill`.
+- **Kölgə v3:** kartlar kölgəsizdir (yalnız `--line` hairline). `--shadow-1` seqment seçimi, `--shadow-2`
+  klikləmə kartının hover-i, `--shadow-3/4` yalnız üzən elementlər (menyu, dialoq, toast).
+- Boşluq: `--space-1…9` (4·8·12·16·24·32·48·64·96), `--page-gutter` (32/24/20/16), `--container` 1200,
+  `--section-gap` 64→56→44→36, `--section-gap-sm` 40→36→28, `--card-pad` 24→18→16, `--tap` 44.
 
-### Hərəkət (motion.css + ui.css §11–12 + heroes.css)
+## 3. Səhifə skeleti (hər səhifə belə başlayır)
 
-Tokenlər: `--dur-1` 150ms (rəng, basılma) · `--dur-2` 240ms (düymə, kart hover) · `--dur-3` 360ms (menyu, dialoq, toast) ·
-`--dur-4` 560ms (sürüşəndə görünmə) · `--stagger` 45ms. Əyrilər: `--ease-out` giriş, `--ease-in` çıxış,
-`--ease-spring` yalnız kiçik elementlərdə, `--ease-sheet` vərəq.
-Qaydalar: yalnız `transform` / `opacity` (+ bir dəfəlik `filter: blur`); dövri dekor yalnız hero təsvirinin/naxışının
-çox yavaş "nəfəsi"dir (28–40 s). `prefers-reduced-motion: reduce` — hər şey söndürülür (motion.css §17), məzmun
-dərhal görünür, sayğac saymır, skeleton parıltısı dayanır.
-
-**Sürüşəndə görünmə — `data-reveal`** (JS: `hooks/useReveal.js`, tək müşahidəçi; JS yoxdursa məzmun görünür qalır)
-
-| Dəyər | Nə edir |
-|---|---|
-| `data-reveal` / `="up"` | aşağıdan 16px qalxır + görünür |
-| `="down"` | yuxarıdan enir |
-| `="left"` / `="right"` | başlanğıc / son tərəfdən 22px (ərəbcədə güzgülənir) |
-| `="zoom"` | .94 → 1 · `="scale"` .97 → 1 (köhnə) |
-| `="blur"` | bulanıqdan aydınlaşır + 8px qalxır (iri başlıq, sitat üçün) |
-| `="fade"` | yalnız görünür |
-| `="stagger"` | **uşaqlar** növbə ilə qalxır (45ms, ən çox 10 addım) |
-| `="stagger-zoom"` `-fade` `-left` `-right` `-blur` | uşaqlar növbə ilə, uyğun hərəkətlə |
-
-Əlavə: `data-reveal-delay="120"` (ms, ≤ 400), `style="--reveal-dur: 800ms"`. `.ui-ornament[data-reveal]` — xətlər mərkəzdən
-açılır, ulduz fırlanıb oturur. Ref ilə: `const ref = useReveal('stagger')`.
-
-```html
-<div class="ui-section-head" data-reveal>…</div>
-<div class="ui-grid" data-reveal="stagger">  <a class="ui-card ui-card--interactive">…</a> … </div>
-<figure class="ui-quote" data-reveal="blur">…</figure>
-<div class="ui-ornament" data-reveal aria-hidden="true"><span class="ui-ornament__star"></span></div>
+```
+[kompakt hero]  eyebrow · h1 · bir cümlə lead · (2–3 düymə və ya 2–4 açar rəqəm) · (necə işlədilir)
+[bölmə]         eyebrow · h2 · bir cümlə · məzmun
+[bölmə] …
+[əlaqəli]       .ui-list və ya .ui-tiles — başqa bölmələrə keçid (məzmunu TƏKRARLAMA, link ver)
 ```
 
-**Rəqəm sayğacı — `data-count`**: `<span class="ui-stat__num" data-count="6236">6 236</span>` — görünəndə 0-dan
-hədəfə 1.2 s sayır (ease-out), minlik ayırıcısını saxlayır, sonda HTML-dəki mətn olduğu kimi qalır (SEO).
-`data-count-duration="1600"`; ondalıq: `data-count="4.8"`. Element yalnız bir mətn düyünündən ibarət olmalıdır.
+Hero telefonda (360×800) birinci ekranın ~35–45%-indən çox olmasın. Bir səhifədə bir `<h1>`.
 
-**Mikro-qarşılıqlı təsirlər** (avtomatikdir, sinif əlavə etmək lazım deyil):
-`.ui-btn` hover-də 1px qalxır, basılanda .97; sonda ox üçün `<Icon className="ui-btn__icon ui-btn__icon--end ui-flip-rtl">` irəli sürüşür ·
-`.ui-card` hover-də kölgə bir pillə artır; `.ui-card--interactive`, `a.ui-card`, `button.ui-card` 3px qalxır + `--shadow-3`,
-içindəki `.ui-icon-tile` böyüyür/ikonu əyilir, `.ui-link__arrow` irəli gedir · `.ui-chip` seçiləndə "pop", basılanda .96 ·
-`.ui-icon-btn` basılanda .92 · `.ui-icon-tile--interactive` kart xaricində öz hover canlanması · fokus halqası 6px-dən 2px-ə "oturur".
+### 3.1 Səhifə hero-su — `.ui-page-hero`
 
-**Köməkçi siniflər** (motion.css §15–16):
-
-| Sinif | Nə edir |
-|---|---|
-| `.ui-enter-fade` · `-rise` · `-drop` · `-pop` · `-dialog` · `-sheet` | giriş animasiyası (backdrop · toast · açılan menyu · kiçik nişan · modal · telefon vərəqi) |
-| `… .is-leaving` | çıxış (200ms); sonra DOM-dan çıxar — `exitDelay()` (utils/promptCoordinator.js) hərəkət azaldılıbsa 0 qaytarır |
-| `.ui-lift` | hover-də 2px qalxma + kölgə (istənilən blok) |
-| `.ui-press` | basılanda .97 (köhnə `.press` eynidir) |
-| `.ui-underline` | link altında xətt başlanğıcdan "çəkilir" |
-| `.ui-spin` | kiçik yüklənmə fırlanması (düymə içində) |
-| `.ui-skeleton` (+ `--text` `--circle` `--card`, `style="--w:60%"`) | yüklənmə parıltısı; köhnə `.skeleton` də işləyir |
-
-**Səhifə keçidi**: `<main class="page-enter">` 10px aşağıdan qalxır (App.jsx); `.ui-page-hero` məzmunu (crumbs → eyebrow →
-h1 → lead → düymələr) növbə ilə qalxır, alt qızılı xətt mərkəzdən açılır, naxış 40 s-də "nəfəs alır". Köhnə `.page-hero`
-(heroes.css): məzmun növbə ilə qalxır, təsvir 28 s-də 1 → 1.035 miqyasda nəfəs alır.
-
-**Üzən kart / dəvət — `.ui-toast`** (ui.css §11): quraşdırma, bildiriş icazəsi, elan, push — hamısı bir görünüşdə,
-altdan `16px + safe-area`, ≥1024px-də əsas sütunun ortasında (dok üçün yer). Hissələr: `__icon` / `__mark`, `__body`,
-`__eyebrow`, `__title`, `__text`, `__actions`, `__close`, `__progress` (`--toast-duration`); `--top` variantı; vurğu
-`style="--toast-accent: var(--bad)"`. **Eyni anda yalnız BİR dəvət** — yeni üzən element əlavə edirsənsə
-`usePromptSlot()` (utils/promptCoordinator.js) işlət; bağlananda seçimi `snoozePrompt(key, days)` ilə yadda saxla.
-
-## 3. Komponentlər (ui.css)
-
-```html
-<!-- Bölmə -->
-<section class="ui-section">
-  <div class="ui-container">
-    <div class="ui-section-head ui-section-head--center">
-      <span class="ui-eyebrow">Saytda</span>
-      <h2 class="ui-title">İslami bilik və ibadət</h2>
-      <p class="ui-lead">…</p>
+```jsx
+<header className="ui-page-hero">                         {/* --split: sağda vizual */}
+  <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+  <div className="ui-container">
+    <nav className="ui-page-hero__crumbs" aria-label="…">…</nav>   {/* istəyə görə */}
+    <span className="ui-eyebrow">Zəkat və sədəqə</span>
+    <h1 className="ui-display">Zəkat kalkulyatoru</h1>
+    <p className="ui-lead">Bir cümlə: bu səhifə nə edir.</p>
+    <p className="ui-page-hero__how"><Icon name="info" size={16} /> Necə işlədilir: …</p>
+    <ul className="ui-page-hero__stats">
+      <li><b>2.5%</b><span>zəkat dərəcəsi</span></li>
+      <li><b>85 q</b><span>qızıl nisabı</span></li>
+    </ul>
+    <div className="ui-page-hero__actions">
+      <a className="ui-btn ui-btn--primary" href="#calc">Hesabla</a>
     </div>
-    <div class="ui-grid" style="--ui-grid-min: 260px">
-      <a class="ui-card ui-card--interactive" href="/quran">
-        <div class="ui-card__head">
-          <span class="ui-icon-tile"><Icon name="quran" /></span>
-          <h3 class="ui-card__title">Quran</h3>
-        </div>
-        <p class="ui-card__text">114 surə …</p>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- Düymələr -->
-<button class="ui-btn ui-btn--primary"><Icon name="prayer" className="ui-btn__icon" /> Namaz vaxtları</button>
-<button class="ui-btn ui-btn--secondary">…</button>   <!-- ağ, haşiyəli -->
-<button class="ui-btn ui-btn--ghost">…</button>
-<button class="ui-btn ui-btn--accent ui-btn--sm">…</button>
-<button class="ui-btn ui-btn--inverse">…</button>      <!-- tünd zolaqda -->
-<button class="ui-icon-btn" aria-label="Paylaş"><Icon name="arrow" /></button>
-<a class="ui-link" href="…">Hamısı <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" /></a>
-
-<!-- Çip, nişan -->
-<div role="group" aria-label="Filtr">
-  <button class="ui-chip" aria-pressed="true">Hamısı</button>
-  <button class="ui-chip" aria-pressed="false">Səhər</button>
-</div>
-<span class="ui-badge ui-badge--brand">Növbəti</span>
-
-<!-- Forma -->
-<label class="ui-field">
-  <span class="ui-field__label">Şəhər</span>
-  <input class="ui-input" type="search" />
-  <span class="ui-field__hint">…</span>
-</label>
-
-<!-- İslami detallar -->
-<div class="ui-pattern ui-pattern--fade" aria-hidden="true"></div>   <!-- valideyndə position:relative; isolation:isolate -->
-<div class="ui-ornament" aria-hidden="true"><span class="ui-ornament__star"></span></div>
-<figure class="ui-quote">
-  <blockquote>
-    <p class="ui-quote__ar ui-arabic" lang="ar" dir="rtl">…</p>
-    <p class="ui-quote__text">…</p>
-  </blockquote>
-  <figcaption class="ui-quote__src">— Muslim 671</figcaption>
-</figure>
-<div class="ui-stat"><span class="ui-stat__num">114</span><span class="ui-stat__label">Surə</span></div>
-```
-
-Variantlar: `.ui-card--sunken` (ikinci səth), `--inverse` (tünd zümrüd), `--flush` (boşluqsuz);
-`.ui-icon-tile--accent | --neutral | --sm | --lg`; `.ui-section--alt | --tight`; `.ui-container--narrow`.
-
-### Daxili səhifə hero-su (növbəti mərhələ üçün hazırdır)
-
-Köhnə rəngli `.page-hero` (heroes.css temaları) hələ işləyir və yeni şriftlə görünür. Səhifəni redizayn edəndə onu
-`.ui-page-hero` ilə əvəz et — sakit kağız fon, naxış, başlanğıca düzlənmiş başlıq, bir `<h1>`:
-
-```html
-<header class="ui-page-hero">
-  <div class="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
-  <div class="ui-container">
-    <nav class="ui-page-hero__crumbs" aria-label="…">…</nav>
-    <span class="ui-eyebrow">Quran</span>
-    <h1 class="ui-display">Qurani-Kərim</h1>
-    <p class="ui-lead">114 surə · 6236 ayə</p>
-    <div class="ui-page-hero__actions">…</div>
   </div>
 </header>
 ```
 
-### İkonlar (Icon.jsx)
+`--split` variantı: `.ui-container`-in içində `<div className="ui-page-hero__text">…</div>` +
+`<div className="ui-page-hero__aside">…</div>` (≥900px yanaşı; telefonda alt-alta). Asidedə kiçik
+vizual: `ProgressRing`, `StatTile`, xəritə, kiçik kart — iri şəkil yox.
 
-`<Icon name="…" size={20} strokeWidth={1.75} className fallback title />`. Adlar: navigation.js-dəki hər marşrut
-açarı (`quran`, `hadith`, `prayer`, `duas`, `dhikr`, `names`, `zakat`, `qibla`, … `about`) + ümumi:
-`arrow chevron search pin bell sun moon sunrise sunLow sunset shield globe check instagram`.
-Susma ilə `aria-hidden`; mənalı ikon üçün `title` ver. Ox ikonlarına `ui-flip-rtl`.
-Yeni ikon: 24×24 şəbəkə, yalnız stroke, fill yox.
+Köhnə rəngli `.page-hero` hələ işləyir (v3-də kompaktlaşdırılıb: 48/40px → telefonda 28/24px), amma
+redizayn edilən səhifə `.ui-page-hero`-ya keçir.
 
-## 4. Vacib texniki qaydalar
+### 3.2 Bölmə başlığı — `.ui-section-head`
 
-1. **CSS sırası.** Səhifə CSS-i (`import '../styles/X.css'` JSX-də) `globals.css`/`ui.css`-dən ƏVVƏL yüklənir
-   (main.jsx-də App importu birincidir). Ona görə `.ui-*` sinfini səhifə sinfi ilə eyni spesifiklikdə
-   dəyişə bilməzsən — valideyn ilə gücləndir: `.xp-root .xp-quote { … }` (HomePage.css-də `.hp-root …` nümunələri).
-2. **Köhnə tokenlər silinmir.** `--primary --bg --bg-card --bg-card2 --surface --text --text-dim --text-muted
-   --border --border-md --gold --shadow* --radius* --font` yeni sistemə alias-dır (globals.css §5). Yeni kodda
-   semantik adları işlət; səhifəni redizayn edəndə köhnə adları da əvəz et.
-3. **Qaranlıq rejim** yalnız tokenlərlə: `[data-theme="dark"]` `<html>`-də (LangContext + index.html skripti).
-   Səhifə CSS-ində `[data-theme="dark"] .x { color: #… }` yazmaq lazım gəlirsə — çox güman ki, səhv token seçilib.
-4. **RTL** (`/ar`, `dir="rtl"`): `margin-inline`, `padding-inline`, `inset-inline-*`, `border-inline-start`,
-   `text-align: start`. Oxlar `ui-flip-rtl`. Ərəb mətnində `letter-spacing: 0`, `text-transform: none`.
-   Latın brend/domeni (`Muslims.cc`) üçün `direction: ltr; unicode-bidi: isolate`.
-5. **Əlçatanlıq.** Hər səhifədə bir `<h1>`. Fokus halqası `:focus-visible` (motion.css §2) — `outline: none` yazma.
-   Toxunma hədəfi ≥ 44px (`--tap`, `.ui-btn` avtomatik). İkon-düymədə `aria-label`. Kontrast cədvəlinə bax.
-6. **e2e testlərinin baxdığı adlar** (dəyişmə): başlıqda "Menyu" düyməsi (`aria-expanded`), yan panel
-   `<nav aria-label="Bölmələr">` + qrup düymələri `button[aria-expanded]`, menyu `role="dialog"`,
-   Ctrl+K axtarış `role="dialog"`, "Qaranlıq rejim", "Dili dəyiş", telefonda menyu içində dil düymələri (`aria-label` doğma ad).
-7. **Performans.** Şəkil/kitabxana yox; naxışlar `mask-image` + data-URI SVG (`--ui-khatam`, `--ui-star`).
-   Şriftlər index.html-də, `display=swap`; yeni çəki əlavə etmə.
-8. **Mətnlər** 5 dildə saf olmalıdır (az-da türkcə söz yox, tr-də "ə" yox) — `node scripts/check-lang.mjs`.
+```jsx
+<section className="ui-section">                 {/* --tight: yarım boşluq; --alt: ikinci səth */}
+  <div className="ui-container">
+    <div className="ui-section-head" data-reveal>  {/* --center · --row (sağda link) */}
+      <span className="ui-eyebrow">Fiqh</span>
+      <h2 className="ui-title">Namazın şərtləri</h2>
+      <p className="ui-lead">Bir cümlə izah.</p>
+    </div>
+    …
+  </div>
+</section>
+```
 
-## 5. Səhifəni köçürmə yoxlama siyahısı
+`.ui-section-head .ui-lead` avtomatik 15px-dir. `--row`: başlıq solda, "Hamısı →" (`.ui-link`) sağda.
 
-- [ ] `.page-hero` → `.ui-page-hero` (və ya səhifəyə uyğun sakit hero), bir `<h1>`.
-- [ ] Emoji ikonlar → `<Icon>`; göy qurşağı `style={{'--clr': …}}` rəngləri → brend/vurğu tokenləri.
-- [ ] Kartlar → `.ui-card`, düymələr → `.ui-btn`, filtrlər → `.ui-chip`, sahələr → `.ui-input`.
-- [ ] Hex rəng, öz kölgə/radius yoxdur; `[data-theme=dark]` qaydaları minimal.
-- [ ] Bölmə başlıqlarına `data-reveal`, kart şəbəkələrinə `data-reveal="stagger"`, iri rəqəmlərə `data-count`.
-- [ ] 1440 işıqlı/qaranlıq, 390 telefon, `/ar` ekran şəkli; konsol təmiz; e2e keçir.
+## 4. Komponentlər (ui.css)
+
+### Düymə, link
+`.ui-btn` + `--primary` (zümrüd) · `--secondary` (ağ, haşiyəli) · `--ghost` · `--accent` · `--inverse` / `--inverse-ghost` (tünd zolaqda);
+ölçü `--sm` (34) · susma (42) · `--lg` (48) · `--block`. İkon: `<Icon className="ui-btn__icon" />`, ox: `ui-btn__icon ui-btn__icon--end ui-flip-rtl`.
+`.ui-icon-btn` (kvadrat, `aria-label` məcburi) · `.ui-link` (+ `.ui-link__arrow ui-flip-rtl`). Bir bölmədə ən çox **bir** primary düymə.
+
+### Kart
+`.ui-card` — ağ, hairline, **kölgəsiz**. `--interactive` / `<a class="ui-card">` hover-də 2px qalxır, haşiyə zümrüdləşir.
+`--sunken` (ikinci səth, haşiyəsiz) · `--plain` (fonsuz qrup — kart içində kart əvəzinə) · `--inverse` · `--flush`.
+Hissələr: `__head` (ikon + başlıq) `__title` (mono, step-1) `__text` (13px) `__foot`.
+`.ui-icon-tile` (+ `--accent --neutral --sm --lg`) — xətti ikon üçün yumşaq kafel.
+
+### İkon kafelləri — `.ui-tiles` / `.ui-tile` (sürətli keçid, bölmə xəritəsi)
+```jsx
+<ul className="ui-tiles" style={{ '--ui-tiles-min': '168px' }}>
+  <li><a className="ui-tile" href="/quran">
+    <span className="ui-icon-tile" aria-hidden="true"><Icon name="quran" /></span>
+    <span className="ui-tile__title">Quran</span>
+    <span className="ui-tile__text">Tərcümə və tilavət</span>
+  </a></li>
+</ul>
+```
+`--row` variantı: ikon solda + `<span class="ui-tile__body">`.
+
+### Çip, sekmə, seqment
+- **Filtr** → `.ui-chip` (`aria-pressed`), qrup `role="group" aria-label`. Seçilən: tünd "mürəkkəb" dolğu.
+- **Görünüş dəyişmək** (bölmə daxili panellər) → `.ui-tabs` + `.ui-tab` (`role="tablist"/"tab"`, `aria-selected`, sayı `.ui-tab__count`). Dar ekranda üfüqi sürüşür.
+- **2–4 bərabər rejim** (gün/həftə, qızıl/gümüş) → `.ui-segmented` (`role="radiogroup"`, düymələrdə `role="radio" aria-checked`).
+- Nişan → `.ui-badge` (`--brand --accent --solid`) — bir kartda ən çox biri.
+
+### Forma
+`.ui-field` > `.ui-field__label` (mono) + `.ui-input` / `.ui-select` + `.ui-field__hint`. Sahə 16px (iOS zoom yox).
+
+### Cədvəl — `.ui-table`
+```jsx
+<div className="ui-table-wrap" tabIndex={0} role="region" aria-label="Nisab cədvəli">
+  <table className="ui-table">                     {/* --compact · --zebra */}
+    <caption>Mənbə: …</caption>                    {/* altda, kiçik */}
+    <thead><tr><th scope="col">Mal</th><th scope="col" className="is-num">Nisab</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Qızıl</th><td className="is-num">85 q</td></tr>
+      <tr className="is-current">…</tr>             {/* vurğulu sətir (bugün, növbəti) */}
+    </tbody>
+  </table>
+</div>
+```
+Rəqəm sütunu `is-num` (mono, sona düzlənir). Müqayisə (məzhəb fərqi deyil — dəlil ilə!), vaxt cədvəli, ölçülər üçün.
+
+### Addımlar — `.ui-steps` (dəstəmaz, namaz, həcc, hesab qaydası)
+```jsx
+<ol className="ui-steps">                          {/* --row: ≥768px üfüqi */}
+  <li className="ui-step">                         {/* .is-done — tamamlanıb */}
+    <span className="ui-step__n" aria-hidden="true">1</span>
+    <div className="ui-step__body">
+      <h3 className="ui-step__title">Niyyət</h3>
+      <p className="ui-step__text">…</p>
+    </div>
+  </li>
+</ol>
+```
+
+### Qeyd bloku — `.ui-callout`
+`<aside className="ui-callout ui-callout--warn"><Icon name="alert" /><div><strong className="ui-callout__title">…</strong><p>…</p></div></aside>`
+Variantlar: susma (brend) · `--note` · `--ok` · `--warn` · `--bad` · `--accent`. Səhifədə az işlət — hər paraqraf qeyd deyil.
+
+### Açar–dəyər — `.ui-kv`
+`<dl className="ui-kv"><div><dt>Nisab (qızıl)</dt><dd>85 q</dd></div>…</dl>` — `--grid` kafel kimi yan-yana.
+
+### Statistika — `.ui-stat` / `.ui-stats` / `<StatTile>`
+```jsx
+<div className="ui-stats">                          {/* --ui-stats-min: 140px */}
+  <StatTile icon="quran" label="Surə" value="114" count={114} />
+  <StatTile label="Zəkat" value="2.5" unit="%" hint="ilin sonunda" variant="sunken" tone="brand" />
+</div>
+```
+`count` → `data-count` (görünəndə 0-dan sayır, motion.css). Köhnə `<div class="ui-stat">` (çərçivəsiz) hələ işləyir.
+
+### Zaman xətti — `.ui-timeline` / `<Timeline>`
+`<Timeline wide items={[{ when: '610', title: 'İlk vəhy', text: '…', highlight: true }]} />` — tarix, siyər, alimin həyatı.
+
+### Keçid siyahısı — `.ui-list`
+"Əlaqəli bölmələr", mənbələr: `<ul className="ui-list"><li><a className="ui-list__item" href="…"><Icon name="learn" /><span>Başlıq<small>izah</small></span><Icon name="chevron" className="ui-list__chev ui-flip-rtl" /></a></li></ul>`
+
+### Digər
+`.ui-quote` (ərəbcə + tərcümə + mənbə, qızılı başlanğıc xətti) · `.ui-ornament` · `.ui-pattern` (+ `--fade`) ·
+`.ui-empty` (boş vəziyyət) · `.ui-split` (≥1100px məzmun + yapışqan yan panel) · `.ui-toast` (üzən dəvət, eyni anda biri) ·
+`.ui-meter` (zolaq; React: `<ProgressBar>`) · `.ui-sr-only` · `.ui-flip-rtl` · `.ui-cv` (ekrandan kənar bölmənin render-ini təxirə sal).
+
+## 5. Qrafiklər — `src/components/viz`
+
+```jsx
+import { ChartFigure, BarChart, ColumnChart, Donut, ProgressRing, ProgressBar,
+         Sparkline, StackedBar, Timeline, StatTile } from '../components/viz'
+
+<ChartFigure title="Nisab: qızıl və gümüş" sub="qram" note="Mənbə: …(yoxlanılmış istinad)">
+  <BarChart data={[{ label: 'Qızıl', value: 85 }, { label: 'Gümüş', value: 595 }]} format={v => `${v} q`} />
+</ChartFigure>
+```
+
+| Komponent | Nə üçün | Əsas props |
+|---|---|---|
+| `ChartFigure` | hər qrafikin çərçivəsi: başlıq, alt başlıq, mənbə | `title sub note plain` |
+| `BarChart` | kateqoriya müqayisəsi (üfüqi, uzun adlar) | `data[{label,value,note,tone,muted}] max format labelWidth` |
+| `ColumnChart` | ardıcıllıq (≤12: aylar, 5 namaz) | `data[{label,value,current,muted}] height showValues` |
+| `Donut` | tərkib, 2–4 pay | `segments[{label,value,tone}] center{value,label} size thickness` |
+| `StackedBar` | tərkib bir zolaqda (miras, gün bölgüsü) | `segments format` |
+| `ProgressRing` | tək irəliləyiş (xətm, hifz) | `value max label sub size` |
+| `ProgressBar` | xətti irəliləyiş | `value max label tone size('sm'/'lg')` |
+| `Sparkline` | kiçik trend (son 7/30 gün) | `values label(məcburi) area dot flipRtl` |
+| `Timeline` | tarixi ardıcıllıq | `items[{when,title,text,highlight,tone}] wide headingLevel` |
+| `StatTile` | tək iri rəqəm (çox vaxt qrafikdən yaxşıdır) | `value unit label hint icon count variant tone` |
+
+Qaydalar:
+1. **Əvvəl formanı seç**: bir rəqəm → `StatTile`; müqayisə → `BarChart`; zaman → `ColumnChart`/`Sparkline`/`Timeline`;
+   tərkib → `Donut`/`StackedBar`; prosedur → `.ui-steps`; çox ölçülü məlumat → `.ui-table`. Dual-axis qrafik YOX.
+2. Rəng: `tone` 1–4 (sabit sıra) və ya `'muted'`; tək seriya — `tone` vermə. Status rəngi (`ok/warn/bad`) yalnız vəziyyət üçün.
+3. Dəyərlər həmişə **mətn kimi də** görünür (zolağın yanında, legend-də) — rəng tək daşıyıcı deyil; ekran oxuyucu üçün
+   `label`/`aria-label` ver. Mətn seriya rəngində yazılmır.
+4. RTL avtomatikdir (HTML qrafiklər məntiqi xassələrlə; `Sparkline` `flipRtl`). Qaranlıq rejim tokenlərlə avtomatikdir.
+5. Məlumat **doğru və mənbəli** olmalıdır: `note="Mənbə: …"`. Uydurma rəqəm yox.
+
+## 6. Tətbiq qabığı
+
+- **Başlıq** (`Header.jsx/.css`): loqo · 5 əsas link (mono) · axtarış · tema · dil; <1024px — axtarış + ☰.
+- **Yan panel** (`SideNav.jsx/.css`, ≥1024px): axtarış sahəsi + 8 qrup (mono böyük hərfli etiket, ikonlu 34px sətirlər,
+  cari səhifə yumşaq zümrüd fonda + qızılı göstərici). <1024px eyni qruplar ☰ çəkmə menyusunda (46px sətirlər, alətlər, tema, dil).
+- **Footer**: brend + şüar + 5 sütun link (mono etiketlər) + hüquqi sətir.
+- **Dok** (FloatingDock, ≥1024px sağ aşağı): AI, əlçatanlıq, bildirişlər.
+
+## 7. Hərəkət (motion.css — dəyişməyib)
+
+`--dur-1` 150 · `--dur-2` 240 · `--dur-3` 360 · `--dur-4` 560ms; yalnız `transform`/`opacity`.
+`data-reveal` (`up down left right zoom blur fade stagger stagger-*`), `data-reveal-delay`, `data-count` sayğacı,
+`.ui-enter-*` giriş sinifləri, `.ui-skeleton`. `prefers-reduced-motion: reduce` — hamısı söndürülür.
+Bölmə başlıqlarına `data-reveal`, kafel/kart şəbəkələrinə `data-reveal="stagger"`, iri rəqəmlərə `data-count`.
+
+## 8. Vacib texniki qaydalar
+
+1. **CSS sırası.** Səhifə CSS-i `globals.css`/`ui.css`-dən ƏVVƏL yüklənir — `.ui-*` sinfini dəyişmək üçün valideynlə gücləndir:
+   `.xp-root .ui-tile { … }`.
+2. **Ölçü yazma** — `font-size: var(--step-*)`. Px font ölçüsü yalnız ərəbcə mətn və ikon üçün.
+3. **Köhnə tokenlər** (`--primary --bg --text-dim --border --gold --shadow …`) alias kimi qalır; yeni kodda semantik adlar.
+4. **Qaranlıq rejim** yalnız tokenlərlə. `[data-theme="dark"] .x { color:#… }` lazımdırsa — səhv token seçilib.
+5. **RTL**: `margin-inline`, `padding-inline`, `inset-inline-*`, `text-align: start`; oxlar `ui-flip-rtl`;
+   ərəbcə elementə `lang="ar" dir="rtl"`. Latın domeni `direction: ltr; unicode-bidi: isolate`.
+6. **Əlçatanlıq**: bir `<h1>`; başlıq pillələri ardıcıl; fokus halqası motion.css-dən (`outline: none` yazma);
+   toxunma ≥ 44px; ikon-düymədə `aria-label`; sürüşən zolaqda `tabIndex={0} role="region" aria-label`.
+7. **e2e testlərinin baxdığı adlar** (dəyişmə): "Menyu" düyməsi (`aria-expanded`), `<nav aria-label="Bölmələr">` + qrup
+   `button[aria-expanded]`, menyu `role="dialog"`, Ctrl+K `role="dialog"`, "Qaranlıq rejim", "Dili dəyiş", `.hp-pc` namaz kartı,
+   "Şəhəri dəyiş". Səhifəni dəyişməzdən əvvəl `tests/e2e`-də öz səhifənin selektorlarını axtar.
+8. **Performans**: kitabxana yox, şəkil yalnız mövcud yer fotoları; ekrandan aşağı bölmələrə `.ui-cv` + `--cv-h`.
+9. **Mətnlər 5 dildə** saf: `node scripts/check-lang.mjs --only=<fayllar>`.
+10. **Məzmun**: Sələfin anlayışı; mənbəsiz iddia yox; başqa səhifədə olanı təkrarlama — link ver.
+
+## 9. Səhifəni köçürmə yoxlama siyahısı
+
+- [ ] `.page-hero` → `.ui-page-hero` (kompakt): eyebrow · h1 · bir cümlə · (`__how` / `__stats` / `__actions`).
+- [ ] Hər bölmə `.ui-section` + `.ui-section-head` (eyebrow · h2 · bir cümlə).
+- [ ] Kart içində kart yoxdur; haşiyə + kölgə birlikdə yoxdur; kartlar `.ui-card` / `.ui-tile`.
+- [ ] Ən azı bir vizual: `StatTile`, qrafik, `.ui-steps`, `.ui-timeline`, `.ui-table` — mətn divarı yox.
+- [ ] Font ölçüləri `--step-*`; başlıq/etiket/rəqəm mono, paraqraf sans.
+- [ ] Emoji → `<Icon>`; rəngli `style={{'--clr': …}}` → token.
+- [ ] Filtr `.ui-chip`, sekmə `.ui-tabs`, rejim `.ui-segmented`, sahə `.ui-input`.
+- [ ] 360 · 768 · 1280, işıqlı + qaranlıq, `/ar` ekran şəkli; konsol təmiz; check-lang, vitest, build, e2e keçir.

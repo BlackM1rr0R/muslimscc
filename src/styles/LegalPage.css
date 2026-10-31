@@ -288,3 +288,18 @@
   .lg-table-wrap { overflow: visible; }
   .lg-ext::after { content: ' (' attr(href) ')'; font-size: 8.5pt; }
 }
+
+/* ══ Dizayn v3 əlavələri ══════════════════════════════════════════
+   Hero rəqəmləri (bölmə · oxu müddəti · mənbə), "Mənbələr"də lisenziya
+   bölgüsü qrafiki (hero-nun yanında), məzmun cədvəlində oxu irəliləyişi. */
+.lg-hero .lg-stats { margin-top: var(--space-4); }
+.lg-hero__aside .ui-figure { background: var(--surface-1); }
+@media (min-width: 900px) { .lg-hero__aside { max-width: 420px; margin-inline-start: auto; } }
+
+.lg-toc--side .lg-toc__title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.lg-toc__pos { color: var(--text-tertiary); font-size: var(--step--2); letter-spacing: 0; }
+.lg-toc__meter { margin: 0 0 12px; }
+
+@media print {
+  .lg-stats, .lg-hero__aside, .lg-toc__meter { display: none !important; }
+}

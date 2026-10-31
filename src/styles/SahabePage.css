@@ -43,7 +43,7 @@
   --tone-line: var(--accent-line);
 }
 .sp-medal--sm { --m: 44px; }
-.sp-medal--lg { --m: 148px; }
+.sp-medal--lg { --m: 120px; }
 
 .sp-medal__star {
   position: absolute;
@@ -114,7 +114,7 @@
 .sp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .sp-chip__n {
   margin-inline-start: 2px;
-  font-size: 12px;
+  font-size: var(--step--2);
   font-weight: 600;
   opacity: 0.66;
 }
@@ -153,14 +153,14 @@
 }
 .sahabe-card-title {
   color: var(--accent-text);
-  font-size: 13px;
+  font-size: var(--step--1);
   font-weight: 600;
   line-height: 1.4;
 }
 .sahabe-card-line {
   margin-top: 8px;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: var(--step--1);
   line-height: 1.55;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -176,7 +176,7 @@
   margin-top: auto;
   padding-top: 12px;
   border-top: 1px solid var(--line);
-  font-size: 13px;
+  font-size: var(--step--1);
 }
 .sahabe-card-meta { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); }
 .sahabe-card-read { display: inline-flex; align-items: center; gap: 4px; color: var(--brand); font-weight: 600; }
@@ -228,7 +228,7 @@
 .sp-back-ic { transform: scaleX(-1); transition: transform var(--dur-2) var(--ease-out); }
 [dir="rtl"] .sp-back-ic { transform: none; }
 
-.sahabe-page .sp-hero { padding-block: clamp(28px, 4vw, 56px) clamp(32px, 4.5vw, 64px); }
+.sahabe-page .sp-hero { padding-block: clamp(24px, 3.4vw, 48px) clamp(20px, 2.6vw, 36px); }
 .sp-hero__grid {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -239,7 +239,7 @@
 }
 .sp-hero__text { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
 .sahabe-page .sp-hero__name {
-  font-size: clamp(34px, 4.2vw, 58px);
+  font-size: var(--step-4);
   font-weight: 500;
   overflow-wrap: anywhere;
   text-wrap: balance;
@@ -360,7 +360,7 @@
   border-radius: var(--radius-pill);
   background: var(--surface-1);
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: var(--step--1);
   font-weight: 500;
   white-space: nowrap;
   text-decoration: none;
@@ -383,12 +383,12 @@
     display: block;
     margin-bottom: 12px;
     color: var(--text-tertiary);
-    font-size: 12px;
+    font-size: var(--step--2);
     font-weight: 600;
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
   }
-  [dir="rtl"] .sp-toc__title { letter-spacing: 0; text-transform: none; font-size: 13px; }
+  [dir="rtl"] .sp-toc__title { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
   .sp-toc__list {
     flex-direction: column;
     gap: 2px;
@@ -445,12 +445,12 @@
 .sp-glance__item--wide { grid-column: 1 / -1; }
 .sp-glance__item dt {
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-size: var(--step--2);
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
-[dir="rtl"] .sp-glance__item dt { letter-spacing: 0; text-transform: none; font-size: 13px; }
+[dir="rtl"] .sp-glance__item dt { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 .sp-glance__item dd {
   color: var(--text-strong);
   font-family: var(--font-display);
@@ -470,7 +470,7 @@
   margin-top: 4px;
   color: var(--text-tertiary);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--step--1);
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -479,7 +479,7 @@
 .sp-prose p {
   margin-bottom: 1.1em;
   color: var(--text-body);
-  font-size: clamp(17px, 1.2vw, 19px);
+  font-size: var(--step-0);
   line-height: 1.8;
   text-wrap: pretty;
 }
@@ -549,7 +549,7 @@
   background: var(--surface-1);
   box-shadow: inset 0 0 0 1.5px var(--accent-line), var(--shadow-1);
   color: var(--accent-text);
-  font-size: 14px;
+  font-size: var(--step--1);
   font-weight: 700;
 }
 .sp-line__text {
@@ -588,17 +588,17 @@ html.qm-reveal-on .sp-line[data-reveal-ready]:not([data-revealed])::before { tra
   box-shadow: var(--shadow-2);
 }
 .sahabe-page .sp-quote__ar { text-align: right; font-size: clamp(21px, 2vw, 25px); }
-.sahabe-page .sp-quote--featured .sp-quote__ar { font-size: clamp(24px, 2.6vw, 32px); }
+.sahabe-page .sp-quote--featured .sp-quote__ar { font-size: clamp(21px, 2vw, 26px); }
 .sp-quote__num {
   display: block;
   margin-bottom: 6px;
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-size: var(--step--2);
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
-[dir="rtl"] .sp-quote__num { letter-spacing: 0; text-transform: none; font-size: 13px; }
+[dir="rtl"] .sp-quote__num { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 .sp-quotes { display: flex; flex-direction: column; gap: var(--space-6); }
 .sp-quote__text {
   margin-top: 6px;
@@ -655,12 +655,12 @@ html.qm-reveal-on .sp-line[data-reveal-ready]:not([data-revealed])::before { tra
   align-items: center;
   gap: 6px;
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-size: var(--step--2);
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
-[dir="rtl"] .sp-pager__dir { letter-spacing: 0; text-transform: none; font-size: 13px; }
+[dir="rtl"] .sp-pager__dir { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 .sp-pager__who { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .sp-pager__card--next .sp-pager__who { flex-direction: row-reverse; }
 .sp-pager__name {
@@ -725,13 +725,13 @@ html.sp-vt::view-transition-new(root) { animation: 360ms cubic-bezier(0.22, 1, 0
   .sahabe-card-chev { display: block; }
 
   .sp-hero__grid { grid-template-columns: 1fr; gap: var(--space-4); }
-  .sp-medal--lg { --m: 104px; }
-  .sahabe-page .sp-hero__name { font-size: clamp(30px, 8.4vw, 40px); }
+  .sp-medal--lg { --m: 72px; }
+  .sahabe-page .sp-hero__name { font-size: var(--step-4); }
   .sp-article { gap: var(--space-7); }
   .sahabe-page .sp-glance,
   .sahabe-page .sp-sources { padding: var(--space-5); }
   .sp-glance__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
-  .sp-prose p { font-size: 17px; line-height: 1.75; }
+  .sp-prose p { font-size: var(--step-0); line-height: 1.75; }
   .sp-pull { font-size: var(--step-1); }
   .sahabe-page .sp-quote--featured { padding: var(--space-5) var(--space-4) var(--space-4); }
   .sp-line__text { padding: 12px 14px; }
@@ -789,7 +789,7 @@ html.sp-vt::view-transition-new(root) { animation: 360ms cubic-bezier(0.22, 1, 0
   .sp-hero__cq { grid-column: 1 / -1; max-width: 560px; }
 }
 @media (max-width: 767.98px) {
-  .sp-hero__cq .cq--hero { min-height: 150px; }
+  .sp-hero__cq .cq--hero { min-height: 112px; }
 }
 /* Hero-da ərəbcə ad lövhədə görünür — sətir yalnız ekran oxuyucu üçün qalır
    (lövhə bəzəkdir, aria-hidden) */
@@ -801,3 +801,10 @@ html.sp-vt::view-transition-new(root) { animation: 360ms cubic-bezier(0.22, 1, 0
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* ══ v3: hero keçidi, vəfat illəri qrafiki, əlaqəli bölmələr ══ */
+.sahabe-hero__jump { justify-content: flex-end; }
+.sahabe-hero__jump .ui-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; }
+.sp-timeline { scroll-margin-top: calc(var(--header-h, 64px) + 8px); }
+.sp-timeline .ui-figure { max-width: 920px; }
+.sp-related .ui-list { max-width: 760px; }

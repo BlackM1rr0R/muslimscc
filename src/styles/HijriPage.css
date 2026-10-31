@@ -1,23 +1,16 @@
 /* ══ Hicri tarix çevirici (/hijri-converter) — yalnız tokenlər və .ui-* (DESIGN.md) ══ */
 
-.hj-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
-.hj-main.ui-section { padding-block: var(--space-6) var(--section-gap); }
+.hj-main.ui-section { padding-block: var(--space-6) var(--section-gap-sm); }
 
 .hj-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  grid-template-areas:
-    "today grid"
-    "conv  grid"
-    "sight names";
+  grid-template-areas: "conv grid";
   gap: var(--space-5) var(--space-6);
   align-items: start;
 }
-.hj-today { grid-area: today; }
 .hj-conv { grid-area: conv; }
 .hj-grid-card { grid-area: grid; }
-.hj-sight { grid-area: sight; }
-.hj-names { grid-area: names; }
 
 .hj-card-title {
   display: flex;
@@ -34,11 +27,11 @@
 .hj-card-title > svg { flex-shrink: 0; color: var(--brand); }
 
 /* ── Bu gün (tünd zümrüd kart) ── */
-.hj-today-label { color: var(--text-on-inverse-dim); font-size: 13px; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+.hj-today-label { color: var(--text-on-inverse-dim); font-family: var(--font-label); font-size: var(--step--2); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
 html[lang="ar"] .hj-today-label { letter-spacing: 0; text-transform: none; }
-.hj-today-h { margin: 6px 0 0; color: var(--text-on-inverse); font-family: var(--font-display); font-size: var(--step-3); font-weight: 600; line-height: var(--lh-tight); }
+.hj-today-h { margin: 6px 0 0; color: var(--text-on-inverse); font-family: var(--font-num); font-size: var(--step-3); font-weight: 600; line-height: var(--lh-tight); }
 .hj-today-ar { margin: 4px 0 0; color: var(--text-on-inverse); font-size: var(--step-2); line-height: var(--lh-arabic); }
-.hj-today-g { margin: 6px 0 0; color: var(--text-on-inverse-dim); font-size: 15px; }
+.hj-today-g { margin: 6px 0 0; color: var(--text-on-inverse-dim); font-size: var(--step--1); }
 
 /* ── Çevirici ── */
 .hj-conv-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: var(--space-3); }
@@ -47,30 +40,30 @@ html[lang="ar"] .hj-today-label { letter-spacing: 0; text-transform: none; }
 .hj-result { margin-top: var(--space-4); }
 .hj-dl { display: grid; gap: 10px; margin: 0; padding: 14px 16px; border: 1px solid var(--brand-line); border-radius: var(--radius-md); background: var(--brand-soft); }
 .hj-dl > div { display: grid; grid-template-columns: minmax(0, 9em) minmax(0, 1fr); gap: 4px 12px; align-items: baseline; }
-.hj-dl dt { color: var(--text-tertiary); font-size: 13px; }
+.hj-dl dt { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); }
 .hj-dl dd { margin: 0; color: var(--text-body); }
-.hj-big { color: var(--text-strong); font-weight: 600; font-size: var(--step-1); }
+.hj-big { color: var(--text-strong); font-family: var(--font-num); font-weight: 600; font-size: var(--step-1); }
 .hj-ar-inline { font-size: 1.15em; line-height: 1.6; }
 .hj-translit { color: var(--text-secondary); }
-.hj-error, .hj-note { display: flex; align-items: flex-start; gap: 8px; margin: var(--space-3) 0 0; font-size: 14px; line-height: 1.5; }
+.hj-error, .hj-note { display: flex; align-items: flex-start; gap: 8px; margin: var(--space-3) 0 0; font-size: var(--step--1); line-height: 1.5; }
 .hj-error { margin: 0; padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: var(--radius-md); background: var(--surface-2); color: var(--text-body); }
 .hj-error svg { flex-shrink: 0; margin-top: 2px; color: var(--bad); }
-.hj-note { color: var(--text-tertiary); font-size: 13px; }
+.hj-note { color: var(--text-tertiary); font-size: var(--step--2); }
 .hj-note svg { flex-shrink: 0; margin-top: 2px; }
 .hj-show-month, .hj-cal-link { margin-top: var(--space-3); padding: 0; border: 0; background: none; cursor: pointer; font: inherit; }
 
 /* ── Ay şəbəkəsi ── */
 .hj-grid-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
 .hj-grid-title { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
-.hj-grid-eyebrow { color: var(--accent-text); font-size: 12px; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+.hj-grid-eyebrow { color: var(--accent-text); font-family: var(--font-label); font-size: var(--step--2); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
 html[lang="ar"] .hj-grid-eyebrow { letter-spacing: 0; text-transform: none; }
 .hj-grid-name { justify-content: center; }
 .hj-grid-ar { color: var(--accent); font-size: 0.95em; font-weight: 400; }
-.hj-grid-sub { color: var(--text-tertiary); font-size: 13px; }
+.hj-grid-sub { color: var(--text-tertiary); font-size: var(--step--1); }
 .hj-grid-back { display: flex; justify-content: center; margin-top: var(--space-2); }
 
 .hj-cal { width: 100%; margin-top: var(--space-4); border-collapse: separate; border-spacing: 4px; table-layout: fixed; }
-.hj-cal-wd { padding-bottom: 4px; color: var(--text-tertiary); font-size: 12px; font-weight: 600; text-align: center; }
+.hj-cal-wd { padding-bottom: 4px; color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; text-align: center; }
 .hj-cal-cell {
   height: 58px;
   padding: 6px 4px;
@@ -93,14 +86,37 @@ html[lang="ar"] .hj-grid-eyebrow { letter-spacing: 0; text-transform: none; }
 
 /* ── Ay adları cədvəli ── */
 .hj-table-wrap { margin-top: var(--space-3); overflow-x: auto; }
-.hj-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.hj-table th { padding: 8px 10px; border-bottom: 1px solid var(--line-strong); color: var(--text-tertiary); font-size: 12px; font-weight: 600; text-align: start; }
+.hj-table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+.hj-table th { padding: 8px 10px; border-bottom: 1px solid var(--line-strong); color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; text-align: start; }
 .hj-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--text-body); text-align: start; }
 .hj-table tr.is-current td { background: var(--brand-soft); color: var(--text-strong); font-weight: 600; }
 .hj-table td.hj-translit { font-style: italic; }
 
+/* ── Bir baxışda: halqa + ay uzunluqları + müqayisə ── */
+.hj-year-grid { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-5); align-items: stretch; }
+.hj-root .hj-year-fig { margin: 0; }
+.hj-year-ring { display: grid; place-items: center; padding: var(--card-pad); }
+.hj-year-ring .ui-viz-ring { flex-direction: column; text-align: center; }
+.hj-year-ring .ui-viz-ring__text { align-items: center; }
+.hj-root .hj-ayah { max-width: 760px; margin: var(--space-6) 0 0; }
+
+/* ── Gələcək Ramazanlar ── */
+.hj-wd { color: var(--text-tertiary); font-size: var(--step--2); }
+.hj-shift { color: var(--brand); font-size: var(--step--1); white-space: nowrap; }
+
+/* ── Hilal qeydi + ay adları ── */
+.hj-more-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-5) var(--space-6); align-items: start; }
+
+@media (max-width: 1100px) {
+  .hj-year-grid { grid-template-columns: auto minmax(0, 1fr); }
+  .hj-year-grid > :last-child { grid-column: 1 / -1; }
+}
 @media (max-width: 960px) {
-  .hj-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "today" "conv" "grid" "sight" "names"; }
+  .hj-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "conv" "grid"; }
+  .hj-more-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .hj-year-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 520px) {
   .hj-h-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -109,4 +125,6 @@ html[lang="ar"] .hj-grid-eyebrow { letter-spacing: 0; text-transform: none; }
   .hj-cal { border-spacing: 2px; }
   .hj-cal-cell { height: 50px; padding: 4px 2px; }
   .hj-cal-g { font-size: 10px; }
+  .hj-hero .breadcrumb { display: none; }
 }
+.hj-cal-cell.is-today .hj-cal-g { color: var(--text-secondary); }

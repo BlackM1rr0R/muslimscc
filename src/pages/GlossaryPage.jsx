@@ -21,11 +21,11 @@ import '../styles/GlossaryPage.css'
 // ═══════════════════════════════════════════════════════
 
 const LABELS = {
-  az: { eyebrow:'Hədis və bilik', clear:'Filtri təmizlə', title:'İslami söz lüğəti', subtitle:'Əqidə, ibadət, fiqh, Quran və hədis elmləri, əxlaq və tarixə aid terminlər — Əhli-Sünnənin anlayışına uyğun qısa və dəqiq izahla.', search:'Termin axtar...', all:'Hamısı', noResults:'Nəticə tapılmadı', terms:'termin', letters:'Hərflər', cats:'Kateqoriyalar', related:'Əlaqəli terminlər', lesson:'Mövzu üzrə ətraflı dərs', focus:'Seçilmiş termin və əlaqəli terminlər', showAll:'Bütün terminlər', link:'Terminin linki' },
-  en: { eyebrow:'Hadith & knowledge', clear:'Clear filter', title:'Islamic Glossary', subtitle:'Terms of creed, worship, fiqh, the Quran and hadith sciences, character and history — short, precise definitions in line with Ahl as-Sunnah.', search:'Search terms...', all:'All', noResults:'No results found', terms:'terms', letters:'Letters', cats:'Categories', related:'Related terms', lesson:'In-depth lesson on this topic', focus:'Selected term and related terms', showAll:'All terms', link:'Link to this term' },
-  ru: { eyebrow:'Хадисы и знание', clear:'Сбросить фильтр', title:'Исламский глоссарий', subtitle:'Термины вероубеждения, поклонения, фикха, наук Корана и хадиса, нрава и истории — краткие и точные определения согласно Ахль ас-Сунна.', search:'Поиск терминов...', all:'Все', noResults:'Ничего не найдено', terms:'терминов', letters:'Буквы', cats:'Категории', related:'Связанные термины', lesson:'Подробный урок по теме', focus:'Выбранный термин и связанные с ним', showAll:'Все термины', link:'Ссылка на термин' },
-  ar: { eyebrow:'الحديث والعلم', clear:'مسح التصفية', title:'قاموس المصطلحات الإسلامية', subtitle:'مصطلحات العقيدة والعبادات والفقه وعلوم القرآن والحديث والأخلاق والتاريخ — بتعريفات موجزة دقيقة على فهم أهل السنة.', search:'ابحث عن مصطلح...', all:'الكل', noResults:'لم يتم العثور على نتائج', terms:'مصطلح', letters:'الحروف', cats:'الأقسام', related:'مصطلحات ذات صلة', lesson:'درس مفصّل في الموضوع', focus:'المصطلح المختار وما يتصل به', showAll:'كل المصطلحات', link:'رابط المصطلح' },
-  tr: { eyebrow:'Hadis ve ilim', clear:'Filtreyi temizle', title:'İslami Sözlük', subtitle:'Akide, ibadet, fıkıh, Kur’an ve hadis ilimleri, ahlak ve tarihe dair terimler — Ehl-i Sünnet’in anlayışına uygun kısa ve net tanımlarla.', search:'Terim ara...', all:'Tümü', noResults:'Sonuç bulunamadı', terms:'terim', letters:'Harfler', cats:'Kategoriler', related:'İlgili terimler', lesson:'Konuyla ilgili ayrıntılı ders', focus:'Seçilen terim ve ilgili terimler', showAll:'Tüm terimler', link:'Terimin bağlantısı' },
+  az: { eyebrow:'Hədis və bilik', clear:'Filtri təmizlə', title:'İslami söz lüğəti', subtitle:'Əqidə, ibadət, fiqh, Quran və hədis elmləri, əxlaq və tarixə aid terminlər — Əhli-Sünnənin anlayışına uyğun qısa və dəqiq izahla.', search:'Termin axtar...', all:'Hamısı', noResults:'Nəticə tapılmadı', terms:'termin', letters:'Hərflər', cats:'Kateqoriyalar', related:'Əlaqəli terminlər', lesson:'Mövzu üzrə ətraflı dərs', focus:'Seçilmiş termin və əlaqəli terminlər', showAll:'Bütün terminlər', link:'Terminin linki', how:'Termini axtarın, bölmə və ya hərf seçin. Termin adına toxunsanız, onun linki və əlaqəli terminlər açılır.', statTerms:'termin', statCats:'bölmə', statLessons:'dərsə keçidli' },
+  en: { eyebrow:'Hadith & knowledge', clear:'Clear filter', title:'Islamic Glossary', subtitle:'Terms of creed, worship, fiqh, the Quran and hadith sciences, character and history — short, precise definitions in line with Ahl as-Sunnah.', search:'Search terms...', all:'All', noResults:'No results found', terms:'terms', letters:'Letters', cats:'Categories', related:'Related terms', lesson:'In-depth lesson on this topic', focus:'Selected term and related terms', showAll:'All terms', link:'Link to this term', how:'Search for a term or pick a section or letter. Tap a term’s name to get its link and related terms.', statTerms:'terms', statCats:'sections', statLessons:'linked to lessons' },
+  ru: { eyebrow:'Хадисы и знание', clear:'Сбросить фильтр', title:'Исламский глоссарий', subtitle:'Термины вероубеждения, поклонения, фикха, наук Корана и хадиса, нрава и истории — краткие и точные определения согласно Ахль ас-Сунна.', search:'Поиск терминов...', all:'Все', noResults:'Ничего не найдено', terms:'терминов', letters:'Буквы', cats:'Категории', related:'Связанные термины', lesson:'Подробный урок по теме', focus:'Выбранный термин и связанные с ним', showAll:'Все термины', link:'Ссылка на термин', how:'Ищите термин или выберите раздел либо букву. Нажмите на название термина — откроются ссылка на него и связанные термины.', statTerms:'терминов', statCats:'разделов', statLessons:'со ссылкой на урок' },
+  ar: { eyebrow:'الحديث والعلم', clear:'مسح التصفية', title:'قاموس المصطلحات الإسلامية', subtitle:'مصطلحات العقيدة والعبادات والفقه وعلوم القرآن والحديث والأخلاق والتاريخ — بتعريفات موجزة دقيقة على فهم أهل السنة.', search:'ابحث عن مصطلح...', all:'الكل', noResults:'لم يتم العثور على نتائج', terms:'مصطلح', letters:'الحروف', cats:'الأقسام', related:'مصطلحات ذات صلة', lesson:'درس مفصّل في الموضوع', focus:'المصطلح المختار وما يتصل به', showAll:'كل المصطلحات', link:'رابط المصطلح', how:'ابحث عن مصطلح أو اختر قسمًا أو حرفًا. اضغط على اسم المصطلح ليظهر رابطه والمصطلحات المتصلة به.', statTerms:'مصطلحًا', statCats:'أقسام', statLessons:'مرتبطة بدروس' },
+  tr: { eyebrow:'Hadis ve ilim', clear:'Filtreyi temizle', title:'İslami Sözlük', subtitle:'Akide, ibadet, fıkıh, Kur’an ve hadis ilimleri, ahlak ve tarihe dair terimler — Ehl-i Sünnet’in anlayışına uygun kısa ve net tanımlarla.', search:'Terim ara...', all:'Tümü', noResults:'Sonuç bulunamadı', terms:'terim', letters:'Harfler', cats:'Kategoriler', related:'İlgili terimler', lesson:'Konuyla ilgili ayrıntılı ders', focus:'Seçilen terim ve ilgili terimler', showAll:'Tüm terimler', link:'Terimin bağlantısı', how:'Bir terim arayın ya da bölüm veya harf seçin. Terimin adına dokunursanız bağlantısı ve ilgili terimler açılır.', statTerms:'terim', statCats:'bölüm', statLessons:'derse bağlantılı' },
 }
 
 const CAT_LABELS = {
@@ -45,6 +45,9 @@ const ARABIC_LETTERS = ['ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','
 
 // Sonsuz sürüşmənin bir partiyası
 const BATCH = 24
+
+// Ətraflı dərsə keçidi olan terminlər (yalnız saytda mövcud dərslər)
+const LESSON_LINKED = GLOSSARY.filter(x => x.lesson && LESSON_SLUGS.includes(x.lesson)).length
 
 const revealProps = (i) => {
   const j = i % BATCH
@@ -98,6 +101,7 @@ export default function GlossaryPage() {
     for (const x of GLOSSARY) c[x.cat] = (c[x.cat] || 0) + 1
     return c
   }, [])
+  const maxCat = Math.max(1, ...Object.values(catCounts))
 
   // Yalnız ən azı bir termini olan hərflər (seçilmiş kateqoriya daxilində)
   const letters = useMemo(() => {
@@ -179,6 +183,12 @@ export default function GlossaryPage() {
           <h1 className="ui-display">{t.title}</h1>
           {!isArabic && <p className="glo-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">قاموس المصطلحات الإسلامية</p>}
           <p className="ui-lead">{t.subtitle}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {t.how}</p>
+          <ul className="ui-page-hero__stats">
+            <li><b className="ui-num">{GLOSSARY.length}</b><span>{t.statTerms}</span></li>
+            <li><b className="ui-num">{GLOSSARY_CATS.length}</b><span>{t.statCats}</span></li>
+            <li><b className="ui-num">{LESSON_LINKED}</b><span>{t.statLessons}</span></li>
+          </ul>
         </div>
       </header>
 
@@ -206,17 +216,24 @@ export default function GlossaryPage() {
             <span key={filtered.length} className="glossary-count ui-num ui-enter-pop" aria-live="polite">{filtered.length} {t.terms}</span>
           </div>
 
-          {/* Kateqoriyalar */}
+          {/* Kateqoriyalar — kafel düymələr; alt zolaq terminlərin payını göstərir (dekorativ, say mətn kimi var) */}
           <div className="glossary-cat-bar" role="group" aria-label={t.cats}>
-            <button type="button" className="ui-chip glossary-cat-btn" aria-pressed={!activeCat} onClick={() => pickCat(null)}>
-              {t.all} <span className="glossary-cat-n ui-num">{GLOSSARY.length}</span>
+            <button type="button" className="glossary-cat-btn" aria-pressed={!activeCat} onClick={() => pickCat(null)}>
+              <span className="glossary-cat-btn__icon" aria-hidden="true"><Icon name="books" size={18} /></span>
+              <span className="glossary-cat-btn__body">
+                <span className="glossary-cat-btn__label">{t.all}</span>
+                <span className="glossary-cat-n ui-num">{GLOSSARY.length}</span>
+              </span>
             </button>
             {GLOSSARY_CATS.map(c => (
-              <button type="button" key={c} className="ui-chip glossary-cat-btn" aria-pressed={activeCat === c}
+              <button type="button" key={c} className="glossary-cat-btn" aria-pressed={activeCat === c}
                 onClick={() => pickCat(activeCat === c ? null : c)}>
-                <Icon name={CAT_ICON[c]} size={16} />
-                {CAT_LABELS[c][lang] || CAT_LABELS[c].en}
-                <span className="glossary-cat-n ui-num">{catCounts[c] || 0}</span>
+                <span className="glossary-cat-btn__icon" aria-hidden="true"><Icon name={CAT_ICON[c]} size={18} /></span>
+                <span className="glossary-cat-btn__body">
+                  <span className="glossary-cat-btn__label">{CAT_LABELS[c][lang] || CAT_LABELS[c].en}</span>
+                  <span className="glossary-cat-n ui-num">{catCounts[c] || 0}</span>
+                </span>
+                <span className="glossary-cat-btn__share" aria-hidden="true" style={{ '--w': `${((catCounts[c] || 0) / maxCat) * 100}%` }} />
               </button>
             ))}
           </div>
@@ -270,7 +287,7 @@ export default function GlossaryPage() {
                     {!isArabic && <span className="glossary-arabic-text ui-arabic" lang="ar" dir="rtl">{item.ar}</span>}
                   </div>
                   {item.cat && CAT_LABELS[item.cat] && (
-                    <span className="ui-badge glossary-cat-badge">{CAT_LABELS[item.cat][lang] || CAT_LABELS[item.cat].en}</span>
+                    <span className="glossary-cat-badge">{CAT_LABELS[item.cat][lang] || CAT_LABELS[item.cat].en}</span>
                   )}
                   <p className="glossary-definition">{item.def[lang] || item.def.en}</p>
                   {(rel.length > 0 || lessonOk) && (

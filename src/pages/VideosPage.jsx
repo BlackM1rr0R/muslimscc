@@ -8,17 +8,34 @@ import BackToTop from '../components/BackToTop'
 import { useBackToClose } from '../utils/useBackToClose'
 import { useSheetDrag } from '../hooks/useSheetDrag'
 import Icon from '../components/Icon'
+import { pathFor } from '../seo/routes'
+import { isPlainClick } from '../components/PageLink'
+import { useNavigate } from 'react-router-dom'
 import '../styles/VideosPage.css'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
 
 const LABELS = {
-  az: { eyebrow:'Hədis və bilik', title:'Video kitabxana', subtitle:'İslami mühazirələr, Quran tilavətləri və daha çox', search:'Video axtar...', all:'Hamısı', featured:'Seçilmişlər', latest:'Ən son', allVideos:'Bütün videolar', moreVideos:'Digər videolar', filter:'Filtr', noResults:'Video tapılmadı', noVideos:'Hələ video əlavə olunmayıb', noVideosLang:'Bu dildə hələ video yoxdur', loading:'Yüklənir...', videos:'video', watchNow:'İndi izlə', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
-  en: { eyebrow:'Hadith & knowledge', title:'Video Library', subtitle:'Islamic lectures, Quran recitations and more', search:'Search videos...', all:'All', featured:'Featured', latest:'Latest', allVideos:'All Videos', moreVideos:'More videos', filter:'Filter', noResults:'No videos found', noVideos:'No videos have been added yet', noVideosLang:'No videos in this language yet', loading:'Loading...', videos:'videos', watchNow:'Watch Now', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
-  ru: { eyebrow:'Хадисы и знание', title:'Видеобиблиотека', subtitle:'Исламские лекции, чтение Корана и многое другое', search:'Поиск видео...', all:'Все', featured:'Избранные', latest:'Последние', allVideos:'Все видео', moreVideos:'Другие видео', filter:'Фильтр', noResults:'Видео не найдены', noVideos:'Видео пока не добавлены', noVideosLang:'Видео на этом языке пока нет', loading:'Загрузка...', videos:'видео', watchNow:'Смотреть', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
-  ar: { eyebrow:'الحديث والعلم', title:'مكتبة الفيديو', subtitle:'محاضرات إسلامية وتلاوات قرآنية والمزيد', search:'البحث عن فيديو...', all:'الكل', featured:'مميز', latest:'الأحدث', allVideos:'كل الفيديوهات', moreVideos:'فيديوهات أخرى', filter:'تصفية', noResults:'لا توجد فيديوهات', noVideos:'لم تُضَف فيديوهات بعد', noVideosLang:'لا توجد فيديوهات بالعربية بعد', loading:'جارٍ التحميل...', videos:'فيديو', watchNow:'شاهد الآن', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
-  tr: { eyebrow:'Hadis ve ilim', title:'Video Kütüphanesi', subtitle:'İslami konferanslar, Kuran tilavetleri ve daha fazlası', search:'Video ara...', all:'Tümü', featured:'Öne çıkanlar', latest:'En yeni', allVideos:'Tüm videolar', moreVideos:'Diğer videolar', filter:'Filtre', noResults:'Video bulunamadı', noVideos:'Henüz video eklenmedi', noVideosLang:'Bu dilde henüz video yok', loading:'Yükleniyor...', videos:'video', watchNow:'Şimdi izle', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
+  az: { how:'Videonu seçin — pəncərədə açılır (YouTube). Bölmə çipləri siyahını daraldır.', statCats:'bölmə', altEyebrow:'Saytda', altTitle:'Dinləmək və öyrənmək üçün', altLead:'Videolardan başqa saytda səsli tilavət, qısa dərslər və hədis şərhləri var.', eyebrow:'Hədis və bilik', title:'Video kitabxana', subtitle:'İslami mühazirələr, Quran tilavətləri və daha çox', search:'Video axtar...', all:'Hamısı', featured:'Seçilmişlər', latest:'Ən son', allVideos:'Bütün videolar', moreVideos:'Digər videolar', filter:'Filtr', noResults:'Video tapılmadı', noVideos:'Hələ video əlavə olunmayıb', noVideosLang:'Bu dildə hələ video yoxdur', loading:'Yüklənir...', videos:'video', watchNow:'İndi izlə', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
+  en: { how:'Pick a video to open it in a player (YouTube). Category chips narrow the list.', statCats:'categories', altEyebrow:'On this site', altTitle:'More to listen to and learn', altLead:'Besides videos, the site has audio recitation, short lessons and hadith commentary.', eyebrow:'Hadith & knowledge', title:'Video Library', subtitle:'Islamic lectures, Quran recitations and more', search:'Search videos...', all:'All', featured:'Featured', latest:'Latest', allVideos:'All Videos', moreVideos:'More videos', filter:'Filter', noResults:'No videos found', noVideos:'No videos have been added yet', noVideosLang:'No videos in this language yet', loading:'Loading...', videos:'videos', watchNow:'Watch Now', share:'Share', shared:'Copied!', close:'Close', clear:'Clear' },
+  ru: { how:'Выберите видео — оно откроется в плеере (YouTube). Чипы разделов сужают список.', statCats:'разделов', altEyebrow:'На сайте', altTitle:'Слушать и учиться', altLead:'Кроме видео, на сайте есть аудиочтение Корана, короткие уроки и пояснения хадисов.', eyebrow:'Хадисы и знание', title:'Видеобиблиотека', subtitle:'Исламские лекции, чтение Корана и многое другое', search:'Поиск видео...', all:'Все', featured:'Избранные', latest:'Последние', allVideos:'Все видео', moreVideos:'Другие видео', filter:'Фильтр', noResults:'Видео не найдены', noVideos:'Видео пока не добавлены', noVideosLang:'Видео на этом языке пока нет', loading:'Загрузка...', videos:'видео', watchNow:'Смотреть', share:'Поделиться', shared:'Скопировано!', close:'Закрыть', clear:'Очистить' },
+  ar: { how:'اختر مقطعًا ليُفتح في المشغّل (يوتيوب). أزرار الأقسام تضيّق القائمة.', statCats:'أقسام', altEyebrow:'في الموقع', altTitle:'للاستماع والتعلّم', altLead:'إلى جانب المقاطع، في الموقع تلاوات صوتية ودروس قصيرة وشروح للأحاديث.', eyebrow:'الحديث والعلم', title:'مكتبة الفيديو', subtitle:'محاضرات إسلامية وتلاوات قرآنية والمزيد', search:'البحث عن فيديو...', all:'الكل', featured:'مميز', latest:'الأحدث', allVideos:'كل الفيديوهات', moreVideos:'فيديوهات أخرى', filter:'تصفية', noResults:'لا توجد فيديوهات', noVideos:'لم تُضَف فيديوهات بعد', noVideosLang:'لا توجد فيديوهات بالعربية بعد', loading:'جارٍ التحميل...', videos:'فيديو', watchNow:'شاهد الآن', share:'مشاركة', shared:'تم النسخ!', close:'إغلاق', clear:'مسح' },
+  tr: { how:'Bir video seçin — oynatıcıda açılır (YouTube). Bölüm çipleri listeyi daraltır.', statCats:'bölüm', altEyebrow:'Sitede', altTitle:'Dinlemek ve öğrenmek için', altLead:'Videoların yanı sıra sitede sesli tilavet, kısa dersler ve hadis şerhleri var.', eyebrow:'Hadis ve ilim', title:'Video Kütüphanesi', subtitle:'İslami konferanslar, Kuran tilavetleri ve daha fazlası', search:'Video ara...', all:'Tümü', featured:'Öne çıkanlar', latest:'En yeni', allVideos:'Tüm videolar', moreVideos:'Diğer videolar', filter:'Filtre', noResults:'Video bulunamadı', noVideos:'Henüz video eklenmedi', noVideosLang:'Bu dilde henüz video yok', loading:'Yükleniyor...', videos:'video', watchNow:'Şimdi izle', share:'Paylaş', shared:'Kopyalandı!', close:'Kapat', clear:'Temizle' },
 }
+
+
+// "Dinləmək və öyrənmək üçün" — saytın başqa bölmələrinə keçid (təkrar yox)
+const ALT = [
+  { page: 'quran', title: { az: 'Quran tilavəti', en: 'Quran recitation', ru: 'Чтение Корана', ar: 'تلاوة القرآن', tr: 'Kur’an tilaveti' },
+    text: { az: 'Hər surəni qarinin səsi ilə dinləyin', en: 'Listen to every surah in a reciter’s voice', ru: 'Слушайте каждую суру в исполнении чтеца', ar: 'استمع إلى كل سورة بصوت القارئ', tr: 'Her sureyi bir kârinin sesinden dinleyin' } },
+  { page: 'learn', title: { az: 'Dərslər', en: 'Lessons', ru: 'Уроки', ar: 'الدروس', tr: 'Dersler' },
+    text: { az: 'Əqidə, fiqh və əxlaqa dair qısa dərslər', en: 'Short lessons on creed, fiqh and character', ru: 'Короткие уроки по акыде, фикху и нравственности', ar: 'دروس قصيرة في العقيدة والفقه والأخلاق', tr: 'Akide, fıkıh ve ahlaka dair kısa dersler' } },
+  { page: 'nawawi40', title: { az: 'Nəvəvinin 40 hədisi', en: 'An-Nawawi’s 40 hadith', ru: '40 хадисов ан-Навави', ar: 'الأربعون النووية', tr: 'Nevevî’nin 40 hadisi' },
+    text: { az: 'Dinin əsaslarını toplayan hədislər — şərhi ilə', en: 'Hadiths that gather the foundations of the religion, with commentary', ru: 'Хадисы, собравшие основы религии, — с пояснением', ar: 'أحاديث جمعت أصول الدين مع الشرح', tr: 'Dinin esaslarını toplayan hadisler — şerhiyle' } },
+  { page: 'books', title: { az: 'Kitabxana', en: 'Library', ru: 'Библиотека', ar: 'المكتبة', tr: 'Kütüphane' },
+    text: { az: 'İslami kitablar və oxu yolu', en: 'Islamic books and a reading path', ru: 'Исламские книги и путь чтения', ar: 'كتب إسلامية وطريق القراءة', tr: 'İslami kitaplar ve okuma yolu' } },
+]
+const tr5 = (o, lang) => (o && (o[lang] || o.en)) || ''
 
 // Sonsuz sürüşmənin bir partiyası
 const BATCH = 12
@@ -49,6 +66,7 @@ function sheetExitMs() {
 export default function VideosPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
+  const navigate = useNavigate()
 
   const [allVideos, setVideos] = useState([])
   // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)
@@ -208,14 +226,13 @@ export default function VideosPage({ setPage }) {
           <h1 className="ui-display">{l.title}</h1>
           {lang !== 'ar' && <p className="vp-hero-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">مَكْتَبَةُ الفِيدِيُو</p>}
           <p className="ui-lead">{l.subtitle}</p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {l.how}</p>
           {/* Yalnız real məzmun sayı (yüklənəndə gizli — "0 video" görünməsin) */}
           {!loading && videos.length > 0 && (
-            <div className="vp-hero-stats" data-reveal="fade">
-              <div className="ui-stat">
-                <span className="ui-stat__num" data-count={videos.length}>{videos.length}</span>
-                <span className="ui-stat__label">{l.videos}</span>
-              </div>
-            </div>
+            <ul className="ui-page-hero__stats vp-hero-stats">
+              <li><b className="ui-num">{videos.length}</b><span>{l.videos}</span></li>
+              {categories.length > 2 && <li><b className="ui-num">{categories.length - 1}</b><span>{l.statCats}</span></li>}
+            </ul>
           )}
         </div>
       </header>
@@ -389,6 +406,31 @@ export default function VideosPage({ setPage }) {
           )}
         </section>
       </div>
+
+      {/* ═══ SAYTDA: dinləmək və öyrənmək üçün (keçid kafelləri) ═══ */}
+      <section className="ui-section ui-section--alt vp-alt" aria-labelledby="vp-alt-h">
+        <div className="ui-container">
+          <div className="ui-section-head" data-reveal>
+            <span className="ui-eyebrow">{l.altEyebrow}</span>
+            <h2 id="vp-alt-h" className="ui-title ui-title--sm">{l.altTitle}</h2>
+            <p className="ui-lead">{l.altLead}</p>
+          </div>
+          <ul className="ui-tiles" style={{ '--ui-tiles-min': '200px' }}>
+            {ALT.map(it => {
+              const href = pathFor(it.page, lang)
+              return (
+                <li key={it.page}>
+                  <a className="ui-tile" href={href} onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); navigate(href) } }}>
+                    <span className="ui-icon-tile" aria-hidden="true"><Icon name={it.page} /></span>
+                    <span className="ui-tile__title">{tr5(it.title, lang)}</span>
+                    <span className="ui-tile__text">{tr5(it.text, lang)}</span>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </section>
 
       {/* ═══ VİDEO PƏNCƏRƏSİ — Portal ilə body-yə render olunur ═══ */}
       {playingVideo && createPortal(

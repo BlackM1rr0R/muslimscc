@@ -39,7 +39,17 @@
 .mp-layout { max-width: calc(760px + 2 * var(--page-gutter)); display: flex; flex-direction: column; gap: var(--space-4); }
 
 /* ── İdarə paneli ── */
-.mp-page .mp-controls { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); }
+.mp-page .mp-controls { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); background: var(--surface-2); border-color: transparent; }
+/* v3: yığcam idarə paneli — etiketlər kiçik mono, sahələr bir sətirdə */
+.mp-page .mp-controls .ui-field__label { font-size: var(--step--2); }
+.mp-page .mp-progress { margin-top: calc(-1 * var(--space-2)); }
+/* Mushafın quruluşu */
+.mp-about .ui-section-head .ui-lead { max-width: 68ch; }
+.mp-units { --ui-stats-min: 150px; margin-top: var(--space-5); }
+.mp-tips__title { margin-top: var(--space-6); }
+.mp-tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--space-3) var(--space-5); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+.mp-tips li { display: flex; align-items: flex-start; gap: 12px; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.mp-tips .ui-icon-tile { flex-shrink: 0; }
 .mp-go { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(180px, 1.6fr) minmax(110px, 0.8fr); gap: var(--space-3); align-items: start; }
 .mp-go__field { min-width: 0; }
 .mp-go__row { display: flex; gap: var(--space-2); }
@@ -71,7 +81,7 @@
 
 /* ── Vərəqləmə ── */
 .mp-pager { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
-.mp-pager__pos { margin: 0; color: var(--text-strong); font-weight: 600; font-size: var(--step-1); white-space: nowrap; }
+.mp-pager__pos { margin: 0; color: var(--text-strong); font-family: var(--font-num); font-weight: 600; font-size: var(--step-1); white-space: nowrap; }
 .mp-pager__of { color: var(--text-tertiary); font-weight: 500; font-size: var(--step--1); }
 .mp-page .mp-pager__btn { gap: 6px; }
 
@@ -256,8 +266,13 @@ html[lang="ar"] .mp-pop__label { letter-spacing: 0; text-transform: none; }
     overflow-y: auto;
   }
 }
+/* Dar ekran: surə tam endə, altında səhifə + cüz yan-yana (3 sətir əvəzinə 2) */
 @media (max-width: 479.98px) {
-  .mp-go { grid-template-columns: 1fr; }
+  .mp-go { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-2) var(--space-2); }
+  .mp-go__field:first-child { grid-column: auto; order: 2; }
+  .mp-go__field:nth-child(2) { grid-column: 1 / -1; order: 1; }
+  .mp-go__field--juz { order: 3; }
+  .mp-page .mp-controls { padding: var(--space-3); }
 }
 @media (prefers-reduced-motion: reduce) {
   button.mp-word { transition: none; }

@@ -17,7 +17,7 @@
   font-weight: 600;
   line-height: var(--lh-snug);
 }
-.pc-date { margin: 2px 0 0; color: var(--text-tertiary); font-size: 13px; }
+.pc-date { margin: 2px 0 0; color: var(--text-tertiary); font-size: var(--step--1); }
 .pc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: var(--space-3); }
 .pc-saved { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-weight: 500; }
 .pc-saved.is-yes { color: var(--brand); }
