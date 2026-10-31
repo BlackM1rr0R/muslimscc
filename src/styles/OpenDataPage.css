@@ -68,3 +68,26 @@
 
 .od-page .od-widget { flex-direction: row; align-items: flex-start; gap: var(--space-4); }
 .od-widget > div { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* Telefonda üç sütunlu cədvəl sıxılırdı (izah 8–10 sözlük dar sütun, sahələr
+   kənardan kəsilirdi) — hər fayl ayrıca blok: ad → izah → sahələr */
+@media (max-width: 640px) {
+  .od-table,
+  .od-table tbody,
+  .od-table tr,
+  .od-table th,
+  .od-table td { display: block; width: auto; }
+  .od-table thead {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .od-table tbody tr { padding-block: var(--space-2); border-bottom: 1px solid var(--line); }
+  .od-table tbody tr:last-child { border-bottom: 0; }
+  .od-table th,
+  .od-table td { padding-block: var(--space-1); border-bottom: 0; }
+  .od-table tbody th { white-space: normal; }
+}

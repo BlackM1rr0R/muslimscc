@@ -121,6 +121,23 @@
   line-height: var(--lh-tight);
   letter-spacing: var(--tracking-tight);
   color: var(--text-strong);
+  /* Uzun söz (məs. «Конфиденциальность») dar ekranda başlığı daşırmasın */
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Toxunma hədəfi: kiçik görünən idarəetmələrin toxunma sahəsi 44px-ə qədər
+   genişlənir (görünüşü dəyişmədən) — .ui-hit sinfi və ya aşağıdakı siyahı */
+@media (pointer: coarse) {
+  .ui-hit, .drb-dot, .drb-close, .cp-trigger--inline, .lg-anchor { position: relative; }
+  .ui-hit::after, .drb-dot::after, .drb-close::after, .cp-trigger--inline::after, .lg-anchor::after {
+    content: ''; position: absolute; inset: 50% auto auto 50%;
+    width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+  }
+  /* Ayrıca dayanan "keçid" düymələri — sətir hündürlüyü 44px */
+  .pp-tracker-link, .hj-cal-link, .hj-show-month, .mh-lesson, .glossary-term-link, .glossary-lesson {
+    display: inline-flex; align-items: center; min-height: 44px;
+  }
 }
 
 /* Giriş paraqrafı — ikinci dərəcəli rəng, oxunaqlı en */
@@ -359,8 +376,14 @@
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
+  line-height: 1.25;
+  /* Qısa çip bir sətirdə qalır; konteynerdən uzun olanda (rus/az mətni 320px-də)
+     sətrə bölünür — ekrandan çıxmır. Sürüşən zolaqda (flex-shrink:0) eni məzmuna görədir. */
+  max-width: 100%;
+  padding-block: 6px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
   cursor: pointer;
   transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease, border-color var(--dur-1, 150ms) ease;
 }

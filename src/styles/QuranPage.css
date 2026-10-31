@@ -239,6 +239,8 @@
   color: var(--brand);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  /* üçrəqəmli nömrə (100–114, ayə 100+) ulduzun guşələrinə dəyirdi */
+  letter-spacing: -0.04em;
 }
 .surah-num { width: 42px; height: 42px; font-size: 13px; }
 .surah-num::before,

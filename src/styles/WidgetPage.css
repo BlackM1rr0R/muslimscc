@@ -179,3 +179,18 @@
   .wg-preview-stage { min-height: 300px; }
   .wg-table th { width: auto; }
 }
+
+/* Telefonda parametr cədvəli iki sütunda sıxılıb kəsilirdi — sətirlər
+   üst-üstə (kod → izah) düzülür */
+@media (max-width: 560px) {
+  .wg-table,
+  .wg-table tbody,
+  .wg-table tr,
+  .wg-table th,
+  .wg-table td { display: block; width: auto; }
+  .wg-table th { white-space: normal; padding-bottom: 0; border-bottom: 0; }
+  .wg-table td { padding-top: var(--space-1); }
+  .wg-table tr { border-bottom: 1px solid var(--line); }
+  .wg-table tr:last-child { border-bottom: 0; }
+  .wg-table td { border-bottom: 0; }
+}

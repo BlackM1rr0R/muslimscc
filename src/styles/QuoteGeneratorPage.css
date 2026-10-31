@@ -202,9 +202,9 @@
 @media (min-width: 1024px) { .qg-chips { flex-wrap: wrap; } }
 
 /* Kitabxana: əvvəlki / yeni / növbəti */
-.qg-stepper { display: flex; align-items: center; gap: 8px; }
+.qg-stepper { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .qg-studio .qg-step { border: 1px solid var(--line-strong); background: var(--surface-1); border-radius: var(--radius-md); }
-.qg-shuffle { flex: 1 1 auto; }
+.qg-shuffle { flex: 1 1 auto; min-width: 0; }
 .qg-pos { min-width: 64px; color: var(--text-tertiary); font-size: 13px; text-align: end; }
 
 /* Ayə */

@@ -111,12 +111,14 @@ export function Block({ b, lang }) {
     case 'table':
       return (
         <div className="ls-table-wrap" tabIndex={0}>
-          <table className="ls-table">
+          {/* 3+ sütunlu cədvəl telefonda kartlara çevrilir (LessonsPage.css → .ls-table--stack):
+              hər xananın başlığı data-label-dən göstərilir */}
+          <table className={`ls-table${b.head && b.head.length > 2 ? ' ls-table--stack' : ''}`}>
             {b.head && (
               <thead><tr>{b.head.map((h, i) => <th key={i} scope="col">{pick(h, lang)}</th>)}</tr></thead>
             )}
             <tbody>
-              {b.rows.map((r, i) => <tr key={i}>{r.map((c, j) => j === 0 ? <th key={j} scope="row">{pick(c, lang)}</th> : <td key={j}>{pick(c, lang)}</td>)}</tr>)}
+              {b.rows.map((r, i) => <tr key={i}>{r.map((c, j) => j === 0 ? <th key={j} scope="row">{pick(c, lang)}</th> : <td key={j} data-label={b.head ? pick(b.head[j], lang) : undefined}>{pick(c, lang)}</td>)}</tr>)}
             </tbody>
           </table>
         </div>

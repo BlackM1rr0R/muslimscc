@@ -567,8 +567,14 @@ a.mtv-brand:hover { color: var(--brand); }
   --mtv-pad: clamp(8px, 3vmin, 20px);
   --mtv-gap: clamp(6px, 2vmin, 14px);
   grid-template-rows: auto auto auto;
-  align-content: center;
+  /* Dar/alçaq iframe-də (telefon, height=280) məzmun sığmayanda sətirlər
+     sıxılıb saat vaxt kartlarının altında qalırdı: indi sıxılmır, iframe
+     daxilində sürüşdürülür, sığanda isə mərkəzdə qalır */
+  align-content: safe center;
+  overflow-y: auto;
 }
+.mtv--compact .mtv-main,
+.mtv--compact .mtv-times { min-height: auto; }
 .mtv--compact .mtv-pattern { display: none; }
 .mtv--compact .mtv-name { font-size: clamp(15px, 5vmin, 28px); }
 .mtv--compact .mtv-city,
@@ -591,6 +597,7 @@ a.mtv-brand:hover { color: var(--brand); }
 .mtv--compact .mtv-cell-badge { display: none; }
 @media (max-width: 520px) {
   .mtv--compact .mtv-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mtv--compact .mtv-cell { padding: 6px 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

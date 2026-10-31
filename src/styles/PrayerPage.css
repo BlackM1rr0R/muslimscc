@@ -668,6 +668,8 @@
 
   .pw-header, .pw-row { grid-template-columns: 62px repeat(7, minmax(26px, 1fr)); gap: 4px; }
   .pw-cell { height: 30px; }
+  /* "Cümə" sütundan enlidir — qonşu "Şən"ə yapışırdı */
+  .pw-day-label { font-size: 11px; letter-spacing: -0.01em; min-width: 0; }
   .pw-prayer-name { font-size: 13px; }
 
   .prayer-reminder { padding: var(--space-5) var(--space-4); border-radius: var(--radius-lg); }
