@@ -76,6 +76,8 @@ test('təqvim: bugünkü xatırlatma + "Illegal constructor" — tətbiq çökm�
     AndroidNotification.requestPermission = () => Promise.resolve('granted')
     window.Notification = AndroidNotification
   })
+  // "granted" icazə push sinxronunu işə salır — 503 konsol xətası yaratmasın (açarsız 200)
+  await page.route('**/api/push/vapid-public-key', route => route.fulfill({ json: {} }))
   await page.goto('/calendar')
   await settle(page)
   await expect(page.locator('h1').first()).toBeVisible()
