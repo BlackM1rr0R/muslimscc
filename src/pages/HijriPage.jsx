@@ -244,6 +244,11 @@ export default function HijriPage({ setPage }) {
 
   // Şəbəkədə göstərilən ay
   const [view, setView] = useState(() => ({ year: hToday.year, month: hToday.month }))
+  const showMonth = (ym) => {
+    setView(ym)
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    requestAnimationFrame(() => document.getElementById('hj-grid')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }))
+  }
 
   return (
     <div className="hj-root">
@@ -265,10 +270,7 @@ export default function HijriPage({ setPage }) {
 
       <section className="ui-section hj-main">
         <div className="ui-container hj-layout">
-          <Converter t={t} lang={lk} today={now} onShowMonth={(ym) => {
-            setView(ym)
-            requestAnimationFrame(() => document.getElementById('hj-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-          }} />
+          <Converter t={t} lang={lk} today={now} onShowMonth={showMonth} />
           <MonthGrid t={t} lang={lk} view={view} setView={setView} today={now} hToday={hToday} firstDow={firstDow} />
         </div>
       </section>
@@ -278,8 +280,8 @@ export default function HijriPage({ setPage }) {
 
       <section className="ui-section ui-section--tight hj-more">
         <div className="ui-container hj-more-grid">
+          <MonthNames t={t} lang={lk} current={view.year === hToday.year ? hToday.month : null} year={view.year} onShowMonth={showMonth} />
           <SightingNote t={t} lang={lk} setPage={setPage} />
-          <MonthNames t={t} lang={lk} current={hToday.month} />
         </div>
       </section>
 
@@ -605,33 +607,62 @@ function SightingNote({ t, lang, setPage }) {
   )
 }
 
-function MonthNames({ t, lang, current }) {
+// v3.2: ay adları — kart şəbəkəsi (əvvəl cədvəl idi). Kart → həmin ay şəbəkədə açılır.
+// Haram aylar: Məhərrəm, Rəcəb, Zülqədə, Zülhiccə (Tövbə 9:36; Buxari 3197)
+const SACRED = new Set([1, 7, 11, 12])
+const MN_TXT = {
+  sacred: { az: 'Haram ay', en: 'Sacred month', ru: 'Запретный месяц', ar: 'شهر حرام', tr: 'Haram ay' },
+  current: { az: 'Cari ay', en: 'This month', ru: 'Текущий', ar: 'الشهر الحالي', tr: 'Bu ay' },
+  days: { az: '{n} gün', en: '{n} days', ru: '{n} дн.', ar: '{n} يومًا', tr: '{n} gün' },
+  starts: { az: 'Başlanğıc', en: 'Starts', ru: 'Начало', ar: 'يبدأ', tr: 'Başlangıç' },
+  show: { az: 'Şəbəkədə göstər', en: 'Show in the grid', ru: 'Показать в сетке', ar: 'اعرض في الجدول', tr: 'Tabloda göster' },
+  sacredNote: { az: 'Haram aylar — Tövbə 9:36; Buxari 3197.', en: 'Sacred months — at-Tawbah 9:36; al-Bukhari 3197.', ru: 'Запретные месяцы — ат-Тауба 9:36; аль-Бухари 3197.', ar: 'الأشهر الحرم — التوبة 9:36؛ البخاري 3197.', tr: 'Haram aylar — Tevbe 9:36; Buhârî 3197.' },
+}
+const mn = (k, lang) => MN_TXT[k][lang] || MN_TXT[k].en
+
+function MonthNames({ t, lang, current, year, onShowMonth }) {
   const months = HIJRI_MONTHS[lang] || HIJRI_MONTHS.en
+  const info = useMemo(() => Array.from({ length: 12 }, (_, i) => {
+    let len = null, start = null
+    try { len = hijriMonthLength(year, i + 1) } catch { /* aralıqdan kənar */ }
+    try { start = hijriToGregorian({ year, month: i + 1, day: 1 }) } catch { /* aralıqdan kənar */ }
+    return { len, start }
+  }), [year])
   return (
-    <div className="hj-names ui-card" data-reveal>
-      <h2 className="hj-card-title"><Icon name="list" size={18} /> {t.namesTitle}</h2>
-      <div className="hj-table-wrap">
-        <table className="hj-table">
-          <thead>
-            <tr>
-              <th scope="col">{t.colNo}</th>
-              {lang !== 'ar' && <th scope="col">{t.colLocal}</th>}
-              <th scope="col">{t.colAr}</th>
-              <th scope="col">{t.colTr}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {months.map((m, i) => (
-              <tr key={i} className={i + 1 === current ? 'is-current' : undefined} aria-current={i + 1 === current ? 'true' : undefined}>
-                <td className="ui-num">{i + 1}</td>
-                {lang !== 'ar' && <td>{m}</td>}
-                <td><span className="ui-arabic hj-ar-inline" lang="ar" dir="rtl">{HIJRI_MONTHS_AR[i]}</span></td>
-                <td className="hj-translit" lang="en" dir="ltr">{HIJRI_MONTHS_TRANSLIT[i]}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="hj-names" data-reveal>
+      <h2 className="hj-card-title"><Icon name="calendar" size={18} /> {t.namesTitle} <span className="hj-names__y ui-num">· {year}</span></h2>
+      <ol className="hj-mcards">
+        {months.map((m, i) => {
+          const isCur = i + 1 === current
+          const { len, start } = info[i]
+          return (
+            <li key={i} className={`ui-card hj-mcard${isCur ? ' is-current' : ''}${SACRED.has(i + 1) ? ' is-sacred' : ''}`}
+              aria-current={isCur ? 'true' : undefined}>
+              <div className="hj-mcard__head">
+                <span className="hj-mcard__n ui-num" aria-hidden="true">{i + 1}</span>
+                <div className="hj-mcard__names">
+                  <h3 className="hj-mcard__name">{lang !== 'ar' ? m : HIJRI_MONTHS_AR[i]}</h3>
+                  <span className="hj-translit" lang="en" dir="ltr">{HIJRI_MONTHS_TRANSLIT[i]}</span>
+                </div>
+                {lang !== 'ar' && <span className="ui-arabic hj-mcard__ar" lang="ar" dir="rtl">{HIJRI_MONTHS_AR[i]}</span>}
+              </div>
+              <div className="hj-mcard__meta">
+                {isCur && <span className="ui-badge ui-badge--solid">{mn('current', lang)}</span>}
+                {SACRED.has(i + 1) && <span className="ui-badge ui-badge--accent">{mn('sacred', lang)}</span>}
+                {len && <span className="ui-badge"><span className="ui-num">{mn('days', lang).replace('{n}', len)}</span></span>}
+              </div>
+              <div className="hj-mcard__foot">
+                {start && <span className="hj-mcard__start">{mn('starts', lang)}: <b>{formatGregorian(start, lang)}</b></span>}
+                <button type="button" className="ui-icon-btn hj-mcard__go" onClick={() => onShowMonth({ year, month: i + 1 })}
+                  aria-label={`${mn('show', lang)}: ${m} ${year}`} title={mn('show', lang)}>
+                  <Icon name="arrow" size={16} className="ui-flip-rtl" />
+                </button>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+      <p className="hj-names__note">{mn('sacredNote', lang)}</p>
     </div>
   )
 }

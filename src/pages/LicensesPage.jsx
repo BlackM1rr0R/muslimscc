@@ -75,6 +75,18 @@ const TRANSLATIONS = [
     url: 'https://alquran.cloud/translations',
     by: { az: 'Kral Fəhd Quran Çap Kompleksi — ərəb dilində qısa təfsir', en: 'King Fahd Glorious Quran Printing Complex — a concise tafsir in Arabic', ru: 'Комплекс короля Фахда по изданию Корана — краткий тафсир на арабском языке', ar: 'مجمع الملك فهد لطباعة المصحف الشريف', tr: 'Kral Fahd Kur’an-ı Kerim Basım Kompleksi — Arapça muhtasar tefsir' },
   },
+  // Oxuyucudakı tərcümə seçicisi — utils/quranEnc.js
+  {
+    name: 'QuranEnc.com (API v1)', url: 'https://quranenc.com/',
+    by: { az: 'Oxuyucuda seçilə bilən yoxlanılmış tərcümələr (Rəvvad Tərcümə Mərkəzi və başqaları)', en: 'Reviewed translations selectable in the reader (Rowwad Translation Center and others)', ru: 'Проверенные переводы, доступные для выбора в читалке (Центр переводов «Руввад» и другие)', ar: 'تراجم وتفاسير محكَّمة يمكن اختيارها في القارئ (مركز رواد الترجمة وغيره)', tr: 'Okuyucuda seçilebilen incelenmiş mealler (Rowwad Tercüme Merkezi ve diğerleri)' },
+    note: {
+      az: 'Oxucu standart tərcümə əvəzinə QuranEnc tərcüməsini seçəndə mətn və haşiyələr bu saytın açıq API-sindən canlı yüklənir və dəyişdirilmədən göstərilir. Onun şərtlərinə uyğun olaraq: mətnə əlavə edilmir, ondan heç nə silinmir; naşir və mənbə (QuranEnc.com) linklə, versiya nömrəsi və son yenilənmə tarixi ilə göstərilir; həmişə son versiya işlədilir; qeydləri saytın özünə bildirmək olar.',
+      en: 'When a reader chooses a QuranEnc translation instead of the default one, the text and footnotes are loaded live from this site’s open API and shown unchanged. In line with its terms: nothing is added to or removed from the text, the publisher and the source (QuranEnc.com) are credited with a link, the version number and last update date, the latest version is always used, and notes can be sent to the site itself.',
+      ru: 'Когда читатель выбирает перевод QuranEnc вместо перевода по умолчанию, текст и примечания загружаются напрямую из открытого интерфейса этого сайта и показываются без изменений. Согласно его условиям: в текст ничего не добавляется и из него ничего не удаляется, издатель и источник (QuranEnc.com) указаны со ссылкой, номером версии и датой последнего обновления, всегда используется последняя версия, замечания можно отправить самому сайту.', // lang-ok[QuranEnc]: saytın adı (brend)
+      ar: 'إذا اختار القارئ ترجمة من QuranEnc بدل الترجمة الافتراضية حُمِّل النص والحواشي مباشرة من الواجهة البرمجية المفتوحة لهذا الموقع وعُرضت دون تعديل، التزامًا بشروطه: لا يُزاد على النص ولا يُحذف منه، ويُذكر الناشر والمصدر (QuranEnc.com) برابط مع رقم الإصدار وتاريخ آخر تحديث، وتُستعمل أحدث نسخة دائمًا، ويمكن إرسال الملاحظات إلى الموقع نفسه.', // lang-ok[QuranEnc]: saytın adı (brend)
+      tr: 'Okuyucu varsayılan meal yerine bir QuranEnc meali seçtiğinde metin ve dipnotlar bu sitenin açık API’sinden canlı yüklenir ve değiştirilmeden gösterilir. Şartlarına uygun olarak: metne ekleme yapılmaz, metinden bir şey silinmez; yayıncı ve kaynak (QuranEnc.com) bağlantıyla, sürüm numarası ve son güncelleme tarihiyle belirtilir; her zaman son sürüm kullanılır; notlar sitenin kendisine iletilebilir.', // lang-ok[QuranEnc]: saytın adı (brend)
+    },
+  },
 ]
 
 // Ayə təfsirləri — Quran.com API v4 (yalnız Sələf / Əhli-sünnə təfsirləri;
@@ -272,11 +284,34 @@ const OTHER = [
     name: 'Hadith API (fawazahmed0)', url: 'https://github.com/fawazahmed0/hadith-api',
     by: 'Fawaz Ahmed',
     note: {
-      az: 'Ən-Nəvəvinin 40 hədisinin ərəb mətni və hədis nömrələrinin yoxlanması üçün istifadə olunub; sərbəst lisenziyalıdır.',
-      en: 'Used for the Arabic text of an-Nawawi’s Forty Hadith and to verify hadith numbers; public-domain licence.',
-      ru: 'Использован для арабского текста 40 хадисов ан-Навави и проверки номеров хадисов; свободная лицензия.',
-      ar: 'استُخدم لنص الأربعين النووية العربي وللتحقق من أرقام الأحاديث، وترخيصه حر.',
-      tr: 'Nevevî’nin Kırk Hadis’inin Arapça metni ve hadis numaralarının doğrulanması için kullanıldı; serbest lisanslıdır.',
+      az: 'Ən-Nəvəvinin 40 hədisinin ərəb mətni, hədis nömrələrinin yoxlanması və «Hədis kitabxanası» bölməsi (kitabların ərəbcə mətni, tərcümələri və alimlərin dərəcələri, olduğu kimi) üçün istifadə olunur; lisenziyası ictimai mülkiyyətdir.',
+      en: 'Used for the Arabic text of an-Nawawi’s Forty Hadith, to verify hadith numbers, and for the Hadith Library (the books’ Arabic text, translations and scholars’ grades, unchanged); Unlicense — public domain.',
+      ru: 'Используется для арабского текста 40 хадисов ан-Навави, проверки номеров хадисов и в «Библиотеке хадисов» (арабский текст книг, переводы и оценки учёных без изменений); лицензия — общественное достояние.',
+      ar: 'يُستخدم لنص الأربعين النووية العربي وللتحقق من أرقام الأحاديث، وفي «مكتبة الحديث» (نصوص الكتب وترجماتها وأحكام أهل العلم كما هي)، وهو ملك عام بحسب ترخيصه.',
+      tr: 'Nevevî’nin Kırk Hadis’inin Arapça metni, hadis numaralarının doğrulanması ve «Hadis Kütüphanesi» bölümü (kitapların Arapça metni, tercümeleri ve âlimlerin hükümleri, olduğu gibi) için kullanılır; Unlicense — kamu malı.',
+    },
+  },
+  {
+    name: 'HadeethEnc.com (API v1)', url: 'https://hadeethenc.com/',
+    // lang-ok[ensiklopediyası]: Azərbaycan sözüdür (ensiklopediya)
+    by: { az: 'Hədis ensiklopediyası bölməsi', en: 'Hadith Encyclopedia section', ru: 'Раздел «Энциклопедия хадисов»', ar: 'قسم موسوعة الأحاديث', tr: 'Hadis Ansiklopedisi bölümü' },
+    note: {
+      az: 'Hədislər, tərcümələr, dərəcə, mənbə, şərh və faydalar bu saytın açıq API-sindən canlı yüklənir və dəyişdirilmədən göstərilir. Onun şərtlərinə uyğun olaraq: mətnə əlavə edilmir, ondan heç nə silinmir; mənbə hər hədisdə linklə göstərilir; həmişə son versiya işlədilir; səhvləri saytın özünə bildirmək olar.',
+      en: 'Hadiths, translations, grades, references, explanations and benefits are loaded live from this encyclopedia’s open API and shown unchanged. In line with its terms: nothing is added to or removed from the text, the source is credited with a link on every hadith, the latest version is always used, and mistakes can be reported to the site itself.',
+      ru: 'Хадисы, переводы, степень достоверности, источник, разъяснение и польза загружаются напрямую из открытого интерфейса этой энциклопедии и показываются без изменений. Согласно её условиям: в текст ничего не добавляется и из него ничего не удаляется, источник указан со ссылкой у каждого хадиса, всегда используется последняя версия, об ошибках можно сообщить самому сайту.',
+      ar: 'تُحمَّل الأحاديث وترجماتها ودرجتها وتخريجها وشرحها وفوائدها مباشرة من الواجهة البرمجية المفتوحة لهذه الموسوعة وتُعرض دون تعديل، التزامًا بشروطها: لا يُزاد على النص ولا يُحذف منه، ويُذكر المصدر برابط عند كل حديث، وتُستعمل أحدث نسخة دائمًا، ويمكن إبلاغ الموقع نفسه بأي خطأ.',
+      tr: 'Hadisler, tercümeler, derece, kaynak, şerh ve faydalar bu ansiklopedinin açık API’sinden canlı yüklenir ve değiştirilmeden gösterilir. Şartlarına uygun olarak: metne ekleme yapılmaz, metinden bir şey silinmez; kaynak her hadiste bağlantıyla belirtilir; her zaman son sürüm kullanılır; hatalar sitenin kendisine bildirilebilir.',
+    },
+  },
+  {
+    name: 'binbaz.org.sa · binothaimeen.net · alifta.gov.sa · islamqa.info · islamhouse.com · dorar.net · sunnah.com', url: 'https://binbaz.org.sa/',
+    by: { az: 'Fətvalar və elm mənbələri bölməsi', en: 'Fatwas & scholarly sources section', ru: 'Раздел «Фетвы и источники знаний»', ar: 'قسم الفتاوى ومصادر العلم', tr: 'Fetvalar ve ilim kaynakları bölümü' },
+    note: {
+      az: 'Bu saytlardan heç bir mətn köçürülmür və saxlanmır — yalnız onların mövzu səhifələrinə keçid verilir, hədis axtarışı isə sorğunu birbaşa həmin sayta göndərir. Fətvaların mətni və bütün hüquqlar müvafiq alimlərə və saytlara məxsusdur.',
+      en: 'No text is copied or stored from these sites — we only link to their topic pages, and the hadith search sends the query straight to the chosen site. The text of the fatwas and all rights belong to the respective scholars and sites.',
+      ru: 'С этих сайтов ничего не копируется и не хранится — мы лишь ссылаемся на их тематические страницы, а поиск хадиса отправляет запрос прямо на выбранный сайт. Тексты фетв и все права принадлежат соответствующим учёным и сайтам.',
+      ar: 'لا يُنقل من هذه المواقع نص ولا يُخزَّن، وإنما نحيل إلى صفحات موضوعاتها، ويُرسَل البحث عن الحديث مباشرة إلى الموقع المختار. ونصوص الفتاوى وجميع الحقوق لأصحابها من العلماء والمواقع.',
+      tr: 'Bu sitelerden hiçbir metin kopyalanmaz ve saklanmaz — yalnızca konu sayfalarına bağlantı verilir, hadis araması ise sorguyu doğrudan seçilen siteye gönderir. Fetvaların metni ve tüm hakları ilgili âlimlere ve sitelere aittir.',
     },
   },
   {

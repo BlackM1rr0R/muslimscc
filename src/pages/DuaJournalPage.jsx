@@ -10,6 +10,7 @@ import { DUA_GUIDE, DUA_GUIDE_LINKS } from '../data/pageGuides/DuaJournalPage'
 import { ChartFigure, Donut, ProgressRing } from '../components/viz'
 import ActivityHeatmap from '../components/ActivityHeatmap'
 import RelatedLinks from '../components/RelatedLinks'
+import { copyText } from '../components/reader/share'
 import '../styles/LessonsPage.css'
 import '../styles/DuaJournalPage.css'
 
@@ -91,6 +92,16 @@ const V3 = {
   },
 }
 
+// v3.2: siyahı alət zolağı — axtarış, kateqoriya süzgəci, sıralama, kopyala (5 dil)
+const TOOLS = {
+  az: { search: 'Dualarda axtar...', clear: 'Axtarışı təmizlə', all: 'Hamısı', sort: 'Sıralama', newest: 'Yenilər', oldest: 'Köhnələr', prio: 'Prioritet', copyList: 'Siyahını kopyala', copied: 'Kopyalandı', none: 'Bu süzgəcə uyğun dua yoxdur.', reset: 'Süzgəci sıfırla', filter: 'Kateqoriyaya görə süzgəc' },
+  en: { search: 'Search your duas...', clear: 'Clear search', all: 'All', sort: 'Sort', newest: 'Newest', oldest: 'Oldest', prio: 'Priority', copyList: 'Copy list', copied: 'Copied', none: 'No duas match this filter.', reset: 'Reset filters', filter: 'Filter by category' },
+  ru: { search: 'Поиск в дуа...', clear: 'Очистить поиск', all: 'Все', sort: 'Сортировка', newest: 'Новые', oldest: 'Старые', prio: 'Приоритет', copyList: 'Копировать список', copied: 'Скопировано', none: 'Нет дуа по этому фильтру.', reset: 'Сбросить фильтры', filter: 'Фильтр по категории' },
+  ar: { search: 'ابحث في أدعيتك...', clear: 'مسح البحث', all: 'الكل', sort: 'الترتيب', newest: 'الأحدث', oldest: 'الأقدم', prio: 'الأولوية', copyList: 'انسخ القائمة', copied: 'تم النسخ', none: 'لا توجد أدعية بهذا التصفية.', reset: 'إلغاء التصفية', filter: 'التصفية حسب الفئة' },
+  tr: { search: 'Dualarında ara...', clear: 'Aramayı temizle', all: 'Tümü', sort: 'Sıralama', newest: 'En yeni', oldest: 'En eski', prio: 'Öncelik', copyList: 'Listeyi kopyala', copied: 'Kopyalandı', none: 'Bu filtreye uyan dua yok.', reset: 'Filtreleri sıfırla', filter: 'Kategoriye göre filtre' },
+}
+const PRIO_RANK = { high: 0, medium: 1, low: 2 }
+
 const CATEGORIES = ['personal', 'family', 'health', 'work', 'ummah']
 const PRIORITIES = ['low', 'medium', 'high']
 const STORAGE_KEY = 'dua_journal'
@@ -157,6 +168,10 @@ export default function DuaJournalPage({ setPage }) {
 
   const [duas, setDuas] = useState([])
   const [tab, setTab] = useState('active')
+  const [jq, setJq] = useState('')
+  const [jcat, setJcat] = useState('all')
+  const [jsort, setJsort] = useState('newest')
+  const [jcopied, setJcopied] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [text, setText] = useState('')
   const [category, setCategory] = useState('personal')
@@ -247,7 +262,24 @@ export default function DuaJournalPage({ setPage }) {
 
   const activeDuas = duas.filter(d => !d.answered)
   const answeredDuas = duas.filter(d => d.answered)
-  const list = tab === 'active' ? activeDuas : answeredDuas
+  const tabList = tab === 'active' ? activeDuas : answeredDuas
+  const tl = TOOLS[lang] || TOOLS.en
+  const fq = jq.trim().toLocaleLowerCase(lang)
+  const list = tabList
+    .filter(d => (jcat === 'all' || d.category === jcat) && (!fq || String(d.text || '').toLocaleLowerCase(lang).includes(fq)))
+    .sort((a, b) => {
+      if (jsort === 'prio') return (PRIO_RANK[a.priority] ?? 1) - (PRIO_RANK[b.priority] ?? 1) || String(b.date).localeCompare(String(a.date))
+      const c = String(a.date).localeCompare(String(b.date)) || (Number(a.id) || 0) - (Number(b.id) || 0)
+      return jsort === 'oldest' ? c : -c
+    })
+  const filteredOut = tabList.length > 0 && list.length === 0
+  const copyList = async () => {
+    const body = list.map((d, i) => `${i + 1}. ${d.text}${d.date ? ` (${fmtDate(d.date)})` : ''}`).join('\n')
+    if (await copyText(`${tab === 'active' ? t.active : t.answered}\n\n${body}`)) {
+      setJcopied(true)
+      setTimeout(() => setJcopied(false), 1800)
+    }
+  }
 
   const v = V3[lang] || V3.en
   const today = new Date()
@@ -368,8 +400,53 @@ export default function DuaJournalPage({ setPage }) {
               </button>
             </div>
 
+            {tabList.length > 0 && (
+              <div className="dj-tools">
+                <div className="dj-tools__row">
+                  <div className="dj-search">
+                    <Icon name="search" size={17} className="dj-search__icon" />
+                    <input className="ui-input dj-search__input" type="search" value={jq} onChange={e => setJq(e.target.value)}
+                      placeholder={tl.search} aria-label={tl.search} enterKeyHint="search" />
+                    {jq && (
+                      <button type="button" className="ui-icon-btn dj-search__clear" onClick={() => setJq('')} aria-label={tl.clear} title={tl.clear}>
+                        <Icon name="close" size={15} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="ui-segmented dj-sort" role="radiogroup" aria-label={tl.sort}>
+                    {['newest', 'oldest', 'prio'].map(k => (
+                      <button key={k} type="button" role="radio" aria-checked={jsort === k} onClick={() => setJsort(k)}>{tl[k]}</button>
+                    ))}
+                  </div>
+                  <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm dj-copy" onClick={copyList} disabled={!list.length}>
+                    <Icon name={jcopied ? 'check' : 'copy'} className="ui-btn__icon" /> {jcopied ? tl.copied : tl.copyList}
+                  </button>
+                </div>
+                <div className="dj-tools__chips" role="group" aria-label={tl.filter}>
+                  <button type="button" className="ui-chip" aria-pressed={jcat === 'all'} onClick={() => setJcat('all')}>{tl.all}</button>
+                  {CATEGORIES.map(c => {
+                    const n = tabList.filter(d => d.category === c).length
+                    return n > 0 ? (
+                      <button key={c} type="button" className="ui-chip" aria-pressed={jcat === c} onClick={() => setJcat(c)}>
+                        <Icon name={CATEGORY_ICONS[c]} size={14} /> {t[c]} <span className="dj-chip-n ui-num">{n}</span>
+                      </button>
+                    ) : null
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="dj-list" id="dj-panel" role="tabpanel" aria-labelledby={tab === 'active' ? 'dj-tab-active' : 'dj-tab-answered'}>
-              {list.length === 0 && (
+              {filteredOut && (
+                <div className="ui-empty dua-empty" role="status">
+                  <Icon name="search" />
+                  <strong>{tl.none}</strong>
+                  <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => { setJq(''); setJcat('all') }}>
+                    <Icon name="refresh" className="ui-btn__icon" /> {tl.reset}
+                  </button>
+                </div>
+              )}
+              {tabList.length === 0 && (
                 <div className="ui-empty dua-empty" key={`empty-${tab}`} data-reveal="fade">
                   <Icon name={tab === 'active' ? 'duajournal' : 'sparkle'} />
                   <strong>{tab === 'active' ? t.noActive : t.noAnswered}</strong>

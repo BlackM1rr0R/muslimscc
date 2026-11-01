@@ -148,24 +148,23 @@
    Bir sətirdəki kartlar eyni hündürlükdədir; mənbə kartın dibinə yapışır. */
 .hadiths-list {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  /* v3.2: auto-fill — geniş ekranda 3 sütun (kart ≥340px), planşetdə 2, telefonda 1 */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
   gap: var(--space-3) var(--space-4);
 }
-@media (min-width: 1000px) {
-  .hadiths-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hadiths-list > .hadith-empty { grid-column: 1 / -1; }
-}
+.hadiths-list > .hadith-empty { grid-column: 1 / -1; }
 
 .hadith-page .hadith-card {
   display: flex;
   flex-direction: column;
   padding: var(--space-3) var(--space-5) var(--space-5);
-  transition: border-color var(--dur-2) ease;
+  transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
 }
 .hadith-page .hadith-card .hadith-source { margin-top: auto; padding-top: var(--space-3); }
 @media (hover: hover) {
-  .hadith-page .hadith-card:hover { border-color: var(--line-strong); }
+  .hadith-page .hadith-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-3); transform: translateY(-2px); }
 }
+@media (prefers-reduced-motion: reduce) { .hadith-page .hadith-card:hover { transform: none; } }
 
 .hadith-top {
   display: flex;

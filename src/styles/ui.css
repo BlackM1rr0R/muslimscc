@@ -205,12 +205,25 @@
 .ui-btn--primary {
   background: var(--brand);
   color: var(--on-brand);
+  /* v3.2: yumşaq "fiziki" düymə — üstdə incə işıq, altda 1px kölgə */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), var(--shadow-1);
 }
 .ui-btn--secondary {
   background: var(--surface-1);
   border-color: var(--line-strong);
   color: var(--text-strong);
+  box-shadow: var(--shadow-1);
 }
+/* Basılı vəziyyət (toggle: əlfəcin, rejim) — aria-pressed="true" */
+.ui-btn--secondary[aria-pressed="true"],
+.ui-btn--ghost[aria-pressed="true"] {
+  background: var(--brand-soft-2);
+  border-color: var(--brand-line);
+  color: var(--brand);
+  box-shadow: none;
+}
+/* Klaviatura fokusu — halqa (motion.css) + yumşaq hale */
+.ui-btn--primary:focus-visible { box-shadow: 0 0 0 4px var(--brand-soft-2), var(--shadow-1); }
 .ui-btn--ghost { color: var(--text-secondary); }
 .ui-btn--accent {
   background: var(--accent-soft);
@@ -229,7 +242,9 @@
 
 @media (hover: hover) {
   .ui-btn--primary:hover { background: var(--brand-hover); }
-  .ui-btn--secondary:hover { background: var(--surface-2); border-color: var(--text-tertiary); }
+  .ui-btn--secondary:hover { background: var(--surface-2); border-color: var(--text-tertiary); box-shadow: var(--shadow-2); }
+  .ui-btn--primary:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), var(--shadow-2); }
+  .ui-btn--secondary[aria-pressed="true"]:hover { background: var(--brand-soft-2); border-color: var(--brand); box-shadow: none; }
   .ui-btn--ghost:hover { background: var(--surface-2); color: var(--text-strong); }
   .ui-btn--accent:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
   .ui-btn--inverse:hover { background: #ffffff; }
@@ -239,6 +254,10 @@
 .ui-btn--sm { --ui-btn-h: 34px; padding: 0 12px; font-size: var(--step--1); border-radius: var(--radius-sm); }
 .ui-btn--lg { --ui-btn-h: 48px; padding: 0 22px; font-size: 0.9375rem; border-radius: var(--radius-md); }
 .ui-btn--block { width: 100%; }
+/* Kvadrat ikon düyməsi ölçü sistemində: <button class="ui-btn ui-btn--secondary ui-btn--square" aria-label="…"> */
+.ui-btn--square { width: var(--ui-btn-h); padding: 0; }
+.ui-btn:disabled,
+.ui-btn[aria-disabled="true"] { box-shadow: none; cursor: not-allowed; }
 
 /* Toxunma ekranında kiçik düymə də 44px hədəf alır */
 @media (pointer: coarse) {
@@ -306,6 +325,7 @@
 }
 .ui-card--interactive {
   cursor: pointer;
+  box-shadow: var(--shadow-1);   /* v3.2: klikləmə kartı yüngülcə qalxıqdır — sakit kartdan seçilir */
   transition:
     transform var(--dur-2, 240ms) var(--ease-out, ease),
     box-shadow var(--dur-2, 240ms) ease,
@@ -328,6 +348,13 @@
   color: var(--text-on-inverse);
 }
 .ui-card--flush { padding: 0; overflow: hidden; }
+/* --elevated: sakit kart, amma yüngül kölgəli (bento, panel) */
+.ui-card--elevated { box-shadow: var(--shadow-1); }
+/* --brand-edge / --accent-edge: başlanğıc kənarda rəngli zolaq ("günün …", vurğulu kart) */
+.ui-card--brand-edge,
+.ui-card--accent-edge { border-inline-start-width: 3px; }
+.ui-card--brand-edge { border-inline-start-color: var(--brand); }
+.ui-card--accent-edge { border-inline-start-color: var(--accent); }
 
 .ui-card__head { display: flex; align-items: center; gap: 12px; margin-bottom: var(--card-title-gap); }
 .ui-card__title {
@@ -339,6 +366,25 @@
   letter-spacing: var(--tracking-snug);
 }
 .ui-card__text { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+/* Kart grid-i üçün hissələr: nömrə nişanı, meta çipləri, əməllər (DESIGN.md §4.2) */
+.ui-card__num {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand-soft-2);
+  color: var(--brand);
+  font-family: var(--font-num);
+  font-size: var(--step--1);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ui-card__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+.ui-card__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
 .ui-card__foot {
   display: flex;
   align-items: center;
@@ -399,8 +445,32 @@
   transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease, border-color var(--dur-1, 150ms) ease;
 }
 @media (hover: hover) {
-  .ui-chip:hover { border-color: var(--text-tertiary); color: var(--text-strong); }
+  .ui-chip:hover { border-color: var(--text-tertiary); background: var(--surface-2); color: var(--text-strong); }
+  .ui-chip.is-active:hover,
+  .ui-chip[aria-pressed="true"]:hover,
+  .ui-chip[aria-selected="true"]:hover { background: var(--text-strong); color: var(--surface-1); }
 }
+.ui-chip > svg { width: 15px; height: 15px; flex-shrink: 0; }
+/* Çipdə say: <button class="ui-chip">Buxari <span class="ui-chip__count">97</span></button> */
+.ui-chip__count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  text-align: center;
+}
+.ui-chip.is-active .ui-chip__count,
+.ui-chip[aria-pressed="true"] .ui-chip__count,
+.ui-chip[aria-selected="true"] .ui-chip__count { background: color-mix(in srgb, var(--surface-1) 20%, transparent); color: inherit; }
+/* Çip zolağı: --scroll — telefonda üfüqi sürüşür (sətrə bölünmür) */
+.ui-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ui-chips--scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; overscroll-behavior-x: contain; }
+.ui-chips--scroll::-webkit-scrollbar { display: none; }
+.ui-chips--scroll > * { flex-shrink: 0; }
 .ui-chip.is-active,
 .ui-chip[aria-pressed="true"],
 .ui-chip[aria-selected="true"] {
@@ -431,6 +501,23 @@
 .ui-badge--accent { background: var(--accent-soft); color: var(--accent-text); }
 .ui-badge--solid  { background: var(--brand); color: var(--on-brand); }
 [data-theme="dark"] .ui-badge--brand { color: var(--brand); }
+.ui-badge > svg { width: 12px; height: 12px; flex-shrink: 0; }
+/* Vəziyyət nişanları — həmişə mətnlə (rəng tək daşıyıcı deyil) */
+.ui-badge--ok,
+.ui-badge--warn,
+.ui-badge--bad,
+.ui-badge--note {
+  background: color-mix(in srgb, var(--bdg) 12%, transparent);
+  color: color-mix(in srgb, var(--bdg) 80%, var(--text-strong));
+}
+.ui-badge--ok   { --bdg: var(--ok); }
+.ui-badge--warn { --bdg: var(--warn); }
+.ui-badge--bad  { --bdg: var(--bad); }
+.ui-badge--note { --bdg: var(--note); }
+.ui-badge--outline { background: transparent; box-shadow: inset 0 0 0 1px var(--line-strong); color: var(--text-secondary); }
+/* Nömrə nişanı (hədis №, dua №) — bərabər enli rəqəm */
+.ui-badge--num { min-width: 28px; justify-content: center; border-radius: var(--radius-xs, 6px); font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.ui-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
 .ui-kbd {
   display: inline-flex;
@@ -480,8 +567,64 @@
 .ui-select:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-soft-2);
+  box-shadow: 0 0 0 4px var(--brand-soft-2);
 }
+.ui-input:disabled,
+.ui-select:disabled { background: var(--surface-2); color: var(--text-tertiary); cursor: not-allowed; }
+.ui-input[aria-invalid="true"] { border-color: var(--bad); }
+.ui-input[aria-invalid="true"]:focus { box-shadow: 0 0 0 4px color-mix(in srgb, var(--bad) 16%, transparent); }
+.ui-field__error { color: var(--bad); font-size: var(--step--1); }
+textarea.ui-input { min-height: 96px; resize: vertical; line-height: 1.55; }
+/* <select class="ui-select"> — öz oxu (sistemin oxu yox); RTL-də solda */
+select.ui-select:not([multiple]):not([size]) {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-inline-end: 40px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-tertiary) 50%),
+    linear-gradient(135deg, var(--text-tertiary) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 52%, calc(100% - 15px) 52%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+[dir="rtl"] select.ui-select:not([multiple]):not([size]) { background-position: 15px 52%, 20px 52%; }
+.ui-input--sm,
+.ui-select--sm { min-height: 38px; padding-block: 7px; }
+@media (pointer: coarse) { .ui-input--sm, .ui-select--sm { min-height: 44px; } }
+
+/* Axtarış sahəsi — ikon başlanğıcda, təmizlə düyməsi sonda:
+   <div class="ui-search"><Icon name="search" /><input class="ui-input" type="search" …/>
+     <button class="ui-search__clear" aria-label="…"><Icon name="close" /></button></div> */
+.ui-search { position: relative; display: flex; align-items: center; min-width: 0; }
+.ui-search > svg {
+  position: absolute;
+  inset-inline-start: 14px;
+  width: 18px;
+  height: 18px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  transition: color var(--dur-1, 150ms) ease;
+}
+.ui-search > .ui-input { padding-inline-start: 42px; }
+.ui-search > .ui-input:has(~ .ui-search__clear) { padding-inline-end: 44px; }
+.ui-search > .ui-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.ui-search:focus-within > svg { color: var(--brand); }
+.ui-search__clear {
+  position: absolute;
+  inset-inline-end: 4px;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.ui-search__clear svg { width: 16px; height: 16px; }
+@media (hover: hover) { .ui-search__clear:hover { background: var(--surface-2); color: var(--text-strong); } }
 
 /* ══ 7. İSLAMİ DETALLAR ════════════════════════════════════════════
    .ui-pattern — xatəm (8 guşəli ulduz) şəbəkəsi. Mütləq qat kimi
@@ -1119,6 +1262,9 @@ button.ui-card:active,
 @media (hover: hover) { .ui-tab:hover { color: var(--text-strong); } }
 .ui-tab__count { color: var(--text-tertiary); font-weight: 500; font-variant-numeric: tabular-nums; }
 @media (pointer: coarse) { .ui-tab { min-height: 44px; } }
+.ui-tab:focus-visible { outline-offset: -2px; border-radius: var(--radius-sm); }
+.ui-tab[aria-selected="true"] .ui-tab__count,
+.ui-tab.is-active .ui-tab__count { color: var(--brand); }
 
 /* ── 13.2 Seqment idarəsi — 2–4 bərabər seçim (vahid, rejim) ──
    <div class="ui-segmented" role="radiogroup" aria-label="…"><button role="radio" aria-checked="true">Gün</button>…</div> */
@@ -1154,6 +1300,14 @@ button.ui-card:active,
   box-shadow: var(--shadow-1);
 }
 @media (pointer: coarse) { .ui-segmented > button { min-height: 40px; } }
+@media (hover: hover) {
+  .ui-segmented > button:hover:not([aria-checked="true"], [aria-pressed="true"], [aria-selected="true"], .is-active) { color: var(--text-strong); }
+}
+.ui-segmented > button:focus-visible { outline-offset: -2px; }
+[data-theme="dark"] .ui-segmented > [aria-checked="true"],
+[data-theme="dark"] .ui-segmented > [aria-pressed="true"],
+[data-theme="dark"] .ui-segmented > [aria-selected="true"],
+[data-theme="dark"] .ui-segmented > .is-active { background: var(--surface-3); }
 
 /* ── 13.3 Cədvəl — müqayisə, vaxt cədvəli, nisab ──
    <div class="ui-table-wrap" tabindex="0" role="region" aria-label="…">
@@ -1569,6 +1723,28 @@ button.ui-card:active,
 .ui-list__chev { flex-shrink: 0; color: var(--text-tertiary); }
 @media (hover: hover) { .ui-list__item:hover { color: var(--brand); } }
 
+/* v3.2 — kafel variantı (əlaqəli bölmələr): alt-alta sətirlər yerinə kart grid */
+.ui-list--tiles {
+  display: grid; gap: var(--space-3); border-top: 0;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); align-items: stretch;
+}
+.ui-list--tiles > li { border-bottom: 0; }
+.ui-list--tiles .ui-list__item {
+  height: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-lg);
+  background: var(--surface-1); box-shadow: var(--shadow-1, none);
+  transition: border-color var(--dur-1, .15s) ease, transform var(--dur-1, .15s) var(--ease-out, ease), box-shadow var(--dur-1, .15s) ease;
+}
+.ui-list--tiles .ui-list__item > svg:first-child {
+  box-sizing: content-box; padding: 9px; border-radius: var(--radius-md); background: var(--brand-soft);
+}
+.ui-list--tiles .ui-list__item > span { font-weight: 600; color: var(--text-strong); line-height: 1.35; }
+.ui-list--tiles .ui-list__item small { margin-top: 3px; font-weight: 400; color: var(--text-secondary); line-height: 1.45; }
+@media (hover: hover) {
+  .ui-list--tiles .ui-list__item:hover { border-color: var(--brand-line); transform: translateY(-2px); box-shadow: var(--shadow-2, none); }
+}
+.ui-list--tiles .ui-list__item:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .ui-list--tiles .ui-list__item { transition: none; } .ui-list--tiles .ui-list__item:hover { transform: none; } }
+
 /* ── 13.13 Boş vəziyyət ── */
 .ui-empty {
   display: flex;
@@ -1580,8 +1756,23 @@ button.ui-card:active,
   text-align: center;
   font-size: var(--step--1);
 }
-.ui-empty > svg { width: 32px; height: 32px; color: var(--line-strong); }
+.ui-empty > svg {
+  box-sizing: content-box;
+  width: 26px;
+  height: 26px;
+  padding: 15px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--text-tertiary);
+}
 .ui-empty strong { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); }
+.ui-empty p { max-width: 44ch; line-height: 1.55; }
+.ui-empty .ui-btn { margin-top: 8px; }
+/* --card: haşiyəli sahə (grid-in yerində "nəticə yoxdur") · --bad: xəta */
+.ui-empty--card { border: 1px dashed var(--line-strong); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--surface-1) 60%, transparent); }
+.ui-empty--bad > svg { color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); box-shadow: none; }
 
 /* ── 13.14 İki sütunlu məzmun + yan panel (oxu səhifələri) ──
    <div class="ui-split"><div>əsas</div><aside>yan</aside></div> — ≥1100px yanaşı */
@@ -1696,4 +1887,242 @@ button.ui-card:active,
 @media (forced-colors: active) {
   .ui-viz-bar__fill, .ui-viz-col__fill, .ui-meter__fill, .ui-swatch, .ui-viz-stack > span { background: CanvasText; }
   .ui-viz-arc, .ui-viz-spark__line { stroke: CanvasText; }
+}
+
+
+/* ══ 15. v3.2 — "KİÇİKDƏN BÖYÜYƏ MODERN" ═══════════════════════════
+   Sahibin istəyi (2026-11): alt-alta uzun siyahı/akkordeon sətirləri yox —
+   kart grid-i + oxu pəncərəsi; hər kiçik element (düymə, çip, sahə, nişan,
+   boş vəziyyət) müasir. Yuxarıdakı §3–§13 dəyərləri incələnib (adlar
+   dəyişməyib); burada YENİ köməkçi siniflər:
+     15.1 .ui-cardgrid        — kart grid-i (auto-fill, align-items: start)
+     15.2 .ui-clamp           — N sətirlik önizləmə (--lines)
+     15.3 .ui-toolbar         — sticky alət zolağı (axtarış + çiplər + say)
+     15.4 .ui-dialog          — native <dialog> / portal pəncərəsi (+ --sheet)
+     15.5 .ui-bento           — ana səhifə tipli bento şəbəkəsi
+     15.6 .ui-skeleton-grid   — kart grid-inin yüklənmə yer tutucusu
+   Hamısı token-rənglidir, RTL məntiqi xassələrlə, reduced-motion-a hörmət edir. */
+
+/* ── 15.1 Kart grid-i ──
+   <ul class="ui-cardgrid"><li><button class="ui-card ui-card--interactive">…</button></li></ul>
+   --ui-cardgrid-min ilə sütun eni (susma 300px). align-items: start —
+   uzun kart qonşusunu dartmır. --stretch: bərabər hündürlük (önizləmə qısadırsa). */
+.ui-cardgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ui-cardgrid-min, 300px)), 1fr));
+  gap: var(--ui-cardgrid-gap, var(--space-4));
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-cardgrid--stretch { align-items: stretch; }
+.ui-cardgrid--stretch > li > .ui-card,
+.ui-cardgrid--stretch > .ui-card { height: 100%; }
+.ui-cardgrid > li { min-width: 0; }
+.ui-cardgrid > li > .ui-card { width: 100%; }
+.ui-cardgrid .ui-card { display: flex; flex-direction: column; }
+.ui-cardgrid .ui-card .ui-card__head { margin-bottom: 10px; }
+.ui-cardgrid .ui-card__foot { margin-top: auto; }
+
+/* ── 15.2 Sətir məhdudiyyəti — kartda 1–3 sətirlik önizləmə ──
+   <p class="ui-clamp" style="--lines:3">…</p>  (ərəbcədə də işləyir) */
+.ui-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--lines, 3);
+  line-clamp: var(--lines, 3);
+  overflow: hidden;
+}
+.ui-clamp--1 { --lines: 1; }
+.ui-clamp--2 { --lines: 2; }
+.ui-clamp--4 { --lines: 4; }
+
+/* ── 15.3 Sticky alət zolağı — siyahı/grid səhifələrinin başında ──
+   <div class="ui-toolbar">
+     <div class="ui-search">…</div>
+     <div class="ui-chips ui-chips--scroll">…</div>
+     <span class="ui-toolbar__count">42 nəticə</span>
+   </div>
+   Başlığın altında yapışır (--header-h); şüşə fon — məzmun altdan keçir. */
+.ui-toolbar {
+  position: sticky;
+  top: calc(var(--header-offset, var(--header-h, 64px)) + 8px);
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-bottom: var(--space-5);
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+  -webkit-backdrop-filter: saturate(150%) blur(14px);
+  backdrop-filter: saturate(150%) blur(14px);
+  box-shadow: var(--shadow-1);
+}
+.ui-toolbar > .ui-search { flex: 1 1 240px; }
+.ui-toolbar > .ui-chips { flex: 1 1 100%; min-width: 0; }
+.ui-toolbar__count {
+  margin-inline-start: auto;
+  color: var(--text-tertiary);
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ui-toolbar--static { position: static; }
+@media (min-width: 900px) {
+  .ui-toolbar > .ui-chips { flex: 1 1 auto; }
+}
+@media (max-width: 599.98px) {
+  .ui-toolbar { padding: 8px; border-radius: var(--radius-md); }
+}
+
+/* ── 15.4 Dialoq ──
+   Native: <dialog class="ui-dialog"><div class="ui-dialog__head">…<button class="ui-icon-btn">×</button></div>
+           <div class="ui-dialog__body">…</div><div class="ui-dialog__foot">…</div></dialog>
+   Portal (öz komponentin): <div class="ui-dialog-backdrop"><div class="ui-dialog" role="dialog" aria-modal="true">…
+   --sheet: telefonda aşağıdan qalxan vərəq, ≥768px-də sağda yan panel.
+   (Kart grid-indən oxu pəncərəsi üçün hazır komponent: components/reader/ReaderDialog.) */
+.ui-dialog {
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(86vh, 860px);
+  margin: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface-raised);
+  color: var(--text-body);
+  box-shadow: var(--shadow-4);
+}
+dialog.ui-dialog:not([open]) { display: none; }
+dialog.ui-dialog::backdrop,
+.ui-dialog-backdrop {
+  background: color-mix(in srgb, #050a0e 52%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+.ui-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.ui-dialog__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 12px 20px;
+  padding-inline: 20px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.ui-dialog__title {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+.ui-dialog__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 20px; }
+.ui-dialog__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-2) 50%, var(--surface-raised));
+}
+dialog.ui-dialog[open],
+.ui-dialog-backdrop > .ui-dialog { animation: qm-dialog-in var(--dur-3, 360ms) var(--ease-spring, ease) both; }
+@keyframes qm-dialog-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+@media (max-width: 767.98px) {
+  .ui-dialog--sheet {
+    width: 100%;
+    max-width: none;
+    max-height: 90vh;
+    margin: auto 0 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .ui-dialog-backdrop:has(> .ui-dialog--sheet) { place-items: end stretch; padding: 0; }
+}
+@media (min-width: 768px) {
+  .ui-dialog--sheet {
+    width: min(520px, 92vw);
+    height: 100vh;
+    max-height: none;
+    margin: 0 0 0 auto;
+    border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+  }
+  [dir="rtl"] .ui-dialog--sheet { margin: 0 auto 0 0; border-radius: 0 var(--radius-xl) var(--radius-xl) 0; }
+  .ui-dialog-backdrop:has(> .ui-dialog--sheet) { place-items: stretch end; padding: 0; }
+}
+
+/* ── 15.5 Bento şəbəkəsi ──
+   <div class="ui-bento"><article class="ui-bento__cell ui-bento__cell--wide">…</article>…</div>
+   Telefonda bir sütun; ≥700px iki; ≥1100px dörd sütun. --wide 2 sütun, --tall 2 sətir. */
+.ui-bento {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+@media (min-width: 700px) {
+  .ui-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ui-bento__cell--wide { grid-column: span 2; }
+}
+@media (min-width: 1100px) {
+  .ui-bento { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ui-bento__cell--tall { grid-row: span 2; }
+}
+
+/* ── 15.6 Kart grid-inin yer tutucusu ──
+   <div class="ui-skeleton-grid" aria-busy="true"><span class="ui-skeleton ui-skeleton--card"></span>×6</div> */
+.ui-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ui-cardgrid-min, 300px)), 1fr));
+  gap: var(--space-4);
+}
+.ui-skeleton--card { border: 1px solid var(--line); }
+
+/* ── 15.7 Ümumi incələmələr (mövcud siniflər) ── */
+/* Bölmə başlığı: lead ilə başlıq arası sıx, row variantında əməllər sonda */
+.ui-section-head--row > :last-child:not(:first-child) { flex-shrink: 0; }
+.ui-title { text-wrap: balance; }
+.ui-display { text-wrap: balance; }
+.ui-lead { text-wrap: pretty; }
+/* Tile — klikləmə elementi kimi yüngül kölgə + hover-də qalxma */
+.ui-tile { box-shadow: var(--shadow-1); }
+@media (hover: hover) {
+  .ui-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+}
+/* Toxunma: ui-tile, ui-card basılanda fon bir pillə tündləşir */
+@media (hover: none) {
+  .ui-tile:active,
+  a.ui-card:active,
+  button.ui-card:active,
+  .ui-card--interactive:active { background: color-mix(in srgb, var(--brand) 4%, var(--surface-1)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.ui-dialog[open],
+  .ui-dialog-backdrop > .ui-dialog { animation: none; }
+  .ui-tile,
+  .ui-tile:hover { transition: none; transform: none; }
+}
+@media print {
+  .ui-toolbar { position: static; box-shadow: none; backdrop-filter: none; }
+  .ui-clamp { -webkit-line-clamp: unset; line-clamp: unset; display: block; }
+  .ui-card--interactive, .ui-tile { box-shadow: none; }
 }

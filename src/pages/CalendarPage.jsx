@@ -15,6 +15,7 @@ import '../styles/CalendarPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 import { showLocalNotification } from '../utils/notify'
+import CalSunnahFasts, { weekdayName } from '../components/calendar/CalSunnahFasts'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
 // Yalnız ehtiyat üçündür: Umm al-Qura-dan 1–2 gün fərqlənə bilər.
@@ -143,7 +144,7 @@ const EVENTS = [
 // Ramazan ayında oruc onsuz da fərzdir — orada da göstərilmir.
 for (let m = 0; m < 12; m++) {
   if (m === 8 || m === 11) continue
-  EVENTS.push({ month:m, day:13, en:'White days (13–15) — sunnah fasting', az:'Ağ günlər (13–15) — sünnə orucu', ru:'Белые дни (13–15) — желательный пост', ar:'الأيام البيض (١٣–١٥) — صيام مستحب', tr:'Beyaz günler (13–15) — sünnet oruç', icon:'📿', type:'sunnah' })
+  EVENTS.push({ month:m, day:13, en:'White days (13–15) — sunnah fasting', az:'Ağ günlər (13–15) — sünnə orucu', ru:'Белые дни (13–15) — желательный пост', ar:'الأيام البيض (١٣–١٥) — صيام مستحب', tr:'Beyaz günler (13–15) — sünnet oruç', icon:'📿', type:'sunnah', bid:true })
 }
 EVENTS.sort((a, b) => a.month - b.month || a.day - b.day)
 
@@ -208,6 +209,28 @@ const CAL_RELATED = [
   { lesson: 'dhul-hijjah-ten', title: { az: 'Zülhiccənin 10 günü', en: 'The ten days of Dhul-Hijjah', ru: 'Десять дней Зуль-хиджа', ar: 'عشر ذي الحجة', tr: 'Zilhiccenin 10 günü' }, text: { az: 'Dərs', en: 'Lesson', ru: 'Урок', ar: 'درس', tr: 'Ders' } },
   { lesson: 'eid-prayer', title: { az: 'Bayram namazı', en: 'The Eid prayer', ru: 'Праздничный намаз', ar: 'صلاة العيد', tr: 'Bayram namazı' }, text: { az: 'Dərs', en: 'Lesson', ru: 'Урок', ar: 'درس', tr: 'Ders' } },
 ]
+
+// v3.2: qarşıdakı hadisələr — kartlar + geri sayım (hicri il sərhədini də keçir)
+const UP_TXT = {
+  title: { az: 'Qarşıdakı günlər', en: 'Coming up', ru: 'Ближайшие дни', ar: 'الأيام القادمة', tr: 'Yaklaşan günler' },
+  open: { az: 'Təqvimdə aç', en: 'Open in calendar', ru: 'Открыть в календаре', ar: 'افتح في التقويم', tr: 'Takvimde aç' },
+}
+/** Bu gündən ~13 ay irəli: hər hadisənin ən yaxın tarixi (ay başlanğıcları və təkrarlanan ağ günlər bir dəfə). */
+function upcomingEvents(base, limit = 6) {
+  const out = []
+  let bidTaken = false
+  const t0 = new Date(base.getFullYear(), base.getMonth(), base.getDate(), 12)
+  for (let i = 0; i <= 400 && out.length < limit; i++) {
+    const date = new Date(t0.getFullYear(), t0.getMonth(), t0.getDate() + i, 12)
+    const h = hijriOf(date)
+    for (const e of EVENTS) {
+      if (e.month !== h.month - 1 || e.day !== h.day || e.type === 'month') continue
+      if (e.bid) { if (bidTaken) continue; bidTaken = true }
+      out.push({ e, date, days: i, hYear: h.year })
+    }
+  }
+  return out.slice(0, limit)
+}
 
 // Növ filtri qrupunun ekran oxuyucu adı
 const FILTER_LABEL = { az:'Hadisə növü', en:'Event type', ru:'Тип события', ar:'نوع الحدث', tr:'Olay türü' }
@@ -504,6 +527,14 @@ export function CalendarPage({ setPage }) {
   const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12)
   const daysLeft = nextInfo ? Math.round((nextInfo.date - t0) / 86400000) : null
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const upList = useMemo(() => upcomingEvents(new Date()), [todayKey])
+  const openEvent = (u) => {
+    if (u.hYear !== hijri.year) return
+    pickMonth(u.e.month); setSelDay(u.e.day)
+    document.querySelector('.cal-main')?.scrollIntoView({ block: 'start', behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  }
+
   const monthEvents = EVENTS.filter(e => e.month === selMonth && (typeFilter === 'all' || e.type === typeFilter))
 
   const TYPE_LABELS = {
@@ -559,6 +590,36 @@ export function CalendarPage({ setPage }) {
           <div className="cal-convert">
             <GuideLink link={CAL_HIJRI_LINK} lang={lang} />
           </div>
+
+          {/* v3.2: qarşıdakı hadisələr — geri sayımlı kartlar */}
+          {upList.length > 0 && (
+            <section className="cal-up" aria-labelledby="cal-up-title" data-testid="cal-upcoming">
+              <h2 id="cal-up-title" className="cal-up__title"><Icon name="clock" size={18} /> {UP_TXT.title[lang] || UP_TXT.title.en}</h2>
+              <ol className="cal-up__list">
+                {upList.map((u, i) => {
+                  const inYear = u.hYear === hijri.year
+                  const Tag = inYear ? 'button' : 'div'
+                  return (
+                    <li key={`${u.e.month}-${u.e.day}-${i}`}>
+                      <Tag {...(inYear ? { type: 'button', onClick: () => openEvent(u) } : {})}
+                        className={`ui-card cal-up__card${TYPE_ACCENT[u.e.type] ? ' is-major' : ''}${inYear ? ' ui-card--interactive' : ''}`} data-type={u.e.type}>
+                        <span className="cal-up__top">
+                          <span className={`ui-icon-tile ui-icon-tile--sm${TYPE_ACCENT[u.e.type] ? ' ui-icon-tile--accent' : ''}`} aria-hidden="true"><Icon name={TYPE_ICONS[u.e.type] || 'calendar'} /></span>
+                          <span className={`ui-badge cal-up__cd${u.days <= 7 ? ' ui-badge--brand' : ''}`}><span className="ui-num">{cx.daysLeft(u.days)}</span></span>
+                        </span>
+                        <span className="cal-up__name">{u.e[lang] || u.e.en}</span>
+                        <span className="cal-up__date">
+                          <span>{eventDate(u.e)} {u.hYear}</span>
+                          <span>{weekdayName(u.date, lang)}, {formatGregorian(u.date, lang)}</span>
+                        </span>
+                        {inYear && <span className="ui-sr-only"> — {UP_TXT.open[lang] || UP_TXT.open.en}</span>}
+                      </Tag>
+                    </li>
+                  )
+                })}
+              </ol>
+            </section>
+          )}
 
           {/* Növ filtri — telefonda bir sətirlik sürüşən çiplər (.chip-scroll) */}
           {/* Aylar: masaüstündə 6 × 2 şəbəkə, telefonda üfüqi zolaq */}
@@ -741,6 +802,9 @@ export function CalendarPage({ setPage }) {
           </div>
         </div>
       </section>
+
+      {/* v3.2: sünnə oruc günləri, oruc qeydi və Ramazan qəzası */}
+      <CalSunnahFasts lang={lang} hijriOf={hijriOf} monthNames={hijriMonthNames} />
 
       {/* Hicri aylar: haram aylar, hilal, hər ayın Sünnəsi və əsli olmayan adətlər */}
       <MonthsGuide lang={lang} />

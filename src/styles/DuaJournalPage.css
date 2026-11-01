@@ -226,3 +226,28 @@
 
 /* Planşet: hero vizualı tam enə yayılmasın */
 @media (max-width: 899.98px) { .dua-journal-page .ui-page-hero__aside { max-width: 440px; } }
+
+/* ── v3.2: siyahı alət zolağı — axtarış, sıralama, kopyala, kateqoriya çipləri ── */
+.dj-tools {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: var(--space-3); padding: 8px;
+  border: 1px solid var(--line); border-radius: var(--radius-lg);
+  background: var(--surface-1); box-shadow: var(--shadow-1);
+}
+.dj-tools__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.dj-search { position: relative; flex: 1 1 220px; min-width: 0; }
+.dj-search__icon { position: absolute; inset-inline-start: 13px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
+.dua-journal-page .dj-search__input { width: 100%; min-height: 44px; padding-inline: 40px 44px; border-color: transparent; background: var(--surface-2); }
+.dua-journal-page .dj-search__input:focus { border-color: var(--brand-line); }
+.dj-search__input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.dua-journal-page .dj-search__clear { position: absolute; inset-inline-end: 2px; top: 50%; transform: translateY(-50%); }
+.dua-journal-page .dj-copy { min-height: 44px; }
+.dj-tools__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dj-chip-n { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; }
+.dj-tools__chips [aria-pressed="true"] .dj-chip-n { color: inherit; }
+@media (max-width: 599.98px) {
+  .dj-tools__chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .dj-tools__chips::-webkit-scrollbar { display: none; }
+  .dj-tools__chips .ui-chip { flex-shrink: 0; white-space: nowrap; }
+  .dj-sort { flex: 1 1 auto; }
+}

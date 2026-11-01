@@ -473,3 +473,14 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
   column-gap: var(--space-6);
 }
+
+/* ══ v3.2 — seçilmiş kitablar: kartda ulduz, süzgəc çipi ══ */
+.bp-fav-chip svg { color: var(--accent); }
+.bp-fav-chip[aria-pressed="true"] svg { fill: currentColor; color: inherit; }
+.bp-actions .bp-star { margin-inline-start: -4px; }
+/* Dar kartda (telefon, 2 sütun): "Oxu" tam sətir, paylaş + ulduz altda */
+@media (max-width: 519.98px) {
+  .books-page .bp-actions { flex-wrap: wrap; justify-content: space-between; row-gap: 2px; }
+  .books-page .bp-read-btn { flex: 1 1 100%; }
+  .bp-actions .bp-star { margin-inline-start: 0; }
+}

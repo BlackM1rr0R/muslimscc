@@ -491,3 +491,24 @@
   .ls-page .ls-progress__cta { width: 100%; justify-content: space-between; }
   .ls-progress__empty { flex: 1 1 100%; }
 }
+
+/* ══ v3.2 (Dərslər) — vəziyyət seqmenti, kartda əlfəcin ulduzu, şrift ölçüsü ══ */
+.ls-status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-3); }
+.ls-page .ls-status__seg > button { display: inline-flex; align-items: center; gap: 5px; min-height: 40px; }
+.ls-status__seg svg { color: var(--accent); }
+.ls-status__n { opacity: .65; font-size: var(--step--2); }
+.ls-status__count { margin-inline-start: auto; color: var(--text-tertiary); font-size: var(--step--1); }
+.ls-grid > li.ls-cell { position: relative; }
+.ls-page .ls-card-star { position: absolute; z-index: 2; top: 6px; inset-inline-end: 6px; }
+.ls-page .ls-cell .ls-card__top { padding-inline-end: 34px; }
+.ls-page .ls-card-star:not(.is-on) { opacity: .55; }
+.ls-page .ls-cell:hover .ls-card-star, .ls-page .ls-card-star:focus-visible { opacity: 1; }
+.ls-page .ls-lhero__star { border: 1px solid var(--line); }
+.ls-page .ls-fs > button { min-width: 44px; min-height: 36px; padding: 0 10px; font-weight: 700; }
+.ls-page .ls-fs > button:disabled { opacity: .4; cursor: default; }
+.ls-article[data-fs] .ls-sec :is(p, li, blockquote, dd, td, th, figcaption) { font-size: calc(var(--step-0) * var(--ls-fs, 1)); }
+@media (max-width: 767.98px) {
+  .ls-status { flex-direction: column; align-items: stretch; }
+  .ls-status__count { margin-inline-start: 0; }
+}
+@media print { .ls-card-star, .ls-fs, .ls-lhero__star { display: none !important; } }

@@ -14,8 +14,19 @@ import { pathFor } from '../seo/routes'
 import { isPlainClick } from '../components/PageLink'
 import { useNavigate } from 'react-router-dom'
 import '../styles/BooksPage.css'
+import StarButton from '../components/collect/StarButton'
+import useStarred from '../components/collect/useStarred'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
+
+// ── v3.2: seçilmiş kitablar (ulduz, localStorage) — 5 dil ──
+const BP32 = {
+  az: { favs: 'Seçilmişlər', favAdd: 'Seçilmişlərə əlavə et', favNone: 'Hələ seçilmiş kitab yoxdur — kartdakı ulduza toxunun.' },
+  en: { favs: 'Saved', favAdd: 'Save book', favNone: 'No saved books yet — tap the star on a card.' },
+  ru: { favs: 'Избранное', favAdd: 'В избранное', favNone: 'В избранном пока нет книг — нажмите звёздочку на карточке.' },
+  ar: { favs: 'المحفوظة', favAdd: 'احفظ الكتاب', favNone: 'لا توجد كتب محفوظة بعد — اضغط النجمة على البطاقة.' },
+  tr: { favs: 'Kaydedilenler', favAdd: 'Kitabı kaydet', favNone: 'Henüz kaydedilen kitap yok — karttaki yıldıza dokunun.' },
+}
 
 const LABELS = {
   az: { how:'Kartı seçin — kitab haqqında qısa məlumat və (varsa) PDF açılır. Bölmə çipləri siyahını daraldır.', statCats:'bölmə', statPdf:'PDF ilə', chartTitle:'Bölmələr üzrə kitablar', chartSub:'kitab sayı', pathEyebrow:'Haradan başlamalı?', pathTitle:'Başlanğıc üçün oxu yolu', pathLead:'Alimlərin tələbəyə tövsiyə etdiyi klassik ardıcıllıq: qısa mətndən geniş əsərə. Müəllifin adına toxunsanız, həyatı açılır.', relEyebrow:'Davamı', relTitle:'Əlaqəli bölmələr', eyebrow:'Hədis və bilik', title:'Kitabxana', subtitle:'İslami kitablar, təfsirlər və elm əsərləri', search:'Kitab axtar...', filter:'Filtr', featured:'Seçilmiş kitablar', allBooks:'Bütün kitablar', moreBooks:'Digər kitablar', noResults:'Kitab tapılmadı', loading:'Yüklənir...', books:'kitab', author:'Müəllif', read:'Oxu', preview:'Önizlə', readPdf:'PDF açın', noPdf:'PDF mövcud deyil', pages:'səhifə', year:'İl', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
@@ -108,6 +119,8 @@ function countWord(n, key, lang, fallback) {
 export default function BooksPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
+  const bx = BP32[lang] || BP32.en
+  const star = useStarred('books:favs')
   const navigate = useNavigate()
   const go = (href) => (e) => { if (isPlainClick(e)) { e.preventDefault(); navigate(href) } }
 
@@ -143,11 +156,13 @@ export default function BooksPage({ setPage }) {
 
   const filtered = useMemo(() => {
     let list = books
-    if (featured.length) {
+    if (selectedCat === 'fav') {
+      list = list.filter(b => star.list.includes(String(b.id)))
+    } else if (featured.length) {
       const ids = new Set(featured.map(b => b.id))
       list = list.filter(b => !ids.has(b.id))
     }
-    if (selectedCat !== 'all') {
+    if (selectedCat !== 'all' && selectedCat !== 'fav') {
       list = list.filter(b => b.category === selectedCat)
     }
     if (search.trim()) {
@@ -160,7 +175,7 @@ export default function BooksPage({ setPage }) {
       })
     }
     return list
-  }, [books, featured, selectedCat, search, lang])
+  }, [books, featured, selectedCat, search, lang, star.list])
 
   // Sonsuz sürüşmə — filtr/axtarış/dil dəyişəndə siyahı əvvəldən başlayır və
   // (şəbəkənin ortasında idisə) onun başlığına qalxır (hero-ya yox)
@@ -373,6 +388,10 @@ export default function BooksPage({ setPage }) {
                 </button>
               )
             })}
+            <button type="button" className="ui-chip bp-cat-btn bp-fav-chip" aria-pressed={selectedCat === 'fav'} onClick={() => setSelectedCat(selectedCat === 'fav' ? 'all' : 'fav')}>
+              <Icon name="star" size={14} /> <span>{bx.favs}</span>
+              <span className="bp-cat-count ui-num">{star.count}</span>
+            </button>
           </div>
         )}
 
@@ -380,7 +399,7 @@ export default function BooksPage({ setPage }) {
         <section className="bp-section">
           <div className="bp-section-head" ref={gridTopRef}>
             <h2 className="ui-title ui-title--sm bp-section-title">
-              <Icon name="books" size={20} className="bp-section-ic" /> {selectedCat !== 'all'
+              <Icon name="books" size={20} className="bp-section-ic" /> {selectedCat === 'fav' ? bx.favs : selectedCat !== 'all'
                 ? BOOK_CATEGORIES.find(c => c.key === selectedCat)?.label[lang]
                 : featured.length ? l.moreBooks : l.allBooks}
             </h2>
@@ -403,7 +422,7 @@ export default function BooksPage({ setPage }) {
           ) : filtered.length === 0 ? (
             <div className="ui-card ui-card--sunken bp-empty" data-reveal="scale">
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="books" /></span>
-              <p className="bp-empty-title">{l.noResults}</p>
+              <p className="bp-empty-title">{selectedCat === 'fav' && !star.count ? bx.favNone : l.noResults}</p>
               {(search || selectedCat !== 'all') && (
                 <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => { setSearch(''); setSelectedCat('all') }}>
                   <Icon name="close" className="ui-btn__icon" /> {l.clear}
@@ -442,6 +461,7 @@ export default function BooksPage({ setPage }) {
                       >
                         <Icon name="share" size={18} />
                       </button>
+                      <StarButton className="bp-star" on={star.has(String(b.id))} onToggle={() => star.toggle(String(b.id))} label={`${bx.favAdd}: ${pickLang(b.title, lang)}`} />
                     </div>
                   </div>
                 </article>

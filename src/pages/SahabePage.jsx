@@ -14,7 +14,18 @@ import LifespanChart from '../components/media/LifespanChart'
 import RelatedLinks from '../components/media/RelatedLinks'
 import { ChartFigure } from '../components/viz'
 import { SAHABA_DEATH, RASHIDUN_SPAN } from '../data/sahabaYears'
+import StarButton from '../components/collect/StarButton'
+import useStarred from '../components/collect/useStarred'
 import '../styles/SahabePage.css'
+
+// ── v3.2: sıralama, seçilmişlər, təsadüfi səhabə (5 dil) ──
+const S32 = {
+  az: { sort: 'Sırala', sList: 'Siyahı sırası', sAz: 'Əlifba', sDeath: 'Vəfat ili', favs: 'Seçilmişlər', favAdd: 'Seçilmişlərə əlavə et', random: 'Təsadüfi səhabə', favNone: 'Hələ seçilmiş səhabə yoxdur — kartdakı ulduza toxunun.' },
+  en: { sort: 'Sort', sList: 'Default order', sAz: 'A–Z', sDeath: 'Year of death', favs: 'Saved', favAdd: 'Save', random: 'Random companion', favNone: 'No saved companions yet — tap the star on a card.' },
+  ru: { sort: 'Сортировка', sList: 'По списку', sAz: 'А–Я', sDeath: 'Год смерти', favs: 'Избранное', favAdd: 'В избранное', random: 'Случайный сподвижник', favNone: 'В избранном пока никого нет — нажмите звёздочку на карточке.' },
+  ar: { sort: 'الترتيب', sList: 'ترتيب القائمة', sAz: 'أبجديًا', sDeath: 'سنة الوفاة', favs: 'المحفوظون', favAdd: 'احفظ', random: 'صحابي عشوائي', favNone: 'لا يوجد محفوظون بعد — اضغط النجمة على البطاقة.' },
+  tr: { sort: 'Sırala', sList: 'Liste sırası', sAz: 'Alfabe', sDeath: 'Vefat yılı', favs: 'Kaydedilenler', favAdd: 'Kaydet', random: 'Rastgele sahabe', favNone: 'Henüz kaydedilen sahabe yok — karttaki yıldıza dokunun.' },
+}
 
 /* ── Etiketlər (UI mətnləri, 5 dil) ── */
 const LABELS = {
@@ -349,17 +360,36 @@ export default function SahabePage() {
 
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
+  const [sort, setSort] = useState('list')
+  const X = S32[lang] || S32.en
+  const star = useStarred('sahaba:favs')
 
   const filtered = useMemo(() => {
-    const f = FILTERS.find(x => x.key === filter) || FILTERS[0]
+    const f = filter === 'fav' ? { test: s => star.list.includes(slugOf(s)) } : (FILTERS.find(x => x.key === filter) || FILTERS[0])
     const q = search.trim().toLowerCase()
-    return SAHABA.filter(s => {
+    const list = SAHABA.filter(s => {
       if (!f.test(s)) return false
       if (!q) return true
       return pick(s.name, lang).toLowerCase().includes(q) || s.name.ar.includes(q) ||
         pick(s.title, lang).toLowerCase().includes(q) || s.name.en.toLowerCase().includes(q)
     })
-  }, [search, filter, lang])
+    if (sort === 'az') {
+      const coll = new Intl.Collator(lang === 'ru' ? 'ru' : lang === 'ar' ? 'ar' : lang === 'tr' ? 'tr' : lang === 'az' ? 'az' : 'en', { sensitivity: 'base' })
+      return [...list].sort((a, b) => coll.compare(pick(a.name, lang), pick(b.name, lang)))
+    }
+    if (sort === 'death') {
+      const y = (s) => SAHABA_DEATH[slugOf(s)]?.h ?? 9999
+      return [...list].sort((a, b) => y(a) - y(b))
+    }
+    return list
+  }, [search, filter, lang, sort, star.list])
+  const openRandom = (e) => {
+    const pool = filtered.length ? filtered : SAHABA
+    const s = pool[Math.floor(Math.random() * pool.length)]
+    listY.current = window.scrollY
+    e?.preventDefault?.()
+    routerNavigate(pathFor('sahaba', lang, slugOf(s)), { state: { spList: true } })
+  }
 
   /* ── Sürüşmə: profil yuxarıdan açılır, siyahıya qayıdanda əvvəlki yer ── */
   const listY = useRef(0)
@@ -403,7 +433,8 @@ export default function SahabePage() {
   }
 
   if (selected) {
-    return <Profile key={selected.id} s={selected} L={L} lang={lang} isAr={isAr} onBack={backToList} onSibling={goSibling} />
+    return <Profile key={selected.id} s={selected} L={L} lang={lang} isAr={isAr} onBack={backToList} onSibling={goSibling}
+      starOn={star.has(slugOf(selected))} onStar={() => star.toggle(slugOf(selected))} starLabel={X.favAdd} />
   }
 
   const counts = Object.fromEntries(FILTERS.map(f => [f.key, SAHABA.filter(f.test).length]))
@@ -457,13 +488,27 @@ export default function SahabePage() {
                   {L[f.label]} <span className="sp-chip__n ui-num">{counts[f.key]}</span>
                 </button>
               ))}
+              <button type="button" className="ui-chip sp-fav-chip" aria-pressed={filter === 'fav'} onClick={() => setFilter(filter === 'fav' ? 'all' : 'fav')}>
+                <Icon name="star" size={14} /> {X.favs} <span className="sp-chip__n ui-num">{star.count}</span>
+              </button>
             </div>
+          </div>
+          <div className="sp-subbar">
+            <div className="ui-segmented sp-sort" role="group" aria-label={X.sort}>
+              {[['list', X.sList], ['az', X.sAz], ['death', X.sDeath]].map(([k, lbl]) => (
+                <button key={k} type="button" aria-pressed={sort === k} onClick={() => setSort(k)}>{lbl}</button>
+              ))}
+            </div>
+            <span className="sp-count ui-num" aria-live="polite">{filtered.length} / {SAHABA.length}</span>
+            <a className="ui-btn ui-btn--secondary ui-btn--sm sp-random" href={pathFor('sahaba', lang)} onClick={openRandom}>
+              <Icon name="refresh" className="ui-btn__icon" /> {X.random}
+            </a>
           </div>
 
           {filtered.length === 0 ? (
             <div className="ui-card ui-card--sunken sahabe-no-results" data-reveal="scale">
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="search" /></span>
-              <p>{L.noResults}</p>
+              <p>{filter === 'fav' && !star.count ? X.favNone : L.noResults}</p>
               <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => { setSearch(''); setFilter('all') }}>
                 <Icon name="close" className="ui-btn__icon" /> {L.clear}
               </button>
@@ -472,12 +517,13 @@ export default function SahabePage() {
             /* Bir siyahı: kompüterdə kart şəbəkəsi, telefonda (<768px) üfüqi
                sətir-kartlar (CSS). Kart əsl <button>-dur — klaviatura və ekran
                oxuyucu ilə açılır; düymənin içində yalnız <span> var. */
-            <ul className="sahabe-grid" data-reveal="stagger-zoom" key={`${filter}|${search ? 'q' : 'all'}`}>
+            <ul className="sahabe-grid" data-reveal="stagger-zoom" key={`${filter}|${search ? 'q' : 'all'}|${sort}`}>
               {filtered.map(s => {
                 const n = pick(s.name, lang)
                 const line = sentencesOf(pick(s.bio, lang))[0]
                 return (
-                  <li key={s.id}>
+                  <li key={s.id} className="sp-cell">
+                    <StarButton className="sp-card-star" on={star.has(slugOf(s))} onToggle={() => star.toggle(slugOf(s))} label={`${X.favAdd}: ${n}`} />
                     <a className="ui-card ui-card--interactive sahabe-card" href={pathFor('sahaba', lang, slugOf(s))} onClick={(e) => openProfile(s, e)}>
                       {/* Kompüterdə kartın üstü — xəttatlıq lövhəsi; telefonda (sətir-kart) gizlidir */}
                       <CalligraphyPlaque ar={s.name.ar} female={isWoman(s)} className="sahabe-card-cq" />
@@ -554,7 +600,7 @@ export default function SahabePage() {
    Hədislər → Mənbələr → Əvvəlki / Növbəti. Geniş ekranda yan tərəfdə
    yapışqan "İçindəkilər" (aktiv bölmə vurğulanır).
    ══════════════════════════════════════════════════════════════════ */
-function Profile({ s, L, lang, isAr, onBack, onSibling }) {
+function Profile({ s, L, lang, isAr, onBack, onSibling, starOn, onStar, starLabel }) {
   const n = pick(s.name, lang)
   const slug = slugOf(s)
   const { summary, blocks } = proseOf(s, lang)
@@ -673,6 +719,7 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
                 <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={share}>
                   <Icon name="share" className="ui-btn__icon" /> {L.share}
                 </button>
+                {onStar && <StarButton on={starOn} onToggle={onStar} label={starLabel} />}
                 <span className="sp-hero__meta ui-num">
                   {heroMeta(lang, s.facts.length, s.hadiths.length, sources.length, L)}
                 </span>

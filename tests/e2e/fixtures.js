@@ -54,7 +54,7 @@ function surahEdition(identifier, type) {
 const IGNORED = [
   /favicon/i,
   /firestore|firebase|googleapis\.com|gstatic/i,   // testdə Firebase şəbəkəsi əlçatmaz ola bilər
-  /Failed to load resource.*(fonts\.g|aladhan|alquran|everyayah|islamic\.network)/i,
+  /Failed to load resource.*(fonts\.g|aladhan|alquran|everyayah|islamic\.network|hadeethenc|quranenc|jsdelivr|githubusercontent)/i,
   /service ?worker/i,
   /\[vite\]/i,
 ]
@@ -105,6 +105,9 @@ export const test = base.extend({
     await page.route(/firestore\.googleapis\.com|firebaseinstallations|fcmregistrations|identitytoolkit/, route => route.abort())
     // Səs faylları və xarici şriftlər testdə lazım deyil
     await page.route(/\.(mp3|ogg|wav)(\?|$)/, route => route.abort())
+    // v3.2: yeni xarici mənbələr (HadeethEnc, QuranEnc, hadith-api) — CI-da canlı şəbəkəyə getməsin.
+    // Spec-lər öz page.route-ları ilə bunların üstünə yazır (sonra qeydə alınan qalib gəlir).
+    await page.route(/hadeethenc\.com\/api\/|quranenc\.com\/api\/|cdn\.jsdelivr\.net\/gh\/fawazahmed0|raw\.githubusercontent\.com\/fawazahmed0/, route => route.abort())
     await use(page)
   },
 })

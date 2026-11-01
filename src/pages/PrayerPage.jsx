@@ -333,6 +333,24 @@ const V3 = {
   duasEyebrow: { az: 'Namazda', en: 'In the prayer', ru: 'В намазе', ar: 'في الصلاة', tr: 'Namazda' },
   duasLead:    { az: 'Namazın əsas zikrləri — ərəbcə mətn, tərcümə və mənbə. Namazın bütöv qaydası “Namaz qılmağı öyrən” bölməsindədir.', en: 'The core words of the prayer — Arabic, translation and source. The full method is in “Learn to pray”.', ru: 'Основные слова намаза — арабский текст, перевод и источник. Полный порядок — в разделе «Учимся молиться».', ar: 'أذكار الصلاة الأساسية بنصّها ومصدرها. وصفة الصلاة كاملةً في قسم «تعلّم الصلاة».', tr: 'Namazın temel zikirleri — Arapça metin, meal ve kaynak. Namazın tamamı “Namaz öğren” bölümündedir.' },
   weekLead:    { az: 'Son 7 gündə qeyd etdiyiniz namazlar.', en: 'Prayers you marked in the last 7 days.', ru: 'Намазы, отмеченные за последние 7 дней.', ar: 'الصلوات التي علّمتها في آخر 7 أيام.', tr: 'Son 7 günde işaretlediğiniz namazlar.' },
+  // v3.2 — paylaş, aylıq cədvəl alətləri, qalan vaxt, bugünkü istinad saatları
+  share:      { az: 'Paylaş', en: 'Share', ru: 'Поделиться', ar: 'مشاركة', tr: 'Paylaş' },
+  copied:     { az: 'Kopyalandı', en: 'Copied', ru: 'Скопировано', ar: 'تم النسخ', tr: 'Kopyalandı' },
+  shareTitle: { az: 'Namaz vaxtları', en: 'Prayer times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz vakitleri' },
+  inRel:      { az: '{t} sonra', en: 'in {t}', ru: 'через {t}', ar: 'بعد {t}', tr: '{t} sonra' },
+  relH:       { az: 's', en: 'h', ru: 'ч', ar: 'س', tr: 'sa' },
+  relM:       { az: 'dəq', en: 'min', ru: 'мин', ar: 'د', tr: 'dk' },
+  print:      { az: 'Çap / PDF', en: 'Print / PDF', ru: 'Печать / PDF', ar: 'طباعة / PDF', tr: 'Yazdır / PDF' },
+  csv:        { az: 'CSV yüklə', en: 'Download CSV', ru: 'Скачать CSV', ar: 'تنزيل CSV', tr: 'CSV indir' },
+  viewMonth:  { az: 'Bütün ay', en: 'Full month', ru: 'Весь месяц', ar: 'الشهر كاملًا', tr: 'Tüm ay' },
+  viewWeek:   { az: 'Növbəti 7 gün', en: 'Next 7 days', ru: 'Следующие 7 дней', ar: 'الأيام السبعة القادمة', tr: 'Sonraki 7 gün' },
+  viewLabel:  { az: 'Cədvəl görünüşü', en: 'Timetable view', ru: 'Вид расписания', ar: 'عرض الجدول', tr: 'Takvim görünümü' },
+  prevMonth:  { az: 'Əvvəlki ay', en: 'Previous month', ru: 'Предыдущий месяц', ar: 'الشهر السابق', tr: 'Önceki ay' },
+  nextMonth:  { az: 'Növbəti ay', en: 'Next month', ru: 'Следующий месяц', ar: 'الشهر التالي', tr: 'Sonraki ay' },
+  thisMonth:  { az: 'Bu ay', en: 'This month', ru: 'Этот месяц', ar: 'هذا الشهر', tr: 'Bu ay' },
+  friday:     { az: 'Cümə günləri vurğulanıb', en: 'Fridays are highlighted', ru: 'Пятницы выделены', ar: 'أيام الجمعة مميَّزة', tr: 'Cuma günleri vurgulandı' },
+  todayAt:    { az: 'Bu gün', en: 'Today', ru: 'Сегодня', ar: 'اليوم', tr: 'Bugün' },
+  rakatUnit:  { az: 'rükət', en: 'rak‘ahs', ru: 'ракаатов', ar: 'ركعات', tr: 'rekât' },
   moreEyebrow: { az: 'Davamı', en: 'Next steps', ru: 'Дальше', ar: 'للمزيد', tr: 'Devamı' },
   moreTitle:   { az: 'Namazla bağlı digər bölmələr', en: 'More about prayer', ru: 'Ещё о намазе', ar: 'المزيد عن الصلاة', tr: 'Namazla ilgili diğer bölümler' },
 }
@@ -515,10 +533,68 @@ export default function PrayerPage({ setPage }) {
   const midnight = nightLen != null ? M.maghrib + nightLen / 2 : null
   const lastThird = nightLen != null ? M.maghrib + (nightLen * 2) / 3 : null
 
-  // Aylıq cədvəl — şəhərin təqvim günü (pt.date 'DD-MM-YYYY')
+  // Aylıq cədvəl — şəhərin təqvim günü (pt.date 'DD-MM-YYYY'); ‹ › ilə başqa ay
   const [cd, cm, cy] = String(pt.date || '').split('-').map(Number)
-  const month = usePrayerMonth(loc, cy || null, cm || null)
-  const monthLabel = cm ? monthName(cm, cy, lang) : ''
+  const [monthOff, setMonthOff] = useState(0)
+  const [monthView, setMonthView] = useState('month') // 'month' | 'week'
+  const vIdx = cm && cy ? cy * 12 + (cm - 1) + monthOff : null
+  const vy = vIdx != null ? Math.floor(vIdx / 12) : null
+  const vm = vIdx != null ? (vIdx % 12) + 1 : null
+  const isCurMonth = monthOff === 0
+  const month = usePrayerMonth(loc, vy || null, vm || null)
+  const monthLabel = vm ? monthName(vm, vy, lang) : ''
+  // "Növbəti 7 gün" yalnız bu ayda mənalıdır (ayın sonunda 7-dən az ola bilər)
+  const weekMode = monthView === 'week' && isCurMonth
+  const monthRows = month.days ? (weekMode ? month.days.filter(d => d.day >= cd && d.day < cd + 7) : month.days) : null
+
+  // Qalan vaxt: "2 s 15 dəq sonra" (yalnız bu günün gələcək vaxtları)
+  const relFmt = (mins) => {
+    const h = Math.floor(mins / 60), m = mins % 60
+    const tt = h ? `${h} ${P(V3.relH)}${m ? ` ${m} ${P(V3.relM)}` : ''}` : `${Math.max(1, m)} ${P(V3.relM)}`
+    return P(V3.inRel).replace('{t}', tt)
+  }
+
+  // Paylaş: Web Share API, yoxdursa buferə kopyala
+  const [shareMsg, setShareMsg] = useState('')
+  const shareTimes = async () => {
+    if (!times) return
+    haptic()
+    const lines = PRAYER_KEYS.map((k, i) => `${PRAYER_NAMES[i]}: ${times[k]}`)
+    const head = `${P(V3.shareTitle)}${cityName ? ` — ${cityName}` : ''} · ${dateStr}`
+    const url = typeof location !== 'undefined' ? location.href.split('#')[0] : ''
+    const text = `${head}\n${lines.join('\n')}`
+    try {
+      if (navigator.share) { await navigator.share({ title: head, text, url }); return }
+    } catch (e) { if (e?.name === 'AbortError') return }
+    try {
+      await navigator.clipboard.writeText(`${text}\n${url}`)
+      setShareMsg(P(V3.copied))
+      setTimeout(() => setShareMsg(''), 2200)
+    } catch { /* bufer bağlıdır */ }
+  }
+
+  // Aylıq cədvəl: CSV yüklə və yalnız cədvəli çap et
+  const downloadCsv = () => {
+    if (!month.days) return
+    const esc = (v) => `"${String(v).replace(/"/g, '""')}"`
+    const rows = [[P(V3.day), ...PRAYER_NAMES].map(esc).join(',')]
+    for (const d of month.days) rows.push([`${vy}-${pad2(vm)}-${pad2(d.day)}`, ...DAY_KEYS.map(k => d.times[k] || '')].map(esc).join(','))
+    try {
+      const blob = new Blob(['﻿' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = `prayer-times-${(loc.city?.en || 'city').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${vy}-${pad2(vm)}.csv`
+      document.body.appendChild(a); a.click(); a.remove()
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+    } catch { /* köhnə brauzer */ }
+  }
+  const printMonth = () => {
+    const root = document.documentElement
+    root.classList.add('pp-print-month')
+    const done = () => { root.classList.remove('pp-print-month'); window.removeEventListener('afterprint', done) }
+    window.addEventListener('afterprint', done)
+    try { window.print() } catch { done() }
+  }
 
   // Vaxtların sərhədləri (Müslim 612) — bu günün rəqəmləri ilə
   const BOUNDS = [
@@ -627,7 +703,15 @@ export default function PrayerPage({ setPage }) {
               <div className="pp-times ui-card ui-card--flush" data-reveal>
                 <div className="pp-times-head">
                   <h2 className="pp-times-title">{TXT.todayTimes[lk]}</h2>
-                  <span className="pp-times-badge">{cityName ? <><Icon name="pin" size={12} /> {cityName} · {TXT.calc[lk]}</> : TXT.calc[lk]}</span>
+                  <span className="pp-times-head-r">
+                    <span className="pp-times-badge">{cityName ? <><Icon name="pin" size={12} /> {cityName} · {TXT.calc[lk]}</> : TXT.calc[lk]}</span>
+                    {times && !loading && (
+                      <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm pp-share-btn" onClick={shareTimes}>
+                        <Icon name={shareMsg ? 'check' : 'share'} size={16} /> <span>{shareMsg || P(V3.share)}</span>
+                      </button>
+                    )}
+                  </span>
+                  <span className="ui-sr-only" role="status" aria-live="polite">{shareMsg}</span>
                 </div>
 
                 {loading && (
@@ -653,12 +737,15 @@ export default function PrayerPage({ setPage }) {
                     {PRAYER_KEYS.map((key,i) => {
                       const isNext = next?.name === key && !pt.next?.tomorrow
                       const passed = i < nextIdx
+                      const km = M ? M[DAY_KEYS[i]] : null
+                      const left = !passed && km != null && nowMin != null && km > nowMin ? km - nowMin : null
                       return (
                         <li key={key} className={`prayer-time-card${isNext ? ' is-next' : ''}${passed ? ' is-passed' : ''}${key === 'Sunrise' ? ' is-aux' : ''}`}>
                           <span className="pt-icon" aria-hidden="true"><Icon name={PRAYER_ICONS[key]} /></span>
                           <span className="pt-info">
                             <span className="pt-name">{PRAYER_NAMES[i]}</span>
                             {isNext && <span className="pt-next-badge">{TXT.nextBadge[lk]}</span>}
+                            {left != null && <span className="pt-rel ui-num">{relFmt(left)}</span>}
                           </span>
                           <span className="pt-time ui-num">{times[key]}</span>
                           <span className="pt-indicator" aria-hidden="true">{passed ? <Icon name="check" size={14} strokeWidth={2.2} /> : null}</span>
@@ -759,6 +846,39 @@ export default function PrayerPage({ setPage }) {
             <h2 id="pp-month-title" className="ui-title">{(t => t.charAt(0).toLocaleUpperCase(lang) + t.slice(1))(P(V3.monthTitle).replace('{m}', monthLabel))}</h2>
             <p className="ui-lead">{P(V3.monthLead)}</p>
           </div>
+          <div className="pp-month-bar">
+            <div className="pp-month-nav">
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm pp-icon-btn" onClick={() => setMonthOff(o => o - 1)}
+                aria-label={P(V3.prevMonth)} title={P(V3.prevMonth)}>
+                <Icon name="chevronLeft" size={16} className="ui-flip-rtl" />
+              </button>
+              <span className="pp-month-name" aria-live="polite">{monthLabel} <span className="ui-num">{vy || ''}</span></span>
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm pp-icon-btn" onClick={() => setMonthOff(o => o + 1)}
+                aria-label={P(V3.nextMonth)} title={P(V3.nextMonth)}>
+                <Icon name="chevron" size={16} className="ui-flip-rtl" />
+              </button>
+              {!isCurMonth && (
+                <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setMonthOff(0)}>{P(V3.thisMonth)}</button>
+              )}
+            </div>
+            {isCurMonth && (
+              <div className="ui-segmented pp-month-seg" role="radiogroup" aria-label={P(V3.viewLabel)}>
+                {['month', 'week'].map(v => (
+                  <button key={v} type="button" role="radio" aria-checked={monthView === v} onClick={() => setMonthView(v)}>
+                    {P(v === 'month' ? V3.viewMonth : V3.viewWeek)}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="pp-month-tools">
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={printMonth} disabled={!month.days}>
+                <Icon name="list" size={16} /> {P(V3.print)}
+              </button>
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={downloadCsv} disabled={!month.days}>
+                <Icon name="download" size={16} /> {P(V3.csv)}
+              </button>
+            </div>
+          </div>
           {month.error ? (
             <div className="ui-callout ui-callout--note" role="status">
               <Icon name="info" />
@@ -772,9 +892,9 @@ export default function PrayerPage({ setPage }) {
               {Array.from({ length: 5 }, (_, i) => <span key={i} className="ui-skeleton ui-skeleton--text" style={{ '--w': `${92 - i * 7}%` }} />)}
             </div>
           ) : (
-            <div className="ui-table-wrap pp-month-wrap" tabIndex={0} role="region" aria-labelledby="pp-month-title">
+            <div className={`ui-table-wrap pp-month-wrap${weekMode ? ' is-week' : ''}`} tabIndex={0} role="region" aria-labelledby="pp-month-title">
               <table className="ui-table ui-table--compact ui-table--zebra pp-month-table">
-                <caption>{P(V3.monthNote).replace('{city}', cityName)}</caption>
+                <caption>{P(V3.monthNote).replace('{city}', cityName)} {P(V3.friday)}.</caption>
                 <thead>
                   <tr>
                     <th scope="col">{P(V3.day)}</th>
@@ -782,10 +902,12 @@ export default function PrayerPage({ setPage }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {month.days.map(d => {
-                    const cur = d.day === cd
+                  {monthRows.map(d => {
+                    const cur = isCurMonth && d.day === cd
+                    const past = monthOff < 0 || (isCurMonth && d.day < cd)
+                    const cls = [cur && 'is-current', past && 'is-past', d.weekday === 5 && 'is-friday'].filter(Boolean).join(' ')
                     return (
-                      <tr key={d.day} className={cur ? 'is-current' : undefined} aria-current={cur ? 'date' : undefined}>
+                      <tr key={d.day} className={cls || undefined} aria-current={cur ? 'date' : undefined}>
                         <th scope="row"><span className="ui-num">{d.day}</span> <span className="pp-wd">{sl.days[d.weekday]}</span></th>
                         {DAY_KEYS.map(k => <td key={k} className={`is-num${k === 'sunrise' ? ' is-aux' : ''}`}>{d.times[k] || '—'}</td>)}
                       </tr>
@@ -835,9 +957,19 @@ export default function PrayerPage({ setPage }) {
               <div>
                 <strong className="ui-callout__title">{P(V3.forbidTitle)}</strong>
                 <ol className="pp-forbid-list">
-                  {V3.forbid.map((f, i) => (
-                    <li key={i}>{P(f)} <span className="pp-src">{localizeSource(f.src, lang)}</span></li>
-                  ))}
+                  {V3.forbid.map((f, i) => {
+                    // Bu günün istinad saatı (yalnız məlum vaxtlar — yeni hökm yox):
+                    // 1 → günəşin doğuşu, 2 → zöhr azanı, 3 → məğrib (günəşin batışı)
+                    const ak = ['sunrise', 'dhuhr', 'maghrib'][i]
+                    return (
+                      <li key={i}>
+                        {P(f)} <span className="pp-src">{localizeSource(f.src, lang)}</span>
+                        {dayTimes?.[ak] && (
+                          <span className="pp-forbid-at"><Icon name={PRAYER_ICONS[API_NAME[ak]]} size={13} /> {P(V3.todayAt)}: {dayNames[ak]} <b className="ui-num">{dayTimes[ak]}</b></span>
+                        )}
+                      </li>
+                    )
+                  })}
                 </ol>
                 <p className="pp-forbid-note">{P(V3.forbidNote)}</p>
               </div>
@@ -855,31 +987,22 @@ export default function PrayerPage({ setPage }) {
             <p className="ui-lead">{P(V3.sunnahLead)}</p>
           </div>
           <div className="pp-sunnah-grid">
-            <div className="ui-table-wrap" tabIndex={0} role="region" aria-labelledby="pp-sunnah-title">
-              <table className="ui-table pp-sunnah-table">
-                <thead>
-                  <tr>
-                    <th scope="col">{P(V3.colPrayer)}</th>
-                    <th scope="col" className="is-num">{P(V3.colRakat)}</th>
-                    <th scope="col">{P(V3.colWhen)}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {SUNNAH_PRAYERS.map((sp, i) => (
-                    <tr key={i}>
-                      <th scope="row">
-                        <span className="pp-sunnah-name"><Icon name={sp.icon} size={16} /> {sp.name[lk] || sp.name.en}</span>
-                      </th>
-                      <td className="is-num">{sp.rakat}</td>
-                      <td>
-                        {sp.desc[lk] || sp.desc.en}
-                        {sp.source && <span className="pp-src pp-src--block">{localizeSource(sp.source, lang)}</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {/* v3.2: cədvəl əvəzinə kart grid — ikon, rükət nişanı, izah, mənbə çipi */}
+            <ul className="pp-sunnah-cards" data-reveal="stagger">
+              {SUNNAH_PRAYERS.map((sp, i) => (
+                <li key={i} className="pp-sunnah-card">
+                  <div className="pp-sunnah-top">
+                    <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={sp.icon} /></span>
+                    <h3 className="pp-sunnah-name">{sp.name[lk] || sp.name.en}</h3>
+                    <span className="pp-sunnah-rakat" aria-label={`${P(V3.colRakat)}: ${sp.rakat}`}>
+                      <b className="ui-num">{sp.rakat}</b><small>{P(V3.rakatUnit)}</small>
+                    </span>
+                  </div>
+                  <p className="pp-sunnah-desc">{sp.desc[lk] || sp.desc.en}</p>
+                  {sp.source && <span className="pp-sunnah-src"><Icon name="hadith" size={12} /> {localizeSource(sp.source, lang)}</span>}
+                </li>
+              ))}
+            </ul>
 
             <div className="prayer-stats-section ui-card" data-reveal>
               <h3 className="pp-card-title">{sl.weeklyTitle}</h3>

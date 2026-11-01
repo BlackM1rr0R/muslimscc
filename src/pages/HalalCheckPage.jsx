@@ -868,8 +868,9 @@ function ECodeSection({ data, status, retry, lang, L }) {
           .filter(([, e]) => Object.values(e.n).some((n) => norm(n, lang).includes(ns)))
           .map(([code, entry]) => ({ code, entry }))
       }
-    } else if (cat) {
-      list = Object.entries(items).filter(([, e]) => e.cat === cat).map(([code, entry]) => ({ code, entry }))
+    } else {
+      // v3.2: axtarış boşdursa da kodlar kart şəbəkəsində göstərilir (filtr seçilibsə — yalnız o qrup)
+      list = Object.entries(items).filter(([, e]) => !cat || e.cat === cat).map(([code, entry]) => ({ code, entry }))
     }
     if (cat && s) list = list.filter((x) => x.entry.cat === cat)
     return { list, missing }
@@ -901,6 +902,7 @@ function ECodeSection({ data, status, retry, lang, L }) {
 
         {data && (
           <>
+            <div className="hc-toolbar">
             <div className="hc-search">
               <Icon name="search" size={19} className="hc-search__icon" />
               <textarea className="ui-input hc-search__input" rows={1} aria-label={L.codesLabel} placeholder={L.codesPh}
@@ -919,8 +921,9 @@ function ECodeSection({ data, status, retry, lang, L }) {
                 </button>
               ))}
             </div>
+            </div>
 
-            {(q.trim() || cat) && (
+            {(q.trim() || cat || results.list.length > 0) && (
               <p className="hc-results" role="status">
                 {results.list.length ? L.found(results.list.length) : (!results.missing.length ? L.none : '')}
               </p>

@@ -277,3 +277,52 @@ html[lang="ar"] .inh-table thead th { letter-spacing: 0; text-transform: none; }
   .inh-hero .ui-page-hero__stats { gap: 8px 20px; }
   .inh-hero .ui-page-hero__stats > li:nth-child(2) { display: none; }
 }
+
+/* ── v3.2: yapışqan mini xülasə (dar ekran) + nəticə əməliyyatları ── */
+.inh-mini { display: none; }
+@media (max-width: 1079.98px) {
+  .inh-mini {
+    position: sticky;
+    bottom: calc(12px + max(var(--bottom-inset, 0px), env(safe-area-inset-bottom, 0px)));
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    /* sağ-aşağı küncdəki sürətli düymələr (dock) üçün yer — dock fiziki olaraq sağdadır */
+    margin-right: 62px;
+    padding: 8px 8px 8px 12px;
+    border: 1px solid var(--brand-line, var(--line));
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--surface-1) 90%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: var(--shadow-3, var(--shadow-2));
+    transition: opacity var(--dur-2, 240ms) ease, transform var(--dur-2, 240ms) var(--ease-out, ease), visibility 0s;
+  }
+  .inh-mini.is-hidden { opacity: 0; visibility: hidden; transform: translateY(8px); pointer-events: none; transition: opacity var(--dur-2, 240ms) ease, transform var(--dur-2, 240ms) ease, visibility 0s linear var(--dur-2, 240ms); }
+}
+@media (prefers-reduced-motion: reduce) { .inh-mini, .inh-mini.is-hidden { transition: none; transform: none; } }
+.inh-mini__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.inh-mini__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.inh-mini__txt b { color: var(--text-strong); font-size: var(--step-0); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inh-mini__txt span { color: var(--text-secondary); font-size: var(--step--2); }
+.inh-mini__go { flex: 0 0 auto; gap: 6px; }
+.inh-result .inh-card__title:focus { outline: none; }
+.inh-result .inh-card__title:focus-visible { outline: 2px solid var(--focus, var(--brand)); outline-offset: 4px; border-radius: 4px; }
+.inh-res-actions { display: flex; gap: 4px; flex-shrink: 0; }
+@media (max-width: 420px) { .inh-res-actions__l { display: none; } }
+@media print {
+  body * { visibility: hidden !important; }
+  .inh-result, .inh-result * { visibility: visible !important; }
+  .inh-result { position: absolute !important; inset-inline: 0; top: 0; max-height: none !important; overflow: visible !important; }
+  .inh-res-actions, .inh-mini { display: none !important; }
+}

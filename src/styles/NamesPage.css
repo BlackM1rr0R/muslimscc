@@ -420,7 +420,7 @@
   .names-page .np-src .ui-viz-donut svg { width: 76px; height: 76px; }
   .names-page .np-src .ui-viz-donut .ui-legend { flex-direction: row; flex-wrap: wrap; gap: 6px 14px; }
 }
-.np-rel .ui-list { max-width: 760px; }
+.np-rel .ui-list { max-width: none; }
 .names-page .names-hadith-ar { font-size: clamp(20px, 1.1rem + 0.8vw, 25px); }
 
 /* Planşet: hero vizualı tam enə yayılmasın */
@@ -455,4 +455,49 @@
   .names-page .np-src__head { flex: 1 0 100%; }
   .names-page .np-src__title { font-size: var(--step--1); }
   .names-page .np-src .ui-viz-donut svg { width: 60px; height: 60px; }
+}
+
+/* ══ v3.2 — seçilmişlər / əzbərlənənlər nişanları, günün adı, qaydalar kart şəbəkəsi + oxu pəncərəsi ══ */
+.name-card__marks { display: inline-flex; align-items: center; gap: 4px; }
+.name-card__mark { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; }
+.name-card__mark.is-known { background: var(--brand-soft-2); color: var(--brand); }
+.name-card__mark.is-fav { background: var(--accent-soft); color: var(--accent); }
+.name-card__mark.is-fav svg { fill: currentColor; }
+.np-filter--mine svg { color: var(--accent); }
+.np-filter .np-filter--mine[aria-pressed="true"] svg { color: inherit; }
+.np-spot { margin-bottom: var(--space-4); }
+.np-spot .np-spot__ar { width: auto; min-width: 56px; height: 56px; padding: 0 10px; font-size: 26px; line-height: 1; color: var(--brand); background: var(--brand-soft); }
+.names-modal-tools { display: inline-flex; align-items: center; gap: 2px; }
+.names-modal-card > .cl-status { display: block; text-align: center; }
+
+/* Qaydalar: iki qrup üst-üstə, hər biri kart şəbəkəsi */
+.names-page .np-rules-cols { grid-template-columns: 1fr; gap: var(--space-6); }
+.names-page .np-rules { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); align-items: start; gap: var(--space-3); }
+.np-h3 { display: flex; align-items: center; gap: 8px; }
+.names-page .np-rule {
+  display: flex; flex-direction: column; align-items: stretch; gap: var(--space-2);
+  width: 100%; padding: var(--space-4); text-align: start;
+  font: inherit; color: inherit; cursor: pointer; box-shadow: var(--shadow-1);
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+.names-page .np-rule .np-rule__sum { padding: 0; min-height: 0; align-items: flex-start; }
+.np-rule__preview {
+  color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.np-rule__more { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; padding-top: var(--space-2); border-top: 1px dashed var(--line); }
+.np-rule__tag { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-text); font-size: var(--step--2); font-weight: 600; }
+.np-rule__read { display: inline-flex; align-items: center; gap: 4px; margin-inline-start: auto; color: var(--brand); font-size: var(--step--1); font-weight: 600; }
+@media (hover: hover) {
+  .names-page .np-rule:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); border-color: var(--brand-line); }
+}
+.names-page .np-rule:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.np-rule-read__group { color: var(--accent-text); font-size: var(--step--1); font-weight: 600; }
+.np-rule-read__body { display: grid; gap: var(--space-4); }
+.np-rule-read__body .np-rule__sum { padding: 0; cursor: default; }
+.np-rule-read__title { font-size: var(--step-2); font-family: var(--font-heading); }
+.np-rule-read__body .np-rule__body { padding: 0; color: var(--text-body); font-size: var(--step-0); line-height: 1.75; }
+@media (prefers-reduced-motion: reduce) {
+  .names-page .np-rule { transition: none; }
+  .names-page .np-rule:hover { transform: none; }
 }

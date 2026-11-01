@@ -1024,3 +1024,387 @@
   }
   .qp-history > :first-child { position: sticky; top: calc(var(--header-offset, var(--header-h, 64px)) + 24px); }
 }
+
+/* ══ v3.2 ═══════════════════════════════════════════════════════════
+   Görünüş tabları · sıralama · oxunub nişanı · cüz və saxlanılan ayə
+   kartları · günün ayəsi · ayə alətləri (saxla/paylaş) · əzbər rejimi ·
+   xətm planı + Quran radiosu (components/quran/*)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Axtarış paneli geniş ekranda yapışqandır (başlığın altında) */
+@media (min-width: 768px) {
+  .qp-toolbar {
+    position: sticky;
+    top: var(--header-offset, var(--header-h, 64px));
+    z-index: 5;
+    margin-inline: -8px;
+    padding: 8px;
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--surface-0, var(--bg)) 88%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+}
+
+/* Görünüş: Surələr / Cüzlər / Saxlanılanlar */
+.qp-views { margin-bottom: var(--space-4); max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.qp-views::-webkit-scrollbar { display: none; }
+.qp-views > button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding-inline: 14px; white-space: nowrap; }
+.qp-views__n {
+  min-width: 20px; padding: 0 6px; border-radius: var(--radius-pill);
+  background: var(--brand-soft-2); color: var(--brand-strong);
+  font-size: var(--step--2); font-weight: 600; line-height: 20px; text-align: center;
+}
+@media (max-width: 767.98px) {
+  .qp-views { display: flex; width: 100%; }
+  .qp-views > button { flex: 1 1 0; justify-content: center; padding-inline: 10px; }
+}
+@media (pointer: coarse) { .qp-views > button { min-height: 44px; } }
+
+/* Surə kartı: "oxunub" nişanı və oxuma yerinin xətti */
+.surah-read {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 6px;
+  display: inline-grid;
+  place-items: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--brand-soft-2);
+  color: var(--brand-strong);
+}
+.surah-card.is-here { border-color: var(--accent-line); }
+.surah-here-bar {
+  position: absolute;
+  inset-inline: 16px;
+  bottom: 6px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.surah-here-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left center;
+}
+[dir="rtl"] .surah-here-bar::after { transform-origin: right center; }
+
+/* Günün ayəsi */
+.qp-votd {
+  grid-column: 1 / -1;
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: clamp(16px, 2.4vw, 24px);
+  background: linear-gradient(135deg, var(--brand-soft) 0%, var(--surface-1) 70%);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-1);
+}
+.qp-votd__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.qp-votd__ref { color: var(--text-tertiary); font-size: var(--step--1); }
+.qp-votd__ar {
+  margin: 0;
+  font-family: var(--font-arabic);
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+  line-height: 2;
+  text-align: right;
+  color: var(--text-strong);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+}
+.qp-votd__tr {
+  margin: 0; max-width: 80ch;
+  color: var(--text-body); font-size: var(--step-0); line-height: 1.7;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+}
+.qp-votd__foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.qp-votd__src { color: var(--brand); font-weight: 600; font-size: var(--step--1); }
+.qp-votd .ui-btn { gap: 6px; }
+
+/* Cüz kartları (30) və saxlanılan ayələr */
+.qp-juz-grid,
+.qp-saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  align-items: start;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.qp-juz-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  color: inherit;
+  text-decoration: none;
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+.qp-juz-card > .qp-arrow { margin-top: 12px; color: var(--text-tertiary); }
+@media (hover: hover) {
+  .qp-juz-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--brand-line); }
+  .qp-juz-card:hover > .qp-arrow { color: var(--brand); }
+}
+.qp-juz-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.qp-juz-card__title { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600; }
+.qp-juz-card__range { display: flex; flex-direction: column; gap: 2px; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.45; }
+.qp-juz-card__range b { color: var(--text-body); font-weight: 600; }
+.qp-juz-card__range .ui-num { color: var(--text-tertiary); }
+.qp-juz-card__meta { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.qp-saved-note { display: flex; align-items: center; gap: 8px; margin: 0 0 var(--space-3); color: var(--text-tertiary); font-size: var(--step--1); }
+.qp-saved-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding-block: 10px;
+  padding-inline: 14px 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  transition: box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+@media (hover: hover) { .qp-saved-card:hover { box-shadow: var(--shadow-2); border-color: var(--brand-line); } }
+.qp-saved-card__open { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; color: inherit; text-decoration: none; }
+/* Bütün kart kliklənir (silmə düyməsindən başqa) */
+.qp-saved-card__open::before { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.qp-saved-card__open:focus-visible { outline: none; }
+.qp-saved-card:has(.qp-saved-card__open:focus-visible) { outline: var(--ring-width, 2px) solid var(--ring, var(--brand)); outline-offset: 2px; }
+.qp-saved-card__title { color: var(--text-strong); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qp-saved-card__ref { color: var(--text-tertiary); font-size: var(--step--1); }
+.qp-saved-card__ar { font-family: var(--font-arabic); color: var(--brand); font-size: 1.15rem; flex-shrink: 0; }
+.qp-saved-card__del {
+  position: relative; z-index: 1;
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px; flex-shrink: 0;
+  border: 0; border-radius: 50%;
+  background: transparent; color: var(--text-tertiary);
+  cursor: pointer;
+}
+@media (hover: hover) { .qp-saved-card__del:hover { background: var(--surface-2); color: var(--bad); } }
+
+/* Ayə axtarışının nəticələri — kart şəbəkəsi, 4 sətirlik önizləmə */
+.verse-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  align-items: start;
+  gap: 12px;
+}
+.verse-results-count { grid-column: 1 / -1; }
+.verse-results .vr-arabic,
+.verse-results .vr-trans { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+
+/* ── Oxuyucu: ayə alətləri (dinlə · saxla · paylaş) ── */
+.ayah-actions { display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0; }
+.ayah-tool {
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px; margin: -4px;
+  padding: 0; border: 0; border-radius: 50%;
+  background: transparent; color: var(--text-tertiary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+}
+@media (hover: hover) { .ayah-tool:hover { color: var(--brand); background: var(--brand-soft); } }
+.ayah-tool:active { transform: scale(0.92); }
+.ayah-tool.is-on { color: var(--accent-text); }
+.ayah-tool.is-on svg { animation: qp-pop-in var(--dur-3) var(--ease-spring); }
+.ayah-tool.is-done { color: var(--brand); }
+
+/* Əzbər rejimi: ərəb mətni bulanır; "Göstər" kartı açır */
+.ayah-reveal { display: none; }
+.ayahs-list.is-memorize .ayah-arabic {
+  filter: blur(7px);
+  -webkit-user-select: none;
+  user-select: none;
+  transition: filter var(--dur-3) var(--ease-out);
+}
+.ayahs-list.is-memorize .ayah-card[data-revealed] .ayah-arabic { filter: none; -webkit-user-select: auto; user-select: auto; }
+.ayahs-list.is-memorize .ayah-reveal {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 36px; margin: 0 0 10px; padding: 0 12px;
+  border: 1px solid var(--brand-line); border-radius: var(--radius-pill);
+  background: var(--brand-soft); color: var(--brand-strong);
+  font: inherit; font-size: var(--step--1); font-weight: 600;
+  cursor: pointer;
+}
+[data-theme="dark"] .ayahs-list.is-memorize .ayah-reveal { color: var(--brand); }
+@media (pointer: coarse) { .ayahs-list.is-memorize .ayah-reveal { min-height: 44px; } }
+.qp-memo-hint {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 12px; padding: 10px 14px;
+  background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--radius-md);
+  color: var(--accent-text); font-size: var(--step--1);
+}
+
+@media (max-width: 767.98px) {
+  /* Telefonda alətlər kartın üst sırasında, yan-yana */
+  .ayah-card { grid-template-areas: "num . actions" "body body body"; }
+  .ayah-actions { grid-area: actions; flex-direction: row; gap: 4px; }
+  .ayah-actions .ayah-play { grid-area: auto; }
+  .ctrl-memo__label { display: none; }
+  .ctrl-memo { min-width: 44px; }
+  .surah-here-bar { inset-inline: calc(14px + 40px + 12px) 14px; bottom: 4px; }
+  .surah-read { top: 4px; inset-inline-end: auto; inset-inline-start: 42px; }
+  .qp-votd__ar { -webkit-line-clamp: 3; }
+}
+
+/* ── Xətm planı + Quran radiosu ── */
+.qp-tools.ui-section { padding-top: 0; }
+.qp-tools__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  align-items: start;
+  gap: var(--space-4);
+}
+.qk, .qr {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: clamp(16px, 2.4vw, 24px);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-1);
+}
+.qk__head, .qr__head { display: flex; align-items: center; gap: 14px; }
+.qk__title, .qr__title { margin: 2px 0 0; color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; line-height: 1.3; }
+.qk__lead, .qr__lead, .qk__pick { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6; }
+.qk__pick { color: var(--text-body); font-weight: 600; }
+.qk__sub { margin: 2px 0 0; color: var(--text-tertiary); font-size: var(--step--1); }
+.qk__days { display: flex; flex-wrap: wrap; gap: 8px; }
+.qk__foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.qk__per { margin-inline-end: auto; color: var(--brand); font-weight: 600; font-size: var(--step--1); }
+.qk__reset { margin-inline-start: auto; }
+.qk__portion {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 12px 14px;
+  background: var(--brand-soft); border: 1px solid var(--brand-line); border-radius: var(--radius-md);
+}
+.qk__pages { color: var(--brand-strong); font-size: var(--step-1); font-weight: 600; }
+[data-theme="dark"] .qk__pages { color: var(--brand); }
+.qk__where { color: var(--text-secondary); font-size: var(--step--1); }
+.qk__stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.qk__stats > div { padding: 8px 10px; background: var(--surface-2); border-radius: var(--radius-md); min-width: 0; }
+.qk__stats dt { color: var(--text-tertiary); font-size: var(--step--2); }
+.qk__stats dd { margin: 0; color: var(--text-strong); font-weight: 600; }
+.qk__status { margin: 0; color: var(--brand); font-size: var(--step--1); }
+.qk__status.is-behind { color: var(--accent-text); }
+.qk__note { margin: 0; color: var(--text-tertiary); font-size: var(--step--2); }
+
+.qr__presets { display: grid; gap: 8px; }
+.qr__preset {
+  display: flex; align-items: flex-start; gap: 12px;
+  width: 100%; min-height: 44px; padding: 10px 12px;
+  background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--radius-md);
+  color: var(--text-secondary); font: inherit; text-align: start;
+  cursor: pointer;
+  transition: border-color var(--dur-2) ease, background-color var(--dur-2) ease;
+}
+.qr__preset > svg { margin-top: 2px; flex-shrink: 0; }
+@media (hover: hover) { .qr__preset:hover { border-color: var(--brand-line); } }
+.qr__preset.is-on { background: var(--brand-soft); border-color: var(--brand-line); color: var(--brand); }
+.qr__preset-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.qr__preset-title { color: var(--text-strong); font-weight: 600; font-size: var(--step--1); }
+.qr__preset-hint { color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.5; }
+.qr__fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 10px; }
+.qr__fields .ui-select { width: 100%; }
+.qr__player {
+  position: relative;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px;
+  padding: 10px 12px 14px;
+  background: var(--surface-2); border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.qr__controls { display: flex; align-items: center; gap: 6px; }
+.qr__btn {
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px; padding: 0;
+  border: 1px solid var(--line); border-radius: 50%;
+  background: var(--surface-1); color: var(--text-body);
+  cursor: pointer;
+}
+.qr__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.qr__btn--main { width: 52px; height: 52px; background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+@media (hover: hover) {
+  .qr__btn:not(:disabled):hover { border-color: var(--brand-line); }
+  .qr__btn--main:hover { background: var(--brand-hover, var(--brand)); }
+}
+.qr__fwd { transform: scaleX(-1); }
+[dir="rtl"] .qr__fwd { transform: none; }
+.qr__now { flex: 1; min-width: 0; color: var(--text-body); font-size: var(--step--1); line-height: 1.45; }
+.qr__now-label, .qr__count { color: var(--text-tertiary); }
+.qr__err { color: var(--bad); }
+.qr__bar { position: absolute; inset-inline: 0; bottom: 0; height: 3px; background: var(--line); }
+.qr__bar > span { position: absolute; inset: 0; background: var(--brand); transform-origin: left center; transition: transform var(--dur-3) var(--ease-out); }
+[dir="rtl"] .qr__bar > span { transform-origin: right center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .qp-juz-card, .ayah-tool, .qr__bar > span, .ayahs-list.is-memorize .ayah-arabic { transition: none; }
+  .qp-juz-card:hover { transform: none; }
+  .ayah-tool.is-on svg { animation: none; }
+}
+@media print {
+  .ayah-actions, .reader-toolbar, .qp-tools, .qp-votd, .ayah-reveal { display: none !important; }
+  .ayahs-list.is-memorize .ayah-arabic { filter: none; }
+}
+
+/* ── Tərcümə seçicisi (QuranEnc.com) — başlığın altında, bəsmələdən əvvəl ── */
+.qp-trans-src {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin-bottom: var(--space-4);
+}
+.qp-trans-src__field { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 0 1 auto; }
+.qp-trans-src__label {
+  color: var(--text-tertiary);
+  font-family: var(--font-label);
+  font-size: var(--step--1);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.qp-trans-src__select { width: auto; max-width: min(100%, 420px); font-size: var(--step--1); }
+.qp-trans-src__meta {
+  flex: 1 1 260px;
+  min-width: 0;
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: var(--step--1);
+  line-height: 1.5;
+}
+.qp-trans-src__meta:empty { display: none; }
+.qp-trans-src__meta a { color: var(--accent-text); font-weight: 600; }
+.qp-trans-src__error { display: inline-flex; align-items: center; gap: 6px; color: var(--bad); }
+.qp-trans-src__error svg { flex: none; }
+
+/* QuranEnc haşiyələri — bağlı açılan, düz mətn */
+.ayah-fn { max-width: 68ch; margin-top: 8px; font-size: var(--step--1); color: var(--text-secondary); }
+.ayah-fn > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--accent-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+.ayah-fn > p { margin: 4px 0 0; padding-inline-start: 12px; border-inline-start: 2px solid var(--accent-line); white-space: pre-line; line-height: 1.65; }
+@media (pointer: coarse) { .ayah-fn > summary { min-height: 44px; } }
+@media (pointer: coarse) { .qp-trans-src__select { font-size: 16px; } }  /* iOS fokusda yaxınlaşdırmasın */
+@media (max-width: 560px) {
+  .qp-trans-src__field { flex: 1 1 100%; }
+  .qp-trans-src__select { flex: 1 1 0; width: 100%; min-width: 0; max-width: none; text-overflow: ellipsis; }
+}

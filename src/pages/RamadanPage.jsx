@@ -57,6 +57,11 @@ const TXT = {
   // lang-ok: rəqəm formatı az və tr-də eynidir
   ringSub: { az: '{n} / {t} gün', en: '{n} / {t} days', ru: '{n} / {t} дней', ar: '{n} / {t} يومًا', tr: '{n} / {t} gün' },
   ringBefore: { az: 'Ramazan hələ başlamayıb', en: 'Ramadan has not started yet', ru: 'Рамадан ещё не начался', ar: 'لم يبدأ رمضان بعد', tr: 'Ramazan henüz başlamadı' },
+  viewAs:  { az: 'Görünüş', en: 'View', ru: 'Вид', ar: 'طريقة العرض', tr: 'Görünüm' },
+  vCards:  { az: 'Kartlar', en: 'Cards', ru: 'Карточки', ar: 'بطاقات', tr: 'Kartlar' },
+  vTable:  { az: 'Cədvəl', en: 'Table', ru: 'Таблица', ar: 'جدول', tr: 'Tablo' },
+  toToday: { az: 'Bu günə keç', en: 'Jump to today', ru: 'К сегодняшнему дню', ar: 'انتقل إلى اليوم', tr: 'Bugüne git' },
+  lastTen: { az: 'Son 10 gecə', en: 'Last 10 nights', ru: 'Последние 10 ночей', ar: 'العشر الأواخر', tr: 'Son 10 gece' },
   wait:    { az: 'Hicri tarix müəyyən edilir…', en: 'Determining the Hijri date…', ru: 'Определяется дата по хиджре…', ar: 'جارٍ تحديد التاريخ الهجري…', tr: 'Hicri tarih belirleniyor…' },
 }
 const pick = (o, lang) => o[lang] || o.en
@@ -180,6 +185,28 @@ function GuideLink({ link, lang }) {
 }
 
 function RamadanGuide({ lang, todayJuz }) {
+  // v3.2: hazırda oxunan bölmə — çip vurğulanır və zolaqda görünən yerə sürüşdürülür
+  const [active, setActive] = useState(null)
+  const navRef = useRef(null)
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return
+    const els = RAMADAN_GUIDE.map(s => document.getElementById(`rp-g-${s.id}`)).filter(Boolean)
+    if (!els.length) return
+    const io = new IntersectionObserver((entries) => {
+      const vis = entries.filter(en => en.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+      if (vis[0]) setActive(vis[0].target.id.slice(5))
+    }, { rootMargin: '-20% 0px -65% 0px' })
+    els.forEach(el => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+  useEffect(() => {
+    if (!active || !navRef.current) return
+    const list = navRef.current.querySelector('.rp-guide-nav__list')
+    const chip = navRef.current.querySelector(`[data-sec="${active}"]`)
+    if (!list || !chip) return
+    const l = list.getBoundingClientRect(), c = chip.getBoundingClientRect()
+    if (c.left < l.left || c.right > l.right) list.scrollBy({ left: c.left - l.left - (l.width - c.width) / 2, behavior: 'auto' })
+  }, [active])
   const jump = (e, id) => {
     if (!isPlainClick(e)) return
     const el = document.getElementById(`rp-g-${id}`)
@@ -197,11 +224,12 @@ function RamadanGuide({ lang, todayJuz }) {
           <p className="ui-lead">{pick(GT.lead, lang)}</p>
         </div>
 
-        <nav className="rp-guide-nav" aria-label={pick(GT.contents, lang)}>
+        <nav className="rp-guide-nav" aria-label={pick(GT.contents, lang)} ref={navRef}>
           <ul className="rp-guide-nav__list">
             {RAMADAN_GUIDE.map(s => (
               <li key={s.id}>
-                <a href={`#rp-g-${s.id}`} className="ui-chip rp-guide-nav__chip" onClick={(e) => jump(e, s.id)}>
+                <a href={`#rp-g-${s.id}`} data-sec={s.id} aria-current={active === s.id ? 'location' : undefined}
+                  className={`ui-chip rp-guide-nav__chip${active === s.id ? ' is-active' : ''}`} onClick={(e) => jump(e, s.id)}>
                   <Icon name={s.icon} size={15} /> {pick(s.title, lang)}
                 </a>
               </li>
@@ -315,6 +343,49 @@ function shortWeekday(dateKey, lang) {
   try { return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(WD_LOCALES[lang] || 'en-GB', { weekday: 'short', timeZone: 'UTC' }) } catch { return '' }
 }
 
+// v3.2: imsakiyyə görünüşü — kartlar (telefonda standart) və ya cədvəl; seçim yadda saxlanılır
+const VIEW_KEY = 'muslim_cc_ramadan_view_v1'
+function initialView() {
+  try { const v = localStorage.getItem(VIEW_KEY); if (v === 'cards' || v === 'table') return v } catch { /* yaddaş yoxdur */ }
+  try { return window.matchMedia('(max-width: 767.98px)').matches ? 'cards' : 'table' } catch { return 'table' }
+}
+const SMALL_COLS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'isha']
+
+function DayCards({ calendar, todayDate, todayRef, lang }) {
+  return (
+    <ol className="rp-days" data-testid="ramadan-cards" aria-labelledby="rp-table-title">
+      {calendar.map(e => {
+        const isToday = e.date === todayDate
+        const fm = fastMinutes(e)
+        const lastTen = e.day >= 21
+        return (
+          <li key={e.date} ref={isToday ? todayRef : undefined} aria-current={isToday ? 'date' : undefined}
+            className={`ui-card rp-day${isToday ? ' is-today' : ''}${lastTen ? ' is-last10' : ''}`}>
+            <div className="rp-day__head">
+              <span className="rp-day__num ui-num" aria-hidden="true">{e.day}</span>
+              <span className="rp-day__date">
+                <b>{formatGregorian(e.date, lang, { day: 'numeric', month: 'long' })}</b>
+                <span>{shortWeekday(e.date, lang)} · {pick(TXT.day, lang)} {e.day}</span>
+              </span>
+              {isToday
+                ? <span className="ui-badge ui-badge--solid rp-day__badge">{pick(TXT.today, lang)}</span>
+                : lastTen ? <span className="ui-badge rp-day__badge"><Icon name="moon" size={12} /> {pick(TXT.lastTen, lang)}</span> : null}
+            </div>
+            <dl className="rp-day__main">
+              <div><dt>{pick(RC_TXT.imsak, lang)}</dt><dd className="ui-num">{e.times.imsak || '—'}</dd></div>
+              <div><dt>{pick(RC_TXT.iftar, lang)}</dt><dd className="ui-num">{e.times.maghrib || '—'}</dd></div>
+              <div className="rp-day__fast"><dt>{pick(TXT.fast, lang)}</dt><dd className="ui-num">{fm != null ? durHM(fm) : '—'}</dd></div>
+            </dl>
+            <dl className="rp-day__rest">
+              {SMALL_COLS.map(k => <div key={k}><dt>{colLabel(k, lang)}</dt><dd className="ui-num">{e.times[k] || '—'}</dd></div>)}
+            </dl>
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
 export default function RamadanPage({ setPage }) {
   const { lang } = useLang()
   const st = useRamadan({ alwaysCalendar: true })
@@ -325,12 +396,21 @@ export default function RamadanPage({ setPage }) {
   // Vurğulanan gün: real tarix; önizləmədə simulyasiya olunan gün
   const todayDate = preview?.mode === 'preview' ? day?.date : clock.dateKey
   const todayRef = useRef(null)
+  const cardTodayRef = useRef(null)
+  const [view, setViewState] = useState(initialView)
+  const setView = (v) => { setViewState(v); try { localStorage.setItem(VIEW_KEY, v) } catch { /* yaddaş yoxdur */ } }
   useEffect(() => {
     // Ramazandadırsa cədvəldə bugünkü sətir görünən yerə gəlsin (səhifə yox, cədvəlin öz sürüşməsi)
     const row = todayRef.current
     const box = row?.closest('.rp-scroll')
     if (row && box && box.scrollHeight > box.clientHeight) box.scrollTop = row.offsetTop - box.clientHeight / 3
-  }, [calendar, todayDate])
+  }, [calendar, todayDate, view])
+  const hasToday = !!calendar?.some(e => e.date === todayDate)
+  const goToday = () => {
+    const el = view === 'cards' ? cardTodayRef.current : todayRef.current
+    if (!el) return
+    el.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' })
+  }
 
   return (
     <div className="rp-root">
@@ -364,6 +444,18 @@ export default function RamadanPage({ setPage }) {
               </div>
               <div className="rp-actions">
                 <CityPicker triggerId="ramadan-city-trigger" />
+                <div className="ui-segmented rp-view" role="radiogroup" aria-label={pick(TXT.viewAs, lang)}>
+                  {['cards', 'table'].map(v => (
+                    <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}>
+                      <Icon name={v === 'cards' ? 'widget' : 'list'} size={15} /> {pick(v === 'cards' ? TXT.vCards : TXT.vTable, lang)}
+                    </button>
+                  ))}
+                </div>
+                {hasToday && (
+                  <button type="button" className="ui-btn ui-btn--ghost rp-today-btn" onClick={goToday}>
+                    <Icon name="target" className="ui-btn__icon" /> {pick(TXT.toToday, lang)}
+                  </button>
+                )}
                 <button type="button" className="ui-btn ui-btn--secondary rp-print-btn"
                   onClick={() => window.print()} disabled={!calendar}>
                   <Icon name="calendar" className="ui-btn__icon" /> {pick(TXT.print, lang)}
@@ -381,8 +473,9 @@ export default function RamadanPage({ setPage }) {
                 {!year && !calLoading ? <p>{pick(TXT.wait, lang)}</p> : null}
                 {Array.from({ length: 6 }, (_, i) => <span key={i} className="ui-skeleton ui-skeleton--text" style={{ '--w': `${90 - i * 6}%` }} />)}
               </div>
-            ) : (
-              <div className="rp-scroll ui-table-wrap" tabIndex={0} role="region" aria-labelledby="rp-table-title">
+            ) : (<>
+              {view === 'cards' && <DayCards calendar={calendar} todayDate={todayDate} todayRef={cardTodayRef} lang={lang} />}
+              <div className={`rp-scroll ui-table-wrap${view === 'cards' ? ' rp-scroll--print-only' : ''}`} tabIndex={view === 'cards' ? -1 : 0} role="region" aria-labelledby="rp-table-title">
                 {/* tabIndex — sürüşən sahə klaviatura ilə də sürüşsün (axe: scrollable-region-focusable) */}
                 <table className="ui-table ui-table--compact ui-table--zebra rp-table" aria-labelledby="rp-table-title" data-testid="ramadan-table">
                   <thead>
@@ -416,7 +509,7 @@ export default function RamadanPage({ setPage }) {
                   </tbody>
                 </table>
               </div>
-            )}
+            </>)}
             <p className="rp-note">{pick(TXT.note, lang)}</p>
           </div>
         </div>

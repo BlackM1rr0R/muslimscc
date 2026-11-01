@@ -598,12 +598,67 @@ export default function QadaPage({ setPage }) {
             </div>
           </div>
 
+          {/* ── v3.2: plan kartları — müxtəlif templə bitmə tarixi; klik hədəfi seçir ── */}
+          <PlanCards lang={lk} owed={totals.owed} goal={state.goal} today={today}
+            onPick={(n) => { haptic(); update(s => setGoal(s, n)) }} />
+
           <p className="ui-sr-only" role="status" aria-live="polite">{status}</p>
         </div>
       </section>
 
       <Rules t={t} lang={lk} />
     </div>
+  )
+}
+
+// ── v3.2: plan kartları ──
+// Yalnız hesab: qalan borc ÷ gündəlik say = gün; bitmə tarixi bu gündən sayılır.
+// Fiqh hökmü deyil — tələsmək lazım olduğunu Qaydalar bölməsi izah edir.
+const PLAN_PACES = [5, 10, 15, 20, 30]
+const PLAN_TXT = {
+  az: { title: 'Plan seçin', lead: 'Hər temp üçün borcun nə vaxt bitəcəyi. Kartı seçin — gündəlik hədəf ona görə qurulur.', perDay: 'gündə {n}', days: '{d} gün', until: 'təxminən {date}', current: 'Cari hədəf', pick: 'Bu planı seç', empty: 'Plan üçün əvvəlcə yuxarıda borcunuzu qeyd edin.', with5: 'hər fərzlə bir qəza' },
+  en: { title: 'Choose a plan', lead: 'When your debt would be finished at each pace. Pick a card to set it as your daily goal.', perDay: '{n} a day', days: '{d} days', until: 'around {date}', current: 'Current goal', pick: 'Use this plan', empty: 'Record what you owe above to see plans.', with5: 'one make-up with each obligatory prayer' },
+  ru: { title: 'Выберите план', lead: 'Когда долг будет погашен при каждом темпе. Выберите карточку — дневная цель будет установлена по ней.', perDay: '{n} в день', days: '{d} дн.', until: 'примерно {date}', current: 'Текущая цель', pick: 'Выбрать план', empty: 'Чтобы увидеть планы, сначала отметьте долг выше.', with5: 'по одному возмещению с каждым обязательным намазом' },
+  ar: { title: 'اختر خطة', lead: 'متى ينتهي القضاء بكل معدل. اختر بطاقة لتجعلها هدفك اليومي.', perDay: '{n} يوميًا', days: '{d} يومًا', until: 'نحو {date}', current: 'الهدف الحالي', pick: 'اختر هذه الخطة', empty: 'سجّل ما عليك أعلاه لترى الخطط.', with5: 'صلاة مقضية مع كل فريضة' },
+  tr: { title: 'Plan seçin', lead: 'Her hızda borcun ne zaman biteceği. Bir kart seçin — günlük hedef ona göre kurulur.', perDay: 'günde {n}', days: '{d} gün', until: 'yaklaşık {date}', current: 'Mevcut hedef', pick: 'Bu planı seç', empty: 'Planları görmek için önce borcunuzu yukarıda kaydedin.', with5: 'her farzla bir kaza' },
+}
+function PlanCards({ lang, owed, goal, today, onPick }) {
+  const p = PLAN_TXT[lang] || PLAN_TXT.en
+  const paces = [...new Set([...PLAN_PACES, goal])].sort((a, b) => a - b)
+  const base = parseGKey(today)
+  const finish = (d) => {
+    if (!base) return ''
+    const dt = new Date(Date.UTC(base.year, base.month - 1, base.day + Math.max(0, d - 1)))
+    return formatGregorian({ year: dt.getUTCFullYear(), month: dt.getUTCMonth() + 1, day: dt.getUTCDate() }, lang)
+  }
+  return (
+    <section className="qd-plans" aria-labelledby="qd-plans-title" data-reveal>
+      <div className="qd-plans-head">
+        <h2 id="qd-plans-title" className="qd-card-title"><Icon name="calendar" size={18} /> {p.title}</h2>
+        <p className="qd-card-lead">{owed ? p.lead : p.empty}</p>
+      </div>
+      {owed > 0 && (
+        <ul className="qd-plan-grid">
+          {paces.map(n => {
+            const d = daysToFinish(owed, n)
+            const cur = n === goal
+            return (
+              <li key={n}>
+                <button type="button" className={`qd-plan${cur ? ' is-current' : ''}`} aria-pressed={cur} onClick={() => onPick(n)}>
+                  <span className="qd-plan-top">
+                    <span className="qd-plan-pace ui-num">{fill(p.perDay, { n: fmtNum(n, lang) })}</span>
+                    {cur && <span className="ui-badge ui-badge--brand">{p.current}</span>}
+                  </span>
+                  <span className="qd-plan-days ui-num">{fill(p.days, { d: fmtNum(d, lang) })}</span>
+                  <span className="qd-plan-date">{fill(p.until, { date: finish(d) })}</span>
+                  {n === 5 && <span className="qd-plan-hint">{p.with5}</span>}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </section>
   )
 }
 

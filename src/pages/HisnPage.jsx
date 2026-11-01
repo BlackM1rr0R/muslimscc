@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import ReportErrorButton from '../components/ReportErrorButton'
 import { pathFor } from '../seo/routes'
+import ReaderDialog from '../components/reader/ReaderDialog'
+import { copyText, readJSON, shareOrCopy, writeJSON } from '../components/reader/share'
 import '../styles/HisnPage.css'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -14,6 +17,13 @@ import '../styles/HisnPage.css'
    səhifə açılanda yalnız cari dilin faylı yüklənir. "Nə vaxt nə deyim?"
    axtarışı fəsil adları və mətnlər üzrə işləyir. Sayğac — toxunduqca
    azalır (zikri saymaq üçün), vəziyyət yadda saxlanmır.
+
+   Dizayn v3.2: fəsillər KART GRID-dədir (nömrə, vəziyyət çipi, başlıq,
+   ərəbcə ad, ilk zikrin 2 sətirlik önizləməsi, zikr sayı, ulduz). Kart
+   klikdə fəsil oxu pəncərəsində (ReaderDialog) açılır: zikrlər, sayğac,
+   kopyala/paylaş; əvvəlki/növbəti fəsil, ←/→/Esc. /hisnul-muslim#hs-27
+   həmin fəsli açır. localStorage: "hisn_favs_v1" (ulduzlu fəsillər),
+   "hisn_last_v1" (son açılan fəsil) — yalnız bu cihazda.
    ══════════════════════════════════════════════════════════════════ */
 
 const LABELS = {
@@ -105,11 +115,11 @@ const CAT_OF = new Map(CATS.flatMap(c => c.ids.map(id => [id, c.id])))
 const QUICK = [28, 29, 26, 2, 97, 35]
 
 const UI_EXTRA = {
-  az: { how: 'Vəziyyəti seçin (məs. «Səfər») və ya axtarışa yazın — uyğun zikrlər açılır. Təkrar sayı olan zikrdə dairəyə toxunaraq sayın.', cats: 'Nə vaxt nə deyim?', catsLead: '133 fəsil 11 həyat vəziyyətinə bölünüb — birini seçin.', quick: 'Tez açılanlar', items: 'zikr', chapters: 'fəsil', situations: 'vəziyyət', back: 'Hamısını göstər', related: 'Əlaqəli bölmələr' },
-  en: { how: 'Pick a situation (e.g. “Travel”) or type in the search — the matching remembrances open. Where a dhikr is repeated, tap the circle to count.', cats: 'What do I say when…?', catsLead: '133 chapters grouped into 11 life situations — pick one.', quick: 'Quick access', items: 'adhkar', chapters: 'chapters', situations: 'situations', back: 'Show all', related: 'Related sections' },
-  ru: { how: 'Выберите ситуацию (например, «Поездка») или введите слово в поиск — откроются нужные поминания. Если зикр повторяется, считайте, нажимая на круг.', cats: 'Что говорить, когда…?', catsLead: '133 главы разделены на 11 жизненных ситуаций — выберите одну.', quick: 'Быстрый доступ', items: 'зикров', chapters: 'глав', situations: 'ситуаций', back: 'Показать все', related: 'Связанные разделы' },
-  ar: { how: 'اختر الموقف (مثل «السفر») أو اكتب في البحث لتظهر الأذكار المناسبة. وما يُكرَّر من الأذكار اضغط على الدائرة لعدّه.', cats: 'ماذا أقول عند…؟', catsLead: '133 بابًا مقسّمة على 11 موقفًا من مواقف الحياة — اختر واحدًا.', quick: 'وصول سريع', items: 'ذكرًا', chapters: 'بابًا', situations: 'موقفًا', back: 'عرض الكل', related: 'أقسام ذات صلة' },
-  tr: { how: 'Bir durum seçin (ör. «Yolculuk») ya da aramaya yazın — uygun zikirler açılır. Tekrarlanan zikirde daireye dokunarak sayın.', cats: 'Ne zaman ne derim?', catsLead: '133 bölüm 11 hayat durumuna ayrıldı — birini seçin.', quick: 'Hızlı erişim', items: 'zikir', chapters: 'bölüm', situations: 'durum', back: 'Hepsini göster', related: 'İlgili bölümler' },
+  az: { favs: 'Seçilmişlər', favAdd: 'Seçilmişlərə əlavə et', favRemove: 'Seçilmişlərdən çıxar', favEmpty: 'Fəslin kartındakı ulduz düyməsi ilə onu seçilmişlərə əlavə edin.', all: 'Hamısı', cont: 'Davam et', read: 'Oxu', prev: 'Əvvəlki fəsil', next: 'Növbəti fəsil', close: 'Bağla', share: 'Paylaş', copyAll: 'Fəsli kopyala', filterLabel: 'Göstərmə', how: 'Vəziyyəti seçin (məs. «Səfər») və ya axtarışa yazın, sonra fəslin kartına toxunun — zikrlər oxu pəncərəsində açılır. Təkrar sayı olan zikrdə dairəyə toxunaraq sayın, lazım olan fəsilləri ulduzla saxlayın.', cats: 'Nə vaxt nə deyim?', catsLead: '133 fəsil 11 həyat vəziyyətinə bölünüb — birini seçin.', quick: 'Tez açılanlar', items: 'zikr', chapters: 'fəsil', situations: 'vəziyyət', back: 'Hamısını göstər', related: 'Əlaqəli bölmələr' },
+  en: { favs: 'Saved', favAdd: 'Save chapter', favRemove: 'Remove from saved', favEmpty: 'Save a chapter with the star button on its card.', all: 'All', cont: 'Continue', read: 'Read', prev: 'Previous chapter', next: 'Next chapter', close: 'Close', share: 'Share', copyAll: 'Copy chapter', filterLabel: 'Show', how: 'Pick a situation (e.g. “Travel”) or type in the search, then tap a chapter card — its remembrances open in a reader. Where a dhikr is repeated, tap the circle to count; save the chapters you need with the star.', cats: 'What do I say when…?', catsLead: '133 chapters grouped into 11 life situations — pick one.', quick: 'Quick access', items: 'adhkar', chapters: 'chapters', situations: 'situations', back: 'Show all', related: 'Related sections' },
+  ru: { favs: 'Избранное', favAdd: 'Добавить в избранное', favRemove: 'Убрать из избранного', favEmpty: 'Добавляйте главы в избранное звёздочкой на карточке.', all: 'Все', cont: 'Продолжить', read: 'Читать', prev: 'Предыдущая глава', next: 'Следующая глава', close: 'Закрыть', share: 'Поделиться', copyAll: 'Копировать главу', filterLabel: 'Показать', how: 'Выберите ситуацию (например, «Поездка») или введите слово в поиск, затем нажмите на карточку главы — поминания откроются в окне чтения. Если зикр повторяется, считайте, нажимая на круг; нужные главы сохраняйте звёздочкой.', cats: 'Что говорить, когда…?', catsLead: '133 главы разделены на 11 жизненных ситуаций — выберите одну.', quick: 'Быстрый доступ', items: 'зикров', chapters: 'глав', situations: 'ситуаций', back: 'Показать все', related: 'Связанные разделы' },
+  ar: { favs: 'المحفوظات', favAdd: 'احفظ الباب', favRemove: 'أزله من المحفوظات', favEmpty: 'احفظ الباب بزر النجمة في بطاقته.', all: 'الكل', cont: 'تابِع', read: 'اقرأ', prev: 'الباب السابق', next: 'الباب التالي', close: 'إغلاق', share: 'مشاركة', copyAll: 'انسخ الباب', filterLabel: 'العرض', how: 'اختر الموقف (مثل «السفر») أو اكتب في البحث، ثم اضغط على بطاقة الباب لتظهر أذكاره. وما يُكرَّر من الأذكار اضغط على الدائرة لعدّه، واحفظ ما تحتاجه من الأبواب بزر النجمة.', cats: 'ماذا أقول عند…؟', catsLead: '133 بابًا مقسّمة على 11 موقفًا من مواقف الحياة — اختر واحدًا.', quick: 'وصول سريع', items: 'ذكرًا', chapters: 'بابًا', situations: 'موقفًا', back: 'عرض الكل', related: 'أقسام ذات صلة' },
+  tr: { favs: 'Kaydedilenler', favAdd: 'Bölümü kaydet', favRemove: 'Kaydedilenlerden çıkar', favEmpty: 'Bir bölümü kartındaki yıldız düğmesiyle kaydedin.', all: 'Tümü', cont: 'Devam et', read: 'Oku', prev: 'Önceki bölüm', next: 'Sonraki bölüm', close: 'Kapat', share: 'Paylaş', copyAll: 'Bölümü kopyala', filterLabel: 'Göster', how: 'Bir durum seçin (ör. «Yolculuk») ya da aramaya yazın, sonra bölüm kartına dokunun — zikirler okuma penceresinde açılır. Tekrarlanan zikirde daireye dokunarak sayın, gerekli bölümleri yıldızla kaydedin.', cats: 'Ne zaman ne derim?', catsLead: '133 bölüm 11 hayat durumuna ayrıldı — birini seçin.', quick: 'Hızlı erişim', items: 'zikir', chapters: 'bölüm', situations: 'durum', back: 'Hepsini göster', related: 'İlgili bölümler' },
 }
 const RELATED = [
   { href: 'dhikr', icon: 'dhikr', t: { az: 'Zikr sayğacı', en: 'Dhikr counter', ru: 'Счётчик зикра', ar: 'عداد الذكر', tr: 'Zikir sayacı' }, s: { az: 'Namazdan sonrakı zikrləri ardıcıl sayın', en: 'Count the after-prayer adhkar in order', ru: 'Зикры после намаза по порядку', ar: 'أذكار ما بعد الصلاة بالترتيب', tr: 'Namaz sonrası zikirleri sırayla sayın' } },
@@ -185,6 +195,11 @@ function Item({ it, n, L, lang, isAr }) {
   )
 }
 
+const FAV_KEY = 'hisn_favs_v1'
+const LAST_KEY = 'hisn_last_v1'
+const readIds = (k) => { const v = readJSON(k, []); return Array.isArray(v) ? v.filter(Number.isInteger) : [] }
+const CAT_BY_ID = new Map(CATS.map(c => [c.id, c]))
+
 const plainClick = (e) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 
 export default function HisnPage({ setPage }) {
@@ -197,7 +212,14 @@ export default function HisnPage({ setPage }) {
   const [attempt, setAttempt] = useState(0)
   const [q, setQ] = useState('')
   const [cat, setCat] = useState('all')
+  const [onlyFavs, setOnlyFavs] = useState(false)
+  const [favs, setFavs] = useState(() => readIds(FAV_KEY))
+  const [last, setLast] = useState(() => readJSON(LAST_KEY, 0))
+  const [cur, setCur] = useState(null)        // açıq fəslin id-si (oxu pəncərəsi)
+  const [copied, setCopied] = useState('')
   const readerRef = useRef(null)
+  const location = useLocation()
+  const favSet = useMemo(() => new Set(favs), [favs])
 
   useEffect(() => {
     let live = true
@@ -223,10 +245,12 @@ export default function HisnPage({ setPage }) {
 
   const filtered = useMemo(() => {
     const s = norm(q.trim(), lang)
-    if (!s) return cat === 'all' ? chapters : chapters.filter(c => (CAT_OF.get(c.id) || 'virtue') === cat)
-    return chapters.filter(c => norm(c.title, lang).includes(s) || norm(c.titleAr, lang).includes(s)
+    let out
+    if (!s) out = cat === 'all' ? chapters : chapters.filter(c => (CAT_OF.get(c.id) || 'virtue') === cat)
+    else out = chapters.filter(c => norm(c.title, lang).includes(s) || norm(c.titleAr, lang).includes(s)
       || c.items.some(it => norm(it.text, lang).includes(s) || norm(it.ar, lang).includes(s)))
-  }, [q, chapters, lang, cat])
+    return onlyFavs ? out.filter(c => favSet.has(c.id)) : out
+  }, [q, chapters, lang, cat, onlyFavs, favSet])
 
   // Nömrələmə həmişə kitabdakı ardıcıllıqla (filtrdən asılı olmasın)
   const startNum = useMemo(() => {
@@ -236,23 +260,58 @@ export default function HisnPage({ setPage }) {
     return m
   }, [chapters])
 
-  // Hash ilə gəlinibsə (#hs-27) — yüklənəndən sonra həmin fəslə
+  // Hash ilə gəlinibsə (#hs-27) — yüklənəndən sonra həmin fəslin oxu
+  // pəncərəsi açılır; cari girişdən hash götürülür (Geri ilə bağlananda
+  // hash-siz səhifəyə dönülür), pəncərə açıq ikən ünvanda yenidən yazılır.
   useEffect(() => {
     if (status !== 'ok') return
-    const id = decodeURIComponent(window.location.hash.slice(1))
-    if (id) document.getElementById(id)?.scrollIntoView({ block: 'start' })
-  }, [status])
+    const m = /^#hs-(\d+)$/.exec(location.hash || '')
+    if (!m) return
+    const id = Number(m[1])
+    if (!chapters.some(c => c.id === id)) return
+    try { window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search) } catch { /* */ }
+    requestAnimationFrame(() => document.getElementById(`hs-${id}`)?.scrollIntoView({ block: 'center' }))
+    setCur(id)
+  }, [status, location.hash, chapters])
+
+  useEffect(() => {
+    if (cur == null) return
+    try { window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#hs-${cur}`) } catch { /* */ }
+    writeJSON(LAST_KEY, cur)
+    setLast(cur)
+  }, [cur])
+
+  const closeReader = useCallback(() => {
+    setCur(null)
+    try {
+      if (/^#hs-\d+$/.test(window.location.hash)) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search)
+    } catch { /* */ }
+  }, [])
+  const toggleFav = useCallback((id) => setFavs(prev => {
+    const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id].sort((a, b) => a - b)
+    writeJSON(FAV_KEY, next)
+    return next
+  }), [])
 
   const pickCat = (id) => {
     setCat(c => (c === id ? 'all' : id))
     setQ('')
     requestAnimationFrame(() => readerRef.current?.scrollIntoView({ block: 'start' }))
   }
-  const openChapter = (id) => {
-    setQ('')
-    setCat('all')
-    requestAnimationFrame(() => document.getElementById(`hs-${id}`)?.scrollIntoView({ block: 'start' }))
+  const openChapter = (id) => setCur(id)
+  const flash = (k) => { setCopied(k); setTimeout(() => setCopied(c => (c === k ? '' : c)), 1800) }
+  const nav = cur != null && filtered.some(c => c.id === cur) ? filtered : chapters
+  const navIdx = nav.findIndex(c => c.id === cur)
+  const chap = cur != null ? chapters.find(c => c.id === cur) : null
+  const chapUrl = chap ? `${window.location.origin}${window.location.pathname}#hs-${chap.id}` : ''
+  const chapText = chap ? [chap.title, ...chap.items.map(it => [it.ar, !isAr && it.text, it.src ? `— ${it.src}` : ''].filter(Boolean).join('\n'))].join('\n\n') : ''
+  const copyChapter = async () => { if (await copyText(`${chapText}\n\n${chapUrl}`)) flash('copy') }
+  const shareChapter = async () => {
+    if (!chap) return
+    const r = await shareOrCopy({ title: `${L.title} — ${chap.title}`, text: chapText.slice(0, 1200), url: chapUrl })
+    if (r === 'copied') flash('share')
   }
+  const lastCh = last ? chapters.find(c => c.id === last) : null
   const curCat = CATS.find(c => c.id === cat)
   const go = (page) => (e) => { if (setPage && plainClick(e)) { e.preventDefault(); setPage(page) } }
 
@@ -327,7 +386,20 @@ export default function HisnPage({ setPage }) {
               </button>
             )}
           </div>
-          {data && <span className="hs-toolbar__count ui-num" aria-hidden="true">{q.trim() || curCat ? filtered.length : chapters.length} {X.chapters} · {itemTotal} {X.items}</span>}
+          {data && <span className="hs-toolbar__count ui-num" aria-hidden="true">{filtered.length} {X.chapters} · {itemTotal} {X.items}</span>}
+          {data && (
+            <div className="hs-toolbar__chips" role="group" aria-label={X.filterLabel}>
+              <button type="button" className="ui-chip" aria-pressed={!onlyFavs} onClick={() => setOnlyFavs(false)}>{X.all}</button>
+              <button type="button" className="ui-chip" aria-pressed={onlyFavs} onClick={() => setOnlyFavs(true)}>
+                <Icon name="star" size={14} /> {X.favs} <span className="hs-chip__n ui-num">{favs.length}</span>
+              </button>
+              {lastCh && (
+                <button type="button" className="ui-chip hs-chip--cont" onClick={() => setCur(lastCh.id)}>
+                  <Icon name="play" size={14} className="ui-flip-rtl" /> {X.cont}: <span className="hs-chip__t">{lastCh.title}</span>
+                </button>
+              )}
+            </div>
+          )}
           </div>
           {L.note && <p className="hs-note"><Icon name="info" size={15} /> {L.note}</p>}
 
@@ -360,31 +432,44 @@ export default function HisnPage({ setPage }) {
                   </button>
                 </div>
               )}
-              {!q.trim() && (
-                <details key={cat} className="ui-card hs-toc" open={!!curCat}>
-                  <summary className="hs-toc__sum"><Icon name="list" size={18} /> {L.chapters} <span className="ui-num hs-toc__n">{filtered.length}</span><Icon name="chevronDown" size={18} className="hs-toc__chev" /></summary>
-                  <ol className="hs-toc__list">
-                    {filtered.map(c => (
-                      <li key={c.id} value={c.id}><a href={`#hs-${c.id}`}>{c.title}</a></li>
-                    ))}
-                  </ol>
-                </details>
+              {onlyFavs && filtered.length === 0 && (
+                <div className="ui-card ui-empty hs-empty-favs" role="status">
+                  <Icon name="star" />
+                  <strong>{X.favs}</strong>
+                  <span>{X.favEmpty}</span>
+                </div>
               )}
-              <div className="hs-chapters">
-                {filtered.map(c => (
-                  <section key={c.id} id={`hs-${c.id}`} className="hs-chapter" aria-labelledby={`hs-${c.id}-h`}>
-                    <h2 id={`hs-${c.id}-h`} className="hs-chapter__title">
-                      <span className="hs-chapter__n ui-num">{c.id}</span>
-                      <span>{c.title}{!isAr && <span className="hs-chapter__ar ui-arabic" lang="ar" dir="rtl">{c.titleAr}</span>}</span>
-                    </h2>
-                    {/* Zikrlər geniş ekranda iki sütunlu "masonry"-də (CSS columns):
-                        oxu sırası yuxarıdan aşağı, kartlar boşluqsuz düzülür */}
-                    <div className={`hs-chapter__items${c.items.length === 1 ? ' is-single' : ''}`}>
-                      {c.items.map((it, i) => <Item key={i} it={it} n={it.n || (startNum.get(c.id) || 0) + i + 1} L={L} lang={lang} isAr={isAr} />)}
-                    </div>
-                  </section>
-                ))}
-              </div>
+              {/* Fəsillər kart grid-də; kart klikdə oxu pəncərəsi açılır */}
+              <ol className="hs-grid">
+                {filtered.map(c => {
+                  const k = CAT_BY_ID.get(CAT_OF.get(c.id) || 'virtue')
+                  const first = c.items[0]
+                  const fav = favSet.has(c.id)
+                  return (
+                    <li key={c.id} id={`hs-${c.id}`} className={`ui-card hs-card${fav ? ' is-fav' : ''}`}>
+                      <div className="hs-card__top">
+                        <span className="hs-card__n ui-num" aria-hidden="true">{c.id}</span>
+                        {k && <span className="ui-badge hs-card__cat"><Icon name={k.icon} size={12} /> {k.t[lang] || k.t.en}</span>}
+                        <button type="button" className={`hs-card__fav${fav ? ' is-on' : ''}`} aria-pressed={fav}
+                          onClick={() => toggleFav(c.id)} aria-label={`${fav ? X.favRemove : X.favAdd}: ${c.title}`} title={fav ? X.favRemove : X.favAdd}>
+                          <Icon name="star" size={17} />
+                        </button>
+                      </div>
+                      <h2 className="hs-card__title">
+                        <button type="button" className="hs-card__open" onClick={() => setCur(c.id)}>
+                          <span className="ui-sr-only">{c.id}. </span>{c.title}
+                        </button>
+                      </h2>
+                      {!isAr && <p className="hs-card__ar ui-arabic" lang="ar" dir="rtl">{c.titleAr}</p>}
+                      {first && <p className={`hs-card__preview${isAr ? ' ui-arabic' : ''}`} dir={isAr ? 'rtl' : undefined}>{isAr ? first.ar : (first.text || first.ar)}</p>}
+                      <div className="hs-card__foot">
+                        <span className="hs-card__meta ui-num">{c.items.length} {X.items}</span>
+                        <span className="hs-card__read" aria-hidden="true">{X.read} <Icon name="chevron" size={14} className="ui-flip-rtl" /></span>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ol>
             </>
           )}
         </div>
@@ -406,6 +491,52 @@ export default function HisnPage({ setPage }) {
           </ul>
         </div>
       </section>
+
+      <ReaderDialog
+        open={!!chap}
+        onClose={closeReader}
+        onPrev={navIdx > 0 ? () => setCur(nav[navIdx - 1].id) : undefined}
+        onNext={navIdx >= 0 && navIdx < nav.length - 1 ? () => setCur(nav[navIdx + 1].id) : undefined}
+        labelledBy="hs-dlg-title"
+        position={navIdx >= 0 ? `${navIdx + 1} / ${nav.length}` : null}
+        contentKey={cur}
+        className="hs-dlg"
+        labels={{ close: X.close, prev: X.prev, next: X.next }}
+        head={chap && (
+          <>
+            <span className="hs-card__n hs-card__n--solid ui-num">{chap.id}</span>
+            {CAT_BY_ID.get(CAT_OF.get(chap.id) || 'virtue') && (
+              <span className="ui-badge hs-card__cat">{(CAT_BY_ID.get(CAT_OF.get(chap.id) || 'virtue').t[lang]) || CAT_BY_ID.get(CAT_OF.get(chap.id) || 'virtue').t.en}</span>
+            )}
+          </>
+        )}
+        footer={chap && (
+          <button type="button" className={`ui-btn ui-btn--sm ${favSet.has(chap.id) ? 'ui-btn--primary' : 'ui-btn--secondary'}`}
+            aria-pressed={favSet.has(chap.id)} onClick={() => toggleFav(chap.id)}>
+            <Icon name="star" className="ui-btn__icon" /> {X.favs}
+          </button>
+        )}
+      >
+        {chap && (
+          <div className="hs-dlg__body">
+            <h2 id="hs-dlg-title" className="hs-dlg__title">
+              {chap.title}
+              {!isAr && <span className="hs-chapter__ar ui-arabic" lang="ar" dir="rtl">{chap.titleAr}</span>}
+            </h2>
+            <div className="hs-dlg__items">
+              {chap.items.map((it, i) => <Item key={`${chap.id}-${i}`} it={it} n={it.n || (startNum.get(chap.id) || 0) + i + 1} L={L} lang={lang} isAr={isAr} />)}
+            </div>
+            <div className="hs-dlg__actions">
+              <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={copyChapter}>
+                <Icon name={copied === 'copy' ? 'check' : 'copy'} className="ui-btn__icon" /> {copied === 'copy' ? L.copied : X.copyAll}
+              </button>
+              <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={shareChapter}>
+                <Icon name={copied === 'share' ? 'check' : 'share'} className="ui-btn__icon" /> {copied === 'share' ? L.copied : X.share}
+              </button>
+            </div>
+          </div>
+        )}
+      </ReaderDialog>
     </div>
   )
 }

@@ -1,4 +1,16 @@
 import { useState } from 'react'
+import ReaderDialog from '../components/reader/ReaderDialog'
+import { shareLink } from '../components/collect/useStarred'
+import { CopyStatus } from '../components/collect/StarButton'
+
+// ── v3.2: kartda qısa önizləmə, "Ətraflı" — oxu pəncərəsi (əvvəlki/növbəti, paylaş) ──
+const HP32 = {
+  az: { more: 'Ətraflı', close: 'Bağla', prev: 'Əvvəlki', next: 'Növbəti', share: 'Paylaş', copied: 'Kopyalandı' },
+  en: { more: 'Details', close: 'Close', prev: 'Previous', next: 'Next', share: 'Share', copied: 'Copied' },
+  ru: { more: 'Подробнее', close: 'Закрыть', prev: 'Назад', next: 'Далее', share: 'Поделиться', copied: 'Скопировано' },
+  ar: { more: 'التفاصيل', close: 'إغلاق', prev: 'السابق', next: 'التالي', share: 'مشاركة', copied: 'تم النسخ' },
+  tr: { more: 'Ayrıntılar', close: 'Kapat', prev: 'Önceki', next: 'Sonraki', share: 'Paylaş', copied: 'Kopyalandı' },
+}
 import { useLang } from '../contexts/LangContext'
 import '../styles/HolyPlacesPage.css'
 import Breadcrumb from '../components/Breadcrumb'
@@ -335,6 +347,10 @@ export function HolyPlacesPage({ setPage }) {
   const lk = lang
   const lb = LABELS[lk] || LABELS.az
   const [filter, setFilter] = useState('all')
+  const hx = HP32[lk] || HP32.en
+  const [openI, setOpenI] = useState(null)
+  const [status, setStatus] = useState('')
+  const openAt = (i) => { setStatus(''); setOpenI(i) }
 
   const cities = [...new Set(PLACES.map(p => p.city.en))]
   const filtered = filter === 'all' ? PLACES : PLACES.filter(p => p.city.en === filter)
@@ -431,7 +447,8 @@ export function HolyPlacesPage({ setPage }) {
           <div className="holy-grid">
             {filtered.map((place, i) => (
               // Sabit açar: süzgəc dəyişəndə yeni kartlar görünmə animasiyası ilə gəlir
-              <article key={place.name.en} className="ui-card holy-card" data-reveal="" data-reveal-delay={(i % 3) * 60}>
+              <article key={place.name.en} className="ui-card holy-card holy-card--click" data-reveal="" data-reveal-delay={(i % 3) * 60}
+                onClick={(e) => { if (!e.target.closest('a, button')) openAt(i) }}>
                 <div className="holy-card-media">
                   {place.photo
                     ? <PlacePhoto id={place.photo} lang={lk} className="ph--zoom" sizes="(min-width: 1200px) 380px, (min-width: 768px) 46vw, 100vw" />
@@ -458,6 +475,10 @@ export function HolyPlacesPage({ setPage }) {
                     <p>{place.significance[lk] || place.significance.az}</p>
                   </div>
 
+                  <button type="button" className="holy-card-more" onClick={() => openAt(i)} aria-haspopup="dialog">
+                    {hx.more}<span className="ui-sr-only">: {place.name[lk] || place.name.az}</span> <Icon name="arrow" size={15} className="ui-flip-rtl" />
+                  </button>
+
                   <div className="holy-card-foot">
                     <span className="holy-card-ref" title={lb.reference}>
                       <Icon name="books" size={13} /> <span className="ui-sr-only">{lb.reference}: </span>{place.reference[lk] || place.reference.az}
@@ -477,6 +498,53 @@ export function HolyPlacesPage({ setPage }) {
           </div>
         </div>
       </section>
+
+      <ReaderDialog
+        open={openI != null && !!filtered[openI]}
+        onClose={() => setOpenI(null)}
+        onPrev={openI > 0 ? () => openAt(openI - 1) : undefined}
+        onNext={openI != null && openI < filtered.length - 1 ? () => openAt(openI + 1) : undefined}
+        labelledBy="holy-read-title"
+        position={openI != null ? `${openI + 1} / ${filtered.length}` : null}
+        labels={{ close: hx.close, prev: hx.prev, next: hx.next }}
+        contentKey={openI}
+        className="holy-read"
+        head={openI != null && filtered[openI] && <span className="holy-card-city"><Icon name="pin" size={13} /> {filtered[openI].city[lk] || filtered[openI].city.az}</span>}
+        footer={openI != null && filtered[openI] && (
+          <div className="cl-tools">
+            <a className="ui-btn ui-btn--ghost ui-btn--sm" href={`https://www.google.com/maps?q=${filtered[openI].lat},${filtered[openI].lon}`} target="_blank" rel="noopener noreferrer">
+              <Icon name="pin" className="ui-btn__icon" /> {lb.openMaps}
+            </a>
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={async () => {
+              const p = filtered[openI]
+              const r = await shareLink({ title: p.name[lk] || p.name.az, text: `${p.name[lk] || p.name.az} (${p.nameAr}) — ${p.desc[lk] || p.desc.az}`, url: window.location.href.split('#')[0] })
+              if (r === 'copied') setStatus(hx.copied)
+            }}>
+              <Icon name="share" className="ui-btn__icon" /> {hx.share}
+            </button>
+            <CopyStatus text={status} />
+          </div>
+        )}
+      >
+        {openI != null && filtered[openI] && (() => {
+          const place = filtered[openI]
+          return (
+            <article className="holy-read__body">
+              {place.photo && <div className="holy-read__media"><PlacePhoto id={place.photo} lang={lk} sizes="(min-width: 768px) 720px, 100vw" /></div>}
+              <header className="holy-read__head">
+                <h2 id="holy-read-title" className="holy-read__title">{place.name[lk] || place.name.az}</h2>
+                {lk !== 'ar' && <p className="holy-card-ar ui-arabic" lang="ar" dir="rtl">{place.nameAr}</p>}
+              </header>
+              <p className="holy-read__desc">{place.desc[lk] || place.desc.az}</p>
+              <div className="holy-card-sig">
+                <span className="holy-card-label"><Icon name="star" size={13} /> {lb.significance}</span>
+                <p>{place.significance[lk] || place.significance.az}</p>
+              </div>
+              <p className="holy-card-ref"><Icon name="books" size={13} /> {lb.reference}: {place.reference[lk] || place.reference.az}</p>
+            </article>
+          )
+        })()}
+      </ReaderDialog>
 
       {/* ═══ Məsafələr (koordinatlardan hesablanır) ═══ */}
       <section className="ui-section ui-cv" style={{ '--cv-h': '560px' }} aria-labelledby="holy-dist-h">

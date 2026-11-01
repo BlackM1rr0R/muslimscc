@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef } from 'react'
+import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { GLOSSARY, GLOSSARY_BY_ID, GLOSSARY_CATS } from '../data/glossary'
@@ -9,6 +9,9 @@ import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
 import ListMore from '../components/ListMore'
 import BackToTop from '../components/BackToTop'
 import Icon from '../components/Icon'
+import ReaderDialog from '../components/reader/ReaderDialog'
+import StarButton, { CopyStatus } from '../components/collect/StarButton'
+import useStarred, { dayPick, shareLink } from '../components/collect/useStarred'
 import '../styles/GlossaryPage.css'
 
 // ═══════════════════════════════════════════════════════
@@ -21,11 +24,11 @@ import '../styles/GlossaryPage.css'
 // ═══════════════════════════════════════════════════════
 
 const LABELS = {
-  az: { eyebrow:'Hədis və bilik', clear:'Filtri təmizlə', title:'İslami söz lüğəti', subtitle:'Əqidə, ibadət, fiqh, Quran və hədis elmləri, əxlaq və tarixə aid terminlər — Əhli-Sünnənin anlayışına uyğun qısa və dəqiq izahla.', search:'Termin axtar...', all:'Hamısı', noResults:'Nəticə tapılmadı', terms:'termin', letters:'Hərflər', cats:'Kateqoriyalar', related:'Əlaqəli terminlər', lesson:'Mövzu üzrə ətraflı dərs', focus:'Seçilmiş termin və əlaqəli terminlər', showAll:'Bütün terminlər', link:'Terminin linki', how:'Termini axtarın, bölmə və ya hərf seçin. Termin adına toxunsanız, onun linki və əlaqəli terminlər açılır.', statTerms:'termin', statCats:'bölmə', statLessons:'dərsə keçidli' },
-  en: { eyebrow:'Hadith & knowledge', clear:'Clear filter', title:'Islamic Glossary', subtitle:'Terms of creed, worship, fiqh, the Quran and hadith sciences, character and history — short, precise definitions in line with Ahl as-Sunnah.', search:'Search terms...', all:'All', noResults:'No results found', terms:'terms', letters:'Letters', cats:'Categories', related:'Related terms', lesson:'In-depth lesson on this topic', focus:'Selected term and related terms', showAll:'All terms', link:'Link to this term', how:'Search for a term or pick a section or letter. Tap a term’s name to get its link and related terms.', statTerms:'terms', statCats:'sections', statLessons:'linked to lessons' },
-  ru: { eyebrow:'Хадисы и знание', clear:'Сбросить фильтр', title:'Исламский глоссарий', subtitle:'Термины вероубеждения, поклонения, фикха, наук Корана и хадиса, нрава и истории — краткие и точные определения согласно Ахль ас-Сунна.', search:'Поиск терминов...', all:'Все', noResults:'Ничего не найдено', terms:'терминов', letters:'Буквы', cats:'Категории', related:'Связанные термины', lesson:'Подробный урок по теме', focus:'Выбранный термин и связанные с ним', showAll:'Все термины', link:'Ссылка на термин', how:'Ищите термин или выберите раздел либо букву. Нажмите на название термина — откроются ссылка на него и связанные термины.', statTerms:'терминов', statCats:'разделов', statLessons:'со ссылкой на урок' },
-  ar: { eyebrow:'الحديث والعلم', clear:'مسح التصفية', title:'قاموس المصطلحات الإسلامية', subtitle:'مصطلحات العقيدة والعبادات والفقه وعلوم القرآن والحديث والأخلاق والتاريخ — بتعريفات موجزة دقيقة على فهم أهل السنة.', search:'ابحث عن مصطلح...', all:'الكل', noResults:'لم يتم العثور على نتائج', terms:'مصطلح', letters:'الحروف', cats:'الأقسام', related:'مصطلحات ذات صلة', lesson:'درس مفصّل في الموضوع', focus:'المصطلح المختار وما يتصل به', showAll:'كل المصطلحات', link:'رابط المصطلح', how:'ابحث عن مصطلح أو اختر قسمًا أو حرفًا. اضغط على اسم المصطلح ليظهر رابطه والمصطلحات المتصلة به.', statTerms:'مصطلحًا', statCats:'أقسام', statLessons:'مرتبطة بدروس' },
-  tr: { eyebrow:'Hadis ve ilim', clear:'Filtreyi temizle', title:'İslami Sözlük', subtitle:'Akide, ibadet, fıkıh, Kur’an ve hadis ilimleri, ahlak ve tarihe dair terimler — Ehl-i Sünnet’in anlayışına uygun kısa ve net tanımlarla.', search:'Terim ara...', all:'Tümü', noResults:'Sonuç bulunamadı', terms:'terim', letters:'Harfler', cats:'Kategoriler', related:'İlgili terimler', lesson:'Konuyla ilgili ayrıntılı ders', focus:'Seçilen terim ve ilgili terimler', showAll:'Tüm terimler', link:'Terimin bağlantısı', how:'Bir terim arayın ya da bölüm veya harf seçin. Terimin adına dokunursanız bağlantısı ve ilgili terimler açılır.', statTerms:'terim', statCats:'bölüm', statLessons:'derse bağlantılı' },
+  az: { eyebrow:'Hədis və bilik', clear:'Filtri təmizlə', title:'İslami söz lüğəti', subtitle:'Əqidə, ibadət, fiqh, Quran və hədis elmləri, əxlaq və tarixə aid terminlər — Əhli-Sünnənin anlayışına uyğun qısa və dəqiq izahla.', search:'Termin axtar...', all:'Hamısı', noResults:'Nəticə tapılmadı', terms:'termin', letters:'Hərflər', cats:'Kateqoriyalar', related:'Əlaqəli terminlər', lesson:'Mövzu üzrə ətraflı dərs', focus:'Seçilmiş termin və əlaqəli terminlər', showAll:'Bütün terminlər', link:'Terminin linki', how:'Termini axtarın, bölmə və ya hərf seçin. Termin adına toxunsanız, onun linki və əlaqəli terminlər açılır.', statTerms:'termin', statCats:'bölmə', statLessons:'dərsə keçidli', read:'Oxu', favs:'Seçilmişlər', favAdd:'Seçilmişlərə əlavə et', favNone:'Hələ seçilmiş termin yoxdur — kartdakı ulduza toxunun.', today:'Günün termini', random:'Təsadüfi termin', share:'Paylaş', copyLink:'Linki kopyala', copied:'Link kopyalandı', close:'Bağla', prev:'Əvvəlki', next:'Növbəti' },
+  en: { eyebrow:'Hadith & knowledge', clear:'Clear filter', title:'Islamic Glossary', subtitle:'Terms of creed, worship, fiqh, the Quran and hadith sciences, character and history — short, precise definitions in line with Ahl as-Sunnah.', search:'Search terms...', all:'All', noResults:'No results found', terms:'terms', letters:'Letters', cats:'Categories', related:'Related terms', lesson:'In-depth lesson on this topic', focus:'Selected term and related terms', showAll:'All terms', link:'Link to this term', how:'Search for a term or pick a section or letter. Tap a term’s name to get its link and related terms.', statTerms:'terms', statCats:'sections', statLessons:'linked to lessons', read:'Read', favs:'Saved', favAdd:'Save this term', favNone:'No saved terms yet — tap the star on a card.', today:'Term of the day', random:'Random term', share:'Share', copyLink:'Copy link', copied:'Link copied', close:'Close', prev:'Previous', next:'Next' },
+  ru: { eyebrow:'Хадисы и знание', clear:'Сбросить фильтр', title:'Исламский глоссарий', subtitle:'Термины вероубеждения, поклонения, фикха, наук Корана и хадиса, нрава и истории — краткие и точные определения согласно Ахль ас-Сунна.', search:'Поиск терминов...', all:'Все', noResults:'Ничего не найдено', terms:'терминов', letters:'Буквы', cats:'Категории', related:'Связанные термины', lesson:'Подробный урок по теме', focus:'Выбранный термин и связанные с ним', showAll:'Все термины', link:'Ссылка на термин', how:'Ищите термин или выберите раздел либо букву. Нажмите на название термина — откроются ссылка на него и связанные термины.', statTerms:'терминов', statCats:'разделов', statLessons:'со ссылкой на урок', read:'Читать', favs:'Избранное', favAdd:'Добавить в избранное', favNone:'В избранном пока нет терминов — нажмите звёздочку на карточке.', today:'Термин дня', random:'Случайный термин', share:'Поделиться', copyLink:'Копировать ссылку', copied:'Ссылка скопирована', close:'Закрыть', prev:'Назад', next:'Далее' },
+  ar: { eyebrow:'الحديث والعلم', clear:'مسح التصفية', title:'قاموس المصطلحات الإسلامية', subtitle:'مصطلحات العقيدة والعبادات والفقه وعلوم القرآن والحديث والأخلاق والتاريخ — بتعريفات موجزة دقيقة على فهم أهل السنة.', search:'ابحث عن مصطلح...', all:'الكل', noResults:'لم يتم العثور على نتائج', terms:'مصطلح', letters:'الحروف', cats:'الأقسام', related:'مصطلحات ذات صلة', lesson:'درس مفصّل في الموضوع', focus:'المصطلح المختار وما يتصل به', showAll:'كل المصطلحات', link:'رابط المصطلح', how:'ابحث عن مصطلح أو اختر قسمًا أو حرفًا. اضغط على اسم المصطلح ليظهر رابطه والمصطلحات المتصلة به.', statTerms:'مصطلحًا', statCats:'أقسام', statLessons:'مرتبطة بدروس', read:'اقرأ', favs:'المحفوظة', favAdd:'احفظ المصطلح', favNone:'لا توجد مصطلحات محفوظة بعد — اضغط النجمة على البطاقة.', today:'مصطلح اليوم', random:'مصطلح عشوائي', share:'مشاركة', copyLink:'نسخ الرابط', copied:'تم نسخ الرابط', close:'إغلاق', prev:'السابق', next:'التالي' },
+  tr: { eyebrow:'Hadis ve ilim', clear:'Filtreyi temizle', title:'İslami Sözlük', subtitle:'Akide, ibadet, fıkıh, Kur’an ve hadis ilimleri, ahlak ve tarihe dair terimler — Ehl-i Sünnet’in anlayışına uygun kısa ve net tanımlarla.', search:'Terim ara...', all:'Tümü', noResults:'Sonuç bulunamadı', terms:'terim', letters:'Harfler', cats:'Kategoriler', related:'İlgili terimler', lesson:'Konuyla ilgili ayrıntılı ders', focus:'Seçilen terim ve ilgili terimler', showAll:'Tüm terimler', link:'Terimin bağlantısı', how:'Bir terim arayın ya da bölüm veya harf seçin. Terimin adına dokunursanız bağlantısı ve ilgili terimler açılır.', statTerms:'terim', statCats:'bölüm', statLessons:'derse bağlantılı', read:'Oku', favs:'Kaydedilenler', favAdd:'Kaydet', favNone:'Henüz kaydedilen terim yok — karttaki yıldıza dokunun.', today:'Günün terimi', random:'Rastgele terim', share:'Paylaş', copyLink:'Bağlantıyı kopyala', copied:'Bağlantı kopyalandı', close:'Kapat', prev:'Önceki', next:'Sonraki' },
 }
 
 const CAT_LABELS = {
@@ -81,6 +84,11 @@ export default function GlossaryPage() {
   const [search, setSearch] = useSessionState('glossary:q', '')
   const [activeLetter, setActiveLetter] = useSessionState('glossary:letter', null)
   const [activeCat, setActiveCat] = useSessionState('glossary:cat', null)
+  const [favOnly, setFavOnly] = useSessionState('glossary:favOnly', false)
+  const star = useStarred('glossary:favs')
+  // Oxu pəncərəsi (ReaderDialog) — açıq terminin id-si; URL dəyişmir
+  const [readId, setReadId] = useState(null)
+  const [status, setStatus] = useState('')
 
   // Ünvandakı termin (#istiwa) — seçilmiş termin + əlaqəli terminlər
   const hashId = decodeURIComponent(location.hash.replace(/^#/, ''))
@@ -122,6 +130,7 @@ export default function GlossaryPage() {
       return [focused, ...(focused.rel || []).map(id => GLOSSARY_BY_ID.get(id)).filter(Boolean)]
     }
     let list = byCat
+    if (favOnly) list = list.filter(item => star.list.includes(item.id))
     if (activeLetter) list = list.filter(item => firstLetter(item, lang) === activeLetter)
     if (search.trim()) {
       const q = search.toLocaleLowerCase().trim()
@@ -133,7 +142,7 @@ export default function GlossaryPage() {
       )
     }
     return list
-  }, [focused, byCat, search, activeLetter, lang])
+  }, [focused, byCat, search, activeLetter, lang, favOnly, star.list])
 
   const topRef = useRef(null)
   const alphaRef = useRef(null)
@@ -141,7 +150,7 @@ export default function GlossaryPage() {
   const inf = useInfiniteList({
     total: filtered.length,
     batch: BATCH,
-    resetKey: `${lang}|${activeCat || ''}|${activeLetter || ''}|${search.trim()}|${focused?.id || ''}`,
+    resetKey: `${lang}|${activeCat || ''}|${activeLetter || ''}|${search.trim()}|${focused?.id || ''}|${favOnly ? 1 : 0}`,
     storageKey: 'glossary',
     onReset: () => {
       const bar = alphaRef.current
@@ -166,7 +175,33 @@ export default function GlossaryPage() {
     navigate({ hash: `#${id}` })
   }
   const clearFocus = () => navigate({ hash: '' }, { replace: false })
-  const resetAll = () => { setSearch(''); setActiveLetter(null); setActiveCat(null); if (focused) clearFocus() }
+  const resetAll = () => { setSearch(''); setActiveLetter(null); setActiveCat(null); setFavOnly(false); if (focused) clearFocus() }
+
+  // ── Oxu pəncərəsi: əvvəlki/növbəti cari siyahı üzrə (termin siyahıda yoxdursa — bütün lüğət) ──
+  const readItem = readId ? GLOSSARY_BY_ID.get(readId) : null
+  const navList = readItem && filtered.some(x => x.id === readId) ? filtered : sorted
+  const readIdx = readItem ? navList.findIndex(x => x.id === readId) : -1
+  const openRead = useCallback((id) => { setStatus(''); setReadId(id) }, [])
+  const onCardClick = (id) => (e) => {
+    if (e.target.closest('a, button, input')) return
+    if (window.getSelection?.().toString()) return
+    openRead(id)
+  }
+  const termUrl = (id) => `${window.location.origin}${pathFor('glossary', lang)}#${encodeURIComponent(id)}`
+  const onShare = async (item) => {
+    const r = await shareLink({ title: headlineOf(item, lang), text: `${headlineOf(item, lang)} (${item.ar}) — ${item.def[lang] || item.def.en}`, url: termUrl(item.id) })
+    if (r === 'copied') setStatus(t.copied)
+  }
+  const onCopy = async (item) => {
+    try { await navigator.clipboard.writeText(termUrl(item.id)); setStatus(t.copied) } catch { /* icazə yoxdur */ }
+  }
+  const today = GLOSSARY[dayPick(GLOSSARY.length)]
+  const randomTerm = () => {
+    const pool = filtered.length > 1 ? filtered : sorted
+    let x = pool[Math.floor(Math.random() * pool.length)]
+    if (x.id === readId && pool.length > 1) x = pool[(pool.indexOf(x) + 1) % pool.length]
+    openRead(x.id)
+  }
   const pickCat = (c) => { setActiveCat(c); setActiveLetter(null); if (focused) clearFocus() }
   const onLessonClick = (slug) => (e) => {
     if (!isPlainClick(e)) return
@@ -248,6 +283,14 @@ export default function GlossaryPage() {
             >
               {t.all}
             </button>
+            <button
+              type="button"
+              className="ui-chip glossary-alpha-btn glossary-fav-chip"
+              aria-pressed={favOnly && !focused}
+              onClick={() => { setFavOnly(!favOnly); setActiveLetter(null); if (focused) clearFocus() }}
+            >
+              <Icon name="star" size={15} /> {t.favs} <span className="ui-num glossary-fav-chip__n">{star.count}</span>
+            </button>
             {letters.map(letter => (
               <button
                 type="button"
@@ -260,6 +303,27 @@ export default function GlossaryPage() {
               </button>
             ))}
           </div>
+
+          {!focused && !search.trim() && !favOnly && today && (
+            <aside className="cl-spot glossary-spot" aria-label={t.today}>
+              <span className="cl-spot__icon" aria-hidden="true"><Icon name="bulb" /></span>
+              <div className="cl-spot__body">
+                <span className="cl-spot__eyebrow">{t.today}</span>
+                <span className={`cl-spot__title${isArabic ? ' ui-arabic' : ''}`}>
+                  {headlineOf(today, lang)}{!isArabic && <span className="glossary-spot__ar ui-arabic" lang="ar" dir="rtl">{today.ar}</span>}
+                </span>
+                <p className="cl-spot__text">{today.def[lang] || today.def.en}</p>
+              </div>
+              <div className="cl-spot__actions">
+                <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={() => openRead(today.id)} aria-haspopup="dialog">
+                  <Icon name="learn" className="ui-btn__icon" /> {t.read}
+                </button>
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={randomTerm} aria-haspopup="dialog">
+                  <Icon name="refresh" className="ui-btn__icon" /> {t.random}
+                </button>
+              </div>
+            </aside>
+          )}
 
           {focused && (
             <div className="ui-card ui-card--sunken glossary-focus-bar" role="status">
@@ -276,7 +340,7 @@ export default function GlossaryPage() {
               const rel = (item.rel || []).map(id => GLOSSARY_BY_ID.get(id)).filter(Boolean)
               const isFocus = focused && idx === 0
               return (
-                <article key={item.id} id={item.id} className={`ui-card glossary-card${isFocus ? ' is-focus' : ''}`} {...revealProps(idx)}>
+                <article key={item.id} id={item.id} className={`ui-card glossary-card${isFocus ? ' is-focus' : ''}`} {...revealProps(idx)} onClick={onCardClick(item.id)}>
                   <div className="glossary-card-header">
                     <div className="glossary-card-names">
                       <h2 className={`glossary-term-name${isArabic ? ' ui-arabic' : ''}`}>
@@ -286,9 +350,17 @@ export default function GlossaryPage() {
                     </div>
                     {!isArabic && <span className="glossary-arabic-text ui-arabic" lang="ar" dir="rtl">{item.ar}</span>}
                   </div>
-                  {item.cat && CAT_LABELS[item.cat] && (
-                    <span className="glossary-cat-badge">{CAT_LABELS[item.cat][lang] || CAT_LABELS[item.cat].en}</span>
-                  )}
+                  <div className="glossary-card-meta">
+                    {item.cat && CAT_LABELS[item.cat] && (
+                      <span className="glossary-cat-badge">{CAT_LABELS[item.cat][lang] || CAT_LABELS[item.cat].en}</span>
+                    )}
+                    <span className="glossary-card-tools">
+                      <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm glossary-read" onClick={() => openRead(item.id)} aria-haspopup="dialog">
+                        <Icon name="learn" className="ui-btn__icon" /> {t.read}<span className="ui-sr-only">: {headlineOf(item, lang)}</span>
+                      </button>
+                      <StarButton on={star.has(item.id)} onToggle={() => star.toggle(item.id)} label={`${t.favAdd}: ${headlineOf(item, lang)}`} />
+                    </span>
+                  </div>
                   <p className="glossary-definition">{item.def[lang] || item.def.en}</p>
                   {(rel.length > 0 || lessonOk) && (
                     <div className="glossary-card-foot">
@@ -322,8 +394,8 @@ export default function GlossaryPage() {
           {filtered.length === 0 && (
             <div className="ui-card ui-card--sunken glossary-empty" data-reveal="scale">
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="glossary" /></span>
-              <p>{t.noResults}</p>
-              {(search || activeLetter || activeCat) && (
+              <p>{favOnly && star.count === 0 ? t.favNone : t.noResults}</p>
+              {(search || activeLetter || activeCat || favOnly) && (
                 <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={resetAll}>
                   <Icon name="close" className="ui-btn__icon" /> {t.clear}
                 </button>
@@ -338,6 +410,66 @@ export default function GlossaryPage() {
           } />
         </div>
       </div>
+
+      <ReaderDialog
+        open={!!readItem}
+        onClose={() => setReadId(null)}
+        onPrev={readIdx > 0 ? () => openRead(navList[readIdx - 1].id) : undefined}
+        onNext={readIdx >= 0 && readIdx < navList.length - 1 ? () => openRead(navList[readIdx + 1].id) : undefined}
+        labelledBy="glo-read-title"
+        position={readIdx >= 0 ? `${readIdx + 1} / ${navList.length}` : null}
+        labels={{ close: t.close, prev: t.prev, next: t.next }}
+        contentKey={readId}
+        className="glo-read"
+        head={readItem && readItem.cat && CAT_LABELS[readItem.cat] ? (
+          <span className="glossary-cat-badge">{CAT_LABELS[readItem.cat][lang] || CAT_LABELS[readItem.cat].en}</span>
+        ) : null}
+        footer={readItem && (
+          <div className="cl-tools">
+            <StarButton on={star.has(readItem.id)} onToggle={() => star.toggle(readItem.id)} label={t.favAdd} />
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => onShare(readItem)}>
+              <Icon name="share" className="ui-btn__icon" /> {t.share}
+            </button>
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => onCopy(readItem)}>
+              <Icon name="link" className="ui-btn__icon" /> {t.copyLink}
+            </button>
+            <CopyStatus text={status} />
+          </div>
+        )}
+      >
+        {readItem && (
+          <article className="glo-read__body">
+            <header className="glo-read__head">
+              <div>
+                <h2 id="glo-read-title" className={`glo-read__title${isArabic ? ' ui-arabic' : ''}`}>{headlineOf(readItem, lang)}</h2>
+                {(lang === 'az' || lang === 'ar') && <p className="glossary-translit" dir="ltr">{readItem.translit}</p>}
+              </div>
+              {!isArabic && <p className="glo-read__ar ui-arabic" lang="ar" dir="rtl">{readItem.ar}</p>}
+            </header>
+            <p className="glo-read__def">{readItem.def[lang] || readItem.def.en}</p>
+            {(readItem.rel || []).length > 0 && (
+              <div className="glossary-rel glo-read__rel">
+                <span className="glossary-rel__label">{t.related}:</span>
+                <ul className="glossary-rel__list">
+                  {readItem.rel.map(id => GLOSSARY_BY_ID.get(id)).filter(Boolean).map(r => (
+                    <li key={r.id}>
+                      <button type="button" className="glossary-rel__chip" onClick={() => openRead(r.id)}>
+                        <span className={isArabic ? 'ui-arabic' : undefined}>{headlineOf(r, lang)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {readItem.lesson && LESSON_SLUGS.includes(readItem.lesson) && (
+              <a className="ui-link glossary-lesson" href={pathFor('learn', lang, readItem.lesson)} onClick={(e) => { if (!isPlainClick(e)) return; setReadId(null); onLessonClick(readItem.lesson)(e) }}>
+                <Icon name="learn" size={16} /> {t.lesson}
+                <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
+              </a>
+            )}
+          </article>
+        )}
+      </ReaderDialog>
 
       <BackToTop />
     </>

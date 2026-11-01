@@ -1,6 +1,6 @@
-/* ══ ƏN-NƏVƏVİNİN 40 HƏDİSİ — dizayn v3 (DESIGN.md), yalnız tokenlər ══
-   Hero → axtarış → akkordeon siyahı → "Kitab haqqında" (xəritə, Donut,
-   mənbələr). Fayl ui.css-dən ƏVVƏL yüklənir — .ui-* üzərinə .nw-page ilə. */
+/* ══ ƏN-NƏVƏVİNİN 40 HƏDİSİ — dizayn v3.2 (DESIGN.md), yalnız tokenlər ══
+   Hero → günün hədisi → alət zolağı → KART GRID → oxu pəncərəsi →
+   "Kitab haqqında" (xəritə, Donut, mənbələr). Fayl ui.css-dən ƏVVƏL yüklənir — .ui-* üzərinə .nw-page ilə. */
 .nw-page { min-height: 60vh; }
 .nw-page .ui-section--tight { padding-top: var(--space-5); }
 .nw-hero__ar { color: var(--accent-text); font-size: clamp(19px, 1.9vw, 24px); line-height: 1.6; }
@@ -24,16 +24,40 @@
 .nw-page .nw-hero__stats span { font-size: var(--step--2); line-height: 1.35; }
 @media (min-width: 900px) { .nw-page .nw-hero .ui-page-hero__aside { justify-self: end; max-width: 400px; } }
 
-/* ── Alət zolağı: axtarış + say + "Hamısını aç" — yapışqan şüşə panel ── */
+/* ── Hero kartında düymələr: davam et + təsadüfi ── */
+.nw-hero__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.nw-page .nw-hero__btn { flex: 1 1 auto; min-height: 44px; justify-content: center; }
+
+/* ── Günün hədisi ── */
+.nw-page .nw-today {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+  gap: 6px var(--space-5); padding: var(--space-5);
+  border-color: var(--accent-line);
+  background: linear-gradient(135deg, var(--accent-soft), var(--surface-1) 60%);
+}
+.nw-today > .ui-pattern { z-index: -1; opacity: .5; }
+.nw-today__meta { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; }
+.nw-today__n { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; }
+.nw-today__title { grid-column: 1; color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 650; line-height: 1.3; }
+.nw-today__ar {
+  grid-column: 1; color: var(--text-body); font-size: clamp(18px, 1.6vw, 21px); line-height: 1.9;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
+.nw-page .nw-today__btn { grid-column: 2; grid-row: 2 / span 2; min-height: 44px; }
+
+/* ── Alət zolağı: axtarış + say + təsadüfi; altında süzgəc çipləri — yapışqan şüşə panel ── */
 .nw-toolbar {
   position: sticky; top: calc(var(--header-offset, var(--header-h)) + 8px); z-index: 15;
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  display: flex; flex-direction: column; gap: 8px;
   padding: 8px; border: 1px solid var(--line); border-radius: var(--radius-lg);
   background: var(--surface-1);
   background: color-mix(in srgb, var(--surface-1) 90%, transparent);
   -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-1);
   transition: top var(--dur-3) var(--ease-out);
 }
+.nw-toolbar__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
 .nw-search { position: relative; flex: 1 1 260px; max-width: 560px; }
 .nw-search__icon { position: absolute; inset-inline-start: 14px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
 .nw-page .nw-search__input { width: 100%; padding-inline: 44px 44px; }
@@ -42,57 +66,124 @@
 .nw-page .nw-search__input { min-height: 44px; border-color: transparent; background: var(--surface-2); }
 .nw-page .nw-search__input:focus { border-color: var(--brand-line); }
 .nw-toolbar__count { margin-inline-start: auto; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; white-space: nowrap; }
-.nw-toolbar__btn { flex-shrink: 0; }
-.nw-none { color: var(--text-secondary); }
-
-/* Akkordeon */
-/* Akkordeon: iki müstəqil sütun (JSX-də siyahı ikiyə bölünür) — açılan
-   hədis yalnız öz sütununu uzadır, qonşusu dartılmır */
-.nw-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2) var(--space-4); align-items: start; }
-@media (min-width: 900px) { .nw-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.nw-list { display: grid; gap: var(--space-2); list-style: none; margin: 0; padding: 0; align-content: start; }
-.nw-page .nw-item { padding: 0; scroll-margin-top: calc(var(--header-h, 64px) + 16px); transition: border-color var(--dur-1) ease; }
-.nw-page .nw-item.is-open { border-color: var(--line-strong); }
-.nw-item__head {
-  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 16px;
-  border: 0; background: transparent; color: var(--text-strong); font: inherit; text-align: start; cursor: pointer;
+.nw-page .nw-toolbar__btn { flex-shrink: 0; min-height: 44px; }
+.nw-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.nw-page .nw-chip { min-height: 36px; }
+.nw-chip__n {
+  display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 6px;
+  border-radius: var(--radius-pill); background: var(--surface-2); color: var(--text-tertiary);
+  font-size: var(--step--2); font-weight: 600;
 }
-@media (hover: hover) { .nw-item__head:hover .nw-item__title { color: var(--brand); } }
-.nw-item__head:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; border-radius: var(--radius-lg); }
-.nw-item__n {
-  display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+.nw-chip[aria-pressed="true"] .nw-chip__n { background: color-mix(in srgb, var(--on-brand) 22%, transparent); color: inherit; }
+.nw-page .nw-empty { border-style: dashed; }
+
+/* ── Kart grid ── */
+.nw-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-3); align-items: start;
+  margin: 0; padding: 0; list-style: none;
+}
+.nw-page .nw-card {
+  position: relative; display: flex; flex-direction: column; gap: 10px;
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  scroll-margin-top: calc(var(--header-h, 64px) + 140px);
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) {
+  .nw-page .nw-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); transform: translateY(-2px); }
+  .nw-card:hover .nw-card__read { color: var(--brand); }
+}
+.nw-page .nw-card:focus-within { border-color: var(--brand-line); }
+.nw-page .nw-card.is-learned { background: linear-gradient(180deg, var(--brand-soft), var(--surface-1) 55%); }
+.nw-page .nw-card.is-current { border-color: var(--brand); }
+.nw-card__top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.nw-card__n {
+  display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; border-radius: 11px;
   background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand-line);
   color: var(--brand); font-size: var(--step--1); font-weight: 700;
 }
-.nw-item.is-open .nw-item__n { background: var(--brand); box-shadow: none; color: var(--on-brand); }
-.nw-item__title { flex: 1; min-width: 0; font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600; line-height: 1.4; transition: color var(--dur-1) ease; }
-.nw-item__learned {
-  display: grid; place-items: center; flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
-  background: var(--brand); color: var(--on-brand);
+.nw-card__n--solid, .nw-card.is-learned .nw-card__n { background: var(--brand); box-shadow: none; color: var(--on-brand); }
+.nw-src { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.nw-page .nw-src, .nw-reader .nw-src { min-width: 0; }
+.nw-page .nw-src--agreed, .nw-reader .nw-src--agreed { background: var(--brand-soft-2); color: var(--brand-strong); }
+[data-theme="dark"] .nw-page .nw-src--agreed, [data-theme="dark"] .nw-reader .nw-src--agreed { color: var(--brand); }
+.nw-page .nw-src--bukhari, .nw-page .nw-src--muslim,
+.nw-reader .nw-src--bukhari, .nw-reader .nw-src--muslim { background: var(--accent-soft); color: var(--accent-text); }
+.nw-card__learn {
+  position: relative; z-index: 2; flex-shrink: 0; margin-inline-start: auto;
+  display: grid; place-items: center; width: 44px; height: 44px; margin-block: -6px; margin-inline-end: -8px;
+  border: 0; border-radius: 50%; background: transparent; color: var(--line-strong); cursor: pointer;
+  transition: color var(--dur-1) ease;
 }
-.nw-item__chev { flex-shrink: 0; color: var(--text-tertiary); transition: transform var(--dur-2) var(--ease-out); }
-.nw-item.is-open .nw-item__chev { transform: rotate(180deg); }
-.nw-item__body { display: flex; flex-direction: column; gap: 12px; padding: var(--space-4) var(--space-5) var(--space-5); border-top: 1px solid var(--line); }
-.nw-item__ar { color: var(--text-strong); font-size: clamp(20px, 1.9vw, 24px); line-height: 2.05; }
-.nw-item__text { color: var(--text-body); font-size: var(--step-0); line-height: 1.75; max-width: 68ch; }
-.nw-item__src { color: var(--text-secondary); font-family: var(--font-label); font-size: var(--step--2); line-height: 1.5; }
-.nw-item__src cite { font-style: normal; }
-.nw-item__grade {
+.nw-card__learn::before {
+  content: ""; position: absolute; inset: 9px; border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  transition: border-color var(--dur-1) ease, background-color var(--dur-1) ease;
+}
+.nw-card__learn.is-on { color: var(--on-brand); }
+.nw-card__learn.is-on::before { border-color: var(--brand); background: var(--brand); }
+.nw-card__learn svg { position: relative; }
+@media (hover: hover) {
+  .nw-card__learn:not(.is-on):hover { color: var(--brand); }
+  .nw-card__learn:not(.is-on):hover::before { border-color: var(--brand); }
+}
+.nw-card__learn:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.nw-card__title { margin: 0; font-family: var(--font-heading); font-size: var(--step-0); font-weight: 650; line-height: 1.35; }
+.nw-card__open {
+  padding: 0; border: 0; background: none; color: var(--text-strong); font: inherit; text-align: start; cursor: pointer;
+}
+/* Bütün kart klik sahəsidir (düymə ::after ilə uzanır); "öyrəndim" düyməsi üstdədir */
+.nw-card__open::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: var(--radius-lg); }
+.nw-card__open:focus-visible { outline: none; }
+.nw-card__open:focus-visible::after { outline: 2px solid var(--ring); outline-offset: 2px; }
+.nw-card__preview {
+  color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
+}
+.nw-card__preview.ui-arabic { font-size: var(--step-0); line-height: 1.9; -webkit-line-clamp: 2; line-clamp: 2; }
+.nw-card__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; padding-top: 4px; }
+.nw-card__read {
+  display: inline-flex; align-items: center; gap: 2px; margin-inline-start: auto;
+  color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--1); font-weight: 600;
+  transition: color var(--dur-1) ease;
+}
+
+/* ── Oxu pəncərəsi (ReaderDialog içi) ── */
+.nw-read { --nw-fs: 1; display: flex; flex-direction: column; gap: 14px; }
+.nw-read__title { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-2); font-weight: 650; line-height: 1.25; }
+.nw-read__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.nw-read__spacer { flex: 1; }
+.nw-read__fs { display: flex; gap: 2px; padding: 2px; border-radius: var(--radius-md); background: var(--surface-2); }
+.nw-read__fs .ui-icon-btn:disabled { opacity: .4; cursor: default; }
+.nw-read__a { font-family: var(--font-heading); font-size: 19px; font-weight: 700; line-height: 1; }
+.nw-read__a--sm { font-size: 14px; }
+.nw-read__hint { display: flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-size: var(--step--1); }
+.nw-read__ar {
+  margin: 0; padding: var(--space-4); border-radius: var(--radius-lg);
+  background: var(--surface-2); color: var(--text-strong);
+  font-size: calc(clamp(21px, 2vw, 25px) * var(--nw-fs)); line-height: 2.05;
+}
+.nw-read__text { color: var(--text-body); font-size: calc(var(--step-0) * var(--nw-fs)); line-height: 1.8; max-width: 70ch; }
+.nw-read__src { display: flex; align-items: flex-start; gap: 8px; color: var(--text-secondary); font-family: var(--font-label); font-size: var(--step--1); line-height: 1.5; }
+.nw-read__src svg { flex-shrink: 0; margin-top: 2px; color: var(--brand); }
+.nw-read__src cite { font-style: normal; }
+.nw-read__grade {
   display: flex; align-items: flex-start; gap: 8px; padding: 10px 14px;
   border: 1px solid var(--accent-line); border-radius: var(--radius-md); background: var(--accent-soft);
   color: var(--text-body); font-size: var(--step--1); line-height: 1.55;
 }
-.nw-item__grade svg { flex-shrink: 0; margin-top: 2px; color: var(--accent); }
-.nw-item__benefits { padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface-2); }
-.nw-item__btitle {
-  margin-bottom: 8px; color: var(--text-secondary);
-  font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: 0;
+.nw-read__grade svg { flex-shrink: 0; margin-top: 2px; color: var(--accent); }
+.nw-read__benefits { padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-1); }
+.nw-read__btitle {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px; color: var(--text-strong);
+  font-family: var(--font-label); font-size: var(--step--1); font-weight: 650;
 }
-[dir="rtl"] .nw-item__btitle { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
-.nw-item__benefits ul { display: grid; gap: 6px; margin: 0; padding-inline-start: 1.2em; color: var(--text-body); font-size: var(--step--1); line-height: 1.6; }
-.nw-item__benefits li::marker { color: var(--brand); }
-.nw-item__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.nw-item__spacer { flex: 1; }
+.nw-read__btitle svg { color: var(--accent); }
+.nw-read__benefits ul { display: grid; gap: 6px; margin: 0; padding-inline-start: 1.2em; color: var(--text-body); font-size: var(--step--1); line-height: 1.65; }
+.nw-read__benefits li::marker { color: var(--brand); }
+.nw-read__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.nw-read__keys { color: var(--text-tertiary); font-size: var(--step--2); text-align: center; }
+@media (hover: none) { .nw-read__keys { display: none; } }
 
 /* Kitab haqqında */
 .nw-page .nw-about .ui-section-head { margin-bottom: 0; }
@@ -136,18 +227,25 @@
   .nw-page .nw-hero__stats { flex: 1 1 200px; padding-top: 0; border-top: 0; }
 }
 @media (max-width: 599.98px) {
-  /* Telefonda zolaq yapışmır (ekranı tutmasın); axtarış tam en, altında say + düymə */
+  /* Telefonda zolaq yapışmır (ekranı tutmasın); axtarış tam en, çiplər sürüşən zolaqda */
   .nw-toolbar { position: static; }
   .nw-search { flex-basis: 100%; max-width: none; }
   .nw-toolbar__count { margin-inline-start: 4px; }
-  .nw-toolbar__btn { margin-inline-start: auto; }
+  .nw-page .nw-toolbar__btn { margin-inline-start: auto; }
+  .nw-filters { flex-wrap: nowrap; overflow-x: auto; margin-inline: -8px; padding-inline: 8px; scrollbar-width: none; }
+  .nw-filters::-webkit-scrollbar { display: none; }
+  .nw-page .nw-chip { flex-shrink: 0; white-space: nowrap; }
+  .nw-page .nw-today { grid-template-columns: minmax(0, 1fr); padding: var(--space-4); }
+  .nw-page .nw-today__btn { grid-column: 1; grid-row: auto; justify-self: start; }
 }
 @media (max-width: 767.98px) {
-  .nw-item__head { padding: 10px 12px; }
-  .nw-item__body { padding-inline: var(--space-4); }
   .nw-page .nw-map { padding: var(--space-4); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .nw-map__cell, .nw-item__chev, .nw-item__title { transition: none; }
+  .nw-map__cell, .nw-card, .nw-card__read, .nw-card__learn, .nw-card__learn::before { transition: none; }
   .nw-map__cell:active { transform: none; }
+  .nw-page .nw-card:hover { transform: none; }
+}
+@media print {
+  .nw-toolbar, .nw-hero__actions, .nw-card__learn, .nw-today__btn { display: none; }
 }

@@ -64,6 +64,15 @@ const AnnouncementSection = lazy(lazyWhenIdle(() => import('../components/Announ
 const HeroBannerDisplay = lazy(lazyWhenIdle(() => import('../components/HeroBannerDisplay')))
 // Günün təddəbür sualı — ekranın altında, şəbəkəsiz (məlumat faylın özündədir)
 const TadabburCard = lazy(lazyWhenIdle(() => import('../components/TadabburCard')))
+// v3.2: "Bu gün" bento paneli (günün hədisi — Nəvəvi 40, günün ayəsi, davam et,
+// hicri tarix). Hero-nun düz altındadır — lazy, amma idle gözləmədən; yer
+// tutucu hündürlüyü saxlayır (CLS olmasın). Bax: components/home/HomeToday.jsx
+const HomeToday = lazy(() => import('../components/home/HomeToday'))
+const HomeTodayFallback = () => (
+  <div className="ui-section ui-section--tight" aria-hidden="true">
+    <div className="ui-container"><div className="ui-skeleton hp-td-skel" /></div>
+  </div>
+)
 import '../styles/HomePage.css'
 // PERFORMANS: AdminPage.css (47 KB) yox — yalnız ana səhifənin istifadə etdiyi
 // .video-* qaydaları (HomeVideo.css, ~1.8 KB gzip; bax faylın başlığı)
@@ -591,6 +600,11 @@ export default function HomePage({ setPage }) {
           </div>
         </section>
       </div>
+
+      {/* ═══ BU GÜN — bento: günün hədisi, ayəsi, davam et, tarix ═══ */}
+      <Suspense fallback={<HomeTodayFallback />}>
+        <HomeToday />
+      </Suspense>
 
       {/* ═══ NƏ AXTARIRSINIZ? — 12 əsas bölmə, ikon kafelləri ═════════════
           Əvvəlki "Əsas" sırası + "Saytda" kafelləri BİR şəbəkədə (təkrar yox).

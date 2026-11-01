@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
+import ReaderDialog from '../components/reader/ReaderDialog'
 import '../styles/IslamicHistoryPage.css'
 // Yer fotoları (Wikimedia Commons) və siyər xəritələri (öz SVG) — canlı təsvir yoxdur
 import PlacePhoto from '../components/media/PlacePhoto'
@@ -53,6 +54,7 @@ const LABELS = {
     eventsTitle: 'Dövrlər üzrə hadisələr', eventsLead: 'Dövrü seçin — zaman xətti yalnız onu göstərsin. «Bütün dövrlər» hadisələri il ardıcıllığı ilə açır.',
     allEras: 'Bütün dövrlər', eraFilter: 'Dövr', nEvents: (n) => `${n} hadisə`, now: 'bu gün',
     relEyebrow: 'Davamı', relTitle: 'Əlaqəli bölmələr',
+    read: 'Ətraflı', close: 'Bağla', prev: 'Əvvəlki', next: 'Növbəti', search: 'Peyğəmbər axtar...', onlyUlul: 'Yalnız ülul-əzm', noResults: 'Nəticə tapılmadı',
   },
   en: {
     eyebrow: 'Hadith & knowledge', sections: 'Sections', title: 'Islamic History',
@@ -66,6 +68,7 @@ const LABELS = {
     eventsTitle: 'Events by era', eventsLead: 'Pick an era to show only it on the timeline. “All eras” lists every event in order of year.',
     allEras: 'All eras', eraFilter: 'Era', nEvents: (n) => `${n} ${n === 1 ? 'event' : 'events'}`, now: 'today',
     relEyebrow: 'Continue', relTitle: 'Related sections',
+    read: 'Details', close: 'Close', prev: 'Previous', next: 'Next', search: 'Search prophets...', onlyUlul: 'Only ulul-‘azm', noResults: 'No results found',
   },
   ru: {
     eyebrow: 'Хадисы и знание', sections: 'Разделы', title: 'Исламская история',
@@ -79,6 +82,7 @@ const LABELS = {
     eventsTitle: 'События по эпохам', eventsLead: 'Выберите эпоху, чтобы шкала показала только её. «Все эпохи» — все события по годам.',
     allEras: 'Все эпохи', eraFilter: 'Эпоха', nEvents: (n) => `${n} ${ruPlural(n, 'событие', 'события', 'событий')}`, now: 'сегодня',
     relEyebrow: 'Дальше', relTitle: 'Связанные разделы',
+    read: 'Подробнее', close: 'Закрыть', prev: 'Назад', next: 'Далее', search: 'Поиск пророка...', onlyUlul: 'Только улюль-‘азм', noResults: 'Ничего не найдено',
   },
   ar: {
     eyebrow: 'الحديث والعلم', sections: 'الأقسام', title: 'التاريخ الإسلامي',
@@ -92,6 +96,7 @@ const LABELS = {
     eventsTitle: 'الأحداث حسب الحقب', eventsLead: 'اختر حقبة ليعرضها الخط الزمني وحدها، و«كل الحقب» يعرض جميع الأحداث حسب السنة.',
     allEras: 'كل الحقب', eraFilter: 'الحقبة', nEvents: (n) => (n === 1 ? 'حدث واحد' : n === 2 ? 'حدثان' : n <= 10 ? `${n} أحداث` : `${n} حدثًا`), now: 'اليوم',
     relEyebrow: 'للمتابعة', relTitle: 'أقسام ذات صلة',
+    read: 'التفاصيل', close: 'إغلاق', prev: 'السابق', next: 'التالي', search: 'ابحث عن نبي...', onlyUlul: 'أولو العزم فقط', noResults: 'لم يتم العثور على نتائج',
   },
   tr: {
     eyebrow: 'Hadis ve ilim', sections: 'Bölümler', title: 'İslam Tarihi',
@@ -105,6 +110,7 @@ const LABELS = {
     eventsTitle: 'Dönemlere göre olaylar', eventsLead: 'Bir dönem seçin — zaman çizelgesi yalnız onu göstersin. «Tüm dönemler» bütün olayları yıl sırasıyla açar.',
     allEras: 'Tüm dönemler', eraFilter: 'Dönem', nEvents: (n) => `${n} olay`, now: 'bugün',
     relEyebrow: 'Devamı', relTitle: 'İlgili bölümler',
+    read: 'Ayrıntılar', close: 'Kapat', prev: 'Önceki', next: 'Sonraki', search: 'Peygamber ara...', onlyUlul: 'Yalnızca ülü’l-azm', noResults: 'Sonuç bulunamadı',
   },
 }
 
@@ -167,6 +173,24 @@ export default function IslamicHistoryPage() {
     .filter(g => g.items.length)
   const span = (x) => `${x.from}–${x.to ?? L.now}`
 
+  // ── Peyğəmbərlər: axtarış + ülul-əzm süzgəci ──
+  const [pq, setPq] = useState('')
+  const [ululOnly, setUlulOnly] = useState(false)
+  const prophets = useMemo(() => {
+    const q = pq.trim().toLocaleLowerCase()
+    return PROPHETS.filter(p => (!ululOnly || ULUL_AZM.includes(p.num)) &&
+      (!q || [p.name[lang], p.name.en, p.arabic].some(s => String(s || '').toLocaleLowerCase().includes(q))))
+  }, [pq, ululOnly, lang])
+
+  // ── Oxu pəncərəsi: { kind: 'p' | 'e', i } — cari (süzülmüş) siyahı üzrə əvvəlki/növbəti ──
+  const [reader, setReader] = useState(null)
+  const eventList = useMemo(() => groups.flatMap(g => g.items), [groups])
+  const rList = reader?.kind === 'p' ? prophets : eventList
+  const rItem = reader ? rList[reader.i] : null
+  const openP = (i) => setReader({ kind: 'p', i })
+  const openE = (e) => setReader({ kind: 'e', i: eventList.indexOf(e) })
+  const onCard = (fn) => (e) => { if (e.target.closest('a, button, summary, input')) return; fn() }
+
   return (
     <div className="history-page">
       <header className="ui-page-hero ui-page-hero--split hist-hero">
@@ -220,11 +244,28 @@ export default function IslamicHistoryPage() {
                     <p>{L.ululText}</p>
                   </div>
                 </aside>
+                <div className="hx-toolbar">
+                  <label className="hx-search">
+                    <span className="ui-sr-only">{L.search}</span>
+                    <Icon name="search" size={18} className="hx-search__ic" />
+                    <input type="search" className="ui-input" placeholder={L.search} value={pq} onChange={e => setPq(e.target.value)} />
+                  </label>
+                  <button type="button" className="ui-chip hx-ulul-chip" aria-pressed={ululOnly} onClick={() => setUlulOnly(v => !v)}>
+                    <Icon name="star" size={15} /> {L.onlyUlul} <span className="ui-num">{ULUL_AZM.length}</span>
+                  </button>
+                  <span className="hx-count ui-num" aria-live="polite">{prophets.length} / {PROPHETS.length}</span>
+                </div>
+                {prophets.length === 0 && (
+                  <div className="ui-card ui-card--sunken hx-empty">
+                    <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="search" /></span>
+                    <p>{L.noResults}</p>
+                  </div>
+                )}
                 <ol className="hx-prophets">
-                  {PROPHETS.map(p => {
+                  {prophets.map((p, pi) => {
                     const key = ULUL_AZM.includes(p.num)
                     return (
-                      <li key={p.num} className={`ui-card hx-prophet${key ? ' is-key' : ''}`}>
+                      <li key={p.num} className={`ui-card hx-prophet hx-clickable${key ? ' is-key' : ''}`} onClick={onCard(() => openP(pi))}>
                         <div className="hx-prophet__head">
                           <span className="hx-prophet__num ui-num" aria-hidden="true">{p.num}</span>
                           <div className="hx-prophet__names">
@@ -235,16 +276,10 @@ export default function IslamicHistoryPage() {
                         </div>
                         <p className="hx-prophet__era"><Icon name="clock" size={14} /> {t(p.era, lang)}</p>
                         <p className="hx-prophet__desc">{t(p.desc, lang)}</p>
-                        <details className="hx-more">
-                          <summary><Icon name="chevronDown" size={16} className="hx-more__ic" /> {L.more}</summary>
-                          <p><strong>{L.keyFact}:</strong> {t(p.keyFact, lang)}</p>
-                          {p.quranRef && <p className="hx-more__ref"><Icon name="quran" size={14} /> {L.quranRef}:{' '}
-                            {/* Hər istinad bütöv qalır (sətir yalnız istinadlar arasında qırılır) */}
-                            <span dir="ltr" className="hx-more__refs">{p.quranRef.split(/,\s*/).map((r, i, a) => (
-                              <span key={i}>{i > 0 && ' '}<span className="hx-more__refi">{r}{i < a.length - 1 ? ',' : ''}</span></span>
-                            ))}</span>
-                          </p>}
-                        </details>
+                        <button type="button" className="hx-open" onClick={() => openP(pi)} aria-haspopup="dialog">
+                          <Icon name="learn" size={16} /> {L.more}<span className="ui-sr-only">: {t(p.name, lang)}</span>
+                          <Icon name="arrow" size={15} className="ui-flip-rtl hx-open__arr" />
+                        </button>
                       </li>
                     )
                   })}
@@ -282,15 +317,15 @@ export default function IslamicHistoryPage() {
                         {g.items.map(e => {
                           const photo = EVENT_PHOTO[e.title.en]
                           return (
-                            <li key={`${e.title.en}|${e.year.en}`} className={`hx-ev${photo ? ' hx-ev--media' : ''}`}>
+                            <li key={`${e.title.en}|${e.year.en}`} className={`hx-ev hx-clickable${photo ? ' hx-ev--media' : ''}`} onClick={onCard(() => openE(e))}>
                               <span className="hx-ev__when ui-num">{whenOf(e)}</span>
                               <div className="hx-ev__body">
                                 <h4 className="hx-ev__title">{t(e.title, lang)}</h4>
                                 <p className="hx-ev__desc">{t(e.desc, lang)}</p>
-                                <details className="hx-more">
-                                  <summary><Icon name="chevronDown" size={16} className="hx-more__ic" /> {L.keyFact}</summary>
-                                  <p>{t(e.keyFact, lang)}</p>
-                                </details>
+                                <button type="button" className="hx-open" onClick={() => openE(e)} aria-haspopup="dialog">
+                                  <Icon name="learn" size={16} /> {L.keyFact}<span className="ui-sr-only">: {t(e.title, lang)}</span>
+                                  <Icon name="arrow" size={15} className="ui-flip-rtl hx-open__arr" />
+                                </button>
                               </div>
                               {photo && (
                                 <div className="hx-ev__media">
@@ -344,6 +379,59 @@ export default function IslamicHistoryPage() {
           <RelatedLinks items={RELATED} />
         </div>
       </section>
+
+      <ReaderDialog
+        open={!!rItem}
+        onClose={() => setReader(null)}
+        onPrev={reader && reader.i > 0 ? () => setReader({ ...reader, i: reader.i - 1 }) : undefined}
+        onNext={reader && reader.i < rList.length - 1 ? () => setReader({ ...reader, i: reader.i + 1 }) : undefined}
+        labelledBy="hx-read-title"
+        position={reader ? `${reader.i + 1} / ${rList.length}` : null}
+        labels={{ close: L.close, prev: L.prev, next: L.next }}
+        contentKey={reader ? `${reader.kind}${reader.i}` : ''}
+        className="hx-read"
+        head={rItem && (reader.kind === 'p'
+          ? <><span className="hx-prophet__num ui-num" aria-hidden="true">{rItem.num}</span>{ULUL_AZM.includes(rItem.num) && <span className="ui-badge ui-badge--accent">{L.ulul}</span>}</>
+          : <span className="hx-ev__when ui-num">{whenOf(rItem)}</span>)}
+      >
+        {rItem && reader.kind === 'p' && (
+          <article className="hx-read__body">
+            <header className="hx-read__head">
+              <h2 id="hx-read-title" className="hx-read__title">{t(rItem.name, lang)}</h2>
+              {!isAr && <p className="hx-read__ar ui-arabic" lang="ar" dir="rtl">{rItem.arabic}</p>}
+            </header>
+            <p className="hx-prophet__era"><Icon name="clock" size={14} /> {t(rItem.era, lang)}</p>
+            <p className="hx-read__desc">{t(rItem.desc, lang)}</p>
+            <div className="hx-read__fact">
+              <span className="hx-read__label">{L.keyFact}</span>
+              <p>{t(rItem.keyFact, lang)}</p>
+            </div>
+            {rItem.quranRef && (
+              <p className="hx-more__ref"><Icon name="quran" size={14} /> {L.quranRef}:{' '}
+                <span dir="ltr" className="hx-more__refs">{rItem.quranRef.split(/,\s*/).map((r, i, a) => (
+                  <span key={i}>{i > 0 && ' '}<span className="hx-more__refi">{r}{i < a.length - 1 ? ',' : ''}</span></span>
+                ))}</span>
+              </p>
+            )}
+          </article>
+        )}
+        {rItem && reader.kind === 'e' && (
+          <article className="hx-read__body">
+            <h2 id="hx-read-title" className="hx-read__title">{t(rItem.title, lang)}</h2>
+            <p className="hx-prophet__era"><Icon name="history" size={14} /> {t(HISTORY_ERAS.find(x => x.key === eraOfEvent(rItem))?.name, lang)}</p>
+            {EVENT_PHOTO[rItem.title.en] && (
+              <div className="hx-read__media">
+                <PlacePhoto id={EVENT_PHOTO[rItem.title.en]} lang={lang} sizes="(min-width: 768px) 700px, 100vw" />
+              </div>
+            )}
+            <p className="hx-read__desc">{t(rItem.desc, lang)}</p>
+            <div className="hx-read__fact">
+              <span className="hx-read__label">{L.keyFact}</span>
+              <p>{t(rItem.keyFact, lang)}</p>
+            </div>
+          </article>
+        )}
+      </ReaderDialog>
     </div>
   )
 }

@@ -675,3 +675,9 @@
   }
   .hg-days > .ui-container > .ui-section-head { position: sticky; top: calc(var(--header-offset, var(--header-h, 64px)) + 24px); margin-bottom: 0; }
 }
+
+/* ══ v3.2 — "qaldığınız yerdən davam edin" zolağı ══ */
+.hg-page .hg-resume { margin-bottom: var(--space-4); max-width: 820px; }
+.hg-resume__bar { display: block; height: 4px; margin-top: 6px; border-radius: var(--radius-pill); background: var(--viz-track); overflow: hidden; }
+.hg-resume__bar > span { display: block; height: 100%; width: 100%; background: var(--brand); transform-origin: left center; transform: scaleX(var(--p, 0)); }
+[dir="rtl"] .hg-resume__bar > span { transform-origin: right center; }

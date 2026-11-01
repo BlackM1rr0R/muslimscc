@@ -514,3 +514,145 @@
 .cal-info-chip { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
 .cal-info-chip svg { color: var(--accent); flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) { .cal-info__chev { transition: none; } }
+
+/* ═══ v3.2: qarşıdakı günlər — geri sayımlı kartlar ═══ */
+.cal-up { margin-block: 0 var(--space-5); }
+.cal-up__title {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 var(--space-3);
+  font-size: var(--step-0); font-weight: 600; color: var(--text-strong);
+}
+.cal-up__title svg { color: var(--brand); }
+.cal-up__list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-3);
+  align-items: stretch;
+}
+.cal-up__list > li { display: flex; }
+.cal-up__card {
+  display: flex; flex-direction: column; gap: 8px;
+  width: 100%;
+  padding: var(--space-4);
+  text-align: start;
+  font: inherit; color: inherit;
+  transition: transform var(--dur-2, 240ms) var(--ease-out, ease), box-shadow var(--dur-2, 240ms) ease, border-color var(--dur-2, 240ms) ease;
+}
+button.cal-up__card { cursor: pointer; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  button.cal-up__card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+}
+.cal-up__card.is-major { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.cal-up__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cal-up__cd { white-space: nowrap; }
+.cal-up__name {
+  font-weight: 600; color: var(--text-strong); font-size: var(--step--1); line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cal-up__date { display: flex; flex-direction: column; gap: 2px; margin-top: auto; font-size: var(--step--2); color: var(--text-tertiary); }
+.cal-up__date > :first-child { color: var(--text-secondary); font-weight: 500; }
+@media (max-width: 599.98px) {
+  /* telefonda üfüqi sürüşən zolaq — səhifə uzanmasın */
+  .cal-up__list {
+    grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(220px, 72%);
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    padding-bottom: 4px; overscroll-behavior-x: contain;
+  }
+  .cal-up__list::-webkit-scrollbar { display: none; }
+  .cal-up__list > li { scroll-snap-align: start; }
+}
+
+/* ═══ v3.2: sünnə orucları ═══ */
+.cal-sf__grid {
+  display: grid;
+  gap: var(--space-4);
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .cal-sf__grid { grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); }
+  .cal-sf__qada { grid-column: 1; }
+  .cal-sf__up { grid-column: 2; grid-row: 1 / span 2; }
+}
+@media (min-width: 700px) and (max-width: 1099.98px) {
+  .cal-sf__grid { grid-template-columns: 1fr 1fr; }
+  .cal-sf__up { grid-column: 1 / -1; }
+}
+.cal-sf__today, .cal-sf__qada { display: flex; flex-direction: column; gap: var(--space-3); }
+.cal-sf__today-head { display: flex; align-items: center; gap: var(--space-3); }
+.cal-sf__today-txt { display: flex; flex-direction: column; min-width: 0; }
+.cal-sf__today-txt b { color: var(--text-strong); font-weight: 600; }
+.cal-sf__k { font-size: var(--step--2); color: var(--text-tertiary); font-weight: 600; }
+.cal-sf__status {
+  margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 10px 12px; border-radius: var(--radius-md);
+  background: var(--surface-2); color: var(--text-secondary); font-size: var(--step--1);
+}
+.cal-sf__status.is-yes { background: var(--brand-soft); color: var(--text-strong); }
+.cal-sf__status.is-yes > svg { color: var(--brand); }
+.cal-sf__status.is-warn > svg { color: var(--accent); }
+.cal-sf__chips { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.cal-sf__log { width: 100%; justify-content: center; }
+.cal-sf__week { display: flex; flex-direction: column; gap: 6px; }
+.cal-sf__week-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal-sf__wd {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  min-height: 56px; padding: 6px 0;
+  border: 1px solid var(--line); border-radius: var(--radius-md);
+  background: var(--surface-1); color: var(--text-secondary);
+  font: inherit; cursor: pointer;
+  transition: background-color var(--dur-1, 150ms) ease, border-color var(--dur-1, 150ms) ease;
+}
+.cal-sf__wd:disabled { opacity: .45; cursor: not-allowed; }
+.cal-sf__wd.is-today { border-color: var(--brand); }
+.cal-sf__wd.is-on { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.cal-sf__wd-n { font-size: 11px; }
+.cal-sf__wd-d { font-weight: 700; font-size: var(--step--1); }
+.cal-sf__wd-ic { height: 12px; display: grid; place-items: center; }
+.cal-sf__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.cal-sf__stats { margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.cal-sf__stats > div {
+  display: flex; flex-direction: column-reverse; align-items: center; justify-content: flex-end; gap: 2px; text-align: center;
+  padding: 8px 4px; border-radius: var(--radius-md); background: var(--surface-2);
+}
+.cal-sf__stats dd { margin: 0; font-size: var(--step-1); font-weight: 700; color: var(--brand); }
+.cal-sf__stats dt { font-size: 11px; color: var(--text-secondary); line-height: 1.25; }
+.cal-sf__h { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--step-0); font-weight: 600; color: var(--text-strong); }
+.cal-sf__h svg { color: var(--brand); }
+.cal-sf__up { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.cal-sf__cards {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-3); align-items: start;
+}
+.cal-sf__card { display: flex; align-items: center; gap: var(--space-3); padding: 12px 14px; }
+.cal-sf__card.is-major { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.cal-sf__date {
+  flex: 0 0 auto; width: 48px; height: 52px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: var(--radius-md); background: var(--brand-soft); color: var(--brand);
+}
+.cal-sf__card.is-major .cal-sf__date { background: var(--accent-soft); color: var(--accent-text); }
+.cal-sf__date-d { font-size: var(--step-1); font-weight: 700; line-height: 1; }
+.cal-sf__date-w { font-size: 11px; }
+.cal-sf__card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.cal-sf__card-g { font-size: var(--step--2); color: var(--text-secondary); }
+.cal-sf__in { flex: 0 0 auto; font-size: var(--step--2); color: var(--text-tertiary); font-weight: 600; white-space: nowrap; }
+.cal-sf__muted { margin: 0; font-size: var(--step--1); color: var(--text-secondary); }
+.cal-sf__qrow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.cal-sf__qnum { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.cal-sf__qnum b { font-size: var(--step-3, 2rem); font-weight: 700; color: var(--text-strong); line-height: 1.1; }
+.cal-sf__qnum span { font-size: var(--step--2); color: var(--text-tertiary); }
+.cal-sf__qact { display: flex; flex-wrap: wrap; gap: 8px; }
+.cal-sf__qact .ui-btn { flex: 1 1 auto; justify-content: center; }
+.cal-sf__more { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-size: var(--step--1); min-height: 44px; }
+.cal-sf__ev { margin-top: var(--space-4); padding: var(--space-3) var(--space-4); }
+.cal-sf__ev > summary {
+  display: flex; align-items: center; gap: 8px; min-height: 44px;
+  cursor: pointer; list-style: none; font-weight: 600; color: var(--text-strong);
+}
+.cal-sf__ev > summary::-webkit-details-marker { display: none; }
+.cal-sf__chev { margin-inline-start: auto; transition: transform var(--dur-1, 150ms) ease; }
+.cal-sf__ev[open] .cal-sf__chev { transform: rotate(180deg); }
+.cal-sf__ev ul { margin: 0 0 var(--space-3); padding-inline-start: 1.2em; color: var(--text-secondary); font-size: var(--step--1); display: grid; gap: 4px; }
+.cal-sf__ev .cal-sf__muted { margin-bottom: var(--space-3); font-size: var(--step--2); }

@@ -178,7 +178,7 @@
   border-top: 1px solid var(--line);
   font-size: var(--step--1);
 }
-.sahabe-card-meta { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); }
+.sahabe-card-meta { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); }
 .sahabe-card-read { display: inline-flex; align-items: center; gap: 4px; color: var(--brand); font-weight: 600; }
 .sahabe-card-read .ui-link__arrow { transition: transform var(--dur-2) var(--ease-out); }
 .sahabe-card-chev { display: none; color: var(--text-tertiary); flex-shrink: 0; }
@@ -771,4 +771,33 @@ html.sp-vt::view-transition-new(root) { animation: 360ms cubic-bezier(0.22, 1, 0
 .sahabe-hero__jump .ui-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; }
 .sp-timeline { scroll-margin-top: calc(var(--header-h, 64px) + 8px); }
 .sp-timeline .ui-figure { max-width: 920px; }
-.sp-related .ui-list { max-width: 760px; }
+.sp-related .ui-list { max-width: none; }
+
+/* ══ v3.2 — sıralama zolağı, seçilmişlər (kartda ulduz), təsadüfi səhabə ══ */
+.sp-list .sp-toolbar { margin-bottom: var(--space-3); }
+.sp-subbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-5); }
+.sahabe-page .sp-sort > button { min-height: 40px; }
+.sp-count { color: var(--text-tertiary); font-size: var(--step--1); }
+.sahabe-page .sp-random { margin-inline-start: auto; min-height: 44px; }
+.sp-fav-chip svg { color: var(--accent); }
+.sp-fav-chip[aria-pressed="true"] svg { fill: currentColor; color: inherit; }
+.sahabe-grid > li.sp-cell { position: relative; }
+.sahabe-page .sp-card-star {
+  position: absolute; z-index: 2; top: 14px; inset-inline-end: 14px;
+  background: color-mix(in srgb, var(--surface-1) 86%, transparent);
+  box-shadow: var(--shadow-1);
+  border-radius: 50%;
+}
+.sahabe-page .sp-card-star:not(.is-on) { opacity: 0; transition: opacity var(--dur-2) ease; }
+.sahabe-page .sp-cell:hover .sp-card-star, .sahabe-page .sp-cell:focus-within .sp-card-star { opacity: 1; }
+@media (hover: none) { .sahabe-page .sp-card-star:not(.is-on) { opacity: 1; } }
+.sp-hero__actions .cl-star { border: 1px solid var(--line); }
+@media (max-width: 767.98px) {
+  .sahabe-page .sp-card-star { top: 50%; transform: translateY(-50%); inset-inline-end: 34px; box-shadow: none; background: transparent; }
+  .sahabe-page .sp-random { margin-inline-start: 0; flex: 1 1 100%; justify-content: center; }
+  .sp-subbar { margin-bottom: var(--space-4); }
+}
+@media (max-width: 767.98px) {
+  .sahabe-page .sp-cell .sahabe-card { padding-inline-end: 78px; }
+  .sahabe-page .sp-cell .sahabe-card-chev { position: absolute; inset-inline-end: 12px; }
+}

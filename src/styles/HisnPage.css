@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════
    HİSNUL-MÜSLİM — dizayn v3 (DESIGN.md). Vəziyyət kafelləri ("nə vaxt nə
-   deyim?") → oxuyucu: fəsil başlığı + zikr kartları. Yalnız tokenlər.
+   deyim?") → alət zolağı → fəsil KART GRID-i → fəsil oxu pəncərəsi
+   (ReaderDialog: zikr kartları, sayğac). Yalnız tokenlər.
    ══════════════════════════════════════════════════════════════════ */
 .hs-page { min-height: 60vh; }
 .hs-page .ui-section--tight { padding-top: var(--space-6); }
@@ -35,30 +36,6 @@
 .hs-loading { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: var(--space-4); }
 .hs-page .hs-empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-7) var(--space-5); text-align: center; }
 
-.hs-page .hs-toc { padding: 0; background: var(--surface-1); }
-.hs-toc__sum { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 12px 16px; color: var(--text-strong); font-weight: 600; cursor: pointer; list-style: none; }
-.hs-toc__sum::-webkit-details-marker { display: none; }
-.hs-toc__n { color: var(--text-tertiary); font-weight: 500; }
-.hs-toc__chev { margin-inline-start: auto; color: var(--text-tertiary); transition: transform var(--dur-2) var(--ease-out); }
-.hs-toc[open] .hs-toc__chev { transform: rotate(180deg); }
-/* Fəsil siyahısı: 1–3 sütun, nömrə ayrıca (sakit), uzun ad iki sətrə qədər */
-.hs-toc__list {
-  columns: 3 260px; column-gap: var(--space-5);
-
-  margin: 0; padding: 4px 16px 16px calc(16px + 2em);
-  border-top: 1px solid var(--line);
-}
-.hs-toc__list li { break-inside: avoid; padding: 0; line-height: 1.45; }
-.hs-toc__list li::marker { color: var(--text-tertiary); font-family: var(--font-num); font-size: 12px; font-variant-numeric: tabular-nums; }
-.hs-toc__list a { display: block; padding: 5px 8px; margin-inline-start: -4px; border-radius: var(--radius-sm); color: var(--text-body); font-size: var(--step--1); text-decoration: none; }
-@media (hover: hover) { .hs-toc__list a:hover { background: var(--surface-2); color: var(--brand); } }
-.hs-toc__list a:focus-visible { outline: 2px solid var(--ring); outline-offset: 0; }
-
-.hs-chapters { display: flex; flex-direction: column; gap: var(--space-7); margin-top: var(--space-3); }
-.hs-chapter { display: flex; flex-direction: column; gap: var(--space-3); scroll-margin-top: calc(var(--header-h, 64px) + 16px); }
-.hs-chapter__title { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; line-height: 1.3; }
-.hs-chapter__title > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.hs-chapter__n { display: grid; place-items: center; flex-shrink: 0; min-width: 34px; height: 34px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--brand-soft); color: var(--brand); font-family: var(--font-num); font-size: var(--step--1); font-weight: 600; }
 .hs-chapter__ar { color: var(--accent-text); font-size: 17px; font-weight: 400; line-height: 1.6; }
 
 /* Zikrlər: geniş ekranda 2 sütunlu masonry (≥~880px məzmun eni), oxu sırası
@@ -67,7 +44,7 @@
 .hs-chapter__items.is-single { columns: 1; }
 .hs-chapter__items > .hs-item { break-inside: avoid; margin-bottom: var(--space-4); }
 .hs-chapter__items > .hs-item:last-child { margin-bottom: 0; }
-.hs-page .hs-item { display: flex; flex-direction: column; gap: 12px; padding: var(--space-5); }
+.hs-page .hs-item, .hs-dlg .hs-item { display: flex; flex-direction: column; gap: 12px; padding: var(--space-5); }
 .hs-item__head { display: flex; align-items: center; justify-content: space-between; }
 .hs-item__tools { display: inline-flex; gap: 4px; }
 .hs-item__n { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; }
@@ -109,15 +86,105 @@
 .hs-filterbar__n { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
 .hs-related .ui-title { margin-bottom: var(--space-3); }
 
+/* ── v3.2: alət zolağında göstərmə çipləri (hamısı / seçilmişlər / davam et) ── */
+.hs-toolbar__chips { display: flex; flex-wrap: wrap; gap: 6px; flex-basis: 100%; }
+.hs-chip__n {
+  display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 6px;
+  border-radius: var(--radius-pill); background: var(--surface-2); color: var(--text-tertiary);
+  font-size: var(--step--2); font-weight: 600;
+}
+.hs-toolbar__chips [aria-pressed="true"] .hs-chip__n { background: color-mix(in srgb, var(--on-brand) 22%, transparent); color: inherit; }
+.hs-chip__t { max-width: 26ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hs-page .hs-chip--cont { border-color: var(--brand-line); color: var(--brand); }
+.hs-page .hs-empty-favs { border-style: dashed; }
+
+/* ── v3.2: fəsil KART GRID-i ── */
+.hs-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-3); align-items: start;
+  margin: var(--space-2) 0 0; padding: 0; list-style: none;
+}
+.hs-page .hs-card {
+  position: relative; display: flex; flex-direction: column; gap: 8px;
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  scroll-margin-top: calc(var(--header-h, 64px) + 120px);
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) {
+  .hs-page .hs-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); transform: translateY(-2px); }
+  .hs-card:hover .hs-card__read { color: var(--brand); }
+}
+.hs-page .hs-card:focus-within { border-color: var(--brand-line); }
+.hs-page .hs-card.is-fav { border-color: var(--accent-line); }
+.hs-card__top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.hs-card__n {
+  display: grid; place-items: center; flex-shrink: 0; min-width: 34px; height: 34px; padding: 0 6px; border-radius: 11px;
+  background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand-line);
+  color: var(--brand); font-size: var(--step--1); font-weight: 700;
+}
+.hs-card__n--solid { background: var(--brand); box-shadow: none; color: var(--on-brand); }
+.hs-card__cat { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.hs-card__fav {
+  position: relative; z-index: 2; flex-shrink: 0; margin-inline-start: auto;
+  display: grid; place-items: center; width: 44px; height: 44px; margin-block: -6px; margin-inline-end: -8px;
+  border: 0; border-radius: 50%; background: transparent; color: var(--line-strong); cursor: pointer;
+  transition: color var(--dur-1) ease, background-color var(--dur-1) ease;
+}
+.hs-card__fav.is-on { color: var(--accent); }
+.hs-card__fav.is-on svg { fill: currentColor; }
+@media (hover: hover) { .hs-card__fav:hover { background: var(--surface-2); color: var(--accent); } }
+.hs-card__fav:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.hs-card__title { margin: 0; font-family: var(--font-heading); font-size: var(--step-0); font-weight: 650; line-height: 1.35; }
+.hs-card__open { padding: 0; border: 0; background: none; color: var(--text-strong); font: inherit; text-align: start; cursor: pointer; }
+.hs-card__open::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: var(--radius-lg); }
+.hs-card__open:focus-visible { outline: none; }
+.hs-card__open:focus-visible::after { outline: 2px solid var(--ring); outline-offset: 2px; }
+.hs-card__ar { color: var(--accent-text); font-size: 17px; line-height: 1.6; }
+.hs-card__preview {
+  color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
+.hs-card__preview.ui-arabic { font-size: var(--step-0); line-height: 1.9; }
+.hs-card__foot { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 4px; }
+.hs-card__meta { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; }
+.hs-card__read {
+  display: inline-flex; align-items: center; gap: 2px; margin-inline-start: auto;
+  color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--1); font-weight: 600;
+  transition: color var(--dur-1) ease;
+}
+
+/* ── v3.2: fəsil oxu pəncərəsi (ReaderDialog, portal — .hs-page xaricində) ── */
+.hs-dlg__body { display: flex; flex-direction: column; gap: var(--space-4); }
+.hs-dlg__title {
+  display: flex; flex-direction: column; gap: 2px;
+  color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-2); font-weight: 650; line-height: 1.25;
+}
+.hs-dlg__items { display: flex; flex-direction: column; gap: var(--space-3); }
+.hs-dlg .hs-item { display: flex; flex-direction: column; gap: 12px; padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-1); box-shadow: none; }
+.hs-dlg .hs-item__ar { padding: 0; }
+.hs-dlg__actions { display: flex; flex-wrap: wrap; gap: 6px; padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.hs-dlg .hs-card__cat { background: var(--surface-2); }
+
 @media (max-width: 767.98px) {
   .hs-page .hs-tiles { --ui-tiles-min: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hs-page .hs-tile { flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 12px; }
   .hs-page .hs-item { padding: var(--space-4); }
-  .hs-toc__list { columns: 1; }
 }
 @media (max-width: 599.98px) { .hs-hero__by { display: none; } .hs-toolbar__count { display: none; } .hs-toolbar { padding: 6px; } }
 
 /* Əlaqəli bölmələr: geniş ekranda yan-yana (sətir xətləri sütunlarda saxlanılır) */
 @media (min-width: 900px) {
   .hs-page .hs-related .ui-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--space-5); }
+}
+@media (max-width: 599.98px) {
+  .hs-toolbar__chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .hs-toolbar__chips::-webkit-scrollbar { display: none; }
+  .hs-toolbar__chips .ui-chip { flex-shrink: 0; white-space: nowrap; }
+  .hs-toolbar { position: static; }
+  .hs-card__ar { display: none; }
+  .hs-page .hs-card { gap: 6px; padding: var(--space-3) var(--space-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hs-card, .hs-card__read, .hs-card__fav { transition: none; }
+  .hs-page .hs-card:hover { transform: none; }
 }

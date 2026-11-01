@@ -341,3 +341,23 @@ html[lang="ar"] .pt-rulings-title { letter-spacing: 0; text-transform: none; }
 }
 /* RTL: aylıq zolaq sağdan dolsun (mətnsiz SVG — güzgüləmək təhlükəsizdir) */
 [dir="rtl"] .pt-month-bar { transform: scaleX(-1); }
+
+/* ══ v3.2: ardıcıllıq mərhələləri ══ */
+.pt-ms { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.pt-ms-title { margin: 0 0 8px; color: var(--text-secondary); font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; }
+.pt-ms-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pt-ms-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-pill);
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+}
+.pt-ms-item.is-got { border: 1px solid var(--accent-line, var(--accent)); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.pt-ms-item.is-got .pt-ms-ic { color: var(--accent); }
+.pt-ms-ic { display: inline-grid; place-items: center; }
+.pt-ms-next { margin: 8px 0 0; color: var(--text-secondary); font-size: var(--step--1); }

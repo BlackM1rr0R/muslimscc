@@ -14,6 +14,22 @@ import { ProgressRing } from '../components/viz'
 import { LESSONS, LESSON_CATS, CAT_BY_KEY, lessonBySlug } from '../data/lessons/index'
 import { loadLesson } from '../data/lessons/load'
 import '../styles/LessonsPage.css'
+import StarButton from '../components/collect/StarButton'
+import useStarred from '../components/collect/useStarred'
+
+// ── v3.2: vəziyyət süzgəci (oxunmamış / oxunmuş / seçilmiş), əlfəcin, şrift ölçüsü (5 dil) ──
+const LS32 = {
+  az: { status: 'Vəziyyət', sAll: 'Hamısı', sUnread: 'Oxunmamış', sRead: 'Oxunmuş', sFav: 'Seçilmişlər', favAdd: 'Seçilmişlərə əlavə et', favNone: 'Hələ seçilmiş dərs yoxdur — kartdakı ulduza toxunun.', font: 'Şrift ölçüsü', smaller: 'Kiçilt', larger: 'Böyüt' },
+  en: { status: 'Status', sAll: 'All', sUnread: 'Unread', sRead: 'Read', sFav: 'Saved', favAdd: 'Save lesson', favNone: 'No saved lessons yet — tap the star on a card.', font: 'Text size', smaller: 'Smaller', larger: 'Larger' },
+  ru: { status: 'Статус', sAll: 'Все', sUnread: 'Непрочитанные', sRead: 'Прочитанные', sFav: 'Избранное', favAdd: 'В избранное', favNone: 'В избранном пока нет уроков — нажмите звёздочку на карточке.', font: 'Размер текста', smaller: 'Меньше', larger: 'Больше' },
+  ar: { status: 'الحالة', sAll: 'الكل', sUnread: 'غير مقروءة', sRead: 'مقروءة', sFav: 'المحفوظة', favAdd: 'احفظ الدرس', favNone: 'لا توجد دروس محفوظة بعد — اضغط النجمة على البطاقة.', font: 'حجم الخط', smaller: 'تصغير', larger: 'تكبير' },
+  tr: { status: 'Durum', sAll: 'Tümü', sUnread: 'Okunmamış', sRead: 'Okunmuş', sFav: 'Kaydedilenler', favAdd: 'Dersi kaydet', favNone: 'Henüz kaydedilen ders yok — karttaki yıldıza dokunun.', font: 'Yazı boyutu', smaller: 'Küçült', larger: 'Büyüt' },
+}
+// İkon dəstində olmayan adlar (məs. "heart") — yaxın ikon
+const ICON_ALIAS = { heart: 'donate' }
+const iconOf = (name) => ICON_ALIAS[name] || name
+const FS_KEY = 'learn:fontScale'
+const FS_STEPS = [0.94, 1, 1.08, 1.16, 1.26]
 
 /* ══════════════════════════════════════════════════════════════════
    DƏRSLƏR — /learn (siyahı, kateqoriyalar üzrə) və /learn/<slug> (dərs)
@@ -174,16 +190,22 @@ export default function LessonsPage() {
 
   const [search, setSearch] = useState('')
   const [cat, setCat] = useState('all')
+  const [status, setStatus] = useState('all')
+  const X = LS32[lang] || LS32.en
+  const star = useStarred('learn:favs')
 
   const filtered = useMemo(() => {
     const q = search.trim().toLocaleLowerCase(lang)
     return LESSONS.filter(l => {
       if (cat !== 'all' && l.cat !== cat) return false
+      if (status === 'read' && !progress.readSet.has(l.slug)) return false
+      if (status === 'unread' && progress.readSet.has(l.slug)) return false
+      if (status === 'fav' && !star.list.includes(l.slug)) return false
       if (!q) return true
       return [pick(l.title, lang), pick(l.summary, lang), pick(l.author, lang), l.arTitle, l.title.en]
         .some(v => String(v || '').toLocaleLowerCase(lang).includes(q))
     })
-  }, [search, cat, lang])
+  }, [search, cat, lang, status, progress.readSet, star.list])
 
   // Dərs yuxarıdan açılır, siyahıya qayıdanda əvvəlki yer
   const listY = useRef(0)
@@ -216,7 +238,8 @@ export default function LessonsPage() {
   }
 
   if (selected) {
-    return <Lesson key={selected.slug} m={selected} L={L} lang={lang} onBack={backToList} onSibling={goSibling} progress={progress} />
+    return <Lesson key={selected.slug} m={selected} L={L} lang={lang} onBack={backToList} onSibling={goSibling} progress={progress}
+      starOn={star.has(selected.slug)} onStar={() => star.toggle(selected.slug)} X={X} />
   }
 
   const { readSet, last } = progress
@@ -226,15 +249,16 @@ export default function LessonsPage() {
   const hours = Math.round(LESSONS.reduce((s, l) => s + (l.minutes || 5), 0) / 60)
   const lastLesson = last ? lessonBySlug(last) : null
   const path = START_PATH.map(lessonBySlug).filter(Boolean)
-  const grouped = cat === 'all' && !search.trim()
+  const grouped = cat === 'all' && !search.trim() && status === 'all'
 
   const card = (l) => {
     const done = readSet.has(l.slug)
     return (
-      <li key={l.slug}>
+      <li key={l.slug} className="ls-cell">
+        <StarButton className="ls-card-star" on={star.has(l.slug)} onToggle={() => star.toggle(l.slug)} label={`${X.favAdd}: ${pick(l.title, lang)}`} />
         <a className={`ui-card ui-card--interactive ls-card${done ? ' is-read' : ''}`} href={pathFor('learn', lang, l.slug)} onClick={(e) => open(l, e)}>
           <span className="ls-card__top">
-            <span className="ui-icon-tile ui-icon-tile--sm"><Icon name={l.icon || CAT_BY_KEY[l.cat]?.icon || 'books'} /></span>
+            <span className="ui-icon-tile ui-icon-tile--sm"><Icon name={iconOf(l.icon) || CAT_BY_KEY[l.cat]?.icon || 'books'} /></span>
             {done
               ? <span className="ls-card__done"><Icon name="check" size={14} /> {L.isRead}</span>
               : <span className="ls-card__min ui-num"><Icon name="clock" size={14} /> {L.min(l.minutes || 5)}</span>}
@@ -327,6 +351,16 @@ export default function LessonsPage() {
             </div>
           </div>
 
+          <div className="ls-status">
+            <div className="ui-segmented ls-status__seg" role="group" aria-label={X.status}>
+              {[['all', X.sAll, LESSONS.length], ['unread', X.sUnread, LESSONS.length - readTotal], ['read', X.sRead, readTotal], ['fav', X.sFav, star.count]].map(([k, lbl, n]) => (
+                <button key={k} type="button" aria-pressed={status === k} onClick={() => setStatus(k)}>
+                  {k === 'fav' && <Icon name="star" size={14} />}{lbl} <span className="ls-status__n ui-num">{n}</span>
+                </button>
+              ))}
+            </div>
+            <span className="ls-status__count ui-num" aria-live="polite">{L.count(filtered.length)}</span>
+          </div>
           <div className="ls-cats" role="group" aria-label={L.cats}>
             <button type="button" className="ls-cat" aria-pressed={cat === 'all'} onClick={() => setCat('all')}>
               <span className="ls-cat__icon" aria-hidden="true"><Icon name="learn" size={18} /></span>
@@ -418,7 +452,12 @@ function ReadingBar({ targetRef, label }) {
    DƏRS — hero → içindəkilər (yuxarıda yapışqan çip zolağı) → bölmələr → "Oxudum" →
    mənbələr → əvvəlki/növbəti + eyni kateqoriyadan.
    ══════════════════════════════════════════════════════════════════ */
-function Lesson({ m, L, lang, onBack, onSibling, progress }) {
+function Lesson({ m, L, lang, onBack, onSibling, progress, starOn, onStar, X = LS32.en }) {
+  // Şrift ölçüsü — bütün dərslər üçün bir seçim (localStorage, try/catch)
+  const [fs, setFsState] = useState(() => {
+    try { const raw = localStorage.getItem(FS_KEY); const v = raw == null ? 1 : Number(raw); return Number.isInteger(v) && v >= 0 && v < FS_STEPS.length ? v : 1 } catch { return 1 }
+  })
+  const setFs = (v) => { setFsState(v); try { localStorage.setItem(FS_KEY, String(v)) } catch { /* yaddaş bağlıdır */ } }
   const [state, setState] = useState({ status: 'loading', data: null })
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
@@ -519,6 +558,11 @@ function Lesson({ m, L, lang, onBack, onSibling, progress }) {
             <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={share}>
               <Icon name="share" className="ui-btn__icon" /> {L.share}
             </button>
+            {onStar && <StarButton className="ls-lhero__star" on={starOn} onToggle={onStar} label={X.favAdd} />}
+            <span className="ui-segmented ls-fs" role="group" aria-label={X.font}>
+              <button type="button" onClick={() => setFs(Math.max(0, fs - 1))} disabled={fs === 0} aria-label={X.smaller} title={X.smaller}>A−</button>
+              <button type="button" onClick={() => setFs(Math.min(FS_STEPS.length - 1, fs + 1))} disabled={fs === FS_STEPS.length - 1} aria-label={X.larger} title={X.larger}>A+</button>
+            </span>
             {data && <ListenButton target=".ls-article" selector="h2, h3, p, li, blockquote" />}
           </div>
         </div>
@@ -544,7 +588,7 @@ function Lesson({ m, L, lang, onBack, onSibling, progress }) {
             </aside>
           )}
 
-          <article className="ls-article" ref={articleRef} aria-busy={state.status === 'loading'}>
+          <article className="ls-article" ref={articleRef} aria-busy={state.status === 'loading'} data-fs={fs !== 1 ? '' : undefined} style={{ '--ls-fs': FS_STEPS[fs] }}>
             {state.status === 'loading' && (
               <div className="ls-loading" role="status">
                 <span className="ui-skeleton ui-skeleton--text" style={{ '--w': '40%' }} />
@@ -614,7 +658,7 @@ function Lesson({ m, L, lang, onBack, onSibling, progress }) {
                 {inCat.filter(x => x !== m).map(x => (
                   <li key={x.slug}>
                     <a className="ls-same__item" href={pathFor('learn', lang, x.slug)} onClick={(e) => onSibling(x, e)}>
-                      <Icon name={readSet.has(x.slug) ? 'check' : (x.icon || 'books')} size={16} />
+                      <Icon name={readSet.has(x.slug) ? 'check' : (iconOf(x.icon) || 'books')} size={16} />
                       <span>{pick(x.title, lang)}</span>
                       <span className="ls-same__min ui-num">{L.min(x.minutes || 5)}</span>
                     </a>

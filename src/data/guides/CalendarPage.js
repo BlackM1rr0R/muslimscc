@@ -283,11 +283,11 @@ export const CAL_MONTHS_GUIDE = [
       {
         t: 'p',
         text: {
-          az: 'Cədvəldə yalnız səhih Sünnədə sabit olan və geniş yayılmış, amma əsli olmayan əməllər qısa göstərilib. Ətraflı izah və dəlillər üçün təqvimdə hadisənin üzərinə klikləyin və ya müvafiq dərsə keçin.',
-          en: 'The table briefly lists only what is established in the authentic Sunnah and widespread practices that have no basis. For details and evidence, open the event in the calendar or go to the relevant lesson.',
-          ru: 'В таблице кратко указано лишь то, что установлено достоверной Сунной, и распространённые обычаи, не имеющие основы. Подробности и доводы — в описании события в календаре и в соответствующем уроке.',
-          ar: 'يذكر الجدول باختصار ما ثبت في السنة الصحيحة، وما اشتهر مما لا أصل له، والتفصيل والأدلة في شرح الحدث في التقويم وفي الدرس المتعلق به.',
-          tr: 'Tabloda yalnızca sahih Sünnette sabit olanlar ve yaygın ama aslı olmayan uygulamalar kısaca gösterilmiştir. Ayrıntı ve deliller için takvimdeki olayı açın veya ilgili derse geçin.',
+          az: 'Aşağıdakı ay kartlarında yalnız səhih Sünnədə sabit olan və geniş yayılmış, amma əsli olmayan əməllər qısa göstərilib. Ətraflı izah və dəlillər üçün təqvimdə hadisənin üzərinə klikləyin və ya müvafiq dərsə keçin.',
+          en: 'The month cards below briefly list only what is established in the authentic Sunnah and widespread practices that have no basis. For details and evidence, open the event in the calendar or go to the relevant lesson.',
+          ru: 'В карточках месяцев ниже кратко указано лишь то, что установлено достоверной Сунной, и распространённые обычаи, не имеющие основы. Подробности и доводы — в описании события в календаре и в соответствующем уроке.',
+          ar: 'تذكر بطاقات الشهور أدناه باختصار ما ثبت في السنة الصحيحة، وما اشتهر مما لا أصل له، والتفصيل والأدلة في شرح الحدث في التقويم وفي الدرس المتعلق به.',
+          tr: 'Aşağıdaki ay kartlarında yalnızca sahih Sünnette sabit olanlar ve yaygın ama aslı olmayan uygulamalar kısaca gösterilmiştir. Ayrıntı ve deliller için takvimdeki olayı açın veya ilgili derse geçin.',
         },
       },
       {

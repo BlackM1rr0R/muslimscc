@@ -13,9 +13,12 @@ import QuranPlayer, { useQuranPlayer } from '../components/QuranPlayer'
 import AyahTafsir from '../components/TafsirPanel'
 import { readTafsirChoices, tafsirFor, saveTafsirChoice } from '../utils/tafsir'
 import { ChartFigure, BarChart, Donut, ProgressRing, StatTile, Timeline } from '../components/viz'
-import { SURAH_TABLE } from '../data/mushafIndex'
+import { SURAH_TABLE, JUZ_START_PAGES } from '../data/mushafIndex'
 import { JUZ_VERSES, juzOfSurah } from '../data/juzMap'
 import { QURAN_GUIDE } from '../data/guides/QuranPage'
+import KhatmPlanner from '../components/quran/KhatmPlanner'
+import QuranRadio from '../components/quran/QuranRadio'
+import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta } from '../utils/quranEnc'
 import '../styles/QuranPage.css'
 
 // 5 dilli sahə: { az, en, … } → cari dil ('' — qəsdən boş, məs. ərəbcədə məna təkrarlanmır)
@@ -29,6 +32,18 @@ function staticSurahName(n, lang) {
 // Hər dilin ÖZ tərcümə nəşri. Nəşr alınmasa başqa dilə (ingilis/türk)
 // DÜŞMÜRÜK — dürüst xəta + "Yenidən cəhd et" göstərilir.
 const EDITION_MAP = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', ar:'ar.muyassar', tr:'tr.diyanet' }
+
+// Standart nəşrin (EDITION_MAP) tərcüməçisi — tərcümə seçicisində və mənbə sətrində
+const DEFAULT_TRANSLATOR = { az:'Vasim Məmmədəliyev və Ziya Bünyadov', en:'Muhammad Asad', ru:'Эльмир Кулиев', ar:'التفسير الميسر', tr:'Diyanet İşleri Başkanlığı' }
+
+// QuranEnc.com tərcümə seçicisi (utils/quranEnc.js)
+const QE_LABELS = {
+  az: { label:'Tərcümə', def:'standart', group:'QuranEnc.com — yoxlanılmış tərcümələr', source:'Mənbə', version:'versiya', updated:'yenilənib', loading:'Tərcümə yüklənir…', failed:'QuranEnc tərcüməsi yüklənmədi — standart tərcümə göstərilir.', notes:'Haşiyələr' },
+  en: { label:'Translation', def:'default', group:'QuranEnc.com — reviewed translations', source:'Source', version:'version', updated:'updated', loading:'Loading translation…', failed:'The QuranEnc translation could not be loaded — showing the default translation.', notes:'Footnotes' },
+  ru: { label:'Перевод', def:'по умолчанию', group:'QuranEnc.com — проверенные переводы', source:'Источник', version:'версия', updated:'обновлено', loading:'Загрузка перевода…', failed:'Не удалось загрузить перевод QuranEnc — показан перевод по умолчанию.', notes:'Примечания' }, // lang-ok[QuranEnc]: saytın adı (brend)
+  ar: { label:'التفسير', def:'الافتراضي', group:'QuranEnc.com — تراجم وتفاسير محكَّمة', source:'المصدر', version:'الإصدار', updated:'آخر تحديث', loading:'جارٍ تحميل التفسير…', failed:'تعذّر تحميل التفسير من QuranEnc — يُعرض التفسير الافتراضي.', notes:'الحواشي' }, // lang-ok[QuranEnc]: saytın adı (brend)
+  tr: { label:'Meal', def:'varsayılan', group:'QuranEnc.com — incelenmiş mealler', source:'Kaynak', version:'sürüm', updated:'güncellendi', loading:'Meal yükleniyor…', failed:'QuranEnc meali yüklenemedi — varsayılan meal gösteriliyor.', notes:'Dipnotlar' }, // lang-ok[QuranEnc]: saytın adı (brend)
+}
 
 const RETRY_LABELS = {
   az: { msg:'Surə yüklənmədi. İnternet bağlantısını yoxlayın.', listMsg:'Surələrin siyahısı yüklənmədi. İnternet bağlantısını yoxlayın.', retry:'Yenidən cəhd et' },
@@ -52,6 +67,115 @@ const BOOKMARK_LABELS = {
   ru: 'Продолжить чтение',
   ar: 'أكمل القراءة',
   tr: 'Okumaya devam et'
+}
+
+// v3.2: görünüş tabları (surələr / cüzlər / saxlanılan ayələr), sıralama,
+// ayəni saxla / paylaş, əzbər rejimi, günün ayəsi
+const V32_LABELS = {
+  az: {
+    views:'Görünüş', surahs:'Surələr', juz:'Cüzlər', saved:'Saxlanılanlar',
+    sort:'Sıralama', sortMushaf:'Mushaf sırası', sortShort:'Əvvəlcə qısa', sortLong:'Əvvəlcə uzun',
+    read:'Oxunub', save:'Ayəni saxla', unsave:'Saxlanılanlardan çıxar', remove:'Sil',
+    share:'Paylaş', copied:'Kopyalandı',
+    memorize:'Əzbər rejimi', memorizeHint:'Ərəb mətni gizlədilib — yoxlamaq üçün «Göstər» düyməsini basın.', reveal:'Göstər', hide:'Gizlət',
+    savedEmpty:'Hələ ayə saxlamamısınız. Oxuyucuda ayənin yanındakı əlfəcin düyməsini basın — ayə burada görünəcək.',
+    savedNote:'Yalnız bu cihazda saxlanılır.',
+    votd:'Günün ayəsi', votdOpen:'Surədə aç', votdNote:'Hər gün başqa ayə',
+    juzFrom:'Başlayır', juzTo:'Bitir', surahsN: n => `${n} surə`, ayahsN: n => `${n} ayə`, pageN: n => `${azOrdinal(n)} səhifədən`,
+    openJuz:'Cüzü oxu',
+  },
+  en: {
+    views:'View', surahs:'Surahs', juz:'Juz', saved:'Saved',
+    sort:'Sort', sortMushaf:'Mushaf order', sortShort:'Shortest first', sortLong:'Longest first',
+    read:'Read', save:'Save verse', unsave:'Remove from saved', remove:'Remove',
+    share:'Share', copied:'Copied',
+    memorize:'Memorise mode', memorizeHint:'The Arabic text is hidden — press “Show” to check yourself.', reveal:'Show', hide:'Hide',
+    savedEmpty:'You have not saved any verses yet. In the reader, press the bookmark button next to a verse and it will appear here.',
+    savedNote:'Stored on this device only.',
+    votd:'Verse of the day', votdOpen:'Open in surah', votdNote:'A different verse every day',
+    juzFrom:'Starts', juzTo:'Ends', surahsN: n => `${n} ${n === 1 ? 'surah' : 'surahs'}`, ayahsN: n => `${n} verses`, pageN: n => `from page ${n}`,
+    openJuz:'Read this juz',
+  },
+  ru: {
+    views:'Вид', surahs:'Суры', juz:'Джузы', saved:'Сохранённые',
+    sort:'Сортировка', sortMushaf:'Порядок мусхафа', sortShort:'Сначала короткие', sortLong:'Сначала длинные',
+    read:'Прочитано', save:'Сохранить аят', unsave:'Убрать из сохранённых', remove:'Удалить',
+    share:'Поделиться', copied:'Скопировано',
+    memorize:'Режим заучивания', memorizeHint:'Арабский текст скрыт — нажмите «Показать», чтобы проверить себя.', reveal:'Показать', hide:'Скрыть',
+    savedEmpty:'Вы ещё не сохранили ни одного аята. В читалке нажмите кнопку закладки рядом с аятом — он появится здесь.',
+    savedNote:'Хранится только на этом устройстве.',
+    votd:'Аят дня', votdOpen:'Открыть в суре', votdNote:'Каждый день новый аят',
+    juzFrom:'Начало', juzTo:'Конец', surahsN: n => `сур: ${n}`, ayahsN: n => `аятов: ${n}`, pageN: n => `со страницы ${n}`,
+    openJuz:'Читать джуз',
+  },
+  ar: {
+    views:'العرض', surahs:'السور', juz:'الأجزاء', saved:'المحفوظات',
+    sort:'الترتيب', sortMushaf:'ترتيب المصحف', sortShort:'الأقصر أولًا', sortLong:'الأطول أولًا',
+    read:'مقروءة', save:'احفظ الآية', unsave:'أزل من المحفوظات', remove:'حذف',
+    share:'مشاركة', copied:'نُسخ',
+    memorize:'وضع الحفظ', memorizeHint:'النص العربي مخفي — اضغط «أظهر» لتختبر نفسك.', reveal:'أظهر', hide:'أخفِ',
+    savedEmpty:'لم تحفظ أي آية بعد. في القارئ اضغط زر العلامة بجانب الآية فتظهر هنا.',
+    savedNote:'تُحفظ على هذا الجهاز فقط.',
+    votd:'آية اليوم', votdOpen:'افتح في السورة', votdNote:'آية مختلفة كل يوم',
+    juzFrom:'البداية', juzTo:'النهاية', surahsN: n => `${n} سورة`, ayahsN: n => `${n} آية`, pageN: n => `من الصفحة ${n}`,
+    openJuz:'اقرأ الجزء',
+  },
+  tr: {
+    views:'Görünüm', surahs:'Sureler', juz:'Cüzler', saved:'Kaydedilenler',
+    sort:'Sıralama', sortMushaf:'Mushaf sırası', sortShort:'Önce kısa', sortLong:'Önce uzun',
+    read:'Okundu', save:'Ayeti kaydet', unsave:'Kaydedilenlerden çıkar', remove:'Sil',
+    share:'Paylaş', copied:'Kopyalandı',
+    memorize:'Ezber modu', memorizeHint:'Arapça metin gizlendi — kendinizi kontrol etmek için «Göster» düğmesine basın.', reveal:'Göster', hide:'Gizle',
+    savedEmpty:'Henüz ayet kaydetmediniz. Okuyucuda ayetin yanındaki yer imi düğmesine basın — ayet burada görünecek.',
+    savedNote:'Yalnızca bu cihazda saklanır.',
+    votd:'Günün ayeti', votdOpen:'Surede aç', votdNote:'Her gün başka bir ayet',
+    juzFrom:'Başlangıç', juzTo:'Bitiş', surahsN: n => `${n} sure`, ayahsN: n => `${n} ayet`, pageN: n => `${n}. sayfadan`,
+    openJuz:'Cüzü oku',
+  },
+}
+
+// ── Saxlanılan ayələr: [{ s, a, t }] (ən yenisi əvvəldə) ──
+const SAVED_KEY = 'quran_saved_ayahs'
+function readSaved() {
+  try {
+    const v = JSON.parse(localStorage.getItem(SAVED_KEY))
+    if (!Array.isArray(v)) return []
+    return v.filter(x => x && Number.isInteger(x.s) && x.s >= 1 && x.s <= 114 && Number.isInteger(x.a) && x.a >= 1)
+  } catch { return [] }
+}
+function writeSaved(list) {
+  try { localStorage.setItem(SAVED_KEY, JSON.stringify(list)) } catch { /* yaddaş bağlıdır */ }
+}
+
+// Günün ayəsi: yerli tarixdən sabit seçim (bütün gün eyni ayə), 1…6236
+function verseOfDayNumber() {
+  const now = new Date()
+  const day = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000)
+  return ((day * 7919) % 6236) + 1
+}
+// Günün ayəsi — ərəb mətni (ar.alafasy) + cari dilin öz nəşri (ərəbcədə yalnız mətn).
+// Alınmasa kart heç görünmür (sakit uğursuzluq — əsas siyahıya mane olmur)
+function useVerseOfDay(lang) {
+  const [v, setV] = useState(null)
+  useEffect(() => {
+    const edition = EDITION_MAP[lang]
+    if (!edition) return undefined
+    const ctrl = new AbortController()
+    const g = verseOfDayNumber()
+    const eds = lang === 'ar' ? 'ar.alafasy' : `ar.alafasy,${edition}`
+    setV(null)
+    fetchJSON(`https://api.alquran.cloud/v1/ayah/${g}/editions/${eds}`, ctrl.signal)
+      .then(d => {
+        if (ctrl.signal.aborted) return
+        const [ar, tr] = Array.isArray(d?.data) ? d.data : []
+        if (!ar?.text || !ar.surah?.number) return
+        if (lang !== 'ar' && tr?.edition?.identifier !== edition) return
+        setV({ s: ar.surah.number, a: ar.numberInSurah, ar: displayAyah(ar.text, ar.surah.number, ar.numberInSurah - 1), tr: lang === 'ar' ? '' : (tr?.text || '') })
+      })
+      .catch(() => {})
+    return () => ctrl.abort()
+  }, [lang])
+  return v
 }
 
 // "Ayəyə keç" idarəsi (oxuyucunun panelində) və ayə nömrəsinin linki
@@ -348,6 +472,33 @@ function useSurah(num, lang, attempt = 0) {
   return { data: data && data._key === `${num}|${lang}` ? data : null, loading, error }
 }
 
+// QuranEnc yenilənmə tarixi (unix san.): az — "28.05.2025" (brauzerlərin çoxunda
+// az lokalının ay adları yoxdur — "M05" çıxırdı), qalan dillər — qısa ay adı ilə
+function qeDate(sec, lang) {
+  const d = new Date(sec * 1000)
+  if (lang === 'az') return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
+  try { return d.toLocaleDateString(lang, { year: 'numeric', month: 'short', day: 'numeric' }) } catch { return d.toISOString().slice(0, 10) }
+}
+
+// QuranEnc tərcüməsi (seçilibsə): surənin hər ayəsi üçün { tr, fn }. Surə
+// (standart nəşr) yükləndikdən sonra sorğulanır — ayə sayı ondan götürülür.
+// Xəta → oxuyucu standart tərcüməni göstərir + kiçik bildiriş.
+function useQuranEnc(key, num, total, lang) {
+  const [state, setState] = useState({ id: '', rows: null, meta: null, error: false })
+  const id = key && num && total ? `${key}|${num}|${total}` : ''
+  useEffect(() => {
+    if (!id) return undefined
+    const ctrl = new AbortController()
+    setState(s => (s.id === id ? s : { id, rows: null, meta: s.meta?.key === key ? s.meta : null, error: false }))
+    Promise.all([fetchQuranEncSura(key, num, total, ctrl.signal), fetchQuranEncMeta(key, lang, ctrl.signal)])
+      .then(([rows, meta]) => { if (!ctrl.signal.aborted) startTransition(() => setState({ id, rows, meta, error: false })) })
+      .catch(() => { if (!ctrl.signal.aborted) setState({ id, rows: null, meta: null, error: true }) })
+    return () => ctrl.abort()
+  }, [id, key, num, total, lang])
+  const cur = state.id === id && id ? state : null
+  return { rows: cur?.rows || null, meta: cur?.meta || null, error: !!cur?.error, loading: !!id && !cur?.rows && !cur?.error }
+}
+
 // Səs səhifə səviyyəsindədir (useQuranPlayer — components/QuranPlayer.jsx): kartın
 // düyməsi həmin ayədən ardıcıl dinləməni başladır / dayandırır. active — cari
 // ayə (vurğu), playing — hazırda səslənir (ikon). memo: oxuduqca yer yadda saxlananda 286 kart təkrar çəkilməsin.
@@ -356,8 +507,19 @@ function useSurah(num, lang, attempt = 0) {
 const REVEAL_CARDS = 8
 // Təfsir paneli (components/TafsirPanel.jsx): bağlı kartda tafsirId = 0 —
 // seçim dəyişəndə yalnız açıq kartlar yenidən çəkilir; panel yalnız açılanda render olunur
-const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange }) {
+const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange, saved, shared, onSave, onShare, xl }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
+  const saveLabel = saved ? xl.unsave : xl.save
+  // Əzbər rejimi: ərəb mətni CSS ilə bulanır; "Göstər" yalnız bu kartı açır.
+  // Vəziyyət DOM atributundadır — 286 kart React ilə yenidən çəkilmir
+  const toggleReveal = (e) => {
+    const btn = e.currentTarget
+    const card = btn.closest('.ayah-card')
+    const open = !card.hasAttribute('data-revealed')
+    card.toggleAttribute('data-revealed', open)
+    btn.setAttribute('aria-pressed', String(open))
+    btn.querySelector('.ayah-reveal__label').textContent = open ? xl.hide : xl.reveal
+  }
   return (
     // data-reveal: ilk kartlar yumşaq görünür (motion.css). PERFORMANS: yalnız
     // ilk ekranın kartları — useReveal hər elementi izləməyə götürəndə
@@ -374,6 +536,9 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, show
         aria-label={`${numLabel} — ${linkLabel}`} title={linkLabel}>{verse.n}</button>
       <div className="ayah-body">
         <p className="ayah-arabic" lang="ar">{verse.ar}</p>
+        <button type="button" className="ayah-reveal" aria-pressed="false" onClick={toggleReveal}>
+          <Icon name="eye" size={16} /><span className="ayah-reveal__label">{xl.reveal}</span>
+        </button>
         {showTrans && verse.tr && !showTafsir && <p className="ayah-trans">{verse.tr}</p>}
         {showTafsir && verse.tr && (
           <div className="ayah-tafsir">
@@ -381,13 +546,31 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, show
             {verse.tr}
           </div>
         )}
+        {/* QuranEnc haşiyələri — düz mətn (React özü qaçırır), sətir sonları saxlanılır */}
+        {(showTrans || showTafsir) && verse.fn && (
+          <details className="ayah-fn">
+            <summary>{xl.notes}</summary>
+            <p>{verse.fn}</p>
+          </details>
+        )}
         <AyahTafsir surah={surahNum} ayah={verse.n} lang={lang} open={tafsirOpen} tafsirId={tafsirId}
           onToggle={onTafsirToggle} onChangeTafsir={onTafsirChange} ayahName={numLabel} />
       </div>
-      <button type="button" className={`ayah-play press ${playing ? 'playing' : ''}`} onClick={() => onToggle(verse.n)}
-        aria-label={playLabel} title={playLabel} aria-pressed={playing}>
-        <PlayIcon playing={playing} />
-      </button>
+      <div className="ayah-actions">
+        <button type="button" className={`ayah-play press ${playing ? 'playing' : ''}`} onClick={() => onToggle(verse.n)}
+          aria-label={playLabel} title={playLabel} aria-pressed={playing}>
+          <PlayIcon playing={playing} />
+        </button>
+        <button type="button" className={`ayah-tool${saved ? ' is-on' : ''}`} onClick={() => onSave(verse.n)}
+          aria-label={`${saveLabel} — ${numLabel}`} title={saveLabel} aria-pressed={!!saved}>
+          <Icon name="hifz" size={17} />
+        </button>
+        <button type="button" className={`ayah-tool${shared ? ' is-done' : ''}`} onClick={() => onShare(verse)}
+          aria-label={`${xl.share} — ${numLabel}`} title={shared ? xl.copied : xl.share}>
+          <Icon name={shared ? 'check' : 'share'} size={17} />
+        </button>
+        {shared ? <span className="ui-sr-only" role="status">{xl.copied}</span> : null}
+      </div>
     </div>
   )
 })
@@ -548,6 +731,28 @@ export default function QuranPage({ setPage }) {
   // filter state-i tərcüməsiz key ('all'|'meccan'|'medinan') saxlayırıq.
   const [filter,   setFilter]   = useState('all')
   const [juz, setJuz] = useState(0)          // 0 — bütün cüzlər
+  // v3.2: siyahının görünüşü (surələr / cüzlər / saxlanılanlar) və sıralama
+  const [view, setView] = useState('surahs')
+  const [sort, setSort] = useState('mushaf')
+  const xl = V32_LABELS[lang] || V32_LABELS.az
+  const votd = useVerseOfDay(lang)
+  // Saxlanılan ayələr (əlfəcinlər) — açar "s:a" dəsti kartların sürətli yoxlanışı üçün
+  const [savedList, setSavedList] = useState(readSaved)
+  const savedKeys = useMemo(() => new Set(savedList.map(x => `${x.s}:${x.a}`)), [savedList])
+  const toggleSaved = useCallback((s, a) => {
+    haptic()
+    setSavedList(prev => {
+      const has = prev.some(x => x.s === s && x.a === a)
+      const next = has ? prev.filter(x => !(x.s === s && x.a === a)) : [{ s, a, t: Date.now() }, ...prev].slice(0, 500)
+      writeSaved(next)
+      return next
+    })
+  }, [])
+  // Əzbər rejimi (ərəb mətnini gizlət) — oxuyucuda
+  const [memorize, setMemorize] = useState(false)
+  // Paylaş: Web Share API; yoxdursa — mətn panoya kopyalanır (qısa "Kopyalandı")
+  const [sharedN, setSharedN] = useState(0)
+  const sharedTimerRef = useRef(null)
   const [showTrans, setShowTrans] = useState(true)
   const [showTafsir, setShowTafsir] = useState(false)
   // Ərəb mətninin miqyası (1 = baza ölçü — CSS: --qp-ar; telefonda kiçik baza).
@@ -556,6 +761,21 @@ export default function QuranPage({ setPage }) {
   useEffect(() => { try { localStorage.setItem(FONT_KEY, String(fontSize)) } catch { /* yaddaş bağlıdır */ } }, [fontSize])
   const [attempt, setAttempt] = useState(0)
   const { data: surah, loading: surahLoading, error: surahError } = useSurah(selected, lang, attempt)
+  // ── Tərcümə seçimi (QuranEnc.com) — dil üzrə; boş — standart nəşr (heç nə dəyişmir) ──
+  const ql = QE_LABELS[lang] || QE_LABELS.en
+  const [transChoices, setTransChoices] = useState(readTranslationChoices)
+  const transKey = translationFor(lang, transChoices)
+  const qeOptions = useMemo(() => quranEncOptions(lang), [lang])
+  const surahReady = !!(selected && surah && surah.number === selected)
+  const qe = useQuranEnc(transKey, surahReady ? selected : 0, surahReady ? surah.verses.length : 0, lang)
+  // Göstərilən ayələr: QuranEnc hazırdırsa tərcümə (və haşiyə) ondan; yoxsa standart
+  const shownVerses = useMemo(() => {
+    if (!surahReady) return null
+    if (!qe.rows || qe.rows.length !== surah.verses.length) return surah.verses
+    return surah.verses.map((v, i) => ({ ...v, tr: qe.rows[i].tr, fn: qe.rows[i].fn }))
+  }, [surahReady, surah, qe.rows])
+  const qeShown = !!(surahReady && qe.rows && shownVerses !== surah.verses)
+  const xlCard = useMemo(() => ({ ...(V32_LABELS[lang] || V32_LABELS.az), notes: ql.notes }), [lang, ql])
   const rl = RETRY_LABELS[lang] || RETRY_LABELS.az
   const sl = SEARCH_LABELS[lang] || SEARCH_LABELS.az
   const st = STATS_LABELS[lang] || STATS_LABELS.az
@@ -870,6 +1090,25 @@ export default function QuranPage({ setPage }) {
   const player = useQuranPlayer({ surahNumber: selected, verses, lang, onFollow: followAyah, onSurahEnd, mediaTitle })
   const playerBusy = player.status === 'playing' || player.status === 'loading'
   const toggleAyah = useCallback((n) => { haptic(); player.toggle(n) }, [player.toggle])
+  const saveAyah = useCallback((n) => toggleSaved(selectedRef.current, n), [toggleSaved])
+  const shareAyah = useCallback(async (verse) => {
+    haptic()
+    const sNum = selectedRef.current
+    const s = surahsRef.current.find(x => x.number === sNum)
+    const ref = `${placeLabel(surahTitle(s, langRef.current) || String(sNum), verse.n, langRef.current)} (${sNum}:${verse.n})`
+    const url = `${window.location.origin}${pathFor('quran', langRef.current, sNum)}?a=${verse.n}`
+    const text = [verse.ar, verse.tr, `— ${ref}`].filter(Boolean).join('\n\n')
+    try {
+      if (navigator.share) { await navigator.share({ title: ref, text, url }); return }
+    } catch (e) { if (e?.name === 'AbortError') return }
+    try {
+      await navigator.clipboard.writeText(`${text}\n${url}`)
+      clearTimeout(sharedTimerRef.current)
+      setSharedN(verse.n)
+      sharedTimerRef.current = setTimeout(() => setSharedN(0), 2000)
+    } catch { /* pano bağlıdır */ }
+  }, [])
+  useEffect(() => () => clearTimeout(sharedTimerRef.current), [])
 
   // ── "Ayəyə keç" paneli: G qısayolu, bağlanış ──
   useEffect(() => { setJumpOpen(false) }, [selected])
@@ -994,7 +1233,7 @@ export default function QuranPage({ setPage }) {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
-    return surahs.filter(s => {
+    const list = surahs.filter(s => {
       // Bütün yazılışlarda axtar (az/ru/tr adları, ingiliscə, ərəbcə, nömrə)
       const locals = ['az', 'ru', 'tr'].map(l => getSurahLocal(s.number, l)).filter(Boolean)
       const matchQ = !q || s.englishName.toLowerCase().includes(q) ||
@@ -1007,7 +1246,10 @@ export default function QuranPage({ setPage }) {
       const matchJ = !juz || JUZ_VERSES[juz - 1].some(p => p[0] === s.number)
       return matchQ && matchF && matchJ
     })
-  }, [surahs, search, filter, juz, lang])
+    if (sort === 'short') return [...list].sort((a, b) => a.numberOfAyahs - b.numberOfAyahs || a.number - b.number)
+    if (sort === 'long') return [...list].sort((a, b) => b.numberOfAyahs - a.numberOfAyahs || a.number - b.number)
+    return list
+  }, [surahs, search, filter, juz, sort, lang])
 
   // Hero-dakı "Quran haqqında" — bələdçiyə hamar keçid (ünvan dəyişmir)
   const jumpToAbout = (e) => {
@@ -1048,6 +1290,17 @@ export default function QuranPage({ setPage }) {
               disabled={!ready} aria-expanded={jumpOpen} aria-controls="qp-jump" aria-keyshortcuts="G"
               title={`${jl.jump} (G)`} onClick={() => { haptic(); setJumpOpen(o => !o) }}>
               <Icon name="target" size={16} /><span className="ctrl-jump__label">{jl.jump}</span>
+            </button>
+            {/* Əzbər rejimi: ərəb mətni bulanır, hər ayə "Göstər" ilə açılır */}
+            <button type="button" className={`ctrl-btn ctrl-memo ${memorize ? 'active' : ''}`} aria-pressed={memorize}
+              disabled={!ready} title={xl.memorizeHint} aria-label={xl.memorize}
+              onClick={() => {
+                haptic()
+                listRef.current?.querySelectorAll('[data-revealed]').forEach(el => el.removeAttribute('data-revealed'))
+                listRef.current?.querySelectorAll('.ayah-reveal').forEach(b => { b.setAttribute('aria-pressed', 'false'); const l = b.querySelector('.ayah-reveal__label'); if (l) l.textContent = xl.reveal })
+                setMemorize(m => !m)
+              }}>
+              <Icon name="eye" size={16} /><span className="ctrl-memo__label">{xl.memorize}</span>
             </button>
             {/* dir="ltr": ərəbcədə "A−" bidi qaydası ilə "−A" kimi görünürdü.
                 Həddə çatanda düymə söndürülür (əvvəl basılırdı, heç nə olmurdu) */}
@@ -1127,6 +1380,35 @@ export default function QuranPage({ setPage }) {
                 {surahJuz && <div><dt>{pk(QURAN_GUIDE.ui.juzLabel, lang)}</dt><dd className="ui-num" dir="ltr">{surahJuz}</dd></div>}
               </dl>
             </header>
+            {/* Tərcümə seçicisi: standart nəşr + QuranEnc.com tərcümələri (mətn dəyişmir; mənbə, versiya, tarix) */}
+            {qeOptions.length > 0 && (
+              <div className="qp-trans-src" data-reveal="fade">
+                <label className="qp-trans-src__field">
+                  <span className="qp-trans-src__label">{ql.label}</span>
+                  <select className="ui-select ui-select--sm qp-trans-src__select" value={transKey}
+                    onChange={e => { haptic(); setTransChoices(saveTranslationChoice(lang, e.target.value)) }}>
+                    <option value="">{DEFAULT_TRANSLATOR[lang] || DEFAULT_TRANSLATOR.en} ({ql.def})</option>
+                    <optgroup label={ql.group}>
+                      {qeOptions.map(o => <option key={o.key} value={o.key}>{o.name}</option>)}
+                    </optgroup>
+                  </select>
+                </label>
+                <p className="qp-trans-src__meta" aria-live="polite">
+                  {qeShown ? (
+                    <>
+                      {ql.source}: <a href={quranEncUrl(transKey, selected, lang)} target="_blank" rel="noopener noreferrer">QuranEnc.com</a>
+                      {' · '}<span dir="ltr">{qe.meta?.title}</span>
+                      {qe.meta?.version && <>{' · '}{ql.version} <span className="ui-num" dir="ltr">{qe.meta.version}</span></>}
+                      {qe.meta?.updated > 0 && <>{' · '}{ql.updated} <time dateTime={new Date(qe.meta.updated * 1000).toISOString().slice(0, 10)}>{qeDate(qe.meta.updated, lang)}</time></>}
+                    </>
+                  ) : transKey && qe.loading ? (
+                    <span className="qp-trans-src__loading">{ql.loading}</span>
+                  ) : transKey && qe.error ? (
+                    <span className="qp-trans-src__error" role="status"><Icon name="alert" size={14} />{ql.failed}</span>
+                  ) : null}
+                </p>
+              </div>
+            )}
             {/* Fatihədə Bəsmələ 1-ci ayənin özüdür, Tövbədə isə oxunmur */}
             {hasSeparateBasmala(surah.number) && (
               <div className="reader-basmalah" data-reveal="fade">
@@ -1134,8 +1416,9 @@ export default function QuranPage({ setPage }) {
                 {lang !== 'ar' && <span className="basmalah-tr">{t.basmalah}</span>}
               </div>
             )}
-            <div className="ayahs-list" ref={listRef} style={{ '--qp-scale': fontSize }}>
-              {surah.verses?.map(v => (
+            {memorize && <p className="qp-memo-hint" role="status"><Icon name="eye" size={16} />{xl.memorizeHint}</p>}
+            <div className={`ayahs-list${memorize ? ' is-memorize' : ''}`} ref={listRef} style={{ '--qp-scale': fontSize }}>
+              {shownVerses?.map(v => (
                 <AyahCard key={v.n} verse={v} surahNum={surah.number} lang={lang} tafsirLabel={tafsirLabel} playLabels={playLabels}
                   showTrans={!hasTafsir && showTrans} showTafsir={hasTafsir && showTafsir}
                   active={player.current === v.n} playing={playerBusy && player.current === v.n}
@@ -1143,7 +1426,9 @@ export default function QuranPage({ setPage }) {
                   numLabel={capFirst(ayahLabel(v.n, lang))} linkLabel={jl.link}
                   onToggle={toggleAyah} onNumber={onAyahNumber}
                   tafsirOpen={tafsirOpen.has(v.n)} tafsirId={tafsirOpen.has(v.n) ? tafsirId : 0}
-                  onTafsirToggle={toggleTafsir} onTafsirChange={changeTafsir} />
+                  onTafsirToggle={toggleTafsir} onTafsirChange={changeTafsir}
+                  saved={savedKeys.has(`${surah.number}:${v.n}`)} shared={sharedN === v.n}
+                  onSave={saveAyah} onShare={shareAyah} xl={xlCard} />
               ))}
             </div>
             {/* Surənin sonunda: əvvəlki / növbəti surə (telefonda paneldə yalnız ox görünür) */}
@@ -1274,6 +1559,81 @@ export default function QuranPage({ setPage }) {
             </div>
           </div>
           {searchMode === 'surah' && (
+            <div className="ui-segmented qp-views" role="group" aria-label={xl.views}>
+              {[
+                { key: 'surahs', label: xl.surahs, icon: 'quran' },
+                { key: 'juz', label: xl.juz, icon: 'mushaf' },
+                { key: 'saved', label: xl.saved, icon: 'hifz', count: savedList.length },
+              ].map(v => (
+                <button type="button" key={v.key} aria-pressed={view === v.key} onClick={() => setView(v.key)}>
+                  <Icon name={v.icon} size={16} />{v.label}
+                  {v.count ? <span className="qp-views__n ui-num">{v.count}</span> : null}
+                </button>
+              ))}
+            </div>
+          )}
+          {searchMode === 'surah' && view === 'juz' && (
+            <ul className="qp-juz-grid" role="list">
+              {JUZ_VERSES.map((parts, i) => {
+                const n = i + 1
+                const [fs, fa] = parts[0]
+                const last = parts[parts.length - 1]
+                const ayahs = parts.reduce((sum, p) => sum + p[2] - p[1] + 1, 0)
+                const nameOf = num => surahTitle(surahByNum(num), lang) || staticSurahName(num, lang)
+                const title = ui.juzN[lang] ? ui.juzN[lang](n) : ui.juzN.az(n)
+                return (
+                  <li key={n}>
+                    <a className="qp-juz-card" href={`${pathFor('quran', lang, fs)}${fa > 1 ? `?a=${fa}` : ''}`}
+                      onClick={e => { if (!isPlainClick(e)) return; e.preventDefault(); openSurah(fs, fa) }}>
+                      <span className="surah-num">{n}</span>
+                      <span className="qp-juz-card__body">
+                        <span className="qp-juz-card__title">{title}</span>
+                        <span className="qp-juz-card__range">
+                          <span>{xl.juzFrom}: <b>{nameOf(fs)}</b> <span className="ui-num" dir="ltr">{fs}:{fa}</span></span>
+                          <span>{xl.juzTo}: <b>{nameOf(last[0])}</b> <span className="ui-num" dir="ltr">{last[0]}:{last[2]}</span></span>
+                        </span>
+                        <span className="qp-juz-card__meta">
+                          <span className="ui-badge">{xl.surahsN(parts.length)}</span>
+                          <span className="ui-badge">{ayahCountText(ayahs, lang)}</span>
+                          {JUZ_START_PAGES[i] ? <span className="ui-badge">{xl.pageN(JUZ_START_PAGES[i])}</span> : null}
+                        </span>
+                      </span>
+                      <DirArrow />
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          {searchMode === 'surah' && view === 'saved' && (
+            savedList.length ? (
+              <>
+                <p className="qp-saved-note"><Icon name="info" size={16} />{xl.savedNote}</p>
+                <ul className="qp-saved-grid" role="list">
+                  {savedList.map(x => {
+                    const name = surahTitle(surahByNum(x.s), lang) || staticSurahName(x.s, lang)
+                    const label = placeLabel(name, x.a, lang)
+                    return (
+                      <li key={`${x.s}:${x.a}`} className="qp-saved-card">
+                        <span className="surah-num" aria-hidden="true">{x.s}</span>
+                        <a className="qp-saved-card__open" href={`${pathFor('quran', lang, x.s)}?a=${x.a}`}
+                          onClick={e => { if (!isPlainClick(e)) return; e.preventDefault(); openSurah(x.s, x.a) }}>
+                          <span className="qp-saved-card__title">{label}</span>
+                          <span className="qp-saved-card__ref ui-num" dir="ltr">{x.s}:{x.a}</span>
+                        </a>
+                        {lang !== 'ar' && <span className="qp-saved-card__ar" lang="ar" aria-hidden="true">{SURAH_TABLE[x.s - 1]?.[4]}</span>}
+                        <button type="button" className="qp-saved-card__del" onClick={() => toggleSaved(x.s, x.a)}
+                          aria-label={`${xl.remove} — ${label}`} title={xl.remove}>
+                          <Icon name="trash" size={16} />
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </>
+            ) : <QEmpty icon="hifz">{xl.savedEmpty}</QEmpty>
+          )}
+          {searchMode === 'surah' && view === 'surahs' && (
             <>
               <div className="qp-filters">
                 <div className="qp-chips" role="group" aria-label={sl.place}>
@@ -1291,6 +1651,14 @@ export default function QuranPage({ setPage }) {
                   <select className="ui-select qp-juz__select" value={juz} onChange={e => setJuz(Number(e.target.value))}>
                     <option value={0}>{pk(ui.allJuz, lang)}</option>
                     {JUZ_VERSES.map((_, i) => <option key={i + 1} value={i + 1}>{ui.juzN[lang] ? ui.juzN[lang](i + 1) : ui.juzN.az(i + 1)}</option>)}
+                  </select>
+                </label>
+                <label className="qp-juz">
+                  <span className="ui-sr-only">{xl.sort}</span>
+                  <select className="ui-select qp-juz__select" value={sort} onChange={e => setSort(e.target.value)}>
+                    <option value="mushaf">{xl.sortMushaf}</option>
+                    <option value="short">{xl.sortShort}</option>
+                    <option value="long">{xl.sortLong}</option>
                   </select>
                 </label>
                 {!listLoading && !listError && (
@@ -1330,9 +1698,17 @@ export default function QuranPage({ setPage }) {
                     ? `${ayahCountText(s.numberOfAyahs, lang)} · ${revelationLabel(s.revelationType, lang)}`
                     : [surahMeaning(s, lang), ayahCountText(s.numberOfAyahs, lang)].filter(Boolean).join(' · ')
                   const isMadani = s.revelationType === 'Medinan'
+                  const wasRead = !!stats.reads[s.number]
+                  const here = bookmark?.surah === s.number
                   return (
-                    <a key={s.number} className="surah-card" href={pathFor('quran', lang, s.number)}
+                    <a key={s.number} className={`surah-card${here ? ' is-here' : ''}`} href={pathFor('quran', lang, s.number)}
                       onClick={linkTo(s.number)}>
+                      {wasRead && (
+                        <span className="surah-read" title={xl.read}>
+                          <Icon name="check" size={12} /><span className="ui-sr-only">{xl.read}</span>
+                        </span>
+                      )}
+                      {here && bmProgress > 0 && <span className="surah-here-bar" style={{ '--p': bmProgress.toFixed(3) }} aria-hidden="true" />}
                       <span className={`surah-num${isMadani ? ' is-madani' : ''}`}>{s.number}</span>
                       <span className="surah-body">
                         <span className={`surah-name-en${isAr ? ' is-ar' : ''}`}>{displayName}</span>
@@ -1394,6 +1770,32 @@ export default function QuranPage({ setPage }) {
               )}
             </>
           )}
+        </div>
+      </section>
+
+      {/* v3.2: xətm planı + Quran radiosu (ruqyə siyahısı ilə) */}
+      <section className="ui-section ui-section--tight qp-tools">
+        <div className="ui-container qp-tools__grid">
+        {/* Günün ayəsi (API-dən; alınmasa görünmür) */}
+        {votd && (
+          <article className="qp-votd" aria-labelledby="qp-votd-h">
+            <div className="qp-votd__head">
+              <span className="ui-eyebrow" id="qp-votd-h">{xl.votd}</span>
+            </div>
+            <p className="qp-votd__ar" lang="ar" dir="rtl">{votd.ar}</p>
+            {votd.tr && <p className="qp-votd__tr">{votd.tr}</p>}
+            <div className="qp-votd__foot">
+              <span className="qp-votd__src">{placeLabel(surahTitle(surahByNum(votd.s), lang) || staticSurahName(votd.s, lang), votd.a, lang)}</span>
+              <a className="ui-btn ui-btn--sm ui-btn--secondary" href={`${pathFor('quran', lang, votd.s)}?a=${votd.a}`}
+                onClick={e => { if (!isPlainClick(e)) return; e.preventDefault(); openSurah(votd.s, votd.a) }}>
+                {xl.votdOpen}<DirArrow />
+              </a>
+            </div>
+          </article>
+        )}
+          <KhatmPlanner lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} />
+          <QuranRadio lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)}
+            placeLabel={(name, a) => placeLabel(name, a, lang)} />
         </div>
       </section>
 

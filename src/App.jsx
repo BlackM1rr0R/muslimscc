@@ -120,6 +120,9 @@ const HijriPage = lazy(() => import('./pages/HijriPage'))
 const QadaPage = lazy(() => import('./pages/QadaPage'))
 const InheritancePage = lazy(() => import('./pages/InheritancePage'))
 const Nawawi40Page = lazy(() => import('./pages/Nawawi40Page'))
+const HadithLibraryPage = lazy(() => import('./pages/HadithLibraryPage'))
+const HadeethEncPage = lazy(() => import('./pages/HadeethEncPage'))
+const FatwaPage = lazy(() => import('./pages/FatwaPage'))
 const HisnPage = lazy(() => import('./pages/HisnPage'))
 const LessonsPage = lazy(() => import('./pages/LessonsPage'))
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
@@ -330,6 +333,9 @@ function AppInner() {
       case 'qada':       return <QadaPage setPage={navigate} />
       case 'inheritance': return <InheritancePage setPage={navigate} />
       case 'nawawi40':   return <Nawawi40Page setPage={navigate} />
+      case 'hadithbooks': return <HadithLibraryPage setPage={navigate} />
+      case 'hadeethenc': return <HadeethEncPage setPage={navigate} />
+      case 'fatwa':      return <FatwaPage setPage={navigate} />
       case 'hisn':       return <HisnPage setPage={navigate} />
       case 'learn':         return <LessonsPage        setPage={navigate} />
       case 'analytics':     return <AnalyticsPage      setPage={navigate} />

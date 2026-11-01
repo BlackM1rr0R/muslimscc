@@ -615,3 +615,176 @@
 }
 /* Halqanın görünən etiketi kartın başlığını təkrarlayır — yalnız ekran oxuyucusu üçün (aria-label) */
 .pp-root .stat-ring .ui-viz-ring__text { display: none; }
+
+/* ══ v3.2 ═════════════════════════════════════════════════════════ */
+/* Bugünkü vaxtlar: paylaş düyməsi + "N sonra" */
+.pp-times-head-r { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.pp-share-btn { gap: 6px; }
+.pt-rel {
+  color: var(--text-tertiary);
+  font-size: var(--step--2);
+  font-variant-numeric: tabular-nums;
+}
+.prayer-time-card.is-next .pt-rel { color: var(--brand-strong); font-weight: 500; }
+[data-theme="dark"] .prayer-time-card.is-next .pt-rel { color: var(--brand); }
+
+/* Aylıq cədvəl: alət zolağı (ay ‹ › · görünüş · çap/CSV) */
+.pp-month-bar {
+  position: sticky;
+  top: calc(var(--header-h, 64px) + 8px);
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: var(--space-3);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-1);
+}
+.pp-month-nav, .pp-month-tools { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pp-month-tools .ui-btn { gap: 6px; }
+.pp-icon-btn { width: var(--ui-btn-h, 34px); padding: 0; justify-content: center; }
+.pp-month-name {
+  min-width: 9.5em;
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
+  font-weight: 600;
+  text-align: center;
+  text-transform: capitalize;
+}
+.pp-month-wrap.is-week { max-height: none; }
+.pp-month-table tr.is-past > * { color: var(--text-tertiary); }
+.pp-month-table tr.is-friday > th .pp-wd { color: var(--accent-text); font-weight: 600; }
+.pp-month-table tr.is-friday > th { box-shadow: inset 2px 0 0 var(--accent-line, var(--accent)); }
+.pp-month-table tr.is-current > th { box-shadow: inset 3px 0 0 var(--brand); }
+[dir="rtl"] .pp-month-table tr.is-friday > th { box-shadow: inset -2px 0 0 var(--accent-line, var(--accent)); }
+[dir="rtl"] .pp-month-table tr.is-current > th { box-shadow: inset -3px 0 0 var(--brand); }
+
+/* Qadağan vaxtlar: bugünkü istinad saatı */
+.pp-forbid-at {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: var(--step--2);
+}
+.pp-forbid-at b { color: var(--text-strong); font-weight: 600; }
+
+/* Sünnə namazları: kart grid */
+.pp-sunnah-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  align-items: start;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pp-sunnah-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+@media (hover: hover) {
+  .pp-sunnah-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line-strong); }
+}
+.pp-sunnah-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.pp-root .pp-sunnah-name {
+  display: block;
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-heading);
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: normal;
+}
+.pp-sunnah-rakat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  white-space: nowrap;
+}
+[data-theme="dark"] .pp-sunnah-rakat { color: var(--brand); }
+.pp-sunnah-rakat b { font-size: var(--step-0); font-weight: 600; }
+.pp-sunnah-rakat small { font-size: var(--step--2); }
+.pp-sunnah-desc {
+  margin: 0;
+  color: var(--text-body);
+  font-size: var(--step--1);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pp-sunnah-src {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin-top: auto;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: var(--step--2);
+}
+
+@media (max-width: 767.98px) {
+  .pp-month-bar { position: static; padding: 8px; }
+  .pp-month-name { min-width: 0; flex: 1; }
+  .pp-month-nav { flex: 1 1 100%; }
+  .pp-month-seg { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-sunnah-card { transition: none; }
+  .pp-sunnah-card:hover { transform: none; }
+}
+
+/* Çap: yalnız aylıq cədvəl (Çap et düyməsi <html>-ə .pp-print-month qoyur) */
+@media print {
+  html.pp-print-month body * { visibility: hidden !important; }
+  html.pp-print-month .pp-month,
+  html.pp-print-month .pp-month * { visibility: visible !important; }
+  html.pp-print-month .pp-month { position: absolute; inset: 0 0 auto 0; padding: 0; background: #fff; }
+  html.pp-print-month .pp-month-bar,
+  html.pp-print-month .pp-month .ui-lead,
+  html.pp-print-month .pp-month .ui-eyebrow { display: none !important; }
+  html.pp-print-month .pp-month-wrap { max-height: none !important; overflow: visible !important; border: 0; box-shadow: none; }
+  html.pp-print-month .pp-month-table { font-size: 10pt; color: #000; }
+  html.pp-print-month .pp-month-table thead th { position: static; }
+  html.pp-print-month .pp-month-table tr > * { padding-block: 3px; color: #000 !important; }
+}
+/* :has dəstəklənirsə gizli bölmələr yer də tutmasın — boş çap səhifəsi qalmasın */
+@media print {
+  @supports selector(:has(a)) {
+    html.pp-print-month body *:not(:has(.pp-month)):not(.pp-month):not(.pp-month *) { display: none !important; }
+    html.pp-print-month body *:has(.pp-month) { margin: 0 !important; padding: 0 !important; min-height: 0 !important; border: 0 !important; box-shadow: none !important; background: #fff !important; display: block !important; width: auto !important; max-width: none !important; }
+    html.pp-print-month { background: #fff !important; }
+    html.pp-print-month .pp-month { position: static; }
+  }
+}

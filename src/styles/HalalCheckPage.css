@@ -139,3 +139,24 @@
   .hc-page .hc-code, .hc-page .hc-product { padding: var(--space-4); }
   .hc-page .hc-fiqh { padding: var(--space-4); }
 }
+
+/* v3.2: yapışqan alət zolağı (axtarış + qrup çipləri) */
+.hc-toolbar {
+  position: sticky;
+  top: calc(var(--header-offset, var(--header-h, 64px)) + 8px);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-0) 88%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-1);
+}
+.hc-toolbar .hc-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+.hc-toolbar .hc-chips::-webkit-scrollbar { display: none; }
+.hc-toolbar .hc-chips > * { flex-shrink: 0; }
+@media (min-width: 1200px) { .hc-toolbar .hc-chips { flex-wrap: wrap; overflow: visible; } }

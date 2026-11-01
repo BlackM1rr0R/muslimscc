@@ -410,6 +410,32 @@ export const META = {
           d: 'كتاب حصن المسلم لسعيد بن علي بن وهف القحطاني كاملًا: أذكار الصباح والمساء والنوم والسفر والمرض وغيرها، مع التخريج.' },
   },
 
+  hadithbooks: {
+    az: { t: 'Hədis kitabxanası — Buxari, Müslim, Sünən kitabları',
+          d: 'Səhih əl-Buxari, Səhih Müslim, Əbu Davud, Tirmizi, Nəsai, İbn Macə və Müvətta — bölmə-bölmə ərəbcə mətn, tərcümə və alimlərin dərəcələri ilə.' },
+    en: { t: 'Hadith Library — Bukhari, Muslim and the Sunan',
+          d: 'Sahih al-Bukhari, Sahih Muslim, Abu Dawud, at-Tirmidhi, an-Nasa’i, Ibn Majah and the Muwatta — chapter by chapter with the Arabic text, translation and scholars’ grades.' },
+    ru: { t: 'Библиотека хадисов — Бухари, Муслим и сборники «Сунан»',
+          d: '«Сахих» аль-Бухари, «Сахих» Муслима, Абу Дауд, ат-Тирмизи, ан-Насаи, Ибн Маджа и «Муватта» — по разделам, с арабским текстом, переводом и оценками учёных.' },
+    tr: { t: 'Hadis Kütüphanesi — Buhârî, Müslim ve Sünenler',
+          d: 'Sahîh-i Buhârî, Sahîh-i Müslim, Ebû Dâvûd, Tirmizî, Nesâî, İbn Mâce ve Muvatta — bölüm bölüm Arapça metin, tercüme ve âlimlerin hükümleriyle.' },
+    ar: { t: 'مكتبة الحديث — البخاري ومسلم والسنن',
+          d: 'صحيح البخاري وصحيح مسلم وسنن أبي داود والترمذي والنسائي وابن ماجه والموطأ — كتابًا كتابًا بالنص العربي والترجمة وأحكام أهل العلم.' },
+  },
+
+  fatwa: {
+    az: { t: 'Fətvalar və elm mənbələri — Sələf alimlərinin rəsmi saytları',
+          d: 'İbn Baz, İbn Useymin, Daimi Fətva Komitəsi və IslamQA saytlarına mövzular üzrə keçidlər, hədisin dərəcəsini yoxlamaq üçün axtarış və əsas mətnlərin şərhləri.' },
+    en: { t: 'Fatwas & Scholarly Sources — Official Sites of the Scholars',
+          d: 'Topic-by-topic links to Ibn Baz, Ibn ‘Uthaymin, the Permanent Committee and IslamQA, a hadith grade checker and commentaries on the core texts.' },
+    ru: { t: 'Фетвы и источники знаний — официальные сайты учёных',
+          d: 'Ссылки по темам на сайты Ибн База, Ибн Усеймина, Постоянного комитета и «Ислам: вопрос и ответ», поиск степени хадиса и разъяснения основных текстов.' },
+    tr: { t: 'Fetvalar ve İlim Kaynakları — Âlimlerin Resmî Siteleri',
+          d: 'İbn Bâz, İbn Useymîn, Daimi Fetva Komitesi ve İslam Soru-Cevap sitelerine konulara göre bağlantılar, hadis derecesi arama ve temel metinlerin şerhleri.' },
+    ar: { t: 'الفتاوى ومصادر العلم — المواقع الرسمية لأهل العلم',
+          d: 'روابط مفهرسة بالموضوعات إلى مواقع ابن باز وابن عثيمين واللجنة الدائمة والإسلام سؤال وجواب، مع البحث عن درجة الحديث وشروح المتون.' },
+  },
+
   nawawi40: {
     az: { t: 'Ən-Nəvəvinin 40 hədisi — ərəbcə, tərcümə və şərh',
           d: 'İmam ən-Nəvəvinin "Qırx hədis" toplusu: hər hədisin ərəb mətni, tərcüməsi, mənbəsi və alimlərin şərhlərindən əsas faydalar.' },
@@ -421,6 +447,20 @@ export const META = {
           d: 'İmam Nevevî’nin Kırk Hadis’i: her hadisin Arapça metni, meali, kaynağı ve âlimlerin şerhlerinden çıkan temel dersler.' },
     ar: { t: 'الأربعون النووية — النص والترجمة والفوائد',
           d: 'الأربعون النووية للإمام النووي: نص كل حديث مع تخريجه وأهم فوائده من شروح أهل العلم.' },
+  },
+
+  hadeethenc: {
+    // lang-ok[ensiklopediyası]: Azərbaycan sözüdür (ensiklopediya)
+    az: { t: 'Hədis ensiklopediyası — mövzulara görə hədislər və şərhi',
+          d: 'HadeethEnc.com-dan mövzulara bölünmüş hədislər: ərəbcə mətn, tərcümə, dərəcə, mənbə, şərh və faydalar — əqidə, fiqh, fəzilətlər, əxlaq və siyər.' },
+    en: { t: 'Hadith Encyclopedia — Hadiths by Topic with Explanation',
+          d: 'Hadiths by topic from HadeethEnc.com: Arabic text, translation, grade, reference, explanation and benefits — creed, fiqh, virtues, manners and seerah.' },
+    ru: { t: 'Энциклопедия хадисов — хадисы по темам с разъяснением',
+          d: 'Хадисы по темам из Энциклопедии пророческих хадисов: арабский текст, перевод, степень, источник, разъяснение и польза — вероубеждение, фикх, достоинства, нравы и жизнеописание.' },
+    tr: { t: 'Hadis Ansiklopedisi — Konulara Göre Hadisler ve Şerhi',
+          d: 'HadeethEnc.com’dan konulara göre hadisler: Arapça metin, tercüme, derece, kaynak, şerh ve faydalar — akide, fıkıh, faziletler, ahlak ve siyer.' },
+    ar: { t: 'موسوعة الأحاديث النبوية — الأحاديث مصنفة مع شرحها',
+          d: 'أحاديث مصنفة حسب الموضوعات من موسوعة الأحاديث النبوية: النص والترجمة والدرجة والتخريج والشرح والفوائد في العقيدة والفقه والفضائل والآداب والسيرة.' },
   },
 
   inheritance: {

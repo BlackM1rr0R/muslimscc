@@ -384,3 +384,45 @@
 @media (max-width: 480px) {
   .qibla-info-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); }
 }
+
+/* ══ v3.2: bələdçidə sual-cavab və addımlar — kart grid ══
+   Kart bağlıyken grid-də dayanır; açılanda bütün sətri tutur (cavab ensiz kartda
+   dartılmır, qonşu kartlar da uzanmır). */
+.qb-guide .ls-qa {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  align-items: start;
+  gap: var(--space-3);
+  border-top: 0;
+}
+.qb-guide .ls-qa__item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  padding-inline: 14px;
+  transition: box-shadow var(--dur-2) ease, border-color var(--dur-2) ease, transform var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) {
+  .qb-guide .ls-qa__item:not([open]):hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line-strong); }
+}
+.qb-guide .ls-qa__item[open] { grid-column: 1 / -1; border-color: var(--brand-line); box-shadow: var(--shadow-2); }
+.qb-guide .ls-qa__q { font-size: var(--step--1); }
+.qb-guide .ls-steps {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  align-items: start;
+  gap: var(--space-3);
+}
+.qb-guide .ls-step {
+  height: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+.qb-guide .ls-step::before { display: none; }
+.qb-guide .ls-step__text { font-size: var(--step--1); line-height: 1.55; }
+@media (prefers-reduced-motion: reduce) {
+  .qb-guide .ls-qa__item { transition: none; }
+  .qb-guide .ls-qa__item:hover { transform: none; }
+}

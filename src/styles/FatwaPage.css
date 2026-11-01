@@ -1,0 +1,198 @@
+/* ══ FƏTVALAR VƏ ELM MƏNBƏLƏRİ — /fatwa (dizayn v3.2, yalnız tokenlər) ══
+   Hero → yapışqan alət zolağı → hədis yoxlayıcısı + dərəcələr → mənbə kartları →
+   mövzu kataloqu → mətnlərin şərhləri → qeyd. .ui-* üzərinə .fw-page ilə. */
+.fw-page { min-height: 60vh; }
+.fw-page .ui-section--tight { padding-top: var(--space-5); }
+.fw-hero__ar { color: var(--accent-text); font-size: clamp(19px, 1.9vw, 24px); line-height: 1.6; }
+.fw-page .fw-hero .ui-lead { max-width: 62ch; }
+.fw-layout { display: flex; flex-direction: column; gap: var(--space-6, 40px); }
+
+/* ── Hero kartı ── */
+.fw-page .fw-hero__card {
+  display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5);
+  background: color-mix(in srgb, var(--surface-1) 86%, transparent);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.fw-page .fw-hero__stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); margin: 0; }
+.fw-page .fw-hero__stats b { font-size: var(--step-1); }
+.fw-page .fw-hero__stats span { font-size: var(--step--2); line-height: 1.35; }
+.fw-hero__verified {
+  display: flex; align-items: center; gap: 6px; margin: 0; padding-top: var(--space-3);
+  border-top: 1px solid var(--line); color: var(--text-secondary); font-size: var(--step--1);
+}
+.fw-hero__verified svg { color: var(--brand); flex-shrink: 0; }
+.fw-jump { display: flex; flex-wrap: wrap; gap: 6px; }
+.fw-jump a {
+  display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: var(--radius-pill);
+  color: var(--text-body); font-size: var(--step--1); font-weight: 550; text-decoration: none;
+  transition: border-color var(--dur-1) ease, color var(--dur-1) ease;
+}
+.fw-jump a:hover { border-color: var(--brand-line); color: var(--brand); }
+@media (min-width: 900px) { .fw-page .fw-hero .ui-page-hero__aside { justify-self: end; max-width: 420px; } }
+
+/* ── Yapışqan alət zolağı ── */
+.fw-toolbar {
+  position: sticky; top: calc(var(--header-offset, var(--header-h)) + 8px); z-index: 15;
+  display: flex; flex-direction: column; gap: 8px; padding: 8px;
+  border: 1px solid var(--line); border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  background: color-mix(in srgb, var(--surface-1) 90%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-1);
+  min-width: 0;
+}
+.fw-toolbar__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.fw-search { position: relative; flex: 1 1 240px; max-width: 560px; min-width: 0; }
+.fw-search__icon { position: absolute; inset-inline-start: 14px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
+.fw-page .fw-search__input { width: 100%; min-height: 44px; padding-inline: 44px 44px; border-color: transparent; background: var(--surface-2); }
+.fw-page .fw-search__input:focus { border-color: var(--brand-line); }
+.fw-search__input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.fw-page .fw-search__clear { position: absolute; z-index: 1; inset-inline-end: 4px; top: 50%; transform: translateY(-50%); }
+.fw-toolbar__count { margin-inline-start: auto; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; white-space: nowrap; }
+.fw-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.fw-filters__label { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; letter-spacing: .02em; text-transform: uppercase; margin-inline-end: 2px; }
+.fw-page .fw-filters .ui-chip { min-height: 36px; }
+/* Mövzu çipləri dar ekranda üfüqi sürüşür (sətirlər zolağı şişirtməsin) */
+@media (max-width: 720px) {
+  .fw-filters--scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .fw-filters--scroll::-webkit-scrollbar { display: none; }
+  .fw-filters--scroll .ui-chip { flex-shrink: 0; }
+}
+
+/* ── Bölmə ── */
+.fw-section { display: flex; flex-direction: column; gap: var(--space-4); scroll-margin-top: calc(var(--header-h, 64px) + 160px); }
+.fw-section .ui-section-head { margin: 0; }
+.fw-step {
+  display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0;
+  border-radius: 9px; background: var(--brand-soft); color: var(--brand); font-weight: 700;
+}
+.fw-section__lead { margin: 0; max-width: 70ch; color: var(--text-secondary); font-size: var(--step-0); line-height: 1.6; }
+.fw-ext { flex-shrink: 0; opacity: .7; margin-inline-start: 4px; vertical-align: -1px; }
+
+/* ── Kart grid ── */
+.fw-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3); align-items: stretch; margin: 0; padding: 0; list-style: none;
+}
+.fw-grid--topics { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.fw-grid > .ui-card {
+  display: flex; flex-direction: column; gap: 10px; padding: var(--space-4); min-width: 0;
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) { .fw-grid > .ui-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-2); } }
+
+/* ── 1) Hədis yoxlayıcısı ── */
+.fw-checker { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--space-3); align-items: start; }
+@media (max-width: 960px) { .fw-checker { grid-template-columns: minmax(0, 1fr); } }
+.fw-page .fw-checker__form { display: flex; flex-direction: column; gap: 10px; padding: var(--space-4); }
+.fw-checker__label { font-weight: 650; color: var(--text-strong); }
+.fw-page .fw-checker__input { width: 100%; min-height: 88px; padding: 12px 14px; resize: vertical; font-size: 1.05rem; line-height: 1.7; font-family: inherit; }
+.fw-checker__hint { display: flex; gap: 6px; align-items: flex-start; margin: 0; color: var(--text-tertiary); font-size: var(--step--1); }
+.fw-checker__hint svg { flex-shrink: 0; margin-top: 2px; }
+.fw-checker__tools { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.fw-tool { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-2); }
+.fw-tool.is-primary { border-color: var(--brand-line); background: linear-gradient(135deg, var(--brand-soft), var(--surface-2) 70%); }
+.fw-tool__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 10px; }
+.fw-tool__head strong { color: var(--text-strong); }
+.fw-tool__ar { color: var(--text-secondary); font-size: 1rem; }
+.fw-tool__desc { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.fw-tool__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.fw-page .fw-tool__actions .ui-btn { min-height: 40px; max-width: 100%; }
+.fw-tool__home { display: inline-flex; align-items: center; font-size: var(--step--1); }
+
+.fw-page .fw-grades { display: flex; flex-direction: column; gap: 10px; padding: var(--space-4); }
+.fw-grades__title { margin: 0; font-family: var(--font-heading); font-size: var(--step-1); color: var(--text-strong); }
+.fw-grades__lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); }
+.fw-grades__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.fw-grade {
+  display: flex; flex-direction: column; gap: 4px; padding: 10px 12px;
+  border-radius: var(--radius-md); border-inline-start: 4px solid var(--line-strong); background: var(--surface-2);
+}
+.fw-grade p { margin: 0; color: var(--text-body); font-size: var(--step--1); line-height: 1.55; }
+.fw-grade__head { display: flex; align-items: baseline; gap: 10px; }
+.fw-grade__head strong { color: var(--text-strong); font-size: var(--step-0); }
+.fw-grade__ar { font-size: 1.15rem; color: var(--text-strong); }
+.fw-grade__rule { color: var(--text-secondary) !important; }
+.fw-grade--ok { border-inline-start-color: var(--success, var(--brand)); }
+.fw-grade--warn { border-inline-start-color: var(--warning, var(--accent)); }
+.fw-grade--bad { border-inline-start-color: var(--danger, #c0392b); }
+.fw-tips { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 0; padding-inline-start: 18px; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.fw-internal { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+
+/* ── 2) Mənbə kartları ── */
+.fw-src__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.fw-src__host { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fw-page .fw-kind--official { background: var(--brand-soft-2); color: var(--brand-strong); }
+[data-theme="dark"] .fw-page .fw-kind--official { color: var(--brand); }
+.fw-page .fw-kind--qa, .fw-page .fw-kind--scholar { background: var(--accent-soft); color: var(--accent-text); }
+.fw-src__name { margin: 0; font-family: var(--font-heading); font-size: var(--step-1); font-weight: 650; line-height: 1.3; color: var(--text-strong); }
+.fw-src__scholar { display: flex; gap: 6px; align-items: flex-start; margin: 0; color: var(--text-body); font-size: var(--step--1); font-weight: 550; }
+.fw-src__scholar svg { flex-shrink: 0; margin-top: 2px; color: var(--brand); }
+.fw-src__desc { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6; }
+.fw-src__extra { display: flex; flex-wrap: wrap; gap: 6px; }
+.fw-pill {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px;
+  border-radius: var(--radius-pill); background: var(--surface-2); color: var(--text-body);
+  font-size: var(--step--2); font-weight: 600; text-decoration: none;
+}
+.fw-pill:hover { color: var(--brand); background: var(--brand-soft); }
+.fw-src__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line); }
+.fw-langs { display: flex; flex-wrap: wrap; gap: 4px; }
+.fw-lang {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 8px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  color: var(--text-secondary); font-size: var(--step--2); font-weight: 700; letter-spacing: .03em; text-decoration: none;
+}
+.fw-lang .fw-ext { display: none; }
+.fw-lang:hover, .fw-lang.is-on { border-color: var(--brand); color: var(--brand); }
+.fw-page .fw-src__visit { min-height: 40px; }
+
+/* ── 3) Mövzu kartları ── */
+.fw-topic__head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px 10px; }
+.fw-topic__icon { grid-row: span 2; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--brand-soft); color: var(--brand); }
+.fw-topic__title { margin: 0; font-family: var(--font-heading); font-size: var(--step-0); font-weight: 650; color: var(--text-strong); }
+.fw-topic__ar { color: var(--text-tertiary); font-size: .95rem; line-height: 1.4; }
+.fw-topic__links { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.fw-tlink {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  color: var(--text-body); font-size: var(--step--1); font-weight: 550; text-decoration: none;
+  transition: border-color var(--dur-1) ease, color var(--dur-1) ease;
+}
+.fw-tlink:hover { border-color: var(--brand-line); color: var(--brand); }
+.fw-tlink__lang { padding: 1px 5px; border-radius: 5px; background: var(--surface-2); color: var(--text-tertiary); font-size: var(--step--2); font-weight: 700; }
+
+/* ── 4) Şərhlər ── */
+.fw-matn__head { display: flex; flex-direction: column; gap: 2px; }
+.fw-matn__ar { color: var(--accent-text); font-size: 1.3rem; line-height: 1.5; }
+.fw-matn__title { margin: 0; font-family: var(--font-heading); font-size: var(--step-0); font-weight: 650; color: var(--text-strong); }
+.fw-matn__author { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); }
+.fw-matn__links { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.fw-mlink {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 2px 10px;
+  min-height: 44px; padding: 8px 10px; border-radius: var(--radius-md); background: var(--surface-2);
+  color: var(--text-body); text-decoration: none;
+}
+.fw-mlink:hover { background: var(--brand-soft); color: var(--brand); }
+.fw-mlink__icon { grid-row: span 2; color: var(--brand); }
+.fw-mlink__by { font-size: var(--step--1); font-weight: 600; }
+.fw-mlink__meta { grid-column: 2; color: var(--text-tertiary); font-size: var(--step--2); }
+.fw-mlink .fw-ext { grid-column: 3; grid-row: 1 / span 2; }
+.fw-page .fw-matn__ours { align-self: flex-start; margin-top: auto; min-height: 40px; }
+
+/* ── Boş vəziyyət və qeyd ── */
+.fw-page .fw-empty { border-style: dashed; }
+.fw-page .fw-note { display: flex; gap: 12px; align-items: flex-start; padding: var(--space-4); background: var(--surface-2); border-color: transparent; }
+.fw-note > svg { flex-shrink: 0; color: var(--accent-text); margin-top: 2px; }
+.fw-note strong { color: var(--text-strong); }
+.fw-note p { margin: 4px 0 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6; }
+.fw-note__date { font-weight: 600; }
+
+@media (max-width: 420px) {
+  .fw-page .fw-hero__stats { gap: var(--space-2); }
+  .fw-toolbar__count { display: none; }
+  .fw-src__foot { flex-direction: column; align-items: stretch; }
+  .fw-page .fw-src__visit { justify-content: center; }
+}
+.fw-tlink__sub { color: var(--text-secondary); font-size: .9rem; line-height: 1.3; }

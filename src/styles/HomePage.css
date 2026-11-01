@@ -1021,3 +1021,7 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
   .hp-pr:hover .hp-pr-ic { transform: none; }
   .hp-twp-content { animation: none !important; }
 }
+
+/* v3.2: "Bu gün" bento panelinin yer tutucusu (HomeToday lazy yüklənənə qədər) */
+.hp-td-skel { height: 640px; border-radius: var(--radius-lg); }
+@media (min-width: 1100px) { .hp-td-skel { height: 520px; } }

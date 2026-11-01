@@ -29,6 +29,15 @@ import '../styles/PrayerTrackerPage.css'
 const PRAYER_ICONS = { fajr: 'sunrise', dhuhr: 'sun', asr: 'sunLow', maghrib: 'sunset', isha: 'moon' }
 const STATUS_BTNS = ['prayed', 'qada', 'missed']
 const HEAT_WEEKS = 12
+// v3.2: ardıcıllıq mərhələləri (gün) — yalnız motivasiya nişanı, dini hökm deyil
+const MILESTONES = [3, 7, 14, 30, 60, 100]
+const MS_TXT = {
+  az: { title: 'Mərhələlər', day: '{n} gün', next: 'Növbəti mərhələ: {n} gün — {k} gün qalıb', all: 'Bütün mərhələlər keçildi — Allah qəbul etsin.', got: 'qazanılıb', not: 'hələ yox' },
+  en: { title: 'Milestones', day: '{n} days', next: 'Next milestone: {n} days — {k} to go', all: 'All milestones reached — may Allah accept.', got: 'reached', not: 'not yet' },
+  ru: { title: 'Этапы', day: '{n} дн.', next: 'Следующий этап: {n} дн. — осталось {k}', all: 'Все этапы пройдены — да примет Аллах.', got: 'достигнут', not: 'ещё нет' },
+  ar: { title: 'المراحل', day: '{n} يومًا', next: 'المرحلة التالية: {n} يومًا — بقي {k}', all: 'بلغتَ كل المراحل — تقبّل الله منك.', got: 'تحقّقت', not: 'لم تتحقق بعد' },
+  tr: { title: 'Aşamalar', day: '{n} gün', next: 'Sonraki aşama: {n} gün — {k} gün kaldı', all: 'Tüm aşamalar geçildi — Allah kabul etsin.', got: 'kazanıldı', not: 'henüz değil' },
+}
 
 // ── Dizayn v3: idarə panelinin əlavə mətnləri (5 dil) ──
 const EX = {
@@ -157,6 +166,7 @@ export default function PrayerTrackerPage({ setPage }) {
                 </dl>
               </div>
               <p className="pt-note"><Icon name="bolt" size={15} /> <span>{t.streakHint}{best > 0 ? ` · ${fill(x.vsBest, { p: Math.round((streak / best) * 100) })}` : ''}</span></p>
+              <Milestones lang={lk} streak={streak} best={best} />
             </div>
 
             <WeekReport t={t} lang={lk} snap={snap} periods={periods} week={week} today={today} sum={weekSum} />
@@ -217,6 +227,30 @@ export default function PrayerTrackerPage({ setPage }) {
       </section>
 
       <RelatedLinks items={RELATED} lang={lk} id="pt-related" />
+    </div>
+  )
+}
+
+// ── v3.2: ardıcıllıq mərhələləri — rekord seriyaya görə qazanılır ──
+function Milestones({ lang, streak, best }) {
+  const m = MS_TXT[lang] || MS_TXT.en
+  const nextN = MILESTONES.find(n => n > streak)
+  return (
+    <div className="pt-ms">
+      <h3 className="pt-ms-title">{m.title}</h3>
+      <ul className="pt-ms-list">
+        {MILESTONES.map(n => {
+          const got = best >= n
+          return (
+            <li key={n} className={`pt-ms-item${got ? ' is-got' : ''}`}>
+              <span className="pt-ms-ic" aria-hidden="true"><Icon name={got ? 'star' : 'target'} size={14} /></span>
+              <span className="ui-num">{fill(m.day, { n })}</span>
+              <span className="ui-sr-only">— {got ? m.got : m.not}</span>
+            </li>
+          )
+        })}
+      </ul>
+      <p className="pt-ms-next">{nextN ? fill(m.next, { n: nextN, k: nextN - streak }) : m.all}</p>
     </div>
   )
 }

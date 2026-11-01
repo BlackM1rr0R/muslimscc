@@ -264,3 +264,45 @@
 @media (prefers-reduced-motion: reduce) {
   .mf-guide-link .ui-link__arrow { transition: none; }
 }
+
+/* ══ v3.2: bələdçidə sual-cavab və addımlar — kart grid ══
+   Kart bağlıyken grid-də dayanır; açılanda bütün sətri tutur (cavab ensiz kartda
+   dartılmır, qonşu kartlar da uzanmır). */
+.mf-guide .ls-qa {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  align-items: start;
+  gap: var(--space-3);
+  border-top: 0;
+}
+.mf-guide .ls-qa__item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  padding-inline: 14px;
+  transition: box-shadow var(--dur-2) ease, border-color var(--dur-2) ease, transform var(--dur-2) var(--ease-out);
+}
+@media (hover: hover) {
+  .mf-guide .ls-qa__item:not([open]):hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line-strong); }
+}
+.mf-guide .ls-qa__item[open] { grid-column: 1 / -1; border-color: var(--brand-line); box-shadow: var(--shadow-2); }
+.mf-guide .ls-qa__q { font-size: var(--step--1); }
+.mf-guide .ls-steps {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  align-items: start;
+  gap: var(--space-3);
+}
+.mf-guide .ls-step {
+  height: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+.mf-guide .ls-step::before { display: none; }
+.mf-guide .ls-step__text { font-size: var(--step--1); line-height: 1.55; }
+@media (prefers-reduced-motion: reduce) {
+  .mf-guide .ls-qa__item { transition: none; }
+  .mf-guide .ls-qa__item:hover { transform: none; }
+}

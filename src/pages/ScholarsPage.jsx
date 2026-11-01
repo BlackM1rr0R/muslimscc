@@ -11,7 +11,18 @@ import LifespanChart from '../components/media/LifespanChart'
 import RelatedLinks from '../components/media/RelatedLinks'
 // Məlumat — src/data/scholars.js (prerender və SEO da oxuyur)
 import { SCHOLARS, ERAS, ERA_LABEL, ERA_SHORT, ERA_SPAN, scholarBySlug, dateText, lifeSpan } from '../data/scholars'
+import StarButton from '../components/collect/StarButton'
+import useStarred from '../components/collect/useStarred'
 import '../styles/ScholarsPage.css'
+
+// ── v3.2: sıralama, seçilmişlər, təsadüfi alim (5 dil) ──
+const C32 = {
+  az: { sort: 'Sırala', sEra: 'Dövrlər üzrə', sAz: 'Əlifba', sDied: 'Vəfat ili', favs: 'Seçilmişlər', favAdd: 'Seçilmişlərə əlavə et', random: 'Təsadüfi alim', favNone: 'Hələ seçilmiş alim yoxdur — kartdakı ulduza toxunun.' },
+  en: { sort: 'Sort', sEra: 'By era', sAz: 'A–Z', sDied: 'Year of death', favs: 'Saved', favAdd: 'Save', random: 'Random scholar', favNone: 'No saved scholars yet — tap the star on a card.' },
+  ru: { sort: 'Сортировка', sEra: 'По эпохам', sAz: 'А–Я', sDied: 'Год смерти', favs: 'Избранное', favAdd: 'В избранное', random: 'Случайный учёный', favNone: 'В избранном пока никого нет — нажмите звёздочку на карточке.' },
+  ar: { sort: 'الترتيب', sEra: 'حسب الحقبة', sAz: 'أبجديًا', sDied: 'سنة الوفاة', favs: 'المحفوظون', favAdd: 'احفظ', random: 'عالم عشوائي', favNone: 'لا يوجد محفوظون بعد — اضغط النجمة على البطاقة.' },
+  tr: { sort: 'Sırala', sEra: 'Dönemlere göre', sAz: 'Alfabe', sDied: 'Vefat yılı', favs: 'Kaydedilenler', favAdd: 'Kaydet', random: 'Rastgele âlim', favNone: 'Henüz kaydedilen âlim yok — karttaki yıldıza dokunun.' },
+}
 
 /* ══════════════════════════════════════════════════════════════════
    SƏLƏF ALİMLƏRİ — /scholars (siyahı) və /scholars/<slug> (profil)
@@ -179,16 +190,29 @@ export default function ScholarsPage() {
 
   const [search, setSearch] = useState('')
   const [era, setEra] = useState('all')
+  const [sort, setSort] = useState('era')
+  const X = C32[lang] || C32.en
+  const star = useStarred('scholars:favs')
 
   const filtered = useMemo(() => {
     const q = search.trim().toLocaleLowerCase(lang)
-    return SCHOLARS.filter(s => {
-      if (era !== 'all' && s.era !== era) return false
+    const list = SCHOLARS.filter(s => {
+      if (era === 'fav') { if (!star.list.includes(s.slug)) return false }
+      else if (era !== 'all' && s.era !== era) return false
       if (!q) return true
       const hay = [pick(s.name, lang), pick(s.fullName, lang), pick(s.title, lang), pick(s.city, lang), s.name.en, s.name.ar, s.fullName.ar]
       return hay.some(v => String(v || '').toLocaleLowerCase(lang).includes(q))
     })
-  }, [search, era, lang])
+    if (sort === 'az') {
+      const coll = new Intl.Collator(lang === 'ru' ? 'ru' : lang === 'ar' ? 'ar' : lang === 'tr' ? 'tr' : lang === 'az' ? 'az' : 'en', { sensitivity: 'base' })
+      return [...list].sort((a, b) => coll.compare(pick(a.name, lang), pick(b.name, lang)))
+    }
+    if (sort === 'died') {
+      const y = (s) => s.died?.h ?? 99999
+      return [...list].sort((a, b) => y(a) - y(b))
+    }
+    return list
+  }, [search, era, lang, sort, star.list])
 
   /* ── Sürüşmə: profil yuxarıdan açılır, siyahıya qayıdanda əvvəlki yer ── */
   const listY = useRef(0)
@@ -221,16 +245,24 @@ export default function ScholarsPage() {
     if (window.history.state?.usr?.scList) window.history.back()
     else routerNavigate(pathFor('scholars', lang))
   }
+  const openRandom = (e) => {
+    e?.preventDefault?.()
+    const pool = filtered.length ? filtered : SCHOLARS
+    listY.current = window.scrollY
+    routerNavigate(pathFor('scholars', lang, pool[Math.floor(Math.random() * pool.length)].slug), { state: { scList: true } })
+  }
 
   if (selected) {
-    return <Profile key={selected.slug} s={selected} L={L} lang={lang} isAr={isAr} onBack={backToList} onSibling={goSibling} />
+    return <Profile key={selected.slug} s={selected} L={L} lang={lang} isAr={isAr} onBack={backToList} onSibling={goSibling}
+      starOn={star.has(selected.slug)} onStar={() => star.toggle(selected.slug)} starLabel={X.favAdd} />
   }
 
   const counts = Object.fromEntries(ERAS.map(k => [k, SCHOLARS.filter(s => s.era === k).length]))
   // Filtr və axtarış yoxdursa — dövr üzrə qruplar (başlıqla); varsa — düz siyahı
-  const grouped = era === 'all' && !search.trim()
+  const grouped = era === 'all' && !search.trim() && sort === 'era'
   const card = (s) => (
-    <li key={s.slug}>
+    <li key={s.slug} className="sc-cell">
+      <StarButton className="sc-card-star" on={star.has(s.slug)} onToggle={() => star.toggle(s.slug)} label={`${X.favAdd}: ${pick(s.name, lang)}`} />
       <a className="ui-card ui-card--interactive sc-card" href={pathFor('scholars', lang, s.slug)} onClick={(e) => openProfile(s, e)}>
         <NameCard s={s} />
         <span className="sc-card__body">
@@ -296,14 +328,28 @@ export default function ScholarsPage() {
                   <span className={`sc-dot sc-era--${k}`} aria-hidden="true" /> {pick(ERA_SHORT[k], lang)} <span className="sc-chip__n ui-num">{counts[k]}</span>
                 </button>
               ))}
+              <button type="button" className="ui-chip sc-fav-chip" aria-pressed={era === 'fav'} onClick={() => setEra(era === 'fav' ? 'all' : 'fav')}>
+                <Icon name="star" size={14} /> {X.favs} <span className="sc-chip__n ui-num">{star.count}</span>
+              </button>
             </div>
+          </div>
+          <div className="sc-subbar">
+            <div className="ui-segmented sc-sort" role="group" aria-label={X.sort}>
+              {[['era', X.sEra], ['az', X.sAz], ['died', X.sDied]].map(([k, lbl]) => (
+                <button key={k} type="button" aria-pressed={sort === k} onClick={() => setSort(k)}>{lbl}</button>
+              ))}
+            </div>
+            <span className="sc-count ui-num" aria-live="polite">{filtered.length} / {SCHOLARS.length}</span>
+            <a className="ui-btn ui-btn--secondary ui-btn--sm sc-random" href={pathFor('scholars', lang)} onClick={openRandom}>
+              <Icon name="refresh" className="ui-btn__icon" /> {X.random}
+            </a>
           </div>
           <p className="sc-photo-note"><Icon name="info" size={15} /> {L.noPhoto}</p>
 
           {filtered.length === 0 ? (
             <div className="ui-card ui-card--sunken sc-empty">
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="search" /></span>
-              <p>{L.noResults}</p>
+              <p>{era === 'fav' && !star.count ? X.favNone : L.noResults}</p>
               <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => { setSearch(''); setEra('all') }}>
                 <Icon name="close" className="ui-btn__icon" /> {L.clear}
               </button>
@@ -324,7 +370,7 @@ export default function ScholarsPage() {
               )
             })
           ) : (
-            <ul className="sc-grid" data-reveal="stagger" key={`${era}|${search ? 'q' : ''}`}>{filtered.map(card)}</ul>
+            <ul className="sc-grid" data-reveal="stagger" key={`${era}|${search ? 'q' : ''}|${sort}`}>{filtered.map(card)}</ul>
           )}
         </div>
       </div>
@@ -382,7 +428,7 @@ export default function ScholarsPage() {
    → Bir baxışda → Həyatı → Elmə töhfəsi → Müəllim/tələbə → Əsərlər →
    Alimlərin sözü → Qeyd (varsa) → Mənbələr → Əvvəlki/Növbəti + eyni dövrdən.
    ══════════════════════════════════════════════════════════════════ */
-function Profile({ s, L, lang, isAr, onBack, onSibling }) {
+function Profile({ s, L, lang, isAr, onBack, onSibling, starOn, onStar, starLabel }) {
   const n = pick(s.name, lang)
   const idx = SCHOLARS.indexOf(s)
   const prev = idx > 0 ? SCHOLARS[idx - 1] : null
@@ -502,6 +548,7 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
                 <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={share}>
                   <Icon name="share" className="ui-btn__icon" /> {L.share}
                 </button>
+                {onStar && <StarButton on={starOn} onToggle={onStar} label={starLabel} />}
               </div>
             </div>
           </div>

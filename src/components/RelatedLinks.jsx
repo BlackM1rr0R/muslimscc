@@ -16,7 +16,7 @@ export default function RelatedLinks({ items = [], className = '' }) {
   const { lang } = useLang()
   const navigate = useNavigate()
   return (
-    <ul className={`ui-list${className ? ' ' + className : ''}`}>
+    <ul className={`ui-list ui-list--tiles${className ? ' ' + className : ''}`}>
       {items.map((it, i) => {
         const href = it.learn ? pathFor('learn', lang, it.learn) : pathFor(it.to, lang)
         return (

@@ -12,7 +12,19 @@ import { navGroupLabel, navGroupOf } from '../data/navigation'
 import { VIRTUE, IHSA, NAME_RULES, ATTR_RULES, DUA_BY_NAMES } from '../data/namesGuide'
 import { Donut } from '../components/viz'
 import RelatedLinks from '../components/RelatedLinks'
+import ReaderDialog from '../components/reader/ReaderDialog'
+import StarButton, { CopyStatus } from '../components/collect/StarButton'
+import useStarred, { dayPick, shareLink } from '../components/collect/useStarred'
 import '../styles/NamesPage.css'
+
+// ── v3.2: seçilmişlər, əzbərlənənlər süzgəci, günün adı, qaydalar kart + oxu pəncərəsi (5 dil) ──
+const N32 = {
+  az: { favs: 'Seçilmişlər', known: 'Əzbərlənənlər', favAdd: 'Seçilmişlərə əlavə et', today: 'Günün adı', open: 'Aç', random: 'Təsadüfi ad', share: 'Paylaş', copied: 'Link kopyalandı', favNone: 'Hələ seçilmiş ad yoxdur — adı açıb ulduza toxunun.', knownNone: 'Hələ əzbərlənmiş ad yoxdur — aşağıdakı kartlarla başlayın.', read: 'Oxu', close: 'Bağla', prev: 'Əvvəlki', next: 'Növbəti', isKnown: 'əzbərlənib', isFav: 'seçilmiş' },
+  en: { favs: 'Saved', known: 'Memorised', favAdd: 'Save this name', today: 'Name of the day', open: 'Open', random: 'Random name', share: 'Share', copied: 'Link copied', favNone: 'No saved names yet — open a name and tap the star.', knownNone: 'No memorised names yet — start with the flashcards below.', read: 'Read', close: 'Close', prev: 'Previous', next: 'Next', isKnown: 'memorised', isFav: 'saved' },
+  ru: { favs: 'Избранное', known: 'Выученные', favAdd: 'Добавить в избранное', today: 'Имя дня', open: 'Открыть', random: 'Случайное имя', share: 'Поделиться', copied: 'Ссылка скопирована', favNone: 'В избранном пока нет имён — откройте имя и нажмите звёздочку.', knownNone: 'Пока нет выученных имён — начните с карточек ниже.', read: 'Читать', close: 'Закрыть', prev: 'Назад', next: 'Далее', isKnown: 'выучено', isFav: 'в избранном' },
+  ar: { favs: 'المحفوظة', known: 'المحفوظة غيبًا', favAdd: 'احفظ الاسم', today: 'اسم اليوم', open: 'افتح', random: 'اسم عشوائي', share: 'مشاركة', copied: 'تم نسخ الرابط', favNone: 'لا توجد أسماء محفوظة بعد — افتح الاسم واضغط النجمة.', knownNone: 'لم تحفظ اسمًا بعد — ابدأ بالبطاقات أدناه.', read: 'اقرأ', close: 'إغلاق', prev: 'السابق', next: 'التالي', isKnown: 'محفوظ غيبًا', isFav: 'محفوظ' },
+  tr: { favs: 'Kaydedilenler', known: 'Ezberlenenler', favAdd: 'Kaydet', today: 'Günün ismi', open: 'Aç', random: 'Rastgele isim', share: 'Paylaş', copied: 'Bağlantı kopyalandı', favNone: 'Henüz kaydedilen isim yok — ismi açıp yıldıza dokunun.', knownNone: 'Henüz ezberlenen isim yok — aşağıdaki kartlarla başlayın.', read: 'Oku', close: 'Kapat', prev: 'Önceki', next: 'Sonraki', isKnown: 'ezberlendi', isFav: 'kaydedildi' },
+}
 
 // ── Yeni bölmələr: fəzilət, "ihsa" (əzbərlə · anla · ibadət et), əzbərləmə
 // (kartlar + yoxlama, localStorage), adlar və sifətlər haqqında qaydalar
@@ -221,6 +233,9 @@ function readPractice() {
 }
 function writePractice(p) {
   try { localStorage.setItem(PRACTICE_KEY, JSON.stringify(p)) } catch { /* yaddaş bağlıdır */ }
+  // Siyahıdakı "əzbərlənib" nişanları yenilənsin (NamesPage dinləyir)
+  // setState yeniləyicisinin içindən çağırılır — hadisə render bitəndən sonra göndərilir
+  try { setTimeout(() => window.dispatchEvent(new Event('names99:practice')), 0) } catch { /* köhnə brauzer */ }
 }
 function shuffleArr(arr) {
   const a = [...arr]
@@ -441,35 +456,49 @@ function NamesPractice({ lang }) {
   )
 }
 
-function RuleList({ rules, lang, g, idPrefix }) {
+// Qaydalar — kart şəbəkəsi (nömrə nişanı, başlıq, 3 sətir önizləmə); klikdə oxu pəncərəsi
+function RuleList({ rules, lang, g, idPrefix, onOpen, readLabel }) {
   return (
     <ol className="np-rules">
       {rules.map(r => (
         <li key={r.n}>
-          <details className="ui-card np-rule" id={`${idPrefix}-${r.n}`}>
-            <summary className="np-rule__sum">
+          <button type="button" className="ui-card np-rule" id={`${idPrefix}-${r.n}`} onClick={() => onOpen(idPrefix, r.n)} aria-haspopup="dialog">
+            <span className="np-rule__sum">
               <span className="np-rule__n ui-num" aria-hidden="true">{r.n}</span>
               <span className="np-rule__titles">
                 <span className="np-rule__eyebrow">{g.rule(r.n)}</span>
                 <span className="np-rule__title">{r.title[lang] || r.title.en}</span>
               </span>
-              <Icon name="chevron" size={18} className="np-rule__chev" />
-            </summary>
-            <div className="np-rule__body">
-              <p>{r.text[lang] || r.text.en}</p>
-              {r.ayah && (
-                <figure className="np-ayah">
-                  <p className="np-ayah__ar ui-arabic" lang="ar" dir="rtl">﴿{r.ayah.ar}﴾</p>
-                  <figcaption className="np-ayah__ref">{g.proof}: {g.quran} <bdi className="ui-num">{r.ayah.ref}</bdi></figcaption>
-                </figure>
-              )}
-            </div>
-          </details>
+            </span>
+            <span className="np-rule__preview">{r.text[lang] || r.text.en}</span>
+            <span className="np-rule__more">
+              {r.ayah && <span className="np-rule__tag"><Icon name="quran" size={14} /> <bdi className="ui-num">{r.ayah.ref}</bdi></span>}
+              <span className="np-rule__read">{readLabel} <Icon name="arrow" size={15} className="ui-flip-rtl" /></span>
+            </span>
+          </button>
         </li>
       ))}
     </ol>
   )
 }
+
+function RuleBody({ r, lang, g }) {
+  return (
+    <div className="np-rule__body">
+      <p>{r.text[lang] || r.text.en}</p>
+      {r.ayah && (
+        <figure className="np-ayah">
+          <p className="np-ayah__ar ui-arabic" lang="ar" dir="rtl">﴿{r.ayah.ar}﴾</p>
+          <figcaption className="np-ayah__ref">{g.proof}: {g.quran} <bdi className="ui-num">{r.ayah.ref}</bdi></figcaption>
+        </figure>
+      )}
+    </div>
+  )
+}
+const ALL_RULES = [
+  ...NAME_RULES.map(r => ({ ...r, group: 'name-rule' })),
+  ...ATTR_RULES.map(r => ({ ...r, group: 'attr-rule' })),
+]
 
 // Qurandan gələn adların sayı (İbn Useymin: 81 Quran, 18 Sünnə)
 const Q_COUNT = NAMES_99.filter(n => n.proof?.q).length
@@ -520,12 +549,30 @@ export default function NamesPage({ setPage }) {
   const lastFocus = useRef(null)
   const closeRef = useRef(null)
 
-  // Mənbə süzgəci: hamısı / Quran / Sünnə (proof.q — ayə, proof.s — hədis)
+  // Mənbə süzgəci: hamısı / Quran / Sünnə (proof.q — ayə, proof.s — hədis) + seçilmişlər / əzbərlənənlər
   const [srcFilter, setSrcFilter] = useState('all')
   const v3 = V3[lang] || V3.en
+  const n32 = N32[lang] || N32.en
+  const star = useStarred('names99:favs')
+  const [known, setKnown] = useState(() => (typeof window === 'undefined' ? [] : readPractice().known))
+  useEffect(() => {
+    const sync = () => setKnown(readPractice().known)
+    const onStorage = (e) => { if (e.key === PRACTICE_KEY) sync() }
+    window.addEventListener('names99:practice', sync)
+    window.addEventListener('storage', onStorage)
+    return () => { window.removeEventListener('names99:practice', sync); window.removeEventListener('storage', onStorage) }
+  }, [])
+  const [status, setStatus] = useState('')
+  const [ruleOpen, setRuleOpen] = useState(null) // ALL_RULES indeksi
+  const openRule = (group, n) => setRuleOpen(ALL_RULES.findIndex(r => r.group === group && r.n === n))
+  const today = NAMES_99[dayPick(99)]
+  useEffect(() => { setStatus('') }, [openIdx])
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const base = srcFilter === 'all' ? NAMES_99 : NAMES_99.filter(n => (srcFilter === 'q' ? !!n.proof?.q : !n.proof?.q))
+    const base = srcFilter === 'all' ? NAMES_99
+      : srcFilter === 'fav' ? NAMES_99.filter(n => star.list.includes(n.n))
+      : srcFilter === 'known' ? NAMES_99.filter(n => known.includes(n.n))
+      : NAMES_99.filter(n => (srcFilter === 'q' ? !!n.proof?.q : !n.proof?.q))
     if (!q) return base
     if (HAS_ARABIC.test(q)) {
       const nq = normAr(q)
@@ -537,7 +584,7 @@ export default function NamesPage({ setPage }) {
       (n.en || '').toLowerCase().includes(q) ||
       String(n.n) === q
     )
-  }, [search, lang, srcFilter])
+  }, [search, lang, srcFilter, star.list, known])
 
   const opened = openIdx != null ? NAMES_99[openIdx] : null
 
@@ -701,9 +748,11 @@ export default function NamesPage({ setPage }) {
               />
             </label>
             <div className="np-filter" role="group" aria-label={v3.filterLabel}>
-              {[['all', v3.all, 99], ['q', v3.qMark, Q_COUNT], ['s', v3.sMark, 99 - Q_COUNT]].map(([k, lbl, n]) => (
-                <button key={k} type="button" className="ui-chip" aria-pressed={srcFilter === k} onClick={() => setSrcFilter(k)}>
-                  {k !== 'all' && <span className={`np-dot np-dot--${k}`} aria-hidden="true" />}
+              {[['all', v3.all, 99], ['q', v3.qMark, Q_COUNT], ['s', v3.sMark, 99 - Q_COUNT], ['fav', n32.favs, star.count], ['known', n32.known, known.length]].map(([k, lbl, n]) => (
+                <button key={k} type="button" className={`ui-chip${k === 'fav' || k === 'known' ? ' np-filter--mine' : ''}`} aria-pressed={srcFilter === k} onClick={() => setSrcFilter(k)}>
+                  {(k === 'q' || k === 's') && <span className={`np-dot np-dot--${k}`} aria-hidden="true" />}
+                  {k === 'fav' && <Icon name="star" size={14} />}
+                  {k === 'known' && <Icon name="check" size={14} />}
                   {lbl} <span className="np-filter__n ui-num">{n}</span>
                 </button>
               ))}
@@ -713,11 +762,32 @@ export default function NamesPage({ setPage }) {
             </p>
           </div>
 
+          {srcFilter === 'all' && !search.trim() && (
+            <aside className="cl-spot np-spot" aria-label={n32.today}>
+              <span className="cl-spot__icon np-spot__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">{today.ar}</span>
+              <div className="cl-spot__body">
+                <span className="cl-spot__eyebrow">{n32.today} · <span className="ui-num">{today.n}</span></span>
+                <span className="cl-spot__title" dir="ltr">{today.tr}</span>
+                {meaningOf(today, lang) && <p className="cl-spot__text">{meaningOf(today, lang)}</p>}
+              </div>
+              <div className="cl-spot__actions">
+                <a className="ui-btn ui-btn--primary ui-btn--sm" href={pathFor('names', lang, today.n)} onClick={onCardClick(today.n)} aria-haspopup="dialog">
+                  <Icon name="names" className="ui-btn__icon" /> {n32.open}
+                </a>
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={(e) => openName(1 + Math.floor(Math.random() * 99), e.currentTarget)} aria-haspopup="dialog">
+                  <Icon name="refresh" className="ui-btn__icon" /> {n32.random}
+                </button>
+              </div>
+            </aside>
+          )}
+
           {/* Kartlar ekrana girəndə yumşaq görünür; toxunanda ad pəncərədə açılır */}
           <ol className="names-grid">
             {filtered.map((name, i) => {
               const meaning = meaningOf(name, lang)
               const fromQ = !!name.proof?.q
+              const isFav = star.list.includes(name.n)
+              const isKnown = known.includes(name.n)
               return (
                 <li key={name.n} data-reveal="zoom" data-reveal-delay={i < 8 ? i * 40 : (i % 4) * 40}>
                   <a className={`name-card${fromQ ? '' : ' is-sunnah'}`} href={pathFor('names', lang, name.n)}
@@ -726,7 +796,11 @@ export default function NamesPage({ setPage }) {
                     {/* Əlçatan ad kartın görünən mətnidir (WCAG 2.5.3 "Label in Name") */}
                     <span className="name-card__top">
                       <span className="name-num ui-num">{name.n}</span>
-                      <span className={`np-dot np-dot--${fromQ ? 'q' : 's'}`} title={fromQ ? v3.qMark : v3.sMark} aria-hidden="true" />
+                      <span className="name-card__marks">
+                        {isKnown && <span className="name-card__mark is-known" title={n32.isKnown}><Icon name="check" size={13} strokeWidth={2.4} /><span className="ui-sr-only">{n32.isKnown}</span></span>}
+                        {isFav && <span className="name-card__mark is-fav" title={n32.isFav}><Icon name="star" size={13} /><span className="ui-sr-only">{n32.isFav}</span></span>}
+                        <span className={`np-dot np-dot--${fromQ ? 'q' : 's'}`} title={fromQ ? v3.qMark : v3.sMark} aria-hidden="true" />
+                      </span>
                     </span>
                     <span className="name-arabic" lang="ar" dir="rtl">{name.ar}</span>
                     <span className="name-translit" dir="ltr">{name.tr}</span>
@@ -741,7 +815,7 @@ export default function NamesPage({ setPage }) {
           {filtered.length === 0 && (
             <div className="names-empty" data-reveal="fade">
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="search" /></span>
-              <p>{NOT_FOUND[lang] || NOT_FOUND.en}</p>
+              <p>{srcFilter === 'fav' && !star.count ? n32.favNone : srcFilter === 'known' && !known.length ? n32.knownNone : (NOT_FOUND[lang] || NOT_FOUND.en)}</p>
             </div>
           )}
         </div>
@@ -812,14 +886,41 @@ export default function NamesPage({ setPage }) {
           </div>
           <div className="np-rules-cols">
             <div>
-              <h3 className="np-h3">{g.nameRules}</h3>
-              <RuleList rules={NAME_RULES} lang={lang} g={g} idPrefix="name-rule" />
+              <h3 className="np-h3">{g.nameRules} <span className="ui-badge ui-num">{NAME_RULES.length}</span></h3>
+              <RuleList rules={NAME_RULES} lang={lang} g={g} idPrefix="name-rule" onOpen={openRule} readLabel={n32.read} />
             </div>
             <div>
-              <h3 className="np-h3">{g.attrRules}</h3>
-              <RuleList rules={ATTR_RULES} lang={lang} g={g} idPrefix="attr-rule" />
+              <h3 className="np-h3">{g.attrRules} <span className="ui-badge ui-num">{ATTR_RULES.length}</span></h3>
+              <RuleList rules={ATTR_RULES} lang={lang} g={g} idPrefix="attr-rule" onOpen={openRule} readLabel={n32.read} />
             </div>
           </div>
+          <ReaderDialog
+            open={ruleOpen != null && ruleOpen >= 0}
+            onClose={() => setRuleOpen(null)}
+            onPrev={ruleOpen > 0 ? () => setRuleOpen(ruleOpen - 1) : undefined}
+            onNext={ruleOpen != null && ruleOpen < ALL_RULES.length - 1 ? () => setRuleOpen(ruleOpen + 1) : undefined}
+            labelledBy="np-rule-title"
+            position={ruleOpen != null ? `${ruleOpen + 1} / ${ALL_RULES.length}` : null}
+            labels={{ close: n32.close, prev: n32.prev, next: n32.next }}
+            contentKey={ruleOpen}
+            className="np-rule-read"
+            head={ruleOpen != null && ALL_RULES[ruleOpen] && (
+              <span className="np-rule-read__group">{ALL_RULES[ruleOpen].group === 'name-rule' ? g.nameRules : g.attrRules}</span>
+            )}
+          >
+            {ruleOpen != null && ALL_RULES[ruleOpen] && (
+              <article className="np-rule-read__body">
+                <header className="np-rule__sum">
+                  <span className="np-rule__n ui-num" aria-hidden="true">{ALL_RULES[ruleOpen].n}</span>
+                  <span className="np-rule__titles">
+                    <span className="np-rule__eyebrow">{g.rule(ALL_RULES[ruleOpen].n)}</span>
+                    <h2 className="np-rule__title np-rule-read__title" id="np-rule-title">{ALL_RULES[ruleOpen].title[lang] || ALL_RULES[ruleOpen].title.en}</h2>
+                  </span>
+                </header>
+                <RuleBody r={ALL_RULES[ruleOpen]} lang={lang} g={g} />
+              </article>
+            )}
+          </ReaderDialog>
         </div>
       </section>
 
@@ -841,10 +942,21 @@ export default function NamesPage({ setPage }) {
             <div className="ui-pattern" aria-hidden="true" />
             <div className="names-modal-top">
               <span className="ui-badge ui-badge--accent ui-num" dir="ltr">{opened.n} {ui.of}</span>
-              <button type="button" ref={closeRef} className="ui-icon-btn" onClick={closeName} aria-label={ui.close}>
-                <Icon name="close" />
-              </button>
+              <span className="names-modal-tools">
+                <StarButton on={star.list.includes(opened.n)} onToggle={() => star.toggle(opened.n)} label={n32.favAdd} />
+                <button type="button" className="ui-icon-btn names-modal-share" aria-label={n32.share} title={n32.share}
+                  onClick={async () => {
+                    const r = await shareLink({ title: opened.tr, text: `${opened.ar} — ${opened.tr}${meaningOf(opened, lang) ? ` (${meaningOf(opened, lang)})` : ''}`, url: window.location.href })
+                    setStatus(r === 'copied' ? n32.copied : '')
+                  }}>
+                  <Icon name="share" />
+                </button>
+                <button type="button" ref={closeRef} className="ui-icon-btn" onClick={closeName} aria-label={ui.close}>
+                  <Icon name="close" />
+                </button>
+              </span>
             </div>
+            <CopyStatus text={status} />
             {/* key — ad dəyişəndə məzmun yenidən yumşaq görünür */}
             <div className="names-modal-body" key={opened.n}>
               <p className="names-modal-ar ui-arabic" lang="ar" dir="rtl">{opened.ar}</p>

@@ -382,4 +382,27 @@
 .sc-hero__jump .ui-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; }
 .sc-timeline { scroll-margin-top: calc(var(--header-h, 64px) + 8px); }
 .sc-page .sc-tl-legend { margin: 0 0 var(--space-4); }
-.sc-related .ui-list { max-width: 760px; }
+.sc-related .ui-list { max-width: none; }
+
+/* ══ v3.2 — sıralama zolağı, seçilmişlər (kartda ulduz), təsadüfi alim ══ */
+.sc-subbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-3); }
+.sc-page .sc-sort > button { min-height: 40px; }
+.sc-count { color: var(--text-tertiary); font-size: var(--step--1); }
+.sc-page .sc-random { margin-inline-start: auto; min-height: 44px; }
+.sc-fav-chip svg { color: var(--accent); }
+.sc-fav-chip[aria-pressed="true"] svg { fill: currentColor; color: inherit; }
+.sc-grid > li.sc-cell { position: relative; }
+.sc-page .sc-card-star {
+  position: absolute; z-index: 2; top: 18px; inset-inline-end: 18px;
+  background: color-mix(in srgb, var(--surface-1) 86%, transparent);
+  box-shadow: var(--shadow-1); border-radius: 50%;
+}
+.sc-page .sc-card-star:not(.is-on) { opacity: 0; transition: opacity var(--dur-2) ease; }
+.sc-page .sc-cell:hover .sc-card-star, .sc-page .sc-cell:focus-within .sc-card-star { opacity: 1; }
+@media (hover: none) { .sc-page .sc-card-star:not(.is-on) { opacity: 1; } }
+.sc-page .cl-star { border: 1px solid var(--line); }
+.sc-page .sc-card-star.cl-star { border: 0; }
+@media (max-width: 767.98px) {
+  .sc-page .sc-random { margin-inline-start: 0; flex: 1 1 100%; justify-content: center; }
+  .sc-page .sc-card-star { top: 6px; inset-inline-end: 6px; }
+}

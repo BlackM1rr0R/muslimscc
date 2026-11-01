@@ -1,0 +1,91 @@
+/* ══ ReaderDialog (components/reader) — kart grid-lərindən açılan oxu pəncərəsi ══
+   Telefonda aşağıdan qalxan vərəq, genişdə mərkəzi pəncərə. Yalnız tokenlər.
+   Fayl ui.css-dən ƏVVƏL yüklənə bilər — .ui-* üzərinə .rd-panel ilə. */
+.rd-backdrop {
+  position: fixed; inset: 0; z-index: var(--z-dialog);
+  display: grid; place-items: center;
+  padding: clamp(12px, 3vw, 32px);
+  background: color-mix(in srgb, var(--surface-inverse) 48%, transparent);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  animation: rdFade var(--dur-2) var(--ease-out) both;
+}
+.rd-panel {
+  position: relative;
+  display: flex; flex-direction: column;
+  width: min(100%, 760px); max-height: min(92dvh, 960px);
+  border: 1px solid var(--line); border-radius: var(--radius-xl);
+  background: var(--surface-raised, var(--surface-1));
+  box-shadow: var(--shadow-4);
+  outline: none;
+  animation: rdOpen var(--dur-3) var(--ease-spring, var(--ease-out)) both;
+}
+.rd-panel:focus-visible { box-shadow: var(--shadow-4), 0 0 0 2px var(--ring); }
+.rd-head {
+  display: flex; align-items: center; gap: var(--space-2) var(--space-3);
+  padding: 12px 12px 12px var(--space-5);
+  border-bottom: 1px solid var(--line);
+}
+[dir="rtl"] .rd-head { padding: 12px var(--space-5) 12px 12px; }
+.rd-head__main { display: flex; flex: 1; min-width: 0; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rd-pos { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; white-space: nowrap; }
+.rd-panel .rd-close { flex-shrink: 0; width: 44px; height: 44px; }
+.rd-body {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: var(--space-5);
+  animation: rdSwap var(--dur-2) var(--ease-out) both;
+}
+.rd-foot {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+.rd-foot__mid { display: flex; flex: 1; min-width: 0; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; }
+.rd-panel .rd-nav { min-height: 44px; flex-shrink: 0; }
+.rd-panel .rd-nav:disabled { opacity: .45; cursor: default; }
+
+@keyframes rdFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rdOpen { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes rdSwap { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 639.98px) {
+  .rd-backdrop { place-items: end stretch; padding: 0; }
+  .rd-panel {
+    width: 100%; max-height: 94dvh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0; border-bottom: 0;
+    animation-name: rdSheet;
+  }
+  .rd-foot { border-radius: 0; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .rd-body { padding: var(--space-4); }
+  .rd-head { padding-inline-start: var(--space-4); }
+  .rd-nav__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .rd-panel .rd-nav { width: 44px; padding: 0; justify-content: center; }
+}
+@keyframes rdSheet { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rd-backdrop, .rd-panel, .rd-body { animation: none; }
+}
+@media print {
+  .rd-backdrop { position: static; background: none; backdrop-filter: none; padding: 0; }
+  .rd-panel { max-height: none; box-shadow: none; border: 0; }
+  .rd-foot, .rd-close { display: none; }
+}
+
+/* ── Əzbər rejimi (MemorizeText) ── */
+.rd-memo { display: flex; flex-direction: column; gap: var(--space-3); }
+.rd-memo__w { cursor: pointer; }
+.rd-memo__w.is-shown { cursor: default; animation: rdSwap var(--dur-2) var(--ease-out) both; }
+.rd-memo__mask {
+  border-radius: var(--radius-xs);
+  background: var(--surface-3, var(--surface-2));
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: transparent;
+  -webkit-user-select: none; user-select: none;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+@media (hover: hover) { .rd-memo__w:hover .rd-memo__mask { background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand-line); } }
+.rd-memo__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rd-memo__count { margin-inline-end: auto; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .rd-memo__w.is-shown { animation: none; } }

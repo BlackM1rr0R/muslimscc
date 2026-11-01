@@ -48,6 +48,10 @@ const P = {
   halalcheck: <><path d="M4.5 8.5h15l-1.4 10a2 2 0 0 1-2 1.7H7.9a2 2 0 0 1-2-1.7z" /><path d="M8.5 8.5 10 4M15.5 8.5 14 4" /><path d="m9 14 2 2 4-4" /></>,
   history: <><path d="M5.5 21.5h13M5.5 2.5h13" /><path d="M7 2.5v3.6a2 2 0 0 0 .6 1.4L12 12l4.4-4.5a2 2 0 0 0 .6-1.4V2.5" /><path d="M17 21.5v-3.6a2 2 0 0 0-.6-1.4L12 12l-4.4 4.5a2 2 0 0 0-.6 1.4v3.6" /></>,
   glossary: <><path d="m4.5 8 5.5 5.5" /><path d="m3.5 14 6-6 2-3" /><path d="M2.5 5h11M7.5 2.5h1" /><path d="m21.5 21.5-4.5-10-4.5 10M14 18h6" /></>,
+  // v3.2 yeni bölmələr
+  hadithbooks: <><path d="M3.5 5.5h5v15h-5z" /><path d="M8.5 7.5h5v13h-5z" /><path d="m14.6 7.9 4.4-1.2 3 12.9-4.4 1.2z" /><path d="M5.5 9h1M10.5 11h1" /></>,
+  hadeethenc: <><path d="M5 3.5h11l3.5 3.5v13.5H5z" /><path d="M16 3.5V7h3.5" /><circle cx="11" cy="13" r="3" /><path d="m13.2 15.2 2.3 2.3" /></>,
+  fatwa: <><path d="M12 3.5 4.5 7v1.5h15V7z" /><path d="M6.5 10.5v6M10 10.5v6M14 10.5v6M17.5 10.5v6" /><path d="M4 19.5h16" /></>,
   books: <><path d="M4.5 3.5v17M8.5 6.5v14M12.5 5.5v15" /><path d="m16 6.5 4 13.5" /></>,
   videos: <><rect x="2.5" y="5" width="19" height="14" rx="3" /><path d="m10 9.2 5 2.8-5 2.8z" /></>,
   prayerguide: <><path d="M21.5 9.5 12 4.5 2.5 9.5 12 14.5z" /><path d="M6.5 11.8V16c3 2.7 8 2.7 11 0v-4.2" /><path d="M21.5 9.5V15" /></>,

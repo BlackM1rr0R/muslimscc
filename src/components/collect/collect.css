@@ -1,0 +1,50 @@
+/* ══ collect — seçilmişlər ulduzu, günün seçimi zolağı, kiçik status (D qrupu, v3.2) ══
+   Yalnız tokenlər. Fayl ui.css-dən ƏVVƏL yüklənə bilər — .cl-* sinfi ilə gücləndirilib. */
+.ui-icon-btn.cl-star {
+  width: 44px; height: 44px; flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+.ui-icon-btn.cl-star svg { transition: transform var(--dur-2) var(--ease-out), fill var(--dur-1) ease; }
+.ui-icon-btn.cl-star.is-on { color: var(--accent); }
+.ui-icon-btn.cl-star.is-on svg { fill: currentColor; transform: scale(1.06); }
+@media (hover: hover) { .ui-icon-btn.cl-star:hover { color: var(--accent); background: var(--accent-soft); } }
+
+.cl-status { min-height: 1em; color: var(--brand); font-size: var(--step--1); font-weight: 600; }
+.cl-status:empty { display: none; }
+
+/* Günün seçimi — geniş zolaq kart (ikon nişanı + başlıq + 2 sətir önizləmə + düymələr) */
+.cl-spot {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--accent-line); border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--accent-soft), transparent 70%), var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
+.cl-spot__icon {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  border-radius: var(--radius-md); background: var(--accent-soft); color: var(--accent-text);
+}
+.cl-spot__body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cl-spot__eyebrow { color: var(--accent-text); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.cl-spot__title { color: var(--text-strong); font-size: var(--step-0); font-weight: 600; line-height: 1.35; }
+.cl-spot__text {
+  color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cl-spot__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.cl-spot__actions .ui-btn { min-height: 44px; }
+@media (max-width: 639.98px) {
+  .cl-spot { grid-template-columns: auto minmax(0, 1fr); padding: var(--space-4); }
+  .cl-spot__actions { grid-column: 1 / -1; }
+  .cl-spot__actions .ui-btn { flex: 1; justify-content: center; }
+}
+
+/* Dialoq daxilində alət sətri (ulduz + paylaş + kopyala) */
+.cl-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
+.cl-tools .ui-btn { min-height: 44px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-icon-btn.cl-star svg { transition: none; }
+}
+@media print { .cl-star, .cl-spot__actions { display: none !important; } }

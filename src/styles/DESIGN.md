@@ -180,7 +180,7 @@ redizayn edilən səhifə `.ui-page-hero`-ya keçir.
 `.ui-icon-btn` (kvadrat, `aria-label` məcburi) · `.ui-link` (+ `.ui-link__arrow ui-flip-rtl`). Bir bölmədə ən çox **bir** primary düymə.
 
 ### Kart
-`.ui-card` — ağ, hairline, **kölgəsiz**. `--interactive` / `<a class="ui-card">` hover-də 2px qalxır, haşiyə zümrüdləşir.
+`.ui-card` — ağ, hairline, **kölgəsiz** (v3.2: klikləmə kartı `--shadow-1`, bax §4.2). `--interactive` / `<a class="ui-card">` hover-də 2px qalxır, haşiyə zümrüdləşir.
 `--sunken` (ikinci səth, haşiyəsiz) · `--plain` (fonsuz qrup — kart içində kart əvəzinə) · `--inverse` · `--flush`.
 Hissələr: `__head` (ikon + başlıq) `__title` (mono, step-1) `__text` (13px) `__foot`.
 `.ui-icon-tile` (+ `--accent --neutral --sm --lg`) — xətti ikon üçün yumşaq kafel.
@@ -260,6 +260,37 @@ Variantlar: susma (brend) · `--note` · `--ok` · `--warn` · `--bad` · `--acc
 `.ui-quote` (ərəbcə + tərcümə + mənbə, qızılı başlanğıc xətti) · `.ui-ornament` · `.ui-pattern` (+ `--fade`) ·
 `.ui-empty` (boş vəziyyət) · `.ui-split` (≥1100px məzmun + yapışqan yan panel) · `.ui-toast` (üzən dəvət, eyni anda biri) ·
 `.ui-meter` (zolaq; React: `<ProgressBar>`) · `.ui-sr-only` · `.ui-flip-rtl` · `.ui-cv` (ekrandan kənar bölmənin render-ini təxirə sal).
+
+### 4.2 v3.2 — "kiçikdən böyüyə modern" (ui.css §15 + incələmələr)
+
+Sahibin istəyi (2026-11): alt-alta uzun siyahı / akkordeon sətri yox — **kart grid-i + oxu pəncərəsi**.
+Köhnə siniflərin adları dəyişməyib, yalnız dəyərlər incələnib:
+
+- **Düymə:** `--primary` incə üst işıq + `--shadow-1`, hover-də `--shadow-2`; `--secondary` kölgəli.
+  Toggle → `aria-pressed="true"` (`--secondary`/`--ghost` zümrüd-yumşaq olur). Yeni: `--square` (ölçüyə uyğun kvadrat ikon düyməsi).
+- **Sahə:** fokusda 4px yumşaq hale; `aria-invalid="true"` + `.ui-field__error`; `textarea.ui-input`; `<select class="ui-select">`
+  öz oxu ilə (RTL-də solda); `--sm`. **Axtarış:** `<div class="ui-search"><Icon name="search"/><input class="ui-input" type="search"/><button class="ui-search__clear" aria-label="…"><Icon name="close"/></button></div>`.
+- **Çip:** hover fonu, `<span class="ui-chip__count">` say; qrup `.ui-chips` (`--scroll` — telefonda üfüqi sürüşür).
+- **Nişan:** `--ok --warn --bad --note` (həmişə mətnlə), `--outline`, `--num` (hədis №), `.ui-badge__dot`.
+- **Kart:** `--interactive` sakit halda `--shadow-1` (klikləmə olduğu bilinsin), hover 2px qalxır. Yeni: `--elevated`,
+  `--brand-edge` / `--accent-edge`, hissələr `__num` (nömrə nişanı), `__meta` (çip/nişan sırası), `__actions`.
+- **Sekmə/seqment:** klaviatura halqası içəridə; seçilmiş sekmənin sayı zümrüd; qaranlıqda seçilmiş seqment `--surface-3`.
+- **Boş vəziyyət:** ikon yumşaq dairədə; `--card` (qırıq haşiyəli sahə), `--bad` (xəta); içində `<p>` + `.ui-btn`.
+- **Tile:** `--shadow-1`, hover-də qalxır.
+
+Yeni köməkçilər:
+
+| Sinif | Nə üçün |
+|---|---|
+| `.ui-cardgrid` (`--ui-cardgrid-min`, `--stretch`) | Kart grid-i: `repeat(auto-fill, minmax(min(100%, 300px), 1fr))`, `align-items: start` |
+| `.ui-clamp` (`--lines` və ya `--1 --2 --4`) | Kartda 1–4 sətirlik önizləmə (`line-clamp`); çapda tam açılır |
+| `.ui-toolbar` (+ `__count`, `--static`) | Sticky alət zolağı: `.ui-search` + `.ui-chips` + say; şüşə fon |
+| `.ui-dialog` (+ `__head __title __body __foot`, `--sheet`, `.ui-dialog-backdrop`) | Native `<dialog>` və ya portal pəncərəsi; `--sheet` — telefonda aşağıdan vərəq, ≥768px yan panel. Kart grid-indən oxu pəncərəsi üçün hazır komponent: `components/reader/ReaderDialog` |
+| `.ui-bento` (+ `__cell--wide`, `__cell--tall`) | 1 → 2 (≥700px) → 4 (≥1100px) sütunlu bento (ana səhifənin "Bu gün" paneli) |
+| `.ui-skeleton-grid` | Kart grid-inin yüklənmə yer tutucusu (`.ui-skeleton--card` ilə) |
+
+Ana səhifə nümunəsi: `components/home/HomeToday.jsx` — günün hədisi (Nəvəvi 40, gün nömrəsinə görə), günün ayəsi,
+"qaldığınız yerdən" (yalnız mövcud localStorage açarları oxunur), hicri tarix; kopyala / paylaş (Web Share → bufer).
 
 ## 5. Qrafiklər — `src/components/viz`
 

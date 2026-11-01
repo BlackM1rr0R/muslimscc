@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
@@ -70,6 +70,11 @@ const L = {
   statWill:   { az:'vəsiyyətin həddi', en:'limit of a bequest', ru:'предел завещания', ar:'حدّ الوصية', tr:'vasiyetin sınırı' },
   actCalc:    { az:'Hesabla', en:'Calculate', ru:'Рассчитать', ar:'احسب', tr:'Hesapla' },
   actShares:  { az:'Paylar cədvəli', en:'The shares at a glance', ru:'Таблица долей', ar:'جدول الفروض', tr:'Paylar tablosu' },
+  toResult:   { az:'Bölgüyə bax', en:'See the distribution', ru:'К распределению', ar:'اعرض القسمة', tr:'Taksime bak' },
+  miniEmpty:  { az:'Məbləğ və varis seçin', en:'Enter an amount and heirs', ru:'Введите сумму и наследников', ar:'أدخل المبلغ والورثة', tr:'Tutar ve mirasçı seçin' },
+  copyRes:    { az:'Nəticəni kopyala', en:'Copy the result', ru:'Скопировать результат', ar:'انسخ النتيجة', tr:'Sonucu kopyala' },
+  copied:     { az:'Kopyalandı', en:'Copied', ru:'Скопировано', ar:'تم النسخ', tr:'Kopyalandı' },
+  printRes:   { az:'Çap et', en:'Print', ru:'Печать', ar:'طباعة', tr:'Yazdır' },
   donutCenter:{ az:'varis', en:'heirs', ru:'наследн.', ar:'ورثة', tr:'mirasçı' },
   others:     { az:'Digər varislər', en:'Other heirs', ru:'Другие наследники', ar:'بقية الورثة', tr:'Diğer mirasçılar' },
   orderEy:    { az:'Ardıcıllıq', en:'Order', ru:'Порядок', ar:'الترتيب', tr:'Sıra' },
@@ -354,6 +359,31 @@ export default function InheritancePage({ setPage }) {
     return txt.replace('{who}', r.blockedBy ? heirName(r.blockedBy) : '—')
   }
 
+  // v3.2: dar ekranda nəticə paneli varislərin altında qalır — yapışqan mini xülasə + "Bölgüyə bax"
+  const resultRef = useRef(null)
+  const [resultSeen, setResultSeen] = useState(false)
+  useEffect(() => {
+    const el = resultRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([en]) => setResultSeen(en.isIntersecting || en.boundingClientRect.top < 0), { threshold: 0 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  const heirCount = active.reduce((t, r) => t + (r.count || 1), 0)
+  const goResult = () => {
+    const el = resultRef.current
+    if (!el) return
+    el.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+    el.querySelector('h2')?.focus({ preventScroll: true })
+  }
+  const [copied, setCopied] = useState(false)
+  const copyResult = async () => {
+    const lines = [`${s('title')} — ${s('resultTitle')}`, `${s('gross')}: ${fmt(result.gross)}`, `${s('net')}: ${fmt(result.net)}`, '']
+    active.forEach(r => lines.push(`${heirName(r.heir)}${r.count > 1 ? ` × ${r.count}` : ''}: ${r.fraction} — ${fmt(r.total)}`))
+    lines.push('', s('disclaimer'))
+    try { await navigator.clipboard.writeText(lines.join('\n')); setCopied(true); setTimeout(() => setCopied(false), 1800) } catch { /* icazə yoxdur */ }
+  }
+
   const openLearn = (e, slug) => {
     if (!isPlainClick(e)) return
     e.preventDefault()
@@ -436,12 +466,37 @@ export default function InheritancePage({ setPage }) {
                 )
               })}
             </div>
+
+            {/* Dar ekran: yapışqan mini xülasə (nəticə ekranda görünəndə gizlənir) */}
+            <div className={`inh-mini${resultSeen ? ' is-hidden' : ''}`} data-testid="inh-mini" aria-hidden={resultSeen ? 'true' : undefined}>
+              <span className="inh-mini__icon" aria-hidden="true"><Icon name="inheritance" size={18} /></span>
+              <span className="inh-mini__txt">
+                {showResult
+                  ? <><b className="ui-num">{fmt(result.net)}</b><span>{s('net')} · <span className="ui-num">{heirCount}</span> {s('donutCenter')}</span></>
+                  : <span>{s('miniEmpty')}</span>}
+              </span>
+              <button type="button" className="ui-btn ui-btn--primary ui-btn--sm inh-mini__go" onClick={goResult} tabIndex={resultSeen ? -1 : undefined}>
+                {s('toResult')} <Icon name="arrowDown" size={14} />
+              </button>
+            </div>
           </div>
 
           {/* ══ Nəticə ══ */}
-          <div className="inh-result" aria-live="polite">
+          <div className="inh-result" aria-live="polite" ref={resultRef}>
             <div className="ui-card inh-card">
-              <h2 className="inh-card__title"><Icon name="analytics" size={18} /> {s('resultTitle')}</h2>
+              <div className="inh-card__head">
+                <h2 className="inh-card__title" tabIndex={-1}><Icon name="analytics" size={18} /> {s('resultTitle')}</h2>
+                {showResult && (
+                  <div className="inh-res-actions">
+                    <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={copyResult} aria-label={s('copyRes')} title={s('copyRes')}>
+                      <Icon name={copied ? 'check' : 'copy'} className="ui-btn__icon" /> <span className="inh-res-actions__l">{copied ? s('copied') : s('copyRes')}</span>
+                    </button>
+                    <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => window.print()} aria-label={s('printRes')} title={s('printRes')}>
+                      <Icon name="download" className="ui-btn__icon" />
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {!showResult ? (
                 <div className="inh-empty">

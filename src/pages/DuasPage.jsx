@@ -13,6 +13,7 @@ import { navGroupLabel, navGroupOf } from '../data/navigation'
 import '../styles/DuasPage.css'
 import { pickLang } from '../utils/pickLang'
 import { pathFor } from '../seo/routes'
+import { copyText, dayIndex, shareOrCopy } from '../components/reader/share'
 
 // ── Kateqoriya tərcümələri ──────────────────────────────
 const CAT_LABELS = {
@@ -54,6 +55,15 @@ const UI = {
 }
 
 // ── v3: hero izahı, "hansı halda" kafelləri, peyğəmbərlərin Qurandakı duaları, əlaqəli bölmələr ──
+// v3.2: kopyala düyməsi və «Günün duası» — 5 dil
+const DX = {
+  az: { copy: 'Kopyala', today: 'Günün duası', todayLead: 'Hər gün siyahıdan bir dua — tarixə görə seçilir.', show: 'Siyahıda göstər' },
+  en: { copy: 'Copy', today: 'Dua of the day', todayLead: 'One dua from the list each day — chosen by the date.', show: 'Show in the list' },
+  ru: { copy: 'Копировать', today: 'Дуа дня', todayLead: 'Каждый день — одно дуа из списка, выбранное по дате.', show: 'Показать в списке' },
+  ar: { copy: 'نسخ', today: 'دعاء اليوم', todayLead: 'دعاء من القائمة كل يوم، يُختار بحسب التاريخ.', show: 'اعرضه في القائمة' },
+  tr: { copy: 'Kopyala', today: 'Günün duası', todayLead: 'Her gün listeden bir dua — tarihe göre seçilir.', show: 'Listede göster' },
+}
+
 const PAGE_TXT = {
   az: { how: 'Vəziyyəti seçin (məs. «Yatmaq») və ya axtarın. Hər kartda ərəb mətni, oxunuşu, mənası və mənbəyi var; ürək düyməsi duanı sevimlilərə əlavə edir.', duas: 'dua', cats: 'mövzu', favs: 'sevimli', occTitle: 'Hansı halda?', occLead: 'Ən çox axtarılan hallar — birinə toxunun, uyğun dualar aşağıda açılır.', listTitle: 'Bütün dualar', prophetsTitle: 'Peyğəmbərlərin Qurandakı duaları', prophetsLead: 'Allahın Kitabında peyğəmbərlərin dilindən gələn dualar — mətn və tərcümə Quran API-sindən gəlir.', related: 'Əlaqəli bölmələr', seeAll: 'Hamısı' },
   en: { how: 'Pick a situation (e.g. “Sleeping”) or search. Each card has the Arabic text, transliteration, meaning and source; the heart saves a dua to your favourites.', duas: 'duas', cats: 'topics', favs: 'favourites', occTitle: 'Which occasion?', occLead: 'The most searched situations — tap one and the matching duas open below.', listTitle: 'All duas', prophetsTitle: 'Duas of the Prophets in the Quran', prophetsLead: 'Supplications on the tongues of the Prophets in the Book of Allah — text and translation come from the Quran API.', related: 'Related sections', seeAll: 'All' },
@@ -237,6 +247,8 @@ export default function DuasPage({ setPage }) {
   const l = lk(lang)
   const ui = UI[l]
   const x = PAGE_TXT[l] || PAGE_TXT.en
+  const dx = DX[l] || DX.en
+  const [copiedId, setCopiedId] = useState(null)
   const [selectedCat, setSelectedCat] = useState('All')
   // Pozuq yaddaş (massiv deyilsə) sevimliləri sıfırlayır — .includes çökməsin
   const [favs, setFavs] = useState(() => { try { const v = JSON.parse(localStorage.getItem('dua_favs')); return Array.isArray(v) ? v : [] } catch { return [] } })
@@ -310,15 +322,20 @@ export default function DuasPage({ setPage }) {
     }
   }
 
-  const shareDua = async (dua) => {
+  const duaText = (dua) => {
     const meaning = lang === 'ar' ? '' : `${dua[lang] || ''}\n\n`
-    const text = `${dua.ar}\n\n${meaning}— ${localizeSource(dua.source, lang)}\n\n${brandName(lang)} — muslims.cc`
-    if (navigator.share) {
-      try { await navigator.share({ text }) } catch {}
-    } else {
-      try { await navigator.clipboard.writeText(text); alert(ui.copied) } catch {}
-    }
+    return `${dua.ar}\n\n${meaning}— ${localizeSource(dua.source, lang)}\n\n${brandName(lang)} — muslims.cc`
   }
+  // Kopyalandı işarəsi kartın öz düyməsində görünür (əvvəlki alert() əvəzinə)
+  const flashCopied = (key) => {
+    setCopiedId(key)
+    setTimeout(() => setCopiedId(c => (c === key ? null : c)), 1800)
+  }
+  const shareDua = async (dua) => {
+    const r = await shareOrCopy({ text: duaText(dua) })
+    if (r === 'copied') flashCopied(`s-${dua.id}`)
+  }
+  const copyDua = async (dua) => { if (await copyText(duaText(dua))) flashCopied(`c-${dua.id}`) }
 
   // Firebase custom duaları normal formata çevirək
   const customForLang = useMemo(() => {
@@ -394,6 +411,8 @@ export default function DuasPage({ setPage }) {
 
   const visible = filtered.slice(0, shown)
   const rest = filtered.length - visible.length
+  const localDuas = useMemo(() => allDuas.filter(d => !d._custom), [allDuas])
+  const todayDua = localDuas.length ? localDuas[dayIndex(localDuas.length)] : null
 
   return (
     <div className="duas-page">
@@ -500,6 +519,28 @@ export default function DuasPage({ setPage }) {
           </aside>
 
           <div className="duas-main">
+            {todayDua && !query.trim() && !showFavs && selectedCat === 'All' && (
+              <article className="ui-card duas-today" aria-labelledby="duas-today-h">
+                <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+                <div className="duas-today__meta">
+                  <span className="ui-badge ui-badge--accent" id="duas-today-h"><Icon name="sun" size={13} /> {dx.today}</span>
+                  <span className="ui-badge ui-badge--brand">{CAT_LABELS[todayDua.cat]?.[l] || todayDua.cat}</span>
+                </div>
+                <p className="duas-today__ar ui-arabic" lang="ar" dir="rtl">{todayDua.ar}</p>
+                {lang !== 'ar' && todayDua[lang] && <p className="duas-today__text">{todayDua[lang]}</p>}
+                <div className="duas-today__foot">
+                  {todayDua.source && <span className="duas-today__src"><Icon name="books" size={14} /> {localizeSource(todayDua.source, lang)}</span>}
+                  <span className="duas-today__acts">
+                    <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => copyDua(todayDua)}>
+                      <Icon name={copiedId === `c-${todayDua.id}` ? 'check' : 'copy'} className="ui-btn__icon" /> {copiedId === `c-${todayDua.id}` ? ui.copied : dx.copy}
+                    </button>
+                    <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => shareDua(todayDua)}>
+                      <Icon name={copiedId === `s-${todayDua.id}` ? 'check' : 'share'} className="ui-btn__icon" /> {copiedId === `s-${todayDua.id}` ? ui.copied : ui.share}
+                    </button>
+                  </span>
+                </div>
+              </article>
+            )}
             {/* Nəticə sayı — ekran oxuyucusu da filtr dəyişəndə eşidir */}
             <p className="duas-count" aria-live="polite">
               <span className="ui-num">{filtered.length}</span> {ui.count}
@@ -518,9 +559,13 @@ export default function DuasPage({ setPage }) {
                         {CAT_LABELS[dua.cat]?.[l] || dua.cat}
                       </span>
                       <div className="dua-card-actions">
+                        <button type="button" className="ui-icon-btn dua-act" onClick={() => copyDua(dua)}
+                          title={copiedId === `c-${dua.id}` ? ui.copied : dx.copy} aria-label={copiedId === `c-${dua.id}` ? ui.copied : dx.copy}>
+                          <Icon name={copiedId === `c-${dua.id}` ? 'check' : 'copy'} size={18} />
+                        </button>
                         <button type="button" className="ui-icon-btn dua-act" onClick={() => shareDua(dua)}
-                          title={ui.share} aria-label={ui.share}>
-                          <Icon name="share" size={18} />
+                          title={copiedId === `s-${dua.id}` ? ui.copied : ui.share} aria-label={copiedId === `s-${dua.id}` ? ui.copied : ui.share}>
+                          <Icon name={copiedId === `s-${dua.id}` ? 'check' : 'share'} size={18} />
                         </button>
                         <button type="button"
                           className={`ui-icon-btn dua-act dua-fav-btn${fav ? ' active' : ''}${popId === dua.id ? ' pop' : ''}`}

@@ -4,6 +4,7 @@ import { useLang } from '../contexts/LangContext'
 // Namaz bələdçisinin CSS-i (PrayerGuidePage.css, .pg-*) idxal olunmur, o səhifə
 // dəyişəndə həcc bələdçisi pozulmasın.
 import '../styles/HajjGuidePage.css'
+import '../components/collect/collect.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
@@ -397,6 +398,23 @@ const UMRAH_STEPS = [
 ]
 
 // Rüknlər yoxlama siyahısı — yalnız bu cihazda (id-lər HAJJ_RITES-dəndir)
+// ── v3.2: "qaldığın yerdən davam et" (son rejim + addım, localStorage) və klaviatura ←/→ ──
+const LAST_KEY = 'hajjguide:last'
+const H32 = {
+  az: { resume: 'Qaldığınız yerdən davam edin', resumeBtn: 'Davam et', stepOf: (i, n) => `Addım ${i} / ${n}`, keys: 'Klaviatura: ← → addımlar arasında' },
+  en: { resume: 'Continue where you left off', resumeBtn: 'Continue', stepOf: (i, n) => `Step ${i} of ${n}`, keys: 'Keyboard: ← → to move between steps' },
+  ru: { resume: 'Продолжите с того же места', resumeBtn: 'Продолжить', stepOf: (i, n) => `Шаг ${i} из ${n}`, keys: 'Клавиатура: ← → между шагами' },
+  ar: { resume: 'تابع من حيث توقفت', resumeBtn: 'تابع', stepOf: (i, n) => `الخطوة ${i} من ${n}`, keys: 'لوحة المفاتيح: ← → للتنقل بين الخطوات' },
+  tr: { resume: 'Kaldığınız yerden devam edin', resumeBtn: 'Devam et', stepOf: (i, n) => `Adım ${i} / ${n}`, keys: 'Klavye: ← → adımlar arasında' },
+}
+function readLast() {
+  try {
+    const v = JSON.parse(localStorage.getItem(LAST_KEY))
+    if (v && (v.mode === 'hajj' || v.mode === 'umrah') && Number.isInteger(v.step) && v.step >= 0) return v
+  } catch { /* yaddaş bağlıdır */ }
+  return null
+}
+
 const CHECK_KEY = 'muslim_cc_hajj_checklist'
 function loadChecks() {
   try {
@@ -481,6 +499,10 @@ export default function HajjGuidePage({ setPage }) {
   const [dir, setDir] = useState('none')
   // Seçim ekranına geri qayıdanda yumşaq giriş; ilk yükləmədə yox (səhifə keçidi onsuz da var)
   const [visited, setVisited] = useState(false)
+  const h32 = H32[lang] || H32.en
+  // Son açılmış addım — yalnız brauzerdə oxunur (prerender HTML-i ilə uyğunsuzluq olmasın)
+  const [last, setLast] = useState(null)
+  useEffect(() => { setLast(readLast()) }, [])
 
   const guideRef = useRef(null)
   const topbarRef = useRef(null)
@@ -510,6 +532,40 @@ export default function HajjGuidePage({ setPage }) {
   }
   const handlePrev = () => { if (currentStep > 0) goTo(currentStep - 1) }
   const handleNext = () => { goTo(currentStep + 1) }
+  const resume = () => {
+    if (!last) return
+    const list = last.mode === 'hajj' ? HAJJ_STEPS : UMRAH_STEPS
+    startMode(last.mode)
+    setCurrentStep(Math.min(last.step, list.length - 1))
+  }
+
+  // Son addımı yadda saxla (tamamlananda — sil)
+  useEffect(() => {
+    if (mode === null) return
+    try {
+      if (currentStep >= totalSteps) { localStorage.removeItem(LAST_KEY); setLast(null) }
+      else { const v = { mode, step: currentStep }; localStorage.setItem(LAST_KEY, JSON.stringify(v)); setLast(v) }
+    } catch { /* yaddaş bağlıdır */ }
+  }, [mode, currentStep, totalSteps])
+
+  // Klaviatura: ←/→ — əvvəlki/növbəti addım (ərəbcədə güzgülənir); sahədə yazarkən işləmir
+  const navRef = useRef({})
+  navRef.current = { handlePrev, handleNext, active: mode !== null && !isComplete }
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!navRef.current.active || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      const tg = e.target
+      if (tg && (tg.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName))) return
+      if (document.querySelector('[aria-modal="true"]')) return
+      const rtl = document.documentElement.dir === 'rtl'
+      const forward = (e.key === 'ArrowRight') !== rtl
+      e.preventDefault()
+      if (forward) navRef.current.handleNext(); else navRef.current.handlePrev()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
   const handleRestart = () => { setMode(null); setCurrentStep(0); setDir('none') }
   const handleBack = () => { setMode(null); setCurrentStep(0); setDir('none') }
 
@@ -596,6 +652,29 @@ export default function HajjGuidePage({ setPage }) {
           {mode === null && (
             <>
               <Head id="hg-pick-h" eyebrow={P(HX.pickEyebrow, lang)} title={P(HX.pickTitle, lang)} lead={P(HX.pickLead, lang)} />
+              {last && (
+                <aside className="cl-spot hg-resume">
+                  <span className="cl-spot__icon" aria-hidden="true"><Icon name={last.mode === 'hajj' ? 'hajjguide' : 'holyplaces'} /></span>
+                  <div className="cl-spot__body">
+                    <span className="cl-spot__eyebrow">{h32.resume}</span>
+                    <span className="cl-spot__title">
+                      {last.mode === 'hajj' ? t.hajj : t.umrah} · {(() => {
+                        const list = last.mode === 'hajj' ? HAJJ_STEPS : UMRAH_STEPS
+                        const i = Math.min(last.step, list.length - 1)
+                        return `${h32.stepOf(i + 1, list.length)} — ${list[i].name[lang] || list[i].name.en}`
+                      })()}
+                    </span>
+                    <span className="hg-resume__bar" aria-hidden="true">
+                      <span style={{ '--p': (Math.min(last.step, (last.mode === 'hajj' ? HAJJ_STEPS : UMRAH_STEPS).length - 1) + 1) / (last.mode === 'hajj' ? HAJJ_STEPS : UMRAH_STEPS).length }} />
+                    </span>
+                  </div>
+                  <div className="cl-spot__actions">
+                    <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={resume}>
+                      <Icon name="arrow" className="ui-btn__icon ui-flip-rtl" /> {h32.resumeBtn}
+                    </button>
+                  </div>
+                </aside>
+              )}
               <div className={`hg-select-grid${visited ? ' hg-view-in' : ''}`} data-reveal={visited ? undefined : 'stagger'}>
                 {[
                   { m: 'hajj', icon: 'hajjguide', ar: 'الْحَجّ', name: t.hajj, list: HAJJ_STEPS },
