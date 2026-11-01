@@ -239,3 +239,16 @@
 .ch-guide-sec .ui-section-head { margin-bottom: 0; }
 .ch-guide .ls-ayah, .ch-guide .ls-hadith, .ch-guide .ls-quote { margin: 0; }
 .ch-guide-links .ui-title { margin-bottom: var(--space-3); }
+/* v3.1: bələdçi geniş konteynerdə (1280px) — ardıcıl hədislər .ls-evgrid ilə
+   yan-yana (LessonBlocks); tək qalan dəlil, qeyd və cədvəl oxunaqlı endə qalır,
+   paraqraflar .ls-p → --measure */
+.ch-guide-sec > .ls-hadith,
+.ch-guide-sec > .ls-ayah,
+.ch-guide-sec > .ls-note,
+.ch-guide-sec > .ls-table-wrap { max-width: 920px; }
+/* "Ətraflı" keçidləri — geniş ekranda 2–3 sütun */
+.ch-guide-links .ui-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  column-gap: var(--space-6);
+}

@@ -133,3 +133,28 @@
 
 /* Planşet: hero vizualı tam enə yayılmasın */
 @media (max-width: 899.98px) { .mh-page .ui-page-hero__aside { max-width: 440px; } }
+
+/* ══ v3.1: geniş ekranda yoxlama siyahısı 2 sütun, 30 günlük istilik zolaqları, sitatlar yan-yana ══ */
+@media (min-width: 1180px) {
+  .mh-check { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.mh-heat { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.mh-heat__row { display: grid; grid-template-columns: 9em minmax(0, 1fr) 3.6em; align-items: center; gap: 12px; font-size: var(--step--1); }
+.mh-heat__label { overflow: hidden; color: var(--text-body); white-space: nowrap; text-overflow: ellipsis; }
+.mh-heat__cells { display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px; }
+.mh-heat__cell { aspect-ratio: 1; min-height: 8px; border-radius: 3px; background: var(--surface-3); }
+.mh-heat__cell.is-on { background: var(--brand); }
+.mh-heat__cell.is-today { box-shadow: 0 0 0 1.5px var(--accent); }
+.mh-heat__count { color: var(--text-strong); font-weight: 600; text-align: end; }
+.mh-heat__count small { color: var(--text-tertiary); font-weight: 500; }
+@media (max-width: 599.98px) {
+  .mh-heat { gap: 10px; }
+  .mh-heat__row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label count" "cells cells"; gap: 4px 8px; }
+  .mh-heat__label { grid-area: label; }
+  .mh-heat__count { grid-area: count; }
+  .mh-heat__cells { grid-area: cells; gap: 2px; }
+  .mh-heat__cell { min-height: 6px; border-radius: 2px; }
+}
+
+.mh-quotes__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: var(--space-5) var(--space-6); align-items: start; }
+.mh-page .mh-quote .ui-quote__ar { text-wrap: pretty; }

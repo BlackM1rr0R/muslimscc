@@ -305,8 +305,7 @@ const OTHER = [
 
 // ── Şriftlər (öz serverimizdən verilir) ──
 const FONTS = [
-  { name: 'Ubuntu Sans', url: 'https://github.com/canonical/Ubuntu-Sans-fonts', license: 'Ubuntu Font Licence 1.0', licenseUrl: 'https://ubuntu.com/legal/font-licence', by: 'Canonical · Dalton Maag' },
-  { name: 'Ubuntu Sans Mono', url: 'https://github.com/canonical/Ubuntu-Sans-Mono-fonts', license: 'Ubuntu Font Licence 1.0', licenseUrl: 'https://ubuntu.com/legal/font-licence', by: 'Canonical · Dalton Maag' },
+  { name: 'Inter', url: 'https://rsms.me/inter/', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'Rasmus Andersson' },
   { name: 'Amiri', url: 'https://www.amirifont.org/', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'Khaled Hosny' },
   { name: 'IBM Plex Sans Arabic', url: 'https://github.com/IBM/plex', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'IBM Corp.' },
 ]

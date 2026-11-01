@@ -39,13 +39,11 @@
 .ac-h3__ar { font-size: 0.85em; color: var(--accent-text); font-weight: 400; }
 .ac-h4 {
   margin: 20px 0 8px;
-  color: var(--text-tertiary);
-  font-size: var(--step--2);
+  color: var(--text-secondary);
+  font-size: var(--step--1);
   font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
-[dir="rtl"] .ac-h4 { letter-spacing: 0; font-size: var(--step--1); }
 .ac-tl {
   color: var(--text-secondary);
   font-family: var(--font-sans);
@@ -74,7 +72,7 @@
 .ac-progress__ring { position: relative; display: grid; place-items: center; flex-shrink: 0; }
 .ac-progress__ring > * { grid-area: 1 / 1; }
 .ac-progress__text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.ac-progress__label { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+.ac-progress__label { color: var(--text-secondary); font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; letter-spacing: 0; }
 [dir="rtl"] .ac-progress__label { letter-spacing: 0; }
 .ac-progress__num { color: var(--text-strong); font-family: var(--font-num); font-size: var(--step-1); font-weight: 600; line-height: 1; }
 .ac-progress__sub { color: var(--text-secondary); font-size: var(--step--1); }
@@ -123,6 +121,8 @@
   list-style: none;
 }
 .ac-lesson-grid > li { display: flex; }
+/* 9 dərs: geniş ekranda 3 × 3 (4 + 4 + 1 əvəzinə) */
+@media (min-width: 1100px) { .ac-lesson-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .ac-lesson-card { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .ac-lesson-card__top { display: flex; align-items: center; gap: 10px; }
 .ac-lesson-card__n {
@@ -339,7 +339,7 @@
 .ac-eq i:nth-child(3) { animation-delay: -600ms; }
 
 /* ── 5. Dərs 2: hərəkələr ── */
-.ac-hk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--space-4); margin-bottom: var(--space-8); }
+.ac-hk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--space-4); margin-bottom: var(--space-8); align-items: start; }
 .ac-hk { display: flex; flex-direction: column; gap: 12px; }
 .ac-hk__head { display: flex; align-items: center; gap: 14px; }
 .ac-hk__mark {
@@ -469,6 +469,12 @@
 
 .ac-surah-sec { margin-top: var(--space-7); }
 .ac-ayahs { display: grid; gap: 12px; margin: 12px 0 20px; padding: 0; list-style: none; }
+/* Geniş ekranda ayələr iki sütunda (yuxarıdan aşağı ardıcıl; ərəbcədə sağdan) —
+   qısa ayə 1088px-lik kartda tək qalıb uzun siyahı yaradırdı */
+@media (min-width: 1100px) {
+  .ac-ayahs { display: block; columns: 2; column-gap: 12px; }
+  .ac-ayahs > .ac-ayah { break-inside: avoid; margin-bottom: 12px; }
+}
 .ac-ayah { animation: ac-rise 420ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 50ms); }
 .ac-ayah__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
 .ac-ayah__num {
@@ -499,8 +505,7 @@
 .ac-rule__name { margin: 0; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; }
 .ac-rule__term { color: var(--accent-text); font-size: 20px; line-height: 1.6; }
 .ac-rule__facts { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; }
-.ac-rule__facts dt { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
-[dir="rtl"] .ac-rule__facts dt { letter-spacing: 0; }
+.ac-rule__facts dt { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; letter-spacing: 0; }
 .ac-rule__facts dd { margin: 2px 0 0; color: var(--text-body); font-weight: 500; }
 .ac-rule__letters { color: var(--brand); font-size: 26px; line-height: 1.6; word-spacing: .3em; }
 .ac-rule__ex { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
@@ -662,6 +667,8 @@
 
 /* Cümlə hissələri — rol rəngi tokenlərlə: mübtəda/fel — zümrüd, xəbər/fail — qızılı, məful — neytral */
 .ag-sents { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+/* Qısa cümlə nümunələri geniş ekranda 2–3 sütunda (tam endə tək kart boş qalırdı) */
+.ag-sents { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); align-items: start; }
 .ac-root .ag-sent { display: grid; gap: var(--space-3); padding: var(--space-4); }
 .ag-sent__parts { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: var(--space-2) var(--space-3); }
 .ag-legend { display: flex; flex-wrap: wrap; gap: 8px; }

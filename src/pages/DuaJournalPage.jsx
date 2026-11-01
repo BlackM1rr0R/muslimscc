@@ -444,7 +444,8 @@ export default function DuaJournalPage({ setPage }) {
       {/* ── Duanın ədəbi, "qəbul oldu"nun mənası, qəbul vaxtları (mənbəli) ── */}
       {DUA_GUIDE.map((sec, i) => (
         <section key={sec.id} id={`dj-${sec.id}`} className={`ui-section ui-section--tight dj-guide-sec${i % 2 === 0 ? ' ui-section--alt' : ''}`} aria-labelledby={`dj-${sec.id}-title`}>
-          <div className="ui-container ui-container--narrow">
+          {/* Geniş konteyner: addımlar kart şəbəkəsi, ayə/hədis yan-yana */}
+          <div className="ui-container">
             <div className="ui-section-head" data-reveal>
               <span className="ui-eyebrow">{v.guideEyebrow[sec.id]}</span>
               <h2 id={`dj-${sec.id}-title`} className="ui-title dj-guide-title">{pick(sec.title, lang)}</h2>

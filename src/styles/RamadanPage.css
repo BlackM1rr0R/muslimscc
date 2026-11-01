@@ -114,7 +114,21 @@ html[lang="ar"] .rp-table thead th { letter-spacing: 0; text-transform: none; }
 .rp-guide { min-height: 0; }
 .rp-guide__inner { display: flex; flex-direction: column; gap: var(--space-6); }
 .rp-guide__inner > .ui-section-head { margin-bottom: 0; }
-.rp-guide__article { max-width: 820px; width: 100%; margin-inline: auto; }
+.rp-guide__article { width: 100%; }
+/* v3.1: məqalə konteynerin tam enində; geniş ekranda "iddia | dəlil" —
+   dəlildən əvvəlki paraqraf solda, dəlil (ayə/hədis/sitat) sağda. Ardıcıl
+   dəlillər .ls-evgrid-də 2–3 sütun olur. Paraqraflar ~68ch qalır. */
+@media (min-width: 1100px) {
+  .rp-guide__article > .rp-guide__sec {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-6); row-gap: var(--space-4); align-items: start;
+  }
+  .rp-guide__sec > * { grid-column: 1 / -1; }
+  .rp-guide__sec > .ls-p:has(+ :is(.ls-ayah, .ls-hadith, .ls-quote)) { grid-column: 1; align-self: center; }
+  .rp-guide__sec > .ls-p + :is(.ls-ayah, .ls-hadith, .ls-quote) { grid-column: 2; }
+  /* Sual-cavab: iki sütun; biri açılanda qonşu dartılmır */
+  .rp-guide__sec .ls-qa { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-6); align-items: start; }
+}
 .rp-guide__sec .ls-sec__title { font-size: var(--step-2); }
 /* Ayə istinadı mətn içində keçiddir — yalnız rəngə güvənməsin (axe: link-in-text-block) */
 .rp-guide .ls-ref { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
@@ -130,7 +144,26 @@ html[lang="ar"] .rp-table thead th { letter-spacing: 0; text-transform: none; }
   scrollbar-width: none;
 }
 .rp-guide-nav__list::-webkit-scrollbar { display: none; }
-@media (min-width: 900px) { .rp-guide-nav__list { flex-wrap: wrap; overflow: visible; } }
+/* v3.1: bölmə zolağı sticky (başlığın altında), şüşə fonlu həb */
+.rp-guide-nav {
+  position: sticky;
+  top: calc(var(--header-offset, var(--header-h, 64px)) + 8px);
+  z-index: 20;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-0) 86%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-1);
+}
+.rp-guide-nav .rp-guide-nav__list { padding: 0; overscroll-behavior-x: contain; }
+.rp-guide-nav__list > li { flex-shrink: 0; }
+/* Masaüstündə bütün bölmələr görünsün (gizli üfüqi sürüşmə yox) */
+@media (min-width: 900px) {
+  .rp-guide-nav { border-radius: var(--radius-lg); }
+  .rp-guide-nav .rp-guide-nav__list { flex-wrap: wrap; overflow: visible; }
+}
 .rp-guide-nav__chip { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; text-decoration: none; }
 .rp-guide-nav__chip svg { color: var(--accent); }
 
@@ -177,7 +210,7 @@ html[lang="ar"] .rp-table thead th { letter-spacing: 0; text-transform: none; }
 
 .rp-khatm__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 168px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
   gap: 8px;
   list-style: none;
   margin: 0;

@@ -4,6 +4,7 @@ import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { parsePath, pathFor } from '../seo/routes'
+import useChipIntoView from '../hooks/useChipIntoView'
 import useActiveSection from '../hooks/useActiveSection'
 import { ChartFigure, vizColor } from '../components/viz'
 import LifespanChart from '../components/media/LifespanChart'
@@ -404,6 +405,8 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
     { id: 'sc-sources', label: L.sources, icon: 'link' },
   ].filter(Boolean)
   const [active, setActive] = useActiveSection(sections.map(x => x.id), `${s.slug}|${lang}`)
+  const tocRef = useRef(null)
+  useChipIntoView(tocRef, active)
 
   const jump = (e, id) => {
     e.preventDefault()
@@ -510,7 +513,7 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
           <aside className="sc-toc">
             <nav aria-label={L.contents}>
               <p className="sc-toc__title">{L.contents}</p>
-              <ol className="sc-toc__list">
+              <ol className="sc-toc__list" ref={tocRef}>
                 {sections.map(x => (
                   <li key={x.id}>
                     <a href={`#${x.id}`} className="sc-toc__link" aria-current={active === x.id ? 'true' : undefined} onClick={(e) => jump(e, x.id)}>
@@ -578,15 +581,17 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
             {praise.length > 0 && (
               <section id="sc-praise" className="sc-sec" aria-labelledby="sc-praise-h">
                 <h2 id="sc-praise-h" className="sc-sec__title" tabIndex={-1} data-reveal>{L.praise}</h2>
-                {praise.map((q, i) => (
-                  <figure key={i} className="ui-quote sc-quote">
-                    <blockquote>
-                      <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{q.ar}</p>
-                      {!isAr && <p className="ui-quote__text">{pick(q, lang)}</p>}
-                    </blockquote>
-                    <figcaption className="ui-quote__src">— {pick(q.by, lang)}, <cite>{pick(q.ref, lang)}</cite></figcaption>
-                  </figure>
-                ))}
+                <div className="sc-quotes">
+                  {praise.map((q, i) => (
+                    <figure key={i} className="ui-quote sc-quote">
+                      <blockquote>
+                        <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{q.ar}</p>
+                        {!isAr && <p className="ui-quote__text">{pick(q, lang)}</p>}
+                      </blockquote>
+                      <figcaption className="ui-quote__src">— {pick(q.by, lang)}, <cite>{pick(q.ref, lang)}</cite></figcaption>
+                    </figure>
+                  ))}
+                </div>
               </section>
             )}
 

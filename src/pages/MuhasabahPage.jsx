@@ -20,7 +20,7 @@ import { isPlainClick } from '../components/PageLink'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
-import { ChartFigure, ProgressRing, StatTile, ColumnChart, BarChart } from '../components/viz'
+import { ChartFigure, ProgressRing, StatTile, ColumnChart } from '../components/viz'
 import ActivityHeatmap from '../components/ActivityHeatmap'
 import RelatedLinks from '../components/RelatedLinks'
 import '../styles/MuhasabahPage.css'
@@ -496,11 +496,12 @@ export default function MuhasabahPage({ setPage }) {
   // Son 30 gündə hər əməl neçə gün işarələnib (BarChart)
   const perItem = useMemo(() => {
     const cnt = Object.fromEntries(ITEMS.map(id => [id, 0]))
+    const marks = Object.fromEntries(ITEMS.map(id => [id, Array(30).fill(false)]))
     for (let i = 0; i < 30; i++) {
       const e = entries[iso(addDays(today, -i))]
-      if (e) for (const id of e.c) cnt[id] += 1
+      if (e) for (const id of e.c) { if (id in cnt) { cnt[id] += 1; marks[id][29 - i] = true } }
     }
-    return ITEMS.map(id => ({ key: id, label: v.short[id], value: cnt[id] }))
+    return ITEMS.map(id => ({ key: id, label: v.short[id], value: cnt[id], days: marks[id] }))
   }, [entries, today, v])
   // Son 7 gün: gündəlik tamamlanma (ColumnChart)
   const week = useMemo(() => Array.from({ length: 7 }, (_, i) => {
@@ -592,7 +593,18 @@ export default function MuhasabahPage({ setPage }) {
               </p>
             </div>
             <ChartFigure title={v.itemsTitle} sub={v.itemsSub}>
-              <BarChart data={perItem} max={30} labelWidth="38%" label={v.itemsTitle} format={(n) => `${n}`} />
+              {/* 30 xanalı istilik zolağı: hər əməl hansı günlərdə edilib */}
+              <ul className="mh-heat">
+                {perItem.map(m => (
+                  <li key={m.key} className="mh-heat__row" aria-label={`${m.label}: ${m.value} / 30`}>
+                    <span className="mh-heat__label">{m.label}</span>
+                    <span className="mh-heat__cells" aria-hidden="true">
+                      {m.days.map((on, i) => <span key={i} className={`mh-heat__cell${on ? ' is-on' : ''}${i === 29 ? ' is-today' : ''}`} />)}
+                    </span>
+                    <span className="mh-heat__count ui-num" aria-hidden="true">{m.value}<small>/30</small></span>
+                  </li>
+                ))}
+              </ul>
             </ChartFigure>
           </div>
 
@@ -616,12 +628,13 @@ export default function MuhasabahPage({ setPage }) {
 
       {/* ── Sələfdən — qısa giriş, ətraflısı dərsdə ── */}
       <section className="ui-section ui-section--tight ui-section--alt" aria-labelledby="mh-quotes-h">
-        <div className="ui-container ui-container--narrow mh-quotes">
+        <div className="ui-container mh-quotes">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{v.quotesEyebrow}</span>
             <h2 className="ui-title" id="mh-quotes-h">{t.quotesTitle}</h2>
             <p className="ui-lead">{v.quotesLead}</p>
           </div>
+          <div className="mh-quotes__grid">
           {QUOTES.map((q, i) => (
             <figure className="ui-quote mh-quote" key={i}>
               <blockquote>
@@ -634,6 +647,7 @@ export default function MuhasabahPage({ setPage }) {
               </figcaption>
             </figure>
           ))}
+          </div>
           <a className="ui-link mh-lesson" href={lessonHref} onClick={onLesson}>
             <Icon name="learn" size={18} /> {t.lessonLink}
             <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />

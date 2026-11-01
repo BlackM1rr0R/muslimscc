@@ -57,7 +57,10 @@
   resize: vertical;
   line-height: 1.7;
 }
-.dua-form-options { display: flex; flex-direction: column; gap: var(--space-4); }
+.dua-form-options { display: grid; gap: var(--space-4); }
+@media (min-width: 700px) {
+  .dua-form-options { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--space-5); }
+}
 .dua-form-group { display: flex; flex-direction: column; gap: var(--space-2); }
 .dua-form-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .dua-form-chips .ui-chip svg { color: var(--brand); }
@@ -87,7 +90,14 @@
 .dua-journal-page .dua-tab { gap: 6px; }
 
 /* ── Siyahı ── */
-.dj-list { display: flex; flex-direction: column; gap: var(--space-3); }
+/* Kartlar şəbəkədə (genişdə 2 sütun); kart hündürlüyü qonşunu dartmır */
+.dj-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+.dj-list > .dua-empty { grid-column: 1 / -1; }
 
 .dua-journal-page .dua-empty p { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); }
 
@@ -110,12 +120,9 @@
   gap: 6px;
   color: var(--text-secondary);
   font-family: var(--font-label);
-  font-size: var(--step--2);
+  font-size: var(--step--1);
   font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
 }
-[dir="rtl"] .dua-category-badge { letter-spacing: 0; text-transform: none; }
 .dua-category-badge svg { color: var(--brand); }
 .dj-prio { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; }
 
@@ -140,12 +147,12 @@
   border-top: 1px solid var(--line);
 }
 .dua-journal-page .dua-delete-btn { margin-inline-start: auto; color: var(--text-tertiary); }
-@media (max-width: 479.98px) {
-  .dua-journal-page .dua-delete-btn { min-width: var(--tap, 44px); padding-inline: 10px; }
-  .dua-journal-page .dua-delete-label {
-    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
-    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-  }
+/* Kart şəbəkədə ensizdir — "Sil" yalnız ikon (ad ekran oxuyucusu və
+   title üçün qalır), düymələr bir sətirdə qalsın */
+.dua-journal-page .dua-delete-btn { min-width: var(--tap, 44px); padding-inline: 10px; }
+.dua-journal-page .dua-delete-label {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 @media (hover: hover) {
   .dua-journal-page .dua-delete-btn:hover { color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); }
@@ -185,6 +192,27 @@
 .dj-guide-sec { scroll-margin-top: calc(var(--header-h, 64px) + 20px); }
 .dj-guide-sec .ui-container > * + * { margin-top: var(--space-4); }
 .dj-guide-sec .ui-section-head + * { margin-top: var(--space-5); }
+/* Oxu mətni (qeyd, paraqraf) geniş konteynerdə də ~70ch qalır */
+.dj-guide-sec .ui-section-head,
+.dj-guide-sec .ls-p,
+.dj-guide-sec .ls-note { max-width: 72ch; }
+
+/* Duanın ədəbi — addımlar şaquli xətt əvəzinə nömrəli kart şəbəkəsi */
+.dj-guide-sec .ls-steps {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
+}
+.dj-guide-sec .ls-step {
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+}
+.dj-guide-sec .ls-step:last-child { padding-bottom: var(--space-4); }
+.dj-guide-sec .ls-step::before { display: none; }
+.dj-guide-sec .ls-step__body { padding-top: 0; gap: 6px; }
+.dj-guide-sec .ls-step__text { font-size: var(--step--1); line-height: 1.65; }
 
 /* Telefon: hero qısa (halqa gizli — rəqəmlər qalır), kart düymələri bir sətirdə */
 @media (max-width: 599.98px) {

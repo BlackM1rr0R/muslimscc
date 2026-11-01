@@ -3,7 +3,7 @@
 
    • Oxunaqlı "sənəd" üslubu: dar mətn sütunu (~68 simvol), sakit
      hairline-lar, nömrəli bölmələr, hər başlıqda lövbər (#).
-   • ≥1024px: solda yapışqan məzmun cədvəli (cari bölmə vurğulanır);
+   • ≥1024px: yuxarıda yapışqan üfüqi çip zolağı (cari bölmə vurğulanır);
      dar ekranda yuxarıda açılan <details> siyahısı.
    • Yalnız tokenlər (DESIGN.md §2) — qaranlıq rejim və RTL özü işləyir.
    • Animasiya minimaldır: bölmələr yalnız yumşaq görünür (data-reveal="fade").
@@ -39,24 +39,21 @@
   padding-top: var(--space-6, 32px);
 }
 @media (min-width: 1024px) {
+  /* v3.1: sol dar TOC sütunu yoxdur — məzmun cədvəli yuxarıda üfüqi,
+     yapışqan çip zolağıdır; sənəd konteynerin enini işlədir */
   .lg-layout {
-    grid-template-columns: 260px minmax(0, 1fr);
-    gap: var(--space-8, 64px);
-    padding-top: var(--space-7, 48px);
-    align-items: start;
+    gap: var(--space-6, 32px);
+    padding-top: var(--space-6, 32px);
   }
 }
 
 /* ── Məzmun cədvəli ── */
 .lg-toc__title {
-  font-size: var(--step--2);
+  font-size: var(--step--1);
   font-weight: 600;
-  letter-spacing: var(--tracking-wide, 0.08em);
-  text-transform: uppercase;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   margin: 0 0 10px;
 }
-[dir="rtl"] .lg-toc__title { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 
 .lg-toc__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .lg-toc__list a {
@@ -83,19 +80,72 @@
 }
 .lg-toc__list a[aria-current] .lg-toc__num { color: var(--brand); }
 
-/* Geniş ekran: yapışqan yan siyahı; dar ekranda gizli */
+/* Geniş ekran: başlığın altına yapışan üfüqi çip zolağı (sürüşən);
+   dar ekranda gizli (orada açılan <details> siyahısı) */
 .lg-toc--side { display: none; }
 @media (min-width: 1024px) {
-  .lg-toc--side {
-    display: block;
+  .lg-aside {
     position: sticky;
-    top: calc(var(--header-h, 64px) + 24px);
-    max-height: calc(100vh - var(--header-h, 64px) - 48px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding-inline-end: 4px;
+    top: calc(var(--header-h, 64px) + 8px);
+    z-index: 5;
   }
+  .lg-toc--side {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 14px;
+    padding-block: 8px 0;
+    padding-inline: 16px 10px;
+    background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 16px);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+  }
+  .lg-toc--side .lg-toc__title { grid-area: 1 / 1; margin: 0 0 8px; white-space: nowrap; }
+  .lg-toc--side .lg-toc__list {
+    grid-area: 1 / 2;
+    flex-direction: row;
+    gap: 4px;
+    margin-bottom: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 24px), transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 24px), transparent 100%);
+  }
+  [dir="rtl"] .lg-toc--side .lg-toc__list {
+    -webkit-mask-image: linear-gradient(to left, transparent 0, #000 12px, #000 calc(100% - 24px), transparent 100%);
+            mask-image: linear-gradient(to left, transparent 0, #000 12px, #000 calc(100% - 24px), transparent 100%);
+  }
+  .lg-toc--side .lg-toc__list::-webkit-scrollbar { display: none; }
+  .lg-toc--side .lg-toc__list > li { flex: 0 0 auto; }
+  .lg-toc--side .lg-toc__list > li:first-child { padding-inline-start: 8px; }
+  .lg-toc--side .lg-toc__list > li:last-child { padding-inline-end: 20px; }
+  .lg-toc--side .lg-toc__list a {
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 12px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill, 999px);
+    white-space: nowrap;
+  }
+  .lg-toc--side .lg-toc__list a[aria-current] { border-color: var(--brand-line); }
+  /* İrəliləyiş — zolağın altında tam en nazik xətt */
+  .lg-toc--side .lg-toc__meter { grid-row: 2; grid-column: 1 / -1; margin-block: 0; margin-inline: -16px -10px; }
   .lg-toc--inline { display: none; }
+
+  /* Sənəd: oxu mətni ~68 simvol qalır, kartlar/cədvəllər geniş */
+  .lg-root .lg-article { max-width: 1000px; }
+  .lg-root .lg-section > :is(p, ul:not(.lg-credits), .lg-note) { max-width: var(--lg-measure); }
+  .lg-root .lg-credits { grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); align-items: start; }
+  .lg-contact, .lg-table-wrap { max-width: 860px; }
+  /* Lövbərə keçəndə başlıq yapışqan zolağın altında qalmasın */
+  .lg-root .lg-section { scroll-margin-top: calc(var(--header-h, 64px) + 88px); }
 }
 
 /* Dar ekran: açılan siyahı */
@@ -204,11 +254,9 @@
   background: var(--surface-2);
   color: var(--text-strong);
   font-weight: 600;
-  font-size: var(--step--2);
-  letter-spacing: var(--tracking-wide, 0.08em);
-  text-transform: uppercase;
+  font-size: var(--step--1);
+  letter-spacing: 0;
 }
-[dir="rtl"] .lg-table thead th { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 .lg-table tbody th { font-weight: 600; color: var(--text-strong); min-width: 150px; }
 .lg-table tbody tr:last-child > * { border-bottom: 0; }
 

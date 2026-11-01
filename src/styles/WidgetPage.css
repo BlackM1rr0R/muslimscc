@@ -91,8 +91,8 @@
 .wg-section { display: grid; gap: var(--space-4); }
 .wg-section .ui-title { margin: 0; }
 .wg-tag {
-  font-family: var(--font-mono);
-  font-size: .8em;
+  font-family: inherit;   /* v3.1: başlıqda mono yox */
+  font-size: 1em;
   color: var(--brand);
   unicode-bidi: isolate;
 }
@@ -187,3 +187,8 @@
 .wg-seg > button { display: inline-flex; align-items: center; gap: 6px; }
 .wg-page .wg-feat { cursor: default; }
 .wg-page .wg-feat:hover { transform: none; }
+
+/* v3.1: 3 üstünlük kafeli — 4 sütunlu şəbəkədə boş yer qalmasın */
+@media (min-width: 761px) {
+  .wg-page .wg-feats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

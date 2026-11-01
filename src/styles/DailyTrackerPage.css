@@ -14,16 +14,17 @@
 .tracker-hero-ar { margin-top: -4px; color: var(--accent); font-size: clamp(22px, 2.4vw, 28px); line-height: 1.6; }
 .tracker-page.ui-section { padding-block: var(--space-6) var(--section-gap); }
 
-.tracker-layout {
+/* Üst hissə (.tracker-top) öz grid-idir: sticky halqa kartı yalnız bu qabın
+   içində hərəkət edir və aşağıdakı qrafik kartlarını heç vaxt örtmür. */
+.tracker-layout { display: flex; flex-direction: column; gap: var(--space-6); }
+.tracker-top {
   display: grid;
-  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
-  grid-template-areas: "progress today" "week week";
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
   gap: var(--space-5) var(--space-6);
   align-items: start;
 }
-.tracker-progress-section { grid-area: progress; }
-.tracker-today { grid-area: today; min-width: 0; }
-.tracker-week { grid-area: week; min-width: 0; }
+.tracker-today { min-width: 0; }
+.tracker-week { min-width: 0; }
 
 /* ══ İrəliləyiş kartı ═════════════════════════════════════════════ */
 .tracker-page .tracker-progress-section {
@@ -256,12 +257,7 @@
 
 /* ══ Responsiv ════════════════════════════════════════════════════ */
 @media (max-width: 1023.98px) {
-  .tracker-layout {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "progress" "today" "week";
-    max-width: 720px;
-    margin-inline: auto;
-  }
+  .tracker-top { grid-template-columns: minmax(0, 1fr); }
   /* Halqa + statistika yan-yana, yapışmır */
   .tracker-page .tracker-progress-section {
     position: static;
@@ -277,7 +273,7 @@
 @media (max-width: 767.98px) {
   .tracker-hero .breadcrumb { display: none; }
   .tracker-page.ui-section { padding-block: var(--space-4) var(--space-7); }
-  .tracker-layout { gap: var(--space-5); }
+  .tracker-layout, .tracker-top { gap: var(--space-5); }
   .tracker-page .tracker-progress-section { gap: 16px; padding: 16px; border-radius: var(--radius-lg); }
   .tracker-circle-wrap { width: 112px; height: 112px; }
   .tracker-circle-pct { font-size: 28px; }
@@ -309,9 +305,60 @@
   .tracker-circle-progress { transition: none; }
 }
 
-/* ══ v3: həftə + 30 gün qrafikləri, "harada edim" ══ */
+/* ══ v3.1: həftə kafelləri + 30 günlük istilik xəritəsi, "harada edim" ══ */
 .tracker-hero-ar { font-size: clamp(18px, 1.8vw, 22px); }
-.tracker-charts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: var(--space-5); align-items: start; }
+.tracker-charts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: var(--space-5); align-items: start; }
 .tracker-page .tracker-chart { padding: var(--space-5); }
 .tracker-where { padding-top: 0; }
-@media (max-width: 900px) { .tracker-charts { grid-template-columns: minmax(0, 1fr); } }
+.tracker-page .tracker-chart-title { margin: 0; color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; line-height: var(--lh-snug); }
+.tracker-chart-sub { margin: 4px 0 var(--space-4); color: var(--text-tertiary); font-size: var(--step--1); }
+.tracker-chart-note { margin: var(--space-4) 0 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+
+/* Bu günün iki qrupu geniş ekranda yan-yana */
+@media (min-width: 1180px) {
+  .tracker-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); align-items: start; }
+}
+
+/* Həftə: 7 gün kafeli */
+.tracker-page .tracker-week-grid { margin: 0; padding: 0; list-style: none; gap: 6px; }
+.tracker-week-day { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
+.tracker-week-avg { display: flex; justify-content: space-between; gap: 8px; margin-top: var(--space-4); color: var(--text-secondary); font-size: var(--step--1); }
+.tracker-week-avg .ui-num { color: var(--text-strong); font-weight: 600; }
+.tracker-week-avgbar { position: relative; display: block; height: 6px; margin-top: 6px; overflow: hidden; border-radius: var(--radius-pill); background: var(--surface-3); }
+.tracker-week-avgbar > span { position: absolute; inset: 0; background: var(--brand); transform: scaleX(var(--p, 0)); transform-origin: left center; transition: transform var(--dur-3) var(--ease-out); }
+[dir="rtl"] .tracker-week-avgbar > span { transform-origin: right center; }
+
+/* 30 gün: hər əməl üçün 30 xanalı istilik zolağı */
+.tracker-heat { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.tracker-heat-row {
+  display: grid;
+  grid-template-columns: 9.5em minmax(0, 1fr) 3.6em;
+  align-items: center;
+  gap: 12px;
+}
+.tracker-heat-label { overflow: hidden; color: var(--text-body); white-space: nowrap; text-overflow: ellipsis; }
+.tracker-heat-cells { display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px; }
+.tracker-heat-cell { aspect-ratio: 1; min-height: 8px; border-radius: 3px; background: var(--surface-3); }
+.tracker-heat-cell.on { background: var(--brand); }
+.tracker-heat-cell.is-today { box-shadow: 0 0 0 1.5px var(--accent); }
+.tracker-heat-count { color: var(--text-strong); font-weight: 600; text-align: end; }
+.tracker-heat-count small { color: var(--text-tertiary); font-weight: 500; }
+.tracker-heat-row { font-size: var(--step--1); }
+.tracker-heat-axis { margin-top: 6px; }
+.tracker-heat-axis-mid { display: flex; justify-content: space-between; gap: 8px; color: var(--text-tertiary); font-size: var(--step--2); }
+
+@media (max-width: 1100px) { .tracker-charts { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 599.98px) {
+  .tracker-page .tracker-chart { padding: var(--space-4); }
+  .tracker-heat { gap: 10px; }
+  .tracker-heat-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label count" "cells cells"; gap: 4px 8px; }
+  .tracker-heat-label { grid-area: label; }
+  .tracker-heat-count { grid-area: count; }
+  .tracker-heat-cells { grid-area: cells; gap: 2px; }
+  .tracker-heat-cell { min-height: 6px; border-radius: 2px; }
+  .tracker-heat-axis { grid-template-areas: "cells cells"; }
+  .tracker-heat-axis > span:not(.tracker-heat-axis-mid) { display: none; }
+  .tracker-heat-axis-mid { grid-area: cells; }
+}
+.tracker-page .tracker-week-bar-wrap { width: 14px; height: 64px; }
+@media (max-width: 599.98px) { .tracker-page .tracker-week-bar-wrap { width: 10px; height: 48px; } }

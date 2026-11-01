@@ -20,7 +20,11 @@
   .kids-stars .ui-viz-ring svg { width: 56px; height: 56px; }
 }
 
-.kids-section-wrap.section { padding-top: clamp(24px, 3vw, 36px); }
+.kids-section-wrap.section {
+  padding-top: clamp(24px, 3vw, 36px);
+  /* hero (.ui-container) ilə eyni kənar: son tərəfdə üzən dok zolağı */
+  padding-inline-end: var(--page-gutter-end, var(--page-gutter));
+}
 .kids-layout { display: flex; flex-direction: column; gap: var(--space-5); }
 
 /* ── 2. SEKMƏLƏR ─────────────────────────────────────────────────── */
@@ -111,6 +115,8 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
   gap: 12px;
 }
+/* 25 ad: geniş ekranda düz 5 × 5 (1920px-də 6 sütun olub tək kart qalırdı) */
+@media (min-width: 1100px) { .kids-names-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .kids-name-card {
   display: flex;
   flex-direction: column;
@@ -150,6 +156,8 @@
   padding: 0;
   list-style: none;
 }
+/* Qısa surələr kartı kiçikdir: geniş ekranda 3 sütun (15 surə = 3 × 5) */
+.kids-surahs-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
 .kids-surah-card,
 .kids-dua-card,
 .kids-pillar-card {
@@ -188,6 +196,8 @@
 .kids-dua-meaning { margin: 0; color: var(--text-secondary); font-family: var(--font-sans); font-size: var(--step-0); font-style: italic; line-height: 1.6; }
 
 .kids-pillar-card { display: flex; align-items: center; gap: 14px; padding: 14px 18px; min-height: 68px; }
+/* 5 rükn iki sütunda 2 + 2 + 1 qalırdı: birincisi (şəhadət — təməl) tam endə, sonra 2 + 2 */
+@media (min-width: 1000px) { .kids-pillars-list > .kids-pillar-card:first-child { grid-column: 1 / -1; } }
 .kids-pillar-num {
   flex-shrink: 0;
   display: inline-grid;
@@ -465,7 +475,12 @@
 .kids-iman-text { color: var(--text-secondary); font-size: var(--step-0); line-height: 1.55; }
 
 /* Hekayələr */
+/* Hekayələr: geniş ekranda iki sütunlu "masonry" (uzun tək siyahı olmasın) */
 .kids-stories { display: grid; gap: 14px; }
+@media (min-width: 1000px) {
+  .kids-stories { display: block; columns: 2; column-gap: 14px; }
+  .kids-stories > .kids-story { break-inside: avoid; margin-bottom: 14px; }
+}
 .kids-story { display: flex; flex-direction: column; gap: 10px; padding: clamp(16px, 2.4vw, 24px); }
 .kids-story-head { display: flex; align-items: center; gap: 14px; }
 .kids-story-ar { flex-shrink: 0; min-width: 64px; text-align: center; }
@@ -525,4 +540,12 @@
 /* Telefonda hero qısa qalsın: açar rəqəmlər gizlənir (halqa kartı qalır) */
 @media (max-width: 599.98px) {
   .kids-hero .ui-page-hero__stats { display: none; }
+}
+
+/* v3.1: valideyn bələdçisində uzun addım siyahıları (4+) geniş ekranda iki
+   sütunda (yuxarıdan aşağı oxunur) — sətirlər 1088px-lik tək sütunda çox uzun idi */
+@media (min-width: 1100px) {
+  .kids-guide-sec .ls-steps:has(> .ls-step:nth-child(4)) { display: block; columns: 2; column-gap: var(--space-7, 48px); }
+  .kids-guide-sec .ls-steps:has(> .ls-step:nth-child(4)) > .ls-step { break-inside: avoid; }
+  .kids-guide-sec .ls-steps:not(:has(> .ls-step:nth-child(4))) { max-width: 80ch; }
 }

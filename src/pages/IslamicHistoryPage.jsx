@@ -238,7 +238,12 @@ export default function IslamicHistoryPage() {
                         <details className="hx-more">
                           <summary><Icon name="chevronDown" size={16} className="hx-more__ic" /> {L.more}</summary>
                           <p><strong>{L.keyFact}:</strong> {t(p.keyFact, lang)}</p>
-                          {p.quranRef && <p className="hx-more__ref"><Icon name="quran" size={14} /> {L.quranRef}: <span dir="ltr">{p.quranRef}</span></p>}
+                          {p.quranRef && <p className="hx-more__ref"><Icon name="quran" size={14} /> {L.quranRef}:{' '}
+                            {/* Hər istinad bütöv qalır (sətir yalnız istinadlar arasında qırılır) */}
+                            <span dir="ltr" className="hx-more__refs">{p.quranRef.split(/,\s*/).map((r, i, a) => (
+                              <span key={i}>{i > 0 && ' '}<span className="hx-more__refi">{r}{i < a.length - 1 ? ',' : ''}</span></span>
+                            ))}</span>
+                          </p>}
                         </details>
                       </li>
                     )

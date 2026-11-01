@@ -67,8 +67,12 @@
   font-size: var(--step--1);
   line-height: 1.6;
 }
-.hx-more__ref { display: flex; align-items: flex-start; gap: 6px; color: var(--text-secondary) !important; }
-.hx-more__ref svg { flex-shrink: 0; margin-top: 3px; color: var(--brand); }
+.hx-more__ref { color: var(--text-secondary) !important; }
+/* Mətn bir axında qalır (flex yox) — "Quran istinadı:" və ayə nömrəsi ayrı
+   sütunlara bölünüb 2–3 sətrə qırılmasın; istinadın özü qırılmır */
+.hx-more__ref svg { display: inline-block; vertical-align: -2px; margin-inline-end: 4px; color: var(--brand); }
+.hx-more__refs { color: var(--text-body); font-weight: 600; font-variant-numeric: tabular-nums; }
+.hx-more__refi { white-space: nowrap; }
 @media (pointer: coarse) { .hx-more summary { min-height: 44px; } }
 
 /* ══ PEYĞƏMBƏRLƏR ══ */
@@ -77,6 +81,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
   gap: var(--space-3);
+  /* Bir kartın "Əsas fakt"ı açılanda qonşu kartlar dartılmasın */
+  align-items: start;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -104,7 +110,10 @@
 .hx-prophet__era { display: inline-flex; align-items: center; gap: 6px; color: var(--text-tertiary); font-family: var(--font-num); font-size: var(--step--2); }
 .hx-prophet__era svg { flex-shrink: 0; }
 .hx-prophet__desc { color: var(--text-secondary); font-size: var(--step--1); line-height: 1.6; }
-.history-page .hx-prophet .hx-more { margin-top: auto; padding-top: 4px; }
+/* Bağlı kartlar təxminən eyni hündürlükdə qalsın (təsvir ən azı 3 sətir yer tutur) */
+@media (min-width: 600px) { .hx-prophet__desc { min-height: calc(3 * 1.6em); } }
+.history-page .hx-prophet .hx-more { padding-top: 4px; }
+.history-page .hx-prophet .hx-more > p { margin-top: var(--space-2); }
 
 /* ══ HADİSƏLƏR — dövr lenti ══ */
 .hx-eras {
@@ -205,6 +214,33 @@
 .hx-ev__media .ph { --ph-ratio: 4 / 3; }
 .hx-ev__media .ph__frame { border-radius: var(--radius-md); }
 .hx-ev__media .ph__credit { font-size: var(--step--2); }
+
+/* Geniş ekranda: zaman xətti uzun tək sütun olmasın — hadisələr 2 sütunlu
+   kartlara düzülür (sıra soldan sağa, il kartın başında); kart açılanda
+   qonşusu dartılmır (align-items: start) */
+@media (min-width: 1100px) {
+  .hx-groups { max-width: none; }
+  .hx-tl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    align-items: start;
+  }
+  .hx-tl::before,
+  .hx-ev::before { display: none; }
+  .hx-ev,
+  .hx-ev--media {
+    grid-template-columns: 80px minmax(0, 1fr);
+    column-gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface-1);
+  }
+  .hx-ev--media { grid-template-columns: 80px minmax(0, 1fr) 150px; }
+  .hx-ev__when { text-align: start; }
+  .hx-ev__desc { max-width: none; }
+}
 
 /* ══ Xəritələr ══ */
 .history-maps .ui-container { display: flex; flex-direction: column; gap: var(--space-6); }

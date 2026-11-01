@@ -349,6 +349,20 @@ export default function LegalDocument({ docKey, doc, setPage }) {
     return () => io.disconnect()
   }, [lang, docKey])
 
+  // Geniş ekranda məzmun cədvəli üfüqi çip zolağıdır — cari bölmənin çipi
+  // zolağın görünən hissəsində qalsın (yalnız üfüqi sürüşmə, səhifə tərpənmir)
+  const sideTocRef = useRef(null)
+  useEffect(() => {
+    const list = sideTocRef.current?.querySelector('.lg-toc__list')
+    const a = list?.querySelector('a[aria-current]')
+    if (!list || !a || list.scrollWidth <= list.clientWidth) return
+    const lr = list.getBoundingClientRect()
+    const ar = a.getBoundingClientRect()
+    if (ar.left < lr.left + 16 || ar.right > lr.right - 24) {
+      list.scrollLeft += (ar.left + ar.width / 2) - (lr.left + lr.width / 2)
+    }
+  }, [active])
+
   const tocLinks = (
     <ol className="lg-toc__list">
       {sections.map((s, i) => (
@@ -418,7 +432,7 @@ export default function LegalDocument({ docKey, doc, setPage }) {
       <div className="ui-container lg-layout">
         <aside className="lg-aside">
           {/* Geniş ekran: yapışqan siyahı */}
-          <nav className="lg-toc lg-toc--side" aria-label={t.toc}>
+          <nav className="lg-toc lg-toc--side" aria-label={t.toc} ref={sideTocRef}>
             <p className="lg-toc__title">
               <span>{t.toc}</span>
               <span className="lg-toc__pos ui-num" aria-hidden="true">{t3.of(activeIdx + 1, sections.length)}</span>

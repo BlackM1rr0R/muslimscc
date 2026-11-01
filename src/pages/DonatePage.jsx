@@ -315,7 +315,7 @@ export default function DonatePage({ setPage }) {
 
       {/* ═══ Fəzilətlər — ayə (API) + hədislər (hadiths.js) ═══ */}
       <section id="dn-virtues" className="ui-section dn-virtues" aria-labelledby="dn-virtues-title">
-        <div className="ui-container ui-container--narrow">
+        <div className="ui-container">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{t.eyebrow}</span>
             <h2 id="dn-virtues-title" className="ui-title">{t.virtues}</h2>
@@ -330,7 +330,7 @@ export default function DonatePage({ setPage }) {
 
       {/* ═══ Sədəqə bələdçisi — fəzilətlər (yuxarıdakılardan əlavə), davamlı sədəqə, ədəb ═══ */}
       <section className="ui-section ui-section--alt dn-guide" aria-labelledby="dn-guide-title">
-        <div className="ui-container ui-container--narrow">
+        <div className="ui-container">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{t.guide}</span>
             <h2 id="dn-guide-title" className="ui-title">{t.guide}</h2>
@@ -353,7 +353,7 @@ export default function DonatePage({ setPage }) {
 
       {/* ═══ Verməzdən əvvəl — 5 yoxlama ═══ */}
       <section className="ui-section" aria-labelledby="dn-tips-title">
-        <div className="ui-container ui-container--narrow">
+        <div className="ui-container">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{P(DN3.tipsEyebrow, lang)}</span>
             <h2 id="dn-tips-title" className="ui-title">{t.tipsTitle}</h2>

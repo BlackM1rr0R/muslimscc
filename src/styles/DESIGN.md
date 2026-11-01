@@ -68,22 +68,27 @@ Yoxlanılıb (dataviz validator): işıqlıq zolağı, xroma, rəng korluğu ΔE
 səthə kontrast ≥ 3:1 — hər iki rejimdə. **Sıra sabitdir** (1→4, dövr etmir); 4-dən çox kateqoriya
 olarsa "Digər"ə birləşdir və ya cədvəl göstər. Rəng **varlığa** bağlıdır, sıraya yox.
 
-### Tipoqrafiya — iki şrift, aydın rollar
+### Tipoqrafiya — bir şrift ailəsi (v3.1)
 
 | Rol (token) | Şrift | Harada |
 |---|---|---|
-| `--font-sans` | **Ubuntu Sans** | paraqraf, tərcümə, dərs mətni, kart təsviri, sahə dəyəri |
-| `--font-heading` | **Ubuntu Sans Mono** | h1–h3, bölmə başlığı, kart başlığı (`.ui-title`, `.ui-display`, `.ui-card__title`) |
-| `--font-label` | Ubuntu Sans Mono | eyebrow, düymə, çip, sekmə, nişan, cədvəl başlığı, naviqasiya |
-| `--font-num` | Ubuntu Sans Mono | iri rəqəm, saat, sayğac, statistika, cədvəl rəqəmi (`.ui-mono`, `.ui-num`) |
+| `--font-sans` | **Inter** (dəyişən, 400–700) | paraqraf, tərcümə, dərs mətni, kart təsviri, sahə dəyəri |
+| `--font-heading` | Inter 600/700, sıx tracking | h1–h3, bölmə başlığı, kart başlığı (`.ui-title`, `.ui-display`, `.ui-card__title`) |
+| `--font-label` | Inter 500/600 | eyebrow, düymə, çip, sekmə, nişan, cədvəl başlığı, naviqasiya |
+| `--font-num` | Inter + `tabular-nums` | iri rəqəm, saat, sayğac, statistika |
+| `--font-mono` | sistem mono | yalnız kod nümunəsi (vidcet kodu) |
 | `--font-arabic` | Amiri | Quran/hədis ərəbcəsi (`.ui-arabic`) |
-| `--font-arabic-ui` | IBM Plex Sans Arabic | `/ar` interfeysi; `/ar`-da bütün "mono" rollar avtomatik bu şriftə keçir |
+| `--font-arabic-ui` | IBM Plex Sans Arabic | `/ar` interfeysi və başlıqları |
 
-- `--font-display` = `--font-mono` (köhnə ad, eyni şrift). Yeni kodda rol tokenlərini işlət.
-- Mono **uzun mətn üçün deyil** — paraqraf həmişə sans.
-- Mono + `italic` avtomatik Ubuntu Sans Italic ilə göstərilir (globals.css-də qoruyucu `@font-face`),
-  amma yeni kodda sitatı sans + italic yaz.
+- v3-dəki Ubuntu Sans Mono başlıqlar gözü yorurdu (sahibin rəyi, 2026-11) — mono-ya qayıtma.
 - Ərəbcə mətndə hərf aralığı avtomatik 0-dır (`[lang="ar"]` qaydası) — `lang="ar"` qoymağı unutma.
+
+### Tərtibat — "alt-alta" yox
+
+Geniş ekranda (≥1100px) kart, dəlil və siyahı blokları **yan-yana grid**-də olur (`--container` 1280px);
+ensiz tək sütun yalnız uzun oxu mətni (~70ch) üçündür. Grid-də `align-items: start` — açılan kart
+qonşusunu dartmır. Ardıcıl ayə/hədis/dua blokları `LessonBlocks` tərəfindən `.ls-evgrid`-ə yığılır.
+İçindəkilər (TOC) sol sütunda yox, yuxarıda üfüqi sticky çip zolağıdır.
 
 **Şkala** (rem, axıcı; telefonda kiçik pillələr kompensasiya olunur ki, əsas mətn **həmişə 15px** qalsın):
 

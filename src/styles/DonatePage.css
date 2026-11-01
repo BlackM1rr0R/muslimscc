@@ -68,13 +68,41 @@
 /* ── Fəzilətlər: ayə tam en, hədislər iki sütun ── */
 .dn-vlist {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  /* v3.1: geniş konteynerdə hədislər 2 sütun (4 hədis → 2×2), telefonda 1 */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr));
+  align-items: start;
   gap: 14px;
 }
 .dn-vlist > :first-child { grid-column: 1 / -1; }
 
-/* ── Verməzdən əvvəl: 5 addım ── */
+/* ── Verməzdən əvvəl: 5 addım ──
+   v3.1: geniş ekranda alt-alta siyahı yox — nömrəli kart şəbəkəsi
+   (birləşdirici xətt gizlənir); telefonda əvvəlki şaquli addımlar */
 .dn-tip { color: var(--text-body); font-size: var(--step-0); line-height: 1.6; }
+@media (min-width: 768px) {
+  .dn-root .dn-tips {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    align-items: stretch;
+    gap: 12px;
+  }
+  .dn-root .dn-tips .ui-step {
+    grid-template-columns: 1fr;
+    align-content: start;
+    row-gap: 10px;
+    padding: var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-1);
+  }
+  .dn-root .dn-tips .ui-step::before { display: none; }
+  .dn-root .dn-tips .ui-step__body { padding-top: 0; }
+  .dn-tip { font-size: var(--step--1); line-height: 1.6; }
+}
+/* Planşet: 5 kart → 3 + 2 (4 + 1 tək qalan kart əvəzinə) */
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  .dn-root .dn-tips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 .dn-root .dn-footnote { margin-top: var(--space-5); }
 
 /* ── Faydalı keçidlər (.ui-tile --row) ── */
@@ -82,7 +110,7 @@
 .dn-links-title { display: block; margin-bottom: var(--space-3); }
 .dn-links-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 12px;
 }
 
@@ -100,6 +128,30 @@
 }
 .dn-guide-title::after { content: ''; display: block; width: 44px; height: 2px; margin-top: 10px; border-radius: 2px; background: var(--accent); }
 .dn-guide .ls-ayah, .dn-guide .ls-hadith, .dn-guide .ls-quote { margin: 0; }
+/* v3.1: bələdçi geniş konteynerdədir (1280px). Dəlillər .ls-evgrid ilə yan-yana;
+   tək qalan oxu blokları (qeyd, cədvəl) oxunaqlı endə qalır */
+.dn-guide-sec > .ls-hadith,
+.dn-guide-sec > .ls-ayah,
+.dn-guide-sec > .ls-note,
+.dn-guide-sec > .ls-table-wrap { max-width: 920px; }
+/* "Vermənin ədəbi" addımları — geniş ekranda kart şəbəkəsi (2–3 sütun) */
+@media (min-width: 768px) {
+  .dn-guide .ls-steps {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    align-items: stretch;
+    gap: 12px;
+  }
+  .dn-guide .ls-step {
+    padding: var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-1);
+  }
+  .dn-guide .ls-step:last-child { padding-bottom: var(--space-4); }
+  .dn-guide .ls-step::before { display: none; }
+  .dn-guide .ls-step__text { font-size: var(--step--1); }
+}
 .dn-guide-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .dn-guide-links-label { color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; }
 .dn-root .dn-guide-chip { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; }

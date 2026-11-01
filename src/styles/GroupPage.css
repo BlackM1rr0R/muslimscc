@@ -18,6 +18,8 @@
 .gp-src { color: var(--text-tertiary); font-size: var(--step--1); margin: var(--space-2) 0 0; }
 
 .gp-types { margin-bottom: var(--space-6); }
+/* 2 növ kartı sıranı tam doldursun (sağda boş üçüncü yer qalmasın) */
+.gp-root .gp-types { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
 
 /* ── Təqdimat: forma + yan panel ── */
 .gp-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-5); align-items: start; }

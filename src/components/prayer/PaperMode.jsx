@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Icon from '../Icon'
 import PrayerPose from './PrayerPose'
+import HandDetail, { hasHandDetail } from './HandDetail'
 import { ACTIONS, PRAYERS, ZIKR, buildSequence } from '../../data/prayerGuide'
 
 const SECONDS = [5, 8, 12, 20]
@@ -229,7 +230,10 @@ export default function PaperMode({ lang, t, onClose }) {
 
           {step && (
             <div className="pm-body" key={i} aria-live="polite">
-              <div className={`pm-figure ${sz === 'is-s' || sz === 'is-m' ? 'pm-figure--sm' : ''}`}><PrayerPose pose={step.pose} /></div>
+              <div className={`pm-figs ${sz === 'is-s' || sz === 'is-m' ? 'pm-figs--sm' : ''}`}>
+                <div className="pm-figure"><PrayerPose pose={step.pose} /></div>
+                {hasHandDetail(step.pose) && <HandDetail pose={step.pose} lang={lang} compact className="pm-hands" />}
+              </div>
               <h2 className="pm-action">{a.name[lang] || a.name.en}</h2>
               {a.lead && (
                 <p className="pm-lead">{lang === 'ar' ? ZIKR[a.lead].ar : `${ZIKR[a.lead].tl[lang] || ZIKR[a.lead].tl.en} · `}{lang !== 'ar' && <span lang="ar" dir="rtl">{ZIKR[a.lead].ar}</span>}</p>

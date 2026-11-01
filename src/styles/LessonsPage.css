@@ -2,8 +2,9 @@
    DƏRSLƏR — dizayn v3 (DESIGN.md)
    • Siyahı: split hero (+ irəliləyiş halqası) → "Haradan başlamalı?"
      (.ui-steps --row) → kataloq: axtarış + kateqoriya kafelləri + qruplar.
-   • Dərs: oxu zolağı → hero → İçindəkilər (≥1280 yapışqan sütun) →
-     nömrələnmiş mono bölmələr → "Oxudum" → mənbələr → əvvəlki/növbəti.
+   • Dərs: oxu zolağı → hero → İçindəkilər (yuxarıda yapışqan nömrəli çip
+     zolağı, v3.1) → nömrələnmiş bölmələr (geniş ekranda "paraqraf | dəlil"
+     yan-yana) → "Oxudum" → mənbələr → əvvəlki/növbəti.
    • BLOKLAR (.ls-p, .ls-ayah, .ls-steps, .ls-qa …) — LessonBlocks.jsx.
      Başqa səhifələr də (Ramazan, Qiblə, Təqvim, Məscidlər, İanə, Sədəqə,
      Uşaqlar, Dua gündəliyi) bu faylı import edib eyni blokları göstərir —
@@ -47,7 +48,7 @@
 /* Kateqoriya kafelləri — filtr düymələri (aria-pressed) */
 .ls-cats {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
   gap: var(--space-2);
   margin-bottom: var(--space-7);
 }
@@ -80,7 +81,7 @@
 .ls-group__n { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 500; }
 .ls-group__desc { margin-top: 2px; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; max-width: 68ch; }
 
-.ls-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: var(--space-3); list-style: none; margin: 0; padding: 0; }
+.ls-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: var(--space-3); list-style: none; margin: 0; padding: 0; }
 .ls-grid > li { display: flex; }
 .ls-page .ls-card { display: flex; flex-direction: column; gap: 8px; width: 100%; padding: var(--space-4) var(--space-5); font: inherit; text-align: start; }
 .ls-card__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
@@ -144,9 +145,23 @@
 .ls-lhero__meta .ls-lhero__read svg { color: var(--brand); }
 
 .ls-page .ls-body { padding-top: var(--space-6); }
-.ls-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); max-width: calc(720px + 2 * var(--page-gutter)); }
+/* v3.1: tək, geniş sütun (konteyner eni); İçindəkilər yuxarıda yapışqan
+   çip zolağıdır. Paraqraflar --measure (68ch) qalır, dəlillər genişlənir. */
+.ls-layout { display: block; max-width: calc(var(--container) + 2 * var(--page-gutter)); }
 .ls-article { display: flex; flex-direction: column; gap: var(--space-7); min-width: 0; counter-reset: lssec; }
-.ls-sec { scroll-margin-top: calc(var(--header-h, 64px) + 20px); display: flex; flex-direction: column; gap: var(--space-4); }
+.ls-sec { scroll-margin-top: calc(var(--header-h, 64px) + 84px); display: flex; flex-direction: column; gap: var(--space-4); }
+/* Geniş ekranda "iddia | dəlil": dəlildən (ayə/hədis/sitat) dərhal əvvəlki
+   paraqraf solda, dəlil sağda — alt-alta uzun siyahı olmasın. Yalnız dərs
+   səhifəsində (.ls-lesson); başqa səhifələrin bələdçi blokları dəyişmir. */
+@media (min-width: 1100px) {
+  .ls-lesson .ls-article > .ls-sec:not(.ls-sources) {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-6); row-gap: var(--space-4); align-items: start;
+  }
+  .ls-lesson .ls-article > .ls-sec > * { grid-column: 1 / -1; }
+  .ls-lesson .ls-sec > .ls-p:has(+ :is(.ls-ayah, .ls-hadith, .ls-quote)) { grid-column: 1; padding-top: var(--space-2); }
+  .ls-lesson .ls-sec > .ls-p + :is(.ls-ayah, .ls-hadith, .ls-quote) { grid-column: 2; }
+}
 .ls-sec__title {
   color: var(--text-strong);
   font-family: var(--font-heading); font-size: var(--step-2); font-weight: 600; line-height: 1.25; letter-spacing: var(--tracking-tight);
@@ -154,49 +169,68 @@
 [dir="rtl"] .ls-sec__title { letter-spacing: 0; }
 .ls-sec__title:focus { outline: none; }
 .ls-sec__title:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: 4px; }
-/* Dərsdə bölmə nömrəsi: "01 ——" mono, qızılı */
+/* Dərsdə bölmə nömrəsi: "01", qızılı */
 .ls-lesson .ls-article > .ls-sec:not(.ls-sources) > .ls-sec__title::before {
   counter-increment: lssec;
   content: counter(lssec, decimal-leading-zero);
   display: block; margin-bottom: 6px;
-  color: var(--accent-text); font-family: var(--font-num); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide);
+  color: var(--accent-text); font-family: var(--font-num); font-size: var(--step--1); font-weight: 600;
 }
 .ls-loading { display: grid; gap: 12px; }
 
-/* İçindəkilər — dar ekranda üfüqi zolaq, ≥1280px yapışqan sütun */
+/* İçindəkilər — bütün enlərdə yuxarıda yapışqan, nömrəli çip zolağı
+   (v3.1; əvvəl ≥1280px-də dar sol sütun idi və mətni qırırdı). Oxu
+   zolağının (--header-offset) altında qalır; aktiv çip görünən yerə sürüşür. */
+.ls-toc {
+  position: sticky;
+  top: var(--header-offset, var(--header-h, 64px));
+  z-index: 20;
+  margin-top: -8px;
+  margin-bottom: var(--space-6);
+  /* Başlıqla zolaq arasındakı 8px-lik boşluq + zolağın yuxarı yarısı fonla
+     örtülür — altdan sürüşən mətn aralıqda görünməsin */
+  padding-top: 8px;
+  background: linear-gradient(var(--surface-0) 28px, transparent 28px);
+  transition: top var(--dur-3) var(--ease-out);
+}
+.ls-toc nav {
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-0) 86%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-1);
+}
 .ls-toc__title { display: none; }
 .ls-toc__list {
-  display: flex; gap: 6px; overflow-x: auto; list-style: none; margin: 0;
-  margin-inline: calc(-1 * var(--page-gutter)); padding: 2px var(--page-gutter) 6px; scrollbar-width: none;
+  display: flex; gap: 6px; overflow-x: auto; list-style: none; margin: 0; padding: 0;
+  scrollbar-width: none; overscroll-behavior-x: contain;
 }
 .ls-toc__list::-webkit-scrollbar { display: none; }
+.ls-toc__list > li { flex-shrink: 0; }
 .ls-toc__link {
   display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px;
-  border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface-1);
+  border: 1px solid transparent; border-radius: var(--radius-pill); background: transparent;
   color: var(--text-secondary); font-family: var(--font-label); font-size: var(--step--1); font-weight: 500; white-space: nowrap; text-decoration: none;
   transition: color var(--dur-1) ease, background-color var(--dur-1) ease, border-color var(--dur-1) ease;
 }
-.ls-toc__n { color: var(--text-tertiary); font-size: var(--step--2); }
-.ls-toc__link[aria-current="true"] { color: var(--brand); border-color: var(--brand-line); background: var(--brand-soft); }
-.ls-toc__link[aria-current="true"] .ls-toc__n { color: var(--brand); }
-@media (hover: hover) { .ls-toc__link:hover { color: var(--text-strong); } }
+/* Uzun başlıq çipi həddən artıq genişlətməsin — tam mətn title-dadır */
+.ls-toc__label { max-width: 30ch; overflow: hidden; text-overflow: ellipsis; }
+.ls-toc__n {
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding-inline: 4px;
+  border-radius: var(--radius-pill); background: var(--surface-2);
+  color: var(--text-tertiary); font-family: var(--font-num); font-size: var(--step--2); font-weight: 600;
+}
+.ls-toc__link[aria-current="true"] { color: var(--brand); border-color: var(--brand-line); background: var(--brand-soft); font-weight: 600; }
+.ls-toc__link[aria-current="true"] .ls-toc__n { background: var(--brand); color: var(--on-brand); }
+@media (hover: hover) { .ls-toc__link:not([aria-current="true"]):hover { color: var(--text-strong); background: var(--surface-2); } }
+.ls-toc__link:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
 @media (pointer: coarse) { .ls-toc__link { min-height: 40px; } }
-@media (min-width: 1280px) {
-  .ls-layout { grid-template-columns: 230px minmax(0, 720px); justify-content: center; gap: var(--space-8); max-width: calc(var(--container) + 2 * var(--page-gutter)); }
-  .ls-toc nav { position: sticky; top: calc(var(--header-h, 64px) + 28px); max-height: calc(100vh - var(--header-h, 64px) - 56px); overflow-y: auto; scrollbar-width: thin; }
-  .ls-toc__title { display: block; margin-bottom: 10px; color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
-  [dir="rtl"] .ls-toc__title { letter-spacing: 0; text-transform: none; }
-  .ls-toc__list { flex-direction: column; gap: 0; overflow: visible; margin: 0; padding: 0; border-inline-start: 1px solid var(--line); }
-  .ls-toc__link {
-    position: relative; display: flex; align-items: baseline; min-height: 36px; padding: 7px 12px; margin-inline-start: -1px;
-    border: 0; border-radius: 0; background: transparent; white-space: normal; line-height: 1.35;
-  }
-  .ls-toc__link::before {
-    content: ''; position: absolute; inset-block: 6px; inset-inline-start: 0; width: 2px; border-radius: 2px;
-    background: var(--brand); transform: scaleY(0); transition: transform var(--dur-3) var(--ease-out);
-  }
-  .ls-toc__link[aria-current="true"] { background: transparent; color: var(--text-strong); font-weight: 600; }
-  .ls-toc__link[aria-current="true"]::before { transform: none; }
+@media (max-width: 767.98px) {
+  .ls-toc { margin-inline: calc(-1 * var(--page-gutter)); margin-bottom: var(--space-5); }
+  .ls-toc nav { border-radius: 0; border-inline: 0; padding: 6px var(--page-gutter); box-shadow: none; }
+  .ls-toc__label { max-width: 22ch; }
 }
 
 /* "Oxudum" */
@@ -214,7 +248,7 @@
 .ls-page .ls-sources { gap: var(--space-3); padding-top: var(--space-5); border-top: 1px solid var(--line); }
 .ls-page .ls-sources__title { font-size: var(--step-0); font-family: var(--font-label); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--text-secondary); }
 [dir="rtl"] .ls-page .ls-sources__title { letter-spacing: 0; text-transform: none; }
-.ls-sources__list { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; font-size: var(--step--1); }
+.ls-sources__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 8px var(--space-6); list-style: none; margin: 0; padding: 0; font-size: var(--step--1); }
 .ls-sources__list li { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; color: var(--text-secondary); }
 .ls-sources__list svg { flex-shrink: 0; margin-top: 3px; color: var(--accent); }
 .ls-sources__list a { color: var(--brand); overflow-wrap: anywhere; }
@@ -222,11 +256,7 @@
 .ls-report { display: flex; justify-content: flex-end; margin-top: calc(-1 * var(--space-4)); }
 
 /* Əvvəlki / Növbəti + eyni bölmədən */
-.ls-after { margin-top: var(--space-7); max-width: calc(720px + 2 * var(--page-gutter)); }
-@media (min-width: 1280px) {
-  .ls-after { display: grid; grid-template-columns: 230px minmax(0, 720px); justify-content: center; column-gap: var(--space-8); max-width: calc(var(--container) + 2 * var(--page-gutter)); }
-  .ls-after > * { grid-column: 2; }
-}
+.ls-after { margin-top: var(--space-7); max-width: calc(var(--container) + 2 * var(--page-gutter)); }
 .ls-pager { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
 .ls-page .ls-pager__card { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; padding: 14px 16px; font: inherit; text-align: start; }
 .ls-page .ls-pager__card--next { align-items: flex-end; text-align: end; }
@@ -236,7 +266,7 @@
 .ls-same { margin-top: var(--space-6); }
 .ls-same__title { margin-bottom: var(--space-3); color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; }
 .ls-same__cat { color: var(--text-tertiary); font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; }
-.ls-same__list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.ls-same__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); column-gap: var(--space-6); list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
 .ls-same__list li { border-bottom: 1px solid var(--line); }
 .ls-same__item {
   display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 4px;
@@ -294,6 +324,13 @@
   margin-top: 10px; color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 500; line-height: 1.5;
 }
 .ls-ayah blockquote, .ls-hadith blockquote, .ls-quote blockquote { margin: 0; }
+/* Ardıcıl dəlillər qrupu (LessonBlocks) — konteyner kifayət qədər enlidirsə
+   yan-yana; kartlar öz hündürlüyündə qalır (biri uzun olanda digəri dartılmır) */
+.ls-evgrid {
+  display: grid; gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  align-items: start;
+}
 /* Alimin sözü — panel yox, yalnız qızılı başlanğıc xətti (sakit) */
 .ui-quote.ls-quote { margin: 0; padding-block: 2px; padding-inline: var(--space-4) 0; }
 .ls-quote .ui-quote__text { color: var(--text-body); font-size: var(--step-0); font-style: italic; line-height: 1.7; }
@@ -442,7 +479,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ls-readbar, .ls-cat, .ls-card__arrow, .ls-qa__chev, .ls-toc__link::before { transition: none; }
+  .ls-readbar, .ls-cat, .ls-card__arrow, .ls-qa__chev, .ls-toc, .ls-toc__link { transition: none; }
   .ls-cat:active { transform: none; }
 }
 

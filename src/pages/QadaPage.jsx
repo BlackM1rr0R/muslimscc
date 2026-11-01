@@ -505,6 +505,7 @@ export default function QadaPage({ setPage }) {
           )}
 
           <div className="qd-layout">
+            <div className="qd-col qd-col--main">
             {/* ── Sayğaclar ── */}
             <div className="qd-counters ui-card" data-reveal>
               <h2 className="qd-card-title"><Icon name="refresh" size={18} /> {t.countersTitle}</h2>
@@ -523,6 +524,21 @@ export default function QadaPage({ setPage }) {
               </ul>
             </div>
 
+            {/* ── Təxmini hesablayıcı ── */}
+            <Estimator t={t} lang={lk} names={names} state={state}
+              onApply={(est, mode) => { update(s => applyEstimate(s, { ...est, mode })); say(t.applied) }}
+              onManual={(vals) => {
+                update(s => {
+                  let n = s
+                  for (const p of PRAYERS) n = setOwed(n, p, vals[p])
+                  return setOwed(n, 'fast', vals.fast)
+                })
+                say(t.applied)
+              }} />
+
+            </div>
+
+            <div className="qd-col qd-col--side">
             {/* ── Hədəf və irəliləyiş ── */}
             <div className="qd-goal ui-card" data-reveal>
               <h2 className="qd-card-title"><Icon name="target" size={18} /> {t.goalTitle}</h2>
@@ -575,22 +591,11 @@ export default function QadaPage({ setPage }) {
             {/* ── Son 30 gün ── */}
             <History t={t} lang={lk} days={days30} goal={state.goal} today={today} />
 
-            {/* ── Təxmini hesablayıcı ── */}
-            <Estimator t={t} lang={lk} names={names} state={state}
-              onApply={(est, mode) => { update(s => applyEstimate(s, { ...est, mode })); say(t.applied) }}
-              onManual={(vals) => {
-                update(s => {
-                  let n = s
-                  for (const p of PRAYERS) n = setOwed(n, p, vals[p])
-                  return setOwed(n, 'fast', vals.fast)
-                })
-                say(t.applied)
-              }} />
-
             {/* ── Ehtiyat nüsxə ── */}
             <Backup t={t} state={state} today={today}
               onImport={(s) => { update(() => s); say(t.importOk) }}
               onReset={() => { update(() => emptyQada()) }} say={say} />
+            </div>
           </div>
 
           <p className="ui-sr-only" role="status" aria-live="polite">{status}</p>

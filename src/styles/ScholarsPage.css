@@ -1,8 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════
    SƏLƏF ALİMLƏRİ — dizayn v2 (DESIGN.md)
    Siyahı: .ui-page-hero + axtarış + dövr çipləri + dövr qrupları (kart
-   şəbəkəsi). Profil: xəttatlıq kartlı hero → İçindəkilər (geniş ekranda
-   yapışqan) → bölmələr → Əvvəlki/Növbəti + eyni dövrdən.
+   şəbəkəsi). Profil: xəttatlıq kartlı hero → İçindəkilər (yuxarıda yapışqan
+   üfüqi çip zolağı, v3.1) → bölmələr (geniş ekranda grid) → Əvvəlki/Növbəti + eyni dövrdən.
 
    ŞƏKİL YOXDUR — .sc-callig adın ərəbcə yazılışını (Amiri) xatəm naxışlı
    həndəsi çərçivədə göstərir. Dövr rəngi yalnız tokenlərdən:
@@ -191,10 +191,20 @@
 .sc-meta-chip svg { color: var(--accent); flex-shrink: 0; }
 
 /* ══ PROFİL — GÖVDƏ ══ */
-.sc-page .sc-body { padding-top: var(--space-7); }
-.sc-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); max-width: calc(780px + 2 * var(--page-gutter)); }
-.sc-article { display: flex; flex-direction: column; gap: var(--space-8); min-width: 0; }
-.sc-sec { scroll-margin-top: calc(var(--header-h, 64px) + 20px); }
+/* v3.1: tək, geniş sütun; İçindəkilər yuxarıda yapışqan çip zolağı;
+   əsərlər, sitatlar, qeyd+mənbələr geniş ekranda yan-yana */
+.sc-page .sc-body { padding-top: var(--space-6); }
+.sc-layout { display: block; max-width: calc(var(--container) + 2 * var(--page-gutter)); }
+.sc-article { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-8); min-width: 0; }
+.sc-article > * { min-width: 0; }
+@media (min-width: 1100px) {
+  .sc-article { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-6); align-items: start; }
+  .sc-article > * { grid-column: 1 / -1; }
+  /* Qeyd (varsa) və Mənbələr yan-yana */
+  .sc-article > .sc-note { grid-column: 1; }
+  .sc-article > .sc-note + .sc-sources { grid-column: 2; }
+}
+.sc-sec { scroll-margin-top: calc(var(--header-h, 64px) + 84px); }
 .sc-sec__title {
   margin-bottom: var(--space-5); color: var(--text-strong);
   font-family: var(--font-display); font-size: var(--step-3); font-weight: 600; line-height: 1.18; letter-spacing: var(--tracking-tight);
@@ -205,48 +215,59 @@
 .sc-sec__title:focus { outline: none; }
 .sc-sec__title:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: 4px; }
 
-/* İçindəkilər — dar ekranda üfüqi çip zolağı, geniş ekranda yapışqan sütun */
+/* İçindəkilər — yapışqan şüşə çip zolağı (başlıq gizlənəndə --header-offset ilə qalxır) */
+.sc-toc {
+  position: sticky;
+  top: var(--header-offset, var(--header-h, 64px));
+  z-index: 20;
+  margin-top: -8px;
+  margin-bottom: var(--space-6);
+  /* Başlıqla zolaq arasındakı 8px-lik boşluq + zolağın yuxarı yarısı fonla
+     örtülür — altdan sürüşən mətn aralıqda görünməsin */
+  padding-top: 8px;
+  background: linear-gradient(var(--surface-0) 28px, transparent 28px);
+  transition: top var(--dur-3) var(--ease-out);
+}
+.sc-toc nav {
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-0) 86%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-1);
+}
 .sc-toc__title { display: none; }
 .sc-toc__list {
-  display: flex; gap: 8px; overflow-x: auto; list-style: none;
-  margin-inline: calc(-1 * var(--page-gutter)); padding: 2px var(--page-gutter) 6px; scrollbar-width: none;
+  display: flex; gap: 6px; overflow-x: auto; list-style: none; margin: 0; padding: 0;
+  scrollbar-width: none; overscroll-behavior-x: contain;
 }
 .sc-toc__list::-webkit-scrollbar { display: none; }
+.sc-toc__list > li { flex-shrink: 0; }
 .sc-toc__link {
   display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 14px;
-  border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: var(--surface-1);
-  color: var(--text-secondary); font-size: var(--step--1); font-weight: 500; white-space: nowrap; text-decoration: none;
+  border: 1px solid transparent; border-radius: var(--radius-pill); background: transparent;
+  color: var(--text-secondary); font-family: var(--font-label); font-size: var(--step--1); font-weight: 500; white-space: nowrap; text-decoration: none;
   transition: color var(--dur-1) ease, background-color var(--dur-1) ease, border-color var(--dur-1) ease;
 }
 .sc-toc__link svg { flex-shrink: 0; opacity: 0.8; }
-.sc-toc__link[aria-current="true"] { color: var(--brand); border-color: var(--brand-line); background: var(--brand-soft); }
-@media (hover: hover) { .sc-toc__link:hover { color: var(--text-strong); } }
-@media (min-width: 1280px) {
-  .sc-layout { grid-template-columns: 210px minmax(0, 780px); justify-content: center; gap: var(--space-8); max-width: calc(var(--container) + 2 * var(--page-gutter)); }
-  .sc-toc nav { position: sticky; top: calc(var(--header-h, 64px) + 28px); }
-  .sc-toc__title { display: block; margin-bottom: 12px; color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
-  [dir="rtl"] .sc-toc__title { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
-  .sc-toc__list { flex-direction: column; gap: 2px; overflow: visible; margin: 0; padding: 0; border-inline-start: 1px solid var(--line); }
-  .sc-toc__link {
-    position: relative; display: flex; min-height: 40px; padding: 0 12px; margin-inline-start: -1px;
-    border: 0; border-start-start-radius: 0; border-end-start-radius: 0; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    background: transparent; white-space: normal; line-height: 1.3;
-  }
-  [dir="rtl"] .sc-toc__link { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
-  .sc-toc__link::before {
-    content: ''; position: absolute; inset-block: 6px; inset-inline-start: 0; width: 2px; border-radius: 2px;
-    background: var(--brand); transform: scaleY(0); transition: transform var(--dur-3) var(--ease-out);
-  }
-  .sc-toc__link[aria-current="true"] { background: var(--brand-soft); font-weight: 600; }
-  .sc-toc__link[aria-current="true"]::before { transform: none; }
+.sc-toc__link[aria-current="true"] { color: var(--brand); border-color: var(--brand-line); background: var(--brand-soft); font-weight: 600; }
+@media (hover: hover) { .sc-toc__link:not([aria-current="true"]):hover { color: var(--text-strong); background: var(--surface-2); } }
+.sc-toc__link:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+@media (pointer: coarse) { .sc-toc__link { min-height: 40px; } }
+@media (max-width: 767.98px) {
+  .sc-toc { margin-inline: calc(-1 * var(--page-gutter)); margin-bottom: var(--space-5); }
+  .sc-toc nav { border-radius: 0; border-inline: 0; padding: 6px var(--page-gutter); box-shadow: none; }
 }
+@media (prefers-reduced-motion: reduce) { .sc-toc, .sc-toc__link { transition: none; } }
 
 /* Bir baxışda */
 .sc-page .sc-glance { padding: var(--space-6); }
 .sc-page .sc-glance .sc-sec__title, .sc-page .sc-sources .sc-sec__title, .sc-page .sc-note .sc-sec__title { font-size: var(--step-2); margin-bottom: var(--space-4); }
-.sc-glance__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); grid-auto-flow: dense; gap: var(--space-4) var(--space-6); }
-.sc-glance__item { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding-top: 14px; border-top: 1px solid var(--line); }
-.sc-glance__item--wide { grid-column: 1 / -1; }
+/* flex-wrap: qısa dəyərlər sırayı tam doldurur (boş sütun qalmır) */
+.sc-glance__grid { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-6); }
+.sc-glance__item { display: flex; flex-direction: column; gap: 6px; flex: 1 1 180px; min-width: 0; padding-top: 14px; border-top: 1px solid var(--line); }
+.sc-glance__item--wide { flex-basis: 100%; }
 .sc-glance__item dt { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
 [dir="rtl"] .sc-glance__item dt { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 .sc-glance__item dd { color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 500; line-height: 1.45; font-variant-numeric: tabular-nums lining-nums; }
@@ -257,12 +278,17 @@
 .sc-prose > p:first-child::first-letter { float: left; margin: 0.08em 0.12em 0 0; color: var(--brand); font-family: var(--font-display); font-size: 3.5em; font-weight: 600; line-height: 0.82; }
 [dir="rtl"] .sc-prose > p:first-child::first-letter { float: none; margin: 0; color: inherit; font: inherit; }
 .sc-prose + .ui-ornament { margin-top: var(--space-5); }
+/* Geniş ekranda tərcümeyi-hal iki mətn sütununda (qısa bölmədir) */
+@media (min-width: 1100px) {
+  .sc-prose { columns: 2 34ch; column-gap: var(--space-8); }
+  .sc-prose p { break-inside: avoid; }
+}
 
 .sc-contrib {
   padding: var(--space-4) var(--space-5); border-inline-start: 3px solid var(--accent);
   border-start-end-radius: var(--radius-md); border-end-end-radius: var(--radius-md);
   background: var(--accent-soft); color: var(--text-strong); font-family: var(--font-display);
-  font-size: var(--step-1); line-height: 1.6; text-wrap: pretty;
+  font-size: var(--step-1); line-height: 1.6; text-wrap: pretty; max-width: 80ch;
 }
 
 /* Müəllimlər / tələbələr */
@@ -274,7 +300,7 @@
 .sc-people__ar { color: var(--text-secondary); font-size: 17px; line-height: 1.6; }
 
 /* Əsərlər */
-.sc-works { display: grid; gap: 10px; list-style: none; }
+.sc-works { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); align-items: stretch; gap: var(--space-3); list-style: none; }
 .sc-works__item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-1); }
 .sc-works__item > svg { flex-shrink: 0; margin-top: 3px; color: var(--accent); }
 .sc-works__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -282,7 +308,13 @@
 .sc-works__ar { align-self: flex-start; color: var(--text-secondary); font-size: 18px; line-height: 1.6; }
 
 /* Sitatlar */
-.sc-quote + .sc-quote { margin-top: var(--space-6); }
+/* Sitatlar — kartlar, geniş ekranda 2 sütun (qonşu dartılmır) */
+.sc-quotes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); align-items: start; gap: var(--space-4); }
+.sc-page .sc-quote {
+  margin: 0; padding: var(--space-5);
+  border: 1px solid var(--line); border-inline-start: 3px solid var(--accent-line);
+  border-radius: var(--radius-lg); background: var(--surface-1); box-shadow: var(--shadow-1);
+}
 .sc-quote cite { font-style: normal; }
 
 /* Qeyd (əqidə ehtiyatı) — sakit qızılı haşiyə */
@@ -293,17 +325,13 @@
 /* Mənbələr */
 .sc-page .sc-sources { padding: var(--space-6); }
 .sc-sources__note { margin-bottom: var(--space-4); color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
-.sc-sources__list { display: grid; gap: 10px; list-style: none; }
+.sc-sources__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 10px var(--space-6); list-style: none; }
 .sc-sources__list li { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
 .sc-sources__list svg { flex-shrink: 0; margin-top: 4px; color: var(--accent); }
 .sc-sources__list a { color: var(--brand); overflow-wrap: anywhere; }
 
 /* Əvvəlki / Növbəti + eyni dövrdən */
-.sc-after { margin-top: var(--space-8); max-width: calc(780px + 2 * var(--page-gutter)); }
-@media (min-width: 1280px) {
-  .sc-after { display: grid; grid-template-columns: 210px minmax(0, 780px); justify-content: center; column-gap: var(--space-8); max-width: calc(var(--container) + 2 * var(--page-gutter)); }
-  .sc-after > * { grid-column: 2; }
-}
+.sc-after { margin-top: var(--space-8); max-width: calc(var(--container) + 2 * var(--page-gutter)); }
 .sc-pager { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 .sc-page .sc-pager__card { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; width: 100%; padding: 16px 18px; font: inherit; text-align: start; }
 .sc-page .sc-pager__card--next { align-items: flex-end; text-align: end; }

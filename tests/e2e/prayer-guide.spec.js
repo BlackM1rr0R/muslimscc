@@ -76,9 +76,8 @@ test('3 rükətli (axşam) namazda birinci təşəhhüddən sonra 3-cü rükət�
   await openPrayer(page, '/prayerguide', 'maghrib')
   const seq = buildSequence(3)
   const idx = seq.findIndex(s => s.id === 'tashahhud1')
-  // addımlar siyahısından birbaşa keçid
-  await page.locator('.pg-outline summary').click()
-  await page.locator('.pg-outline-btn').nth(idx).click()
+  // addım çiplərindən (stepper) birbaşa keçid
+  await page.locator('.pg-stepper-btn').nth(idx).click()
   await expect(page.locator('.pg-step-card')).toHaveAttribute('data-step', 'tashahhud1')
   await expect(page.locator('.pg-progress-count')).toContainText(`Addım ${idx + 1}/29`)
   await page.getByRole('button', { name: 'Növbəti' }).click()

@@ -19,23 +19,23 @@
   line-height: 1.5;
 }
 
-/* ── Quruluş ── */
+/* ── Quruluş (v3.1) ──
+   Yuxarıda alət zolağı (axtarış + kateqoriya çipləri, sətirlərə sarınır),
+   altında dua kartları masonry sütunlarda (CSS columns — oxu sırası
+   yuxarıdan aşağı; kart açılanda qonşu kart dartılmır). */
 .duas-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: var(--space-5);
 }
-@media (min-width: 1100px) {
-  .duas-layout {
-    grid-template-columns: 296px minmax(0, 1fr);
-    gap: var(--space-7);
-    align-items: start;
-  }
-  .duas-side {
-    position: sticky;
-    top: calc(var(--header-offset, var(--header-h)) + var(--space-5));
-    transition: top var(--dur-3) var(--ease-out);
-  }
+.duas-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
 }
 .duas-main { min-width: 0; }
 
@@ -57,20 +57,18 @@
   top: 50%;
   transform: translateY(-50%);
 }
-@media (min-width: 768px) and (max-width: 1099.98px) {
-  .duas-search { max-width: 440px; }
+@media (min-width: 768px) {
+  .duas-search { max-width: 520px; }
 }
 
 /* ── Kateqoriyalar ── */
 .duas-side-label {
-  margin: var(--space-5) 0 var(--space-3);
+  margin: 0 0 var(--space-2);
   color: var(--text-tertiary);
-  font-size: var(--step--2);
+  font-family: var(--font-label);
+  font-size: var(--step--1);
   font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
 }
-[dir="rtl"] .duas-side-label { letter-spacing: 0; font-size: var(--step--1); }
 .duas-filters { gap: 8px; }
 @media (min-width: 768px) {
   .duas-filters { padding-block: 0; }
@@ -105,6 +103,11 @@
 
 /* ── Dua kartı: nişan + düymələr → ərəbcə → transliterasiya → tərcümə → mənbə ── */
 .duas-list { display: flex; flex-direction: column; gap: var(--space-4); }
+/* Planşet/masaüstü: 2–3 sütunlu masonry (sütun eni ≥360px) */
+@media (min-width: 768px) {
+  .duas-list { display: block; columns: 3 360px; column-gap: var(--space-4); }
+  .duas-list > .dua-card { break-inside: avoid; margin-bottom: var(--space-4); }
+}
 
 .duas-list .dua-card {
   padding: clamp(18px, 1.2rem + 0.6vw, 28px);
@@ -142,8 +145,7 @@
   100% { transform: scale(1); }
 }
 
-.dua-cat-badge { text-transform: uppercase; letter-spacing: 0.04em; }
-[dir="rtl"] .dua-cat-badge { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+.dua-cat-badge { font-family: var(--font-label); letter-spacing: normal; }
 
 /* Ərəb mətni — iri Amiri, sağa düzlənmiş; uzun dua telefonda sətirlərə bölünür */
 .dua-arabic {
@@ -262,6 +264,10 @@
   .duas-hero-ar { font-size: 20px; }
 
   .duas-layout { gap: 0; }
+  /* Alət qutusu telefonda yoxdur: zolaq .duas-layout-un birbaşa övladı
+     kimi davranır ki, bütün siyahı boyu yapışqan qalsın */
+  .duas-side { display: contents; }
+  .duas-search { margin-bottom: var(--space-1); }
   .duas-page .duas-search .ui-input { min-height: 48px; }
 
   .duas-side-label { display: none; }

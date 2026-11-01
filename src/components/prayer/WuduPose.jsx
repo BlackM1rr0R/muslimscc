@@ -4,12 +4,13 @@
 // (CSS: .wp-scene). Su — --pp-water.
 //
 // Mənhəc qaydası: canlı təsviri yoxdur — baş, üz, bədən çəkilmir. Yalnız
-// əllər (sadə ovuc işarəsi), su, qab və sxematik kontur (qol — dirsəyə qədər,
+// əllər (anatomik ovuc forması), su, qab və sxematik kontur (qol — dirsəyə qədər,
 // ayaq — topuğa qədər). Yuyulan/məsh olunan yer söz nişanı ilə göstərilir
 // ("Üz", "Baş" …) — nişanlar 5 dildədir; ekran oxuyucusu üçün isə SVG-nin
 // aria-label-i (addımın adı) kifayətdir.
 // ═══════════════════════════════════════════════════════
 import { useLang } from '../../contexts/LangContext'
+import { Hand as WHand } from './handShape'
 
 // Söz nişanları (yalnız təsvirin içində; mətnin özü prayerGuide.js-dədir)
 const WORDS = {
@@ -23,13 +24,10 @@ const WORDS = {
   ankle: { az: 'Topuq', en: 'Ankle', ru: 'Щиколотка', tr: 'Topuk', ar: 'الكعبان' },
 }
 
-// Ovuc — barmaqlar bitişik, sadə forma (x,y — biləyin ortası; rot — dərəcə)
+// Əl — ortaq anatomik forma (handShape.jsx): ovuc, barmaqlar, baş barmaq.
+// x,y — biləyin ortası; rot — dərəcə; flip — sol əl (güzgü)
 function Hand({ x, y, rot = 0, flip = false, far = false }) {
-  return (
-    <g transform={`translate(${x} ${y}) rotate(${rot}) scale(${flip ? -1 : 1} 1)`} className={far ? 'pp-palm pp-palm--far' : 'pp-palm'}>
-      <path d="M -9 0 C -10 -14 -9 -28 -5 -36 C -3 -40 2 -40 3 -36 L 4 -30 C 6 -33 11 -32 11 -27 L 10 -12 C 13 -15 17 -13 16 -9 C 14 -2 9 4 4 6 L -6 6 C -8 5 -9 3 -9 0 Z" />
-    </g>
-  )
+  return <WHand x={x} y={y} rot={rot} s={0.56} side={flip ? 'L' : 'R'} view="palm" shape="flat" far={far} />
 }
 
 const Drop = ({ x, y, s = 1 }) => (
@@ -70,11 +68,11 @@ function scenes(w, lang) {
         <rect x="74" y="80" width="44" height="14" rx="6" className="pp-vessel-far" />
         <path d="M 128 112 C 146 104 156 92 166 80" className="pp-vessel-stroke" strokeWidth="9" strokeLinecap="round" />
         <path d="M 64 108 C 46 112 46 146 64 150" className="pp-vessel-stroke" strokeWidth="7" strokeLinecap="round" opacity="0.7" />
-        <Stream x={170} y1={84} y2={150} />
+        <Stream x={164} y1={84} y2={150} />
         {/* ovuclar suyu qəbul edir */}
-        <Hand x={160} y={186} rot={-70} />
-        <Hand x={184} y={186} rot={70} flip />
-        <Drop x={172} y={198} s={0.9} />
+        <Hand x={150} y={186} rot={-70} />
+        <Hand x={174} y={186} rot={70} flip />
+        <Drop x={162} y={198} s={0.9} />
       </g>
     ),
     hands: (

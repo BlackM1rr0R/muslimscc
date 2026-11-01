@@ -12,6 +12,7 @@
 // • Əlçatanlıq: bütöv xətt role="img" + aria-label (vaxtların siyahısı).
 // Stillər: src/styles/PrayerDayline.css
 // ═══════════════════════════════════════════════════════
+import { useLayoutEffect, useRef } from 'react'
 import '../styles/PrayerDayline.css'
 
 const ORDER = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
@@ -26,6 +27,30 @@ const pad = (n) => String(n).padStart(2, '0')
 const fmt = (min) => `${pad(Math.floor(min / 60) % 24)}:${pad(min % 60)}`
 
 export default function PrayerDayline({ times, names = {}, nowMin, nowLabel = 'Now', label, nextKey, className = '' }) {
+  const rootRef = useRef(null)
+  // "İndi" həbi saat oxundakı etiketlə (məs. gecə yarısı 00:00) üst-üstə
+  // düşəndə həmin etiketi gizlət — ölçü faktiki enə görə (telefon/masaüstü)
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const check = () => {
+      const now = root.querySelector('.pdl__now-label')
+      const nr = now ? now.getBoundingClientRect() : null
+      root.querySelectorAll('.pdl__axis > span').forEach(el => {
+        el.style.visibility = ''
+        if (!nr) return
+        const r = el.getBoundingClientRect()
+        const hit = r.width > 0 && r.left < nr.right + 6 && r.right > nr.left - 6
+        if (hit) el.style.visibility = 'hidden'
+      })
+    }
+    check()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(check)
+    ro.observe(root)
+    return () => ro.disconnect()
+  }, [nowMin, nowLabel, times])
+
   const m = {}
   for (const k of ORDER) m[k] = hmToMin(times?.[k])
   if (ORDER.some(k => m[k] == null)) return null
@@ -42,7 +67,7 @@ export default function PrayerDayline({ times, names = {}, nowMin, nowLabel = 'N
   const aria = (label ? label + ': ' : '') + ORDER.map(k => `${names[k] || k} ${times[k]}`).join(', ')
 
   return (
-    <div className={`pdl${className ? ' ' + className : ''}`} role="img" aria-label={aria}>
+    <div ref={rootRef} className={`pdl${className ? ' ' + className : ''}`} role="img" aria-label={aria}>
       <div className="pdl__track">
         {bands.map(([a, b, kind], i) => (
           <span key={i} className={`pdl__band pdl__band--${kind}`}

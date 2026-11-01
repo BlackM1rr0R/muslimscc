@@ -5,6 +5,7 @@ import { localizeSource } from '../utils/sourceNames'
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { parsePath, pathFor } from '../seo/routes'
+import useChipIntoView from '../hooks/useChipIntoView'
 // Profillər (məlumat) — src/data/sahaba.js: prerender (Node) də oxuyur
 import { SAHABA, slugOf } from '../data/sahaba'
 // Xəttatlıq lövhəsi (ərəbcə ad + رضي الله عنه/عنها) — canlı təsvir yoxdur
@@ -606,6 +607,8 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.id, lang])
+  const tocRef = useRef(null)
+  useChipIntoView(tocRef, active)
 
   const jump = (e, id) => {
     e.preventDefault()
@@ -685,11 +688,11 @@ function Profile({ s, L, lang, isAr, onBack, onSibling }) {
 
       <div className="ui-section sp-body">
         <div className="ui-container sp-layout">
-          {/* İçindəkilər: geniş ekranda yapışqan yan siyahı, dar ekranda çip zolağı */}
+          {/* İçindəkilər: bütün enlərdə yuxarıda yapışqan üfüqi çip zolağı (v3.1) */}
           <aside className="sp-toc">
             <nav aria-label={L.contents}>
               <p className="sp-toc__title">{L.contents}</p>
-              <ol className="sp-toc__list">
+              <ol className="sp-toc__list" ref={tocRef}>
                 {sections.map(x => (
                   <li key={x.id}>
                     <a href={`#${x.id}`} className="sp-toc__link" aria-current={active === x.id ? 'true' : undefined} onClick={(e) => jump(e, x.id)}>

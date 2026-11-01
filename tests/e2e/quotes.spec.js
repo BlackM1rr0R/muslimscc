@@ -36,8 +36,9 @@ test('telefonda nəzarət dəyişəndə önizləmə ekranda qalır', async ({ pa
   await page.getByRole('tab', { name: 'Şablon' }).click()
   const last = page.locator('.qg-tpl').last()
   await last.scrollIntoViewIfNeeded()
+  const lastId = await last.getAttribute('data-template-id')
   await last.click()
-  await expect(studio(page)).toHaveAttribute('data-template', 'aurora')
+  await expect(studio(page)).toHaveAttribute('data-template', lastId)
   await expect(canvas(page)).toBeInViewport({ ratio: 0.9 })
 
   // Üslub: ən aşağıdakı idarə (fon şəffaflığı) — sürüşdürüb dəyiş

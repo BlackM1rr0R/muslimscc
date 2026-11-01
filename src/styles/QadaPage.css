@@ -33,23 +33,15 @@
   font-size: var(--step--1);
 }
 
+/* İki müstəqil sütun: hər biri öz kartlarını üst-üstə yığır — sətir hündürlüyü
+   qonşu sütundan asılı olmur, boş "deşik" qalmır. */
 .qd-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  grid-template-areas:
-    "counters goal"
-    "counters chart"
-    "est      history"
-    "est      backup";
   gap: var(--space-5) var(--space-6);
   align-items: start;
 }
-.qd-counters { grid-area: counters; }
-.qd-goal { grid-area: goal; }
-.qd-history { grid-area: history; }
-.qd-chart-card { grid-area: chart; }
-.qd-est { grid-area: est; }
-.qd-backup { grid-area: backup; }
+.qd-col { display: grid; gap: var(--space-5); align-content: start; min-width: 0; }
 
 .qd-card-title {
   display: flex;
@@ -181,19 +173,29 @@
 
 .qd-reset { margin-inline-start: auto; }
 
-/* ── Hökmlər ── */
-.qd-rules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); align-items: start; }
-.qd-rule--wide { grid-column: span 1; }
+/* ── Hökmlər ── — masonry sütunlar: kartlar müxtəlif hündürlükdədir, oxu sırası yuxarıdan aşağı */
+.qd-rules-grid { columns: 2 420px; column-gap: var(--space-5); }
+.qd-rules-grid > .qd-rule { display: block; break-inside: avoid; margin: 0 0 var(--space-5); }
 .qd-rule > p { margin: var(--space-2) 0 0; color: var(--text-body); line-height: var(--lh-body); }
 .qd-root .qd-quote { margin: var(--space-4) 0 0; }
+.qd-root .qd-quote .ui-quote__ar { font-size: clamp(20px, 1.6vw, 24px); line-height: 1.9; text-align: start; text-wrap: pretty; }
+.qd-root .qd-quote .ui-quote__text { font-size: var(--step-0); line-height: 1.6; text-wrap: pretty; }
+.qd-root .qd-quote .ui-quote__src { font-size: var(--step--1); }
 .qd-views { display: grid; gap: 8px; margin: var(--space-3) 0 0; padding-inline-start: 1.25em; color: var(--text-body); line-height: var(--lh-body); }
 .qd-src-inline { color: var(--text-tertiary); font-size: var(--step--1); }
 .qd-src { margin: var(--space-3) 0 0; color: var(--text-tertiary); font-size: var(--step--1); }
 .qd-ltr { direction: ltr; unicode-bidi: isolate; }
 
 @media (max-width: 960px) {
-  .qd-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "counters" "goal" "chart" "history" "est" "backup"; }
-  .qd-rules-grid { grid-template-columns: minmax(0, 1fr); }
+  /* Telefon/planşet: sütun qabları "əriyir", kartlar məntiqi sırada düzülür */
+  .qd-layout { display: flex; flex-direction: column; gap: var(--space-5); }
+  .qd-col { display: contents; }
+  .qd-counters { order: 1; }
+  .qd-goal { order: 2; }
+  .qd-chart-card { order: 3; }
+  .qd-history { order: 4; }
+  .qd-est { order: 5; }
+  .qd-backup { order: 6; }
 }
 @media (max-width: 520px) {
   .qd-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "stepper" "progress" "actions"; }

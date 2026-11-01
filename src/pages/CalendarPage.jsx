@@ -279,6 +279,45 @@ function EventInfo({ e, lang }) {
   )
 }
 
+// Haram aylar: Məhərrəm, Rəcəb, Zülqədə, Zülhiccə (Tövbə 9:36; Buxari 3197)
+const SACRED_MONTHS = new Set([0, 6, 10, 11])
+
+/** "Hər ayda nə var" cədvəli — 12 ay kartı şəbəkəsi (cədvəlin məlumatı eynidir:
+ *  ay | Sünnədə sabit olan | əsli olmayan). "—" boş xana kimi sakit göstərilir. */
+function MonthCards({ b, lang }) {
+  const [, okH, noH] = b.head.map(h => pick(h, lang))
+  const cell = (c) => {
+    const v = pick(c, lang).trim()
+    return v && v !== '—' ? v : null
+  }
+  return (
+    <ol className="cal-mcards" aria-label={b.head.map(h => pick(h, lang)).join(' · ')}>
+      {b.rows.map((r, i) => {
+        const ok = cell(r[1])
+        const no = cell(r[2])
+        return (
+          <li key={i} className={`cal-mcard${SACRED_MONTHS.has(i) ? ' is-sacred' : ''}`}>
+            <div className="cal-mcard__head">
+              <span className="cal-mcard__n ui-num" aria-hidden="true">{i + 1}</span>
+              <h4 className="cal-mcard__name">{pick(r[0], lang)}</h4>
+            </div>
+            <dl className="cal-mcard__dl">
+              <div className={`cal-mcard__row is-ok${ok ? '' : ' is-empty'}`}>
+                <dt><Icon name="check" size={14} /> {okH}</dt>
+                <dd>{ok || '—'}</dd>
+              </div>
+              <div className={`cal-mcard__row is-no${no ? '' : ' is-empty'}`}>
+                <dt><Icon name="close" size={14} /> {noH}</dt>
+                <dd>{no || '—'}</dd>
+              </div>
+            </dl>
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
 function MonthsGuide({ lang }) {
   const g = CAL_GUIDE_TXT
   const jump = (e, id) => {
@@ -314,8 +353,13 @@ function MonthsGuide({ lang }) {
           {CAL_MONTHS_GUIDE.map(s => (
             <section key={s.id} id={`cal-g-${s.id}`} className="ls-sec cal-guide__sec" aria-labelledby={`cal-g-${s.id}-h`}>
               <h3 id={`cal-g-${s.id}-h`} className="ls-sec__title" tabIndex={-1}>{pick(s.title, lang)}</h3>
-              <LessonBlocks blocks={s.blocks} lang={lang} />
-              {s.links?.map((l, i) => <GuideLink key={i} link={l} lang={lang} />)}
+              <LessonBlocks blocks={s.blocks.filter(b => b.t !== 'table' || b.rows?.length !== 12)} lang={lang} />
+              {s.blocks.filter(b => b.t === 'table' && b.rows?.length === 12).map((b, i) => <MonthCards key={i} b={b} lang={lang} />)}
+              {s.links?.length > 0 && (
+                <div className="cal-guide__links">
+                  {s.links.map((l, i) => <GuideLink key={i} link={l} lang={lang} />)}
+                </div>
+              )}
             </section>
           ))}
           <section className="ls-sec ui-card ui-card--sunken ls-sources" aria-labelledby="cal-g-sources-h">

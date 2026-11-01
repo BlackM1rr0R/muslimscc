@@ -5,18 +5,52 @@
 .nw-page .ui-section--tight { padding-top: var(--space-5); }
 .nw-hero__ar { color: var(--accent-text); font-size: clamp(19px, 1.9vw, 24px); line-height: 1.6; }
 .nw-page .nw-hero .ui-lead { max-width: 60ch; }
-.nw-layout { max-width: calc(820px + 2 * var(--page-gutter)); display: flex; flex-direction: column; gap: var(--space-3); }
-.nw-layout--wide { max-width: calc(1040px + 2 * var(--page-gutter)); gap: var(--space-5); }
-.nw-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-bottom: var(--space-1); }
-.nw-search { position: relative; flex: 1 1 280px; }
+.nw-layout { display: flex; flex-direction: column; gap: var(--space-4); }
+.nw-layout--wide { gap: var(--space-5); }
+
+/* ── Hero (v3.1): solda mətn, sağda irəliləyiş kartı ── */
+.nw-page .nw-hero__card {
+  display: flex; flex-direction: column; gap: var(--space-4);
+  padding: var(--space-5);
+  background: color-mix(in srgb, var(--surface-1) 86%, transparent);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.nw-hero__card .ui-viz-ring { gap: 16px; }
+.nw-page .nw-hero__stats {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3);
+  margin: 0; padding-top: var(--space-4); border-top: 1px solid var(--line);
+}
+.nw-page .nw-hero__stats b { font-size: var(--step-1); }
+.nw-page .nw-hero__stats span { font-size: var(--step--2); line-height: 1.35; }
+@media (min-width: 900px) { .nw-page .nw-hero .ui-page-hero__aside { justify-self: end; max-width: 400px; } }
+
+/* ── Alət zolağı: axtarış + say + "Hamısını aç" — yapışqan şüşə panel ── */
+.nw-toolbar {
+  position: sticky; top: calc(var(--header-offset, var(--header-h)) + 8px); z-index: 15;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  padding: 8px; border: 1px solid var(--line); border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  background: color-mix(in srgb, var(--surface-1) 90%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  transition: top var(--dur-3) var(--ease-out);
+}
+.nw-search { position: relative; flex: 1 1 260px; max-width: 560px; }
 .nw-search__icon { position: absolute; inset-inline-start: 14px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
 .nw-page .nw-search__input { width: 100%; padding-inline: 44px 44px; }
 .nw-page .nw-search__clear { position: absolute; z-index: 1; inset-inline-end: 4px; top: 50%; transform: translateY(-50%); }
 .nw-search__input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.nw-page .nw-search__input { min-height: 44px; border-color: transparent; background: var(--surface-2); }
+.nw-page .nw-search__input:focus { border-color: var(--brand-line); }
+.nw-toolbar__count { margin-inline-start: auto; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 500; white-space: nowrap; }
+.nw-toolbar__btn { flex-shrink: 0; }
 .nw-none { color: var(--text-secondary); }
 
 /* Akkordeon */
-.nw-list { display: grid; gap: var(--space-2); list-style: none; margin: 0; padding: 0; }
+/* Akkordeon: iki müstəqil sütun (JSX-də siyahı ikiyə bölünür) — açılan
+   hədis yalnız öz sütununu uzadır, qonşusu dartılmır */
+.nw-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2) var(--space-4); align-items: start; }
+@media (min-width: 900px) { .nw-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.nw-list { display: grid; gap: var(--space-2); list-style: none; margin: 0; padding: 0; align-content: start; }
 .nw-page .nw-item { padding: 0; scroll-margin-top: calc(var(--header-h, 64px) + 16px); transition: border-color var(--dur-1) ease; }
 .nw-page .nw-item.is-open { border-color: var(--line-strong); }
 .nw-item__head {
@@ -52,7 +86,7 @@
 .nw-item__benefits { padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface-2); }
 .nw-item__btitle {
   margin-bottom: 8px; color: var(--text-secondary);
-  font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: 0;
 }
 [dir="rtl"] .nw-item__btitle { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 .nw-item__benefits ul { display: grid; gap: 6px; margin: 0; padding-inline-start: 1.2em; color: var(--text-body); font-size: var(--step--1); line-height: 1.6; }
@@ -88,7 +122,7 @@
 .nw-sources { padding-top: var(--space-4); border-top: 1px solid var(--line); }
 .nw-sources__title {
   margin-bottom: 10px; color: var(--text-secondary);
-  font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: 0;
 }
 [dir="rtl"] .nw-sources__title { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
 .nw-sources ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: var(--step--1); }
@@ -96,6 +130,18 @@
 .nw-sources li svg { flex-shrink: 0; margin-top: 3px; color: var(--accent); }
 .nw-sources a { color: var(--brand); overflow-wrap: anywhere; }
 
+@media (max-width: 899.98px) {
+  .nw-page .nw-hero__card { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-5); padding: var(--space-4); }
+  .nw-page .nw-hero__card .ui-viz-ring svg { width: 64px; height: 64px; }
+  .nw-page .nw-hero__stats { flex: 1 1 200px; padding-top: 0; border-top: 0; }
+}
+@media (max-width: 599.98px) {
+  /* Telefonda zolaq yapışmır (ekranı tutmasın); axtarış tam en, altında say + düymə */
+  .nw-toolbar { position: static; }
+  .nw-search { flex-basis: 100%; max-width: none; }
+  .nw-toolbar__count { margin-inline-start: 4px; }
+  .nw-toolbar__btn { margin-inline-start: auto; }
+}
 @media (max-width: 767.98px) {
   .nw-item__head { padding: 10px 12px; }
   .nw-item__body { padding-inline: var(--space-4); }

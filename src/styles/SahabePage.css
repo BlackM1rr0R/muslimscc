@@ -4,8 +4,8 @@
    şəbəkəsi (.ui-card); telefonda (<768px) kartlar üfüqi sətirlərə çevrilir.
    Profil ("kitab səhifəsi"): medalyonlu hero → Bir baxışda → Həyatı
    (böyük ilk hərf, çıxarış) → Faktlar (şaquli xətt) → Hədislər
-   (.ui-quote) → Mənbələr → Əvvəlki/Növbəti; geniş ekranda yapışqan
-   "İçindəkilər". Hərəkət yalnız transform/opacity, reduced-motion-da yox.
+   (.ui-quote) → Mənbələr → Əvvəlki/Növbəti; yuxarıda yapışqan üfüqi
+   "İçindəkilər" çip zolağı (v3.1: sol sütun yoxdur, məzmun grid-də). Hərəkət yalnız transform/opacity, reduced-motion-da yox.
    Fayl ui.css-dən ƏVVƏL yüklənir — .ui-* dəyişiklikləri .sahabe-page
    valideyni ilə gücləndirilib (DESIGN.md §4.1).
    ══════════════════════════════════════════════════════════════════ */
@@ -302,16 +302,18 @@
   to   { transform: none; }
 }
 
-/* ══ PROFİL — GÖVDƏ ══ */
-.sahabe-page .sp-body { padding-top: var(--space-7); }
+/* ══ PROFİL — GÖVDƏ (v3.1) ══
+   Tək, geniş sütun (konteyner eni). "İçindəkilər" — yuxarıda yapışqan
+   üfüqi çip zolağı (əvvəl dar sol sütun idi, böyük boşluq yaradırdı).
+   Faktlar, hədislər, mənbələr geniş ekranda yan-yana grid-dədir. */
+.sahabe-page .sp-body { padding-top: var(--space-6); }
 .sp-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-6);
-  max-width: calc(780px + 2 * var(--page-gutter));
+  display: block;
+  max-width: calc(var(--container) + 2 * var(--page-gutter));
 }
 .sp-article { display: flex; flex-direction: column; gap: var(--space-8); min-width: 0; }
-.sp-sec { scroll-margin-top: calc(var(--header-h, 64px) + 20px); }
+/* Başlıq + yapışqan çip zolağı qədər yer saxla */
+.sp-sec { scroll-margin-top: calc(var(--header-h, 64px) + 84px); }
 
 .sp-sec__title {
   margin-bottom: var(--space-5);
@@ -338,28 +340,52 @@
 .sp-sec__title:focus { outline: none; }
 .sp-sec__title:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; border-radius: 4px; }
 
-/* İçindəkilər — dar ekranda üfüqi çip zolağı */
+/* İçindəkilər — yapışqan şüşə zolaq (başlıq gizlənəndə --header-offset ilə qalxır) */
+.sp-toc {
+  position: sticky;
+  top: var(--header-offset, var(--header-h, 64px));
+  z-index: 20;
+  margin-top: -8px;
+  margin-bottom: var(--space-6);
+  /* Başlıqla zolaq arasındakı 8px-lik boşluq + zolağın yuxarı yarısı fonla
+     örtülür — altdan sürüşən mətn aralıqda görünməsin */
+  padding-top: 8px;
+  background: linear-gradient(var(--surface-0) 28px, transparent 28px);
+  transition: top var(--dur-3) var(--ease-out);
+}
+.sp-toc nav {
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-0) 86%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-1);
+}
 .sp-toc__title { display: none; }
 .sp-toc__list {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   overflow-x: auto;
   list-style: none;
-  margin-inline: calc(-1 * var(--page-gutter));
-  padding: 2px var(--page-gutter) 6px;
+  margin: 0;
+  padding: 0;
   scrollbar-width: none;
+  overscroll-behavior-x: contain;
 }
 .sp-toc__list::-webkit-scrollbar { display: none; }
+.sp-toc__list > li { flex-shrink: 0; }
 .sp-toc__link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 38px;
   padding: 0 14px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  background: var(--surface-1);
+  background: transparent;
   color: var(--text-secondary);
+  font-family: var(--font-label);
   font-size: var(--step--1);
   font-weight: 500;
   white-space: nowrap;
@@ -367,73 +393,26 @@
   transition: color var(--dur-1) ease, background-color var(--dur-1) ease, border-color var(--dur-1) ease;
 }
 .sp-toc__link svg { flex-shrink: 0; opacity: 0.8; }
-.sp-toc__link[aria-current="true"] { color: var(--brand); border-color: var(--brand-line); background: var(--brand-soft); }
-@media (hover: hover) { .sp-toc__link:hover { color: var(--text-strong); } }
-
-/* Geniş ekran: yan sütunda yapışqan siyahı, aktiv bölmədə zümrüd xətt */
-@media (min-width: 1280px) {
-  .sp-layout {
-    grid-template-columns: 200px minmax(0, 780px);
-    justify-content: center;
-    gap: var(--space-8);
-    max-width: calc(var(--container) + 2 * var(--page-gutter));
-  }
-  .sp-toc nav { position: sticky; top: calc(var(--header-h, 64px) + 28px); }
-  .sp-toc__title {
-    display: block;
-    margin-bottom: 12px;
-    color: var(--text-tertiary);
-    font-size: var(--step--2);
-    font-weight: 600;
-    letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
-  }
-  [dir="rtl"] .sp-toc__title { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
-  .sp-toc__list {
-    flex-direction: column;
-    gap: 2px;
-    overflow: visible;
-    margin: 0;
-    padding: 0;
-    border-inline-start: 1px solid var(--line);
-  }
-  .sp-toc__link {
-    position: relative;
-    display: flex;
-    min-height: 40px;
-    padding: 0 12px;
-    margin-inline-start: -1px;
-    border: 0;
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    background: transparent;
-    white-space: normal;
-    line-height: 1.3;
-  }
-  [dir="rtl"] .sp-toc__link { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
-  .sp-toc__link::before {
-    content: '';
-    position: absolute;
-    inset-block: 6px;
-    inset-inline-start: 0;
-    width: 2px;
-    border-radius: 2px;
-    background: var(--brand);
-    transform: scaleY(0);
-    transition: transform var(--dur-3) var(--ease-out);
-  }
-  .sp-toc__link[aria-current="true"] { background: var(--brand-soft); font-weight: 600; }
-  .sp-toc__link[aria-current="true"]::before { transform: none; }
+.sp-toc__link[aria-current="true"] { color: var(--brand); border-color: var(--brand-line); background: var(--brand-soft); font-weight: 600; }
+@media (hover: hover) { .sp-toc__link:not([aria-current="true"]):hover { color: var(--text-strong); background: var(--surface-2); } }
+.sp-toc__link:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+@media (pointer: coarse) { .sp-toc__link { min-height: 40px; } }
+@media (max-width: 767.98px) {
+  .sp-toc { margin-inline: calc(-1 * var(--page-gutter)); margin-bottom: var(--space-5); }
+  .sp-toc nav { border-radius: 0; border-inline: 0; padding: 6px var(--page-gutter); box-shadow: none; }
 }
 
 /* ── Bir baxışda ── */
 .sahabe-page .sp-glance { padding: var(--space-6); }
 .sahabe-page .sp-glance .sp-sec__title { font-size: var(--step-2); margin-bottom: var(--space-4); }
+/* flex-wrap: qısa dəyərlər sırayı tam doldurur (grid auto-fit-də geniş
+   element boş sütunlar saxlayırdı) */
 .sp-glance__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  grid-auto-flow: dense;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-4) var(--space-6);
 }
+.sp-glance__item { flex: 1 1 180px; }
 .sp-glance__item {
   display: flex;
   flex-direction: column;
@@ -442,7 +421,7 @@
   padding-top: 14px;
   border-top: 1px solid var(--line);
 }
-.sp-glance__item--wide { grid-column: 1 / -1; }
+.sp-glance__item--wide { flex-basis: 100%; }
 .sp-glance__item dt {
   color: var(--text-tertiary);
   font-size: var(--step--2);
@@ -510,76 +489,56 @@
 }
 [dir="rtl"] .sp-pull { font-style: normal; }
 .sp-prose + .ui-ornament { margin-top: var(--space-5); }
+/* Geniş ekranda qısa tərcümeyi-hal iki mətn sütununda (sətir ~34–60ch) */
+@media (min-width: 1100px) {
+  .sp-prose { columns: 2 34ch; column-gap: var(--space-8); }
+  .sp-prose p, .sp-pull { break-inside: avoid; }
+  .sp-pull { margin-top: 0; }
+}
 
-/* ── Əsas faktlar: şaquli xətt ── */
+/* ── Əsas faktlar: nömrəli kartlar, geniş ekranda 2 sütun (v3.1) ── */
 .sp-line {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  align-items: stretch;
   gap: var(--space-3);
   list-style: none;
 }
-.sp-line::before {
-  content: '';
-  position: absolute;
-  inset-inline-start: 17px;
-  top: 20px;
-  bottom: 20px;
-  width: 2px;
-  border-radius: 2px;
-  background: linear-gradient(var(--accent), var(--brand-line));
-  transform-origin: 50% 0;
-}
 .sp-line__item {
-  position: relative;
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr);
-  align-items: start;
-  gap: 16px;
-}
-.sp-line__dot {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  margin-top: 8px;
-  border-radius: 50%;
-  background: var(--surface-1);
-  box-shadow: inset 0 0 0 1.5px var(--accent-line), var(--shadow-1);
-  color: var(--accent-text);
-  font-size: var(--step--1);
-  font-weight: 700;
-}
-.sp-line__text {
-  padding: 14px 18px;
+  align-items: center;
+  gap: 14px;
+  padding-block: 12px;
+  padding-inline: 12px 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface-1);
   box-shadow: var(--shadow-1);
+}
+.sp-line__dot {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1.5px var(--accent-line);
+  color: var(--accent-text);
+  font-family: var(--font-num);
+  font-size: var(--step--1);
+  font-weight: 700;
+}
+.sp-line__text {
   color: var(--text-body);
   font-size: var(--step-0);
-  line-height: 1.6;
-}
-/* Xətt "çəkilir": sürüşməyə bağlı (dəstəklənirsə), yoxsa görünəndə bir dəfə */
-html.qm-reveal-on .sp-line[data-reveal-ready]:not([data-revealed])::before { transform: scaleY(0); }
-.sp-line[data-revealed=""]::before { animation: sp-draw 1100ms var(--ease-out) both; }
-@supports (animation-timeline: view()) {
-  .sp-line[data-revealed]::before {
-    animation: sp-draw linear both;
-    animation-timeline: view();
-    animation-range: entry 10% cover 50%;
-  }
-}
-@keyframes sp-draw {
-  from { transform: scaleY(0); }
-  to   { transform: none; }
+  line-height: 1.55;
+  text-wrap: pretty;
 }
 
 /* ── Hədislər ── */
 .sahabe-page .sp-quote--featured {
-  margin-bottom: var(--space-7);
+  margin-bottom: var(--space-4);
   padding: var(--space-6) var(--space-6) var(--space-5);
   border: 1px solid var(--line);
   border-inline-start: 3px solid var(--accent);
@@ -593,13 +552,27 @@ html.qm-reveal-on .sp-line[data-reveal-ready]:not([data-revealed])::before { tra
   display: block;
   margin-bottom: 6px;
   color: var(--text-tertiary);
-  font-size: var(--step--2);
+  font-family: var(--font-label);
+  font-size: var(--step--1);
   font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
 }
-[dir="rtl"] .sp-quote__num { letter-spacing: 0; text-transform: none; font-size: var(--step--1); }
-.sp-quotes { display: flex; flex-direction: column; gap: var(--space-6); }
+/* Qalan hədislər — kartlar, geniş ekranda 2 sütun; biri uzun olanda
+   qonşusu dartılmır (align-items: start) */
+.sp-quotes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  align-items: start;
+  gap: var(--space-4);
+}
+.sahabe-page .sp-quotes .sp-quote {
+  margin: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-inline-start: 3px solid var(--accent-line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+}
 .sp-quote__text {
   margin-top: 6px;
   color: var(--text-body);
@@ -611,7 +584,7 @@ html.qm-reveal-on .sp-line[data-reveal-ready]:not([data-revealed])::before { tra
 .sahabe-page .sp-sources { padding: var(--space-6); }
 .sahabe-page .sp-sources .sp-sec__title { font-size: var(--step-2); margin-bottom: var(--space-3); }
 .sp-sources__note { margin-bottom: var(--space-4); color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
-.sp-sources__list { display: grid; gap: 10px; list-style: none; }
+.sp-sources__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 10px var(--space-6); list-style: none; }
 .sp-sources__list li {
   display: flex;
   align-items: flex-start;
@@ -625,19 +598,8 @@ html.qm-reveal-on .sp-line[data-reveal-ready]:not([data-revealed])::before { tra
 .sp-sources__list .ui-num { color: var(--text-secondary); }
 
 /* ── Əvvəlki / Növbəti ── */
-/* Əvvəlki/Növbəti məqalə sütunu ilə eyni eni və kənarı tutur — əvvəl 980px
-   idi və mərkəzləndiyi üçün nə məqalə, nə də "İçindəkilər" ilə düz gəlirdi */
-.sp-pager-wrap { margin-top: var(--space-8); max-width: calc(780px + 2 * var(--page-gutter)); }
-@media (min-width: 1280px) {
-  .sp-pager-wrap {
-    display: grid;
-    grid-template-columns: 200px minmax(0, 780px);
-    justify-content: center;
-    column-gap: var(--space-8);
-    max-width: calc(var(--container) + 2 * var(--page-gutter));
-  }
-  .sp-pager-wrap > * { grid-column: 2; }
-}
+/* Əvvəlki/Növbəti — məqalə ilə eyni en və kənar */
+.sp-pager-wrap { margin-top: var(--space-8); max-width: calc(var(--container) + 2 * var(--page-gutter)); }
 .sp-pager { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 .sahabe-page .sp-pager__card {
   display: flex;
@@ -730,11 +692,13 @@ html.sp-vt::view-transition-new(root) { animation: 360ms cubic-bezier(0.22, 1, 0
   .sp-article { gap: var(--space-7); }
   .sahabe-page .sp-glance,
   .sahabe-page .sp-sources { padding: var(--space-5); }
-  .sp-glance__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+  .sp-glance__grid { gap: var(--space-4); }
+  .sp-glance__item { flex-basis: calc(50% - var(--space-4)); }
+  .sp-glance__item--wide { flex-basis: 100%; }
   .sp-prose p { font-size: var(--step-0); line-height: 1.75; }
   .sp-pull { font-size: var(--step-1); }
   .sahabe-page .sp-quote--featured { padding: var(--space-5) var(--space-4) var(--space-4); }
-  .sp-line__text { padding: 12px 14px; }
+  .sp-line__item { padding-block: 10px; padding-inline: 10px 12px; }
 }
 @media (max-width: 520px) {
   .sp-pager { grid-template-columns: 1fr; }
@@ -747,12 +711,12 @@ html.sp-vt::view-transition-new(root) { animation: 360ms cubic-bezier(0.22, 1, 0
   .sp-hero .sp-medal,
   .sp-hero .sp-medal__star,
   .sp-list .sp-toolbar,
-  .sp-sec__title[data-revealed=""]::after,
-  .sp-line[data-revealed]::before { animation: none; }
+  .sp-sec__title[data-revealed=""]::after { animation: none; }
   .sp-progress { display: none; }
   .sp-medal__star,
   .sp-back-ic,
-  .sp-toc__link::before,
+  .sp-toc,
+  .sp-toc__link,
   .sahabe-card-read .ui-link__arrow { transition: none; }
   .sahabe-page .sahabe-card:hover .sp-medal__star,
   .sahabe-page .sp-pager__card:hover .sp-medal__star { transform: none; }

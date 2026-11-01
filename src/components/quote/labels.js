@@ -140,4 +140,26 @@ export const TEMPLATE_NAMES = {
   dawn:      { az: 'Sübh', en: 'Dawn', ru: 'Рассвет', ar: 'فجر', tr: 'Şafak' },
   gold:      { az: 'Qızılı', en: 'Gold', ru: 'Золото', ar: 'ذهبي', tr: 'Altın' },
   aurora:    { az: 'Zümrüd-qızılı', en: 'Emerald gold', ru: 'Изумрудное золото', ar: 'زمردي ذهبي', tr: 'Zümrüt altın' },
+  // Dizayn v3.1
+  pure:       { az: 'Ağ', en: 'Pure white', ru: 'Белый', ar: 'أبيض', tr: 'Beyaz' },
+  mesh:       { az: 'Qradiyent', en: 'Gradient', ru: 'Градиент', ar: 'متدرّج', tr: 'Gradyan' },
+  ornate:     { az: 'Naxışlı çərçivə', en: 'Ornate frame', ru: 'Узорная рамка', ar: 'إطار مزخرف', tr: 'Desenli çerçeve' },
+  manuscript: { az: 'Əlyazma', en: 'Manuscript', ru: 'Рукопись', ar: 'مخطوطة', tr: 'El yazması' },
+  desert:     { az: 'Səhra gecəsi', en: 'Desert night', ru: 'Ночь в пустыне', ar: 'ليل الصحراء', tr: 'Çöl gecesi' },
+  arches:     { az: 'Tağlar', en: 'Arches', ru: 'Арки', ar: 'أقواس', tr: 'Kemerler' },
+  bold:       { az: 'İri yazı', en: 'Bold type', ru: 'Крупный шрифт', ar: 'خط عريض', tr: 'İri yazı' },
+  split:      { az: 'İki hissə', en: 'Split', ru: 'Две части', ar: 'قسمان', tr: 'İki parça' },
+  pastel:     { az: 'Zərif rənglər', en: 'Pastel', ru: 'Пастель', ar: 'ألوان هادئة', tr: 'Pastel' },
+  noir:       { az: 'Qara-qızılı', en: 'Black and gold', ru: 'Чёрное золото', ar: 'أسود وذهبي', tr: 'Siyah altın' },
+  azure:      { az: 'Kaşı', en: 'Blue tiles', ru: 'Изразцы', ar: 'قاشاني', tr: 'Çini' },
+  medallion:  { az: 'Medalyon', en: 'Medallion', ru: 'Медальон', ar: 'شمسة', tr: 'Madalyon' },
+}
+
+// Şablon süzgəci (seçicidə): hamısı / işıqlı / tünd
+export const TEMPLATE_FILTERS = {
+  az: { all: 'Hamısı', light: 'İşıqlı', dark: 'Tünd', count: 'şablon' },
+  en: { all: 'All', light: 'Light', dark: 'Dark', count: 'templates' },
+  ru: { all: 'Все', light: 'Светлые', dark: 'Тёмные', count: 'шаблонов' },
+  ar: { all: 'الكل', light: 'فاتحة', dark: 'داكنة', count: 'قالبًا' },
+  tr: { all: 'Tümü', light: 'Açık', dark: 'Koyu', count: 'şablon' },
 }

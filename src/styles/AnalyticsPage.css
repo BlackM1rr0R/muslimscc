@@ -50,9 +50,18 @@
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
+/* 900–1599px: xəritə solda (iki sətir hündürlüyündə), iki qrafik sağda
+   üst-üstə — üç dar sütunda gün/ay adları (ərəbcə "الخميس") sətir qırırdı */
 @media (min-width: 900px) {
-  .analytics-act-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr); }
+  .analytics-act-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .analytics-act-grid > .analytics-heat-fig { grid-row: span 2; align-self: stretch; }
 }
+@media (min-width: 1600px) {
+  .analytics-act-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+  .analytics-act-grid > .analytics-heat-fig { grid-row: auto; }
+}
+/* Sütun qrafiklərinin gün/ay adları söz ortasından bölünməsin */
+.analytics-page .ui-viz-col__label { overflow-wrap: normal; word-break: keep-all; white-space: nowrap; }
 
 /* Fəaliyyət xəritəsi — 12 sütun (həftə) × 7 sətir (gün) */
 .analytics-heat {

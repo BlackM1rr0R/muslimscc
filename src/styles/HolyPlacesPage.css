@@ -19,7 +19,7 @@
 
 /* ── Savab kafelləri + ədəb ── */
 .holy-page .holy-stats { --ui-stats-min: 200px; }
-.holy-page .holy-adab { max-width: 880px; margin-top: var(--space-5); }
+.holy-page .holy-adab { margin-top: var(--space-5); }
 .holy-adab-points {
   display: grid;
   gap: 4px;
@@ -208,4 +208,11 @@
 @media (prefers-reduced-motion: reduce) {
   .holy-page .holy-card { transition: none; }
   .holy-page .holy-card:hover { transform: none; }
+}
+
+/* v3.1: ziyarət ədəbi kartı tam endə — geniş ekranda maddələr solda, izah sağda */
+@media (min-width: 1000px) {
+  .holy-adab > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); column-gap: var(--space-6); align-items: start; }
+  .holy-adab > div > .ui-callout__title { grid-column: 1 / -1; }
+  .holy-adab-text { max-width: 75ch; }
 }

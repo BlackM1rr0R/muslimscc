@@ -107,6 +107,8 @@
   list-style: none;
 }
 .ab-tiles > li { display: flex; min-width: 0; }
+/* 8 kafel: geniş ekranda 4 + 4 (5 + 3 əyri sıra olmasın) */
+@media (min-width: 1100px) { .ab-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .ab-tiles .ui-stat { flex: 1; }
 /* "1250+" ərəbcədə "+1250" kimi görünməsin (bidi) */
 .ab-tiles .ui-stat__num { direction: ltr; unicode-bidi: isolate; }
@@ -138,6 +140,8 @@
   gap: var(--space-6) var(--space-5);
   align-items: start;
 }
+/* 8 qrup: geniş ekranda 4 sütun (3 + 3 + 2 əvəzinə 4 + 4) */
+@media (min-width: 1360px) { .ab-map { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .ab-map-group { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .ab-map-head { display: flex; align-items: center; gap: 10px; }
 .ab-map-title {
@@ -201,11 +205,8 @@
   min-width: 90px;
   color: var(--text-tertiary);
   font-family: var(--font-label);
-  font-size: var(--step--2);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: var(--step--1);
 }
-[dir="rtl"] .ab-contact-list dt { letter-spacing: 0; text-transform: none; }
 .ab-contact-list dd { margin: 0; }
 .ab-contact-list a { display: inline-flex; align-items: center; gap: 4px; overflow-wrap: anywhere; font-size: var(--step--1); }
 

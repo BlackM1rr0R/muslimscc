@@ -59,7 +59,7 @@
 /* ── 99 ad şəbəkəsi ── */
 .names-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 156px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
   gap: 10px;
   margin: 0;
   padding: 0;
@@ -445,4 +445,14 @@
   .names-page table.np-dua-table { display: flex; flex-direction: column; }
   .names-page .np-dua-table caption { order: 2; display: block; padding: 10px 14px; text-align: start; }
   .names-page .np-dua-table tbody tr:last-child { border-bottom: 0; }
+}
+
+/* v3.1: telefonda hero ekranın ≤45%-i — "necə işlədilir" qeydi gizli
+   (lead artıq izah edir), mənbə kartı bir sətir: başlıq · kiçik donut · legenda */
+@media (max-width: 599.98px) {
+  .names-hero .ui-page-hero__how { display: none; }
+  .names-page .np-src { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 10px 14px; }
+  .names-page .np-src__head { flex: 1 0 100%; }
+  .names-page .np-src__title { font-size: var(--step--1); }
+  .names-page .np-src .ui-viz-donut svg { width: 60px; height: 60px; }
 }

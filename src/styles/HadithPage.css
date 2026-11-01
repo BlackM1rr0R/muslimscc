@@ -20,7 +20,7 @@
 
 /* ── "Bu hədislər haradandır?" — açılan panel ── */
 .hadith-about-wrap.ui-section--tight { padding-bottom: 0; padding-top: var(--space-5); }
-.hadith-about { max-width: 1040px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-1); }
+.hadith-about { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-1); }
 .hadith-about__sum {
   display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 16px;
   color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-0); font-weight: 600;
@@ -43,7 +43,7 @@
 .hadith-grades ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .hadith-grades__label {
   display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px;
-  font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: 0;
 }
 [dir="rtl"] .hadith-grades__label { letter-spacing: 0; text-transform: none; }
 .hadith-grades__label.is-ok { color: var(--ok); }
@@ -142,18 +142,27 @@
   scroll-margin-top: calc(var(--header-h) + 16px);
 }
 
-/* ── Kart siyahısı ── */
+/* ── Kart siyahısı (v3.1): geniş ekranda 2 sütunlu grid ──
+   Sıra soldan sağa (sonsuz sürüşmədə yeni partiya altdan əlavə olunur —
+   CSS columns-dakı kimi köhnə kartlar sütunlar arasında tullanmır).
+   Bir sətirdəki kartlar eyni hündürlükdədir; mənbə kartın dibinə yapışır. */
 .hadiths-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  max-width: 860px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3) var(--space-4);
+}
+@media (min-width: 1000px) {
+  .hadiths-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hadiths-list > .hadith-empty { grid-column: 1 / -1; }
 }
 
 .hadith-page .hadith-card {
+  display: flex;
+  flex-direction: column;
   padding: var(--space-3) var(--space-5) var(--space-5);
   transition: border-color var(--dur-2) ease;
 }
+.hadith-page .hadith-card .hadith-source { margin-top: auto; padding-top: var(--space-3); }
 @media (hover: hover) {
   .hadith-page .hadith-card:hover { border-color: var(--line-strong); }
 }
@@ -169,18 +178,16 @@
   font-size: var(--step--2);
   font-weight: 600;
 }
-/* Mövzu — nişan yox, sakit mono etiket */
+/* Mövzu — nişan yox, sakit etiket */
 .hadith-cat-badge {
   padding-inline-start: 10px;
   border-inline-start: 1px solid var(--line-strong);
   color: var(--accent-text);
   font-family: var(--font-label);
-  font-size: var(--step--2);
+  font-size: var(--step--1);
   font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
-[dir="rtl"] .hadith-cat-badge { letter-spacing: 0; text-transform: none; }
 .hadith-actions {
   display: flex;
   align-items: center;

@@ -6,6 +6,7 @@ import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { parsePath, pathFor } from '../seo/routes'
 import useActiveSection from '../hooks/useActiveSection'
+import useChipIntoView from '../hooks/useChipIntoView'
 import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
 import ReportErrorButton from '../components/ReportErrorButton'
 import ListenButton from '../components/ListenButton'
@@ -414,7 +415,7 @@ function ReadingBar({ targetRef, label }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   DƏRS — hero → içindəkilər (yan panel) → bölmələr → "Oxudum" →
+   DƏRS — hero → içindəkilər (yuxarıda yapışqan çip zolağı) → bölmələr → "Oxudum" →
    mənbələr → əvvəlki/növbəti + eyni kateqoriyadan.
    ══════════════════════════════════════════════════════════════════ */
 function Lesson({ m, L, lang, onBack, onSibling, progress }) {
@@ -438,6 +439,8 @@ function Lesson({ m, L, lang, onBack, onSibling, progress }) {
   const sections = useMemo(() => (data?.sections || []).map(s => ({ id: `ls-${s.id}`, label: pick(s.title, lang) })), [data, lang])
   const [active, setActive] = useActiveSection(sections.map(x => x.id), `${m.slug}|${lang}|${sections.length}`)
   const articleRef = useRef(null)
+  const tocRef = useRef(null)
+  useChipIntoView(tocRef, active)
 
   const inCat = LESSONS.filter(x => x.cat === m.cat)
   const idx = LESSONS.indexOf(m)
@@ -527,12 +530,12 @@ function Lesson({ m, L, lang, onBack, onSibling, progress }) {
             <aside className="ls-toc">
               <nav aria-label={L.contents}>
                 <p className="ls-toc__title">{L.contents}</p>
-                <ol className="ls-toc__list">
+                <ol className="ls-toc__list" ref={tocRef}>
                   {sections.map((x, i) => (
                     <li key={x.id}>
-                      <a href={`#${x.id}`} className="ls-toc__link" aria-current={active === x.id ? 'true' : undefined} onClick={(e) => jump(e, x.id)}>
+                      <a href={`#${x.id}`} className="ls-toc__link" title={x.label} aria-current={active === x.id ? 'true' : undefined} onClick={(e) => jump(e, x.id)}>
                         <span className="ls-toc__n ui-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-                        <span>{x.label}</span>
+                        <span className="ls-toc__label">{x.label}</span>
                       </a>
                     </li>
                   ))}

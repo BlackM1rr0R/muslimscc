@@ -4,7 +4,9 @@
 // • Namaz: namaz seçimi (2/3/4 rükət) → tam addım ardıcıllığı (buildSequence):
 //   hər addımda təsvir (PrayerPose — başsız abstrakt sxem: duruş xətti, ovuclar,
 //   yerə toxunan üzv nöqtələri; mövqelər arası yumşaq keçid). Kişi/qadın seçimi
-//   yoxdur — sxemdə fərq yoxdur, fərqlər mətndədir.
+//   yoxdur — sxemdə fərq yoxdur, fərqlər mətndədir. Yanında əllərin iri yaxın
+//   planı (HandDetail: əllər necə tutulur/harada durur + qısa izah və dəlil).
+//   Addımlar yuxarıda üfüqi stepper-dədir (rükətlərə bölünmüş çiplər).
 //   nə edilir, nə deyilir (ərəbcə + transliterasiya + məna + səs), mənbələr.
 // • Kağızla namaz: ?mode=paper — tam ekran köməkçi (components/prayer/PaperMode).
 // • Dəstəmaz: 8 addım, eyni üslubda təsvir (WuduPose) və dəlillər.
@@ -21,6 +23,7 @@ import PrayerPose from '../components/prayer/PrayerPose'
 import WuduPose from '../components/prayer/WuduPose'
 import PrayerAudio from '../components/prayer/PrayerAudio'
 import PaperMode from '../components/prayer/PaperMode'
+import HandDetail, { hasHandDetail } from '../components/prayer/HandDetail'
 import {
   ACTIONS, BOOKS, PG_TEXT, PRAYERS, WUDU, WUDU_AFTER, WUDU_NOTE, ZIKR,
   buildSequence, refText, refUrl,
@@ -282,6 +285,36 @@ function Progress({ seq, index, t, title }) {
   )
 }
 
+// Addım çipləri — üfüqi stepper (rükətlərə bölünür); aktiv addım görünən yerə sürüşür
+function Stepper({ items, index, onGo, label, t }) {
+  const listRef = useRef(null)
+  useEffect(() => {
+    const list = listRef.current
+    const el = list?.querySelector('[aria-current="step"]')
+    if (!list || !el) return
+    const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const lr = list.getBoundingClientRect()
+    const er = el.getBoundingClientRect()
+    const left = list.scrollLeft + (er.left - lr.left) - (lr.width - er.width) / 2
+    if (typeof list.scrollTo === 'function') list.scrollTo({ left, behavior: reduce ? 'auto' : 'smooth' })
+  }, [index])
+  return (
+    <nav className="pg-stepper" aria-label={label}>
+      <ol className="pg-stepper-list" ref={listRef}>
+        {items.map((it, i) => (
+          <li key={i} className={`pg-stepper-item ${it.rakat && it.rakat !== items[i - 1]?.rakat ? 'is-rak-start' : ''}`}>
+            {it.rakat > 0 && it.rakat !== items[i - 1]?.rakat && <span className="pg-stepper-rak">{t.rakat} {it.rakat}</span>}
+            <button type="button" className={`pg-stepper-btn ${i < index ? 'is-done' : ''}`} aria-current={i === index ? 'step' : undefined} onClick={() => onGo(i)}>
+              <span className="pg-stepper-n ui-num" aria-hidden="true">{i < index ? <Icon name="check" size={12} strokeWidth={2.6} /> : i + 1}</span>
+              <span className="pg-stepper-name">{it.name}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
 export default function PrayerGuidePage({ setPage }) {
   const { lang } = useLang()
   const t = PG_TEXT[lang] || PG_TEXT.en
@@ -434,10 +467,16 @@ export default function PrayerGuidePage({ setPage }) {
                   <Icon name="arrow" size={16} className="pg-back-ic ui-flip-rtl" /> {t.back}
                 </button>
               </div>
+              {/* Addımlar — istənilən addıma keçid */}
+              <Stepper items={seq.map(s => ({ rakat: s.rakat, name: ACTIONS[s.id].name[lang] || ACTIONS[s.id].name.en }))}
+                index={step} t={t} label={`${t.step} 1–${seq.length}`} onGo={(i) => go(i, i > step ? 'next' : 'prev')} />
 
               <article className="pg-step-card" data-dir={dir || undefined} data-step={cur.id} aria-labelledby="pg-step-title">
-                <div className="pg-step-fig">
-                  <PrayerPose pose={cur.pose} label={action.name[lang] || action.name.en} />
+                <div className={`pg-step-visual ${hasHandDetail(cur.pose) ? '' : 'is-single'}`}>
+                  <div className="pg-step-fig">
+                    <PrayerPose pose={cur.pose} label={action.name[lang] || action.name.en} />
+                  </div>
+                  <HandDetail pose={cur.pose} lang={lang} />
                 </div>
                 <div className="pg-step-body" key={`${prayer.key}-${step}`}>
                   <span className="pg-step-eyebrow ui-num">{t.rakat} {cur.rakat} · {t.step} {step + 1}</span>
@@ -478,24 +517,6 @@ export default function PrayerGuidePage({ setPage }) {
                 </button>
               </div>
 
-              {/* Addımların siyahısı — istənilən addıma keçid */}
-              <details className="pg-outline">
-                <summary>{t.step} 1–{seq.length}</summary>
-                <ol className="pg-outline-list">
-                  {seq.flatMap((s, i) => {
-                    const items = []
-                    if (s.rakat !== seq[i - 1]?.rakat) items.push(<li key={`r${s.rakat}`} className="pg-outline-head"><span className="pg-outline-rak">{t.rakat} {s.rakat}</span></li>)
-                    items.push(
-                      <li key={i}>
-                        <button type="button" className="pg-outline-btn" aria-current={i === step ? 'step' : undefined} onClick={() => go(i, i > step ? 'next' : 'prev')}>
-                          <span className="ui-num">{i + 1}</span> {ACTIONS[s.id].name[lang] || ACTIONS[s.id].name.en}
-                        </button>
-                      </li>,
-                    )
-                    return items
-                  })}
-                </ol>
-              </details>
             </div>
           )}
 
@@ -525,9 +546,13 @@ export default function PrayerGuidePage({ setPage }) {
               {wudu && (
                 <div className="pg-guide pg-enter">
                   <Progress seq={wuduSeq} index={wuduStep} t={t} title={t.wuduTitle} />
+                  <Stepper items={WUDU.map(wd => ({ rakat: 0, name: wd.name[lang] || wd.name.en }))}
+                    index={wuduStep} t={t} label={`${t.step} 1–${WUDU.length}`} onGo={(i) => goWudu(i, i > wuduStep ? 'next' : 'prev')} />
                   <article className="pg-step-card" data-dir={dir || undefined} data-step={wudu.id} aria-labelledby="pg-wudu-title">
-                    <div className="pg-step-fig">
-                      <WuduPose pose={wudu.pose} label={wudu.name[lang] || wudu.name.en} />
+                    <div className="pg-step-visual is-single">
+                      <div className="pg-step-fig">
+                        <WuduPose pose={wudu.pose} label={wudu.name[lang] || wudu.name.en} />
+                      </div>
                     </div>
                     <div className="pg-step-body" key={`w${wuduStep}`}>
                       <span className="pg-step-eyebrow ui-num">{t.step} {wuduStep + 1}/{WUDU.length}</span>

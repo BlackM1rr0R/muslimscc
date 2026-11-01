@@ -266,6 +266,30 @@ export function Block({ b, lang }) {
   }
 }
 
+/* Ardıcıl dəlil blokları (ayə / hədis / dua) alt-alta uzun sütun yaratmasın —
+   2+ olanda bir qrupa yığılır; LessonsPage.css → .ls-evgrid geniş ekranda
+   onları yan-yana (2 sütun) düzür, telefonda tək sütundur. */
+const EVIDENCE = new Set(['ayah', 'hadith', 'dua'])
+
 export default function LessonBlocks({ blocks, lang }) {
-  return <>{(blocks || []).map((b, i) => <Block key={i} b={b} lang={lang} />)}</>
+  const list = blocks || []
+  const out = []
+  for (let i = 0; i < list.length; ) {
+    if (EVIDENCE.has(list[i].t)) {
+      let j = i
+      while (j < list.length && EVIDENCE.has(list[j].t)) j++
+      if (j - i >= 2) {
+        out.push(
+          <div key={i} className="ls-evgrid">
+            {list.slice(i, j).map((b, k) => <Block key={i + k} b={b} lang={lang} />)}
+          </div>
+        )
+        i = j
+        continue
+      }
+    }
+    out.push(<Block key={i} b={list[i]} lang={lang} />)
+    i++
+  }
+  return <>{out}</>
 }

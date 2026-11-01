@@ -468,4 +468,8 @@
 .bp-step__author svg { flex-shrink: 0; }
 @media (hover: hover) { .bp-step__author:hover { text-decoration: underline; text-underline-offset: 3px; } }
 @media (pointer: coarse) { .bp-step__author { min-height: 44px; } }
-.bp-related .ui-list { max-width: 760px; }
+.bp-related .ui-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  column-gap: var(--space-6);
+}

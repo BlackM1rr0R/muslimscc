@@ -17,7 +17,10 @@
   gap: var(--mtv-gap);
   padding: var(--mtv-pad);
   padding-inline: max(var(--mtv-pad), env(safe-area-inset-left));
-  overflow: hidden;
+  /* Normalda sığır; çox alçaq/dar ekranda kəsilmək əvəzinə sürüşür */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
   background: var(--surface-0);
   color: var(--text-body);
   font-family: var(--font-sans);
@@ -87,6 +90,31 @@
   border: 1px solid var(--line);
   color: var(--text-secondary);
 }
+
+/* "Geri" — yuxarıda başlanğıc küncdə (RTL-də sağda). Sakit: hərəkətsizlikdə
+   solur, tam ekranda / kiosk-da / iframe vidjetində (compact) göstərilmir */
+.mtv-back {
+  flex: none;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: .25em;
+  min-height: 44px;
+  padding-block: 0;
+  padding-inline: .5em .95em;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-1) 85%, transparent);
+  color: var(--text-secondary);
+  font-size: clamp(14px, 1.7vmin, 20px);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition: opacity var(--dur-3) var(--ease-out), color var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+.mtv-back:hover { color: var(--text-strong); border-color: var(--line-strong); }
+.mtv-back:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.mtv--idle .mtv-back { opacity: .4; }
 
 /* ── Saat + panel ── */
 .mtv-main {
@@ -538,23 +566,54 @@ a.mtv-brand:hover { color: var(--brand); }
 .mtv-link-row { display: flex; gap: 8px; align-items: center; }
 .mtv .mtv-link { font-size: var(--step--1); min-width: 0; }
 
-/* ── Portret ekran (dik televizor, telefon) ── */
+/* ── Portret ekran (dik televizor 1080×1920, planşet, telefon) ──
+   Əvvəl .mtv-main (saat + panel) bir sətirdə idi və dönən panel 0-a qədər
+   sıxılıb ayə yuxarıdan kəsilirdi (768×1024, 390×844). İndi .mtv-main
+   "display: contents" — saat, vaxtlar və panel ayrı sətirlərdir; panel
+   ən azı öz məzmunu qədərdir, yer çatmasa ekran özü sürüşür. */
 @media (max-aspect-ratio: 1/1) {
-  .mtv { grid-template-rows: auto auto minmax(0, 1fr); }
-  .mtv-top { flex-wrap: wrap; }
-  .mtv-dates { order: 3; flex-basis: 100%; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; }
-  .mtv-main { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
-  .mtv-clock { font-size: min(15vh, 22vw); text-align: center; }
-  .mtv-clockbox { align-items: stretch; }
-  .mtv-times { order: 2; grid-row: 2; }
-  .mtv-main { grid-row: 3; }
-  .mtv-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: clamp(10px, 2vmin, 24px); }
-  .mtv-cell-adhan { font-size: clamp(20px, 6.4vmin, 84px); }
-  .mtv-panel { min-height: 0; }
+  .mtv:not(.mtv--compact) {
+    grid-template-rows: auto auto auto minmax(min-content, 1fr);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .mtv:not(.mtv--compact) .mtv-main { display: contents; }
+  .mtv:not(.mtv--compact) .mtv-top { grid-row: 1; }
+  .mtv:not(.mtv--compact) .mtv-clockbox { grid-row: 2; align-items: stretch; }
+  .mtv:not(.mtv--compact) .mtv-times { grid-row: 3; }
+  .mtv:not(.mtv--compact) .mtv-panel { grid-row: 4; }
+  .mtv-top { flex-wrap: wrap; row-gap: clamp(8px, 1.6vmin, 20px); }
+  .mtv-dates { order: 3; flex-basis: 100%; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; column-gap: 1em; }
+  .mtv-clock { font-size: min(12vh, 21vw); text-align: center; }
+  .mtv-next { padding: clamp(10px, 2vmin, 28px) clamp(14px, 3vmin, 40px); }
+  .mtv-next-name { font-size: clamp(20px, 5.4vw, 72px); }
+  .mtv-next-count { font-size: clamp(24px, 7.4vw, 100px); }
+  .mtv-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: clamp(12px, 2.2vmin, 26px); }
+  .mtv-cell { padding: clamp(10px, 1.8vh, 30px) clamp(4px, 1.2vw, 20px); }
+  .mtv-cell-name { font-size: clamp(12px, 3.6vw, 40px); }
+  .mtv-cell-adhan { font-size: clamp(19px, 6.6vw, 80px); }
+  .mtv-cell-iq { font-size: clamp(14px, 4.4vw, 52px); }
+  .mtv-cell small { font-size: clamp(9px, 2.2vw, 20px); }
+  .mtv-ar { font-size: clamp(20px, 5.6vw, 72px); }
+  .mtv-tr { font-size: clamp(14px, 3.6vw, 40px); }
+  .mtv-adhkar-ar { font-size: clamp(15px, 4.2vw, 48px); }
 }
+/* Kvadrata yaxın portret (planşet 768×1024, 3:4): 6 vaxt bir sətirdə —
+   iki sətir panelin yerini yeyirdi və ekran sürüşürdü */
+@media (max-aspect-ratio: 1/1) and (min-aspect-ratio: 2/3) and (min-width: 600px) {
+  .mtv-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(6px, 1.2vw, 14px); }
+  .mtv-cell { padding: clamp(10px, 2vw, 22px) clamp(3px, .6vw, 10px); }
+  .mtv-cell-name { font-size: clamp(12px, 2.2vw, 26px); }
+  .mtv-cell-name svg { display: none; }
+  .mtv-cell-adhan { font-size: clamp(18px, 4.1vw, 52px); }
+  .mtv-cell-iq { font-size: clamp(14px, 2.9vw, 36px); }
+  .mtv-cell small { font-size: clamp(9px, 1.4vw, 15px); }
+}
+/* Dar telefon: başlıq sıxılmasın, ad bir sətirdə qalsın */
 @media (max-aspect-ratio: 1/1) and (max-width: 520px) {
-  .mtv { overflow-y: auto; grid-template-rows: auto auto auto; }
-  .mtv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mtv-cell-name svg { display: none; }
+  .mtv-dates { font-size: 13px; }
+  .mtv-panel::before { inset-block: 10%; }
 }
 /* Alçaq landşaft (telefon yan tutulub): panel gizlənir */
 @media (min-aspect-ratio: 1/1) and (max-height: 420px) {

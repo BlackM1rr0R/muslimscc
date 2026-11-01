@@ -138,28 +138,39 @@ export default function Nawawi40Page() {
       setTimeout(() => setCopied(c => (c === h.n ? 0 : c)), 1800)
     } catch { /* icazə yoxdur */ }
   }
+  // İki sütun: siyahının birinci yarısı solda, ikincisi sağda
+  const half = Math.ceil(list.length / 2)
+  const cols = [list.slice(0, half), list.slice(half)]
   const learnedCount = NAWAWI_40.filter(h => learnedSet.has(h.n)).length
 
   return (
     <div className="nw-page">
-      <header className="ui-page-hero nw-hero">
+      <header className="ui-page-hero ui-page-hero--split nw-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
-          <span className="ui-eyebrow">{L.eyebrow}</span>
-          <h1 className="ui-display">{L.title}</h1>
-          {!isAr && <p className="nw-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الأربعون النووية</p>}
-          <p className="ui-lead">{L.lead}</p>
-          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {L.how}</p>
-          <ul className="ui-page-hero__stats">
-            <li><b className="ui-num">{NAWAWI_40.length}</b><span>{L.statHadith}</span></li>
-            <li><b className="ui-num">{GROUP_COUNTS.agreed || 0}</b><span>{L.statAgreed}</span></li>
-            <li><b className="ui-num"><bdi dir="ltr">{learnedCount} / {NAWAWI_40.length}</bdi></b><span>{L.statLearned}</span></li>
-          </ul>
+          <div className="ui-page-hero__text">
+            <span className="ui-eyebrow">{L.eyebrow}</span>
+            <h1 className="ui-display">{L.title}</h1>
+            {!isAr && <p className="nw-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الأربعون النووية</p>}
+            <p className="ui-lead">{L.lead}</p>
+            <p className="ui-page-hero__how"><Icon name="info" size={16} /> {L.how}</p>
+          </div>
+          {/* Sağda: irəliləyiş halqası + açar rəqəmlər (kart) */}
+          <div className="ui-page-hero__aside">
+            <div className="ui-card nw-hero__card">
+              <ProgressRing value={learnedCount} max={NAWAWI_40.length} size={88} thickness={9}
+                label={L.progress} sub={`⁦${learnedCount} / ${NAWAWI_40.length}⁩`} />
+              <ul className="ui-page-hero__stats nw-hero__stats">
+                <li><b className="ui-num">{NAWAWI_40.length}</b><span>{L.statHadith}</span></li>
+                <li><b className="ui-num">{GROUP_COUNTS.agreed || 0}</b><span>{L.statAgreed}</span></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </header>
 
       <div className="ui-section ui-section--tight">
-        <div className="ui-container nw-layout">
+        <div className="ui-container nw-layout nw-layout--list">
           <div className="nw-toolbar">
             <div className="nw-search">
               <Icon name="search" size={19} className="nw-search__icon" />
@@ -171,54 +182,62 @@ export default function Nawawi40Page() {
                 </button>
               )}
             </div>
-            <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm"
+            <span className="nw-toolbar__count ui-num" aria-live="polite">{list.length} {L.statHadith}</span>
+            <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm nw-toolbar__btn"
               onClick={() => setOpen(allOpen ? new Set() : new Set(list.map(h => h.n)))}>
               <Icon name={allOpen ? 'minus' : 'plus'} className="ui-btn__icon" /> {allOpen ? L.collapseAll : L.expandAll}
             </button>
           </div>
 
           {list.length === 0 && <p className="nw-none" role="status">{L.none}</p>}
-          <ol className="nw-list">
-            {list.map(h => {
-              const isOpen = open.has(h.n)
-              const isLearned = learnedSet.has(h.n)
-              return (
-                <li key={h.n} id={`h-${h.n}`} className={`ui-card nw-item${isOpen ? ' is-open' : ''}${isLearned ? ' is-learned' : ''}`}>
-                  <button type="button" className="nw-item__head" aria-expanded={isOpen} aria-controls={`h-${h.n}-body`} onClick={() => toggle(h.n)}>
-                    <span className="nw-item__n ui-num">{h.n}</span>
-                    <span className="nw-item__title">{pick(h.title, lang)}</span>
-                    {isLearned && <span className="nw-item__learned"><Icon name="check" size={14} /><span className="ui-sr-only">{L.learned}</span></span>}
-                    <Icon name="chevronDown" size={18} className="nw-item__chev" />
-                  </button>
-                  {isOpen && (
-                    <div id={`h-${h.n}-body`} className="nw-item__body">
-                      <p className="nw-item__ar ui-arabic" lang="ar" dir="rtl">{h.ar}</p>
-                      {!isAr && <p className="nw-item__text">{pick(h.text, lang)}</p>}
-                      <p className="nw-item__src"><strong>{L.source}:</strong> <cite>{pick(h.src, lang)}</cite></p>
-                      {h.grade && <p className="nw-item__grade"><Icon name="info" size={15} /> <span><strong>{L.grade}:</strong> {pick(h.grade, lang)}</span></p>}
-                      {(h.benefits?.[lang] || h.benefits?.en)?.length > 0 && (
-                        <div className="nw-item__benefits">
-                          <h3 className="nw-item__btitle">{L.benefits}</h3>
-                          <ul>{(h.benefits[lang] || h.benefits.en).map((b, i) => <li key={i}>{b}</li>)}</ul>
+          {/* Geniş ekranda iki müstəqil sütun (1–21 | 22–42): bir hədis açılanda
+              yalnız öz sütunu uzanır — qonşu sütun dartılmır, boşluq yaranmır.
+              Telefonda sütunlar alt-alta düşür, ardıcıllıq qorunur. */}
+          <div className="nw-cols">
+            {cols.map((col, ci) => col.length > 0 && (
+              <ol key={ci} className="nw-list" start={col[0].n}>
+                {col.map(h => {
+                  const isOpen = open.has(h.n)
+                  const isLearned = learnedSet.has(h.n)
+                  return (
+                    <li key={h.n} id={`h-${h.n}`} className={`ui-card nw-item${isOpen ? ' is-open' : ''}${isLearned ? ' is-learned' : ''}`}>
+                      <button type="button" className="nw-item__head" aria-expanded={isOpen} aria-controls={`h-${h.n}-body`} onClick={() => toggle(h.n)}>
+                        <span className="nw-item__n ui-num">{h.n}</span>
+                        <span className="nw-item__title">{pick(h.title, lang)}</span>
+                        {isLearned && <span className="nw-item__learned"><Icon name="check" size={14} /><span className="ui-sr-only">{L.learned}</span></span>}
+                        <Icon name="chevronDown" size={18} className="nw-item__chev" />
+                      </button>
+                      {isOpen && (
+                        <div id={`h-${h.n}-body`} className="nw-item__body">
+                          <p className="nw-item__ar ui-arabic" lang="ar" dir="rtl">{h.ar}</p>
+                          {!isAr && <p className="nw-item__text">{pick(h.text, lang)}</p>}
+                          <p className="nw-item__src"><strong>{L.source}:</strong> <cite>{pick(h.src, lang)}</cite></p>
+                          {h.grade && <p className="nw-item__grade"><Icon name="info" size={15} /> <span><strong>{L.grade}:</strong> {pick(h.grade, lang)}</span></p>}
+                          {(h.benefits?.[lang] || h.benefits?.en)?.length > 0 && (
+                            <div className="nw-item__benefits">
+                              <h3 className="nw-item__btitle">{L.benefits}</h3>
+                              <ul>{(h.benefits[lang] || h.benefits.en).map((b, i) => <li key={i}>{b}</li>)}</ul>
+                            </div>
+                          )}
+                          <div className="nw-item__actions">
+                            <button type="button" className={`ui-btn ui-btn--sm ${isLearned ? 'ui-btn--primary' : 'ui-btn--secondary'} nw-learn-btn`}
+                              aria-pressed={isLearned} onClick={() => toggleLearned(h.n)}>
+                              <Icon name="check" className="ui-btn__icon" /> {L.learn}
+                            </button>
+                            <span className="nw-item__spacer" />
+                            <ReportErrorButton refText={`${L.title} №${h.n}`} kind="translation" />
+                            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => copy(h)}>
+                              <Icon name={copied === h.n ? 'check' : 'copy'} className="ui-btn__icon" /> {copied === h.n ? L.copied : L.copy}
+                            </button>
+                          </div>
                         </div>
                       )}
-                      <div className="nw-item__actions">
-                        <button type="button" className={`ui-btn ui-btn--sm ${isLearned ? 'ui-btn--primary' : 'ui-btn--secondary'} nw-learn-btn`}
-                          aria-pressed={isLearned} onClick={() => toggleLearned(h.n)}>
-                          <Icon name="check" className="ui-btn__icon" /> {L.learn}
-                        </button>
-                        <span className="nw-item__spacer" />
-                        <ReportErrorButton refText={`${L.title} №${h.n}`} kind="translation" />
-                        <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => copy(h)}>
-                          <Icon name={copied === h.n ? 'check' : 'copy'} className="ui-btn__icon" /> {copied === h.n ? L.copied : L.copy}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </li>
-              )
-            })}
-          </ol>
+                    </li>
+                  )
+                })}
+              </ol>
+            ))}
+          </div>
         </div>
       </div>
 

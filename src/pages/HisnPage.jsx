@@ -315,6 +315,8 @@ export default function HisnPage({ setPage }) {
 
       <div className="ui-section ui-section--tight hs-reader" ref={readerRef}>
         <div className="ui-container hs-layout">
+          {/* Yapışqan alət zolağı (şüşə fon): axtarış həmişə əl altında */}
+          <div className="hs-toolbar">
           <div className="hs-search">
             <Icon name="search" size={19} className="hs-search__icon" />
             <input className="ui-input hs-search__input" type="search" aria-label={L.search} placeholder={L.search}
@@ -324,6 +326,8 @@ export default function HisnPage({ setPage }) {
                 <Icon name="close" size={16} />
               </button>
             )}
+          </div>
+          {data && <span className="hs-toolbar__count ui-num" aria-hidden="true">{q.trim() || curCat ? filtered.length : chapters.length} {X.chapters} · {itemTotal} {X.items}</span>}
           </div>
           {L.note && <p className="hs-note"><Icon name="info" size={15} /> {L.note}</p>}
 
@@ -373,7 +377,11 @@ export default function HisnPage({ setPage }) {
                       <span className="hs-chapter__n ui-num">{c.id}</span>
                       <span>{c.title}{!isAr && <span className="hs-chapter__ar ui-arabic" lang="ar" dir="rtl">{c.titleAr}</span>}</span>
                     </h2>
-                    {c.items.map((it, i) => <Item key={i} it={it} n={it.n || (startNum.get(c.id) || 0) + i + 1} L={L} lang={lang} isAr={isAr} />)}
+                    {/* Zikrlər geniş ekranda iki sütunlu "masonry"-də (CSS columns):
+                        oxu sırası yuxarıdan aşağı, kartlar boşluqsuz düzülür */}
+                    <div className={`hs-chapter__items${c.items.length === 1 ? ' is-single' : ''}`}>
+                      {c.items.map((it, i) => <Item key={i} it={it} n={it.n || (startNum.get(c.id) || 0) + i + 1} L={L} lang={lang} isAr={isAr} />)}
+                    </div>
                   </section>
                 ))}
               </div>

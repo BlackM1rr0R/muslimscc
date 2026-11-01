@@ -1102,6 +1102,9 @@ function FiqhSection({ data, lang, L }) {
           <h2 id="hc-fiqh-h" className="ui-title">{L.fiqhTitle}</h2>
           <p className="ui-lead">{L.fiqhLead}</p>
         </div>
+        {/* v3.1: bölmələr geniş ekranda iki sütunlu "masonry" (CSS columns) — oxu sırası
+            sütun üzrə yuxarıdan aşağı; telefonda tək sütun */}
+        <div className="hc-fiqh-grid">
         {sections.map((sec, si) => {
           const key = FIQH_KEYS[si]
           return (
@@ -1145,6 +1148,7 @@ function FiqhSection({ data, lang, L }) {
             </article>
           )
         })}
+        </div>
       </div>
     </section>
   )

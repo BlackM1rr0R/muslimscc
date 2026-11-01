@@ -266,6 +266,11 @@ export default function QuoteGeneratorPage() {
     watermark: BRAND.domain,
   }), [template, style, lang, content])
 
+  // Miniatürlər üçün şablonsuz kart: şablon dəyişəndə 24 miniatür yenidən çəkilməsin
+  const thumbCard = useMemo(() => ({
+    style, lang, ar: content.ar, text: content.text, ref: content.ref, kicker: content.kicker, watermark: BRAND.domain,
+  }), [style, lang, content])
+
   const [overflow, setOverflow] = useState(false)
   const onOverflow = useCallback((v) => setOverflow(Boolean(v)), [])
 
@@ -458,7 +463,7 @@ export default function QuoteGeneratorPage() {
                   custom={custom} onCustom={setCustom}
                 />
               )}
-              {tab === 'template' && <TemplatePicker value={tplId} onChange={chooseTemplate} lang={lang} label={t.tabTemplate} />}
+              {tab === 'template' && <TemplatePicker value={tplId} onChange={chooseTemplate} lang={lang} label={t.tabTemplate} card={thumbCard} format={format} />}
               {tab === 'format' && <FormatPicker t={t} value={fmtId} onChange={setFmtId} />}
               {tab === 'style' && <StylePanel t={t} style={style} onStyle={setStyle} hasAr={hasAr} hasTr={hasTr} template={template} />}
             </div>

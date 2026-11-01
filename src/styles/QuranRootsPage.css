@@ -6,7 +6,7 @@
 .qr-page { min-height: 60vh; }
 .qr-page .ui-section--tight { padding-top: var(--space-6); }
 .qr-page .qr-hero .ui-lead { max-width: 62ch; }
-.qr-layout { max-width: calc(860px + 2 * var(--page-gutter)); display: flex; flex-direction: column; gap: var(--space-5); }
+.qr-layout { display: flex; flex-direction: column; gap: var(--space-5); }
 .qr-muted { color: var(--text-tertiary); font-weight: 400; }
 
 /* ── Axtarış ── */
@@ -110,3 +110,13 @@
 .qr-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--space-4); }
 .qr-bar__lemma { font-size: 18px; line-height: 1.3; }
 .qr-bar__cat { color: var(--text-tertiary); font-size: var(--step--2); }
+
+/* ── v3.1: geniş ekranda tək ensiz sütun yox ──
+   Axtarış kartı + "Kök nədir" yan-yana; ayə nəticələri iki sütunda
+   (kartlar öz hündürlüyündə qalır). */
+@media (min-width: 1100px) {
+  .qr-layout:has(> .qr-what) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .qr-layout:has(> .qr-what) > :not(.qr-search, .qr-what) { grid-column: 1 / -1; }
+  .qr-layout:has(> .qr-what) > .qr-results:empty { display: none; }
+  .qr-ayahs__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}

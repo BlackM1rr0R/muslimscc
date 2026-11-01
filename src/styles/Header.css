@@ -351,7 +351,7 @@ html[dir="rtl"] .header::after { transform-origin: right center; }
   padding: 0 14px;
   border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-family: var(--font-label);   /* v3: naviqasiya mono etiketdir */
+  font-family: var(--font-label);   /* Inter etiket */
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1;
@@ -519,8 +519,14 @@ html:not(.qm-input-pointer) .header .hdr-btn:focus-visible {
   .header-inner {
     grid-template-columns: var(--sidenav-w) minmax(0, 1fr) auto minmax(0, 1fr);
     column-gap: 0;
-    padding-inline: 0 var(--hdr-gutter);
+    /* Linklər səhifə konteynerinin (.ui-container) ortası ilə üst-üstə düşsün:
+       konteynerin son kənarında üzən dok zolağı var (--page-gutter-end), ona görə
+       başlığın son kənarı da eyni fərq qədər (--hdr-end-shift) çəkilir; ikonların
+       yeri dəyişmir — fərq .header-right-ın daxili boşluğuna keçir */
+    --hdr-end-shift: calc(var(--page-gutter-end, var(--page-gutter)) - var(--page-gutter));
+    padding-inline: 0 var(--hdr-end-shift);
   }
+  .header-right { padding-inline-end: max(0px, calc(var(--hdr-gutter) - var(--hdr-end-shift))); }
   .header-left {
     /* Loqo işarəsi yan paneldəki axtarış sahəsi ilə eyni kənarda */
     padding-inline: 12px 16px;

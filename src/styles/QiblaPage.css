@@ -206,7 +206,7 @@
 .qibla-page .qibla-ios-btn { align-self: stretch; }
 
 /* ══ Məlumat kartları ═════════════════════════════════════════════ */
-.qibla-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: var(--space-3); }
+.qibla-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--space-3); }
 .qibla-page .qibla-info-card {
   display: flex;
   align-items: center;
@@ -298,7 +298,21 @@
 .qb-guide { min-height: 0; padding-top: 0; }
 .qb-guide__inner { display: flex; flex-direction: column; gap: var(--space-6); }
 .qb-guide__inner > .ui-section-head { margin-bottom: 0; }
-.qb-guide__article { max-width: 820px; width: 100%; margin-inline: auto; }
+.qb-guide__article { width: 100%; }
+/* v3.1: məqalə konteynerin tam enində; geniş ekranda "iddia | dəlil" —
+   dəlildən əvvəlki paraqraf solda, dəlil (ayə/hədis/sitat) sağda. Ardıcıl
+   dəlillər .ls-evgrid-də 2–3 sütun olur. Paraqraflar ~68ch qalır. */
+@media (min-width: 1100px) {
+  .qb-guide__article > .qb-guide__sec {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-6); row-gap: var(--space-4); align-items: start;
+  }
+  .qb-guide__sec > * { grid-column: 1 / -1; }
+  .qb-guide__sec > .ls-p:has(+ :is(.ls-ayah, .ls-hadith, .ls-quote)) { grid-column: 1; align-self: center; }
+  .qb-guide__sec > .ls-p + :is(.ls-ayah, .ls-hadith, .ls-quote) { grid-column: 2; }
+  /* Sual-cavab: iki sütun; biri açılanda qonşu dartılmır */
+  .qb-guide__sec .ls-qa { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-6); align-items: start; }
+}
 .qb-guide__sec .ls-sec__title { font-size: var(--step-2); }
 /* Ayə istinadı mətn içində keçiddir — yalnız rəngə güvənməsin (axe: link-in-text-block) */
 .qb-guide .ls-ref { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
@@ -314,7 +328,26 @@
   scrollbar-width: none;
 }
 .qb-guide-nav__list::-webkit-scrollbar { display: none; }
-@media (min-width: 900px) { .qb-guide-nav__list { flex-wrap: wrap; overflow: visible; } }
+/* v3.1: bölmə zolağı sticky (başlığın altında), şüşə fonlu həb */
+.qb-guide-nav {
+  position: sticky;
+  top: calc(var(--header-offset, var(--header-h, 64px)) + 8px);
+  z-index: 20;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-0) 86%, transparent);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-1);
+}
+.qb-guide-nav .qb-guide-nav__list { padding: 0; overscroll-behavior-x: contain; }
+.qb-guide-nav__list > li { flex-shrink: 0; }
+/* Masaüstündə bütün bölmələr görünsün (gizli üfüqi sürüşmə yox) */
+@media (min-width: 900px) {
+  .qb-guide-nav { border-radius: var(--radius-lg); }
+  .qb-guide-nav .qb-guide-nav__list { flex-wrap: wrap; overflow: visible; }
+}
 .qb-guide-nav__chip { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; text-decoration: none; }
 .qb-guide-nav__chip svg { color: var(--accent); }
 
@@ -346,4 +379,8 @@
 @media (max-width: 1100px) {
   .qibla-main-col { display: contents; }
   .qibla-steps-wrap { order: 3; }
+}
+/* v3.1: telefonda məsafə + dəqiqlik yan-yana (kiçik kartlar) */
+@media (max-width: 480px) {
+  .qibla-info-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); }
 }

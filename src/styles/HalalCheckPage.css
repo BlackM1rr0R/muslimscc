@@ -46,7 +46,17 @@
 .hc-cat--unknown .hc-cat__dot, .hc-cat__dot.hc-cat--unknown { background: var(--line-strong); }
 
 /* E-kod kartı */
-.hc-codes { display: flex; flex-direction: column; gap: var(--space-3); }
+/* v3.1: E-kod nəticələri — alt-alta siyahı yox, kart şəbəkəsi (1280px-də 3 sütun).
+   align-items: start — "Bütün sahələr" açılanda qonşu kart dartılmır */
+.hc-codes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  align-items: start;
+  gap: var(--space-3);
+}
+/* Məhsul kartının içində (daha dar) — 2 sütun */
+.hc-product .hc-codes { grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.hc-codes > .hc-missing { grid-column: 1 / -1; }
 .hc-page .hc-code { display: flex; flex-direction: column; gap: 10px; padding: var(--space-4) var(--space-5); }
 .hc-code__head { display: flex; align-items: flex-start; gap: 12px; }
 .hc-code__id { flex-shrink: 0; min-width: 64px; padding: 4px 10px; border-radius: var(--radius-sm); background: var(--brand-soft); color: var(--brand); font-family: var(--font-num); font-weight: 600; font-size: var(--step--1); text-align: center; direction: ltr; unicode-bidi: isolate; }
@@ -63,7 +73,7 @@
 .hc-fields__sum::-webkit-details-marker { display: none; }
 .hc-fields__chev { margin-inline-start: auto; color: var(--text-tertiary); transition: transform var(--dur-2) var(--ease-out); }
 .hc-fields[open] .hc-fields__chev { transform: rotate(180deg); }
-.hc-fields__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 16px; margin: 4px 0 8px; }
+.hc-fields__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 8px 16px; margin: 4px 0 8px; }
 .hc-fields__list > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--surface-2); }
 .hc-fields__list .hc-fields__wide { grid-column: 1 / -1; }
 .hc-fields__list dt { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; }
@@ -99,7 +109,13 @@
 .hc-crowd svg { flex-shrink: 0; margin-top: 2px; color: var(--accent); }
 
 /* Fiqh */
-.hc-page .hc-codes, .hc-page .hc-search, .hc-page .hc-bc, .hc-page .hc-product, .hc-page .hc-fiqh, .hc-page .hc-disc { max-width: 920px; }
+/* Axtarış, ştrixkod forması, xəbərdarlıq — oxunaqlı en; nəticə kartları və fiqh — tam en */
+.hc-page .hc-search, .hc-page .hc-bc, .hc-page .hc-disc { max-width: 920px; }
+/* Fiqh bölmələri: geniş ekranda iki sütunlu masonry (uzun ayə/fətva kartları
+   artıq ensiz tək sütunda alt-alta durmur). break-inside — kart sütunlar arasında bölünmür */
+.hc-fiqh-grid { columns: 1; column-gap: var(--space-4); }
+.hc-fiqh-grid > .hc-fiqh { break-inside: avoid; margin-bottom: var(--space-4); }
+@media (min-width: 1100px) { .hc-fiqh-grid { columns: 2; } }
 .hc-page .hc-fiqh { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--card-pad); scroll-margin-top: calc(var(--header-h, 64px) + 8px); }
 .hc-fiqh__title { color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; line-height: var(--lh-snug); }
 .hc-fiqh__p { max-width: var(--measure); color: var(--text-body); line-height: var(--lh-body); }

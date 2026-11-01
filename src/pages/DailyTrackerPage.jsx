@@ -7,7 +7,6 @@ import '../styles/DailyTrackerPage.css'
 import { setPrayerStatus } from '../utils/prayerTracker'
 import { usePendingCheckinSync } from '../hooks/usePrayerTracker'
 import Breadcrumb from '../components/Breadcrumb'
-import { ColumnChart, BarChart, ChartFigure } from '../components/viz'
 import { pathFor } from '../seo/routes'
 
 // ── i18n Labels ──
@@ -52,11 +51,11 @@ const EXTRA = {
 
 // ── v3: izah, qrafik başlıqları, "harada edim" keçidləri ──
 const V3 = {
-  az: { how: 'Hər əməli edəndə sətrə toxunun — işarə qoyulur. Namaz işarələri «Namaz izləyicisi» ilə ortaqdır. Gün bitəndə həftəlik və aylıq qrafiklərə baxın.', weekSub: 'günün tamamlanma faizi', monthTitle: 'Son 30 gündə ardıcıllıq', monthSub: 'hər əməl neçə gün edilib', monthNote: 'Ən sevimli əməl az olsa da davamlı olandır (Buxari 6464, Müslim 782).', days: 'gün', whereTitle: 'Harada edim?', whereLead: 'Hər əməl üçün saytdakı uyğun bölmə.' },
-  en: { how: 'Tap a row when you have done it — it gets ticked. Prayer ticks are shared with the Prayer tracker. Check the weekly and monthly charts as the days go by.', weekSub: 'share of the day completed', monthTitle: 'Consistency over the last 30 days', monthSub: 'on how many days each deed was done', monthNote: 'The most beloved deeds are the most constant, even if small (al-Bukhari 6464, Muslim 782).', days: 'days', whereTitle: 'Where do I do it?', whereLead: 'The matching section of the site for each deed.' },
-  ru: { how: 'Сделав дело, нажмите на строку — появится отметка. Отметки намазов общие с «Учётом намазов». По мере дней смотрите недельный и месячный графики.', weekSub: 'доля выполненного за день', monthTitle: 'Постоянство за 30 дней', monthSub: 'сколько дней совершалось каждое дело', monthNote: 'Самые любимые дела — постоянные, даже если малые (аль-Бухари 6464, Муслим 782).', days: 'дн.', whereTitle: 'Где это сделать?', whereLead: 'Подходящий раздел сайта для каждого дела.' },
-  ar: { how: 'اضغط على السطر عند أداء العمل لتوضع علامة. علامات الصلاة مشتركة مع «متابعة الصلاة». وتابع الرسمين الأسبوعي والشهري مع الأيام.', weekSub: 'نسبة ما أُنجز في اليوم', monthTitle: 'المداومة في آخر 30 يومًا', monthSub: 'عدد الأيام التي أُدي فيها كل عمل', monthNote: 'أحب الأعمال إلى الله أدومها وإن قلّ (البخاري 6464، مسلم 782).', days: 'يومًا', whereTitle: 'أين أؤديه؟', whereLead: 'القسم المناسب في الموقع لكل عمل.' },
-  tr: { how: 'Bir ameli yaptığınızda satıra dokunun — işaretlenir. Namaz işaretleri «Namaz takibi» ile ortaktır. Günler geçtikçe haftalık ve aylık grafiklere bakın.', weekSub: 'günün tamamlanma yüzdesi', monthTitle: 'Son 30 günde süreklilik', monthSub: 'her amel kaç gün yapıldı', monthNote: 'Amellerin en sevimlisi az da olsa devamlı olanıdır (Buhârî 6464, Müslim 782).', days: 'gün', whereTitle: 'Nerede yapayım?', whereLead: 'Her amel için sitedeki uygun bölüm.' },
+  az: { avg: 'Həftəlik orta', how: 'Hər əməli edəndə sətrə toxunun — işarə qoyulur. Namaz işarələri «Namaz izləyicisi» ilə ortaqdır. Gün bitəndə həftəlik və aylıq qrafiklərə baxın.', weekSub: 'günün tamamlanma faizi', monthTitle: 'Son 30 gündə ardıcıllıq', monthSub: 'hər əməl neçə gün edilib', monthNote: 'Ən sevimli əməl az olsa da davamlı olandır (Buxari 6464, Müslim 782).', days: 'gün', whereTitle: 'Harada edim?', whereLead: 'Hər əməl üçün saytdakı uyğun bölmə.' },
+  en: { avg: 'Weekly average', how: 'Tap a row when you have done it — it gets ticked. Prayer ticks are shared with the Prayer tracker. Check the weekly and monthly charts as the days go by.', weekSub: 'share of the day completed', monthTitle: 'Consistency over the last 30 days', monthSub: 'on how many days each deed was done', monthNote: 'The most beloved deeds are the most constant, even if small (al-Bukhari 6464, Muslim 782).', days: 'days', whereTitle: 'Where do I do it?', whereLead: 'The matching section of the site for each deed.' },
+  ru: { avg: 'Среднее за неделю', how: 'Сделав дело, нажмите на строку — появится отметка. Отметки намазов общие с «Учётом намазов». По мере дней смотрите недельный и месячный графики.', weekSub: 'доля выполненного за день', monthTitle: 'Постоянство за 30 дней', monthSub: 'сколько дней совершалось каждое дело', monthNote: 'Самые любимые дела — постоянные, даже если малые (аль-Бухари 6464, Муслим 782).', days: 'дн.', whereTitle: 'Где это сделать?', whereLead: 'Подходящий раздел сайта для каждого дела.' },
+  ar: { avg: 'متوسط الأسبوع', how: 'اضغط على السطر عند أداء العمل لتوضع علامة. علامات الصلاة مشتركة مع «متابعة الصلاة». وتابع الرسمين الأسبوعي والشهري مع الأيام.', weekSub: 'نسبة ما أُنجز في اليوم', monthTitle: 'المداومة في آخر 30 يومًا', monthSub: 'عدد الأيام التي أُدي فيها كل عمل', monthNote: 'أحب الأعمال إلى الله أدومها وإن قلّ (البخاري 6464، مسلم 782).', days: 'يومًا', whereTitle: 'أين أؤديه؟', whereLead: 'القسم المناسب في الموقع لكل عمل.' },
+  tr: { avg: 'Haftalık ortalama', how: 'Bir ameli yaptığınızda satıra dokunun — işaretlenir. Namaz işaretleri «Namaz takibi» ile ortaktır. Günler geçtikçe haftalık ve aylık grafiklere bakın.', weekSub: 'günün tamamlanma yüzdesi', monthTitle: 'Son 30 günde süreklilik', monthSub: 'her amel kaç gün yapıldı', monthNote: 'Amellerin en sevimlisi az da olsa devamlı olanıdır (Buhârî 6464, Müslim 782).', days: 'gün', whereTitle: 'Nerede yapayım?', whereLead: 'Her amel için sitedeki uygun bölüm.' },
 }
 const WHERE = [
   { page: 'tracker', icon: 'tracker', t: { az: 'Namaz izləyicisi', en: 'Prayer tracker', ru: 'Учёт намазов', ar: 'متابعة الصلاة', tr: 'Namaz takibi' }, s: { az: 'Təqvim, seriya, qəza qeydi', en: 'Calendar, streak, missed prayers', ru: 'Календарь, серия, пропуски', ar: 'التقويم والتتابع والفوائت', tr: 'Takvim, seri, kaza kaydı' } },
@@ -133,6 +132,11 @@ function getDayLabel(dateStr, t) {
   return labels[day]
 }
 
+// "26.10" kimi qısa tarix (oxlar üçün; dil neytral)
+function fmtShort(dateStr) {
+  return `${dateStr.slice(8)}.${dateStr.slice(5, 7)}`
+}
+
 function calcStreak(data) {
   let streak = 0
   const today = new Date()
@@ -190,11 +194,13 @@ export default function DailyTrackerPage({ setPage }) {
   const weekData = last7.map(d => {
     const dd = data[d] || {}
     const pct = Math.round((ACTIVITIES.filter(a => dd[a.key]).length / totalCount) * 100)
-    return { key: d, label: `${getDayLabel(d, t)} ${Number(d.slice(8))}`, value: pct, current: d === today }
+    return { key: d, dow: getDayLabel(d, t), day: Number(d.slice(8)), label: `${getDayLabel(d, t)} ${Number(d.slice(8))}`, value: pct, current: d === today }
   })
+  const weekAvg = Math.round(weekData.reduce((a, d) => a + d.value, 0) / weekData.length)
   const monthData = ACTIVITIES.map(a => ({
     key: a.key, label: a[lang] || a.en,
     value: last30.filter(d => data[d] && data[d][a.key]).length,
+    days: last30.map(d => !!(data[d] && data[d][a.key])),
   }))
 
   const toggle = useCallback((key) => {
@@ -236,6 +242,9 @@ export default function DailyTrackerPage({ setPage }) {
 
       <section className="ui-section tracker-page">
         <div className="ui-container tracker-layout">
+          {/* Üst hissə: halqa kartı yalnız bu qabın içində "yapışır" — aşağıdakı
+              qrafiklərin üstünə keçmir (əvvəl sticky kart həftə kartını örtürdü) */}
+          <div className="tracker-top">
 
           {/* Faiz halqası + statistika; hamısı bitəndə qızılı halqa və təbrik */}
           <div className={`tracker-progress-section ui-card${percent === 100 ? ' is-complete' : ''}`} data-reveal="scale">
@@ -322,15 +331,61 @@ export default function DailyTrackerPage({ setPage }) {
             </div>
           </div>
 
-          {/* Həftə (sütun qrafiki) + son 30 gündə hər əməlin ardıcıllığı */}
+          </div>
+
+          {/* Həftə (gün kafelləri) + son 30 gündə hər əməlin ardıcıllığı (istilik xəritəsi) */}
           <div className="tracker-week">
             <div className="tracker-charts">
-              <ChartFigure className="ui-card tracker-chart" title={t.weekView} sub={v.weekSub}>
-                <ColumnChart data={weekData} max={100} height={130} label={t.weekView} format={(n) => (n > 0 ? `${n}%` : '—')} />
-              </ChartFigure>
-              <ChartFigure className="ui-card tracker-chart" title={v.monthTitle} sub={v.monthSub} note={v.monthNote}>
-                <BarChart data={monthData} max={30} label={v.monthTitle} labelWidth="42%" format={(n) => `${n} / 30`} />
-              </ChartFigure>
+              <section className="ui-card tracker-chart" aria-labelledby="tracker-week-h">
+                <h2 className="tracker-chart-title" id="tracker-week-h">{t.weekView}</h2>
+                <p className="tracker-chart-sub">{v.weekSub}</p>
+                <ol className="tracker-week-grid">
+                  {weekData.map(d => (
+                    <li key={d.key}
+                      className={`tracker-week-day${d.current ? ' today' : ''}${d.value === 100 ? ' complete' : ''}`}
+                      aria-label={`${d.label}: ${d.value}%`}>
+                      <span className="tracker-week-label" aria-hidden="true">{d.dow}</span>
+                      <span className="tracker-week-num ui-num" aria-hidden="true">{d.day}</span>
+                      <span className="tracker-week-bar-wrap" aria-hidden="true">
+                        <span className="tracker-week-bar" style={{ '--p': d.value / 100 }} />
+                      </span>
+                      <span className="tracker-week-pct ui-num" aria-hidden="true">{d.value > 0 ? `${d.value}%` : '—'}</span>
+                    </li>
+                  ))}
+                </ol>
+                <div className="tracker-week-avg">
+                  <span>{v.avg}</span>
+                  <span className="ui-num">{weekAvg}%</span>
+                </div>
+                <span className="tracker-week-avgbar" aria-hidden="true"><span style={{ '--p': weekAvg / 100 }} /></span>
+              </section>
+
+              <section className="ui-card tracker-chart" aria-labelledby="tracker-month-h">
+                <h2 className="tracker-chart-title" id="tracker-month-h">{v.monthTitle}</h2>
+                <p className="tracker-chart-sub">{v.monthSub}</p>
+                <ul className="tracker-heat">
+                  {monthData.map(m => (
+                    <li key={m.key} className="tracker-heat-row" aria-label={`${m.label}: ${m.value} / 30`}>
+                      <span className="tracker-heat-label">{m.label}</span>
+                      <span className="tracker-heat-cells" aria-hidden="true">
+                        {m.days.map((on, i) => (
+                          <span key={i} className={`tracker-heat-cell${on ? ' on' : ''}${i === 29 ? ' is-today' : ''}`} />
+                        ))}
+                      </span>
+                      <span className="tracker-heat-count ui-num" aria-hidden="true">{m.value}<small>/30</small></span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="tracker-heat-row tracker-heat-axis" aria-hidden="true">
+                  <span />
+                  <span className="tracker-heat-axis-mid">
+                    <span className="ui-num">{fmtShort(last30[0])}</span>
+                    <span>{t.today}</span>
+                  </span>
+                  <span />
+                </div>
+                <p className="tracker-chart-note">{v.monthNote}</p>
+              </section>
             </div>
             <p className="tracker-note"><Icon name="info" size={15} /> {x.saved}</p>
           </div>

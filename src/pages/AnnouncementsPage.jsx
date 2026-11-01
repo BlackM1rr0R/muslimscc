@@ -458,8 +458,10 @@ export default function AnnouncementsPage({ setPage }) {
           ) : announcements.length === 0 ? (
             <div className="ui-card anp-empty" data-reveal="scale">
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral anp-empty-icon" aria-hidden="true"><Icon name="announcements" /></span>
-              <p className="anp-empty-title">{l.empty}</p>
-              <p className="anp-empty-sub">{l.emptySub}</p>
+              <div className="anp-empty-body">
+                <p className="anp-empty-title">{l.empty}</p>
+                <p className="anp-empty-sub">{l.emptySub}</p>
+              </div>
             </div>
           ) : (
             <>
@@ -593,7 +595,7 @@ export default function AnnouncementsPage({ setPage }) {
             <span className="ui-eyebrow">{(V3[lang] || V3.en).stayEyebrow}</span>
             <h2 id="anp-stay-title" className="ui-title">{(V3[lang] || V3.en).stayTitle}</h2>
           </div>
-          <ul className="ui-tiles anp-stay" style={{ '--ui-tiles-min': '200px' }} data-reveal="stagger">
+          <ul className="ui-tiles anp-stay" data-reveal="stagger">
             {offerNotif && (
               <li>
                 <button type="button" className="ui-tile ui-tile--row anp-stay-btn" onClick={openNotifications}>

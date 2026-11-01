@@ -79,9 +79,11 @@
 /* ── Şəbəkələr ── */
 .vp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 248px), 1fr));
   gap: var(--space-5) var(--space-4);
 }
+/* "Dinləmək və öyrənmək üçün" kafelləri sıranı tam doldursun (sağda boş yer qalmasın) */
+.vp-alt .ui-tiles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 /* Seçilmişlər: birinci böyük (sol), digər ikisi yanında */
 .vp-featured-grid {
   display: grid;

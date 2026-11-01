@@ -20,6 +20,8 @@
 // ═══════════════════════════════════════════════════════
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import usePrayerTimes, { PRAYER_KEYS, PRAYER_NAMES, FARD, toMinutes } from '../hooks/usePrayerTimes'
 import { PRAYER_CITIES, COUNTRY_NAMES, getPrayerLocation } from '../utils/prayerLocation'
@@ -64,7 +66,7 @@ const LABELS = {
     link: 'Televizor üçün link',
     linkHint: 'Bu linki televizorun brauzerində açın — bütün ayarlar linkin içindədir.',
     copy: 'Kopyala', copied: 'Kopyalandı', open: 'Aç',
-    back: 'Sayta qayıt', reset: 'Standart ayarlar',
+    back: 'Sayta qayıt', backShort: 'Geri', reset: 'Standart ayarlar',
     keysHint: 'Ayarları açmaq üçün düymə:',
     calc: 'Vaxtlar astronomik hesablanıb',
     loading: 'Namaz vaxtları yüklənir...',
@@ -98,7 +100,7 @@ const LABELS = {
     link: 'Link for the TV',
     linkHint: 'Open this link in the TV browser — all settings are inside the link.',
     copy: 'Copy', copied: 'Copied', open: 'Open',
-    back: 'Back to the site', reset: 'Default settings',
+    back: 'Back to the site', backShort: 'Back', reset: 'Default settings',
     keysHint: 'Key to open settings:',
     calc: 'Times are astronomically calculated',
     loading: 'Loading prayer times...',
@@ -132,7 +134,7 @@ const LABELS = {
     link: 'Ссылка для телевизора',
     linkHint: 'Откройте эту ссылку в браузере телевизора — все настройки уже в ней.',
     copy: 'Копировать', copied: 'Скопировано', open: 'Открыть',
-    back: 'Вернуться на сайт', reset: 'Настройки по умолчанию',
+    back: 'Вернуться на сайт', backShort: 'Назад', reset: 'Настройки по умолчанию',
     keysHint: 'Клавиша для открытия настроек:',
     calc: 'Время рассчитано астрономически',
     loading: 'Загрузка времени намаза...',
@@ -166,7 +168,7 @@ const LABELS = {
     link: 'رابط للتلفاز',
     linkHint: 'افتح هذا الرابط في متصفح التلفاز — جميع الإعدادات موجودة فيه.',
     copy: 'نسخ', copied: 'تم النسخ', open: 'فتح',
-    back: 'العودة إلى الموقع', reset: 'الإعدادات الافتراضية',
+    back: 'العودة إلى الموقع', backShort: 'رجوع', reset: 'الإعدادات الافتراضية',
     keysHint: 'زر فتح الإعدادات:',
     calc: 'الأوقات محسوبة فلكيًا',
     loading: 'جارٍ تحميل مواقيت الصلاة...',
@@ -200,7 +202,7 @@ const LABELS = {
     link: 'Televizyon için bağlantı',
     linkHint: 'Bu bağlantıyı televizyonun tarayıcısında açın; tüm ayarlar bağlantının içinde.',
     copy: 'Kopyala', copied: 'Kopyalandı', open: 'Aç',
-    back: 'Siteye dön', reset: 'Varsayılan ayarlar',
+    back: 'Siteye dön', backShort: 'Geri', reset: 'Varsayılan ayarlar',
     keysHint: 'Ayarları açma tuşu:',
     calc: 'Vakitler astronomik olarak hesaplanmıştır',
     loading: 'Namaz vakitleri yükleniyor...',
@@ -573,8 +575,23 @@ export default function MosqueTvPage({ setPage }) {
   const goBack = (e) => {
     if (setPage) { e.preventDefault(); setPage('home') }
   }
+  // Yuxarıdakı "Geri": tarixçə varsa bir addım geri, yoxsa (link birbaşa
+  // açılıb, iframe) ana səhifə. React Router hər girişə idx yazır.
+  const navigate = useNavigate()
+  const stepBack = (e) => {
+    e.preventDefault()
+    const idx = typeof window !== 'undefined' ? window.history.state?.idx : 0
+    if (typeof idx === 'number' && idx > 0) navigate(-1)
+    else if (setPage) setPage('home')
+    else navigate(pathFor('home', siteLang))
+  }
+  // Tam ekranda və kiosk rejimində (televizor) gizlidir; iframe vidjetində (compact) yoxdur
+  const showBack = !compact && !kiosk && !isFs
 
-  return (
+  // Portal: <main class="page-enter"> animasiyadan sonra da transform saxlayır və
+  // saytın başlıq boşluğu (padding) var — position:fixed ekran ona görə 64px
+  // aşağı sürüşüb altdan kəsilirdi. document.body-yə çıxarılır.
+  const screen = (
     <div
       ref={rootRef}
       className={`mtv${compact ? ' mtv--compact' : ''}${controlsVisible || settingsOpen ? '' : ' mtv--idle'}`}
@@ -585,6 +602,12 @@ export default function MosqueTvPage({ setPage }) {
 
       {/* ── Başlıq: məscid/şəhər | tarix | düymələr ── */}
       <header className="mtv-top">
+        {showBack && (
+          <a className="mtv-back" href={pathFor('home', siteLang)} onClick={stepBack} aria-label={l.backShort} title={l.back}>
+            <Icon name="chevronLeft" size={20} className="ui-flip-rtl" />
+            <span className="mtv-back-text">{l.backShort}</span>
+          </a>
+        )}
         <div className="mtv-id">
           <h1 className="mtv-name">{cfg.name || l.title}</h1>
           <p className="mtv-city"><Icon name="pin" size={18} /> {cityName}</p>
@@ -738,6 +761,7 @@ export default function MosqueTvPage({ setPage }) {
       )}
     </div>
   )
+  return typeof document !== 'undefined' && document.body ? createPortal(screen, document.body) : screen
 }
 
 // ═══ Ayarlar paneli ═══════════════════════════════════

@@ -268,8 +268,8 @@ html.gs-open body {
   color: var(--text-tertiary);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: var(--tracking-wide, 0.08em);
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 [dir="rtl"] .gs-sec-title { letter-spacing: 0; font-size: 13px; }
 
@@ -625,8 +625,8 @@ html.gs-open body {
   color: var(--text-tertiary);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: var(--tracking-wide, 0.08em);
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 [dir="rtl"] .gs-block-head { letter-spacing: 0; font-size: 13px; }
 .gs-block-head .gs-link { letter-spacing: 0; text-transform: none; }

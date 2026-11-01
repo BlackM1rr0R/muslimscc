@@ -422,7 +422,7 @@ export default function CharityPage({ setPage }) {
 
       {/* ══ "Nələr sədəqədir?" — gündəlikdəki növlərin dəlili (LessonBlocks formatı) ══ */}
       <section className="ui-section ch-guide ui-cv" style={{ '--cv-h': '1800px' }}>
-        <div className="ui-container ui-container--narrow">
+        <div className="ui-container">
           {CHARITY_GUIDE.map(sec => (
             <section key={sec.id} id={`ch-${sec.id}`} className="ch-guide-sec" aria-labelledby={`ch-${sec.id}-title`}>
               <div className="ui-section-head" data-reveal>

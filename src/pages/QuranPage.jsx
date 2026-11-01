@@ -1472,7 +1472,7 @@ function QuranGuide({ lang }) {
 
       {/* Tarix — zaman xətti */}
       <section className="ui-section qp-sec ui-cv" style={{ '--cv-h': '760px' }} aria-labelledby="qp-history-h">
-        <div className="ui-container qp-narrow">
+        <div className="ui-container qp-narrow qp-history">
           <SectionHead eyebrow={pk(g.history.eyebrow, lang)} title={pk(g.history.title, lang)} lead={pk(g.history.lead, lang)} id="qp-history-h" />
           <Timeline wide items={g.history.items.map((it, i) => ({
             key: i, when: it.when, title: pk(it.title, lang), text: pk(it.text, lang), highlight: it.highlight,

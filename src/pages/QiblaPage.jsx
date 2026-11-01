@@ -571,6 +571,7 @@ export default function QiblaPage({ setPage }) {
               </ol>
               <a className="ui-link qibla-steps-more" href="#qb-g-compass">{dt.more} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" /></a>
             </div>
+            </div>
 
             <div className="qibla-side">
 
@@ -637,7 +638,6 @@ export default function QiblaPage({ setPage }) {
               </button>
             </div>
 
-            </div>
             </div>
 
           </div>
