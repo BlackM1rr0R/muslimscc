@@ -20,7 +20,11 @@ test('yeni versiya varsa — ön plana qayıdanda səhifə özü yenilənir (bir
   let htmlLoads = 0
   page.on('request', (r) => { if (r.resourceType() === 'document') htmlLoads++ })
   await page.route(/\/version\.json/, (route) => route.fulfill({ contentType: 'application/json', body: NEW_BUILD }))
+  // Yenilənmənin BİTMƏSİNİ gözlə (yalnız sorğunun başlamasını yox) — əks halda
+  // növbəti evaluate köhnə səhifənin məhv olmuş kontekstinə düşürdü (CI-da qeyri-sabit idi)
+  const reloaded = page.waitForEvent('load')
   await resume(page)
+  await reloaded
   await expect.poll(() => htmlLoads).toBe(1)
   await settle(page)
   // Eyni yeni versiyaya görə ikinci dəfə yenilənmir (döngü yoxdur) — bildiriş çıxır
