@@ -123,6 +123,22 @@ jobs:
             -keyout /tmp/c/privkey.pem -out /tmp/c/fullchain.pem 2>/dev/null && chmod 644 /tmp/c/*.pem
           docker run --rm -v /tmp/c:/certs:ro muslimscc-web:${{ steps.tag.outputs.tag }} nginx -t
 
+      # API image-i həqiqətən başlayırmı (məs. Dockerfile-a düşməyən modul —
+      # 2026-11-04: "Cannot find module './sync'" yalnız serverdə üzə çıxdı)
+      - name: api image başlayır və /api/health cavab verir
+        run: |
+          docker load -i /tmp/api.tar
+          docker run -d --name api-smoke -e OPENROUTER_KEY=ci -e PORT=3001 -e DB_PATH=/tmp/smoke.db \
+            --read-only --tmpfs /tmp muslimscc-api:${{ steps.tag.outputs.tag }}
+          ok=0
+          for i in $(seq 1 25); do
+            if docker exec api-smoke node -e "fetch('http://127.0.0.1:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" 2>/dev/null; then ok=1; break; fi
+            sleep 1
+          done
+          docker logs api-smoke 2>&1 | tail -20
+          docker rm -f api-smoke >/dev/null
+          [ "$ok" = 1 ] || { echo "::error::API image başlamadı (yuxarıdakı loga baxın)"; exit 1; }
+
       - name: Sıxışdır
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: gzip -1 /tmp/api.tar /tmp/web.tar

@@ -31,6 +31,14 @@ const LEGACY_AUTH_ON = FIREBASE_READY && !envOff(process.env.LEGACY_FIREBASE_AUT
 if (!FIREBASE_READY) console.warn('XƏBƏRDARLIQ: Firebase env-i yoxdur — FCM və köhnə admin tokeni sönülüdür')
 else console.log(`Firebase: FCM ${FCM_ON ? 'açıq' : 'sönülü'}, köhnə admin tokeni ${LEGACY_AUTH_ON ? 'qəbul olunur' : 'qəbul olunmur'}`)
 
+// ─── Modullar BAZADAN ƏVVƏL yüklənir ──────────────────────────────────
+// Modul çatışmırsa (məs. Dockerfile-a düşməyib), server MİQRASİYADAN ƏVVƏL
+// çöksün: yoxsa yeni sxem tətbiq olunur və köhnə versiyaya qayıdış da alınmır
+// (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
+// çağırış pulsuzdur.
+for (const m of ['./auth', './analytics', './content', './feedback', './groups', './sync', './push',
+  './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './prayCalc']) require(m)
+
 // ─── Verilənlər bazası (SQLite, node:sqlite) ─────────────────────────
 const { openDb } = require('./db')
 let db
