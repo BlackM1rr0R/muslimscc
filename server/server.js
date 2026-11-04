@@ -36,7 +36,7 @@ else console.log(`Firebase: FCM ${FCM_ON ? 'açıq' : 'sönülü'}, köhnə admi
 // çöksün: yoxsa yeni sxem tətbiq olunur və köhnə versiyaya qayıdış da alınmır
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
-for (const m of ['./auth', './analytics', './content', './feedback', './groups', './sync', './push',
+for (const m of ['./auth', './analytics', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './prayCalc']) require(m)
 
 // ─── Verilənlər bazası (SQLite, node:sqlite) ─────────────────────────
@@ -109,6 +109,11 @@ app.use('/api', require('./groups').createGroupsRouter({ db }))
 
 // ─── Cihazlar arası sinxronizasiya (server/sync.js) — şifrəli bloklar, hesabsız; öz limiti var ──
 app.use('/api', require('./sync').createSyncRouter({ db }))
+
+// ─── Namaz vaxtları — təqvim abunəliyi (server/ics.js) ──
+// Google/Apple serverləri çox istifadəçi üçün eyni IP-dən gəlir — limit genişdir
+app.use('/api/prayer.ics', limit(60000, 600))
+app.use('/api', require('./ics').createIcsRouter())
 
 // ─── Web Push (server/push.js) ───────────────────────────────────────
 const push = require('./push')

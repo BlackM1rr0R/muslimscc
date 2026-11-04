@@ -23,6 +23,7 @@ import usePrayerMonth from '../hooks/usePrayerMonth'
 import PrayerDayline, { hmToMin } from '../components/PrayerDayline'
 import PrayerSky from '../components/prayer/PrayerSky'
 import SunDial from '../components/prayer/SunDial'
+import CalendarSubscribe from '../components/prayer/CalendarSubscribe'
 import { ProgressRing, StatTile } from '../components/viz'
 
 // İmsakiyyə səhifəsi (/ramadan) marşrutlara qoşulubsa kartda ona keçid görünür
@@ -845,6 +846,8 @@ export default function PrayerPage({ setPage }) {
                 <StatTile icon="duas" label={P(V3.third)} value={minToHM(lastThird)} hint={P(V3.thirdHint)} tone="brand" />
               </div>
             )}
+            {/* Google / Apple / Outlook təqviminə abunəlik (server/ics.js) */}
+            <CalendarSubscribe location={pt.location} lang={lang} city={cityName} />
           </div>
         </section>
       )}

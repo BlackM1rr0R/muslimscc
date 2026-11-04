@@ -797,3 +797,12 @@
 }
 /* Səma hero-nun öz fonunun üstündə, naxışın altında */
 .pp-hero > .ui-pattern { z-index: -1; }
+
+/* ── Təqvim abunəliyi (components/prayer/CalendarSubscribe) ── */
+.pp-cal { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+.pp-cal__head { display: flex; align-items: flex-start; gap: var(--space-3); }
+.pp-cal__head .ui-icon-tile { flex: none; }
+.pp-cal__title { margin: 0 0 4px; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; }
+.pp-cal__lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; max-width: 62ch; }
+.pp-cal__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.pp-cal__note { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: var(--step--2); }

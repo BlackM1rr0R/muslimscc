@@ -45,3 +45,11 @@ describe('minToDeg — gecə yarısı aşağıda, günorta yuxarıda', () => {
     expect(minToDeg(1080)).toBe(90)   // 18:00 — sağda
   })
 })
+
+describe('icsUrl (utils/icsUrl → CalendarSubscribe)', async () => {
+  const { icsUrl } = await import('../../src/utils/icsUrl.js')
+  it('koordinat 4 rəqəmə yuvarlaqlaşır, şəhər adı kodlanır', () => {
+    const u = icsUrl('https://muslims.cc', { lat: 40.409312, lng: 49.867123, tz: 'Asia/Baku', method: 99 }, 'az', 'Bakı')
+    expect(u).toBe('https://muslims.cc/api/prayer.ics?lat=40.4093&lng=49.8671&tz=Asia%2FBaku&method=99&lang=az&city=Bak%C4%B1')
+  })
+})
