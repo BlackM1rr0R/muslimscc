@@ -1,0 +1,75 @@
+/* ══ Namaz bağçası (components/prayer/PrayerGarden.jsx) ══
+   Yalnız transform/opacity animasiyası (DESIGN.md §7.3). */
+.pg {
+  --pg-leaf: #3f9a63;
+  --pg-leaf-2: #2f7d4f;
+  --pg-dry: #b48a5a;
+  --pg-stem: #4b8a5f;
+  --pg-petal: #e8a2b4;
+  --pg-core: #e9c25a;
+  --pg-rest: #7d8fb8;
+  --pg-ground-top: color-mix(in srgb, #8a6a3e 22%, transparent);
+  --pg-ground-bot: #8a6a3e;
+  display: grid;
+  gap: var(--space-3);
+  overflow: hidden;
+}
+[data-theme="dark"] .pg {
+  --pg-leaf: #5cc185; --pg-leaf-2: #3e9e66; --pg-dry: #a07a4e; --pg-stem: #5aa774;
+  --pg-petal: #f1b2c3; --pg-rest: #9fb0d8; --pg-ground-top: color-mix(in srgb, #b08a55 26%, transparent);
+}
+.pg-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+.pg-title { margin: 0 0 4px; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; }
+.pg-lead { margin: 0; max-width: 62ch; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.pg-tree-label { margin: 0; color: var(--brand); font-family: var(--font-label); font-weight: 600; }
+.pg-tree-label b { font-size: var(--step-2); }
+
+.pg-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.pg-hit { fill: transparent; }
+.pg-plant { cursor: pointer; outline: none; }
+.pg-plant:focus-visible .pg-soil { stroke: var(--brand); stroke-width: 2; }
+@media (hover: hover) { .pg-plant:hover .pg-soil { fill: color-mix(in srgb, var(--brand) 30%, transparent); } }
+.pg-soil { fill: color-mix(in srgb, #8a6a3e 35%, transparent); transition: fill var(--dur-2) ease; }
+.pg-seed { fill: color-mix(in srgb, #8a6a3e 70%, var(--surface-1)); }
+.pg-stem { fill: none; stroke: var(--pg-stem); stroke-width: 2.4; stroke-linecap: round; }
+.pg-leaf { fill: var(--pg-leaf); transform-box: fill-box; transform-origin: 0% 100%; }
+.pg-leaf:nth-of-type(even) { fill: var(--pg-leaf-2); }
+.pg-leaf.is-missed { fill: var(--pg-dry); opacity: 0.85; }
+.pg-petal { fill: var(--pg-petal); }
+.pg-core { fill: var(--pg-core); }
+.pg-flower { transform-box: fill-box; }
+.pg-moon { fill: var(--pg-rest); opacity: 0.9; }
+.pg-plant--excused .pg-stem { stroke: var(--pg-rest); }
+.pg-today-glow { fill: color-mix(in srgb, var(--brand) 22%, transparent); }
+
+/* Ağac */
+.pg-trunk { fill: #8a6a3e; }
+[data-theme="dark"] .pg-trunk { fill: #a6825a; }
+.pg-branch { fill: none; stroke: #8a6a3e; stroke-width: 2.4; stroke-linecap: round; }
+.pg-crown circle { fill: var(--pg-leaf); }
+.pg-crown circle:nth-child(2) { fill: var(--pg-leaf-2); }
+.pg-fruit { fill: var(--pg-core); }
+.pg-tree-cap { fill: var(--text-tertiary); font-family: var(--font-label); font-size: 11px; font-weight: 600; }
+
+/* Leqenda */
+.pg-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; color: var(--text-secondary); font-size: var(--step--2); }
+.pg-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.pg-dot { width: 10px; height: 10px; border-radius: 50%; }
+.pg-dot--complete { background: var(--pg-petal); box-shadow: inset 0 0 0 3px var(--pg-core); }
+.pg-dot--partial { background: var(--pg-leaf); }
+.pg-dot--missed { background: var(--pg-dry); }
+.pg-dot--excused { background: var(--pg-rest); }
+.pg-private { margin: 0; color: var(--text-tertiary); font-size: var(--step--2); }
+
+/* Hərəkət — yalnız transform/opacity */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .pg-leaf { animation: pg-grow 700ms var(--ease-spring) both; animation-delay: calc(var(--i) * 90ms); }
+  html:not(.a11y-reduce-motion) .pg-flower { animation: pg-bloom 900ms var(--ease-spring) 420ms both; }
+  html:not(.a11y-reduce-motion) .pg-crown { transform-box: fill-box; transform-origin: 50% 100%; animation: pg-sway 6s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .pg-fruit { animation: pg-grow 600ms var(--ease-spring) both; animation-delay: calc(600ms + var(--i) * 120ms); transform-box: fill-box; transform-origin: center; }
+  html:not(.a11y-reduce-motion) .pg-plant.is-today .pg-today-glow { transform-box: fill-box; transform-origin: center; animation: pg-pulse 2.4s ease-in-out infinite; }
+}
+@keyframes pg-grow { from { transform: scale(0); opacity: 0; } }
+@keyframes pg-bloom { from { transform: scale(0) rotate(-90deg); opacity: 0; } }
+@keyframes pg-sway { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+@keyframes pg-pulse { 0%, 100% { transform: scale(0.85); opacity: 0.55; } 50% { transform: scale(1.15); opacity: 1; } }

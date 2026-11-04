@@ -135,3 +135,10 @@ describe('Ramazan günləri (Ümmül-Qura)', () => {
     expect(ramadanDaysIn({ start: '2026-06-01', end: '2026-06-07' }, TODAY)).toEqual([])
   })
 })
+
+describe('Namaz bağçası — seriya ağacının mərhələsi (PrayerGarden → treeStage)', async () => {
+  const { treeStage } = await import('../../src/components/prayer/PrayerGarden.jsx')
+  it.each([[0, 0], [1, 1], [2, 1], [3, 2], [6, 2], [7, 3], [13, 3], [14, 4], [29, 4], [30, 5], [400, 5], [-3, 0]])('%i gün → %i', (s, st) => {
+    expect(treeStage(s)).toBe(st)
+  })
+})

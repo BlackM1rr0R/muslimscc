@@ -7,6 +7,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import usePrayerTracker from '../hooks/usePrayerTracker'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 import BackupCard from '../components/BackupCard'
+import PrayerGarden from '../components/prayer/PrayerGarden'
 import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
 import {
   PRAYERS, prayerStatus, dayState, computeStreak, bestStreak, rangeSummary, lastNDays, addDays,
@@ -175,6 +176,14 @@ export default function PrayerTrackerPage({ setPage }) {
 
             <WeekReport t={t} lang={lk} snap={snap} periods={periods} week={week} today={today} sum={weekSum} />
           </div>
+        </div>
+      </section>
+
+      {/* Namaz bağçası — son 30 gün bitki kimi; bitkiyə toxunanda həmin gün açılır */}
+      <section className="ui-section ui-section--tight pt-garden">
+        <div className="ui-container">
+          <PrayerGarden snap={snap} periods={periods} today={today} streak={streak} lang={lk}
+            onPick={(d) => { pickDay(d); document.querySelector('.pt-main')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }} />
         </div>
       </section>
 
