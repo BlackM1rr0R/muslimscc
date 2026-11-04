@@ -29,6 +29,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { useCallback } from 'react'
+import { isLiteDevice } from '../utils/liteDevice'
 
 const SELECTOR = '[data-reveal]:not([data-reveal-ready])'
 const COUNT_SELECTOR = '[data-count]:not([data-count-ready])'
@@ -40,7 +41,7 @@ let started = false
 
 function prefersReducedMotion() {
   try {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches || isLiteDevice()
   } catch {
     return false
   }
@@ -98,14 +99,34 @@ function runCount(el) {
   const dur = Math.min(4000, parseInt(el.getAttribute('data-count-duration'), 10) || COUNT_MS)
   const t0 = performance.now()
   const ease = (t) => 1 - Math.pow(1 - t, 3)
+  // PERFORMANS (2026-11-05 ölçüsü): əvvəl mətn HƏR KADRDA yazılırdı — hər yazı
+  // stil + layout + rəngləmə (rəqəmin eni dəyişir, ətrafı yenidən yerləşir);
+  // sürüşmədə əsas axının işinin böyük hissəsi bu idi. İndi:
+  //   • eni son mətnə görə sabitlənir + bərabər enli rəqəmlər → layout yerində qalır
+  //   • ən çox ~20 yazı/san və yalnız mətn dəyişəndə
+  //   • sonda bütün müvəqqəti stillər qaldırılır
+  const prevStyle = el.getAttribute('style')
+  try {
+    const w = el.getBoundingClientRect().width
+    if (getComputedStyle(el).display === 'inline') el.style.display = 'inline-block'
+    el.style.fontVariantNumeric = 'tabular-nums'
+    if (w > 0) el.style.minWidth = `${Math.ceil(w)}px`
+  } catch { /* stil ölçülmədi — sadəcə say */ }
+  const restore = () => { if (prevStyle == null) el.removeAttribute('style'); else el.setAttribute('style', prevStyle) }
+  let lastWrite = 0
+  let lastText = ''
+  const write = (text) => { if (text !== lastText) { node.nodeValue = text; lastText = text } }
   const step = (now) => {
-    if (!el.isConnected || node.parentNode !== el) return
+    if (!el.isConnected || node.parentNode !== el) { restore(); return }
     const t = Math.min(1, (now - t0) / dur)
-    if (t >= 1) { node.nodeValue = original; return }
-    node.nodeValue = pre + formatLike(numText, target * ease(t), decimals) + post
+    if (t >= 1) { node.nodeValue = original; restore(); return }
+    if (now - lastWrite >= 48) {
+      lastWrite = now
+      write(pre + formatLike(numText, target * ease(t), decimals) + post)
+    }
     requestAnimationFrame(step)
   }
-  node.nodeValue = pre + formatLike(numText, 0, decimals) + post
+  write(pre + formatLike(numText, 0, decimals) + post)
   requestAnimationFrame(step)
 }
 

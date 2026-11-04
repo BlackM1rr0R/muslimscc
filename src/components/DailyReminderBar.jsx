@@ -30,6 +30,7 @@ import { filled, tr } from '../config/brand'
 import { localizeSource } from '../utils/sourceNames'
 import { isDailyBarHiddenToday, hideDailyBarForToday } from './DailyReminderBarSkeleton'
 import '../styles/DailyReminderBar.css'
+import { isLiteDevice } from '../utils/liteDevice'
 
 const ROTATE_MS = 8000
 
@@ -152,12 +153,13 @@ export function buildDailyItems(lang, day, admin) {
 function usePrefersReducedMotion() {
   const query = '(prefers-reduced-motion: reduce)'
   const [reduced, setReduced] = useState(() => {
-    try { return window.matchMedia(query).matches } catch { return false }
+    // Zəif cihaz da (utils/liteDevice) — avtomatik fırlanma yox
+    try { return window.matchMedia(query).matches || isLiteDevice() } catch { return false }
   })
   useEffect(() => {
     let mql
     try { mql = window.matchMedia(query) } catch { return undefined }
-    const onChange = (e) => setReduced(e.matches)
+    const onChange = (e) => setReduced(e.matches || isLiteDevice())
     if (mql.addEventListener) mql.addEventListener('change', onChange)
     else if (mql.addListener) mql.addListener(onChange)
     return () => {

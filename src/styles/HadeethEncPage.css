@@ -241,7 +241,7 @@
   html:not(.a11y-reduce-motion) .he-grid { animation: he-v4-view 650ms cubic-bezier(.16,1,.3,1) both; }
   html:not(.a11y-reduce-motion) .he-cur { animation: he-v4-slide 600ms cubic-bezier(.16,1,.3,1) both; }
   html:not(.a11y-reduce-motion)[dir="rtl"] .he-cur { animation-name: he-v4-slide-rtl; }
-  html:not(.a11y-reduce-motion) .he-root[aria-pressed="true"]::after { animation: he-v4-sweep 5s ease-in-out infinite; }
+  html:not(.a11y-reduce-motion) .he-root[aria-pressed="true"]::after { animation: he-v4-sweep 5s ease-in-out 2; }
   html:not(.a11y-reduce-motion) .he-root[aria-pressed="true"] .he-root__n { animation: he-v4-seal 480ms cubic-bezier(.34,1.56,.64,1); }
   html:not(.a11y-reduce-motion) .he-read__ar { animation: he-v4-ink 1100ms cubic-bezier(.16,1,.3,1) 100ms both; }
   html:not(.a11y-reduce-motion) .he-hero__ar { animation: he-v4-ink 1500ms cubic-bezier(.16,1,.3,1) 300ms both; }

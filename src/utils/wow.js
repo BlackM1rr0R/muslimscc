@@ -27,6 +27,8 @@
 // scroll dinləyiciləri passive + rAF; layout oxunuşu kadra bir dəfə.
 // ═══════════════════════════════════════════════════════
 
+import { isLiteDevice } from './liteDevice'
+
 const CARD = '.ui-card, .ui-tile, .ui-stat, .surah-card'
 // Əyilmə yalnız kiçik, kliklənən kartlarda (iri məzmun panelləri əyilməsin)
 const TILT = '.ui-card--interactive, a.ui-card, button.ui-card, .ui-tile, .surah-card'
@@ -55,7 +57,8 @@ const html = () => document.documentElement
 function reduced() {
   try {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      html().classList.contains('a11y-reduce-motion')
+      html().classList.contains('a11y-reduce-motion') ||
+      isLiteDevice()   // zəif cihaz (utils/liteDevice) — applyA11yPrefs-dən ƏVVƏL də
   } catch { return false }
 }
 const mq = (q) => { try { return window.matchMedia(q) } catch { return { matches: false } } }
@@ -253,15 +256,27 @@ function initParallax() {
     }, { rootMargin: '20% 0px' })
     : null
   let raf = 0
+  // PERFORMANS: söndürülübsə (telefon / hərəkəti azalt) yalnız BİR DƏFƏ təmizlə.
+  // Əvvəl hər sürüşmə kadrında görünən hər elementin style/dataset-i yazılırdı —
+  // təsir olmasa da hər kadr stil yenidən hesablanırdı (2026-11-05 ölçüsü:
+  // sürüşmədə ~110 recalc, söndürüləndə ~5).
+  let cleared = false
+  const clearAll = () => {
+    if (cleared) return
+    cleared = true
+    for (const el of items) {
+      if (el.dataset.wowPy !== undefined) { el.style.removeProperty('translate'); delete el.dataset.wowPy }
+    }
+  }
   const update = () => {
     raf = 0
-    const disabled = off.matches || reduced()
+    if (off.matches || reduced()) { clearAll(); return }
+    cleared = false
     const vh = window.innerHeight
     // Əvvəl hamısını oxu, sonra yaz (layout thrash yoxdur)
     const writes = []
     for (const el of visible) {
       if (!el.isConnected) { visible.delete(el); items.delete(el); continue }
-      if (disabled) { writes.push([el, '']); continue }
       const f = Math.max(-0.6, Math.min(0.6, parseFloat(el.getAttribute('data-parallax')) || 0.15))
       const cur = parseFloat(el.dataset.wowPy || '0')
       const r = el.getBoundingClientRect()
@@ -270,12 +285,16 @@ function initParallax() {
       writes.push([el, ty])
     }
     for (const [el, ty] of writes) {
-      if (ty === '') { el.style.removeProperty('translate'); delete el.dataset.wowPy; continue }
-      el.dataset.wowPy = ty.toFixed(1)
-      el.style.translate = `0 ${ty.toFixed(1)}px`
+      const v = ty.toFixed(1)
+      if (el.dataset.wowPy === v) continue          // dəyişməyibsə yazma (boş yerə stil hesabı olmasın)
+      el.dataset.wowPy = v
+      el.style.translate = `0 ${v}px`
     }
   }
-  function schedule() { if (!raf) raf = requestAnimationFrame(update) }
+  function schedule() {
+    if (cleared && (off.matches || reduced())) return   // söndürülüb — sürüşmədə iş yoxdur
+    if (!raf) raf = requestAnimationFrame(update)
+  }
   const scan = () => {
     document.querySelectorAll('[data-parallax]').forEach(el => {
       if (items.has(el)) return

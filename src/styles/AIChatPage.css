@@ -572,7 +572,7 @@
     pointer-events: none;
   }
   html:not(.a11y-reduce-motion) .aic-suggest-btn:hover::after { transform: translateX(110%); }
-  html:not(.a11y-reduce-motion) .aic-status-dot { animation: aic-pulse 2.4s ease-out infinite; }
+  html:not(.a11y-reduce-motion) .aic-status-dot { animation: aic-pulse 2.4s ease-out 3; }
 }
 
 @keyframes aic-in-start {

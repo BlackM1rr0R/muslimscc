@@ -11,11 +11,12 @@ import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import '../styles/ListMore.css'
+import { isLiteDevice } from '../utils/liteDevice'
 
 const LABEL = { az: 'Yuxarı qayıt', en: 'Back to top', ru: 'Наверх', ar: 'العودة إلى الأعلى', tr: 'Başa dön' }
 
 function reducedMotion() {
-  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return false }
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches || isLiteDevice() } catch { return false }
 }
 
 export default function BackToTop({ threshold }) {

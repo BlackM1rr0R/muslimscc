@@ -15,6 +15,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { resolveSiteDark } from '../contexts/LangContext'
+import { isLiteDevice } from './liteDevice'
 
 export const A11Y_STORAGE_KEY = 'muslim_cc_a11y_prefs_v2'
 
@@ -122,6 +123,8 @@ export function applyA11yPrefs(prefs) {
   html.classList.toggle('a11y-grayscale', prefs.grayscale)
   html.classList.toggle('a11y-larger-targets', prefs.largerTargets)
   html.classList.toggle('a11y-read-aloud', prefs.readAloud)
-  html.classList.toggle('a11y-reduce-motion', prefs.reduceMotion)
+  // Zəif cihazda (≤4 nüvə / ≤4 GB / Save-Data) avtomatik — utils/liteDevice.js
+  html.classList.toggle('a11y-reduce-motion', prefs.reduceMotion || isLiteDevice())
+  html.classList.toggle('wow-lite', isLiteDevice())
   html.classList.toggle('a11y-reading-guide', prefs.readingGuide)
 }

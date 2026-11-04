@@ -198,7 +198,7 @@
   .vsx .vsx-card:hover .vsx-play { transform: scale(1.16); }
 }
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .vsx .vsx-card:hover .vsx-play { animation: vsx-pulse 1.6s ease-out infinite; }
+  html:not(.a11y-reduce-motion) .vsx .vsx-card:hover .vsx-play { animation: vsx-pulse 1.6s ease-out 2; }
   html:not(.a11y-reduce-motion) .vsx-modal-content { animation: vsx-modal-v4 560ms var(--ease-spring); }
 }
 @keyframes vsx-pulse {

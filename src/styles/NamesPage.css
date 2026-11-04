@@ -543,7 +543,7 @@
   html:not(.a11y-reduce-motion) .names-page .np-flash { animation: np-v4-flip-a 620ms cubic-bezier(.16,1,.3,1); }
   html:not(.a11y-reduce-motion) .names-page .np-flash.is-flipped { animation-name: np-v4-flip-b; }
   html:not(.a11y-reduce-motion) .names-modal-ar { animation: np-v4-ink 1000ms cubic-bezier(.16,1,.3,1) 120ms both; }
-  html:not(.a11y-reduce-motion) .np-spot__ar { animation: np-v4-breathe 5s ease-in-out infinite; }
+  html:not(.a11y-reduce-motion) .np-spot__ar { animation: np-v4-breathe 5s ease-in-out 2; }
 }
 @media (prefers-reduced-motion: reduce) { .name-card::before { transition: opacity 200ms ease; transform: none; } .name-card:hover .name-arabic { transform: none; } }
 @keyframes np-v4-ink {

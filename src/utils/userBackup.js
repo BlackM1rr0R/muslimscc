@@ -31,6 +31,7 @@ const EXCLUDE_KEYS = new Set([
   'muslim_cc_pwa_installed', 'install_dismissed',
   'muslim_cc_admin_default_city', 'qmOverlay',
   LAST_BACKUP_KEY,
+  'muslim_cc_motion', // zəif cihaz rejimi (utils/liteDevice) — cihaza aiddir
   'muslim_cc_sync',   // sinxronizasiya kodu + bu cihazın versiyası (utils/userSync) — cihaza aiddir
 ])
 

@@ -229,7 +229,7 @@
     animation: gp-sheen 3.6s ease-in-out 1.4s infinite;
   }
 
-  html:not(.a11y-reduce-motion) .gp-root .gp-juz__cell.is-mine { animation: gp-mine 2.8s ease-in-out infinite; }
+  html:not(.a11y-reduce-motion) .gp-root .gp-juz__cell.is-mine { animation: gp-mine 2.8s ease-in-out 3; }
   html:not(.a11y-reduce-motion) .gp-week__day.is-on .gp-week__dot { animation: gp-cell-in 520ms var(--ease-spring) backwards; }
   html:not(.a11y-reduce-motion) .gp-complete { animation: gp-complete-in 800ms var(--ease-spring) backwards; }
   html:not(.a11y-reduce-motion) .gp-complete .ui-icon-tile { animation: gp-ring-in 900ms var(--ease-spring) 200ms backwards; }

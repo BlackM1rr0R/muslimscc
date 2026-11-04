@@ -74,6 +74,9 @@ export const test = base.extend({
   },
 
   page: async ({ page }, use) => {
+    // Zəif cihaz rejimi (utils/liteDevice) nüvə sayından asılıdır: GitHub runner-də 4 vCPU
+    // → "lite", lokalda isə yox. Testlər hər yerdə EYNİ rejimdə işləsin deyə sabitlənir.
+    await page.addInitScript(() => { try { localStorage.setItem('muslim_cc_motion', 'full') } catch { /* */ } })
     await page.route(/api\.aladhan\.com\//, route => route.fulfill({ json: TIMINGS }))
     await page.route(/api\.alquran\.cloud\/v1\/surah\/\d+\/editions\//, route => {
       const eds = decodeURIComponent(route.request().url().split('/editions/')[1].split('?')[0]).split(',')

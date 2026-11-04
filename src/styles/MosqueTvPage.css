@@ -710,7 +710,7 @@ a.mtv-brand:hover { color: var(--brand); }
 @media (prefers-reduced-motion: no-preference) {
   html:not(.a11y-reduce-motion) .mtv-ambient > span:first-child { animation: mtv-v4-orb-a 70s ease-in-out infinite alternate; }
   html:not(.a11y-reduce-motion) .mtv-ambient > span:last-child { animation: mtv-v4-orb-b 90s ease-in-out infinite alternate; }
-  html:not(.a11y-reduce-motion) .mtv-cell.is-next::after { animation: mtv-v4-sheen 7s var(--tm-ease) 2s infinite; }
+  html:not(.a11y-reduce-motion) .mtv-cell.is-next::after { animation: mtv-v4-sheen 7s var(--tm-ease) 2s 1; }
   html:not(.a11y-reduce-motion) .mtv-slide { animation: mtv-v4-slide 900ms var(--tm-ease) both; }
 }
 @keyframes mtv-v4-orb-a {

@@ -429,3 +429,13 @@ Söndürmək: konteynerə `data-wow-off`. Öz giriş sistemi olan bölmələr (`
 - [ ] Emoji → `<Icon>`; rəngli `style={{'--clr': …}}` → token.
 - [ ] Filtr `.ui-chip`, sekmə `.ui-tabs`, rejim `.ui-segmented`, sahə `.ui-input`.
 - [ ] 360 · 768 · 1280, işıqlı + qaranlıq, `/ar` ekran şəkli; konsol təmiz; check-lang, vitest, build, e2e keçir.
+
+### 7.3 Performans qaydaları (2026-11-05 ölçüsündən sonra)
+
+- **Sonsuz (`infinite`) animasiya yalnız `transform` / `opacity` ilə.** `background-position`, `box-shadow`,
+  `text-shadow`, `filter`, `clip-path`, `stroke-*` GPU-ya ötürülmür — səhifədə belə bircə sonsuz animasiya olsa,
+  brauzer HƏR kadr əsas axında stil hesablayıb rəngləyir (istifadəçi heç nə etməsə də). Belə effekt lazımdırsa —
+  məhdud təkrar (`2`, `3`) və ya yalnız aktiv vəziyyətdə (səslənən ayə, yazılan AI cavabı).
+- Kiçik elementlərdə (rəqəm, ikon) `filter: blur` animasiyası yox — görünmür, amma bahalıdır.
+- JS-də hər kadr DOM yazma yox: dəyər dəyişməyibsə yazma, saniyədə ≤20 yeniləmə, eni sabitlə (`useReveal` sayğacı).
+- Yoxlama: `node scripts/check-motion.mjs` (CI-da) — sonsuz + GPU-ya ötürülməyən animasiyanı tutur.
