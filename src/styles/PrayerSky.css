@@ -1,0 +1,104 @@
+/* ══ PrayerSky — namaz vaxtına görə səma (components/prayer/PrayerSky.jsx) ══
+   Açıq rejim: pastel (tünd mətn oxunaqlı qalır). Tünd rejim: dərin tonlar.
+   Yalnız opacity/transform animasiya olunur. */
+
+.psky {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.psky__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 3s var(--ease-in-out, ease-in-out);
+}
+.psky[data-period="night"]     .psky__layer--night,
+.psky[data-period="dawn"]      .psky__layer--dawn,
+.psky[data-period="morning"]   .psky__layer--morning,
+.psky[data-period="noon"]      .psky__layer--noon,
+.psky[data-period="afternoon"] .psky__layer--afternoon,
+.psky[data-period="sunset"]    .psky__layer--sunset,
+.psky[data-period="dusk"]      .psky__layer--dusk { opacity: 1; }
+
+/* ── Açıq rejim (pastel) ── */
+.psky__layer--night     { background: linear-gradient(180deg, #c9d2ef 0%, #dfe3f3 45%, transparent 100%); }
+.psky__layer--dawn      { background: linear-gradient(180deg, #cdd6f3 0%, #f3d3dc 48%, #fbe8d8 72%, transparent 100%); }
+.psky__layer--morning   { background: linear-gradient(180deg, #d6eaf6 0%, #f4efdc 55%, transparent 100%); }
+.psky__layer--noon      { background: linear-gradient(180deg, #d3ebf8 0%, #eaf4f6 50%, transparent 100%); }
+.psky__layer--afternoon { background: linear-gradient(180deg, #e9e5d0 0%, #f6e3bb 50%, transparent 100%); }
+.psky__layer--sunset    { background: linear-gradient(180deg, #e2cde6 0%, #f6c8ae 45%, #fbe0c4 70%, transparent 100%); }
+.psky__layer--dusk      { background: linear-gradient(180deg, #cbc6ea 0%, #ecccd2 50%, transparent 100%); }
+
+/* ── Tünd rejim ── */
+[data-theme="dark"] .psky__layer--night     { background: linear-gradient(180deg, #08112a 0%, #0c1733 55%, transparent 100%); }
+[data-theme="dark"] .psky__layer--dawn      { background: linear-gradient(180deg, #141c40 0%, #3b2a4f 50%, #5a3b3f 75%, transparent 100%); }
+[data-theme="dark"] .psky__layer--morning   { background: linear-gradient(180deg, #123250 0%, #1d3a44 55%, transparent 100%); }
+[data-theme="dark"] .psky__layer--noon      { background: linear-gradient(180deg, #113a5a 0%, #15343f 55%, transparent 100%); }
+[data-theme="dark"] .psky__layer--afternoon { background: linear-gradient(180deg, #2b2f3d 0%, #4a3b22 55%, transparent 100%); }
+[data-theme="dark"] .psky__layer--sunset    { background: linear-gradient(180deg, #2b1f45 0%, #5e2f3c 45%, #6b3d22 70%, transparent 100%); }
+[data-theme="dark"] .psky__layer--dusk      { background: linear-gradient(180deg, #151a3c 0%, #33254a 55%, transparent 100%); }
+
+/* ── Ulduzlar: gecə tam, şəfəqdə və sübhdə zəif ── */
+.psky__stars { position: absolute; inset: 0; opacity: 0; transition: opacity 3s ease; }
+.psky[data-period="night"] .psky__stars { opacity: 1; }
+.psky[data-period="dusk"] .psky__stars,
+.psky[data-period="dawn"] .psky__stars { opacity: 0.45; }
+.psky__stars > i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  background: #6f7bb0;
+  animation: psky-twinkle 4s ease-in-out infinite;
+}
+[data-theme="dark"] .psky__stars > i { background: #f3ecd6; box-shadow: 0 0 6px rgba(243, 236, 214, 0.6); }
+@keyframes psky-twinkle { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.15); } }
+
+/* ── Günəş ── */
+.psky__sun {
+  position: absolute;
+  width: 74px;
+  height: 74px;
+  margin: -37px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6d8 0%, #ffd77a 38%, rgba(255, 196, 92, 0.55) 56%, rgba(255, 196, 92, 0) 72%);
+  box-shadow: 0 0 80px 40px rgba(255, 205, 110, 0.35);
+  transition: inset-inline-start 60s linear, top 60s linear;
+  animation: psky-glow 6s ease-in-out infinite alternate;
+}
+.psky[data-period="sunset"] .psky__sun,
+.psky[data-period="dawn"] .psky__sun {
+  background: radial-gradient(circle, #fff0d6 0%, #ffab6b 40%, rgba(255, 140, 90, 0.5) 58%, rgba(255, 140, 90, 0) 74%);
+  box-shadow: 0 0 90px 50px rgba(255, 140, 90, 0.32);
+}
+@keyframes psky-glow { from { transform: scale(1); } to { transform: scale(1.08); } }
+
+/* ── Ay (hilal) ── */
+.psky__moon {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  margin: -23px;
+  border-radius: 50%;
+  box-shadow: inset -12px 6px 0 0 #b7a777;
+  filter: drop-shadow(0 0 14px rgba(183, 167, 119, 0.45));
+  transition: inset-inline-start 60s linear, top 60s linear;
+}
+[data-theme="dark"] .psky__moon { box-shadow: inset -12px 6px 0 0 #f1e3b3; filter: drop-shadow(0 0 18px rgba(241, 227, 179, 0.55)); }
+[dir="rtl"] .psky__moon { transform: scaleX(-1); }
+
+/* ── Aşağı kənar səhifənin fonuna yumşaq keçir ── */
+.psky__haze {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, var(--surface-0) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .psky__layer, .psky__stars, .psky__sun, .psky__moon { transition: none; }
+  .psky__stars > i, .psky__sun { animation: none; }
+}
+html.a11y-reduce-motion .psky__stars > i,
+html.a11y-reduce-motion .psky__sun { animation: none; }

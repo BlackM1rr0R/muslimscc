@@ -13,7 +13,7 @@
 // yuxarıdakı sakit zolaqdadır.
 // Brend mətnləri yalnız src/config/brand.js-dən oxunur.
 // ═══════════════════════════════════════════════════════
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { BRAND, brandName, tr } from '../config/brand'
 import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
@@ -23,6 +23,7 @@ import Icon from '../components/Icon'
 import { StatTile } from '../components/viz'
 import { pathFor } from '../seo/routes'
 import CityPicker from '../components/CityPicker'
+import PrayerSky from '../components/prayer/PrayerSky'
 import { HADITH_COUNT } from '../data/siteStats'
 import { lazyWhenIdle } from '../utils/idle'
 
@@ -338,6 +339,15 @@ function Countdown({ at, from, label }) {
   )
 }
 
+// ── Hero səması: seçilmiş şəhərin namaz vaxtına görə (sübh, günorta, qürub, gecə…) ──
+// usePrayerTimes sorğuları birləşdirir (inflight + yaddaş keşi) — kartla ikinci şəbəkə sorğusu yoxdur.
+function HeroSky() {
+  const { prayers, nowSecs } = usePrayerTimes()
+  const times = useMemo(() => Object.fromEntries(prayers.map(p => [p.key, p.adhan])), [prayers])
+  const nowMin = Number.isFinite(nowSecs) ? Math.floor(nowSecs / 60) : null
+  return <PrayerSky times={times} nowMin={nowMin} />
+}
+
 // ── Namaz vaxtları kartı ──
 // Ziyarətçinin yeri SORUŞULMUR (geolocation yoxdur): istifadəçinin /prayer-də
 // seçdiyi şəhər (seçməyibsə standart şəhər) göstərilir — usePrayerTimes →
@@ -564,6 +574,7 @@ export default function HomePage({ setPage }) {
             Hədis sitatı və üçüncü ("Elanlar") düymə götürülüb — sakitlik. */}
         <section className={`hp-hero ${visible?'hp-hero--vis':''}`}>
           <div className="hp-hero-bg" aria-hidden="true">
+            <HeroSky />
             <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
             <div className="hp-hero-glow" />
           </div>

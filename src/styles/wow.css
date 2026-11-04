@@ -1,0 +1,241 @@
+/* ══════════════════════════════════════════════════════════════
+   "VAU" QATI — bütün sayta canlılıq (sahibin istəyi, 2026-11-04:
+   "statik olmasın, müasir, animasiyalı, vau")
+
+   Səhifələrə toxunmur — ortaq siniflərə (.ui-card, .ui-tile, .ui-stat,
+   .ui-page-hero, .ui-btn--primary, .ui-icon-tile) əlavə edir; JS hissəsi
+   src/utils/wow.js-dədir (main.jsx → initWow).
+
+     1. Kursorla işıq (spotlight) + yüngül 3D əyilmə — kartlar, kafellər
+     2. Sürüşəndə kartların növbə ilə "qalxması" (data-wow-*)
+     3. Səhifə başlığının (hero) canlı aurora fonu + başlığın parıltısı
+     4. Əsas düymənin üstündən keçən işıq
+     5. Səhifənin yuxarısında oxu irəliləyişi zolağı
+     6. Hərəkəti azalt — hamısı söndürülür
+
+   Qayda: yalnız transform/opacity animasiya olunur; rənglər tokenlərdən
+   (tünd rejim avtomatik); RTL güzgülənir.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ══ 1. Kursorla işıq + əyilmə ══════════════════════════════════
+   wow.js hover olunan karta --wow-x/--wow-y (kursorun yeri) və
+   --wow-rx/--wow-ry (əyilmə bucağı) yazır, data-wow-hot qoyur.
+   İşıq yalnız ÖZ fon şəkli olmayan (sadə) kartlarda: data-wow-spot. */
+.ui-card,
+.ui-tile,
+.ui-stat,
+.surah-card {
+  --wow-rx: 0deg;
+  --wow-ry: 0deg;
+}
+[data-wow-hot][data-wow-spot] {
+  background-image: radial-gradient(
+    520px circle at var(--wow-x, 50%) var(--wow-y, 50%),
+    color-mix(in srgb, var(--brand) 9%, transparent),
+    transparent 46%
+  );
+}
+[data-wow-hot] {
+  border-color: color-mix(in srgb, var(--brand) 32%, var(--line));
+}
+:is(.ui-card, .ui-tile, .ui-stat, .surah-card)[data-wow-tilt][data-wow-hot] {
+  transform: perspective(900px) rotateX(var(--wow-rx)) rotateY(var(--wow-ry)) translate3d(0, -3px, 0);
+  box-shadow: var(--shadow-3);
+  transition: transform 120ms linear, box-shadow var(--dur-2) var(--ease-out), border-color var(--dur-2) ease;
+}
+[data-wow-tilt] {
+  transition: transform 500ms var(--ease-out), box-shadow var(--dur-3) var(--ease-out), border-color var(--dur-2) ease;
+  will-change: auto;
+}
+/* Kartın içindəki ikon kafeli hover-də canlanır */
+@media (hover: hover) {
+  .ui-card:hover .ui-icon-tile,
+  .ui-tile:hover .ui-icon-tile,
+  a:hover > .ui-icon-tile {
+    transform: translateY(-2px) rotate(-6deg) scale(1.06);
+  }
+}
+.ui-icon-tile { transition: transform 420ms var(--ease-spring); }
+
+/* ══ 2. Sürüşəndə qalxma ════════════════════════════════════════
+   Element ƏVVƏLCƏ görünür; gizli başlanğıc yalnız wow.js onu həqiqətən
+   izləyəndə qoyulur (JS işləməsə məzmun heç vaxt gizli qalmır). Animasiya
+   bitəndə atributlar silinir — kartın öz stilləri (hover və s.) qayıdır. */
+[data-wow-ready]:not([data-wow-in]) {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0) scale(0.965);
+}
+[data-wow-in] {
+  transition:
+    opacity 640ms var(--ease-out) var(--wow-d, 0ms),
+    transform 820ms var(--ease-spring) var(--wow-d, 0ms) !important;
+}
+
+/* ══ 3. Hero: canlı aurora + başlıq parıltısı ═══════════════════ */
+.wow-aurora {
+  position: absolute;
+  inset: -30% -10% -40%;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.wow-aurora > i {
+  position: absolute;
+  display: block;
+  width: 46vmax;
+  height: 46vmax;
+  border-radius: 50%;
+  opacity: 0.75;
+  will-change: transform;
+}
+.wow-aurora > i:nth-child(1) {
+  top: -10%;
+  inset-inline-end: -6%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--brand) 34%, transparent) 0%, transparent 62%);
+  animation: wow-drift-a 22s var(--ease-in-out) infinite alternate;
+}
+.wow-aurora > i:nth-child(2) {
+  top: 10%;
+  inset-inline-start: 18%;
+  width: 38vmax;
+  height: 38vmax;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 28%, transparent) 0%, transparent 60%);
+  animation: wow-drift-b 28s var(--ease-in-out) infinite alternate;
+}
+.wow-aurora > i:nth-child(3) {
+  top: 30%;
+  inset-inline-end: 22%;
+  width: 30vmax;
+  height: 30vmax;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--viz-3, #3f6fc4) 14%, transparent) 0%, transparent 60%);
+  animation: wow-drift-c 34s var(--ease-in-out) infinite alternate;
+}
+[data-theme="dark"] .wow-aurora > i { opacity: 0.8; }
+
+@keyframes wow-drift-a { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-12%, 10%, 0) scale(1.18); } }
+@keyframes wow-drift-b { from { transform: translate3d(0, 0, 0) scale(1.1); } to { transform: translate3d(16%, -8%, 0) scale(0.92); } }
+@keyframes wow-drift-c { from { transform: translate3d(0, 0, 0) scale(0.9); } to { transform: translate3d(-10%, -14%, 0) scale(1.15); } }
+
+/* Səhifə başlığı: tünd mətndən zümrüdə incə keçid + bir dəfə keçən parıltı */
+.ui-page-hero h1 {
+  background: linear-gradient(100deg, var(--text-strong) 0%, var(--text-strong) 38%, var(--brand) 50%, var(--text-strong) 62%, var(--text-strong) 100%);
+  background-size: 260% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.page-enter .ui-page-hero h1 { animation: qm-reveal-up var(--dur-4) var(--ease-out) backwards, wow-shine 2.4s var(--ease-in-out) 0.5s both; }
+@keyframes wow-shine { from { background-position: 100% 0; } to { background-position: 0% 0; } }
+/* Başlıq içindəki rəngli hissələr (məs. ".cc") öz rəngini saxlasın */
+.ui-page-hero h1 * { -webkit-text-fill-color: currentColor; }
+
+/* ══ 4. Əsas düymə: üstündən keçən işıq ═════════════════════════ */
+.ui-btn--primary { overflow: hidden; isolation: isolate; }
+.ui-btn--primary::after {
+  content: '';
+  position: absolute;
+  inset: -2px auto -2px -60%;
+  z-index: -1;
+  width: 50%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: skewX(-18deg) translateX(0);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .ui-btn--primary:not(:disabled):hover::after { animation: wow-sweep 900ms var(--ease-out); }
+}
+@keyframes wow-sweep { from { transform: skewX(-18deg) translateX(0); } to { transform: skewX(-18deg) translateX(420%); } }
+[dir="rtl"] .ui-btn--primary::after { display: none; }
+
+/* ══ 5. Oxu irəliləyişi (səhifənin yuxarısı) ══════════════════════
+   Yalnız scroll-timeline bilən brauzerlərdə — JS və hesablama yoxdur. */
+.wow-progress { display: none; }
+@supports (animation-timeline: scroll()) {
+  .wow-progress {
+    display: block;
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: 1000;
+    height: 3px;
+    background: linear-gradient(90deg, var(--brand), var(--accent));
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    pointer-events: none;
+    animation: wow-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+  [dir="rtl"] .wow-progress { transform-origin: 100% 50%; }
+}
+@keyframes wow-progress { to { transform: scaleX(1); } }
+
+/* ══ 6. Hərəkəti azalt ══════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .wow-aurora > i, .ui-page-hero h1, .ui-btn--primary::after { animation: none !important; }
+  [data-wow-ready]:not([data-wow-in]) { opacity: 1; transform: none; }
+  [data-wow-tilt][data-wow-hot] { transform: none; }
+  .ui-page-hero h1 { background-position: 0 0; }
+}
+html.a11y-reduce-motion .wow-aurora > i,
+html.a11y-reduce-motion .ui-page-hero h1 { animation: none !important; }
+html.a11y-reduce-motion [data-wow-tilt][data-wow-hot] { transform: none; }
+
+/* ══ 7. Mövsümlər (wow.js → html[data-season]) ══════════════════
+   Ramazan: gecə göyü + qızılı hilal. Zülhiccə (Həcc): qum-qızılı.
+   Bayram: aurora + yavaş sayrışan qızılı ulduzlar. Önizləmə: ?season=… */
+.wow-crescent, .wow-sparkles { display: none; }
+
+html[data-season="ramadan"] .wow-aurora > i:nth-child(1) { background: radial-gradient(circle, color-mix(in srgb, #2b3f8f 34%, transparent) 0%, transparent 62%); }
+html[data-season="ramadan"] .wow-aurora > i:nth-child(2) { background: radial-gradient(circle, color-mix(in srgb, #d8a93b 32%, transparent) 0%, transparent 60%); }
+html[data-season="ramadan"] .wow-aurora > i:nth-child(3) { background: radial-gradient(circle, color-mix(in srgb, #5b3f8f 22%, transparent) 0%, transparent 60%); }
+html[data-season="ramadan"] .wow-crescent {
+  display: block;
+  position: absolute;
+  top: calc(30% + 28px);
+  inset-inline-end: calc(10% + clamp(24px, 6vw, 96px));
+  width: clamp(54px, 7vw, 92px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: inset calc(clamp(54px, 7vw, 92px) * -0.26) calc(clamp(54px, 7vw, 92px) * 0.12) 0 0 #d8a93b;
+  filter: drop-shadow(0 0 24px rgba(216, 169, 59, 0.45));
+  opacity: 0.85;
+  animation: wow-float 7s var(--ease-in-out) infinite alternate;
+}
+html[data-season="ramadan"][dir="rtl"] .wow-crescent { scale: -1 1; }
+
+html[data-season="hajj"] .wow-aurora > i:nth-child(1) { background: radial-gradient(circle, color-mix(in srgb, #c89b4a 34%, transparent) 0%, transparent 62%); }
+html[data-season="hajj"] .wow-aurora > i:nth-child(2) { background: radial-gradient(circle, color-mix(in srgb, var(--brand) 26%, transparent) 0%, transparent 60%); }
+
+html[data-season="eid"] .wow-aurora > i:nth-child(1) { background: radial-gradient(circle, color-mix(in srgb, var(--accent) 38%, transparent) 0%, transparent 62%); }
+html[data-season="eid"] .wow-aurora > i:nth-child(2) { background: radial-gradient(circle, color-mix(in srgb, var(--brand) 30%, transparent) 0%, transparent 60%); }
+html[data-season="eid"] .wow-sparkles {
+  display: block;
+  position: absolute;
+  inset-block: 28% 38%;
+  inset-inline: 48% 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='220' fill='%23d8a93b'%3E%3Cpath transform='translate(40 60)' opacity='0.9' d='M0 -9 C1.6199999999999999 -1.6199999999999999 1.6199999999999999 -1.6199999999999999 9 0 C1.6199999999999999 1.6199999999999999 1.6199999999999999 1.6199999999999999 0 9 C-1.6199999999999999 1.6199999999999999 -1.6199999999999999 1.6199999999999999 -9 0 C-1.6199999999999999 -1.6199999999999999 -1.6199999999999999 -1.6199999999999999 0 -9Z'/%3E%3Cpath transform='translate(120 150)' opacity='0.7' d='M0 -6 C1.08 -1.08 1.08 -1.08 6 0 C1.08 1.08 1.08 1.08 0 6 C-1.08 1.08 -1.08 1.08 -6 0 C-1.08 -1.08 -1.08 -1.08 0 -6Z'/%3E%3Cpath transform='translate(190 40)' opacity='1' d='M0 -12 C2.16 -2.16 2.16 -2.16 12 0 C2.16 2.16 2.16 2.16 0 12 C-2.16 2.16 -2.16 2.16 -12 0 C-2.16 -2.16 -2.16 -2.16 0 -12Z'/%3E%3Cpath transform='translate(260 120)' opacity='0.8' d='M0 -7 C1.26 -1.26 1.26 -1.26 7 0 C1.26 1.26 1.26 1.26 0 7 C-1.26 1.26 -1.26 1.26 -7 0 C-1.26 -1.26 -1.26 -1.26 0 -7Z'/%3E%3Cpath transform='translate(330 190)' opacity='0.9' d='M0 -10 C1.7999999999999998 -1.7999999999999998 1.7999999999999998 -1.7999999999999998 10 0 C1.7999999999999998 1.7999999999999998 1.7999999999999998 1.7999999999999998 0 10 C-1.7999999999999998 1.7999999999999998 -1.7999999999999998 1.7999999999999998 -10 0 C-1.7999999999999998 -1.7999999999999998 -1.7999999999999998 -1.7999999999999998 0 -10Z'/%3E%3Cpath transform='translate(400 70)' opacity='0.75' d='M0 -8 C1.44 -1.44 1.44 -1.44 8 0 C1.44 1.44 1.44 1.44 0 8 C-1.44 1.44 -1.44 1.44 -8 0 C-1.44 -1.44 -1.44 -1.44 0 -8Z'/%3E%3Cpath transform='translate(470 150)' opacity='1' d='M0 -13 C2.34 -2.34 2.34 -2.34 13 0 C2.34 2.34 2.34 2.34 0 13 C-2.34 2.34 -2.34 2.34 -13 0 C-2.34 -2.34 -2.34 -2.34 0 -13Z'/%3E%3Cpath transform='translate(540 30)' opacity='0.7' d='M0 -6 C1.08 -1.08 1.08 -1.08 6 0 C1.08 1.08 1.08 1.08 0 6 C-1.08 1.08 -1.08 1.08 -6 0 C-1.08 -1.08 -1.08 -1.08 0 -6Z'/%3E%3Cpath transform='translate(575 180)' opacity='0.85' d='M0 -9 C1.6199999999999999 -1.6199999999999999 1.6199999999999999 -1.6199999999999999 9 0 C1.6199999999999999 1.6199999999999999 1.6199999999999999 1.6199999999999999 0 9 C-1.6199999999999999 1.6199999999999999 -1.6199999999999999 1.6199999999999999 -9 0 C-1.6199999999999999 -1.6199999999999999 -1.6199999999999999 -1.6199999999999999 0 -9Z'/%3E%3Cpath transform='translate(90 200)' opacity='0.6' d='M0 -5 C0.8999999999999999 -0.8999999999999999 0.8999999999999999 -0.8999999999999999 5 0 C0.8999999999999999 0.8999999999999999 0.8999999999999999 0.8999999999999999 0 5 C-0.8999999999999999 0.8999999999999999 -0.8999999999999999 0.8999999999999999 -5 0 C-0.8999999999999999 -0.8999999999999999 -0.8999999999999999 -0.8999999999999999 0 -5Z'/%3E%3Cpath transform='translate(300 30)' opacity='0.6' d='M0 -5 C0.8999999999999999 -0.8999999999999999 0.8999999999999999 -0.8999999999999999 5 0 C0.8999999999999999 0.8999999999999999 0.8999999999999999 0.8999999999999999 0 5 C-0.8999999999999999 0.8999999999999999 -0.8999999999999999 0.8999999999999999 -5 0 C-0.8999999999999999 -0.8999999999999999 -0.8999999999999999 -0.8999999999999999 0 -5Z'/%3E%3Cpath transform='translate(440 205)' opacity='0.7' d='M0 -6 C1.08 -1.08 1.08 -1.08 6 0 C1.08 1.08 1.08 1.08 0 6 C-1.08 1.08 -1.08 1.08 -6 0 C-1.08 -1.08 -1.08 -1.08 0 -6Z'/%3E%3C/svg%3E");
+  background-size: 600px 220px;
+  background-repeat: repeat-x;
+  filter: drop-shadow(0 0 6px rgba(216, 169, 59, 0.55));
+  animation: wow-twinkle 2.6s ease-in-out infinite alternate;
+}
+@keyframes wow-float { from { transform: translate3d(0, 0, 0) rotate(-6deg); } to { transform: translate3d(0, -10px, 0) rotate(4deg); } }
+@keyframes wow-twinkle { from { opacity: 0.35; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .wow-crescent, .wow-sparkles { animation: none !important; }
+}
+html.a11y-reduce-motion .wow-crescent,
+html.a11y-reduce-motion .wow-sparkles { animation: none !important; }
+
+/* ══ 8. Səhifə girişi — daha ifadəli (motion.css-dəki qm-page-in-in üstündə) ══
+   Yalnız hərəkətə icazə varsa; sonda transform qalmır (fixed modallar yerində). */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .page-enter { animation: wow-page-in 620ms var(--ease-out) both; }
+  html:not(.a11y-reduce-motion) .page-enter .ui-page-hero .ui-container > * { animation-duration: 700ms; }
+}
+@keyframes wow-page-in {
+  from { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.992); }
+  to   { opacity: 1; transform: none; }
+}

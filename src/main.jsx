@@ -9,7 +9,10 @@ import './styles/globals.css'
 import './styles/heroes.css'
 // Hərəkət tokenləri, toxunuş rəyi, səhifə keçidi və mobil UI dəsti (.m-row, .m-check …)
 import './styles/motion.css'
+// "Vau" qatı: kursor işığı, kartların qalxması, hero aurora, oxu zolağı (utils/wow.js)
+import './styles/wow.css'
 import { initReveal } from './hooks/useReveal'
+import { initWow } from './utils/wow'
 import { initInputModality } from './hooks/useInputModality'
 import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
 import { startUpdateWatcher } from './utils/appUpdate'
@@ -18,6 +21,7 @@ import { startUpdateWatcher } from './utils/appUpdate'
 // və [data-reveal] elementləri üçün tək qlobal IntersectionObserver
 initInputModality()
 initReveal()
+initWow()
 
 // Saxlanmış əlçatanlıq tərcihləri (şrift ölçüsü, kontrast, tema …) İLK
 // RENDER-DƏN ƏVVƏL <html>-ə tətbiq olunur. PERFORMANS: panelin UI-si artıq

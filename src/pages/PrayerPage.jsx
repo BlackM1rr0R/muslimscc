@@ -21,6 +21,8 @@ import { setPrayerStatus } from '../utils/prayerTracker'
 import { usePendingCheckinSync } from '../hooks/usePrayerTracker'
 import usePrayerMonth from '../hooks/usePrayerMonth'
 import PrayerDayline, { hmToMin } from '../components/PrayerDayline'
+import PrayerSky from '../components/prayer/PrayerSky'
+import SunDial from '../components/prayer/SunDial'
 import { ProgressRing, StatTile } from '../components/viz'
 
 // İmsakiyyə səhifəsi (/ramadan) marşrutlara qoşulubsa kartda ona keçid görünür
@@ -617,6 +619,8 @@ export default function PrayerPage({ setPage }) {
     <div className="pp-root">
       {/* v3: kompakt hero — eyebrow · h1 · bir cümlə · necə işlədilir · 3 açar rəqəm */}
       <header className="ui-page-hero pp-hero">
+        {/* Namaz vaxtına görə canlı səma: sübh, günorta, qürub, gecə… */}
+        <PrayerSky times={dayTimes} nowMin={nowMin} />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={t.title} />
@@ -822,9 +826,16 @@ export default function PrayerPage({ setPage }) {
               <h2 id="pp-day-title" className="ui-title">{P(V3.dayTitle)}</h2>
               <p className="ui-lead">{P(V3.dayLead)}</p>
             </div>
-            <div className="ui-card pp-day-card" data-reveal>
-              <PrayerDayline times={dayTimes} names={dayNames} nowMin={nowMin} nowLabel={TXT.now[lk]}
-                nextKey={pt.next && !pt.next.tomorrow ? pt.next.key : null} label={P(V3.dayLabel)} />
+            {/* Dairəvi günəş saatı + üfüqi xətt yan-yana (telefonda alt-alta) */}
+            <div className="ui-card pp-day-card pp-day-card--dial" data-reveal>
+              <SunDial times={dayTimes} names={dayNames} nowMin={nowMin}
+                nextKey={pt.next && !pt.next.tomorrow ? pt.next.key : null}
+                centerTop={pt.next ? countdown : ''} centerBottom={nextLabel}
+                label={P(V3.dayLabel)} />
+              <div className="pp-day-line">
+                <PrayerDayline times={dayTimes} names={dayNames} nowMin={nowMin} nowLabel={TXT.now[lk]}
+                  nextKey={pt.next && !pt.next.tomorrow ? pt.next.key : null} label={P(V3.dayLabel)} />
+              </div>
             </div>
             {nightLen != null && (
               <div className="ui-stats pp-day-stats" data-reveal="stagger">

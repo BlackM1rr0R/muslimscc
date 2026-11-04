@@ -340,6 +340,22 @@ Qaydalar:
 `.ui-enter-*` giriş sinifləri, `.ui-skeleton`. `prefers-reduced-motion: reduce` — hamısı söndürülür.
 Bölmə başlıqlarına `data-reveal`, kafel/kart şəbəkələrinə `data-reveal="stagger"`, iri rəqəmlərə `data-count`.
 
+### 7.1 "Vau" qatı (wow.css + utils/wow.js — 2026-11-04, sahibin istəyi)
+
+Sahib istiqaməti dəyişdi: *"statik olmasın, müasir, animasiyalı, vau"*. Yuxarıdakı "dövri dekor yoxdur"
+qaydası **hero aurorası üçün** ləğv olunub. Qat səhifələrə toxunmadan ortaq siniflərə işləyir:
+
+| Nə | Harada | Qeyd |
+|---|---|---|
+| Kursor işığı + 3D əyilmə | `.ui-card`, `.ui-tile`, `.ui-stat` | işıq yalnız öz fon şəkli olmayan kartda; əyilmə yalnız kliklənən, ≤560px kartda; yalnız siçan |
+| Sürüşəndə növbəli qalxma | `.ui-card`, `.ui-tile`, `.ui-stat`, `.ui-step` | `[data-reveal]` altındakılara toxunmur; söndürmək üçün konteynerə `data-wow-off` |
+| Aurora (yavaş hərəkətli işıq ləkələri) | hər `.ui-page-hero` | JS əlavə edir (`.wow-aurora`), z-index −1 |
+| Başlıq parıltısı | `.ui-page-hero h1` | mətn → zümrüd → mətn, bir dəfə |
+| Düymə işığı | `.ui-btn--primary:hover` | |
+| Oxu zolağı | səhifənin yuxarısı | yalnız CSS scroll-timeline |
+
+Yeni səhifədə bunlar **avtomatik** gəlir — yalnız ortaq sinifləri işlət. Hərəkəti azalt (sistem və ya panel) — hamısı söndürülür.
+
 ## 8. Vacib texniki qaydalar
 
 1. **CSS sırası.** Səhifə CSS-i `globals.css`/`ui.css`-dən ƏVVƏL yüklənir — `.ui-*` sinfini dəyişmək üçün valideynlə gücləndir:
