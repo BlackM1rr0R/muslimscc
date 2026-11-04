@@ -11,15 +11,15 @@ import { apiFetch } from '../../api/http'
 
 const LABELS = {
   az: { title: 'Səhv bildirişləri', sub: 'Ziyarətçilərin məzmun səhvi barədə yazdıqları', open: 'Yeni', done: 'Həll edilib', all: 'Hamısı', none: 'Bildiriş yoxdur', page: 'Səhifə', about: 'Aid olduğu', contact: 'Əlaqə', markDone: 'Həll edildi', reopen: 'Yenidən aç', del: 'Sil', confirmDel: 'Bu bildiriş silinsin?', error: 'Yükləmək alınmadı', refresh: 'Yenilə',
-    kinds: { text: 'Mətn', translation: 'Tərcümə', source: 'Mənbə', hadith: 'Hədis', design: 'Texniki', other: 'Digər' } },
+    kinds: { text: 'Mətn', translation: 'Tərcümə', source: 'Mənbə', hadith: 'Hədis', design: 'Texniki', other: 'Digər', ai: 'AI cavabı' } },
   en: { title: 'Error reports', sub: 'Content errors reported by visitors', open: 'New', done: 'Resolved', all: 'All', none: 'No reports', page: 'Page', about: 'About', contact: 'Contact', markDone: 'Mark resolved', reopen: 'Reopen', del: 'Delete', confirmDel: 'Delete this report?', error: 'Could not load', refresh: 'Refresh',
-    kinds: { text: 'Text', translation: 'Translation', source: 'Source', hadith: 'Hadith', design: 'Technical', other: 'Other' } },
+    kinds: { text: 'Text', translation: 'Translation', source: 'Source', hadith: 'Hadith', design: 'Technical', other: 'Other', ai: 'AI answer' } },
   ru: { title: 'Сообщения об ошибках', sub: 'Ошибки в содержании, о которых сообщили посетители', open: 'Новые', done: 'Решённые', all: 'Все', none: 'Сообщений нет', page: 'Страница', about: 'К чему', contact: 'Контакт', markDone: 'Решено', reopen: 'Открыть снова', del: 'Удалить', confirmDel: 'Удалить это сообщение?', error: 'Не удалось загрузить', refresh: 'Обновить',
-    kinds: { text: 'Текст', translation: 'Перевод', source: 'Источник', hadith: 'Хадис', design: 'Техника', other: 'Другое' } },
+    kinds: { text: 'Текст', translation: 'Перевод', source: 'Источник', hadith: 'Хадис', design: 'Техника', other: 'Другое', ai: 'Ответ ИИ' } },
   ar: { title: 'بلاغات الأخطاء', sub: 'أخطاء المحتوى التي أبلغ عنها الزوار', open: 'جديدة', done: 'محلولة', all: 'الكل', none: 'لا توجد بلاغات', page: 'الصفحة', about: 'يتعلق بـ', contact: 'التواصل', markDone: 'تم الحل', reopen: 'إعادة فتح', del: 'حذف', confirmDel: 'حذف هذا البلاغ؟', error: 'تعذّر التحميل', refresh: 'تحديث',
-    kinds: { text: 'النص', translation: 'الترجمة', source: 'المصدر', hadith: 'الحديث', design: 'تقني', other: 'أخرى' } },
+    kinds: { text: 'النص', translation: 'الترجمة', source: 'المصدر', hadith: 'الحديث', design: 'تقني', other: 'أخرى', ai: 'إجابة الذكاء الاصطناعي' } },
   tr: { title: 'Hata bildirimleri', sub: 'Ziyaretçilerin bildirdiği içerik hataları', open: 'Yeni', done: 'Çözüldü', all: 'Tümü', none: 'Bildirim yok', page: 'Sayfa', about: 'İlgili', contact: 'İletişim', markDone: 'Çözüldü olarak işaretle', reopen: 'Yeniden aç', del: 'Sil', confirmDel: 'Bu bildirim silinsin mi?', error: 'Yüklenemedi', refresh: 'Yenile',
-    kinds: { text: 'Metin', translation: 'Çeviri', source: 'Kaynak', hadith: 'Hadis', design: 'Teknik', other: 'Diğer' } },
+    kinds: { text: 'Metin', translation: 'Çeviri', source: 'Kaynak', hadith: 'Hadis', design: 'Teknik', other: 'Diğer', ai: 'Yapay zekâ cevabı' } },
 }
 
 export default function FeedbackManager() {

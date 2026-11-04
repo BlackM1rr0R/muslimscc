@@ -61,3 +61,17 @@ describe('HTTP', () => {
     expect(codes).toContain(429)
   })
 })
+
+describe("kind 'ai' — AI cavabına 👎 (components/AIRating)", () => {
+  const v = feedback.validFeedback
+  it('növ qəbul olunur və uzun mətn (sual + cavab) 12 000 simvola qədər saxlanılır', () => {
+    const long = 'a'.repeat(11000)
+    const d = v({ page: '/aichat', kind: 'ai', ref: 'ai', text: `[wrong]\n\n— Sual:\nx\n\n— Cavab:\n${long}` })
+    expect(d.kind).toBe('ai')
+    expect(d.text.length).toBeGreaterThan(11000)
+    expect(d.text).toContain('\n— Sual:')        // sətir sonları qalır
+  })
+  it('digər növlər üçün limit dəyişməyib (2000)', () => {
+    expect(v({ page: '/hadith', kind: 'text', text: 'b'.repeat(5000) }).text.length).toBe(2000)
+  })
+})

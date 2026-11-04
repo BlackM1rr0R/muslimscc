@@ -5,6 +5,7 @@ import { subscribeToSettings } from '../data/adminContent'
 import { BRAND, tr } from '../config/brand'
 import Icon from '../components/Icon'
 import AIMarkdown from '../components/AIMarkdown'
+import AIRating from '../components/AIRating'
 import { askAI } from '../utils/aiStream'
 import '../styles/AIChatPage.css'
 
@@ -457,7 +458,7 @@ export default function AIChatPage() {
                 {/* Axında gələn cavab da eyni siyahının sonuncu elementidir (eyni key) —
                     bitəndə DOM dəyişmir, giriş animasiyası təkrarlanmır.
                     İlk tokenə qədər "yazır" nöqtələri, sonra mətn + yanıb-sönən kursor. */}
-                {(loading ? [...messages, { role: 'assistant', pending: true, content: streamText || '' }] : messages).map((m, i) => (
+                {(loading ? [...messages, { role: 'assistant', pending: true, content: streamText || '' }] : messages).map((m, i, all) => (
                   m.pending && !m.content ? (
                     <div key={i} className="aic-msg aic-msg-assistant aic-msg-typing">
                       <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>
@@ -478,6 +479,10 @@ export default function AIChatPage() {
                             ? <AIMarkdown text={m.content} tail={m.pending ? <span className="ai-cursor" aria-hidden="true" /> : null} />
                             : m.content}
                         </div>
+                        {/* 👍/👎 — yalnız sualı olan, tamamlanmış cavabda (salamlama mesajında yox) */}
+                        {m.role === 'assistant' && !m.pending && all[i - 1]?.role === 'user' && (
+                          <AIRating question={all[i - 1].content} answer={m.content} lang={lang} />
+                        )}
                       </div>
                     </div>
                   )

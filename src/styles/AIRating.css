@@ -1,0 +1,54 @@
+/* ══ AIRating — AI cavabına 👍/👎 (components/AIRating.jsx) ══ */
+.air { margin-top: 6px; }
+.air-btns { display: inline-flex; gap: 2px; }
+.air-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background var(--dur-1) ease, color var(--dur-1) ease, transform var(--dur-2) var(--ease-spring);
+}
+.air-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+@media (hover: hover) { .air-btn:hover { background: var(--surface-2); color: var(--brand); } }
+.air-btn:active { transform: scale(0.88); }
+
+.air-done { display: inline-flex; align-items: center; gap: 5px; margin: 6px 0 0; color: var(--brand); font-size: var(--step--2); font-weight: 600; animation: air-in var(--dur-3) var(--ease-out) both; }
+
+.air-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  animation: air-in var(--dur-3) var(--ease-out) both;
+}
+.air-reasons { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; }
+.air-why { width: 100%; margin-bottom: 2px; padding: 0; color: var(--text-strong); font-size: var(--step--1); font-weight: 600; }
+.air-chip { position: relative; display: inline-flex; cursor: pointer; }
+.air-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.air-chip span {
+  padding: 5px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: var(--step--2);
+  font-weight: 500;
+}
+.air-chip input:checked + span { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+.air-chip input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+.air-note { min-height: 0; font-size: var(--step--1); resize: vertical; }
+.air-privacy { display: flex; align-items: flex-start; gap: 5px; margin: 0; color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.4; }
+.air-privacy svg { flex: none; margin-top: 2px; }
+.air-fail { margin: 0; color: var(--bad); font-size: var(--step--2); }
+.air-actions { display: flex; gap: 6px; }
+@keyframes air-in { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { .air-form, .air-done { animation: none; } }

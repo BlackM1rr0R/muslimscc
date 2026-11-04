@@ -16,9 +16,11 @@
 const express = require('express')
 
 const COLLECTION = 'feedback'
-const KINDS = ['text', 'translation', 'source', 'hadith', 'design', 'other']
+// 'ai' — AI köməkçinin cavabına 👎 (sual + cavab + səbəb; components/AIRating.jsx)
+const KINDS = ['text', 'translation', 'source', 'hadith', 'design', 'other', 'ai']
 const LANGS = ['az', 'en', 'ru', 'ar', 'tr']
 const MAX_TEXT = 2000
+const MAX_TEXT_AI = 12000   // AI cavabı uzun ola bilər — sual + cavab birlikdə
 const WINDOW_MS = 10 * 60 * 1000
 const MAX_PER_WINDOW = 5
 const MAX_STORED = 5000
@@ -29,7 +31,7 @@ const str = (v, max) => (typeof v === 'string' ? v.replace(/[\u0000-\u0008\u000B
 function validFeedback(b) {
   if (!b || typeof b !== 'object' || Array.isArray(b)) return null
   const page = str(b.page, 300)
-  const text = str(b.text, MAX_TEXT)
+  const text = str(b.text, b.kind === 'ai' ? MAX_TEXT_AI : MAX_TEXT)
   // Yalnız saytın öz yolu (/…) — kənar URL yox
   if (!/^\/(?![/\\])[^\s]*$/.test(page) || text.length < 5) return null
   return {
@@ -57,7 +59,7 @@ function createFeedbackRouter({ db, requireAdmin, now = () => Date.now() }) {
     return false
   }
 
-  router.post('/feedback', express.json({ limit: '8kb' }), (req, res) => {
+  router.post('/feedback', express.json({ limit: '40kb' }), (req, res) => {
     if (limited(req.ip || '')) return res.status(429).json({ error: 'Limit' })
     const doc = validFeedback(req.body)
     if (!doc) return res.status(400).json({ error: 'invalid' })
