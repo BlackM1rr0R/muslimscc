@@ -6,6 +6,7 @@ import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import usePrayerTracker from '../hooks/usePrayerTracker'
 import RelatedLinks from '../components/prayer/RelatedLinks'
+import BackupCard from '../components/BackupCard'
 import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
 import {
   PRAYERS, prayerStatus, dayState, computeStreak, bestStreak, rangeSummary, lastNDays, addDays,
@@ -224,6 +225,11 @@ export default function PrayerTrackerPage({ setPage }) {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Qeydlər yalnız bu brauzerdədir — ehtiyat nüsxə / bərpa (utils/userBackup) */}
+      <section className="ui-section ui-section--tight pt-backup">
+        <div className="ui-container"><BackupCard /></div>
       </section>
 
       <RelatedLinks items={RELATED} lang={lk} id="pt-related" />

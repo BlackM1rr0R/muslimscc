@@ -273,3 +273,7 @@
   .ft-col a:hover > svg { transform: none; }
   .ft-made:hover .ft-heart { animation: none; }
 }
+
+/* "Məlumatlarım" düyməsi (ehtiyat nüsxə dialoqu) — hüquqi linklər kimi görünür */
+.ft-backup { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: transparent; }
+@media (hover: hover) { .ft-backup:hover { text-decoration-color: currentColor; } }

@@ -1,3 +1,4 @@
+import { lazy, Suspense, useCallback, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { BRAND, filled, tr, brandName } from '../config/brand'
 import { navLabel, navGroupLabel } from '../data/navigation'
@@ -5,6 +6,9 @@ import { pathFor } from '../seo/routes'
 import Icon, { BrandMark } from './Icon'
 import { LEGAL_KEYS, LEGAL_TITLES, legalPath, isRouted } from './legalLinks'
 import '../styles/Footer.css'
+
+// "Məlumatlarım" (ehtiyat nüsxə / bərpa) — dialoq yalnız açılanda yüklənir
+const BackupDialog = lazy(() => import('./BackupDialog'))
 
 // Footer linkləri həqiqi <a href> linkləridir (başlıq, yan panel və aşağı
 // zolaq kimi): Ctrl/⌘/orta klik yeni tabda açır, robotlar da görür;
@@ -20,11 +24,11 @@ function isPlainClick(e) {
 // made — emoji (💚) əvəzinə mətn + xətti ürək ikonu (dizayn sistemi: emoji yox)
 // Təsvir (desc) brend konfiqindən gəlir — BRAND.tagline
 const FOOTER_LABELS = {
-  az: { legal:'Hüquqi məlumat', nav:'Saytın bölmələri', content:'Məzmun', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'Bütün hüquqlar qorunur.', made:'Ümmət üçün sevgi ilə hazırlandı' },
-  en: { legal:'Legal', nav:'Site sections', content:'Content', tools:'Tools', learn:'Learn', contact:'Contact', copy:'All rights reserved.', made:'Made with love for the Ummah' },
-  ru: { legal:'Правовая информация', nav:'Разделы сайта', content:'Материалы', tools:'Инструменты', learn:'Обучение', contact:'Контакты', copy:'Все права защищены.', made:'Сделано с любовью для уммы' },
-  ar: { legal:'معلومات قانونية', nav:'أقسام الموقع', content:'المحتوى', tools:'أدوات', learn:'تعلّم', contact:'تواصل', copy:'جميع الحقوق محفوظة.', made:'صُنع بحبّ للأمة' },
-  tr: { legal:'Yasal bilgiler', nav:'Site bölümleri', content:'İçerik', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'Tüm hakları saklıdır.', made:'Ümmet için sevgiyle yapıldı' },
+  az: { legal:'Hüquqi məlumat', nav:'Saytın bölmələri', content:'Məzmun', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'Bütün hüquqlar qorunur.', made:'Ümmət üçün sevgi ilə hazırlandı', backup:'Məlumatlarım', close:'Bağla' },
+  en: { legal:'Legal', nav:'Site sections', content:'Content', tools:'Tools', learn:'Learn', contact:'Contact', copy:'All rights reserved.', made:'Made with love for the Ummah', backup:'My data', close:'Close' },
+  ru: { legal:'Правовая информация', nav:'Разделы сайта', content:'Материалы', tools:'Инструменты', learn:'Обучение', contact:'Контакты', copy:'Все права защищены.', made:'Сделано с любовью для уммы', backup:'Мои данные', close:'Закрыть' },
+  ar: { legal:'معلومات قانونية', nav:'أقسام الموقع', content:'المحتوى', tools:'أدوات', learn:'تعلّم', contact:'تواصل', copy:'جميع الحقوق محفوظة.', made:'صُنع بحبّ للأمة', backup:'بياناتي', close:'إغلاق' },
+  tr: { legal:'Yasal bilgiler', nav:'Site bölümleri', content:'İçerik', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'Tüm hakları saklıdır.', made:'Ümmet için sevgiyle yapıldı', backup:'Verilerim', close:'Kapat' },
 }
 
 // "Əsas" sütunu — yan paneldəki "Əsas" qrupu ilə eyni (ana səhifə loqodadır).
@@ -42,6 +46,8 @@ const LINK_COLUMNS = [
 function Footer({ setPage }) {
   const { lang } = useLang()
   const fl = FOOTER_LABELS[lang] || FOOTER_LABELS.az
+  const [backupOpen, setBackupOpen] = useState(false)
+  const closeBackup = useCallback(() => setBackupOpen(false), [])
   const brand = brandName(lang)
   // Domen kimi: "Muslims" + vurğulu ".cc" (başlıqdakı loqo kimi)
   const brandSplit = brand.lastIndexOf('.')
@@ -123,7 +129,15 @@ function Footer({ setPage }) {
                 onClick={(e) => { if (isRouted(k) && isPlainClick(e)) { e.preventDefault(); goTo(k) } }}
               >{tr(LEGAL_TITLES[k], lang)}</a>
             ))}
+            <button type="button" className="ft-backup" onClick={() => setBackupOpen(true)} aria-haspopup="dialog">
+              <Icon name="shield" size={14} /> {fl.backup}
+            </button>
           </nav>
+          {backupOpen && (
+            <Suspense fallback={null}>
+              <BackupDialog onClose={closeBackup} closeLabel={fl.close} />
+            </Suspense>
+          )}
           <span className="ft-made"><Icon name="donate" size={14} className="ft-heart" /> {fl.made}</span>
         </div>
       </div>

@@ -52,7 +52,7 @@ const DOC = {
           ],
         } },
         '**Necə silmək olar:** brauzerin ayarlarında {domain} üçün "sayt məlumatlarını" (və ya "kukiləri və sayt məlumatlarını") silin. Bu, yuxarıdakı bütün qeydləri — o cümlədən dua gündəliyini və statistikanı — geri qaytarılmaz şəkildə silir. Məxfi (inkoqnito) rejimdə isə məlumatlar pəncərə bağlananda öz-özünə silinir.',
-        { note: 'Bu qeydlərin ehtiyat nüsxəsi bizdə yoxdur: cihazı və ya brauzeri dəyişsəniz, onlar yeni cihaza köçmür.' },
+        { note: 'Bu qeydlərin ehtiyat nüsxəsi bizdə avtomatik saxlanılmır. İstəsəniz, səhifənin altındakı "Məlumatlarım" bölməsində onları fayl kimi yükləyə və ya cihazlar arası sinxronizasiyanı aça bilərsiniz. Sinxronizasiya açılanda məlumat brauzerinizdə bərpa kodunuzla şifrələnir və serverimizdə yalnız şifrəli halda saxlanılır — biz onu oxuya bilmirik. 400 gün toxunulmayan nüsxə avtomatik silinir; istənilən vaxt "Serverdən sil" düyməsi ilə özünüz də silə bilərsiniz.' },
       ] },
       cookies: { h: 'Kukilər', body: [
         '{brand} **kuki qoymur** və izləmə və ya reklam məqsədli heç bir texnologiya istifadə etmir. Yuxarıda təsvir olunan yerli yaddaş yalnız sizin istədiyiniz funksiyaların işləməsi üçündür, ona görə də ayrıca "kuki razılığı" pəncərəsi göstərmirik.',
@@ -193,7 +193,7 @@ const DOC = {
           ],
         } },
         '**How to delete it:** in your browser settings, clear the “site data” (or “cookies and site data”) for {domain}. This permanently removes everything above, including your dua journal and statistics. In private (incognito) mode, the data is deleted automatically when the window is closed.',
-        { note: 'We keep no backup of this data: if you switch devices or browsers, it does not move with you.' },
+        { note: 'We do not back up this data automatically. If you wish, you can download it as a file or turn on sync between devices under "My data" at the bottom of the page. With sync turned on, the data is encrypted in your browser with your recovery code and stored on our server only in encrypted form — we cannot read it. A copy that is not touched for 400 days is deleted automatically, and you can delete it yourself at any time with the "Delete from server" button.' },
       ] },
       cookies: { h: 'Cookies', body: [
         '{brand} **sets no cookies** and uses no technology for tracking or advertising. The local storage described above serves only the features you choose to use, which is why we do not show a separate “cookie consent” banner.',
@@ -334,7 +334,7 @@ const DOC = {
           ],
         } },
         '**Как удалить:** в настройках браузера удалите «данные сайта» (или «файлы куки и данные сайтов») для {domain}. Это безвозвратно сотрёт всё перечисленное, включая дневник дуа и статистику. В режиме инкогнито данные удаляются сами при закрытии окна.',
-        { note: 'Резервных копий этих данных у нас нет: при смене устройства или браузера они не переносятся.' },
+        { note: 'Мы не создаём резервные копии этих данных автоматически. При желании их можно скачать файлом или включить синхронизацию между устройствами в разделе «Мои данные» внизу страницы. При включённой синхронизации данные шифруются в вашем браузере кодом восстановления и хранятся на нашем сервере только в зашифрованном виде — прочитать их мы не можем. Копия, к которой не обращались 400 дней, удаляется автоматически; удалить её можно и самому в любой момент кнопкой «Удалить с сервера».' },
       ] },
       cookies: { h: 'Файлы куки', body: [
         '{brand} **не устанавливает файлы куки** и не использует никаких технологий для отслеживания или рекламы. Описанное выше локальное хранилище служит только функциям, которыми вы пользуетесь, поэтому отдельное окно «согласия на куки» мы не показываем.',
@@ -476,7 +476,7 @@ const DOC = {
           ],
         } },
         '**طريقة الحذف:** امسح «بيانات الموقع» (أو «ملفات تعريف الارتباط وبيانات المواقع») الخاصة بـ {domain} من إعدادات متصفحك. سيؤدي ذلك إلى حذف كل ما سبق نهائياً، بما فيه مفكّرة الدعاء والإحصاءات. وفي وضع التصفح الخاص تُحذف البيانات تلقائياً عند إغلاق النافذة.',
-        { note: 'لا نحتفظ بأي نسخة احتياطية من هذه البيانات: إذا غيّرت جهازك أو متصفحك فلن تنتقل معك.' },
+        { note: 'لا ننشئ نسخة احتياطية من هذه البيانات تلقائيًا. ويمكنك إن شئت تنزيلها في ملف أو تشغيل المزامنة بين الأجهزة من قسم «بياناتي» أسفل الصفحة. عند تشغيل المزامنة تُشفَّر البيانات في متصفحك برمز الاستعادة وتُحفظ على خادمنا مشفّرة فقط — ولا نستطيع قراءتها. تُحذف النسخة التي لم تُستخدم 400 يوم تلقائيًا، ويمكنك حذفها بنفسك في أي وقت بزر «حذف من الخادم».' },
       ] },
       cookies: { h: 'ملفات تعريف الارتباط', body: [
         '**لا يضع {brand} أي ملفات تعريف ارتباط**، ولا يستخدم أي تقنية للتتبّع أو الإعلانات. والتخزين المحلي الموصوف أعلاه يخدم فقط الميزات التي تختار استخدامها، ولهذا لا نعرض نافذة منفصلة لـ«الموافقة على ملفات تعريف الارتباط».',
@@ -618,7 +618,7 @@ const DOC = {
           ],
         } },
         '**Nasıl silinir:** tarayıcı ayarlarından {domain} için “site verilerini” (veya “çerezleri ve site verilerini”) temizleyin. Bu işlem, dua günlüğü ve istatistikler dahil yukarıdaki her şeyi kalıcı olarak siler. Gizli (inkognito) modda veriler pencere kapanınca kendiliğinden silinir.',
-        { note: 'Bu verilerin yedeği bizde yoktur: cihaz veya tarayıcı değiştirirseniz yeni cihaza taşınmazlar.' },
+        { note: 'Bu verileri otomatik olarak yedeklemiyoruz. Dilerseniz sayfanın altındaki "Verilerim" bölümünden dosya olarak indirebilir veya cihazlar arası eşitlemeyi açabilirsiniz. Eşitleme açıkken veriler tarayıcınızda kurtarma kodunuzla şifrelenir ve sunucumuzda yalnızca şifreli olarak saklanır — biz okuyamayız. 400 gün dokunulmayan kopya otomatik silinir; dilediğiniz zaman "Sunucudan sil" düğmesiyle kendiniz de silebilirsiniz.' },
       ] },
       cookies: { h: 'Çerezler', body: [
         '{brand} **çerez kullanmaz**; takip veya reklam amaçlı hiçbir teknoloji kullanmaz. Yukarıda anlatılan yerel depolama yalnızca sizin kullandığınız özellikler içindir; bu nedenle ayrı bir “çerez onayı” penceresi göstermiyoruz.',

@@ -31,6 +31,7 @@ brauzer ──► nginx (web) ──/api/──► api (Node, server.js)
 | `admins(id, email, pass_hash, …)` | Admin hesabları (şifrə yalnız scrypt hash kimi) |
 | `sessions(id_hash, admin_id, expires_at, …)` | Sessiyalar — tokenin özü YOX, yalnız SHA-256-sı |
 | `notification_history` | Admin panelindən göndərilmiş bildirişlər |
+| `sync_blobs(id, blob, size, version, …)` | Cihazlar arası sinxronizasiyanın ŞİFRƏLİ blokları (miqrasiya 3). İstifadəçi məlumatı, IP yoxdur |
 
 Vaxtlar (`createdAt`, `updatedAt`) **millisaniyədir** (Firestore Timestamp deyil). Klient kodu bunu artıq qəbul edir (`AnnouncementsPage → toMillis`, `AnnouncementSection → new Date(ms)`).
 
@@ -60,6 +61,9 @@ Vaxtlar (`createdAt`, `updatedAt`) **millisaniyədir** (Firestore Timestamp deyi
 | POST | `/api/push/subscribe` | hamı | `{ subscription: PushSubscription.toJSON(), lang, loc, prefs, userAgent, legacyFcmToken? }` — `legacyFcmToken` (keçid): server Firestore-dan `fcm_tokens/<token>`-i silir (Firebase/FCM sönülüdürsə sakit keçir) |
 | PATCH | `/api/push/subscription` | endpoint-i bilən | `{ endpoint, lang?, loc?, prefs? }` (prefs üst səviyyədə birləşir) |
 | POST | `/api/push/unsubscribe` | endpoint-i bilən | `{ endpoint }` və/və ya `{ legacyFcmToken }` |
+| GET | `/api/sync/:id` | id-ni bilən | Cihazlar arası sinxronizasiya (`server/sync.js`): `{ blob, version, updatedAt }` / `404`. `id` — bərpa kodundan brauzerdə HKDF ilə alınan 64 hex |
+| PUT | `/api/sync/:id` | id-ni bilən | `{ blob (base64url, ≤900 KB), version }` → `{ version, updatedAt }`; versiya uyğun deyilsə `409` (başqa cihaz yeniləyib). Blok brauzerdə AES-256-GCM ilə şifrələnib — server oxuya bilmir. 400 gün toxunulmayan silinir |
+| DELETE | `/api/sync/:id` | id-ni bilən | Serverdəki şifrəli nüsxəni silir |
 
 **Müvəqqəti şifrə:** `admin-user.js create` və `set-password` ilə qoyulan şifrə müvəqqətidir (`admins.must_change=1`, DB miqrasiyası 2). Belə sessiya yalnız `/me`, `/password`, `/logout`-a çata bilər; digər admin API-ləri `403 { code:'must_change' }`. Panel girişdən sonra yalnız "Şifrəni dəyiş" formasını göstərir. Müvəqqəti olmasın deyə: `--permanent`.
 

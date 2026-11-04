@@ -1,0 +1,82 @@
+/* ══ BackupCard — "Məlumatlarım" (components/BackupCard.jsx) ══ */
+.bk-card { display: grid; gap: var(--space-3); }
+.bk-head { display: flex; align-items: flex-start; gap: var(--space-3); }
+.bk-icon { flex: none; }
+.bk-title { margin: 0 0 4px; color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; }
+.bk-lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; max-width: 62ch; }
+
+.bk-stats { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin: 0; }
+.bk-stats > div { display: grid; gap: 2px; }
+.bk-stats dt { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.bk-stats dd { margin: 0; color: var(--text-strong); font-weight: 600; }
+
+.bk-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.bk-confirm {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  animation: bk-in var(--dur-3) var(--ease-out) both;
+}
+.bk-confirm__t { margin: 0; color: var(--text-strong); font-weight: 700; }
+.bk-confirm__meta { margin: 0; color: var(--text-secondary); font-size: var(--step--1); }
+.bk-confirm__warn { display: flex; gap: 6px; margin: 0; color: var(--accent-text); font-size: var(--step--1); line-height: 1.45; }
+.bk-confirm__warn svg { flex: none; margin-top: 2px; }
+
+.bk-status { display: flex; align-items: center; gap: 6px; min-height: 0; margin: 0; color: var(--brand); font-size: var(--step--1); font-weight: 600; }
+.bk-status:empty { display: none; }
+.bk-err { display: inline-flex; align-items: center; gap: 6px; color: var(--bad); }
+.bk-privacy { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: var(--step--2); }
+
+/* ── Footer dialoqu ── */
+.bk-dialog {
+  /* Qlobal sıfırlama dialoqun margin:auto-sunu silir — mərkəzə qaytarılır */
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  width: min(560px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  /* Kiçik ekranda kart hündür ola bilər — dialoqun içi sürüşür */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.bk-dialog::backdrop { background: rgba(10, 16, 22, 0.45); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.bk-dialog[open] { animation: bk-in var(--dur-3) var(--ease-out) both; }
+.bk-dialog .bk-card { position: relative; box-shadow: var(--shadow-4); padding-inline-end: calc(var(--card-pad, 20px) + 28px); }
+.bk-dialog__close { position: absolute; top: 10px; inset-inline-end: 10px; }
+
+@keyframes bk-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .bk-confirm, .bk-dialog[open] { animation: none; } }
+
+/* ══ Sinxronizasiya (components/SyncPanel.jsx) ══ */
+.sy { display: grid; gap: var(--space-2); margin-top: var(--space-2); padding-top: var(--space-3); border-top: 1px dashed var(--line-strong); }
+.sy-title { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--text-strong); font-size: var(--step-0); font-weight: 600; }
+.sy-title svg { color: var(--brand); }
+.sy-lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; max-width: 62ch; }
+.sy-code-box { display: grid; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--brand-line, var(--brand)); border-radius: var(--radius-md); background: var(--brand-soft); animation: bk-in var(--dur-3) var(--ease-out) both; }
+.sy-code-label { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.sy-code { font-family: var(--font-mono, ui-monospace, monospace); font-size: clamp(1rem, 3.6vw, 1.35rem); font-weight: 700; letter-spacing: 0.06em; color: var(--text-strong); word-break: break-all; direction: ltr; unicode-bidi: isolate; }
+.sy-code--sm { font-size: var(--step--1); font-weight: 600; }
+.sy-note { margin: 0; color: var(--text-body); font-size: var(--step--1); }
+.sy-warn { display: flex; gap: 6px; margin: 0; color: var(--accent-text); font-size: var(--step--1); line-height: 1.45; }
+.sy-warn svg { flex: none; margin-top: 2px; }
+.sy-enter { display: grid; gap: var(--space-2); }
+.sy-input { font-family: var(--font-mono, ui-monospace, monospace); letter-spacing: 0.05em; text-transform: uppercase; }
+.sy-on { display: grid; gap: 6px; }
+.sy-on__state { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--brand); font-weight: 600; }
+.sy-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok, var(--brand)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok, var(--brand)) 25%, transparent); }
+.sy-on__code { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0; }
+.sy-link { padding: 0; border: 0; background: none; font: inherit; font-size: var(--step--1); cursor: pointer; }
+.sy-meta { margin: 0; color: var(--text-tertiary); font-size: var(--step--2); }
+@media (prefers-reduced-motion: reduce) { .sy-code-box { animation: none; } }
+
+.sy-del-link { display: inline-flex; align-items: center; gap: 6px; justify-self: start; color: var(--bad); }
+.sy-del .sy-del__yes { background: var(--bad); border-color: var(--bad); }

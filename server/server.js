@@ -99,6 +99,9 @@ app.use('/api', require('./feedback').createFeedbackRouter({ db, requireAdmin })
 // ─── Qrup xətmi və ortaq hədəflər (server/groups.js) — hesabsız otaqlar, öz limiti var ──
 app.use('/api', require('./groups').createGroupsRouter({ db }))
 
+// ─── Cihazlar arası sinxronizasiya (server/sync.js) — şifrəli bloklar, hesabsız; öz limiti var ──
+app.use('/api', require('./sync').createSyncRouter({ db }))
+
 // ─── Web Push (server/push.js) ───────────────────────────────────────
 const push = require('./push')
 const pushStore = push.createPushStore(db)

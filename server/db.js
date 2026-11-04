@@ -82,6 +82,20 @@ const MIGRATIONS = [
   `
   ALTER TABLE admins ADD COLUMN must_change INTEGER NOT NULL DEFAULT 0;
   `,
+  // 3 — cihazlar arası sinxronizasiya (server/sync.js): ŞİFRƏLİ bloklar.
+  // id — bərpa kodundan brauzerdə alınan 256 bitlik identifikator (hex);
+  // blob — brauzerdə AES-GCM ilə şifrələnmiş məlumat. Server içini oxuya bilmir.
+  `
+  CREATE TABLE sync_blobs (
+    id         TEXT PRIMARY KEY,
+    blob       TEXT NOT NULL,
+    size       INTEGER NOT NULL,
+    version    INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX sync_by_updated ON sync_blobs(updated_at);
+  `,
 ]
 
 const SCHEMA_VERSION = MIGRATIONS.length
