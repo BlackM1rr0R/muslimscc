@@ -3,11 +3,18 @@
 // çəkir. Kanvas çərçivəyə "contain" kimi sığdırılır: ölçü dəyişəndə
 // (kvadrat → hekayə) kart çərçivədən çıxmır. Ekran oxuyucusu üçün
 // role="img" + tam mətn (aria-label).
+//
+// motion=true: kart hərəkətli oynayır (utils/quoteMotion → createScene) —
+// videoya yazılan kadrların eynisi, döngüdə. Tab gizli olanda rAF özü dayanır.
 // ═══════════════════════════════════════════════════════
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { renderCard, ensureFonts } from '../../utils/quoteCard'
+import { createScene } from '../../utils/quoteMotion'
 
-export default function QuotePreview({ card, format, label, onOverflow, swapKey }) {
+// clockRef — video yazılarkən: { current: t | null }. Verilibsə önizləmə öz
+// saatı ilə yox, yazılan videonun saatı ilə oynayır (eyni kadrlar görünür).
+// audioDur — qiraətli videoda zaman xətti səsə görə qurulur (önizləmə də eyni).
+export default function QuotePreview({ card, format, label, onOverflow, swapKey, motion = false, clockRef = null, audioDur = 0, children }) {
   const frameRef = useRef(null)
   const canvasRef = useRef(null)
   const [box, setBox] = useState({ w: 0, h: 0 })
@@ -52,9 +59,34 @@ export default function QuotePreview({ card, format, label, onOverflow, swapKey 
     if (c.height !== ph) c.height = ph
     const ctx = c.getContext('2d')
     ctx.setTransform(pw / format.w, 0, 0, ph / format.h, 0, 0)
+    // Hərəkətli rejimdə də statik kadr çəkilir: həm sığma yoxlaması üçün,
+    // həm də animasiyanın ilk kadrı gələnə qədər boşluq görünməsin
     const res = renderCard(ctx, card, format.w, format.h)
     onOverflow?.(res.overflow)
   }, [card, format, cssW, cssH, scale, fontTick, onOverflow, swapKey])
+
+  // Hərəkətli önizləmə — videodakı kadrların eynisi, döngüdə
+  useEffect(() => {
+    const c = canvasRef.current
+    if (!motion || !c || !scale) return undefined
+    const scene = createScene(card, format, { audioDur })
+    const ctx = c.getContext('2d')
+    let raf = 0
+    const start = performance.now()
+    const loop = (now) => {
+      ctx.setTransform(c.width / format.w, 0, 0, c.height / format.h, 0, 0)
+      const ext = clockRef?.current
+      scene.draw(ctx, ext != null ? Math.min(ext, scene.total) : ((now - start) / 1000) % scene.total)
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    return () => {
+      cancelAnimationFrame(raf)
+      // Dayananda kart tam (statik) görünüşünə qayıtsın
+      ctx.setTransform(c.width / format.w, 0, 0, c.height / format.h, 0, 0)
+      renderCard(ctx, card, format.w, format.h)
+    }
+  }, [motion, card, format, cssW, cssH, scale, fontTick, swapKey, clockRef, audioDur])
 
   return (
     <div className="qg-frame" ref={frameRef}>
@@ -67,6 +99,7 @@ export default function QuotePreview({ card, format, label, onOverflow, swapKey 
         data-format={format.id}
         style={{ width: `${cssW}px`, height: `${cssH}px` }}
       />
+      {children}
     </div>
   )
 }

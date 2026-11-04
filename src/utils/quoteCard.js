@@ -855,9 +855,23 @@ export function fitText(ctx, card, box, u) {
 /**
  * Kartı çəkir. ctx-in koordinatları W×H məntiqi pikseldədir.
  * card = { template, style, ar, text, ref, kicker, lang, watermark }
- * Qaytarır: { overflow } — mətn ən kiçik ölçüdə də sığmayıbsa true.
+ *
+ * opts (hərəkətli kart üçün — utils/quoteMotion; PNG/önizləmə onsuz çağırır):
+ *   bg      — fon + naxış (susmaya görə true)
+ *   paint   — yalnız fon (susmaya görə bg ilə eyni)
+ *   decor   — yalnız şablonun naxışı/çərçivəsi/ayı (susmaya görə bg ilə eyni)
+ *   border  — istifadəçinin çərçivə xətti (susmaya görə bg ilə eyni)
+ *   text    — mətn + işarə (susmaya görə true)
+ *   clear   — əvvəlcə kanvası təmizlə (susmaya görə true)
+ *   reveal  — (i, kind) => { a, dy } | null: i-ci mətn elementinin şəffaflığı
+ *             və şaquli sürüşməsi. Elementlər: kicker, ornament, ərəbcə və
+ *             tərcümənin HƏR SƏTRİ, divider, istinadın hər sətri, watermark.
+ *
+ * Qaytarır: { overflow, scale, items } — items: çəkilən mətn elementləri
+ * ardıcıllıqla [{ kind, len }] (len — simvol sayı; animasiyanın tempi üçün).
  */
-export function renderCard(ctx, card, W, H) {
+export function renderCard(ctx, card, W, H, opts = {}) {
+  const { bg = true, paint = bg, decor = bg, border = bg, text = true, clear = true, reveal = null } = opts
   const tpl = card.template || TEMPLATES[0]
   const st = { ...DEFAULT_STYLE, ...(card.style || {}) }
   const u = unitOf(W, H)
@@ -866,25 +880,27 @@ export function renderCard(ctx, card, W, H) {
   const accent = tpl.accent
 
   ctx.save()
-  ctx.clearRect(0, 0, W, H)
+  if (clear) ctx.clearRect(0, 0, W, H)
   if (st.corners === 'round') {
     roundRect(ctx, 0, 0, W, H, Math.min(W, H) * 0.06)
     ctx.clip()
   }
 
   // ── Fon (şəffaflıq yalnız fona aiddir) ──
-  ctx.save()
-  ctx.globalAlpha = Math.min(1, Math.max(0.3, st.opacity / 100))
-  if (st.bgColor) fill(ctx, W, H, st.bgColor)
-  else tpl.paint(ctx, W, H)
-  ctx.restore()
-  if (tpl.decor) {
+  if (paint) {
+    ctx.save()
+    ctx.globalAlpha = Math.min(1, Math.max(0.3, st.opacity / 100))
+    if (st.bgColor) fill(ctx, W, H, st.bgColor)
+    else tpl.paint(ctx, W, H)
+    ctx.restore()
+  }
+  if (decor && tpl.decor) {
     ctx.save()
     if (st.bgColor) ctx.globalAlpha = 0.85
     tpl.decor(ctx, W, H, tpl, u)
     ctx.restore()
   }
-  if (st.border > 0) {
+  if (border && st.border > 0) {
     const bw = st.border * u
     ctx.save()
     ctx.strokeStyle = st.borderColor
@@ -910,107 +926,136 @@ export function renderCard(ctx, card, W, H) {
   const xFor = (rtl) => (center ? box.x + box.w / 2 : rtl ? box.x + box.w : box.x)
   const alignFor = (rtl) => (center ? 'center' : rtl ? 'right' : 'left')
 
+  // Hər mətn elementi step()-dən keçir: reveal verilibsə şəffaflıq (A) və
+  // şaquli sürüşmə (dy) tətbiq olunur; yoxdursa element olduğu kimi çəkilir.
+  const items = []
+  let A = 1
+  const step = (kind, len, draw) => {
+    const idx = items.length
+    items.push({ kind, len })
+    if (!text) return
+    const r = reveal ? reveal(idx, kind) : null
+    A = r ? Math.max(0, Math.min(1, r.a)) : 1
+    if (A <= 0.002) return
+    ctx.save()
+    ctx.globalAlpha = A
+    if (r?.dy) ctx.translate(0, r.dy)
+    draw()
+    ctx.restore()
+  }
+
   ctx.textBaseline = 'middle'
   let y = box.y + Math.max(0, (box.h - lay.total) / 2)
   lay.parts.forEach((p, i) => {
     y += p.before || 0
+    const y0 = y
     if (p.type === 'kicker') {
       const label = rtlUi ? card.kicker : card.kicker.toLocaleUpperCase(card.lang || 'az')
-      setFont(ctx, 600, p.size, rtlUi ? F_AR_UI : F_SANS)
-      trySet(ctx, 'letterSpacing', rtlUi ? '0px' : `${(p.size * 0.16).toFixed(1)}px`)
-      ctx.direction = rtlUi ? 'rtl' : 'ltr'
-      ctx.textAlign = alignFor(rtlUi)
-      ctx.fillStyle = accent
-      ctx.globalAlpha = 0.95
-      if (tpl.kickerPill) {
-        // Hap şəklində etiket (İri yazı şablonu)
-        const tw = ctx.measureText(label).width, ph = p.size * 1.85, padX = p.size * 0.9
-        const x0 = center ? box.x + box.w / 2 - tw / 2 : rtlUi ? box.x + box.w - tw : box.x
-        ctx.save()
-        roundRect(ctx, x0 - padX, y + (p.h - ph) / 2, tw + padX * 2, ph, ph / 2)
-        ctx.globalAlpha = 0.16; ctx.fill()
-        ctx.globalAlpha = 0.9; ctx.strokeStyle = accent; ctx.lineWidth = 1.5 * u; ctx.stroke()
-        ctx.restore()
-      }
-      ctx.fillText(label, xFor(rtlUi) + (tpl.kickerPill && !center ? (rtlUi ? -1 : 1) * p.size * 0.9 : 0), y + p.h / 2)
-      ctx.globalAlpha = 1
-      trySet(ctx, 'letterSpacing', '0px')
+      step('kicker', label.length, () => {
+        setFont(ctx, 600, p.size, rtlUi ? F_AR_UI : F_SANS)
+        trySet(ctx, 'letterSpacing', rtlUi ? '0px' : `${(p.size * 0.16).toFixed(1)}px`)
+        ctx.direction = rtlUi ? 'rtl' : 'ltr'
+        ctx.textAlign = alignFor(rtlUi)
+        ctx.fillStyle = accent
+        ctx.globalAlpha = 0.95 * A
+        if (tpl.kickerPill) {
+          // Hap şəklində etiket (İri yazı şablonu)
+          const tw = ctx.measureText(label).width, ph = p.size * 1.85, padX = p.size * 0.9
+          const x0 = center ? box.x + box.w / 2 - tw / 2 : rtlUi ? box.x + box.w - tw : box.x
+          ctx.save()
+          roundRect(ctx, x0 - padX, y0 + (p.h - ph) / 2, tw + padX * 2, ph, ph / 2)
+          ctx.globalAlpha = 0.16 * A; ctx.fill()
+          ctx.globalAlpha = 0.9 * A; ctx.strokeStyle = accent; ctx.lineWidth = 1.5 * u; ctx.stroke()
+          ctx.restore()
+        }
+        ctx.fillText(label, xFor(rtlUi) + (tpl.kickerPill && !center ? (rtlUi ? -1 : 1) * p.size * 0.9 : 0), y0 + p.h / 2)
+        trySet(ctx, 'letterSpacing', '0px')
+      })
     } else if (p.type === 'ornament') {
       // Xatəm ulduzu və iki tərəfə incə xətlər (kənara düzləndikdə — bir tərəfə)
       const startRtl = rtlUi || (!body.text && Boolean(body.ar))
       if (tpl.ornament === 'bar') {
         // Qısa qalın xətt (müasir şablonlar)
-        const bw = 64 * u, bh = 6 * u
-        const bx = center ? box.x + box.w / 2 - bw / 2 : startRtl ? box.x + box.w - bw : box.x
-        ctx.save(); ctx.fillStyle = accent
-        roundRect(ctx, bx, y + p.h / 2 - bh / 2, bw, bh, bh / 2); ctx.fill()
-        ctx.restore()
+        step('ornament', 0, () => {
+          const bw = 64 * u, bh = 6 * u
+          const bx = center ? box.x + box.w / 2 - bw / 2 : startRtl ? box.x + box.w - bw : box.x
+          ctx.fillStyle = accent
+          roundRect(ctx, bx, y0 + p.h / 2 - bh / 2, bw, bh, bh / 2); ctx.fill()
+        })
         y += p.h + p.gap
         return
       }
-      const cx = center ? box.x + box.w / 2 : startRtl ? box.x + box.w - p.size : box.x + p.size
-      const cy = y + p.h / 2
-      ctx.save()
-      ctx.fillStyle = accent; ctx.strokeStyle = accent
-      starPath(ctx, cx, cy, p.size); ctx.fill()
-      ctx.globalAlpha = 0.7; ctx.lineWidth = 1.6 * u
-      const len = 70 * u, gap = p.size + 12 * u
-      ctx.beginPath()
-      if (center || startRtl) { ctx.moveTo(cx - gap, cy); ctx.lineTo(cx - gap - len, cy) }
-      if (center || !startRtl) { ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + gap + len, cy) }
-      ctx.stroke()
-      ctx.restore()
+      step('ornament', 0, () => {
+        const cx = center ? box.x + box.w / 2 : startRtl ? box.x + box.w - p.size : box.x + p.size
+        const cy = y0 + p.h / 2
+        ctx.fillStyle = accent; ctx.strokeStyle = accent
+        starPath(ctx, cx, cy, p.size); ctx.fill()
+        ctx.globalAlpha = 0.7 * A; ctx.lineWidth = 1.6 * u
+        const len = 70 * u, gap = p.size + 12 * u
+        ctx.beginPath()
+        if (center || startRtl) { ctx.moveTo(cx - gap, cy); ctx.lineTo(cx - gap - len, cy) }
+        if (center || !startRtl) { ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + gap + len, cy) }
+        ctx.stroke()
+      })
     } else if (p.type === 'ar') {
-      setFont(ctx, 400, p.size, F_AR)
-      ctx.direction = 'rtl'
-      ctx.textAlign = alignFor(true)
-      ctx.fillStyle = ink
-      p.lines.forEach((ln, j) => ctx.fillText(ln, xFor(true), y + j * p.lh + p.lh / 2))
+      p.lines.forEach((ln, j) => step('ar', ln.length, () => {
+        setFont(ctx, 400, p.size, F_AR)
+        ctx.direction = 'rtl'
+        ctx.textAlign = alignFor(true)
+        ctx.fillStyle = ink
+        ctx.fillText(ln, xFor(true), y0 + j * p.lh + p.lh / 2)
+      }))
     } else if (p.type === 'tr') {
       const rtl = rtlUi || isArabicScript(body.text)
-      setFont(ctx, p.weight, p.size, p.fam)
-      ctx.direction = rtl ? 'rtl' : 'ltr'
-      ctx.textAlign = alignFor(rtl)
-      ctx.fillStyle = body.ar ? sub : ink
-      p.lines.forEach((ln, j) => ctx.fillText(ln, xFor(rtl), y + j * p.lh + p.lh / 2))
+      p.lines.forEach((ln, j) => step('tr', ln.length, () => {
+        setFont(ctx, p.weight, p.size, p.fam)
+        ctx.direction = rtl ? 'rtl' : 'ltr'
+        ctx.textAlign = alignFor(rtl)
+        ctx.fillStyle = body.ar ? sub : ink
+        ctx.fillText(ln, xFor(rtl), y0 + j * p.lh + p.lh / 2)
+      }))
     } else if (p.type === 'divider') {
-      const w = 56 * u
-      const x = center ? box.x + box.w / 2 - w / 2 : rtlUi ? box.x + box.w - w : box.x
-      ctx.fillStyle = accent
-      ctx.globalAlpha = 0.85
-      ctx.fillRect(x, y, w, p.h)
-      ctx.globalAlpha = 1
+      step('divider', 0, () => {
+        const w = 56 * u
+        const x = center ? box.x + box.w / 2 - w / 2 : rtlUi ? box.x + box.w - w : box.x
+        ctx.fillStyle = accent
+        ctx.globalAlpha = 0.85 * A
+        ctx.fillRect(x, y0, w, p.h)
+      })
     } else if (p.type === 'ref') {
-      setFont(ctx, 600, p.size, rtlUi ? F_AR_UI : F_SANS)
-      trySet(ctx, 'letterSpacing', rtlUi ? '0px' : `${(p.size * 0.04).toFixed(1)}px`)
-      ctx.direction = rtlUi ? 'rtl' : 'ltr'
-      ctx.textAlign = alignFor(rtlUi)
-      ctx.fillStyle = st.textColor || (tpl.dark ? accent : tpl.sub)
-      p.lines.forEach((ln, j) => ctx.fillText(ln, xFor(rtlUi), y + j * p.lh + p.lh / 2))
-      trySet(ctx, 'letterSpacing', '0px')
+      p.lines.forEach((ln, j) => step('ref', ln.length, () => {
+        setFont(ctx, 600, p.size, rtlUi ? F_AR_UI : F_SANS)
+        trySet(ctx, 'letterSpacing', rtlUi ? '0px' : `${(p.size * 0.04).toFixed(1)}px`)
+        ctx.direction = rtlUi ? 'rtl' : 'ltr'
+        ctx.textAlign = alignFor(rtlUi)
+        ctx.fillStyle = st.textColor || (tpl.dark ? accent : tpl.sub)
+        ctx.fillText(ln, xFor(rtlUi), y0 + j * p.lh + p.lh / 2)
+        trySet(ctx, 'letterSpacing', '0px')
+      }))
     }
     y += p.h + (i < lay.parts.length - 1 ? p.gap : 0)
   })
 
   // ── muslims.cc işarəsi (kartın altında, kiçik) ──
   if (card.watermark) {
-    const story = H / W > 1.6
-    const size = 22 * u
-    setFont(ctx, 600, size, F_SANS)
-    trySet(ctx, 'letterSpacing', `${(size * 0.16).toFixed(1)}px`)
-    ctx.direction = 'ltr'
-    ctx.textAlign = 'center'
-    // Şablon öz yerini/rəngini verə bilər (tağ, zolaq, panel — mətnin üstünə düşməsin)
-    const mk = tpl.mark || {}
-    ctx.fillStyle = mk.color?.(st, W, H) || sub
-    ctx.globalAlpha = 0.72
-    const wy = mk.y?.(W, H, u) ?? (story ? H - H * 0.11 : H - Math.max(Math.min(W, H) * 0.075, 44 * u))
-    ctx.fillText(card.watermark, mk.x?.(W, H, u) ?? W / 2, wy)
-    ctx.globalAlpha = 1
-    trySet(ctx, 'letterSpacing', '0px')
+    step('watermark', 0, () => {
+      const story = H / W > 1.6
+      const size = 22 * u
+      setFont(ctx, 600, size, F_SANS)
+      trySet(ctx, 'letterSpacing', `${(size * 0.16).toFixed(1)}px`)
+      ctx.direction = 'ltr'
+      ctx.textAlign = 'center'
+      // Şablon öz yerini/rəngini verə bilər (tağ, zolaq, panel — mətnin üstünə düşməsin)
+      const mk = tpl.mark || {}
+      ctx.fillStyle = mk.color?.(st, W, H) || sub
+      ctx.globalAlpha = 0.72 * A
+      const wy = mk.y?.(W, H, u) ?? (story ? H - H * 0.11 : H - Math.max(Math.min(W, H) * 0.075, 44 * u))
+      ctx.fillText(card.watermark, mk.x?.(W, H, u) ?? W / 2, wy)
+      trySet(ctx, 'letterSpacing', '0px')
+    })
   }
   ctx.restore()
-  return { overflow: lay.overflow, scale: lay.f }
+  return { overflow: lay.overflow, scale: lay.f, items }
 }
 
 /** Şablon miniatürü. card verilibsə — HƏMİN mətnlə tam kart (seçicidə istifadəçi

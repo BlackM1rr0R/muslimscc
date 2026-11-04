@@ -13,6 +13,10 @@
 // Məzmun: quotes.js + admin sitatları, ayə (alquran.cloud), hədis
 // (utils/hadithData), istifadəçinin öz mətni. ShareCardButton başqa
 // səhifələrdən ?ayah= / ?hadith= / ?text=&src= ilə bura gətirir.
+//
+// Hərəkətli kart və video (utils/quoteMotion): önizləmə susmaya görə
+// hərəkətlidir ("hərəkəti azalt" ayarında — statik). "Video" düyməsi eyni
+// animasiyanı MP4/WebM kimi yazır; ayə seçilibsə qiraət səsi ilə.
 // ═══════════════════════════════════════════════════════
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -27,6 +31,7 @@ import {
   TEMPLATES, FORMATS, DEFAULT_STYLE, templateById, formatById, mostlyArabic,
   renderPng, saveBlob, preopenWindow, canShareFile,
 } from '../utils/quoteCard'
+import { videoSupported, recordVideo, recitationUrl, createAudioContext } from '../utils/quoteMotion'
 import { LABELS, TEMPLATE_NAMES } from '../components/quote/labels'
 import { refLabel, fetchAyah, readParams, parseAyahRef } from '../components/quote/content'
 import QuotePreview from '../components/quote/QuotePreview'
@@ -271,6 +276,20 @@ export default function QuoteGeneratorPage() {
     style, lang, ar: content.ar, text: content.text, ref: content.ref, kicker: content.kicker, watermark: BRAND.domain,
   }), [style, lang, content])
 
+  /* ── Hərəkət və video ── */
+  const [motion, setMotion] = useState(() => !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches))
+  const [canVideo] = useState(() => (typeof window !== 'undefined' ? videoSupported() : false))
+  const [withAudio, setWithAudio] = useState(true)
+  // video: null | { status: 'audio' | 'rec' | 'ready' | 'error', t, total, file, url, noAudio, msg }
+  const [video, setVideo] = useState(null)
+  const [recAudioDur, setRecAudioDur] = useState(0)
+  const recClock = useRef(null)
+  const recAbort = useRef(null)
+  const recUrl = useRef('')
+  const recording = video?.status === 'audio' || video?.status === 'rec'
+  const ayahRecitable = source === 'ayah' && ayahState.status === 'ok' && Boolean(ayahState.ref)
+  useEffect(() => () => { recAbort.current?.abort(); if (recUrl.current) URL.revokeObjectURL(recUrl.current) }, [])
+
   const [overflow, setOverflow] = useState(false)
   const onOverflow = useCallback((v) => setOverflow(Boolean(v)), [])
 
@@ -348,6 +367,68 @@ export default function QuoteGeneratorPage() {
     }
   }
 
+  const closeVideo = () => {
+    recAbort.current?.abort()
+    if (recUrl.current) { URL.revokeObjectURL(recUrl.current); recUrl.current = '' }
+    recClock.current = null
+    setRecAudioDur(0)
+    setVideo(null)
+  }
+
+  const makeVideo = async () => {
+    if (busy || recording || content.empty) return
+    if (!canVideo) { setVideo({ status: 'error', msg: t.videoUnsupported }); return }
+    const useAudio = ayahRecitable && withAudio
+    // AudioContext klikdə DƏRHAL yaradılır — sonra (await-dən sonra) brauzer səsi bloklayır
+    const actx = useAudio ? createAudioContext() : null
+    const ctrl = new AbortController()
+    recAbort.current = ctrl
+    if (recUrl.current) { URL.revokeObjectURL(recUrl.current); recUrl.current = '' }
+    setVideo({ status: useAudio ? 'audio' : 'rec', t: 0, total: 0 })
+    let last = 0
+    try {
+      const [s, a] = useAudio ? ayahState.ref.split(':') : []
+      const r = await recordVideo(card, format, {
+        audioUrl: useAudio ? recitationUrl(s, a) : '',
+        actx,
+        signal: ctrl.signal,
+        onStart: ({ total, audioDur }) => {
+          recClock.current = 0
+          setRecAudioDur(audioDur)
+          setVideo({ status: 'rec', t: 0, total })
+        },
+        onProgress: (sec, total) => {
+          recClock.current = sec
+          // Vəziyyət saniyədə ~5 dəfə yenilənir (hər kadrda yox)
+          if (sec - last > 0.2) { last = sec; setVideo(v => (v?.status === 'rec' ? { ...v, t: sec, total } : v)) }
+        },
+      })
+      const name = fileName.replace(/\.png$/, `.${r.ext}`)
+      const file = new File([r.blob], name, { type: r.mime })
+      recUrl.current = URL.createObjectURL(r.blob)
+      setVideo({ status: 'ready', file, url: recUrl.current, noAudio: useAudio && !r.audio })
+    } catch (e) {
+      if (e?.name === 'AbortError' && e.message !== 'hidden') return
+      setVideo({ status: 'error', msg: e?.message === 'hidden' ? t.videoHidden : e?.message === 'unsupported' ? t.videoUnsupported : t.videoFail })
+    } finally {
+      recClock.current = null
+      setRecAudioDur(0)
+      actx?.close?.()?.catch?.(() => {})
+    }
+  }
+
+  const shareVideo = async () => {
+    const file = video?.file
+    if (!file) return
+    if (canShareFile(file)) {
+      try { await navigator.share({ files: [file], title: t.title, text: shareText }) } catch (e) {
+        if (e?.name !== 'AbortError') saveBlob(file, file.name)
+      }
+    } else {
+      saveBlob(file, file.name)
+    }
+  }
+
   const copy = async () => {
     if (content.empty) return
     const text = [content.ar, content.text, content.ref ? `— ${content.ref}` : ''].filter(Boolean).join('\n\n')
@@ -390,14 +471,66 @@ export default function QuoteGeneratorPage() {
               label={`${t.preview}: ${ariaCard}`}
               onOverflow={onOverflow}
               swapKey={`${tplId}-${fmtId}-${animKey}`}
-            />
+              motion={(motion || recording) && !content.empty}
+              clockRef={recording ? recClock : null}
+              audioDur={recording ? recAudioDur : 0}
+            >
+              {recording && (
+                <div className="qg-rec" role="status" aria-live="polite">
+                  <div className="qg-rec__row">
+                    <span className="qg-rec__dot" aria-hidden="true" />
+                    <span className="qg-rec__label">
+                      {video.status === 'audio' ? t.loadingAudio : t.videoMaking}
+                      {video.status === 'rec' && video.total > 0 && (
+                        <span className="ui-num"> · {Math.floor(video.t)} / {Math.ceil(video.total)} {t.sec}</span>
+                      )}
+                    </span>
+                    <button type="button" className="qg-rec__cancel" onClick={closeVideo}>{t.cancel}</button>
+                  </div>
+                  <div className="qg-rec__bar" aria-hidden="true">
+                    <span style={{ transform: `scaleX(${video.total ? Math.min(1, video.t / video.total) : 0})` }} />
+                  </div>
+                  <p className="qg-rec__note">{t.videoKeep}</p>
+                </div>
+              )}
+              {video?.status === 'ready' && (
+                <div className="qg-vid" role="dialog" aria-label={t.videoReady}>
+                  <video className="qg-vid__player" src={video.url} autoPlay loop muted playsInline controls />
+                  <div className="qg-vid__bar">
+                    <strong className="qg-vid__title"><Icon name="check" size={16} /> {t.videoReady}</strong>
+                    {video.noAudio && <p className="qg-vid__note">{t.noAudio}</p>}
+                    <div className="qg-vid__acts">
+                      <button type="button" className="ui-btn ui-btn--primary" onClick={shareVideo}><Icon name="share" className="ui-btn__icon" />{t.share}</button>
+                      <button type="button" className="ui-btn ui-btn--secondary" onClick={() => saveBlob(video.file, video.file.name)}><Icon name="download" className="ui-btn__icon" />{t.videoDownload}</button>
+                      <button type="button" className="ui-icon-btn" onClick={closeVideo} aria-label={t.close} title={t.close}><Icon name="close" /></button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </QuotePreview>
             <figcaption className="qg-caption">
               {content.ref
                 ? <span className="qg-caption__ref" data-testid="quote-ref"><Icon name="check" size={14} /> <bdi>{content.ref}</bdi></span>
                 : <span className="qg-caption__ref is-empty" />}
-              <span className="qg-caption__meta"><span>{tplName}</span> · <span className="ui-num">{format.w}×{format.h}</span></span>
+              <span className="qg-caption__tools">
+                {ayahRecitable && canVideo && (
+                  <button type="button" className="qg-pill" aria-pressed={withAudio} onClick={() => setWithAudio(v => !v)} title={t.withRecitation}>
+                    <Icon name="volume" size={14} /> {t.recitation}
+                  </button>
+                )}
+                <button type="button" className="qg-pill" aria-pressed={motion} onClick={() => setMotion(m => !m)} disabled={recording} title={motion ? t.motionPause : t.motionPlay} aria-label={motion ? t.motionPause : t.motionPlay}>
+                  <Icon name={motion ? 'pause' : 'play'} size={14} /> {t.motion}
+                </button>
+                <span className="qg-caption__meta"><span>{tplName}</span> · <span className="ui-num">{format.w}×{format.h}</span></span>
+              </span>
             </figcaption>
             {overflow && !content.empty && <p className="qg-warn" role="status">{t.overflow}</p>}
+            {video?.status === 'error' && (
+              <p className="qg-warn qg-warn--video" role="alert">
+                {video.msg}
+                <button type="button" className="qg-warn__x" onClick={closeVideo} aria-label={t.close}><Icon name="close" size={14} /></button>
+              </p>
+            )}
           </figure>
 
           <div className="qg-actions">
@@ -409,6 +542,10 @@ export default function QuoteGeneratorPage() {
               {busy === 'download' ? <span className="ui-spin" aria-hidden="true" /> : <Icon name={flash === 'downloaded' ? 'check' : 'download'} className="ui-btn__icon" />}
               <span className="qg-act__long">{t.download}</span>
               <span className="qg-act__short" aria-hidden="true">{t.downloadShort}</span>
+            </button>
+            <button type="button" className="ui-btn ui-btn--secondary qg-act qg-act--video" onClick={makeVideo} disabled={Boolean(busy) || recording || content.empty} aria-label={t.videoLong} title={t.videoLong}>
+              {recording ? <span className="ui-spin" aria-hidden="true" /> : <Icon name="film" className="ui-btn__icon" />}
+              <span>{t.video}</span>
             </button>
             <button type="button" className="ui-icon-btn qg-act qg-act--copy" onClick={copy} disabled={content.empty} aria-label={t.copy} title={t.copy}>
               <Icon name={flash === 'copied' ? 'check' : 'copy'} />
