@@ -498,10 +498,10 @@ export default function KidsPage({ setPage }) {
             <p className="ui-lead">{k.lead}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {k.how}</p>
             <ul className="ui-page-hero__stats">
-              <li><b>{NAMES_OF_ALLAH.length}</b><span>{k.names}</span></li>
-              <li><b>{SHORT_SURAHS.length}</b><span>{k.surahs}</span></li>
-              <li><b>{KIDS_DUAS.length}</b><span>{k.duas}</span></li>
-              <li><b>{STORIES.length}</b><span>{k.stories}</span></li>
+              <li><b data-count={NAMES_OF_ALLAH.length}>{NAMES_OF_ALLAH.length}</b><span>{k.names}</span></li>
+              <li><b data-count={SHORT_SURAHS.length}>{SHORT_SURAHS.length}</b><span>{k.surahs}</span></li>
+              <li><b data-count={KIDS_DUAS.length}>{KIDS_DUAS.length}</b><span>{k.duas}</span></li>
+              <li><b data-count={STORIES.length}>{STORIES.length}</b><span>{k.stories}</span></li>
             </ul>
           </div>
           {/* Sağda: bu günün "ulduzları" — gözəl davranışlar oyununun halqası */}

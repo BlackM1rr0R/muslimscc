@@ -363,7 +363,7 @@ export default function MosqueFinderPage({ setPage }) {
                 // Bütün sətir xəritə keçididir: telefonda qruplaşdırılmış siyahı
                 // xanası (.m-list/.m-row, sonda › oxu), genişdə əvvəlki kimi ayrı
                 // kartlar və sağda "Xəritədə aç" düyməsi (MosqueFinderPage.css)
-                <ul className="mosque-list ui-card ui-card--flush" data-reveal="stagger">
+                <ul className="mosque-list ui-card ui-card--flush" data-reveal="stagger-blur">
                   {mosques.map((place) => (
                     <li key={place.id}>
                       <a

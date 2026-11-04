@@ -120,3 +120,63 @@
   .qr-layout:has(> .qr-what) > .qr-results:empty { display: none; }
   .qr-ayahs__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
 }
+
+/* ══ v4 "VAU" — Kök ağacı böyüyür ═══════════════════════════════════
+   • Nümunə ağacında: kök (رحم) halə ilə nəfəs alır, budaq xətti yuxarıdan
+     aşağı çəkilir, törəmə sözlər növbə ilə budaqdan "çıxır"
+   • Axtarış nəticəsi: kök hərfləri mürəkkəblə yazılır, rəqəmlər sayılır
+   • Ayədə tapılan söz bir dəfə qızılı parlayır */
+.qr-tree__forms { border-inline-start-color: transparent; }
+.qr-tree__forms::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -2px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent), var(--brand));
+  transform-origin: top center;
+  pointer-events: none;
+}
+.qr-tree__form { position: relative; transition: transform 400ms cubic-bezier(.16,1,.3,1), box-shadow 300ms ease; }
+.qr-tree__form::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 100%;
+  width: var(--space-4);
+  height: 2px;
+  background: var(--accent-line);
+  pointer-events: none;
+}
+@media (hover: hover) { .qr-tree__form:hover { transform: translateX(4px); box-shadow: var(--shadow-1); } [dir="rtl"] .qr-tree__form:hover { transform: translateX(-4px); } }
+.qr-tree__root { position: relative; transition: background-color 200ms ease, transform 400ms cubic-bezier(.16,1,.3,1); }
+.qr-tree__root::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: calc(var(--radius-lg) + 6px);
+  box-shadow: 0 0 0 1px var(--accent-line), 0 0 24px color-mix(in srgb, var(--accent) 30%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qr-tree__root::after { animation: qr-v4-breathe 4s ease-in-out infinite; }
+  html:not(.a11y-reduce-motion) .qr-tree__forms::before { animation: qr-v4-branch 900ms cubic-bezier(.16,1,.3,1) 200ms both; }
+  html:not(.a11y-reduce-motion) .qr-tree__form { animation: qr-v4-leaf 620ms cubic-bezier(.16,1,.3,1) calc(400ms + var(--i, 0) * 90ms) both; }
+  html:not(.a11y-reduce-motion)[dir="rtl"] .qr-tree__form { animation-name: qr-v4-leaf-rtl; }
+  html:not(.a11y-reduce-motion) .qr-summary__root { animation: qr-v4-ink 1200ms cubic-bezier(.16,1,.3,1) both; }
+  html:not(.a11y-reduce-motion) .qr-hit { animation: qr-v4-hit 1600ms ease-out 400ms both; }
+}
+@keyframes qr-v4-breathe { 0%, 100% { opacity: 0; transform: scale(.96); } 50% { opacity: 1; transform: none; } }
+@keyframes qr-v4-branch { from { transform: scaleY(0); } to { transform: none; } }
+@keyframes qr-v4-leaf { from { opacity: 0; transform: translateX(-16px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes qr-v4-leaf-rtl { from { opacity: 0; transform: translateX(16px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes qr-v4-ink {
+  from { clip-path: inset(-10% -2% -10% 100%); opacity: .25; }
+  to   { clip-path: inset(-10% -2% -10% -2%); opacity: 1; }
+}
+@keyframes qr-v4-hit {
+  0% { box-shadow: 0 0 0 0 transparent; }
+  30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 14px color-mix(in srgb, var(--accent) 40%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}

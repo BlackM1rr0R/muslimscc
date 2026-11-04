@@ -283,3 +283,80 @@
 @media (prefers-reduced-motion: reduce) {
   .analytics-achievements[data-revealed=""] .analytics-badge-tick { animation: none; }
 }
+
+/* ══ v4 "VAU" — Statistika: qrafiklər görünəndə "çəkilir" ═════════
+   • fəaliyyət xəritəsi — həftə-həftə (sütun-sütun) dalğa ilə dolur
+   • sütun qrafikləri aşağıdan böyüyür, zolaqlar başlanğıc tərəfdən uzanır
+   • halqalar qövs kimi çəkilir; rəqəmlər sayılır (data-count)
+   • hero "bu gün" kartı yüngülcə üzür; nişanlar hover-də fırlanır
+   Tətik: valideynin [data-revealed=""] atributu (useReveal) — JS olmasa
+   və ya hərəkət azaldılıbsa qrafiklər elə ilk andan tam görünür. */
+
+.analytics-heat__cell { transition: transform 320ms var(--ease-spring); }
+@media (hover: hover) {
+  .analytics-heat__cell:not(.is-future):hover { transform: scale(1.35); z-index: 1; box-shadow: var(--shadow-2); }
+}
+.analytics-badge { transition: transform 460ms var(--ease-spring), box-shadow 280ms ease, border-color 200ms ease; }
+.analytics-badge-icon { transition: transform 600ms var(--ease-spring); }
+@media (hover: hover) {
+  .analytics-badge.achieved:hover { transform: translateY(-4px); box-shadow: var(--shadow-3); }
+  .analytics-badge.achieved:hover .analytics-badge-icon { transform: rotate(-12deg) scale(1.1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .analytics-today { animation: an-float 7s ease-in-out 1.4s infinite; }
+  html:not(.a11y-reduce-motion) .analytics-page .ui-viz-ring .ui-viz-arc { animation: an-arc 1400ms cubic-bezier(.16, 1, .3, 1) 300ms backwards; }
+
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .analytics-heat__cell {
+    animation: an-cell 520ms var(--ease-spring) backwards;
+    animation-delay: calc(160ms + var(--hc, 0) * 45ms);
+  }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col__fill {
+    transform-origin: bottom center;
+    animation: an-col 1000ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(240ms + var(--reveal-i, 0) * 40ms);
+  }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(2) .ui-viz-col__fill { animation-delay: 300ms; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(3) .ui-viz-col__fill { animation-delay: 350ms; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(4) .ui-viz-col__fill { animation-delay: 400ms; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(5) .ui-viz-col__fill { animation-delay: 450ms; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(6) .ui-viz-col__fill { animation-delay: 500ms; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(n+7) .ui-viz-col__fill { animation-delay: 550ms; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col__value { animation: an-fade 500ms ease 700ms backwards; }
+
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar__fill,
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-meter__fill {
+    transform-origin: left center;
+    animation: an-bar 1100ms cubic-bezier(.16, 1, .3, 1) 260ms backwards;
+  }
+  html:not(.a11y-reduce-motion) [dir="rtl"] .analytics-page [data-revealed=""] .ui-viz-bar__fill,
+  html:not(.a11y-reduce-motion) [dir="rtl"] .analytics-page [data-revealed=""] .ui-meter__fill { transform-origin: right center; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar:nth-child(2) .ui-viz-bar__fill { animation-delay: 320ms; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar:nth-child(3) .ui-viz-bar__fill { animation-delay: 380ms; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar:nth-child(4) .ui-viz-bar__fill { animation-delay: 440ms; }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar:nth-child(n+5) .ui-viz-bar__fill { animation-delay: 500ms; }
+
+  html:not(.a11y-reduce-motion) .analytics-achievements[data-revealed=""] .analytics-badge.achieved .analytics-badge-icon { animation: an-badge 820ms var(--ease-spring) backwards; animation-delay: calc(120ms + var(--reveal-i, 0) * 45ms); }
+}
+
+@keyframes an-float {
+  0%, 100% { transform: none; }
+  50%      { transform: translateY(-5px); }
+}
+@keyframes an-arc { from { stroke-dasharray: 0 999; } }
+@keyframes an-cell {
+  from { opacity: 0; transform: scale(.2); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes an-col { from { transform: scaleY(0); } }
+@keyframes an-bar { from { transform: scaleX(0); } }
+@keyframes an-fade { from { opacity: 0; transform: translateY(4px); } }
+@keyframes an-badge {
+  from { transform: rotate(-160deg) scale(.4); }
+  to   { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analytics-heat__cell, .analytics-badge, .analytics-badge-icon { transition: none; }
+  .analytics-heat__cell:hover, .analytics-badge:hover, .analytics-badge:hover .analytics-badge-icon { transform: none; }
+}

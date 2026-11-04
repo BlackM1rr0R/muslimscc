@@ -379,8 +379,8 @@ export default function QuranRootsPage() {
               <div className="qr-tree">
                 <button type="button" className="qr-tree__root ui-arabic" lang="ar" dir="rtl" onClick={() => runSearch('رحم')}>{spacedRoot('رحم')}</button>
                 <ul className="qr-tree__forms">
-                  {demo.map(f => (
-                    <li key={f.lemma} className="qr-tree__form">
+                  {demo.map((f, i) => (
+                    <li key={f.lemma} className="qr-tree__form" style={{ '--i': i }}>
                       <span className="ui-arabic qr-tree__lemma" lang="ar">{f.lemma}</span>
                       <span className="qr-tree__meta">{cats[f.cat] || ''} · <span className="ui-num">{fmtTimes(f.count)}</span></span>
                     </li>
@@ -431,19 +431,19 @@ export default function QuranRootsPage() {
 
             {details && (
               <>
-                <section className="ui-card qr-summary" aria-labelledby="qr-root-title">
+                <section key={found.root} className="ui-card qr-summary" aria-labelledby="qr-root-title">
                   <h2 id="qr-root-title" className="qr-summary__root ui-arabic" lang="ar" dir="rtl">{spacedRoot(found.root)}</h2>
                   <div className="qr-summary__stats">
                     <div className="ui-stat">
-                      <span className="ui-stat__num">{details.total}</span>
+                      <span className="ui-stat__num" data-count={details.total}>{details.total}</span>
                       <span className="ui-stat__label">{L.occurrences}</span>
                     </div>
                     <div className="ui-stat">
-                      <span className="ui-stat__num">{details.forms.length}</span>
+                      <span className="ui-stat__num" data-count={details.forms.length}>{details.forms.length}</span>
                       <span className="ui-stat__label">{L.forms}</span>
                     </div>
                     <div className="ui-stat">
-                      <span className="ui-stat__num">{allAyahCount}</span>
+                      <span className="ui-stat__num" data-count={allAyahCount}>{allAyahCount}</span>
                       <span className="ui-stat__label">{L.ayahs}</span>
                     </div>
                   </div>

@@ -801,3 +801,84 @@ html.sp-vt::view-transition-new(root) { animation: 360ms cubic-bezier(0.22, 1, 0
   .sahabe-page .sp-cell .sahabe-card { padding-inline-end: 78px; }
   .sahabe-page .sp-cell .sahabe-card-chev { position: absolute; inset-inline-end: 12px; }
 }
+
+/* ══ v4 "VAU" — imza anları (səhifəyə xas; yalnız transform/opacity/clip-path) ══
+   1. Kartdakı ərəbcə ad "mürəkkəblə çəkilir" (sağdan sola clip-path — ərəb yazısı istiqamətində),
+      medalyon ulduzu fırlanaraq açılır — kart şəbəkəsi görünəndə (data-revealed="").
+   2. Vəfat illəri qrafiki: Raşidin zolağı soldan "çəkilir", nöqtələr sətir ekrana girdikcə yuxarıdan düşür
+      (animation-timeline: view(); dəstək yoxdursa — statik).
+   3. Geniş ekranda (≥1180) qrafik bölməsi iki sütun: yapışqan başlıq + qrafik (alt-alta yox).
+   Hərəkəti azalt (sistem və ya html.a11y-reduce-motion) → heç biri işləmir, məzmun dərhal görünür. */
+@media (min-width: 1180px) {
+  .sp-timeline > .ui-container {
+    display: grid;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    gap: var(--space-6) var(--space-7, 48px);
+    align-items: start;
+  }
+  .sp-timeline .ui-section-head { position: sticky; top: calc(var(--header-h, 64px) + 24px); margin-bottom: 0; }
+  .sp-timeline .ui-figure { max-width: none; margin: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .sahabe-grid[data-revealed=""] > li .cq__name {
+    animation: sp-ink 1100ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(220ms + var(--reveal-i, 0) * 70ms);
+  }
+  html:not(.a11y-reduce-motion) .sahabe-grid[data-revealed=""] > li .cq__honor,
+  html:not(.a11y-reduce-motion) .sahabe-grid[data-revealed=""] > li .cq__rule {
+    animation: sp-honor 700ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(820ms + var(--reveal-i, 0) * 70ms);
+  }
+  html:not(.a11y-reduce-motion) .sahabe-grid[data-revealed=""] > li .sahabe-card > .sp-medal {
+    animation: sp-medal-pop 800ms cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: calc(380ms + var(--reveal-i, 0) * 70ms);
+  }
+  /* Hover: lövhədəki ad yüngülcə "nəfəs alır", ulduz fırlanır */
+  @media (hover: hover) {
+    html:not(.a11y-reduce-motion) .sahabe-page .sahabe-card .cq__name { transition: transform 600ms cubic-bezier(.16, 1, .3, 1), text-shadow 600ms ease; }
+    html:not(.a11y-reduce-motion) .sahabe-page .sahabe-card:hover .cq__name {
+      transform: scale(1.06);
+      text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
+    }
+    html:not(.a11y-reduce-motion) .sahabe-page .sahabe-card:hover > .sp-medal { transform: translateY(-3px); }
+    html:not(.a11y-reduce-motion) .sahabe-page .sahabe-card > .sp-medal { transition: transform 500ms cubic-bezier(.34, 1.56, .64, 1); }
+  }
+
+  @supports (animation-timeline: view()) {
+    html:not(.a11y-reduce-motion) .sp-timeline .lc-dot {
+      animation: sp-dot-drop linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
+    html:not(.a11y-reduce-motion) .sp-timeline .lc-row:not(.lc-row--axis) .lc-label {
+      animation: sp-row-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
+    }
+    html:not(.a11y-reduce-motion) .sp-timeline .lc-band {
+      transform-origin: left center;
+      animation: sp-band linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 40%;
+    }
+    html:not(.a11y-reduce-motion) [dir="rtl"] .sp-timeline .lc-band { transform-origin: right center; }
+  }
+}
+@keyframes sp-ink {
+  from { opacity: 0; clip-path: inset(-20% 0 -20% 100%); filter: blur(3px); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; clip-path: inset(-20% 0 -20% 0); filter: none; }
+}
+@keyframes sp-honor { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes sp-medal-pop {
+  from { opacity: 0; transform: scale(.4) rotate(-90deg); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes sp-dot-drop {
+  from { opacity: 0; transform: translateY(-22px) scale(.3); }
+  70%  { opacity: 1; transform: translateY(2px) scale(1.15); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes sp-row-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes sp-band { from { transform: scaleX(0); } to { transform: none; } }

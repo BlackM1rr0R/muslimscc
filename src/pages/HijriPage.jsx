@@ -13,6 +13,8 @@ import {
 import { BarChart, ChartFigure, ColumnChart, ProgressRing } from '../components/viz'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 import '../styles/HijriPage.css'
+import '../styles/ToolsMotion.css'
+import { ringFrom } from '../components/prayer/ringFrom'
 
 // ═══════════════════════════════════════════════════════
 // /hijri-converter — Hicri tarix çevirici
@@ -262,7 +264,7 @@ export default function HijriPage({ setPage }) {
             <p className="ui-lead">{t.lead}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {(X[lk] || X.en).how}</p>
           </div>
-          <div className="ui-page-hero__aside">
+          <div className="ui-page-hero__aside" data-reveal="zoom">
             <TodayCard t={t} lang={lk} g={now} h={hToday} />
           </div>
         </div>
@@ -306,7 +308,7 @@ function YearGlance({ lang, g, h }) {
           <p className="ui-lead">{x.yearLead}</p>
         </div>
         <div className="hj-year-grid">
-          <div className="hj-year-ring ui-card">
+          <div className="hj-year-ring ui-card tm-ring" data-reveal="zoom" style={{ '--tm-ring-from': ringFrom(doy, yearLen, 120, 12) }}>
             <ProgressRing value={doy} max={yearLen} size={120} thickness={12}
               label={fill(x.ringLabel, { y: h.year })} sub={fill(x.ringSub, { d: doy, n: yearLen })} />
           </div>
@@ -359,8 +361,8 @@ function Ramadans({ lang, h }) {
           <h2 id="hj-ram-title" className="ui-title">{x.ramTitle}</h2>
           <p className="ui-lead">{x.ramLead}</p>
         </div>
-        <div className="ui-table-wrap" tabIndex={0} role="region" aria-labelledby="hj-ram-title">
-          <table className="ui-table ui-table--compact">
+        <div className="ui-table-wrap" data-reveal="fade" tabIndex={0} role="region" aria-labelledby="hj-ram-title">
+          <table className="ui-table ui-table--compact tm-cascade-rows">
             <caption>{x.caption}</caption>
             <thead>
               <tr>
@@ -483,7 +485,7 @@ function Converter({ t, lang, today, onShowMonth }) {
           <p className="hj-error" role="alert"><Icon name="alert" size={18} /> <span>{result.error}</span></p>
         ) : (
           <>
-            <dl className="hj-dl">
+            <dl className="hj-dl tm-slide" key={`${result.h.year}-${result.h.month}-${result.h.day}`}>
               <div><dt>{t.hijri}</dt><dd className="hj-big" data-testid="hj-res-hijri">{formatHijri(result.h, lang)}</dd></div>
               <div><dt>{t.gregorian}</dt><dd className="hj-big" data-testid="hj-res-greg">{formatGregorian(result.g, lang)}</dd></div>
               <div><dt>{t.weekday}</dt><dd>{weekdayName(result.g, lang)}</dd></div>
@@ -554,7 +556,7 @@ function MonthGrid({ t, lang, view, setView, today, hToday, firstDow }) {
         </div>
       )}
 
-      <table className="hj-cal">
+      <table className="hj-cal" key={`${view.year}-${view.month}`}>
         <caption className="ui-sr-only">{months[view.month - 1]} {view.year}</caption>
         <thead>
           <tr>{headers.map(d => <th key={d} scope="col" className="hj-cal-wd">{wd[d]}</th>)}</tr>
@@ -567,7 +569,7 @@ function MonthGrid({ t, lang, view, setView, today, hToday, firstDow }) {
                 const isToday = gKey(c.g) === todayKey
                 const showMonth = c.hDay === 1 || c.g.day === 1
                 return (
-                  <td key={ci} className={`hj-cal-cell${isToday ? ' is-today' : ''}${c.dow === 5 ? ' is-friday' : ''}`}
+                  <td key={ci} style={{ '--i': wi * 7 + ci }} className={`hj-cal-cell${isToday ? ' is-today' : ''}${c.dow === 5 ? ' is-friday' : ''}`}
                     aria-current={isToday ? 'date' : undefined}>
                     <span className="ui-sr-only">
                       {fill(t.cellAria, { h: formatHijri({ year: view.year, month: view.month, day: c.hDay }, lang), g: formatGregorian(c.g, lang), w: weekdayName(c.g, lang) })}

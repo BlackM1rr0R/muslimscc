@@ -355,3 +355,179 @@
 
 /* v3.1: "Əvvəlcə oxumaq" kafelləri sıranı tam doldursun */
 .quiz-prep-tiles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+
+/* ══════════════════════════════════════════════════════════════════
+   v4 "VAU" — kvizin imza anları (yalnız transform/opacity/filter)
+   • cavab: düzgün — zümrüd halqa dalğası + parıltı; səhv — titrəmə + qırmızı nəbz
+   • irəliləyiş zolağı: gradient + üstündən keçən işıq
+   • nəticə: halqa qövsü çəkilir, faiz sayılır (data-count), həndəsi konfeti
+   • geniş ekranda variantlar 2 × 2 (alt-alta uzun sütun olmasın)
+   Hərəkət yalnız "no-preference" + html:not(.a11y-reduce-motion) altında.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Tərtibat — geniş ekranda sual kartı daha enli, variantlar iki sütunda */
+@media (min-width: 1024px) {
+  .quiz-container { max-width: 880px; }
+  .quiz-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .quiz-option { min-height: 64px; }
+}
+
+/* Kateqoriya kartı — halqa hover-də canlanır */
+.quiz-category-card .quiz-category-ring svg { transition: transform 600ms cubic-bezier(.16, 1, .3, 1); }
+@media (hover: hover) {
+  .quiz-category-card:hover .quiz-category-ring svg { transform: rotate(-24deg) scale(1.08); }
+}
+
+/* İrəliləyiş — gradient doluluq */
+.quiz-progress-bar { position: relative; height: 8px; }
+.quiz-progress-fill {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 55%, var(--accent)));
+  transition: transform 700ms cubic-bezier(.16, 1, .3, 1);
+}
+[dir="rtl"] .quiz-progress-fill { background: linear-gradient(270deg, var(--brand), color-mix(in srgb, var(--brand) 55%, var(--accent))); }
+.quiz-dots li { transition: background-color 320ms ease, transform 420ms var(--ease-spring); }
+.quiz-dots li.is-current { transform: scaleY(1.6); }
+
+/* Cavab halqası (::after) */
+.quiz-option { position: relative; }
+.quiz-option::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+}
+.quiz-option.quiz-option-correct::after { box-shadow: 0 0 0 2px var(--brand); }
+.quiz-option.quiz-option-wrong::after { box-shadow: 0 0 0 2px var(--bad); }
+
+/* Nəticə kartı — konfeti qatı */
+.quiz-results-card.ui-card { overflow: hidden; isolation: isolate; }
+.quiz-results-card > :not(.quiz-confetti) { position: relative; }
+.quiz-confetti {
+  position: absolute;
+  inset-inline-start: 50%;
+  top: 110px;
+  z-index: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  display: none; /* yalnız hərəkətə icazə olanda görünür (aşağıda) */
+}
+.quiz-confetti__p {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  background: var(--brand);
+}
+.quiz-confetti__p.is-gold { background: var(--accent); }
+/* 8 guşəli ulduz (clip-path) */
+.quiz-confetti__p.is-star {
+  width: 14px;
+  height: 14px;
+  clip-path: polygon(50% 0, 64% 21%, 85% 15%, 79% 36%, 100% 50%, 79% 64%, 85% 85%, 64% 79%, 50% 100%, 36% 79%, 15% 85%, 21% 64%, 0 50%, 21% 36%, 15% 15%, 36% 21%);
+}
+.quiz-confetti__p.is-rhomb { width: 9px; height: 13px; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.quiz-confetti__p.is-dot { width: 7px; height: 7px; border-radius: 50%; }
+.quiz-confetti__p.is-bar { width: 4px; height: 12px; border-radius: 2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .quiz-question-card.ui-card {
+    animation: quiz-card-in 620ms cubic-bezier(.16, 1, .3, 1) backwards;
+  }
+  html:not(.a11y-reduce-motion) .quiz-option:not(.quiz-option-correct):not(.quiz-option-wrong):not(.quiz-option-faded) {
+    animation: quiz-opt-in 560ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 60ms + 140ms);
+  }
+  html:not(.a11y-reduce-motion) .quiz-option.quiz-option-correct { animation: quiz-pop 520ms var(--ease-spring), quiz-glow 1400ms ease-out; }
+  html:not(.a11y-reduce-motion) .quiz-option.quiz-option-correct::after { animation: quiz-ring-out 900ms cubic-bezier(.16, 1, .3, 1) both; }
+  html:not(.a11y-reduce-motion) .quiz-option.quiz-option-wrong { animation: quiz-shake 460ms cubic-bezier(.36, .07, .19, .97); }
+  html:not(.a11y-reduce-motion) .quiz-option.quiz-option-wrong::after { animation: quiz-ring-out 700ms ease-out both; }
+  html:not(.a11y-reduce-motion) .quiz-option-correct .quiz-option-letter { animation: quiz-letter-spin 560ms var(--ease-spring); }
+
+  /* İşıq zolaqdan keçir (sakit, 3.2 s) */
+  html:not(.a11y-reduce-motion) .quiz-progress-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, .5) 50%, transparent 100%);
+    transform: translateX(-100%);
+    animation: quiz-sheen 3.2s ease-in-out infinite;
+  }
+  html:not(.a11y-reduce-motion) .quiz-dots li.is-ok,
+  html:not(.a11y-reduce-motion) .quiz-dots li.is-bad { animation: quiz-dot-pop 480ms var(--ease-spring); }
+
+  /* Nəticə */
+  html:not(.a11y-reduce-motion) .quiz-results-card.ui-card { animation: quiz-result-in 760ms cubic-bezier(.16, 1, .3, 1) both; }
+  html:not(.a11y-reduce-motion) .quiz-results-ring .ui-viz-arc { animation: quiz-arc-draw 1300ms cubic-bezier(.16, 1, .3, 1) 260ms backwards; }
+  html:not(.a11y-reduce-motion) .quiz-results-ring svg { animation: quiz-ring-turn 1300ms cubic-bezier(.16, 1, .3, 1) 120ms backwards; }
+  html:not(.a11y-reduce-motion) .quiz-results-score { animation: quiz-pop-in 700ms var(--ease-spring) 380ms backwards; }
+  html:not(.a11y-reduce-motion) .quiz-stat { animation: quiz-opt-in 600ms cubic-bezier(.16, 1, .3, 1) backwards; }
+  html:not(.a11y-reduce-motion) .quiz-stat:nth-child(1) { animation-delay: 520ms; }
+  html:not(.a11y-reduce-motion) .quiz-stat:nth-child(2) { animation-delay: 590ms; }
+  html:not(.a11y-reduce-motion) .quiz-stat:nth-child(3) { animation-delay: 660ms; }
+  html:not(.a11y-reduce-motion) .quiz-results-actions { animation: quiz-opt-in 600ms cubic-bezier(.16, 1, .3, 1) 760ms backwards; }
+  html:not(.a11y-reduce-motion) .quiz-review-item { animation: quiz-opt-in 520ms cubic-bezier(.16, 1, .3, 1) backwards; animation-delay: calc(900ms + var(--qi, 5) * 50ms); }
+  html:not(.a11y-reduce-motion) .quiz-review-item:nth-child(1) { --qi: 0; }
+  html:not(.a11y-reduce-motion) .quiz-review-item:nth-child(2) { --qi: 1; }
+  html:not(.a11y-reduce-motion) .quiz-review-item:nth-child(3) { --qi: 2; }
+  html:not(.a11y-reduce-motion) .quiz-review-item:nth-child(4) { --qi: 3; }
+  html:not(.a11y-reduce-motion) .quiz-review-item:nth-child(5) { --qi: 4; }
+
+  html:not(.a11y-reduce-motion) .quiz-results-card.is-good .quiz-confetti { display: block; }
+  html:not(.a11y-reduce-motion) .quiz-confetti__p { animation: quiz-confetti 1900ms cubic-bezier(.16, 1, .3, 1) calc(420ms + var(--cd, 0ms)) both; }
+
+  /* Kateqoriya halqaları çəkilir */
+  html:not(.a11y-reduce-motion) .quiz-category-ring .ui-viz-arc { animation: quiz-arc-draw 1200ms cubic-bezier(.16, 1, .3, 1) 300ms backwards; }
+}
+
+@keyframes quiz-card-in {
+  from { opacity: 0; transform: translate3d(0, 24px, 0) scale(.985); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes quiz-opt-in {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes quiz-ring-out {
+  0%   { opacity: .9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.05, 1.35); }
+}
+@keyframes quiz-glow {
+  0%   { box-shadow: 0 0 0 3px var(--brand-soft-2), 0 0 0 0 transparent; }
+  35%  { box-shadow: 0 0 0 3px var(--brand-soft-2), 0 0 28px 4px color-mix(in srgb, var(--brand) 28%, transparent); }
+  100% { box-shadow: 0 0 0 3px var(--brand-soft-2), 0 0 0 0 transparent; }
+}
+@keyframes quiz-letter-spin {
+  from { transform: rotate(-200deg) scale(.4); }
+  to   { transform: none; }
+}
+@keyframes quiz-sheen {
+  0%, 35% { transform: translateX(-100%); }
+  75%, 100% { transform: translateX(100%); }
+}
+@keyframes quiz-dot-pop {
+  0%   { transform: scaleY(1); }
+  50%  { transform: scaleY(2.4); }
+  100% { transform: scaleY(1); }
+}
+@keyframes quiz-result-in {
+  from { opacity: 0; transform: translate3d(0, 28px, 0) scale(.96); filter: blur(8px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes quiz-arc-draw { from { stroke-dasharray: 0 999; } }
+@keyframes quiz-ring-turn {
+  from { opacity: 0; transform: rotate(-140deg) scale(.82); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes quiz-confetti {
+  0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(0) scale(.3); }
+  12%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--cx), calc(var(--cy) + 60px), 0) rotate(var(--cr)) scale(1); }
+}

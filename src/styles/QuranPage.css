@@ -1434,3 +1434,107 @@
   .qp-trans-src__field { flex: 1 1 100%; }
   .qp-trans-src__select { flex: 1 1 0; width: 100%; min-width: 0; max-width: none; text-overflow: ellipsis; }
 }
+
+/* ══ v4 "VAU" — Quran səhifəsinin imza anları ═══════════════════════
+   1) Hero lövhəsi: arxada yavaş fırlanan xatəm ulduzu, ərəb yazısı
+      mürəkkəblə çəkilir (clip-path), üstündən qızılı işıq keçir
+   2) Surə kartı: hover-də ərəb adı parlayır, ulduz-medalyon fırlanır,
+      kartın üstündən işıq zolağı keçir
+   3) Cüz kartı: nömrə ətrafında cüzün xətmdəki yeri — halqa dolur
+   4) Oxuyucu: səslənən ayədə yan xətt boyunca işıq axır, medalyon
+      yavaş fırlanır və nəfəs alır
+   Yalnız transform/opacity/clip-path; hərəkəti azalt — hamısı sönür. */
+@property --qp-jr { syntax: '<number>'; inherits: false; initial-value: 0; }
+
+.qp-plaque { overflow: hidden; isolation: isolate; }
+.qp-plaque__star {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: -1;
+  width: 128%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0.35;
+  opacity: 0.28;
+  pointer-events: none;
+}
+.qp-plaque::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, color-mix(in srgb, var(--accent) 22%, transparent) 50%, transparent 65%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+/* Cüz halqası — nömrə ulduzunun ətrafında xətmdəki yeri (n/30) */
+.qp-juz-ring { width: 48px; height: 48px; }
+.qp-juz-ring::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  z-index: -2;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) calc(var(--qp-jr, var(--jp)) * 360deg), var(--line) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  --qp-jr: var(--jp);
+}
+.qp-juz-ring::before { inset: 5px; }
+
+/* Surə kartının işıq zolağı (hover) */
+.surah-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, color-mix(in srgb, var(--accent) 12%, transparent) 50%, transparent 70%);
+  transform: translateX(-110%);
+  pointer-events: none;
+}
+[dir="rtl"] .surah-card::before { transform: translateX(110%); }
+.surah-name-ar { transition: transform 500ms cubic-bezier(.16,1,.3,1), text-shadow 500ms ease, color 300ms ease; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qp-plaque__star { animation: qp-star-spin 60s linear infinite; }
+  html:not(.a11y-reduce-motion) .qp-plaque__ar { animation: qp-ink 1.4s cubic-bezier(.16,1,.3,1) 200ms both; }
+  html:not(.a11y-reduce-motion) .qp-plaque::after { animation: qp-sheen 1.6s cubic-bezier(.16,1,.3,1) 1.2s both; }
+
+  html:not(.a11y-reduce-motion) .qp-juz-ring::after { animation: qp-juz-fill 1.3s cubic-bezier(.16,1,.3,1) var(--jd, 0ms) both; }
+
+  @media (hover: hover) {
+    html:not(.a11y-reduce-motion) .surah-card:hover::before { transform: translateX(110%); transition: transform 900ms cubic-bezier(.16,1,.3,1); }
+    html:not(.a11y-reduce-motion)[dir="rtl"] .surah-card:hover::before { transform: translateX(-110%); }
+    html:not(.a11y-reduce-motion) .surah-card:hover .surah-name-ar {
+      transform: scale(1.08);
+      text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 2px color-mix(in srgb, var(--brand) 40%, transparent);
+    }
+    html:not(.a11y-reduce-motion) .surah-card:hover .surah-num::before { transform: rotate(45deg) scale(1.08); transition-duration: 700ms; }
+  }
+
+  /* Səslənən ayə: yan xətt boyunca işıq axır, medalyon fırlanır və nəfəs alır */
+  html:not(.a11y-reduce-motion) .ayah-card.is-playing::after {
+    background-image: linear-gradient(180deg, var(--brand) 0%, var(--accent) 35%, var(--brand) 70%, var(--accent) 100%);
+    background-size: 3px 200px;
+    background-repeat: repeat-y;
+    animation: qp-flow 3s linear infinite;
+  }
+  html:not(.a11y-reduce-motion) .ayah-card.is-playing .ayah-num::before { animation: qp-star-spin 14s linear infinite; }
+  html:not(.a11y-reduce-motion) .ayah-card.is-playing .ayah-num { animation: qp-medal-breathe 2.4s ease-in-out infinite; }
+  html:not(.a11y-reduce-motion) .ayah-card.is-playing .ayah-arabic { animation: qp-ayah-glow 3.2s ease-in-out infinite; }
+}
+@keyframes qp-star-spin { to { rotate: 360deg; } }
+@keyframes qp-ink {
+  from { clip-path: inset(0 0 0 100%); opacity: 0.2; filter: blur(3px); }
+  to   { clip-path: inset(0 0 0 0); opacity: 1; filter: none; }
+}
+@keyframes qp-sheen { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+@keyframes qp-juz-fill { from { --qp-jr: 0; } to { --qp-jr: var(--jp); } }
+@keyframes qp-flow { from { background-position-y: 0; } to { background-position-y: 200px; } }
+@keyframes qp-medal-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+@keyframes qp-ayah-glow {
+  0%, 100% { text-shadow: none; }
+  50% { text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent); }
+}

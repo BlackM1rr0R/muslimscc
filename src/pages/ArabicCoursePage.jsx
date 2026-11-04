@@ -450,10 +450,10 @@ export default function ArabicCoursePage({ setPage }) {
             <p className="ui-lead">{t.lead}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {ax.how(t.learn, t.quiz, PASS_PERCENT)}</p>
             <ul className="ui-page-hero__stats">
-              <li><b>{LESSONS.length}</b><span>{ax.lessons}</span></li>
-              <li><b>28</b><span>{ax.letters}</span></li>
-              <li><b>{QURAN_WORDS.length}</b><span>{ax.words}</span></li>
-              <li><b>≈{coverage}%</b><span>{ax.coverage}</span></li>
+              <li><b data-count={LESSONS.length}>{LESSONS.length}</b><span>{ax.lessons}</span></li>
+              <li><b data-count="28">28</b><span>{ax.letters}</span></li>
+              <li><b data-count={QURAN_WORDS.length}>{QURAN_WORDS.length}</b><span>{ax.words}</span></li>
+              <li><b data-count={coverage}>≈{coverage}%</b><span>{ax.coverage}</span></li>
             </ul>
             <div className="ui-page-hero__actions ac-hero__actions">
               <a className="ui-btn ui-btn--primary ac-cta" href={`#${resumeId}`} onClick={onLessonLink(resumeId)}>

@@ -120,3 +120,18 @@
 /* Ana səhifədə video bölməsinin dərhal ardınca gələndə iki bölmənin boşluğu
    toplanmasın (88 + 88px) — bir ritm qalsın */
 .vsx + .bsx { padding-top: 0; }
+
+/* ══ v4 "VAU" — kitab kartları: hover-də kitab kimi yüngülcə "açılır" (3D əyilmə), üz qabığı parlayır ══ */
+.bsx .bsx-card { transition: transform 460ms var(--ease-spring), box-shadow 280ms ease, border-color 200ms ease; }
+.bsx-cover { perspective: 800px; }
+.bsx-cover img { transition: transform 700ms cubic-bezier(.16, 1, .3, 1), filter 400ms ease; transform-origin: left center; }
+[dir="rtl"] .bsx-cover img { transform-origin: right center; }
+@media (hover: hover) {
+  .bsx .bsx-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-3); }
+  .bsx .bsx-card:hover .bsx-cover img { transform: rotateY(-10deg) scale(1.04); filter: brightness(1.04); }
+  [dir="rtl"] .bsx .bsx-card:hover .bsx-cover img { transform: rotateY(10deg) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bsx .bsx-card, .bsx-cover img { transition: none; }
+  .bsx .bsx-card:hover, .bsx .bsx-card:hover .bsx-cover img { transform: none; }
+}

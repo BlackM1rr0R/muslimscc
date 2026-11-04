@@ -21,3 +21,14 @@
 .rep-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
 .rep-done { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-5) 0; text-align: center; color: var(--text-strong); font-weight: 500; }
 @media (max-width: 480px) { .rep-actions > * { flex: 1; } }
+
+/* ── v4: dialoq yay kimi açılır, "göndərildi" işarəsi fırlanıb oturur, düymə ikonu hover-də yellənir ── */
+.rep-btn svg { transition: transform 420ms var(--ease-spring); }
+@media (hover: hover) { .rep-btn:hover svg { transform: rotate(-12deg) scale(1.1); } }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .rep-dlg[open] { animation: rep-v4 520ms var(--ease-spring); }
+  html:not(.a11y-reduce-motion) .rep-done svg { animation: rep-tick 620ms var(--ease-spring) 80ms backwards; }
+}
+@keyframes rep-v4 { from { opacity: 0; transform: translateY(20px) scale(.94); filter: blur(6px); } }
+@keyframes rep-tick { from { opacity: 0; transform: rotate(-140deg) scale(.3); } }
+@media (prefers-reduced-motion: reduce) { .rep-btn:hover svg { transform: none; } }

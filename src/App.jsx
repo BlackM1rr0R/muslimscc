@@ -1,4 +1,4 @@
-import { Component, Suspense, lazy as reactLazy } from 'react'
+import { Component, Suspense, lazy as reactLazy, useLayoutEffect } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
 import { LANGS, parsePath, pathFor, legacyDetailParam } from './seo/routes'
@@ -19,13 +19,29 @@ import FloatingDock from './components/FloatingDock'
 import { lazyWhenIdle } from './utils/idle'
 import { usePageviews } from './api/analytics'
 import { withChunkRetry } from './utils/chunkRetry'
+import { markRouteLoading, withViewTransition, routeCommitted } from './utils/wow'
 
 // Bütün tənbəl modullar (səhifələr, widget-lər) chunk xətasında bir dəfə
 // avtomatik yenilənir (utils/chunkRetry.js — deploydan sonra köhnə tabda
 // hash-li fayl yoxdur). İkinci uğursuzluq xəta kimi atılır → PageErrorBoundary.
 // Ad qəsdən "lazy" qalır: scripts/prerender.mjs bu faylda
 // "lazy(() => import('./pages/X'))" nümunəsini oxuyur.
-const lazy = (factory) => reactLazy(withChunkRetry(factory))
+// .preload() — naviqasiyadan əvvəl chunk-ı başlatmaq üçün (yüklənmə zolağı,
+// View Transition yalnız modul hazır olanda — bax: navigate). .loaded — hazırdır.
+const lazy = (factory) => {
+  const load = withChunkRetry(factory)
+  let promise = null
+  const preload = () => {
+    if (!promise) {
+      promise = load().then((m) => { Comp.loaded = true; return m })
+      promise.catch(() => { promise = null })
+    }
+    return promise
+  }
+  const Comp = reactLazy(preload)
+  Comp.preload = preload
+  return Comp
+}
 
 // ── Marşrut əsaslı kod bölgüsü ──
 // Əvvəl 31 səhifənin hamısı tək 2.7 MB-lıq bundle-da gəlirdi; ziyarətçi
@@ -61,7 +77,7 @@ function lazyPage(factory) {
   function Page(props) {
     return Loaded ? <Loaded {...props} /> : <Lazy {...props} />
   }
-  Page.preload = preload
+  Page.preload = () => preload().then((m) => { Page.loaded = true; return m })
   return Page
 }
 
@@ -272,9 +288,22 @@ function AppInner() {
   // Açıq üst qatdan (çəkmə menyu, axtarış) keçid "replace" ilə olur:
   // onların tarixçə girişi (utils/useBackToClose) yeni səhifə ilə əvəzlənir,
   // Geri düyməsi isə əvvəlki səhifəyə — təkrarsız — qayıdır.
+  // VAU 2: modul artıq yüklənibsə keçid View Transitions API ilə (köhnə kadr
+  // yumşaq solur, yeni səhifə qalxır — utils/wow.js); yüklənməyibsə yuxarıda
+  // nazik yüklənmə zolağı görünür və köhnə səhifə yeni hazır olana qədər qalır.
+  // Üst qatdan (overlay) keçid həmişə sinxrondur — tarixçə sırası dəyişməsin.
   const navigate = (p) => {
-    routerNavigate(pathFor(p, lang), { replace: isOverlayEntry() })
-    window.scrollTo(0, 0)
+    const replace = isOverlayEntry()
+    const go = () => {
+      routerNavigate(pathFor(p, lang), { replace })
+      window.scrollTo(0, 0)
+    }
+    const type = p !== page ? pageElement(p)?.type : null
+    if (type?.preload && !type.loaded) {
+      markRouteLoading(type.preload())
+      go()
+    } else if (type && !replace) withViewTransition(go)
+    else go()
   }
 
   // Skip link: <main>-ə fokus (hash dəyişmir — "#admin" məntiqinə toxunmur)
@@ -287,8 +316,12 @@ function AppInner() {
     }
   }
 
-  const renderPage = () => {
-    switch (page) {
+  // Yeni səhifə commit olunanda View Transition-a "yeni kadr hazırdır" de
+  useLayoutEffect(() => { routeCommitted() }, [location.key])
+
+  const renderPage = () => pageElement(page)
+  function pageElement(pg) {
+    switch (pg) {
       case 'home':     return <HomePage     setPage={navigate} />
       case 'jamaat':        return <JamaatPage        setPage={navigate} />
       case 'announcements': return <AnnouncementsPage setPage={navigate} />

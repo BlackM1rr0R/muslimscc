@@ -31,3 +31,13 @@
   .qm-notif-prompt,
   .qm-push-toast { display: none !important; }
 }
+
+/* ── v4: zəng ikonu bir dəfə çalınır, sonra 3 dəfə sakit nəbz (yanıb-sönmə yox) ── */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qm-notif-prompt .ui-toast__icon { animation: qm-np-pulse 2.4s ease-out 1.4s 3; }
+}
+@keyframes qm-np-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 40%, transparent); }
+  70%  { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}

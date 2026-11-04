@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/CharityPage.css'
+import '../styles/ToolsMotion.css'
+import Sparkle from '../components/prayer/Sparkle'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
@@ -310,6 +312,7 @@ export default function CharityPage({ setPage }) {
 
                 <div className="ch-form-foot">
                   <button type="submit" className="ui-btn ui-btn--primary ch-add-btn">
+                    {justAdded > 0 && <Sparkle key={justAdded} count={8} radius={44} />}
                     <Icon name="plus" className="ui-btn__icon" /> {t.add}
                   </button>
                   {/* Əlavə olunanda qısa təsdiq (ekran oxuyucusu da eşidir) */}
@@ -407,7 +410,7 @@ export default function CharityPage({ setPage }) {
             <h2 className="ui-title" id="ch-ov-title">{t.ovTitle}</h2>
             <p className="ui-lead">{entries.length ? t.ovLead : t.noData}</p>
           </div>
-          <div className="ch-charts">
+          <div className="ch-charts" data-reveal="stagger-blur">
             <ChartFigure title={t.monthsTitle} sub={t.monthsSub}>
               <ColumnChart data={months} height={120} label={`${t.monthsTitle}: ${t.monthsSub}`} />
             </ChartFigure>

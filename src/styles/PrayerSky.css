@@ -23,23 +23,25 @@
 .psky[data-period="sunset"]    .psky__layer--sunset,
 .psky[data-period="dusk"]      .psky__layer--dusk { opacity: 1; }
 
-/* ── Açıq rejim (pastel) ── */
-.psky__layer--night     { background: linear-gradient(180deg, #c9d2ef 0%, #dfe3f3 45%, transparent 100%); }
-.psky__layer--dawn      { background: linear-gradient(180deg, #cdd6f3 0%, #f3d3dc 48%, #fbe8d8 72%, transparent 100%); }
-.psky__layer--morning   { background: linear-gradient(180deg, #d6eaf6 0%, #f4efdc 55%, transparent 100%); }
-.psky__layer--noon      { background: linear-gradient(180deg, #d3ebf8 0%, #eaf4f6 50%, transparent 100%); }
-.psky__layer--afternoon { background: linear-gradient(180deg, #e9e5d0 0%, #f6e3bb 50%, transparent 100%); }
-.psky__layer--sunset    { background: linear-gradient(180deg, #e2cde6 0%, #f6c8ae 45%, #fbe0c4 70%, transparent 100%); }
-.psky__layer--dusk      { background: linear-gradient(180deg, #cbc6ea 0%, #ecccd2 50%, transparent 100%); }
+/* ── Açıq rejim (pastel) ──
+   v4: brend palitrası — zümrüd / qızılı / fil sümüyü. Əvvəlki bənövşəyi-yasəmən
+   tonlar (xüsusən telefonda gecə/şəfəq) saytın rəngləri ilə uyğun gəlmirdi. */
+.psky__layer--night     { background: linear-gradient(180deg, #cadfd8 0%, #e1ebe5 45%, transparent 100%); }
+.psky__layer--dawn      { background: linear-gradient(180deg, #d3e4dd 0%, #f2e5c8 50%, #faf0dc 74%, transparent 100%); }
+.psky__layer--morning   { background: linear-gradient(180deg, #d9ede6 0%, #f5efdb 55%, transparent 100%); }
+.psky__layer--noon      { background: linear-gradient(180deg, #d2eae3 0%, #ebf4ee 50%, transparent 100%); }
+.psky__layer--afternoon { background: linear-gradient(180deg, #e8e3cb 0%, #f5e4bd 50%, transparent 100%); }
+.psky__layer--sunset    { background: linear-gradient(180deg, #ecd8b2 0%, #f3cfa3 45%, #fae6c8 70%, transparent 100%); }
+.psky__layer--dusk      { background: linear-gradient(180deg, #cddbd2 0%, #e9dcc0 50%, transparent 100%); }
 
-/* ── Tünd rejim ── */
-[data-theme="dark"] .psky__layer--night     { background: linear-gradient(180deg, #08112a 0%, #0c1733 55%, transparent 100%); }
-[data-theme="dark"] .psky__layer--dawn      { background: linear-gradient(180deg, #141c40 0%, #3b2a4f 50%, #5a3b3f 75%, transparent 100%); }
-[data-theme="dark"] .psky__layer--morning   { background: linear-gradient(180deg, #123250 0%, #1d3a44 55%, transparent 100%); }
-[data-theme="dark"] .psky__layer--noon      { background: linear-gradient(180deg, #113a5a 0%, #15343f 55%, transparent 100%); }
-[data-theme="dark"] .psky__layer--afternoon { background: linear-gradient(180deg, #2b2f3d 0%, #4a3b22 55%, transparent 100%); }
-[data-theme="dark"] .psky__layer--sunset    { background: linear-gradient(180deg, #2b1f45 0%, #5e2f3c 45%, #6b3d22 70%, transparent 100%); }
-[data-theme="dark"] .psky__layer--dusk      { background: linear-gradient(180deg, #151a3c 0%, #33254a 55%, transparent 100%); }
+/* ── Tünd rejim: gecə — dərin zümrüd / göy-yaşıl ── */
+[data-theme="dark"] .psky__layer--night     { background: linear-gradient(180deg, #04151a 0%, #0a2324 55%, transparent 100%); }
+[data-theme="dark"] .psky__layer--dawn      { background: linear-gradient(180deg, #0a2228 0%, #26382d 50%, #47391f 75%, transparent 100%); }
+[data-theme="dark"] .psky__layer--morning   { background: linear-gradient(180deg, #0e2d33 0%, #173a35 55%, transparent 100%); }
+[data-theme="dark"] .psky__layer--noon      { background: linear-gradient(180deg, #0e3439 0%, #13352f 55%, transparent 100%); }
+[data-theme="dark"] .psky__layer--afternoon { background: linear-gradient(180deg, #1d2f2a 0%, #3c3420 55%, transparent 100%); }
+[data-theme="dark"] .psky__layer--sunset    { background: linear-gradient(180deg, #13282a 0%, #45321f 45%, #5a3b1b 70%, transparent 100%); }
+[data-theme="dark"] .psky__layer--dusk      { background: linear-gradient(180deg, #081c20 0%, #182c28 55%, transparent 100%); }
 
 /* ── Ulduzlar: gecə tam, şəfəqdə və sübhdə zəif ── */
 .psky__stars { position: absolute; inset: 0; opacity: 0; transition: opacity 3s ease; }
@@ -50,7 +52,7 @@
   position: absolute;
   display: block;
   border-radius: 50%;
-  background: #6f7bb0;
+  background: #4f8a78;
   animation: psky-twinkle 4s ease-in-out infinite;
 }
 [data-theme="dark"] .psky__stars > i { background: #f3ecd6; box-shadow: 0 0 6px rgba(243, 236, 214, 0.6); }

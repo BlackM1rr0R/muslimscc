@@ -549,3 +549,120 @@
   .kids-guide-sec .ls-steps:has(> .ls-step:nth-child(4)) > .ls-step { break-inside: avoid; }
   .kids-guide-sec .ls-steps:not(:has(> .ls-step:nth-child(4))) { max-width: 80ch; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   v4 "VAU" — şən, amma ləyaqətli: yaylı (spring) kartlar
+   • kartlar hover-də yaylanaraq qalxır, xatəm ulduzu 45° dönür
+   • bölmə dəyişəndə kartlar bulanıqdan "sıçrayaraq" düzülür
+   • gözəl davranış seçiləndə işarə fırlanıb oturur + ulduz parıltısı
+   • hero: "ulduzlar" kartı yavaşca üzür, halqa çəkilir
+   Hərəkət yalnız "no-preference" + html:not(.a11y-reduce-motion) altında.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Kartlara ümumi yay keçidi */
+.kids-name-card,
+.kids-surah-card,
+.kids-dua-card,
+.kids-pillar-card,
+.kids-iman-card,
+.kids-story,
+.kids-mgame-item {
+  transition:
+    transform 520ms var(--ease-spring),
+    box-shadow 320ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
+}
+.kids-star-num::before { transition: transform 700ms var(--ease-spring); }
+.kids-pillar-icon,
+.kids-dua-icon,
+.kids-iman-card .ui-icon-tile { transition: transform 520ms var(--ease-spring); }
+
+@media (hover: hover) {
+  .kids-name-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: var(--shadow-3); }
+  .kids-name-card:hover .kids-star-num::before { transform: rotate(45deg) scale(1.08); }
+  .kids-surah-card:hover,
+  .kids-dua-card:hover,
+  .kids-pillar-card:hover,
+  .kids-iman-card:hover,
+  .kids-story:hover { transform: translateY(-4px); box-shadow: var(--shadow-3); border-color: var(--brand-line); }
+  .kids-surah-card:hover .kids-star-num::before { transform: rotate(45deg); }
+  .kids-pillar-card:hover .kids-pillar-icon,
+  .kids-dua-card:hover .kids-dua-icon,
+  .kids-iman-card:hover .ui-icon-tile { transform: translateY(-2px) rotate(-8deg) scale(1.1); }
+  .kids-mgame-item:hover { transform: translateY(-2px); }
+}
+
+/* Telefonda dirəklər siyahısı xətt kimi qalır — hover hərəkəti yox */
+@media (max-width: 767.98px) {
+  .kids-pillar-card:hover { transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Bölmə açılışı — kartlar bulanıqdan yaylanaraq */
+  html:not(.a11y-reduce-motion) .kids-section { animation: kids-section-in 640ms cubic-bezier(.16, 1, .3, 1) backwards; }
+  html:not(.a11y-reduce-motion) .kids-section-head .kids-section-icon { animation: kids-icon-spin 760ms var(--ease-spring) 80ms backwards; }
+
+  /* Hero — "ulduzlar" kartı sakitcə üzür, halqa çəkilir */
+  html:not(.a11y-reduce-motion) .kids-stars { animation: kids-float 6s ease-in-out 1.2s infinite; }
+  html:not(.a11y-reduce-motion) .kids-stars .ui-viz-arc { animation: kids-arc 1400ms cubic-bezier(.16, 1, .3, 1) 400ms backwards; }
+
+  /* Sekmə: aktiv olanın ikonu yaylanır */
+  html:not(.a11y-reduce-motion) .kids-tab.active { animation: kids-tab-press 420ms var(--ease-spring); }
+
+  /* Gözəl davranış — işarə qoyulanda */
+  html:not(.a11y-reduce-motion) .kids-mgame-item.is-on .kids-mgame-check { animation: kids-check 560ms var(--ease-spring); }
+  html:not(.a11y-reduce-motion) .kids-mgame-item.is-on { animation: kids-jelly 520ms var(--ease-spring); }
+  html:not(.a11y-reduce-motion) .kids-mgame-all { animation: kids-pop-in 560ms var(--ease-spring) backwards; }
+  html:not(.a11y-reduce-motion) .kids-mgame-all svg { animation: kids-twinkle 2.4s ease-in-out 600ms infinite; }
+
+  /* Uşaq kvizi */
+  html:not(.a11y-reduce-motion) .kids-quiz-ring .ui-viz-arc { animation: kids-arc 1300ms cubic-bezier(.16, 1, .3, 1) 200ms backwards; }
+  html:not(.a11y-reduce-motion) .kids-quiz-opt.correct { animation: kids-bounce 560ms var(--ease-spring), kids-glow 1200ms ease-out; }
+  html:not(.a11y-reduce-motion) .kids-quiz-score svg { animation: kids-twinkle 2.4s ease-in-out infinite; }
+}
+
+@keyframes kids-section-in {
+  from { opacity: 0; transform: translate3d(0, 22px, 0) scale(.985); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes kids-icon-spin {
+  from { opacity: 0; transform: rotate(-90deg) scale(.5); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes kids-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -6px, 0); }
+}
+@keyframes kids-arc { from { stroke-dasharray: 0 999; } }
+@keyframes kids-tab-press {
+  0%   { transform: scale(.94); }
+  60%  { transform: scale(1.04); }
+  100% { transform: none; }
+}
+@keyframes kids-check {
+  0%   { transform: rotate(-120deg) scale(.4); }
+  100% { transform: none; }
+}
+@keyframes kids-jelly {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.025, .975); }
+  55%  { transform: scale(.99, 1.01); }
+  100% { transform: scale(1); }
+}
+@keyframes kids-twinkle {
+  0%, 100% { transform: none; }
+  50%      { transform: rotate(36deg) scale(1.18); }
+}
+@keyframes kids-glow {
+  0%   { box-shadow: 0 0 0 0 transparent; }
+  35%  { box-shadow: 0 0 24px 4px color-mix(in srgb, var(--brand) 26%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kids-name-card, .kids-surah-card, .kids-dua-card, .kids-pillar-card, .kids-iman-card, .kids-story, .kids-mgame-item,
+  .kids-pillar-icon, .kids-dua-icon, .kids-iman-card .ui-icon-tile { transition: none; }
+  .kids-name-card:hover, .kids-surah-card:hover, .kids-dua-card:hover, .kids-pillar-card:hover,
+  .kids-iman-card:hover, .kids-story:hover, .kids-mgame-item:hover { transform: none; }
+}

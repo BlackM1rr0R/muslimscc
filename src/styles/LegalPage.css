@@ -351,3 +351,49 @@
 @media print {
   .lg-stats, .lg-hero__aside, .lg-toc__meter { display: none !important; }
 }
+
+/* ══ v4 "VAU" — Hüquqi sənədlər (Məxfilik / Şərtlər / Mənbələr) ═══
+   Sakit oxu səhifəsidir — hərəkət zərif: bölmə nömrəsi görünəndə yaylanır,
+   başlığın altında qızılı xətt soldan (RTL-də sağdan) çəkilir; mündəricatda
+   aktiv bənd yumşaq sürüşür; "digər sənədlər" kartları hover-də qalxır. */
+.lg-h2 { position: relative; }
+.lg-h2::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: -6px;
+  width: 48px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--brand), var(--accent));
+  transform-origin: left center;
+  transition: transform 900ms cubic-bezier(.16, 1, .3, 1) 150ms;
+}
+[dir="rtl"] .lg-h2::after { transform-origin: right center; background: linear-gradient(270deg, var(--brand), var(--accent)); }
+html.qm-reveal-on .lg-section[data-reveal-ready]:not([data-revealed]) .lg-h2::after { transform: scaleX(0); }
+.lg-toc__list a { transition: background-color var(--dur-1, 150ms) ease, color var(--dur-1, 150ms) ease, border-color var(--dur-1, 150ms) ease, transform 320ms var(--ease-spring); }
+@media (hover: hover) { .lg-toc__list a:hover { transform: translateX(2px); } [dir="rtl"] .lg-toc__list a:hover { transform: translateX(-2px); } }
+.lg-others__card { transition: transform 460ms var(--ease-spring), box-shadow 280ms ease, border-color 200ms ease; }
+.lg-others__card .ui-link__arrow { transition: transform 320ms var(--ease-spring); }
+@media (hover: hover) {
+  .lg-others__card:hover { transform: translateY(-3px); }
+  .lg-others__card:hover .ui-link__arrow { transform: translateX(4px); }
+  [dir="rtl"] .lg-others__card:hover .ui-link__arrow { transform: scaleX(-1) translateX(4px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .lg-section[data-revealed=""] .lg-h2__num { display: inline-block; animation: lg-num 620ms var(--ease-spring) 80ms backwards; }
+  html:not(.a11y-reduce-motion) .lg-toc__list a[aria-current] { animation: lg-current 420ms cubic-bezier(.16, 1, .3, 1); }
+  html:not(.a11y-reduce-motion) .lg-credit { transition: transform 420ms var(--ease-spring), box-shadow 260ms ease; }
+}
+@keyframes lg-num {
+  from { opacity: 0; transform: scale(.4) rotate(-30deg); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes lg-current {
+  from { background-color: transparent; transform: translateX(-4px); }
+  to   { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lg-h2::after, .lg-toc__list a, .lg-others__card { transition: none; }
+  .lg-toc__list a:hover, .lg-others__card:hover, .lg-others__card:hover .ui-link__arrow { transform: none; }
+}

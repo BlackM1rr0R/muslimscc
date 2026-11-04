@@ -163,3 +163,16 @@
   .dn-path .ui-icon-tile { grid-row: span 3; margin: 0; }
   .dn-path__n { top: 14px; font-size: var(--step-0); }
 }
+
+/* ══ Dizayn v4 — hərəkət (prefiks dn-v4) ═══════════════════════════
+   hero: həndəsi ulduz səması · müqayisə cədvəlinin sətirləri kaskadla ·
+   yol kartlarının nömrəsi hover-də fırlanır */
+.dn-hero { position: relative; isolation: isolate; }
+.dn-hero > .dn-sky { z-index: -1; }
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .dn-path:hover .dn-path__n { animation: dn-v4-spin 700ms var(--tm-spring); }
+}
+@keyframes dn-v4-spin {
+  from { transform: rotate(-180deg) scale(0.6); }
+  to   { transform: none; }
+}

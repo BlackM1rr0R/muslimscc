@@ -662,3 +662,70 @@ a.mtv-brand:hover { color: var(--brand); }
 @media (prefers-reduced-motion: reduce) {
   .mtv-slide, .mtv-overlay, .mtv-settings-backdrop { animation: none; }
 }
+
+/* ══ Dizayn v4 — kiosk üçün sakit fon hərəkəti (prefiks mtv-v4) ═════
+   Aşağı CPU: iki hazır radial-gradient "işıq" (filter yox) çox yavaş
+   transform ilə üzür, naxış yavaş axır; saniyə və geri sayım fırlanan
+   rəqəmlərlə; növbəti namaz xanasının üstündən hər 7 saniyədə bir işıq
+   keçir (kiçik sahə — background-position); ayə/zikr slaydı bulanıqdan aydınlaşır. Hamısı yalnız transform/opacity. */
+.mtv-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.mtv-ambient > span {
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  opacity: 0.55;
+}
+.mtv-ambient > span:first-child {
+  top: -30vmax;
+  inset-inline-start: -20vmax;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand) 16%, transparent), transparent 60%);
+}
+.mtv-ambient > span:last-child {
+  bottom: -34vmax;
+  inset-inline-end: -24vmax;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%);
+}
+.mtv--compact .mtv-ambient { display: none; }
+.mtv-cell.is-next { isolation: isolate; }
+.mtv-cell.is-next::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.16) 50%, transparent 65%) no-repeat;
+  background-size: 300% 100%;
+  background-position: 100% 0;
+}
+.mtv-sec .tm-roll__d, .mtv-next-count .tm-roll__d { min-width: 0.6em; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .mtv-ambient > span:first-child { animation: mtv-v4-orb-a 70s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .mtv-ambient > span:last-child { animation: mtv-v4-orb-b 90s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .mtv-cell.is-next::after { animation: mtv-v4-sheen 7s var(--tm-ease) 2s infinite; }
+  html:not(.a11y-reduce-motion) .mtv-slide { animation: mtv-v4-slide 900ms var(--tm-ease) both; }
+}
+@keyframes mtv-v4-orb-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(30vmax, 18vmax, 0) scale(1.15); }
+}
+@keyframes mtv-v4-orb-b {
+  from { transform: translate3d(0, 0, 0) scale(1.1); }
+  to   { transform: translate3d(-28vmax, -16vmax, 0) scale(0.95); }
+}
+@keyframes mtv-v4-sheen {
+  0%        { background-position: 100% 0; }
+  25%, 100% { background-position: 0% 0; }
+}
+@keyframes mtv-v4-slide {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}

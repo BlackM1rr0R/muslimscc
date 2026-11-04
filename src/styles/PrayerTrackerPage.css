@@ -361,3 +361,68 @@ html[lang="ar"] .pt-rulings-title { letter-spacing: 0; text-transform: none; }
 .pt-ms-item.is-got .pt-ms-ic { color: var(--accent); }
 .pt-ms-ic { display: inline-grid; place-items: center; }
 .pt-ms-next { margin: 8px 0 0; color: var(--text-secondary); font-size: var(--step--1); }
+
+/* ══ Dizayn v4 — hərəkət (prefiks pt-v4) ═══════════════════════════
+   halqalar dolur · istilik xəritəsi xanaları diaqonal kaskadla açılır ·
+   həftəlik sütunlar böyüyür · ay təqvimi günləri növbə ilə · bu gün nəbz ·
+   gün tamamlananda həndəsi parıltı (Sparkle) */
+.pt-day { position: relative; }
+.pt-heat-col > :nth-child(2) { --r: 1; }
+.pt-heat-col > :nth-child(3) { --r: 2; }
+.pt-heat-col > :nth-child(4) { --r: 3; }
+.pt-heat-col > :nth-child(5) { --r: 4; }
+.pt-heat-col > :nth-child(6) { --r: 5; }
+.pt-heat-col > :nth-child(7) { --r: 6; }
+.pt-chart > g:nth-of-type(2) { --i: 1; }
+.pt-chart > g:nth-of-type(3) { --i: 2; }
+.pt-chart > g:nth-of-type(4) { --i: 3; }
+.pt-chart > g:nth-of-type(5) { --i: 4; }
+.pt-chart > g:nth-of-type(6) { --i: 5; }
+.pt-chart > g:nth-of-type(7) { --i: 6; }
+.pt-chart .pt-bar { transform-box: fill-box; transform-origin: center bottom; }
+.pt-heat-cell.is-today,
+.pt-cal-day.is-today { position: relative; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .pt-heat-cell {
+    animation: pt-v4-cell 520ms var(--tm-ease) backwards;
+    animation-delay: calc(120ms + (var(--c, 0) + var(--r, 0)) * 26ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .pt-chart .pt-bar {
+    animation: tm-grow-y 900ms var(--tm-ease) backwards;
+    animation-delay: calc(200ms + var(--i, 0) * 70ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .pt-chart text {
+    animation: qm-reveal-fade 600ms ease backwards;
+    animation-delay: calc(500ms + var(--i, 0) * 70ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .pt-cal-day {
+    animation: pt-v4-cell 480ms var(--tm-ease) backwards;
+    animation-delay: calc(100ms + min(var(--i, 0), 34) * 14ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pt-heat-cell.is-today::after,
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pt-cal-day.is-today::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    box-shadow: 0 0 0 2px var(--accent);
+    pointer-events: none;
+    animation: pt-v4-ping 2.4s var(--tm-ease) 1.2s infinite;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pt-prayer.is-prayed .pt-prayer-ic,
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pt-prayer.is-qada .pt-prayer-ic { animation: tm-pop 480ms var(--tm-spring); }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pt-ms-item.is-got .pt-ms-ic { animation: pt-v4-star 6s ease-in-out infinite; }
+}
+@keyframes pt-v4-cell {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes pt-v4-ping {
+  0%   { opacity: 0.9; transform: scale(1); }
+  70%, 100% { opacity: 0; transform: scale(1.5); }
+}
+@keyframes pt-v4-star {
+  0%, 80%, 100% { transform: none; }
+  88% { transform: rotate(72deg) scale(1.2); }
+}

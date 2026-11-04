@@ -33,6 +33,7 @@ import { PILLARS_TXT, PILLAR_GROUPS, RAKAT_TXT } from '../data/prayerPillars'
 import { ChartFigure, ColumnChart } from '../components/viz'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 import '../styles/PrayerGuidePage.css'
+import '../styles/ToolsMotion.css'
 
 // ── Surənin tam mənası (Fatihə, İxlas) ──
 // Ayələrin mənası yaddaşdan yazılmır: alquran.cloud-dan (QuranPage ilə eyni
@@ -183,7 +184,7 @@ function RakatOverview({ lang }) {
               <span className="ui-figure__title">{pickL(RAKAT_TXT.rakahTitle, lang)}</span>
               <span className="ui-figure__sub">{pickL(RAKAT_TXT.rakahSub, lang)}</span>
             </figcaption>
-            <ol className="pg-rakah-strip">
+            <ol className="pg-rakah-strip tm-cascade" data-reveal="fade">
               {RAKAH_POSES.map((r, i) => (
                 <li key={i} className="pg-rakah-step">
                   <span className="pg-rakah-fig" aria-hidden="true"><PrayerPose pose={r.pose} /></span>
@@ -232,7 +233,7 @@ function Pillars({ lang }) {
         </div>
         <div className="pg-pillar-panel" id="pg-pillar-panel" role="tabpanel" aria-labelledby={`pg-tab-${g.id}`} key={g.id}>
           <p className="pg-pillar-rule"><Icon name={g.icon} size={18} /> <span>{g.rule[lang] || g.rule.en}</span></p>
-          <ol className="pg-pillar-list">
+          <ol className="pg-pillar-list pg-v4-list">
             {g.items.map((it, i) => (
               <li key={i}><span className="pg-pillar-n ui-num" aria-hidden="true">{i + 1}</span><span>{it[lang] || it.en}</span></li>
             ))}

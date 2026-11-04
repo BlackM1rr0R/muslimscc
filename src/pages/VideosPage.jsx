@@ -230,7 +230,7 @@ export default function VideosPage() {
           {/* Yalnız real məzmun sayı (yüklənəndə gizli — "0 video" görünməsin) */}
           {!loading && videos.length > 0 && (
             <ul className="ui-page-hero__stats vp-hero-stats">
-              <li><b className="ui-num">{videos.length}</b><span>{l.videos}</span></li>
+              <li><b className="ui-num" data-count={videos.length}>{videos.length}</b><span>{l.videos}</span></li>
               {categories.length > 2 && <li><b className="ui-num">{categories.length - 1}</b><span>{l.statCats}</span></li>}
             </ul>
           )}

@@ -234,9 +234,9 @@ export default function FatwaPage() {
           <div className="ui-page-hero__aside">
             <div className="ui-card fw-hero__card">
               <ul className="ui-page-hero__stats fw-hero__stats">
-                <li><b className="ui-num">{SOURCES.length}</b><span>{T.statSources}</span></li>
-                <li><b className="ui-num">{TOPICS.length}</b><span>{T.statTopics}</span></li>
-                <li><b className="ui-num">{linkCount}</b><span>{T.statLinks}</span></li>
+                <li><b className="ui-num" data-count={SOURCES.length}>{SOURCES.length}</b><span>{T.statSources}</span></li>
+                <li><b className="ui-num" data-count={TOPICS.length}>{TOPICS.length}</b><span>{T.statTopics}</span></li>
+                <li><b className="ui-num" data-count={linkCount}>{linkCount}</b><span>{T.statLinks}</span></li>
               </ul>
               <p className="fw-hero__verified"><Icon name="check" size={14} /> {T.verified}: <time dateTime={VERIFIED_ON}>{verifiedFmt}</time></p>
               <nav className="fw-jump" aria-label={T.jump}>
@@ -369,6 +369,8 @@ export default function FatwaPage() {
                   return (
                     <li key={s.id} className="ui-card fw-src">
                       <div className="fw-src__top">
+                        {/* Loqosuz monoqram — saytın adının ilk hərfi (bəzək; ad başlıqda mətn kimi var) */}
+                        <span className="fw-mono" aria-hidden="true">{(s.host || '?').charAt(0).toUpperCase()}</span>
                         <span className={`ui-badge fw-kind fw-kind--${s.kind}`}>{T.kinds[s.kind]}</span>
                         <span className="fw-src__host" dir="ltr">{s.host}</span>
                       </div>

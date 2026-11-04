@@ -27,6 +27,10 @@ import { ChartFigure, ProgressRing, StatTile } from '../components/viz'
 import { RAMADAN_GUIDE, RAMADAN_SOURCES, JUZ_RANGES } from '../data/ramadanGuide'
 import '../styles/LessonsPage.css'
 import '../styles/RamadanPage.css'
+import '../styles/ToolsMotion.css'
+import GeoStarfield from '../components/prayer/GeoStarfield'
+import Sparkle from '../components/prayer/Sparkle'
+import { ringFrom } from '../components/prayer/ringFrom'
 
 const TXT = {
   title:   { az: 'İmsakiyyə', en: 'Ramadan timetable', ru: 'Расписание на Рамадан', ar: 'إمساكية رمضان', tr: 'İmsakiye' },
@@ -128,15 +132,16 @@ function KhatmPlan({ lang, todayJuz }) {
           <p className="rp-khatm__lead">{pick(GT.khatmLead, lang)}</p>
         </div>
       </div>
-      <div className="rp-khatm__progress">
+      <div className="rp-khatm__progress tm-ring tm-ring--live" style={{ '--tm-ring-from': ringFrom(done.length, 30, 56, 6) }}>
         <ProgressRing value={done.length} max={30} size={56} thickness={6} label={pick(GT.khatm, lang)} className="rp-khatm__ring" />
         <span className="rp-khatm__count ui-num" data-testid="khatm-count">{fill(pick(GT.done, lang), done.length)}</span>
         <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={reset} disabled={!done.length}>
           <Icon name="refresh" className="ui-btn__icon" /> {pick(GT.reset, lang)}
         </button>
       </div>
+      {done.length === 30 && <Sparkle count={12} radius={80} />}
       {done.length === 30 && <p className="rp-khatm__done" role="status"><Icon name="check" size={16} /> {pick(GT.complete, lang)}</p>}
-      <ol className="rp-khatm__grid">
+      <ol className="rp-khatm__grid tm-cascade">
         {JUZ_RANGES.map(([from, to], i) => {
           const n = i + 1
           const checked = set.has(n)
@@ -309,7 +314,7 @@ function MonthGlance({ calendar, todayDate, dayNumber, inRamadan, lang, city }) 
           <ChartFigure title={pick(TXT.chartTitle, lang)} sub={pick(TXT.chartSub, lang).replace('{city}', city)} className="rp-fast-fig">
             <svg className="rp-fast" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={aria}>
               {rows.map((r, i) => (
-                <rect key={r.day} x={i * (bw + gap)} y={y(r.min)} width={bw} height={H - y(r.min)} rx={Math.min(3, bw / 3)}
+                <rect key={r.day} style={{ '--i': i }} x={i * (bw + gap)} y={y(r.min)} width={bw} height={H - y(r.min)} rx={Math.min(3, bw / 3)}
                   className={r.date === todayDate ? 'is-today' : undefined} />
               ))}
             </svg>
@@ -317,7 +322,7 @@ function MonthGlance({ calendar, todayDate, dayNumber, inRamadan, lang, city }) 
               {rows.map(r => <span key={r.day}>{r.day === 1 || r.day % 5 === 0 ? r.day : ''}</span>)}
             </div>
           </ChartFigure>
-          <div className="rp-glance__side">
+          <div className="rp-glance__side tm-ring" data-reveal="fade" style={{ '--tm-ring-from': ringFrom(passed, total, 88, 8) }}>
             <ProgressRing value={passed} max={total} size={88} thickness={8}
               label={pick(TXT.monthRing, lang)}
               sub={passed ? pick(TXT.ringSub, lang).replace('{n}', passed).replace('{t}', total) : pick(TXT.ringBefore, lang)} />
@@ -353,7 +358,7 @@ const SMALL_COLS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'isha']
 
 function DayCards({ calendar, todayDate, todayRef, lang }) {
   return (
-    <ol className="rp-days" data-testid="ramadan-cards" aria-labelledby="rp-table-title">
+    <ol className="rp-days tm-cascade" data-reveal="fade" data-testid="ramadan-cards" aria-labelledby="rp-table-title">
       {calendar.map(e => {
         const isToday = e.date === todayDate
         const fm = fastMinutes(e)
@@ -416,6 +421,7 @@ export default function RamadanPage({ setPage }) {
     <div className="rp-root">
       <header className="ui-page-hero rp-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <GeoStarfield className="rp-sky" rosette={false} />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
@@ -424,8 +430,8 @@ export default function RamadanPage({ setPage }) {
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> {pick(TXT.how, lang)}</p>
           <ul className="ui-page-hero__stats">
             <li><b>29–30</b><span>{pick(TXT.stDays, lang)}</span></li>
-            <li><b>30</b><span>{pick(TXT.stJuz, lang)}</span></li>
-            <li><b>10</b><span>{pick(TXT.stNights, lang)}</span></li>
+            <li><b data-count="30">30</b><span>{pick(TXT.stJuz, lang)}</span></li>
+            <li><b data-count="10">10</b><span>{pick(TXT.stNights, lang)}</span></li>
           </ul>
         </div>
       </header>
@@ -475,9 +481,9 @@ export default function RamadanPage({ setPage }) {
               </div>
             ) : (<>
               {view === 'cards' && <DayCards calendar={calendar} todayDate={todayDate} todayRef={cardTodayRef} lang={lang} />}
-              <div className={`rp-scroll ui-table-wrap${view === 'cards' ? ' rp-scroll--print-only' : ''}`} tabIndex={view === 'cards' ? -1 : 0} role="region" aria-labelledby="rp-table-title">
+              <div data-reveal="fade" className={`rp-scroll ui-table-wrap${view === 'cards' ? ' rp-scroll--print-only' : ''}`} tabIndex={view === 'cards' ? -1 : 0} role="region" aria-labelledby="rp-table-title">
                 {/* tabIndex — sürüşən sahə klaviatura ilə də sürüşsün (axe: scrollable-region-focusable) */}
-                <table className="ui-table ui-table--compact ui-table--zebra rp-table" aria-labelledby="rp-table-title" data-testid="ramadan-table">
+                <table className="ui-table ui-table--compact ui-table--zebra rp-table tm-cascade-rows" aria-labelledby="rp-table-title" data-testid="ramadan-table">
                   <thead>
                     <tr>
                       <th scope="col">{pick(TXT.day, lang)}</th>

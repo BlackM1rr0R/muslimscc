@@ -503,8 +503,8 @@ export default function AnalyticsPage({ setPage }) {
             <p className="ui-lead">{t.subtitle}</p>
             <p className="ui-page-hero__how"><Icon name="shield" size={16} /> {x.how}</p>
             <ul className="ui-page-hero__stats">
-              <li><b className="ui-num">{data.daysActive}</b><span>{t.daysActive}</span></li>
-              <li><b className="ui-num">{data.maxStreak}</b><span>{x.bestStreak}</span></li>
+              <li><b className="ui-num" data-count={data.daysActive}>{data.daysActive}</b><span>{t.daysActive}</span></li>
+              <li><b className="ui-num" data-count={data.maxStreak}>{data.maxStreak}</b><span>{x.bestStreak}</span></li>
               <li><b className="ui-num" dir="ltr">{achievedCount}/{achievements.length}</b><span>{x.achievements}</span></li>
             </ul>
           </div>
@@ -552,11 +552,11 @@ export default function AnalyticsPage({ setPage }) {
             <StatTile icon="donate" label={t.charityDeeds} value={data.totalCharity} count={data.totalCharity} />
           </div>
 
-          <div className="analytics-act-grid">
+          <div className="analytics-act-grid" data-reveal="stagger">
             <ChartFigure title={x.heatTitle} sub={x.heatAria(heat.active)} className="analytics-heat-fig">
               <div className="analytics-heat" role="img" aria-label={x.heatAria(heat.active)}>
-                {heat.cells.map(c => (
-                  <span key={c.key} className={`analytics-heat__cell l${c.level}${c.future ? ' is-future' : ''}`} title={c.future ? undefined : c.title} />
+                {heat.cells.map((c, i) => (
+                  <span key={c.key} className={`analytics-heat__cell l${c.level}${c.future ? ' is-future' : ''}`} style={{ '--hc': Math.floor(i / 7) }} title={c.future ? undefined : c.title} />
                 ))}
               </div>
               <div className="analytics-heat-legend" aria-hidden="true">

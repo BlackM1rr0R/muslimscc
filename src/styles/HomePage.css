@@ -309,7 +309,7 @@
   unicode-bidi: isolate;
 }
 /* Saniyə dəyişəndə rəqəmlər yuxarıdan yumşaq "düşür" (canlı sayğac) */
-.hp-pc-s { display: inline-block; animation: hpTick 420ms var(--ease-out); }
+.hp-pc-s { display: inline-block; }
 @keyframes hpTick {
   from { opacity: 0.35; transform: translate3d(0, -0.18em, 0); }
   to   { opacity: 1; transform: none; }
@@ -1025,3 +1025,215 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
 /* v3.2: "Bu gün" bento panelinin yer tutucusu (HomeToday lazy yüklənənə qədər) */
 .hp-td-skel { height: 640px; border-radius: var(--radius-lg); }
 @media (min-width: 1100px) { .hp-td-skel { height: 520px; } }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v4 "VAU-nun VAU-su" — ana səhifə vitrini
+     • Hero: canlı səma (PrayerSky) + yavaş axan aurora + fırlanan xatəm
+       ulduzu (parallaks) + üzən kiçik 8-guşəli ulduzlar
+     • Başlıq: hərflər növbə ilə qalxır (yalnız transform — LCP), sonra
+       qızılı işıq keçir; ".cc" yay kimi oturur
+     • Namaz kartı: şüşə (backdrop blur), geri sayımda rəqəmlər fırlanır
+     • Tövhid bölməsi və 99 ad — bento (geniş ekranda alt-alta yox)
+   Yalnız transform/opacity; ekrandan çıxanda dayanır (wow.js → data-wow-paused);
+   "hərəkəti azalt"-da hamısı söndürülür.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 1024px) {
+  .hp-hero { padding-block: clamp(44px, 6vw, 88px) clamp(40px, 4.4vw, 64px); }
+  .hp-hero-title { font-size: clamp(56px, 6.4vw, 96px); }
+}
+
+/* ── Aurora: üç yumşaq ləkə (zümrüd, qızılı, dəniz yaşılı) ── */
+.hp-aur { position: absolute; inset: -20% -10%; overflow: hidden; }
+.hp-aur > i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  will-change: transform;
+}
+.hp-aur > i:nth-child(1) {
+  top: -18%;
+  inset-inline-end: -8%;
+  width: 52vmax;
+  height: 52vmax;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand) 30%, transparent) 0%, transparent 62%);
+  animation: hpAurA 24s var(--ease-in-out) infinite alternate;
+}
+.hp-aur > i:nth-child(2) {
+  top: 20%;
+  inset-inline-start: 8%;
+  width: 40vmax;
+  height: 40vmax;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 26%, transparent) 0%, transparent 60%);
+  animation: hpAurB 30s var(--ease-in-out) infinite alternate;
+}
+.hp-aur > i:nth-child(3) {
+  bottom: -30%;
+  inset-inline-end: 30%;
+  width: 34vmax;
+  height: 34vmax;
+  background: radial-gradient(circle, color-mix(in srgb, #2f8f7a 20%, transparent) 0%, transparent 60%);
+  animation: hpAurC 36s var(--ease-in-out) infinite alternate;
+}
+[data-theme="dark"] .hp-aur > i { opacity: 0.85; }
+@keyframes hpAurA { to { transform: translate3d(-14%, 12%, 0) scale(1.18); } }
+@keyframes hpAurB { from { transform: scale(1.08); } to { transform: translate3d(18%, -10%, 0) scale(0.9); } }
+@keyframes hpAurC { from { transform: scale(0.9); } to { transform: translate3d(-12%, -14%, 0) scale(1.16); } }
+
+/* ── Xatəm ulduzu: namaz kartının arxasında çox yavaş fırlanır ── */
+.hp-khatam {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: clamp(-120px, 2vw, 60px);
+  width: clamp(320px, 42vw, 640px);
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+}
+.hp-khatam::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 0deg, var(--accent), var(--brand), var(--accent), var(--brand), var(--accent));
+  -webkit-mask: var(--wow-star-svg) center / contain no-repeat;
+  mask: var(--wow-star-svg) center / contain no-repeat;
+  opacity: 0.2;
+  animation: wow-spin 140s linear infinite;
+}
+[data-theme="dark"] .hp-khatam::before { opacity: 0.26; }
+
+/* ── Üzən kiçik 8-guşəli ulduzlar ── */
+.hp-stars { position: absolute; inset: 0; }
+.hp-stars > i {
+  position: absolute;
+  display: block;
+  width: var(--s, 12px);
+  aspect-ratio: 1;
+  background: var(--accent);
+  /* 8-guşəli ulduz */
+  clip-path: polygon(50% 0%, 61% 25%, 85% 15%, 75% 39%, 100% 50%, 75% 61%, 85% 85%, 61% 75%, 50% 100%, 39% 75%, 15% 85%, 25% 61%, 0% 50%, 25% 39%, 15% 15%, 39% 25%);
+  opacity: 0.55;
+  animation: hpFloat var(--t, 10s) var(--ease-in-out) var(--d, 0s) infinite alternate;
+}
+.hp-stars > i:nth-child(even) { background: var(--brand); opacity: 0.35; }
+@keyframes hpFloat {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(0.9); }
+  50%  { transform: translate3d(8px, -16px, 0) rotate(45deg) scale(1.1); }
+  100% { transform: translate3d(-6px, -28px, 0) rotate(90deg) scale(0.95); }
+}
+
+/* ── Başlıq: hərflər növbə ilə qalxır (yalnız transform) ── */
+.hp-ht-1 { display: inline-flex; }
+.hp-ht-ch {
+  display: inline-block;
+  animation: hpChar 900ms var(--wow-ease, var(--ease-out)) calc(80ms + var(--ci, 0) * 45ms) backwards;
+}
+@keyframes hpChar {
+  from { transform: translate3d(0, 0.32em, 0) rotate(4deg) scale(0.96); }
+  to   { transform: none; }
+}
+.hp-ht-2 { animation: hpDotSpring 900ms var(--wow-spring, var(--ease-spring)) 420ms backwards; }
+@keyframes hpDotSpring {
+  from { opacity: 0; transform: translate3d(-12px, 0.3em, 0) scale(0.6) rotate(-12deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Namaz kartı: şüşə + rəqəmlər fırlanır ── */
+.hp-pc {
+  background: color-mix(in srgb, var(--surface-1) 78%, transparent);
+  -webkit-backdrop-filter: saturate(150%) blur(18px);
+  backdrop-filter: saturate(150%) blur(18px);
+  border-color: color-mix(in srgb, var(--line) 70%, rgba(255, 255, 255, 0.5));
+}
+[data-theme="dark"] .hp-pc {
+  background: color-mix(in srgb, var(--surface-1) 74%, transparent);
+  border-color: color-mix(in srgb, var(--line) 80%, rgba(255, 255, 255, 0.08));
+}
+.hp-pc-cd { display: inline-flex; align-items: baseline; }
+.hp-pc-d {
+  display: inline-block;
+  min-width: 0.6em;
+  text-align: center;
+  animation: hpRoll 520ms var(--wow-ease, var(--ease-out));
+}
+.hp-pc-s { animation: hpRoll 520ms var(--wow-ease, var(--ease-out)); }
+.hp-pc-colon { display: inline-block; padding-inline: 0.04em; animation: hpBlink 2s var(--ease-in-out) infinite; }
+@keyframes hpRoll {
+  from { opacity: 0; transform: translate3d(0, -0.55em, 0) rotateX(70deg); }
+  to   { opacity: 1; transform: none; }
+}
+/* Yumşaq solma (yanıb-sönmə yox, 0.5 Hz) */
+@keyframes hpBlink { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.45; } }
+
+/* ── Tövhid: bento (≥1100px) — başlıq | kəlmə, sekmə+panel | faktlar, izahlar ── */
+@media (min-width: 1100px) {
+  .hp-tw .hp-sec-in {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-areas:
+      "hd    kal"
+      "tabs  facts"
+      "panel facts"
+      "info  info";
+    grid-template-rows: auto auto 1fr auto;
+    gap: 16px clamp(20px, 2.6vw, 32px);
+    align-items: start;
+  }
+  .hp-tw .hp-sec-hd { grid-area: hd; align-items: flex-start; text-align: start; margin: 0; align-self: center; }
+  .hp-tw .hp-kalima { grid-area: kal; margin: 0; max-width: none; align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
+  .hp-tw .hp-tw-tabs { grid-area: tabs; margin: 0; max-width: none; }
+  .hp-tw .hp-tw-panel { grid-area: panel; margin: 0; max-width: none; align-self: stretch; }
+  .hp-tw .hp-tw-facts { grid-area: facts; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; align-self: stretch; }
+  .hp-tw .hp-tw-info { grid-area: info; margin-top: 8px; }
+  .hp-tw .hp-tw-fact { justify-content: center; }
+}
+
+/* ── 99 ad: ilk ad iri bento kafeli (tünd zümrüd) ── */
+@media (min-width: 1100px) {
+  /* 5 sütun: iri kafel (2×2) + 11 ad = 3 tam sıra, boş xana qalmır */
+  .hp-names-grid:not(.hp-names-grid--ar) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .hp-names-grid { grid-auto-flow: dense; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .hp-names-grid > .hp-name:first-child {
+    grid-column: span 2;
+    grid-row: span 2;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(95, 200, 165, 0.16), transparent 70%),
+      var(--surface-inverse);
+    border-color: transparent;
+    color: var(--text-on-inverse);
+  }
+  .hp-names-grid > .hp-name:first-child .hp-name-ar { color: #f0e2c2; font-size: 60px; }
+  .hp-names-grid > .hp-name:first-child .hp-name-az { color: var(--text-on-inverse); font-size: 18px; }
+  .hp-names-grid > .hp-name:first-child .hp-name-en { color: var(--text-on-inverse-dim); font-size: 14px; }
+}
+@media (hover: hover) {
+  .hp-name:hover .hp-name-ar { transform: scale(1.12) translate3d(0, -2px, 0); }
+}
+
+/* Hero səmasında ay mətnin arxasına düşəndə oxunuşa mane olmasın */
+.hp-hero .psky__moon { opacity: 0.55; }
+
+/* ── Kəlmə paneli: incə nəfəs alan işıq ── */
+.hp-kalima::after { animation: hpBreath 9s var(--ease-in-out) infinite alternate; }
+@keyframes hpBreath { from { opacity: 0.55; } to { opacity: 1; } }
+
+/* ── Ekrandan çıxanda hero animasiyaları dayanır (wow.js → data-wow-paused) ── */
+.hp-hero[data-wow-paused] :is(.hp-aur > i, .hp-stars > i, .psky__stars > i, .psky__sun, .hp-pc-colon),
+.hp-hero[data-wow-paused] .hp-khatam::before { animation-play-state: paused; }
+
+/* ── Telefon: yüngül versiya ── */
+@media (max-width: 767.98px) {
+  .hp-aur > i:nth-child(3), .hp-stars > i:nth-child(n+5) { display: none; }
+  .hp-khatam { top: -70px; transform: none; inset-inline-end: -110px; width: 280px; }
+  .hp-khatam::before { opacity: 0.14; }
+  .hp-pc { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+}
+
+/* ── Hərəkəti azalt ── */
+@media (prefers-reduced-motion: reduce) {
+  .hp-aur > i, .hp-khatam::before, .hp-stars > i, .hp-ht-ch, .hp-ht-1, .hp-ht-2,
+  .hp-pc-d, .hp-pc-colon, .hp-kalima::after { animation: none !important; }
+}
+html.a11y-reduce-motion :is(.hp-aur > i, .hp-stars > i, .hp-ht-ch, .hp-ht-1, .hp-ht-2, .hp-pc-d, .hp-pc-colon),
+html.a11y-reduce-motion .hp-khatam::before,
+html.a11y-reduce-motion .hp-kalima::after { animation: none !important; }

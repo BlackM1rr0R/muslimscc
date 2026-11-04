@@ -13,6 +13,9 @@ import { QIBLA_GUIDE, QIBLA_GUIDE_TXT, QIBLA_SOURCES, QIBLA_TABLE_CITIES } from 
 import '../styles/LessonsPage.css'
 import '../styles/QiblaPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import { haptic } from '../hooks/useHaptic'
+import '../styles/ToolsMotion.css'
+import GeoStarfield from '../components/prayer/GeoStarfield'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 
 const KAABA = { lat: 21.3891, lon: 39.8579 }
@@ -276,6 +279,16 @@ export default function QiblaPage({ setPage }) {
   const animIdRef      = useRef(null)   // rAF id
   const watchIdRef     = useRef(null)
   const orientOkRef    = useRef(false)
+  const velRef         = useRef(0)       // v4: yay sürəti
+  const alignedRef     = useRef(false)
+  const compassElRef   = useRef(null)
+  const reduceRef      = useRef(false)
+  useEffect(() => {
+    try {
+      reduceRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+        document.documentElement.classList.contains('a11y-reduce-motion')
+    } catch { /* köhnə brauzer */ }
+  }, [])
 
   // qibla state dəyişdikdə ref-i yenilə
   useEffect(() => { qiblaRef.current = qibla }, [qibla])
@@ -285,18 +298,31 @@ export default function QiblaPage({ setPage }) {
     const tick = () => {
       const raw = rawHeadingRef.current
       if (raw !== null) {
-        // Low-pass filter
-        if (smoothRef.current === null) {
+        // v4: yay (spring) fizikası — iynə hədəfə sürətlə gedir, azca aşıb
+        // yerinə oturur (əvvəl sadə low-pass filtr idi). Hərəkət azaldılıbsa
+        // birbaşa dəyər.
+        if (smoothRef.current === null || reduceRef.current) {
           smoothRef.current = raw
+          velRef.current = 0
         } else {
           let diff = raw - smoothRef.current
           if (diff > 180) diff -= 360
           if (diff < -180) diff += 360
-          smoothRef.current = (smoothRef.current + diff * 0.15 + 360) % 360
+          velRef.current = (velRef.current + diff * 0.07) * 0.8
+          if (Math.abs(diff) < 0.05 && Math.abs(velRef.current) < 0.05) velRef.current = 0
+          smoothRef.current = (smoothRef.current + velRef.current + 360) % 360
         }
 
         const h = smoothRef.current
         const q = qiblaRef.current ?? 0
+        // Kəbəyə tuşlananda (±5°) kompas "is-aligned" olur — Kəbə nəbz vurur
+        const off = Math.abs(((q - h) % 360 + 540) % 360 - 180)
+        const aligned = off < 5
+        if (aligned !== alignedRef.current) {
+          alignedRef.current = aligned
+          compassElRef.current?.classList.toggle('is-aligned', aligned)
+          if (aligned) haptic()
+        }
 
         // Birbaşa DOM yeniləmə — React re-render yox
         if (ringElRef.current) {
@@ -480,6 +506,7 @@ export default function QiblaPage({ setPage }) {
 
         {(status === 'loading' || status === 'idle') && (
           <div className="qibla-center ui-card" role="status">
+            <GeoStarfield />
             <div className="qibla-loader" aria-hidden="true">
               <div className="qibla-loader-ring" />
               <span className="qibla-loader-icon"><Icon name="qibla" size={30} /></span>
@@ -492,6 +519,7 @@ export default function QiblaPage({ setPage }) {
 
         {status === 'error' && (
           <div className="qibla-center ui-card" role="alert">
+            <GeoStarfield />
             <span className="qibla-error-icon ui-icon-tile ui-icon-tile--lg ui-icon-tile--accent" aria-hidden="true"><Icon name="pin" /></span>
             <h2 className="qibla-center-title">{l.error}</h2>
             <p>{l.errorSub}</p>
@@ -514,7 +542,7 @@ export default function QiblaPage({ setPage }) {
                   <Icon name="compass" className="ui-btn__icon" /> {l.enableCompass}
                 </button>
               )}
-              <div className="qibla-compass" role="img" aria-label={`${l.bearing}: ${Math.round(qibla)}° — ${l.fromNorth}`}>
+              <div className="qibla-compass" ref={compassElRef} role="img" aria-label={`${l.bearing}: ${Math.round(qibla)}° — ${l.fromNorth}`}>
 
                 {/* Ring — rAF ilə birbaşa fırladılır, sensor yoxdursa sabit */}
                 <div className="qibla-ring" ref={ringElRef}>

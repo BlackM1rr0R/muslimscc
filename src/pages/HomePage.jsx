@@ -327,8 +327,14 @@ function Countdown({ at, from, label }) {
     <>
       {/* Saniyələr hər dəyişəndə yumşaq "döyünür" (key → animasiya yenidən
           başlayır; HomePage.css → .hp-pc-s) — sayğacın canlı hissi */}
+      {/* v4: hər rəqəm dəyişəndə öz yerində yuxarıdan "fırlanaraq" düşür
+          (key = mövqe + rəqəm → yalnız dəyişən rəqəm yenidən qurulur) */}
       <span className="hp-pc-cd" role="timer" aria-label={label(h, m)}>
-        {pad2(h)}:{pad2(m)}:<span key={s} className="hp-pc-s">{pad2(s)}</span>
+        {[...`${pad2(h)}:${pad2(m)}:${pad2(s)}`].map((ch, i) => (
+          ch === ':'
+            ? <span key={i} className="hp-pc-colon" aria-hidden="true">:</span>
+            : <span key={`${i}-${ch}`} className={`hp-pc-d${i > 5 ? ' hp-pc-s' : ''}`} aria-hidden="true">{ch}</span>
+        ))}
       </span>
       {frac != null && (
         <span className="hp-pc-bar" aria-hidden="true">
@@ -515,6 +521,17 @@ const ALLAH_NAMES = [
   { ar:'ٱلْكَرِيم',  translit:'Kərim',  color:'#fbbf24', meaning:{ az:'Kərəmli',            en:'The Generous',               ru:'Щедрый',                ar:'الكريم',                    tr:'Kerîm' } },
 ]
 
+// Hero-da üzən kiçik 8-guşəli ulduzlar — sabit yerlər (hər render-də eyni)
+const HERO_STARS = [
+  { insetInlineStart: '6%', top: '18%', '--s': '14px', '--d': '0s', '--t': '9s' },
+  { insetInlineStart: '38%', top: '9%', '--s': '9px', '--d': '-3s', '--t': '11s' },
+  { insetInlineStart: '47%', top: '72%', '--s': '12px', '--d': '-6s', '--t': '10s' },
+  { insetInlineStart: '62%', top: '12%', '--s': '18px', '--d': '-1.5s', '--t': '13s' },
+  { insetInlineStart: '92%', top: '58%', '--s': '10px', '--d': '-4.5s', '--t': '12s' },
+  { insetInlineStart: '24%', top: '86%', '--s': '8px', '--d': '-7s', '--t': '9.5s' },
+  { insetInlineStart: '80%', top: '88%', '--s': '13px', '--d': '-2s', '--t': '14s' },
+]
+
 export default function HomePage({ setPage }) {
   const { lang } = useLang()
   const lk = lang
@@ -572,21 +589,29 @@ export default function HomePage({ setPage }) {
             v3: "bu sayt nədir" bir baxışda — brend, bir cümlə, iki əsas düymə,
             üç qısa üstünlük; sağda (telefonda altda) namaz vaxtları kartı.
             Hədis sitatı və üçüncü ("Elanlar") düymə götürülüb — sakitlik. */}
-        <section className={`hp-hero ${visible?'hp-hero--vis':''}`}>
+        <section className={`hp-hero ${visible?'hp-hero--vis':''}`} data-wow-pause="">
+          {/* v4 "canlı səma": namaz vaxtına görə səma + yavaş axan aurora +
+              fırlanan xatəm ulduzu + üzən kiçik həndəsi ulduzlar (hamısı dekor,
+              yalnız transform/opacity; ekrandan çıxanda dayanır — wow.css) */}
           <div className="hp-hero-bg" aria-hidden="true">
             <HeroSky />
+            <div className="hp-aur"><i /><i /><i /></div>
             <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
             <div className="hp-hero-glow" />
+            <div className="hp-khatam" data-parallax="0.08" />
+            <div className="hp-stars">{HERO_STARS.map((st, i) => <i key={i} style={st} />)}</div>
           </div>
 
           <div className="hp-hero-inner">
             <div className="hp-hero-content">
               <span className="ui-eyebrow hp-badge">{l.badge}</span>
 
-              <h1 className="hp-hero-title">
-                {/* "Muslims" + ".cc" bir sətirdə (domen kimi oxunsun) */}
-                <span className="hp-ht-row">
-                  <span className="hp-ht-1">{brandFirst}</span>
+              <h1 className="hp-hero-title" aria-label={brand}>
+                {/* "Muslims" + ".cc" bir sətirdə (domen kimi oxunsun).
+                    v4: hərflər növbə ilə yuxarı qalxır (yalnız transform — LCP
+                    üçün mətn ilk kadrdan görünür), sonra qızılı işıq keçir. */}
+                <span className="hp-ht-row" aria-hidden="true">
+                  <span className="hp-ht-1">{[...brandFirst].map((ch, i) => <span key={i} className="hp-ht-ch" style={{ '--ci': i }}>{ch}</span>)}</span>
                   {brandLast && <span className="hp-ht-2">{brandLast}</span>}
                 </span>
               </h1>
@@ -622,14 +647,14 @@ export default function HomePage({ setPage }) {
           <a href> — Ctrl/orta klik yeni tabda açır; adi klik SPA ilə. */}
       <section className="ui-section ui-section--tight hp-quick" aria-labelledby="hp-quick-ttl">
         <div className="ui-container">
-          <div className="ui-section-head ui-section-head--row" data-reveal>
+          <div className="ui-section-head ui-section-head--row" data-anim="blur">
             <div className="hp-head-text">
               <span className="ui-eyebrow">{l.quickEy}</span>
               <h2 id="hp-quick-ttl" className="ui-title">{l.quickTitle}</h2>
               <p className="ui-lead">{l.quickSub}</p>
             </div>
           </div>
-          <ul className="ui-tiles hp-tiles" data-reveal="stagger">
+          <ul className="ui-tiles hp-tiles" data-anim-stagger="45" data-anim="zoom">
             {QUICK.map(q => (
               <li key={q.page}>
                 <a className="ui-tile hp-tile" href={pathFor(q.page, lang)} onClick={(e) => { if (plainClick(e)) { e.preventDefault(); goTo(q.page) } }}>
@@ -646,12 +671,12 @@ export default function HomePage({ setPage }) {
       {/* ═══ HARADAN BAŞLAMALI? — yeni gələn üçün 4 addım ═════════════════ */}
       <section className="ui-section ui-section--tight hp-start ui-cv" style={CV.start} aria-labelledby="hp-start-ttl">
         <div className="ui-container">
-          <div className="ui-section-head" data-reveal>
+          <div className="ui-section-head" data-anim="blur">
             <span className="ui-eyebrow">{l.startEy}</span>
             <h2 id="hp-start-ttl" className="ui-title">{l.startTitle}</h2>
             <p className="ui-lead">{l.startSub}</p>
           </div>
-          <ol className="ui-steps ui-steps--row hp-steps" data-reveal="stagger">
+          <ol className="ui-steps ui-steps--row hp-steps" data-anim-stagger="90" data-anim="rise">
             {START.map((s, i) => (
               <li key={s.page} className="ui-step">
                 <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
@@ -675,7 +700,7 @@ export default function HomePage({ setPage }) {
           rəqəmlərlə (statistika kafelləri; görünəndə sayır — data-count). */}
       <section className="ui-section ui-section--tight hp-feats ui-cv" style={CV.feats} aria-labelledby="hp-stats-ttl">
         <div className="ui-container hp-qs">
-          <div className="hp-bento-quran" data-reveal>
+          <div className="hp-bento-quran" data-anim="zoom">
             <div className="ui-pattern hp-bq-pattern" aria-hidden="true" />
             <div className="hp-bq-top">
               <span className="ui-icon-tile ui-icon-tile--lg hp-bq-ic" aria-hidden="true"><Icon name="quran" /></span>
@@ -683,7 +708,7 @@ export default function HomePage({ setPage }) {
               <span className="hp-bq-desc">{L(FEATURES[0].desc)}</span>
             </div>
             <div className="hp-qban-l">
-              <div className="hp-qban-ar ui-arabic" lang="ar" dir="rtl">إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ</div>
+              <div className="hp-qban-ar ui-arabic" lang="ar" dir="rtl" data-anim="ink" data-anim-delay="250">إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ</div>
               {/* Ərəb dilində yalnız istinad — tərcümə ayənin təkrarı olardı.
                   İstinad bölünmür ("— Hicr" / "9" ayrı sətirdə qalmasın) */}
               <div className="hp-qban-tr">
@@ -704,7 +729,7 @@ export default function HomePage({ setPage }) {
               <span className="ui-eyebrow">{l.statsEy}</span>
               <h2 id="hp-stats-ttl" className="ui-title ui-title--sm">{l.statsTitle}</h2>
             </div>
-            <div className="ui-stats hp-stats-grid" data-reveal="stagger">
+            <div className="ui-stats hp-stats-grid" data-anim-stagger="70" data-anim="blur">
               {stats.map((s, i) => (
                 <StatTile key={i} icon={s.icon} label={L(s.l)} value={String(s.num)} count={s.num} unit={s.s || undefined} />
               ))}
@@ -735,7 +760,7 @@ export default function HomePage({ setPage }) {
 
           {/* Kalima */}
           <div className="hp-kalima" data-reveal="scale">
-            <div className="hp-kal-ar" lang="ar" dir="rtl">لَا إِلَهَ إِلَّا اللَّهُ مُحَمَّدٌ رَسُولُ اللَّهِ</div>
+            <div className="hp-kal-ar" lang="ar" dir="rtl" data-anim="ink" data-anim-delay="200">لَا إِلَهَ إِلَّا اللَّهُ مُحَمَّدٌ رَسُولُ اللَّهِ</div>
             {!isAr && (
               <div className="hp-kal-tr">
                 {lk==='az'?'"Allahdan başqa ilah yoxdur, Muhəmməd Allahın elçisidir"':
@@ -844,7 +869,7 @@ export default function HomePage({ setPage }) {
           </div>
           {/* Transliterasiya azərbaycancadır — yalnız az-da; ərəb dilində yalnız
               adın özü ("məna" sahəsi orada adın hərəkəsiz təkrarıdır) */}
-          <div className={`hp-names-grid${isAr ? ' hp-names-grid--ar' : ''}`} data-reveal="stagger">
+          <div className={`hp-names-grid${isAr ? ' hp-names-grid--ar' : ''}`} data-anim-stagger="50" data-anim="zoom">
             {ALLAH_NAMES.map((n,i)=>(
               <div key={i} className="hp-name">
                 <div className="hp-name-ar" lang="ar" dir="rtl">{n.ar}</div>

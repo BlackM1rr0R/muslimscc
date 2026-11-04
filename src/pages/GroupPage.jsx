@@ -341,7 +341,7 @@ function JuzMap({ cells, label, compact = false }) {
   return (
     <ol className={`gp-map${compact ? ' gp-map--compact' : ''}`} aria-label={label}>
       {cells.map((st, i) => (
-        <li key={i} className={`gp-map__cell is-${st}`}>
+        <li key={i} className={`gp-map__cell is-${st}`} style={{ '--gi': i }}>
           <span className="ui-num">{i + 1}</span>
         </li>
       ))}

@@ -649,3 +649,85 @@
 /* ── Fiziki təsbeh (components/TasbihBeads) ── */
 .dhikr-beads { margin-block: 4px 12px; }
 .dk-beads { grid-column: 1 / -1; margin-block: 8px; }
+
+/* ══ v4 "VAU" — təsbehin canlı anları ════════════════════════════════
+   • Rəqəm hər toxunuşda aşağıdan "fırlanıb" gəlir (blur + yay)
+   • Halqanın ucunda qızılı işıq nöqtəsi irəliləyişlə dövr edir
+   • Dövr tamamlananda: arxada yavaş fırlanan qızılı parıltı + 8 kiçik
+     xatəm ulduzu dairə boyunca səpilir (yalnız həndəsi forma)
+   • Seçilmiş zikr kartının ərəb yazısı yumşaq parlayır
+   Titrəmə (navigator.vibrate) artıq JS-dədir. Yalnız transform/opacity. */
+.dk-ring-tip {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: rotate(var(--a, 0deg));
+  transition: transform var(--dur-2, 220ms) var(--ease-out, ease-out);
+}
+.dk-ring-tip > i {
+  position: absolute;
+  top: calc(50% - var(--dhikr-ring) * 0.4375 - 6px);
+  left: calc(50% - 6px);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent), 0 0 16px 2px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.dk-glow {
+  position: absolute;
+  width: calc(var(--dhikr-btn) + 36px);
+  height: calc(var(--dhikr-btn) + 36px);
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--accent) 45%, transparent), transparent 40%, color-mix(in srgb, var(--brand) 30%, transparent), transparent 80%);
+  -webkit-mask: radial-gradient(farthest-side, transparent 72%, #000 74%, #000 88%, transparent);
+  mask: radial-gradient(farthest-side, transparent 72%, #000 74%, #000 88%, transparent);
+  filter: blur(6px);
+  pointer-events: none;
+}
+.dk-spark {
+  grid-area: 1 / 1;
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  -webkit-mask: var(--q-star-dk) center / contain no-repeat;
+  mask: var(--q-star-dk) center / contain no-repeat;
+  opacity: 0;
+  --q-star-dk: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 2.2l5.3 5.3h7.2v7.2l5.3 5.3-5.3 5.3v7.2h-7.2L20 37.8l-5.3-5.3H7.5v-7.2L2.2 20l5.3-5.3V7.5h7.2z'/%3E%3C/svg%3E");
+}
+.dk-spark:nth-child(even) { background: var(--brand); width: 10px; height: 10px; }
+.dhikr-sel-btn.active .dhikr-sel-arabic { text-shadow: 0 0 14px color-mix(in srgb, var(--brand) 25%, transparent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .dhikr-tap-count,
+  html:not(.a11y-reduce-motion) .dk-tap__count { animation: dk-v4-roll 380ms cubic-bezier(.34, 1.56, .64, 1); }
+  html:not(.a11y-reduce-motion) .dk-glow { animation: dk-v4-glow-in 600ms ease-out both, dk-v4-spin 6s linear infinite; }
+  html:not(.a11y-reduce-motion) .dk-spark {
+    animation: dk-v4-spark 1100ms cubic-bezier(.16, 1, .3, 1) forwards;
+    animation-delay: calc(var(--k) * 25ms);
+  }
+  html:not(.a11y-reduce-motion) .dhikr-tap-btn.tapped .dhikr-tap-arabic { transform: scale(1.04); }
+  html:not(.a11y-reduce-motion) .dhikr-tap-arabic { transition: transform 200ms var(--ease-spring, ease); }
+}
+@media (prefers-reduced-motion: reduce) { .dk-ring-tip { transition: none; } .dk-spark { display: none; } }
+html.a11y-reduce-motion .dk-ring-tip { transition: none; }
+html.a11y-reduce-motion .dk-spark { display: none; }
+@keyframes dk-v4-roll {
+  0%   { opacity: 0; transform: translateY(55%) scale(.9); filter: blur(3px); }
+  60%  { opacity: 1; filter: none; }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes dk-v4-glow-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dk-v4-spin { to { rotate: 360deg; } }
+@keyframes dk-v4-spark {
+  0%   { opacity: 1; transform: rotate(calc(var(--k) * 45deg)) translateY(0) scale(.4); }
+  70%  { opacity: 1; }
+  100% { opacity: 0; transform: rotate(calc(var(--k) * 45deg)) translateY(calc(var(--dhikr-ring) * -0.5)) scale(1) rotate(180deg); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .dhikr-hero-ar { animation: dk-v4-ink 1500ms cubic-bezier(.16,1,.3,1) 300ms both; }
+}
+@keyframes dk-v4-ink {
+  from { clip-path: inset(-10% -2% -10% 100%); opacity: .25; }
+  to   { clip-path: inset(-10% -2% -10% -2%); opacity: 1; }
+}

@@ -234,3 +234,49 @@
 .holy-read__desc { color: var(--text-body); font-size: var(--step-0); line-height: 1.75; }
 .holy-read .holy-card-ar { color: var(--accent-text); font-size: 26px; }
 .holy-read .holy-card-ref { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: var(--step--1); }
+
+/* ══ v4 "VAU" — imza anları (səhifəyə xas; yalnız transform/opacity/clip-path) ══
+   1. Hero fotosu: yavaş Ken Burns yaxınlaşması (26 s, irəli-geri).
+   2. Kart fotoları: sürüşdükcə parallaks (foto kartın içində yavaşca yuxarı sürüşür + yaxınlaşır —
+      animation-timeline: view()); hover-də əlavə yaxınlaşma ayrıca `scale` xassəsi ilə.
+   3. Fotosuz kartın xəttatlıq lövhəsi: ərəbcə ad "mürəkkəblə çəkilir", naxış çox yavaş fırlanır.
+   4. Savab rəqəmləri sayılır (StatTile count → data-count).
+   Hərəkəti azalt → heç biri işləmir. */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .holy-hero-photo .ph.is-loaded .ph__img {
+    animation: holy-kb 26s ease-in-out infinite alternate;
+  }
+  html:not(.a11y-reduce-motion) .holy-hero-photo .ph__frame { box-shadow: var(--shadow-3); }
+  @supports (animation-timeline: view()) {
+    html:not(.a11y-reduce-motion) .holy-card-media .ph.is-loaded .ph__img {
+      animation: holy-parallax linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+  @media (hover: hover) {
+    html:not(.a11y-reduce-motion) .holy-card-media .ph__img { transition: opacity 600ms var(--ease-out), scale 900ms cubic-bezier(.16, 1, .3, 1); }
+    html:not(.a11y-reduce-motion) .holy-page .holy-card:hover .holy-card-media .ph.is-loaded .ph__img { scale: 1.06; }
+  }
+  html:not(.a11y-reduce-motion) .holy-card[data-revealed=""] .holy-card-plaque__ar {
+    animation: holy-ink 1300ms cubic-bezier(.16, 1, .3, 1) 250ms backwards;
+  }
+  html:not(.a11y-reduce-motion) .holy-card-plaque .ui-pattern {
+    animation: holy-spin 90s linear infinite;
+    inset: -40%;
+  }
+}
+@keyframes holy-kb {
+  from { transform: scale(1.03) translate3d(0, 0, 0); }
+  to   { transform: scale(1.16) translate3d(2%, -2%, 0); }
+}
+@keyframes holy-parallax {
+  from { transform: scale(1.14) translate3d(0, 5%, 0); }
+  to   { transform: scale(1.14) translate3d(0, -5%, 0); }
+}
+@keyframes holy-ink {
+  from { opacity: 0; clip-path: inset(-20% 0 -20% 100%); filter: blur(3px); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; clip-path: inset(-20% 0 -20% 0); filter: none; }
+}
+@keyframes holy-spin { to { transform: rotate(360deg); } }

@@ -240,13 +240,19 @@ export function AboutPage({ setPage }) {
             <p className="ui-lead">{t.subtitle.replace('{brand}', brand)}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {v3.how}</p>
             <ul className="ui-page-hero__stats">
-              <li><b>{sections}</b><span>{v3.sSections}</span></li>
-              <li><b>5</b><span>{v3.langs}</span></li>
-              <li><b>{LIBRARY.lessons}</b><span>{v3.sLessons}</span></li>
+              <li><b data-count={sections}>{sections}</b><span>{v3.sSections}</span></li>
+              <li><b data-count="5">5</b><span>{v3.langs}</span></li>
+              <li><b data-count={LIBRARY.lessons}>{LIBRARY.lessons}</b><span>{v3.sLessons}</span></li>
             </ul>
           </div>
           <div className="ui-page-hero__aside ab-hero-aside" aria-hidden="true">
             <div className="ab-plaque">
+              {/* Arxada yavaş fırlanan 8 guşəli ulduz (xatəm) — dekorativ */}
+              <svg className="ab-plaque__star" viewBox="0 0 100 100" fill="none">
+                <rect x="20" y="20" width="60" height="60" />
+                <rect x="20" y="20" width="60" height="60" transform="rotate(45 50 50)" />
+                <circle cx="50" cy="50" r="22" />
+              </svg>
               <BrandMark size={56} className="ab-plaque__mark" />
               {/* Ərəbcə dekorativ şüar ar dilində h1-i təkrarlamasın */}
               {lang !== 'ar' && <p className="ab-plaque__ar ui-arabic" lang="ar" dir="rtl">{BRAND.arabicMotto}</p>}
@@ -265,7 +271,7 @@ export function AboutPage({ setPage }) {
             <span className="ui-eyebrow">{v3.storyEy}</span>
             <h2 id="ab-mission-title" className="ui-title">{t.mission}</h2>
             <p className="ab-mission-text">{t.missionText}</p>
-            <ul className="ab-values">
+            <ul className="ab-values" data-reveal="stagger">
               {values.map((v, i) => (
                 <li key={i} className="ab-value">
                   <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={v.icon} size={18} /></span>
@@ -278,7 +284,7 @@ export function AboutPage({ setPage }) {
           <section className="ui-card ab-manhaj" data-reveal aria-labelledby="ab-manhaj-title">
             <span className="ui-eyebrow">{v3.manhajEy}</span>
             <h2 id="ab-manhaj-title" className="ui-title ui-title--sm">{t.manhaj}</h2>
-            <ol className="ab-manhaj-list">
+            <ol className="ab-manhaj-list" data-reveal="stagger-left">
               {MANHAJ_POINTS.map((m, i) => (
                 <li key={i}>
                   <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={m.icon} size={18} /></span>
@@ -317,7 +323,7 @@ export function AboutPage({ setPage }) {
               )
             })}
           </ul>
-          <div className="ab-charts">
+          <div className="ab-charts" data-reveal="stagger">
             <ChartFigure title={v3.chLessons} sub={v3.chUnitL}>
               <BarChart data={lessonBars} label={v3.chLessons} labelWidth="44%" />
               <PageLink to="learn" setPage={setPage} onNavigate={toTop} className="ui-link ab-chart-link">
@@ -342,7 +348,7 @@ export function AboutPage({ setPage }) {
             <h2 id="ab-map-title" className="ui-title">{x.mapTitle}</h2>
             <p className="ui-lead">{x.mapLead}</p>
           </div>
-          <div className="ab-map">
+          <div className="ab-map" data-reveal="stagger">
             {NAV_GROUPS.map(g => {
               const items = g.items.filter(it => !MAP_SKIP.has(it.key))
               if (!items.length) return null

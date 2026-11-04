@@ -24,6 +24,8 @@ import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import CityPicker from '../components/CityPicker'
 import '../styles/JamaatPage.css'
+import '../styles/ToolsMotion.css'
+import RollingDigits from '../components/prayer/RollingDigits'
 import Breadcrumb from '../components/Breadcrumb'
 import PageLink from '../components/PageLink'
 import { ChartFigure, BarChart } from '../components/viz'
@@ -302,7 +304,7 @@ function Countdown({ at, from, hm }) {
   return (
     <>
       <div className="jm-count" role="timer" aria-label={hm(h, m)}>
-        <span className="jm-time">{pad2(h)}:{pad2(m)}:{pad2(s)}</span>
+        <span className="jm-time"><RollingDigits value={`${pad2(h)}:${pad2(m)}:${pad2(s)}`} /></span>
       </div>
       {frac != null && (
         <span className="jm-bar" aria-hidden="true">
@@ -468,7 +470,7 @@ export default function JamaatPage({ setPage }) {
                 <span className="ui-badge">{l.calcBadge}</span>
               </div>
 
-              <ol className="jm-list">
+              <ol className="jm-list tm-cascade">
                 {prayers.map(p => (
                   <TimeRow
                     key={p.key}

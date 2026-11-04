@@ -366,3 +366,21 @@
   .zakat-sticky-sum,
   .zakat-due-card.active { animation: none; }
 }
+
+/* ══ Dizayn v4 — hərəkət (prefiks zk-v4) ═══════════════════════════
+   nisab keçiləndə: kart tünd zümrüdə keçir + həndəsi parıltı + fonda
+   yavaş fırlanan rozet · məbləğ sayılaraq artır (Money) · tərkib sətirləri
+   kaskadla · qayda addımları bulanıqdan aydınlaşır */
+.zakat-page .zakat-due-card { position: relative; overflow: hidden; isolation: isolate; }
+.zakat-due-card > .zakat-due-sky { z-index: -1; color: var(--sand-300, #e6cf98); }
+.zakat-due-card > .zakat-due-sky .tm-sky__rosette { color: var(--sand-300, #e6cf98); opacity: 0.14; width: 260px; height: 260px; margin-top: -130px; inset-inline-end: -80px; }
+.zakat-due-card .tm-sparkle { top: 40%; }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .zakat-due-card.active .zakat-due-amount { display: inline-block; animation: zk-v4-amount 900ms var(--tm-spring) both; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .zakat-due-card.active .zakat-due-status svg { animation: tm-pop 520ms var(--tm-spring) 200ms backwards; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .zakat-cur-btn[aria-pressed="true"] { animation: tm-pop 380ms var(--tm-spring); }
+}
+@keyframes zk-v4-amount {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.92); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}

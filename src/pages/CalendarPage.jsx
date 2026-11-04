@@ -11,6 +11,7 @@ import { pathFor } from '../seo/routes'
 import { CAL_EVENT_INFO, CAL_GUIDE_TXT, CAL_HIJRI_LINK, CAL_MONTHS_GUIDE, CAL_SOURCES, eventInfoKey } from '../data/guides/CalendarPage'
 import '../styles/LessonsPage.css'
 import '../styles/CalendarPage.css'
+import '../styles/ToolsMotion.css'
 import Breadcrumb from '../components/Breadcrumb'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 import { showLocalNotification } from '../utils/notify'
@@ -304,7 +305,7 @@ function MonthCards({ b, lang }) {
     return v && v !== '—' ? v : null
   }
   return (
-    <ol className="cal-mcards" aria-label={b.head.map(h => pick(h, lang)).join(' · ')}>
+    <ol className="cal-mcards cal-v4-flip" data-reveal="fade" aria-label={b.head.map(h => pick(h, lang)).join(' · ')}>
       {b.rows.map((r, i) => {
         const ok = cell(r[1])
         const no = cell(r[2])
@@ -549,7 +550,7 @@ export function CalendarPage({ setPage }) {
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {cx.how}</p>
           </div>
           <div className="ui-page-hero__aside">
-            <div className="cal-today ui-card">
+            <div className="cal-today ui-card" data-reveal="zoom">
               <span className="cal-date-label">{ct.today} · {t.hijriDate}</span>
               <span className="cal-today-h">{hijriStr}</span>
               <span className="cal-today-g">{t.gregorianDate}: {formatGregorian(today, lang)}</span>
@@ -583,9 +584,9 @@ export function CalendarPage({ setPage }) {
 
           {/* v3.2: qarşıdakı hadisələr — geri sayımlı kartlar */}
           {upList.length > 0 && (
-            <section className="cal-up" aria-labelledby="cal-up-title" data-testid="cal-upcoming">
+            <section className="cal-up" aria-labelledby="cal-up-title" data-testid="cal-upcoming" data-reveal="fade">
               <h2 id="cal-up-title" className="cal-up__title"><Icon name="clock" size={18} /> {UP_TXT.title[lang] || UP_TXT.title.en}</h2>
-              <ol className="cal-up__list">
+              <ol className="cal-up__list tm-cascade">
                 {upList.map((u, i) => {
                   const inYear = u.hYear === hijri.year
                   const Tag = inYear ? 'button' : 'div'
@@ -665,14 +666,14 @@ export function CalendarPage({ setPage }) {
                 </div>
                 <div className="cal-grid" key={selMonth} role="group" aria-label={`${hijriMonthNames[selMonth]} ${hijri.year}`}>
                   {Array.from({ length: lead }, (_, i) => <span key={`b${i}`} className="cal-day is-blank" aria-hidden="true" />)}
-                  {monthDays.map(({ day, date }) => {
+                  {monthDays.map(({ day, date }, di) => {
                     const evs = EVENTS.filter(e => e.month === selMonth && e.day === day)
                     const isToday = isCurMonth && day === hijri.day
                     const sel = day === selDay
                     return (
                       <button key={day} type="button"
                         className={`cal-day${isToday ? ' is-today' : ''}${sel ? ' is-selected' : ''}${evs.length ? ' has-event' : ''}${evs.some(e => TYPE_ACCENT[e.type]) ? ' is-major' : ''}`}
-                        aria-pressed={sel}
+                        aria-pressed={sel} style={{ '--i': lead + di }}
                         aria-current={isToday ? 'date' : undefined}
                         onClick={() => { haptic(); setSelDay(day) }}>
                         {/* Ad məzmundan qurulur: görünən rəqəmlər adın içində qalır (WCAG 2.5.3),

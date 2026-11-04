@@ -304,9 +304,9 @@ export default function BooksPage() {
           {/* Yalnız real məzmun sayı (yüklənəndə gizli — "0 kitab" görünməsin) */}
           {!loading && books.length > 0 && (
             <ul className="ui-page-hero__stats bp-hero-stats">
-              <li><b className="ui-num">{books.length}</b><span>{countWord(books.length, 'books', lang, l.books)}</span></li>
-              <li><b className="ui-num">{categories.length - 1}</b><span>{l.statCats}</span></li>
-              {pdfCount > 0 && <li><b className="ui-num">{pdfCount}</b><span>{l.statPdf}</span></li>}
+              <li><b className="ui-num" data-count={books.length}>{books.length}</b><span>{countWord(books.length, 'books', lang, l.books)}</span></li>
+              <li><b className="ui-num" data-count={categories.length - 1}>{categories.length - 1}</b><span>{l.statCats}</span></li>
+              {pdfCount > 0 && <li><b className="ui-num" data-count={pdfCount}>{pdfCount}</b><span>{l.statPdf}</span></li>}
             </ul>
           )}
         </div>

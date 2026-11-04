@@ -426,3 +426,72 @@
   .qb-guide .ls-qa__item { transition: none; }
   .qb-guide .ls-qa__item:hover { transform: none; }
 }
+
+/* ══ Dizayn v4 — hərəkət (prefiks qb-v4) ═══════════════════════════
+   • iynə yay (spring) fizikası ilə fırlanır (JS); sensor yoxdursa açılışda
+     yay kimi aşıb bucağa oturur
+   • cizgilər dairə boyu növbə ilə yanır, istiqamət hərfləri düşür
+   • Kəbəyə tuşlananda (±5°): Kəbə nəbz vurur, kompas zümrüd işıq saçır
+   • yüklənmə / xəta kartında həndəsi ulduz səması */
+.qibla-page .qibla-center { position: relative; overflow: hidden; isolation: isolate; }
+.qibla-page .qibla-center > :not(.tm-sky) { position: relative; z-index: 1; }
+.qibla-kaaba-icon { position: relative; }
+.qibla-kaaba-icon::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: calc(var(--radius-sm) + 6px);
+  box-shadow: 0 0 0 2px var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+.qibla-compass::after {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 55%, transparent), 0 0 46px 6px color-mix(in srgb, var(--brand) 30%, transparent);
+  opacity: 0;
+  transition: opacity 400ms var(--tm-ease);
+  pointer-events: none;
+}
+.qibla-compass.is-aligned::after { opacity: 1; }
+.qibla-compass.is-aligned .qibla-kaaba-icon { background: var(--brand); color: var(--on-brand); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qibla-needle-wrap.is-static {
+    animation: qb-v4-needle 1.6s var(--tm-ease) 0.2s both;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qibla-tick {
+    animation: qb-v4-tick 420ms ease backwards;
+    animation-delay: calc(var(--i) * 9ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qibla-cardinal {
+    animation: qm-reveal-fade 600ms ease backwards;
+    animation-delay: calc(500ms + var(--ci) * 60ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qibla-center-dot-inner { animation: tm-pop 600ms var(--tm-spring) 0.4s backwards; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qibla-kaaba-icon { animation: tm-pop 600ms var(--tm-spring) 1.2s backwards; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qibla-compass.is-aligned .qibla-kaaba-icon { animation: qb-v4-kaaba 1.6s ease-in-out infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qibla-compass.is-aligned .qibla-kaaba-icon::after { animation: qb-v4-ping 1.6s var(--tm-ease) infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qibla-tape-pin { animation: qb-v4-pin 800ms var(--tm-spring) 0.6s backwards; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qibla-tape-arc { animation: tm-grow-x 1400ms var(--tm-ease) 0.3s backwards; transform-origin: left center; }
+}
+@keyframes qb-v4-needle {
+  0%   { transform: rotate(0deg); }
+  55%  { transform: rotate(calc(var(--q, 0deg) + 14deg)); }
+  75%  { transform: rotate(calc(var(--q, 0deg) - 5deg)); }
+  90%  { transform: rotate(calc(var(--q, 0deg) + 1.5deg)); }
+  100% { transform: rotate(var(--q, 0deg)); }
+}
+@keyframes qb-v4-tick { from { opacity: 0; } }
+@keyframes qb-v4-pin { from { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.5); } }
+[dir="rtl"] .qibla-tape-arc { transform-origin: left center; }
+@keyframes qb-v4-kaaba {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.14); }
+}
+@keyframes qb-v4-ping {
+  0%   { opacity: 0.9; transform: scale(0.9); }
+  100% { opacity: 0; transform: scale(1.7); }
+}

@@ -412,8 +412,8 @@ export default function AnnouncementsPage({ setPage }) {
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{(V3[lang] || V3.en).how}</span></p>
           {loaded && (announcements.length > 0 || events.length > 0) && (
             <ul className="ui-page-hero__stats">
-              <li><b>{announcements.length}</b><span>{(V3[lang] || V3.en).active}</span></li>
-              {events.length > 0 && <li><b>{events.length}</b><span>{(V3[lang] || V3.en).dates}</span></li>}
+              <li><b data-count={announcements.length}>{announcements.length}</b><span>{(V3[lang] || V3.en).active}</span></li>
+              {events.length > 0 && <li><b data-count={events.length}>{events.length}</b><span>{(V3[lang] || V3.en).dates}</span></li>}
             </ul>
           )}
         </div>

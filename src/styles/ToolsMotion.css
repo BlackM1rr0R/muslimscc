@@ -1,0 +1,273 @@
+/* ══════════════════════════════════════════════════════════════
+   ALƏTLƏR SƏHİFƏLƏRİNİN HƏRƏKƏT DİLİ (dizayn v4 — "VAU-nun VAU-su")
+   Namaz, izləyici, qibla, məscid, cəmaat, qəza, TV, Ramazan, təqvim,
+   hicri, zəkat, miras, sədəqə, ianə, gündəlik ibadət, mühasibə.
+
+   Prefiks: tm-  (keyframe-lər də tm-…)
+   Qayda:
+     • yalnız transform / opacity (filter yalnız kiçik elementlərdə)
+     • gizli başlanğıc YALNIZ html.qm-reveal-on (JS qoyur) altında — JS
+       olmasa, prerender HTML-də və "hərəkəti azalt"da məzmun görünür
+     • tətik: valideyn data-reveal → data-revealed="" (useReveal.js)
+       "static" (artıq keçilib) → animasiya yoxdur
+     • html.a11y-reduce-motion və prefers-reduced-motion → hamısı söndürülür
+
+   Siniflər
+     .tm-cascade           uşaqlar növbə ilə: blur + 24px qalxma (≤12)
+     .tm-cascade-rows      cədvəl: tbody tr növbə ilə
+     .tm-grow-x / -y       zolaq / sütun başlanğıcdan böyüyür (inline transform qalır)
+     .tm-ring              SVG halqa (pathLength="1" / dasharray) çəkilir
+     .tm-glow              "bu gün" — haşiyədə sakit nəbz (::after, opacity)
+     .tm-pop               açar dəyişəndə (key) yay kimi böyüyür
+     .tm-slide             addım keçidi — son tərəfdən sürüşür (RTL güzgü)
+     .tm-shimmer           üstündən keçən işıq zolağı (::after, transform)
+     .tm-float             çox yavaş üzmə (dekor)
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  --tm-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --tm-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --tm-step: 55ms;
+}
+
+/* ── Növbə indeksi ─────────────────────────────────────────── */
+.tm-cascade > :nth-child(2),  .tm-cascade-rows tbody tr:nth-child(2)  { --tm-i: 1; }
+.tm-cascade > :nth-child(3),  .tm-cascade-rows tbody tr:nth-child(3)  { --tm-i: 2; }
+.tm-cascade > :nth-child(4),  .tm-cascade-rows tbody tr:nth-child(4)  { --tm-i: 3; }
+.tm-cascade > :nth-child(5),  .tm-cascade-rows tbody tr:nth-child(5)  { --tm-i: 4; }
+.tm-cascade > :nth-child(6),  .tm-cascade-rows tbody tr:nth-child(6)  { --tm-i: 5; }
+.tm-cascade > :nth-child(7),  .tm-cascade-rows tbody tr:nth-child(7)  { --tm-i: 6; }
+.tm-cascade > :nth-child(8),  .tm-cascade-rows tbody tr:nth-child(8)  { --tm-i: 7; }
+.tm-cascade > :nth-child(9),  .tm-cascade-rows tbody tr:nth-child(9)  { --tm-i: 8; }
+.tm-cascade > :nth-child(10), .tm-cascade-rows tbody tr:nth-child(10) { --tm-i: 9; }
+.tm-cascade > :nth-child(11), .tm-cascade-rows tbody tr:nth-child(11) { --tm-i: 10; }
+.tm-cascade > :nth-child(n+12), .tm-cascade-rows tbody tr:nth-child(n+12) { --tm-i: 11; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Giriş — valideyn açılanda (data-revealed="") */
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""].tm-cascade > *,
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .tm-cascade > *,
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""].tm-cascade-rows tbody tr,
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .tm-cascade-rows tbody tr {
+    animation: tm-rise 640ms var(--tm-ease) backwards;
+    animation-delay: calc(var(--tm-d, 80ms) + var(--tm-i, 0) * var(--tm-step));
+  }
+  /* Cədvəl sətirləri: blur yox (çox element) — yalnız qalxma */
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""].tm-cascade-rows tbody tr,
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .tm-cascade-rows tbody tr {
+    animation-name: tm-rise-flat;
+    --tm-step: 28ms;
+  }
+
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .tm-grow-x,
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""].tm-grow-x {
+    animation: tm-grow-x 1100ms var(--tm-ease) backwards;
+    animation-delay: calc(200ms + var(--tm-i, 0) * 60ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .tm-grow-y,
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""].tm-grow-y {
+    animation: tm-grow-y 900ms var(--tm-ease) backwards;
+    animation-delay: calc(160ms + var(--tm-i, 0) * 40ms);
+  }
+  /* Halqa: valideynə style={{'--tm-ring-from': ringFrom(...)}} + sinif tm-ring */
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .tm-ring :is(.ui-viz-arc, .tm-arc),
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""].tm-ring :is(.ui-viz-arc, .tm-arc) {
+    animation: tm-ring 1500ms var(--tm-ease) 250ms backwards;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tm-ring.tm-ring--live :is(.ui-viz-arc, .tm-arc) {
+    transition: stroke-dasharray 700ms var(--tm-ease);
+  }
+
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tm-glow::after {
+    animation: tm-glow 3.2s ease-in-out infinite;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tm-pop {
+    animation: tm-pop 520ms var(--tm-spring) both;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tm-slide {
+    animation: tm-slide 520ms var(--tm-ease) both;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tm-shimmer::after {
+    animation: tm-shimmer 3.6s var(--tm-ease) infinite;
+    animation-delay: var(--tm-shimmer-d, 0s);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tm-float {
+    animation: tm-float 9s ease-in-out infinite alternate;
+  }
+}
+
+/* "Bu gün" haşiyə nəbzi — ::after yalnız opacity */
+.tm-glow { position: relative; }
+.tm-glow::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--brand) 55%, transparent),
+    0 0 22px 2px color-mix(in srgb, var(--brand) 32%, transparent);
+  opacity: 0;
+}
+
+/* İşıq zolağı (sünnə oruc günləri və s.) */
+.tm-shimmer { position: relative; overflow: hidden; isolation: isolate; }
+.tm-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, var(--accent, #c9a24a) 28%, transparent) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+[dir="rtl"] .tm-shimmer::after { transform: translateX(120%); }
+
+.tm-grow-x { transform-origin: left center; }
+[dir="rtl"] .tm-grow-x { transform-origin: right center; }
+.tm-grow-y { transform-origin: center bottom; }
+
+@keyframes tm-rise {
+  from { opacity: 0; filter: blur(8px); transform: translate3d(0, 24px, 0); }
+  to   { opacity: 1; filter: none; transform: none; }
+}
+@keyframes tm-rise-flat {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes tm-grow-x { from { transform: scaleX(0); } }
+@keyframes tm-grow-y { from { transform: scaleY(0); } }
+@keyframes tm-ring { from { stroke-dashoffset: var(--tm-ring-from, 1); } }
+@keyframes tm-glow {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 1; }
+}
+@keyframes tm-pop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes tm-slide {
+  from { opacity: 0; transform: translate3d(28px, 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+[dir="rtl"] .tm-slide { animation-name: tm-slide-rtl; }
+@keyframes tm-slide-rtl {
+  from { opacity: 0; transform: translate3d(-28px, 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes tm-shimmer {
+  0%       { transform: translateX(-120%); }
+  45%, 100% { transform: translateX(120%); }
+}
+@keyframes tm-float {
+  from { transform: translate3d(0, -6px, 0) rotate(-2deg); }
+  to   { transform: translate3d(0, 6px, 0) rotate(2deg); }
+}
+
+/* ══ Fırlanan rəqəmlər (RollingDigits) ═════════════════════════
+   Hər rəqəm öz <span>-ındadır; dəyişən rəqəm yenidən qurulur (key) və
+   yuxarıdan "düşür". Mətn (textContent) olduğu kimi qalır. */
+.tm-roll { display: inline-flex; direction: ltr; unicode-bidi: isolate; }
+.tm-roll__d,
+.tm-roll__s { display: inline-block; }
+.tm-roll__d { min-width: 0.6em; text-align: center; }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tm-roll__d {
+    animation: tm-roll-in 460ms var(--tm-ease) both;
+  }
+}
+@keyframes tm-roll-in {
+  from { opacity: 0; transform: translate3d(0, -0.55em, 0) rotateX(70deg); filter: blur(2px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+/* ══ Həndəsi parıltı (Sparkle) — uğur anı ═════════════════════
+   8 kiçik səkkizguşəli ulduz mərkəzdən çölə uçur və sönür. */
+.tm-sparkle {
+  position: absolute;
+  inset-inline-start: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.tm-sparkle__p {
+  position: absolute;
+  inset-inline-start: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  color: var(--accent, #c9a24a);
+  opacity: 0;
+}
+.tm-sparkle__p:nth-child(even) { color: var(--brand); width: 9px; height: 9px; }
+.tm-sparkle__p svg { display: block; width: 100%; height: 100%; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .tm-sparkle__p {
+    animation: tm-burst 900ms var(--tm-ease) both;
+    animation-delay: calc(var(--k, 0) * 18ms);
+  }
+}
+@keyframes tm-burst {
+  0%   { opacity: 0; transform: rotate(var(--a)) translate3d(0, 0, 0) scale(0.3); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translate3d(0, calc(-1 * var(--r, 46px)), 0) rotate(180deg) scale(1); }
+}
+
+/* ══ Həndəsi ulduz səması (GeoStarfield) — hero fonu ═══════════
+   Canlı varlıq yox: kiçik dörd/səkkizguşəli ulduzlar + yavaş fırlanan
+   böyük səkkizguşəli naxış. Yalnız opacity/transform. */
+.tm-sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  color: var(--accent, #c9a24a);
+}
+.tm-sky__star {
+  position: absolute;
+  width: var(--s, 8px);
+  height: var(--s, 8px);
+  opacity: 0.35;
+}
+.tm-sky__star svg { display: block; width: 100%; height: 100%; }
+.tm-sky__rosette {
+  position: absolute;
+  inset-inline-end: -60px;
+  top: 50%;
+  width: 360px;
+  height: 360px;
+  margin-top: -180px;
+  color: var(--brand);
+  opacity: 0.09;
+}
+[data-theme="dark"] .tm-sky__rosette { opacity: 0.16; }
+.tm-sky__rosette svg { width: 100%; height: 100%; display: block; }
+@media (max-width: 720px) {
+  .tm-sky__rosette { width: 220px; height: 220px; margin-top: -110px; inset-inline-end: -70px; }
+  .tm-sky__star:nth-child(n+10) { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tm-sky__star {
+    animation: tm-twinkle var(--t, 4s) ease-in-out var(--d, 0s) infinite alternate;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tm-sky__rosette svg {
+    animation: tm-spin 120s linear infinite;
+  }
+}
+@keyframes tm-twinkle {
+  from { opacity: 0.12; transform: scale(0.7) rotate(0deg); }
+  to   { opacity: 0.75; transform: scale(1.1) rotate(45deg); }
+}
+@keyframes tm-spin { to { transform: rotate(360deg); } }
+
+/* Hərəkəti azalt — ehtiyat (sinif və sistem ayarı) */
+html.a11y-reduce-motion .tm-glow::after { opacity: 0.6; }
+@media (prefers-reduced-motion: reduce) {
+  .tm-glow::after { opacity: 0.6; }
+  .tm-shimmer::after { display: none; }
+}
+html.a11y-reduce-motion .tm-shimmer::after { display: none; }

@@ -815,3 +815,34 @@ html[lang="ar"] .pm-say.is-m .pm-ar, html[lang="ar"] .pm-say.is-s .pm-ar { font-
 .hd-tag.is-accent rect { fill: var(--brand); stroke: var(--brand); }
 .hd-tag.is-accent text { fill: var(--on-brand); }
 .hd-hand.is-under .hd-arm { fill: color-mix(in srgb, var(--brand) 12%, var(--surface-2)); stroke: color-mix(in srgb, var(--brand) 50%, var(--surface-2)); }
+
+/* ══ Dizayn v4 — hərəkət (prefiks pg-v4) ═══════════════════════════
+   rükət zolağı addım-addım açılır · rükn/vacib/sünnə tabı dəyişəndə
+   siyahı kaskadla gəlir · namaz kartında rükət nöqtələri hover-də dalğalanır */
+.pg-v4-list > :nth-child(2)  { --i: 1; }
+.pg-v4-list > :nth-child(3)  { --i: 2; }
+.pg-v4-list > :nth-child(4)  { --i: 3; }
+.pg-v4-list > :nth-child(5)  { --i: 4; }
+.pg-v4-list > :nth-child(6)  { --i: 5; }
+.pg-v4-list > :nth-child(7)  { --i: 6; }
+.pg-v4-list > :nth-child(8)  { --i: 7; }
+.pg-v4-list > :nth-child(n+9) { --i: 8; }
+.pg-rak-dots > i:nth-child(2) { --i: 1; }
+.pg-rak-dots > i:nth-child(3) { --i: 2; }
+.pg-rak-dots > i:nth-child(4) { --i: 3; }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pg-v4-list > li {
+    animation: tm-rise 520ms var(--tm-ease) backwards;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+}
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pg-prayer-btn:hover .pg-rak-dots > i {
+    animation: pg-v4-dot 700ms var(--tm-spring);
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+}
+@keyframes pg-v4-dot {
+  0%, 100% { transform: none; }
+  40%      { transform: translate3d(0, -4px, 0) scale(1.3); }
+}

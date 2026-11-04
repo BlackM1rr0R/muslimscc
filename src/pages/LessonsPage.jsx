@@ -285,13 +285,13 @@ export default function LessonsPage() {
             <p className="ui-lead">{L.subtitle}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {L.how}</p>
             <ul className="ui-page-hero__stats">
-              <li><b className="ui-num">{LESSONS.length}</b><span>{L.statLessons}</span></li>
-              <li><b className="ui-num">{LESSON_CATS.length}</b><span>{L.statCats}</span></li>
+              <li><b className="ui-num" data-count={LESSONS.length}>{LESSONS.length}</b><span>{L.statLessons}</span></li>
+              <li><b className="ui-num" data-count={LESSON_CATS.length}>{LESSON_CATS.length}</b><span>{L.statCats}</span></li>
               <li><b className="ui-num"><bdi dir="ltr">{L.hours(hours)}</bdi></b><span>{L.statHours}</span></li>
             </ul>
           </div>
           <div className="ui-page-hero__aside">
-            <div className="ui-card ls-progress">
+            <div className="ui-card ls-progress" data-reveal="zoom">
               <ProgressRing value={readTotal} max={LESSONS.length} size={76} thickness={8}
                 label={L.progress} sub={L.progressSub(readTotal, LESSONS.length)} />
               {lastLesson ? (
@@ -313,7 +313,7 @@ export default function LessonsPage() {
               <h2 id="ls-start-h" className="ui-title ui-title--sm">{L.startTitle}</h2>
               <p className="ui-lead">{L.startLead}</p>
             </div>
-            <ol className="ui-steps ui-steps--row ls-path">
+            <ol className="ui-steps ui-steps--row ls-path" data-reveal="stagger-blur">
               {path.map((l, i) => (
                 <li key={l.slug} className={`ui-step${readSet.has(l.slug) ? ' is-done' : ''}`}>
                   <span className="ui-step__n" aria-hidden="true">{readSet.has(l.slug) ? <Icon name="check" size={14} /> : i + 1}</span>

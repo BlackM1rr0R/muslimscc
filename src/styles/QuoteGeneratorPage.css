@@ -644,3 +644,85 @@ html[lang="ar"] .qg-hitem__text { font-family: var(--font-arabic); font-size: 18
 .qg-guide__rel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .qg-guide__rel-label { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; }
 .qg-guide__rel .ui-chip { text-decoration: none; }
+
+/* ══ v4 "VAU" — Sitat kartı studiyası ══════════════════════════════
+   • şablon qalereyası: miniatürlər növbə ilə qalxır; hover-də kart qalxır,
+     içindəki önizləmə yaxınlaşır, üstündən işıq zolağı keçir ("canlı baxış")
+   • seçilən şablonun işarəsi yaylanaraq oturur
+   • kart yenidən çəkiləndə (şablon/ölçü dəyişəndə) bulanıqdan aydınlaşır
+   • panel (tab) dəyişəndə məzmun yumşaq sürüşür
+   Hərəkət yalnız "no-preference" + html:not(.a11y-reduce-motion) altında. */
+
+.qg-tpl__frame { transition: transform 460ms var(--ease-spring), box-shadow 280ms var(--ease-out); }
+.qg-tpl__thumb { transition: transform 700ms cubic-bezier(.16, 1, .3, 1); }
+.qg-tpl__name { transition: color 200ms ease; }
+.qg-tpl__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .38) 48%, transparent 66%);
+  transform: translateX(-120%);
+  transition: transform 900ms cubic-bezier(.16, 1, .3, 1);
+}
+@media (hover: hover) {
+  .qg-tpl:hover .qg-tpl__frame { transform: translateY(-4px) scale(1.03); box-shadow: 0 0 0 1px var(--brand-line), var(--shadow-3); }
+  .qg-tpl:hover .qg-tpl__thumb { transform: scale(1.08); }
+  .qg-tpl:hover .qg-tpl__frame::after { transform: translateX(120%); }
+  .qg-tpl:hover .qg-tpl__name { color: var(--text-strong); }
+  .qg-tpl.is-active:hover .qg-tpl__name { color: var(--brand); }
+}
+.qg-tpl.is-active .qg-tpl__frame { transform: translateY(-2px); }
+
+.qg-canvas { transition: box-shadow 400ms ease; }
+@media (hover: hover) { .qg-frame:hover .qg-canvas { box-shadow: var(--shadow-4); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qg-canvas { animation: qg-render 640ms cubic-bezier(.16, 1, .3, 1) both; }
+  html:not(.a11y-reduce-motion) .qg-tpl { animation: qg-tpl-in 560ms cubic-bezier(.16, 1, .3, 1) backwards; animation-delay: calc(var(--qt, 11) * 40ms + 60ms); }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(1) { --qt: 0; }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(2) { --qt: 1; }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(3) { --qt: 2; }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(4) { --qt: 3; }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(5) { --qt: 4; }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(6) { --qt: 5; }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(7) { --qt: 6; }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(8) { --qt: 7; }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(9) { --qt: 8; }
+  html:not(.a11y-reduce-motion) .qg-tpl:nth-child(10) { --qt: 9; }
+  html:not(.a11y-reduce-motion) .qg-tpl__check { animation: qg-check 520ms var(--ease-spring) backwards; }
+  html:not(.a11y-reduce-motion) .qg-panel { animation: qg-panel-v4 520ms cubic-bezier(.16, 1, .3, 1) both; }
+  html:not(.a11y-reduce-motion) .qg-intro > * { animation: qg-intro 700ms cubic-bezier(.16, 1, .3, 1) backwards; }
+  html:not(.a11y-reduce-motion) .qg-intro > :nth-child(2) { animation-delay: 70ms; }
+  html:not(.a11y-reduce-motion) .qg-intro > :nth-child(3) { animation-delay: 140ms; }
+  html:not(.a11y-reduce-motion) .qg-tab .qg-tab__icon { transition: transform 420ms var(--ease-spring); }
+  html:not(.a11y-reduce-motion) .qg-tab[aria-selected="true"] .qg-tab__icon { transform: translateY(-1px) scale(1.12); }
+}
+
+@keyframes qg-render {
+  0%   { opacity: .15; transform: scale(.955) translateY(6px); filter: blur(8px) saturate(.6); }
+  60%  { filter: blur(0) saturate(1.05); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes qg-tpl-in {
+  from { opacity: 0; transform: translate3d(0, 16px, 0) scale(.94); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qg-check {
+  from { opacity: 0; transform: scale(.3) rotate(-90deg); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qg-panel-v4 {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes qg-intro {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qg-tpl__frame, .qg-tpl__thumb, .qg-tpl__frame::after { transition: none; }
+  .qg-tpl:hover .qg-tpl__frame, .qg-tpl:hover .qg-tpl__thumb, .qg-tpl.is-active .qg-tpl__frame { transform: none; }
+  .qg-tpl__frame::after { display: none; }
+}

@@ -427,8 +427,17 @@ export default function DhikrPage({ setPage }) {
               )}
               {/* Dövr tamamlandı — qızılı halqalar bir dəfə genişlənib sönür */}
               {complete && burst > 0 && (
-                <span key={`b${burst}`} className="dhikr-halo" aria-hidden="true"><span /><span /></span>
+                <span key={`b${burst}`} className="dhikr-halo" aria-hidden="true">
+                  <span /><span />
+                  {/* v4: həndəsi "konfeti" — 8 kiçik xatəm ulduzu dairə boyunca səpilir */}
+                  {[0, 1, 2, 3, 4, 5, 6, 7].map(k => <i key={k} className="dk-spark" style={{ '--k': k }} />)}
+                </span>
               )}
+              {/* v4: halqanın ucunda parlayan işıq nöqtəsi irəliləyişlə dövr edir */}
+              {progress > 0 && (
+                <span className="dk-ring-tip" style={{ '--a': `${(progress * 3.6).toFixed(2)}deg` }} aria-hidden="true"><i /></span>
+              )}
+              {complete && <span className="dk-glow" aria-hidden="true" />}
               <button
                 type="button"
                 className={`dhikr-tap-btn ${tap?'tapped':''} ${complete?'complete':''}`}

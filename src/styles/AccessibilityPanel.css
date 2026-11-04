@@ -566,3 +566,35 @@
   .a11y-toggle-knob,
   .a11y-reset svg { transition: none; }
 }
+
+/* ══ v4 "VAU" — panel daha canlı, amma ƏLÇATANLIQ ilk yerdədir:
+   açar düyməsi yaylanaraq sürüşür, aktiv profilin ikonu dönür, FAB hover-də yaylanır.
+   "Hərəkəti azalt" açarı (html.a11y-reduce-motion) hamısını dərhal söndürür. ══ */
+.a11y-toggle-knob { transition: transform 360ms var(--ease-spring); }
+.a11y-toggle-icon { transition: transform 420ms var(--ease-spring), background-color var(--dur-1) ease, color var(--dur-1) ease; }
+.a11y-toggle.on .a11y-toggle-icon { transform: rotate(-8deg) scale(1.06); }
+.a11y-fab { transition: transform 420ms var(--ease-spring), background-color var(--dur-1) ease, box-shadow var(--dur-2) ease; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .a11y-btn.active { animation: a11y-v4-pop 420ms var(--ease-spring); }
+  html:not(.a11y-reduce-motion) .a11y-header-icon { animation: a11y-v4-spin 700ms var(--ease-spring) 120ms backwards; }
+}
+@media (prefers-reduced-motion: no-preference) and (min-width: 641px) {
+  html:not(.a11y-reduce-motion) .a11y-panel { animation: a11y-v4-in 520ms cubic-bezier(.16, 1, .3, 1) both; }
+}
+@keyframes a11y-v4-in {
+  from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.97); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes a11y-v4-pop {
+  0% { transform: scale(.94); }
+  60% { transform: scale(1.04); }
+  100% { transform: none; }
+}
+@keyframes a11y-v4-spin {
+  from { opacity: 0; transform: rotate(-90deg) scale(.5); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .a11y-toggle-knob, .a11y-toggle-icon, .a11y-fab { transition: none; }
+  .a11y-toggle.on .a11y-toggle-icon { transform: none; }
+}

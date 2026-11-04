@@ -48,8 +48,15 @@ export default function NotFoundPage({ setPage }) {
           <div className="nf-art" aria-hidden="true">
             <svg viewBox="0 0 160 160" width="160" height="160" fill="none">
               <circle className="nf-ring" cx="80" cy="80" r="70" />
-              <circle className="nf-ring nf-ring--in" cx="80" cy="80" r="56" />
-              <path className="nf-star" d="M50 50h60v60H50zM80 37.6 122.4 80 80 122.4 37.6 80z" />
+              {/* Yavaş fırlanan qatlar: nöqtəli halqa + böyük xatəm ulduzu + orbitdə nöqtə */}
+              <g className="nf-spin">
+                <circle className="nf-ring nf-ring--in" cx="80" cy="80" r="56" />
+                <circle className="nf-orbit" cx="80" cy="24" r="3" />
+              </g>
+              <g className="nf-star-wrap">
+                <path className="nf-star nf-star--big" pathLength="1" d="M41 41h78v78H41zM80 24.8 135.2 80 80 135.2 24.8 80z" />
+              </g>
+              <path className="nf-star" pathLength="1" d="M50 50h60v60H50zM80 37.6 122.4 80 80 122.4 37.6 80z" />
               <g className="nf-ticks">
                 <path d="M80 6v10M80 144v10M6 80h10M144 80h10" />
               </g>
@@ -100,7 +107,7 @@ export default function NotFoundPage({ setPage }) {
             <h2 id="nf-pop-title" className="ui-title ui-title--sm">{t.popular}</h2>
             <p className="ui-lead">{t.popularLead}</p>
           </div>
-          <ul className="ui-tiles nf-tiles" style={{ '--ui-tiles-min': '150px' }}>
+          <ul className="ui-tiles nf-tiles" data-reveal="stagger" style={{ '--ui-tiles-min': '150px' }}>
             {POPULAR.map(k => (
               <li key={k}>
                 <PageLink className="ui-tile ui-tile--row" to={k} setPage={setPage}>

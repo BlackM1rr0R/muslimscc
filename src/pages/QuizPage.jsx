@@ -978,6 +978,32 @@ const QUESTIONS = {
   ],
 }
 
+// Bitiş "konfetisi" — 24 həndəsi parça mərkəzdən yelpik kimi açılır.
+// Yerləri sabitdir (təsadüfi deyil) — hər render eyni; hərəkət yalnız CSS-də
+// (QuizPage.css → quiz-confetti), "hərəkəti azalt"-da ümumiyyətlə görünmür.
+const CONFETTI = Array.from({ length: 24 }, (_, i) => {
+  const a = (i / 24) * Math.PI * 2 + (i % 2 ? 0.13 : -0.09)
+  const d = 120 + ((i * 37) % 5) * 26
+  return {
+    x: Math.round(Math.cos(a) * d * 1.35),
+    y: Math.round(Math.sin(a) * d - 40),
+    r: ((i * 53) % 360) - 180,
+    s: ['star', 'rhomb', 'dot', 'star', 'bar', 'rhomb'][i % 6],
+    tone: i % 3 === 0 ? 'gold' : 'brand',
+    d: (i % 6) * 28,
+  }
+})
+function QuizConfetti() {
+  return (
+    <span className="quiz-confetti" aria-hidden="true">
+      {CONFETTI.map((c, i) => (
+        <i key={i} className={`quiz-confetti__p is-${c.s} is-${c.tone}`}
+          style={{ '--cx': `${c.x}px`, '--cy': `${c.y}px`, '--cr': `${c.r}deg`, '--cd': `${c.d}ms` }} />
+      ))}
+    </span>
+  )
+}
+
 function shuffleArray(arr) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -1156,9 +1182,9 @@ export default function QuizPage({ setPage }) {
             <p className="ui-lead">{t.subtitle}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {x.how}</p>
             <ul className="ui-page-hero__stats">
-              <li><b>{categoryKeys.length}</b><span>{x.topics}</span></li>
-              <li><b>{allQuestions}</b><span>{x.questions}</span></li>
-              <li><b>{ROUND_SIZE}</b><span>{x.perRound}</span></li>
+              <li><b data-count={categoryKeys.length}>{categoryKeys.length}</b><span>{x.topics}</span></li>
+              <li><b data-count={allQuestions}>{allQuestions}</b><span>{x.questions}</span></li>
+              <li><b data-count={ROUND_SIZE}>{ROUND_SIZE}</b><span>{x.perRound}</span></li>
             </ul>
           </>
         )}
@@ -1346,7 +1372,9 @@ export default function QuizPage({ setPage }) {
         {hero}
         <div className="section quiz-section">
           <div className="section-inner quiz-container" ref={containerRef}>
-            <div className="ui-card quiz-results-card">
+            <div className={`ui-card quiz-results-card${pct >= 50 ? ' is-good' : ''}`}>
+              {/* Bitiş anı — yalnız həndəsi formalar (8 guşəli ulduz, romb, nöqtə); dekorativdir */}
+              <QuizConfetti />
               {isNewBest && <span className="ui-badge ui-badge--accent quiz-new-best"><Icon name="star" size={14} />{t.newBest}</span>}
               {/* Halqa — düzgün cavabların payı; faiz mətn kimi də yazılır */}
               <ProgressRing value={correctCount} max={total || 1} size={128} thickness={11} showPercent={false} className="quiz-results-ring" />
@@ -1358,11 +1386,11 @@ export default function QuizPage({ setPage }) {
                   <span className="quiz-stat-label">{t.correct}</span>
                 </div>
                 <div className="quiz-stat quiz-stat-wrong">
-                  <span className="quiz-stat-num">{wrongCount}</span>
+                  <span className="quiz-stat-num" data-count={wrongCount}>{wrongCount}</span>
                   <span className="quiz-stat-label">{t.wrong}</span>
                 </div>
                 <div className="quiz-stat quiz-stat-total">
-                  <span className="quiz-stat-num">{total}</span>
+                  <span className="quiz-stat-num" data-count={total}>{total}</span>
                   <span className="quiz-stat-label">{totalLabel(total, lang, t.question)}</span>
                 </div>
               </div>

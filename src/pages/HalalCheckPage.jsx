@@ -1248,9 +1248,9 @@ export default function HalalCheckPage() {
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> {L.how}</p>
           {data && (
             <ul className="ui-page-hero__stats">
-              <li><b className="ui-num">{data.meta.count}</b><span>{L.statCodes}</span></li>
-              <li><b className="ui-num">{counts.none || 0}</b><span>{L.statNone}</span></li>
-              <li><b className="ui-num">{toCheck}</b><span>{L.statCheck}</span></li>
+              <li><b className="ui-num" data-count={data.meta.count}>{data.meta.count}</b><span>{L.statCodes}</span></li>
+              <li><b className="ui-num" data-count={counts.none || 0}>{counts.none || 0}</b><span>{L.statNone}</span></li>
+              <li><b className="ui-num" data-count={toCheck}>{toCheck}</b><span>{L.statCheck}</span></li>
             </ul>
           )}
           <nav className="hc-jump" aria-label={L.title}>

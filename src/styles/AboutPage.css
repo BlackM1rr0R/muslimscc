@@ -297,3 +297,131 @@
   .ab-map-link, .ab-tile-link .ui-stat { transition: none; }
   .ab-tile-link:hover .ui-stat { transform: none; }
 }
+
+/* ══════════════════════════════════════════════════════
+   v4 "VAU" — Haqqımızda
+   • hero: lövhənin arxasında yavaş fırlanan xatəm ulduzu, şüar "mürəkkəblə"
+   • rəqəmlər sayılır (data-count), kafellər növbə ilə qalxır
+   • mənhəc — zaman xətti: ikonları birləşdirən xətt yuxarıdan aşağı çəkilir
+   • qrafiklərin zolaqları görünəndə soldan (RTL-də sağdan) böyüyür
+   ══════════════════════════════════════════════════════ */
+
+/* Lövhə: fırlanan ulduz */
+.ab-plaque { isolation: isolate; overflow: hidden; }
+.ab-plaque__star {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 260px;
+  height: 260px;
+  margin: -130px 0 0 -130px;
+  pointer-events: none;
+  opacity: .55;
+}
+.ab-plaque__star rect,
+.ab-plaque__star circle { stroke: var(--accent-line); stroke-width: .6; }
+.ab-plaque__star circle { stroke: var(--brand-line); stroke-dasharray: 1.5 3; }
+.ab-plaque__mark { transition: transform 700ms var(--ease-spring); }
+@media (hover: hover) {
+  .ab-plaque:hover .ab-plaque__mark { transform: rotate(-8deg) scale(1.06); }
+}
+
+/* Mənhəc — zaman xətti */
+.ab-manhaj-list { position: relative; }
+.ab-manhaj-list::before {
+  content: "";
+  position: absolute;
+  inset-block: 16px 16px;
+  inset-inline-start: 15px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--brand), var(--accent) 70%, transparent);
+  opacity: .5;
+  transform-origin: top center;
+  transition: transform 1400ms cubic-bezier(.16, 1, .3, 1) 200ms;
+}
+.ab-manhaj-list > li { position: relative; }
+.ab-manhaj-list > li > .ui-icon-tile {
+  position: relative;
+  box-shadow: 0 0 0 4px var(--surface-1);
+  transition: transform 520ms var(--ease-spring);
+}
+@media (hover: hover) {
+  .ab-manhaj-list > li:hover > .ui-icon-tile { transform: scale(1.12) rotate(-6deg); }
+}
+html.qm-reveal-on .ab-manhaj-list[data-reveal-ready]:not([data-revealed])::before { transform: scaleY(0); }
+
+/* Dəyərlər — ikon kafeli hover-də */
+.ab-value .ui-icon-tile { transition: transform 520ms var(--ease-spring); }
+@media (hover: hover) {
+  .ab-value:hover .ui-icon-tile { transform: translateY(-2px) rotate(-8deg) scale(1.08); }
+  .ab-map-group:hover .ab-map-head .ui-icon-tile { transform: rotate(-8deg) scale(1.08); }
+  .ab-map-link:hover { transform: translateY(-1px); }
+  .ab-principle:hover .ui-icon-tile { transform: translateY(-2px) rotate(-6deg) scale(1.08); }
+}
+.ab-map-link { transition: color var(--dur-1) ease, border-color var(--dur-1) ease, background-color var(--dur-1) ease, transform 320ms var(--ease-spring); }
+.ab-map-link svg { transition: transform 420ms var(--ease-spring); }
+@media (hover: hover) { .ab-map-link:hover svg { transform: scale(1.15); } }
+
+/* Kafel keçidləri — daha canlı qalxma */
+.ab-tile-link .ui-stat { transition: border-color var(--dur-1) ease, transform 520ms var(--ease-spring), box-shadow 320ms ease; }
+@media (hover: hover) {
+  .ab-tile-link:hover .ui-stat { transform: translateY(-4px); box-shadow: var(--shadow-3); }
+}
+
+/* CTA — mürəkkəb hissi: şüar sətri qızılı alt xəttlə çəkilir */
+.ab-cta-motto { background: linear-gradient(90deg, transparent, rgba(230, 204, 149, .55), transparent) bottom / 100% 1px no-repeat; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ab-plaque__star { animation: ab-spin 60s linear infinite; }
+  html:not(.a11y-reduce-motion) .ab-plaque { animation: ab-plaque-in 900ms cubic-bezier(.16, 1, .3, 1) 200ms backwards; }
+  html:not(.a11y-reduce-motion) .ab-plaque__ar { animation: ab-ink 1400ms cubic-bezier(.16, 1, .3, 1) 600ms backwards; }
+  html:not(.a11y-reduce-motion) .ab-plaque__chips span { animation: ab-chip-in 520ms var(--ease-spring) backwards; }
+  html:not(.a11y-reduce-motion) .ab-plaque__chips span:nth-child(1) { animation-delay: 1000ms; }
+  html:not(.a11y-reduce-motion) .ab-plaque__chips span:nth-child(2) { animation-delay: 1080ms; }
+
+  /* Qrafik zolaqları — görünəndə böyüyür */
+  html:not(.a11y-reduce-motion) .ab-charts[data-revealed=""] .ui-viz-bar__fill {
+    transform-origin: left center;
+    animation: ab-bar 1100ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(300ms + var(--reveal-i, 0) * 60ms);
+  }
+  html:not(.a11y-reduce-motion) [dir="rtl"] .ab-charts[data-revealed=""] .ui-viz-bar__fill { transform-origin: right center; }
+  html:not(.a11y-reduce-motion) .ab-charts[data-revealed=""] .ui-viz-bar:nth-child(2) .ui-viz-bar__fill { animation-delay: 360ms; }
+  html:not(.a11y-reduce-motion) .ab-charts[data-revealed=""] .ui-viz-bar:nth-child(3) .ui-viz-bar__fill { animation-delay: 420ms; }
+  html:not(.a11y-reduce-motion) .ab-charts[data-revealed=""] .ui-viz-bar:nth-child(4) .ui-viz-bar__fill { animation-delay: 480ms; }
+  html:not(.a11y-reduce-motion) .ab-charts[data-revealed=""] .ui-viz-bar:nth-child(5) .ui-viz-bar__fill { animation-delay: 540ms; }
+  html:not(.a11y-reduce-motion) .ab-charts[data-revealed=""] .ui-viz-bar:nth-child(n+6) .ui-viz-bar__fill { animation-delay: 600ms; }
+  html:not(.a11y-reduce-motion) .ab-charts[data-revealed=""] .ui-viz-bar__value { animation: qm-reveal-fade 600ms ease 900ms backwards; }
+
+  /* Mənhəc nöqtələri xətt çatanda "yanır" */
+  html:not(.a11y-reduce-motion) .ab-manhaj-list[data-revealed=""] > li > .ui-icon-tile { animation: ab-node 700ms var(--ease-spring) backwards; animation-delay: calc(260ms + var(--reveal-i, 0) * 140ms); }
+
+  /* CTA ayəsi: sətir "mürəkkəblə" açılır */
+  html:not(.a11y-reduce-motion) .ab-cta[data-revealed=""] .ab-cta-arabic { animation: ab-ink 1600ms cubic-bezier(.16, 1, .3, 1) 200ms backwards; }
+}
+@keyframes ab-spin { to { transform: rotate(360deg); } }
+@keyframes ab-plaque-in {
+  from { opacity: 0; transform: translate3d(0, 24px, 0) scale(.96); filter: blur(8px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+/* Ərəbcə yazı sağdan sola "çəkilir" (clip-path) */
+@keyframes ab-ink {
+  from { clip-path: inset(0 0 0 100%); opacity: .2; }
+  to   { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+@keyframes ab-chip-in {
+  from { opacity: 0; transform: translate3d(0, 8px, 0) scale(.8); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ab-bar { from { transform: scaleX(0); } }
+@keyframes ab-node {
+  0%   { transform: scale(.4); box-shadow: 0 0 0 4px var(--surface-1), 0 0 0 0 var(--brand-line); }
+  60%  { transform: scale(1.12); box-shadow: 0 0 0 4px var(--surface-1), 0 0 0 10px transparent; }
+  100% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ab-manhaj-list::before, .ab-map-link, .ab-tile-link .ui-stat { transition: none; }
+}

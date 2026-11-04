@@ -369,9 +369,9 @@ export default function Nawawi40Page() {
               </div>
               <h3 className="nw-map__title">{L.mapTitle}</h3>
               <p className="nw-map__lead">{L.mapLead}</p>
-              <ol className="nw-map__grid">
-                {NAWAWI_40.map(x => (
-                  <li key={x.n}>
+              <ol className="nw-map__grid" data-reveal="fade">
+                {NAWAWI_40.map((x, i) => (
+                  <li key={x.n} style={{ '--i': i }}>
                     <button type="button" className={`nw-map__cell ui-num${learnedSet.has(x.n) ? ' is-learned' : ''}`}
                       onClick={() => setCur(x.n)} title={pick(x.title, lang)}
                       aria-label={`${x.n}. ${pick(x.title, lang)}${learnedSet.has(x.n) ? ` — ${L.learned}` : ''}`}>

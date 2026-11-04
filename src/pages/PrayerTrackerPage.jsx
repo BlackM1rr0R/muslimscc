@@ -15,6 +15,9 @@ import {
 } from '../utils/prayerTracker'
 import { TRACKER_TEXT, PRAYER_NAMES, WEEKDAYS_SUN, fill, formatDay, formatMonth } from '../data/prayerTrackerText'
 import '../styles/PrayerTrackerPage.css'
+import '../styles/ToolsMotion.css'
+import Sparkle from '../components/prayer/Sparkle'
+import { ringFrom } from '../components/prayer/ringFrom'
 
 // ═══════════════════════════════════════════════════════
 // /prayer-tracker — Namaz izləyicisi
@@ -144,7 +147,7 @@ export default function PrayerTrackerPage({ setPage }) {
             <div className="pt-overview ui-card" data-reveal>
               <h2 className="pt-card-title">{x.overview}</h2>
               <div className="pt-overview-grid">
-                <div className="pt-ring">
+                <div className="pt-ring tm-ring tm-ring--live" style={{ '--tm-ring-from': ringFrom(excusedToday ? 0 : todayState.performed, 5, 88, 8) }}>
                   <ProgressRing value={excusedToday ? 0 : todayState.performed} max={5} size={88} thickness={8}
                     showPercent={false} label={x.todayRing} />
                   <span className="pt-ring-in" aria-hidden="true">
@@ -152,7 +155,7 @@ export default function PrayerTrackerPage({ setPage }) {
                   </span>
                   <span className="pt-ring-label">{x.todayRing}</span>
                 </div>
-                <div className="pt-ring">
+                <div className="pt-ring tm-ring tm-ring--live" style={{ '--tm-ring-from': ringFrom(streak, Math.max(best, 1), 88, 8) }}>
                   <ProgressRing value={streak} max={Math.max(best, 1)} size={88} thickness={8} tone={2}
                     showPercent={false} label={t.streak} />
                   <span className="pt-ring-in">
@@ -287,7 +290,7 @@ function Heatmap({ t, x, lang, snap, periods, today, selected, onPick }) {
         <div className="pt-heat-wd" aria-hidden="true">{wdMon.map((w, i) => <span key={i}>{i % 2 === 0 ? w : ''}</span>)}</div>
         <div className="pt-heat-grid" role="group" aria-label={fill(x.heatAria, { w: HEAT_WEEKS, n, c })}>
           {cells.map((wk, wi) => (
-            <div key={wi} className="pt-heat-col">
+            <div key={wi} className="pt-heat-col" style={{ '--c': wi }}>
               {wk.map(cell => cell.cls === 'is-future'
                 ? <span key={cell.d} className="pt-heat-cell is-future" aria-hidden="true" />
                 : <button key={cell.d} type="button"
@@ -355,6 +358,7 @@ function DayCard({ t, names, lang, snap, periods, day, today, setStatus, setQada
 
   return (
     <div className={`pt-day ui-card${ds.state === 'complete' ? ' is-complete' : ''}`} data-reveal>
+      {ds.state === 'complete' && isToday && <Sparkle count={12} radius={90} />}
       <div className="pt-day-head">
         <div>
           <h2 className="pt-card-title">{isToday ? t.today : formatDay(day, lang, { weekday: true })}</h2>
@@ -373,7 +377,7 @@ function DayCard({ t, names, lang, snap, periods, day, today, setStatus, setQada
           <Icon name="moon" size={18} /> {ds.type === 'nifas' ? t.exNifas : t.exHayd}
         </p>
       ) : (
-        <ul className="pt-prayers">
+        <ul className="pt-prayers tm-cascade">
           {PRAYERS.map(p => {
             const s = ds.statuses[p]
             return (
@@ -515,7 +519,7 @@ function MonthReport({ t, lang, snap, periods, today, selected, onPick }) {
         </div>
         <div className="pt-cal-grid">
           {Array.from({ length: lead }, (_, i) => <span key={`e${i}`} className="pt-cal-empty" aria-hidden="true" />)}
-          {dates.map(d => {
+          {dates.map((d, di) => {
             const future = d > today
             const s = future ? null : dayState(snap, periods, d, today)
             const label = !s ? formatDay(d, lang)
@@ -524,7 +528,7 @@ function MonthReport({ t, lang, snap, periods, today, selected, onPick }) {
             return (
               <button key={d} type="button" disabled={future}
                 className={`pt-cal-day${s ? ` is-${s.state}` : ''}${d === today ? ' is-today' : ''}${d === selected ? ' is-selected' : ''}`}
-                aria-label={label} aria-pressed={d === selected} data-date={d}
+                aria-label={label} aria-pressed={d === selected} data-date={d} style={{ '--i': lead + di }}
                 onClick={() => onPick(d)}>
                 <span className="pt-cal-num ui-num">{Number(d.slice(8))}</span>
                 {s && s.state !== 'excused' && (
@@ -538,7 +542,7 @@ function MonthReport({ t, lang, snap, periods, today, selected, onPick }) {
         </div>
       </div>
 
-      <svg className="pt-month-bar" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true">
+      <svg className="pt-month-bar tm-grow-x" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true">
         <rect className="pt-bar-track" x="0" y="0" width="300" height="12" rx="6" />
         {segs.map(([k, n]) => {
           if (!n) return null

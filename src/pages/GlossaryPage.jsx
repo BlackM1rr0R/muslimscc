@@ -220,9 +220,9 @@ export default function GlossaryPage() {
           <p className="ui-lead">{t.subtitle}</p>
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> {t.how}</p>
           <ul className="ui-page-hero__stats">
-            <li><b className="ui-num">{GLOSSARY.length}</b><span>{t.statTerms}</span></li>
-            <li><b className="ui-num">{GLOSSARY_CATS.length}</b><span>{t.statCats}</span></li>
-            <li><b className="ui-num">{LESSON_LINKED}</b><span>{t.statLessons}</span></li>
+            <li><b className="ui-num" data-count={GLOSSARY.length}>{GLOSSARY.length}</b><span>{t.statTerms}</span></li>
+            <li><b className="ui-num" data-count={GLOSSARY_CATS.length}>{GLOSSARY_CATS.length}</b><span>{t.statCats}</span></li>
+            <li><b className="ui-num" data-count={LESSON_LINKED}>{LESSON_LINKED}</b><span>{t.statLessons}</span></li>
           </ul>
         </div>
       </header>

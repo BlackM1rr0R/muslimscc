@@ -386,3 +386,35 @@ html[dir="rtl"] .rp-juz__range { text-align: end; }
   .rp-days { display: none !important; }
   .rp-scroll--print-only { display: block !important; }
 }
+
+/* ══ Dizayn v4 — hərəkət (prefiks rp-v4) ═══════════════════════════
+   hero: həndəsi ulduz səması (GeoStarfield) · oruc sütunları soldan
+   böyüyür · gün kartları / cədvəl sətirləri kaskadla · bugünkü gün nəbz ·
+   xətm planı: cüz qeyd olunanda yay, 30/30 → həndəsi parıltı */
+.rp-hero { position: relative; isolation: isolate; }
+.rp-hero > .rp-sky { z-index: -1; }
+.rp-khatm { position: relative; }
+.rp-fast rect { transform-box: fill-box; transform-origin: center bottom; }
+.rp-day.is-today { position: relative; }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .rp-fast rect {
+    animation: tm-grow-y 900ms var(--tm-ease) backwards;
+    animation-delay: calc(150ms + var(--i, 0) * 28ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .rp-fast rect.is-today { animation: tm-grow-y 900ms var(--tm-ease) backwards, rp-v4-today 2.4s ease-in-out 1.4s infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .rp-juz.is-done .rp-juz__check { animation: tm-pop 420ms var(--tm-spring); }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .rp-juz.is-today { animation: rp-v4-lift 3.2s ease-in-out infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .rp-day.is-today .rp-day__num { animation: rp-v4-num 2.8s ease-in-out infinite; }
+}
+@keyframes rp-v4-today {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+@keyframes rp-v4-lift {
+  0%, 100% { transform: none; }
+  50%      { transform: translate3d(0, -2px, 0); }
+}
+@keyframes rp-v4-num {
+  0%, 100% { transform: none; }
+  50%      { transform: scale(1.12); }
+}

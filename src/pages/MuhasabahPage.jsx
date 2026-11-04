@@ -24,6 +24,8 @@ import { ChartFigure, ProgressRing, StatTile, ColumnChart } from '../components/
 import ActivityHeatmap from '../components/ActivityHeatmap'
 import RelatedLinks from '../components/RelatedLinks'
 import '../styles/MuhasabahPage.css'
+import '../styles/ToolsMotion.css'
+import Sparkle from '../components/prayer/Sparkle'
 
 export const STORAGE_KEY = 'muslim_cc_muhasabah_v1'
 const NOTE_MAX = 2000
@@ -533,7 +535,7 @@ export default function MuhasabahPage({ setPage }) {
             <p className="ui-page-hero__how"><Icon name="shield" size={16} /> {v.how}</p>
           </div>
           <div className="ui-page-hero__aside">
-            <div className="ui-card mh-summary">
+            <div className="ui-card mh-summary" data-reveal="zoom">
               <ProgressRing value={todayDone} max={ITEMS.length} size={84} thickness={8} label={t.today} sub={`${todayDone} / ${ITEMS.length}`} />
               <dl className="mh-summary__kv">
                 <div><dt>{t.streak}</dt><dd className="ui-num">{cur} <small>{t.daysUnit}</small></dd></div>
@@ -569,6 +571,7 @@ export default function MuhasabahPage({ setPage }) {
               <p className="mh-day__label">{fmtDate(date, lang)} <span className="mh-day__count ui-num" aria-hidden="true">{entry.c.length} / {ITEMS.length}</span></p>
 
               <fieldset className="mh-check">
+                {entry.c.length === ITEMS.length && <Sparkle key={date} count={12} radius={120} />}
                 <legend className="mh-check__legend">{t.checklist}</legend>
                 {ITEMS.map(id => {
                   const on = entry.c.includes(id)
@@ -594,12 +597,12 @@ export default function MuhasabahPage({ setPage }) {
             </div>
             <ChartFigure title={v.itemsTitle} sub={v.itemsSub}>
               {/* 30 xanalı istilik zolağı: hər əməl hansı günlərdə edilib */}
-              <ul className="mh-heat">
+              <ul className="mh-heat" data-reveal="fade">
                 {perItem.map(m => (
                   <li key={m.key} className="mh-heat__row" aria-label={`${m.label}: ${m.value} / 30`}>
                     <span className="mh-heat__label">{m.label}</span>
                     <span className="mh-heat__cells" aria-hidden="true">
-                      {m.days.map((on, i) => <span key={i} className={`mh-heat__cell${on ? ' is-on' : ''}${i === 29 ? ' is-today' : ''}`} />)}
+                      {m.days.map((on, i) => <span key={i} style={{ '--i': i }} className={`mh-heat__cell${on ? ' is-on' : ''}${i === 29 ? ' is-today' : ''}`} />)}
                     </span>
                     <span className="mh-heat__count ui-num" aria-hidden="true">{m.value}<small>/30</small></span>
                   </li>
@@ -634,7 +637,7 @@ export default function MuhasabahPage({ setPage }) {
             <h2 className="ui-title" id="mh-quotes-h">{t.quotesTitle}</h2>
             <p className="ui-lead">{v.quotesLead}</p>
           </div>
-          <div className="mh-quotes__grid">
+          <div className="mh-quotes__grid" data-reveal="stagger-blur">
           {QUOTES.map((q, i) => (
             <figure className="ui-quote mh-quote" key={i}>
               <blockquote>

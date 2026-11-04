@@ -333,7 +333,7 @@ Qaydalar:
 - **Footer**: brend + şüar + 5 sütun link (mono etiketlər) + hüquqi sətir.
 - **Dok** (FloatingDock, ≥1024px sağ aşağı): AI, əlçatanlıq, bildirişlər.
 
-## 7. Hərəkət (motion.css — dəyişməyib)
+## 7. Hərəkət (motion.css + wow.css "VAU 2")
 
 `--dur-1` 150 · `--dur-2` 240 · `--dur-3` 360 · `--dur-4` 560ms; yalnız `transform`/`opacity`.
 `data-reveal` (`up down left right zoom blur fade stagger stagger-*`), `data-reveal-delay`, `data-count` sayğacı,
@@ -355,6 +355,51 @@ qaydası **hero aurorası üçün** ləğv olunub. Qat səhifələrə toxunmadan
 | Oxu zolağı | səhifənin yuxarısı | yalnız CSS scroll-timeline |
 
 Yeni səhifədə bunlar **avtomatik** gəlir — yalnız ortaq sinifləri işlət. Hərəkəti azalt (sistem və ya panel) — hamısı söndürülür.
+
+### 7.2 "VAU 2" (dizayn v4 — wow.css + utils/wow.js)
+
+Hərəkət dili: giriş `blur(8px) + translateY(24px) + opacity 0 → aydın`, `--wow-ease` (ease-out-expo,
+`cubic-bezier(.16,1,.3,1)`), 600–800ms, növbə 40–70ms (ən çox 10). Telefonda (≤767px / toxunuş) blur yox,
+qalxma 16px. Gizli başlanğıc **yalnız `html.wow-ready` altında** (JS qoyur; "hərəkəti azalt"-da qoyulmur) —
+prerender HTML-də və JS-siz məzmun həmişə görünür. İlk açılışda (≈0.9 san) ekranda olan elementlər
+gizlədilmir (LCP / yanıb-sönmə olmasın); sonrakı naviqasiyalarda animasiya ilə girir.
+
+**Avtomatik (səhifəyə heç nə yazmadan):**
+
+| Nə | Harada |
+|---|---|
+| Blur + qalxma + növbə girişi | `.ui-card .ui-tile .ui-stat .ui-step .ui-section-head .ui-callout .ui-quote .ui-table-wrap` (iç-içə kartda yalnız valideyn) |
+| Haşiyədə kursoru izləyən qızılı-zümrüd parıltı | kliklənən kart/kafel (öz `::after`-i yoxdursa) |
+| Hero canlı fonu | `.ui-page-hero`: aurora + fırlanan 8-guşəli ulduz + parallaks (≥768px); ekrandan çıxanda pauza |
+| Başlıq sözbəsöz | `.ui-page-hero h1` (tək mətn düyünlüdürsə; sonra orijinal düyün qaytarılır) |
+| Ərəbcə yazı "mürəkkəblə" | hero-dakı `[lang="ar"]`, `.ui-arabic` |
+| Rəqəm sayğacı | `.ui-page-hero__stats b/strong`, hero-dakı `.ui-num` (avtomatik `data-count`) |
+| Düymə işığı + maqnit (yalnız siçan) | `.ui-btn--primary/--accent/--lg`, `[data-magnetic]` |
+| Sürüşən indikator | `.ui-tabs` (alt xətt), `.ui-segmented` (hap) |
+| Dialoq yay kimi | `dialog[open]`, `.ui-enter-dialog` |
+| Link alt xətti çəkilir | `.ui-link` (RTL-də sağdan) |
+| Səhifə keçidi | View Transitions API (modul yüklənibsə, ≥768px) + `.page-enter`; yüklənərkən yuxarıda nazik zolaq |
+| "Yuxarı qayıt" | oxu irəliləyişi halqası (scroll-timeline) |
+
+Söndürmək: konteynerə `data-wow-off`. Öz giriş sistemi olan bölmələr (`[class*="quiz-"]`, `[class*="kids-"]`,
+`.ab-charts`, `.gp-root`, `.analytics-page`, `[data-reveal]`, `[data-anim]`) qlobal girişdən çıxarılıb.
+
+**Səhifə agentləri üçün atributlar:**
+
+```html
+<h2 data-anim="blur">…</h2>                       <!-- rise | fade | zoom | blur | slide-start | slide-end | ink -->
+<p data-anim="rise" data-anim-delay="120">…</p>   <!-- gecikmə, ms (≤1200) -->
+<ul data-anim-stagger data-anim="zoom">…</ul>     <!-- UŞAQLAR növbə ilə (60ms; 10-dan sonrakılar 10-cu ilə) -->
+<ul data-anim-stagger="80">…</ul>                 <!-- növbə addımı, ms (≤200); data-anim yoxdursa "rise" -->
+<span data-count="6236">6 236</span>              <!-- görünəndə 0-dan sayır; format (ayırıcı, %, +) saxlanır, sonda mətn ƏVVƏLKİ KİMİ -->
+<div data-parallax="0.15" aria-hidden="true">…</div>  <!-- translateY = (ekran mərkəzi − element mərkəzi) × əmsal; telefonda yox -->
+```
+
+- `ink` — ərəbcə yazı sağdan sola "mürəkkəblə çəkilir" (clip-path); `slide-start/end` — məntiqi istiqamət (RTL güzgülənir).
+- `data-anim-stagger` konteynerin özü animasiya olunmur — yalnız birbaşa uşaqları.
+- `data-parallax` `translate` xassəsini yazır (elementin öz `transform` animasiyası ilə toqquşmur) — yalnız dekor üçün.
+- Hamısı bir dəfə işləyir; "hərəkəti azalt" (sistem və ya `html.a11y-reduce-motion`) — heç nə gizlənmir, sayğac son ədəddə qalır.
+- Səhifəyə xas animasiya — öz CSS-ində prefiksli `@keyframes <prefiks>-…`.
 
 ## 8. Vacib texniki qaydalar
 

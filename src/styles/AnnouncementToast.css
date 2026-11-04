@@ -72,3 +72,26 @@
 @media print {
   .announcement-toast { display: none !important; }
 }
+
+/* ── v4: elan kartları hover-də qalxır, ikon yaylanır; təcili toastın ikonu sakit nəbz vurur ── */
+.announcement-card .announcement-card-icon { transition: transform 520ms var(--ease-spring); }
+@media (hover: hover) {
+  .announcement-card:hover .announcement-card-icon { transform: rotate(-10deg) scale(1.1); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .announcement-toast .ui-toast__icon svg { animation: an-toast-ring 900ms var(--ease-out) 360ms backwards; }
+  html:not(.a11y-reduce-motion) .announcement-toast.type-urgent .ui-toast__icon { animation: an-toast-pulse 2.2s ease-out 1s 3; }
+}
+@keyframes an-toast-ring {
+  0%   { transform: rotate(0); }
+  20%  { transform: rotate(-16deg); }
+  40%  { transform: rotate(12deg); }
+  60%  { transform: rotate(-6deg); }
+  100% { transform: rotate(0); }
+}
+@keyframes an-toast-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--bad) 40%, transparent); }
+  70%  { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .announcement-card:hover .announcement-card-icon { transform: none; } }

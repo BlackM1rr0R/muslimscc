@@ -512,3 +512,70 @@
   .ls-status__count { margin-inline-start: 0; }
 }
 @media print { .ls-card-star, .ls-fs, .ls-lhero__star { display: none !important; } }
+
+/* ══ v4 "VAU" — imza anları (səhifəyə xas; yalnız transform/opacity/stroke) ══
+   1. Hero: irəliləyiş halqası qövsü 0-dan "çəkilir", kart zoom ilə gəlir; rəqəmlər sayılır (data-count).
+   2. "Haradan başlamalı" yolu: addımlar arası xətt soldan sağa (RTL-də əksinə) çəkilir, nömrələr yay kimi açılır.
+   3. Kartlar: oxu vaxtı / "oxunub" çipi sürüşərək gəlir, saat ikonu bir dövrə fırlanır; hover-də çip parlayır.
+   4. Kateqoriya irəliləyiş zolağı (ls-cat__bar) görünəndə dolur.
+   5. Dərs səhifəsi: oxu zolağının ucunda parıltı.
+   Hərəkəti azalt → heç biri işləmir. */
+.ls-readbar__fill {
+  background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--accent) 70%, var(--brand)));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--brand) 55%, transparent);
+}
+[dir="rtl"] .ls-readbar__fill { background: linear-gradient(-90deg, var(--brand), color-mix(in srgb, var(--accent) 70%, var(--brand))); }
+.ls-page .ls-card__min, .ls-page .ls-card__done {
+  padding: 3px 9px 3px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2, color-mix(in srgb, var(--text) 5%, transparent));
+  transition: background-color var(--dur-2) ease, color var(--dur-2) ease;
+}
+.ls-page .ls-card__done { background: var(--brand-soft); color: var(--brand); }
+@media (hover: hover) {
+  .ls-page .ls-card:hover .ls-card__min { background: var(--brand-soft); color: var(--brand); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ls-progress .ui-viz-arc {
+    animation: ls-arc 1400ms cubic-bezier(.16, 1, .3, 1) 300ms backwards;
+  }
+  html:not(.a11y-reduce-motion) .ls-path[data-revealed=""] .ui-step::before {
+    transform-origin: left center;
+    animation: ls-line 900ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(250ms + var(--reveal-i, 0) * 160ms);
+  }
+  html:not(.a11y-reduce-motion) [dir="rtl"] .ls-path[data-revealed=""] .ui-step::before { transform-origin: right center; }
+  html:not(.a11y-reduce-motion) .ls-path[data-revealed=""] .ui-step__n {
+    animation: ls-pop 700ms cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: calc(120ms + var(--reveal-i, 0) * 160ms);
+  }
+  html:not(.a11y-reduce-motion) .ls-grid[data-revealed=""] > li :is(.ls-card__min, .ls-card__done) {
+    animation: ls-chip 650ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(260ms + var(--reveal-i, 0) * 55ms);
+  }
+  html:not(.a11y-reduce-motion) .ls-grid[data-revealed=""] > li .ls-card__min svg {
+    animation: ls-tick 1100ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(380ms + var(--reveal-i, 0) * 55ms);
+  }
+  html:not(.a11y-reduce-motion) .ls-cat__bar {
+    transform-origin: left center;
+    animation: ls-line 1100ms cubic-bezier(.16, 1, .3, 1) 400ms backwards;
+  }
+  html:not(.a11y-reduce-motion) [dir="rtl"] .ls-cat__bar { transform-origin: right center; }
+  html:not(.a11y-reduce-motion) .ls-lhero__meta > li {
+    animation: ls-chip 600ms cubic-bezier(.16, 1, .3, 1) backwards;
+  }
+  html:not(.a11y-reduce-motion) .ls-lhero__meta > li:nth-child(2) { animation-delay: 80ms; }
+  html:not(.a11y-reduce-motion) .ls-lhero__meta > li:nth-child(3) { animation-delay: 160ms; }
+  html:not(.a11y-reduce-motion) .ls-lhero__meta > li:nth-child(4) { animation-delay: 240ms; }
+  @media (hover: hover) {
+    html:not(.a11y-reduce-motion) .ls-page .ls-card .ui-icon-tile { transition: transform 420ms cubic-bezier(.34, 1.56, .64, 1); }
+    html:not(.a11y-reduce-motion) .ls-page .ls-card:hover .ui-icon-tile { transform: translateY(-2px) rotate(-8deg) scale(1.08); }
+  }
+}
+@keyframes ls-arc { from { stroke-dasharray: 0 999; } }
+@keyframes ls-line { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes ls-pop { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: none; } }
+@keyframes ls-chip { from { opacity: 0; transform: translateY(6px) scale(.9); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes ls-tick { from { transform: rotate(-360deg); } to { transform: none; } }

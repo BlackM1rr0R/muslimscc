@@ -267,3 +267,26 @@
   .qd-plan { transition: none; }
   .qd-plan:hover { transform: none; }
 }
+
+/* ══ Dizayn v4 — hərəkət (prefiks qd-v4) ═══════════════════════════
+   hero halqası dolur · sayğac sətirləri kaskadla · zolaqlar böyüyür ·
+   30 günlük sütunlar soldan sağa qalxır · gündəlik hədəf → parıltı */
+.qd-today { position: relative; }
+.qd-chart .qd-bar-p,
+.qd-chart .qd-bar-f { transform-box: fill-box; transform-origin: center bottom; }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qd-bar > span { transition: transform 700ms var(--tm-ease); }
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .qd-chart :is(.qd-bar-p, .qd-bar-f) {
+    animation: tm-grow-y 800ms var(--tm-ease) backwards;
+    animation-delay: calc(150ms + var(--i, 0) * 22ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .qd-goal-line {
+    animation: qm-reveal-fade 900ms ease 700ms backwards;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qd-plan.is-current { animation: tm-pop 480ms var(--tm-spring); }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .qd-hero-ar { animation: qd-v4-ink 1400ms var(--tm-ease) 200ms backwards; }
+}
+@keyframes qd-v4-ink {
+  from { opacity: 0; clip-path: inset(0 0 0 100%); }
+  to   { opacity: 1; clip-path: inset(0 0 0 0); }
+}

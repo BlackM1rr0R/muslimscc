@@ -9,6 +9,8 @@ import PageLink, { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { ChartFigure, BarChart, Donut } from '../components/viz'
 import '../styles/InheritancePage.css'
+import '../styles/ToolsMotion.css'
+import TweenNumber from '../components/prayer/TweenNumber'
 
 // ═══ MİRAS (FƏRAİZ) HESABLAYICISI ═══
 // Hesab src/utils/faraid.js-dədir (Quran 4:11, 4:12, 4:176 + Sünnə; mübahisəli
@@ -275,7 +277,7 @@ function Stepper({ id, label, value, max, onChange, l }) {
           disabled={value <= 0} onClick={() => onChange(Math.max(0, value - 1))}>
           <Icon name="minus" size={18} />
         </button>
-        <output className="inh-stepper__val ui-num" aria-live="polite">{value}</output>
+        <output className="inh-stepper__val ui-num" aria-live="polite"><span key={value} className={value > 0 ? 'inh-v4-val tm-pop' : 'inh-v4-val'}>{value}</span></output>
         <button type="button" className="ui-icon-btn inh-stepper__btn" aria-label={`${pick(L.increase, l)}: ${label}`}
           disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}>
           <Icon name="plus" size={18} />
@@ -418,7 +420,7 @@ export default function InheritancePage({ setPage }) {
 
           {/* ══ Daxiletmə: 3 nömrəli addım ══ */}
           <div className="inh-inputs">
-            <div className="ui-card inh-card">
+            <div className="ui-card inh-card" data-reveal="left">
               <h2 className="inh-card__title"><span className="inh-step-n ui-num" aria-hidden="true">1</span> {s('estateTitle')}</h2>
               <div className="inh-fields">
                 <MoneyField id="inh-estate" label={s('estate')} value={estate} onChange={setEstate} placeholder={moneyPh} />
@@ -429,7 +431,7 @@ export default function InheritancePage({ setPage }) {
               <p className="inh-muted">{s('orderNote')}</p>
             </div>
 
-            <div className="ui-card inh-card">
+            <div className="ui-card inh-card" data-reveal="left" data-reveal-delay="90">
               <div className="inh-card__head">
                 <h2 className="inh-card__title" id="inh-deceased-l"><span className="inh-step-n ui-num" aria-hidden="true">2</span> {s('deceased')}</h2>
                 <div className="ui-segmented inh-gender" role="radiogroup" aria-labelledby="inh-deceased-l">
@@ -441,7 +443,7 @@ export default function InheritancePage({ setPage }) {
               </div>
             </div>
 
-            <div className="ui-card inh-card">
+            <div className="ui-card inh-card" data-reveal="left" data-reveal-delay="180">
               <div className="inh-card__head">
                 <h2 className="inh-card__title"><span className="inh-step-n ui-num" aria-hidden="true">3</span> {s('heirsTitle')}</h2>
                 <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={reset}>
@@ -510,11 +512,11 @@ export default function InheritancePage({ setPage }) {
                     {Number(funeral) > 0 && <div><dt>{s('funeral')}</dt><dd className="ui-num">−{fmt(Number(funeral))}</dd></div>}
                     {Number(debts) > 0 && <div><dt>{s('debts')}</dt><dd className="ui-num">−{fmt(Number(debts))}</dd></div>}
                     {result.wasiyyah > 0 && <div><dt>{s('wasiyyah')}</dt><dd className="ui-num">−{fmt(result.wasiyyah)}</dd></div>}
-                    <div className="inh-summary__net"><dt>{s('net')}</dt><dd className="ui-num">{fmt(result.net)}</dd></div>
+                    <div className="inh-summary__net"><dt>{s('net')}</dt><dd className="ui-num"><TweenNumber value={result.net} format={fmt} /></dd></div>
                   </dl>
 
                   {segments.length > 0 && (
-                    <div className="inh-chart">
+                    <div className="inh-chart" key={segments.map(x => `${x.label}:${x.value}`).join('|')}>
                       <Donut segments={segments} format={fmtShare} size={132} thickness={18}
                         center={{ value: String(active.reduce((t, r) => t + (r.count || 1), 0)), label: s('donutCenter') }}
                         label={`${s('barLabel')}: ` + segments.map(x => `${x.label} ${fmtShare(x.value, x)}`).join(', ')} />

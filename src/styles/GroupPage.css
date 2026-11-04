@@ -184,3 +184,86 @@
 @media (max-width: 899.98px) { .gp-root .ui-page-hero__aside { max-width: 440px; } }
 /* Telefon: hero qısa qalsın — nümunə xəritə yalnız ≥600px */
 @media (max-width: 599.98px) { .gp-root .gp-hero .ui-page-hero__aside:has(.gp-sample) { display: none; } }
+
+/* ══ v4 "VAU" — Qrup xətmi ══════════════════════════════════════
+   • irəliləyiş halqaları qövs kimi çəkilir, ortası fırlanaraq oturur
+   • 30 cüz xəritəsi xana-xana "dolur" (soldan sağa dalğa, 18ms növbə)
+   • zolaqlar (gp-bar) böyüyür, üstündən sakit işıq keçir
+   • cüz kartları hover-də qalxır; "mənim" kartının haşiyəsi nəbz vurur
+   Hərəkət yalnız "no-preference" + html:not(.a11y-reduce-motion) altında. */
+
+.gp-map__cell { transition: transform 420ms var(--ease-spring), box-shadow 240ms ease; }
+@media (hover: hover) {
+  .gp-map__cell:hover { transform: translateY(-2px) scale(1.08); box-shadow: var(--shadow-2); }
+}
+.gp-root .gp-juz__cell { transition: transform 420ms var(--ease-spring), box-shadow 240ms ease, border-color 200ms ease, background-color 200ms ease; }
+@media (hover: hover) {
+  .gp-root .gp-juz__cell:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); }
+}
+.gp-week__dot { transition: transform 420ms var(--ease-spring), background-color 200ms ease; }
+.gp-bar__fill { overflow: hidden; }
+
+/* Geniş ekranda "yarat" bölməsi iki sütunlu qalır; xətm görünüşündə halqa + legend yan-yana */
+@media (min-width: 1024px) {
+  .gp-overview__head .ui-viz-ring svg { width: 104px; height: 104px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .gp-root .ui-viz-ring .ui-viz-arc { animation: gp-arc 1500ms cubic-bezier(.16, 1, .3, 1) 250ms backwards; }
+  html:not(.a11y-reduce-motion) .gp-root .ui-viz-ring svg { animation: gp-ring-in 1200ms cubic-bezier(.16, 1, .3, 1) 100ms backwards; }
+
+  html:not(.a11y-reduce-motion) .gp-map__cell {
+    animation: gp-cell-in 560ms var(--ease-spring) backwards;
+    animation-delay: calc(200ms + var(--gi, 0) * 18ms);
+  }
+  html:not(.a11y-reduce-motion) .gp-map__cell.is-reading { animation: gp-cell-in 560ms var(--ease-spring) backwards, gp-breathe 2.8s ease-in-out 1.4s infinite; animation-delay: calc(200ms + var(--gi, 0) * 18ms), 1.4s; }
+
+  html:not(.a11y-reduce-motion) .gp-bar__fill { animation: gp-bar 1100ms cubic-bezier(.16, 1, .3, 1) 200ms backwards; transform-origin: left center; }
+  html:not(.a11y-reduce-motion) [dir="rtl"] .gp-bar__fill { transform-origin: right center; }
+  html:not(.a11y-reduce-motion) .gp-bar__fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent);
+    transform: translateX(-100%);
+    animation: gp-sheen 3.6s ease-in-out 1.4s infinite;
+  }
+
+  html:not(.a11y-reduce-motion) .gp-root .gp-juz__cell.is-mine { animation: gp-mine 2.8s ease-in-out infinite; }
+  html:not(.a11y-reduce-motion) .gp-week__day.is-on .gp-week__dot { animation: gp-cell-in 520ms var(--ease-spring) backwards; }
+  html:not(.a11y-reduce-motion) .gp-complete { animation: gp-complete-in 800ms var(--ease-spring) backwards; }
+  html:not(.a11y-reduce-motion) .gp-complete .ui-icon-tile { animation: gp-ring-in 900ms var(--ease-spring) 200ms backwards; }
+  html:not(.a11y-reduce-motion) .gp-sample { animation: gp-complete-in 900ms cubic-bezier(.16, 1, .3, 1) 220ms backwards; }
+}
+
+@keyframes gp-arc { from { stroke-dasharray: 0 999; } }
+@keyframes gp-ring-in {
+  from { opacity: 0; transform: rotate(-120deg) scale(.7); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes gp-cell-in {
+  from { opacity: 0; transform: scale(.4) rotate(-12deg); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes gp-breathe {
+  0%, 100% { transform: none; }
+  50%      { transform: scale(1.08); }
+}
+@keyframes gp-bar { from { transform: scaleX(0); } }
+@keyframes gp-sheen {
+  0%, 30%   { transform: translateX(-100%); }
+  70%, 100% { transform: translateX(100%); }
+}
+@keyframes gp-mine {
+  0%, 100% { box-shadow: inset 0 0 0 1px var(--brand), 0 0 0 0 transparent; }
+  50%      { box-shadow: inset 0 0 0 1px var(--brand), 0 0 0 5px var(--brand-soft-2); }
+}
+@keyframes gp-complete-in {
+  from { opacity: 0; transform: translate3d(0, 20px, 0) scale(.97); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-map__cell, .gp-root .gp-juz__cell, .gp-week__dot { transition: none; }
+  .gp-map__cell:hover, .gp-root .gp-juz__cell:hover { transform: none; }
+}

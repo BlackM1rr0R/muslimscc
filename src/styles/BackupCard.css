@@ -80,3 +80,16 @@
 
 .sy-del-link { display: inline-flex; align-items: center; gap: 6px; justify-self: start; color: var(--bad); }
 .sy-del .sy-del__yes { background: var(--bad); border-color: var(--bad); }
+
+/* ── v4: ikon hover-də yaylanır, dialoq yay kimi açılır, status işarəsi fırlanıb oturur ── */
+.bk-icon { transition: transform 520ms var(--ease-spring); }
+@media (hover: hover) { .bk-card:hover .bk-icon { transform: rotate(-8deg) scale(1.08); } }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .bk-dialog[open] { animation: bk-v4 560ms var(--ease-spring) both; }
+  html:not(.a11y-reduce-motion) .bk-status:not(:empty) svg { animation: bk-tick 600ms var(--ease-spring) backwards; }
+  html:not(.a11y-reduce-motion) .sy-code { animation: bk-code 700ms cubic-bezier(.16, 1, .3, 1) 120ms backwards; }
+}
+@keyframes bk-v4 { from { opacity: 0; transform: translateY(20px) scale(.95); filter: blur(6px); } }
+@keyframes bk-tick { from { opacity: 0; transform: rotate(-140deg) scale(.3); } }
+@keyframes bk-code { from { opacity: 0; transform: translateY(6px); filter: blur(4px); } }
+@media (prefers-reduced-motion: reduce) { .bk-card:hover .bk-icon { transform: none; } }

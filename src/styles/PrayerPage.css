@@ -806,3 +806,87 @@
 .pp-cal__lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; max-width: 62ch; }
 .pp-cal__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .pp-cal__note { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: var(--step--2); }
+
+/* ══ Dizayn v4 — "VAU-nun VAU-su" (prefiks pp-v4) ═══════════════════
+   • "İndi" paneli: naxış yavaş axır, zümrüd-qızıl işıq gəzir
+   • geri sayım/saat: fırlanan rəqəmlər (RollingDigits, ToolsMotion.css)
+   • bugünkü vaxtlar növbə ilə qalxır, növbəti namaz sətri "nəfəs alır"
+   • aylıq cədvəl sətirləri kaskadla, bugünkü sətir işıqlanır
+   • günəş saatı: animasiyalar kart görünəndə başlayır, şüalar fırlanır */
+.pp-now::before { inset: -56px; }
+.pp-now::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 360px;
+  height: 360px;
+  inset-inline-end: -140px;
+  top: -160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sand-300) 26%, transparent), transparent 62%);
+  opacity: 0.7;
+  pointer-events: none;
+}
+.next-countdown .tm-roll__d { min-width: 0.58em; }
+.clock-time .tm-roll__d { min-width: 0.56em; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pp-now::before { animation: pp-v4-drift 40s linear infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pp-now::after { animation: pp-v4-orb 14s ease-in-out infinite alternate; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .prayer-time-card.is-next::after { animation: pp-v4-breathe 2.4s ease-in-out infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .prayer-time-card.is-next .pt-icon { animation: pp-v4-bob 3s ease-in-out infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pp-bar > span { transition: transform 1s linear; }
+  /* Bugünkü sətir — başlıq xanasında işıq zolağı keçir */
+  html.qm-reveal-on:not(.a11y-reduce-motion) .pp-month-table tr.is-current > th::after {
+    animation: pp-v4-sweep 4.5s var(--tm-ease) 1s infinite;
+  }
+  /* Günəş saatı: kart görünənə qədər animasiyalar gözləyir */
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-reveal-ready]:not([data-revealed]) .psd *,
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-reveal-ready]:not([data-revealed]) .psd__center { animation-play-state: paused; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .psd__hand { transition: transform 1.2s var(--tm-ease); }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .psd__body .psd__sun { animation: pp-v4-sun 6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  /* Bu ayın namazları — gün tamamlananda halqa parlayır */
+  html.qm-reveal-on:not(.a11y-reduce-motion) .stat-card.is-complete::after { animation: tm-glow 2.6s ease-in-out 2; }
+}
+.stat-card { position: relative; }
+.stat-card.is-complete::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent), 0 0 26px color-mix(in srgb, var(--accent) 28%, transparent);
+  opacity: 0;
+}
+.pp-month-table tr.is-current > th { position: relative; overflow: hidden; }
+.pp-month-table tr.is-current > th::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--brand) 22%, transparent) 50%, transparent 80%);
+  transform: translateX(-110%);
+}
+[dir="rtl"] .pp-month-table tr.is-current > th::after { transform: translateX(110%); }
+
+@keyframes pp-v4-drift { to { transform: translate3d(56px, 56px, 0); } }
+@keyframes pp-v4-orb {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
+  to   { transform: translate3d(-120px, 200px, 0) scale(1.25); opacity: 0.9; }
+}
+@keyframes pp-v4-breathe {
+  0%, 100% { transform: scaleY(0.7); opacity: 0.7; }
+  50%      { transform: scaleY(1); opacity: 1; }
+}
+@keyframes pp-v4-bob {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -2px, 0) rotate(-6deg); }
+}
+@keyframes pp-v4-sweep {
+  0%        { transform: translateX(-110%); }
+  40%, 100% { transform: translateX(110%); }
+}
+@keyframes pp-v4-sun {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}

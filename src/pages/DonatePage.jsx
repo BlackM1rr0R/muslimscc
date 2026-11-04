@@ -2,6 +2,8 @@ import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
 import { VerseCard, HadithCard } from '../components/VirtueCards'
 import '../styles/DonatePage.css'
+import '../styles/ToolsMotion.css'
+import GeoStarfield from '../components/prayer/GeoStarfield'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import PageLink, { isPlainClick } from '../components/PageLink'
@@ -236,6 +238,7 @@ export default function DonatePage({ setPage }) {
     <div className="dn-root">
       <header className="ui-page-hero dn-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
+        <GeoStarfield className="dn-sky" rosette={false} />
         <div className="ui-container">
           {/* Bütün hero-larda eyni iz: Ana səhifə › … (components/Breadcrumb) */}
           <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>
@@ -290,7 +293,7 @@ export default function DonatePage({ setPage }) {
             <span className="ui-eyebrow">{P(DN3.cmpEyebrow, lang)}</span>
             <h2 id="dn-cmp-title" className="ui-title">{P(DN3.cmpTitle, lang)}</h2>
           </div>
-          <div className="ui-table-wrap dn-cmp" tabIndex={0} role="region" aria-label={P(DN3.cmpTitle, lang)}>
+          <div className="ui-table-wrap dn-cmp tm-cascade-rows" data-reveal="fade" tabIndex={0} role="region" aria-label={P(DN3.cmpTitle, lang)}>
             <table className="ui-table">
               <caption>{P(DN3.cmpCaption, lang)}</caption>
               <thead>

@@ -280,3 +280,12 @@
 }
 .ch-page .ch-entry-card .ch-entry-amount { order: 3; flex-basis: 100%; padding-top: 6px; border-top: 1px dashed var(--line); font-size: var(--step-1); }
 .ch-page .ch-entry-card .ch-entry-delete { margin-inline-start: auto; }
+
+/* ══ Dizayn v4 — hərəkət (prefiks ch-v4) ═══════════════════════════
+   qeyd əlavə olunanda düymədən həndəsi parıltı · qrafiklər bulanıqdan
+   aydınlaşır · tip seçiləndə ikon yay kimi */
+.ch-add-btn { position: relative; overflow: visible; }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .ch-type-btn[aria-pressed="true"] svg { animation: tm-pop 420ms var(--tm-spring); }
+}
+

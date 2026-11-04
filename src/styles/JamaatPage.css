@@ -399,3 +399,36 @@
 @media (prefers-reduced-motion: reduce) {
   .jm-bar > span { transition: none; }
 }
+
+/* ══ Dizayn v4 — hərəkət (prefiks jm-v4) ═══════════════════════════
+   növbəti namaz paneli: naxış yavaş axır, işıq gəzir · geri sayım
+   fırlanan rəqəmlərlə · vaxt sətirləri kaskadla · növbəti sətir nəbz */
+.jm-next::before { inset: -56px; }
+.jm-next::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 380px;
+  height: 380px;
+  inset-inline-end: -120px;
+  top: -200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sand-300) 24%, transparent), transparent 62%);
+  pointer-events: none;
+}
+.jm-count .tm-roll__d { min-width: 0.58em; }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .jm-next::before { animation: jm-v4-drift 40s linear infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .jm-next::after { animation: jm-v4-orb 14s ease-in-out infinite alternate; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .jm-bar > span { transition: transform 1s linear; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .jm-li.is-next .jm-li-time { display: inline-block; animation: jm-v4-beat 2.6s ease-in-out infinite; }
+}
+@keyframes jm-v4-drift { to { transform: translate3d(56px, 56px, 0); } }
+@keyframes jm-v4-orb {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.6; }
+  to   { transform: translate3d(-200px, 160px, 0) scale(1.2); opacity: 1; }
+}
+@keyframes jm-v4-beat {
+  0%, 100% { transform: none; }
+  50%      { transform: scale(1.06); }
+}

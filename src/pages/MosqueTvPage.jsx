@@ -33,6 +33,8 @@ import {
 import { pathFor } from '../seo/routes'
 import Icon from '../components/Icon'
 import '../styles/MosqueTvPage.css'
+import '../styles/ToolsMotion.css'
+import RollingDigits from '../components/prayer/RollingDigits'
 
 const STORE_KEY = 'muslim_cc_mosque_tv'
 const ROTATE_MS = 20000
@@ -599,6 +601,7 @@ export default function MosqueTvPage({ setPage }) {
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
     >
       <div className="ui-pattern mtv-pattern" aria-hidden="true" />
+      <div className="mtv-ambient" aria-hidden="true"><span /><span /></div>
 
       {/* ── Başlıq: məscid/şəhər | tarix | düymələr ── */}
       <header className="mtv-top">
@@ -638,7 +641,7 @@ export default function MosqueTvPage({ setPage }) {
       <section className="mtv-main">
         <div className="mtv-clockbox">
           <div className="mtv-clock ui-num" aria-live="off">
-            {timeStr}{!cfg.hideSeconds && <span className="mtv-sec">:{pad2(c.s)}</span>}
+            {timeStr}{!cfg.hideSeconds && <span className="mtv-sec">:<RollingDigits value={pad2(c.s)} /></span>}
           </div>
           {next && (
             <div className="mtv-next" role="timer" aria-label={`${l.next}: ${name(next.key)} ${next.adhan}`}>
@@ -648,7 +651,7 @@ export default function MosqueTvPage({ setPage }) {
               <span className="mtv-next-name">
                 <Icon name={PRAYER_ICONS[next.key]} size={28} /> {isFriday && next.key === 'dhuhr' && !next.tomorrow ? l.jumua : name(next.key)}
               </span>
-              <span className="mtv-next-count ui-num">{countdownShown}</span>
+              <span className="mtv-next-count ui-num"><RollingDigits value={countdownShown} /></span>
               <span className="mtv-next-caption">{l.untilAdhan}</span>
             </div>
           )}

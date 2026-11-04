@@ -59,6 +59,10 @@ export default function BackToTop({ threshold }) {
       tabIndex={on ? 0 : -1}
       aria-hidden={on ? undefined : true}
     >
+      {/* Səhifənin oxunan payı — halqa (wow.css → .lm-top__ring, scroll-timeline) */}
+      <svg className="lm-top__ring" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+        <circle cx="18" cy="18" r="16.5" pathLength="100" />
+      </svg>
       <Icon name="arrowUp" size={20} />
     </button>,
     document.body

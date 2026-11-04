@@ -163,3 +163,44 @@ html[lang="ar"] .hj-grid-eyebrow { letter-spacing: 0; text-transform: none; }
   .hj-hero .breadcrumb { display: none; }
 }
 .hj-cal-cell.is-today .hj-cal-g { color: var(--text-secondary); }
+
+/* ══ Dizayn v4 — hərəkət (prefiks hj-v4) ═══════════════════════════
+   ərəbcə tarix "mürəkkəblə çəkilir" · ay cədvəli diaqonal açılır ·
+   bu gün nəbz · çevirmə nəticəsi hər dəyişəndə sürüşür · il halqası dolur */
+.hj-today { position: relative; overflow: hidden; isolation: isolate; }
+.hj-today::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset-inline-end: -90px;
+  top: -90px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sand-300, #e6cf98) 24%, transparent), transparent 64%);
+  pointer-events: none;
+}
+.hj-cal-cell.is-today { position: relative; }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .hj-today-ar,
+  html.qm-reveal-on:not(.a11y-reduce-motion) .hj-grid-ar { animation: hj-v4-ink 1500ms var(--tm-ease) 300ms backwards; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .hj-today::after { animation: hj-v4-orb 12s ease-in-out infinite alternate; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .hj-cal .hj-cal-cell:not(.is-empty) {
+    animation: hj-v4-cell 520ms var(--tm-ease) backwards;
+    animation-delay: calc(min(var(--i, 0), 41) * 12ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .hj-cal-cell.is-today .hj-cal-h { display: inline-block; animation: hj-v4-beat 2.6s ease-in-out 1s infinite; }
+}
+@keyframes hj-v4-ink {
+  from { opacity: 0; clip-path: inset(0 0 0 100%); }
+  to   { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+@keyframes hj-v4-orb { to { transform: translate3d(-80px, 120px, 0) scale(1.2); } }
+@keyframes hj-v4-cell {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes hj-v4-beat {
+  0%, 100% { transform: none; }
+  50%      { transform: scale(1.22); }
+}

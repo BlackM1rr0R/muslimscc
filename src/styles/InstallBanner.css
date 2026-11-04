@@ -152,3 +152,15 @@
   .qm-install,
   .qm-ios-guide { display: none !important; }
 }
+
+/* ── v4: quraşdırma bələdçisinin addım nömrələri yaylanır, brend nişanı yüngülcə üzür ── */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qm-ios-guide .ios-step-num { animation: qm-ib-num 620ms var(--ease-spring, ease) backwards; animation-delay: inherit; }
+  html:not(.a11y-reduce-motion) .qm-ios-guide .ios-guide-icon .qm-mark { animation: qm-ib-float 5s ease-in-out 1s infinite; }
+  html:not(.a11y-reduce-motion) .qm-install .ui-toast__mark { animation: qm-ib-float 5s ease-in-out 1.2s infinite; }
+}
+@keyframes qm-ib-num { from { opacity: 0; transform: scale(.3) rotate(-90deg); } }
+@keyframes qm-ib-float {
+  0%, 100% { transform: none; }
+  50%      { transform: translateY(-3px); }
+}

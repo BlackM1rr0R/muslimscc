@@ -656,3 +656,68 @@ button.cal-up__card { cursor: pointer; }
 .cal-sf__ev[open] .cal-sf__chev { transform: rotate(180deg); }
 .cal-sf__ev ul { margin: 0 0 var(--space-3); padding-inline-start: 1.2em; color: var(--text-secondary); font-size: var(--step--1); display: grid; gap: 4px; }
 .cal-sf__ev .cal-sf__muted { margin-bottom: var(--space-3); font-size: var(--step--2); }
+
+/* ══ Dizayn v4 — hərəkət (prefiks cal-v4) ══════════════════════════
+   • ay şəbəkəsi: ay dəyişəndə günlər diaqonal "çevrilərək" açılır
+   • bu gün: haşiyədə sakit nəbz (ping)
+   • 12 ayın kartları (bələdçi) — 3D çevrilərək növbə ilə
+   • sünnə oruc kartlarının üstündən işıq zolağı keçir (tm-shimmer) */
+.cal-day.is-today { position: relative; }
+.cal-mcards.cal-v4-flip { perspective: 1200px; }
+.cal-mcards > :nth-child(2)  { --i: 1; }
+.cal-mcards > :nth-child(3)  { --i: 2; }
+.cal-mcards > :nth-child(4)  { --i: 3; }
+.cal-mcards > :nth-child(5)  { --i: 4; }
+.cal-mcards > :nth-child(6)  { --i: 5; }
+.cal-mcards > :nth-child(7)  { --i: 6; }
+.cal-mcards > :nth-child(8)  { --i: 7; }
+.cal-mcards > :nth-child(9)  { --i: 8; }
+.cal-mcards > :nth-child(10) { --i: 9; }
+.cal-mcards > :nth-child(11) { --i: 10; }
+.cal-mcards > :nth-child(12) { --i: 11; }
+.cal-sf__card:nth-child(2) { --tm-shimmer-d: 0.6s; }
+.cal-sf__card:nth-child(3) { --tm-shimmer-d: 1.2s; }
+.cal-sf__card:nth-child(4) { --tm-shimmer-d: 1.8s; }
+.cal-sf__card:nth-child(5) { --tm-shimmer-d: 2.4s; }
+.cal-sf__card:nth-child(6) { --tm-shimmer-d: 3s; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) .cal-grid { animation: none; perspective: 900px; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .cal-grid > .cal-day {
+    animation: cal-v4-flip 560ms var(--tm-ease) backwards;
+    animation-delay: calc(min(var(--i, 0), 35) * 14ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .cal-day.is-today::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    box-shadow: 0 0 0 2px var(--brand);
+    pointer-events: none;
+    animation: cal-v4-ping 2.6s var(--tm-ease) 1s infinite;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""].cal-v4-flip > .cal-mcard {
+    animation: cal-v4-card 760ms var(--tm-ease) backwards;
+    animation-delay: calc(80ms + var(--i, 0) * 60ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .cal-month-btn.current .cal-month-i { animation: cal-v4-beat 2.8s ease-in-out infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .cal-sf__wd.is-sunnah:not(.is-on) .cal-sf__dot { animation: cal-v4-beat 2.2s ease-in-out infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .cal-sf__wd.is-on .cal-sf__wd-ic { animation: tm-pop 460ms var(--tm-spring); }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .cal-day-panel { animation: tm-slide 420ms var(--tm-ease) both; }
+}
+@keyframes cal-v4-flip {
+  from { opacity: 0; transform: rotateX(-80deg) translate3d(0, -6px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes cal-v4-card {
+  from { opacity: 0; transform: rotateY(-38deg) translate3d(0, 18px, 0); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes cal-v4-ping {
+  0%        { opacity: 0.9; transform: scale(1); }
+  70%, 100% { opacity: 0; transform: scale(1.18); }
+}
+@keyframes cal-v4-beat {
+  0%, 100% { transform: none; }
+  50%      { transform: scale(1.2); }
+}

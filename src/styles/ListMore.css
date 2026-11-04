@@ -93,3 +93,29 @@
   .ui-icon-btn.lm-top,
   .ui-icon-btn.lm-top.is-on { transition: none; transform: none; }
 }
+
+/* ══ v4 "VAU" — "daha çox" düyməsi yaylanır, sayğac rəqəmi işıqlanır;
+   sonluq xətləri mərkəzdən kənara çəkilir, işarə fırlanıb oturur ══ */
+.lm-btn { transition: transform 360ms var(--ease-spring), box-shadow 240ms ease, border-color 200ms ease, background-color 200ms ease; }
+@media (hover: hover) { .lm-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); } }
+.lm-btn:active { transform: scale(.97); }
+.lm-end__line:first-child { transform-origin: right center; }
+.lm-end__line:last-child { transform-origin: left center; }
+[dir="rtl"] .lm-end__line:first-child { transform-origin: left center; }
+[dir="rtl"] .lm-end__line:last-child { transform-origin: right center; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .lm { animation: lm-in 520ms cubic-bezier(.16, 1, .3, 1) backwards; }
+  html:not(.a11y-reduce-motion) .lm-end__line { animation: lm-line 900ms cubic-bezier(.16, 1, .3, 1) 120ms backwards; }
+  html:not(.a11y-reduce-motion) .lm-end__icon { animation: lm-tick 620ms var(--ease-spring) 300ms backwards; }
+  html:not(.a11y-reduce-motion) .lm-end__text { animation: lm-in 600ms cubic-bezier(.16, 1, .3, 1) 200ms backwards; }
+}
+@keyframes lm-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes lm-line { from { transform: scaleX(0); } }
+@keyframes lm-tick {
+  from { opacity: 0; transform: rotate(-140deg) scale(.3); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .lm-btn, .lm-btn:hover { transition: none; transform: none; } }

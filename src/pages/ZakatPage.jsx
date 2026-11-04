@@ -3,6 +3,9 @@ import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { localizeSource } from '../utils/sourceNames'
 import '../styles/ZakatPage.css'
+import '../styles/ToolsMotion.css'
+import Sparkle from '../components/prayer/Sparkle'
+import GeoStarfield from '../components/prayer/GeoStarfield'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
@@ -560,6 +563,8 @@ export default function ZakatPage({ setPage }) {
             {/* Ödənilməli zəkat — nisab keçiləndə kart tünd zümrüdə keçir */}
             <div ref={dueRef} key={aboveNisab ? 'on' : 'off'}
               className={`ui-card zakat-due-card ${aboveNisab ? 'ui-card--inverse active' : 'inactive'}`}>
+              {aboveNisab && <GeoStarfield className="zakat-due-sky" />}
+              {aboveNisab && <Sparkle count={12} radius={84} />}
               <div className="zakat-due-top">
                 <span className="zakat-due-label">{s('zakatDue',l)}</span>
                 <span className={`zakat-due-status ${aboveNisab ? 'yes' : 'no'}`}>
@@ -589,7 +594,7 @@ export default function ZakatPage({ setPage }) {
             </div>
 
             {/* Cəm: tərkib qrafiki + sətirlər */}
-            <div className="ui-card zakat-breakdown">
+            <div className="ui-card zakat-breakdown" data-reveal="fade">
               <h2 className="zakat-block-label zakat-breakdown-title">
                 <Icon name="analytics" size={16} /> {s('resultTitle',l)}
               </h2>
@@ -599,7 +604,7 @@ export default function ZakatPage({ setPage }) {
                   <StackedBar segments={comp} format={money} className="zakat-comp__bar" />
                 </div>
               )}
-              <ul className="breakdown-list">
+              <ul className="breakdown-list tm-cascade">
                 {rows.filter(r => r.show).map(r => (
                   <li key={r.k} className="breakdown-row">
                     <span className="breakdown-icon" aria-hidden="true"><Icon name={r.icon} size={16} /></span>
@@ -638,7 +643,7 @@ export default function ZakatPage({ setPage }) {
             <h2 className="ui-title">{s('ruleTitle', l)}</h2>
             <p className="ui-lead">{s('ruleLead', l)}</p>
           </div>
-          <ol className="ui-steps ui-steps--row zakat-rule__steps">
+          <ol className="ui-steps ui-steps--row zakat-rule__steps" data-reveal="stagger-blur">
             {[1, 2, 3, 4].map(i => (
               <li key={i} className="ui-step">
                 <span className="ui-step__n" aria-hidden="true">{i}</span>

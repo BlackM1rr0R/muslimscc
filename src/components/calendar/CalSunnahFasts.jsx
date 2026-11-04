@@ -212,7 +212,7 @@ export default function CalSunnahFasts({ lang, hijriOf, monthNames }) {
 
         <div className="cal-sf__grid">
           {/* Bu gün + qeyd */}
-          <div className="ui-card cal-sf__today">
+          <div className="ui-card cal-sf__today" data-reveal="left">
             <div className="cal-sf__today-head">
               <span className="ui-icon-tile" aria-hidden="true"><Icon name="ramadan" /></span>
               <div className="cal-sf__today-txt">
@@ -260,11 +260,11 @@ export default function CalSunnahFasts({ lang, hijriOf, monthNames }) {
           </div>
 
           {/* Qarşıdakı günlər */}
-          <div className="cal-sf__up">
+          <div className="cal-sf__up" data-reveal="fade">
             <h3 className="cal-sf__h">{pick(TX.upcoming, lang)}</h3>
-            <ol className="cal-sf__cards">
+            <ol className="cal-sf__cards tm-cascade">
               {upcoming.map(d => (
-                <li key={d.key} className={`ui-card cal-sf__card${d.st.some(r => MAJOR.has(r)) ? ' is-major' : ''}`}>
+                <li key={d.key} className={`ui-card cal-sf__card tm-shimmer${d.st.some(r => MAJOR.has(r)) ? ' is-major' : ''}`}>
                   <div className="cal-sf__date">
                     <span className="cal-sf__date-d ui-num">{d.date.getDate()}</span>
                     <span className="cal-sf__date-w">{weekdayName(d.date, lang, 'short')}</span>

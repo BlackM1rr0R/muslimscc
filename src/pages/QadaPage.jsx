@@ -13,6 +13,9 @@ import {
 } from '../utils/qada'
 import { countRamadanDays, parseGKey, formatGregorian } from '../utils/hijri'
 import '../styles/QadaPage.css'
+import '../styles/ToolsMotion.css'
+import Sparkle from '../components/prayer/Sparkle'
+import { ringFrom } from '../components/prayer/ringFrom'
 
 // ═══════════════════════════════════════════════════════
 // /qada — Qəza izləyicisi
@@ -456,10 +459,11 @@ export default function QadaPage({ setPage }) {
             {lk !== 'ar' && <p className="qd-hero-ar ui-arabic" lang="ar" aria-hidden="true">قَضَاءُ الفَوَائِت</p>}
             <p className="ui-lead">{t.lead}</p>
           </div>
-          <div className="ui-page-hero__aside qd-hero-aside">
+          <div className="ui-page-hero__aside qd-hero-aside tm-ring tm-ring--live" data-reveal="zoom"
+            style={{ '--tm-ring-from': ringFrom(totals.done, Math.max(1, totals.owed + totals.done), 104, 10) }}>
             <ProgressRing value={totals.done} max={Math.max(1, totals.owed + totals.done)} size={104} thickness={10}
               label={v.ring} sub={fill(v.ringSub, { d: fmtNum(totals.done, lk), t: fmtNum(totals.owed + totals.done, lk) })} />
-            <ul className="ui-page-hero__stats qd-hero-stats">
+            <ul className="ui-page-hero__stats qd-hero-stats tm-cascade">
               <li><b className="ui-num" data-testid="qd-hero-owed">{fmtNum(totals.owed, lk)}</b><span>{v.owed}</span></li>
               <li><b className="ui-num">{fmtNum(totals.done, lk)}</b><span>{v.done}</span></li>
               <li><b className="ui-num">{fmtNum(totals.fastsOwed, lk)}</b><span>{v.fasts}</span></li>
@@ -510,7 +514,7 @@ export default function QadaPage({ setPage }) {
             <div className="qd-counters ui-card" data-reveal>
               <h2 className="qd-card-title"><Icon name="refresh" size={18} /> {t.countersTitle}</h2>
               <p className="qd-card-lead">{t.countersLead}</p>
-              <ul className="qd-rows">
+              <ul className="qd-rows tm-cascade">
                 {PRAYERS.map(p => (
                   <CounterRow key={p} kind={p} icon={PRAYER_ICONS[p]} name={names[p]} slot={state.prayers[p]} t={t} lang={lk}
                     doneLabel={t.madeOne} canUndo={lastKind === p}
@@ -554,6 +558,7 @@ export default function QadaPage({ setPage }) {
                 </div>
                 <Bar pct={Math.min(100, (doneToday / state.goal) * 100)} label={t.goalTitle} />
                 <p className="qd-msg" aria-live="polite">{doneToday >= state.goal ? t.goalDone : ''}</p>
+                {doneToday >= state.goal && doneToday > 0 && <Sparkle key={doneToday} count={10} radius={60} />}
               </div>
               <div className="qd-overall">
                 <div className="qd-bar-head">
@@ -638,7 +643,7 @@ function PlanCards({ lang, owed, goal, today, onPick }) {
         <p className="qd-card-lead">{owed ? p.lead : p.empty}</p>
       </div>
       {owed > 0 && (
-        <ul className="qd-plan-grid">
+        <ul className="qd-plan-grid tm-cascade">
           {paces.map(n => {
             const d = daysToFinish(owed, n)
             const cur = n === goal
@@ -701,7 +706,7 @@ function Bar({ pct, label, accent, small }) {
   return (
     <span className={`qd-bar${accent ? ' qd-bar--accent' : ''}${small ? ' qd-bar--sm' : ''}`} role="progressbar"
       aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(v)}>
-      <span style={{ transform: `scaleX(${v / 100})` }} />
+      <span className="tm-grow-x" style={{ transform: `scaleX(${v / 100})` }} />
     </span>
   )
 }
@@ -748,7 +753,7 @@ function History({ t, lang, days, goal, today }) {
           const isToday = d.key === today
           const day = Number(d.key.slice(8))
           return (
-            <g key={d.key}>
+            <g key={d.key} style={{ '--i': i }}>
               {hp > 0 && <rect className="qd-bar-p" x={x} y={base - hp} width={bw} height={hp} rx="2" />}
               {hf > 0 && <rect className="qd-bar-f" x={x} y={base - hp - hf} width={bw} height={hf} rx="2" />}
               {(i % 5 === 4 || isToday) && (

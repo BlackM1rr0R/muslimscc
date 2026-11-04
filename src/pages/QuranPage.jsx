@@ -1496,7 +1496,7 @@ export default function QuranPage() {
             <p className="ui-page-hero__how"><Icon name="info" size={16} />{pk(ui.how, lang)}</p>
             <ul className="ui-page-hero__stats">
               {QURAN_GUIDE.facts.items.slice(0, 4).map(f => (
-                <li key={f.value} title={f.hint ? pk(f.hint, lang) : undefined}><b>{f.value}</b><span>{pk(f.label, lang)}</span></li>
+                <li key={f.value} title={f.hint ? pk(f.hint, lang) : undefined}><b data-count={/^\d+$/.test(f.value) ? f.value : undefined}>{f.value}</b><span>{pk(f.label, lang)}</span></li>
               ))}
             </ul>
             <div className="ui-page-hero__actions">
@@ -1529,7 +1529,13 @@ export default function QuranPage() {
               </section>
             ) : lang !== 'ar' ? (
               <div className="qp-plaque" aria-hidden="true">
-                <span className="qp-plaque__ar" lang="ar">القرآن الكريم</span>
+                {/* v4: arxada yavaş fırlanan səkkizguşəli ulduz + ərəb yazısı "mürəkkəblə" çəkilir */}
+                <svg className="qp-plaque__star" viewBox="0 0 100 100" aria-hidden="true">
+                  <rect x="18" y="18" width="64" height="64" rx="2" />
+                  <rect x="18" y="18" width="64" height="64" rx="2" transform="rotate(45 50 50)" />
+                  <circle cx="50" cy="50" r="22" />
+                </svg>
+                <span className="qp-plaque__ar" lang="ar" data-anim="ink">القرآن الكريم</span>
               </div>
             ) : null}
           </div>
@@ -1586,7 +1592,7 @@ export default function QuranPage() {
                   <li key={n}>
                     <a className="qp-juz-card" href={`${pathFor('quran', lang, fs)}${fa > 1 ? `?a=${fa}` : ''}`}
                       onClick={e => { if (!isPlainClick(e)) return; e.preventDefault(); openSurah(fs, fa) }}>
-                      <span className="surah-num">{n}</span>
+                      <span className="surah-num qp-juz-ring" style={{ '--jp': (n / 30).toFixed(4), '--jd': `${Math.min(i, 9) * 50}ms` }}>{n}</span>
                       <span className="qp-juz-card__body">
                         <span className="qp-juz-card__title">{title}</span>
                         <span className="qp-juz-card__range">

@@ -202,8 +202,8 @@ export default function IslamicHistoryPage() {
             <p className="ui-lead">{L.subtitle}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {L.how}</p>
             <ul className="ui-page-hero__stats">
-              <li><b className="ui-num">{PROPHETS.length}</b><span>{L.prophets}</span></li>
-              <li><b className="ui-num">{EVENTS.length}</b><span>{L.events}</span></li>
+              <li><b className="ui-num" data-count={PROPHETS.length}>{PROPHETS.length}</b><span>{L.prophets}</span></li>
+              <li><b className="ui-num" data-count={EVENTS.length}>{EVENTS.length}</b><span>{L.events}</span></li>
               <li><b className="ui-num">{HISTORY_ERAS.length}</b><span>{L.eras}</span></li>
               <li><b className="ui-num">3</b><span>{L.maps}</span></li>
             </ul>

@@ -379,9 +379,9 @@ export function HolyPlacesPage({ setPage }) {
             <p className="ui-lead">{lb.subtitle}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{P(V3.how, lk)}</span></p>
             <ul className="ui-page-hero__stats">
-              <li><b>{PLACES.length}</b><span>{P(V3.places, lk)}</span></li>
-              <li><b>{cities.length}</b><span>{P(V3.cities, lk)}</span></li>
-              <li><b>3</b><span>{P(V3.mosques3, lk)}</span></li>
+              <li><b data-count={PLACES.length}>{PLACES.length}</b><span>{P(V3.places, lk)}</span></li>
+              <li><b data-count={cities.length}>{cities.length}</b><span>{P(V3.cities, lk)}</span></li>
+              <li><b data-count="3">3</b><span>{P(V3.mosques3, lk)}</span></li>
             </ul>
           </div>
           <div className="ui-page-hero__aside holy-hero-photo">
@@ -399,9 +399,9 @@ export function HolyPlacesPage({ setPage }) {
             <p className="ui-lead">{P(V3.virtueLead, lk)}</p>
           </div>
           <div className="ui-stats holy-stats" data-reveal="stagger">
-            <StatTile icon="hajjguide" label={P(V3.haram, lk)} value={num(100000)} unit={P(V3.times, lk)}
+            <StatTile icon="hajjguide" label={P(V3.haram, lk)} value={num(100000)} count={100000} unit={P(V3.times, lk)}
               hint={`${localizeSource('İbn Macə 1406', lk)} · ${P(SAHIH, lk)}`} tone="brand" />
-            <StatTile icon="holyplaces" label={P(V3.nabawi, lk)} value={num(1000)} unit={P(V3.times, lk)}
+            <StatTile icon="holyplaces" label={P(V3.nabawi, lk)} value={num(1000)} count={1000} unit={P(V3.times, lk)}
               hint={localizeSource('Buxari 1190', lk)} />
             <StatTile icon="holyplaces" label={P(V3.quba, lk)} value={`= 1`} unit={P(V3.umrah, lk)}
               hint={`${P(V3.qubaHint, lk)} — ${localizeSource('İbn Macə 1412', lk)}`} tone="accent" />

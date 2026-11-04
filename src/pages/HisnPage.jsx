@@ -150,7 +150,7 @@ function Counter({ total, L }) {
       <button type="button" className={`hs-counter__btn${done ? ' is-done' : ''}`}
         onClick={() => setLeft(n => Math.max(0, n - 1))} disabled={done}
         aria-label={done ? L.done : `${L.tap}: ${left} / ${total}`}>
-        {done ? <Icon name="check" size={18} /> : <span className="ui-num">{left}</span>}
+        {done ? <Icon name="check" size={18} className="hs-counter__ok" /> : <span key={left} className="ui-num hs-counter__n">{left}</span>}
       </button>
       <span className="hs-counter__label">{done ? L.done : L.times(total)}</span>
       {left !== total && (

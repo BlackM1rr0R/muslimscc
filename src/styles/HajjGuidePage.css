@@ -681,3 +681,91 @@
 .hg-resume__bar { display: block; height: 4px; margin-top: 6px; border-radius: var(--radius-pill); background: var(--viz-track); overflow: hidden; }
 .hg-resume__bar > span { display: block; height: 100%; width: 100%; background: var(--brand); transform-origin: left center; transform: scaleX(var(--p, 0)); }
 [dir="rtl"] .hg-resume__bar > span { transform-origin: right center; }
+
+/* ══ v4 "VAU" — imza anları (səhifəyə xas; yalnız transform/opacity) ══
+   1. Seçim kartlarında addım zənciri (İhram → Təvaf → Səy → Mina → Ərəfə …): kartlar görünəndə
+      halqalar ardıcıl "yolla" açılır; hover-də işıq dalğası zəncir boyunca gəzir (səfər kimi).
+   2. "6 gündə" zaman xətti: şaquli xətt sürüşdükcə çəkilir, gün düyünləri yanır, mətn qalxır
+      (animation-timeline: view(); dəstək yoxdursa — statik).
+   3. Rüknlər/vaciblər: işarələnəndə qutu yay kimi "sıçrayır", sətir yüngül parlayır.
+   4. Addım çiplərində aktiv addımın nömrəsi nəbz halqası ilə seçilir.
+   Hərəkəti azalt → heç biri işləmir. */
+.hg-select-chain__i { transition: background-color 300ms ease, color 300ms ease, transform 300ms cubic-bezier(.16, 1, .3, 1); }
+.hg-select-chain__i:nth-child(1) { --hg-i: 0; }
+.hg-select-chain__i:nth-child(2) { --hg-i: 1; }
+.hg-select-chain__i:nth-child(3) { --hg-i: 2; }
+.hg-select-chain__i:nth-child(4) { --hg-i: 3; }
+.hg-select-chain__i:nth-child(5) { --hg-i: 4; }
+.hg-select-chain__i:nth-child(6) { --hg-i: 5; }
+.hg-select-chain__i:nth-child(7) { --hg-i: 6; }
+.hg-select-chain__i:nth-child(8) { --hg-i: 7; }
+.hg-select-chain__i:nth-child(9) { --hg-i: 8; }
+.hg-select-chain__i:nth-child(10) { --hg-i: 9; }
+.hg-select-chain__i:nth-child(11) { --hg-i: 10; }
+.hg-select-chain__i:nth-child(12) { --hg-i: 11; }
+.hg-select-chain__i:nth-child(13) { --hg-i: 12; }
+.hg-select-chain__i:nth-child(14) { --hg-i: 13; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .hg-select-grid[data-revealed=""] .hg-select-chain__i {
+    animation: hg-chain-in 600ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(260ms + var(--reveal-i, 0) * 90ms + var(--hg-i, 0) * 55ms);
+  }
+  @media (hover: hover) {
+    html:not(.a11y-reduce-motion) .hg-select-btn:hover .hg-select-chain__i {
+      animation: hg-chain-wave 1400ms cubic-bezier(.16, 1, .3, 1) both;
+      animation-delay: calc(var(--hg-i, 0) * 70ms);
+    }
+  }
+  html:not(.a11y-reduce-motion) .hg-rite.is-done .hg-rite__box { animation: hg-box-pop 460ms cubic-bezier(.34, 1.56, .64, 1); }
+  html:not(.a11y-reduce-motion) .hg-rite.is-done { animation: hg-row-glow 900ms ease-out; }
+  html:not(.a11y-reduce-motion) .hg-step-chip.is-active .hg-step-chip-num { position: relative; }
+  html:not(.a11y-reduce-motion) .hg-step-chip.is-active .hg-step-chip-num::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--brand);
+    animation: hg-ping 1800ms cubic-bezier(.16, 1, .3, 1) infinite;
+    pointer-events: none;
+  }
+  @supports (animation-timeline: view()) {
+    html:not(.a11y-reduce-motion) .hg-days .ui-timeline::before {
+      transform-origin: top center;
+      animation: hg-draw-y linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 60%;
+    }
+    html:not(.a11y-reduce-motion) .hg-days .ui-timeline__item::before {
+      animation: hg-node linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 45%;
+    }
+    html:not(.a11y-reduce-motion) .hg-days .ui-timeline__item > * {
+      animation: hg-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
+  }
+}
+@keyframes hg-chain-in {
+  from { opacity: 0; transform: translateY(8px) scale(.85); filter: blur(3px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes hg-chain-wave {
+  0%   { background: var(--surface-2); color: var(--text-secondary); transform: none; }
+  30%  { background: var(--brand); color: var(--on-brand); transform: translateY(-2px); }
+  100% { background: var(--brand-soft); color: var(--brand); transform: none; }
+}
+@keyframes hg-box-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: none; } }
+@keyframes hg-row-glow {
+  from { background-color: color-mix(in srgb, var(--brand) 14%, transparent); }
+  to   { background-color: transparent; }
+}
+@keyframes hg-ping { 0% { opacity: .7; transform: scale(1); } 80%, 100% { opacity: 0; transform: scale(1.7); } }
+@keyframes hg-draw-y { from { transform: scaleY(0); } to { transform: none; } }
+@keyframes hg-node {
+  0%   { transform: scale(0); }
+  70%  { transform: scale(1.5); box-shadow: inset 0 0 0 2px var(--tl-color, var(--viz-1)), 0 0 0 6px color-mix(in srgb, var(--brand) 22%, transparent); }
+  100% { transform: none; }
+}
+@keyframes hg-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }

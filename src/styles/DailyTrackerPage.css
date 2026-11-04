@@ -362,3 +362,31 @@
 }
 .tracker-page .tracker-week-bar-wrap { width: 14px; height: 64px; }
 @media (max-width: 599.98px) { .tracker-page .tracker-week-bar-wrap { width: 10px; height: 48px; } }
+
+/* ══ Dizayn v4 — hərəkət (prefiks dt-v4) ═══════════════════════════
+   halqa görünəndə sıfırdan dolur · həftə sütunları növbə ilə qalxır ·
+   bu gün sütunu nəbz · 100% → həndəsi parıltı (Sparkle) */
+.tracker-page .tracker-progress-section { position: relative; }
+.tracker-progress-section .tm-sparkle { inset-inline-start: 120px; top: 50%; }
+@media (max-width: 560px) { .tracker-progress-section .tm-sparkle { inset-inline-start: 50%; top: 100px; } }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .tracker-circle-progress:not(.is-empty) {
+    animation: dt-v4-ring 1400ms var(--tm-ease) 200ms backwards;
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .tracker-week-bar {
+    animation: tm-grow-y 900ms var(--tm-ease) backwards;
+    animation-delay: calc(250ms + var(--tm-i, 0) * 60ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tracker-week-day.today .tracker-week-num { display: inline-block; animation: dt-v4-beat 2.6s ease-in-out 1.2s infinite; }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tracker-item.just-done .tracker-item-icon { animation: tm-pop 480ms var(--tm-spring); }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .tracker-hero-ar { animation: dt-v4-ink 1500ms var(--tm-ease) 250ms backwards; }
+}
+@keyframes dt-v4-ring { from { stroke-dashoffset: 339.3; } }
+@keyframes dt-v4-beat {
+  0%, 100% { transform: none; }
+  50%      { transform: scale(1.2); }
+}
+@keyframes dt-v4-ink {
+  from { opacity: 0; clip-path: inset(0 0 0 100%); }
+  to   { opacity: 1; clip-path: inset(0 0 0 0); }
+}

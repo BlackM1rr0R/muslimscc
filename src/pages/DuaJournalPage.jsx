@@ -180,6 +180,7 @@ export default function DuaJournalPage({ setPage }) {
   const [editingId, setEditingId] = useState(null)
   // Qəbul olunan / silinən kart qısa çıxış animasiyası ilə gedir
   const [leaving, setLeaving] = useState(null)
+  const [leaveKind, setLeaveKind] = useState('')
   const formRef = useRef(null)
 
   useEffect(() => {
@@ -232,10 +233,12 @@ export default function DuaJournalPage({ setPage }) {
 
   // Kart çıxış animasiyası bitəndən sonra siyahıdan çıxır (hərəkət azaldılıbsa dərhal).
   // Sürətli təkrar klik ikinci dəfə işləməsin
-  const leaveThen = (id, fn) => {
+  // v4: "Qəbul oldu" — kart qızılı işıqla yuxarı "yüksəlir" (daha uzun çıxış, 560ms)
+  const leaveThen = (id, fn, ms = 220, kind = '') => {
     if (leaving) return
     setLeaving(id)
-    setTimeout(() => { fn(); setLeaving(null) }, exitDelay(220))
+    setLeaveKind(kind)
+    setTimeout(() => { fn(); setLeaving(null); setLeaveKind('') }, exitDelay(ms))
   }
 
   const markAnswered = (id) => {
@@ -244,7 +247,7 @@ export default function DuaJournalPage({ setPage }) {
       const updated = cur.map(d => d.id === id ? { ...d, answered: true, answeredDate: todayISO() } : d)
       saveData({ duas: updated })
       return updated
-    }))
+    }), 560, 'answer')
   }
 
   // Silmə geri qaytarılmır — təsadüfi toxunuşa qarşı təsdiq soruşulur
@@ -315,7 +318,7 @@ export default function DuaJournalPage({ setPage }) {
                 label={t.answered} sub={`${answeredDuas.length} / ${duas.length}`} />
               <dl className="dj-summary__kv">
                 <div><dt>{t.active}</dt><dd className="ui-num">{activeDuas.length}</dd></div>
-                <div><dt>{t.answered}</dt><dd className="ui-num">{answeredDuas.length}</dd></div>
+                <div><dt>{t.answered}</dt><dd key={answeredDuas.length} className="ui-num dj-roll">{answeredDuas.length}</dd></div>
                 <div><dt>{t.total}</dt><dd className="ui-num">{duas.length}</dd></div>
               </dl>
             </div>
@@ -456,7 +459,7 @@ export default function DuaJournalPage({ setPage }) {
               {list.map((dua, i) => (
                 <article
                   key={dua.id}
-                  className={`ui-card dj-card dj-cat--${dua.category}${dua.answered ? ' dj-card-answered' : ''}${leaving === dua.id ? ' is-leaving' : ''}${editingId === dua.id ? ' is-editing' : ''}`}
+                  className={`ui-card dj-card dj-cat--${dua.category}${dua.answered ? ' dj-card-answered' : ''}${leaving === dua.id ? ` is-leaving${leaveKind === 'answer' ? ' is-answering' : ''}` : ''}${editingId === dua.id ? ' is-editing' : ''}`}
                   data-reveal="" data-reveal-delay={Math.min(i, 7) * 40}
                 >
                   <div className="dj-card-top">

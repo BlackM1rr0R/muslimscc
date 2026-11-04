@@ -879,8 +879,8 @@ export default function HifzPage() {
                   <span className="hifz-dash__sub">{pkf(H.ayahsOf, lang, memAyahs)}</span>
                 </div>
                 <dl className="ui-kv hifz-dash__kv">
-                  <div><dt>{pk(H.surahsDone, lang)}</dt><dd className="ui-num">{stats.memorized}</dd></div>
-                  <div><dt>{pk(H.streak, lang)}</dt><dd className="ui-num">{streakDays}</dd></div>
+                  <div><dt>{pk(H.surahsDone, lang)}</dt><dd className="ui-num" data-count={stats.memorized}>{stats.memorized}</dd></div>
+                  <div><dt>{pk(H.streak, lang)}</dt><dd className="ui-num" data-count={streakDays}>{streakDays}</dd></div>
                 </dl>
               </div>
               <p className="hifz-dash__note">{pk(H.note, lang)}</p>

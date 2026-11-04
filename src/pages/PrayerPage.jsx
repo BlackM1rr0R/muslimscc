@@ -23,6 +23,9 @@ import usePrayerMonth from '../hooks/usePrayerMonth'
 import PrayerDayline, { hmToMin } from '../components/PrayerDayline'
 import PrayerSky from '../components/prayer/PrayerSky'
 import SunDial from '../components/prayer/SunDial'
+import RollingDigits from '../components/prayer/RollingDigits'
+import Sparkle from '../components/prayer/Sparkle'
+import '../styles/ToolsMotion.css'
 import CalendarSubscribe from '../components/prayer/CalendarSubscribe'
 import { ProgressRing, StatTile } from '../components/viz'
 
@@ -652,7 +655,7 @@ export default function PrayerPage({ setPage }) {
               <div className="pp-now" data-reveal="scale">
                 <div className="prayer-clock">
                   <span className="pp-now-cap">{TXT.now[lk]}</span>
-                  <div className="clock-time ui-num" aria-live="off">{timeStr}</div>
+                  <div className="clock-time ui-num" aria-live="off"><RollingDigits value={timeStr} /></div>
                   <div className="clock-date">{dateStr}</div>
                   {hijri && (
                     <div className="clock-hijri">
@@ -672,7 +675,7 @@ export default function PrayerPage({ setPage }) {
                         <span className="next-at ui-num">{next.time}</span>
                       </span>
                     </div>
-                    <div className="next-countdown ui-num" role="timer" aria-label={`${t.remaining}: ${countdown}`}>{countdown}</div>
+                    <div className="next-countdown ui-num" role="timer" aria-label={`${t.remaining}: ${countdown}`}><RollingDigits value={countdown} /></div>
                     <div className="next-remaining-label">{t.remaining}</div>
                     {frac != null && (
                       <span className="pp-bar" aria-hidden="true">
@@ -738,7 +741,7 @@ export default function PrayerPage({ setPage }) {
                   </div>
                 )}
                 {times && !loading && (
-                  <ol className="prayer-times-list pp-swap" key={sel || 'default'}>
+                  <ol className="prayer-times-list pp-swap tm-cascade" key={sel || 'default'}>
                     {PRAYER_KEYS.map((key,i) => {
                       const isNext = next?.name === key && !pt.next?.tomorrow
                       const passed = i < nextIdx
@@ -772,6 +775,7 @@ export default function PrayerPage({ setPage }) {
 
               {/* ── Bu ayın namazları: halqa + bu günün 5 düyməsi ── */}
               <div className={`stat-card ui-card${allDone ? ' is-complete' : ''}`} data-reveal>
+                {allDone && <Sparkle key={totalDone} count={10} radius={70} />}
                 <div className="stat-card-header">
                   <div className="stat-card-head-l">
                     <h2 className="stat-card-title">{s('statTitle')}</h2>
@@ -831,7 +835,7 @@ export default function PrayerPage({ setPage }) {
             <div className="ui-card pp-day-card pp-day-card--dial" data-reveal>
               <SunDial times={dayTimes} names={dayNames} nowMin={nowMin}
                 nextKey={pt.next && !pt.next.tomorrow ? pt.next.key : null}
-                centerTop={pt.next ? countdown : ''} centerBottom={nextLabel}
+                centerTop={pt.next ? <RollingDigits value={countdown} /> : ''} centerBottom={nextLabel}
                 label={P(V3.dayLabel)} />
               <div className="pp-day-line">
                 <PrayerDayline times={dayTimes} names={dayNames} nowMin={nowMin} nowLabel={TXT.now[lk]}
@@ -906,7 +910,7 @@ export default function PrayerPage({ setPage }) {
               {Array.from({ length: 5 }, (_, i) => <span key={i} className="ui-skeleton ui-skeleton--text" style={{ '--w': `${92 - i * 7}%` }} />)}
             </div>
           ) : (
-            <div className={`ui-table-wrap pp-month-wrap${weekMode ? ' is-week' : ''}`} tabIndex={0} role="region" aria-labelledby="pp-month-title">
+            <div className={`ui-table-wrap pp-month-wrap tm-cascade-rows${weekMode ? ' is-week' : ''}`} data-reveal="fade" tabIndex={0} role="region" aria-labelledby="pp-month-title">
               <table className="ui-table ui-table--compact ui-table--zebra pp-month-table">
                 <caption>{P(V3.monthNote).replace('{city}', cityName)} {P(V3.friday)}.</caption>
                 <thead>
@@ -1002,7 +1006,7 @@ export default function PrayerPage({ setPage }) {
           </div>
           <div className="pp-sunnah-grid">
             {/* v3.2: cədvəl əvəzinə kart grid — ikon, rükət nişanı, izah, mənbə çipi */}
-            <ul className="pp-sunnah-cards" data-reveal="stagger">
+            <ul className="pp-sunnah-cards" data-reveal="stagger-blur">
               {SUNNAH_PRAYERS.map((sp, i) => (
                 <li key={i} className="pp-sunnah-card">
                   <div className="pp-sunnah-top">

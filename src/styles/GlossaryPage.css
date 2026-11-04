@@ -350,3 +350,50 @@
   .glossary-page .glossary-card .glossary-definition { -webkit-line-clamp: unset; display: block; }
 }
 .glossary-card-meta .glossary-cat-badge { align-self: center; }
+
+/* ══ v4 "VAU" — imza anları (səhifəyə xas; yalnız transform/opacity) ══
+   1. Hərf zolağı "böyüdücü" (macOS dock kimi): kursorun altındakı hərf 1.5×, qonşuları 1.22× / 1.08×
+      böyüyüb qalxır — yalnız transform (layout tərpənmir), :has() ilə; seçilmiş hərfin altında sürüşən xətt.
+   2. Kateqoriya payı zolaqları (glossary-cat-btn__share) görünəndə soldan dolur.
+   3. Kart başlığındakı ərəbcə yazı ilk görünüşdə "mürəkkəblə çəkilir".
+   Hərəkəti azalt → heç biri işləmir. */
+@media (min-width: 768px) and (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .glossary-page .glossary-alpha-btn {
+    transform-origin: 50% 100%;
+    transition: background-color var(--dur-1) ease, color var(--dur-1) ease, border-color var(--dur-1) ease, transform 260ms cubic-bezier(.34, 1.56, .64, 1);
+  }
+  html:not(.a11y-reduce-motion) .glossary-page .glossary-alpha-btn:hover {
+    position: relative; z-index: 3;
+    transform: translateY(-6px) scale(1.5);
+    box-shadow: var(--shadow-2);
+  }
+  html:not(.a11y-reduce-motion) .glossary-page .glossary-alpha-btn:hover + .glossary-alpha-btn,
+  html:not(.a11y-reduce-motion) .glossary-page .glossary-alpha-btn:has(+ .glossary-alpha-btn:hover) {
+    position: relative; z-index: 2;
+    transform: translateY(-3px) scale(1.22);
+  }
+  html:not(.a11y-reduce-motion) .glossary-page .glossary-alpha-btn:hover + .glossary-alpha-btn + .glossary-alpha-btn,
+  html:not(.a11y-reduce-motion) .glossary-page .glossary-alpha-btn:has(+ .glossary-alpha-btn + .glossary-alpha-btn:hover) {
+    position: relative; z-index: 1;
+    transform: translateY(-1px) scale(1.08);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .glossary-page .glossary-alpha-btn[aria-pressed="true"]:not(.glossary-alpha-btn--all):not(.glossary-fav-chip) {
+    animation: glo-pick 520ms cubic-bezier(.34, 1.56, .64, 1);
+  }
+  html:not(.a11y-reduce-motion) .glossary-cat-btn__share {
+    transform-origin: left center;
+    animation: glo-fill 1100ms cubic-bezier(.16, 1, .3, 1) 300ms backwards;
+  }
+  html:not(.a11y-reduce-motion) [dir="rtl"] .glossary-cat-btn__share { transform-origin: right center; }
+  html:not(.a11y-reduce-motion) .glossary-card[data-revealed=""] .glossary-arabic-text {
+    animation: glo-ink 1000ms cubic-bezier(.16, 1, .3, 1) 200ms backwards;
+  }
+}
+@keyframes glo-pick { 0% { transform: scale(.8); } 60% { transform: scale(1.18); } 100% { transform: none; } }
+@keyframes glo-fill { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes glo-ink {
+  from { opacity: 0; clip-path: inset(-20% 0 -20% 100%); }
+  to   { opacity: 1; clip-path: inset(-20% 0 -20% 0); }
+}

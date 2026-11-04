@@ -484,3 +484,84 @@
   .books-page .bp-read-btn { flex: 1 1 100%; }
   .bp-actions .bp-star { margin-inline-start: 0; }
 }
+
+/* ══ v4 "VAU" — imza anları (səhifəyə xas; yalnız transform/opacity) ══
+   1. 3D kitab: üz qabığı onurğa (sol kənar; RTL-də sağ) ətrafında açılır — hover-də qapaq
+      ~24° fırlanır, arxasından səhifə kənarları görünür, üzərindən parıltı keçir.
+   2. Görünəndə qapaq "bağlanaraq" yerinə gəlir (rotateY → 0), kartlar növbə ilə.
+   3. Hero rəqəmləri sayılır (data-count).
+   Hərəkəti azalt → heç biri işləmir (hover-də də). */
+.books-page .bp-cover {
+  perspective: 900px;
+  /* qapağın arxasındakı "səhifələr" — açılanda görünür */
+  background:
+    repeating-linear-gradient(90deg, transparent 0 3px, color-mix(in srgb, var(--text) 6%, transparent) 3px 4px),
+    linear-gradient(90deg, var(--surface-2), var(--surface-1));
+}
+.books-page .bp-cover > img,
+.books-page .bp-cover > .bp-cover-placeholder {
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+[dir="rtl"] .books-page .bp-cover > img,
+[dir="rtl"] .books-page .bp-cover > .bp-cover-placeholder { transform-origin: right center; }
+.books-page .bp-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .28) 48%, transparent 60%);
+  opacity: 0;
+  transform: translateX(-60%);
+}
+/* onurğa kölgəsi */
+.books-page .bp-cover::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 10px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 0, 0, .28), transparent);
+}
+[dir="rtl"] .books-page .bp-cover::before { background: linear-gradient(-90deg, rgba(0, 0, 0, .28), transparent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  @media (hover: hover) {
+    html:not(.a11y-reduce-motion) .books-page .bp-cover > img,
+    html:not(.a11y-reduce-motion) .books-page .bp-cover > .bp-cover-placeholder {
+      transition: transform 700ms cubic-bezier(.16, 1, .3, 1), box-shadow 700ms ease;
+    }
+    html:not(.a11y-reduce-motion) .books-page :is(.bp-card, .bp-featured-card):hover .bp-cover > img,
+    html:not(.a11y-reduce-motion) .books-page :is(.bp-card, .bp-featured-card):hover .bp-cover > .bp-cover-placeholder {
+      transform: rotateY(-24deg);
+      box-shadow: 14px 0 26px -10px rgba(0, 0, 0, .45);
+    }
+    html:not(.a11y-reduce-motion) [dir="rtl"] .books-page :is(.bp-card, .bp-featured-card):hover .bp-cover > img,
+    html:not(.a11y-reduce-motion) [dir="rtl"] .books-page :is(.bp-card, .bp-featured-card):hover .bp-cover > .bp-cover-placeholder {
+      transform: rotateY(24deg);
+      box-shadow: -14px 0 26px -10px rgba(0, 0, 0, .45);
+    }
+    html:not(.a11y-reduce-motion) .books-page :is(.bp-card, .bp-featured-card):hover .bp-cover::after {
+      animation: bp-sheen 900ms cubic-bezier(.16, 1, .3, 1);
+    }
+  }
+  html:not(.a11y-reduce-motion) .books-page .bp-card[data-revealed=""] .bp-cover > :is(img, .bp-cover-placeholder),
+  html:not(.a11y-reduce-motion) .books-page .bp-featured-row[data-revealed=""] .bp-cover > :is(img, .bp-cover-placeholder) {
+    animation: bp-close 1000ms cubic-bezier(.16, 1, .3, 1) backwards;
+    animation-delay: calc(150ms + var(--reveal-delay, 0ms) + var(--reveal-i, 0) * 70ms);
+  }
+  html:not(.a11y-reduce-motion) [dir="rtl"] .books-page .bp-card[data-revealed=""] .bp-cover > :is(img, .bp-cover-placeholder),
+  html:not(.a11y-reduce-motion) [dir="rtl"] .books-page .bp-featured-row[data-revealed=""] .bp-cover > :is(img, .bp-cover-placeholder) {
+    animation-name: bp-close-rtl;
+  }
+}
+@keyframes bp-sheen {
+  0%   { opacity: 0; transform: translateX(-60%); }
+  30%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(60%); }
+}
+@keyframes bp-close { from { transform: rotateY(-75deg); opacity: .4; } to { transform: none; opacity: 1; } }
+@keyframes bp-close-rtl { from { transform: rotateY(75deg); opacity: .4; } to { transform: none; opacity: 1; } }

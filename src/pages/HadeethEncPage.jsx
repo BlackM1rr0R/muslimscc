@@ -445,7 +445,7 @@ export default function HadeethEncPage() {
             </span>
           </div>
 
-          {!isFav && curCat && <h2 className="he-cur" lang={clang} dir={cdir}>{curCat.title}</h2>}
+          {!isFav && curCat && <h2 key={`cur-${curCat.id}`} className="he-cur" lang={clang} dir={cdir}>{curCat.title}</h2>}
 
           {/* Kartlar */}
           {!isFav && listState === 'error' && items.length === 0 ? errorBox(() => loadPage(1))
@@ -458,7 +458,7 @@ export default function HadeethEncPage() {
                 {q && <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setQ('')}><Icon name="refresh" className="ui-btn__icon" /> {L.clear}</button>}
               </div>
             ) : (
-              <ol className="he-grid">
+              <ol className="he-grid" key={`grid-${isFav ? 'fav' : (curCat?.id ?? 'all')}`}>
                 {list.map(x => {
                   const xl = isFav ? x.lang : clang
                   const g = cachedHadeeth(xl, x.id)?.grade

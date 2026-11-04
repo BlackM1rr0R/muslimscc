@@ -4,6 +4,8 @@ import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import '../styles/DailyTrackerPage.css'
+import '../styles/ToolsMotion.css'
+import Sparkle from '../components/prayer/Sparkle'
 import { setPrayerStatus } from '../utils/prayerTracker'
 import { usePendingCheckinSync } from '../hooks/usePrayerTracker'
 import Breadcrumb from '../components/Breadcrumb'
@@ -248,6 +250,7 @@ export default function DailyTrackerPage({ setPage }) {
 
           {/* Faiz halqası + statistika; hamısı bitəndə qızılı halqa və təbrik */}
           <div className={`tracker-progress-section ui-card${percent === 100 ? ' is-complete' : ''}`} data-reveal="scale">
+            {percent === 100 && <Sparkle count={14} radius={110} />}
             <div className="tracker-circle-wrap" role="img" aria-label={`${x.progress}: ${percent}% (${doneCount}/${totalCount})`}>
               <svg className="tracker-circle" viewBox="0 0 120 120" aria-hidden="true">
                 <circle cx="60" cy="60" r="54" fill="none" className="tracker-circle-track" strokeWidth="8" />
@@ -336,10 +339,10 @@ export default function DailyTrackerPage({ setPage }) {
           {/* Həftə (gün kafelləri) + son 30 gündə hər əməlin ardıcıllığı (istilik xəritəsi) */}
           <div className="tracker-week">
             <div className="tracker-charts">
-              <section className="ui-card tracker-chart" aria-labelledby="tracker-week-h">
+              <section className="ui-card tracker-chart" data-reveal aria-labelledby="tracker-week-h">
                 <h2 className="tracker-chart-title" id="tracker-week-h">{t.weekView}</h2>
                 <p className="tracker-chart-sub">{v.weekSub}</p>
-                <ol className="tracker-week-grid">
+                <ol className="tracker-week-grid tm-cascade">
                   {weekData.map(d => (
                     <li key={d.key}
                       className={`tracker-week-day${d.current ? ' today' : ''}${d.value === 100 ? ' complete' : ''}`}

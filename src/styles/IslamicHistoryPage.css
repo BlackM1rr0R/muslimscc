@@ -350,3 +350,72 @@
 }
 .hx-read .hx-prophet__num { display: inline-grid; place-items: center; min-width: 30px; height: 30px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--surface-2); color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; }
 .hx-read .hx-ev__when { color: var(--accent-text); font-weight: 700; }
+
+/* ══ v4 "VAU" — imza anları (səhifəyə xas; yalnız transform/opacity/clip-path) ══
+   1. Peyğəmbərlər "yolu": hər kartın nömrə düyünü kart ekrana girdikcə "yanır" (halqa + parıltı),
+      düyündən kartın sonuna qızılı xətt çəkilir — Adəmdən Muhəmmədə (sallallahu aleyhi və səlləm) qədər silsilə.
+   2. Hadisələrin şaquli zaman xətti (<1100px) sürüşdükcə yuxarıdan aşağı çəkilir, nöqtələr yanır.
+   3. Hero fotosu yavaş Ken Burns yaxınlaşması.
+   animation-timeline: view() dəstəklənmirsə — statik. Hərəkəti azalt → heç biri işləmir. */
+.history-page .hx-prophet__names { flex: 0 1 auto; }
+.history-page .hx-prophet__badge { order: 2; }
+.hx-prophet__head::after {
+  content: "";
+  order: 1;
+  flex: 1 1 24px;
+  align-self: center;
+  min-width: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 60%, transparent), transparent);
+  pointer-events: none;
+}
+[dir="rtl"] .hx-prophet__head::after { background: linear-gradient(-90deg, color-mix(in srgb, var(--accent) 60%, transparent), transparent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .hist-hero__aside .ph.is-loaded .ph__img {
+    animation: hx-kb 26s ease-in-out infinite alternate;
+  }
+  @supports (animation-timeline: view()) {
+    html:not(.a11y-reduce-motion) .hx-prophets .hx-prophet__num {
+      animation: hx-node linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 35%;
+    }
+    html:not(.a11y-reduce-motion) .hx-prophet__head::after {
+      transform-origin: left center;
+      animation: hx-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 40%;
+    }
+    html:not(.a11y-reduce-motion) [dir="rtl"] .hx-prophet__head::after { transform-origin: right center; }
+    html:not(.a11y-reduce-motion) .hx-tl::before {
+      transform-origin: top center;
+      animation: hx-draw-y linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 20%;
+    }
+    html:not(.a11y-reduce-motion) .hx-ev::before {
+      animation: hx-dot linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 40%;
+    }
+    html:not(.a11y-reduce-motion) .hx-tl .hx-ev__when {
+      animation: hx-when linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
+  }
+}
+@keyframes hx-kb {
+  from { transform: scale(1.02) translate3d(0, 0, 0); }
+  to   { transform: scale(1.14) translate3d(-2%, -2%, 0); }
+}
+@keyframes hx-node {
+  0%   { transform: scale(.6); opacity: .3; box-shadow: 0 0 0 0 transparent; }
+  60%  { transform: scale(1.18); opacity: 1; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent); }
+  100% { transform: none; opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
+}
+@keyframes hx-draw { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes hx-draw-y { from { transform: scaleY(0); } to { transform: none; } }
+@keyframes hx-dot { from { transform: scale(0); } 70% { transform: scale(1.4); } to { transform: none; } }
+@keyframes hx-when { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

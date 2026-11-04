@@ -158,3 +158,32 @@
 
 .mh-quotes__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: var(--space-5) var(--space-6); align-items: start; }
 .mh-page .mh-quote .ui-quote__ar { text-wrap: pretty; }
+
+/* ══ Dizayn v4 — hərəkət (prefiks mh-v4) ═══════════════════════════
+   30 günlük istilik zolaqları soldan sağa "yanır" · əməl qeyd olunanda
+   işarə yay kimi · bütün əməllər tamam → həndəsi parıltı */
+.mh-check { position: relative; }
+.mh-heat__row:nth-child(2) { --r: 1; }
+.mh-heat__row:nth-child(3) { --r: 2; }
+.mh-heat__row:nth-child(4) { --r: 3; }
+.mh-heat__row:nth-child(5) { --r: 4; }
+.mh-heat__row:nth-child(6) { --r: 5; }
+.mh-heat__row:nth-child(7) { --r: 6; }
+.mh-heat__row:nth-child(8) { --r: 7; }
+.mh-heat__cell.is-today { position: relative; }
+@media (prefers-reduced-motion: no-preference) {
+  html.qm-reveal-on:not(.a11y-reduce-motion) [data-revealed=""] .mh-heat__cell {
+    animation: mh-v4-cell 460ms var(--tm-ease) backwards;
+    animation-delay: calc(100ms + (var(--i, 0) + var(--r, 0) * 2) * 16ms);
+  }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .mh-item.is-on .mh-item__mark { animation: tm-pop 460ms var(--tm-spring); }
+  html.qm-reveal-on:not(.a11y-reduce-motion) .mh-heat__cell.is-today { animation: mh-v4-cell 460ms var(--tm-ease) backwards, mh-v4-beat 2.4s ease-in-out 1.5s infinite; }
+}
+@keyframes mh-v4-cell {
+  from { opacity: 0; transform: scale(0.2); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes mh-v4-beat {
+  0%, 100% { transform: none; }
+  50%      { transform: scale(1.35); }
+}

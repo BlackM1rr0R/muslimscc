@@ -85,6 +85,8 @@ function formatLike(sample, value, decimals) {
 
 function runCount(el) {
   countIo?.unobserve(el)
+  // Saytın əlçatanlıq panelində "hərəkəti azalt" — rəqəm dərhal son halında qalır
+  if (document.documentElement.classList.contains('a11y-reduce-motion')) return
   const node = el.firstChild
   const target = parseFloat(el.getAttribute('data-count'))
   if (!node || node.nodeType !== 3 || el.childNodes.length !== 1 || !Number.isFinite(target)) return
