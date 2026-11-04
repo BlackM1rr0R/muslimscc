@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { LETTERS, QW, READING_TWO, READING_THREE, PRACTICE_AYAHS, TAJWEED, syllables } from '../../data/arabicCourse.js'
-import { letterAudioUrl, ayahUrls } from './useCourseAudio.js'
+import { letterAudioUrl } from './useCourseAudio.js'
 import { ui, pick } from './strings.js'
 
 export const QUIZ_LENGTH = { letters: 10, harakat: 10, reading: 8, tajweed: 8 }

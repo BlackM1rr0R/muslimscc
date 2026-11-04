@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
-import { BOOK_CATEGORIES, DEFAULT_BOOKS, subscribeToBooks, getDefaultCover } from '../data/books'
+import { BOOK_CATEGORIES, DEFAULT_BOOKS, subscribeToBooks } from '../data/books'
 import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
 import ListMore from '../components/ListMore'
 import BackToTop from '../components/BackToTop'
@@ -116,7 +116,7 @@ function countWord(n, key, lang, fallback) {
   return a >= 3 && a <= 10 ? f[1] : x > 10 ? f[2] : f[0]
 }
 
-export default function BooksPage({ setPage }) {
+export default function BooksPage() {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
   const bx = BP32[lang] || BP32.en
@@ -254,7 +254,7 @@ export default function BooksPage({ setPage }) {
     }
   }
 
-  const renderCover = (b, size = 'normal') => {
+  const renderCover = (b) => {
     const cat = BOOK_CATEGORIES.find(c => c.key === b.category)
     // Avtomatik üz qabığı seçilmiş dildə (coverByLang), real şəkil olduğu kimi
     const cover = b.coverByLang?.[lang] || b.coverUrl

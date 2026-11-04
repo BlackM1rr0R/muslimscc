@@ -124,7 +124,6 @@ export function calculateInheritance(input = {}) {
     + h.maternalBrothers + h.maternalSisters
   const father = h.father > 0
   const grandfather = !father && h.paternalGrandfather > 0
-  const maleAsc = father || grandfather
 
   // Nəticə sətirləri: { heir, count, fard (Fraction|null), kind, reasonKey, weight }
   const rows = {}

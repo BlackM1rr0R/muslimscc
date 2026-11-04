@@ -292,7 +292,6 @@ function canOfferNotifications() {
 export default function AnnouncementsPage({ setPage }) {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.en
-  const isRtl = lang === 'ar'
 
   const [rawAnnouncements, setRawAnnouncements] = useState([])
   const [rawEvents, setRawEvents] = useState([])

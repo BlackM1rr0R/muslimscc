@@ -31,7 +31,6 @@ export const meta = {
   minutes: 15,
 }
 
-const SAHIH_ALB = { az: 'Səhih (əl-Albani)', en: 'Sahih (al-Albani)', ru: 'Достоверный (аль-Албани)', ar: 'صحيح (الألباني)', tr: 'Sahih (Elbânî)' }
 
 export default {
   sections: [

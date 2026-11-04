@@ -242,7 +242,6 @@ export default function MosqueFinderPage({ setPage }) {
       setErrorMsg('api')
     }
     // cityLoc hər renderdə yenidən oxunur; koordinatı dəyişəndə funksiya da yenilənir
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang, cityLoc.lat, cityLoc.lng])
 
   return (

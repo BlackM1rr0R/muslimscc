@@ -721,7 +721,7 @@ export default function MosqueTvPage({ setPage }) {
         )}
         {!compact && hasData && <p className="mtv-foot">{l.calc} · <span className="mtv-brand">Muslims.cc</span></p>}
         {compact && hasData && (
-          <a className="mtv-foot mtv-brand" href="https://muslims.cc" target="_blank" rel="noopener">Muslims.cc</a>
+          <a className="mtv-foot mtv-brand" href="https://muslims.cc" target="_blank" rel="noopener noreferrer">Muslims.cc</a>
         )}
       </section>
 

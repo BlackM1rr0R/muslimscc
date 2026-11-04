@@ -18,11 +18,6 @@
 //   Burada yalnız qısa izah + dəlil + keçid.
 // ═══════════════════════════════════════════════════════
 
-import { localizeSource } from '../../utils/sourceNames.js'
-
-const LANGS = ['az', 'en', 'ru', 'ar', 'tr']
-const S = (s) => Object.fromEntries(LANGS.map(l => [l, localizeSource(s, l)]))
-
 const URL = {
   qa21290: 'https://islamqa.info/en/answers/21290',
   qa4033: 'https://islamqa.info/en/answers/4033',

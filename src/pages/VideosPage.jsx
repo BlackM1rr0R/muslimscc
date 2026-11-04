@@ -63,7 +63,7 @@ function sheetExitMs() {
   } catch { return 0 }
 }
 
-export default function VideosPage({ setPage }) {
+export default function VideosPage() {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
   const navigate = useNavigate()

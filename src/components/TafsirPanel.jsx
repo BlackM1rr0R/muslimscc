@@ -92,7 +92,7 @@ function rangeText(verses) {
   return `${verses[0]}–${verses[verses.length - 1]}`
 }
 
-function TafsirBody({ surah, ayah, tafsirId, lang, ui }) {
+function TafsirBody({ surah, ayah, tafsirId, ui }) {
   const meta = getTafsir(tafsirId)
   const [attempt, setAttempt] = useState(0)
   const [state, setState] = useState(() => {

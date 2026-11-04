@@ -215,12 +215,11 @@ export default function HadeethEncPage() {
   const [items, setItems] = useState([])
   const [meta, setMeta] = useState({ page: 0, lastPage: 0, total: 0 })
   const [listState, setListState] = useState('idle')   // idle | loading | more | error
-  const [listErr, setListErr] = useState(null)
   const reqRef = useRef(0)
   const loadPage = useCallback(async (page) => {
     if (!catId) return
     const my = ++reqRef.current
-    setListState(page === 1 ? 'loading' : 'more'); setListErr(null)
+    setListState(page === 1 ? 'loading' : 'more')
     try {
       const r = await fetchHadeethList(clang, catId, page, PER_PAGE)
       if (my !== reqRef.current) return
@@ -231,9 +230,9 @@ export default function HadeethEncPage() {
       })
       setMeta({ page: r.page, lastPage: r.lastPage, total: r.total })
       setListState('idle')
-    } catch (e) {
+    } catch {
       if (my !== reqRef.current) return
-      setListErr(e); setListState('error')
+      setListState('error')
     }
   }, [clang, catId])
   useEffect(() => { setItems([]); setMeta({ page: 0, lastPage: 0, total: 0 }); if (catId) loadPage(1) }, [catId, clang, loadPage])

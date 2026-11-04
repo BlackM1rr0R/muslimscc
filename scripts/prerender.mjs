@@ -470,7 +470,7 @@ const t0 = Date.now()
 let count = 0
 for (const p of PAGES) {
   // Admin marşrutları da HƏR DİLDƏ statik yazılır: server artıq naməlum
-  // ünvana həqiqi 404 qaytarır (bax: deploy/nginx-muslims.cc.conf, .htaccess),
+  // ünvana həqiqi 404 qaytarır (bax: infra/nginx/muslims.cc.conf),
   // tətbiq isə interfeys ingiliscə olanda admini /en/admin ünvanında açır.
   // noindex olduqları üçün sitemap-a düşmürlər.
   for (const lang of LANGS) {

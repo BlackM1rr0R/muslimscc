@@ -771,7 +771,7 @@ function SmartHifz({ lang, progress, setProgress, srs, setSrs }) {
   )
 }
 
-export default function HifzPage({ setPage }) {
+export default function HifzPage() {
   const { lang } = useLang()
   const t = LABELS[lang] || LABELS.az
   const sl = STATUS_LABELS[lang] || STATUS_LABELS.az

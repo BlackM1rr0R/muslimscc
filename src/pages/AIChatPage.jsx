@@ -189,7 +189,7 @@ const CAP_ICONS = ['hadith', 'shield', 'user']
 
 const STORAGE_KEY = 'muslim_cc_ai_chat'
 
-export default function AIChatPage({ setPage }) {
+export default function AIChatPage() {
   const { lang } = useLang()
   const l = LABELS[lang] || LABELS.az
 

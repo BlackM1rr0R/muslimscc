@@ -143,7 +143,6 @@ export default function CalSunnahFasts({ lang, hijriOf, monthNames }) {
   }
 
   // Bu gündən 60 gün irəli + 6 gün geri (eyni hicri hesablama ilə)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const days = useMemo(() => {
     const out = []
     for (let i = -6; i <= 60; i++) {

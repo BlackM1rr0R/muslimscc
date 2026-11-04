@@ -344,7 +344,7 @@ const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 function decodeMappings(mappings) {
   // → hər çıxış sətri üçün [[genCol, srcLine], …]
   const lines = []
-  let srcLine = 0, srcCol = 0, srcIdx = 0, name = 0
+  let srcLine = 0
   for (const lineStr of mappings.split(';')) {
     const segs = []
     let genCol = 0
@@ -360,7 +360,7 @@ function decodeMappings(mappings) {
         else { vals.push(value & 1 ? -(value >>> 1) : value >>> 1); value = 0; shift = 0 }
       }
       genCol += vals[0]
-      if (vals.length >= 4) { srcIdx += vals[1]; srcLine += vals[2]; srcCol += vals[3]; if (vals.length === 5) name += vals[4]; segs.push([genCol, srcLine]) }
+      if (vals.length >= 4) { srcLine += vals[2]; segs.push([genCol, srcLine]) }
     }
     lines.push(segs)
   }
@@ -496,7 +496,6 @@ function analyze(rel) {
   const objects = []
   const root = { open: null, lang: null, valueLang: null, expectKey: false, entries: [], keys: new Set(), parent: null, key: null }
   const stack = [root]
-  let curKey = null
   for (let k = 0; k < toks.length; k++) {
     const tk = toks[k]
     const top = stack[stack.length - 1]

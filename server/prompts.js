@@ -1,5 +1,5 @@
 // AI köməkçinin sistem promptları — hər dil ÖZ dilində.
-// Mənbə: api/ask-ai.js (Vercel funksiyası) — orada dəyişəndə bura da köçür.
+// Yeganə mənbə budur (köhnə Vercel funksiyası api/ask-ai.js silindi).
 // server.js (Docker "api" konteyneri) bunu istifadə edir.
 
 'use strict'

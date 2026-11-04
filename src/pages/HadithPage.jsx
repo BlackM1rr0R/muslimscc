@@ -334,7 +334,7 @@ function HadithAbout({ u, lang, list }) {
   )
 }
 
-export default function HadithPage({ setPage }) {
+export default function HadithPage() {
   const { lang } = useLang()
   const t = T[lang]?.hadith || T.az.hadith
   const cats = CATS_MAP[lang] || CATS_EN

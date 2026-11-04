@@ -435,7 +435,6 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     return { key: 'default', icon: 'bell', text: l.default }
   })()
 
-  const needsAttention = supported && permission !== 'granted' && permission !== 'denied'
 
   return (
     <>

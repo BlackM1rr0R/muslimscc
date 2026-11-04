@@ -98,7 +98,7 @@ const CITATION_RE = /\b(qur['’]?an|quran|kuran|коран|bux[aə]ri|bukhari|m
 /**
  * Model cavabını yoxla. Qaytarır: null (təmiz) və ya səbəb mətni.
  */
-export function validate(out, item) {
+export function validate(out, _item) {
   if (!out || typeof out.az !== 'string' || typeof out.en !== 'string') {
     return 'cavab formatı yanlışdır'
   }

@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { haptic } from '../hooks/useHaptic'
-import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
 import { isPlainClick } from '../components/PageLink'
@@ -25,15 +24,6 @@ function gregorianToHijri(gDate) {
   const gy = gDate.getFullYear()
   const gm = gDate.getMonth() + 1
   const gd = gDate.getDate()
-
-  let jd = Math.floor((11 * gy + 3) / 30) + 354 * gy + 30 * gm
-    - Math.floor((gm - 1) / 2) + gd + 1948440 - 385
-
-  if (gm <= 2) {
-    jd -= Math.floor((gy - 1) / 4) - Math.floor((gy - 1) / 100) + Math.floor((gy - 1) / 400)
-  } else {
-    jd -= Math.floor(gy / 4) - Math.floor(gy / 100) + Math.floor(gy / 400)
-  }
 
   // Julian Day → Gregorian JD
   const a = Math.floor((14 - gm) / 12)

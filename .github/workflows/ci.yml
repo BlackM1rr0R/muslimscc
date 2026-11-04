@@ -47,6 +47,8 @@ jobs:
         run: node scripts/check-config-sync.mjs
       - name: Dil təmizliyi (az-da türkcə yox və s.)
         run: node scripts/check-lang.mjs
+      - name: ESLint (hook qaydaları, istifadəsiz kod)
+        run: npm run lint
       - name: Unit testlər
         run: npm run test:unit
       - name: API sintaksisi

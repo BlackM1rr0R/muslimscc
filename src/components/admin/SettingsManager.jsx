@@ -162,7 +162,7 @@ export default function SettingsManager() {
               className="admin-input"
               value={settings.apiUrl || ''}
               onChange={(e) => update('apiUrl', e.target.value)}
-              placeholder="https://muslim-cc.vercel.app"
+              placeholder="https://muslims.cc"
             />
             <p className="admin-hint">
               {l.apiHint.replace('{name}', tr(BRAND.aiName, lang))}

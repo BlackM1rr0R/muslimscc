@@ -153,7 +153,7 @@ test('fcm_tokens: icazəsiz sahə və yanlış tiplər rədd edilir', async () =
   await assertFails(setDoc(ref, fullDoc({ daily: { ayah: true, hour: 24 } })))
   await assertFails(setDoc(ref, fullDoc({ daily: { ayah: 1, hour: 8 } })))
   // createdAt-siz yaradılış da olur (isNew=false, amma sənəd silinib)
-  const { createdAt, ...noCreated } = fullDoc()
+  const { createdAt: _createdAt, ...noCreated } = fullDoc()
   await assertSucceeds(setDoc(ref, noCreated))
 })
 

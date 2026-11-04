@@ -407,15 +407,6 @@ export default function KidsPage({ setPage }) {
     })
   }
 
-  const getLangField = (obj, field) => {
-    if (lang === 'az') return obj[field] || obj.az || ''
-    if (lang === 'en') return obj[`en_${field}`] || obj[`en${field ? '_'+field : ''}`] || obj.en || obj[`en_desc`] || ''
-    if (lang === 'ru') return obj[`ru_${field}`] || obj[`ru${field ? '_'+field : ''}`] || obj.ru || obj[`ru_desc`] || ''
-    if (lang === 'ar') return obj[`ar_${field}`] || obj[`ar${field ? '_'+field : ''}`] || obj.ar || obj[`ar_desc`] || ''
-    if (lang === 'tr') return obj[`tr_${field}`] || obj[`tr${field ? '_'+field : ''}`] || obj.tr || obj[`tr_desc`] || ''
-    return obj.az || obj.en || ''
-  }
-
   const getQuizQ = (q) => q[`${lang}_q`] || q.az_q
   const getQuizOpts = (q) => q[`${lang}_options`] || q.options
 

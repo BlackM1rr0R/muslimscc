@@ -9,28 +9,34 @@
     "social:pool": "node -e \"import('./scripts/social/content.mjs').then(m=>m.writePool()).then(n=>console.log('pool.json:',n,'element'))\"",
     "social:post": "node scripts/social/run.mjs",
     "preview": "vite preview",
-    "test": "npm run check && npm run test:unit",
+    "test": "npm run check && npm run lint && npm run test:unit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test:rules": "npx -y firebase-tools@15 emulators:exec --only firestore --project demo-muslims-cc \"node --test tests/rules/firestore.rules.test.js\"",
     "check": "node scripts/check-config-sync.mjs && node scripts/check-lang.mjs",
-    "check:lang": "node scripts/check-lang.mjs"
+    "check:lang": "node scripts/check-lang.mjs",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.122.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.0",
-    "zod": "^4.5.2"
+    "react-router-dom": "^6.22.0"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
     "@axe-core/playwright": "^4.14.0",
+    "@eslint/js": "^9.39.5",
     "@firebase/rules-unit-testing": "^3.0.4",
     "@playwright/test": "^1.64.1",
     "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "express": "^5.3.0",
+    "globals": "^17.14.0",
     "sharp": "^0.35.5",
     "vite": "^5.1.0",
-    "vitest": "^3.2.7"
+    "vitest": "^3.2.7",
+    "zod": "^4.5.2"
   }
 }

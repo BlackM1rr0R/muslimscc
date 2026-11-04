@@ -22,7 +22,7 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-import { pickNext, stats, TYPES, STATE_DIR } from './content.mjs'
+import { pickNext, stats, TYPES } from './content.mjs'
 import { generateCaption, composeCaption } from './caption.mjs'
 import { publishPhoto, checkAccount, hasCredentials } from './publish.mjs'
 

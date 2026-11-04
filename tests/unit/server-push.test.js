@@ -22,7 +22,8 @@ const EP = {
 // sw.js-dəki parsePush funksiyasını faylın özündən götür (sw.js dəyişmir)
 function loadParsePush() {
   const src = readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8')
-  const m = /function parsePush\(e\) \{[\s\S]*?\n\}\n/.exec(src)
+  // \r?\n — Windows-da git sətir sonlarını CRLF-ə çevirə bilər
+  const m = /function parsePush\(e\) \{[\s\S]*?\r?\n\}\r?\n/.exec(src)
   if (!m) throw new Error('sw.js-də parsePush tapılmadı')
   return new Function(`${m[0]}; return parsePush`)()
 }

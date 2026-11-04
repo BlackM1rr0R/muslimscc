@@ -55,3 +55,8 @@ test-results/
 playwright-report/
 blob-report/
 scripts/.icon-preview/
+
+# Lokal API bazası (README → Lokal işə salma)
+server/*.db
+server/*.db-shm
+server/*.db-wal

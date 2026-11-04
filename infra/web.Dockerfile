@@ -10,7 +10,7 @@ RUN npm ci
 
 COPY . .
 
-# Açıq build konfiqi (.env.public — Firebase veb konfiqi, sirr deyil).
+# Açıq build konfiqi (.env.public — sirr deyil).
 # Vite istehsal build-ində .env.production.local-ı oxuyur.
 RUN cp .env.public .env.production.local
 
