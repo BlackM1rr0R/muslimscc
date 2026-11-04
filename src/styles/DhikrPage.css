@@ -645,3 +645,7 @@
   .dk-tap__count { animation: none; }
   .dk-tap:active { transform: none; }
 }
+
+/* ── Fiziki təsbeh (components/TasbihBeads) ── */
+.dhikr-beads { margin-block: 4px 12px; }
+.dk-beads { grid-column: 1 / -1; margin-block: 8px; }

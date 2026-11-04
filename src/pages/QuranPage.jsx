@@ -18,6 +18,7 @@ import { JUZ_VERSES, juzOfSurah } from '../data/juzMap'
 import { QURAN_GUIDE } from '../data/guides/QuranPage'
 import KhatmPlanner from '../components/quran/KhatmPlanner'
 import QuranRadio from '../components/quran/QuranRadio'
+import SurahArt from '../components/quran/SurahArt'
 import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta } from '../utils/quranEnc'
 import '../styles/QuranPage.css'
 
@@ -672,7 +673,7 @@ function getMostRead(reads) {
   return num
 }
 
-export default function QuranPage({ setPage }) {
+export default function QuranPage() {
   const { lang } = useLang()
   const t = T[lang]?.quran || T.az.quran
   const [listAttempt, setListAttempt] = useState(0)
@@ -760,7 +761,7 @@ export default function QuranPage({ setPage }) {
   const [fontSize,  setFontSize]  = useState(readFontScale)
   useEffect(() => { try { localStorage.setItem(FONT_KEY, String(fontSize)) } catch { /* yaddaş bağlıdır */ } }, [fontSize])
   const [attempt, setAttempt] = useState(0)
-  const { data: surah, loading: surahLoading, error: surahError } = useSurah(selected, lang, attempt)
+  const { data: surah, error: surahError } = useSurah(selected, lang, attempt)
   // ── Tərcümə seçimi (QuranEnc.com) — dil üzrə; boş — standart nəşr (heç nə dəyişmir) ──
   const ql = QE_LABELS[lang] || QE_LABELS.en
   const [transChoices, setTransChoices] = useState(readTranslationChoices)
@@ -1701,8 +1702,10 @@ export default function QuranPage({ setPage }) {
                   const wasRead = !!stats.reads[s.number]
                   const here = bookmark?.surah === s.number
                   return (
-                    <a key={s.number} className={`surah-card${here ? ' is-here' : ''}`} href={pathFor('quran', lang, s.number)}
+                    <a key={s.number} className={`surah-card${here ? ' is-here' : ''}${isMadani ? ' is-madani' : ''}`} href={pathFor('quran', lang, s.number)}
                       onClick={linkTo(s.number)}>
+                      {/* Surənin öz həndəsi rozeti (nömrədən yaranır — hər surədə fərqli) */}
+                      <SurahArt n={s.number} />
                       {wasRead && (
                         <span className="surah-read" title={xl.read}>
                           <Icon name="check" size={12} /><span className="ui-sr-only">{xl.read}</span>

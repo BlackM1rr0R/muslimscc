@@ -5,6 +5,7 @@ import { DHIKRS, AFTER_PRAYER, AFTER_PRAYER_VIRTUE } from '../data/dhikr'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
+import TasbihBeads from '../components/TasbihBeads'
 import { localizeSource } from '../utils/sourceNames'
 import { BarChart } from '../components/viz'
 import { pathFor } from '../seo/routes'
@@ -173,6 +174,7 @@ function AfterPrayerCounter({ lang }) {
           <span className="dk-tap__bar" aria-hidden="true"><span style={{ transform: `scaleX(${pct / 100})` }} /></span>
           <span className="dk-tap__hint">{tx(AP_TXT.tap, lang)}</span>
         </button>
+        <TasbihBeads count={shown} target={cur.count} className="dk-beads" />
 
         <div className="dk-ap-side">
           <p className="dk-ap-meaning">
@@ -246,6 +248,8 @@ function FreeCounter({ lang, t }) {
         <span key={n} className="dk-tap__count ui-num" data-testid="free-count">{n}</span>
         <span className="dk-tap__hint">{tx(AP_TXT.tap, lang)}</span>
       </button>
+      {/* Sərbəst təsbeh: 33-lük dövrlər (33-də dövr tamamlanır, 34 — yeni dövrün 1-i) */}
+      <TasbihBeads count={n === 0 ? 0 : ((n - 1) % 33) + 1} target={33} className="dk-beads" />
       <div className="dhikr-total-bar">
         <div className="ui-stat dhikr-total-item">
           <span className="ui-stat__num dhikr-total-num">{Math.floor(n / 33)}</span>
@@ -435,6 +439,8 @@ export default function DhikrPage({ setPage }) {
                 <span className="dhikr-tap-target ui-num">/ {dhikr.target}</span>
               </button>
             </div>
+            {/* Fiziki təsbeh: hər toxunuşda bir muncuq sürüşür */}
+            <TasbihBeads count={count} target={dhikr.target} className="dhikr-beads" />
 
             <div className="dhikr-info">
               <h2 className="dhikr-name">{dhikr[lang] || dhikr.en}</h2>

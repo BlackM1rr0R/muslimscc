@@ -277,3 +277,48 @@ html[lang="ar"] .mp-pop__label { letter-spacing: 0; text-transform: none; }
 @media (prefers-reduced-motion: reduce) {
   button.mp-word { transition: none; }
 }
+
+/* ══ Açıq kitab (iki səhifə, ≥1200px) + vərəq çevrilməsi ══════════════
+   .mp-book dir="rtl": birinci uşaq (tək səhifə) SAĞDA. Vərəqlər ortadakı
+   cilddə birləşir; cildə yaxın kölgə kağızın əyilməsini göstərir. */
+.mp-layout.is-spread { max-width: calc(1320px + 2 * var(--page-gutter)); }
+.mp-book { perspective: 2200px; }
+.mp-book.is-spread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  max-width: 1300px;
+  margin-inline: auto;
+  filter: drop-shadow(0 18px 30px rgba(17, 24, 21, 0.12));
+}
+.mp-book.is-spread .mp-sheet { max-width: none; margin: 0; box-shadow: none; }
+/* Fiziki istiqamətlər (border-radius qısa yazılışı və to left/right dir-dən asılı deyil):
+   sağ vərəq — cild SOLDA, sol vərəq — cild SAĞDA. */
+.mp-book.is-spread .mp-sheet--right {
+  border-radius: 4px var(--radius-lg) var(--radius-lg) 4px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0) 7%), var(--surface-1);
+}
+.mp-book.is-spread .mp-sheet--left {
+  border-radius: var(--radius-lg) 4px 4px var(--radius-lg);
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0) 7%), var(--surface-1);
+}
+[data-theme="dark"] .mp-book.is-spread .mp-sheet--right { background: linear-gradient(to right, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 7%), var(--surface-1); }
+[data-theme="dark"] .mp-book.is-spread .mp-sheet--left { background: linear-gradient(to left, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 7%), var(--surface-1); }
+
+/* Vərəq çevrilməsi: növbəti səhifə SOLDAN gəlir (mushaf qaydası) */
+.mp-book[data-turn="next"] { animation: mp-turn-next 620ms var(--ease-out) both; }
+.mp-book[data-turn="prev"] { animation: mp-turn-prev 620ms var(--ease-out) both; }
+.mp-book.is-spread[data-turn="next"] { animation: mp-fade-in 500ms ease both; }
+.mp-book.is-spread[data-turn="prev"] { animation: mp-fade-in 500ms ease both; }
+.mp-book.is-spread[data-turn="next"] .mp-sheet--left { transform-origin: 100% 50%; animation: mp-flip-left 760ms var(--ease-out) both; }
+.mp-book.is-spread[data-turn="prev"] .mp-sheet--right { transform-origin: 0% 50%; animation: mp-flip-right 760ms var(--ease-out) both; }
+@keyframes mp-turn-next { from { opacity: 0; transform: translate3d(-36px, 0, 0) rotateY(-10deg); } }
+@keyframes mp-turn-prev { from { opacity: 0; transform: translate3d(36px, 0, 0) rotateY(10deg); } }
+@keyframes mp-fade-in { from { opacity: 0.4; } }
+@keyframes mp-flip-left { from { transform: rotateY(-82deg); filter: brightness(0.85); } }
+@keyframes mp-flip-right { from { transform: rotateY(82deg); filter: brightness(0.85); } }
+@media (prefers-reduced-motion: reduce) {
+  .mp-book, .mp-book .mp-sheet { animation: none !important; }
+}
+html.a11y-reduce-motion .mp-book,
+html.a11y-reduce-motion .mp-book .mp-sheet { animation: none !important; }

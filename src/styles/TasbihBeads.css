@@ -1,0 +1,59 @@
+/* ══ TasbihBeads — fiziki təsbeh (components/TasbihBeads.jsx) ══ */
+.tb {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin-inline: auto;
+}
+.tb__svg { display: block; width: 100%; height: auto; overflow: visible; }
+[dir="rtl"] .tb__svg { transform: scaleX(-1); }
+
+.tb__string { fill: none; stroke: color-mix(in srgb, var(--accent) 55%, var(--line-strong)); stroke-width: 2; }
+
+.tb__bead {
+  fill: color-mix(in srgb, var(--brand) 22%, var(--surface-3));
+  stroke: color-mix(in srgb, var(--brand) 35%, var(--line-strong));
+  stroke-width: 1.2;
+  transition: transform 520ms var(--ease-spring), fill var(--dur-2) ease, r 240ms var(--ease-out);
+}
+.tb__bead.is-counted {
+  fill: var(--brand);
+  stroke: color-mix(in srgb, var(--brand) 70%, #000);
+}
+/* Son sayılan muncuq — işıq "parıltısı" */
+.tb__bead.is-last { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--brand) 55%, transparent)); }
+
+.tb__imam-bead { fill: var(--accent); stroke: color-mix(in srgb, var(--accent) 70%, #000); stroke-width: 1.2; }
+.tb__tassel { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; transform-origin: 0 27px; animation: tb-sway 4s ease-in-out infinite alternate; }
+@keyframes tb-sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+
+/* Hədəf tamamlandı — bütün muncuqlar qızılı parlayır */
+.tb.is-done .tb__bead {
+  fill: var(--accent);
+  stroke: color-mix(in srgb, var(--accent) 70%, #000);
+  animation: tb-glow 1.2s var(--ease-out) both;
+}
+.tb.is-done .tb__bead:nth-child(3n) { animation-delay: 60ms; }
+.tb.is-done .tb__bead:nth-child(3n+1) { animation-delay: 120ms; }
+@keyframes tb-glow { 0% { filter: none; } 40% { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 80%, transparent)); } 100% { filter: none; } }
+
+.tb__cycle {
+  position: absolute;
+  inset-inline-start: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: var(--step--2);
+  font-weight: 600;
+}
+[dir="rtl"] .tb__cycle { transform: translateX(50%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tb__bead { transition: fill var(--dur-2) ease; }
+  .tb__tassel, .tb.is-done .tb__bead { animation: none; }
+}
+html.a11y-reduce-motion .tb__bead { transition: none; }
+html.a11y-reduce-motion .tb__tassel { animation: none; }
