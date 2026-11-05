@@ -556,3 +556,6 @@
   0%, 100% { text-shadow: 0 0 0 transparent; }
   50% { text-shadow: 0 0 20px color-mix(in srgb, var(--accent) 45%, transparent); }
 }
+
+/* Qələmlə yazılış (components/InkText) — köhnə clip-path girişi bu elementdə yox */
+html .names-modal-ar--ink { animation: none !important; }

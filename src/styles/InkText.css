@@ -1,0 +1,29 @@
+/* ══ InkText — ərəbcə "qələmlə yazılış" (components/InkText.jsx) ══
+   Ölçülməmiş halda adi mətn görünür; ölçüləndə SVG onu əvəz edir. */
+.ink { position: relative; display: block; margin: 0; }
+/* Ölçülənə qədər görünməz, amma "display:none" YOX — gizli elementdə getBBox() 0 qaytarır.
+   Hündürlük 2.1em: mətn qutusu (hərəkələrlə) şrift ölçüsünün ~2 qatıdır — hərf adi mətn ölçüsündə görünür */
+.ink__svg { position: absolute; inset-inline-start: 0; top: 0; visibility: hidden; height: 2.1em; width: auto; max-width: 100%; overflow: visible; pointer-events: none; }
+.ink.is-ready .ink__svg { position: static; visibility: visible; display: block; margin-inline: auto; }
+/* Əsl mətn: ölçüləndən sonra yalnız ekran oxuyucusu üçün */
+.ink.is-ready .ink__text {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.ink__glyphs {
+  font-family: var(--font-arabic, 'Amiri', serif);
+  direction: rtl;
+  unicode-bidi: plaintext;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ink.is-ready .ink__glyphs {
+    stroke-dasharray: 2600;
+    animation: ink-draw 2200ms cubic-bezier(.5, 0, .25, 1) both, ink-fill 1200ms ease 1100ms both;
+  }
+}
+@keyframes ink-draw { from { stroke-dashoffset: 2600; } to { stroke-dashoffset: 0; } }
+@keyframes ink-fill { from { fill-opacity: 0; } to { fill-opacity: 1; } }

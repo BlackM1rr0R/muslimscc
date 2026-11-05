@@ -16,6 +16,7 @@ import ReaderDialog from '../components/reader/ReaderDialog'
 import StarButton, { CopyStatus } from '../components/collect/StarButton'
 import useStarred, { dayPick, shareLink } from '../components/collect/useStarred'
 import '../styles/NamesPage.css'
+import InkText from '../components/InkText'
 
 // ── v3.2: seçilmişlər, əzbərlənənlər süzgəci, günün adı, qaydalar kart + oxu pəncərəsi (5 dil) ──
 const N32 = {
@@ -959,7 +960,8 @@ export default function NamesPage({ setPage }) {
             <CopyStatus text={status} />
             {/* key — ad dəyişəndə məzmun yenidən yumşaq görünür */}
             <div className="names-modal-body" key={opened.n}>
-              <p className="names-modal-ar ui-arabic" lang="ar" dir="rtl">{opened.ar}</p>
+              {/* Ad "qələmlə yazılır" — Amiri konturları çəkilir, sonra mürəkkəb dolur */}
+              <InkText text={opened.ar} className="names-modal-ar names-modal-ar--ink ui-arabic" />
               <div className="ui-ornament" aria-hidden="true"><span className="ui-ornament__star" /></div>
               <h2 className="names-modal-title" id="names-modal-title" dir="ltr">{opened.tr}</h2>
               {meaningOf(opened, lang) && <p className="names-modal-meaning">{meaningOf(opened, lang)}</p>}
