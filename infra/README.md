@@ -92,6 +92,14 @@ Cloudflare siyahını dəyişəndə: `sh infra/nginx/gen-cloudflare.sh`, commit,
   başlıq adını `Content-Security-Policy` et. Tema skripti dəyişsə hash-i yenilə (`scripts/check-csp.mjs` CI-da tutur).
 - Avtomatik təhlükəsizlik yeniləmələri (unattended-upgrades) aktivdir
 
+## Monitorinq
+
+- **Brauzer xətaları**: `src/utils/errorReport.js` (yalnız muslims.cc-də) → `POST /api/client-error` → `server/clientErrors.js`
+  (yaddaşda birləşdirilir, IP/cookie/sorğu saxlanmır). Baxış: `GET /api/admin/errors` (admin) və ya
+  `docker compose logs api | grep "[client-error]"`.
+- **İşləmə vaxtı**: `.github/workflows/uptime.yml` hər 10 dəqiqədə ana səhifəni və `/api/health`-i yoxlayır;
+  alınmasa `uptime` etiketli issue açır (GitHub bildirişi gəlir), bərpa olunanda bağlayır.
+
 ## Lokal yoxlama
 
 ```sh

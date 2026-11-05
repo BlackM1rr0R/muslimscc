@@ -1,0 +1,68 @@
+# ═══════════════════════════════════════════════════════
+# Muslims.cc — işləmə vaxtı (uptime) monitorinqi
+#
+# Hər 10 dəqiqədən bir: ana səhifə (200) və /api/health ("ok", db "ok").
+# Alınmasa (2 cəhd, 20 s ara) — "uptime" etiketli issue açılır (artıq açıqdırsa
+# şərh yazılır) → GitHub repo sahibinə bildiriş göndərir (e-poçt / mobil tətbiq).
+# Sayt bərpa olunanda açıq issue avtomatik bağlanır.
+# Əl ilə: Actions → Uptime → Run workflow.
+# ═══════════════════════════════════════════════════════
+name: Uptime
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Yoxla
+        id: probe
+        run: |
+          ok=0; detail=""
+          for i in 1 2; do
+            home=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://muslims.cc/ || echo 000)
+            health=$(curl -s --max-time 20 https://muslims.cc/api/health || true)
+            if [ "$home" = 200 ] && echo "$health" | grep -q '"status":"ok"' && echo "$health" | grep -q '"db":"ok"'; then ok=1; break; fi
+            detail="ana səhifə: HTTP $home · /api/health: ${health:-cavab yoxdur}"
+            sleep 20
+          done
+          echo "ok=$ok" >> "$GITHUB_OUTPUT"
+          { echo "detail<<EOF"; echo "$detail"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+
+      - name: Düşübsə — issue aç / şərh yaz
+        if: steps.probe.outputs.ok != '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DETAIL: ${{ steps.probe.outputs.detail }}
+        run: |
+          gh label create uptime --repo "$GITHUB_REPOSITORY" --color B60205 --description "Sayt əlçatmazdır" 2>/dev/null || true
+          num=$(gh issue list --repo "$GITHUB_REPOSITORY" --label uptime --state open --json number --jq '.[0].number')
+          when=$(date -u '+%Y-%m-%d %H:%M UTC')
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --repo "$GITHUB_REPOSITORY" --body "Hələ də əlçatmazdır — $when · $DETAIL"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --label uptime --title "⚠️ muslims.cc əlçatmazdır ($when)" \
+              --body "Avtomatik yoxlama alınmadı.\n\n$DETAIL\n\nServerdə: \`ssh prod status\` · \`docker compose logs --tail 100 api\`"
+          fi
+          exit 1
+
+      - name: Bərpa olunubsa — açıq issue-nu bağla
+        if: steps.probe.outputs.ok == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for num in $(gh issue list --repo "$GITHUB_REPOSITORY" --label uptime --state open --json number --jq '.[].number'); do
+            gh issue close "$num" --repo "$GITHUB_REPOSITORY" --comment "✓ Sayt yenidən işləyir — $(date -u '+%Y-%m-%d %H:%M UTC')"
+          done

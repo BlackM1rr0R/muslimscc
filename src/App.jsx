@@ -1,4 +1,5 @@
 import { Component, Suspense, lazy as reactLazy, useLayoutEffect } from 'react'
+import { reportError } from './utils/errorReport'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
 import { LANGS, parsePath, pathFor, legacyDetailParam } from './seo/routes'
@@ -188,6 +189,7 @@ class PageErrorBoundary extends Component {
   componentDidCatch(error) {
     // Konsola bir dəfə (hər tutulan xəta üçün)
     console.error('[Muslims.cc] səhifə xətası:', error)
+    reportError('boundary', error)
   }
   componentDidUpdate(prev) {
     if (this.state.error && prev.page !== this.props.page) this.setState({ error: null })

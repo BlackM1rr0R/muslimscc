@@ -12,6 +12,7 @@ import './styles/motion.css'
 // "Vau" qatı: kursor işığı, kartların qalxması, hero aurora, oxu zolağı (utils/wow.js)
 import './styles/wow.css'
 import { initReveal } from './hooks/useReveal'
+import { initErrorReporting } from './utils/errorReport'
 import { initWow } from './utils/wow'
 import { initInputModality } from './hooks/useInputModality'
 import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
@@ -21,6 +22,7 @@ import { startUpdateWatcher } from './utils/appUpdate'
 // və [data-reveal] elementləri üçün tək qlobal IntersectionObserver
 initInputModality()
 initReveal()
+initErrorReporting()
 initWow()
 
 // Saxlanmış əlçatanlıq tərcihləri (şrift ölçüsü, kontrast, tema …) İLK
