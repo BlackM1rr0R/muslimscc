@@ -99,3 +99,24 @@ test('nur xalçası: 12 ay, qılınan namaz qızıl ilmə, toxunuş günü açı
   await expect(c.locator('.nc__today')).toHaveCount(1)
   await expect(c.locator('.nc__sum')).toContainText('2')
 })
+
+test.describe('məscid radarı', () => {
+  test.use({ geolocation: { latitude: 40.4093, longitude: 49.8671 }, permissions: ['geolocation'] })
+  test('radar: nöqtələr, ən yaxın, piyada vaxtı; nöqtəyə toxunuş', async ({ page }) => {
+    await page.route(/overpass/, r => r.fulfill({ json: { elements: [
+      { type: 'node', id: 1, lat: 40.4120, lon: 49.8700, tags: { name: 'Yaxın məscid' } },
+      { type: 'node', id: 2, lat: 40.4500, lon: 49.8000, tags: { name: 'Uzaq məscid' } },
+    ] } }))
+    await page.goto('/mosques')
+    await settle(page)
+    await page.locator('.mosque-search-btn').click()
+    const r = page.getByTestId('mosque-radar')
+    await expect(r).toBeVisible()
+    await expect(r.locator('.mr__dot')).toHaveCount(2)
+    await expect(r.locator('.mr__name')).toHaveText('Yaxın məscid')
+    await expect(r.locator('.mr__walk')).toContainText('dəq')
+    await r.locator('.mr__dot').nth(1).click({ force: true })
+    await expect(r.locator('.mr__name')).toHaveText('Uzaq məscid')
+    await expect(page.locator('.mosque-walk').first()).toContainText('piyada')
+  })
+})

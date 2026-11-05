@@ -12,6 +12,10 @@ import { MOSQUE_GUIDE, MOSQUE_GUIDE_TXT, MOSQUE_SOURCES } from '../data/guides/M
 import '../styles/LessonsPage.css'
 import '../styles/MosqueFinderPage.css'
 import Breadcrumb from '../components/Breadcrumb'
+import MosqueRadar, { walkMinutes } from '../components/MosqueRadar'
+import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
+
+const WALK = { az: (m) => `piyada ≈ ${m} dəq`, en: (m) => `≈ ${m} min walk`, ru: (m) => `пешком ≈ ${m} мин`, tr: (m) => `yürüyerek ≈ ${m} dk`, ar: (m) => `≈ ${m} دقيقة مشيًا` }
 
 // ═══ Məscid ədəbləri bələdçisi — mətnlər data/guides/MosqueFinderPage.js-dədir ═══
 
@@ -170,6 +174,9 @@ export default function MosqueFinderPage({ setPage }) {
   const [mosques, setMosques] = useState([])
   const [errorMsg, setErrorMsg] = useState('')
   const [userPos, setUserPos] = useState(null)
+  const [center, setCenter] = useState(null) // radarın mərkəzi: axtarışın nöqtəsi
+  const { next } = usePrayerTimes()
+  const nextPrayer = next ? { name: PRAYER_NAMES[next.key]?.[lang] || PRAYER_NAMES[next.key]?.en, inMin: Math.floor(next.inMs / 60000) } : null
   // Axtarış hansı nöqtədən: 'gps' — cihazın yeri, 'city' — seçilmiş şəhər
   const [origin, setOrigin] = useState('gps')
   // Nəticə/xəta gələndə basılan düymə DOM-dan çıxır və fokus <body>-yə düşürdü —
@@ -217,6 +224,7 @@ export default function MosqueFinderPage({ setPage }) {
     // (way/relation — "out center" mərkəz koordinatını verir). Əvvəl yalnız
     // node soruşulurdu və bir çox məscid siyahıya düşmürdü.
     try {
+      setCenter({ lat, lon })
       const query = `[out:json][timeout:25];nwr["amenity"="place_of_worship"]["religion"="muslim"](around:10000,${lat},${lon});out center;`
       const data = await overpass(query)
 
@@ -363,6 +371,8 @@ export default function MosqueFinderPage({ setPage }) {
                 // Bütün sətir xəritə keçididir: telefonda qruplaşdırılmış siyahı
                 // xanası (.m-list/.m-row, sonda › oxu), genişdə əvvəlki kimi ayrı
                 // kartlar və sağda "Xəritədə aç" düyməsi (MosqueFinderPage.css)
+                <>
+                <MosqueRadar origin={center} mosques={mosques} lang={lang} nextPrayer={nextPrayer} unknown={t.unknown} />
                 <ul className="mosque-list ui-card ui-card--flush" data-reveal="stagger-blur">
                   {mosques.map((place) => (
                     <li key={place.id}>
@@ -379,6 +389,7 @@ export default function MosqueFinderPage({ setPage }) {
                           </h3>
                           <span className="mosque-card-distance">
                             <Icon name="ruler" size={14} /> {t.distance}: <bdi className="ui-num">{formatDistance(place.distance)}</bdi>
+                            <span className="mosque-walk"> · <Icon name="clock" size={14} /> <bdi className="ui-num">{WALK[lang]?.(walkMinutes(place.distance)) || WALK.en(walkMinutes(place.distance))}</bdi></span>
                           </span>
                         </div>
                         <span className="mosque-maps-btn">{t.openMaps} <Icon name="external" size={15} /></span>
@@ -387,6 +398,7 @@ export default function MosqueFinderPage({ setPage }) {
                     </li>
                   ))}
                 </ul>
+                </>
               )}
               <p className="mosque-source">{x.source}</p>
             </div>
