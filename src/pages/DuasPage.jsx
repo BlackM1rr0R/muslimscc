@@ -8,6 +8,7 @@ import { localizeSource } from '../utils/sourceNames'
 import { normArabic, normText } from '../utils/uniqueHadiths'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
+import MoodDuas from '../components/MoodDuas'
 import Breadcrumb from '../components/Breadcrumb'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import '../styles/DuasPage.css'
@@ -434,6 +435,11 @@ export default function DuasPage({ setPage }) {
           </ul>
         </div>
       </header>
+
+      {/* "Necə hiss edirsən?" — hala görə Hisnul-Müslim duaları */}
+      <section className="ui-section ui-section--tight duas-mood">
+        <div className="ui-container"><MoodDuas lang={lang} /></div>
+      </section>
 
       {/* "Hansı halda?" — kateqoriya kafelləri; seçim aşağıdakı siyahını filtrləyir */}
       <section className="ui-section ui-section--tight duas-occ" aria-labelledby="duas-occ-h">

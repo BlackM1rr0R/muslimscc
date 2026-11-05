@@ -225,3 +225,16 @@ test('Qiyam rejimi: kart, tam ekran, hədis və vitr surələri, Esc bağlayır'
   await page.keyboard.press('Escape')
   await expect(q).toHaveCount(0)
 })
+
+test('"Necə hiss edirsən?": hala toxunuş Hisnul-Müslim dualarını açır', async ({ page }) => {
+  await page.goto('/duas')
+  await settle(page)
+  const m = page.getByTestId('mood-duas')
+  await expect(m.locator('.md__mood')).toHaveCount(10)
+  await m.getByRole('button', { name: 'Kədərliyəm' }).click()
+  await expect(m.locator('.md__chap')).toHaveCount(2)
+  await expect(m.locator('.md__chap').first()).toContainText('Qəm və kədər')
+  await expect(m.locator('.md__open').first()).toHaveAttribute('href', /hisnul-muslim#hs-35$/)
+  await m.getByRole('button', { name: 'Kədərliyəm' }).click()
+  await expect(m.locator('.md__chap')).toHaveCount(0)
+})
