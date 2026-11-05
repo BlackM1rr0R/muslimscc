@@ -281,3 +281,24 @@ test.describe('Qiblə xətləri', () => {
     await expect(q.locator('.ql__lead')).toContainText('km')
   })
 })
+
+test('oflayn: Quran paketi keşə yazılır (114 surə + Hisn), internet itəndə nişan çıxır', async ({ page, context }) => {
+  await page.route(/api\.alquran\.cloud\/v1\/surah\/\d+\/editions\//, r => r.fulfill({ json: { code: 200, data: [] } }))
+  await page.route(/\/data\/hisn\/az\.json/, r => r.fulfill({ json: { chapters: [] } }))
+  await page.goto('/quran')
+  await settle(page)
+  const p = page.getByTestId('offline-pack')
+  await p.scrollIntoViewIfNeeded()
+  await p.getByTestId('offline-pack-run').click()
+  await expect(p.locator('.op__status')).toContainText('Saxlanıb', { timeout: 20000 })
+  const n = await page.evaluate(async () => {
+    const c = await caches.open('muslims-cc-v6')
+    const keys = await c.keys()
+    return keys.filter(k => /alquran\.cloud\/v1\/surah\/\d+\/editions|\/data\/hisn\/az\.json/.test(k.url)).length
+  })
+  expect(n).toBe(115)
+  await context.setOffline(true)
+  await expect(page.getByTestId('offline-badge')).toBeVisible()
+  await context.setOffline(false)
+  await expect(page.getByTestId('offline-badge')).toHaveCount(0)
+})

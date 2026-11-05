@@ -20,6 +20,7 @@ import KhatmPlanner from '../components/quran/KhatmPlanner'
 import QuranRadio from '../components/quran/QuranRadio'
 import SurahArt from '../components/quran/SurahArt'
 import SurahRootCloud from '../components/quran/SurahRootCloud'
+import OfflinePack from '../components/OfflinePack'
 import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta } from '../utils/quranEnc'
 import '../styles/QuranPage.css'
 
@@ -1824,6 +1825,7 @@ export default function QuranPage() {
             </div>
           </article>
         )}
+          <OfflinePack lang={lang} surahUrl={(n) => `https://api.alquran.cloud/v1/surah/${n}/editions/${lang === 'ar' ? 'ar.alafasy,ar.muyassar' : `ar.alafasy,${EDITION_MAP[lang] || EDITION_MAP.en}`}`} />
           <KhatmPlanner lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} />
           <QuranRadio lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)}
             placeLabel={(name, a) => placeLabel(name, a, lang)} />

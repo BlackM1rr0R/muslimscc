@@ -1,0 +1,23 @@
+/* ══ Oflayn saxla (components/OfflinePack.jsx) ══ */
+.op { display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin: 0 0 16px; flex-wrap: wrap; }
+.op__ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: 0 0 auto;
+  background: color-mix(in srgb, var(--primary, #0d5c46) 12%, transparent); color: var(--primary, #0d5c46); }
+[data-theme="dark"] .op__ic { color: var(--accent-text, #7fd6b5); }
+.op__body { flex: 1 1 240px; min-width: 0; display: grid; gap: 4px; }
+.op__title { margin: 0; font-size: 1rem; }
+.op__lead { margin: 0; font-size: .86rem; color: var(--text-secondary); }
+.op__bar { height: 6px; border-radius: 6px; background: var(--viz-track, rgba(0, 0, 0, .08)); overflow: hidden; margin-top: 4px; }
+.op__bar i { display: block; height: 100%; background: var(--gold, #c59a2c); transform-origin: 0 50%; transition: transform .3s ease; }
+[dir="rtl"] .op__bar i { transform-origin: 100% 50%; }
+.op__status { margin: 0; font-size: .8rem; color: var(--text-secondary); min-height: 1.2em; }
+
+/* İnternet yoxdur nişanı (components/OfflineBadge.jsx) */
+.ob { position: fixed; inset-inline-start: 50%; bottom: max(14px, env(safe-area-inset-bottom)); z-index: 1200; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; font-size: .85rem; font-weight: 600;
+  background: #2b2f36; color: #fff; box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .6); }
+[dir="rtl"] .ob { transform: translateX(50%); }
+.ob::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #f0a84a; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ob { animation: ob-in 320ms cubic-bezier(.2, .8, .2, 1) both; }
+}
+@keyframes ob-in { from { opacity: 0; translate: 0 12px; } }
