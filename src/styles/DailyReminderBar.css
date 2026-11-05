@@ -516,3 +516,27 @@
   .drb--notx .drb-body-in > .drb-ar { height: auto; max-height: 56px; line-height: 28px; }
   .drb--open .drb-body { align-items: flex-start; }
 }
+
+/* Ərəbcə mətn ilə tərcümə yan-yanadırsa — aralarında incə qızılı ayırıcı
+   (ərəb hərflərinin uzun quyruqları tərcüməyə "bitişik" görünürdü) */
+.drb-ar + .drb-tx {
+  position: relative;
+  margin-inline-start: 4px;
+  padding-inline-start: 16px;
+}
+.drb-ar + .drb-tx::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  width: 1px;
+  height: 18px;
+  transform: translateY(-50%);
+  background: color-mix(in srgb, var(--gold, #c59a2c) 55%, transparent);
+}
+.drb--open .drb-ar + .drb-tx { margin-inline-start: 0; padding-inline-start: 0; }
+.drb--open .drb-ar + .drb-tx::before { display: none; }
+@container (max-width: 940px) {
+  .drb-ar + .drb-tx { margin-inline-start: 0; padding-inline-start: 0; }
+  .drb-ar + .drb-tx::before { display: none; }
+}
