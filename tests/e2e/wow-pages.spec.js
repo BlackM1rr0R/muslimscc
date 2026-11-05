@@ -33,3 +33,26 @@ test('qəza dağı: faiz və qalan say', async ({ page }) => {
   await expect(m).toContainText('750')
   await expect(m.locator('.qm__camp.is-on')).toHaveCount(2)
 })
+
+test('kviz kombo: ardıcıl düz cavablar sayılır, səhvdə sıfırlanır, nəticədə ən uzun seriya', async ({ page }) => {
+  await page.goto('/quiz')
+  await settle(page)
+  await page.locator('.quiz-category-card').first().click()
+  let streak = 0, best = 0
+  for (let i = 0; i < 20; i++) {
+    if (await page.locator('.quiz-results-card').isVisible()) break
+    const opts = page.locator('.quiz-option')
+    await expect(opts.first()).toBeVisible()
+    await opts.first().click()
+    const right = await opts.first().evaluate(el => el.classList.contains('quiz-option-correct'))
+    streak = right ? streak + 1 : 0
+    best = Math.max(best, streak)
+    const combo = page.getByTestId('quiz-combo')
+    if (streak >= 2) await expect(combo).toContainText(`×${streak}`)
+    else await expect(combo).toHaveCount(0)
+    await page.locator('.quiz-next-btn').click()
+  }
+  await expect(page.locator('.quiz-results-card')).toBeVisible()
+  await expect(page.locator('.quiz-stat-streak')).toHaveCount(best >= 2 ? 1 : 0)
+  if (best >= 2) await expect(page.locator('.quiz-stat-streak .quiz-stat-num')).toHaveText(String(best))
+})

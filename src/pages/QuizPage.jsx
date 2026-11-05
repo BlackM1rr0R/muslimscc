@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
+import Sparkle from '../components/prayer/Sparkle'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import PageLink from '../components/PageLink'
@@ -31,6 +32,16 @@ const QX = {
     best:'En iyi', notPlayed:'Henüz oynanmadı', review:'Cevaplarınız', yours:'Sizin cevabınız', right:'Doğru cevap', source:'Kaynak', chooseHead:'Konu seçin', chooseLead:'Her konudaki en iyi sonucunuz halkada görünür.' },
 }
 import '../styles/QuizPage.css'
+
+// Kombo — ardıcıl düz cavablar (3, 5, 10-da parıltı)
+const COMBO = {
+  az: { combo: (n) => `${n} ardıcıl düz!`, best: 'Ən uzun seriya' },
+  en: { combo: (n) => `${n} in a row!`, best: 'Longest streak' },
+  ru: { combo: (n) => `${n} подряд!`, best: 'Лучшая серия' },
+  ar: { combo: (n) => `${n} على التوالي!`, best: 'أطول سلسلة' },
+  tr: { combo: (n) => `${n} üst üste doğru!`, best: 'En uzun seri' },
+}
+const COMBO_BURST = new Set([3, 5, 10])
 
 const LABELS = {
   az: { title:'İslami kviz', subtitle:'Biliyini test et', categories:'Kateqoriya seç', quran:'Quran', hadith:'Hədis', names:'99 Ad', ibadah:'İbadət fiqhi', start:'Başla', next:'Növbəti', finish:'Bitir', score:'Xal', correct:'Düzgün', wrong:'Səhv', playAgain:'Yenidən', question:'Sual', of:'/', bestScore:'Ən yaxşı nəticə', newBest:'Yeni rekord!', back:'Geri', selectAnswer:'Cavab seçin', exit:'Kateqoriyalar' },
@@ -1057,6 +1068,9 @@ export default function QuizPage({ setPage }) {
   const [round, setRound] = useState(0)
   // Raunddakı cavablar — nəticə ekranında icmal (sual, seçilən variant)
   const [answers, setAnswers] = useState([])
+  const [streak, setStreak] = useState(0)
+  const [maxStreak, setMaxStreak] = useState(0)
+  const cb = COMBO[lang] || COMBO.az
 
   const questions = useMemo(() => {
     if (!category) return []
@@ -1099,6 +1113,8 @@ export default function QuizPage({ setPage }) {
     setWrongCount(0)
     setIsNewBest(false)
     setAnswers([])
+    setStreak(0)
+    setMaxStreak(0)
     setRound(r => r + 1)
     setPhase('quiz')
     scrollToTop()
@@ -1110,9 +1126,13 @@ export default function QuizPage({ setPage }) {
     setAnswered(true)
     setAnswers(a => [...a, { q: questions[currentQ], picked: idx }])
     if (idx === questions[currentQ].correct) {
-      haptic()
+      const n = streak + 1
+      haptic(COMBO_BURST.has(n) ? [10, 40, 10] : undefined)
       setCorrectCount(c => c + 1)
+      setStreak(n)
+      setMaxStreak(m => Math.max(m, n))
     } else {
+      setStreak(0)
       // Səhv cavab — bir az uzun titrəmə (yalnız toxunma ekranında)
       haptic(18)
       setWrongCount(c => c + 1)
@@ -1301,6 +1321,13 @@ export default function QuizPage({ setPage }) {
             <div className="quiz-progress-wrap">
               <div className="quiz-progress-info">
                 <span className="quiz-progress-count ui-num">{t.question} <bdi dir="ltr">{currentQ + 1} {t.of} {totalQ}</bdi></span>
+                {streak >= 2 && (
+                  <span key={`k${streak}`} className={`quiz-combo${streak >= 5 ? ' is-hot' : ''}`} role="status" data-testid="quiz-combo">
+                    <Icon name="bolt" size={14} strokeWidth={2.4} /> <span className="ui-num">×{streak}</span>
+                    <span className="quiz-combo__txt">{cb.combo(streak)}</span>
+                    {COMBO_BURST.has(streak) && <Sparkle count={10} radius={34} />}
+                  </span>
+                )}
                 <span className="quiz-tally ui-num">
                   <span key={`c${correctCount}`} className="quiz-tally-item is-correct">
                     <Icon name="check" size={14} strokeWidth={2.4} /><span className="ui-sr-only">{t.correct}: </span>{correctCount}
@@ -1319,7 +1346,7 @@ export default function QuizPage({ setPage }) {
                 })}
               </ol>
               <div className="quiz-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={totalQ} aria-valuenow={currentQ + (answered ? 1 : 0)}>
-                <div className="quiz-progress-fill" style={{ transform: `scaleX(${progress / 100})` }} />
+                <div className={`quiz-progress-fill${streak >= 3 ? ' is-hot' : ''}`} style={{ transform: `scaleX(${progress / 100})` }} />
               </div>
             </div>
 
@@ -1391,6 +1418,12 @@ export default function QuizPage({ setPage }) {
                   <span className="quiz-stat-num" data-count={wrongCount}>{wrongCount}</span>
                   <span className="quiz-stat-label">{t.wrong}</span>
                 </div>
+                {maxStreak >= 2 && (
+                  <div className="quiz-stat quiz-stat-streak">
+                    <span className="quiz-stat-num" data-count={maxStreak}>{maxStreak}</span>
+                    <span className="quiz-stat-label">{cb.best}</span>
+                  </div>
+                )}
                 <div className="quiz-stat quiz-stat-total">
                   <span className="quiz-stat-num" data-count={total}>{total}</span>
                   <span className="quiz-stat-label">{totalLabel(total, lang, t.question)}</span>

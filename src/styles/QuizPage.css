@@ -531,3 +531,22 @@
   70%  { opacity: 1; }
   100% { opacity: 0; transform: translate3d(var(--cx), calc(var(--cy) + 60px), 0) rotate(var(--cr)) scale(1); }
 }
+
+/* ── Kombo: ardıcıl düz cavablar ── */
+.quiz-combo {
+  position: relative; display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 999px; font-size: .8rem; font-weight: 800;
+  background: color-mix(in srgb, var(--gold, #c59a2c) 18%, var(--surface-1, #fff));
+  color: color-mix(in srgb, var(--gold, #c59a2c) 70%, var(--text-primary));
+  border: 1px solid color-mix(in srgb, var(--gold, #c59a2c) 45%, transparent);
+}
+.quiz-combo.is-hot { background: linear-gradient(135deg, #f0c75e, #d9822b); color: #3a2300; border-color: transparent; box-shadow: 0 6px 18px -8px rgba(217, 130, 43, .7); }
+.quiz-combo .tm-sparkle { color: #f0c75e; }
+.quiz-combo__txt { font-weight: 700; }
+@media (max-width: 520px) { .quiz-combo__txt { display: none; } }
+.quiz-progress-fill.is-hot { background: linear-gradient(90deg, var(--gold, #c59a2c), #d9822b); }
+.quiz-stat-streak .quiz-stat-num { color: var(--gold, #c59a2c); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .quiz-combo { animation: quiz-combo-pop 420ms cubic-bezier(.2, .8, .2, 1.4) both; }
+}
+@keyframes quiz-combo-pop { from { opacity: 0; transform: scale(.5) rotate(-8deg); } }
