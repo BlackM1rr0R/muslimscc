@@ -104,6 +104,10 @@ export const test = base.extend({
       // Admin: daxil olunmayıb (adminAuth.js-dəki saxta sessiya bunu əvəz edir)
       return route.fulfill({ status: 401, json: { error: 'Unauthorized' } })
     })
+    // Ümmətin sayğacı (server/ummah.js) — preview-da API yoxdur; testlər öz route-u ilə əvəz edə bilər
+    await page.route((u) => u.pathname === '/api/ummah', (route) => (route.request().method() === 'POST'
+      ? route.fulfill({ status: 204 })
+      : route.fulfill({ json: { day: '2026-01-01', today: { salawat: 0, dhikr: 0, juz: 0 }, total: { salawat: 0, dhikr: 0, juz: 0 } } })))
     // Köhnə Firebase ünvanları (köhnə SW keşi və s.) — bağlıdır
     await page.route(/firestore\.googleapis\.com|firebaseinstallations|fcmregistrations|identitytoolkit/, route => route.abort())
     // Səs faylları və xarici şriftlər testdə lazım deyil
