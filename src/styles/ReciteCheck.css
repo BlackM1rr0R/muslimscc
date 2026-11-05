@@ -1,0 +1,19 @@
+/* ══ Səsli hifz yoxlaması (components/ReciteCheck.jsx) ══ */
+.rc { display: grid; gap: 10px; padding: 18px; margin-bottom: 18px; }
+.rc .ui-title { display: inline-flex; align-items: center; gap: 8px; }
+.rc__lead, .rc__note { margin: 0; font-size: .86rem; color: var(--text-secondary); }
+.rc__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.rc__pick { display: inline-flex; align-items: center; gap: 8px; font-size: .88rem; }
+.rc__score { font-weight: 800; color: var(--primary, #0d5c46); }
+[data-theme="dark"] .rc__score { color: var(--accent-text, #7fd6b5); }
+.rc__consent { display: flex; align-items: flex-start; gap: 8px; font-size: .8rem; color: var(--text-secondary); cursor: pointer; }
+.rc__consent input { margin-top: 3px; accent-color: var(--brand, #0d5c46); flex: 0 0 auto; }
+.rc__err { margin: 0; color: #b3261e; font-size: .86rem; }
+.rc__text { margin: 4px 0 0; padding: 14px 16px; border-radius: 14px; background: var(--surface-2, #f6f2e8);
+  font-size: clamp(1.3rem, 4.4vw, 1.75rem); line-height: 2.2; text-align: justify; }
+.rc__w { border-radius: 6px; padding: 0 2px; transition: background-color .25s ease, color .25s ease; }
+.rc__w.is-ok { color: #0d6e4f; background: color-mix(in srgb, #2e9a73 16%, transparent); }
+.rc__w.is-miss { color: #b3261e; background: color-mix(in srgb, #e5484d 14%, transparent); }
+[data-theme="dark"] .rc__w.is-ok { color: #7fe0b8; }
+[data-theme="dark"] .rc__w.is-miss { color: #ffb3b0; }
+.rc__num { color: var(--gold, #c59a2c); font-size: .8em; }

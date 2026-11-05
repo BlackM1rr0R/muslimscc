@@ -321,3 +321,35 @@ test('ümmət sayğacı: bu günün cəmi, toxunuş dərhal artır və serverə 
   await expect.poll(() => posts.length, { timeout: 8000 }).toBeGreaterThan(0)
   expect(posts.reduce((a, p) => a + p.n, 0)).toBe(2)
 })
+
+test('səsli hifz yoxlaması: razılıqsız başlamır; oxunan sözlər yaşıl, buraxılan qırmızı', async ({ page }) => {
+  await page.route(/api\.alquran\.cloud\/v1\/surah\/112\/quran-uthmani/, r => r.fulfill({ json: { data: { ayahs: [
+    { numberInSurah: 1, text: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ قُلْ هُوَ ٱللَّهُ أَحَدٌ' }, { numberInSurah: 2, text: 'ٱللَّهُ ٱلصَّمَدُ' },
+    { numberInSurah: 3, text: 'لَمْ يَلِدْ وَلَمْ يُولَدْ' }, { numberInSurah: 4, text: 'وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ' }] } } }))
+  await page.addInitScript(() => {
+    class FakeSR {
+      start() {
+        setTimeout(() => {
+          const res = [{ isFinal: true, 0: { transcript: 'قل هو الله احد الله الصمد ولم يكن له كفوا احد' } }]
+          this.onresult?.({ resultIndex: 0, results: res })
+          this.onend?.()
+        }, 50)
+      }
+      stop() { this.onend?.() }
+      abort() {}
+    }
+    window.SpeechRecognition = FakeSR
+  })
+  await page.goto('/hifz')
+  await settle(page)
+  const rc = page.getByTestId('recite-check')
+  await rc.scrollIntoViewIfNeeded()
+  await expect(rc.getByTestId('recite-text')).toContainText('قُلْ')
+  await expect(rc.getByTestId('recite-text')).not.toContainText('بِسْمِ')
+  await expect(rc.getByTestId('recite-start')).toBeDisabled()
+  await rc.getByTestId('recite-consent').check()
+  await rc.getByTestId('recite-start').click()
+  await expect(rc.locator('.rc__w.is-miss')).toHaveCount(4)   // "لم يلد ولم يولد"
+  await expect(rc.locator('.rc__w.is-ok')).toHaveCount(11)
+  await expect(rc.locator('.rc__score')).toContainText('73%')
+})
