@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { ummahAdd } from '../utils/ummah'
+import UmmahCounter from '../components/UmmahCounter'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { DHIKRS, AFTER_PRAYER, AFTER_PRAYER_VIRTUE } from '../data/dhikr'
@@ -39,7 +41,8 @@ function saveSession(data) {
 // (AnalyticsPage 'dhikr_count*' açarlarını cəmləyir). Jurnal yalnız son 10
 // dövrəni saxladığı üçün ayrıca sayğac lazımdır.
 const TOTAL_KEY = 'dhikr_count_total'
-function bumpLifetime() {
+function bumpLifetime(kind = 'dhikr') {
+  ummahAdd(kind)
   try {
     const n = parseInt(localStorage.getItem(TOTAL_KEY), 10)
     localStorage.setItem(TOTAL_KEY, String((Number.isFinite(n) && n > 0 ? n : 0) + 1))
@@ -344,7 +347,7 @@ export default function DhikrPage({ setPage }) {
   const handleTap = useCallback(() => {
     const next = count >= dhikr.target ? 1 : count + 1
     setCount(next)
-    bumpLifetime()
+    bumpLifetime(dhikr.en === 'Salawat' ? 'salawat' : 'dhikr')
     if (next === dhikr.target) {
       const time = new Date().toLocaleTimeString(LOCALE[lang] || 'az-AZ', { hour: '2-digit', minute: '2-digit' })
       // id — siyahıda sabit açar (yeni sətir yuxarıdan yumşaq daxil olur)
@@ -379,6 +382,11 @@ export default function DhikrPage({ setPage }) {
           </ul>
         </div>
       </header>
+
+      {/* Ümmət bu gün — saytda birlikdə deyilən salavat / zikr / cüz (anonim cəm) */}
+      <section className="ui-section ui-section--tight dk-ummah">
+        <div className="ui-container"><UmmahCounter lang={lang} /></div>
+      </section>
 
       <section className="ui-section ui-section--tight">
         <div className="ui-container dk-modes-wrap">

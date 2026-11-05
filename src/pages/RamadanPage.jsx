@@ -12,6 +12,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import CrescentPath from '../components/CrescentPath'
+import { ummahAdd } from '../utils/ummah'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { navGroupLabel } from '../data/navigation'
@@ -115,6 +116,7 @@ function KhatmPlan({ lang, todayJuz }) {
   const set = new Set(done)
   const toggle = (n) => {
     const next = set.has(n) ? done.filter(x => x !== n) : [...done, n].sort((a, b) => a - b)
+    if (!set.has(n)) ummahAdd('juz')
     setDone(next)
     saveKhatm(next)
   }

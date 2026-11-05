@@ -304,3 +304,20 @@ test('oflayn: Quran paketi keşə yazılır (114 surə + Hisn), internet itənd�
   await context.setOffline(false)
   await expect(page.getByTestId('offline-badge')).toHaveCount(0)
 })
+
+test('ümmət sayğacı: bu günün cəmi, toxunuş dərhal artır və serverə göndərilir', async ({ page }) => {
+  const posts = []
+  await page.route(/\/api\/ummah$/, r => {
+    if (r.request().method() === 'POST') { posts.push(r.request().postDataJSON()); return r.fulfill({ status: 204 }) }
+    return r.fulfill({ json: { day: '2026-11-05', today: { salawat: 1200, dhikr: 5000, juz: 30 }, total: { salawat: 99000, dhikr: 400000, juz: 2000 } } })
+  })
+  await page.goto('/dhikr?ummah=1')
+  await settle(page)
+  const u = page.getByTestId('ummah-counter')
+  await expect(u.getByTestId('ummah-salawat')).toHaveText('1,200')
+  const tapBtn = page.locator('.dhikr-tap-btn').first()
+  await tapBtn.click(); await tapBtn.click()
+  await expect.poll(async () => (await u.getByTestId('ummah-salawat').innerText()) + '|' + (await u.getByTestId('ummah-dhikr').innerText()), { timeout: 3000 }).not.toBe('1,200|5,000')
+  await expect.poll(() => posts.length, { timeout: 8000 }).toBeGreaterThan(0)
+  expect(posts.reduce((a, p) => a + p.n, 0)).toBe(2)
+})

@@ -1,0 +1,20 @@
+/* ══ Ümmət bu gün (components/UmmahCounter.jsx) ══ */
+.um { position: relative; overflow: hidden; display: grid; gap: 12px; padding: 18px; margin-bottom: 18px;
+  background: linear-gradient(140deg, #0b4232, #0e5a45 60%, #13684f); color: #fff; border: 0; }
+.um__wave { position: absolute; left: 50%; top: 60%; width: 140%; aspect-ratio: 1; border-radius: 50%; pointer-events: none;
+  border: 2px solid rgba(243, 220, 154, .45); transform: translate(-50%, -50%) scale(0); opacity: 0; }
+.um__head { position: relative; display: grid; gap: 4px; }
+.um__title { margin: 0; display: inline-flex; align-items: center; gap: 8px; font-size: 1.05rem; color: #f3dc9a; }
+.um__lead { margin: 0; font-size: .85rem; opacity: .85; }
+.um__stats { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; list-style: none; margin: 0; padding: 0; }
+.um__stat { display: grid; justify-items: center; gap: 2px; text-align: center; padding: 12px 6px; border-radius: 14px; background: rgba(255, 255, 255, .07); }
+.um__stat svg { color: #f3dc9a; }
+.um__stat b { font-size: clamp(1.4rem, 5.5vw, 2.1rem); font-weight: 900; line-height: 1.1; }
+.um__stat span { font-size: .82rem; opacity: .9; }
+.um__stat small { font-size: .7rem; opacity: .65; }
+.um__opt { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: .78rem; opacity: .8; cursor: pointer; }
+.um__opt input { accent-color: #f0c75e; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .um__wave { animation: um-wave 1100ms cubic-bezier(.2, .8, .2, 1) both; }
+}
+@keyframes um-wave { 0% { opacity: .9; transform: translate(-50%, -50%) scale(.05); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
