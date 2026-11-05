@@ -267,3 +267,17 @@ test.describe('azan dalğası', () => {
     await expect(w.getByTestId('adhan-play')).toBeEnabled()
   })
 })
+
+test.describe('Qiblə xətləri', () => {
+  test.use({ geolocation: { latitude: 40.4093, longitude: 49.8671 }, permissions: ['geolocation'] })
+  test('şəhərlərdən Kəbəyə qövslər, sizin xəttiniz qızılı', async ({ page }) => {
+    await page.goto('/qibla')
+    await settle(page)
+    const q = page.getByTestId('qibla-lines')
+    await q.scrollIntoViewIfNeeded()
+    expect(await q.locator('.ql__line').count()).toBeGreaterThan(80)
+    await expect(q.locator('.ql__me')).toHaveCount(1)
+    await expect(q.locator('.ql__kaaba')).toHaveCount(1)
+    await expect(q.locator('.ql__lead')).toContainText('km')
+  })
+})

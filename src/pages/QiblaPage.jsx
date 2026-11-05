@@ -21,6 +21,7 @@ import RelatedLinks from '../components/prayer/RelatedLinks'
 const KAABA = { lat: 21.3891, lon: 39.8579 }
 // Fırladıla bilən qlobus — ayrıca chunk (d3-geo + quru xəritəsi yalnız burada yüklənir)
 const QiblaGlobe = lazy(() => import('../components/QiblaGlobe'))
+const QiblaLines = lazy(() => import('../components/QiblaLines'))
 
 // Kompasda yalnız 4 əsas istiqamət yazı ilə göstərilir (aralıqdakılar
 // cizgi ilə). Azərbaycan və ərəb dillərində tək hərf toqquşur
@@ -709,6 +710,15 @@ export default function QiblaPage({ setPage }) {
           <QiblaGlobe from={coords} kaaba={KAABA} lang={lang} distanceKm={distance} />
         </Suspense>
       )}
+
+      {/* Bütün ümmət bir nöqtəyə — dünyanın şəhərlərindən Kəbəyə qövslər (məkan olmasa da göstərilir) */}
+      <section className="ui-section ui-section--tight qb-lines">
+        <div className="ui-container">
+          <Suspense fallback={null}>
+            <QiblaLines from={coords ? { lat: coords.lat, lng: coords.lon } : null} lang={lang} />
+          </Suspense>
+        </div>
+      </section>
 
       {/* Hökmlər və tövsiyələr — məkan tapılmasa da göstərilir */}
       <QiblaGuide lang={lang} />

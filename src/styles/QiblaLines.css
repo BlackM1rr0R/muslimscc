@@ -1,0 +1,24 @@
+/* ══ Qiblə xətləri (components/QiblaLines.jsx) ══ */
+.ql { display: grid; gap: 10px; padding: 16px; margin: 18px 0 0; }
+.ql__head { display: grid; gap: 4px; }
+.ql__title { font-weight: 800; font-size: 1.15rem; }
+.ql__lead { font-size: .88rem; color: var(--text-secondary); }
+.ql__svg { width: 100%; height: auto; display: block; }
+.ql__sphere { fill: #0b2234; }
+.ql__grat { fill: none; stroke: rgba(255, 255, 255, .06); stroke-width: .5; }
+.ql__land { fill: #1d4d3e; stroke: #163d31; stroke-width: .4; }
+.ql__line { fill: none; stroke: rgba(170, 230, 205, .45); stroke-width: .9; stroke-linecap: round; }
+.ql__me { fill: none; stroke: #f0c75e; stroke-width: 2.6; stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(240, 199, 94, .8)); }
+.ql__me-dot { fill: #fff; stroke: #f0c75e; stroke-width: 2; }
+.ql__cube { fill: #111; stroke: #f0c75e; stroke-width: 1.6; }
+.ql__halo { fill: rgba(240, 199, 94, .25); stroke: rgba(240, 199, 94, .6); stroke-width: 1; transform-box: fill-box; transform-origin: center; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ql__line, html:not(.a11y-reduce-motion) .ql__me {
+    stroke-dasharray: 1; animation: ql-draw 1400ms cubic-bezier(.3, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 28ms);
+  }
+  html:not(.a11y-reduce-motion) .ql__me { animation-duration: 1800ms; }
+  html:not(.a11y-reduce-motion) .ql__halo { animation: ql-halo 2.4s ease-out infinite; animation-delay: calc(var(--n, 0) * 28ms + 1200ms); }
+}
+@keyframes ql-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes ql-halo { 0% { transform: scale(.6); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
