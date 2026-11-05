@@ -23,6 +23,30 @@ import '../styles/FatwaPage.css'
    4) mətnlərin şərhləri (bizdə eyni mətnin dərsi varsa — daxili keçid) → qeyd.
    ══════════════════════════════════════════════════════════════════ */
 
+// Mövzu buludu — hər mövzunun ərəbcə adı, ölçüsü keçid sayına görə; toxunuş həmin mövzunu süzür.
+// Sıra: böyüklər ortada (bulud forması), qalanlar növbə ilə kənarlara.
+const CLOUD_T = { az: 'Mövzu buludu', en: 'Topic cloud', ru: 'Облако тем', ar: 'سحابة الموضوعات', tr: 'Konu bulutu' }
+function TopicCloud({ lang, onPick }) {
+  const items = useMemo(() => {
+    const max = Math.max(...TOPICS.map(t => t.links.length)), min = Math.min(...TOPICS.map(t => t.links.length))
+    const sorted = TOPICS.slice().sort((a, b) => b.links.length - a.links.length)
+    const out = []
+    sorted.forEach((t, i) => { if (i % 2) out.push(t); else out.unshift(t) })
+    return out.map((t, i) => ({ t, i, k: max === min ? 0.5 : (t.links.length - min) / (max - min) }))
+  }, [])
+  return (
+    <nav className="fw-cloud" aria-label={CLOUD_T[lang] || CLOUD_T.en} data-testid="fatwa-cloud">
+      {items.map(({ t, i, k }) => (
+        <button key={t.id} type="button" className={`fw-cloud__w fw-cloud__w--${i % 4}`} style={{ '--k': k.toFixed(3), '--i': i }}
+          onClick={() => onPick(t.id)} title={`${pick(t.label, lang)} · ${t.links.length}`}>
+          <span className="fw-cloud__ar ui-arabic" lang="ar" dir="rtl">{t.ar}</span>
+          {lang !== 'ar' && <span className="fw-cloud__l">{pick(t.label, lang)}</span>}
+        </button>
+      ))}
+    </nav>
+  )
+}
+
 const L10N = {
   az: {
     eyebrow: 'Elm mənbələri', title: 'Fətvalar və elm mənbələri',
@@ -408,6 +432,9 @@ export default function FatwaPage() {
                 <h2 id="fw-topics-h" className="ui-title ui-title--sm">{T.secTopics}</h2>
                 <p className="fw-section__lead">{T.topicsLead}</p>
               </div>
+              {fTopic === 'all' && !q.trim() && (
+                <TopicCloud lang={lang} onPick={(id) => { setFTopic(id); document.getElementById('fw-topics')?.scrollIntoView({ block: 'start' }) }} />
+              )}
               <ul className="fw-grid fw-grid--topics">
                 {topics.map(t => (
                   <li key={t.id} className="ui-card fw-topic">

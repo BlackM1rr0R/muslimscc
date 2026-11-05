@@ -145,3 +145,14 @@ test('ərəb hərfi: üstündən yazmaq ulduz verir, hər yeri cızmaq vermir', 
   await check.click()
   await expect(f.locator('.lt__res')).toContainText('Yenidən cəhd edin')
 })
+
+test('fətva mövzu buludu: toxunuş mövzunu süzür, bulud gizlənir', async ({ page }) => {
+  await page.goto('/fatwa')
+  await settle(page)
+  const c = page.getByTestId('fatwa-cloud')
+  await expect(c.locator('button')).toHaveCount(16)
+  await c.getByRole('button', { name: /Namaz/ }).click()
+  await expect(c).toHaveCount(0)
+  await expect(page.locator('.fw-topic')).toHaveCount(1)
+  await expect(page.locator('.fw-topic__title')).toHaveText('Namaz')
+})
