@@ -87,6 +87,9 @@ Cloudflare siyahını dəyişəndə: `sh infra/nginx/gen-cloudflare.sh`, commit,
   compose-da yalnız `web` port açır, həm də yalnız IPv4-də.
 - Konteynerlər: root-suz, `read_only`, `cap_drop: ALL`, `no-new-privileges`, yaddaş limiti
 - nginx: HSTS, təhlükəsizlik başlıqları, gizli fayllar (`.env`, `.git`) 404, birbaşa IP ilə gələnlər kəsilir
+- CSP: hələlik **Report-Only** (`security-headers.conf`) — heç nə bloklanmır, pozuntular `/api/csp-report`-a gəlir.
+  Baxış: `GET /api/admin/csp` (admin) və ya `docker compose logs api | grep "[csp]"`. Bir neçə gün təmizdirsə,
+  başlıq adını `Content-Security-Policy` et. Tema skripti dəyişsə hash-i yenilə (`scripts/check-csp.mjs` CI-da tutur).
 - Avtomatik təhlükəsizlik yeniləmələri (unattended-upgrades) aktivdir
 
 ## Lokal yoxlama

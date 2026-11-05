@@ -13,7 +13,7 @@
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test:rules": "npx -y firebase-tools@15 emulators:exec --only firestore --project demo-muslims-cc \"node --test tests/rules/firestore.rules.test.js\"",
-    "check": "node scripts/check-config-sync.mjs && node scripts/check-lang.mjs && node scripts/check-motion.mjs",
+    "check": "node scripts/check-config-sync.mjs && node scripts/check-lang.mjs && node scripts/check-motion.mjs && node scripts/check-csp.mjs",
     "check:lang": "node scripts/check-lang.mjs",
     "lint": "eslint . --max-warnings 0"
   },

@@ -36,7 +36,7 @@ else console.log(`Firebase: FCM ${FCM_ON ? 'açıq' : 'sönülü'}, köhnə admi
 // çöksün: yoxsa yeni sxem tətbiq olunur və köhnə versiyaya qayıdış da alınmır
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
-for (const m of ['./auth', './analytics', './content', './feedback', './groups', './sync', './ics', './push',
+for (const m of ['./auth', './analytics', './csp', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './prayCalc']) require(m)
 
 // ─── Verilənlər bazası (SQLite, node:sqlite) ─────────────────────────
@@ -109,6 +109,10 @@ app.use('/api', require('./groups').createGroupsRouter({ db }))
 
 // ─── Cihazlar arası sinxronizasiya (server/sync.js) — şifrəli bloklar, hesabsız; öz limiti var ──
 app.use('/api', require('./sync').createSyncRouter({ db }))
+
+// ─── CSP pozuntu hesabatları (server/csp.js) — Report-Only rejimi; yaddaşda birləşdirilir ──
+app.use('/api/csp-report', limit(60000, 60))
+app.use('/api', require('./csp').createCspRouter({ requireAdmin }))
 
 // ─── Namaz vaxtları — təqvim abunəliyi (server/ics.js) ──
 // Google/Apple serverləri çox istifadəçi üçün eyni IP-dən gəlir — limit genişdir
