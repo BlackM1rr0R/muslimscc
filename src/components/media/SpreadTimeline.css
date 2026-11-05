@@ -1,0 +1,57 @@
+/* ══ İslamın yayılması — zaman xəttli xəritə (SpreadTimeline.jsx) ══ */
+.st { margin: 24px 0 0; display: grid; gap: 10px; }
+.st__canvas { position: relative; border-radius: var(--radius-lg, 18px); overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
+.st__canvas svg { display: block; width: 100%; height: auto; }
+.st__sea { fill: color-mix(in srgb, var(--note, #3a6ea5) 8%, var(--surface, #fff)); }
+.st__land { fill: color-mix(in srgb, #c9b27a 30%, var(--surface, #fff)); stroke: color-mix(in srgb, #8c7440 45%, transparent); stroke-width: .6; }
+
+.st__arc { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: .85;
+  transition: stroke-dashoffset 900ms cubic-bezier(.4, .1, .2, 1); }
+.st__arc.is-on { stroke-dashoffset: 0; }
+.st__arc.is-cur { stroke-width: 3.4; }
+.st__arc--nabi, .st__city--nabi .st__dot { stroke: var(--brand); }
+.st__arc--rashidun, .st__city--rashidun .st__dot { stroke: var(--accent); }
+.st__arc--umayyad, .st__city--umayyad .st__dot { stroke: var(--note, #3a6ea5); }
+.st__arc--abbasid, .st__city--abbasid .st__dot { stroke: var(--text-secondary); }
+.st__arc--later, .st__city--later .st__dot { stroke: #8a4fb0; }
+.smap__key--later { border-color: #8a4fb0; }
+
+.st__city { opacity: 0; transition: opacity 400ms ease 500ms; }
+.st__city.is-on { opacity: 1; }
+.st__dot { fill: var(--surface, #fff); stroke-width: 3; transform-box: fill-box; transform-origin: center; transition: transform 400ms cubic-bezier(.2, .8, .2, 1.3) 500ms; transform: scale(.2); }
+.st__city.is-on .st__dot { transform: scale(1); }
+.st__city.is-cur .st__dot { transform: scale(1.5); }
+.st__label { font-size: 15px; font-weight: 600; fill: var(--text-primary); paint-order: stroke; stroke: var(--surface, #fff); stroke-width: 4px; stroke-linejoin: round; }
+.st__sub { font-size: 12.5px; fill: var(--text-secondary); paint-order: stroke; stroke: var(--surface, #fff); stroke-width: 3px; }
+.st__city.is-cur .st__label { fill: var(--brand); }
+.st__medina circle { fill: var(--brand); stroke: #fff; stroke-width: 2.5; }
+.st__medina text { font-size: 15px; font-weight: 700; fill: var(--brand); paint-order: stroke; stroke: var(--surface, #fff); stroke-width: 4px; }
+
+.st__now {
+  position: absolute; inset-inline-start: 14px; bottom: 14px; display: grid; gap: 1px; max-width: 60%;
+  padding: 10px 14px; border-radius: 14px; background: color-mix(in srgb, var(--surface, #fff) 90%, transparent);
+  border: 1px solid var(--border); box-shadow: 0 8px 22px -14px rgba(0, 0, 0, .4);
+}
+.st__now b { font-size: clamp(1.3rem, 3.4vw, 2rem); line-height: 1; color: var(--brand); }
+.st__now span { font-weight: 600; font-size: clamp(.82rem, 2vw, 1rem); }
+.st__now small { color: var(--text-secondary); font-size: .78rem; }
+
+.st__ctrl { display: flex; align-items: center; gap: 12px; }
+.st__play { flex: none; min-width: 110px; justify-content: center; }
+.st__range { flex: 1; accent-color: var(--brand); min-width: 0; }
+.st__ends { flex: none; font-size: .8rem; color: var(--text-secondary); }
+
+@media (max-width: 560px) {
+  .st__label { font-size: 20px; }
+  .st__sub { display: none; }
+  .st__now { position: static; max-width: none; border: 0; box-shadow: none; border-radius: 0; border-top: 1px solid var(--border); }
+  .st__ends { display: none; }
+}
+html.a11y-reduce-motion .st__arc, html.a11y-reduce-motion .st__city, html.a11y-reduce-motion .st__dot { transition: none; }
+@media (prefers-reduced-motion: reduce) { .st__arc, .st__city, .st__dot { transition: none; } }
+/* Telefonda bütün yazılar sığmır — yalnız cari şəhərin adı (iri); qalanı aşağıdakı kartdadır */
+@media (max-width: 560px) {
+  .st__city .st__label { display: none; }
+  .st__city.is-cur .st__label { display: inline; font-size: 30px; stroke-width: 6px; }
+  .st__medina text { font-size: 24px; }
+}

@@ -348,7 +348,7 @@ export function SirahMap({ lang = 'az' }) {
 }
 
 /* ═══ 4. İslamın yayılması (sxematik): Mədinədən şəhərlərə, dövrlərə görə ═══ */
-const SPREAD_L = {
+export const SPREAD_L = {
   title: { az: 'İslamın yayılması (sxematik)', en: 'The spread of Islam (schematic)', ru: 'Распространение ислама (схема)', ar: 'انتشار الإسلام (مخطط)', tr: 'İslam’ın yayılışı (şematik)' },
   desc: {
     az: 'Mədinədən əsas şəhərlərə xətlər; rəng dövrü göstərir: Peyğəmbər ﷺ dövrü (632-yə qədər), Raşidi xilafəti (632–661), Əməvilər (661–750), Abbasilər (750-dən). İllər ümumi qəbul olunmuş tarixlərdir; bəziləri təxminidir.',
@@ -365,7 +365,7 @@ const SPREAD_L = {
   ],
 }
 // [enlik, uzunluq, dövr, il, ad, yazı mövqeyi, yazının şaquli sürüşməsi]
-const CITIES = [
+export const CITIES = [
   [21.42, 39.83, 'nabi', '630', { az: 'Məkkə', en: 'Mecca', ru: 'Мекка', ar: 'مكة', tr: 'Mekke' }, 'end'],
   [33.51, 36.29, 'rashidun', '634–636', { az: 'Dəməşq', en: 'Damascus', ru: 'Дамаск', ar: 'دمشق', tr: 'Şam' }, 'end', -16],
   [31.78, 35.23, 'rashidun', '637–638', { az: 'Qüds', en: 'Jerusalem', ru: 'Иерусалим', ar: 'القدس', tr: 'Kudüs' }, 'start', 6],

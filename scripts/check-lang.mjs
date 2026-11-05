@@ -136,7 +136,7 @@ const LATIN_OK = new Set([
   'instagram', 'facebook', 'whatsapp', 'telegram', 'tiktok', 'twitter', 'x', 'firebase', 'muslims', 'cc',
   'muslims.cc', 'km', 'kg', 'g', 'm', 'h', 'min', 'am', 'pm', 'gmt', 'utc', 'i', 'ii', 'iii', 'iv', 'v', 'vi',
   'vii', 'viii', 'ix', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx', 'xxi', 'azn',
-  'usd', 'eur', 'try', 'rub', 'sar', 'api', 'apple', 'play', 'store', 'outlook', 'app', 'claude', 'anthropic', 'ics',
+  'usd', 'eur', 'try', 'rub', 'sar', 'api', 'apple', 'play', 'store', 'outlook', 'natural', 'earth', 'app', 'claude', 'anthropic', 'ics',
   'csv', 'json', 'png', 'jpg', 'mp3', 'mp4', 'html', 'www', 'https', 'http', 'com', 'org', 'az', 'en', 'ru',
   'tr', 'ar', 'c', 'n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se', 'n/a', 'cdn', 'openstreetmap', 'javascript',
   'rtl', 'ltr',

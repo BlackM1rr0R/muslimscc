@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import ReaderDialog from '../components/reader/ReaderDialog'
@@ -7,6 +7,8 @@ import '../styles/IslamicHistoryPage.css'
 import PlacePhoto from '../components/media/PlacePhoto'
 import { HijraMap, SirahMap, SpreadMap } from '../components/media/SiraMaps'
 import RelatedLinks from '../components/media/RelatedLinks'
+// Canlı yayılma xəritəsi (d3-geo + sahil xətləri) — ayrıca yüklənir; o vaxta qədər statik sxem
+const SpreadTimeline = lazy(() => import('../components/media/SpreadTimeline'))
 import { PLACE_PHOTOS } from '../data/placeImages'
 // Məlumat — src/data/islamicHistory.js (peyğəmbərlər, hadisələr, dövrlər)
 import { PROPHETS, EVENTS, EVENTS_SORTED, HISTORY_ERAS, eraOfEvent, ULUL_AZM } from '../data/islamicHistory'
@@ -357,7 +359,9 @@ export default function IslamicHistoryPage() {
             <HijraMap lang={lang} />
             <SirahMap lang={lang} />
           </div>
-          <SpreadMap lang={lang} />
+          <Suspense fallback={<SpreadMap lang={lang} />}>
+            <SpreadTimeline lang={lang} />
+          </Suspense>
           <h3 className="history-places-title">{M.places}</h3>
           <div className="ph-strip" data-reveal="stagger">
             {['taif', 'al-baqi'].map(k => (
