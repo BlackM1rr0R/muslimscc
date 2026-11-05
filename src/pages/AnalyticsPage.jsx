@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import '../styles/AnalyticsPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
+import YearReview from '../components/YearReview'
 import { navGroupLabel, navLabel } from '../data/navigation'
 import { pathFor } from '../seo/routes.js'
 import { ChartFigure, BarChart, ColumnChart, ProgressRing, ProgressBar, StackedBar, StatTile } from '../components/viz'
@@ -538,6 +539,9 @@ export default function AnalyticsPage({ setPage }) {
           </div>
         </div>
       )}
+
+      {/* İllik icmal — cari hicri il */}
+      {hasData && <YearReview />}
 
       {/* ── 1. Fəaliyyət ── */}
       <section className="ui-section ui-section--tight analytics-sec" aria-labelledby="an-act">

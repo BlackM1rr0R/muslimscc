@@ -1,0 +1,48 @@
+/* ══ İllik icmal (components/YearReview.jsx) — yalnız transform/opacity animasiyası ══ */
+.yr__card {
+  position: relative; overflow: hidden; isolation: isolate;
+  border-radius: var(--radius-xl, 24px);
+  padding: clamp(20px, 4vw, 36px);
+  background: linear-gradient(140deg, #0d3b2e, #06201a);
+  color: #fff;
+  box-shadow: 0 18px 50px -24px rgba(6, 32, 26, .55);
+}
+.yr__glow {
+  position: absolute; inset: -40% -10% auto auto; width: 70%; aspect-ratio: 1; z-index: -1;
+  background: radial-gradient(circle, rgba(212, 175, 55, .28), transparent 62%);
+  pointer-events: none;
+}
+.yr .ui-eyebrow { color: #d4af37; }
+.yr__title { margin: 6px 0 4px; font-family: var(--font-display, Georgia, serif); font-size: clamp(1.6rem, 3.6vw, 2.3rem); color: #fff; }
+.yr__lead { margin: 0; color: rgba(255, 255, 255, .75); max-width: 60ch; }
+.yr__year { display: flex; align-items: center; gap: 12px; margin-top: 14px; color: rgba(255, 255, 255, .7); }
+.yr__year-bar { flex: 0 1 260px; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+.yr__year-bar i { display: block; height: 100%; background: linear-gradient(90deg, #d4af37, #f3d77a); transform-origin: left; }
+[dir="rtl"] .yr__year-bar i { transform-origin: right; }
+
+.yr__grid {
+  list-style: none; margin: 22px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+}
+.yr__item {
+  display: grid; gap: 4px; padding: 16px; border-radius: 16px;
+  background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .08);
+}
+.yr__item svg { color: #d4af37; }
+.yr__item b { font-size: clamp(1.6rem, 3vw, 2.1rem); line-height: 1.1; color: #f3d77a; font-variant-numeric: tabular-nums; }
+.yr__item span { font-size: .9rem; color: rgba(255, 255, 255, .78); }
+.yr__empty { margin: 18px 0 0; color: rgba(255, 255, 255, .8); }
+.yr__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px; }
+.yr__note { color: rgba(255, 255, 255, .6); margin-inline-end: auto; }
+.yr__share { color: #fff; border-color: rgba(255, 255, 255, .3); }
+.yr__share:hover { background: rgba(255, 255, 255, .1); }
+.yr__msg { color: #f3d77a; font-size: .9rem; }
+.yr__msg:empty { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .yr__item { animation: yr-in 600ms cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 120ms); }
+  html:not(.a11y-reduce-motion) .yr__year-bar i { animation: yr-bar 1200ms cubic-bezier(.3, .7, .2, 1) both 200ms; }
+}
+@keyframes yr-in { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes yr-bar { from { scale: 0 1; } }
+@media (min-width: 720px) { .yr__grid { grid-template-columns: repeat(3, 1fr); } }
