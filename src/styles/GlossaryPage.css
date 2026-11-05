@@ -397,3 +397,16 @@
   from { opacity: 0; clip-path: inset(-20% 0 -20% 100%); }
   to   { opacity: 1; clip-path: inset(-20% 0 -20% 0); }
 }
+
+/* Termin → Quran kökü (RootChip) */
+.glossary-root { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 5px 10px; border-radius: 999px;
+  font-size: .8rem; color: var(--text-secondary); text-decoration: none;
+  background: color-mix(in srgb, var(--gold, #c59a2c) 10%, var(--surface-1, #fff));
+  border: 1px solid color-mix(in srgb, var(--gold, #c59a2c) 35%, transparent); transition: border-color .2s ease, transform .2s ease; }
+.glossary-root:hover { border-color: var(--gold, #c59a2c); transform: translateY(-1px); }
+.glossary-root:focus-visible { outline: 3px solid var(--focus, #c59a2c); outline-offset: 2px; }
+.glossary-root__k { font-weight: 700; }
+.glossary-root__ar { font-size: 1.05rem; color: var(--text-primary); }
+.glossary-root__bar { width: 46px; height: 5px; border-radius: 4px; background: var(--viz-track, rgba(0,0,0,.08)); overflow: hidden; }
+.glossary-root__bar i { display: block; height: 100%; background: var(--gold, #c59a2c); transform-origin: 0 50%; transform: scaleX(var(--w, 0)); }
+[dir="rtl"] .glossary-root__bar i { transform-origin: 100% 50%; }

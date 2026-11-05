@@ -9,6 +9,8 @@ import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
 import ListMore from '../components/ListMore'
 import BackToTop from '../components/BackToTop'
 import Icon from '../components/Icon'
+import { GLOSSARY_ROOTS } from '../data/glossaryRoots'
+import { spacedRoot } from '../utils/quranRoots'
 import ReaderDialog from '../components/reader/ReaderDialog'
 import StarButton, { CopyStatus } from '../components/collect/StarButton'
 import useStarred, { dayPick, shareLink } from '../components/collect/useStarred'
@@ -50,6 +52,29 @@ const ARABIC_LETTERS = ['ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','
 const BATCH = 24
 
 // Ətraflı dərsə keçidi olan terminlər (yalnız saytda mövcud dərslər)
+// Termin → Quran kökü (data/glossaryRoots.js, scripts/build-glossary-roots.mjs): kök, işlənmə sayı, mini zolaq
+const ROOT_T = {
+  az: { root: 'Kök', n: (k) => `Quranda ${k} dəfə`, open: 'Kökün bütün ayələri' },
+  en: { root: 'Root', n: (k) => `${k}× in the Quran`, open: 'All verses of this root' },
+  ru: { root: 'Корень', n: (k) => `${k} раз в Коране`, open: 'Все аяты этого корня' },
+  tr: { root: 'Kök', n: (k) => `Kur’an’da ${k} kez`, open: 'Bu kökün bütün ayetleri' },
+  ar: { root: 'الجذر', n: (k) => `${k} مرة في القرآن`, open: 'كل آيات هذا الجذر' },
+}
+const ROOT_MAX = Math.max(1, ...Object.values(GLOSSARY_ROOTS).map(x => x[1]))
+function RootChip({ root, n, lang }) {
+  const r = ROOT_T[lang] || ROOT_T.az
+  const w = Math.log(1 + n) / Math.log(1 + ROOT_MAX)
+  return (
+    <a className="glossary-root" href={`${pathFor('quranroots', lang)}?root=${encodeURIComponent(root)}`} title={r.open}
+      onClick={(e) => e.stopPropagation()} data-testid="glossary-root">
+      <span className="glossary-root__k">{r.root}</span>
+      <span className="glossary-root__ar ui-arabic" lang="ar" dir="rtl">{spacedRoot(root)}</span>
+      <span className="glossary-root__bar" aria-hidden="true"><i style={{ '--w': w.toFixed(3) }} /></span>
+      <span className="glossary-root__n ui-num">{r.n(n)}</span>
+    </a>
+  )
+}
+
 const LESSON_LINKED = GLOSSARY.filter(x => x.lesson && LESSON_SLUGS.includes(x.lesson)).length
 
 const revealProps = (i) => {
@@ -362,6 +387,7 @@ export default function GlossaryPage() {
                     </span>
                   </div>
                   <p className="glossary-definition">{item.def[lang] || item.def.en}</p>
+                  {GLOSSARY_ROOTS[item.id] && <RootChip root={GLOSSARY_ROOTS[item.id][0]} n={GLOSSARY_ROOTS[item.id][1]} lang={lang} />}
                   {(rel.length > 0 || lessonOk) && (
                     <div className="glossary-card-foot">
                       {rel.length > 0 && (
