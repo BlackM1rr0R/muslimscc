@@ -15,10 +15,10 @@
 .zf__note { margin: 0; font-size: .85rem; color: var(--text-secondary); }
 
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .zf__links path {
+  html:not(.a11y-reduce-motion) [data-revealed] .zf__links path {
     transform-box: view-box; transform-origin: 0 50%;
     animation: zf-grow 700ms cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 90ms);
   }
-  html:not(.a11y-reduce-motion) .zf__links--out path { transform-origin: 49% 50%; animation-delay: calc(var(--i, 0) * 90ms + 300ms); }
+  html:not(.a11y-reduce-motion) [data-revealed] .zf__links--out path { transform-origin: 49% 50%; animation-delay: calc(var(--i, 0) * 90ms + 300ms); }
 }
 @keyframes zf-grow { from { opacity: 0; transform: scaleX(0); } }

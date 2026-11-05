@@ -60,7 +60,7 @@ export default function UmmahCounter({ lang = 'az' }) {
           {['salawat', 'dhikr', 'juz'].map(k => (
             <li key={k} className="um__stat">
               <Icon name={ICON[k]} size={20} />
-              <b className="ui-num" data-testid={`ummah-${k}`}>{data ? fmt((data.today?.[k] || 0) + (mine[k] || 0), lang) : '…'}</b>
+              <b className="ui-num" data-testid={`ummah-${k}`} data-count={data ? (data.today?.[k] || 0) : undefined} data-count-duration="1600">{data ? fmt((data.today?.[k] || 0) + (mine[k] || 0), lang) : '…'}</b>
               <span>{t[k]}</span>
               {data && <small className="ui-num">{t.total(fmt((data.total?.[k] || 0) + (mine[k] || 0), lang))}</small>}
             </li>

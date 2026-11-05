@@ -35,7 +35,7 @@ export default function MuhasabahSky({ entries, items, today, labels, lang = 'az
   const [sel, setSel] = useState(null)
 
   return (
-    <figure className="ms" data-testid="muhasabah-sky">
+    <figure className="ms" data-testid="muhasabah-sky" data-reveal="fade">
       <figcaption className="ms__head">
         <span className="ms__title">{t.title}</span>
         <span className="ms__lead">{t.lead}</span>

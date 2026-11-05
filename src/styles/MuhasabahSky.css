@@ -15,8 +15,8 @@
 .ms__note { margin: 0; font-size: .85rem; color: var(--text-secondary); }
 
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .ms__star { transform-box: fill-box; transform-origin: center; animation: ms-in 700ms cubic-bezier(.2, .8, .2, 1.3) both; }
-  html:not(.a11y-reduce-motion) .ms__star.is-today { animation: ms-twinkle 1.6s ease-in-out 3; }
+  html:not(.a11y-reduce-motion) [data-revealed] .ms__star { transform-box: fill-box; transform-origin: center; animation: ms-in 700ms cubic-bezier(.2, .8, .2, 1.3) both; }
+  html:not(.a11y-reduce-motion) [data-revealed] .ms__star.is-today { animation: ms-twinkle 1.6s ease-in-out 3; }
 }
 @keyframes ms-in { from { transform: scale(0); } }
 @keyframes ms-twinkle { 50% { transform: scale(1.8); } }

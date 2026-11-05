@@ -38,7 +38,7 @@ export default function DuaGarden({ duas, lang = 'az' }) {
   const buds = list.filter(d => !d.answered).length
 
   return (
-    <figure className="ui-card dg" data-testid="dua-garden">
+    <figure className="ui-card dg" data-testid="dua-garden" data-reveal="fade">
       <figcaption className="dg__head">
         <span className="dg__title">{t.title}</span>
         <span className="dg__lead">{t.lead}</span>

@@ -41,7 +41,7 @@ function NurCarpet({ snap, periods, today, lang = 'az', onPick }) {
   }, [snap, periods, today, year])
 
   return (
-    <figure className="nc" data-testid="nur-carpet">
+    <figure className="nc" data-testid="nur-carpet" data-reveal="fade">
       <figcaption className="nc__head">
         <span className="nc__title">{t.title}</span>
         <span className="nc__lead">{t.lead(year)}</span>

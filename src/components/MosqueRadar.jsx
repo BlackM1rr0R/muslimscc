@@ -49,7 +49,7 @@ export default function MosqueRadar({ origin, mosques, lang = 'az', nextPrayer, 
   const ring = (km) => Math.sqrt(km / R_KM) * 92
 
   return (
-    <figure className="ui-card mr" data-testid="mosque-radar">
+    <figure className="ui-card mr" data-testid="mosque-radar" data-reveal="fade">
       <figcaption className="mr__title">{t.title} <span className="mr__sum">{t.sum(mosques.length)}</span></figcaption>
       <div className="mr__body">
         <svg className="mr__svg" viewBox="-100 -100 200 200" role="img" aria-label={t.sum(mosques.length)}>

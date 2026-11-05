@@ -76,7 +76,7 @@ export default function NamesMandala({ names, known = [], lang = 'az', meaningOf
   }
 
   return (
-    <div className="nm">
+    <div className="nm" data-reveal="fade">
       <div className="nm__stage" ref={rootRef} tabIndex={0} role="group" aria-label={t.label} onKeyDown={onKey} data-testid="names-mandala">
         <svg className="nm__svg" viewBox={`0 0 ${VB} ${VB}`} aria-hidden="true" focusable="false">
           <defs>

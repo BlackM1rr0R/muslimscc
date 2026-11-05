@@ -36,7 +36,7 @@
 .cp__sw--q::before { content: '★'; font-size: 12px; line-height: 11px; }
 
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .cp__moons > li { animation: cp-rise 600ms cubic-bezier(.2, .8, .2, 1.1) both; animation-delay: calc(var(--i, 0) * 30ms); }
+  html:not(.a11y-reduce-motion) [data-revealed] .cp__moons > li { animation: cp-rise 600ms cubic-bezier(.2, .8, .2, 1.1) both; animation-delay: calc(var(--i, 0) * 30ms); }
   html:not(.a11y-reduce-motion) .cp__moon--1 svg { animation: cp-glow 500ms cubic-bezier(.2, .8, .2, 1.4); }
 }
 @keyframes cp-rise { from { opacity: 0; transform: translate(-50%, -20%) scale(.6); } }

@@ -35,7 +35,7 @@ function TopicCloud({ lang, onPick }) {
     return out.map((t, i) => ({ t, i, k: max === min ? 0.5 : (t.links.length - min) / (max - min) }))
   }, [])
   return (
-    <nav className="fw-cloud" aria-label={CLOUD_T[lang] || CLOUD_T.en} data-testid="fatwa-cloud">
+    <nav className="fw-cloud" aria-label={CLOUD_T[lang] || CLOUD_T.en} data-testid="fatwa-cloud" data-reveal="fade">
       {items.map(({ t, i, k }) => (
         <button key={t.id} type="button" className={`fw-cloud__w fw-cloud__w--${i % 4}`} style={{ '--k': k.toFixed(3), '--i': i }}
           onClick={() => onPick(t.id)} title={`${pick(t.label, lang)} · ${t.links.length}`}>

@@ -24,8 +24,8 @@
 .dg__date { color: var(--text-secondary); }
 
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .dg__plant { animation: dg-grow 700ms cubic-bezier(.2, .8, .2, 1.1) both; animation-delay: calc(var(--i, 0) * 35ms); }
-  html:not(.a11y-reduce-motion) .dg__flower { animation: dg-bloom 600ms cubic-bezier(.2, .8, .2, 1.3) both; animation-delay: calc(var(--i, 0) * 35ms + 450ms); }
+  html:not(.a11y-reduce-motion) [data-revealed] .dg__plant { animation: dg-grow 700ms cubic-bezier(.2, .8, .2, 1.1) both; animation-delay: calc(var(--i, 0) * 35ms); }
+  html:not(.a11y-reduce-motion) [data-revealed] .dg__flower { animation: dg-bloom 600ms cubic-bezier(.2, .8, .2, 1.3) both; animation-delay: calc(var(--i, 0) * 35ms + 450ms); }
 }
 @keyframes dg-grow { from { opacity: 0; transform: scaleY(.1); } }
 @keyframes dg-bloom { from { opacity: 0; transform: scale(.2) rotate(-40deg); } }

@@ -20,7 +20,7 @@
 .qm__main { font-weight: 700; color: var(--text-primary); }
 
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .qm__trail-done { transition: stroke-dashoffset 1s cubic-bezier(.3, .7, .2, 1); animation: qm-draw 1.4s cubic-bezier(.3, .7, .2, 1) both; }
+  html:not(.a11y-reduce-motion) [data-revealed] .qm__trail-done { transition: stroke-dashoffset 1s cubic-bezier(.3, .7, .2, 1); animation: qm-draw 1.4s cubic-bezier(.3, .7, .2, 1) both; }
   html:not(.a11y-reduce-motion) .qm__me { transition: transform 1s cubic-bezier(.3, .7, .2, 1); }
   html:not(.a11y-reduce-motion) .qm__camp.is-on { transition: fill .3s ease; }
 }

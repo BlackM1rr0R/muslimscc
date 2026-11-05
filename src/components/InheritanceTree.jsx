@@ -25,7 +25,7 @@ export default function InheritanceTree({ shares, net, name, fmt, labels }) {
   const sig = shares.map(s => `${s.heir}:${s.count}:${s.fraction}`).join('|')
 
   return (
-    <figure className="it" data-testid="inheritance-tree" key={sig}>
+    <figure className="it" data-testid="inheritance-tree" key={sig} data-reveal="fade">
       <figcaption className="it__title">{labels.title}</figcaption>
       <div className="it__stage" style={{ '--rows': L.rows }}>
         <svg className="it__svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">

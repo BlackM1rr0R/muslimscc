@@ -35,10 +35,10 @@ export default function QadaMountain({ done = 0, owed = 0, lang = 'az' }) {
   const pct = Math.floor(p * 1000) / 10
 
   return (
-    <figure className="ui-card qm" data-testid="qada-mountain">
+    <figure className="ui-card qm" data-testid="qada-mountain" data-reveal="scale">
       <figcaption className="qm__head">
         <span className="qm__title">{t.title}</span>
-        <span className="qm__pct ui-num">{pct}%</span>
+        <span className="qm__pct ui-num" data-count={pct}>{pct}%</span>
       </figcaption>
       <svg className="qm__svg" viewBox="0 0 600 300" role="img" aria-label={t.label(pct)}>
         <defs>

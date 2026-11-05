@@ -32,6 +32,6 @@
 .nc__sum { margin-inline-start: auto; font-weight: 700; color: var(--text-primary); }
 
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .nc__month { animation: nc-weave 600ms cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 50ms); }
+  html:not(.a11y-reduce-motion) [data-revealed] .nc__month { animation: nc-weave 600ms cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 50ms); }
 }
 @keyframes nc-weave { from { opacity: 0; transform: translateX(-12px); } }

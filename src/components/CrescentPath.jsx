@@ -58,7 +58,7 @@ export default function CrescentPath({ lang = 'az', today = null, year = 'x' }) 
   }
 
   return (
-    <section className="ui-card cp" aria-labelledby="cp-title" data-testid="crescent-path">
+    <section className="ui-card cp" aria-labelledby="cp-title" data-testid="crescent-path" data-reveal="fade">
       <div className="cp__head">
         <h2 id="cp-title" className="ui-title ui-title--sm">{t.title}</h2>
         <p className="cp__lead">{t.lead}</p>

@@ -28,7 +28,7 @@ export default function ZakatFlow({ sources, debt = 0, net, zakat, above, labels
   const restColor = above ? 'var(--zf-rest)' : 'var(--zf-muted)'
 
   return (
-    <figure className="ui-card zf" data-testid="zakat-flow">
+    <figure className="ui-card zf" data-testid="zakat-flow" data-reveal="fade">
       <figcaption className="zf__title">{labels.title}</figcaption>
       <svg className="zf__svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={summary} dir="ltr">
         <g className="zf__links zf__links--in">

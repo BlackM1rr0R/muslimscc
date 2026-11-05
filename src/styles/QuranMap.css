@@ -1,7 +1,7 @@
 /* ══ Quranın xəritəsi (components/QuranMap.jsx) ══ */
 .qmap { --qmap-mk-1: #ece4d2; --qmap-mk-2: #e1d6bf; --qmap-md-1: #d3e6df; --qmap-md-2: #c1dad1; --qmap-mem: #d9a92e; --qmap-learn: #2e9a73;
   display: grid; gap: 10px; padding: 16px; margin-bottom: 18px; }
-[data-theme="dark"] .qmap { --qmap-mk-1: #2a2f2c; --qmap-mk-2: #323834; --qmap-md-1: #1f3530; --qmap-md-2: #26403a; --qmap-mem: #f0c75e; --qmap-learn: #3fbf8e; }
+[data-theme="dark"] .qmap { --qmap-mk-1: #3a3426; --qmap-mk-2: #443d2c; --qmap-md-1: #1d3b44; --qmap-md-2: #244852; --qmap-mem: #f0c75e; --qmap-learn: #3fbf8e; }
 .qmap__head { display: grid; gap: 4px; }
 .qmap__lead { margin: 0; color: var(--text-secondary); font-size: .9rem; }
 .qmap__wrap { width: 100%; }

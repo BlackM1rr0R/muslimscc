@@ -45,7 +45,7 @@ export default function QiblaLines({ from, lang = 'az' }) {
   const k = proj(KAABA)
 
   return (
-    <figure className="ui-card ql" data-testid="qibla-lines">
+    <figure className="ui-card ql" data-testid="qibla-lines" data-reveal="fade">
       <figcaption className="ql__head">
         <span className="ql__title">{t.title}</span>
         <span className="ql__lead">{t.lead(lines.length)}{me ? ` · ${t.you}: ${t.km(me.km.toLocaleString(lang === 'ar' ? 'ar-u-nu-latn' : lang))}` : ''}</span>

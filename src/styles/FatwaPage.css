@@ -277,6 +277,6 @@
 .fw-cloud__w--3 .fw-cloud__ar { color: color-mix(in srgb, var(--primary, #0d5c46) 60%, var(--text-secondary)); }
 [data-theme="dark"] .fw-cloud__w--0 .fw-cloud__ar { color: var(--accent-text, #7fd6b5); }
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .fw-cloud__w { animation: fw-cloud-in 520ms cubic-bezier(.2, .8, .2, 1.2) both; animation-delay: calc(var(--i, 0) * 35ms); }
+  html:not(.a11y-reduce-motion) [data-revealed] .fw-cloud__w { animation: fw-cloud-in 520ms cubic-bezier(.2, .8, .2, 1.2) both; animation-delay: calc(var(--i, 0) * 35ms); }
 }
 @keyframes fw-cloud-in { from { opacity: 0; transform: translateY(8px) scale(.8); } }

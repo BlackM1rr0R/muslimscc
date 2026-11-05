@@ -75,20 +75,33 @@ export default function QuranMap({ progress, srsItems, lang = 'az', surahName = 
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr)
     }
     layout()
-    if (!animated.current && !reduced()) {
+    // Dolma animasiyası xəritə EKRANA GƏLƏNDƏ başlayır (əvvəl yüklənəndə oynayırdı — aşağıda
+    // olanda görünmürdü); ölçü dəyişəndə də hazırkı irəliləyiş saxlanılır
+    let upto = animated.current || reduced() ? TOTAL : 0
+    let io = null
+    const play = () => {
       animated.current = true
       const t0 = performance.now()
       const step = (now) => {
         if (!alive) return
-        const k = Math.min(1, (now - t0) / 900)
-        draw(Math.floor(TOTAL * (1 - (1 - k) ** 3)))
+        const k = Math.min(1, (now - t0) / 1100)
+        upto = Math.floor(TOTAL * (1 - (1 - k) ** 3))
+        draw(upto)
         if (k < 1) raf = requestAnimationFrame(step)
       }
       raf = requestAnimationFrame(step)
-    } else draw()
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => { layout(); draw() }) : null
+    }
+    draw(upto)
+    if (upto < TOTAL) {
+      if (typeof IntersectionObserver === 'undefined') play()
+      else {
+        io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { io.disconnect(); play() } }, { threshold: 0.25 })
+        io.observe(wrap)
+      }
+    }
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => { layout(); draw(upto) }) : null
     ro?.observe(wrap)
-    return () => { alive = false; cancelAnimationFrame(raf); ro?.disconnect() }
+    return () => { alive = false; cancelAnimationFrame(raf); ro?.disconnect(); io?.disconnect() }
   }, [states])
 
   const pick = (e) => {
@@ -114,8 +127,8 @@ export default function QuranMap({ progress, srsItems, lang = 'az', surahName = 
       </div>
       <div className="qmap__foot">
         <ul className="qmap__legend">
-          <li><i className="qmap__sw qmap__sw--mem" /> {t.mem} <b className="ui-num">{mem}</b></li>
-          <li><i className="qmap__sw qmap__sw--learn" /> {t.learn} <b className="ui-num">{learn}</b></li>
+          <li><i className="qmap__sw qmap__sw--mem" /> {t.mem} <b className="ui-num" data-count={mem}>{mem}</b></li>
+          <li><i className="qmap__sw qmap__sw--learn" /> {t.learn} <b className="ui-num" data-count={learn}>{learn}</b></li>
           <li><i className="qmap__sw qmap__sw--mk" /> {t.mk}</li>
           <li><i className="qmap__sw qmap__sw--md" /> {t.md}</li>
         </ul>

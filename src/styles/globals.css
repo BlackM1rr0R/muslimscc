@@ -284,6 +284,10 @@
   --text:           var(--text-body);
   --text-dim:       var(--text-secondary);
   --text-muted:     var(--text-tertiary);
+  /* Yeni komponentlər (2026-11) bu adları işlədir — əvvəl təyin olunmamışdı və qaranlıq
+     rejimdə tünd ehtiyat rəngə düşürdü (məs. 99 ad mandalası görünmürdü) */
+  --text-primary:   var(--text-strong);
+  --focus:          var(--ring);
 
   --on-primary:     var(--on-brand);
 

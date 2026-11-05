@@ -39,8 +39,8 @@
 
 @media (prefers-reduced-motion: no-preference) {
   /* non-scaling-stroke + pathLength Chrome-da dash-i səhv hesablayır — xətlər yalnız görünür (opacity) */
-  html:not(.a11y-reduce-motion) .it__link { animation: it-fade 600ms ease both; animation-delay: calc(var(--i, 0) * 70ms); }
-  html:not(.a11y-reduce-motion) .it__node { animation: it-pop 480ms cubic-bezier(.2, .8, .2, 1.15) both; animation-delay: calc(var(--i, 0) * 70ms + 180ms); }
+  html:not(.a11y-reduce-motion) [data-revealed] .it__link { animation: it-fade 600ms ease both; animation-delay: calc(var(--i, 0) * 70ms); }
+  html:not(.a11y-reduce-motion) [data-revealed] .it__node { animation: it-pop 480ms cubic-bezier(.2, .8, .2, 1.15) both; animation-delay: calc(var(--i, 0) * 70ms + 180ms); }
   html:not(.a11y-reduce-motion) .it__bar i { transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
 }
 @keyframes it-fade { from { opacity: 0; } }

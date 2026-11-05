@@ -14,11 +14,11 @@
 .ql__halo { fill: rgba(240, 199, 94, .25); stroke: rgba(240, 199, 94, .6); stroke-width: 1; transform-box: fill-box; transform-origin: center; }
 
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .ql__line, html:not(.a11y-reduce-motion) .ql__me {
+  html:not(.a11y-reduce-motion) [data-revealed] .ql__line, html:not(.a11y-reduce-motion) [data-revealed] .ql__me {
     stroke-dasharray: 1; animation: ql-draw 1400ms cubic-bezier(.3, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 28ms);
   }
-  html:not(.a11y-reduce-motion) .ql__me { animation-duration: 1800ms; }
-  html:not(.a11y-reduce-motion) .ql__halo { animation: ql-halo 2.4s ease-out infinite; animation-delay: calc(var(--n, 0) * 28ms + 1200ms); }
+  html:not(.a11y-reduce-motion) [data-revealed] .ql__me { animation-duration: 1800ms; }
+  html:not(.a11y-reduce-motion) [data-revealed] .ql__halo { animation: ql-halo 2.4s ease-out infinite; animation-delay: calc(var(--n, 0) * 28ms + 1200ms); }
 }
 @keyframes ql-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes ql-halo { 0% { transform: scale(.6); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }

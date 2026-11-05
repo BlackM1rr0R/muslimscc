@@ -51,11 +51,11 @@
 
 /* Bir dəfəlik açılış: halqalar fırlanaraq yerinə gəlir, mərkəz böyüyür, şüa çəkilir */
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .nm__ring {
+  html:not(.a11y-reduce-motion) [data-revealed] .nm__ring {
     transform-box: view-box; transform-origin: 50% 50%;
     animation: nm-ring 1100ms cubic-bezier(.2, .8, .2, 1) both; animation-delay: var(--d, 0ms);
   }
-  html:not(.a11y-reduce-motion) .nm__rosette { transform-box: view-box; transform-origin: 50% 50%; animation: nm-ring 1400ms cubic-bezier(.2, .8, .2, 1) both; }
+  html:not(.a11y-reduce-motion) [data-revealed] .nm__rosette { transform-box: view-box; transform-origin: 50% 50%; animation: nm-ring 1400ms cubic-bezier(.2, .8, .2, 1) both; }
   html:not(.a11y-reduce-motion) .nm__ray { animation: nm-ray 500ms cubic-bezier(.3, .7, .2, 1) both; }
   html:not(.a11y-reduce-motion) .nm__card { animation: nm-pop 380ms cubic-bezier(.2, .8, .2, 1.15) both; }
 }
