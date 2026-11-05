@@ -180,3 +180,8 @@
   30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 14px color-mix(in srgb, var(--accent) 40%, transparent); }
   100% { box-shadow: 0 0 0 0 transparent; }
 }
+
+/* Mövzu çipləri (data/quranTopics.js) */
+.qr-topics { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; }
+.qr-topic { display: inline-flex; align-items: center; gap: 5px; }
+.qr-topic[aria-pressed="true"] { background: var(--gold, #c59a2c); color: #2a1d00; border-color: transparent; }

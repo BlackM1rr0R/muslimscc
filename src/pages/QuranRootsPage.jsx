@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
+import { QURAN_TOPICS, topicRoot } from '../data/quranTopics'
 import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { getSurahLocal } from '../data/surahNamesAz'
@@ -53,6 +54,7 @@ const pkf = (o, lang, n) => { const f = pk(o, lang); return typeof f === 'functi
    ══════════════════════════════════════════════════════════════════ */
 
 const PAGE_SIZE = 10
+const TOPIC_LABEL = { az: 'Mövzular', en: 'Topics', ru: 'Темы', ar: 'موضوعات', tr: 'Konular' }
 const EXAMPLES = ['رحم', 'علم', 'كتب', 'قول', 'صبر', 'هدي', 'سجد', 'نور', 'شكر', 'أمن', 'تقي', 'ذكر']
 // Ekran klaviaturası: kökdə rast gəlinən hərflər (həmzə formaları ilə)
 const LETTERS = ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', 'ء', 'أ', 'ؤ', 'ئ']
@@ -61,7 +63,7 @@ const LABELS = {
   az: {
     eyebrow: 'Quran', title: 'Kök axtarışı',
     lead: 'Ərəb dilində sözlərin çoxu üç hərfli kökdən törəyir. Kökü yazın — Quranda ondan neçə söz işləndiyini, hansı formalarda gəldiyini və bütün ayələri görün.',
-    field: 'Ərəb kökü', placeholder: 'məs. ر ح م', search: 'Axtar', clear: 'Təmizlə',
+    field: 'Ərəb kökü', placeholder: 'məs. ر ح م və ya «səbr»', search: 'Axtar', clear: 'Təmizlə',
     // lang-ok[Buckwalter,rHm]: transliterasiya sisteminin adı və nümunə yazılış
     hintInput: 'Hərfləri ayrı və ya bitişik yaza bilərsiniz; hərəkələr nəzərə alınmır. Latın hərfləri ilə Buckwalter yazılışı da olar (məs. rHm).',
     keyboard: 'Ərəb hərfləri', backspace: 'Son hərfi sil', examples: 'Nümunələr',
@@ -78,7 +80,7 @@ const LABELS = {
   en: {
     eyebrow: 'Quran', title: 'Root search',
     lead: 'Most Arabic words grow out of a three-letter root. Type a root to see how many times words from it occur in the Quran, in which forms, and in which verses.',
-    field: 'Arabic root', placeholder: 'e.g. ر ح م', search: 'Search', clear: 'Clear',
+    field: 'Arabic root', placeholder: 'e.g. ر ح م or “patience”', search: 'Search', clear: 'Clear',
     hintInput: 'Letters may be separated or joined; vowel marks are ignored. Buckwalter transliteration in Latin letters also works (e.g. rHm).',
     keyboard: 'Arabic letters', backspace: 'Delete the last letter', examples: 'Examples',
     loadingIndex: 'Loading the list of roots…', indexError: 'The list of roots could not be loaded. Please check your connection.', retry: 'Try again',
@@ -93,7 +95,7 @@ const LABELS = {
   ru: {
     eyebrow: 'Коран', title: 'Поиск по корню',
     lead: 'Большинство арабских слов образовано от трёхбуквенного корня. Введите корень — и узнайте, сколько раз слова от него встречаются в Коране, в каких формах и в каких аятах.',
-    field: 'Арабский корень', placeholder: 'напр. ر ح م', search: 'Найти', clear: 'Очистить',
+    field: 'Арабский корень', placeholder: 'напр. ر ح م или «терпение»', search: 'Найти', clear: 'Очистить',
     // lang-ok[Buckwalter,rHm]: transliterasiya sisteminin adı və nümunə yazılış
     hintInput: 'Буквы можно писать раздельно или слитно; огласовки не учитываются. Подходит и транслитерация Бакуолтера латиницей (напр. rHm).',
     keyboard: 'Арабские буквы', backspace: 'Удалить последнюю букву', examples: 'Примеры',
@@ -243,7 +245,8 @@ export default function QuranRootsPage() {
   }, [location.search])
 
   const runSearch = (value) => {
-    const q = String(value || '').trim()
+    // Mövzu adı ("səbr", "patience", "valideyn") — kökə çevrilir
+    const q = topicRoot(value) || String(value || '').trim()
     setQuery(q)
     setInput(q)
     setForm(null)
@@ -363,6 +366,14 @@ export default function QuranRootsPage() {
               </div>
             )}
 
+            <div className="qr-topics" data-testid="quran-topics">
+              <span className="qr-examples__label">{pk(TOPIC_LABEL, lang)}:</span>
+              {QURAN_TOPICS.map(t => (
+                <button key={t.root} type="button" className="ui-chip qr-topic" aria-pressed={found.root === t.root} onClick={() => runSearch(t.root)}>
+                  <Icon name={t.icon} size={14} /> {pk(t.l, lang)}
+                </button>
+              ))}
+            </div>
             <div className="qr-examples">
               <span className="qr-examples__label">{L.examples}:</span>
               {EXAMPLES.map(r => (

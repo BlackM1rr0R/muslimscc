@@ -169,3 +169,16 @@ test.describe('parallaks', () => {
   expect(a).not.toBe(b)
   })
 })
+
+test('Quranda mövzu: çip və yazılmış söz kökə aparır', async ({ page }) => {
+  await page.goto('/quran-roots')
+  await settle(page)
+  const topics = page.getByTestId('quran-topics')
+  await topics.getByRole('button', { name: /Şükr/ }).click()
+  await expect(page).toHaveURL(/root=%D8%B4%D9%83%D8%B1/)
+  await expect(page.locator('#qr-root-title')).toHaveText('ش ك ر')
+  const input = page.locator('form input').first()
+  await input.fill('səbr')
+  await input.press('Enter')
+  await expect(page.locator('#qr-root-title')).toHaveText('ص ب ر')
+})
