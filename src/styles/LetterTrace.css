@@ -1,0 +1,20 @@
+/* ══ Hərfi barmaqla yazma (components/arabic/LetterTrace.jsx) ══ */
+.lt { display: grid; gap: 8px; }
+.lt__lead { margin: 0; font-size: .86rem; color: var(--text-secondary); }
+.lt__pad { position: relative; width: min(100%, 320px); aspect-ratio: 1; border-radius: 16px; overflow: hidden;
+  background: repeating-linear-gradient(0deg, transparent 0 39px, color-mix(in srgb, var(--primary, #0d5c46) 8%, transparent) 39px 40px),
+    var(--surface-2, #f6f2e8);
+  border: 1px solid color-mix(in srgb, var(--primary, #0d5c46) 20%, transparent); transition: box-shadow .3s ease; }
+.lt__pad.is-great { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold, #c59a2c) 45%, transparent); }
+.lt__guide, .lt__ink { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lt__ink { touch-action: none; cursor: crosshair; }
+.lt__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.lt__res { margin: 0; font-size: .9rem; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lt__stars { display: inline-flex; gap: 2px; color: color-mix(in srgb, var(--text-secondary) 40%, transparent); }
+.lt__stars .is-on { color: var(--gold, #c59a2c); fill: currentColor; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .lt__stars .is-on { animation: lt-star 420ms cubic-bezier(.2, .8, .2, 1.5) both; }
+  html:not(.a11y-reduce-motion) .lt__stars .is-on:nth-child(2) { animation-delay: 120ms; }
+  html:not(.a11y-reduce-motion) .lt__stars .is-on:nth-child(3) { animation-delay: 240ms; }
+}
+@keyframes lt-star { from { opacity: 0; transform: scale(.2) rotate(-60deg); } }

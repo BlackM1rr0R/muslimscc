@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { useEffect, useRef, useState } from 'react'
+import LetterTrace from './LetterTrace'
 import Icon from '../Icon'
 import { LETTERS, MAKHRAJ, QW } from '../../data/arabicCourse.js'
 import { ui, pick } from './strings.js'
@@ -75,6 +76,8 @@ export default function LetterLesson({ lang, audio }) {
               </li>
             ))}
           </ol>
+
+          <LetterTrace ch={l.ch} lang={lang} />
 
           <h4 className="ac-h4">{t.makhrajHead}</h4>
           <p className="ac-text">{pick(MAKHRAJ[l.makhraj], lang)}</p>

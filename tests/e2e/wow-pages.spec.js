@@ -120,3 +120,28 @@ test.describe('məscid radarı', () => {
     await expect(page.locator('.mosque-walk').first()).toContainText('piyada')
   })
 })
+
+test('ərəb hərfi: üstündən yazmaq ulduz verir, hər yeri cızmaq vermir', async ({ page }) => {
+  await page.goto('/learn-arabic#letters')
+  await settle(page)
+  const f = page.getByTestId('letter-trace')
+  await f.scrollIntoViewIfNeeded()
+  const check = f.getByRole('button', { name: 'Yazını yoxla' })
+  await expect(check).toBeDisabled()
+  const box = await f.locator('.lt__ink').boundingBox()
+  const pts = await f.locator('.lt__guide').evaluate(cv => {
+    const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data, out = [], st = Math.max(1, Math.round(cv.width / 40))
+    for (let y = 0; y < cv.height; y += st) for (let x = 0; x < cv.width; x += st) if (d[(y * cv.width + x) * 4 + 3] > 80) out.push([x / cv.width, y / cv.height])
+    return out
+  })
+  expect(pts.length).toBeGreaterThan(5)
+  for (const [x, y] of pts) { await page.mouse.move(box.x + x * box.width, box.y + y * box.height); await page.mouse.down(); await page.mouse.move(box.x + x * box.width + 1, box.y + y * box.height); await page.mouse.up() }
+  await check.click()
+  await expect(f.locator('.lt__stars .is-on')).not.toHaveCount(0)
+  expect(await f.locator('.lt__stars .is-on').count()).toBeGreaterThanOrEqual(2)
+  // Təmizlə → hər yeri cız → 0 ulduz
+  await f.getByRole('button', { name: 'Təmizlə' }).click()
+  for (let y = 0.05; y < 1; y += 0.06) { await page.mouse.move(box.x + 4, box.y + y * box.height); await page.mouse.down(); await page.mouse.move(box.x + box.width - 4, box.y + y * box.height, { steps: 6 }); await page.mouse.up() }
+  await check.click()
+  await expect(f.locator('.lt__res')).toContainText('Yenidən cəhd edin')
+})
