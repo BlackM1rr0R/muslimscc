@@ -9,6 +9,7 @@ import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
 import { DUA_GUIDE, DUA_GUIDE_LINKS } from '../data/pageGuides/DuaJournalPage'
 import { ChartFigure, Donut, ProgressRing } from '../components/viz'
 import ActivityHeatmap from '../components/ActivityHeatmap'
+import DuaGarden from '../components/DuaGarden'
 import RelatedLinks from '../components/RelatedLinks'
 import { copyText } from '../components/reader/share'
 import '../styles/LessonsPage.css'
@@ -330,6 +331,7 @@ export default function DuaJournalPage({ setPage }) {
         <div className="ui-container dj-split">
           {/* ── Gündəlik: əlavə et, forma, tablar, kartlar ── */}
           <div className="dua-journal-layout">
+            <DuaGarden duas={duas} lang={lang} />
             {/* Əlavə et — telefonda tam en (baş barmaqla rahat) */}
             {!showForm && (
               <button type="button" className="ui-btn ui-btn--primary dua-add-btn" onClick={() => setShowForm(true)}>
