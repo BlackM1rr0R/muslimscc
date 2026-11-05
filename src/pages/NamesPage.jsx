@@ -17,6 +17,7 @@ import StarButton, { CopyStatus } from '../components/collect/StarButton'
 import useStarred, { dayPick, shareLink } from '../components/collect/useStarred'
 import '../styles/NamesPage.css'
 import InkText from '../components/InkText'
+import NamesMandala from '../components/NamesMandala'
 
 // ── v3.2: seçilmişlər, əzbərlənənlər süzgəci, günün adı, qaydalar kart + oxu pəncərəsi (5 dil) ──
 const N32 = {
@@ -725,6 +726,14 @@ export default function NamesPage({ setPage }) {
               ))}
             </ol>
           </section>
+        </div>
+      </section>
+
+      {/* Mandala — 99 ad dairəvi kalliqrafiya (vizual giriş; tam siyahı aşağıda) */}
+      <section className="ui-section ui-section--tight np-mandala" aria-label={t.title}>
+        <div className="ui-container">
+          <NamesMandala names={NAMES_99} known={known} lang={lang} meaningOf={meaningOf}
+            onOpen={(n, el) => openName(n, el)} />
         </div>
       </section>
 

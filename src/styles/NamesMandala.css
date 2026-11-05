@@ -1,0 +1,64 @@
+/* ══ 99 ad mandalası (components/NamesMandala.jsx) ══ */
+.nm { --nm-gold: var(--gold, #c59a2c); --nm-ink: var(--primary, #0d5c46); display: grid; gap: 10px; }
+.nm__stage {
+  position: relative; width: min(100%, 680px); aspect-ratio: 1; margin: 0 auto;
+  border-radius: 50%; outline: none;
+}
+.nm__stage:focus-visible { box-shadow: 0 0 0 3px var(--focus, #c59a2c); }
+.nm__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+.nm__orbit { fill: none; stroke: color-mix(in srgb, var(--nm-gold) 35%, transparent); stroke-width: 1; stroke-dasharray: 2 7; }
+.nm__rosette rect { fill: none; stroke: color-mix(in srgb, var(--nm-gold) 45%, transparent); stroke-width: 1; }
+
+.nm__name {
+  font-family: var(--font-arabic, 'Amiri', serif); fill: var(--text-primary, #1d2b26); cursor: pointer;
+  transform-box: fill-box; transform-origin: center;
+  transition: transform .25s cubic-bezier(.2, .8, .2, 1.2), fill .2s ease, opacity .2s ease;
+}
+.nm__name:hover { transform: scale(1.25); fill: var(--nm-ink); }
+.nm__name.is-known { fill: var(--nm-gold); font-weight: 700; }
+.nm__name.is-sel { transform: scale(1.45); fill: var(--nm-ink); font-weight: 700; }
+.nm__stage:has(.is-sel) .nm__name:not(.is-sel) { opacity: .55; }
+[data-theme="dark"] .nm__name.is-sel { fill: #fff; }
+
+.nm__ray { stroke: var(--nm-gold); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 1; opacity: .85; }
+
+.nm__center {
+  position: absolute; left: 50%; top: 50%; width: 31%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  display: grid; place-items: center; border-radius: 50%; text-align: center;
+  background: radial-gradient(circle at 35% 30%, #1d7a5d, #0b4232); color: #fff;
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--nm-gold) 22%, transparent), 0 18px 40px -18px rgba(6, 40, 30, .7);
+}
+.nm__card { display: grid; justify-items: center; gap: 2px; padding: 8%; max-width: 100%; }
+.nm__num { font-size: clamp(.6rem, 1.6vw, .75rem); opacity: .7; margin-bottom: 2px; }
+.nm__ar { font-size: clamp(1.1rem, 4.6vw, 2.1rem); line-height: 1.3; color: #f3dc9a; }
+.nm__allah { font-size: clamp(1.6rem, 7vw, 3.2rem); line-height: 1.2; color: #f3dc9a; }
+.nm__tl { font-size: clamp(.62rem, 1.8vw, .85rem); font-weight: 600; }
+.nm__mean { font-size: clamp(.56rem, 1.6vw, .78rem); opacity: .85; line-height: 1.25;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nm__hint { font-size: clamp(.6rem, 1.7vw, .8rem); opacity: .8; }
+.nm__open { margin-top: 4px; min-height: 0; padding: 2px 12px; font-size: clamp(.6rem, 1.6vw, .78rem); }
+
+.nm__legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; font-size: .85rem; color: var(--text-secondary); }
+.nm__legend span { display: inline-flex; align-items: center; gap: 6px; }
+.nm__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-primary, #1d2b26); opacity: .7; }
+.nm__dot--known { background: var(--nm-gold); opacity: 1; }
+
+@media (max-width: 520px) {
+  .nm__open { display: none; }
+  .nm__mean { -webkit-line-clamp: 1; }
+}
+
+/* Bir dəfəlik açılış: halqalar fırlanaraq yerinə gəlir, mərkəz böyüyür, şüa çəkilir */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .nm__ring {
+    transform-box: view-box; transform-origin: 50% 50%;
+    animation: nm-ring 1100ms cubic-bezier(.2, .8, .2, 1) both; animation-delay: var(--d, 0ms);
+  }
+  html:not(.a11y-reduce-motion) .nm__rosette { transform-box: view-box; transform-origin: 50% 50%; animation: nm-ring 1400ms cubic-bezier(.2, .8, .2, 1) both; }
+  html:not(.a11y-reduce-motion) .nm__ray { animation: nm-ray 500ms cubic-bezier(.3, .7, .2, 1) both; }
+  html:not(.a11y-reduce-motion) .nm__card { animation: nm-pop 380ms cubic-bezier(.2, .8, .2, 1.15) both; }
+}
+@keyframes nm-ring { from { opacity: 0; transform: rotate(var(--from, -14deg)) scale(.86); } to { opacity: 1; transform: none; } }
+@keyframes nm-ray { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes nm-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
