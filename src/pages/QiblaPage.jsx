@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { guessLang } from '../utils/textLang'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
@@ -19,6 +19,8 @@ import GeoStarfield from '../components/prayer/GeoStarfield'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 
 const KAABA = { lat: 21.3891, lon: 39.8579 }
+// Fırladıla bilən qlobus — ayrıca chunk (d3-geo + quru xəritəsi yalnız burada yüklənir)
+const QiblaGlobe = lazy(() => import('../components/QiblaGlobe'))
 
 // Kompasda yalnız 4 əsas istiqamət yazı ilə göstərilir (aralıqdakılar
 // cizgi ilə). Azərbaycan və ərəb dillərində tək hərf toqquşur
@@ -671,6 +673,13 @@ export default function QiblaPage({ setPage }) {
           </div>
         )}
       </div>
+
+      {/* Qibləyə ən qısa yol — fırladıla bilən qlobus (tənbəl yüklənir: d3-geo + quru xəritəsi) */}
+      {coords && (
+        <Suspense fallback={null}>
+          <QiblaGlobe from={coords} kaaba={KAABA} lang={lang} distanceKm={distance} />
+        </Suspense>
+      )}
 
       {/* Hökmlər və tövsiyələr — məkan tapılmasa da göstərilir */}
       <QiblaGuide lang={lang} />

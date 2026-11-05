@@ -15,7 +15,7 @@ import { PLACE_PHOTOS } from '../data/placeImages'
 // Tərcümə və qiraət səslərinin hüquqlarını İDDİA ETMİRİK — "müvafiq müəlliflərə
 // və naşirlərə məxsusdur".
 // Yeni xarici mənbə (API, səs CDN-i, şrift, kitabxana) əlavə olunanda bura da yaz.
-// Kart sahələri (name / by / note) ya sətir, ya 5 dilli obyektdir.
+// Kart sahələri (name / by / note / license) ya sətir, ya 5 dilli obyektdir.
 // ═══════════════════════════════════════════════════════
 
 const CC_BY_3 = 'https://creativecommons.org/licenses/by/3.0/'
@@ -193,6 +193,17 @@ AUDIO.push(
 
 const MAPS = [
   {
+    name: 'Natural Earth (world-atlas)', url: 'https://www.naturalearthdata.com/', license: { az: 'İctimai mülkiyyət', en: 'Public domain', ru: 'Общественное достояние', ar: 'ملكية عامة', tr: 'Kamu malı' }, licenseUrl: 'https://www.naturalearthdata.com/about/terms-of-use/',
+    by: 'Natural Earth; world-atlas — Mike Bostock (ISC)',
+    note: {
+      az: 'Qiblə səhifəsindəki qlobusda quru ərazilərinin konturları (1:110 milyon miqyas).',
+      en: 'Land outlines on the globe on the Qibla page (1:110 million scale).',
+      ru: 'Контуры суши на глобусе на странице киблы (масштаб 1:110 млн).',
+      ar: 'حدود اليابسة على الكرة الأرضية في صفحة القبلة (مقياس 1:110 مليون).',
+      tr: 'Kıble sayfasındaki küredeki kara sınırları (1:110 milyon ölçek).',
+    },
+  },
+  {
     name: 'OpenStreetMap', url: 'https://www.openstreetmap.org/copyright', license: 'ODbL 1.0', licenseUrl: 'https://opendatacommons.org/licenses/odbl/1-0/',
     by: { az: '© OpenStreetMap iştirakçıları', en: '© OpenStreetMap contributors', ru: '© участники OpenStreetMap', ar: '© المساهمون في OpenStreetMap', tr: '© OpenStreetMap katkıda bulunanlar' },
     note: {
@@ -350,6 +361,7 @@ const SOFTWARE = [
   { name: 'React, React DOM', url: 'https://react.dev/', license: MIT, licenseUrl: 'https://github.com/facebook/react/blob/main/LICENSE', by: 'Meta Platforms, Inc.' },
   { name: 'React Router', url: 'https://reactrouter.com/', license: MIT, licenseUrl: 'https://github.com/remix-run/react-router/blob/main/LICENSE.md', by: 'Remix Software Inc.' },
   { name: 'Firebase JavaScript SDK', url: 'https://github.com/firebase/firebase-js-sdk', license: APACHE, licenseUrl: 'https://www.apache.org/licenses/LICENSE-2.0', by: 'Google LLC' },
+  { name: 'd3-geo, topojson-client', url: 'https://d3js.org/d3-geo', license: 'ISC', licenseUrl: 'https://github.com/d3/d3-geo/blob/main/LICENSE', by: 'Mike Bostock' },
   { name: 'Vite', url: 'https://vite.dev/', license: MIT, licenseUrl: 'https://github.com/vitejs/vite/blob/main/LICENSE', by: 'VoidZero Inc. & Vite contributors' },
   { name: 'Express, cors, express-rate-limit', url: 'https://expressjs.com/', license: MIT, licenseUrl: 'https://github.com/expressjs/express/blob/master/LICENSE' },
   { name: 'Firebase Admin SDK', url: 'https://github.com/firebase/firebase-admin-node', license: APACHE, licenseUrl: 'https://www.apache.org/licenses/LICENSE-2.0', by: 'Google LLC' },

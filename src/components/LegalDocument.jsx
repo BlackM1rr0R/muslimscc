@@ -280,7 +280,7 @@ function Block({ b, v, lang, t, setPage }) {
       <ul className="lg-credits">
         {b.credits.map((raw, i) => {
           // Sahələr ya sətir, ya 5 dilli obyekt ola bilər
-          const c = { ...raw, name: tr(raw.name, lang), by: tr(raw.by, lang), note: tr(raw.note, lang) }
+          const c = { ...raw, name: tr(raw.name, lang), by: tr(raw.by, lang), note: tr(raw.note, lang), license: tr(raw.license, lang) }
           return (
           // Açarda indeks də var: bir neçə mənbə eyni URL-i paylaşır
           // (məs. alquran.cloud/translations) — React təkrar açar xətası verirdi

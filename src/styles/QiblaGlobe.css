@@ -1,0 +1,25 @@
+/* ══ Qiblə qlobusu (components/QiblaGlobe.jsx) ══ */
+.qgl-sec {
+  --qgl-ocean: #e4f1f2;
+  --qgl-ocean-2: #b9d8de;
+  --qgl-land: #a9cfb1;
+  --qgl-land-edge: #76a985;
+}
+[data-theme="dark"] .qgl-sec {
+  --qgl-ocean: #183847;
+  --qgl-ocean-2: #0b1d27;
+  --qgl-land: #2f5e47;
+  --qgl-land-edge: #4f8a68;
+}
+.qgl-layout { display: grid; gap: var(--space-5); align-items: center; }
+@media (min-width: 900px) { .qgl-layout { grid-template-columns: minmax(0, 1fr) minmax(320px, 520px); } }
+.qgl-text { display: grid; gap: var(--space-2); }
+.qgl-text .ui-lead { margin: 0; }
+.qgl-dist { margin: var(--space-2) 0 0; color: var(--brand); font-family: var(--font-label); font-weight: 600; }
+.qgl-dist b { font-size: var(--step-4); letter-spacing: -0.02em; }
+.qgl-hint { margin: 0; color: var(--text-tertiary); font-size: var(--step--1); }
+.qgl-globe { position: relative; display: grid; place-items: center; width: 100%; max-width: 520px; justify-self: center; aspect-ratio: 1; }
+.qgl-canvas { display: block; touch-action: none; cursor: grab; border-radius: 50%; outline: none; }
+.qgl-canvas:active { cursor: grabbing; }
+.qgl-canvas:focus-visible { box-shadow: 0 0 0 3px var(--brand-soft-2, var(--brand)); }
+.qgl-skel { position: absolute; inset: 14px; border-radius: 50%; }
