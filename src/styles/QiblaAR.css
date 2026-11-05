@@ -1,0 +1,40 @@
+/* ══ Kamera ilə Qiblə (components/QiblaAR.jsx) ══ */
+.qar { position: fixed; inset: 0; z-index: 2000; background: #05110d; color: #fff; overflow: hidden; touch-action: none; }
+.qar__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.qar__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.55), transparent 22%, transparent 70%, rgba(0,0,0,.7)); pointer-events: none; }
+.qar__top { position: absolute; inset: 0 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: max(12px, env(safe-area-inset-top)) 14px 12px; }
+.qar__title { font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+.qar__horizon { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(255,255,255,.35); }
+.qar__reticle { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.7); box-shadow: 0 0 0 1px rgba(0,0,0,.3); transition: transform .3s ease, border-color .3s ease; }
+.qar__reticle::after { content: ''; position: absolute; left: 50%; top: -12px; width: 2px; height: 10px; margin-left: -1px; background: #fff; }
+.qar.is-aligned .qar__reticle { border-color: #f0c75e; transform: scale(1.18); }
+
+.qar__mark { position: absolute; left: 50%; top: 0; bottom: 0; width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  will-change: transform; transition: opacity .25s ease; }
+.qar__beam { position: absolute; top: 0; bottom: 0; width: 90px; left: -45px;
+  background: linear-gradient(90deg, transparent, rgba(240, 199, 94, .28) 45%, rgba(255, 236, 170, .5) 50%, rgba(240, 199, 94, .28) 55%, transparent);
+  opacity: .6; transition: opacity .3s ease; }
+.qar.is-aligned .qar__beam { opacity: 1; }
+.qar__kaaba { position: relative; display: grid; place-items: center; width: 62px; height: 62px; border-radius: 50%; margin-top: -150px;
+  background: radial-gradient(circle at 35% 30%, #1d7a5d, #0b4232); color: #f3dc9a;
+  box-shadow: 0 0 0 4px rgba(240, 199, 94, .55), 0 10px 30px rgba(0,0,0,.5); transition: transform .3s cubic-bezier(.2,.8,.2,1.3); }
+.qar.is-aligned .qar__kaaba { transform: scale(1.15); }
+.qar__km { position: relative; margin-top: 8px; padding: 3px 10px; border-radius: 999px; background: rgba(0,0,0,.55); font-size: .85rem; font-weight: 700; white-space: nowrap; }
+
+.qar__edge { position: absolute; top: 50%; transform: translateY(-50%); display: grid; justify-items: center; gap: 2px;
+  padding: 10px 8px; border-radius: 14px; background: rgba(0,0,0,.5); font-weight: 800; }
+.qar__edge--l { left: 10px; }
+.qar__edge--l svg { transform: rotate(180deg); }
+.qar__edge--r { right: 10px; }
+
+.qar__bottom { position: absolute; inset: auto 0 0; padding: 14px 16px max(16px, env(safe-area-inset-bottom)); text-align: center; }
+.qar__msg { margin: 0 0 6px; font-size: 1rem; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+.qar__msg b { color: #f3dc9a; }
+.qar__privacy { margin: 0; font-size: .75rem; opacity: .8; display: inline-flex; align-items: center; gap: 6px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qar.is-aligned .qar__kaaba { animation: qar-hit 600ms cubic-bezier(.2, .8, .2, 1.3); }
+}
+@keyframes qar-hit { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1.15); } }

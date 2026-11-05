@@ -76,6 +76,10 @@ function quadrant(b) {
 }
 
 /** Üfüqi "istiqamət lenti": 0°–360°, dörd əsas istiqamət və qiblə nişanı */
+const QiblaAR = lazy(() => import('../components/QiblaAR'))
+// lang-ok[Kamera]: az dilinin öz sözüdür (kamera)
+const AR_BTN = { az: 'Kamera ilə göstər', en: 'Show with the camera', ru: 'Показать через камеру', tr: 'Kamerayla göster', ar: 'اعرضها بالكاميرا' }
+
 function BearingTape({ bearing, d }) {
   const q = quadrant(bearing)
   const text = d.phrase(d.from[q.from], q.deg, d.to[q.to])
@@ -490,6 +494,21 @@ export default function QiblaPage({ setPage }) {
   // Static fallback (sensor yoxdursa)
   const staticNeedleAngle = qibla ?? 0
 
+  // Kamera ilə Qiblə (AR) — yalnız telefonda; iOS-da sensor icazəsi elə bu toxunuşla istənir
+  const [arOpen, setArOpen] = useState(false)
+  const [arOk] = useState(() => typeof window !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
+    && 'DeviceOrientationEvent' in window && !!window.matchMedia?.('(pointer: coarse)').matches)
+  const openAR = async () => {
+    try {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const perm = await DeviceOrientationEvent.requestPermission()
+        if (perm === 'granted') { setNeedsIOSPermission(false); startCompass() }
+      }
+    } catch { /* icazə verilmədi — AR özü "sensor cavab vermir" deyəcək */ }
+    setArOpen(true)
+  }
+  const closeAR = useCallback(() => setArOpen(false), [])
+
   return (
     <div className="qibla-page">
       {/* v2: sakit kağız hero — iz, eyebrow, bir h1, giriş */}
@@ -585,6 +604,16 @@ export default function QiblaPage({ setPage }) {
                 <span className="qibla-angle-val ui-num"><span data-count={Math.round(qibla)}>{Math.round(qibla)}</span>°</span>
                 <span className="qibla-angle-label">{l.fromNorth}</span>
               </div>
+              {arOk && qibla != null && (
+                <button type="button" className="ui-btn ui-btn--primary qibla-ar-btn" onClick={openAR} data-testid="qibla-ar-open">
+                  <Icon name="target" className="ui-btn__icon" /> {AR_BTN[lang] || AR_BTN.en}
+                </button>
+              )}
+              {arOpen && (
+                <Suspense fallback={null}>
+                  <QiblaAR qibla={qibla} distanceKm={distance} lang={lang} onClose={closeAR} />
+                </Suspense>
+              )}
             </section>
             <div className="qibla-steps-wrap">
               <h2 className="qibla-steps-title">{dt.stepsTitle}</h2>
