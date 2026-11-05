@@ -8,6 +8,7 @@ import usePrayerTracker from '../hooks/usePrayerTracker'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 import BackupCard from '../components/BackupCard'
 import PrayerGarden from '../components/prayer/PrayerGarden'
+import NurCarpet from '../components/prayer/NurCarpet'
 import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
 import {
   PRAYERS, prayerStatus, dayState, computeStreak, bestStreak, rangeSummary, lastNDays, addDays,
@@ -183,6 +184,8 @@ export default function PrayerTrackerPage({ setPage }) {
       <section className="ui-section ui-section--tight pt-garden">
         <div className="ui-container">
           <PrayerGarden snap={snap} periods={periods} today={today} streak={streak} lang={lk}
+            onPick={(d) => { pickDay(d); document.querySelector('.pt-main')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }} />
+          <NurCarpet snap={snap} periods={periods} today={today} lang={lk}
             onPick={(d) => { pickDay(d); document.querySelector('.pt-main')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }} />
         </div>
       </section>

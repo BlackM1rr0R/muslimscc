@@ -1,0 +1,37 @@
+/* ══ Nur xalçası (components/prayer/NurCarpet.jsx) ══ */
+.nc { display: grid; gap: 10px; margin: 22px auto 0; max-width: 640px; min-width: 0; }
+.nc__head { display: grid; gap: 2px; }
+.nc__title { font-weight: 700; font-size: 1.05rem; }
+.nc__lead { font-size: .86rem; color: var(--text-secondary); }
+.nc__frame {
+  --nc-base: #4a1c26; --nc-weave: #5c2530;
+  padding: 10px; border-radius: 14px; background: #2b0f16;
+  /* Xalça haşiyəsi: iki qızıl xətt + romb naxışı */
+  background-image:
+    linear-gradient(45deg, transparent 46%, rgba(240, 199, 94, .35) 47%, rgba(240, 199, 94, .35) 53%, transparent 54%),
+    linear-gradient(-45deg, transparent 46%, rgba(240, 199, 94, .35) 47%, rgba(240, 199, 94, .35) 53%, transparent 54%);
+  background-size: 12px 12px;
+  box-shadow: inset 0 0 0 2px rgba(240, 199, 94, .6), inset 0 0 0 8px #2b0f16, inset 0 0 0 9px rgba(240, 199, 94, .45), 0 16px 34px -20px rgba(43, 15, 22, .9);
+}
+.nc__svg { display: block; width: 100%; height: auto; border-radius: 6px; background: #3a141d; }
+.nc__mlabel { font-size: 7px; fill: #e9cf8f; font-weight: 700; dominant-baseline: middle; }
+.nc__k--none { fill: var(--nc-weave); }
+.nc__k--missed { fill: #3a141d; }
+.nc__k--prayed { fill: #f0c75e; }
+.nc__k--qada { fill: #5cc0a6; }
+.nc__k--excused { fill: #a99bd0; opacity: .55; }
+.nc__k--future { fill: #46202a; opacity: .45; }
+.nc__day { cursor: pointer; }
+.nc__day:hover .nc__k { opacity: .8; }
+.nc__today { fill: none; stroke: #fff; stroke-width: .9; }
+.nc__legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0; font-size: .82rem; color: var(--text-secondary); }
+.nc__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.nc__sw { width: 12px; height: 7px; border-radius: 2px; display: inline-block; }
+.nc__sw.nc__k--prayed { background: #f0c75e; } .nc__sw.nc__k--qada { background: #5cc0a6; }
+.nc__sw.nc__k--excused { background: #a99bd0; } .nc__sw.nc__k--none { background: #5c2530; }
+.nc__sum { margin-inline-start: auto; font-weight: 700; color: var(--text-primary); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .nc__month { animation: nc-weave 600ms cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 50ms); }
+}
+@keyframes nc-weave { from { opacity: 0; transform: translateX(-12px); } }

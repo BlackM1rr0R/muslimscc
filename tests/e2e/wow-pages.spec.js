@@ -84,3 +84,18 @@ test('hilal yolu: toxunuş dövrü oruc → üzrlü → boş, yaddaşda qalır',
   await expect(c.getByTestId('cp-fasted')).toHaveText('0')
   await expect(c.locator('.cp__star')).toHaveCount(5)
 })
+
+test('nur xalçası: 12 ay, qılınan namaz qızıl ilmə, toxunuş günü açır', async ({ page }) => {
+  await page.addInitScript(() => {
+    const d = new Date(); const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    localStorage.setItem('daily_tracker', JSON.stringify({ [k]: { fajr: true, dhuhr: true } }))
+  })
+  await page.goto('/prayer-tracker')
+  await settle(page)
+  const c = page.getByTestId('nur-carpet')
+  await c.scrollIntoViewIfNeeded()
+  await expect(c.locator('.nc__month')).toHaveCount(12)
+  await expect(c.locator('rect.nc__k--prayed')).toHaveCount(2)
+  await expect(c.locator('.nc__today')).toHaveCount(1)
+  await expect(c.locator('.nc__sum')).toContainText('2')
+})
