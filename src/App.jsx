@@ -1,6 +1,7 @@
 import { Component, Suspense, lazy as reactLazy, useLayoutEffect } from 'react'
 import { reportError } from './utils/errorReport'
 import OfflineBadge from './components/OfflineBadge'
+import AutoSyncToast from './components/AutoSyncToast'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
 import { LANGS, parsePath, pathFor, legacyDetailParam } from './seo/routes'
@@ -448,6 +449,7 @@ function AppInner() {
 
       <InstallBanner />
       <OfflineBadge />
+      <AutoSyncToast />
       {/* ≥1024px: sağ aşağıda TƏK üzən düymə — AI köməkçi, əlçatanlıq,
           bildiriş ayarları. <1024px-də düymə gizlidir (məzmunu örtürdü);
           həmin alətlər ☰ çəkmə menyusundadır, panellər isə yenə buradan

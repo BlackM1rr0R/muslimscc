@@ -51,7 +51,7 @@ export async function enable() {
   const code = generateCode()
   const r = await upload(code, 0)
   if (r.conflict) throw new Error('conflict')   // praktik olaraq mümkün deyil (yeni təsadüfi kod)
-  writeSync({ code, version: r.version, syncedAt: new Date().toISOString() })
+  writeSync({ code, version: r.version, syncedAt: new Date().toISOString(), auto: true, hash: dataHash() })
   return { code }
 }
 
@@ -74,8 +74,11 @@ export async function fetchRemote(input) {
 
 /** fetchRemote nəticəsini bu cihaza yaz və kodu yadda saxla */
 export function link(remote) {
+  const prev = readSync()
   restoreBackup(remote.backup)
-  writeSync({ code: remote.code, version: remote.version, syncedAt: new Date().toISOString() })
+  // Avtomatik rejim: yeni qoşulmada açıq, mövcud qoşulmada əvvəlki seçim saxlanır
+  const auto = prev && prev.code === remote.code ? prev.auto !== false : true
+  writeSync({ code: remote.code, version: remote.version, syncedAt: new Date().toISOString(), auto, hash: dataHash() })
 }
 
 /** Bu cihazın məlumatını göndər. Qaytarır: { ok } | { conflict } */
@@ -84,7 +87,7 @@ export async function push() {
   if (!s) throw new Error('not_linked')
   const r = await upload(s.code, s.version)
   if (r.conflict) return { conflict: true }
-  writeSync({ ...s, version: r.version, syncedAt: new Date().toISOString() })
+  writeSync({ ...s, version: r.version, syncedAt: new Date().toISOString(), hash: dataHash() })
   return { ok: true, count: r.count }
 }
 
@@ -96,6 +99,24 @@ export async function pull() {
   link(remote)
   return { ok: true, count: remote.backup.count }
 }
+
+/**
+ * Bu cihazın sinxronlanan məlumatının heşi (FNV-1a, açarlar sıralı) — avtomatik rejim
+ * yerli dəyişikliyi bununla tanıyır (utils/autoSync).
+ */
+export function dataHash(storage = globalThis.localStorage) {
+  const data = collectBackup(storage).data
+  let h = 0x811c9dc5
+  for (const k of Object.keys(data).sort()) {
+    const str = `${k}\u0001${data[k]}\u0002`
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0 }
+  }
+  return h.toString(36)
+}
+/** Hazırkı məlumatı "sinxronlanmış" kimi qeyd et */
+export function markSynced() { const s = readSync(); if (s) writeSync({ ...s, hash: dataHash() }) }
+/** Avtomatik sinxronizasiyanı aç / söndür */
+export function setAuto(on) { const s = readSync(); if (s) writeSync({ ...s, auto: !!on, hash: s.hash ?? dataHash() }) }
 
 export function unlink() { try { localStorage.removeItem(SYNC_KEY) } catch { /* */ } }
 

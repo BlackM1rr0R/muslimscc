@@ -21,3 +21,9 @@
   html:not(.a11y-reduce-motion) .ob { animation: ob-in 320ms cubic-bezier(.2, .8, .2, 1) both; }
 }
 @keyframes ob-in { from { opacity: 0; translate: 0 12px; } }
+
+/* Avtomatik sinxronizasiya bildirişi (components/AutoSyncToast.jsx) */
+.ob--sync { bottom: max(64px, calc(env(safe-area-inset-bottom) + 56px)); max-width: min(92vw, 560px); flex-wrap: wrap; justify-content: center; }
+.ob--sync::before { background: #5cc0a6; }
+.ob__btn { border: 0; border-radius: 999px; padding: 4px 12px; font: inherit; font-weight: 700; cursor: pointer; background: #f0c75e; color: #2a1d00; }
+.ob__x { border: 0; background: transparent; color: #fff; opacity: .7; cursor: pointer; display: grid; place-items: center; padding: 4px; }

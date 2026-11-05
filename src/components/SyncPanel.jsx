@@ -5,7 +5,15 @@
 // ═══════════════════════════════════════════════════════
 import { useState } from 'react'
 import Icon from './Icon'
-import { readSync, enable, fetchRemote, link, push, pull, unlink, removeRemote } from '../utils/userSync'
+import { readSync, enable, fetchRemote, link, push, pull, unlink, removeRemote, setAuto } from '../utils/userSync'
+
+const AUTO = {
+  az: { label: 'Avtomatik sinxronizasiya', hint: 'Dəyişikliklər özü göndərilir və gətirilir; hər iki cihaz dəyişibsə heç nə üzərinə yazılmır — siz seçirsiniz.' },
+  en: { label: 'Automatic sync', hint: 'Changes are sent and fetched on their own; if both devices changed, nothing is overwritten — you choose.' },
+  ru: { label: 'Автоматическая синхронизация', hint: 'Изменения отправляются и загружаются сами; если изменены оба устройства, ничего не перезаписывается — выбираете вы.' },
+  tr: { label: 'Otomatik senkronizasyon', hint: 'Değişiklikler kendiliğinden gönderilir ve alınır; iki cihaz da değiştiyse hiçbir şeyin üzerine yazılmaz — siz seçersiniz.' },
+  ar: { label: 'مزامنة تلقائية', hint: 'تُرسل التغييرات وتُجلب تلقائيًا، وإذا تغيّر الجهازان لا يُستبدل شيء — أنت تختار.' },
+}
 
 // Kodun nümunəsi — dildən asılı deyil (latın hərfləri və rəqəmlər)
 const CODE_PH = 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX'
@@ -187,6 +195,11 @@ export default function SyncPanel({ lang, fmtDate }) {
             <button type="button" className="ui-link sy-link" onClick={() => copy(sync.code)}>{copied ? t.copied : t.copy}</button>
           </p>
           {sync.syncedAt && <p className="sy-meta">{t.synced}: {fmtDate(sync.syncedAt)}</p>}
+          <label className="sy-auto">
+            <input type="checkbox" checked={sync.auto === true} data-testid="sync-auto"
+              onChange={e => { setAuto(e.target.checked); setSync(readSync()) }} />
+            <span><b>{(AUTO[lang] || AUTO.az).label}</b><small>{(AUTO[lang] || AUTO.az).hint}</small></span>
+          </label>
           <div className="bk-actions">
             <button type="button" className="ui-btn ui-btn--primary" onClick={onPush} disabled={Boolean(busy)}>{spin('push')}<Icon name="send" className="ui-btn__icon" />{t.push}</button>
             <button type="button" className="ui-btn ui-btn--secondary" onClick={onPull} disabled={Boolean(busy)}>{spin('pull')}<Icon name="download" className="ui-btn__icon" />{t.pull}</button>
