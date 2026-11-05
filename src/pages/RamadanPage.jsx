@@ -11,6 +11,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { useEffect, useRef, useState } from 'react'
+import CrescentPath from '../components/CrescentPath'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { navGroupLabel } from '../data/navigation'
@@ -439,6 +440,7 @@ export default function RamadanPage({ setPage }) {
       <section className="ui-section ui-section--tight rp-main">
         <div className="ui-container rp-stack">
           <RamadanCard state={st} />
+          <CrescentPath key={year || 'x'} lang={lang} year={year || 'x'} today={st.phase?.phase === 'ramadan' ? st.phase.day : null} />
 
           <div className="rp-print">
             <div className="rp-toolbar" data-reveal>
