@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom'
 import PageLink, { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { ChartFigure, BarChart, StackedBar, ProgressBar } from '../components/viz'
+import ZakatFlow from '../components/ZakatFlow'
 
 // ═══ ZƏKAT HESABI — Sələf alimlərinin fətvalarına uyğun ═══
 // • Zəkat nisaba çatan və üzərindən bir hicri il (hövl) keçən mala düşür. Aylıq maaş
@@ -106,6 +107,11 @@ const L = {
   step3:        { az:'Borclar', ru:'Долги', ar:'الديون', tr:'Borçlar', en:'Debts' },
   step3Text: { az:'Borc zəkatın vacibliyinə mane olmur (İbn Baz və İbn Useyminin seçdiyi rəy). Yalnız zəkat günündən əvvəl faktiki ödədiyiniz borcu yazın — o, artıq sizin malınız deyil.', ru:'Долг не препятствует обязательности закята (мнение, избранное Ибн Базом и Ибн Усаймином). Впишите лишь долг, фактически выплачиваемый до дня закята, — это уже не ваше имущество.', ar:'الدين لا يمنع وجوب الزكاة (وهو اختيار ابن باز وابن عثيمين)، فاكتب فقط الدين الذي تقضيه فعلًا قبل موعد الزكاة لأنه لم يعد من مالك.', tr:'Borç zekâtın farziyetine engel değildir (İbn Bâz ve İbn Useymîn’in tercihi). Yalnızca zekât gününden önce fiilen ödediğiniz borcu yazın — o artık sizin malınız değildir.', en:'Debt does not prevent zakat from being due (the view chosen by Ibn Baz and Ibn Uthaymin). Enter only the debt you actually pay off before the zakat date — it is no longer your wealth.' },
   ofNisab:      { az:'Nisabın {p}%-i', ru:'{p} % нисаба', ar:'{p}٪ من النصاب', tr:'Nisabın %{p} kadarı', en:'{p}% of the nisab' },
+  flowTitle:    { az:'Malınızın axını: zəkat haradan gəlir', ru:'Движение имущества: откуда берётся закят', ar:'مسار مالك: من أين تُخرج الزكاة', tr:'Malınızın akışı: zekât nereden çıkar', en:'How your wealth flows: where the zakat comes from' },
+  flowTotal:    { az:'Cəm', ru:'Итого', ar:'المجموع', tr:'Toplam', en:'Total' },
+  flowRest:     { az:'Sizdə qalır', ru:'Остаётся у вас', ar:'يبقى لك', tr:'Sizde kalır', en:'Stays with you' },
+  flowDebt:     { az:'Ödənilən borc', ru:'Выплаченный долг', ar:'الدين المقضي', tr:'Ödenen borç', en:'Debt paid off' },
+  flowBelow:    { az:'Cəm nisaba çatmır — bu il zəkat vacib deyil.', ru:'Итог не достигает нисаба — в этом году закят не обязателен.', ar:'المجموع دون النصاب، فلا زكاة هذا العام.', tr:'Toplam nisaba ulaşmıyor — bu yıl zekât gerekmez.', en:'The total is below the nisab — no zakat is due this year.' },
   compTitle:    { az:'Varlıqların tərkibi', ru:'Состав имущества', ar:'تركيب المال', tr:'Varlıkların dağılımı', en:'What your wealth is made of' },
   compCash:     { az:'Nağd və bank', ru:'Наличные и банк', ar:'النقد والبنك', tr:'Nakit ve banka', en:'Cash and bank' },
   compTrade:    { az:'Ticarət malı', ru:'Товары для торговли', ar:'عروض التجارة', tr:'Ticaret malı', en:'Trade goods' },
@@ -592,6 +598,12 @@ export default function ZakatPage({ setPage }) {
                 </div>
               </div>
             </div>
+
+            {/* Axın: varlıqlar → cəm → zəkat / qalan */}
+            {comp.length > 0 && (
+              <ZakatFlow sources={comp} debt={Math.min(debtVal, totalAssets)} net={total} zakat={zakatYear} above={aboveNisab} money={money}
+                labels={{ title: s('flowTitle', l), total: s('flowTotal', l), debt: s('flowDebt', l), zakat: s('zakatDue', l), rest: s('flowRest', l), below: s('flowBelow', l) }} />
+            )}
 
             {/* Cəm: tərkib qrafiki + sətirlər */}
             <div className="ui-card zakat-breakdown" data-reveal="fade">

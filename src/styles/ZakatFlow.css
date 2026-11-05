@@ -1,0 +1,24 @@
+/* ══ Malın axını (components/ZakatFlow.jsx) ══ */
+.zf { --zf-zakat: var(--gold, #c59a2c); --zf-rest: color-mix(in srgb, var(--primary, #0d5c46) 55%, var(--surface-1, #fff));
+  --zf-debt: color-mix(in srgb, var(--text-secondary, #5b6b65) 45%, var(--surface-1, #fff)); --zf-muted: color-mix(in srgb, var(--text-secondary, #5b6b65) 30%, var(--surface-1, #fff));
+  display: grid; gap: 6px; padding: 16px; margin: 0; }
+.zf__title { font-weight: 700; font-size: .95rem; }
+.zf__svg { width: 100%; height: auto; overflow: visible; }
+.zf__links path { opacity: .42; transition: opacity .2s ease; }
+.zf__links path:hover { opacity: .7; }
+.zf__out--zakat { opacity: .95 !important; }
+.zf__node--mid { fill: var(--primary, #0d5c46); }
+.zf__lbl { font-size: 11px; fill: var(--text-primary, #1d2b26); font-weight: 600; dominant-baseline: middle; }
+.zf__lbl--mid { font-size: 10px; fill: var(--text-secondary); font-weight: 600; }
+.zf__lbl--zakat { fill: color-mix(in srgb, var(--gold, #c59a2c) 75%, var(--text-primary, #1d2b26)); }
+.zf__amt { font-weight: 500; fill: var(--text-secondary, #5b6b65); font-variant-numeric: tabular-nums; }
+.zf__note { margin: 0; font-size: .85rem; color: var(--text-secondary); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .zf__links path {
+    transform-box: view-box; transform-origin: 0 50%;
+    animation: zf-grow 700ms cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 90ms);
+  }
+  html:not(.a11y-reduce-motion) .zf__links--out path { transform-origin: 49% 50%; animation-delay: calc(var(--i, 0) * 90ms + 300ms); }
+}
+@keyframes zf-grow { from { opacity: 0; transform: scaleX(0); } }
