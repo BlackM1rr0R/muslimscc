@@ -263,8 +263,10 @@ test.describe('azan dalğası', () => {
     await expect(w.locator('.aw__clock')).toContainText('14:06')
     await w.getByTestId('adhan-play').click()
     await expect(w.getByTestId('adhan-play')).toBeDisabled()
-    await page.clock.runFor(13000)
-    await expect(w.getByTestId('adhan-play')).toBeEnabled()
+    // Kadr-kadr runFor CI-da çox ləngdir — saatı birdən irəli çək, sonra bir neçə kadr
+    await page.clock.fastForward(13000)
+    await page.clock.runFor(200)
+    await expect(w.getByTestId('adhan-play')).toBeEnabled({ timeout: 10000 })
   })
 })
 
