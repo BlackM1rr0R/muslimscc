@@ -19,6 +19,7 @@ import { QURAN_GUIDE } from '../data/guides/QuranPage'
 import KhatmPlanner from '../components/quran/KhatmPlanner'
 import QuranRadio from '../components/quran/QuranRadio'
 import SurahArt from '../components/quran/SurahArt'
+import SurahRootCloud from '../components/quran/SurahRootCloud'
 import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta } from '../utils/quranEnc'
 import '../styles/QuranPage.css'
 
@@ -1396,6 +1397,7 @@ export default function QuranPage() {
                 {surahJuz && <div><dt>{pk(QURAN_GUIDE.ui.juzLabel, lang)}</dt><dd className="ui-num" dir="ltr">{surahJuz}</dd></div>}
               </dl>
             </header>
+            <SurahRootCloud key={surah.number} surah={surah.number} lang={lang} />
             {/* Tərcümə seçicisi: standart nəşr + QuranEnc.com tərcümələri (mətn dəyişmir; mənbə, versiya, tarix) */}
             {qeOptions.length > 0 && (
               <div className="qp-trans-src" data-reveal="fade">

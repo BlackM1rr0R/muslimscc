@@ -1,0 +1,22 @@
+/* ══ Surənin kök buludu (components/quran/SurahRootCloud.jsx) ══ */
+.src-cloud { display: grid; justify-items: start; gap: 10px; margin: 12px 0 6px; }
+.src-cloud__msg { margin: 0; font-size: .88rem; color: var(--text-secondary); }
+.src-cloud__box { width: 100%; margin: 0; padding: 16px; border-radius: 18px; display: grid; gap: 8px;
+  background: radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--gold, #c59a2c) 12%, var(--surface-1, #fff)), var(--surface-1, #fff) 75%);
+  border: 1px solid color-mix(in srgb, var(--gold, #c59a2c) 25%, transparent); }
+.src-cloud__title { font-weight: 700; font-size: .92rem; }
+.src-cloud__words { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 10px 30px; padding: 6px 0; }
+.src-cloud__w { display: inline-grid; justify-items: center; gap: 0; line-height: 1.25; text-decoration: none; border-radius: 8px; padding: 0 4px;
+  font-size: calc(1rem + var(--k, 0) * 1.6rem); font-weight: 700; transition: transform .2s cubic-bezier(.2, .8, .2, 1.3); }
+.src-cloud__w small { font-size: max(.62rem, .32em); font-weight: 600; color: var(--text-secondary); line-height: 1; }
+.src-cloud__w:hover { transform: scale(1.08); }
+.src-cloud__w:focus-visible { outline: 3px solid var(--focus, #c59a2c); outline-offset: 2px; }
+.src-cloud__w--0 { color: var(--primary, #0d5c46); }
+.src-cloud__w--1 { color: color-mix(in srgb, var(--gold, #c59a2c) 80%, var(--text-primary)); }
+.src-cloud__w--2 { color: var(--text-primary); }
+[data-theme="dark"] .src-cloud__w--0 { color: var(--accent-text, #7fd6b5); }
+.src-cloud__src { margin: 0; font-size: .75rem; color: var(--text-secondary); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .src-cloud__w { animation: src-in 500ms cubic-bezier(.2, .8, .2, 1.2) both; animation-delay: calc(var(--i, 0) * 30ms); }
+}
+@keyframes src-in { from { opacity: 0; transform: scale(.6); } }

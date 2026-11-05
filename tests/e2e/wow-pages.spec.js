@@ -238,3 +238,13 @@ test('"Necə hiss edirsən?": hala toxunuş Hisnul-Müslim dualarını açır', 
   await m.getByRole('button', { name: 'Kədərliyəm' }).click()
   await expect(m.locator('.md__chap')).toHaveCount(0)
 })
+
+test('surənin kök buludu: düymə ilə açılır, köklər kök səhifəsinə aparır', async ({ page }) => {
+  await page.goto('/quran/1-al-faatiha')
+  await settle(page)
+  const c = page.getByTestId('surah-root-cloud')
+  await c.getByRole('button').click()
+  await expect(c.locator('.src-cloud__w').first()).toBeVisible()
+  expect(await c.locator('.src-cloud__w').count()).toBeGreaterThan(3)
+  await expect(c.locator('.src-cloud__w').first()).toHaveAttribute('href', /quran-roots\?root=/)
+})
