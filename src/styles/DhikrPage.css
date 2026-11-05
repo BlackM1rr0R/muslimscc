@@ -731,3 +731,6 @@ html.a11y-reduce-motion .dk-spark { display: none; }
   from { clip-path: inset(-10% -2% -10% 100%); opacity: .25; }
   to   { clip-path: inset(-10% -2% -10% -2%); opacity: 1; }
 }
+
+/* Səs açarı (components/SoundToggle) — rejim seçicisinin yanında */
+.dk-modes-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }

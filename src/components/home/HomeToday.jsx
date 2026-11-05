@@ -25,6 +25,7 @@ import { buildDailyItems, dayNumber } from '../DailyReminderBar'
 import { localizeSource } from '../../utils/sourceNames'
 import { gregorianToHijri, fromLocalDate, formatHijri, formatGregorian, weekdayName, isApproximate } from '../../utils/hijri'
 import '../../styles/HomeToday.css'
+import MoonPhase from '../MoonPhase'
 
 const LABELS = {
   az: {
@@ -297,6 +298,8 @@ export default function HomeToday() {
           {/* ── Bu gün: hicri + miladi tarix ── */}
           <article className="ui-card ui-card--elevated hp-td-date" aria-labelledby="hp-td-d-ttl">
             <h3 id="hp-td-d-ttl" className="hp-td-cell-ttl"><Icon name="calendar" size={16} /> {l.today} · {weekdayName(g, lang)}</h3>
+            {/* Bu gecənin ayı (astronomik faza) */}
+            <span className="hp-td-moon"><MoonPhase lang={lang} size={46} /></span>
             <p className="hp-td-hijri">
               <span className="hp-td-hday">{hijri.day}</span>
               <span className="hp-td-hrest">{formatHijri(hijri, lang).replace(/^\d+\s*/, '')}{isApproximate(hijri.year) ? ` (${l.approx})` : ''}</span>

@@ -74,3 +74,22 @@ describe('mətnin yerləşdirilməsi', () => {
     }
   })
 })
+
+describe('telefon fonu (wallpaper) — kilid ekranının təhlükəsiz zonası', () => {
+  it('bütün şablonlarda mətn sahəsi saat/tarix (34%) və kilid düymələri (16%) arasındadır', async () => {
+    const { TEMPLATES, contentBox, formatById } = await import('../../src/utils/quoteCard.js')
+    const f = formatById('wallpaper')
+    expect(f).toMatchObject({ w: 1080, h: 2340 })
+    for (const tpl of TEMPLATES) {
+      const b = contentBox(tpl, f.w, f.h)
+      expect(b.y, tpl.id).toBeGreaterThanOrEqual(f.h * 0.34 - 0.5)
+      expect(b.y + b.h, tpl.id).toBeLessThanOrEqual(f.h * 0.84 + 0.5)
+    }
+  })
+  it('digər ölçülərdə sahə dəyişmir (hekayə 9:16)', async () => {
+    const { TEMPLATES, contentBox } = await import('../../src/utils/quoteCard.js')
+    const tpl = TEMPLATES[0]
+    const b = contentBox(tpl, 1080, 1920)
+    expect(b.y).toBeLessThan(1920 * 0.34)
+  })
+})

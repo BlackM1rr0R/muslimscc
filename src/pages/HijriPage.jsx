@@ -15,6 +15,7 @@ import RelatedLinks from '../components/prayer/RelatedLinks'
 import '../styles/HijriPage.css'
 import '../styles/ToolsMotion.css'
 import { ringFrom } from '../components/prayer/ringFrom'
+import MoonPhase from '../components/MoonPhase'
 
 // ═══════════════════════════════════════════════════════
 // /hijri-converter — Hicri tarix çevirici
@@ -275,6 +276,11 @@ export default function HijriPage({ setPage }) {
           <Converter t={t} lang={lk} today={now} onShowMonth={showMonth} />
           <MonthGrid t={t} lang={lk} view={view} setView={setView} today={now} hToday={hToday} firstDow={firstDow} />
         </div>
+      </section>
+
+      {/* Bu gecənin ayı — astronomik faza, növbəti bədr və təzə ay */}
+      <section className="ui-section ui-section--tight hj-moon">
+        <div className="ui-container"><MoonPhase lang={lk} size={150} detailed /></div>
       </section>
 
       <YearGlance lang={lk} g={now} h={hToday} />

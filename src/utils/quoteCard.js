@@ -18,6 +18,8 @@ export const FORMATS = [
   { id: 'square',   w: 1080, h: 1080 },
   { id: 'portrait', w: 1080, h: 1250 },
   { id: 'story',    w: 1080, h: 1920 },
+  // Telefon fonu (kilid ekranı): mətn saat/tarix və kilid düymələrinin arasında (contentBox)
+  { id: 'wallpaper', w: 1080, h: 2340 },
   { id: 'post',     w: 1200, h: 630 },
 ]
 export const formatById = (id) => FORMATS.find(f => f.id === id) || FORMATS[0]
@@ -781,8 +783,16 @@ export const unitOf = (W, H) => Math.min(W, H * 1.4) / 1080
 /** Mətn sahəsi — şablonun öz sahəsi, yoxdursa kənarlardan boşluq. Hekayədə
  *  Instagram-ın üst/alt düymələri üçün təhlükəsiz zona saxlanılır. */
 export function contentBox(tpl, W, H) {
-  if (tpl?.box) return tpl.box(W, H)
-  return baseBox(W, H)
+  const b = tpl?.box ? tpl.box(W, H) : baseBox(W, H)
+  if (H / W > 2) {
+    // Telefon fonu: yuxarı ~34% — kilid ekranının saatı və tarixi, aşağı ~16% —
+    // bildirişlər, fənər/kamera düymələri. Mətn yalnız aradakı sahəyə yerləşir.
+    const top = H * 0.34, bottom = H * 0.84
+    const y = Math.max(b.y, top)
+    const y2 = Math.min(b.y + b.h, bottom)
+    return { ...b, y, h: Math.max(H * 0.2, y2 - y) }
+  }
+  return b
 }
 function baseBox(W, H) {
   const story = H / W > 1.6
@@ -1049,7 +1059,8 @@ export function renderCard(ctx, card, W, H, opts = {}) {
       const mk = tpl.mark || {}
       ctx.fillStyle = mk.color?.(st, W, H) || sub
       ctx.globalAlpha = 0.72 * A
-      const wy = mk.y?.(W, H, u) ?? (story ? H - H * 0.11 : H - Math.max(Math.min(W, H) * 0.075, 44 * u))
+      // Telefon fonunda işarə kilid düymələrinin üstündə, mətnin altında
+    const wy = H / W > 2 ? H * 0.875 : (mk.y?.(W, H, u) ?? (story ? H - H * 0.11 : H - Math.max(Math.min(W, H) * 0.075, 44 * u)))
       ctx.fillText(card.watermark, mk.x?.(W, H, u) ?? W / 2, wy)
       trySet(ctx, 'letterSpacing', '0px')
     })

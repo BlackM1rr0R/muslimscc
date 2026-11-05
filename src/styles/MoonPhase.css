@@ -1,0 +1,26 @@
+/* ══ Ay fazası (components/MoonPhase.jsx) — yalnız transform/opacity animasiyası ══ */
+.mph__svg { display: block; overflow: visible; }
+.mph__dark { fill: #2a3146; }
+[data-theme="dark"] .mph__dark { fill: #1a2033; }
+.mph__halo { fill: rgba(243, 230, 181, 0.16); }
+.mph__craters circle { fill: rgba(120, 100, 60, 0.12); }
+.mph--sm { display: inline-grid; place-items: center; }
+
+.mph--lg { display: grid; gap: var(--space-4); align-items: center; }
+@media (min-width: 720px) { .mph--lg { grid-template-columns: auto minmax(0, 1fr); } }
+.mph__art { display: grid; place-items: center; padding: var(--space-3); border-radius: 50%; background: radial-gradient(circle, #1c2438 0%, #0f1424 70%, transparent 71%); }
+.mph__art .mph__svg { filter: drop-shadow(0 0 22px rgba(243, 230, 181, 0.35)); }
+.mph__title { margin: 0; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; }
+.mph__name { margin: 2px 0 var(--space-2); color: var(--accent-text); font-family: var(--font-label); font-size: var(--step-0); font-weight: 600; }
+.mph__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--space-2) var(--space-4); margin: 0; }
+.mph__facts > div { display: grid; gap: 2px; }
+.mph__facts dt { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.mph__facts dd { margin: 0; color: var(--text-strong); font-weight: 600; }
+.mph__note { margin: var(--space-2) 0 0; color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.5; max-width: 60ch; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .mph--lg .mph__svg { animation: mph-rise 1100ms var(--wow-ease, ease-out) both; }
+  html:not(.a11y-reduce-motion) .mph__halo { transform-box: fill-box; transform-origin: center; animation: mph-glow 5s ease-in-out infinite alternate; }
+}
+@keyframes mph-rise { from { opacity: 0; transform: translateY(14px) rotate(-12deg) scale(0.9); } }
+@keyframes mph-glow { from { opacity: 0.6; transform: scale(0.96); } to { opacity: 1; transform: scale(1.04); } }

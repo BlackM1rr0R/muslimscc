@@ -5,7 +5,7 @@
 import Icon from '../Icon'
 import { FORMATS, DEFAULT_STYLE } from '../../utils/quoteCard'
 
-const FORMAT_LABEL = { square: 'formatSquare', portrait: 'formatPortrait', story: 'formatStory', post: 'formatPost' }
+const FORMAT_LABEL = { square: 'formatSquare', portrait: 'formatPortrait', story: 'formatStory', post: 'formatPost', wallpaper: 'formatWallpaper' }
 
 export function FormatPicker({ t, value, onChange }) {
   return (

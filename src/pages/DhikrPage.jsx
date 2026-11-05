@@ -10,6 +10,9 @@ import { localizeSource } from '../utils/sourceNames'
 import { BarChart } from '../components/viz'
 import { pathFor } from '../seo/routes'
 import '../styles/DhikrPage.css'
+import BreathDhikr from '../components/dhikr/BreathDhikr'
+import { playSound } from '../utils/uiSound'
+import SoundToggle from '../components/SoundToggle'
 
 // ── localStorage helper-ləri ──
 const STORAGE_KEY = 'dhikr_session'
@@ -46,6 +49,9 @@ function bumpLifetime() {
 // Vibrasiya — yalnız istifadəçi səhifəyə toxunandan sonra (əks halda brauzer
 // hər dəfə konsola xəta yazır)
 function vibrate(pattern) {
+  // İstəyə görə səs (utils/uiSound, susmaya görə sönülü): tək toxunuş — muncuq,
+  // ardıcıllıq (dövr / hədəf tamamlandı) — yumşaq zəng
+  playSound(Array.isArray(pattern) ? 'done' : 'bead')
   try {
     if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return
     navigator.vibrate?.(pattern)
@@ -80,6 +86,7 @@ const MODES = [
   { id: 'select', icon: 'list',   label: { az: 'Zikr seçimi', en: 'Choose dhikr', ru: 'Выбор зикра', ar: 'اختيار الذكر', tr: 'Zikir seçimi' } },
   { id: 'after',  icon: 'prayer', label: { az: 'Namazdan sonra', en: 'After prayer', ru: 'После намаза', ar: 'بعد الصلاة', tr: 'Namazdan sonra' } },
   { id: 'free',   icon: 'dhikr',  label: { az: 'Sərbəst təsbeh', en: 'Free tasbih', ru: 'Свободный тасбих', ar: 'تسبيح حر', tr: 'Serbest tesbih' } },
+  { id: 'breath', icon: 'leaf',   label: { az: 'Nəfəsli zikr', en: 'Breathing', ru: 'С дыханием', ar: 'مع التنفس', tr: 'Nefesli zikir' } },
 ]
 const MODE_LABEL = { az: 'Sayğac rejimi', en: 'Counter mode', ru: 'Режим счётчика', ar: 'وضع العداد', tr: 'Sayaç modu' }
 
@@ -383,9 +390,11 @@ export default function DhikrPage({ setPage }) {
               </button>
             ))}
           </div>
+          <SoundToggle lang={lang} className="dk-sound" />
         </div>
         {mode === 'after' && <div className="ui-container"><AfterPrayerCounter lang={lang} /></div>}
         {mode === 'free' && <div className="ui-container"><FreeCounter lang={lang} t={t} /></div>}
+        {mode === 'breath' && <div className="ui-container"><BreathDhikr lang={lang} /></div>}
         {mode === 'select' && (
         <div className="ui-container dhikr-layout">
 

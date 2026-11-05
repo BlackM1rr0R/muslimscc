@@ -1,0 +1,37 @@
+/* ══ Nəfəsli zikr (components/dhikr/BreathDhikr.jsx) — yalnız transform/opacity ══ */
+.bd { display: grid; gap: var(--space-4); }
+.bd-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.bd-pick .ui-chip { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding-block: 6px; }
+.bd-pick__ar { font-family: var(--font-arabic); font-size: 1.15rem; line-height: 1.5; }
+.bd-pick__name { font-size: var(--step--2); }
+
+.bd-stage { position: relative; display: grid; place-items: center; width: min(320px, 82vw); aspect-ratio: 1; margin-inline: auto; }
+.bd-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.bd-ring__track { fill: none; stroke: var(--viz-track, var(--surface-3)); stroke-width: 4; }
+.bd-ring__bar { fill: none; stroke: var(--brand); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 600ms var(--ease-out); }
+.bd-stage.is-done .bd-ring__bar { stroke: var(--accent); }
+
+.bd-orb {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--brand) 30%, var(--surface-1)) 0%, color-mix(in srgb, var(--brand) 14%, transparent) 55%, transparent 72%);
+  transform: scale(0.62);
+  opacity: 0.75;
+  transition: transform var(--bd-ms, 4000ms) cubic-bezier(.45, 0, .55, 1), opacity var(--bd-ms, 4000ms) ease;
+}
+.bd-stage.is-in .bd-orb { transform: scale(1); opacity: 1; }
+.bd-stage.is-out .bd-orb { transform: scale(0.62); opacity: 0.75; }
+.bd-stage.is-still .bd-orb { transition: none; transform: scale(0.85); }
+.bd-stage.is-done .bd-orb { background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--accent) 34%, var(--surface-1)) 0%, transparent 70%); }
+
+.bd-center { position: relative; display: grid; justify-items: center; gap: 6px; text-align: center; padding: 0 14%; }
+.bd-ar { font-family: var(--font-arabic); font-size: clamp(1.4rem, 5vw, 1.9rem); line-height: 1.6; color: var(--text-strong); }
+.bd-phase { min-height: 1.3em; color: var(--brand); font-family: var(--font-label); font-size: var(--step--1); font-weight: 600; }
+.bd-count { color: var(--text-strong); font-size: var(--step-3); font-weight: 700; line-height: 1; }
+.bd-of { color: var(--text-tertiary); font-size: var(--step-0); font-weight: 500; }
+
+.bd-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2); }
+.bd-tempo button { padding-inline: 12px; }
+
+@media (prefers-reduced-motion: reduce) { .bd-orb { transition: none; } }

@@ -1237,3 +1237,7 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
 html.a11y-reduce-motion :is(.hp-aur > i, .hp-stars > i, .hp-ht-ch, .hp-ht-1, .hp-ht-2, .hp-pc-d, .hp-pc-colon),
 html.a11y-reduce-motion .hp-khatam::before,
 html.a11y-reduce-motion .hp-kalima::after { animation: none !important; }
+
+/* Bu gecənin ayı — tarix kartının küncündə (components/MoonPhase) */
+.hp-td-date { position: relative; }
+.hp-td-moon { position: absolute; top: 14px; inset-inline-end: 14px; }

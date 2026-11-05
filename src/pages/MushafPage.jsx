@@ -15,6 +15,8 @@ import {
 import { loadWordIndex, spacedRoot, ROOT_CAT_LABELS, verbFormLabel } from '../utils/quranRoots'
 import { ProgressBar, StatTile } from '../components/viz'
 import '../styles/MushafPage.css'
+import { playSound } from '../utils/uiSound'
+import SoundToggle from '../components/SoundToggle'
 
 // v3: hero rəqəmləri və "Mushafın quruluşu" bölməsi.
 // 604 səhifə / 30 cüz — src/data/mushafIndex.js; 60 hizb, 240 rübʿ — ənənəvi bölgü
@@ -463,6 +465,7 @@ export default function MushafPage() {
     const n = clampPage(p)
     setSel(null)
     setTurn(n > page ? 'next' : n < page ? 'prev' : '')
+    if (n !== page) playSound('page')
     setPage(n)
     const search = `?p=${n}`
     if (window.location.search !== search) {
@@ -605,6 +608,7 @@ export default function MushafPage() {
               <button type="button" className="ui-chip" aria-pressed={prefs.wbw} onClick={() => togglePref('wbw')}>
                 <Icon name="list" size={16} /> {L.wbw}
               </button>
+              <SoundToggle lang={lang} />
               {wide && (
                 <button type="button" className="ui-chip" aria-pressed={prefs.spread} onClick={() => togglePref('spread')}>
                   <Icon name="mushaf" size={16} /> {L.spread}
