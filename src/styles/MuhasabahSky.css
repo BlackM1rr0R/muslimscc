@@ -1,0 +1,22 @@
+/* ══ Əməllərin səması (components/MuhasabahSky.jsx) ══ */
+.ms { display: grid; gap: 8px; margin: 0 0 16px; }
+.ms__head { display: grid; gap: 2px; }
+.ms__title { font-weight: 700; }
+.ms__lead { font-size: .84rem; color: var(--text-secondary); }
+.ms__svg { width: 100%; height: auto; display: block; border-radius: 12px; }
+.ms__con { cursor: pointer; }
+.ms__line { fill: none; stroke: rgba(190, 215, 240, .28); stroke-width: .7; stroke-linejoin: round; }
+.ms__con.is-sel .ms__line { stroke: rgba(240, 199, 94, .8); stroke-width: 1.1; }
+.ms__star { fill: #fff; }
+.ms__con.is-sel .ms__star { fill: #f6d77a; }
+.ms__star.is-today { fill: #f6d77a; }
+.ms__lbl { font-size: 8.5px; fill: rgba(220, 232, 245, .72); font-weight: 600; letter-spacing: .02em; }
+.ms__con.is-sel .ms__lbl { fill: #f6d77a; }
+.ms__note { margin: 0; font-size: .85rem; color: var(--text-secondary); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ms__star { transform-box: fill-box; transform-origin: center; animation: ms-in 700ms cubic-bezier(.2, .8, .2, 1.3) both; }
+  html:not(.a11y-reduce-motion) .ms__star.is-today { animation: ms-twinkle 1.6s ease-in-out 3; }
+}
+@keyframes ms-in { from { transform: scale(0); } }
+@keyframes ms-twinkle { 50% { transform: scale(1.8); } }

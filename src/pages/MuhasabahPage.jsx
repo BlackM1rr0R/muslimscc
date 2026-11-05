@@ -22,6 +22,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import { ChartFigure, ProgressRing, StatTile, ColumnChart } from '../components/viz'
 import ActivityHeatmap from '../components/ActivityHeatmap'
+import MuhasabahSky from '../components/MuhasabahSky'
 import RelatedLinks from '../components/RelatedLinks'
 import '../styles/MuhasabahPage.css'
 import '../styles/ToolsMotion.css'
@@ -617,6 +618,7 @@ export default function MuhasabahPage({ setPage }) {
               <StatTile variant="sunken" value={String(stats.rec)} label={t.recorded} />
               <StatTile variant="sunken" value={String(stats.avg)} unit="%" label={t.avg} />
             </div>
+            <MuhasabahSky entries={entries} items={ITEMS} today={todayIso} labels={v.short} lang={lang} />
             <ChartFigure title={t.heatTitle} sub={v.heatSub}>
               <ActivityHeatmap days={DAYS} today={today} levelOf={level} selected={date} onPick={setDate}
                 titleOf={(k) => t.cellTitle(fmtDate(k, lang), entries[k]?.c.length || 0)}
