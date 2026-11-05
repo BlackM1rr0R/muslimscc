@@ -1,0 +1,35 @@
+/* ══ Gecə namazı rejimi (components/prayer/QiyamMode.jsx) ══ */
+.qy { position: fixed; inset: 0; z-index: 1800; color: #e7eef6;
+  background: radial-gradient(ellipse at 50% 120%, #17344d 0%, #0a1626 55%, #04080f 100%); }
+.qy.is-in { background: radial-gradient(ellipse at 50% 120%, #2c2a52 0%, #111733 55%, #05070f 100%); }
+.qy__sky { position: absolute; inset: 0; opacity: .7; pointer-events: none; }
+.qy__scroll { position: relative; height: 100%; overflow: auto; padding: max(14px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  display: grid; align-content: start; justify-items: center; gap: 18px; }
+.qy__top { width: min(100%, 720px); display: flex; justify-content: space-between; align-items: center; }
+.qy__title { margin: 0; font-size: 1.05rem; display: inline-flex; align-items: center; gap: 8px; color: #f3dc9a; }
+.qy__clock { text-align: center; padding: 18px 0 6px; }
+.qy__label { margin: 0; font-size: .95rem; opacity: .85; }
+.qy__count { margin: 6px 0; font-size: clamp(3rem, 14vw, 5.5rem); font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+.qy__count small { font-size: .32em; font-weight: 600; opacity: .7; margin-inline: 4px 10px; }
+.qy__sub { margin: 0; opacity: .8; }
+.qy__wake { margin: 8px 0 0; font-size: .78rem; opacity: .6; display: inline-flex; gap: 6px; align-items: center; }
+.qy__card { width: min(100%, 720px); padding: 16px 18px; border-radius: 18px; background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(243, 220, 154, .18); backdrop-filter: blur(2px); }
+.qy__hadith { margin: 0; }
+.qy__ar { margin: 0 0 8px; font-size: clamp(1.3rem, 4.6vw, 1.75rem); line-height: 2; color: #f6e6b4; text-align: center; }
+.qy__tx { margin: 0 0 6px; font-size: 1rem; line-height: 1.6; opacity: .92; }
+.qy__src { margin: 0; font-size: .78rem; opacity: .6; }
+.qy__h { margin: 0 0 10px; font-size: .95rem; color: #f3dc9a; }
+.qy__surahs { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.qy__chip { background: rgba(255, 255, 255, .08); color: #e7eef6; border-color: rgba(243, 220, 154, .3); }
+.qy__dua + .qy__dua { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, .08); }
+.qy__dua-t { margin: 0 0 8px; font-size: .88rem; color: #cfdcea; }
+.qy__h, .qy__title { color: #f3dc9a; }
+.qy__item + .qy__item { margin-top: 12px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qy__clock, html:not(.a11y-reduce-motion) .qy__card { animation: qy-in 700ms cubic-bezier(.2, .8, .2, 1) both; }
+  html:not(.a11y-reduce-motion) .qy__card:nth-of-type(2) { animation-delay: 120ms; }
+  html:not(.a11y-reduce-motion) .qy__card:nth-of-type(3) { animation-delay: 220ms; }
+}
+@keyframes qy-in { from { opacity: 0; transform: translateY(14px); } }

@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
+import { qiyamState, hm } from '../utils/qiyam'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
@@ -387,6 +388,14 @@ const durHM = (min) => `${Math.floor(min / 60)}:${pad2(Math.round(min % 60))}`
 /** Yeni tabda açmaq istəyən klik (Ctrl/⌘, orta düymə) SPA keçidinə çevrilməsin. */
 const isPlainClick = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 
+const QiyamMode = lazy(() => import('../components/prayer/QiyamMode'))
+const QY = {
+  until:  { az: 'Gecənin son üçdə biri', en: 'Last third of the night', ru: 'Последняя треть ночи', ar: 'الثلث الأخير من الليل', tr: 'Gecenin son üçte biri' },
+  inNow:  { az: 'İndi gecənin son üçdə biridir', en: 'It is the last third of the night now', ru: 'Сейчас последняя треть ночи', ar: 'الآن الثلث الأخير من الليل', tr: 'Şu an gecenin son üçte biri' },
+  toFajr: { az: 'sübhə qədər —', en: 'until Fajr —', ru: 'до Фаджра —', ar: 'حتى الفجر —', tr: 'sabaha kadar —' },
+  open:   { az: 'Qiyam rejimi', en: 'Night prayer mode', ru: 'Режим ночного намаза', ar: 'وضع القيام', tr: 'Gece namazı modu' },
+}
+
 export default function PrayerPage({ setPage }) {
   const { lang } = useLang()
   const t = T[lang]?.prayer || T.az.prayer
@@ -408,6 +417,7 @@ export default function PrayerPage({ setPage }) {
   }, [])
 
   const pt = usePrayerTimes()
+  const [qiyamOpen, setQiyamOpen] = useState(false)
 
   const times = useMemo(() => {
     if (!pt.prayers.length) return null
@@ -535,6 +545,7 @@ export default function PrayerPage({ setPage }) {
   const nowMin = Number.isFinite(pt.nowSecs) ? Math.floor(pt.nowSecs / 60) : null
   const M = dayTimes ? Object.fromEntries(DAY_KEYS.map(k => [k, hmToMin(dayTimes[k])])) : null
   const nightLen = M && M.fajr != null && M.maghrib != null ? M.fajr + 1440 - M.maghrib : null
+  const qiyam = M && nowMin != null ? qiyamState(nowMin, M.maghrib, M.fajr) : null
   const dayLen = M && M.sunrise != null && M.maghrib != null ? M.maghrib - M.sunrise : null
   const midnight = nightLen != null ? M.maghrib + nightLen / 2 : null
   const lastThird = nightLen != null ? M.maghrib + (nightLen * 2) / 3 : null
@@ -849,6 +860,24 @@ export default function PrayerPage({ setPage }) {
                 <StatTile icon="moonStar" label={P(V3.midnight)} value={minToHM(midnight)} hint={P(V3.midHint)} />
                 <StatTile icon="duas" label={P(V3.third)} value={minToHM(lastThird)} hint={P(V3.thirdHint)} tone="brand" />
               </div>
+            )}
+            {/* Gecə namazı (Qiyam) — son üçdə birə / sübhə qədər; tam ekran rejim */}
+            {qiyam && (
+              <div className={`ui-card pp-qiyam${qiyam.phase === 'in' ? ' is-in' : ''}`} data-testid="qiyam-card">
+                <span className="pp-qiyam__ic" aria-hidden="true"><Icon name="moonStar" size={22} /></span>
+                <span className="pp-qiyam__txt">
+                  <b>{qiyam.phase === 'in' ? P(QY.inNow) : P(QY.until)}</b>
+                  <span className="ui-num">{qiyam.phase === 'in' ? `${P(QY.toFajr)} ${hm(M.fajr)}` : `${hm(qiyam.start)} · ${Math.floor(qiyam.left / 60)}:${String(qiyam.left % 60).padStart(2, '0')}`}</span>
+                </span>
+                <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={() => setQiyamOpen(true)} data-testid="qiyam-open">
+                  {P(QY.open)}
+                </button>
+              </div>
+            )}
+            {qiyamOpen && M && (
+              <Suspense fallback={null}>
+                <QiyamMode nowMin={nowMin} maghrib={M.maghrib} fajr={M.fajr} lang={lang} onClose={() => setQiyamOpen(false)} />
+              </Suspense>
             )}
             {/* Google / Apple / Outlook təqviminə abunəlik (server/ics.js) */}
             <CalendarSubscribe location={pt.location} lang={lang} city={cityName} />
