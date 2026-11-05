@@ -4,6 +4,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import { calculateInheritance, heirAllowed, HEIR_MAX } from '../utils/faraid'
+import InheritanceTree from '../components/InheritanceTree'
 import { useNavigate } from 'react-router-dom'
 import PageLink, { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
@@ -30,6 +31,8 @@ const L = {
   wasiyyah:   { az:'Vəsiyyət', en:'Bequest (wasiyyah)', ru:'Завещание', ar:'الوصية', tr:'Vasiyet' },
   wasiyyahHint:{ az:'Qalanın 1/3-dən çox ola bilməz və varisə vəsiyyət edilmir', en:'At most 1/3 of what remains, and not for an heir', ru:'Не более 1/3 остатка и не в пользу наследника', ar:'لا تزيد على الثلث، ولا وصية لوارث', tr:'Kalanın 1/3’ünü aşamaz ve mirasçıya vasiyet edilmez' },
   orderNote:  { az:'Sıra: əvvəl kəfən-dəfn, sonra borclar, sonra vəsiyyət, qalanı varislərə.', en:'Order: funeral costs first, then debts, then the bequest; the rest goes to the heirs.', ru:'Порядок: сначала похороны, затем долги, затем завещание; остальное — наследникам.', ar:'الترتيب: التجهيز ثم الديون ثم الوصية، والباقي للورثة.', tr:'Sıra: önce kefen ve defin, sonra borçlar, sonra vasiyet; kalanı mirasçılara.' },
+  treeTitle:  { az:'Ailə ağacında bölgü', en:'The division on the family tree', ru:'Раздел на семейном древе', ar:'القسمة على شجرة العائلة', tr:'Aile ağacında paylaşım' },
+  treeBlocked:{ az:'məhrumdur', en:'excluded', ru:'лишён(а)', ar:'محجوب', tr:'mahrum' },
   deceased:   { az:'Vəfat edən', en:'The deceased', ru:'Умерший', ar:'المتوفى', tr:'Vefat eden' },
   male:       { az:'Kişi', en:'Man', ru:'Мужчина', ar:'رجل', tr:'Erkek' },
   female:     { az:'Qadın', en:'Woman', ru:'Женщина', ar:'امرأة', tr:'Kadın' },
@@ -522,6 +525,9 @@ export default function InheritancePage({ setPage }) {
                         label={`${s('barLabel')}: ` + segments.map(x => `${x.label} ${fmtShare(x.value, x)}`).join(', ')} />
                     </div>
                   )}
+
+                  <InheritanceTree shares={result.shares} net={result.net} name={heirName} fmt={fmt}
+                    labels={{ title: s('treeTitle'), deceased: s('deceased'), blocked: s('treeBlocked') }} />
 
                   <table className="inh-table">
                     <thead>
