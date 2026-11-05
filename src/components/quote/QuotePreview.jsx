@@ -43,6 +43,8 @@ export default function QuotePreview({ card, format, label, onOverflow, swapKey,
     let alive = true
     ensureFonts(card).then(() => { if (alive) setFontTick(t => t + 1) })
     return () => { alive = false }
+  // Yalnız mətn sahələri şriftə təsir edir (rəng/format dəyişəndə şrift yenidən yüklənmir)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.ar, card.text, card.ref, card.kicker, card.lang])
 
   const scale = box.w && box.h ? Math.min(box.w / format.w, box.h / format.h) : 0

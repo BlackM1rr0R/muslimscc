@@ -451,7 +451,9 @@ export function CalendarPage({ setPage }) {
         showLocalNotification(String(r.name || ''), { body: nl.today, icon: '/android-chrome-192x192.png' })
       }
     })
-  }, []) // only on mount
+  // Yalnız açılışda bir dəfə — xatırlatma dəyişəndə təkrar bildiriş göndərilməsin
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Telefonda aylar üfüqi zolaqdadır — seçilmiş ay görünmürsə zolağı ora
   // sürüşdür (yalnız zolağın özü; səhifə yerində qalır)

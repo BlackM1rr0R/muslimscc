@@ -230,7 +230,7 @@ export default function HisnPage({ setPage }) {
     return () => { live = false }
   }, [lang, attempt])
 
-  const chapters = data?.chapters || []
+  const chapters = useMemo(() => data?.chapters || [], [data])
   const itemTotal = useMemo(() => chapters.reduce((s, c) => s + c.items.length, 0), [chapters])
   const catStats = useMemo(() => {
     const m = {}

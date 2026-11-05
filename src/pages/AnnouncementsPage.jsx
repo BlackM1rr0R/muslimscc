@@ -362,6 +362,8 @@ export default function AnnouncementsPage({ setPage }) {
     const t = setTimeout(() => setDayTick(n => n + 1), midnight - now)
     return () => clearTimeout(t)
   }, [dayTick])
+  // dayTick — gecə yarısı tətiyi: hijriToday() parametrsizdir, yenidən hesablanma qəsdəndir
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const today = useMemo(() => hijriToday(), [dayTick])
   const events = useMemo(() => {
     const list = rawEvents

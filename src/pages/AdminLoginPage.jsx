@@ -64,6 +64,8 @@ export default function AdminLoginPage({ setPage }) {
   // Artıq admin kimi daxil olubsa — birbaşa panelə
   useEffect(() => watchAdmin(({ status }) => {
     if (status === 'admin') goAdmin()
+  // Bir dəfəlik abunə; goAdmin ref ilə qorunur (təkrar keçid olmur)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [])
 
   const showError = (key) => {

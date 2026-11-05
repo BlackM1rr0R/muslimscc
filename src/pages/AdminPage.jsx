@@ -97,6 +97,8 @@ export default function AdminPage({ setPage }) {
     if (status === 'admin') setAccount({ email, mustChangePassword })
     if (status === 'loading' || status === 'admin') return
     setPage('adminlogin')
+  // Bir dəfəlik abunə (watchAdmin) — setPage dəyişsə belə yenidən abunə lazım deyil
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [])
   const isAdmin = authStatus === 'admin' && !account.mustChangePassword
 

@@ -151,6 +151,8 @@ export default function CalSunnahFasts({ lang, hijriOf, monthNames }) {
       out.push({ i, date, key: dayKey(date), h, st: fastStatus(h, date) })
     }
     return out
+  // 'now' hər render yenidir; gün dəyişəndə (todayK) yenidən hesablanır — qəsdən
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todayK, hijriOf])
   const todayInfo = days.find(d => d.i === 0)
   const past7 = days.filter(d => d.i <= 0)

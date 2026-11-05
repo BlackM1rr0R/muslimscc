@@ -817,9 +817,10 @@ export default function HifzPage() {
 
   const filtered = useMemo(() => {
     if (filter === 'all') return SURAHS
-    if (filter === 'memorized') return SURAHS.filter(s => getStatus(s.num) === 2)
-    if (filter === 'inProgress') return SURAHS.filter(s => getStatus(s.num) === 1)
-    return SURAHS.filter(s => getStatus(s.num) === 0)
+    const st = (num) => progress[num] || 0
+    if (filter === 'memorized') return SURAHS.filter(s => st(s.num) === 2)
+    if (filter === 'inProgress') return SURAHS.filter(s => st(s.num) === 1)
+    return SURAHS.filter(s => st(s.num) === 0)
   }, [filter, progress])
 
   const handleReset = () => {

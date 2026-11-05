@@ -7,7 +7,7 @@
 // • Səsi olmayan zikr üçün komponent heç nə çəkmir (null).
 // • Eyni anda yalnız bir səs çalır — yenisi başlayanda köhnəsi dayanır.
 // ═══════════════════════════════════════════════════════
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Icon from '../Icon'
 import { RECITERS } from '../../utils/quranAudio'
 
@@ -33,22 +33,24 @@ export default function PrayerAudio({ zikr, t, className = '' }) {
   const posRef = useRef({ track: 0, alt: 0 })
   const aliveRef = useRef(true)
 
-  const stop = () => {
+  // Yalnız ref-lərdən və sabit setState-dən istifadə edir — sabit funksiya
+  // (stopCurrent === stop müqayisəsi bağlanışda da düzgün işləsin)
+  const stop = useCallback(() => {
     const a = audioRef.current
     if (a) { a.onended = null; a.onerror = null; a.onplaying = null; try { a.pause() } catch { /* yox */ } }
     audioRef.current = null
     if (stopCurrent === stop) stopCurrent = null
     if (aliveRef.current) setState('idle')
-  }
+  }, [])
 
   useEffect(() => {
     aliveRef.current = true
     return () => { aliveRef.current = false; stop() }
-  }, [])
+  }, [stop])
 
   // Zikr dəyişəndə (növbəti addım) səs dayanır
   const key = tracks.map(x => x[0]).join('|')
-  useEffect(() => () => stop(), [key])
+  useEffect(() => () => stop(), [key, stop])
 
   if (!tracks.length) return null
 

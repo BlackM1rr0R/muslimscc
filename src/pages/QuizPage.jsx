@@ -1061,6 +1061,8 @@ export default function QuizPage({ setPage }) {
   const questions = useMemo(() => {
     if (!category) return []
     return shuffleArray(QUESTIONS[category]).slice(0, ROUND_SIZE)
+  // round — "yenidən oyna" tətiyi: eyni kateqoriyada yeni qarışdırma qəsdəndir
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, round])
 
   const scores = loadScores()

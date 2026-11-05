@@ -171,7 +171,6 @@ export default function FatwaPage() {
   const [hq, setHq] = useState('')
 
   const nq = norm(q.trim())
-  const langOk = (l) => fLang === 'all' || l === fLang
 
   const sources = useMemo(() => SOURCES.filter(s => {
     const ls = Object.keys(s.urls || {})
@@ -181,7 +180,7 @@ export default function FatwaPage() {
 
   const topics = useMemo(() => TOPICS
     .filter(t => fTopic === 'all' || t.id === fTopic)
-    .map(t => ({ ...t, shown: t.links.filter(l => langOk(l[1])) }))
+    .map(t => ({ ...t, shown: t.links.filter(l => fLang === 'all' || l[1] === fLang) }))
     .filter(t => t.shown.length && (!nq || blob(t.label, t.ar, ...t.shown.map(l => SOURCE_SHORT[l[0]])).includes(nq))),
   [nq, fLang, fTopic])
 

@@ -466,7 +466,7 @@ function useSurah(num, lang, attempt = 0) {
       .catch(e => { if (!cancelled) setError(e.message) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [num, lang, attempt])
+  }, [num, lang, edition, attempt])
   // Yalnız istənilən surənin (və dilin) cavabını qaytar: oxuyucu bağlanıb eyni
   // surə yenidən açılanda köhnə cavab bir render "hazır" görünürdü — gözləyən
   // ayəyə keçid köhnə DOM-da edilib itirdi
@@ -1090,6 +1090,8 @@ export default function QuranPage() {
   }, [])
   const player = useQuranPlayer({ surahNumber: selected, verses, lang, onFollow: followAyah, onSurahEnd, mediaTitle })
   const playerBusy = player.status === 'playing' || player.status === 'loading'
+  // player obyekti hər render yenidir; toggle isə sabitdir — yalnız ondan asılıdır
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const toggleAyah = useCallback((n) => { haptic(); player.toggle(n) }, [player.toggle])
   const saveAyah = useCallback((n) => toggleSaved(selectedRef.current, n), [toggleSaved])
   const shareAyah = useCallback(async (verse) => {
@@ -1250,7 +1252,7 @@ export default function QuranPage() {
     if (sort === 'short') return [...list].sort((a, b) => a.numberOfAyahs - b.numberOfAyahs || a.number - b.number)
     if (sort === 'long') return [...list].sort((a, b) => b.numberOfAyahs - a.numberOfAyahs || a.number - b.number)
     return list
-  }, [surahs, search, filter, juz, sort, lang])
+  }, [surahs, search, filter, juz, sort])
 
   // Hero-dakı "Quran haqqında" — bələdçiyə hamar keçid (ünvan dəyişmir)
   const jumpToAbout = (e) => {
