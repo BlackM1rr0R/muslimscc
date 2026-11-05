@@ -4,13 +4,16 @@
 // Paylaşma: kart kətanda (1080×1350) çəkilir → Web Share və ya yükləmə.
 // Stillər: src/styles/YearReview.css (yalnız transform/opacity animasiyası)
 // ═══════════════════════════════════════════════════════
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import { yearReview } from '../utils/yearReview'
 import { loadSnapshot, loadHayd, toKey } from '../utils/prayerTracker'
 import { gregorianToHijri, hijriToGregorian, fromLocalDate, gKey } from '../utils/hijri'
 import '../styles/YearReview.css'
+
+const YearStory = lazy(() => import('./YearStory'))
+const STORY = { az: 'Story kimi bax', en: 'Watch as a story', ru: 'Смотреть как историю', tr: 'Hikâye olarak izle', ar: 'شاهد كقصة' }
 
 const T = {
   az: {
@@ -124,6 +127,7 @@ export default function YearReview() {
   const t = T[lang] || T.az
   const d = useYearData()
   const [msg, setMsg] = useState('')
+  const [story, setStory] = useState(false)
   if (!d) return null
 
   const items = [
@@ -186,12 +190,26 @@ export default function YearReview() {
           <div className="yr__foot">
             {d.excusedDays > 0 && <small className="yr__note">{t.excused(fmt(d.excusedDays, lang))}</small>}
             {!empty && (
+              <button type="button" className="ui-btn ui-btn--primary yr__story" onClick={() => setStory(true)} data-testid="yr-story">
+                <Icon name="play" size={16} /> {STORY[lang] || STORY.en}
+              </button>
+            )}
+            {!empty && (
               <button type="button" className="ui-btn ui-btn--ghost yr__share" onClick={share} data-testid="yr-share">
                 <Icon name="share" size={16} /> {t.share}
               </button>
             )}
             <span className="yr__msg" role="status">{msg}</span>
           </div>
+          {story && (
+            <Suspense fallback={null}>
+              <YearStory lang={lang} title={t.title(yearLabel)} lead={t.lead(fmt(d.days, lang))} onShare={share} onClose={() => setStory(false)}
+                scenes={items.filter(it => it.k === 'prayers' || it.v > 0).map(it => ({
+                  key: it.k, icon: it.icon, value: fmt(it.v, lang), label: it.l,
+                  sub: it.k === 'prayers' ? `${fmt(d.fullDays, lang)} ${t.fullDays}` : it.k === 'active' ? t.yearPct(fmt(d.pct, lang)) : '',
+                }))} />
+            </Suspense>
+          )}
         </div>
       </div>
     </section>

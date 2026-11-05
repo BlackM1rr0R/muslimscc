@@ -34,3 +34,24 @@ test('illik icmal: məlumat yoxdursa göstərilmir', async ({ page }) => {
   await settle(page)
   await expect(page.getByTestId('year-review')).toHaveCount(0)
 })
+
+test('illik icmal story: səhnələr, növbəti, son səhnədə paylaş, Esc bağlayır', async ({ page }) => {
+  await page.addInitScript(() => {
+    const key = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+    const stats = {}
+    for (let i = 0; i < 3; i++) for (const p of ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) stats[`${key(i)}_${p}`] = true
+    localStorage.setItem('muslim_cc_prayer_stats', JSON.stringify(stats))
+  })
+  await page.goto('/analytics')
+  await settle(page)
+  await page.getByTestId('yr-story').click()
+  const s = page.getByTestId('year-story')
+  await expect(s).toBeVisible()
+  await expect(s.locator('.ys__title')).toContainText('ilim')
+  await s.getByTestId('ys-next').click()
+  await expect(s.getByTestId('ys-value')).toHaveText('15')
+  for (let i = 0; i < 6; i++) if (await s.getByTestId('ys-next').isEnabled()) await s.getByTestId('ys-next').click()
+  await expect(s.getByRole('button', { name: 'Paylaş' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(s).toHaveCount(0)
+})
