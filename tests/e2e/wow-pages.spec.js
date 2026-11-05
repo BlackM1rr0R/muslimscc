@@ -56,3 +56,15 @@ test('kviz kombo: ardıcıl düz cavablar sayılır, səhvdə sıfırlanır, nə
   await expect(page.locator('.quiz-stat-streak')).toHaveCount(best >= 2 ? 1 : 0)
   if (best >= 2) await expect(page.locator('.quiz-stat-streak .quiz-stat-num')).toHaveText(String(best))
 })
+
+test('Quranın xəritəsi: əzbər sayı və toxunuşla ayə', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('hifz_progress', JSON.stringify({ 1: 2, 114: 2 })))
+  await page.goto('/hifz')
+  await settle(page)
+  const m = page.getByTestId('quran-map')
+  await m.scrollIntoViewIfNeeded()
+  await expect(m.locator('.qmap__legend li').first()).toContainText('13')
+  const box = await m.locator('canvas').boundingBox()
+  await page.mouse.click(box.x + 2, box.y + 2)
+  await expect(m.locator('.qmap__info')).toContainText('1:1')
+})

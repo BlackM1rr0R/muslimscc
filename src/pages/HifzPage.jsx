@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { getSurahLocal } from '../data/surahNamesAz'
+import QuranMap from '../components/QuranMap'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import { AYAH_WORDS, ayahCountText, pluralWord, displayAyah } from '../utils/quranText'
@@ -894,6 +895,9 @@ export default function HifzPage() {
         <div className="ui-container hifz-layout">
 
           {/* Ağıllı hifz: bu günün planı, növbə, məşq, qrafik */}
+          <QuranMap progress={progress} srsItems={srs.items} lang={lang}
+            surahName={(n) => (lang === 'ar' ? SURAHS[n - 1].name : (getSurahLocal(n, lang)?.name || SURAHS[n - 1].en))}
+            surahHref={(n) => pathFor('quran', lang, n)} />
           <SmartHifz lang={lang} progress={progress} setProgress={setProgress} srs={srs} setSrs={setSrs} />
         </div>
       </div>
