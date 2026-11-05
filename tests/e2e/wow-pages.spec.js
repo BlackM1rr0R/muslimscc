@@ -248,3 +248,22 @@ test('surənin kök buludu: düymə ilə açılır, köklər kök səhifəsinə 
   expect(await c.locator('.src-cloud__w').count()).toBeGreaterThan(3)
   await expect(c.locator('.src-cloud__w').first()).toHaveAttribute('href', /quran-roots\?root=/)
 })
+
+test.describe('azan dalğası', () => {
+  test.use({ reducedMotion: 'no-preference' })
+  test('xəritə, gecə sahəsi, şəhərlər; 24 saat oynanır və canlıya qayıdır', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-11-05T14:06:00Z') })
+    await page.goto('/prayer')
+    await settle(page)
+    const w = page.getByTestId('adhan-wave')
+    await w.scrollIntoViewIfNeeded()
+    await expect(w.locator('.aw__land')).toHaveCount(1)
+    await expect(w.locator('.aw__night')).toHaveAttribute('d', /M/)
+    expect(await w.locator('.aw__city').count()).toBeGreaterThan(80)
+    await expect(w.locator('.aw__clock')).toContainText('14:06')
+    await w.getByTestId('adhan-play').click()
+    await expect(w.getByTestId('adhan-play')).toBeDisabled()
+    await page.clock.runFor(13000)
+    await expect(w.getByTestId('adhan-play')).toBeEnabled()
+  })
+})

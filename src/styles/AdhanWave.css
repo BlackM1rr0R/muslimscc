@@ -1,0 +1,40 @@
+/* ══ Azan dalğası (components/prayer/AdhanWave.jsx) ══ */
+.aw { display: grid; gap: 10px; padding: 16px; margin: 0; }
+.aw__head { display: grid; gap: 4px; }
+.aw__title { font-weight: 800; font-size: 1.15rem; }
+.aw__lead { font-size: .88rem; color: var(--text-secondary); }
+.aw__svg { width: 100%; height: auto; display: block; }
+.aw__sphere { fill: #0f3a5a; }
+.aw__grat { fill: none; stroke: rgba(255, 255, 255, .07); stroke-width: .5; }
+.aw__land { fill: #2f7a62; stroke: #1f5a48; stroke-width: .4; }
+.aw__night { fill: rgba(3, 10, 24, .45); }
+.aw__deep { fill: rgba(3, 8, 20, .45); }
+.aw__noon { fill: none; stroke: #f0c75e; stroke-width: 1.2; stroke-dasharray: 3 4; opacity: .8; }
+.aw__sun { fill: #ffd76a; stroke: rgba(255, 215, 106, .35); stroke-width: 8; }
+.aw__city { fill: rgba(255, 255, 255, .55); }
+.aw__dot { fill: var(--aw-c); stroke: #fff; stroke-width: 1.2; }
+.aw__ring { fill: none; stroke: var(--aw-c); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.aw__call--fajr { --aw-c: #9fd1ff; }
+.aw__call--dhuhr { --aw-c: #ffd76a; }
+.aw__call--maghrib { --aw-c: #ff9d5c; }
+.aw__call--isha { --aw-c: #c8a6ff; }
+.aw__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.aw__clock { font-weight: 700; }
+.aw__live { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px; font-size: .72rem; font-weight: 800; letter-spacing: .03em;
+  background: color-mix(in srgb, #e5484d 15%, transparent); color: #c2363b; }
+.aw__live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.aw__now { flex: 1; min-width: 200px; font-size: .86rem; color: var(--text-secondary); }
+.aw__legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0; font-size: .8rem; color: var(--text-secondary); }
+.aw__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.aw__sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.aw__sw--night { background: #24465f; } .aw__sw--deep { background: #10273b; }
+.aw__sw--noon { background: none; border-top: 2px dashed #f0c75e; height: 0; width: 14px; border-radius: 0; }
+.aw__sw--fajr { background: #9fd1ff; border-radius: 50%; } .aw__sw--dhuhr { background: #ffd76a; border-radius: 50%; }
+.aw__sw--maghrib { background: #ff9d5c; border-radius: 50%; } .aw__sw--isha { background: #c8a6ff; border-radius: 50%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .aw__ring { animation: aw-pulse 1.8s ease-out infinite; }
+  html:not(.a11y-reduce-motion) .aw__live::before { animation: aw-blink 1.4s ease-in-out infinite; }
+}
+@keyframes aw-pulse { 0% { opacity: .9; transform: scale(.3); } 100% { opacity: 0; transform: scale(1.4); } }
+@keyframes aw-blink { 50% { opacity: .3; } }

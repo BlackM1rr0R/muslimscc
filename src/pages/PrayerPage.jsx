@@ -389,6 +389,7 @@ const durHM = (min) => `${Math.floor(min / 60)}:${pad2(Math.round(min % 60))}`
 const isPlainClick = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
 
 const QiyamMode = lazy(() => import('../components/prayer/QiyamMode'))
+const AdhanWave = lazy(() => import('../components/prayer/AdhanWave'))
 const QY = {
   until:  { az: 'Gecənin son üçdə biri', en: 'Last third of the night', ru: 'Последняя треть ночи', ar: 'الثلث الأخير من الليل', tr: 'Gecenin son üçte biri' },
   inNow:  { az: 'İndi gecənin son üçdə biridir', en: 'It is the last third of the night now', ru: 'Сейчас последняя треть ночи', ar: 'الآن الثلث الأخير من الليل', tr: 'Şu an gecenin son üçte biri' },
@@ -884,6 +885,15 @@ export default function PrayerPage({ setPage }) {
           </div>
         </section>
       )}
+
+      {/* Dünyada azan dalğası — gecə/gündüz və azan xətləri, indi azan oxunan şəhərlər */}
+      <section className="ui-section ui-section--tight pp-adhan-wave">
+        <div className="ui-container">
+          <Suspense fallback={<div className="ui-card aw-skel" style={{ minHeight: 360 }} />}>
+            <AdhanWave lang={lang} />
+          </Suspense>
+        </div>
+      </section>
 
       {/* ── Aylıq cədvəl (.ui-table) ── */}
       <section className="ui-section ui-section--tight pp-month" aria-labelledby="pp-month-title">
