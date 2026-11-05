@@ -207,3 +207,40 @@ export function fetchAyahWords(key, { fetchImpl } = {}) {
   p.catch(() => verseCache.delete(key))
   return p
 }
+
+/**
+ * Kök qrafı üçün: hər kökün işləndiyi ayələr (Set 's:a').
+ * Bir dəfə qurulur (~1650 kök, ~50 min söz) — nəticə indeks obyektinə bağlanır.
+ */
+const AYAH_CACHE = new WeakMap()
+export function rootAyahIndex(roots) {
+  if (roots && AYAH_CACHE.has(roots)) return AYAH_CACHE.get(roots)
+  const rootAyahs = new Map(), byAyah = new Map()
+  for (const [root, entries] of Object.entries(roots || {})) {
+    const set = new Set()
+    for (const [, , , enc] of entries) for (const [s, a] of decodeLocations(enc)) set.add(`${s}:${a}`)
+    rootAyahs.set(root, set)
+    for (const k of set) { let l = byAyah.get(k); if (!l) byAyah.set(k, l = []); l.push(root) }
+  }
+  const out = { rootAyahs, byAyah }
+  if (roots) AYAH_CACHE.set(roots, out)
+  return out
+}
+
+/**
+ * Eyni ayələrdə birgə gələn köklər — kosinus oxşarlığı ilə (co / √(|A|·|B|)):
+ * hər yerdə işlənən köklər (məs. قول, أله) sırf tezliyə görə önə çıxmır.
+ * Qaytarır: [{ root, co, score }] (azalan), co ≥ minCo.
+ */
+export function relatedRoots(roots, root, { limit = 8, minCo = 2 } = {}) {
+  const { rootAyahs, byAyah } = rootAyahIndex(roots)
+  const mine = rootAyahs.get(root)
+  if (!mine || !mine.size) return []
+  const co = new Map()
+  for (const k of mine) for (const r of byAyah.get(k) || []) if (r !== root) co.set(r, (co.get(r) || 0) + 1)
+  return [...co.entries()]
+    .filter(([, n]) => n >= minCo)
+    .map(([r, n]) => ({ root: r, co: n, score: n / Math.sqrt(mine.size * rootAyahs.get(r).size) }))
+    .sort((x, y) => y.score - x.score || y.co - x.co || (x.root < y.root ? -1 : 1))
+    .slice(0, limit)
+}

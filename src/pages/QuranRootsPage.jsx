@@ -8,8 +8,9 @@ import { getSurahLocal } from '../data/surahNamesAz'
 import { surahInfo } from '../utils/mushaf'
 import {
   loadRootsIndex, findRoot, rootDetails, groupByAyah, spacedRoot, looseKey, normalizeRootInput,
-  fetchAyahWords, ROOT_CAT_LABELS, verbFormLabel,
+  fetchAyahWords, ROOT_CAT_LABELS, verbFormLabel, relatedRoots,
 } from '../utils/quranRoots'
+import RootGraph from '../components/RootGraph'
 import { ChartFigure, BarChart } from '../components/viz'
 import '../styles/QuranRootsPage.css'
 
@@ -260,6 +261,7 @@ export default function QuranRootsPage() {
     const locs = form ? details.locations.filter(l => l[3] === form) : details.locations
     return groupByAyah(locs)
   }, [details, form])
+  const related = useMemo(() => (found.root ? relatedRoots(index.roots, found.root) : []), [found.root, index])
   const allAyahCount = useMemo(() => (details ? groupByAyah(details.locations).length : 0), [details])
 
   // Tapılmayanda bənzər köklər: ilk iki hərfi eyni olanlar (həmzəsiz müqayisə)
@@ -449,6 +451,9 @@ export default function QuranRootsPage() {
                   </div>
                   <p className="qr-muted qr-summary__note"><Icon name="info" size={14} /> {L.note}</p>
                 </section>
+
+                <RootGraph root={found.root} forms={details.forms} related={related} activeForm={form}
+                  onForm={(l) => { setForm(l); setShown(PAGE_SIZE) }} onRoot={runSearch} />
 
                 <div className="qr-charts">
                   <ChartFigure title={pk(RQ_TXT.formsChart, lang)} sub={pkf(RQ_TXT.formsSub, lang, formBars.length)}>

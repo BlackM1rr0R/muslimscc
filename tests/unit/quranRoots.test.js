@@ -163,3 +163,26 @@ describe('public/data/quran-roots.json', () => {
     }
   })
 })
+
+// ── Kök qrafı: eyni ayələrdə birgə gələn köklər ──
+import { relatedRoots as rel, rootAyahIndex as rai } from '../../src/utils/quranRoots.js'
+describe('relatedRoots', () => {
+  const roots = {
+    'aaa': [['a1', 'N', 0, encodeLocations([[1, 1, 1], [1, 2, 1], [2, 5, 3]])]],
+    'bbb': [['b1', 'V', 1, encodeLocations([[1, 1, 4], [1, 2, 2], [9, 9, 9]])]],
+    'ccc': [['c1', 'N', 0, encodeLocations([[1, 1, 2], [1, 2, 5], [2, 5, 1], [3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7]])]],
+    'ddd': [['d1', 'N', 0, encodeLocations([[2, 5, 2]])]],
+  }
+  it('kosinus: tez-tez işlənən kök sırf saya görə önə keçmir; minCo süzür', () => {
+    const r = rel(roots, 'aaa')
+    expect(r.map(x => x.root)).toEqual(['bbb', 'ccc'])     // ddd: co=1 < 2
+    expect(r[0]).toMatchObject({ co: 2 })
+    expect(r[1]).toMatchObject({ co: 3 })
+    expect(r[0].score).toBeGreaterThan(r[1].score)
+  })
+  it('naməlum kök — boş; indeks keşlənir', () => {
+    expect(rel(roots, 'zzz')).toEqual([])
+    expect(rai(roots)).toBe(rai(roots))
+    expect(rai(roots).rootAyahs.get('aaa').size).toBe(3)
+  })
+})
