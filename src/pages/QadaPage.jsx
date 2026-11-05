@@ -6,6 +6,7 @@ import { PRAYER_NAMES } from '../data/prayerTrackerText'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
+import QadaMountain from '../components/QadaMountain'
 import {
   PRAYERS, QADA_V1_KEY, MAX_GOAL, loadQada, saveQada, loadLegacy, adjustOwed, setOwed, makeUp, undoMakeUp,
   applyEstimate, setGoal, qadaTotals, slotPct, lastDays, todayCount, daysToFinish, estimateDays,
@@ -496,6 +497,7 @@ export default function QadaPage({ setPage }) {
         <div className="ui-container">
           <p className="qd-privacy" data-reveal><Icon name="shield" size={18} /> <span>{t.privacy}</span></p>
           {!saveOk && <p className="qd-alert" role="alert"><Icon name="alert" size={18} /> <span>{t.saveFail}</span></p>}
+          {totals.owed + totals.done > 0 && <QadaMountain done={totals.done} owed={totals.owed} lang={lk} />}
           {showLegacy && (
             <div className="qd-legacy ui-card ui-card--sunken">
               <span>{fill(t.legacyText, { p: fmtNum(PRAYERS.reduce((a, p) => a + legacy.prayers[p].owed, 0), lk), f: fmtNum(legacy.fasts.owed, lk) })}</span>

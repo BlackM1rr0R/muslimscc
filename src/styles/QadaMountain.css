@@ -1,0 +1,27 @@
+/* ══ Qəza dağı (components/QadaMountain.jsx) ══ */
+.qm { --qm-sky-1: #f6efe0; --qm-sky-2: #fbf8f1; --qm-rock-1: #2f7a62; --qm-rock-2: #0d4a37; --qm-far: rgba(13, 92, 70, .18);
+  display: grid; gap: 8px; padding: 14px; margin: 0 auto 18px; max-width: 760px; overflow: hidden; }
+[data-theme="dark"] .qm { --qm-sky-1: #0b1d2b; --qm-sky-2: #13283a; --qm-rock-1: #2a6b57; --qm-rock-2: #0a3428; --qm-far: rgba(120, 190, 165, .12); }
+.qm__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.qm__title { font-weight: 700; }
+.qm__pct { font-weight: 800; font-size: 1.2rem; color: var(--gold, #c59a2c); }
+.qm__svg { width: 100%; height: auto; border-radius: 12px; display: block; }
+.qm__far { fill: var(--qm-far); }
+.qm__snow { fill: #fff; opacity: .9; }
+.qm__trail { fill: none; stroke: rgba(255, 255, 255, .35); stroke-width: 2.4; stroke-dasharray: 3 5; stroke-linecap: round; stroke-linejoin: round; }
+.qm__trail-done { fill: none; stroke: #f0c75e; stroke-width: 3.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; }
+.qm__camp { fill: rgba(255, 255, 255, .25); stroke: rgba(255, 255, 255, .6); stroke-width: 1.2; }
+.qm__camp.is-on { fill: #f0c75e; stroke: #fff; }
+.qm__flag line { stroke: #fff; stroke-width: 1.6; }
+.qm__flag path { fill: rgba(255, 255, 255, .55); }
+.qm__flag path.is-on { fill: #f0c75e; }
+.qm__dot { fill: #fff; stroke: #f0c75e; stroke-width: 2.4; }
+.qm__stats { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .85rem; color: var(--text-secondary); }
+.qm__main { font-weight: 700; color: var(--text-primary); }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qm__trail-done { transition: stroke-dashoffset 1s cubic-bezier(.3, .7, .2, 1); animation: qm-draw 1.4s cubic-bezier(.3, .7, .2, 1) both; }
+  html:not(.a11y-reduce-motion) .qm__me { transition: transform 1s cubic-bezier(.3, .7, .2, 1); }
+  html:not(.a11y-reduce-motion) .qm__camp.is-on { transition: fill .3s ease; }
+}
+@keyframes qm-draw { from { stroke-dashoffset: 1; } }
