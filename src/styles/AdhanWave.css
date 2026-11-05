@@ -21,7 +21,8 @@
 .aw__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .aw__clock { font-weight: 700; }
 .aw__live { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px; font-size: .72rem; font-weight: 800; letter-spacing: .03em;
-  background: color-mix(in srgb, #e5484d 15%, transparent); color: #c2363b; }
+  background: #fde8e8; color: #9b1c22; }
+[data-theme="dark"] .aw__live { background: #4a1416; color: #ffd0d2; }
 .aw__live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .aw__now { flex: 1; min-width: 200px; font-size: .86rem; color: var(--text-secondary); }
 .aw__legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0; font-size: .8rem; color: var(--text-secondary); }
