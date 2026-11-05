@@ -846,6 +846,8 @@ export default function QuranPage() {
   // ── Oxuyucunun idarəsi: ayəyə keçid, oxuma yeri, səs ──
   const ready = !!(selected && surah && surah.number === selected)
   const verses = ready ? surah.verses : null
+  const versesRef = useRef(verses)
+  versesRef.current = verses
   const readerRef = useRef(null)
   const toolbarRef = useRef(null)
   const listRef = useRef(null)
@@ -1107,7 +1109,7 @@ export default function QuranPage() {
   const saveAyah = useCallback((n) => toggleSaved(selectedRef.current, n), [toggleSaved])
   // Sözbəsöz tilavət (karaoke) — açılanda surənin pleyeri dayanır
   const [karaoke, setKaraoke] = useState(null)
-  const openKaraoke = useCallback((n) => { player.pause(); setKaraoke({ s: selectedRef.current, a: n }) }, [player.pause]) // eslint-disable-line react-hooks/exhaustive-deps -- player.pause sabitdir (useQuranPlayer api)
+  const openKaraoke = useCallback((n) => { player.pause(); setKaraoke({ s: selectedRef.current, a: n, tr: versesRef.current?.find(v => v.n === n)?.tr || '' }) }, [player.pause]) // eslint-disable-line react-hooks/exhaustive-deps -- player.pause sabitdir (useQuranPlayer api)
   const closeKaraoke = useCallback(() => setKaraoke(null), [])
   const shareAyah = useCallback(async (verse) => {
     haptic()
@@ -1452,7 +1454,7 @@ export default function QuranPage() {
             </div>
             {karaoke && (
               <Suspense fallback={null}>
-                <KaraokeAyah surah={karaoke.s} ayah={karaoke.a} lang={lang} onClose={closeKaraoke} />
+                <KaraokeAyah surah={karaoke.s} ayah={karaoke.a} lang={lang} translation={karaoke.tr} onClose={closeKaraoke} />
               </Suspense>
             )}
             {/* Surənin sonunda: əvvəlki / növbəti surə (telefonda paneldə yalnız ox görünür) */}

@@ -16,9 +16,18 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Icon from '../Icon'
 import { buildKaraoke, wordAt } from '../../utils/karaoke'
+import { canRecordVideo, recordAyahVideo } from '../../utils/ayahVideo'
 import '../../styles/KaraokeAyah.css'
 
 const API = 'https://api.quran.com/api/v4'
+// Ayədən video (utils/ayahVideo) — 9:16, tilavət səsi ilə
+const VID = {
+  az: { btn: 'Video kimi yüklə', making: (p) => `Video hazırlanır… ${p}% (vərəqi açıq saxlayın)`, done: 'Video hazırdır', err: 'Videonu hazırlamaq alınmadı.' },
+  en: { btn: 'Download as video', making: (p) => `Making the video… ${p}% (keep this tab open)`, done: 'Video ready', err: 'Could not make the video.' },
+  ru: { btn: 'Скачать видео', making: (p) => `Видео создаётся… ${p}% (не закрывайте вкладку)`, done: 'Видео готово', err: 'Не удалось создать видео.' },
+  tr: { btn: 'Video olarak indir', making: (p) => `Video hazırlanıyor… %${p} (sekmeyi açık tutun)`, done: 'Video hazır', err: 'Video hazırlanamadı.' },
+  ar: { btn: 'نزّل كفيديو', making: (p) => `يُجهَّز الفيديو… ${p}٪ (أبقِ الصفحة مفتوحة)`, done: 'الفيديو جاهز', err: 'تعذّر تجهيز الفيديو.' },
+}
 const T = {
   az: { title: 'Sözbəsöz tilavət', reciter: 'Mişari əl-Əfasi', play: 'Dinlə', pause: 'Dayandır', again: 'Yenidən', close: 'Bağla', loading: 'Yüklənir…', err: 'Sözlərin vaxtını yükləmək alınmadı. İnterneti yoxlayıb yenidən cəhd edin.', hint: 'Sözə toxunun — oradan oxunsun', src: 'Söz vaxtları: Quran.com' },
   en: { title: 'Word-by-word recitation', reciter: 'Mishary al-Afasy', play: 'Play', pause: 'Pause', again: 'Again', close: 'Close', loading: 'Loading…', err: 'Could not load the word timings. Check your connection and try again.', hint: 'Tap a word to play from there', src: 'Word timings: Quran.com' },
@@ -30,8 +39,10 @@ const T = {
   ar: { title: 'التلاوة كلمةً كلمة', reciter: 'مشاري العفاسي', play: 'استمع', pause: 'إيقاف', again: 'من البداية', close: 'إغلاق', loading: 'جارٍ التحميل…', err: 'تعذّر تحميل توقيت الكلمات. تحقّق من الاتصال وحاول مجددًا.', hint: 'المس كلمة لتبدأ التلاوة منها', src: 'توقيت الكلمات: Quran.com' },
 }
 
-export default function KaraokeAyah({ surah, ayah, lang = 'az', onClose }) {
+export default function KaraokeAyah({ surah, ayah, lang = 'az', translation = '', onClose }) {
   const t = T[lang] || T.az
+  const v = VID[lang] || VID.az
+  const [vid, setVid] = useState(null) // null | number (0–100) | 'done' | 'err'
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading') // loading | ready | playing | paused | error
   const [cur, setCur] = useState(-1)
@@ -118,7 +129,29 @@ export default function KaraokeAyah({ surah, ayah, lang = 'az', onClose }) {
               <button type="button" className="ui-btn ui-btn--ghost" onClick={() => { setCur(-1); play(0) }}>
                 <Icon name="refresh" className="ui-btn__icon" /> {t.again}
               </button>
-              <span className="kar__hint">{t.hint}</span>
+              {canRecordVideo() && (
+                <button type="button" className="ui-btn ui-btn--secondary" disabled={typeof vid === 'number'} data-testid="karaoke-video"
+                  onClick={async () => {
+                    audioRef.current?.pause(); setState(st => (st === 'playing' ? 'paused' : st))
+                    setVid(0)
+                    try {
+                      const blob = await recordAyahVideo({ words: data.words, audioUrl: data.url, ref: `${surah}:${ayah}`, translation: lang === 'ar' ? '' : translation,
+                        reciter: t.reciter, font: getComputedStyle(document.documentElement).getPropertyValue('--font-arabic') || 'serif',
+                        onProgress: (p) => setVid(Math.round(p * 100)) })
+                      const ext = blob.type.includes('mp4') ? 'mp4' : 'webm'
+                      const file = new File([blob], `quran-${surah}-${ayah}.${ext}`, { type: blob.type })
+                      if (navigator.canShare?.({ files: [file] })) {
+                        try { await navigator.share({ files: [file], title: `Quran ${surah}:${ayah}` }); setVid('done'); return } catch (e) { if (e?.name === 'AbortError') { setVid(null); return } }
+                      }
+                      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name
+                      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000)
+                      setVid('done')
+                    } catch { setVid('err') }
+                  }}>
+                  <Icon name="film" className="ui-btn__icon" /> {v.btn}
+                </button>
+              )}
+              <span className="kar__hint">{typeof vid === 'number' ? v.making(vid) : vid === 'done' ? v.done : vid === 'err' ? v.err : t.hint}</span>
             </div>
             <audio ref={audioRef} src={data.url} preload="auto"
               onEnded={() => { setState('ready'); setCur(data.words.length) }} onError={() => setState('error')} />
