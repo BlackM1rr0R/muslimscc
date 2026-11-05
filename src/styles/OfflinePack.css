@@ -1,9 +1,11 @@
 /* ══ Oflayn saxla (components/OfflinePack.jsx) ══ */
-.op { display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin: 0 0 16px; flex-wrap: wrap; }
+/* İkon solda, mətn və düymə sağda (Quran səhifəsinin dar yan sütununda da səliqəli) */
+.ui-card.op { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 6px 14px; padding: 14px 16px; margin: 0 0 16px; }
+.ui-card.op > .ui-btn { grid-column: 2; justify-self: start; margin-top: 4px; }
 .op__ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: 0 0 auto;
   background: color-mix(in srgb, var(--primary, #0d5c46) 12%, transparent); color: var(--primary, #0d5c46); }
 [data-theme="dark"] .op__ic { color: var(--accent-text, #7fd6b5); }
-.op__body { flex: 1 1 240px; min-width: 0; display: grid; gap: 4px; }
+.op__body { min-width: 0; display: grid; gap: 4px; }
 .op__title { margin: 0; font-size: 1rem; }
 .op__lead { margin: 0; font-size: .86rem; color: var(--text-secondary); }
 .op__bar { height: 6px; border-radius: 6px; background: var(--viz-track, rgba(0, 0, 0, .08)); overflow: hidden; margin-top: 4px; }
