@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, memo, startTransition } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, memo, startTransition, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
@@ -508,7 +508,10 @@ function useQuranEnc(key, num, total, lang) {
 const REVEAL_CARDS = 8
 // Təfsir paneli (components/TafsirPanel.jsx): bağlı kartda tafsirId = 0 —
 // seçim dəyişəndə yalnız açıq kartlar yenidən çəkilir; panel yalnız açılanda render olunur
-const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange, saved, shared, onSave, onShare, xl }) {
+const KaraokeAyah = lazy(() => import('../components/quran/KaraokeAyah'))
+const KARAOKE_LBL = { az: 'Sözbəsöz dinlə', en: 'Word by word', ru: 'Слушать по словам', tr: 'Kelime kelime dinle', ar: 'استمع كلمةً كلمة' }
+
+const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange, saved, shared, onSave, onShare, onKaraoke, xl }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
   const saveLabel = saved ? xl.unsave : xl.save
   // Əzbər rejimi: ərəb mətni CSS ilə bulanır; "Göstər" yalnız bu kartı açır.
@@ -562,6 +565,12 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, showTrans, show
           aria-label={playLabel} title={playLabel} aria-pressed={playing}>
           <PlayIcon playing={playing} />
         </button>
+        {onKaraoke && (
+          <button type="button" className="ayah-tool" onClick={() => onKaraoke(verse.n)}
+            aria-label={`${KARAOKE_LBL[lang] || KARAOKE_LBL.en} — ${numLabel}`} title={KARAOKE_LBL[lang] || KARAOKE_LBL.en} data-testid="karaoke-open">
+            <Icon name="type" size={17} />
+          </button>
+        )}
         <button type="button" className={`ayah-tool${saved ? ' is-on' : ''}`} onClick={() => onSave(verse.n)}
           aria-label={`${saveLabel} — ${numLabel}`} title={saveLabel} aria-pressed={!!saved}>
           <Icon name="hifz" size={17} />
@@ -1094,6 +1103,10 @@ export default function QuranPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const toggleAyah = useCallback((n) => { haptic(); player.toggle(n) }, [player.toggle])
   const saveAyah = useCallback((n) => toggleSaved(selectedRef.current, n), [toggleSaved])
+  // Sözbəsöz tilavət (karaoke) — açılanda surənin pleyeri dayanır
+  const [karaoke, setKaraoke] = useState(null)
+  const openKaraoke = useCallback((n) => { player.pause(); setKaraoke({ s: selectedRef.current, a: n }) }, [player.pause]) // eslint-disable-line react-hooks/exhaustive-deps -- player.pause sabitdir (useQuranPlayer api)
+  const closeKaraoke = useCallback(() => setKaraoke(null), [])
   const shareAyah = useCallback(async (verse) => {
     haptic()
     const sNum = selectedRef.current
@@ -1431,9 +1444,14 @@ export default function QuranPage() {
                   tafsirOpen={tafsirOpen.has(v.n)} tafsirId={tafsirOpen.has(v.n) ? tafsirId : 0}
                   onTafsirToggle={toggleTafsir} onTafsirChange={changeTafsir}
                   saved={savedKeys.has(`${surah.number}:${v.n}`)} shared={sharedN === v.n}
-                  onSave={saveAyah} onShare={shareAyah} xl={xlCard} />
+                  onSave={saveAyah} onShare={shareAyah} onKaraoke={openKaraoke} xl={xlCard} />
               ))}
             </div>
+            {karaoke && (
+              <Suspense fallback={null}>
+                <KaraokeAyah surah={karaoke.s} ayah={karaoke.a} lang={lang} onClose={closeKaraoke} />
+              </Suspense>
+            )}
             {/* Surənin sonunda: əvvəlki / növbəti surə (telefonda paneldə yalnız ox görünür) */}
             <div className="reader-pager" data-reveal="">
               {selected > 1 && (

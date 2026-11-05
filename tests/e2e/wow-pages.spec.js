@@ -182,3 +182,30 @@ test('Quranda mövzu: çip və yazılmış söz kökə aparır', async ({ page }
   await input.press('Enter')
   await expect(page.locator('#qr-root-title')).toHaveText('ص ب ر')
 })
+
+test('sözbəsöz tilavət: sözlər, vaxta görə vurğu, toxunuşla həmin sözdən, Esc bağlayır', async ({ page }) => {
+  await page.route(/api\.quran\.com\/api\/v4\/verses\/by_key\//, r => r.fulfill({ json: { verse: { words: [
+    { position: 1, char_type_name: 'word', text_uthmani: 'ٱلْحَمْدُ' }, { position: 2, char_type_name: 'word', text_uthmani: 'لِلَّهِ' },
+    { position: 3, char_type_name: 'word', text_uthmani: 'رَبِّ' }, { position: 4, char_type_name: 'end', text_uthmani: '٢' }] } } }))
+  await page.route(/api\.quran\.com\/api\/v4\/recitations\/7\/by_ayah\//, r => r.fulfill({ json: { audio_files: [{ url: 'Alafasy/mp3/001002.mp3', segments: [[0, 1, 0, 900], [1, 2, 1000, 1800], [2, 3, 1900, 2500]] }] } }))
+  await page.route(/verses\.quran\.com\//, r => r.fulfill({ status: 200, contentType: 'audio/mpeg', body: '' }))
+  await page.addInitScript(() => {
+    window.__t = 0
+    Object.defineProperty(HTMLMediaElement.prototype, 'currentTime', { configurable: true, get() { return window.__t }, set(v) { window.__t = v } })
+    HTMLMediaElement.prototype.play = function () { return Promise.resolve() }
+    HTMLMediaElement.prototype.pause = function () {}
+  })
+  await page.goto('/quran/1-al-faatiha')
+  await settle(page)
+  await page.getByTestId('karaoke-open').nth(1).click()
+  const k = page.getByTestId('karaoke')
+  await expect(k.locator('.kar__w')).toHaveCount(3)
+  await k.getByTestId('karaoke-play').click()
+  await page.evaluate(() => { window.__t = 1.2 })
+  await expect(k.locator('.kar__w.is-on')).toHaveText('لِلَّهِ')
+  await k.locator('.kar__w').nth(2).click()
+  await expect.poll(() => page.evaluate(() => window.__t)).toBe(1.9)
+  await expect(k.locator('.kar__w.is-on')).toHaveText('رَبِّ')
+  await page.keyboard.press('Escape')
+  await expect(k).toHaveCount(0)
+})
