@@ -11,6 +11,7 @@
 // • Bürcə toxunuş → adı və sayı. Stillər: src/styles/MuhasabahSky.css
 // ═══════════════════════════════════════════════════════
 import { useMemo, useState } from 'react'
+import { haptic } from '../hooks/useHaptic'
 import { W, H, ANCHORS, skyStars } from '../utils/muhasabahSky'
 import '../styles/MuhasabahSky.css'
 
@@ -46,7 +47,7 @@ export default function MuhasabahSky({ entries, items, today, labels, lang = 'az
         </defs>
         <rect width={W} height={H} fill="url(#ms-bg)" rx="12" />
         {stars.map((list, i) => (
-          <g key={items[i]} className={`ms__con${sel === i ? ' is-sel' : ''}`} onClick={() => setSel(s => (s === i ? null : i))}>
+          <g key={items[i]} className={`ms__con${sel === i ? ' is-sel' : ''}`} onClick={() => { haptic(6); setSel(s => (s === i ? null : i)) }}>
             <circle cx={ANCHORS[i][0]} cy={ANCHORS[i][1]} r="44" fill="transparent" />
             {list.length > 1 && <polyline className="ms__line" points={ring(list, ANCHORS[i])} />}
             {list.map(s => (

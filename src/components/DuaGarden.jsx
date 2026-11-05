@@ -11,6 +11,7 @@
 //   yerdən qalxır (transform), çiçək açılır (scale). Stillər: src/styles/DuaGarden.css
 // ═══════════════════════════════════════════════════════
 import { useMemo, useState } from 'react'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/DuaGarden.css'
 
 const T = {
@@ -55,7 +56,7 @@ export default function DuaGarden({ duas, lang = 'az' }) {
             <g key={d.id} className={`dg__plant${d.answered ? ' is-bloom' : ''}${sel === d.id ? ' is-sel' : ''}`}
               style={{ '--i': i, '--c': c, transformOrigin: `${x}px ${GROUND}px` }}
               role="button" tabIndex={0} aria-label={label} aria-pressed={sel === d.id}
-              onClick={() => setSel(s => (s === d.id ? null : d.id))}
+              onClick={() => { haptic(6); setSel(s => (s === d.id ? null : d.id)) }}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSel(s => (s === d.id ? null : d.id)) } }}>
               <rect x={x - step / 2} y={top - 16} width={step} height={h + 20} fill="transparent" />
               <path className="dg__stem" d={`M${x},${GROUND} C${x - 4},${GROUND - h / 2} ${x + 4},${GROUND - h / 2} ${x},${top}`} />

@@ -11,6 +11,7 @@
 // Stillər: src/styles/MosqueRadar.css
 // ═══════════════════════════════════════════════════════
 import { useState } from 'react'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/MosqueRadar.css'
 
 const R_KM = 10
@@ -71,7 +72,7 @@ export default function MosqueRadar({ origin, mosques, lang = 'az', nextPrayer, 
             const p = radarPoint(m.distance, bearing(origin, m))
             return (
               <g key={m.id} className={`mr__dot${i === 0 ? ' is-near' : ''}${i === sel ? ' is-sel' : ''}`} style={{ '--i': i }}
-                onClick={() => setSel(i)}>
+                onClick={() => { haptic(6); setSel(i) }}>
                 <circle cx={p.x} cy={p.y} r="9" fill="transparent" />
                 <circle cx={p.x} cy={p.y} r={i === sel ? 4.6 : 3.2} />
               </g>

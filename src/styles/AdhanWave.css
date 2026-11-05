@@ -4,13 +4,13 @@
 .aw__title { font-weight: 800; font-size: 1.15rem; }
 .aw__lead { font-size: .88rem; color: var(--text-secondary); }
 .aw__svg { width: 100%; height: auto; display: block; }
-.aw__sphere { fill: #0f3a5a; }
+.aw__sphere { fill: #2b6f9c; }
 .aw__grat { fill: none; stroke: rgba(255, 255, 255, .07); stroke-width: .5; }
-.aw__land { fill: #2f7a62; stroke: #1f5a48; stroke-width: .4; }
-.aw__night { fill: rgba(3, 10, 24, .45); }
-.aw__deep { fill: rgba(3, 8, 20, .45); }
+.aw__land { fill: #4f9a6f; stroke: #3b7d58; stroke-width: .4; }
+.aw__night { fill: rgba(4, 12, 30, .55); }
+.aw__deep { fill: rgba(2, 6, 18, .5); }
 .aw__noon { fill: none; stroke: #f0c75e; stroke-width: 1.2; stroke-dasharray: 3 4; opacity: .8; }
-.aw__sun { fill: #ffd76a; stroke: rgba(255, 215, 106, .35); stroke-width: 8; }
+.aw__sun { fill: #ffe08a; stroke: rgba(255, 224, 138, .35); stroke-width: 10; filter: drop-shadow(0 0 10px rgba(255, 215, 106, .9)); }
 .aw__city { fill: rgba(255, 255, 255, .55); }
 .aw__dot { fill: var(--aw-c); stroke: #fff; stroke-width: 1.2; }
 .aw__ring { fill: none; stroke: var(--aw-c); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }

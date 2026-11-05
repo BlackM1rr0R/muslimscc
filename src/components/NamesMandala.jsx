@@ -15,6 +15,7 @@
 //   şüa stroke-dashoffset ilə çəkilir. Stillər: src/styles/NamesMandala.css
 // ═══════════════════════════════════════════════════════
 import { useMemo, useState, useRef } from 'react'
+import { haptic } from '../hooks/useHaptic'
 import '../styles/NamesMandala.css'
 
 const T = {
@@ -59,6 +60,7 @@ export default function NamesMandala({ names, known = [], lang = 'az', meaningOf
 
   const pick = (i) => {
     if (i === sel && onOpen) { onOpen(names[i].n, rootRef.current); return }
+    haptic(8)
     setSel(i)
   }
   const onKey = (e) => {

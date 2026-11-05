@@ -11,6 +11,7 @@
 // Stillər: src/styles/MoodDuas.css
 // ═══════════════════════════════════════════════════════
 import { useEffect, useState } from 'react'
+import { haptic } from '../hooks/useHaptic'
 import Icon from './Icon'
 import { pathFor } from '../seo/routes'
 import '../styles/MoodDuas.css'
@@ -60,7 +61,7 @@ export default function MoodDuas({ lang = 'az' }) {
       <div className="md__moods" role="group" aria-label={t.title}>
         {MOODS.map((m, i) => (
           <button key={m.id} type="button" className={`md__mood md__mood--${i % 5}`} aria-pressed={sel === m.id}
-            onClick={() => setSel(s => (s === m.id ? null : m.id))}>
+            onClick={() => { haptic(8); setSel(s => (s === m.id ? null : m.id)) }}>
             <Icon name={m.icon} size={18} /> {m.l[lang] || m.l.en}
           </button>
         ))}
