@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 // Dizayn v2: addım görünüşü artıq tam bu faylın öz .hg-* siniflərindədir —
 // Namaz bələdçisinin CSS-i (PrayerGuidePage.css, .pg-*) idxal olunmur, o səhifə
 // dəyişəndə həcc bələdçisi pozulmasın.
+import HajjMap from '../components/HajjMap'
 import '../styles/HajjGuidePage.css'
 import '../components/collect/collect.css'
 import Breadcrumb from '../components/Breadcrumb'
@@ -308,6 +309,8 @@ const HAJJ_STEPS = [
     },
   },
 ]
+
+const HAJJ_STEPS_IDS = HAJJ_STEPS.map(s => s.id)
 
 const UMRAH_STEPS = [
   {
@@ -717,6 +720,8 @@ export default function HajjGuidePage({ setPage }) {
                   <div className="hg-progress-fill" style={{ '--hg-p': `${progress}%` }} />
                 </div>
               </div>
+
+              {mode === 'hajj' && <HajjMap stepIds={HAJJ_STEPS_IDS} current={currentStep} onGo={goTo} />}
 
               <div className="hg-guide-body">
                 {/* Addımlar: telefonda üfüqi çiplər, genişdə şaquli xətt (irəliləyiş doluluğu ilə) */}
