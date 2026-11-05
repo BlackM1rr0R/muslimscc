@@ -642,7 +642,7 @@ export default function HajjGuidePage({ setPage }) {
           {/* Foto yalnız ≥900px-də görünür (telefonda hero qısa qalsın); tənbəl yüklənir —
               gizli olanda brauzer onu heç yükləmir */}
           <div className="ui-page-hero__aside hg-hero-photo">
-            <PlacePhoto id="mina" lang={lang} sizes="(min-width: 900px) 440px, 100vw" />
+            <PlacePhoto id="mina" lang={lang} className="ph--parallax" sizes="(min-width: 900px) 440px, 100vw" />
           </div>
         </div>
       </header>

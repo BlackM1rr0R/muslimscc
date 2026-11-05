@@ -18,6 +18,28 @@ export default function PlacePhoto({ id, lang = 'az', sizes = '(min-width: 1024p
   const [loaded, setLoaded] = useState(false)
   // Brauzer şəkli React-dan əvvəl yükləyibsə (keş), onLoad gəlməyə bilər
   useEffect(() => { if (imgRef.current?.complete) setLoaded(true) }, [id])
+  const parallax = /(^|\s)ph--parallax(\s|$)/.test(className)
+  const figRef = useRef(null)
+  useEffect(() => {
+    if (!parallax || typeof IntersectionObserver === 'undefined') return undefined
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
+    const fig = figRef.current
+    if (!fig) return undefined
+    let raf = 0, on = false
+    const update = () => {
+      raf = 0
+      const r = fig.getBoundingClientRect(), vh = window.innerHeight || 1
+      const k = Math.max(-1, Math.min(1, ((r.top + r.height / 2) / vh - 0.5) * 2)) // −1 yuxarı … 1 aşağı
+      fig.style.setProperty('--ph-par', `${(k * 6).toFixed(2)}%`)
+    }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update) }
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !on) { on = true; window.addEventListener('scroll', onScroll, { passive: true }); update() }
+      else if (!e.isIntersecting && on) { on = false; window.removeEventListener('scroll', onScroll) }
+    })
+    io.observe(fig)
+    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf) }
+  }, [parallax])
   if (!p) return null
 
   const small = p.sizes[800]
@@ -25,7 +47,7 @@ export default function PlacePhoto({ id, lang = 'az', sizes = '(min-width: 1024p
   const alt = p.alt[lang] || p.alt.en
   const style = ratio ? { '--ph-ratio': ratio } : undefined
   return (
-    <figure className={`ph${loaded ? ' is-loaded' : ''}${className ? ` ${className}` : ''}`} style={style}>
+    <figure ref={figRef} className={`ph${loaded ? ' is-loaded' : ''}${className ? ` ${className}` : ''}`} style={style}>
       <span className="ph__frame">
         <img
           ref={imgRef}

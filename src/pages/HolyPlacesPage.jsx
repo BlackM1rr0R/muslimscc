@@ -451,7 +451,7 @@ export function HolyPlacesPage({ setPage }) {
                 onClick={(e) => { if (!e.target.closest('a, button')) openAt(i) }}>
                 <div className="holy-card-media">
                   {place.photo
-                    ? <PlacePhoto id={place.photo} lang={lk} className="ph--zoom" sizes="(min-width: 1200px) 380px, (min-width: 768px) 46vw, 100vw" />
+                    ? <PlacePhoto id={place.photo} lang={lk} className="ph--zoom ph--parallax" sizes="(min-width: 1200px) 380px, (min-width: 768px) 46vw, 100vw" />
                     : place.mapFocus
                       ? <HajjRouteMap lang={lk} highlight={place.mapFocus} compact />
                       // Foto və xəritə yoxdursa (Məscidün-Nəbəvi) — yalnız yazılı lövhə, canlı təsvir yox

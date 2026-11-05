@@ -424,3 +424,12 @@ a.lc-name { color: var(--text-body); }
   .lc { --lc-label: 44%; }
   .lc-row { column-gap: 8px; }
 }
+
+/* ── Parallax (ph--parallax): şəkil çərçivənin içində sürüşmə ilə yavaş hərəkət edir ──
+   Mövqe PlacePhoto-dakı kiçik JS-dəndir (--ph-par, yalnız ekranda olanda, rAF ilə).
+   CSS view() burada işləmir: kart/bölmə overflow:hidden olduğu üçün vaxt xətti ona
+   bağlanır və irəliləmir. Yalnız kompozitlənən "translate" + sabit "scale"
+   (transform-dan ayrıdır: yüklənmə və hover effektinə toxunmur). */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ph--parallax .ph__img { scale: 1.14; translate: 0 var(--ph-par, 0%); will-change: translate; }
+}

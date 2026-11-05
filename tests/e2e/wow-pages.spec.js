@@ -156,3 +156,16 @@ test('fətva mövzu buludu: toxunuş mövzunu süzür, bulud gizlənir', async (
   await expect(page.locator('.fw-topic')).toHaveCount(1)
   await expect(page.locator('.fw-topic__title')).toHaveText('Namaz')
 })
+
+test.describe('parallaks', () => {
+  test.use({ reducedMotion: 'no-preference' })
+  test('müqəddəs yerlərin kart fotosu sürüşdükcə hərəkət edir; azaldılmış hərəkətdə yox', async ({ page }) => {
+  await page.goto('/holyplaces')
+  await settle(page)
+  const img = page.locator('.holy-card-media .ph--parallax .ph__img').first()
+  await img.scrollIntoViewIfNeeded()
+  const at = async (dy) => { await page.evaluate((d) => window.scrollBy(0, d), dy); await page.waitForTimeout(200); return img.evaluate(e => getComputedStyle(e).translate) }
+  const a = await at(-150), b = await at(300)
+  expect(a).not.toBe(b)
+  })
+})
