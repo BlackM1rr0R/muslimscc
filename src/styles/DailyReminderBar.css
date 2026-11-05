@@ -10,7 +10,8 @@
    1024–1180px-də yan panel sütunu daraldır və bir sətirlik düzülüşdə
    tərcümə kəsilirdi. */
 .drb-wrap {
-  padding: 12px var(--page-gutter) 0;
+  /* altda da boşluq — zolaq altındakı hero bölməsinə bitişik qalırdı */
+  padding: 12px var(--page-gutter) 16px;
   container-type: inline-size;
 }
 
