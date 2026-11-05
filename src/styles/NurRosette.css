@@ -1,0 +1,16 @@
+/* ══ Bugünkü nurunuz (components/prayer/NurRosette.jsx) ══ */
+.nr { width: 100%; height: 100%; overflow: visible; }
+.nr__glow { fill: url(#nr-core); transform-origin: 0 0; transition: opacity .6s ease, transform .6s cubic-bezier(.2, .8, .2, 1); }
+.nr__core { fill: url(#nr-core); transition: opacity .5s ease; }
+.nr__p { fill: color-mix(in srgb, var(--primary, #0d5c46) 7%, transparent); stroke: color-mix(in srgb, var(--primary, #0d5c46) 28%, transparent);
+  stroke-width: .8; transition: fill .4s ease, stroke .4s ease, opacity .4s ease; }
+.nr__p--out { opacity: .85; }
+.nr__p.is-on { fill: url(#nr-gold); stroke: #c58b22; opacity: 1; }
+[data-theme="dark"] .nr__p { fill: rgba(255, 255, 255, .05); stroke: rgba(243, 220, 154, .3); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .nr__p.is-on { animation: nr-bloom 520ms cubic-bezier(.2, .8, .2, 1.4); transform-box: view-box; }
+}
+@keyframes nr-bloom { 0% { opacity: .3; } 60% { opacity: 1; } 100% { opacity: 1; } }
+/* Faiz yazısının arxası — ləçəklərin üstündə oxunsun */
+.nr__disc { fill: var(--surface-1, #fff); stroke: color-mix(in srgb, var(--gold, #c59a2c) 55%, transparent); stroke-width: 1.2;
+  filter: drop-shadow(0 0 6px rgba(240, 199, 94, .55)); }

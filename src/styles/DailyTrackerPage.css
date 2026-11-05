@@ -390,3 +390,9 @@
   from { opacity: 0; clip-path: inset(0 0 0 100%); }
   to   { opacity: 1; clip-path: inset(0 0 0 0); }
 }
+
+/* "Bugünkü nurunuz" rozeti (components/prayer/NurRosette) — halqa kimi fırlanmır */
+.tracker-rosette { transform: none; }
+.tracker-rosette + .tracker-circle-text .tracker-circle-pct { text-shadow: 0 1px 8px var(--surface-1, #fff); }
+.tracker-circle-wrap:has(.tracker-rosette) .tracker-circle-pct { font-size: 1.25rem; }
+.tracker-circle-wrap:has(.tracker-rosette) .tracker-circle-label { font-size: .7rem; }

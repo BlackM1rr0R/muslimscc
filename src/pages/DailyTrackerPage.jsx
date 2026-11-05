@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import NurRosette from '../components/prayer/NurRosette'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
@@ -157,7 +158,6 @@ function calcStreak(data) {
   return streak
 }
 
-const CIRC = 2 * Math.PI * 54
 
 export default function DailyTrackerPage({ setPage }) {
   const { lang } = useLang()
@@ -252,15 +252,10 @@ export default function DailyTrackerPage({ setPage }) {
           <div className={`tracker-progress-section ui-card${percent === 100 ? ' is-complete' : ''}`} data-reveal="scale">
             {percent === 100 && <Sparkle count={14} radius={110} />}
             <div className="tracker-circle-wrap" role="img" aria-label={`${x.progress}: ${percent}% (${doneCount}/${totalCount})`}>
-              <svg className="tracker-circle" viewBox="0 0 120 120" aria-hidden="true">
-                <circle cx="60" cy="60" r="54" fill="none" className="tracker-circle-track" strokeWidth="8" />
-                <circle cx="60" cy="60" r="54" fill="none"
-                  strokeWidth="8" strokeLinecap="round"
-                  strokeDasharray={CIRC}
-                  strokeDashoffset={CIRC - (CIRC * percent / 100)}
-                  className={`tracker-circle-progress${percent === 0 ? ' is-empty' : ''}`}
-                />
-              </svg>
+              {/* "Bugünkü nurunuz": hər əməl bir ləçək (daxildə 5 namaz, çöldə 5 əməl) */}
+              <div className="tracker-circle tracker-rosette" data-testid="nur-rosette">
+                <NurRosette done={todayData} inner={ACTIVITIES.slice(0, 5).map(a => a.key)} outer={ACTIVITIES.slice(5).map(a => a.key)} />
+              </div>
               <div className="tracker-circle-text" aria-hidden="true">
                 {/* key: faiz dəyişəndə rəqəm yüngülcə "sıçrayır" (yalnız transform) */}
                 <span className="tracker-circle-pct" key={percent}>{percent}{t.percent}</span>
