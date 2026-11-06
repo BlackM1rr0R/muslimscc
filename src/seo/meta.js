@@ -26,6 +26,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { BRAND, brandName } from '../config/brand.js'
+import { withBrand } from './title.js'
 
 // Uyğunluq üçün saxlanılıb — dilə görə ad üçün brandName(lang) istifadə et
 export const SUFFIX = BRAND.name.az
@@ -112,7 +113,7 @@ export const META = {
     az: { t: 'Namaz Vaxtları — Azərbaycanın 75 Şəhəri, Əzan Bildirişi',
           d: 'Bakı, Gəncə, Şəki, Lənkəran və Azərbaycanın daha 70+ şəhəri üçün dəqiq namaz vaxtları: Sübh, Günorta, Əsr, Məğrib, İşa. Əzan bildirişi, geri sayım və həftəlik statistika.' },
     en: { t: 'Prayer Times — Salah Times & Adhan Alerts',
-          d: 'Accurate daily prayer times for 98 cities worldwide, including 75 in Azerbaijan: Fajr, Dhuhr, Asr, Maghrib and Isha. Get adhan notifications, a live countdown to the next salah and weekly stats.' },
+          d: 'Accurate prayer times for 98 cities, 75 of them in Azerbaijan: Fajr, Dhuhr, Asr, Maghrib and Isha, with adhan notifications and a live countdown.' },
     ru: { t: 'Время намаза — расписание и уведомления азана',
           d: 'Точное время намаза для 98 городов, из них 75 в Азербайджане: Фаджр, Зухр, Аср, Магриб, Иша. Уведомления азана, обратный отсчёт до следующего намаза и недельная статистика.' },
     tr: { t: 'Namaz Vakitleri — Şehirlere Göre Ezan Saatleri',
@@ -154,7 +155,7 @@ export const META = {
     az: { t: 'Dualar və Əzkar — 80+ Səhih Gündəlik Dua',
           d: 'Quran və səhih sünnədən gündəlik həyat üçün 80+ dua və zikr: səhər-axşam əzkarı, yemək, yuxu, səfər, çətinlik duaları. Ərəb mətni, transkripsiya və tərcümə ilə.' },
     en: { t: 'Duas & Adhkar — 80+ Authentic Daily Supplications',
-          d: 'Over 80 duas and adhkar from the Quran and authentic Sunnah for daily life: morning and evening remembrance, food, sleep, travel and hardship. With Arabic text, transliteration and translation.' },
+          d: '80+ duas and adhkar from the Quran and authentic Sunnah: morning and evening, food, sleep, travel and hardship — Arabic, transliteration and translation.' },
     ru: { t: 'Дуа и азкары — более 80 достоверных ежедневных мольб',
           d: 'Более 80 дуа и азкаров из Корана и достоверной Сунны на каждый день: утренние и вечерние поминания, еда, сон, путешествие, трудности. С арабским текстом и переводом.' },
     tr: { t: 'Dualar ve Ezkâr — 80+ Sahih Günlük Dua',
@@ -388,7 +389,7 @@ export const META = {
     az: { t: 'Dərslər — əqidə, fiqh, əxlaq və elm dəlilləri ilə',
           d: 'Əqidə, təharət və namaz, oruc və qurban, ailə, əxlaq və elm üzrə qısa dərslər — Quran, səhih Sünnə və Sələf alimlərinin sözləri ilə, mənbələri göstərilib.' },
     en: { t: 'Lessons — Creed, Fiqh, Character and Knowledge',
-          d: 'Short lessons on creed, purification and prayer, fasting and sacrifice, family, character and knowledge — from the Quran, the authentic Sunnah and the scholars of the Salaf, with sources.' },
+          d: 'Short lessons on creed, prayer, fasting, family and character — from the Quran, the authentic Sunnah and the scholars of the Salaf, with sources.' },
     ru: { t: 'Уроки — акыда, фикх, нравы и знание',
           d: 'Краткие уроки по вероубеждению, очищению и намазу, посту и жертвоприношению, семье, нравам и знанию — из Корана, достоверной Сунны и слов учёных саляфа, с источниками.' },
     tr: { t: 'Dersler — Akide, Fıkıh, Ahlak ve İlim',
@@ -833,11 +834,11 @@ export function pickMeta(key, lang = 'az') {
   return entry.az || entry.en || META.home.az
 }
 
-/** Tam <title> — səhifə adı + brend şəkilçisi. */
+/** Tam <title> — səhifə adı + brend şəkilçisi (sığırsa). */
 export function titleFor(key, lang = 'az') {
   const { t } = pickMeta(key, lang)
   const brand = brandName(lang)
-  return key === 'home' ? `${brand} — ${t}` : `${t} | ${brand}`
+  return key === 'home' ? `${brand} — ${t}` : withBrand(t, brand)
 }
 
 /** Meta description. */

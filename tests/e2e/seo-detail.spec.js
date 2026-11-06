@@ -35,7 +35,7 @@ const raw = async (request, url) => {
 test.describe('xam prerender HTML (JS-siz robotun gördüyü)', () => {
   test('/quran/2-al-baqara: h1, ərəbcə mətn, tərcümə, Tanzil atribusiyası, sxem', async ({ request }) => {
     const html = await raw(request, '/quran/2-al-baqara')
-    expect(html).toContain('<title>Bəqərə surəsi — ərəbcə mətn və Azərbaycan dilində tərcümə | Muslims.cc</title>')
+    expect(html).toContain('<title>Bəqərə surəsi — ərəbcə mətn və Azərbaycan dilində tərcümə</title>')
     expect(html).toContain('<link rel="canonical" href="https://muslims.cc/quran/2-al-baqara"')
     expect(html).toContain('hreflang="en" href="https://muslims.cc/en/quran/2-al-baqara"')
     expect(html).toContain('hreflang="x-default" href="https://muslims.cc/quran/2-al-baqara"')
@@ -130,7 +130,7 @@ test('səhv slug → kanonik ünvan, surə 2 açılır, meta yenilənir', async 
   await expect(page.locator('h1')).toHaveText('سُورَةُ البَقَرَةِ')
   await expect(page.locator('#ayah-3')).toBeVisible()
   await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/quran/2-al-baqara')
-  await expect(page).toHaveTitle('Bəqərə surəsi — ərəbcə mətn və Azərbaycan dilində tərcümə | Muslims.cc')
+  await expect(page).toHaveTitle('Bəqərə surəsi — ərəbcə mətn və Azərbaycan dilində tərcümə')
   expectCleanConsole(consoleProblems)
 })
 
@@ -166,7 +166,7 @@ test('99 ad: birbaşa link pəncərəni açır, növbəti ad URL-i yeniləyir, b
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   await expect(dialog.locator('#names-modal-title')).toHaveText('Ar-Rahman')
-  await expect(page).toHaveTitle(/^Ar-Rahman \(.+\) — Meaning of the 30th Name of Allah \| Muslims\.cc$/)
+  await expect(page).toHaveTitle(/^Ar-Rahman \(.+\) — Meaning of the 30th Name of Allah$/)
   await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/en/names/30-ar-rahman')
 
   await dialog.getByRole('button', { name: 'Next name' }).click()

@@ -59,7 +59,7 @@ test('kartdan profilə, bölmələr və mənbələr; geri siyahıya', async ({ p
   await expect(src).toHaveAttribute('href', /^https:\/\//)
   await expect(src).toHaveAttribute('target', '_blank')
   await expect(canonical(page)).toHaveAttribute('href', 'https://muslims.cc/scholars/ahmad-ibn-hanbal')
-  await expect(page).toHaveTitle(/^Əhməd ibn Hənbəl — .* \| Muslims\.cc$/)
+  await expect(page).toHaveTitle(/^Əhməd ibn Hənbəl — /)
 
   await page.goBack()
   await expect(page).toHaveURL(/\/scholars$/)

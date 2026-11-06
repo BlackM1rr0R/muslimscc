@@ -122,7 +122,10 @@ describe('alimlər — marşrut və SEO', () => {
     for (const l of LANGS) {
       const m = detailMeta('scholars', l, 'ibn-baz')
       expect(m.h1).toBe(scholarBySlug('ibn-baz').name[l])
-      expect(titleForDetail('scholars', l, 'ibn-baz')).toContain(' | ')
+      // Başlıq səhifənin adı ilə başlayır; brend şəkilçisi yalnız 60 simvola sığanda (src/seo/title.js)
+      const title = titleForDetail('scholars', l, 'ibn-baz')
+      expect(title.startsWith(m.t)).toBe(true)
+      expect(title.length <= 60 || !title.includes(' | ')).toBe(true)
       const ld = detailJsonLd('scholars', l, 'ibn-baz')
       expect(ld.mainEntity['@type']).toBe('Person')
       expect(ld.breadcrumb.itemListElement).toHaveLength(3)

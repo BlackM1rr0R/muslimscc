@@ -179,7 +179,9 @@ describe('detal meta-sı (5 dil)', () => {
   })
 
   it('nümunə mətnlər', () => {
-    expect(titleForDetail('quran', 'az', 2)).toBe('Bəqərə surəsi — ərəbcə mətn və Azərbaycan dilində tərcümə | Muslims.cc')
+    // 60 simvoldan uzundur — brend şəkilçisi atılır (src/seo/title.js)
+    expect(titleForDetail('quran', 'az', 2)).toBe('Bəqərə surəsi — ərəbcə mətn və Azərbaycan dilində tərcümə')
+    expect(titleForDetail('quran', 'tr', 36)).toMatch(/ \| Muslims\.cc$/)
     expect(detailMeta('quran', 'en', 36).t).toBe('Surah Yaseen — Arabic Text & English Translation')
     expect(detailMeta('quran', 'tr', 2).h1).toBe('Bakara Suresi')
     expect(detailMeta('names', 'az', 30).d).toContain('Rəhman (Çox Rəhimli)')

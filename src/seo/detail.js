@@ -26,6 +26,7 @@ import { SAHABA, slugOf } from '../data/sahaba.js'
 import { scholarBySlug, lifeSpan } from '../data/scholars.js'
 import { lessonBySlug, CAT_BY_KEY } from '../data/lessons/index.js'
 import { brandName } from '../config/brand.js'
+import { withBrand } from './title.js'
 
 // Title-ın səhifə hissəsi üçün hədd (brend şəkilçisi bundan sonra gəlir)
 export const TITLE_MAX = 60
@@ -287,10 +288,10 @@ export function detailMeta(key, lang, param) {
   return null
 }
 
-/** Tam <title>: "<səhifə> | Muslims.cc". */
+/** Tam <title>: "<səhifə> | Muslims.cc" — brend yalnız 60 simvola sığırsa (title.js → withBrand). */
 export function titleForDetail(key, lang, param) {
   const m = detailMeta(key, lang, param)
-  return m ? `${m.t} | ${brandName(lang)}` : ''
+  return m ? withBrand(m.t, brandName(lang)) : ''
 }
 
 // ── Breadcrumb adları (bölmə səviyyəsi) ──

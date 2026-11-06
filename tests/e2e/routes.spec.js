@@ -45,7 +45,14 @@ for (const page of PUBLIC) {
       await expect(p.locator('h1').first()).toBeVisible()
       await expect(p.locator('html')).toHaveAttribute('lang', lang)
       await expect(p.locator('html')).toHaveAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr')
-      await expect(p).toHaveTitle(/Muslims\.cc/)
+      // Brauzerdə qurulan başlıq Google-un gördüyü prerender HTML-in <title>-ı ilə eynidir
+      // (brend şəkilçisi yalnız 60 simvola sığanda — src/seo/title.js)
+      // preview /en-i kökün index.html-inə qaytarır (nginx yox) — faylı birbaşa istə
+      const html = await (await p.request.get(`${url.replace(/\/$/, '')}/index.html`)).text()
+      const want = (html.match(/<title>([^<]*)<\/title>/) || [])[1] || ''
+      const decode = (t) => t.replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      expect(want.length, 'prerender <title>').toBeGreaterThan(5)
+      await expect(p).toHaveTitle(decode(want))
 
       // Ərəbcə ayə/hədis blokları (lang="ar") və başqa dildə olduğu açıq
       // işarələnmiş elementlər (məs. dil seçicisində "Русский", lang="ru") istisnadır
