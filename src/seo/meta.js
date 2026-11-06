@@ -206,14 +206,14 @@ export const META = {
   qibla: {
     az: { t: 'Qiblə İstiqaməti — GPS və Kompasla Kəbə Yönü',
           d: 'Olduğun yerdən Kəbəyə dəqiq qiblə istiqamətini tap. GPS və telefon kompası ilə işləyir, açı dərəcəsi və Məkkəyə məsafə göstərilir.' },
-    en: { t: 'Qibla Direction — Find the Kaaba with GPS Compass',
-          d: 'Find the exact qibla direction to the Kaaba from wherever you are. Works with GPS and your phone compass, showing the bearing and distance to Mecca.' },
+    en: { t: 'Qibla Direction Compass Online — Find the Kaaba Now',
+          d: 'Find the qibla direction instantly: a free online qibla compass with live phone sensor, camera view and map to the Kaaba. Exact bearing and distance — no app.' },
     ru: { t: 'Направление киблы — компас на Каабу по GPS',
           d: 'Определите точное направление киблы на Каабу из любой точки. Работает с GPS и компасом телефона, показывает угол и расстояние до Мекки.' },
     tr: { t: 'Kıble Yönü — GPS ve Pusula ile Kâbe Yönü',
           d: 'Bulunduğun yerden Kâbe’ye tam kıble yönünü bul. GPS ve telefon pusulası ile çalışır, açı derecesi ve Mekke’ye uzaklık gösterilir.' },
-    ar: { t: 'اتجاه القبلة — بوصلة الكعبة عبر GPS',
-          d: 'حدد اتجاه القبلة إلى الكعبة بدقة من أي مكان. يعمل بنظام تحديد المواقع وبوصلة الهاتف، ويعرض زاوية الاتجاه والمسافة إلى مكة.' },
+    ar: { t: 'اتجاه القبلة — بوصلة القبلة أونلاين لتحديد الكعبة',
+          d: 'حدد اتجاه القبلة فورًا: بوصلة قبلة مجانية أونلاين بمستشعر الهاتف والكاميرا وخريطة إلى الكعبة، مع زاوية الاتجاه والمسافة إلى مكة — دون تطبيق.' },
   },
 
   calendar: {
