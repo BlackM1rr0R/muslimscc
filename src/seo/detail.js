@@ -31,6 +31,9 @@ import { glossaryItem } from './glossarySource.js'
 import { glossaryName, glossaryGloss } from '../data/glossaryNames.js'
 import { brandName } from '../config/brand.js'
 import { withBrand } from './title.js'
+import { EXTRA_LANGS, EXTRA_CODES } from './langs.js'
+import { INTL_QURAN, INTL_BODY_UI } from './intl.js'
+import { INTL_QURAN_SECTION } from './intlMeta.js'
 
 // Title-ın səhifə hissəsi üçün hədd (brend şəkilçisi bundan sonra gəlir)
 export const TITLE_MAX = 60
@@ -78,14 +81,18 @@ export function surahInfo(n, lang) {
   const row = SURAH_META[n - 1]
   if (!row) return null
   const [arFull, en, enMeaning, place, ayahs] = row
-  const local = getSurahLocal(n, lang)
+  const extra = EXTRA_LANGS[lang]
+  const local = extra ? null : getSurahLocal(n, lang)
   let name = en
   let meaning = enMeaning
   if (local) { name = local.name; meaning = local.meaning }
   else if (lang === 'ar') { name = stripSurahWord(arFull); meaning = '' }
+  // Əlavə dil (src/seo/langs.js): ad latınca (urdu/fars/puştu — ərəbcə);
+  // məna yalnız ingiliscə məlumatdadır — başqa dilin mətninə qatılmır
+  else if (extra) { name = extra.script === 'arab' ? stripSurahWord(arFull) : en; meaning = '' }
   // Məna adla eynidirsə (məs. "Yasin") təkrarlanmır
   if (meaning === name) meaning = ''
-  return { n, arFull, arName: stripSurahWord(arFull), name, meaning, medinan: place === 'D', ayahs }
+  return { n, arFull, arName: stripSurahWord(arFull), name, latin: en, meaning, medinan: place === 'D', ayahs }
 }
 
 const QURAN = {
@@ -307,7 +314,7 @@ const TERM_T = {
 export function detailMeta(key, lang, param) {
   if (key === 'quran') {
     const s = surahInfo(param, lang)
-    const L = QURAN[lang] || QURAN.az
+    const L = QURAN[lang] || INTL_QURAN[lang] || QURAN.az
     return s && { t: L.t(s), d: clamp(L.d(s)), h1: L.h1(s), intro: L.intro(s), crumb: lang === 'ar' ? s.arName : s.name }
   }
   if (key === 'names') {
@@ -381,6 +388,12 @@ export function crumbsFor(key, lang, param) {
 
 // Quranın adı — Chapter sxemindəki isPartOf (Book) üçün
 const QURAN_BOOK = { az: 'Qurani-Kərim', en: 'The Holy Quran', ru: 'Священный Коран', ar: 'القرآن الكريم', tr: 'Kur’an-ı Kerim' }
+// Əlavə dillər (yalnız Quran): bölmənin adı, kitabın adı, statik blokun
+// yazıları (qalan açarlar ingiliscə — bu dillərdə başqa bölmə yoxdur)
+for (const c of EXTRA_CODES) {
+  SECTION_LABEL.quran[c] = INTL_QURAN_SECTION[c]
+  QURAN_BOOK[c] = INTL_BODY_UI[c].book
+}
 const NAMES_SET = { az: 'Allahın 99 gözəl adı (Əsmaül Hüsna)', en: 'The 99 Names of Allah (Asmaul Husna)', ru: '99 прекрасных имён Аллаха (Асма уль-Хусна)', ar: 'أسماء الله الحسنى', tr: 'Allah’ın 99 güzel ismi (Esmaül Hüsna)' }
 
 /**
@@ -572,3 +585,5 @@ export const BODY_UI = {
     allScholars: 'جميع العلماء', sameEra: 'من الحقبة نفسها', scholarList: 'قائمة العلماء',
   },
 }
+
+for (const c of EXTRA_CODES) BODY_UI[c] = { ...BODY_UI.en, ...INTL_BODY_UI[c] }

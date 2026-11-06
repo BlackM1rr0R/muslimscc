@@ -57,3 +57,12 @@ export function pluralWord(n, lang, forms = AYAH_WORDS) {
 }
 /** "286 ayə", "123 аята", "7 آيات" */
 export const ayahCountText = (n, lang, forms = AYAH_WORDS) => `${n} ${pluralWord(n, lang, forms)}`
+
+/**
+ * Tərcümə nəşrinin ayə mətnindəki [[…]] lüğət qeydlərini ayır (fars —
+ * Xürrəmdil, src/seo/langs.js → notes: true). Tərcümənin özü dəyişmir:
+ * qeydlər mətnin sonunda ayrıca blokdur, oxucuya yalnız tərcümə göstərilir.
+ */
+export function stripTranslationNotes(text) {
+  return String(text || '').replace(/\s*\[\[[\s\S]*?\]\]/g, '').trim()
+}

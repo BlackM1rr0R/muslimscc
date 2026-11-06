@@ -8,9 +8,11 @@
 //   DNT / Global Privacy Control açıqdırsa, /admin*, localhost, avtomat brauzer.
 // ═══════════════════════════════════════════════════════════
 import { useEffect } from 'react'
+import { ALL_LANGS } from '../seo/routes'
 
 const ENDPOINT = '/api/a'
-const LANGS = ['az', 'en', 'ru', 'ar', 'tr']
+// URL-in dil prefiksləri — 5 əsas dil + Quranın əlavə dilləri (src/seo/langs.js)
+const LANGS = ALL_LANGS
 const DELAY_MS = 300   // yönləndirmələr (Navigate replace) ara ünvanı saymasın
 
 let firstSent = false

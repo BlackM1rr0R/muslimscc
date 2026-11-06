@@ -34,7 +34,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import zlib from 'node:zlib'
 
-import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor, detailParams } from '../src/seo/routes.js'
+import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor, detailParams, langsFor, uiLang, dirOf } from '../src/seo/routes.js'
 import { titleFor, descFor, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
 import { brandName, siteJsonLd } from '../src/config/brand.js'
 import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detail.js'
@@ -111,7 +111,8 @@ function headFor(key, lang, param = null) {
   const p = param ?? undefined
   const canonical = SITE + pathFor(key, lang, p)
   const alts = [
-    ...LANGS.map(l => `    <link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}" data-seo="alt" />`),
+    // Səhifənin mövcud olduğu bütün dillər (Quran — 25 dil; src/seo/langs.js)
+    ...langsFor(key).map(l => `    <link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}" data-seo="alt" />`),
     `    <link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, DEFAULT_LANG, p)}" data-seo="alt" />`,
   ].join('\n')
 
@@ -150,7 +151,7 @@ function headFor(key, lang, param = null) {
  * səhifənin adı), üstəlik dil variantlarına keçidlə.
  */
 function noscriptFor(key, lang, withBody = false) {
-  const ui = UI[lang] || UI.az
+  const ui = UI[uiLang(lang)] || UI.az
   const links = INDEXABLE
     .filter(p => p.key !== key)
     .map(p => `<li><a href="${pathFor(p.key, lang)}">${esc(shortName(p.key, lang))}</a></li>`)
@@ -158,7 +159,7 @@ function noscriptFor(key, lang, withBody = false) {
 
   // 404 səhifəsinin dil variantı yoxdur — pathFor onu ana səhifəyə
   // çevirərdi, hreflang isə yanlış "bu səhifənin tərcüməsi" deyərdi
-  const langLinks = key === NOT_FOUND ? '' : LANGS
+  const langLinks = key === NOT_FOUND ? '' : langsFor(key)
     .filter(l => l !== lang)
     .map(l => `<a href="${pathFor(key, l)}" hreflang="${l}">${l.toUpperCase()}</a>`)
     .join(' · ')
@@ -200,7 +201,9 @@ function renderPage(template, key, lang, noindex = false, param = null) {
   const notFound = key === NOT_FOUND
   const { title, desc } = notFound ? { title: titleFor(key, lang), desc: descFor(key, lang) } : textsFor(key, lang, param)
   const canonical = SITE + pathFor(key, lang, param ?? undefined)
-  const dir = lang === 'ar' ? 'rtl' : 'ltr'
+  // Statik HTML səhifənin öz dilindədir (urdu/fars/puştu — rtl); React
+  // yüklənəndə interfeys dili (LangContext) istiqaməti yenidən qoyur
+  const dir = dirOf(lang)
 
   let html = template
 
@@ -227,12 +230,12 @@ function renderPage(template, key, lang, noindex = false, param = null) {
   // /en/ səhifəsində en_US-u özünə alternativ göstərir, az_AZ-ı buraxırdı)
   html = html.replace(
     /(\s*<meta\s+property="og:locale:alternate"[^>]*>)+/i,
-    LANGS.filter(l => l !== lang)
+    (notFound ? LANGS : langsFor(key)).filter(l => l !== lang)
       .map(l => `\n    <meta property="og:locale:alternate" content="${LOCALES[l]}" />`)
       .join(''),
   )
   // Paylaşım kartı səhifənin dilində (og-image-<dil>.png, az = og-image.png)
-  const ogAlt = OG_ALT[lang] || OG_ALT.az
+  const ogAlt = OG_ALT[uiLang(lang)] || OG_ALT.az
   html = replaceMeta(html, 'property', 'og:image', ogImageFor(lang))
   html = replaceMeta(html, 'property', 'og:image:alt', ogAlt)
   html = replaceMeta(html, 'name', 'twitter:title', title)
@@ -386,7 +389,7 @@ const DETAIL_SITEMAP = {
 function urlEntry(key, lang, param, today, changefreq, priority) {
   const p = param ?? undefined
   const alts = [
-    ...LANGS.map(l => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}"/>`),
+    ...langsFor(key).map(l => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}"/>`),
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, DEFAULT_LANG, p)}"/>`,
   ].join('\n')
   return `  <url>\n` +
@@ -420,7 +423,7 @@ function buildSitemap() {
 
   const pages = []
   for (const p of INDEXABLE) {
-    for (const lang of LANGS) pages.push(urlEntry(p.key, lang, null, today, p.changefreq, p.priority))
+    for (const lang of langsFor(p.key)) pages.push(urlEntry(p.key, lang, null, today, p.changefreq, p.priority))
   }
   writeUrlset('sitemap-pages.xml', pages)
   files.push('sitemap-pages.xml')
@@ -432,7 +435,7 @@ function buildSitemap() {
     if (!cfg || DETAILS[key].noindex) continue
     const urls = []
     for (const param of detailParams(key)) {
-      for (const lang of LANGS) urls.push(urlEntry(key, lang, param, today, cfg.changefreq, cfg.priority))
+      for (const lang of langsFor(key)) urls.push(urlEntry(key, lang, param, today, cfg.changefreq, cfg.priority))
     }
     writeUrlset(cfg.file, urls)
     files.push(cfg.file)
@@ -475,7 +478,7 @@ for (const p of PAGES) {
   // ünvana həqiqi 404 qaytarır (bax: infra/nginx/muslims.cc.conf),
   // tətbiq isə interfeys ingiliscə olanda admini /en/admin ünvanında açır.
   // noindex olduqları üçün sitemap-a düşmürlər.
-  for (const lang of LANGS) {
+  for (const lang of langsFor(p.key)) {
     writeRoute(renderPage(template, p.key, lang, Boolean(p.noindex)), pathFor(p.key, lang))
     count++
   }
@@ -485,7 +488,7 @@ for (const p of PAGES) {
 let detailCount = 0
 for (const key of Object.keys(DETAILS)) {
   for (const param of detailParams(key)) {
-    for (const lang of LANGS) {
+    for (const lang of langsFor(key)) {
       writeRoute(renderPage(template, key, lang, false, param), pathFor(key, lang, param))
       detailCount++
     }

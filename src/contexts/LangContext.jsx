@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { LANGS, DEFAULT_LANG, parsePath, pathFor } from '../seo/routes'
+import { ALL_LANGS, DEFAULT_LANG, parsePath, pathFor, uiLang, dirOf, hasPageInLang } from '../seo/routes'
 import { browserLang, canAutoRedirect } from '../utils/browserLang'
 
 const LangCtx = createContext(null)
@@ -43,7 +43,11 @@ export function LangProvider({ children }) {
   // Dil artıq URL-dən gəlir (/ru/quran → 'ru'), localStorage-dan yox.
   // Səbəb: Google hər dil variantını ayrıca URL kimi indeksləməlidir —
   // localStorage-a bağlı dil bütün dilləri eyni URL-də gizlədirdi.
-  const { lang, key, param } = parsePath(location.pathname)
+  // Əlavə dildə (/id/quran — src/seo/langs.js) interfeys ingiliscədir:
+  //   lang     — interfeys mətnlərinin dili (5 əsas dildən biri; LABELS[lang])
+  //   siteLang — URL-in dili (Quran tərcüməsi, pathFor, <html lang>)
+  const { lang: siteLang, key, param } = parsePath(location.pathname)
+  const lang = uiLang(siteLang)
 
   // Yaddaş bağlı ola bilər (brauzer sayt məlumatını bloklayır) — o halda
   // localStorage xəta atır; kök provayder çökməsin deyə hər müraciət qorunur.
@@ -55,9 +59,10 @@ export function LangProvider({ children }) {
 
   /** Dili dəyiş = eyni səhifənin (detal səhifəsində — eyni surənin/adın/səhabənin) başqa dildəki URL-inə keç. */
   const setLang = (l) => {
-    if (!LANGS.includes(l)) return
+    if (!ALL_LANGS.includes(l)) return
     try { localStorage.setItem('muslim_cc_lang', l) } catch { /* yaddaş bağlıdır */ } // növbəti gəlişdə tərcih kimi
-    navigate(pathFor(key, l, param))
+    // Əlavə dildə bu səhifə yoxdursa — həmin dildə Quran (dil seçicisi bunu yazır)
+    navigate(hasPageInLang(key, l) ? pathFor(key, l, param) : pathFor('quran', l))
     // Push açıqdırsa, serverdəki abunəlik də yeni dilə keçsin — azan
     // bildirişi istifadəçinin indiki dilində gəlsin. Abunəlik yoxdursa
     // push modulu ümumiyyətlə yüklənmir (açarlar: src/api/push.js)
@@ -80,10 +85,13 @@ export function LangProvider({ children }) {
     })
   }
 
+  // <html lang> — URL-in dili (axtarış sistemi və ekran oxuyucusu üçün);
+  // dir — interfeysin dili ilə (ingiliscə interfeys urdu səhifəsində də ltr;
+  // tərcümə mətninin öz dir-i var — QuranPage.jsx)
   useEffect(() => {
-    document.documentElement.lang = lang
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
-  }, [lang])
+    document.documentElement.lang = siteLang
+    document.documentElement.dir = dirOf(lang)
+  }, [lang, siteLang])
 
   useEffect(() => {
     darkRef.current = dark
@@ -131,7 +139,7 @@ export function LangProvider({ children }) {
   }, [])
 
   return (
-    <LangCtx.Provider value={{ lang, setLang, dark, toggleDark }}>
+    <LangCtx.Provider value={{ lang, siteLang, setLang, dark, toggleDark }}>
       {children}
     </LangCtx.Provider>
   )
@@ -154,13 +162,14 @@ export function useStoredLangRedirect() {
     let saved = null
     try { saved = localStorage.getItem('muslim_cc_lang') } catch { /* yaddaş bağlıdır */ }
     if (!saved && canAutoRedirect()) {
-      saved = browserLang(LANGS)
+      saved = browserLang(ALL_LANGS)
       try { if (saved) localStorage.setItem('muslim_cc_lang', saved) } catch { /* yaddaş bağlıdır */ }
     }
-    if (!saved || saved === DEFAULT_LANG || !LANGS.includes(saved)) return
+    if (!saved || saved === DEFAULT_LANG || !ALL_LANGS.includes(saved)) return
     const { lang, key, param } = parsePath(location.pathname)
     if (lang !== DEFAULT_LANG) return
     if (location.pathname !== pathFor(key, DEFAULT_LANG, param)) return
+    // Əlavə dildə olmayan səhifə (ana səhifə, namaz…) — pathFor ingiliscəni verir
     navigate(pathFor(key, saved, param), { replace: true })
     // Yalnız bir dəfə — sonrakı naviqasiyalarda URL hakimdir
     // eslint-disable-next-line react-hooks/exhaustive-deps

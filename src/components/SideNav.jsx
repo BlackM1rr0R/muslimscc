@@ -40,7 +40,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
 import { NAV_GROUPS, navGroupOf } from '../data/navigation'
-import { pathFor, parsePath } from '../seo/routes'
+import { pathFor, parsePath, hasPageInLang, EXTRA_LANGS, EXTRA_CODES } from '../seo/routes'
 import { isOverlayEntry } from '../utils/useBackToClose'
 import Icon, { BrandMark } from './Icon'
 import '../styles/SideNav.css'
@@ -92,6 +92,7 @@ const LABELS = {
     searchHint: 'Hədis, ayə, dua axtar…',
     settings: 'Görünüş və dil',
     language: 'Dil',
+    moreLangs: 'Quran digər dillərdə',
     dark: 'Qaranlıq rejim',
     notifications: 'Bildirişlər',
     tools: 'Alətlər',
@@ -106,6 +107,7 @@ const LABELS = {
     searchHint: 'Search hadith, verses, du’as…',
     settings: 'Appearance and language',
     language: 'Language',
+    moreLangs: 'Quran in other languages',
     dark: 'Dark mode',
     notifications: 'Notifications',
     tools: 'Tools',
@@ -120,6 +122,7 @@ const LABELS = {
     searchHint: 'Хадисы, аяты, дуа…',
     settings: 'Оформление и язык',
     language: 'Язык',
+    moreLangs: 'Коран на других языках',
     dark: 'Тёмная тема',
     notifications: 'Уведомления',
     tools: 'Инструменты',
@@ -134,6 +137,7 @@ const LABELS = {
     searchHint: 'ابحث عن حديث أو آية أو دعاء…',
     settings: 'المظهر واللغة',
     language: 'اللغة',
+    moreLangs: 'القرآن بلغات أخرى',
     dark: 'الوضع الداكن',
     notifications: 'الإشعارات',
     tools: 'الأدوات',
@@ -148,6 +152,7 @@ const LABELS = {
     searchHint: 'Hadis, ayet, dua ara…',
     settings: 'Görünüm ve dil',
     language: 'Dil',
+    moreLangs: 'Diğer dillerde Kur’an',
     dark: 'Karanlık mod',
     notifications: 'Bildirimler',
     tools: 'Araçlar',
@@ -396,7 +401,7 @@ function SearchIcon() {
 
 export default function SideNav({ mode = 'drawer', id, open = false, onClose, currentPage, setPage, onOpenSearch, returnFocusRef }) {
   const isRail = mode === 'rail'
-  const { lang, setLang, dark, toggleDark } = useLang()
+  const { lang, siteLang = lang, setLang, dark, toggleDark } = useLang()
   const routerNavigate = useNavigate()
   const l = LABELS[lang] || LABELS.az
   const isRtl = lang === 'ar'
@@ -608,11 +613,14 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   // girişi (utils/useBackToClose) yeni dilin ünvanı ilə əvəzlənir, menyu isə
   // girişini yenidən qoyur — Geri əvvəlcə menyunu bağlayır.
   const pickLang = (code) => {
-    if (code === lang) return
+    if (!code || code === siteLang) return
     if (!isRail && isOverlayEntry()) {
       try { window.localStorage.setItem(LANG_PREF_KEY, code) } catch { /* yaddaş bağlıdır */ }
-      // Detal səhifəsində (/quran/2-…) eyni surə yeni dildə açılsın
-      routerNavigate(pathFor(currentPage, code, parsePath(window.location.pathname).param), { replace: true })
+      // Detal səhifəsində (/quran/2-…) eyni surə yeni dildə açılsın; əlavə
+      // dildə bu səhifə yoxdursa — həmin dildə Quran (src/seo/langs.js)
+      routerNavigate(hasPageInLang(currentPage, code)
+        ? pathFor(currentPage, code, parsePath(window.location.pathname).param)
+        : pathFor('quran', code), { replace: true })
       return
     }
     setLang?.(code)
@@ -824,7 +832,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
               </button>
               <div className="qm-sn-langs" role="group" aria-label={l.language}>
                 {LANG_OPTIONS.map(x => {
-                  const current = x.code === lang
+                  const current = x.code === siteLang
                   return (
                     <button
                       key={x.code}
@@ -841,6 +849,20 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
                 })}
               </div>
             </div>
+            {/* Əlavə dillər (yalnız Quran) — telefonda rahat olan doğma seçici */}
+            <label className="qm-sn-morelangs">
+              <span className="qm-sn-morelangs__label">{l.moreLangs}</span>
+              <select
+                className="qm-sn-morelangs__select"
+                value={EXTRA_LANGS[siteLang] ? siteLang : ''}
+                onChange={(e) => pickLang(e.target.value)}
+              >
+                <option value="" disabled>—</option>
+                {EXTRA_CODES.map(c => (
+                  <option key={c} value={c} lang={c}>{EXTRA_LANGS[c].name}</option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
       </div>

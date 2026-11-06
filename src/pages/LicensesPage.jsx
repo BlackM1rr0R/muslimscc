@@ -1,4 +1,5 @@
 import { useLang } from '../contexts/LangContext'
+import { EXTRA_LANGS, EXTRA_CODES } from '../seo/langs'
 import LegalDocument from '../components/LegalDocument'
 import { ARABIC_AUDIO_SOURCES } from '../data/arabicCourseCredits'
 import { AUDIO_CREDITS, CREDIT_ORDER } from '../data/prayerGuideCredits'
@@ -74,6 +75,13 @@ const TRANSLATIONS = [
     name: { az: 'Əl-Təfsir əl-Müyəssər', en: 'Al-Tafsir al-Muyassar', ru: 'Тафсир аль-Муяссар', ar: 'التفسير الميسر', tr: 'Tefsîr-i Müyesser' },
     url: 'https://alquran.cloud/translations',
     by: { az: 'Kral Fəhd Quran Çap Kompleksi — ərəb dilində qısa təfsir', en: 'King Fahd Glorious Quran Printing Complex — a concise tafsir in Arabic', ru: 'Комплекс короля Фахда по изданию Корана — краткий тафсир на арабском языке', ar: 'مجمع الملك فهد لطباعة المصحف الشريف', tr: 'Kral Fahd Kur’an-ı Kerim Basım Kompleksi — Arapça muhtasar tefsir' },
+  },
+  // Quranın əlavə dillərdəki tərcümələri (/id/quran …) — src/seo/langs.js-dən
+  {
+    name: { az: 'Quranın digər dillərə məna tərcümələri', en: 'Translations of the meaning of the Quran into other languages', ru: 'Переводы смыслов Корана на другие языки', ar: 'ترجمات معاني القرآن إلى لغات أخرى', tr: 'Kur’an’ın diğer dillere mealleri' },
+    url: 'https://alquran.cloud/translations',
+    by: { az: 'Hər dildə bir rəsmi nəşr, mətn dəyişdirilmədən göstərilir', en: 'One published edition per language, shown unchanged', ru: 'По одному опубликованному изданию на каждый язык, текст показан без изменений', ar: 'إصدار منشور واحد لكل لغة، يُعرض النص دون تعديل', tr: 'Her dil için yayımlanmış bir meal, metin değiştirilmeden gösterilir' },
+    note: EXTRA_CODES.map(c => `${EXTRA_LANGS[c].name} — ${EXTRA_LANGS[c].by}`).join(' · '),
   },
   // Oxuyucudakı tərcümə seçicisi — utils/quranEnc.js
   {

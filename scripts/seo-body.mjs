@@ -21,7 +21,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { LANGS, pathFor, detailParams } from '../src/seo/routes.js'
+import { LANGS, EXTRA_LANGS, EXTRA_CODES, hasPageInLang, dirOf, pathFor, detailParams } from '../src/seo/routes.js'
+import { localDigits } from '../src/seo/intl.js'
 import { shortName, descFor } from '../src/seo/meta.js'
 import { brandName } from '../src/config/brand.js'
 import {
@@ -35,7 +36,7 @@ import { SAHABA, slugOf } from '../src/data/sahaba.js'
 import { SCHOLARS, ERAS, ERA_LABEL, ERA_SPAN, dateText, lifeSpan } from '../src/data/scholars.js'
 import { LESSONS, LESSON_CATS, CAT_BY_KEY } from '../src/data/lessons/index.js'
 import { localizeSource } from '../src/utils/sourceNames.js'
-import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala } from '../src/utils/quranText.js'
+import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala, stripTranslationNotes } from '../src/utils/quranText.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
 setGlossarySource(GLOSSARY_BY_ID)
@@ -45,7 +46,11 @@ const QURAN_DIR = path.join(ROOT, 'seo-data', 'quran')
 
 // Hər dilin tərcümə nəşri — QuranPage.jsx → EDITION_MAP ilə eyni
 // (ərəbcədə ar.muyassar təfsiridir)
-const EDITION = { az: 'az.mammadaliyev', en: 'en.asad', ru: 'ru.kuliev', ar: 'ar.muyassar', tr: 'tr.diyanet' }
+// + əlavə dillər (src/seo/langs.js) — rəsmi nəşr, yalnız Quran səhifələri
+const EDITION = { az: 'az.mammadaliyev', en: 'en.asad', ru: 'ru.kuliev', ar: 'ar.muyassar', tr: 'tr.diyanet',
+  ...Object.fromEntries(EXTRA_CODES.map(c => [c, EXTRA_LANGS[c].quran])) }
+/** Nəşrin ayə mətni (fars nəşrində [[…]] lüğət qeydləri ayrılır — QuranPage.jsx ilə eyni). */
+const trAyah = (text, lang) => (EXTRA_LANGS[lang]?.notes ? stripTranslationNotes(text) : (text || ''))
 
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;')
@@ -104,13 +109,19 @@ function surahBody(lang, n) {
   const m = detailMeta('quran', lang, n)
   const s = surahInfo(n, lang)
   const ar = edition('quran-uthmani').ayahs[n - 1]
-  const tr = edition(EDITION[lang]).ayahs[n - 1]
-  const trName = lang === 'en' ? edition(EDITION[lang]).edition.englishName : edition(EDITION[lang]).edition.name
+  const tr = edition(EDITION[lang]).ayahs[n - 1].map(t => trAyah(t, lang))
+  const extra = EXTRA_LANGS[lang]
+  const trName = extra ? extra.by : lang === 'en' ? edition(EDITION[lang]).edition.englishName : edition(EDITION[lang]).edition.name
+  // Tərcümə abzasının dili/istiqaməti (əlavə dildə interfeys yazıları ilə eyni dildir)
+  const trAttr = extra ? ` lang="${lang}" dir="${dirOf(lang)}"` : ''
+  // Bəsmələnin mənası: əlavə dildə həmin nəşrin öz tərcüməsi (Fatihə 1:1)
+  const basmalahTr = extra ? extra.basmala : L.basmalah
+  const num = (v) => localDigits(v, lang)
 
   const ayahs = ar.map((text, i) =>
     `<li id="ayah-${i + 1}"><p class="seo-static__ayah ui-arabic" lang="ar" dir="rtl">` +
     `<span class="seo-static__n" dir="ltr">${n}:${i + 1}</span> ${esc(displayAyah(text, n, i))}</p>` +
-    (tr[i] ? `<p class="seo-static__tr">${esc(tr[i])}</p>` : '') + `</li>`).join('')
+    (tr[i] ? `<p class="seo-static__tr"${trAttr}>${esc(tr[i])}</p>` : '') + `</li>`).join('')
 
   const near = (k, label) => {
     const x = surahInfo(k, lang)
@@ -123,11 +134,11 @@ function surahBody(lang, n) {
     (lang === 'ar' ? '' : `<p class="seo-static__ar ui-arabic" lang="ar" dir="rtl">${esc(s.arFull)}</p>`) +
     `<h1>${esc(m.h1)}</h1>` +
     `<p class="seo-static__lead">${esc(m.intro)}</p>` +
-    facts([[L.number, n], [L.ayahs, s.ayahs], [L.place, s.medinan ? L.medina : L.mecca], [L.meaning, s.meaning]]) +
+    facts([[L.number, num(n)], [L.ayahs, num(s.ayahs)], [L.place, s.medinan ? L.medina : L.mecca], [L.meaning, s.meaning]]) +
     `</header>` +
     (hasSeparateBasmala(n)
       ? `<p class="seo-static__basmala ui-arabic" lang="ar" dir="rtl">${BASMALA_DISPLAY}</p>` +
-        (L.basmalah ? `<p class="seo-static__basmala-tr">${esc(L.basmalah)}</p>` : '')
+        (basmalahTr ? `<p class="seo-static__basmala-tr"${trAttr}>${esc(basmalahTr)}</p>` : '')
       : '') +
     // PERFORMANS: uzun surədə (Bəqərə — 286 ayə) ekrandan kənar ayələrin
     // üslub/düzülüş hesabı brauzer görənədək təxirə salınır (content-visibility).
@@ -475,7 +486,8 @@ function listShell(key, lang, heading, items) {
  * param — detal parametri (surə/ad nömrəsi, səhabə/alim slug-u) və ya null.
  */
 export function staticBodyFor(key, lang, param = null) {
-  if (!LANGS.includes(lang)) return ''
+  // Əlavə dildə yalnız mövcud bölmələr (Quran) — src/seo/langs.js
+  if (!LANGS.includes(lang) && !(EXTRA_LANGS[lang] && hasPageInLang(key, lang))) return ''
   if (key === 'quran') return param ? surahBody(lang, param) : quranListBody(lang)
   if (key === 'names') return param ? nameBody(lang, param) : namesListBody(lang)
   if (key === 'sahaba') return param ? sahabaBody(lang, param) : sahabaListBody(lang)
@@ -498,7 +510,7 @@ export function staticBodyFor(key, lang, param = null) {
  * və preload istifadə olunmurdu (sorğu iki dəfə gedirdi — yoxlanılıb).
  */
 export function staticPreloadFor(key, lang, param = null) {
-  if (key !== 'quran' || !LANGS.includes(lang)) return ''
+  if (key !== 'quran' || !EDITION[lang]) return ''
   const api = 'https://api.alquran.cloud/v1'
   const links = [`<link rel="preconnect" href="https://api.alquran.cloud" crossorigin />`]
   if (param) links.push(`<link rel="preload" as="fetch" crossorigin="anonymous" href="${api}/surah/${param}/editions/ar.alafasy,${EDITION[lang]}" />`)

@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspen
 import { useLang } from "../contexts/LangContext";
 import { brandName } from "../config/brand";
 import { PRIMARY_NAV, navShortLabel } from "../data/navigation";
-import { pathFor } from "../seo/routes";
+import { pathFor, EXTRA_LANGS, EXTRA_CODES } from "../seo/routes";
 import { useBackToClose } from "../utils/useBackToClose";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 import SideNav from "./SideNav";
@@ -71,31 +71,37 @@ const LANGS = [
   { code: "tr", label: "TR", native: "Türkçe" },
 ];
 
+// Əlavə dillər (src/seo/langs.js) — hələlik yalnız Quran bu dillərdədir:
+// menyuda ayrıca "Quran digər dillərdə" başlığı altında; seçiləndə həmin
+// dildə Quran açılır (LangContext → setLang), interfeys ingiliscə qalır
+const EXTRA = EXTRA_CODES.map(c => ({ code: c, label: c.toUpperCase(), native: EXTRA_LANGS[c].name }));
+const ALL_OPTIONS = [...LANGS, ...EXTRA];
+
 const LABELS = {
   az: {
     primaryNav: "Əsas bölmələr", home: "Ana səhifə", menu: "Menyu",
     search: "Axtar", dark: "Qaranlıq rejim", light: "İşıqlı rejim",
-    changeLang: "Dili dəyiş", selectLang: "Dil seçin",
+    changeLang: "Dili dəyiş", selectLang: "Dil seçin", moreLangs: "Quran digər dillərdə",
   },
   en: {
     primaryNav: "Main sections", home: "Home", menu: "Menu",
     search: "Search", dark: "Dark mode", light: "Light mode",
-    changeLang: "Change language", selectLang: "Select language",
+    changeLang: "Change language", selectLang: "Select language", moreLangs: "Quran in other languages",
   },
   ru: {
     primaryNav: "Основные разделы", home: "Главная", menu: "Меню",
     search: "Поиск", dark: "Тёмная тема", light: "Светлая тема",
-    changeLang: "Изменить язык", selectLang: "Выберите язык",
+    changeLang: "Изменить язык", selectLang: "Выберите язык", moreLangs: "Коран на других языках",
   },
   ar: {
     primaryNav: "الأقسام الرئيسية", home: "الرئيسية", menu: "القائمة",
     search: "بحث", dark: "الوضع الداكن", light: "الوضع الفاتح",
-    changeLang: "تغيير اللغة", selectLang: "اختر اللغة",
+    changeLang: "تغيير اللغة", selectLang: "اختر اللغة", moreLangs: "القرآن بلغات أخرى",
   },
   tr: {
     primaryNav: "Ana bölümler", home: "Ana sayfa", menu: "Menü",
     search: "Ara", dark: "Karanlık mod", light: "Aydınlık mod",
-    changeLang: "Dili değiştir", selectLang: "Dil seçin",
+    changeLang: "Dili değiştir", selectLang: "Dil seçin", moreLangs: "Diğer dillerde Kur’an",
   },
 };
 
@@ -174,9 +180,10 @@ function Header({ currentPage, setPage }) {
   const [searchMounted, setSearchMounted] = useState(false);
   const [searchQ,       setSearchQ]       = useState("");
 
-  const { lang, setLang: setLangCtx, dark, toggleDark } = useLang();
+  const { lang, siteLang = lang, setLang: setLangCtx, dark, toggleDark } = useLang();
   const l = LABELS[lang] || LABELS.az;
-  const currentLang = LANGS.find(x => x.code === lang) || LANGS[0];
+  // Düymədə URL-in dili (/id/quran → ID), interfeys ingiliscə olsa belə
+  const currentLang = ALL_OPTIONS.find(x => x.code === siteLang) || LANGS[0];
 
   const langRef = useRef(null);
   const langBtnRef = useRef(null);
@@ -260,7 +267,7 @@ function Header({ currentPage, setPage }) {
   const changeLang = (code) => {
     setLangOpen(false);
     langBtnRef.current?.focus({ preventScroll: true });
-    if (code !== lang) setLangCtx(code);
+    if (code !== siteLang) setLangCtx(code);
   };
 
   const goTo = useCallback((p) => {
@@ -490,7 +497,7 @@ function Header({ currentPage, setPage }) {
               {langOpen && (
                 <div className="lang-dropdown" id="hdr-lang-menu" role="group" aria-label={l.selectLang}>
                   {LANGS.map(x => {
-                    const selected = lang === x.code;
+                    const selected = siteLang === x.code;
                     return (
                       <button
                         type="button"
@@ -508,6 +515,24 @@ function Header({ currentPage, setPage }) {
                       </button>
                     );
                   })}
+                  <p className="lang-more-head" id="hdr-lang-more">{l.moreLangs}</p>
+                  <div className="lang-more" role="group" aria-labelledby="hdr-lang-more">
+                    {EXTRA.map(x => {
+                      const selected = siteLang === x.code;
+                      return (
+                        <button
+                          type="button"
+                          key={x.code}
+                          className={`lang-option lang-option--mini${selected ? " selected" : ""}`}
+                          onClick={() => changeLang(x.code)}
+                          lang={x.code}
+                          aria-current={selected ? "true" : undefined}
+                        >
+                          <span className="lang-option-native">{x.native}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

@@ -10,16 +10,35 @@
 
 import { SURAH_SLUGS } from './surahSlugs.js'
 import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS, GLOSSARY_SLUGS } from './detailSlugs.js'
+import { EXTRA_LANGS, EXTRA_CODES, EXTRA_PAGES, EXTRA_UI_LANG, isExtraLang } from './langs.js'
 
 export const SITE = 'https://muslims.cc'
 
+// 5 əsas dil — bütün məzmun bu dillərdədir (interfeys, hədis, dərs, lüğət…)
 export const LANGS = ['az', 'en', 'ru', 'ar', 'tr']
 export const DEFAULT_LANG = 'az'
+
+// Əlavə dillər (src/seo/langs.js) — yalnız EXTRA_PAGES səhifələrində (Quran)
+export { EXTRA_LANGS, EXTRA_CODES, EXTRA_PAGES, isExtraLang }
+export const ALL_LANGS = [...LANGS, ...EXTRA_CODES]
 
 // hreflang üçün tam locale kodları
 export const LOCALES = {
   az: 'az_AZ', en: 'en_US', ru: 'ru_RU', ar: 'ar_SA', tr: 'tr_TR',
+  ...Object.fromEntries(EXTRA_CODES.map(c => [c, EXTRA_LANGS[c].locale])),
 }
+
+/** Səhifə (key) bu dildə mövcuddurmu? Əsas dillərdə — hamısı; əlavədə — EXTRA_PAGES. */
+export const hasPageInLang = (key, lang) => LANGS.includes(lang) || (isExtraLang(lang) && EXTRA_PAGES.includes(key))
+
+/** Səhifənin mövcud olduğu dillər (hreflang, sitemap, prerender üçün). */
+export const langsFor = (key) => (EXTRA_PAGES.includes(key) ? ALL_LANGS : LANGS)
+
+/** İnterfeys mətnlərinin dili: əsas dil olduğu kimi, əlavə dil → ingiliscə. */
+export const uiLang = (lang) => (LANGS.includes(lang) ? lang : EXTRA_UI_LANG)
+
+/** Mətn istiqaməti (rtl: ərəb, urdu, fars, puştu). */
+export const dirOf = (lang) => (lang === 'ar' || EXTRA_LANGS[lang]?.dir === 'rtl' ? 'rtl' : 'ltr')
 
 // ── Səhifələr ────────────────────────────────────────
 // key      — App.jsx-dəki daxili ad (setPage(key) API-si dəyişmir)
@@ -209,8 +228,12 @@ export function detailParams(key) {
 /**
  * Səhifə + dil (+ detal parametri) → tam yol. az = prefiksiz (kanonik kök).
  * param verilməyibsə və ya düzgün deyilsə — siyahı səhifəsinin yolu.
+ * Əlavə dil (id, ur…) yalnız EXTRA_PAGES üçün prefiks alır; digər səhifə
+ * ingiliscə yola düşür (/id + prayer → /en/prayer).
  */
 export function pathFor(key, lang = DEFAULT_LANG, param) {
+  // Əlavə dildə olmayan səhifə → ingiliscə variantı (məzmunsuz /id/prayer yaranmasın)
+  if (!LANGS.includes(lang)) lang = hasPageInLang(key, lang) ? lang : (isExtraLang(lang) ? EXTRA_UI_LANG : DEFAULT_LANG)
   const page = PAGES.find(p => p.key === key)
   const slug = page ? page.path : ''
   const prefix = lang === DEFAULT_LANG ? '' : `/${lang}`
@@ -231,9 +254,17 @@ export function urlFor(key, lang = DEFAULT_LANG, param) {
  * Detal səhifəsi olmayan bölmələrdə əlavə seqment əvvəlki kimi nəzərə alınmır.
  */
 export function parsePath(pathname) {
+  const r = parseCore(pathname)
+  // Əlavə dilin kökü (/id) və bu dildə olmayan səhifə (/id/prayer) —
+  // App.jsx ingiliscə variantına (pathFor) replace edir
+  if (r.known && isExtraLang(r.lang) && !hasPageInLang(r.key, r.lang)) r.fallback = true
+  return r
+}
+
+function parseCore(pathname) {
   const parts = String(pathname || '/').split('/').filter(Boolean)
   let lang = DEFAULT_LANG
-  if (parts.length && LANGS.includes(parts[0]) && parts[0] !== DEFAULT_LANG) {
+  if (parts.length && ALL_LANGS.includes(parts[0]) && parts[0] !== DEFAULT_LANG) {
     lang = parts.shift()
   } else if (parts[0] === DEFAULT_LANG) {
     parts.shift() // /az/... da qəbul edilir, kanonik forma prefiksizdir

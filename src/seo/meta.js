@@ -27,6 +27,7 @@
 
 import { BRAND, brandName } from '../config/brand.js'
 import { withBrand } from './title.js'
+import { INTL_QURAN_LIST } from './intlMeta.js'
 
 // Uyğunluq üçün saxlanılıb — dilə görə ad üçün brandName(lang) istifadə et
 export const SUFFIX = BRAND.name.az
@@ -828,7 +829,8 @@ export const META = {
  */
 export function pickMeta(key, lang = 'az') {
   const entry = META[key] || META.home
-  for (const l of (FALLBACK[lang] || FALLBACK.az)) {
+  // Əlavə dil (src/seo/langs.js): öz mətni (yalnız Quran), yoxdursa ingiliscə
+  for (const l of (FALLBACK[lang] || [lang, 'en', 'az'])) {
     if (entry[l]) return entry[l]
   }
   return entry.az || entry.en || META.home.az
@@ -871,7 +873,9 @@ export const OG_ALT = {
 
 /** Dilə uyğun OG şəklinin tam URL-i. */
 export function ogImageFor(lang = 'az') {
-  const file = lang === 'az' || !OG_ALT[lang] ? 'og-image.png' : `og-image-${lang}.png`
+  // Əlavə dilin öz kartı yoxdur — ingiliscə kart (azərbaycanca yox)
+  const l = OG_ALT[lang] ? lang : 'en'
+  const file = l === 'az' || !OG_ALT[l] ? 'og-image.png' : `og-image-${l}.png`
   return `${BRAND.url}/${file}`
 }
 
@@ -879,3 +883,6 @@ export function ogImageFor(lang = 'az') {
 export function shortName(key, lang = 'az') {
   return pickMeta(key, lang).t.split(' — ')[0].trim()
 }
+
+// Əlavə dillərin Quran siyahısı (/id/quran …) — src/seo/intlMeta.js
+Object.assign(META.quran, INTL_QURAN_LIST)

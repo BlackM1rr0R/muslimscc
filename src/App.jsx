@@ -4,7 +4,7 @@ import OfflineBadge from './components/OfflineBadge'
 import AutoSyncToast from './components/AutoSyncToast'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
-import { LANGS, parsePath, pathFor, legacyDetailParam } from './seo/routes'
+import { ALL_LANGS, parsePath, pathFor, legacyDetailParam, uiLang } from './seo/routes'
 import Seo from './seo/Seo'
 import { isOverlayEntry } from './utils/useBackToClose'
 import Header from './components/Header'
@@ -262,7 +262,7 @@ function canonicalDetail(location, key, lang, param) {
 function legacyRedirect(pathname) {
   const parts = String(pathname || '/').split('/').filter(Boolean)
   let lang = 'az'
-  if (parts.length && LANGS.includes(parts[0])) lang = parts.shift()
+  if (parts.length && ALL_LANGS.includes(parts[0])) lang = parts.shift()
   const to = parts.length === 1 ? LEGACY_REDIRECTS[parts[0].toLowerCase()] : null
   return to ? { lang, to } : null
 }
@@ -277,7 +277,7 @@ function AppInner() {
 
   // Səhifə və dil artıq URL-dən oxunur — hər səhifənin öz ünvanı var
   // (/quran, /ru/quran) ki, Google onları ayrıca indeksləyə bilsin.
-  const { lang, key, known, param, removed } = parsePath(location.pathname)
+  const { lang, key, known, param, removed, fallback } = parsePath(location.pathname)
   const hash = location.hash
   const isAdminKey = key === 'admin' || key === 'adminlogin'
   // "#admin" istənilən səhifədən gizli girişi açır, amma /admin marşrutunun
@@ -392,6 +392,8 @@ function AppInner() {
   if (legacy) return <Navigate to={pathFor(legacy.to, legacy.lang)} replace />
   // Köhnə siyahıdan çıxarılmış ad (/names/23-al-khafid) → /names siyahısı (replace)
   if (removed) return <Navigate to={pathFor(key, lang)} replace />
+  // Əlavə dildə olmayan səhifə (/id/prayer) → ingiliscə variantı (src/seo/langs.js)
+  if (fallback) return <Navigate to={`${pathFor(key, lang, param ?? undefined)}${location.search}${location.hash}`} replace />
   const detailFix = known ? canonicalDetail(location, key, lang, param) : null
   if (detailFix) return <Navigate to={detailFix} replace state={location.state} />
 
@@ -407,7 +409,7 @@ function AppInner() {
   // saxlayır — arada boş ekran / spinner "yanıb-sönməsi" olmur. Spinner
   // yalnız ilk açılışda (hələ heç nə göstərilməyibsə) görünür.
   const pageMain = (
-    <PageErrorBoundary page={page} lang={lang}>
+    <PageErrorBoundary page={page} lang={uiLang(lang)}>
     <Suspense fallback={<PageFallback />}>
       {/* PERFORMANS (CLS): <main> ən azı görünən sahə hündürlüyündədir — footer
           ilk kadrda ekranın ALTINDAN başlayır. Əvvəl səhifə chunk-ı / məlumatı
@@ -433,7 +435,7 @@ function AppInner() {
   return (
     <>
       <Seo page={page} lang={lang} param={page === key ? param : null} />
-      <a className="qm-skip" href={`#${MAIN_ID}`} onClick={skipToMain}>{SKIP_LABEL[lang] || SKIP_LABEL.az}</a>
+      <a className="qm-skip" href={`#${MAIN_ID}`} onClick={skipToMain}>{SKIP_LABEL[uiLang(lang)] || SKIP_LABEL.az}</a>
       <Header currentPage={page} setPage={navigate} />
 
       {/* Tətbiq qabığı (globals.css → .qm-shell): [yan panel | əsas sütun].

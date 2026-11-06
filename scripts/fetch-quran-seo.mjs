@@ -24,6 +24,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { EXTRA_LANGS } from '../src/seo/langs.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = path.join(ROOT, 'seo-data', 'quran')
@@ -32,7 +33,11 @@ const API = 'https://api.alquran.cloud/v1'
 // QuranPage.jsx → EDITION_MAP ilə eyni nəşrlər. Ərəbcə mətn: quran-uthmani
 // (tətbiqin istifadə etdiyi ar.alafasy nəşrinin mətni ilə hərfbəhərf eynidir —
 // yoxlanılıb; audio sahələri olmadığı üçün yığcamdır).
-const EDITIONS = ['quran-uthmani', 'az.mammadaliyev', 'en.asad', 'ru.kuliev', 'tr.diyanet', 'ar.muyassar']
+// + əlavə dillərin nəşrləri (src/seo/langs.js → EXTRA_LANGS[..].quran).
+const EDITIONS = ['quran-uthmani', 'az.mammadaliyev', 'en.asad', 'ru.kuliev', 'tr.diyanet', 'ar.muyassar',
+  ...Object.values(EXTRA_LANGS).map(l => l.quran)]
+// Mövcud nəşr faylı yenidən çəkilmir (mətn dəyişmir); --force — hamısını yenilə
+const FORCE = process.argv.includes('--force')
 
 async function getJSON(url) {
   for (let i = 0; i < 3; i++) {
@@ -65,6 +70,7 @@ fs.writeFileSync(path.join(OUT, 'meta.json'), JSON.stringify(meta))
 console.log('✓ meta.json')
 
 for (const ed of EDITIONS) {
+  if (!FORCE && fs.existsSync(path.join(OUT, `${ed}.json`))) { console.log(`· ${ed}.json (var)`); continue }
   const d = await getJSON(`${API}/quran/${ed}`)
   if (d?.edition?.identifier !== ed || d.surahs?.length !== 114) throw new Error(`${ed}: gözlənilməz cavab`)
   const ayahs = d.surahs.map((s, i) => {

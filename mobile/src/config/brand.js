@@ -161,7 +161,8 @@ export function tr(obj, lang = 'az') {
 
 /** Brend adı cari dildə. */
 export function brandName(lang = 'az') {
-  return tr(BRAND.name, lang)
+  // Əlavə dil (src/seo/langs.js) — domen adı hər dildə eynidir, xəbərdarlıqsız en
+  return tr(BRAND.name, BRAND.name[lang] ? lang : 'en')
 }
 
 /**

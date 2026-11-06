@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { SITE, LANGS, LOCALES, DEFAULT_LANG, DETAILS, urlFor, pathFor } from './routes'
+import { SITE, LOCALES, DEFAULT_LANG, DETAILS, urlFor, pathFor, langsFor, uiLang } from './routes'
 import { titleFor, descFor, ogImageFor, OG_ALT } from './meta'
 import { brandName, siteJsonLd } from '../config/brand'
 
@@ -37,12 +37,12 @@ function setMeta(attr, key, content) {
   el.setAttribute('content', content)
 }
 
-/** og:locale:alternate — cari dildən başqa dillər (bütün köhnələri əvəz edir). */
-function setLocaleAlternates(lang) {
+/** og:locale:alternate — səhifənin cari dildən başqa dilləri (bütün köhnələri əvəz edir). */
+function setLocaleAlternates(lang, page) {
   document.head
     .querySelectorAll('meta[property="og:locale:alternate"]')
     .forEach(el => el.remove())
-  for (const l of LANGS) {
+  for (const l of langsFor(page)) {
     if (l === lang) continue
     const el = document.createElement('meta')
     el.setAttribute('property', 'og:locale:alternate')
@@ -123,19 +123,20 @@ function applySeo(page, lang, param, detail) {
   setMeta('property', 'og:url', isNotFound ? window.location.href : canonical)
   setMeta('property', 'og:locale', LOCALES[lang] || LOCALES.az)
   setMeta('property', 'og:site_name', brandName(lang))
-  setLocaleAlternates(lang)
-  // Paylaşım kartının şəkli və alt mətni də cari dildə
+  setLocaleAlternates(lang, page)
+  // Paylaşım kartının şəkli və alt mətni də cari dildə (əlavə dildə — ingiliscə kart)
+  const ogAlt = OG_ALT[uiLang(lang)] || OG_ALT.az
   setMeta('property', 'og:image', ogImageFor(lang))
-  setMeta('property', 'og:image:alt', OG_ALT[lang] || OG_ALT.az)
+  setMeta('property', 'og:image:alt', ogAlt)
   setMeta('name', 'twitter:title', title)
   setMeta('name', 'twitter:description', desc)
   setMeta('name', 'twitter:image', ogImageFor(lang))
-  setMeta('name', 'twitter:image:alt', OG_ALT[lang] || OG_ALT.az)
+  setMeta('name', 'twitter:image:alt', ogAlt)
 
-  // canonical + hreflang — hər dil variantı bir-birini göstərir
+  // canonical + hreflang — hər dil variantı bir-birini göstərir (Quran — 25 dil)
   setLinks('canonical', isNotFound ? [] : [{ rel: 'canonical', href: canonical }])
   setLinks('alt', isNotFound ? [] : [
-    ...LANGS.map(l => ({
+    ...langsFor(page).map(l => ({
       rel: 'alternate',
       hreflang: l,
       href: SITE + pathFor(page, l, param ?? undefined),
