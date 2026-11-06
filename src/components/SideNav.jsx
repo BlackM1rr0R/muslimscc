@@ -38,6 +38,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
+import { applyUiDict } from '../i18n/load'
 import { brandName } from '../config/brand'
 import { NAV_GROUPS, navGroupOf } from '../data/navigation'
 import { pathFor, parsePath, hasPageInLang, EXTRA_LANGS, EXTRA_CODES } from '../seo/routes'
@@ -620,9 +621,11 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
       try { window.localStorage.setItem(LANG_PREF_KEY, code) } catch { /* yaddaş bağlıdır */ }
       // Detal səhifəsində (/quran/2-…) eyni surə yeni dildə açılsın; əlavə
       // dildə bu səhifə yoxdursa — həmin dildə Quran (src/seo/langs.js)
-      routerNavigate(hasPageInLang(currentPage, code)
+      const to = hasPageInLang(currentPage, code)
         ? pathFor(currentPage, code, parsePath(window.location.pathname).param)
-        : pathFor('quran', code), { replace: true })
+        : pathFor('quran', code)
+      // Lüğət əvvəl yüklənsin — səhifə bir anlıq ingiliscə görünməsin (LangContext → setLang ilə eyni)
+      applyUiDict(code).catch(() => {}).then(() => routerNavigate(to, { replace: true }))
       return
     }
     setLang?.(code)

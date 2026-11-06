@@ -75,7 +75,14 @@ export function LangProvider({ children }) {
     if (!ALL_LANGS.includes(l)) return
     try { localStorage.setItem('muslim_cc_lang', l) } catch { /* yaddaş bağlıdır */ } // növbəti gəlişdə tərcih kimi
     // Əlavə dildə bu səhifə yoxdursa — həmin dildə Quran (dil seçicisi bunu yazır)
-    navigate(hasPageInLang(key, l) ? pathFor(key, l, param) : pathFor('quran', l))
+    const to = hasPageInLang(key, l) ? pathFor(key, l, param) : pathFor('quran', l)
+    // Lüğət ƏVVƏL yüklənir, keçid və dictLang eyni render-də dəyişir: əks halda
+    // səhifə əvvəl ingiliscə çəkilir, sonra lüğət gələndə ağac ikinci dəfə qurulur
+    // (yanıb-sönmə; açıq menyu bağlanırdı)
+    applyUiDict(l).catch(() => {}).then(() => {
+      setDictLang(uiDictLang())
+      navigate(to)
+    })
     // Push açıqdırsa, serverdəki abunəlik də yeni dilə keçsin — azan
     // bildirişi istifadəçinin indiki dilində gəlsin. Abunəlik yoxdursa
     // push modulu ümumiyyətlə yüklənmir (açarlar: src/api/push.js)

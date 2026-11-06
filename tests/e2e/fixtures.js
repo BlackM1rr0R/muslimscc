@@ -82,6 +82,15 @@ export const test = base.extend({
       const eds = decodeURIComponent(route.request().url().split('/editions/')[1].split('?')[0]).split(',')
       route.fulfill({ json: { code: 200, status: 'OK', data: eds.map(e => surahEdition(e, e.startsWith('ar.') ? 'quran' : 'translation')) } })
     })
+    // Günün ayəsi (/v1/ayah/<n>/editions/…) — real API-yə getməsin (paralel testlərdə
+    // alquran.cloud sorğuları rədd edir, CORS xətası konsola düşürdü)
+    await page.route(/api\.alquran\.cloud\/v1\/ayah\/\d+\/editions\//, route => {
+      const eds = decodeURIComponent(route.request().url().split('/editions/')[1].split('?')[0]).split(',')
+      route.fulfill({ json: { code: 200, status: 'OK', data: eds.map(e => ({
+        number: 1, numberInSurah: 1, text: '[test 1:1]', surah: { number: 1, name: 'سُورَةُ ٱلْفَاتِحَةِ', englishName: 'Al-Faatiha' },
+        edition: { identifier: e, language: e.split('.')[0], type: e.startsWith('ar.') ? 'quran' : 'translation', format: 'text' },
+      })) } })
+    })
     await page.route(/api\.alquran\.cloud\/v1\/surah(\?|$)/, route => route.fulfill({
       // 1-ci sürə real adı ilə (testlər onu adla tapıb açır), qalanları yer tutucu
       json: { code: 200, status: 'OK', data: Array.from({ length: 114 }, (_, i) => (i === 0

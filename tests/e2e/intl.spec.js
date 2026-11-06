@@ -50,6 +50,8 @@ test('əlavə dildə olmayan səhifə ingiliscə variantına keçir', async ({ p
 })
 
 test('dil menyusu: "Digər dillər" → həmin dildə Quran / eyni səhifə', async ({ page, consoleProblems }) => {
+  // 4 dil keçidi, hər birində lüğət chunk-ı yüklənir — yüklü CI-da 30 san. azdır
+  test.setTimeout(60_000)
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto('/prayer')
   await settle(page)
