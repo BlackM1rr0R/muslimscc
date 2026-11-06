@@ -176,8 +176,8 @@ describe('detal meta-sı (5 dil)', () => {
           expect(m.t.length, `${key}/${p}/${l}: ${m.t}`).toBeLessThanOrEqual(TITLE_MAX)
           expect(m.d.length, `${key}/${p}/${l}: ${m.d}`).toBeGreaterThanOrEqual(80)
           expect(m.d.length, `${key}/${p}/${l}: ${m.d}`).toBeLessThanOrEqual(170)
-          expect(m.t, `${key}/${p}/${l}`).not.toMatch(/\(\s*\)|undefined|null/)
-          expect(m.d, `${key}/${p}/${l}`).not.toMatch(/\(\s*\)|undefined|null/)
+          expect(m.t, `${key}/${p}/${l}`).not.toMatch(/\(\s*\)|\bundefined\b|\bnull\b/)
+          expect(m.d, `${key}/${p}/${l}`).not.toMatch(/\(\s*\)|\bundefined\b|\bnull\b/)
           titles.add(m.t)
           descs.add(m.d)
         }

@@ -24,7 +24,8 @@
 
 // code: { name — öz dilində ad (dil seçicisində), en — ingiliscə ad,
 //         dir, locale (og:locale), quran — alquran.cloud nəşri, by — tərcüməçi
-//         (nəşrin öz dilində; mənbə sətri),
+//         (nəşrin öz dilində; mənbə sətri), byLatin — latın yazılışı (by latın
+//         deyilsə; lisenziyalar səhifəsi — 5 dilin hamısında oxunsun),
 //         script: 'arab' — surə adı ərəbcə yazılır (urdu, fars, puştu),
 //         basmala — Bəsmələnin bu nəşrdəki tərcüməsi (Fatihə 1:1, hərfbəhərf;
 //         uz — mötərizədəki şərhsiz), oxuyucuda və statik blokda,
@@ -34,25 +35,25 @@
 // uz.sodik kiril əlifbasındadır — SEO mətnləri də kirilcədir (intl.js).
 export const EXTRA_LANGS = {
   id: { name: 'Bahasa Indonesia', en: 'Indonesian', dir: 'ltr', locale: 'id_ID', quran: 'id.indonesian', by: 'Kementerian Agama RI', basmala: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.' },
-  ur: { name: 'اردو', en: 'Urdu', dir: 'rtl', locale: 'ur_PK', quran: 'ur.junagarhi', by: 'محمد جوناگڑھی', script: 'arab', basmala: 'شروع کرتا ہوں اللہ تعالیٰ کے نام سے جو بڑا مہربان نہایت رحم واﻻ ہے' },
-  bn: { name: 'বাংলা', en: 'Bengali', dir: 'ltr', locale: 'bn_BD', quran: 'bn.bengali', by: 'মুহিউদ্দীন খান', basmala: 'শুরু করছি আল্লাহর নামে যিনি পরম করুণাময়, অতি দয়ালু।' },
-  fa: { name: 'فارسی', en: 'Persian', dir: 'rtl', locale: 'fa_IR', quran: 'fa.khorramdel', by: 'مصطفی خرمدل', script: 'arab', notes: true, basmala: 'به نام خداوند بخشنده‌ی مهربان.' },
+  ur: { name: 'اردو', en: 'Urdu', dir: 'rtl', locale: 'ur_PK', quran: 'ur.junagarhi', by: 'محمد جوناگڑھی', byLatin: 'Muhammad Junagarhi', script: 'arab', basmala: 'شروع کرتا ہوں اللہ تعالیٰ کے نام سے جو بڑا مہربان نہایت رحم واﻻ ہے' },
+  bn: { name: 'বাংলা', en: 'Bengali', dir: 'ltr', locale: 'bn_BD', quran: 'bn.bengali', by: 'মুহিউদ্দীন খান', byLatin: 'Muhiuddin Khan', basmala: 'শুরু করছি আল্লাহর নামে যিনি পরম করুণাময়, অতি দয়ালু।' },
+  fa: { name: 'فارسی', en: 'Persian', dir: 'rtl', locale: 'fa_IR', quran: 'fa.khorramdel', by: 'مصطفی خرمدل', byLatin: 'Mostafa Khorramdel', script: 'arab', notes: true, basmala: 'به نام خداوند بخشنده‌ی مهربان.' },
   ms: { name: 'Bahasa Melayu', en: 'Malay', dir: 'ltr', locale: 'ms_MY', quran: 'ms.basmeih', by: 'Abdullah Muhammad Basmeih', basmala: 'Dengan nama Allah, Yang Maha Pemurah, lagi Maha Mengasihani.' },
   fr: { name: 'Français', en: 'French', dir: 'ltr', locale: 'fr_FR', quran: 'fr.hamidullah', by: 'Muhammad Hamidullah', basmala: 'Au nom d\'Allah, le Tout Miséricordieux, le Très Miséricordieux.' },
   de: { name: 'Deutsch', en: 'German', dir: 'ltr', locale: 'de_DE', quran: 'de.bubenheim', by: 'A. S. F. Bubenheim, N. Elyas', basmala: 'Im Namen Allahs, des Allerbarmers, des Barmherzigen.' },
   es: { name: 'Español', en: 'Spanish', dir: 'ltr', locale: 'es_ES', quran: 'es.garcia', by: 'Isa García', basmala: 'En el nombre de Dios, el Compasivo con toda la creación, el Misericordioso con los creyentes.' },
   pt: { name: 'Português', en: 'Portuguese', dir: 'ltr', locale: 'pt_BR', quran: 'pt.elhayek', by: 'Samir El-Hayek', basmala: 'Em nome de Deus, o Clemente, o Misericordioso.' },
-  hi: { name: 'हिन्दी', en: 'Hindi', dir: 'ltr', locale: 'hi_IN', quran: 'hi.hindi', by: 'सुहेल फ़ारूक़ ख़ान, सैफ़ुर्रहमान नदवी', basmala: 'अल्लाह के नाम से जो रहमान व रहीम है।' },
-  uz: { name: 'Ўзбекча', en: 'Uzbek', dir: 'ltr', locale: 'uz_UZ', quran: 'uz.sodik', by: 'Муҳаммад Содиқ Муҳаммад Юсуф', basmala: 'Меҳрибон ва раҳмли Аллоҳнинг номи билан бошлайман.' },
+  hi: { name: 'हिन्दी', en: 'Hindi', dir: 'ltr', locale: 'hi_IN', quran: 'hi.hindi', by: 'सुहेल फ़ारूक़ ख़ान, सैफ़ुर्रहमान नदवी', byLatin: 'Suhel Farooq Khan, Saifur Rahman Nadwi', basmala: 'अल्लाह के नाम से जो रहमान व रहीम है।' },
+  uz: { name: 'Ўзбекча', en: 'Uzbek', dir: 'ltr', locale: 'uz_UZ', quran: 'uz.sodik', by: 'Муҳаммад Содиқ Муҳаммад Юсуф', byLatin: 'Muhammad Sodiq Muhammad Yusuf', basmala: 'Меҳрибон ва раҳмли Аллоҳнинг номи билан бошлайман.' },
   sw: { name: 'Kiswahili', en: 'Swahili', dir: 'ltr', locale: 'sw_KE', quran: 'sw.barwani', by: 'Ali Muhsin Al-Barwani', basmala: 'KWA JINA LA MWENYEZI MUNGU MWINGI WA REHEMA MWENYE KUREHEMU.' },
   ha: { name: 'Hausa', en: 'Hausa', dir: 'ltr', locale: 'ha_NG', quran: 'ha.gumi', by: 'Abubakar Mahmoud Gumi', basmala: 'Da sũnan Allah, Mai rahama, Mai jin ƙai.' },
   so: { name: 'Soomaali', en: 'Somali', dir: 'ltr', locale: 'so_SO', quran: 'so.abduh', by: 'Mahmud Muhammad Abduh', basmala: 'Magaca Eebe yaan kubillaabaynaa ee Naxariis guud iyo mid gaaraba Naxariista.' },
-  ps: { name: 'پښتو', en: 'Pashto', dir: 'rtl', locale: 'ps_AF', quran: 'ps.abdulwali', by: 'عبدالولي', script: 'arab', basmala: 'د الله په نامه سره (شروع كوم) چې ډېر زیات مهربان، بې حده رحم كوونكى دى' },
+  ps: { name: 'پښتو', en: 'Pashto', dir: 'rtl', locale: 'ps_AF', quran: 'ps.abdulwali', by: 'عبدالولي', byLatin: 'Abdul Wali', script: 'arab', basmala: 'د الله په نامه سره (شروع كوم) چې ډېر زیات مهربان، بې حده رحم كوونكى دى' },
   bs: { name: 'Bosanski', en: 'Bosnian', dir: 'ltr', locale: 'bs_BA', quran: 'bs.korkut', by: 'Besim Korkut', basmala: 'U ime Allaha, Milostivog, Samilosnog!' },
   sq: { name: 'Shqip', en: 'Albanian', dir: 'ltr', locale: 'sq_AL', quran: 'sq.ahmeti', by: 'Sherif Ahmeti', basmala: 'Me emrin e All-llahut, Mëshiruesit, Mëshirëbërësit!' },
   it: { name: 'Italiano', en: 'Italian', dir: 'ltr', locale: 'it_IT', quran: 'it.piccardo', by: 'Hamza Roberto Piccardo', basmala: 'In nome di Allah, il Compassionevole, il Misericordioso' },
   nl: { name: 'Nederlands', en: 'Dutch', dir: 'ltr', locale: 'nl_NL', quran: 'nl.siregar', by: 'Sofian S. Siregar', basmala: 'In de naam van Allah, de Erbarmer, de Meest Barmhartige.' },
-  zh: { name: '中文', en: 'Chinese', dir: 'ltr', locale: 'zh_CN', quran: 'zh.jian', by: '马坚', basmala: '奉至仁至慈的真主之名' },
+  zh: { name: '中文', en: 'Chinese', dir: 'ltr', locale: 'zh_CN', quran: 'zh.jian', by: '马坚', byLatin: 'Ma Jian', basmala: '奉至仁至慈的真主之名' },
 }
 
 export const EXTRA_CODES = Object.keys(EXTRA_LANGS)

@@ -81,7 +81,8 @@ const TRANSLATIONS = [
     name: { az: 'Quranın digər dillərə məna tərcümələri', en: 'Translations of the meaning of the Quran into other languages', ru: 'Переводы смыслов Корана на другие языки', ar: 'ترجمات معاني القرآن إلى لغات أخرى', tr: 'Kur’an’ın diğer dillere mealleri' },
     url: 'https://alquran.cloud/translations',
     by: { az: 'Hər dildə bir rəsmi nəşr, mətn dəyişdirilmədən göstərilir', en: 'One published edition per language, shown unchanged', ru: 'По одному опубликованному изданию на каждый язык, текст показан без изменений', ar: 'إصدار منشور واحد لكل لغة، يُعرض النص دون تعديل', tr: 'Her dil için yayımlanmış bir meal, metin değiştirilmeden gösterilir' },
-    note: EXTRA_CODES.map(c => `${EXTRA_LANGS[c].name} — ${EXTRA_LANGS[c].by}`).join(' · '),
+    // Latın yazılışı ilə (dilin ingiliscə adı + tərcüməçi) — 5 dilin hamısında oxunur
+    note: EXTRA_CODES.map(c => `${EXTRA_LANGS[c].en}: ${EXTRA_LANGS[c].byLatin || EXTRA_LANGS[c].by}`).join(" · "),
   },
   // Oxuyucudakı tərcümə seçicisi — utils/quranEnc.js
   {

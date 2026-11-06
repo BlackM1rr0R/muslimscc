@@ -62,6 +62,14 @@ describe('reyestr', () => {
     }
   })
 
+  it('tərcüməçinin latın yazılışı var (lisenziyalar səhifəsi bütün dillərdə)', () => {
+    for (const c of EXTRA_CODES) {
+      const v = EXTRA_LANGS[c].byLatin || EXTRA_LANGS[c].by
+      expect(v, c).toMatch(/^[\p{Script=Latin} .,'-]+$/u)
+      expect(v, c).not.toMatch(/\b(the|and|of)\b/)
+    }
+  })
+
   it('serverin statistika dilləri reyestrlə eynidir (server/analytics.js)', () => {
     const src = fs.readFileSync(path.join(ROOT, 'server', 'analytics.js'), 'utf8')
     const m = /const EXTRA_LANGS = \[([^\]]*)\]/.exec(src)
