@@ -1,6 +1,10 @@
 // Əlavə dillər (src/seo/langs.js): /id/quran — interfeys ingiliscə, tərcümə
 // həmin dilin rəsmi nəşrindən; bu dildə olmayan səhifə ingiliscəyə keçir
 import { test, expect, expectCleanConsole, settle } from './fixtures.js'
+import { EXTRA_LANGS, EXTRA_CODES } from '../../src/seo/langs.js'
+
+// İnterfeysi hələ tərcümə olunmamış əlavə dillər (yalnız Quran) — lüğətlər artdıqca testlər sınmasın
+const QONLY = EXTRA_CODES.filter(c => !EXTRA_LANGS[c].ui)
 
 test('indoneziyaca surə: nəşr, dil atributları, başlıq və tərcüməçi', async ({ page, consoleProblems }) => {
   const editions = []
@@ -37,27 +41,41 @@ test('urduca surə: interfeys urducadır (ui: true) — səhifə və tərcümə 
 })
 
 test('əlavə dildə olmayan səhifə ingiliscə variantına keçir', async ({ page }) => {
-  // de — interfeysi hələ tərcümə olunmayıb (yalnız Quran); id-də bütün səhifələr var
-  await page.goto('/de/prayer')
+  test.skip(!QONLY.length, 'bütün dillərin interfeysi tərcümə olunub')
+  // interfeysi hələ tərcümə olunmamış dil (yalnız Quran); id-də bütün səhifələr var
+  await page.goto(`/${QONLY[0]}/prayer`)
   await expect(page).toHaveURL(/\/en\/prayer$/)
-  await page.goto('/de')
+  await page.goto(`/${QONLY[0]}`)
   await expect(page).toHaveURL(/\/en$/)
 })
 
-test('dil menyusu: "Quran digər dillərdə" → həmin dildə Quran', async ({ page, consoleProblems }) => {
+test('dil menyusu: "Digər dillər" → həmin dildə Quran / eyni səhifə', async ({ page, consoleProblems }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto('/prayer')
   await settle(page)
   await page.locator('.lang-btn').click()
-  await expect(page.locator('.lang-more-head')).toHaveText('Quran digər dillərdə')
+  await expect(page.locator('.lang-more-head')).toHaveText('Digər dillər')
   await expect(page.locator('.lang-more .lang-option')).toHaveCount(20)
+  // Yalnız Quranı olan dil → həmin dildə Quran; interfeysi tərcümə olunmuş dil → eyni səhifə
+  if (QONLY.length) {
+    await page.locator('.lang-more .lang-option', { hasText: EXTRA_LANGS[QONLY[0]].name }).click()
+    await expect(page).toHaveURL(new RegExp(`/${QONLY[0]}/quran$`))
+  }
+  await page.goto('/quran')
+  await settle(page)
+  await page.locator('.lang-btn').click()
   await page.locator('.lang-more .lang-option', { hasText: 'Deutsch' }).click()
   await expect(page).toHaveURL(/\/de\/quran$/)
   await expect(page).toHaveTitle(/Koran/)
+  // Lüğət yüklənəndə ağac yenidən qurulur (LangContext) — sakitləşsin
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de')
+  await settle(page)
   // Quran səhifəsində başqa əlavə dilə — eyni səhifə
   await page.locator('.lang-btn').click()
   await page.locator('.lang-more .lang-option', { hasText: 'Français' }).click()
   await expect(page).toHaveURL(/\/fr\/quran$/)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fr')
+  await settle(page)
   // Əsas dilə qayıdış
   await page.locator('.lang-btn').click()
   await page.locator('.lang-option', { hasText: 'Русский' }).click()

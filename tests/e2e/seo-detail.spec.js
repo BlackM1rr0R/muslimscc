@@ -103,7 +103,7 @@ test.describe('xam prerender HTML (JS-siz robotun gördüyü)', () => {
     // Digər bölmələr: 5 dil + interfeysi tərcümə olunmuş dillər (id); de — yox
     const n = await raw(request, '/sitemap-names.xml')
     expect(n).toContain('https://muslims.cc/id/names/')
-    expect(n).not.toContain('https://muslims.cc/de/')
+    expect(n).not.toContain('https://muslims.cc/zh/')
     expect(q).toContain('hreflang="x-default" href="https://muslims.cc/quran/36-yaseen"')
   })
 })

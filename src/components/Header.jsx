@@ -72,8 +72,8 @@ const LANGS = [
   { code: "tr", label: "TR", native: "Türkçe" },
 ];
 
-// Əlavə dillər (src/seo/langs.js) — hələlik yalnız Quran bu dillərdədir:
-// menyuda ayrıca "Quran digər dillərdə" başlığı altında; seçiləndə həmin
+// Əlavə dillər (src/seo/langs.js): interfeysi tərcümə olunmuş dillərdə (ui: true) bütün sayt, qalanlarında hələlik yalnız Quran:
+// menyuda ayrıca "Digər dillər" başlığı altında; seçiləndə həmin
 // dildə Quran açılır (LangContext → setLang), interfeys ingiliscə qalır
 const EXTRA = EXTRA_CODES.map(c => ({ code: c, label: c.toUpperCase(), native: EXTRA_LANGS[c].name }));
 const ALL_OPTIONS = [...LANGS, ...EXTRA];
@@ -82,27 +82,27 @@ const LABELS = {
   az: {
     primaryNav: "Əsas bölmələr", home: "Ana səhifə", menu: "Menyu",
     search: "Axtar", dark: "Qaranlıq rejim", light: "İşıqlı rejim",
-    changeLang: "Dili dəyiş", selectLang: "Dil seçin", moreLangs: "Quran digər dillərdə",
+    changeLang: "Dili dəyiş", selectLang: "Dil seçin", moreLangs: "Digər dillər",
   },
   en: {
     primaryNav: "Main sections", home: "Home", menu: "Menu",
     search: "Search", dark: "Dark mode", light: "Light mode",
-    changeLang: "Change language", selectLang: "Select language", moreLangs: "Quran in other languages",
+    changeLang: "Change language", selectLang: "Select language", moreLangs: "More languages",
   },
   ru: {
     primaryNav: "Основные разделы", home: "Главная", menu: "Меню",
     search: "Поиск", dark: "Тёмная тема", light: "Светлая тема",
-    changeLang: "Изменить язык", selectLang: "Выберите язык", moreLangs: "Коран на других языках",
+    changeLang: "Изменить язык", selectLang: "Выберите язык", moreLangs: "Другие языки",
   },
   ar: {
     primaryNav: "الأقسام الرئيسية", home: "الرئيسية", menu: "القائمة",
     search: "بحث", dark: "الوضع الداكن", light: "الوضع الفاتح",
-    changeLang: "تغيير اللغة", selectLang: "اختر اللغة", moreLangs: "القرآن بلغات أخرى",
+    changeLang: "تغيير اللغة", selectLang: "اختر اللغة", moreLangs: "لغات أخرى",
   },
   tr: {
     primaryNav: "Ana bölümler", home: "Ana sayfa", menu: "Menü",
     search: "Ara", dark: "Karanlık mod", light: "Aydınlık mod",
-    changeLang: "Dili değiştir", selectLang: "Dil seçin", moreLangs: "Diğer dillerde Kur’an",
+    changeLang: "Dili değiştir", selectLang: "Dil seçin", moreLangs: "Diğer diller",
   },
 };
 
