@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { LANGS, DEFAULT_LANG, parsePath, pathFor } from '../seo/routes'
+import { browserLang, canAutoRedirect } from '../utils/browserLang'
 
 const LangCtx = createContext(null)
 
@@ -139,9 +140,11 @@ export function LangProvider({ children }) {
 export const useLang = () => useContext(LangCtx)
 
 /**
- * İlk gəlişdə saxlanmış dil tərcihini tətbiq et.
- * Yalnız prefiksiz kök URL-də işləyir ki, paylaşılan /en/quran kimi
- * linklər istifadəçinin köhnə tərcihi ilə oğurlanmasın.
+ * İlk gəlişdə dil: saxlanmış tərcih, o yoxdursa — brauzerin dili
+ * (src/utils/browserLang.js; ölkəyə/IP-yə görə yox). Brauzer seçimi bir dəfə
+ * edilir və tərcih kimi yazılır — sonra istifadəçinin öz seçimi hakimdir.
+ * Yalnız prefiksiz (az) URL-də işləyir ki, paylaşılan /en/quran kimi
+ * linklər oğurlanmasın. Robotlar yönləndirilmir (canAutoRedirect).
  */
 export function useStoredLangRedirect() {
   const location = useLocation()
@@ -150,6 +153,10 @@ export function useStoredLangRedirect() {
   useEffect(() => {
     let saved = null
     try { saved = localStorage.getItem('muslim_cc_lang') } catch { /* yaddaş bağlıdır */ }
+    if (!saved && canAutoRedirect()) {
+      saved = browserLang(LANGS)
+      try { if (saved) localStorage.setItem('muslim_cc_lang', saved) } catch { /* yaddaş bağlıdır */ }
+    }
     if (!saved || saved === DEFAULT_LANG || !LANGS.includes(saved)) return
     const { lang, key, param } = parsePath(location.pathname)
     if (lang !== DEFAULT_LANG) return
