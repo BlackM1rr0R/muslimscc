@@ -21,6 +21,7 @@ import { getSurahLocal } from '../../data/surahNamesAz'
 import { pathFor } from '../../seo/routes'
 import { qiyamState, hm } from '../../utils/qiyam'
 import '../../styles/QiyamMode.css'
+import { pickUi } from '../../utils/uiText'
 
 const T = {
   az: { title: 'Gecə namazı', close: 'Bağla', until: 'Gecənin son üçdə birinə', inNow: 'İndi gecənin son üçdə biridir', toFajr: 'sübhə qədər', starts: (t) => `başlayır: ${t}`, h: 'saat', m: 'dəq', witr: 'Vitrdə oxunan surələr', duas: 'Vitr duaları (Hisnul-Müslim)', wake: 'Ekran açıq qalır', src: 'Mənbə' },
@@ -34,9 +35,9 @@ const WITR = [87, 109, 112]
 const HISN_WITR = [33, 34]
 
 export default function QiyamMode({ nowMin, maghrib, fajr, lang = 'az', onClose }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const st = qiyamState(nowMin, maghrib, fajr)
-  const hadith = (HADITHS[lang] || HADITHS.en).find(h => h.id === 1808)
+  const hadith = (pickUi(HADITHS, lang, 'en')).find(h => h.id === 1808)
   const [duas, setDuas] = useState([])
   const [awake, setAwake] = useState(false)
   const closeRef = useRef(null)

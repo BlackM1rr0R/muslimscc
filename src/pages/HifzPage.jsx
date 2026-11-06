@@ -18,6 +18,7 @@ import { pathFor } from '../seo/routes'
 import { ColumnChart, Donut, ProgressRing, ProgressBar } from '../components/viz'
 import { HIFZ_GUIDE } from '../data/guides/HifzPage'
 import '../styles/HifzPage.css'
+import { pickUi } from '../utils/uiText'
 
 // 5 dilli sahə → cari dil (funksiya da ola bilər — rəqəmli mətnlər)
 const pk = (o, lang) => (o == null ? '' : typeof o === 'string' ? o : (o[lang] !== undefined ? o[lang] : o.az))
@@ -348,7 +349,7 @@ function useCapabilities() {
 
 // ── Məşq kartı: bir ayə ── (key ilə hər ayədə sıfırlanır)
 function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, onGrade, onClose, today }) {
-  const sm = SMART[lang] || SMART.az
+  const sm = pickUi(SMART, lang)
   const [attempt, setAttempt] = useState(0)
   const { verse, loading, error } = useAyah(item.s, item.a, attempt)
   const words = useMemo(() => (verse ? splitAyahWords(verse.ar) : []), [verse])
@@ -550,7 +551,7 @@ function ProgressChart({ series, lang, sm }) {
 
 // ── Ağıllı hifz bölməsi ──
 function SmartHifz({ lang, progress, setProgress, srs, setSrs }) {
-  const sm = SMART[lang] || SMART.az
+  const sm = pickUi(SMART, lang)
   const G = HIFZ_GUIDE.queue
   const today = dateKey()
   const stats = todayStats(srs, today)
@@ -774,8 +775,8 @@ function SmartHifz({ lang, progress, setProgress, srs, setSrs }) {
 
 export default function HifzPage() {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
-  const sl = STATUS_LABELS[lang] || STATUS_LABELS.az
+  const t = pickUi(LABELS, lang)
+  const sl = pickUi(STATUS_LABELS, lang)
 
   const [progress, setProgress] = useState(loadProgress)
   const [filter, setFilter] = useState('all') // all, memorized, inProgress, notStarted
@@ -907,7 +908,7 @@ export default function HifzPage() {
         <div className="ui-container hifz-layout">
           <div className="ui-section-head" data-reveal="">
             <span className="ui-eyebrow">{pk(HIFZ_GUIDE.tracker.eyebrow, lang)}</span>
-            <h2 id="hifz-tracker-title" className="ui-title">{(SMART[lang] || SMART.az).trackerTitle}</h2>
+            <h2 id="hifz-tracker-title" className="ui-title">{(pickUi(SMART, lang)).trackerTitle}</h2>
             <p className="ui-lead">{pk(HIFZ_GUIDE.tracker.lead, lang)}</p>
           </div>
 

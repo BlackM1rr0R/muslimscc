@@ -10,6 +10,7 @@ import { KIDS_DUAS, STORIES, IMAN_PILLARS, PILLARS_SOURCES, MANNERS, PARENTS } f
 import { ProgressRing } from '../components/viz'
 import '../styles/LessonsPage.css'
 import '../styles/KidsPage.css'
+import { pickUi } from '../utils/uiText'
 
 // Rüknlərin ikonları (Icon.jsx) — məlumatdakı emoji sahələri
 // artıq göstərilmir (dizayn v2: emoji ikon yoxdur). Sıra PILLARS ilədir.
@@ -362,8 +363,8 @@ const PROPHETS_FOR_KIDS = [
 
 export default function KidsPage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
-  const k = KX[lang] || KX.az
+  const t = pickUi(LABELS, lang)
+  const k = pickUi(KX, lang)
   const navigate = useNavigate()
 
   const [openSection, setOpenSection] = useState('names')
@@ -612,7 +613,7 @@ export default function KidsPage({ setPage }) {
                   <li key={i} className="kids-pillar-card">
                     <span className="kids-pillar-num ui-num" aria-hidden="true">{i + 1}</span>
                     <span className="kids-pillar-icon" aria-hidden="true"><Icon name={PILLAR_ICONS[i] || 'names'} /></span>
-                    <span className="kids-pillar-text">{p[lang] || p.az}</span>
+                    <span className="kids-pillar-text">{pickUi(p, lang)}</span>
                   </li>
                 ))}
               </ol>

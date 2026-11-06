@@ -11,6 +11,7 @@ import { MUSHAF_PAGES, SURAH_TABLE, JUZ_START_PAGES } from '../../data/mushafInd
 import { pathFor } from '../../seo/routes'
 import { isPlainClick } from '../PageLink'
 import { useNavigate } from 'react-router-dom'
+import { pickUi } from '../../utils/uiText'
 
 const KEY = 'quran_khatm_plan'
 const DAY_OPTIONS = [7, 10, 15, 30, 60, 90]
@@ -110,7 +111,7 @@ function surahAtPage(p) {
 const juzAtPage = p => JUZ_START_PAGES.reduce((j, start, i) => (start <= p ? i + 1 : j), 1)
 
 export default function KhatmPlanner({ lang, surahName }) {
-  const t = L[lang] || L.az
+  const t = pickUi(L, lang)
   const navigate = useNavigate()
   const [plan, setPlan] = useState(readPlan)
   const [days, setDays] = useState(30)

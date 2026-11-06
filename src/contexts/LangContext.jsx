@@ -1,7 +1,9 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, Fragment } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ALL_LANGS, DEFAULT_LANG, parsePath, pathFor, uiLang, dirOf, hasPageInLang } from '../seo/routes'
 import { browserLang, canAutoRedirect } from '../utils/browserLang'
+import { applyUiDict } from '../i18n/load'
+import { uiDictLang } from '../utils/uiText'
 
 const LangCtx = createContext(null)
 
@@ -48,6 +50,15 @@ export function LangProvider({ children }) {
   //   siteLang — URL-in dili (Quran tərcüməsi, pathFor, <html lang>)
   const { lang: siteLang, key, param } = parsePath(location.pathname)
   const lang = uiLang(siteLang)
+  // Əlavə dilin interfeys lüğəti (src/i18n/<dil>.json; main.jsx ilk render-dən
+  // əvvəl yükləyir). Dil dəyişəndə yenisi yüklənir — dictLang dəyişir, kontekst
+  // istifadəçiləri yenidən çəkilir və pickUi() tərcüməni qaytarır
+  const [dictLang, setDictLang] = useState(uiDictLang)
+  useEffect(() => {
+    let alive = true
+    applyUiDict(siteLang).then(() => { if (alive) setDictLang(uiDictLang()) })
+    return () => { alive = false }
+  }, [siteLang])
 
   // Yaddaş bağlı ola bilər (brauzer sayt məlumatını bloklayır) — o halda
   // localStorage xəta atır; kök provayder çökməsin deyə hər müraciət qorunur.
@@ -139,8 +150,10 @@ export function LangProvider({ children }) {
   }, [])
 
   return (
-    <LangCtx.Provider value={{ lang, siteLang, setLang, dark, toggleDark }}>
-      {children}
+    <LangCtx.Provider value={{ lang, siteLang, dictLang, setLang, dark, toggleDark }}>
+      {/* Lüğət dəyişəndə (id ↔ en) ağac yenidən qurulur — useMemo-da saxlanmış
+          köhnə yazılar qalmasın (src/utils/uiText.js) */}
+      <Fragment key={dictLang || '-'}>{children}</Fragment>
     </LangCtx.Provider>
   )
 }

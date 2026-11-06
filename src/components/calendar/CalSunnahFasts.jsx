@@ -19,6 +19,7 @@ import { isPlainClick } from '../PageLink'
 import { pathFor } from '../../seo/routes'
 import { haptic } from '../../hooks/useHaptic'
 import { loadQada, saveQada, adjustOwed, makeUp, undoMakeUp, dayKey } from '../../utils/qada'
+import { pickUi } from '../../utils/uiText'
 
 export const SUNNAH_FASTS_KEY = 'muslim_cc_sunnah_fasts_v1'
 const KEEP_DAYS = 800
@@ -79,7 +80,7 @@ const AZ_WD_SHORT = ['B.', 'B.e.', 'Ç.a.', 'Ç.', 'C.a.', 'C.', 'Ş.']
 const AZ_MON = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avqust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr']
 // lang-ok: lokal kodları
 const LOC = { en: 'en-GB', ru: 'ru-RU', tr: 'tr-TR', ar: 'ar-u-ca-gregory-nu-latn' }
-const pick = (o, lang) => (o && (o[lang] || o.en)) || ''
+const pick = (o, lang) => (o && (pickUi(o, lang, 'en'))) || ''
 export function weekdayName(date, lang, style = 'long') {
   if (lang === 'az') return (style === 'short' ? AZ_WD_SHORT : AZ_WD_LONG)[date.getDay()]
   try { return date.toLocaleDateString(LOC[lang] || 'en-GB', { weekday: style }) } catch { return '' }

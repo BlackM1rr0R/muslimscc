@@ -36,7 +36,8 @@ test('urduca surə: tərcümə rtl, interfeys ltr', async ({ page, consoleProble
 })
 
 test('əlavə dildə olmayan səhifə ingiliscə variantına keçir', async ({ page }) => {
-  await page.goto('/id/prayer')
+  // de — interfeysi hələ tərcümə olunmayıb (yalnız Quran); id-də bütün səhifələr var
+  await page.goto('/de/prayer')
   await expect(page).toHaveURL(/\/en\/prayer$/)
   await page.goto('/de')
   await expect(page).toHaveURL(/\/en$/)
@@ -60,5 +61,25 @@ test('dil menyusu: "Quran digər dillərdə" → həmin dildə Quran', async ({ 
   await page.locator('.lang-btn').click()
   await page.locator('.lang-option', { hasText: 'Русский' }).click()
   await expect(page).toHaveURL(/\/ru\/quran$/)
+  expectCleanConsole(consoleProblems)
+})
+
+test('indoneziyaca interfeys (ui: true): menyu, başlıq və səhifə yazıları lüğətdən', async ({ page, consoleProblems }) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/id/prayer')
+  await settle(page)
+  await expect(page).toHaveURL(/\/id\/prayer$/)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'id')
+  await expect(page).toHaveTitle(/Waktu Salat/)
+  await expect(page.locator('h1')).toHaveText('Waktu Salat')
+  await expect(page.locator('.qm-sn').getByText('Beranda').first()).toBeVisible()
+  // Hədis Ensiklopediyası məzmunu HadeethEnc-in indoneziyaca nəşrindən (hazır mənbə)
+  await page.goto('/id/hadith-encyclopedia')
+  await settle(page)
+  await expect(page.locator('.he-lang [role="radio"][aria-checked="true"]')).toHaveText('ID')
+  // Əsas dilə qayıdanda tərcümə qalmır
+  await page.goto('/en/prayer')
+  await settle(page)
+  await expect(page.locator('h1')).toHaveText('Prayer Times')
   expectCleanConsole(consoleProblems)
 })

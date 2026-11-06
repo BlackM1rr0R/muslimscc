@@ -22,6 +22,7 @@ import { isPlainClick } from '../components/PageLink'
 import { useNavigate } from 'react-router-dom'
 import '../styles/HadithPage.css'
 import { pickLang } from '../utils/pickLang'
+import { pickUi } from '../utils/uiText'
 
 const CATS_AZ = ['Hamısı','İman','Əxlaq','İbadət','Namaz','Quran','Elm','Oruc','Zəkat','Zikr','Sədəqə','Səbr','Dünya','Axirət','Salavat','Müsafirlik']
 const CATS_EN = ['All','Faith','Character','Worship','Prayer','Quran','Knowledge','Fasting','Zakat','Dhikr','Charity','Patience','World','Afterlife','Salawat','Travel']
@@ -209,7 +210,7 @@ const revealProps = (i) => {
 // memo: yeni partiya əlavə olunanda və ya bir kart sevimliyə düşəndə
 // köhnə kartlar yenidən render olunmur (callback-lar sabitdir)
 const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, lang, index }) {
-  const b = BTN_LABELS[lang] || BTN_LABELS.en
+  const b = pickUi(BTN_LABELS, lang, 'en')
   // Ərəbcədə hadith.text elə hadith.ar-ın özüdür — eyni mətni iki dəfə göstərməyək
   const text = (hadith.text || '').trim()
   const showBody = text && text !== (hadith.ar || '').trim()
@@ -276,8 +277,8 @@ function HadithAbout({ u, lang, list }) {
       <a className="hadith-grade" href={glossHref(g.id)} onClick={go(glossHref(g.id))}>
         <span className={`hadith-grade__dot${g.ok ? ' is-ok' : ' is-bad'}`} aria-hidden="true" />
         <span className="hadith-grade__body">
-          <span className="hadith-grade__name">{g.name[lang] || g.name.en}</span>
-          <span className="hadith-grade__text">{g.text[lang] || g.text.en}</span>
+          <span className="hadith-grade__name">{pickUi(g.name, lang, 'en')}</span>
+          <span className="hadith-grade__text">{pickUi(g.text, lang, 'en')}</span>
         </span>
       </a>
     </li>
@@ -336,7 +337,7 @@ function HadithAbout({ u, lang, list }) {
 
 export default function HadithPage() {
   const { lang } = useLang()
-  const t = T[lang]?.hadith || T.az.hadith
+  const t = pickUi(T, lang)?.hadith || T.az.hadith
   const cats = CATS_MAP[lang] || CATS_EN
   // Cari dilin hədisləri (hazır deyilsə Suspense gözləyir — bax utils/hadithData.js)
   const hadithData = useHadithData(lang)
@@ -361,7 +362,7 @@ export default function HadithPage() {
   const [copied, setCopied] = useState(false)
   const copiedTimer = useRef(null)
   useEffect(() => () => clearTimeout(copiedTimer.current), [])
-  const u = UI_LABELS[lang] || UI_LABELS.en
+  const u = pickUi(UI_LABELS, lang, 'en')
 
   useEffect(() => {
     try { localStorage.setItem('hadith_favs', JSON.stringify(favs)) } catch { /* yaddaş bağlıdır */ }
@@ -564,12 +565,12 @@ export default function HadithPage() {
 
           {/* Telefonda bu zolaq başlığın altında yapışır (şüşə fon) */}
           <div className="hadith-filterbar" ref={barRef}>
-            <div className="hadith-chips" role="group" aria-label={CATS_LABEL[lang] || CATS_LABEL.en} data-reveal="stagger-fade">
+            <div className="hadith-chips" role="group" aria-label={pickUi(CATS_LABEL, lang, 'en')} data-reveal="stagger-fade">
               <button type="button" className="ui-chip hadith-chip-fav"
                 aria-pressed={showFavs}
                 onClick={() => setShowFavs(f => !f)}>
                 <HeartIcon filled={showFavs} />
-                {FAV_LABELS[lang] || FAV_LABELS.en}
+                {pickUi(FAV_LABELS, lang, 'en')}
                 {favCount > 0 && <span className="hadith-chip-count ui-num">{favCount}</span>}
               </button>
               <span className="hadith-chips__sep" aria-hidden="true" />

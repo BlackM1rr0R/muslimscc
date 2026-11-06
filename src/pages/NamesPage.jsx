@@ -18,6 +18,7 @@ import useStarred, { dayPick, shareLink } from '../components/collect/useStarred
 import '../styles/NamesPage.css'
 import InkText from '../components/InkText'
 import NamesMandala from '../components/NamesMandala'
+import { pickUi } from '../utils/uiText'
 
 // ── v3.2: seçilmişlər, əzbərlənənlər süzgəci, günün adı, qaydalar kart + oxu pəncərəsi (5 dil) ──
 const N32 = {
@@ -213,7 +214,7 @@ const BOOKS = {
 }
 const AR_DIGITS = (s) => String(s).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d])
 function proofText(name, lang) {
-  const g = GUIDE[lang] || GUIDE.en
+  const g = pickUi(GUIDE, lang, 'en')
   if (name.proof?.q) return `${g.quran} ${name.proof.q}`
   let s = name.proof?.s || ''
   if (lang !== 'en') {
@@ -259,7 +260,7 @@ function buildNamesQuiz(lang) {
 }
 
 function NamesPractice({ lang }) {
-  const g = GUIDE[lang] || GUIDE.en
+  const g = pickUi(GUIDE, lang, 'en')
   const [mode, setMode] = useState('cards')
   const [store, setStore] = useState(readPractice)
   const save = useCallback((fn) => setStore(p => { const np = fn(p); writePractice(np); return np }), [])
@@ -469,10 +470,10 @@ function RuleList({ rules, lang, g, idPrefix, onOpen, readLabel }) {
               <span className="np-rule__n ui-num" aria-hidden="true">{r.n}</span>
               <span className="np-rule__titles">
                 <span className="np-rule__eyebrow">{g.rule(r.n)}</span>
-                <span className="np-rule__title">{r.title[lang] || r.title.en}</span>
+                <span className="np-rule__title">{pickUi(r.title, lang, 'en')}</span>
               </span>
             </span>
-            <span className="np-rule__preview">{r.text[lang] || r.text.en}</span>
+            <span className="np-rule__preview">{pickUi(r.text, lang, 'en')}</span>
             <span className="np-rule__more">
               {r.ayah && <span className="np-rule__tag"><Icon name="quran" size={14} /> <bdi className="ui-num">{r.ayah.ref}</bdi></span>}
               <span className="np-rule__read">{readLabel} <Icon name="arrow" size={15} className="ui-flip-rtl" /></span>
@@ -487,7 +488,7 @@ function RuleList({ rules, lang, g, idPrefix, onOpen, readLabel }) {
 function RuleBody({ r, lang, g }) {
   return (
     <div className="np-rule__body">
-      <p>{r.text[lang] || r.text.en}</p>
+      <p>{pickUi(r.text, lang, 'en')}</p>
       {r.ayah && (
         <figure className="np-ayah">
           <p className="np-ayah__ar ui-arabic" lang="ar" dir="rtl">﴿{r.ayah.ar}﴾</p>
@@ -537,9 +538,9 @@ const UI = {
 
 export default function NamesPage({ setPage }) {
   const { lang } = useLang()
-  const t = T[lang]?.names || T.az.names
-  const ui = UI[lang] || UI.en
-  const g = GUIDE[lang] || GUIDE.en
+  const t = pickUi(T, lang)?.names || T.az.names
+  const ui = pickUi(UI, lang, 'en')
+  const g = pickUi(GUIDE, lang, 'en')
   const [search, setSearch] = useState('')
   const location = useLocation()
   const routerNavigate = useNavigate()
@@ -553,8 +554,8 @@ export default function NamesPage({ setPage }) {
 
   // Mənbə süzgəci: hamısı / Quran / Sünnə (proof.q — ayə, proof.s — hədis) + seçilmişlər / əzbərlənənlər
   const [srcFilter, setSrcFilter] = useState('all')
-  const v3 = V3[lang] || V3.en
-  const n32 = N32[lang] || N32.en
+  const v3 = pickUi(V3, lang, 'en')
+  const n32 = pickUi(N32, lang, 'en')
   const star = useStarred('names99:favs')
   const [known, setKnown] = useState(() => (typeof window === 'undefined' ? [] : readPractice().known))
   useEffect(() => {
@@ -699,13 +700,13 @@ export default function NamesPage({ setPage }) {
             <h2 className="ui-title ui-title--sm" id="np-virtue-h">{g.virtueTitle}</h2>
             <blockquote className="ui-quote np-virtue">
               <p className="ui-quote__ar ui-arabic names-hadith-ar" lang="ar" dir="rtl">{VIRTUE.ar}</p>
-              {lang !== 'ar' && <p className="ui-quote__text names-hadith-text">{VIRTUE.text[lang] || VIRTUE.text.en}</p>}
-              <p className="ui-quote__src names-hadith-ref">{VIRTUE.ref[lang] || VIRTUE.ref.en}</p>
+              {lang !== 'ar' && <p className="ui-quote__text names-hadith-text">{pickUi(VIRTUE.text, lang, 'en')}</p>}
+              <p className="ui-quote__src names-hadith-ref">{pickUi(VIRTUE.ref, lang, 'en')}</p>
             </blockquote>
             <ul className="np-notes">
-              {(VIRTUE.notes[lang] || VIRTUE.notes.en).map((x, i) => <li key={i}>{x}</li>)}
+              {(pickUi(VIRTUE.notes, lang, 'en')).map((x, i) => <li key={i}>{x}</li>)}
             </ul>
-            <p className="names-list-source">{LIST_SOURCE[lang] || LIST_SOURCE.az}</p>
+            <p className="names-list-source">{pickUi(LIST_SOURCE, lang)}</p>
           </figure>
 
           <section className="np-block" aria-labelledby="np-ihsa-h">
@@ -719,8 +720,8 @@ export default function NamesPage({ setPage }) {
                 <li key={s.id} className="ui-step np-ihsa__item">
                   <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
                   <div className="ui-step__body">
-                    <h3 className="ui-step__title">{s.title[lang] || s.title.en}</h3>
-                    <p className="ui-step__text">{s.text[lang] || s.text.en}</p>
+                    <h3 className="ui-step__title">{pickUi(s.title, lang, 'en')}</h3>
+                    <p className="ui-step__text">{pickUi(s.text, lang, 'en')}</p>
                   </div>
                 </li>
               ))}
@@ -825,7 +826,7 @@ export default function NamesPage({ setPage }) {
           {filtered.length === 0 && (
             <div className="names-empty" data-reveal="fade">
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="search" /></span>
-              <p>{srcFilter === 'fav' && !star.count ? n32.favNone : srcFilter === 'known' && !known.length ? n32.knownNone : (NOT_FOUND[lang] || NOT_FOUND.en)}</p>
+              <p>{srcFilter === 'fav' && !star.count ? n32.favNone : srcFilter === 'known' && !known.length ? n32.knownNone : (pickUi(NOT_FOUND, lang, 'en'))}</p>
             </div>
           )}
         </div>
@@ -866,8 +867,8 @@ export default function NamesPage({ setPage }) {
                 {DUA_BY_NAMES.map(d => (
                   <tr key={d.ref}>
                     <th scope="row">
-                      {d.ask[lang] || d.ask.en}
-                      <small className="np-dua-who">{d.who[lang] || d.who.en}</small>
+                      {pickUi(d.ask, lang, 'en')}
+                      <small className="np-dua-who">{pickUi(d.who, lang, 'en')}</small>
                     </th>
                     <td><span className="np-dua-ar ui-arabic" lang="ar" dir="rtl">{d.ar}</span></td>
                     <td>

@@ -15,6 +15,7 @@ import Icon from '../Icon'
 import { haptic } from '../../hooks/useHaptic'
 import { traceScore, dilate } from '../../utils/traceScore'
 import '../../styles/LetterTrace.css'
+import { pickUi } from '../../utils/uiText'
 
 const T = {
   az: { title: 'Barmaqla yaz', lead: 'Solğun hərfin üstündən yazın, sonra «Yazını yoxla» düyməsinə basın.', check: 'Yazını yoxla', clear: 'Təmizlə', res: ['Yenidən cəhd edin — hərfin üstündən yazın', 'Yaxşı başlanğıc', 'Çox yaxşı!', 'Əla — maşaAllah!'], cov: (p) => `örtük ${p}%`, label: (c) => `${c} hərfini yazmaq üçün sahə` },
@@ -35,7 +36,7 @@ function drawGlyph(ctx, ch, size, font) {
 }
 
 export default function LetterTrace({ ch, lang = 'az' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const guideRef = useRef(null)
   const inkRef = useRef(null)
   const drawing = useRef(null)

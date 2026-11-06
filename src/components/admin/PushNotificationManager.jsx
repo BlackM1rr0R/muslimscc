@@ -5,6 +5,7 @@ import Icon, { BrandMark } from '../Icon'
 import { brandName } from '../../config/brand'
 import { getAll } from '../../api/content'
 import { apiFetch, ApiError } from '../../api/http'
+import { pickUi } from '../../utils/uiText'
 
 // Server API-si admini sessiya cookie-si ilə tanıyır (eyni origin, /api/...).
 // Tarixçəni server özü yazır (notification_history) — klient yazmır.
@@ -19,7 +20,7 @@ const LABELS = {
 
 export default function PushNotificationManager() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [history, setHistory] = useState([])
   const [form, setForm] = useState({ title:'', body:'', url:'', priority:'normal' })

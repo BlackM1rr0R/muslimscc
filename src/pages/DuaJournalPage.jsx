@@ -14,6 +14,7 @@ import RelatedLinks from '../components/RelatedLinks'
 import { copyText } from '../components/reader/share'
 import '../styles/LessonsPage.css'
 import '../styles/DuaJournalPage.css'
+import { pickUi } from '../utils/uiText'
 
 // ── i18n Labels ──
 const LABELS = {
@@ -164,7 +165,7 @@ function saveData(data) {
 
 export default function DuaJournalPage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
+  const t = pickUi(LABELS, lang)
   const fmtDate = (iso) => formatDate(iso, lang)
 
   const [duas, setDuas] = useState([])
@@ -267,7 +268,7 @@ export default function DuaJournalPage({ setPage }) {
   const activeDuas = duas.filter(d => !d.answered)
   const answeredDuas = duas.filter(d => d.answered)
   const tabList = tab === 'active' ? activeDuas : answeredDuas
-  const tl = TOOLS[lang] || TOOLS.en
+  const tl = pickUi(TOOLS, lang, 'en')
   const fq = jq.trim().toLocaleLowerCase(lang)
   const list = tabList
     .filter(d => (jcat === 'all' || d.category === jcat) && (!fq || String(d.text || '').toLocaleLowerCase(lang).includes(fq)))
@@ -285,7 +286,7 @@ export default function DuaJournalPage({ setPage }) {
     }
   }
 
-  const v = V3[lang] || V3.en
+  const v = pickUi(V3, lang, 'en')
   const today = new Date()
   const todayIso = todayISO()
   // Fəaliyyət: hər gün neçə dua yazılıb + neçəsi qəbul olunub (son 12 həftə)

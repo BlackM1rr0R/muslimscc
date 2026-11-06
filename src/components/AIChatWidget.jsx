@@ -8,6 +8,7 @@ import AIMarkdown from './AIMarkdown'
 import AIRating from './AIRating'
 import { askAI } from '../utils/aiStream'
 import '../styles/AIChatWidget.css'
+import { pickUi } from '../utils/uiText'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
 const FALLBACK_API_URL = import.meta.env.VITE_API_URL || ''
@@ -189,7 +190,7 @@ const LABELS = {
  */
 export default function AIChatWidget({ open: openProp, onClose, onUnreadChange } = {}) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const controlled = openProp !== undefined
   const [openState, setOpenState] = useState(false)

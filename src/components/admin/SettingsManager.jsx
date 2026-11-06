@@ -5,6 +5,7 @@ import Icon from '../Icon'
 import { getAppSettings, saveAppSettings } from '../../data/adminContent'
 import { BRAND, tr } from '../../config/brand'
 import { PRAYER_CITIES, COUNTRY_NAMES } from '../../utils/prayerLocation'
+import { pickUi } from '../../utils/uiText'
 
 // Standart şəhər: saytın namaz şəhərləri siyahısı (src/utils/prayerLocation.js —
 // 98 şəhər). Əvvəl burada ayrıca 11 şəhərlik siyahı vardı; id-ləri fərqli idi
@@ -37,7 +38,7 @@ const LABELS = {
 
 export default function SettingsManager() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [settings, setSettings] = useState({
     defaultCity: 'Baku', defaultCountry: 'Azerbaijan', defaultLang: 'az', prayerMethod: 13,

@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import './media.css'
+import { pickUi } from '../../utils/uiText'
 
 /* ═══════════════════════════════════════════════════════
    Siyər və həcc xəritələri — öz çəkdiyimiz SVG (şəkil faylı yox)
@@ -12,7 +13,7 @@ import './media.css'
    • Əlçatanlıq: role="img" + <title>/<desc>; izah figcaption-dadır.
    ═══════════════════════════════════════════════════════ */
 
-const T = (o, lang) => (o && (o[lang] || o.en)) || ''
+const T = (o, lang) => (o && (pickUi(o, lang, 'en'))) || ''
 
 // Proyeksiya: bbox { lat:[s,n], lon:[w,e] } → piksel
 function projector(box, W) {

@@ -14,6 +14,7 @@ import { useState } from 'react'
 import { haptic } from '../hooks/useHaptic'
 import { moonOf, litPath } from '../utils/crescent'
 import '../styles/CrescentPath.css'
+import { pickUi } from '../utils/uiText'
 
 export const FASTS_KEY = 'muslim_cc_ramadan_fasts_v1'
 const T = {
@@ -37,7 +38,7 @@ function save(year, days) {
 }
 
 export default function CrescentPath({ lang = 'az', today = null, year = 'x' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [days, setDays] = useState(() => (typeof window === 'undefined' ? {} : load(year)))
   const cycle = (n) => {
     const next = { ...days }

@@ -2,6 +2,7 @@ import { useLang } from '../contexts/LangContext'
 import { pathFor } from '../seo/routes'
 import Icon from './Icon'
 import '../styles/Breadcrumb.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Çörək qırıntısı (breadcrumb) — səhifə hero-larında ortaq komponent
@@ -51,7 +52,7 @@ export default function Breadcrumb({ setPage, current }) {
       <ol className="bc-list">
         <li className="bc-item">
           <a className="bc-home" href={pathFor('home', lang)} onClick={goHome}>
-            {HOME[lang] || HOME.az}
+            {pickUi(HOME, lang)}
           </a>
         </li>
         <li className="bc-item">

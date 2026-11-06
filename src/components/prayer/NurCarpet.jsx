@@ -12,6 +12,7 @@
 import { memo, useMemo } from 'react'
 import { PRAYERS, prayerStatus, excusedPeriod, monthDays } from '../../utils/prayerTracker'
 import '../../styles/NurCarpet.css'
+import { pickUi } from '../../utils/uiText'
 
 const T = {
   az: { title: 'Nur xalçası', lead: (y) => `${y}-ci ilin bütün namazları: hər sütun bir gün, hər ilmə bir namaz.`, prayed: 'qılındı', qada: 'qəza', excused: 'üzrlü', none: 'qeyd yoxdur', sum: (n, y) => `${y}: ${n} namaz qılındı`, months: ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sent', 'Okt', 'Noy', 'Dek'] },
@@ -26,7 +27,7 @@ const ROW_H = PRAYERS.length * (CH + G) - G
 const W = LEFT + 31 * (CW + G) + 14, H = TOP + 12 * (ROW_H + MG) + 8
 
 function NurCarpet({ snap, periods, today, lang = 'az', onPick }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const year = Number(today.slice(0, 4))
   const data = useMemo(() => {
     let prayed = 0

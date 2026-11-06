@@ -29,6 +29,7 @@ import Sparkle from '../components/prayer/Sparkle'
 import '../styles/ToolsMotion.css'
 import CalendarSubscribe from '../components/prayer/CalendarSubscribe'
 import { ProgressRing, StatTile } from '../components/viz'
+import { pickUi } from '../utils/uiText'
 
 // İmsakiyyə səhifəsi (/ramadan) marşrutlara qoşulubsa kartda ona keçid görünür
 const HAS_RAMADAN_PAGE = PAGES.some(p => p.key === 'ramadan')
@@ -87,7 +88,7 @@ function hijriLine(h, lang) {
   const month = lang === 'ar'
     ? (h.monthAr || HIJRI_MONTHS.ar[h.month - 1])
     : (HIJRI_MONTHS[lang]?.[h.month - 1] || h.monthEn)
-  return `${h.day} ${month} ${h.year} ${HIJRI_SUFFIX[lang] || HIJRI_SUFFIX.en}`
+  return `${h.day} ${month} ${h.year} ${pickUi(HIJRI_SUFFIX, lang, 'en')}`
 }
 
 // ── Namaz statistikası hook ──────────────────────────
@@ -399,7 +400,7 @@ const QY = {
 
 export default function PrayerPage({ setPage }) {
   const { lang } = useLang()
-  const t = T[lang]?.prayer || T.az.prayer
+  const t = pickUi(T, lang)?.prayer || T.az.prayer
   const lk = ['az','ru','ar','tr'].includes(lang) ? lang : 'en'
   const navigate = useNavigate()
 

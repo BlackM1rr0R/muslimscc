@@ -31,6 +31,7 @@ import { localizeSource } from '../utils/sourceNames'
 import { isDailyBarHiddenToday, hideDailyBarForToday } from './DailyReminderBarSkeleton'
 import '../styles/DailyReminderBar.css'
 import { isLiteDevice } from '../utils/liteDevice'
+import { pickUi } from '../utils/uiText'
 
 const ROTATE_MS = 8000
 
@@ -116,16 +117,16 @@ export function buildDailyItems(lang, day, admin) {
     items.push(adminAyah)
   } else {
     const q = pick(AYAH_POOL, day)
-    if (q) items.push({ type: 'ayah', page: 'quran', ar: q.ar, name: '', text: lang === 'ar' ? '' : (q.text[lang] || q.text.en), source: q.source })
+    if (q) items.push({ type: 'ayah', page: 'quran', ar: q.ar, name: '', text: lang === 'ar' ? '' : (pickUi(q.text, lang, 'en')), source: q.source })
   }
 
   // 2) Günün hədisi — QUOTES (cat: 'hadith'), mənbəsi ilə
   const h = pick(HADITH_POOL, day, 1)
-  if (h) items.push({ type: 'hadith', page: 'hadith', ar: h.ar, name: '', text: lang === 'ar' ? '' : (h.text[lang] || h.text.en), source: h.source })
+  if (h) items.push({ type: 'hadith', page: 'hadith', ar: h.ar, name: '', text: lang === 'ar' ? '' : (pickUi(h.text, lang, 'en')), source: h.source })
 
   // 3) Günün duası — DUAS_DATA
   const d = pick(DUA_POOL, day, 2)
-  if (d) items.push({ type: 'dua', page: 'duas', ar: d.ar, name: '', text: lang === 'ar' ? '' : (d[lang] || d.en), source: d.source })
+  if (d) items.push({ type: 'dua', page: 'duas', ar: d.ar, name: '', text: lang === 'ar' ? '' : (pickUi(d, lang, 'en')), source: d.source })
 
   // 4) Günün zikri — admin doldurubsa onu, yoxsa DHIKRS (fəzilətin mənbəyi data/dhikr.js-dəki source sahəsidir)
   const ad = admin?.dhikr
@@ -139,7 +140,7 @@ export function buildDailyItems(lang, day, admin) {
     if (z) items.push({
       type: 'dhikr', page: 'dhikr', ar: z.arabic,
       // ərəb dilində ad elə ərəbcə zikrin özüdür — təkrar etmirik
-      name: lang === 'ar' ? '' : (z[lang] || z.en),
+      name: lang === 'ar' ? '' : (pickUi(z, lang, 'en')),
       text: z.virtue?.[lang] || z.virtue?.en || '',
       source: z.source || '',
     })
@@ -184,7 +185,7 @@ const Cross = () => (
 
 export default function DailyReminderBar({ setPage }) {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.en
+  const L = pickUi(LABELS, lang, 'en')
   const isAr = lang === 'ar'
 
   const [hidden, setHidden] = useState(isDailyBarHiddenToday)

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import Icon from './Icon'
 import { soundsOn, setSoundsOn, onSoundsChange } from '../utils/uiSound'
+import { pickUi } from '../utils/uiText'
 
 const L = { az: 'Səs', en: 'Sound', ru: 'Звук', ar: 'الصوت', tr: 'Ses' }
 const HINT = {
@@ -14,9 +15,9 @@ export default function SoundToggle({ lang = 'az', className = '' }) {
   const [on, setOn] = useState(soundsOn)
   useEffect(() => onSoundsChange(setOn), [])
   return (
-    <button type="button" className={`ui-chip ${className}`} aria-pressed={on} title={HINT[lang] || HINT.en}
+    <button type="button" className={`ui-chip ${className}`} aria-pressed={on} title={pickUi(HINT, lang, 'en')}
       onClick={() => setSoundsOn(!on)} data-testid="sound-toggle">
-      <Icon name="volume" size={16} /> {L[lang] || L.en}
+      <Icon name="volume" size={16} /> {pickUi(L, lang, 'en')}
     </button>
   )
 }

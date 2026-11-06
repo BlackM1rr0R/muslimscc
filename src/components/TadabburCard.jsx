@@ -24,6 +24,7 @@ import { isPlainClick } from './PageLink'
 import Icon from './Icon'
 import { TADABBUR } from '../data/tadabbur'
 import '../styles/TadabburCard.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: {
@@ -117,14 +118,14 @@ const LazyTafsir = lazy(() =>
 
 export default function TadabburCard({ className = '' }) {
   const { lang } = useLang()
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const navigate = useNavigate()
   // Tarix render zamanı bir dəfə — kart açıq qalanda gecə yarısı dəyişmir (qəsdən)
   const item = useMemo(() => tadabburFor(), [])
   const [tafsirOpen, setTafsirOpen] = useState(false)
   if (!item) return null
 
-  const sura = item.sura[lang] || item.sura.en
+  const sura = pickUi(item.sura, lang, 'en')
   const refLabel = t.ayah(sura, item.a)
   const trans = lang === 'ar' ? '' : item.t[lang]
   const translator = lang === 'ar' ? '' : TRANSLATOR[lang] || ''
@@ -159,7 +160,7 @@ export default function TadabburCard({ className = '' }) {
         <span className="tdb-question__label">
           <Icon name="bulb" size={18} className="tdb-question__icon" /> {t.ask}
         </span>
-        <p className="tdb-question__text">{item.q[lang] || item.q.en}</p>
+        <p className="tdb-question__text">{pickUi(item.q, lang, 'en')}</p>
         <p className="tdb-question__note">{t.note}</p>
       </div>
 

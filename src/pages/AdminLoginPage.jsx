@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import { watchAdmin, signInAdmin } from '../api/adminAuth'
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AdminPage.css'
+import { pickUi } from '../utils/uiText'
 
 // Giriş — öz serverimiz (POST /api/admin/login, server/auth.js): e-poçt + şifrə,
 // HttpOnly cookie sessiyası. Admin hesabı serverdə yaradılır:
@@ -33,7 +34,7 @@ const errKeyOf = (code) => ERR_KEY[code] || 'errUnknown'
 
 export default function AdminLoginPage({ setPage }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

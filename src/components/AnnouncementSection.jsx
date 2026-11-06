@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import { subscribeToAnnouncements, ANNOUNCEMENT_TYPES } from '../data/adminContent'
 import Icon from './Icon'
 import '../styles/AnnouncementToast.css'
+import { pickUi } from '../utils/uiText'
 
 // v2: emoji + göy qurşağı rəngləri əvəzinə xətti ikon + palitra tokeni.
 // Kartlar .ui-card, şəbəkə növbə ilə görünür (data-reveal="stagger").
@@ -32,7 +33,7 @@ function formatDate(timestamp) {
 
 export default function AnnouncementSection() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
   const [items, setItems] = useState([])
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export default function AnnouncementSection() {
                   <span className={`ui-icon-tile ui-icon-tile--sm announcement-card-icon${look.tone === 'accent' ? ' ui-icon-tile--accent' : ''}`} aria-hidden="true">
                     <Icon name={look.icon} />
                   </span>
-                  <span className="announcement-card-type">{type.label[lang] || type.label.en}</span>
+                  <span className="announcement-card-type">{pickUi(type.label, lang, 'en')}</span>
                 </div>
 
                 <h3 className="ui-card__title announcement-card-title">{pick(a.title)}</h3>

@@ -3,6 +3,7 @@ import { useLang } from '../../contexts/LangContext'
 import { AdminHeader, SectionTitle } from './AdminUi'
 import Icon from '../Icon'
 import { getUserStats } from '../../data/adminContent'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Statistika', sub:'İstifadəçi fəaliyyəti və tətbiq məlumatları', prayer:'Namaz', quran:'Quran', interaction:'Qarşılıqlı əlaqə', misc:'Digər', storage:'Yaddaş', refresh:'Yenilə',
@@ -23,7 +24,7 @@ const BYTE_UNITS = {
   ru: ['Б', 'КБ', 'МБ'], ar: ['بايت', 'ك.ب', 'م.ب'],
 }
 function formatBytes(bytes, lang) {
-  const [b, kb, mb] = BYTE_UNITS[lang] || BYTE_UNITS.en
+  const [b, kb, mb] = pickUi(BYTE_UNITS, lang, 'en')
   if (bytes < 1024) return bytes + ' ' + b
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' ' + kb
   return (bytes / (1024 * 1024)).toFixed(2) + ' ' + mb
@@ -31,7 +32,7 @@ function formatBytes(bytes, lang) {
 
 export default function StatsManager() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [stats, setStats] = useState(getUserStats())
 

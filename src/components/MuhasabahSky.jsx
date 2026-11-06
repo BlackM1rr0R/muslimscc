@@ -14,6 +14,7 @@ import { useMemo, useState } from 'react'
 import { haptic } from '../hooks/useHaptic'
 import { W, H, ANCHORS, skyStars } from '../utils/muhasabahSky'
 import '../styles/MuhasabahSky.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: { title: 'Əməllərin səması', lead: 'Son 30 gündə hər yaxşı əməl bir ulduzdur; eyni əməlin ulduzları bürc olur.', n: (k) => `${k} ulduz`, sum: (k) => `Son 30 gündə ${k} ulduz`, pick: 'Bürcə toxunun' },
@@ -30,7 +31,7 @@ const ring = (list, [ax, ay]) => {
 }
 
 export default function MuhasabahSky({ entries, items, today, labels, lang = 'az' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const stars = useMemo(() => skyStars(entries, items, today), [entries, items, today])
   const total = stars.reduce((a, s) => a + s.length, 0)
   const [sel, setSel] = useState(null)

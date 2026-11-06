@@ -35,6 +35,7 @@ import Icon from '../components/Icon'
 import '../styles/MosqueTvPage.css'
 import '../styles/ToolsMotion.css'
 import RollingDigits from '../components/prayer/RollingDigits'
+import { pickUi } from '../utils/uiText'
 
 const STORE_KEY = 'muslim_cc_mosque_tv'
 const ROTATE_MS = 20000
@@ -397,7 +398,7 @@ export default function MosqueTvPage({ setPage }) {
   }, [compact, kiosk, initial.urlDriven])
 
   const lang = cfg.lang
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
   const name = (key) => PRAYER_NAMES[key]?.[lang] || key
 
   // ── Vaxtlar ──
@@ -666,7 +667,7 @@ export default function MosqueTvPage({ setPage }) {
               {current_slide.type === 'verse' ? (
                 <figure className="mtv-verse">
                   <p className="mtv-ar ui-arabic" lang="ar" dir="rtl">{current_slide.v.ar}</p>
-                  {lang !== 'ar' && <p className="mtv-tr">{current_slide.v.text[lang] || current_slide.v.text.en}</p>}
+                  {lang !== 'ar' && <p className="mtv-tr">{pickUi(current_slide.v.text, lang, 'en')}</p>}
                   <figcaption className="mtv-src">{l.verseSrc}, <span className="ui-num">{current_slide.v.ref}</span></figcaption>
                 </figure>
               ) : (
@@ -845,7 +846,7 @@ function Settings({ cfg, setCfg, l, lang, adhanOf, onClose, goBack }) {
             <select className="ui-select" value={cfg.city} onChange={(e) => setCfg({ city: e.target.value })}>
               {groups.map(([cc, list]) => (
                 <optgroup key={cc} label={COUNTRY_NAMES[cc]?.[lang] || cc}>
-                  {list.map(c => <option key={c.id} value={c.id}>{c.label[lang] || c.label.en}</option>)}
+                  {list.map(c => <option key={c.id} value={c.id}>{pickUi(c.label, lang, 'en')}</option>)}
                 </optgroup>
               ))}
             </select>

@@ -4,6 +4,7 @@ import { AdminHeader, SectionTitle, LangTabs, AdminToast, SAVE_FAILED } from './
 import Icon from '../Icon'
 import { getHeroBanner, saveHeroBanner, HERO_GRADIENTS } from '../../data/adminContent'
 import { pickLang } from '../../utils/pickLang'
+import { pickUi } from '../../utils/uiText'
 
 // Admin siyahısında əskik dil yer tutucu ilə göstərilir — konsol xəbərdarlığı lazım deyil
 const NOWARN = { warn: false }
@@ -19,7 +20,7 @@ const LABELS = {
 
 export default function HeroBannerManager() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [hero, setHero] = useState({
     active: false,

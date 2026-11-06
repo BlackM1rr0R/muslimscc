@@ -7,6 +7,7 @@ import Icon from './Icon'
 import '../styles/VideoSection.css'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
+import { pickUi } from '../utils/uiText'
 
 const LABELS = {
   az: { eyebrow:'Mühazirə və tilavət', filter:'Bölmələr', close:'Bağla', title:'Video məzmun', sub:'Mühazirələr, tilavətlər və daha çoxu', noVideos:'Hələ video əlavə olunmayıb', loading:'Yüklənir...', viewAll:'Hamısını gör' },
@@ -18,7 +19,7 @@ const LABELS = {
 
 export default function VideoSection({ setPage }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [allVideos, setVideos] = useState([])
   // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)

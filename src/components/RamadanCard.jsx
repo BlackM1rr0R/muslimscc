@@ -24,6 +24,7 @@ import {
   daysBetween, tzNow, COUNTDOWN_MAX_DAYS, normHijri,
 } from '../utils/ramadan'
 import '../styles/RamadanCard.css'
+import { pickUi } from '../utils/uiText'
 
 export const RC_TXT = {
   month:     { az: 'Ramazan', en: 'Ramadan', ru: 'Рамадан', ar: 'رمضان', tr: 'Ramazan' }, // lang-ok: ayın adı az və tr-də eyni yazılır
@@ -61,7 +62,7 @@ export function formatGregorian(dateKey, lang, opts = { day: 'numeric', month: '
   } catch { return `${d}.${m}.${y}` }
 }
 
-const pick = (o, lang) => o[lang] || o.en
+const pick = (o, lang) => pickUi(o, lang, 'en')
 
 /** Sınaq rejimi bir dəfə oxunur (SSR-də window yoxdur). */
 function readPreview() {

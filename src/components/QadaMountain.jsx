@@ -13,6 +13,7 @@
 import { useMemo } from 'react'
 import { TRAIL, trailPath, pointAt, CAMPS } from '../utils/qadaMountain'
 import '../styles/QadaMountain.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: { title: 'Qəza dağı', left: (n) => `Zirvəyə ${n} namaz qalıb`, top: 'Zirvədəsiniz — bütün qəza qılındı. Allah qəbul etsin!', next: (n) => `Növbəti 100-ə: ${n} namaz`, camps: (a, b) => `${a} / ${b} düşərgə keçildi`, label: (p) => `Qəza dağı: yolun ${p}%-i keçilib` },
@@ -25,7 +26,7 @@ const T = {
 const fmtN = (n, lang) => n.toLocaleString(lang === 'ar' ? 'ar-u-nu-latn' : lang)
 
 export default function QadaMountain({ done = 0, owed = 0, lang = 'az' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const total = done + owed
   const p = total > 0 ? done / total : 0
   const d = useMemo(() => trailPath(TRAIL), [])

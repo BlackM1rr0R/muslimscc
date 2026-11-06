@@ -18,6 +18,7 @@ import Icon from '../Icon'
 import { buildKaraoke, wordAt } from '../../utils/karaoke'
 import { canRecordVideo, recordAyahVideo } from '../../utils/ayahVideo'
 import '../../styles/KaraokeAyah.css'
+import { pickUi } from '../../utils/uiText'
 
 const API = 'https://api.quran.com/api/v4'
 // Ayədən video (utils/ayahVideo) — 9:16, tilavət səsi ilə
@@ -40,8 +41,8 @@ const T = {
 }
 
 export default function KaraokeAyah({ surah, ayah, lang = 'az', translation = '', onClose }) {
-  const t = T[lang] || T.az
-  const v = VID[lang] || VID.az
+  const t = pickUi(T, lang)
+  const v = pickUi(VID, lang)
   const [vid, setVid] = useState(null) // null | number (0–100) | 'done' | 'err'
   const [data, setData] = useState(null)
   const [state, setState] = useState('loading') // loading | ready | playing | paused | error

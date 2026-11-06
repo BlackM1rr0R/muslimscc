@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Icon from '../Icon'
 import { SURAH_TABLE } from '../../data/mushafIndex'
 import { RECITERS, ayahSources, readAudioPrefs, writeAudioPrefs, reciterName } from '../../utils/quranAudio'
+import { pickUi } from '../../utils/uiText'
 
 // Surənin ilk ayəsinin ümumi nömrəsi (1…6236)
 const FIRST_G = (() => {
@@ -80,7 +81,7 @@ const L = {
 }
 
 export default function QuranRadio({ lang, surahName, placeLabel }) {
-  const t = L[lang] || L.az
+  const t = pickUi(L, lang)
   const [preset, setPreset] = useState('ruqyah')
   const [from, setFrom] = useState(1)
   const [to, setTo] = useState(114)
@@ -194,7 +195,7 @@ export default function QuranRadio({ lang, surahName, placeLabel }) {
             setReciter(id)
             writeAudioPrefs({ ...readAudioPrefs(), reciter: id })
           }}>
-            {RECITERS.map(r => <option key={r.id} value={r.id}>{r.name[lang] || r.name.en}</option>)}
+            {RECITERS.map(r => <option key={r.id} value={r.id}>{pickUi(r.name, lang, 'en')}</option>)}
           </select>
         </label>
       </div>

@@ -7,6 +7,7 @@ import { localizeSource } from '../utils/sourceNames'
 import { pickLang } from '../utils/pickLang'
 import Icon from './Icon'
 import '../styles/AdminContentDisplay.css'
+import { pickUi } from '../utils/uiText'
 
 // Elan növü → ikon + ton (emoji və hex rənglərin yerinə)
 const TYPE_STYLE = {
@@ -51,7 +52,7 @@ export function AnnouncementBanner() {
               {msg && <div className="ui-card__text">{msg}</div>}
               {link && (
                 <a className="ui-link" href={link} target="_blank" rel="noopener noreferrer">
-                  {MORE[lang] || MORE.en}
+                  {pickUi(MORE, lang, 'en')}
                   <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
                 </a>
               )}
@@ -60,7 +61,7 @@ export function AnnouncementBanner() {
               type="button"
               className="ui-icon-btn"
               onClick={() => setClosed([...closed, a.id])}
-              aria-label={CLOSE[lang] || CLOSE.en}
+              aria-label={pickUi(CLOSE, lang, 'en')}
             >
               <Icon name="close" size={18} />
             </button>
@@ -101,7 +102,7 @@ export function DailyContentDisplay() {
     ar: { ayah:'آية اليوم', dhikr:'ذكر اليوم', quote:'اقتباس اليوم', target:'الهدف' },
     tr: { ayah:'Günün Ayeti', dhikr:'Günün Zikri', quote:'Günün Sözü', target:'Hedef' },
   }
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const HEAD = {
     az: { eyebrow: 'Bu gün', title: 'Bugünkü məzmun' },
@@ -110,7 +111,7 @@ export function DailyContentDisplay() {
     ar: { eyebrow: 'اليوم', title: 'محتوى اليوم' },
     tr: { eyebrow: 'Bugün', title: 'Bugünün içeriği' },
   }
-  const h = HEAD[lang] || HEAD.az
+  const h = pickUi(HEAD, lang)
 
   return (
     <section className="ui-section ui-section--tight qm-daily">

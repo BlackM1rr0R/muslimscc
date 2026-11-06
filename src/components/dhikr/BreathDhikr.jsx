@@ -13,6 +13,7 @@ import { haptic } from '../../hooks/useHaptic'
 import Icon from '../Icon'
 import '../../styles/BreathDhikr.css'
 import { playSound } from '../../utils/uiSound'
+import { pickUi } from '../../utils/uiText'
 
 const TXT = {
   title: { az: 'Nəfəsli zikr', en: 'Breathing dhikr', ru: 'Зикр с дыханием', ar: 'الذكر مع التنفس', tr: 'Nefesli zikir' },
@@ -29,7 +30,7 @@ const TXT = {
   fast: { az: 'Tez', en: 'Fast', ru: 'Быстро', ar: 'سريع', tr: 'Hızlı' },
   pick: { az: 'Zikr', en: 'Dhikr', ru: 'Зикр', ar: 'الذكر', tr: 'Zikir' },
 }
-const tx = (o, lang) => o[lang] || o.en
+const tx = (o, lang) => pickUi(o, lang, 'en')
 const TEMPOS = [['slow', 5000], ['mid', 4000], ['fast', 3000]]
 const CHOICES = DHIKRS.slice(0, 6)
 
@@ -95,7 +96,7 @@ export default function BreathDhikr({ lang = 'az' }) {
         {CHOICES.map((c, i) => (
           <button key={i} type="button" className="ui-chip" aria-pressed={idx === i} onClick={() => choose(i)}>
             <span lang="ar" dir="rtl" className="bd-pick__ar">{c.arabic}</span>
-            {lang !== 'ar' && <span className="bd-pick__name">{c[lang] || c.en}</span>}
+            {lang !== 'ar' && <span className="bd-pick__name">{pickUi(c, lang, 'en')}</span>}
           </button>
         ))}
       </div>

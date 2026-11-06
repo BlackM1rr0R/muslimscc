@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import Icon from './Icon'
 import { readSync, enable, fetchRemote, link, push, pull, unlink, removeRemote, setAuto } from '../utils/userSync'
+import { pickUi } from '../utils/uiText'
 
 const AUTO = {
   az: { label: 'Avtomatik sinxronizasiya', hint: 'Dəyişikliklər özü göndərilir və gətirilir; hər iki cihaz dəyişibsə heç nə üzərinə yazılmır — siz seçirsiniz.' },
@@ -83,7 +84,7 @@ const errCode = (e) => {
 }
 
 export default function SyncPanel({ lang, fmtDate }) {
-  const t = SYNC_TXT[lang] || SYNC_TXT.az
+  const t = pickUi(SYNC_TXT, lang)
   const [sync, setSync] = useState(readSync)
   // view: 'idle' | 'created' | 'enter' | 'confirm'
   const [view, setView] = useState('idle')
@@ -198,7 +199,7 @@ export default function SyncPanel({ lang, fmtDate }) {
           <label className="sy-auto">
             <input type="checkbox" checked={sync.auto === true} data-testid="sync-auto"
               onChange={e => { setAuto(e.target.checked); setSync(readSync()) }} />
-            <span><b>{(AUTO[lang] || AUTO.az).label}</b><small>{(AUTO[lang] || AUTO.az).hint}</small></span>
+            <span><b>{(pickUi(AUTO, lang)).label}</b><small>{(pickUi(AUTO, lang)).hint}</small></span>
           </label>
           <div className="bk-actions">
             <button type="button" className="ui-btn ui-btn--primary" onClick={onPush} disabled={Boolean(busy)}>{spin('push')}<Icon name="send" className="ui-btn__icon" />{t.push}</button>

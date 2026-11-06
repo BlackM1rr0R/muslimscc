@@ -28,6 +28,7 @@
 import { BRAND, brandName } from '../config/brand.js'
 import { withBrand } from './title.js'
 import { INTL_QURAN_LIST } from './intlMeta.js'
+import { txt, uiDictLang } from '../utils/uiText.js'
 
 // Uyğunluq üçün saxlanılıb — dilə görə ad üçün brandName(lang) istifadə et
 export const SUFFIX = BRAND.name.az
@@ -829,6 +830,10 @@ export const META = {
  */
 export function pickMeta(key, lang = 'az') {
   const entry = META[key] || META.home
+  // Əlavə dil, öz mətni yoxdur: ingiliscə title/description lüğətdən (src/i18n/<dil>.json)
+  if (!entry[lang] && !FALLBACK[lang] && uiDictLang() === lang && entry.en) {
+    return { t: txt(entry.en.t), d: txt(entry.en.d) }
+  }
   // Əlavə dil (src/seo/langs.js): öz mətni (yalnız Quran), yoxdursa ingiliscə
   for (const l of (FALLBACK[lang] || [lang, 'en', 'az'])) {
     if (entry[l]) return entry[l]

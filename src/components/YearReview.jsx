@@ -11,6 +11,7 @@ import { yearReview } from '../utils/yearReview'
 import { loadSnapshot, loadHayd, toKey } from '../utils/prayerTracker'
 import { gregorianToHijri, hijriToGregorian, fromLocalDate, gKey } from '../utils/hijri'
 import '../styles/YearReview.css'
+import { pickUi } from '../utils/uiText'
 
 const YearStory = lazy(() => import('./YearStory'))
 const STORY = { az: 'Story kimi bax', en: 'Watch as a story', ru: 'Смотреть как историю', tr: 'Hikâye olarak izle', ar: 'شاهد كقصة' }
@@ -124,7 +125,7 @@ export function drawReviewCard(ctx, { W = 1080, H = 1350, title, sub, items, bra
 
 export default function YearReview() {
   const { lang } = useLang()
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const d = useYearData()
   const [msg, setMsg] = useState('')
   const [story, setStory] = useState(false)
@@ -191,7 +192,7 @@ export default function YearReview() {
             {d.excusedDays > 0 && <small className="yr__note">{t.excused(fmt(d.excusedDays, lang))}</small>}
             {!empty && (
               <button type="button" className="ui-btn ui-btn--primary yr__story" onClick={() => setStory(true)} data-testid="yr-story">
-                <Icon name="play" size={16} /> {STORY[lang] || STORY.en}
+                <Icon name="play" size={16} /> {pickUi(STORY, lang, 'en')}
               </button>
             )}
             {!empty && (

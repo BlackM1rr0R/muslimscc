@@ -16,6 +16,7 @@ import '../styles/HijriPage.css'
 import '../styles/ToolsMotion.css'
 import { ringFrom } from '../components/prayer/ringFrom'
 import MoonPhase from '../components/MoonPhase'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // /hijri-converter — Hicri tarix çevirici
@@ -300,7 +301,7 @@ export default function HijriPage({ setPage }) {
 
 // ── Hicri il bir baxışda: ilin irəliləyişi, ayların uzunluğu, iki təqvimin müqayisəsi ──
 function YearGlance({ lang, g, h }) {
-  const x = X[lang] || X.en
+  const x = pickUi(X, lang, 'en')
   const lens = useMemo(() => Array.from({ length: 12 }, (_, i) => hijriMonthLength(h.year, i + 1)), [h.year])
   const yearLen = lens.reduce((a, b) => a + b, 0)
   const doy = lens.slice(0, h.month - 1).reduce((a, b) => a + b, 0) + h.day
@@ -341,7 +342,7 @@ function YearGlance({ lang, g, h }) {
 
 // ── Gələcək Ramazanlar: hesablanmış başlanğıc, gün sayı, bayram, miladi sürüşmə ──
 function Ramadans({ lang, h }) {
-  const x = X[lang] || X.en
+  const x = pickUi(X, lang, 'en')
   const rows = useMemo(() => {
     const first = h.month <= 9 ? h.year : h.year + 1
     const out = []
@@ -431,7 +432,7 @@ function Converter({ t, lang, today, onShowMonth }) {
     const g = hijriToGregorian(h)
     if (!g) {
       const n = hijriMonthLength(y, m)
-      return { error: fill(t.noDay, { m: (HIJRI_MONTHS[lang] || HIJRI_MONTHS.en)[m - 1], y, n }) }
+      return { error: fill(t.noDay, { m: (pickUi(HIJRI_MONTHS, lang, 'en'))[m - 1], y, n }) }
     }
     return { g, h }
   }, [dir, gStr, hDay, hMonth, hYear, t, lang])
@@ -445,7 +446,7 @@ function Converter({ t, lang, today, onShowMonth }) {
     setDir(d => (d === 'g2h' ? 'h2g' : 'g2h'))
   }
 
-  const months = HIJRI_MONTHS[lang] || HIJRI_MONTHS.en
+  const months = pickUi(HIJRI_MONTHS, lang, 'en')
   return (
     <div className="hj-conv ui-card" data-reveal>
       <div className="hj-conv-head">
@@ -521,9 +522,9 @@ function Converter({ t, lang, today, onShowMonth }) {
 // ── Hicri ayın şəbəkəsi ──
 function MonthGrid({ t, lang, view, setView, today, hToday, firstDow }) {
   const grid = useMemo(() => hijriMonthGrid(view.year, view.month, firstDow), [view.year, view.month, firstDow])
-  const months = HIJRI_MONTHS[lang] || HIJRI_MONTHS.en
-  const shortG = G_MONTHS_SHORT[lang] || G_MONTHS_SHORT.en
-  const wd = WEEKDAYS_SHORT[lang] || WEEKDAYS_SHORT.en
+  const months = pickUi(HIJRI_MONTHS, lang, 'en')
+  const shortG = pickUi(G_MONTHS_SHORT, lang, 'en')
+  const wd = pickUi(WEEKDAYS_SHORT, lang, 'en')
   const todayKey = gKey(today)
   const isCur = view.year === hToday.year && view.month === hToday.month
   const go = (n) => {
@@ -629,7 +630,7 @@ const MN_TXT = {
 const mn = (k, lang) => MN_TXT[k][lang] || MN_TXT[k].en
 
 function MonthNames({ t, lang, current, year, onShowMonth }) {
-  const months = HIJRI_MONTHS[lang] || HIJRI_MONTHS.en
+  const months = pickUi(HIJRI_MONTHS, lang, 'en')
   const info = useMemo(() => Array.from({ length: 12 }, (_, i) => {
     let len = null, start = null
     try { len = hijriMonthLength(year, i + 1) } catch { /* aralıqdan kənar */ }

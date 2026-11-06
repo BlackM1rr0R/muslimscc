@@ -20,6 +20,7 @@ import '../styles/PrayerTrackerPage.css'
 import '../styles/ToolsMotion.css'
 import Sparkle from '../components/prayer/Sparkle'
 import { ringFrom } from '../components/prayer/ringFrom'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // /prayer-tracker — Namaz izləyicisi
@@ -254,7 +255,7 @@ export default function PrayerTrackerPage({ setPage }) {
 
 // ── v3.2: ardıcıllıq mərhələləri — rekord seriyaya görə qazanılır ──
 function Milestones({ lang, streak, best }) {
-  const m = MS_TXT[lang] || MS_TXT.en
+  const m = pickUi(MS_TXT, lang, 'en')
   const nextN = MILESTONES.find(n => n > streak)
   return (
     <div className="pt-ms">

@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import '../styles/OfflinePack.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: 'İnternet yoxdur — saxlanmış məzmun göstərilir',
@@ -25,5 +26,5 @@ export default function OfflineBadge() {
     return () => { window.removeEventListener('online', upd); window.removeEventListener('offline', upd) }
   }, [])
   if (!off) return null
-  return <div className="ob" role="status" data-testid="offline-badge">{T[lang] || T.az}</div>
+  return <div className="ob" role="status" data-testid="offline-badge">{pickUi(T, lang)}</div>
 }

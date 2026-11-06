@@ -15,6 +15,7 @@ import '../styles/DuasPage.css'
 import { pickLang } from '../utils/pickLang'
 import { pathFor } from '../seo/routes'
 import { copyText, dayIndex, shareOrCopy } from '../components/reader/share'
+import { pickUi } from '../utils/uiText'
 
 // ── Kateqoriya tərcümələri ──────────────────────────────
 const CAT_LABELS = {
@@ -142,7 +143,7 @@ function writeVerse(key, data) {
  *  data — yüklənənə və ya xəta olanda null; loading — sorğu hələ gedir
  *  (skelet göstərilir). Xəta olanda hər ikisi boşdur — banner gizlənir. */
 function useVerse(ref, lang) {
-  const edition = lang === 'ar' ? '' : (VERSE_EDITIONS[lang] || VERSE_EDITIONS.en)
+  const edition = lang === 'ar' ? '' : (pickUi(VERSE_EDITIONS, lang, 'en'))
   const key = `${ref}_${edition || 'ar'}`
   const [state, setState] = useState(() => ({ key, data: readVerse(key), failed: false }))
 
@@ -188,8 +189,8 @@ function ProphetDua({ item, lang }) {
   return (
     <article className="ui-card duas-pd">
       <div className="duas-pd__head">
-        <span className="duas-pd__name">{item.name[lang] || item.name.en}</span>
-        <span className="duas-pd__about">{item.about[lang] || item.about.en}</span>
+        <span className="duas-pd__name">{pickUi(item.name, lang, 'en')}</span>
+        <span className="duas-pd__about">{pickUi(item.about, lang, 'en')}</span>
       </div>
       {data ? (
         <>
@@ -199,7 +200,7 @@ function ProphetDua({ item, lang }) {
       ) : loading ? (
         <span className="skeleton skeleton--text duas-skel-ar" aria-hidden="true" />
       ) : null}
-      <p className="duas-pd__ref ui-num"><Icon name="quran" size={14} /> {QURAN_L[lang] || QURAN_L.en} {item.ref}{data?.tname ? ` · ${data.tname}` : ''}</p>
+      <p className="duas-pd__ref ui-num"><Icon name="quran" size={14} /> {pickUi(QURAN_L, lang, 'en')} {item.ref}{data?.tname ? ` · ${data.tname}` : ''}</p>
     </article>
   )
 }
@@ -220,7 +221,7 @@ function ProphetDuas({ lang, x }) {
     <section className="ui-section ui-section--alt duas-prophets" aria-labelledby="duas-pd-h" ref={ref}>
       <div className="ui-container">
         <div className="ui-section-head" data-reveal>
-          <span className="ui-eyebrow">{QURAN_L[lang] || QURAN_L.en}</span>
+          <span className="ui-eyebrow">{pickUi(QURAN_L, lang, 'en')}</span>
           <h2 className="ui-title" id="duas-pd-h">{x.prophetsTitle}</h2>
           <p className="ui-lead">{x.prophetsLead}</p>
         </div>
@@ -244,7 +245,7 @@ function HeartIcon({ filled }) {
 
 export default function DuasPage({ setPage }) {
   const { lang } = useLang()
-  const t = T[lang]?.duas || T.az.duas
+  const t = pickUi(T, lang)?.duas || T.az.duas
   const l = lk(lang)
   const ui = UI[l]
   const x = PAGE_TXT[l] || PAGE_TXT.en
@@ -506,7 +507,7 @@ export default function DuasPage({ setPage }) {
                   aria-pressed={showFavs}
                   onClick={(e) => { revealChip(e.currentTarget); setShowFavs(f => !f) }}>
                   <Icon name="donate" size={15} />
-                  {FAV_LABELS[lang] || FAV_LABELS.en}
+                  {pickUi(FAV_LABELS, lang, 'en')}
                   {favs.length > 0 && <span className="duas-chip-num ui-num">{favs.length}</span>}
                 </button>
                 {EN_CATS.map(c => (

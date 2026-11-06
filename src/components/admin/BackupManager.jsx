@@ -3,6 +3,7 @@ import { useLang } from '../../contexts/LangContext'
 import { AdminHeader, SectionTitle, AdminAlert } from './AdminUi'
 import Icon from '../Icon'
 import { exportAllData } from '../../data/adminContent'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Ehtiyat nüsxə və bərpa', sub:'Bütün məlumatları idarə edin', export:'İxrac et', exportDesc:'Bütün admin məlumatlarını JSON formatında endirin', import:'İdxal et', importDesc:'JSON faylından məlumatları yükləyin', clear:'Hamısını sil', clearDesc:'Bütün admin məzmununu silin (geri qaytarıla bilməz)', exportBtn:'JSON yüklə', importBtn:'JSON faylı seç', clearBtn:'Sil', confirmClear:'Bütün admin məlumatları silmək istəyirsiniz? Bu əməliyyat geri qaytarıla bilməz!', imported:'Uğurla idxal olundu! Səhifəni yeniləyin.', importError:'Fayl yanlışdır', cleared:'Hamısı silindi', danger:'TƏHLÜKƏLİ', importViaConsole:'Bərpa serverdə edilir: gündəlik ehtiyat nüsxədən (server sənədinə bax)', clearViaConsole:'Toplu silmə paneldən edilmir — məlumat serverdəki verilənlər bazasındadır (sənədə bax)' },
@@ -14,7 +15,7 @@ const LABELS = {
 
 export default function BackupManager() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
   const fileInputRef = useRef(null)
   const [msg, setMsg] = useState('')
 

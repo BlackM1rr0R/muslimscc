@@ -14,6 +14,7 @@ import {
 import Icon from './Icon'
 import '../styles/NotificationSettingsWidget.css'
 import { showLocalNotification } from '../utils/notify'
+import { pickUi } from '../utils/uiText'
 
 const PREFS_KEY = 'muslim_cc_notif_prefs'
 
@@ -259,7 +260,7 @@ const LABELS = {
  */
 export default function NotificationSettingsWidget({ open: openProp, onClose } = {}) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const controlled = openProp !== undefined
   const [openState, setOpenState] = useState(false)

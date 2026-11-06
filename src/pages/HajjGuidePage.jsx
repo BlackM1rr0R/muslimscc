@@ -19,9 +19,10 @@ import { Timeline, ProgressBar } from '../components/viz'
 import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { HX, HAJJ_DAYS, HAJJ_RITES, IHRAM_NOT, IHRAM_OK, HAJJ_TYPES, HAJJ_VIRTUES, HAJJ_RELATED } from '../data/guides/HajjGuideExtra'
+import { pickUi } from '../utils/uiText'
 
 /** 5 dilli obyektdən cari dil (yoxdursa en → az) */
-const P = (o, lang) => (o && (o[lang] || o.en || o.az)) || ''
+const P = (o, lang) => (o && (pickUi(o, lang, 'en') || o.az)) || ''
 
 // Seçim ekranındakı "Yerlər və yol" bölməsi (5 dil); hero-da Mina, yanda Məscidül-Haram
 const MEDIA_L = {
@@ -493,7 +494,7 @@ function Head({ id, eyebrow, title, lead }) {
 
 export default function HajjGuidePage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
+  const t = pickUi(LABELS, lang)
   const navigate = useNavigate()
 
   const [mode, setMode] = useState(null) // 'hajj' | 'umrah'
@@ -502,7 +503,7 @@ export default function HajjGuidePage({ setPage }) {
   const [dir, setDir] = useState('none')
   // Seçim ekranına geri qayıdanda yumşaq giriş; ilk yükləmədə yox (səhifə keçidi onsuz da var)
   const [visited, setVisited] = useState(false)
-  const h32 = H32[lang] || H32.en
+  const h32 = pickUi(H32, lang, 'en')
   // Son açılmış addım — yalnız brauzerdə oxunur (prerender HTML-i ilə uyğunsuzluq olmasın)
   const [last, setLast] = useState(null)
   useEffect(() => { setLast(readLast()) }, [])
@@ -613,7 +614,7 @@ export default function HajjGuidePage({ setPage }) {
     window.scrollTo(0, 0)
   }
 
-  const media = MEDIA_L[lang] || MEDIA_L.en
+  const media = pickUi(MEDIA_L, lang, 'en')
 
   return (
     <div className="hg-page">
@@ -694,7 +695,7 @@ export default function HajjGuidePage({ setPage }) {
                     </span>
                     {/* Addımların qısa zənciri — nə gözlədiyini əvvəlcədən görmək üçün */}
                     <span className="hg-select-chain">
-                      {o.list.map((s, i) => <span key={s.id} className="hg-select-chain__i"><span className="ui-num">{i + 1}</span>{s.name[lang] || s.name.en}</span>)}
+                      {o.list.map((s, i) => <span key={s.id} className="hg-select-chain__i"><span className="ui-num">{i + 1}</span>{pickUi(s.name, lang, 'en')}</span>)}
                     </span>
                     <span className="hg-select-go" aria-hidden="true"><Icon name="arrow" size={18} className="ui-flip-rtl" /></span>
                   </button>
@@ -738,7 +739,7 @@ export default function HajjGuidePage({ setPage }) {
                       <span className="hg-step-chip-num ui-num" aria-hidden="true">
                         {i < currentStep ? <Icon name="check" size={13} strokeWidth={2.4} /> : i + 1}
                       </span>
-                      <span className="hg-step-chip-label">{st.name[lang] || st.name.en}</span>
+                      <span className="hg-step-chip-label">{pickUi(st.name, lang, 'en')}</span>
                     </button>
                   ))}
                 </nav>
@@ -752,12 +753,12 @@ export default function HajjGuidePage({ setPage }) {
                         <span className="hg-step-number ui-num" aria-hidden="true">{currentStep + 1}</span>
                       </span>
                       <div className="hg-step-titles">
-                        <h2 className="hg-step-name">{step.name[lang] || step.name.en}</h2>
+                        <h2 className="hg-step-name">{pickUi(step.name, lang, 'en')}</h2>
                         {lang !== 'ar' && <p className="hg-step-arabic ui-arabic" lang="ar" dir="rtl">{step.arabic}</p>}
                       </div>
                     </div>
 
-                    <p className="hg-description">{step.description[lang] || step.description.en}</p>
+                    <p className="hg-description">{pickUi(step.description, lang, 'en')}</p>
 
                     {/* Oxunan dua / təlbiyə */}
                     {step.recitation && (

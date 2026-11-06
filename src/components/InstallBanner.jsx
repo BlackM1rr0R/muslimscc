@@ -14,6 +14,7 @@ import {
   exitDelay,
 } from '../utils/promptCoordinator'
 import '../styles/InstallBanner.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // PWA quraşdırma dəvəti ("Ana ekrana əlavə et")
@@ -109,7 +110,7 @@ function engagedEnough() {
 
 export default function InstallBanner() {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.en
+  const t = pickUi(LABELS, lang, 'en')
 
   const [standalone, setStandalone] = useState(isStandaloneNow)
   const [isIOS] = useState(isIOSSafari)

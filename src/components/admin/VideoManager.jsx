@@ -4,6 +4,7 @@ import Icon from '../Icon'
 import { AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addVideo, updateVideo, deleteVideo, getYouTubeId, getThumbnail, VIDEO_CATEGORIES, subscribeToVideos } from '../../data/videos'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Videolar', sub:'Video məzmununu idarə edin', addNew:'Yeni video', editVideo:'Redaktə et', all:'Bütün videolar', titleField:'Başlıq', descField:'Təsvir', youtubeUrl:'YouTube linki', duration:'Müddət', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu videonu silmək istəyirsiniz?', noVideos:'Hələ video yoxdur', invalidUrl:'YouTube linki yanlışdır', titleRequired:'Başlıq tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)' },
@@ -23,7 +24,7 @@ const EMPTY_FORM = {
 
 export default function VideoManager({ onUpdate }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)

@@ -3,6 +3,7 @@ import Icon from '../Icon'
 import { isPlainClick } from '../PageLink'
 import { pathFor } from '../../seo/routes'
 import { ChartFigure, BarChart, ColumnChart, Donut, StackedBar, Timeline, StatTile } from '../viz'
+import { pickUi } from '../../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
    Dərs blokları — src/data/lessons/README.md-dəki formatın göstərilməsi.
@@ -15,7 +16,7 @@ import { ChartFigure, BarChart, ColumnChart, Donut, StackedBar, Timeline, StatTi
    v3 yeni bloklar (vizual): stats · chart · timeline · links
    ══════════════════════════════════════════════════════════════════ */
 
-export const pick = (obj, lang) => (obj && (typeof obj === 'string' ? obj : (obj[lang] || obj.en || obj.az))) || ''
+export const pick = (obj, lang) => (obj && (typeof obj === 'string' ? obj : (pickUi(obj, lang, 'en') || obj.az))) || ''
 
 // "2:255" / "2:255-257" → Quran səhifəsindəki surəyə link
 function ayahHref(ref, lang) {
@@ -107,7 +108,7 @@ function ChartBlock({ b, lang }) {
 
 export function Block({ b, lang }) {
   const isAr = lang === 'ar'
-  const L = LBL[lang] || LBL.en
+  const L = pickUi(LBL, lang, 'en')
   switch (b.t) {
     case 'p':
       return <p className="ls-p">{pick(b.text, lang)}</p>

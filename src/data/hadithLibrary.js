@@ -87,7 +87,9 @@ export const TRANSLATION_LANGS = {
 
 // Sayt dili → susmaya görə tərcümə nəşri (yoxdursa ingiliscə; ərəbcədə — yalnız ərəb mətni)
 // lang-ok: dəyərlər mətn deyil, nəşr kodlarıdır
-export const DEFAULT_TRANSLATION = { az: 'eng', en: 'eng', ru: 'rus', tr: 'tur', ar: '' }
+export const DEFAULT_TRANSLATION = { az: 'eng', en: 'eng', ru: 'rus', tr: 'tur', ar: '',
+  // Əlavə dillər (src/seo/langs.js): mənbədə öz dilində nəşri olanlar
+  id: 'ind', ur: 'urd', bn: 'ben', fr: 'fra' }
 
 export const BOOK_DATA = {
   bukhari: {

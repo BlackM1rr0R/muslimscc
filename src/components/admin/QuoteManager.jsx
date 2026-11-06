@@ -4,6 +4,7 @@ import Icon from '../Icon'
 import { AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addCustomQuote, updateCustomQuote, deleteCustomQuote, QUOTE_CATEGORIES, subscribeToQuotes } from '../../data/adminContent'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Sitatlar', sub:'Sitat generatorunda istifadə olunur', addNew:'Yeni sitat', editItem:'Redaktə', all:'Bütün sitatlar', arabic:'Ərəbcə', text:'Mətn', source:'Mənbə', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hələ sitat yoxdur', required:'Mətn tələb olunur', sourcePh:'Quran, hədis, Həzrət Əli...' },
@@ -17,7 +18,7 @@ const EMPTY = { ar:'', text:{az:'',en:'',ru:'',ar:'',tr:''}, source:'', category
 
 export default function QuoteManager({ onUpdate }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [items, setItems] = useState([])
   const [form, setForm] = useState(EMPTY)

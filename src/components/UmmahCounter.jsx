@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react'
 import Icon from './Icon'
 import { fetchUmmah, pendingUmmah, UMMAH_OFF_KEY } from '../utils/ummah'
 import '../styles/UmmahCounter.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: { title: 'Ümmət bu gün', lead: 'Saytda bu gün birlikdə deyilən zikrlər — kimin nə dediyi saxlanmır, yalnız ümumi say.', salawat: 'salavat', dhikr: 'zikr', juz: 'oxunan cüz', total: (n) => `İndiyə qədər: ${n}`, opt: 'Mənim toxunuşlarım sayılmasın', err: 'Sayğacı yükləmək alınmadı.' },
@@ -24,7 +25,7 @@ const ICON = { salawat: 'sparkle', dhikr: 'dhikr', juz: 'quran' }
 const fmt = (n, lang) => Number(n || 0).toLocaleString(lang === 'ar' ? 'ar-u-nu-latn' : lang)
 
 export default function UmmahCounter({ lang = 'az' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [data, setData] = useState(null)
   const [err, setErr] = useState(false)
   const [mine, setMine] = useState(() => pendingUmmah())

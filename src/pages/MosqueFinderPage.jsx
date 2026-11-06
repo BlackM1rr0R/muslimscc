@@ -14,6 +14,7 @@ import '../styles/MosqueFinderPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import MosqueRadar, { walkMinutes } from '../components/MosqueRadar'
 import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
+import { pickUi } from '../utils/uiText'
 
 const WALK = { az: (m) => `piyada ≈ ${m} dəq`, en: (m) => `≈ ${m} min walk`, ru: (m) => `пешком ≈ ${m} мин`, tr: (m) => `yürüyerek ≈ ${m} dk`, ar: (m) => `≈ ${m} دقيقة مشيًا` }
 
@@ -164,8 +165,8 @@ function formatDistance(km) {
 
 export default function MosqueFinderPage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
-  const x = EXTRA[lang] || EXTRA.en
+  const t = pickUi(LABELS, lang)
+  const x = pickUi(EXTRA, lang, 'en')
   // Namaz vaxtları üçün seçilmiş şəhər — məkan icazəsi olmayanda ehtiyat
   const cityLoc = getPrayerLocation()
   const cityName = cityLoc.city?.[lang] || cityLoc.city?.en || ''
@@ -264,7 +265,7 @@ export default function MosqueFinderPage({ setPage }) {
           <p className="ui-lead">{x.lead}</p>
           <p className="ui-page-hero__how"><Icon name="shield" size={16} /> <span>{V3[lang]?.privacy || V3.en.privacy}</span></p>
           <ul className="ui-page-hero__stats">
-            <li><b>{(V3[lang] || V3.en).km}</b><span>{(V3[lang] || V3.en).radius}</span></li>
+            <li><b>{(pickUi(V3, lang, 'en')).km}</b><span>{(pickUi(V3, lang, 'en')).radius}</span></li>
             <li><b>OSM</b><span>{V3[lang]?.osm || V3.en.osm}</span></li>
           </ul>
         </div>
@@ -286,7 +287,7 @@ export default function MosqueFinderPage({ setPage }) {
             </div>
             {/* Necə işləyir — 3 addım */}
             <ol className="ui-steps ui-steps--row mosque-how">
-              {(V3[lang] || V3.en).steps.map((s, i) => (
+              {(pickUi(V3, lang, 'en')).steps.map((s, i) => (
                 <li key={i} className="ui-step">
                   <span className="ui-step__n" aria-hidden="true">{i + 1}</span>
                   <div className="ui-step__body"><p className="ui-step__text">{s}</p></div>

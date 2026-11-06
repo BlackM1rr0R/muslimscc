@@ -9,6 +9,7 @@ import {
 } from '../api/groups'
 import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
 import '../styles/GroupPage.css'
+import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
    QRUP XƏTMİ VƏ ORTAQ HƏDƏFLƏR — /group (təqdimat + yaratma) və
@@ -408,7 +409,7 @@ const Bar = ({ value, label }) => (
 
 export default function GroupPage() {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.en
+  const L = pickUi(LABELS, lang, 'en')
   const id = useRoomId()
   return id ? <Room key={id} id={id} L={L} lang={lang} /> : <Landing L={L} lang={lang} />
 }
@@ -445,7 +446,7 @@ function Landing({ L, lang }) {
     }
   }
 
-  const v = V3[lang] || V3.en
+  const v = pickUi(V3, lang, 'en')
   const sampleCounts = { done: SAMPLE.filter(x => x === 'done').length, reading: SAMPLE.filter(x => x === 'reading').length, free: SAMPLE.filter(x => x === 'free').length }
 
   return (
@@ -795,7 +796,7 @@ function Khatm({ data, L, lang, local, updateLocal, run, busy, isAdmin, admin, f
   const [name, setName] = useState(savedName)
   const k = data.khatm
   const doneCount = k.juz.filter(j => j.done).length
-  const v = V3[lang] || V3.en
+  const v = pickUi(V3, lang, 'en')
   const cells = k.juz.map(j => (j.done ? 'done' : j.name ? 'reading' : 'free'))
   const counts = { done: doneCount, reading: cells.filter(c => c === 'reading').length, free: cells.filter(c => c === 'free').length }
   const closed = data.closed

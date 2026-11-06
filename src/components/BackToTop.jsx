@@ -12,6 +12,7 @@ import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import '../styles/ListMore.css'
 import { isLiteDevice } from '../utils/liteDevice'
+import { pickUi } from '../utils/uiText'
 
 const LABEL = { az: 'Yuxarı qayıt', en: 'Back to top', ru: 'Наверх', ar: 'العودة إلى الأعلى', tr: 'Başa dön' }
 
@@ -21,7 +22,7 @@ function reducedMotion() {
 
 export default function BackToTop({ threshold }) {
   const { lang } = useLang()
-  const label = LABEL[lang] || LABEL.en
+  const label = pickUi(LABEL, lang, 'en')
   const [on, setOn] = useState(false)
 
   useEffect(() => {

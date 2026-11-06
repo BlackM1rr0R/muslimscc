@@ -17,6 +17,7 @@ import Icon from '../Icon'
 import PrayerPose from './PrayerPose'
 import HandDetail, { hasHandDetail } from './HandDetail'
 import { ACTIONS, PRAYERS, ZIKR, buildSequence } from '../../data/prayerGuide'
+import { pickUi } from '../../utils/uiText'
 
 const SECONDS = [5, 8, 12, 20]
 const PREF_KEY = 'qm_paper_prefs'
@@ -38,7 +39,7 @@ function stepLines(step, lang) {
   const a = ACTIONS[step.id]
   return a.say.map(id => {
     const z = ZIKR[id]
-    return { id, ar: z.ar, tl: lang === 'ar' ? '' : (z.tl[lang] || z.tl.en), mean: z.mean[lang] || z.mean.en, repeat: z.repeat || 1 }
+    return { id, ar: z.ar, tl: lang === 'ar' ? '' : (pickUi(z.tl, lang, 'en')), mean: pickUi(z.mean, lang, 'en'), repeat: z.repeat || 1 }
   })
 }
 
@@ -177,7 +178,7 @@ export default function PaperMode({ lang, t, onClose }) {
             <div className="pm-chips" role="group" aria-labelledby="pm-l-prayer">
               {PRAYERS.map(p => (
                 <button key={p.key} type="button" className="ui-chip pm-chip" aria-pressed={p.key === prayerKey} onClick={() => setPrayerKey(p.key)}>
-                  {p.name[lang] || p.name.en} <span className="pm-chip-sub">{t.rakatN(p.rakats)}</span>
+                  {pickUi(p.name, lang, 'en')} <span className="pm-chip-sub">{t.rakatN(p.rakats)}</span>
                 </button>
               ))}
             </div>
@@ -199,7 +200,7 @@ export default function PaperMode({ lang, t, onClose }) {
           </div>
 
           <button type="button" className="ui-btn ui-btn--primary pm-start" onClick={start}>
-            <Icon name="play" className="ui-btn__icon" /> {t.start} · {prayer.name[lang] || prayer.name.en}
+            <Icon name="play" className="ui-btn__icon" /> {t.start} · {pickUi(prayer.name, lang, 'en')}
           </button>
         </div>
       )}
@@ -234,11 +235,11 @@ export default function PaperMode({ lang, t, onClose }) {
                 <div className="pm-figure"><PrayerPose pose={step.pose} /></div>
                 {hasHandDetail(step.pose) && <HandDetail pose={step.pose} lang={lang} compact className="pm-hands" />}
               </div>
-              <h2 className="pm-action">{a.name[lang] || a.name.en}</h2>
+              <h2 className="pm-action">{pickUi(a.name, lang, 'en')}</h2>
               {a.lead && (
                 <p className="pm-lead">{lang === 'ar' ? ZIKR[a.lead].ar : `${ZIKR[a.lead].tl[lang] || ZIKR[a.lead].tl.en} · `}{lang !== 'ar' && <span lang="ar" dir="rtl">{ZIKR[a.lead].ar}</span>}</p>
               )}
-              {lines.length === 0 && <p className={`pm-say pm-say--do ${sizeClass((a.do[lang] || '').length)}`}>{a.do[lang] || a.do.en}</p>}
+              {lines.length === 0 && <p className={`pm-say pm-say--do ${sizeClass((a.do[lang] || '').length)}`}>{pickUi(a.do, lang, 'en')}</p>}
               {lines.map(l => (
                 <div key={l.id} className={`pm-say ${sz}`}>
                   {l.tl && <p className="pm-tl">{l.tl}{l.repeat > 1 && <span className="pm-rep"> ×{l.repeat}</span>}</p>}

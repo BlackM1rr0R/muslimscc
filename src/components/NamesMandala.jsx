@@ -17,6 +17,7 @@
 import { useMemo, useState, useRef } from 'react'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/NamesMandala.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: { label: 'Allahın 99 adı — mandala. Oxlarla adı seçin, giriş düyməsi ilə açın.', hint: 'Ada toxunun', open: 'Aç', known: (k) => `${k} / 99 əzbərlənib`, legendKnown: 'əzbərlənib', legendNew: 'öyrənilməyib' },
@@ -49,7 +50,7 @@ export function mandalaLayout(count = 99) {
 }
 
 export default function NamesMandala({ names, known = [], lang = 'az', meaningOf = () => '', onOpen }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const layout = useMemo(() => mandalaLayout(names.length), [names.length])
   const knownSet = useMemo(() => new Set(known), [known])
   const [sel, setSel] = useState(null) // indeks

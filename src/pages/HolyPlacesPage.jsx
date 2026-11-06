@@ -24,6 +24,7 @@ import { HajjRouteMap } from '../components/media/SiraMaps'
 import { StatTile, ChartFigure, BarChart } from '../components/viz'
 import PageLink from '../components/PageLink'
 import { localizeSource } from '../utils/sourceNames'
+import { pickUi } from '../utils/uiText'
 
 const SAHIH = { az: 'səhih (əl-Albani)', en: 'sahih (al-Albani)', ru: 'достоверный (аль-Альбани)', ar: 'صحيح (الألباني)', tr: 'sahih (Elbânî)' }
 
@@ -332,7 +333,7 @@ const RELATED = [
   { to: 'mosques', title: { az: 'Yaxındakı məscidlər', en: 'Nearby mosques', ru: 'Мечети рядом', ar: 'المساجد القريبة', tr: 'Yakındaki camiler' }, text: { az: 'Ətrafınızdakı məscidi tapın', en: 'Find a mosque around you', ru: 'Найдите мечеть рядом', ar: 'ابحث عن مسجد قريب', tr: 'Çevrenizdeki camiyi bulun' } },
 ]
 
-const P = (o, lang) => (o && (o[lang] || o.en || o.az)) || ''
+const P = (o, lang) => (o && (pickUi(o, lang, 'en') || o.az)) || ''
 
 /** İki nöqtə arasında düz xətlə məsafə (km, haversine) */
 function distKm(a, b) {

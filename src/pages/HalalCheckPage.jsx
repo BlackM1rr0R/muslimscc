@@ -9,6 +9,7 @@ import {
 } from '../utils/ecodes'
 import { ChartFigure, BarChart } from '../components/viz'
 import '../styles/HalalCheckPage.css'
+import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
    HALAL QİDA YOXLAMASI — /halal-check
@@ -703,7 +704,7 @@ function nameOf(entry, items, lang) {
   if (entry.n[lang]) return { name: entry.n[lang], fallback: false }
   if (entry.n.en) return { name: entry.n.en, fallback: lang !== 'en' }
   const parent = entry.p && items[entry.p]
-  if (parent) { const pn = parent.n[lang] || parent.n.en; return { name: pn || '', fallback: !parent.n[lang], parent: entry.p } }
+  if (parent) { const pn = pickUi(parent.n, lang, 'en'); return { name: pn || '', fallback: !parent.n[lang], parent: entry.p } }
   return { name: '', fallback: false }
 }
 
@@ -713,14 +714,14 @@ function classLabel(id, data, lang) {
 
 /** Kateqoriya nişanı (yalnız mənşə). */
 function CatBadge({ cat, lang }) {
-  const [label] = (CAT[lang] || CAT.en)[cat]
+  const [label] = (pickUi(CAT, lang, 'en'))[cat]
   return <span className={`hc-cat hc-cat--${cat}`}><span className="hc-cat__dot" aria-hidden="true" />{label}</span>
 }
 
 /** Bir E-kod kartı: ad, qrup, funksiya; açılanda — mənbə sahələri. */
 function ECodeCard({ code, entry, data, lang, L, note }) {
   const { name, fallback, parent } = nameOf(entry, data.items, lang)
-  const cat = (CAT[lang] || CAT.en)[entry.cat]
+  const cat = (pickUi(CAT, lang, 'en'))[entry.cat]
   const v = (x) => L.val[x ?? 'null'] ?? x
   return (
     <article className="ui-card hc-code">
@@ -917,7 +918,7 @@ function ECodeSection({ data, status, retry, lang, L }) {
               <button type="button" className="ui-chip" aria-pressed={cat === null} onClick={() => setCat(null)}>{L.all}</button>
               {CATEGORIES.map((c) => (
                 <button key={c} type="button" className="ui-chip hc-chip" aria-pressed={cat === c} onClick={() => setCat(cat === c ? null : c)}>
-                  <span className={`hc-cat__dot hc-cat--${c}`} aria-hidden="true" />{(CAT[lang] || CAT.en)[c][0]} <span className="ui-num hc-chip__n">{counts[c] || 0}</span>
+                  <span className={`hc-cat__dot hc-cat--${c}`} aria-hidden="true" />{(pickUi(CAT, lang, 'en'))[c][0]} <span className="ui-num hc-chip__n">{counts[c] || 0}</span>
                 </button>
               ))}
             </div>
@@ -1088,15 +1089,15 @@ function Ayah({ a, lang }) {
     <figure className="ui-quote hc-quote">
       <blockquote>
         <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{a.ar}</p>
-        {lang !== 'ar' && <p className="ui-quote__text">{a[lang] || a.en}</p>}
+        {lang !== 'ar' && <p className="ui-quote__text">{pickUi(a, lang, 'en')}</p>}
       </blockquote>
-      <figcaption className="ui-quote__src">— {QREF[lang] || QREF.en} {s}:{v}</figcaption>
+      <figcaption className="ui-quote__src">— {pickUi(QREF, lang, 'en')} {s}:{v}</figcaption>
     </figure>
   )
 }
 
 function FiqhSection({ data, lang, L }) {
-  const sections = FIQH[lang] || FIQH.en
+  const sections = pickUi(FIQH, lang, 'en')
   const c = { total: data?.meta?.count ?? '…', none: data?.meta?.counts?.none ?? '…' }
   return (
     <section id="hc-fiqh" className="ui-section ui-section--tight hc-block" aria-labelledby="hc-fiqh-h">
@@ -1120,9 +1121,9 @@ function FiqhSection({ data, lang, L }) {
                     <figure key={i} className="ui-quote hc-quote">
                       <blockquote>
                         <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{HADITH.ar}</p>
-                        {lang !== 'ar' && <p className="ui-quote__text">{HADITH[lang] || HADITH.en}</p>}
+                        {lang !== 'ar' && <p className="ui-quote__text">{pickUi(HADITH, lang, 'en')}</p>}
                       </blockquote>
-                      <figcaption className="ui-quote__src">— {HREF[lang] || HREF.en}{lang === 'az' && <> · {L.ourTr}</>}</figcaption>
+                      <figcaption className="ui-quote__src">— {pickUi(HREF, lang, 'en')}{lang === 'az' && <> · {L.ourTr}</>}</figcaption>
                     </figure>
                   )
                 }
@@ -1174,7 +1175,7 @@ const CAT_TONE = { none: 1, maybe: 2, alcohol: 3, animal: 4, insect: 4, unknown:
 function OverviewSection({ data, lang, L }) {
   const cats = useMemo(() => {
     const counts = data?.meta?.counts || {}
-    return CATEGORIES.map((c) => ({ key: c, label: (CAT[lang] || CAT.en)[c][0], value: counts[c] || 0, tone: CAT_TONE[c] }))
+    return CATEGORIES.map((c) => ({ key: c, label: (pickUi(CAT, lang, 'en'))[c][0], value: counts[c] || 0, tone: CAT_TONE[c] }))
       .sort((a, b) => b.value - a.value)
   }, [data, lang])
   const classes = useMemo(() => {
@@ -1220,7 +1221,7 @@ function OverviewSection({ data, lang, L }) {
 
 export default function HalalCheckPage() {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.en
+  const L = pickUi(LABELS, lang, 'en')
   const [data, setData] = useState(null)
   const [status, setStatus] = useState('loading')
   const [attempt, setAttempt] = useState(0)

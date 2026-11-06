@@ -9,12 +9,13 @@ import { useNavigate } from 'react-router-dom'
 import Icon from '../Icon'
 import { isPlainClick } from '../PageLink'
 import { pathFor } from '../../seo/routes'
+import { pickUi } from '../../utils/uiText'
 
 const TXT = {
   eyebrow: { az: 'Davamı', en: 'Keep going', ru: 'Дальше', ar: 'للمتابعة', tr: 'Devamı' },
   title: { az: 'Əlaqəli bölmələr', en: 'Related sections', ru: 'Связанные разделы', ar: 'أقسام ذات صلة', tr: 'İlgili bölümler' },
 }
-const pick = (o, lang) => (o ? o[lang] || o.en || '' : '')
+const pick = (o, lang) => (o ? pickUi(o, lang, 'en') || '' : '')
 
 export default function RelatedLinks({ items, lang, title, eyebrow, id = 'related' }) {
   const navigate = useNavigate()

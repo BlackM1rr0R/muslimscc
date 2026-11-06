@@ -4,6 +4,7 @@ import Icon from '../Icon'
 import { EVENT_ICON, AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addCustomEvent, updateCustomEvent, deleteCustomEvent, EVENT_TYPES, HIJRI_MONTHS, subscribeToEvents } from '../../data/adminContent'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'İslami hadisələr', sub:'Təqvimdə göstəriləcək tarixlər', addNew:'Yeni hadisə', editItem:'Redaktə', all:'Bütün hadisələr', name:'Ad', desc:'Təsvir', month:'Ay', day:'Gün', type:'Növ', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hadisə yoxdur', required:'Bu sahə tələb olunur' },
@@ -17,7 +18,7 @@ const EMPTY = { name:{az:'',en:'',ru:'',ar:'',tr:''}, desc:{az:'',en:'',ru:'',ar
 
 export default function EventManager({ onUpdate }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [items, setItems] = useState([])
   const [form, setForm] = useState(EMPTY)

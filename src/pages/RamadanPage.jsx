@@ -33,6 +33,7 @@ import '../styles/ToolsMotion.css'
 import GeoStarfield from '../components/prayer/GeoStarfield'
 import Sparkle from '../components/prayer/Sparkle'
 import { ringFrom } from '../components/prayer/ringFrom'
+import { pickUi } from '../utils/uiText'
 
 const TXT = {
   title:   { az: 'İmsakiyyə', en: 'Ramadan timetable', ru: 'Расписание на Рамадан', ar: 'إمساكية رمضان', tr: 'İmsakiye' },
@@ -70,7 +71,7 @@ const TXT = {
   lastTen: { az: 'Son 10 gecə', en: 'Last 10 nights', ru: 'Последние 10 ночей', ar: 'العشر الأواخر', tr: 'Son 10 gece' },
   wait:    { az: 'Hicri tarix müəyyən edilir…', en: 'Determining the Hijri date…', ru: 'Определяется дата по хиджре…', ar: 'جارٍ تحديد التاريخ الهجري…', tr: 'Hicri tarih belirleniyor…' },
 }
-const pick = (o, lang) => o[lang] || o.en
+const pick = (o, lang) => pickUi(o, lang, 'en')
 
 // Bələdçi və xətm planı yazıları
 const GT = {
@@ -277,7 +278,7 @@ const COLS = ['imsak', 'fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']
 
 function colLabel(key, lang) {
   if (key === 'imsak') return pick(RC_TXT.imsak, lang)
-  if (key === 'maghrib') return `${pick(RC_TXT.iftar, lang)} (${PRAYER_NAMES.maghrib[lang] || PRAYER_NAMES.maghrib.en})`
+  if (key === 'maghrib') return `${pick(RC_TXT.iftar, lang)} (${pickUi(PRAYER_NAMES.maghrib, lang, 'en')})`
   return PRAYER_NAMES[key]?.[lang] || PRAYER_NAMES[key]?.en || key
 }
 

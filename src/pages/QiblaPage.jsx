@@ -17,6 +17,7 @@ import { haptic } from '../hooks/useHaptic'
 import '../styles/ToolsMotion.css'
 import GeoStarfield from '../components/prayer/GeoStarfield'
 import RelatedLinks from '../components/prayer/RelatedLinks'
+import { pickUi } from '../utils/uiText'
 
 const KAABA = { lat: 21.3891, lon: 39.8579 }
 // Fırladıla bilən qlobus — ayrıca chunk (d3-geo + quru xəritəsi yalnız burada yüklənir)
@@ -187,7 +188,7 @@ function CityTable({ lang }) {
               <th scope="row">{r.name}</th>
               <td className="ui-num"><bdi dir="ltr">{r.q.toFixed(1)}°</bdi></td>
               <td className="ui-num"><bdi dir="ltr">{westOfSouth(r.q)}</bdi></td>
-              <td className="ui-num"><bdi dir="ltr">{formatKm(r.d, lang)} {KM[lang] || KM.en}</bdi></td>
+              <td className="ui-num"><bdi dir="ltr">{formatKm(r.d, lang)} {pickUi(KM, lang, 'en')}</bdi></td>
             </tr>
           ))}
         </tbody>
@@ -263,9 +264,9 @@ const LABELS = {
 
 export default function QiblaPage({ setPage }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.en
-  const x = EXTRA[lang] || EXTRA.en
-  const dt = DIR_TXT[lang] || DIR_TXT.en
+  const l = pickUi(LABELS, lang, 'en')
+  const x = pickUi(EXTRA, lang, 'en')
+  const dt = pickUi(DIR_TXT, lang, 'en')
 
   const [status, setStatus]       = useState('idle')
   const [coords, setCoords]       = useState(null)
@@ -573,7 +574,7 @@ export default function QiblaPage({ setPage }) {
                       style={{ '--i': i }} />
                   ))}
                   <div className="qibla-cardinals">
-                    {(CARDINALS[lang] || CARDINALS.en).map((d, i) => (
+                    {(pickUi(CARDINALS, lang, 'en')).map((d, i) => (
                       <span key={i} className={`qibla-cardinal ${i === 0 ? 'north' : ''}`}
                         style={{ '--ci': i * 2 }}>
                         {d}
@@ -607,7 +608,7 @@ export default function QiblaPage({ setPage }) {
               </div>
               {arOk && qibla != null && (
                 <button type="button" className="ui-btn ui-btn--primary qibla-ar-btn" onClick={openAR} data-testid="qibla-ar-open">
-                  <Icon name="target" className="ui-btn__icon" /> {AR_BTN[lang] || AR_BTN.en}
+                  <Icon name="target" className="ui-btn__icon" /> {pickUi(AR_BTN, lang, 'en')}
                 </button>
               )}
               {arOpen && (
@@ -644,7 +645,7 @@ export default function QiblaPage({ setPage }) {
                 <div className="qibla-info-body">
                   <span className="qibla-info-label">{l.distance}</span>
                   <span className="qibla-info-val">
-                    {distance != null ? formatKm(distance, lang) : ''} <small>{KM[lang] || KM.en}</small>
+                    {distance != null ? formatKm(distance, lang) : ''} <small>{pickUi(KM, lang, 'en')}</small>
                   </span>
                 </div>
               </div>

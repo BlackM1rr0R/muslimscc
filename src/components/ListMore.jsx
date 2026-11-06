@@ -9,6 +9,7 @@
 import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import '../styles/ListMore.css'
+import { pickUi } from '../utils/uiText'
 
 const LABELS = {
   az: { more: 'Daha çox göstər', all: 'Hamısı göstərildi' },
@@ -32,7 +33,7 @@ export default function ListMore({
   endText, skeleton, minForEnd = 0, className = '',
 }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.en
+  const l = pickUi(LABELS, lang, 'en')
   if (!total) return null
 
   if (!hasMore) {

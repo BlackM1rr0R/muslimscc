@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { TEMPLATES, renderThumb, ensureFonts, formatById } from '../../utils/quoteCard'
 import { TEMPLATE_NAMES, TEMPLATE_FILTERS } from './labels'
+import { pickUi } from '../../utils/uiText'
 
 // Mehrab fonu tünddür (tağın içi açıq olsa da)
 const isDark = (tpl) => Boolean(tpl.dark) || tpl.id === 'mihrab'
@@ -38,7 +39,7 @@ function Thumb({ tpl, card, fmt }) {
 }
 
 export default function TemplatePicker({ value, onChange, lang, label, card, format }) {
-  const f = TEMPLATE_FILTERS[lang] || TEMPLATE_FILTERS.en
+  const f = pickUi(TEMPLATE_FILTERS, lang, 'en')
   const [tone, setTone] = useState('all')
   const fmt = format?.id === 'story' ? formatById('portrait') : (format || formatById('square'))
   const list = TEMPLATES.filter(t => tone === 'all' || (tone === 'dark' ? isDark(t) : !isDark(t)))

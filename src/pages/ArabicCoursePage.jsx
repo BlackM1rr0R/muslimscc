@@ -30,6 +30,7 @@ import LetterLesson from '../components/arabic/LetterLesson.jsx'
 import Quiz from '../components/arabic/Quiz.jsx'
 import { ProgressRing } from '../components/viz'
 import '../styles/ArabicCourse.css'
+import { pickUi } from '../utils/uiText'
 
 // v3 — hero izahı, açar rəqəmlər və "kursun yolu" (3 mərhələ)
 const AX = {
@@ -121,7 +122,7 @@ const G = {
     rank: 'Sıra', word: 'Kelime', count: 'Sayı', firstAyah: 'İlk ayet',
   },
 }
-const gx = (lang) => G[lang] || G.en
+const gx = (lang) => pickUi(G, lang, 'en')
 
 /** Quran nümunəsi: vurğulanmış söz, istinad, qısa məna */
 function QuranLine({ ex, lang }) {
@@ -434,7 +435,7 @@ export default function ArabicCoursePage({ setPage }) {
   const resumeId = resumeLesson(progress)
   const ctaLabel = allDone ? t.review : started ? t.resume : t.start
   const View = lesson ? LESSON_VIEW[lesson.id] : null
-  const ax = AX[lang] || AX.en
+  const ax = pickUi(AX, lang, 'en')
   const coverage = Math.round((QURAN_WORDS_TOP_SUM / QURAN_WORDS_TOTAL) * 100)
 
   return (

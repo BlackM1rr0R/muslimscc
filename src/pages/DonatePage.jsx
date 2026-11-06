@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom'
 import { pathFor } from '../seo/routes'
 import { DONATE_GUIDE, DONATE_GUIDE_LINKS } from '../data/pageGuides/DonatePage'
 import '../styles/LessonsPage.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Xeyriyyə və ianə — /donate (ümumi bələdçi)
@@ -202,11 +203,11 @@ const DN3 = {
   guideLead: { az: 'Daha üç fəzilət, davamlı sədəqə və vermənin ədəbi — mənbələri ilə.', en: 'Three more virtues, ongoing charity and the etiquette of giving — with sources.', ru: 'Ещё три достоинства, непрерывная милостыня и этикет пожертвования — с источниками.', ar: 'ثلاث فضائل أخرى، والصدقة الجارية، وآداب الصدقة بأدلتها.', tr: 'Üç fazilet daha, sadaka-i câriye ve vermenin edebi — kaynaklarıyla.' },
   tipsEyebrow: { az: 'Verməzdən əvvəl', en: 'Before you give', ru: 'Прежде чем дать', ar: 'قبل أن تعطي', tr: 'Vermeden önce' },
 }
-const P = (o, lang) => (o && (o[lang] || o.en || o.az)) || ''
+const P = (o, lang) => (o && (pickUi(o, lang, 'en') || o.az)) || ''
 
 export default function DonatePage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.en
+  const t = pickUi(LABELS, lang, 'en')
   const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
   const navigate = useNavigate()
   // Dərsə keçid — həqiqi <a href>, adi klikdə SPA ilə

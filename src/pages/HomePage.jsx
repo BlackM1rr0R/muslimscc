@@ -78,6 +78,7 @@ import '../styles/HomePage.css'
 // PERFORMANS: AdminPage.css (47 KB) yox — yalnız ana səhifənin istifadə etdiyi
 // .video-* qaydaları (HomeVideo.css, ~1.8 KB gzip; bax faylın başlığı)
 import '../styles/HomeVideo.css'
+import { pickUi } from '../utils/uiText'
 
 // Görünmə animasiyaları motion.css-in data-reveal sistemi ilədir (tək qlobal
 // IntersectionObserver, hooks/useReveal.js) — səhifənin öz useInView-i silinib.
@@ -98,7 +99,7 @@ const PrayerTile = ({ k }) => (
   PRAYER_ICON[k] ? <span className="hp-pr-ic" aria-hidden="true"><Icon name={PRAYER_ICON[k]} size={18} /></span> : null
 )
 
-// ═══ Ana səhifənin mətnləri (5 dil) — LABELS[lang] || LABELS.en ═══
+// ═══ Ana səhifənin mətnləri (5 dil) — pickUi(LABELS, lang, 'en') ═══
 const LABELS = {
   az: {
     badge: 'Pulsuz İslami platforma',
@@ -535,7 +536,7 @@ const HERO_STARS = [
 export default function HomePage({ setPage }) {
   const { lang } = useLang()
   const lk = lang
-  const l = LABELS[lang] || LABELS.en
+  const l = pickUi(LABELS, lang, 'en')
   // Tərcümə yoxdursa əvvəl ingiliscə — ərəb/rus/türk səhifəsində azərbaycanca mətn çıxmasın
   const L = obj => obj[lk] || obj.en || obj.az || ''
   // Ərəb dilində "tərcümə" sətri ərəbcə orijinalın təkrarı olardı — göstərilmir

@@ -12,6 +12,7 @@ const SpreadTimeline = lazy(() => import('../components/media/SpreadTimeline'))
 import { PLACE_PHOTOS } from '../data/placeImages'
 // Məlumat — src/data/islamicHistory.js (peyğəmbərlər, hadisələr, dövrlər)
 import { PROPHETS, EVENTS, EVENTS_SORTED, HISTORY_ERAS, eraOfEvent, ULUL_AZM } from '../data/islamicHistory'
+import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
    İSLAMİ TARİX — dizayn v3
@@ -135,7 +136,7 @@ const RELATED = [
     text: { az: 'Miladi və hicri tarixi bir-birinə çevirin', en: 'Convert between Gregorian and Hijri dates', ru: 'Перевод дат между григорианским календарём и хиджрой', ar: 'التحويل بين التاريخين الميلادي والهجري', tr: 'Miladi ve hicri tarihleri birbirine çevirin' } },
 ]
 
-const t = (o, lang) => (o && (o[lang] || o.en)) || ''
+const t = (o, lang) => (o && (pickUi(o, lang, 'en'))) || ''
 // Hadisənin ili (miladi, rəqəmlə): "632-661 CE" → "632–661"
 const whenOf = (e) => {
   const m = /(\d{3,4})\s*-\s*(\d{3,4})/.exec(e.year.en)
@@ -144,8 +145,8 @@ const whenOf = (e) => {
 
 export default function IslamicHistoryPage() {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.en
-  const M = MAPS_L[lang] || MAPS_L.en
+  const L = pickUi(LABELS, lang, 'en')
+  const M = pickUi(MAPS_L, lang, 'en')
   const isAr = lang === 'ar'
   const [tab, setTab] = useState('prophets')
   const [era, setEra] = useState('all')

@@ -14,6 +14,7 @@ import {
 import RootGraph from '../components/RootGraph'
 import { ChartFigure, BarChart } from '../components/viz'
 import '../styles/QuranRootsPage.css'
+import { pickUi } from '../utils/uiText'
 
 // v3: hero izahı, "kök nədir" sxemi (real məlumatla) və nəticə qrafikləri
 const RQ_TXT = {
@@ -213,7 +214,7 @@ function AyahCard({ item, L, lang, onOpen }) {
 
 export default function QuranRootsPage() {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.az
+  const L = pickUi(LABELS, lang)
   const location = useLocation()
   const routerNavigate = useNavigate()
   const inputRef = useRef(null)
@@ -287,7 +288,7 @@ export default function QuranRootsPage() {
     inputRef.current?.focus()
   }
 
-  const cats = ROOT_CAT_LABELS[lang] || ROOT_CAT_LABELS.en
+  const cats = pickUi(ROOT_CAT_LABELS, lang, 'en')
   const visible = ayahs.slice(0, shown)
 
   // Bütün indeksdə kökü olan sözlərin sayı (hero) — bir dəfə hesablanır

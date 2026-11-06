@@ -17,6 +17,8 @@ import { initWow } from './utils/wow'
 import { initInputModality } from './hooks/useInputModality'
 import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
 import { startUpdateWatcher } from './utils/appUpdate'
+import { applyUiDict } from './i18n/load'
+import { parsePath } from './seo/routes'
 
 // Fokus halqası yalnız klaviatura ilə (toxunuşdan sonra narıncı halqa yox)
 // və [data-reveal] elementləri üçün tək qlobal IntersectionObserver
@@ -61,4 +63,9 @@ function render() {
 // Ana səhifənin chunk-ı (lazy, prerender HTML-də modulepreload) hazır olanda
 // render — ilk kadrda spinner/CLS olmasın (bax: App.jsx → preloadInitialPage).
 // Yükləmə uğursuz olsa belə render olunur (React.lazy özü yenidən cəhd edir).
-preloadInitialPage(window.location.pathname, window.location.hash).catch(() => {}).then(render)
+// Əlavə dildə (/id/…) interfeys lüğəti də ilk render-dən əvvəl — ingiliscə
+// yazılar bir anlıq görünüb dəyişməsin (src/utils/uiText.js)
+Promise.all([
+  preloadInitialPage(window.location.pathname, window.location.hash).catch(() => {}),
+  applyUiDict(parsePath(window.location.pathname).lang).catch(() => {}),
+]).then(render)

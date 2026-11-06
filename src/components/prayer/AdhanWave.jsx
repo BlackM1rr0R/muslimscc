@@ -19,6 +19,7 @@ import Icon from '../Icon'
 import { worldPoints } from '../../data/worldCities'
 import { antisolar, subsolar, adhanAt } from '../../utils/solar'
 import '../../styles/AdhanWave.css'
+import { pickUi } from '../../utils/uiText'
 
 const W = 960, H = 470
 const T = {
@@ -33,7 +34,7 @@ const loadLand = () => (landCache ||= fetch(landUrl).then(r => r.json()).then(t 
 const reduced = () => typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('a11y-reduce-motion'))
 
 export default function AdhanWave({ lang = 'az' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [land, setLand] = useState(null)
   const [now, setNow] = useState(() => Date.now())
   const [playing, setPlaying] = useState(false)

@@ -4,6 +4,7 @@ import Icon from '../Icon'
 import { AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addBook, updateBook, deleteBook, BOOK_CATEGORIES, subscribeToBooks } from '../../data/books'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Kitablar', sub:'Kitab məzmununu idarə edin', addNew:'Yeni kitab', editBook:'Redaktə et', all:'Bütün kitablar', titleField:'Başlıq', authorField:'Müəllif', descField:'Təsvir', coverUrl:'Üz qabığı (şəkil URL)', pdfUrl:'PDF linki (istəyə bağlı)', pages:'Səhifə sayı', year:'İl', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu kitabı silmək istəyirsiniz?', noBooks:'Hələ kitab yoxdur', titleRequired:'Başlıq tələb olunur', authorRequired:'Müəllif tələb olunur', loading:'Yüklənir...', saving:'Saxlanılır...', preview:'Önbaxış', readOnly:'Standart (yalnız oxumaq üçün)', pagesShort:'səh.' },
@@ -26,7 +27,7 @@ const EMPTY_FORM = {
 
 export default function BookManager({ onUpdate }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)

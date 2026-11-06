@@ -7,6 +7,7 @@ import Icon from '../components/Icon'
 import { navGroupLabel, navLabel } from '../data/navigation'
 import PageLink from '../components/PageLink'
 import { ProgressRing } from '../components/viz'
+import { pickUi } from '../utils/uiText'
 
 // v3 — hero, addımlar, icmal üçün əlavə mətnlər
 const GX = {
@@ -975,7 +976,7 @@ function reveal(selector, block) {
 
 export default function QuranGamePage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
+  const t = pickUi(LABELS, lang)
   const [scores, setScores] = useState(loadScores)
   const [mode, setMode] = useState(null) // 'complete' | 'surah'
   const [questions, setQuestions] = useState([])
@@ -1093,7 +1094,7 @@ export default function QuranGamePage({ setPage }) {
   const isTimeout = answered && selected === null
 
   // Nəticəyə görə ikon (əvvəl 🏆 👍 💪 emojiləri idi)
-  const x = GX[lang] || GX.az
+  const x = pickUi(GX, lang)
   const optLabel = (opt) => (typeof opt === 'string' ? opt : (opt?.[lang] || opt?.en || ''))
   const resultIcon = correctCount >= 7 ? 'sahaba' : correctCount >= 4 ? 'star' : 'leaf'
   const modes = [
@@ -1142,8 +1143,8 @@ export default function QuranGamePage({ setPage }) {
                       <span className="qgame-mode-name">{m.name}</span>
                       <span className="qgame-mode-desc">{x[m.desc]}</span>
                       <span className="qgame-mode-meta ui-num">
-                        <span>{QUESTIONS_PER_ROUND} {(ROUND_META[lang] || ROUND_META.az).questions}</span>
-                        <span>{TIME_PER_Q} {(ROUND_META[lang] || ROUND_META.az).seconds}</span>
+                        <span>{QUESTIONS_PER_ROUND} {(pickUi(ROUND_META, lang)).questions}</span>
+                        <span>{TIME_PER_Q} {(pickUi(ROUND_META, lang)).seconds}</span>
                       </span>
                     </span>
                     <span className="qgame-mode-best">
@@ -1246,7 +1247,7 @@ export default function QuranGamePage({ setPage }) {
                     else if (isSelected) cls += ' wrong'
                     else cls += ' faded'
                   }
-                  const label = typeof opt === 'string' ? opt : (opt[lang] || opt.en)
+                  const label = typeof opt === 'string' ? opt : (pickUi(opt, lang, 'en'))
                   return (
                     <button type="button" key={i} className={cls} style={{ '--i': i }} onClick={() => handleAnswer(i)} disabled={answered}>
                       <span className="qgame-option-letter" aria-hidden="true">
@@ -1274,7 +1275,7 @@ export default function QuranGamePage({ setPage }) {
                     <p className="qgame-full-verse ui-arabic" lang="ar">{q.fullVerse}</p>
                   )}
                   {mode === 'complete' && q.surah && (
-                    <p className="qgame-surah-ref">{t.fromSurah} {q.surah[lang] || q.surah.en}</p>
+                    <p className="qgame-surah-ref">{t.fromSurah} {pickUi(q.surah, lang, 'en')}</p>
                   )}
                   <button type="button" className="ui-btn ui-btn--primary ui-btn--lg qgame-next-btn" onClick={nextQuestion}>
                     {qIdx + 1 >= questions.length ? t.finish : t.next}

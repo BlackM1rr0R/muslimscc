@@ -15,6 +15,7 @@
 import { memo, useMemo } from 'react'
 import { dayState, lastNDays } from '../../utils/prayerTracker'
 import '../../styles/PrayerGarden.css'
+import { pickUi } from '../../utils/uiText'
 
 const TXT = {
   az: { title: 'Namaz bağçası', lead: 'Hər qılınan namaz bir yarpaqdır; beş vaxtın hamısı qılınan gün bitki çiçək açır. Üzrlü günlərdə bitki dincəlir.',
@@ -126,7 +127,7 @@ function Tree({ stage, x, y }) {
 }
 
 function PrayerGarden({ snap, periods, today, streak = 0, lang = 'az', onPick }) {
-  const t = TXT[lang] || TXT.az
+  const t = pickUi(TXT, lang)
   const days = useMemo(() => lastNDays(today, 30).map(k => ({ key: k, ...dayState(snap, periods, k, today) })), [snap, periods, today])
   const counts = days.reduce((m, d) => { m[d.state] = (m[d.state] || 0) + 1; return m }, {})
   const stage = treeStage(streak)

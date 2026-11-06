@@ -8,6 +8,7 @@ import { useScrollDirection } from "../hooks/useScrollDirection";
 import SideNav from "./SideNav";
 import { BrandMark } from "./Icon";
 import "../styles/Header.css";
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Header — sahibin qərarları: #5 (geniş ekran) və #7 (dar ekran).
@@ -181,7 +182,7 @@ function Header({ currentPage, setPage }) {
   const [searchQ,       setSearchQ]       = useState("");
 
   const { lang, siteLang = lang, setLang: setLangCtx, dark, toggleDark } = useLang();
-  const l = LABELS[lang] || LABELS.az;
+  const l = pickUi(LABELS, lang);
   // Düymədə URL-in dili (/id/quran → ID), interfeys ingiliscə olsa belə
   const currentLang = ALL_OPTIONS.find(x => x.code === siteLang) || LANGS[0];
 

@@ -14,6 +14,7 @@ import PageLink, { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { ChartFigure, BarChart, StackedBar, ProgressBar } from '../components/viz'
 import ZakatFlow from '../components/ZakatFlow'
+import { pickUi } from '../utils/uiText'
 
 // ═══ ZƏKAT HESABI — Sələf alimlərinin fətvalarına uyğun ═══
 // • Zəkat nisaba çatan və üzərindən bir hicri il (hövl) keçən mala düşür. Aylıq maaş
@@ -199,7 +200,7 @@ function readAyah(key) {
 }
 
 function useAyah(ref, lang) {
-  const edition = lang === 'ar' ? '' : (AYAH_EDITIONS[lang] || AYAH_EDITIONS.en)
+  const edition = lang === 'ar' ? '' : (pickUi(AYAH_EDITIONS, lang, 'en'))
   const key = `zakat_ayah_${ref.replace(':', '_')}_${lang}`
   const [state, setState] = useState(() => ({ key, data: readAyah(key) }))
 
@@ -319,7 +320,7 @@ function CalcStep({ n, title, text, id, children, className = '' }) {
 
 export default function ZakatPage({ setPage }) {
   const { lang } = useLang()
-  const t = T[lang]?.zakat || T.az.zakat
+  const t = pickUi(T, lang)?.zakat || T.az.zakat
   const l = ['az','ru','ar','tr'].includes(lang) ? lang : 'en'
   const navigate = useNavigate()
 

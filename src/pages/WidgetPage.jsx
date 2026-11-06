@@ -19,6 +19,7 @@ import { SITE } from '../seo/routes'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import '../styles/WidgetPage.css'
+import { pickUi } from '../utils/uiText'
 
 // Məscid ekranının yolu (seo/routes.js-də 'mosquetv' → 'mosque-tv')
 const TV_PATH = '/mosque-tv'
@@ -233,7 +234,7 @@ const attrEsc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').
 /** Seçimdən vidcetin parametrləri. */
 function widgetOpts(cityId, lang, theme) {
   const c = CITY_BY_ID.get(cityId) || CITY_BY_ID.get('Baku')
-  const label = c.label[lang] || c.label.en
+  const label = pickUi(c.label, lang, 'en')
   return c.country === 'AZ'
     ? { city: c.id, lang, theme, label }
     : { lat: String(c.lat), lng: String(c.lng), tz: c.tz, lang, theme, label }
@@ -289,8 +290,8 @@ function CopyBox({ code, l, id }) {
 
 export default function WidgetPage({ setPage }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.en
-  const P = (o) => o[lang] || o.en
+  const l = pickUi(LABELS, lang, 'en')
+  const P = (o) => pickUi(o, lang, 'en')
 
   const [city, setCity] = useState(() => {
     try { const loc = getPrayerLocation(); return CITY_BY_ID.has(loc?.id) ? loc.id : 'Baku' } catch { return 'Baku' }
@@ -369,7 +370,7 @@ export default function WidgetPage({ setPage }) {
               <select className="ui-select" value={city} onChange={(e) => setCity(e.target.value)}>
                 {groups.map(([cc, list]) => (
                   <optgroup key={cc} label={COUNTRY_NAMES[cc]?.[lang] || cc}>
-                    {list.map(c => <option key={c.id} value={c.id}>{c.label[lang] || c.label.en}</option>)}
+                    {list.map(c => <option key={c.id} value={c.id}>{pickUi(c.label, lang, 'en')}</option>)}
                   </optgroup>
                 ))}
               </select>

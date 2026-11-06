@@ -13,6 +13,7 @@ import Icon from './Icon'
 import { apiFetch } from '../api/http'
 import { aiReportText } from '../utils/aiReport'
 import '../styles/AIRating.css'
+import { pickUi } from '../utils/uiText'
 
 export const RATING_TXT = {
   az: { good: 'Faydalı cavab', bad: 'Cavabda problem var', thanks: 'Təşəkkürlər!', why: 'Nə səhvdir?',
@@ -44,7 +45,7 @@ export const RATING_TXT = {
 const REASONS = ['wrong', 'source', 'offtopic', 'other']
 
 export default function AIRating({ question, answer, lang, compact = false }) {
-  const t = RATING_TXT[lang] || RATING_TXT.az
+  const t = pickUi(RATING_TXT, lang)
   // null | 'good' | 'form' | 'sending' | 'sent' | 'fail'
   const [state, setState] = useState(null)
   const [reason, setReason] = useState('wrong')

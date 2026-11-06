@@ -15,6 +15,7 @@ import '../styles/DhikrPage.css'
 import BreathDhikr from '../components/dhikr/BreathDhikr'
 import { playSound } from '../utils/uiSound'
 import SoundToggle from '../components/SoundToggle'
+import { pickUi } from '../utils/uiText'
 
 // ── localStorage helper-ləri ──
 const STORAGE_KEY = 'dhikr_session'
@@ -110,7 +111,7 @@ const FREE_TXT = {
   hundreds: { az: 'Yüzlük', en: 'Hundreds', ru: 'Сотни', ar: 'المئات', tr: 'Yüzlük' },
   rounds:   { az: '33-lük dövrə', en: 'Rounds of 33', ru: 'Кругов по 33', ar: 'دورات الـ33', tr: '33’lük tur' },
 }
-const tx = (o, lang) => o[lang] || o.en
+const tx = (o, lang) => pickUi(o, lang, 'en')
 
 // ── v3: hero izahı, statistika, "nə vaxt zikr edim" keçidləri
 //    (zikr mətnləri Hisnul-Müslimdədir — təkrarlanmır, link verilir) ──
@@ -164,7 +165,7 @@ function AfterPrayerCounter({ lang }) {
   const canUndo = pos.done || pos.count > 0 || pos.step > 0
   const shown = pos.done ? cur.count : pos.count
   const pct = Math.min(100, (shown / cur.count) * 100)
-  const label = (d) => d[lang] || d.en
+  const label = (d) => pickUi(d, lang, 'en')
   const stepText = tx(AP_TXT.step, lang).replace('{i}', pos.step + 1).replace('{n}', total)
 
   return (
@@ -284,7 +285,7 @@ function FreeCounter({ lang, t }) {
 
 export default function DhikrPage({ setPage }) {
   const { lang } = useLang()
-  const t = T[lang]?.dhikr || T.az.dhikr
+  const t = pickUi(T, lang)?.dhikr || T.az.dhikr
   // Saxlanmış sessiya yalnız ilk renderdə oxunur
   const [saved] = useState(loadSession)
   const [selIdx, setSelIdx] = useState(() => (DHIKRS[saved.selIdx] ? saved.selIdx : 0))
@@ -351,7 +352,7 @@ export default function DhikrPage({ setPage }) {
     if (next === dhikr.target) {
       const time = new Date().toLocaleTimeString(LOCALE[lang] || 'az-AZ', { hour: '2-digit', minute: '2-digit' })
       // id — siyahıda sabit açar (yeni sətir yuxarıdan yumşaq daxil olur)
-      setLog(l => [{ id: Date.now(), idx: selIdx, name: dhikr[lang] || dhikr.en, count: dhikr.target, time }, ...l.slice(0, 9)])
+      setLog(l => [{ id: Date.now(), idx: selIdx, name: pickUi(dhikr, lang, 'en'), count: dhikr.target, time }, ...l.slice(0, 9)])
       setBurst(b => b + 1)
       // Hədəf tamamlandı — uzun vibrasiya
       vibrate([100, 50, 100])
@@ -417,7 +418,7 @@ export default function DhikrPage({ setPage }) {
                   <span className="dhikr-sel-arabic" lang="ar" dir="rtl">{d.arabic}</span>
                   <span className="dhikr-sel-meta">
                     {/* Ərəbcədə ad elə ərəb ifadəsinin özüdür — təkrar yazılmır */}
-                    {lang !== 'ar' && <span className="dhikr-sel-label">{d[lang] || d.en}</span>}
+                    {lang !== 'ar' && <span className="dhikr-sel-label">{pickUi(d, lang, 'en')}</span>}
                     <span className="dhikr-sel-target ui-num">×{d.target}</span>
                   </span>
                 </button>
@@ -469,16 +470,16 @@ export default function DhikrPage({ setPage }) {
             <TasbihBeads count={count} target={dhikr.target} className="dhikr-beads" />
 
             <div className="dhikr-info">
-              <h2 className="dhikr-name">{dhikr[lang] || dhikr.en}</h2>
+              <h2 className="dhikr-name">{pickUi(dhikr, lang, 'en')}</h2>
               <p className="dhikr-virtue">
                 <Icon name="sparkle" size={16} />
-                <span>{dhikr.virtue[lang] || dhikr.virtue.en}</span>
+                <span>{pickUi(dhikr.virtue, lang, 'en')}</span>
               </p>
               {dhikr.source && (
-                <p className="dhikr-source">{SOURCE_LABEL[lang] || SOURCE_LABEL.en}: {localizeSource(dhikr.source, lang)}</p>
+                <p className="dhikr-source">{pickUi(SOURCE_LABEL, lang, 'en')}: {localizeSource(dhikr.source, lang)}</p>
               )}
               <p className="dhikr-sunnah-note">
-                {FINGER_NOTE[lang] || FINGER_NOTE.en} <span className="dhikr-source">({localizeSource(FINGER_SOURCE, lang)})</span>
+                {pickUi(FINGER_NOTE, lang, 'en')} <span className="dhikr-source">({localizeSource(FINGER_SOURCE, lang)})</span>
               </p>
               {complete && (
                 <p className="dhikr-complete-badge" role="status">

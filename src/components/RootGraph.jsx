@@ -10,6 +10,7 @@ import { useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { spacedRoot } from '../utils/quranRoots'
 import '../styles/RootGraph.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: { title: 'Kök qrafı', sub: 'Mərkəzdə kök, ətrafında formaları; xaricdə eyni ayələrdə birgə gələn köklər.', forms: 'Formalar', related: 'Qonşu köklər', times: (n) => `${n} dəfə`, together: (n) => `${n} ayədə birlikdə`, openRoot: (r) => `${r} kökünü aç`, filter: (l) => `${l} formasına görə süz`, none: 'Birgə gələn kök tapılmadı.' },
@@ -30,7 +31,7 @@ const pct = (v) => `${((v / VB) * 100).toFixed(2)}%`
 
 export default function RootGraph({ root, forms, related, activeForm, onForm, onRoot }) {
   const { lang } = useLang()
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
 
   const layout = useMemo(() => {
     const top = forms.slice().sort((a, b) => b.count - a.count).slice(0, MAX_FORMS)

@@ -44,6 +44,7 @@ import { pathFor, parsePath, hasPageInLang, EXTRA_LANGS, EXTRA_CODES } from '../
 import { isOverlayEntry } from '../utils/useBackToClose'
 import Icon, { BrandMark } from './Icon'
 import '../styles/SideNav.css'
+import { pickUi } from '../utils/uiText'
 
 // Açar "v2"-dir: sahibin qərarı ilə susmaya görə BÜTÜN qruplar açıq oldu.
 // Köhnə açarda (qm_sidenav_groups) yalnız bir qrup yazılmışdı — onu oxusaydıq,
@@ -403,7 +404,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   const isRail = mode === 'rail'
   const { lang, siteLang = lang, setLang, dark, toggleDark } = useLang()
   const routerNavigate = useNavigate()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
   const isRtl = lang === 'ar'
   const currentGroup = navGroupOf(currentPage)
 
@@ -637,7 +638,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
     const isOpen = expanded.has(group.key)
     const hasCurrent = group.items.some(it => it.key === currentPage)
     const listId = `qm-sn-${mode}-${group.key}`
-    const groupLabel = group.label[lang] || group.label.az || group.label.en
+    const groupLabel = pickUi(group.label, lang) || group.label.en
     return (
       <div
         key={group.key}
@@ -663,7 +664,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
           <ul className="qm-sn-items" aria-label={groupLabel}>
             {group.items.map(item => {
               const isCurrent = item.key === currentPage
-              const label = item.label[lang] || item.label.az || item.label.en
+              const label = pickUi(item.label, lang) || item.label.en
               return (
                 <li key={item.key}>
                   <a

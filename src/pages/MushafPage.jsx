@@ -17,6 +17,7 @@ import { ProgressBar, StatTile } from '../components/viz'
 import '../styles/MushafPage.css'
 import { playSound } from '../utils/uiSound'
 import SoundToggle from '../components/SoundToggle'
+import { pickUi } from '../utils/uiText'
 
 // v3: hero rəqəmləri və "Mushafın quruluşu" bölməsi.
 // 604 səhifə / 30 cüz — src/data/mushafIndex.js; 60 hizb, 240 rübʿ — ənənəvi bölgü
@@ -385,7 +386,7 @@ function WordPopover({ sel, L, lang, onClose, stageRef, rootsHref }) {
     return { '--pop-top': `${Math.round(sel.rect.bottom - s.top + 8)}px`, '--pop-left': `${Math.round(left)}px`, '--pop-width': `${Math.round(width)}px` }
   }, [sel, stageRef])
 
-  const cats = ROOT_CAT_LABELS[lang] || ROOT_CAT_LABELS.en
+  const cats = pickUi(ROOT_CAT_LABELS, lang, 'en')
   return (
     <div ref={ref} className="mp-pop ui-enter-pop" role="dialog" aria-modal="false" aria-label={w.text} tabIndex={-1} style={style}>
       <button type="button" className="ui-icon-btn mp-pop__close" onClick={onClose} aria-label={L.close} title={L.close}>
@@ -430,7 +431,7 @@ function WordPopover({ sel, L, lang, onClose, stageRef, rootsHref }) {
 
 export default function MushafPage() {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.az
+  const L = pickUi(LABELS, lang)
   const location = useLocation()
   const routerNavigate = useNavigate()
   const wl = wbwLang(lang)
@@ -620,7 +621,7 @@ export default function MushafPage() {
                 {legendRules.map(g => (
                   <li key={g.id} className="mp-legend__item">
                     <span className={`mp-legend__dot tj-g-${g.id}`} aria-hidden="true"></span>
-                    {g.label[lang] || g.label.en}
+                    {pickUi(g.label, lang, 'en')}
                   </li>
                 ))}
               </ul>

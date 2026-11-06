@@ -11,6 +11,7 @@ import { setPrayerStatus } from '../utils/prayerTracker'
 import { usePendingCheckinSync } from '../hooks/usePrayerTracker'
 import Breadcrumb from '../components/Breadcrumb'
 import { pathFor } from '../seo/routes'
+import { pickUi } from '../utils/uiText'
 
 // ── i18n Labels ──
 const LABELS = {
@@ -161,8 +162,8 @@ function calcStreak(data) {
 
 export default function DailyTrackerPage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
-  const x = EXTRA[lang] || EXTRA.en
+  const t = pickUi(LABELS, lang)
+  const x = pickUi(EXTRA, lang, 'en')
   const today = getDateStr()
   // Son işarələnən sətir — bir dəfəlik "tamamlandı" effekti üçün
   const [justDone, setJustDone] = useState('')
@@ -192,7 +193,7 @@ export default function DailyTrackerPage({ setPage }) {
   const streak = calcStreak(data)
   const last7 = getLastDays(7)
   const last30 = getLastDays(30)
-  const v = V3[lang] || V3.en
+  const v = pickUi(V3, lang, 'en')
   const weekData = last7.map(d => {
     const dd = data[d] || {}
     const pct = Math.round((ACTIVITIES.filter(a => dd[a.key]).length / totalCount) * 100)
@@ -200,7 +201,7 @@ export default function DailyTrackerPage({ setPage }) {
   })
   const weekAvg = Math.round(weekData.reduce((a, d) => a + d.value, 0) / weekData.length)
   const monthData = ACTIVITIES.map(a => ({
-    key: a.key, label: a[lang] || a.en,
+    key: a.key, label: pickUi(a, lang, 'en'),
     value: last30.filter(d => data[d] && data[d][a.key]).length,
     days: last30.map(d => !!(data[d] && data[d][a.key])),
   }))
@@ -314,7 +315,7 @@ export default function DailyTrackerPage({ setPage }) {
                             onClick={() => toggle(act.key)}
                           >
                             <span className="tracker-item-icon" aria-hidden="true"><Icon name={act.icon} /></span>
-                            <span className="tracker-item-label">{act[lang] || act.en}</span>
+                            <span className="tracker-item-label">{pickUi(act, lang, 'en')}</span>
                             {/* Animasiyalı dairəvi işarə (motion.css .m-check): dolur, ✓ çəkilir */}
                             <span className="m-check tracker-item-check" aria-hidden="true">
                               <svg viewBox="0 0 24 24"><path d="M6.5 12.5l3.8 3.8L17.5 8.5" /></svg>
@@ -404,8 +405,8 @@ export default function DailyTrackerPage({ setPage }) {
                   onClick={(e) => { if (!w.hash && setPage && plainClick(e)) { e.preventDefault(); setPage(w.page) } }}>
                   <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={w.icon} /></span>
                   <span className="ui-tile__body">
-                    <span className="ui-tile__title">{w.t[lang] || w.t.en}</span>
-                    <span className="ui-tile__text">{w.s[lang] || w.s.en}</span>
+                    <span className="ui-tile__title">{pickUi(w.t, lang, 'en')}</span>
+                    <span className="ui-tile__text">{pickUi(w.s, lang, 'en')}</span>
                   </span>
                 </a>
               </li>

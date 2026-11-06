@@ -13,6 +13,7 @@ import {
   exitDelay,
 } from '../utils/promptCoordinator'
 import '../styles/AnnouncementToast.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Admin elanları üçün qısa bildiriş zolağı
@@ -97,7 +98,7 @@ function pick(obj, lang) {
 
 export default function AnnouncementToast() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.en
+  const l = pickUi(LABELS, lang, 'en')
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -202,7 +203,7 @@ export default function AnnouncementToast() {
       </span>
 
       <div className="ui-toast__body">
-        <span className="ui-toast__eyebrow toast-type-label">{type.label[lang] || type.label.en}</span>
+        <span className="ui-toast__eyebrow toast-type-label">{pickUi(type.label, lang, 'en')}</span>
         <strong className="ui-toast__title">{title}</strong>
         {message && <span className="ui-toast__text">{message}</span>}
         {(link || HAS_ANNOUNCEMENTS_PAGE) && (

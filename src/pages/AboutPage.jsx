@@ -12,6 +12,7 @@ import { GROUP_DESC, EDITORIAL, ABOUT_EXTRA, ABOUT_V3, MANHAJ_POINTS } from '../
 import { LIBRARY, LESSONS_BY_CAT, SCHOLARS_BY_ERA, ERA_SHORT } from '../data/pageGuides/aboutStats'
 import { LESSON_CATS } from '../data/lessons/cats'
 import { StatTile, ChartFigure, BarChart } from '../components/viz'
+import { pickUi } from '../utils/uiText'
 
 // Xəritədə göstərilməyən marşrutlar: ana səhifə (loqo) və bu səhifənin özü
 const MAP_SKIP = new Set(['home', 'about'])
@@ -42,7 +43,7 @@ function writeVerse(key, data) {
 
 /** Ayəni ərəbcə + cari dilin tərcüməsi ilə qaytarır; xəta olarsa failed:true */
 function useVerse(ref, lang) {
-  const edition = lang === 'ar' ? '' : (VERSE_EDITIONS[lang] || VERSE_EDITIONS.en)
+  const edition = lang === 'ar' ? '' : (pickUi(VERSE_EDITIONS, lang, 'en'))
   const key = `${ref}_${edition || 'ar'}`
   const [state, setState] = useState(() => ({ key, data: readVerse(key), failed: false }))
 
@@ -184,12 +185,12 @@ const GROUP_ICON = { main: 'prayer', quran: 'quran', knowledge: 'learn', worship
 // ═══════════════════════════════════════════════════════
 export function AboutPage({ setPage }) {
   const { lang } = useLang()
-  const t = ABOUT[lang] || ABOUT.en
-  const x = ABOUT_EXTRA[lang] || ABOUT_EXTRA.en
-  const v3 = ABOUT_V3[lang] || ABOUT_V3.en
+  const t = pickUi(ABOUT, lang, 'en')
+  const x = pickUi(ABOUT_EXTRA, lang, 'en')
+  const v3 = pickUi(ABOUT_V3, lang, 'en')
   const brand = brandName(lang)
   const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
-  const pickL = (o) => (o && (o[lang] || o.en || o.az)) || ''
+  const pickL = (o) => (o && (pickUi(o, lang, 'en') || o.az)) || ''
   const verse = useVerse(CTA_AYAH, lang)
 
   // Üstünlüklər — xətti ikonlar (Icon.jsx), hamısı eyni brend tonunda
@@ -203,7 +204,7 @@ export function AboutPage({ setPage }) {
   // Ad hüquqi səhifələrdəki ilə eyni mənbədən (brand.js → legal.operator)
   const memberName = tr(BRAND.legal.operator, lang) || 'Elchin Abdullayev'
   const initials = memberName.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  const member = { initials, name: memberName, role: DEV_ROLE[lang] || DEV_ROLE.en }
+  const member = { initials, name: memberName, role: pickUi(DEV_ROLE, lang, 'en') }
 
   // Bölmə sayı — sitemap-a düşən (indekslənən) səhifələr, seo/routes.js-dən
   const sections = INDEXABLE.length
@@ -224,7 +225,7 @@ export function AboutPage({ setPage }) {
   const lessonBars = LESSON_CATS.map(c => ({ key: c.key, label: pickL(c.label), value: LESSONS_BY_CAT[c.key] || 0 }))
   const eraBars = Object.keys(SCHOLARS_BY_ERA).map(k => ({ key: k, label: pickL(ERA_SHORT[k]), value: SCHOLARS_BY_ERA[k] }))
 
-  const ayahRef = lang === 'ar' ? `${SURAH_HUD.ar} ١١:٨٨` : `${SURAH_HUD[lang] || SURAH_HUD.en} 11:88`
+  const ayahRef = lang === 'ar' ? `${SURAH_HUD.ar} ١١:٨٨` : `${pickUi(SURAH_HUD, lang, 'en')} 11:88`
   const motto = verse.data ? splitMotto(verse.data.ar) : null
   const arrow = <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
 
@@ -444,7 +445,7 @@ export function AboutPage({ setPage }) {
             </dl>
             {/* Saytı hazırlayan — bir nəfər, bir vəzifə */}
             <div className="ab-team">
-              <h3 className="ui-eyebrow">{BUILT_BY[lang] || BUILT_BY.en}</h3>
+              <h3 className="ui-eyebrow">{pickUi(BUILT_BY, lang, 'en')}</h3>
               <div className="ab-team-card">
                 <div className="ab-avatar" aria-hidden="true">{member.initials}</div>
                 <div>
@@ -458,7 +459,7 @@ export function AboutPage({ setPage }) {
       </section>
 
       {/* CTA — ayə API-dən; alınmasa ayə sətirləri gizlənir, düymə qalır */}
-      <section className="ui-section ab-end" aria-label={READ_QURAN[lang] || READ_QURAN.en}>
+      <section className="ui-section ab-end" aria-label={pickUi(READ_QURAN, lang, 'en')}>
         <div className="ui-container">
           <div className="ui-card ui-card--inverse ab-cta" data-reveal>
             <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
@@ -480,7 +481,7 @@ export function AboutPage({ setPage }) {
               </div>
             ) : null}
             <PageLink className="ui-btn ui-btn--inverse" to="quran" setPage={setPage} onNavigate={toTop}>
-              <Icon name="quran" className="ui-btn__icon" /> {READ_QURAN[lang] || READ_QURAN.en}
+              <Icon name="quran" className="ui-btn__icon" /> {pickUi(READ_QURAN, lang, 'en')}
             </PageLink>
           </div>
         </div>

@@ -4,6 +4,7 @@ import Icon from '../Icon'
 import { AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addCustomDua, updateCustomDua, deleteCustomDua, CUSTOM_DUA_CATS, subscribeToDuas } from '../../data/adminContent'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Dualar', sub:'Dua məzmununu idarə edin', addNew:'Yeni dua', editItem:'Redaktə et', all:'Bütün dualar', arabicText:'Ərəbcə', translit:'Transliterasiya', translation:'Tərcümə', source:'Mənbə', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hələ dua yoxdur', required:'Bu sahə tələb olunur', sourcePh:'Bəqərə 201...' },
@@ -23,7 +24,7 @@ const EMPTY = {
 
 export default function DuaManager({ onUpdate }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [items, setItems] = useState([])
   const [form, setForm] = useState(EMPTY)

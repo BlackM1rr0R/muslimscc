@@ -13,6 +13,7 @@ import { localizeSource, QURAN_WORD } from '../utils/sourceNames'
 import { loadHadithData, hadithLangOf } from '../utils/hadithData'
 import Icon from './Icon'
 import '../styles/GlobalSearch.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // GlobalSearch — bir sözlə bütün saytda axtarış (komanda paneli)
@@ -225,7 +226,7 @@ function loadData(lang) {
   })
 }
 
-const pickLabel = (obj, lang) => (obj && (obj[lang] || obj.az || obj.en)) || ''
+const pickLabel = (obj, lang) => (obj && (pickUi(obj, lang) || obj.en)) || ''
 
 /** Saytın indekslənən səhifələri — başlıq navigation.js-dən, təsvir meta.js-dən. */
 function buildPages(lang) {
@@ -389,7 +390,7 @@ function sourceLine(item, lang) {
       return ref && SURAH_AZ[ref.s] ? `${SURAH_AZ[ref.s].name} · ${item.source}` : (item.source || '')
     }
     if (!ref) return localizeSource(item.source, lang)
-    const base = `${QURAN_WORD[lang] || QURAN_WORD.en} ${ref.s}:${ref.a}`
+    const base = `${pickUi(QURAN_WORD, lang, 'en')} ${ref.s}:${ref.a}`
     const name = item.local ? '' : surahLabel(item, lang)
     return name ? `${base} · ${name}` : base
   }
@@ -462,7 +463,7 @@ export default function GlobalSearch({ open, onClose, setPage, initialQuery }) {
 
 function SearchDialog({ onClose, setPage, initialQuery }) {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.en
+  const L = pickUi(LABELS, lang, 'en')
 
   const [query, setQuery] = useState(() => (initialQuery ? String(initialQuery) : lastQuery))
   const [filter, setFilter] = useState('all')
@@ -537,7 +538,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
   const index = useMemo(() => getIndex(lang, data), [lang, data])
   const local = useMemo(() => (q.valid ? searchIndex(index, q) : null), [index, q])
 
-  const edKey = q.valid ? ((q.arabic || lang === 'ar') ? ARABIC_EDITION : (EDITION_MAP[lang] || EDITION_MAP.en)) : null
+  const edKey = q.valid ? ((q.arabic || lang === 'ar') ? ARABIC_EDITION : (pickUi(EDITION_MAP, lang, 'en'))) : null
   const wantEd = Boolean(edKey) && q.norm.replace(/ /g, '').length >= 3
   const edition = useQuranEdition(edKey, wantEd)
 
@@ -922,7 +923,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
               <p className="gs-none-title">{L.noResults(trimmed)}</p>
               <p className="gs-hint">{L.noResultsTip}</p>
               <div className="gs-suggest">
-                {(SUGGEST[lang] || SUGGEST.en).map(s => (
+                {(pickUi(SUGGEST, lang, 'en')).map(s => (
                   <button key={s} type="button" className="gs-chip gs-chip-soft" onClick={() => pick(s)}>{s}</button>
                 ))}
               </div>
@@ -955,7 +956,7 @@ function SearchDialog({ onClose, setPage, initialQuery }) {
               <div className="gs-block">
                 <div className="gs-block-head"><span>{L.suggest}</span></div>
                 <div className="gs-suggest">
-                  {(SUGGEST[lang] || SUGGEST.en).map(s => (
+                  {(pickUi(SUGGEST, lang, 'en')).map(s => (
                     <button key={s} type="button" className="gs-chip gs-chip-soft" onClick={() => pick(s)}>{s}</button>
                   ))}
                 </div>

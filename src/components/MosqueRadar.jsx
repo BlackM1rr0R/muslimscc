@@ -13,6 +13,7 @@
 import { useState } from 'react'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/MosqueRadar.css'
+import { pickUi } from '../utils/uiText'
 
 const R_KM = 10
 const T = {
@@ -41,7 +42,7 @@ export function radarPoint(km, deg) {
 }
 
 export default function MosqueRadar({ origin, mosques, lang = 'az', nextPrayer, unknown = '?' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [sel, setSel] = useState(0)
   if (!origin || !mosques?.length) return null
   const list = mosques.slice(0, 60)

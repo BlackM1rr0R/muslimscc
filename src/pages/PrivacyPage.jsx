@@ -1,5 +1,6 @@
 import { useLang } from '../contexts/LangContext'
 import LegalDocument, { IF_EMAIL, IF_NO_EMAIL, IF_OPERATOR } from '../components/LegalDocument'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Məxfilik siyasəti — saytın REAL məlumat axınına uyğun (2026-10 kod auditi):
@@ -728,5 +729,5 @@ const DOC = {
 
 export default function PrivacyPage({ setPage }) {
   const { lang } = useLang()
-  return <LegalDocument docKey="privacy" doc={DOC[lang] || DOC.az} setPage={setPage} />
+  return <LegalDocument docKey="privacy" doc={pickUi(DOC, lang)} setPage={setPage} />
 }

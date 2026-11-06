@@ -42,6 +42,7 @@ import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import '../styles/QuoteGeneratorPage.css'
+import { pickUi } from '../utils/uiText'
 
 // Sitatın tərcüməsi YALNIZ cari dildə. Ərəbcədə orijinal mətn onsuz da
 // göstərilir — tərcümə sətri yoxdur.
@@ -121,8 +122,8 @@ async function copyToClipboard(text) {
 /* ══════════════════════════════════════════════════════ */
 export default function QuoteGeneratorPage() {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
-  const g = GUIDE[lang] || GUIDE.en
+  const t = pickUi(LABELS, lang)
+  const g = pickUi(GUIDE, lang, 'en')
   const location = useLocation()
   const navigate = useNavigate()
   // URL parametrləri yalnız ilk açılışda oxunur

@@ -9,6 +9,7 @@ import {
   SOURCES, SOURCE_SHORT, TOPICS, COMMENTARIES,
 } from '../data/fatwaSources'
 import '../styles/FatwaPage.css'
+import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
    FƏTVALAR VƏ ELM MƏNBƏLƏRİ — /fatwa
@@ -35,7 +36,7 @@ function TopicCloud({ lang, onPick }) {
     return out.map((t, i) => ({ t, i, k: max === min ? 0.5 : (t.links.length - min) / (max - min) }))
   }, [])
   return (
-    <nav className="fw-cloud" aria-label={CLOUD_T[lang] || CLOUD_T.en} data-testid="fatwa-cloud" data-reveal="fade">
+    <nav className="fw-cloud" aria-label={pickUi(CLOUD_T, lang, 'en')} data-testid="fatwa-cloud" data-reveal="fade">
       {items.map(({ t, i, k }) => (
         <button key={t.id} type="button" className={`fw-cloud__w fw-cloud__w--${i % 4}`} style={{ '--k': k.toFixed(3), '--i': i }}
           onClick={() => onPick(t.id)} title={`${pick(t.label, lang)} · ${t.links.length}`}>
@@ -170,7 +171,7 @@ const L10N = {
   },
 }
 
-const pick = (o, lang) => (o && (o[lang] || o.en)) || ''
+const pick = (o, lang) => (o && (pickUi(o, lang, 'en'))) || ''
 // Kənar URL-lərdə ərəb hərfləri və boşluq var — href üçün düzgün kodlaşdır
 const safeHref = (u) => { try { return encodeURI(decodeURI(u)) } catch { return u } }
 const norm = (s) => String(s || '').toLocaleLowerCase().normalize('NFKD').replace(/[ً-ٰٟ̀-ͯ]/g, '').replace(/[’‘'`]/g, '')
@@ -187,7 +188,7 @@ function Ext({ href, children, className, title, label }) {
 
 export default function FatwaPage() {
   const { lang } = useLang()
-  const T = L10N[lang] || L10N.en
+  const T = pickUi(L10N, lang, 'en')
   const navigate = useNavigate()
   const [q, setQ] = useState('')
   const [fLang, setFLang] = useState('all')

@@ -4,6 +4,7 @@ import Icon from '../Icon'
 import { ANN_TONE, AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addAnnouncement, updateAnnouncement, deleteAnnouncement, ANNOUNCEMENT_TYPES, subscribeToAnnouncements } from '../../data/adminContent'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Elanlar', sub:'Ana səhifədə görünəcək elanlar', addNew:'Yeni elan', editItem:'Redaktə et', all:'Bütün elanlar', titleField:'Başlıq', message:'Mesaj', link:'Link (ixtiyari)', type:'Növ', active:'Aktiv', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Silmək?', noItems:'Hələ elan yoxdur', required:'Bu sahə tələb olunur', statusActive:'Aktiv', statusInactive:'Deaktiv' },
@@ -23,7 +24,7 @@ const EMPTY = {
 
 export default function AnnouncementManager({ onUpdate }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [items, setItems] = useState([])
   const [form, setForm] = useState(EMPTY)

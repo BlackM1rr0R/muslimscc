@@ -23,6 +23,7 @@ import SurahRootCloud from '../components/quran/SurahRootCloud'
 import OfflinePack from '../components/OfflinePack'
 import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta } from '../utils/quranEnc'
 import '../styles/QuranPage.css'
+import { pickUi } from '../utils/uiText'
 
 // 5 dilli sahə: { az, en, … } → cari dil ('' — qəsdən boş, məs. ərəbcədə məna təkrarlanmır)
 const pk = (o, lang) => (o == null ? '' : typeof o === 'string' ? o : (o[lang] !== undefined ? o[lang] : o.az)) || ''
@@ -372,7 +373,7 @@ const REVELATION = {
   ar: { Meccan:'مكية', Medinan:'مدنية' },
   tr: { Meccan:'Mekki', Medinan:'Medeni' },
 }
-const revelationLabel = (type, lang) => (REVELATION[lang] || REVELATION.en)[type] || type
+const revelationLabel = (type, lang) => (pickUi(REVELATION, lang, 'en'))[type] || type
 
 // ── Surənin adı və mənası cari dildə ──
 // az/ru/tr: yerli yazılış (surahNamesAz.js — SURAH_AZ/RU/TR); ar: API-dəki
@@ -574,7 +575,7 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
         </button>
         {onKaraoke && (
           <button type="button" className="ayah-tool" onClick={() => onKaraoke(verse.n)}
-            aria-label={`${KARAOKE_LBL[lang] || KARAOKE_LBL.en} — ${numLabel}`} title={KARAOKE_LBL[lang] || KARAOKE_LBL.en} data-testid="karaoke-open">
+            aria-label={`${pickUi(KARAOKE_LBL, lang, 'en')} — ${numLabel}`} title={pickUi(KARAOKE_LBL, lang, 'en')} data-testid="karaoke-open">
             <Icon name="type" size={17} />
           </button>
         )}
@@ -695,7 +696,7 @@ export default function QuranPage() {
   const { lang, siteLang } = useLang()
   const tlang = siteLang || lang
   const extra = isExtraLang(tlang)
-  const t = T[lang]?.quran || T.az.quran
+  const t = pickUi(T, lang)?.quran || T.az.quran
   const [listAttempt, setListAttempt] = useState(0)
   const { surahs, loading: listLoading, error: listError } = useQuranList(listAttempt)
   const location = useLocation()
@@ -755,7 +756,7 @@ export default function QuranPage() {
   // v3.2: siyahının görünüşü (surələr / cüzlər / saxlanılanlar) və sıralama
   const [view, setView] = useState('surahs')
   const [sort, setSort] = useState('mushaf')
-  const xl = V32_LABELS[lang] || V32_LABELS.az
+  const xl = pickUi(V32_LABELS, lang)
   const votd = useVerseOfDay(tlang)
   // Saxlanılan ayələr (əlfəcinlər) — açar "s:a" dəsti kartların sürətli yoxlanışı üçün
   const [savedList, setSavedList] = useState(readSaved)
@@ -783,7 +784,7 @@ export default function QuranPage() {
   const [attempt, setAttempt] = useState(0)
   const { data: surah, error: surahError } = useSurah(selected, tlang, attempt)
   // ── Tərcümə seçimi (QuranEnc.com) — dil üzrə; boş — standart nəşr (heç nə dəyişmir) ──
-  const ql = QE_LABELS[lang] || QE_LABELS.en
+  const ql = pickUi(QE_LABELS, lang, 'en')
   const [transChoices, setTransChoices] = useState(readTranslationChoices)
   // Əlavə dildə QuranEnc seçicisi yoxdur (seçim interfeys dilinə — en —
   // bağlıdır və rəsmi nəşri ingiliscə ilə əvəz edərdi)
@@ -798,17 +799,17 @@ export default function QuranPage() {
     return surah.verses.map((v, i) => ({ ...v, tr: qe.rows[i].tr, fn: qe.rows[i].fn }))
   }, [surahReady, surah, qe.rows])
   const qeShown = !!(surahReady && qe.rows && shownVerses !== surah.verses)
-  const xlCard = useMemo(() => ({ ...(V32_LABELS[lang] || V32_LABELS.az), notes: ql.notes }), [lang, ql])
-  const rl = RETRY_LABELS[lang] || RETRY_LABELS.az
-  const sl = SEARCH_LABELS[lang] || SEARCH_LABELS.az
-  const st = STATS_LABELS[lang] || STATS_LABELS.az
-  const fl = FONT_LABELS[lang] || FONT_LABELS.az
-  const tafsirLabel = TAFSIR_LABELS[lang] || TAFSIR_LABELS.en
-  const playLabels = PLAY_LABELS[lang] || PLAY_LABELS.az
+  const xlCard = useMemo(() => ({ ...(pickUi(V32_LABELS, lang)), notes: ql.notes }), [lang, ql])
+  const rl = pickUi(RETRY_LABELS, lang)
+  const sl = pickUi(SEARCH_LABELS, lang)
+  const st = pickUi(STATS_LABELS, lang)
+  const fl = pickUi(FONT_LABELS, lang)
+  const tafsirLabel = pickUi(TAFSIR_LABELS, lang, 'en')
+  const playLabels = pickUi(PLAY_LABELS, lang)
   // Real təfsir yalnız ərəbcədədir (ar.muyassar). Digər dillərin nəşri
   // tərcümədir — onu "Təfsir" adı ilə göstərmək yanıldıcı olardı.
   const hasTafsir = lang === 'ar'
-  const jl = JUMP_LABELS[lang] || JUMP_LABELS.az
+  const jl = pickUi(JUMP_LABELS, lang)
 
   // ── Ayə təfsiri: açıq panellər (ayə nömrələri) və seçilmiş təfsir (dil üzrə, localStorage) ──
   const [tafsirOpen, setTafsirOpen] = useState(() => new Set())
@@ -1303,7 +1304,7 @@ export default function QuranPage() {
     const nextS = surahByNum(selected + 1)
     const prevLabel = stripArrows(t.prevSurah)
     const nextLabel = stripArrows(t.nextSurah)
-    const bmLabel = BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en
+    const bmLabel = pickUi(BOOKMARK_LABELS, lang, 'en')
     const rawMeaning = !ready ? '' : surahMeaning(surah, lang)
     // Məna adla eynidirsə (məs. "Yasin") təkrarlamırıq
     const meaning = ready && rawMeaning !== surahTitle(surah, lang) ? rawMeaning : ''
@@ -1428,7 +1429,7 @@ export default function QuranPage() {
                   <span className="qp-trans-src__label">{ql.label}</span>
                   <select className="ui-select ui-select--sm qp-trans-src__select" value={transKey}
                     onChange={e => { haptic(); setTransChoices(saveTranslationChoice(lang, e.target.value)) }}>
-                    <option value="">{DEFAULT_TRANSLATOR[lang] || DEFAULT_TRANSLATOR.en} ({ql.def})</option>
+                    <option value="">{pickUi(DEFAULT_TRANSLATOR, lang, 'en')} ({ql.def})</option>
                     <optgroup label={ql.group}>
                       {qeOptions.map(o => <option key={o.key} value={o.key}>{o.name}</option>)}
                     </optgroup>
@@ -1552,7 +1553,7 @@ export default function QuranPage() {
                 // Klikdə surə açılır və yüklənəndən sonra dəqiq həmin ayəyə keçilir
                 <button type="button" className="ui-btn ui-btn--primary qp-continue" onClick={() => openSurah(bookmark.surah, bookmark.ayah)}>
                   <Icon name="hifz" className="ui-btn__icon" />
-                  <span className="qp-continue__label">{BOOKMARK_LABELS[lang] || BOOKMARK_LABELS.en}</span>
+                  <span className="qp-continue__label">{pickUi(BOOKMARK_LABELS, lang, 'en')}</span>
                   {bookmarkName && <span className="qp-continue__name">{bookmarkName}</span>}
                   <DirArrow />
                   {bmProgress > 0 && <span className="qp-continue__bar" style={{ '--p': bmProgress.toFixed(3) }} aria-hidden="true" />}
@@ -1724,10 +1725,10 @@ export default function QuranPage() {
               </div>
               {/* Seçilmiş cüz: hansı surədən neçə ayə düşür (bir baxışda) */}
               {juzBars && (
-                <ChartFigure className="qp-juzchart" title={(ui.juzChart[lang] || ui.juzChart.az)(juz)}
+                <ChartFigure className="qp-juzchart" title={(pickUi(ui.juzChart, lang))(juz)}
                   sub={pk(ui.juzChartSub, lang)}
-                  note={`${juzParts.length > juzBars.length ? `${(ui.juzMore[lang] || ui.juzMore.az)(juzParts.length - juzBars.length)} · ` : ''}${pk(ui.juzSrc, lang)}`}>
-                  <BarChart data={juzBars} format={v => `${v}`} labelWidth="46%" label={(ui.juzChart[lang] || ui.juzChart.az)(juz)} />
+                  note={`${juzParts.length > juzBars.length ? `${(pickUi(ui.juzMore, lang))(juzParts.length - juzBars.length)} · ` : ''}${pk(ui.juzSrc, lang)}`}>
+                  <BarChart data={juzBars} format={v => `${v}`} labelWidth="46%" label={(pickUi(ui.juzChart, lang))(juz)} />
                 </ChartFigure>
               )}
               {listLoading && (

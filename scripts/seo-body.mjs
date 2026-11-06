@@ -21,7 +21,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { LANGS, EXTRA_LANGS, EXTRA_CODES, hasPageInLang, dirOf, pathFor, detailParams } from '../src/seo/routes.js'
+import { LANGS, EXTRA_LANGS, EXTRA_CODES, EXTRA_PAGES, dirOf, pathFor, detailParams } from '../src/seo/routes.js'
 import { localDigits } from '../src/seo/intl.js'
 import { shortName, descFor } from '../src/seo/meta.js'
 import { brandName } from '../src/config/brand.js'
@@ -487,7 +487,9 @@ function listShell(key, lang, heading, items) {
  */
 export function staticBodyFor(key, lang, param = null) {
   // Əlavə dildə yalnız mövcud bölmələr (Quran) — src/seo/langs.js
-  if (!LANGS.includes(lang) && !(EXTRA_LANGS[lang] && hasPageInLang(key, lang))) return ''
+  // Əlavə dildə statik blok yalnız öz məzmunu olan bölmədə (Quran); qalan
+  // səhifələri React çəkir (interfeys lüğətlə, məzmun ingiliscə)
+  if (!LANGS.includes(lang) && !(EXTRA_LANGS[lang] && EXTRA_PAGES.includes(key))) return ''
   if (key === 'quran') return param ? surahBody(lang, param) : quranListBody(lang)
   if (key === 'names') return param ? nameBody(lang, param) : namesListBody(lang)
   if (key === 'sahaba') return param ? sahabaBody(lang, param) : sahabaListBody(lang)

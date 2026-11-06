@@ -11,6 +11,7 @@ import { getSurahLocal } from '../data/surahNamesAz.js'
 import { SURAH_TABLE } from '../data/mushafIndex.js'
 import { LESSONS } from '../data/arabicCourse.js'
 import { readProgress, passedCount, percentDone } from '../components/arabic/progress.js'
+import { pickUi } from '../utils/uiText'
 
 // v3 — qrafiklər və bölmələr üçün əlavə mətnlər (5 dildə)
 const X = {
@@ -226,7 +227,7 @@ function calcBestStreak(dates) {
 
 export default function AnalyticsPage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
+  const t = pickUi(LABELS, lang)
 
   const data = useMemo(() => {
     // 1. Namaz: /prayer ('muslim_cc_prayer_stats' → { 'YYYY-MM-DD_Fajr': true })
@@ -425,8 +426,8 @@ export default function AnalyticsPage({ setPage }) {
     setPage(key)
   }
 
-  const x = X[lang] || X.az
-  const locale = LOCALE[lang] || LOCALE.az
+  const x = pickUi(X, lang)
+  const locale = pickUi(LOCALE, lang)
   const fmtDay = (d, opt) => {
     if (lang === 'az') {
       if (opt.weekday) return AZ_WD[d.getDay()]
@@ -528,7 +529,7 @@ export default function AnalyticsPage({ setPage }) {
             <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--accent" aria-hidden="true"><Icon name="analytics" /></span>
             <div className="analytics-nodata-body">
               <p className="analytics-nodata-text">{t.noData}</p>
-              <div className="analytics-nodata-links" aria-label={START_TITLE[lang] || START_TITLE.az} role="group">
+              <div className="analytics-nodata-links" aria-label={pickUi(START_TITLE, lang)} role="group">
                 {START_KEYS.map(k => (
                   <a key={k} className="ui-btn ui-btn--secondary ui-btn--sm" href={pathFor(k, lang)} onClick={go(k)}>
                     <Icon name={k} className="ui-btn__icon" />{navLabel(k, lang)}
@@ -596,7 +597,7 @@ export default function AnalyticsPage({ setPage }) {
                 <ProgressBar value={data.prayerRate} label={t.rate} />
               </div>
               <ChartFigure title={x.perPrayer} sub={x.perPrayerSub} plain>
-                <BarChart data={(PRAYER_LABEL[lang] || PRAYER_LABEL.az).map((label, i) => ({ key: i, label, value: data.perPrayer[i] }))}
+                <BarChart data={(pickUi(PRAYER_LABEL, lang)).map((label, i) => ({ key: i, label, value: data.perPrayer[i] }))}
                   max={Math.max(1, ...data.perPrayer)} label={x.perPrayer} />
               </ChartFigure>
             </Card>
@@ -749,7 +750,7 @@ export default function AnalyticsPage({ setPage }) {
                   <Icon name={a.icon} size={20} />
                   {a.check && <span className="analytics-badge-tick"><Icon name="check" size={12} strokeWidth={3} /></span>}
                 </span>
-                <span className="analytics-badge-name">{a.name[lang] || a.name.az}</span>
+                <span className="analytics-badge-name">{pickUi(a.name, lang)}</span>
                 <span className="analytics-badge-status">{a.check ? t.achieved : t.locked}</span>
               </li>
             ))}

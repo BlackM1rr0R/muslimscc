@@ -16,6 +16,7 @@ import { apiFetch } from '../../api/http'
 import { AdminHeader, AdminEmpty, AdminAlert, SectionTitle } from './AdminUi'
 import Icon from '../Icon'
 import '../../styles/AnalyticsManager.css'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: {
@@ -403,7 +404,7 @@ function BarChart({ title, icon, items, l, fmt, rtl, emptyText, colLabel }) {
 
 export default function AnalyticsManager() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
   const rtl = lang === 'ar'
   const [days, setDays] = useState(30)
   const [data, setData] = useState(null)

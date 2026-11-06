@@ -84,7 +84,7 @@ describe('marşrut', () => {
     expect(EXTRA_PAGES).toEqual(['quran'])
     expect(pathFor('quran', 'id')).toBe('/id/quran')
     expect(pathFor('quran', 'ur', 36)).toBe('/ur/quran/36-yaseen')
-    expect(pathFor('prayer', 'id')).toBe('/en/prayer')
+    expect(pathFor('prayer', 'de')).toBe('/en/prayer')
     expect(pathFor('home', 'fa')).toBe('/en')
     expect(hasPageInLang('quran', 'de')).toBe(true)
     expect(hasPageInLang('hadith', 'de')).toBe(false)
@@ -94,7 +94,9 @@ describe('marşrut', () => {
   it('parsePath: əlavə dilin Quranı tanınır, olmayan səhifə fallback alır', () => {
     expect(parsePath('/id/quran/36-yaseen')).toMatchObject({ lang: 'id', key: 'quran', known: true, param: 36 })
     expect(parsePath('/zh/quran')).toMatchObject({ lang: 'zh', key: 'quran', known: true, param: null })
-    expect(parsePath('/id/prayer')).toMatchObject({ lang: 'id', key: 'prayer', known: true, fallback: true })
+    expect(parsePath('/de/prayer')).toMatchObject({ lang: 'de', key: 'prayer', known: true, fallback: true })
+    // İnterfeysi tərcümə olunmuş dil (ui: true) — bütün səhifələr
+    expect(parsePath('/id/prayer').fallback).toBeUndefined()
     expect(parsePath('/de')).toMatchObject({ lang: 'de', key: 'home', fallback: true })
     const sb = detailParams('sahaba')[0]
     expect(parsePath(`/de/sahaba/${sb}`)).toMatchObject({ key: 'sahaba', param: sb, fallback: true })
@@ -111,9 +113,9 @@ describe('marşrut', () => {
     }
   })
 
-  it('hreflang dilləri: Quran — 25, digər səhifələr — 5', () => {
+  it('hreflang dilləri: Quran — 25, digər səhifələr — 5 + interfeysi tərcümə olunmuş dillər', () => {
     expect(langsFor('quran')).toEqual(ALL_LANGS)
-    expect(langsFor('prayer')).toEqual(LANGS)
+    expect(langsFor('prayer')).toEqual([...LANGS, ...EXTRA_CODES.filter(c => EXTRA_LANGS[c].ui)])
   })
 
   it('interfeys dili və istiqamət', () => {

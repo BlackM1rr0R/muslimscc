@@ -32,6 +32,7 @@ const QX = {
     best:'En iyi', notPlayed:'Henüz oynanmadı', review:'Cevaplarınız', yours:'Sizin cevabınız', right:'Doğru cevap', source:'Kaynak', chooseHead:'Konu seçin', chooseLead:'Her konudaki en iyi sonucunuz halkada görünür.' },
 }
 import '../styles/QuizPage.css'
+import { pickUi } from '../utils/uiText'
 
 // Kombo — ardıcıl düz cavablar (3, 5, 10-da parıltı)
 const COMBO = {
@@ -1026,7 +1027,7 @@ function shuffleArray(arr) {
 
 function getOptionText(opt, lang) {
   if (typeof opt === 'string') return opt
-  return opt[lang] || opt.en || ''
+  return pickUi(opt, lang, 'en') || ''
 }
 
 function loadScores() {
@@ -1053,7 +1054,7 @@ function saveScore(category, score) {
 
 export default function QuizPage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
+  const t = pickUi(LABELS, lang)
 
   const [phase, setPhase] = useState('categories') // categories | quiz | results
   const [category, setCategory] = useState(null)
@@ -1070,7 +1071,7 @@ export default function QuizPage({ setPage }) {
   const [answers, setAnswers] = useState([])
   const [streak, setStreak] = useState(0)
   const [maxStreak, setMaxStreak] = useState(0)
-  const cb = COMBO[lang] || COMBO.az
+  const cb = pickUi(COMBO, lang)
 
   const questions = useMemo(() => {
     if (!category) return []
@@ -1186,8 +1187,8 @@ export default function QuizPage({ setPage }) {
   const progress = totalQ > 0 ? ((currentQ + (answered ? 1 : 0)) / totalQ) * 100 : 0
 
   const categoryKeys = ['quran', 'hadith', 'names', 'ibadah']
-  const qWord = QUESTIONS_WORD[lang] || QUESTIONS_WORD.az
-  const x = QX[lang] || QX.az
+  const qWord = pickUi(QUESTIONS_WORD, lang)
+  const x = pickUi(QX, lang)
   const allQuestions = categoryKeys.reduce((n, k) => n + QUESTIONS[k].length, 0)
 
   // Kompakt hero (dizayn v3) — bütün mərhələlərdə eyni, bir h1.
@@ -1352,7 +1353,7 @@ export default function QuizPage({ setPage }) {
 
             {/* key — hər yeni sualda giriş animasiyası yenidən oynasın */}
             <div className="ui-card quiz-question-card" key={`${round}-${currentQ}`}>
-              <h2 className="quiz-question-text">{q.q[lang] || q.q.en}</h2>
+              <h2 className="quiz-question-text">{pickUi(q.q, lang, 'en')}</h2>
               <div className="quiz-options" role="group" aria-label={t.selectAnswer}>
                 {q.options.map((opt, idx) => {
                   const isRight = idx === q.correct
@@ -1450,7 +1451,7 @@ export default function QuizPage({ setPage }) {
                       <li key={i} className={`quiz-review-item ${ok ? 'is-ok' : 'is-bad'}`}>
                         <span className="quiz-review-mark" aria-hidden="true"><Icon name={ok ? 'check' : 'close'} size={14} strokeWidth={2.6} /></span>
                         <div className="quiz-review-body">
-                          <p className="quiz-review-q">{a.q.q[lang] || a.q.q.en}</p>
+                          <p className="quiz-review-q">{pickUi(a.q.q, lang, 'en')}</p>
                           {!ok && <p className="quiz-review-a is-bad"><span>{x.yours}:</span> {getOptionText(a.q.options[a.picked], lang)}</p>}
                           <p className="quiz-review-a"><span>{ok ? t.correct : x.right}:</span> {getOptionText(a.q.options[a.q.correct], lang)}</p>
                           {a.q.src && <p className="quiz-review-src">{x.source}: <bdi>{a.q.src}</bdi></p>}

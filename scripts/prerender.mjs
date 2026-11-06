@@ -39,6 +39,7 @@ import { titleFor, descFor, shortName, UI, ogImageFor, OG_ALT } from '../src/seo
 import { brandName, siteJsonLd } from '../src/config/brand.js'
 import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detail.js'
 import { staticBodyFor, staticPreloadFor, hasQuranData } from './seo-body.mjs'
+import { setUiDict } from '../src/utils/uiText.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 // Çıxış qovluğu: susmaya görə dist/. `--out <qovluq>` (və ya PRERENDER_DIST
@@ -188,6 +189,15 @@ function noscriptFor(key, lang, withBody = false) {
     </noscript>`
 }
 
+const UI_DICTS = new Map()
+function uiDictFor(lang) {
+  if (!UI_DICTS.has(lang)) {
+    const f = path.join(ROOT, 'src', 'i18n', `${lang}.json`)
+    UI_DICTS.set(lang, /^[a-z]{2}$/.test(lang) && fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : null)
+  }
+  return UI_DICTS.get(lang)
+}
+
 /**
  * Şablon HTML-i konkret səhifəyə uyğunlaşdır.
  *
@@ -198,6 +208,9 @@ function noscriptFor(key, lang, withBody = false) {
  * Həmişə noindex.
  */
 function renderPage(template, key, lang, noindex = false, param = null) {
+  // Əlavə dilin interfeys lüğəti (src/i18n/<dil>.json) — title/description və
+  // noscript naviqasiyası tərcümə olunsun (brauzerdə main.jsx eyni lüğəti yükləyir)
+  setUiDict(lang, uiDictFor(lang))
   const notFound = key === NOT_FOUND
   const { title, desc } = notFound ? { title: titleFor(key, lang), desc: descFor(key, lang) } : textsFor(key, lang, param)
   const canonical = SITE + pathFor(key, lang, param ?? undefined)

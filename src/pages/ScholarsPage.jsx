@@ -14,6 +14,7 @@ import { SCHOLARS, ERAS, ERA_LABEL, ERA_SHORT, ERA_SPAN, scholarBySlug, dateText
 import StarButton from '../components/collect/StarButton'
 import useStarred from '../components/collect/useStarred'
 import '../styles/ScholarsPage.css'
+import { pickUi } from '../utils/uiText'
 
 // ── v3.2: sıralama, seçilmişlər, təsadüfi alim (5 dil) ──
 const C32 = {
@@ -153,7 +154,7 @@ const RELATED = [
 ]
 
 // Dilə görə sahə (yoxdursa ingiliscə)
-const pick = (obj, lang) => (obj && (obj[lang] || obj.en)) || ''
+const pick = (obj, lang) => (obj && (pickUi(obj, lang, 'en'))) || ''
 const prefersReduced = () => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { return true }
 }
@@ -181,7 +182,7 @@ const Place = ({ s, lang }) => (
 
 export default function ScholarsPage() {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.en
+  const L = pickUi(LABELS, lang, 'en')
   const isAr = lang === 'ar'
   const location = useLocation()
   const routerNavigate = useNavigate()
@@ -191,7 +192,7 @@ export default function ScholarsPage() {
   const [search, setSearch] = useState('')
   const [era, setEra] = useState('all')
   const [sort, setSort] = useState('era')
-  const X = C32[lang] || C32.en
+  const X = pickUi(C32, lang, 'en')
   const star = useStarred('scholars:favs')
 
   const filtered = useMemo(() => {
@@ -434,7 +435,7 @@ function Profile({ s, L, lang, isAr, onBack, onSibling, starOn, onStar, starLabe
   const prev = idx > 0 ? SCHOLARS[idx - 1] : null
   const next = idx < SCHOLARS.length - 1 ? SCHOLARS[idx + 1] : null
   const sameEra = SCHOLARS.filter(x => x.era === s.era && x !== s)
-  const bio = s.bio[lang] || s.bio.en || []
+  const bio = pickUi(s.bio, lang, 'en') || []
   const teachers = s.teachers || []
   const students = s.students || []
   const works = s.works || []

@@ -19,6 +19,7 @@ import {
   RECITERS, SPEEDS, REPEATS, ayahSources, reciterName, readAudioPrefs, writeAudioPrefs,
 } from '../utils/quranAudio'
 import '../styles/QuranPlayer.css'
+import { pickUi } from '../utils/uiText'
 
 export const PLAYER_LABELS = {
   az: {
@@ -409,7 +410,7 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
 
   // ── Media Session: kilid ekranı, qulaqlıq düymələri ──
   const reciterLabel = reciterName(prefs.reciter, lang)
-  const album = (PLAYER_LABELS[lang] || PLAYER_LABELS.az).album
+  const album = (pickUi(PLAYER_LABELS, lang)).album
   useEffect(() => {
     const ms = typeof navigator !== 'undefined' ? navigator.mediaSession : null
     if (!ms) return
@@ -485,7 +486,7 @@ const fmtRate = (rate, lang) => `${String(rate).replace('.', /^(az|ru|tr)$/.test
  * verseLabel(n) — "3-cü ayə"
  */
 export default function QuranPlayer({ player, lang, total, verseLabel }) {
-  const L = PLAYER_LABELS[lang] || PLAYER_LABELS.az
+  const L = pickUi(PLAYER_LABELS, lang)
   const { current, status, errorKind, prefs, range, detached, repeatNo, reciterLabel } = player
   const [open, setOpen] = useState(false)
   const panelRef = useRef(null)
@@ -620,7 +621,7 @@ export default function QuranPlayer({ player, lang, total, verseLabel }) {
             <span className="ui-field__label">{L.reciter}</span>
             <select className="ui-input qpl__select" value={prefs.reciter} onChange={e => { haptic(); player.setReciter(e.target.value) }}>
               {RECITERS.map(rc => (
-                <option key={rc.id} value={rc.id}>{rc.name[lang] || rc.name.en}{lang !== 'ar' ? ` · ${rc.name.ar}` : ''}</option>
+                <option key={rc.id} value={rc.id}>{pickUi(rc.name, lang, 'en')}{lang !== 'ar' ? ` · ${rc.name.ar}` : ''}</option>
               ))}
             </select>
           </label>

@@ -13,6 +13,7 @@
 import { useMemo, useState } from 'react'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/DuaGarden.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: { title: 'Dua bağçası', lead: 'Hər dua bir qönçədir; qəbul olunanda çiçək açır.', bud: 'gözləyir', bloom: 'qəbul olundu', pick: 'Duanın mətnini görmək üçün bitkiyə toxunun.', summary: (a, b) => `${a} qönçə, ${b} açılmış çiçək` },
@@ -28,7 +29,7 @@ const W = 600, GROUND = 150
 const PETALS = Array.from({ length: 8 }, (_, i) => i * 45)
 
 export default function DuaGarden({ duas, lang = 'az' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [sel, setSel] = useState(null)
   const list = useMemo(() => duas.slice()
     .sort((a, b) => String(a.date).localeCompare(String(b.date)))

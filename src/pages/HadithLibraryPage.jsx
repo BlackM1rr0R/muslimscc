@@ -10,6 +10,7 @@ import { OVERLAY_KEY } from '../utils/useBackToClose'
 import { fetchSectionPair } from '../api/hadithLibrary'
 import { BOOKS, BOOK_DATA, TRANSLATION_LANGS, DEFAULT_TRANSLATION } from '../data/hadithLibrary'
 import '../styles/HadithLibraryPage.css'
+import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
    HƏDİS KİTABXANASI — /hadith-library
@@ -185,7 +186,7 @@ const LABELS = {
 }
 
 const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-const pick = (o, lang) => (o && (o[lang] || o.en)) || ''
+const pick = (o, lang) => (o && (pickUi(o, lang, 'en'))) || ''
 const HARAKAT = /[ً-ْٰـ]/g
 const norm = (s) => String(s || '').replace(HARAKAT, '').toLowerCase()
 
@@ -249,15 +250,17 @@ function pushUrl(hash) {
 }
 
 export default function HadithLibraryPage() {
-  const { lang } = useLang()
+  // siteLang — URL-in dili: /id/hadith-library-də hədisin tərcüməsi indoneziyaca
+  // nəşrdən gəlir (hazır mənbə), interfeys isə lüğətdən (src/utils/uiText.js)
+  const { lang, siteLang = lang } = useLang()
   const location = useLocation()
-  const L = LABELS[lang] || LABELS.en
+  const L = pickUi(LABELS, lang, 'en')
   const isAr = lang === 'ar'
 
   const [route, setRoute] = useState(() => (typeof window === 'undefined' ? { book: null, sec: null, n: null } : parseHash(window.location.hash)))
   const [trPref, setTrPref] = useState(() => {
     const v = readJSON(TR_KEY, null)
-    return typeof v === 'string' && (v === '' || TRANSLATION_LANGS[v]) ? v : DEFAULT_TRANSLATION[lang] ?? 'eng'
+    return typeof v === 'string' && (v === '' || TRANSLATION_LANGS[v]) ? v : DEFAULT_TRANSLATION[siteLang] ?? DEFAULT_TRANSLATION[lang] ?? 'eng'
   })
   const [userPicked, setUserPicked] = useState(() => typeof readJSON(TR_KEY, null) === 'string')
   const [data, setData] = useState({ key: '', status: 'idle', hadiths: [], trError: false, offline: false })
@@ -272,7 +275,7 @@ export default function HadithLibraryPage() {
   const mainRef = useRef(null)
 
   // Sayt dili dəyişəndə (istifadəçi özü seçməyibsə) tərcümə də dəyişir
-  useEffect(() => { if (!userPicked) setTrPref(DEFAULT_TRANSLATION[lang] ?? 'eng') }, [lang, userPicked])
+  useEffect(() => { if (!userPicked) setTrPref(DEFAULT_TRANSLATION[siteLang] ?? DEFAULT_TRANSLATION[lang] ?? 'eng') }, [lang, siteLang, userPicked])
 
   // Hash → vəziyyət. Açıq hədis nömrəsi cari girişdən silinir (ReaderDialog
   // öz girişini qoyur, nömrə ora yazılır) — bağlananda Geri yenidən açmasın.

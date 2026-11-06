@@ -1,6 +1,7 @@
 import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import '../styles/Pagination.css'
+import { pickUi } from '../utils/uiText'
 
 const A11Y = {
   az: { pagination:'Səhifələmə', prev:'Əvvəlki səhifə', next:'Növbəti səhifə', page:'Səhifə' },
@@ -16,7 +17,7 @@ const A11Y = {
 // eslint-disable-next-line no-unused-vars
 export default function Pagination({ current, total, onChange, color }) {
   const { lang } = useLang()
-  const a = A11Y[lang] || A11Y.az
+  const a = pickUi(A11Y, lang)
   if (total <= 1) return null
 
   // Hansı səhifə nömrələrini göstərək?

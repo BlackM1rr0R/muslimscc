@@ -9,6 +9,7 @@ import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import { startAutoSync } from '../utils/autoSync'
 import '../styles/OfflinePack.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: { pulled: 'Başqa cihazdan yeni məlumat gəldi.', reload: 'Yenilə', conflict: 'Sinxronizasiya: hər iki cihazda dəyişiklik var — «Ehtiyat nüsxə» bölməsində hansını saxlayacağınızı seçin.', close: 'Bağla' },
@@ -20,7 +21,7 @@ const T = {
 
 export default function AutoSyncToast() {
   const { lang } = useLang()
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [kind, setKind] = useState(null)
   useEffect(() => {
     startAutoSync()

@@ -1,3 +1,4 @@
+import { pickUi } from '../../utils/uiText'
 // ═══════════════════════════════════════════════════════
 // Ərəb kursu — interfeys mətnləri (5 dil)
 // Məzmun (hərflər, hərəkələr, təcvid) src/data/arabicCourse.js-dədir.
@@ -214,6 +215,6 @@ export const UI = {
   },
 }
 
-export const ui = (lang) => UI[lang] || UI.en
+export const ui = (lang) => pickUi(UI, lang, 'en')
 /** 5 dilli obyektdən cari dil (yoxdursa ingiliscə) */
-export const pick = (obj, lang) => (obj && (obj[lang] || obj.en)) || ''
+export const pick = (obj, lang) => (obj && (pickUi(obj, lang, 'en'))) || ''

@@ -3,6 +3,7 @@ import { useLang } from '../contexts/LangContext'
 import { DEFAULT_PREFS } from '../utils/a11yPrefs'
 import Icon from './Icon'
 import '../styles/AccessibilityPanel.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Əlçatanlıq panelinin UI-si — TƏNBƏL yüklənir (AccessibilityWidget.jsx →
@@ -200,7 +201,7 @@ const LABELS = {
  */
 export default function AccessibilityPanel({ open, setOpen, controlled, setOpenState, prefs, setPrefs, activeCount }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
   const closeRef = useRef(null)
   closeRef.current = () => setOpen(false)
   const closeBtnRef = useRef(null)

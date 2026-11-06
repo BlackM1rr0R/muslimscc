@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { placePhoto, PHOTO_LABEL } from '../../data/placeImages'
 import './media.css'
+import { pickUi } from '../../utils/uiText'
 
 /* ═══════════════════════════════════════════════════════
    Yer fotoşəkli — <figure> + srcset (800w / ~1600w) + atribusiya
@@ -44,7 +45,7 @@ export default function PlacePhoto({ id, lang = 'az', sizes = '(min-width: 1024p
 
   const small = p.sizes[800]
   const big = p.sizes[1600]
-  const alt = p.alt[lang] || p.alt.en
+  const alt = pickUi(p.alt, lang, 'en')
   const style = ratio ? { '--ph-ratio': ratio } : undefined
   return (
     <figure ref={figRef} className={`ph${loaded ? ' is-loaded' : ''}${className ? ` ${className}` : ''}`} style={style}>
@@ -66,7 +67,7 @@ export default function PlacePhoto({ id, lang = 'az', sizes = '(min-width: 1024p
       </span>
       {credit && (
         <figcaption className="ph__credit">
-          <span>{PHOTO_LABEL[lang] || PHOTO_LABEL.en}: </span>
+          <span>{pickUi(PHOTO_LABEL, lang, 'en')}: </span>
           {creditLinks
             ? <a href={p.page} target="_blank" rel="noopener noreferrer" dir="auto">{p.author}</a>
             : <span dir="auto">{p.author}</span>}

@@ -16,6 +16,7 @@ import { loadLesson } from '../data/lessons/load'
 import '../styles/LessonsPage.css'
 import StarButton from '../components/collect/StarButton'
 import useStarred from '../components/collect/useStarred'
+import { pickUi } from '../utils/uiText'
 
 // ── v3.2: vəziyyət süzgəci (oxunmamış / oxunmuş / seçilmiş), əlfəcin, şrift ölçüsü (5 dil) ──
 const LS32 = {
@@ -181,7 +182,7 @@ function useLessonProgress() {
 
 export default function LessonsPage() {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.en
+  const L = pickUi(LABELS, lang, 'en')
   const location = useLocation()
   const routerNavigate = useNavigate()
   const { key: routeKey, param } = parsePath(location.pathname)
@@ -191,7 +192,7 @@ export default function LessonsPage() {
   const [search, setSearch] = useState('')
   const [cat, setCat] = useState('all')
   const [status, setStatus] = useState('all')
-  const X = LS32[lang] || LS32.en
+  const X = pickUi(LS32, lang, 'en')
   const star = useStarred('learn:favs')
 
   const filtered = useMemo(() => {

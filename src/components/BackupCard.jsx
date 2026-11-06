@@ -11,6 +11,7 @@ import {
   collectBackup, parseBackup, restoreBackup, backupFileName, readLastBackup, markBackedUp,
 } from '../utils/userBackup'
 import '../styles/BackupCard.css'
+import { pickUi } from '../utils/uiText'
 
 const LOCALE = { az: 'az-AZ', en: 'en-GB', ru: 'ru-RU', ar: 'ar', tr: 'tr-TR' }
 // Chrome-da az-AZ ay adları yoxdur ("2026 M10 30") — saytın qalan yerləri kimi öz adlarımız
@@ -74,7 +75,7 @@ function download(blob, name) {
 
 export default function BackupCard({ className = '', headingLevel = 2 }) {
   const { lang } = useLang()
-  const t = BACKUP_TXT[lang] || BACKUP_TXT.az
+  const t = pickUi(BACKUP_TXT, lang)
   const fileRef = useRef(null)
   const [count, setCount] = useState(() => { try { return collectBackup().count } catch { return 0 } })
   const [last, setLast] = useState(readLastBackup)

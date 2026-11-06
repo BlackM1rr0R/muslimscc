@@ -30,6 +30,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import PageLink from '../components/PageLink'
 import { ChartFigure, BarChart } from '../components/viz'
 import { localizeSource } from '../utils/sourceNames'
+import { pickUi } from '../utils/uiText'
 
 // ── Dizayn v3: yeni bölmələr (5 dil) ──
 // Hədislər yoxlanılıb (fawazahmed0/hadith-api; Müslim — Əbdülbaqi nömrəsi):
@@ -357,7 +358,7 @@ function LinkRow({ icon, title, sub, to, setPage, onNavigate }) {
 
 export default function JamaatPage({ setPage }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.en
+  const l = pickUi(LABELS, lang, 'en')
   const {
     loading, error, date, hijri, prayers, next,
     isFriday, nextJumua, nowSecs, method, location, reload,
@@ -385,7 +386,7 @@ export default function JamaatPage({ setPage }) {
   const nj = nextJumua || {}
   const fridayDate = formatGregorian(nj.date, lang, false)
   const fridayRel = typeof nj.inDays === 'number' ? l.rel(nj.inDays) : ''
-  const P = (o) => o[lang] || o.en
+  const P = (o) => pickUi(o, lang, 'en')
 
   return (
     <div className="jm-page">

@@ -27,6 +27,7 @@ import RelatedLinks from '../components/RelatedLinks'
 import '../styles/MuhasabahPage.css'
 import '../styles/ToolsMotion.css'
 import Sparkle from '../components/prayer/Sparkle'
+import { pickUi } from '../utils/uiText'
 
 export const STORAGE_KEY = 'muslim_cc_muhasabah_v1'
 const NOTE_MAX = 2000
@@ -381,7 +382,7 @@ export function streaks(entries, today = new Date()) {
 
 export default function MuhasabahPage({ setPage }) {
   const { lang } = useLang()
-  const t = L[lang] || L.az
+  const t = pickUi(L, lang)
   const navigate = useNavigate()
   const [entries, setEntries] = useState({})
   const [storageOk, setStorageOk] = useState(true)
@@ -491,7 +492,7 @@ export default function MuhasabahPage({ setPage }) {
     navigate(lessonHref)
   }
 
-  const v = V3[lang] || V3.en
+  const v = pickUi(V3, lang, 'en')
   const group = navGroupLabel(navGroupOf('muhasabah'), lang)
   const todayEntry = entries[todayIso]
   const todayDone = todayEntry ? todayEntry.c.length : 0

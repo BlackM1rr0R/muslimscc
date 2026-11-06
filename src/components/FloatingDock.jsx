@@ -5,6 +5,7 @@ import AccessibilityWidget from './AccessibilityWidget'
 import { useBackToClose } from '../utils/useBackToClose'
 import Icon from './Icon'
 import '../styles/FloatingDock.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // FloatingDock — sağ aşağıda TƏK üzən düymə
@@ -61,7 +62,7 @@ function DockLoading() {
  */
 export default function FloatingDock({ page }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const isAdmin = page === 'admin' || page === 'adminlogin'
   const showAI = page !== 'aichat'

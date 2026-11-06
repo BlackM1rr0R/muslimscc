@@ -17,6 +17,7 @@ import { SAHABA_DEATH, RASHIDUN_SPAN } from '../data/sahabaYears'
 import StarButton from '../components/collect/StarButton'
 import useStarred from '../components/collect/useStarred'
 import '../styles/SahabePage.css'
+import { pickUi } from '../utils/uiText'
 
 // ── v3.2: sıralama, seçilmişlər, təsadüfi səhabə (5 dil) ──
 const S32 = {
@@ -158,7 +159,7 @@ function arYears(n) {
    ══════════════════════════════════════════════════════════════════ */
 
 // Dilə görə sahə (yoxdursa ingiliscə)
-const pick = (obj, lang) => (obj && (obj[lang] || obj.en)) || ''
+const pick = (obj, lang) => (obj && (pickUi(obj, lang, 'en'))) || ''
 
 // Profilin ünvanı: /sahaba/<slug> ("Abu Bakr as-Siddiq" → abu-bakr-as-siddiq).
 // Köhnə /sahaba?id=<slug|rəqəm> keçidlərini App.jsx yeni ünvana çevirir.
@@ -199,7 +200,7 @@ const DEATH_FMT = {
 function deathText(s, lang) {
   const d = SAHABA_DEATH[slugOf(s)]
   if (!d) return ''
-  const F = DEATH_FMT[lang] || DEATH_FMT.en
+  const F = pickUi(DEATH_FMT, lang, 'en')
   return `${d.approx ? `${F.c} ` : ''}${F.h(d.h)} · ${F.g(d.g)}`
 }
 
@@ -351,7 +352,7 @@ function withTransition(update, fromEl, slug) {
 
 export default function SahabePage() {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.en
+  const L = pickUi(LABELS, lang, 'en')
   const isAr = lang === 'ar'
   const location = useLocation()
   const routerNavigate = useNavigate()
@@ -361,7 +362,7 @@ export default function SahabePage() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
   const [sort, setSort] = useState('list')
-  const X = S32[lang] || S32.en
+  const X = pickUi(S32, lang, 'en')
   const star = useStarred('sahaba:favs')
 
   const filtered = useMemo(() => {

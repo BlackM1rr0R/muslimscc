@@ -26,6 +26,7 @@ import { localizeSource } from '../../utils/sourceNames'
 import { gregorianToHijri, fromLocalDate, formatHijri, formatGregorian, weekdayName, isApproximate } from '../../utils/hijri'
 import '../../styles/HomeToday.css'
 import MoonPhase from '../MoonPhase'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: {
@@ -121,7 +122,7 @@ function useCopy() {
 
 export default function HomeToday() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.en
+  const l = pickUi(LABELS, lang, 'en')
   const isAr = lang === 'ar'
   const navigate = useNavigate()
   const day = useMemo(() => dayNumber(), [])

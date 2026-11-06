@@ -18,6 +18,7 @@ import Icon from './Icon'
 import { haptic } from '../hooks/useHaptic'
 import { cameraHeading, angleDiff, smoothAngle } from '../utils/cameraHeading'
 import '../styles/QiblaAR.css'
+import { pickUi } from '../utils/uiText'
 
 const FOV = 55
 const T = {
@@ -30,7 +31,7 @@ const T = {
 }
 
 export default function QiblaAR({ qibla, distanceKm, lang = 'az', onClose }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const videoRef = useRef(null)
   const markRef = useRef(null)
   const closeRef = useRef(null)

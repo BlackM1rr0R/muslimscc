@@ -6,6 +6,7 @@ import Icon from './Icon'
 import '../styles/BookSection.css'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
+import { pickUi } from '../utils/uiText'
 
 const LABELS = {
   az: { eyebrow:'Oxu üçün', title:'Kitabxana', sub:'İslami kitablar və alimlərin əsərləri', loading:'Yüklənir...', viewAll:'Hamısını gör', pdf:'PDF' },
@@ -17,7 +18,7 @@ const LABELS = {
 
 export default function BookSection({ setPage }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [allBooks, setBooks] = useState([])
   // Başlığı cari dildə olmayan admin məzmunu bu dildə göstərilmir (başqa dilə düşmür)

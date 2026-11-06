@@ -4,6 +4,7 @@ import Icon from '../Icon'
 import { AdminHeader, SectionTitle, AdminEmpty, LangTabs, AdminAlert } from './AdminUi'
 import { AdminText, adminPick } from './adminText'
 import { addCustomHadith, updateCustomHadith, deleteCustomHadith, CUSTOM_HADITH_CATS, subscribeToHadiths } from '../../data/adminContent'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Hədislər', sub:'Hədis məzmununu idarə edin', addNew:'Yeni hədis', editItem:'Redaktə et', all:'Bütün hədislər', arabicText:'Ərəbcə mətn', translation:'Tərcümə', source:'Mənbə', category:'Kateqoriya', save:'Yadda saxla', cancel:'İmtina', edit:'Redaktə', delete:'Sil', confirmDelete:'Bu hədisi silmək?', noItems:'Hələ hədis yoxdur', required:'Bu sahə tələb olunur', sourcePh:'Buxari, Muslim...' },
@@ -22,7 +23,7 @@ const EMPTY = {
 
 export default function HadithManager({ onUpdate }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [items, setItems] = useState([])
   const [form, setForm] = useState(EMPTY)

@@ -19,7 +19,8 @@
 // türkcə söz yox, tr-də "ə" yox; scripts/check-lang.mjs bu faylı yoxlayır.
 // ═══════════════════════════════════════════════════════
 
-import { SITE, pathFor } from './routes.js'
+import { SITE, pathFor, EXTRA_PAGES, isExtraLang } from './routes.js'
+import { txt } from '../utils/uiText.js'
 import { SURAH_META } from './surahMeta.js'
 import { getSurahLocal } from '../data/surahNamesAz.js'
 import { NAMES_99 } from '../data/names99.js'
@@ -312,6 +313,9 @@ const TERM_T = {
  * t — title-ın səhifə hissəsi (brend şəkilçisi titleForDetail-də əlavə olunur).
  */
 export function detailMeta(key, lang, param) {
+  // Əlavə dildə Qurandan başqa detal (səhabə, dərs, termin…): məzmun yalnız 5
+  // dildədir — ingiliscə mətn (maşın tərcüməsi yox; sahibin qərarı, 2026-11-06)
+  if (isExtraLang(lang) && !EXTRA_PAGES.includes(key)) return detailMeta(key, 'en', param)
   if (key === 'quran') {
     const s = surahInfo(param, lang)
     const L = QURAN[lang] || INTL_QURAN[lang] || QURAN.az
@@ -375,12 +379,20 @@ export const SECTION_LABEL = {
   glossary: { az: 'İslami söz lüğəti', en: 'Islamic Glossary', ru: 'Исламский глоссарий', ar: 'قاموس المصطلحات الإسلامية', tr: 'İslami Sözlük' },
 }
 
+/** Bölmənin adı cari dildə (əlavə dildə — ingiliscənin lüğətdəki tərcüməsi). */
+export function sectionLabel(key, lang) {
+  const row = SECTION_LABEL[key]
+  if (!row) return key
+  if (row[lang]) return row[lang]
+  return isExtraLang(lang) ? txt(row.en) : row.az
+}
+
 /** İz: Ana səhifə → bölmə → detal (hər addım { name, url }). */
 export function crumbsFor(key, lang, param) {
   const m = detailMeta(key, lang, param)
   const items = [
     { name: brandName(lang), url: SITE + pathFor('home', lang) },
-    { name: SECTION_LABEL[key]?.[lang] || SECTION_LABEL[key]?.az || key, url: SITE + pathFor(key, lang) },
+    { name: sectionLabel(key, lang), url: SITE + pathFor(key, lang) },
   ]
   if (m) items.push({ name: m.crumb, url: SITE + pathFor(key, lang, param) })
   return items
@@ -463,7 +475,7 @@ export function detailJsonLd(key, lang, param) {
       name: m.h1,
       ...(alt.length ? { alternateName: alt } : {}),
       description: x.definition,
-      inDefinedTermSet: { '@type': 'DefinedTermSet', name: SECTION_LABEL.glossary[lang] || SECTION_LABEL.glossary.az, url: SITE + pathFor('glossary', lang) },
+      inDefinedTermSet: { '@type': 'DefinedTermSet', name: sectionLabel('glossary', lang), url: SITE + pathFor('glossary', lang) },
       url,
     }
   } else if (key === 'scholars') {

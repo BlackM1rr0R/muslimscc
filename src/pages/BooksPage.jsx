@@ -18,6 +18,7 @@ import StarButton from '../components/collect/StarButton'
 import useStarred from '../components/collect/useStarred'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
+import { pickUi } from '../utils/uiText'
 
 // ── v3.2: seçilmiş kitablar (ulduz, localStorage) — 5 dil ──
 const BP32 = {
@@ -67,7 +68,7 @@ const RELATED = [
   { page: 'glossary', title: { az: 'Lüğət', en: 'Glossary', ru: 'Словарь', ar: 'المعجم', tr: 'Sözlük' },
     text: { az: 'Kitablarda rast gəlinən İslami terminlər', en: 'Islamic terms you meet in the books', ru: 'Исламские термины, встречающиеся в книгах', ar: 'المصطلحات الإسلامية الواردة في الكتب', tr: 'Kitaplarda geçen İslami terimler' } },
 ]
-const tr5 = (o, lang) => (o && (o[lang] || o.en)) || ''
+const tr5 = (o, lang) => (o && (pickUi(o, lang, 'en'))) || ''
 
 // Sonsuz sürüşmənin bir partiyası
 const BATCH = 12
@@ -118,8 +119,8 @@ function countWord(n, key, lang, fallback) {
 
 export default function BooksPage() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
-  const bx = BP32[lang] || BP32.en
+  const l = pickUi(LABELS, lang)
+  const bx = pickUi(BP32, lang, 'en')
   const star = useStarred('books:favs')
   const navigate = useNavigate()
   const go = (href) => (e) => { if (isPlainClick(e)) { e.preventDefault(); navigate(href) } }

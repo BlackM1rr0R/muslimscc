@@ -15,6 +15,7 @@ import { haptic } from '../hooks/useHaptic'
 import Icon from './Icon'
 import { pathFor } from '../seo/routes'
 import '../styles/MoodDuas.css'
+import { pickUi } from '../utils/uiText'
 
 export const MOODS = [
   { id: 'sad', icon: 'moon', ch: [35, 54], l: { az: 'Kədərliyəm', en: 'Sad', ru: 'Грустно', tr: 'Hüzünlüyüm', ar: 'حزين' } },
@@ -37,7 +38,7 @@ const T = {
 }
 
 export default function MoodDuas({ lang = 'az' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [sel, setSel] = useState(null)
   const [hisn, setHisn] = useState(null) // null | 'err' | chapters[]
 
@@ -62,7 +63,7 @@ export default function MoodDuas({ lang = 'az' }) {
         {MOODS.map((m, i) => (
           <button key={m.id} type="button" className={`md__mood md__mood--${i % 5}`} aria-pressed={sel === m.id}
             onClick={() => { haptic(8); setSel(s => (s === m.id ? null : m.id)) }}>
-            <Icon name={m.icon} size={18} /> {m.l[lang] || m.l.en}
+            <Icon name={m.icon} size={18} /> {pickUi(m.l, lang, 'en')}
           </button>
         ))}
       </div>

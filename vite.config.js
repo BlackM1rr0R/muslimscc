@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { pathToFileURL } from 'url'
+// Əlavə dillərin interfeys lüğəti — 5 dilli obyektlərin qeydiyyatı (src/utils/uiText.js)
+import uiDictPlugin from './scripts/vite-ui-dict-plugin.mjs'
 
 // ── PERFORMANS: "virtual:daily-pools" ──
 // NƏ: ana səhifənin "Günün xatırlatmaları" zolağı (DailyReminderBar) üçün
@@ -110,7 +112,7 @@ function versionFilePlugin() {
 }
 
 export default defineConfig({
-  plugins: [react(), dailyPoolsPlugin(), hadithLangPlugin(), versionFilePlugin()],
+  plugins: [uiDictPlugin(), react(), dailyPoolsPlugin(), hadithLangPlugin(), versionFilePlugin()],
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
 
   // Yalnız bir React nüsxəsi olsun deyə

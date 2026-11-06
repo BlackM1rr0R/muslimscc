@@ -29,6 +29,7 @@ import AnalyticsManager from '../components/admin/AnalyticsManager'
 import { AdminEmpty } from '../components/admin/AdminUi'
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AdminPage.css'
+import { pickUi } from '../utils/uiText'
 
 const LABELS = {
   az: { checking:'Giriş yoxlanılır...', account:'Hesab və şifrə', dashboard:'İdarə paneli', content:'MƏZMUN', videos:'Videolar', books:'Kitablar', hadiths:'Hədislər', duas:'Dualar', quotes:'Sitatlar', announcements:'Elanlar', events:'Hadisələr', daily:'Günün məzmunu', customization:'FƏRDİLƏŞDİRMƏ', hero:'Ana səhifə lövhəsi', system:'SİSTEM', settings:'Parametrlər', analytics:'Sayt statistikası', feedback:'Səhv bildirişləri', stats:'Statistika', backup:'Ehtiyat nüsxə və bərpa', seed:'İlkin məlumatlar', pushNotif:'Anlıq bildirişlər', logout:'Çıxış', adminPanel:'Admin paneli', sections:'Admin bölmələri', dark:'Qaranlıq rejim', light:'İşıqlı rejim' },
@@ -81,7 +82,7 @@ const NAV_GROUPS = [
 export default function AdminPage({ setPage }) {
   // Admin səhifəsində sayt başlığı yoxdur — tema açarı yan menyudadır
   const { lang, dark, toggleDark } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [activeTab, setActiveTab] = useState('dashboard')
   const [counts, setCounts] = useState({ videos:0, books:0, hadiths:0, duas:0, quotes:0, announcements:0, events:0, places:0 })

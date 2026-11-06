@@ -11,6 +11,7 @@
 import { useRef, useState } from 'react'
 import Icon from './Icon'
 import '../styles/OfflinePack.css'
+import { pickUi } from '../utils/uiText'
 
 export const PAGE_CACHE = 'muslims-cc-v6'
 const KEY = 'muslim_cc_offline_pack_v1'
@@ -30,7 +31,7 @@ export function packUrls(lang, surahUrl) {
 }
 
 export default function OfflinePack({ lang = 'az', surahUrl }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [saved, setSaved] = useState(() => (typeof window === 'undefined' ? {} : readState()[lang] || null))
   const [prog, setProg] = useState(null) // { done, total, failed }
   const stopRef = useRef(false)

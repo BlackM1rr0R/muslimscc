@@ -12,6 +12,7 @@ import { useLang } from '../../contexts/LangContext'
 import { AdminHeader, SectionTitle, AdminAlert } from './AdminUi'
 import Icon from '../Icon'
 import { changeAdminPassword, MIN_ADMIN_PASSWORD } from '../../api/adminAuth'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Hesab', sub:'Admin hesabınızın təhlükəsizliyi', change:'Şifrəni dəyiş', signedInAs:'Daxil olan hesab', current:'Cari şifrə', next:'Yeni şifrə', confirm:'Yeni şifrə (təkrar)', hint:'Ən azı {n} simvol. Şifrə dəyişəndə digər cihazlardakı girişlər bağlanır.', save:'Şifrəni dəyiş', saving:'Yadda saxlanılır...', done:'Şifrə dəyişdirildi. Digər cihazlardakı girişlər bağlandı.', forcedTitle:'Müvəqqəti şifrəni dəyişin', forcedSub:'Hesabınız müvəqqəti şifrə ilə açılıb. Panelə keçmək üçün yeni şifrə təyin edin.', show:'Şifrələri göstər', hide:'Şifrələri gizlət', logout:'Çıxış',
@@ -33,7 +34,7 @@ const num = (n, lang) => (lang === 'ar' ? n.toLocaleString('ar-EG') : String(n))
 
 export default function AccountManager({ email = '', forced = false, onChanged, onLogout }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
   const fill = (s) => s.replace('{n}', num(MIN_ADMIN_PASSWORD, lang))
 
   const [form, setForm] = useState({ current: '', next: '', confirm: '' })

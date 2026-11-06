@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import Icon from '../Icon'
 import { icsUrl } from '../../utils/icsUrl'
+import { pickUi } from '../../utils/uiText'
 
 const TXT = {
   az: { title: 'Namaz vaxtları təqviminizdə', lead: 'Bir dəfə abunə olun — növbəti 45 günün azan vaxtları telefonunuzun təqvimində görünəcək və özü yenilənəcək.', google: 'Google Təqvim', apple: 'Apple / Outlook', copy: 'Linki kopyala', copied: 'Kopyalandı', note: 'Şəhəri dəyişsəniz, yeni şəhər üçün yenidən abunə olun.' },
@@ -16,7 +17,7 @@ const TXT = {
 }
 
 export default function CalendarSubscribe({ location, lang, city }) {
-  const t = TXT[lang] || TXT.az
+  const t = pickUi(TXT, lang)
   const [copied, setCopied] = useState(false)
   if (!location || !Number.isFinite(location.lat) || !location.tz) return null
   const https = icsUrl(window.location.origin, location, lang, city)

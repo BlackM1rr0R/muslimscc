@@ -29,12 +29,13 @@
 //         script: 'arab' — surə adı ərəbcə yazılır (urdu, fars, puştu),
 //         basmala — Bəsmələnin bu nəşrdəki tərcüməsi (Fatihə 1:1, hərfbəhərf;
 //         uz — mötərizədəki şərhsiz), oxuyucuda və statik blokda,
+//         ui: true — interfeys lüğəti var (src/i18n/<dil>.json): BÜTÜN səhifələr bu dildə,
 //         notes: true — nəşrdə ayə mətninin içində [[…]] lüğət qeydləri var
 //         (Xürrəmdil); göstərişdə qeydlər ayrılır, tərcümə mətni dəyişmir —
 //         utils/quranText.js → stripTranslationNotes) }
 // uz.sodik kiril əlifbasındadır — SEO mətnləri də kirilcədir (intl.js).
 export const EXTRA_LANGS = {
-  id: { name: 'Bahasa Indonesia', en: 'Indonesian', dir: 'ltr', locale: 'id_ID', quran: 'id.indonesian', by: 'Kementerian Agama RI', basmala: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.' },
+  id: { name: 'Bahasa Indonesia', en: 'Indonesian', ui: true, dir: 'ltr', locale: 'id_ID', quran: 'id.indonesian', by: 'Kementerian Agama RI', basmala: 'Dengan menyebut nama Allah Yang Maha Pemurah lagi Maha Penyayang.' },
   ur: { name: 'اردو', en: 'Urdu', dir: 'rtl', locale: 'ur_PK', quran: 'ur.junagarhi', by: 'محمد جوناگڑھی', byLatin: 'Muhammad Junagarhi', script: 'arab', basmala: 'شروع کرتا ہوں اللہ تعالیٰ کے نام سے جو بڑا مہربان نہایت رحم واﻻ ہے' },
   bn: { name: 'বাংলা', en: 'Bengali', dir: 'ltr', locale: 'bn_BD', quran: 'bn.bengali', by: 'মুহিউদ্দীন খান', byLatin: 'Muhiuddin Khan', basmala: 'শুরু করছি আল্লাহর নামে যিনি পরম করুণাময়, অতি দয়ালু।' },
   fa: { name: 'فارسی', en: 'Persian', dir: 'rtl', locale: 'fa_IR', quran: 'fa.khorramdel', by: 'مصطفی خرمدل', byLatin: 'Mostafa Khorramdel', script: 'arab', notes: true, basmala: 'به نام خداوند بخشنده‌ی مهربان.' },

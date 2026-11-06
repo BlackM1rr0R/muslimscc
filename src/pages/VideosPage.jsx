@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom'
 import '../styles/VideosPage.css'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
+import { pickUi } from '../utils/uiText'
 
 const LABELS = {
   az: { how:'Videonu seçin — pəncərədə açılır (YouTube). Bölmə çipləri siyahını daraldır.', statCats:'bölmə', altEyebrow:'Saytda', altTitle:'Dinləmək və öyrənmək üçün', altLead:'Videolardan başqa saytda səsli tilavət, qısa dərslər və hədis şərhləri var.', eyebrow:'Hədis və bilik', title:'Video kitabxana', subtitle:'İslami mühazirələr, Quran tilavətləri və daha çox', search:'Video axtar...', all:'Hamısı', featured:'Seçilmişlər', latest:'Ən son', allVideos:'Bütün videolar', moreVideos:'Digər videolar', filter:'Filtr', noResults:'Video tapılmadı', noVideos:'Hələ video əlavə olunmayıb', noVideosLang:'Bu dildə hələ video yoxdur', loading:'Yüklənir...', videos:'video', watchNow:'İndi izlə', share:'Paylaş', shared:'Kopyalandı!', close:'Bağla', clear:'Təmizlə' },
@@ -35,7 +36,7 @@ const ALT = [
   { page: 'books', title: { az: 'Kitabxana', en: 'Library', ru: 'Библиотека', ar: 'المكتبة', tr: 'Kütüphane' },
     text: { az: 'İslami kitablar və oxu yolu', en: 'Islamic books and a reading path', ru: 'Исламские книги и путь чтения', ar: 'كتب إسلامية وطريق القراءة', tr: 'İslami kitaplar ve okuma yolu' } },
 ]
-const tr5 = (o, lang) => (o && (o[lang] || o.en)) || ''
+const tr5 = (o, lang) => (o && (pickUi(o, lang, 'en'))) || ''
 
 // Sonsuz sürüşmənin bir partiyası
 const BATCH = 12
@@ -65,7 +66,7 @@ function sheetExitMs() {
 
 export default function VideosPage() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
   const navigate = useNavigate()
 
   const [allVideos, setVideos] = useState([])

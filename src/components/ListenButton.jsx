@@ -25,6 +25,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import '../styles/ListenButton.css'
+import { pickUi } from '../utils/uiText'
 
 const BCP47 = { az: 'az-AZ', en: 'en', ru: 'ru-RU', ar: 'ar-SA', tr: 'tr-TR' }
 const DEFAULT_SELECTOR = 'h1, h2, h3, h4, p, li, blockquote, figcaption, dt, dd, td, th'
@@ -141,7 +142,7 @@ function resolveTarget(target) {
 
 export default function ListenButton({ target, selector = DEFAULT_SELECTOR, className = '' }) {
   const { lang } = useLang()
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const tipId = useId()
   // 'checking' → səslər yüklənir; 'ok' | 'noVoice' | 'noApi'
   const [support, setSupport] = useState('checking')

@@ -7,6 +7,7 @@ import { pathFor } from '../seo/routes'
 import ReaderDialog from '../components/reader/ReaderDialog'
 import { copyText, readJSON, shareOrCopy, writeJSON } from '../components/reader/share'
 import '../styles/HisnPage.css'
+import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
    HİSNUL-MÜSLİM — /hisnul-muslim
@@ -204,8 +205,8 @@ const plainClick = (e) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shift
 
 export default function HisnPage({ setPage }) {
   const { lang } = useLang()
-  const L = LABELS[lang] || LABELS.en
-  const X = UI_EXTRA[lang] || UI_EXTRA.en
+  const L = pickUi(LABELS, lang, 'en')
+  const X = pickUi(UI_EXTRA, lang, 'en')
   const isAr = lang === 'ar'
   const [data, setData] = useState(null)
   const [status, setStatus] = useState('loading')
@@ -349,7 +350,7 @@ export default function HisnPage({ setPage }) {
                     aria-pressed={on} onClick={() => pickCat(c.id)}>
                     <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={c.icon} /></span>
                     <span className="ui-tile__body">
-                      <span className="ui-tile__title">{c.t[lang] || c.t.en}</span>
+                      <span className="ui-tile__title">{pickUi(c.t, lang, 'en')}</span>
                       <span className="ui-tile__text ui-num">{catStats[c.id]?.ch ?? c.ids.length} {X.chapters} · {catStats[c.id]?.items ?? '—'} {X.items}</span>
                     </span>
                   </button>
@@ -424,7 +425,7 @@ export default function HisnPage({ setPage }) {
               {!q.trim() && curCat && (
                 <div className="hs-filterbar">
                   <span className="hs-filterbar__name">
-                    <Icon name={curCat.icon} size={18} /> {curCat.t[lang] || curCat.t.en}
+                    <Icon name={curCat.icon} size={18} /> {pickUi(curCat.t, lang, 'en')}
                     <span className="ui-num hs-filterbar__n">{L.count(filtered.length)}</span>
                   </span>
                   <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setCat('all')}>
@@ -449,7 +450,7 @@ export default function HisnPage({ setPage }) {
                     <li key={c.id} id={`hs-${c.id}`} className={`ui-card hs-card${fav ? ' is-fav' : ''}`}>
                       <div className="hs-card__top">
                         <span className="hs-card__n ui-num" aria-hidden="true">{c.id}</span>
-                        {k && <span className="ui-badge hs-card__cat"><Icon name={k.icon} size={12} /> {k.t[lang] || k.t.en}</span>}
+                        {k && <span className="ui-badge hs-card__cat"><Icon name={k.icon} size={12} /> {pickUi(k.t, lang, 'en')}</span>}
                         <button type="button" className={`hs-card__fav${fav ? ' is-on' : ''}`} aria-pressed={fav}
                           onClick={() => toggleFav(c.id)} aria-label={`${fav ? X.favRemove : X.favAdd}: ${c.title}`} title={fav ? X.favRemove : X.favAdd}>
                           <Icon name="star" size={17} />
@@ -483,7 +484,7 @@ export default function HisnPage({ setPage }) {
               <li key={r.href}>
                 <a className="ui-list__item" href={pathFor(r.href, lang)} onClick={go(r.href)}>
                   <Icon name={r.icon} />
-                  <span>{r.t[lang] || r.t.en}<small>{r.s[lang] || r.s.en}</small></span>
+                  <span>{pickUi(r.t, lang, 'en')}<small>{pickUi(r.s, lang, 'en')}</small></span>
                   <Icon name="chevron" className="ui-list__chev ui-flip-rtl" />
                 </a>
               </li>

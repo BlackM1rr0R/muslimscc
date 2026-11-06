@@ -13,8 +13,9 @@ import { feature } from 'topojson-client'
 import landUrl from 'world-atlas/land-110m.json?url'
 import { CITIES, SPREAD_L } from './SiraMaps'
 import './SpreadTimeline.css'
+import { pickUi } from '../../utils/uiText'
 
-const T = (o, lang) => (o && (o[lang] || o.en)) || ''
+const T = (o, lang) => (o && (pickUi(o, lang, 'en'))) || ''
 
 // Sonrakı əsrlər — yalnız geniş qəbul olunmuş tarixlər
 const LATER = [
@@ -56,7 +57,7 @@ const reduced = () => typeof document !== 'undefined' && (document.documentEleme
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
 
 export default function SpreadTimeline({ lang = 'az' }) {
-  const t = L[lang] || L.az
+  const t = pickUi(L, lang)
   const id = `st${useId().replace(/:/g, '')}`
   const N = SPREAD_EVENTS.length
   const [idx, setIdx] = useState(N - 1)           // görünən son hadisə (ilkin: hamısı)

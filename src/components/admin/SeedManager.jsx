@@ -6,6 +6,7 @@ import { HADITHS } from '../../data/hadiths'
 import { DUAS_DATA } from '../../data/duas'
 import { QUOTES as STATIC_QUOTES } from '../../data/quotes'
 import { addCustomHadith, addCustomDua, addCustomQuote } from '../../data/adminContent'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'İlkin məzmunu serverə yüklə', sub:'Quraşdırılmış hədis, dua və sitatları serverə yükləyin ki, admin redaktə edə bilsin', warning:'Diqqət', warningText:'Bu əməliyyat hər icra olunduqda yenidən yükləyir. Yalnız bir dəfə icra edin!', seedHadiths:'Hədisləri yüklə', seedDuas:'Duaları yüklə', seedQuotes:'Sitatları yüklə', seedAll:'Hamısını yüklə', uploading:'Yüklənir...', uploaded:'Yükləndi!', count:'ədəd', hadiths:'Hədis', duas:'Dua', quotes:'Sitat', info:'İlkin məzmun statik fayllarda saxlanılır. Bunları serverə yükləsəniz, admin paneldən redaktə edə bilərsiniz.' },
@@ -20,7 +21,7 @@ const CAT_MAP_DUA = { Morning:'morning', Evening:'evening', Eating:'food', Sleep
 
 export default function SeedManager() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [uploading, setUploading] = useState(null)
   const [results, setResults] = useState({})

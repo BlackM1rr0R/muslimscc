@@ -14,6 +14,7 @@ import { feature } from 'topojson-client'
 import landUrl from 'world-atlas/land-110m.json?url'
 import { worldPoints } from '../data/worldCities'
 import '../styles/QiblaLines.css'
+import { pickUi } from '../utils/uiText'
 
 export const KAABA = [39.8262, 21.4225] // [lng, lat]
 const W = 960, H = 470
@@ -28,7 +29,7 @@ let landCache = null
 const loadLand = () => (landCache ||= fetch(landUrl).then(r => r.json()).then(t => feature(t, t.objects.land)))
 
 export default function QiblaLines({ from, lang = 'az' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [land, setLand] = useState(null)
   useEffect(() => { loadLand().then(setLand).catch(() => {}) }, [])
   const proj = useMemo(() => geoEqualEarth().rotate([-40, 0]).fitExtent([[8, 8], [W - 8, H - 8]], { type: 'Sphere' }), [])

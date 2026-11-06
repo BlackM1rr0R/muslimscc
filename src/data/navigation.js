@@ -17,6 +17,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { BRAND } from '../config/brand.js'
+import { pickUi } from '../utils/uiText'
 
 // ── Qruplar ──────────────────────────────────────────
 // key   — qrupun daxili adı (localStorage-da açıq qrupları yadda saxlamaq üçün)
@@ -216,7 +217,7 @@ const ITEM_BY_KEY = Object.fromEntries(NAV_ITEMS.map(item => [item.key, item]))
 // mətn başqa dilin səhifəsinə "sızmasın")
 function pick(label, lang) {
   if (!label) return ''
-  return label[lang] || label.en || label.az || ''
+  return pickUi(label, lang, 'en') || label.az || ''
 }
 
 /** İstənilən marşrut açarının cari dildəki adı. */

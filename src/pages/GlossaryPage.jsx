@@ -16,6 +16,7 @@ import ReaderDialog from '../components/reader/ReaderDialog'
 import StarButton, { CopyStatus } from '../components/collect/StarButton'
 import useStarred, { dayPick, shareLink } from '../components/collect/useStarred'
 import '../styles/GlossaryPage.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // /glossary — İslami söz lüğəti (341 termin, 7 kateqoriya)
@@ -68,7 +69,7 @@ const ROOT_T = {
 }
 const ROOT_MAX = Math.max(1, ...Object.values(GLOSSARY_ROOTS).map(x => x[1]))
 function RootChip({ root, n, lang }) {
-  const r = ROOT_T[lang] || ROOT_T.az
+  const r = pickUi(ROOT_T, lang)
   const w = Math.log(1 + n) / Math.log(1 + ROOT_MAX)
   return (
     <a className="glossary-root" href={`${pathFor('quranroots', lang)}?root=${encodeURIComponent(root)}`} title={r.open}
@@ -117,7 +118,7 @@ const LETTERS = { ar: ARABIC_LETTERS, az: AZ_LETTERS, en: LATIN_LETTERS, tr: TR_
 
 export default function GlossaryPage() {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
+  const t = pickUi(LABELS, lang)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -187,7 +188,7 @@ export default function GlossaryPage() {
         item.translit.toLowerCase().includes(q) ||
         headlineOf(item, lang).toLocaleLowerCase().includes(q) ||
         item.ar.includes(q) ||
-        (item.def[lang] || item.def.en || '').toLocaleLowerCase().includes(q)
+        (pickUi(item.def, lang, 'en') || '').toLocaleLowerCase().includes(q)
       )
     }
     return list
@@ -238,7 +239,7 @@ export default function GlossaryPage() {
   }
   const termUrl = (id) => `${window.location.origin}${pathFor('glossary', lang, id)}`
   const onShare = async (item) => {
-    const r = await shareLink({ title: headlineOf(item, lang), text: `${headlineOf(item, lang)} (${item.ar}) — ${item.def[lang] || item.def.en}`, url: termUrl(item.id) })
+    const r = await shareLink({ title: headlineOf(item, lang), text: `${headlineOf(item, lang)} (${item.ar}) — ${pickUi(item.def, lang, 'en')}`, url: termUrl(item.id) })
     if (r === 'copied') setStatus(t.copied)
   }
   const onCopy = async (item) => {
@@ -380,7 +381,7 @@ export default function GlossaryPage() {
                 <span className={`cl-spot__title${isArabic ? ' ui-arabic' : ''}`}>
                   {headlineOf(today, lang)}{!isArabic && <span className="glossary-spot__ar ui-arabic" lang="ar" dir="rtl">{today.ar}</span>}
                 </span>
-                <p className="cl-spot__text">{today.def[lang] || today.def.en}</p>
+                <p className="cl-spot__text">{pickUi(today.def, lang, 'en')}</p>
               </div>
               <div className="cl-spot__actions">
                 <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={() => openRead(today.id)} aria-haspopup="dialog">
@@ -429,7 +430,7 @@ export default function GlossaryPage() {
                       <StarButton on={star.has(item.id)} onToggle={() => star.toggle(item.id)} label={`${t.favAdd}: ${headlineOf(item, lang)}`} />
                     </span>
                   </div>
-                  <p className="glossary-definition">{item.def[lang] || item.def.en}</p>
+                  <p className="glossary-definition">{pickUi(item.def, lang, 'en')}</p>
                   {GLOSSARY_ROOTS[item.id] && <RootChip root={GLOSSARY_ROOTS[item.id][0]} n={GLOSSARY_ROOTS[item.id][1]} lang={lang} />}
                   {(rel.length > 0 || lessonOk) && (
                     <div className="glossary-card-foot">
@@ -515,7 +516,7 @@ export default function GlossaryPage() {
               </div>
               {!isArabic && <p className="glo-read__ar ui-arabic" lang="ar" dir="rtl">{readItem.ar}</p>}
             </header>
-            <p className="glo-read__def">{readItem.def[lang] || readItem.def.en}</p>
+            <p className="glo-read__def">{pickUi(readItem.def, lang, 'en')}</p>
             {(readItem.rel || []).length > 0 && (
               <div className="glossary-rel glo-read__rel">
                 <span className="glossary-rel__label">{t.related}:</span>

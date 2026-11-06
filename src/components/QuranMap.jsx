@@ -15,6 +15,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { TOTAL, MADANI, SURAH_START, refAt, mapStates, countStates } from '../utils/quranMap'
 import '../styles/QuranMap.css'
+import { pickUi } from '../utils/uiText'
 
 const T = {
   az: { title: 'Quranın xəritəsi', lead: 'Hər xana bir ayədir — Fatihədən Nas surəsinə qədər. Əzbərlədikcə xəritə nura bürünür.', mem: 'əzbər', learn: 'öyrənilir', mk: 'Məkki', md: 'Mədəni', open: 'Surəni aç', hint: 'Xanaya toxunun', sum: (m, l) => `6236 ayədən ${m} əzbər, ${l} öyrənilir` },
@@ -28,7 +29,7 @@ const css = (el, name, fb) => (getComputedStyle(el).getPropertyValue(name).trim(
 const reduced = () => typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('a11y-reduce-motion'))
 
 export default function QuranMap({ progress, srsItems, lang = 'az', surahName = (s) => String(s), surahHref }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const wrapRef = useRef(null)
   const canvasRef = useRef(null)
   const geo = useRef({ cols: 96, cell: 4, gap: 1 })

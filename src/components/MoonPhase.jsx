@@ -7,6 +7,7 @@
 import { memo, useId, useMemo } from 'react'
 import { moonPhase, litPath } from '../utils/moonPhase'
 import '../styles/MoonPhase.css'
+import { pickUi } from '../utils/uiText'
 
 const NAMES = {
   az: { new: 'Təzə ay', waxingCrescent: 'Hilal (böyüyən)', firstQuarter: 'İlk dördəbir', waxingGibbous: 'Böyüyən ay', full: 'Bədr (tam ay)', waningGibbous: 'Kiçilən ay', lastQuarter: 'Son dördəbir', waningCrescent: 'Hilal (kiçilən)' },
@@ -29,8 +30,8 @@ const fmtDay = (d, lang) => (lang === 'az' ? `${d.getDate()} ${AZ_MONTHS[d.getMo
 function MoonPhase({ lang = 'az', size = 44, detailed = false, date }) {
   const gid = useId().replace(/:/g, '')
   const m = useMemo(() => moonPhase(date || new Date()), [date])
-  const name = (NAMES[lang] || NAMES.az)[m.key]
-  const t = TXT[lang] || TXT.az
+  const name = (pickUi(NAMES, lang))[m.key]
+  const t = pickUi(TXT, lang)
   const { d, mirror } = litPath(m.phase, 50)
   const pct = Math.round(m.illumination * 100)
   const label = `${name} · ${pct}% ${t.lit}`

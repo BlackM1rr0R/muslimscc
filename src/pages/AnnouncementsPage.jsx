@@ -25,6 +25,7 @@ import '../styles/AnnouncementsPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import PageLink from '../components/PageLink'
+import { pickUi } from '../utils/uiText'
 
 const LABELS = {
   az: {
@@ -291,7 +292,7 @@ function canOfferNotifications() {
 
 export default function AnnouncementsPage({ setPage }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.en
+  const l = pickUi(LABELS, lang, 'en')
 
   const [rawAnnouncements, setRawAnnouncements] = useState([])
   const [rawEvents, setRawEvents] = useState([])
@@ -391,7 +392,7 @@ export default function AnnouncementsPage({ setPage }) {
   }, [rawEvents, lang, today])
 
   const shownEvents = showAllEvents ? events : events.slice(0, EVENTS_PREVIEW)
-  const monthNames = HIJRI_MONTH_NAMES[lang] || HIJRI_MONTH_NAMES.en
+  const monthNames = pickUi(HIJRI_MONTH_NAMES, lang, 'en')
   const now = Date.now()
 
   const openNotifications = () => {
@@ -411,11 +412,11 @@ export default function AnnouncementsPage({ setPage }) {
           <span className="ui-eyebrow">{l.eyebrow}</span>
           <h1 className="ui-display">{l.title}</h1>
           <p className="ui-lead">{l.subtitle}</p>
-          <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{(V3[lang] || V3.en).how}</span></p>
+          <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{(pickUi(V3, lang, 'en')).how}</span></p>
           {loaded && (announcements.length > 0 || events.length > 0) && (
             <ul className="ui-page-hero__stats">
-              <li><b data-count={announcements.length}>{announcements.length}</b><span>{(V3[lang] || V3.en).active}</span></li>
-              {events.length > 0 && <li><b data-count={events.length}>{events.length}</b><span>{(V3[lang] || V3.en).dates}</span></li>}
+              <li><b data-count={announcements.length}>{announcements.length}</b><span>{(pickUi(V3, lang, 'en')).active}</span></li>
+              {events.length > 0 && <li><b data-count={events.length}>{events.length}</b><span>{(pickUi(V3, lang, 'en')).dates}</span></li>}
             </ul>
           )}
         </div>
@@ -488,7 +489,7 @@ export default function AnnouncementsPage({ setPage }) {
                       onClick={() => setFilter(t.key)}
                     >
                       <Icon name={(ANN_TONE[t.key] || ANN_TONE.info).icon} size={15} />
-                      {t.label[lang] || t.label.en}
+                      {pickUi(t.label, lang, 'en')}
                       <span className="anp-chip-count">{t.count}</span>
                     </button>
                   ))}
@@ -505,7 +506,7 @@ export default function AnnouncementsPage({ setPage }) {
                       <div className="anp-card-top">
                         <span className="ui-badge anp-badge">
                           <Icon name={tone.icon} size={14} />
-                          {a._type.label[lang] || a._type.label.en}
+                          {pickUi(a._type.label, lang, 'en')}
                         </span>
                         {isNew && <span className="ui-badge ui-badge--solid anp-new">{l.isNew}</span>}
                         {a._ms != null && (
@@ -566,7 +567,7 @@ export default function AnnouncementsPage({ setPage }) {
                     <span className="anp-sr">{ev._day} {monthNames[ev._month - 1]}</span>
                     <div className="anp-event-meta">
                       <span className="anp-event-type">
-                        <Icon name={EVENT_ICON[ev._type.key] || 'calendar'} size={14} /> {ev._type.label[lang] || ev._type.label.en}
+                        <Icon name={EVENT_ICON[ev._type.key] || 'calendar'} size={14} /> {pickUi(ev._type.label, lang, 'en')}
                       </span>
                     </div>
                     {ev._desc && <p className="anp-event-desc" dir="auto">{ev._desc}</p>}
@@ -593,8 +594,8 @@ export default function AnnouncementsPage({ setPage }) {
         {/* ═══ Xəbərdar qalmaq — bildiriş, təqvim, namaz vaxtları ═══ */}
         <section className="anp-section" aria-labelledby="anp-stay-title">
           <div className="ui-section-head anp-section-head" data-reveal>
-            <span className="ui-eyebrow">{(V3[lang] || V3.en).stayEyebrow}</span>
-            <h2 id="anp-stay-title" className="ui-title">{(V3[lang] || V3.en).stayTitle}</h2>
+            <span className="ui-eyebrow">{(pickUi(V3, lang, 'en')).stayEyebrow}</span>
+            <h2 id="anp-stay-title" className="ui-title">{(pickUi(V3, lang, 'en')).stayTitle}</h2>
           </div>
           <ul className="ui-tiles anp-stay" data-reveal="stagger">
             {offerNotif && (
@@ -603,14 +604,14 @@ export default function AnnouncementsPage({ setPage }) {
                   <span className="ui-icon-tile" aria-hidden="true"><Icon name="bell" /></span>
                   <span className="ui-tile__body">
                     <span className="ui-tile__title">{l.enableNotif}</span>
-                    <span className="ui-tile__text">{(V3[lang] || V3.en).notifText}</span>
+                    <span className="ui-tile__text">{(pickUi(V3, lang, 'en')).notifText}</span>
                   </span>
                 </button>
               </li>
             )}
             {[
-              { to: 'calendar', title: l.fullCalendar, text: (V3[lang] || V3.en).calText },
-              { to: 'prayer', title: l.seeTimes, text: (V3[lang] || V3.en).prayerText },
+              { to: 'calendar', title: l.fullCalendar, text: (pickUi(V3, lang, 'en')).calText },
+              { to: 'prayer', title: l.seeTimes, text: (pickUi(V3, lang, 'en')).prayerText },
             ].map(k => (
               <li key={k.to}>
                 <PageLink className="ui-tile ui-tile--row" to={k.to} setPage={setPage}>

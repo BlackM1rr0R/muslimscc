@@ -5,6 +5,7 @@ import { ARABIC_AUDIO_SOURCES } from '../data/arabicCourseCredits'
 import { AUDIO_CREDITS, CREDIT_ORDER } from '../data/prayerGuideCredits'
 import { IMAGE_CREDITS } from '../data/imageCredits'
 import { PLACE_PHOTOS } from '../data/placeImages'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Mənbələr və lisenziyalar (atribusiya)
@@ -605,5 +606,5 @@ const DOC = {
 
 export default function LicensesPage({ setPage }) {
   const { lang } = useLang()
-  return <LegalDocument docKey="licenses" doc={DOC[lang] || DOC.az} setPage={setPage} />
+  return <LegalDocument docKey="licenses" doc={pickUi(DOC, lang)} setPage={setPage} />
 }

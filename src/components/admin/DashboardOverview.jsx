@@ -2,6 +2,7 @@ import { useLang } from '../../contexts/LangContext'
 import Icon from '../Icon'
 import { ChartFigure, BarChart } from '../viz'
 import { AdminHeader, SectionTitle } from './AdminUi'
+import { pickUi } from '../../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Admin — İdarə paneli (dizayn v3)
@@ -21,7 +22,7 @@ const LABELS = {
 
 export default function DashboardOverview({ counts, setActiveTab }) {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   // Rəqəm kafelləri (hər biri öz bölməsini açır)
   const cards = [

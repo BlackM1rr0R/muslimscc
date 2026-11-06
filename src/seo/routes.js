@@ -28,11 +28,19 @@ export const LOCALES = {
   ...Object.fromEntries(EXTRA_CODES.map(c => [c, EXTRA_LANGS[c].locale])),
 }
 
-/** Səhifə (key) bu dildə mövcuddurmu? Əsas dillərdə — hamısı; əlavədə — EXTRA_PAGES. */
-export const hasPageInLang = (key, lang) => LANGS.includes(lang) || (isExtraLang(lang) && EXTRA_PAGES.includes(key))
+// İnterfeysi tam tərcümə olunmuş əlavə dillər (ui: true — src/i18n/<dil>.json
+// lüğəti var): bu dillərdə BÜTÜN səhifələr açılır; qalanlarında yalnız EXTRA_PAGES
+export const UI_LANGS = EXTRA_CODES.filter(c => EXTRA_LANGS[c].ui)
+
+/** Səhifə (key) bu dildə mövcuddurmu? Əsas və ui dillərdə — hamısı; digər əlavə dildə — EXTRA_PAGES. */
+export const hasPageInLang = (key, lang) => LANGS.includes(lang) || UI_LANGS.includes(lang)
+  || (isExtraLang(lang) && EXTRA_PAGES.includes(key))
 
 /** Səhifənin mövcud olduğu dillər (hreflang, sitemap, prerender üçün). */
-export const langsFor = (key) => (EXTRA_PAGES.includes(key) ? ALL_LANGS : LANGS)
+export const langsFor = (key) => (EXTRA_PAGES.includes(key) ? ALL_LANGS : [...LANGS, ...UI_LANGS])
+
+/** Məzmun cədvəllərində ehtiyat dil: əlavə dildə ingiliscə, əsas dildə azərbaycanca. */
+export const contentFallback = (lang) => (isExtraLang(lang) ? 'en' : DEFAULT_LANG)
 
 /** İnterfeys mətnlərinin dili: əsas dil olduğu kimi, əlavə dil → ingiliscə. */
 export const uiLang = (lang) => (LANGS.includes(lang) ? lang : EXTRA_UI_LANG)

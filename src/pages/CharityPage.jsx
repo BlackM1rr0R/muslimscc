@@ -15,6 +15,7 @@ import { pathFor } from '../seo/routes'
 import { CHARITY_GUIDE, CHARITY_GUIDE_LINKS } from '../data/pageGuides/CharityPage'
 import '../styles/LessonsPage.css'
 import { StatTile, ChartFigure, ColumnChart, BarChart } from '../components/viz'
+import { pickUi } from '../utils/uiText'
 
 // Əməl növləri. icon — Icon.jsx adı (emoji əvəzinə: rəngi tokendən,
 // bütün sistemlərdə eyni). Dəqiq ikonu olmayanlar üçün ən yaxın:
@@ -93,7 +94,7 @@ function calcStreak(entries) {
 
 export default function CharityPage({ setPage }) {
   const { lang } = useLang()
-  const t = LABELS[lang] || LABELS.az
+  const t = pickUi(LABELS, lang)
   const navigate = useNavigate()
   // Dərsə keçid — həqiqi <a href>, adi klikdə SPA ilə
   const openLesson = (e, slug) => {
@@ -211,7 +212,7 @@ export default function CharityPage({ setPage }) {
 
   // Növlərə görə say (BarChart) — yalnız qeydi olan növlər, çoxdan aza
   const byType = useMemo(() => DEED_TYPES
-    .map(dt => ({ key: dt.key, label: dt[lang] || dt.en, value: entries.filter(e => e.type === dt.key).length }))
+    .map(dt => ({ key: dt.key, label: pickUi(dt, lang, 'en'), value: entries.filter(e => e.type === dt.key).length }))
     .filter(x => x.value > 0)
     .sort((a, b) => b.value - a.value), [entries, lang])
 
@@ -291,7 +292,7 @@ export default function CharityPage({ setPage }) {
                         onClick={() => setType(dt.key)}
                       >
                         <Icon name={dt.icon} size={18} />
-                        <span>{dt[lang] || dt.en}</span>
+                        <span>{pickUi(dt, lang, 'en')}</span>
                       </button>
                     ))}
                   </div>
@@ -344,7 +345,7 @@ export default function CharityPage({ setPage }) {
                       aria-pressed={filterType === dt.key}
                       onClick={() => setFilterType(dt.key)}
                     >
-                      <Icon name={dt.icon} size={15} /> {dt[lang] || dt.en}
+                      <Icon name={dt.icon} size={15} /> {pickUi(dt, lang, 'en')}
                     </button>
                   ))}
                 </div>
@@ -371,7 +372,7 @@ export default function CharityPage({ setPage }) {
                             <span className={`${tileClass(dt.key)} ui-icon-tile--sm`}><Icon name={dt.icon} /></span>
                             <div className="ch-entry-body">
                               <div className="ch-entry-top">
-                                <span className="ch-entry-type">{dt[lang] || dt.en}</span>
+                                <span className="ch-entry-type">{pickUi(dt, lang, 'en')}</span>
                                 <time className="ch-entry-date" dateTime={entry.date}>{formatEntryDate(entry.date, lang)}</time>
                               </div>
                               {entry.description && (

@@ -34,6 +34,7 @@ import { ChartFigure, ColumnChart } from '../components/viz'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 import '../styles/PrayerGuidePage.css'
 import '../styles/ToolsMotion.css'
+import { pickUi } from '../utils/uiText'
 
 // ── Surənin tam mənası (Fatihə, İxlas) ──
 // Ayələrin mənası yaddaşdan yazılmır: alquran.cloud-dan (QuranPage ilə eyni
@@ -89,7 +90,7 @@ function scrollToStep() {
 function ZikrBlock({ id, lang, t, compact = false, fullMeaning }) {
   const z = ZIKR[id]
   if (!z) return null
-  const tl = lang === 'ar' ? '' : (z.tl[lang] || z.tl.en)
+  const tl = lang === 'ar' ? '' : (pickUi(z.tl, lang, 'en'))
   return (
     <div className={`pg-zikr ${compact ? 'pg-zikr--compact' : ''}`} data-zikr={id}>
       <p className="pg-zikr-ar ui-arabic" lang="ar" dir="rtl">{z.ar}</p>
@@ -102,7 +103,7 @@ function ZikrBlock({ id, lang, t, compact = false, fullMeaning }) {
             {fullMeaning.source && <span className="pg-meaning-src">{fullMeaning.source}</span>}
           </div>
         ) : (
-          <p className="pg-zikr-mean pg-zikr-mean--short">{z.mean[lang] || z.mean.en}</p>
+          <p className="pg-zikr-mean pg-zikr-mean--short">{pickUi(z.mean, lang, 'en')}</p>
         )
       )}
       {(z.repeat > 1 || z.audio) && (
@@ -142,7 +143,7 @@ function Note({ note, ask, lang, t }) {
       <Icon name={ask ? 'info' : 'bulb'} size={18} className="pg-note-ic" />
       <div>
         {ask && <span className="pg-note-title">{t.askImam}</span>}
-        <p>{note[lang] || note.en}</p>
+        <p>{pickUi(note, lang, 'en')}</p>
       </div>
     </div>
   )
@@ -156,7 +157,7 @@ const PG_X = {
   ar: { how: 'طريقة الاستعمال: اختر الصلاة أدناه وتقدّم خطوة خطوة بزر «التالي»، وتعمل أسهم لوحة المفاتيح أيضًا.', sPrayers: 'صلوات مفروضة', sRakats: 'ركعة في اليوم', sWudu: 'خطوات الوضوء' },
   tr: { how: 'Nasıl kullanılır: aşağıdan namazı seçin ve “Sonraki” ile adım adım ilerleyin; klavyede ← → okları da çalışır.', sPrayers: 'farz namaz', sRakats: 'rekat günde', sWudu: 'abdest adımı' },
 }
-const pickL = (o, lang) => o[lang] || o.en
+const pickL = (o, lang) => pickUi(o, lang, 'en')
 
 // Bir rükətin 6 hərəkəti — mövcud başsız sxemlərlə (PrayerPose)
 const RAKAH_POSES = [
@@ -177,7 +178,7 @@ function RakatOverview({ lang }) {
         <div className="pg-overview-grid">
           <ChartFigure className="pg-rakat-fig" title={pickL(RAKAT_TXT.chart, lang)} sub={pickL(RAKAT_TXT.chartSub, lang)} note={pickL(RAKAT_TXT.note, lang)}>
             <ColumnChart height={120} label={`${pickL(RAKAT_TXT.chart, lang)}: ${total}`}
-              data={PRAYERS.map(p => ({ key: p.key, label: p.name[lang] || p.name.en, value: p.rakats }))} />
+              data={PRAYERS.map(p => ({ key: p.key, label: pickUi(p.name, lang, 'en'), value: p.rakats }))} />
           </ChartFigure>
           <figure className="ui-figure pg-rakah">
             <figcaption className="ui-figure__head">
@@ -227,15 +228,15 @@ function Pillars({ lang }) {
                 setTab(n.id)
                 document.getElementById(`pg-tab-${n.id}`)?.focus()
               }}>
-              {x.name[lang] || x.name.en} <span className="ui-tab__count">{x.count}</span>
+              {pickUi(x.name, lang, 'en')} <span className="ui-tab__count">{x.count}</span>
             </button>
           ))}
         </div>
         <div className="pg-pillar-panel" id="pg-pillar-panel" role="tabpanel" aria-labelledby={`pg-tab-${g.id}`} key={g.id}>
-          <p className="pg-pillar-rule"><Icon name={g.icon} size={18} /> <span>{g.rule[lang] || g.rule.en}</span></p>
+          <p className="pg-pillar-rule"><Icon name={g.icon} size={18} /> <span>{pickUi(g.rule, lang, 'en')}</span></p>
           <ol className="pg-pillar-list pg-v4-list">
             {g.items.map((it, i) => (
-              <li key={i}><span className="pg-pillar-n ui-num" aria-hidden="true">{i + 1}</span><span>{it[lang] || it.en}</span></li>
+              <li key={i}><span className="pg-pillar-n ui-num" aria-hidden="true">{i + 1}</span><span>{pickUi(it, lang, 'en')}</span></li>
             ))}
           </ol>
           <p className="pg-pillar-src">{pickL(PILLARS_TXT.source, lang)}</p>
@@ -318,8 +319,8 @@ function Stepper({ items, index, onGo, label, t }) {
 
 export default function PrayerGuidePage({ setPage }) {
   const { lang } = useLang()
-  const t = PG_TEXT[lang] || PG_TEXT.en
-  const x = PG_X[lang] || PG_X.en
+  const t = pickUi(PG_TEXT, lang, 'en')
+  const x = pickUi(PG_X, lang, 'en')
   const location = useLocation()
   const routerNavigate = useNavigate()
 
@@ -435,7 +436,7 @@ export default function PrayerGuidePage({ setPage }) {
                     onClick={() => { setDir(''); setPrayerKey(p.key); setStep(0) }}>
                     <span className="pg-prayer-tile ui-icon-tile" aria-hidden="true"><Icon name={p.icon} /></span>
                     <span className="pg-prayer-text">
-                      <span className="pg-prayer-name">{p.name[lang] || p.name.en}</span>
+                      <span className="pg-prayer-name">{pickUi(p.name, lang, 'en')}</span>
                       <span className="pg-prayer-rak">
                         <span className="pg-rak-dots" aria-hidden="true">{Array.from({ length: p.rakats }, (_, i) => <i key={i} />)}</span>
                         {t.rakatN(p.rakats)}
@@ -462,7 +463,7 @@ export default function PrayerGuidePage({ setPage }) {
 
           {mode === 'prayer' && prayer && !isComplete && action && (
             <div className="pg-guide pg-enter">
-              <Progress seq={seq} index={step} t={t} title={`${prayer.name[lang] || prayer.name.en} · ${t.rakatN(prayer.rakats)}`} />
+              <Progress seq={seq} index={step} t={t} title={`${pickUi(prayer.name, lang, 'en')} · ${t.rakatN(prayer.rakats)}`} />
               <div className="pg-guide-bar">
                 <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm pg-back-btn" onClick={() => { setPrayerKey(null); setStep(0) }}>
                   <Icon name="arrow" size={16} className="pg-back-ic ui-flip-rtl" /> {t.back}
@@ -475,17 +476,17 @@ export default function PrayerGuidePage({ setPage }) {
               <article className="pg-step-card" data-dir={dir || undefined} data-step={cur.id} aria-labelledby="pg-step-title">
                 <div className={`pg-step-visual ${hasHandDetail(cur.pose) ? '' : 'is-single'}`}>
                   <div className="pg-step-fig">
-                    <PrayerPose pose={cur.pose} label={action.name[lang] || action.name.en} />
+                    <PrayerPose pose={cur.pose} label={pickUi(action.name, lang, 'en')} />
                   </div>
                   <HandDetail pose={cur.pose} lang={lang} />
                 </div>
                 <div className="pg-step-body" key={`${prayer.key}-${step}`}>
                   <span className="pg-step-eyebrow ui-num">{t.rakat} {cur.rakat} · {t.step} {step + 1}</span>
-                  <h2 className="pg-step-name" id="pg-step-title">{action.name[lang] || action.name.en}</h2>
+                  <h2 className="pg-step-name" id="pg-step-title">{pickUi(action.name, lang, 'en')}</h2>
 
                   <div className="pg-block">
                     <span className="pg-label">{t.whatDo}</span>
-                    <p className="pg-do">{action.do[lang] || action.do.en}</p>
+                    <p className="pg-do">{pickUi(action.do, lang, 'en')}</p>
                   </div>
 
                   {(action.lead || action.say.length > 0) && (
@@ -525,7 +526,7 @@ export default function PrayerGuidePage({ setPage }) {
             <div className="pg-complete ui-card">
               <div className="pg-complete-icon" aria-hidden="true"><Icon name="check" size={34} strokeWidth={2.2} /></div>
               <h2 className="pg-complete-title">{t.complete}</h2>
-              <p className="pg-complete-prayer">{prayer.name[lang] || prayer.name.en} · {t.rakatN(prayer.rakats)} — {t.completeSub}</p>
+              <p className="pg-complete-prayer">{pickUi(prayer.name, lang, 'en')} · {t.rakatN(prayer.rakats)} — {t.completeSub}</p>
               <div className="pg-complete-actions">
                 <button type="button" className="ui-btn ui-btn--primary" onClick={() => { setDir(''); setStep(0) }}>
                   <Icon name="refresh" className="ui-btn__icon" /> {t.restart}
@@ -547,20 +548,20 @@ export default function PrayerGuidePage({ setPage }) {
               {wudu && (
                 <div className="pg-guide pg-enter">
                   <Progress seq={wuduSeq} index={wuduStep} t={t} title={t.wuduTitle} />
-                  <Stepper items={WUDU.map(wd => ({ rakat: 0, name: wd.name[lang] || wd.name.en }))}
+                  <Stepper items={WUDU.map(wd => ({ rakat: 0, name: pickUi(wd.name, lang, 'en') }))}
                     index={wuduStep} t={t} label={`${t.step} 1–${WUDU.length}`} onGo={(i) => goWudu(i, i > wuduStep ? 'next' : 'prev')} />
                   <article className="pg-step-card" data-dir={dir || undefined} data-step={wudu.id} aria-labelledby="pg-wudu-title">
                     <div className="pg-step-visual is-single">
                       <div className="pg-step-fig">
-                        <WuduPose pose={wudu.pose} label={wudu.name[lang] || wudu.name.en} />
+                        <WuduPose pose={wudu.pose} label={pickUi(wudu.name, lang, 'en')} />
                       </div>
                     </div>
                     <div className="pg-step-body" key={`w${wuduStep}`}>
                       <span className="pg-step-eyebrow ui-num">{t.step} {wuduStep + 1}/{WUDU.length}</span>
-                      <h2 className="pg-step-name" id="pg-wudu-title">{wudu.name[lang] || wudu.name.en}</h2>
+                      <h2 className="pg-step-name" id="pg-wudu-title">{pickUi(wudu.name, lang, 'en')}</h2>
                       <div className="pg-block">
                         <span className="pg-label">{t.whatDo}</span>
-                        <p className="pg-do">{wudu.do[lang] || wudu.do.en}</p>
+                        <p className="pg-do">{pickUi(wudu.do, lang, 'en')}</p>
                         {wudu.times > 1 && <span className="ui-badge ui-badge--brand pg-repeat">{t.times(wudu.times)}</span>}
                       </div>
                       {wudu.say.length > 0 && (

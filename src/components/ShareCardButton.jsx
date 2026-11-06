@@ -15,6 +15,7 @@ import { pathFor } from '../seo/routes'
 import { isPlainClick } from './PageLink'
 import { buildQuery } from './quote/content'
 import Icon from './Icon'
+import { pickUi } from '../utils/uiText'
 
 const LABEL = {
   az: 'Kart yarat',
@@ -27,7 +28,7 @@ const LABEL = {
 export default function ShareCardButton({ ayah, hadith, text, ar, src, tpl, fmt, variant = 'button', className = '' }) {
   const { lang } = useLang()
   const navigate = useNavigate()
-  const label = LABEL[lang] || LABEL.en
+  const label = pickUi(LABEL, lang, 'en')
   const href = pathFor('quotes', lang) + buildQuery({ ayah, hadith, text, ar, src, tpl, fmt })
 
   const onClick = (e) => {

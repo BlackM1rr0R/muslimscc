@@ -8,6 +8,7 @@ import { useLang } from '../../contexts/LangContext'
 import { AdminHeader, AdminEmpty, AdminAlert } from './AdminUi'
 import Icon from '../Icon'
 import { apiFetch } from '../../api/http'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title: 'Səhv bildirişləri', sub: 'Ziyarətçilərin məzmun səhvi barədə yazdıqları', open: 'Yeni', done: 'Həll edilib', all: 'Hamısı', none: 'Bildiriş yoxdur', page: 'Səhifə', about: 'Aid olduğu', contact: 'Əlaqə', markDone: 'Həll edildi', reopen: 'Yenidən aç', del: 'Sil', confirmDel: 'Bu bildiriş silinsin?', error: 'Yükləmək alınmadı', refresh: 'Yenilə',
@@ -24,7 +25,7 @@ const LABELS = {
 
 export default function FeedbackManager() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
   const [items, setItems] = useState(null)
   const [err, setErr] = useState(false)
   const [filter, setFilter] = useState('new')

@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react'
 import { filled } from '../config/brand'
 import { localizeSource } from '../utils/sourceNames'
 import '../styles/VirtueCards.css'
+import { pickUi } from '../utils/uiText'
 
 // Kart nişanları (5 dil)
 const KIND = {
@@ -57,7 +58,7 @@ function writeVerse(key, data) {
 
 /** Ayəni ərəbcə (Osmani yazısı) + cari dilin tərcüməsi ilə qaytarır. */
 export function useVerse(ref, lang) {
-  const edition = lang === 'ar' ? '' : (VERSE_EDITIONS[lang] || VERSE_EDITIONS.en)
+  const edition = lang === 'ar' ? '' : (pickUi(VERSE_EDITIONS, lang, 'en'))
   const key = `${ref}_${edition || 'ar'}`
   const [state, setState] = useState(() => ({ key, data: readVerse(key), failed: false }))
 

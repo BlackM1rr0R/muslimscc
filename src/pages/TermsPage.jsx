@@ -1,5 +1,6 @@
 import { useLang } from '../contexts/LangContext'
 import LegalDocument, { IF_EMAIL, IF_NO_EMAIL, IF_COUNTRY } from '../components/LegalDocument'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // İstifadə şərtləri — pulsuz, reklamsız, hesabsız xidmət üçün.
@@ -413,5 +414,5 @@ const DOC = {
 
 export default function TermsPage({ setPage }) {
   const { lang } = useLang()
-  return <LegalDocument docKey="terms" doc={DOC[lang] || DOC.az} setPage={setPage} />
+  return <LegalDocument docKey="terms" doc={pickUi(DOC, lang)} setPage={setPage} />
 }

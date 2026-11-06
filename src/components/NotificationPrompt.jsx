@@ -23,6 +23,7 @@ import {
   exitDelay,
 } from '../utils/promptCoordinator'
 import '../styles/NotificationPrompt.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Bildiriş icazəsi üçün yumşaq təklif + ön planda gələn push toast-u
@@ -70,7 +71,7 @@ function isEligible() {
 
 export default function NotificationPrompt() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [canAsk, setCanAsk] = useState(false)
   const [busy, setBusy] = useState(false)

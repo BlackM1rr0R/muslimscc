@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { SITE, LOCALES, DEFAULT_LANG, DETAILS, urlFor, pathFor, langsFor, uiLang } from './routes'
 import { titleFor, descFor, ogImageFor, OG_ALT } from './meta'
 import { brandName, siteJsonLd } from '../config/brand'
+import { useLang } from '../contexts/LangContext'
 
 // ═══════════════════════════════════════════════════════
 // <head>-i cari səhifəyə uyğun yeniləyir.
@@ -78,6 +79,8 @@ function setJsonLd(data, group = 'page-jsonld') {
 }
 
 export default function Seo({ page, lang, param = null }) {
+  // Əlavə dilin lüğəti dil dəyişəndən sonra yüklənir — başlıq onda yenilənsin
+  const { dictLang } = useLang() || {}
   useEffect(() => {
     if (param == null) { applySeo(page, lang, null, null); return undefined }
     let cancelled = false
@@ -92,7 +95,7 @@ export default function Seo({ page, lang, param = null }) {
       // Chunk yüklənmədi — heç olmasa canonical/hreflang düzgün olsun
       .catch(() => { if (!cancelled) applySeo(page, lang, param, null) })
     return () => { cancelled = true }
-  }, [page, lang, param])
+  }, [page, lang, param, dictLang])
 
   return null
 }

@@ -33,6 +33,7 @@ import { exitDelay } from '../utils/promptCoordinator'
 import { haptic } from '../hooks/useHaptic'
 import Icon from './Icon'
 import '../styles/CityPicker.css'
+import { pickUi } from '../utils/uiText'
 
 const TXT = {
   az: {
@@ -97,7 +98,7 @@ const sameSpot = (a, b) => Math.abs(a.lat - b.lat) < 0.01 && Math.abs(a.lng - b.
 
 export default function CityPicker({ variant = 'field', label, className = '', renderTrigger, onSelect, triggerId }) {
   const { lang } = useLang()
-  const t = TXT[lang] || TXT.en
+  const t = pickUi(TXT, lang, 'en')
   const loc = usePrayerLocation()
   const uid = useId().replace(/:/g, '')
   const listId = `cp-list-${uid}`
@@ -258,7 +259,7 @@ export default function CityPicker({ variant = 'field', label, className = '', r
     const gs = []
     const isCur = (c) => !loc.isCustom && loc.id === c.id
     const cityOpt = (c, prefix) => ({
-      key: `${prefix}-${c.id}`, kind: 'city', id: c.id, name: c.label[lang] || c.label.en,
+      key: `${prefix}-${c.id}`, kind: 'city', id: c.id, name: pickUi(c.label, lang, 'en'),
       sub: c.country !== 'AZ' ? countryName(c.country, lang) : '', current: isCur(c),
     })
     if (!q) {
@@ -270,14 +271,14 @@ export default function CityPicker({ variant = 'field', label, className = '', r
       }
       const rec = recent.map(r => (r.place
         ? { key: `r-p-${r.place.lat},${r.place.lng}`, kind: 'place', place: r.place,
-            name: r.place.label[lang] || r.place.label.en, sub: countryName(r.place.country, lang),
+            name: pickUi(r.place.label, lang, 'en'), sub: countryName(r.place.country, lang),
             current: loc.isCustom && sameSpot(loc, r.place) }
         : cityOpt(r.city, 'r')))
       if (rec.length) gs.push({ key: 'recent', label: t.recent, items: rec })
     }
     const az = local.filter(c => c.country === 'AZ').map(c => cityOpt(c, 'c'))
     const ww = local.filter(c => c.country !== 'AZ').map(c => cityOpt(c, 'c'))
-    if (az.length) gs.push({ key: 'az', label: COUNTRY_NAMES.AZ[lang] || COUNTRY_NAMES.AZ.en, items: az })
+    if (az.length) gs.push({ key: 'az', label: pickUi(COUNTRY_NAMES.AZ, lang, 'en'), items: az })
     if (ww.length) gs.push({ key: 'world', label: t.world, items: ww })
     if (q.length >= 2) {
       const searched = world.q === q && world.status === 'done'

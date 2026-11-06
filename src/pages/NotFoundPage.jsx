@@ -4,6 +4,7 @@ import Icon from '../components/Icon'
 import '../styles/NotFoundPage.css'
 import PageLink from '../components/PageLink'
 import { navLabel } from '../data/navigation'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // 404 — tanınmayan ünvan (/nope, /ru/nope/deeper, /Quran).
@@ -33,7 +34,7 @@ const POPULAR = ['prayer', 'quran', 'hadith', 'learn', 'duas', 'qibla', 'names',
 
 export default function NotFoundPage({ setPage }) {
   const { lang } = useLang()
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [q, setQ] = useState('')
 
   const openSearch = (query = '') => window.dispatchEvent(new CustomEvent(OPEN_SEARCH_EVENT, { detail: { q: query } }))

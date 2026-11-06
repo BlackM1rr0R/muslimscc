@@ -10,6 +10,7 @@
 import { localizeSource } from '../../utils/sourceNames'
 import { getSurahLocal } from '../../data/surahNamesAz'
 import { displayAyah } from '../../utils/quranText'
+import { pickUi } from '../../utils/uiText'
 
 // Ayə tərcüməsinin nəşri (VirtueCards / QuranPage ilə eyni; ərəbcədə yalnız ərəb mətni)
 export const VERSE_EDITIONS = { az: 'az.mammadaliyev', en: 'en.asad', ru: 'ru.kuliev', tr: 'tr.diyanet' }
@@ -67,7 +68,7 @@ function writeCache(key, d) {
  * ("Bəqərə 2:255"; en: "Al-Baqara 2:255"; ar: "البقرة 2:255").
  */
 export async function fetchAyah(s, a, lang, signal) {
-  const edition = lang === 'ar' ? '' : (VERSE_EDITIONS[lang] || VERSE_EDITIONS.en)
+  const edition = lang === 'ar' ? '' : (pickUi(VERSE_EDITIONS, lang, 'en'))
   const key = `${s}:${a}_${edition || 'ar'}`
   const cached = readCache(key)
   if (cached) return cached

@@ -8,6 +8,7 @@ import AIMarkdown from '../components/AIMarkdown'
 import AIRating from '../components/AIRating'
 import { askAI } from '../utils/aiStream'
 import '../styles/AIChatPage.css'
+import { pickUi } from '../utils/uiText'
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
 const FALLBACK_API_URL = import.meta.env.VITE_API_URL || ''
@@ -192,7 +193,7 @@ const STORAGE_KEY = 'muslim_cc_ai_chat'
 
 export default function AIChatPage() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [messages, setMessages] = useState(() => {
     // Yalnız {role, content: mətn} formalı mesajlar — pozuq yaddaş ({}, null element)
@@ -389,7 +390,7 @@ export default function AIChatPage() {
   }
   const canRetry = failed && messages.length > 0 && messages[messages.length - 1].role === 'user'
 
-  const v = V3[lang] || V3.en
+  const v = pickUi(V3, lang, 'en')
   const groups = [
     ['worship', [l.suggest1, l.suggest2, l.suggest4]],
     ['aqidah', [l.suggest3, v.aqidah2]],

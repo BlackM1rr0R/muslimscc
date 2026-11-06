@@ -16,6 +16,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 import { showLocalNotification } from '../utils/notify'
 import CalSunnahFasts, { weekdayName } from '../components/calendar/CalSunnahFasts'
+import { pickUi } from '../utils/uiText'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
 // Yalnız ehtiyat üçündür: Umm al-Qura-dan 1–2 gün fərqlənə bilər.
@@ -395,7 +396,7 @@ function MonthsGuide({ lang }) {
 
 export function CalendarPage({ setPage }) {
   const { lang } = useLang()
-  const t = T[lang]?.calendar || T.az.calendar
+  const t = pickUi(T, lang)?.calendar || T.az.calendar
   // Bugünkü hicri tarix state-lərdən əvvəl hesablanır ki, seçilmiş ay
   // miladi ay nömrəsi ilə yox, cari HİCRİ ayla açılsın
   const today = new Date()
@@ -414,7 +415,7 @@ export function CalendarPage({ setPage }) {
         : []
     } catch { return [] }
   })
-  const nl = NOTIFY_LABELS[lang] || NOTIFY_LABELS.en
+  const nl = pickUi(NOTIFY_LABELS, lang, 'en')
 
   const toggleReminder = useCallback((e) => {
     const key = `${e.month}-${e.day}`
@@ -427,7 +428,7 @@ export function CalendarPage({ setPage }) {
         if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
           try { Notification.requestPermission()?.catch?.(() => {}) } catch { /* köhnə brauzer */ }
         }
-        next = [...prev, { key, month: e.month, day: e.day, name: e[lang] || e.en }]
+        next = [...prev, { key, month: e.month, day: e.day, name: pickUi(e, lang, 'en') }]
       }
       try { localStorage.setItem('calendar_reminders', JSON.stringify(next)) } catch { /* yaddaş bağlıdır */ }
       return next
@@ -479,8 +480,8 @@ export function CalendarPage({ setPage }) {
   const onToggleReminder = (e) => { haptic(); toggleReminder(e) }
 
   const [typeFilter, setTypeFilter] = useState('all')
-  const ct = CAL_TXT[lang] || CAL_TXT.en
-  const cx = CAL_X[lang] || CAL_X.en
+  const ct = pickUi(CAL_TXT, lang, 'en')
+  const cx = pickUi(CAL_X, lang, 'en')
 
   // ── Ay şəbəkəsi: seçilmiş hicri ayın günləri ──
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -499,9 +500,9 @@ export function CalendarPage({ setPage }) {
   const lead = monthDays.length ? (monthDays[0].date.getDay() + 6) % 7 : 0
   const selDayInfo = monthDays.find(d => d.day === selDay) || null
   const dayEvents = EVENTS.filter(e => e.month === selMonth && e.day === selDay)
-  const hijriMonthNames = HIJRI_MONTHS[lang] || HIJRI_MONTHS.en
+  const hijriMonthNames = pickUi(HIJRI_MONTHS, lang, 'en')
   const hijriStr = `${hijri.day} ${hijriMonthNames[hijri.month - 1]} ${hijri.year}`
-  const yearSuffix = HIJRI_SUFFIX[lang] || HIJRI_SUFFIX.en
+  const yearSuffix = pickUi(HIJRI_SUFFIX, lang, 'en')
   // Hadisə tarixi: "1 Məhərrəm" (bütün dillərdə gün əvvəl — tarix kartı ilə eyni)
   const eventDate = (e) => `${e.day} ${hijriMonthNames[e.month]}`
 
@@ -546,7 +547,7 @@ export function CalendarPage({ setPage }) {
         <div className="ui-container">
           <div className="ui-page-hero__text">
             <Breadcrumb setPage={setPage} current={t.title} />
-            <span className="ui-eyebrow">{(HERO_SUBTITLE[lang] || HERO_SUBTITLE.en)(hijri.year)}</span>
+            <span className="ui-eyebrow">{(pickUi(HERO_SUBTITLE, lang, 'en'))(hijri.year)}</span>
             <h1 className="ui-display">{t.title}</h1>
             <p className="ui-lead">{ct.lead}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {cx.how}</p>
@@ -561,7 +562,7 @@ export function CalendarPage({ setPage }) {
                   <span className="cal-next-icon ui-icon-tile" aria-hidden="true"><Icon name={TYPE_ICONS[nextEvent.type] || 'calendar'} /></span>
                   <div className="cal-next-info">
                     <div className="cal-next-label">{ct.next}{daysLeft != null && <> · <b className="ui-num">{cx.daysLeft(daysLeft)}</b></>}</div>
-                    <div className="cal-next-name">{nextEvent[lang] || nextEvent.en}</div>
+                    <div className="cal-next-name">{pickUi(nextEvent, lang, 'en')}</div>
                     <div className="cal-next-date">{eventDate(nextEvent)}{nextInfo ? ` · ${formatGregorian(nextInfo.date, lang)}` : ''}</div>
                   </div>
                   {/* Təqvimdə həmin ayı və günü aç */}
@@ -587,7 +588,7 @@ export function CalendarPage({ setPage }) {
           {/* v3.2: qarşıdakı hadisələr — geri sayımlı kartlar */}
           {upList.length > 0 && (
             <section className="cal-up" aria-labelledby="cal-up-title" data-testid="cal-upcoming" data-reveal="fade">
-              <h2 id="cal-up-title" className="cal-up__title"><Icon name="clock" size={18} /> {UP_TXT.title[lang] || UP_TXT.title.en}</h2>
+              <h2 id="cal-up-title" className="cal-up__title"><Icon name="clock" size={18} /> {pickUi(UP_TXT.title, lang, 'en')}</h2>
               <ol className="cal-up__list tm-cascade">
                 {upList.map((u, i) => {
                   const inYear = u.hYear === hijri.year
@@ -600,12 +601,12 @@ export function CalendarPage({ setPage }) {
                           <span className={`ui-icon-tile ui-icon-tile--sm${TYPE_ACCENT[u.e.type] ? ' ui-icon-tile--accent' : ''}`} aria-hidden="true"><Icon name={TYPE_ICONS[u.e.type] || 'calendar'} /></span>
                           <span className={`ui-badge cal-up__cd${u.days <= 7 ? ' ui-badge--brand' : ''}`}><span className="ui-num">{cx.daysLeft(u.days)}</span></span>
                         </span>
-                        <span className="cal-up__name">{u.e[lang] || u.e.en}</span>
+                        <span className="cal-up__name">{pickUi(u.e, lang, 'en')}</span>
                         <span className="cal-up__date">
                           <span>{eventDate(u.e)} {u.hYear}</span>
                           <span>{weekdayName(u.date, lang)}, {formatGregorian(u.date, lang)}</span>
                         </span>
-                        {inYear && <span className="ui-sr-only"> — {UP_TXT.open[lang] || UP_TXT.open.en}</span>}
+                        {inYear && <span className="ui-sr-only"> — {pickUi(UP_TXT.open, lang, 'en')}</span>}
                       </Tag>
                     </li>
                   )
@@ -664,7 +665,7 @@ export function CalendarPage({ setPage }) {
             {monthDays.length > 0 && (
               <div className="cal-grid-wrap">
                 <div className="cal-weekdays" aria-hidden="true">
-                  {(WEEKDAYS[lang] || WEEKDAYS.en).map((w, i) => <span key={i} className={i === 4 ? 'is-fri' : ''}>{w}</span>)}
+                  {(pickUi(WEEKDAYS, lang, 'en')).map((w, i) => <span key={i} className={i === 4 ? 'is-fri' : ''}>{w}</span>)}
                 </div>
                 <div className="cal-grid" key={selMonth} role="group" aria-label={`${hijriMonthNames[selMonth]} ${hijri.year}`}>
                   {Array.from({ length: lead }, (_, i) => <span key={`b${i}`} className="cal-day is-blank" aria-hidden="true" />)}
@@ -683,7 +684,7 @@ export function CalendarPage({ setPage }) {
                         <span className="cal-day-h ui-num">{day}</span>
                         <span className="ui-sr-only"> {hijriMonthNames[selMonth]} — </span>
                         <span className="cal-day-g">{shortGregorian(date, lang)}</span>
-                        <span className="ui-sr-only"> {date.getFullYear()}{evs.length ? ` — ${evs.map(e => e[lang] || e.en).join(', ')}` : ''}</span>
+                        <span className="ui-sr-only"> {date.getFullYear()}{evs.length ? ` — ${evs.map(e => pickUi(e, lang, 'en')).join(', ')}` : ''}</span>
                         {evs.length > 0 && <span className="cal-day-dot" aria-hidden="true" />}
                       </button>
                     )
@@ -707,7 +708,7 @@ export function CalendarPage({ setPage }) {
             )}
 
             {/* Növ filtri — ayın hadisələrini süzür; telefonda sürüşən çiplər */}
-            <div className="cal-type-filter chip-scroll wrap-desktop" role="group" aria-label={FILTER_LABEL[lang] || FILTER_LABEL.en}>
+            <div className="cal-type-filter chip-scroll wrap-desktop" role="group" aria-label={pickUi(FILTER_LABEL, lang, 'en')}>
               {Object.keys(TYPE_LABELS).map(k => (
                 <button key={k} type="button" className="ui-chip"
                   aria-pressed={typeFilter === k} onClick={() => setTypeFilter(k)}>
@@ -726,12 +727,12 @@ export function CalendarPage({ setPage }) {
                     <div key={i} className={`cal-event-card${e.day === selDay ? ' is-selected' : ''}`} data-type={e.type}>
                       <span className={`cal-event-icon ui-icon-tile ui-icon-tile--sm${TYPE_ACCENT[e.type] ? ' ui-icon-tile--accent' : ''}`} aria-hidden="true"><Icon name={TYPE_ICONS[e.type] || 'calendar'} /></span>
                       <div className="cal-event-body">
-                        <div className="cal-event-name">{e[lang] || e.en}</div>
+                        <div className="cal-event-name">{pickUi(e, lang, 'en')}</div>
                         <div className="cal-event-date">{eventDate(e)}</div>
                         <EventInfo e={e} lang={lang} />
                       </div>
                       <button type="button" className={`cal-remind-btn ${reminded ? 'active' : ''}`} onClick={() => onToggleReminder(e)}
-                        aria-pressed={reminded} aria-label={`${reminded ? nl.reminded : nl.remind}: ${e[lang] || e.en}`}>
+                        aria-pressed={reminded} aria-label={`${reminded ? nl.reminded : nl.remind}: ${pickUi(e, lang, 'en')}`}>
                         <Icon name={reminded ? 'bell' : 'bellOff'} size={16} />
                         <span>{reminded ? nl.reminded : nl.remind}</span>
                       </button>
@@ -775,12 +776,12 @@ export function CalendarPage({ setPage }) {
                             <button type="button" className="cal-tl-main" onClick={() => { pickMonth(e.month); setSelDay(e.day); monthsRef.current?.scrollIntoView?.({ block: 'nearest' }) }}>
                               <span className="cal-tl-day ui-num" aria-hidden="true">{e.day}</span>
                               <span className="cal-tl-body">
-                                <span className="cal-tl-name">{e[lang] || e.en}</span>
+                                <span className="cal-tl-name">{pickUi(e, lang, 'en')}</span>
                                 <span className="cal-tl-date">{eventDate(e)} {hijri.year}</span>
                               </span>
                             </button>
                             <button type="button" className={`cal-remind-btn ${reminded ? 'active' : ''}`} onClick={() => onToggleReminder(e)}
-                              aria-pressed={reminded} aria-label={`${reminded ? nl.reminded : nl.remind}: ${e[lang] || e.en}`}>
+                              aria-pressed={reminded} aria-label={`${reminded ? nl.reminded : nl.remind}: ${pickUi(e, lang, 'en')}`}>
                               <Icon name={reminded ? 'bell' : 'bellOff'} size={16} />
                               <span>{reminded ? nl.reminded : nl.remind}</span>
                             </button>

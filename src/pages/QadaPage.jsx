@@ -17,6 +17,7 @@ import '../styles/QadaPage.css'
 import '../styles/ToolsMotion.css'
 import Sparkle from '../components/prayer/Sparkle'
 import { ringFrom } from '../components/prayer/ringFrom'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // /qada — Qəza izləyicisi
@@ -630,7 +631,7 @@ const PLAN_TXT = {
   tr: { title: 'Plan seçin', lead: 'Her hızda borcun ne zaman biteceği. Bir kart seçin — günlük hedef ona göre kurulur.', perDay: 'günde {n}', days: '{d} gün', until: 'yaklaşık {date}', current: 'Mevcut hedef', pick: 'Bu planı seç', empty: 'Planları görmek için önce borcunuzu yukarıda kaydedin.', with5: 'her farzla bir kaza' },
 }
 function PlanCards({ lang, owed, goal, today, onPick }) {
-  const p = PLAN_TXT[lang] || PLAN_TXT.en
+  const p = pickUi(PLAN_TXT, lang, 'en')
   const paces = [...new Set([...PLAN_PACES, goal])].sort((a, b) => a - b)
   const base = parseGKey(today)
   const finish = (d) => {

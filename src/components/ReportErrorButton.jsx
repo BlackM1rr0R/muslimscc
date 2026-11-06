@@ -4,6 +4,7 @@ import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import { apiFetch } from '../api/http'
 import '../styles/ReportErrorButton.css'
+import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
    "Səhv bildir" — məzmun səhvini (tərcümə, mənbə, hədis, mətn) bildirmək.
@@ -71,7 +72,7 @@ export function openReport(detail = {}) {
 /** Yüngül düymə — klikdə ortaq dialoqu açır. */
 export default function ReportErrorButton({ refText = '', kind = 'text', compact = false, className = '' }) {
   const { lang } = useLang()
-  const L = T[lang] || T.en
+  const L = pickUi(T, lang, 'en')
   return (
     <button type="button" className={`${compact ? 'ui-icon-btn' : 'ui-btn ui-btn--ghost ui-btn--sm'} rep-btn ${className}`}
       onClick={(e) => openReport({ refText, kind, opener: e.currentTarget })}
@@ -84,7 +85,7 @@ export default function ReportErrorButton({ refText = '', kind = 'text', compact
 /** Bütün sayt üçün tək dialoq (App.jsx-də bir dəfə). */
 export function ReportErrorHost() {
   const { lang } = useLang()
-  const L = T[lang] || T.en
+  const L = pickUi(T, lang, 'en')
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const [refText, setRefText] = useState('')

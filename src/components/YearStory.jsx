@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Icon from './Icon'
 import '../styles/YearStory.css'
+import { pickUi } from '../utils/uiText'
 
 const DUR = 4500
 const T = {
@@ -26,7 +27,7 @@ const T = {
 const reduced = () => typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('a11y-reduce-motion'))
 
 export default function YearStory({ scenes, title, lead, lang = 'az', onShare, onClose }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const all = [{ key: 'intro', intro: true }, ...scenes, { key: 'end', end: true }]
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)

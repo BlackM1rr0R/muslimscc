@@ -10,6 +10,7 @@
 import { useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
 import '../styles/HajjMap.css'
+import { pickUi } from '../utils/uiText'
 
 /** Real koordinatlar (təxmini mərkəz nöqtələri) */
 export const PLACES = {
@@ -75,7 +76,7 @@ function seg(a, b, bend) {
 
 export default function HajjMap({ stepIds, current, onGo }) {
   const { lang } = useLang()
-  const t = T[lang] || T.az, names = NAMES[lang] || NAMES.az, days = DAYS[lang] || DAYS.az
+  const t = pickUi(T, lang), names = pickUi(NAMES, lang), days = pickUi(DAYS, lang)
 
   const { stops, path, cum, total } = useMemo(() => {
     const stops = routeStops(stepIds)

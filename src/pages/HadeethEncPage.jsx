@@ -6,9 +6,11 @@ import ReaderDialog from '../components/reader/ReaderDialog'
 import StarButton from '../components/collect/StarButton'
 import { copyText, readJSON, shareOrCopy, writeJSON } from '../components/reader/share'
 import {
-  HE_LANGS, HE_SITE, HeError, cachedHadeeth, fetchCategories, fetchHadeeth, fetchHadeethList, hadeethUrl,
+  HE_LANGS, HE_ALL_LANGS, HE_SITE, HeError, cachedHadeeth, fetchCategories, fetchHadeeth, fetchHadeethList, hadeethUrl,
 } from '../api/hadeethenc'
 import '../styles/HadeethEncPage.css'
+import { pickUi } from '../utils/uiText'
+import { EXTRA_LANGS, dirOf as routeDir } from '../seo/routes'
 
 /* ══════════════════════════════════════════════════════════════════
    HƏDİS ENSİKLOPEDİYASI — /hadith-encyclopedia
@@ -146,6 +148,8 @@ const LABELS = {
 
 // Məzmun dillərinin öz adları (dil seçicisində)
 const LANG_NAMES = { az: 'Azərbaycanca', en: 'English', ru: 'Русский', tr: 'Türkçe', ar: 'العربية' }  // lang-ok: dillərin öz adları
+// Əlavə dillərin öz adları (src/seo/langs.js)
+for (const c of Object.keys(EXTRA_LANGS)) LANG_NAMES[c] = EXTRA_LANGS[c].name
 const PER_PAGE = 24
 const CLANG_KEY = 'hadeethenc_clang_v1'
 const FAV_KEY = 'hadeethenc_favs_v1'
@@ -153,21 +157,26 @@ const FAV = 'fav'
 
 function readFavs() {
   const v = readJSON(FAV_KEY, [])
-  return Array.isArray(v) ? v.filter(f => f && /^\d+$/.test(String(f.id))).map(f => ({ id: String(f.id), title: String(f.title || ''), lang: HE_LANGS.includes(f.lang) ? f.lang : 'ar' })) : []
+  return Array.isArray(v) ? v.filter(f => f && /^\d+$/.test(String(f.id))).map(f => ({ id: String(f.id), title: String(f.title || ''), lang: HE_ALL_LANGS.includes(f.lang) ? f.lang : 'ar' })) : []
 }
 // ru/ar mətnlərində brend adı və klaviş yer tutucu ilə yazılır (dil yoxlayıcısı latın sözü saymasın)
 const fillLabels = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, v.replace(/\{src\}/g, 'HadeethEnc.com').replace(/\{esc\}/g, 'Esc')]))
 const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false
-const dirOf = (l) => (l === 'ar' ? 'rtl' : 'ltr')
+const dirOf = routeDir
 
 export default function HadeethEncPage() {
-  const { lang } = useLang()
+  // siteLang — URL-in dili: /id/… səhifəsində hədislər HadeethEnc-in
+  // indoneziyaca (yoxlanılmış) tərcüməsindən gəlir — hazır mənbə
+  const { lang, siteLang = lang, dictLang } = useLang()
   const location = useLocation()
-  const L = useMemo(() => fillLabels(LABELS[lang] || LABELS.en), [lang])
+  const L = useMemo(() => fillLabels(pickUi(LABELS, lang, 'en')), [lang, dictLang]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Seçicidəki dillər: 5 əsas + səhifənin əlavə dili (varsa)
+  const langOpts = HE_ALL_LANGS.includes(siteLang) && !HE_LANGS.includes(siteLang) ? [...HE_LANGS, siteLang] : HE_LANGS
 
   // ── Məzmun dili ──
   const [clang, setClang] = useState(() => {
     const v = readJSON(CLANG_KEY, null)
+    if (!HE_LANGS.includes(siteLang) && HE_ALL_LANGS.includes(siteLang)) return siteLang
     return HE_LANGS.includes(v) ? v : (HE_LANGS.includes(lang) ? lang : 'en')
   })
   const chooseLang = (l) => { setClang(l); writeJSON(CLANG_KEY, l) }
@@ -363,7 +372,7 @@ export default function HadeethEncPage() {
               <div className="he-lang">
                 <span className="he-lang__label" id="he-lang-l">{L.contentLang}</span>
                 <div className="ui-segmented he-lang__seg" role="radiogroup" aria-labelledby="he-lang-l">
-                  {HE_LANGS.map(l => (
+                  {langOpts.map(l => (
                     <button key={l} type="button" role="radio" aria-checked={clang === l} onClick={() => chooseLang(l)}
                       lang={l} title={LANG_NAMES[l]}>{l.toUpperCase()}</button>
                   ))}
@@ -538,7 +547,7 @@ export default function HadeethEncPage() {
               <strong id="he-reader-title">{L.notInLang}</strong>
               <p>{L.notInLangLead}</p>
               <div className="he-langbtns">
-                {HE_LANGS.filter(l => l !== cur.lang).map(l => (
+                {langOpts.filter(l => l !== cur.lang).map(l => (
                   <button key={l} type="button" className="ui-btn ui-btn--secondary ui-btn--sm" lang={l} onClick={() => setCur({ id: cur.id, lang: l })}>{LANG_NAMES[l]}</button>
                 ))}
               </div>

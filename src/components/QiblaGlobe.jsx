@@ -16,6 +16,7 @@ import { geoOrthographic, geoPath, geoGraticule10, geoInterpolate, geoDistance }
 import { feature } from 'topojson-client'
 import landUrl from 'world-atlas/land-110m.json?url'
 import '../styles/QiblaGlobe.css'
+import { pickUi } from '../utils/uiText'
 
 const TXT = {
   az: { title: 'Qibləyə ən qısa yol', lead: 'Qiblə istiqaməti Yer kürəsi üzərində Kəbəyə gedən ən qısa yoldur (böyük dairə) — xəritədəki düz xətt deyil.', drag: 'Qlobusu barmaqla və ya siçanla fırladın', you: 'Siz', kaaba: 'Kəbə', km: 'km', label: 'Sizin yerinizdən Kəbəyə ən qısa yolu göstərən Yer kürəsi' },
@@ -41,7 +42,7 @@ const reducedMotion = () => {
 }
 
 export default function QiblaGlobe({ from, kaaba, lang = 'az', distanceKm }) {
-  const t = TXT[lang] || TXT.az
+  const t = pickUi(TXT, lang)
   const wrapRef = useRef(null)
   const canvasRef = useRef(null)
   const [land, setLand] = useState(null)

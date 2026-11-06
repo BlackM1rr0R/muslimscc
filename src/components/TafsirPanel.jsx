@@ -6,6 +6,7 @@ import {
   TAFSIRS, getTafsir, fetchTafsir, getCachedTafsir, plainLength, hasNativeTafsir,
 } from '../utils/tafsir'
 import '../styles/TafsirPanel.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Ayənin altındakı təfsir: "Təfsir" düyməsi + açılan panel.
@@ -185,7 +186,7 @@ function TafsirBody({ surah, ayah, tafsirId, ui }) {
  * panellər üçün ortaq), onChangeTafsir — seçim dəyişəndə (localStorage-a yazılır).
  */
 export function TafsirPanel({ id, surah, ayah, lang, tafsirId, onChangeTafsir, leaving, label }) {
-  const ui = TAFSIR_UI[lang] || TAFSIR_UI.en
+  const ui = pickUi(TAFSIR_UI, lang, 'en')
   const meta = getTafsir(tafsirId) || getTafsir(16)
   const selectId = `${id}-select`
   // Saytın dilində təfsir yoxdursa (az, tr) — dürüst qeyd
@@ -194,8 +195,8 @@ export function TafsirPanel({ id, surah, ayah, lang, tafsirId, onChangeTafsir, l
     <section id={id} className={`tf-panel${leaving ? ' is-leaving' : ''}`} aria-label={label}>
       <div className="tf-head">
         <div className="tf-meta">
-          <span className="tf-name">{meta.name[lang] || meta.name.en}</span>
-          <span className="tf-author">{meta.by[lang] || meta.by.en}</span>
+          <span className="tf-name">{pickUi(meta.name, lang, 'en')}</span>
+          <span className="tf-author">{pickUi(meta.by, lang, 'en')}</span>
         </div>
         <label className="tf-pick" htmlFor={selectId}>
           <span className="ui-sr-only">{ui.choose}</span>
@@ -204,7 +205,7 @@ export function TafsirPanel({ id, surah, ayah, lang, tafsirId, onChangeTafsir, l
             {LANG_ORDER.map(([l, nameKey]) => (
               <optgroup key={l} label={ui.langNames[nameKey]}>
                 {TAFSIRS.filter(t => t.lang === l).map(t => (
-                  <option key={t.id} value={t.id}>{t.name[lang] || t.name.en}</option>
+                  <option key={t.id} value={t.id}>{pickUi(t.name, lang, 'en')}</option>
                 ))}
               </optgroup>
             ))}
@@ -223,7 +224,7 @@ export function TafsirPanel({ id, surah, ayah, lang, tafsirId, onChangeTafsir, l
         {ui.source}:{' '}
         <a href={`https://quran.com/${surah}:${ayah}/tafsirs/${meta.slug}`} target="_blank" rel="noopener noreferrer"
           className="tf-src__link" dir="ltr">quran.com<Icon name="external" size={13} className="tf-src__icon" /></a>
-        {meta.local && <ReportErrorButton compact refText={`${meta.name[lang] || meta.name.en} — ${surah}:${ayah}`} kind="translation" className="tf-src__report" />}
+        {meta.local && <ReportErrorButton compact refText={`${pickUi(meta.name, lang, 'en')} — ${surah}:${ayah}`} kind="translation" className="tf-src__report" />}
       </p>
     </section>
   )
@@ -234,7 +235,7 @@ export function TafsirPanel({ id, surah, ayah, lang, tafsirId, onChangeTafsir, l
  * çıxış animasiyası alır (hərəkət azaldılıbsa — dərhal çıxır).
  */
 export default function AyahTafsir({ surah, ayah, lang, open, tafsirId, onToggle, onChangeTafsir, ayahName }) {
-  const ui = TAFSIR_UI[lang] || TAFSIR_UI.en
+  const ui = pickUi(TAFSIR_UI, lang, 'en')
   const [mounted, setMounted] = useState(open)
   const [leaving, setLeaving] = useState(false)
   const timer = useRef(null)

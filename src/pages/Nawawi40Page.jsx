@@ -10,6 +10,7 @@ import MemorizeText from '../components/reader/MemorizeText'
 import { copyText, dayIndex, readJSON, shareOrCopy, writeJSON } from '../components/reader/share'
 import { NAWAWI_40, NAWAWI_INTRO, NAWAWI_SOURCES } from '../data/nawawi40'
 import '../styles/Nawawi40Page.css'
+import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
    İMAM ƏN-NƏVƏVİNİN 40 HƏDİSİ — /nawawi40
@@ -100,7 +101,7 @@ const LABELS = {
     chartNote: 'Her hadisin altındaki kaynak satırından sayıldı. «Diğer» — Tirmizî, Ebû Dâvûd, İbn Mâce, Dârekutnî vb.' },
 }
 
-const pick = (o, lang) => (o && (o[lang] || o.en)) || ''
+const pick = (o, lang) => (o && (pickUi(o, lang, 'en'))) || ''
 const HARAKAT = /[ً-ْٰـ]/g
 const norm = (s, lang) => String(s || '').replace(HARAKAT, '').toLocaleLowerCase(lang)
 
@@ -138,7 +139,7 @@ const FS_STEPS = [0.9, 1, 1.12, 1.25, 1.4]
 export default function Nawawi40Page() {
   const { lang } = useLang()
   const location = useLocation()
-  const L = LABELS[lang] || LABELS.en
+  const L = pickUi(LABELS, lang, 'en')
   const isAr = lang === 'ar'
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState('all')
@@ -472,7 +473,7 @@ export default function Nawawi40Page() {
             {(h.benefits?.[lang] || h.benefits?.en)?.length > 0 && (
               <div className="nw-read__benefits">
                 <h3 className="nw-read__btitle"><Icon name="bulb" size={15} /> {L.benefits}</h3>
-                <ul>{(h.benefits[lang] || h.benefits.en).map((b, i) => <li key={i}>{b}</li>)}</ul>
+                <ul>{(pickUi(h.benefits, lang, 'en')).map((b, i) => <li key={i}>{b}</li>)}</ul>
               </div>
             )}
             <div className="nw-read__actions">

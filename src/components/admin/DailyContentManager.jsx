@@ -3,6 +3,7 @@ import { useLang } from '../../contexts/LangContext'
 import { AdminHeader, SectionTitle, LangTabs, AdminToast, SAVE_FAILED } from './AdminUi'
 import Icon from '../Icon'
 import { getDailyContent, saveDailyContent } from '../../data/adminContent'
+import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
   az: { title:'Günün məzmunu', sub:'Hər gün ana səhifədə göstəriləcək məzmun', ayah:'Günün ayəsi', dhikr:'Günün zikri', quote:'Günün sitatı', arabic:'Ərəbcə', translit:'Transliterasiya', translation:'Tərcümə', source:'Mənbə', count:'Hədəf say', save:'Yadda saxla', saved:'Yadda saxlandı!', ayahSrcPh:'Şərh, 94:6', quoteSrcPh:'Həzrət Əli, İmam Şafii...' },
@@ -15,7 +16,7 @@ const LABELS = {
 
 export default function DailyContentManager() {
   const { lang } = useLang()
-  const l = LABELS[lang] || LABELS.az
+  const l = pickUi(LABELS, lang)
 
   const [content, setContent] = useState({
     ayah: { ar:'', text:{az:'',en:'',ru:'',ar:'',tr:''}, source:'' },

@@ -6,6 +6,7 @@ import Breadcrumb from './Breadcrumb'
 import Icon from './Icon'
 import { ChartFigure, BarChart, ProgressBar } from './viz'
 import '../styles/LegalPage.css'
+import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
 // Hüquqi sənəd şablonu — Məxfilik siyasəti, İstifadə şərtləri, Mənbələr.
@@ -316,7 +317,7 @@ function Block({ b, v, lang, t, setPage }) {
  */
 export default function LegalDocument({ docKey, doc, setPage }) {
   const { lang } = useLang()
-  const t = L[lang] || L.az
+  const t = pickUi(L, lang)
   const v = legalValues(lang)
   const sections = Object.entries(doc.sections)
     .map(([id, s]) => ({ id, ...s }))
@@ -381,7 +382,7 @@ export default function LegalDocument({ docKey, doc, setPage }) {
   )
 
   const others = LEGAL_KEYS.filter(k => k !== docKey)
-  const t3 = L3[lang] || L3.az
+  const t3 = pickUi(L3, lang)
   // Oxu müddəti: ~200 söz/dəq (ərəbcə də təxminən eyni), ən azı 1 dəq
   const words = docText(sections).split(/\s+/).filter(Boolean).length
   const minutes = Math.max(1, Math.round(words / 200))

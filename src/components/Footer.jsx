@@ -6,6 +6,7 @@ import { pathFor } from '../seo/routes'
 import Icon, { BrandMark } from './Icon'
 import { LEGAL_KEYS, LEGAL_TITLES, legalPath, isRouted } from './legalLinks'
 import '../styles/Footer.css'
+import { pickUi } from '../utils/uiText'
 
 // "Məlumatlarım" (ehtiyat nüsxə / bərpa) — dialoq yalnız açılanda yüklənir
 const BackupDialog = lazy(() => import('./BackupDialog'))
@@ -45,7 +46,7 @@ const LINK_COLUMNS = [
 
 function Footer({ setPage }) {
   const { lang } = useLang()
-  const fl = FOOTER_LABELS[lang] || FOOTER_LABELS.az
+  const fl = pickUi(FOOTER_LABELS, lang)
   const [backupOpen, setBackupOpen] = useState(false)
   const closeBackup = useCallback(() => setBackupOpen(false), [])
   const brand = brandName(lang)

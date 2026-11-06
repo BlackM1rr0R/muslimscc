@@ -16,6 +16,7 @@ import { loadRootsIndex } from '../../utils/quranRoots'
 import { surahRoots } from '../../utils/surahRoots'
 import { pathFor } from '../../seo/routes'
 import '../../styles/SurahRootCloud.css'
+import { pickUi } from '../../utils/uiText'
 
 const T = {
   az: { btn: 'Surənin kök buludu', title: 'Bu surədə ən çox keçən köklər', n: (k) => `${k} dəfə`, loading: 'Yüklənir…', err: 'Köklərin siyahısını yükləmək alınmadı.', src: 'Mənbə: Quranic Arabic Corpus' },
@@ -29,7 +30,7 @@ const T = {
 }
 
 export default function SurahRootCloud({ surah, lang = 'az' }) {
-  const t = T[lang] || T.az
+  const t = pickUi(T, lang)
   const [state, setState] = useState(null) // null | 'loading' | 'err' | [{root,n}]
   const open = () => {
     if (Array.isArray(state)) { setState(null); return }
