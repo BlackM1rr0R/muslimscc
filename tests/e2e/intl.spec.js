@@ -26,11 +26,12 @@ test('indoneziyaca surə: nəşr, dil atributları, başlıq və tərcüməçi',
   expectCleanConsole(consoleProblems)
 })
 
-test('urduca surə: tərcümə rtl, interfeys ltr', async ({ page, consoleProblems }) => {
+test('urduca surə: interfeys urducadır (ui: true) — səhifə və tərcümə rtl', async ({ page, consoleProblems }) => {
   await page.goto('/ur/quran/1-al-faatiha')
   await settle(page)
   await expect(page.locator('html')).toHaveAttribute('lang', 'ur')
-  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr')
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
+  await expect(page.locator('nav.qm-sn--rail, .qm-sn').first()).toHaveAttribute('dir', 'rtl')
   await expect(page.locator('.ayah-trans').first()).toHaveAttribute('dir', 'rtl')
   expectCleanConsole(consoleProblems)
 })

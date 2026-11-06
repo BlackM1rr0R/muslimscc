@@ -599,7 +599,7 @@ export default function MosqueTvPage({ setPage }) {
       ref={rootRef}
       className={`mtv${compact ? ' mtv--compact' : ''}${controlsVisible || settingsOpen ? '' : ' mtv--idle'}`}
       lang={lang}
-      dir={lang === 'ar' ? 'rtl' : 'ltr'}
+      dir={document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr'}
     >
       <div className="ui-pattern mtv-pattern" aria-hidden="true" />
       <div className="mtv-ambient" aria-hidden="true"><span /><span /></div>

@@ -54,6 +54,8 @@ export function LangProvider({ children }) {
   // əvvəl yükləyir). Dil dəyişəndə yenisi yüklənir — dictLang dəyişir, kontekst
   // istifadəçiləri yenidən çəkilir və pickUi() tərcüməni qaytarır
   const [dictLang, setDictLang] = useState(uiDictLang)
+  // İnterfeysin istiqaməti: ərəbcə və interfeysi tərcümə olunmuş urdu/fars/puştu — rtl
+  const uiDir = dictLang && dictLang === siteLang ? dirOf(siteLang) : dirOf(lang)
   useEffect(() => {
     let alive = true
     applyUiDict(siteLang).then(() => { if (alive) setDictLang(uiDictLang()) })
@@ -97,12 +99,13 @@ export function LangProvider({ children }) {
   }
 
   // <html lang> — URL-in dili (axtarış sistemi və ekran oxuyucusu üçün);
-  // dir — interfeysin dili ilə (ingiliscə interfeys urdu səhifəsində də ltr;
-  // tərcümə mətninin öz dir-i var — QuranPage.jsx)
+  // dir — interfeysin dili ilə: ingiliscə interfeys urdu səhifəsində də ltr
+  // (tərcümə mətninin öz dir-i var — QuranPage.jsx); interfeys lüğəti yüklənibsə
+  // (ui: true) interfeys həmin dildədir — urdu/fars/puştu rtl
   useEffect(() => {
     document.documentElement.lang = siteLang
-    document.documentElement.dir = dirOf(lang)
-  }, [lang, siteLang])
+    document.documentElement.dir = uiDir
+  }, [siteLang, uiDir])
 
   useEffect(() => {
     darkRef.current = dark
@@ -150,7 +153,7 @@ export function LangProvider({ children }) {
   }, [])
 
   return (
-    <LangCtx.Provider value={{ lang, siteLang, dictLang, setLang, dark, toggleDark }}>
+    <LangCtx.Provider value={{ lang, siteLang, dictLang, dir: uiDir, setLang, dark, toggleDark }}>
       {/* Lüğət dəyişəndə (id ↔ en) ağac yenidən qurulur — useMemo-da saxlanmış
           köhnə yazılar qalmasın (src/utils/uiText.js) */}
       <Fragment key={dictLang || '-'}>{children}</Fragment>

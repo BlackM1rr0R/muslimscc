@@ -402,10 +402,11 @@ function SearchIcon() {
 
 export default function SideNav({ mode = 'drawer', id, open = false, onClose, currentPage, setPage, onOpenSearch, returnFocusRef }) {
   const isRail = mode === 'rail'
-  const { lang, siteLang = lang, setLang, dark, toggleDark } = useLang()
+  const { lang, siteLang = lang, dir: uiDir, setLang, dark, toggleDark } = useLang()
   const routerNavigate = useNavigate()
   const l = pickUi(LABELS, lang)
-  const isRtl = lang === 'ar'
+  // İstiqamət kontekstdən: ərəbcə və rtl əlavə dillər (urdu interfeysi) — rtl
+  const isRtl = (uiDir || (lang === 'ar' ? 'rtl' : 'ltr')) === 'rtl'
   const currentGroup = navGroupOf(currentPage)
 
   // Açıq qruplar: yadda saxlanmış seçim (yoxdursa hamısı) + cari səhifənin qrupu
