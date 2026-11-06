@@ -52,9 +52,9 @@ export const EXTRA_LANGS = {
   ps: { name: 'پښتو', en: 'Pashto', ui: true, dir: 'rtl', locale: 'ps_AF', quran: 'ps.abdulwali', by: 'عبدالولي', byLatin: 'Abdul Wali', script: 'arab', basmala: 'د الله په نامه سره (شروع كوم) چې ډېر زیات مهربان، بې حده رحم كوونكى دى' },
   bs: { name: 'Bosanski', en: 'Bosnian', ui: true, dir: 'ltr', locale: 'bs_BA', quran: 'bs.korkut', by: 'Besim Korkut', basmala: 'U ime Allaha, Milostivog, Samilosnog!' },
   sq: { name: 'Shqip', en: 'Albanian', ui: true, dir: 'ltr', locale: 'sq_AL', quran: 'sq.ahmeti', by: 'Sherif Ahmeti', basmala: 'Me emrin e All-llahut, Mëshiruesit, Mëshirëbërësit!' },
-  it: { name: 'Italiano', en: 'Italian', dir: 'ltr', locale: 'it_IT', quran: 'it.piccardo', by: 'Hamza Roberto Piccardo', basmala: 'In nome di Allah, il Compassionevole, il Misericordioso' },
-  nl: { name: 'Nederlands', en: 'Dutch', dir: 'ltr', locale: 'nl_NL', quran: 'nl.siregar', by: 'Sofian S. Siregar', basmala: 'In de naam van Allah, de Erbarmer, de Meest Barmhartige.' },
-  zh: { name: '中文', en: 'Chinese', dir: 'ltr', locale: 'zh_CN', quran: 'zh.jian', by: '马坚', byLatin: 'Ma Jian', basmala: '奉至仁至慈的真主之名' },
+  it: { name: 'Italiano', en: 'Italian', ui: true, dir: 'ltr', locale: 'it_IT', quran: 'it.piccardo', by: 'Hamza Roberto Piccardo', basmala: 'In nome di Allah, il Compassionevole, il Misericordioso' },
+  nl: { name: 'Nederlands', en: 'Dutch', ui: true, dir: 'ltr', locale: 'nl_NL', quran: 'nl.siregar', by: 'Sofian S. Siregar', basmala: 'In de naam van Allah, de Erbarmer, de Meest Barmhartige.' },
+  zh: { name: '中文', en: 'Chinese', ui: true, dir: 'ltr', locale: 'zh_CN', quran: 'zh.jian', by: '马坚', byLatin: 'Ma Jian', basmala: '奉至仁至慈的真主之名' },
 }
 
 export const EXTRA_CODES = Object.keys(EXTRA_LANGS)

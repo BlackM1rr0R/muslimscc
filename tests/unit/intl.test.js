@@ -87,23 +87,30 @@ describe('marşrut', () => {
     expect(EXTRA_PAGES).toEqual(['quran'])
     expect(pathFor('quran', 'id')).toBe('/id/quran')
     expect(pathFor('quran', 'ur', 36)).toBe('/ur/quran/36-yaseen')
-    expect(pathFor('prayer', Q)).toBe('/en/prayer')
-    expect(pathFor('home', Q)).toBe('/en')
-    expect(hasPageInLang('quran', Q)).toBe(true)
-    expect(hasPageInLang('hadith', Q)).toBe(false)
+    // Yalnız Quranı olan dil qalıbsa (bütün dillərin interfeysi tərcümə olunanda — yoxdur)
+    if (Q) {
+      expect(pathFor('prayer', Q)).toBe('/en/prayer')
+      expect(pathFor('home', Q)).toBe('/en')
+      expect(hasPageInLang('quran', Q)).toBe(true)
+      expect(hasPageInLang('hadith', Q)).toBe(false)
+    }
+    expect(pathFor('prayer', 'id')).toBe('/id/prayer')
     expect(hasPageInLang('hadith', 'ru')).toBe(true)
   })
 
   it('parsePath: əlavə dilin Quranı tanınır, olmayan səhifə fallback alır', () => {
     expect(parsePath('/id/quran/36-yaseen')).toMatchObject({ lang: 'id', key: 'quran', known: true, param: 36 })
     expect(parsePath('/zh/quran')).toMatchObject({ lang: 'zh', key: 'quran', known: true, param: null })
-    expect(parsePath(`/${Q}/prayer`)).toMatchObject({ lang: Q, key: 'prayer', known: true, fallback: true })
     // İnterfeysi tərcümə olunmuş dil (ui: true) — bütün səhifələr
     expect(parsePath('/id/prayer').fallback).toBeUndefined()
-    expect(parsePath(`/${Q}`)).toMatchObject({ lang: Q, key: 'home', fallback: true })
     const sb = detailParams('sahaba')[0]
-    expect(parsePath(`/${Q}/sahaba/${sb}`)).toMatchObject({ key: 'sahaba', param: sb, fallback: true })
-    expect(pathFor('sahaba', Q, sb)).toBe(`/en/sahaba/${sb}`)
+    if (Q) {
+      expect(parsePath(`/${Q}/prayer`)).toMatchObject({ lang: Q, key: 'prayer', known: true, fallback: true })
+      expect(parsePath(`/${Q}`)).toMatchObject({ lang: Q, key: 'home', fallback: true })
+      expect(parsePath(`/${Q}/sahaba/${sb}`)).toMatchObject({ key: 'sahaba', param: sb, fallback: true })
+      expect(pathFor('sahaba', Q, sb)).toBe(`/en/sahaba/${sb}`)
+    }
+    expect(pathFor('sahaba', 'zh', sb)).toBe(`/zh/sahaba/${sb}`)
     expect(parsePath('/id/nope').known).toBe(false)
     expect(parsePath('/en/quran').fallback).toBeUndefined()
   })
@@ -168,7 +175,7 @@ describe('SEO mətnləri', () => {
       expect(titleFor('quran', c)).toContain(INTL_QURAN_LIST[c].t)
     }
     // Olmayan səhifə əlavə dildə azərbaycancaya YOX, ingiliscəyə düşür
-    expect(titleFor('prayer', Q)).toBe(titleFor('prayer', 'en'))
+    if (Q) expect(titleFor('prayer', Q)).toBe(titleFor('prayer', 'en'))
   })
 
   it('sxem, iz, brend və OG kartı', () => {

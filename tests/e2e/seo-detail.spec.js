@@ -100,10 +100,10 @@ test.describe('xam prerender HTML (JS-siz robotun gördüyü)', () => {
     expect(q).toContain('<loc>https://muslims.cc/ru/quran/36-yaseen</loc>')
     expect(q).toContain('<loc>https://muslims.cc/id/quran/36-yaseen</loc>')
     expect(q).toContain('hreflang="ur" href="https://muslims.cc/ur/quran/36-yaseen"')
-    // Digər bölmələr: 5 dil + interfeysi tərcümə olunmuş dillər (id); de — yox
+    // Digər bölmələr: 5 dil + interfeysi tərcümə olunmuş dillər (2026-11-06: 20-sinin hamısı)
     const n = await raw(request, '/sitemap-names.xml')
     expect(n).toContain('https://muslims.cc/id/names/')
-    expect(n).not.toContain('https://muslims.cc/zh/')
+    expect(n).toContain('https://muslims.cc/zh/names/')
     expect(q).toContain('hreflang="x-default" href="https://muslims.cc/quran/36-yaseen"')
   })
 })
