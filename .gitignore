@@ -64,3 +64,6 @@ server/*.db-wal
 # Gizli açarlar (yerli, heç vaxt commit edilmir)
 .secrets
 .secrets/
+# Google/servis hesabı açarları — heç vaxt commit edilmir
+*-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].json
+gsc.json
