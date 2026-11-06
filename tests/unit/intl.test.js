@@ -85,7 +85,7 @@ describe('marşrut', () => {
     expect(pathFor('quran', 'id')).toBe('/id/quran')
     expect(pathFor('quran', 'ur', 36)).toBe('/ur/quran/36-yaseen')
     expect(pathFor('prayer', 'de')).toBe('/en/prayer')
-    expect(pathFor('home', 'fa')).toBe('/en')
+    expect(pathFor('home', 'sw')).toBe('/en')
     expect(hasPageInLang('quran', 'de')).toBe(true)
     expect(hasPageInLang('hadith', 'de')).toBe(false)
     expect(hasPageInLang('hadith', 'ru')).toBe(true)
