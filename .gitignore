@@ -60,3 +60,7 @@ scripts/.icon-preview/
 server/*.db
 server/*.db-shm
 server/*.db-wal
+
+# Gizli açarlar (yerli, heç vaxt commit edilmir)
+.secrets
+.secrets/
