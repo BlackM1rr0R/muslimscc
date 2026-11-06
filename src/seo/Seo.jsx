@@ -81,7 +81,13 @@ export default function Seo({ page, lang, param = null }) {
   useEffect(() => {
     if (param == null) { applySeo(page, lang, null, null); return undefined }
     let cancelled = false
-    import('./detail.js')
+    // Lüğət termini: detail.js məlumatı glossarySource.js-dən oxuyur — lüğət
+    // chunk-ı yalnız burada yüklənir (GlossaryPage onu onsuz da yükləyib)
+    const load = page === 'glossary'
+      ? Promise.all([import('./detail.js'), import('../data/glossary.js'), import('./glossarySource.js')])
+        .then(([detail, g, src]) => { src.setGlossarySource(g.GLOSSARY_BY_ID); return detail })
+      : import('./detail.js')
+    load
       .then((detail) => { if (!cancelled) applySeo(page, lang, param, detail) })
       // Chunk yüklənmədi — heç olmasa canonical/hreflang düzgün olsun
       .catch(() => { if (!cancelled) applySeo(page, lang, param, null) })

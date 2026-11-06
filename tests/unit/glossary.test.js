@@ -1,6 +1,7 @@
 // İslami söz lüğəti — məlumatın bütövlüyü (src/data/glossary.js + kateqoriya faylları)
 import { describe, it, expect } from 'vitest'
 import { GLOSSARY, GLOSSARY_BY_ID, GLOSSARY_CATS, glossaryId } from '../../src/data/glossary.js'
+import { GLOSSARY_NAMES, glossaryName } from '../../src/data/glossaryNames.js'
 
 const LANGS = ['az', 'en', 'ru', 'ar', 'tr']
 // İstifadəçinin sadaladığı dərslər (bəziləri hələ yazılır — səhifə yalnız mövcud olanı göstərir)
@@ -42,5 +43,26 @@ describe('İslami lüğət', () => {
 
   it('hər kateqoriyada termin var', () => {
     for (const c of GLOSSARY_CATS) expect(GLOSSARY.filter(x => x.cat === c).length, c).toBeGreaterThan(10)
+  })
+})
+
+describe('lüğət — rus və türk adları (glossaryNames.js)', () => {
+  it('hər terminin ru/tr adı var, artıq açar yoxdur', () => {
+    expect(Object.keys(GLOSSARY_NAMES).sort()).toEqual(GLOSSARY.map(x => x.id).sort())
+  })
+  it('ru — yalnız kiril, tr — "ə" yox, boş deyil', () => {
+    for (const [id, [ru, tr]] of Object.entries(GLOSSARY_NAMES)) {
+      expect(/[A-Za-z]/.test(ru), `${id}.ru`).toBe(false)
+      expect(/[ə]/i.test(tr), `${id}.tr`).toBe(false)
+      expect(ru.trim().length && tr.trim().length, id).toBeTruthy()
+    }
+  })
+  it('glossaryName: az → term, ar → ərəbcə, en → translit', () => {
+    const x = GLOSSARY_BY_ID.get('tawhid')
+    expect(glossaryName(x, 'az')).toBe('Tövhid')
+    expect(glossaryName(x, 'ar')).toBe('التوحيد')
+    expect(glossaryName(x, 'en')).toBe('Tawhid')
+    expect(glossaryName(x, 'ru')).toBe('Таухид')
+    expect(glossaryName(x, 'tr')).toBe('Tevhid')
   })
 })

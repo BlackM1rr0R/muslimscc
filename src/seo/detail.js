@@ -8,6 +8,7 @@
 //   ad    — src/data/names99.js
 //   səhabə — src/data/sahaba.js
 //   alim   — src/data/scholars.js
+//   termin — src/data/glossary.js (+ ru/tr adı: glossaryNames.js)
 // Heç bir fakt, məna və ya izah UYDURULMUR — məlumatda olmayan sahə yazılmır.
 //
 // Tətbiqdə bu modul Seo.jsx tərəfindən TƏNBƏL yüklənir (yalnız detal
@@ -25,6 +26,9 @@ import { NAMES_99 } from '../data/names99.js'
 import { SAHABA, slugOf } from '../data/sahaba.js'
 import { scholarBySlug, lifeSpan } from '../data/scholars.js'
 import { lessonBySlug, CAT_BY_KEY } from '../data/lessons/index.js'
+// Lüğət məlumatı statik import OLUNMUR (hər detal səhifəsinə ~160 KB) — glossarySource.js
+import { glossaryItem } from './glossarySource.js'
+import { glossaryName, glossaryGloss } from '../data/glossaryNames.js'
 import { brandName } from '../config/brand.js'
 import { withBrand } from './title.js'
 
@@ -244,6 +248,56 @@ const LESSON_T = {
   ar: { t: (n) => fit(`${n} — درس`, n) },
 }
 
+// ═══ Lüğət termini ═══════════════════════════════════
+// İnsanlar terminin mənasını sual kimi axtarır: "təqva nədir", "what is
+// taqwa in islam", "таква что это", "takva nedir", "معنى التقوى" — başlıq
+// həmin sorğu formasındadır. Tarix terminləri (döyüş, hadisə) "nədir"
+// sualına uyğun gəlmir — onlar üçün "İslam tarixində" forması.
+
+export const GLOSSARY_CAT_LABEL = {
+  aqidah:  { az: 'Əqidə', en: 'Creed', ru: 'Вероубеждение', ar: 'العقيدة', tr: 'Akide' },
+  worship: { az: 'İbadət', en: 'Worship', ru: 'Поклонение', ar: 'العبادات', tr: 'İbadet' },
+  fiqh:    { az: 'Fiqh və üsul', en: 'Fiqh & usul', ru: 'Фикх и усуль', ar: 'الفقه وأصوله', tr: 'Fıkıh ve usul' },
+  quran:   { az: 'Quran elmləri', en: 'Quran sciences', ru: 'Науки Корана', ar: 'علوم القرآن', tr: 'Kur’an ilimleri' },
+  hadith:  { az: 'Hədis elmi', en: 'Hadith science', ru: 'Наука хадиса', ar: 'علم الحديث', tr: 'Hadis ilmi' },
+  akhlaq:  { az: 'Əxlaq və qəlb', en: 'Character & heart', ru: 'Нрав и сердце', ar: 'الأخلاق والقلوب', tr: 'Ahlak ve kalp' },
+  history: { az: 'Tarix və siyər', en: 'History & sirah', ru: 'История и сира', ar: 'التاريخ والسيرة', tr: 'Tarih ve siyer' },
+}
+
+/** Termin (id ilə) və onun cari dildəki adı, ingiliscə qarşılığı, tərifi. */
+export function termInfo(id, lang) {
+  const x = glossaryItem(id)
+  if (!x) return null
+  return { ...x, name: glossaryName(x, lang), gloss: glossaryGloss(x), definition: x.def[lang] || x.def.en }
+}
+
+const TERM_MORE = {
+  az: 'Ərəbcə yazılışı, oxunuşu və əlaqəli terminlər.',
+  en: 'Arabic spelling, transliteration and related terms.',
+  ru: 'Арабское написание, транскрипция и связанные термины.',
+  tr: 'Arapça yazılışı, okunuşu ve ilgili terimler.',
+  ar: 'مع الكتابة اللاتينية والمصطلحات ذات الصلة.',
+}
+
+// Tarix termini (döyüş, hadisə, yer) — "nədir" sualı əvəzinə "İslam tarixində"
+const isHistory = (x) => x.cat === 'history'
+
+const TERM_T = {
+  az: { t: (x) => isHistory(x) ? fit(`${x.name} — İslam tarixində`, x.name) : fit(`${x.name} nədir? Mənası və izahı`, `${x.name} nədir?`, x.name) },
+  en: {
+    t: (x) => {
+      const n = x.gloss ? `${x.name} (${x.gloss})` : x.name
+      return isHistory(x)
+        ? fit(`${n} — Islamic History`, `${x.gloss || x.name} — Islamic History`, x.gloss || x.name)
+        : fit(`What Is ${n} in Islam? Meaning`, `What Is ${n} in Islam?`, `What Is ${x.name} in Islam?`, x.name)
+    },
+  },
+  ru: { t: (x) => isHistory(x) ? fit(`${x.name} — история ислама`, x.name) : fit(`${x.name} — что это в исламе? Значение`, `${x.name} — что это в исламе?`, x.name) },
+  tr: { t: (x) => isHistory(x) ? fit(`${x.name} — İslam tarihi`, x.name) : fit(`${x.name} nedir? İslam’da anlamı`, `${x.name} nedir?`, x.name) },
+  // ərəbcə sual forması cinsə görə dəyişmir (وتعريفه/وتعريفها fərqi yoxdur)
+  ar: { t: (x) => isHistory(x) ? fit(`${x.name} — من التاريخ الإسلامي`, x.name) : fit(`ما معنى ${x.name} في الإسلام؟ التعريف والشرح`, `ما معنى ${x.name} في الإسلام؟`, `معنى ${x.name}`, x.name) },
+}
+
 // ═══ Ümumi API ══════════════════════════════════════
 
 /**
@@ -285,6 +339,16 @@ export function detailMeta(key, lang, param) {
     const L = SCHOLAR_T[lang] || SCHOLAR_T.az
     return { t: L.t(n, pick(x.title, lang)), d: scholarDesc(x, lang), h1: n, intro: pick(x.summary, lang), crumb: n }
   }
+  if (key === 'glossary') {
+    const x = termInfo(param, lang)
+    if (!x) return null
+    const L = TERM_T[lang] || TERM_T.az
+    let d = lang === 'ar' ? `${x.name}: ${x.definition}` : `${x.name} (${x.ar}) — ${x.definition}`
+    // Qısa tərif — səhifədə nə olduğunu deyən əlavə (təsvir axtarışda boş görünməsin)
+    if (d.length < 80) d = `${d} ${TERM_MORE[lang] || TERM_MORE.az}`
+    const h1 = lang === 'en' && x.gloss ? `${x.name} (${x.gloss})` : x.name
+    return { t: L.t(x), d: clamp(d), h1, intro: x.definition, crumb: x.name }
+  }
   return null
 }
 
@@ -301,6 +365,7 @@ export const SECTION_LABEL = {
   sahaba: { az: 'Səhabələr', en: 'Companions', ru: 'Сахабы', ar: 'الصحابة', tr: 'Sahabeler' },
   scholars: { az: 'Alimlər', en: 'Scholars', ru: 'Учёные', ar: 'العلماء', tr: 'Âlimler' },
   learn:  { az: 'Dərslər', en: 'Lessons', ru: 'Уроки', ar: 'الدروس', tr: 'Dersler' },
+  glossary: { az: 'İslami söz lüğəti', en: 'Islamic Glossary', ru: 'Исламский глоссарий', ar: 'قاموس المصطلحات الإسلامية', tr: 'İslami Sözlük' },
 }
 
 /** İz: Ana səhifə → bölmə → detal (hər addım { name, url }). */
@@ -376,6 +441,18 @@ export function detailJsonLd(key, lang, param) {
       ...(x.minutes ? { timeRequired: `PT${x.minutes}M` } : {}),
       url,
     }
+  } else if (key === 'glossary') {
+    const x = termInfo(param, lang)
+    const alt = [lang !== 'ar' ? x.ar : null, x.translit, lang !== 'az' && lang !== 'ar' ? x.term : null]
+      .filter((v, i, a) => v && v !== m.h1 && a.indexOf(v) === i)
+    main = {
+      '@type': 'DefinedTerm',
+      name: m.h1,
+      ...(alt.length ? { alternateName: alt } : {}),
+      description: x.definition,
+      inDefinedTermSet: { '@type': 'DefinedTermSet', name: SECTION_LABEL.glossary[lang] || SECTION_LABEL.glossary.az, url: SITE + pathFor('glossary', lang) },
+      url,
+    }
   } else if (key === 'scholars') {
     const x = scholarInfo(param)
     const alt = [lang !== 'ar' ? x.name.ar : null, pick(x.fullName, lang)].filter(v => v && v !== m.h1)
@@ -413,6 +490,8 @@ export function detailJsonLd(key, lang, param) {
 // Tətbiq yüklənəndə React bu bloku öz görünüşü ilə əvəz edir.
 export const BODY_UI = {
   az: {
+    category: 'Bölmə', arabic: 'Ərəbcə', termRelated: 'Əlaqəli terminlər', termLesson: 'Mövzu üzrə ətraflı dərs', sameCat: 'Bu bölmədən digər terminlər',
+    prevTerm: 'Əvvəlki termin', nextTerm: 'Növbəti termin', allTerms: 'Lüğətin bütün terminləri', termList: 'Terminlərin siyahısı',
     prevLesson: 'Əvvəlki dərs', nextLesson: 'Növbəti dərs', allLessons: 'Bütün dərslər', sameLesson: 'Bu bölmədən', lessonList: 'Dərslərin siyahısı',
     crumbs: 'Səhifənin yeri', number: 'Sıra nömrəsi', ayahs: 'Ayə sayı', place: 'Nazil olma yeri', meaning: 'Mənası',
     mecca: 'Məkkə', medina: 'Mədinə', prevSurah: 'Əvvəlki surə', nextSurah: 'Növbəti surə', allSurahs: 'Bütün 114 surə',
@@ -427,6 +506,8 @@ export const BODY_UI = {
     allScholars: 'Bütün alimlər', sameEra: 'Eyni dövrdən', scholarList: 'Alimlərin siyahısı',
   },
   en: {
+    category: 'Section', arabic: 'Arabic', termRelated: 'Related terms', termLesson: 'In-depth lesson on this topic', sameCat: 'More terms from this section',
+    prevTerm: 'Previous term', nextTerm: 'Next term', allTerms: 'All glossary terms', termList: 'List of terms',
     prevLesson: 'Previous lesson', nextLesson: 'Next lesson', allLessons: 'All lessons', sameLesson: 'From this section', lessonList: 'List of lessons',
     crumbs: 'You are here', number: 'Number', ayahs: 'Verses', place: 'Place of revelation', meaning: 'Meaning',
     mecca: 'Mecca', medina: 'Medina', prevSurah: 'Previous surah', nextSurah: 'Next surah', allSurahs: 'All 114 surahs',
@@ -441,6 +522,8 @@ export const BODY_UI = {
     allScholars: 'All scholars', sameEra: 'From the same era', scholarList: 'List of scholars',
   },
   ru: {
+    category: 'Раздел', arabic: 'По-арабски', termRelated: 'Связанные термины', termLesson: 'Подробный урок по теме', sameCat: 'Другие термины из этого раздела',
+    prevTerm: 'Предыдущий термин', nextTerm: 'Следующий термин', allTerms: 'Все термины глоссария', termList: 'Список терминов',
     prevLesson: 'Предыдущий урок', nextLesson: 'Следующий урок', allLessons: 'Все уроки', sameLesson: 'Из этого раздела', lessonList: 'Список уроков',
     crumbs: 'Вы здесь', number: 'Порядковый номер', ayahs: 'Число аятов', place: 'Место ниспослания', meaning: 'Значение',
     mecca: 'Мекка', medina: 'Медина', prevSurah: 'Предыдущая сура', nextSurah: 'Следующая сура', allSurahs: 'Все 114 сур',
@@ -456,6 +539,8 @@ export const BODY_UI = {
     allScholars: 'Все учёные', sameEra: 'Из той же эпохи', scholarList: 'Список учёных',
   },
   tr: {
+    category: 'Bölüm', arabic: 'Arapçası', termRelated: 'İlgili terimler', termLesson: 'Konuyla ilgili ayrıntılı ders', sameCat: 'Bu bölümden diğer terimler',
+    prevTerm: 'Önceki terim', nextTerm: 'Sonraki terim', allTerms: 'Sözlüğün tüm terimleri', termList: 'Terimlerin listesi',
     prevLesson: 'Önceki ders', nextLesson: 'Sonraki ders', allLessons: 'Tüm dersler', sameLesson: 'Bu bölümden', lessonList: 'Ders listesi',
     crumbs: 'Buradasınız', number: 'Sıra numarası', ayahs: 'Ayet sayısı', place: 'İniş yeri', meaning: 'Anlamı',
     mecca: 'Mekke', medina: 'Medine', prevSurah: 'Önceki sure', nextSurah: 'Sonraki sure', allSurahs: 'Tüm 114 sure',
@@ -470,6 +555,8 @@ export const BODY_UI = {
     allScholars: 'Tüm âlimler', sameEra: 'Aynı dönemden', scholarList: 'Âlimlerin listesi',
   },
   ar: {
+    category: 'القسم', arabic: 'بالعربية', termRelated: 'مصطلحات ذات صلة', termLesson: 'درس مفصّل في الموضوع', sameCat: 'مصطلحات أخرى من هذا القسم',
+    prevTerm: 'المصطلح السابق', nextTerm: 'المصطلح التالي', allTerms: 'جميع مصطلحات القاموس', termList: 'قائمة المصطلحات',
     prevLesson: 'الدرس السابق', nextLesson: 'الدرس التالي', allLessons: 'جميع الدروس', sameLesson: 'من هذا القسم', lessonList: 'قائمة الدروس',
     crumbs: 'أنت هنا', number: 'رقم السورة', ayahs: 'عدد الآيات', place: 'مكان النزول', meaning: 'المعنى',
     mecca: 'مكية', medina: 'مدنية', prevSurah: 'السورة السابقة', nextSurah: 'السورة التالية', allSurahs: 'جميع السور الـ114',

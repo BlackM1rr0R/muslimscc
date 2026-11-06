@@ -23,7 +23,8 @@
 //
 // SITEMAP: sitemap.xml — indeks (robots.txt və Search Console onu göstərir),
 // altında sitemap-pages.xml, sitemap-quran.xml, sitemap-names.xml, sitemap-sahaba.xml,
-// sitemap-scholars.xml (Sələf alimləri — /scholars/<slug>).
+// sitemap-scholars.xml (Sələf alimləri — /scholars/<slug>),
+// sitemap-glossary.xml (lüğət terminləri — /glossary/<id>).
 //
 // İşə düşür: npm run build (bax package.json)
 // ═══════════════════════════════════════════════════════
@@ -378,6 +379,7 @@ const DETAIL_SITEMAP = {
   sahaba: { file: 'sitemap-sahaba.xml', priority: 0.7,  changefreq: 'monthly' },
   scholars: { file: 'sitemap-scholars.xml', priority: 0.7, changefreq: 'monthly' },
   learn:  { file: 'sitemap-learn.xml',  priority: 0.75, changefreq: 'monthly' },
+  glossary: { file: 'sitemap-glossary.xml', priority: 0.7, changefreq: 'monthly' },
 }
 
 /** Bir URL girişi (5 dil + x-default hreflang alternativləri ilə). */

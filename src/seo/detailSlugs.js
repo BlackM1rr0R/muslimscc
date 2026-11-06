@@ -9,6 +9,7 @@
 //   REMOVED_NAME_SLUGS  — köhnə siyahıdan çıxarılmış adlar (köhnə URL-lər üçün)
 //   SAHABA_SLUGS[id - 1] — /sahaba/<slug>    (sahaba.js → slugOf, ingiliscə ad)
 //   SCHOLAR_SLUGS       — /scholars/<slug>  (scholars.js → slug; SCHOLARS sırası ilə)
+//   GLOSSARY_SLUGS      — /glossary/<id>    (glossary.js → id; GLOSSARY sırası ilə)
 // ═══════════════════════════════════════════════════════
 
 export const NAME_SLUGS = [
@@ -64,3 +65,46 @@ export const SCHOLAR_SLUGS = [
 
 // Dərslər — src/data/lessons/*.js (scripts/gen-lessons-index.mjs yazır)
 export const LESSON_SLUGS = ["usul-ath-thalatha","al-qawaid-al-arba","nawaqid-al-islam","kitab-at-tawhid","ghusl","tayammum","istikhara","eid-prayer","kusuf-prayer","istisqa-prayer","adhkar-after-salah","travel-prayer","sunnah-fasts","dhul-hijjah-ten","udhiyah","aqiqah","kaffarah-fidyah","nikah","hijab","ruqyah","sick-fiqh","wasiyyah","janazah","tawbah","adab-al-mufrad","birr-al-walidayn","muhasabah","mustalah","bidah","hilyat-talib-al-ilm","doubts-youth","fiqh-faq","intro-to-islam","new-muslim"]
+
+// Lüğət terminləri — /glossary/<id> (glossary.js → GLOSSARY sırası, id = glossaryId(translit))
+export const GLOSSARY_SLUGS = [
+  "tawhid", "shirk", "bidah", "iman", "islam", "ihsan", "sunnah", "fard", "wajib", "haram", "halal",
+  "makruh", "mustahab", "salah", "sawm", "zakat", "hajj", "umrah", "quran", "hadith", "tafsir", "fiqh",
+  "tawbah", "tawakkul", "ikhlas", "taqwa", "jannah", "jahannam", "qiyamah", "sirat", "sahabah", "tabiun",
+  "qadr", "qada", "yaqin", "ghayb", "fitrah", "ruh", "nafs", "barzakh", "mizan", "shafaah", "arsh", "kursi",
+  "lawh-mahfuz", "tahara", "ghusl", "tayammum", "adhan", "iqamah", "qiblah", "rakah", "sujud", "ruku",
+  "qunut", "janazah", "kafan", "nikah", "talaq", "mahr", "khula", "iddah", "nafaqah", "hadanah", "wasiyyah",
+  "mirath", "waqf", "hibah", "tajwid", "hifz", "asbab-an-nuzul", "nasikh", "mansukh", "muhkam", "mutashabih",
+  "makki", "madani", "juz", "hizb", "manzil", "sajdah-tilawah", "isnad", "matn", "sahih", "hasan", "daif",
+  "mawdu", "mutawatir", "ahad", "mursal", "muttasil", "muallaq", "munqati", "zuhd", "khushu", "muraqabah",
+  "muhasabah", "shukr", "ridha", "tafakkur", "ummah", "khalifah", "shura", "dawah", "jihad", "hijrah",
+  "mubah", "rububiyyah", "uluhiyyah", "al-asma-was-sifat", "istiwa", "nuzul", "uluww", "ruyah",
+  "kalam-allah", "tatil", "tahrif", "takyif", "tamthil", "tawil", "tafwid", "tawassul", "istighathah",
+  "al-wala-wal-bara", "kufr", "nifaq", "shirk-asghar", "riya", "taghut", "sihr", "kahanah", "tamimah",
+  "tiyarah", "ayn", "jinn", "malaikah", "nabi-wa-rasul", "mujizah", "karamah", "wali", "takfir",
+  "ahl-as-sunnah-wal-jamaah", "salaf", "manhaj", "khawarij", "murjiah", "jahmiyyah", "mutazilah",
+  "qadariyyah", "shahadah", "ibadah", "dajjal", "ashrat-as-saah", "hawd", "adhab-al-qabr", "bath",
+  "khatm-an-nubuwwah", "ahl-al-kitab", "ruqyah", "wudu", "niyyah", "takbirat-al-ihram", "tashahhud",
+  "taslim", "witr", "qiyam-al-layl", "tarawih", "duha", "sunan-ar-rawatib", "jumuah", "khutbah", "qasr",
+  "jam", "sujud-as-sahw", "mash-alal-khuffayn", "najasah", "hadath", "istinja", "hayd", "nifas", "istihadah",
+  "suhur", "iftar", "itikaf", "laylat-al-qadr", "zakat-al-fitr", "nisab", "sadaqah", "ihram", "miqat",
+  "tawaf", "say", "arafah", "talbiyah", "ramy-al-jimar", "udhiyah", "aqiqah", "salat-al-id",
+  "salat-al-kusuf", "salat-al-istisqa", "istikharah", "dhikr", "dua", "adhkar-as-salah", "sutrah",
+  "salat-al-jamaah", "istighfar", "usul-al-fiqh", "ijma", "qiyas", "ijtihad", "taqlid", "ittiba", "madhhab",
+  "fatwa", "maqasid-ash-shariah", "darurah", "rukhsah", "shart", "rukn", "batil", "urf", "sadd-adh-dharai",
+  "mukallaf", "riba", "gharar", "bay", "qard", "hudud", "qisas", "diyah", "tazir", "kaffarah", "fidyah",
+  "mahram", "wali-an-nikah", "awrah", "hijab", "khalwah", "rajah", "zihar", "nadhr", "yamin", "dhabihah",
+  "mustalah-al-hadith", "marfu", "mawquf", "maqtu", "gharib", "aziz", "mashhur", "tadlis", "mudal",
+  "shadhdh", "munkar", "illah", "mudraj", "mudtarib", "al-jarh-wat-tadil", "thiqah", "adalah", "dabt",
+  "hadith-qudsi", "athar", "al-kutub-as-sittah", "sahihayn", "muttafaq-alayh", "sunan", "musnad", "rawi",
+  "ulum-al-quran", "ayah", "surah", "basmalah", "istiadhah", "mushaf", "rasm-uthmani", "qiraat",
+  "al-ahruf-as-sabah", "tartil", "waqf-wa-ibtida", "ijaz-al-quran", "tafsir-bil-mathur", "tafsir-bir-ray",
+  "israiliyyat", "al-huruf-al-muqattaah", "wahy", "khatm-al-quran", "tadabbur", "sabr", "khawf", "raja",
+  "mahabbah", "khashyah", "inabah", "istiqamah", "haya", "tawadu", "kibr", "hasad", "ghibah", "namimah",
+  "ujb", "sidq", "amanah", "adab", "birr-al-walidayn", "silat-ar-rahim", "husn-al-khuluq", "ithar", "hilm",
+  "nasihah", "al-amr-bil-maruf", "ilm", "tazkiyah", "sirah", "jahiliyyah", "bithah", "al-isra-wal-miraj",
+  "ansar", "muhajirun", "ghazwat-badr", "ghazwat-uhud", "ghazwat-al-khandaq", "sulh-al-hudaybiyyah",
+  "fath-makkah", "hajjat-al-wada", "al-khulafa-ar-rashidun", "ahl-al-bayt", "ummahat-al-muminin",
+  "al-asharah-al-mubashsharun", "atba-at-tabiin", "kabah", "al-masjid-al-haram", "al-masjid-an-nabawi",
+  "al-masjid-al-aqsa", "zamzam", "al-hajar-al-aswad", "bayah", "at-taqwim-al-hijri", "hurub-ar-riddah",
+]

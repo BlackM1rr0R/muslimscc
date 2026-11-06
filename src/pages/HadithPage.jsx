@@ -80,7 +80,7 @@ const UI_LABELS = {
 }
 
 // Hədis dərəcələri — mustalah dərsindəki cədvəlin bir sətirlik xülasəsi;
-// hər biri lüğətdəki termin kartına keçid (/glossary#sahih …)
+// hər biri lüğətdəki termin səhifəsinə keçid (/glossary/sahih …)
 const GRADES = [
   { id:'sahih', ok:true, name:{ az:'Səhih', en:'Sahih', ru:'Сахих', ar:'الصحيح', tr:'Sahih' },
     text:{ az:'İsnad bitişik, ravilər ədalətli və dəqiq; şaz və gizli qüsur yoxdur.', en:'Connected chain, upright and precise narrators; no irregularity or hidden defect.', ru:'Непрерывный иснад, праведные и точные передатчики; без отклонений и скрытых изъянов.', ar:'اتصل سنده بنقل العدل الضابط من غير شذوذ ولا علة.', tr:'Sened bitişik, râviler adil ve zabıt sahibi; şâz ve gizli kusur yok.' } },
@@ -269,7 +269,7 @@ function HadithAbout({ u, lang, list }) {
     e.preventDefault()
     navigate(href)
   }
-  const glossHref = (id) => `${pathFor('glossary', lang)}#${id}`
+  const glossHref = (id) => pathFor('glossary', lang, id)
   const lessonHref = pathFor('learn', lang, 'mustalah')
   const grade = (g) => (
     <li key={g.id}>

@@ -12,6 +12,9 @@ test('lüğət: kateqoriya süzgəci, əlaqəli termin keçidi, dərs linki', as
   await expect(page.locator('.glossary-card').first().locator('.glossary-cat-badge')).toHaveText('Hədis elmi')
   // Əlaqəli terminə keçid: #id — termin və onun əlaqəli terminləri
   await page.goto('/glossary#istiwa')
+  // köhnə hash ünvanı ayrıca termin səhifəsinə keçir; h1 terminin adıdır
+  await expect(page).toHaveURL(/\/glossary\/istiwa$/)
+  await expect(page.locator('h1')).toHaveText('İstiva')
   await settle(page)
   await expect(page.locator('.glossary-card.is-focus h2')).toHaveText('İstiva')
   await expect(page.locator('.glossary-focus-bar')).toBeVisible()
@@ -72,4 +75,19 @@ test('99 ad: qaydalar, kartlar və yoxlama; irəliləyiş yaddaşda', async ({ p
   const after = await page.evaluate(() => JSON.parse(localStorage.getItem('names99_practice_v1')))
   expect(after.best).toBeGreaterThanOrEqual(0)
   expectCleanConsole(consoleProblems)
+})
+
+test('lüğət termini: /ru/glossary/tawhid — ayrıca səhifə, h1/başlıq/canonical prerender ilə eyni', async ({ page, consoleProblems }) => {
+  await page.goto('/ru/glossary/tawhid')
+  await settle(page)
+  await expect(page.locator('h1')).toHaveCount(1)
+  await expect(page.locator('h1')).toHaveText('Таухид')
+  await expect(page).toHaveTitle(/^Таухид — что это в исламе\?/)
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://muslims.cc/ru/glossary/tawhid')
+  await expect(page.locator('.glossary-card.is-focus h2')).toHaveText('Таухид')
+  // əlaqəli terminə keçid ayrıca URL-dir
+  await page.locator('.glossary-card.is-focus .glossary-rel__chip').first().click()
+  await expect(page).toHaveURL(/\/ru\/glossary\/[a-z-]+$/)
+  await expect(page).not.toHaveURL(/tawhid$/)
+  await expectCleanConsole(consoleProblems)
 })

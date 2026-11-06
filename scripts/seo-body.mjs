@@ -26,12 +26,19 @@ import { shortName, descFor } from '../src/seo/meta.js'
 import { brandName } from '../src/config/brand.js'
 import {
   BODY_UI, SECTION_LABEL, detailMeta, crumbsFor, surahInfo, nameInfo, sahabaInfo, sentencesOf,
+  termInfo, GLOSSARY_CAT_LABEL,
 } from '../src/seo/detail.js'
+import { GLOSSARY, GLOSSARY_CATS, GLOSSARY_BY_ID } from '../src/data/glossary.js'
+import { setGlossarySource } from '../src/seo/glossarySource.js'
+import { LESSON_SLUGS } from '../src/seo/detailSlugs.js'
 import { SAHABA, slugOf } from '../src/data/sahaba.js'
 import { SCHOLARS, ERAS, ERA_LABEL, ERA_SPAN, dateText, lifeSpan } from '../src/data/scholars.js'
 import { LESSONS, LESSON_CATS, CAT_BY_KEY } from '../src/data/lessons/index.js'
 import { localizeSource } from '../src/utils/sourceNames.js'
 import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala } from '../src/utils/quranText.js'
+
+// detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
+setGlossarySource(GLOSSARY_BY_ID)
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const QURAN_DIR = path.join(ROOT, 'seo-data', 'quran')
@@ -387,6 +394,70 @@ function lessonsListBody(lang) {
   )
 }
 
+// ═══ Lüğət termini ═══
+// Termin: ərəbcə yazılış, ad, tərif, bölmə; əlaqəli terminlər, dərs, eyni
+// bölmədən terminlər (daxili linklər — krawl yolu) və əvvəlki/növbəti.
+
+function termBody(lang, id) {
+  const L = ui(lang)
+  const m = detailMeta('glossary', lang, id)
+  const x = termInfo(id, lang)
+  const idx = GLOSSARY.findIndex(y => y.id === id)
+  const link = (y) => `<a href="${pathFor('glossary', lang, y.id)}">${esc(termInfo(y.id, lang).name)}</a>`
+  const near = (y, label) => y && { href: pathFor('glossary', lang, y.id), label, name: termInfo(y.id, lang).name }
+  const rel = (x.rel || []).map(r => GLOSSARY.find(y => y.id === r)).filter(Boolean)
+  const same = GLOSSARY.filter(y => y.cat === x.cat && y.id !== id && !(x.rel || []).includes(y.id))
+  // Eyni bölmədən — terminin ətrafındakı 12 termin (hər səhifədə fərqli dəst)
+  const start = Math.max(0, Math.min(same.length - 12, same.findIndex(y => GLOSSARY.indexOf(y) > idx) - 6))
+  const sameSlice = same.slice(start, start + 12)
+  const lessonOk = x.lesson && LESSON_SLUGS.includes(x.lesson)
+  return shell(lang,
+    detailCrumbs('glossary', lang, id) +
+    `<header>` +
+    `<p class="seo-static__eyebrow">${esc(pick(GLOSSARY_CAT_LABEL[x.cat], lang))}</p>` +
+    (lang === 'ar' ? '' : `<p class="seo-static__ar ui-arabic" lang="ar" dir="rtl">${esc(x.ar)}</p>`) +
+    `<h1>${esc(m.h1)}</h1>` +
+    `<p class="seo-static__lead">${esc(x.definition)}</p>` +
+    facts([[L.arabic, lang === 'ar' ? '' : x.ar], [L.translit, x.translit], [L.category, pick(GLOSSARY_CAT_LABEL[x.cat], lang)]]) +
+    `</header>` +
+    (rel.length ? `<h2>${esc(L.termRelated)}</h2><ul>${rel.map(y => `<li>${link(y)} — ${esc(clip(termInfo(y.id, lang).definition))}</li>`).join('')}</ul>` : '') +
+    (lessonOk ? `<p><a href="${pathFor('learn', lang, x.lesson)}">${esc(L.termLesson)}</a></p>` : '') +
+    (sameSlice.length ? `<h2>${esc(L.sameCat)}</h2><ul>${sameSlice.map(y => `<li>${link(y)}</li>`).join('')}</ul>` : '') +
+    pager(near(GLOSSARY[idx - 1], L.prevTerm), near(GLOSSARY[idx + 1], L.nextTerm)) +
+    `<p><a href="${pathFor('glossary', lang)}">${esc(L.allTerms)}</a></p>`,
+  )
+}
+
+/** Tərifin ilk cümləsi (əlaqəli terminlərin siyahısında qısa izah). */
+function clip(text, max = 140) {
+  const t = String(text || '')
+  const first = t.split(/(?<=[.!?。])\s/)[0]
+  if (first.length <= max) return first
+  const cut = first.slice(0, max)
+  return `${cut.slice(0, cut.lastIndexOf(' ') > 60 ? cut.lastIndexOf(' ') : max).replace(/[\s,;:—–-]+$/, '')}…`
+}
+
+/** Lüğətin siyahısı: bölmələr üzrə bütün terminlərə link (krawl yolu). */
+function glossaryListBody(lang) {
+  const L = ui(lang)
+  const groups = GLOSSARY_CATS.map(c => {
+    const items = GLOSSARY.filter(y => y.cat === c).map(y => {
+      const t = termInfo(y.id, lang)
+      return `<li><a href="${pathFor('glossary', lang, y.id)}">${esc(t.name)}</a>` +
+        (lang === 'ar' ? '' : ` <span class="ui-arabic" lang="ar" dir="rtl">${esc(y.ar)}</span>`) + `</li>`
+    }).join('')
+    return items ? `<h3>${esc(pick(GLOSSARY_CAT_LABEL[c], lang))}</h3><ul>${items}</ul>` : ''
+  }).join('')
+  return shell(lang,
+    crumbs(lang, [
+      { name: brandName(lang), href: pathFor('home', lang) },
+      { name: SECTION_LABEL.glossary[lang] || SECTION_LABEL.glossary.az },
+    ]) +
+    `<header><h1>${esc(shortName('glossary', lang))}</h1><p class="seo-static__lead">${esc(descFor('glossary', lang))}</p></header>` +
+    `<h2>${esc(L.termList)}</h2>${groups}`,
+  )
+}
+
 // ── Siyahı səhifəsi: h1 + təsvir + bütün detallara linklər (krawl yolu) ──
 function listShell(key, lang, heading, items) {
   return shell(lang,
@@ -410,6 +481,7 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'sahaba') return param ? sahabaBody(lang, param) : sahabaListBody(lang)
   if (key === 'scholars') return param ? scholarBody(lang, param) : scholarsListBody(lang)
   if (key === 'learn') return param ? lessonBody(lang, param) : lessonsListBody(lang)
+  if (key === 'glossary') return param ? termBody(lang, param) : glossaryListBody(lang)
   return ''
 }
 

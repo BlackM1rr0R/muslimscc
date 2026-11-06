@@ -8,12 +8,17 @@ import {
   parseDetailSegment, isDetailParam, legacyDetailParam,
 } from '../../src/seo/routes.js'
 import { SURAH_SLUGS } from '../../src/seo/surahSlugs.js'
-import { NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS } from '../../src/seo/detailSlugs.js'
+import { NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS, GLOSSARY_SLUGS } from '../../src/seo/detailSlugs.js'
+import { GLOSSARY, GLOSSARY_BY_ID } from '../../src/data/glossary.js'
+import { setGlossarySource } from '../../src/seo/glossarySource.js'
 import { SURAH_META } from '../../src/seo/surahMeta.js'
 import { NAMES_99 } from '../../src/data/names99.js'
 import { SAHABA, slugOf } from '../../src/data/sahaba.js'
 import { detailMeta, titleForDetail, detailJsonLd, TITLE_MAX } from '../../src/seo/detail.js'
 import { displayAyah, hasSeparateBasmala } from '../../src/utils/quranText.js'
+
+// detail.js lüğəti glossarySource.js-dən oxuyur (prerender kimi)
+setGlossarySource(GLOSSARY_BY_ID)
 
 const slugify = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/['’`]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
@@ -121,12 +126,16 @@ describe('detal marşrutları — pathFor / parsePath', () => {
   it('URL-lər təkrarlanmır, hamısı ASCII kiçik hərf və defisdir', () => {
     const urls = Object.keys(DETAILS).flatMap(k => detailParams(k).flatMap(p => LANGS.map(l => pathFor(k, l, p))))
     expect(new Set(urls).size).toBe(urls.length)
-    expect(urls.length).toBe((114 + 99 + SAHABA.length + SCHOLAR_SLUGS.length + LESSON_SLUGS.length) * LANGS.length)
-    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba|scholars|learn)\/[a-z0-9-]+$/)
+    expect(urls.length).toBe((114 + 99 + SAHABA.length + SCHOLAR_SLUGS.length + LESSON_SLUGS.length + GLOSSARY_SLUGS.length) * LANGS.length)
+    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba|scholars|learn|glossary)\/[a-z0-9-]+$/)
   })
 })
 
 describe('slug-lar məlumatla uyğundur', () => {
+  it('lüğət: GLOSSARY_SLUGS = glossary.js id-ləri (eyni sıra)', () => {
+    expect(GLOSSARY_SLUGS).toEqual(GLOSSARY.map(x => x.id))
+  })
+
   it('99 ad: NAME_SLUGS = names99.js transliterasiyası', () => {
     expect(NAMES_99.map((x, i) => x.n === i + 1)).not.toContain(false)
     expect(NAME_SLUGS).toEqual(NAMES_99.map(x => slugify(x.tr)))
@@ -167,8 +176,8 @@ describe('detal meta-sı (5 dil)', () => {
           expect(m.t.length, `${key}/${p}/${l}: ${m.t}`).toBeLessThanOrEqual(TITLE_MAX)
           expect(m.d.length, `${key}/${p}/${l}: ${m.d}`).toBeGreaterThanOrEqual(80)
           expect(m.d.length, `${key}/${p}/${l}: ${m.d}`).toBeLessThanOrEqual(170)
-          expect(m.t, `${key}/${p}/${l}`).not.toMatch(/\(\s*\)|undefined|null/)
-          expect(m.d, `${key}/${p}/${l}`).not.toMatch(/\(\s*\)|undefined|null/)
+          expect(m.t, `${key}/${p}/${l}`).not.toMatch(/\(\s*\)|undefined|null/)
+          expect(m.d, `${key}/${p}/${l}`).not.toMatch(/\(\s*\)|undefined|null/)
           titles.add(m.t)
           descs.add(m.d)
         }
@@ -224,5 +233,41 @@ describe('Bəsmələ qaydası (utils/quranText.js)', () => {
     expect(hasSeparateBasmala(1)).toBe(false)
     expect(hasSeparateBasmala(9)).toBe(false)
     expect(hasSeparateBasmala(2)).toBe(true)
+  })
+})
+
+describe('lüğət termini — /glossary/<id>', () => {
+  it('marşrut: pathFor / parsePath', () => {
+    expect(pathFor('glossary', 'az', 'taqwa')).toBe('/glossary/taqwa')
+    expect(pathFor('glossary', 'ru', 'al-wala-wal-bara')).toBe('/ru/glossary/al-wala-wal-bara')
+    expect(parsePath('/tr/glossary/tawhid')).toMatchObject({ lang: 'tr', key: 'glossary', known: true, param: 'tawhid' })
+    expect(parsePath('/glossary/yoxdur').known).toBe(false)
+  })
+
+  it('başlıq sorğu formasındadır və hər dildə öz yazılışı ilə', () => {
+    expect(titleForDetail('glossary', 'az', 'taqwa')).toMatch(/^Təqva nədir\?/)
+    expect(titleForDetail('glossary', 'en', 'salah')).toMatch(/^What Is Salah \(Prayer\) in Islam\?/)
+    expect(titleForDetail('glossary', 'ru', 'tawhid')).toMatch(/^Таухид — что это в исламе\?/)
+    expect(titleForDetail('glossary', 'tr', 'tawhid')).toMatch(/^Tevhid nedir\?/)
+    expect(titleForDetail('glossary', 'ar', 'salah')).toMatch(/^ما معنى الصلاة في الإسلام؟/)
+    // tarix termini "nədir" sualı deyil
+    expect(titleForDetail('glossary', 'az', 'ghazwat-badr')).toMatch(/^Bədr döyüşü — İslam tarixində/)
+  })
+
+  it('hər termin, hər dil: başlıq ≤ 60, təsvir ≤ 160, başlıqlar təkrarlanmır, sxem DefinedTerm', () => {
+    for (const l of LANGS) {
+      const titles = GLOSSARY_SLUGS.map(id => titleForDetail('glossary', l, id))
+      expect(new Set(titles).size, l).toBe(titles.length)
+      for (const id of GLOSSARY_SLUGS) {
+        const m = detailMeta('glossary', l, id)
+        expect(m.t.length, `${l}/${id}`).toBeLessThanOrEqual(TITLE_MAX)
+        expect(m.d.length, `${l}/${id}`).toBeLessThanOrEqual(160)
+        expect(m.d.length, `${l}/${id}`).toBeGreaterThan(30)
+        const j = detailJsonLd('glossary', l, id)
+        expect(j.mainEntity['@type']).toBe('DefinedTerm')
+        expect(j.mainEntity.name).toBe(m.h1)
+        expect(j.breadcrumb.itemListElement).toHaveLength(3)
+      }
+    }
   })
 })

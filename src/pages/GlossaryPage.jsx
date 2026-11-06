@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { GLOSSARY, GLOSSARY_BY_ID, GLOSSARY_CATS } from '../data/glossary'
 import { LESSON_SLUGS } from '../seo/detailSlugs'
-import { pathFor } from '../seo/routes'
+import { pathFor, parsePath } from '../seo/routes'
+import { glossaryName, glossaryGloss } from '../data/glossaryNames'
 import { isPlainClick } from '../components/PageLink'
 import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
 import ListMore from '../components/ListMore'
@@ -19,8 +20,11 @@ import '../styles/GlossaryPage.css'
 // ═══════════════════════════════════════════════════════
 // /glossary — İslami söz lüğəti (341 termin, 7 kateqoriya)
 // Süzgəclər: axtarış, kateqoriya, hərf (sessionStorage-də saxlanır).
-// Termin ünvanı: /glossary#<id> (məs. #istiwa) — termin və onun əlaqəli
-// terminləri göstərilir; "Bütün terminlər" düyməsi hash-i silir.
+// Termin ünvanı: /glossary/<id> (məs. /glossary/istiwa) — ayrıca, indekslənən
+// səhifə (title/sxem: src/seo/detail.js, statik HTML: scripts/seo-body.mjs);
+// termin və onun əlaqəli terminləri göstərilir, hero-nun h1-i terminin adıdır.
+// Köhnə /glossary#<id> ünvanı yeni yola yönləndirilir (replace).
+// "Bütün terminlər" düyməsi siyahıya (/glossary) qaytarır.
 // Mövzu dərsdə ətraflı izah olunursa kartda /learn/<slug> keçidi var
 // (yalnız dərs saytda mövcuddursa — LESSON_SLUGS).
 // ═══════════════════════════════════════════════════════
@@ -45,6 +49,8 @@ const CAT_LABELS = {
 const CAT_ICON = { aqidah:'shield', worship:'prayer', fiqh:'glossary', quran:'quran', hadith:'hadith', akhlaq:'sparkle', history:'history' }
 
 const LATIN_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+const TR_LETTERS = ['A','B','C','Ç','D','E','F','G','H','I','İ','J','K','L','M','N','O','Ö','P','R','S','Ş','T','U','Ü','V','Y','Z']
+const RU_LETTERS = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ'.split('')
 const AZ_LETTERS = ['A','B','C','Ç','D','E','Ə','F','G','Ğ','H','X','I','İ','J','K','Q','L','M','N','O','Ö','P','R','S','Ş','T','U','Ü','V','Y','Z']
 const ARABIC_LETTERS = ['ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي']
 
@@ -82,8 +88,11 @@ const revealProps = (i) => {
   return { 'data-reveal': '', ...(j > 0 && j < 6 ? { 'data-reveal-delay': String(j * 40) } : {}) }
 }
 
-// Kartın başlığı: item.term azərbaycancadır, ərəbcədə ərəbcə termin, başqa dillərdə transliterasiya
-const headlineOf = (item, lang) => (lang === 'az' ? item.term : lang === 'ar' ? item.ar : item.translit)
+// Kartın başlığı cari dilin yazılışındadır: az → term, ar → ərəbcə, ru/tr → glossaryNames.js
+// ("Таухид", "Tevhid"), en → transliterasiya ("Tawhid")
+const headlineOf = (item, lang) => glossaryName(item, lang)
+// Başlıq transliterasiyadan fərqlidirsə, altında transliterasiya da yazılır
+const showTranslit = (item, lang) => headlineOf(item, lang) !== item.translit
 
 // Sıralama və hərf açarı: artikl atılır ("Al-Masjid…" → M, "الصلاة" → ص), həmzəli əlif → ا
 const stripArticle = (s) => String(s).replace(/^(?:al|an|ar|as|ash|at|ath|ad|adh|az)-/i, '')
@@ -91,14 +100,20 @@ const arKey = (s) => String(s).replace(/^ال/, '').replace(/[أإآ]/g, 'ا')
 function sortKey(item, lang) {
   if (lang === 'ar') return arKey(item.ar)
   if (lang === 'az') return item.term
+  if (lang === 'ru') return glossaryName(item, 'ru').replace(/^(?:Аль|Ас|Ат|Ар|Ад|Аз|Ан|Аш)-/, '')
+  if (lang === 'tr') return glossaryName(item, 'tr')
   return stripArticle(item.translit)
 }
-const LOCALE = { az: 'az', en: 'en', ru: 'en', tr: 'tr', ar: 'ar' }
+const LOCALE = { az: 'az', en: 'en', ru: 'ru', tr: 'tr', ar: 'ar' }
+// Türkcədə şapkalı sait (Â, Î, Û) öz hərfinin altına düşür
+const TR_FOLD = { 'Â': 'A', 'Î': 'İ', 'Û': 'U' }
 function firstLetter(item, lang) {
   const k = sortKey(item, lang)
   if (lang === 'ar') return k.charAt(0)
-  return k.charAt(0).toLocaleUpperCase(lang === 'az' ? 'az' : lang === 'tr' ? 'tr' : 'en')
+  const c = k.charAt(0).toLocaleUpperCase(lang === 'az' ? 'az' : lang === 'tr' ? 'tr' : lang === 'ru' ? 'ru' : 'en')
+  return lang === 'tr' ? (TR_FOLD[c] || c) : lang === 'ru' && c === 'Ё' ? 'Е' : c
 }
+const LETTERS = { ar: ARABIC_LETTERS, az: AZ_LETTERS, en: LATIN_LETTERS, tr: TR_LETTERS, ru: RU_LETTERS }
 
 export default function GlossaryPage() {
   const { lang } = useLang()
@@ -115,9 +130,17 @@ export default function GlossaryPage() {
   const [readId, setReadId] = useState(null)
   const [status, setStatus] = useState('')
 
-  // Ünvandakı termin (#istiwa) — seçilmiş termin + əlaqəli terminlər
-  const hashId = decodeURIComponent(location.hash.replace(/^#/, ''))
-  const focused = GLOSSARY_BY_ID.get(hashId) || null
+  // Ünvandakı termin (/glossary/istiwa; köhnə #istiwa) — seçilmiş termin + əlaqəli terminlər
+  const route = parsePath(location.pathname)
+  const pathId = route.key === 'glossary' ? route.param : null
+  let hashId = ''
+  try { hashId = decodeURIComponent(location.hash.replace(/^#/, '')) } catch { /* pozuq % */ }
+  const focused = GLOSSARY_BY_ID.get(pathId) || GLOSSARY_BY_ID.get(hashId) || null
+
+  // Köhnə ünvan (/glossary#istiwa) → /glossary/istiwa (paylaşılmış linklər işləməyə davam edir)
+  useEffect(() => {
+    if (!pathId && hashId && GLOSSARY_BY_ID.has(hashId)) navigate(pathFor('glossary', lang, hashId), { replace: true })
+  }, [pathId, hashId, lang, navigate])
 
   const isArabic = lang === 'ar'
 
@@ -139,8 +162,8 @@ export default function GlossaryPage() {
   // Yalnız ən azı bir termini olan hərflər (seçilmiş kateqoriya daxilində)
   const letters = useMemo(() => {
     const present = new Set(byCat.map(x => firstLetter(x, lang)))
-    return (isArabic ? ARABIC_LETTERS : lang === 'az' ? AZ_LETTERS : LATIN_LETTERS).filter(l => present.has(l))
-  }, [byCat, isArabic, lang])
+    return (LETTERS[lang] || LATIN_LETTERS).filter(l => present.has(l))
+  }, [byCat, lang])
 
   // Dil dəyişəndə seçilmiş hərf yeni əlifbada olmaya bilər
   const langRef = useRef(lang)
@@ -162,6 +185,7 @@ export default function GlossaryPage() {
       list = list.filter(item =>
         item.term.toLocaleLowerCase().includes(q) ||
         item.translit.toLowerCase().includes(q) ||
+        headlineOf(item, lang).toLocaleLowerCase().includes(q) ||
         item.ar.includes(q) ||
         (item.def[lang] || item.def.en || '').toLocaleLowerCase().includes(q)
       )
@@ -197,9 +221,9 @@ export default function GlossaryPage() {
   const openTerm = (id) => (e) => {
     if (!isPlainClick(e)) return
     e.preventDefault()
-    navigate({ hash: `#${id}` })
+    navigate(pathFor('glossary', lang, id))
   }
-  const clearFocus = () => navigate({ hash: '' }, { replace: false })
+  const clearFocus = () => navigate(pathFor('glossary', lang))
   const resetAll = () => { setSearch(''); setActiveLetter(null); setActiveCat(null); setFavOnly(false); if (focused) clearFocus() }
 
   // ── Oxu pəncərəsi: əvvəlki/növbəti cari siyahı üzrə (termin siyahıda yoxdursa — bütün lüğət) ──
@@ -212,7 +236,7 @@ export default function GlossaryPage() {
     if (window.getSelection?.().toString()) return
     openRead(id)
   }
-  const termUrl = (id) => `${window.location.origin}${pathFor('glossary', lang)}#${encodeURIComponent(id)}`
+  const termUrl = (id) => `${window.location.origin}${pathFor('glossary', lang, id)}`
   const onShare = async (item) => {
     const r = await shareLink({ title: headlineOf(item, lang), text: `${headlineOf(item, lang)} (${item.ar}) — ${item.def[lang] || item.def.en}`, url: termUrl(item.id) })
     if (r === 'copied') setStatus(t.copied)
@@ -239,16 +263,35 @@ export default function GlossaryPage() {
       <header className="ui-page-hero glo-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
-          <span className="ui-eyebrow">{t.eyebrow}</span>
-          <h1 className="ui-display">{t.title}</h1>
-          {!isArabic && <p className="glo-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">قاموس المصطلحات الإسلامية</p>}
-          <p className="ui-lead">{t.subtitle}</p>
-          <p className="ui-page-hero__how"><Icon name="info" size={16} /> {t.how}</p>
-          <ul className="ui-page-hero__stats">
-            <li><b className="ui-num" data-count={GLOSSARY.length}>{GLOSSARY.length}</b><span>{t.statTerms}</span></li>
-            <li><b className="ui-num" data-count={GLOSSARY_CATS.length}>{GLOSSARY_CATS.length}</b><span>{t.statCats}</span></li>
-            <li><b className="ui-num" data-count={LESSON_LINKED}>{LESSON_LINKED}</b><span>{t.statLessons}</span></li>
-          </ul>
+          {focused ? (
+            // Termin səhifəsi: h1 terminin adıdır (title/statik HTML ilə eyni — src/seo/detail.js)
+            <div className="glo-hero__term" key={focused.id}>
+              <a className="ui-eyebrow glo-hero__back" href={pathFor('glossary', lang)} onClick={(e) => { if (!isPlainClick(e)) return; e.preventDefault(); clearFocus() }}>
+                <Icon name="glossary" size={15} /> {t.title}
+              </a>
+              {!isArabic && <p className="glo-hero__ar glo-hero__ar--term ui-arabic" lang="ar" dir="rtl">{focused.ar}</p>}
+              <h1 className={`ui-display glo-hero__name${isArabic ? ' ui-arabic' : ''}`}>
+                {headlineOf(focused, lang)}{lang === 'en' && glossaryGloss(focused) ? <span className="glo-hero__gloss"> ({glossaryGloss(focused)})</span> : null}
+              </h1>
+              <p className="glo-hero__meta">
+                {showTranslit(focused, lang) && <span className="glo-hero__translit" dir="ltr">{focused.translit}</span>}
+                {CAT_LABELS[focused.cat] && <span className="glossary-cat-badge">{CAT_LABELS[focused.cat][lang] || CAT_LABELS[focused.cat].en}</span>}
+              </p>
+            </div>
+          ) : (
+            <>
+              <span className="ui-eyebrow">{t.eyebrow}</span>
+              <h1 className="ui-display">{t.title}</h1>
+              {!isArabic && <p className="glo-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">قاموس المصطلحات الإسلامية</p>}
+              <p className="ui-lead">{t.subtitle}</p>
+              <p className="ui-page-hero__how"><Icon name="info" size={16} /> {t.how}</p>
+              <ul className="ui-page-hero__stats">
+                <li><b className="ui-num" data-count={GLOSSARY.length}>{GLOSSARY.length}</b><span>{t.statTerms}</span></li>
+                <li><b className="ui-num" data-count={GLOSSARY_CATS.length}>{GLOSSARY_CATS.length}</b><span>{t.statCats}</span></li>
+                <li><b className="ui-num" data-count={LESSON_LINKED}>{LESSON_LINKED}</b><span>{t.statLessons}</span></li>
+              </ul>
+            </>
+          )}
         </div>
       </header>
 
@@ -369,9 +412,9 @@ export default function GlossaryPage() {
                   <div className="glossary-card-header">
                     <div className="glossary-card-names">
                       <h2 className={`glossary-term-name${isArabic ? ' ui-arabic' : ''}`}>
-                        <a className="glossary-term-link" href={`#${item.id}`} onClick={openTerm(item.id)} title={t.link}>{headlineOf(item, lang)}</a>
+                        <a className="glossary-term-link" href={pathFor('glossary', lang, item.id)} onClick={openTerm(item.id)} title={t.link}>{headlineOf(item, lang)}</a>
                       </h2>
-                      {(lang === 'az' || lang === 'ar') && <span className="glossary-translit" dir="ltr">{item.translit}</span>}
+                      {showTranslit(item, lang) && <span className="glossary-translit" dir="ltr">{item.translit}</span>}
                     </div>
                     {!isArabic && <span className="glossary-arabic-text ui-arabic" lang="ar" dir="rtl">{item.ar}</span>}
                   </div>
@@ -396,7 +439,7 @@ export default function GlossaryPage() {
                           <ul className="glossary-rel__list">
                             {rel.map(r => (
                               <li key={r.id}>
-                                <a className="glossary-rel__chip" href={`#${r.id}`} onClick={openTerm(r.id)}>
+                                <a className="glossary-rel__chip" href={pathFor('glossary', lang, r.id)} onClick={openTerm(r.id)}>
                                   <span className={isArabic ? 'ui-arabic' : undefined}>{headlineOf(r, lang)}</span>
                                 </a>
                               </li>
@@ -468,7 +511,7 @@ export default function GlossaryPage() {
             <header className="glo-read__head">
               <div>
                 <h2 id="glo-read-title" className={`glo-read__title${isArabic ? ' ui-arabic' : ''}`}>{headlineOf(readItem, lang)}</h2>
-                {(lang === 'az' || lang === 'ar') && <p className="glossary-translit" dir="ltr">{readItem.translit}</p>}
+                {showTranslit(readItem, lang) && <p className="glossary-translit" dir="ltr">{readItem.translit}</p>}
               </div>
               {!isArabic && <p className="glo-read__ar ui-arabic" lang="ar" dir="rtl">{readItem.ar}</p>}
             </header>

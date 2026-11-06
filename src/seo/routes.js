@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { SURAH_SLUGS } from './surahSlugs.js'
-import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS } from './detailSlugs.js'
+import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS, GLOSSARY_SLUGS } from './detailSlugs.js'
 
 export const SITE = 'https://muslims.cc'
 
@@ -102,6 +102,7 @@ export const INDEXABLE = PAGES.filter(p => !p.noindex)
 //   /sahaba/<slug>       — səhabələr    (param: slug)
 //   /scholars/<slug>     — alimlər (param: slug)
 //   /learn/<slug>        — dərslər (param: slug; src/data/lessons/*.js)
+//   /glossary/<id>       — lüğət terminləri (param: id; src/data/glossary.js)
 // Rəqəmli növlərdə NÖMRƏ həqiqət mənbəyidir: slug səhv yazılsa belə
 // (/quran/2-bilmirem) səhifə surə 2-ni açır, canonical isə düzgün slug-u
 // göstərir. Naməlum nömrə / slug → known:false (404).
@@ -118,6 +119,7 @@ export const DETAILS = {
   sahaba: { kind: 'slug',   slugs: SAHABA_SLUGS },
   scholars: { kind: 'slug', slugs: SCHOLAR_SLUGS },
   learn:  { kind: 'slug',   slugs: LESSON_SLUGS },
+  glossary: { kind: 'slug', slugs: GLOSSARY_SLUGS },
   // Qrup otağı (/group/<id>) — istifadəçinin yaratdığı otaq: indekslənmir,
   // prerender və sitemap-a düşmür (detailParams → [])
   group:  { kind: 'id', pattern: /^[a-z0-9]{10}$/, noindex: true },
