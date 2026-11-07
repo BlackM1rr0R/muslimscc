@@ -545,7 +545,11 @@ console.log(`✓ Sitemap: sitemap.xml (indeks) → ${sitemap.files.join(', ')} �
 // yoxdur; ziyarətçiyə brotli/zstd-ni onsuz da Cloudflare özü verir.
 // nginx-in gzip_min_length (1024) həddindən kiçik və ya sıxılanda
 // kiçilməyən fayllar üçün .gz yazılmır.
-const COMPRESSIBLE = /\.(html|js|css|svg|json|xml|txt|webmanifest)$/
+// HTML ÜÇÜN YAZILMIR: 25 000+ səhifənin .gz surəti (~270 MB, artıq sıxılmış —
+// tar.gz-də kiçilmir) web image-ini ~550 MB-a çıxarıb serverin 400 MB yükləmə
+// həddini (infra/ci-gate.sh) aşırdı → 2026-11-07 deploy kəsik arxivlə düşdü.
+// HTML-i nginx dinamik gzip (səviyyə 6) sıxır; ziyarətçiyə Cloudflare verir.
+const COMPRESSIBLE = /\.(js|css|svg|json|xml|txt|webmanifest)$/
 function precompress(dir) {
   let n = 0
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {

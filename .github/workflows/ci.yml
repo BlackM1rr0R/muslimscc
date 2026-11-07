@@ -145,7 +145,7 @@ jobs:
 
       - name: Sıxışdır
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: gzip -1 /tmp/api.tar /tmp/web.tar
+        run: gzip -6 /tmp/api.tar /tmp/web.tar && ls -l /tmp/*.tar.gz && [ "$(stat -c%s /tmp/web.tar.gz)" -lt 380000000 ] || { echo "web image 380 MB-dan böyükdür (server həddi 400 MB, infra/ci-gate.sh)"; exit 1; }
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
