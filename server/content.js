@@ -5,7 +5,7 @@
 //   GET  /api/content/version                 → { version, collections:{ad: ms} }
 //   GET  /api/content/:collection             → [{ id, ...data }]  (createdAt desc)
 //   GET  /api/content/:collection/:id         → { id, ...data } | 404
-//   GET  /api/singletons/:id                  → { id, ...data } | 404  (daily|hero|settings)
+//   GET  /api/singletons/:id                  → { id, ...data } | null  (daily|hero|settings)
 // Admin (sessiya və ya keçid dövründə Firebase ID tokeni):
 //   POST   /api/admin/content/:collection           addDoc   → 201 { id, ...data }
 //   POST   /api/admin/content/:collection/batch     { items:[...] } (≤200) → 201 { ids }
@@ -123,8 +123,9 @@ function createContentRouter({ db, requireAdmin, onChange = () => {} }) {
 
   router.get('/singletons/:id', singletonOk, (req, res) => {
     const doc = db.getDoc(SINGLETON_COLLECTION, req.params.id)
-    if (!doc) return res.status(404).json({ error: 'Not found' })
-    sendCached(req, res, doc)
+    // Sənəd hələ yoxdursa 200 + null (klient standartı göstərir): əvvəl 404 idi —
+    // hər ziyarətçinin konsolunda "Failed to load resource" xətası çıxırdı (Lighthouse)
+    sendCached(req, res, doc || null)
   })
 
   // ── Admin ──

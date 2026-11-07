@@ -57,7 +57,9 @@ describe('ictimai oxuma', () => {
 
   it('singletons — yalnız daily, hero, settings', async () => {
     expect((await call('GET', '/api/singletons/other')).status).toBe(404)
-    expect((await call('GET', '/api/singletons/daily')).status).toBe(404)   // hələ yoxdur
+    const none = await call('GET', '/api/singletons/daily')   // hələ yoxdur → 200 + null
+    expect(none.status).toBe(200)
+    expect(await none.json()).toBeNull()
   })
 
   it('yararsız ID → 400', async () => {
