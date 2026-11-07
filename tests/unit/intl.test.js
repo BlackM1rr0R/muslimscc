@@ -15,6 +15,8 @@ import { stripTranslationNotes } from '../../src/utils/quranText.js'
 import { pickBrowserLang } from '../../src/utils/browserLang.js'
 
 const ROOT = path.resolve(__dirname, '../..')
+// Dilin Quran nəşri: alquran.cloud (quran) və ya QuranEnc (qe → qe.<açar>)
+const edId = (c) => EXTRA_LANGS[c].quran || `qe.${EXTRA_LANGS[c].qe}`
 // İnterfeysi hələ tərcümə olunmamış ilk əlavə dil (yalnız Quran) — testlər dil
 // lüğətləri artdıqca sınmasın; hamısı tərcümə olunanda həmin testlər atlanır
 const Q = EXTRA_CODES.find(c => !EXTRA_LANGS[c].ui)
@@ -34,12 +36,13 @@ describe('reyestr', () => {
       const x = EXTRA_LANGS[c]
       expect(x.name && x.en && x.by, c).toBeTruthy()
       expect(['ltr', 'rtl']).toContain(x.dir)
-      expect(LOCALES[c]).toMatch(/^[a-z]{2}_[A-Z]{2}$/)
+      expect(LOCALES[c]).toMatch(/^[a-z]{2,3}_[A-Z]{2}$/)
       expect(INTL_QURAN[c], c).toBeTruthy()
       expect(INTL_BODY_UI[c], c).toBeTruthy()
       expect(INTL_QURAN_LIST[c], c).toBeTruthy()
       expect(INTL_QURAN_SECTION[c], c).toBeTruthy()
-      const file = path.join(ROOT, 'seo-data', 'quran', `${x.quran}.json`)
+      expect(Boolean(x.quran) !== Boolean(x.qe), `${c}: quran VƏ YA qe`).toBe(true)
+      const file = path.join(ROOT, 'seo-data', 'quran', `${edId(c)}.json`)
       expect(fs.existsSync(file), file).toBe(true)
     }
   })
@@ -47,28 +50,31 @@ describe('reyestr', () => {
   it('nəşr faylı tamdır: 114 surə, boş ayə yoxdur', () => {
     const meta = JSON.parse(fs.readFileSync(path.join(ROOT, 'seo-data', 'quran', 'meta.json'), 'utf8'))
     for (const c of EXTRA_CODES) {
-      const d = JSON.parse(fs.readFileSync(path.join(ROOT, 'seo-data', 'quran', `${EXTRA_LANGS[c].quran}.json`), 'utf8'))
-      expect(d.edition.identifier).toBe(EXTRA_LANGS[c].quran)
+      const d = JSON.parse(fs.readFileSync(path.join(ROOT, 'seo-data', 'quran', `${edId(c)}.json`), 'utf8'))
+      expect(d.edition.identifier).toBe(edId(c))
       expect(d.ayahs).toHaveLength(114)
       d.ayahs.forEach((s, i) => {
         expect(s.length, `${c} ${i + 1}`).toBe(meta[i].ayahs)
         for (const a of s) expect(stripTranslationNotes(a).length, `${c} ${i + 1}`).toBeGreaterThan(0)
       })
     }
-  })
+  }, 60_000) // 45 nəşr faylı (~87 MB) oxunur
 
   it('bəsmələ mətni nəşrin Fatihə 1:1 ayəsindən götürülüb (hərfbəhərf)', () => {
     for (const c of EXTRA_CODES) {
-      const d = JSON.parse(fs.readFileSync(path.join(ROOT, 'seo-data', 'quran', `${EXTRA_LANGS[c].quran}.json`), 'utf8'))
+      const d = JSON.parse(fs.readFileSync(path.join(ROOT, 'seo-data', 'quran', `${edId(c)}.json`), 'utf8'))
       expect(EXTRA_LANGS[c].basmala.length, c).toBeGreaterThan(5)
-      expect(stripTranslationNotes(d.ayahs[0][0]).startsWith(EXTRA_LANGS[c].basmala), c).toBe(true)
+      // QuranEnc mətnindəki haşiyə işarələri ([1], (1), *, başdakı ayə nömrəsi) bəsmələdə atılır
+      const clean = (t) => String(t).replace(/\[\d+\]|\(\d+\)|\*/g, '').replace(/^[\s\d০-৯૦-૯०-९.)-]+/, '').replace(/\s+/g, ' ').trim()
+      const src = EXTRA_LANGS[c].qe ? clean(d.ayahs[0][0]) : stripTranslationNotes(d.ayahs[0][0])
+      expect(src.startsWith(EXTRA_LANGS[c].basmala), c).toBe(true)
     }
   })
 
   it('tərcüməçinin latın yazılışı var (lisenziyalar səhifəsi bütün dillərdə)', () => {
     for (const c of EXTRA_CODES) {
       const v = EXTRA_LANGS[c].byLatin || EXTRA_LANGS[c].by
-      expect(v, c).toMatch(/^[\p{Script=Latin} .,'-]+$/u)
+      expect(v, c).toMatch(/^[\p{Script=Latin}\d .,'-]+$/u)
       expect(v, c).not.toMatch(/\b(the|and|of)\b/)
     }
   })
@@ -208,6 +214,6 @@ describe('köməkçilər', () => {
     expect(pickBrowserLang(['id-ID', 'en'], 'Asia/Jakarta', ALL_LANGS)).toBe('id')
     expect(pickBrowserLang(['ur-PK'], 'Asia/Karachi', ALL_LANGS)).toBe('ur')
     expect(pickBrowserLang(['ru-RU'], 'Asia/Baku', ALL_LANGS)).toBe('az')
-    expect(pickBrowserLang(['ja-JP'], 'Asia/Tokyo', ALL_LANGS)).toBe('en')
+    expect(pickBrowserLang(['ko-KR'], 'Asia/Seoul', ALL_LANGS)).toBe('en')
   })
 })

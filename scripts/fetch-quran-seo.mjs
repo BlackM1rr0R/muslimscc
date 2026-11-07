@@ -35,7 +35,11 @@ const API = 'https://api.alquran.cloud/v1'
 // yoxlanılıb; audio sahələri olmadığı üçün yığcamdır).
 // + əlavə dillərin nəşrləri (src/seo/langs.js → EXTRA_LANGS[..].quran).
 const EDITIONS = ['quran-uthmani', 'az.mammadaliyev', 'en.asad', 'ru.kuliev', 'tr.diyanet', 'ar.muyassar',
-  ...Object.values(EXTRA_LANGS).map(l => l.quran)]
+  ...Object.values(EXTRA_LANGS).filter(l => l.quran).map(l => l.quran)]
+// QuranEnc.com nəşrləri (EXTRA_LANGS[..].qe): Rəvvad / Kral Fəhd Kompleksinin
+// yoxlanılmış tərcümələri — surə-surə çəkilir, seo-data/quran/qe.<açar>.json
+const QE_KEYS = Object.values(EXTRA_LANGS).filter(l => l.qe).map(l => l.qe)
+const QE_API = 'https://quranenc.com/api/v1'
 // Mövcud nəşr faylı yenidən çəkilmir (mətn dəyişmir); --force — hamısını yenilə
 const FORCE = process.argv.includes('--force')
 
@@ -80,6 +84,52 @@ for (const ed of EDITIONS) {
   const edition = { identifier: ed, name: d.edition.name, englishName: d.edition.englishName, language: d.edition.language }
   fs.writeFileSync(path.join(OUT, `${ed}.json`), JSON.stringify({ edition, ayahs }))
   console.log(`✓ ${ed}.json`)
+}
+
+// ── QuranEnc nəşrləri ──
+async function qeJSON(url) {
+  for (let i = 0; i < 4; i++) {
+    try {
+      const r = await fetch(url)
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      return await r.json()
+    } catch (e) {
+      if (i === 3) throw e
+      await new Promise(res => setTimeout(res, 1500 * (i + 1)))
+    }
+  }
+}
+if (QE_KEYS.length) {
+  const list = (await qeJSON(`${QE_API}/translations/list`)).translations || []
+  // 5 nəşr paralel (hər biri öz içində ardıcıl) — 25 dil × 114 surə ardıcıl ~2 saat çəkirdi
+  const one = async (key) => {
+    const file = path.join(OUT, `qe.${key}.json`)
+    if (!FORCE && fs.existsSync(file)) { console.log(`· qe.${key}.json (var)`); return }
+    const info = list.find(t => t.key === key)
+    if (!info) throw new Error(`${key}: QuranEnc siyahısında yoxdur`)
+    const ayahs = []
+    const notes = []
+    for (let n = 1; n <= 114; n++) {
+      const rows = (await qeJSON(`${QE_API}/translation/sura/${key}/${n}`)).result || []
+      const tr = new Array(meta[n - 1].ayahs).fill('')
+      const fn = new Array(meta[n - 1].ayahs).fill('')
+      for (const x of rows) {
+        const a = Number(x.aya)
+        if (Number(x.sura) !== n || !(a >= 1 && a <= tr.length)) continue
+        tr[a - 1] = String(x.translation || '').trim()
+        fn[a - 1] = String(x.footnotes || '').trim()
+      }
+      if (tr.some(t => !t)) throw new Error(`${key}: surə ${n} natamamdır`)
+      ayahs.push(tr)
+      notes.push(fn)
+      await new Promise(res => setTimeout(res, 120))   // QuranEnc-ə nəzakətli temp
+    }
+    const edition = { identifier: `qe.${key}`, name: info.title, version: info.version, updated: info.last_update, source: 'QuranEnc.com' }
+    fs.writeFileSync(file, JSON.stringify({ edition, ayahs, notes }))
+    console.log(`✓ qe.${key}.json (${info.version})`)
+  }
+  const queue = [...QE_KEYS]
+  await Promise.all(Array.from({ length: 5 }, async () => { while (queue.length) await one(queue.shift()) }))
 }
 
 const slugs = meta.map(s => slugify(s.en))

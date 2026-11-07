@@ -181,3 +181,38 @@ export const INTL_BODY_UI = {
   ps: { crumbs: 'تاسو دلته یاست', number: 'شمېره', ayahs: 'آیتونه', place: 'د نزول ځای', mecca: 'مکه', medina: 'مدینه', prevSurah: 'مخکنی سورت', nextSurah: 'بل سورت', allSurahs: 'ټول ۱۱۴ سورتونه', translation: 'ژباړه', textSource: 'عربي متن: Tanzil Project (CC BY 3.0)، پرته له بدلون.', licenses: 'جوازونه او سرچینې', surahList: 'د قرآن کریم ۱۱۴ سورتونه', book: 'قرآن کریم' },
   zh: { crumbs: '当前位置', number: '章序', ayahs: '节数', place: '降示地', mecca: '麦加', medina: '麦地那', prevSurah: '上一章', nextSurah: '下一章', allSurahs: '全部114章', translation: '译文', textSource: '阿拉伯语原文：Tanzil Project（CC BY 3.0），未作任何改动。', licenses: '许可与来源', surahList: '古兰经114章', book: '古兰经' },
 }
+
+// ── Məlumatdan qurulan dillər (QuranEnc dilləri, 2026-11-07) ──
+// src/seo/intlTpl.js — hər dil üçün şablon sətirləri: {name} {n} {ayahs} {place}
+// (place — placeMecca / placeMedina). Kodda şablon funksiyası yazmadan dil əlavə olunur.
+import { INTL_TPL } from './intlTpl.js'
+
+const fillTpl = (str, s, tpl) => String(str || '').replace(/\{(name|n|ayahs|place)\}/g, (_, k) =>
+  (k === 'place' ? (s.medinan ? tpl.placeMedina : tpl.placeMecca) : String(s[k])))
+
+/** Mətni cümlə sərhədində max-a sığdır (heç bir cümlə sığmırsa — olduğu kimi; clamp kəsər). */
+function fitSentences(text, max) {
+  if (text.length <= max) return text
+  const parts = text.split(/(?<=[.!?。।።۔])\s+/)
+  let out = ''
+  for (const p of parts) {
+    const next = out ? `${out} ${p}` : p
+    if (next.length > max) break
+    out = next
+  }
+  return out || text
+}
+
+const UI_KEYS = ['crumbs', 'number', 'ayahs', 'place', 'mecca', 'medina', 'prevSurah', 'nextSurah', 'allSurahs',
+  'translation', 'textSource', 'licenses', 'surahList', 'book']
+for (const [c, tpl] of Object.entries(INTL_TPL)) {
+  if (INTL_QURAN[c]) continue
+  INTL_QURAN[c] = {
+    h1: (s) => fillTpl(tpl.h1, s, tpl),
+    t: (s) => fit(fillTpl(tpl.t1, s, tpl), fillTpl(tpl.t2, s, tpl), fillTpl(tpl.t3, s, tpl)),
+    // Uzun surə adında (Aal-i-Imraan) 160-ı keçirsə — son cümlə(lər) atılır (ortadan "…" ilə kəsilməsin)
+    d: (s) => fitSentences(fillTpl(tpl.d, s, tpl), 160),
+    intro: (s) => fillTpl(tpl.intro, s, tpl),
+  }
+  INTL_BODY_UI[c] = Object.fromEntries(UI_KEYS.map(k => [k, tpl[k]]))
+}

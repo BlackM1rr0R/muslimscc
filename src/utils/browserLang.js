@@ -17,7 +17,9 @@
 const BOT_RE = /bot|crawl|spider|slurp|lighthouse|headless|preview|facebookexternalhit|embedly|whatsapp|telegram/i
 
 /** Dil kodunun əsası: "ru-RU" → "ru", "zh-Hant-TW" → "zh". */
-const base = (code) => String(code || '').toLowerCase().split(/[-_]/)[0]
+// Brauzerin kodu → saytın kodu: filippin dili "fil", sorani kürd dili "ckb" kimi gəlir
+const ALIAS = { fil: 'tl', ckb: 'ku', kmr: 'ku' }
+const base = (code) => { const b = String(code || '').toLowerCase().split(/[-_]/)[0]; return ALIAS[b] || b }
 
 /**
  * Brauzerin dillərinə görə saytın dili.

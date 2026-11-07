@@ -68,7 +68,8 @@ describe('ui dilləri', () => {
   })
 })
 
-describe('lüğət faylları', () => {
+// 20+ lüğət faylı (hər biri ~400 KB) oxunur — standart 5 san. azdır
+describe('lüğət faylları', { timeout: 60_000 }, () => {
   const files = fs.readdirSync(I18N).filter(f => /^[a-z]{2}\.json$/.test(f))
   const tokens = (s) => (String(s).match(/\{[\w.]+\}|\*\*|\[[^\]]*\]\([^)]*\)|<\/?\w+[^>]*>/g) || [])
     .map(x => (x.startsWith('[') ? x.replace(/^\[[^\]]*\]/, '[]') : x)).sort()

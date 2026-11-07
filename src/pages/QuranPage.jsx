@@ -38,7 +38,9 @@ function staticSurahName(n, lang) {
 // Əlavə dillər (/id/quran…) — src/seo/langs.js-dəki rəsmi nəşr; interfeys
 // orada ingiliscədir (lang = 'en'), tərcümə isə URL-in dilindədir (tlang)
 const EDITION_MAP = { az:'az.mammadaliyev', en:'en.asad', ru:'ru.kuliev', ar:'ar.muyassar', tr:'tr.diyanet',
-  ...Object.fromEntries(EXTRA_CODES.map(c => [c, EXTRA_LANGS[c].quran])) }
+  // QuranEnc dilləri (qe) — əsas nəşr ingiliscədir, amma onun mətni göstərilmir:
+  // tərcümə QuranEnc-dən gəlir (aşağıda transKey məcburidir)
+  ...Object.fromEntries(EXTRA_CODES.map(c => [c, EXTRA_LANGS[c].quran || 'en.asad'])) }
 /** Nəşrin ayə mətni göstəriş üçün (fars nəşrində [[…]] lüğət qeydləri ayrılır). */
 const trText = (text, lang) => (EXTRA_LANGS[lang]?.notes ? stripTranslationNotes(text) : (text || ''))
 
@@ -179,7 +181,8 @@ function useVerseOfDay(lang) {
         const [ar, tr] = Array.isArray(d?.data) ? d.data : []
         if (!ar?.text || !ar.surah?.number) return
         if (lang !== 'ar' && tr?.edition?.identifier !== edition) return
-        setV({ s: ar.surah.number, a: ar.numberInSurah, ar: displayAyah(ar.text, ar.surah.number, ar.numberInSurah - 1), tr: lang === 'ar' ? '' : trText(tr?.text, lang) })
+        // QuranEnc dilində (qe) günün ayəsi tərcüməsiz — ingiliscə nəşr başqa dilin səhifəsinə düşməsin
+        setV({ s: ar.surah.number, a: ar.numberInSurah, ar: displayAyah(ar.text, ar.surah.number, ar.numberInSurah - 1), tr: lang === 'ar' || EXTRA_LANGS[lang]?.qe ? '' : trText(tr?.text, lang) })
       })
       .catch(() => {})
     return () => ctrl.abort()
@@ -788,16 +791,23 @@ export default function QuranPage() {
   const [transChoices, setTransChoices] = useState(readTranslationChoices)
   // Əlavə dildə QuranEnc seçicisi yoxdur (seçim interfeys dilinə — en —
   // bağlıdır və rəsmi nəşri ingiliscə ilə əvəz edərdi)
-  const transKey = extra ? '' : translationFor(lang, transChoices)
+  // QuranEnc dili (src/seo/langs.js → qe): həmin dilin yoxlanılmış QuranEnc tərcüməsi məcburidir
+  const forcedQe = (extra && EXTRA_LANGS[tlang].qe) || ''
+  const transKey = extra ? forcedQe : translationFor(lang, transChoices)
   const qeOptions = useMemo(() => (extra ? [] : quranEncOptions(lang)), [lang, extra])
   const surahReady = !!(selected && surah && surah.number === selected)
-  const qe = useQuranEnc(transKey, surahReady ? selected : 0, surahReady ? surah.verses.length : 0, lang)
+  const qe = useQuranEnc(transKey, surahReady ? selected : 0, surahReady ? surah.verses.length : 0, forcedQe ? tlang : lang)
   // Göstərilən ayələr: QuranEnc hazırdırsa tərcümə (və haşiyə) ondan; yoxsa standart
   const shownVerses = useMemo(() => {
     if (!surahReady) return null
-    if (!qe.rows || qe.rows.length !== surah.verses.length) return surah.verses
+    if (!qe.rows || qe.rows.length !== surah.verses.length) {
+      // Məcburi QuranEnc yüklənənədək ingiliscə əsas nəşr göstərilmir (yanıb-sönməsin);
+      // QuranEnc alınmasa — heç olmasa ingiliscə məna
+      if (forcedQe && !qe.error) return surah.verses.map(v => ({ ...v, tr: '' }))
+      return surah.verses
+    }
     return surah.verses.map((v, i) => ({ ...v, tr: qe.rows[i].tr, fn: qe.rows[i].fn }))
-  }, [surahReady, surah, qe.rows])
+  }, [surahReady, surah, qe.rows, qe.error, forcedQe])
   const qeShown = !!(surahReady && qe.rows && shownVerses !== surah.verses)
   const xlCard = useMemo(() => ({ ...(pickUi(V32_LABELS, lang)), notes: ql.notes }), [lang, ql])
   const rl = pickUi(RETRY_LABELS, lang)
@@ -1305,7 +1315,7 @@ export default function QuranPage() {
     const prevLabel = stripArrows(t.prevSurah)
     const nextLabel = stripArrows(t.nextSurah)
     const bmLabel = pickUi(BOOKMARK_LABELS, lang, 'en')
-    const rawMeaning = !ready ? '' : surahMeaning(surah, lang)
+    const rawMeaning = !ready ? '' : (extra ? '' : surahMeaning(surah, lang))
     // Məna adla eynidirsə (məs. "Yasin") təkrarlamırıq
     const meaning = ready && rawMeaning !== surahTitle(surah, lang) ? rawMeaning : ''
     // Mədinə mushafında səhifələr və cüzlər (yerli cədvəllər — şəbəkəsiz)
@@ -1464,7 +1474,7 @@ export default function QuranPage() {
             {memorize && <p className="qp-memo-hint" role="status"><Icon name="eye" size={16} />{xl.memorizeHint}</p>}
             <div className={`ayahs-list${memorize ? ' is-memorize' : ''}`} ref={listRef} style={{ '--qp-scale': fontSize }}>
               {shownVerses?.map(v => (
-                <AyahCard key={v.n} verse={v} surahNum={surah.number} lang={lang} trLang={qeShown ? lang : tlang} tafsirLabel={tafsirLabel} playLabels={playLabels}
+                <AyahCard key={v.n} verse={v} surahNum={surah.number} lang={lang} trLang={qeShown && !forcedQe ? lang : (qe.error && forcedQe ? 'en' : tlang)} tafsirLabel={tafsirLabel} playLabels={playLabels}
                   showTrans={!hasTafsir && showTrans} showTafsir={hasTafsir && showTafsir}
                   active={player.current === v.n} playing={playerBusy && player.current === v.n}
                   flash={flash.n === v.n ? flash.k : 0}
@@ -1752,7 +1762,7 @@ export default function QuranPage() {
                   // ərəbcədə ingiliscə məna yox, "7 آيات · مكية"
                   const displayMeta = isAr
                     ? `${ayahCountText(s.numberOfAyahs, lang)} · ${revelationLabel(s.revelationType, lang)}`
-                    : [surahMeaning(s, lang), ayahCountText(s.numberOfAyahs, lang)].filter(Boolean).join(' · ')
+                    : [extra ? '' : surahMeaning(s, lang), ayahCountText(s.numberOfAyahs, lang)].filter(Boolean).join(' · ')
                   const isMadani = s.revelationType === 'Medinan'
                   const wasRead = !!stats.reads[s.number]
                   const here = bookmark?.surah === s.number

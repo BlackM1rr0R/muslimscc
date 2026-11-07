@@ -23,7 +23,7 @@ test('indoneziyaca surə: nəşr, dil atributları, başlıq və tərcüməçi',
   await expect(page.locator('.qp-trans-src__meta')).toContainText('Kementerian Agama RI')
   // Dil düyməsi URL-in dilini göstərir; hreflang 25 dil + x-default
   await expect(page.locator('.lang-btn .lang-code')).toHaveText('ID')
-  await expect(page.locator('link[rel="alternate"][hreflang]')).toHaveCount(26)
+  await expect(page.locator('link[rel="alternate"][hreflang]')).toHaveCount(5 + EXTRA_CODES.length + 1) // 5 əsas + əlavə dillər + x-default
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://muslims.cc/id/quran/1-al-faatiha')
   // Növbəti surə linki də indoneziyacadır
   await expect(page.locator('.reader-pager-btn.next')).toHaveAttribute('href', /^\/id\/quran\/2-/)
@@ -57,7 +57,7 @@ test('dil menyusu: "Digər dillər" → həmin dildə Quran / eyni səhifə', as
   await settle(page)
   await page.locator('.lang-btn').click()
   await expect(page.locator('.lang-more-head')).toHaveText('Digər dillər')
-  await expect(page.locator('.lang-more .lang-option')).toHaveCount(20)
+  await expect(page.locator('.lang-more .lang-option')).toHaveCount(EXTRA_CODES.length)
   // Yalnız Quranı olan dil → həmin dildə Quran; interfeysi tərcümə olunmuş dil → eyni səhifə
   if (QONLY.length) {
     await page.locator('.lang-more .lang-option', { hasText: EXTRA_LANGS[QONLY[0]].name }).click()

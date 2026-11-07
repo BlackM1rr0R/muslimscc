@@ -7,6 +7,7 @@
 //   • sitemap indeksi və bölmə sitemap-ları
 // ═══════════════════════════════════════════════════════
 import { test, expect, expectCleanConsole, settle } from './fixtures.js'
+import { EXTRA_CODES } from '../../src/seo/langs.js'
 
 // Bəqərə üçün fikstür (fixtures.js hər surəni 1-ci nömrə ilə qaytarır)
 function baqara(identifier) {
@@ -95,8 +96,8 @@ test.describe('xam prerender HTML (JS-siz robotun gördüyü)', () => {
     expect(idx).toContain('<sitemapindex')
     for (const f of ['pages', 'quran', 'names', 'sahaba']) expect(idx).toContain(`https://muslims.cc/sitemap-${f}.xml`)
     const q = await raw(request, '/sitemap-quran.xml')
-    // Quran: 5 əsas + 20 əlavə dil (src/seo/langs.js)
-    expect((q.match(/<loc>/g) || []).length).toBe(114 * 25)
+    // Quran: 5 əsas + bütün əlavə dillər (src/seo/langs.js)
+    expect((q.match(/<loc>/g) || []).length).toBe(114 * (5 + EXTRA_CODES.length))
     expect(q).toContain('<loc>https://muslims.cc/ru/quran/36-yaseen</loc>')
     expect(q).toContain('<loc>https://muslims.cc/id/quran/36-yaseen</loc>')
     expect(q).toContain('hreflang="ur" href="https://muslims.cc/ur/quran/36-yaseen"')

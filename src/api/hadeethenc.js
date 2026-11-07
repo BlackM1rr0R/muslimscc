@@ -24,7 +24,9 @@ export const HE_SITE = 'https://hadeethenc.com'
 /** Saytımızın 5 dili HadeethEnc-də var (2026-11 yoxlanıb). */
 export const HE_LANGS = ['az', 'en', 'ru', 'tr', 'ar']
 /** Əlavə dillər (src/seo/langs.js) — 20-sinin hamısı HadeethEnc-də var (2026-11-06, /api/v1/languages). */
-export const HE_EXTRA_LANGS = ['id', 'ur', 'bn', 'fa', 'ms', 'fr', 'de', 'es', 'pt', 'hi', 'uz', 'sw', 'ha', 'so', 'ps', 'bs', 'sq', 'it', 'nl', 'zh']
+export const HE_EXTRA_LANGS = ['id', 'ur', 'bn', 'fa', 'ms', 'fr', 'de', 'es', 'pt', 'hi', 'uz', 'sw', 'ha', 'so', 'ps', 'bs', 'sq', 'it', 'nl', 'zh',
+  // 2026-11-07 — QuranEnc dilləri; HadeethEnc-də hamısı var
+  'ta', 'ml', 'te', 'kn', 'gu', 'pa', 'as', 'am', 'om', 'yo', 'ff', 'rw', 'ku', 'ky', 'tg', 'ug', 'th', 'vi', 'tl', 'km', 'ja', 'sv', 'ro', 'sr', 'si']
 export const HE_ALL_LANGS = [...HE_LANGS, ...HE_EXTRA_LANGS]
 
 const PREFIX = 'he1:'

@@ -23,7 +23,8 @@
 // ═══════════════════════════════════════════════════════
 
 // code: { name — öz dilində ad (dil seçicisində), en — ingiliscə ad,
-//         dir, locale (og:locale), quran — alquran.cloud nəşri, by — tərcüməçi
+//         dir, locale (og:locale), quran — alquran.cloud nəşri VƏ YA qe — QuranEnc.com
+//         tərcümə açarı (oxuyucu onu avtomatik açır), by — tərcüməçi
 //         (nəşrin öz dilində; mənbə sətri), byLatin — latın yazılışı (by latın
 //         deyilsə; lisenziyalar səhifəsi — 5 dilin hamısında oxunsun),
 //         script: 'arab' — surə adı ərəbcə yazılır (urdu, fars, puştu),
@@ -55,6 +56,34 @@ export const EXTRA_LANGS = {
   it: { name: 'Italiano', en: 'Italian', ui: true, dir: 'ltr', locale: 'it_IT', quran: 'it.piccardo', by: 'Hamza Roberto Piccardo', basmala: 'In nome di Allah, il Compassionevole, il Misericordioso' },
   nl: { name: 'Nederlands', en: 'Dutch', ui: true, dir: 'ltr', locale: 'nl_NL', quran: 'nl.siregar', by: 'Sofian S. Siregar', basmala: 'In de naam van Allah, de Erbarmer, de Meest Barmhartige.' },
   zh: { name: '中文', en: 'Chinese', ui: true, dir: 'ltr', locale: 'zh_CN', quran: 'zh.jian', by: '马坚', byLatin: 'Ma Jian', basmala: '奉至仁至慈的真主之名' },
+  // ── QuranEnc.com nəşrləri (qe — Rəvvad Tərcümə Mərkəzi və digər yoxlanılmış
+  //    tərcümələr; Quran mətni oxuyucuda QuranEnc API-dən, statik blokda
+  //    seo-data/quran/qe.<açar>.json-dan). 2026-11-07 — 50 dilə çatmaq üçün ──
+  ta: { name: 'தமிழ்', en: 'Tamil', ui: true, dir: 'ltr', locale: 'ta_IN', qe: 'tamil_omar', by: 'Omar Sharif', basmala: 'பேரருளாளன் பேரன்பாளன் அல்லாஹ்வின் பெயரால்.' },
+  ml: { name: 'മലയാളം', en: 'Malayalam', ui: true, dir: 'ltr', locale: 'ml_IN', qe: 'malayalam_kunhi', by: 'Abdul Hamid Haidar, Kunhi Muhammad', basmala: 'പരമകാരുണികനും കരുണാനിധിയുമായ അല്ലാഹുവിന്റെ തിരുനാമത്തില്‍' },
+  te: { name: 'తెలుగు', en: 'Telugu', ui: true, dir: 'ltr', locale: 'te_IN', qe: 'telugu_muhammad', by: 'Abdurrahim ibn Muhammad', basmala: 'అనంత కరుణామయుడు అపార కరుణా ప్రదాత అయిన అల్లాహ్ పేరుతో' },
+  kn: { name: 'ಕನ್ನಡ', en: 'Kannada', ui: true, dir: 'ltr', locale: 'kn_IN', qe: 'kannada_hamza', by: 'Hamza Butur', basmala: 'ಪರಮ ದಯಾಮಯನೂ ಕರುಣಾನಿಧಿಯೂ ಆದ ಅಲ್ಲಾಹನ ನಾಮದಿಂದ.' },
+  gu: { name: 'ગુજરાતી', en: 'Gujarati', ui: true, dir: 'ltr', locale: 'gu_IN', qe: 'gujarati_omari', by: 'Rabella Al-Omari', basmala: 'અલ્લાહના નામથી, (શરૂ કરું છું), જે અત્યંત કૃપાળુ અને દયાળુ છે.' },
+  pa: { name: 'ਪੰਜਾਬੀ', en: 'Punjabi', ui: true, dir: 'ltr', locale: 'pa_IN', qe: 'punjabi_arif', by: 'Arif Haleem', basmala: 'ਸ਼ੁਰੂ (ਕਰਦਾ ਹਾਂ) ਅੱਲਾਹ ਦੇ ਨਾਂ ਨਾਲ ਜਿਹੜਾ ਅਤਿਅੰਤ ਮਿਹਰਬਾਨ ਅਤੇ ਰਹਿਮ ਫ਼ਰਮਾਉਣ ਵਾਲਾ ਹੈ।' },
+  as: { name: 'অসমীয়া', en: 'Assamese', dir: 'ltr', locale: 'as_IN', qe: 'assamese_rafeeq', by: 'Rafiqul Islam Habibur-Rahman', basmala: '(আৰম্ভ কৰিছোঁ) পৰম কৰুণাময় পৰম দয়ালু আল্লাহৰ নামত।' },
+  am: { name: 'አማርኛ', en: 'Amharic', dir: 'ltr', locale: 'am_ET', qe: 'amharic_zain', by: 'Africa Academy', basmala: 'በአላህ ስም እጅግ በጣም ሩህሩህ በጣም አዛኝ በሆነው (እጀምራለሁ)።' },
+  om: { name: 'Afaan Oromoo', en: 'Oromo', dir: 'ltr', locale: 'om_ET', qe: 'oromo_rwwad', by: 'Rowwad Translation Center', basmala: '(Nin jalqaba) Maqaa Rabbii Akkaan Mararfataa Akkaan Rahmata Godhaa Taheetiin.' },
+  yo: { name: 'Yorùbá', en: 'Yoruba', dir: 'ltr', locale: 'yo_NG', qe: 'yoruba_mikail', by: 'Abu Rahimah Mikael', basmala: 'Ní orúkọ Allāhu, Àjọkẹ́-ayé, Àṣàkẹ́-ọ̀run.' },
+  ff: { name: 'Fulfulde', en: 'Fula', dir: 'ltr', locale: 'ff_SN', qe: 'fulani_rwwad', by: 'Rowwad Translation Center', basmala: 'He innde Allah jurumdeero jormotooɗo oo' },
+  rw: { name: 'Kinyarwanda', en: 'Kinyarwanda', dir: 'ltr', locale: 'rw_RW', qe: 'kinyarwanda_assoc', by: 'Rwanda Muslim Association', basmala: 'Ku izina rya Allah, Nyirimpuhwe, Nyirimbabazi.' },
+  ku: { name: 'کوردی', en: 'Kurdish', dir: 'rtl', locale: 'ckb_IQ', qe: 'kurdish_bamoki', by: 'Muhammad Salih Bamoki', script: 'arab', basmala: 'بەناوی خوای بەخشندەی میهرەبان' },
+  ky: { name: 'Кыргызча', en: 'Kyrgyz', dir: 'ltr', locale: 'ky_KG', qe: 'kyrgyz_hakimov', by: 'Shamsuddin Hakimov', basmala: 'Ырайымдуу, Мээримдүү Аллахтын аты менен (баштаймын).' },
+  tg: { name: 'Тоҷикӣ', en: 'Tajik', dir: 'ltr', locale: 'tg_TJ', qe: 'tajik_arifi', by: 'Rowwad Translation Center', basmala: 'Ба номи Худованди бахшандаи меҳрубон.' },
+  ug: { name: 'ئۇيغۇرچە', en: 'Uyghur', dir: 'rtl', locale: 'ug_CN', qe: 'uyghur_saleh', by: 'Muhammad Saleh', script: 'arab', basmala: 'ناھايىتى شەپقەتلىك ۋە مېھرىبان ئاللاھنىڭ ئىسمى بىلەن باشلايمەن.' },
+  th: { name: 'ไทย', en: 'Thai', dir: 'ltr', locale: 'th_TH', qe: 'thai_rwwad', by: 'Rowwad Translation Center', basmala: 'ด้วยพระนามของอัลลอฮ์ ผู้ทรงกรุณาปรานี ผู้ทรงเมตตาเสมอ' },
+  vi: { name: 'Tiếng Việt', en: 'Vietnamese', dir: 'ltr', locale: 'vi_VN', qe: 'vietnamese_rwwad', by: 'Rowwad Translation Center', basmala: 'Nhân danh Allah, Đấng Độ Lượng, Đấng Khoan Dung' },
+  tl: { name: 'Filipino', en: 'Filipino', dir: 'ltr', locale: 'fil_PH', qe: 'tagalog_rwwad', by: 'Rowwad Translation Center', basmala: 'Sa ngalan ni Allāh, ang Napakamaawain, ang Maawain.' },
+  km: { name: 'ខ្មែរ', en: 'Khmer', dir: 'ltr', locale: 'km_KH', qe: 'khmer_rwwad', by: 'Rowwad Translation Center', basmala: 'ក្នុងព្រះនាមអល់ឡោះ មហាសប្បុរស មហាអាណិតស្រលាញ់។' },
+  ja: { name: '日本語', en: 'Japanese', dir: 'ltr', locale: 'ja_JP', qe: 'japanese_saeedsato', by: 'Saeed Sato', basmala: '慈悲あまねく慈愛深きアッラーの御名において。' },
+  sv: { name: 'Svenska', en: 'Swedish', dir: 'ltr', locale: 'sv_SE', qe: 'swedish_rwwad', by: 'Rowwad Translation Center', basmala: 'I Guds namn, den Nåderike, den Barmhärtige.' },
+  ro: { name: 'Română', en: 'Romanian', dir: 'ltr', locale: 'ro_RO', qe: 'romanian_project', by: 'Islam4ro.com', basmala: 'În Numele lui Allah Cel Milostiv [Ar-Rahman], Îndurător [Ar-Rahim],' },
+  sr: { name: 'Српски', en: 'Serbian', dir: 'ltr', locale: 'sr_RS', qe: 'serbian_rwwad', by: 'Rowwad Translation Center', basmala: 'У име Аллаха, Милостивог, Самилосног.' },
+  si: { name: 'සිංහල', en: 'Sinhala', dir: 'ltr', locale: 'si_LK', qe: 'sinhalese_mahir', by: 'Rowwad Translation Center', basmala: 'අපරිමිත දයාන්විත අසමසම කරුණාන්විත වූ අල්ලාහ්ගේ නාමයෙනි.' },
 }
 
 export const EXTRA_CODES = Object.keys(EXTRA_LANGS)

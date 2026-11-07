@@ -459,18 +459,18 @@ body {
 html[lang="ar"] body { font-family: var(--font-arabic-ui); }
 /* Urdu, fars, puştu (src/seo/langs.js — ərəb əlifbalı əlavə dillər): Inter-də bu
    hərflər yoxdur, sistem şriftinə düşürdü. IBM Plex Sans Arabic fars/urdu hərflərini də əhatə edir */
-html[lang="ur"] body, html[lang="fa"] body, html[lang="ps"] body { font-family: var(--font-arabic-ui); }
+html[lang="ur"] body, html[lang="fa"] body, html[lang="ps"] body, html[lang="ku"] body, html[lang="ug"] body { font-family: var(--font-arabic-ui); }
 /* Sağdan-sola səhifədə tərcüməsi olmayan (ingiliscə qalan) ayə/hədis mənası —
    istiqamət məzmundan (plaintext): dırnaq və nöqtə yanlış tərəfə düşmürdü */
 [dir="rtl"] .ui-quote__text, [dir="rtl"] .ui-quote__src { unicode-bidi: plaintext; text-align: start; }
-html[lang="ur"], html[lang="fa"], html[lang="ps"] { --font-display: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif; }
+html[lang="ur"], html[lang="fa"], html[lang="ps"], html[lang="ku"], html[lang="ug"] { --font-display: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif; }
 /* /ar başlıqları: Inter-də ərəb hərfi yoxdur — /ar-da başlıq rolu
    (--font-display → --font-heading) IBM Plex Sans Arabic-dir. */
 html[lang="ar"] { --font-display: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif; }
 
 /* Ərəb yazısı birləşikdir — hərf aralığı hərfləri qırır. Mono etiketlərin
    (eyebrow, cədvəl başlığı …) letter-spacing-i içindəki ərəbcəyə keçməsin. */
-:where([lang="ar"], [lang="ur"], [lang="fa"], [lang="ps"]), :where([lang="ar"], [lang="ur"], [lang="fa"], [lang="ps"]) * { letter-spacing: 0 !important; text-transform: none; }
+:where([lang="ar"], [lang="ur"], [lang="fa"], [lang="ps"], [lang="ku"], [lang="ug"]), :where([lang="ar"], [lang="ur"], [lang="fa"], [lang="ps"], [lang="ku"], [lang="ug"]) * { letter-spacing: 0 !important; text-transform: none; }
 
 a { color:inherit; text-decoration:none; }
 button { font-family:inherit; cursor:pointer; }

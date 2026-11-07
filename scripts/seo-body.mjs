@@ -48,7 +48,8 @@ const QURAN_DIR = path.join(ROOT, 'seo-data', 'quran')
 // (ərəbcədə ar.muyassar təfsiridir)
 // + əlavə dillər (src/seo/langs.js) — rəsmi nəşr, yalnız Quran səhifələri
 const EDITION = { az: 'az.mammadaliyev', en: 'en.asad', ru: 'ru.kuliev', ar: 'ar.muyassar', tr: 'tr.diyanet',
-  ...Object.fromEntries(EXTRA_CODES.map(c => [c, EXTRA_LANGS[c].quran])) }
+  // QuranEnc dilləri (qe) — seo-data/quran/qe.<açar>.json (scripts/fetch-quran-seo.mjs)
+  ...Object.fromEntries(EXTRA_CODES.map(c => [c, EXTRA_LANGS[c].quran || `qe.${EXTRA_LANGS[c].qe}`])) }
 /** Nəşrin ayə mətni (fars nəşrində [[…]] lüğət qeydləri ayrılır — QuranPage.jsx ilə eyni). */
 const trAyah = (text, lang) => (EXTRA_LANGS[lang]?.notes ? stripTranslationNotes(text) : (text || ''))
 
@@ -515,7 +516,10 @@ export function staticPreloadFor(key, lang, param = null) {
   if (key !== 'quran' || !EDITION[lang]) return ''
   const api = 'https://api.alquran.cloud/v1'
   const links = [`<link rel="preconnect" href="https://api.alquran.cloud" crossorigin />`]
-  if (param) links.push(`<link rel="preload" as="fetch" crossorigin="anonymous" href="${api}/surah/${param}/editions/ar.alafasy,${EDITION[lang]}" />`)
+  // QuranEnc dilində oxuyucu ərəb mətnini ar.alafasy,en.asad ilə, tərcüməni QuranEnc-dən alır (QuranPage.jsx)
+  const qe = EXTRA_LANGS[lang]?.qe
+  if (param) links.push(`<link rel="preload" as="fetch" crossorigin="anonymous" href="${api}/surah/${param}/editions/ar.alafasy,${qe ? 'en.asad' : EDITION[lang]}" />`)
+  if (param && qe) links.push(`<link rel="preload" as="fetch" crossorigin="anonymous" href="https://quranenc.com/api/v1/translation/sura/${qe}/${param}" />`)
   links.push(`<link rel="preload" as="fetch" crossorigin="anonymous" href="${api}/surah" />`)
   return links.map(l => '\n    ' + l).join('')
 }

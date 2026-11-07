@@ -334,6 +334,11 @@ const FONT_PRELOAD = {
   fa: ['ibm-plex-sans-arabic-arabic-400'],
   ps: ['ibm-plex-sans-arabic-arabic-400'],
   uz: ['inter-latin-var', 'inter-cyrillic-var'],
+  ku: ['ibm-plex-sans-arabic-arabic-400'],
+  ug: ['ibm-plex-sans-arabic-arabic-400'],
+  ky: ['inter-latin-var', 'inter-cyrillic-var'],
+  tg: ['inter-latin-var', 'inter-cyrillic-var'],
+  sr: ['inter-latin-var', 'inter-cyrillic-var'],
 }
 
 function makePreloader() {

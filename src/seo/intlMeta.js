@@ -37,3 +37,10 @@ export const INTL_QURAN_SECTION = {
   es: 'El Corán', pt: 'Alcorão', hi: 'क़ुरआन', uz: 'Қуръони Карим', sw: 'Qur’ani', ha: 'Alƙur’ani', so: 'Qur’aanka',
   ps: 'قرآن کریم', bs: 'Kur’an', sq: 'Kurani', it: 'Il Corano', nl: 'De Koran', zh: '古兰经',
 }
+
+// Məlumatdan qurulan dillər (src/seo/intlTplList.js — siyahı title/description, bölmə adı)
+import { INTL_TPL_LIST } from './intlTplList.js'
+for (const [c, x] of Object.entries(INTL_TPL_LIST)) {
+  if (!INTL_QURAN_LIST[c]) INTL_QURAN_LIST[c] = { t: x.listT, d: x.listD }
+  if (!INTL_QURAN_SECTION[c]) INTL_QURAN_SECTION[c] = x.section
+}

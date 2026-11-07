@@ -33,7 +33,8 @@ const crypto = require('node:crypto')
 
 // 5 əsas dil + Quranın əlavə dilləri (src/seo/langs.js → EXTRA_LANGS ilə EYNİ;
 // tests/unit/intl.test.js sinxronluğu yoxlayır) — /id/quran "id" dili sayılsın
-const EXTRA_LANGS = ['id', 'ur', 'bn', 'fa', 'ms', 'fr', 'de', 'es', 'pt', 'hi', 'uz', 'sw', 'ha', 'so', 'ps', 'bs', 'sq', 'it', 'nl', 'zh']
+const EXTRA_LANGS = ['id', 'ur', 'bn', 'fa', 'ms', 'fr', 'de', 'es', 'pt', 'hi', 'uz', 'sw', 'ha', 'so', 'ps', 'bs', 'sq', 'it', 'nl', 'zh',
+  'ta', 'ml', 'te', 'kn', 'gu', 'pa', 'as', 'am', 'om', 'yo', 'ff', 'rw', 'ku', 'ky', 'tg', 'ug', 'th', 'vi', 'tl', 'km', 'ja', 'sv', 'ro', 'sr', 'si']
 const LANGS = ['az', 'en', 'ru', 'ar', 'tr', ...EXTRA_LANGS]
 const DEFAULT_LANG = 'az'
 const DAY_MS = 86400e3
