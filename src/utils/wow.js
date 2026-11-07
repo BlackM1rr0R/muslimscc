@@ -64,10 +64,14 @@ function reduced() {
 const mq = (q) => { try { return window.matchMedia(q) } catch { return { matches: false } } }
 
 /** rAF ilə bir kadra yığılan MutationObserver */
+// PERFORMANS (v5.3): yalnız yeni ELEMENT gələndə yenidən skan — namaz geri
+// sayımı kimi saniyəlik mətn dəyişiklikləri (mətn qovşağı) bütün sənədi
+// querySelectorAll ilə gəzdirmirdi (telefonda menyu/keçid animasiyası donurdu)
+export const addsElements = (records) => records.some(r => r.type !== 'childList' || [...r.addedNodes].some(n => n.nodeType === 1))
 function onDomChange(fn) {
   let queued = false
-  const mo = new MutationObserver(() => {
-    if (queued) return
+  const mo = new MutationObserver((records) => {
+    if (queued || !addsElements(records)) return
     queued = true
     requestAnimationFrame(() => { queued = false; fn() })
   })

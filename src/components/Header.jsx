@@ -9,7 +9,7 @@ import SideNav from "./SideNav";
 import Icon, { BrandMark } from "./Icon";
 import "../styles/Header.css";
 import { pickUi } from '../utils/uiText'
-import { lazyWhenIdle } from '../utils/idle'
+import { lazyWhenIdle, whenIdle } from '../utils/idle'
 
 // ═══════════════════════════════════════════════════════
 // Header — sahibin qərarları: #5 (geniş ekran) və #7 (dar ekran).
@@ -318,6 +318,17 @@ function Header({ currentPage, setPage }) {
     setLangOpen(false);
   }, []);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  // PERFORMANS (v5.3): telefonda menyu boş vaxtda əvvəlcədən qurulur — ilk ☰
+  // toxunuşunda 60+ sətir + ikon render olunub animasiyanın ilk kadrlarını
+  // yemirdi (CPU ×4 ölçü: ilk açılışda 360–580 ms-lik donma)
+  useEffect(() => {
+    if (menuMounted || typeof window === "undefined") return undefined;
+    let alive = true;
+    const narrow = () => !window.matchMedia?.(DESKTOP_MQ).matches;
+    whenIdle({ delay: 2500 }).then(() => { if (alive && narrow()) setMenuMounted(true); });
+    return () => { alive = false; };
+  }, [menuMounted]);
 
   // Geri düyməsi açıq menyunu bağlasın (arxadakı səhifəni dəyişməsin)
   useBackToClose(menuOpen, closeMenu);

@@ -1,0 +1,58 @@
+/* ═══════════════════════════════════════════════════════
+   Toxunma ekranı (telefon, planşet, ana ekrana əlavə olunmuş tətbiq)
+   — animasiya büdcəsi (v5.3). main.jsx-də ƏN SONDA import olunur.
+
+   NİYƏ: Pixel 7 emulyasiyası, CPU ×4 ölçüsü (scratchpad mperf / trace):
+   ☰ menyu və səhifə keçidi zamanı kadrlar 80–580 ms dayanırdı. Səbəblər:
+   • filter: blur() ilə girişlər (bütün kartlar, sözlər, hero) — hər kadr
+     yenidən rənglənir; wow.css telefonda --wow-blur: 0 qoyurdu, amma
+     açar kadrlar max(var(--wow-blur), 3–4px) ilə yenə bulandırırdı;
+   • menyunun arxa fonu bütün ekranı canlı bulandırırdı (backdrop-filter);
+   • menyu açılanda 60+ sətrin hər biri ayrıca animasiya alırdı.
+   Burada eyni hərəkət qalır (qalxma + görünmə, yay effekti) — yalnız
+   kompozitorda işləyən xassələrlə: transform və opacity.
+   ═══════════════════════════════════════════════════════ */
+@media (hover: none), (pointer: coarse) {
+  /* 1. Girişlər bulanıqsız: qalxma + görünmə */
+  html.wow-ready [data-wow-ready]:not([data-wow-in]) { filter: none; }
+  html.wow-ready [data-wow-in] {
+    transition-property: opacity, transform !important;
+  }
+  @keyframes wow-a-blur { from { opacity: 0; transform: translate3d(0, calc(var(--wow-rise) / 2), 0) scale(0.985); } }
+  @keyframes wow-word { from { opacity: 0; transform: translate3d(0, 0.5em, 0) rotate(3deg); } }
+  @keyframes wow-hero-in { from { opacity: 0; transform: translate3d(0, 18px, 0); } }
+  @keyframes qm-reveal-blur {
+    from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.985); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* 2. Çəkmə menyu: arxa fon canlı bulanmır (sadəcə qaralır), sətirlər
+     tək-tək yox — qruplar növbə ilə gəlir; panel öz qatında hazır durur */
+  .qm-sn-backdrop {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(7, 11, 16, 0.5);
+  }
+  [data-theme="dark"] .qm-sn-backdrop { background: rgba(0, 0, 0, 0.62); }
+  .qm-sn--drawer.is-open .qm-sn-group.is-expanded .qm-sn-items > li { animation: none; }
+  .qm-sn--drawer .qm-sn-panel { contain: layout style; }
+
+  /* 3. Basılma rəyi dərhal: toxunuşda 300 ms gözləmə yoxdur */
+  a, button, [role="button"], summary, label { touch-action: manipulation; }
+}
+
+/* 4. Ayın halələnməsi: SVG <circle>-in transform animasiyası kompozitorda
+   işləmir (hər kadr əsas axında rənglənir) — telefonda halə HTML qatında
+   (.mph__art::after) yalnız opacity ilə "nəfəs alır" */
+@media (hover: none), (pointer: coarse) {
+  html:not(.a11y-reduce-motion) .mph__halo { animation: none !important; }
+}
+.mph__art { position: relative; }
+@media (hover: none) and (prefers-reduced-motion: no-preference), (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .mph__art::after {
+    content: ''; position: absolute; inset: 6%; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(243, 230, 181, 0.22) 40%, transparent 70%);
+    animation: mph-breath 5s ease-in-out infinite alternate;
+  }
+}
+@keyframes mph-breath { from { opacity: 0.45; } to { opacity: 1; } }

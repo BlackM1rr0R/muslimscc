@@ -13,6 +13,7 @@ import './styles/motion.css'
 import './styles/wow.css'
 // VAU 3 (dizayn v5): 3D ikonlar, sürüşmə animasiyaları, dil zolağı, CTA, footer v5
 import './styles/vau3.css'
+import './styles/perf-touch.css'
 import { initReveal } from './hooks/useReveal'
 import { initErrorReporting } from './utils/errorReport'
 import { initWow } from './utils/wow'

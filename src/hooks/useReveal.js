@@ -174,7 +174,10 @@ export function initReveal() {
     if (raf) return
     raf = requestAnimationFrame(() => { raf = 0; scan() })
   }
-  const mo = new MutationObserver(schedule)
+  // Yalnız yeni element və ya data-reveal/data-count atributu — mətn dəyişikliyi (geri sayım) skan etdirmir
+  const mo = new MutationObserver((records) => {
+    if (records.some(r => r.type !== 'childList' || [...r.addedNodes].some(n => n.nodeType === 1))) schedule()
+  })
   const attach = () => {
     scan()
     mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-reveal', 'data-count'] })
