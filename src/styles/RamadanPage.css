@@ -418,3 +418,24 @@ html[dir="rtl"] .rp-juz__range { text-align: end; }
   0%, 100% { transform: none; }
   50%      { transform: scale(1.12); }
 }
+
+/* v5.2: dəyər xətləri — ən uzun / ən qısa günün oruc müddəti */
+.rp-fast__wrap { position: relative; padding-inline-end: 48px; }
+.rp-fast__ref { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.rp-fast rect.is-max { fill: var(--brand); opacity: 1; }
+.rp-fast rect.is-min { fill: color-mix(in srgb, var(--viz-1) 55%, var(--surface-1)); opacity: 1; }
+.rp-fast rect.is-today { fill: var(--viz-2); }
+.rp-fast__ylab {
+  position: absolute;
+  inset-inline-end: 0;
+  translate: 0 -50%;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: var(--step--2);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+.rp-fast__ylab--hi { color: var(--brand); }
+.rp-fast__wrap + .rp-fast__axis { padding-inline-end: 48px; }

@@ -50,16 +50,17 @@ export default function MuhasabahSky({ entries, items, today, labels, lang = 'az
         {stars.map((list, i) => (
           <g key={items[i]} className={`ms__con${sel === i ? ' is-sel' : ''}`} onClick={() => { haptic(6); setSel(s => (s === i ? null : i)) }}>
             <circle cx={ANCHORS[i][0]} cy={ANCHORS[i][1]} r="44" fill="transparent" />
+            {/* v5.2: boş bürcün yeri qırıq halqa ilə — hər əməlin harada "yaşadığı" aydındır */}
+            {list.length === 0 && <circle className="ms__empty" cx={ANCHORS[i][0]} cy={ANCHORS[i][1]} r="18" />}
             {list.length > 1 && <polyline className="ms__line" points={ring(list, ANCHORS[i])} />}
             {list.map(s => (
               <circle key={s.date} className={`ms__star${s.age === 0 ? ' is-today' : ''}`} cx={s.x} cy={s.y}
                 r={(1.1 + (1 - s.age / 30) * 1.6).toFixed(2)} style={{ opacity: (0.45 + (1 - s.age / 30) * 0.55).toFixed(2) }} />
             ))}
-            {(sel === i || list.length > 0) && (
-              <text className="ms__lbl" x={ANCHORS[i][0]} y={Math.max(11, ANCHORS[i][1] + (ANCHORS[i][1] > 150 ? 30 : -36))} textAnchor="middle">
-                {labels[items[i]]}{sel === i ? ` · ${list.length}` : ''}
-              </text>
-            )}
+            {/* Hər bürcün adı + ulduz sayı həmişə görünür (əvvəl yalnız seçiləndə / doluda) */}
+            <text className={`ms__lbl${list.length ? '' : ' is-empty'}`} x={ANCHORS[i][0]} y={Math.max(11, ANCHORS[i][1] + (ANCHORS[i][1] > 150 ? 30 : -36))} textAnchor="middle">
+              {labels[items[i]]} · {list.length}
+            </text>
           </g>
         ))}
       </svg>

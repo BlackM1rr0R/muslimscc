@@ -316,12 +316,22 @@ function MonthGlance({ calendar, todayDate, dayNumber, inRamadan, lang, city }) 
         </div>
         <div className="rp-glance__grid">
           <ChartFigure title={pick(TXT.chartTitle, lang)} sub={pick(TXT.chartSub, lang).replace('{city}', city)} className="rp-fast-fig">
-            <svg className="rp-fast" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={aria}>
-              {rows.map((r, i) => (
-                <rect key={r.day} style={{ '--i': i }} x={i * (bw + gap)} y={y(r.min)} width={bw} height={H - y(r.min)} rx={Math.min(3, bw / 3)}
-                  className={r.date === todayDate ? 'is-today' : undefined} />
-              ))}
-            </svg>
+            {/* v5.2: ən uzun / ən qısa gün xətti + dəyəri (əvvəl sütunların ölçüsü yox idi,
+                baza sıfırdan deyil — fərq görünsün deyə — bu qeyd olmadan çaşdırırdı) */}
+            <div className="rp-fast__wrap">
+              <svg className="rp-fast" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={aria}>
+                <line className="rp-fast__ref" x1="0" x2={W} y1={y(hi)} y2={y(hi)} />
+                <line className="rp-fast__ref" x1="0" x2={W} y1={y(lo)} y2={y(lo)} />
+                {rows.map((r, i) => (
+                  <rect key={r.day} style={{ '--i': i }} x={i * (bw + gap)} y={y(r.min)} width={bw} height={H - y(r.min)} rx={Math.min(3, bw / 3)}
+                    className={[r.date === todayDate && 'is-today', r.min === hi && 'is-max', r.min === lo && 'is-min'].filter(Boolean).join(' ') || undefined}>
+                    <title>{`${dayLabel(r.day)}: ${durHM(r.min)}`}</title>
+                  </rect>
+                ))}
+              </svg>
+              <span className="rp-fast__ylab rp-fast__ylab--hi" style={{ top: `${(y(hi) / H) * 100}%` }} aria-hidden="true">{durHM(hi)}</span>
+              <span className="rp-fast__ylab rp-fast__ylab--lo" style={{ top: `${(y(lo) / H) * 100}%` }} aria-hidden="true">{durHM(lo)}</span>
+            </div>
             <div className="rp-fast__axis" aria-hidden="true">
               {rows.map(r => <span key={r.day}>{r.day === 1 || r.day % 5 === 0 ? r.day : ''}</span>)}
             </div>

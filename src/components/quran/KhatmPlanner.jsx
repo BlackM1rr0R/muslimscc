@@ -173,7 +173,11 @@ export default function KhatmPlanner({ lang, surahName }) {
   return (
     <section className="qk qk--active" aria-labelledby="qk-h">
       <div className="qk__head">
-        <ProgressRing value={plan.done} max={MUSHAF_PAGES} size={76} thickness={8} />
+        {/* v5.2: halqanın nə ölçdüyü yazılır — oxunan səhifə / 604 */}
+        <div className="qk__ringwrap">
+          <ProgressRing value={plan.done} max={MUSHAF_PAGES} size={76} thickness={8} label={t.progress} />
+          <span className="qk__ringcap ui-num">{plan.done}/{MUSHAF_PAGES} {t.of}</span>
+        </div>
         <div>
           <span className="ui-eyebrow">{t.eyebrow} · {t.days(plan.days)}</span>
           <h2 className="qk__title" id="qk-h">{finished ? t.finished : t.today}</h2>

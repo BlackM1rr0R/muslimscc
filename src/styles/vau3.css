@@ -935,3 +935,5 @@ html.a11y-reduce-motion .vx-listen.is-on .vx-listen__wave i { animation: none; t
 }
 .vx-md-today.is-done { background: var(--brand-soft); color: var(--brand); }
 .pt-ring-goal { color: var(--text-tertiary); font-weight: 500; margin-inline-start: 2px; }
+.qk__ringwrap { display: grid; justify-items: center; gap: 4px; flex-shrink: 0; }
+.qk__ringcap { font-size: var(--step--2); color: var(--text-tertiary); white-space: nowrap; }
