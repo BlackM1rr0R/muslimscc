@@ -4,6 +4,7 @@ import { BRAND, filled, tr, brandName } from '../config/brand'
 import { navLabel, navGroupLabel } from '../data/navigation'
 import { pathFor } from '../seo/routes'
 import Icon, { BrandMark } from './Icon'
+import LangMarquee, { MARQUEE_LANGS } from './LangMarquee'
 import { LEGAL_KEYS, LEGAL_TITLES, legalPath, isRouted } from './legalLinks'
 import '../styles/Footer.css'
 import { pickUi } from '../utils/uiText'
@@ -25,11 +26,11 @@ function isPlainClick(e) {
 // made — emoji (💚) əvəzinə mətn + xətti ürək ikonu (dizayn sistemi: emoji yox)
 // Təsvir (desc) brend konfiqindən gəlir — BRAND.tagline
 const FOOTER_LABELS = {
-  az: { legal:'Hüquqi məlumat', nav:'Saytın bölmələri', content:'Məzmun', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'Bütün hüquqlar qorunur.', made:'Ümmət üçün sevgi ilə hazırlandı', backup:'Məlumatlarım', close:'Bağla' },
-  en: { legal:'Legal', nav:'Site sections', content:'Content', tools:'Tools', learn:'Learn', contact:'Contact', copy:'All rights reserved.', made:'Made with love for the Ummah', backup:'My data', close:'Close' },
-  ru: { legal:'Правовая информация', nav:'Разделы сайта', content:'Материалы', tools:'Инструменты', learn:'Обучение', contact:'Контакты', copy:'Все права защищены.', made:'Сделано с любовью для уммы', backup:'Мои данные', close:'Закрыть' },
-  ar: { legal:'معلومات قانونية', nav:'أقسام الموقع', content:'المحتوى', tools:'أدوات', learn:'تعلّم', contact:'تواصل', copy:'جميع الحقوق محفوظة.', made:'صُنع بحبّ للأمة', backup:'بياناتي', close:'إغلاق' },
-  tr: { legal:'Yasal bilgiler', nav:'Site bölümleri', content:'İçerik', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'Tüm hakları saklıdır.', made:'Ümmet için sevgiyle yapıldı', backup:'Verilerim', close:'Kapat' },
+  az: { legal:'Hüquqi məlumat', nav:'Saytın bölmələri', content:'Məzmun', tools:'Alətlər', learn:'Öyrən', contact:'Əlaqə', copy:'Bütün hüquqlar qorunur.', made:'Ümmət üçün sevgi ilə hazırlandı', backup:'Məlumatlarım', close:'Bağla', band:'Hər gün İslamla birlikdə', langs:'Dillər' },
+  en: { legal:'Legal', nav:'Site sections', content:'Content', tools:'Tools', learn:'Learn', contact:'Contact', copy:'All rights reserved.', made:'Made with love for the Ummah', backup:'My data', close:'Close', band:'With Islam, every day', langs:'Languages' },
+  ru: { legal:'Правовая информация', nav:'Разделы сайта', content:'Материалы', tools:'Инструменты', learn:'Обучение', contact:'Контакты', copy:'Все права защищены.', made:'Сделано с любовью для уммы', backup:'Мои данные', close:'Закрыть', band:'С исламом каждый день', langs:'Языки' },
+  ar: { legal:'معلومات قانونية', nav:'أقسام الموقع', content:'المحتوى', tools:'أدوات', learn:'تعلّم', contact:'تواصل', copy:'جميع الحقوق محفوظة.', made:'صُنع بحبّ للأمة', backup:'بياناتي', close:'إغلاق', band:'مع الإسلام كل يوم', langs:'اللغات' },
+  tr: { legal:'Yasal bilgiler', nav:'Site bölümleri', content:'İçerik', tools:'Araçlar', learn:'Öğren', contact:'İletişim', copy:'Tüm hakları saklıdır.', made:'Ümmet için sevgiyle yapıldı', backup:'Verilerim', close:'Kapat', band:'Her gün İslam ile', langs:'Diller' },
 }
 
 // "Əsas" sütunu — yan paneldəki "Əsas" qrupu ilə eyni (ana səhifə loqodadır).
@@ -69,6 +70,26 @@ function Footer({ setPage }) {
 
   return (
     <footer className="footer">
+      {/* v5 (vau3.css §5): footer CTA zolağı — tünd zümrüd panel, fırlanan
+          konik işıq; iki əsas hərəkət (namaz vaxtları, Quran) */}
+      <div className="vx-ft-band-wrap">
+        <div className="vx-cta vx-ft-band">
+          <div className="ui-pattern" aria-hidden="true" />
+          <div>
+            <div className="vx-cta__ar" lang="ar" dir="rtl">{BRAND.arabicMotto}</div>
+            <h2 className="vx-cta__title">{fl.band}</h2>
+            <p className="vx-cta__text">{tr(BRAND.tagline, lang)}</p>
+          </div>
+          <div className="vx-cta__btns">
+            <a className="ui-btn ui-btn--inverse ui-btn--lg" href={pathFor('prayer', lang)} onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); goTo('prayer') } }}>
+              <Icon name="prayer" className="ui-btn__icon" /> {navLabel('prayer', lang)}
+            </a>
+            <a className="ui-btn ui-btn--inverse-ghost ui-btn--lg" href={pathFor('quran', lang)} onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); goTo('quran') } }}>
+              <Icon name="quran" className="ui-btn__icon" /> {navLabel('quran', lang)}
+            </a>
+          </div>
+        </div>
+      </div>
       {/* Xatəm naxışı — çox sakit, yalnız bəzək (ui.css → .ui-pattern) */}
       <div className="ui-pattern ft-pattern" aria-hidden="true" />
       <div className="ft-main">
@@ -118,6 +139,12 @@ function Footer({ setPage }) {
         </div>
       </div>
 
+      {/* Saytın bütün dilləri — öz adları ilə sürüşən zolaq */}
+      <div className="vx-ft-langs">
+        <div className="vx-ft-langs__head"><Icon name="globe" size={16} /> {fl.langs} · <b>{MARQUEE_LANGS.length}</b></div>
+        <LangMarquee label={fl.langs} />
+      </div>
+
       <div className="ft-bottom-wrap">
         <div className="ft-bottom" data-reveal="fade">
           <p>{`© ${new Date().getFullYear()} ${brand} — ${fl.copy}`}</p>
@@ -142,6 +169,8 @@ function Footer({ setPage }) {
           <span className="ft-made"><Icon name="donate" size={14} className="ft-heart" /> {fl.made}</span>
         </div>
       </div>
+      {/* İri söz-nişanı — görünəndə qradiyentlə "dolur" (scroll-driven, dekor) */}
+      <div className="vx-wordmark" aria-hidden="true"><span className="vx-wordmark__fill">{brand}</span></div>
     </footer>
   )
 }

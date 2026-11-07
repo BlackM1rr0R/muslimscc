@@ -125,11 +125,24 @@ export default function useInfiniteList({
   const sentinelRef = useCallback((el) => setNode(el), [])
   useEffect(() => {
     if (!node || !hasMore || typeof IntersectionObserver === 'undefined') return
+    // Sentinel ekranın ÜSTÜNDƏ qalıbsa da (End düyməsi / sürətli atlama —
+    // hündür footer v5-də sentinel zonanı "atlayır" və IO heç vaxt xəbər
+    // vermir) növbəti partiya açılır: həm IO, həm passiv scroll yoxlaması
+    // (kadr başına bir dəfə).
+    const passed = () => node.getBoundingClientRect().top < window.innerHeight
     const io = new IntersectionObserver((entries) => {
-      if (entries.some(e => e.isIntersecting)) loadMore()
+      if (entries.some(e => e.isIntersecting || e.boundingClientRect.bottom < 0)) loadMore()
     }, { rootMargin })
     io.observe(node)
-    return () => io.disconnect()
+    // Effekt hər partiyadan sonra (n dəyişəndə) yenidən qurulur — scroll yolu
+    // bir partiyada ən çox bir dəfə işləyir (keçid gözləyərkən təkrar yox)
+    let raf = 0, fired = false
+    const onScroll = () => {
+      if (raf || fired) return
+      raf = requestAnimationFrame(() => { raf = 0; if (!fired && passed()) { fired = true; loadMore() } })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
   }, [node, hasMore, n, rootMargin, loadMore])
 
   // ── Mövqe yaddaşı: say + sürüşmə ──

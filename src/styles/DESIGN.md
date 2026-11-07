@@ -439,3 +439,25 @@ Söndürmək: konteynerə `data-wow-off`. Öz giriş sistemi olan bölmələr (`
 - Kiçik elementlərdə (rəqəm, ikon) `filter: blur` animasiyası yox — görünmür, amma bahalıdır.
 - JS-də hər kadr DOM yazma yox: dəyər dəyişməyibsə yazma, saniyədə ≤20 yeniləmə, eni sabitlə (`useReveal` sayğacı).
 - Yoxlama: `node scripts/check-motion.mjs` (CI-da) — sonsuz + GPU-ya ötürülməyən animasiyanı tutur.
+
+## 10. VAU 3 — dizayn v5 (`src/styles/vau3.css`, `utils/vau3.js`, 2026-11-07)
+
+Sahibin istəyi: *"scroll animasiyaları, navbar, footer, CTA, superhero, 3D ikonlar — müasir, animasiyalı, VAU"*.
+Qat wow.css-dən sonra yüklənir və ortaq siniflərə işləyir — yeni səhifə bunları **avtomatik** alır.
+
+| Nə | Harada | Qeyd |
+|---|---|---|
+| **3D ikon kafeli** | hər `.ui-icon-tile` | gil/şüşə həcm (2 qradiyent + üst işıq + daxili/düşən kölgə); kliklənən kafeldə siçanla 3D əyilmə. Rəng `--it` (susma `--brand`, `--accent`). Ayrı komponent YOX — sinfi işlət |
+| **Hero geri çəkilir** | `.hp-hero-content`, `.ui-page-hero > .ui-container` | CSS `view()` exit — sürüşdükcə solur və kiçilir |
+| **Pərdə açılışı** | `.hp-tw`, `.vx-cta`, `.vx-ft-band` | ekrana girəndə 0.94 → 1 |
+| **Dil zolağı** | `<LangMarquee label />` (`components/LangMarquee.jsx`) | 50 dil öz adı ilə; sonsuz (transform), üzərində dayanır; 2-ci sıra `aria-hidden` |
+| **CTA paneli** | `.vx-cta` (+ `--aurora` `--split` `--glow`), `data-spotlight` | fırlanan konik işıq, kursor işığı, qızılı haşiyə, `.vx-cta__float` 3D ikonlar (≥900px). Hissələr: `__ar __title __text __btns __trust` |
+| **Footer v5** | `Footer.jsx` | CTA zolağı (ana səhifədə gizli — orada öz CTA-sı var) · dil zolağı · iri söz-nişanı (görünəndə dolur) |
+| **Navbar kapsulu** | `.nav-desktop` (≥1024px) | şüşə kapsul + kursor işığı; `.header.scrolled`-də qalxır; loqo ulduzu 45° fırlanır |
+| **Superhero** | ana səhifə | namaz kartı ətrafında üzən 3D ikon orbiti (`.vx-orbit`, ≥1100px) + hero altında dil zolağı |
+| **Sürüşmə hekayəsi** | `components/home/DayScroll.jsx` | 240vh + yapışqan səhnə: günəş qövs boyu, səma sübh→gecə, 5 namaz növbə ilə işıqlanır (`view-timeline: --vxday`) |
+
+Qaydalar: scroll-driven hər şey `@supports (animation-timeline: view())` + `prefers-reduced-motion: no-preference` +
+`html:not(.a11y-reduce-motion)` içindədir — dəstək yoxdursa/hərəkəti azaltda **statik və tam görünən** olur.
+Sonsuz animasiya yalnız transform/opacity (`node scripts/check-motion.mjs`). Yeni mətn yazanda əvvəl mövcud ingiliscə
+sətri yenidən işlət (44 lüğətdə artıq tərcüməsi var) — yeni sətir əlavə dillərdə ingiliscə qalar.

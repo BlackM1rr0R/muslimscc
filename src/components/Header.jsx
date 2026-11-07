@@ -425,7 +425,7 @@ function Header({ currentPage, setPage }) {
           </div>
 
           {/* ── ORTA: yalnız 5 əsas link (≥1024px, əsas sütunun ortasında) ── */}
-          <nav className="nav-desktop" aria-label={l.primaryNav} ref={navRef}>
+          <nav className="nav-desktop" aria-label={l.primaryNav} ref={navRef} data-spotlight="">
             <span
               className={`nav-ind${ind.on ? " is-on" : ""}${ind.instant ? " is-instant" : ""}`}
               style={{ transform: `translate3d(${ind.x}px, 0, 0) rotate(45deg)` }}

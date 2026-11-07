@@ -110,7 +110,7 @@ const ABOUT = {
     values: 'Dəyərlərimiz',
     v1t: 'Etibarlılıq', v1d: 'Quran, hədis mənbələri və alimlərin əsərlərinə əsaslanan məzmun.',
     v2t: 'Pulsuz', v2d: 'Heç bir abunə, reklam və ya ödəniş yoxdur.',
-    v3t: '5 dil', v3d: 'Azərbaycan, ingilis, rus, ərəb və türk dillərində.',
+    v3t: '50 dil', v3d: 'Bütün sayt 49 dildə, Quran tərcüməsi 50 dildə.',
     v4t: 'Hər cihazda', v4d: 'Telefonda, planşetdə və kompüterdə işləyir; tətbiq kimi quraşdırmaq olar.',
   },
   en: {
@@ -121,7 +121,7 @@ const ABOUT = {
     values: 'Our Values',
     v1t: 'Reliability', v1d: 'Content based on the Quran, hadith collections and the works of scholars.',
     v2t: 'Free', v2d: 'No subscriptions, no ads, no payments.',
-    v3t: '5 languages', v3d: 'In Azerbaijani, English, Russian, Arabic and Turkish.',
+    v3t: '50 languages', v3d: 'The whole site in 49 languages, the Quran translation in 50.',
     v4t: 'On every device', v4d: 'Works on phones, tablets and computers, and can be installed as an app.',
   },
   ru: {
@@ -132,7 +132,7 @@ const ABOUT = {
     values: 'Наши ценности',
     v1t: 'Достоверность', v1d: 'Содержание основано на Коране, сборниках хадисов и трудах учёных.',
     v2t: 'Бесплатно', v2d: 'Без подписок, рекламы и платежей.',
-    v3t: '5 языков', v3d: 'На азербайджанском, английском, русском, арабском и турецком.',
+    v3t: '50 языков', v3d: 'Весь сайт на 49 языках, перевод Корана на 50.',
     v4t: 'На любом устройстве', v4d: 'Работает на телефоне, планшете и компьютере; можно установить как приложение.',
   },
   ar: {
@@ -143,7 +143,7 @@ const ABOUT = {
     values: 'قيمنا',
     v1t: 'الموثوقية', v1d: 'محتوى مبني على القرآن وكتب الحديث ومؤلفات العلماء.',
     v2t: 'مجاني', v2d: 'لا اشتراكات ولا إعلانات ولا مدفوعات.',
-    v3t: '5 لغات', v3d: 'بالأذربيجانية والإنجليزية والروسية والعربية والتركية.',
+    v3t: '50 لغة', v3d: 'الموقع كاملًا بـ49 لغة، وترجمة القرآن بـ50 لغة.',
     v4t: 'على كل جهاز', v4d: 'يعمل على الهاتف واللوحي والحاسوب، ويمكن تثبيته كتطبيق.',
   },
   tr: {
@@ -154,7 +154,7 @@ const ABOUT = {
     values: 'Değerlerimiz',
     v1t: 'Güvenilirlik', v1d: 'Kur’an, hadis kaynakları ve âlimlerin eserlerine dayanan içerik.',
     v2t: 'Ücretsiz', v2d: 'Abonelik, reklam veya ödeme yok.',
-    v3t: '5 dil', v3d: 'Azerbaycan Türkçesi, İngilizce, Rusça, Arapça ve Türkçe.',
+    v3t: '50 dil', v3d: 'Sitenin tamamı 49 dilde, Kur’an meali 50 dilde.',
     v4t: 'Her cihazda', v4d: 'Telefonda, tablette ve bilgisayarda çalışır; uygulama olarak yüklenebilir.',
   },
 }

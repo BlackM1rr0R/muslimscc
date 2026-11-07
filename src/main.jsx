@@ -11,9 +11,12 @@ import './styles/heroes.css'
 import './styles/motion.css'
 // "Vau" qatı: kursor işığı, kartların qalxması, hero aurora, oxu zolağı (utils/wow.js)
 import './styles/wow.css'
+// VAU 3 (dizayn v5): 3D ikonlar, sürüşmə animasiyaları, dil zolağı, CTA, footer v5
+import './styles/vau3.css'
 import { initReveal } from './hooks/useReveal'
 import { initErrorReporting } from './utils/errorReport'
 import { initWow } from './utils/wow'
+import { initVau3 } from './utils/vau3'
 import { initInputModality } from './hooks/useInputModality'
 import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
 import { startUpdateWatcher } from './utils/appUpdate'
@@ -29,6 +32,7 @@ installDateLocale()
 initReveal()
 initErrorReporting()
 initWow()
+initVau3()
 
 // Saxlanmış əlçatanlıq tərcihləri (şrift ölçüsü, kontrast, tema …) İLK
 // RENDER-DƏN ƏVVƏL <html>-ə tətbiq olunur. PERFORMANS: panelin UI-si artıq

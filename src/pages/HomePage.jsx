@@ -23,6 +23,8 @@ import Icon from '../components/Icon'
 import { StatTile } from '../components/viz'
 import { pathFor } from '../seo/routes'
 import CityPicker from '../components/CityPicker'
+import LangMarquee from '../components/LangMarquee'
+import DayScroll from '../components/home/DayScroll'
 import PrayerSky from '../components/prayer/PrayerSky'
 import { HADITH_COUNT } from '../data/siteStats'
 import { lazyWhenIdle } from '../utils/idle'
@@ -99,7 +101,7 @@ const PrayerTile = ({ k }) => (
   PRAYER_ICON[k] ? <span className="hp-pr-ic" aria-hidden="true"><Icon name={PRAYER_ICON[k]} size={18} /></span> : null
 )
 
-// ═══ Ana səhifənin mətnləri (5 dil) — pickUi(LABELS, lang, 'en') ═══
+// ═══ Ana səhifənin mətnləri (50 dil) — pickUi(LABELS, lang, 'en') ═══
 const LABELS = {
   az: {
     badge: 'Pulsuz İslami platforma',
@@ -116,7 +118,7 @@ const LABELS = {
     ctaTitle: 'Hər gün İslamla birlikdə',
     ctaDesc: 'Namaz vaxtlarını izləyin, yeni elanlardan xəbərdar olun və İslami bilikləri bir yerdə öyrənin.',
     ctaTimes: 'Namaz vaxtları', ctaNotif: 'Bildiriş ayarları',
-    adFree: 'Reklamsız', free: '100% pulsuz', langs: '5 dil',
+    adFree: 'Reklamsız', free: '100% pulsuz', langs: '50 dil',
     noSignup: 'Qeydiyyatsız', heroTrust: 'Saytın üstünlükləri',
     quickEy: 'Bölmələr', quickTitle: 'Nə axtarırsınız?',
     quickSub: 'Ən çox açılan bölmələr — qalanları menyudadır.',
@@ -139,7 +141,7 @@ const LABELS = {
     ctaTitle: 'With Islam, every day',
     ctaDesc: 'Follow the prayer times, keep up with new announcements and learn about Islam — all in one place.',
     ctaTimes: 'Prayer times', ctaNotif: 'Notification settings',
-    adFree: 'Ad-free', free: '100% Free', langs: '5 Languages',
+    adFree: 'Ad-free', free: '100% Free', langs: '50 Languages',
     noSignup: 'No sign-up', heroTrust: 'Why this site',
     quickEy: 'Sections', quickTitle: 'What are you looking for?',
     quickSub: 'The most visited sections — everything else is in the menu.',
@@ -162,7 +164,7 @@ const LABELS = {
     ctaTitle: 'С исламом каждый день',
     ctaDesc: 'Следите за временем намаза и новыми объявлениями и изучайте ислам — всё в одном месте.',
     ctaTimes: 'Время намаза', ctaNotif: 'Настройки уведомлений',
-    adFree: 'Без рекламы', free: '100% бесплатно', langs: '5 языков',
+    adFree: 'Без рекламы', free: '100% бесплатно', langs: '50 языков',
     noSignup: 'Без регистрации', heroTrust: 'Преимущества сайта',
     quickEy: 'Разделы', quickTitle: 'Что вы ищете?',
     quickSub: 'Самые посещаемые разделы — остальные в меню.',
@@ -185,7 +187,7 @@ const LABELS = {
     ctaTitle: 'مع الإسلام كل يوم',
     ctaDesc: 'تابع مواقيت الصلاة والإعلانات الجديدة وتعلّم عن الإسلام — في مكان واحد.',
     ctaTimes: 'مواقيت الصلاة', ctaNotif: 'إعدادات الإشعارات',
-    adFree: 'بدون إعلانات', free: 'مجاني 100%', langs: '5 لغات',
+    adFree: 'بدون إعلانات', free: 'مجاني 100%', langs: '50 لغة',
     noSignup: 'بلا تسجيل', heroTrust: 'مزايا الموقع',
     quickEy: 'الأقسام', quickTitle: 'عمّ تبحث؟',
     quickSub: 'أكثر الأقسام زيارة — والبقية في القائمة.',
@@ -208,7 +210,7 @@ const LABELS = {
     ctaTitle: 'Her gün İslam ile',
     ctaDesc: 'Namaz vakitlerini takip edin, yeni duyurulardan haberdar olun ve İslam hakkında bilgi edinin — hepsi tek yerde.',
     ctaTimes: 'Namaz vakitleri', ctaNotif: 'Bildirim ayarları',
-    adFree: 'Reklamsız', free: '%100 Ücretsiz', langs: '5 Dil',
+    adFree: 'Reklamsız', free: '%100 Ücretsiz', langs: '50 Dil',
     noSignup: 'Kayıtsız', heroTrust: 'Sitenin avantajları',
     quickEy: 'Bölümler', quickTitle: 'Ne arıyorsunuz?',
     quickSub: 'En çok açılan bölümler — diğerleri menüde.',
@@ -569,7 +571,7 @@ export default function HomePage({ setPage }) {
     // Təkrarsız 1255 hədis — "1250+" (bax: data/siteStats.js)
     {num:HADITH_COUNT, s:'+', icon:'hadith', l:{az:'Hədis',  en:'Hadiths',        ru:'Хадисов',       tr:'Hadis',        ar:'حديث'}},
     {num:99,   s:'',  icon:'names', l:{az:"Allahın adı",   en:"Names of Allah", ru:'Имён Аллаха',   tr:"Allah'ın İsmi",ar:'اسمًا لله'}},
-    {num:5,    s:'',  icon:'globe', l:{az:'Dil',            en:'Languages',      ru:'Языков',        tr:'Dil',          ar:'لغات'}},
+    {num:50,   s:'',  icon:'globe', l:{az:'Dil',            en:'Languages',      ru:'Языков',        tr:'Dil',          ar:'لغات'}},
     {num:100,  s:'%', icon:'gift', l:{az:'Pulsuz',         en:'Free',           ru:'Бесплатно',     tr:'Ücretsiz',     ar:'مجاناً'}},
   ]
 
@@ -632,10 +634,23 @@ export default function HomePage({ setPage }) {
             </div>
 
             <div className="hp-hero-visual">
+              {/* vau3 §6: kartın ətrafında üzən 3D ikonlar (dekor, ≥1100px) */}
+              <div className="vx-orbit" aria-hidden="true" data-parallax="0.06">
+                <span className="ui-icon-tile"><Icon name="quran" /></span>
+                <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="qibla" /></span>
+                <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="dhikr" /></span>
+                <span className="ui-icon-tile"><Icon name="moon" /></span>
+              </div>
               <PrayerWidget lang={lang} l={l} onMore={()=>goTo('prayer')} />
             </div>
           </div>
         </section>
+
+        {/* Saytın dilləri — öz adları ilə sürüşən zolaq (vau3 §3) */}
+        <div className="vx-hero-langs">
+          <div className="vx-ft-langs__head"><Icon name="globe" size={16} /> {l.langs}</div>
+          <LangMarquee label={l.langs} />
+        </div>
       </div>
 
       {/* ═══ BU GÜN — bento: günün hədisi, ayəsi, davam et, tarix ═══ */}
@@ -695,6 +710,15 @@ export default function HomePage({ setPage }) {
           </ol>
         </div>
       </section>
+
+      {/* ═══ BİR GÜN — BEŞ NAMAZ: sürüşmə hekayəsi (vau3 §8) ═══ */}
+      <DayScroll
+        eyebrow={L(QUICK[0].title)}
+        title={L(QUICK[0].desc)}
+        names={(k) => PRAYER_NAMES[k]?.[lang] || PRAYER_NAMES[k]?.en || k}
+        href={pathFor('prayer', lang)}
+        onOpen={(e) => { if (plainClick(e)) { e.preventDefault(); goTo('prayer') } }}
+      />
 
       {/* ═══ QURAN + RƏQƏMLƏR ════════════════════════════════════════════
           Solda Quran kafeli (Hicr 9 + "Quran oxu"), sağda saytın məzmunu
@@ -918,17 +942,23 @@ export default function HomePage({ setPage }) {
       {/* ═══ CTA ══════════════════════════════════════════════════════════ */}
       {/* v2: tünd zümrüd panel (kənarlardan içəri, yuvarlaq künclü), incə
           xatəm naxışı; emoji əvəzinə xətti ikonlar */}
-      <section className="hp-cta ui-cv" style={CV.cta}>
-        <div className="hp-cta-in" data-reveal>
-          <div className="ui-pattern hp-cta-pat" aria-hidden="true" />
-          <div className="hp-cta-ar" lang="ar" dir="rtl">{BRAND.arabicMotto}</div>
-          <h2>{l.ctaTitle}</h2>
-          <p>{l.ctaDesc}</p>
-          <div className="hp-cta-btns">
+      <section className="vx-cta-wrap ui-cv" style={CV.cta}>
+        <div className="vx-cta vx-cta--aurora" data-spotlight="">
+          <div className="ui-pattern" aria-hidden="true" />
+          <div className="vx-cta__float" aria-hidden="true">
+            <span className="ui-icon-tile"><Icon name="quran" /></span>
+            <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="bell" /></span>
+            <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="prayer" /></span>
+            <span className="ui-icon-tile"><Icon name="hadith" /></span>
+          </div>
+          <div className="vx-cta__ar" lang="ar" dir="rtl">{BRAND.arabicMotto}</div>
+          <h2 className="vx-cta__title">{l.ctaTitle}</h2>
+          <p className="vx-cta__text">{l.ctaDesc}</p>
+          <div className="vx-cta__btns">
             <button type="button" className="ui-btn ui-btn--inverse ui-btn--lg hp-cta-main" onClick={()=>goTo('prayer')}><Icon name="prayer" className="ui-btn__icon" /> {l.ctaTimes}</button>
             <button type="button" className="ui-btn ui-btn--inverse-ghost ui-btn--lg" onClick={openNotifications}><Icon name="bell" className="ui-btn__icon" /> {l.ctaNotif}</button>
           </div>
-          <div className="hp-cta-trust">
+          <div className="vx-cta__trust">
             <span><Icon name="shield" size={16} /> {l.adFree}</span>
             <span><Icon name="check" size={16} /> {l.free}</span>
             <span><Icon name="globe" size={16} /> {l.langs}</span>

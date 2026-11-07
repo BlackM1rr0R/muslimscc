@@ -1,0 +1,701 @@
+/* ══════════════════════════════════════════════════════════
+   VAU 3 — dizayn v5 (2026-11-07, sahibin istəyi: "scroll animasiyaları,
+   navbar, footer, CTA, superhero, 3D ikonlar — müasir, animasiyalı, VAU")
+
+   Qat wow.css-dən SONRA yüklənir (main.jsx) və yalnız ortaq siniflərə
+   işləyir — səhifələrə toxunmadan bütün sayt yenilənir:
+
+   §1  3D ikon kafelləri — .ui-icon-tile (gil/şüşə həcm, işıq, kölgə;
+       kliklənən kafeldə siçanla 3D əyilmə)
+   §2  Sürüşmə ilə bağlı animasiyalar (CSS scroll-driven, JS-siz):
+       hero sürüşdükcə geri çəkilir, başlıq kiçilir, bölmə başlıqları
+       "pərdə" kimi açılır. Dəstək yoxdursa — statik (heç nə gizlənmir).
+   §3  Dil zolağı — .vx-marquee (50 dilin öz adı; sonsuz, yalnız transform)
+   §4  CTA qalereyası — .vx-cta (+ --aurora --split --glow)
+   §5  Footer v5 — CTA zolağı, dil zolağı, iri söz-nişanı
+   §6  Ana səhifə "superhero" — üzən 3D ikon orbiti, dərin aurora
+
+   Qaydalar (DESIGN.md §7.3): sonsuz animasiya YALNIZ transform/opacity;
+   "hərəkəti azalt" (sistem və ya html.a11y-reduce-motion) — hamısı söndürülür;
+   rənglər yalnız tokenlərlə (qaranlıq rejim avtomatik); RTL məntiqi xassələrlə.
+   ══════════════════════════════════════════════════════════ */
+
+:root {
+  --vx-ease: cubic-bezier(.16, 1, .3, 1);
+  --vx-hi: rgba(255, 255, 255, .78);      /* həcm işığı */
+  --vx-hi-soft: rgba(255, 255, 255, .34);
+  --vx-depth: rgba(10, 61, 49, .22);       /* kafelin alt kölgəsi (zümrüd) */
+}
+[data-theme="dark"] {
+  --vx-hi: rgba(255, 255, 255, .22);
+  --vx-hi-soft: rgba(255, 255, 255, .08);
+  --vx-depth: rgba(0, 0, 0, .45);
+}
+
+/* ══════════════════════════════════════════════════════════
+   §1  3D İKON KAFELLƏRİ
+   Düz rəngli kafel → yuxarı-soldan işıqlanan "gil" həcm: iki qatlı
+   qradiyent + parlaq üst kənar + daxili alt kölgə + yumşaq rəngli
+   düşən kölgə. Ikonun özü də 1px işıq + kölgə ilə "qabarıq" görünür.
+   ══════════════════════════════════════════════════════════ */
+.ui-icon-tile {
+  --it: var(--brand);
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 95% at 28% 12%, var(--vx-hi) 0 14%, transparent 48%),
+    linear-gradient(155deg,
+      color-mix(in srgb, var(--it) 26%, var(--surface-1)) 0%,
+      color-mix(in srgb, var(--it) 11%, var(--surface-1)) 62%,
+      color-mix(in srgb, var(--it) 20%, var(--surface-1)) 100%);
+  box-shadow:
+    inset 0 1px 0 var(--vx-hi),
+    inset 0 -3px 6px color-mix(in srgb, var(--it) 22%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--it) 18%, transparent),
+    0 8px 16px -8px color-mix(in srgb, var(--it) 55%, transparent),
+    0 2px 4px -2px var(--vx-depth);
+  transform: translateZ(0);
+  transition: transform .6s var(--vx-ease), box-shadow .6s var(--vx-ease);
+}
+.ui-icon-tile svg {
+  position: relative;
+  filter:
+    drop-shadow(0 1px 0 var(--vx-hi-soft))
+    drop-shadow(0 2px 2px color-mix(in srgb, var(--it) 35%, transparent));
+}
+/* Üst "şüşə" parıltısı — kafelin yuxarı yarısında incə əks */
+.ui-icon-tile::before {
+  content: '';
+  position: absolute;
+  inset: 2px 3px 52% 3px;
+  border-radius: inherit;
+  border-end-start-radius: 40% 30%;
+  border-end-end-radius: 40% 30%;
+  background: linear-gradient(180deg, var(--vx-hi-soft), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+.ui-icon-tile--accent { --it: var(--accent); color: var(--accent-text); }
+.ui-icon-tile--neutral { --it: var(--text-tertiary); }
+
+/* Kliklənən kafel/kart/link üzərində: ikon 3D əyilir və qalxır (yalnız siçan) */
+@media (hover: hover) and (pointer: fine) {
+  :is(a, button, .ui-tile, .ui-card--interactive):hover > .ui-icon-tile,
+  :is(a, button, .ui-tile, .ui-card--interactive):hover .ui-card__head > .ui-icon-tile,
+  .ui-tile:hover .ui-icon-tile {
+    transform: perspective(240px) rotateX(14deg) rotateY(-16deg) translateY(-3px) scale(1.08);
+    box-shadow:
+      inset 0 1px 0 var(--vx-hi),
+      inset 0 -3px 6px color-mix(in srgb, var(--it) 22%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--it) 24%, transparent),
+      0 16px 22px -10px color-mix(in srgb, var(--it) 60%, transparent),
+      0 4px 8px -4px var(--vx-depth);
+  }
+  [dir="rtl"] :is(a, button, .ui-tile, .ui-card--interactive):hover .ui-icon-tile {
+    transform: perspective(240px) rotateX(14deg) rotateY(16deg) translateY(-3px) scale(1.08);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   §2  SÜRÜŞMƏ İLƏ BAĞLI ANİMASİYALAR (scroll-driven, JS-siz)
+   ══════════════════════════════════════════════════════════ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Hero: sürüşdükcə məzmun yumşaq geri çəkilir (dərinlik hissi) */
+    html:not(.a11y-reduce-motion) :is(.hp-hero-content, .ui-page-hero > .ui-container) {
+      animation: vx-recede linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 90%;
+    }
+    html:not(.a11y-reduce-motion) .hp-hero-visual {
+      animation: vx-recede-2 linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    /* Tünd zolaqlar (tövhid, CTA, footer CTA) ekrana girəndə "pərdə" kimi
+       kənarlardan açılır — radius böyükdən kiçiyə, miqyas 0.94 → 1 */
+    html:not(.a11y-reduce-motion) :is(.hp-tw, .vx-cta, .vx-ft-band) {
+      animation: vx-curtain linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+    /* İri söz-nişanı (footer): görünəndə qradiyent "dolur" */
+    html:not(.a11y-reduce-motion) .vx-wordmark__fill {
+      animation: vx-fill linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 55%;
+    }
+    /* Kafel/kart şəbəkələri: sürüşdükcə yüngül perspektivdən düzlənir */
+    html:not(.a11y-reduce-motion) .hp-tiles {
+      animation: vx-tilt-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 35%;
+      transform-origin: 50% 100%;
+    }
+  }
+}
+@keyframes vx-recede   { to { opacity: .25; transform: translateY(-8%) scale(.96); } }
+@keyframes vx-recede-2 { to { opacity: .35; transform: translateY(-14%) scale(.97); } }
+@keyframes vx-curtain  { from { transform: scale(.94); opacity: .55; } to { transform: none; opacity: 1; } }
+@keyframes vx-fill     { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@keyframes vx-tilt-in  { from { transform: perspective(1200px) rotateX(10deg) translateY(28px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+/* ══════════════════════════════════════════════════════════
+   §3  DİL ZOLAĞI — .vx-marquee
+   İki eyni sıra yan-yana, -50% sürüşmə (sonsuz, yalnız transform).
+   Üzərinə gələndə / fokusda dayanır; kənarlar maska ilə sönür.
+   ══════════════════════════════════════════════════════════ */
+.vx-marquee {
+  --mq-dur: 70s;
+  --mq-gap: 10px;
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.vx-marquee__track {
+  display: flex;
+  width: max-content;
+  gap: var(--mq-gap);
+  animation: vx-marquee var(--mq-dur) linear infinite;
+}
+[dir="rtl"] .vx-marquee__track { animation-name: vx-marquee-rtl; }
+.vx-marquee:is(:hover, :focus-within) .vx-marquee__track { animation-play-state: paused; }
+.vx-marquee__row { display: flex; gap: var(--mq-gap); margin: 0; padding: 0; list-style: none; }
+.vx-marquee__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-1) 78%, transparent);
+  color: var(--text-secondary);
+  font-size: var(--step--1);
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color .3s, border-color .3s, background-color .3s, transform .4s var(--vx-ease);
+}
+.vx-marquee__item b {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  font-family: var(--font-label);
+}
+@media (hover: hover) {
+  a.vx-marquee__item:hover {
+    color: var(--brand);
+    border-color: var(--brand-line, var(--brand));
+    background: var(--brand-soft);
+    transform: translateY(-2px);
+  }
+}
+.vx-marquee__item[aria-current="true"] { color: var(--brand); border-color: var(--brand); background: var(--brand-soft); }
+@keyframes vx-marquee     { to { transform: translateX(-50%); } }
+@keyframes vx-marquee-rtl { to { transform: translateX(50%); } }
+/* Hərəkəti azalt: zolaq dayanır, sıra sətirlərə bükülür (hamısı görünür) */
+@media (prefers-reduced-motion: reduce) {
+  .vx-marquee { -webkit-mask-image: none; mask-image: none; }
+  .vx-marquee__track { animation: none; width: auto; flex-wrap: wrap; }
+  .vx-marquee__row { flex-wrap: wrap; }
+  .vx-marquee__row[aria-hidden="true"] { display: none; }
+}
+html.a11y-reduce-motion .vx-marquee { -webkit-mask-image: none; mask-image: none; }
+html.a11y-reduce-motion .vx-marquee__track { animation: none; width: auto; flex-wrap: wrap; }
+html.a11y-reduce-motion .vx-marquee__row { flex-wrap: wrap; }
+html.a11y-reduce-motion .vx-marquee__row[aria-hidden="true"] { display: none; }
+
+/* ══════════════════════════════════════════════════════════
+   §4  CTA QALEREYASI — .vx-cta
+   Tünd zümrüd panel; arxada yavaş fırlanan konik işıq (transform),
+   kursoru izləyən işıq ləkəsi (--mx/--my, wow.js yazmasa mərkəzdə),
+   qızılı haşiyə parıltısı. Variantlar:
+     --aurora  mərkəzə düzlənmiş, iri başlıq (susma)
+     --split   solda mətn, sağda 3D ikon sırası
+     --glow    açıq fonda — işıqlı haşiyəli kart (tünd olmayan səhifələr)
+   ══════════════════════════════════════════════════════════ */
+.vx-cta-wrap { padding: calc(var(--section-gap) / 2) var(--page-gutter) var(--section-gap); }
+.vx-cta {
+  --mx: 50%;
+  --my: 30%;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  max-width: var(--container, 1200px);
+  margin-inline: auto;
+  padding: clamp(36px, 6vw, 72px) clamp(20px, 5vw, 64px);
+  border-radius: clamp(20px, 3vw, 32px);
+  background:
+    radial-gradient(600px circle at var(--mx) var(--my), color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+    radial-gradient(120% 140% at 0% 0%, #0f5a47 0%, transparent 55%),
+    radial-gradient(120% 140% at 100% 100%, #0b4a3b 0%, transparent 60%),
+    var(--surface-inverse);
+  color: #f4f1e8;
+  text-align: center;
+  box-shadow: 0 30px 60px -30px rgba(10, 61, 49, .55);
+}
+[data-theme="dark"] .vx-cta { box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .7); }
+/* Yavaş fırlanan konik işıq — böyük kvadrat, mərkəzdən fırlanır */
+.vx-cta::before {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 160%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: conic-gradient(from 0deg,
+    transparent 0 15%,
+    color-mix(in srgb, #5fc8a5 28%, transparent) 25%,
+    transparent 35% 60%,
+    color-mix(in srgb, #d8b46a 24%, transparent) 72%,
+    transparent 82% 100%);
+  animation: vx-spin 26s linear infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+/* Haşiyə parıltısı — incə qızılı xətt */
+.vx-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(216, 180, 106, .7), rgba(95, 200, 165, .25) 40%, rgba(216, 180, 106, .5));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+.vx-cta .ui-pattern { opacity: .09; z-index: -1; }
+.vx-cta__ar {
+  font-family: var(--font-arabic);
+  font-size: clamp(26px, 4vw, 40px);
+  line-height: 1.6;
+  color: #d8b46a;
+  margin-bottom: 8px;
+}
+.vx-cta__title {
+  margin: 0 auto 12px;
+  max-width: 22ch;
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 1.1rem + 2.4vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  color: #fff;
+  text-wrap: balance;
+}
+.vx-cta__text {
+  margin: 0 auto 26px;
+  max-width: 56ch;
+  font-size: var(--step-0);
+  line-height: 1.7;
+  color: rgba(244, 241, 232, .78);
+  text-wrap: pretty;
+}
+.vx-cta__btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.vx-cta__trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 22px;
+  margin-top: 24px;
+  font-size: var(--step--1);
+  color: rgba(244, 241, 232, .7);
+}
+.vx-cta__trust span { display: inline-flex; align-items: center; gap: 6px; }
+.vx-cta__trust svg { color: #d8b46a; }
+/* Üzən 3D ikonlar (dekor) — yalnız geniş ekranda, panelin künclərində */
+.vx-cta__float { position: absolute; inset: 0; pointer-events: none; z-index: -1; }
+.vx-cta__float .ui-icon-tile {
+  --it: #5fc8a5;
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  color: #eafff6;
+  background:
+    radial-gradient(120% 95% at 28% 12%, rgba(255, 255, 255, .45) 0 14%, transparent 48%),
+    linear-gradient(155deg, rgba(95, 200, 165, .55), rgba(15, 90, 71, .55));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 18px 30px -12px rgba(0, 0, 0, .55);
+  animation: vx-float 7s ease-in-out infinite;
+}
+.vx-cta__float .ui-icon-tile svg { width: 28px; height: 28px; }
+.vx-cta__float .ui-icon-tile--accent { --it: #d8b46a; color: #fff7e6; background: radial-gradient(120% 95% at 28% 12%, rgba(255,255,255,.45) 0 14%, transparent 48%), linear-gradient(155deg, rgba(216,180,106,.7), rgba(122,87,18,.6)); }
+.vx-cta__float > :nth-child(1) { inset-inline-start: 6%; top: 16%; rotate: -12deg; }
+.vx-cta__float > :nth-child(2) { inset-inline-end: 7%; top: 12%; rotate: 10deg; animation-delay: -2.4s; }
+.vx-cta__float > :nth-child(3) { inset-inline-start: 11%; bottom: 14%; rotate: 8deg; animation-delay: -4.1s; width: 48px; height: 48px; }
+.vx-cta__float > :nth-child(4) { inset-inline-end: 12%; bottom: 16%; rotate: -8deg; animation-delay: -1.2s; width: 48px; height: 48px; }
+@media (max-width: 899px) { .vx-cta__float { display: none; } }
+@keyframes vx-spin  { to { transform: rotate(1turn); } }
+@keyframes vx-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+/* --split: solda mətn, sağda iki sıra 3D ikon */
+.vx-cta--split { text-align: start; display: grid; gap: 28px; align-items: center; }
+@media (min-width: 900px) { .vx-cta--split { grid-template-columns: 1.3fr 1fr; } }
+.vx-cta--split .vx-cta__title, .vx-cta--split .vx-cta__text { margin-inline: 0; }
+.vx-cta--split .vx-cta__btns, .vx-cta--split .vx-cta__trust { justify-content: flex-start; }
+
+/* --glow: açıq kart (tünd zolaq istəməyən səhifələr) */
+.vx-cta--glow {
+  background:
+    radial-gradient(500px circle at var(--mx) var(--my), var(--brand-soft), transparent 60%),
+    var(--surface-1);
+  color: var(--text-body);
+  box-shadow: 0 24px 48px -32px var(--vx-depth);
+}
+.vx-cta--glow::after { background: linear-gradient(135deg, var(--accent), var(--brand-soft-2) 40%, var(--brand)); opacity: .55; }
+.vx-cta--glow::before { opacity: .5; }
+.vx-cta--glow .vx-cta__title { color: var(--text-strong); }
+.vx-cta--glow .vx-cta__text, .vx-cta--glow .vx-cta__trust { color: var(--text-secondary); }
+.vx-cta--glow .vx-cta__ar { color: var(--accent-text); }
+
+/* ══════════════════════════════════════════════════════════
+   §5  FOOTER v5
+   ══════════════════════════════════════════════════════════ */
+/* CTA zolağı — footer-in başında, tünd panel */
+.vx-ft-band-wrap { padding: clamp(28px, 4vw, 48px) var(--page-gutter) 0; position: relative; z-index: 1; }
+/* Ana səhifənin öz iri CTA-sı var — footer zolağı orada təkrarlanmır */
+body:has(.hp-root) .vx-ft-band-wrap { display: none; }
+/* Zolaq olan footer-də əsas hissənin üst boşluğu azalır */
+.vx-ft-band-wrap + .ft-pattern + .ft-main { padding-top: 44px; }
+.vx-ft-band {
+  max-width: var(--container, 1200px);
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 44px) clamp(20px, 4vw, 48px);
+  text-align: start;
+  display: grid;
+  gap: 18px;
+  align-items: center;
+}
+@media (min-width: 900px) { .vx-ft-band { grid-template-columns: 1fr auto; gap: 32px; } }
+.vx-ft-band .vx-cta__title { max-width: 30ch; margin: 0 0 6px; font-size: clamp(1.35rem, 1rem + 1.6vw, 2rem); }
+.vx-ft-band .vx-cta__text { margin: 0; }
+.vx-ft-band .vx-cta__btns { justify-content: flex-start; }
+.vx-ft-band .vx-cta__ar { font-size: clamp(22px, 3vw, 30px); margin-bottom: 2px; }
+
+/* Dil zolağı footer-də */
+.vx-ft-langs { max-width: var(--container, 1200px); margin: 28px auto 0; padding: 0 var(--page-gutter); }
+.vx-ft-langs__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-family: var(--font-label);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide, .05em);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.vx-ft-langs__head svg { color: var(--accent); }
+.vx-ft-langs__head b { color: var(--brand); font-variant-numeric: tabular-nums; }
+
+/* İri söz-nişanı — footer-in ən altında, kənardan kənara */
+.vx-wordmark {
+  position: relative;
+  overflow: hidden;
+  margin: 8px auto 0;
+  max-width: var(--container, 1200px);
+  padding: 0 var(--page-gutter);
+  line-height: .78;
+  user-select: none;
+  pointer-events: none;
+}
+.vx-wordmark__fill {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: clamp(56px, 15.5vw, 210px);
+  letter-spacing: -.055em;
+  text-align: center;
+  white-space: nowrap;
+  color: transparent;
+  background: linear-gradient(90deg,
+    var(--brand) 0%, color-mix(in srgb, var(--brand) 70%, var(--accent)) 30%, var(--accent) 50%,
+    color-mix(in srgb, var(--surface-3) 80%, var(--brand)) 50.1%, var(--surface-3) 100%) 0 0 / 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--brand) 18%, transparent);
+  /* aşağı yarısı kəsilir — "yerə batan" söz effekti */
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 96%);
+  mask-image: linear-gradient(180deg, #000 55%, transparent 96%);
+  transform: translateY(8%);
+}
+[dir="rtl"] .vx-wordmark__fill { direction: ltr; }
+
+/* ══════════════════════════════════════════════════════════
+   §6  ANA SƏHİFƏ "SUPERHERO"
+   ══════════════════════════════════════════════════════════ */
+/* Namaz kartının ətrafında üzən 3D ikon orbiti (dekor, ≥1100px) */
+.vx-orbit { position: absolute; inset: -40px -30px; pointer-events: none; z-index: 0; }
+.vx-orbit .ui-icon-tile {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  animation: vx-float 8s ease-in-out infinite;
+}
+.vx-orbit .ui-icon-tile svg { width: 26px; height: 26px; }
+.vx-orbit > :nth-child(1) { top: 2%; inset-inline-start: -4%; rotate: -10deg; }
+.vx-orbit > :nth-child(2) { top: -2%; inset-inline-end: 4%; rotate: 9deg; animation-delay: -2s; width: 46px; height: 46px; }
+.vx-orbit > :nth-child(3) { bottom: 8%; inset-inline-start: -7%; rotate: 7deg; animation-delay: -3.6s; width: 48px; height: 48px; }
+.vx-orbit > :nth-child(4) { top: 44%; inset-inline-end: -6%; rotate: -12deg; animation-delay: -5.2s; width: 44px; height: 44px; }
+@media (max-width: 1099px) { .vx-orbit { display: none; } }
+.hp-hero-visual { position: relative; }
+.hp-hero-visual > .hp-pc { position: relative; z-index: 1; }
+
+/* Hero altında dil zolağı */
+.vx-hero-langs { position: relative; z-index: 1; max-width: var(--container, 1200px); margin: 0 auto; padding: 0 var(--page-gutter) clamp(20px, 3vw, 32px); }
+.vx-hero-langs .vx-ft-langs__head { justify-content: center; }
+
+/* Hero başlığı — dərin qradiyent mətn (mövcud hərf animasiyası saxlanır) */
+.hp-hero-title .hp-ht-1 {
+  background: linear-gradient(180deg, var(--text-strong) 30%, color-mix(in srgb, var(--text-strong) 62%, var(--brand)));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.hp-hero-title .hp-ht-1 .hp-ht-ch { color: transparent; background: inherit; -webkit-background-clip: text; background-clip: text; }
+
+/* ══════════════════════════════════════════════════════════
+   HƏRƏKƏTİ AZALT — bütün dekor animasiyaları dayanır
+   ══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .vx-cta::before, .vx-cta__float .ui-icon-tile, .vx-orbit .ui-icon-tile { animation: none; }
+  .ui-icon-tile { transition: none; }
+}
+html.a11y-reduce-motion :is(.vx-cta::before, .vx-cta__float .ui-icon-tile, .vx-orbit .ui-icon-tile) { animation: none; }
+html.a11y-reduce-motion .vx-cta::before { animation: none; }
+html.a11y-reduce-motion .ui-icon-tile { transition: none; }
+
+/* Çap: dekor yoxdur */
+@media print {
+  .vx-marquee, .vx-wordmark, .vx-orbit, .vx-cta__float, .vx-ft-band-wrap { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   §7  NAVBAR v5 — 5 əsas link üzən şüşə "kapsul"da (≥1024px)
+   Sahibin qərarları (#5/#7) dəyişmir: struktur eynidir, yalnız görünüş.
+   • kapsul: yarımşəffaf səth + hairline + incə daxili işıq
+   • kursoru izləyən zümrüd işıq (data-spotlight, utils/vau3.js)
+   • sürüşəndə (.header.scrolled) kapsul qalxır — kölgə dərinləşir
+   • loqo işarəsi (xatəm) üzərinə gələndə 45° fırlanır
+   ══════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  .nav-desktop {
+    --mx: 50%;
+    --my: 50%;
+    isolation: isolate;
+    padding: 4px;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--surface-1) 62%, transparent);
+    box-shadow:
+      inset 0 1px 0 var(--vx-hi-soft),
+      inset 0 0 0 1px var(--line),
+      0 1px 2px color-mix(in srgb, var(--vx-depth) 40%, transparent);
+    transition: box-shadow .5s var(--vx-ease), background-color .5s var(--vx-ease);
+  }
+  .nav-desktop::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(140px circle at var(--mx) var(--my), color-mix(in srgb, var(--brand) 14%, transparent), transparent 70%);
+    opacity: 0;
+    transition: opacity .4s ease;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .nav-desktop:hover::before { opacity: 1; }
+  .nav-desktop .nav-link:hover { background: color-mix(in srgb, var(--surface-1) 70%, transparent); }
+  .nav-desktop .nav-link.active {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 14%, var(--surface-1)), var(--brand-soft));
+    box-shadow: inset 0 1px 0 var(--vx-hi-soft), inset 0 0 0 1px var(--brand-soft-2), 0 2px 6px -3px color-mix(in srgb, var(--brand) 45%, transparent);
+  }
+  .nav-desktop .nav-ind { bottom: -13px; }
+  .header.scrolled .nav-desktop {
+    background: color-mix(in srgb, var(--surface-1) 82%, transparent);
+    box-shadow:
+      inset 0 1px 0 var(--vx-hi-soft),
+      inset 0 0 0 1px var(--line-strong),
+      0 10px 28px -14px var(--vx-depth);
+  }
+}
+.qm-mark-star { transform-box: fill-box; transform-origin: center; transition: transform .9s var(--vx-ease); }
+@media (hover: hover) {
+  :is(.logo, .ft-logo):hover .qm-mark-star { transform: rotate(45deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.logo, .ft-logo):hover .qm-mark-star { transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   §8  "BİR GÜN — BEŞ NAMAZ" — sürüşmə hekayəsi (components/home/DayScroll)
+   Hündür bölmə (240vh) + yapışqan səhnə. view-timeline: --vxday.
+   Səma 4 qat (sübh → günorta → axşam → gecə) opacity ilə bir-birinə keçir,
+   günəş qövs boyu fırlanır (transform), namazlar növbə ilə işıqlanır.
+   Dəstəksiz / hərəkəti azalt: statik bölmə (sübh səması, hamısı aydın).
+   ══════════════════════════════════════════════════════════ */
+.vx-day { position: relative; padding: var(--section-gap-sm, 40px) var(--page-gutter); }
+.vx-day__stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  max-width: var(--container, 1200px);
+  margin-inline: auto;
+  min-height: 420px;
+  border-radius: clamp(20px, 3vw, 32px);
+  display: grid;
+  align-items: end;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.vx-day__sky, .vx-day__layer, .vx-day__stars, .vx-day__hills { position: absolute; inset: 0; }
+.vx-day__sky { z-index: -1; overflow: hidden; }
+.vx-day__layer--dawn  { background: linear-gradient(180deg, #f6d9c4 0%, #f7e7d3 45%, #f2eadb 100%); }
+.vx-day__layer--noon  { background: linear-gradient(180deg, #bfe0f0 0%, #e3f1f3 55%, #f3efe4 100%); opacity: 0; }
+.vx-day__layer--dusk  { background: linear-gradient(180deg, #6d4a7c 0%, #d9825b 55%, #f2c28a 100%); opacity: 0; }
+.vx-day__layer--night { background: linear-gradient(180deg, #07131d 0%, #0d2533 60%, #123a3a 100%); opacity: 0; }
+.vx-day__stars {
+  opacity: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 32%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 44% 12%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 63% 26%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 78% 14%, #fff7d6 50%, transparent 51%),
+    radial-gradient(1px 1px at 90% 34%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 52% 40%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 6% 44%, #fff 50%, transparent 51%);
+}
+/* Günəş: səhnənin alt mərkəzində fırlanan "qol"un ucunda */
+.vx-day__orbit {
+  position: absolute;
+  left: 50%;
+  bottom: -38%;
+  width: min(118vw, 1300px);
+  aspect-ratio: 1;
+  translate: -50% 50%;
+  transform: rotate(-58deg);
+  pointer-events: none;
+}
+.vx-day__sun {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: clamp(56px, 7vw, 92px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 38%, #fff8e1 0 18%, #ffd27a 45%, #f0a03c 100%);
+  box-shadow: 0 0 60px 18px rgba(255, 196, 92, .45), 0 0 140px 50px rgba(255, 196, 92, .2);
+}
+.vx-day__hills {
+  top: auto;
+  height: 42%;
+  background:
+    radial-gradient(70% 60% at 22% 100%, color-mix(in srgb, #0a3d31 82%, transparent) 0 60%, transparent 61%),
+    radial-gradient(80% 70% at 78% 100%, color-mix(in srgb, #0f5a47 75%, transparent) 0 58%, transparent 59%);
+  opacity: .5;
+}
+[data-theme="dark"] .vx-day__sky { filter: brightness(.72) saturate(.9); }
+
+.vx-day__in { position: relative; padding: clamp(24px, 4vw, 44px); width: 100%; }
+.vx-day__in > .ui-eyebrow, .vx-day__title {
+  display: table;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-1) 72%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.vx-day__title { margin: 8px 0 18px; padding: 6px 14px; }
+.vx-day__list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(8px, 1.4vw, 16px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.vx-day__item a {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: clamp(12px, 2vw, 20px) 8px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-1) 74%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: inset 0 1px 0 var(--vx-hi-soft), inset 0 0 0 1px var(--line);
+  color: var(--text-strong);
+  text-decoration: none;
+  transition: transform .5s var(--vx-ease), box-shadow .5s var(--vx-ease);
+}
+.vx-day__name { font-family: var(--font-label); font-size: var(--step-0); font-weight: 600; text-align: center; }
+@media (hover: hover) { .vx-day__item a:hover { transform: translateY(-4px); box-shadow: inset 0 0 0 1px var(--brand-soft-2), 0 14px 26px -14px var(--vx-depth); } }
+@media (max-width: 599px) {
+  .vx-day__list { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .vx-day__item a { padding: 10px 2px; gap: 6px; }
+  .vx-day__item .ui-icon-tile--lg { width: 40px; height: 40px; }
+  .vx-day__item .ui-icon-tile--lg svg { width: 20px; height: 20px; }
+  .vx-day__name { font-size: var(--step--2); }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html:not(.a11y-reduce-motion) .vx-day {
+      height: 240vh;
+      padding-block: 0;
+      view-timeline: --vxday block;
+    }
+    html:not(.a11y-reduce-motion) .vx-day__stage {
+      position: sticky;
+      top: calc(var(--header-h, 64px) + 12px);
+      height: calc(100svh - var(--header-h, 64px) - 24px);
+      max-height: 760px;
+    }
+    html:not(.a11y-reduce-motion) :is(.vx-day__layer, .vx-day__stars, .vx-day__orbit, .vx-day__sun, .vx-day__item) {
+      animation-timeline: --vxday;
+      animation-range: contain 0% contain 100%;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+    html:not(.a11y-reduce-motion) .vx-day__layer--noon  { animation-name: vx-day-noon; }
+    html:not(.a11y-reduce-motion) .vx-day__layer--dusk  { animation-name: vx-day-dusk; }
+    html:not(.a11y-reduce-motion) .vx-day__layer--night { animation-name: vx-day-night; }
+    html:not(.a11y-reduce-motion) .vx-day__stars        { animation-name: vx-day-stars; }
+    html:not(.a11y-reduce-motion) .vx-day__orbit        { animation-name: vx-day-orbit; }
+    html:not(.a11y-reduce-motion) .vx-day__sun          { animation-name: vx-day-sun; }
+    /* Hər namaz öz zaman pəncərəsində işıqlanır */
+    html:not(.a11y-reduce-motion) .vx-day__item { animation-name: vx-day-on; }
+    html:not(.a11y-reduce-motion) .vx-day__item:nth-child(1) { animation-range: contain 0% contain 24%; }
+    html:not(.a11y-reduce-motion) .vx-day__item:nth-child(2) { animation-range: contain 18% contain 42%; }
+    html:not(.a11y-reduce-motion) .vx-day__item:nth-child(3) { animation-range: contain 38% contain 62%; }
+    html:not(.a11y-reduce-motion) .vx-day__item:nth-child(4) { animation-range: contain 58% contain 82%; }
+    html:not(.a11y-reduce-motion) .vx-day__item:nth-child(5) { animation-range: contain 76% contain 100%; animation-name: vx-day-on-last; }
+  }
+}
+@keyframes vx-day-noon  { 0%, 15% { opacity: 0; } 32%, 52% { opacity: 1; } 64%, 100% { opacity: 0; } }
+@keyframes vx-day-dusk  { 0%, 50% { opacity: 0; } 62%, 74% { opacity: 1; } 86%, 100% { opacity: 0; } }
+@keyframes vx-day-night { 0%, 74% { opacity: 0; } 88%, 100% { opacity: 1; } }
+@keyframes vx-day-stars { 0%, 80% { opacity: 0; } 96%, 100% { opacity: 1; } }
+@keyframes vx-day-orbit { from { transform: rotate(-58deg); } to { transform: rotate(70deg); } }
+@keyframes vx-day-sun   { 0%, 72% { opacity: 1; } 84%, 100% { opacity: 0; } }
+@keyframes vx-day-on {
+  0%, 100% { opacity: .5; transform: scale(.94); }
+  35%, 65% { opacity: 1; transform: translateY(-8px) scale(1.06); }
+}
+@keyframes vx-day-on-last {
+  0% { opacity: .5; transform: scale(.94); }
+  40%, 100% { opacity: 1; transform: translateY(-8px) scale(1.06); }
+}
+/* Telefon: səhnə ensiz və hündürdür — qövs daha iri, mərkəzi alt kənarda,
+   fırlanma bucağı dar (günəş ekrandan çıxmasın) */
+@media (max-width: 767px) {
+  .vx-day__orbit { width: 250vw; bottom: 0; }
+  @keyframes vx-day-orbit { from { transform: rotate(-30deg); } to { transform: rotate(38deg); } }
+}

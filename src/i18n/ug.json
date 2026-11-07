@@ -66,8 +66,6 @@
  "40 days of Fajr on time": "40 كۈن بامدات ۋاقتىدا",
  "42 hadiths that gather the foundations of the religion — read them on this site with commentary.": "دىننىڭ ئاساسلىرىنى ئۆز ئىچىگە ئالغان 42 ھەدىس — ئۇلارنى بۇ بېكەتتە ئىزاھات بىلەن ئوقۇڭ.",
  "42 short hadiths that gather the foundations of the religion — with the Arabic text, a translation, the source and the benefits.": "دىننىڭ ئاساسلىرىنى ئۆز ئىچىگە ئالغان 42 قىسقا ھەدىس — ئەرەبچە تېكىست، تەرجىمە، مەنبە ۋە پايدىلىرى بىلەن.",
- "5 Languages": "5 تىل",
- "5 languages": "5 تىل",
  "604 pages, tajweed colours": "604 بەت، تەجۋىد رەڭلىرى",
  "7 day streak": "7 كۈن ئۈزلۈكسىز",
  "8 Dhul-Hijjah": "8 زۇلھەججە",
@@ -106,7 +104,6 @@
  "A few minutes at the end of the day: answer eight questions, write a short note and see your progress in charts.": "كۈن ئاخىرىدا بىر نەچچە مىنۇت: سەككىز سوئالغا جاۋاب بېرىڭ، قىسقا خاتىرە يېزىڭ ۋە ئىلگىرىلەشىڭىزنى دىئاگراممىلاردىن كۆرۈڭ.",
  "A first step to reading the Quran": "قۇرئان ئوقۇشنىڭ تۇنجى قەدىمى",
  "A free Islamic platform": "ھەقسىز ئىسلام سۇپىسى",
- "A free Islamic platform with 30+ sections in 5 languages: read and listen to the Quran, prayer times, 1250+ hadith, duas, dhikr, zakat and qibla. No ads.": "5 تىلدا 30+ بۆلۈمى بار ھەقسىز ئىسلام سۇپىسى: قۇرئان ئوقۇش ۋە ئاڭلاش، ناماز ۋاقىتلىرى، 1250+ ھەدىس، دۇئا، زىكىر، زاكات ۋە قىبلە. ئېلانسىز.",
  "A full-screen display for mosque TVs: clock, Hijri date, adhan and iqamah times, countdown to the next prayer, Jumu‘ah time and verses — set up by a link.": "مەسچىت تېلېۋىزورلىرى ئۈچۈن تولۇق ئېكرانلىق كۆرسەتكۈچ: سائەت، ھىجرىي چېسلا، ئەزان ۋە ئىقامەت ۋاقتى، كېيىنكى نامازغىچە ساناق، جۈمە ۋاقتى ۋە ئايەتلەر — ئۇلانما ئارقىلىق تەڭشىلىدۇ.",
  "A globe showing the shortest path from your location to the Kaaba": "ئورنىڭىزدىن كەبىگە بولغان ئەڭ قىسقا يولنى كۆرسىتىدىغان يەر شارى",
  "A good start": "ياخشى باشلىنىش",
@@ -2884,7 +2881,6 @@
  "Rashidun caliphate": "خۇلەفائۇراشىدىن خەلىپىلىكى",
  "Read": "ئوقۇش",
  "Read Quran": "قۇرئان ئوقۇش",
- "Read all 114 surahs of the Quran online with Arabic text, translation in 5 languages, audio recitation, tafsir, verse search and bookmarks. Free, no ads.": "قۇرئاننىڭ 114 سۈرىسىنىڭ ھەممىسىنى توردا ئەرەبچە تېكىست، 5 تىلدىكى تەرجىمە، تىلاۋەت ئاۋازى، تەپسىر، ئايەت ئىزدەش ۋە خەتكۈچلەر بىلەن ئوقۇڭ. ھەقسىز، ئېلانسىز.",
  "Read aloud": "ئاۋازلىق ئوقۇش",
  "Read and download Islamic books online: tafsir, hadith, fiqh, seerah and works on character. Browse by category, completely free.": "ئىسلامىي كىتابلارنى توردا ئوقۇڭ ۋە چۈشۈرۈڭ: تەپسىر، ھەدىس، پىقھى، سىيرە ۋە ئەخلاققا دائىر ئەسەرلەر. تۈرلەر بويىچە كۆرۈڭ، پۈتۈنلەي ھەقسىز.",
  "Read and listen": "ئوقۇش ۋە ئاڭلاش",
@@ -4859,5 +4855,9 @@
  "← Previous": "← ئالدىنقى",
  "← → to move, Esc to close": "← → يۆتكىلىش، Esc يېپىش",
  "≈ 20 pages": "≈ 20 بەت",
- "🕌 Prayer time": "🕌 ناماز ۋاقتى"
+ "🕌 Prayer time": "🕌 ناماز ۋاقتى",
+ "50 Languages": "50 تىل",
+ "A free Islamic platform with 30+ sections in 50 languages: read and listen to the Quran, prayer times, 1250+ hadith, duas, dhikr, zakat and qibla. No ads.": "50 تىلدا 30+ بۆلۈمى بار ھەقسىز ئىسلام سۇپىسى: قۇرئان ئوقۇش ۋە ئاڭلاش، ناماز ۋاقىتلىرى، 1250+ ھەدىس، دۇئا، زىكىر، زاكات ۋە قىبلە. ئېلانسىز.",
+ "Read all 114 surahs of the Quran online with Arabic text, translation in 50 languages, audio recitation, tafsir, verse search and bookmarks. Free, no ads.": "قۇرئاننىڭ 114 سۈرىسىنىڭ ھەممىسىنى توردا ئەرەبچە تېكىست، 50 تىلدىكى تەرجىمە، تىلاۋەت ئاۋازى، تەپسىر، ئايەت ئىزدەش ۋە خەتكۈچلەر بىلەن ئوقۇڭ. ھەقسىز، ئېلانسىز.",
+ "50 languages": "50 تىل"
 }
