@@ -72,6 +72,8 @@ describe('endpoint və açar validasiyası', () => {
     expect(push.validPrefs({ admin: true })).toBeUndefined()
     // Sünnə orucu xatırlatması (server/fasting.js) — yalnız bool
     expect(push.validPrefs({ fasting: true })).toEqual({ fasting: true })
+    expect(push.validPrefs({ adhkar: true, jumuah: false })).toEqual({ adhkar: true, jumuah: false })
+    expect(push.validPrefs({ adhkar: 'yes' })).toBeUndefined()
     expect(push.validPrefs({ checkin: false, fasting: false })).toEqual({ checkin: false, fasting: false })
     expect(push.validPrefs({ fasting: 'yes' })).toBeUndefined()
     expect(push.validPrefs({ fasting: 1 })).toBeUndefined()

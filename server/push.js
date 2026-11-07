@@ -96,15 +96,16 @@ function validLoc(l) {
   return out
 }
 
-/** prefs: { azan:bool, checkin:bool, fasting:bool, daily:{ ayah:bool, hour:0..23 } } — yararsızdırsa undefined. */
+/** prefs: { azan, checkin, fasting, adhkar, jumuah: bool, daily:{ ayah:bool, hour:0..23 } } — yararsızdırsa undefined. */
 function validPrefs(p) {
   if (p == null) return {}
   if (typeof p !== 'object' || Array.isArray(p)) return undefined
-  if (Object.keys(p).some((k) => !['azan', 'checkin', 'fasting', 'daily'].includes(k))) return undefined
+  if (Object.keys(p).some((k) => !['azan', 'checkin', 'fasting', 'adhkar', 'jumuah', 'daily'].includes(k))) return undefined
   const out = {}
   if ('azan' in p) { if (typeof p.azan !== 'boolean') return undefined; out.azan = p.azan }
   if ('checkin' in p) { if (typeof p.checkin !== 'boolean') return undefined; out.checkin = p.checkin }
   if ('fasting' in p) { if (typeof p.fasting !== 'boolean') return undefined; out.fasting = p.fasting }
+  for (const k of ['adhkar', 'jumuah']) if (k in p) { if (typeof p[k] !== 'boolean') return undefined; out[k] = p[k] }
   if ('daily' in p) {
     const d = p.daily
     if (!d || typeof d !== 'object' || Array.isArray(d) || Object.keys(d).some((k) => !['ayah', 'hour'].includes(k))) return undefined

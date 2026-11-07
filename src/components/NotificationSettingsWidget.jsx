@@ -26,6 +26,8 @@ const DEFAULT_PREFS = {
   prayer: true,
   checkin: false,   // "Qıldınızmı?" — serverə yazılır (token → checkin), susmaya görə sönülü
   fasting: false,   // Sünnə orucu xatırlatması — serverə yazılır (prefs.fasting), susmaya görə sönülü
+  adhkar: false,    // Səhər/axşam zikri (server/reminders.js) — susmaya görə sönülü
+  jumuah: false,    // Cümə: Kəhf + salavat — susmaya görə sönülü
   ayah: false,
   ayahHour: 8,
   announcements: true,
@@ -55,6 +57,8 @@ const LABELS = {
     typeCheckin:'Qıldınızmı? xatırlatması',
     typeCheckinSub:'Namaz vaxtından 20 dəqiqə sonra soruşur — bir toxunuşla qeyd edin',
     checkinNeedsToken:'Xatırlatma üçün əvvəlcə yuxarıdan bildirişlərə icazə verin. Seçiminiz yadda qalacaq.',
+    typeAdhkar:'Səhər və axşam zikri', typeAdhkarSub:'Sübhdən və əsrdən 30 dəqiqə sonra — Hisnul-Müslim açılır',
+    typeJumuah:'Cümə xatırlatması', typeJumuahSub:'Cümə günü saat 09:00 — Kəhf surəsi və salavat',
     typeFasting:'Sünnə orucu xatırlatması',
     typeFastingSub:'Bazar ertəsi, cümə axşamı, ağ günlər, Ərəfə və Aşuradan əvvəlki axşam saat 20:00-da',
     typeAyah:'Günün ayəsi',
@@ -97,6 +101,8 @@ const LABELS = {
     typeCheckin:'Did you pray? reminder',
     typeCheckinSub:'Asks 20 minutes after each prayer time — mark it with one tap',
     checkinNeedsToken:'To get the reminder, allow notifications above first. Your choice will be saved.',
+    typeAdhkar:'Morning and evening adhkar', typeAdhkarSub:'30 minutes after Fajr and Asr — opens Hisn al-Muslim',
+    typeJumuah:'Friday reminder', typeJumuahSub:'On Friday at 09:00 — Surah al-Kahf and salawat',
     typeFasting:'Sunnah fasting reminder',
     typeFastingSub:'The evening before Mondays, Thursdays, the white days, Arafah and Ashura — at 20:00',
     typeAyah:'Verse of the day',
@@ -139,6 +145,8 @@ const LABELS = {
     typeCheckin:'Напоминание «Намаз совершён?»',
     typeCheckinSub:'Спрашивает через 20 минут после времени намаза — отметка одним касанием',
     checkinNeedsToken:'Чтобы получать напоминание, сначала разрешите уведомления выше. Ваш выбор сохранится.',
+    typeAdhkar:'Утренние и вечерние азкары', typeAdhkarSub:'Через 30 минут после фаджра и асра — открывается «Крепость мусульманина»',
+    typeJumuah:'Пятничное напоминание', typeJumuahSub:'В пятницу в 09:00 — сура «аль-Кахф» и салават',
     typeFasting:'Напоминание о желательном посте',
     typeFastingSub:'Накануне понедельника, четверга, белых дней, Арафы и Ашуры — в 20:00',
     typeAyah:'Аят дня',
@@ -181,6 +189,8 @@ const LABELS = {
     typeCheckin:'تذكير «هل صليت؟»',
     typeCheckinSub:'يسأل بعد ٢٠ دقيقة من دخول وقت الصلاة — سجّلها بلمسة واحدة',
     checkinNeedsToken:'لتلقي التذكير، اسمح بالإشعارات أعلاه أولاً. سيُحفظ اختيارك.',
+    typeAdhkar:'أذكار الصباح والمساء', typeAdhkarSub:'بعد الفجر والعصر بثلاثين دقيقة — يُفتح حصن المسلم',
+    typeJumuah:'تذكير الجمعة', typeJumuahSub:'يوم الجمعة الساعة 09:00 — سورة الكهف والصلاة على النبي ﷺ',
     typeFasting:'تذكير بصيام التطوع',
     typeFastingSub:'مساء اليوم السابق للاثنين والخميس والأيام البيض وعرفة وعاشوراء — الساعة 20:00',
     typeAyah:'آية اليوم',
@@ -223,6 +233,8 @@ const LABELS = {
     typeCheckin:'Kıldınız mı? hatırlatması',
     typeCheckinSub:'Namaz vaktinden 20 dakika sonra sorar — tek dokunuşla işaretleyin',
     checkinNeedsToken:'Hatırlatma için önce yukarıdan bildirimlere izin verin. Seçiminiz kaydedilecek.',
+    typeAdhkar:'Sabah ve akşam zikirleri', typeAdhkarSub:'Sabah ve ikindi ezanından 30 dakika sonra — Hisnu’l-Müslim açılır',
+    typeJumuah:'Cuma hatırlatması', typeJumuahSub:'Cuma günü saat 09:00’da — Kehf suresi ve salavat',
     typeFasting:'Nafile oruç hatırlatması',
     typeFastingSub:'Pazartesi, perşembe, eyyâm-ı bîz, Arefe ve Aşure öncesi akşam saat 20:00’de',
     typeAyah:'Günün ayeti',
@@ -419,6 +431,15 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
     if (!ok) setFeedback({ ok: false, text: l.ayahSaveFailed })
   }
 
+  // Səhər/axşam zikri və Cümə (server/reminders.js): eyni qayda — lokal + abunəlik
+  const setFlag = (key) => async () => {
+    const next = !prefs[key]
+    setPrefs(p => ({ ...p, [key]: next }))
+    if (!getStoredToken()) return
+    const ok = await updateTokenPrefs({ [key]: next })
+    if (!ok) setFeedback({ ok: false, text: l.ayahSaveFailed })
+  }
+
   // "Günün ayəsi": seçim həmişə lokal yadda qalır; token varsa sənədə də yazılır
   const setAyah = async (patch) => {
     const next = { ayah: prefs.ayah, hour: prefs.ayahHour, ...patch }
@@ -520,6 +541,15 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
                   <PrefToggle icon="moon" label={l.typeFasting} sub={l.typeFastingSub}
                     on={prefs.fasting} onClick={setFasting} />
                   {prefs.fasting && !hasToken && (
+                    <div className="notif-ayah-note" role="note">
+                      <Icon name="info" size={16} /> <span>{supported ? l.checkinNeedsToken : l.ayahUnsupported}</span>
+                    </div>
+                  )}
+                  <PrefToggle icon="dhikr" label={l.typeAdhkar} sub={l.typeAdhkarSub}
+                    on={prefs.adhkar} onClick={setFlag('adhkar')} />
+                  <PrefToggle icon="calendar" label={l.typeJumuah} sub={l.typeJumuahSub}
+                    on={prefs.jumuah} onClick={setFlag('jumuah')} />
+                  {(prefs.adhkar || prefs.jumuah) && !hasToken && (
                     <div className="notif-ayah-note" role="note">
                       <Icon name="info" size={16} /> <span>{supported ? l.checkinNeedsToken : l.ayahUnsupported}</span>
                     </div>

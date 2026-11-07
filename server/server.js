@@ -37,7 +37,7 @@ else console.log(`Firebase: FCM ${FCM_ON ? 'açıq' : 'sönülü'}, köhnə admi
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
 for (const m of ['./auth', './analytics', './csp', './clientErrors', './ummah', './content', './feedback', './groups', './sync', './ics', './push',
-  './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './prayCalc']) require(m)
+  './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc']) require(m)
 
 // ─── Verilənlər bazası (SQLite, node:sqlite) ─────────────────────────
 const { openDb } = require('./db')
@@ -377,7 +377,7 @@ async function loadAllSubscribers() {
     out.push({
       kind: 'wp', id: s.endpoint, sub: { endpoint: s.endpoint, keys: s.keys },
       lang: s.lang, loc: s.loc, azan: s.prefs.azan, daily: s.prefs.daily, checkin: s.prefs.checkin,
-      fasting: s.prefs.fasting,
+      fasting: s.prefs.fasting, adhkar: s.prefs.adhkar, jumuah: s.prefs.jumuah,
     })
   }
   if (adminDb) {
@@ -387,7 +387,7 @@ async function loadAllSubscribers() {
       for (const doc of snap.docs) {
         const d = doc.data()
         if (!d.token) continue
-        fcmCache.push({ kind: 'fcm', id: doc.id, token: d.token, lang: d.lang, loc: d.loc, azan: d.azan, daily: d.daily, checkin: d.checkin, fasting: d.fasting })
+        fcmCache.push({ kind: 'fcm', id: doc.id, token: d.token, lang: d.lang, loc: d.loc, azan: d.azan, daily: d.daily, checkin: d.checkin, fasting: d.fasting, adhkar: d.adhkar, jumuah: d.jumuah })
       }
     } catch (e) {
       console.error('Firestore fcm_tokens oxunmadı — əvvəlki siyahı istifadə olunur:', e.message)
@@ -550,6 +550,7 @@ const dailyAyah = require('./daily-ayah')   // "Günün ayəsi" planlayıcısı 
 const { normDaily } = dailyAyah
 const checkin = require('./checkin')       // "Qıldınızmı?" xatırlatması (aşağıda)
 const fasting = require('./fasting')       // Sünnə orucu xatırlatması (aşağıda)
+const reminders = require('./reminders')   // Səhər/axşam zikri + Cümə xatırlatması (aşağıda)
 const { newId } = require('./db')
 const prayCalc = require('./prayCalc')   // Azərbaycan: Əbu Bəkr məscidinin cədvəli
 const TOKENS_TTL_MS = 10 * 60 * 1000   // abunəçi siyahısı 10 dəqiqədə bir təzələnir
@@ -601,6 +602,8 @@ async function loadTokens() {
       azan: d.azan !== false,      // ayarlarda "Namaz vaxtı" söndürülübsə azan göndərilmir
       checkin: checkin.normCheckin(d.checkin),   // "Qıldınızmı?" — susmaya görə sönülü
       fasting: fasting.normFasting(d.fasting),   // Sünnə orucu xatırlatması — susmaya görə sönülü
+      adhkar: reminders.normFlag(d.adhkar),      // Səhər/axşam zikri (server/reminders.js) — susmaya görə sönülü
+      jumuah: reminders.normFlag(d.jumuah),      // Cümə: Kəhf + salavat — susmaya görə sönülü
     })
   }
   tokenGroups = groups
@@ -691,6 +694,18 @@ async function sendFastingPush(group, now) {
   }
 }
 
+// ── Səhər/axşam zikri və Cümə xatırlatması (server/reminders.js) ──
+// Zikr: sübh / əsr azanından 30 dəq sonra (adhkar:true); Cümə: yerli 09:00 (jumuah:true).
+async function sendReminderPush(group, kind, now) {
+  const flag = kind === 'jumuah' ? 'jumuah' : 'adhkar'
+  const subs = group.entries.filter(e => e[flag])
+  if (!subs.length) return
+  for (const [lang, list] of groupByLang(subs)) {
+    const msg = reminders.buildReminderMessage(lang, kind, now.dateKey, WEBPUSH_ICONS)
+    if (msg) await deliver(list, msg, `reminder ${kind} [${lang} · ${group.loc.tz}]`)
+  }
+}
+
 let tickBusy = false
 async function prayerTick() {
   if (tickBusy) return
@@ -708,8 +723,21 @@ async function prayerTick() {
           await sendFastingPush(group, now)
         }
       }
+      // Cümə xatırlatması namaz vaxtlarından asılı deyil (aladhan çatmasa da gedir)
+      if (now.friday && now.hhmm === reminders.JUMUAH_HHMM && group.entries.some(e => e.jumuah)) {
+        const jk = `${key}|${now.dateKey}|jumuah`
+        if (!sentKeys.has(jk)) { sentKeys.add(jk); await sendReminderPush(group, 'jumuah', now) }
+      }
       const day = await timesFor(key, group.loc, now)
       if (!day) continue
+      if (group.entries.some(e => e.adhkar)) {
+        for (const kind of reminders.dueReminders(day.times, now.hhmm, { jumuah: false })) {
+          const rk = `${key}|${now.dateKey}|${kind}`
+          if (sentKeys.has(rk)) continue
+          sentKeys.add(rk)
+          await sendReminderPush(group, kind, now)
+        }
+      }
       for (const [prayer] of PRAYERS) {
         const sk = `${key}|${now.dateKey}|${prayer}`
         if (day.times[prayer] === now.hhmm && !sentKeys.has(sk)) {

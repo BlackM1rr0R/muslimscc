@@ -103,7 +103,8 @@ function serverPrefs() {
   const hour = Number.isInteger(p.ayahHour) ? p.ayahHour : 8
   // checkin — "Qıldınızmı?" xatırlatması (server/checkin.js), susmaya görə sönülü
   // fasting — sünnə orucu xatırlatması (server/fasting.js), susmaya görə sönülü
-  return { azan: p.prayer !== false, checkin: p.checkin === true, fasting: p.fasting === true, daily: { ayah: p.ayah === true, hour } }
+  // adhkar / jumuah — səhər-axşam zikri və Cümə xatırlatması (server/reminders.js), susmaya görə sönülü
+  return { azan: p.prayer !== false, checkin: p.checkin === true, fasting: p.fasting === true, adhkar: p.adhkar === true, jumuah: p.jumuah === true, daily: { ayah: p.ayah === true, hour } }
 }
 
 /**
@@ -223,6 +224,8 @@ export function updateTokenPrefs(patch) {
   if ('azan' in patch) prefs.azan = Boolean(patch.azan)
   if ('checkin' in patch) prefs.checkin = Boolean(patch.checkin)
   if ('fasting' in patch) prefs.fasting = Boolean(patch.fasting)
+  if ('adhkar' in patch) prefs.adhkar = Boolean(patch.adhkar)
+  if ('jumuah' in patch) prefs.jumuah = Boolean(patch.jumuah)
   return patchSubscription({ prefs })
 }
 
