@@ -81,8 +81,8 @@ export const EXTRA_LANGS = {
   km: { name: 'ខ្មែរ', en: 'Khmer', ui: true, dir: 'ltr', locale: 'km_KH', qe: 'khmer_rwwad', by: 'Rowwad Translation Center', basmala: 'ក្នុងព្រះនាមអល់ឡោះ មហាសប្បុរស មហាអាណិតស្រលាញ់។' },
   ja: { name: '日本語', en: 'Japanese', ui: true, dir: 'ltr', locale: 'ja_JP', qe: 'japanese_saeedsato', by: 'Saeed Sato', basmala: '慈悲あまねく慈愛深きアッラーの御名において。' },
   sv: { name: 'Svenska', en: 'Swedish', ui: true, dir: 'ltr', locale: 'sv_SE', qe: 'swedish_rwwad', by: 'Rowwad Translation Center', basmala: 'I Guds namn, den Nåderike, den Barmhärtige.' },
-  ro: { name: 'Română', en: 'Romanian', dir: 'ltr', locale: 'ro_RO', qe: 'romanian_project', by: 'Islam4ro.com', basmala: 'În Numele lui Allah Cel Milostiv [Ar-Rahman], Îndurător [Ar-Rahim],' },
-  sr: { name: 'Српски', en: 'Serbian', dir: 'ltr', locale: 'sr_RS', qe: 'serbian_rwwad', by: 'Rowwad Translation Center', basmala: 'У име Аллаха, Милостивог, Самилосног.' },
+  ro: { name: 'Română', en: 'Romanian', ui: true, dir: 'ltr', locale: 'ro_RO', qe: 'romanian_project', by: 'Islam4ro.com', basmala: 'În Numele lui Allah Cel Milostiv [Ar-Rahman], Îndurător [Ar-Rahim],' },
+  sr: { name: 'Српски', en: 'Serbian', ui: true, dir: 'ltr', locale: 'sr_RS', qe: 'serbian_rwwad', by: 'Rowwad Translation Center', basmala: 'У име Аллаха, Милостивог, Самилосног.' },
   si: { name: 'සිංහල', en: 'Sinhala', dir: 'ltr', locale: 'si_LK', qe: 'sinhalese_mahir', by: 'Rowwad Translation Center', basmala: 'අපරිමිත දයාන්විත අසමසම කරුණාන්විත වූ අල්ලාහ්ගේ නාමයෙනි.' },
 }
 
