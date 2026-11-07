@@ -25,7 +25,7 @@ export const FORMATS = [
 export const formatById = (id) => FORMATS.find(f => f.id === id) || FORMATS[0]
 
 // ── Şriftlər (layihədə öz serverimizdədir — src/assets/fonts) ──
-const F_AR = '"Amiri", "Noto Naskh Arabic", "Scheherazade New", serif'
+const F_AR = '"Amiri", serif'
 // "Kitab" üslubu Amiri-nin latın hərfləridir (kiril üçün sistem serif-i).
 // Dizayn v3.1: Ubuntu/Literata yoxdur — kartda yalnız Inter, Amiri, IBM Plex Sans Arabic
 const F_SERIF = '"Amiri", Georgia, "Times New Roman", serif'

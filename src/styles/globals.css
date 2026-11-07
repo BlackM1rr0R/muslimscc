@@ -141,7 +141,11 @@
   --font-sans:      'Inter', 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-display:   'Inter', 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono:      ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, monospace;
-  --font-arabic:    'Amiri', 'Noto Naskh Arabic', 'Scheherazade New', serif;
+  /* Yalnız Amiri (bütün ərəb simvollarını əhatə edir). Noto Naskh / Scheherazade
+     burada OLMAMALIDIR: Amiri yüklənərkən Chrome zəncirdəki növbəti veb-şriftləri
+     də yükləyir — ana səhifə və Quranda +170 KB (v5.4, ölçülüb). Onlar yalnız
+     əlçatanlıq panelində seçiləndə (AccessibilityWidget.css) işə düşür. */
+  --font-arabic:    'Amiri', serif;
   --font-arabic-ui: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
 
   /* Axıcı tip şkalası (360px → 1440px) — v3: v2-dən ~15% KİÇİK (sahib: "yazılar
