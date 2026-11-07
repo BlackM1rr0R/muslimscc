@@ -154,6 +154,8 @@ const GRADERS = {
   abdulhamid: { az:'Muhyiddin Əbdülhəmid', en:'Muhyi al-Din Abd al-Hamid', ru:'Мухйиддин Абдульхамид', ar:'محيي الدين عبد الحميد', tr:'Muhyiddin Abdülhamîd' },
   abdulbaqi:  { az:'Fuad Əbdülbaqi', en:'Fuad Abd al-Baqi', ru:'Фуад Абдульбаки', ar:'محمد فؤاد عبد الباقي', tr:'Fuâd Abdülbâkî' },
   abughuddah: { az:'Əbu Ğuddə', en:'Abu Ghuddah', ru:'Абу Гудда', ar:'أبو غدة', tr:'Ebû Ğudde' },
+  // lang-ok[HadeethEnc]: layihənin xüsusi adı (Hədis Ensiklopediyası)
+  hadeethenc: { az:'HadeethEnc', en:'HadeethEnc', ru:'HadeethEnc', ar:'موسوعة الأحاديث النبوية', tr:'HadeethEnc' },
 }
 const GRADE_TONE = { s:'ok', h:'ok', mq:'ok', d:'bad', m:'warn', q:'quran' }
 const graderName = (k, lang) => (k === 'bukhari' ? localizeSource('Buxari', lang) : k === 'muslim' ? localizeSource('Muslim', lang)

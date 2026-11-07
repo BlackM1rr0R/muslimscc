@@ -9,6 +9,7 @@ describe('toneOf — mənbədəki hökm sözü', () => {
   it.each([
     ['Sahih', 's'], ['Hasan Sahih', 's'], ['Sahih Lighairihi', 's'], ['Hasan', 'h'], ['Isnaad Hasan', 'h'],
     ['Daif', 'd'], ['Very Daif', 'd'], ['Sanad Daif', 'd'], ['Sahih Muquf', 'mq'], ['-', null],
+    ['صحيح', 's'], ['صحيح لغيره', 's'], ['حسن لغيره', 'h'], ['إسناده ضعيف', 'd'],
   ])('%s → %s', (g, t) => expect(toneOf(g)).toBe(t))
 })
 
@@ -27,6 +28,9 @@ describe('gradeOf — qayda sırası', () => {
     const sunan = { 1: [['Zubair Ali Zai', 'Sahih'], ['Shuaib Al Arnaut', 'Hasan']], 2: [['Zubair Ali Zai', 'Daif'], ['Shuaib Al Arnaut', 'Hasan']] }
     expect(gradeOf({ id: 1, source: 'Nəsai 1' }, sunan)).toEqual({ g: 's', gb: 'zubair' })
     expect(gradeOf({ id: 2, source: 'Nəsai 2' }, sunan).g).toBe('m')
+  })
+  it('HadeethEnc hökmü (digər kitablar)', () => {
+    expect(gradeOf({ id: 9, source: 'Taberani' }, { 9: [['HadeethEnc', 'صحيح لغيره', 'he:5510']] })).toEqual({ g: 's', gb: 'hadeethenc' })
   })
   it('əl ilə yazılmış grade, Quran surəsi, qalanı — boş', () => {
     expect(gradeOf({ source: 'Əhməd 2803', grade: 'sahih', gradedBy: 'Şueyb əl-Arnaut (Müsnəd təhqiqi)' })).toEqual({ g: 's', gb: 'arnaut' })

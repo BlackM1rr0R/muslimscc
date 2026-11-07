@@ -21,14 +21,17 @@ const NAME_KEY = {
   'Zubair Ali Zai': 'zubair', 'Ahmad Muhammad Shakir': 'shakir', 'Bashar Awad Maarouf': 'bashar',
   'Shuaib Al Arnaut': 'arnaut', 'Şueyb əl-Arnaut (Müsnəd təhqiqi)': 'arnaut',
   'Muhammad Muhyi Al-Din Abdul Hamid': 'abdulhamid', 'Muhammad Fouad Abd al-Baqi': 'abdulbaqi',
-  'Abu Ghuddah': 'abughuddah', 'Muslim (Səhih)': 'muslim',
+  'Abu Ghuddah': 'abughuddah', 'Muslim (Səhih)': 'muslim', 'HadeethEnc': 'hadeethenc',
 }
 export const graderKey = (name) => NAME_KEY[name] || String(name || '').toLowerCase().replace(/[^a-z]/g, '')
 
 /** Mənbədəki hökm sözü → kod (verbatim: "Hasan Sahih", "Isnaad Hasan", "Very Daif" …) */
 export function toneOf(grade) {
   const g = String(grade || '').toLowerCase()
-  if (/da.?if|maud|mawd|munkar|shadh|batil|fabricat/.test(g)) return 'd'
+  if (/da.?if|maud|mawd|munkar|shadh|batil|fabricat|ضعيف|موضوع|منكر|باطل|شاذ/.test(g)) return 'd'
+  if (/موقوف/.test(g)) return 'mq'
+  if (/صحيح/.test(g)) return 's'
+  if (/حسن/.test(g)) return 'h'
   if (/mauquf|muquf|mawquf/.test(g)) return 'mq'
   if (/sahih/.test(g)) return 's'
   if (/hasan/.test(g)) return 'h'

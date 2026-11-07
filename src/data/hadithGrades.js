@@ -3,6 +3,8 @@
 // Sünən hədislərinə hədis alimlərinin hökmləri, fawazahmed0/hadith-api
 // (Unlicense) ərəb nəşrlərindən OLDUĞU KİMİ: { hədis id: [[alim, hökm, qeyd?], …] }
 // Yalnız ərəb mətni tutuşan rəvayətlər. Oxuyan: src/utils/hadithGrade.js
+// Digər kitablar (Təbərani, Beyhəqi, Hakim …): HadeethEnc.com hökmü —
+// [['HadeethEnc', hökm, 'he:<id>']] (2-ci addım; mənbə hadeethenc.com/ar/browse/hadith/<id>)
 // ═══════════════════════════════════════════════════════
 export const SUNAN_GRADES = {
   4: [["Ahmad Muhammad Shakir","Hasan Sahih"],["Al-Albani","Hasan Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Isnaad Hasan"]],
@@ -18,6 +20,7 @@ export const SUNAN_GRADES = {
   69: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
   75: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
   83: [["Al-Albani","Sahih"],["Muhammad Fouad Abd al-Baqi","Sahih"],["Shuaib Al Arnaut","Daif"],["Zubair Ali Zai","Daif"]],
+  84: [["HadeethEnc","صحيح","he:10950"]],
   89: [["Ahmad Muhammad Shakir","Hasan"],["Al-Albani","Hasan"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Hasan"]],
   91: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Isnaad Hasan"]],
   104: [["Ahmad Muhammad Shakir","Hasan Sahih"],["Al-Albani","Hasan Sahih"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Daif"]],
@@ -37,6 +40,7 @@ export const SUNAN_GRADES = {
   185: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Isnaad Hasan"]],
   189: [["Al-Albani","Hasan Sahih"],["Muhammad Fouad Abd al-Baqi","Hasan Sahih"],["Shuaib Al Arnaut","Daif"],["Zubair Ali Zai","Daif"]],
   202: [["Al-Albani","Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Sahih"],["Shuaib Al Arnaut","Hasan"],["Zubair Ali Zai","Isnaad Hasan"]],
+  204: [["HadeethEnc","حسن لغيره","he:66251"]],
   205: [["Al-Albani","Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Sahih"],["Shuaib Al Arnaut","Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
   215: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Daif"]],
   224: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Sahih"]],
@@ -61,6 +65,7 @@ export const SUNAN_GRADES = {
   355: [["Al-Albani","Hasan","Sahih Ibn Majah 3427"],["Muhammad Fouad Abd al-Baqi","Hasan"],["Shuaib Al Arnaut","Sanad Daif"],["Zubair Ali Zai","Daif"]],
   360: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Isnaad Hasan"]],
   365: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
+  367: [["HadeethEnc","صحيح","he:10950"]],
   370: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Sahih"]],
   376: [["Ahmad Muhammad Shakir","Daif"],["Al-Albani","Daif"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Daif"]],
   379: [["Al-Albani","Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Sahih"],["Zubair Ali Zai","Isnaad Hasan"]],
@@ -101,6 +106,7 @@ export const SUNAN_GRADES = {
   575: [["Ahmad Muhammad Shakir","Hasan Sahih"],["Al-Albani","Hasan Sahih"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Isnaad Hasan"]],
   577: [["Al-Albani","Hasan Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Hasan Sahih"],["Zubair Ali Zai","Daif"]],
   580: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
+  584: [["HadeethEnc","حسن لغيره","he:5500"]],
   587: [["Al-Albani","Hasan"],["Muhammad Muhyi Al-Din Abdul Hamid","Hasan"],["Shuaib Al Arnaut","Hasan"],["Zubair Ali Zai","Isnaad Hasan"]],
   595: [["Ahmad Muhammad Shakir","Hasan Sahih"],["Al-Albani","Hasan Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Hasan"]],
   596: [["Ahmad Muhammad Shakir","Daif"],["Al-Albani","Daif"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Daif"]],
@@ -117,6 +123,7 @@ export const SUNAN_GRADES = {
   642: [["Ahmad Muhammad Shakir","Hasan"],["Al-Albani","Hasan"],["Zubair Ali Zai","Daif"]],
   643: [["Al-Albani","Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Sahih"],["Zubair Ali Zai","Isnaad Hasan"]],
   646: [["Al-Albani","Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Sahih"],["Shuaib Al Arnaut","Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
+  647: [["HadeethEnc","صحيح","he:10950"]],
   648: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
   651: [["Al-Albani","Sahih"],["Muhammad Fouad Abd al-Baqi","Sahih"],["Zubair Ali Zai","Daif"]],
   656: [["Al-Albani","Hasan"],["Muhammad Muhyi Al-Din Abdul Hamid","Hasan"],["Shuaib Al Arnaut","Hasan"],["Zubair Ali Zai","Hasan"]],
@@ -181,6 +188,7 @@ export const SUNAN_GRADES = {
   936: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Hasan"]],
   937: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Hasan"]],
   944: [["Al-Albani","Hasan"],["Muhammad Muhyi Al-Din Abdul Hamid","Hasan"],["Zubair Ali Zai","Hasan"]],
+  951: [["HadeethEnc","صحيح لغيره","he:5510"]],
   962: [["Al-Albani","Sahih","Sahih Ibn Majah 184"],["Muhammad Fouad Abd al-Baqi","Very Daif"],["Shuaib Al Arnaut","Very Daif"],["Zubair Ali Zai","Daif"]],
   964: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"]],
   967: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Sahih"],["Zubair Ali Zai","Daif"]],
@@ -233,6 +241,7 @@ export const SUNAN_GRADES = {
   1153: [["Ahmad Muhammad Shakir","Daif"],["Al-Albani","Daif"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Isnaad Hasan"]],
   1159: [["Al-Albani","Sahih"],["Muhammad Fouad Abd al-Baqi","Sahih"],["Shuaib Al Arnaut","Very Daif"],["Zubair Ali Zai","Daif"]],
   1163: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Isnaad Hasan"]],
+  1178: [["HadeethEnc","صحيح","he:10950"]],
   1180: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Sahih"]],
   1184: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Isnaad Hasan"]],
   1187: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Isnaad Hasan"]],
@@ -242,6 +251,7 @@ export const SUNAN_GRADES = {
   1213: [["Ahmad Muhammad Shakir","Hasan"],["Al-Albani","Hasan"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Hasan"]],
   1216: [["Ahmad Muhammad Shakir","Daif"],["Al-Albani","Daif"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Daif"]],
   1225: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Isnaad Hasan"]],
+  1226: [["HadeethEnc","حسن","he:66233"]],
   1234: [["Al-Albani","Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Sahih"],["Shuaib Al Arnaut","Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
   1256: [["Al-Albani","Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Sahih"],["Shuaib Al Arnaut","Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
   1258: [["Ahmad Muhammad Shakir","Hasan Sahih"],["Al-Albani","Hasan Sahih"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Hasan"]],
@@ -313,6 +323,7 @@ export const SUNAN_GRADES = {
   1546: [["Al-Albani","Sahih"],["Muhammad Fouad Abd al-Baqi","Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
   1547: [["Al-Albani","Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Sahih"],["Zubair Ali Zai","Hasan"]],
   1549: [["Al-Albani","Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Sahih"],["Zubair Ali Zai","Hasan"]],
+  1553: [["HadeethEnc","صحيح","he:10950"]],
   1580: [["Al-Albani","Sahih"],["Muhammad Fouad Abd al-Baqi","Sahih Lighairihi"],["Shuaib Al Arnaut","Sahih Lighairihi"],["Zubair Ali Zai","Daif"]],
   1581: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Isnaad Sahih"]],
   1591: [["Abu Ghuddah","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Sahih"]],
@@ -343,6 +354,7 @@ export const SUNAN_GRADES = {
   1746: [["Al-Albani","Hasan Sahih"],["Muhammad Muhyi Al-Din Abdul Hamid","Hasan Sahih"],["Shuaib Al Arnaut","Hasan"],["Zubair Ali Zai","Isnaad Hasan"]],
   1747: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan Sahih"],["Zubair Ali Zai","Sahih"]],
   1748: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Bashar Awad Maarouf","Hasan"],["Zubair Ali Zai","Isnaad Hasan"]],
+  1749: [["HadeethEnc","حسن لغيره","he:5500"]],
   1750: [["Ahmad Muhammad Shakir","Sahih"],["Al-Albani","Sahih"],["Zubair Ali Zai","Isnaad Hasan"]],
   1753: [["Al-Albani","Sahih"],["Muhammad Fouad Abd al-Baqi","Sahih"],["Shuaib Al Arnaut","Hasan"],["Zubair Ali Zai","Isnaad Hasan"]],
   1755: [["Al-Albani","Sahih"],["Zubair Ali Zai","Hasan"]],

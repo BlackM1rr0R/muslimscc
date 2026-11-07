@@ -88,14 +88,69 @@ for (const h of RAW) {
   matched++
 }
 
+// ── 2-ci addım (v5.4): heç bir dərəcəsi olmayan hədislər → HadeethEnc.com ──
+// Rəsmi Hədis Ensiklopediyası API-si (sayt onu /hadeethenc bölməsində də
+// işlədir). Kök bölmələrin siyahısı (id + ərəb mətni) bir dəfə yığılır, bizim
+// ərəbcə hissə başlığın içində ≥90% söz üzrə tapılırsa həmin hədisin hökmü
+// (grade) OLDUĞU KİMİ götürülür: ['HadeethEnc', 'صحيح', 'he:<id>'].
+// Sorğular arası fasilə, nəticə keşdə (node_modules/.cache) — xidməti yükləmirik.
+const { gradeOf } = await import(pathToFileURL(path.join(ROOT, 'src/utils/hadithGrade.js')).href)
+const HE = 'https://hadeethenc.com/api/v1'
+const HE_CACHE = path.join(ROOT, 'node_modules', '.cache', 'hadith-grades', 'he')
+fs.mkdirSync(HE_CACHE, { recursive: true })
+const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+async function heGet(rel) {
+  const f = path.join(HE_CACHE, rel.replace(/[^\w]+/g, '_') + '.json')
+  if (fs.existsSync(f)) return JSON.parse(fs.readFileSync(f, 'utf8'))
+  await sleep(350)
+  const r = await fetch(`${HE}${rel}`)
+  if (!r.ok) throw new Error(`HadeethEnc ${rel}: HTTP ${r.status}`)
+  const j = await r.json()
+  fs.writeFileSync(f, JSON.stringify(j))
+  return j
+}
+// Qısa parça ("رمضان شهر الله") başqa hədisin içində də tapılır — ən az 5 söz;
+// 8 sözdən azdırsa ifadə BÜTÖV keçməlidir, çoxdursa ≥90% söz (yazılış fərqi)
+const wc = (s) => norm(s).split(' ').filter(w => w.length > 1).length
+const need = RAW.filter(h => !out[h.id] && !gradeOf(h, out).g && wc(h.ar) >= 5)
+let heMatched = 0
+if (need.length && !process.argv.includes('--no-he')) {
+  const roots = (await heGet('/categories/roots/?language=ar')).map(c => c.id)
+  const titles = new Map()
+  for (const cid of roots) {
+    for (let page = 1; ; page++) {
+      const l = await heGet(`/hadeeths/list/?language=ar&category_id=${cid}&page=${page}&per_page=100`)
+      for (const x of l.data || []) titles.set(x.id, x.title)
+      if (page >= Number(l.meta?.last_page || 1)) break
+    }
+  }
+  console.log(`HadeethEnc: ${titles.size} hədis siyahısı, ${need.length} dərəcəsiz hədis yoxlanır`)
+  for (const h of need) {
+    let best = null
+    for (const [id, title] of titles) {
+      const whole = norm(title).includes(norm(h.ar))
+      const s = whole ? 1 : (wc(h.ar) >= 8 ? score(h.ar, title) : 0)
+      if (s >= 0.9 && (!best || s > best.s)) best = { id, s }
+    }
+    if (!best) continue
+    const one = await heGet(`/hadeeths/one/?language=ar&id=${best.id}`)
+    const grade = String(one?.grade || '').trim()
+    if (!grade) continue
+    out[h.id] = [['HadeethEnc', grade, `he:${best.id}`]]
+    heMatched++
+  }
+}
+
 const header = `// ═══════════════════════════════════════════════════════
 // AVTOMATİK YARADILIB — scripts/build-hadith-grades.mjs (əl ilə dəyişməyin)
 // Sünən hədislərinə hədis alimlərinin hökmləri, fawazahmed0/hadith-api
 // (Unlicense) ərəb nəşrlərindən OLDUĞU KİMİ: { hədis id: [[alim, hökm, qeyd?], …] }
 // Yalnız ərəb mətni tutuşan rəvayətlər. Oxuyan: src/utils/hadithGrade.js
+// Digər kitablar (Təbərani, Beyhəqi, Hakim …): HadeethEnc.com hökmü —
+// [['HadeethEnc', hökm, 'he:<id>']] (2-ci addım; mənbə hadeethenc.com/ar/browse/hadith/<id>)
 // ═══════════════════════════════════════════════════════
 `
 const body = 'export const SUNAN_GRADES = {\n' +
   Object.entries(out).map(([id, g]) => `  ${id}: ${JSON.stringify(g)},`).join('\n') + '\n}\n'
 fs.writeFileSync(path.join(ROOT, 'src/data/hadithGrades.js'), header + body)
-console.log(`hadithGrades.js: ${matched} hədis, ${skipped} tutuşmadı`)
+console.log(`hadithGrades.js: ${matched} sünən hədisi, ${heMatched} HadeethEnc, ${skipped} sünəndə tutuşmadı`)
