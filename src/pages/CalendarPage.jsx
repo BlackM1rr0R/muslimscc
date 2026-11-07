@@ -17,6 +17,8 @@ import RelatedLinks from '../components/prayer/RelatedLinks'
 import { showLocalNotification } from '../utils/notify'
 import CalSunnahFasts, { weekdayName } from '../components/calendar/CalSunnahFasts'
 import { pickUi } from '../utils/uiText'
+import { CalDayMoon, CalCrescent, CalMoonNote } from '../components/calendar/CalMoon'
+import { MOON_NAMES } from '../components/moonNames'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
 // Yalnız ehtiyat üçündür: Umm al-Qura-dan 1–2 gün fərqlənə bilər.
@@ -673,9 +675,11 @@ export function CalendarPage({ setPage }) {
                     const evs = EVENTS.filter(e => e.month === selMonth && e.day === day)
                     const isToday = isCurMonth && day === hijri.day
                     const sel = day === selDay
+                    // Ağ günlər (13–15) — Zülhiccənin 13-ü təşriq günüdür (oruc qadağandır)
+                    const bid = day >= 13 && day <= 15 && !(selMonth === 11 && day === 13)
                     return (
                       <button key={day} type="button"
-                        className={`cal-day${isToday ? ' is-today' : ''}${sel ? ' is-selected' : ''}${evs.length ? ' has-event' : ''}${evs.some(e => TYPE_ACCENT[e.type]) ? ' is-major' : ''}`}
+                        className={`cal-day${isToday ? ' is-today' : ''}${sel ? ' is-selected' : ''}${evs.length ? ' has-event' : ''}${evs.some(e => TYPE_ACCENT[e.type]) ? ' is-major' : ''}${bid ? ' is-bid' : ''}`}
                         aria-pressed={sel} style={{ '--i': lead + di }}
                         aria-current={isToday ? 'date' : undefined}
                         onClick={() => { haptic(); setSelDay(day) }}>
@@ -686,10 +690,12 @@ export function CalendarPage({ setPage }) {
                         <span className="cal-day-g">{shortGregorian(date, lang)}</span>
                         <span className="ui-sr-only"> {date.getFullYear()}{evs.length ? ` — ${evs.map(e => pickUi(e, lang, 'en')).join(', ')}` : ''}</span>
                         {evs.length > 0 && <span className="cal-day-dot" aria-hidden="true" />}
+                        <CalDayMoon date={date} />
                       </button>
                     )
                   })}
                 </div>
+                <CalCrescent days={monthDays} lang={lang} />
               </div>
             )}
 
@@ -703,6 +709,8 @@ export function CalendarPage({ setPage }) {
                   <span className="cal-day-panel-g">{formatGregorian(selDayInfo.date, lang)}</span>
                   {isCurMonth && selDay === hijri.day && <span className="ui-badge ui-badge--brand">{ct.today}</span>}
                 </div>
+                <CalMoonNote date={selDayInfo.date} lang={lang} name={(k) => pickUi(MOON_NAMES, lang, 'en')[k]}
+                  isBid={selDay >= 13 && selDay <= 15 && !(selMonth === 11 && selDay === 13)} />
                 {dayEvents.length === 0 && <p className="cal-day-panel-empty">{ct.noDay}</p>}
               </div>
             )}

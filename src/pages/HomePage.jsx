@@ -70,6 +70,9 @@ const TadabburCard = lazy(lazyWhenIdle(() => import('../components/TadabburCard'
 const HomeToday = lazy(() => import('../components/home/HomeToday'))
 // 'Mənim günüm' — bu cihazdakı bu günün ibadətləri (utils/myDay)
 const MyDay = lazy(lazyWhenIdle(() => import('../components/home/MyDay').catch(() => ({ default: () => null }))))
+// Cümə rejimi (v5.3) — chunk yalnız cümə günü (və ya ?jumuah sınağı) yüklənir
+const JumuahCard = lazy(() => import('../components/home/JumuahCard').catch(() => ({ default: () => null })))
+const isFridayLocal = () => { try { return new Date().getDay() === 5 || new URLSearchParams(window.location.search).has('jumuah') } catch { return false } }
 const HomeTodayFallback = () => (
   <div className="ui-section ui-section--tight" aria-hidden="true">
     <div className="ui-container"><div className="ui-skeleton hp-td-skel" /></div>
@@ -628,6 +631,13 @@ export default function HomePage({ setPage }) {
           </div>
         </section>
       </div>
+
+      {/* ═══ CÜMƏ — yalnız cümə günü: geri sayım, Kəhf, salavat ═══ */}
+      {isFridayLocal() && (
+        <Suspense fallback={null}>
+          <JumuahCard />
+        </Suspense>
+      )}
 
       {/* ═══ BU GÜN — bento: günün hədisi, ayəsi, davam et, tarix ═══ */}
       <Suspense fallback={<HomeTodayFallback />}>

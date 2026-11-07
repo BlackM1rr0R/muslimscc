@@ -598,3 +598,9 @@
   .a11y-toggle-knob, .a11y-toggle-icon, .a11y-fab { transition: none; }
   .a11y-toggle.on .a11y-toggle-icon { transform: none; }
 }
+
+/* Ərəb şrifti seçimi (v5.3): hər düymədə həmin şriftlə "Bismillah" nümunəsi */
+.a11y-arfonts .a11y-arfont { display: grid; gap: 4px; justify-items: center; padding-block: 10px; height: auto; min-height: 72px; }
+.a11y-arfont__sample { font-size: 20px; line-height: 1.5; color: var(--text-strong); }
+.a11y-arfont__name { font-size: 11px; font-weight: 600; line-height: 1.25; color: var(--text-secondary); text-align: center; }
+.a11y-arfont.active .a11y-arfont__name, .a11y-arfont.active .a11y-arfont__sample { color: inherit; }

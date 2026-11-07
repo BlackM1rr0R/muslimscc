@@ -25,6 +25,9 @@ export const DEFAULT_PREFS = {
   lineSpacing: 0,      // 0=normal, 1=larger, 2=xlarger
   letterSpacing: 0,    // 0=normal, 1=larger, 2=xlarger
   dyslexia: false,
+  // Ərəb mətni (v5.3): şrift və ölçü — Quran, hədis, dua
+  arFont: 'amiri',     // amiri | scheherazade | naskh
+  arSize: 0,           // 0, 1, 2, 3 → 100 / 112 / 125 / 140%
   // Color & contrast
   contrast: 'normal',  // normal | high | inverted
   theme: 'auto',       // auto | light | dark | sepia
@@ -64,6 +67,8 @@ export function countActiveA11y(prefs) {
   if (prefs.fontSize !== 0) n++
   if (prefs.lineSpacing !== 0) n++
   if (prefs.letterSpacing !== 0) n++
+  if (prefs.arFont && prefs.arFont !== 'amiri') n++
+  if (prefs.arSize) n++
   if (prefs.contrast !== 'normal') n++
   if (prefs.theme !== 'auto') n++
   if (prefs.saturation !== 100) n++
@@ -81,6 +86,11 @@ export function applyA11yPrefs(prefs) {
   html.classList.toggle('a11y-text-larger', prefs.fontSize === 1)
   html.classList.toggle('a11y-text-xlarger', prefs.fontSize === 2)
   html.classList.toggle('a11y-text-huge', prefs.fontSize === 3)
+
+  // Ərəb mətni: şrift (--font-arabic) və ölçü (zoom — px ilə verilmiş ölçülər də böyüyür)
+  if (prefs.arFont && prefs.arFont !== 'amiri') html.setAttribute('data-ar-font', prefs.arFont)
+  else html.removeAttribute('data-ar-font')
+  for (const k of [1, 2, 3]) html.classList.toggle(`a11y-ar-${k}`, prefs.arSize === k)
 
   // Line spacing
   html.classList.toggle('a11y-line-larger', prefs.lineSpacing === 1)

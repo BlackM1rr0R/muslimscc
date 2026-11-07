@@ -4,7 +4,7 @@
 // Paylaşma: kart kətanda (1080×1350) çəkilir → Web Share və ya yükləmə.
 // Stillər: src/styles/YearReview.css (yalnız transform/opacity animasiyası)
 // ═══════════════════════════════════════════════════════
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import { yearReview } from '../utils/yearReview'
@@ -14,6 +14,14 @@ import '../styles/YearReview.css'
 import { pickUi } from '../utils/uiText'
 
 const YearStory = lazy(() => import('./YearStory'))
+// v5.3: miladi il rejimi (dekabrda avtomatik) — "2026 — mənim ilim"
+const GREG = {
+  az: { hijri: 'Hicri il', greg: (y) => `${y} ili`, title: (y) => `${y} — mənim ilim`, lead: (d) => `1 yanvardan bu günə — ${d} gün. Yalnız bu cihazdakı qeydlər.` },
+  en: { hijri: 'Hijri year', greg: (y) => `${y}`, title: (y) => `My ${y}`, lead: (d) => `From 1 January to today — ${d} days. Records on this device only.` },
+  ru: { hijri: 'Год хиджры', greg: (y) => `${y} год`, title: (y) => `Мой ${y} год`, lead: (d) => `С 1 января по сегодня — ${d} дн. Только записи на этом устройстве.` },
+  ar: { hijri: 'السنة الهجرية', greg: (y) => `${y}م`, title: (y) => `عامي ${y}م`, lead: (d) => `من ١ يناير إلى اليوم — ${d} يومًا. السجلات على هذا الجهاز فقط.` },
+  tr: { hijri: 'Hicri yıl', greg: (y) => `${y} yılı`, title: (y) => `${y} — benim yılım`, lead: (d) => `1 Ocak'tan bugüne — ${d} gün. Yalnızca bu cihazdaki kayıtlar.` },
+}
 const STORY = { az: 'Story kimi bax', en: 'Watch as a story', ru: 'Смотреть как историю', tr: 'Hikâye olarak izle', ar: 'شاهد كقصة' }
 
 const T = {
@@ -65,13 +73,13 @@ function readJSON(key, fb) {
   try { const v = JSON.parse(localStorage.getItem(key)); return v ?? fb } catch { return fb }
 }
 
-/** Cari hicri ilin hesabı (brauzerdə; prerender zamanı null) */
-function useYearData() {
+/** Cari hicri (və ya miladi) ilin hesabı (brauzerdə; prerender zamanı null) */
+function useYearData(mode = 'hijri') {
   return useMemo(() => {
     if (typeof window === 'undefined') return null
     const now = new Date()
     const h = gregorianToHijri(fromLocalDate(now))
-    const start = hijriToGregorian({ year: h.year, month: 1, day: 1 })
+    const start = mode === 'greg' ? new Date(now.getFullYear(), 0, 1) : hijriToGregorian({ year: h.year, month: 1, day: 1 })
     if (!start) return null
     const from = gKey(start), to = toKey(now)
     const qs = readJSON('quran_stats', {})
@@ -82,8 +90,9 @@ function useYearData() {
       charity: Array.isArray(ch) ? ch : [],
       from, to,
     })
-    return { ...r, hYear: h.year, pct: Math.min(100, Math.round((r.days / HIJRI_YEAR_DAYS) * 100)) }
-  }, [])
+    const yearDays = mode === 'greg' ? 365.25 : HIJRI_YEAR_DAYS
+    return { ...r, hYear: mode === 'greg' ? now.getFullYear() : h.year, mode, pct: Math.min(100, Math.round((r.days / yearDays) * 100)) }
+  }, [mode])
 }
 
 const fmt = (n, lang) => {
@@ -125,10 +134,20 @@ export function drawReviewCard(ctx, { W = 1080, H = 1350, title, sub, items, bra
 
 export default function YearReview() {
   const { lang } = useLang()
-  const t = pickUi(T, lang)
-  const d = useYearData()
+  const base = pickUi(T, lang)
+  const gt = pickUi(GREG, lang, 'en')
+  // Dekabrda miladi il önə çıxır (ilin sonu icmalı); istifadəçi dəyişə bilər
+  const [mode, setMode] = useState(() => (typeof window !== 'undefined' && new Date().getMonth() === 11 ? 'greg' : 'hijri'))
+  const t = mode === 'greg' ? { ...base, title: gt.title, lead: gt.lead } : base
+  const d = useYearData(mode)
   const [msg, setMsg] = useState('')
   const [story, setStory] = useState(false)
+  // Ana səhifədən (Mənim günüm → "Mənim ilim") #year-review ilə gəlinəndə bura sürüşür
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.location.hash !== '#year-review') return undefined
+    const t2 = setTimeout(() => document.getElementById('year-review')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350)
+    return () => clearTimeout(t2)
+  }, [])
   if (!d) return null
 
   const items = [
@@ -164,12 +183,16 @@ export default function YearReview() {
   }
 
   return (
-    <section className="ui-section ui-section--tight yr" aria-labelledby="yr-title" data-testid="year-review">
+    <section id="year-review" className="ui-section ui-section--tight yr" aria-labelledby="yr-title" data-testid="year-review">
       <div className="ui-container">
         <div className="yr__card">
           <div className="yr__glow" aria-hidden="true" />
           <div className="yr__head">
             <span className="ui-eyebrow">{t.eyebrow}</span>
+            <div className="yr__mode" role="group" aria-label={t.eyebrow}>
+              <button type="button" aria-pressed={mode === 'hijri'} onClick={() => setMode('hijri')}>{gt.hijri}</button>
+              <button type="button" aria-pressed={mode === 'greg'} onClick={() => setMode('greg')} data-testid="yr-greg">{gt.greg(new Date().getFullYear())}</button>
+            </div>
             <h2 id="yr-title" className="yr__title">{t.title(yearLabel)}</h2>
             <p className="yr__lead">{t.lead(fmt(d.days, lang))}</p>
             <div className="yr__year" role="img" aria-label={t.yearPct(fmt(d.pct, lang))}>

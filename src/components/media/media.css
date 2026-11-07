@@ -433,3 +433,47 @@ a.lc-name { color: var(--text-body); }
 @media (prefers-reduced-motion: no-preference) {
   html:not(.a11y-reduce-motion) .ph--parallax .ph__img { scale: 1.14; translate: 0 var(--ph-par, 0%); will-change: translate; }
 }
+
+/* ══ Hicrət — addım-addım (HijraJourney, v5.3) ══
+   Qızılı xətt cari dayanacağa qədər çəkilir (stroke-dashoffset keçidi),
+   səyyah nöqtəsi transform ilə sürüşür; sonsuz animasiya yalnız halədə
+   (transform/opacity). Toxunuş: dayanacaq nöqtəsi → o mərhələ. */
+.hjj__ghost { opacity: 0.45; }
+.hjj__done {
+  fill: none; stroke: #d8a93b; stroke-width: 4; stroke-linecap: round;
+  stroke-dasharray: 1 1;
+  transition: stroke-dashoffset 1400ms var(--wow-ease, cubic-bezier(.16, 1, .3, 1));
+  filter: drop-shadow(0 0 4px rgba(216, 169, 59, 0.45));
+}
+.hjj__stop { cursor: pointer; }
+.hjj__hit { fill: transparent; }
+.hjj__dot { fill: var(--surface-1, #fff); stroke: var(--text-tertiary); stroke-width: 2; transition: fill .4s ease, stroke .4s ease; }
+.hjj__dot.is-approx { stroke-dasharray: 2 2; }
+.hjj__stop.is-past .hjj__dot { fill: #d8a93b; stroke: #a87d1f; }
+.hjj__stop.is-cur .hjj__dot { fill: #fff6d6; stroke: #d8a93b; stroke-width: 2.5; }
+.hjj__num { font-weight: 700; font-size: 12px; }
+.hjj__me { transition: transform 1400ms var(--wow-ease, cubic-bezier(.16, 1, .3, 1)); pointer-events: none; }
+.hjj__me-dot { fill: var(--brand, #0f6b4f); stroke: #fff; stroke-width: 2; }
+.hjj__me-halo { fill: rgba(15, 107, 79, 0.22); transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .hjj__me-halo { animation: hjj-pulse 2.4s ease-out 3; }
+}
+@keyframes hjj-pulse { from { transform: scale(0.6); opacity: 0.9; } to { transform: scale(1.6); opacity: 0; } }
+html.a11y-reduce-motion .hjj__me, html.a11y-reduce-motion .hjj__done { transition: none; }
+
+.hjj__cap { display: grid; gap: 10px; }
+.hjj__bar { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.hjj__step { color: var(--text-tertiary); font-weight: 600; font-size: var(--step--1); }
+.hjj__card {
+  display: grid; gap: 4px; padding: 12px 14px; border-radius: var(--radius-md);
+  background: var(--surface-2); border-inline-start: 3px solid #d8a93b;
+  animation: hjj-in 420ms var(--wow-ease, ease-out) both;
+}
+@keyframes hjj-in { from { opacity: 0; transform: translate3d(0, 8px, 0); } to { opacity: 1; transform: none; } }
+.hjj__name { color: var(--text-strong); font-size: var(--step-0); }
+.hjj__approx { color: var(--text-tertiary); font-weight: 500; }
+.hjj__text { margin: 0; color: var(--text-body); font-size: var(--step--1); line-height: 1.6; }
+.hjj__src { color: var(--accent-text); font-size: var(--step--2); font-weight: 600; }
+.hjj__ctrl { display: flex; gap: 8px; align-items: center; }
+.hjj__play { flex: 1 1 auto; justify-content: center; }
+.hjj__city { font-weight: 700; font-size: 14px; }

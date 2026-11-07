@@ -19,6 +19,8 @@ test('illik icmal: saylar bu cihazdakı qeydlərdən', async ({ page }) => {
   await settle(page)
   const yr = page.getByTestId('year-review')
   await yr.scrollIntoViewIfNeeded()
+  // Dekabrda standart rejim miladi ildir — hicri ili açıq seçirik
+  await yr.getByRole('button', { name: 'Hicri il' }).click()
   await expect(yr.locator('h2')).toContainText(/Hicri [0-9]+ ilim/)
   await expect(yr.getByTestId('yr-prayers').locator('b')).toHaveText('11')
   await expect(yr.getByTestId('yr-full').locator('b')).toHaveText('2')
@@ -27,6 +29,21 @@ test('illik icmal: saylar bu cihazdakı qeydlərdən', async ({ page }) => {
   await expect(yr.getByTestId('yr-charity').locator('b')).toHaveText('1')
   await expect(yr.getByTestId('yr-active').locator('b')).toHaveText('3')
   await expect(yr.getByTestId('yr-share')).toBeVisible()
+})
+
+test('illik icmal: miladi il rejimi ("2026 — mənim ilim")', async ({ page }) => {
+  await page.addInitScript(() => {
+    const d = new Date(); d.setDate(d.getDate() - 1)
+    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    localStorage.setItem('quran_stats', JSON.stringify({ reads: {}, sessions: 1, dates: [k] }))
+  })
+  await page.goto('/analytics#year-review')
+  await settle(page)
+  const yr = page.getByTestId('year-review')
+  await yr.getByTestId('yr-greg').click()
+  const y = String(new Date().getFullYear())
+  await expect(yr.locator('h2')).toHaveText(`${y} — mənim ilim`)
+  await expect(yr.getByTestId('yr-greg')).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('illik icmal: məlumat yoxdursa göstərilmir', async ({ page }) => {

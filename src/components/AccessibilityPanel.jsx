@@ -23,6 +23,20 @@ const PROFILES = {
   seizure:     { reduceMotion: true, pauseMedia: true, saturation: 60 },
 }
 
+// Ərəb mətni (v5.3): şrift + ölçü — Quran, hədis, dua blokları
+const AR_UI = {
+  az: { group: 'Ərəb mətni', font: 'Ərəb şrifti', size: 'Ərəb mətninin ölçüsü', amiri: 'Klassik (Amiri)', scheherazade: 'İri və aydın', naskh: 'Sadə nəsx' },
+  en: { group: 'Arabic text', font: 'Arabic font', size: 'Arabic text size', amiri: 'Classic (Amiri)', scheherazade: 'Large and clear', naskh: 'Simple naskh' },
+  ru: { group: 'Арабский текст', font: 'Арабский шрифт', size: 'Размер арабского текста', amiri: 'Классический (Амири)', scheherazade: 'Крупный и чёткий', naskh: 'Простой насх' },
+  ar: { group: 'النص العربي', font: 'الخط العربي', size: 'حجم النص العربي', amiri: 'كلاسيكي (أميري)', scheherazade: 'كبير وواضح', naskh: 'نسخ بسيط' },
+  tr: { group: 'Arapça metin', font: 'Arapça yazı tipi', size: 'Arapça metin boyutu', amiri: 'Klasik (Amiri)', scheherazade: 'İri ve net', naskh: 'Sade nesih' },
+}
+const AR_FONTS = [
+  { key: 'amiri', family: "'Amiri', serif" },
+  { key: 'scheherazade', family: "'Scheherazade New', 'Amiri', serif" },
+  { key: 'naskh', family: "'Noto Naskh Arabic', 'Amiri', serif" },
+]
+
 const LABELS = {
   az: {
     title:'Əlçatanlıq', subtitle:'Saytı öz ehtiyaclarınıza uyğunlaşdırın',
@@ -202,6 +216,7 @@ const LABELS = {
 export default function AccessibilityPanel({ open, setOpen, controlled, setOpenState, prefs, setPrefs, activeCount }) {
   const { lang } = useLang()
   const l = pickUi(LABELS, lang)
+  const ar = pickUi(AR_UI, lang, 'en')
   const closeRef = useRef(null)
   closeRef.current = () => setOpen(false)
   const closeBtnRef = useRef(null)
@@ -372,6 +387,33 @@ export default function AccessibilityPanel({ open, setOpen, controlled, setOpenS
                 </div>
 
                 <Toggle icon="type" label={l.dyslexia} sub={l.dyslexiaSub} on={prefs.dyslexia} onClick={() => toggle('dyslexia')} />
+              </section>
+
+              {/* ─── ƏRƏB MƏTNİ: şrift + ölçü ─── */}
+              <section className="a11y-section">
+                <div className="a11y-section-title"><Icon name="quran" size={15} /> {ar.group}</div>
+                <div className="a11y-sub-label">{ar.font}</div>
+                <div className="a11y-btn-group a11y-grid-3 a11y-arfonts">
+                  {AR_FONTS.map(f => (
+                    <button key={f.key} type="button"
+                      className={`a11y-btn a11y-arfont ${(prefs.arFont || 'amiri') === f.key ? 'active' : ''}`}
+                      aria-pressed={(prefs.arFont || 'amiri') === f.key}
+                      onClick={() => update('arFont', f.key)}>
+                      <span className="a11y-arfont__sample" lang="ar" dir="rtl" style={{ fontFamily: f.family }} aria-hidden="true">بِسْمِ اللَّهِ</span>
+                      <span className="a11y-arfont__name">{ar[f.key]}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="a11y-sub-label">{ar.size}</div>
+                <div className="a11y-btn-group a11y-grid-4">
+                  {[0, 1, 2, 3].map(v => (
+                    <button key={v} type="button" className={`a11y-btn ${(prefs.arSize || 0) === v ? 'active' : ''}`}
+                      aria-pressed={(prefs.arSize || 0) === v} onClick={() => update('arSize', v)}
+                      aria-label={`${ar.size}: ${[100, 112, 125, 140][v]}%`}>
+                      <span lang="ar" dir="rtl" style={{ fontFamily: 'var(--font-arabic)', fontSize: 15 + v * 3, lineHeight: 1 }} aria-hidden="true">ع</span>
+                    </button>
+                  ))}
+                </div>
               </section>
 
               {/* ─── COLOR & CONTRAST ─── */}

@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 import './media.css'
 import { pickUi } from '../../utils/uiText'
 
@@ -171,6 +171,116 @@ export function HijraMap({ lang = 'az' }) {
   )
 }
 const xy = ([x, y]) => ({ x, y })
+
+/* ═══ 1b. Hicrət — addım-addım səyahət (v5.3) ═══
+   Eyni xəritə + 6 dayanacaq: yol qızılı xəttlə dayanacağa qədər çəkilir,
+   səyyah nöqtəsi oraya sürüşür, altda həmin mərhələnin qısa xülasəsi.
+   MƏNBƏ: yalnız Səhih əl-Buxari 3905 (Aişənin rəvayəti) və 3906 (Süraqənin
+   rəvayəti, Qubaya gəliş, məscidin yeri) + Tövbə 40. Mətnlər sitat deyil —
+   həmin rəvayətlərin qısa xülasəsidir; dəqiq yeri bilinməyən iki dayanacaq
+   (sahil yolu, Süraqə ilə qarşılaşma) "təxmini" işarələnir. */
+const HJ_STOPS = [
+  { k: 'mecca', at: 0, src: 'Buxari 3905',
+    t: { az: 'Əbu Bəkrin evi', en: 'Abu Bakr’s house', ru: 'Дом Абу Бакра', ar: 'بيت أبي بكر', tr: 'Ebu Bekir’in evi' },
+    d: { az: 'Peyğəmbər ﷺ günortanın istisində, adəti olmayan vaxtda Əbu Bəkrin evinə gəldi və hicrətə icazə verildiyini xəbər verdi. Əbu Bəkr yol yoldaşı olmağı istədi; iki dəvə əvvəlcədən hazırlanmışdı.', en: 'The Prophet ﷺ came to Abu Bakr’s house in the midday heat, at an unusual hour, and told him permission to emigrate had been given. Abu Bakr asked to be his companion; two camels had been prepared in advance.', ru: 'Пророк ﷺ пришёл в дом Абу Бакра в полуденный зной, в необычное время, и сообщил, что получено разрешение на переселение. Абу Бакр попросил быть его спутником; два верблюда были приготовлены заранее.', ar: 'جاء النبي ﷺ بيت أبي بكر في نحر الظهيرة في ساعة لم يكن يأتي فيها، وأخبره أنه قد أُذن له في الخروج، فطلب أبو بكر الصحبة، وكان قد أعدّ راحلتين.', tr: 'Peygamber ﷺ öğle sıcağında, âdeti olmayan bir vakitte Ebu Bekir’in evine geldi ve hicrete izin verildiğini bildirdi. Ebu Bekir yol arkadaşı olmak istedi; iki deve önceden hazırlanmıştı.' } },
+  { k: 'thawr', at: 1, src: 'Buxari 3905 · Tövbə 40',
+    t: { az: 'Sevr mağarası — 3 gecə', en: 'Cave of Thawr — 3 nights', ru: 'Пещера Саур — 3 ночи', ar: 'غار ثور — ثلاث ليال', tr: 'Sevr Mağarası — 3 gece' },
+    d: { az: 'Cənuba, Sevr dağındakı mağaraya getdilər və üç gecə orada qaldılar. Əbu Bəkrin oğlu Abdullah gecələr Məkkənin xəbərlərini gətirir, azadlı Amir ibn Füheyrə qoyunları oradan keçirib süd verirdi. "Qəm etmə, Allah bizimlədir" (Tövbə 40).', en: 'They went south to the cave on Mount Thawr and stayed three nights. Abu Bakr’s son Abdullah brought news from Mecca at night, and the freedman Amir ibn Fuhayrah grazed sheep nearby and gave them milk. “Do not grieve, Allah is with us” (at-Tawbah 40).', ru: 'Они отправились на юг, к пещере на горе Саур, и провели там три ночи. Сын Абу Бакра Абдуллах по ночам приносил вести из Мекки, а вольноотпущенник Амир ибн Фухайра пас рядом овец и поил их молоком. «Не печалься, Аллах с нами» (ат-Тауба 40).', ar: 'مضيا جنوبًا إلى غار في جبل ثور فمكثا فيه ثلاث ليال، يأتيهما عبد الله بن أبي بكر بأخبار مكة ليلًا، ويرعى عليهما عامر بن فهيرة الغنم فيريحها عليهما. ﴿لا تحزن إن الله معنا﴾ (التوبة ٤٠).', tr: 'Güneye, Sevr dağındaki mağaraya gittiler ve orada üç gece kaldılar. Ebu Bekir’in oğlu Abdullah geceleri Mekke’nin haberlerini getiriyor, azatlı Âmir b. Füheyre koyunları oradan geçirip süt veriyordu. "Üzülme, Allah bizimle" (Tevbe 40).' } },
+  { k: 'coast', at: 3, approx: true, src: 'Buxari 3905',
+    t: { az: 'Sahil yolu ilə', en: 'By the coastal road', ru: 'По прибрежной дороге', ar: 'طريق الساحل', tr: 'Sahil yoluyla' },
+    d: { az: 'Üçüncü gecədən sonra əvvəlcədən tutulmuş bələdçi (Bəni Dil qəbiləsindən) dəvələri gətirdi və onları sahil yolu ilə apardı — adi karvan yolundan kənarda.', en: 'After the third night the guide they had hired (from the Banu ad-Dil) brought the camels and led them along the coastal road — away from the usual caravan route.', ru: 'После третьей ночи заранее нанятый проводник (из племени Бану ад-Диль) привёл верблюдов и повёл их прибрежной дорогой — в стороне от обычного караванного пути.', ar: 'وبعد ثلاث ليال جاءهما الدليل الذي استأجراه — رجل من بني الديل — براحلتيهما، فأخذ بهم طريق الساحل.', tr: 'Üçüncü geceden sonra önceden tutulan rehber (Benî Dîl’den) develeri getirdi ve onları sahil yoluyla götürdü — alışılmış kervan yolunun dışından.' } },
+  { k: 'suraqa', at: 5, approx: true, src: 'Buxari 3906',
+    t: { az: 'Süraqə ibn Malik', en: 'Suraqah ibn Malik', ru: 'Сурака ибн Малик', ar: 'سراقة بن مالك', tr: 'Sürâka b. Mâlik' },
+    d: { az: 'Qüreyşin vəd etdiyi mükafat üçün Süraqə atla onları təqib etdi. Yaxınlaşanda atının ayaqları torpağa batdı; o, aman istədi və Peyğəmbər ﷺ ona yazılı aman məktubu verdirdi.', en: 'Suraqah chased them on horseback for the reward promised by Quraysh. As he drew near, his horse’s legs sank into the ground; he asked for safety, and the Prophet ﷺ had a written guarantee of safety given to him.', ru: 'Сурака погнался за ними верхом ради обещанной курайшитами награды. Когда он приблизился, ноги его коня увязли в земле; он попросил пощады, и Пророк ﷺ велел дать ему письменную гарантию безопасности.', ar: 'تبعهم سراقة على فرسه طمعًا في جُعل قريش، فلما دنا ساخت يدا فرسه في الأرض، فطلب الأمان، فأمر النبي ﷺ فكُتب له كتاب أمن.', tr: 'Sürâka, Kureyş’in vaat ettiği ödül için atla onları takip etti. Yaklaşınca atının ayakları toprağa battı; eman istedi ve Peygamber ﷺ ona yazılı bir eman belgesi verdirdi.' } },
+  { k: 'quba', at: 8, src: 'Buxari 3906',
+    t: { az: 'Quba — ilk məscid', en: 'Quba — the first mosque', ru: 'Куба — первая мечеть', ar: 'قباء — أول مسجد', tr: 'Kuba — ilk mescid' },
+    d: { az: 'Rəbiül-əvvəl ayında, bazar ertəsi Qubaya, Bəni Amr ibn Avf məhəlləsinə çatdılar. Peyğəmbər ﷺ orada on neçə gecə qaldı və təqva üzərində qurulan məscidin əsasını qoydu.', en: 'In Rabi‘ al-Awwal, on a Monday, they reached Quba, the quarter of Banu ‘Amr ibn ‘Awf. The Prophet ﷺ stayed there some ten-odd nights and founded the mosque built on taqwa.', ru: 'В месяце раби‘ аль-авваль, в понедельник, они достигли Кубы, квартала Бану Амр ибн Ауф. Пророк ﷺ пробыл там более десяти ночей и заложил мечеть, основанную на богобоязненности.', ar: 'وصلوا قباء في بني عمرو بن عوف يوم الاثنين من شهر ربيع الأول، فلبث فيهم بضع عشرة ليلة، وأسّس المسجد الذي أُسّس على التقوى.', tr: 'Rebîülevvel ayında, pazartesi günü Kuba’ya, Benî Amr b. Avf mahallesine ulaştılar. Peygamber ﷺ orada on küsur gece kaldı ve takva üzerine kurulan mescidin temelini attı.' } },
+  { k: 'medina', at: 9, src: 'Buxari 3906',
+    t: { az: 'Mədinə — Peyğəmbər məscidi', en: 'Medina — the Prophet’s Mosque', ru: 'Медина — мечеть Пророка', ar: 'المدينة — المسجد النبوي', tr: 'Medine — Mescid-i Nebevî' },
+    d: { az: 'Sonra dəvəsinə minib Mədinəyə girdi. Dəvə indiki məscidin yerində çökdü — bu yer iki yetimin, Səhl və Süheylin xurma qurutduğu sahə idi. Peyğəmbər ﷺ onu satın aldı və məscidi tikdi.', en: 'Then he rode his camel into Medina. It knelt at the site of the present mosque — a place where two orphans, Sahl and Suhayl, dried dates. The Prophet ﷺ bought it and built the mosque.', ru: 'Затем он въехал в Медину на своей верблюдице. Она опустилась на землю на месте нынешней мечети — там два сироты, Сахль и Сухайль, сушили финики. Пророк ﷺ купил этот участок и построил мечеть.', ar: 'ثم ركب راحلته فسار حتى بركت عند مسجد الرسول ﷺ بالمدينة، وكان مِربدًا للتمر لسهل وسهيل غلامين يتيمين، فابتاعه منهما وبناه مسجدًا.', tr: 'Sonra devesine binip Medine’ye girdi. Deve bugünkü mescidin yerine çöktü — burası iki yetim, Sehl ve Süheyl’in hurma kuruttuğu bir alandı. Peygamber ﷺ orayı satın aldı ve mescidi inşa etti.' } },
+]
+const HJ_UI = {
+  az: { title: 'Hicrət — addım-addım', play: 'Səyahəti başlat', pause: 'Dayandır', prev: 'Əvvəlki', next: 'Növbəti', approx: 'yeri təxminidir', step: (i, n) => `${i} / ${n}` },
+  en: { title: 'The Hijrah — step by step', play: 'Start the journey', pause: 'Pause', prev: 'Previous', next: 'Next', approx: 'location approximate', step: (i, n) => `${i} / ${n}` },
+  ru: { title: 'Хиджра — шаг за шагом', play: 'Начать путь', pause: 'Пауза', prev: 'Назад', next: 'Далее', approx: 'место приблизительно', step: (i, n) => `${i} / ${n}` },
+  ar: { title: 'الهجرة — خطوة بخطوة', play: 'ابدأ الرحلة', pause: 'إيقاف', prev: 'السابق', next: 'التالي', approx: 'الموضع تقريبي', step: (i, n) => `${i} / ${n}` },
+  tr: { title: 'Hicret — adım adım', play: 'Yolculuğu başlat', pause: 'Durdur', prev: 'Önceki', next: 'Sonraki', approx: 'yeri yaklaşıktır', step: (i, n) => `${i} / ${n}` },
+}
+const HJ_SRC = { 'Buxari 3905': { az: 'Buxari 3905', en: 'al-Bukhari 3905', ru: 'аль-Бухари 3905', ar: 'البخاري 3905', tr: 'Buhârî 3905' }, 'Buxari 3906': { az: 'Buxari 3906', en: 'al-Bukhari 3906', ru: 'аль-Бухари 3906', ar: 'البخاري 3906', tr: 'Buhârî 3906' }, 'Buxari 3905 · Tövbə 40': { az: 'Buxari 3905 · Tövbə 40', en: 'al-Bukhari 3905 · at-Tawbah 40', ru: 'аль-Бухари 3905 · ат-Тауба 40', ar: 'البخاري 3905 · التوبة 40', tr: 'Buhârî 3905 · Tevbe 40' } }
+
+export function HijraJourney({ lang = 'az' }) {
+  const id = `hjj${useId().replace(/:/g, '')}`
+  const u = T(HJ_UI, lang) || HJ_UI.en
+  const prj = projector({ lat: [21.1, 24.75], lon: [37.6, 40.35] }, 440)
+  const route = [G.mecca, G.thawr, [21.55, 39.42], [22.05, 39.2], [22.7, 39.18], [23.3, 39.1], [23.85, 39.25], [24.2, 39.45], G.quba, G.medina].map(([a, b]) => prj.p(a, b))
+  // Yolun hər nöqtəsinə qədər məsafə (pathLength=1 üçün nisbət)
+  const cum = route.reduce((acc, p, i) => { acc.push(i ? acc[i - 1] + Math.hypot(p[0] - route[i - 1][0], p[1] - route[i - 1][1]) : 0); return acc }, [])
+  const total = cum[cum.length - 1] || 1
+  const [i, setI] = useState(0)
+  const [playing, setPlaying] = useState(false)
+  useEffect(() => {
+    if (!playing) return undefined
+    if (i >= HJ_STOPS.length - 1) { setPlaying(false); return undefined }
+    const t = setTimeout(() => setI(x => Math.min(HJ_STOPS.length - 1, x + 1)), 3200)
+    return () => clearTimeout(t)
+  }, [playing, i])
+  const stop = HJ_STOPS[i]
+  const [mx, my] = route[stop.at]
+  const frac = cum[stop.at] / total
+  const src = HJ_SRC[stop.src]?.[lang] || HJ_SRC[stop.src]?.en || stop.src
+  const go = (n) => { setPlaying(false); setI(Math.max(0, Math.min(HJ_STOPS.length - 1, n))) }
+
+  return (
+    <figure className="smap smap--tall hjj" data-testid="hijra-journey">
+      <div className="smap__canvas hjj__canvas">
+        <svg viewBox={`0 0 ${prj.W} ${prj.H}`} role="img" aria-labelledby={`${id}-t`} style={{ direction: 'ltr' }}>
+          <title id={`${id}-t`}>{T(HIJRA_L.title, lang)}</title>
+          <Defs id={id} />
+          <rect width={prj.W} height={prj.H} className="smap__bg" />
+          <rect width={prj.W} height={prj.H} fill={`url(#${id}-grid)`} />
+          <Sea prj={prj} coast={COAST} lang={lang} at={prj.p(22.5, 38.45)} />
+          <path d={smooth(route)} className="smap__route smap__route--approx hjj__ghost" />
+          <path d={smooth(route)} className="hjj__done" pathLength="1" style={{ strokeDashoffset: 1 - frac }} />
+          {HJ_STOPS.map((s, n) => {
+            const [x, y] = route[s.at]
+            return (
+              <g key={s.k} className={`hjj__stop${n <= i ? ' is-past' : ''}${n === i ? ' is-cur' : ''}`} onClick={() => go(n)}>
+                <circle cx={x} cy={y} r="14" className="hjj__hit" />
+                <circle cx={x} cy={y} r={s.approx ? 4 : 5.5} className={`hjj__dot${s.approx ? ' is-approx' : ''}`} />
+                <text x={x + (s.k === 'thawr' || s.k === 'quba' ? -11 : 11)} y={y + (s.k === 'medina' ? -8 : 4)} textAnchor={s.k === 'thawr' || s.k === 'quba' ? 'end' : 'start'} className="smap__label hjj__num">{n + 1}</text>
+              </g>
+            )
+          })}
+          {/* Şəhər adları — rəqəmlərin yanında */}
+          <text x={route[0][0] - 12} y={route[0][1] - 12} textAnchor="end" className="smap__label hjj__city">{T(NAMES.mecca, lang)}</text>
+          <text x={route[9][0] - 14} y={route[9][1] - 14} textAnchor="end" className="smap__label hjj__city">{T(NAMES.medina, lang)}</text>
+          <g className="hjj__me" style={{ transform: `translate(${mx}px, ${my}px)` }}>
+            <circle key={`h${i}`} r="13" className="hjj__me-halo" /><circle r="6" className="hjj__me-dot" />
+          </g>
+          <North x={prj.W - 26} y={30} lang={lang} />
+        </svg>
+      </div>
+      <figcaption className="smap__cap hjj__cap">
+        <div className="hjj__bar">
+          <strong className="smap__title">{u.title}</strong>
+          <span className="hjj__step ui-num">{u.step(i + 1, HJ_STOPS.length)}</span>
+        </div>
+        <div className="hjj__card" key={i} aria-live="polite">
+          <b className="hjj__name">{T(stop.t, lang)}{stop.approx && <small className="hjj__approx"> · {u.approx}</small>}</b>
+          <p className="hjj__text">{T(stop.d, lang)}</p>
+          <span className="hjj__src">{src}</span>
+        </div>
+        <div className="hjj__ctrl">
+          <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => go(i - 1)} disabled={i === 0} aria-label={u.prev}>‹</button>
+          <button type="button" className="ui-btn ui-btn--primary ui-btn--sm hjj__play" onClick={() => { if (i >= HJ_STOPS.length - 1) setI(0); setPlaying(p => !p) }} aria-pressed={playing}>
+            {playing ? u.pause : u.play}
+          </button>
+          <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => go(i + 1)} disabled={i === HJ_STOPS.length - 1} aria-label={u.next}>›</button>
+        </div>
+      </figcaption>
+    </figure>
+  )
+}
 
 /* ═══ 2. Həcc mərhələləri: Məkkə → Mina → Ərəfat → Müzdəlifə → Mina → Məkkə ═══ */
 const HAJJ_L = {

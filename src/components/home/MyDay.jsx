@@ -7,6 +7,7 @@
 // səhifəyə qayıdanda və namaz qeyd ediləndə yenilənir.
 // ═══════════════════════════════════════════════════════
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLang } from '../../contexts/LangContext'
 import { navLabel } from '../../data/navigation'
 import { pathFor } from '../../seo/routes'
@@ -19,11 +20,11 @@ import { isPlainClick } from '../PageLink'
 import Icon from '../Icon'
 
 const L = {
-  az: { ey: 'Bu cihazda', title: 'Mənim günüm', today: 'Bu gün', week: 'Son 7 gün', streak: 'ardıcıl gün' },
-  en: { ey: 'On this device', title: 'My day', today: 'Today', week: 'Last 7 days', streak: 'day streak' },
-  ru: { ey: 'На этом устройстве', title: 'Мой день', today: 'Сегодня', week: 'Последние 7 дней', streak: 'дней подряд' },
-  ar: { ey: 'على هذا الجهاز', title: 'يومي', today: 'اليوم', week: 'آخر 7 أيام', streak: 'أيام متتالية' },
-  tr: { ey: 'Bu cihazda', title: 'Benim günüm', today: 'Bu gün', week: 'Son 7 gün', streak: 'gün seri' },
+  az: { ey: 'Bu cihazda', title: 'Mənim günüm', today: 'Bu gün', week: 'Son 7 gün', streak: 'ardıcıl gün', year: 'Mənim ilim', yearDec: 'İlin icmalı hazırdır' },
+  en: { ey: 'On this device', title: 'My day', today: 'Today', week: 'Last 7 days', streak: 'day streak', year: 'My year', yearDec: 'Your year in review is ready' },
+  ru: { ey: 'На этом устройстве', title: 'Мой день', today: 'Сегодня', week: 'Последние 7 дней', streak: 'дней подряд', year: 'Мой год', yearDec: 'Итоги года готовы' },
+  ar: { ey: 'على هذا الجهاز', title: 'يومي', today: 'اليوم', week: 'آخر 7 أيام', streak: 'أيام متتالية', year: 'عامي', yearDec: 'حصاد العام جاهز' },
+  tr: { ey: 'Bu cihazda', title: 'Benim günüm', today: 'Bu gün', week: 'Son 7 gün', streak: 'gün seri', year: 'Benim yılım', yearDec: 'Yılın özeti hazır' },
 }
 
 const ICON = { fajr: 'sunrise', dhuhr: 'sun', asr: 'sunLow', maghrib: 'sunset', isha: 'moon' }
@@ -79,14 +80,24 @@ export default function MyDay({ onNavigate }) {
     href: pathFor(page, lang),
     onClick: (e) => { if (isPlainClick(e)) { e.preventDefault(); onNavigate(page) } },
   })
+  const navigate = useNavigate()
+  const yearHref = `${pathFor('analytics', lang)}#year-review`
+  const dec = new Date().getMonth() === 11
   const pname = (k) => PRAYER_NAMES[k]?.[lang] || PRAYER_NAMES[k]?.en || k
 
   return (
     <section className="ui-section ui-section--tight vx-md" aria-labelledby="vx-md-ttl">
       <div className="ui-container">
-        <div className="ui-section-head" data-anim="blur">
-          <span className="ui-eyebrow"><Icon name="shield" size={14} /> {l.ey}</span>
-          <h2 id="vx-md-ttl" className="ui-title">{l.title}</h2>
+        <div className="ui-section-head ui-section-head--row" data-anim="blur">
+          <div>
+            <span className="ui-eyebrow"><Icon name="shield" size={14} /> {l.ey}</span>
+            <h2 id="vx-md-ttl" className="ui-title">{l.title}</h2>
+          </div>
+          {/* v5.3: illik icmala keçid (analytics → YearReview); dekabrda önə çıxır */}
+          <a className={`vx-md-year${dec ? ' is-dec' : ''}`} href={yearHref}
+            onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); navigate(yearHref) } }} data-testid="md-year">
+            <Icon name="sparkle" size={16} /> {dec ? l.yearDec : l.year} <Icon name="arrow" size={14} className="ui-flip-rtl" />
+          </a>
         </div>
         {!d ? (
           <div className="vx-md-grid" aria-hidden="true">

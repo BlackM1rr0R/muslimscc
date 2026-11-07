@@ -46,3 +46,9 @@
 @keyframes yr-in { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
 @keyframes yr-bar { from { scale: 0 1; } }
 @media (min-width: 720px) { .yr__grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* v5.3: hicri / miladi il seçimi */
+.yr__mode { display: inline-flex; gap: 2px; margin: 10px 0 4px; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(212, 175, 55, 0.25); }
+.yr__mode button { min-height: 32px; padding: 4px 14px; border: 0; border-radius: 999px; background: transparent; color: rgba(255, 255, 255, 0.75); font: 600 var(--step--1)/1.2 var(--font-label); cursor: pointer; transition: background-color .2s ease, color .2s ease; }
+.yr__mode button[aria-pressed="true"] { background: #d4af37; color: #0d3b2e; }
+.yr__mode button:focus-visible { outline: 2px solid #f3d77a; outline-offset: 2px; }

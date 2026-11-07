@@ -5,7 +5,7 @@ import ReaderDialog from '../components/reader/ReaderDialog'
 import '../styles/IslamicHistoryPage.css'
 // Yer fotoları (Wikimedia Commons) və siyər xəritələri (öz SVG) — canlı təsvir yoxdur
 import PlacePhoto from '../components/media/PlacePhoto'
-import { HijraMap, SirahMap, SpreadMap } from '../components/media/SiraMaps'
+import { HijraJourney, SirahMap, SpreadMap } from '../components/media/SiraMaps'
 import RelatedLinks from '../components/media/RelatedLinks'
 // Canlı yayılma xəritəsi (d3-geo + sahil xətləri) — ayrıca yüklənir; o vaxta qədər statik sxem
 const SpreadTimeline = lazy(() => import('../components/media/SpreadTimeline'))
@@ -357,7 +357,7 @@ export default function IslamicHistoryPage() {
             <p className="ui-lead">{M.lead}</p>
           </div>
           <div className="history-maps-pair">
-            <HijraMap lang={lang} />
+            <HijraJourney lang={lang} />
             <SirahMap lang={lang} />
           </div>
           <Suspense fallback={<SpreadMap lang={lang} />}>

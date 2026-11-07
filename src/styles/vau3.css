@@ -937,3 +937,24 @@ html.a11y-reduce-motion .vx-listen.is-on .vx-listen__wave i { animation: none; t
 .pt-ring-goal { color: var(--text-tertiary); font-weight: 500; margin-inline-start: 2px; }
 .qk__ringwrap { display: grid; justify-items: center; gap: 4px; flex-shrink: 0; }
 .qk__ringcap { font-size: var(--step--2); color: var(--text-tertiary); white-space: nowrap; }
+
+/* v5.3: "Mənim ilim" keçidi (MyDay başlığında) — dekabrda qızılı, parıltı ilə */
+.vx-md-year {
+  display: inline-flex; align-items: center; gap: 8px; align-self: end;
+  min-height: 40px; padding: 8px 16px; border-radius: 999px;
+  border: 1px solid var(--accent-line, rgba(184, 134, 43, 0.4));
+  background: var(--accent-soft, rgba(216, 169, 59, 0.1));
+  color: var(--accent-text); font: 600 var(--step--1)/1.2 var(--font-label); text-decoration: none;
+  transition: transform .2s var(--ease-out, ease), box-shadow .2s ease;
+}
+.vx-md-year:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); }
+.vx-md-year.is-dec { background: linear-gradient(135deg, #0d3b2e, #155a45); color: #f3d77a; border-color: rgba(212, 175, 55, 0.5); position: relative; overflow: hidden; }
+.vx-md-year.is-dec::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 246, 214, 0.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .vx-md-year.is-dec::after { animation: vx-shine 3.6s ease-in-out infinite; }
+}
+@keyframes vx-shine { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }

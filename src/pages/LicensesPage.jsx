@@ -363,6 +363,8 @@ const OTHER = [
 const FONTS = [
   { name: 'Inter', url: 'https://rsms.me/inter/', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'Rasmus Andersson' },
   { name: 'Amiri', url: 'https://www.amirifont.org/', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'Khaled Hosny' },
+  { name: 'Scheherazade New', url: 'https://software.sil.org/scheherazade/', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'SIL International' },
+  { name: 'Noto Naskh Arabic', url: 'https://notofonts.github.io/', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'Google / Noto' },
   { name: 'IBM Plex Sans Arabic', url: 'https://github.com/IBM/plex', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'IBM Corp.' },
 ]
 

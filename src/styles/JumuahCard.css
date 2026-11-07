@@ -1,0 +1,115 @@
+/* ══ Cümə rejimi (components/home/JumuahCard.jsx) — v5.3 ══
+   Tünd zümrüd kart, qızılı xatəm ulduzu, üç xana: geri sayım halqası,
+   Kəhf, salavat sayğacı. Sonsuz animasiyalar yalnız transform/opacity
+   (scripts/check-motion.mjs); toxunuş dalğası bir dəfəlik. */
+.jm__card {
+  position: relative; overflow: hidden; isolation: isolate;
+  padding: clamp(20px, 4vw, 36px);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(216, 169, 59, 0.22), transparent 55%),
+    linear-gradient(160deg, #0d3b2e 0%, #0a2a22 55%, #071c17 100%);
+  color: #f4ecd6;
+  box-shadow: 0 24px 60px -30px rgba(6, 40, 30, 0.8), inset 0 0 0 1px rgba(216, 169, 59, 0.25);
+}
+.jm__glow {
+  position: absolute; inset: -30% -10% auto auto; width: 60%; aspect-ratio: 1; z-index: -1; border-radius: 50%;
+  background: radial-gradient(circle, rgba(243, 214, 140, 0.28), transparent 65%);
+  pointer-events: none;
+}
+.jm__star {
+  position: absolute; inset-inline-end: -40px; top: -40px; width: 220px; aspect-ratio: 1; z-index: -1;
+  background: rgba(216, 169, 59, 0.16);
+  -webkit-mask: var(--vx-star-line, none) center / contain no-repeat; mask: var(--vx-star-line, none) center / contain no-repeat;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .jm__star { animation: jm-spin 60s linear infinite; }
+  html:not(.a11y-reduce-motion) .jm__glow { animation: jm-breath 6s ease-in-out infinite alternate; }
+}
+@keyframes jm-spin { to { transform: rotate(360deg); } }
+@keyframes jm-breath { from { opacity: 0.55; transform: scale(0.96); } to { opacity: 1; transform: scale(1.04); } }
+
+.jm__head { max-width: 46ch; margin-bottom: var(--space-5); }
+.jm__ey { color: #e9c46a; }
+.jm__ey::before { background: #e9c46a; }
+.jm__title { margin: 4px 0 6px; color: #fff8e6; font-family: var(--font-display); font-size: clamp(1.7rem, 4.6vw, 2.6rem); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+.jm__sub { margin: 0; color: rgba(244, 236, 214, 0.78); }
+
+.jm__grid { display: grid; gap: var(--space-3); }
+@media (min-width: 860px) { .jm__grid { grid-template-columns: 0.8fr 1.1fr 1.1fr; } }
+.jm__cell {
+  position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  padding: 18px; border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(216, 169, 59, 0.2);
+}
+.jm__k { color: #e9c46a; font-family: var(--font-label); font-size: var(--step--1); font-weight: 700; letter-spacing: 0.02em; }
+.jm__k--done { display: inline-flex; align-items: center; gap: 6px; color: #b7e4c7; line-height: 1.4; }
+
+/* Halqa */
+.jm__ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.jm__ring-track { fill: none; stroke: rgba(255, 255, 255, 0.1); stroke-width: 6; }
+.jm__ring-bar { fill: none; stroke: #e9c46a; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 700ms var(--wow-ease, ease-out); }
+
+.jm__time { flex-direction: row; align-items: center; gap: 16px; }
+.jm__time .jm__ring { flex: 0 0 auto; width: 96px; height: 96px; }
+.jm__time-txt { display: grid; gap: 4px; }
+.jm__big { color: #fff8e6; font-size: clamp(1.8rem, 6vw, 2.4rem); font-weight: 700; line-height: 1; }
+.jm__at { color: rgba(244, 236, 214, 0.72); font-size: var(--step--1); }
+.jm__at b { color: #fff8e6; }
+
+.jm__kahf-ar { color: #f3d68c; font-size: 2.2rem; line-height: 1.3; }
+.jm__kahf-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.jm__btn { background: #e9c46a; color: #0a2a22; border-color: transparent; }
+.jm__btn--ghost { background: transparent; color: #f4ecd6; border: 1px solid rgba(233, 196, 106, 0.5); }
+.jm__btn--ghost.is-on { background: rgba(183, 228, 199, 0.16); border-color: #b7e4c7; color: #b7e4c7; }
+.jm__kahf.is-done { border-color: rgba(183, 228, 199, 0.45); }
+
+/* Salavat düyməsi: dairəvi, halqa ilə; toxunuşda dalğa + rəqəm "sıçrayır" */
+.jm__tap {
+  position: relative; display: grid; place-items: center; align-self: center;
+  width: min(220px, 70vw); aspect-ratio: 1; padding: 0; border: 0; border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, rgba(233, 196, 106, 0.18), rgba(255, 255, 255, 0.03) 70%);
+  color: #fff8e6; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms var(--ease-out, ease);
+}
+.jm__tap:active { transform: scale(0.96); }
+.jm__tap:focus-visible { outline: 2px solid #e9c46a; outline-offset: 4px; }
+.jm__tap > .jm__ring { position: absolute; inset: 0; }
+.jm__tap-ar { position: absolute; top: 24%; color: rgba(243, 214, 140, 0.9); font-size: 0.95rem; }
+.jm__count { font-size: 3rem; font-weight: 700; line-height: 1; animation: jm-pop 360ms var(--wow-spring, ease-out); }
+.jm__tap-hint { position: absolute; bottom: 24%; color: rgba(244, 236, 214, 0.65); font-size: var(--step--2); }
+.jm__ripple {
+  position: absolute; inset: 12%; border-radius: 50%; pointer-events: none;
+  border: 2px solid rgba(233, 196, 106, 0.7);
+  animation: jm-ripple 700ms var(--ease-out, ease-out) forwards;
+}
+@keyframes jm-pop { 0% { transform: scale(0.7); opacity: 0.3; } 60% { transform: scale(1.12); } 100% { transform: none; opacity: 1; } }
+@keyframes jm-ripple { from { transform: scale(0.8); opacity: 1; } to { transform: scale(1.25); opacity: 0; } }
+
+/* Hədis sitatı */
+.jm-quote { margin: auto 0 0; padding-top: 10px; border-top: 1px dashed rgba(233, 196, 106, 0.25); }
+.jm-quote__ar { margin: 0; color: #f3e6c4; font-size: 1.1rem; line-height: 1.9; }
+.jm-quote__tr { margin: 4px 0 0; color: rgba(244, 236, 214, 0.85); font-size: var(--step--1); line-height: 1.5; }
+.jm-quote__src { margin-top: 6px; color: rgba(244, 236, 214, 0.6); font-size: var(--step--2); }
+.jm-quote__grade { color: #b7e4c7; font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .jm__count, .jm__ripple { animation: none; }
+  .jm__ripple { display: none; }
+}
+html.a11y-reduce-motion .jm__count, html.a11y-reduce-motion .jm__ripple { animation: none; }
+html.a11y-reduce-motion .jm__ripple { display: none; }
+
+/* Halqanın ortası: ✓ (vaxt keçib) və ya məscid ikonu */
+.jm__ringbox { position: relative; flex: 0 0 auto; display: grid; place-items: center; width: 96px; height: 96px; }
+.jm__ringbox .jm__ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.jm__ring-c { position: relative; display: grid; place-items: center; color: #e9c46a; }
+.jm__time.is-done .jm__ring-c { color: #b7e4c7; }
+.jm__time.is-done .jm__ring-bar { stroke: #b7e4c7; }
+@media (min-width: 860px) {
+  .jm__time { flex-direction: column; justify-content: center; text-align: center; }
+  .jm__ringbox { width: 132px; height: 132px; }
+  .jm__time-txt { justify-items: center; }
+}

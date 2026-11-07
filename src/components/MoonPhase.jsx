@@ -8,14 +8,8 @@ import { memo, useId, useMemo } from 'react'
 import { moonPhase, litPath } from '../utils/moonPhase'
 import '../styles/MoonPhase.css'
 import { pickUi } from '../utils/uiText'
+import { MOON_NAMES as NAMES } from './moonNames'
 
-const NAMES = {
-  az: { new: 'Təzə ay', waxingCrescent: 'Hilal (böyüyən)', firstQuarter: 'İlk dördəbir', waxingGibbous: 'Böyüyən ay', full: 'Bədr (tam ay)', waningGibbous: 'Kiçilən ay', lastQuarter: 'Son dördəbir', waningCrescent: 'Hilal (kiçilən)' },
-  en: { new: 'New moon', waxingCrescent: 'Waxing crescent', firstQuarter: 'First quarter', waxingGibbous: 'Waxing gibbous', full: 'Full moon', waningGibbous: 'Waning gibbous', lastQuarter: 'Last quarter', waningCrescent: 'Waning crescent' },
-  ru: { new: 'Новолуние', waxingCrescent: 'Растущий серп', firstQuarter: 'Первая четверть', waxingGibbous: 'Растущая луна', full: 'Полнолуние', waningGibbous: 'Убывающая луна', lastQuarter: 'Последняя четверть', waningCrescent: 'Убывающий серп' },
-  ar: { new: 'المحاق', waxingCrescent: 'هلال متزايد', firstQuarter: 'التربيع الأول', waxingGibbous: 'أحدب متزايد', full: 'البدر', waningGibbous: 'أحدب متناقص', lastQuarter: 'التربيع الأخير', waningCrescent: 'هلال متناقص' },
-  tr: { new: 'Yeni ay', waxingCrescent: 'Hilal (büyüyen)', firstQuarter: 'İlk dördün', waxingGibbous: 'Büyüyen ay', full: 'Dolunay', waningGibbous: 'Küçülen ay', lastQuarter: 'Son dördün', waningCrescent: 'Hilal (küçülen)' },
-}
 const TXT = {
   az: { title: 'Bu gecənin ayı', lit: 'işıqlı', age: 'Ayın yaşı', days: 'gün', nextFull: 'Növbəti bədr', nextNew: 'Növbəti təzə ay', note: 'Astronomik hesabdır. Hicri ayın başlanğıcı hilalın görünməsi (ru’yət) ilə müəyyən olunur.' },
   en: { title: 'Tonight’s moon', lit: 'lit', age: 'Moon age', days: 'days', nextFull: 'Next full moon', nextNew: 'Next new moon', note: 'This is an astronomical calculation. The start of a Hijri month is set by sighting the crescent (ru’yah).' },

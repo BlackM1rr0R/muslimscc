@@ -726,3 +726,48 @@ button.cal-up__card { cursor: pointer; }
 .cal-sf__legend > span { display: inline-flex; align-items: center; gap: 6px; }
 .cal-sf__legend .cal-sf__dot { display: inline-block; }
 .cal-sf__lg-ok { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); color: var(--on-brand, #fff); }
+
+/* ══ Ay (v5.3): hər xanada günün axşamının ayı, ağ günlər, hilal təxmini ══
+   components/calendar/CalMoon.jsx. Ay — kiçik SVG (statik, animasiyasız);
+   ağ günlər gümüşü halə ilə seçilir (yalnız box-shadow — hərəkət yoxdur). */
+.cal-moon { position: absolute; top: 5px; inset-inline-start: 5px; display: block; line-height: 0; opacity: 0.9; pointer-events: none; }
+.cal-moon__svg { display: block; overflow: visible; }
+.cal-moon__dark { fill: color-mix(in srgb, var(--text-tertiary) 30%, transparent); }
+.cal-moon__lit { fill: #e9d9a0; }
+[data-theme="dark"] .cal-moon__lit { fill: #f3e6b5; }
+[data-theme="dark"] .cal-moon__dark { fill: rgba(255, 255, 255, 0.1); }
+.cal-day.is-selected .cal-moon__dark { fill: rgba(255, 255, 255, 0.22); }
+.cal-day.is-selected .cal-moon__lit { fill: #fff6d6; }
+
+.cal-day.is-bid:not(.is-selected) {
+  background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, #e9d9a0 26%, transparent), transparent 70%), var(--surface-1);
+  border-color: color-mix(in srgb, #c9b26a 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #e9d9a0 30%, transparent), 0 6px 18px -10px rgba(201, 178, 106, 0.8);
+}
+.cal-day.is-bid.is-today:not(.is-selected) { box-shadow: inset 0 0 0 2px var(--brand), 0 6px 18px -10px rgba(201, 178, 106, 0.8); }
+.cal-day.is-bid .cal-moon { opacity: 1; }
+.cal-day.is-bid .cal-moon__svg { filter: drop-shadow(0 0 3px rgba(243, 230, 181, 0.9)); }
+
+.cal-crescent {
+  display: flex; align-items: center; gap: 10px;
+  margin: var(--space-3) 0 0; padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #172033, #0f1626);
+  color: #f3e6b5;
+  font-size: var(--step--1); font-weight: 600; line-height: 1.4;
+}
+.cal-crescent__moon { flex: 0 0 auto; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, rgba(243, 230, 181, 0.18), transparent 70%); }
+.cal-crescent .cal-moon__dark { fill: rgba(255, 255, 255, 0.08); }
+.cal-crescent .cal-moon__lit { fill: #f3e6b5; }
+.cal-crescent__text { display: grid; gap: 2px; }
+.cal-crescent__note { color: rgba(243, 230, 181, 0.7); font-size: var(--step--2); font-weight: 500; }
+
+.cal-moonnote { display: flex; align-items: center; gap: 12px; margin-block: 6px 2px; }
+.cal-moonnote .cal-moon__svg { flex: 0 0 auto; }
+.cal-moonnote .cal-moon__dark { fill: #2a3146; }
+[data-theme="dark"] .cal-moonnote .cal-moon__dark { fill: #1a2033; }
+.cal-moonnote.is-bid .cal-moon__svg { filter: drop-shadow(0 0 8px rgba(243, 230, 181, 0.7)); }
+.cal-moonnote__body { display: grid; gap: 1px; }
+.cal-moonnote__name { color: var(--text-strong); font-weight: 600; }
+.cal-moonnote__lit { color: var(--text-tertiary); font-size: var(--step--2); }
+.cal-moonnote__bid { color: var(--accent-text); font-size: var(--step--2); font-weight: 600; }

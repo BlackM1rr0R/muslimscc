@@ -214,3 +214,17 @@ html.a11y-read-aloud li:hover {
   cursor: pointer !important;
   border-radius: 4px;
 }
+
+/* ── Ərəb mətni (v5.3): şrift seçimi + ölçü (utils/a11yPrefs → arFont, arSize) ──
+   Şrift: --font-arabic dəyişir (bütün Quran/hədis/dua bloku onu oxuyur).
+   Ölçü: üst səviyyəli ərəb blokuna zoom — komponentlərdə ərəb ölçüsü çox
+   vaxt px-dədir (html font-size-a tabe deyil); iç-içə bloklarda təkrar
+   böyümür, keçid/düymə/forma elementləri (dil siyahısı və s.) toxunulmur. */
+html[data-ar-font="scheherazade"] { --font-arabic: 'Scheherazade New', 'Amiri', 'Noto Naskh Arabic', serif; }
+html[data-ar-font="naskh"] { --font-arabic: 'Noto Naskh Arabic', 'Amiri', serif; }
+html.a11y-ar-1 { --ar-zoom: 1.12; }
+html.a11y-ar-2 { --ar-zoom: 1.25; }
+html.a11y-ar-3 { --ar-zoom: 1.4; }
+:is(html.a11y-ar-1, html.a11y-ar-2, html.a11y-ar-3) :is(.ui-arabic, [lang="ar"]):not(html, body, a, button, option, select, input, textarea, label, :is(.ui-arabic, [lang="ar"]) *) {
+  zoom: var(--ar-zoom, 1);
+}
