@@ -26,7 +26,25 @@ function onMove(e) {
   })
 }
 
+// Günün vaxtı (html[data-daypart]): gecə (20:00–05:00, cihazın yerli saatı) —
+// qaranlıq rejimdə səthlər zümrüd-qaradan gecə mavisinə keçir, işıqlı rejimdə
+// hero/footer işıqları axşam tonuna dönür (vau3.css §12). Test: ?daypart=night|day
+function initDaypart() {
+  const root = document.documentElement
+  let forced = ''
+  try { forced = new URLSearchParams(window.location.search).get('daypart') || '' } catch { /* */ }
+  const apply = () => {
+    const h = new Date().getHours()
+    const part = forced === 'night' || forced === 'day' ? forced : (h >= 20 || h < 5 ? 'night' : 'day')
+    if (root.getAttribute('data-daypart') !== part) root.setAttribute('data-daypart', part)
+  }
+  apply()
+  setInterval(apply, 10 * 60 * 1000)
+}
+
 export function initVau3() {
-  if (typeof window === 'undefined' || !window.matchMedia('(pointer: fine)').matches) return
+  if (typeof window === 'undefined') return
+  initDaypart()
+  if (!window.matchMedia('(pointer: fine)').matches) return
   document.addEventListener('pointermove', onMove, { passive: true })
 }

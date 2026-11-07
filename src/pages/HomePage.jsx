@@ -13,7 +13,7 @@
 // yuxarıdakı sakit zolaqdadır.
 // Brend mətnləri yalnız src/config/brand.js-dən oxunur.
 // ═══════════════════════════════════════════════════════
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { BRAND, brandName, tr } from '../config/brand'
 import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
@@ -23,9 +23,6 @@ import Icon from '../components/Icon'
 import { StatTile } from '../components/viz'
 import { pathFor } from '../seo/routes'
 import CityPicker from '../components/CityPicker'
-import LangMarquee from '../components/LangMarquee'
-import DayScroll from '../components/home/DayScroll'
-import PrayerSky from '../components/prayer/PrayerSky'
 import { HADITH_COUNT } from '../data/siteStats'
 import { lazyWhenIdle } from '../utils/idle'
 
@@ -348,15 +345,6 @@ function Countdown({ at, from, label }) {
   )
 }
 
-// ── Hero səması: seçilmiş şəhərin namaz vaxtına görə (sübh, günorta, qürub, gecə…) ──
-// usePrayerTimes sorğuları birləşdirir (inflight + yaddaş keşi) — kartla ikinci şəbəkə sorğusu yoxdur.
-function HeroSky() {
-  const { prayers, nowSecs } = usePrayerTimes()
-  const times = useMemo(() => Object.fromEntries(prayers.map(p => [p.key, p.adhan])), [prayers])
-  const nowMin = Number.isFinite(nowSecs) ? Math.floor(nowSecs / 60) : null
-  return <PrayerSky times={times} nowMin={nowMin} />
-}
-
 // ── Namaz vaxtları kartı ──
 // Ziyarətçinin yeri SORUŞULMUR (geolocation yoxdur): istifadəçinin /prayer-də
 // seçdiyi şəhər (seçməyibsə standart şəhər) göstərilir — usePrayerTimes →
@@ -597,7 +585,6 @@ export default function HomePage({ setPage }) {
               fırlanan xatəm ulduzu + üzən kiçik həndəsi ulduzlar (hamısı dekor,
               yalnız transform/opacity; ekrandan çıxanda dayanır — wow.css) */}
           <div className="hp-hero-bg" aria-hidden="true">
-            <HeroSky />
             <div className="hp-aur"><i /><i /><i /></div>
             <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
             <div className="hp-hero-glow" />
@@ -634,23 +621,10 @@ export default function HomePage({ setPage }) {
             </div>
 
             <div className="hp-hero-visual">
-              {/* vau3 §6: kartın ətrafında üzən 3D ikonlar (dekor, ≥1100px) */}
-              <div className="vx-orbit" aria-hidden="true" data-parallax="0.06">
-                <span className="ui-icon-tile"><Icon name="quran" /></span>
-                <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="qibla" /></span>
-                <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="dhikr" /></span>
-                <span className="ui-icon-tile"><Icon name="moon" /></span>
-              </div>
               <PrayerWidget lang={lang} l={l} onMore={()=>goTo('prayer')} />
             </div>
           </div>
         </section>
-
-        {/* Saytın dilləri — öz adları ilə sürüşən zolaq (vau3 §3) */}
-        <div className="vx-hero-langs">
-          <div className="vx-ft-langs__head"><Icon name="globe" size={16} /> {l.langs}</div>
-          <LangMarquee label={l.langs} />
-        </div>
       </div>
 
       {/* ═══ BU GÜN — bento: günün hədisi, ayəsi, davam et, tarix ═══ */}
@@ -710,15 +684,6 @@ export default function HomePage({ setPage }) {
           </ol>
         </div>
       </section>
-
-      {/* ═══ BİR GÜN — BEŞ NAMAZ: sürüşmə hekayəsi (vau3 §8) ═══ */}
-      <DayScroll
-        eyebrow={L(QUICK[0].title)}
-        title={L(QUICK[0].desc)}
-        names={(k) => PRAYER_NAMES[k]?.[lang] || PRAYER_NAMES[k]?.en || k}
-        href={pathFor('prayer', lang)}
-        onOpen={(e) => { if (plainClick(e)) { e.preventDefault(); goTo('prayer') } }}
-      />
 
       {/* ═══ QURAN + RƏQƏMLƏR ════════════════════════════════════════════
           Solda Quran kafeli (Hicr 9 + "Quran oxu"), sağda saytın məzmunu

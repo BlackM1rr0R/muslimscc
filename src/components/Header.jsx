@@ -6,9 +6,10 @@ import { pathFor, EXTRA_LANGS, EXTRA_CODES } from "../seo/routes";
 import { useBackToClose } from "../utils/useBackToClose";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 import SideNav from "./SideNav";
-import { BrandMark } from "./Icon";
+import Icon, { BrandMark } from "./Icon";
 import "../styles/Header.css";
 import { pickUi } from '../utils/uiText'
+import { lazyWhenIdle } from '../utils/idle'
 
 // ═══════════════════════════════════════════════════════
 // Header — sahibin qərarları: #5 (geniş ekran) və #7 (dar ekran).
@@ -52,6 +53,10 @@ import { pickUi } from '../utils/uiText'
 // Axtarış dialoqu ilk ehtiyacda yüklənir — ilk yüklənmə paketinə düşmür
 const loadSearch = () => import("./GlobalSearch");
 const GlobalSearch = lazy(loadSearch);
+// "Bu səhifə necə işləyir?" köməkçisi — yalnız açılanda yüklənir
+const PageHelp = lazy(() => import("./PageHelp"));
+// Növbəti namaz halqası — ilk boyamadan sonra, boş vaxtda (namaz hesabı əsas paketdə olmasın)
+const HeaderPrayerRing = lazy(lazyWhenIdle(() => import("./HeaderPrayerRing")));
 
 // SideNav.jsx bu hadisəni göndərir ("Saytda axtar" sahəsi)
 const OPEN_SEARCH_EVENT = "qm-open-search";
@@ -82,27 +87,27 @@ const LABELS = {
   az: {
     primaryNav: "Əsas bölmələr", home: "Ana səhifə", menu: "Menyu",
     search: "Axtar", dark: "Qaranlıq rejim", light: "İşıqlı rejim",
-    changeLang: "Dili dəyiş", selectLang: "Dil seçin", moreLangs: "Digər dillər",
+    changeLang: "Dili dəyiş", selectLang: "Dil seçin", moreLangs: "Digər dillər", help: "Necə işləyir",
   },
   en: {
     primaryNav: "Main sections", home: "Home", menu: "Menu",
     search: "Search", dark: "Dark mode", light: "Light mode",
-    changeLang: "Change language", selectLang: "Select language", moreLangs: "More languages",
+    changeLang: "Change language", selectLang: "Select language", moreLangs: "More languages", help: "How it works",
   },
   ru: {
     primaryNav: "Основные разделы", home: "Главная", menu: "Меню",
     search: "Поиск", dark: "Тёмная тема", light: "Светлая тема",
-    changeLang: "Изменить язык", selectLang: "Выберите язык", moreLangs: "Другие языки",
+    changeLang: "Изменить язык", selectLang: "Выберите язык", moreLangs: "Другие языки", help: "Как это работает",
   },
   ar: {
     primaryNav: "الأقسام الرئيسية", home: "الرئيسية", menu: "القائمة",
     search: "بحث", dark: "الوضع الداكن", light: "الوضع الفاتح",
-    changeLang: "تغيير اللغة", selectLang: "اختر اللغة", moreLangs: "لغات أخرى",
+    changeLang: "تغيير اللغة", selectLang: "اختر اللغة", moreLangs: "لغات أخرى", help: "طريقة العمل",
   },
   tr: {
     primaryNav: "Ana bölümler", home: "Ana sayfa", menu: "Menü",
     search: "Ara", dark: "Karanlık mod", light: "Aydınlık mod",
-    changeLang: "Dili değiştir", selectLang: "Dil seçin", moreLangs: "Diğer diller",
+    changeLang: "Dili değiştir", selectLang: "Dil seçin", moreLangs: "Diğer diller", help: "Nasıl işler",
   },
 };
 
@@ -178,6 +183,21 @@ function Header({ currentPage, setPage }) {
 
   // Axtarış dialoqu
   const [searchOpen,    setSearchOpen]    = useState(false);
+  const [helpOpen,      setHelpOpen]      = useState(false);
+  const closeHelp = useCallback(() => setHelpOpen(false), []);
+  // "?" (Shift+/) — köməkçini aç (yazı sahəsində deyilsə)
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "?" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (document.querySelector('[role="dialog"], dialog[open]')) return;
+      e.preventDefault();
+      setHelpOpen(true);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
   const [searchMounted, setSearchMounted] = useState(false);
   const [searchQ,       setSearchQ]       = useState("");
 
@@ -450,6 +470,27 @@ function Header({ currentPage, setPage }) {
           {/* ── SAĞ: axtarış, tema, dil — eyni ölçülü ikon düymələri.
                  <1024px-də axtarış + ☰ (tema və dil çəkmə menyudadır) ── */}
           <div className="header-right">
+            {/* Növbəti namaza geri sayım (namaz səhifəsinin özündə lazım deyil) */}
+            {currentPage !== "prayer" && (
+              <Suspense fallback={null}>
+                <HeaderPrayerRing onOpen={() => goTo("prayer")} />
+              </Suspense>
+            )}
+            {/* Bu səhifə necə işləyir? — hər səhifədə (PageHelp.jsx) */}
+            {currentPage && currentPage !== "home" && (
+              <button
+                type="button"
+                className="hdr-btn hdr-help"
+                onClick={() => setHelpOpen(true)}
+                aria-label={l.help}
+                title={l.help + " (?)"}
+                aria-haspopup="dialog"
+                aria-expanded={helpOpen}
+                aria-keyshortcuts="Shift+Slash"
+              >
+                <Icon name="info" size={20} />
+              </button>
+            )}
             <button
               type="button"
               className="hdr-btn nav-search-btn"
@@ -573,6 +614,12 @@ function Header({ currentPage, setPage }) {
 
       {/* Dialoq <header>-dən KƏNARDA: header-in backdrop-filter-i
           position:fixed uşaqları öz qutusuna həbs edərdi */}
+      {helpOpen && (
+        <Suspense fallback={null}>
+          <PageHelp page={currentPage} onClose={closeHelp} onNavigate={goTo} />
+        </Suspense>
+      )}
+
       {searchMounted && (
         <Suspense fallback={null}>
           <GlobalSearch
