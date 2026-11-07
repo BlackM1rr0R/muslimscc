@@ -13,6 +13,7 @@ import Header from './components/Header'
 //   <1024px — başlıqdakı ☰ sağdan sürüşən çəkmə menyunu açır (Header →
 //             SideNav "drawer", qərar #7). Aşağı zolaq YOXDUR — aşağı hissə boşdur.
 import SideNav from './components/SideNav'
+import useMedia from './hooks/useMedia'
 import Footer from './components/Footer'
 import InstallBanner from './components/InstallBanner'
 // Tək üzən düymə (AI, əlçatanlıq, bildirişlər) — əvvəlki 3 ayrı dairəvi düymənin yerinə.
@@ -389,6 +390,8 @@ function AppInner() {
     }
   }
 
+  // ≥1024px — yan panel (globals.css, SideNav.css ilə eyni sərhəd); hook — ilk return-dən əvvəl
+  const wide = useMedia('(min-width: 1024px)')
   if (legacy) return <Navigate to={pathFor(legacy.to, legacy.lang)} replace />
   // Köhnə siyahıdan çıxarılmış ad (/names/23-al-khafid) → /names siyahısı (replace)
   if (removed) return <Navigate to={pathFor(key, lang)} replace />
@@ -442,7 +445,8 @@ function AppInner() {
           Əsas sütunda <main> VƏ footer var — footer panelin altına düşmür.
           Ərəbcədə grid güzgülənir, panel sağda olur. */}
       <div className="qm-shell">
-        <SideNav mode="rail" currentPage={page} setPage={navigate} />
+        {/* Telefonda yan panel gizlidir — heç render olunmur (v5.4, ~490 DOM düyünü) */}
+        {wide && <SideNav mode="rail" currentPage={page} setPage={navigate} />}
         <div className="qm-shell-main">
           {pageMain}
           <Footer setPage={navigate} />

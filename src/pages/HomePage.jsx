@@ -14,6 +14,7 @@
 // Brend mətnləri yalnız src/config/brand.js-dən oxunur.
 // ═══════════════════════════════════════════════════════
 import { useState, useEffect, lazy, Suspense } from 'react'
+import DeferRender from '../components/DeferRender'
 import { useLang } from '../contexts/LangContext'
 import { BRAND, brandName, tr } from '../config/brand'
 import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
@@ -676,6 +677,7 @@ export default function HomePage({ setPage }) {
       </section>
 
       {/* ═══ HARADAN BAŞLAMALI? — yeni gələn üçün 4 addım ═════════════════ */}
+      <DeferRender height={CV.start['--cv-h']} delay={300}>
       <section className="ui-section ui-section--tight hp-start ui-cv" style={CV.start} aria-labelledby="hp-start-ttl">
         <div className="ui-container">
           <div className="ui-section-head" data-anim="blur">
@@ -701,10 +703,12 @@ export default function HomePage({ setPage }) {
           </ol>
         </div>
       </section>
+      </DeferRender>
 
       {/* ═══ QURAN + RƏQƏMLƏR ════════════════════════════════════════════
           Solda Quran kafeli (Hicr 9 + "Quran oxu"), sağda saytın məzmunu
           rəqəmlərlə (statistika kafelləri; görünəndə sayır — data-count). */}
+      <DeferRender height={CV.feats['--cv-h']} delay={600}>
       <section className="ui-section ui-section--tight hp-feats ui-cv" style={CV.feats} aria-labelledby="hp-stats-ttl">
         <div className="ui-container hp-qs">
           <div className="hp-bento-quran" data-anim="zoom">
@@ -744,8 +748,10 @@ export default function HomePage({ setPage }) {
           </div>
         </div>
       </section>
+      </DeferRender>
 
       {/* ═══ TAWHEED ════════════════════════════════════════════════════ */}
+      <DeferRender height={CV.tw['--cv-h']} delay={900}>
       <section className="hp-tw ui-cv" style={CV.tw}>
         {/* v2: tünd zümrüd "inverse" bölmə + incə xatəm naxışı (ui.css) */}
         <div className="ui-pattern hp-tw-pattern" aria-hidden="true" />
@@ -858,13 +864,15 @@ export default function HomePage({ setPage }) {
 
         </div>
       </section>
+      </DeferRender>
 
 
       {/* ═══ 99 NAMES ════════════════════════════════════════════════════ */}
+      <DeferRender height={CV.names['--cv-h']} delay={1200}>
       <section className="hp-names ui-cv" style={CV.names}>
         <div className="hp-sec-in">
           <div className="hp-sec-hd" data-reveal>
-            <div className="ui-eyebrow"><span lang="ar" dir="rtl">أسماء الله الحسنى</span></div>
+            <div className="ui-eyebrow"><span lang="ar" dir="rtl" className="ui-arabic hp-eyebrow-ar">أسماء الله الحسنى</span></div>
             <h2 className="ui-title hp-sec-ttl">{lk==='az'?"Allahın 99 gözəl adı":lk==='ru'?'99 Прекрасных Имён Аллаха':lk==='ar'?'أسماء الله الحسنى':lk==='tr'?"Allah'ın 99 Güzel İsmi":'99 Beautiful Names of Allah'}</h2>
             <p className="hp-sec-sub">
               {lk==='az'?'"Allahın doxsan doqquz adı var; kim onları saya bilsə, cənnətə girər." — (Buxari)':
@@ -893,6 +901,7 @@ export default function HomePage({ setPage }) {
           </div>
         </div>
       </section>
+      </DeferRender>
 
       {/* Quran zolağı (Hicr 9 + 114/6236/30 + "Quran oxu") yuxarıdakı bento
           şəbəkəsinin iri Quran kafelinə köçürülüb — məzmun eynidir. */}
@@ -924,6 +933,7 @@ export default function HomePage({ setPage }) {
       {/* ═══ CTA ══════════════════════════════════════════════════════════ */}
       {/* v2: tünd zümrüd panel (kənarlardan içəri, yuvarlaq künclü), incə
           xatəm naxışı; emoji əvəzinə xətti ikonlar */}
+      <DeferRender height={CV.cta['--cv-h']} delay={1500}>
       <section className="vx-cta-wrap ui-cv" style={CV.cta}>
         <div className="vx-cta vx-cta--aurora" data-spotlight="">
           <div className="ui-pattern" aria-hidden="true" />
@@ -947,6 +957,7 @@ export default function HomePage({ setPage }) {
           </div>
         </div>
       </section>
+      </DeferRender>
 
     </div>
   )

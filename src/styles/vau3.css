@@ -958,3 +958,13 @@ html.a11y-reduce-motion .vx-listen.is-on .vx-listen__wave i { animation: none; t
   html:not(.a11y-reduce-motion) .vx-md-year.is-dec::after { animation: vx-shine 3.6s ease-in-out infinite; }
 }
 @keyframes vx-shine { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+
+/* ══ PERFORMANS (v5.4): çoxdilli siyahılar SİSTEM şrifti ilə ══
+   Menyunun "Digər dillər" seçicisi (44 dilin öz adı) və footer-dəki 50 dil
+   zolağı veb-şrift ilə göstəriləndə HƏR səhifədə ərəb (IBM Plex, 3 çəki),
+   kiril, kiril-ext, vyetnam alt-çoxluqları yüklənirdi (~200 KB, ölçülüb).
+   Sistem şriftləri cihazda var — heç nə endirilmir. */
+.qm-sn-morelangs__select, .qm-sn-morelangs__select option,
+.vx-marquee__item, .vx-marquee__item * {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+}

@@ -93,6 +93,36 @@ function hadithLangPlugin() {
   }
 }
 
+// ── PERFORMANS (v5.4): "virtual:nawawi-home/<dil>" ──
+// NƏ: ana səhifənin "Günün hədisi" kartı (components/home/HomeToday.jsx) üçün
+// 42 hədisin yalnız kartda görünən sahələri, YALNIZ bir dildə: n, ar, başlıq,
+// mətn, mənbə, ilk fayda. NİYƏ: əvvəl bütöv src/data/nawawi40.js (5 dil +
+// bütün faydalar, ~300 KB xam / ~93 KB gzip) yüklənirdi — yavaş mobil
+// şəbəkədə ana səhifənin ən ağır chunk-ı idi (ölçülüb). nawawi40.js DƏYİŞMİR.
+const NAWAWI_PREFIX = 'virtual:nawawi-home/'
+function nawawiHomePlugin() {
+  const file = path.resolve('src/data/nawawi40.js')
+  return {
+    name: 'muslims-nawawi-home',
+    resolveId(id) {
+      if (!id.startsWith(NAWAWI_PREFIX)) return null
+      return HADITH_LANGS.includes(id.slice(NAWAWI_PREFIX.length)) ? '\0' + id + '.js' : null
+    },
+    async load(id) {
+      if (!id.startsWith('\0' + NAWAWI_PREFIX)) return null
+      const lang = id.slice(1 + NAWAWI_PREFIX.length, -3)
+      this.addWatchFile(file)
+      const { NAWAWI_40 } = await import(pathToFileURL(file).href + '?t=' + Date.now())
+      const pickL = (o) => (o ? (o[lang] ?? o.en) : undefined)
+      const list = NAWAWI_40.map(h => {
+        const b = pickL(h.benefits)
+        return { n: h.n, ar: h.ar, title: pickL(h.title), text: lang === 'ar' ? undefined : pickL(h.text), src: pickL(h.src), benefit: Array.isArray(b) ? b[0] : undefined }
+      })
+      return `export default JSON.parse(${JSON.stringify(JSON.stringify(list))})`
+    },
+  }
+}
+
 // ── Versiya nömrəsi (ana ekrandakı tətbiqin yenilənməsi üçün) ──
 // Hər build-in unikal ID-si koda (__BUILD_ID__) və dist/version.json-a yazılır.
 // Açıq tətbiq vaxtaşırı version.json-u oxuyur; fərqlidirsə yeni versiya
@@ -112,7 +142,7 @@ function versionFilePlugin() {
 }
 
 export default defineConfig({
-  plugins: [uiDictPlugin(), react(), dailyPoolsPlugin(), hadithLangPlugin(), versionFilePlugin()],
+  plugins: [uiDictPlugin(), react(), dailyPoolsPlugin(), hadithLangPlugin(), nawawiHomePlugin(), versionFilePlugin()],
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
 
   // Yalnız bir React nüsxəsi olsun deyə

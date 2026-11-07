@@ -5,6 +5,7 @@ import { navLabel, navGroupLabel } from '../data/navigation'
 import { pathFor } from '../seo/routes'
 import Icon, { BrandMark } from './Icon'
 import LangMarquee, { MARQUEE_LANGS } from './LangMarquee'
+import DeferRender from './DeferRender'
 import { LEGAL_KEYS, LEGAL_TITLES, legalPath, isRouted } from './legalLinks'
 import '../styles/Footer.css'
 import { pickUi } from '../utils/uiText'
@@ -142,7 +143,8 @@ function Footer({ setPage }) {
       {/* Saytın bütün dilləri — öz adları ilə sürüşən zolaq */}
       <div className="vx-ft-langs">
         <div className="vx-ft-langs__head"><Icon name="globe" size={16} /> {fl.langs} · <b>{MARQUEE_LANGS.length}</b></div>
-        <LangMarquee label={fl.langs} />
+        {/* 50 dil zolağı (~400 DOM düyünü) — footer-ə yaxınlaşanda / boş vaxtda (v5.4) */}
+        <DeferRender height="112px" rootMargin="800px 0px" delay={2500}><LangMarquee label={fl.langs} /></DeferRender>
       </div>
 
       <div className="ft-bottom-wrap">

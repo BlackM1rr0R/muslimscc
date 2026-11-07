@@ -1241,3 +1241,4 @@ html.a11y-reduce-motion .hp-kalima::after { animation: none !important; }
 /* Bu gecənin ayı — tarix kartının küncündə (components/MoonPhase) */
 .hp-td-date { position: relative; }
 .hp-td-moon { position: absolute; top: 14px; inset-inline-end: 14px; }
+.ui-eyebrow .hp-eyebrow-ar { font-size: 1.15em; letter-spacing: 0; text-transform: none; color: inherit; }

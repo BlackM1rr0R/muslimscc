@@ -29,6 +29,15 @@ import MoonPhase from '../MoonPhase'
 import AyahAudio from '../AyahAudio'
 import { pickUi } from '../../utils/uiText'
 
+// Statik import() — Vite hər dil üçün ayrıca kiçik chunk yaradır
+const NAWAWI_HOME = {
+  az: () => import('virtual:nawawi-home/az'),
+  en: () => import('virtual:nawawi-home/en'),
+  ru: () => import('virtual:nawawi-home/ru'),
+  tr: () => import('virtual:nawawi-home/tr'),
+  ar: () => import('virtual:nawawi-home/ar'),
+}
+
 const LABELS = {
   az: {
     ey: 'Bu gün', title: 'Günün paneli', sub: 'Hər gün yenilənir — hədis, ayə və qaldığınız yer.',
@@ -132,12 +141,14 @@ export default function HomeToday() {
   const [lessonTitle, setLessonTitle] = useState('')
   const [done, copy] = useCopy()
 
-  // Nəvəvi hədisləri — dinamik (ana səhifənin ilk chunk-ına düşmür)
+  // Nəvəvi hədisləri — dinamik, YALNIZ cari dil və kartın sahələri
+  // (vite.config.js → "virtual:nawawi-home/<dil>", ~8 KB gzip; əvvəl bütöv kitab ~93 KB)
   useEffect(() => {
     let alive = true
-    import('../../data/nawawi40.js').then(m => { if (alive) setNawawi(m.NAWAWI_40) }).catch(() => {})
+    const load = NAWAWI_HOME[lang] || NAWAWI_HOME.en
+    load().then(m => { if (alive) setNawawi(m.default) }).catch(() => {})
     return () => { alive = false }
-  }, [])
+  }, [lang])
   // Yaddaş yalnız brauzerdə (prerender HTML-i ilə uyğunsuzluq olmasın)
   useEffect(() => { setResume(readResume()) }, [])
   useEffect(() => {
@@ -165,10 +176,10 @@ export default function HomeToday() {
   }
 
   const hHref = h ? `${pathFor('nawawi40', lang)}#h-${h.n}` : pathFor('nawawi40', lang)
-  const hText = h && !isAr ? (h.text?.[lang] || h.text?.en || '') : ''
-  const hSrc = h ? (h.src?.[lang] || h.src?.en || '') : ''
-  const hTitle = h ? (h.title?.[lang] || h.title?.en || '') : ''
-  const hBenefit = h ? ((h.benefits?.[lang] || h.benefits?.en || [])[0] || '') : ''
+  const hText = h && !isAr ? (h.text || '') : ''
+  const hSrc = h ? (h.src || '') : ''
+  const hTitle = h ? (h.title || '') : ''
+  const hBenefit = h ? (h.benefit || '') : ''
 
   const shareHadith = async () => {
     if (!h) return
