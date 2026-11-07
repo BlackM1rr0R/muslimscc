@@ -443,7 +443,9 @@ export default function RamadanPage({ setPage }) {
       <section className="ui-section ui-section--tight rp-main">
         <div className="ui-container rp-stack">
           <RamadanCard state={st} />
-          <CrescentPath key={year || 'x'} lang={lang} year={year || 'x'} today={st.phase?.phase === 'ramadan' ? st.phase.day : null} />
+          <CrescentPath key={year || 'x'} lang={lang} year={year || 'x'} today={st.phase?.phase === 'ramadan' ? st.phase.day : null}
+            started={st.phase?.phase === 'ramadan' || st.phase?.phase === 'eid'}
+            monthDays={st.calendar?.length === 29 ? 29 : 30} onNavigate={setPage} />
 
           <div className="rp-print">
             <div className="rp-toolbar" data-reveal>

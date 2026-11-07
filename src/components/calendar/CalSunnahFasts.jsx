@@ -35,6 +35,9 @@ const TX = {
   todayHaram: { az: 'Bu gün oruc tutulmur (bayram və ya təşriq günü).', en: 'No fasting today (Eid or a day of Tashreeq).', ru: 'Сегодня не постятся (праздник или дни ташрика).', ar: 'لا يُصام اليوم (عيد أو أيام التشريق).', tr: 'Bugün oruç tutulmaz (bayram veya teşrik günü).' },
   logToday: { az: 'Bu gün oruc tuturam', en: 'I am fasting today', ru: 'Сегодня я пощусь', ar: 'أنا صائم اليوم', tr: 'Bugün oruçluyum' },
   logged: { az: 'Qeyd edildi', en: 'Logged', ru: 'Отмечено', ar: 'تم التسجيل', tr: 'Kaydedildi' },
+  // v5.2: 7 günlük sıranın açarı (əvvəl yalnız ekran oxuyucusu üçün idi)
+  lgSunnah: { az: 'sünnə oruc günü', en: 'sunnah fasting day', ru: 'день сунна-поста', ar: 'يوم صيام سنة', tr: 'sünnet oruç günü' },
+  lgLogged: { az: 'oruc tutdunuz', en: 'you fasted', ru: 'вы постились', ar: 'صمتَ', tr: 'oruç tuttunuz' },
   week: { az: 'Son 7 gün — toxunaraq qeyd edin', en: 'Last 7 days — tap to log', ru: 'Последние 7 дней — нажмите, чтобы отметить', ar: 'آخر 7 أيام — اضغط للتسجيل', tr: 'Son 7 gün — dokunarak kaydedin' },
   total: { az: 'cəmi oruc', en: 'fasts logged', ru: 'всего постов', ar: 'إجمالي الصيام', tr: 'toplam oruç' },
   month: { az: 'bu hicri ayda', en: 'this Hijri month', ru: 'в этом месяце хиджры', ar: 'هذا الشهر الهجري', tr: 'bu kameri ayda' },
@@ -253,12 +256,18 @@ export default function CalSunnahFasts({ lang, hijriOf, monthNames }) {
                   )
                 })}
               </div>
+              <p className="cal-sf__legend" aria-hidden="true">
+                <span><span className="cal-sf__dot" /> {pick(TX.lgSunnah, lang)}</span>
+                <span><span className="cal-sf__lg-ok"><Icon name="check" size={11} /></span> {pick(TX.lgLogged, lang)}</span>
+              </p>
             </div>
             <dl className="cal-sf__stats">
               <div><dd className="ui-num" data-testid="sunnah-total">{total}</dd><dt>{pick(TX.total, lang)}</dt></div>
               <div><dd className="ui-num">{thisMonth}</dd><dt>{pick(TX.month, lang)}</dt></div>
               <div><dd className="ui-num">{streak}</dd><dt>{pick(TX.streak, lang)}</dt></div>
-              <div><dd className="ui-num">{shawwalDone}/6</dd><dt>{pick(TX.shawwal, lang)}</dt></div>
+              {(todayInfo.h.month === 10 || shawwalDone > 0) && (
+                <div><dd className="ui-num">{shawwalDone}/6</dd><dt>{pick(TX.shawwal, lang)}</dt></div>
+              )}
             </dl>
           </div>
 

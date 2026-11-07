@@ -4,6 +4,7 @@ import { isPlainClick } from '../PageLink'
 import { pathFor } from '../../seo/routes'
 import { ChartFigure, BarChart, ColumnChart, Donut, StackedBar, Timeline, StatTile } from '../viz'
 import { pickUi } from '../../utils/uiText'
+import AyahAudio from '../AyahAudio'
 
 /* ══════════════════════════════════════════════════════════════════
    Dərs blokları — src/data/lessons/README.md-dəki formatın göstərilməsi.
@@ -145,6 +146,8 @@ export function Block({ b, lang }) {
           </blockquote>
           <figcaption className="ui-quote__src">
             — {L.quran}, {href ? <a href={href} className="ls-ref" dir="ltr">{b.ref}</a> : <span dir="ltr">{b.ref}</span>}
+            {/* Ayəni həqiqi qiraətlə dinlə (yalnız ayə; dua/hədisə TTS yox) */}
+            <AyahAudio refText={b.ref} className="ls-listen" />
           </figcaption>
         </figure>
       )

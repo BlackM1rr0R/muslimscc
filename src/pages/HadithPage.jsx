@@ -521,6 +521,16 @@ export default function HadithPage() {
       const limit = sticky ? bar.getBoundingClientRect().bottom : 80
       // html-in scroll-padding-top-u / scroll-margin sabit başlığı nəzərə alır
       if (el.getBoundingClientRect().top < limit) el.scrollIntoView({ block: 'start' })
+      // Yavaş cihazda yuxarıdakı bölmələr (content-visibility, qrafiklər) sürüşmədən
+      // SONRA real hündürlüyünü alır və sayğacı ekrandan aşağı itələyir — bir neçə
+      // kadr ərzində yoxla, yerindən çıxıbsa yenidən düzlə.
+      let tries = 0
+      const fix = () => {
+        const r = el.getBoundingClientRect()
+        if (r.top < limit || r.top > window.innerHeight - 40) el.scrollIntoView({ block: 'start' })
+        if (++tries < 6) setTimeout(fix, 120)
+      }
+      requestAnimationFrame(fix)
     },
   })
   const visible = filtered.slice(0, inf.count)

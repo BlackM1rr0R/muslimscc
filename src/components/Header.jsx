@@ -54,9 +54,23 @@ import { lazyWhenIdle } from '../utils/idle'
 const loadSearch = () => import("./GlobalSearch");
 const GlobalSearch = lazy(loadSearch);
 // "Bu səhifə necə işləyir?" köməkçisi — yalnız açılanda yüklənir
-const PageHelp = lazy(() => import("./PageHelp"));
+// Chunk yüklənməsə (oflayn) — heç nə göstərmə, səhifə sınmasın
+const NONE = { default: () => null };
+const PageHelp = lazy(() => import("./PageHelp").catch(() => NONE));
 // Növbəti namaz halqası — ilk boyamadan sonra, boş vaxtda (namaz hesabı əsas paketdə olmasın)
-const HeaderPrayerRing = lazy(lazyWhenIdle(() => import("./HeaderPrayerRing")));
+// Növbəti namaz halqası — React.lazy/Suspense YOX: tənbəl komponent keçid (startTransition)
+// gedərkən həll olunanda sonsuz siyahının "yuxarı qalx" sürüşməsini pozurdu (hadith e2e,
+// yüklü CPU-da). Boş vaxtda adi import + state ilə qoşulur.
+function useIdleComponent(load) {
+  const [C, setC] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    lazyWhenIdle(load)().then(m => { if (alive && m?.default) setC(() => m.default); }).catch(() => {});
+    return () => { alive = false; };
+  }, [load]);
+  return C;
+}
+const loadRing = () => import("./HeaderPrayerRing");
 
 // SideNav.jsx bu hadisəni göndərir ("Saytda axtar" sahəsi)
 const OPEN_SEARCH_EVENT = "qm-open-search";
@@ -184,6 +198,7 @@ function Header({ currentPage, setPage }) {
   // Axtarış dialoqu
   const [searchOpen,    setSearchOpen]    = useState(false);
   const [helpOpen,      setHelpOpen]      = useState(false);
+  const PrayerRing = useIdleComponent(loadRing);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
   // "?" (Shift+/) — köməkçini aç (yazı sahəsində deyilsə)
   useEffect(() => {
@@ -472,9 +487,7 @@ function Header({ currentPage, setPage }) {
           <div className="header-right">
             {/* Növbəti namaza geri sayım (namaz səhifəsinin özündə lazım deyil) */}
             {currentPage !== "prayer" && (
-              <Suspense fallback={null}>
-                <HeaderPrayerRing onOpen={() => goTo("prayer")} />
-              </Suspense>
+              PrayerRing && <PrayerRing onOpen={() => goTo("prayer")} />
             )}
             {/* Bu səhifə necə işləyir? — hər səhifədə (PageHelp.jsx) */}
             {currentPage && currentPage !== "home" && (

@@ -26,6 +26,7 @@ import { localizeSource } from '../../utils/sourceNames'
 import { gregorianToHijri, fromLocalDate, formatHijri, formatGregorian, weekdayName, isApproximate } from '../../utils/hijri'
 import '../../styles/HomeToday.css'
 import MoonPhase from '../MoonPhase'
+import AyahAudio from '../AyahAudio'
 import { pickUi } from '../../utils/uiText'
 
 const LABELS = {
@@ -256,10 +257,12 @@ export default function HomeToday() {
             <article className="ui-card ui-card--inverse ui-bento__cell--wide hp-td-ayah" aria-label={l.ayah}>
               <div className="ui-pattern hp-td-ayah-pat" aria-hidden="true" />
               <span className="hp-td-ayah-ey">{l.ayah}</span>
-              <p className="ui-arabic ui-clamp hp-td-ayah-ar" style={{ '--lines': 3 }} lang="ar" dir="rtl">{ayah.ar}</p>
+              {/* vau3 §14: xəttatlıq — iri Amiri, qızılı çərçivə, "mürəkkəblə" yazılır */}
+              <p className="ui-arabic ui-clamp hp-td-ayah-ar vx-callig" style={{ '--lines': 4 }} lang="ar" dir="rtl" data-anim="ink" data-anim-delay="150">{ayah.ar}</p>
               {ayah.text && <p className="ui-clamp hp-td-ayah-tx" style={{ '--lines': 3 }}>{ayah.text}</p>}
               <div className="hp-td-ayah-foot">
                 {ayah.source && <span className="hp-td-ayah-src">— {localizeSource(ayah.source, lang)}</span>}
+                <AyahAudio refText={ayah.source} className="vx-listen--inverse" />
                 <a className="ui-btn ui-btn--inverse-ghost ui-btn--sm" href={pathFor('quran', lang)} onClick={go(pathFor('quran', lang))}>
                   {l.toQuran} <Icon name="arrow" className="ui-btn__icon ui-btn__icon--end ui-flip-rtl" />
                 </a>

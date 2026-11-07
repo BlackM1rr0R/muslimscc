@@ -38,6 +38,9 @@ const STATUS_BTNS = ['prayed', 'qada', 'missed']
 const HEAT_WEEKS = 12
 // v3.2: ardıcıllıq mərhələləri (gün) — yalnız motivasiya nişanı, dini hökm deyil
 const MILESTONES = [3, 7, 14, 30, 60, 100]
+// Seriya halqası NÖVBƏTİ mərhələyə doğru dolur (əvvəl şəxsi rekordla ölçülürdü —
+// yeni istifadəçidə halqa həmişə dolu görünürdü və mənasız idi)
+const streakGoal = (n) => MILESTONES.find(m => m > n) || Math.ceil((n + 1) / 100) * 100
 const MS_TXT = {
   az: { title: 'Mərhələlər', day: '{n} gün', next: 'Növbəti mərhələ: {n} gün — {k} gün qalıb', all: 'Bütün mərhələlər keçildi — Allah qəbul etsin.', got: 'qazanılıb', not: 'hələ yox' },
   en: { title: 'Milestones', day: '{n} days', next: 'Next milestone: {n} days — {k} to go', all: 'All milestones reached — may Allah accept.', got: 'reached', not: 'not yet' },
@@ -158,13 +161,13 @@ export default function PrayerTrackerPage({ setPage }) {
                   </span>
                   <span className="pt-ring-label">{x.todayRing}</span>
                 </div>
-                <div className="pt-ring tm-ring tm-ring--live" style={{ '--tm-ring-from': ringFrom(streak, Math.max(best, 1), 88, 8) }}>
-                  <ProgressRing value={streak} max={Math.max(best, 1)} size={88} thickness={8} tone={2}
+                <div className="pt-ring tm-ring tm-ring--live" style={{ '--tm-ring-from': ringFrom(streak, streakGoal(streak), 88, 8) }}>
+                  <ProgressRing value={streak} max={streakGoal(streak)} size={88} thickness={8} tone={2}
                     showPercent={false} label={t.streak} />
                   <span className="pt-ring-in">
                     <span className="pt-ring-num ui-num" data-testid="pt-streak">{streak}</span>
                   </span>
-                  <span className="pt-ring-label">{t.streak}</span>
+                  <span className="pt-ring-label">{t.streak} <span className="pt-ring-goal ui-num">→ {streakGoal(streak)}</span></span>
                 </div>
                 <dl className="pt-kpis">
                   <div><dt>{t.best}</dt><dd className="ui-num">{best}</dd></div>

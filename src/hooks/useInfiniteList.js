@@ -136,10 +136,18 @@ export default function useInfiniteList({
     io.observe(node)
     // Effekt hər partiyadan sonra (n dəyişəndə) yenidən qurulur — scroll yolu
     // bir partiyada ən çox bir dəfə işləyir (keçid gözləyərkən təkrar yox)
-    let raf = 0, fired = false
+    // Yalnız AŞAĞI sürüşəndə (filtr sıfırlananda səhifə yuxarı qalxır — o
+    // zaman yükləmə siyahının başını ekrandan itələməsin)
+    let raf = 0, fired = false, lastY = window.scrollY
     const onScroll = () => {
       if (raf || fired) return
-      raf = requestAnimationFrame(() => { raf = 0; if (!fired && passed()) { fired = true; loadMore() } })
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const y = window.scrollY
+        const down = y > lastY
+        lastY = y
+        if (down && !fired && passed()) { fired = true; loadMore() }
+      })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => { io.disconnect(); window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }

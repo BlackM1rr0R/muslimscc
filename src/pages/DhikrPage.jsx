@@ -16,6 +16,7 @@ import BreathDhikr from '../components/dhikr/BreathDhikr'
 import { playSound } from '../utils/uiSound'
 import SoundToggle from '../components/SoundToggle'
 import { pickUi } from '../utils/uiText'
+import { bumpDhikrDay } from '../utils/myDay'
 
 // ── localStorage helper-ləri ──
 const STORAGE_KEY = 'dhikr_session'
@@ -44,6 +45,8 @@ function saveSession(data) {
 const TOTAL_KEY = 'dhikr_count_total'
 function bumpLifetime(kind = 'dhikr') {
   ummahAdd(kind)
+  // Ana səhifənin 'Mənim günüm' paneli üçün günlük say (utils/myDay)
+  bumpDhikrDay()
   try {
     const n = parseInt(localStorage.getItem(TOTAL_KEY), 10)
     localStorage.setItem(TOTAL_KEY, String((Number.isFinite(n) && n > 0 ? n : 0) + 1))

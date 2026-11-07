@@ -35,7 +35,8 @@ export default function HeaderPrayerRing({ onOpen }) {
   const span = next.prevAt ? next.at - next.prevAt : 0
   const p = span > 0 ? Math.min(1, Math.max(0, 1 - left / span)) : 0
   const name = PRAYER_NAMES[next.key]?.[lang] || PRAYER_NAMES[next.key]?.en || next.key
-  const label = `${name} · ${next.adhan} · −${fmt(left)}`
+  // Ekran oxuyucu adı görünən mətnlə BAŞLAYIR (axe: label-content-name-mismatch)
+  const label = `${name} −${fmt(left)}, ${next.adhan}`
   const soon = left > 0 && left < 15 * 60000
 
   return (

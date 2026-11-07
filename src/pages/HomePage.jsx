@@ -68,6 +68,8 @@ const TadabburCard = lazy(lazyWhenIdle(() => import('../components/TadabburCard'
 // hicri tarix). Hero-nun düz altındadır — lazy, amma idle gözləmədən; yer
 // tutucu hündürlüyü saxlayır (CLS olmasın). Bax: components/home/HomeToday.jsx
 const HomeToday = lazy(() => import('../components/home/HomeToday'))
+// 'Mənim günüm' — bu cihazdakı bu günün ibadətləri (utils/myDay)
+const MyDay = lazy(lazyWhenIdle(() => import('../components/home/MyDay').catch(() => ({ default: () => null }))))
 const HomeTodayFallback = () => (
   <div className="ui-section ui-section--tight" aria-hidden="true">
     <div className="ui-container"><div className="ui-skeleton hp-td-skel" /></div>
@@ -630,6 +632,11 @@ export default function HomePage({ setPage }) {
       {/* ═══ BU GÜN — bento: günün hədisi, ayəsi, davam et, tarix ═══ */}
       <Suspense fallback={<HomeTodayFallback />}>
         <HomeToday />
+      </Suspense>
+
+      {/* ═══ MƏNİM GÜNÜM — namaz, zikr, Quran, əməllər (vau3 §15) ═══ */}
+      <Suspense fallback={null}>
+        <MyDay onNavigate={goTo} />
       </Suspense>
 
       {/* ═══ NƏ AXTARIRSINIZ? — 12 əsas bölmə, ikon kafelləri ═════════════

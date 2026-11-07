@@ -42,3 +42,45 @@
 @keyframes cp-rise { from { opacity: 0; transform: translate(-50%, -20%) scale(.6); } }
 @keyframes cp-glow { from { transform: scale(.6); } }
 @media (max-width: 620px) { .cp__sky { aspect-ratio: 1.5; } }
+
+/* ══ v5.2 aydınlıq (sahibin rəyi: "adam başa düşmür nə üçündür") ══
+   Başlıq "Ramazan orucu gündəliyi", 3 addımlı vizual izah, tutulan günün
+   üstündə ✓, ayın faza qeydi, irəliləyiş zolağı, qəzaya keçid. */
+.cp__how { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0 0; padding: 0; list-style: none; font-size: var(--step--1); color: var(--text-secondary); }
+.cp__how li { display: inline-flex; align-items: center; gap: 7px; }
+.cp__how-ic { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.cp__how-ic--1 { background: #f0c75e; color: #3b2a05; box-shadow: 0 0 0 3px rgba(240, 199, 94, .25); }
+.cp__how-ic--2 { border: 1.5px dashed #8aa1b0; }
+.cp__how-ic--0 { border: 1.5px solid var(--line-strong); background: var(--surface-2); }
+.cp__before {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft, rgba(240, 199, 94, .12));
+  color: var(--accent-text);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+.cp__moon { position: relative; }
+.cp__tick {
+  position: absolute;
+  top: -4px;
+  inset-inline-end: -4px;
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #f0c75e;
+  color: #3b2a05;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #0b1d2b;
+}
+.cp__phase { margin: 0; font-size: var(--step--2); color: var(--text-tertiary); }
+.cp__bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: var(--surface-3); }
+.cp__bar > i { display: block; height: 100%; transition: width .6s cubic-bezier(.16, 1, .3, 1); }
+.cp__bar-1 { background: linear-gradient(90deg, #e3b23c, #f6d77a); }
+.cp__bar-2 { background: repeating-linear-gradient(135deg, #8aa1b0 0 4px, transparent 4px 7px); }
+.cp__toqada { justify-self: start; font-size: var(--step--1); }

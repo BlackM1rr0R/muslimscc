@@ -721,3 +721,8 @@ button.cal-up__card { cursor: pointer; }
   0%, 100% { transform: none; }
   50%      { transform: scale(1.2); }
 }
+/* v5.2: 7 günlük sıranın açarı */
+.cal-sf__legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 0; font-size: var(--step--2); color: var(--text-tertiary); }
+.cal-sf__legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-sf__legend .cal-sf__dot { display: inline-block; }
+.cal-sf__lg-ok { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); color: var(--on-brand, #fff); }
