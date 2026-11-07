@@ -15,9 +15,10 @@ COPY . .
 RUN cp .env.public .env.production.local
 
 # Əvvəlcədən sıxılmış .gz surətləri (scripts/prerender.mjs → nginx gzip_static)
-# dist ilə birlikdə image-ə düşür; yoxdursa build dayansın — əks halda nginx
-# səssizcə hər sorğuda dinamik sıxmağa qayıdardı.
-RUN npm run build && test -f dist/404.html && test -f dist/index.html  && test -f dist/index.html.gz && ls dist/assets/*.js.gz > /dev/null
+# JS/CSS/JSON/XML üçün dist ilə birlikdə image-ə düşür; yoxdursa build dayansın.
+# HTML üçün .gz YAZILMIR (image 400 MB server həddini aşırdı) — onu nginx
+# dinamik gzip sıxır; ona görə .html.gz OLMAMALIDIR.
+RUN npm run build && test -f dist/404.html && test -f dist/index.html && ! test -f dist/index.html.gz && ls dist/assets/*.js.gz > /dev/null
 
 # ── 2) Serve ──
 # stable-alpine: hər deploy-da təzə build olunur → nginx təhlükəsizlik

@@ -70,7 +70,7 @@ export const EXTRA_LANGS = {
   om: { name: 'Afaan Oromoo', en: 'Oromo', ui: true, dir: 'ltr', locale: 'om_ET', qe: 'oromo_rwwad', by: 'Rowwad Translation Center', basmala: '(Nin jalqaba) Maqaa Rabbii Akkaan Mararfataa Akkaan Rahmata Godhaa Taheetiin.' },
   yo: { name: 'Yorùbá', en: 'Yoruba', ui: true, dir: 'ltr', locale: 'yo_NG', qe: 'yoruba_mikail', by: 'Abu Rahimah Mikael', basmala: 'Ní orúkọ Allāhu, Àjọkẹ́-ayé, Àṣàkẹ́-ọ̀run.' },
   ff: { name: 'Fulfulde', en: 'Fula', dir: 'ltr', locale: 'ff_SN', qe: 'fulani_rwwad', by: 'Rowwad Translation Center', basmala: 'He innde Allah jurumdeero jormotooɗo oo' },
-  rw: { name: 'Kinyarwanda', en: 'Kinyarwanda', dir: 'ltr', locale: 'rw_RW', qe: 'kinyarwanda_assoc', by: 'Rwanda Muslim Association', basmala: 'Ku izina rya Allah, Nyirimpuhwe, Nyirimbabazi.' },
+  rw: { name: 'Kinyarwanda', en: 'Kinyarwanda', ui: true, dir: 'ltr', locale: 'rw_RW', qe: 'kinyarwanda_assoc', by: 'Rwanda Muslim Association', basmala: 'Ku izina rya Allah, Nyirimpuhwe, Nyirimbabazi.' },
   ku: { name: 'کوردی', en: 'Kurdish', dir: 'rtl', locale: 'ckb_IQ', qe: 'kurdish_bamoki', by: 'Muhammad Salih Bamoki', script: 'arab', basmala: 'بەناوی خوای بەخشندەی میهرەبان' },
   ky: { name: 'Кыргызча', en: 'Kyrgyz', dir: 'ltr', locale: 'ky_KG', qe: 'kyrgyz_hakimov', by: 'Shamsuddin Hakimov', basmala: 'Ырайымдуу, Мээримдүү Аллахтын аты менен (баштаймын).' },
   tg: { name: 'Тоҷикӣ', en: 'Tajik', dir: 'ltr', locale: 'tg_TJ', qe: 'tajik_arifi', by: 'Rowwad Translation Center', basmala: 'Ба номи Худованди бахшандаи меҳрубон.' },
