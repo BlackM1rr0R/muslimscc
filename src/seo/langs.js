@@ -83,7 +83,7 @@ export const EXTRA_LANGS = {
   sv: { name: 'Svenska', en: 'Swedish', ui: true, dir: 'ltr', locale: 'sv_SE', qe: 'swedish_rwwad', by: 'Rowwad Translation Center', basmala: 'I Guds namn, den Nåderike, den Barmhärtige.' },
   ro: { name: 'Română', en: 'Romanian', ui: true, dir: 'ltr', locale: 'ro_RO', qe: 'romanian_project', by: 'Islam4ro.com', basmala: 'În Numele lui Allah Cel Milostiv [Ar-Rahman], Îndurător [Ar-Rahim],' },
   sr: { name: 'Српски', en: 'Serbian', ui: true, dir: 'ltr', locale: 'sr_RS', qe: 'serbian_rwwad', by: 'Rowwad Translation Center', basmala: 'У име Аллаха, Милостивог, Самилосног.' },
-  si: { name: 'සිංහල', en: 'Sinhala', dir: 'ltr', locale: 'si_LK', qe: 'sinhalese_mahir', by: 'Rowwad Translation Center', basmala: 'අපරිමිත දයාන්විත අසමසම කරුණාන්විත වූ අල්ලාහ්ගේ නාමයෙනි.' },
+  si: { name: 'සිංහල', en: 'Sinhala', ui: true, dir: 'ltr', locale: 'si_LK', qe: 'sinhalese_mahir', by: 'Rowwad Translation Center', basmala: 'අපරිමිත දයාන්විත අසමසම කරුණාන්විත වූ අල්ලාහ්ගේ නාමයෙනි.' },
 }
 
 export const EXTRA_CODES = Object.keys(EXTRA_LANGS)
