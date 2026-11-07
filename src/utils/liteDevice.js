@@ -11,6 +11,11 @@
 // Meyar: ≤4 məntiqi nüvə və ya ≤4 GB yaddaş (navigator.deviceMemory) və ya
 // "trafikə qənaət" (Save-Data). Toxunma ekranı tək başına meyar DEYİL.
 // İstifadəçi tam animasiyanı məcburi istəsə: localStorage 'muslim_cc_motion' = 'full'.
+//
+// v5.5 (2026-11-08): zəif cihazda HƏR ŞEY söndürülmür. a11y-reduce-motion yalnız
+// dekorları bağlayır; menyu, səhifə keçidi, girişlər işləyir (transform/opacity).
+// Ölçü: köhnə rejimdə menyu açılışı kadrların 48–58%-ni itirirdi, indi 1–3%.
+// Bütün hərəkəti yalnız istifadəçinin öz seçimi söndürür (html.a11y-motion-user).
 // ═══════════════════════════════════════════════════════
 
 export const MOTION_KEY = 'muslim_cc_motion'

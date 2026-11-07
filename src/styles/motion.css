@@ -164,6 +164,42 @@ html[lang="ar"] .page-enter {
 .page-enter .ui-page-hero .ui-container > :nth-child(4) { animation-delay: 180ms; }
 .page-enter .ui-page-hero .ui-container > :nth-child(n+5) { animation-delay: 240ms; }
 
+/* ── Telefon (v5.5): tətbiq kimi üfüqi keçid ──
+   Toxunan anda köhnə səhifə oxu istiqamətinin əksinə sürüşüb sönükləşir
+   (utils/wow.js → leavePage → .page-leave); yeni səhifə hazır olanda oxu
+   istiqamətindən (LTR: sağdan) gəlir; geri/irəli düyməsi (App.jsx →
+   .page-enter--back) əks tərəfdən. Başlıq və aşağı panel yerində qalır —
+   yalnız <main> hərəkət edir. Yalnız transform/opacity (kompozitor). */
+@media (max-width: 767.98px) and (prefers-reduced-motion: no-preference) {
+  html:not([dir="rtl"]) .page-enter,
+  html[dir="rtl"] .page-enter--back {
+    animation: qm-page-in-next 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  html[dir="rtl"] .page-enter,
+  html:not([dir="rtl"]) .page-enter--back {
+    animation: qm-page-in-prev 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* sönükləşir, amma heç vaxt boş qalmır — yeni səhifə gecikərsə də */
+  html:not([dir="rtl"]) .page-enter.page-leave {
+    animation: qm-page-out-next 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  html[dir="rtl"] .page-enter.page-leave {
+    animation: qm-page-out-prev 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .page-leave { pointer-events: none; }
+}
+@keyframes qm-page-in-next {
+  from { opacity: 0; transform: translate3d(36px, 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-page-in-prev {
+  from { opacity: 0; transform: translate3d(-36px, 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes qm-page-out-next { to { opacity: 0.35; transform: translate3d(-40px, 0, 0); } }
+@keyframes qm-page-out-prev { to { opacity: 0.35; transform: translate3d(40px, 0, 0); } }
+
 /* Hərəkət azaldılıbsa — yalnız qısa görünmə */
 @media (prefers-reduced-motion: reduce) {
   .page-enter,

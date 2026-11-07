@@ -148,10 +148,13 @@ html.a11y-highlight-headings h4 {
   border-right: 4px solid var(--accent) !important;
 }
 
-/* Reduce motion */
-html.a11y-reduce-motion *,
-html.a11y-reduce-motion *::before,
-html.a11y-reduce-motion *::after {
+/* Reduce motion — YALNIZ istifadəçi paneldə seçəndə (utils/a11yPrefs → a11y-motion-user).
+   v5.5: əvvəl zəif cihazda da (a11y-reduce-motion) hər şey 0.001 s idi — telefonda
+   menyu birdən açılır, səhifə keçidi olmurdu. Zəif cihazda ağır dekorlar ayrıca
+   sönür (html:not(.a11y-reduce-motion) qapıları, wow.css → html.wow-lite). */
+html.a11y-motion-user *,
+html.a11y-motion-user *::before,
+html.a11y-motion-user *::after {
   animation-duration: 0.001s !important;
   animation-delay: 0s !important;
   animation-iteration-count: 1 !important;

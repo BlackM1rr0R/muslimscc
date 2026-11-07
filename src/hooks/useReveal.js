@@ -29,7 +29,6 @@
 // ═══════════════════════════════════════════════════════
 
 import { useCallback } from 'react'
-import { isLiteDevice } from '../utils/liteDevice'
 
 const SELECTOR = '[data-reveal]:not([data-reveal-ready])'
 const COUNT_SELECTOR = '[data-count]:not([data-count-ready])'
@@ -41,7 +40,9 @@ let started = false
 
 function prefersReducedMotion() {
   try {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches || isLiteDevice()
+    // v5.5: zəif cihazda da görünmə animasiyası var (yalnız transform/opacity)
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      document.documentElement.classList.contains('a11y-motion-user')
   } catch {
     return false
   }
@@ -87,7 +88,7 @@ function formatLike(sample, value, decimals) {
 function runCount(el) {
   countIo?.unobserve(el)
   // Saytın əlçatanlıq panelində "hərəkəti azalt" — rəqəm dərhal son halında qalır
-  if (document.documentElement.classList.contains('a11y-reduce-motion')) return
+  if (document.documentElement.classList.contains('a11y-motion-user')) return
   const node = el.firstChild
   const target = parseFloat(el.getAttribute('data-count'))
   if (!node || node.nodeType !== 3 || el.childNodes.length !== 1 || !Number.isFinite(target)) return

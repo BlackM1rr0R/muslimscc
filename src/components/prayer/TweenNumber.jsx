@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from 'react'
 
 function reduced() {
   try {
-    return document.documentElement.classList.contains('a11y-reduce-motion') ||
+    // v5.5: zəif cihazda da sayılır (ucuzdur) — yalnız istifadəçi seçimi söndürür
+    return document.documentElement.classList.contains('a11y-motion-user') ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
   } catch { return true }
 }

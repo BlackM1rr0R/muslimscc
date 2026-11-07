@@ -1,8 +1,8 @@
-import { Component, Suspense, lazy as reactLazy, useLayoutEffect } from 'react'
+import { Component, Suspense, lazy as reactLazy, useLayoutEffect, useRef } from 'react'
 import { reportError } from './utils/errorReport'
 import OfflineBadge from './components/OfflineBadge'
 import AutoSyncToast from './components/AutoSyncToast'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { LangProvider, useStoredLangRedirect } from './contexts/LangContext'
 import { ALL_LANGS, parsePath, pathFor, legacyDetailParam, uiLang } from './seo/routes'
 import Seo from './seo/Seo'
@@ -23,7 +23,7 @@ import FloatingDock from './components/FloatingDock'
 import { lazyWhenIdle } from './utils/idle'
 import { usePageviews } from './api/analytics'
 import { withChunkRetry } from './utils/chunkRetry'
-import { markRouteLoading, withViewTransition, routeCommitted } from './utils/wow'
+import { markRouteLoading, withViewTransition, routeCommitted, leavePage } from './utils/wow'
 
 // Bütün tənbəl modullar (səhifələr, widget-lər) chunk xətasında bir dəfə
 // avtomatik yenilənir (utils/chunkRetry.js — deploydan sonra köhnə tabda
@@ -271,6 +271,13 @@ function legacyRedirect(pathname) {
 function AppInner() {
   const location = useLocation()
   const routerNavigate = useNavigate()
+  const navSeq = useRef(0)
+  // Geri/irəli düyməsi (POP) — yeni səhifə əks tərəfdən gəlir (motion.css →
+  // .page-enter--back). İlk açılış da POP-dur, ona görə ilk ünvan sayılmır.
+  const navType = useNavigationType()
+  const firstKey = useRef(null)
+  if (firstKey.current === null) firstKey.current = location.key
+  const isBack = navType === 'POP' && location.key !== firstKey.current
 
   useStoredLangRedirect()
 
@@ -297,18 +304,29 @@ function AppInner() {
   // yumşaq solur, yeni səhifə qalxır — utils/wow.js); yüklənməyibsə yuxarıda
   // nazik yüklənmə zolağı görünür və köhnə səhifə yeni hazır olana qədər qalır.
   // Üst qatdan (overlay) keçid həmişə sinxrondur — tarixçə sırası dəyişməsin.
+  // v5.5: modul yüklənməyibsə — əvvəl yüklənir (yuxarıda zolaq, köhnə səhifə
+  // yerində), SONRA keçid animasiyası ilə açılır; arada başqa linkə basılıbsa
+  // köhnə istək atılır (navSeq). Yükləmə alınmasa — adi keçid (xəta sərhədi).
   const navigate = (p) => {
     const replace = isOverlayEntry()
+    const seq = ++navSeq.current
     const go = () => {
       routerNavigate(pathFor(p, lang), { replace })
       window.scrollTo(0, 0)
     }
     const type = p !== page ? pageElement(p)?.type : null
-    if (type?.preload && !type.loaded) {
-      markRouteLoading(type.preload())
-      go()
-    } else if (type && !replace) withViewTransition(go)
-    else go()
+    if (!type) { go(); return }
+    leavePage(MAIN_ID)   // telefon: köhnə səhifə dərhal yola düşür (motion.css)
+    if (replace) {   // üst qatdan (menyu, axtarış) — sinxron, tarixçə sırası qorunur
+      if (type.preload && !type.loaded) markRouteLoading(type.preload())
+      go(); return
+    }
+    if (type.preload && !type.loaded) {
+      markRouteLoading(type.preload()).then(
+        () => { if (seq === navSeq.current) withViewTransition(go) },
+        () => { if (seq === navSeq.current) go() },
+      )
+    } else withViewTransition(go)
   }
 
   // Skip link: <main>-ə fokus (hash dəyişmir — "#admin" məntiqinə toxunmur)
@@ -419,7 +437,7 @@ function AppInner() {
           yüklənərkən <main> qısa olurdu, footer ekranın ortasında görünür, sonra
           məzmun gələndə aşağı itələnirdi: Lighthouse masaüstü /quran-da
           CLS 0.528 (bal 5/100). Hündür səhifələrdə heç nə dəyişmir. */}
-      <main key={page} id={MAIN_ID} tabIndex={-1} className="page-enter" style={MAIN_STYLE}>
+      <main key={page} id={MAIN_ID} tabIndex={-1} className={isBack ? 'page-enter page-enter--back' : 'page-enter'} style={MAIN_STYLE}>
         {renderPage()}
       </main>
     </Suspense>

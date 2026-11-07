@@ -136,5 +136,10 @@ export function applyA11yPrefs(prefs) {
   // Zəif cihazda (≤4 nüvə / ≤4 GB / Save-Data) avtomatik — utils/liteDevice.js
   html.classList.toggle('a11y-reduce-motion', prefs.reduceMotion || isLiteDevice())
   html.classList.toggle('wow-lite', isLiteDevice())
+  // v5.5: bütün hərəkəti söndürən qlobal qayda (AccessibilityWidget.css) YALNIZ
+  // istifadəçi özü seçəndə. Zəif cihazda a11y-reduce-motion qalır — ağır dekor
+  // animasiyaları (html:not(.a11y-reduce-motion) ilə bağlı ~600 yer) sönülü qalır,
+  // amma menyu, səhifə keçidi, girişlər və düymə rəyi işləyir.
+  html.classList.toggle('a11y-motion-user', Boolean(prefs.reduceMotion))
   html.classList.toggle('a11y-reading-guide', prefs.readingGuide)
 }

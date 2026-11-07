@@ -54,13 +54,17 @@ let firstPaintWindow = true
 
 const html = () => document.documentElement
 
+/** İstifadəçi hərəkəti söndürüb (sistem ayarı və ya əlçatanlıq paneli) */
 function reduced() {
   try {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      html().classList.contains('a11y-reduce-motion') ||
-      isLiteDevice()   // zəif cihaz (utils/liteDevice) — applyA11yPrefs-dən ƏVVƏL də
+      html().classList.contains('a11y-motion-user')
   } catch { return false }
 }
+/** Ağır effektlər (parallax, tilt, maqnit, hero dövrələri) — zəif cihazda da yox.
+ *  v5.5: girişlər, menyu və səhifə keçidi isə zəif cihazda da işləyir
+ *  (yalnız transform/opacity — perf-touch.css). */
+const heavyOff = () => reduced() || isLiteDevice()
 const mq = (q) => { try { return window.matchMedia(q) } catch { return { matches: false } } }
 
 /** rAF ilə bir kadra yığılan MutationObserver */
@@ -111,7 +115,7 @@ function initPointer() {
     // Maqnit düymə: kursora doğru ən çox 4px (translate — transform-a toxunmur)
     const b = t ? t.closest(MAGNET) : null
     if (b !== mag) clearMag()
-    if (b && !b.disabled && !reduced()) {
+    if (b && !b.disabled && !heavyOff()) {
       const r = b.getBoundingClientRect()
       if (r.width <= 360) {
         mag = b
@@ -142,7 +146,7 @@ function initPointer() {
       // Haşiyə parıltısı ::after ilə — kartın öz ::after-i yoxdursa
       if (el.matches(GLOW) && (cs.position === 'relative' || cs.position === 'static') && getComputedStyle(el, '::after').content === 'none') el.setAttribute('data-wow-glow', '')
     }
-    if (el.hasAttribute('data-wow-tilt') && !reduced()) {
+    if (el.hasAttribute('data-wow-tilt') && !heavyOff()) {
       const px = x / r.width - 0.5
       const py = y / r.height - 0.5
       el.style.setProperty('--wow-rx', `${(-py * 6).toFixed(2)}deg`)
@@ -274,7 +278,7 @@ function initParallax() {
   }
   const update = () => {
     raf = 0
-    if (off.matches || reduced()) { clearAll(); return }
+    if (off.matches || heavyOff()) { clearAll(); return }
     cleared = false
     const vh = window.innerHeight
     // Əvvəl hamısını oxu, sonra yaz (layout thrash yoxdur)
@@ -296,7 +300,7 @@ function initParallax() {
     }
   }
   function schedule() {
-    if (cleared && (off.matches || reduced())) return   // söndürülüb — sürüşmədə iş yoxdur
+    if (cleared && (off.matches || heavyOff())) return   // söndürülüb — sürüşmədə iş yoxdur
     if (!raf) raf = requestAnimationFrame(update)
   }
   const scan = () => {
@@ -368,7 +372,7 @@ function initHero() {
     })
     : null
   const add = () => {
-    const red = reduced()
+    const red = heavyOff()
     // Öz hero-su olan səhifələr (ana səhifə): data-wow-pause — ekrandan çıxanda pauza
     document.querySelectorAll('[data-wow-pause]:not([data-wow-pause-on])').forEach(el => {
       el.setAttribute('data-wow-pause-on', '')
@@ -533,6 +537,22 @@ export function withViewTransition(go) {
   } catch {
     go()
   }
+}
+
+/**
+ * Telefon (v5.5): toxunan anda köhnə <main> sola sürüşüb sönükləşir
+ * (motion.css → .page-leave, yalnız transform/opacity — kompozitorda gedir,
+ * React yeni səhifəni qurarkən də donmur). Yeni <main> (key={page}) gələndə
+ * sinif öz-özünə itir; naviqasiya baş tutmasa 4 s sonra geri alınır.
+ * NİYƏ View Transition yox: telefonda köhnə kadrın şəkli yeni səhifə
+ * hazır olana qədər (CPU ×4: 0.6–1.1 s) donmuş qalırdı — ölçülüb.
+ */
+export function leavePage(mainId) {
+  if (typeof document === 'undefined' || reduced() || !mq('(max-width: 767.98px)').matches) return
+  const el = document.getElementById(mainId)
+  if (!el || el.classList.contains('page-leave')) return
+  el.classList.add('page-leave')
+  setTimeout(() => el.classList.remove('page-leave'), 4000)
 }
 
 export function initWow() {
