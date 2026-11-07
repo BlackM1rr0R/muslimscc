@@ -329,6 +329,11 @@ const FONT_PRELOAD = {
   en: ['inter-latin-var'],
   ru: ['inter-latin-var', 'inter-cyrillic-var'],
   ar: ['ibm-plex-sans-arabic-arabic-400'],
+  // Əlavə dillər (src/seo/langs.js): ərəb əlifbalı — ərəbcə şrift, kiril — kiril dəsti
+  ur: ['ibm-plex-sans-arabic-arabic-400'],
+  fa: ['ibm-plex-sans-arabic-arabic-400'],
+  ps: ['ibm-plex-sans-arabic-arabic-400'],
+  uz: ['inter-latin-var', 'inter-cyrillic-var'],
 }
 
 function makePreloader() {
@@ -355,7 +360,8 @@ function makePreloader() {
 
   return (key, lang) => {
     const lines = []
-    for (const base of FONT_PRELOAD[lang] || FONT_PRELOAD.az) {
+    // Siyahıda olmayan əlavə dil (latın əlifbalı) — ingiliscənin latın dəsti
+    for (const base of FONT_PRELOAD[lang] || FONT_PRELOAD.en) {
       const f = fontFile(base)
       if (f) lines.push(`<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`)
     }
@@ -375,6 +381,11 @@ function makePreloader() {
       const hk = `virtual:hadiths/${lang}.js`
       if (manifest[hk]) lines.push(`<link rel="modulepreload" crossorigin href="/${manifest[hk].file}" />`)
     }
+    // PERFORMANS: əlavə dilin interfeys lüğəti (src/i18n/<dil>.json, ~130 KB gzip)
+    // main.jsx-də İLK RENDER-DƏN ƏVVƏL gözlənilir — əsas paketlə PARALEL yüklənsin
+    // (əks halda əvvəl main.js, sonra lüğət: ardıcıl iki gediş-gəliş)
+    const dk = `src/i18n/${lang}.json`
+    if (manifest[dk]) lines.push(`<link rel="modulepreload" crossorigin href="/${manifest[dk].file}" />`)
     return lines.map(l => '    ' + l).join('\n')
   }
 }

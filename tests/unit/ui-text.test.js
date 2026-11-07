@@ -96,3 +96,26 @@ describe('lüğət faylları', () => {
     }
   })
 })
+
+describe('tarix lokalı (installDateLocale)', () => {
+  it('lüğət aktivdirsə ingiliscə lokal həmin dilə çevrilir, digər lokallar və Intl dəyişmir', async () => {
+    const { installDateLocale, setUiDateLocale } = await import('../../src/utils/uiText.js')
+    installDateLocale()
+    const d = new Date(Date.UTC(2026, 10, 6, 12))
+    const o = { weekday: 'long', timeZone: 'UTC' }
+    expect(d.toLocaleDateString('en-GB', o)).toBe('Friday')
+    setUiDateLocale('id', 'id_ID')
+    try {
+      expect(d.toLocaleDateString('en-GB', o)).toBe('Jumat')
+      expect(d.toLocaleDateString(undefined, o)).toBe('Jumat')
+      expect(d.toLocaleDateString('ru-RU', o)).toBe('пятница')
+      // Intl.DateTimeFormat-a toxunulmur (namaz vaxtı/hicri təqvim onunla rəqəm oxuyur)
+      expect(new Intl.DateTimeFormat('en-GB', o).format(d)).toBe('Friday')
+      setUiDateLocale('uz', 'uz_UZ')
+      expect(d.toLocaleDateString('en', o)).toMatch(/[а-яўқғҳ]/i)
+    } finally {
+      setUiDateLocale(null)
+    }
+    expect(d.toLocaleDateString('en-GB', o)).toBe('Friday')
+  })
+})

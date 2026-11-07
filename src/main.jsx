@@ -18,11 +18,14 @@ import { initInputModality } from './hooks/useInputModality'
 import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
 import { startUpdateWatcher } from './utils/appUpdate'
 import { applyUiDict } from './i18n/load'
+import { installDateLocale } from './utils/uiText'
 import { parsePath } from './seo/routes'
 
 // Fokus halqası yalnız klaviatura ilə (toxunuşdan sonra narıncı halqa yox)
 // və [data-reveal] elementləri üçün tək qlobal IntersectionObserver
 initInputModality()
+// Əlavə dildə tarixlər həmin dilin formatında (lüğət aktiv olanda — utils/uiText.js)
+installDateLocale()
 initReveal()
 initErrorReporting()
 initWow()

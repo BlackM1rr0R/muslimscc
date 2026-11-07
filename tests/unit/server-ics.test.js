@@ -48,7 +48,11 @@ describe('ICS köməkçiləri', () => {
 
 describe('GET /api/prayer.ics', () => {
   let srv
-  const aladhan = { data: [{ date: { gregorian: { date: '05-11-2026' } }, timings: { Fajr: '06:04 (+03)', Dhuhr: '12:53 (+03)', Asr: '15:40 (+03)', Maghrib: '18:05 (+03)', Isha: '19:30 (+03)' } }] }
+  // Tarix NİSBİDİR: router dünəndən 45 gün irəli götürür — sabit tarix (05-11-2026)
+  // bir gün sonra aralıqdan çıxırdı və test "times unavailable" ilə yıxılırdı
+  const [yy, mo, dd] = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' })
+    .format(new Date(Date.now() - 864e5)).split('-')
+  const aladhan = { data: [{ date: { gregorian: { date: `${dd}-${mo}-${yy}` } }, timings: { Fajr: '06:04 (+03)', Dhuhr: '12:53 (+03)', Asr: '15:40 (+03)', Maghrib: '18:05 (+03)', Isha: '19:30 (+03)' } }] }
   let calls = 0
   beforeAll(async () => {
     const app = express()
@@ -70,7 +74,7 @@ describe('GET /api/prayer.ics', () => {
     const url = `${srv.url}/api/prayer.ics?lat=41.0082&lng=28.9784&tz=Europe/Istanbul&method=13&lang=tr`
     const body = await (await fetch(url)).text()
     expect(body).toContain('SUMMARY:🕌 Sabah ezanı — 06:04')
-    expect(body).toContain('DTSTART:20261105T030400Z')
+    expect(body).toContain(`DTSTART:${yy}${mo}${dd}T030400Z`)
     const first = calls
     await fetch(url)
     expect(calls).toBe(first)        // ikinci dəfə şəbəkə yoxdur

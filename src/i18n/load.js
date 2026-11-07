@@ -1,7 +1,8 @@
 // Əlavə dilin interfeys lüğətini (src/i18n/<dil>.json) tənbəl yüklə — hər dil
 // ayrıca chunk-dır, yalnız həmin dildə açılan səhifədə endirilir.
 // Lüğətin quruluşu və qaydası: src/utils/uiText.js
-import { setUiDict, uiDictLang } from '../utils/uiText'
+import { setUiDict, uiDictLang, setUiDateLocale } from '../utils/uiText'
+import { EXTRA_LANGS } from '../seo/langs'
 
 const FILES = import.meta.glob('./[a-z][a-z].json')
 
@@ -15,13 +16,16 @@ export const hasUiDict = (lang) => Boolean(FILES[`./${lang}.json`])
 export async function applyUiDict(lang) {
   const want = hasUiDict(lang) ? lang : null
   if (uiDictLang() === want) return false
-  if (!want) { setUiDict(null); return true }
+  if (!want) { setUiDict(null); setUiDateLocale(null); return true }
   try {
     const m = await FILES[`./${want}.json`]()
     setUiDict(want, m.default || m)
+    // Tarixlər də həmin dildə ("Jumat, 6 November") — uiText.js → installDateLocale
+    setUiDateLocale(want, EXTRA_LANGS[want]?.locale)
   } catch {
     // Chunk yüklənmədi (şəbəkə) — interfeys ingiliscə qalır
     setUiDict(null)
+    setUiDateLocale(null)
   }
   return true
 }

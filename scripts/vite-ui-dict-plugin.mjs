@@ -17,7 +17,7 @@ import MagicString from 'magic-string'
 const require = createRequire(import.meta.url)
 const espree = require('espree')
 
-export const UI_FILE_RE = /[\\/]src[\\/](components|pages)[\\/].*\.jsx?$|[\\/]src[\\/]App\.jsx$|[\\/]src[\\/]data[\\/](navigation|i18n)\.js$/
+export const UI_FILE_RE = /[\\/]src[\\/](components|pages|data[\\/]guides|data[\\/]pageGuides)[\\/].*\.jsx?$|[\\/]src[\\/]App\.jsx$|[\\/]src[\\/]data[\\/](navigation|i18n)\.js$/
 const CORE = new Set(['az', 'en', 'ru', 'ar', 'tr'])
 const keyName = (p) => (p.key.type === 'Identifier' ? p.key.name : p.key.type === 'Literal' ? String(p.key.value) : null)
 

@@ -63,6 +63,48 @@ export function setUiDict(lang, d) {
 /** Lüğəti yüklənmiş dil (və ya null). */
 export const uiDictLang = () => dictLang
 
+// ── Tarix formatı ──
+// Komponentlər tarixi interfeys dilinin lokalı ilə göstərir (LOCALES[lang] ||
+// 'en-GB'); əlavə dildə interfeys "en" olduğu üçün tarix ingiliscə çıxırdı
+// ("Friday, 6 November"). Lüğət aktivdirsə, Date-in GÖSTƏRMƏ funksiyalarında
+// ingiliscə lokal (en, en-GB, en-US) həmin dilin lokalı ilə əvəz olunur.
+// Intl.DateTimeFormat-a QƏSDƏN toxunulmur: namaz vaxtı və hicri təqvim
+// formatToParts ilə rəqəmləri oxuyur (en-GB, en-u-ca-…) — orada dəyişiklik hesabı pozardı.
+// Lokal kodu: src/seo/langs.js → locale (uz — kiril, bs — latın)
+const DATE_LOCALE_FIX = { uz: 'uz-Cyrl-UZ', bs: 'bs-Latn-BA' }
+const EN_LOCALE = /^en(?:-(?:GB|US))?$/
+let dateLocale = null
+const dateLocaleFor = (lang, locale) => DATE_LOCALE_FIX[lang] || String(locale || lang).replace('_', '-')
+
+/** Göstərmə lokalı (lüğət aktivdirsə həmin dil, yoxsa verilən). */
+function displayLocale(locales) {
+  if (!dateLocale) return locales
+  if (locales == null || (typeof locales === 'string' && EN_LOCALE.test(locales))) return dateLocale
+  return locales
+}
+
+let datePatched = false
+/** Date.prototype.toLocale*String yamağı — bir dəfə (main.jsx). */
+export function installDateLocale() {
+  if (datePatched || typeof Date === 'undefined') return
+  datePatched = true
+  for (const name of ['toLocaleDateString', 'toLocaleTimeString', 'toLocaleString']) {
+    const orig = Date.prototype[name]
+    Object.defineProperty(Date.prototype, name, {
+      configurable: true,
+      writable: true,
+      value: function (locales, opts) {
+        try { return orig.call(this, displayLocale(locales), opts) } catch { return orig.call(this, locales, opts) }
+      },
+    })
+  }
+}
+
+/** Lüğətlə birlikdə tarix lokalını qoy (load.js → applyUiDict). */
+export function setUiDateLocale(lang, locale) {
+  dateLocale = lang ? dateLocaleFor(lang, locale) : null
+}
+
 /** Tək sətrin tərcüməsi (lüğətdə yoxdursa — olduğu kimi). */
 export function txt(s) {
   if (!dict || typeof s !== 'string') return s

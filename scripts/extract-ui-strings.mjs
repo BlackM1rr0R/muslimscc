@@ -22,7 +22,7 @@ const require = createRequire(import.meta.url)
 const espree = require('espree')
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
-const DIRS = ['src/components', 'src/pages']
+const DIRS = ['src/components', 'src/pages', 'src/data/guides', 'src/data/pageGuides']
 const FILES = ['src/App.jsx', 'src/data/navigation.js', 'src/seo/meta.js', 'src/seo/detail.js', 'src/data/i18n.js']
 const CORE = new Set(['az', 'en', 'ru', 'ar', 'tr'])
 
