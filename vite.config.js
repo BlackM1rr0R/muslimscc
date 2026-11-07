@@ -57,7 +57,7 @@ const HADITH_LANGS = ['az', 'en', 'ru', 'tr', 'ar']
 // deyil, ~31 KB gzip; yalnız /hadith-də ilk boyamadan sonra yüklənir)
 const HADITH_MODS = [...HADITH_LANGS, 'keys']
 function hadithLangPlugin() {
-  const files = ['src/data/hadiths.js', 'src/utils/uniqueHadiths.js'].map(f => path.resolve(f))
+  const files = ['src/data/hadiths.js', 'src/utils/uniqueHadiths.js', 'src/data/hadithGrades.js', 'src/utils/hadithGrade.js'].map(f => path.resolve(f))
   const load = (f) => import(pathToFileURL(f).href + '?t=' + Date.now())
   let cache = null // hadiths.js + qurucular — bir build-də bütün modullar üçün bir dəfə yüklənir
   return {
@@ -73,12 +73,12 @@ function hadithLangPlugin() {
       const lang = id.slice(1 + HADITH_PREFIX.length, -3)
       files.forEach(f => this.addWatchFile(f))
       if (!cache) {
-        const [{ HADITHS }, { buildHadithLangData, buildHadithMergeKeys }] = await Promise.all(files.map(load))
-        cache = { HADITHS, buildHadithLangData, buildHadithMergeKeys }
+        const [{ HADITHS }, { buildHadithLangData, buildHadithMergeKeys }, { SUNAN_GRADES }] = await Promise.all(files.slice(0, 3).map(load))
+        cache = { HADITHS, buildHadithLangData, buildHadithMergeKeys, SUNAN_GRADES }
       }
       const data = lang === 'keys'
         ? cache.buildHadithMergeKeys(cache.HADITHS)
-        : cache.buildHadithLangData(cache.HADITHS, lang)
+        : cache.buildHadithLangData(cache.HADITHS, lang, cache.SUNAN_GRADES)
       // JSON.parse böyük obyekt literalından tez parse olunur (V8 tövsiyəsi)
       return `export default JSON.parse(${JSON.stringify(JSON.stringify(data))})`
     },

@@ -67,6 +67,8 @@
 .hadith-about__note svg { flex-shrink: 0; margin-top: 2px; color: var(--note, var(--brand)); }
 .hadith-about__links { margin-top: var(--space-1); }
 .hadith-about .hadith-about__chart { margin: 0; align-self: start; }
+.hadith-about__charts { display: grid; gap: var(--space-6); align-self: start; min-width: 0; }
+.hadith-about__charts .hadith-about__chart + .hadith-about__chart { padding-top: var(--space-5); border-top: 1px solid var(--line); }
 .hadith-about__six { display: inline-flex; align-items: center; gap: 4px; margin-top: var(--space-3); font-size: var(--step--1); }
 @media (max-width: 767.98px) {
   .hadith-about__body { padding: var(--space-4); }
@@ -361,10 +363,12 @@
 
 /* Panel içində diaqram kart deyil (kart-içində-kart yox) — geniş ekranda xətlə ayrılır */
 @media (min-width: 960px) {
-  .hadith-about .hadith-about__chart { padding-inline-start: var(--space-6); border-inline-start: 1px solid var(--line); border-radius: 0; }
+  .hadith-about .hadith-about__charts { padding-inline-start: var(--space-6); border-inline-start: 1px solid var(--line); }
+  .hadith-about .hadith-about__chart { border-radius: 0; }
 }
 @media (max-width: 959.98px) {
-  .hadith-about .hadith-about__chart { padding-top: var(--space-5); border-top: 1px solid var(--line); border-radius: 0; }
+  .hadith-about .hadith-about__charts { padding-top: var(--space-5); border-top: 1px solid var(--line); }
+  .hadith-about .hadith-about__chart { border-radius: 0; }
 }
 .hadith-grade { padding-block: 6px; }
 
@@ -406,3 +410,65 @@
   to   { clip-path: inset(-10% -2% -10% -2%); opacity: 1; }
 }
 @keyframes hd-v4-dash { from { transform: scaleX(0); } to { transform: none; } }
+
+/* ── Hədisin dərəcəsi (v5.3): kartın altında mənbə + rəngli nişan ──
+   Rənglər: səhih/həsən — --ok, zəif — --bad, ixtilaflı — --warn,
+   Quran ayəsi — qızılı, göstərilməyib — sönük. Nöqtə + söz (yalnız rəngə
+   güvənmirik — rəng korluğu). */
+.hadith-page .hadith-card .hadith-foot { margin-top: auto; padding-top: var(--space-3); }
+.hadith-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: var(--space-3); }
+.hadith-page .hadith-card .hadith-foot .hadith-source, .hadith-foot .hadith-source { margin: 0; padding: 0; min-width: 0; flex: 1 1 auto; }
+.hadith-gr {
+  --gr: var(--text-tertiary);
+  display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto;
+  padding: 3px 10px 3px 8px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gr) 32%, transparent);
+  background: color-mix(in srgb, var(--gr) 9%, transparent);
+  color: var(--text-secondary);
+  font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; line-height: 1.4;
+}
+.hadith-gr__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gr); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gr) 18%, transparent); }
+.hadith-gr__name { color: color-mix(in srgb, var(--gr) 70%, var(--text-primary)); }
+.hadith-gr__by { color: var(--text-tertiary); font-weight: 500; }
+.hadith-gr--ok { --gr: var(--ok); }
+.hadith-gr--bad { --gr: var(--bad); }
+.hadith-gr--warn { --gr: var(--warn); }
+.hadith-gr--quran { --gr: var(--gold, #b8862b); }
+.hadith-gr--none { border-style: dashed; background: transparent; }
+.hadith-gr--none .hadith-gr__dot { background: transparent; border: 1.5px solid var(--gr); box-shadow: none; }
+.hadith-gr__others { flex: 1 0 100%; color: var(--text-tertiary); font-size: var(--step--2); line-height: 1.5; }
+/* Zəif kart: sol kənarda incə qırmızı xətt — sürüşdürəndə də seçilir */
+.hadith-card:has(.hadith-gr--bad) { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--bad) 70%, transparent); }
+[dir="rtl"] .hadith-card:has(.hadith-gr--bad) { box-shadow: inset -3px 0 0 color-mix(in srgb, var(--bad) 70%, transparent); }
+
+/* Say + dərəcə filtri bir sətirdə */
+.hadith-countrow {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;
+  margin-block: var(--space-5) var(--space-3);
+  scroll-margin-top: calc(var(--header-h) + 16px);
+}
+.hadith-countrow .hadith-count { margin: 0; }
+.hadith-gradef {
+  display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px;
+  border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line);
+}
+.hadith-gradef__btn {
+  --gr: var(--text-tertiary);
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 32px; padding: 4px 12px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--text-secondary); cursor: pointer;
+  font: 600 var(--step--2)/1.2 var(--font-label);
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.hadith-gradef__btn[data-tone="ok"] { --gr: var(--ok); }
+.hadith-gradef__btn[data-tone="weak"] { --gr: var(--bad); }
+.hadith-gradef__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gr); }
+.hadith-gradef__btn[data-tone="none"] .hadith-gradef__dot { background: transparent; border: 1.5px solid var(--gr); }
+.hadith-gradef__btn:hover { color: var(--text-primary); }
+.hadith-gradef__btn[aria-pressed="true"] { background: var(--surface-1); color: var(--text-primary); box-shadow: var(--shadow-1); }
+.hadith-gradef__btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .hadith-countrow { margin-block: var(--space-4) var(--space-3); scroll-margin-top: 120px; }
+  .hadith-gradef { width: 100%; justify-content: space-between; }
+  .hadith-gradef__btn { flex: 1 1 auto; justify-content: center; padding-inline: 8px; }
+}

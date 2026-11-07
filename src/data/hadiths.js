@@ -1927,6 +1927,8 @@ function buildForLang(l) {
     source: h.source,
     ar:     h.ar,
     text:   h[l] || h.en,
+    // Əl ilə yazılmış dərəcə (Albani / Arnaut) — utils/hadithGrade.js oxuyur
+    ...(h.grade ? { grade: h.grade, gradedBy: h.gradedBy } : {}),
   }))
 }
 

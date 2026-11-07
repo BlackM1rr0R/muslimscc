@@ -37,6 +37,8 @@ const AR_MARKS = /[\u064B-\u065F\u0670\u0640\u06D6-\u06ED\u08D3-\u08FF]/g
 const LEAD_PARTICLES = new Set(['ان', 'انما'])
 
 /** Ərəb mətninin müqayisə forması ('' — ərəbcə yoxdur). */
+import { gradeOf } from './hadithGrade.js'
+
 export function normArabic(str) {
   const words = String(str || '')
     .normalize('NFC')
@@ -254,11 +256,13 @@ export function customHadithKeyHashes(ar, azText, source) {
  *             ərəbcədə text === ar olanda text yazılmır (yükləyici bərpa edir)
  *   aliases — [[atılan id, saxlanılan id], ...] (hadithAliases ilə eyni)
  */
-export function buildHadithLangData(HADITHS, lang) {
+export function buildHadithLangData(HADITHS, lang, sunanGrades = {}) {
   const info = hadithInfo(HADITHS)
   const list = uniqueHadithsFor(HADITHS, lang).map(h => {
     const row = { id: h.id, cat: h.cat, source: h.source, ar: h.ar, text: h.text }
     if (row.text === row.ar && row.ar) delete row.text
+    // Dərəcə kodu (utils/hadithGrade.js): g / gb / ga — yoxdursa yazılmır
+    Object.assign(row, gradeOf(h, sunanGrades))
     return row
   })
   return { list, aliases: [...info.aliases] }

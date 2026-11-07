@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom'
 import '../styles/HadithPage.css'
 import { pickLang } from '../utils/pickLang'
 import { pickUi } from '../utils/uiText'
+import { gradeGroup, gradeOf } from '../utils/hadithGrade'
 
 const CATS_AZ = ['Hamısı','İman','Əxlaq','İbadət','Namaz','Quran','Elm','Oruc','Zəkat','Zikr','Sədəqə','Səbr','Dünya','Axirət','Salavat','Müsafirlik']
 const CATS_EN = ['All','Faith','Character','Worship','Prayer','Quran','Knowledge','Fasting','Zakat','Dhikr','Charity','Patience','World','Afterlife','Salawat','Travel']
@@ -40,7 +41,7 @@ const UI_LABELS = {
     aboutSum:'Bu hədislər haradandır? Mənbələr və dərəcələr',
     gradesTitle:'Hədisin dərəcəsi', gradesLead:'Hədis isnadına və mətninə görə qiymətləndirilir. Ətraflı — «Hədis elminin əsasları» dərsində.',
     accepted:'Qəbul olunur', rejected:'Rədd olunur', lesson:'Hədis elminin əsasları — dərs', nawawi:'Ən-Nəvəvinin 40 hədisi',
-    note:'Zəif və uydurma rəvayətlər Sələf mühəddislərinin (ilk növbədə əl-Albaninin) hökmünə görə siyahıdan çıxarılıb. Səhv görsəniz, kartdakı bayraq düyməsi ilə bildirin.',
+    note:'Hər kartda hədisin dərəcəsi və hökmü verən alim göstərilir: Buxari və Müslimin «Səhih»ləri — icma ilə səhih, sünən hədisləri — ilk növbədə əl-Albaninin hökmü. Zəif sayılanlar qırmızı ilə işarələnib. Səhv görsəniz, kartdakı bayraq düyməsi ilə bildirin.',
     chartTitle:'Hədislər hansı toplulardandır', chartSub:'kartda göstərilən ilk mənbəyə görə', chartNote:'Hesablama bu siyahının özündəndir. «Digər» — Təbərani, Beyhəqi, Hakim və s., həmçinin Quran ayələri.', other:'Digər', sixBooks:'Kutubu-sittə nədir?' },
   en: { eyebrow:'Hadith & knowledge', favEmpty:'Save the hadiths you love here with the heart button.', copied:'Copied', clear:'Clear search', all:'All hadiths',
     lead:'Sayings of the Prophet ﷺ — with the Arabic text, a translation and the source.',
@@ -49,7 +50,7 @@ const UI_LABELS = {
     aboutSum:'Where are these hadiths from? Sources and grades',
     gradesTitle:'Grades of hadith', gradesLead:'A hadith is graded by its chain and its text. Details — in the lesson “Basics of hadith science”.',
     accepted:'Accepted', rejected:'Rejected', lesson:'Basics of hadith science — lesson', nawawi:'An-Nawawi’s Forty Hadith',
-    note:'Weak and fabricated narrations were removed according to the rulings of the hadith scholars of the Salaf (above all al-Albani). If you spot a mistake, report it with the flag button on the card.',
+    note:'Every card shows the hadith’s grade and the scholar who gave it: the Sahihs of al-Bukhari and Muslim are authentic by consensus; for the Sunan we follow above all al-Albani. Narrations graded weak are marked in red. If you spot a mistake, report it with the flag button on the card.',
     chartTitle:'Which collections the hadiths come from', chartSub:'by the first source shown on the card', chartNote:'Counted from this list itself. “Other” — at-Tabarani, al-Bayhaqi, al-Hakim etc., and Quran verses.', other:'Other', sixBooks:'What are the Six Books?' },
   ru: { eyebrow:'Хадисы и знание', favEmpty:'Сохраняйте понравившиеся хадисы здесь кнопкой с сердцем.', copied:'Скопировано', clear:'Очистить поиск', all:'Все хадисы',
     lead:'Изречения Пророка ﷺ — с арабским текстом, переводом и источником.',
@@ -58,7 +59,7 @@ const UI_LABELS = {
     aboutSum:'Откуда эти хадисы? Источники и степени',
     gradesTitle:'Степени хадиса', gradesLead:'Хадис оценивается по иснаду и тексту. Подробно — в уроке «Основы науки о хадисах».',
     accepted:'Принимается', rejected:'Отвергается', lesson:'Основы науки о хадисах — урок', nawawi:'40 хадисов ан-Навави',
-    note:'Слабые и выдуманные предания убраны согласно суждениям знатоков хадиса из саляфа (прежде всего аль-Албани). Если заметили ошибку, сообщите кнопкой с флажком на карточке.',
+    note:'На каждой карточке указаны степень хадиса и учёный, который её дал: «Сахихи» аль-Бухари и Муслима достоверны по единогласному мнению; для сборников «Сунан» мы следуем прежде всего аль-Албани. Признанные слабыми отмечены красным. Если заметили ошибку, сообщите кнопкой с флажком на карточке.',
     chartTitle:'Из каких сборников хадисы', chartSub:'по первому источнику на карточке', chartNote:'Подсчитано по самому списку. «Другие» — ат-Табарани, аль-Байхаки, аль-Хаким и др., а также аяты Корана.', other:'Другие', sixBooks:'Что такое «Шесть книг»?' },
   ar: { eyebrow:'الحديث والعلم', favEmpty:'احفظ الأحاديث التي تحبها هنا بزر القلب.', copied:'تم النسخ', clear:'مسح البحث', all:'كل الأحاديث',
     lead:'أحاديث النبي ﷺ بنصها العربي ومصدرها.',
@@ -67,7 +68,7 @@ const UI_LABELS = {
     aboutSum:'من أين هذه الأحاديث؟ المصادر والدرجات',
     gradesTitle:'درجات الحديث', gradesLead:'يُحكم على الحديث بالنظر في سنده ومتنه. التفصيل في درس «مبادئ علم الحديث».',
     accepted:'مقبول', rejected:'مردود', lesson:'مبادئ علم الحديث — درس', nawawi:'الأربعون النووية',
-    note:'حُذفت الروايات الضعيفة والموضوعة بناءً على أحكام المحدّثين من أهل السنة (وفي مقدمتهم الألباني). إن رأيت خطأً فأبلغ عنه بزر العَلَم في البطاقة.',
+    note:'في كل بطاقة درجة الحديث ومن حكم بها: ما في الصحيحين صحيح بالإجماع، وأحاديث السنن نعتمد فيها أولًا حكم الألباني. وما ضُعِّف عُلِّم بالأحمر. إن رأيت خطأً فأبلغ عنه بزر العَلَم في البطاقة.',
     chartTitle:'من أي كتب هذه الأحاديث', chartSub:'بحسب أول مصدر في البطاقة', chartNote:'محسوب من هذه القائمة نفسها. «أخرى»: الطبراني والبيهقي والحاكم وغيرهم، وآيات من القرآن.', other:'أخرى', sixBooks:'ما الكتب الستة؟' },
   tr: { eyebrow:'Hadis ve ilim', favEmpty:'Beğendiğiniz hadisleri kalp düğmesiyle burada saklayın.', copied:'Kopyalandı', clear:'Aramayı temizle', all:'Tüm hadisler',
     lead:'Peygamber’in ﷺ sözleri — Arapça metin, tercüme ve kaynağıyla.',
@@ -76,7 +77,7 @@ const UI_LABELS = {
     aboutSum:'Bu hadisler nereden? Kaynaklar ve dereceler',
     gradesTitle:'Hadisin derecesi', gradesLead:'Hadis, senedine ve metnine göre değerlendirilir. Ayrıntısı «Hadis usulünün esasları» dersinde.',
     accepted:'Kabul edilir', rejected:'Reddedilir', lesson:'Hadis usulünün esasları — ders', nawawi:'Nevevî’nin Kırk Hadisi',
-    note:'Zayıf ve uydurma rivayetler Selef hadis âlimlerinin (öncelikle Elbânî’nin) hükmüne göre listeden çıkarıldı. Bir hata görürseniz karttaki bayrak düğmesiyle bildirin.',
+    note:'Her kartta hadisin derecesi ve hükmü veren âlim gösterilir: Buhârî ve Müslim’in «Sahih»leri icmâ ile sahihtir; Sünenlerde öncelikle Elbânî’nin hükmü esas alınır. Zayıf sayılanlar kırmızıyla işaretlenmiştir. Bir hata görürseniz karttaki bayrak düğmesiyle bildirin.',
     chartTitle:'Hadisler hangi eserlerden', chartSub:'kartta gösterilen ilk kaynağa göre', chartNote:'Bu listenin kendisinden sayıldı. «Diğer» — Taberânî, Beyhakî, Hâkim vb. ile Kur’an ayetleri.', other:'Diğer', sixBooks:'Kütüb-i Sitte nedir?' },
 }
 
@@ -116,6 +117,68 @@ function bookBreakdown(list, lang, otherLabel) {
     .sort((a, b) => b.value - a.value)
   if (other > 0) rows.push({ key: 'other', label: otherLabel, value: other, muted: true })
   return rows
+}
+
+// ── Hədisin dərəcəsi (kod build zamanı: utils/hadithGrade.js) ──
+const GRADE_UI = {
+  az: { s:'Səhih', h:'Həsən', mq:'Səhih (səhabə sözü)', d:'Zəif', m:'İxtilaflı', q:'Quran ayəsi', n:'Dərəcə göstərilməyib',
+    others:'Digər alimlər', filter:'Dərəcə', all:'Hamısı', ok:'Səhih və həsən', weak:'Zəif', none:'Göstərilməyib',
+    chartTitle:'Hədislər dərəcəyə görə', chartSub:'bu siyahıdakı hədislərin sayı', bm:'Səhih — Buxari və Müslim', sunan:'Səhih və həsən — digər kitablar',
+    // lang-ok[fawazahmed,hadith-api]: datasetin xüsusi adı (GitHub layihəsi)
+    chartNote:'Dərəcə kartda göstərilən mənbədəki rəvayətə aiddir. Sünən hökmləri — fawazahmed0/hadith-api nəşrindən olduğu kimi.' },
+  en: { s:'Sahih', h:'Hasan', mq:'Sahih (a Companion’s words)', d:'Weak', m:'Disputed', q:'Quran verse', n:'Grade not stated',
+    others:'Other scholars', filter:'Grade', all:'All', ok:'Sahih and hasan', weak:'Weak', none:'Not stated',
+    chartTitle:'Hadiths by grade', chartSub:'number of hadiths in this list', bm:'Sahih — al-Bukhari and Muslim', sunan:'Sahih and hasan — other books',
+    chartNote:'The grade refers to the narration in the source shown on the card. Sunan gradings are taken as they are from the fawazahmed0/hadith-api edition.' },
+  ru: { s:'Сахих', h:'Хасан', mq:'Сахих (слова сподвижника)', d:'Слабый', m:'Спорный', q:'Аят Корана', n:'Степень не указана',
+    others:'Другие учёные', filter:'Степень', all:'Все', ok:'Сахих и хасан', weak:'Слабые', none:'Не указана',
+    chartTitle:'Хадисы по степени', chartSub:'число хадисов в этом списке', bm:'Сахих — аль-Бухари и Муслим', sunan:'Сахих и хасан — другие книги',
+    // lang-ok[fawazahmed,hadith-api]: datasetin xüsusi adı (GitHub layihəsi)
+    chartNote:'Степень относится к преданию в источнике, указанном на карточке. Оценки из «Сунан» взяты без изменений из издания fawazahmed0/hadith-api.' },
+  ar: { s:'صحيح', h:'حسن', mq:'صحيح موقوفًا', d:'ضعيف', m:'مختلف فيه', q:'آية من القرآن', n:'لم تُذكر الدرجة',
+    others:'أحكام أخرى', filter:'الدرجة', all:'الكل', ok:'صحيح وحسن', weak:'ضعيف', none:'لم تُذكر',
+    chartTitle:'الأحاديث بحسب الدرجة', chartSub:'عدد الأحاديث في هذه القائمة', bm:'صحيح — البخاري ومسلم', sunan:'صحيح وحسن — كتب أخرى',
+    // lang-ok[fawazahmed,hadith-api]: datasetin xüsusi adı (GitHub layihəsi)
+    chartNote:'الدرجة للرواية في المصدر المذكور في البطاقة. أحكام السنن منقولة كما هي من نسخة fawazahmed0/hadith-api.' },
+  tr: { s:'Sahih', h:'Hasen', mq:'Sahih (sahâbî sözü)', d:'Zayıf', m:'İhtilaflı', q:'Kur’an ayeti', n:'Derece belirtilmemiş',
+    others:'Diğer âlimler', filter:'Derece', all:'Tümü', ok:'Sahih ve hasen', weak:'Zayıf', none:'Belirtilmemiş',
+    chartTitle:'Derecesine göre hadisler', chartSub:'bu listedeki hadis sayısı', bm:'Sahih — Buhârî ve Müslim', sunan:'Sahih ve hasen — diğer eserler',
+    chartNote:'Derece, kartta gösterilen kaynaktaki rivayete aittir. Sünen hükümleri fawazahmed0/hadith-api neşrinden olduğu gibi alınmıştır.' },
+}
+const GRADERS = {
+  albani:     { az:'Albani', en:'al-Albani', ru:'аль-Албани', ar:'الألباني', tr:'Elbânî' },
+  arnaut:     { az:'Şueyb əl-Arnaut', en:'Shuaib al-Arnaut', ru:'Шуайб аль-Арнаут', ar:'شعيب الأرناؤوط', tr:'Şuayb el-Arnaût' },
+  zubair:     { az:'Zubeyr Əli Zai', en:'Zubair Ali Zai', ru:'Зубайр Али Заи', ar:'زبير علي زئي', tr:'Zübeyr Ali Zai' },
+  shakir:     { az:'Əhməd Şakir', en:'Ahmad Shakir', ru:'Ахмад Шакир', ar:'أحمد شاكر', tr:'Ahmed Şâkir' },
+  bashar:     { az:'Bəşşar Əvvad', en:'Bashar Awad', ru:'Башшар Аввад', ar:'بشار عواد', tr:'Beşşâr Avvâd' },
+  abdulhamid: { az:'Muhyiddin Əbdülhəmid', en:'Muhyi al-Din Abd al-Hamid', ru:'Мухйиддин Абдульхамид', ar:'محيي الدين عبد الحميد', tr:'Muhyiddin Abdülhamîd' },
+  abdulbaqi:  { az:'Fuad Əbdülbaqi', en:'Fuad Abd al-Baqi', ru:'Фуад Абдульбаки', ar:'محمد فؤاد عبد الباقي', tr:'Fuâd Abdülbâkî' },
+  abughuddah: { az:'Əbu Ğuddə', en:'Abu Ghuddah', ru:'Абу Гудда', ar:'أبو غدة', tr:'Ebû Ğudde' },
+}
+const GRADE_TONE = { s:'ok', h:'ok', mq:'ok', d:'bad', m:'warn', q:'quran' }
+const graderName = (k, lang) => (k === 'bukhari' ? localizeSource('Buxari', lang) : k === 'muslim' ? localizeSource('Muslim', lang)
+  : GRADERS[k] ? pickUi(GRADERS[k], lang, 'en') : k)
+
+// Kartın altındakı dərəcə nişanı: rəngli nöqtə + dərəcə · hökmü verən;
+// zəif / ixtilaflı olanda altda digər alimlərin hökmü (mənbədəki kimi)
+function HadithGrade({ h, lang }) {
+  const gu = pickUi(GRADE_UI, lang, 'en')
+  const g = h.g || 'n'
+  const by = h.gb ? graderName(h.gb, lang) : ''
+  return (
+    <>
+      <span className={`hadith-gr hadith-gr--${GRADE_TONE[g] || 'none'}`} data-grade={g}>
+        <span className="hadith-gr__dot" aria-hidden="true" />
+        <span className="hadith-gr__name">{gu[g]}</span>
+        {by && <span className="hadith-gr__by">· {by}</span>}
+      </span>
+      {h.ga?.length > 0 && (
+        <span className="hadith-gr__others">
+          {gu.others}: {h.ga.map(([k, t]) => `${graderName(k, lang)} — ${gu[t] || t}`).join(' · ')}
+        </span>
+      )}
+    </>
+  )
 }
 
 const FAV_LABELS = { az:'Sevimlilər', en:'Favorites', ru:'Избранные', ar:'المفضلة', tr:'Favoriler' }
@@ -247,12 +310,15 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
       </div>
       <p className="hadith-arabic ui-arabic" lang="ar" dir="rtl">{hadith.ar}</p>
       {showBody && <p className="hadith-text">{hadith.text}</p>}
-      {source && (
-        <p className="hadith-source" title={source}>
-          <span className="hadith-source__dash" aria-hidden="true" />
-          {source}
-        </p>
-      )}
+      <div className="hadith-foot">
+        {source && (
+          <p className="hadith-source" title={source}>
+            <span className="hadith-source__dash" aria-hidden="true" />
+            {source}
+          </p>
+        )}
+        <HadithGrade h={hadith} lang={lang} />
+      </div>
     </article>
   )
 })
@@ -265,6 +331,21 @@ function HadithAbout({ u, lang, list }) {
     try { return window.matchMedia('(min-width: 1100px)').matches } catch { return false }
   })
   const books = useMemo(() => bookBreakdown(list, lang, u.other), [list, lang, u.other])
+  const gu = pickUi(GRADE_UI, lang, 'en')
+  const grades = useMemo(() => {
+    const c = { bm: 0, ok: 0, weak: 0, quran: 0, none: 0 }
+    for (const h of list) {
+      const gr = gradeGroup(h.g)
+      if (gr === 'ok' && (h.gb === 'bukhari' || h.gb === 'muslim')) c.bm++; else c[gr]++
+    }
+    return [
+      { key: 'bm', label: gu.bm, value: c.bm, tone: 'ok' },
+      { key: 'ok', label: gu.sunan, value: c.ok, tone: 'brand' },
+      { key: 'weak', label: gu.weak, value: c.weak, tone: 'bad' },
+      { key: 'quran', label: gu.q, value: c.quran, tone: 'accent' },
+      { key: 'none', label: gu.none, value: c.none, tone: 'muted', muted: true },
+    ].filter(r => r.value > 0)
+  }, [list, gu])
   const go = (href) => (e) => {
     if (!isPlainClick(e)) return
     e.preventDefault()
@@ -322,12 +403,17 @@ function HadithAbout({ u, lang, list }) {
                 </li>
               </ul>
             </div>
+            <div className="hadith-about__charts">
+            <ChartFigure plain className="hadith-about__chart" title={gu.chartTitle} sub={gu.chartSub} note={gu.chartNote}>
+              <BarChart data={grades} label={gu.chartTitle} labelWidth="42%" />
+            </ChartFigure>
             <ChartFigure plain className="hadith-about__chart" title={u.chartTitle} sub={u.chartSub} note={u.chartNote}>
               <BarChart data={books} label={u.chartTitle} labelWidth="34%" />
               <a className="ui-link hadith-about__six" href={glossHref('al-kutub-as-sittah')} onClick={go(glossHref('al-kutub-as-sittah'))}>
                 {u.sixBooks} <Icon name="arrow" size={15} className="ui-link__arrow ui-flip-rtl" />
               </a>
             </ChartFigure>
+            </div>
           </div>
         </details>
       </div>
@@ -346,6 +432,8 @@ export default function HadithPage() {
   // geri qayıdanda (useInfiniteList-in mövqe yaddaşı ilə birlikdə) bərpa olunur.
   const [catIdx,  setCatIdx]  = useSessionState('hadith:cat', 0)
   const [search,  setSearch]  = useSessionState('hadith:q', '')
+  // Dərəcə filtri: all | ok | weak | none (Quran ayələri yalnız "all"da)
+  const [gradeF, setGradeF] = useSessionState('hadith:grade', 'all')
   const query = useDebounced(search, 180)
   // Sevimlilər id ilə saxlanılır. Təkrar (atılmış) hədisin id-si
   // saxlanılan surətin id-sinə köçürülür — köhnə sevimli itməsin.
@@ -446,6 +534,7 @@ export default function HadithPage() {
       cat: h.category || 'general',
       _az: h.text?.az || '',
       _custom: true,
+      ...gradeOf({ source: h.source || '' }),
     }))
       // Cari dildə tərcüməsi olmayan admin hədisi bu dildə göstərilmir
       .filter(h => h.text || (lang === 'ar' && h.ar))
@@ -473,6 +562,8 @@ export default function HadithPage() {
         if (!kept.text && dup.text) kept.text = dup.text
         if (!kept.source && dup.source) kept.source = dup.source
         if (kept._custom && !dup._custom && dup.cat) kept.cat = dup.cat
+        // Yerli surətin dərəcəsi (sünən hökmləri build zamanı) admin kartına keçir
+        if (kept._custom && !dup._custom && dup.g) { kept.g = dup.g; kept.gb = dup.gb; kept.ga = dup.ga }
       },
     }).items
   }, [customForLang, staticList, staticKeysOf])
@@ -495,9 +586,10 @@ export default function HadithPage() {
     return list.filter((h, i) => {
       if (favFilter && !idsOf(h).some(id => favFilter.has(id))) return false
       if (enCat && String(h.cat || '').toLowerCase() !== enCat) return false
+      if (gradeF !== 'all' && gradeGroup(h.g) !== gradeF) return false
       return !q || index[i].hay.includes(q) || (qa && index[i].ar.includes(qa))
     })
-  }, [list, index, safeCat, query, favFilter])
+  }, [list, index, safeCat, query, favFilter, gradeF])
 
   // Sevimlilər çipindəki say — yalnız siyahıda həqiqətən olan hədislər
   const favCount = useMemo(() => list.filter(isFav).length, [list, isFav])
@@ -511,7 +603,7 @@ export default function HadithPage() {
   const inf = useInfiniteList({
     total: filtered.length,
     batch: BATCH,
-    resetKey: `${lang}|${safeCat}|${showFavs ? 1 : 0}|${query.trim()}`,
+    resetKey: `${lang}|${safeCat}|${showFavs ? 1 : 0}|${gradeF}|${query.trim()}`,
     storageKey: 'hadith',
     onReset: () => {
       const el = countRef.current
@@ -592,12 +684,23 @@ export default function HadithPage() {
             </div>
           </div>
 
-          <p className="hadith-count ui-num" ref={countRef} aria-live="polite">{countText}</p>
+          <div className="hadith-countrow" ref={countRef}>
+            <p className="hadith-count ui-num" aria-live="polite">{countText}</p>
+            <div className="hadith-gradef" role="group" aria-label={pickUi(GRADE_UI, lang, 'en').filter}>
+              {['all', 'ok', 'weak', 'none'].map(k => (
+                <button type="button" key={k} className="hadith-gradef__btn" aria-pressed={gradeF === k} data-tone={k}
+                  onClick={() => { haptic(4); setGradeF(k) }}>
+                  {k !== 'all' && <span className="hadith-gradef__dot" aria-hidden="true" />}
+                  {pickUi(GRADE_UI, lang, 'en')[k]}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Açar filtr dəyişəndə siyahını yenidən qurur — kartlar yenidən
               növbə ilə görünür (siyahı keçidi). Axtarış açara daxil deyil:
               hər hərfdə bütün kartlar yenidən oynamasın. */}
-          <div className="hadiths-list" key={`${safeCat}|${showFavs}`}>
+          <div className="hadiths-list" key={`${safeCat}|${showFavs}|${gradeF}`}>
             {visible.length === 0
               ? (
                 <div className="ui-card ui-card--sunken hadith-empty" data-reveal="scale">
