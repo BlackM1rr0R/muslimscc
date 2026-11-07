@@ -17,6 +17,7 @@ import '../styles/LessonsPage.css'
 import StarButton from '../components/collect/StarButton'
 import useStarred from '../components/collect/useStarred'
 import { pickUi } from '../utils/uiText'
+import LearningPaths from '../components/lesson/LearningPaths'
 
 // ── v3.2: vəziyyət süzgəci (oxunmamış / oxunmuş / seçilmiş), əlfəcin, şrift ölçüsü (5 dil) ──
 const LS32 = {
@@ -58,8 +59,8 @@ const LABELS = {
     share: 'Paylaş', copied: 'Keçid kopyalandı', copyFail: 'Keçidi kopyalamaq alınmadı',
     statLessons: 'dərs', statCats: 'bölmə', statHours: 'saat oxu', hours: (n) => `~${n}`,
     progress: 'İrəliləyişiniz', progressSub: (r, t) => `⁦${r} / ${t}⁩ dərs oxunub`, progressEmpty: 'Hələ heç bir dərs oxunmayıb — aşağıdakı yoldan başlayın.',
-    cont: 'Davam et', startEyebrow: 'Haradan başlamalı?', startTitle: 'Əqidədən başlayın',
-    startLead: 'Təklif etdiyimiz ardıcıllıq: qısa risalələrdən daha genişinə. Hər addım ayrıca dərsdir.',
+    cont: 'Davam et', startEyebrow: 'Haradan başlamalı?', startTitle: 'Dərs yolları',
+    startLead: 'Mövzunu seçin — dərslər əsasdan təfərrüata düzülüb. «Oxudum» işarələdikcə yol dolur.',
     catalogEyebrow: 'Kataloq', catalogTitle: 'Bütün dərslər', catalogLead: 'Bölmə seçin — siyahı süzülür. Oxunmuş dərslər işarələnir.',
     cats: 'Bölmələr', isRead: 'Oxunub', sections: (n) => `${n} bölmə`,
     markRead: 'Oxudum', markedRead: 'Oxunub — geri al', doneTitle: 'Dərsi bitirdiniz?', doneText: 'İşarələyin — irəliləyiş «Dərslər» səhifəsində görünəcək (yalnız bu cihazda).',
@@ -76,8 +77,8 @@ const LABELS = {
     share: 'Share', copied: 'Link copied', copyFail: 'Could not copy the link',
     statLessons: 'lessons', statCats: 'sections', statHours: 'hours of reading', hours: (n) => `~${n}`,
     progress: 'Your progress', progressSub: (r, t) => `⁦${r} / ${t}⁩ lessons read`, progressEmpty: 'No lessons read yet — start with the path below.',
-    cont: 'Continue', startEyebrow: 'Where to start?', startTitle: 'Begin with creed',
-    startLead: 'Our suggested order: from the short treatises to the longer ones. Each step is a separate lesson.',
+    cont: 'Continue', startEyebrow: 'Where to start?', startTitle: 'Learning paths',
+    startLead: 'Pick a topic — the lessons go from the basics to the details. The path fills as you mark lessons “I’ve read it”.',
     catalogEyebrow: 'Catalogue', catalogTitle: 'All lessons', catalogLead: 'Choose a section to filter the list. Lessons you have read are marked.',
     cats: 'Sections', isRead: 'Read', sections: (n) => `${n} ${n === 1 ? 'section' : 'sections'}`,
     markRead: 'I’ve read it', markedRead: 'Read — undo', doneTitle: 'Finished the lesson?', doneText: 'Mark it — your progress will appear on the Lessons page (on this device only).',
@@ -94,8 +95,8 @@ const LABELS = {
     share: 'Поделиться', copied: 'Ссылка скопирована', copyFail: 'Не удалось скопировать ссылку',
     statLessons: 'уроков', statCats: 'разделов', statHours: 'часов чтения', hours: (n) => `~${n}`,
     progress: 'Ваш прогресс', progressSub: (r, t) => `Прочитано ${r} из ${t}`, progressEmpty: 'Пока ничего не прочитано — начните с пути ниже.',
-    cont: 'Продолжить', startEyebrow: 'С чего начать?', startTitle: 'Начните с вероубеждения',
-    startLead: 'Предлагаемый порядок: от кратких трактатов к более объёмным. Каждый шаг — отдельный урок.',
+    cont: 'Продолжить', startEyebrow: 'С чего начать?', startTitle: 'Учебные пути',
+    startLead: 'Выберите тему — уроки идут от основ к подробностям. Путь заполняется, когда вы отмечаете «Прочитано».',
     catalogEyebrow: 'Каталог', catalogTitle: 'Все уроки', catalogLead: 'Выберите раздел — список отфильтруется. Прочитанные уроки отмечены.',
     cats: 'Разделы', isRead: 'Прочитано', sections: (n) => `${n} ${ruPlural(n, 'раздел', 'раздела', 'разделов')}`,
     markRead: 'Прочитано', markedRead: 'Прочитано — отменить', doneTitle: 'Закончили урок?', doneText: 'Отметьте его — прогресс появится на странице «Уроки» (только на этом устройстве).',
@@ -112,8 +113,8 @@ const LABELS = {
     share: 'مشاركة', copied: 'تم نسخ الرابط', copyFail: 'تعذّر نسخ الرابط',
     statLessons: 'درسًا', statCats: 'أقسام', statHours: 'ساعات قراءة', hours: (n) => `~${n}`,
     progress: 'تقدّمك', progressSub: (r, t) => `قرأت ${r} من ${t}`, progressEmpty: 'لم تقرأ أي درس بعد — ابدأ بالطريق أدناه.',
-    cont: 'تابع', startEyebrow: 'من أين أبدأ؟', startTitle: 'ابدأ بالعقيدة',
-    startLead: 'الترتيب الذي نقترحه: من الرسائل المختصرة إلى الأطول. كل خطوة درس مستقل.',
+    cont: 'تابع', startEyebrow: 'من أين أبدأ؟', startTitle: 'مسارات التعلم',
+    startLead: 'اختر موضوعًا — الدروس مرتبة من الأصول إلى التفاصيل، ويمتلئ المسار كلما علّمت «قرأته».',
     catalogEyebrow: 'الفهرس', catalogTitle: 'جميع الدروس', catalogLead: 'اختر قسمًا لتصفية القائمة. الدروس المقروءة معلَّمة.',
     cats: 'الأقسام', isRead: 'مقروء', sections: (n) => `${n} ${n >= 3 && n <= 10 ? 'أقسام' : 'قسمًا'}`,
     markRead: 'قرأته', markedRead: 'مقروء — تراجع', doneTitle: 'أنهيت الدرس؟', doneText: 'علِّمه مقروءًا — يظهر تقدّمك في صفحة الدروس (على هذا الجهاز فقط).',
@@ -130,8 +131,8 @@ const LABELS = {
     share: 'Paylaş', copied: 'Bağlantı kopyalandı', copyFail: 'Bağlantı kopyalanamadı',
     statLessons: 'ders', statCats: 'bölüm', statHours: 'saat okuma', hours: (n) => `~${n}`,
     progress: 'İlerlemeniz', progressSub: (r, t) => `⁦${r} / ${t}⁩ ders okundu`, progressEmpty: 'Henüz hiç ders okunmadı — aşağıdaki yoldan başlayın.',
-    cont: 'Devam et', startEyebrow: 'Nereden başlamalı?', startTitle: 'Akideyle başlayın',
-    startLead: 'Önerdiğimiz sıra: kısa risalelerden daha geniş olanlara. Her adım ayrı bir derstir.',
+    cont: 'Devam et', startEyebrow: 'Nereden başlamalı?', startTitle: 'Ders yolları',
+    startLead: 'Bir konu seçin — dersler esaslardan ayrıntılara sıralanmıştır. «Okudum» işaretledikçe yol dolar.',
     catalogEyebrow: 'Katalog', catalogTitle: 'Tüm dersler', catalogLead: 'Bir bölüm seçin — liste süzülür. Okunan dersler işaretlenir.',
     cats: 'Bölümler', isRead: 'Okundu', sections: (n) => `${n} bölüm`,
     markRead: 'Okudum', markedRead: 'Okundu — geri al', doneTitle: 'Dersi bitirdiniz mi?', doneText: 'İşaretleyin — ilerlemeniz «Dersler» sayfasında görünür (yalnızca bu cihazda).',
@@ -314,19 +315,8 @@ export default function LessonsPage() {
               <h2 id="ls-start-h" className="ui-title ui-title--sm">{L.startTitle}</h2>
               <p className="ui-lead">{L.startLead}</p>
             </div>
-            <ol className="ui-steps ui-steps--row ls-path" data-reveal="stagger-blur">
-              {path.map((l, i) => (
-                <li key={l.slug} className={`ui-step${readSet.has(l.slug) ? ' is-done' : ''}`}>
-                  <span className="ui-step__n" aria-hidden="true">{readSet.has(l.slug) ? <Icon name="check" size={14} /> : i + 1}</span>
-                  <div className="ui-step__body">
-                    <h3 className="ui-step__title">
-                      <a className="ls-path__link" href={pathFor('learn', lang, l.slug)} onClick={(e) => open(l, e)}>{pick(l.title, lang)}</a>
-                    </h3>
-                    <p className="ui-step__text ui-num">{L.min(l.minutes || 5)}{readSet.has(l.slug) ? ` · ${L.isRead}` : ''}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            {/* v5.4: bir yol əvəzinə mövzu yolları — irəliləyiş, növbəti dərs, paylaşma kartı */}
+            <LearningPaths lessonBySlug={lessonBySlug} readSet={readSet} lang={lang} L={L} open={open} />
           </div>
         </section>
       )}

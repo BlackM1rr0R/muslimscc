@@ -579,3 +579,24 @@
 @keyframes ls-pop { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: none; } }
 @keyframes ls-chip { from { opacity: 0; transform: translateY(6px) scale(.9); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes ls-tick { from { transform: rotate(-360deg); } to { transform: none; } }
+
+/* ══ Dərs yolları (v5.4, components/lesson/LearningPaths.jsx) ══
+   Çiplər — yollar (oxunan/cəmi), panel — halqa + növbəti dərs + addımlar.
+   Növbəti addım qızılı halə ilə; bitmiş yolun çipi zümrüd. */
+.ls-paths { display: grid; gap: var(--space-4); }
+.ls-paths__chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.ls-paths__chips::-webkit-scrollbar { display: none; }
+.ls-paths__chip { flex: 0 0 auto; gap: 6px; }
+.ls-paths__count { padding: 1px 7px; border-radius: 999px; background: var(--surface-3); color: var(--text-secondary); font-size: 11px; font-weight: 700; }
+.ls-paths__chip[aria-selected="true"] .ls-paths__count { background: rgba(255, 255, 255, 0.2); color: inherit; }
+.ls-paths__chip.is-done .ls-paths__count { background: var(--ok); color: #fff; }
+.ls-paths__panel { padding: clamp(16px, 3vw, 24px); animation: ls-path-in 380ms var(--ease-out, ease) both; }
+@keyframes ls-path-in { from { opacity: 0; transform: translate3d(0, 8px, 0); } to { opacity: 1; transform: none; } }
+.ls-paths__head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-bottom: var(--space-4); }
+.ls-paths__headtext { flex: 1 1 180px; min-width: 0; }
+.ls-paths__title { margin: 0; color: var(--text-strong); font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; }
+.ls-paths__sub { margin: 2px 0 0; color: var(--text-tertiary); font-size: var(--step--1); }
+.ls-paths__next { flex: 0 0 auto; }
+.ls-paths__done { display: flex; align-items: center; gap: 8px; margin: 0 0 var(--space-3); padding: 10px 14px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--ok); font-weight: 600; }
+.ls-paths__steps .ui-step.is-next .ui-step__n { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent, #d8a93b) 30%, transparent); border-color: var(--accent, #d8a93b); }
+html.a11y-reduce-motion .ls-paths__panel { animation: none; }
