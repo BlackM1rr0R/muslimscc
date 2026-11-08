@@ -968,3 +968,55 @@ html.a11y-reduce-motion .vx-listen.is-on .vx-listen__wave i { animation: none; t
 .vx-marquee__item, .vx-marquee__item * {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
 }
+
+/* ══════════════════════════════════════════════════════════
+   §14  CANLI SƏMA (v5.6, utils/livingSky.js) — hero işığı günəşin REAL
+   mövqeyini izləyir: istifadəçinin şəhərində günəş harada, işıq ləkəsi də
+   orada (sübh — şərq üfüqündə çəhrayı, günorta — yuxarıda, axşam — qərbdə
+   narıncı-bənövşəyi, gecə — yuxarıda ay kimi sakit mavi). Yalnız JS
+   data-sky qoyandan sonra (prerender/JS-siz görünüş dəyişmir). Ramazanda
+   qızılı mövsüm tonu (§12) üstündür. Statik qradiyent — animasiya yox,
+   dəqiqədə bir yenilənir (telefon üçün pulsuz).
+   ══════════════════════════════════════════════════════════ */
+html[data-sky] { --sky-a: 34%; --sky-b: 18%; }
+html[data-sky][data-theme="dark"] { --sky-a: 38%; --sky-b: 22%; }
+html[data-sky]:not([data-season="ramadan"]) .ui-page-hero {
+  background:
+    radial-gradient(ellipse 55% 120% at var(--sky-x, 85%) var(--sky-y, 0%), color-mix(in srgb, var(--sky-c) var(--sky-a), transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 90% at var(--sky-xr, 15%) 100%, color-mix(in srgb, var(--sky-c2) var(--sky-b), transparent) 0%, transparent 70%),
+    var(--surface-0);
+}
+html[data-sky][dir="rtl"]:not([data-season="ramadan"]) .ui-page-hero {
+  background:
+    radial-gradient(ellipse 55% 120% at var(--sky-xr, 15%) var(--sky-y, 0%), color-mix(in srgb, var(--sky-c) var(--sky-a), transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 90% at var(--sky-x, 85%) 100%, color-mix(in srgb, var(--sky-c2) var(--sky-b), transparent) 0%, transparent 70%),
+    var(--surface-0);
+}
+/* Ana səhifə hero-su (telefonda ~840px hündür — işıq yuxarı yarıda qalır): eyni işıq bütöv hero-ya (zəif cihazda dekor qatları
+   gizlidir — bu fon isə statikdir, orada da görünür) */
+html[data-sky]:not([data-season="ramadan"]) .hp-hero {
+  background:
+    radial-gradient(ellipse 60% 110% at var(--sky-x, 85%) calc(var(--sky-y, 0%) * 0.5), color-mix(in srgb, var(--sky-c) var(--sky-a), transparent) 0%, transparent 72%),
+    radial-gradient(ellipse 50% 80% at var(--sky-xr, 15%) 100%, color-mix(in srgb, var(--sky-c2) var(--sky-b), transparent) 0%, transparent 70%);
+}
+html[data-sky][dir="rtl"]:not([data-season="ramadan"]) .hp-hero {
+  background:
+    radial-gradient(ellipse 60% 110% at var(--sky-xr, 15%) calc(var(--sky-y, 0%) * 0.5), color-mix(in srgb, var(--sky-c) var(--sky-a), transparent) 0%, transparent 72%),
+    radial-gradient(ellipse 50% 80% at var(--sky-x, 85%) 100%, color-mix(in srgb, var(--sky-c2) var(--sky-b), transparent) 0%, transparent 70%);
+}
+
+/* ══════════════════════════════════════════════════════════
+   §15  TEMA KEÇİDİ (v5.6, contexts/LangContext → toggleDark) — yeni tema
+   toxunulan nöqtədən dairəvi dalğa kimi bütün ekrana yayılır. Köhnə kadr
+   yerində qalır, yenisi böyüyən dairənin içində açılır (sırf clip-path —
+   sadə, telefonda yüngül; hərəkət azaldılıbsa ani keçid).
+   ══════════════════════════════════════════════════════════ */
+html.qm-theme-vt::view-transition-old(root) { animation: none; z-index: 0; }
+html.qm-theme-vt::view-transition-new(root) {
+  z-index: 1;
+  animation: qm-theme-reveal 640ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes qm-theme-reveal {
+  from { clip-path: circle(0 at var(--theme-x, 90%) var(--theme-y, 0)); }
+  to   { clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 90%) var(--theme-y, 0)); }
+}

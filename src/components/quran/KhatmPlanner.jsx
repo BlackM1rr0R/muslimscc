@@ -12,6 +12,7 @@ import { pathFor } from '../../seo/routes'
 import { isPlainClick } from '../PageLink'
 import { useNavigate } from 'react-router-dom'
 import { pickUi } from '../../utils/uiText'
+import { celebrate } from '../../utils/celebrate'
 
 const KEY = 'quran_khatm_plan'
 const DAY_OPTIONS = [7, 10, 15, 30, 60, 90]
@@ -166,6 +167,8 @@ export default function KhatmPlanner({ lang, surahName }) {
   const markDone = () => {
     const log = plan.log.includes(info.today) ? plan.log : [...plan.log, info.today].slice(-400)
     save({ ...plan, done: info.to, log })
+    // v5.6: günün payı — kiçik, bütöv xətm — böyük ulduz partlayışı
+    celebrate({ size: info.to >= MUSHAF_PAGES ? 'big' : 'small' })
   }
   const reset = () => { if (window.confirm(t.resetConfirm)) save(null) }
   const s = surahAtPage(info.from)

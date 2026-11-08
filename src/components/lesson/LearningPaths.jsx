@@ -17,6 +17,7 @@ import { ProgressRing } from '../viz'
 import { pathFor } from '../../seo/routes'
 import { pickUi } from '../../utils/uiText'
 import { pick } from './LessonBlocks'
+import { celebrateOnce } from '../../utils/celebrate'
 
 export const LEARNING_PATHS = [
   { key: 'new', icon: 'leaf', lessons: ['intro-to-islam', 'new-muslim', 'usul-ath-thalatha', 'ghusl', 'adhkar-after-salah', 'tawbah'] },
@@ -52,6 +53,10 @@ export default function LearningPaths({ lessonBySlug, readSet, lang, L, open }) 
   useEffect(() => { try { localStorage.setItem(KEY, sel) } catch { /* */ } }, [sel])
   const [msg, setMsg] = useState('')
   const cur = paths.find(p => p.key === sel) || paths[0]
+  // v5.6: yol bitəndə bir dəfəlik ulduz partlayışı (utils/celebrate)
+  const curDone = Boolean(cur && cur.items.length && cur.items.every(l => readSet.has(l.slug)))
+  const curKey = cur?.key
+  useEffect(() => { if (curDone) celebrateOnce(`path_${curKey}`, { size: 'big' }) }, [curDone, curKey])
   if (!cur) return null
   const readN = cur.items.filter(l => readSet.has(l.slug)).length
   const total = cur.items.length

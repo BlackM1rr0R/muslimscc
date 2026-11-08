@@ -18,6 +18,7 @@ import { initReveal } from './hooks/useReveal'
 import { initErrorReporting } from './utils/errorReport'
 import { initWow } from './utils/wow'
 import { initVau3 } from './utils/vau3'
+import { whenIdle } from './utils/idle'
 import { initInputModality } from './hooks/useInputModality'
 import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
 import { startUpdateWatcher } from './utils/appUpdate'
@@ -34,6 +35,9 @@ initReveal()
 initErrorReporting()
 initWow()
 initVau3()
+// Canlı səma (v5.6): hero işığı günəşin real mövqeyini izləyir — boş vaxtda,
+// ayrıca kiçik chunk (ilk render-ə təsiri yoxdur). utils/livingSky.js
+whenIdle({ delay: 600 }).then(() => import('./utils/livingSky').then(m => m.initLivingSky()).catch(() => {}))
 
 // Saxlanmış əlçatanlıq tərcihləri (şrift ölçüsü, kontrast, tema …) İLK
 // RENDER-DƏN ƏVVƏL <html>-ə tətbiq olunur. PERFORMANS: panelin UI-si artıq

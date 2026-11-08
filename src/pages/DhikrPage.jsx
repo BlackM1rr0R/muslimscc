@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { ummahAdd } from '../utils/ummah'
+import { celebrate } from '../utils/celebrate'
 import UmmahCounter from '../components/UmmahCounter'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
@@ -248,8 +249,9 @@ function FreeCounter({ lang, t }) {
     const next = n + 1
     setN(next)
     bumpLifetime()
-    if (next % 100 === 0) vibrate([100, 50, 100])
-    else if (next % 33 === 0) vibrate([50, 40, 50])
+    // v5.6: 100-də böyük, 33-də kiçik ulduz partlayışı (titrəmə də onun içində)
+    if (next % 100 === 0) celebrate({ size: 'medium' })
+    else if (next % 33 === 0) celebrate({ size: 'small' })
     else vibrate(20)
   }
   return (
@@ -357,8 +359,8 @@ export default function DhikrPage({ setPage }) {
       // id — siyahıda sabit açar (yeni sətir yuxarıdan yumşaq daxil olur)
       setLog(l => [{ id: Date.now(), idx: selIdx, name: pickUi(dhikr, lang, 'en'), count: dhikr.target, time }, ...l.slice(0, 9)])
       setBurst(b => b + 1)
-      // Hədəf tamamlandı — uzun vibrasiya
-      vibrate([100, 50, 100])
+      // Hədəf tamamlandı — ulduz partlayışı + uzun titrəmə (utils/celebrate)
+      celebrate({ size: dhikr.target >= 100 ? 'big' : 'medium' })
     } else {
       vibrate(30)
     }

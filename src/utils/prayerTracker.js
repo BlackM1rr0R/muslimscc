@@ -299,11 +299,17 @@ export function ramadanDaysIn(period, today) {
 // ── localStorage yazıcıları (hadisə ilə — açıq səhifələr yenidən oxusun) ──
 export function setPrayerStatus(date, p, status) {
   if (!isDateKey(date) || !PRAYERS.includes(p)) return
-  const next = applyStatus(loadSnapshot(), date, p, STATUSES.includes(status) ? status : null)
+  const prev = loadSnapshot()
+  const next = applyStatus(prev, date, p, STATUSES.includes(status) ? status : null)
   writeJSON(STATS_KEY, next.stats)
   writeJSON(TRACKER_KEY, next.tracker)
   writeJSON(STATUS_KEY, next.status)
   notify()
+  // v5.6: günün 5 namazı bu toxunuşla tamamlandı — qızılı ulduz partlayışı
+  const allDone = (s) => PRAYERS.every(q => isPerformed(prayerStatus(s, date, q)))
+  if (isPerformed(status) && typeof window !== 'undefined' && !allDone(prev) && allDone(next)) {
+    import('./celebrate').then(m => m.celebrate({ size: 'big' })).catch(() => {})
+  }
 }
 
 export const loadQada = () => normQada(readJSON(QADA_KEY))

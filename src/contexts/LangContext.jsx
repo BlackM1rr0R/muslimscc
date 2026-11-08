@@ -95,14 +95,44 @@ export function LangProvider({ children }) {
     }
   }
 
-  const toggleDark = () => {
+  // v5.6: tema düymədən dairəvi dalğa kimi yayılır (View Transition, vau3.css
+  // §15). Atribut keçidin İÇİNDƏ sinxron dəyişir — yeni kadr dərhal hazırdır
+  // (React-in yenidən render-ini gözləmir, telefonda donma yoxdur). Dəstək
+  // yoxdursa və ya hərəkət azaldılıbsa — adi ani keçid.
+  const toggleDark = (e) => {
     userChoseRef.current = true
-    setDark(prev => {
-      const next = !prev
+    const next = !darkRef.current
+    const root = document.documentElement
+    const apply = () => {
+      darkRef.current = next
       try { localStorage.setItem(THEME_KEY, next ? 'dark' : 'light') } catch { /* yaddaş bağlıdır */ }
-      document.documentElement.setAttribute('data-theme', next ? 'dark' : '')
-      return next
-    })
+      if (next) root.setAttribute('data-theme', 'dark')
+      else root.removeAttribute('data-theme')
+    }
+    let reduce = true
+    try {
+      reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches || root.classList.contains('a11y-motion-user')
+    } catch { /* */ }
+    if (!reduce && typeof document.startViewTransition === 'function' && document.visibilityState === 'visible') {
+      let x = e?.clientX, y = e?.clientY
+      // Klaviatura ilə basılıb (koordinat yoxdur) — düymənin mərkəzindən
+      if (!x && !y && e?.currentTarget?.getBoundingClientRect) {
+        const r = e.currentTarget.getBoundingClientRect()
+        x = r.left + r.width / 2; y = r.top + r.height / 2
+      }
+      if (!Number.isFinite(x) || !Number.isFinite(y)) { x = window.innerWidth - 40; y = 32 }
+      const rad = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y))
+      root.style.setProperty('--theme-x', `${Math.round(x)}px`)
+      root.style.setProperty('--theme-y', `${Math.round(y)}px`)
+      root.style.setProperty('--theme-r', `${Math.ceil(rad)}px`)
+      root.classList.add('qm-theme-vt')
+      try {
+        const vt = document.startViewTransition(apply)
+        vt.finished.catch(() => {}).finally(() => root.classList.remove('qm-theme-vt'))
+        vt.ready?.catch?.(() => {})
+      } catch { root.classList.remove('qm-theme-vt'); apply() }
+    } else apply()
+    setDark(next)
   }
 
   // <html lang> — URL-in dili (axtarış sistemi və ekran oxuyucusu üçün);

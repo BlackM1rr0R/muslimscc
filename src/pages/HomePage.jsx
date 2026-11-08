@@ -13,7 +13,7 @@
 // yuxarıdakı sakit zolaqdadır.
 // Brend mətnləri yalnız src/config/brand.js-dən oxunur.
 // ═══════════════════════════════════════════════════════
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import DeferRender from '../components/DeferRender'
 import { useLang } from '../contexts/LangContext'
 import { BRAND, brandName, tr } from '../config/brand'
@@ -25,7 +25,7 @@ import { StatTile } from '../components/viz'
 import { pathFor } from '../seo/routes'
 import CityPicker from '../components/CityPicker'
 import { HADITH_COUNT } from '../data/siteStats'
-import { lazyWhenIdle } from '../utils/idle'
+import { lazyWhenIdle, whenIdle } from '../utils/idle'
 
 // PERFORMANS: hero-dan aşağıdakı bölmələr .ui-cv (ui.css → content-visibility:
 // auto) alır — ekrandan uzaq olanda brauzer onların style/layout/paint işini
@@ -540,6 +540,16 @@ export default function HomePage({ setPage }) {
 
   const [visible, setVisible] = useState(false)
   const [activeTW, setActiveTW] = useState(0)
+  // v5.6: telefonu əyəndə hero qatları 3D kimi yerini dəyişir (utils/heroTilt —
+  // yalnız Android/toxunma, boş vaxtda ayrıca kiçik chunk kimi yüklənir)
+  const heroRef = useRef(null)
+  useEffect(() => {
+    let stop = null, alive = true
+    whenIdle({ delay: 1500 }).then(() => import('../utils/heroTilt')).then((m) => {
+      if (alive) stop = m.initHeroTilt(heroRef.current)
+    }).catch(() => {})
+    return () => { alive = false; stop?.() }
+  }, [])
 
   useEffect(() => {
     const id = setTimeout(() => setVisible(true), 80)
@@ -586,7 +596,7 @@ export default function HomePage({ setPage }) {
             v3: "bu sayt nədir" bir baxışda — brend, bir cümlə, iki əsas düymə,
             üç qısa üstünlük; sağda (telefonda altda) namaz vaxtları kartı.
             Hədis sitatı və üçüncü ("Elanlar") düymə götürülüb — sakitlik. */}
-        <section className={`hp-hero ${visible?'hp-hero--vis':''}`} data-wow-pause="">
+        <section ref={heroRef} className={`hp-hero ${visible?'hp-hero--vis':''}`} data-wow-pause="">
           {/* v4 "canlı səma": namaz vaxtına görə səma + yavaş axan aurora +
               fırlanan xatəm ulduzu + üzən kiçik həndəsi ulduzlar (hamısı dekor,
               yalnız transform/opacity; ekrandan çıxanda dayanır — wow.css) */}

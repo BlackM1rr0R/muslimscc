@@ -820,7 +820,7 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
               <button
                 type="button"
                 className="qm-sn-theme"
-                onClick={() => toggleDark?.()}
+                onClick={(e) => toggleDark?.(e)}
                 aria-pressed={Boolean(dark)}
                 aria-label={l.dark}
               >
