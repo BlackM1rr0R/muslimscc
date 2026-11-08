@@ -69,6 +69,10 @@ const HeroBannerDisplay = lazy(lazyWhenIdle(() => import('../components/HeroBann
 // Günün təddəbür sualı — ekranın altında, şəbəkəsiz (məlumat faylın özündədir)
 // v5.7: ~46 KB (gzip) məlumat — yalnız bölməyə yaxınlaşanda (DeferRender), boş vaxtda yox
 const TadabburCard = lazy(() => import('../components/TadabburCard'))
+// v5.8: sürüşdükcə başlıq qızılı ulduz tozuna çevrilir — yalnız masaüstü, boş vaxtda
+const HeroDust = lazy(() => import('../components/home/HeroDust'))
+// v5.8: "bir gün" sürüşmə hekayəsi — bölməyə yaxınlaşanda
+const DayStory = lazy(() => import('../components/home/DayStory'))
 // v3.2: "Bu gün" bento paneli (günün hədisi — Nəvəvi 40, günün ayəsi, davam et,
 // hicri tarix). Hero-nun düz altındadır — lazy, amma idle gözləmədən; yer
 // tutucu hündürlüyü saxlayır (CLS olmasın). Bax: components/home/HomeToday.jsx
@@ -554,6 +558,19 @@ export default function HomePage({ setPage }) {
     }).catch(() => {})
     return () => { alive = false; stop?.() }
   }, [])
+  const [dust, setDust] = useState(false)
+  useEffect(() => {
+    let alive = true
+    const ok = () => {
+      try {
+        return window.matchMedia('(min-width: 1024px) and (pointer: fine) and (prefers-reduced-motion: no-preference)').matches &&
+          !document.documentElement.classList.contains('a11y-reduce-motion') && !navigator.connection?.saveData &&
+          (!navigator.webdriver || /[?&]dust(=|&|$)/.test(window.location.search))   // avtomat testlərdə yalnız ?dust ilə
+      } catch { return false }
+    }
+    whenIdle({ delay: 1200 }).then(() => { if (alive && ok()) setDust(true) })
+    return () => { alive = false }
+  }, [])
 
   useEffect(() => {
     const id = setTimeout(() => setVisible(true), 80)
@@ -614,6 +631,7 @@ export default function HomePage({ setPage }) {
             <div className="hp-wx" />
           </div>
 
+          {dust && <Suspense fallback={null}><HeroDust heroRef={heroRef} /></Suspense>}
           <div className="hp-hero-inner">
             <div className="hp-hero-content">
               {/* v5.7: şəxsi salam (prerenderdə — adi nişan) */}
@@ -696,6 +714,13 @@ export default function HomePage({ setPage }) {
           </ul>
         </div>
       </section>
+
+      {/* ═══ BİR GÜN — sürüşdükcə açılan hekayə (Sübh → İşa) ═══ */}
+      <DeferRender height="1600px" idle={false} rootMargin="600px 0px">
+        <Suspense fallback={<div style={{ minHeight: 1600 }} />}>
+          <DayStory lang={lang} onNavigate={goTo} />
+        </Suspense>
+      </DeferRender>
 
       {/* ═══ HARADAN BAŞLAMALI? — yeni gələn üçün 4 addım ═════════════════ */}
       <DeferRender height={CV.start['--cv-h']} delay={300}>

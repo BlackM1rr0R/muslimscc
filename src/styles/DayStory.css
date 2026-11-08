@@ -1,0 +1,53 @@
+/* Ana səhifə: "Muslims.cc ilə bir gün" (components/home/DayStory.jsx)
+   Səma qatları yalnız opacity, disk yalnız transform ilə dəyişir. */
+.ds__wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: start; }
+.ds__stage { position: sticky; top: calc(var(--header-h, 64px) + 24px); display: grid; gap: 12px; }
+.ds__sky { position: relative; aspect-ratio: 4 / 3; border-radius: 24px; overflow: hidden; background: #0b1a33; box-shadow: var(--shadow-3); isolation: isolate; }
+.ds__layer { position: absolute; inset: 0; opacity: 0; transition: opacity 900ms ease; z-index: -1; }
+.ds__layer.is-on { opacity: 1; }
+.ds__layer--0 { background: linear-gradient(180deg, #1b2b55 0%, #6c5a8e 55%, #f2a774 100%); }
+.ds__layer--1 { background: linear-gradient(180deg, #3d8fd6 0%, #8cc4ee 60%, #e6f1f7 100%); }
+.ds__layer--2 { background: linear-gradient(180deg, #5d9bd0 0%, #e8c88d 70%, #f3d9a6 100%); }
+.ds__layer--3 { background: linear-gradient(180deg, #2a2f63 0%, #b05a6b 55%, #f08a4b 100%); }
+.ds__layer--4 { background: linear-gradient(180deg, #050b1d 0%, #0f1f45 70%, #1b2d5c 100%); }
+/* Günəş/ay — mərkəzdən fırlanan qolun ucunda (yalnız transform) */
+.ds__orb { position: absolute; left: 50%; top: 92%; width: 0; height: 0; transform: rotate(var(--deg, 0deg)); transition: transform 1100ms cubic-bezier(.22, 1, .36, 1); }
+.ds__orb::before { content: ''; position: absolute; left: -26px; top: calc(-26px - 62cqh); width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, #fff7d6, #ffd36a 60%, #f4a83a); box-shadow: 0 0 40px 10px rgba(255, 210, 110, .45); transform: rotate(calc(var(--deg, 0deg) * -1)); transition: transform 1100ms cubic-bezier(.22, 1, .36, 1), background-color .6s; }
+.ds__sky { container-type: size; }
+.ds[data-step="4"] .ds__orb::before { background: radial-gradient(circle at 65% 35%, transparent 38%, #f3ecd2 40%); box-shadow: 0 0 30px 4px rgba(240, 230, 200, .3); }
+.ds__stars { position: absolute; inset: 0 0 35% 0; opacity: 0; transition: opacity 900ms ease;
+  background-image: radial-gradient(1.5px 1.5px at 12% 20%, #fff, transparent), radial-gradient(1px 1px at 30% 45%, #fff, transparent), radial-gradient(1.5px 1.5px at 55% 15%, #fff, transparent), radial-gradient(1px 1px at 70% 38%, #fff, transparent), radial-gradient(1.5px 1.5px at 85% 22%, #fff, transparent), radial-gradient(1px 1px at 42% 28%, #fff, transparent), radial-gradient(1px 1px at 92% 50%, #fff, transparent); }
+.ds[data-step="0"] .ds__stars { opacity: .5; }
+.ds[data-step="4"] .ds__stars { opacity: 1; }
+/* Üfüqdə məscid silueti */
+.ds__ground { position: absolute; inset: auto 0 0 0; height: 30%; background: #0b1426;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120' preserveAspectRatio='none'%3E%3Cpath d='M0 90 Q100 70 200 88 T400 84 V120 H0Z M150 88 V52 Q150 30 175 22 Q200 30 200 52 V88Z M230 88 V18 h6 V88Z M236 18 l-3 -10 l-3 10Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120' preserveAspectRatio='none'%3E%3Cpath d='M0 90 Q100 70 200 88 T400 84 V120 H0Z M150 88 V52 Q150 30 175 22 Q200 30 200 52 V88Z M230 88 V18 h6 V88Z M236 18 l-3 -10 l-3 10Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }
+.ds__label { position: absolute; inset-inline-start: 18px; top: 14px; padding: 4px 12px; border-radius: 99px; background: rgba(0, 0, 0, .32); color: #fff; font-weight: 800; font-size: .9rem; }
+.ds__ticks { display: flex; justify-content: space-between; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: .78rem; color: var(--text-muted); }
+.ds__ticks li { position: relative; padding-top: 10px; flex: 1; text-align: center; }
+.ds__ticks li::before { content: ''; position: absolute; top: 0; inset-inline: 10%; height: 3px; border-radius: 3px; background: var(--border); }
+.ds__ticks li.is-done::before, .ds__ticks li.is-on::before { background: var(--accent, #c79a3a); }
+.ds__ticks li.is-on { color: var(--text-strong); font-weight: 800; }
+.ds__steps { margin: 0; padding: 0; list-style: none; display: grid; }
+.ds__step { min-height: 46vh; display: grid; align-content: center; justify-items: start; gap: 12px; opacity: .35; transition: opacity 500ms ease; }
+.ds__step:last-child { min-height: 50vh; }
+.ds__step.is-on { opacity: 1; }
+.ds__time { font-family: var(--font-display); font-size: var(--step-3, 2rem); line-height: 1.1; color: var(--text-strong); }
+.ds__text { margin: 0; font-size: 1.08rem; line-height: 1.6; color: var(--text-secondary); max-width: 36ch; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html:not(.a11y-reduce-motion) .ds__step > * { animation: ds-in linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+  }
+}
+@keyframes ds-in { from { opacity: 0; transform: translate3d(0, 28px, 0); } }
+@media (max-width: 767.98px) {
+  .ds__wrap { grid-template-columns: 1fr; gap: 0; }
+  .ds__stage { top: calc(var(--header-h, 56px) + 8px); z-index: 1; }
+  .ds__sky { aspect-ratio: 16 / 9; border-radius: 18px; }
+  .ds__step { min-height: 40vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds__layer, .ds__orb, .ds__orb::before, .ds__stars, .ds__step { transition: none; }
+}
+html.a11y-reduce-motion .ds__layer, html.a11y-reduce-motion .ds__orb, html.a11y-reduce-motion .ds__orb::before, html.a11y-reduce-motion .ds__step { transition: none; }

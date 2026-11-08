@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from './Icon'
 import { pickUi } from '../utils/uiText'
+import { localizeSource } from '../utils/sourceNames'
 import { celebrate } from '../utils/celebrate'
 import '../styles/DuaDeck.css'
 
@@ -121,7 +122,7 @@ export default function DuaDeck({ duas = [], lang = 'az' }) {
               <p className="dd__ar" lang="ar" dir="rtl">{d.ar}</p>
               {d.translit && lang !== 'ar' && <p className="dd__tl">{d.translit}</p>}
               {lang !== 'ar' && <p className="dd__tr">{tr(d[lang] ? d[lang] : d.en)}</p>}
-              {d.source && <small className="dd__src">{d.source}</small>}
+              {d.source && <small className="dd__src">{localizeSource(d.source, lang)}</small>}
             </article>
           )}
           <div className="dd__btns">

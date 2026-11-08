@@ -715,6 +715,15 @@ html.qm-vt::view-transition-new(root) { animation: vx-vt-star 620ms cubic-bezier
   to   { clip-path: polygon(calc(50% + 0.00vmax) calc(50% + -150.00vmax), calc(50% + 43.93vmax) calc(50% + -106.07vmax), calc(50% + 106.07vmax) calc(50% + -106.07vmax), calc(50% + 106.07vmax) calc(50% + -43.93vmax), calc(50% + 150.00vmax) calc(50% + 0.00vmax), calc(50% + 106.07vmax) calc(50% + 43.93vmax), calc(50% + 106.07vmax) calc(50% + 106.07vmax), calc(50% + 43.93vmax) calc(50% + 106.07vmax), calc(50% + 0.00vmax) calc(50% + 150.00vmax), calc(50% + -43.93vmax) calc(50% + 106.07vmax), calc(50% + -106.07vmax) calc(50% + 106.07vmax), calc(50% + -106.07vmax) calc(50% + 43.93vmax), calc(50% + -150.00vmax) calc(50% + 0.00vmax), calc(50% + -106.07vmax) calc(50% + -43.93vmax), calc(50% + -106.07vmax) calc(50% + -106.07vmax), calc(50% + -43.93vmax) calc(50% + -106.07vmax)); opacity: 1; }
 }
 
+/* §11b Kart → səhifə (utils/wow.js §9b): kartın başlığı yeni başlığa uçur, fon yumşaq çarpaz keçid.
+   Mətn şəkilləri dartılmasın — hündürlüyə görə miqyaslanır, en avtomatik. */
+html.qm-vt-card::view-transition-old(root) { animation: vx-vt-out 360ms ease both; }
+html.qm-vt-card::view-transition-new(root) { animation: vx-vt-up 460ms cubic-bezier(.22, 1, .36, 1) both; }
+html.qm-vt-card::view-transition-group(qm-card) { animation-duration: 560ms; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+html.qm-vt-card::view-transition-old(qm-card),
+html.qm-vt-card::view-transition-new(qm-card) { height: 100%; width: auto; animation-duration: 560ms; }
+@keyframes vx-vt-up { from { opacity: 0; transform: translate3d(0, 14px, 0); } }
+
 /* ══════════════════════════════════════════════════════════
    §12  SAYTIN AB-HAVASI — gecə və mövsüm (utils/vau3.js, utils/wow.js)
    • html[data-daypart="night"] (20:00–05:00): qaranlıq rejimdə səthlər

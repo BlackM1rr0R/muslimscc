@@ -12,6 +12,7 @@
 // ═══════════════════════════════════════════════════════
 import { useMemo } from 'react'
 import { pickUi } from '../../utils/uiText'
+import { localizeSource } from '../../utils/sourceNames'
 import '../../styles/PalmGarden.css'
 
 const T = {
@@ -78,7 +79,7 @@ export default function PalmGarden({ count = 0, virtue, source, lang = 'az' }) {
         <path className="pg-river" d="M0 76 C 66 70 120 84 220 74 L220 79 C 130 90 66 76 0 81Z" />
         {palms.map(p => <Palm key={p.i} {...p} fresh={p.i === drawn - 1 && count <= MAX_DRAWN} />)}
       </svg>
-      <p className="pg__virtue">{count ? virtue : t.empty}{source ? <span className="pg__src"> — {source}</span> : null}</p>
+      <p className="pg__virtue">{count ? virtue : t.empty}{source ? <span className="pg__src"> — {localizeSource(source, lang)}</span> : null}</p>
       <small className="pg__note">{t.only}{count > MAX_DRAWN ? ` · ${MAX_DRAWN}+` : ''}</small>
     </section>
   )

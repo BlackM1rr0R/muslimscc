@@ -520,6 +520,7 @@ export function routeCommitted() {
  * kadr, yumşaq çarpaz keçid + qalxma); yoxsa adi (.page-enter solması işləyir).
  */
 export function withViewTransition(go) {
+  if (cardMorphing) { go(); return }   // kart keçidi (§9b) artıq gedir — iç-içə keçid onu kəsərdi
   if (typeof document === 'undefined' || typeof document.startViewTransition !== 'function' ||
     reduced() || document.visibilityState !== 'visible' || mq('(max-width: 767.98px)').matches) { go(); return }
   try {
@@ -555,6 +556,74 @@ export function leavePage(mainId) {
   setTimeout(() => el.classList.remove('page-leave'), 4000)
 }
 
+/* ── 9b. Kart → səhifə (v5.8, yalnız ≥768px, View Transitions API) ──
+   Kartdakı linkə (surə, ad, dərs, səhabə…) adi klikdə kartın başlığı yeni səhifənin
+   başlığına (main h1 və ya açılan pəncərənin h1/h2) "uçur", qalanı adi çarpaz keçiddir.
+   Necə: klik capture fazasında saxlanır → startViewTransition köhnə kadrı çəkir →
+   callback içində eyni klik təkrar göndərilir (React öz naviqasiyasını edir) → yeni
+   başlıq görünəndə (ən çox 700 ms) keçid başlayır. Ünvan dəyişməsə — sadəcə bitir.
+   Səhabə kartlarının öz medalyon keçidi var (SahabePage) — onlara toxunulmur. */
+let cardMorphing = false
+let cardBypass = false
+const CARD_SEL = '.surah-card, [class*="-card"], [class*="__card"], .ui-card'
+// Başlıq — prioritet sırası ilə (ilk tapılan seçici qalib gəlir, sənəd sırası yox)
+const TITLE_SEL = ['[data-vt-title]', '.surah-name-ar', 'h2', 'h3', 'h4', '[class*="__title"]', '[class*="-title"]', '[class*="-translit"]', '[class*="-name"]']
+function morphTarget() {
+  const dlg = document.querySelector('[role="dialog"][aria-modal="true"]')
+  return (dlg && dlg.querySelector('h1, h2')) || document.querySelector('main h1')
+}
+function initCardMorph() {
+  if (typeof document.startViewTransition !== 'function') return
+  document.addEventListener('click', (e) => {
+    if (cardBypass || cardMorphing || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    if (reduced() || document.visibilityState !== 'visible' || mq('(max-width: 767.98px)').matches) return
+    const a = e.target.closest?.('a[href^="/"]')
+    if (!a || a.target === '_blank' || a.hasAttribute('download') || a.closest('header, nav, footer, [data-sp-id], [data-no-morph]')) return
+    try { if (new URL(a.href).pathname === location.pathname) return } catch { return }
+    const card = a.matches(CARD_SEL) ? a : a.closest(CARD_SEL)
+    if (!card) return
+    const title = card.querySelector(TITLE_SEL)
+    if (!title || !title.textContent.trim()) return
+    const r = title.getBoundingClientRect()
+    if (!r.width || r.bottom < 0 || r.top > window.innerHeight) return
+    e.preventDefault(); e.stopImmediatePropagation()
+    const oldPath = location.pathname, oldTarget = morphTarget()
+    let target = null
+    const root = html()
+    cardMorphing = true
+    title.style.viewTransitionName = 'qm-card'
+    root.classList.add('qm-vt', 'qm-vt-card')
+    const done = () => {
+      cardMorphing = false
+      title.style.viewTransitionName = ''
+      if (target) target.style.viewTransitionName = ''
+      root.classList.remove('qm-vt', 'qm-vt-card')
+    }
+    try {
+      const vt = document.startViewTransition(() => new Promise((resolve) => {
+        title.style.viewTransitionName = ''
+        cardBypass = true
+        try { a.click() } finally { cardBypass = false }
+        const t0 = performance.now()
+        const tick = () => {
+          const t = morphTarget()
+          if (location.pathname !== oldPath && t && t !== oldTarget) { target = t; t.style.viewTransitionName = 'qm-card'; resolve(); return }
+          if (performance.now() - t0 > 700) { resolve(); return }
+          setTimeout(tick, 16)
+        }
+        tick()
+      }))
+      vt.finished.then(done, done)
+      vt.ready?.catch?.(() => {})
+      vt.updateCallbackDone?.catch?.(() => {})
+    } catch {
+      done()
+      cardBypass = true
+      try { a.click() } finally { cardBypass = false }
+    }
+  }, true)
+}
+
 export function initWow() {
   if (started || typeof window === 'undefined' || typeof document === 'undefined') return
   started = true
@@ -572,6 +641,7 @@ export function initWow() {
     initIndicator()
     initProgress()
     initSeason()
+    initCardMorph()
     // İlk boyamadan ~0.9 san sonra ekrandakı elementlər də animasiya ilə girir
     setTimeout(() => { firstPaintWindow = false }, 900)
     // "Hərəkəti azalt" sonradan açılsa — sinif götürülür, heç nə gizli qalmır
