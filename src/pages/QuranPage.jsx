@@ -526,6 +526,8 @@ const QuranZen = lazy(() => import('../components/quran/QuranZen'))
 const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
 const KARAOKE_LBL = { az: 'Sözbəsöz dinlə', en: 'Word by word', ru: 'Слушать по словам', tr: 'Kelime kelime dinle', ar: 'استمع كلمةً كلمة' }
 
+// Seçib paylaş (components/SelectShare) üçün istinad: «Quran 2:255»
+const CITE_Q = { az: 'Quran', en: 'Quran', ru: 'Коран', tr: 'Kur’an', ar: 'القرآن' }
 const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange, saved, shared, onSave, onShare, onKaraoke, xl }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
   const saveLabel = saved ? xl.unsave : xl.save
@@ -545,7 +547,7 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
     // getBoundingClientRect çağırır; 286 kartda bu 286 məcburi düzülüş idi
     // (telefonda ~750 ms-lik tək tapşırıq, Bəqərə). Qalan kartlar dərhal görünür.
     // id + data-ayah: "Ayəyə keç" hədəfi və oxuma yerinin müşahidəçisi üçün
-    <div id={`ayah-${verse.n}`} data-ayah={verse.n} tabIndex={-1}
+    <div id={`ayah-${verse.n}`} data-ayah={verse.n} tabIndex={-1} data-cite={`${CITE_Q[lang] || CITE_Q.en} ${surahNum}:${verse.n}`}
       className={`ayah-card${active ? ' is-playing' : ''}${flash ? ' is-target' : ''}`} data-reveal={verse.n <= REVEAL_CARDS ? '' : undefined}
       aria-current={active ? 'true' : undefined}>
       {/* Qızılı halqa solur; key — eyni ayəyə təkrar keçəndə animasiya yenidən başlasın */}

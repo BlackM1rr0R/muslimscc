@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getPrayerLocation } from '../utils/prayerLocation'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import '../styles/NotFoundPage.css'
@@ -19,11 +20,11 @@ import { pickUi } from '../utils/uiText'
 // ═══════════════════════════════════════════════════════
 
 const T = {
-  az: { h: 'Səhifə tapılmadı', p: 'Axtardığınız səhifə yoxdur və ya ünvanı dəyişib. Aşağıdan axtarın və ya məşhur bölmələrdən birini açın.', home: 'Ana səhifə', jamaat: 'Camaat vaxtları', search: 'Saytda axtar', ph: 'Məsələn: dəstəmaz, Fatihə, zəkat', go: 'Axtar', popular: 'Ən çox açılan bölmələr', popularLead: 'Bəlkə bunlardan birini axtarırdınız?' },
-  en: { h: 'Page not found', p: 'The page you are looking for does not exist or has moved. Search below or open one of the popular sections.', home: 'Home', jamaat: 'Congregation times', search: 'Search the site', ph: 'For example: wudu, al-Fatiha, zakat', go: 'Search', popular: 'Popular sections', popularLead: 'Perhaps you were looking for one of these?' },
-  ru: { h: 'Страница не найдена', p: 'Такой страницы нет, или её адрес изменился. Воспользуйтесь поиском или откройте один из популярных разделов.', home: 'Главная', jamaat: 'Время джамаата', search: 'Поиск по сайту', ph: 'Например: омовение, аль-Фатиха, закят', go: 'Найти', popular: 'Популярные разделы', popularLead: 'Возможно, вы искали один из них?' },
-  ar: { h: 'الصفحة غير موجودة', p: 'الصفحة التي تبحث عنها غير موجودة أو تغيّر عنوانها. ابحث في الأسفل أو افتح أحد الأقسام الأكثر زيارة.', home: 'الرئيسية', jamaat: 'مواقيت الجماعة', search: 'ابحث في الموقع', ph: 'مثلًا: الوضوء، الفاتحة، الزكاة', go: 'بحث', popular: 'الأقسام الأكثر زيارة', popularLead: 'لعلك كنت تبحث عن أحدها؟' },
-  tr: { h: 'Sayfa bulunamadı', p: 'Aradığınız sayfa yok ya da adresi değişti. Aşağıdan arayın veya popüler bölümlerden birini açın.', home: 'Ana sayfa', jamaat: 'Cemaat vakitleri', search: 'Sitede ara', ph: 'Örneğin: abdest, Fatiha, zekât', go: 'Ara', popular: 'En çok açılan bölümler', popularLead: 'Belki bunlardan birini arıyordunuz?' },
+  az: { h: 'Səhifə tapılmadı', p: 'Axtardığınız səhifə yoxdur və ya ünvanı dəyişib. Aşağıdan axtarın və ya məşhur bölmələrdən birini açın.', home: 'Ana səhifə', jamaat: 'Camaat vaxtları', search: 'Saytda axtar', ph: 'Məsələn: dəstəmaz, Fatihə, zəkat', go: 'Axtar', popular: 'Ən çox açılan bölmələr', popularLead: 'Bəlkə bunlardan birini axtarırdınız?', lost: 'Yolu itirdinizmi? Qiblə həmişə yerindədir:', qdir: '{city} şəhərindən Qiblə — {d}°', open: 'Qiblə səhifəsi' },
+  en: { h: 'Page not found', p: 'The page you are looking for does not exist or has moved. Search below or open one of the popular sections.', home: 'Home', jamaat: 'Congregation times', search: 'Search the site', ph: 'For example: wudu, al-Fatiha, zakat', go: 'Search', popular: 'Popular sections', popularLead: 'Perhaps you were looking for one of these?', lost: 'Lost your way? The qibla is always where it is:', qdir: 'Qibla from {city} — {d}°', open: 'Qibla page' },
+  ru: { h: 'Страница не найдена', p: 'Такой страницы нет, или её адрес изменился. Воспользуйтесь поиском или откройте один из популярных разделов.', home: 'Главная', jamaat: 'Время джамаата', search: 'Поиск по сайту', ph: 'Например: омовение, аль-Фатиха, закят', go: 'Найти', popular: 'Популярные разделы', popularLead: 'Возможно, вы искали один из них?', lost: 'Сбились с пути? Кибла всегда на месте:', qdir: 'Кибла из города {city} — {d}°', open: 'Страница киблы' },
+  ar: { h: 'الصفحة غير موجودة', p: 'الصفحة التي تبحث عنها غير موجودة أو تغيّر عنوانها. ابحث في الأسفل أو افتح أحد الأقسام الأكثر زيارة.', home: 'الرئيسية', jamaat: 'مواقيت الجماعة', search: 'ابحث في الموقع', ph: 'مثلًا: الوضوء، الفاتحة، الزكاة', go: 'بحث', popular: 'الأقسام الأكثر زيارة', popularLead: 'لعلك كنت تبحث عن أحدها؟', lost: 'أضعت الطريق؟ القبلة في مكانها دائمًا:', qdir: 'القبلة من {city} — {d}°', open: 'صفحة القبلة' },
+  tr: { h: 'Sayfa bulunamadı', p: 'Aradığınız sayfa yok ya da adresi değişti. Aşağıdan arayın veya popüler bölümlerden birini açın.', home: 'Ana sayfa', jamaat: 'Cemaat vakitleri', search: 'Sitede ara', ph: 'Örneğin: abdest, Fatiha, zekât', go: 'Ara', popular: 'En çok açılan bölümler', popularLead: 'Belki bunlardan birini arıyordunuz?', lost: 'Yolunuzu mu kaybettiniz? Kıble hep yerinde:', qdir: '{city} şehrinden kıble — {d}°', open: 'Kıble sayfası' },
 }
 
 // Axtarış pəncərəsini Header.jsx açır — bu hadisəni dinləyir (detail.q — ilkin söz)
@@ -32,10 +33,35 @@ const OPEN_SEARCH_EVENT = 'qm-open-search'
 // Məşhur bölmələr — ad və ikon navigation.js-dən (tək mənbə)
 const POPULAR = ['prayer', 'quran', 'hadith', 'learn', 'duas', 'qibla', 'names', 'zakat']
 
+// v5.8: kompasın əqrəbi həqiqi Qibləni göstərir (seçilmiş şəhərdən Kəbəyə böyük dairə bucağı)
+const KAABA = [21.4225, 39.8262]
+export function qiblaBearing(lat, lng) {
+  const r = Math.PI / 180, f1 = lat * r, f2 = KAABA[0] * r, dl = (KAABA[1] - lng) * r
+  const y = Math.sin(dl), x = Math.cos(f1) * Math.tan(f2) - Math.sin(f1) * Math.cos(dl)
+  return (Math.atan2(y, x) / r + 360) % 360
+}
+
 export default function NotFoundPage({ setPage }) {
   const { lang } = useLang()
   const t = pickUi(T, lang)
   const [q, setQ] = useState('')
+  const [qb, setQb] = useState(null)        // { bearing, city }
+  const [head, setHead] = useState(null)    // cihazın istiqaməti (kompas varsa)
+  useEffect(() => {
+    const loc = getPrayerLocation()
+    if (loc && Number.isFinite(loc.lat)) setQb({ bearing: qiblaBearing(loc.lat, loc.lng), city: loc.city?.[lang] || loc.city?.en || '' })
+    let raf = 0, last = null
+    const on = (e) => {
+      const h = typeof e.webkitCompassHeading === 'number' ? e.webkitCompassHeading : (e.absolute || e.type === 'deviceorientationabsolute') && Number.isFinite(e.alpha) ? (360 - e.alpha) % 360 : null
+      if (h == null) return
+      last = h
+      if (!raf) raf = requestAnimationFrame(() => { raf = 0; setHead(last) })
+    }
+    window.addEventListener('deviceorientationabsolute', on, true)
+    window.addEventListener('deviceorientation', on, true)
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('deviceorientationabsolute', on, true); window.removeEventListener('deviceorientation', on, true) }
+  }, [lang])
+  const needle = qb ? ((qb.bearing - (head || 0)) + 360) % 360 : null
 
   const openSearch = (query = '') => window.dispatchEvent(new CustomEvent(OPEN_SEARCH_EVENT, { detail: { q: query } }))
   const onSubmit = (e) => { e.preventDefault(); openSearch(q.trim()) }
@@ -61,16 +87,24 @@ export default function NotFoundPage({ setPage }) {
               <g className="nf-ticks">
                 <path d="M80 6v10M80 144v10M6 80h10M144 80h10" />
               </g>
+              <g className="nf-qibla" style={needle == null ? undefined : { transform: `rotate(${needle.toFixed(1)}deg)` }}>
               <g className="nf-needle">
                 <path className="nf-needle-n" d="M80 34 89 80H71z" />
                 <path className="nf-needle-s" d="M80 126 71 80h18z" />
                 <circle className="nf-hub" cx="80" cy="80" r="5" />
+              </g>
               </g>
             </svg>
             <span className="nf-code ui-num">404</span>
           </div>
           <h1 id="nf-title" className="ui-display nf-title">{t.h}</h1>
           <p className="ui-lead nf-lead">{t.p}</p>
+          {qb && (
+            <p className="nf-qline" data-testid="nf-qibla">
+              <span>{t.lost}</span> <b className="ui-num">{t.qdir.replace('{city}', qb.city).replace('{d}', Math.round(qb.bearing))}</b>{' '}
+              <PageLink to="qibla" setPage={setPage} className="nf-qlink">{t.open} →</PageLink>
+            </p>
+          )}
 
           <form className="nf-search" role="search" onSubmit={onSubmit}>
             <label className="ui-sr-only" htmlFor="nf-q">{t.search}</label>

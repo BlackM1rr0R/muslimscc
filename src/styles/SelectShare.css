@@ -1,0 +1,10 @@
+/* Seçib paylaş (components/SelectShare.jsx) */
+.ssh { position: fixed; z-index: 1300; display: flex; gap: 2px; padding: 4px; border-radius: 14px;
+  background: #15120b; border: 1px solid rgba(231, 199, 125, .35); box-shadow: 0 12px 30px rgba(0, 0, 0, .3); }
+.ssh button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 10px; padding: 8px 6px;
+  background: none; color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.ssh button:hover, .ssh button:focus-visible { background: rgba(231, 199, 125, .16); color: #f3e6b5; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .ssh { animation: ssh-in .22s cubic-bezier(.22, 1, .36, 1) both; }
+}
+@keyframes ssh-in { from { opacity: 0; transform: translate3d(0, 6px, 0) scale(.96); } }

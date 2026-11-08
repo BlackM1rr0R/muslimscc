@@ -30,6 +30,8 @@ import Sparkle from '../components/prayer/Sparkle'
 import '../styles/ToolsMotion.css'
 import CalendarSubscribe from '../components/prayer/CalendarSubscribe'
 import HomeScreenWidget from '../components/prayer/HomeScreenWidget'
+import PrayerWallpaper from '../components/prayer/PrayerWallpaper'
+import LandscapeBoard from '../components/prayer/LandscapeBoard'
 import { ProgressRing, StatTile } from '../components/viz'
 import { pickUi } from '../utils/uiText'
 
@@ -889,6 +891,12 @@ export default function PrayerPage({ setPage }) {
             {/* v5.7: ana ekran vidceti — iPhone (Scriptable), Android (təqvim vidceti) */}
             <HomeScreenWidget location={pt.location} lang={lang} city={cityName} times={dayTimes} names={dayNames}
               next={pt.next ? { key: pt.next.tomorrow ? 'fajr' : pt.next.key, time: pt.next.adhan, left: countdown.slice(0, 5) } : null} />
+            {/* v5.8: telefonu yan çevirəndə tam ekran lövhə */}
+            <LandscapeBoard times={dayTimes} names={dayNames} city={cityName} hijri={hijri ? hijriLine(hijri, lang) : ''} lang={lang}
+              next={pt.next ? { key: pt.next.tomorrow ? 'fajr' : pt.next.key, at: pt.next.at } : null} />
+            {/* v5.8: kilid ekranı üçün divar kağızı */}
+            <PrayerWallpaper city={cityName} hijri={hijri ? hijriLine(hijri, lang) : ''} today={dayTimes} names={dayNames}
+              month={isCurMonth ? month.days : null} monthLabel={monthLabel} lang={lang} />
           </div>
         </section>
       )}

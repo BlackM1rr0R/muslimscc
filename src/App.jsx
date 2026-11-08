@@ -170,6 +170,8 @@ const NotificationPrompt = lazy(lazyWhenIdle(() => import('./components/Notifica
 const BadgeToast = lazy(lazyWhenIdle(() => import('./components/BadgeToast')))
 // v5.7: azan oxunanda tam ekran "azan anı" (utils/azanAudio)
 const AzanMoment = lazy(lazyWhenIdle(() => import('./components/AzanMoment')))
+// v5.8: mətni seçəndə Kopyala · Şəkil kartı · Paylaş
+const SelectShare = lazy(lazyWhenIdle(() => import('./components/SelectShare')))
 // "Səhv bildir" — bütün sayt üçün tək dialoq (düymələr yalnız hadisə göndərir)
 const ReportErrorHost = lazy(lazyWhenIdle(() => import('./components/ReportErrorButton').then(m => ({ default: m.ReportErrorHost }))))
 
@@ -492,6 +494,7 @@ function AppInner() {
         <ReportErrorHost />
         <BadgeToast />
         <AzanMoment />
+        <SelectShare />
       </Suspense>
     </>
   )

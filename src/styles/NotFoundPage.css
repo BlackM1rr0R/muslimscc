@@ -184,3 +184,9 @@
 }
 @media (max-width: 480px) { .nf-art { width: 112px; height: 112px; } }
 @media (prefers-reduced-motion: reduce) { .nf-search, .nf-search:focus-within { transition: none; transform: none; } }
+
+/* v5.8: əqrəb həqiqi Qibləni göstərir */
+.nf-qibla { transform-box: view-box; transform-origin: 80px 80px; transition: transform .4s ease; }
+.nf-qline { margin: 8px auto 0; max-width: 560px; text-align: center; color: var(--text-secondary); font-size: var(--step--1); }
+.nf-qline b { color: var(--accent-text); }
+.nf-qlink { font-weight: 700; white-space: nowrap; }

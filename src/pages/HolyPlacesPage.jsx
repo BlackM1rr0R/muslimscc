@@ -28,6 +28,7 @@ import { localizeSource } from '../utils/sourceNames'
 import { pickUi } from '../utils/uiText'
 // v5.7: 3D Məscidül-Haram (three.js — yalnız bu bölmə ekrana yaxınlaşanda yüklənir)
 const Kaaba3D = lazy(() => import('../components/media/Kaaba3D'))
+const MakkahLive = lazy(() => import('../components/media/MakkahLive'))
 
 const SAHIH = { az: 'səhih (əl-Albani)', en: 'sahih (al-Albani)', ru: 'достоверный (аль-Альбани)', ar: 'صحيح (الألباني)', tr: 'sahih (Elbânî)' }
 
@@ -430,6 +431,7 @@ export function HolyPlacesPage({ setPage }) {
         <div className="ui-container">
           <DeferRender height="520px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 520 }} />}>
+              <MakkahLive lang={lk} />
               <Kaaba3D lang={lk} />
             </Suspense>
           </DeferRender>
