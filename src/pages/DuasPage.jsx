@@ -9,6 +9,7 @@ import { normArabic, normText } from '../utils/uniqueHadiths'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
 import MoodDuas from '../components/MoodDuas'
+import DuaDeck from '../components/DuaDeck'
 import Breadcrumb from '../components/Breadcrumb'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
 import '../styles/DuasPage.css'
@@ -436,6 +437,11 @@ export default function DuasPage({ setPage }) {
           </ul>
         </div>
       </header>
+
+      {/* v5.8: Bu günün 7 duası — sürüşdürülən kart dəstəsi */}
+      <section className="ui-section ui-section--tight duas-deck">
+        <div className="ui-container"><DuaDeck duas={DUAS_DATA} lang={lang} /></div>
+      </section>
 
       {/* "Necə hiss edirsən?" — hala görə Hisnul-Müslim duaları */}
       <section className="ui-section ui-section--tight duas-mood">

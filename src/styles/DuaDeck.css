@@ -1,0 +1,29 @@
+/* Bu günün duaları — kart dəstəsi (components/DuaDeck.jsx) */
+.dd { display: grid; gap: 14px; }
+.dd__head { display: grid; gap: 4px; }
+.dd__title { margin: 0; }
+.dd__lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); display: flex; justify-content: space-between; gap: 10px; }
+.dd__left { font-weight: 700; color: var(--accent-text); }
+.dd__stack { position: relative; display: grid; gap: 14px; outline: none; max-width: 640px; width: 100%; margin-inline: auto; }
+.dd__card { position: relative; grid-area: 1 / 1; min-height: 280px; display: grid; align-content: center; gap: 12px; padding: clamp(20px, 4vw, 32px); text-align: center;
+  touch-action: pan-y; user-select: none; cursor: grab; transition: transform .26s cubic-bezier(.22, 1, .36, 1), opacity .26s ease; background: var(--surface-1); z-index: 3; }
+.dd__card:active { cursor: grabbing; }
+.dd__card.is-fly { opacity: 0; }
+.dd__card--under { z-index: 1; pointer-events: none; }
+.dd__card--u1 { transform: translate3d(0, 10px, 0) scale(.96); opacity: .7; z-index: 2; }
+.dd__card--u2 { transform: translate3d(0, 20px, 0) scale(.92); opacity: .45; }
+.dd__ar { margin: 0; font-family: var(--font-arabic); font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2rem); line-height: 1.9; color: var(--text-strong); }
+.dd__tl { margin: 0; font-style: italic; color: var(--text-secondary); font-size: var(--step--1); }
+.dd__tr { margin: 0; line-height: 1.6; }
+.dd__src { color: var(--text-muted); }
+.dd__stamp { position: absolute; top: 16px; padding: 4px 12px; border-radius: 8px; border: 2px solid currentColor; font-weight: 800; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; opacity: 0; transition: opacity .12s ease; }
+.dd__stamp--r { inset-inline-start: 16px; color: #1f8a57; transform: rotate(-10deg); }
+.dd__stamp--l { inset-inline-end: 16px; color: #b7791f; transform: rotate(10deg); }
+.dd__stamp.is-on { opacity: 1; }
+.dd__btns { display: flex; justify-content: center; gap: 18px; margin-top: 18px; }
+.dd__btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface-1); font: inherit; font-weight: 700; cursor: pointer; color: var(--text-secondary); }
+.dd__btn--r { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent-text); }
+.dd__done { display: grid; justify-items: center; gap: 8px; padding: 28px; text-align: center; max-width: 640px; margin-inline: auto; }
+.dd__done-ic { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); }
+.dd__done h3 { margin: 0; }
+.dd__done p { margin: 0; color: var(--text-secondary); }

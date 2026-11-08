@@ -1,0 +1,28 @@
+/* Zikr xurma bağı (components/dhikr/PalmGarden.jsx) */
+.pg { display: grid; gap: 10px; padding: 16px; margin-top: var(--space-4, 16px); }
+.pg__head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.pg__title { margin: 0; font-size: var(--step-0); }
+.pg__count { color: var(--text-secondary); font-size: var(--step--1); }
+.pg__count b { font-size: 1.6rem; color: var(--accent-text); }
+.pg__svg { width: 100%; height: auto; aspect-ratio: 2.2 / 1; border-radius: 14px; display: block; }
+.pg-sky1 { stop-color: #8fc7ef; } .pg-sky2 { stop-color: #f3e2b8; }
+.pg--night .pg-sky1 { stop-color: #0a1430; } .pg--night .pg-sky2 { stop-color: #23345e; }
+.pg-sun { fill: #fff2c4; }
+.pg--night .pg-sun { fill: #f3e6b5; filter: drop-shadow(0 0 2px #f3e6b5); }
+.pg-hill { fill: #7fb069; } .pg-hill--far { fill: #a7c98a; }
+.pg--night .pg-hill { fill: #23412f; } .pg--night .pg-hill--far { fill: #1c3326; }
+.pg-river { fill: #6fb7e0; opacity: .8; } .pg--night .pg-river { fill: #33507a; }
+.pg-trunk { fill: none; stroke: #8a5a2b; stroke-width: 1.3; stroke-linecap: round; }
+.pg-crown path { fill: #2f8f4e; }
+.pg--night .pg-crown path { fill: #3f7a55; }
+.pg-dates { fill: #b9772e; }
+.pg-crown { transform-box: fill-box; transform-origin: 50% 100%; }
+.pg__virtue { margin: 0; font-size: var(--step--1); color: var(--text-secondary); }
+.pg__src { color: var(--text-muted); }
+.pg__note { color: var(--text-muted); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .pg-crown { animation: pg-sway 4.5s ease-in-out var(--d, 0s) infinite alternate; }
+  html:not(.a11y-motion-user) .pg-palm.is-new { animation: pg-grow .9s cubic-bezier(.34, 1.56, .64, 1) both; transform-box: fill-box; transform-origin: 50% 100%; }
+}
+@keyframes pg-sway { from { transform: translate(0.4px, -18px) rotate(-3deg); } to { transform: translate(0.4px, -18px) rotate(4deg); } }
+@keyframes pg-grow { from { opacity: 0; scale: .2; } }

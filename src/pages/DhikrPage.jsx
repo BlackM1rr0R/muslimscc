@@ -18,6 +18,8 @@ import { playSound } from '../utils/uiSound'
 import SoundToggle from '../components/SoundToggle'
 import { pickUi } from '../utils/uiText'
 import { bumpDhikrDay } from '../utils/myDay'
+import { loadPalms, bumpPalm, PALM_SOURCE } from '../utils/palms'
+import PalmGarden from '../components/dhikr/PalmGarden'
 
 // ── localStorage helper-ləri ──
 const STORAGE_KEY = 'dhikr_session'
@@ -350,10 +352,14 @@ export default function DhikrPage({ setPage }) {
   // Hədəf tamamlandıqdan sonrakı toxunuş yeni dövrə başlayır (1 / 33) —
   // sayğac hədəfdən o yana getmir. Yan təsirlər setState funksiyasının
   // içində deyil (StrictMode onu iki dəfə çağırır).
+  const [palms, setPalms] = useState(() => (typeof window === 'undefined' ? 0 : loadPalms()))
+  const palmDhikr = DHIKRS.find(d => d.source === PALM_SOURCE)
   const handleTap = useCallback(() => {
     const next = count >= dhikr.target ? 1 : count + 1
     setCount(next)
     bumpLifetime(dhikr.en === 'Salawat' ? 'salawat' : 'dhikr')
+    // v5.8: xurma bağı — Tirmizi 3464 zikrinin hər deyişi bir ağac
+    if (dhikr.source === PALM_SOURCE) setPalms(bumpPalm())
     if (next === dhikr.target) {
       const time = new Date().toLocaleTimeString(LOCALE[lang] || 'az-AZ', { hour: '2-digit', minute: '2-digit' })
       // id — siyahıda sabit açar (yeni sətir yuxarıdan yumşaq daxil olur)
@@ -516,6 +522,11 @@ export default function DhikrPage({ setPage }) {
               </div>
             </div>
           </div>
+
+          {/* v5.8: Cənnətdəki xurma bağı (Tirmizi 3464) */}
+          {palmDhikr && (dhikr === palmDhikr || palms > 0) && (
+            <PalmGarden count={palms} virtue={pickUi(palmDhikr.virtue, lang, 'en')} source={palmDhikr.source} lang={lang} />
+          )}
 
           {/* Jurnal — tamamlanan dövrələr (son 10) */}
           {log.length > 0 && (

@@ -1,0 +1,27 @@
+/* Bayram rejimi (components/EidMode.jsx) */
+html.eid-mode .header { box-shadow: inset 0 -2px 0 #d9b45c; }
+html.eid-mode .hp-hero-glow { background: radial-gradient(ellipse 60% 50% at 50% 30%, rgba(231, 199, 125, .35), transparent 70%) !important; }
+.eid-shower { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1450; }
+.eid-bar { position: fixed; z-index: 1240; inset-inline: 0; margin-inline: auto; width: max-content; max-width: min(94vw, 520px);
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px)); display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 14px; border-radius: 22px;
+  background: linear-gradient(135deg, #0b3327, #061c15); color: #fff; border: 1px solid rgba(231, 199, 125, .5); box-shadow: 0 18px 40px rgba(0, 0, 0, .35); }
+.eid-bar__moon { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset -6px -2px 0 0 #f3e6b5; flex: none; }
+.eid-bar__txt { display: grid; line-height: 1.2; }
+.eid-bar__txt small { color: #e7c77d; }
+.eid-bar__btn { border: 0; border-radius: 99px; padding: 7px 14px; background: #e7c77d; color: #241a05; font: inherit; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.eid-bar__x { border: 0; background: none; color: #fff; opacity: .7; padding: 6px; cursor: pointer; display: grid; }
+.eid-modal { position: fixed; inset: 0; z-index: 1600; display: grid; place-items: center; padding: 16px; background: rgba(2, 10, 8, .7); backdrop-filter: blur(6px); }
+.eid-modal__card { position: relative; width: min(560px, 100%); display: grid; justify-items: center; gap: 10px; padding: 28px 22px 22px; border-radius: 24px; text-align: center; color: #fff;
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(231, 199, 125, .25), transparent 70%), linear-gradient(180deg, #0b3327, #061c15); border: 1px solid rgba(231, 199, 125, .4); }
+.eid-modal__x { position: absolute; top: 10px; inset-inline-end: 10px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .1); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.eid-modal__ey { color: #e7c77d; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; }
+.eid-modal__title { margin: 0; font-size: var(--step-2, 1.6rem); color: #fff; }
+.eid-modal__ar { margin: 6px 0 0; font-family: var(--font-arabic); font-size: clamp(1.4rem, 1.1rem + 1.6vw, 2rem); line-height: 1.9; color: #fff8e6; }
+.eid-modal__tl { margin: 0; font-style: italic; color: rgba(255, 255, 255, .8); font-size: var(--step--1); }
+.eid-modal__tr { margin: 0; color: rgba(255, 255, 255, .9); }
+.eid-modal__src { color: rgba(255, 255, 255, .6); margin-bottom: 6px; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .eid-bar { animation: eid-in .5s cubic-bezier(.22, 1, .36, 1) both; }
+  html:not(.a11y-motion-user) .eid-modal__card { animation: eid-in .45s cubic-bezier(.22, 1, .36, 1) both; }
+}
+@keyframes eid-in { from { opacity: 0; transform: translate3d(0, 20px, 0) scale(.97); } }

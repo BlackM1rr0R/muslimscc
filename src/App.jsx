@@ -172,6 +172,8 @@ const BadgeToast = lazy(lazyWhenIdle(() => import('./components/BadgeToast')))
 const AzanMoment = lazy(lazyWhenIdle(() => import('./components/AzanMoment')))
 // v5.8: mətni seçəndə Kopyala · Şəkil kartı · Paylaş
 const SelectShare = lazy(lazyWhenIdle(() => import('./components/SelectShare')))
+// v5.8: bayram günlərində bayram görünüşü (utils/eid)
+const EidMode = lazy(lazyWhenIdle(() => import('./components/EidMode')))
 // "Səhv bildir" — bütün sayt üçün tək dialoq (düymələr yalnız hadisə göndərir)
 const ReportErrorHost = lazy(lazyWhenIdle(() => import('./components/ReportErrorButton').then(m => ({ default: m.ReportErrorHost }))))
 
@@ -495,6 +497,7 @@ function AppInner() {
         <BadgeToast />
         <AzanMoment />
         <SelectShare />
+        <EidMode />
       </Suspense>
     </>
   )
