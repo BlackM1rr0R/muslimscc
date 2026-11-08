@@ -77,6 +77,11 @@ export function stopAzan() {
   emit()
 }
 
+/** v5.7: azan anı (components/AzanMoment) — oxunan yer, uzunluq və hansı namaz */
+export function azanState() {
+  return { playing: isAzanPlaying(), time: audio ? audio.currentTime : 0, duration: audio && Number.isFinite(audio.duration) ? audio.duration : 0, key: lastKey }
+}
+
 /** 'azan-fajr' → 'fajr'; əzan tag-ı deyilsə null. */
 export function azanKeyFromTag(tag) {
   const m = /^azan-(\w+)$/i.exec(String(tag || ''))

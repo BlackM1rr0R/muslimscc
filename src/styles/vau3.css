@@ -1042,3 +1042,18 @@ html.qm-splash[data-theme="dark"] body::before{background:radial-gradient(circle
 html.qm-splash body::after{content:'';position:fixed;left:50%;top:46%;width:104px;height:104px;margin:-52px 0 0 -52px;z-index:2147483001;border-radius:30px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230f5a47'/><path d='M9.4 9.4h13.2v13.2H9.4zM16 6.7 25.3 16 16 25.3 6.7 16z' fill='none' stroke='%23e6cc95' stroke-width='1.5' stroke-linejoin='round'/><circle cx='16' cy='16' r='2.1' fill='%23d8b46a'/></svg>") center/contain no-repeat;box-shadow:0 0 0 0 rgba(216,180,106,.55),0 18px 50px rgba(15,90,71,.35);pointer-events:none;animation:qm-spl-mark 1.35s cubic-bezier(.22,1,.36,1) forwards}
 @keyframes qm-spl-mark{0%{opacity:0;transform:scale(.55) rotate(-45deg)}38%{opacity:1;transform:scale(1) rotate(0);box-shadow:0 0 0 0 rgba(216,180,106,.55),0 18px 50px rgba(15,90,71,.35)}62%{opacity:1;transform:scale(1);box-shadow:0 0 0 26px rgba(216,180,106,0),0 18px 50px rgba(15,90,71,.35)}100%{opacity:0;transform:scale(1.4)}}
 @keyframes qm-spl-bg{to{opacity:0;visibility:hidden}}
+
+/* v5.7: ana səhifə hero-sunda şəxsi salam (components/home/HeroGreeting) */
+.hg { display: grid; gap: 6px; margin-bottom: 18px; }
+@media (max-width: 767.98px) { .hg { order: 1; margin-bottom: 10px; } }
+.hg-hi { margin: 0; font-family: var(--font-display, inherit); font-size: clamp(1.05rem, .95rem + .5vw, 1.3rem); font-weight: 700; color: var(--text-strong); line-height: 1.35; }
+.hg-part { color: var(--accent-text); }
+.hg-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: var(--step--1); }
+.hg-streak { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent-text); font-weight: 700; }
+.hg-edit { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 2px 0; background: none; font: inherit; color: var(--text-secondary); cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.hg-form { display: flex; gap: 6px; align-items: center; }
+.hg-input { max-width: 180px; min-height: 34px; padding: 4px 10px; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .hg-w { display: inline-block; animation: hg-word .6s cubic-bezier(.22, 1, .36, 1) calc(var(--wi, 0) * 90ms) both; }
+}
+@keyframes hg-word { from { opacity: 0; transform: translate3d(0, .5em, 0); } }

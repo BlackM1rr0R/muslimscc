@@ -24,6 +24,7 @@ import Icon from '../components/Icon'
 import { StatTile } from '../components/viz'
 import { pathFor } from '../seo/routes'
 import CityPicker from '../components/CityPicker'
+import HeroGreeting from '../components/home/HeroGreeting'
 import { HADITH_COUNT } from '../data/siteStats'
 import { lazyWhenIdle, whenIdle } from '../utils/idle'
 
@@ -610,7 +611,8 @@ export default function HomePage({ setPage }) {
 
           <div className="hp-hero-inner">
             <div className="hp-hero-content">
-              <span className="ui-eyebrow hp-badge">{l.badge}</span>
+              {/* v5.7: şəxsi salam (prerenderdə — adi nişan) */}
+              <HeroGreeting fallback={l.badge} lang={lang} />
 
               <h1 className="hp-hero-title" aria-label={brand}>
                 {/* "Muslims" + ".cc" bir sətirdə (domen kimi oxunsun).

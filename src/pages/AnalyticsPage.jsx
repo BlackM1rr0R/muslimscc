@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
 import '../styles/AnalyticsPage.css'
 import Breadcrumb from '../components/Breadcrumb'
@@ -32,7 +32,7 @@ const X = {
     games: 'Kviz və müsabiqə', gamesSub: 'ən yaxşı nəticə, 10 sualdan', noGames: 'Hələ kviz oynanmayıb.', play: 'Kvizi aç',
     otherEyebrow: 'Hədis, dua, sədəqə', otherTitle: 'Saxladıqlarınız və xeyirləriniz', otherLead: 'Sevimli hədis və dualar, dua gündəliyi, zikr və sədəqə qeydləri.',
     dhikr: 'Zikr (cəmi)', none: 'Hələ qeyd yoxdur.',
-    achEyebrow: 'Motivasiya', tier: { bronze: 'Bürünc', silver: 'Gümüş', gold: 'Qızıl' }, achLead: 'Nişanlar ardıcıllığı xatırlatmaq üçündür; əsl ölçü niyyət və ixlasdır.',
+    achEyebrow: 'Motivasiya', bShare: 'Paylaş', bEarned: 'Nişan qazandım', bSaved: 'Şəkil yükləndi', tier: { bronze: 'Bürünc', silver: 'Gümüş', gold: 'Qızıl' }, achLead: 'Nişanlar ardıcıllığı xatırlatmaq üçündür; əsl ölçü niyyət və ixlasdır.',
   },
   en: {
     how: 'Only what you mark on this device is counted here: Quran reading, prayer and daily trackers, dhikr, the charity log and quizzes. Nothing is sent to a server.',
@@ -49,7 +49,7 @@ const X = {
     games: 'Quizzes', gamesSub: 'best result out of 10', noGames: 'No quiz played yet.', play: 'Open the quiz',
     otherEyebrow: 'Hadith, dua, charity', otherTitle: 'What you saved and gave', otherLead: 'Favourite hadiths and duas, the dua journal, dhikr and charity records.',
     dhikr: 'Dhikr (total)', none: 'No records yet.',
-    achEyebrow: 'Motivation', tier: { bronze: 'Bronze', silver: 'Silver', gold: 'Gold' }, achLead: 'Badges are a reminder to stay consistent; the real measure is intention and sincerity.',
+    achEyebrow: 'Motivation', bShare: 'Share', bEarned: 'Badge earned', bSaved: 'Image saved', tier: { bronze: 'Bronze', silver: 'Silver', gold: 'Gold' }, achLead: 'Badges are a reminder to stay consistent; the real measure is intention and sincerity.',
   },
   ru: {
     how: 'Здесь учитывается только то, что вы отмечаете на этом устройстве: чтение Корана, трекеры намаза и дня, зикр, дневник садаки и викторины. Ничего не отправляется на сервер.',
@@ -66,7 +66,7 @@ const X = {
     games: 'Викторины', gamesSub: 'лучший результат из 10', noGames: 'Викторины ещё не пройдены.', play: 'Открыть викторину',
     otherEyebrow: 'Хадисы, дуа, садака', otherTitle: 'Сохранённое и благие дела', otherLead: 'Избранные хадисы и дуа, дневник дуа, зикр и записи садаки.',
     dhikr: 'Зикр (всего)', none: 'Записей пока нет.',
-    achEyebrow: 'Мотивация', tier: { bronze: 'Бронза', silver: 'Серебро', gold: 'Золото' }, achLead: 'Значки лишь напоминают о постоянстве; истинная мера — намерение и искренность.',
+    achEyebrow: 'Мотивация', bShare: 'Поделиться', bEarned: 'Значок получен', bSaved: 'Картинка сохранена', tier: { bronze: 'Бронза', silver: 'Серебро', gold: 'Золото' }, achLead: 'Значки лишь напоминают о постоянстве; истинная мера — намерение и искренность.',
   },
   ar: {
     how: 'تُحسب هنا فقط الأعمال التي تسجّلها على هذا الجهاز: قراءة القرآن، ومتابعة الصلاة واليوم، والذكر، وسجل الصدقة، والاختبارات. لا يُرسل شيء إلى الخادم.',
@@ -83,7 +83,7 @@ const X = {
     games: 'الاختبارات', gamesSub: 'أفضل نتيجة من ١٠', noGames: 'لم تُجرِ أي اختبار بعد.', play: 'افتح الاختبار',
     otherEyebrow: 'الحديث والدعاء والصدقة', otherTitle: 'ما حفظته وما قدّمته', otherLead: 'الأحاديث والأدعية المفضلة، ومذكرة الدعاء، والذكر، وسجل الصدقة.',
     dhikr: 'الذكر (المجموع)', none: 'لا سجلات بعد.',
-    achEyebrow: 'التحفيز', tier: { bronze: 'برونزي', silver: 'فضي', gold: 'ذهبي' }, achLead: 'الشارات تذكير بالمداومة؛ والميزان الحقيقي النية والإخلاص.',
+    achEyebrow: 'التحفيز', bShare: 'مشاركة', bEarned: 'حصلت على وسام', bSaved: 'تم حفظ الصورة', tier: { bronze: 'برونزي', silver: 'فضي', gold: 'ذهبي' }, achLead: 'الشارات تذكير بالمداومة؛ والميزان الحقيقي النية والإخلاص.',
   },
   tr: {
     how: 'Burada yalnızca bu cihazda işaretledikleriniz sayılır: Kur’an okuma, namaz ve günlük takip, zikir, sadaka günlüğü ve bilgi yarışmaları. Hiçbir şey sunucuya gönderilmez.',
@@ -100,7 +100,7 @@ const X = {
     games: 'Bilgi yarışmaları', gamesSub: '10 sorudan en iyi sonuç', noGames: 'Henüz yarışma oynanmadı.', play: 'Yarışmayı aç',
     otherEyebrow: 'Hadis, dua, sadaka', otherTitle: 'Kaydettikleriniz ve hayırlarınız', otherLead: 'Favori hadis ve dualar, dua günlüğü, zikir ve sadaka kayıtları.',
     dhikr: 'Zikir (toplam)', none: 'Henüz kayıt yok.',
-    achEyebrow: 'Motivasyon', tier: { bronze: 'Bronz', silver: 'Gümüş', gold: 'Altın' }, achLead: 'Rozetler düzenliliği hatırlatmak içindir; asıl ölçü niyet ve ihlastır.',
+    achEyebrow: 'Motivasyon', bShare: 'Paylaş', bEarned: 'Rozet kazandım', bSaved: 'Görsel kaydedildi', tier: { bronze: 'Bronz', silver: 'Gümüş', gold: 'Altın' }, achLead: 'Rozetler düzenliliği hatırlatmak içindir; asıl ölçü niyet ve ihlastır.',
   },
 }
 const PRAYER_LABEL = {
@@ -173,6 +173,17 @@ export default function AnalyticsPage({ setPage }) {
   // nişan bir dəfə yazılır; məlumat sonra silinsə də rəfdə qalır.
   const achievements = useMemo(() => { syncBadges(); return badgeList() }, [])
   const achievedCount = achievements.filter(a => a.done).length
+  // v5.7: qazanılmış nişanı story ölçülü şəkil kimi paylaş (utils/badgeCard)
+  const [shared, setShared] = useState(null)
+  const shareBadge = async (e, a) => {
+    const svg = e.currentTarget.closest('.bdg-card')?.querySelector('.bdg-medal svg')
+    const { shareBadgeCard } = await import('../utils/badgeCard.js')
+    const r = await shareBadgeCard({
+      tier: a.tier, iconSvg: svg, eyebrow: x.bEarned, title: pickUi(a.name, lang), rtl: lang === 'ar', lang,
+      sub: a.at ? fmtDay(new Date(`${a.at}T12:00:00`), { day: 'numeric', month: 'long', year: 'numeric' }) : '', fileName: `muslims-cc-${a.id}.png`,
+    })
+    if (r === 'saved') { setShared(a.id); setTimeout(() => setShared(null), 2500) }
+  }
 
   // Daxili keçid: adi klikdə SPA naviqasiyası, Ctrl/orta düymə — yeni vərəq
   const go = (key) => (e) => {
@@ -507,7 +518,12 @@ export default function AnalyticsPage({ setPage }) {
                 </span>
                 <span className="bdg-card__name">{pickUi(a.name, lang)}</span>
                 {a.done
-                  ? <span className="bdg-card__meta">{a.at ? fmtDay(new Date(`${a.at}T12:00:00`), { day: "numeric", month: "short", year: "numeric" }) : t.achieved}</span>
+                  ? <>
+                    <span className="bdg-card__meta">{a.at ? fmtDay(new Date(`${a.at}T12:00:00`), { day: "numeric", month: "short", year: "numeric" }) : t.achieved}</span>
+                    <button type="button" className="bdg-card__share" onClick={(e) => shareBadge(e, a)} aria-label={`${x.bShare}: ${pickUi(a.name, lang)}`} data-testid="badge-share">
+                      <Icon name="share" size={14} /> {shared === a.id ? x.bSaved : x.bShare}
+                    </button>
+                  </>
                   : <>
                     <span className="bdg-card__bar" aria-hidden="true"><i style={{ "--p": a.value / a.goal }} /></span>
                     <span className="bdg-card__meta"><span className="ui-num" dir="ltr">{a.value.toLocaleString("en-US").replace(/,/g, " ")} / {a.goal.toLocaleString("en-US").replace(/,/g, " ")}</span> <span className="ui-sr-only">{t.locked}</span></span>

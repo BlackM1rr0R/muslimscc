@@ -41,3 +41,34 @@ test('yeni nişan: bildiriş çıxır və rəfə aparır', async ({ page }) => {
   await expect(page).toHaveURL(/\/analytics#an-ach$/)
   await expect(page.getByTestId('badge-shelf').locator('[data-badge=khatm]')).toHaveClass(/is-done/)
 })
+
+test('nişanı paylaş: story ölçülü PNG yüklənir', async ({ page }) => {
+  await page.addInitScript(() => { localStorage.setItem('qm_badges_v1', JSON.stringify({ khatm: '2026-11-08' })) })
+  await page.goto('/analytics')
+  await settle(page)
+  const btn = page.locator('[data-badge=khatm]').getByTestId('badge-share')
+  await btn.scrollIntoViewIfNeeded()
+  const [dl] = await Promise.all([page.waitForEvent('download'), btn.click()])
+  expect(dl.suggestedFilename()).toBe('muslims-cc-khatm.png')
+})
+
+test('ana səhifə salamı: ad yadda qalır, seriya görünür', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('seeded')) return
+    sessionStorage.setItem('seeded', '1')
+    const k = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+    const tr = {}; for (let i = 1; i <= 3; i++) tr[k(i)] = { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true }
+    localStorage.setItem('daily_tracker', JSON.stringify(tr))
+  })
+  await page.goto('/')
+  await settle(page)
+  const g = page.getByTestId('hero-greeting')
+  await expect(g).toContainText('Əssəlamu aleykum')
+  await expect(g).toContainText('3 gün 5/5')
+  await g.getByTestId('hg-edit').click()
+  await g.locator('input').fill('Elçin')
+  await g.locator('input').press('Enter')
+  await expect(g).toContainText('Əssəlamu aleykum, Elçin!')
+  await page.reload()
+  await expect(page.getByTestId('hero-greeting')).toContainText('Elçin')
+})

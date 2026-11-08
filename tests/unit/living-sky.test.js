@@ -28,3 +28,15 @@ describe('livingSky.skyAt', () => {
     expect(skyAt(600, {}).phase).toBe('day')
   })
 })
+
+describe('HeroGreeting.partOfDay', async () => {
+  const { partOfDay } = await import('../../src/utils/greeting.js')
+  it('səma fazası + saat → arzu', () => {
+    expect(partOfDay('fajr', 6)).toBe('morning')
+    expect(partOfDay('day', 13)).toBe('day')
+    expect(partOfDay('maghrib', 17)).toBe('evening')
+    expect(partOfDay('night', 19)).toBe('evening')
+    expect(partOfDay('night', 23)).toBe('night')
+    expect(partOfDay('', 9)).toBe('morning')
+  })
+})

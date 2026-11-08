@@ -744,6 +744,14 @@ export default function QuranPage() {
       const dates = prev.dates.includes(today) ? prev.dates : [...prev.dates, today]
       const next = { reads, sessions: prev.sessions + 1, dates }
       try { localStorage.setItem('quran_stats', JSON.stringify(next)) } catch {}
+      // v5.7: cümə günü Kəhf surəsi (nişan — utils/badges 'kahf'): oxunan cümələrin tarixi
+      if (Number(surahNum) === 18 && now.getDay() === 5) {
+        try {
+          const k = JSON.parse(localStorage.getItem('kahf_fridays_v1') || '[]')
+          const arr = Array.isArray(k) ? k : []
+          if (!arr.includes(today)) localStorage.setItem('kahf_fridays_v1', JSON.stringify([...arr, today].slice(-60)))
+        } catch { /* */ }
+      }
       return next
     })
   }

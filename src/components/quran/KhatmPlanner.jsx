@@ -27,7 +27,7 @@ const L = {
     dayN: (d, t) => `${t} günün ${d}-ci günü`, streak: 'ardıcıl gün', left: 'qalan səhifə',
     behind: n => `Plandan ${n} səhifə geridəsiniz — narahat olmayın, bu gün bir az çox oxuyun.`,
     ahead: n => `Plandan ${n} səhifə öndəsiniz.`, onTrack: 'Plan üzrə gedirsiniz.',
-    finished: 'Təbrik edirik — Quranı bu planla xətm etdiniz!', reset: 'Planı sıfırla', resetConfirm: 'Plan silinsin?',
+    finished: 'Təbrik edirik — Quranı bu planla xətm etdiniz!', share: 'Şəkil kimi paylaş', shareT: 'Xətm', shareEy: 'Quranı xətm etdim', shareSub: '{n} gündə · 604 səhifə', reset: 'Planı sıfırla', resetConfirm: 'Plan silinsin?',
     note: 'Yalnız bu cihazda saxlanılır.', startsIn: 'Başlanğıc',
   },
   en: {
@@ -39,7 +39,7 @@ const L = {
     dayN: (d, t) => `day ${d} of ${t}`, streak: 'day streak', left: 'pages left',
     behind: n => `You are ${n} pages behind the plan — no worries, read a little more today.`,
     ahead: n => `You are ${n} pages ahead of the plan.`, onTrack: 'You are on track.',
-    finished: 'Congratulations — you completed the Quran with this plan!', reset: 'Reset the plan', resetConfirm: 'Delete the plan?',
+    finished: 'Congratulations — you completed the Quran with this plan!', share: 'Share as image', shareT: 'Khatm', shareEy: 'I completed the Quran', shareSub: 'In {n} days · 604 pages', reset: 'Reset the plan', resetConfirm: 'Delete the plan?',
     note: 'Stored on this device only.', startsIn: 'Starts in',
   },
   ru: {
@@ -51,7 +51,7 @@ const L = {
     dayN: (d, t) => `день ${d} из ${t}`, streak: 'дней подряд', left: 'стр. осталось',
     behind: n => `Вы отстаёте от плана на ${n} стр. — не страшно, прочитайте сегодня немного больше.`,
     ahead: n => `Вы опережаете план на ${n} стр.`, onTrack: 'Вы идёте по плану.',
-    finished: 'Поздравляем — вы завершили чтение Корана по этому плану!', reset: 'Сбросить план', resetConfirm: 'Удалить план?',
+    finished: 'Поздравляем — вы завершили чтение Корана по этому плану!', share: 'Поделиться картинкой', shareT: 'Хатм', shareEy: 'Хатм Корана завершён', shareSub: 'За {n} дн. · 604 страницы', reset: 'Сбросить план', resetConfirm: 'Удалить план?',
     note: 'Хранится только на этом устройстве.', startsIn: 'Начало',
   },
   ar: {
@@ -63,7 +63,7 @@ const L = {
     dayN: (d, t) => `اليوم ${d} من ${t}`, streak: 'أيام متتالية', left: 'صفحة متبقية',
     behind: n => `أنت متأخر عن الخطة بـ ${n} صفحة — لا بأس، اقرأ اليوم أكثر قليلًا.`,
     ahead: n => `أنت متقدم على الخطة بـ ${n} صفحة.`, onTrack: 'أنت على الخطة.',
-    finished: 'مبارك — أتممت ختم القرآن بهذه الخطة!', reset: 'أعد ضبط الخطة', resetConfirm: 'هل تحذف الخطة؟',
+    finished: 'مبارك — أتممت ختم القرآن بهذه الخطة!', share: 'شارك كصورة', shareT: 'ختمة', shareEy: 'ختمتُ القرآن', shareSub: 'في {n} يومًا · 604 صفحات', reset: 'أعد ضبط الخطة', resetConfirm: 'هل تحذف الخطة؟',
     note: 'تُحفظ على هذا الجهاز فقط.', startsIn: 'البداية',
   },
   tr: {
@@ -75,7 +75,7 @@ const L = {
     dayN: (d, t) => `${t} günün ${d}. günü`, streak: 'gün seri', left: 'sayfa kaldı',
     behind: n => `Planın ${n} sayfa gerisindesiniz — endişelenmeyin, bugün biraz fazla okuyun.`,
     ahead: n => `Planın ${n} sayfa önündesiniz.`, onTrack: 'Plana uygun gidiyorsunuz.',
-    finished: 'Tebrikler — Kur’an’ı bu planla hatmettiniz!', reset: 'Planı sıfırla', resetConfirm: 'Plan silinsin mi?',
+    finished: 'Tebrikler — Kur’an’ı bu planla hatmettiniz!', share: 'Görsel olarak paylaş', shareT: 'Hatim', shareEy: 'Kur’an’ı hatmettim', shareSub: '{n} günde · 604 sayfa', reset: 'Planı sıfırla', resetConfirm: 'Plan silinsin mi?',
     note: 'Yalnızca bu cihazda saklanır.', startsIn: 'Başlangıç',
   },
 }
@@ -171,6 +171,13 @@ export default function KhatmPlanner({ lang, surahName }) {
     celebrate({ size: info.to >= MUSHAF_PAGES ? 'big' : 'small' })
   }
   const reset = () => { if (window.confirm(t.resetConfirm)) save(null) }
+  // v5.7: bitmiş xətm — story ölçülü kart (utils/badgeCard; ikon — Mushaf)
+  const shareKhatm = async (e) => {
+    const svg = e.currentTarget.querySelector('.qk__shareic svg')
+    const days = Math.max(1, dayDiff(plan.start, plan.log[plan.log.length - 1] || info.today) + 1)
+    const { shareBadgeCard } = await import('../../utils/badgeCard.js')
+    await shareBadgeCard({ tier: 'gold', iconSvg: svg, eyebrow: t.shareEy, title: t.shareT, sub: t.shareSub.replace('{n}', days), rtl: lang === 'ar', lang, fileName: 'muslims-cc-khatm.png' })
+  }
   const s = surahAtPage(info.from)
 
   return (
@@ -215,6 +222,11 @@ export default function KhatmPlanner({ lang, surahName }) {
               <Icon name="check" className="ui-btn__icon" />{t.done}
             </button>
           </>
+        )}
+        {finished && (
+          <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={shareKhatm} data-testid="khatm-share">
+            <Icon name="share" className="ui-btn__icon" />{t.share}<span className="qk__shareic" hidden><Icon name="mushaf" /></span>
+          </button>
         )}
         <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm qk__reset" onClick={reset}>
           <Icon name="refresh" className="ui-btn__icon" />{t.reset}

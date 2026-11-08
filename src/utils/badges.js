@@ -13,6 +13,7 @@
 // ═══════════════════════════════════════════════════════
 import { readAnalytics, localDate, safeJSON } from './analyticsData.js'
 import { BADGE_NAMES } from '../components/badgeNames.js'
+import { gregorianToHijri, parseGKey } from './hijri.js'
 import { loadSnapshot, loadHayd, bestStreak, earliestDate, dayState, addDays, toKey } from './prayerTracker.js'
 
 export const BADGE_KEY = 'qm_badges_v1'
@@ -40,6 +41,11 @@ const DEFS = [
   { id: 'adhkar_both', icon: 'sunset', tier: 'silver', goal: 1, v: d => d.adhkarBoth, },
   { id: 'path', icon: 'learn', tier: 'silver', goal: 1, v: d => d.pathsDone, },
   { id: 'hifz_5', icon: 'hifz', tier: 'silver', goal: 5, v: d => d.hifzMemorized, },
+  // v5.7: mövsümi nişanlar (hicri təqvim — Ümmül-Qura)
+  { id: 'ramadan_quran', icon: 'ramadan', tier: 'gold', goal: 20, v: d => d.ramadanQuran },
+  { id: 'dhul_hijja', icon: 'hajjguide', tier: 'gold', goal: 10, v: d => d.dhulHijja },
+  { id: 'kahf', icon: 'quran', tier: 'bronze', goal: 1, v: d => d.kahf },
+  { id: 'kahf_4', icon: 'mushaf', tier: 'silver', goal: 4, v: d => d.kahf },
   { id: 'scholar', icon: 'prayerguide', tier: 'silver', goal: 10, v: d => Math.max(0, ...Object.values(d.quizScores || {})), },
   { id: 'hadith_20', icon: 'hadith', tier: 'bronze', goal: 20, v: d => d.hadithFavs, },
   { id: 'dua_10', icon: 'duas', tier: 'bronze', goal: 10, v: d => d.journalTotal, },
@@ -60,18 +66,35 @@ function saveEarned(e) {
 
 /** analyticsData-ya əlavə göstəricilər: 5/5 günlər, seriya, xətm, azkar, dərs yolu */
 function extraStats() {
-  const out = { fullDays: 0, prayerBest: 0, khatmPages: 0, adhkarAny: 0, adhkarBoth: 0, pathsDone: 0 }
+  const out = { fullDays: 0, prayerBest: 0, khatmPages: 0, adhkarAny: 0, adhkarBoth: 0, pathsDone: 0, ramadanQuran: 0, dhulHijja: 0, kahf: 0 }
+  const hOf = (k) => { const g = parseGKey(k); return g ? gregorianToHijri(g) : null }
   try {
     const snap = loadSnapshot(), periods = loadHayd()?.periods || [], today = toKey()
     const first = earliestDate(snap)
+    const dh = {}
     if (first) {
       let n = 0
       for (let d = first; d <= today && n < 4000; d = addDays(d, 1), n++) {
-        if (dayState(snap, periods, d, today).state === 'complete') out.fullDays++
+        if (dayState(snap, periods, d, today).state === 'complete') {
+          out.fullDays++
+          const h = hOf(d)
+          // Zülhiccənin ilk 10 günü — ən çox tam (5/5) gün olan il
+          if (h && h.month === 12 && h.day <= 10) dh[h.year] = (dh[h.year] || 0) + 1
+        }
       }
       out.prayerBest = bestStreak(snap, periods, today)
     }
+    out.dhulHijja = Math.max(0, ...Object.values(dh))
   } catch { /* */ }
+  // Ramazan: bir Ramazanda Quran oxunan gün sayı (ən çox olan il)
+  const rq = {}
+  for (const k of safeJSON('quran_stats', {}).dates || []) {
+    const h = typeof k === 'string' ? hOf(k) : null
+    if (h && h.month === 9) rq[h.year] = (rq[h.year] || 0) + 1
+  }
+  out.ramadanQuran = Math.max(0, ...Object.values(rq))
+  const kf = safeJSON('kahf_fridays_v1', [])
+  out.kahf = Array.isArray(kf) ? new Set(kf).size : 0
   const plan = safeJSON('quran_khatm_plan', {})
   out.khatmPages = Math.min(MUSHAF_PAGES, Math.max(0, Math.floor(Number(plan.done) || 0)))
   const ad = safeJSON(ADHKAR_DONE_KEY, {})

@@ -22,4 +22,8 @@ export const BADGE_NAMES = {
   hadith_20: { az: 'Hədis kolleksiyaçısı', en: 'Hadith collector', ru: 'Коллекционер хадисов', ar: 'جامع الأحاديث', tr: 'Hadis koleksiyoncusu' },
   dua_10: { az: 'Dua edən', en: 'Supplicator', ru: 'Молящийся', ar: 'الداعي', tr: 'Dua eden' },
   charity_10: { az: 'Əliaçıq', en: 'Generous', ru: 'Щедрый', ar: 'كريم', tr: 'Cömert' },
+  ramadan_quran: { az: 'Quranla Ramazan', en: 'Ramadan with the Quran', ru: 'Рамадан с Кораном', ar: 'رمضان مع القرآن', tr: 'Kur’an’la Ramazan' },
+  dhul_hijja: { az: 'Zülhiccənin 10 günü', en: 'The 10 days of Dhul Hijjah', ru: '10 дней Зуль-хиджжи', ar: 'عشر ذي الحجة', tr: 'Zilhicce’nin 10 günü' },
+  kahf: { az: 'Cümə Kəhfi', en: 'Al-Kahf on Friday', ru: 'Аль-Кахф в пятницу', ar: 'الكهف يوم الجمعة', tr: 'Cuma Kehf’i' },
+  kahf_4: { az: '4 cümə Kəhf', en: 'Al-Kahf on 4 Fridays', ru: 'Аль-Кахф 4 пятницы', ar: 'الكهف 4 جمعات', tr: '4 cuma Kehf' },
 }

@@ -75,3 +75,25 @@ describe('badges', () => {
     expect(events).toHaveLength(1)
   })
 })
+
+describe('mövsümi nişanlar', async () => {
+  const { hijriToGregorian, gKey } = await import('../../src/utils/hijri.js')
+  it('Ramazanda 20 gün Quran, cümə Kəhfi', () => {
+    localStorage.setItem(BADGE_KEY, '{}')
+    const dates = Array.from({ length: 20 }, (_, i) => gKey(hijriToGregorian({ year: 1447, month: 9, day: i + 1 })))
+    localStorage.setItem('quran_stats', JSON.stringify({ reads: {}, sessions: 20, dates }))
+    localStorage.setItem('kahf_fridays_v1', JSON.stringify(['2026-11-06']))
+    const ids = syncBadges().map(b => b.id)
+    expect(ids).toContain('ramadan_quran')
+    expect(ids).toContain('kahf')
+    expect(ids).not.toContain('kahf_4')
+  })
+  it('Zülhiccənin 10 günü — hamısı 5/5', () => {
+    localStorage.setItem(BADGE_KEY, '{}')
+    const tr = {}
+    for (let d = 1; d <= 10; d++) tr[gKey(hijriToGregorian({ year: 1447, month: 12, day: d }))] = { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true }
+    localStorage.setItem('daily_tracker', JSON.stringify(tr))
+    const b = badgeList().find(x => x.id === 'dhul_hijja')
+    expect(b.done).toBe(true)
+  })
+})
