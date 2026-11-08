@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
+import DeferRender from '../components/DeferRender'
 import ReaderDialog from '../components/reader/ReaderDialog'
 import { shareLink } from '../components/collect/useStarred'
 import { CopyStatus } from '../components/collect/StarButton'
@@ -25,6 +26,8 @@ import { StatTile, ChartFigure, BarChart } from '../components/viz'
 import PageLink from '../components/PageLink'
 import { localizeSource } from '../utils/sourceNames'
 import { pickUi } from '../utils/uiText'
+// v5.7: 3D Məscidül-Haram (three.js — yalnız bu bölmə ekrana yaxınlaşanda yüklənir)
+const Kaaba3D = lazy(() => import('../components/media/Kaaba3D'))
 
 const SAHIH = { az: 'səhih (əl-Albani)', en: 'sahih (al-Albani)', ru: 'достоверный (аль-Альбани)', ar: 'صحيح (الألباني)', tr: 'sahih (Elbânî)' }
 
@@ -419,6 +422,17 @@ export function HolyPlacesPage({ setPage }) {
               <p className="holy-adab-text">{lb.adabText}</p>
             </div>
           </aside>
+        </div>
+      </section>
+
+      {/* ═══ 3D model ═══ */}
+      <section className="ui-section ui-section--tight" aria-label="3D">
+        <div className="ui-container">
+          <DeferRender height="520px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 520 }} />}>
+              <Kaaba3D lang={lk} />
+            </Suspense>
+          </DeferRender>
         </div>
       </section>
 

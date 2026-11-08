@@ -1,0 +1,24 @@
+/* 3D Məscidül-Haram (components/media/Kaaba3D.jsx) */
+.k3d { display: grid; gap: 12px; padding: 16px; margin: 0; }
+.k3d__head { display: grid; gap: 4px; }
+.k3d__title { font-weight: 800; font-size: 1.15rem; }
+.k3d__lead { font-size: .88rem; color: var(--text-secondary); }
+.k3d__stage { position: relative; border-radius: 16px; overflow: hidden; background: linear-gradient(180deg, #9fc8ec, #e8e3d8); min-height: 260px; touch-action: none; }
+.k3d__stage canvas { display: block; cursor: grab; }
+.k3d__stage canvas:active { cursor: grabbing; }
+.k3d__nogl { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 20px; text-align: center; color: #1a2a3a; }
+.k3d__tools { position: absolute; top: 10px; inset-inline: 10px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+.k3d__tools > * { pointer-events: auto; }
+.k3d__modes { display: inline-flex; gap: 2px; padding: 3px; border-radius: 99px; background: rgba(10, 20, 40, .55); backdrop-filter: blur(6px); }
+.k3d__mode { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 99px; padding: 6px 12px; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; background: none; color: rgba(255, 255, 255, .8); }
+.k3d__mode.is-on { background: #fff; color: #102030; }
+.k3d__reset { width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; background: rgba(10, 20, 40, .55); color: #fff; }
+.k3d__legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: .8rem; color: var(--text-secondary); }
+.k3d__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.k3d__sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.k3d__sw--kaaba { background: #111; box-shadow: inset 0 -3px 0 #d9b45c; }
+.k3d__sw--stone { background: #cfd4da; border-radius: 50%; }
+.k3d__sw--hijr { background: #efece6; border: 1px solid #bbb; border-radius: 6px 6px 0 0; }
+.k3d__sw--maqam { background: #d9b45c; }
+.k3d__sw--tawaf { background: #ffe7a3; border-radius: 50%; box-shadow: 0 0 6px #ffd56a; }
+.k3d__note { color: var(--text-muted); }

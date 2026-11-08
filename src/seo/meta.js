@@ -841,11 +841,26 @@ export function pickMeta(key, lang = 'az') {
   return entry.az || entry.en || META.home.az
 }
 
+/**
+ * v5.7: Google ~60–65 simvoldan sonrasını kəsir (əlavə dillərin tərcümələri uzundur).
+ * Başlıq həddən uzundursa, sonuncu " — " / " – " hissəsi atılır (əsas məna əvvəldədir).
+ */
+export const TITLE_MAX = 65
+export function fitTitle(t, max = TITLE_MAX) {
+  let s = String(t || '')
+  while ([...s].length > max) {
+    const i = Math.max(s.lastIndexOf(' — '), s.lastIndexOf(' – '))
+    if (i < 12) break
+    s = s.slice(0, i)
+  }
+  return s
+}
+
 /** Tam <title> — səhifə adı + brend şəkilçisi (sığırsa). */
 export function titleFor(key, lang = 'az') {
   const { t } = pickMeta(key, lang)
   const brand = brandName(lang)
-  return key === 'home' ? `${brand} — ${t}` : withBrand(t, brand)
+  return key === 'home' ? fitTitle(`${brand} — ${t}`) : withBrand(fitTitle(t), brand)
 }
 
 /** Meta description. */
