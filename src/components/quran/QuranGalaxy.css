@@ -1,0 +1,26 @@
+/* 3D Quran qalaktikası (components/quran/QuranGalaxy.jsx) */
+.qgx { display: grid; gap: 12px; padding: 16px; margin: 0 0 16px; }
+.qgx__head { display: grid; gap: 4px; }
+.qgx__title { font-weight: 800; font-size: 1.15rem; }
+.qgx__lead { font-size: .88rem; color: var(--text-secondary); }
+.qgx__stage { position: relative; border-radius: 16px; overflow: hidden; background: #03050d; min-height: 300px; touch-action: none; }
+.qgx__stage canvas { display: block; cursor: grab; }
+.qgx__nogl { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: #fff; padding: 20px; text-align: center; }
+.qgx__tools { position: absolute; top: 10px; inset-inline: 10px; display: flex; justify-content: space-between; gap: 8px; pointer-events: none; }
+.qgx__tools > * { pointer-events: auto; }
+.qgx__legend { display: flex; gap: 10px; margin: 0; padding: 6px 10px; list-style: none; border-radius: 99px; background: rgba(0, 0, 0, .45); color: #fff; font-size: 12px; }
+.qgx__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.qgx__sw { width: 10px; height: 10px; border-radius: 50%; }
+.qgx__sw--mk { background: #f0cf7e; box-shadow: 0 0 8px #f0cf7e; }
+.qgx__sw--md { background: #6fe3c4; box-shadow: 0 0 8px #6fe3c4; }
+.qgx__order { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255, 255, 255, .3); border-radius: 99px; padding: 6px 12px; background: rgba(0, 0, 0, .45); color: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.qgx__order.is-on { background: #f0cf7e; color: #241a05; border-color: #f0cf7e; }
+.qgx__info { position: absolute; inset-inline: 10px; bottom: 10px; display: grid; gap: 4px; padding: 12px 14px; border-radius: 14px; background: rgba(6, 10, 24, .82); color: #fff; border: 1px solid rgba(240, 207, 126, .35); font-size: 13px; }
+.qgx__info b { font-size: 15px; }
+.qgx__info .qgx__ar { font-family: var(--font-arabic); font-size: 18px; color: #f3e6b5; }
+.qgx__info .ui-btn { justify-self: start; margin-top: 4px; }
+.qgx__note { color: var(--text-muted); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .qgx__info { animation: qgx-in .3s cubic-bezier(.22, 1, .36, 1) both; }
+}
+@keyframes qgx-in { from { opacity: 0; transform: translate3d(0, 10px, 0); } }

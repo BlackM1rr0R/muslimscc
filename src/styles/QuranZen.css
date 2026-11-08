@@ -41,3 +41,15 @@ html[data-sky="maghrib"] .qz-sky, html[data-sky="fajr"] .qz-sky { background: ra
 @keyframes qz-ayah { from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.98); } }
 @keyframes qz-tw { 50% { opacity: .2; } }
 @keyframes qz-breathe { 50% { transform: scale(1.12); opacity: .7; } }
+
+/* v5.8: qiraət vizualizatoru — səs səviyyəsinə görə nur halqaları (--lvl 0…1, JS hər kadr) */
+.qz-stage { position: relative; }
+.qz-rings { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; --lvl: 0; }
+.qz-rings i { grid-area: 1 / 1; width: min(78vw, 560px); aspect-ratio: 1; border-radius: 50%;
+  border: 1.5px solid rgba(240, 207, 126, .55); box-shadow: 0 0 40px rgba(240, 207, 126, .2), inset 0 0 40px rgba(240, 207, 126, .08);
+  transform: scale(calc(.72 + var(--lvl) * .22)); opacity: calc(.15 + var(--lvl) * .7); will-change: transform, opacity; }
+.qz-rings i:nth-child(2) { transform: scale(calc(.86 + var(--lvl) * .3)); opacity: calc(.08 + var(--lvl) * .45); }
+.qz-rings i:nth-child(3) { transform: scale(calc(1 + var(--lvl) * .4)); opacity: calc(.04 + var(--lvl) * .3); }
+html.a11y-motion-user .qz-rings { display: none; }
+@media (prefers-reduced-motion: reduce) { .qz-rings { display: none; } }
+.qz-ayah { position: relative; }

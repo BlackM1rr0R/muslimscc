@@ -14,6 +14,8 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Icon from '../Icon'
 import { pickUi } from '../../utils/uiText'
+import { offlineUrl } from '../../utils/quranAudio'
+import { ayahEnvelope, FPS } from '../../utils/audioEnvelope'
 import '../../styles/QuranZen.css'
 
 const T = {
@@ -26,7 +28,7 @@ const T = {
 const SLEEP = [15, 30, 60]
 const STARS = Array.from({ length: 36 }, (_, i) => ({ left: `${(i * 41) % 100}%`, top: `${(i * 29) % 70}%`, '--d': `${(i % 9) * 0.5}s` }))
 
-export default function QuranZen({ player, verses = [], title, lang = 'az', start = 1, onClose }) {
+export default function QuranZen({ player, verses = [], title, lang = 'az', start = 1, surah, onClose }) {
   const t = pickUi(T, lang)
   const [shown, setShown] = useState(player.current || start)
   const [sleepAt, setSleepAt] = useState(null)
@@ -39,6 +41,33 @@ export default function QuranZen({ player, verses = [], title, lang = 'az', star
   // Pleyerin cari ayəsini izlə
   const cur = player.current
   useEffect(() => { if (cur) setShown(cur) }, [cur])
+
+  // v5.8: qiraət vizualizatoru — ayənin səs zərfi (CORS-lu mənbədən ayrıca), pleyerin
+  // oxuduğu saniyəyə görə nur halqaları (--lvl). Zərf yoxdursa — sakit nəfəs ritmi.
+  const ringRef = useRef(null)
+  const envRef = useRef(null)
+  const reciter = player.prefs?.reciter
+  useEffect(() => {
+    envRef.current = null
+    const url = surah && cur ? offlineUrl(reciter, surah, cur) : null
+    let alive = true
+    if (url) ayahEnvelope(url).then(e => { if (alive) envRef.current = e })
+    return () => { alive = false }
+  }, [surah, cur, reciter])
+  useEffect(() => {
+    if (!playing) { ringRef.current?.style.setProperty('--lvl', '0'); return undefined }
+    let raf = 0, sm = 0
+    const tick = () => {
+      const env = envRef.current
+      const tt = player.time?.() || 0
+      const v = env ? env[Math.min(env.length - 1, Math.floor(tt * FPS))] || 0 : 0.35 + Math.sin(performance.now() / 900) * 0.15
+      sm += (v - sm) * 0.25
+      ringRef.current?.style.setProperty('--lvl', sm.toFixed(3))
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [playing, player])
   useEffect(() => {
     rootRef.current?.focus()
     document.documentElement.classList.add('qz-open')
@@ -86,6 +115,7 @@ export default function QuranZen({ player, verses = [], title, lang = 'az', star
       <div className="qz-bar" aria-hidden="true"><i style={{ transform: `scaleX(${shown / total})` }} /></div>
 
       <main className="qz-stage">
+        <div className="qz-rings" ref={ringRef} aria-hidden="true"><i /><i /><i /></div>
         <div className="qz-ayah" key={shown}>
           <p className="qz-ar" lang="ar" dir="rtl">{v.ar} <span className="qz-num">﴿{v.n.toLocaleString('ar-EG')}﴾</span></p>
           {v.tr && lang !== 'ar' && <p className="qz-tr">{v.tr}</p>}

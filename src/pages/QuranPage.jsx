@@ -22,6 +22,7 @@ import SurahArt from '../components/quran/SurahArt'
 import SurahRootCloud from '../components/quran/SurahRootCloud'
 import OfflinePack from '../components/OfflinePack'
 import OfflineAudio from '../components/quran/OfflineAudio'
+import DeferRender from '../components/DeferRender'
 import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta } from '../utils/quranEnc'
 import '../styles/QuranPage.css'
 import { pickUi } from '../utils/uiText'
@@ -523,6 +524,8 @@ const REVEAL_CARDS = 8
 const KaraokeAyah = lazy(() => import('../components/quran/KaraokeAyah'))
 // v5.7: Zen — surə tam ekranda, ayə-ayə (səhifənin pleyeri ilə)
 const QuranZen = lazy(() => import('../components/quran/QuranZen'))
+// v5.8: 3D Quran qalaktikası (three.js — yalnız bölməyə yaxınlaşanda)
+const QuranGalaxy = lazy(() => import('../components/quran/QuranGalaxy'))
 const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
 const KARAOKE_LBL = { az: 'Sözbəsöz dinlə', en: 'Word by word', ru: 'Слушать по словам', tr: 'Kelime kelime dinle', ar: 'استمع كلمةً كلمة' }
 
@@ -1514,7 +1517,7 @@ export default function QuranPage() {
             </div>
             {zen && (
               <Suspense fallback={null}>
-                <QuranZen player={player} verses={surah.verses} lang={lang} start={currentAyahRef.current || 1}
+                <QuranZen player={player} verses={surah.verses} lang={lang} start={currentAyahRef.current || 1} surah={selected}
                   title={surahTitle(surah, lang) || String(selected)} onClose={() => setZen(false)} />
               </Suspense>
             )}
@@ -1893,6 +1896,11 @@ export default function QuranPage() {
             </div>
           </article>
         )}
+          <DeferRender height="560px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 520 }} />}>
+              <QuranGalaxy lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} onOpen={n => openSurah(n)} />
+            </Suspense>
+          </DeferRender>
           <OfflinePack lang={lang} surahUrl={offlineSurahUrl} />
           <OfflineAudio lang={lang} surahUrl={offlineSurahUrl} />
           <KhatmPlanner lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} />

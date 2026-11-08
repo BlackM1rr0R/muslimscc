@@ -1,0 +1,12 @@
+/* 99 ad — göy qübbəsi (components/NamesSky.jsx) */
+.nsky { display: grid; gap: 10px; }
+.nsky__stage { position: relative; border-radius: 18px; overflow: hidden; background: #050a1c; min-height: 320px; touch-action: none; }
+.nsky__stage canvas { display: block; cursor: grab; }
+.nsky__nogl { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 20px; color: #fff; text-align: center; }
+.nsky__badge { position: absolute; top: 10px; inset-inline-start: 10px; padding: 5px 12px; border-radius: 99px; background: rgba(0, 0, 0, .45); color: #f3e6b5; font-size: 12px; font-weight: 700; }
+.nsky__lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); text-align: center; }
+.np-views { display: inline-flex; gap: 2px; padding: 3px; border-radius: 99px; background: var(--surface-2); margin: 0 auto 12px; }
+.np-views button { border: 0; border-radius: 99px; padding: 6px 16px; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; background: none; color: var(--text-secondary); }
+.np-views button.is-on { background: var(--surface-1); color: var(--text-strong); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.np-views-wrap { display: grid; justify-items: center; }
+.np-views-wrap > :last-child { width: 100%; }

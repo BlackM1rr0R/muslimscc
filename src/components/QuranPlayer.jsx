@@ -356,7 +356,9 @@ export function useQuranPlayer({ surahNumber, verses, lang, onFollow, onSurahEnd
       if (r.autoContinue && r.verses?.length) { r.autoContinue = false; start(1) }
     }
     const destroy = () => { stop(); r.els = [] }
-    return { start, toggle, pause, resume, next, prev, stop, retry, backToCurrent, detach, setReciter, setRate, setRepeat, setAutoNext, setRange, surahChanged, versesReady, destroy }
+    // v5.8: Zen vizualizatoru üçün — oxunan yer (saniyə); səs elementinə toxunulmur
+    const time = () => curEl()?.currentTime || 0
+    return { start, toggle, pause, resume, next, prev, stop, retry, backToCurrent, detach, setReciter, setRate, setRepeat, setAutoNext, setRange, surahChanged, versesReady, destroy, time }
   }, [r])
 
   // Surə dəyişdi / oxuyucu bağlandı → səs dayanır

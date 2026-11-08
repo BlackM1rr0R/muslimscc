@@ -18,6 +18,11 @@ import useStarred, { dayPick, shareLink } from '../components/collect/useStarred
 import '../styles/NamesPage.css'
 import InkText from '../components/InkText'
 import NamesMandala from '../components/NamesMandala'
+import { lazy, Suspense } from 'react'
+import '../styles/NamesSky.css'
+// v5.8: 3D göy qübbəsi (three.js — yalnız "Səma" seçiləndə yüklənir)
+const NamesSky = lazy(() => import('../components/NamesSky'))
+const VIEW_T = { az: { mandala: 'Mandala', sky: 'Səma' }, en: { mandala: 'Mandala', sky: 'Sky' }, ru: { mandala: 'Мандала', sky: 'Небо' }, ar: { mandala: 'ماندالا', sky: 'السماء' }, tr: { mandala: 'Mandala', sky: 'Gökyüzü' } }
 import { pickUi } from '../utils/uiText'
 
 // ── v3.2: seçilmişlər, əzbərlənənlər süzgəci, günün adı, qaydalar kart + oxu pəncərəsi (5 dil) ──
@@ -558,6 +563,8 @@ export default function NamesPage({ setPage }) {
   const n32 = pickUi(N32, lang, 'en')
   const star = useStarred('names99:favs')
   const [known, setKnown] = useState(() => (typeof window === 'undefined' ? [] : readPractice().known))
+  const [view, setView] = useState('mandala')
+  const vt = pickUi(VIEW_T, lang)
   useEffect(() => {
     const sync = () => setKnown(readPractice().known)
     const onStorage = (e) => { if (e.key === PRACTICE_KEY) sync() }
@@ -733,8 +740,19 @@ export default function NamesPage({ setPage }) {
       {/* Mandala — 99 ad dairəvi kalliqrafiya (vizual giriş; tam siyahı aşağıda) */}
       <section className="ui-section ui-section--tight np-mandala" aria-label={t.title}>
         <div className="ui-container">
-          <NamesMandala names={NAMES_99} known={known} lang={lang} meaningOf={meaningOf}
-            onOpen={(n, el) => openName(n, el)} />
+          <div className="np-views-wrap">
+            <div className="np-views" role="group">
+              {['mandala', 'sky'].map(v => <button key={v} type="button" className={view === v ? 'is-on' : ''} aria-pressed={view === v} onClick={() => setView(v)} data-testid={`np-view-${v}`}>{vt[v]}</button>)}
+            </div>
+            {view === 'mandala' ? (
+              <NamesMandala names={NAMES_99} known={known} lang={lang} meaningOf={meaningOf}
+                onOpen={(n, el) => openName(n, el)} />
+            ) : (
+              <Suspense fallback={<div className="nsky__stage" style={{ minHeight: 420 }} />}>
+                <NamesSky names={NAMES_99} known={known} lang={lang} onOpen={(n) => openName(n)} />
+              </Suspense>
+            )}
+          </div>
         </div>
       </section>
 
