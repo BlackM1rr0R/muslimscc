@@ -95,7 +95,11 @@ test.describe('xam prerender HTML (JS-siz robotun gördüyü)', () => {
     const idx = await raw(request, '/sitemap.xml')
     expect(idx).toContain('<sitemapindex')
     for (const f of ['pages', 'quran', 'names', 'sahaba']) expect(idx).toContain(`https://muslims.cc/sitemap-${f}.xml`)
-    const q = await raw(request, '/sitemap-quran.xml')
+    // v5.7: böyük bölmələr ≤4000 URL-lik hissələrə bölünür (Google: ≤50 MB) — sitemap-quran-2.xml …
+    const qFiles = [...idx.matchAll(/https:\/\/muslims\.cc\/(sitemap-quran(?:-\d+)?\.xml)/g)].map(m => m[1])
+    expect(qFiles.length).toBeGreaterThan(1)
+    const q = (await Promise.all(qFiles.map(f => raw(request, `/${f}`)))).join('\n')
+    for (const f of qFiles) expect((await raw(request, `/${f}`)).match(/<loc>/g).length).toBeLessThanOrEqual(4000)
     // Quran: 5 əsas + bütün əlavə dillər (src/seo/langs.js)
     expect((q.match(/<loc>/g) || []).length).toBe(114 * (5 + EXTRA_CODES.length))
     expect(q).toContain('<loc>https://muslims.cc/ru/quran/36-yaseen</loc>')

@@ -440,6 +440,21 @@ function writeUrlset(file, urls) {
   fs.writeFileSync(path.join(DIST, file), xml, 'utf8')
 }
 
+// Google: bir sitemap ≤ 50 MB (sıxılmamış) və ≤ 50 000 URL. Hər URL-də ~50 hreflang
+// alternativi var (~5 KB) — sitemap-glossary.xml 82 MB olmuşdu və Google onu oxumurdu.
+// Ona görə bölmə ≤ SITEMAP_CHUNK URL-lik hissələrə bölünür (~20 MB): birinci hissə
+// köhnə adı saxlayır (sitemap-quran.xml), qalanları sitemap-quran-2.xml, -3 …
+const SITEMAP_CHUNK = 4000
+function writeUrlsetChunks(file, urls) {
+  const out = []
+  for (let i = 0; i * SITEMAP_CHUNK < urls.length || i === 0; i++) {
+    const name = i === 0 ? file : file.replace(/\.xml$/, `-${i + 1}.xml`)
+    writeUrlset(name, urls.slice(i * SITEMAP_CHUNK, (i + 1) * SITEMAP_CHUNK))
+    out.push(name)
+  }
+  return out
+}
+
 /**
  * sitemap.xml — sitemap İNDEKSİ (robots.txt "Sitemap:" sətri və Search Console
  * onu göstərir), altında bölmələr üzrə ayrıca fayllar: oxunaqlıdır və hər
@@ -454,8 +469,7 @@ function buildSitemap() {
   for (const p of INDEXABLE) {
     for (const lang of langsFor(p.key)) pages.push(urlEntry(p.key, lang, null, today, p.changefreq, p.priority))
   }
-  writeUrlset('sitemap-pages.xml', pages)
-  files.push('sitemap-pages.xml')
+  files.push(...writeUrlsetChunks('sitemap-pages.xml', pages))
   total += pages.length
 
   for (const key of Object.keys(DETAILS)) {
@@ -466,8 +480,7 @@ function buildSitemap() {
     for (const param of detailParams(key)) {
       for (const lang of langsFor(key)) urls.push(urlEntry(key, lang, param, today, cfg.changefreq, cfg.priority))
     }
-    writeUrlset(cfg.file, urls)
-    files.push(cfg.file)
+    files.push(...writeUrlsetChunks(cfg.file, urls))
     total += urls.length
   }
 
