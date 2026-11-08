@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 // Dizayn v2: addım görünüşü artıq tam bu faylın öz .hg-* siniflərindədir —
 // Namaz bələdçisinin CSS-i (PrayerGuidePage.css, .pg-*) idxal olunmur, o səhifə
@@ -12,6 +12,7 @@ import { navGroupLabel, navGroupOf } from '../data/navigation'
 // Yer fotoları (Wikimedia Commons) və həcc mərhələləri xəritəsi (öz SVG)
 import PlacePhoto from '../components/media/PlacePhoto'
 import { HajjRouteMap } from '../components/media/SiraMaps'
+import DeferRender from '../components/DeferRender'
 import { PLACE_PHOTOS } from '../data/placeImages'
 // v3: günbəgün plan, rüknlər siyahısı, ihram qaydaları, həcc növləri (5 dil, mənbəli)
 import { useNavigate } from 'react-router-dom'
@@ -20,6 +21,7 @@ import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { HX, HAJJ_DAYS, HAJJ_RITES, IHRAM_NOT, IHRAM_OK, HAJJ_TYPES, HAJJ_VIRTUES, HAJJ_RELATED } from '../data/guides/HajjGuideExtra'
 import { pickUi } from '../utils/uiText'
+const HajjJourney3D = lazy(() => import('../components/media/HajjJourney3D'))
 
 /** 5 dilli obyektdən cari dil (yoxdursa en → az) */
 const P = (o, lang) => (o && (pickUi(o, lang, 'en') || o.az)) || ''
@@ -833,6 +835,11 @@ export default function HajjGuidePage({ setPage }) {
               ))}
             </div>
           </div>
+          <DeferRender height="560px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 560 }} />}>
+              <div className="hg-3d"><HajjJourney3D lang={lang} /></div>
+            </Suspense>
+          </DeferRender>
         </div>
       </section>
 

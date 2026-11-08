@@ -1,0 +1,22 @@
+/* 3D Həcc yolu (components/media/HajjJourney3D.jsx) */
+.hj3 { display: grid; gap: 12px; padding: 16px; margin: 0; outline-offset: 3px; }
+.hj3__head { display: grid; gap: 4px; }
+.hj3__title { font-weight: 800; font-size: 1.15rem; }
+.hj3__lead { font-size: .88rem; color: var(--text-secondary); }
+.hj3__stage { position: relative; border-radius: 16px; overflow: hidden; background: #f3dcb4; min-height: 300px; touch-action: none; }
+.hj3__stage canvas { display: block; cursor: grab; }
+.hj3__stage canvas:active { cursor: grabbing; }
+.hj3__nogl { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 20px; text-align: center; color: #3a2a12; }
+.hj3__label { position: absolute; top: 0; left: 0; pointer-events: none; white-space: nowrap; padding: 3px 9px; border-radius: 99px; font-size: .74rem; font-weight: 700; background: rgba(40, 26, 8, .62); color: #fff6e0; transition: opacity .2s, background-color .3s; will-change: transform; }
+.hj3__label.is-on { background: #c78a12; color: #fff; box-shadow: 0 2px 10px rgba(120, 70, 0, .35); }
+.hj3__panel { display: grid; gap: 10px; }
+.hj3__dots { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; flex-wrap: wrap; }
+.hj3__dots button { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--border, #d8cbb2); background: var(--surface, #fff); color: var(--text); font: inherit; font-weight: 800; font-size: .85rem; cursor: pointer; font-variant-numeric: tabular-nums; }
+.hj3__dots button.is-done { border-color: #c79a3a; color: #9a6e14; }
+.hj3__dots button.is-on { background: #c78a12; border-color: #c78a12; color: #fff; }
+.hj3__text { display: grid; gap: 6px; min-height: 4.5em; line-height: 1.55; }
+.hj3__text p { margin: 0; }
+.hj3__step { font-weight: 800; font-size: 1.02rem; }
+.hj3__text b { color: #9a6e14; margin-inline-end: 4px; }
+.hj3__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { .hj3__label { transition: none; } }

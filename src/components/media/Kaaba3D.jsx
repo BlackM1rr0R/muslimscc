@@ -22,20 +22,29 @@ import { pickUi } from '../../utils/uiText'
 import './Kaaba3D.css'
 
 const T = {
-  az: { title: 'Məscidül-Haram — 3D', lead: 'Barmaqla fırladın, iki barmaqla yaxınlaşdırın. İşıqlı zərrələr təvafın istiqamətini göstərir — Kəbə solda qalmaqla, saat əqrəbinin əksinə.', day: 'Gündüz', night: 'Gecə', reset: 'Başa qaytar', note: 'Sxematik model — ölçülər təxminidir.', noGl: 'Bu cihazda 3D (WebGL) dəstəklənmir.',
+  // lang-ok[Kamera,Kameranı,kamera,kamerada]: az dilinin öz sözüdür (kamera)
+  az: { title: 'Məscidül-Haram — 3D', lead: 'Barmaqla fırladın, iki barmaqla yaxınlaşdırın. İşıqlı zərrələr təvafın istiqamətini göstərir — Kəbə solda qalmaqla, saat əqrəbinin əksinə.', day: 'Gündüz', night: 'Gecə', reset: 'Başa qaytar', note: 'Sxematik model — ölçülər təxminidir.', noGl: 'Bu cihazda 3D (WebGL) dəstəklənmir.', ar3d: 'Otağında gör (AR)', arNote: 'Kəbə kamerada masanın və ya döşəmənin üstündə görünür (1:50 miqyas, böyütmək olar).',
     legend: { kaaba: 'Kəbə', stone: 'Həcərül-Əsvəd', hijr: 'Hicr İsmayıl', maqam: 'Məqami-İbrahim', tawaf: 'Təvafın istiqaməti' } },
-  en: { title: 'Masjid al-Haram — 3D', lead: 'Drag to rotate, pinch to zoom. The glowing particles show the direction of tawaf — anticlockwise, with the Kaaba on your left.', day: 'Day', night: 'Night', reset: 'Reset view', note: 'Schematic model — dimensions are approximate.', noGl: '3D (WebGL) is not supported on this device.',
+  en: { title: 'Masjid al-Haram — 3D', lead: 'Drag to rotate, pinch to zoom. The glowing particles show the direction of tawaf — anticlockwise, with the Kaaba on your left.', day: 'Day', night: 'Night', reset: 'Reset view', note: 'Schematic model — dimensions are approximate.', noGl: '3D (WebGL) is not supported on this device.', ar3d: 'View in your room (AR)', arNote: 'The Kaaba appears on your table or floor through the camera (1:50 scale, you can enlarge it).',
     legend: { kaaba: 'Kaaba', stone: 'Black Stone', hijr: 'Hijr Ismail', maqam: 'Maqam Ibrahim', tawaf: 'Direction of tawaf' } },
   // lang-ok[D,WebGL]: texniki ad (3D, WebGL)
-  ru: { title: 'Запретная мечеть — 3D', lead: 'Вращайте пальцем, приближайте двумя пальцами. Светящиеся частицы показывают направление таваафа — против часовой стрелки, Кааба слева.', day: 'День', night: 'Ночь', reset: 'Сбросить вид', note: 'Схематичная модель — размеры приблизительные.', noGl: 'На этом устройстве 3D (WebGL) не поддерживается.',
+  ru: { title: 'Запретная мечеть — 3D', lead: 'Вращайте пальцем, приближайте двумя пальцами. Светящиеся частицы показывают направление таваафа — против часовой стрелки, Кааба слева.', day: 'День', night: 'Ночь', reset: 'Сбросить вид', note: 'Схематичная модель — размеры приблизительные.', noGl: 'На этом устройстве 3D (WebGL) не поддерживается.', ar3d: 'Посмотреть в комнате (AR)', arNote: 'Кааба появится на столе или полу через камеру (масштаб 1:50, можно увеличить).',
     legend: { kaaba: 'Кааба', stone: 'Чёрный камень', hijr: 'Хиджр Исмаил', maqam: 'Макам Ибрахим', tawaf: 'Направление таваафа' } },
   // lang-ok[D,WebGL]: texniki ad (3D, WebGL)
-  ar: { title: 'المسجد الحرام — ثلاثي الأبعاد', lead: 'اسحب للتدوير وقرّب بإصبعين. الجسيمات المضيئة تُظهر اتجاه الطواف — عكس عقارب الساعة والكعبة عن يسارك.', day: 'نهار', night: 'ليل', reset: 'إعادة العرض', note: 'نموذج تخطيطي — الأبعاد تقريبية.', noGl: 'العرض ثلاثي الأبعاد (WebGL) غير مدعوم على هذا الجهاز.',
+  ar: { title: 'المسجد الحرام — ثلاثي الأبعاد', lead: 'اسحب للتدوير وقرّب بإصبعين. الجسيمات المضيئة تُظهر اتجاه الطواف — عكس عقارب الساعة والكعبة عن يسارك.', day: 'نهار', night: 'ليل', reset: 'إعادة العرض', note: 'نموذج تخطيطي — الأبعاد تقريبية.', noGl: 'العرض ثلاثي الأبعاد (WebGL) غير مدعوم على هذا الجهاز.', ar3d: 'اعرضها في غرفتك (AR)', arNote: 'تظهر الكعبة عبر الكاميرا على الطاولة أو الأرض (مقياس 1:50، ويمكن تكبيرها).',
     legend: { kaaba: 'الكعبة', stone: 'الحجر الأسود', hijr: 'حِجر إسماعيل', maqam: 'مقام إبراهيم', tawaf: 'اتجاه الطواف' } },
-  tr: { title: 'Mescid-i Haram — 3D', lead: 'Parmakla döndürün, iki parmakla yakınlaştırın. Işıklı parçacıklar tavafın yönünü gösterir — Kâbe solunuzda, saat yönünün tersine.', day: 'Gündüz', night: 'Gece', reset: 'Görünümü sıfırla', note: 'Şematik model — ölçüler yaklaşıktır.', noGl: 'Bu cihazda 3D (WebGL) desteklenmiyor.',
+  tr: { title: 'Mescid-i Haram — 3D', lead: 'Parmakla döndürün, iki parmakla yakınlaştırın. Işıklı parçacıklar tavafın yönünü gösterir — Kâbe solunuzda, saat yönünün tersine.', day: 'Gündüz', night: 'Gece', reset: 'Görünümü sıfırla', note: 'Şematik model — ölçüler yaklaşıktır.', noGl: 'Bu cihazda 3D (WebGL) desteklenmiyor.', ar3d: 'Odanda gör (AR)', arNote: 'Kâbe kamerada masanın veya zeminin üzerinde görünür (1:50 ölçek, büyütülebilir).',
     legend: { kaaba: 'Kâbe', stone: 'Hacerü’l-Esved', hijr: 'Hicr-i İsmail', maqam: 'Makam-ı İbrahim', tawaf: 'Tavafın yönü' } },
 }
 
+// v5.8: AR — iPhone: AR Quick Look (<a rel="ar">, USDZ), Android: Google Scene Viewer (GLB, https ünvan).
+// Modellər: public/models (scripts/build-kaaba-ar.mjs). Kompüterdə düymə göstərilmir.
+const AR_GLB = 'https://muslims.cc/models/kaaba.glb'
+function arKind() {
+  if (typeof document === 'undefined') return null
+  try { if (document.createElement('a').relList?.supports?.('ar')) return 'ios' } catch { /* */ }
+  return /Android/i.test(navigator.userAgent) ? 'android' : null
+}
 const reduced = () => typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('a11y-motion-user'))
 const isNightSky = () => { const s = document.documentElement.dataset.sky; return s === 'night' || s === 'isha' || s === 'maghrib' || s === 'fajr' }
 
@@ -155,6 +164,7 @@ export default function Kaaba3D({ lang = 'az' }) {
   const api = useRef({})
   const [night, setNight] = useState(() => (typeof document !== 'undefined' ? isNightSky() : false))
   const [noGl, setNoGl] = useState(false)
+  const [ar] = useState(arKind)
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -276,6 +286,19 @@ export default function Kaaba3D({ lang = 'az' }) {
         <li><i className="k3d__sw k3d__sw--maqam" />{t.legend.maqam}</li>
         <li><i className="k3d__sw k3d__sw--tawaf" />{t.legend.tawaf} ↺</li>
       </ul>
+      {ar && (
+        <div className="k3d__ar">
+          {ar === 'ios' ? (
+            <a rel="ar" href="/models/kaaba.usdz#allowsContentScaling=1" className="ui-btn ui-btn--primary" data-testid="k3d-ar">
+              <img src="/favicon.svg" alt="" width="18" height="18" /> {t.ar3d}
+            </a>
+          ) : (
+            <a href={`intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(AR_GLB)}&mode=ar_preferred&resizable=true&title=${encodeURIComponent(t.legend.kaaba)}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent('https://muslims.cc/holyplaces')};end;`}
+              className="ui-btn ui-btn--primary" data-testid="k3d-ar"><Icon name="eye" className="ui-btn__icon" /> {t.ar3d}</a>
+          )}
+          <small>{t.arNote}</small>
+        </div>
+      )}
       <small className="k3d__note">{t.note}</small>
     </figure>
   )

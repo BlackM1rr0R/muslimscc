@@ -1,0 +1,17 @@
+/* Hilal AR (components/HilalAR.jsx) — QiblaAR.css (qar) üzərində */
+.hlr__mark { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 2; transition: opacity .2s ease; }
+.hlr__moon { position: absolute; width: 56px; height: 56px; left: -28px; top: -28px; border-radius: 50%;
+  background: radial-gradient(circle at 70% 40%, #fff8dc 0 var(--lit), rgba(255, 248, 220, .12) calc(var(--lit) + 8%));
+  box-shadow: 0 0 30px rgba(255, 240, 190, .7); border: 1px solid rgba(255, 248, 220, .5); }
+.hlr__ring { position: absolute; width: 96px; height: 96px; left: -48px; top: -48px; border-radius: 50%; border: 2px dashed rgba(243, 230, 181, .7); }
+.hlr.is-aligned .hlr__ring { border-style: solid; border-color: #6ee7b7; }
+.hlr__edge { position: absolute; z-index: 2; color: #f3e6b5; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .6)); }
+.hlr__edge--l { left: 14px; top: 50%; transform: rotate(180deg); }
+.hlr__edge--r { right: 14px; top: 50%; }
+.hlr__edge--u { top: 80px; left: 50%; transform: rotate(-90deg); }
+.hlr__edge--d { bottom: 170px; left: 50%; transform: rotate(90deg); }
+.hlr__data { margin: 4px 0; color: #f3e6b5; font-weight: 600; font-size: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .hlr__ring { animation: hlr-spin 8s linear infinite; }
+}
+@keyframes hlr-spin { to { transform: rotate(360deg); } }

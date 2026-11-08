@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { guessLang } from '../utils/textLang'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
@@ -397,7 +397,14 @@ function MonthsGuide({ lang }) {
   )
 }
 
+// v5.8: kamerada Ayın yeri (telefonda) — yalnız açılanda yüklənir
+const HilalAR = lazy(() => import('../components/HilalAR'))
+// lang-ok[Kamera,Kameranı,kamera,kamerada]: az dilinin öz sözüdür (kamera)
+const HL_OBJ = { az: 'Ayı kamerada tap', en: 'Find the moon with the camera', ru: 'Найти луну камерой', ar: 'اعثر على القمر بالكاميرا', tr: 'Ayı kamerayla bul' }
+
 export function CalendarPage({ setPage }) {
+  const [hilal, setHilal] = useState(false)
+  const canAR = typeof window !== 'undefined' && !!navigator.mediaDevices?.getUserMedia && window.matchMedia?.('(pointer: coarse)').matches
   const { lang } = useLang()
   const t = pickUi(T, lang)?.calendar || T.az.calendar
   // Bugünkü hicri tarix state-lərdən əvvəl hesablanır ki, seçilmiş ay
@@ -702,6 +709,12 @@ export function CalendarPage({ setPage }) {
                   })}
                 </div>
                 <CalCrescent days={monthDays} lang={lang} />
+                {canAR && (
+                  <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm cal-hilal-btn" onClick={() => setHilal(true)} data-testid="hilal-open">
+                    <Icon name="moonStar" className="ui-btn__icon" /> {pickUi(HL_OBJ, lang)}
+                  </button>
+                )}
+                {hilal && <Suspense fallback={null}><HilalAR lang={lang} onClose={() => setHilal(false)} /></Suspense>}
               </div>
             )}
 

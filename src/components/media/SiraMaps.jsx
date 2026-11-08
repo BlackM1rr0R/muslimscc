@@ -283,7 +283,7 @@ export function HijraJourney({ lang = 'az' }) {
 }
 
 /* ═══ 2. Həcc mərhələləri: Məkkə → Mina → Ərəfat → Müzdəlifə → Mina → Məkkə ═══ */
-const HAJJ_L = {
+export const HAJJ_L = {
   title: { az: 'Həccin mərhələləri — xəritə', en: 'The stages of Hajj — map', ru: 'Этапы хаджа — карта', ar: 'مراحل الحج — خريطة', tr: 'Haccın aşamaları — harita' },
   desc: {
     az: 'Məkkədən şərqə: Mina (8 Zülhiccə), Ərəfat (9), gecə Müzdəlifə, 10-da Minaya qayıdış (Cəmrətül-Əqəbə, qurban, təraş), Məkkədə ifada təvafı, 11–13 Minada təşriq günləri, sonda vida təvafı.',
@@ -308,14 +308,14 @@ const HAJJ_L = {
     { n: 6, az: '11–13 — Minada təşriq günləri', en: '11–13 — days of Tashriq in Mina', ru: '11–13 — дни ташрика в Мине', ar: '١١–١٣ — أيام التشريق بمنى', tr: '11–13 — Mina’da teşrik günleri' },
   ],
 }
-const H = {
+export const HAJJ_POINTS = {
   haram: [21.4225, 39.8262], jamarat: [21.4227, 39.8727], mina: [21.4135, 39.8935],
   muzdalifah: [21.3905, 39.9255], arafat: [21.3549, 39.9841], namirah: [21.3524, 39.9665],
 }
 export function HajjRouteMap({ lang = 'az', highlight = null, compact = false }) {
   const id = `hm${useId().replace(/:/g, '')}`
   const prj = projector({ lat: [21.335, 21.435], lon: [39.77, 40.0] }, 720)
-  const P = (k) => prj.p(...H[k])
+  const P = (k) => prj.p(...HAJJ_POINTS[k])
   const [hx, hy] = P('haram'), [jx, jy] = P('jamarat'), [mx, my] = P('mina'), [zx, zy] = P('muzdalifah'), [ax, ay] = P('arafat')
   // Ayaqlar (bir az əyilmiş — bir-birinin üstünə düşməsin)
   const leg = (a, b, bend) => {

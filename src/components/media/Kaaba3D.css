@@ -22,3 +22,6 @@
 .k3d__sw--maqam { background: #d9b45c; }
 .k3d__sw--tawaf { background: #ffe7a3; border-radius: 50%; box-shadow: 0 0 6px #ffd56a; }
 .k3d__note { color: var(--text-muted); }
+.k3d__ar { display: grid; justify-items: start; gap: 6px; }
+.k3d__ar small { color: var(--text-secondary); }
+.k3d__ar img { filter: brightness(10); }
