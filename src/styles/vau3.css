@@ -934,6 +934,13 @@ html.a11y-reduce-motion .vx-listen.is-on .vx-listen__wave i { animation: none; t
   font-weight: 500;
 }
 .vx-md-today.is-done { background: var(--brand-soft); color: var(--brand); }
+/* v5.7: azkar kafeli (səhər/axşam) və nişan keçidi */
+.vx-md-adhkar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.vx-md-links { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.vx-md-big b small { font-size: .5em; font-weight: 500; color: var(--text-tertiary); }
+.vx-md-badges .bdg-medal { width: 18px; height: 18px; }
+.vx-md-badges .bdg-medal::before { inset: -2px; }
+.vx-md-badges .bdg-medal::after { inset: 2px; }
 .pt-ring-goal { color: var(--text-tertiary); font-weight: 500; margin-inline-start: 2px; }
 .qk__ringwrap { display: grid; justify-items: center; gap: 4px; flex-shrink: 0; }
 .qk__ringcap { font-size: var(--step--2); color: var(--text-tertiary); white-space: nowrap; }

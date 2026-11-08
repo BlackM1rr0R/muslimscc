@@ -21,6 +21,7 @@ import QuranRadio from '../components/quran/QuranRadio'
 import SurahArt from '../components/quran/SurahArt'
 import SurahRootCloud from '../components/quran/SurahRootCloud'
 import OfflinePack from '../components/OfflinePack'
+import OfflineAudio from '../components/quran/OfflineAudio'
 import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta } from '../utils/quranEnc'
 import '../styles/QuranPage.css'
 import { pickUi } from '../utils/uiText'
@@ -699,6 +700,8 @@ export default function QuranPage() {
   // əsas dillərdə ikisi eynidir — src/seo/langs.js)
   const { lang, siteLang } = useLang()
   const tlang = siteLang || lang
+  // Oflayn paketlər (mətn — OfflinePack, səs — OfflineAudio) oxuyucunun (useSurah) URL-ini keşə yazır
+  const offlineSurahUrl = (n) => `https://api.alquran.cloud/v1/surah/${n}/editions/${tlang === 'ar' ? 'ar.alafasy,ar.muyassar' : `ar.alafasy,${EDITION_MAP[tlang] || EDITION_MAP.en}`}`
   const extra = isExtraLang(tlang)
   const t = pickUi(T, lang)?.quran || T.az.quran
   const [listAttempt, setListAttempt] = useState(0)
@@ -1866,7 +1869,8 @@ export default function QuranPage() {
             </div>
           </article>
         )}
-          <OfflinePack lang={lang} surahUrl={(n) => `https://api.alquran.cloud/v1/surah/${n}/editions/${tlang === 'ar' ? 'ar.alafasy,ar.muyassar' : `ar.alafasy,${EDITION_MAP[tlang] || EDITION_MAP.en}`}`} />
+          <OfflinePack lang={lang} surahUrl={offlineSurahUrl} />
+          <OfflineAudio lang={lang} surahUrl={offlineSurahUrl} />
           <KhatmPlanner lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} />
           <QuranRadio lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)}
             placeLabel={(name, a) => placeLabel(name, a, lang)} />

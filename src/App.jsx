@@ -166,6 +166,8 @@ const LicensesPage = lazy(() => import('./pages/LicensesPage'))
 // bildiriş onsuz da promptCoordinator ilə gecikmə ilə göstərilir.
 const AnnouncementToast = lazy(lazyWhenIdle(() => import('./components/AnnouncementToast')))
 const NotificationPrompt = lazy(lazyWhenIdle(() => import('./components/NotificationPrompt')))
+// v5.7: "yeni nişan" bildirişi (utils/badges) — boş vaxtda
+const BadgeToast = lazy(lazyWhenIdle(() => import('./components/BadgeToast')))
 // "Səhv bildir" — bütün sayt üçün tək dialoq (düymələr yalnız hadisə göndərir)
 const ReportErrorHost = lazy(lazyWhenIdle(() => import('./components/ReportErrorButton').then(m => ({ default: m.ReportErrorHost }))))
 
@@ -486,6 +488,7 @@ function AppInner() {
         <AnnouncementToast />
         <NotificationPrompt />
         <ReportErrorHost />
+        <BadgeToast />
       </Suspense>
     </>
   )

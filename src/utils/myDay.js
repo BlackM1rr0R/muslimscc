@@ -6,6 +6,8 @@
 //   quran   — bu gün Quran açılıbmı + ardıcıl günlər (quran_stats.dates)
 //   deeds   — gündəlik izləyicinin (daily_tracker) qeyd edilmiş əməlləri
 //   hifz    — bu gün təkrarlanan ayələr (hifz_srs log)
+//   adhkar  — səhər/axşam azkarı bu gün tamamlanıbmı (adhkar_done_v1)
+//   badges  — qazanılmış nişan sayı (qm_badges_v1)
 // ═══════════════════════════════════════════════════════
 import { PRAYERS, loadSnapshot, dayStatuses, isPerformed, toKey, addDays } from './prayerTracker'
 
@@ -61,8 +63,14 @@ export function readMyDay(today = toKey()) {
   // Hifz təkrarı
   const hl = (readJSON('hifz_srs', {}) || {}).log?.[today] || {}
 
+  // v5.7: səhər/axşam azkarı bu gün bitibmi (hisn/adhkarState.markAdhkarDone) və nişan sayı (utils/badges)
+  const ad = readJSON('adhkar_done_v1', {}) || {}
+  const bg = readJSON('qm_badges_v1', {}) || {}
+
   return {
     today,
+    adhkar: { morning: ad.morning === today, evening: ad.evening === today },
+    badges: bg && typeof bg === 'object' ? Object.keys(bg).length : 0,
     prayers: { done: prayed, total: PRAYERS.length },
     dhikr: { today: week[6], week },
     quran: { today: dates.has(today), streak: qStreak },

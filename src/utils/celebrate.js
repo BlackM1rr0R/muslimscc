@@ -45,6 +45,8 @@ function starPath(ctx, r) {
 
 export function celebrate({ size = 'medium', x, y } = {}) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return
+  // v5.7: hər uğur anından sonra nişanları yoxla (yeni nişan — BadgeToast)
+  setTimeout(() => { import('./badges').then(m => m.syncBadges()).catch(() => {}) }, 1500)
   vibrate(size === 'big' ? [40, 60, 40, 60, 120] : size === 'small' ? 25 : [40, 50, 80])
   if (reduced() || document.visibilityState !== 'visible') return
   const W = window.innerWidth, H = window.innerHeight

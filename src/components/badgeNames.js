@@ -1,0 +1,25 @@
+// Nişan adları (utils/badges) — 5 dildə. components/ altındadır ki, əlavə dillərin
+// lüğəti (scripts/vite-ui-dict-plugin.mjs → UI_FILE_RE) onları da tərcümə etsin.
+export const BADGE_NAMES = {
+  first_prayer: { az: 'İlk addım', en: 'First step', ru: 'Первый шаг', ar: 'الخطوة الأولى', tr: 'İlk adım' },
+  full_day: { az: 'Tam gün', en: 'A full day', ru: 'Полный день', ar: 'يوم كامل', tr: 'Tam gün' },
+  prayers_100: { az: '100 namaz', en: '100 prayers', ru: '100 намазов', ar: '100 صلاة', tr: '100 namaz' },
+  prayer_40: { az: '40 gün 5/5', en: '40 days of 5/5', ru: '40 дней 5/5', ar: '40 يومًا 5/5', tr: '40 gün 5/5' },
+  prayers_1000: { az: '1000 namaz', en: '1000 prayers', ru: '1000 намазов', ar: '1000 صلاة', tr: '1000 namaz' },
+  streak_7: { az: '7 gün ardıcıl', en: '7 day streak', ru: '7 дней подряд', ar: '7 أيام متتالية', tr: '7 gün ardışık' },
+  streak_30: { az: 'Müntəzəm', en: 'Consistent', ru: 'Постоянный', ar: 'مثابر', tr: 'Düzenli' },
+  quran_10: { az: 'Quran sevər', en: 'Quran lover', ru: 'Любитель Корана', ar: 'محب القرآن', tr: 'Kuran sever' },
+  quran_114: { az: '114 surə', en: 'All 114 surahs', ru: 'Все 114 сур', ar: 'السور الـ114', tr: '114 sure' },
+  khatm: { az: 'Xətm', en: 'Khatm', ru: 'Хатм', ar: 'ختمة', tr: 'Hatim' },
+  group_khatm: { az: 'Birlikdə xətm', en: 'Khatm together', ru: 'Хатм вместе', ar: 'ختمة جماعية', tr: 'Birlikte hatim' },
+  dhikr_1000: { az: 'Zikr ustası', en: 'Dhikr master', ru: 'Мастер зикра', ar: 'سيد الذكر', tr: 'Zikir ustası' },
+  dhikr_10000: { az: '10 000 zikr', en: '10,000 dhikr', ru: '10 000 зикров', ar: '10000 ذكر', tr: '10.000 zikir' },
+  adhkar: { az: 'Azkar', en: 'Adhkar', ru: 'Азкары', ar: 'الأذكار', tr: 'Ezkâr' },
+  adhkar_both: { az: 'Səhər və axşam', en: 'Morning and evening', ru: 'Утро и вечер', ar: 'الصباح والمساء', tr: 'Sabah ve akşam' },
+  path: { az: 'Dərs yolu', en: 'Learning path', ru: 'Путь знаний', ar: 'مسار التعلم', tr: 'Öğrenme yolu' },
+  hifz_5: { az: 'Hifz yolçusu', en: 'Hifz traveler', ru: 'Путник хифза', ar: 'مسافر الحفظ', tr: 'Hıfz yolcusu' },
+  scholar: { az: 'Alim', en: 'Scholar', ru: 'Учёный', ar: 'عالم', tr: 'Âlim' },
+  hadith_20: { az: 'Hədis kolleksiyaçısı', en: 'Hadith collector', ru: 'Коллекционер хадисов', ar: 'جامع الأحاديث', tr: 'Hadis koleksiyoncusu' },
+  dua_10: { az: 'Dua edən', en: 'Supplicator', ru: 'Молящийся', ar: 'الداعي', tr: 'Dua eden' },
+  charity_10: { az: 'Əliaçıq', en: 'Generous', ru: 'Щедрый', ar: 'كريم', tr: 'Cömert' },
+}

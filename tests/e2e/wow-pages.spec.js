@@ -268,6 +268,24 @@ test.describe('azan dalğası', () => {
     await page.clock.runFor(200)
     await expect(w.getByTestId('adhan-play')).toBeEnabled({ timeout: 10000 })
   })
+
+  test('qlobus rejimi: arxa tərəfdəki şəhərlər gizlənir, seçim yadda qalır', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-11-05T14:06:00Z') })
+    await page.goto('/prayer')
+    await settle(page)
+    const w = page.getByTestId('adhan-wave')
+    await w.scrollIntoViewIfNeeded()
+    const all = await w.locator('.aw__city').count()
+    await w.getByTestId('aw-globe').click()
+    await expect(w.getByTestId('aw-globe')).toHaveAttribute('aria-pressed', 'true')
+    await expect(w.locator('.aw__svg--globe')).toHaveCount(1)
+    const front = await w.locator('.aw__city').count()
+    expect(front).toBeGreaterThan(10)
+    expect(front).toBeLessThan(all)
+    expect(await page.evaluate(() => localStorage.getItem('aw_mode_v1'))).toBe('globe')
+    await w.getByTestId('aw-map').click()
+    await expect(w.locator('.aw__svg--globe')).toHaveCount(0)
+  })
 })
 
 test.describe('Qiblə xətləri', () => {

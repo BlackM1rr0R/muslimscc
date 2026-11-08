@@ -18,13 +18,14 @@ import { pickUi } from '../../utils/uiText'
 import { Sparkline } from '../viz'
 import { isPlainClick } from '../PageLink'
 import Icon from '../Icon'
+import '../../styles/BadgeShelf.css'
 
 const L = {
-  az: { ey: 'Bu cihazda', title: 'Mənim günüm', today: 'Bu gün', week: 'Son 7 gün', streak: 'ardıcıl gün', year: 'Mənim ilim', yearDec: 'İlin icmalı hazırdır' },
-  en: { ey: 'On this device', title: 'My day', today: 'Today', week: 'Last 7 days', streak: 'day streak', year: 'My year', yearDec: 'Your year in review is ready' },
-  ru: { ey: 'На этом устройстве', title: 'Мой день', today: 'Сегодня', week: 'Последние 7 дней', streak: 'дней подряд', year: 'Мой год', yearDec: 'Итоги года готовы' },
-  ar: { ey: 'على هذا الجهاز', title: 'يومي', today: 'اليوم', week: 'آخر 7 أيام', streak: 'أيام متتالية', year: 'عامي', yearDec: 'حصاد العام جاهز' },
-  tr: { ey: 'Bu cihazda', title: 'Benim günüm', today: 'Bu gün', week: 'Son 7 gün', streak: 'gün seri', year: 'Benim yılım', yearDec: 'Yılın özeti hazır' },
+  az: { ey: 'Bu cihazda', title: 'Mənim günüm', today: 'Bu gün', week: 'Son 7 gün', streak: 'ardıcıl gün', year: 'Mənim ilim', yearDec: 'İlin icmalı hazırdır', adhkar: 'Səhər və axşam azkarı', morning: 'Səhər', evening: 'Axşam', badges: '{n} nişan' },
+  en: { ey: 'On this device', title: 'My day', today: 'Today', week: 'Last 7 days', streak: 'day streak', year: 'My year', yearDec: 'Your year in review is ready', adhkar: 'Morning and evening adhkar', morning: 'Morning', evening: 'Evening', badges: '{n} badges' },
+  ru: { ey: 'На этом устройстве', title: 'Мой день', today: 'Сегодня', week: 'Последние 7 дней', streak: 'дней подряд', year: 'Мой год', yearDec: 'Итоги года готовы', adhkar: 'Утренние и вечерние азкары', morning: 'Утро', evening: 'Вечер', badges: 'Значков: {n}' },
+  ar: { ey: 'على هذا الجهاز', title: 'يومي', today: 'اليوم', week: 'آخر 7 أيام', streak: 'أيام متتالية', year: 'عامي', yearDec: 'حصاد العام جاهز', adhkar: 'أذكار الصباح والمساء', morning: 'الصباح', evening: 'المساء', badges: '{n} أوسمة' },
+  tr: { ey: 'Bu cihazda', title: 'Benim günüm', today: 'Bu gün', week: 'Son 7 gün', streak: 'gün seri', year: 'Benim yılım', yearDec: 'Yılın özeti hazır', adhkar: 'Sabah ve akşam ezkârı', morning: 'Sabah', evening: 'Akşam', badges: '{n} rozet' },
 }
 
 const ICON = { fajr: 'sunrise', dhuhr: 'sun', asr: 'sunLow', maghrib: 'sunset', isha: 'moon' }
@@ -68,10 +69,12 @@ export default function MyDay({ onNavigate }) {
     const onVis = () => { if (document.visibilityState === 'visible') load() }
     window.addEventListener('storage', load)
     window.addEventListener(PRAYER_SYNC_EVENT, load)
+    window.addEventListener('qm-badge', load)
     document.addEventListener('visibilitychange', onVis)
     return () => {
       window.removeEventListener('storage', load)
       window.removeEventListener(PRAYER_SYNC_EVENT, load)
+      window.removeEventListener('qm-badge', load)
       document.removeEventListener('visibilitychange', onVis)
     }
   }, [])
@@ -82,6 +85,9 @@ export default function MyDay({ onNavigate }) {
   })
   const navigate = useNavigate()
   const yearHref = `${pathFor('analytics', lang)}#year-review`
+  const badgeHref = `${pathFor('analytics', lang)}#an-ach`
+  const adhkarHref = `${pathFor('hisn', lang)}#adhkar`
+  const go = (href) => (e) => { if (isPlainClick(e)) { e.preventDefault(); navigate(href) } }
   const dec = new Date().getMonth() === 11
   const pname = (k) => PRAYER_NAMES[k]?.[lang] || PRAYER_NAMES[k]?.en || k
 
@@ -94,10 +100,17 @@ export default function MyDay({ onNavigate }) {
             <h2 id="vx-md-ttl" className="ui-title">{l.title}</h2>
           </div>
           {/* v5.3: illik icmala keçid (analytics → YearReview); dekabrda önə çıxır */}
+          <div className="vx-md-links">
           <a className={`vx-md-year${dec ? ' is-dec' : ''}`} href={yearHref}
             onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); navigate(yearHref) } }} data-testid="md-year">
             <Icon name="sparkle" size={16} /> {dec ? l.yearDec : l.year} <Icon name="arrow" size={14} className="ui-flip-rtl" />
           </a>
+          {d?.badges > 0 && (
+            <a className="vx-md-year vx-md-badges" href={badgeHref} onClick={go(badgeHref)} data-testid="md-badges">
+              <span className="bdg-medal bdg-medal--gold" aria-hidden="true" /> {l.badges.replace('{n}', d.badges)}
+            </a>
+          )}
+          </div>
         </div>
         {!d ? (
           <div className="vx-md-grid" aria-hidden="true">
@@ -144,6 +157,20 @@ export default function MyDay({ onNavigate }) {
                 <span className={`vx-md-today${d.quran.today ? ' is-done' : ''}`}>
                   <Icon name={d.quran.today ? 'check' : 'quran'} size={14} strokeWidth={2} /> {l.today}
                 </span>
+              </a>
+            </li>
+            {/* v5.7: səhər/axşam azkarı (tam ekran — HisnPage #adhkar) */}
+            <li>
+              <a className="ui-card ui-card--interactive vx-md-card" href={adhkarHref} onClick={go(adhkarHref)} data-testid="md-adhkar">
+                <span className="vx-md-lbl"><Icon name="hisn" size={16} /> {l.adhkar}</span>
+                <div className="vx-md-big"><b className="ui-num">{(d.adhkar.morning ? 1 : 0) + (d.adhkar.evening ? 1 : 0)}<small>/2</small></b><span>{l.today}</span></div>
+                <div className="vx-md-adhkar">
+                  {['morning', 'evening'].map(k => (
+                    <span key={k} className={`vx-md-today${d.adhkar[k] ? ' is-done' : ''}`}>
+                      <Icon name={d.adhkar[k] ? 'check' : k === 'morning' ? 'sunrise' : 'sunset'} size={14} strokeWidth={2} /> {l[k]}
+                    </span>
+                  ))}
+                </div>
               </a>
             </li>
             {/* Gündəlik əməllər */}

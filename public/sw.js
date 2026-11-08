@@ -16,7 +16,9 @@ const ASSET_CACHE_MAX = 200
 // Bildiriş məlumatı keşləri (aşağıda) — activate zamanı SİLİNMƏMƏLİDİR.
 // Əvvəl activate "CACHE_NAME-dən başqa hər şeyi" silirdi: hər SW yeniləməsində
 // istifadəçinin əzan bildirişi ayarları da itirdi.
-const KEEP_CACHES = [CACHE_NAME, ASSET_CACHE, 'muslims-notif-data', 'muslims-notif-shown']
+// v5.7: 'qm-audio-v1' — istifadəçinin oflayn saxladığı Quran səsi (utils/quranAudio)
+const AUDIO_CACHE = 'qm-audio-v1'
+const KEEP_CACHES = [CACHE_NAME, ASSET_CACHE, AUDIO_CACHE, 'muslims-notif-data', 'muslims-notif-shown']
 
 const PRECACHE_URLS = [
   '/',
@@ -138,6 +140,36 @@ async function staleWhileRevalidate(e) {
   return network
 }
 
+// v5.7: oflayn saxlanmış Quran səsi. Brauzer səsi hissə-hissə (Range) istəyir —
+// keşdəki tam fayldan 206 cavabı burada qurulur (Safari yalnız 206 qəbul edir).
+// Keşdə yoxdursa — adi şəbəkə sorğusu.
+async function offlineAudio(request) {
+  try {
+    const hit = await (await caches.open(AUDIO_CACHE)).match(request.url)
+    if (hit) {
+      const range = request.headers.get('range')
+      if (!range) return hit
+      const buf = await hit.arrayBuffer()
+      const size = buf.byteLength
+      const m = /bytes=(\d*)-(\d*)/.exec(range)
+      let start = 0, end = size - 1
+      if (m && m[1]) { start = Number(m[1]); if (m[2]) end = Math.min(Number(m[2]), size - 1) }
+      else if (m && m[2]) start = Math.max(0, size - Number(m[2]))
+      if (start >= size) return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}` } })
+      return new Response(buf.slice(start, end + 1), {
+        status: 206,
+        headers: {
+          'Content-Type': hit.headers.get('Content-Type') || 'audio/mpeg',
+          'Content-Range': `bytes ${start}-${end}/${size}`,
+          'Content-Length': String(end - start + 1),
+          'Accept-Ranges': 'bytes',
+        },
+      })
+    }
+  } catch (_) { /* keş əlçatmazdır — şəbəkə */ }
+  return fetch(request)
+}
+
 self.addEventListener('fetch', (e) => {
   const { request } = e
 
@@ -145,6 +177,8 @@ self.addEventListener('fetch', (e) => {
   if (!request.url.startsWith('http')) return
   // POST/PUT/DELETE keş etmə
   if (request.method !== 'GET') return
+  // v5.7: Quran səsi — oflayn saxlanıbsa keşdən (yuxarıda offlineAudio)
+  if (request.url.startsWith('https://verses.quran.com/')) { e.respondWith(offlineAudio(request)); return }
   // Range sorğuları (audio/video) — keşlənmir
   if (request.headers.has('range')) return
 

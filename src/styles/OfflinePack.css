@@ -12,6 +12,10 @@
 .op__bar i { display: block; height: 100%; background: var(--gold, #c59a2c); transform-origin: 0 50%; transition: transform .3s ease; }
 [dir="rtl"] .op__bar i { transform-origin: 100% 50%; }
 .op__status { margin: 0; font-size: .8rem; color: var(--text-secondary); min-height: 1.2em; }
+/* v5.7: səsi oflayn saxla (components/quran/OfflineAudio) */
+.op__row { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); margin-top: 6px; }
+.op__row .ui-input { width: 100%; }
+.op__btns { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 
 /* İnternet yoxdur nişanı (components/OfflineBadge.jsx) */
 .ob { position: fixed; inset-inline-start: 50%; bottom: max(14px, env(safe-area-inset-bottom)); z-index: 1200; transform: translateX(-50%);

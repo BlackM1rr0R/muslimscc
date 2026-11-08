@@ -39,3 +39,12 @@
 }
 @keyframes aw-pulse { 0% { opacity: .9; transform: scale(.3); } 100% { opacity: 0; transform: scale(1.4); } }
 @keyframes aw-blink { 50% { opacity: .3; } }
+
+/* v5.7: Xəritə / Qlobus rejimi */
+.aw__modes { display: inline-flex; justify-self: start; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); }
+.aw__mode { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; padding: 6px 14px; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; background: none; color: var(--text-secondary); }
+.aw__mode.is-on { background: var(--surface-1); color: var(--text-strong); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.aw__svg--globe { cursor: grab; touch-action: pan-y; }
+.aw__svg--globe:active { cursor: grabbing; }
+.aw__halo { fill: none; stroke: rgba(120, 190, 255, .28); stroke-width: 10; filter: blur(6px); }
+.aw__shade { pointer-events: none; }

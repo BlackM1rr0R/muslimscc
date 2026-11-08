@@ -19,7 +19,7 @@ import { createPortal } from 'react-dom'
 import Icon from '../Icon'
 import { celebrate } from '../../utils/celebrate'
 import { pickUi } from '../../utils/uiText'
-import { loadAdhkar as load, saveAdhkar as save, todayKey as today } from './adhkarState'
+import { loadAdhkar as load, saveAdhkar as save, todayKey as today, markAdhkarDone } from './adhkarState'
 import '../../styles/AdhkarFocus.css'
 
 const TXT = {
@@ -73,6 +73,7 @@ export default function AdhkarFocus({ items = [], part = 'morning', lang = 'az',
       const finishedAll = counts.every((c, i) => c >= need(i))
       if (finishedAll) {
         setSt(nextSt)
+        markAdhkarDone(part)
         setTimeout(() => { setFinished(true); celebrate({ size: 'big' }) }, 350)
         return
       }

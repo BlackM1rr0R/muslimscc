@@ -810,6 +810,11 @@ function Khatm({ data, L, lang, local, updateLocal, run, busy, isAdmin, admin, f
     if (finished && !prevDone.current) celebrate({ size: 'big' })
     prevDone.current = finished
   }, [finished])
+  // v5.7: bu cihazdan cüz götürülmüş otaq tamamlandı — "Birlikdə xətm" nişanı
+  const joined = Object.keys(claims).length > 0
+  useEffect(() => {
+    if (finished && joined) import('../utils/badges').then(m => m.grantBadge('group_khatm')).catch(() => {})
+  }, [finished, joined])
 
   const claim = (n) => {
     const nm = name.trim()

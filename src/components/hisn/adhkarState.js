@@ -19,6 +19,15 @@ export function saveAdhkar(part, st) {
     localStorage.setItem(KEY, JSON.stringify(s))
   } catch { /* yaddaş bağlıdır */ }
 }
+/** Azkar tam bitdi — nişanlar üçün (utils/badges, ADHKAR_DONE_KEY) bu günün tarixi */
+export function markAdhkarDone(part) {
+  try {
+    const s = JSON.parse(localStorage.getItem('adhkar_done_v1') || '{}') || {}
+    const d = new Date()
+    s[part === 'evening' ? 'evening' : 'morning'] = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    localStorage.setItem('adhkar_done_v1', JSON.stringify(s))
+  } catch { /* yaddaş bağlıdır */ }
+}
 /** Bu gün üçün irəliləyiş — { done (tam sayılmış zikr), total, started } */
 export function adhkarProgress(part, items) {
   const n = Array.isArray(items) ? items.length : items

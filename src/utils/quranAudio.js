@@ -9,7 +9,10 @@
 //      üçün. Orada olmayanlarda ehtiyat — eyni CDN-in aşağı bitreyti.
 // Səd əl-Ğamidi bu mənbələrin heç birində ayə-ayə yoxdur (everyayah.com
 // yoxlananda cavab vermədi) — siyahıya salınmayıb.
-// Səs faylları service worker-də keşlənmir (public/sw.js) — belə qalır.
+// Səs faylları service worker-də keşlənmir (public/sw.js) — İSTİSNA (v5.7): istifadəçinin
+// "oflayn saxla" ilə yüklədiyi surələr (OfflineAudio → keş OFFLINE_AUDIO_CACHE). Onlar
+// verses.quran.com-dan (CORS açıqdır — SW Range/206 cavabını özü qura bilir) yüklənir
+// və pleyer həmin surədə bu ünvanı birinci yoxlayır.
 // ═══════════════════════════════════════════════════════
 
 const ISLAMIC = (bitrate, edition) => ({ g }) => `https://cdn.islamic.network/quran/audio/${bitrate}/${edition}/${g}.mp3`
@@ -90,7 +93,42 @@ export const reciterName = (id, lang) => {
  * g — Quranda ümumi ayə nömrəsi (1…6236), s — surə, a — surədəki ayə.
  */
 export function ayahSources(reciterId, { g, s, a }) {
-  return getReciter(reciterId).sources.map(f => f({ g, s, a }))
+  const list = getReciter(reciterId).sources.map(f => f({ g, s, a }))
+  if (offlineSurahs(reciterId).has(s)) {
+    const off = offlineUrl(reciterId, s, a)
+    return [off, ...list.filter(u => u !== off)]
+  }
+  return list
+}
+
+// ── Oflayn səs (v5.7) — components/quran/OfflineAudio ──
+// Yalnız verses.quran.com-da olan qarilər (CORS açıq): keşdəki faylı SW Range ilə verir.
+export const OFFLINE_AUDIO_CACHE = 'qm-audio-v1'
+const OFFLINE_KEY = 'quran_audio_offline_v1'
+const OFFLINE_FOLDER = {
+  alafasy: 'Alafasy', sudais: 'Sudais', abdulbasit: 'AbdulBaset/Murattal', minshawi: 'Minshawi/Murattal',
+  shuraym: 'Shuraym', shatri: 'Shatri', rifai: 'Rifai',
+}
+export const canOffline = id => Boolean(OFFLINE_FOLDER[id])
+export const offlineUrl = (id, s, a) => OFFLINE_FOLDER[id] ? QURANCOM(OFFLINE_FOLDER[id])({ s, a }) : null
+
+function readOffline() {
+  try {
+    const v = JSON.parse(localStorage.getItem(OFFLINE_KEY))
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : {}
+  } catch { return {} }
+}
+/** Bu qarinin cihazda tam saxlanmış surələri */
+export function offlineSurahs(id) {
+  const arr = readOffline()[id]
+  return new Set(Array.isArray(arr) ? arr.filter(n => Number.isInteger(n) && n >= 1 && n <= 114) : [])
+}
+export function setOfflineSurahs(id, set) {
+  try {
+    const v = readOffline()
+    if (set.size) v[id] = [...set].sort((x, y) => x - y); else delete v[id]
+    localStorage.setItem(OFFLINE_KEY, JSON.stringify(v))
+  } catch { /* yaddaş bağlıdır */ }
 }
 
 // ── Seçimlərin yaddaşı ──
