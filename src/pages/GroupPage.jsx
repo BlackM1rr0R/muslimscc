@@ -10,6 +10,7 @@ import {
 import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
 import '../styles/GroupPage.css'
 import { pickUi } from '../utils/uiText'
+import { celebrate } from '../utils/celebrate'
 
 /* ══════════════════════════════════════════════════════════════════
    QRUP XƏTMİ VƏ ORTAQ HƏDƏFLƏR — /group (təqdimat + yaratma) və
@@ -802,6 +803,13 @@ function Khatm({ data, L, lang, local, updateLocal, run, busy, isAdmin, admin, f
   const closed = data.closed
   const finished = !!k.completedAt
   const claims = local.claims || {}
+  // v5.6: xətm bu səhifə açıq ikən tamamlandı (yeni tamamlanma anı) — böyük
+  // ulduz partlayışı; açılışda artıq tamamlanmış otaq üçün təkrar olunmur
+  const prevDone = useRef(finished)
+  useEffect(() => {
+    if (finished && !prevDone.current) celebrate({ size: 'big' })
+    prevDone.current = finished
+  }, [finished])
 
   const claim = (n) => {
     const nm = name.trim()
@@ -858,7 +866,7 @@ function Khatm({ data, L, lang, local, updateLocal, run, busy, isAdmin, admin, f
                 <div className="gp-juz__actions">
                   {!j.name && <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" disabled={busy} onClick={() => claim(j.n)}>{L.claim}</button>}
                   {mine && !j.done && <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" disabled={busy}
-                    onClick={() => run(() => markDone(id, j.n, token, true))}>{L.markDone}</button>}
+                    onClick={() => { celebrate({ size: 'small' }); run(() => markDone(id, j.n, token, true)) }}>{L.markDone}</button>}
                   {mine && j.done && <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" disabled={busy}
                     onClick={() => run(() => markDone(id, j.n, token, false))}>{L.undo}</button>}
                   {mine && <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" disabled={busy}

@@ -1,0 +1,63 @@
+/* HijriYearWheel (components/calendar/HijriYearWheel.jsx) — Hicri il təkəri */
+.hyw { padding: clamp(16px, 3vw, 24px); display: grid; gap: 12px; margin-block: 16px; }
+.hyw-title { margin: 0; font-size: var(--step-1); color: var(--text-strong); }
+.hyw-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: center; }
+@media (min-width: 760px) { .hyw-wrap { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); } }
+.hyw-svg { display: block; width: 100%; max-width: 380px; height: auto; margin-inline: auto; overflow: visible; }
+
+.hyw-m { cursor: pointer; outline: none; }
+.hyw-m path { fill: color-mix(in srgb, var(--brand) 14%, var(--surface-2)); stroke: none; transition: fill .2s ease, transform .2s ease; transform-box: view-box; transform-origin: 170px 170px; }
+.hyw-m.is-sacred path { fill: color-mix(in srgb, var(--accent) 45%, var(--surface-2)); }
+.hyw-m.is-ramadan path { fill: var(--brand); }
+.hyw-m.is-sel path { transform: scale(1.035); filter: drop-shadow(0 2px 6px rgba(0,0,0,.18)); }
+.hyw-m:focus-visible path { stroke: var(--focus-ring, var(--accent)); stroke-width: 3; }
+@media (hover: hover) { .hyw-m:hover path { transform: scale(1.035); } }
+.hyw-m text { fill: var(--text-strong); font-size: 13px; font-weight: 700; pointer-events: none; font-variant-numeric: tabular-nums; }
+.hyw-m.is-ramadan text { fill: #fff; }
+.hyw-progress { fill: var(--accent); opacity: .85; }
+.hyw-ev { fill: var(--surface-1); stroke: var(--accent); stroke-width: 2.5; cursor: pointer; outline: none; transition: r .15s ease; }
+.hyw-ev--major { fill: var(--accent); stroke: var(--surface-1); }
+.hyw-ev--night { fill: #6a5fd0; stroke: var(--surface-1); }
+.hyw-ev.is-hover { stroke: var(--text-strong); }
+.hyw-needle { transform-box: view-box; transform-origin: 170px 170px; transform: rotate(var(--rot)); }
+.hyw-needle line { stroke: var(--text-strong); stroke-width: 3; stroke-linecap: round; }
+.hyw-needle circle { fill: var(--text-strong); }
+.hyw-c1 { fill: var(--text-strong); font-size: 15px; font-weight: 700; }
+.hyw-c2 { fill: var(--text-secondary); font-size: 13px; font-variant-numeric: tabular-nums; }
+.hyw-c3 { fill: var(--brand); font-size: 11.5px; font-weight: 600; }
+
+.hyw-side { display: grid; gap: 10px; }
+.hyw-ev-name { margin: 0; font-size: var(--step--1); color: var(--text-secondary); }
+.hyw-ev-name b { color: var(--text-strong); }
+.hyw-months { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 8px; }
+.hyw-mbtn {
+  width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+  border: 1px solid transparent; border-radius: 10px; background: none;
+  font: inherit; font-size: var(--step--1); color: var(--text-body); text-align: start; cursor: pointer;
+}
+.hyw-mbtn.is-sel { border-color: var(--line-strong); background: var(--surface-2); color: var(--text-strong); font-weight: 600; }
+@media (hover: hover) { .hyw-mbtn:hover { background: var(--surface-2); } }
+.hyw-mnum { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 6px; font-size: 11px; font-weight: 700; background: color-mix(in srgb, var(--brand) 14%, var(--surface-2)); }
+.hyw-mbtn.is-sacred .hyw-mnum { background: color-mix(in srgb, var(--accent) 45%, var(--surface-2)); }
+.hyw-mbtn.is-ramadan .hyw-mnum { background: var(--brand); color: #fff; }
+.hyw-mlen { margin-inline-start: auto; color: var(--text-tertiary); font-size: 11px; }
+.hyw-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--step--1); color: var(--text-secondary); }
+.hyw-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.hyw-sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.hyw-sw.is-sacred { background: color-mix(in srgb, var(--accent) 45%, var(--surface-2)); }
+.hyw-sw.is-ramadan { background: var(--brand); }
+.hyw-sw.is-today { width: 3px; height: 14px; border-radius: 2px; background: var(--text-strong); }
+
+/* Açılış: qövslər növbə ilə, əqrəb sıfırdan bu günə fırlanır */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .hyw-svg .hyw-m path { opacity: 0; }
+  html:not(.a11y-motion-user) .hyw-svg.is-in .hyw-m path { animation: hyw-in .45s ease-out forwards; animation-delay: calc(var(--i) * 45ms); }
+  html:not(.a11y-motion-user) .hyw-svg.is-in .hyw-needle { animation: hyw-spin 1.3s cubic-bezier(.22, 1, .36, 1) .2s backwards; }
+}
+@keyframes hyw-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hyw-spin { from { transform: rotate(0deg); } }
+@media (min-width: 760px) { .hyw-ev-name { min-height: 2.8em; } }
+.hyw-ev-name:empty, .hyw-ev-name.is-empty { display: none; }
+/* Kontrast (axe, qaranlıq rejim): haram ay nişanı — qızılı fon, tünd rəqəm (hər iki rejimdə ≥ 7:1) */
+.hyw-mbtn.is-sacred .hyw-mnum { background: var(--sand-400, #d8b46a); color: #1b1407; }
+.hyw-mbtn .hyw-mnum { color: var(--text-strong); }

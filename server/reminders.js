@@ -4,7 +4,7 @@
 // AXIN (hamısı susmaya görə SÖNÜLÜ, abunəlikdə prefs.adhkar / prefs.jumuah):
 //   • morning — sübh azanından 30 dəqiqə sonra: "Səhər zikrlərinin vaxtıdır"
 //   • evening — əsr azanından 30 dəqiqə sonra:  "Axşam zikrlərinin vaxtıdır"
-//     Klikdə Hisnul-Müslim → "Səhər və axşam zikrləri" fəsli (#hs-28) açılır.
+//     Klikdə Hisnul-Müslim → səhər/axşam azkarı tam ekran rejimində (#adhkar, v5.6) açılır.
 //     Vaxt: səhər zikrləri sübhdən, axşam zikrləri əsrdən sonra oxunur —
 //     "Rəbbini gün çıxmazdan əvvəl və batmazdan əvvəl təsbih et" (Taha 130).
 //   • jumuah — cümə günü yerli saatla 09:00: Kəhf surəsi və çoxlu salavat.
@@ -73,7 +73,7 @@ const TEXTS = {
 
 const prefix = (lang) => (lang === 'az' || !LANGS.includes(lang) ? '' : `/${lang}`)
 function reminderLink(lang, kind) {
-  return kind === 'jumuah' ? `${prefix(lang)}/quran/18` : `${prefix(lang)}/hisnul-muslim#hs-28`
+  return kind === 'jumuah' ? `${prefix(lang)}/quran/18` : `${prefix(lang)}/hisnul-muslim#adhkar`
 }
 
 /** deliver üçün mesaj. TTL: zikr — 2 saat, cümə — 6 saat (gec çatan mənasızdır). */

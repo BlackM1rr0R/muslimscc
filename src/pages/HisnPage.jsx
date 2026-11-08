@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -8,6 +8,18 @@ import ReaderDialog from '../components/reader/ReaderDialog'
 import { copyText, readJSON, shareOrCopy, writeJSON } from '../components/reader/share'
 import '../styles/HisnPage.css'
 import { pickUi } from '../utils/uiText'
+import { adhkarProgress, partNow } from '../components/hisn/adhkarState'
+
+// v5.6: səhər/axşam azkarı — tam ekran rejimi (ayrıca chunk)
+const AdhkarFocus = lazy(() => import('../components/hisn/AdhkarFocus'))
+const ADHKAR_CHAPTER = 28   // "Səhər və axşam zikrləri"
+const AD_TXT = {
+  az: { morning: 'Səhər azkarı', evening: 'Axşam azkarı', lead: 'Tam ekran: zikrlər bir-bir, sayğac və irəliləyiş. Bu gün: {d} / {n}.', start: 'Başla', cont: 'Davam et', again: 'Yenidən oxu' },
+  en: { morning: 'Morning adhkar', evening: 'Evening adhkar', lead: 'Full screen: one dhikr at a time, with a counter and progress. Today: {d} / {n}.', start: 'Start', cont: 'Continue', again: 'Read again' },
+  ru: { morning: 'Утренние зикры', evening: 'Вечерние зикры', lead: 'Полный экран: зикры по одному, со счётчиком и прогрессом. Сегодня: {d} / {n}.', start: 'Начать', cont: 'Продолжить', again: 'Прочитать снова' },
+  ar: { morning: 'أذكار الصباح', evening: 'أذكار المساء', lead: 'ملء الشاشة: ذكر بعد ذكر مع العدّاد والتقدّم. اليوم: {d} / {n}.', start: 'ابدأ', cont: 'تابِع', again: 'اقرأ مجددًا' },
+  tr: { morning: 'Sabah zikirleri', evening: 'Akşam zikirleri', lead: 'Tam ekran: zikirler tek tek, sayaç ve ilerlemeyle. Bugün: {d} / {n}.', start: 'Başla', cont: 'Devam et', again: 'Yeniden oku' },
+}
 
 /* ══════════════════════════════════════════════════════════════════
    HİSNUL-MÜSLİM — /hisnul-muslim
@@ -264,6 +276,19 @@ export default function HisnPage({ setPage }) {
   // Hash ilə gəlinibsə (#hs-27) — yüklənəndən sonra həmin fəslin oxu
   // pəncərəsi açılır; cari girişdən hash götürülür (Geri ilə bağlananda
   // hash-siz səhifəyə dönülür), pəncərə açıq ikən ünvanda yenidən yazılır.
+  // v5.6: #adhkar — səhər/axşam azkarı tam ekranda (bildiriş də bura açır)
+  const [focusPart, setFocusPart] = useState(null)
+  const [, bump] = useState(0)
+  useEffect(() => {
+    if (status !== 'ok' || location.hash !== '#adhkar') return
+    if (chapters.some(c => c.id === ADHKAR_CHAPTER)) setFocusPart(partNow())
+  }, [status, location.hash, chapters])
+  const closeFocus = useCallback(() => {
+    setFocusPart(null)
+    bump(x => x + 1)
+    try { if (window.location.hash === '#adhkar') window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search) } catch { /* */ }
+  }, [])
+
   useEffect(() => {
     if (status !== 'ok') return
     const m = /^#hs-(\d+)$/.exec(location.hash || '')
@@ -334,6 +359,43 @@ export default function HisnPage({ setPage }) {
           <p className="hs-hero__by"><Icon name="books" size={15} /> {L.author}</p>
         </div>
       </header>
+
+      {/* v5.6: Səhər / axşam azkarı — tam ekran rejimi (saata görə) */}
+      {status === 'ok' && (() => {
+        const ch = chapters.find(c => c.id === ADHKAR_CHAPTER)
+        if (!ch) return null
+        const AD = pickUi(AD_TXT, lang, 'en')
+        const part = partNow()
+        const pr = adhkarProgress(part, ch.items)
+        const other = part === 'morning' ? 'evening' : 'morning'
+        return (
+          <section className="ui-section ui-section--tight hs-adhkar">
+            <div className="ui-container">
+              <div className={`hs-adhkar__card hs-adhkar__card--${part}`}>
+                <div className="hs-adhkar__txt">
+                  <h2 className="hs-adhkar__t">{AD[part]}</h2>
+                  <p className="hs-adhkar__l">{AD.lead.replace('{d}', pr.done).replace('{n}', pr.total)}</p>
+                  <div className="hs-adhkar__bar" aria-hidden="true"><i style={{ width: `${(pr.done / pr.total) * 100}%` }} /></div>
+                </div>
+                <div className="hs-adhkar__btns">
+                  <button type="button" className="ui-btn ui-btn--inverse ui-btn--lg" onClick={() => setFocusPart(part)}>
+                    <Icon name="play" className="ui-btn__icon" /> {pr.done >= pr.total ? AD.again : pr.started ? AD.cont : AD.start}
+                  </button>
+                  <button type="button" className="ui-btn ui-btn--inverse-ghost ui-btn--sm" onClick={() => setFocusPart(other)}>{AD[other]}</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )
+      })()}
+      {focusPart && (() => {
+        const ch = chapters.find(c => c.id === ADHKAR_CHAPTER)
+        return ch ? (
+          <Suspense fallback={null}>
+            <AdhkarFocus items={ch.items} part={focusPart} lang={lang} isAr={isAr} onClose={closeFocus} />
+          </Suspense>
+        ) : null
+      })()}
 
       <section className="ui-section ui-section--tight hs-cats" aria-labelledby="hs-cats-h">
         <div className="ui-container">

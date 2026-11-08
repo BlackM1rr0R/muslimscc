@@ -232,3 +232,29 @@ html.a11y-reduce-motion .hs-page .hs-card::before { transition: none; }
 }
 @keyframes hs-v4-drop { from { opacity: 0; transform: translateY(-60%) scale(.8); } to { opacity: 1; transform: none; } }
 @keyframes hs-v4-seal { from { transform: scale(.3) rotate(-60deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* v5.6: Səhər / axşam azkarı kartı (tam ekran rejiminə giriş — AdhkarFocus) */
+.hs-adhkar__card {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+  padding: clamp(18px, 3.4vw, 28px); border-radius: var(--radius-xl, 24px); color: #fff;
+  box-shadow: var(--shadow-3, 0 18px 40px rgba(0,0,0,.18));
+}
+.hs-adhkar__card--morning {
+  background:
+    radial-gradient(ellipse 60% 120% at 0% 100%, rgba(242, 179, 74, .55), transparent 70%),
+    radial-gradient(ellipse 50% 90% at 100% 100%, rgba(232, 120, 158, .45), transparent 70%),
+    linear-gradient(160deg, #13263f, #2b3f6b 60%, #6b4a72);
+}
+.hs-adhkar__card--evening {
+  background:
+    radial-gradient(ellipse 60% 120% at 100% 100%, rgba(238, 122, 74, .55), transparent 70%),
+    radial-gradient(ellipse 50% 90% at 0% 100%, rgba(154, 91, 208, .45), transparent 70%),
+    linear-gradient(160deg, #070d1a, #1a2350 60%, #4a2f6b);
+}
+.hs-adhkar__txt { display: grid; gap: 6px; min-width: min(100%, 260px); flex: 1; }
+.hs-adhkar__t { margin: 0; font-size: var(--step-2); color: #fff; }
+.hs-adhkar__l { margin: 0; color: rgba(255, 255, 255, .85); font-size: var(--step--1); }
+.hs-adhkar__bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .2); overflow: hidden; max-width: 360px; }
+.hs-adhkar__bar i { display: block; height: 100%; background: #e7c77d; border-radius: inherit; transition: width .6s cubic-bezier(.22, 1, .36, 1); }
+.hs-adhkar__btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }

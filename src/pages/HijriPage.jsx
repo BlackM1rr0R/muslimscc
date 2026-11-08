@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
+import DeferRender from '../components/DeferRender'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
@@ -17,6 +18,9 @@ import '../styles/ToolsMotion.css'
 import { ringFrom } from '../components/prayer/ringFrom'
 import MoonPhase from '../components/MoonPhase'
 import { pickUi } from '../utils/uiText'
+
+// v5.6: Ramazanın 33 illik dövrü (spiral təkər) — ayrıca chunk
+const RamadanWheel = lazy(() => import('../components/calendar/RamadanWheel'))
 
 // ═══════════════════════════════════════════════════════
 // /hijri-converter — Hicri tarix çevirici
@@ -328,6 +332,11 @@ function YearGlance({ lang, g, h }) {
               data={[{ label: fill(x.cmpH, { y: h.year }), value: yearLen }, { label: fill(x.cmpG, { y: g.year }), value: gLen, tone: 2 }]} />
           </ChartFigure>
         </div>
+        <DeferRender height="760px" delay={2500}>
+          <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
+            <RamadanWheel lang={lang} />
+          </Suspense>
+        </DeferRender>
         <figure className="ui-quote hj-quote hj-ayah">
           <blockquote>
             <p className="ui-quote__ar ui-arabic" lang="ar" dir="rtl">{AYAH_10_5_AR}</p>

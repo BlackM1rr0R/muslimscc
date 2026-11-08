@@ -1,0 +1,95 @@
+/* AdhkarFocus (components/hisn/AdhkarFocus.jsx) — səhər/axşam azkarı tam ekran */
+.adf {
+  position: fixed; inset: 0; z-index: 1500;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  color: #fff; outline: none; overflow: hidden;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  animation: adf-in .45s cubic-bezier(.22, 1, .36, 1) both;
+}
+.adf-sky { position: absolute; inset: 0; z-index: -1; }
+.adf--morning .adf-sky {
+  background:
+    radial-gradient(ellipse 80% 45% at 15% 100%, rgba(242, 179, 74, .55), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 85% 90%, rgba(232, 120, 158, .45), transparent 70%),
+    linear-gradient(180deg, #13263f 0%, #2b3f6b 45%, #8a5a7c 80%, #c98a62 100%);
+}
+.adf--evening .adf-sky {
+  background:
+    radial-gradient(ellipse 80% 45% at 85% 100%, rgba(238, 122, 74, .55), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 15% 90%, rgba(154, 91, 208, .45), transparent 70%),
+    linear-gradient(180deg, #070d1a 0%, #1a2350 45%, #4a2f6b 80%, #8a4a4a 100%);
+}
+
+.adf-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 12px; align-items: center; padding: 12px 16px 6px; }
+.adf-x {
+  width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .25); background: rgba(0, 0, 0, .25); color: #fff; cursor: pointer;
+}
+.adf-title { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: var(--step-0); }
+.adf-title span { opacity: .8; font-size: var(--step--1); }
+.adf-bar { grid-column: 1 / -1; display: flex; gap: 3px; }
+.adf-bar i { flex: 1; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .22); transition: background-color .3s ease; }
+.adf-bar i.is-done { background: #e7c77d; }
+.adf-bar i.is-cur { background: #fff; }
+
+.adf-stage { display: grid; align-items: center; padding: 8px 16px; overflow-y: auto; overscroll-behavior: contain; }
+.adf-card {
+  max-width: 720px; width: 100%; margin-inline: auto;
+  display: grid; gap: 14px; padding: clamp(18px, 4vw, 28px);
+  border-radius: 24px; background: rgba(6, 12, 22, .55); border: 1px solid rgba(255, 255, 255, .12);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
+}
+.adf-ar { margin: 0; font-size: clamp(22px, 5.6vw, 32px); line-height: 2; text-align: center; color: #fff8e6; }
+.adf-tr { margin: 0; font-size: var(--step-0); line-height: 1.65; color: rgba(255, 255, 255, .88); }
+.adf-src { display: grid; gap: 6px; }
+.adf-src__btn {
+  justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, .25); border-radius: 99px; background: none; color: rgba(255, 255, 255, .85);
+  font: inherit; font-size: var(--step--1); cursor: pointer;
+}
+.adf-src__text { margin: 0; font-size: var(--step--1); color: rgba(255, 255, 255, .72); line-height: 1.55; }
+
+.adf-foot { display: flex; justify-content: center; align-items: center; gap: clamp(16px, 6vw, 40px); padding: 10px 16px 22px; }
+.adf-nav {
+  width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .25); background: rgba(0, 0, 0, .22); color: #fff; cursor: pointer;
+}
+.adf-nav:disabled { opacity: .3; cursor: default; }
+.adf-count {
+  position: relative; width: 132px; height: 132px; padding: 0; border: 0; border-radius: 50%;
+  background: rgba(6, 12, 22, .45); color: #fff; cursor: pointer; touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent; transition: transform .12s ease;
+}
+.adf-count:active { transform: scale(.94); }
+.adf-count svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.adf-count__bg { fill: none; stroke: rgba(255, 255, 255, .15); stroke-width: 8; }
+.adf-count__fg { fill: none; stroke: #e7c77d; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .25s cubic-bezier(.22, 1, .36, 1); }
+.adf-count__in { position: relative; display: grid; place-items: center; gap: 0; height: 100%; }
+.adf-count__n { font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.adf-count small { font-size: 12px; opacity: .8; }
+.adf-count.is-done { background: rgba(231, 199, 125, .25); }
+.adf-count.is-done .adf-count__fg { stroke: #f3e6b5; }
+
+.adf-done { display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; grid-row: 2 / 4; }
+.adf-done h2 { margin: 0; font-size: var(--step-3); }
+.adf-done p { margin: 0; max-width: 520px; color: rgba(255, 255, 255, .85); line-height: 1.6; }
+.adf-done__ring { width: 96px; height: 96px; display: grid; place-items: center; border-radius: 50%; background: rgba(231, 199, 125, .25); border: 2px solid #e7c77d; color: #f3e6b5; }
+.adf-done__btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.adf-done .ui-btn--ghost { color: #fff; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .adf-card--next { animation: adf-next .42s cubic-bezier(.22, 1, .36, 1) both; }
+  html:not(.a11y-motion-user) .adf-card--prev { animation: adf-prev .42s cubic-bezier(.22, 1, .36, 1) both; }
+  html:not(.a11y-motion-user) .adf-count__n { animation: adf-pop .25s ease-out; }
+  html:not(.a11y-motion-user) .adf-done__ring { animation: adf-ring .8s cubic-bezier(.34, 1.56, .64, 1) both; }
+}
+@keyframes adf-in { from { opacity: 0; transform: scale(1.03); } }
+@keyframes adf-next { from { opacity: 0; transform: translate3d(48px, 0, 0); } }
+@keyframes adf-prev { from { opacity: 0; transform: translate3d(-48px, 0, 0); } }
+[dir="rtl"] .adf-card--next { animation-name: adf-prev !important; }
+[dir="rtl"] .adf-card--prev { animation-name: adf-next !important; }
+@keyframes adf-pop { from { transform: scale(1.35); opacity: .4; } }
+@keyframes adf-ring { from { transform: scale(.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .adf { animation: none; } }
+.adf-done__ayah { font-size: clamp(22px, 5vw, 30px); line-height: 1.9; color: #fff8e6 !important; }
+.adf-done__ref { font-size: 13px; opacity: .7; font-family: var(--font-sans); }

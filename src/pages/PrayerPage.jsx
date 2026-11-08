@@ -12,6 +12,7 @@ import { pathFor, PAGES } from '../seo/routes'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import '../styles/PrayerPage.css'
+import DeferRender from '../components/DeferRender'
 import Breadcrumb from '../components/Breadcrumb'
 import { showLocalNotification } from '../utils/notify'
 import { localizeSource } from '../utils/sourceNames'
@@ -391,6 +392,7 @@ const isPlainClick = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey 
 
 const QiyamMode = lazy(() => import('../components/prayer/QiyamMode'))
 const AdhanWave = lazy(() => import('../components/prayer/AdhanWave'))
+const YearPrayerChart = lazy(() => import('../components/prayer/YearPrayerChart'))
 const QY = {
   until:  { az: 'Gecənin son üçdə biri', en: 'Last third of the night', ru: 'Последняя треть ночи', ar: 'الثلث الأخير من الليل', tr: 'Gecenin son üçte biri' },
   inNow:  { az: 'İndi gecənin son üçdə biridir', en: 'It is the last third of the night now', ru: 'Сейчас последняя треть ночи', ar: 'الآن الثلث الأخير من الليل', tr: 'Şu an gecenin son üçte biri' },
@@ -975,6 +977,17 @@ export default function PrayerPage({ setPage }) {
               </table>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ── v5.6: İl boyu namaz vaxtları (365 günlük lent, yerli hesab) ── */}
+      <section className="ui-section ui-section--tight pp-year">
+        <div className="ui-container">
+          <DeferRender height="620px" delay={2500}>
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 620 }} />}>
+              <YearPrayerChart loc={loc} lang={lang} city={cityName} />
+            </Suspense>
+          </DeferRender>
         </div>
       </section>
 

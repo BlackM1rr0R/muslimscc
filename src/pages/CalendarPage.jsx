@@ -19,6 +19,7 @@ import CalSunnahFasts, { weekdayName } from '../components/calendar/CalSunnahFas
 import { pickUi } from '../utils/uiText'
 import { CalDayMoon, CalCrescent, CalMoonNote } from '../components/calendar/CalMoon'
 import { MOON_NAMES } from '../components/moonNames'
+import HijriYearWheel from '../components/calendar/HijriYearWheel'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
 // Yalnız ehtiyat üçündür: Umm al-Qura-dan 1–2 gün fərqlənə bilər.
@@ -619,6 +620,11 @@ export function CalendarPage({ setPage }) {
 
           {/* Növ filtri — telefonda bir sətirlik sürüşən çiplər (.chip-scroll) */}
           {/* Aylar: masaüstündə 6 × 2 şəbəkə, telefonda üfüqi zolaq */}
+          {/* v5.6: Hicri il təkəri — 12 ay, haram aylar, əsas hadisələr, "bu gün" əqrəbi */}
+          <HijriYearWheel lang={lang} today={hijri} selMonth={selMonth} monthNames={hijriMonthNames}
+            lengths={yearDays.map(m => m.length)} onPick={pickMonth}
+            events={EVENTS.filter(e => e.type === 'major' || e.type === 'night' || (e.month === 0 && e.day === 10))
+              .map(e => ({ month: e.month, day: e.day, type: e.type === 'night' ? 'night' : 'major', label: pickUi(e, lang, 'en') }))} />
           <div className="cal-months chip-scroll wrap-desktop" ref={monthsRef} data-reveal="stagger-fade" role="group" aria-label={cx.monthsLabel}>
             {hijriMonthNames.map((m, i) => {
               const nEv = EVENTS.filter(e => e.month === i).length

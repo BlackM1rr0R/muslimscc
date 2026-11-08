@@ -10,6 +10,7 @@ import { OVERLAY_KEY } from '../utils/useBackToClose'
 import { fetchSectionPair } from '../api/hadithLibrary'
 import { BOOKS, BOOK_DATA, TRANSLATION_LANGS, DEFAULT_TRANSLATION } from '../data/hadithLibrary'
 import '../styles/HadithLibraryPage.css'
+import HadithBooksChart from '../components/HadithBooksChart'
 import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -523,6 +524,10 @@ export default function HadithLibraryPage() {
                   )
                 })}
               </ul>
+
+              {/* v5.6: kitabların həcmi + seçilmiş kitabın bölmə zolağı */}
+              <HadithBooksChart books={BOOKS} data={BOOK_DATA} lang={lang} fmt={fmt}
+                onOpen={(book, sec) => go(sec ? { book, sec } : { book })} />
 
               {favs.length > 0 && (
                 <section className="hl-favs" aria-labelledby="hl-favs-h">

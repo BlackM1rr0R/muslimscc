@@ -40,7 +40,7 @@ test('kitab → bölmə → hədis: dərəcələr olduğu kimi, oxu pəncərəsi
   await expect(page.locator('h1')).toHaveText('Hədis kitabxanası')
   await expect(page.locator('.hl-book')).toHaveCount(9)
 
-  await page.getByRole('button', { name: 'Sünən Əbu Davud' }).click()
+  await page.getByRole('button', { name: 'Sünən Əbu Davud', exact: true }).click()
   await expect(page).toHaveURL(/#abudawud$/)
   await expect(page.locator('.hl-sec').first()).toBeVisible()
   // az: mənbədə Azərbaycan dilinə tərcümə yoxdur — qeyd göstərilir

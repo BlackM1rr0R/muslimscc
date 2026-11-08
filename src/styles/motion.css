@@ -1060,3 +1060,20 @@ html.qm-reveal-on [data-reveal^="stagger"][data-reveal-ready]:not([data-revealed
   .skeleton::after,
   .ui-skeleton::after { display: none; }
 }
+
+/* ══ v5.6: AÇILAN BÖLMƏLƏR (<details>) — hündürlük yumşaq açılır/bağlanır ══
+   Bütün saytda (FAQ, mənbələr, bələdçilər). Brauzer dəstəkləmirsə
+   (::details-content / interpolate-size) — əvvəlki kimi ani açılır.
+   Yalnız hündürlük + solma; içindəki məzmun yerində qalır. */
+@supports (interpolate-size: allow-keywords) {
+  @media (prefers-reduced-motion: no-preference) {
+    details { interpolate-size: allow-keywords; }   /* yalnız burada — başqa auto keçidlərinə təsir etməsin */
+    html:not(.a11y-motion-user) details::details-content {
+      block-size: 0;
+      opacity: 0;
+      overflow-y: clip;
+      transition: block-size 320ms cubic-bezier(.22, 1, .36, 1), opacity 240ms ease, content-visibility 320ms allow-discrete;
+    }
+    html:not(.a11y-motion-user) details[open]::details-content { block-size: auto; opacity: 1; }
+  }
+}

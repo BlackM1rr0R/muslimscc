@@ -1,0 +1,46 @@
+/* SurahRhythm (components/quran/SurahRhythm.jsx) — ayə uzunluqlarının sütun zolağı */
+.srh { --srh-c: var(--brand); padding: 14px 16px; display: grid; gap: 10px; margin-block: 12px; }
+.srh--madani { --srh-c: var(--accent); }
+.srh-head { display: grid; gap: 2px; }
+.srh-title { margin: 0; font-size: var(--step-0); color: var(--text-strong); }
+.srh-lead { margin: 0; min-height: 1.5em; font-size: var(--step--1); color: var(--text-secondary); }
+.srh-lead b { color: var(--text-strong); font-variant-numeric: tabular-nums; }
+.srh-svg { display: block; width: 100%; height: 88px; cursor: pointer; touch-action: pan-y; border-radius: 8px; outline: none; }
+.srh-svg:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring, var(--accent)); }
+.srh-bar { fill: color-mix(in srgb, var(--srh-c) 55%, transparent); transition: fill .15s ease; }
+.srh-bar.is-max { fill: var(--srh-c); }
+.srh-bar.is-hover { fill: var(--text-strong); }
+.srh-avg { stroke: var(--text-tertiary); stroke-width: 1; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.srh-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px; }
+.srh-stats li { display: grid; }
+.srh-stats li > span, .srh-jump > span { font-size: var(--step--1); color: var(--text-tertiary); }
+.srh-stats b { font-size: var(--step--1); color: var(--text-strong); }
+.srh-jump {
+  display: grid; text-align: start; gap: 0; padding: 0; border: 0; background: none;
+  font: inherit; color: inherit; cursor: pointer;
+}
+@media (hover: hover) { .srh-jump:hover b { color: var(--srh-c); text-decoration: underline; } }
+
+/* Ekrana girəndə sütunlar soldan sağa "dalğa" kimi açılır (tək clip-path) */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .srh-svg .srh-bars { clip-path: inset(0 100% 0 0); }
+  html:not(.a11y-motion-user) .srh-svg.is-in .srh-bars { animation: srh-wave 1.2s cubic-bezier(.22, 1, .36, 1) forwards; }
+}
+@keyframes srh-wave { to { clip-path: inset(0 0 0 0); } }
+
+/* Yığılmış hal: kiçik ritm önizləməsi olan düymə */
+.srh-toggle {
+  --srh-c: var(--brand);
+  display: inline-flex; align-items: center; gap: 10px; margin-block: 8px;
+  padding: 6px 14px 6px 10px; border: 1px solid var(--line); border-radius: 99px;
+  background: var(--surface-1); color: var(--text-strong); font: inherit; font-size: var(--step--1); font-weight: 600; cursor: pointer;
+  transition: border-color .2s ease, transform .2s ease;
+}
+.srh-toggle.srh--madani { --srh-c: var(--accent); }
+@media (hover: hover) { .srh-toggle:hover { border-color: var(--srh-c); transform: translateY(-1px); } }
+.srh-mini { width: 72px; height: 20px; fill: var(--srh-c); opacity: .85; }
+.srh-toggle__n { color: var(--text-tertiary); font-weight: 500; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .srh { animation: srh-open .45s cubic-bezier(.22, 1, .36, 1) both; }
+}
+@keyframes srh-open { from { opacity: 0; transform: translate3d(0, -6px, 0); } }

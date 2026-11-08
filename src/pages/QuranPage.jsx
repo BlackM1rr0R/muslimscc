@@ -520,6 +520,7 @@ const REVEAL_CARDS = 8
 // Təfsir paneli (components/TafsirPanel.jsx): bağlı kartda tafsirId = 0 —
 // seçim dəyişəndə yalnız açıq kartlar yenidən çəkilir; panel yalnız açılanda render olunur
 const KaraokeAyah = lazy(() => import('../components/quran/KaraokeAyah'))
+const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
 const KARAOKE_LBL = { az: 'Sözbəsöz dinlə', en: 'Word by word', ru: 'Слушать по словам', tr: 'Kelime kelime dinle', ar: 'استمع كلمةً كلمة' }
 
 const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange, saved, shared, onSave, onShare, onKaraoke, xl }) {
@@ -1426,6 +1427,10 @@ export default function QuranPage() {
               </dl>
             </header>
             <SurahRootCloud key={surah.number} surah={surah.number} lang={lang} />
+            {/* v5.6: surənin ritmi — hər ayə bir sütun (söz sayı); toxunuş → ayəyə keçid */}
+            <Suspense fallback={null}>
+              <SurahRhythm key={`rh${surah.number}`} verses={surah.verses} madani={surah.revelationType === 'Medinan'} lang={lang} onPick={(n) => goToAyah(n)} />
+            </Suspense>
             {/* Tərcümə seçicisi: standart nəşr + QuranEnc.com tərcümələri (mətn dəyişmir; mənbə, versiya, tarix) */}
             {extra && (
               <p className="qp-trans-src qp-trans-src__meta">

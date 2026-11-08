@@ -34,11 +34,11 @@ describe('mesaj', () => {
     for (const l of LANGS) for (const k of r.KINDS) {
       const m = r.buildReminderMessage(l, k, '2026-11-13')
       expect(m.notification.title.length).toBeGreaterThan(3)
-      expect(m.data.url).toBe(k === 'jumuah' ? `${l === 'az' ? '' : '/' + l}/quran/18` : `${l === 'az' ? '' : '/' + l}/hisnul-muslim#hs-28`)
+      expect(m.data.url).toBe(k === 'jumuah' ? `${l === 'az' ? '' : '/' + l}/quran/18` : `${l === 'az' ? '' : '/' + l}/hisnul-muslim#adhkar`)
     }
   })
   it('naməlum dil → az; naməlum növ → null', () => {
-    expect(r.buildReminderMessage('xx', 'morning', '2026-11-13').data.url).toBe('/hisnul-muslim#hs-28')
+    expect(r.buildReminderMessage('xx', 'morning', '2026-11-13').data.url).toBe('/hisnul-muslim#adhkar')
     expect(r.buildReminderMessage('az', 'nope', '2026-11-13')).toBeNull()
   })
 })

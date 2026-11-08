@@ -1,0 +1,58 @@
+/* RamadanWheel (components/calendar/RamadanWheel.jsx) — Ramazanın 33 illik dövrü */
+.rmw { padding: clamp(16px, 3vw, 28px); display: grid; gap: 16px; }
+.rmw-head { display: grid; gap: 6px; }
+.rmw-title, .rmw-lead { margin: 0; }
+.rmw-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: center; }
+@media (min-width: 760px) { .rmw-body { grid-template-columns: minmax(0, 420px) minmax(0, 1fr); } }
+.rmw-wheel { max-width: 420px; width: 100%; margin-inline: auto; }
+.rmw-svg { display: block; width: 100%; height: auto; outline: none; border-radius: 50%; }
+.rmw-svg:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring, var(--accent)); }
+.rmw-season { opacity: .2; }
+[data-theme="dark"] .rmw-season { opacity: .28; }
+.rmw-season--0 { fill: #5f9fd8; }   /* qış */
+.rmw-season--1 { fill: #4fb37e; }   /* yaz */
+.rmw-season--2 { fill: #e2b23a; }   /* yay */
+.rmw-season--3 { fill: #e07a3f; }   /* payız */
+.rmw-hole { fill: var(--surface-1); }
+.rmw-month { fill: var(--text-tertiary); font-size: 11px; }
+.rmw-slabel { fill: var(--text-secondary); font-size: 12px; font-weight: 600; opacity: .8; }
+.rmw-spiral { fill: none; stroke: var(--accent); stroke-width: 1.4; opacity: .55; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.rmw-dot { fill: var(--brand); stroke: var(--surface-1); stroke-width: 1.5; cursor: pointer; transition: r .2s ease, fill .2s ease; }
+.rmw-dot.is-now { fill: var(--accent); }
+.rmw-dot.is-sel { fill: var(--accent); stroke: var(--text-strong); stroke-width: 2; }
+.rmw-center-y { fill: var(--text-strong); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rmw-center-s { fill: var(--text-tertiary); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.rmw-info { display: grid; gap: 10px; }
+.rmw-year { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: var(--step-1); }
+.rmw-nav { min-width: 36px; justify-content: center; font-size: 18px; line-height: 1; }
+.rmw-now { font-size: var(--step--1); }
+.rmw-dates { margin: 0; color: var(--text-secondary); }
+.rmw-fast { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.rmw-fast li { display: grid; gap: 2px; padding: 10px 12px; border-radius: var(--radius-md, 12px); background: var(--surface-2); }
+.rmw-fast li.is-main { grid-column: 1 / -1; background: color-mix(in srgb, var(--accent) 14%, var(--surface-1)); }
+.rmw-fast span { font-size: var(--step--1); color: var(--text-secondary); }
+.rmw-fast b { font-size: var(--step-1); color: var(--text-strong); }
+.rmw-fast li.is-main b { font-size: var(--step-2); }
+.rmw-chart { display: grid; gap: 6px; }
+.rmw-chart-t { margin: 0; font-size: var(--step--1); color: var(--text-secondary); }
+.rmw-note { margin: 0; font-size: var(--step--1); color: var(--text-tertiary); }
+
+/* Açılış: spiral çəkilir, nöqtələr içəridən çölə növbə ilə görünür */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .rmw-svg .rmw-spiral { stroke-dashoffset: 1; }
+  html:not(.a11y-motion-user) .rmw-svg.is-in .rmw-spiral { animation: rmw-draw 1.6s cubic-bezier(.22, 1, .36, 1) .1s forwards; }
+  html:not(.a11y-motion-user) .rmw-svg .rmw-dot { opacity: 0; }
+  html:not(.a11y-motion-user) .rmw-svg.is-in .rmw-dot { animation: rmw-pop .35s ease-out forwards; animation-delay: calc(.1s + var(--i) * 40ms); }
+}
+@keyframes rmw-draw { to { stroke-dashoffset: 0; } }
+@keyframes rmw-pop { from { opacity: 0; } to { opacity: 1; } }
+.rmw-legend { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: var(--step--1); color: var(--text-secondary); }
+.rmw-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.rmw-sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.rmw-sw.rmw-season--0 { background: #5f9fd8; }
+.rmw-sw.rmw-season--1 { background: #4fb37e; }
+.rmw-sw.rmw-season--2 { background: #e2b23a; }
+.rmw-sw.rmw-season--3 { background: #e07a3f; }
+/* Sütun etiketləri: hamısı bir sətirdə və eyni hündürlükdə (uzun etiket sütunu qısaltmasın) */
+.rmw .ui-viz-col__label { white-space: nowrap; overflow: visible; height: 1.4em; font-size: 11px; }

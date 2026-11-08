@@ -1,0 +1,46 @@
+/* HadithBooksChart (components/HadithBooksChart.jsx) — kitabların həcmi və bölmə zolağı */
+.hbc { padding: clamp(16px, 3vw, 24px); display: grid; gap: 14px; margin-block: 20px; }
+.hbc-head { display: grid; gap: 4px; }
+.hbc-title { margin: 0; font-size: var(--step-1); color: var(--text-strong); }
+.hbc-lead { margin: 0; font-size: var(--step--1); color: var(--text-secondary); }
+.hbc-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+@media (min-width: 900px) { .hbc-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: start; } }
+
+.hbc-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.hbc-bar {
+  width: 100%; display: grid; grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  padding: 6px 8px; border: 1px solid transparent; border-radius: 10px; background: none;
+  font: inherit; font-size: var(--step--1); color: var(--text-body); text-align: start; cursor: pointer;
+}
+.hbc-bar.is-sel { background: var(--surface-2); border-color: var(--line); color: var(--text-strong); font-weight: 600; }
+@media (hover: hover) { .hbc-bar:hover { background: var(--surface-2); } }
+.hbc-bar__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hbc-bar__track { height: 10px; border-radius: 99px; background: var(--surface-3, var(--surface-2)); overflow: hidden; }
+.hbc-bar__fill { display: block; height: 100%; width: var(--w); border-radius: inherit; background: color-mix(in srgb, var(--brand) 70%, transparent); transform-origin: left center; }
+[dir="rtl"] .hbc-bar__fill { transform-origin: right center; }
+.hbc-bar.is-sel .hbc-bar__fill { background: linear-gradient(90deg, var(--brand), var(--accent)); }
+.hbc-bar__n { font-size: var(--step--1); color: var(--text-secondary); min-width: 3.2em; text-align: end; }
+
+.hbc-strip-wrap { display: grid; gap: 8px; }
+.hbc-cur { margin: 0; font-size: var(--step--1); color: var(--text-secondary); }
+.hbc-cur b { color: var(--text-strong); }
+.hbc-strip { display: flex; gap: 1px; height: 56px; border-radius: 12px; overflow: hidden; background: var(--line); }
+.hbc-seg {
+  flex-basis: 0; min-width: 2px; padding: 0; border: 0; cursor: pointer;
+  background: hsl(var(--h) 48% calc(var(--l) * 1% + 10%));
+  transition: filter .15s ease, transform .15s ease;
+}
+[data-theme="dark"] .hbc-seg { background: hsl(var(--h) 42% calc(var(--l) * 1%)); }
+.hbc-seg.is-hover, .hbc-seg:focus-visible { filter: brightness(1.25) saturate(1.2); outline: none; box-shadow: inset 0 0 0 2px var(--text-strong); }
+.hbc-seginfo { margin: 0; min-height: 3em; font-size: var(--step--1); color: var(--text-secondary); }
+.hbc-seginfo b { color: var(--text-strong); }
+.hbc-pct { color: var(--brand); font-weight: 600; }
+.hbc-open { justify-self: start; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .hbc .hbc-bar__fill { transform: scaleX(0); }
+  html:not(.a11y-motion-user) .hbc.is-in .hbc-bar__fill { animation: hbc-grow .8s cubic-bezier(.22, 1, .36, 1) forwards; animation-delay: calc(var(--i) * 60ms); }
+  html:not(.a11y-motion-user) .hbc.is-in .hbc-strip { animation: hbc-wipe .9s cubic-bezier(.22, 1, .36, 1) both; }
+}
+@keyframes hbc-grow { to { transform: scaleX(1); } }
+@keyframes hbc-wipe { from { clip-path: inset(0 100% 0 0 round 12px); } to { clip-path: inset(0 0 0 0 round 12px); } }

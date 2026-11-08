@@ -89,3 +89,23 @@
 .rd-memo__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .rd-memo__count { margin-inline-end: auto; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .rd-memo__w.is-shown { animation: none; } }
+
+/* v5.6: bağlanış (ReaderDialog → .is-closing, ~220 ms) və istiqamətli
+   əvvəlki/növbəti keçidi (.rd-body--next / --prev) */
+.rd-backdrop.is-closing { pointer-events: none; animation: rdFadeOut 220ms ease-in forwards; }
+.rd-backdrop.is-closing .rd-panel { animation: rdClose 220ms cubic-bezier(.4, 0, 1, 1) forwards; }
+@keyframes rdFadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes rdClose { to { opacity: 0; transform: translateY(14px) scale(.98); } }
+@media (max-width: 767.98px) {
+  .rd-backdrop.is-closing .rd-panel { animation-name: rdSheetOut; }
+}
+@keyframes rdSheetOut { to { opacity: 0; transform: translateY(60px); } }
+.rd-body--next { animation: rdSwapNext 320ms cubic-bezier(.22, 1, .36, 1) both; }
+.rd-body--prev { animation: rdSwapPrev 320ms cubic-bezier(.22, 1, .36, 1) both; }
+[dir="rtl"] .rd-body--next { animation-name: rdSwapPrev; }
+[dir="rtl"] .rd-body--prev { animation-name: rdSwapNext; }
+@keyframes rdSwapNext { from { opacity: 0; transform: translate3d(28px, 0, 0); } }
+@keyframes rdSwapPrev { from { opacity: 0; transform: translate3d(-28px, 0, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  .rd-backdrop.is-closing, .rd-backdrop.is-closing .rd-panel, .rd-body--next, .rd-body--prev { animation: none; }
+}
