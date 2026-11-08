@@ -125,6 +125,7 @@ app.use('/api', require('./clientErrors').createClientErrorRouter({ requireAdmin
 // ─── Namaz vaxtları — təqvim abunəliyi (server/ics.js) ──
 // Google/Apple serverləri çox istifadəçi üçün eyni IP-dən gəlir — limit genişdir
 app.use('/api/prayer.ics', limit(60000, 600))
+app.use('/api/prayer.json', limit(60000, 120))   // v5.7: ana ekran vidceti
 app.use('/api', require('./ics').createIcsRouter())
 
 // ─── Web Push (server/push.js) ───────────────────────────────────────

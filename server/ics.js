@@ -173,6 +173,23 @@ function createIcsRouter({ fetchImpl = (...a) => fetch(...a), now = () => new Da
     res.set('Cache-Control', 'public, max-age=3600')
     res.send(buildIcs({ loc, days, now: now() }))
   })
+
+  // v5.7: ana ekran vidceti (iPhone — Scriptable skripti, /widget səhifəsi) üçün
+  // JSON: bu gün + sabah (işadan sonra "növbəti" sabahın sübhüdür). Vaxtlar ICS ilə eynidir.
+  //   GET /api/prayer.json?lat=…&lng=…&tz=…&method=…&lang=…&city=…
+  router.get('/prayer.json', async (req, res) => {
+    const loc = parseQuery(req.query)
+    if (!loc) return res.status(400).json({ error: 'bad location' })
+    const today = nowIn(loc.tz).dateKey
+    const days = (await daysFor(loc)).filter(d => d.dateKey >= today).slice(0, 2)
+    if (!days.length) return res.status(503).json({ error: 'times unavailable' })
+    const T = PUSH_TEXTS[loc.lang] || PUSH_TEXTS.az
+    res.set('Cache-Control', 'public, max-age=1800')
+    res.json({
+      city: loc.city, tz: loc.tz, lang: loc.lang, names: T.names,
+      days: days.map(d => ({ date: d.dateKey, friday: d.friday, times: Object.fromEntries(PRAYERS.map(([k]) => [k, d.times[k]])) })),
+    })
+  })
   return router
 }
 

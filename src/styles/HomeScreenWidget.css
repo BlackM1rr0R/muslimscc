@@ -1,0 +1,48 @@
+/* Ana ekran vidceti (components/prayer/HomeScreenWidget.jsx) — /prayer#home-widget */
+.hsw { display: grid; gap: var(--space-4, 16px); margin-top: var(--space-4, 16px); padding: clamp(16px, 3vw, 24px); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 860px) {
+  .hsw { grid-template-columns: minmax(0, 1fr) minmax(0, 360px); align-items: start; }
+  .hsw__phone { grid-column: 2; grid-row: 1 / span 3; }
+}
+.hsw__intro { display: grid; gap: 6px; }
+.hsw__title { margin: 0; font-size: var(--step-1, 1.2rem); }
+.hsw__lead { margin: 0; color: var(--text-secondary); font-size: var(--step--1); }
+.hsw__tabs { display: inline-flex; justify-self: start; gap: 2px; padding: 3px; margin-top: 6px; border-radius: 999px; background: var(--surface-2); }
+.hsw__tab { border: 0; border-radius: 999px; padding: 6px 16px; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; background: none; color: var(--text-secondary); }
+.hsw__tab.is-on { background: var(--surface-1); color: var(--text-strong); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+
+.hsw__steps { margin: 0; padding: 0; list-style: none; counter-reset: hsw; display: grid; gap: 12px; }
+.hsw__steps li { counter-increment: hsw; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 12px; align-items: start; font-size: var(--step--1); line-height: 1.5; }
+.hsw__steps li::before {
+  content: counter(hsw); grid-row: 1 / span 3; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent-text); font-weight: 800; font-size: .85rem;
+}
+.hsw__steps li > .ui-btn, .hsw__btns { grid-column: 2; justify-self: start; }
+.hsw__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.hsw__note { grid-column: 2; color: var(--text-muted); }
+.hsw__alt { margin: 0; display: flex; gap: 8px; align-items: flex-start; font-size: var(--step--1); color: var(--text-secondary); line-height: 1.5; }
+.hsw__alt svg { flex: none; margin-top: 3px; color: var(--accent); }
+
+/* Önizləmə: telefon divar kağızı üstündə orta ölçülü vidcet */
+.hsw__phone {
+  border-radius: 28px; padding: 22px 16px; display: grid; place-items: center;
+  background: radial-gradient(120% 90% at 20% 0%, #5b7fd6 0%, #2f3f8f 45%, #1a1f4a 100%);
+}
+.hsw__w {
+  width: 100%; max-width: 340px; aspect-ratio: 2.12; border-radius: 22px; padding: 12px 14px; color: #fff;
+  display: grid; grid-template-rows: auto 1fr; gap: 6px;
+  background: linear-gradient(180deg, #0f4a39, #08261d); box-shadow: 0 14px 34px rgba(0, 0, 0, .35);
+  font-family: -apple-system, BlinkMacSystemFont, var(--font-sans);
+}
+.hsw__w-city { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, .72); }
+.hsw__w-city svg { color: #e7c77d; }
+.hsw__w-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 10px; align-items: center; }
+.hsw__w-next { display: grid; line-height: 1.1; }
+.hsw__w-next small { font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #e7c77d; }
+.hsw__w-next b { font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hsw__w-next strong { font-size: 26px; font-weight: 800; }
+.hsw__w-next span { font-size: 11px; color: #e7c77d; }
+.hsw__w-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 1px; font-size: 11px; }
+.hsw__w-list li { display: flex; justify-content: space-between; gap: 6px; padding: 1px 5px; border-radius: 5px; }
+.hsw__w-list li.is-on { background: rgba(231, 199, 125, .18); color: #e7c77d; font-weight: 700; }
+[dir="rtl"] .hsw__w { direction: rtl; }

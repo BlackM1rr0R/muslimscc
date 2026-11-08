@@ -82,4 +82,16 @@ describe('GET /api/prayer.ics', () => {
   it('pis parametr — 400', async () => {
     expect((await fetch(`${srv.url}/api/prayer.ics?lat=1`)).status).toBe(400)
   })
+  it('vidcet JSON — bu gün + sabah, 5 vaxt, dilə görə adlar', async () => {
+    const r = await fetch(`${srv.url}/api/prayer.json?lat=40.4093&lng=49.8671&tz=Asia/Baku&method=99&lang=az&city=Bak%C4%B1`)
+    expect(r.status).toBe(200)
+    const j = await r.json()
+    expect(j.city).toBe('Bakı')
+    expect(j.names.maghrib).toBe('Məğrib')
+    expect(j.days).toHaveLength(2)
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku' }).format(new Date())
+    expect(j.days[0].date).toBe(today)
+    for (const k of ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']) expect(j.days[0].times[k]).toMatch(/^\d{2}:\d{2}$/)
+    expect((await fetch(`${srv.url}/api/prayer.json?lat=1`)).status).toBe(400)
+  })
 })

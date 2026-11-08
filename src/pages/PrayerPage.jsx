@@ -29,6 +29,7 @@ import RollingDigits from '../components/prayer/RollingDigits'
 import Sparkle from '../components/prayer/Sparkle'
 import '../styles/ToolsMotion.css'
 import CalendarSubscribe from '../components/prayer/CalendarSubscribe'
+import HomeScreenWidget from '../components/prayer/HomeScreenWidget'
 import { ProgressRing, StatTile } from '../components/viz'
 import { pickUi } from '../utils/uiText'
 
@@ -885,6 +886,9 @@ export default function PrayerPage({ setPage }) {
             )}
             {/* Google / Apple / Outlook təqviminə abunəlik (server/ics.js) */}
             <CalendarSubscribe location={pt.location} lang={lang} city={cityName} />
+            {/* v5.7: ana ekran vidceti — iPhone (Scriptable), Android (təqvim vidceti) */}
+            <HomeScreenWidget location={pt.location} lang={lang} city={cityName} times={dayTimes} names={dayNames}
+              next={pt.next ? { key: pt.next.tomorrow ? 'fajr' : pt.next.key, time: pt.next.adhan, left: countdown.slice(0, 5) } : null} />
           </div>
         </section>
       )}
