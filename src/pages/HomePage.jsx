@@ -67,7 +67,8 @@ const DailyContentDisplay = lazy(lazyWhenIdle(() => import('../components/AdminC
 const AnnouncementSection = lazy(lazyWhenIdle(() => import('../components/AnnouncementSection')))
 const HeroBannerDisplay = lazy(lazyWhenIdle(() => import('../components/HeroBannerDisplay')))
 // Günün təddəbür sualı — ekranın altında, şəbəkəsiz (məlumat faylın özündədir)
-const TadabburCard = lazy(lazyWhenIdle(() => import('../components/TadabburCard')))
+// v5.7: ~46 KB (gzip) məlumat — yalnız bölməyə yaxınlaşanda (DeferRender), boş vaxtda yox
+const TadabburCard = lazy(() => import('../components/TadabburCard'))
 // v3.2: "Bu gün" bento paneli (günün hədisi — Nəvəvi 40, günün ayəsi, davam et,
 // hicri tarix). Hero-nun düz altındadır — lazy, amma idle gözləmədən; yer
 // tutucu hündürlüyü saxlayır (CLS olmasın). Bax: components/home/HomeToday.jsx
@@ -940,7 +941,9 @@ export default function HomePage({ setPage }) {
 
         {/* ═══ GÜNÜN TƏDDƏBÜR SUALI ═══ */}
         <section className="ui-section ui-section--tight hp-tadabbur">
-          <div className="ui-container"><TadabburCard /></div>
+          <div className="ui-container">
+            <DeferRender height="420px" idle={false} rootMargin="500px 0px"><TadabburCard /></DeferRender>
+          </div>
         </section>
 
         {/* ═══ VIDEO SECTION ═══ */}

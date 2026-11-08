@@ -33,6 +33,16 @@ test('AR: açılır, tuşlananda "Qiblə istiqamətindəsiniz", bağlananda kame
     await page.evaluate((a) => window.dispatchEvent(Object.assign(new Event('deviceorientationabsolute'), { alpha: a, beta: 90, gamma: 0, absolute: true })), alpha)
   }
   await expect(ar).toContainText('Qiblə istiqamətindəsiniz', { timeout: 5000 })
+  // v5.7: sabit oxunuşlar — kompas dəqiqdir
+  await expect(ar.getByTestId('qar-acc')).toContainText('Kompas dəqiqdir')
+  // səpələnən oxunuşlar — dəqiq deyil
+  for (let i = 0; i < 40; i++) {
+    await page.evaluate(([a, i]) => window.dispatchEvent(Object.assign(new Event('deviceorientationabsolute'), { alpha: (a + (i % 2 ? 60 : -60) + 360) % 360, beta: 90, gamma: 0, absolute: true })), [alpha, i])
+  }
+  await expect(ar.getByTestId('qar-acc')).toContainText('dəqiq deyil')
+  // telefon üfüqi (beta ≈ 0) — dik tutma xəbərdarlığı
+  await page.evaluate((a) => window.dispatchEvent(Object.assign(new Event('deviceorientationabsolute'), { alpha: a, beta: 5, gamma: 0, absolute: true })), alpha)
+  await expect(ar).toContainText('Telefonu dik tutun')
   // 90° sağa dönəndə — kənarda ox
   for (let i = 0; i < 60; i++) {
     await page.evaluate((a) => window.dispatchEvent(Object.assign(new Event('deviceorientationabsolute'), { alpha: a, beta: 90, gamma: 0, absolute: true })), (alpha + 90) % 360)

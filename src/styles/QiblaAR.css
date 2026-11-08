@@ -38,3 +38,18 @@
   html:not(.a11y-reduce-motion) .qar.is-aligned .qar__kaaba { animation: qar-hit 600ms cubic-bezier(.2, .8, .2, 1.3); }
 }
 @keyframes qar-hit { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1.15); } }
+
+/* v5.7: kompas lövhəsi, dəqiqlik və dik tutma xəbərdarlığı */
+.qar__dial { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); width: 80px; height: 80px; margin-left: -40px; z-index: 2; }
+.qar__dial svg { width: 100%; height: 100%; fill: rgba(0, 0, 0, .35); stroke: rgba(255, 255, 255, .55); stroke-width: 2; }
+.qar__needle { position: absolute; inset: 0; display: grid; justify-items: center; transition: transform .12s linear; }
+.qar__needle i { display: block; width: 0; height: 0; margin-top: 10px; border-inline: 9px solid transparent; border-bottom: 30px solid #e7c77d; filter: drop-shadow(0 0 6px rgba(231, 199, 125, .7)); }
+.is-aligned .qar__needle i { border-bottom-color: #6ee7b7; }
+.qar__chip { display: inline-flex; align-items: center; gap: 8px; margin: 0 auto 8px; padding: 6px 12px; border-radius: 99px; font-size: 13px; font-weight: 600; background: rgba(0, 0, 0, .5); color: #fff; max-width: 92vw; text-align: start; }
+.qar__chip--good { color: #a7f3d0; }
+.qar__chip--low, .qar__chip--warn { color: #fde68a; background: rgba(60, 40, 0, .6); }
+.qar__eight { display: inline-grid; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .qar__eight { animation: qar-eight 1.6s ease-in-out infinite; }
+}
+@keyframes qar-eight { 0% { transform: translate(0, 0) rotate(0); } 25% { transform: translate(6px, -3px) rotate(25deg); } 50% { transform: translate(0, 0) rotate(0); } 75% { transform: translate(-6px, -3px) rotate(-25deg); } 100% { transform: translate(0, 0) rotate(0); } }

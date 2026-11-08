@@ -1,9 +1,10 @@
 // ═══════════════════════════════════════════════════════
 // readAnalytics — /analytics səhifəsinin bütün göstəriciləri (yalnız bu cihazın
 // localStorage-i). AnalyticsPage və nişanlar (utils/badges) eyni hesabı işlədir.
+// Ərəb dili kursunun göstəriciləri burada YOXDUR (progress.js bütün dərsləri gətirir —
+// ana səhifədə nişan yoxlaması üçün ağırdır): AnalyticsPage onları özü əlavə edir.
 // ═══════════════════════════════════════════════════════
 import { SURAH_TABLE } from '../data/mushafIndex.js'
-import { readProgress, passedCount, percentDone } from '../components/arabic/progress.js'
 
 
 // localStorage oxuması: dəyər gözlənilən formada deyilsə (pozuq JSON, null,
@@ -225,11 +226,9 @@ export function readAnalytics() {
     .slice(0, 5)
   const ayahsOpened = Object.keys(quranReads).map(Number).filter(k => k >= 1 && k <= 114)
     .reduce((s, k) => s + (SURAH_TABLE[k - 1]?.[2] || 0), 0)
-  const course = readProgress()
 
   return {
     perPrayer, dayScore, weekPct, topSurahs, ayahsOpened, weekDates,
-    coursePassed: passedCount(course), coursePct: percentDone(course), courseStarted: Object.keys(course.best).length > 0 || !!course.last,
     daysActive, totalPrayers, weekPrayers, monthPrayers, prayerRate, prayerStreak,
     quranSessions, uniqueSurahs, quranStreak,
     hifzMemorized, hifzInProgress, hifzNotStarted,

@@ -10,6 +10,7 @@ import { ChartFigure, BarChart, ColumnChart, ProgressRing, ProgressBar, StackedB
 import { getSurahLocal } from '../data/surahNamesAz.js'
 import { SURAH_TABLE } from '../data/mushafIndex.js'
 import { readAnalytics, localDate, todayStr } from '../utils/analyticsData.js'
+import { readProgress, passedCount, percentDone } from '../components/arabic/progress.js'
 import { LESSONS } from '../data/arabicCourse.js'
 import { pickUi } from '../utils/uiText'
 import { badgeList, syncBadges } from '../utils/badges.js'
@@ -161,7 +162,11 @@ export default function AnalyticsPage({ setPage }) {
   const { lang } = useLang()
   const t = pickUi(LABELS, lang)
 
-  const data = useMemo(() => readAnalytics(), [])
+  const data = useMemo(() => {
+    const d = readAnalytics()
+    const course = readProgress()
+    return { ...d, coursePassed: passedCount(course), coursePct: percentDone(course), courseStarted: Object.keys(course.best).length > 0 || !!course.last }
+  }, [])
 
   // Hər hansı bir bölmədə məlumat varsa "məlumat yoxdur" göstərilmir
   // (əvvəl yalnız tarixli fəaliyyətə baxılırdı: sevimlilər, hifz, zikr nəzərə alınmırdı)
