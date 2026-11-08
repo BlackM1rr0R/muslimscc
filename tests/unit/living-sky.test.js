@@ -40,3 +40,15 @@ describe('HeroGreeting.partOfDay', async () => {
     expect(partOfDay('', 9)).toBe('morning')
   })
 })
+
+describe('weatherKind', async () => {
+  const { weatherKind } = await import('../../src/utils/weather.js')
+  it('WMO kodu + külək → növ', () => {
+    expect(weatherKind({ code: 61, wind: 5 })).toBe('rain')
+    expect(weatherKind({ code: 81 })).toBe('rain')
+    expect(weatherKind({ code: 73 })).toBe('snow')
+    expect(weatherKind({ code: 95 })).toBe('thunder')
+    expect(weatherKind({ code: 2, wind: 40 })).toBe('wind')
+    expect(weatherKind({ code: 1, wind: 10 })).toBe(null)
+  })
+})

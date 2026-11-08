@@ -1,0 +1,43 @@
+/* Quran Zen (components/quran/QuranZen.jsx) — tam ekran, canlı səma fonu */
+.qz { position: fixed; inset: 0; z-index: 1500; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; color: #fff; outline: none; overflow: hidden;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+html.qz-open { overflow: hidden; }
+.qz-sky { position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(ellipse 90% 60% at var(--sky-x, 50%) 100%, color-mix(in srgb, var(--sky-c, #2b3f8f) 55%, transparent), transparent 70%),
+    linear-gradient(180deg, #050a18 0%, #0c1635 55%, #1a2a5c 100%); }
+html[data-sky="day"] .qz-sky, html[data-sky="asr"] .qz-sky { background: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(120, 170, 230, .45), transparent 70%), linear-gradient(180deg, #0d2a4a, #123a66 60%, #1d4f80); }
+html[data-sky="maghrib"] .qz-sky, html[data-sky="fajr"] .qz-sky { background: radial-gradient(ellipse 90% 55% at 50% 100%, rgba(240, 140, 100, .45), transparent 70%), linear-gradient(180deg, #120d2e, #3a2350 55%, #6a3a58); }
+.qz-stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; opacity: .7; }
+.qz-glow { position: absolute; left: 50%; top: 45%; width: 70vmin; height: 70vmin; margin: -35vmin 0 0 -35vmin; border-radius: 50%;
+  background: radial-gradient(circle, rgba(231, 199, 125, .14), transparent 65%); }
+.qz-top { display: flex; align-items: center; gap: 12px; padding: 12px 16px 6px; }
+.qz-x { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .25); background: rgba(0, 0, 0, .25); color: #fff; cursor: pointer; }
+.qz-title { display: grid; line-height: 1.2; }
+.qz-title b { font-size: var(--step-0); }
+.qz-title span { font-size: 12px; opacity: .7; }
+.qz-bar { height: 3px; margin: 0 16px; border-radius: 2px; background: rgba(255, 255, 255, .15); overflow: hidden; }
+.qz-bar i { display: block; height: 100%; background: #e7c77d; transform-origin: left; transition: transform .5s ease; }
+[dir="rtl"] .qz-bar i { transform-origin: right; }
+.qz-stage { display: grid; align-items: center; padding: 16px clamp(16px, 5vw, 48px); overflow-y: auto; overscroll-behavior: contain; }
+.qz-ayah { max-width: 900px; width: 100%; margin-inline: auto; display: grid; gap: 18px; text-align: center; }
+.qz-ar { margin: 0; font-family: var(--font-arabic); font-size: clamp(1.8rem, 1.2rem + 3vw, 3.2rem); line-height: 2.1; color: #fff8e6; text-shadow: 0 2px 24px rgba(0, 0, 0, .35); }
+.qz-num { color: #e7c77d; font-size: .7em; white-space: nowrap; }
+.qz-tr { margin: 0; font-size: clamp(1rem, .9rem + .4vw, 1.2rem); line-height: 1.7; color: rgba(255, 255, 255, .82); }
+.qz-foot { display: grid; justify-items: center; gap: 12px; padding: 10px 16px 22px; }
+.qz-ctrl { display: flex; align-items: center; gap: clamp(18px, 6vw, 40px); }
+.qz-btn { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .22); background: rgba(0, 0, 0, .2); color: #fff; cursor: pointer; }
+.qz-btn:disabled { opacity: .3; cursor: default; }
+.qz-play { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; border: 0; cursor: pointer; background: #e7c77d; color: #241a05; box-shadow: 0 10px 30px rgba(231, 199, 125, .35); }
+.qz-sleep { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; font-size: 12px; color: rgba(255, 255, 255, .75); }
+.qz-chip { border: 1px solid rgba(255, 255, 255, .25); background: none; color: #fff; border-radius: 99px; padding: 4px 12px; font: inherit; cursor: pointer; }
+.qz-chip.is-on { background: rgba(231, 199, 125, .22); border-color: #e7c77d; color: #f3e6b5; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .qz { animation: qz-in .5s cubic-bezier(.22, 1, .36, 1) both; }
+  html:not(.a11y-motion-user) .qz-ayah { animation: qz-ayah .9s cubic-bezier(.22, 1, .36, 1) both; }
+  html:not(.a11y-motion-user) .qz-stars i { animation: qz-tw 4s ease-in-out var(--d) infinite; }
+  html:not(.a11y-motion-user) .qz-glow { animation: qz-breathe 8s ease-in-out infinite; }
+}
+@keyframes qz-in { from { opacity: 0; } }
+@keyframes qz-ayah { from { opacity: 0; transform: translate3d(0, 18px, 0) scale(.98); } }
+@keyframes qz-tw { 50% { opacity: .2; } }
+@keyframes qz-breathe { 50% { transform: scale(1.12); opacity: .7; } }

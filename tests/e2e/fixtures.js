@@ -78,6 +78,8 @@ export const test = base.extend({
     // → "lite", lokalda isə yox. Testlər hər yerdə EYNİ rejimdə işləsin deyə sabitlənir.
     await page.addInitScript(() => { try { localStorage.setItem('muslim_cc_motion', 'full') } catch { /* */ } })
     await page.route(/api\.aladhan\.com\//, route => route.fulfill({ json: TIMINGS }))
+    // v5.7: hava (components/home/WeatherDua) — standart: aydın, küləksiz (kart görünmür)
+    await page.route(/api\.open-meteo\.com\/v1\/forecast/, route => route.fulfill({ json: { current: { weather_code: 0, wind_speed_10m: 5, temperature_2m: 12 } } }))
     await page.route(/api\.alquran\.cloud\/v1\/surah\/\d+\/editions\//, route => {
       const eds = decodeURIComponent(route.request().url().split('/editions/')[1].split('?')[0]).split(',')
       route.fulfill({ json: { code: 200, status: 'OK', data: eds.map(e => surahEdition(e, e.startsWith('ar.') ? 'quran' : 'translation')) } })

@@ -60,6 +60,8 @@ const DailyReminderBar = lazy(() => import('../components/DailyReminderBar'))
 // yüklənib LCP resursları ilə yarışırdı. Məzmun gələndə CTA-dan yuxarıda
 // əlavə olunur — ekranın altında olduğu üçün görünən sıçrayış (CLS) yoxdur.
 const VideoSection = lazy(lazyWhenIdle(() => import('../components/VideoSection')))
+// v5.7: indiki hava + uyğun dua (Open-Meteo; yalnız yağış/külək/ildırım/qar olanda)
+const WeatherDua = lazy(lazyWhenIdle(() => import('../components/home/WeatherDua')))
 const BookSection = lazy(lazyWhenIdle(() => import('../components/BookSection')))
 const DailyContentDisplay = lazy(lazyWhenIdle(() => import('../components/AdminContentDisplay').then(m => ({ default: m.DailyContentDisplay }))))
 const AnnouncementSection = lazy(lazyWhenIdle(() => import('../components/AnnouncementSection')))
@@ -607,6 +609,8 @@ export default function HomePage({ setPage }) {
             <div className="hp-hero-glow" />
             <div className="hp-khatam" data-parallax="0.08" />
             <div className="hp-stars">{HERO_STARS.map((st, i) => <i key={i} style={st} />)}</div>
+            {/* v5.7: hava effekti — html[data-weather] olanda (WeatherDua) */}
+            <div className="hp-wx" />
           </div>
 
           <div className="hp-hero-inner">
@@ -644,6 +648,10 @@ export default function HomePage({ setPage }) {
           </div>
         </section>
       </div>
+
+      <Suspense fallback={null}>
+        <WeatherDua />
+      </Suspense>
 
       {/* ═══ CÜMƏ — yalnız cümə günü: geri sayım, Kəhf, salavat ═══ */}
       {isFridayLocal() && (

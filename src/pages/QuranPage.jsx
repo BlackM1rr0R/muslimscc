@@ -89,7 +89,7 @@ const V32_LABELS = {
     sort:'Sıralama', sortMushaf:'Mushaf sırası', sortShort:'Əvvəlcə qısa', sortLong:'Əvvəlcə uzun',
     read:'Oxunub', save:'Ayəni saxla', unsave:'Saxlanılanlardan çıxar', remove:'Sil',
     share:'Paylaş', copied:'Kopyalandı',
-    memorize:'Əzbər rejimi', memorizeHint:'Ərəb mətni gizlədilib — yoxlamaq üçün «Göstər» düyməsini basın.', reveal:'Göstər', hide:'Gizlət',
+    zen:'Zen', zenHint:'Tam ekranda ayə-ayə dinlə', memorize:'Əzbər rejimi', memorizeHint:'Ərəb mətni gizlədilib — yoxlamaq üçün «Göstər» düyməsini basın.', reveal:'Göstər', hide:'Gizlət',
     savedEmpty:'Hələ ayə saxlamamısınız. Oxuyucuda ayənin yanındakı əlfəcin düyməsini basın — ayə burada görünəcək.',
     savedNote:'Yalnız bu cihazda saxlanılır.',
     votd:'Günün ayəsi', votdOpen:'Surədə aç', votdNote:'Hər gün başqa ayə',
@@ -101,7 +101,7 @@ const V32_LABELS = {
     sort:'Sort', sortMushaf:'Mushaf order', sortShort:'Shortest first', sortLong:'Longest first',
     read:'Read', save:'Save verse', unsave:'Remove from saved', remove:'Remove',
     share:'Share', copied:'Copied',
-    memorize:'Memorise mode', memorizeHint:'The Arabic text is hidden — press “Show” to check yourself.', reveal:'Show', hide:'Hide',
+    zen:'Zen', zenHint:'Listen verse by verse in full screen', memorize:'Memorise mode', memorizeHint:'The Arabic text is hidden — press “Show” to check yourself.', reveal:'Show', hide:'Hide',
     savedEmpty:'You have not saved any verses yet. In the reader, press the bookmark button next to a verse and it will appear here.',
     savedNote:'Stored on this device only.',
     votd:'Verse of the day', votdOpen:'Open in surah', votdNote:'A different verse every day',
@@ -113,7 +113,7 @@ const V32_LABELS = {
     sort:'Сортировка', sortMushaf:'Порядок мусхафа', sortShort:'Сначала короткие', sortLong:'Сначала длинные',
     read:'Прочитано', save:'Сохранить аят', unsave:'Убрать из сохранённых', remove:'Удалить',
     share:'Поделиться', copied:'Скопировано',
-    memorize:'Режим заучивания', memorizeHint:'Арабский текст скрыт — нажмите «Показать», чтобы проверить себя.', reveal:'Показать', hide:'Скрыть',
+    zen:'Дзен', zenHint:'Слушать по аятам на весь экран', memorize:'Режим заучивания', memorizeHint:'Арабский текст скрыт — нажмите «Показать», чтобы проверить себя.', reveal:'Показать', hide:'Скрыть',
     savedEmpty:'Вы ещё не сохранили ни одного аята. В читалке нажмите кнопку закладки рядом с аятом — он появится здесь.',
     savedNote:'Хранится только на этом устройстве.',
     votd:'Аят дня', votdOpen:'Открыть в суре', votdNote:'Каждый день новый аят',
@@ -125,7 +125,7 @@ const V32_LABELS = {
     sort:'الترتيب', sortMushaf:'ترتيب المصحف', sortShort:'الأقصر أولًا', sortLong:'الأطول أولًا',
     read:'مقروءة', save:'احفظ الآية', unsave:'أزل من المحفوظات', remove:'حذف',
     share:'مشاركة', copied:'نُسخ',
-    memorize:'وضع الحفظ', memorizeHint:'النص العربي مخفي — اضغط «أظهر» لتختبر نفسك.', reveal:'أظهر', hide:'أخفِ',
+    zen:'وضع التأمل', zenHint:'استمع آية آية بملء الشاشة', memorize:'وضع الحفظ', memorizeHint:'النص العربي مخفي — اضغط «أظهر» لتختبر نفسك.', reveal:'أظهر', hide:'أخفِ',
     savedEmpty:'لم تحفظ أي آية بعد. في القارئ اضغط زر العلامة بجانب الآية فتظهر هنا.',
     savedNote:'تُحفظ على هذا الجهاز فقط.',
     votd:'آية اليوم', votdOpen:'افتح في السورة', votdNote:'آية مختلفة كل يوم',
@@ -137,7 +137,7 @@ const V32_LABELS = {
     sort:'Sıralama', sortMushaf:'Mushaf sırası', sortShort:'Önce kısa', sortLong:'Önce uzun',
     read:'Okundu', save:'Ayeti kaydet', unsave:'Kaydedilenlerden çıkar', remove:'Sil',
     share:'Paylaş', copied:'Kopyalandı',
-    memorize:'Ezber modu', memorizeHint:'Arapça metin gizlendi — kendinizi kontrol etmek için «Göster» düğmesine basın.', reveal:'Göster', hide:'Gizle',
+    zen:'Zen', zenHint:'Tam ekranda ayet ayet dinle', memorize:'Ezber modu', memorizeHint:'Arapça metin gizlendi — kendinizi kontrol etmek için «Göster» düğmesine basın.', reveal:'Göster', hide:'Gizle',
     savedEmpty:'Henüz ayet kaydetmediniz. Okuyucuda ayetin yanındaki yer imi düğmesine basın — ayet burada görünecek.',
     savedNote:'Yalnızca bu cihazda saklanır.',
     votd:'Günün ayeti', votdOpen:'Surede aç', votdNote:'Her gün başka bir ayet',
@@ -521,6 +521,8 @@ const REVEAL_CARDS = 8
 // Təfsir paneli (components/TafsirPanel.jsx): bağlı kartda tafsirId = 0 —
 // seçim dəyişəndə yalnız açıq kartlar yenidən çəkilir; panel yalnız açılanda render olunur
 const KaraokeAyah = lazy(() => import('../components/quran/KaraokeAyah'))
+// v5.7: Zen — surə tam ekranda, ayə-ayə (səhifənin pleyeri ilə)
+const QuranZen = lazy(() => import('../components/quran/QuranZen'))
 const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
 const KARAOKE_LBL = { az: 'Sözbəsöz dinlə', en: 'Word by word', ru: 'Слушать по словам', tr: 'Kelime kelime dinle', ar: 'استمع كلمةً كلمة' }
 
@@ -1148,6 +1150,7 @@ export default function QuranPage() {
   const [karaoke, setKaraoke] = useState(null)
   const openKaraoke = useCallback((n) => { player.pause(); setKaraoke({ s: selectedRef.current, a: n, tr: versesRef.current?.find(v => v.n === n)?.tr || '' }) }, [player.pause]) // eslint-disable-line react-hooks/exhaustive-deps -- player.pause sabitdir (useQuranPlayer api)
   const closeKaraoke = useCallback(() => setKaraoke(null), [])
+  const [zen, setZen] = useState(false)
   const shareAyah = useCallback(async (verse) => {
     haptic()
     const sNum = selectedRef.current
@@ -1348,6 +1351,11 @@ export default function QuranPage() {
               title={`${jl.jump} (G)`} onClick={() => { haptic(); setJumpOpen(o => !o) }}>
               <Icon name="target" size={16} /><span className="ctrl-jump__label">{jl.jump}</span>
             </button>
+            {/* v5.7: Zen — tam ekran dinləmə (components/quran/QuranZen) */}
+            <button type="button" className="ctrl-btn ctrl-zen" disabled={!ready} title={xl.zenHint} aria-label={xl.zenHint}
+              onClick={() => { haptic(); setZen(true) }} data-testid="zen-open">
+              <Icon name="moonStar" size={16} /><span className="ctrl-memo__label">{xl.zen}</span>
+            </button>
             {/* Əzbər rejimi: ərəb mətni bulanır, hər ayə "Göstər" ilə açılır */}
             <button type="button" className={`ctrl-btn ctrl-memo ${memorize ? 'active' : ''}`} aria-pressed={memorize}
               disabled={!ready} title={xl.memorizeHint} aria-label={xl.memorize}
@@ -1502,6 +1510,12 @@ export default function QuranPage() {
                   onSave={saveAyah} onShare={shareAyah} onKaraoke={openKaraoke} xl={xlCard} />
               ))}
             </div>
+            {zen && (
+              <Suspense fallback={null}>
+                <QuranZen player={player} verses={surah.verses} lang={lang} start={currentAyahRef.current || 1}
+                  title={surahTitle(surah, lang) || String(selected)} onClose={() => setZen(false)} />
+              </Suspense>
+            )}
             {karaoke && (
               <Suspense fallback={null}>
                 <KaraokeAyah surah={karaoke.s} ayah={karaoke.a} lang={lang} translation={karaoke.tr} onClose={closeKaraoke} />
