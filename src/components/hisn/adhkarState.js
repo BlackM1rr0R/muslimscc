@@ -26,5 +26,17 @@ export function adhkarProgress(part, items) {
   const p = loadAdhkar(part, n)
   return { done: p.counts.filter((c, i) => c >= need(i)).length, total: n, started: p.counts.some(c => c > 0) }
 }
-/** Səhər — 04:00–11:59, qalan vaxt axşam (cihazın yerli saatı) */
-export const partNow = (h = new Date().getHours()) => (h >= 4 && h < 12 ? 'morning' : 'evening')
+/**
+ * Səhər və ya axşam azkarı. Axşam azkarının vaxtı əsrdən sonradır — ona görə
+ * namaz vaxtlarına baxılır: canlı səmanın fazası (utils/livingSky →
+ * html[data-sky], istifadəçinin şəhərinin vaxtları ilə): əsr, məğrib, işa —
+ * axşam; sübh, günəş, gündüz — səhər; gecə — gecə yarısına qədər axşam.
+ * Faza hələ hesablanmayıbsa — cihazın saatı (15:00-dan sonra axşam).
+ */
+const readSky = () => { try { return document.documentElement.dataset.sky || '' } catch { return '' } }
+export function partNow(h = new Date().getHours(), sky = readSky()) {
+  if (sky === 'asr' || sky === 'maghrib' || sky === 'isha') return 'evening'
+  if (sky === 'fajr' || sky === 'sunrise' || sky === 'day') return 'morning'
+  if (sky === 'night') return h >= 12 ? 'evening' : 'morning'
+  return h >= 4 && h < 15 ? 'morning' : 'evening'
+}
