@@ -332,7 +332,7 @@ function YearGlance({ lang, g, h }) {
               data={[{ label: fill(x.cmpH, { y: h.year }), value: yearLen }, { label: fill(x.cmpG, { y: g.year }), value: gLen, tone: 2 }]} />
           </ChartFigure>
         </div>
-        <DeferRender height="760px" delay={2500}>
+        <DeferRender height="760px" idle={false} rootMargin="300px 0px">
           <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
             <RamadanWheel lang={lang} />
           </Suspense>

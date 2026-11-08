@@ -983,7 +983,7 @@ export default function PrayerPage({ setPage }) {
       {/* ── v5.6: İl boyu namaz vaxtları (365 günlük lent, yerli hesab) ── */}
       <section className="ui-section ui-section--tight pp-year">
         <div className="ui-container">
-          <DeferRender height="620px" delay={2500}>
+          <DeferRender height="620px" idle={false} rootMargin="300px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 620 }} />}>
               <YearPrayerChart loc={loc} lang={lang} city={cityName} />
             </Suspense>

@@ -15,7 +15,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { whenIdle } from '../utils/idle'
 
-export default function DeferRender({ children, height = '400px', rootMargin = '600px 0px', delay = 300 }) {
+// idle={false} — YALNIZ ekrana yaxınlaşanda (ağır hesablı bölmələr: il boyu namaz
+// vaxtları, Ramazan təkəri — boş vaxtda qurulanda telefonda ilk yükləməni
+// ~0.5 s ləngidirdi, ölçülüb v5.6)
+export default function DeferRender({ children, height = '400px', rootMargin = '600px 0px', delay = 300, idle = true }) {
   const [on, setOn] = useState(false)
   const ref = useRef(null)
   useEffect(() => {
@@ -27,9 +30,9 @@ export default function DeferRender({ children, height = '400px', rootMargin = '
       io = new IntersectionObserver((es) => { if (es.some(e => e.isIntersecting)) go() }, { rootMargin })
       io.observe(ref.current)
     } else go()
-    whenIdle({ delay }).then(go)
+    if (idle) whenIdle({ delay }).then(go)
     return () => { alive = false; io?.disconnect() }
-  }, [on, rootMargin, delay])
+  }, [on, rootMargin, delay, idle])
   if (on) return children
   return <div ref={ref} className="defer-ph" style={{ minHeight: height }} aria-hidden="true" />
 }
