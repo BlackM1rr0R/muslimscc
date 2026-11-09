@@ -16,6 +16,7 @@ import ReaderDialog from '../components/reader/ReaderDialog'
 import StarButton, { CopyStatus } from '../components/collect/StarButton'
 import useStarred, { dayPick, shareLink } from '../components/collect/useStarred'
 import '../styles/GlossaryPage.css'
+import PressedGlide from '../components/pagefx/PressedGlide'
 import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
@@ -196,6 +197,7 @@ export default function GlossaryPage() {
 
   const topRef = useRef(null)
   const alphaRef = useRef(null)
+  const catRef = useRef(null)
   const gridRef = useRef(null)
   const inf = useInfiniteList({
     total: filtered.length,
@@ -321,7 +323,8 @@ export default function GlossaryPage() {
           </div>
 
           {/* Kateqoriyalar — kafel düymələr; alt zolaq terminlərin payını göstərir (dekorativ, say mətn kimi var) */}
-          <div className="glossary-cat-bar" role="group" aria-label={t.cats}>
+          <div className="glossary-cat-bar" role="group" aria-label={t.cats} ref={catRef}>
+            <PressedGlide containerRef={catRef} deps={[activeCat, lang]} className="pfx-glide--soft" />
             <button type="button" className="glossary-cat-btn" aria-pressed={!activeCat} onClick={() => pickCat(null)}>
               <span className="glossary-cat-btn__icon" aria-hidden="true"><Icon name="books" size={18} /></span>
               <span className="glossary-cat-btn__body">
@@ -344,6 +347,7 @@ export default function GlossaryPage() {
 
           {/* Əlifba filtri — telefonda başlığın altında yapışır */}
           <div className="glossary-alpha-bar" ref={alphaRef} role="group" aria-label={t.letters} data-reveal="stagger-fade">
+            <PressedGlide containerRef={alphaRef} deps={[activeLetter, favOnly, focused?.id, lang, letters.length, star.count]} />
             <button
               type="button"
               className="ui-chip glossary-alpha-btn glossary-alpha-btn--all"

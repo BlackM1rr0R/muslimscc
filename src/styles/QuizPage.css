@@ -550,3 +550,8 @@
   html:not(.a11y-reduce-motion) .quiz-combo { animation: quiz-combo-pop 420ms cubic-bezier(.2, .8, .2, 1.4) both; }
 }
 @keyframes quiz-combo-pop { from { opacity: 0; transform: scale(.5) rotate(-8deg); } }
+
+/* v6 Motion: sual kartının girişini PresenceSwap (slide + yay) idarə edir — CSS girişi ikiqat olmasın.
+   Variantların növbəli girişi (quiz-opt-in) CSS-də qalır: kart gələndə variantlar ardıcıl açılır. */
+html .quiz-question-card.quiz-question-card--mo.ui-card { animation: none; }
+.quiz-results-score .mo-ticker { display: inline-block; }

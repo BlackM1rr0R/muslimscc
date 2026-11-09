@@ -238,3 +238,6 @@
 @media (prefers-reduced-motion: reduce) {
   .wg-page .wg-feat:hover, .wg-feat:hover .ui-icon-tile, .wg-tv:hover .wg-tv-icon { transform: none; }
 }
+
+/* v6 Motion: kopyala işarəsi */
+.wg-copy__ic { display: inline-flex; }

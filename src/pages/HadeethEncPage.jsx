@@ -9,6 +9,11 @@ import {
   HE_LANGS, HE_ALL_LANGS, HE_SITE, HeError, cachedHadeeth, fetchCategories, fetchHadeeth, fetchHadeethList, hadeethUrl,
 } from '../api/hadeethenc'
 import '../styles/HadeethEncPage.css'
+// Dizayn v6 (src/motion): hədis kartı → oxu pəncərəsi morph (layoutId), hero rəqəmləri sayğacla
+import { m } from 'motion/react'
+import { ExpandableGroup, useMorphId, morphId } from '../motion/ExpandableCard'
+import { SPRING } from '../motion/presets'
+import NumberTicker from '../motion/NumberTicker'
 import { pickUi } from '../utils/uiText'
 import { EXTRA_LANGS, dirOf as routeDir } from '../seo/routes'
 
@@ -271,6 +276,9 @@ export default function HadeethEncPage() {
 
   // ── Oxu pəncərəsi ──
   const [cur, setCur] = useState(null)         // { id, lang }
+  const [from, setFrom] = useState(null)       // pəncərə hansı kartdan açılıb (morph)
+  const morph = useMorphId(cur && from != null ? `he-${from}` : null)
+  const morphOn = useMorphId(0) != null
   const [detail, setDetail] = useState({ status: 'idle' })
   const [detailTry, setDetailTry] = useState(0)
   const [copied, setCopied] = useState('')
@@ -300,7 +308,7 @@ export default function HadeethEncPage() {
 
   const open = (x) => { setCur({ id: x.id, lang: isFav ? (x.lang || clang) : clang }); setCopied('') }
   const close = useCallback(() => {
-    setCur(null); setDetail({ status: 'idle' })
+    setCur(null); setFrom(null); setDetail({ status: 'idle' })
     try {
       if (/^#id-\d+$/.test(window.location.hash)) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search)
     } catch { /* */ }
@@ -356,6 +364,7 @@ export default function HadeethEncPage() {
   const cdir = dirOf(clang)
 
   return (
+    <ExpandableGroup id="he-xc">
     <div className="he-page">
       <header className="ui-page-hero ui-page-hero--split he-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
@@ -380,9 +389,9 @@ export default function HadeethEncPage() {
                 <span className="he-lang__name" lang={clang} dir={cdir}>{LANG_NAMES[clang]}</span>
               </div>
               <ul className="ui-page-hero__stats he-hero__stats">
-                <li><b className="ui-num">{cats ? roots.length : '—'}</b><span>{L.sections}</span></li>
-                <li><b className="ui-num">{cats ? subCount : '—'}</b><span>{L.subsections}</span></li>
-                <li><b className="ui-num">{favs.length}</b><span>{L.favsStat}</span></li>
+                <li><b className="ui-num">{cats ? <NumberTicker value={roots.length} lang={lang} /> : '—'}</b><span>{L.sections}</span></li>
+                <li><b className="ui-num">{cats ? <NumberTicker value={subCount} lang={lang} delay={0.08} /> : '—'}</b><span>{L.subsections}</span></li>
+                <li><b className="ui-num"><NumberTicker value={favs.length} lang={lang} delay={0.16} /></b><span>{L.favsStat}</span></li>
               </ul>
               <p className="he-credit">
                 <Icon name="books" size={15} />
@@ -473,7 +482,8 @@ export default function HadeethEncPage() {
                   const g = cachedHadeeth(xl, x.id)?.grade
                   const on = favSet.has(x.id)
                   return (
-                    <li key={x.id} className={`ui-card he-card${cur?.id === x.id ? ' is-current' : ''}`}>
+                    <m.li layoutId={morphOn ? morphId(`he-${x.id}`) : undefined} transition={SPRING.soft} data-wow-off=""
+                      key={x.id} className={`ui-card he-card${cur?.id === x.id ? ' is-current' : ''}`}>
                       <div className="he-card__top">
                         <span className="he-card__id ui-num" dir="ltr">#{x.id}</span>
                         {g && <span className="ui-badge ui-badge--brand he-grade" lang={xl} dir={dirOf(xl)}>{g}</span>}
@@ -482,10 +492,10 @@ export default function HadeethEncPage() {
                           label={`${on ? L.removeFav : L.addFav}: ${x.title}`} className="he-card__star" />
                       </div>
                       <h3 className="he-card__title" lang={xl} dir={dirOf(xl)}>
-                        <button type="button" className="he-card__open" onClick={() => open(x)}>{x.title}</button>
+                        <button type="button" className="he-card__open" onClick={() => { setFrom(x.id); open(x) }}>{x.title}</button>
                       </h3>
                       <span className="he-card__read" aria-hidden="true">{L.read} <Icon name="chevron" size={14} className="ui-flip-rtl" /></span>
-                    </li>
+                    </m.li>
                   )
                 })}
               </ol>
@@ -516,6 +526,7 @@ export default function HadeethEncPage() {
         labelledBy="he-reader-title"
         position={idx >= 0 ? `${idx + 1} / ${isFav ? list.length : (q ? list.length : meta.total || list.length)}` : null}
         contentKey={cur ? `${cur.lang}-${cur.id}` : ''}
+        layoutId={morph}
         className="he-reader"
         labels={{ close: L.close, prev: L.prev, next: L.next }}
         head={cur && (
@@ -616,5 +627,6 @@ export default function HadeethEncPage() {
         )}
       </ReaderDialog>
     </div>
+    </ExpandableGroup>
   )
 }

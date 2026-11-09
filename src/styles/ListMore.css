@@ -78,6 +78,8 @@
   pointer-events: auto;
   transition: opacity var(--dur-2) ease, transform var(--dur-2) var(--ease-out), visibility 0s;
 }
+/* v6: Motion idarə edir (BackToTop.jsx) — yalnız rəng keçidləri CSS-də qalır */
+.ui-icon-btn.lm-top.lm-top--motion { transition: background-color var(--dur-1) ease, color var(--dur-1) ease, border-color var(--dur-1) ease; }
 @media (hover: hover) {
   .ui-icon-btn.lm-top.is-on:hover { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
 }

@@ -1,4 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { m } from 'motion/react'
+import LayoutFeatures from '../motion/LayoutFeatures'
+import HoverPill from '../motion/HoverPill'
+import { SPRING } from '../motion/presets'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
 import { getVideos } from '../data/videos'
@@ -87,6 +91,7 @@ export default function AdminPage({ setPage }) {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [counts, setCounts] = useState({ videos:0, books:0, hadiths:0, duas:0, quotes:0, announcements:0, events:0, places:0 })
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const navRef = useRef(null)
 
   // Server sessiyası (GET /api/admin/me, server/auth.js). Daxil olunmayıbsa
   // (və ya server əlçatmazdırsa) — giriş səhifəsinə. Müvəqqəti şifrə ilə
@@ -198,7 +203,10 @@ export default function AdminPage({ setPage }) {
             <Icon name="chevronDown" size={18} className="admin-menu-chev" />
           </button>
 
-          <nav id="admin-nav" className="admin-nav-groups" aria-label={l.sections}>
+          {/* v6: siçanın altında yumşaq hap (HoverPill), aktiv sətrin zümrüd zolağı yayla yeni sətrə sürüşür (layoutId) */}
+          <LayoutFeatures>
+          <nav id="admin-nav" ref={navRef} className="admin-nav-groups admin-nav-groups--mo" aria-label={l.sections}>
+            <HoverPill containerRef={navRef} selector=".admin-nav-btn" className="admin-nav-hover" />
             {NAV_GROUPS.map((group, gi) => (
               <div key={gi} className="admin-nav-section">
                 {group.labelKey && <div className="admin-nav-section-label">{l[group.labelKey]}</div>}
@@ -210,6 +218,7 @@ export default function AdminPage({ setPage }) {
                     aria-current={activeTab === item.key ? 'page' : undefined}
                     onClick={() => { setActiveTab(item.key); setSidebarOpen(false); window.scrollTo({top:0, behavior:'smooth'}); }}
                   >
+                    {activeTab === item.key && <m.span layoutId="admin-nav-mark" className="admin-nav-mark" transition={SPRING.snappy} aria-hidden="true" />}
                     <Icon name={item.icon} className="admin-nav-icon" />
                     <span className="admin-nav-text">{l[item.labelKey]}</span>
                     {!item.noCount && counts[item.key] > 0 && (
@@ -220,6 +229,7 @@ export default function AdminPage({ setPage }) {
               </div>
             ))}
           </nav>
+          </LayoutFeatures>
 
           <div className="admin-sidebar-footer">
             <button type="button" className="ui-btn ui-btn--ghost admin-logout-btn admin-theme-btn" onClick={toggleDark} aria-pressed={!!dark}>

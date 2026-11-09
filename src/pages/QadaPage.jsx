@@ -19,6 +19,7 @@ import Sparkle from '../components/prayer/Sparkle'
 import { ringFrom } from '../components/prayer/ringFrom'
 import { pickUi } from '../utils/uiText'
 import QadaInsights from '../components/insights/QadaInsights'
+import NumberTicker from '../motion/NumberTicker'
 
 // ═══════════════════════════════════════════════════════
 // /qada — Qəza izləyicisi
@@ -467,9 +468,10 @@ export default function QadaPage({ setPage }) {
             <ProgressRing value={totals.done} max={Math.max(1, totals.owed + totals.done)} size={104} thickness={10}
               label={v.ring} sub={fill(v.ringSub, { d: fmtNum(totals.done, lk), t: fmtNum(totals.owed + totals.done, lk) })} />
             <ul className="ui-page-hero__stats qd-hero-stats tm-cascade">
-              <li><b className="ui-num" data-testid="qd-hero-owed">{fmtNum(totals.owed, lk)}</b><span>{v.owed}</span></li>
-              <li><b className="ui-num">{fmtNum(totals.done, lk)}</b><span>{v.done}</span></li>
-              <li><b className="ui-num">{fmtNum(totals.fastsOwed, lk)}</b><span>{v.fasts}</span></li>
+              {/* v6: qaza ödənəndə rəqəmlər köhnədən yeniyə yayla sayır (ilk açılışda son rəqəm dərhal) */}
+              <li><b className="ui-num" data-testid="qd-hero-owed"><NumberTicker value={totals.owed} lang={lk} /></b><span>{v.owed}</span></li>
+              <li><b className="ui-num"><NumberTicker value={totals.done} lang={lk} /></b><span>{v.done}</span></li>
+              <li><b className="ui-num"><NumberTicker value={totals.fastsOwed} lang={lk} /></b><span>{v.fasts}</span></li>
               <li><b className="ui-num">{totals.owed ? fmtNum(daysToFinish(totals.owed, state.goal), lk) : '—'}</b><span>{v.days}</span></li>
             </ul>
           </div>

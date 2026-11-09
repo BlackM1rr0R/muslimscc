@@ -726,3 +726,18 @@ html[lang="ar"] .qg-hitem__text { font-family: var(--font-arabic); font-size: 18
   .qg-tpl:hover .qg-tpl__frame, .qg-tpl:hover .qg-tpl__thumb, .qg-tpl.is-active .qg-tpl__frame { transform: none; }
   .qg-tpl__frame::after { display: none; }
 }
+
+/* ══ v6 Motion ══
+   • Sekmə alt xətti: ::after (scaleX) əvəzinə bir paylaşılan element (layoutId) — yayla sürüşür.
+   • Şablon ✓ işarəsi yeni seçilən miniatürə uçur (layoutId) — CSS "pop" girişi söndürülür (iki sistem eyni elementdə olmasın). */
+.qg-tabs--mo .qg-tab::after { content: none; }
+.qg-tab__line {
+  position: absolute;
+  inset-inline: 18%;
+  bottom: -1px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--brand);
+  pointer-events: none;
+}
+html .qg-tpls .qg-tpl__check.qg-tpl__check { animation: none; }

@@ -5,6 +5,8 @@ import { useLang } from '../contexts/LangContext'
 // dəyişəndə həcc bələdçisi pozulmasın.
 import HajjMap from '../components/HajjMap'
 import '../styles/HajjGuidePage.css'
+import Swap from '../components/pagefx/Swap'
+import SpotlightCard from '../motion/SpotlightCard'
 import '../components/collect/collect.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
@@ -686,7 +688,7 @@ export default function HajjGuidePage({ setPage }) {
                   { m: 'hajj', icon: 'hajjguide', ar: 'الْحَجّ', name: t.hajj, list: HAJJ_STEPS },
                   { m: 'umrah', icon: 'holyplaces', ar: 'الْعُمْرَة', name: t.umrah, list: UMRAH_STEPS },
                 ].map(o => (
-                  <button key={o.m} type="button" className="ui-card ui-card--interactive hg-select-btn" onClick={() => startMode(o.m)}>
+                  <SpotlightCard as="button" key={o.m} type="button" tone="accent" className="ui-card ui-card--interactive hg-select-btn" onClick={() => startMode(o.m)}>
                     <span className="hg-select-top">
                       <span className="ui-icon-tile"><Icon name={o.icon} /></span>
                       <span className="hg-select-titles">
@@ -700,7 +702,7 @@ export default function HajjGuidePage({ setPage }) {
                       {o.list.map((s, i) => <span key={s.id} className="hg-select-chain__i"><span className="ui-num">{i + 1}</span>{pickUi(s.name, lang, 'en')}</span>)}
                     </span>
                     <span className="hg-select-go" aria-hidden="true"><Icon name="arrow" size={18} className="ui-flip-rtl" /></span>
-                  </button>
+                  </SpotlightCard>
                 ))}
               </div>
             </>
@@ -748,7 +750,9 @@ export default function HajjGuidePage({ setPage }) {
 
                 <div className="hg-main">
                   {/* Addım kartı — açar dəyişir: hər addım istiqamətə görə yumşaq sürüşüb gəlir */}
-                  <article key={`${mode}-${step.id}`} ref={cardRef} className={`ui-card hg-step-card is-${dir}`}>
+                  {/* v6: Motion PresenceSwap — köhnə addım qısa çıxır, yenisi istiqamətə görə sürüşüb gəlir (RTL güzgü) */}
+                  <Swap swapKey={`${mode}-${step.id}`} variant="slide" dir={dir === 'prev' ? -1 : 1} className="hg-step-swap">
+                  <article ref={cardRef} className="ui-card hg-step-card">
                     <div className="hg-step-header">
                       <span className="ui-icon-tile ui-icon-tile--accent hg-step-icon">
                         <Icon name={step.icon} />
@@ -778,6 +782,7 @@ export default function HajjGuidePage({ setPage }) {
                       </div>
                     )}
                   </article>
+                  </Swap>
 
                   {/* Əvvəlki / Növbəti */}
                   <div className="hg-nav">

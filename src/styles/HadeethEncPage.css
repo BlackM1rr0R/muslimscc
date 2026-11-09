@@ -94,10 +94,11 @@
 .he-page .he-card {
   position: relative; display: flex; flex-direction: column; gap: 10px;
   padding: var(--space-4) var(--space-4) var(--space-3);
-  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  /* v6: transform Motion-undur (kart → pəncərə morph); hover qalxması `translate` ilə */
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), translate var(--dur-2) var(--ease-out);
 }
 @media (hover: hover) {
-  .he-page .he-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); transform: translateY(-2px); }
+  .he-page .he-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); translate: 0 -2px; }
   .he-card:hover .he-card__read { color: var(--brand); }
 }
 .he-page .he-card:focus-within { border-color: var(--brand-line); }
@@ -198,7 +199,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .he-card, .he-root, .he-card__read { transition: none; }
-  .he-page .he-card:hover { transform: none; }
+  .he-page .he-card:hover { translate: none; }
   .he-spin { animation-duration: 2s; }
 }
 @media print {

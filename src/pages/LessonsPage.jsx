@@ -14,6 +14,8 @@ import { ProgressRing } from '../components/viz'
 import { LESSONS, LESSON_CATS, CAT_BY_KEY, lessonBySlug } from '../data/lessons/index'
 import { loadLesson } from '../data/lessons/load'
 import '../styles/LessonsPage.css'
+import SpotlightCard from '../motion/SpotlightCard'
+import PressedGlide from '../components/pagefx/PressedGlide'
 import StarButton from '../components/collect/StarButton'
 import useStarred from '../components/collect/useStarred'
 import { pickUi } from '../utils/uiText'
@@ -195,6 +197,7 @@ export default function LessonsPage() {
   const [status, setStatus] = useState('all')
   const X = pickUi(LS32, lang, 'en')
   const star = useStarred('learn:favs')
+  const catsRef = useRef(null)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLocaleLowerCase(lang)
@@ -258,7 +261,7 @@ export default function LessonsPage() {
     return (
       <li key={l.slug} className="ls-cell">
         <StarButton className="ls-card-star" on={star.has(l.slug)} onToggle={() => star.toggle(l.slug)} label={`${X.favAdd}: ${pick(l.title, lang)}`} />
-        <a className={`ui-card ui-card--interactive ls-card${done ? ' is-read' : ''}`} href={pathFor('learn', lang, l.slug)} onClick={(e) => open(l, e)}>
+        <SpotlightCard as="a" className={`ui-card ui-card--interactive ls-card${done ? ' is-read' : ''}`} href={pathFor('learn', lang, l.slug)} onClick={(e) => open(l, e)}>
           <span className="ls-card__top">
             <span className="ui-icon-tile ui-icon-tile--sm"><Icon name={iconOf(l.icon) || CAT_BY_KEY[l.cat]?.icon || 'books'} /></span>
             {done
@@ -271,7 +274,7 @@ export default function LessonsPage() {
             <span className="ls-card__by">{pick(l.author, lang)}</span>
             <Icon name="arrow" size={16} className="ls-card__arrow ui-link__arrow ui-flip-rtl" />
           </span>
-        </a>
+        </SpotlightCard>
       </li>
     )
   }
@@ -352,7 +355,8 @@ export default function LessonsPage() {
             </div>
             <span className="ls-status__count ui-num" aria-live="polite">{L.count(filtered.length)}</span>
           </div>
-          <div className="ls-cats" role="group" aria-label={L.cats}>
+          <div className="ls-cats" role="group" aria-label={L.cats} ref={catsRef}>
+            <PressedGlide containerRef={catsRef} deps={[cat, lang]} className="pfx-glide--soft" />
             <button type="button" className="ls-cat" aria-pressed={cat === 'all'} onClick={() => setCat('all')}>
               <span className="ls-cat__icon" aria-hidden="true"><Icon name="learn" size={18} /></span>
               <span className="ls-cat__body">

@@ -13,6 +13,8 @@ import { LIBRARY, LESSONS_BY_CAT, SCHOLARS_BY_ERA, ERA_SHORT } from '../data/pag
 import { LESSON_CATS } from '../data/lessons/cats'
 import { StatTile, ChartFigure, BarChart } from '../components/viz'
 import { pickUi } from '../utils/uiText'
+import NumberTicker from '../motion/NumberTicker'
+import TextEffect from '../motion/TextEffect'
 
 // Xəritədə göstərilməyən marşrutlar: ana səhifə (loqo) və bu səhifənin özü
 const MAP_SKIP = new Set(['home', 'about'])
@@ -241,9 +243,10 @@ export function AboutPage({ setPage }) {
             <p className="ui-lead">{t.subtitle.replace('{brand}', brand)}</p>
             <p className="ui-page-hero__how"><Icon name="info" size={16} /> {v3.how}</p>
             <ul className="ui-page-hero__stats">
-              <li><b data-count={sections}>{sections}</b><span>{v3.sSections}</span></li>
-              <li><b data-count="5">5</b><span>{v3.langs}</span></li>
-              <li><b data-count={LIBRARY.lessons}>{LIBRARY.lessons}</b><span>{v3.sLessons}</span></li>
+              {/* v6: rəqəmlər yayla sayır (NumberTicker; ilk açılışda ekrandadırsa son rəqəm dərhal) */}
+              <li><b><NumberTicker value={sections} lang={lang} /></b><span>{v3.sSections}</span></li>
+              <li><b><NumberTicker value={5} lang={lang} delay={0.08} /></b><span>{v3.langs}</span></li>
+              <li><b><NumberTicker value={LIBRARY.lessons} lang={lang} delay={0.16} /></b><span>{v3.sLessons}</span></li>
             </ul>
           </div>
           <div className="ui-page-hero__aside ab-hero-aside" aria-hidden="true">
@@ -270,7 +273,7 @@ export function AboutPage({ setPage }) {
         <div className="ui-container ab-story-grid">
           <div className="ab-mission" data-reveal>
             <span className="ui-eyebrow">{v3.storyEy}</span>
-            <h2 id="ab-mission-title" className="ui-title">{t.mission}</h2>
+            <TextEffect as="h2" id="ab-mission-title" className="ui-title">{t.mission}</TextEffect>
             <p className="ab-mission-text">{t.missionText}</p>
             <ul className="ab-values" data-reveal="stagger">
               {values.map((v, i) => (
@@ -306,7 +309,7 @@ export function AboutPage({ setPage }) {
         <div className="ui-container">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{v3.statsEy}</span>
-            <h2 id="ab-lib-title" className="ui-title">{v3.statsTitle}</h2>
+            <TextEffect as="h2" id="ab-lib-title" className="ui-title">{v3.statsTitle}</TextEffect>
             <p className="ui-lead">{v3.statsLead}</p>
           </div>
           <ul className="ab-tiles" data-reveal="stagger">
@@ -346,7 +349,7 @@ export function AboutPage({ setPage }) {
         <div className="ui-container">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{v3.mapEy}</span>
-            <h2 id="ab-map-title" className="ui-title">{x.mapTitle}</h2>
+            <TextEffect as="h2" id="ab-map-title" className="ui-title">{x.mapTitle}</TextEffect>
             <p className="ui-lead">{x.mapLead}</p>
           </div>
           <div className="ab-map" data-reveal="stagger">
@@ -383,7 +386,7 @@ export function AboutPage({ setPage }) {
         <div className="ui-container">
           <div className="ui-section-head" data-reveal>
             <span className="ui-eyebrow">{v3.editorialEy}</span>
-            <h2 id="ab-editorial-title" className="ui-title">{x.editorialTitle}</h2>
+            <TextEffect as="h2" id="ab-editorial-title" className="ui-title">{x.editorialTitle}</TextEffect>
             <p className="ui-lead">{v3.editorialLead}</p>
           </div>
           <ol className="ab-editorial" data-reveal="stagger">

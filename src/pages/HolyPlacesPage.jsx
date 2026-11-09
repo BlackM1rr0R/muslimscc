@@ -1,4 +1,8 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, useRef, lazy, Suspense } from 'react'
+import Swap from '../components/pagefx/Swap'
+import PressedGlide from '../components/pagefx/PressedGlide'
+// Foto qalereyası — kart dəstəsi (drag, domMax) tənbəl yüklənir
+const CardStack = lazy(() => import('../motion/CardStack'))
 import DeferRender from '../components/DeferRender'
 import ReaderDialog from '../components/reader/ReaderDialog'
 import { shareLink } from '../components/collect/useStarred'
@@ -276,6 +280,8 @@ const PLACES = [
 ]
 
 /// "Hamısı" süzgəcinin adı (5 dil)
+const GALLERY = PLACES.filter(p => p.photo)
+
 const ALL_LABEL = { az: 'Hamısı', en: 'All', ru: 'Все', ar: 'الكل', tr: 'Tümü' }
 
 // ── v3 mətnləri (5 dil) ──────────────────────────────────
@@ -356,6 +362,11 @@ export function HolyPlacesPage({ setPage }) {
   const [openI, setOpenI] = useState(null)
   const [status, setStatus] = useState('')
   const openAt = (i) => { setStatus(''); setOpenI(i) }
+  const chipsRef = useRef(null)
+  // Qalereya: yalnız fotosu olan yerlər; "Ətraflı" süzgəci sıfırlayır ki, oxu pəncərəsi tam siyahı üzrə olsun
+  const [deckI, setDeckI] = useState(0)
+  const deckPlace = GALLERY[deckI] || GALLERY[0]
+  const openFromDeck = (p) => { setFilter('all'); openAt(PLACES.indexOf(p)) }
 
   const cities = [...new Set(PLACES.map(p => p.city.en))]
   const filtered = filter === 'all' ? PLACES : PLACES.filter(p => p.city.en === filter)
@@ -447,8 +458,34 @@ export function HolyPlacesPage({ setPage }) {
               <h2 id="holy-places-h" className="ui-title">{P(V3.placesTitle, lk)}</h2>
             </div>
           </div>
+          {/* v6: foto qalereyası — kart dəstəsi (21st.dev "circular gallery / card stack" ideyası) +
+              yavaş Ken Burns; yanında cari yerin qısa izahı. Sürüşdürmə + düymələr + ←/→. */}
+          <div className="holy-gallery">
+            <div className="holy-gallery__deck">
+              <Suspense fallback={<div className="holy-gallery__ph" aria-hidden="true" />}>
+                <CardStack items={GALLERY} lang={lk} label={P(V3.placesTitle, lk)} index={deckI} onIndexChange={setDeckI}
+                  getKey={(p) => p.photo}
+                  renderItem={(p) => (
+                    <div className="holy-gallery__card">
+                      <PlacePhoto id={p.photo} lang={lk} creditLinks={false} className="holy-kb" sizes="(min-width: 1024px) 460px, 92vw" />
+                    </div>
+                  )} />
+              </Suspense>
+            </div>
+            <Swap swapKey={deckPlace.photo} variant="blur" className="holy-gallery__cap">
+              <span className="holy-card-city"><Icon name="pin" size={13} /> {deckPlace.city[lk] || deckPlace.city.az}</span>
+              <h3 className="holy-gallery__name">{deckPlace.name[lk] || deckPlace.name.az}</h3>
+              {lk !== 'ar' && <p className="holy-card-ar ui-arabic" lang="ar" dir="rtl">{deckPlace.nameAr}</p>}
+              <p className="holy-gallery__sig">{deckPlace.significance[lk] || deckPlace.significance.az}</p>
+              <button type="button" className="holy-card-more" onClick={() => openFromDeck(deckPlace)} aria-haspopup="dialog">
+                {hx.more}<span className="ui-sr-only">: {deckPlace.name[lk] || deckPlace.name.az}</span> <Icon name="arrow" size={15} className="ui-flip-rtl" />
+              </button>
+            </Swap>
+          </div>
+
           {/* Süzgəc: telefonda bir sətirdə sürüşən çiplər, genişdə sarınır */}
-          <div className="holy-filters chip-scroll wrap-desktop" role="group" aria-label={lb.title}>
+          <div className="holy-filters chip-scroll wrap-desktop pfx-glide-host" role="group" aria-label={lb.title} ref={chipsRef}>
+            <PressedGlide containerRef={chipsRef} deps={[filter, lk]} />
             <button type="button" className="ui-chip" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>
               {ALL_LABEL[lk] || ALL_LABEL.en}
               <span className="holy-chip-num ui-num">{PLACES.length}</span>

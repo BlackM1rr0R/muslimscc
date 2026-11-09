@@ -381,6 +381,7 @@ html[dir="rtl"] .rp-juz__range { text-align: end; }
 .rp-day__rest dd { margin: 0; font-size: var(--step--1); color: var(--text-strong); font-weight: 500; }
 @media (max-width: 767.98px) {
   .rp-actions > .rp-view { flex: 1 1 auto; }
+  .rp-view .mo-tab { flex: 1 1 0; }
   .rp-actions > .rp-today-btn { flex: 0 0 auto; }
 }
 @media print {

@@ -15,6 +15,8 @@ import { SCHOLARS, ERAS, ERA_LABEL, ERA_SHORT, ERA_SPAN, scholarBySlug, dateText
 import StarButton from '../components/collect/StarButton'
 import useStarred from '../components/collect/useStarred'
 import '../styles/ScholarsPage.css'
+import SpotlightCard from '../motion/SpotlightCard'
+import PressedGlide from '../components/pagefx/PressedGlide'
 import { pickUi } from '../utils/uiText'
 
 // ── v3.2: sıralama, seçilmişlər, təsadüfi alim (5 dil) ──
@@ -195,6 +197,7 @@ export default function ScholarsPage() {
   const [sort, setSort] = useState('era')
   const X = pickUi(C32, lang, 'en')
   const star = useStarred('scholars:favs')
+  const chipsRef = useRef(null)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLocaleLowerCase(lang)
@@ -265,7 +268,7 @@ export default function ScholarsPage() {
   const card = (s) => (
     <li key={s.slug} className="sc-cell">
       <StarButton className="sc-card-star" on={star.has(s.slug)} onToggle={() => star.toggle(s.slug)} label={`${X.favAdd}: ${pick(s.name, lang)}`} />
-      <a className="ui-card ui-card--interactive sc-card" href={pathFor('scholars', lang, s.slug)} onClick={(e) => openProfile(s, e)}>
+      <SpotlightCard as="a" tone="accent" className="ui-card ui-card--interactive sc-card" href={pathFor('scholars', lang, s.slug)} onClick={(e) => openProfile(s, e)}>
         <NameCard s={s} />
         <span className="sc-card__body">
           <span className="sc-card__top"><EraBadge era={s.era} lang={lang} /> <span className="sc-card__years ui-num">{lifeSpan(s, lang)}</span></span>
@@ -276,7 +279,7 @@ export default function ScholarsPage() {
             <span className="sc-card__read">{L.read} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" /></span>
           </span>
         </span>
-      </a>
+      </SpotlightCard>
     </li>
   )
 
@@ -321,7 +324,8 @@ export default function ScholarsPage() {
                 </button>
               )}
             </div>
-            <div className="sc-chips" role="group" aria-label={L.filter}>
+            <div className="sc-chips pfx-glide-host" role="group" aria-label={L.filter} ref={chipsRef}>
+              <PressedGlide containerRef={chipsRef} deps={[era, lang, star.count]} />
               <button type="button" className="ui-chip" aria-pressed={era === 'all'} onClick={() => setEra('all')}>
                 {L.all} <span className="sc-chip__n ui-num">{SCHOLARS.length}</span>
               </button>

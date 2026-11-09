@@ -9,6 +9,9 @@ import { useEffect, useRef, useState } from 'react'
 import { TEMPLATES, renderThumb, ensureFonts, formatById } from '../../utils/quoteCard'
 import { TEMPLATE_NAMES, TEMPLATE_FILTERS } from './labels'
 import { pickUi } from '../../utils/uiText'
+import { m } from 'motion/react'
+import LayoutFeatures from '../../motion/LayoutFeatures'
+import { SPRING } from '../../motion/presets'
 
 // Mehrab fonu tünddür (tağın içi açıq olsa da)
 const isDark = (tpl) => Boolean(tpl.dark) || tpl.id === 'mihrab'
@@ -53,6 +56,8 @@ export default function TemplatePicker({ value, onChange, lang, label, card, for
         </div>
         <span className="qg-tplcount ui-num" aria-hidden="true">{list.length} {f.count}</span>
       </div>
+      {/* v6: seçim işarəsi (✓) yeni şablona yayla uçur — layoutId, domMax tənbəl */}
+      <LayoutFeatures>
       <div className="qg-tpls" role="group" aria-label={label} data-format={fmt.id}>
         {list.map(tpl => {
           const name = TEMPLATE_NAMES[tpl.id]?.[lang] || TEMPLATE_NAMES[tpl.id]?.en || tpl.id
@@ -68,13 +73,14 @@ export default function TemplatePicker({ value, onChange, lang, label, card, for
             >
               <span className="qg-tpl__frame">
                 <Thumb tpl={tpl} card={card} fmt={fmt} />
-                {on && <span className="qg-tpl__check" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg></span>}
+                {on && <m.span layoutId="qg-tpl-check" transition={SPRING.soft} className="qg-tpl__check" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg></m.span>}
               </span>
               <span className="qg-tpl__name">{name}</span>
             </button>
           )
         })}
       </div>
+      </LayoutFeatures>
     </div>
   )
 }

@@ -17,6 +17,8 @@ import '../styles/LessonsPage.css'
 import { StatTile } from '../components/viz'
 import CharityInsights from '../components/insights/CharityInsights'
 import { pickUi } from '../utils/uiText'
+import NumberTicker from '../motion/NumberTicker'
+import ShineButton from '../motion/ShineButton'
 
 // Əməl növləri. icon — Icon.jsx adı (emoji əvəzinə: rəngi tokendən,
 // bütün sistemlərdə eyni). Dəqiq ikonu olmayanlar üçün ən yaxın:
@@ -210,7 +212,7 @@ export default function CharityPage({ setPage }) {
           <p className="ui-lead">{t.subtitle}</p>
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> {t.how}</p>
           <div className="ui-page-hero__actions">
-            <a className="ui-btn ui-btn--primary ui-btn--sm" href="#ch-add"><Icon name="plus" className="ui-btn__icon" /> {t.actAdd}</a>
+            <ShineButton as="a" size="sm" href="#ch-add" icon={<Icon name="plus" className="ui-btn__icon" />}> {t.actAdd}</ShineButton>
             <a className="ui-btn ui-btn--secondary ui-btn--sm" href="#ch-what-counts">{t.actWhat}</a>
           </div>
         </div>
@@ -221,10 +223,11 @@ export default function CharityPage({ setPage }) {
 
           {/* Statistika — üç rəqəm kafeli */}
           <div className="ui-stats ch-stats" data-reveal="stagger">
-            {/* key: dəyər dəyişəndə rəqəm bir dəfə yumşaq "döyünür" (CharityPage.css → .ch-bump) */}
-            <StatTile icon="charity" label={t.total} value={<span className="ch-bump" key={stats.total}>{stats.total}</span>} />
+            {/* key: dəyər dəyişəndə rəqəm bir dəfə yumşaq "döyünür" (CharityPage.css → .ch-bump);
+                v6: say və silsilə NumberTicker ilə köhnədən yeniyə yayla sayır */}
+            <StatTile icon="charity" label={t.total} value={<NumberTicker value={stats.total} lang={lang} />} />
             <StatTile icon="zakat" label={t.totalAmount} tone="accent" value={<span className="ch-bump" key={stats.totalAmount}>{amountText}</span>} />
-            <StatTile icon="bolt" label={t.streak} tone="brand" value={<span className="ch-bump" key={stats.streak}>{stats.streak}</span>} />
+            <StatTile icon="bolt" label={t.streak} tone="brand" value={<NumberTicker value={stats.streak} lang={lang} />} />
           </div>
 
           <div className="ch-layout">

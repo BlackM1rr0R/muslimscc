@@ -30,6 +30,9 @@ import LetterLesson from '../components/arabic/LetterLesson.jsx'
 import Quiz from '../components/arabic/Quiz.jsx'
 import { ProgressRing } from '../components/viz'
 import '../styles/ArabicCourse.css'
+import { Stagger, StaggerItem } from '../motion/Stagger'
+import SpotlightCard from '../motion/SpotlightCard'
+import PressedGlide from '../components/pagefx/PressedGlide'
 import { pickUi } from '../utils/uiText'
 
 // v3 — hero izahı, açar rəqəmlər və "kursun yolu" (3 mərhələ)
@@ -376,6 +379,7 @@ export default function ArabicCoursePage({ setPage }) {
   const navigate = useNavigate()
   const audio = useCourseAudio()
   const lessonRef = useRef(null)
+  const segRef = useRef(null)
 
   const hashId = decodeURIComponent(location.hash.replace(/^#/, ''))
   const active = LESSONS.some(l => l.id === hashId) ? hashId : null
@@ -494,7 +498,8 @@ export default function ArabicCoursePage({ setPage }) {
                 <p className="ac-muted">{pick(lesson.desc, lang)}</p>
               </div>
               <div className="ac-lesson__tools">
-                <div className="ac-seg" role="group" aria-label={pick(lesson.title, lang)}>
+                <div className="ac-seg pfx-glide-host" role="group" aria-label={pick(lesson.title, lang)} ref={segRef}>
+                  <PressedGlide containerRef={segRef} deps={[mode, lesson.id, lang]} className="ac-seg__glide" />
                   <button type="button" className="ac-seg__btn" aria-pressed={mode === 'learn'} onClick={showLearn}>
                     <Icon name="quran" size={18} /> {t.learn}
                   </button>
@@ -572,13 +577,13 @@ export default function ArabicCoursePage({ setPage }) {
               </ol>
             </div>
           )}
-          <ol className="ac-lesson-grid" data-reveal="stagger">
+          <Stagger as="ol" className="ac-lesson-grid" step={0.045}>
             {LESSONS.map((l, i) => {
               const best = progress.best[l.id]
               const passed = isPassed(progress, l.id)
               return (
-                <li key={l.id}>
-                  <a href={`#${l.id}`} onClick={onLessonLink(l.id)} aria-current={active === l.id ? 'true' : undefined}
+                <StaggerItem as="li" key={l.id}>
+                  <SpotlightCard as="a" href={`#${l.id}`} onClick={onLessonLink(l.id)} aria-current={active === l.id ? 'true' : undefined}
                     className={`ui-card ui-card--interactive ac-lesson-card ${passed ? 'is-done' : ''} ${active === l.id ? 'is-active' : ''}`}>
                     <div className="ac-lesson-card__top">
                       <span className="ac-lesson-card__n ui-num" aria-hidden="true">{i + 1}</span>
@@ -595,11 +600,11 @@ export default function ArabicCoursePage({ setPage }) {
                     <span className="ui-link ac-lesson-card__link">
                       {t.open} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" />
                     </span>
-                  </a>
-                </li>
+                  </SpotlightCard>
+                </StaggerItem>
               )
             })}
-          </ol>
+          </Stagger>
           <p className="ac-credits">
             {t.credits}{' '}
             <PageLink to="licenses" setPage={setPage} className="ui-link">{t.licenses}</PageLink>

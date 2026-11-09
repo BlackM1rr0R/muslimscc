@@ -5,6 +5,8 @@
 // • Nişanları yoxlama: ilk açılışda (boş vaxtda), namaz qeyd ediləndə və səhifəyə
 //   qayıdanda (bir az gözləyib, bir dəfə). Uğur anlarında celebrate() da çağırır.
 // • Medal fırlanaraq gəlir (yalnız transform/opacity); toxunanda /analytics rəfi açılır.
+// • v6 (src/motion): bildiriş yay kimi qalxır, növbəti gələndə köhnəsi qısa çıxır
+//   (AnimatePresence mode="wait") — əvvəl çıxış animasiyası yox idi.
 // ═══════════════════════════════════════════════════════
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -17,6 +19,8 @@ import { whenIdle } from '../utils/idle'
 import { isPlainClick } from './PageLink'
 import Icon from './Icon'
 import '../styles/BadgeShelf.css'
+import { AnimatePresence, m } from 'motion/react'
+import { SPRING, DUR, exitT } from '../motion/presets'
 
 const T = {
   az: { new: 'Yeni nişan', see: 'Rəfə bax', close: 'Bağla' },
@@ -58,11 +62,14 @@ export default function BadgeToast() {
     return () => clearTimeout(timer.current)
   }, [cur])
 
-  if (!cur) return null
   const href = `${pathFor('analytics', lang)}#an-ach`
-  const name = pickUi(cur.name, lang)
+  const name = cur ? pickUi(cur.name, lang) : ''
   return (
-    <div className="bdg-toast" role="status" data-testid="badge-toast" key={cur.id}>
+    <AnimatePresence mode="wait">
+    {cur && (
+    <m.div className="bdg-toast" role="status" data-testid="badge-toast" key={cur.id}
+      initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1, transition: SPRING.bouncy }}
+      exit={{ opacity: 0, y: 16, scale: 0.97, transition: exitT(DUR.md) }}>
       <a className="bdg-toast__main" href={href}
         onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); setQueue([]); navigate(href) } }}>
         <span className={`bdg-medal bdg-medal--${cur.tier} bdg-medal--sm`} aria-hidden="true">
@@ -77,6 +84,8 @@ export default function BadgeToast() {
       <button type="button" className="bdg-toast__x" onClick={() => setQueue(q => q.slice(1))} aria-label={t.close}>
         <Icon name="close" size={14} />
       </button>
-    </div>
+    </m.div>
+    )}
+    </AnimatePresence>
   )
 }

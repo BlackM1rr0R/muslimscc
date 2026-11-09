@@ -11,6 +11,15 @@ import MemorizeText from '../components/reader/MemorizeText'
 import { copyText, dayIndex, readJSON, shareOrCopy, writeJSON } from '../components/reader/share'
 import { NAWAWI_40, NAWAWI_INTRO, NAWAWI_SOURCES } from '../data/nawawi40'
 import '../styles/Nawawi40Page.css'
+// Dizayn v6 (src/motion): kart → oxu pəncərəsi morph (layoutId), grid növbə ilə,
+// hero rəqəmləri sayğacla, günün hədisinin başlığı söz-söz.
+import { m } from 'motion/react'
+import { ExpandableGroup, useMorphId, morphId } from '../motion/ExpandableCard'
+import { SPRING } from '../motion/presets'
+import { Stagger } from '../motion/Stagger'
+import { variantFor } from '../motion/Reveal'
+import NumberTicker from '../motion/NumberTicker'
+import TextEffect from '../motion/TextEffect'
 import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -166,6 +175,11 @@ export default function Nawawi40Page() {
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState('all')
   const [cur, setCur] = useState(null)          // açıq hədisin nömrəsi (oxu pəncərəsi)
+  const [from, setFrom] = useState(null)        // pəncərə hansı kartdan açılıb (morph)
+  const morph = useMorphId(from == null ? null : `nw-${from}`)
+  const morphOn = useMorphId(0) != null      // telefonda / hərəkət azaldılıbsa morph yox
+  const cardV = useMemo(() => variantFor('fadeUp'), [])
+  const openCard = (n) => { setFrom(n); setCur(n) }
   const [copied, setCopied] = useState('')      // 'text' | 'share'
   const [memo, setMemo] = useState(false)
   const [memoTarget, setMemoTarget] = useState('ar')
@@ -197,6 +211,7 @@ export default function Nawawi40Page() {
 
   const close = useCallback(() => {
     setCur(null)
+    setFrom(null)
     setMemo(false)
     try {
       if (/^#h-\d+$/.test(window.location.hash)) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search)
@@ -256,6 +271,7 @@ export default function Nawawi40Page() {
   const lastH = last ? BY_N.get(last) : null
 
   return (
+    <ExpandableGroup id="nw-xc">
     <div className="nw-page">
       <header className="ui-page-hero ui-page-hero--split nw-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
@@ -273,8 +289,8 @@ export default function Nawawi40Page() {
               <ProgressRing value={learnedCount} max={NAWAWI_40.length} size={88} thickness={9}
                 label={L.progress} sub={`⁦${learnedCount} / ${NAWAWI_40.length}⁩`} />
               <ul className="ui-page-hero__stats nw-hero__stats">
-                <li><b className="ui-num">{NAWAWI_40.length}</b><span>{L.statHadith}</span></li>
-                <li><b className="ui-num">{GROUP_COUNTS.agreed || 0}</b><span>{L.statAgreed}</span></li>
+                <li><b className="ui-num"><NumberTicker value={NAWAWI_40.length} lang={lang} /></b><span>{L.statHadith}</span></li>
+                <li><b className="ui-num"><NumberTicker value={GROUP_COUNTS.agreed || 0} lang={lang} delay={0.08} /></b><span>{L.statAgreed}</span></li>
               </ul>
               <div className="nw-hero__actions">
                 {lastH && (
@@ -300,7 +316,7 @@ export default function Nawawi40Page() {
               <span className="ui-badge ui-badge--accent"><Icon name="sun" size={13} /> {L.today}</span>
               <span className="nw-today__n ui-num">№ {today.n}</span>
             </div>
-            <h2 id="nw-today-h" className="nw-today__title">{pick(today.title, lang)}</h2>
+            <TextEffect as="h2" id="nw-today-h" className="nw-today__title" preset="blur">{pick(today.title, lang)}</TextEffect>
             <p className="nw-today__ar ui-arabic" lang="ar" dir="rtl">{today.ar}</p>
             <button type="button" className="ui-btn ui-btn--primary ui-btn--sm nw-today__btn" onClick={() => setCur(today.n)}>
               {L.read} <Icon name="chevron" className="ui-btn__icon ui-flip-rtl" />
@@ -343,12 +359,12 @@ export default function Nawawi40Page() {
               </button>
             </div>
           ) : (
-            <ol className="nw-grid">
+            <Stagger as="ol" className="nw-grid" key={filter} step={0.04}>
               {list.map(x => {
                 const isLearned = learnedSet.has(x.n)
                 const g = srcGroup(x)
                 return (
-                  <li key={x.n} id={`h-${x.n}`} className={`ui-card nw-card${isLearned ? ' is-learned' : ''}${cur === x.n ? ' is-current' : ''}`}>
+                  <m.li variants={cardV} layoutId={morphOn ? morphId(`nw-${x.n}`) : undefined} transition={SPRING.soft} data-wow-off="" key={x.n} id={`h-${x.n}`} className={`ui-card nw-card${isLearned ? ' is-learned' : ''}${cur === x.n ? ' is-current' : ''}`}>
                     <div className="nw-card__top">
                       <span className="nw-card__n ui-num" aria-hidden="true">{x.n}</span>
                       <span className={`ui-badge nw-src nw-src--${g}`} title={pick(x.src, lang)}>{groupLabel(x)}</span>
@@ -358,7 +374,7 @@ export default function Nawawi40Page() {
                       </button>
                     </div>
                     <h3 className="nw-card__title">
-                      <button type="button" className="nw-card__open" onClick={() => setCur(x.n)}>
+                      <button type="button" className="nw-card__open" onClick={() => openCard(x.n)}>
                         <span className="ui-sr-only">{x.n}. </span>{pick(x.title, lang)}
                       </button>
                     </h3>
@@ -368,10 +384,10 @@ export default function Nawawi40Page() {
                       {isLearned && <span className="ui-badge ui-badge--brand"><Icon name="check" size={12} /> {L.learned}</span>}
                       <span className="nw-card__read" aria-hidden="true">{L.read} <Icon name="chevron" size={14} className="ui-flip-rtl" /></span>
                     </div>
-                  </li>
+                  </m.li>
                 )
               })}
-            </ol>
+            </Stagger>
           )}
         </div>
       </div>
@@ -452,6 +468,7 @@ export default function Nawawi40Page() {
         labelledBy="nw-reader-title"
         position={idx >= 0 ? `${idx + 1} / ${nav.length}` : null}
         contentKey={cur}
+        layoutId={morph}
         className="nw-reader"
         labels={{ close: L.close, prev: L.prev, next: L.next }}
         head={h && (
@@ -523,5 +540,6 @@ export default function Nawawi40Page() {
         )}
       </ReaderDialog>
     </div>
+    </ExpandableGroup>
   )
 }

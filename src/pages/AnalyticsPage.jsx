@@ -8,7 +8,7 @@ import { navLabel } from '../data/navigation'
 import { pathFor } from '../seo/routes.js'
 import {
   ChartFigure, BarChart, ProgressRing, ProgressBar, StackedBar,
-  BentoGrid, ChartCard, KpiCard, RangeTabs, AreaChart, LineChart, CalendarHeatmap, RadialBars, FunnelChart,
+  ChartCard, KpiCard, RangeTabs, AreaChart, LineChart, CalendarHeatmap, RadialBars, FunnelChart,
   SegmentBreakdown, CompareBars, GoalRing, ActivityFeed, MiniTable, InlineBar, TrendCell, Delta, makeFormat,
 } from '../components/viz'
 import { pctDelta, fromDayKey, addDayKey, dayKeys } from '../components/viz/scale.js'
@@ -21,6 +21,8 @@ import { LESSONS } from '../data/arabicCourse.js'
 import { pickUi } from '../utils/uiText'
 import { badgeList, syncBadges } from '../utils/badges.js'
 import '../styles/BadgeShelf.css'
+import { Stagger, StaggerItem } from '../motion/Stagger'
+import PresenceSwap from '../motion/PresenceSwap'
 
 // v3 — qrafiklər və bölmələr üçün əlavə mətnlər (5 dildə)
 const X = {
@@ -513,7 +515,10 @@ export default function AnalyticsPage({ setPage }) {
               <time dateTime={today}>{f.date(fromDayKey(today), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</time>
             </p>
             <h1 className="ui-display">{t.title}</h1>
-            <p className="ui-lead an-hero__insight" data-testid="an-insight">{hasData ? insight : t.subtitle}</p>
+            {/* v6: dövr dəyişəndə nəticə cümləsi bulanıqdan yenilənir (eyni yerdə məzmun dəyişimi) */}
+            <p className="ui-lead an-hero__insight" data-testid="an-insight">
+              <PresenceSwap as="span" className="an-hero__insight-t" swapKey={hasData ? insight : 'nodata'} variant="blur">{hasData ? insight : t.subtitle}</PresenceSwap>
+            </p>
             <p className="ui-page-hero__how"><Icon name="shield" size={16} /> {x.how}</p>
           </div>
           {hasData && (
@@ -556,16 +561,20 @@ export default function AnalyticsPage({ setPage }) {
       {hasData && (
         <section className="ui-section ui-section--tight an-dash" aria-label={t.overview}>
           <div className="ui-container">
-            <BentoGrid className="an-bento">
+            {/* v6: KPI kartları növbə ilə açılır (Stagger 50 ms) — panel şəbəkəsinin özü Stagger konteyneridir */}
+            <Stagger as="div" className="vz-bento an-bento" step={0.05} variant="scaleIn">
               {kpis.map(k => (
-                <KpiCard key={k.key} span={3} icon={k.icon} label={k.label} value={typeof k.value === 'number' ? f.num(k.value) : k.value} unit={k.unit}
+                <StaggerItem key={k.key} className="an-kpi-cell" style={{ '--vz-span': 3 }}>
+                <KpiCard span={3} icon={k.icon} label={k.label} value={typeof k.value === 'number' ? f.num(k.value) : k.value} unit={k.unit}
                   delta={k.delta.value != null ? k.delta : null} hint={k.delta.value == null ? vs : undefined}
                   spark={k.spark} sparkLabel={v.sparkOf(k.label)} tone={k.tone || 1}
                   href={k.href ? href(k.href) : undefined} onClick={k.href ? go(k.href) : undefined} />
+                </StaggerItem>
               ))}
 
               <ChartCard span={8} id="an-chart" title={v.chartTitle} sub={mode === 'deeds' ? v.chartSub : v.dhikrSub}
                 actions={<RangeTabs options={[{ value: 'deeds', label: v.mDeeds }, { value: 'dhikr', label: v.mDhikr }]} value={mode} onChange={setMode} label={v.modeLabel} />}>
+                <PresenceSwap swapKey={mode} variant="fade" className="an-chart-swap">
                 {mode === 'deeds' ? (
                   <AreaChart key={`d-${range}`} mode="stacked" height={300} integer label={v.chartTitle}
                     labels={series.labels} xFormat={xTick} tooltipTitle={tipTitle}
@@ -574,6 +583,7 @@ export default function AnalyticsPage({ setPage }) {
                   <LineChart key={`z-${range}`} height={300} integer label={v.mDhikr} labels={series.labels} xFormat={xTick} tooltipTitle={tipTitle}
                     series={[{ key: 'dhikr', label: v.mDhikr, values: series.dhikr, compare: series.dhikrPrev, tone: 1 }]} />
                 )}
+                </PresenceSwap>
               </ChartCard>
 
               <ChartCard span={4} id="an-goal" icon={goal.kind === 'khatm' ? 'quran' : 'dailytracker'}
@@ -621,7 +631,7 @@ export default function AnalyticsPage({ setPage }) {
               <ChartCard span={12} id="an-wd" title={v.wdTitle} sub={v.wdSub} className="an-wd">
                 <CompareBars label={v.wdTitle} items={weekdayItems} currentLabel={v.ranges[range]} format={(n) => f.num(n)} />
               </ChartCard>
-            </BentoGrid>
+            </Stagger>
           </div>
         </section>
       )}

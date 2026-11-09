@@ -35,6 +35,7 @@ import Sparkle from '../components/prayer/Sparkle'
 import { ringFrom } from '../components/prayer/ringFrom'
 import { pickUi } from '../utils/uiText'
 import RamadanKhatmGoal from '../components/insights/RamadanKhatmGoal'
+import AnimatedTabs from '../motion/AnimatedTabs'
 
 const TXT = {
   title:   { az: 'İmsakiyyə', en: 'Ramadan timetable', ru: 'Расписание на Рамадан', ar: 'إمساكية رمضان', tr: 'İmsakiye' },
@@ -453,13 +454,9 @@ export default function RamadanPage({ setPage }) {
               </div>
               <div className="rp-actions">
                 <CityPicker triggerId="ramadan-city-trigger" />
-                <div className="ui-segmented rp-view" role="radiogroup" aria-label={pick(TXT.viewAs, lang)}>
-                  {['cards', 'table'].map(v => (
-                    <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}>
-                      <Icon name={v === 'cards' ? 'widget' : 'list'} size={15} /> {pick(v === 'cards' ? TXT.vCards : TXT.vTable, lang)}
-                    </button>
-                  ))}
-                </div>
+                {/* v6: görünüş sekmələri — hap yayla sürüşür (AnimatedTabs, layoutId) */}
+                <AnimatedTabs className="rp-view" idBase="rp-v" size="sm" label={pick(TXT.viewAs, lang)} value={view} onChange={setView}
+                  tabs={['cards', 'table'].map(v => ({ id: v, icon: <Icon name={v === 'cards' ? 'widget' : 'list'} size={15} />, label: pick(v === 'cards' ? TXT.vCards : TXT.vTable, lang) }))} />
                 {hasToday && (
                   <button type="button" className="ui-btn ui-btn--ghost rp-today-btn" onClick={goToday}>
                     <Icon name="target" className="ui-btn__icon" /> {pick(TXT.toToday, lang)}
@@ -483,7 +480,10 @@ export default function RamadanPage({ setPage }) {
                 {Array.from({ length: 6 }, (_, i) => <span key={i} className="ui-skeleton ui-skeleton--text" style={{ '--w': `${90 - i * 6}%` }} />)}
               </div>
             ) : (<>
-              {view === 'cards' && <DayCards calendar={calendar} todayDate={todayDate} todayRef={cardTodayRef} lang={lang} />}
+              <div role="tabpanel" id="rp-v-panel-cards" aria-labelledby="rp-v-tab-cards" hidden={view !== 'cards'}>
+                {view === 'cards' && <DayCards calendar={calendar} todayDate={todayDate} todayRef={cardTodayRef} lang={lang} />}
+              </div>
+              <div id="rp-v-panel-table" {...(view === 'table' ? { role: 'tabpanel', 'aria-labelledby': 'rp-v-tab-table' } : {})}>
               <div data-reveal="fade" className={`rp-scroll ui-table-wrap${view === 'cards' ? ' rp-scroll--print-only' : ''}`} tabIndex={view === 'cards' ? -1 : 0} role="region" aria-labelledby="rp-table-title">
                 {/* tabIndex — sürüşən sahə klaviatura ilə də sürüşsün (axe: scrollable-region-focusable) */}
                 <table className="ui-table ui-table--compact ui-table--zebra rp-table tm-cascade-rows" aria-labelledby="rp-table-title" data-testid="ramadan-table">
@@ -517,6 +517,7 @@ export default function RamadanPage({ setPage }) {
                     })}
                   </tbody>
                 </table>
+              </div>
               </div>
             </>)}
             <p className="rp-note">{pick(TXT.note, lang)}</p>

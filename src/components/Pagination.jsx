@@ -2,6 +2,10 @@ import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import '../styles/Pagination.css'
 import { pickUi } from '../utils/uiText'
+import { useId } from 'react'
+import { LayoutGroup, m } from 'motion/react'
+import LayoutFeatures from '../motion/LayoutFeatures'
+import { SPRING } from '../motion/presets'
 
 const A11Y = {
   az: { pagination:'Səhifələmə', prev:'Əvvəlki səhifə', next:'Növbəti səhifə', page:'Səhifə' },
@@ -18,6 +22,9 @@ const A11Y = {
 export default function Pagination({ current, total, onChange, color }) {
   const { lang } = useLang()
   const a = pickUi(A11Y, lang)
+  // v6: cari səhifənin zümrüd "hapı" ayrıca elementdir — səhifə dəyişəndə yayla yeni nömrəyə sürüşür
+  // (layoutId; bir səhifədə iki səhifələmə olsa, LayoutGroup id-ləri qarışdırmır)
+  const gid = useId()
   if (total <= 1) return null
 
   // Hansı səhifə nömrələrini göstərək?
@@ -38,7 +45,8 @@ export default function Pagination({ current, total, onChange, color }) {
   })
 
   return (
-    <nav className="pagination" aria-label={a.pagination}>
+    <LayoutFeatures><LayoutGroup id={gid}>
+    <nav className="pagination pagination--mo" aria-label={a.pagination}>
       <button
         type="button"
         className="pg-btn pg-prev"
@@ -61,7 +69,8 @@ export default function Pagination({ current, total, onChange, color }) {
             aria-label={`${a.page} ${item}`}
             aria-current={item === current ? 'page' : undefined}
           >
-            {item}
+            {item === current && <m.span layoutId="pg-active" className="pg-pill" transition={SPRING.snappy} aria-hidden="true" />}
+            <span className="pg-num__t">{item}</span>
           </button>
         )
       )}
@@ -76,5 +85,6 @@ export default function Pagination({ current, total, onChange, color }) {
         <Icon name="chevron" size={18} className="ui-flip-rtl" />
       </button>
     </nav>
+    </LayoutGroup></LayoutFeatures>
   )
 }

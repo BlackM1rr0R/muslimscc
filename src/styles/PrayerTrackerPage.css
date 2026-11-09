@@ -200,7 +200,7 @@ button.pt-heat-cell { cursor: pointer; }
 .pt-month-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .pt-month-nav { display: flex; align-items: center; gap: 6px; }
 .pt-month-name { min-width: 9.5em; text-align: center; color: var(--text-strong); font-family: var(--font-label); font-weight: 600; font-size: var(--step--1); }
-.pt-cal { margin-top: var(--space-3); }
+.pt-cal { margin-top: var(--space-3); overflow-x: clip; overflow-clip-margin: 6px; } /* v6: ay sürüşməsi (PresenceSwap) üfüqi sürüşmə yaratmasın */
 .pt-cal-wd, .pt-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
 .pt-cal-wd span { padding-bottom: 4px; color: var(--text-tertiary); font-size: var(--step--2); text-align: center; }
 .pt-cal-day {

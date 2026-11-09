@@ -62,6 +62,7 @@ html[lang="ar"] .hj-grid-eyebrow { letter-spacing: 0; text-transform: none; }
 .hj-grid-sub { color: var(--text-tertiary); font-size: var(--step--1); }
 .hj-grid-back { display: flex; justify-content: center; margin-top: var(--space-2); }
 
+#hj-grid { overflow-x: clip; overflow-clip-margin: 6px; } /* v6: PresenceSwap sürüşməsi üfüqi sürüşmə yaratmasın */
 .hj-cal { width: 100%; margin-top: var(--space-4); border-collapse: separate; border-spacing: 4px; table-layout: fixed; }
 .hj-cal-wd { padding-bottom: 4px; color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; text-align: center; }
 .hj-cal-cell {

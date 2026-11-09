@@ -131,6 +131,12 @@
    mətn ilk kadrda görünür. (.hp-hero-content > … — yuxarıdakı ümumi
    qaydadan güclü olsun deyə.) */
 .hp-hero-content > .hp-hero-title { animation-name: hpRise; }
+/* v6: alt yazını TextEffect söz-söz animasiya edir (src/motion) — qab özü yox */
+.hp-hero-content > .hp-hero-sub.mo-te { animation: none; }
+/* v6: fonda axan xətlər (BackgroundPaths) — telefonda yox (hero sakit qalsın) */
+.hp-paths { opacity: .55; }
+[data-theme="dark"] .hp-paths { opacity: .7; }
+@media (max-width: 639.98px) { .hp-paths { display: none; } }
 @keyframes hpRise {
   from { transform: translate3d(0, 10px, 0); }
   to   { transform: none; }

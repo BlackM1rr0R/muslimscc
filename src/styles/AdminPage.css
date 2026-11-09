@@ -1375,3 +1375,31 @@ button.admin-stat-card:active { transform: scale(0.98); }
 /* Forma xaricindəki işarə qutusu və dil sekmələri — forma ilə ritm */
 .admin-section > .admin-check { margin-bottom: 6px; }
 .admin-section > .admin-lang-tabs { margin-bottom: 18px; }
+
+/* ══ v6 Motion — yan menyu ══
+   • .admin-nav-mark — aktiv sətrin zümrüd zolağı (əvvəl ::before), layoutId ilə yayla sürüşür.
+   • .admin-nav-hover — siçanın altındakı sətrin arxasında yumşaq hap (HoverPill; yalnız siçan, hərəkəti azalt → yox). */
+.admin-nav-groups--mo { position: relative; isolation: isolate; }
+.admin-nav-groups--mo .admin-nav-btn.active::before { content: none; }
+.admin-nav-mark {
+  position: absolute;
+  inset-block: 9px;
+  inset-inline-start: -14px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--brand);
+  pointer-events: none;
+}
+[dir="rtl"] .admin-nav-mark { border-radius: 3px 0 0 3px; }
+.admin-nav-hover {
+  z-index: -1;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .admin-nav-groups--mo .admin-nav-btn:not(.active):hover { background: transparent; }
+}
+@media (max-width: 899.98px) {
+  .admin-nav-mark { inset-inline-start: 0; inset-block: 10px; }
+}

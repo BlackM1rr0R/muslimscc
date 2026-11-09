@@ -5,6 +5,8 @@
 // Kompüterdə sağ aşağıdakı dokun ÜSTÜNDƏ, telefonda (dok yoxdur) küncdə.
 // <body>-yə portal: <main>-in keçid animasiyası (transform) position: fixed-i
 // özünə bağlayır — düymə ekranın yox, səhifənin küncündə qalırdı.
+// v6 (src/motion): görünəndə yay kimi "qalxır", gizlənəndə qısa çıxır (AnimatePresence) —
+// gizli ikən DOM-da yoxdur (fokus/oxucu üçün əlavə aria-hidden lazım deyil).
 // ═══════════════════════════════════════════════════════
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -13,6 +15,8 @@ import Icon from './Icon'
 import '../styles/ListMore.css'
 import { isLiteDevice } from '../utils/liteDevice'
 import { pickUi } from '../utils/uiText'
+import { AnimatePresence, m } from 'motion/react'
+import { SPRING, DUR, exitT } from '../motion/presets'
 
 const LABEL = { az: 'Yuxarı qayıt', en: 'Back to top', ru: 'Наверх', ar: 'العودة إلى الأعلى', tr: 'Başa dön' }
 
@@ -52,21 +56,29 @@ export default function BackToTop({ threshold }) {
 
   if (typeof document === 'undefined') return null
   return createPortal(
-    <button
-      type="button"
-      className={`ui-icon-btn lm-top${on ? ' is-on' : ''}`}
-      onClick={toTop}
-      aria-label={label}
-      title={label}
-      tabIndex={on ? 0 : -1}
-      aria-hidden={on ? undefined : true}
-    >
-      {/* Səhifənin oxunan payı — halqa (wow.css → .lm-top__ring, scroll-timeline) */}
-      <svg className="lm-top__ring" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-        <circle cx="18" cy="18" r="16.5" pathLength="100" />
-      </svg>
-      <Icon name="arrowUp" size={20} />
-    </button>,
+    <AnimatePresence>
+      {on && (
+        <m.button
+          key="top"
+          type="button"
+          className="ui-icon-btn lm-top lm-top--motion is-on"
+          onClick={toTop}
+          aria-label={label}
+          title={label}
+          initial={{ opacity: 0, y: 14, scale: 0.85 }}
+          animate={{ opacity: 1, y: 0, scale: 1, transition: SPRING.bouncy }}
+          exit={{ opacity: 0, y: 10, scale: 0.9, transition: exitT(DUR.sm) }}
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.92 }}
+        >
+          {/* Səhifənin oxunan payı — halqa (wow.css → .lm-top__ring, scroll-timeline) */}
+          <svg className="lm-top__ring" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+            <circle cx="18" cy="18" r="16.5" pathLength="100" />
+          </svg>
+          <Icon name="arrowUp" size={20} />
+        </m.button>
+      )}
+    </AnimatePresence>,
     document.body
   )
 }

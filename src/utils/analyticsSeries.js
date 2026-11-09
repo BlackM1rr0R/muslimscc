@@ -16,7 +16,7 @@
 //   qm_badges_v1            { badgeId: 'YYYY-MM-DD' }            (nişanlar)
 // Saf hissə (buildDays, rangeStats, feedEvents) tests/unit/analytics-series.test.js-də yoxlanılır.
 // ═══════════════════════════════════════════════════════
-import { addDayKey, dayKeys, fromDayKey } from '../components/viz/scale.js'
+import { addDayKey, dayKeys, fromDayKey, toDayKey } from '../components/viz/scale.js'
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 export const PRAYER_KEYS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']
@@ -199,6 +199,14 @@ export function feedEvents(store, days, names, since) {
     if (d.fast) ev.push({ key: `f-${k}`, kind: 'fast', icon: 'moonStar', time: k, title: names.fast })
   }
   // Sıralama: gün (yenidən köhnəyə), eyni gündə dəqiq vaxtlı hadisə əvvəl
-  const sortKey = (e) => (typeof e.time === 'number' ? e.time : +fromDayKey(e.time))
-  return ev.sort((a, b) => sortKey(b) - sortKey(a))
+  // (əvvəl gün hadisəsi günün 12:00-ı sayılırdı — səhər saatlarında bu günün dəqiq vaxtlı
+  // hadisəsi onun altına düşürdü)
+  const evDay = (e) => (typeof e.time === 'number' ? toDayKey(new Date(e.time)) : e.time)
+  return ev.sort((a, b) => {
+    const da = evDay(a), db = evDay(b)
+    if (da !== db) return da < db ? 1 : -1
+    const ta = typeof a.time === 'number', tb = typeof b.time === 'number'
+    if (ta && tb) return b.time - a.time
+    return ta === tb ? 0 : ta ? -1 : 1
+  })
 }

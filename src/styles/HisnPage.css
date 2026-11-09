@@ -108,10 +108,11 @@
   position: relative; display: flex; flex-direction: column; gap: 8px;
   padding: var(--space-4) var(--space-4) var(--space-3);
   scroll-margin-top: calc(var(--header-h, 64px) + 120px);
-  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  /* v6: transform Motion-undur (növbəli giriş, kart → pəncərə morph); hover qalxması `translate` ilə */
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), translate var(--dur-2) var(--ease-out);
 }
 @media (hover: hover) {
-  .hs-page .hs-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); transform: translateY(-2px); }
+  .hs-page .hs-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); translate: 0 -2px; }
   .hs-card:hover .hs-card__read { color: var(--brand); }
 }
 .hs-page .hs-card:focus-within { border-color: var(--brand-line); }
@@ -186,7 +187,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hs-card, .hs-card__read, .hs-card__fav { transition: none; }
-  .hs-page .hs-card:hover { transform: none; }
+  .hs-page .hs-card:hover { translate: none; }
 }
 
 /* ══ v4 "VAU" — Hisnul-Müslim ════════════════════════════════════════

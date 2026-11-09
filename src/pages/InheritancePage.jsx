@@ -12,6 +12,8 @@ import { ChartFigure, BarChart, Donut, SegmentBreakdown } from '../components/vi
 import '../styles/InheritancePage.css'
 import '../styles/ToolsMotion.css'
 import TweenNumber from '../components/prayer/TweenNumber'
+import ShineButton from '../motion/ShineButton'
+import { AnimatedList, AnimatedItem } from '../motion/AnimatedList'
 
 // ═══ MİRAS (FƏRAİZ) HESABLAYICISI ═══
 // Hesab src/utils/faraid.js-dədir (Quran 4:11, 4:12, 4:176 + Sünnə; mübahisəli
@@ -411,7 +413,7 @@ export default function InheritancePage({ setPage }) {
             <li><b><Frac value="1/3" /></b><span>{s('statWill')}</span></li>
           </ul>
           <div className="ui-page-hero__actions">
-            <a className="ui-btn ui-btn--primary ui-btn--sm" href="#inh-calc"><Icon name="inheritance" className="ui-btn__icon" /> {s('actCalc')}</a>
+            <ShineButton as="a" size="sm" href="#inh-calc" icon={<Icon name="inheritance" className="ui-btn__icon" />}> {s('actCalc')}</ShineButton>
             <a className="ui-btn ui-btn--secondary ui-btn--sm" href="#inh-shares">{s('actShares')}</a>
           </div>
         </div>
@@ -572,14 +574,15 @@ export default function InheritancePage({ setPage }) {
             {showResult && blockedRows.length > 0 && (
               <div className="ui-card inh-card">
                 <h2 className="inh-card__title"><Icon name="shield" size={18} /> {s('blockedTitle')}</h2>
-                <ul className="inh-blocked">
+                {/* v6: varis seçiləndə məhrum olan yayla gəlir, çıxan qısa solur, qalanlar yerə sürüşür (AnimatedList) */}
+                <AnimatedList as="ul" className="inh-blocked">
                   {blockedRows.map(r => (
-                    <li key={r.heir}>
+                    <AnimatedItem as="li" key={r.heir}>
                       <strong>{heirName(r.heir)}{r.count > 1 && <span className="ui-num"> × {r.count}</span>}</strong>
                       <span>{reasonText(r)}</span>
-                    </li>
+                    </AnimatedItem>
                   ))}
-                </ul>
+                </AnimatedList>
               </div>
             )}
 

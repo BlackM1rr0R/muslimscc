@@ -9,6 +9,8 @@ import {
 } from '../utils/ecodes'
 import { ChartFigure, BarChart } from '../components/viz'
 import '../styles/HalalCheckPage.css'
+import Swap from '../components/pagefx/Swap'
+import PressedGlide from '../components/pagefx/PressedGlide'
 import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -846,6 +848,7 @@ function useCanScan() {
 function ECodeSection({ data, status, retry, lang, L }) {
   const [q, setQ] = useState('')
   const [cat, setCat] = useState(null)
+  const chipsRef = useRef(null)
   const [limit, setLimit] = useState(24)
   useEffect(() => { setLimit(24) }, [q, cat])
 
@@ -914,7 +917,8 @@ function ECodeSection({ data, status, retry, lang, L }) {
                 </button>
               )}
             </div>
-            <div className="hc-chips" role="group" aria-label={L.browse}>
+            <div className="hc-chips pfx-glide-host" role="group" aria-label={L.browse} ref={chipsRef}>
+              <PressedGlide containerRef={chipsRef} deps={[cat, lang]} />
               <button type="button" className="ui-chip" aria-pressed={cat === null} onClick={() => setCat(null)}>{L.all}</button>
               {CATEGORIES.map((c) => (
                 <button key={c} type="button" className="ui-chip hc-chip" aria-pressed={cat === c} onClick={() => setCat(cat === c ? null : c)}>
@@ -1003,6 +1007,8 @@ function BarcodeSection({ data, lang, L }) {
         {scanning && <Scanner onCode={onScanned} onClose={() => setScanning(false)} L={L} />}
 
         <div aria-live="polite">
+          {/* v6: nəticə vəziyyətləri (yüklənir → kart / xəta) yerində yumşaq əvəzlənir */}
+          <Swap swapKey={`${state.status}|${state.code || ''}`} variant="blur">
           {state.status === 'loading' && <span className="ui-skeleton ui-skeleton--card hc-bc__skeleton" role="status"><span className="ui-sr-only">{L.loading}</span></span>}
           {state.status === 'error' && (
             <div className="ui-card ui-card--sunken hc-empty" role="alert">
@@ -1015,6 +1021,7 @@ function BarcodeSection({ data, lang, L }) {
             </div>
           )}
           {state.status === 'ok' && <ProductCard code={state.code} p={state.product} data={data} lang={lang} L={L} />}
+          </Swap>
         </div>
       </div>
     </section>

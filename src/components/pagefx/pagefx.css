@@ -1,0 +1,43 @@
+/* ═══════════════════════════════════════════════════════
+   pagefx — dizayn v6 səhifə köməkçiləri (PressedGlide, useTilt).
+   Yalnız transform/opacity; hərəkəti azalt → statik.
+   ═══════════════════════════════════════════════════════ */
+
+/* Seçilmiş süzgəcin arxasında sürüşən hap — .ui-chip[aria-pressed] görünüşü ilə eyni (tünd hap) */
+.pfx-glide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--text-strong);
+  pointer-events: none;
+}
+/* Yumşaq variant (kart-düymələr üçün): açıq zümrüd fon + haşiyə */
+.pfx-glide--soft {
+  border-radius: var(--radius-md, 12px);
+  background: color-mix(in srgb, var(--brand) 12%, var(--surface-1));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--brand) 55%, transparent), var(--shadow-1);
+}
+[data-theme="dark"] .pfx-glide--soft { background: color-mix(in srgb, var(--brand) 24%, var(--surface-2)); }
+/* Hap konteyneri (offsetParent olmalıdır) */
+.pfx-glide-host { position: relative; isolation: isolate; }
+[data-glide-on] > :not(.pfx-glide) { position: relative; z-index: 1; }
+/* Hap gəldikdə seçilmiş çipin öz fonu şəffaf olur (hap onun yerinə çəkilir) */
+[data-glide-on] > .ui-chip[aria-pressed="true"],
+[data-glide-on] > .ui-chip[aria-pressed="true"]:hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--surface-1);
+}
+
+/* 3D əyilmə (useTilt) — transform YALNIZ siçan üstündə ikən (data-tilt-on) qoyulur:
+   giriş animasiyası (data-reveal) və .ui-card hover qalxması ilə toqquşmur; çıxanda kartın
+   öz transform keçidi ilə yerinə qayıdır. */
+.pfx-tilt[data-tilt-on] {
+  transform: perspective(900px) translateY(-3px) rotateX(var(--pfx-rx, 0deg)) rotateY(var(--pfx-ry, 0deg));
+  transition: transform 90ms linear, box-shadow var(--dur-2, 240ms) ease, border-color var(--dur-2, 240ms) ease;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) { .pfx-tilt[data-tilt-on] { transform: none; } }
+html.a11y-motion-user .pfx-tilt[data-tilt-on] { transform: none; }

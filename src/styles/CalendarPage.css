@@ -108,6 +108,9 @@
 .cal-weekdays span { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; text-align: center; }
 .cal-weekdays span.is-fri { color: var(--brand); }
 .cal-grid { animation: cal-swap var(--dur-3) var(--ease-out) both; }
+/* v6: ay keçidi Motion-dadır (PresenceSwap) — konteynerin CSS girişi söndürülür, günlərin çevrilməsi qalır */
+.cal-grid.cal-grid--mo { animation: none; }
+.cal-grid-wrap { overflow-x: clip; overflow-clip-margin: 6px; }
 .cal-day {
   position: relative;
   display: flex;

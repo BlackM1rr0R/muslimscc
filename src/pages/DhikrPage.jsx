@@ -17,6 +17,11 @@ import BreathDhikr from '../components/dhikr/BreathDhikr'
 import { playSound } from '../utils/uiSound'
 import SoundToggle from '../components/SoundToggle'
 import { pickUi } from '../utils/uiText'
+// Dizayn v6 (src/motion): rejim seqmentində hap yayla sürüşür, rejim paneli yerində
+// sürüşərək dəyişir (PresenceSwap), sessiya jurnalına yeni dövr yayla düşür (AnimatedList)
+import { SegGroup, SegPill } from '../components/quran/SegPill'
+import PresenceSwap from '../motion/PresenceSwap'
+import { AnimatedList, AnimatedItem } from '../motion/AnimatedList'
 import { bumpDhikrDay } from '../utils/myDay'
 import { loadPalms, bumpPalm, PALM_SOURCE } from '../utils/palms'
 import PalmGarden from '../components/dhikr/PalmGarden'
@@ -307,6 +312,7 @@ export default function DhikrPage({ setPage }) {
   const stat = (k) => STAT_LABELS[k][lang] || STAT_LABELS[k].en
   // Sayğac rejimi — həmişə "Zikr seçimi" ilə açılır (köhnə davranış)
   const [mode, setMode] = useState('select')
+  const [modeDir, setModeDir] = useState(1)
   // Ömürlük sayğac (hero) — toxunuşlar localStorage-ə yazılır; səhifədəki hər klikdən sonra yenidən oxunur
   const [lifetime, setLifetime] = useState(readLifetime)
   const pageRef = useRef(null)
@@ -403,16 +409,20 @@ export default function DhikrPage({ setPage }) {
 
       <section className="ui-section ui-section--tight">
         <div className="ui-container dk-modes-wrap">
-          <div className="ui-segmented dk-modes" role="group" aria-label={tx(MODE_LABEL, lang)}>
+          <SegGroup id="dk-modes">
+          <div className="ui-segmented dk-modes seg-pill-host" role="group" aria-label={tx(MODE_LABEL, lang)} data-wow-off="">
             {MODES.map(m => (
               <button key={m.id} type="button" className="dk-mode-chip" aria-pressed={mode === m.id}
-                onClick={() => setMode(m.id)} data-testid={`dhikr-mode-${m.id}`}>
+                onClick={() => { setModeDir(MODES.findIndex(x => x.id === m.id) >= MODES.findIndex(x => x.id === mode) ? 1 : -1); setMode(m.id) }} data-testid={`dhikr-mode-${m.id}`}>
+                <SegPill on={mode === m.id} />
                 <Icon name={m.icon} size={16} /> {tx(m.label, lang)}
               </button>
             ))}
           </div>
+          </SegGroup>
           <SoundToggle lang={lang} className="dk-sound" />
         </div>
+        <PresenceSwap swapKey={mode} variant="slide" dir={modeDir} className="dk-mode-panel">
         {mode === 'after' && <div className="ui-container"><AfterPrayerCounter lang={lang} /></div>}
         {mode === 'free' && <div className="ui-container"><FreeCounter lang={lang} t={t} /></div>}
         {mode === 'breath' && <div className="ui-container"><BreathDhikr lang={lang} /></div>}
@@ -544,9 +554,9 @@ export default function DhikrPage({ setPage }) {
                   <BarChart data={bySession} label={tx(PAGE_TXT.bySession, lang)} labelWidth="45%" />
                 </div>
               )}
-              <ul className="dhikr-log-list" data-reveal="stagger">
+              <AnimatedList as="ul" className="dhikr-log-list">
                 {log.map((entry,i) => (
-                  <li key={entry.id ?? `${entry.time}-${i}`} className="dhikr-log-row">
+                  <AnimatedItem as="li" from="top" key={entry.id ?? `${entry.time}-${i}`} className="dhikr-log-row">
                     <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name="check" /></span>
                     <span className="dhikr-log-body">
                       {/* Ad cari interfeys dilində (dil dəyişəndə köhnə dildə qalmasın) */}
@@ -554,13 +564,14 @@ export default function DhikrPage({ setPage }) {
                       <span className="dhikr-log-time ui-num">{entry.time}</span>
                     </span>
                     <span className="dhikr-log-count ui-num">×{entry.count}</span>
-                  </li>
+                  </AnimatedItem>
                 ))}
-              </ul>
+              </AnimatedList>
             </section>
           )}
         </div>
         )}
+        </PresenceSwap>
       </section>
 
       {/* viz v2: analitika — gündəlik zikr dinamikası, davamlılıq, zikrlərə görə */}

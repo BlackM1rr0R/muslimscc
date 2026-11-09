@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useLang } from "../contexts/LangContext";
 import { brandName } from "../config/brand";
 import { PRIMARY_NAV, navShortLabel } from "../data/navigation";
@@ -7,6 +7,7 @@ import { useBackToClose } from "../utils/useBackToClose";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 import SideNav from "./SideNav";
 import Icon, { BrandMark } from "./Icon";
+import LimelightNav from "../motion/LimelightNav";
 import "../styles/Header.css";
 import { pickUi } from '../utils/uiText'
 import { lazyWhenIdle, whenIdle } from '../utils/idle'
@@ -224,34 +225,9 @@ function Header({ currentPage, setPage }) {
   const langRef = useRef(null);
   const langBtnRef = useRef(null);
 
-  // ── Aktiv link göstəricisi (≥1024px): linkin altındakı qızılı romb bir
-  // elementdir və aktiv linkdən aktiv linkə SÜRÜŞÜR (yalnız transform).
-  // Mövqe linkin ortasıdır; şrift yüklənəndə / dil dəyişəndə / en
-  // dəyişəndə ResizeObserver yenidən ölçür. İlk görünüşdə sürüşmədən
-  // (soldan "uçub gəlmədən") yerində peyda olur.
-  const navRef = useRef(null);
-  const [ind, setInd] = useState({ x: 0, on: false, instant: true });
-  useLayoutEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return undefined;
-    const measure = () => {
-      const a = nav.querySelector(".nav-link.active");
-      if (!a || !a.offsetWidth) { setInd(p => (p.on ? { ...p, on: false } : p)); return; }
-      const x = Math.round(a.offsetLeft + a.offsetWidth / 2);
-      setInd(p => (p.x === x && p.on ? p : { x, on: true, instant: !p.on }));
-    };
-    measure();
-    if (typeof ResizeObserver !== "function") return undefined;
-    const ro = new ResizeObserver(measure);
-    ro.observe(nav);
-    return () => ro.disconnect();
-  }, [currentPage, lang]);
-  // "instant" yalnız bir kadr: növbəti dəyişiklikdən etibarən romb sürüşür
-  useEffect(() => {
-    if (!ind.instant || !ind.on) return undefined;
-    const r = requestAnimationFrame(() => setInd(p => ({ ...p, instant: false })));
-    return () => cancelAnimationFrame(r);
-  }, [ind.instant, ind.on]);
+  // ── Aktiv link göstəricisi (≥1024px) — v6: LimelightNav (src/motion): başlığın
+  // yuxarı kənarından aktiv linkin üstünə düşən "projektor" işığı, linkdən linkə
+  // YAYLA sürüşür (yalnız transform). Ölçü/ResizeObserver komponentin içindədir.
 
   // ── Sürüşmə: nazik xətt + kölgə (scrolled) və telefonda gizlənmə (hidden) ──
   // Tək passive dinləyici + requestAnimationFrame (hooks/useScrollDirection).
@@ -471,27 +447,19 @@ function Header({ currentPage, setPage }) {
           </div>
 
           {/* ── ORTA: yalnız 5 əsas link (≥1024px, əsas sütunun ortasında) ── */}
-          <nav className="nav-desktop" aria-label={l.primaryNav} ref={navRef} data-spotlight="">
-            <span
-              className={`nav-ind${ind.on ? " is-on" : ""}${ind.instant ? " is-instant" : ""}`}
-              style={{ transform: `translate3d(${ind.x}px, 0, 0) rotate(45deg)` }}
-              aria-hidden="true"
-            />
-            {PRIMARY_NAV.map(key => {
-              const active = currentPage === key;
-              return (
-                <a
-                  key={key}
-                  href={pathFor(key, lang)}
-                  className={`nav-link${active ? " active" : ""}`}
-                  aria-current={active ? "page" : undefined}
-                  onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); goTo(key); } }}
-                >
-                  {navShortLabel(key, lang)}
-                </a>
-              );
-            })}
-          </nav>
+          <LimelightNav
+            className="nav-desktop"
+            linkClassName="nav-link"
+            label={l.primaryNav}
+            current={currentPage}
+            data-spotlight=""
+            items={PRIMARY_NAV.map(key => ({
+              key,
+              label: navShortLabel(key, lang),
+              href: pathFor(key, lang),
+              onClick: (e) => { if (isPlainClick(e)) { e.preventDefault(); goTo(key); } },
+            }))}
+          />
 
           {/* ── SAĞ: axtarış, tema, dil — eyni ölçülü ikon düymələri.
                  <1024px-də axtarış + ☰ (tema və dil çəkmə menyudadır) ── */}

@@ -725,3 +725,6 @@
   50%      { transform: translateY(-4px); }
 }
 @media (prefers-reduced-motion: reduce) { .aiw-send:hover { transform: none; } }
+
+/* v6 Motion: balonun girişini Motion (yay) edir — CSS girişi ikiqat olmasın */
+html .aiw-msg.aiw-msg--mo { animation: none; }

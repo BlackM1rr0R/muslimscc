@@ -280,3 +280,34 @@
   html:not(.a11y-reduce-motion) [data-revealed] .fw-cloud__w { animation: fw-cloud-in 520ms cubic-bezier(.2, .8, .2, 1.2) both; animation-delay: calc(var(--i, 0) * 35ms); }
 }
 @keyframes fw-cloud-in { from { opacity: 0; transform: translateY(8px) scale(.8); } }
+
+/* ══ v6 Motion — mənbə saytlarının axan zolağı (Marquee; yalnız mətn) ══ */
+.fw-marquee {
+  margin: 0 0 var(--space-4);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.fw-marquee .mo-marquee.is-static { -webkit-mask-image: none; mask-image: none; }
+.fw-marquee__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font: 600 var(--step--1) / 1.2 var(--font-label);
+  white-space: nowrap;
+}
+.fw-marquee__mono {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-inverse);
+  color: var(--sand-300, #e8d6a8);
+  font-size: 12px;
+  font-weight: 700;
+}

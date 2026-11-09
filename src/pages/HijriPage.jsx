@@ -18,6 +18,7 @@ import '../styles/ToolsMotion.css'
 import { ringFrom } from '../components/prayer/ringFrom'
 import MoonPhase from '../components/MoonPhase'
 import { pickUi } from '../utils/uiText'
+import PresenceSwap from '../motion/PresenceSwap'
 
 // v5.6: Ramazanın 33 illik dövrü (spiral təkər) — ayrıca chunk
 const RamadanWheel = lazy(() => import('../components/calendar/RamadanWheel'))
@@ -536,10 +537,11 @@ function MonthGrid({ t, lang, view, setView, today, hToday, firstDow }) {
   const wd = pickUi(WEEKDAYS_SHORT, lang, 'en')
   const todayKey = gKey(today)
   const isCur = view.year === hToday.year && view.month === hToday.month
+  const [dir, setDir] = useState(1) // v6: ay keçidinin istiqaməti
   const go = (n) => {
     haptic()
     const next = shiftHijriMonth(view, n)
-    if (next.year >= MIN_H_YEAR && next.year <= MAX_H_YEAR) setView(next)
+    if (next.year >= MIN_H_YEAR && next.year <= MAX_H_YEAR) { setDir(n < 0 ? -1 : 1); setView(next) }
   }
   const headers = Array.from({ length: 7 }, (_, i) => (firstDow + i) % 7)
 
@@ -568,11 +570,16 @@ function MonthGrid({ t, lang, view, setView, today, hToday, firstDow }) {
       {!isCur && (
         <div className="hj-grid-back">
           <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm"
-            onClick={() => setView({ year: hToday.year, month: hToday.month })}>{t.thisMonth}</button>
+            onClick={() => {
+              setDir(view.year * 12 + view.month > hToday.year * 12 + hToday.month ? -1 : 1)
+              setView({ year: hToday.year, month: hToday.month })
+            }}>{t.thisMonth}</button>
         </div>
       )}
 
-      <table className="hj-cal" key={`${view.year}-${view.month}`}>
+      {/* v6: ay dəyişəndə cədvəl istiqamətlə sürüşür (PresenceSwap, RTL-də güzgü) */}
+      <PresenceSwap swapKey={`${view.year}-${view.month}`} variant="slide" dir={dir} className="hj-cal-swap">
+      <table className="hj-cal">
         <caption className="ui-sr-only">{months[view.month - 1]} {view.year}</caption>
         <thead>
           <tr>{headers.map(d => <th key={d} scope="col" className="hj-cal-wd">{wd[d]}</th>)}</tr>
@@ -600,6 +607,7 @@ function MonthGrid({ t, lang, view, setView, today, hToday, firstDow }) {
           ))}
         </tbody>
       </table>
+      </PresenceSwap>
     </div>
   )
 }

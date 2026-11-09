@@ -10,6 +10,7 @@ import { useLang } from '../contexts/LangContext'
 import Icon from './Icon'
 import '../styles/ListMore.css'
 import { pickUi } from '../utils/uiText'
+import Reveal from '../motion/Reveal'
 
 const LABELS = {
   az: { more: 'Daha çox göstər', all: 'Hamısı göstərildi' },
@@ -40,14 +41,15 @@ export default function ListMore({
     // Qısa siyahıda (bir partiya) sonluq lazım deyil — say onsuz da yuxarıdadır
     if (total <= minForEnd) return null
     return (
-      <p className={`lm-end ${className}`}>
+      // v6: sonluq xətti görünəndə yumşaq açılır (Reveal scaleIn; ilk kadrda ekrandadırsa toxunulmur)
+      <Reveal as="p" variant="scaleIn" className={`lm-end ${className}`}>
         <span className="lm-end__line" aria-hidden="true" />
         <span className="lm-end__text">
           <Icon name="check" size={16} className="lm-end__icon" />
           {l.all}{endText ? <> — <span className="ui-num">{endText}</span></> : null}
         </span>
         <span className="lm-end__line" aria-hidden="true" />
-      </p>
+      </Reveal>
     )
   }
 

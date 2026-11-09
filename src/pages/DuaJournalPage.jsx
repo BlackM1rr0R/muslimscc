@@ -16,6 +16,8 @@ import { copyText } from '../components/reader/share'
 import '../styles/LessonsPage.css'
 import '../styles/DuaJournalPage.css'
 import { pickUi } from '../utils/uiText'
+// Dizayn v6 (src/motion): sekmə xətti və sıralama hapı yayla sürüşür (layoutId)
+import { SegGroup, SegPill } from '../components/quran/SegPill'
 
 // ── i18n Labels ──
 const LABELS = {
@@ -396,16 +398,20 @@ export default function DuaJournalPage({ setPage }) {
             )}
 
             {/* Tablar — say dəyişəndə nişan kiçik "pop" edir */}
-            <div className="ui-tabs dua-tabs" role="tablist">
+            <SegGroup id="dj-tabs">
+            <div className="ui-tabs dua-tabs seg-line-host" role="tablist" data-wow-off="">
               <button type="button" role="tab" id="dj-tab-active" aria-selected={tab === 'active'} aria-controls="dj-panel"
                 className="ui-tab dua-tab" onClick={() => setTab('active')}>
+                <SegPill on={tab === 'active'} variant="line" />
                 {t.active} <span key={activeDuas.length} className="ui-tab__count dua-tab-count ui-num ui-enter-pop">{activeDuas.length}</span>
               </button>
               <button type="button" role="tab" id="dj-tab-answered" aria-selected={tab === 'answered'} aria-controls="dj-panel"
                 className="ui-tab dua-tab" onClick={() => setTab('answered')}>
+                <SegPill on={tab === 'answered'} variant="line" />
                 {t.answered} <span key={answeredDuas.length} className="ui-tab__count dua-tab-count ui-num ui-enter-pop">{answeredDuas.length}</span>
               </button>
             </div>
+            </SegGroup>
 
             {tabList.length > 0 && (
               <div className="dj-tools">
@@ -420,11 +426,13 @@ export default function DuaJournalPage({ setPage }) {
                       </button>
                     )}
                   </div>
-                  <div className="ui-segmented dj-sort" role="radiogroup" aria-label={tl.sort}>
+                  <SegGroup id="dj-sort">
+                  <div className="ui-segmented dj-sort seg-pill-host" role="radiogroup" aria-label={tl.sort} data-wow-off="">
                     {['newest', 'oldest', 'prio'].map(k => (
-                      <button key={k} type="button" role="radio" aria-checked={jsort === k} onClick={() => setJsort(k)}>{tl[k]}</button>
+                      <button key={k} type="button" role="radio" aria-checked={jsort === k} onClick={() => setJsort(k)}><SegPill on={jsort === k} />{tl[k]}</button>
                     ))}
                   </div>
+                  </SegGroup>
                   <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm dj-copy" onClick={copyList} disabled={!list.length}>
                     <Icon name={jcopied ? 'check' : 'copy'} className="ui-btn__icon" /> {jcopied ? tl.copied : tl.copyList}
                   </button>

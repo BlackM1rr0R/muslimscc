@@ -168,11 +168,12 @@
   position: relative; display: flex; flex-direction: column; gap: 10px;
   padding: var(--space-4) var(--space-4) var(--space-3);
   scroll-margin-top: calc(var(--header-h, 64px) + 150px);
-  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  /* v6: kartın transform-u Motion-undur (kart → pəncərə morph); hover qalxması `translate` ilə */
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), translate var(--dur-2) var(--ease-out);
 }
 .hl-page .hl-skel { min-height: 170px; }
 @media (hover: hover) {
-  .hl-page .hl-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); transform: translateY(-2px); }
+  .hl-page .hl-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); translate: 0 -2px; }
   .hl-card:hover .hl-card__open { color: var(--brand); }
 }
 .hl-page .hl-card:focus-within { border-color: var(--brand-line); }
@@ -289,7 +290,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hl-card, .hl-book, .hl-sec, .hl-card__open, .hl-book__go { transition: none; }
-  .hl-page .hl-card:hover, .hl-page .hl-book:hover { transform: none; }
+  .hl-page .hl-book:hover { transform: none; }
+  .hl-page .hl-card:hover { translate: none; }
 }
 @media print {
   .hl-toolbar, .hl-card__star, .hl-secnav, .hl-hero__btn { display: none; }

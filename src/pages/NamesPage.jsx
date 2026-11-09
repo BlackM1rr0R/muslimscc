@@ -27,6 +27,11 @@ import '../styles/NamesSky.css'
 const NamesSky = lazy(() => import('../components/NamesSky'))
 const VIEW_T = { az: { mandala: 'Mandala', sky: 'Səma' }, en: { mandala: 'Mandala', sky: 'Sky' }, ru: { mandala: 'Мандала', sky: 'Небо' }, ar: { mandala: 'ماندالا', sky: 'السماء' }, tr: { mandala: 'Mandala', sky: 'Gökyüzü' } }
 import { pickUi } from '../utils/uiText'
+// Dizayn v6 (src/motion): şəbəkədəki ad kartı → ad pəncərəsi morph (layoutId; bağlananda
+// karta qayıdır). Telefonda / hərəkət azaldılıbsa adi açılış (CSS namesOpen).
+import { m } from 'motion/react'
+import { ExpandableGroup, useMorphId, morphId } from '../motion/ExpandableCard'
+import { SPRING } from '../motion/presets'
 
 // ── v3.2: seçilmişlər, əzbərlənənlər süzgəci, günün adı, qaydalar kart + oxu pəncərəsi (5 dil) ──
 const N32 = {
@@ -600,6 +605,11 @@ export default function NamesPage({ setPage }) {
   }, [search, lang, srcFilter, star.list, known])
 
   const opened = openIdx != null ? NAMES_99[openIdx] : null
+  const [from, setFrom] = useState(null)       // pəncərə şəbəkədəki hansı kartdan açılıb
+  const morphOn = useMorphId(0) != null
+  const modalMorph = useMorphId(opened && from != null ? `np-${from}` : null)
+  // Pəncərə bağlananda (Geri, Esc, fon) mənbə sıfırlanır
+  useEffect(() => { if (openIdx == null) setFrom(null) }, [openIdx])
 
   // Siyahıdan açılış — yeni tarixçə girişi (Geri → siyahı)
   const openName = (n, el) => {
@@ -667,6 +677,7 @@ export default function NamesPage({ setPage }) {
   // özüdür (/names/<n>-<slug>) — Geri əvvəlki ünvana, yəni siyahıya qayıdır
 
   return (
+    <ExpandableGroup id="np-xc">
     <div className="names-page">
       {/* Hero — v3 kompakt, sağda mənbə bölgüsü (81 Quran / 18 Sünnə) */}
       <header className="ui-page-hero ui-page-hero--split names-hero">
@@ -822,8 +833,9 @@ export default function NamesPage({ setPage }) {
               const isKnown = known.includes(name.n)
               return (
                 <li key={name.n} data-reveal="zoom" data-reveal-delay={i < 8 ? i * 40 : (i % 4) * 40}>
-                  <a className={`name-card${fromQ ? '' : ' is-sunnah'}`} href={pathFor('names', lang, name.n)}
-                    onClick={onCardClick(name.n)}
+                  <m.a className={`name-card${fromQ ? '' : ' is-sunnah'}`} href={pathFor('names', lang, name.n)}
+                    layoutId={morphOn ? morphId(`np-${name.n}`) : undefined} transition={SPRING.soft} data-wow-off=""
+                    onClick={(e) => { if (isPlainClick(e)) setFrom(name.n); onCardClick(name.n)(e) }}
                     aria-haspopup="dialog">
                     {/* Əlçatan ad kartın görünən mətnidir (WCAG 2.5.3 "Label in Name") */}
                     <span className="name-card__top">
@@ -838,7 +850,7 @@ export default function NamesPage({ setPage }) {
                     <span className="name-translit" dir="ltr">{name.tr}</span>
                     {meaning && <span className="name-meaning">{meaning}</span>}
                     <span className="ui-sr-only">{ui.open}</span>
-                  </a>
+                  </m.a>
                 </li>
               )
             })}
@@ -974,7 +986,8 @@ export default function NamesPage({ setPage }) {
       {/* Açılmış ad — mərkəzi pəncərə (arxa fona toxunanda bağlanır) */}
       {opened && createPortal(
         <div className="names-modal" onClick={(e) => { if (e.target === e.currentTarget) closeName() }}>
-          <div className="names-modal-card ui-card" role="dialog" aria-modal="true" aria-labelledby="names-modal-title">
+          <m.div className={`names-modal-card ui-card${modalMorph ? ' is-morph' : ''}`} role="dialog" aria-modal="true" aria-labelledby="names-modal-title"
+            layoutId={modalMorph} transition={SPRING.soft} data-wow-off="">
             <div className="ui-pattern" aria-hidden="true" />
             <div className="names-modal-top">
               <span className="ui-badge ui-badge--accent ui-num" dir="ltr">{opened.n} {ui.of}</span>
@@ -1012,10 +1025,11 @@ export default function NamesPage({ setPage }) {
                 <Icon name="chevron" className="ui-btn__icon ui-flip-rtl" />
               </button>
             </div>
-          </div>
+          </m.div>
         </div>,
         document.body
       )}
     </div>
+    </ExpandableGroup>
   )
 }

@@ -7,7 +7,7 @@
   padding: clamp(12px, 3vw, 32px);
   background: color-mix(in srgb, var(--surface-inverse) 48%, transparent);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  animation: rdFade var(--dur-2) var(--ease-out) both;
+  /* v6: açılış/bağlanış Motion ilə (ReaderDialog.jsx) — CSS animasiyası yox */
 }
 .rd-panel {
   position: relative;
@@ -17,7 +17,6 @@
   background: var(--surface-raised, var(--surface-1));
   box-shadow: var(--shadow-4);
   outline: none;
-  animation: rdOpen var(--dur-3) var(--ease-spring, var(--ease-out)) both;
 }
 .rd-panel:focus-visible { box-shadow: var(--shadow-4), 0 0 0 2px var(--ring); }
 .rd-head {
@@ -45,8 +44,6 @@
 .rd-panel .rd-nav { min-height: 44px; flex-shrink: 0; }
 .rd-panel .rd-nav:disabled { opacity: .45; cursor: default; }
 
-@keyframes rdFade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes rdOpen { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
 @keyframes rdSwap { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 639.98px) {
@@ -54,7 +51,6 @@
   .rd-panel {
     width: 100%; max-height: 94dvh;
     border-radius: var(--radius-xl) var(--radius-xl) 0 0; border-bottom: 0;
-    animation-name: rdSheet;
   }
   .rd-foot { border-radius: 0; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
   .rd-body { padding: var(--space-4); }
@@ -62,10 +58,9 @@
   .rd-nav__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .rd-panel .rd-nav { width: 44px; padding: 0; justify-content: center; }
 }
-@keyframes rdSheet { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .rd-backdrop, .rd-panel, .rd-body { animation: none; }
+  .rd-body { animation: none; }
 }
 @media print {
   .rd-backdrop { position: static; background: none; backdrop-filter: none; padding: 0; }
@@ -90,16 +85,7 @@
 .rd-memo__count { margin-inline-end: auto; color: var(--text-tertiary); font-size: var(--step--1); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .rd-memo__w.is-shown { animation: none; } }
 
-/* v5.6: bağlanış (ReaderDialog → .is-closing, ~220 ms) və istiqamətli
-   əvvəlki/növbəti keçidi (.rd-body--next / --prev) */
-.rd-backdrop.is-closing { pointer-events: none; animation: rdFadeOut 220ms ease-in forwards; }
-.rd-backdrop.is-closing .rd-panel { animation: rdClose 220ms cubic-bezier(.4, 0, 1, 1) forwards; }
-@keyframes rdFadeOut { from { opacity: 1; } to { opacity: 0; } }
-@keyframes rdClose { to { opacity: 0; transform: translateY(14px) scale(.98); } }
-@media (max-width: 767.98px) {
-  .rd-backdrop.is-closing .rd-panel { animation-name: rdSheetOut; }
-}
-@keyframes rdSheetOut { to { opacity: 0; transform: translateY(60px); } }
+/* v5.6: istiqamətli əvvəlki/növbəti keçidi (.rd-body--next / --prev); bağlanış v6-da Motion ilə */
 .rd-body--next { animation: rdSwapNext 320ms cubic-bezier(.22, 1, .36, 1) both; }
 .rd-body--prev { animation: rdSwapPrev 320ms cubic-bezier(.22, 1, .36, 1) both; }
 [dir="rtl"] .rd-body--next { animation-name: rdSwapPrev; }
@@ -107,5 +93,5 @@
 @keyframes rdSwapNext { from { opacity: 0; transform: translate3d(28px, 0, 0); } }
 @keyframes rdSwapPrev { from { opacity: 0; transform: translate3d(-28px, 0, 0); } }
 @media (prefers-reduced-motion: reduce) {
-  .rd-backdrop.is-closing, .rd-backdrop.is-closing .rd-panel, .rd-body--next, .rd-body--prev { animation: none; }
+  .rd-body--next, .rd-body--prev { animation: none; }
 }

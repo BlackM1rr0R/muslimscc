@@ -299,7 +299,18 @@
 .prayer-time-card.is-aux .pt-name { color: var(--text-secondary); font-size: var(--step--1); }
 .prayer-time-card.is-aux .pt-time { font-size: var(--step-0); font-weight: 500; color: var(--text-secondary); }
 
-.prayer-time-card.is-next { background: var(--brand-soft); }
+/* v6: fon ayrıca qatdadır (.pt-next-hl, layoutId) — namaz keçəndə yay ilə növbəti sətrə sürüşür */
+.prayer-time-card.is-next { background: transparent; }
+.pt-next-hl {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: var(--brand-soft);
+  pointer-events: none;
+}
+.prayer-time-card > :not(.pt-next-hl) { position: relative; z-index: 1; }
+.prayer-time-card.is-next::after { z-index: 1; }
 .prayer-time-card.is-next::after {
   content: '';
   position: absolute;
@@ -759,7 +770,9 @@
   .pp-month-name { min-width: 0; flex: 1; }
   .pp-month-nav { flex: 1 1 100%; }
   .pp-month-seg { flex: 1 1 auto; }
+  .pp-month-seg .mo-tab { flex: 1 1 0; }
 }
+.pp-month-swap { overflow-x: clip; overflow-clip-margin: 6px; }
 @media (prefers-reduced-motion: reduce) {
   .pp-sunnah-card { transition: none; }
   .pp-sunnah-card:hover { transform: none; }

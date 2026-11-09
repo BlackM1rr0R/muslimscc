@@ -15,6 +15,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import MosqueRadar, { walkMinutes } from '../components/MosqueRadar'
 import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
 import { pickUi } from '../utils/uiText'
+import ShineButton from '../motion/ShineButton'
 
 const WALK = { az: (m) => `piyada ≈ ${m} dəq`, en: (m) => `≈ ${m} min walk`, ru: (m) => `пешком ≈ ${m} мин`, tr: (m) => `yürüyerek ≈ ${m} dk`, ar: (m) => `≈ ${m} دقيقة مشيًا` }
 
@@ -295,7 +296,8 @@ export default function MosqueFinderPage({ setPage }) {
               ))}
             </ol>
             <div className="mosque-search-btns">
-              <button type="button" className="ui-btn ui-btn--primary ui-btn--lg mosque-search-btn" onClick={() => searchMosques(false)} disabled={status === 'loading'}>
+              {/* v6: əsas düymə — keçən işıq + basılanda yay (ShineButton) */}
+              <ShineButton size="lg" className="mosque-search-btn" onClick={() => searchMosques(false)} disabled={status === 'loading'}>
                 {status === 'loading' ? (
                   <>
                     <span className="mosque-btn-spin" aria-hidden="true" />
@@ -306,7 +308,7 @@ export default function MosqueFinderPage({ setPage }) {
                 ) : (
                   <><Icon name="pin" className="ui-btn__icon" /> {t.title}</>
                 )}
-              </button>
+              </ShineButton>
               {cityName && status !== 'loading' && (
                 <button type="button" className="ui-btn ui-btn--ghost mosque-city-btn" onClick={() => searchMosques(true)}>
                   <Icon name="globe" className="ui-btn__icon" /> {x.useCity(cityName)}

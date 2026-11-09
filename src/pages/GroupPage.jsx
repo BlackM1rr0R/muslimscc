@@ -11,6 +11,7 @@ import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
 import '../styles/GroupPage.css'
 import { pickUi } from '../utils/uiText'
 import { celebrate } from '../utils/celebrate'
+import { AnimatedList, AnimatedItem } from '../motion/AnimatedList'
 
 /* ══════════════════════════════════════════════════════════════════
    QRUP XƏTMİ VƏ ORTAQ HƏDƏFLƏR — /group (təqdimat + yaratma) və
@@ -570,9 +571,10 @@ function Landing({ L, lang }) {
               {rooms.length > 0 && (
                 <div className="ui-card ui-card--sunken">
                   <h2 className="gp-h3">{L.myRooms}</h2>
-                  <ul className="gp-rooms">
+                  {/* v6: unudulan otaq qısa çıxır, qalanlar yerə yayla sürüşür (AnimatedList) */}
+                  <AnimatedList as="ul" className="gp-rooms">
                     {rooms.map(r => (
-                      <li key={r.id}>
+                      <AnimatedItem as="li" key={r.id}>
                         <a href={roomPath(lang, r.id)} onClick={e => { if (e.button === 0 && !e.metaKey && !e.ctrlKey) { e.preventDefault(); navigate(roomPath(lang, r.id)) } }}>
                           <Icon name={r.type === 'goal' ? 'target' : 'quran'} size={18} /> <span>{r.title || r.id}</span>
                         </a>
@@ -580,9 +582,9 @@ function Landing({ L, lang }) {
                           onClick={() => { forgetLocalRoom(r.id); setRooms(localRooms()) }}>
                           <Icon name="close" size={16} />
                         </button>
-                      </li>
+                      </AnimatedItem>
                     ))}
-                  </ul>
+                  </AnimatedList>
                 </div>
               )}
               <p className="gp-note"><Icon name="shield" size={18} /> <span>{L.privacyNote}</span></p>
@@ -983,9 +985,10 @@ function Goal({ data, L, lang, local, updateLocal, run, busy, isAdmin, admin, id
           {people.length > 0 && <span className="gp-muted">{L.groupAvg(avg)}</span>}
         </div>
         {people.length === 0 ? <p className="gp-muted">{L.empty}</p> : (
-          <ul className="gp-plist">
+          // v6: yeni iştirakçı yayla gəlir, çıxarılan qısa solur, siyahı hamar yerləşir (AnimatedList)
+          <AnimatedList as="ul" className="gp-plist">
             {people.map(p => (
-              <li key={p.pid} className={me && me.pid === p.pid ? 'is-mine' : undefined}>
+              <AnimatedItem as="li" key={p.pid} className={me && me.pid === p.pid ? 'is-mine' : undefined}>
                 <bdi className="gp-plist__name">{p.name}</bdi>
                 <Bar value={pctOf(p)} label={p.name} />
                 <span className="gp-plist__pct ui-num">{pctOf(p)}%</span>
@@ -993,9 +996,9 @@ function Goal({ data, L, lang, local, updateLocal, run, busy, isAdmin, admin, id
                   <button type="button" className="ui-icon-btn gp-x" aria-label={L.remove} title={L.remove} disabled={busy}
                     onClick={() => admin('remove', { pid: p.pid }, L.confirmRemove(p.name))}><Icon name="close" size={16} /></button>
                 )}
-              </li>
+              </AnimatedItem>
             ))}
-          </ul>
+          </AnimatedList>
         )}
       </div>
 

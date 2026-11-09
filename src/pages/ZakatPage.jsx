@@ -15,6 +15,7 @@ import { pathFor } from '../seo/routes'
 import { ChartFigure, BarChart, SegmentBreakdown, ProgressBar } from '../components/viz'
 import ZakatFlow from '../components/ZakatFlow'
 import { pickUi } from '../utils/uiText'
+import ShineButton from '../motion/ShineButton'
 
 // ═══ ZƏKAT HESABI — Sələf alimlərinin fətvalarına uyğun ═══
 // • Zəkat nisaba çatan və üzərindən bir hicri il (hövl) keçən mala düşür. Aylıq maaş
@@ -454,9 +455,9 @@ export default function ZakatPage({ setPage }) {
             <li><b className="ui-num">1</b><span>{s('statHawl', l)}</span></li>
           </ul>
           <div className="ui-page-hero__actions">
-            <a className="ui-btn ui-btn--primary ui-btn--sm" href="#zakat-calc">
-              <Icon name="zakat" className="ui-btn__icon" /> {s('actCalc', l)}
-            </a>
+            <ShineButton as="a" size="sm" href="#zakat-calc" icon={<Icon name="zakat" className="ui-btn__icon" />}>
+              {' '}{s('actCalc', l)}
+            </ShineButton>
             <a className="ui-btn ui-btn--secondary ui-btn--sm" href="#zakat-recipients">{s('actWho', l)}</a>
           </div>
         </div>

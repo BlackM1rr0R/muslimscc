@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { AnimatePresence, m } from 'motion/react'
+import { SPRING, DUR, enterT, exitT } from '../../motion/presets'
+import useMedia from '../../hooks/useMedia'
 import Icon from '../Icon'
 import { useBackToClose } from '../../utils/useBackToClose'
 import '../../styles/ReaderDialog.css'
@@ -14,13 +17,16 @@ import '../../styles/ReaderDialog.css'
      telefonda sola/sağa sürüşdürmə də keçir
    • Səhifə sürüşməsi kilidlənir; Geri düyməsi pəncərəni bağlayır
      (utils/useBackToClose — URL dəyişmir, hash-i səhifə özü idarə edir)
+   • v6 (src/motion): açılış/bağlanış Motion yayı ilə (AnimatePresence — bağlanarkən son
+     məzmun qalır); fon solur. layoutId verilsə (src/motion/ExpandableCard → useMorphId)
+     pəncərə kartdan "böyüyür" və bağlananda karta qayıdır. Telefonda aşağıdan qalxan vərəq.
    ══════════════════════════════════════════════════════════════════ */
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 export default function ReaderDialog({
   open, onClose, onPrev, onNext, labelledBy, position, labels = {},
-  head = null, footer = null, children, className = '', contentKey,
+  head = null, footer = null, children, className = '', contentKey, layoutId,
 }) {
   const panelRef = useRef(null)
   const bodyRef = useRef(null)
@@ -31,22 +37,9 @@ export default function ReaderDialog({
   const wrap = (fn, d) => (fn ? () => { dirRef.current = d; fn() } : undefined)
   cbs.current = { onClose, onPrev: wrap(onPrev, -1), onNext: wrap(onNext, 1) }
 
-  // v5.6: bağlanış animasiyası — pəncərə ~220 ms son məzmunla qalır, sonra
-  // sökülür (valideyn məzmunu artıq null etsə də son kadr göstərilir)
-  const snap = useRef(null)
-  if (open) snap.current = { head, footer, children, position, contentKey, className, labelledBy, onPrev, onNext }
-  const [mounted, setMounted] = useState(open)
-  const [closing, setClosing] = useState(false)
-  useEffect(() => {
-    if (open) { setMounted(true); setClosing(false); dirRef.current = 0; return undefined }
-    if (!mounted) return undefined
-    let reduce = false
-    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('a11y-motion-user') } catch { /* */ }
-    if (reduce) { setMounted(false); return undefined }
-    setClosing(true)
-    const t = setTimeout(() => { setMounted(false); setClosing(false) }, 220)
-    return () => clearTimeout(t)
-  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  const sheet = useMedia('(max-width: 639.98px)', false)
+  // Yeni açılışda istiqamət sıfırlanır (məzmun sürüşmədən görünür)
+  useEffect(() => { if (open) dirRef.current = 0 }, [open])
 
   useBackToClose(open, onClose)
 
@@ -113,32 +106,42 @@ export default function ReaderDialog({
     fn?.()
   }
 
-  if (!open && !mounted) return null
-  const v = open ? { head, footer, children, position, contentKey, className, labelledBy, onPrev, onNext } : (snap.current || {})
+  if (typeof document === 'undefined') return null
   const swap = dirRef.current > 0 ? ' rd-body--next' : dirRef.current < 0 ? ' rd-body--prev' : ''
+  const panelMotion = layoutId
+    ? { layoutId, transition: SPRING.soft, exit: { opacity: 0, transition: exitT(DUR.sm) } }
+    : sheet
+      ? { initial: { opacity: 0, y: 48 }, animate: { opacity: 1, y: 0, transition: SPRING.soft }, exit: { opacity: 0, y: 64, transition: exitT(DUR.md) } }
+      : { initial: { opacity: 0, y: 14, scale: 0.97 }, animate: { opacity: 1, y: 0, scale: 1, transition: SPRING.soft }, exit: { opacity: 0, y: 10, scale: 0.98, transition: exitT(DUR.md) } }
   return createPortal(
-    <div className={`rd-backdrop${closing && !open ? ' is-closing' : ''}`} onMouseDown={(e) => { if (open && e.target === e.currentTarget) onClose?.() }}>
-      <div ref={panelRef} className={`rd-panel ${v.className || ''}`} role="dialog" aria-modal="true" aria-labelledby={v.labelledBy} tabIndex={-1}
-        onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div className="rd-head">
-          <div className="rd-head__main">{v.head}</div>
-          {v.position && <span className="rd-pos ui-num" dir="ltr">{v.position}</span>}
-          <button type="button" className="ui-icon-btn rd-close" onClick={onClose} aria-label={labels.close} title={labels.close}>
-            <Icon name="close" />
-          </button>
-        </div>
-        <div ref={bodyRef} className={`rd-body${swap}`} key={v.contentKey}>{v.children}</div>
-        <div className="rd-foot">
-          <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm rd-nav" onClick={cbs.current.onPrev} disabled={!v.onPrev} aria-label={labels.prev}>
-            <Icon name="chevronLeft" className="ui-btn__icon ui-flip-rtl" /><span className="rd-nav__label">{labels.prev}</span>
-          </button>
-          <div className="rd-foot__mid">{v.footer}</div>
-          <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm rd-nav" onClick={cbs.current.onNext} disabled={!v.onNext} aria-label={labels.next}>
-            <span className="rd-nav__label">{labels.next}</span><Icon name="chevron" className="ui-btn__icon ui-flip-rtl" />
-          </button>
-        </div>
-      </div>
-    </div>,
+    <AnimatePresence>
+      {open && (
+        <m.div key="rd" className="rd-backdrop" data-wow-off=""
+          initial={{ opacity: 0 }} animate={{ opacity: 1, transition: enterT(DUR.sm) }} exit={{ opacity: 0, transition: exitT(DUR.sm) }}
+          onMouseDown={(e) => { if (e.target === e.currentTarget) onClose?.() }}>
+          <m.div ref={panelRef} className={`rd-panel ${className || ''}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy} tabIndex={-1}
+            onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} {...panelMotion}>
+            <div className="rd-head">
+              <div className="rd-head__main">{head}</div>
+              {position && <span className="rd-pos ui-num" dir="ltr">{position}</span>}
+              <button type="button" className="ui-icon-btn rd-close" onClick={onClose} aria-label={labels.close} title={labels.close}>
+                <Icon name="close" />
+              </button>
+            </div>
+            <div ref={bodyRef} className={`rd-body${swap}`} key={contentKey}>{children}</div>
+            <div className="rd-foot">
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm rd-nav" onClick={cbs.current.onPrev} disabled={!onPrev} aria-label={labels.prev}>
+                <Icon name="chevronLeft" className="ui-btn__icon ui-flip-rtl" /><span className="rd-nav__label">{labels.prev}</span>
+              </button>
+              <div className="rd-foot__mid">{footer}</div>
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm rd-nav" onClick={cbs.current.onNext} disabled={!onNext} aria-label={labels.next}>
+                <span className="rd-nav__label">{labels.next}</span><Icon name="chevron" className="ui-btn__icon ui-flip-rtl" />
+              </button>
+            </div>
+          </m.div>
+        </m.div>
+      )}
+    </AnimatePresence>,
     document.body,
   )
 }

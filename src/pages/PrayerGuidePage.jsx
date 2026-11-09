@@ -35,6 +35,8 @@ import RelatedLinks from '../components/prayer/RelatedLinks'
 import '../styles/PrayerGuidePage.css'
 import '../styles/ToolsMotion.css'
 import { pickUi } from '../utils/uiText'
+import AnimatedTabs from '../motion/AnimatedTabs'
+import PresenceSwap from '../motion/PresenceSwap'
 
 // ── Surənin tam mənası (Fatihə, İxlas) ──
 // Ayələrin mənası yaddaşdan yazılmır: alquran.cloud-dan (QuranPage ilə eyni
@@ -203,6 +205,7 @@ function RakatOverview({ lang }) {
 
 function Pillars({ lang }) {
   const [tab, setTab] = useState(PILLAR_GROUPS[0].id)
+  const [dir, setDir] = useState(1)
   const g = PILLAR_GROUPS.find(x => x.id === tab) || PILLAR_GROUPS[0]
   return (
     <section className="ui-section ui-section--tight pg-pillars" aria-labelledby="pg-pillars-title">
@@ -212,27 +215,14 @@ function Pillars({ lang }) {
           <h2 id="pg-pillars-title" className="ui-title">{pickL(PILLARS_TXT.title, lang)}</h2>
           <p className="ui-lead">{pickL(PILLARS_TXT.lead, lang)}</p>
         </div>
-        <div className="ui-tabs pg-pillar-tabs" role="tablist" aria-label={pickL(PILLARS_TXT.tabs, lang)}>
-          {PILLAR_GROUPS.map(x => (
-            <button key={x.id} type="button" role="tab" id={`pg-tab-${x.id}`} aria-controls="pg-pillar-panel"
-              aria-selected={tab === x.id} tabIndex={tab === x.id ? 0 : -1} className="ui-tab"
-              onClick={() => setTab(x.id)}
-              onKeyDown={(e) => {
-                const i = PILLAR_GROUPS.findIndex(y => y.id === tab)
-                const rtl = document.documentElement.dir === 'rtl'
-                const d = e.key === (rtl ? 'ArrowLeft' : 'ArrowRight') ? 1 : e.key === (rtl ? 'ArrowRight' : 'ArrowLeft') ? -1 : 0
-                if (!d) return
-                e.preventDefault()
-                e.stopPropagation()
-                const n = PILLAR_GROUPS[(i + d + PILLAR_GROUPS.length) % PILLAR_GROUPS.length]
-                setTab(n.id)
-                document.getElementById(`pg-tab-${n.id}`)?.focus()
-              }}>
-              {pickUi(x.name, lang, 'en')} <span className="ui-tab__count">{x.count}</span>
-            </button>
-          ))}
-        </div>
-        <div className="pg-pillar-panel" id="pg-pillar-panel" role="tabpanel" aria-labelledby={`pg-tab-${g.id}`} key={g.id}>
+        {/* v6: sekmə hapı yayla sürüşür (AnimatedTabs, layoutId); panel istiqamətlə dəyişir (PresenceSwap) */}
+        <AnimatedTabs className="pg-pillar-tabs" idBase="pg-pl" label={pickL(PILLARS_TXT.tabs, lang)} value={tab}
+          onChange={(id) => { setDir(PILLAR_GROUPS.findIndex(y => y.id === id) >= PILLAR_GROUPS.findIndex(y => y.id === tab) ? 1 : -1); setTab(id) }}
+          tabs={PILLAR_GROUPS.map(x => ({ id: x.id, label: pickUi(x.name, lang, 'en'), count: x.count }))} />
+        {PILLAR_GROUPS.filter(x => x.id !== g.id).map(x => (
+          <div key={x.id} role="tabpanel" id={`pg-pl-panel-${x.id}`} aria-labelledby={`pg-pl-tab-${x.id}`} hidden />
+        ))}
+        <PresenceSwap swapKey={g.id} variant="slide" dir={dir} className="pg-pillar-panel" id={`pg-pl-panel-${g.id}`} role="tabpanel" aria-labelledby={`pg-pl-tab-${g.id}`}>
           <p className="pg-pillar-rule"><Icon name={g.icon} size={18} /> <span>{pickUi(g.rule, lang, 'en')}</span></p>
           <ol className="pg-pillar-list pg-v4-list">
             {g.items.map((it, i) => (
@@ -240,7 +230,7 @@ function Pillars({ lang }) {
             ))}
           </ol>
           <p className="pg-pillar-src">{pickL(PILLARS_TXT.source, lang)}</p>
-        </div>
+        </PresenceSwap>
       </div>
     </section>
   )

@@ -50,6 +50,15 @@
   animation: spin .9s linear infinite;
 }
 .qibla-loader-icon { display: grid; place-items: center; color: var(--brand); }
+/* v6: yüklənmə — nöqtəli qlobus (DottedGlobe), Məkkə nəbzi; ölçü əvvəlcədən ayrılıb (CLS yox) */
+.qibla-globe-loader { position: relative; display: grid; place-items: center; width: 168px; max-width: 100%; aspect-ratio: 1; margin-bottom: 4px; }
+.qibla-globe-loader > * { grid-area: 1 / 1; }
+.qibla-globe-loader canvas { display: block; width: 100%; height: auto; }
+.qibla-globe-loader__icon {
+  display: grid; place-items: center; width: 36px; height: 36px; align-self: end; justify-self: center;
+  margin-bottom: -6px; border-radius: 50%; background: var(--surface-1, var(--surface)); color: var(--brand);
+  box-shadow: 0 0 0 1px var(--line);
+}
 .qibla-status-text { color: var(--text-secondary); font-size: var(--step-0); }
 
 @keyframes qb-in {

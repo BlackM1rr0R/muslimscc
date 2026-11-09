@@ -13,6 +13,7 @@ import { usePendingCheckinSync } from '../hooks/usePrayerTracker'
 import Breadcrumb from '../components/Breadcrumb'
 import { pathFor } from '../seo/routes'
 import { pickUi } from '../utils/uiText'
+import NumberTicker from '../motion/NumberTicker'
 
 // ── i18n Labels ──
 const LABELS = {
@@ -270,7 +271,7 @@ export default function DailyTrackerPage({ setPage }) {
               <div className="tracker-stats">
                 <div className="tracker-stat">
                   <span className="tracker-stat-ic" aria-hidden="true"><Icon name="bolt" size={18} /></span>
-                  <span className="tracker-stat-value ui-num">{streak}</span>
+                  <span className="tracker-stat-value ui-num"><NumberTicker value={streak} lang={lang} /></span>
                   <span className="tracker-stat-label">{t.streak}</span>
                 </div>
                 <div className="tracker-stat">

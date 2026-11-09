@@ -22,6 +22,7 @@ import {
   EVENT_TYPES,
 } from '../data/adminContent'
 import '../styles/AnnouncementsPage.css'
+import { AnimatedList, AnimatedItem } from '../motion/AnimatedList'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import PageLink from '../components/PageLink'
@@ -497,12 +498,14 @@ export default function AnnouncementsPage({ setPage }) {
               )}
 
               {/* Kartlar sürüşəndə növbə ilə görünür; süzgəc dəyişəndə yeni kartlar da yumşaq girir */}
-              <div className="anp-list anp-list--anim" key={filter}>
+              {/* v6: Motion AnimatedList — süzgəc dəyişəndə qalan kartlar yerinə yayla sürüşür,
+                  yenilər yumşaq gəlir, gedənlər qısa çıxır (21st.dev "animated list" ideyası) */}
+              <AnimatedList as="div" className="anp-list anp-list--anim anp-list--motion">
                 {visible.map(a => {
                   const isNew = a._ms != null && now - a._ms < NEW_WINDOW_MS && a._ms <= now + 60000
                   const tone = ANN_TONE[a._type.key] || ANN_TONE.info
                   return (
-                    <article key={a.id} className={`ui-card anp-card anp-tone--${tone.tone}`}>
+                    <AnimatedItem as="article" key={a.id} className={`ui-card anp-card anp-tone--${tone.tone}`}>
                       <div className="anp-card-top">
                         <span className="ui-badge anp-badge">
                           <Icon name={tone.icon} size={14} />
@@ -530,10 +533,10 @@ export default function AnnouncementsPage({ setPage }) {
                           {l.readMore} <Icon name="external" size={15} />
                         </a>
                       )}
-                    </article>
+                    </AnimatedItem>
                   )
                 })}
-              </div>
+              </AnimatedList>
             </>
           )}
         </section>

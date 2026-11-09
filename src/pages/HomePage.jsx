@@ -92,6 +92,12 @@ import '../styles/HomePage.css'
 // .video-* qaydaları (HomeVideo.css, ~1.8 KB gzip; bax faylın başlığı)
 import '../styles/HomeVideo.css'
 import { pickUi } from '../utils/uiText'
+// Dizayn v6 (src/motion): hero alt yazısı söz-söz, fonda axan xətlər, kafellərdə
+// kursor işığı, statistika rəqəmləri yayla sayır
+import TextEffect from '../motion/TextEffect'
+import BackgroundPaths from '../motion/BackgroundPaths'
+import SpotlightCard from '../motion/SpotlightCard'
+import NumberTicker from '../motion/NumberTicker'
 
 // Görünmə animasiyaları motion.css-in data-reveal sistemi ilədir (tək qlobal
 // IntersectionObserver, hooks/useReveal.js) — səhifənin öz useInView-i silinib.
@@ -625,6 +631,8 @@ export default function HomePage({ setPage }) {
             <div className="hp-aur"><i /><i /><i /></div>
             <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
             <div className="hp-hero-glow" />
+            {/* v6: yavaş axan incə qızılı xətlər (dekor; ekrandan çıxanda dayanır) */}
+            <BackgroundPaths tone="gold" count={22} className="hp-paths" />
             <div className="hp-khatam" data-parallax="0.08" />
             <div className="hp-stars">{HERO_STARS.map((st, i) => <i key={i} style={st} />)}</div>
             {/* v5.7: hava effekti — html[data-weather] olanda (WeatherDua) */}
@@ -647,7 +655,8 @@ export default function HomePage({ setPage }) {
                 </span>
               </h1>
 
-              <p className="hp-hero-sub">{tr(BRAND.tagline, lang)}</p>
+              {/* v6: söz-söz yerinə oturur — ilk kadrda opacity 1 (LCP), yalnız transform + kiçik blur */}
+              <TextEffect as="p" className="hp-hero-sub" per="word" preset="blur" delay={0.14}>{tr(BRAND.tagline, lang)}</TextEffect>
 
               <div className="hp-hero-btns">
                 <button type="button" className="ui-btn ui-btn--primary ui-btn--lg" onClick={()=>goTo('prayer')}><Icon name="prayer" className="ui-btn__icon" /> {l.btnTimes}</button>
@@ -704,11 +713,11 @@ export default function HomePage({ setPage }) {
           <ul className="ui-tiles hp-tiles" data-anim-stagger="45" data-anim="zoom">
             {QUICK.map(q => (
               <li key={q.page}>
-                <a className="ui-tile hp-tile" href={pathFor(q.page, lang)} onClick={(e) => { if (plainClick(e)) { e.preventDefault(); goTo(q.page) } }}>
+                <SpotlightCard as="a" className="ui-tile hp-tile" href={pathFor(q.page, lang)} onClick={(e) => { if (plainClick(e)) { e.preventDefault(); goTo(q.page) } }}>
                   <span className="ui-icon-tile" aria-hidden="true"><Icon name={q.page} /></span>
                   <span className="ui-tile__title">{L(q.title)}</span>
                   <span className="ui-tile__text">{L(q.desc)}</span>
-                </a>
+                </SpotlightCard>
               </li>
             ))}
           </ul>
@@ -788,7 +797,7 @@ export default function HomePage({ setPage }) {
             </div>
             <div className="ui-stats hp-stats-grid" data-anim-stagger="70" data-anim="blur">
               {stats.map((s, i) => (
-                <StatTile key={i} icon={s.icon} label={L(s.l)} value={String(s.num)} count={s.num} unit={s.s || undefined} />
+                <StatTile key={i} icon={s.icon} label={L(s.l)} value={<NumberTicker value={s.num} lang={lang} delay={i * 0.06} />} unit={s.s || undefined} />
               ))}
             </div>
           </div>

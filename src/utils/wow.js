@@ -51,6 +51,8 @@ let started = false
 // İlk açılışda (prerender HTML artıq boyanıb) ekranda olanı gizlətmirik —
 // "yanıb-sönmə" və LCP gecikməsi olmasın. Sonrakı naviqasiyalarda animasiya var.
 let firstPaintWindow = true
+/** İlk boyama pəncərəsi (~0.9 san) — src/motion Reveal da ekrandakını bu müddətdə gizlətmir */
+export const inFirstPaint = () => firstPaintWindow
 
 const html = () => document.documentElement
 
@@ -113,7 +115,9 @@ function initPointer() {
     const t = e.target instanceof Element ? e.target : null
 
     // Maqnit düymə: kursora doğru ən çox 4px (translate — transform-a toxunmur)
-    const b = t ? t.closest(MAGNET) : null
+    // src/motion komponentləri (SpotlightCard, MagneticButton …) kursoru özü izləyir — iki sistem toqquşmasın
+    const own = t ? t.closest('[data-motion-own]') : null
+    const b = t && !own ? t.closest(MAGNET) : null
     if (b !== mag) clearMag()
     if (b && !b.disabled && !heavyOff()) {
       const r = b.getBoundingClientRect()
@@ -128,7 +132,7 @@ function initPointer() {
       }
     }
 
-    const el = t ? t.closest(CARD) : null
+    const el = t && !own ? t.closest(CARD) : null
     if (el !== hot) clear()
     if (!el) return
     hot = el

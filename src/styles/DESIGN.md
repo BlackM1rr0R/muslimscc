@@ -462,6 +462,72 @@ Söndürmək: konteynerə `data-wow-off`. Öz giriş sistemi olan bölmələr (`
 - Hamısı bir dəfə işləyir; "hərəkəti azalt" (sistem və ya `html.a11y-reduce-motion`) — heç nə gizlənmir, sayğac son ədəddə qalır.
 - Səhifəyə xas animasiya — öz CSS-ində prefiksli `@keyframes <prefiks>-…`.
 
+### 7.3 Motion — `src/motion` (dizayn v6, 2026-11-09)
+
+Paket **`motion`** (framer-motion-un yeni adı, v14). Import HƏMİŞƏ `motion/react`-dan və **yalnız `m.*`**
+(`motion.*` YOX — `LazyMotion strict` xəta verir). Tək kontekst `MotionProvider` App.jsx-dədir: animasiya
+xüsusiyyətləri (`domAnimation`) ayrıca chunk-dır, "load"-dan sonra boş vaxtda və ya ilk toxunuşda gəlir — ilk
+render/LCP-yə təsiri yoxdur. `layout`/`layoutId`/`drag` lazımdırsa `<LayoutFeatures>` (domMax, tənbəl) —
+AnimatedTabs, ExpandableGroup, CardStack, AnimatedList bunu özü edir. **Mövcud qatları (wow.js, data-reveal,
+vau3) əvəz etmir** — Motion komponentinin kökü `data-wow-off` (giriş) və lazım olanda `data-motion-own`
+(wow-un kart işığı/əyilməsi/maqniti) qoyur: eyni elementi iki sistem animasiya etmir.
+
+**Qaydalar (UI UX Pro Max §7 + saytın öz qaydaları):** yalnız transform/opacity (+ kiçik blur, telefonda yox);
+çıxış girişdən ~38% qısa (`exitT`); yay fizikası (`SPRING`); növbə 30–60 ms, ən çox 10 element gözləyir;
+kəsilə bilən (yeni vəziyyət köhnəni əvəzləyir); hər görünüşdə 1–2 əsas hərəkət; dövri dekor ekrandan kənarda
+və tab gizli olanda dayanır.
+
+**Hərəkəti azalt — iki pillə** (`useReduced(kind)`): `'all'` — sistem ayarı və ya panel (`html.a11y-motion-user`)
+→ hər şey statik, `MotionConfig reducedMotion="always"`; `'decor'` — üstəlik `html.a11y-reduce-motion` (zəif cihaz da)
+→ axan xətlər, qlobus, marquee, orbit dayanır, UI hərəkəti (menyu, dialoq, giriş) qalır.
+
+**Prerender / ilk açılış:** heç nə JS-siz gizli qalmır. Reveal/Stagger elementi yalnız (a) Motion yüklənibsə,
+(b) hərəkət azaldılmayıbsa və (c) ekrandan kənardadırsa və ya ilk boyama pəncərəsi (~0.9 s, `wow.js → inFirstPaint`)
+keçibsə gizlədir — boyamadan əvvəl, ani. İlk kadrda ekranda olan məzmun toxunulmur. `TextEffect` ilk kadrda opacity-ni
+dəyişmir (yalnız transform + kiçik blur — LCP qorunur). `NumberTicker` əvvəlcə son rəqəmi yazır.
+
+**Səhifə keçidi** (`PageTransition`, App.jsx — `case 'x': return <X` forması dəyişməyib): hər naviqasiyada TƏK mexanizm —
+View Transition gedirsə (≥768px, modul yüklü) Motion susur (köhnə `<main>` ani çıxır, VT kadrında görünmür);
+telefonda köhnə səhifə toxunan anda CSS ilə yola düşür (`.page-leave`), Motion yalnız yenisini oxu istiqamətindən gətirir;
+qalan hallarda Motion: köhnə qısa solur (`popLayout`), yeni yumşaq qalxır. `.page-enter` sinfi qalır (wow.js hero-nu tanıyır),
+onun CSS animasiyası `.page-enter--motion` ilə söndürülüb.
+
+**Tətbiq olunub (ortaq):** başlıq naviqasiyası — `LimelightNav` (qızılı zolaq + işıq konusu yayla sürüşür); yan panel —
+`HoverPill` (siçan hapı) + cari sətrin göstəricisi yayla; FloatingDock — menyu yay kimi açılır/qısa çıxır + ikonlar
+kursora yaxınlığa görə böyüyür (dok); ReaderDialog — yay + fon, bağlanışda son məzmun qalır, `layoutId` ilə kart→dialoq
+morph; BadgeToast — giriş/çıxış; BackToTop — yay kimi qalxır. Ana səhifə: hero alt yazısı `TextEffect`, fonda
+`BackgroundPaths`, kafellər `SpotlightCard`, statistika `NumberTicker`.
+
+| Komponent | Nə üçün | Əsas props |
+|---|---|---|
+| `Reveal` | bir blok görünəndə açılır | `as`, `variant` (fadeUp·fadeIn·blurIn·scaleIn·slideStart), `delay`, `duration` (san), `margin` |
+| `Stagger` + `StaggerItem` | şəbəkə/siyahı növbə ilə | `as`, `step` (0.05), `delay`, `max` (10), `variant`; item: `as`, `variant` |
+| `TextEffect` | başlıq/alt yazı söz-söz və ya hərf-hərf | `as`, `per` (word·char; ərəbcə həmişə word), `preset` (blur·fade), `step`, `delay`; uşaq — sətir |
+| `NumberTicker` | rəqəm yayla sayır (Intl, dilə görə) | `value`, `lang`, `from`, `decimals`, `prefix`, `suffix`, `compact`, `delay` |
+| `SpotlightCard` | kursoru izləyən işıq + haşiyə parıltısı (yalnız siçan) | `as`, `glow`, `radius`, `tone` (brand·accent) + istənilən atribut |
+| `MagneticButton` | uşaq düymə kursora "çəkilir" | `strength` (0.25), `max` (8px) |
+| `ShineButton` | `.ui-btn` + keçən işıq + basılanda yay | `as` (button·a), `variant`, `size`, `icon` |
+| `AnimatedTabs` | WAI-ARIA sekmələr, `layoutId` hap/xətt | `tabs` [{id,label,count,icon,disabled}], `value`, `onChange`, `label`, `idBase`, `variant` (pill·underline), `size` |
+| `LimelightNav` | üfüqi naviqasiya, aktivin üstündə işıq | `items` [{key,label,href,onClick,icon}], `current`, `label`, `linkClassName`, `ariaCurrent` |
+| `HoverPill` | siyahıda siçanın arxasında sürüşən hap | `containerRef`, `selector`, `className` (konteyner `position: relative`) |
+| `Marquee` | axan zolaq (hover/fokusda dayanır) | `speed` (px/s), `reverse`, `gap`, `label` |
+| `CardStack` | sürüşdürülən kart dəstəsi + düymələr/klaviatura | `items`, `renderItem(item,i)`, `getKey`, `lang`, `label`, `index`/`onIndexChange`, `visible` |
+| `ExpandableGroup` + `ExpandableCard` + `useMorphId(id)` | kart → ReaderDialog morph | card: `id`, `as`; dialoq: `<ReaderDialog layoutId={useMorphId(openId)}>` |
+| `BackgroundPaths` | fonda axan incə xətlər (dekor) | `count`, `tone` (gold·brand·muted); valideyn `position: relative` |
+| `DottedGlobe` | nöqtəli qlobus, vurğulanan nöqtə (susma Məkkə) | `size`, `points`, `highlight` {lat,lon}, `speed`, `tilt`, `label` (null → dekor) |
+| `OrbitalTimeline` | dairəvi orbit, basanda mərkəzdə məzmun | `items` [{id,title,meta,icon,content}], `value`/`onChange`, `label`, `lang`, `centerFallback` |
+| `AnimatedList` + `AnimatedItem` | lent/bildiriş: yay ilə gəlir, layout ilə yerləşir | `as`; item: `as`, `from` (bottom·top) |
+| `PresenceSwap` | eyni yerdə məzmun dəyişimi (mode="wait") | `swapKey`, `variant` (fade·blur·slide), `dir`, `as`, `mode` |
+| `ScrollProgress` | məqalə/qutu oxu zolağı (qlobal zolaq wow.js-dədir) | `target` (ref), `container` (ref), `fixed` |
+| `PageTransition` | yalnız App.jsx | `pageKey`, `back` |
+
+Köməkçilər: `presets.js` — `DUR`, `EASE`, `SPRING`, `enterT`, `exitT`, `exitDur`, `staggerDelay`, `staggerContainer`,
+`fadeUp/fadeIn/blurIn/scaleIn/slideStart`, `pageVariants`, `dockScale`, `orbitPositions`, `swipeDecision`;
+`format.js` — `formatTicker`, `localeFor`, `spherePoints`, `projectPoint`, `MAKKAH`, `splitText`, `flowPath`;
+`reduced.js` — `useReduced`, `isReduced`, `isFinePointer`; `useEntrance`, `useOffscreenPause`, `useMotionReady`.
+Stillər: `src/styles/motion-kit.css` (`.mo-*`). Testlər: `tests/unit/motion-*.test.js`.
+İmport: komponenti öz faylından (`import Reveal from '../motion/Reveal'`) və ya barrel-dən (`from '../motion'`).
+
 ## 8. Vacib texniki qaydalar
 
 1. **CSS sırası.** Səhifə CSS-i `globals.css`/`ui.css`-dən ƏVVƏL yüklənir — `.ui-*` sinfini dəyişmək üçün valideynlə gücləndir:
@@ -491,7 +557,7 @@ Söndürmək: konteynerə `data-wow-off`. Öz giriş sistemi olan bölmələr (`
 - [ ] Filtr `.ui-chip`, sekmə `.ui-tabs`, rejim `.ui-segmented`, sahə `.ui-input`.
 - [ ] 360 · 768 · 1280, işıqlı + qaranlıq, `/ar` ekran şəkli; konsol təmiz; check-lang, vitest, build, e2e keçir.
 
-### 7.3 Performans qaydaları (2026-11-05 ölçüsündən sonra)
+### 7.3.1 Performans qaydaları (2026-11-05 ölçüsündən sonra; `check-motion.mjs` buna istinad edir)
 
 - **Sonsuz (`infinite`) animasiya yalnız `transform` / `opacity` ilə.** `background-position`, `box-shadow`,
   `text-shadow`, `filter`, `clip-path`, `stroke-*` GPU-ya ötürülmür — səhifədə belə bircə sonsuz animasiya olsa,

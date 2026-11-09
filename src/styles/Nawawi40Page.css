@@ -87,10 +87,12 @@
   position: relative; display: flex; flex-direction: column; gap: 10px;
   padding: var(--space-4) var(--space-4) var(--space-3);
   scroll-margin-top: calc(var(--header-h, 64px) + 140px);
-  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  /* v6: kartın transform-u Motion-undur (növbəli giriş, kart → pəncərə morph) — hover qalxması
+     ayrıca `translate` xassəsi ilə (transform-la toqquşmur), transform keçidi yoxdur */
+  transition: border-color var(--dur-1) ease, box-shadow var(--dur-2) var(--ease-out), translate var(--dur-2) var(--ease-out);
 }
 @media (hover: hover) {
-  .nw-page .nw-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); transform: translateY(-2px); }
+  .nw-page .nw-card:hover { border-color: var(--brand-line); box-shadow: var(--shadow-3); translate: 0 -2px; }
   .nw-card:hover .nw-card__read { color: var(--brand); }
 }
 .nw-page .nw-card:focus-within { border-color: var(--brand-line); }
@@ -244,7 +246,7 @@
 @media (prefers-reduced-motion: reduce) {
   .nw-map__cell, .nw-card, .nw-card__read, .nw-card__learn, .nw-card__learn::before { transition: none; }
   .nw-map__cell:active { transform: none; }
-  .nw-page .nw-card:hover { transform: none; }
+  .nw-page .nw-card:hover { translate: none; }
 }
 @media print {
   .nw-toolbar, .nw-hero__actions, .nw-card__learn, .nw-today__btn { display: none; }

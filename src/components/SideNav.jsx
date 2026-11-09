@@ -45,6 +45,9 @@ import { pathFor, parsePath, hasPageInLang, EXTRA_LANGS, EXTRA_CODES } from '../
 import { isOverlayEntry } from '../utils/useBackToClose'
 import Icon, { BrandMark } from './Icon'
 import '../styles/SideNav.css'
+import { m } from 'motion/react'
+import HoverPill from '../motion/HoverPill'
+import { SPRING } from '../motion/presets'
 import { pickUi } from '../utils/uiText'
 
 // Açar "v2"-dir: sahibin qərarı ilə susmaya görə BÜTÜN qruplar açıq oldu.
@@ -710,10 +713,15 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
             <kbd className="qm-sn-kbd" aria-hidden="true">{IS_MAC ? '⌘K' : 'Ctrl K'}</kbd>
           </button>
         </div>
-        <div className={`qm-sn-body${ind.on ? ' has-ind' : ''}`} ref={bodyRef}>
-          <span
-            className={`qm-sn-ind${ind.on ? ' is-on' : ''}${ind.instant ? ' is-instant' : ''}`}
-            style={{ transform: `translate3d(0, ${ind.y}px, 0)` }}
+        <div className={`qm-sn-body has-pill${ind.on ? ' has-ind' : ''}`} ref={bodyRef}>
+          {/* v6: siçanın üstündə olduğu sətrin arxasında sürüşən "hap" (src/motion/HoverPill) */}
+          <HoverPill containerRef={bodyRef} selector=".qm-sn-item" className="qm-sn-hover" />
+          {/* Cari sətrin qızılı göstəricisi — Motion yayı ilə (ilk ölçüdə yerində doğulur) */}
+          <m.span
+            className="qm-sn-ind is-on"
+            initial={false}
+            animate={{ y: ind.y, opacity: ind.on ? 1 : 0 }}
+            transition={ind.instant ? { duration: 0, opacity: { duration: 0.24 } } : { ...SPRING.bouncy, opacity: { duration: 0.24 } }}
             aria-hidden="true"
           />
           {groups}

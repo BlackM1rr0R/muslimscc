@@ -22,6 +22,8 @@ import '../styles/ToolsMotion.css'
 import Sparkle from '../components/prayer/Sparkle'
 import { ringFrom } from '../components/prayer/ringFrom'
 import { pickUi } from '../utils/uiText'
+import NumberTicker from '../motion/NumberTicker'
+import PresenceSwap from '../motion/PresenceSwap'
 
 // ═══════════════════════════════════════════════════════
 // /prayer-tracker — Namaz izləyicisi
@@ -171,9 +173,10 @@ export default function PrayerTrackerPage({ setPage }) {
                   <span className="pt-ring-label">{t.streak} <span className="pt-ring-goal ui-num">→ {streakGoal(streak)}</span></span>
                 </div>
                 <dl className="pt-kpis">
-                  <div><dt>{t.best}</dt><dd className="ui-num">{best}</dd></div>
-                  <div><dt>{t.week}</dt><dd className="ui-num">{weekSum.pct}%</dd></div>
-                  <div><dt>{x.d30}</dt><dd className="ui-num">{sum30.pct}%</dd></div>
+                  {/* v6: KPI rəqəmləri görünəndə yayla sayır (ilk ekranda son rəqəm dərhal) */}
+                  <div><dt>{t.best}</dt><dd className="ui-num"><NumberTicker value={best} lang={lk} /></dd></div>
+                  <div><dt>{t.week}</dt><dd className="ui-num"><NumberTicker value={weekSum.pct} lang={lk} suffix="%" /></dd></div>
+                  <div><dt>{x.d30}</dt><dd className="ui-num"><NumberTicker value={sum30.pct} lang={lk} suffix="%" /></dd></div>
                 </dl>
               </div>
               <p className="pt-note"><Icon name="bolt" size={15} /> <span>{t.streakHint}{best > 0 ? ` · ${fill(x.vsBest, { p: Math.round((streak / best) * 100) })}` : ''}</span></p>
@@ -510,10 +513,15 @@ function MonthReport({ t, lang, snap, periods, today, selected, onPick }) {
   // Həftə bazar ertəsindən: boş xanalar
   const lead = (fromKey(dates[0]).getDay() + 6) % 7
   const wdMon = [1, 2, 3, 4, 5, 6, 0].map(i => WEEKDAYS_SUN[lang][i])
-  const shift = (n) => setYm(({ y, m }) => {
-    const d = new Date(y, m + n, 1)
-    return { y: d.getFullYear(), m: d.getMonth() }
-  })
+  const [dir, setDir] = useState(1) // v6: ay keçidinin istiqaməti
+  const shift = (n) => {
+    setDir(n)
+    setYm(({ y, m }) => {
+      const d = new Date(y, m + n, 1)
+      return { y: d.getFullYear(), m: d.getMonth() }
+    })
+  }
+
   const total = Math.max(1, sum.possible)
   const segs = [['prayed', sum.prayed], ['qada', sum.qada], ['missed', sum.missed]]
   let acc = 0
@@ -537,7 +545,8 @@ function MonthReport({ t, lang, snap, periods, today, selected, onPick }) {
         <div className="pt-cal-row pt-cal-wd" aria-hidden="true">
           {wdMon.map((w, i) => <span key={i}>{w}</span>)}
         </div>
-        <div className="pt-cal-grid">
+        {/* v6: ay dəyişəndə şəbəkə istiqamətlə sürüşür (PresenceSwap, RTL-də güzgü) */}
+        <PresenceSwap swapKey={`${ym.y}-${ym.m}`} variant="slide" dir={dir} className="pt-cal-grid">
           {Array.from({ length: lead }, (_, i) => <span key={`e${i}`} className="pt-cal-empty" aria-hidden="true" />)}
           {dates.map((d, di) => {
             const future = d > today
@@ -559,7 +568,7 @@ function MonthReport({ t, lang, snap, periods, today, selected, onPick }) {
               </button>
             )
           })}
-        </div>
+        </PresenceSwap>
       </div>
 
       <svg className="pt-month-bar tm-grow-x" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true">

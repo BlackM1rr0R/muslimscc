@@ -12,6 +12,8 @@ import { SAHABA, slugOf } from '../data/sahaba'
 import CalligraphyPlaque from '../components/media/CalligraphyPlaque'
 import LifespanChart from '../components/media/LifespanChart'
 import { SahabaNumbers } from '../components/numbers/PeopleNumbers'
+import SpotlightCard from '../motion/SpotlightCard'
+import PressedGlide from '../components/pagefx/PressedGlide'
 import RelatedLinks from '../components/media/RelatedLinks'
 import { ChartFigure } from '../components/viz'
 import { SAHABA_DEATH, RASHIDUN_SPAN } from '../data/sahabaYears'
@@ -365,6 +367,7 @@ export default function SahabePage() {
   const [sort, setSort] = useState('list')
   const X = pickUi(S32, lang, 'en')
   const star = useStarred('sahaba:favs')
+  const chipsRef = useRef(null)
 
   const filtered = useMemo(() => {
     const f = filter === 'fav' ? { test: s => star.list.includes(slugOf(s)) } : (FILTERS.find(x => x.key === filter) || FILTERS[0])
@@ -484,7 +487,8 @@ export default function SahabePage() {
               )}
             </div>
             {/* Filtr çipləri — yalnız məlumatda olan kateqoriyalar */}
-            <div className="sp-chips" role="group" aria-label={L.filter}>
+            <div className="sp-chips pfx-glide-host" role="group" aria-label={L.filter} ref={chipsRef}>
+              <PressedGlide containerRef={chipsRef} deps={[filter, lang, star.count]} />
               {FILTERS.filter(f => counts[f.key] > 0).map(f => (
                 <button key={f.key} type="button" className="ui-chip" aria-pressed={filter === f.key} onClick={() => setFilter(f.key)}>
                   {L[f.label]} <span className="sp-chip__n ui-num">{counts[f.key]}</span>
@@ -526,7 +530,7 @@ export default function SahabePage() {
                 return (
                   <li key={s.id} className="sp-cell">
                     <StarButton className="sp-card-star" on={star.has(slugOf(s))} onToggle={() => star.toggle(slugOf(s))} label={`${X.favAdd}: ${n}`} />
-                    <a className="ui-card ui-card--interactive sahabe-card" href={pathFor('sahaba', lang, slugOf(s))} onClick={(e) => openProfile(s, e)}>
+                    <SpotlightCard as="a" tone="accent" className="ui-card ui-card--interactive sahabe-card" href={pathFor('sahaba', lang, slugOf(s))} onClick={(e) => openProfile(s, e)}>
                       {/* Kompüterdə kartın üstü — xəttatlıq lövhəsi; telefonda (sətir-kart) gizlidir */}
                       <CalligraphyPlaque ar={s.name.ar} female={isWoman(s)} className="sahabe-card-cq" />
                       <Medal s={s} name={n} />
@@ -541,7 +545,7 @@ export default function SahabePage() {
                         <span className="sahabe-card-read">{L.read} <Icon name="arrow" size={16} className="ui-link__arrow ui-flip-rtl" /></span>
                       </span>
                       <Icon name="chevron" size={18} className="sahabe-card-chev ui-flip-rtl" />
-                    </a>
+                    </SpotlightCard>
                   </li>
                 )
               })}

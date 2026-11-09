@@ -38,6 +38,9 @@ import QuotePreview from '../components/quote/QuotePreview'
 import TemplatePicker from '../components/quote/TemplatePicker'
 import SourcePanel from '../components/quote/SourcePanel'
 import { FormatPicker, StylePanel } from '../components/quote/StylePanel'
+import { m } from 'motion/react'
+import LayoutFeatures from '../motion/LayoutFeatures'
+import { SPRING } from '../motion/presets'
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
@@ -566,7 +569,9 @@ export default function QuoteGeneratorPage() {
             <p className="ui-lead qg-lead">{t.subtitle}</p>
           </header>
           <div className="qg-editor">
-            <div className="qg-tabs" role="tablist" aria-label={t.tabsLabel} onKeyDown={onTabKey}>
+            {/* v6: aktiv sekmənin alt xətti yayla qonşu sekməyə sürüşür (layoutId — 21st.dev "animated tabs") */}
+            <LayoutFeatures>
+            <div className="qg-tabs qg-tabs--mo" role="tablist" aria-label={t.tabsLabel} onKeyDown={onTabKey}>
               {TABS.map(x => (
                 <button
                   key={x.id}
@@ -582,9 +587,11 @@ export default function QuoteGeneratorPage() {
                 >
                   <Icon name={x.icon} size={18} className="qg-tab__icon" />
                   <span>{t[x.label]}</span>
+                  {tab === x.id && <m.span layoutId="qg-tab-line" className="qg-tab__line" transition={SPRING.snappy} aria-hidden="true" />}
                 </button>
               ))}
             </div>
+            </LayoutFeatures>
 
             <div className="qg-panel" role="tabpanel" id={`qg-panel-${tab}`} aria-labelledby={`qg-tab-${tab}`} key={tab}>
               {tab === 'content' && (

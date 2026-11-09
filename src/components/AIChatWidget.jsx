@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
+import { AnimatePresence, m } from 'motion/react'
+import { SPRING } from '../motion/presets'
 import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import { subscribeToSettings } from '../data/adminContent'
@@ -9,6 +11,10 @@ import AIRating from './AIRating'
 import { askAI } from '../utils/aiStream'
 import '../styles/AIChatWidget.css'
 import { pickUi } from '../utils/uiText'
+
+// v6 Motion: yeni balon yayla qalxır (21st.dev "animated list"); yaddaşdan gələnlər animasiyasız.
+const MSG_IN = { opacity: 0, y: 10, scale: 0.94 }
+const MSG_SHOW = { opacity: 1, y: 0, scale: 1, transition: SPRING.bouncy }
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
 const FALLBACK_API_URL = import.meta.env.VITE_API_URL || ''
@@ -522,27 +528,29 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
                 {/* Axında gələn cavab da eyni siyahının sonuncu elementidir (eyni key) —
                     bitəndə DOM dəyişmir, giriş animasiyası təkrarlanmır.
                     İlk tokenə qədər "yazır" nöqtələri, sonra mətn + yanıb-sönən kursor. */}
-                {(loading ? [...messages, { role: 'assistant', pending: true, content: streamText || '' }] : messages).map((m, i, all) => (
-                  <div key={i} className={`aiw-msg aiw-msg-${m.role}`}>
-                    {m.role === 'assistant' && <div className="aiw-msg-avatar" aria-hidden="true"><Icon name="sparkle" size={15} /></div>}
-                    {m.pending && !m.content ? (
+                <AnimatePresence initial={false}>
+                {(loading ? [...messages, { role: 'assistant', pending: true, content: streamText || '' }] : messages).map((msg, i, all) => (
+                  <m.div key={i} className={`aiw-msg aiw-msg-${msg.role} aiw-msg--mo`} data-wow-off="" initial={MSG_IN} animate={MSG_SHOW}>
+                    {msg.role === 'assistant' && <div className="aiw-msg-avatar" aria-hidden="true"><Icon name="sparkle" size={15} /></div>}
+                    {msg.pending && !msg.content ? (
                       <div className="aiw-bubble aiw-thinking" role="status" aria-label={l.typing}>
                         <span className="aiw-dot"></span>
                         <span className="aiw-dot"></span>
                         <span className="aiw-dot"></span>
                       </div>
-                    ) : m.role === 'assistant' ? (
+                    ) : msg.role === 'assistant' ? (
                       <div className="aiw-bubble aiw-md" dir="auto">
-                        <AIMarkdown text={m.content} tail={m.pending ? <span className="ai-cursor" aria-hidden="true" /> : null} />
-                        {!m.pending && all[i - 1]?.role === 'user' && (
-                          <AIRating question={all[i - 1].content} answer={m.content} lang={lang} compact />
+                        <AIMarkdown text={msg.content} tail={msg.pending ? <span className="ai-cursor" aria-hidden="true" /> : null} />
+                        {!msg.pending && all[i - 1]?.role === 'user' && (
+                          <AIRating question={all[i - 1].content} answer={msg.content} lang={lang} compact />
                         )}
                       </div>
                     ) : (
-                      <div className="aiw-bubble" dir="auto">{m.content}</div>
+                      <div className="aiw-bubble" dir="auto">{msg.content}</div>
                     )}
-                  </div>
+                  </m.div>
                 ))}
+                </AnimatePresence>
               </>
             )}
           </div>

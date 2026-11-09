@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { getPrayerLocation } from '../utils/prayerLocation'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -6,6 +6,12 @@ import '../styles/NotFoundPage.css'
 import PageLink from '../components/PageLink'
 import { navLabel } from '../data/navigation'
 import { pickUi } from '../utils/uiText'
+import TextEffect from '../motion/TextEffect'
+
+// v6 (21st.dev "dotted globe" ideyası): kompasın arxasında nöqtəli Yer kürəsi yavaş fırlanır,
+// Məkkə qızılı nöqtə ilə nəbz edir. Ağır kanvas — ayrıca chunk (lazy), yalnız mount-dan sonra;
+// dekorativdir (aria-hidden), "hərəkəti azalt"-da statik kadr (Məkkə mərkəzdə).
+const DottedGlobe = lazy(() => import('../motion/DottedGlobe'))
 
 // ═══════════════════════════════════════════════════════
 // 404 — tanınmayan ünvan (/nope, /ru/nope/deeper, /Quran).
@@ -62,6 +68,12 @@ export default function NotFoundPage({ setPage }) {
     return () => { cancelAnimationFrame(raf); window.removeEventListener('deviceorientationabsolute', on, true); window.removeEventListener('deviceorientation', on, true) }
   }, [lang])
   const needle = qb ? ((qb.bearing - (head || 0)) + 360) % 360 : null
+  // Qlobus ilk boyamadan sonra gəlir (LCP — başlıq; kanvas chunk-u gözləmir)
+  const [globe, setGlobe] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setGlobe(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
 
   const openSearch = (query = '') => window.dispatchEvent(new CustomEvent(OPEN_SEARCH_EVENT, { detail: { q: query } }))
   const onSubmit = (e) => { e.preventDefault(); openSearch(q.trim()) }
@@ -71,8 +83,13 @@ export default function NotFoundPage({ setPage }) {
       <section className="nf-hero" aria-labelledby="nf-title">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="nf-inner ui-container ui-container--narrow">
-          {/* Kompas: halqa + 8 guşəli ulduz + yellənib dayanan əqrəb */}
+          {/* Kompas: halqa + 8 guşəli ulduz + yellənib dayanan əqrəb; arxada nöqtəli qlobus (v6) */}
           <div className="nf-art" aria-hidden="true">
+            {globe && (
+              <Suspense fallback={null}>
+                <DottedGlobe size={300} points={700} speed={5} tilt={14} label={null} className="nf-globe" />
+              </Suspense>
+            )}
             <svg viewBox="0 0 160 160" width="160" height="160" fill="none">
               <circle className="nf-ring" cx="80" cy="80" r="70" />
               {/* Yavaş fırlanan qatlar: nöqtəli halqa + böyük xatəm ulduzu + orbitdə nöqtə */}
@@ -97,7 +114,7 @@ export default function NotFoundPage({ setPage }) {
             </svg>
             <span className="nf-code ui-num">404</span>
           </div>
-          <h1 id="nf-title" className="ui-display nf-title">{t.h}</h1>
+          <TextEffect as="h1" id="nf-title" className="ui-display nf-title" per="word" delay={0.2}>{t.h}</TextEffect>
           <p className="ui-lead nf-lead">{t.p}</p>
           {qb && (
             <p className="nf-qline" data-testid="nf-qibla">

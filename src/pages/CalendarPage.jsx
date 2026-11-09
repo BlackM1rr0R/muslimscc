@@ -20,6 +20,7 @@ import { pickUi } from '../utils/uiText'
 import { CalDayMoon, CalCrescent, CalMoonNote } from '../components/calendar/CalMoon'
 import { MOON_NAMES } from '../components/moonNames'
 import HijriYearWheel from '../components/calendar/HijriYearWheel'
+import PresenceSwap from '../motion/PresenceSwap'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
 // Yalnız ehtiyat üçündür: Umm al-Qura-dan 1–2 gün fərqlənə bilər.
@@ -414,6 +415,7 @@ export function CalendarPage({ setPage }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const hijri = useMemo(() => hijriOf(new Date()), [todayKey])
   const [selMonth, setSelMonth] = useState(() => hijri.month - 1)
+  const [monthDir, setMonthDir] = useState(1) // v6: ay keçidinin istiqaməti (PresenceSwap)
   // Pozuq yaddaş ({}, "x", null element) əvvəl səhifəni ağ ekrana çevirirdi (reminders.some xətası)
   const [reminders, setReminders] = useState(() => {
     try {
@@ -502,6 +504,7 @@ export function CalendarPage({ setPage }) {
   const [selDay, setSelDay] = useState(() => hijri.day)
   const pickMonth = (i) => {
     const m = ((i % 12) + 12) % 12
+    setMonthDir(i >= selMonth ? 1 : -1)
     setSelMonth(m)
     const first = EVENTS.find(e => e.month === m)
     setSelDay(m === hijri.month - 1 ? hijri.day : (first ? first.day : 1))
@@ -682,7 +685,8 @@ export function CalendarPage({ setPage }) {
                 <div className="cal-weekdays" aria-hidden="true">
                   {(pickUi(WEEKDAYS, lang, 'en')).map((w, i) => <span key={i} className={i === 4 ? 'is-fri' : ''}>{w}</span>)}
                 </div>
-                <div className="cal-grid" key={selMonth} role="group" aria-label={`${hijriMonthNames[selMonth]} ${hijri.year}`}>
+                {/* v6: köhnə ay qısa çıxır, yenisi istiqamətlə gəlir (PresenceSwap); günlərin çevrilməsi CSS-dədir */}
+                <PresenceSwap swapKey={selMonth} variant="slide" dir={monthDir} className="cal-grid cal-grid--mo" role="group" aria-label={`${hijriMonthNames[selMonth]} ${hijri.year}`}>
                   {Array.from({ length: lead }, (_, i) => <span key={`b${i}`} className="cal-day is-blank" aria-hidden="true" />)}
                   {monthDays.map(({ day, date }, di) => {
                     const evs = EVENTS.filter(e => e.month === selMonth && e.day === day)
@@ -707,7 +711,7 @@ export function CalendarPage({ setPage }) {
                       </button>
                     )
                   })}
-                </div>
+                </PresenceSwap>
                 <CalCrescent days={monthDays} lang={lang} />
                 {canAR && (
                   <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm cal-hilal-btn" onClick={() => setHilal(true)} data-testid="hilal-open">

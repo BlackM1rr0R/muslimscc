@@ -5,6 +5,9 @@ import AccessibilityWidget from './AccessibilityWidget'
 import { useBackToClose } from '../utils/useBackToClose'
 import Icon from './Icon'
 import '../styles/FloatingDock.css'
+import { AnimatePresence, m, useMotionValue, useTransform } from 'motion/react'
+import { SPRING, DUR, exitT, dockScale, staggerDelay } from '../motion/presets'
+import { isFinePointer, isReduced } from '../motion/reduced'
 import { pickUi } from '../utils/uiText'
 
 // ═══════════════════════════════════════════════════════
@@ -57,6 +60,54 @@ function DockLoading() {
   )
 }
 
+// ── v6 (src/motion): menyu yay kimi açılır (düyməyə ən yaxın bənd birinci), bağlananda
+// qısa çıxır; siçanla bəndlərin üstündə gəzəndə ikonlar macOS doku kimi böyüyür
+// (kursora məsafəyə görə, yalnız transform; birbaşa — useSpring giriş paketinə ~3 KB gzip əlavə edirdi).
+// Toxunuş / hərəkəti azalt → böyümə yox.
+const MENU_V = {
+  hidden: {},
+  show: { transition: { delayChildren: (i, n) => staggerDelay(n - 1 - i, 0.04, 7) } },
+  exit: { transition: { delayChildren: (i) => staggerDelay(i, 0.02, 7) } },
+}
+const ITEM_V = {
+  hidden: { opacity: 0, y: 14, scale: 0.9 },
+  show: { opacity: 1, y: 0, scale: 1, transition: SPRING.bouncy },
+  exit: { opacity: 0, y: 8, scale: 0.95, transition: exitT(DUR.sm) },
+}
+const FAR = -9999
+
+function DockItem({ it, pointerY, onOpen }) {
+  const magRef = useRef(null)
+  const target = useTransform(pointerY, (y) => {
+    const el = magRef.current
+    if (y === FAR || !el) return 1
+    const r = el.getBoundingClientRect()
+    return dockScale(y - (r.top + r.height / 2), { range: 110, max: 1.28 })
+  })
+  const scale = target
+  return (
+    <m.button
+      type="button"
+      role="menuitem"
+      className={`qm-dock-item qm-dock-item-${it.key}`}
+      variants={ITEM_V}
+      onClick={() => onOpen(it.key)}
+    >
+      <span className="qm-dock-item-label">
+        {it.label}
+        {it.badge && <span className="qm-sr-only">, {it.badge.sr}</span>}
+      </span>
+      <m.span ref={magRef} className="qm-dock-item-mag" style={{ scale }} aria-hidden="true">
+        <span className="qm-dock-item-icon">
+          {it.icon}
+          {it.badge?.dot && <span className="qm-dock-item-dot" />}
+          {it.badge?.text && <span className="qm-dock-item-badge">{it.badge.text}</span>}
+        </span>
+      </m.span>
+    </m.button>
+  )
+}
+
 /**
  * @param {{ page?: string }} props  page — cari səhifə açarı ('aichat'-da AI elementi gizlənir)
  */
@@ -76,6 +127,8 @@ export default function FloatingDock({ page }) {
 
   const rootRef = useRef(null)
   const toggleRef = useRef(null)
+  // Dok böyüməsi: kursorun ekran Y-i (menyudan kənarda FAR)
+  const pointerY = useMotionValue(FAR)
   // Paneli açan element (məs. ☰ çəkmə menyusundan gələndə — başlığın ☰-si):
   // panel bağlananda fokus ora qayıdır
   const returnFocusRef = useRef(null)
@@ -258,36 +311,26 @@ export default function FloatingDock({ page }) {
   return (
     <>
       <div ref={rootRef} className={rootClass} onBlur={onDockBlur}>
-        {menuOpen && (
-          <div
-            id="qm-dock-menu"
-            className="qm-dock-menu"
-            role="menu"
-            aria-label={l.toggle}
-            onKeyDown={onMenuKeyDown}
-          >
-            {items.map((it, i) => (
-              <button
-                key={it.key}
-                type="button"
-                role="menuitem"
-                className={`qm-dock-item qm-dock-item-${it.key}`}
-                style={{ '--i': items.length - 1 - i }}  /* düyməyə ən yaxın bənd birinci qalxır */
-                onClick={() => openPanel(it.key)}
-              >
-                <span className="qm-dock-item-label">
-                  {it.label}
-                  {it.badge && <span className="qm-sr-only">, {it.badge.sr}</span>}
-                </span>
-                <span className="qm-dock-item-icon" aria-hidden="true">
-                  {it.icon}
-                  {it.badge?.dot && <span className="qm-dock-item-dot" />}
-                  {it.badge?.text && <span className="qm-dock-item-badge">{it.badge.text}</span>}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {menuOpen && (
+            <m.div
+              key="menu"
+              id="qm-dock-menu"
+              className="qm-dock-menu"
+              role="menu"
+              aria-label={l.toggle}
+              onKeyDown={onMenuKeyDown}
+              variants={MENU_V}
+              initial="hidden"
+              animate="show"
+              exit="exit"
+              onPointerMove={(e) => { if (e.pointerType === 'mouse' && isFinePointer() && !isReduced()) pointerY.set(e.clientY) }}
+              onPointerLeave={() => pointerY.set(FAR)}
+            >
+              {items.map(it => <DockItem key={it.key} it={it} pointerY={pointerY} onOpen={openPanel} />)}
+            </m.div>
+          )}
+        </AnimatePresence>
 
         <button
           ref={toggleRef}

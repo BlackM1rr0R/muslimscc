@@ -617,3 +617,6 @@
 @media (prefers-reduced-motion: reduce) {
   .aic-suggest-btn:hover, .aic-send-btn:hover { transform: none; }
 }
+
+/* v6 Motion: mesaj girişini Motion (yay) edir — CSS girişi ikiqat olmasın */
+.aic-chat > .aic-msg.aic-msg--mo { animation: none; }

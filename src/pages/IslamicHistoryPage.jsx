@@ -14,6 +14,10 @@ import { PLACE_PHOTOS } from '../data/placeImages'
 import { PROPHETS, EVENTS, EVENTS_SORTED, HISTORY_ERAS, eraOfEvent, eventYear, ULUL_AZM } from '../data/islamicHistory'
 import HistoryNumbers from '../components/numbers/HistoryNumbers'
 import { pickUi } from '../utils/uiText'
+import { Stagger, StaggerItem } from '../motion/Stagger'
+import Swap from '../components/pagefx/Swap'
+// Ülul-əzm orbiti — ağır deyil, amma yalnız Peyğəmbərlər bölməsində lazımdır (tənbəl)
+const OrbitalTimeline = lazy(() => import('../motion/OrbitalTimeline'))
 
 /* ══════════════════════════════════════════════════════════════════
    İSLAMİ TARİX — dizayn v3
@@ -53,6 +57,7 @@ const LABELS = {
     prophets: 'Peyğəmbərlər', events: 'Tarixi hadisələr', eras: 'dövr', maps: 'xəritə',
     keyFact: 'Əsas fakt', quranRef: 'Quran istinadı', more: 'Əsas fakt və istinad',
     prophetsTitle: 'Quranda adı keçən peyğəmbərlər', prophetsLead: 'Adəmdən (ə.s.) Muhəmmədə ﷺ qədər — Quranda adı çəkilən 25 peyğəmbər, təxmini ardıcıllıqla.',
+    orbitHint: "Peyğəmbəri seçin — qısa məlumat burada açılacaq.",
     ululTitle: 'Beş böyük peyğəmbər', ululText: 'Nuh, İbrahim, Musa, İsa və Muhəmməd ﷺ — Quranda (Əhzab 33:7, Şura 42:13) adları birlikdə çəkilir; alimlər onları «ülul-əzm» (qətiyyət sahibləri, Əhqaf 46:35) adlandırır. Kartlarda qızılı nişanla göstərilib.',
     ulul: 'Ülul-əzm',
     eventsTitle: 'Dövrlər üzrə hadisələr', eventsLead: 'Dövrü seçin — zaman xətti yalnız onu göstərsin. «Bütün dövrlər» hadisələri il ardıcıllığı ilə açır.',
@@ -67,6 +72,7 @@ const LABELS = {
     prophets: 'Prophets', events: 'Historical Events', eras: 'eras', maps: 'maps',
     keyFact: 'Key fact', quranRef: 'Quran reference', more: 'Key fact and reference',
     prophetsTitle: 'Prophets named in the Quran', prophetsLead: 'From Adam to Muhammad ﷺ — the 25 prophets named in the Quran, in approximate order.',
+    orbitHint: "Pick a prophet — a short note opens here.",
     ululTitle: 'The five great prophets', ululText: 'Nuh, Ibrahim, Musa, Isa and Muhammad ﷺ are named together in the Quran (al-Ahzab 33:7, ash-Shura 42:13); the scholars call them “ulul-‘azm” (those of resolve, al-Ahqaf 46:35). They carry a gold badge on the cards.',
     ulul: 'Ulul-‘azm',
     eventsTitle: 'Events by era', eventsLead: 'Pick an era to show only it on the timeline. “All eras” lists every event in order of year.',
@@ -81,6 +87,7 @@ const LABELS = {
     prophets: 'Пророки', events: 'Исторические события', eras: 'эпох', maps: 'карты',
     keyFact: 'Ключевой факт', quranRef: 'Ссылка на Коран', more: 'Ключевой факт и ссылка',
     prophetsTitle: 'Пророки, названные в Коране', prophetsLead: 'От Адама до Мухаммада ﷺ — 25 пророков, названных в Коране, в приблизительном порядке.',
+    orbitHint: "Выберите пророка — здесь откроется краткая справка.",
     ululTitle: 'Пять великих пророков', ululText: 'Нух, Ибрахим, Муса, Иса и Мухаммад ﷺ названы в Коране вместе (аль-Ахзаб 33:7, аш-Шура 42:13); учёные называют их «улюль-‘азм» (обладатели решимости, аль-Ахкаф 46:35). На карточках они отмечены золотым знаком.',
     ulul: 'Улюль-‘азм',
     eventsTitle: 'События по эпохам', eventsLead: 'Выберите эпоху, чтобы шкала показала только её. «Все эпохи» — все события по годам.',
@@ -95,6 +102,7 @@ const LABELS = {
     prophets: 'الأنبياء', events: 'أحداث تاريخية', eras: 'حقب', maps: 'خرائط',
     keyFact: 'حقيقة أساسية', quranRef: 'مرجع قرآني', more: 'حقيقة أساسية ومرجع',
     prophetsTitle: 'الأنبياء المذكورون في القرآن', prophetsLead: 'من آدم إلى محمد ﷺ — خمسة وعشرون نبيًا ذُكروا في القرآن، على الترتيب التقريبي.',
+    orbitHint: "اختر نبيًّا لتظهر هنا نبذة قصيرة.",
     ululTitle: 'أولو العزم من الرسل', ululText: 'نوح وإبراهيم وموسى وعيسى ومحمد ﷺ ذُكروا معًا في القرآن (الأحزاب ٧، الشورى ١٣)، ويسميهم العلماء «أولي العزم» (الأحقاف ٣٥). عليهم في البطاقات علامة ذهبية.',
     ulul: 'أولو العزم',
     eventsTitle: 'الأحداث حسب الحقب', eventsLead: 'اختر حقبة ليعرضها الخط الزمني وحدها، و«كل الحقب» يعرض جميع الأحداث حسب السنة.',
@@ -109,6 +117,7 @@ const LABELS = {
     prophets: 'Peygamberler', events: 'Tarihi Olaylar', eras: 'dönem', maps: 'harita',
     keyFact: 'Önemli bilgi', quranRef: 'Kuran referansı', more: 'Önemli bilgi ve kaynak',
     prophetsTitle: 'Kur’an’da adı geçen peygamberler', prophetsLead: 'Âdem’den Muhammed’e ﷺ kadar — Kur’an’da adı geçen 25 peygamber, yaklaşık sırayla.',
+    orbitHint: "Bir peygamber seçin — kısa bilgi burada açılır.",
     ululTitle: 'Beş büyük peygamber', ululText: 'Nuh, İbrâhim, Mûsâ, Îsâ ve Muhammed ﷺ Kur’an’da birlikte anılır (Ahzâb 33:7, Şûrâ 42:13); âlimler onlara «ülü’l-azm» (azim sahipleri, Ahkâf 46:35) der. Kartlarda altın renkli işaretle gösterilir.',
     ulul: 'Ülü’l-azm',
     eventsTitle: 'Dönemlere göre olaylar', eventsLead: 'Bir dönem seçin — zaman çizelgesi yalnız onu göstersin. «Tüm dönemler» bütün olayları yıl sırasıyla açar.',
@@ -195,6 +204,26 @@ export default function IslamicHistoryPage() {
   const openE = (e) => setReader({ kind: 'e', i: eventList.indexOf(e) })
   const onCard = (fn) => (e) => { if (e.target.closest('a, button, summary, input')) return; fn() }
 
+  // Ülul-əzm orbiti: mərkəzdə qısa məlumat + tam oxu pəncərəsi (süzgəc sıfırlanır ki, siyahıda olsun)
+  const openFromOrbit = (p) => { setPq(''); setUlulOnly(false); setReader({ kind: 'p', i: PROPHETS.indexOf(p) }) }
+  const ululItems = PROPHETS.filter(p => ULUL_AZM.includes(p.num)).map(p => ({
+    id: p.num,
+    title: t(p.name, lang),
+    meta: t(p.era, lang),
+    icon: <span className="ui-num">{p.num}</span>,
+    content: (
+      <div className="hx-orbit__card">
+        {!isAr && <span className="hx-orbit__ar ui-arabic" lang="ar" dir="rtl">{p.arabic}</span>}
+        <strong className="hx-orbit__name">{t(p.name, lang)}</strong>
+        <span className="hx-orbit__era"><Icon name="clock" size={13} /> {t(p.era, lang)}</span>
+        <p className="hx-orbit__desc">{t(p.desc, lang)}</p>
+        <button type="button" className="hx-open" onClick={() => openFromOrbit(p)} aria-haspopup="dialog">
+          <Icon name="learn" size={16} /> {L.more}<span className="ui-sr-only">: {t(p.name, lang)}</span>
+        </button>
+      </div>
+    ),
+  }))
+
   return (
     <div className="history-page">
       <header className="ui-page-hero ui-page-hero--split hist-hero">
@@ -234,20 +263,30 @@ export default function IslamicHistoryPage() {
             </div>
           </div>
 
-          <div ref={bodyRef} className="history-panel" key={tab}>
+          <div ref={bodyRef} className="history-panel-host">
+          <Swap swapKey={tab} variant="slide" dir={tab === 'events' ? 1 : -1} className="history-panel">
             {tab === 'prophets' ? (
               <section aria-labelledby="hx-prophets-h">
                 <div className="ui-section-head">
                   <h2 id="hx-prophets-h" className="ui-title ui-title--sm">{L.prophetsTitle}</h2>
                   <p className="ui-lead">{L.prophetsLead}</p>
                 </div>
-                <aside className="ui-callout ui-callout--accent hx-ulul">
-                  <Icon name="star" />
-                  <div>
-                    <strong className="ui-callout__title">{L.ululTitle}</strong>
-                    <p>{L.ululText}</p>
+                <div className="hx-ulul-wrap">
+                  <aside className="ui-callout ui-callout--accent hx-ulul">
+                    <Icon name="star" />
+                    <div>
+                      <strong className="ui-callout__title">{L.ululTitle}</strong>
+                      <p>{L.ululText}</p>
+                    </div>
+                  </aside>
+                  {/* Ülul-əzm — dairəvi zaman xətti (21st.dev "radial orbital timeline" ideyası) */}
+                  <div className="hx-orbit">
+                    <Suspense fallback={<div className="hx-orbit__ph" aria-hidden="true" />}>
+                      <OrbitalTimeline items={ululItems} lang={lang} label={L.ululTitle}
+                        centerFallback={<p className="hx-orbit__hint">{L.orbitHint}</p>} />
+                    </Suspense>
                   </div>
-                </aside>
+                </div>
                 <div className="hx-toolbar">
                   <label className="hx-search">
                     <span className="ui-sr-only">{L.search}</span>
@@ -265,11 +304,11 @@ export default function IslamicHistoryPage() {
                     <p>{L.noResults}</p>
                   </div>
                 )}
-                <ol className="hx-prophets">
+                <Stagger as="ol" className="hx-prophets" step={0.04} variant="scaleIn">
                   {prophets.map((p, pi) => {
                     const key = ULUL_AZM.includes(p.num)
                     return (
-                      <li key={p.num} className={`ui-card hx-prophet hx-clickable${key ? ' is-key' : ''}`} onClick={onCard(() => openP(pi))}>
+                      <StaggerItem as="li" key={p.num} className={`ui-card hx-prophet hx-clickable${key ? ' is-key' : ''}`} onClick={onCard(() => openP(pi))}>
                         <div className="hx-prophet__head">
                           <span className="hx-prophet__num ui-num" aria-hidden="true">{p.num}</span>
                           <div className="hx-prophet__names">
@@ -284,10 +323,10 @@ export default function IslamicHistoryPage() {
                           <Icon name="learn" size={16} /> {L.more}<span className="ui-sr-only">: {t(p.name, lang)}</span>
                           <Icon name="arrow" size={15} className="ui-flip-rtl hx-open__arr" />
                         </button>
-                      </li>
+                      </StaggerItem>
                     )
                   })}
-                </ol>
+                </Stagger>
               </section>
             ) : (
               <section aria-labelledby="hx-events-h">
@@ -311,7 +350,7 @@ export default function IslamicHistoryPage() {
                   ))}
                 </div>
 
-                <div className="hx-groups" key={era}>
+                <Swap swapKey={era} variant="fade" className="hx-groups">
                   {groups.map(g => (
                     <section key={g.era.key} className="hx-group" aria-labelledby={`hx-era-${g.era.key}`}>
                       <h3 id={`hx-era-${g.era.key}`} className="hx-group__title">
@@ -342,9 +381,10 @@ export default function IslamicHistoryPage() {
                       </ol>
                     </section>
                   ))}
-                </div>
+                </Swap>
               </section>
             )}
+          </Swap>
           </div>
         </div>
       </div>

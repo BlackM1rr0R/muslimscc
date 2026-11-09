@@ -18,6 +18,7 @@ import '../styles/ToolsMotion.css'
 import GeoStarfield from '../components/prayer/GeoStarfield'
 import RelatedLinks from '../components/prayer/RelatedLinks'
 import { pickUi } from '../utils/uiText'
+import ShineButton from '../motion/ShineButton'
 
 const KAABA = { lat: 21.3891, lon: 39.8579 }
 // Fırladıla bilən qlobus — ayrıca chunk (d3-geo + quru xəritəsi yalnız burada yüklənir)
@@ -79,6 +80,8 @@ function quadrant(b) {
 
 /** Üfüqi "istiqamət lenti": 0°–360°, dörd əsas istiqamət və qiblə nişanı */
 const QiblaAR = lazy(() => import('../components/QiblaAR'))
+// v6: məkan gözlənilərkən nöqtəli qlobus Məkkəyə doğru fırlanır (tənbəl, canvas; hərəkəti azalt → statik kadr)
+const DottedGlobe = lazy(() => import('../motion/DottedGlobe'))
 // lang-ok[Kamera]: az dilinin öz sözüdür (kamera)
 const AR_BTN = { az: 'Kamera ilə göstər', en: 'Show with the camera', ru: 'Показать через камеру', tr: 'Kamerayla göster', ar: 'اعرضها بالكاميرا' }
 
@@ -530,10 +533,17 @@ export default function QiblaPage({ setPage }) {
         {(status === 'loading' || status === 'idle') && (
           <div className="qibla-center ui-card" role="status">
             <GeoStarfield />
-            <div className="qibla-loader" aria-hidden="true">
-              <div className="qibla-loader-ring" />
-              <span className="qibla-loader-icon"><Icon name="qibla" size={30} /></span>
-            </div>
+            <Suspense fallback={(
+              <div className="qibla-loader" aria-hidden="true">
+                <div className="qibla-loader-ring" />
+                <span className="qibla-loader-icon"><Icon name="qibla" size={30} /></span>
+              </div>
+            )}>
+              <div className="qibla-globe-loader" aria-hidden="true">
+                <DottedGlobe size={168} points={420} speed={14} label={null} />
+                <span className="qibla-globe-loader__icon"><Icon name="qibla" size={22} /></span>
+              </div>
+            </Suspense>
             <p className="qibla-status-text">{l.loading}</p>
             {/* Məkan gözləməsi uzana bilər — seçilmiş şəhərlə dərhal davam etmək olur */}
             <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={pickCity}>{l.manual}</button>
@@ -547,7 +557,7 @@ export default function QiblaPage({ setPage }) {
             <h2 className="qibla-center-title">{l.error}</h2>
             <p>{l.errorSub}</p>
             <div className="qibla-error-btns">
-              <button type="button" className="ui-btn ui-btn--primary" onClick={startWatching}><Icon name="pin" className="ui-btn__icon" /> {l.grant}</button>
+              <ShineButton onClick={startWatching} icon={<Icon name="pin" className="ui-btn__icon" />}> {l.grant}</ShineButton>
               <button type="button" className="ui-btn ui-btn--secondary" onClick={pickCity}>{l.manual}</button>
             </div>
             {/* Başqa şəhər seçmək olar — seçiləndə qiblə həmin şəhərdən hesablanır */}
@@ -607,9 +617,9 @@ export default function QiblaPage({ setPage }) {
                 <span className="qibla-angle-label">{l.fromNorth}</span>
               </div>
               {arOk && qibla != null && (
-                <button type="button" className="ui-btn ui-btn--primary qibla-ar-btn" onClick={openAR} data-testid="qibla-ar-open">
-                  <Icon name="target" className="ui-btn__icon" /> {pickUi(AR_BTN, lang, 'en')}
-                </button>
+                <ShineButton className="qibla-ar-btn" onClick={openAR} data-testid="qibla-ar-open" icon={<Icon name="target" className="ui-btn__icon" />}>
+                  {' '}{pickUi(AR_BTN, lang, 'en')}
+                </ShineButton>
               )}
               {arOpen && (
                 <Suspense fallback={null}>

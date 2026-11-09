@@ -19,6 +19,8 @@ import { QURAN_GUIDE } from '../data/guides/QuranPage'
 import KhatmPlanner from '../components/quran/KhatmPlanner'
 import QuranRadio from '../components/quran/QuranRadio'
 import SurahArt from '../components/quran/SurahArt'
+// Dizayn v6: seqmentlərdə seçilmiş hap yayla sürüşür (src/motion, layoutId)
+import { SegGroup, SegPill } from '../components/quran/SegPill'
 import SurahRootCloud from '../components/quran/SurahRootCloud'
 import OfflinePack from '../components/OfflinePack'
 import OfflineAudio from '../components/quran/OfflineAudio'
@@ -1641,14 +1643,16 @@ export default function QuranPage() {
         <div className="ui-container">
           {/* Axtarış paneli: seqment (surə / ayə) + sahə */}
           <div className="qp-toolbar">
-            <div className="ui-segmented qp-mode" role="group" aria-label={sl.mode}>
+            <SegGroup id="qp-mode">
+            <div className="ui-segmented qp-mode seg-pill-host" role="group" aria-label={sl.mode} data-wow-off="">
               <button type="button" aria-pressed={searchMode === 'surah'} onClick={() => setSearchMode('surah')}>
-                {sl.surahSearch}
+                <SegPill on={searchMode === 'surah'} />{sl.surahSearch}
               </button>
               <button type="button" aria-pressed={searchMode === 'verse'} onClick={() => setSearchMode('verse')}>
-                {sl.verseSearch}
+                <SegPill on={searchMode === 'verse'} />{sl.verseSearch}
               </button>
             </div>
+            </SegGroup>
             <div className="quran-search-bar">
               <Icon name="search" size={18} className="qp-search-icon" />
               {searchMode === 'surah' ? (
@@ -1661,18 +1665,21 @@ export default function QuranPage() {
             </div>
           </div>
           {searchMode === 'surah' && (
-            <div className="ui-segmented qp-views" role="group" aria-label={xl.views}>
+            <SegGroup id="qp-views">
+            <div className="ui-segmented qp-views seg-pill-host" role="group" aria-label={xl.views} data-wow-off="">
               {[
                 { key: 'surahs', label: xl.surahs, icon: 'quran' },
                 { key: 'juz', label: xl.juz, icon: 'mushaf' },
                 { key: 'saved', label: xl.saved, icon: 'hifz', count: savedList.length },
               ].map(v => (
                 <button type="button" key={v.key} aria-pressed={view === v.key} onClick={() => setView(v.key)}>
+                  <SegPill on={view === v.key} />
                   <Icon name={v.icon} size={16} />{v.label}
                   {v.count ? <span className="qp-views__n ui-num">{v.count}</span> : null}
                 </button>
               ))}
             </div>
+            </SegGroup>
           )}
           {searchMode === 'surah' && view === 'juz' && (
             <ul className="qp-juz-grid" role="list">

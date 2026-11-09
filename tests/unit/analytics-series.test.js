@@ -79,6 +79,19 @@ describe('feedEvents', () => {
     expect(titles).toContain('h:4')
     expect(titles).toContain('f')
   })
+  it('eyni gündə dəqiq vaxtlı hadisə gün hadisəsindən əvvəl gəlir (səhər saatlarında da)', () => {
+    const early = new Date(2026, 10, 10, 1, 13).getTime()   // 01:13 — günortadan əvvəl
+    const s = {
+      prayerStats: { '2026-11-10_Fajr': true, '2026-11-10_Dhuhr': true, '2026-11-10_Asr': true, '2026-11-10_Maghrib': true, '2026-11-10_Isha': true },
+      dhikrSession: { log: [{ id: early, name: 'SubhanAllah', count: 33 }] },
+    }
+    const ev = feedEvents(s, buildDays(s), names, '2026-11-01')
+    const i = ev.findIndex(e => e.title === 'z:SubhanAllah:33')
+    const j = ev.findIndex(e => e.title === 'p')
+    expect(i).toBeGreaterThanOrEqual(0)
+    expect(j).toBeGreaterThanOrEqual(0)
+    expect(i).toBeLessThan(j)
+  })
   it('since-dən köhnələr atılır', () => {
     const ev = feedEvents(store, buildDays(store), names, '2026-11-08')
     expect(ev.every(e => typeof e.time === 'number' || e.time >= '2026-11-08')).toBe(true)

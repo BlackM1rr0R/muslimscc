@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -9,6 +9,12 @@ import {
   SOURCES, SOURCE_SHORT, TOPICS, COMMENTARIES,
 } from '../data/fatwaSources'
 import '../styles/FatwaPage.css'
+import SpotlightCard from '../motion/SpotlightCard'
+import Marquee from '../motion/Marquee'
+import PressedGlide from '../components/pagefx/PressedGlide'
+
+// Mənbə saytlarının adları — axan zolaq üçün (yalnız mətn, keçid yox; keçidlər kartlardadır)
+const HOSTS = [...new Set(SOURCES.map(s => s.host).filter(Boolean))]
 import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -193,6 +199,8 @@ export default function FatwaPage() {
   const [q, setQ] = useState('')
   const [fLang, setFLang] = useState('all')
   const [fTopic, setFTopic] = useState('all')
+  const langRef = useRef(null)
+  const topicRef = useRef(null)
   const [hq, setHq] = useState('')
 
   const nq = norm(q.trim())
@@ -291,7 +299,8 @@ export default function FatwaPage() {
               </div>
               <span className="fw-toolbar__count ui-num" aria-live="polite">{total} {T.results}</span>
             </div>
-            <div className="fw-filters fw-filters--scroll" role="group" aria-label={T.langFilter}>
+            <div className="fw-filters fw-filters--scroll pfx-glide-host" role="group" aria-label={T.langFilter} ref={langRef}>
+              <PressedGlide containerRef={langRef} deps={[fLang, lang]} />
               <span className="fw-filters__label">{T.langLabel}</span>
               <button type="button" className="ui-chip" aria-pressed={fLang === 'all'} onClick={() => setFLang('all')}>{T.all}</button>
               {FATWA_LANGS.map(l => (
@@ -300,7 +309,8 @@ export default function FatwaPage() {
                 </button>
               ))}
             </div>
-            <div className="fw-filters fw-filters--scroll" role="group" aria-label={T.topicFilter}>
+            <div className="fw-filters fw-filters--scroll pfx-glide-host" role="group" aria-label={T.topicFilter} ref={topicRef}>
+              <PressedGlide containerRef={topicRef} deps={[fTopic, lang]} />
               <span className="fw-filters__label">{T.topicLabel}</span>
               <button type="button" className="ui-chip" aria-pressed={fTopic === 'all'} onClick={() => setFTopic('all')}>{T.all}</button>
               {TOPICS.map(t => (
@@ -387,11 +397,17 @@ export default function FatwaPage() {
                 <h2 id="fw-sources-h" className="ui-title ui-title--sm">{T.secSources}</h2>
                 <p className="fw-section__lead">{T.sourcesLead}</p>
               </div>
+              {/* v6: alim saytlarının adları axan zolaqda (21st.dev "marquee" ideyası; hover/fokusda dayanır) */}
+              <div className="fw-marquee" dir="ltr">
+                <Marquee label={T.secSources} speed={32} gap={10}>
+                  {HOSTS.map(h => <span key={h} className="fw-marquee__item"><span className="fw-marquee__mono" aria-hidden="true">{h.charAt(0).toUpperCase()}</span>{h}</span>)}
+                </Marquee>
+              </div>
               <ul className="fw-grid">
                 {sources.map(s => {
                   const langs = Object.keys(s.urls || {})
                   return (
-                    <li key={s.id} className="ui-card fw-src">
+                    <SpotlightCard as="li" key={s.id} tone="accent" className="ui-card fw-src">
                       <div className="fw-src__top">
                         {/* Loqosuz monoqram — saytın adının ilk hərfi (bəzək; ad başlıqda mətn kimi var) */}
                         <span className="fw-mono" aria-hidden="true">{(s.host || '?').charAt(0).toUpperCase()}</span>
@@ -418,7 +434,7 @@ export default function FatwaPage() {
                         </div>
                         <Ext className="ui-btn ui-btn--primary ui-btn--sm fw-src__visit" href={sourceMainUrl(s)} label={T.external}>{T.visit}</Ext>
                       </div>
-                    </li>
+                    </SpotlightCard>
                   )
                 })}
               </ul>

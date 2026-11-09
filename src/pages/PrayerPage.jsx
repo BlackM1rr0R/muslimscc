@@ -34,6 +34,11 @@ import PrayerWallpaper from '../components/prayer/PrayerWallpaper'
 import LandscapeBoard from '../components/prayer/LandscapeBoard'
 import { ProgressRing, StatTile } from '../components/viz'
 import { pickUi } from '../utils/uiText'
+import { m } from 'motion/react'
+import LayoutFeatures from '../motion/LayoutFeatures'
+import AnimatedTabs from '../motion/AnimatedTabs'
+import PresenceSwap from '../motion/PresenceSwap'
+import { SPRING } from '../motion/presets'
 
 // İmsakiyyə səhifəsi (/ramadan) marşrutlara qoşulubsa kartda ona keçid görünür
 const HAS_RAMADAN_PAGE = PAGES.some(p => p.key === 'ramadan')
@@ -561,6 +566,7 @@ export default function PrayerPage({ setPage }) {
   // Aylıq cədvəl — şəhərin təqvim günü (pt.date 'DD-MM-YYYY'); ‹ › ilə başqa ay
   const [cd, cm, cy] = String(pt.date || '').split('-').map(Number)
   const [monthOff, setMonthOff] = useState(0)
+  const [monthDir, setMonthDir] = useState(1) // v6: cədvəl keçidinin istiqaməti (1 irəli, -1 geri)
   const [monthView, setMonthView] = useState('month') // 'month' | 'week'
   const vIdx = cm && cy ? cy * 12 + (cm - 1) + monthOff : null
   const vy = vIdx != null ? Math.floor(vIdx / 12) : null
@@ -570,6 +576,7 @@ export default function PrayerPage({ setPage }) {
   const monthLabel = vm ? monthName(vm, vy, lang) : ''
   // "Növbəti 7 gün" yalnız bu ayda mənalıdır (ayın sonunda 7-dən az ola bilər)
   const weekMode = monthView === 'week' && isCurMonth
+  const otherView = monthView === 'month' ? 'week' : 'month' // AnimatedTabs: seçilməyən sekmənin (boş) paneli
   const monthRows = month.days ? (weekMode ? month.days.filter(d => d.day >= cd && d.day < cd + 7) : month.days) : null
 
   // Qalan vaxt: "2 s 15 dəq sonra" (yalnız bu günün gələcək vaxtları)
@@ -760,6 +767,7 @@ export default function PrayerPage({ setPage }) {
                   </div>
                 )}
                 {times && !loading && (
+                  <LayoutFeatures>
                   <ol className="prayer-times-list pp-swap tm-cascade" key={sel || 'default'}>
                     {PRAYER_KEYS.map((key,i) => {
                       const isNext = next?.name === key && !pt.next?.tomorrow
@@ -768,6 +776,8 @@ export default function PrayerPage({ setPage }) {
                       const left = !passed && km != null && nowMin != null && km > nowMin ? km - nowMin : null
                       return (
                         <li key={key} className={`prayer-time-card${isNext ? ' is-next' : ''}${passed ? ' is-passed' : ''}${key === 'Sunrise' ? ' is-aux' : ''}`}>
+                          {/* v6: "növbəti" fonu namaz keçəndə yay ilə növbəti sətrə sürüşür (layoutId) */}
+                          {isNext && <m.span layoutId={`pp-next-hl-${sel || 'default'}`} className="pt-next-hl" transition={SPRING.soft} aria-hidden="true" />}
                           <span className="pt-icon" aria-hidden="true"><Icon name={PRAYER_ICONS[key]} /></span>
                           <span className="pt-info">
                             <span className="pt-name">{PRAYER_NAMES[i]}</span>
@@ -780,6 +790,7 @@ export default function PrayerPage({ setPage }) {
                       )
                     })}
                   </ol>
+                  </LayoutFeatures>
                 )}
                 {times && !loading && (
                   <div className="prayer-times-foot">
@@ -921,27 +932,22 @@ export default function PrayerPage({ setPage }) {
           </div>
           <div className="pp-month-bar">
             <div className="pp-month-nav">
-              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm pp-icon-btn" onClick={() => setMonthOff(o => o - 1)}
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm pp-icon-btn" onClick={() => { setMonthDir(-1); setMonthOff(o => o - 1) }}
                 aria-label={P(V3.prevMonth)} title={P(V3.prevMonth)}>
                 <Icon name="chevronLeft" size={16} className="ui-flip-rtl" />
               </button>
               <span className="pp-month-name" aria-live="polite">{monthLabel} <span className="ui-num">{vy || ''}</span></span>
-              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm pp-icon-btn" onClick={() => setMonthOff(o => o + 1)}
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm pp-icon-btn" onClick={() => { setMonthDir(1); setMonthOff(o => o + 1) }}
                 aria-label={P(V3.nextMonth)} title={P(V3.nextMonth)}>
                 <Icon name="chevron" size={16} className="ui-flip-rtl" />
               </button>
               {!isCurMonth && (
-                <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setMonthOff(0)}>{P(V3.thisMonth)}</button>
+                <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => { setMonthDir(monthOff > 0 ? -1 : 1); setMonthOff(0) }}>{P(V3.thisMonth)}</button>
               )}
             </div>
             {isCurMonth && (
-              <div className="ui-segmented pp-month-seg" role="radiogroup" aria-label={P(V3.viewLabel)}>
-                {['month', 'week'].map(v => (
-                  <button key={v} type="button" role="radio" aria-checked={monthView === v} onClick={() => setMonthView(v)}>
-                    {P(v === 'month' ? V3.viewMonth : V3.viewWeek)}
-                  </button>
-                ))}
-              </div>
+              <AnimatedTabs className="pp-month-seg" idBase="pp-mv" size="sm" label={P(V3.viewLabel)} value={monthView} onChange={(v) => { setMonthDir(v === 'week' ? 1 : -1); setMonthView(v) }}
+                tabs={['month', 'week'].map(v => ({ id: v, label: P(v === 'month' ? V3.viewMonth : V3.viewWeek) }))} />
             )}
             <div className="pp-month-tools">
               <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={printMonth} disabled={!month.days}>
@@ -965,7 +971,11 @@ export default function PrayerPage({ setPage }) {
               {Array.from({ length: 5 }, (_, i) => <span key={i} className="ui-skeleton ui-skeleton--text" style={{ '--w': `${92 - i * 7}%` }} />)}
             </div>
           ) : (
-            <div className={`ui-table-wrap pp-month-wrap tm-cascade-rows${weekMode ? ' is-week' : ''}`} data-reveal="fade" tabIndex={0} role="region" aria-labelledby="pp-month-title">
+            <div className="pp-month-swap" data-reveal="fade"
+              {...(isCurMonth ? { role: 'tabpanel', id: `pp-mv-panel-${monthView}`, 'aria-labelledby': `pp-mv-tab-${monthView}` } : {})}>
+            {/* v6: ay / həftə dəyişəndə cədvəl istiqamətlə sürüşür (irəli → sağdan, RTL-də güzgü) */}
+            <PresenceSwap swapKey={`${monthOff}-${weekMode ? 'w' : 'm'}`} variant="slide" dir={monthDir}>
+            <div className={`ui-table-wrap pp-month-wrap${weekMode ? ' is-week' : ''}`} tabIndex={0} role="region" aria-labelledby="pp-month-title">
               <table className="ui-table ui-table--compact ui-table--zebra pp-month-table">
                 <caption>{P(V3.monthNote).replace('{city}', cityName)} {P(V3.friday)}.</caption>
                 <thead>
@@ -989,7 +999,10 @@ export default function PrayerPage({ setPage }) {
                 </tbody>
               </table>
             </div>
+            </PresenceSwap>
+            </div>
           )}
+          {isCurMonth && <div role="tabpanel" id={`pp-mv-panel-${otherView}`} aria-labelledby={`pp-mv-tab-${otherView}`} hidden />}
         </div>
       </section>
 

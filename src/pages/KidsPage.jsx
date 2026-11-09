@@ -11,6 +11,10 @@ import { ProgressRing } from '../components/viz'
 import '../styles/LessonsPage.css'
 import '../styles/KidsPage.css'
 import { pickUi } from '../utils/uiText'
+import { m } from 'motion/react'
+import LayoutFeatures from '../motion/LayoutFeatures'
+import PresenceSwap from '../motion/PresenceSwap'
+import { SPRING } from '../motion/presets'
 
 // Rüknlərin ikonları (Icon.jsx) — məlumatdakı emoji sahələri
 // artıq göstərilmir (dizayn v2: emoji ikon yoxdur). Sıra PILLARS ilədir.
@@ -522,18 +526,22 @@ export default function KidsPage({ setPage }) {
         <div className="section-inner kids-layout" ref={layoutRef}>
 
           {/* Bölmə sekmələri — telefonda üfüqi sürüşən, başlığın altına yapışan zolaq */}
+          {/* v6: aktiv sekmənin yaşıl "hapı" yayla (bouncy) yeni sekməyə sıçrayır — layoutId, domMax tənbəl */}
+          <LayoutFeatures>
           <div className="kids-tabs" ref={tabsRef} role="group" aria-label={t.learn}>
             {sections.map(s => (
               <button key={s.key}
                 type="button"
-                className={`kids-tab ${openSection===s.key?'active':''}`}
+                className={`kids-tab kids-tab--mo ${openSection===s.key?'active':''}`}
                 aria-pressed={openSection===s.key}
                 onClick={(e) => toggleSection(s.key, e.currentTarget)}>
+                {openSection === s.key && <m.span layoutId="kids-tab-pill" className="kids-tab-pill" transition={SPRING.bouncy} aria-hidden="true" />}
                 <span className="kids-tab-icon" aria-hidden="true"><Icon name={s.icon} size={18} /></span>
                 <span className="kids-tab-label">{s.title}</span>
               </button>
             ))}
           </div>
+          </LayoutFeatures>
 
           {/* Allahın gözəl adları — nömrə xatəm ulduzunda */}
           {openSection === 'names' && (
@@ -743,10 +751,10 @@ export default function KidsPage({ setPage }) {
                   </button>
                 </div>
               ) : (
-                <div className="kids-quiz-box" key={quizIdx}>
+                <PresenceSwap swapKey={quizIdx} variant="slide" className="kids-quiz-box kids-quiz-box--mo">
                   <div className="kids-quiz-top">
                     <span className="kids-quiz-progress ui-num" dir="ltr">{quizIdx + 1} / {QUIZ.length}</span>
-                    <span className="kids-quiz-score ui-num"><Icon name="star" size={16} />{score}</span>
+                    <span className="kids-quiz-score ui-num"><Icon name="star" size={16} /><m.span key={score} className="kids-quiz-score__n" initial={score ? { scale: 1.5, y: -4 } : false} animate={{ scale: 1, y: 0, transition: SPRING.bouncy }}>{score}</m.span></span>
                   </div>
                   {/* İrəliləyiş zolağı — transform: scaleX */}
                   <div className="kids-quiz-bar" aria-hidden="true">
@@ -782,7 +790,7 @@ export default function KidsPage({ setPage }) {
                       </button>
                     </div>
                   )}
-                </div>
+                </PresenceSwap>
               )}
             </section>
           )}

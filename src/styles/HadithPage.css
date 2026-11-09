@@ -465,7 +465,10 @@
 .hadith-gradef__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gr); }
 .hadith-gradef__btn[data-tone="none"] .hadith-gradef__dot { background: transparent; border: 1.5px solid var(--gr); }
 .hadith-gradef__btn:hover { color: var(--text-primary); }
-.hadith-gradef__btn[aria-pressed="true"] { background: var(--surface-1); color: var(--text-primary); box-shadow: var(--shadow-1); }
+.hadith-gradef__btn[aria-pressed="true"] { color: var(--text-primary); }
+/* v6: seçilmiş hap ayrıca element — Motion layoutId ilə düymədən düyməyə sürüşür */
+.hadith-gradef__btn { position: relative; isolation: isolate; }
+.hadith-gradef__ind { position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--surface-1); box-shadow: var(--shadow-1); }
 .hadith-gradef__btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 @media (max-width: 640px) {
   .hadith-countrow { margin-block: var(--space-4) var(--space-3); scroll-margin-top: 120px; }

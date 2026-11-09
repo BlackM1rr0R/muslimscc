@@ -132,3 +132,18 @@
 @media (prefers-reduced-motion: reduce) {
   .pg-btn:hover:not(:disabled):not(.active), .pg-prev:hover svg, .pg-next:hover svg { transform: none; }
 }
+
+/* v6 Motion: cari səhifənin dolğusu .pg-pill (layoutId) — nömrədən nömrəyə yayla sürüşür.
+   Düymənin öz dolğusu şəffaf qalır; hərəkəti azalt → ani (MotionConfig). */
+.pagination.pagination--mo .pg-num { position: relative; isolation: isolate; }
+.pagination.pagination--mo .pg-btn.active { background: transparent; box-shadow: none; animation: none; }
+.pg-pill {
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--brand);
+  box-shadow: var(--shadow-2);
+  pointer-events: none;
+}
+.pg-num__t { position: relative; }

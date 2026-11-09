@@ -15,6 +15,7 @@ import { createPortal } from 'react-dom'
 import Icon from './Icon'
 import '../styles/YearStory.css'
 import { pickUi } from '../utils/uiText'
+import PresenceSwap from '../motion/PresenceSwap'
 
 const DUR = 4500
 const T = {
@@ -34,7 +35,9 @@ export default function YearStory({ scenes, title, lead, lang = 'az', onShare, o
   const auto = useRef(!reduced())
   const closeRef = useRef(null)
   const n = all.length
-  const go = useCallback((d) => setI(x => Math.max(0, Math.min(n - 1, x + d))), [n])
+  // v6: səhnə keçidi istiqamətli (irəli — yeni səhnə oxu istiqamətindən gəlir, geri — əksinə; RTL-də güzgü)
+  const [dir, setDir] = useState(1)
+  const go = useCallback((d) => { setDir(d < 0 ? -1 : 1); setI(x => Math.max(0, Math.min(n - 1, x + d))) }, [n])
 
   useEffect(() => {
     if (!auto.current || paused || i >= n - 1) return undefined
@@ -84,7 +87,7 @@ export default function YearStory({ scenes, title, lead, lang = 'az', onShare, o
       </div>
 
       <div className="ys__stage" onPointerDown={onDown} onPointerUp={onUp} onPointerCancel={() => clearTimeout(holdT.current)}>
-        <div className="ys__scene" key={s.key} aria-live="polite">
+        <PresenceSwap swapKey={s.key} variant="slide" dir={dir} className="ys__scene" aria-live="polite">
           {s.intro && <>
             <span className="ys__orb" aria-hidden="true"><Icon name="moonStar" size={40} /></span>
             <h2 className="ys__title">{title}</h2>
@@ -102,10 +105,10 @@ export default function YearStory({ scenes, title, lead, lang = 'az', onShare, o
             <p className="ys__sub">{t.endSub}</p>
             <div className="ys__actions" onPointerDown={e => e.stopPropagation()} onPointerUp={e => e.stopPropagation()}>
               {onShare && <button type="button" className="ui-btn ui-btn--inverse" onClick={onShare}><Icon name="share" className="ui-btn__icon" /> {t.share}</button>}
-              <button type="button" className="ui-btn ui-btn--inverse-ghost" onClick={() => setI(0)}><Icon name="refresh" className="ui-btn__icon" /> {t.again}</button>
+              <button type="button" className="ui-btn ui-btn--inverse-ghost" onClick={() => { setDir(-1); setI(0) }}><Icon name="refresh" className="ui-btn__icon" /> {t.again}</button>
             </div>
           </>}
-        </div>
+        </PresenceSwap>
       </div>
       <div className="ys__nav">
         <button type="button" className="ys__navbtn" onClick={() => go(-1)} disabled={i === 0} aria-label={t.prev}><Icon name="chevronLeft" size={22} className="ui-flip-rtl" /></button>

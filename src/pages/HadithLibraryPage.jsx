@@ -10,6 +10,11 @@ import { OVERLAY_KEY } from '../utils/useBackToClose'
 import { fetchSectionPair } from '../api/hadithLibrary'
 import { BOOKS, BOOK_DATA, TRANSLATION_LANGS, DEFAULT_TRANSLATION } from '../data/hadithLibrary'
 import '../styles/HadithLibraryPage.css'
+// Dizayn v6 (src/motion): hədis kartı → oxu pəncərəsi morph (layoutId), hero rəqəmləri sayğacla
+import { m } from 'motion/react'
+import { ExpandableGroup, useMorphId, morphId } from '../motion/ExpandableCard'
+import { SPRING } from '../motion/presets'
+import NumberTicker from '../motion/NumberTicker'
 import HadithBooksChart from '../components/HadithBooksChart'
 import HadithLibraryNumbers from '../components/numbers/HadithLibraryNumbers'
 import { pickUi } from '../utils/uiText'
@@ -272,6 +277,9 @@ export default function HadithLibraryPage() {
   const [filter, setFilter] = useState('all')
   const [limit, setLimit] = useState(PAGE)
   const [flashKey, setFlashKey] = useState('')
+  const [from, setFrom] = useState(null)      // pəncərə hansı kartdan açılıb (morph)
+  const morph = useMorphId(from == null ? null : `hl-${from}`)
+  const morphOn = useMorphId(0) != null
   const [last, setLast] = useState(() => readJSON(LAST_KEY, null))
   const stars = useStarred(STAR_KEY)
   const mainRef = useRef(null)
@@ -380,6 +388,7 @@ export default function HadithLibraryPage() {
 
   const openHadith = (n) => setRoute(r => ({ ...r, n }))
   const close = useCallback(() => {
+    setFrom(null)
     setRoute(r => {
       if (r.n == null) return r
       const nr = { ...r, n: null }
@@ -443,6 +452,7 @@ export default function HadithLibraryPage() {
 
 
   return (
+    <ExpandableGroup id="hl-xc">
     <div className="hl-page">
       <header className={`ui-page-hero ui-page-hero--split hl-hero${route.book ? ' hl-hero--compact' : ''}`}>
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
@@ -457,9 +467,9 @@ export default function HadithLibraryPage() {
           <div className="ui-page-hero__aside">
             <div className="ui-card hl-hero__card">
               <ul className="ui-page-hero__stats hl-hero__stats">
-                <li><b className="ui-num">{BOOKS.length}</b><span>{L.statBooks}</span></li>
-                <li><b className="ui-num">{fmt(TOTAL_HADITHS)}</b><span>{L.statHadiths}</span></li>
-                <li><b className="ui-num">{ALL_LANGS.size}</b><span>{L.statLangs}</span></li>
+                <li><b className="ui-num"><NumberTicker value={BOOKS.length} lang={lang} /></b><span>{L.statBooks}</span></li>
+                <li><b className="ui-num"><NumberTicker value={TOTAL_HADITHS} lang={lang} delay={0.08} /></b><span>{L.statHadiths}</span></li>
+                <li><b className="ui-num"><NumberTicker value={ALL_LANGS.size} lang={lang} delay={0.16} /></b><span>{L.statLangs}</span></li>
               </ul>
               {lastBook && (
                 <button type="button" className="ui-btn ui-btn--primary ui-btn--sm hl-hero__btn"
@@ -674,7 +684,8 @@ export default function HadithLibraryPage() {
                         const tone = hadithTone(h)
                         const on = stars.has(sid(h.n))
                         return (
-                          <li key={h.n} id={`hl-h-${h.n.replace('.', '-')}`} className={`ui-card hl-card${tone ? ` hl-card--${tone}` : ''}${route.n === h.n ? ' is-current' : ''}`}>
+                          <m.li layoutId={morphOn ? morphId(`hl-${h.n}`) : undefined} transition={SPRING.soft} data-wow-off=""
+                            key={h.n} id={`hl-h-${h.n.replace('.', '-')}`} className={`ui-card hl-card${tone ? ` hl-card--${tone}` : ''}${route.n === h.n ? ' is-current' : ''}`}>
                             <div className="hl-card__top">
                               <span className="hl-card__n ui-num" dir="ltr">{h.n}</span>
                               {tone && <span className={`hl-tone hl-tone--${tone}`}><Icon name="alert" size={12} /> {tone === 'fab' ? L.fabMark : L.weakMark}</span>}
@@ -688,11 +699,11 @@ export default function HadithLibraryPage() {
                                 {h.grades.length > 2 && <li className="hl-grade hl-grade--more ui-num" dir="ltr">+{h.grades.length - 2}</li>}
                               </ul>
                             )}
-                            <button type="button" className="hl-card__open" onClick={() => openHadith(h.n)}>
+                            <button type="button" className="hl-card__open" onClick={() => { setFrom(h.n); openHadith(h.n) }}>
                               <span className="ui-sr-only">{bookName} {h.n}</span>
                               <span aria-hidden="true">{L.read} <Icon name="chevron" size={14} className="ui-flip-rtl" /></span>
                             </button>
-                          </li>
+                          </m.li>
                         )
                       })}
                     </ol>
@@ -772,6 +783,7 @@ export default function HadithLibraryPage() {
         labelledBy="hl-reader-title"
         position={idx >= 0 ? `${idx + 1} / ${nav.length}` : null}
         contentKey={cur?.n}
+        layoutId={morph}
         className="hl-reader"
         labels={{ close: L.close, prev: L.prev, next: L.next }}
         head={cur && (
@@ -827,6 +839,7 @@ export default function HadithLibraryPage() {
         )}
       </ReaderDialog>
     </div>
+    </ExpandableGroup>
   )
 }
 

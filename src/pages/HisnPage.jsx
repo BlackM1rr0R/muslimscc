@@ -7,6 +7,14 @@ import { pathFor } from '../seo/routes'
 import ReaderDialog from '../components/reader/ReaderDialog'
 import { copyText, readJSON, shareOrCopy, writeJSON } from '../components/reader/share'
 import '../styles/HisnPage.css'
+// Dizayn v6 (src/motion): fəsil kartı → oxu pəncərəsi morph (layoutId), grid növbə ilə,
+// hero rəqəmləri sayğacla.
+import { m } from 'motion/react'
+import { ExpandableGroup, useMorphId, morphId } from '../motion/ExpandableCard'
+import { Stagger } from '../motion/Stagger'
+import { variantFor } from '../motion/Reveal'
+import { SPRING } from '../motion/presets'
+import NumberTicker from '../motion/NumberTicker'
 import { pickUi } from '../utils/uiText'
 import { adhkarProgress, partNow } from '../components/hisn/adhkarState'
 
@@ -229,6 +237,10 @@ export default function HisnPage({ setPage }) {
   const [favs, setFavs] = useState(() => readIds(FAV_KEY))
   const [last, setLast] = useState(() => readJSON(LAST_KEY, 0))
   const [cur, setCur] = useState(null)        // açıq fəslin id-si (oxu pəncərəsi)
+  const [from, setFrom] = useState(null)      // pəncərə hansı kartdan açılıb (morph)
+  const morph = useMorphId(from == null ? null : `hs-${from}`)
+  const morphOn = useMorphId(0) != null
+  const cardV = useMemo(() => variantFor('fadeUp'), [])
   const [copied, setCopied] = useState('')
   const readerRef = useRef(null)
   const location = useLocation()
@@ -309,6 +321,7 @@ export default function HisnPage({ setPage }) {
 
   const closeReader = useCallback(() => {
     setCur(null)
+    setFrom(null)
     try {
       if (/^#hs-\d+$/.test(window.location.hash)) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search)
     } catch { /* */ }
@@ -342,6 +355,7 @@ export default function HisnPage({ setPage }) {
   const go = (page) => (e) => { if (setPage && plainClick(e)) { e.preventDefault(); setPage(page) } }
 
   return (
+    <ExpandableGroup id="hs-xc">
     <div className="hs-page">
       <header className="ui-page-hero hs-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
@@ -352,9 +366,9 @@ export default function HisnPage({ setPage }) {
           <p className="ui-lead">{L.subtitle}</p>
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{X.how}</span></p>
           <ul className="ui-page-hero__stats">
-            <li><b className="ui-num">{chapters.length || 133}</b><span>{X.chapters}</span></li>
-            <li><b className="ui-num">{itemTotal || 293}</b><span>{X.items}</span></li>
-            <li><b className="ui-num">{CATS.length}</b><span>{X.situations}</span></li>
+            <li><b className="ui-num"><NumberTicker value={chapters.length || 133} lang={lang} /></b><span>{X.chapters}</span></li>
+            <li><b className="ui-num"><NumberTicker value={itemTotal || 293} lang={lang} delay={0.08} /></b><span>{X.items}</span></li>
+            <li><b className="ui-num"><NumberTicker value={CATS.length} lang={lang} delay={0.16} /></b><span>{X.situations}</span></li>
           </ul>
           <p className="hs-hero__by"><Icon name="books" size={15} /> {L.author}</p>
         </div>
@@ -503,13 +517,14 @@ export default function HisnPage({ setPage }) {
                 </div>
               )}
               {/* Fəsillər kart grid-də; kart klikdə oxu pəncərəsi açılır */}
-              <ol className="hs-grid">
+              <Stagger as="ol" className="hs-grid" key={`${cat}|${onlyFavs}`} step={0.04}>
                 {filtered.map(c => {
                   const k = CAT_BY_ID.get(CAT_OF.get(c.id) || 'virtue')
                   const first = c.items[0]
                   const fav = favSet.has(c.id)
                   return (
-                    <li key={c.id} id={`hs-${c.id}`} className={`ui-card hs-card${fav ? ' is-fav' : ''}`}>
+                    <m.li variants={cardV} layoutId={morphOn ? morphId(`hs-${c.id}`) : undefined} transition={SPRING.soft} data-wow-off=""
+                      key={c.id} id={`hs-${c.id}`} className={`ui-card hs-card${fav ? ' is-fav' : ''}`}>
                       <div className="hs-card__top">
                         <span className="hs-card__n ui-num" aria-hidden="true">{c.id}</span>
                         {k && <span className="ui-badge hs-card__cat"><Icon name={k.icon} size={12} /> {pickUi(k.t, lang, 'en')}</span>}
@@ -519,7 +534,7 @@ export default function HisnPage({ setPage }) {
                         </button>
                       </div>
                       <h2 className="hs-card__title">
-                        <button type="button" className="hs-card__open" onClick={() => setCur(c.id)}>
+                        <button type="button" className="hs-card__open" onClick={() => { setFrom(c.id); setCur(c.id) }}>
                           <span className="ui-sr-only">{c.id}. </span>{c.title}
                         </button>
                       </h2>
@@ -529,10 +544,10 @@ export default function HisnPage({ setPage }) {
                         <span className="hs-card__meta ui-num">{c.items.length} {X.items}</span>
                         <span className="hs-card__read" aria-hidden="true">{X.read} <Icon name="chevron" size={14} className="ui-flip-rtl" /></span>
                       </div>
-                    </li>
+                    </m.li>
                   )
                 })}
-              </ol>
+              </Stagger>
             </>
           )}
         </div>
@@ -563,6 +578,7 @@ export default function HisnPage({ setPage }) {
         labelledBy="hs-dlg-title"
         position={navIdx >= 0 ? `${navIdx + 1} / ${nav.length}` : null}
         contentKey={cur}
+        layoutId={morph}
         className="hs-dlg"
         labels={{ close: X.close, prev: X.prev, next: X.next }}
         head={chap && (
@@ -601,5 +617,6 @@ export default function HisnPage({ setPage }) {
         )}
       </ReaderDialog>
     </div>
+    </ExpandableGroup>
   )
 }

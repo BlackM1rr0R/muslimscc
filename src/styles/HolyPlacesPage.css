@@ -270,3 +270,45 @@
   to   { opacity: 1; clip-path: inset(-20% 0 -20% 0); filter: none; }
 }
 @keyframes holy-spin { to { transform: rotate(360deg); } }
+
+/* ══ v6 Motion — foto qalereyası (CardStack, tənbəl) + Ken Burns ══ */
+.holy-gallery {
+  display: grid;
+  gap: var(--space-4) var(--space-6);
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+@media (min-width: 900px) {
+  .holy-gallery { grid-template-columns: minmax(0, 460px) minmax(0, 1fr); }
+}
+.holy-gallery__deck { min-width: 0; width: 100%; max-width: 460px; margin-inline: auto; }
+/* Yer tutucu: kart (3/2 + atribusiya) + naviqasiya — CLS olmasın */
+.holy-gallery__ph { width: 100%; aspect-ratio: 3 / 2.45; border-radius: var(--radius-lg); background: var(--surface-2); }
+.holy-gallery__card {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-2);
+  user-select: none;
+}
+.holy-gallery__card .ph { --ph-ratio: 3 / 2; }
+.holy-gallery__card img { -webkit-user-drag: none; pointer-events: none; }
+.holy-gallery .mo-stack__ghost .holy-gallery__card { box-shadow: var(--shadow-1); }
+.holy-gallery__cap { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.holy-gallery__name { margin: 0; color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-2); font-weight: 650; line-height: 1.2; }
+.holy-gallery__cap .holy-card-ar { margin: 0; font-size: 22px; }
+.holy-gallery__sig { margin: 4px 0 0; color: var(--text-body); line-height: 1.7; max-width: 60ch; }
+
+/* Ken Burns — yalnız ön kartın şəkli, yavaş; hərəkəti azalt / zəif cihaz → yox */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .holy-gallery .mo-stack__card .holy-kb.is-loaded .ph__img {
+    animation: holy-kb 16s ease-in-out infinite alternate;
+  }
+}
+@keyframes holy-kb {
+  from { transform: scale(1.02) translate3d(0, 0, 0); }
+  to   { transform: scale(1.12) translate3d(-2%, -1.5%, 0); }
+}
+.holy-gallery__card .ph__credit { padding: 6px 12px 8px; margin: 0; }
+.holy-gallery .mo-stack__ghost .ph__credit { visibility: hidden; }

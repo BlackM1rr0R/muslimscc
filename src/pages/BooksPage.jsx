@@ -14,6 +14,9 @@ import { pathFor } from '../seo/routes'
 import { isPlainClick } from '../components/PageLink'
 import { useNavigate } from 'react-router-dom'
 import '../styles/BooksPage.css'
+import SpotlightCard from '../motion/SpotlightCard'
+import PressedGlide from '../components/pagefx/PressedGlide'
+import useTilt from '../components/pagefx/useTilt'
 import StarButton from '../components/collect/StarButton'
 import useStarred from '../components/collect/useStarred'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
@@ -122,6 +125,8 @@ export default function BooksPage() {
   const l = pickUi(LABELS, lang)
   const bx = pickUi(BP32, lang, 'en')
   const star = useStarred('books:favs')
+  const catRef = useRef(null)
+  const tilt = useTilt({ max: 5 })
   const navigate = useNavigate()
   const go = (href) => (e) => { if (isPlainClick(e)) { e.preventDefault(); navigate(href) } }
 
@@ -344,9 +349,12 @@ export default function BooksPage() {
             </div>
             <div className="bp-featured-row" data-reveal="stagger-zoom">
               {featured.map(b => (
-                <article
+                <SpotlightCard
+                  as="article"
+                  {...tilt}
+                  tone="accent"
                   key={b.id}
-                  className="ui-card ui-card--flush ui-card--interactive bp-featured-card"
+                  className="ui-card ui-card--flush ui-card--interactive bp-featured-card pfx-tilt"
                   role="button"
                   tabIndex={0}
                   aria-label={pickLang(b.title, lang)}
@@ -361,7 +369,7 @@ export default function BooksPage() {
                     <h3 className="bp-title">{pickLang(b.title, lang)}</h3>
                     <p className="bp-author">{pickLang(b.author, lang, { warn: false })}</p>
                   </div>
-                </article>
+                </SpotlightCard>
               ))}
             </div>
           </section>
@@ -370,7 +378,8 @@ export default function BooksPage() {
         {/* ═══ FİLTR ═══
             Yalnız bir dolu bölmə varsa filtr mənasızdır ("Hamısı" = həmin bölmə) — gizlədirik */}
         {categories.length > 2 && (
-          <div className="bp-cat-filter" role="group" aria-label={l.filter} data-reveal="stagger-fade">
+          <div className="bp-cat-filter pfx-glide-host" role="group" aria-label={l.filter} data-reveal="stagger-fade" ref={catRef}>
+            <PressedGlide containerRef={catRef} deps={[selectedCat, lang, star.count, categories.length]} />
             {categories.map(cat => {
               const active = selectedCat === cat.key
               const count = cat.key === 'all'
@@ -434,7 +443,7 @@ export default function BooksPage() {
             // Açar filtr/səhifə dəyişəndə şəbəkəni yenidən qurur — kartlar yenidən növbə ilə görünür
             <div className="bp-grid" key={selectedCat}>
               {paginated.map((b, i) => (
-                <article key={b.id} className="ui-card ui-card--flush ui-card--interactive bp-card" onClick={() => setSelectedBook(b)} {...revealProps(i)}>
+                <SpotlightCard as="article" {...tilt} tone="accent" key={b.id} className="ui-card ui-card--flush ui-card--interactive bp-card pfx-tilt" onClick={() => setSelectedBook(b)} {...revealProps(i)}>
                   <div className="bp-cover">
                     {renderCover(b)}
                     {coverBadges(b)}
@@ -465,7 +474,7 @@ export default function BooksPage() {
                       <StarButton className="bp-star" on={star.has(String(b.id))} onToggle={() => star.toggle(String(b.id))} label={`${bx.favAdd}: ${pickLang(b.title, lang)}`} />
                     </div>
                   </div>
-                </article>
+                </SpotlightCard>
               ))}
             </div>
           )}

@@ -666,3 +666,20 @@
   .kids-name-card:hover, .kids-surah-card:hover, .kids-dua-card:hover, .kids-pillar-card:hover,
   .kids-iman-card:hover, .kids-story:hover, .kids-mgame-item:hover { transform: none; }
 }
+
+/* ══ v6 Motion — oynaq, amma sakit yaylar ══
+   • Aktiv sekmənin fonu ayrıca "hap"dır (layoutId) — sekmə dəyişəndə yayla (bouncy) sürüşür.
+   • Kviz sualı PresenceSwap ilə dəyişir (köhnə qısa sola, yeni sağdan; RTL-də güzgü) — CSS girişi söndürülür.
+   • Xal rəqəmi düz cavabda yayla "sıçrayır". Hərəkəti azalt → hamısı ani (MotionConfig). */
+.kids-tab.kids-tab--mo { position: relative; isolation: isolate; }
+.kids-tab.kids-tab--mo.active { background: transparent; }
+.kids-tab-pill {
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--brand);
+  pointer-events: none;
+}
+.kids-quiz-box.kids-quiz-box--mo { animation: none; }
+.kids-quiz-score__n { display: inline-block; min-width: 1ch; }

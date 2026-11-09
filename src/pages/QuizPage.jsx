@@ -7,6 +7,8 @@ import Breadcrumb from '../components/Breadcrumb'
 import PageLink from '../components/PageLink'
 import { ProgressRing } from '../components/viz'
 import { navLabel } from '../data/navigation'
+import PresenceSwap from '../motion/PresenceSwap'
+import NumberTicker from '../motion/NumberTicker'
 
 // v3 — hero, addımlar, nəticə icmalı üçün əlavə mətnlər
 const QX = {
@@ -1351,8 +1353,8 @@ export default function QuizPage({ setPage }) {
               </div>
             </div>
 
-            {/* key — hər yeni sualda giriş animasiyası yenidən oynasın */}
-            <div className="ui-card quiz-question-card" key={`${round}-${currentQ}`}>
+            {/* v6: sual dəyişəndə köhnə kart qısa sola çıxır, yenisi sağdan yayla gəlir (PresenceSwap, RTL-də güzgü) */}
+            <PresenceSwap swapKey={`${round}-${currentQ}`} variant="slide" className="ui-card quiz-question-card quiz-question-card--mo">
               <h2 className="quiz-question-text">{pickUi(q.q, lang, 'en')}</h2>
               <div className="quiz-options" role="group" aria-label={t.selectAnswer}>
                 {q.options.map((opt, idx) => {
@@ -1379,7 +1381,7 @@ export default function QuizPage({ setPage }) {
               {answered && q.src && (
                 <p className="quiz-src"><Icon name="books" size={14} /> {x.source}: <bdi>{q.src}</bdi></p>
               )}
-            </div>
+            </PresenceSwap>
 
             <div className="quiz-actions">
               {answered && (
@@ -1408,7 +1410,7 @@ export default function QuizPage({ setPage }) {
               {isNewBest && <span className="ui-badge ui-badge--accent quiz-new-best"><Icon name="star" size={14} />{t.newBest}</span>}
               {/* Halqa — düzgün cavabların payı; faiz mətn kimi də yazılır */}
               <ProgressRing value={correctCount} max={total || 1} size={128} thickness={11} showPercent={false} className="quiz-results-ring" />
-              <div className="quiz-results-score ui-num" data-count={pct}>{`${pct}%`}</div>
+              <div className="quiz-results-score ui-num"><NumberTicker value={pct} lang={lang} suffix="%" delay={0.35} /></div>
               <div className="quiz-results-label">{t.score}</div>
               <div className="quiz-results-stats">
                 <div className="quiz-stat quiz-stat-correct">

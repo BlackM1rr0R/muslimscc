@@ -29,6 +29,9 @@ import RollingDigits from '../components/prayer/RollingDigits'
 import Breadcrumb from '../components/Breadcrumb'
 import PageLink from '../components/PageLink'
 import { ChartFigure, BarChart } from '../components/viz'
+import { m } from 'motion/react'
+import LayoutFeatures from '../motion/LayoutFeatures'
+import { SPRING } from '../motion/presets'
 import { localizeSource } from '../utils/sourceNames'
 import { pickUi } from '../utils/uiText'
 
@@ -327,6 +330,8 @@ function TimeRow({ p, l, name, time, isNext, isPassed, jumuaTag, note }) {
   ].filter(Boolean).join(' ')
   return (
     <li className={cls} aria-current={isNext ? 'time' : undefined}>
+      {/* v6: "növbəti" fonu vaxt keçəndə yay ilə növbəti sətrə sürüşür (layoutId) */}
+      {isNext && <m.span layoutId="jm-next-hl" className="jm-next-hl" transition={SPRING.soft} aria-hidden="true" />}
       <span className="jm-li-icon" aria-hidden="true"><Icon name={PRAYER_ICONS[p.key]} /></span>
       <span className="jm-li-name">
         <span className="jm-li-title">
@@ -471,6 +476,7 @@ export default function JamaatPage({ setPage }) {
                 <span className="ui-badge">{l.calcBadge}</span>
               </div>
 
+              <LayoutFeatures>
               <ol className="jm-list tm-cascade">
                 {prayers.map(p => (
                   <TimeRow
@@ -487,6 +493,7 @@ export default function JamaatPage({ setPage }) {
                   />
                 ))}
               </ol>
+              </LayoutFeatures>
 
               <p className="jm-foot jm-foot--geo">
                 <Icon name="pin" size={15} className="jm-foot-ic" /> {l.cityLine(city)}

@@ -36,6 +36,7 @@ import '../styles/MosqueTvPage.css'
 import '../styles/ToolsMotion.css'
 import RollingDigits from '../components/prayer/RollingDigits'
 import { pickUi } from '../utils/uiText'
+import PresenceSwap from '../motion/PresenceSwap'
 
 const STORE_KEY = 'muslim_cc_mosque_tv'
 const ROTATE_MS = 20000
@@ -663,7 +664,8 @@ export default function MosqueTvPage({ setPage }) {
 
         {!compact && current_slide && (
           <div className="mtv-panel" aria-live="polite">
-            <div className="mtv-slide" key={slide}>
+            {/* v6: slayd dəyişəndə köhnəsi qısa solur, yenisi yumşaq gəlir (PresenceSwap fade — yalnız opacity, ekran üçün az CPU) */}
+            <PresenceSwap swapKey={slide} variant="fade" className="mtv-slide mtv-slide--mo">
               {current_slide.type === 'verse' ? (
                 <figure className="mtv-verse">
                   <p className="mtv-ar ui-arabic" lang="ar" dir="rtl">{current_slide.v.ar}</p>
@@ -684,7 +686,7 @@ export default function MosqueTvPage({ setPage }) {
                   <p className="mtv-src">{l.adhkarSrc}</p>
                 </div>
               )}
-            </div>
+            </PresenceSwap>
           </div>
         )}
       </section>

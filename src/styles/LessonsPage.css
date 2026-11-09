@@ -600,3 +600,7 @@
 .ls-paths__done { display: flex; align-items: center; gap: 8px; margin: 0 0 var(--space-3); padding: 10px 14px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--ok); font-weight: 600; }
 .ls-paths__steps .ui-step.is-next .ui-step__n { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent, #d8a93b) 30%, transparent); border-color: var(--accent, #d8a93b); }
 html.a11y-reduce-motion .ls-paths__panel { animation: none; }
+
+/* ══ v6 Motion — bölmə kafellərində sürüşən seçim (PressedGlide, pagefx.css) ══ */
+.ls-cats { position: relative; isolation: isolate; }
+.ls-cats[data-glide-on] > .ls-cat[aria-pressed="true"] { background: transparent; border-color: transparent; }

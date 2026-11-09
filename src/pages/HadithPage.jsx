@@ -21,6 +21,12 @@ import { pathFor } from '../seo/routes'
 import { isPlainClick } from '../components/PageLink'
 import { useNavigate } from 'react-router-dom'
 import '../styles/HadithPage.css'
+// Dizayn v6 (src/motion): hero rəqəmləri sayğacla; dərəcə süzgəcində seçilmiş hap
+// yayla sürüşür (layoutId — "animated tabs" ideyası, semantika aria-pressed qrupu qalır)
+import { LayoutGroup, m } from 'motion/react'
+import LayoutFeatures from '../motion/LayoutFeatures'
+import { SPRING } from '../motion/presets'
+import NumberTicker from '../motion/NumberTicker'
 import { pickLang } from '../utils/pickLang'
 import { pickUi } from '../utils/uiText'
 import { gradeGroup, gradeOf } from '../utils/hadithGrade'
@@ -661,9 +667,9 @@ export default function HadithPage() {
           <p className="ui-lead">{u.lead}</p>
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> {u.how}</p>
           <ul className="ui-page-hero__stats">
-            <li><b className="ui-num"><bdi dir="ltr">{HADITH_COUNT}+</bdi></b><span>{u.statHadith}</span></li>
-            <li><b className="ui-num">{cats.length - 1}</b><span>{u.statTopics}</span></li>
-            <li><b className="ui-num">{BOOKS.length}</b><span>{u.statBooks}</span></li>
+            <li><b className="ui-num"><bdi dir="ltr"><NumberTicker value={HADITH_COUNT} lang={lang} suffix="+" /></bdi></b><span>{u.statHadith}</span></li>
+            <li><b className="ui-num"><NumberTicker value={cats.length - 1} lang={lang} delay={0.08} /></b><span>{u.statTopics}</span></li>
+            <li><b className="ui-num"><NumberTicker value={BOOKS.length} lang={lang} delay={0.16} /></b><span>{u.statBooks}</span></li>
           </ul>
         </div>
       </header>
@@ -706,15 +712,18 @@ export default function HadithPage() {
 
           <div className="hadith-countrow" ref={countRef}>
             <p className="hadith-count ui-num" aria-live="polite">{countText}</p>
-            <div className="hadith-gradef" role="group" aria-label={pickUi(GRADE_UI, lang, 'en').filter}>
+            <LayoutFeatures><LayoutGroup id="hadith-gradef">
+            <div className="hadith-gradef" role="group" aria-label={pickUi(GRADE_UI, lang, 'en').filter} data-wow-off="">
               {['all', 'ok', 'weak', 'none'].map(k => (
                 <button type="button" key={k} className="hadith-gradef__btn" aria-pressed={gradeF === k} data-tone={k}
                   onClick={() => { haptic(4); setGradeF(k) }}>
+                  {gradeF === k && <m.span layoutId="hadith-gradef-ind" className="hadith-gradef__ind" transition={SPRING.snappy} aria-hidden="true" />}
                   {k !== 'all' && <span className="hadith-gradef__dot" aria-hidden="true" />}
-                  {pickUi(GRADE_UI, lang, 'en')[k]}
+                  <span className="hadith-gradef__t">{pickUi(GRADE_UI, lang, 'en')[k]}</span>
                 </button>
               ))}
             </div>
+            </LayoutGroup></LayoutFeatures>
           </div>
 
           {/* Açar filtr dəyişəndə siyahını yenidən qurur — kartlar yenidən

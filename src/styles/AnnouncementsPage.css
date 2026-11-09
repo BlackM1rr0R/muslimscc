@@ -291,3 +291,8 @@
 @keyframes anp-flip { from { opacity: 0; transform: perspective(400px) rotateX(-90deg); } to { opacity: 1; transform: none; } }
 @keyframes anp-swing { 0%, 80%, 100% { transform: none; } 85% { transform: rotate(-8deg); } 90% { transform: rotate(6deg); } 95% { transform: rotate(-3deg); } }
 @keyframes anp-float { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+
+/* v6: kartların girişi/çıxışı Motion-dadır (AnimatedList) — CSS girişi iki dəfə olmasın */
+.anp-list--motion > * { animation: none; }
+/* Motion transform-u hər kadr yazır — .ui-card-ın transform keçidi onu "gecikdirməsin" */
+.anp-list--motion > .ui-card { transition-property: box-shadow, border-color; }

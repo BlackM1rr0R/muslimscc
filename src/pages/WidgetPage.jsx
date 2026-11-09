@@ -20,6 +20,8 @@ import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
 import '../styles/WidgetPage.css'
 import { pickUi } from '../utils/uiText'
+import { m } from 'motion/react'
+import { SPRING } from '../motion/presets'
 
 // Məscid ekranının yolu (seo/routes.js-də 'mosquetv' → 'mosque-tv')
 const TV_PATH = '/mosque-tv'
@@ -281,7 +283,11 @@ function CopyBox({ code, l, id }) {
     <div className="wg-code">
       <pre id={id} className="wg-pre" dir="ltr" tabIndex={0}><code>{code}</code></pre>
       <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm wg-copy" onClick={copy} aria-describedby={id}>
-        <Icon name={copied ? 'check' : 'copy'} className="ui-btn__icon" /> {copied ? l.copied : l.copy}
+        {/* v6: "Kopyalandı" — işarə yayla "sıçrayır" (yalnız kopyalananda; ilk render statik) */}
+        <m.span key={copied ? 'ok' : 'copy'} className="wg-copy__ic" initial={copied ? { scale: 0.4, rotate: -25, opacity: 0 } : false}
+          animate={{ scale: 1, rotate: 0, opacity: 1, transition: SPRING.bouncy }}>
+          <Icon name={copied ? 'check' : 'copy'} className="ui-btn__icon" />
+        </m.span> {copied ? l.copied : l.copy}
       </button>
       <span className="ui-sr-only" role="status">{copied ? l.copied : ''}</span>
     </div>

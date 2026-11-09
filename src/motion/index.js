@@ -1,0 +1,35 @@
+// ═══════════════════════════════════════════════════════
+// src/motion — dizayn v6 Motion qatı (DESIGN.md §7.3). Paket: `motion` (framer-motion-un
+// yeni adı), import HƏMİŞƏ 'motion/react'-dan və YALNIZ `m.*` (LazyMotion strict).
+//
+// Tövsiyə: komponenti birbaşa faylından import et (tree-shaking və CSS üçün eynidir, amma
+// oxumaq asandır):  import Reveal from '../motion/Reveal'
+// Bu barrel rahatlıq üçündür: import { Reveal, Stagger, StaggerItem } from '../motion'
+// ═══════════════════════════════════════════════════════
+export { default as MotionProvider, useMotionReady, isMotionReady, loadFeatures } from './MotionProvider'
+export { default as LayoutFeatures } from './LayoutFeatures'
+export { useReduced, isReduced, isFinePointer } from './reduced'
+export * from './presets'
+export { formatTicker, localeFor, MAKKAH } from './format'
+export { default as Reveal } from './Reveal'
+export { Stagger, StaggerItem } from './Stagger'
+export { default as TextEffect } from './TextEffect'
+export { default as NumberTicker } from './NumberTicker'
+export { default as SpotlightCard } from './SpotlightCard'
+export { default as MagneticButton } from './MagneticButton'
+export { default as ShineButton } from './ShineButton'
+export { default as AnimatedTabs } from './AnimatedTabs'
+export { default as LimelightNav, useSlideIndicator } from './LimelightNav'
+export { default as HoverPill } from './HoverPill'
+export { default as Marquee } from './Marquee'
+export { default as CardStack } from './CardStack'
+export { ExpandableGroup, ExpandableCard, useMorphId, morphId } from './ExpandableCard'
+export { default as BackgroundPaths } from './BackgroundPaths'
+export { default as DottedGlobe } from './DottedGlobe'
+export { default as OrbitalTimeline } from './OrbitalTimeline'
+export { AnimatedList, AnimatedItem } from './AnimatedList'
+export { default as PresenceSwap } from './PresenceSwap'
+export { default as ScrollProgress } from './ScrollProgress'
+export { default as PageTransition } from './PageTransition'
+export { default as useEntrance } from './useEntrance'
+export { default as useOffscreenPause } from './useOffscreenPause'

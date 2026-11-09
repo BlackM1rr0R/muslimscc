@@ -12,6 +12,8 @@ import { pathFor } from '../seo/routes'
 import { isPlainClick } from '../components/PageLink'
 import { useNavigate } from 'react-router-dom'
 import '../styles/VideosPage.css'
+import SpotlightCard from '../motion/SpotlightCard'
+import PressedGlide from '../components/pagefx/PressedGlide'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
 import { pickUi } from '../utils/uiText'
@@ -65,6 +67,7 @@ function sheetExitMs() {
 }
 
 export default function VideosPage() {
+  const catRef = useRef(null)
   const { lang } = useLang()
   const l = pickUi(LABELS, lang)
   const navigate = useNavigate()
@@ -269,7 +272,8 @@ export default function VideosPage() {
             </div>
             <div className="vp-featured-grid" data-reveal="stagger-zoom">
               {featured.map((v, i) => (
-                <article
+                <SpotlightCard
+                  as="article"
                   key={v.id}
                   className={`ui-card ui-card--flush ui-card--interactive vp-featured-card${i === 0 ? ' large' : ''}`}
                   role="button"
@@ -288,7 +292,7 @@ export default function VideosPage() {
                       <p className="vp-desc">{pickLang(v.description, lang, { warn: false })}</p>
                     )}
                   </div>
-                </article>
+                </SpotlightCard>
               ))}
             </div>
           </section>
@@ -297,7 +301,8 @@ export default function VideosPage() {
         {/* ═══ FİLTR ═══
             Yalnız bir dolu bölmə varsa filtr mənasızdır ("Hamısı" = həmin bölmə) — gizlədirik */}
         {categories.length > 2 && (
-          <div className="vp-cat-filter" role="group" aria-label={l.filter} data-reveal="stagger-fade">
+          <div className="vp-cat-filter pfx-glide-host" role="group" aria-label={l.filter} data-reveal="stagger-fade" ref={catRef}>
+            <PressedGlide containerRef={catRef} deps={[selectedCat, lang, categories.length]} />
             {categories.map(cat => {
               const active = selectedCat === cat.key
               const count = cat.key === 'all'
@@ -359,7 +364,7 @@ export default function VideosPage() {
             // Açar filtr/səhifə dəyişəndə şəbəkəni yenidən qurur — kartlar yenidən növbə ilə görünür
             <div className="vp-grid" key={selectedCat}>
               {paginated.map((v, i) => (
-                <article key={v.id} className="ui-card ui-card--flush ui-card--interactive vp-card" onClick={() => setPlayingVideo(v)} {...revealProps(i)}>
+                <SpotlightCard as="article" key={v.id} className="ui-card ui-card--flush ui-card--interactive vp-card" onClick={() => setPlayingVideo(v)} {...revealProps(i)}>
                   <div className="vp-thumb">
                     {thumb(v)}
                     {thumbBadges(v)}
@@ -384,7 +389,7 @@ export default function VideosPage() {
                       </button>
                     </div>
                   </div>
-                </article>
+                </SpotlightCard>
               ))}
             </div>
           )}

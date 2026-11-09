@@ -73,6 +73,8 @@
 
 /* ── Əlifba zolağı — kvadrata yaxın çiplər ── */
 .glossary-alpha-bar {
+  position: relative; /* v6: PressedGlide hapı üçün (telefonda sticky — o da konteynerdir) */
+  isolation: isolate;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -435,3 +437,7 @@
 .glossary-root__bar { width: 46px; height: 5px; border-radius: 4px; background: var(--viz-track, rgba(0,0,0,.08)); overflow: hidden; }
 .glossary-root__bar i { display: block; height: 100%; background: var(--gold, #c59a2c); transform-origin: 0 50%; transform: scaleX(var(--w, 0)); }
 [dir="rtl"] .glossary-root__bar i { transform-origin: 100% 50%; }
+
+/* ══ v6 Motion — süzgəclərdə sürüşən hap (PressedGlide) ══ */
+.glossary-cat-bar { position: relative; isolation: isolate; }
+.glossary-cat-bar[data-glide-on] > .glossary-cat-btn[aria-pressed="true"] { background: transparent; border-color: transparent; }

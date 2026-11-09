@@ -1,0 +1,21 @@
+/* ══ v6 (src/motion): seqmentdə sürüşən hap — components/quran/SegPill ══════════════
+   Seçilmiş düymənin fonu ayrıca elementdir (layoutId ilə düymədən düyməyə yayla keçir). */
+.seg-pill-host > button { position: relative; isolation: isolate; }
+.seg-pill-host > button[aria-pressed="true"],
+.seg-pill-host > button[aria-checked="true"] { background: transparent; box-shadow: none; }
+.seg-pill-host .seg-pill {
+  position: absolute; inset: 0; z-index: -1;
+  border-radius: inherit;
+  background: var(--surface-1);
+  box-shadow: var(--shadow-1);
+  pointer-events: none;
+}
+
+/* Alt xətt variantı (.ui-tabs) — CSS-in ::after xətti əvəzinə sürüşən element */
+.seg-line-host .ui-tab::after { display: none; }
+.seg-line-host .seg-pill--line {
+  position: absolute; inset-inline: 8px; bottom: 0; top: auto; z-index: 0;
+  height: 2px; border-radius: 2px 2px 0 0;
+  background: var(--brand);
+  pointer-events: none;
+}

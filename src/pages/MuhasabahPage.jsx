@@ -29,6 +29,8 @@ import '../styles/MuhasabahPage.css'
 import '../styles/ToolsMotion.css'
 import Sparkle from '../components/prayer/Sparkle'
 import { pickUi } from '../utils/uiText'
+import NumberTicker from '../motion/NumberTicker'
+import PresenceSwap from '../motion/PresenceSwap'
 
 export const STORAGE_KEY = 'muslim_cc_muhasabah_v1'
 const NOTE_MAX = 2000
@@ -387,7 +389,10 @@ export default function MuhasabahPage({ setPage }) {
   const navigate = useNavigate()
   const [entries, setEntries] = useState({})
   const [storageOk, setStorageOk] = useState(true)
-  const [date, setDate] = useState(() => iso(new Date()))
+  const [date, setDateRaw] = useState(() => iso(new Date()))
+  // v6: gün dəyişəndə sual kartı istiqamətlə sürüşür — irəli (yeni gün) / geri (keçmiş gün)
+  const [dayDir, setDayDir] = useState(1)
+  const setDate = (k) => { setDayDir(k >= date ? 1 : -1); setDateRaw(k) }
   const [flash, setFlash] = useState('')
   const [savedTick, setSavedTick] = useState(0)
   const fileRef = useRef(null)
@@ -571,6 +576,7 @@ export default function MuhasabahPage({ setPage }) {
                   <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => setDate(todayIso)}>{t.today}</button>
                 )}
               </div>
+              <PresenceSwap swapKey={date} variant="slide" dir={dayDir} className="mh-day__swap">
               <p className="mh-day__label">{fmtDate(date, lang)} <span className="mh-day__count ui-num" aria-hidden="true">{entry.c.length} / {ITEMS.length}</span></p>
 
               <fieldset className="mh-check">
@@ -588,6 +594,7 @@ export default function MuhasabahPage({ setPage }) {
                   )
                 })}
               </fieldset>
+              </PresenceSwap>
 
               <label className="ui-field mh-note">
                 <span className="ui-field__label">{t.note}</span>
@@ -617,8 +624,8 @@ export default function MuhasabahPage({ setPage }) {
           {/* ── Panel: göstəricilər və qrafiklər ── */}
           <aside className="mh-side" aria-label={v.overview}>
             <div className="ui-stats mh-stats">
-              <StatTile variant="sunken" value={String(stats.rec)} label={t.recorded} />
-              <StatTile variant="sunken" value={String(stats.avg)} unit="%" label={t.avg} />
+              <StatTile variant="sunken" value={<NumberTicker value={stats.rec} lang={lang} />} label={t.recorded} />
+              <StatTile variant="sunken" value={<NumberTicker value={stats.avg} lang={lang} />} unit="%" label={t.avg} />
             </div>
             <MuhasabahSky entries={entries} items={ITEMS} today={todayIso} labels={v.short} lang={lang} />
             <ChartFigure title={t.heatTitle} sub={v.heatSub}>

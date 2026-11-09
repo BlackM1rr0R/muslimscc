@@ -17,6 +17,8 @@ import { pickLang } from '../utils/pickLang'
 import { pathFor } from '../seo/routes'
 import { copyText, dayIndex, shareOrCopy } from '../components/reader/share'
 import { pickUi } from '../utils/uiText'
+// Dizayn v6 (src/motion): hero rəqəmləri sayğacla (kartların girişi data-reveal-dadır, toxunulmur)
+import NumberTicker from '../motion/NumberTicker'
 
 // ── Kateqoriya tərcümələri ──────────────────────────────
 const CAT_LABELS = {
@@ -431,9 +433,9 @@ export default function DuasPage({ setPage }) {
           <p className="ui-lead">{t.subtitle}</p>
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{x.how}</span></p>
           <ul className="ui-page-hero__stats">
-            <li><b className="ui-num">{allDuas.length}</b><span>{x.duas}</span></li>
-            <li><b className="ui-num">{EN_CATS.length - 1}</b><span>{x.cats}</span></li>
-            <li><b className="ui-num">{favs.length}</b><span>{x.favs}</span></li>
+            <li><b className="ui-num"><NumberTicker value={allDuas.length} lang={lang} /></b><span>{x.duas}</span></li>
+            <li><b className="ui-num"><NumberTicker value={EN_CATS.length - 1} lang={lang} delay={0.08} /></b><span>{x.cats}</span></li>
+            <li><b className="ui-num"><NumberTicker value={favs.length} lang={lang} delay={0.16} /></b><span>{x.favs}</span></li>
           </ul>
         </div>
       </header>

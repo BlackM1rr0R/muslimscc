@@ -86,15 +86,19 @@
   text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  /* v6: transform Motion-undur (kart → pəncərə morph) — hover/basma ayrıca translate/scale xassələri ilə */
   transition:
-    transform var(--dur-2) var(--ease-out),
+    translate var(--dur-2) var(--ease-out),
+    scale var(--dur-2) var(--ease-out),
     box-shadow var(--dur-2) ease,
     border-color var(--dur-2) ease;
 }
 @media (hover: hover) {
-  .name-card:hover { transform: translateY(-2px); border-color: var(--brand-line); box-shadow: var(--shadow-2); }
+  .name-card:hover { translate: 0 -2px; border-color: var(--brand-line); box-shadow: var(--shadow-2); }
 }
-.name-card:active { transform: scale(0.98); }
+.name-card:active { scale: 0.98; }
+/* Morph ilə açılan pəncərənin öz CSS girişi yoxdur (hərəkəti Motion verir) */
+.names-modal .names-modal-card.is-morph { animation: none; }
 .name-card__top { display: flex; align-items: center; justify-content: space-between; align-self: stretch; }
 .name-num { color: var(--text-tertiary); font-size: var(--step--2); font-weight: 500; }
 .name-arabic {
@@ -220,7 +224,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .name-card { transition: none; }
-  .name-card:hover { transform: none; }
+  .name-card:hover { translate: none; }
   .names-modal, .names-modal .names-modal-card, .names-modal-body { animation: none; }
 }
 

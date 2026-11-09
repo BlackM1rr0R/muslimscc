@@ -252,6 +252,8 @@
   width: 100%;
   animation: mtv-fade var(--dur-4) var(--ease-out) both;
 }
+/* v6: slayd keçidi Motion-dadır (PresenceSwap) — CSS animasiyası inline opacity-ni üstələməsin */
+html .mtv-panel .mtv-slide.mtv-slide--mo { animation: none; }
 @keyframes mtv-fade {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }

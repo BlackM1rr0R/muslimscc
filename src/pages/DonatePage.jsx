@@ -6,6 +6,7 @@ import '../styles/ToolsMotion.css'
 import GeoStarfield from '../components/prayer/GeoStarfield'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
+import ShineButton from '../motion/ShineButton'
 import PageLink, { isPlainClick } from '../components/PageLink'
 import LessonBlocks, { pick } from '../components/lesson/LessonBlocks'
 import { useNavigate } from 'react-router-dom'
@@ -248,9 +249,11 @@ export default function DonatePage({ setPage }) {
           <p className="ui-lead">{t.subtitle}</p>
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{P(DN3.how, lang)}</span></p>
           <div className="ui-page-hero__actions">
-            <PageLink className="ui-btn ui-btn--primary" to="zakat" setPage={setPage} onNavigate={toTop}>
-              <Icon name="zakat" size={18} className="ui-btn__icon" /> {t.zakat}
-            </PageLink>
+            {/* v6: əsas düymə — keçən işıq + basılanda yay (ShineButton) */}
+            <ShineButton as="a" href={pathFor('zakat', lang)} icon={<Icon name="zakat" size={18} className="ui-btn__icon" />}
+              onClick={(e) => { if (setPage && isPlainClick(e)) { e.preventDefault(); setPage('zakat'); toTop() } }}>
+              {' '}{t.zakat}
+            </ShineButton>
             <a className="ui-btn ui-btn--secondary" href="#dn-paths" onClick={(e) => jump(e, 'dn-paths')}>{P(DN3.pathsEyebrow, lang)}</a>
           </div>
         </div>

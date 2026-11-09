@@ -24,6 +24,10 @@ import { lazyWhenIdle } from './utils/idle'
 import { usePageviews } from './api/analytics'
 import { withChunkRetry } from './utils/chunkRetry'
 import { markRouteLoading, withViewTransition, routeCommitted, leavePage } from './utils/wow'
+// Dizayn v6: tək Motion konteksti (LazyMotion — xüsusiyyətlər boş vaxtda, ayrıca chunk)
+// və <main> keçidi (AnimatePresence; View Transition ilə növbələşir — src/motion/PageTransition)
+import MotionProvider from './motion/MotionProvider'
+import PageTransition from './motion/PageTransition'
 
 // Bütün tənbəl modullar (səhifələr, widget-lər) chunk xətasında bir dəfə
 // avtomatik yenilənir (utils/chunkRetry.js — deploydan sonra köhnə tabda
@@ -431,8 +435,9 @@ function AppInner() {
   // Məscid ekranı (televizor/iframe) — başlıq, menyu və köməkçilər olmadan, tam ekran
   const isBarePage = isAdminPage || page === 'mosquetv'
 
-  // Səhifə keçidi (motion.css → .page-enter): yeni <main> 10px aşağıdan
-  // yumşaq qalxır. Suspense qəsdən <main>-dən KƏNARDADIR: naviqasiya
+  // Səhifə keçidi (v6: src/motion/PageTransition — AnimatePresence): yeni <main>
+  // yumşaq qalxır (telefonda oxu istiqamətindən gəlir); View Transition gedirsə
+  // Motion susur — hər naviqasiyada TƏK mexanizm. Suspense qəsdən <main>-dən KƏNARDADIR: naviqasiya
   // startTransition ilə gedir (main.jsx → v7_startTransition), ona görə
   // artıq görünən sərhəd yeni səhifənin kodu yüklənənə qədər KÖHNƏ səhifəni
   // saxlayır — arada boş ekran / spinner "yanıb-sönməsi" olmur. Spinner
@@ -445,9 +450,9 @@ function AppInner() {
           yüklənərkən <main> qısa olurdu, footer ekranın ortasında görünür, sonra
           məzmun gələndə aşağı itələnirdi: Lighthouse masaüstü /quran-da
           CLS 0.528 (bal 5/100). Hündür səhifələrdə heç nə dəyişmir. */}
-      <main key={page} id={MAIN_ID} tabIndex={-1} className={isBack ? 'page-enter page-enter--back' : 'page-enter'} style={MAIN_STYLE}>
+      <PageTransition pageKey={page} back={isBack} id={MAIN_ID} tabIndex={-1} style={MAIN_STYLE}>
         {renderPage()}
-      </main>
+      </PageTransition>
     </Suspense>
     </PageErrorBoundary>
   )
@@ -506,7 +511,9 @@ function AppInner() {
 export default function App() {
   return (
     <LangProvider>
-      <AppInner />
+      <MotionProvider>
+        <AppInner />
+      </MotionProvider>
     </LangProvider>
   )
 }

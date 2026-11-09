@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
+import { AnimatePresence, m } from 'motion/react'
+import { SPRING } from '../motion/presets'
 import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
 import { subscribeToSettings } from '../data/adminContent'
@@ -9,6 +11,12 @@ import AIRating from '../components/AIRating'
 import { askAI } from '../utils/aiStream'
 import '../styles/AIChatPage.css'
 import { pickUi } from '../utils/uiText'
+
+// v6 Motion (21st.dev "animated list" ideyası): yeni mesaj balonu yayla qalxır (bouncy, kiçik element),
+// "yazır" balonu da eyni key ilə cavaba çevrilir — DOM dəyişmir, giriş təkrarlanmır.
+// Yaddaşdan gələn köhnə mesajlar animasiyasızdır (AnimatePresence initial={false}).
+const MSG_IN = { opacity: 0, y: 12, scale: 0.94 }
+const MSG_SHOW = { opacity: 1, y: 0, scale: 1, transition: SPRING.bouncy }
 
 // URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
 const FALLBACK_API_URL = import.meta.env.VITE_API_URL || ''
@@ -459,9 +467,10 @@ export default function AIChatPage() {
                 {/* Axında gələn cavab da eyni siyahının sonuncu elementidir (eyni key) —
                     bitəndə DOM dəyişmir, giriş animasiyası təkrarlanmır.
                     İlk tokenə qədər "yazır" nöqtələri, sonra mətn + yanıb-sönən kursor. */}
-                {(loading ? [...messages, { role: 'assistant', pending: true, content: streamText || '' }] : messages).map((m, i, all) => (
-                  m.pending && !m.content ? (
-                    <div key={i} className="aic-msg aic-msg-assistant aic-msg-typing">
+                <AnimatePresence initial={false}>
+                {(loading ? [...messages, { role: 'assistant', pending: true, content: streamText || '' }] : messages).map((msg, i, all) => (
+                  msg.pending && !msg.content ? (
+                    <m.div key={i} className="aic-msg aic-msg-assistant aic-msg-typing aic-msg--mo" data-wow-off="" initial={MSG_IN} animate={MSG_SHOW}>
                       <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>
                       <div className="aic-bubble aic-thinking" role="status">
                         <span className="ui-sr-only">{l.thinking}</span>
@@ -469,25 +478,26 @@ export default function AIChatPage() {
                         <span className="aic-dot" aria-hidden="true"></span>
                         <span className="aic-dot" aria-hidden="true"></span>
                       </div>
-                    </div>
+                    </m.div>
                   ) : (
-                    <div key={i} className={`aic-msg aic-msg-${m.role}`}>
-                      {m.role === 'assistant' && <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>}
+                    <m.div key={i} className={`aic-msg aic-msg-${msg.role} aic-msg--mo`} data-wow-off="" initial={MSG_IN} animate={MSG_SHOW}>
+                      {msg.role === 'assistant' && <span className="aic-avatar" aria-hidden="true"><Icon name="aichat" size={16} /></span>}
                       <div className="aic-bubble">
-                        <span className="ui-sr-only">{m.role === 'assistant' ? tr(BRAND.aiName, lang) : l.you}: </span>
+                        <span className="ui-sr-only">{msg.role === 'assistant' ? tr(BRAND.aiName, lang) : l.you}: </span>
                         <div className="aic-content">
-                          {m.role === 'assistant'
-                            ? <AIMarkdown text={m.content} tail={m.pending ? <span className="ai-cursor" aria-hidden="true" /> : null} />
-                            : m.content}
+                          {msg.role === 'assistant'
+                            ? <AIMarkdown text={msg.content} tail={msg.pending ? <span className="ai-cursor" aria-hidden="true" /> : null} />
+                            : msg.content}
                         </div>
                         {/* 👍/👎 — yalnız sualı olan, tamamlanmış cavabda (salamlama mesajında yox) */}
-                        {m.role === 'assistant' && !m.pending && all[i - 1]?.role === 'user' && (
-                          <AIRating question={all[i - 1].content} answer={m.content} lang={lang} />
+                        {msg.role === 'assistant' && !msg.pending && all[i - 1]?.role === 'user' && (
+                          <AIRating question={all[i - 1].content} answer={msg.content} lang={lang} />
                         )}
                       </div>
-                    </div>
+                    </m.div>
                   )
                 ))}
+                </AnimatePresence>
               </>
             )}
           </div>
