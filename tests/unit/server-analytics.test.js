@@ -136,6 +136,28 @@ describe('record + stats (birbaşa)', () => {
     expect(db.raw.prepare("SELECT COUNT(*) AS n FROM analytics_dim WHERE day < '2026-01-01'").get().n).toBe(0)
   })
 
+  it('compare: əvvəlki dövr (prev) və top səhifələrin günlük sırası (pageSeries)', () => {
+    t = Date.parse('2026-10-29T10:00:00Z')
+    an.record({ ip: '1.1.1.1', ua: UA_DESKTOP, path: '/quran', lang: 'az' })   // əvvəlki dövr
+    t = Date.parse('2026-10-31T10:00:00Z')
+    an.record({ ip: '1.1.1.1', ua: UA_DESKTOP, path: '/quran', lang: 'ru', ref: 'google.com' })
+    an.record({ ip: '2.2.2.2', ua: UA_IPHONE, path: '/quran', lang: 'az' })
+    t = Date.parse('2026-11-01T10:00:00Z')
+    an.record({ ip: '1.1.1.1', ua: UA_DESKTOP, path: '/', lang: 'az' })
+    const s = an.stats({ from: '2026-10-31', to: '2026-11-01', compare: true })
+    expect(s.totals.views).toBe(3)
+    expect(s.prev).toMatchObject({ from: '2026-10-29', to: '2026-10-30', days: 2 })
+    expect(s.prev.totals.views).toBe(1)
+    expect(s.prev.pages).toEqual([{ key: '/quran', views: 1, visitors: 1 }])
+    expect(s.prev).not.toHaveProperty('prev')
+    expect(s.prev).not.toHaveProperty('pageSeries')
+    expect(s.pageSeries).toEqual({ '/quran': [2, 0], '/': [0, 1] })
+    // compare-siz cavab dəyişməyib
+    const plain = an.stats({ from: '2026-10-31', to: '2026-11-01' })
+    expect(plain).not.toHaveProperty('prev')
+    expect(plain).not.toHaveProperty('pageSeries')
+  })
+
   it('gündəlik yol limiti: artığı (other)', () => {
     an = A.createAnalytics({ db, now: () => t, maxPathsPerDay: 2 })
     for (const p of ['/a', '/b', '/c', '/d']) an.record({ ip: '1.1.1.1', ua: UA_DESKTOP, path: p, lang: 'az' })
@@ -217,6 +239,15 @@ describe('HTTP: POST /api/a və GET /api/admin/analytics', () => {
     expect(s.series).toHaveLength(30)
     expect(s.to).toBe(today())
     for (const k of ['totals', 'pages', 'referrers', 'languages', 'devices', 'browsers']) expect(s).toHaveProperty(k)
+  })
+
+  it('compare=1 → prev + pageSeries (yalnız admin)', async () => {
+    expect((await fetch(`${srv.url}/api/admin/analytics?compare=1`)).status).toBe(401)
+    const s = await (await fetch(`${srv.url}/api/admin/analytics?from=${today()}&to=${today()}&compare=1`, { headers: ADMIN })).json()
+    expect(s.prev.days).toBe(1)
+    expect(s.prev.to < s.from).toBe(true)
+    expect(Object.values(s.pageSeries).every((v) => Array.isArray(v) && v.length === 1)).toBe(true)
+    expect(s.pageSeries['/quran']).toEqual([1])
   })
 
   it('sorğu limiti: IP başına dəqiqədə rateMax', async () => {

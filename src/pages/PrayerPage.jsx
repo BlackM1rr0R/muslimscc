@@ -396,6 +396,7 @@ const isPlainClick = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey 
 const QiyamMode = lazy(() => import('../components/prayer/QiyamMode'))
 const AdhanWave = lazy(() => import('../components/prayer/AdhanWave'))
 const YearPrayerChart = lazy(() => import('../components/prayer/YearPrayerChart'))
+const PrayerNumbers = lazy(() => import('../components/numbers/PrayerNumbers'))
 const QY = {
   until:  { az: 'Gecənin son üçdə biri', en: 'Last third of the night', ru: 'Последняя треть ночи', ar: 'الثلث الأخير من الليل', tr: 'Gecenin son üçte biri' },
   inNow:  { az: 'İndi gecənin son üçdə biridir', en: 'It is the last third of the night now', ru: 'Сейчас последняя треть ночи', ar: 'الآن الثلث الأخير من الليل', tr: 'Şu an gecenin son üçte biri' },
@@ -1002,6 +1003,13 @@ export default function PrayerPage({ setPage }) {
           </DeferRender>
         </div>
       </section>
+
+      {/* v5.9: "Namaz vaxtları rəqəmlərlə" — viz v2 bento (eyni yerli hesab) */}
+      <DeferRender height="760px" idle={false} rootMargin="300px 0px">
+        <Suspense fallback={<div style={{ minHeight: 760 }} />}>
+          <PrayerNumbers loc={loc} lang={lang} city={cityName} />
+        </Suspense>
+      </DeferRender>
 
       {/* ── Vaxtların sərhədləri (Müslim 612) + nafilə qılınmayan vaxtlar ── */}
       <section className="ui-section ui-section--tight ui-section--alt pp-bounds" aria-labelledby="pp-bounds-title">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import NurRosette from '../components/prayer/NurRosette'
+import DailyTrackerInsights from '../components/insights/DailyTrackerInsights'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
@@ -391,6 +392,10 @@ export default function DailyTrackerPage({ setPage }) {
 
         </div>
       </section>
+
+      {/* viz v2: analitika — KPI, dinamika, təqvim, əməllər üzrə cədvəl */}
+      <DailyTrackerInsights data={data} today={today} lang={lang}
+        activities={ACTIVITIES.map(a => ({ key: a.key, label: pickUi(a, lang, 'en') }))} />
 
       <section className="ui-section ui-section--tight tracker-where" aria-labelledby="tracker-where-h">
         <div className="ui-container">

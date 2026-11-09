@@ -4,7 +4,8 @@ import { guessLang } from '../utils/textLang'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import ReportErrorButton from '../components/ReportErrorButton'
-import { ChartFigure, Donut, ProgressRing } from '../components/viz'
+import { ChartFigure, SegmentBreakdown, MiniTable, InlineBar, ProgressRing } from '../components/viz'
+import { citeCounts } from '../utils/numbersData'
 import ReaderDialog from '../components/reader/ReaderDialog'
 import MemorizeText from '../components/reader/MemorizeText'
 import { copyText, dayIndex, readJSON, shareOrCopy, writeJSON } from '../components/reader/share'
@@ -115,6 +116,26 @@ function srcGroup(h) {
 const GROUP_COUNTS = NAWAWI_40.reduce((acc, h) => { const g = srcGroup(h); acc[g] = (acc[g] || 0) + 1; return acc }, {})
 const BY_N = new Map(NAWAWI_40.map(h => [h.n, h]))
 
+// v5.9: hər hədisin mənbə sətrində (src.en) adı çəkilən kitablar — bir hədis bir neçə kitabda ola bilər
+const CITE_RE = {
+  bukhari: /al-Bukhari/, muslim: /\bMuslim\b/, tirmidhi: /at-Tirmidhi/, abudawud: /Abu Dawud/, nasai: /an-Nasa/,
+  ibnmajah: /Ibn Majah/, ahmad: /\bAhmad\b/, daraqutni: /ad-Daraqutni/, bayhaqi: /al-Bayhaqi/, malik: /\bMalik\b/, darimi: /ad-Darimi/,
+}
+const CITE_NAME = {
+  az: { bukhari: 'Buxari', muslim: 'Müslim', tirmidhi: 'Tirmizi', abudawud: 'Əbu Davud', nasai: 'Nəsai', ibnmajah: 'İbn Macə', ahmad: 'Əhməd', daraqutni: 'Darəqutni', bayhaqi: 'Beyhəqi', malik: 'Malik', darimi: 'Darimi',
+    title: 'Hansı kitablarda var', sub: 'mənbə sətrində adı çəkilən kitablar; bir hədis bir neçə kitabda ola bilər', book: 'Kitab', n: 'Hədis' },
+  en: { bukhari: 'al-Bukhari', muslim: 'Muslim', tirmidhi: 'at-Tirmidhi', abudawud: 'Abu Dawud', nasai: 'an-Nasa’i', ibnmajah: 'Ibn Majah', ahmad: 'Ahmad', daraqutni: 'ad-Daraqutni', bayhaqi: 'al-Bayhaqi', malik: 'Malik', darimi: 'ad-Darimi',
+    title: 'Which books contain them', sub: 'books named in the source line; one hadith can be in several books', book: 'Book', n: 'Hadiths' },
+  ru: { bukhari: 'аль-Бухари', muslim: 'Муслим', tirmidhi: 'ат-Тирмизи', abudawud: 'Абу Дауд', nasai: 'ан-Насаи', ibnmajah: 'Ибн Маджа', ahmad: 'Ахмад', daraqutni: 'ад-Даракутни', bayhaqi: 'аль-Байхаки', malik: 'Малик', darimi: 'ад-Дарими',
+    title: 'В каких книгах они есть', sub: 'книги, названные в строке источника; один хадис может быть в нескольких книгах', book: 'Книга', n: 'Хадисы' },
+  ar: { bukhari: 'البخاري', muslim: 'مسلم', tirmidhi: 'الترمذي', abudawud: 'أبو داود', nasai: 'النسائي', ibnmajah: 'ابن ماجه', ahmad: 'أحمد', daraqutni: 'الدارقطني', bayhaqi: 'البيهقي', malik: 'مالك', darimi: 'الدارمي',
+    title: 'في أي الكتب توجد', sub: 'الكتب المذكورة في سطر المصدر؛ قد يكون الحديث في أكثر من كتاب', book: 'الكتاب', n: 'الأحاديث' },
+  tr: { bukhari: 'Buhârî', muslim: 'Müslim', tirmidhi: 'Tirmizî', abudawud: 'Ebû Dâvûd', nasai: 'Nesâî', ibnmajah: 'İbn Mâce', ahmad: 'Ahmed', daraqutni: 'Dârekutnî', bayhaqi: 'Beyhakî', malik: 'Mâlik', darimi: 'Dârimî',
+    title: 'Hangi eserlerde var', sub: 'kaynak satırında adı geçen eserler; bir hadis birkaç eserde olabilir', book: 'Eser', n: 'Hadis' },
+}
+const CITES = Object.entries(citeCounts(NAWAWI_40.map(h => String(h.src?.en || '')), CITE_RE))
+  .filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+
 // Kartdakı qısa önizləmə: tərcümədə Peyğəmbərin ﷺ sözü dırnaqla başlayırsa
 // ravi zəncirini keçib oradan göstər (mətn dəyişmir, yalnız kəsilir)
 function previewText(h, lang) {
@@ -140,6 +161,7 @@ export default function Nawawi40Page() {
   const { lang } = useLang()
   const location = useLocation()
   const L = pickUi(LABELS, lang, 'en')
+  const cn = pickUi(CITE_NAME, lang, 'en')
   const isAr = lang === 'ar'
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState('all')
@@ -383,16 +405,26 @@ export default function Nawawi40Page() {
               </ol>
             </div>
 
+            <div className="nw-charts">
             <ChartFigure className="nw-chart" title={L.chartTitle} sub={L.chartSub} note={L.chartNote}>
-              <Donut size={140} thickness={18} format={(v) => `${v} ${L.of}`}
-                center={{ value: String(NAWAWI_40.length), label: L.statHadith }}
-                segments={[
+              <SegmentBreakdown label={L.chartTitle} lang={lang} format={(v) => `${v} ${L.of}`}
+                items={[
                   { key: 'agreed', label: L.agreed, value: GROUP_COUNTS.agreed || 0, tone: 1 },
                   { key: 'bukhari', label: L.bukhari, value: GROUP_COUNTS.bukhari || 0, tone: 2 },
                   { key: 'muslim', label: L.muslim, value: GROUP_COUNTS.muslim || 0, tone: 3 },
                   { key: 'other', label: L.other, value: GROUP_COUNTS.other || 0, tone: 'muted' },
                 ]} />
             </ChartFigure>
+            <ChartFigure className="nw-chart" title={cn.title} sub={cn.sub}>
+              <MiniTable caption={cn.title} rows={CITES.map(([k, v]) => ({ key: k, v }))} columns={[
+                { key: 'key', label: cn.book, render: r => cn[r.key] },
+                { key: 'v', label: cn.n, render: r => (
+                  <InlineBar value={r.v} max={NAWAWI_40.length} tone={r.key === 'bukhari' || r.key === 'muslim' ? 1 : 3}
+                    label={`${cn[r.key]}: ${r.v} / ${NAWAWI_40.length}`} format={(v) => `${v} / ${NAWAWI_40.length}`} lang={lang} />
+                ) },
+              ]} />
+            </ChartFigure>
+            </div>
           </div>
 
           {NAWAWI_SOURCES?.length > 0 && (

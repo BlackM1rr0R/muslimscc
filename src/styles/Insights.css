@@ -1,0 +1,36 @@
+/* ══════════════════════════════════════════════════════════════════
+   Insights.css — şəxsi izləyici səhifələrinin "Analitika" bölməsi
+   (components/insights/Insights.jsx). Qrafiklər viz.css-dən; burada
+   yalnız başlıq, boş vəziyyət və bento düzülüşü.
+   ══════════════════════════════════════════════════════════════════ */
+.ins .ins-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 32px; margin-bottom: var(--space-4); }
+.ins .ins-head__text { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; flex: 1 1 min(100%, 34rem); }
+.ins .ins-head__text .ui-title, .ins .ins-head__text .ui-lead { margin: 0; }
+.ins .ins-head__text .ui-lead { max-width: 62ch; }
+.ins .ins-head__tools { display: flex; align-items: center; gap: 10px; max-width: 100%; }
+.ins-private { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: var(--step--1); line-height: 1.45; }
+.ins-private svg { flex: 0 0 auto; margin-top: 2px; }
+
+/* 720–1099px: bento 2 sütun — kiçik kartlar (.ins-half) cüt-cüt */
+@media (min-width: 720px) and (max-width: 1099.98px) {
+  .ins .vz-bento { grid-auto-flow: row dense; }
+  .ins .vz-bento > .ins-half { grid-column: span 1; }
+}
+.ins .vz-bento > .ins-center .vz-card__body { justify-content: center; }
+/* 5 namaz halqası bir sırada */
+.ins .vz-bento > .ins-rad5 .vz-radial--row { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px 4px; }
+.ins .vz-bento > .ins-rad5 .vz-radial__label { font-size: var(--step--2); }
+.ins .vz-bento > .ins-wd .vz-cmp__rows { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); column-gap: 32px; }
+
+/* ── Boş vəziyyət ── */
+.ins-empty { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 20px; padding: 18px 20px; border: 1px dashed var(--line-strong); background: var(--surface-1); }
+.ins-empty__body { display: flex; flex: 1 1 18rem; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0; }
+.ins-empty__text { margin: 0; color: var(--text-secondary); font-size: var(--step-0); line-height: 1.55; }
+.ins-ghost { display: grid; flex: 1 1 22rem; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; min-width: 0; opacity: 0.85; }
+.ins-ghost__kpi { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-0); }
+.ins-ghost__kpi i, .ins-ghost__kpi b { display: block; width: 60%; height: 6px; border-radius: 3px; background: var(--viz-track); }
+.ins-ghost__kpi b { width: 40%; height: 12px; }
+.ins-ghost__chart { grid-column: 1 / -1; width: 100%; height: 72px; }
+.ins-ghost__chart path { fill: color-mix(in srgb, var(--viz-1) 10%, transparent); }
+.ins-ghost__chart .ins-ghost__line { fill: none; stroke: color-mix(in srgb, var(--viz-1) 40%, transparent); stroke-width: 2; stroke-dasharray: 4 5; vector-effect: non-scaling-stroke; }
+@media (max-width: 559.98px) { .ins-ghost { display: none; } }

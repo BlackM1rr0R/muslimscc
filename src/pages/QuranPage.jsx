@@ -527,6 +527,7 @@ const QuranZen = lazy(() => import('../components/quran/QuranZen'))
 // v5.8: 3D Quran qalaktikası (three.js — yalnız bölməyə yaxınlaşanda)
 const QuranGalaxy = lazy(() => import('../components/quran/QuranGalaxy'))
 const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
+const QuranNumbers = lazy(() => import('../components/numbers/QuranNumbers'))
 const KARAOKE_LBL = { az: 'Sözbəsöz dinlə', en: 'Word by word', ru: 'Слушать по словам', tr: 'Kelime kelime dinle', ar: 'استمع كلمةً كلمة' }
 
 // Seçib paylaş (components/SelectShare) üçün istinad: «Quran 2:255»
@@ -1908,6 +1909,15 @@ export default function QuranPage() {
             placeLabel={(name, a) => placeLabel(name, a, lang)} />
         </div>
       </section>
+
+      {/* v5.9: "Quran rəqəmlərlə" — viz v2 bento (ümumi rəqəmlər + yerli oxu statistikası) */}
+      <DeferRender height="1400px" idle={false} rootMargin="300px 0px">
+        <Suspense fallback={<div style={{ minHeight: 1400 }} />}>
+          <QuranNumbers lang={lang} stats={stats}
+            surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)}
+            hrefOf={n => pathFor('quran', lang, n)} onOpen={n => openSurah(n)} />
+        </Suspense>
+      </DeferRender>
 
       <QuranGuide lang={lang} />
     </>

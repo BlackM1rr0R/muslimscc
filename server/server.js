@@ -467,8 +467,15 @@ app.get('/api/admin/subscribers', requireAdmin, async (req, res) => {
     }
   }
   const webpush = pushStore.count()
+  // İcmal paneli üçün cəmlər (yalnız say; endpoint/açar yox): son 90 gündə yaranan
+  // və hələ aktiv Web Push abunəlikləri gün üzrə + dillər üzrə bölgü
+  let webpushNew = [], webpushLangs = []
+  try {
+    webpushNew = pushStore.newByDay(Date.now() - 90 * 86400e3)
+    webpushLangs = pushStore.langs()
+  } catch (e) { console.error('Subscribers summary error:', e.message) }
   res.set('Cache-Control', 'no-store')
-  res.json({ count: fcm + webpush, fcm, webpush })
+  res.json({ count: fcm + webpush, fcm, webpush, webpushNew, webpushLangs })
 })
 
 // ─── Bildiriş tarixçəsi (notification_history) ───────────────────────

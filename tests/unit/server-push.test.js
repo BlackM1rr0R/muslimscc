@@ -158,6 +158,24 @@ describe('göndərici', () => {
   })
 })
 
+describe('saxlama: admin icmalı üçün cəmlər', () => {
+  it('newByDay — gün üzrə yeni (aktiv) abunəliklər; langs — dillər üzrə; açar qaytarılmır', () => {
+    const store = push.createPushStore(openDb(':memory:'))
+    const day = (s) => Date.parse(s + 'T12:00:00Z')
+    store.upsert({ endpoint: EP.chrome, keys: KEYS, lang: 'az', prefs: {} }, day('2026-11-01'))
+    store.upsert({ endpoint: EP.firefox, keys: KEYS, lang: 'az', prefs: {} }, day('2026-11-03'))
+    store.upsert({ endpoint: EP.safari, keys: KEYS, lang: 'ru', prefs: {} }, day('2026-11-03'))
+    store.upsert({ endpoint: EP.edge, keys: KEYS, lang: 'tr', prefs: {} }, day('2026-09-01'))
+    // təkrar subscribe created_at-ı dəyişmir
+    store.upsert({ endpoint: EP.chrome, keys: KEYS, lang: 'az', prefs: {} }, day('2026-11-05'))
+    expect(store.newByDay(day('2026-10-01'))).toEqual([{ day: '2026-11-01', count: 1 }, { day: '2026-11-03', count: 2 }])
+    expect(store.langs()).toEqual([{ key: 'az', count: 2 }, { key: 'ru', count: 1 }, { key: 'tr', count: 1 }])
+    expect(JSON.stringify([store.newByDay(0), store.langs()])).not.toContain('fcm.googleapis.com')
+    store.remove(EP.firefox)
+    expect(store.newByDay(day('2026-10-01'))).toEqual([{ day: '2026-11-01', count: 1 }, { day: '2026-11-03', count: 1 }])
+  })
+})
+
 describe('HTTP: /api/push/*', () => {
   let srv, store
   const legacy = []

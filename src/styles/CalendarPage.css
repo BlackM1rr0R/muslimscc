@@ -646,6 +646,9 @@ button.cal-up__card { cursor: pointer; }
 .cal-sf__qact { display: flex; flex-wrap: wrap; gap: 8px; }
 .cal-sf__qact .ui-btn { flex: 1 1 auto; justify-content: center; }
 .cal-sf__more { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-size: var(--step--1); min-height: 44px; }
+/* viz v2 analitika (components/insights/SunnahFastInsights.jsx) */
+.cal-sf-ins { margin-top: var(--space-6); }
+.cal-sf-ins .ins-head .cal-sf__h { margin: 0; }
 .cal-sf__ev { margin-top: var(--space-4); padding: var(--space-3) var(--space-4); }
 .cal-sf__ev > summary {
   display: flex; align-items: center; gap: 8px; min-height: 44px;

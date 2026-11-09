@@ -15,7 +15,7 @@ import ListMore from '../components/ListMore'
 import BackToTop from '../components/BackToTop'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
-import { ChartFigure, BarChart } from '../components/viz'
+import { ChartFigure, SegmentBreakdown, MiniTable, InlineBar } from '../components/viz'
 import { HADITH_COUNT } from '../data/siteStats'
 import { pathFor } from '../seo/routes'
 import { isPlainClick } from '../components/PageLink'
@@ -106,17 +106,28 @@ const BOOKS = [
 ]
 function bookBreakdown(list, lang, otherLabel) {
   const counts = Object.fromEntries(BOOKS.map(b => [b.key, 0]))
-  let other = 0
+  const okc = Object.fromEntries(BOOKS.map(b => [b.key, 0]))
+  let other = 0, okOther = 0
   for (const h of list) {
     const src = String(h.source || '').trim()
     const b = BOOKS.find(x => x.re.test(src))
-    if (b) counts[b.key]++; else other++
+    const ok = gradeGroup(h.g) === 'ok' ? 1 : 0
+    if (b) { counts[b.key]++; okc[b.key] += ok } else { other++; okOther += ok }
   }
   const rows = BOOKS.filter(b => counts[b.key] > 0)
-    .map(b => ({ key: b.key, label: lang === 'az' ? b.az : localizeSource(b.src, lang), value: counts[b.key] }))
+    .map(b => ({ key: b.key, label: lang === 'az' ? b.az : localizeSource(b.src, lang), value: counts[b.key], ok: okc[b.key] }))
     .sort((a, b) => b.value - a.value)
-  if (other > 0) rows.push({ key: 'other', label: otherLabel, value: other, muted: true })
+  if (other > 0) rows.push({ key: 'other', label: otherLabel, value: other, ok: okOther, muted: true })
   return rows
+}
+
+// v5.9: toplular cədvəlinin sütunları (viz v2 MiniTable)
+const BOOK_COLS = {
+  az: { book: 'Toplu', count: 'Hədis', ok: 'Səhih və həsən' },
+  en: { book: 'Collection', count: 'Hadiths', ok: 'Sahih and hasan' },
+  ru: { book: 'Сборник', count: 'Хадисы', ok: 'Сахих и хасан' },
+  ar: { book: 'الكتاب', count: 'الأحاديث', ok: 'صحيح وحسن' },
+  tr: { book: 'Eser', count: 'Hadis', ok: 'Sahih ve hasen' },
 }
 
 // ── Hədisin dərəcəsi (kod build zamanı: utils/hadithGrade.js) ──
@@ -334,6 +345,7 @@ function HadithAbout({ u, lang, list }) {
   })
   const books = useMemo(() => bookBreakdown(list, lang, u.other), [list, lang, u.other])
   const gu = pickUi(GRADE_UI, lang, 'en')
+  const bc = pickUi(BOOK_COLS, lang, 'en')
   const grades = useMemo(() => {
     const c = { bm: 0, ok: 0, weak: 0, quran: 0, none: 0 }
     for (const h of list) {
@@ -407,10 +419,16 @@ function HadithAbout({ u, lang, list }) {
             </div>
             <div className="hadith-about__charts">
             <ChartFigure plain className="hadith-about__chart" title={gu.chartTitle} sub={gu.chartSub} note={gu.chartNote}>
-              <BarChart data={grades} label={gu.chartTitle} labelWidth="42%" />
+              <SegmentBreakdown items={grades} label={gu.chartTitle} lang={lang} />
             </ChartFigure>
             <ChartFigure plain className="hadith-about__chart" title={u.chartTitle} sub={u.chartSub} note={u.chartNote}>
-              <BarChart data={books} label={u.chartTitle} labelWidth="34%" />
+              <MiniTable caption={u.chartTitle} rows={books} columns={[
+                { key: 'label', label: bc.book },
+                { key: 'value', label: bc.count, render: r => (
+                  <InlineBar value={r.value} max={books[0]?.value || 1} tone={r.muted ? 'muted' : 1} label={`${r.label}: ${r.value}`} format={(v) => String(v)} lang={lang} />
+                ) },
+                { key: 'ok', label: bc.ok, align: 'end', render: r => <span className="ui-num">{r.value ? `${Math.round((r.ok / r.value) * 100)}%` : '—'}</span> },
+              ]} />
               <a className="ui-link hadith-about__six" href={glossHref('al-kutub-as-sittah')} onClick={go(glossHref('al-kutub-as-sittah'))}>
                 {u.sixBooks} <Icon name="arrow" size={15} className="ui-link__arrow ui-flip-rtl" />
               </a>

@@ -14,7 +14,8 @@ import { useNavigate } from 'react-router-dom'
 import { pathFor } from '../seo/routes'
 import { CHARITY_GUIDE, CHARITY_GUIDE_LINKS } from '../data/pageGuides/CharityPage'
 import '../styles/LessonsPage.css'
-import { StatTile, ChartFigure, ColumnChart, BarChart } from '../components/viz'
+import { StatTile } from '../components/viz'
+import CharityInsights from '../components/insights/CharityInsights'
 import { pickUi } from '../utils/uiText'
 
 // Əməl növləri. icon — Icon.jsx adı (emoji əvəzinə: rəngi tokendən,
@@ -194,27 +195,6 @@ export default function CharityPage({ setPage }) {
   }
 
   const getDeedType = (key) => DEED_TYPES.find(d => d.key === key) || DEED_TYPES[7]
-
-  // Son 6 ay — hər ayda neçə əməl (ColumnChart); cari ay vurğulanır
-  const months = useMemo(() => {
-    const now = new Date()
-    const out = []
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      let label
-      if (lang === 'az' || !DATE_LOCALES[lang]) label = AZ_MONTHS_SHORT[d.getMonth()]
-      else { try { label = d.toLocaleDateString(DATE_LOCALES[lang], { month: 'short' }) } catch { label = String(d.getMonth() + 1) } }
-      out.push({ key, label, value: entries.filter(e => e.date.startsWith(key)).length, current: i === 0 })
-    }
-    return out
-  }, [entries, lang])
-
-  // Növlərə görə say (BarChart) — yalnız qeydi olan növlər, çoxdan aza
-  const byType = useMemo(() => DEED_TYPES
-    .map(dt => ({ key: dt.key, label: pickUi(dt, lang, 'en'), value: entries.filter(e => e.type === dt.key).length }))
-    .filter(x => x.value > 0)
-    .sort((a, b) => b.value - a.value), [entries, lang])
 
   const amountText = stats.totalAmount > 0 && Number.isFinite(stats.totalAmount) ? formatAmount(stats.totalAmount, lang) : '0'
 
@@ -403,26 +383,9 @@ export default function CharityPage({ setPage }) {
         </div>
       </section>
 
-      {/* ══ Xülasə: aylıq sütun qrafiki + növlər ══ */}
-      <section className="ui-section ui-section--tight ui-section--alt ch-overview" aria-labelledby="ch-ov-title">
-        <div className="ui-container">
-          <div className="ui-section-head" data-reveal>
-            <span className="ui-eyebrow">{t.ovEy}</span>
-            <h2 className="ui-title" id="ch-ov-title">{t.ovTitle}</h2>
-            <p className="ui-lead">{entries.length ? t.ovLead : t.noData}</p>
-          </div>
-          <div className="ch-charts" data-reveal="stagger-blur">
-            <ChartFigure title={t.monthsTitle} sub={t.monthsSub}>
-              <ColumnChart data={months} height={120} label={`${t.monthsTitle}: ${t.monthsSub}`} />
-            </ChartFigure>
-            <ChartFigure title={t.typesTitle} sub={t.typesSub}>
-              {byType.length
-                ? <BarChart data={byType} labelWidth="30%" label={`${t.typesTitle}: ${t.typesSub}`} />
-                : <p className="ch-chart-empty">{t.noData}</p>}
-            </ChartFigure>
-          </div>
-        </div>
-      </section>
+      {/* ══ Xülasə (viz v2): KPI, dinamika, növlər, təqvim, həftə günləri — əvvəlki 6 ay sütunları + növlər zolağı əvəzinə ══ */}
+      <CharityInsights className="ch-overview" entries={entries} today={getToday()} lang={lang}
+        types={DEED_TYPES.map(dt => ({ key: dt.key, icon: dt.icon, label: pickUi(dt, lang, 'en') }))} />
 
       {/* ══ "Nələr sədəqədir?" — gündəlikdəki növlərin dəlili (LessonBlocks formatı) ══ */}
       <section className="ui-section ch-guide ui-cv" style={{ '--cv-h': '1800px' }}>

@@ -3,6 +3,9 @@
 //
 //   import { BarChart, ColumnChart, Donut, ProgressRing, ProgressBar,
 //            Sparkline, StackedBar, Timeline, StatTile, ChartFigure } from '../components/viz'
+//   v2: AreaChart LineChart CalendarHeatmap ChartCard Delta KpiCard RangeTabs FunnelChart
+//       SegmentBreakdown CompareBars GoalRing RadialBars ActivityFeed MiniTable InlineBar TrendCell
+//       (fayllar: xy.jsx heatmap.jsx cards.jsx; hesab scale.js; format format.js; stil styles/viz.css)
 //
 // Qaydalar (DESIGN.md §6 "Qrafiklər"):
 //   • Rəng YALNIZ tokenlərdən: --viz-1…4 (sabit sıra, dövr etmir), iz
@@ -18,16 +21,20 @@
 // ═══════════════════════════════════════════════════════
 import Icon from '../Icon'
 
-/** Ton → CSS rəngi. 1–4 kateqorial, ya da semantik ad. */
-export function vizColor(tone = 1) {
-  if (typeof tone === 'number') return `var(--viz-${((tone - 1) % 4) + 1})`
-  const map = {
-    brand: 'var(--viz-1)', accent: 'var(--viz-2)', blue: 'var(--viz-3)', plum: 'var(--viz-4)',
-    ok: 'var(--ok)', warn: 'var(--warn)', bad: 'var(--bad)', note: 'var(--note)',
-    muted: 'var(--line-strong)',
-  }
-  return map[tone] || tone
-}
+import { vizColor } from './tone.js'
+import '../../styles/viz.css'
+export { vizColor }
+
+// ── viz v2 (DESIGN.md "Qrafiklər v2") ──
+export { AreaChart, LineChart } from './xy.jsx'
+export { CalendarHeatmap } from './heatmap.jsx'
+export {
+  ChartCard, BentoGrid, Delta, KpiCard, RangeTabs, FunnelChart, SegmentBreakdown, CompareBars,
+  GoalRing, RadialBars, ActivityFeed, MiniTable, InlineBar, TrendCell,
+} from './cards.jsx'
+export { useSize, useReducedMotion, useInView, useVizFormat } from './hooks.js'
+export { makeFormat, localeOf, vizText } from './format.js'
+export * as vizScale from './scale.js'
 
 const fmtDefault = (v) => String(v)
 

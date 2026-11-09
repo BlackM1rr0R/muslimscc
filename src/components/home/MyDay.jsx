@@ -6,7 +6,7 @@
 // Hər kafel öz bölməsinə aparır. Başqa tabda dəyişəndə (storage hadisəsi),
 // səhifəyə qayıdanda və namaz qeyd ediləndə yenilənir.
 // ═══════════════════════════════════════════════════════
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../../contexts/LangContext'
 import { navLabel } from '../../data/navigation'
@@ -19,6 +19,9 @@ import { Sparkline } from '../viz'
 import { isPlainClick } from '../PageLink'
 import Icon from '../Icon'
 import '../../styles/BadgeShelf.css'
+
+// v5.9: "Mənim həftəm" — ayrıca kiçik chunk; məlumat yoxdursa heç nə göstərmir
+const MyWeek = lazy(() => import('./MyWeek').catch(() => ({ default: () => null })))
 
 const L = {
   az: { ey: 'Bu cihazda', title: 'Mənim günüm', today: 'Bu gün', week: 'Son 7 gün', streak: 'ardıcıl gün', year: 'Mənim ilim', yearDec: 'İlin icmalı hazırdır', adhkar: 'Səhər və axşam azkarı', morning: 'Səhər', evening: 'Axşam', badges: '{n} nişan' },
@@ -187,6 +190,7 @@ export default function MyDay({ onNavigate }) {
             </li>
           </ul>
         )}
+        {d && <Suspense fallback={null}><MyWeek /></Suspense>}
       </div>
     </section>
   )

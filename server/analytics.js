@@ -15,7 +15,8 @@
 //
 // API:
 //   POST /api/a                    — mayak (sendBeacon), gövdə {p, r, l} → 204
-//   GET  /api/admin/analytics?from=YYYY-MM-DD&to=YYYY-MM-DD  — yalnız admin
+//   GET  /api/admin/analytics?from=YYYY-MM-DD&to=YYYY-MM-DD[&compare=1]  — yalnız admin
+//        compare=1 → + prev (əvvəlki eyni uzunluqlu dövr) + pageSeries (top səhifələrin günlük baxışı)
 //
 // İstifadə (server.js):
 //   const analytics = require('./analytics')
@@ -231,6 +232,7 @@ function createAnalytics(opts = {}) {
     dims: raw.prepare(`SELECT key, SUM(count) AS count FROM analytics_dim
       WHERE kind = ? AND day BETWEEN ? AND ? GROUP BY key ORDER BY count DESC, key ASC LIMIT ?`),
     pathsOfDay: raw.prepare('SELECT path FROM analytics_daily WHERE day = ?'),
+    pageDaily: raw.prepare('SELECT day, views FROM analytics_daily WHERE path = ? AND day BETWEEN ? AND ?'),
   }
 
   const tx = (fn) => {
@@ -328,8 +330,14 @@ function createAnalytics(opts = {}) {
     }
   }
 
-  /** Aralıq üçün statistika. from/to — 'YYYY-MM-DD' (UTC), daxil olmaqla. */
-  function stats({ from, to, limit = 10 } = {}) {
+  /**
+   * Aralıq üçün statistika. from/to — 'YYYY-MM-DD' (UTC), daxil olmaqla.
+   * compare: true → əlavə olaraq
+   *   prev       — eyni uzunluqda əvvəlki dövrün eyni formalı statistikası (pageSeries/prev-siz)
+   *   pageSeries — ən çox baxılan səhifələrin gündəlik baxışları { path: number[] } (series sırası ilə)
+   * Hamısı mövcud cəmlərdən hesablanır — yeni məlumat toplanmır (admin icmal paneli).
+   */
+  function stats({ from, to, limit = 10, compare = false } = {}) {
     const today = dayOf(now())
     const end = to || today
     const start = from || addDays(end, -29)
@@ -346,6 +354,18 @@ function createAnalytics(opts = {}) {
     }
     const dim = (kind) => st.dims.all(kind, start, end, limit).map((r) => ({ key: r.key, count: Number(r.count) }))
     const languages = dim('lang')
+    const pages = st.pages.all(start, end, limit).map((r) => ({ key: r.key, views: Number(r.views), visitors: Number(r.visitors) }))
+    const extra = {}
+    if (compare) {
+      const span = series.length
+      extra.prev = stats({ from: addDays(start, -span), to: addDays(start, -1), limit })
+      const idx = new Map(series.map((r, i) => [r.day, i]))
+      extra.pageSeries = Object.fromEntries(pages.map((p) => {
+        const vals = new Array(span).fill(0)
+        for (const r of st.pageDaily.all(p.key, start, end)) if (idx.has(r.day)) vals[idx.get(r.day)] = Number(r.views)
+        return [p.key, vals]
+      }))
+    }
     return {
       from: start,
       to: end,
@@ -359,12 +379,13 @@ function createAnalytics(opts = {}) {
         topLanguage: languages[0] ? languages[0].key : null,
       },
       series,
-      pages: st.pages.all(start, end, limit).map((r) => ({ key: r.key, views: Number(r.views), visitors: Number(r.visitors) })),
+      pages,
       referrers: dim(DIM_KINDS.referrers),
       languages,
       devices: dim(DIM_KINDS.devices),
       browsers: dim(DIM_KINDS.browsers),
       retentionDays,
+      ...extra,
     }
   }
 
@@ -379,7 +400,8 @@ function createAnalytics(opts = {}) {
       const span = Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS) + 1
       if (span > retentionDays) return send(res, 400, { error: `Aralıq ${retentionDays} gündən çox ola bilməz` })
       const limit = Math.min(50, Math.max(1, Number(q.limit) || 10))
-      return send(res, 200, stats({ from, to, limit }))
+      const compare = q.compare === '1' || q.compare === 'true'
+      return send(res, 200, stats({ from, to, limit, compare }))
     } catch (e) {
       console.error('analytics stats:', e && e.message)
       return send(res, 500, { error: 'Server error' })

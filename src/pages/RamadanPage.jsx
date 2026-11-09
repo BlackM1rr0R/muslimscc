@@ -25,7 +25,7 @@ import { weekdayOf } from '../utils/ramadan'
 import { pathFor } from '../seo/routes'
 import { isPlainClick } from '../components/PageLink'
 import LessonBlocks from '../components/lesson/LessonBlocks'
-import { ChartFigure, ProgressRing, StatTile } from '../components/viz'
+import { ChartFigure, ProgressRing, StatTile, AreaChart } from '../components/viz'
 import { RAMADAN_GUIDE, RAMADAN_SOURCES, JUZ_RANGES } from '../data/ramadanGuide'
 import '../styles/LessonsPage.css'
 import '../styles/RamadanPage.css'
@@ -34,6 +34,7 @@ import GeoStarfield from '../components/prayer/GeoStarfield'
 import Sparkle from '../components/prayer/Sparkle'
 import { ringFrom } from '../components/prayer/ringFrom'
 import { pickUi } from '../utils/uiText'
+import RamadanKhatmGoal from '../components/insights/RamadanKhatmGoal'
 
 const TXT = {
   title:   { az: 'İmsakiyyə', en: 'Ramadan timetable', ru: 'Расписание на Рамадан', ar: 'إمساكية رمضان', tr: 'İmsakiye' },
@@ -54,7 +55,7 @@ const TXT = {
   hUnit:   { az: 'saat', en: 'h', ru: 'ч', ar: 'ساعة', tr: 'saat' },
   glEyebrow: { az: 'Bir baxışda', en: 'At a glance', ru: 'С первого взгляда', ar: 'نظرة سريعة', tr: 'Bir bakışta' },
   glTitle: { az: 'Ayın oruc saatları', en: 'Fasting hours across the month', ru: 'Часы поста по дням месяца', ar: 'ساعات الصيام خلال الشهر', tr: 'Ay boyunca oruç saatleri' },
-  glLead:  { az: 'Hər sütun bir günün orucudur — imsakdan iftara qədər. Bugünkü gün qızılı rəngdədir.', en: 'Each column is one day’s fast, from imsak to iftar. Today is shown in gold.', ru: 'Каждый столбец — пост одного дня, от имсака до ифтара. Сегодняшний день — золотой.', ar: 'كل عمود صيام يوم واحد من الإمساك إلى الإفطار، واليوم مميَّز بالذهبي.', tr: 'Her sütun bir günün orucudur — imsaktan iftara. Bugün altın renkte.' },
+  glLead:  { az: 'Qrafikdəki hər nöqtə bir günün orucudur — imsakdan iftara qədər. Nöqtəyə toxunun və ya ox düymələri ilə gəzin — günün müddəti görünür.', en: 'Each point on the chart is one day’s fast, from imsak to iftar. Tap a point or use the arrow keys to see that day’s length.', ru: 'Каждая точка на графике — пост одного дня, от имсака до ифтара. Нажмите на точку или используйте стрелки, чтобы увидеть длительность дня.', ar: 'كل نقطة في الرسم صيام يوم واحد من الإمساك إلى الإفطار. المس نقطة أو استخدم مفاتيح الأسهم لترى مدة ذلك اليوم.', tr: 'Grafikteki her nokta bir günün orucudur — imsaktan iftara. Bir noktaya dokunun veya ok tuşlarıyla gezinin — o günün süresi görünür.' },
   chartTitle: { az: 'Orucun uzunluğu', en: 'Length of the fast', ru: 'Длительность поста', ar: 'مدة الصيام', tr: 'Orucun uzunluğu' },
   chartSub: { az: 'saat:dəqiqə, {city}', en: 'hours:minutes, {city}', ru: 'часы:минуты, {city}', ar: 'ساعات:دقائق، {city}', tr: 'saat:dakika, {city}' },
   longest: { az: 'Ən uzun', en: 'Longest', ru: 'Самый долгий', ar: 'الأطول', tr: 'En uzun' },
@@ -143,6 +144,8 @@ function KhatmPlan({ lang, todayJuz }) {
           <Icon name="refresh" className="ui-btn__icon" /> {pick(GT.reset, lang)}
         </button>
       </div>
+      {/* viz v2: Ramazan günlərində temp və plana görə vəziyyət */}
+      <RamadanKhatmGoal done={done.length} day={todayJuz} lang={lang} />
       {done.length === 30 && <Sparkle count={12} radius={80} />}
       {done.length === 30 && <p className="rp-khatm__done" role="status"><Icon name="check" size={16} /> {pick(GT.complete, lang)}</p>}
       <ol className="rp-khatm__grid tm-cascade">
@@ -292,7 +295,7 @@ const pad2 = (n) => String(n).padStart(2, '0')
 const durHM = (min) => `${Math.floor(min / 60)}:${pad2(min % 60)}`
 
 /** Ayın oruc saatları: sütunlar (y oxu min–max aralığına yaxınlaşdırılıb), ring, rəqəmlər. */
-function MonthGlance({ calendar, todayDate, dayNumber, inRamadan, lang, city }) {
+function MonthGlance({ calendar, dayNumber, inRamadan, lang, city }) {
   const rows = calendar.map(e => ({ day: e.day, date: e.date, min: fastMinutes(e) })).filter(r => r.min != null)
   if (rows.length < 2) return null
   const mins = rows.map(r => r.min)
@@ -301,9 +304,6 @@ function MonthGlance({ calendar, todayDate, dayNumber, inRamadan, lang, city }) 
   const longest = rows.find(r => r.min === hi), shortest = rows.find(r => r.min === lo)
   const total = calendar.length
   const passed = inRamadan && dayNumber ? Math.min(total, dayNumber) : 0
-  const W = 600, H = 150, gap = 3
-  const bw = (W - gap * (rows.length - 1)) / rows.length
-  const y = (m) => H - ((m - floor) / (hi - floor || 1)) * (H - 8)
   const aria = `${pick(TXT.chartTitle, lang)}: ${pick(TXT.shortest, lang)} ${durHM(lo)}, ${pick(TXT.longest, lang)} ${durHM(hi)}`
   const dayLabel = (n) => ordFill(TXT.dayN, lang, n)
   return (
@@ -316,25 +316,11 @@ function MonthGlance({ calendar, todayDate, dayNumber, inRamadan, lang, city }) 
         </div>
         <div className="rp-glance__grid">
           <ChartFigure title={pick(TXT.chartTitle, lang)} sub={pick(TXT.chartSub, lang).replace('{city}', city)} className="rp-fast-fig">
-            {/* v5.2: ən uzun / ən qısa gün xətti + dəyəri (əvvəl sütunların ölçüsü yox idi,
-                baza sıfırdan deyil — fərq görünsün deyə — bu qeyd olmadan çaşdırırdı) */}
-            <div className="rp-fast__wrap">
-              <svg className="rp-fast" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={aria}>
-                <line className="rp-fast__ref" x1="0" x2={W} y1={y(hi)} y2={y(hi)} />
-                <line className="rp-fast__ref" x1="0" x2={W} y1={y(lo)} y2={y(lo)} />
-                {rows.map((r, i) => (
-                  <rect key={r.day} style={{ '--i': i }} x={i * (bw + gap)} y={y(r.min)} width={bw} height={H - y(r.min)} rx={Math.min(3, bw / 3)}
-                    className={[r.date === todayDate && 'is-today', r.min === hi && 'is-max', r.min === lo && 'is-min'].filter(Boolean).join(' ') || undefined}>
-                    <title>{`${dayLabel(r.day)}: ${durHM(r.min)}`}</title>
-                  </rect>
-                ))}
-              </svg>
-              <span className="rp-fast__ylab rp-fast__ylab--hi" style={{ top: `${(y(hi) / H) * 100}%` }} aria-hidden="true">{durHM(hi)}</span>
-              <span className="rp-fast__ylab rp-fast__ylab--lo" style={{ top: `${(y(lo) / H) * 100}%` }} aria-hidden="true">{durHM(lo)}</span>
-            </div>
-            <div className="rp-fast__axis" aria-hidden="true">
-              {rows.map(r => <span key={r.day}>{r.day === 1 || r.day % 5 === 0 ? r.day : ''}</span>)}
-            </div>
+            {/* v5.9: viz v2 sahə qrafiki — y oxu min–max-a yaxın (fərq görünsün), izah qutusu, klaviatura, gizli cədvəl */}
+            <AreaChart height={200} curve="monotone" dots lang={lang} label={pick(TXT.chartTitle, lang)} summary={aria}
+              labels={rows.map(r => r.day)} xFormat={(d) => String(d)} tooltipTitle={(d) => dayLabel(d)}
+              yMin={Math.floor(floor / 30) * 30} yFormat={durHM} valueFormat={durHM} legend={false}
+              series={[{ key: 'fast', label: pick(TXT.fast, lang), values: rows.map(r => r.min), tone: 1 }]} />
           </ChartFigure>
           <div className="rp-glance__side tm-ring" data-reveal="fade" style={{ '--tm-ring-from': ringFrom(passed, total, 88, 8) }}>
             <ProgressRing value={passed} max={total} size={88} thickness={8}

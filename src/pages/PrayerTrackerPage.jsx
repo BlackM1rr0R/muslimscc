@@ -9,6 +9,7 @@ import RelatedLinks from '../components/prayer/RelatedLinks'
 import BackupCard from '../components/BackupCard'
 import PrayerGarden from '../components/prayer/PrayerGarden'
 import NurCarpet from '../components/prayer/NurCarpet'
+import PrayerTrackerInsights from '../components/insights/PrayerTrackerInsights'
 import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
 import {
   PRAYERS, prayerStatus, dayState, computeStreak, bestStreak, rangeSummary, lastNDays, addDays,
@@ -183,6 +184,9 @@ export default function PrayerTrackerPage({ setPage }) {
           </div>
         </div>
       </section>
+
+      {/* viz v2: analitika — KPI, dinamika, təqvim, namazlar üzrə, həftə günləri */}
+      <PrayerTrackerInsights snap={snap} periods={periods} today={today} lang={lk} />
 
       {/* Namaz bağçası — son 30 gün bitki kimi; bitkiyə toxunanda həmin gün açılır */}
       <section className="ui-section ui-section--tight pt-garden">

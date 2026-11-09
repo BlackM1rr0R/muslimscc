@@ -281,35 +281,30 @@
 
 .admin-section-lead { margin: -8px 0 16px; color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
 
-/* ── İdarə paneli (DashboardOverview, dizayn v3) ──
-   Ümumi rəqəm + növ kafelləri bir sətirdə; altda qrafik | sürətli əməllər */
-.admin-dash-stats {
-  display: grid;
-  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+/* ── İdarə paneli (DashboardOverview, icmal v4 — viz v2 bento) ──
+   Salam + tarix + nəticə cümləsi → KPI (span 3) → trafik (8) | cihazlar (4)
+   → səhifələr (7) | canlı fəaliyyət (5) → mənbələr | dillər | brauzerlər → məzmun | sürətli */
+.ado { display: grid; gap: 16px; }
+.ado.is-busy .ado-bento { cursor: progress; }   /* solğunlaşdırma yox — axe kontrastı yükləmə anında da düzgün qalsın */
+.ado-hero { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; padding-bottom: 4px; }
+.ado-hero__text { display: grid; gap: 4px; min-width: 0; flex: 1 1 28rem; }
+.ado-hero__date { margin: 0; color: var(--text-secondary); font-size: var(--step--1); font-weight: 500; }
+.ado-hero__date time { color: var(--text-tertiary); }
+.ado-hero__title { margin: 0; color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-4); font-weight: 600; letter-spacing: -0.02em; line-height: var(--lh-tight); }
+.ado-hero__insight { margin: 2px 0 0; max-width: 72ch; color: var(--text-body); font-size: var(--step-0); line-height: 1.55; }
+.ado-hero__tools { display: flex; align-items: center; gap: 8px; }
+.ado .admin-alert { margin: 0; }
+.ado-bento .vz-card { min-width: 0; }
+.ado-path { font-weight: 500; color: var(--text-strong); overflow-wrap: anywhere; }
+.ado-muted { color: var(--text-tertiary); }
+.ado-pad { padding: 16px 20px; }
+.ado-note { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line); color: var(--text-secondary); font-size: var(--step--1); }
+.ado-note svg { flex-shrink: 0; color: var(--accent); }
+.ado-quick { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); column-gap: 8px; }
+@media (max-width: 599.98px) {
+  .ado { gap: 12px; }
+  .ado-hero__title { font-size: var(--step-3); }
 }
-.admin-dash-total {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  padding: 18px 20px;
-  border-radius: var(--radius-lg);
-  background: var(--brand-soft);
-  box-shadow: inset 0 0 0 1px var(--brand-line);
-}
-.admin-dash-total__label {
-  color: var(--brand);
-  font-family: var(--font-label);
-  font-size: var(--step--2);
-  font-weight: 600;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-}
-[dir="rtl"] .admin-dash-total__label { letter-spacing: 0; text-transform: none; }
-.admin-dash-total__num { color: var(--text-strong); font-size: var(--step-4); font-weight: 500; line-height: 1; }
-.admin-dash-total__hint { color: var(--text-secondary); font-size: var(--step--1); }
 
 .admin-stats {
   display: grid;
@@ -319,7 +314,6 @@
   padding: 0;
   list-style: none;
 }
-.admin-dash-stats .admin-stats { margin: 0; }
 .admin-stat-card {
   display: flex;
   flex-direction: column;
@@ -356,17 +350,6 @@ button.admin-stat-card:active { transform: scale(0.98); }
 }
 .admin-stat-label { color: var(--text-secondary); font-size: var(--step--1); font-weight: 500; }
 
-.admin-dash-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-.admin-dash-grid .ui-figure { margin: 0; }
-.admin-dash-grid .admin-section { margin: 0; }
-.admin-dash-actions .admin-section-title { margin-bottom: 10px; }
-.admin-dash-actions .admin-quick + .admin-section-title { margin-top: 20px; }
-
 /* Sürətli əməliyyatlar — ikonlu sətirlər */
 .admin-quick { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .admin-quick-btn {
@@ -389,17 +372,9 @@ button.admin-stat-card:active { transform: scale(0.98); }
 }
 @media (hover: hover) { .admin-quick-btn:hover { background: var(--surface-2); } }
 .admin-quick-chev { margin-inline-start: auto; color: var(--text-tertiary); }
-@media (max-width: 1099.98px) {
-  .admin-dash-grid { grid-template-columns: minmax(0, 1fr); }
-}
 @media (max-width: 599.98px) {
-  .admin-dash-stats { grid-template-columns: minmax(0, 1fr); }
-  .admin-dash-total { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 14px 16px; }
-  .admin-dash-total__num { font-size: var(--step-3); }
   .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .admin-stat-card { padding: 12px 14px; }
-  /* Telefonda qrafik kafellərdəki rəqəmləri təkrarlayır — gizlənir */
-  .admin-dash-chart { display: none; }
 }
 
 /* Statistika qrupu: rəqəm + etiket xanaları */

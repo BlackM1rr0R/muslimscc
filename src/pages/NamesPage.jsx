@@ -18,6 +18,9 @@ import useStarred, { dayPick, shareLink } from '../components/collect/useStarred
 import '../styles/NamesPage.css'
 import InkText from '../components/InkText'
 import NamesMandala from '../components/NamesMandala'
+import NamesNumbers from '../components/numbers/NamesNumbers'
+import { getSurahLocal } from '../data/surahNamesAz.js'
+import { SURAH_TABLE } from '../data/mushafIndex.js'
 import { lazy, Suspense } from 'react'
 import '../styles/NamesSky.css'
 // v5.8: 3D göy qübbəsi (three.js — yalnız "Səma" seçiləndə yüklənir)
@@ -849,6 +852,10 @@ export default function NamesPage({ setPage }) {
           )}
         </div>
       </section>
+
+      {/* v5.9: "Adlar rəqəmlərlə" — viz v2 bento (dəlillər: data/names99.js → proof) */}
+      <NamesNumbers lang={lang} names={NAMES_99}
+        surahName={(n) => getSurahLocal(n, lang)?.name || SURAH_TABLE[n - 1]?.[lang === 'ar' ? 4 : 5] || String(n)} />
 
       {/* Əzbərləmə məşqi — kartlar və yoxlama */}
       <section className="ui-section np-section" id="names-practice" aria-labelledby="np-practice-h">

@@ -169,6 +169,8 @@ function createPushStore(db) {
     del: raw.prepare('DELETE FROM push_subs WHERE endpoint = ?'),
     all: raw.prepare('SELECT endpoint, keys_p256dh, keys_auth, lang, loc, prefs FROM push_subs'),
     count: raw.prepare('SELECT COUNT(*) AS n FROM push_subs'),
+    since: raw.prepare('SELECT created_at FROM push_subs WHERE created_at >= ?'),
+    langs: raw.prepare('SELECT lang, COUNT(*) AS n FROM push_subs GROUP BY lang ORDER BY n DESC, lang ASC'),
   }
   const parse = (s, fb) => { try { return s == null ? fb : JSON.parse(s) } catch { return fb } }
   return {
@@ -194,6 +196,20 @@ function createPushStore(db) {
     },
     remove: (endpoint) => st.del.run(endpoint).changes > 0,
     count: () => st.count.get().n,
+    /**
+     * Admin icmalı: sinceMs-dən bəri yaranmış (hələ də aktiv) abunəliklər UTC günü üzrə
+     * → [{ day: 'YYYY-MM-DD', count }] (gün sırası ilə; yalnız sayı olan günlər). Endpoint/açar qaytarılmır.
+     */
+    newByDay(sinceMs) {
+      const m = new Map()
+      for (const r of st.since.all(Number(sinceMs) || 0)) {
+        const day = new Date(Number(r.created_at)).toISOString().slice(0, 10)
+        m.set(day, (m.get(day) || 0) + 1)
+      }
+      return [...m].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([day, count]) => ({ day, count }))
+    },
+    /** Admin icmalı: dillər üzrə abunə sayı → [{ key, count }] */
+    langs: () => st.langs.all().map((r) => ({ key: r.lang || '', count: Number(r.n) })),
     /** Planlayıcı üçün: hamısı, JSON sahələri açılmış. */
     all: () => st.all.all().map((r) => ({
       endpoint: r.endpoint, keys: { p256dh: r.keys_p256dh, auth: r.keys_auth },

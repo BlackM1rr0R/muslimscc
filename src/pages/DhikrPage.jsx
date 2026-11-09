@@ -20,6 +20,7 @@ import { pickUi } from '../utils/uiText'
 import { bumpDhikrDay } from '../utils/myDay'
 import { loadPalms, bumpPalm, PALM_SOURCE } from '../utils/palms'
 import PalmGarden from '../components/dhikr/PalmGarden'
+import DhikrInsights from '../components/insights/DhikrInsights'
 
 // ── localStorage helper-ləri ──
 const STORAGE_KEY = 'dhikr_session'
@@ -561,6 +562,9 @@ export default function DhikrPage({ setPage }) {
         </div>
         )}
       </section>
+
+      {/* viz v2: analitika — gündəlik zikr dinamikası, davamlılıq, zikrlərə görə */}
+      <DhikrInsights log={log} version={lifetime} lang={lang} />
 
       <section className="ui-section ui-section--tight dk-when" aria-labelledby="dk-when-h">
         <div className="ui-container">

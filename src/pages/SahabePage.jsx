@@ -11,6 +11,7 @@ import { SAHABA, slugOf } from '../data/sahaba'
 // Xəttatlıq lövhəsi (ərəbcə ad + رضي الله عنه/عنها) — canlı təsvir yoxdur
 import CalligraphyPlaque from '../components/media/CalligraphyPlaque'
 import LifespanChart from '../components/media/LifespanChart'
+import { SahabaNumbers } from '../components/numbers/PeopleNumbers'
 import RelatedLinks from '../components/media/RelatedLinks'
 import { ChartFigure } from '../components/viz'
 import { SAHABA_DEATH, RASHIDUN_SPAN } from '../data/sahabaYears'
@@ -581,6 +582,10 @@ export default function SahabePage() {
           </ChartFigure>
         </div>
       </section>
+
+      {/* v5.9: "Səhabələr rəqəmlərlə" — viz v2 bento (vəfat illəri: data/sahabaYears.js) */}
+      <SahabaNumbers lang={lang} band={RASHIDUN_SPAN}
+        rows={BY_DEATH.map(s => ({ key: slugOf(s), name: pick(s.name, lang), h: SAHABA_DEATH[slugOf(s)].h }))} />
 
       <section className="ui-section ui-section--tight sp-related" aria-labelledby="sp-rel-h">
         <div className="ui-container">

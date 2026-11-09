@@ -10,6 +10,7 @@ import { DUA_GUIDE, DUA_GUIDE_LINKS } from '../data/pageGuides/DuaJournalPage'
 import { ChartFigure, Donut, ProgressRing } from '../components/viz'
 import ActivityHeatmap from '../components/ActivityHeatmap'
 import DuaGarden from '../components/DuaGarden'
+import DuaJournalInsights from '../components/insights/DuaJournalInsights'
 import RelatedLinks from '../components/RelatedLinks'
 import { copyText } from '../components/reader/share'
 import '../styles/LessonsPage.css'
@@ -523,6 +524,9 @@ export default function DuaJournalPage({ setPage }) {
           </aside>
         </div>
       </section>
+
+      {/* viz v2: analitika — KPI, dinamika, kateqoriyalar, təqvim, lent */}
+      <DuaJournalInsights duas={duas} today={todayIso} categories={CATEGORIES} catLabels={Object.fromEntries(CATEGORIES.map(c => [c, t[c]]))} lang={lang} />
 
       {/* ── Duanın ədəbi, "qəbul oldu"nun mənası, qəbul vaxtları (mənbəli) ── */}
       {DUA_GUIDE.map((sec, i) => (

@@ -23,6 +23,7 @@ import { navGroupLabel, navGroupOf } from '../data/navigation'
 import { ChartFigure, ProgressRing, StatTile, ColumnChart } from '../components/viz'
 import ActivityHeatmap from '../components/ActivityHeatmap'
 import MuhasabahSky from '../components/MuhasabahSky'
+import MuhasabahInsights from '../components/insights/MuhasabahInsights'
 import RelatedLinks from '../components/RelatedLinks'
 import '../styles/MuhasabahPage.css'
 import '../styles/ToolsMotion.css'
@@ -631,6 +632,9 @@ export default function MuhasabahPage({ setPage }) {
           </aside>
         </div>
       </section>
+
+      {/* viz v2: analitika — KPI, dinamika, əməllər üzrə, təqvim, həftə günləri */}
+      <MuhasabahInsights entries={entries} today={todayIso} items={ITEMS} labels={v.short} lang={lang} />
 
       {/* ── Sələfdən — qısa giriş, ətraflısı dərsdə ── */}
       <section className="ui-section ui-section--tight ui-section--alt" aria-labelledby="mh-quotes-h">

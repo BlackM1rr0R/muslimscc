@@ -11,7 +11,8 @@ import RelatedLinks from '../components/media/RelatedLinks'
 const SpreadTimeline = lazy(() => import('../components/media/SpreadTimeline'))
 import { PLACE_PHOTOS } from '../data/placeImages'
 // Məlumat — src/data/islamicHistory.js (peyğəmbərlər, hadisələr, dövrlər)
-import { PROPHETS, EVENTS, EVENTS_SORTED, HISTORY_ERAS, eraOfEvent, ULUL_AZM } from '../data/islamicHistory'
+import { PROPHETS, EVENTS, EVENTS_SORTED, HISTORY_ERAS, eraOfEvent, eventYear, ULUL_AZM } from '../data/islamicHistory'
+import HistoryNumbers from '../components/numbers/HistoryNumbers'
 import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -374,6 +375,9 @@ export default function IslamicHistoryPage() {
           </div>
         </div>
       </section>
+
+      {/* v5.9: "Tarix rəqəmlərlə" — viz v2 bento */}
+      <HistoryNumbers lang={lang} prophets={PROPHETS} events={EVENTS} eras={HISTORY_ERAS} eraOf={eraOfEvent} yearOf={eventYear} ululAzm={ULUL_AZM} />
 
       <section className="ui-section ui-section--tight hx-related" aria-labelledby="hx-rel-h">
         <div className="ui-container">

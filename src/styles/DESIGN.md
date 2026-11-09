@@ -14,7 +14,7 @@ v3-ün məqsədi (sahibin sözləri ilə): rənglər qalır, amma səhifələr "
 | `src/styles/motion.css` | Hərəkət tokenləri, fokus halqası, `data-reveal`, `data-count`, skeleton |
 | `src/styles/heroes.css` | Köhnə rəngli `.page-hero` temaları (redizayn olunmamış səhifələr üçün) |
 | `src/components/Icon.jsx` | Xətti SVG ikon dəsti (`<Icon name="quran" />`) + `BrandMark` |
-| `src/components/viz/index.jsx` | **Qrafik dəsti**: `BarChart ColumnChart Donut ProgressRing ProgressBar Sparkline StackedBar Timeline StatTile ChartFigure` |
+| `src/components/viz/index.jsx` | **Qrafik dəsti**: `BarChart ColumnChart Donut ProgressRing ProgressBar Sparkline StackedBar Timeline StatTile ChartFigure` + **v2 (§5.1)**: `AreaChart LineChart CalendarHeatmap KpiCard ChartCard BentoGrid RangeTabs Delta FunnelChart SegmentBreakdown CompareBars GoalRing RadialBars ActivityFeed MiniTable InlineBar TrendCell` (stil `viz.css`) |
 | `src/pages/HomePage.jsx` + `HomePage.css` | Sistemin "vitrin" səhifəsi — `.ui-tiles`, `.ui-steps`, `StatTile` nümunələri |
 
 ---
@@ -324,6 +324,67 @@ Qaydalar:
    `label`/`aria-label` ver. Mətn seriya rəngində yazılmır.
 4. RTL avtomatikdir (HTML qrafiklər məntiqi xassələrlə; `Sparkline` `flipRtl`). Qaranlıq rejim tokenlərlə avtomatikdir.
 5. Məlumat **doğru və mənbəli** olmalıdır: `note="Mənbə: …"`. Uydurma rəqəm yox.
+
+## 5.1 Qrafiklər v2 — panel (dashboard) dəsti (2026-11-09)
+
+Eyni yerdən import olunur (`../components/viz`); v1 komponentləri və props-ları dəyişməyib.
+Fayllar: `viz/xy.jsx` (AreaChart, LineChart) · `viz/heatmap.jsx` (CalendarHeatmap) · `viz/cards.jsx` (qalanları) ·
+`viz/scale.js` (saf hesab, `tests/unit/viz-scale.test.js`) · `viz/format.js` (dilə görə Intl format) · `viz/hooks.js` ·
+`viz/tone.js` (`vizColor`) · stil `src/styles/viz.css` (`.vz-*`, viz/index.jsx özü import edir). Vitrin: `/analytics`.
+
+```jsx
+import { BentoGrid, ChartCard, KpiCard, RangeTabs, AreaChart, LineChart, CalendarHeatmap, RadialBars,
+         FunnelChart, SegmentBreakdown, CompareBars, GoalRing, ActivityFeed, MiniTable, InlineBar, TrendCell,
+         Delta, makeFormat, vizScale } from '../components/viz'
+
+const [range, setRange] = useState(30)
+<BentoGrid>
+  <KpiCard span={3} icon="prayer" label="Namaz" value="102" delta={{ value: 13, vs: 'əvvəlki 30 günə görə' }}
+           spark={[3, 5, 4, 5]} sparkLabel="Namaz: trend" href={pathFor('dailytracker', lang)} onClick={go('dailytracker')} />
+  <ChartCard span={8} id="deeds" title="Əməllər" sub="gündə qeyd olunan"
+             actions={<RangeTabs label="Dövr" value={range} onChange={setRange}
+                                 options={[{ value: 7, label: '7 gün' }, { value: 30, label: '30 gün' }]} />}
+             footer={{ label: 'Hamısı', href: '/dailytracker', onClick }}>
+    <AreaChart mode="stacked" integer label="Əməllər" labels={dayKeys} xFormat={k => f.date(fromDayKey(k))}
+               series={[{ key: 'p', label: 'Namaz', values: [..], tone: 1 }, { key: 'q', label: 'Quran', values: [..], tone: 3 }]} />
+  </ChartCard>
+</BentoGrid>
+```
+
+| Komponent | Nə üçün | Props |
+|---|---|---|
+| `BentoGrid` | 12 sütunlu panel şəbəkəsi (≥1100px; 720–1099 — 2 sütun, KPI 2×2; telefonda KPI 2 sütun, qalan tam en) | `className children` — uşaqlarda `span` (1–12) |
+| `ChartCard` | kart qabığı | `title sub icon actions footer({label,href,onClick,note} \| node) span rowSpan id headingLevel('h3') flush className` |
+| `KpiCard` | iri rəqəm + dəyişmə + mini trend | `label value unit delta(number \| {value,positiveIsGood,vs}) spark(number[]) sparkLabel icon href onClick hint tone count span lang` |
+| `Delta` | ↑ 12% / ↓ 4% nişanı (yaşıl/qırmızı + ekran oxuyucu üçün söz) | `value(faiz; null → heç nə) positiveIsGood(true) vs(mətn \| false) format size('sm'\|'md') lang` |
+| `RangeTabs` | idarə olunan seqment (dövr, rejim); radiogroup, ←/→ | `options([{value,label,title}] \| string[]) value onChange label(məcburi) size('sm')` |
+| `AreaChart` | zaman sırası, sahə; `mode` `'stacked'` (tərkib) \| `'overlay'` | `series[{key,label,values,tone,compare?}] labels xFormat(label,i) tooltipTitle(label,i) height(240) yFormat valueFormat yTicks(4) integer yMin yMax grid legend legendValue('total'\|'last'\|'avg'\|false) toggle compareLabel curve('monotone'\|'linear') label(məcburi) summary empty emptyText dots animate lang` |
+| `LineChart` | AreaChart-ın dolğusuz forması; `series[i].compare` — ştrixli "əvvəlki dövr" | AreaChart ilə eyni |
+| `CalendarHeatmap` | GitHub üslubunda gün şəbəkəsi | `data({ 'YYYY-MM-DD': n } \| key => n) end weeks('auto' \| n) maxWeeks(26) minWeeks(8) weekStart(1) thresholds levels(4) format(v,key) label legend showDays showMonths tone lang` |
+| `RadialBars` | bir neçə tamamlanma halqası (5 namaz) | `items[{key,label,value,max,tone}] layout('row'\|'concentric') size thickness tone format(v,max) label centerValue centerLabel lang` |
+| `GoalRing` | hədəf halqası + İndi / Qalıb / Temp / Bitəcək | `value goal pace(gündə) unit format rows(əvəz) extraRows centerLabel label size(136) thickness tone lang` |
+| `FunnelChart` | addımlar, başlanğıcın %-i, keçid nişanı, ştrixli keçən dövr | `steps[{key,label,value}] compare(number[]) compareLabel format label tone height(150) lang` |
+| `SegmentBreakdown` | proporsional zolaq + sətirlər (say, pay %, dəyişmə) | `items[{key,label,value,prev,tone,hint}] format label positiveIsGood showBar lang` |
+| `CompareBars` | "bu dövr vs keçən" üfüqi zolaqlar (boz kölgə = keçən) | `items[{key,label,value,prev,tone}] max format label currentLabel prevLabel tone lang` |
+| `ActivityFeed` | ikon + hadisə + "7 dəq. əvvəl" + çip | `items[{key,icon,title,meta,time(Date \| ms \| 'YYYY-MM-DD'),chip(string \| {label,tone:'accent'\|'muted'}),href,onClick}] max(8) now empty label lang` |
+| `MiniTable` | kiçik cədvəl (.ui-table), sürüşən region | `columns[{key,label,align('end'),render(row),hideSm}] rows caption captionHidden(true)` |
+| `InlineBar` / `TrendCell` | cədvəl xanası: mini zolaq / trend xətti | `value max tone label showValue format` / `values label(məcburi) tone width height` |
+
+Köməkçilər: `makeFormat(lang)` → `{ num, compact, pct, date(d, opts), rel(then, now, {dayOnly}), rtl, locale }`
+(az üçün öz ay/gün adları və "2 961", "12,5%" — brauzerdə az lokalı olmasa da); `useVizFormat(lang?)` (+ `t` — qrafiklərin
+öz yazıları 5 dildə); `vizScale.*` — `niceTicks pctDelta bucketSum stackSeries linePath areaPath quantileThresholds levelOf
+relUnit dayKeys addDayKey fromDayKey toDayKey etaFromPace`; `useSize useInView useReducedMotion`.
+
+Qaydalar (v1 qaydaları + bunlar):
+1. **Rəng**: seriyalar `tone` 1–4 (sabit sıra); 4-dən çox seriya — birləşdir. Dəyişmə rəngi yalnız `Delta`-da (`--ok`/`--bad`).
+2. **Əlçatanlıq** avtomatikdir: `role="img"` + xülasə, gizli `<table>` (bütün dəyərlər), qrafikə Tab → ←/→/Home/End/Esc,
+   `aria-live` cari nöqtə. `label` prop-unu HƏMİŞƏ ver (aria adı və cədvəl başlığı olur).
+3. **RTL**: zaman qrafiklərində və təqvimdə zaman sağdan sola, y oxu sağda; mini trendlər güzgülənir.
+4. **Hərəkət**: xətt `stroke-dashoffset` ilə çəkilir, sahə/xana `opacity`, zolaq `transform` — yalnız ekrana girəndə və
+   "hərəkəti azalt" söndürülübsə. Sonsuz animasiya yoxdur.
+5. **Məlumat**: şəxsi göstəricilər yalnız istifadəçinin öz localStorage qeydlərindən; əvvəlki dövr 0-dırsa `pctDelta` → `null`
+   (sonsuz faiz göstərilmir). Boş məlumat → `empty`/`emptyText` (saxta rəqəm yox).
+6. Kartın en-i `ChartCard span` / `KpiCard span` ilə; səhifə öz CSS-ində yalnız düzülüşü dəyişir (`#id` ilə).
 
 ## 6. Tətbiq qabığı
 

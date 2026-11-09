@@ -1,9 +1,10 @@
 /* ══════════════════════════════════════════════════════════════════
-   AnalyticsPage.css — Statistika paneli, dizayn v3
-   Kompakt split hero (bugünkü halqa) → 4 tematik bölmə (fəaliyyət
-   xəritəsi + qrafiklər, ibadət, Quran və elm, hədis/dua/sədəqə) →
-   nailiyyətlər. Qrafiklər components/viz-dən; burada yalnız düzülüş.
-   Ölçülər --step-* tokenləri ilə. ui.css-dən ƏVVƏL yüklənir.
+   AnalyticsPage.css — Statistika paneli, dizayn v6 (viz v2 bento)
+   Salam + tarix + nəticə cümləsi (hero) → dövr seçimi → bento panel
+   (KPI, əməllər qrafiki, hədəf, təqvim, namazlar, davamlılıq hunisi,
+   bölgü, cədvəl, lent, həftə günləri) → illik icmal → bölmələr üzrə
+   ümumi saylar → nişanlar. Qrafiklər components/viz-dən (viz.css);
+   burada yalnız düzülüş. ui.css-dən ƏVVƏL yüklənir.
    ══════════════════════════════════════════════════════════════════ */
 
 /* ── 1. HERO ─────────────────────────────────────────────────────── */
@@ -12,18 +13,17 @@
 .analytics-hero .bc-home { color: var(--text-secondary); font-weight: 600; }
 @media (hover: hover) { .analytics-hero .bc-home:hover { color: var(--brand); } }
 
-.analytics-today {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  max-width: 340px;
-  padding: var(--card-pad);
-}
-.analytics-today .ui-viz-ring { gap: 16px; }
+.analytics-hero .an-hero { display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; }
+.an-hero__text { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; flex: 1 1 min(100%, 32rem); }
+.an-hero__date { margin: 0; color: var(--text-secondary); font-size: var(--step--1); font-weight: 500; }
+.an-hero__date time { color: var(--text-tertiary); }
+.an-hero__insight { max-width: 60ch; color: var(--text-body); }
+.an-hero__tools { display: flex; align-items: center; gap: 10px; }
+.an-hero__tools-label { color: var(--text-tertiary); font-family: var(--font-label); font-size: var(--step--2); font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+[dir="rtl"] .an-hero__tools-label { letter-spacing: 0; }
 
 /* ── 2. MƏLUMAT YOXDUR ───────────────────────────────────────────── */
-.analytics-nodata-wrap { padding-top: var(--space-5); }
+.analytics-nodata-wrap { padding-top: var(--space-5); padding-bottom: var(--space-5); }
 .analytics-nodata {
   display: flex;
   align-items: flex-start;
@@ -36,83 +36,35 @@
 .analytics-nodata-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .analytics-nodata-text { color: var(--text-secondary); font-size: var(--step-0); line-height: 1.55; }
 .analytics-nodata-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.analytics-nodata { flex-wrap: wrap; }
+.analytics-nodata-body { flex: 1 1 20rem; }
+.an-ghost { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; flex: 1 1 22rem; min-width: 0; opacity: 0.85; }
+.an-ghost__kpi { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-0); }
+.an-ghost__kpi i, .an-ghost__kpi b { display: block; height: 6px; width: 60%; border-radius: 3px; background: var(--viz-track); }
+.an-ghost__kpi b { height: 12px; width: 40%; }
+.an-ghost__chart { grid-column: 1 / -1; width: 100%; height: 72px; }
+.an-ghost__chart path { fill: color-mix(in srgb, var(--viz-1) 10%, transparent); }
+.an-ghost__chart .an-ghost__line { fill: none; stroke: color-mix(in srgb, var(--viz-1) 40%, transparent); stroke-width: 2; stroke-dasharray: 4 5; vector-effect: non-scaling-stroke; }
 
-/* ── 3. BÖLMƏLƏR ─────────────────────────────────────────────────── */
+/* ── 3. BENTO PANEL ──────────────────────────────────────────────── */
+.an-dash { padding-top: var(--space-4); }
+/* 720–1099px: iki sütun — KPI 2×2, qrafiklər tam en, kiçik kartlar yan-yana */
+@media (min-width: 720px) and (max-width: 1099.98px) {
+  .an-bento { grid-auto-flow: row dense; }   /* kiçik kartlar cüt-cüt yan-yana düşsün */
+  .an-bento > #an-goal, .an-bento > #an-rad, .an-bento > #an-seg, .an-bento > #an-feed { grid-column: span 1; }
+}
+.an-bento #an-goal .vz-card__body { justify-content: center; }
+.an-bento #an-rad .vz-card__body { justify-content: center; }
+.an-bento #an-rad .vz-radial--row { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px 4px; }
+.an-bento #an-rad .vz-radial__label { font-size: var(--step--2); }
+.an-wd .vz-cmp__rows { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); column-gap: 32px; }
+
+/* ── 4. BÖLMƏLƏR ÜZRƏ (ümumi saylar) ────────────────────────────── */
 .analytics-sec + .analytics-sec { padding-top: 0; }
-.analytics-overview { margin-bottom: var(--space-5); }
-.analytics-page .analytics-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (min-width: 560px) { .analytics-page .analytics-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 1100px) { .analytics-page .analytics-overview { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
-
-/* Fəaliyyət: xəritə geniş, iki sütun qrafiki yanında */
-.analytics-act-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-4);
-}
-/* 900–1599px: xəritə solda (iki sətir hündürlüyündə), iki qrafik sağda
-   üst-üstə — üç dar sütunda gün/ay adları (ərəbcə "الخميس") sətir qırırdı */
-@media (min-width: 900px) {
-  .analytics-act-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .analytics-act-grid > .analytics-heat-fig { grid-row: span 2; align-self: stretch; }
-}
-@media (min-width: 1600px) {
-  .analytics-act-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
-  .analytics-act-grid > .analytics-heat-fig { grid-row: auto; }
-}
-/* Sütun qrafiklərinin gün/ay adları söz ortasından bölünməsin */
-.analytics-page .ui-viz-col__label { overflow-wrap: normal; word-break: keep-all; white-space: nowrap; }
-
-/* Fəaliyyət xəritəsi — 12 sütun (həftə) × 7 sətir (gün) */
-.analytics-heat {
-  display: grid;
-  grid-template-rows: repeat(7, 1fr);
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 4px;
-  max-width: 420px;
-}
-.analytics-heat__cell {
-  position: relative;
-  display: block;
-  aspect-ratio: 1;
-  min-width: 10px;
-  border-radius: 3px;
-  background: var(--viz-track);
-  overflow: hidden;
-}
-.analytics-heat__cell::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--viz-1);
-  opacity: 0;
-}
-.analytics-heat__cell.l1::after { opacity: 0.3; }
-.analytics-heat__cell.l2::after { opacity: 0.55; }
-.analytics-heat__cell.l3::after { opacity: 0.8; }
-.analytics-heat__cell.l4::after { opacity: 1; }
-.analytics-heat__cell.is-future { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
-.analytics-heat-legend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: var(--space-3);
-  color: var(--text-tertiary);
-  font-size: var(--step--2);
-}
-.analytics-heat-legend .analytics-heat__cell { width: 12px; min-width: 12px; }
-.analytics-heat-legend > span:first-child { margin-inline-end: 4px; }
-.analytics-heat-legend > span:last-child { margin-inline-start: 4px; }
-
-/* Kart şəbəkəsi */
-.analytics-sections {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
-  align-items: start;
-}
-.analytics-stack { display: grid; gap: var(--space-4); min-width: 0; }
+.analytics-sections { columns: 1; column-gap: var(--space-4); }
+@media (min-width: 760px) { .analytics-sections { columns: 2; } }
+@media (min-width: 1200px) { .analytics-sections { columns: 3; } }
+.analytics-sections > * { break-inside: avoid; margin-bottom: var(--space-4); }
 
 .analytics-card { display: flex; flex-direction: column; min-width: 0; padding: 0; }
 .analytics-card-header { display: flex; align-items: center; gap: 12px; padding: 16px var(--card-pad) 4px; }
@@ -129,14 +81,8 @@
 .analytics-count { color: var(--text-tertiary); font-size: var(--step-0); font-weight: 500; }
 
 /* Rəqəm sırası (dt/dd) — 2–4 kiçik kafel yan-yana */
-.analytics-nums {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0;
-}
+.analytics-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
 .analytics-nums--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (min-width: 1200px) { .analytics-nums--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .analytics-num {
   display: flex;
   flex-direction: column-reverse;
@@ -160,12 +106,7 @@
 .analytics-stat-value.highlight { color: var(--brand); }
 
 .analytics-meter { display: flex; flex-direction: column; gap: 6px; }
-.analytics-meter__row {
-  display: flex;
-  justify-content: space-between;
-  color: var(--text-secondary);
-  font-size: var(--step--1);
-}
+.analytics-meter__row { display: flex; justify-content: space-between; color: var(--text-secondary); font-size: var(--step--1); }
 .analytics-meter__row b { color: var(--text-strong); font-weight: 600; }
 
 .analytics-ring-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
@@ -185,145 +126,22 @@
 }
 .analytics-split-sub { color: var(--text-tertiary); font-size: var(--step--2); }
 
-/* ── 4. NAİLİYYƏTLƏR ─────────────────────────────────────────────── */
-.analytics-achievements {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.analytics-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  padding: 14px 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  text-align: center;
-}
-.analytics-badge.locked { background: var(--surface-2); border-color: transparent; }
-.analytics-badge.achieved { background: var(--accent-soft); border-color: var(--accent-line); }
-.analytics-badge-icon {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--surface-1);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--text-tertiary);
-}
-.analytics-badge.achieved .analytics-badge-icon { box-shadow: inset 0 0 0 1px var(--accent-line); color: var(--accent-text); }
-.analytics-badge-tick {
-  position: absolute;
-  top: -2px;
-  inset-inline-end: -2px;
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--brand);
-  color: var(--on-brand);
-  box-shadow: 0 0 0 2px var(--surface-1);
-}
-.analytics-achievements[data-revealed=""] .analytics-badge-tick { animation: an-pop-in var(--dur-3) var(--ease-spring) 320ms backwards; }
-.analytics-badge-name { color: var(--text-secondary); font-size: var(--step--1); font-weight: 600; line-height: 1.3; }
-.analytics-badge.achieved .analytics-badge-name { color: var(--text-strong); }
-.analytics-badge-status {
-  color: var(--text-tertiary);
-  font-family: var(--font-label);
-  font-size: var(--step--2);
-  letter-spacing: 0.04em;
-}
-[dir="rtl"] .analytics-badge-status { letter-spacing: 0; }
-.analytics-badge.achieved .analytics-badge-status { color: var(--brand); }
-
 /* ── 5. CAVABDEHLİK ──────────────────────────────────────────────── */
-@media (max-width: 1099.98px) {
-  .analytics-achievements { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-@media (max-width: 899.98px) {
-  .analytics-sections { grid-template-columns: minmax(0, 1fr); }
-  .analytics-today { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; max-width: none; padding: 12px 16px; }
-  .analytics-today .ui-viz-ring svg { width: 60px; height: 60px; }
-}
 @media (max-width: 767.98px) {
   .analytics-hero .ui-page-hero__crumbs { display: none; }
   .analytics-nodata { flex-direction: column; gap: 12px; padding: 16px; }
   .analytics-nodata .ui-icon-tile--lg { width: 44px; height: 44px; }
-  .analytics-heat { max-width: none; gap: 3px; }
-
-  /* Nailiyyətlər — üfüqi sürüşən nişan zolağı */
-  .analytics-achievements {
-    display: flex;
-    gap: 10px;
-    margin-inline: calc(var(--page-gutter) * -1);
-    padding: 4px var(--page-gutter) 6px;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x proximity;
-    scroll-padding-inline: var(--page-gutter);
-    scrollbar-width: none;
-  }
-  .analytics-achievements::-webkit-scrollbar { display: none; }
-  .analytics-badge { flex: 0 0 112px; scroll-snap-align: start; }
+  .an-hero__tools { width: 100%; }
+  .an-hero__tools-label { display: none; }
+  .an-hero__tools .vz-range { width: 100%; }
+  .an-hero__tools .vz-range > button { padding-inline: 6px; }
 }
 
-@keyframes an-pop-in {
-  from { opacity: 0; transform: scale(0.4); }
-  to   { opacity: 1; transform: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .analytics-achievements[data-revealed=""] .analytics-badge-tick { animation: none; }
-}
-
-/* ══ v4 "VAU" — Statistika: qrafiklər görünəndə "çəkilir" ═════════
-   • fəaliyyət xəritəsi — həftə-həftə (sütun-sütun) dalğa ilə dolur
-   • sütun qrafikləri aşağıdan böyüyür, zolaqlar başlanğıc tərəfdən uzanır
-   • halqalar qövs kimi çəkilir; rəqəmlər sayılır (data-count)
-   • hero "bu gün" kartı yüngülcə üzür; nişanlar hover-də fırlanır
-   Tətik: valideynin [data-revealed=""] atributu (useReveal) — JS olmasa
-   və ya hərəkət azaldılıbsa qrafiklər elə ilk andan tam görünür. */
-
-.analytics-heat__cell { transition: transform 320ms var(--ease-spring); }
-@media (hover: hover) {
-  .analytics-heat__cell:not(.is-future):hover { transform: scale(1.35); z-index: 1; box-shadow: var(--shadow-2); }
-}
-.analytics-badge { transition: transform 460ms var(--ease-spring), box-shadow 280ms ease, border-color 200ms ease; }
-.analytics-badge-icon { transition: transform 600ms var(--ease-spring); }
-@media (hover: hover) {
-  .analytics-badge.achieved:hover { transform: translateY(-4px); box-shadow: var(--shadow-3); }
-  .analytics-badge.achieved:hover .analytics-badge-icon { transform: rotate(-12deg) scale(1.1); }
-}
-
+/* ── 6. Görünəndə "çəkilir" (useReveal [data-revealed=""]) ─────────
+   Bento qrafikləri öz animasiyasını viz.css-dən alır; burada yalnız
+   "Bölmələr üzrə" kartlarındakı v1 zolaqları. */
 @media (prefers-reduced-motion: no-preference) {
-  html:not(.a11y-reduce-motion) .analytics-today { animation: an-float 7s ease-in-out 1.4s infinite; }
   html:not(.a11y-reduce-motion) .analytics-page .ui-viz-ring .ui-viz-arc { animation: an-arc 1400ms cubic-bezier(.16, 1, .3, 1) 300ms backwards; }
-
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .analytics-heat__cell {
-    animation: an-cell 520ms var(--ease-spring) backwards;
-    animation-delay: calc(160ms + var(--hc, 0) * 45ms);
-  }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col__fill {
-    transform-origin: bottom center;
-    animation: an-col 1000ms cubic-bezier(.16, 1, .3, 1) backwards;
-    animation-delay: calc(240ms + var(--reveal-i, 0) * 40ms);
-  }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(2) .ui-viz-col__fill { animation-delay: 300ms; }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(3) .ui-viz-col__fill { animation-delay: 350ms; }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(4) .ui-viz-col__fill { animation-delay: 400ms; }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(5) .ui-viz-col__fill { animation-delay: 450ms; }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(6) .ui-viz-col__fill { animation-delay: 500ms; }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col:nth-child(n+7) .ui-viz-col__fill { animation-delay: 550ms; }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-col__value { animation: an-fade 500ms ease 700ms backwards; }
-
   html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar__fill,
   html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-meter__fill {
     transform-origin: left center;
@@ -333,30 +151,7 @@
   html:not(.a11y-reduce-motion) [dir="rtl"] .analytics-page [data-revealed=""] .ui-meter__fill { transform-origin: right center; }
   html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar:nth-child(2) .ui-viz-bar__fill { animation-delay: 320ms; }
   html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar:nth-child(3) .ui-viz-bar__fill { animation-delay: 380ms; }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar:nth-child(4) .ui-viz-bar__fill { animation-delay: 440ms; }
-  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar:nth-child(n+5) .ui-viz-bar__fill { animation-delay: 500ms; }
-
-  html:not(.a11y-reduce-motion) .analytics-achievements[data-revealed=""] .analytics-badge.achieved .analytics-badge-icon { animation: an-badge 820ms var(--ease-spring) backwards; animation-delay: calc(120ms + var(--reveal-i, 0) * 45ms); }
-}
-
-@keyframes an-float {
-  0%, 100% { transform: none; }
-  50%      { transform: translateY(-5px); }
+  html:not(.a11y-reduce-motion) .analytics-page [data-revealed=""] .ui-viz-bar:nth-child(n+4) .ui-viz-bar__fill { animation-delay: 440ms; }
 }
 @keyframes an-arc { from { stroke-dasharray: 0 999; } }
-@keyframes an-cell {
-  from { opacity: 0; transform: scale(.2); }
-  to   { opacity: 1; transform: none; }
-}
-@keyframes an-col { from { transform: scaleY(0); } }
 @keyframes an-bar { from { transform: scaleX(0); } }
-@keyframes an-fade { from { opacity: 0; transform: translateY(4px); } }
-@keyframes an-badge {
-  from { transform: rotate(-160deg) scale(.4); }
-  to   { transform: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .analytics-heat__cell, .analytics-badge, .analytics-badge-icon { transition: none; }
-  .analytics-heat__cell:hover, .analytics-badge:hover, .analytics-badge:hover .analytics-badge-icon { transform: none; }
-}

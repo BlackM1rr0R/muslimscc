@@ -1124,3 +1124,15 @@ html.wow-lite .hp-wx { animation-duration: 3s; }
 }
 @keyframes wx-fall-s { to { transform: translate3d(-42px, 420px, 0); } }
 html:not([data-theme="dark"])[data-weather="rain"] .hp-wx, html:not([data-theme="dark"])[data-weather="thunder"] .hp-wx { opacity: .8; filter: saturate(1.6) brightness(.7); }
+
+/* ── §15b "Mənim həftəm" (components/home/MyWeek.jsx) — MyDay kafellərinin altında
+   kompakt KPI zolağı (viz v2 KpiCard); son 14 gündə qeyd yoxdursa render olunmur ── */
+.vx-mw { margin-top: 20px; }
+.vx-mw__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 10px; }
+.vx-mw__title { margin: 0; color: var(--text-strong); font-family: var(--font-heading); font-size: var(--step-1); font-weight: 600; }
+.vx-mw__sub { color: var(--text-tertiary); font-family: var(--font-sans); font-size: var(--step--1); font-weight: 500; }
+.vx-mw__more { font-size: var(--step--1); font-weight: 600; }
+@media (min-width: 720px) and (max-width: 1099.98px) {
+  .vz-bento.vx-mw__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .vz-bento.vx-mw__grid > .vz-kpi { grid-column: span 1; }
+}

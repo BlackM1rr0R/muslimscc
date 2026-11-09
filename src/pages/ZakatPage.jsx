@@ -12,7 +12,7 @@ import { navGroupLabel, navGroupOf } from '../data/navigation'
 import { useNavigate } from 'react-router-dom'
 import PageLink, { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
-import { ChartFigure, BarChart, StackedBar, ProgressBar } from '../components/viz'
+import { ChartFigure, BarChart, SegmentBreakdown, ProgressBar } from '../components/viz'
 import ZakatFlow from '../components/ZakatFlow'
 import { pickUi } from '../utils/uiText'
 
@@ -614,7 +614,7 @@ export default function ZakatPage({ setPage }) {
               {comp.length > 0 && (
                 <div className="zakat-comp">
                   <span className="zakat-comp__title">{s('compTitle', l)}</span>
-                  <StackedBar segments={comp} format={money} className="zakat-comp__bar" />
+                  <SegmentBreakdown items={comp} format={money} label={s('compTitle', l)} lang={lang} className="zakat-comp__bar" />
                 </div>
               )}
               <ul className="breakdown-list tm-cascade">

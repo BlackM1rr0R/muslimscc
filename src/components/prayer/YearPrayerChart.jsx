@@ -38,7 +38,7 @@ const PR = 10, PT = 12, PB = 26
 const toMin = (s) => { const m = /^(\d{1,2}):(\d{2})/.exec(s || ''); return m ? (+m[1]) * 60 + (+m[2]) : NaN }
 const hm = (min) => `${String(Math.floor(min / 60) % 24).padStart(2, '0')}:${String(Math.round(min % 60)).padStart(2, '0')}`
 
-function yearDays(loc, year) {
+export function yearDays(loc, year) {
   const out = []
   const start = Date.UTC(year, 0, 1)
   for (let i = 0; ; i++) {

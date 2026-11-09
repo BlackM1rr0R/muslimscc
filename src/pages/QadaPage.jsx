@@ -18,6 +18,7 @@ import '../styles/ToolsMotion.css'
 import Sparkle from '../components/prayer/Sparkle'
 import { ringFrom } from '../components/prayer/ringFrom'
 import { pickUi } from '../utils/uiText'
+import QadaInsights from '../components/insights/QadaInsights'
 
 // ═══════════════════════════════════════════════════════
 // /qada — Qəza izləyicisi
@@ -613,6 +614,9 @@ export default function QadaPage({ setPage }) {
           <p className="ui-sr-only" role="status" aria-live="polite">{status}</p>
         </div>
       </section>
+
+      {/* viz v2: analitika — temp, bitmə tarixi, namazlar üzrə borc */}
+      <QadaInsights state={state} today={today} lang={lk} names={names} />
 
       <Rules t={t} lang={lk} />
     </div>

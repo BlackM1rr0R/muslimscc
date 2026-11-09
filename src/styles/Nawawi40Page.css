@@ -303,3 +303,5 @@
   from { clip-path: inset(-10% -2% -10% 100%); opacity: .25; }
   to   { clip-path: inset(-10% -2% -10% -2%); opacity: 1; }
 }
+/* v5.9: mənbə bölgüsü (SegmentBreakdown) + kitablar cədvəli (MiniTable) */
+.nw-charts { display: grid; gap: var(--space-4); min-width: 0; }

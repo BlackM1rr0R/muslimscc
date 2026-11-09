@@ -17,6 +17,7 @@ import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { ColumnChart, Donut, ProgressRing, ProgressBar } from '../components/viz'
 import { HIFZ_GUIDE } from '../data/guides/HifzPage'
+import HifzInsights from '../components/insights/HifzInsights'
 import '../styles/HifzPage.css'
 import { pickUi } from '../utils/uiText'
 
@@ -902,6 +903,9 @@ export default function HifzPage() {
           <SmartHifz lang={lang} progress={progress} setProgress={setProgress} srs={srs} setSrs={setSrs} />
         </div>
       </div>
+
+      {/* viz v2: analitika — təkrar/yeni ayə dinamikası, temp və bitmə tarixi */}
+      <HifzInsights srs={srs} progress={progress} surahs={SURAHS} counts={counts} memAyahs={memAyahs} lang={lang} />
 
       {/* Surə izləyicisi */}
       <section className="ui-section ui-section--alt hifz-tracker" aria-labelledby="hifz-tracker-title">

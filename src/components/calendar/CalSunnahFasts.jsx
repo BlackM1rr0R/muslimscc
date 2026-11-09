@@ -12,7 +12,7 @@
 //   ({ days: ['YYYY-MM-DD', …] }). Qəza orucu sayğacı /qada ilə eyni yaddaşdır
 //   (utils/qada.js, 'muslim_cc_qada_v1').
 // ═══════════════════════════════════════════════════════
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../Icon'
 import { isPlainClick } from '../PageLink'
@@ -20,6 +20,7 @@ import { pathFor } from '../../seo/routes'
 import { haptic } from '../../hooks/useHaptic'
 import { loadQada, saveQada, adjustOwed, makeUp, undoMakeUp, dayKey } from '../../utils/qada'
 import { pickUi } from '../../utils/uiText'
+import SunnahFastInsights from '../insights/SunnahFastInsights'
 
 export const SUNNAH_FASTS_KEY = 'muslim_cc_sunnah_fasts_v1'
 const KEEP_DAYS = 800
@@ -206,6 +207,9 @@ export default function CalSunnahFasts({ lang, hijriOf, monthNames }) {
   const qadaHref = pathFor('qada', lang)
   const lessonHref = pathFor('learn', lang, 'sunnah-fasts')
   const go = (href) => (e) => { if (!isPlainClick(e)) return; e.preventDefault(); navigate(href); window.scrollTo(0, 0) }
+  // viz v2 analitika: günün növü eyni fastStatus qaydası ilə
+  const statusOf = useCallback((k) => { const d = keyToDate(k); return fastStatus(hijriOf(d), d) }, [hijriOf])
+  const reasonName = useCallback((r) => pick(REASON[r], lang), [lang])
 
   return (
     <section className="ui-section ui-section--alt cal-sf" id="cal-fasts" aria-labelledby="cal-sf-title" data-testid="sunnah-fasts">
@@ -324,6 +328,9 @@ export default function CalSunnahFasts({ lang, hijriOf, monthNames }) {
             </a>
           </div>
         </div>
+
+        <SunnahFastInsights log={log} today={todayK} lang={lang} statusOf={statusOf} reasonName={reasonName} qadaOwed={fasts.owed}
+          onStart={() => { const el = document.querySelector('[data-testid="sunnah-log-today"]'); el?.scrollIntoView({ behavior: 'smooth', block: 'center' }); el?.focus({ preventScroll: true }) }} />
 
         <details className="ui-card ui-card--sunken cal-sf__ev">
           <summary><Icon name="info" size={15} /> {pick(TX.evidence, lang)} <Icon name="chevronDown" size={14} className="cal-sf__chev" /></summary>

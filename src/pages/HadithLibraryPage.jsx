@@ -11,6 +11,7 @@ import { fetchSectionPair } from '../api/hadithLibrary'
 import { BOOKS, BOOK_DATA, TRANSLATION_LANGS, DEFAULT_TRANSLATION } from '../data/hadithLibrary'
 import '../styles/HadithLibraryPage.css'
 import HadithBooksChart from '../components/HadithBooksChart'
+import HadithLibraryNumbers from '../components/numbers/HadithLibraryNumbers'
 import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -720,6 +721,9 @@ export default function HadithLibraryPage() {
           )}
         </div>
       </div>
+
+      {/* v5.9: "Kitabxana rəqəmlərlə" — viz v2 bento (yalnız kitabxana görünüşündə) */}
+      {view === 'library' && <HadithLibraryNumbers books={BOOKS} data={BOOK_DATA} lang={lang} onOpen={(book) => go({ book })} />}
 
       {/* Mənbə, lisenziya, zəif rəvayətlər haqqında qeyd */}
       <section className="ui-section ui-section--alt hl-about" aria-labelledby="hl-about-h">

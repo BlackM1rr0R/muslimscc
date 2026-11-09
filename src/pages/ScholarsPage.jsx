@@ -8,6 +8,7 @@ import useChipIntoView from '../hooks/useChipIntoView'
 import useActiveSection from '../hooks/useActiveSection'
 import { ChartFigure, vizColor } from '../components/viz'
 import LifespanChart from '../components/media/LifespanChart'
+import { ScholarsNumbers } from '../components/numbers/PeopleNumbers'
 import RelatedLinks from '../components/media/RelatedLinks'
 // Məlumat — src/data/scholars.js (prerender və SEO da oxuyur)
 import { SCHOLARS, ERAS, ERA_LABEL, ERA_SHORT, ERA_SPAN, scholarBySlug, dateText, lifeSpan } from '../data/scholars'
@@ -410,6 +411,10 @@ export default function ScholarsPage() {
           </ChartFigure>
         </div>
       </section>
+
+      {/* v5.9: "Alimlər rəqəmlərlə" — viz v2 bento */}
+      <ScholarsNumbers scholars={SCHOLARS} eras={ERAS} lang={lang} eraLabel={(k) => pick(ERA_SHORT[k], lang)}
+        nameOf={(s) => pick(s.name, lang)} hrefOf={(s) => pathFor('scholars', lang, s.slug)} onOpen={openProfile} />
 
       <section className="ui-section ui-section--tight sc-related" aria-labelledby="sc-rel-h">
         <div className="ui-container">

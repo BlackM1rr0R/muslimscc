@@ -8,7 +8,7 @@ import InheritanceTree from '../components/InheritanceTree'
 import { useNavigate } from 'react-router-dom'
 import PageLink, { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
-import { ChartFigure, BarChart, Donut } from '../components/viz'
+import { ChartFigure, BarChart, Donut, SegmentBreakdown } from '../components/viz'
 import '../styles/InheritancePage.css'
 import '../styles/ToolsMotion.css'
 import TweenNumber from '../components/prayer/TweenNumber'
@@ -357,7 +357,6 @@ export default function InheritancePage({ setPage }) {
   }
   segments = segments.map((x, i) => ({ ...x, tone: i + 1 }))
   if (fracNum(result.unallocated) > 0) segments.push({ key: 'rest', label: s('unallocated'), value: fracNum(result.unallocated), frac: result.unallocated, tone: 'muted' })
-  const fmtShare = (v, x) => x?.frac || `${Math.round(v * 1000) / 10}%`
 
   const reasonText = (r) => {
     const txt = pick(REASON[r.reasonKey], l)
@@ -520,9 +519,10 @@ export default function InheritancePage({ setPage }) {
 
                   {segments.length > 0 && (
                     <div className="inh-chart" key={segments.map(x => `${x.label}:${x.value}`).join('|')}>
-                      <Donut segments={segments} format={fmtShare} size={132} thickness={18}
-                        center={{ value: String(active.reduce((t, r) => t + (r.count || 1), 0)), label: s('donutCenter') }}
-                        label={`${s('barLabel')}: ` + segments.map(x => `${x.label} ${fmtShare(x.value, x)}`).join(', ')} />
+                      {/* v5.9: viz v2 bölgü — zolaq + sətirlər (pay kəsri və malın faizi) */}
+                      <SegmentBreakdown label={s('barLabel')} lang={l}
+                        items={segments.map(x => ({ ...x, hint: x.frac }))}
+                        format={(v) => fmt(Math.round(v * result.net * 100) / 100)} />
                     </div>
                   )}
 
