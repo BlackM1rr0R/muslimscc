@@ -104,7 +104,8 @@ export default function QadaInsights({ state, today, lang, names }) {
   const [range, setRange] = useState(30)
   const [mode, setMode] = useState('p')
   const P = useInsightPeriod(range, today, f, lang)
-  const log = state.log || {}
+  const rawLog = state.log
+  const log = useMemo(() => rawLog || {}, [rawLog])
   const totals = useMemo(() => qadaTotals(state), [state])
 
   const cur = useMemo(() => ({ ...qadaPeriod(log, P.keys), s: qadaSeries(log, P.keys) }), [log, P.keys])

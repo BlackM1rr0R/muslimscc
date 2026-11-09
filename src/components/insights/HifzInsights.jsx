@@ -82,7 +82,8 @@ export default function HifzInsights({ srs, progress, surahs, counts, memAyahs, 
   const [range, setRange] = useState(30)
   const [mode, setMode] = useState('mix')
   const P = useInsightPeriod(range, today, f, lang)
-  const log = srs?.log || {}
+  const rawLog = srs?.log
+  const log = useMemo(() => rawLog || {}, [rawLog])
 
   const cur = useMemo(() => hifzSeries(log, P.keys), [log, P.keys])
   const prev = useMemo(() => hifzSeries(log, P.prevKeys), [log, P.prevKeys])
@@ -109,7 +110,7 @@ export default function HifzInsights({ srs, progress, surahs, counts, memAyahs, 
   const feed = useMemo(() => recentLogDays(log, 6).map(d => ({
     key: d.day, icon: d.added ? 'plus' : 'refresh', time: d.day, title: t.fDay(d.reviews, d.added),
     chip: d.added ? { label: t.cNew, tone: 'accent' } : { label: t.cRev, tone: 'muted' },
-  })), [log, t, f])
+  })), [log, t])
 
   return (
     <InsightsSection id="hifz-ins" title={t.title} lead={t.lead} lang={lang} range={range} onRange={setRange} hasData={hasData}
