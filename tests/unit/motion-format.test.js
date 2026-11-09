@@ -16,7 +16,8 @@ describe('formatTicker', () => {
     expect(formatTicker(3, { lang: 'en', decimals: 2 })).toBe('3.00')
     expect(formatTicker(1250, { lang: 'en', prefix: '~', suffix: '+' })).toBe('~1,250+')
     expect(formatTicker('x')).toBe('')
-    expect(formatTicker(12500, { lang: 'en', compact: true })).toBe('12.5K')
+    // ICU versiyasına görə 'K' və ya 'k' ola bilər (CI-dakı Node 'k' verir)
+    expect(formatTicker(12500, { lang: 'en', compact: true })).toMatch(/^12\.5[Kk]$/)
   })
   it('tickerFrames: monoton, son kadr dəqiq', () => {
     const f = tickerFrames(0, 114, 8)
