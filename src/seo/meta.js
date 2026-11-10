@@ -244,6 +244,19 @@ export const META = {
           d: 'سجّل الصلوات الخمس: في وقتها أو قضاءً أو فائتة. أيام متتالية وتقرير أسبوعي وشهري وعدّاد للقضاء. تبقى بياناتك على جهازك.' },
   },
 
+  namecalligraphy: {
+    az: { t: 'Adın ərəb xəttilə — adını ərəbcə yaz və paylaş',
+          d: 'Adınızı yazın: ərəbcə yazılışı qələm hərəkəti ilə görünür (nəsx, rüq‘ə, kufi), sonra barmağınızla üstündən yazın və kart kimi paylaşın.' },
+    en: { t: 'Your Name in Arabic Calligraphy — Write It and Share',
+          d: 'Type your name: see it written in Arabic with a pen-stroke animation (Naskh, Ruqʿah, Kufi), trace it with your finger and share it as a card.' },
+    ru: { t: 'Ваше имя арабской каллиграфией — напишите и поделитесь',
+          d: 'Введите имя: оно появится арабским письмом, словно пишется пером (насх, рук‘а, куфи); обведите его пальцем и поделитесь карточкой.' },
+    ar: { t: 'اسمك بالخط العربي — اكتبه وشاركه',
+          d: 'اكتب اسمك لتراه مكتوبًا بالعربية بحركة القلم (النسخ والرقعة والكوفي)، ثم تتبّعه بإصبعك وشاركه بطاقةً.' },
+    tr: { t: 'Adın Arap Hattıyla — Adını Arapça Yaz ve Paylaş',
+          d: 'Adınızı yazın: Arapça yazılışı kalem hareketiyle belirir (nesih, rika, kûfî); sonra parmağınızla üzerinden yazın ve kart olarak paylaşın.' },
+  },
+
   arabic: {
     az: { t: 'Ərəb əlifbası və Quran oxumağı öyrən — pulsuz kurs',
           d: 'Yeni müsəlmanlar və uşaqlar üçün addım-addım: 28 hərf və səsləri, hərəkələr, hecalar, Fatihə və qısa surələr söz-söz, təcvidin əsasları və yoxlama oyunları.' },

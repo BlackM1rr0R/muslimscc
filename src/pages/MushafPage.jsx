@@ -18,6 +18,9 @@ import '../styles/MushafPage.css'
 import { playSound } from '../utils/uiSound'
 import SoundToggle from '../components/SoundToggle'
 import { pickUi } from '../utils/uiText'
+import { haptic } from '../hooks/useHaptic'
+import { useReduced } from '../motion/reduced'
+import useMushafCurl from '../components/quran/useMushafCurl'
 
 // v3: hero rəqəmləri və "Mushafın quruluşu" bölməsi.
 // 604 səhifə / 30 cüz — src/data/mushafIndex.js; 60 hizb, 240 rübʿ — ənənəvi bölgü
@@ -59,7 +62,8 @@ const pk = (o, lang) => (o == null ? '' : typeof o === 'string' ? o : (o[lang] !
    öz sətir nömrəsi ilə gəlir və 15 sətirlik səhifə yenidən qurulur
    (utils/mushaf.js → layoutPage). Mətn saytda saxlanmır.
    • Vərəqləmə mushafdakı kimidir: NÖVBƏTİ səhifə SOLDADIR — sol ox / sola
-     düymə / barmağı sağa sürüşdürmək növbəti səhifəni açır (bütün dillərdə).
+     düymə / vərəqi sol kənarından tutub sağa çəkmək növbəti səhifəni açır
+     (bütün dillərdə; v7: kağız barmağın ardınca qatlanır — useMushafCurl).
    • Təcvid rəngləri: sözün text_uthmani_tajweed sahəsi (ağ siyahı ilə təmizlənir).
    • Söz-söz: sözə toxunanda tərcümə + transliterasiya (Quran.com) + kök
      (Quranic Arabic Corpus — public/data/quran-roots.json).
@@ -78,7 +82,7 @@ const LABELS = {
     pickSurah: 'Surə seçin', pickJuz: 'Cüz seçin', range: `1 ilə ${MUSHAF_PAGES} arasında rəqəm yazın`,
     tajweed: 'Təcvid rəngləri', wbw: 'Söz-söz', spread: 'İki səhifə', legend: 'Təcvid qaydalarının rəngləri',
     loading: 'Səhifə yüklənir…', error: 'Səhifə yüklənmədi. İnternet bağlantısını yoxlayın.', offline: 'İnternet bağlantısı yoxdur. Bağlantı bərpa olunanda yenidən cəhd edin.', retry: 'Yenidən cəhd et',
-    hint: 'Vərəqləmək üçün: ← → oxları, ekranda barmağı sürüşdürün və ya düymələrdən istifadə edin. Mushafdakı kimi növbəti səhifə soldadır.',
+    hint: 'Vərəqləmək üçün: vərəqi kənarından tutub çəkin (sol kənardan sağa — növbəti), ← → oxları və ya düymələr. Mushafdakı kimi növbəti səhifə soldadır.',
     wbwHint: 'Tərcüməsini görmək üçün sözə toxunun.',
     translation: 'Tərcümə', translit: 'Oxunuşu', root: 'Kök', lemma: 'Lüğət forması', noRoot: 'Bu sözün kökü yoxdur (ədat, əvəzlik və s.).',
     rootLoading: 'Kök yüklənir…', allWithRoot: 'Bu kökdən olan bütün sözlər', openAyah: 'Ayəni oxu', close: 'Bağla',
@@ -94,7 +98,7 @@ const LABELS = {
     pickSurah: 'Choose a surah', pickJuz: 'Choose a juz', range: `Enter a number from 1 to ${MUSHAF_PAGES}`,
     tajweed: 'Tajweed colours', wbw: 'Word by word', spread: 'Two pages', legend: 'Tajweed rule colours',
     loading: 'Loading the page…', error: 'The page could not be loaded. Please check your connection.', offline: 'You are offline. Try again when the connection is back.', retry: 'Try again',
-    hint: 'To turn pages: use the ← → keys, swipe on the screen or use the buttons. As in a printed mushaf, the next page is on the left.',
+    hint: 'To turn pages: grab the page by its edge and drag (from the left edge to the right for the next page), or use the ← → keys or the buttons. As in a printed mushaf, the next page is on the left.',
     wbwHint: 'Tap a word to see its translation.',
     translation: 'Translation', translit: 'Transliteration', root: 'Root', lemma: 'Dictionary form', noRoot: 'This word has no root (particle, pronoun, etc.).',
     rootLoading: 'Loading the root…', allWithRoot: 'All words from this root', openAyah: 'Read the verse', close: 'Close',
@@ -110,7 +114,7 @@ const LABELS = {
     pickSurah: 'Выберите суру', pickJuz: 'Выберите джуз', range: `Введите число от 1 до ${MUSHAF_PAGES}`,
     tajweed: 'Цвета таджвида', wbw: 'Пословно', spread: 'Две страницы', legend: 'Цвета правил таджвида',
     loading: 'Загрузка страницы…', error: 'Не удалось загрузить страницу. Проверьте подключение к интернету.', offline: 'Нет подключения к интернету. Повторите попытку, когда связь восстановится.', retry: 'Повторить',
-    hint: 'Листать: клавиши ← →, свайп по экрану или кнопки. Как в печатном мусхафе, следующая страница слева.',
+    hint: 'Листать: возьмите лист за край и потяните (от левого края вправо — следующая), клавиши ← → или кнопки. Как в печатном мусхафе, следующая страница слева.',
     wbwHint: 'Нажмите на слово, чтобы увидеть перевод.',
     translation: 'Перевод', translit: 'Транслитерация', root: 'Корень', lemma: 'Словарная форма', noRoot: 'У этого слова нет корня (частица, местоимение и т. п.).',
     rootLoading: 'Загрузка корня…', allWithRoot: 'Все слова этого корня', openAyah: 'Читать аят', close: 'Закрыть',
@@ -127,7 +131,7 @@ const LABELS = {
     pickSurah: 'اختر سورة', pickJuz: 'اختر جزءًا', range: `أدخل رقمًا من 1 إلى ${MUSHAF_PAGES}`,
     tajweed: 'ألوان التجويد', wbw: 'كلمة كلمة', spread: 'صفحتان', legend: 'ألوان أحكام التجويد',
     loading: 'جارٍ تحميل الصفحة…', error: 'تعذّر تحميل الصفحة. تحقّق من الاتصال بالإنترنت.', offline: 'لا يوجد اتصال بالإنترنت. أعد المحاولة عند عودة الاتصال.', retry: 'أعد المحاولة',
-    hint: 'للتقليب: مفاتيح الأسهم ← →، أو السحب على الشاشة، أو الأزرار. الصفحة التالية على اليسار كما في المصحف.',
+    hint: 'للتقليب: أمسك الورقة من طرفها واسحبها (من الطرف الأيسر إلى اليمين للصفحة التالية)، أو مفاتيح الأسهم ← →، أو الأزرار. الصفحة التالية على اليسار كما في المصحف.',
     wbwHint: 'اضغط على كلمة لترى ترجمتها.',
     translation: 'الترجمة', translit: 'النطق', root: 'الجذر', lemma: 'الأصل المعجمي', noRoot: 'ليس لهذه الكلمة جذر (حرف أو ضمير ونحوهما).',
     rootLoading: 'جارٍ تحميل الجذر…', allWithRoot: 'كل كلمات هذا الجذر', openAyah: 'اقرأ الآية', close: 'إغلاق',
@@ -144,7 +148,7 @@ const LABELS = {
     pickSurah: 'Sure seçin', pickJuz: 'Cüz seçin', range: `1 ile ${MUSHAF_PAGES} arasında bir sayı yazın`,
     tajweed: 'Tecvid renkleri', wbw: 'Kelime kelime', spread: 'İki sayfa', legend: 'Tecvid kurallarının renkleri',
     loading: 'Sayfa yükleniyor…', error: 'Sayfa yüklenemedi. İnternet bağlantınızı kontrol edin.', offline: 'İnternet bağlantısı yok. Bağlantı gelince tekrar deneyin.', retry: 'Tekrar dene',
-    hint: 'Sayfa çevirmek için: ← → tuşları, ekranda kaydırma ya da düğmeler. Mushafta olduğu gibi sonraki sayfa soldadır.',
+    hint: 'Sayfa çevirmek için: sayfayı kenarından tutup çekin (sol kenardan sağa — sonraki), ← → tuşları ya da düğmeler. Mushafta olduğu gibi sonraki sayfa soldadır.',
     wbwHint: 'Anlamını görmek için kelimeye dokunun.',
     translation: 'Anlamı', translit: 'Okunuşu', root: 'Kök', lemma: 'Sözlük biçimi', noRoot: 'Bu kelimenin kökü yok (edat, zamir vb.).',
     rootLoading: 'Kök yükleniyor…', allWithRoot: 'Bu kökten gelen bütün kelimeler', openAyah: 'Ayeti oku', close: 'Kapat',
@@ -462,10 +466,11 @@ export default function MushafPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search])
 
-  const goTo = useCallback((p) => {
+  const goTo = useCallback((p, { instant = false } = {}) => {
     const n = clampPage(p)
     setSel(null)
-    setTurn(n > page ? 'next' : n < page ? 'prev' : '')
+    // instant: vərəq artıq barmaqla çevrilib — ikinci (düymə) animasiyası olmasın
+    setTurn(instant ? '' : n > page ? 'next' : n < page ? 'prev' : '')
     if (n !== page) playSound('page')
     setPage(n)
     const search = `?p=${n}`
@@ -500,22 +505,33 @@ export default function MushafPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [next, prev])
 
-  // Sürüşdürmə: barmaq sağa → növbəti (səhifə soldan gəlir), sola → əvvəlki
-  const touch = useRef(null)
-  const onTouchStart = e => {
-    const t = e.touches[0]
-    touch.current = e.touches.length === 1 ? { x: t.clientX, y: t.clientY, at: Date.now() } : null
-  }
-  const onTouchEnd = e => {
-    const s = touch.current
-    touch.current = null
-    if (!s) return
-    const t = e.changedTouches[0]
-    const dx = t.clientX - s.x
-    const dy = t.clientY - s.y
-    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5 || Date.now() - s.at > 800) return
-    if (dx > 0) next(); else prev()
-  }
+  // Barmaqla vərəqləmə (köhnə "sürüşdürmə" jestini əvəz edir): sol kənardan
+  // sağa çəkmək — növbəti, sağ kənardan sola — əvvəlki (mushaf qaydası, hər dildə).
+  // curl: { dir, box } — çəkmə zamanı üst qat (altdakı səhifə + qalxan qanad).
+  const reduced = useReduced()
+  const [curl, setCurl] = useState(null)
+  const step = spread ? 2 : 1
+  const curlTarget = dir => pR + dir * step
+  const { refs: curlRefs, handlers: curlHandlers } = useMushafCurl({
+    stageRef, spread, reduced,
+    canNext: pR < lastStart, canPrev: pR > 1,
+    onBegin: (dir, box) => { setSel(null); setCurl({ dir, box }) },
+    onCommit: (dir) => { setCurl(null); goTo(curlTarget(dir), { instant: !reduced }); haptic(10) },
+    onCancel: () => setCurl(null),
+  })
+  // Qat altındakı (under) və qanadın arxasındakı (back) səhifələr:
+  //   tək:  under = növbəti/əvvəlki səhifə, back = cari səhifənin "arxadan görünüşü"
+  //   iki:  növbəti → under = yeni sol (pR+3), back = yeni sağ (pR+2);
+  //         əvvəlki → under = yeni sağ (pR-2), back = yeni sol (pR-1)
+  const curlPages = !curl || !curl.box ? null
+    : !spread ? { under: curlTarget(curl.dir), back: pR, ghost: true }
+      : curl.dir === 1 ? { under: pR + 3, underSide: 'left', back: pR + 2, backSide: 'right' }
+        : { under: pR - 2, underSide: 'right', back: pR - 1, backSide: 'left' }
+  const underPg = curlPages && isValidPage(curlPages.under) ? curlPages.under : null
+  const backPg = curlPages && isValidPage(curlPages.back) ? curlPages.back : null
+  const curlUnder = useMushafPage(underPg || pR, wl, reload, Boolean(underPg))
+  const curlBack = useMushafPage(backPg || pR, wl, reload, Boolean(backPg) && backPg !== pR)
+  const backData = backPg === pR ? { data, error } : curlBack
 
   const togglePref = key => {
     setPrefs(p => { const v = { ...p, [key]: !p[key] }; savePrefs(v); return v })
@@ -645,7 +661,7 @@ export default function MushafPage() {
           {/* Mushafda irəliləyiş: səhifə / 604 (nazik zolaq) */}
           <ProgressBar className="mp-progress" value={pL || pR} max={MUSHAF_PAGES} size="sm" label={`${pk(MP_TXT.pos, lang)}: ${pagesText} / ${MUSHAF_PAGES}`} />
 
-          <div className="mp-stage" ref={stageRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onClick={onAyahLink}>
+          <div className={`mp-stage${curl ? ' is-curling' : ''}`} ref={stageRef} onClick={onAyahLink} {...curlHandlers}>
             {/* Açıq kitab (iki vərəq) və ya tək vərəq; key dəyişəndə vərəq "çevrilir" */}
             <div className={`mp-book${spread ? ' is-spread' : ''}`} key={pR} data-turn={turn} dir="rtl">
               <MushafSheet page={pR} data={data} error={error} prefs={prefs} sel={sel} onWordClick={onWordClick}
@@ -655,6 +671,35 @@ export default function MushafPage() {
                   L={L} onRetry={() => setReload(n => n + 1)} side="left" />
               )}
             </div>
+
+            {curl?.box && curlPages && (
+              <div className={`mp-curl${spread ? ' is-spread' : ''}`} aria-hidden="true" inert=""
+                style={{ left: curl.box.clip.left, top: curl.box.clip.top, width: curl.box.clip.width, height: curl.box.clip.height }}>
+                {(() => {
+                  const lf = curl.box.leaf
+                  const at = { left: lf.left, top: lf.top, width: lf.w, height: lf.h, clipPath: 'polygon(0 0, 0 0, 0 0)' }
+                  const noop = () => () => {}
+                  return (
+                    <>
+                      <div className="mp-curl__under" ref={el => { curlRefs.current.under = el }} style={at}>
+                        {underPg && (
+                          <MushafSheet page={underPg} data={curlUnder.data} error={curlUnder.error} prefs={prefs} sel={null}
+                            onWordClick={noop} L={L} onRetry={() => {}} side={curlPages.underSide || ''} />
+                        )}
+                        <span className="mp-curl__shade" ref={el => { curlRefs.current.shade = el }} />
+                      </div>
+                      <div className={`mp-curl__flap${curlPages.ghost ? ' is-ghost' : ' is-mirror'}`} ref={el => { curlRefs.current.flap = el }} style={at}>
+                        {backPg && (
+                          <MushafSheet page={backPg} data={backData.data} error={backData.error} prefs={prefs} sel={null}
+                            onWordClick={noop} L={L} onRetry={() => {}} side={curlPages.backSide || ''} />
+                        )}
+                        <span className="mp-curl__gloss" ref={el => { curlRefs.current.gloss = el }} />
+                      </div>
+                    </>
+                  )
+                })()}
+              </div>
+            )}
 
             {sel && prefs.wbw && (
               <WordPopover sel={sel} L={L} lang={lang} onClose={() => setSel(null)} stageRef={stageRef} rootsHref={rootsHref} />

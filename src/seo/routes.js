@@ -87,6 +87,7 @@ export const PAGES = [
   { key: 'hajjguide',    path: 'hajjguide',    priority: 0.85, changefreq: 'monthly' },
   { key: 'hifz',         path: 'hifz',         priority: 0.80, changefreq: 'monthly' },
   { key: 'arabic',       path: 'learn-arabic', priority: 0.80, changefreq: 'monthly' },
+  { key: 'namecalligraphy', path: 'name-in-arabic', priority: 0.70, changefreq: 'monthly' },
   { key: 'quiz',         path: 'quiz',         priority: 0.80, changefreq: 'monthly' },
   { key: 'qurangame',    path: 'qurangame',    priority: 0.75, changefreq: 'monthly' },
   { key: 'glossary',     path: 'glossary',     priority: 0.75, changefreq: 'monthly' },

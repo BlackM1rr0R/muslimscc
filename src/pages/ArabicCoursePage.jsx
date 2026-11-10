@@ -65,6 +65,15 @@ const STAGES = [[0, 2], [3, 3], [4, 8]]
 const HarakatLesson = lazy(() => import('../components/arabic/HarakatLesson.jsx'))
 const ReadingLesson = lazy(() => import('../components/arabic/ReadingLesson.jsx'))
 const TajweedLesson = lazy(() => import('../components/arabic/TajweedLesson.jsx'))
+// v7: "Barmaqla yaz" — xəttatlıq məşqi (iz mühərriki, components/trace)
+const TracePractice = lazy(() => import('../components/trace/TracePractice.jsx'))
+const TRX = {
+  az: { ey: 'Barmaqla yaz', title: 'Xəttatlıq məşqi', lead: '28 hərfi və qısa zikrləri barmağınla üstündən yaz: mürəkkəb hərfin içində qızılı dolur, sağdan sola sıra yoxlanılır.' },
+  en: { ey: 'Write with your finger', title: 'Calligraphy practice', lead: 'Trace the 28 letters and short dhikr with your finger: ink fills gold inside the letter, and the right-to-left order is checked.' },
+  ru: { ey: 'Пиши пальцем', title: 'Практика каллиграфии', lead: 'Обводите пальцем 28 букв и короткие зикры: чернила золотом заполняют букву, а порядок справа налево проверяется.' },
+  ar: { ey: 'اكتب بإصبعك', title: 'تمرين الخط', lead: 'تتبّع بإصبعك الحروف الثمانية والعشرين والأذكار القصيرة: يملأ الحبر الذهبي الحرف، ويُتحقَّق من الترتيب من اليمين إلى اليسار.' },
+  tr: { ey: 'Parmağınla yaz', title: 'Hat alıştırması', lead: '28 harfin ve kısa zikirlerin üzerinden parmağınla yaz: mürekkep harfin içini altın rengiyle doldurur, sağdan sola sıra kontrol edilir.' },
+}
 // ═══════════════════════════════════════════════════════
 // QRAMMATİKA VƏ LÜĞƏT DƏRSLƏRİ (5–9): əvəzliklər, işarə əvəzlikləri, ismi
 // cümlə, feli cümlə, Quranın ən çox işlənən 100 sözü. Məzmun:
@@ -609,6 +618,19 @@ export default function ArabicCoursePage({ setPage }) {
             {t.credits}{' '}
             <PageLink to="licenses" setPage={setPage} className="ui-link">{t.licenses}</PageLink>
           </p>
+        </div>
+      </section>
+
+      <section className="ui-section ac-trace" aria-labelledby="ac-trace-h" id="trace">
+        <div className="ui-container">
+          <div className="ui-section-head">
+            <span className="ui-eyebrow">{pickUi(TRX, lang, 'en').ey}</span>
+            <h2 id="ac-trace-h" className="ui-title">{pickUi(TRX, lang, 'en').title}</h2>
+            <p className="ui-lead">{pickUi(TRX, lang, 'en').lead}</p>
+          </div>
+          <Suspense fallback={<div className="ui-skeleton" style={{ height: 420 }} />}>
+            <TracePractice lang={lang} />
+          </Suspense>
         </div>
       </section>
     </div>

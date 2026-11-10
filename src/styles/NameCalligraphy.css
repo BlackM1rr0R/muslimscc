@@ -1,0 +1,102 @@
+/* ══ /name-in-arabic — "Adın ərəb xəttilə" (pages/NameCalligraphyPage.jsx) ══
+   Əlavə şriftlər YALNIZ bu səhifənin CSS-indədir (tənbəl chunk) — ana səhifə
+   ağırlaşmır. Hər ikisi SIL OFL 1.1, Google Fonts-un ərəb alt dəsti, sonra
+   fontTools ilə yalnız əsas ərəb hərflərinə qədər kiçildilib (≈30 KB + ≈6 KB). */
+@font-face {
+  font-family: 'Aref Ruqaa';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../assets/fonts/aref-ruqaa-arabic-400.woff2) format('woff2');
+  unicode-range: U+0020, U+0621-063A, U+0640-0652, U+0670-0671, U+067E, U+0686, U+06A4, U+06AF, U+06CC, U+200C-200D, U+FEFB-FEFC;
+}
+@font-face {
+  font-family: 'Reem Kufi';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(../assets/fonts/reem-kufi-arabic-500.woff2) format('woff2');
+  unicode-range: U+0020, U+0621-063A, U+0640-0652, U+0670-0671, U+067E, U+0686, U+06A4, U+06AF, U+06CC, U+200C-200D, U+FEFB-FEFC;
+}
+
+.ncal { display: grid; gap: 18px; max-width: 760px; margin-inline: auto; }
+.ncal-form { display: grid; gap: 8px; }
+.ncal-form label { font-weight: 600; }
+.ncal-form__row { display: flex; gap: 8px; }
+.ncal-form__row input { flex: 1; min-width: 0; min-height: 48px; font-size: 1.1rem; }
+.ncal-form__row .ui-btn { min-height: 48px; }
+.ncal-examples { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .88rem; color: var(--text-secondary); }
+
+/* ── Çərçivə: zümrüd + qızılı həndəsi haşiyə ── */
+.ncal-frame { position: relative; border-radius: 22px; padding: 18px; color: #f3e6b5; overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 40%, #13705a 0%, #0b4a3a 55%, #062a21 100%); box-shadow: 0 18px 40px -22px rgba(6, 42, 33, .7); }
+.ncal-frame__pattern { position: absolute; inset: 0; width: 100%; height: 100%; color: #e7c77d; opacity: .5; pointer-events: none; }
+.ncal-frame__inner { position: relative; border-radius: 14px; padding: 26px 18px 18px; text-align: center;
+  background: radial-gradient(120% 100% at 50% 35%, #10624f 0%, #0a3d31 100%);
+  border: 2px solid #c9a24e; box-shadow: inset 0 0 0 6px #0a3d31, inset 0 0 0 7px rgba(231, 199, 125, .55); }
+.ncal-latin { margin: 6px 0 0; font-size: 1.05rem; font-weight: 600; color: #fff; letter-spacing: .02em; }
+
+/* ── NameInk ── */
+.nink { position: relative; margin: 0 auto; width: 100%; min-height: 120px; display: grid; place-items: center; }
+.nink__svg { width: 100%; max-width: 600px; height: clamp(150px, 40vw, 250px); overflow: visible; }
+.nink__glyphs { direction: rtl; unicode-bidi: plaintext; fill: #e7c77d; stroke: #f3e6b5; stroke-width: 1.1; stroke-linejoin: round; paint-order: stroke; }
+.nink__pen circle { fill: #fff8e1; stroke: #c9a24e; stroke-width: 2; opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .nink.is-ready .nink__sweep {
+    transform-box: fill-box; transform-origin: right center;
+    animation: nink-sweep var(--nink-dur, 2.4s) cubic-bezier(.45, .05, .35, 1) both;
+  }
+  html:not(.a11y-reduce-motion) .nink.is-ready .nink__glyphs {
+    stroke-dasharray: 3200;
+    animation: nink-draw var(--nink-dur, 2.4s) cubic-bezier(.5, 0, .3, 1) both, nink-fill 900ms ease calc(var(--nink-dur, 2.4s) * .55) both;
+  }
+  html:not(.a11y-reduce-motion) .nink.is-ready .nink__pen circle {
+    animation: nink-pen var(--nink-dur, 2.4s) cubic-bezier(.45, .05, .35, 1) both;
+  }
+}
+@keyframes nink-sweep { from { transform: scaleX(0); } }
+@keyframes nink-draw { from { stroke-dashoffset: 3200; } to { stroke-dashoffset: 0; } }
+@keyframes nink-fill { from { fill-opacity: 0; } }
+@keyframes nink-pen {
+  0% { opacity: 0; transform: translateX(0); }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(calc(var(--nink-w, 300px) * -1)); }
+}
+
+/* ── Üslub seçimi, nişanlar, düymələr ── */
+.ncal-styles { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.ncal-styles .ui-chip { min-height: 44px; }
+.ncal-styles .ui-chip b { font-weight: 400; font-size: 1.15rem; margin-inline-start: 6px; }
+.ncal-status { display: flex; gap: 8px; align-items: flex-start; padding: 10px 14px; border-radius: 12px; font-size: .92rem; margin: 0; }
+.ncal-status--ok { background: color-mix(in srgb, var(--primary, #0d5c46) 10%, transparent); }
+.ncal-status--warn { background: color-mix(in srgb, #e0a100 16%, transparent); border: 1px solid color-mix(in srgb, #e0a100 45%, transparent); }
+.ncal-status svg { flex: none; margin-top: 2px; }
+.ncal-mean { margin: 0; text-align: center; font-size: 1rem; }
+.ncal-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.ncal-actions .ui-btn { min-height: 44px; }
+.ncal-note { padding: 12px 14px; border-radius: 12px; border-inline-start: 4px solid var(--gold, #c59a2c); background: var(--surface-2); font-size: .92rem; display: grid; gap: 6px; }
+.ncal-note p { margin: 0; }
+.ncal-note__ar { font-family: var(--font-arabic, 'Amiri', serif); font-size: 1.15rem; line-height: 1.9; }
+.ncal-note cite { font-style: normal; color: var(--text-secondary); font-size: .85rem; }
+
+/* ── Hərf-hərf düzəliş ── */
+.ncal-edit { display: grid; gap: 10px; padding: 14px; border-radius: 16px; background: var(--surface-2); }
+.ncal-edit__word { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; direction: rtl; }
+.ncal-edit__ch { min-width: 44px; min-height: 48px; border-radius: 10px; border: 1px solid var(--border, rgba(0,0,0,.15)); background: var(--surface, #fff); color: var(--text);
+  font-family: var(--font-arabic, 'Amiri', serif); font-size: 1.6rem; line-height: 1; cursor: pointer; }
+.ncal-edit__ch[aria-pressed='true'] { border-color: var(--primary, #0d5c46); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, #0d5c46) 40%, transparent); }
+.ncal-edit__ch--space { font-family: system-ui, sans-serif; font-size: .9rem; color: var(--text-secondary); }
+.ncal-edit__picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; direction: rtl; }
+.ncal-edit__picker button { min-height: 44px; border-radius: 8px; border: 1px solid var(--border, rgba(0,0,0,.12)); background: var(--surface, #fff); color: var(--text);
+  font-family: var(--font-arabic, 'Amiri', serif); font-size: 1.35rem; cursor: pointer; }
+.ncal-edit__picker button:hover { border-color: var(--primary, #0d5c46); }
+.ncal-edit__bar { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.ncal-edit :is(button):focus-visible { outline: 3px solid var(--focus, #2563eb); outline-offset: 2px; }
+
+.ncal-trace { display: grid; gap: 8px; }
+.ncal-about { display: grid; gap: 10px; font-size: .95rem; }
+.ncal-about h2 { margin: 0; }
+.ncal-about ul { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 6px; }
+.ncal-sub { margin: 0; font-size: .85rem; color: var(--text-secondary); text-align: center; min-height: 1em; }
+.ncal-about .ncal-sub { text-align: start; }

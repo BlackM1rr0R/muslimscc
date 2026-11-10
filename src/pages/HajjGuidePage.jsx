@@ -24,6 +24,8 @@ import { pathFor } from '../seo/routes'
 import { HX, HAJJ_DAYS, HAJJ_RITES, IHRAM_NOT, IHRAM_OK, HAJJ_TYPES, HAJJ_VIRTUES, HAJJ_RELATED } from '../data/guides/HajjGuideExtra'
 import { pickUi } from '../utils/uiText'
 const HajjJourney3D = lazy(() => import('../components/media/HajjJourney3D'))
+// v7: təvaf simulyatoru — yalnız bölməyə yaxınlaşanda yüklənir
+const TawafSim = lazy(() => import('../components/hajj/TawafSim'))
 
 /** 5 dilli obyektdən cari dil (yoxdursa en → az) */
 const P = (o, lang) => (o && (pickUi(o, lang, 'en') || o.az)) || ''
@@ -35,6 +37,15 @@ const MEDIA_L = {
   ru: { eyebrow: 'Карта', title: 'Путь хаджа: из Мекки к Арафату и обратно', lead: 'Все этапы проходят к востоку от Мекки, в нескольких километрах друг от друга.' },
   ar: { eyebrow: 'خريطة', title: 'طريق الحج: من مكة إلى عرفات والعودة', lead: 'تقع المشاعر شرق مكة على مسافة بضعة كيلومترات بعضها من بعض.' },
   tr: { eyebrow: 'Harita', title: 'Hac yolu: Mekke’den Arafat’a ve geri', lead: 'Aşamalar Mekke’nin doğusunda, birkaç kilometrelik bir alanda gerçekleşir.' },
+}
+
+// Təvaf simulyatoru bölməsi (5 dil)
+const TAWAF_L = {
+  az: { eyebrow: 'Simulyator', title: 'Təvafı barmağınızla edin', lead: 'Kəbənin ətrafında saat əqrəbinin əksinə 7 dövrə — Həcərül-Əsvəd xəttindən başlayıb yenə orada bitir.', open: 'Təvafı simulyatorda məşq edin' },
+  en: { eyebrow: 'Simulator', title: 'Walk the tawaf with your finger', lead: 'Seven circuits counter-clockwise around the Kaaba, starting and ending at the Black Stone line.', open: 'Practise tawaf in the simulator' },
+  ru: { eyebrow: 'Симулятор', title: 'Совершите таваф пальцем', lead: 'Семь кругов вокруг Каабы против часовой стрелки — от линии Чёрного камня и снова до неё.', open: 'Потренироваться в симуляторе' },
+  ar: { eyebrow: 'محاكاة', title: 'طُف بإصبعك', lead: 'سبعة أشواط حول الكعبة عكس عقارب الساعة، تبدأ من خط الحجر الأسود وتنتهي عنده.', open: 'تدرّب على الطواف في المحاكي' },
+  tr: { eyebrow: 'Simülatör', title: 'Tavafı parmağınızla yapın', lead: 'Kâbe’nin etrafında saat yönünün tersine 7 şavt; Hacerü’l-Esved hizasından başlar ve orada biter.', open: 'Tavafı simülatörde deneyin' },
 }
 
 const LABELS = {
@@ -619,6 +630,15 @@ export default function HajjGuidePage({ setPage }) {
   }
 
   const media = pickUi(MEDIA_L, lang, 'en')
+  const tw = pickUi(TAWAF_L, lang, 'en')
+  // Təvaf addımından simulyatora yumşaq sürüş (adi klikdə; yeni vərəq/Ctrl — brauzerin işi)
+  const openTawaf = (e) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    let smooth = true
+    try { smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches } catch { /* köhnə brauzer */ }
+    document.getElementById('hg-tawaf')?.scrollIntoView({ block: 'start', behavior: smooth ? 'smooth' : 'auto' })
+  }
 
   return (
     <div className="hg-page">
@@ -774,6 +794,13 @@ export default function HajjGuidePage({ setPage }) {
                       </div>
                     )}
 
+                    {/* Təvaf addımı → simulyator */}
+                    {(step.id === 'tawaf' || step.id === 'u_tawaf') && (
+                      <a className="ui-btn ui-btn--secondary ui-btn--sm hg-tawaf-link" href="#hg-tawaf" onClick={openTawaf}>
+                        <Icon name="touch" size={16} className="ui-btn__icon" /> {tw.open}
+                      </a>
+                    )}
+
                     {/* Qeydlər */}
                     {step.notes && step.notes[lang] && (
                       <div className="hg-notes">
@@ -812,6 +839,18 @@ export default function HajjGuidePage({ setPage }) {
               </button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ═══ v7: Təvaf simulyatoru ═══ */}
+      <section className="ui-section hg-tawaf" id="hg-tawaf" aria-labelledby="hg-tawaf-h">
+        <div className="ui-container">
+          <Head id="hg-tawaf-h" eyebrow={tw.eyebrow} title={tw.title} lead={tw.lead} />
+          <DeferRender height="560px" idle={false} rootMargin="500px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 560 }} />}>
+              <TawafSim />
+            </Suspense>
+          </DeferRender>
         </div>
       </section>
 

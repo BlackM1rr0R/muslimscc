@@ -1,0 +1,95 @@
+/* ══ Təvaf simulyatoru (components/hajj/TawafSim.jsx) ══
+   Sonsuz animasiya yoxdur; parıltı yalnız dövrə tamamlananda bir dəfə. */
+.tw { --tw-gold: var(--gold, #c59a2c); --tw-kaaba: #17171a; position: relative; }
+.tw__grid { display: grid; gap: var(--space-5, 24px); align-items: start; }
+@media (min-width: 860px) { .tw__grid { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); } }
+
+.tw__stage-wrap { display: grid; gap: 10px; justify-items: center; }
+.tw__stage {
+  position: relative; width: min(100%, 440px); aspect-ratio: 1; border-radius: 50%;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  cursor: grab; outline: none;
+}
+.tw__stage:active { cursor: grabbing; }
+.tw__stage:focus-visible { box-shadow: 0 0 0 3px var(--surface-0, #fff), 0 0 0 6px var(--focus, var(--tw-gold)); }
+.tw__svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+.tw__mataf { fill: color-mix(in srgb, #e9e3d6 70%, var(--surface-1, #fff)); stroke: var(--line, rgba(0,0,0,.08)); stroke-width: .25; }
+.tw__band { fill: none; stroke: color-mix(in srgb, var(--brand, #0d5c46) 9%, transparent); }
+.tw__track { fill: none; stroke: color-mix(in srgb, var(--text-secondary, #666) 40%, transparent); stroke-width: .3; stroke-dasharray: 1 1.2; }
+.tw__lap { fill: none; stroke: var(--brand, #0d5c46); stroke-width: 1.1; stroke-linecap: round; }
+.tw__line { stroke: #8a5a2b; stroke-width: .7; stroke-linecap: round; }
+.tw__hijr { fill: none; stroke: #f4f1ea; stroke-width: 1.3; stroke-linecap: round; filter: drop-shadow(0 .2px .3px rgba(0,0,0,.35)); }
+.tw__maqam circle { fill: color-mix(in srgb, var(--tw-gold) 35%, #fff); stroke: var(--tw-gold); stroke-width: .35; }
+.tw__maqam .tw__maqam-in { fill: var(--tw-gold); stroke: none; }
+.tw__kaaba { fill: var(--tw-kaaba); stroke: #000; stroke-width: .3; stroke-linejoin: round; }
+.tw__kiswa-band { fill: none; stroke: var(--tw-gold); stroke-width: .55; stroke-linejoin: round; opacity: .9; }
+.tw__door { stroke: var(--tw-gold); stroke-width: 1.1; stroke-linecap: butt; }
+.tw__stone { fill: #5b5650; stroke: #c7c2b8; stroke-width: .35; }
+.tw__yamani { fill: none; stroke: #c7c2b8; stroke-width: .35; }
+.tw__labels text {
+  font-size: 1.9px; font-weight: 600; fill: var(--text-strong, #111);
+  paint-order: stroke; stroke: color-mix(in srgb, var(--surface-1, #fff) 85%, transparent); stroke-width: .6px; stroke-linejoin: round;
+}
+.tw__me-dot { fill: var(--brand, #0d5c46); stroke: #fff; stroke-width: .5; }
+.tw__me-halo { fill: color-mix(in srgb, var(--brand, #0d5c46) 22%, transparent); }
+
+/* Dövrə tamamlandı — bir dəfəlik parıltı (yalnız transform/opacity) */
+.tw__glow {
+  position: absolute; inset: 6%; border-radius: 50%; pointer-events: none;
+  box-shadow: 0 0 0 3px var(--tw-gold), 0 0 28px 6px color-mix(in srgb, var(--tw-gold) 55%, transparent);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .tw__glow { animation: tw-glow 900ms var(--ease-out, ease-out) 1; }
+}
+@keyframes tw-glow { from { opacity: 1; transform: scale(.96); } to { opacity: 0; transform: scale(1.04); } }
+
+.tw__how { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: var(--step--1, .9rem); color: var(--text-secondary); max-width: 440px; }
+.tw__how svg { flex: none; margin-top: 3px; }
+
+/* Panel */
+.tw__panel { display: grid; gap: var(--space-4, 16px); min-width: 0; }
+.tw__counter { display: grid; grid-template-columns: 76px 1fr; grid-template-rows: auto auto; align-items: center; column-gap: 14px; position: relative; }
+.tw__ring { grid-row: 1 / 3; width: 76px; height: 76px; transform: rotate(-90deg); }
+.tw__ring-bg { fill: none; stroke: var(--surface-3, #e6e6e6); stroke-width: 5; }
+.tw__ring-fill { fill: none; stroke: var(--tw-gold); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 240ms var(--ease-out, ease-out); }
+.tw__count { position: absolute; inset-inline-start: 0; top: 50%; width: 76px; transform: translateY(-50%); text-align: center; font-size: 1rem; color: var(--text-secondary); }
+.tw__count b { font-size: 1.7rem; color: var(--text-strong); font-weight: 700; }
+.tw__count-l { display: grid; gap: 2px; font-size: var(--step--1, .9rem); color: var(--text-secondary); }
+.tw__now { color: var(--text-strong); font-weight: 600; font-size: var(--step-0, 1rem); }
+.tw__dots { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.tw__dots li { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line-strong, #bbb); }
+.tw__dots li.is-done { background: var(--tw-gold); border-color: var(--tw-gold); }
+.tw__dots li.is-cur { border-color: var(--brand, #0d5c46); }
+
+.tw__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.tw__actions .ui-btn { min-height: 44px; }
+.tw__hint { margin: 0; min-height: 1.4em; font-weight: 600; color: var(--danger, #b3261e); opacity: 0; transition: opacity 160ms ease; }
+.tw__hint.is-on { opacity: 1; }
+
+.tw__note {
+  display: grid; gap: 8px; padding: var(--space-4, 16px); border-radius: var(--radius-lg, 16px);
+  background: var(--surface-1, #fff); border: 1px solid var(--line, rgba(0,0,0,.08));
+}
+.tw__note p { margin: 0; line-height: 1.55; }
+.tw__where { font-size: var(--step--1, .9rem); color: var(--text-secondary); }
+.tw__where b { color: var(--text-strong); }
+.tw__ar { font-size: 1.45rem; line-height: 1.9; color: var(--text-strong); text-align: center; }
+.tw__meaning { font-style: italic; }
+.tw__src { font-size: var(--step--1, .9rem); color: var(--text-secondary); }
+.tw__raml { display: flex; gap: 6px; align-items: flex-start; font-size: var(--step--1, .9rem); color: var(--text-secondary); padding-top: 8px; border-top: 1px dashed var(--line, rgba(0,0,0,.1)); }
+.tw__raml svg { flex: none; margin-top: 3px; }
+
+.tw__finish { display: grid; gap: 10px; padding: var(--space-5, 20px); border-color: color-mix(in srgb, var(--tw-gold) 45%, transparent); }
+.tw__finish p { margin: 0; line-height: 1.55; }
+.tw__finish-h { margin: 0; display: flex; gap: 8px; align-items: center; font-size: var(--step-1, 1.15rem); }
+.tw__finish-h svg { color: var(--tw-gold); }
+.tw__finish .ui-btn { justify-self: start; }
+
+@media (prefers-reduced-motion: reduce) { .tw__ring-fill, .tw__hint { transition: none; } }
+html.a11y-motion-user .tw__ring-fill, html.a11y-motion-user .tw__hint { transition: none; }
+
+/* Qaranlıq rejim: mətaf daş rəngi tündləşir, Kəbə görünsün deyə kənarı açıq */
+[data-theme="dark"] .tw__mataf { fill: color-mix(in srgb, #3a3833 70%, var(--surface-1, #111)); }
+[data-theme="dark"] .tw__kaaba { stroke: #6b6555; }

@@ -64,6 +64,8 @@ export const NAV_GROUPS = [
         label: { az: 'Hifz', en: 'Hifz', ru: 'Хифз', ar: 'الحفظ', tr: 'Hıfz' } },
       { key: 'arabic', icon: '🔡',
         label: { az: 'Ərəb əlifbası', en: 'Arabic Alphabet', ru: 'Арабский алфавит', ar: 'الحروف العربية', tr: 'Arap Alfabesi' } },
+      { key: 'namecalligraphy', icon: '✒️',
+        label: { az: 'Adın ərəb xəttilə', en: 'Your name in Arabic calligraphy', ru: 'Ваше имя арабской каллиграфией', ar: 'اسمك بالخط العربي', tr: 'Adın Arap hattıyla' } },
       { key: 'qurangame', icon: '🎮',
         label: { az: 'Quran oyunu', en: 'Quran Game', ru: 'Игра по Корану', ar: 'لعبة القرآن', tr: 'Kuran Oyunu' } },
       { key: 'analytics', icon: '📊',

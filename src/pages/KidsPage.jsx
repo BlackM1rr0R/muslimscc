@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
@@ -15,6 +15,16 @@ import { m } from 'motion/react'
 import LayoutFeatures from '../motion/LayoutFeatures'
 import PresenceSwap from '../motion/PresenceSwap'
 import { SPRING } from '../motion/presets'
+
+// v7: "Barmaqla yaz" — uşaq versiyası (qalın fırça, yumşaq hədd; components/trace)
+const TracePractice = lazy(() => import('../components/trace/TracePractice'))
+const KTRACE = {
+  az: { title: 'Barmaqla yaz', lead: 'Ərəb hərflərinin üstündən barmağınla yaz — hərf qızılı rəngə boyanır.' },
+  en: { title: 'Write with your finger', lead: 'Write over the Arabic letters with your finger — the letter turns gold.' },
+  ru: { title: 'Пиши пальцем', lead: 'Обводи арабские буквы пальцем — буква становится золотой.' },
+  ar: { title: 'اكتب بإصبعك', lead: 'اكتب فوق الحروف العربية بإصبعك — يصير الحرف ذهبيًّا.' },
+  tr: { title: 'Parmağınla yaz', lead: 'Arap harflerinin üzerinden parmağınla yaz — harf altın rengine boyanır.' },
+}
 
 // Rüknlərin ikonları (Icon.jsx) — məlumatdakı emoji sahələri
 // artıq göstərilmir (dizayn v2: emoji ikon yoxdur). Sıra PILLARS ilədir.
@@ -457,6 +467,7 @@ export default function KidsPage({ setPage }) {
     { key:'prophets', icon:'history', title:t.prophetsTitle },
     { key:'manners', icon:'donate', title:t.mannersTitle },
     { key:'quiz', icon:'quiz', title:t.quizTitle },
+    { key:'trace', icon:'edit', title:pickUi(KTRACE, lang, 'en').title },
     { key:'parents', icon:'jamaat', title:t.parentsTitle },
   ]
   // Ayə istinadı → Quran səhifəsindəki surəyə keçid ("2:30-37")
@@ -485,7 +496,7 @@ export default function KidsPage({ setPage }) {
       <span className="ui-icon-tile kids-section-icon" aria-hidden="true"><Icon name={current.icon} /></span>
       <div className="kids-section-titles">
         <h2 className="ui-title ui-title--sm kids-section-title">{current.title}</h2>
-        {k.leads[current.key] && <p className="kids-section-lead">{k.leads[current.key]}</p>}
+        {(current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : k.leads[current.key]) && <p className="kids-section-lead">{current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : k.leads[current.key]}</p>}
       </div>
     </div>
   )
@@ -792,6 +803,16 @@ export default function KidsPage({ setPage }) {
                   )}
                 </PresenceSwap>
               )}
+            </section>
+          )}
+
+          {/* v7: barmaqla yazma — hərflər + Bismillah (uşaq rejimi) */}
+          {openSection === 'trace' && (
+            <section className="kids-section" key="trace">
+              <SectionTitle />
+              <Suspense fallback={<div className="ui-skeleton" style={{ height: 380 }} />}>
+                <TracePractice lang={lang} kid storageKey="kids_trace_v1" />
+              </Suspense>
             </section>
           )}
 

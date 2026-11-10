@@ -770,3 +770,7 @@
 }
 @keyframes hg-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .hg-3d { margin-top: 24px; }
+
+/* v7: təvaf simulyatoru bölməsi (komponent stilləri: components/hajj/TawafSim.css) */
+.hg-page .hg-tawaf { scroll-margin-top: calc(var(--header-h, 64px) + 8px); }
+.hg-page .hg-tawaf-link { margin-top: var(--space-3, 12px); }

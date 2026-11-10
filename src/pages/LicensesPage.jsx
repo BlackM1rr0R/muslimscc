@@ -366,6 +366,8 @@ const FONTS = [
   { name: 'Scheherazade New', url: 'https://software.sil.org/scheherazade/', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'SIL International' },
   { name: 'Noto Naskh Arabic', url: 'https://notofonts.github.io/', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'Google / Noto' },
   { name: 'IBM Plex Sans Arabic', url: 'https://github.com/IBM/plex', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'IBM Corp.' },
+  { name: 'Aref Ruqaa', url: 'https://github.com/aliftype/aref-ruqaa', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'Khaled Hosny / Abdullah Aref' },
+  { name: 'Reem Kufi', url: 'https://github.com/aliftype/reem-kufi', license: 'SIL OFL 1.1', licenseUrl: OFL, by: 'Khaled Hosny / Santiago Orozco' },
 ]
 
 // ── Açıq mənbə proqram təminatı (package.json-dakı əsas asılılıqlar) ──

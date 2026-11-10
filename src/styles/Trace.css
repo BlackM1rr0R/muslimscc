@@ -1,0 +1,59 @@
+/* ══ İz mühərriki (components/trace/TraceCanvas.jsx) ══
+   Kətan yalnız öz sahəsində toxunuşu tutur (touch-action: none) —
+   səhifə başqa yerdən sürüşür. */
+.trc { display: grid; gap: 8px; }
+.trc__pad {
+  position: relative; width: 100%; max-width: 640px; margin-inline: auto; border-radius: 18px; overflow: hidden;
+  background:
+    linear-gradient(0deg, transparent calc(50% - .5px), color-mix(in srgb, var(--primary, #0d5c46) 10%, transparent) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)),
+    var(--surface-2, #f6f2e8);
+  border: 1px solid color-mix(in srgb, var(--gold, #c59a2c) 35%, transparent);
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--surface, #fff) 70%, transparent);
+  transition: box-shadow .35s ease, border-color .35s ease;
+}
+.trc__pad--letter { max-width: 340px; }
+.trc.is-done .trc__pad { border-color: var(--gold, #c59a2c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold, #c59a2c) 40%, transparent); }
+.trc__layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.trc__ink { touch-action: none; cursor: crosshair; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.trc__red, .trc__demo { pointer-events: none; }
+.trc__badge {
+  position: absolute; inset-block-start: 10px; inset-inline-end: 10px; display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 999px; font-size: .8rem; font-weight: 600;
+  background: var(--gold, #c59a2c); color: #1d1606; pointer-events: none;
+}
+.trc__hint { margin: 0; font-size: .82rem; color: var(--text-secondary); text-align: center; }
+.trc__bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.trc__bar .ui-btn { min-height: 44px; }
+.trc__res { margin: 0; min-height: 1.5em; text-align: center; font-size: .92rem; font-weight: 500; display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap; }
+.trc__res.is-warn { color: var(--danger, #b3261e); }
+.trc__stars { display: inline-flex; gap: 2px; color: color-mix(in srgb, var(--text-secondary) 40%, transparent); }
+.trc__stars .is-on { color: var(--gold, #c59a2c); fill: currentColor; }
+.trc--kid .trc__pad { border-width: 3px; border-radius: 26px; }
+.trc--kid .trc__hint { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .trc__badge { animation: trc-pop 380ms cubic-bezier(.2, .8, .2, 1.4) both; }
+}
+@keyframes trc-pop { from { opacity: 0; transform: scale(.4); } }
+
+/* ── Məşq bölməsi (components/trace/TracePractice.jsx) ── */
+.trp { display: grid; gap: 14px; }
+.trp__head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.trp__tabs { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.trp__count { font-size: .9rem; color: var(--text-secondary); }
+.trp__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 6px; list-style: none; margin: 0; padding: 0; }
+.trp__grid--phr { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+.trp__item {
+  position: relative; width: 100%; min-height: 48px; border-radius: 12px; cursor: pointer;
+  border: 1px solid var(--border, rgba(0,0,0,.12)); background: var(--surface, #fff); color: var(--text);
+  font-family: var(--font-arabic, 'Amiri', serif); font-size: 1.5rem; line-height: 1.1; padding: 4px;
+}
+.trp__grid--phr .trp__item { font-size: 1.15rem; }
+.trp__item[aria-current='true'] { border-color: var(--primary, #0d5c46); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, #0d5c46) 35%, transparent); }
+.trp__item.is-done { background: color-mix(in srgb, var(--gold, #c59a2c) 16%, var(--surface, #fff)); border-color: color-mix(in srgb, var(--gold, #c59a2c) 55%, transparent); }
+.trp__item.is-done::after { content: '✓'; position: absolute; inset-block-start: 2px; inset-inline-end: 5px; font-family: system-ui, sans-serif; font-size: .7rem; color: var(--gold-text, #8a6a1c); }
+.trp__item:focus-visible { outline: 3px solid var(--focus, #2563eb); outline-offset: 2px; }
+.trp__title { margin: 0; text-align: center; font-size: 1rem; }
+.trp__title b { font-family: var(--font-arabic, 'Amiri', serif); font-size: 1.35rem; font-weight: 400; margin-inline: 6px; }
+.trp__note { margin: 0; font-size: .82rem; color: var(--text-secondary); text-align: center; }
+.trp--kid .trp__item { min-height: 56px; font-size: 1.8rem; border-radius: 16px; }
+.trp--kid .trp__grid { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }

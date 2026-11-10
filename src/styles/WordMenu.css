@@ -1,0 +1,190 @@
+/* ═══════════════════════════════════════════════════════
+   Sözə uzun basma menyusu (components/quran/WordMenu.jsx) — dairəvi menyu,
+   klaviatura siyahısı, sözün vurğusu və nəticə pəncərəsi. Yalnız bu lazy
+   chunk-la yüklənir. Hərəkət — Motion (m.*); burada yalnız keçidlər.
+   ═══════════════════════════════════════════════════════ */
+.wm { --wm-item: 48px; }
+
+/* Arxa fon: menyu açıqkən yüngül kölgə; toxunuş = bağla (səhifədəki düymə işləmir) */
+.wm-scrim { position: fixed; inset: 0; z-index: 1240; background: rgba(6, 12, 22, 0.10); touch-action: none; }
+[data-theme="dark"] .wm-scrim { background: rgba(0, 0, 0, 0.28); }
+
+/* Sözün vurğusu — sənəd koordinatında (səhifə ilə sürüşür) */
+.wm-hl {
+  position: absolute; z-index: 1245;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent);
+  pointer-events: none;
+}
+
+/* ── Dairəvi menyu ── */
+.wm-radial { position: fixed; inset: 0; z-index: 1250; pointer-events: none; }
+.wm-radial__origin {
+  position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: var(--brand-soft-2);
+  box-shadow: 0 0 0 2px var(--brand-line);
+}
+.wm-radial__item {
+  position: absolute;
+  display: grid; place-items: center;
+  width: var(--wm-item); height: var(--wm-item);
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--brand);
+  box-shadow: var(--shadow-3);
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+}
+.wm-radial__item.is-hover,
+.wm-radial__item:focus-visible { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+.wm-radial__item:focus-visible { outline: 2px solid var(--ring, var(--brand)); outline-offset: 3px; }
+@media (hover: hover) { .wm-radial__item:hover { background: var(--brand-soft-2); } }
+
+.wm-radial__label { position: absolute; transform: translate(-50%, -100%); pointer-events: none; }
+.wm-radial__label[data-side="down"] { transform: translate(-50%, 0); }
+.wm-radial__pill {
+  display: block;
+  max-width: min(78vw, 300px);
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--text-strong);
+  color: var(--surface-1);
+  font-size: var(--step--1);
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: var(--shadow-2);
+}
+.wm-radial__pill [lang="ar"] { font-family: var(--font-arabic); font-size: 1.15rem; font-weight: 400; }
+
+/* ── Klaviatura / «…» siyahısı ── */
+.wm-list {
+  position: fixed; z-index: 1250;
+  display: flex; flex-direction: column;
+  padding: 8px;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+}
+.wm-list__item {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0; border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-body);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.wm-list__item svg { color: var(--brand); flex-shrink: 0; }
+.wm-list__item:focus-visible { outline: 2px solid var(--ring, var(--brand)); outline-offset: -2px; background: var(--brand-soft); }
+@media (hover: hover) { .wm-list__item:hover { background: var(--brand-soft); } }
+
+/* ── Nəticə pəncərəsi ── */
+.wm-pop {
+  position: absolute; z-index: 1250;
+  width: min(340px, calc(100vw - 24px));
+  padding: 12px 14px 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  color: var(--text-body);
+}
+.wm-pop:focus { outline: none; }
+.wm-pop:focus-visible { outline: 2px solid var(--ring, var(--brand)); outline-offset: 2px; }
+.wm-pop__head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.wm-pop__icon { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); flex-shrink: 0; }
+.wm-pop__title { margin: 0; font-size: var(--step-0); font-weight: 700; color: var(--text-strong); }
+.wm-pop__ref { color: var(--text-tertiary); font-size: var(--step--1); margin-inline-start: auto; }
+.wm-pop__close {
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px; margin: -8px -10px -8px 0;
+  border: 0; border-radius: 50%;
+  background: transparent; color: var(--text-tertiary);
+  cursor: pointer;
+}
+[dir="rtl"] .wm-pop__close { margin: -8px 0 -8px -10px; }
+@media (hover: hover) { .wm-pop__close:hover { background: var(--surface-2); color: var(--text-strong); } }
+
+.wm-pop__word { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0 8px; border-bottom: 1px dashed var(--line); margin-bottom: 8px; }
+.wm-pop__ar { margin: 0; font-family: var(--font-arabic); font-size: 1.9rem; line-height: 1.6; color: var(--text-strong); }
+.wm-pop__ar--sm { font-size: 1.5rem; margin-bottom: 8px; }
+.wm-pop__nav { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.wm-pop__navbtn {
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px;
+  border: 0; border-radius: 50%;
+  background: transparent; color: var(--brand);
+  cursor: pointer;
+}
+.wm-pop__navbtn:disabled { color: var(--text-tertiary); opacity: 0.45; cursor: default; }
+@media (hover: hover) { .wm-pop__navbtn:not(:disabled):hover { background: var(--brand-soft); } }
+.wm-pop__navn { min-width: 3.2em; text-align: center; color: var(--text-tertiary); font-size: var(--step--1); }
+
+.wm-pop__body { display: flex; flex-direction: column; gap: 6px; }
+.wm-pop__tl { margin: 0; color: var(--text-secondary); font-style: italic; }
+.wm-pop__tr { margin: 0; font-size: var(--step-1); font-weight: 600; color: var(--text-strong); line-height: 1.45; }
+.wm-pop__root { margin: 0; font-family: var(--font-arabic); font-size: 1.7rem; letter-spacing: 0.08em; color: var(--brand); }
+.wm-pop__dl { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--text-secondary); font-size: var(--step--1); }
+.wm-pop__dl div { display: flex; align-items: baseline; gap: 6px; }
+.wm-pop__dl dt { color: var(--text-tertiary); }
+.wm-pop__dl dd { margin: 0; color: var(--text-body); }
+.wm-pop__dl dd[lang="ar"] { font-family: var(--font-arabic); font-size: 1.2rem; }
+.wm-pop__cta { align-self: flex-start; margin-top: 4px; }
+.wm-pop__muted { margin: 0; color: var(--text-secondary); min-height: 1.4em; }
+.wm-pop__note { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: var(--accent-text); font-size: var(--step--1); }
+.wm-pop__note svg { flex-shrink: 0; margin-top: 3px; }
+.wm-pop__src { margin: 4px 0 0; color: var(--text-tertiary); font-size: var(--step--2); }
+.wm-pop__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.wm-pop__err { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; color: var(--bad); }
+.wm-pop__err p { margin: 0; display: flex; align-items: center; gap: 6px; }
+
+/* Qeyd: 5 rəng + rəngsiz */
+.wm-note { display: flex; flex-direction: column; gap: 8px; }
+.wm-note__colors { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; }
+.wm-note__legend { width: 100%; margin-bottom: 4px; padding: 0; color: var(--text-secondary); font-size: var(--step--1); }
+.wm-note__swatch {
+  position: relative;
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.wm-note__swatch::before {
+  content: '';
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--qn, transparent);
+  border: 2px solid var(--qn, var(--line-strong));
+  transition: transform var(--dur-1) var(--ease-out);
+}
+.wm-note__swatch[data-c="none"]::before { background: linear-gradient(135deg, transparent 45%, var(--line-strong) 45% 55%, transparent 55%); }
+.wm-note__swatch input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.wm-note__swatch:has(input:checked)::before { transform: scale(1.12); box-shadow: 0 0 0 3px var(--surface-raised), 0 0 0 5px var(--text-strong); }
+.wm-note__swatch:has(input:focus-visible) { outline: 2px solid var(--ring, var(--brand)); outline-offset: 0; }
+.wm-note__text { min-height: 84px; resize: vertical; font: inherit; }
+.wm-note__status { color: var(--brand); font-size: var(--step--1); font-weight: 600; }
+
+/* Vurğu rəngləri (ayə kartında eyniləri — QuranPage.css [data-note]) */
+.wm-note__swatch[data-c="gold"] { --qn: #c9971c; }
+.wm-note__swatch[data-c="green"] { --qn: #2f9e6e; }
+.wm-note__swatch[data-c="blue"] { --qn: #3b7dd8; }
+.wm-note__swatch[data-c="rose"] { --qn: #d9577a; }
+.wm-note__swatch[data-c="violet"] { --qn: #8b5cd6; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-radial__item, .wm-note__swatch::before { transition: none; }
+}
+html.a11y-motion-user .wm-radial__item, html.a11y-motion-user .wm-note__swatch::before { transition: none; }

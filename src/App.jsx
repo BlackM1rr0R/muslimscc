@@ -124,6 +124,7 @@ const HolyPlacesPage = lazy(() => import('./pages/HolyPlacesPage').then(m => ({ 
 const DailyTrackerPage = lazy(() => import('./pages/DailyTrackerPage'))
 const PrayerTrackerPage = lazy(() => import('./pages/PrayerTrackerPage'))
 const ArabicCoursePage = lazy(() => import('./pages/ArabicCoursePage'))
+const NameCalligraphyPage = lazy(() => import('./pages/NameCalligraphyPage'))
 const QuranGamePage = lazy(() => import('./pages/QuranGamePage'))
 const CharityPage = lazy(() => import('./pages/CharityPage'))
 const HajjGuidePage = lazy(() => import('./pages/HajjGuidePage'))
@@ -381,6 +382,7 @@ function AppInner() {
       case 'tracker':       return <PrayerTrackerPage setPage={navigate} />
       case 'dailytracker':  return <DailyTrackerPage  setPage={navigate} />
       case 'arabic':        return <ArabicCoursePage  setPage={navigate} />
+      case 'namecalligraphy': return <NameCalligraphyPage setPage={navigate} />
       case 'qurangame':     return <QuranGamePage     setPage={navigate} />
       case 'charity':       return <CharityPage       setPage={navigate} />
       case 'hajjguide':     return <HajjGuidePage     setPage={navigate} />

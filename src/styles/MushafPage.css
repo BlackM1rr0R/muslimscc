@@ -294,16 +294,20 @@ html[lang="ar"] .mp-pop__label { letter-spacing: 0; text-transform: none; }
 .mp-book.is-spread .mp-sheet { max-width: none; margin: 0; box-shadow: none; }
 /* Fiziki istiqamətlər (border-radius qısa yazılışı və to left/right dir-dən asılı deyil):
    sağ vərəq — cild SOLDA, sol vərəq — cild SAĞDA. */
-.mp-book.is-spread .mp-sheet--right {
+.mp-book.is-spread .mp-sheet--right,
+.mp-curl.is-spread .mp-sheet--right {
   border-radius: 4px var(--radius-lg) var(--radius-lg) 4px;
   background: linear-gradient(to right, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0) 7%), var(--surface-1);
 }
-.mp-book.is-spread .mp-sheet--left {
+.mp-book.is-spread .mp-sheet--left,
+.mp-curl.is-spread .mp-sheet--left {
   border-radius: var(--radius-lg) 4px 4px var(--radius-lg);
   background: linear-gradient(to left, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0) 7%), var(--surface-1);
 }
-[data-theme="dark"] .mp-book.is-spread .mp-sheet--right { background: linear-gradient(to right, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 7%), var(--surface-1); }
-[data-theme="dark"] .mp-book.is-spread .mp-sheet--left { background: linear-gradient(to left, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 7%), var(--surface-1); }
+[data-theme="dark"] .mp-book.is-spread .mp-sheet--right,
+[data-theme="dark"] .mp-curl.is-spread .mp-sheet--right { background: linear-gradient(to right, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 7%), var(--surface-1); }
+[data-theme="dark"] .mp-book.is-spread .mp-sheet--left,
+[data-theme="dark"] .mp-curl.is-spread .mp-sheet--left { background: linear-gradient(to left, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0) 7%), var(--surface-1); }
 
 /* Vərəq çevrilməsi: növbəti səhifə SOLDAN gəlir (mushaf qaydası) */
 .mp-book[data-turn="next"] { animation: mp-turn-next 620ms var(--ease-out) both; }
@@ -372,3 +376,34 @@ html.a11y-reduce-motion .mp-book .mp-sheet { animation: none !important; }
 @keyframes mp-v4-open-prev { from { opacity: 0.2; transform: rotateY(70deg) translateZ(0); } 60% { opacity: 1; } to { transform: none; } }
 @keyframes mp-v4-curl { 0% { opacity: 1; background-position: 0% 0; } 100% { opacity: 0; background-position: 100% 0; } }
 @keyframes mp-v4-line { from { opacity: 0; transform: translateY(6px); } }
+
+/* ══ v7 — vərəqi barmaqla çevirmək (useMushafCurl + utils/pageCurl) ══════
+   Səhnənin üstündə müvəqqəti qat: altdakı səhifə (under) qatın O tərəfində
+   görünür, qalxan qanad (flap) qatlanma xəttinə görə əks inikasdır. clip-path
+   və transform JS-dən hər kadr yazılır (yalnız çəkmə/yay zamanı — sonsuz
+   animasiya yoxdur). Kölgə və parıltı — qatla birlikdə hərəkət edən gradient. */
+.mp-stage.is-curling { user-select: none; -webkit-user-select: none; }
+.mp-curl { position: absolute; z-index: 3; overflow: hidden; pointer-events: none; contain: layout paint; }
+.mp-curl__under, .mp-curl__flap { position: absolute; will-change: clip-path, transform; }
+.mp-curl__flap { transform-origin: 0 0; }
+.mp-curl .mp-sheet { width: 100%; height: 100%; max-width: none; margin: 0; overflow: hidden; box-shadow: none; }
+.mp-curl .mp-sheet::after { display: none; }
+.mp-curl__shade, .mp-curl__gloss { position: absolute; inset: 0; pointer-events: none; }
+/* Qanadın arxası: iki səhifədə — növbəti səhifənin özü (vərəqin arxası);
+   tək səhifədə — kağız + arxadan sezilən güzgü yazı */
+.mp-curl__flap.is-mirror > .mp-sheet { transform: scaleX(-1); }
+.mp-curl__flap.is-ghost {
+  background:
+    repeating-linear-gradient(0deg, rgba(120, 96, 60, 0.035) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, #fbf6ea, #f1e8d4);
+  border-radius: var(--radius-lg);
+}
+.mp-curl__flap.is-ghost > .mp-sheet { background: transparent; border-color: transparent; opacity: 0.13; }
+[data-theme="dark"] .mp-curl__flap.is-ghost {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, #2a2a26, #1f201d);
+}
+[data-theme="dark"] .mp-curl__flap.is-ghost > .mp-sheet { opacity: 0.18; }
+[data-theme="dark"] .mp-curl__gloss { opacity: 0.4; }
+@media (max-width: 479.98px) { .mp-curl__flap.is-ghost { border-radius: var(--radius-md); } }

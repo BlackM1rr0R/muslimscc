@@ -22,6 +22,9 @@ import SurahArt from '../components/quran/SurahArt'
 // Dizayn v6: seqmentlərdə seçilmiş hap yayla sürüşür (src/motion, layoutId)
 import { SegGroup, SegPill } from '../components/quran/SegPill'
 import SurahRootCloud from '../components/quran/SurahRootCloud'
+import useWordPress from '../components/quran/useWordPress'
+import useQuranNotes from '../components/quran/useQuranNotes'
+import QuranNotes from '../components/quran/QuranNotes'
 import OfflinePack from '../components/OfflinePack'
 import OfflineAudio from '../components/quran/OfflineAudio'
 import DeferRender from '../components/DeferRender'
@@ -535,11 +538,16 @@ const SAJDAH_BADGE = { az: 'Səcdə', en: 'Sajdah', ru: 'Саджда', ar: 'س�
 const QuranGalaxy = lazy(() => import('../components/quran/QuranGalaxy'))
 const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
 const QuranNumbers = lazy(() => import('../components/numbers/QuranNumbers'))
+// v7: sözə uzun basma menyusu (Məna · Kök · Dinlə · Qeyd · Paylaş) — ilk uzun basmada yüklənir
+const loadWordMenu = () => import('../components/quran/WordMenu')
+const WordMenu = lazy(loadWordMenu)
+const WORD_MENU_LBL = { az: 'Söz menyusu', en: 'Word menu', ru: 'Меню слова', ar: 'قائمة الكلمة', tr: 'Kelime menüsü' }
+const NOTE_LBL = { az: 'Qeyd', en: 'Note', ru: 'Заметка', ar: 'ملاحظة', tr: 'Not' }
 const KARAOKE_LBL = { az: 'Sözbəsöz dinlə', en: 'Word by word', ru: 'Слушать по словам', tr: 'Kelime kelime dinle', ar: 'استمع كلمةً كلمة' }
 
 // Seçib paylaş (components/SelectShare) üçün istinad: «Quran 2:255»
 const CITE_Q = { az: 'Quran', en: 'Quran', ru: 'Коран', tr: 'Kur’an', ar: 'القرآن' }
-const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange, saved, shared, onSave, onShare, onKaraoke, xl }) {
+const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, showTrans, showTafsir, tafsirLabel, playLabels, active, playing, flash, numLabel, linkLabel, onToggle, onNumber, tafsirOpen, tafsirId, onTafsirToggle, onTafsirChange, saved, shared, onSave, onShare, onKaraoke, xl, note, onWordMenu }) {
   const playLabel = playing ? playLabels.pause : playLabels.play
   const saveLabel = saved ? xl.unsave : xl.save
   // Əzbər rejimi: ərəb mətni CSS ilə bulanır; "Göstər" yalnız bu kartı açır.
@@ -558,7 +566,7 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
     // getBoundingClientRect çağırır; 286 kartda bu 286 məcburi düzülüş idi
     // (telefonda ~750 ms-lik tək tapşırıq, Bəqərə). Qalan kartlar dərhal görünür.
     // id + data-ayah: "Ayəyə keç" hədəfi və oxuma yerinin müşahidəçisi üçün
-    <div id={`ayah-${verse.n}`} data-ayah={verse.n} data-sajdah={verse.sj ? '' : undefined} tabIndex={-1} data-cite={`${CITE_Q[lang] || CITE_Q.en} ${surahNum}:${verse.n}`}
+    <div id={`ayah-${verse.n}`} data-ayah={verse.n} data-sajdah={verse.sj ? '' : undefined} data-note={note?.c || undefined} tabIndex={-1} data-cite={`${CITE_Q[lang] || CITE_Q.en} ${surahNum}:${verse.n}`}
       className={`ayah-card${active ? ' is-playing' : ''}${flash ? ' is-target' : ''}`} data-reveal={verse.n <= REVEAL_CARDS ? '' : undefined}
       aria-current={active ? 'true' : undefined}>
       {/* Qızılı halqa solur; key — eyni ayəyə təkrar keçəndə animasiya yenidən başlasın */}
@@ -568,6 +576,12 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
         aria-label={`${numLabel} — ${linkLabel}`} title={linkLabel}>{verse.n}</button>
       <div className="ayah-body">
         <p className="ayah-arabic" lang="ar">{verse.ar}</p>
+        {note?.t ? (
+          <button type="button" className="ayah-note" onClick={(e) => onWordMenu?.(verse.n, e.currentTarget, 'note')}
+            aria-label={`${pickUi(NOTE_LBL, lang, 'en')} — ${numLabel}: ${note.t}`}>
+            <Icon name="edit" size={14} /><span>{note.t}</span>
+          </button>
+        ) : null}
         {verse.sj && <span className="ayah-sajdah"><b aria-hidden="true">۩</b>{pickUi(SAJDAH_BADGE, lang, 'en')}</span>}
         <button type="button" className="ayah-reveal" aria-pressed="false" onClick={toggleReveal}>
           <Icon name="eye" size={16} /><span className="ayah-reveal__label">{xl.reveal}</span>
@@ -608,6 +622,13 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
           aria-label={`${xl.share} — ${numLabel}`} title={shared ? xl.copied : xl.share}>
           <Icon name={shared ? 'check' : 'share'} size={17} />
         </button>
+        {onWordMenu && (
+          <button type="button" className="ayah-tool ayah-more" onClick={(e) => onWordMenu(verse.n, e.currentTarget)}
+            aria-haspopup="menu" aria-label={`${pickUi(WORD_MENU_LBL, lang, 'en')} — ${numLabel}`} title={pickUi(WORD_MENU_LBL, lang, 'en')}
+            data-testid="word-menu-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.9" /><circle cx="12" cy="12" r="1.9" /><circle cx="19" cy="12" r="1.9" /></svg>
+          </button>
+        )}
         {shared ? <span className="ui-sr-only" role="status">{xl.copied}</span> : null}
       </div>
     </div>
@@ -1184,6 +1205,26 @@ export default function QuranPage() {
   }, [])
   useEffect(() => () => clearTimeout(sharedTimerRef.current), [])
 
+  // ── v7: sözə uzun basma → dairəvi menyu (components/quran/WordMenu, useWordPress) ──
+  // Klaviatura/ekran oxuyucusu üçün eyni menyu ayədəki «…» düyməsindən siyahı kimi açılır
+  const { notes, save: saveNote, remove: removeNote } = useQuranNotes()
+  const [wordMenu, setWordMenu] = useState(null)
+  const closeWordMenu = useCallback(() => setWordMenu(null), [])
+  useWordPress(listRef, setWordMenu, { prefetch: loadWordMenu, active: ready })
+  const onWordMenu = useCallback((n, btn, action) => {
+    loadWordMenu()
+    setWordMenu(cur => {
+      if (cur && cur.a === n && cur.returnFocus === btn) return null
+      const r = btn.getBoundingClientRect()
+      return {
+        mode: 'list', a: n, pos: 1, el: document.querySelector(`#ayah-${n} .ayah-arabic`),
+        anchor: { left: r.left, right: r.right, top: r.top, bottom: r.bottom }, x: r.left, y: r.top,
+        returnFocus: btn, focus: true, action,
+      }
+    })
+  }, [])
+  useEffect(() => { setWordMenu(null) }, [selected])
+
   // ── "Ayəyə keç" paneli: G qısayolu, bağlanış ──
   useEffect(() => { setJumpOpen(false) }, [selected])
   useEffect(() => {
@@ -1232,6 +1273,9 @@ export default function QuranPage() {
   }, [verseSearch, searchMode, lang, tlang, verseAttempt])
 
   const surahByNum = n => surahs.find(s => s.number === n)
+  // «Qeydlərim» (Saxlanılanlar bölməsi): surə adı — axtarış və başlıq üçün
+  const noteNameOf = useCallback(n => surahTitle(surahs.find(s => s.number === n), lang) || staticSurahName(n, lang), [surahs, lang])
+  const noteLabelOf = useCallback((n, a) => placeLabel(noteNameOf(n), a, lang), [noteNameOf, lang])
 
   const openSurah = (num, ayah) => {
     if (!num) return
@@ -1521,7 +1565,8 @@ export default function QuranPage() {
                   tafsirOpen={tafsirOpen.has(v.n)} tafsirId={tafsirOpen.has(v.n) ? tafsirId : 0}
                   onTafsirToggle={toggleTafsir} onTafsirChange={changeTafsir}
                   saved={savedKeys.has(`${surah.number}:${v.n}`)} shared={sharedN === v.n}
-                  onSave={saveAyah} onShare={shareAyah} onKaraoke={openKaraoke} xl={xlCard} />
+                  onSave={saveAyah} onShare={shareAyah} onKaraoke={openKaraoke} xl={xlCard}
+                  note={notes[`${surah.number}:${v.n}`]} onWordMenu={onWordMenu} />
               ))}
             </div>
             {surah.verses?.some(v => v.sj) && (
@@ -1533,6 +1578,16 @@ export default function QuranPage() {
               <Suspense fallback={null}>
                 <QuranZen player={player} verses={surah.verses} lang={lang} start={currentAyahRef.current || 1} surah={selected}
                   title={surahTitle(surah, lang) || String(selected)} onClose={() => setZen(false)} />
+              </Suspense>
+            )}
+            {wordMenu && (
+              <Suspense fallback={null}>
+                <WordMenu req={wordMenu} verse={shownVerses?.find(v => v.n === wordMenu.a)} surah={surah.number} lang={lang}
+                  refLabel={placeLabel(surahTitle(surah, lang) || String(surah.number), wordMenu.a, lang)}
+                  note={notes[`${surah.number}:${wordMenu.a}`]} onSaveNote={saveNote} onRemoveNote={removeNote}
+                  onShareAyah={shareAyah} onPausePlayer={() => { if (playerBusy) player.pause() }}
+                  onPlayAyah={(n) => { if (!(playerBusy && player.current === n)) toggleAyah(n) }}
+                  onClose={closeWordMenu} />
               </Suspense>
             )}
             {karaoke && (
@@ -1726,7 +1781,8 @@ export default function QuranPage() {
             </ul>
           )}
           {searchMode === 'surah' && view === 'saved' && (
-            savedList.length ? (
+            <>
+            {savedList.length ? (
               <>
                 <p className="qp-saved-note"><Icon name="info" size={16} />{xl.savedNote}</p>
                 <ul className="qp-saved-grid" role="list">
@@ -1751,7 +1807,10 @@ export default function QuranPage() {
                   })}
                 </ul>
               </>
-            ) : <QEmpty icon="hifz">{xl.savedEmpty}</QEmpty>
+            ) : <QEmpty icon="hifz">{xl.savedEmpty}</QEmpty>}
+            <QuranNotes notes={notes} onRemove={removeNote} lang={lang} labelOf={noteLabelOf} nameOf={noteNameOf}
+              hrefOf={(s, a) => `${pathFor('quran', tlang, s)}?a=${a}`} onOpen={openSurah} />
+            </>
           )}
           {searchMode === 'surah' && view === 'surahs' && (
             <>
