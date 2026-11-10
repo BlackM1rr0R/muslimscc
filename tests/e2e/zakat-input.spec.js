@@ -19,3 +19,23 @@ test('Zəkat: "1 500,50" yazılır, maaş yığımı cəmə düşür, nisab canl
   await field('Yığım / bank hesabı').fill('abc')
   await expect(field('Yığım / bank hesabı')).toHaveValue('')
 })
+
+test('Zəkat: maaşdan aylıq — zəkat ÷ 12 (əvvəlcədən), könüllü sədəqə faizlə', async ({ page }) => {
+  await page.route(/currency-api@latest\/v1\/currencies\/usd\.json/, route => route.fulfill({
+    json: { date: '2026-11-10', usd: { azn: 1.7, eur: 0.9, rub: 90, try: 40, sar: 3.75, gbp: 0.8, aed: 3.67, xau: 1 / 3000, xag: 1 / 31.1034768 } },
+  }))
+  await page.goto('/zakat')
+  await settle(page)
+  const mg = page.getByTestId('monthly-giving')
+  await expect(mg).toContainText('Əvvəlcə yuxarıda yığımınızı yazın')
+  await page.getByRole('textbox', { name: 'Yığım / bank hesabı' }).fill('2400')
+  // illik 60,00 ₼ → ayda 5,00 ₼
+  await expect(mg.getByTestId('mg-zakat')).toContainText(/5[.,]00/)
+  await expect(mg.getByTestId('mg-zakat')).toContainText(/60[.,]00/)
+  await mg.getByTestId('mg-tab-s').click()
+  await mg.getByTestId('mg-salary').fill('1 000')
+  await expect(mg.getByTestId('mg-sadaqa')).toContainText(/25[.,]00/)
+  await mg.getByRole('radio', { name: '10%' }).click()
+  await expect(mg.getByTestId('mg-sadaqa')).toContainText(/100[.,]00/)
+  await expect(mg).toContainText('zəkat deyil')
+})

@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom'
 import PageLink, { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { parseAmount, cleanAmountInput } from '../utils/parseAmount'
+import MonthlyGiving from '../components/zakat/MonthlyGiving'
 import { ChartFigure, BarChart, SegmentBreakdown, ProgressBar } from '../components/viz'
 import ZakatFlow from '../components/ZakatFlow'
 import { pickUi } from '../utils/uiText'
@@ -689,6 +690,9 @@ export default function ZakatPage({ setPage }) {
           </aside>
         </div>
       </section>
+
+      {/* ══ v5.9: maaşdan aylıq — zəkatı əvvəlcədən hissə-hissə və ya könüllü sədəqə ══ */}
+      <MonthlyGiving lang={lang} zakatYear={zakatYear} aboveNisab={aboveNisab} hasInput={totalAssets > 0} money={money} symbol={cur.symbol} />
 
       {/* ══ Qayda: 4 addım + nisab müqayisəsi ══ */}
       <section className="ui-section ui-section--alt zakat-rule">

@@ -1,0 +1,31 @@
+/* Maaşdan aylıq vermək (components/zakat/MonthlyGiving.jsx) */
+.mg__card { display: grid; gap: 16px; padding: clamp(18px, 3vw, 30px); }
+.mg__head { display: grid; gap: 6px; }
+.mg__head .ui-title, .mg__head .ui-lead { margin: 0; }
+.mg__tabs { justify-self: start; }
+.mg__pane { display: grid; gap: 14px; animation: mg-in 360ms ease both; }
+.mg__text { margin: 0; line-height: 1.6; color: var(--text-secondary); max-width: 70ch; }
+.mg__note { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--surface-2, rgba(0, 0, 0, .04)); color: var(--text-secondary); }
+.mg__result { display: grid; gap: 8px; padding: 18px; border-radius: 18px; background: color-mix(in srgb, var(--accent, #c79a3a) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent, #c79a3a) 30%, transparent); }
+.mg__big { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.mg__big span { font-weight: 800; color: var(--text-secondary); }
+.mg__big b { font-family: var(--font-display); font-size: clamp(1.8rem, 5vw, 2.6rem); color: var(--text-strong); }
+.mg__eq { color: var(--text-secondary); font-size: .92rem; }
+.mg__months { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin: 4px 0 0; padding: 0; list-style: none; }
+.mg__months li { height: 8px; border-radius: 4px; background: var(--accent, #c79a3a); opacity: .85; transform-origin: left center; animation: mg-bar 500ms cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i) * 45ms); }
+.mg__rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: .9rem; }
+.mg__rules li { display: flex; gap: 8px; align-items: baseline; }
+.mg__rules svg { color: var(--success, #1f7a4d); flex: none; }
+.mg__src { margin: 0; font-size: .82rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.mg__inputs { display: grid; grid-template-columns: minmax(200px, 320px) 1fr; gap: 16px; align-items: start; }
+.mg__field { display: grid; gap: 6px; }
+.mg__inwrap { display: flex; align-items: center; gap: 8px; }
+.mg__inwrap .ui-input { flex: 1; font: inherit; font-size: 1.1rem; padding: 10px 12px; }
+.mg__pcts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mg__pcts .ui-chip.is-on { background: var(--accent, #c79a3a); border-color: var(--accent, #c79a3a); color: #fff; }
+.mg__custom { width: 80px; padding: 6px 8px; }
+@keyframes mg-in { from { opacity: 0; transform: translate3d(0, 8px, 0); } }
+@keyframes mg-bar { from { transform: scaleX(0); } }
+@media (max-width: 767.98px) { .mg__inputs { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .mg__pane, .mg__months li { animation: none; } }
+html.a11y-reduce-motion .mg__pane, html.a11y-reduce-motion .mg__months li { animation: none; }
