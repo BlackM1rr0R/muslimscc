@@ -312,7 +312,8 @@ export default function QuoteGeneratorPage() {
   useEffect(() => () => clearTimeout(flashTimer.current), [])
 
   const fileName = `muslims-cc-${source === 'custom' ? 'card' : source === 'library' ? (quote?.cat || 'quote') : source}-${format.id}.png`
-  const shareText = [content.ref ? `— ${content.ref}` : '', `${BRAND.domain}`].filter(Boolean).join('\n')
+  // Şəkil/video yalnız FAYL kimi paylaşılır: mətn və başlıq əlavə olunmur — WhatsApp statusunda
+  // şəklin altına "— ayə · muslims.cc" yazısı düşməsin (brend şəklin özündədir)
 
   // Telefonda paylaşma üçün fayl əvvəlcədən hazırlanır: Safari navigator.share()
   // çağırışını yalnız klikdən dərhal sonra qəbul edir — klikdən sonra uzun
@@ -359,7 +360,7 @@ export default function QuoteGeneratorPage() {
       const file = await makeFile()
       if (canShareFile(file)) {
         try {
-          await navigator.share({ files: [file], title: t.title, text: shareText })
+          await navigator.share({ files: [file] })
         } catch (e) {
           // İstifadəçi pəncərəni bağladı — heç nə etmə; başqa xəta — faylı yüklə
           if (e?.name !== 'AbortError') showFlash(saveBlob(file, fileName) === 'tab' ? 'tab' : 'downloaded')
@@ -428,7 +429,7 @@ export default function QuoteGeneratorPage() {
     const file = video?.file
     if (!file) return
     if (canShareFile(file)) {
-      try { await navigator.share({ files: [file], title: t.title, text: shareText }) } catch (e) {
+      try { await navigator.share({ files: [file] }) } catch (e) {
         if (e?.name !== 'AbortError') saveBlob(file, file.name)
       }
     } else {

@@ -142,7 +142,7 @@ export default function KaraokeAyah({ surah, ayah, lang = 'az', translation = ''
                       const ext = blob.type.includes('mp4') ? 'mp4' : 'webm'
                       const file = new File([blob], `quran-${surah}-${ayah}.${ext}`, { type: blob.type })
                       if (navigator.canShare?.({ files: [file] })) {
-                        try { await navigator.share({ files: [file], title: `Quran ${surah}:${ayah}` }); setVid('done'); return } catch (e) { if (e?.name === 'AbortError') { setVid(null); return } }
+                        try { await navigator.share({ files: [file] }); setVid('done'); return } catch (e) { if (e?.name === 'AbortError') { setVid(null); return } }
                       }
                       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name
                       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000)

@@ -80,7 +80,7 @@ export default function HijriBirthday({ lang = 'az' }) {
       })
       const blob = await new Promise(res => c.toBlob(res, 'image/png'))
       const file = new File([blob], 'hijri-birthday.png', { type: 'image/png' })
-      if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: t.title }); return } catch (e) { if (e?.name === 'AbortError') return } }
+      if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file] }); return } catch (e) { if (e?.name === 'AbortError') return } }
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000)
       setMsg('✓')

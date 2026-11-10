@@ -86,7 +86,7 @@ export default function EidMode() {
     const blob = await new Promise(r => c.toBlob(r, 'image/png'))
     if (!blob) return
     const file = new File([blob], `bayram-${eid.kind}.png`, { type: 'image/png' })
-    if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: t.greet }); return } catch (e) { if (e?.name === 'AbortError') return } }
+    if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file] }); return } catch (e) { if (e?.name === 'AbortError') return } }
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000)
   }

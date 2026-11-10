@@ -98,7 +98,7 @@ export async function shareBadgeCard({ tier, iconSvg, eyebrow, title, sub, brand
     if (!blob) return 'error'
     const file = new File([blob], fileName, { type: 'image/png' })
     if (navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file], title }); return 'shared' } catch (e) {
+      try { await navigator.share({ files: [file] }); return 'shared' } catch (e) {
         if (e?.name === 'AbortError') return 'cancel'
       }
     }

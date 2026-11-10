@@ -78,7 +78,7 @@ export default function LearningPaths({ lessonBySlug, readSet, lang, L, open }) 
       if (!blob) return
       const file = new File([blob], `muslims-cc-${cur.key}.png`, { type: 'image/png' })
       if (navigator.canShare?.({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: t[cur.key] }); return } catch (e) { if (e?.name === 'AbortError') return }
+        try { await navigator.share({ files: [file] }); return } catch (e) { if (e?.name === 'AbortError') return }
       }
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000)

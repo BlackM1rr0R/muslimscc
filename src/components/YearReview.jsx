@@ -172,7 +172,7 @@ export default function YearReview() {
       if (!blob) return
       const file = new File([blob], `muslims-cc-${d.hYear}.png`, { type: 'image/png' })
       if (navigator.canShare?.({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: t.title(yearLabel) }); return } catch (e) {
+        try { await navigator.share({ files: [file] }); return } catch (e) {
           if (e?.name === 'AbortError') return            // istifadəçi ləğv etdi
         }                                                  // başqa xəta — yükləməyə keç
       }

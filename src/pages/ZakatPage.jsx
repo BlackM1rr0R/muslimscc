@@ -12,6 +12,7 @@ import { navGroupLabel, navGroupOf } from '../data/navigation'
 import { useNavigate } from 'react-router-dom'
 import PageLink, { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
+import { parseAmount, cleanAmountInput } from '../utils/parseAmount'
 import { ChartFigure, BarChart, SegmentBreakdown, ProgressBar } from '../components/viz'
 import ZakatFlow from '../components/ZakatFlow'
 import { pickUi } from '../utils/uiText'
@@ -31,8 +32,9 @@ import ShineButton from '../motion/ShineButton'
 //   https://islamqa.info/en/answers/145564, İbn Useymin, Məcmu Fətava 18/282).
 //
 // Təxmini qiymətlər (USD / qram) — istifadəçi bugünkü bazar qiymətini özü yaza bilər.
-const GOLD_USD_PER_G   = 75
-const SILVER_USD_PER_G = 0.90
+// Ehtiyat qiymətlər (2026-11-09 bazarı) — adətən canlı qiymət yüklənir (aşağıda METALS_URL)
+const GOLD_USD_PER_G   = 132
+const SILVER_USD_PER_G = 1.70
 const NISAB_GOLD_G   = 85
 const NISAB_SILVER_G = 595
 // Bir sa' ≈ 3 kq (https://islamqa.info/en/answers/1396)
@@ -51,6 +53,11 @@ const CURRENCIES = [
 ]
 const NUM_LOCALES = { az: 'az-AZ', en: 'en-US', ru: 'ru-RU', tr: 'tr-TR', ar: 'ar-u-nu-latn' }
 const FALLBACK = { USD:1, AZN:1.70, EUR:0.92, RUB:91, TRY:32, SAR:3.75, GBP:0.79, AED:3.67 }
+// v5.9: canlı qızıl/gümüş qiyməti və valyuta məzənnəsi bir mənbədən — fawazahmed0/currency-api
+// (jsDelivr, gündəlik yenilənir; xau/xag = 1 USD-yə düşən troya unsiyası). Alınmasa — köhnə
+// məzənnə API-si və yuxarıdakı ehtiyat qiymətlər ("təxmini" nişanı ilə).
+const METALS_URL = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json'
+const TROY_OZ_G = 31.1034768
 
 const L = {
   savingsLabel: { az:'Yığım / bank hesabı',   ru:'Сбережения / Банк',   ar:'المدخرات / البنك',   tr:'Birikim / Banka',      en:'Savings / Bank'      },
@@ -67,6 +74,12 @@ const L = {
   basisGold:    { az:'Qızıl — 85 q', ru:'Золото — 85 г', ar:'الذهب — ٨٥ غ', tr:'Altın — 85 g', en:'Gold — 85 g' },
   nisabExplain: { az:'Kağız pulun nisabı 85 q qızılın və ya 595 q gümüşün dəyəridir. Daimi Komitə hansı kasıblar üçün daha faydalıdırsa onu əsas götürməyi bildirib; bu gün bu, adətən gümüşdür.', ru:'Нисаб бумажных денег — стоимость 85 г золота или 595 г серебра. Постоянный комитет указал брать то, что полезнее для бедных; сегодня это обычно серебро.', ar:'نصاب الأوراق النقدية قيمة ٨٥ غرامًا من الذهب أو ٥٩٥ غرامًا من الفضة، وقد أفتت اللجنة الدائمة بالأخذ بالأنفع للفقراء، وهو اليوم غالبًا الفضة.', tr:'Kâğıt paranın nisabı 85 g altının veya 595 g gümüşün değeridir. Daimi Komite fakirler için hangisi daha faydalıysa onun esas alınmasını bildirmiştir; bugün bu genellikle gümüştür.', en:'The nisab for paper money is the value of 85 g of gold or 595 g of silver. The Permanent Committee advised using whichever is more beneficial to the poor; today that is usually silver.' },
   nisabSrc:     { az:'Daimi Komitə fətvaları, 9/254, 9/257', ru:'Фетвы Постоянного комитета, 9/254, 9/257', ar:'فتاوى اللجنة الدائمة، ٩/٢٥٤، ٩/٢٥٧', tr:'Daimi Komite fetvaları, 9/254, 9/257', en:'Fatawa al-Lajnah al-Daimah, 9/254, 9/257' },
+  salaryTitle:  { az:'Maaşla yaşayırsınız?', ru:'Живёте на зарплату?', ar:'تعيش على الراتب؟', tr:'Maaşla mı geçiniyorsunuz?', en:'Living on a salary?' },
+  salaryText:   { az:'Maaşın özünə zəkat düşmür — ondan yığılıb əlinizdə qalan pula düşür. Hər ayın yığımının ilini ayrı-ayrı saymaq çətindir; Daimi Komitənin göstərdiyi asan yol: ildə bir zəkat günü seçin və həmin gün əlinizdə olan bütün puldan 2,5% verin. Hələ bir il tamam olmayan hissə üçün verilən əvvəlcədən ödənmiş zəkat sayılır.', ru:'С самой зарплаты закят не выплачивается — он выплачивается с накопленного из неё. Считать год для каждого месячного остатка трудно; простой путь, указанный Постоянным комитетом: выберите один день закята в году и в этот день отдайте 2,5% со всех денег, которые у вас есть. За часть, над которой ещё не прошёл год, это считается закятом, выплаченным заранее.', ar:'لا زكاة في الراتب نفسه، وإنما فيما يُدَّخر منه. ويشقّ حساب الحول لكل مبلغ شهري؛ والطريق الأيسر الذي ذكرته اللجنة الدائمة: أن تجعل لك يومًا في السنة تزكي فيه جميع ما عندك من مال بنسبة 2.5%، وما لم يحل عليه الحول يكون زكاةً معجَّلة.', tr:'Maaşın kendisine zekât düşmez — ondan biriktirip elinizde kalan paraya düşer. Her ayın birikiminin yılını ayrı ayrı saymak zordur; Daimi Komite\u2019nin gösterdiği kolay yol: yılda bir zekât günü seçin ve o gün elinizdeki bütün paranın %2,5\u2019ini verin. Henüz yılı dolmayan kısım için verilen, peşin ödenmiş zekât sayılır.', en:'Zakat is not due on the salary itself but on what you save from it. Counting a year for every month\u2019s savings is hard; the easier way the Permanent Committee gives: choose one zakat day a year and on that day give 2.5% of all the money you have. For the part that has not yet completed a year, it counts as zakat paid in advance.' },
+  salaryLabel:  { az:'Maaşdan yığılan pul (bu gün əlinizdə)', ru:'Накоплено из зарплаты (на сегодня)', ar:'المدَّخر من الراتب (اليوم)', tr:'Maaştan biriken para (bugün elinizde)', en:'Saved from salary (in hand today)' },
+  salaryHint:   { az:'Aylıq maaşın özü yox — ondan qalıb yığılan məbləğ', ru:'Не сама месячная зарплата, а накопленный из неё остаток', ar:'ليس الراتب الشهري نفسه، بل ما بقي منه وادُّخر', tr:'Aylık maaşın kendisi değil — ondan artıp biriken tutar', en:'Not the monthly salary itself — the amount left over and saved' },
+  livePrice:    { az:'{d} bazar qiyməti', ru:'рыночная цена на {d}', ar:'سعر السوق في {d}', tr:'{d} piyasa fiyatı', en:'market price on {d}' },
+  approxPrice:  { az:'təxmini qiymət — bugünkü qiyməti yazın', ru:'примерная цена — укажите сегодняшнюю', ar:'سعر تقريبي — أدخل سعر اليوم', tr:'yaklaşık fiyat — bugünkü fiyatı yazın', en:'approximate price — enter today\u2019s' },
   priceHint:    { az:'Bugünkü bazar qiymətini yaza bilərsiniz', ru:'Можно указать сегодняшнюю рыночную цену', ar:'يمكنك إدخال سعر السوق اليوم', tr:'Bugünkü piyasa fiyatını yazabilirsiniz', en:'You can enter today’s market price' },
   debtLabel: { az:'Zəkat günündən əvvəl ödədiyiniz borc', ru:'Долг, выплачиваемый до дня закята', ar:'الدين الذي تقضيه قبل موعد الزكاة', tr:'Zekât gününden önce ödediğiniz borç', en:'Debt you pay off before the zakat date' },
   fitrTitle:    { az:'Fitrə zəkatı',          ru:'Закят аль-Фитр',      ar:'زكاة الفطر',         tr:'Fıtır Sadakası',        en:'Zakat al-Fitr'       },
@@ -293,10 +306,11 @@ function ZakatField({ icon, tone = '', label, prefix, value, onChange, placehold
       </span>
       <span className="zakat-input-wrap">
         <span className="zakat-cur-prefix" aria-hidden="true"><bdi>{prefix}</bdi></span>
-        <input type="number" inputMode="decimal" className="ui-input zakat-input"
-          min="0" value={value} placeholder={placeholder}
-          aria-invalid={parseFloat(value) < 0 || undefined}
-          onChange={e => onChange(e.target.value)} />
+        {/* Mətn sahəsi (inputMode="decimal"): type="number" iPhone-da vergüllü onluğu qəbul etmirdi */}
+        <input type="text" inputMode="decimal" autoComplete="off" spellCheck={false} className="ui-input zakat-input"
+          value={value} placeholder={placeholder}
+          aria-invalid={parseAmount(value) < 0 || undefined}
+          onChange={e => onChange(cleanAmountInput(e.target.value))} />
       </span>
       {hint && <span className="ui-field__hint zakat-field-hint">{hint}</span>}
     </label>
@@ -329,6 +343,9 @@ export default function ZakatPage({ setPage }) {
   const [rates,       setRates]       = useState(FALLBACK)
   const [rateLoading, setRateLoading] = useState(true)
   const [savings,     setSavings]     = useState('')
+  const [salarySaved, setSalarySaved] = useState('')
+  // Canlı qiymət (USD/qram) və tarixi; null — ehtiyat qiymət işlənir
+  const [metals,      setMetals]      = useState(null)
   const [other,       setOther]       = useState('')
   const [gold,        setGold]        = useState('')
   const [silver,      setSilver]      = useState('')
@@ -352,7 +369,7 @@ export default function ZakatPage({ setPage }) {
   }
 
   useEffect(() => {
-    fetch('https://api.exchangerate-api.com/v4/latest/USD')
+    const fromOld = () => fetch('https://api.exchangerate-api.com/v4/latest/USD')
       .then(r => r.json())
       .then(d => {
         if (d.rates) {
@@ -362,6 +379,20 @@ export default function ZakatPage({ setPage }) {
         }
       })
       .catch(() => {})
+    // Əsas mənbə: valyuta + qızıl/gümüş birlikdə
+    fetch(METALS_URL)
+      .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then(d => {
+        const u = d?.usd
+        if (!u) throw new Error('bad')
+        const r = {}
+        CURRENCIES.forEach(c => { const x = Number(u[c.code.toLowerCase()]); r[c.code] = Number.isFinite(x) && x > 0 ? x : FALLBACK[c.code] })
+        r.USD = 1
+        setRates(r)
+        const g = 1 / Number(u.xau) / TROY_OZ_G, sv = 1 / Number(u.xag) / TROY_OZ_G
+        if (Number.isFinite(g) && g > 10 && g < 1000 && Number.isFinite(sv) && sv > 0.1 && sv < 20) setMetals({ gold: g, silver: sv, date: String(d.date || '') })
+      })
+      .catch(() => fromOld())
       .finally(() => setRateLoading(false))
   }, [])
 
@@ -370,17 +401,19 @@ export default function ZakatPage({ setPage }) {
 
   // Mənfi, sonsuz (1e999) və ya boş dəyər hesabı pozmasın: yalnız sonlu, ≥ 0 ədəd.
   // Əvvəl "-5000" yığımı cəmdən çıxırdı, mənfi borc isə cəmə əlavə olunurdu.
-  const n = v => { const x = parseFloat(v); return Number.isFinite(x) && x > 0 ? x : 0 }
+  const n = v => { const x = parseAmount(v); return Number.isFinite(x) && x > 0 ? x : 0 }
 
   // 1 qramın qiyməti seçilmiş valyutada (istifadəçi yazıbsa — onun dəyəri)
-  const goldPrice   = n(goldPriceIn)   || GOLD_USD_PER_G * rate
-  const silverPrice = n(silverPriceIn) || SILVER_USD_PER_G * rate
+  const goldBase    = (metals?.gold ?? GOLD_USD_PER_G) * rate
+  const silverBase  = (metals?.silver ?? SILVER_USD_PER_G) * rate
+  const goldPrice   = n(goldPriceIn)   || goldBase
+  const silverPrice = n(silverPriceIn) || silverBase
   const nisabGoldVal   = NISAB_GOLD_G * goldPrice
   const nisabSilverVal = NISAB_SILVER_G * silverPrice
   const nisabLoc = nisabBasis === 'gold' ? nisabGoldVal : nisabSilverVal
 
   // Yalnız bir il saxlanılan varlıqlar (maaş/icarə ×12 YOXDUR — bax faylın başı)
-  const savingsVal   = n(savings)
+  const savingsVal   = n(savings) + n(salarySaved)
   const otherVal     = n(other)
   const goldVal      = n(gold) * goldPrice
   const silverVal    = n(silver) * silverPrice
@@ -406,7 +439,7 @@ export default function ZakatPage({ setPage }) {
   // əvvəl hər dildə "0.00" idi, nəticə kartlarında isə "0,00")
   const moneyPh = fmt(0)
 
-  const reset = () => { setSavings(''); setOther(''); setGold(''); setSilver(''); setStocks(''); setDebt(''); setFitrPeople('1'); setGoldPriceIn(''); setSilverPriceIn('') }
+  const reset = () => { setSavings(''); setSalarySaved(''); setOther(''); setGold(''); setSilver(''); setStocks(''); setDebt(''); setFitrPeople('1'); setGoldPriceIn(''); setSilverPriceIn('') }
 
   // Cəm cədvəlinin sətirləri (sıfır olan isteğe bağlı sətirlər gizlənir)
   const rows = [
@@ -426,6 +459,8 @@ export default function ZakatPage({ setPage }) {
   ].filter(x => x.value > 0)
 
   const gU = s('gUnit', l)
+  // Qiymət sahəsinin altı: canlı qiymətin tarixi və ya "təxmini"
+  const priceNote = metals ? `${s('livePrice', l).replace('{d}', metals.date)} · ${s('priceHint', l)}` : (rateLoading ? s('priceHint', l) : s('approxPrice', l))
   const openLearn = (e) => {
     if (!isPlainClick(e)) return
     e.preventDefault()
@@ -506,19 +541,25 @@ export default function ZakatPage({ setPage }) {
                 </div>
 
                 <div className="zakat-fields">
-                  <ZakatField icon="zakat" tone="accent" label={s('goldPrice',l)} prefix={cur.symbol} placeholder={fmt(GOLD_USD_PER_G * rate)}
-                    value={goldPriceIn} onChange={setGoldPriceIn} hint={s('priceHint',l)} />
-                  <ZakatField icon="zakat" tone="neutral" label={s('silverPrice',l)} prefix={cur.symbol} placeholder={fmt(SILVER_USD_PER_G * rate)}
-                    value={silverPriceIn} onChange={setSilverPriceIn} hint={s('priceHint',l)} />
+                  <ZakatField icon="zakat" tone="accent" label={s('goldPrice',l)} prefix={cur.symbol} placeholder={fmt(goldBase)}
+                    value={goldPriceIn} onChange={setGoldPriceIn} hint={priceNote} />
+                  <ZakatField icon="zakat" tone="neutral" label={s('silverPrice',l)} prefix={cur.symbol} placeholder={fmt(silverBase)}
+                    value={silverPriceIn} onChange={setSilverPriceIn} hint={priceNote} />
                 </div>
               </CalcStep>
 
               {/* 2 — Bir il saxlanılan mal (hövl qaydası) */}
               <CalcStep n={2} id="zakat-step-2" title={s('step2', l)} text={s('hawlNote', l)}>
                 <p className="zakat-src">{s('sourceLabel',l)}: <a href="https://islamqa.info/en/answers/26113" target="_blank" rel="noopener noreferrer">{s('hawlSrc',l)}</a></p>
+                <div className="ui-callout zakat-salary" data-testid="zakat-salary">
+                  <Icon name="info" size={18} />
+                  <div><strong className="ui-callout__title">{s('salaryTitle',l)}</strong><p>{s('salaryText',l)}</p></div>
+                </div>
                 <div className="zakat-fields">
                   <ZakatField icon="shield" label={s('savingsLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
                     value={savings} onChange={setSavings} />
+                  <ZakatField icon="clock" label={s('salaryLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
+                    value={salarySaved} onChange={setSalarySaved} hint={s('salaryHint',l)} />
                   <ZakatField icon="list" label={s('otherLabel',l)} prefix={cur.symbol} placeholder={moneyPh}
                     value={other} onChange={setOther} />
                   <ZakatField icon="analytics" label={s('stocksLabel',l)} prefix={cur.symbol} placeholder={moneyPh}

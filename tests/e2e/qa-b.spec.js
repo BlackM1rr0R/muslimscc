@@ -102,7 +102,8 @@ test('zəkat: mənfi və sonsuz dəyər cəmi azaltmır/pozmur, fitrə tam nəf�
   desktopOnly(info)
   await page.goto('/zakat')
   await settle(page)
-  const field = (name) => page.getByRole('spinbutton', { name })
+  // Pul sahələri mətndir (inputMode=decimal) — iPhone-da vergüllü onluq üçün (utils/parseAmount)
+  const field = (name) => page.getByRole('textbox', { name })
   const total = page.locator('.breakdown-total .total-amount')
 
   await field('Yığım / bank hesabı').fill('20000')
@@ -116,7 +117,7 @@ test('zəkat: mənfi və sonsuz dəyər cəmi azaltmır/pozmur, fitrə tam nəf�
   await expect(total).toHaveText(/20[\s., ]?000[.,]00/)
   // Sonsuz dəyər (1e999) — "∞" / NaN göstərilmir
   await field('Ticarət malları / səhmlər').fill('1e999')
-  await expect(total).toHaveText(/20[\s., ]?000[.,]00/)
+  await expect(total).toHaveText(/21[\s., ]?999[.,]00/)   // mətn sahəsi: "e" atılır → 1999
   await expect(page.locator('main')).not.toContainText(/NaN|Infinity|∞/)
 
   // Fitrə: 2.5 nəfər → 2 nəfər

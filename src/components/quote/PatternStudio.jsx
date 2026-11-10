@@ -125,7 +125,7 @@ export default function PatternStudio({ lang = 'az' }) {
       draw(c.getContext('2d'), 1170, 2532, { ...opts, size: opts.size * 2.6 }, 1)
       const blob = await new Promise(res => c.toBlob(res, 'image/png'))
       const file = new File([blob], `muslims-cc-pattern-${kind}.png`, { type: 'image/png' })
-      if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: t.title }); return } catch (e) { if (e?.name === 'AbortError') return } }
+      if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file] }); return } catch (e) { if (e?.name === 'AbortError') return } }
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000)
       setMsg(t.saved); setTimeout(() => setMsg(''), 2500)
