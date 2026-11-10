@@ -1,0 +1,33 @@
+/* Quranda adı keçən yerlər (components/media/ProphetPlacesMap.jsx) */
+.hx-places { margin-top: 28px; }
+.ppm { display: grid; gap: 14px; padding: clamp(16px, 3vw, 24px); margin: 0; }
+.ppm__head { display: grid; gap: 4px; }
+.ppm__head strong { font-size: 1.15rem; }
+.ppm__head span { color: var(--text-secondary); font-size: .9rem; }
+.ppm__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ppm__chips .ui-chip.is-on { background: var(--accent, #c79a3a); border-color: var(--accent, #c79a3a); color: #fff; }
+.ppm__body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.ppm__svg { display: block; width: 100%; height: auto; border-radius: 18px; }
+.ppm__sea { fill: #cfe3ec; }
+.ppm__land { fill: #efe2c6; stroke: #c9b28a; stroke-width: .8; }
+:root[data-theme="dark"] .ppm__sea { fill: #0f2233; } :root[data-theme="dark"] .ppm__land { fill: #2a2a22; stroke: #4a4536; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ppm__sea { fill: #0f2233; } :root:not([data-theme="light"]) .ppm__land { fill: #2a2a22; stroke: #4a4536; } }
+.ppm__pt { transition: opacity .35s; }
+.ppm__pt.is-dim { opacity: .22; }
+.ppm__halo { fill: rgba(240, 180, 41, .25); transform-box: fill-box; transform-origin: center; }
+.ppm__pt.is-on .ppm__halo { animation: ppm-pulse 2.4s ease-in-out infinite; }
+.ppm__dot { fill: #c78a12; stroke: #fff; stroke-width: 2; }
+.ppm__label { font-size: 15px; font-weight: 800; fill: #3a2a10; paint-order: stroke; stroke: rgba(255, 255, 255, .85); stroke-width: 4px; }
+:root[data-theme="dark"] .ppm__label { fill: #f3e6c0; stroke: rgba(0, 0, 0, .7); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ppm__label { fill: #f3e6c0; stroke: rgba(0, 0, 0, .7); } }
+.ppm__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; max-height: 560px; overflow: auto; }
+.ppm__list li { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2, rgba(0, 0, 0, .03)); border: 1px solid var(--border); }
+.ppm__place { font-weight: 800; }
+.ppm__place small { font-weight: 600; color: var(--text-muted); }
+.ppm__who { font-size: .86rem; color: var(--text-secondary); }
+.ppm__ref { font-size: .84rem; justify-self: start; }
+.ppm__none { color: var(--text-muted); }
+@keyframes ppm-pulse { 50% { transform: scale(1.6); opacity: .4; } }
+@media (max-width: 767.98px) { .ppm__body { grid-template-columns: 1fr; } .ppm__list { max-height: none; } }
+@media (prefers-reduced-motion: reduce) { .ppm__pt.is-on .ppm__halo { animation: none; } }
+html.a11y-reduce-motion .ppm__pt.is-on .ppm__halo { animation: none; }

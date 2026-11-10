@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import { QURAN_TOPICS, topicRoot } from '../data/quranTopics'
+import TopicSky from '../components/TopicSky'
 import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { getSurahLocal } from '../data/surahNamesAz'
@@ -375,6 +376,8 @@ export default function QuranRootsPage() {
                 </button>
               ))}
             </div>
+            {/* v5.9: mövzular kainatı — eyni mövzular, ulduz bürcü kimi */}
+            {index?.roots && <TopicSky roots={index.roots} topics={QURAN_TOPICS} lang={lang} active={found.root} onPick={runSearch} />}
             <div className="qr-examples">
               <span className="qr-examples__label">{L.examples}:</span>
               {EXAMPLES.map(r => (

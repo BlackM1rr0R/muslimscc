@@ -67,3 +67,4 @@ server/*.db-wal
 # Google/servis hesabı açarları — heç vaxt commit edilmir
 *-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].json
 gsc.json
+scripts/.og-pages.json

@@ -449,3 +449,4 @@
   .hx-orbit__card { max-width: none; padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-1); border: 1px solid var(--line); }
   .hx-orbit__desc { -webkit-line-clamp: 4; }
 }
+.history-hijra3d { margin-block: 24px; }

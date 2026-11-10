@@ -249,11 +249,14 @@ function renderPage(template, key, lang, noindex = false, param = null) {
   )
   // Paylaşım kartı səhifənin dilində (og-image-<dil>.png, az = og-image.png)
   const ogAlt = OG_ALT[uiLang(lang)] || OG_ALT.az
-  html = replaceMeta(html, 'property', 'og:image', ogImageFor(lang))
+  // v5.9: surə və Allahın adlarının öz kartı (public/og/, scripts/gen-og-pages.py) — dildən asılı deyil
+  const ogPage = (key === 'quran' || key === 'names') && Number.isInteger(param) && fs.existsSync(path.join(ROOT, 'public', 'og', `${key}-${param}.png`))
+  const ogImg = ogPage ? `${ogImageFor(lang).replace(/\/[^/]+$/, '')}/og/${key}-${param}.png` : ogImageFor(lang)
+  html = replaceMeta(html, 'property', 'og:image', ogImg)
   html = replaceMeta(html, 'property', 'og:image:alt', ogAlt)
   html = replaceMeta(html, 'name', 'twitter:title', title)
   html = replaceMeta(html, 'name', 'twitter:description', desc)
-  html = replaceMeta(html, 'name', 'twitter:image', ogImageFor(lang))
+  html = replaceMeta(html, 'name', 'twitter:image', ogImg)
   html = replaceMeta(html, 'name', 'twitter:image:alt', ogAlt)
 
   // Statik məzmun (detal və siyahı səhifələri) — <div id="root"> içinə;

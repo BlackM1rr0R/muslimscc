@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
@@ -19,6 +19,9 @@ import { ColumnChart, Donut, ProgressRing, ProgressBar } from '../components/viz
 import { HIFZ_GUIDE } from '../data/guides/HifzPage'
 import HifzInsights from '../components/insights/HifzInsights'
 import '../styles/HifzPage.css'
+import DeferRender from '../components/DeferRender'
+// v5.9: əkiz ayələr (mutəşabihat) — bölməyə yaxınlaşanda
+const TwinAyahs = lazy(() => import('../components/hifz/TwinAyahs'))
 import { pickUi } from '../utils/uiText'
 
 // 5 dilli sahə → cari dil (funksiya da ola bilər — rəqəmli mətnlər)
@@ -1021,6 +1024,12 @@ export default function HifzPage() {
 
         </div>
       </section>
+
+      <DeferRender height="620px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 620 }} />}>
+          <TwinAyahs lang={lang} />
+        </Suspense>
+      </DeferRender>
 
       <HifzMethod lang={lang} />
     </>

@@ -41,14 +41,14 @@ function smooth(pts) {
 }
 
 /* ── Ortaq yerlər (enlik, uzunluq) ── */
-const G = {
+export const G = {
   mecca: [21.4225, 39.8262], medina: [24.4672, 39.6112], quba: [24.4393, 39.6173],
   thawr: [21.3771, 39.8497], badr: [23.7795, 38.7905], hudaybiyyah: [21.4395, 39.6055],
 }
 // Qırmızı dəniz sahili (sadələşdirilmiş: Cidde, Rabiğ, Məstura, Yənbu ətrafı)
-const COAST = [[20.9, 39.35], [21.3, 39.12], [21.5, 39.16], [21.9, 39.02], [22.4, 39.08], [22.8, 39.03], [23.1, 38.82], [23.5, 38.6], [23.9, 38.3], [24.1, 38.06], [24.5, 37.75], [25.0, 37.3]]
+export const COAST = [[20.9, 39.35], [21.3, 39.12], [21.5, 39.16], [21.9, 39.02], [22.4, 39.08], [22.8, 39.03], [23.1, 38.82], [23.5, 38.6], [23.9, 38.3], [24.1, 38.06], [24.5, 37.75], [25.0, 37.3]]
 
-const NAMES = {
+export const NAMES = {
   mecca: { az: 'Məkkə', en: 'Mecca', ru: 'Мекка', ar: 'مكة', tr: 'Mekke' },
   medina: { az: 'Mədinə', en: 'Medina', ru: 'Медина', ar: 'المدينة', tr: 'Medine' },
   quba: { az: 'Quba', en: 'Quba', ru: 'Куба', ar: 'قباء', tr: 'Kuba' },
@@ -133,7 +133,7 @@ function Sea({ prj, coast, lang, label = true, at }) {
 }
 
 /* ═══ 1. Hicrət yolu: Məkkə → Sevr mağarası → sahil yolu → Quba → Mədinə ═══ */
-const HIJRA_L = {
+export const HIJRA_L = {
   title: { az: 'Hicrət yolu (622)', en: 'Route of the Hijrah (622)', ru: 'Путь хиджры (622)', ar: 'طريق الهجرة (٦٢٢م)', tr: 'Hicret yolu (622)' },
   desc: {
     az: 'Peyğəmbər ﷺ və Əbu Bəkr Məkkədən cənuba, Sevr mağarasına getdilər, üç gün orada qaldılar, sonra az işlənən sahil yolu ilə şimala yönəlib Qubaya, oradan Mədinəyə çatdılar. Yolun dəqiq xətti təxminidir.',
@@ -146,12 +146,14 @@ const HIJRA_L = {
   days: { az: '3 gün mağarada', en: '3 days in the cave', ru: '3 дня в пещере', ar: 'ثلاثة أيام في الغار', tr: 'Mağarada 3 gün' },
   arrive: { az: 'ilk məscid', en: 'first mosque', ru: 'первая мечеть', ar: 'أول مسجد', tr: 'ilk mescid' },
 }
+// Təxmini yol (enlik, uzunluq): Məkkə → Sevr → sahil yolu → Quba → Mədinə — HijraMap, HijraJourney, HijraJourney3D
+export const HIJRA_ROUTE = [G.mecca, G.thawr, [21.55, 39.42], [22.05, 39.2], [22.7, 39.18], [23.3, 39.1], [23.85, 39.25], [24.2, 39.45], G.quba, G.medina]
 export function HijraMap({ lang = 'az' }) {
   const id = `hj${useId().replace(/:/g, '')}`
   const prj = projector({ lat: [21.1, 24.75], lon: [37.6, 40.35] }, 440)
   const P = (k) => prj.p(...G[k])
   // Təxmini yol: Sevr → qərbə, sahilə yaxın → şimala → içəri, Qubaya
-  const route = [G.mecca, G.thawr, [21.55, 39.42], [22.05, 39.2], [22.7, 39.18], [23.3, 39.1], [23.85, 39.25], [24.2, 39.45], G.quba, G.medina].map(([a, b]) => prj.p(a, b))
+  const route = HIJRA_ROUTE.map(([a, b]) => prj.p(a, b))
   return (
     <Frame id={id} W={prj.W} H={prj.H} className="smap--tall" title={T(HIJRA_L.title, lang)} desc={T(HIJRA_L.desc, lang)} caption={T(HIJRA_L.title, lang)}
       legend={<>
@@ -179,7 +181,7 @@ const xy = ([x, y]) => ({ x, y })
    rəvayəti, Qubaya gəliş, məscidin yeri) + Tövbə 40. Mətnlər sitat deyil —
    həmin rəvayətlərin qısa xülasəsidir; dəqiq yeri bilinməyən iki dayanacaq
    (sahil yolu, Süraqə ilə qarşılaşma) "təxmini" işarələnir. */
-const HJ_STOPS = [
+export const HJ_STOPS = [
   { k: 'mecca', at: 0, src: 'Buxari 3905',
     t: { az: 'Əbu Bəkrin evi', en: 'Abu Bakr’s house', ru: 'Дом Абу Бакра', ar: 'بيت أبي بكر', tr: 'Ebu Bekir’in evi' },
     d: { az: 'Peyğəmbər ﷺ günortanın istisində, adəti olmayan vaxtda Əbu Bəkrin evinə gəldi və hicrətə icazə verildiyini xəbər verdi. Əbu Bəkr yol yoldaşı olmağı istədi; iki dəvə əvvəlcədən hazırlanmışdı.', en: 'The Prophet ﷺ came to Abu Bakr’s house in the midday heat, at an unusual hour, and told him permission to emigrate had been given. Abu Bakr asked to be his companion; two camels had been prepared in advance.', ru: 'Пророк ﷺ пришёл в дом Абу Бакра в полуденный зной, в необычное время, и сообщил, что получено разрешение на переселение. Абу Бакр попросил быть его спутником; два верблюда были приготовлены заранее.', ar: 'جاء النبي ﷺ بيت أبي بكر في نحر الظهيرة في ساعة لم يكن يأتي فيها، وأخبره أنه قد أُذن له في الخروج، فطلب أبو بكر الصحبة، وكان قد أعدّ راحلتين.', tr: 'Peygamber ﷺ öğle sıcağında, âdeti olmayan bir vakitte Ebu Bekir’in evine geldi ve hicrete izin verildiğini bildirdi. Ebu Bekir yol arkadaşı olmak istedi; iki deve önceden hazırlanmıştı.' } },
@@ -199,20 +201,20 @@ const HJ_STOPS = [
     t: { az: 'Mədinə — Peyğəmbər məscidi', en: 'Medina — the Prophet’s Mosque', ru: 'Медина — мечеть Пророка', ar: 'المدينة — المسجد النبوي', tr: 'Medine — Mescid-i Nebevî' },
     d: { az: 'Sonra dəvəsinə minib Mədinəyə girdi. Dəvə indiki məscidin yerində çökdü — bu yer iki yetimin, Səhl və Süheylin xurma qurutduğu sahə idi. Peyğəmbər ﷺ onu satın aldı və məscidi tikdi.', en: 'Then he rode his camel into Medina. It knelt at the site of the present mosque — a place where two orphans, Sahl and Suhayl, dried dates. The Prophet ﷺ bought it and built the mosque.', ru: 'Затем он въехал в Медину на своей верблюдице. Она опустилась на землю на месте нынешней мечети — там два сироты, Сахль и Сухайль, сушили финики. Пророк ﷺ купил этот участок и построил мечеть.', ar: 'ثم ركب راحلته فسار حتى بركت عند مسجد الرسول ﷺ بالمدينة، وكان مِربدًا للتمر لسهل وسهيل غلامين يتيمين، فابتاعه منهما وبناه مسجدًا.', tr: 'Sonra devesine binip Medine’ye girdi. Deve bugünkü mescidin yerine çöktü — burası iki yetim, Sehl ve Süheyl’in hurma kuruttuğu bir alandı. Peygamber ﷺ orayı satın aldı ve mescidi inşa etti.' } },
 ]
-const HJ_UI = {
+export const HJ_UI = {
   az: { title: 'Hicrət — addım-addım', play: 'Səyahəti başlat', pause: 'Dayandır', prev: 'Əvvəlki', next: 'Növbəti', approx: 'yeri təxminidir', step: (i, n) => `${i} / ${n}` },
   en: { title: 'The Hijrah — step by step', play: 'Start the journey', pause: 'Pause', prev: 'Previous', next: 'Next', approx: 'location approximate', step: (i, n) => `${i} / ${n}` },
   ru: { title: 'Хиджра — шаг за шагом', play: 'Начать путь', pause: 'Пауза', prev: 'Назад', next: 'Далее', approx: 'место приблизительно', step: (i, n) => `${i} / ${n}` },
   ar: { title: 'الهجرة — خطوة بخطوة', play: 'ابدأ الرحلة', pause: 'إيقاف', prev: 'السابق', next: 'التالي', approx: 'الموضع تقريبي', step: (i, n) => `${i} / ${n}` },
   tr: { title: 'Hicret — adım adım', play: 'Yolculuğu başlat', pause: 'Durdur', prev: 'Önceki', next: 'Sonraki', approx: 'yeri yaklaşıktır', step: (i, n) => `${i} / ${n}` },
 }
-const HJ_SRC = { 'Buxari 3905': { az: 'Buxari 3905', en: 'al-Bukhari 3905', ru: 'аль-Бухари 3905', ar: 'البخاري 3905', tr: 'Buhârî 3905' }, 'Buxari 3906': { az: 'Buxari 3906', en: 'al-Bukhari 3906', ru: 'аль-Бухари 3906', ar: 'البخاري 3906', tr: 'Buhârî 3906' }, 'Buxari 3905 · Tövbə 40': { az: 'Buxari 3905 · Tövbə 40', en: 'al-Bukhari 3905 · at-Tawbah 40', ru: 'аль-Бухари 3905 · ат-Тауба 40', ar: 'البخاري 3905 · التوبة 40', tr: 'Buhârî 3905 · Tevbe 40' } }
+export const HJ_SRC = { 'Buxari 3905': { az: 'Buxari 3905', en: 'al-Bukhari 3905', ru: 'аль-Бухари 3905', ar: 'البخاري 3905', tr: 'Buhârî 3905' }, 'Buxari 3906': { az: 'Buxari 3906', en: 'al-Bukhari 3906', ru: 'аль-Бухари 3906', ar: 'البخاري 3906', tr: 'Buhârî 3906' }, 'Buxari 3905 · Tövbə 40': { az: 'Buxari 3905 · Tövbə 40', en: 'al-Bukhari 3905 · at-Tawbah 40', ru: 'аль-Бухари 3905 · ат-Тауба 40', ar: 'البخاري 3905 · التوبة 40', tr: 'Buhârî 3905 · Tevbe 40' } }
 
 export function HijraJourney({ lang = 'az' }) {
   const id = `hjj${useId().replace(/:/g, '')}`
   const u = T(HJ_UI, lang) || HJ_UI.en
   const prj = projector({ lat: [21.1, 24.75], lon: [37.6, 40.35] }, 440)
-  const route = [G.mecca, G.thawr, [21.55, 39.42], [22.05, 39.2], [22.7, 39.18], [23.3, 39.1], [23.85, 39.25], [24.2, 39.45], G.quba, G.medina].map(([a, b]) => prj.p(a, b))
+  const route = HIJRA_ROUTE.map(([a, b]) => prj.p(a, b))
   // Yolun hər nöqtəsinə qədər məsafə (pathLength=1 üçün nisbət)
   const cum = route.reduce((acc, p, i) => { acc.push(i ? acc[i - 1] + Math.hypot(p[0] - route[i - 1][0], p[1] - route[i - 1][1]) : 0); return acc }, [])
   const total = cum[cum.length - 1] || 1

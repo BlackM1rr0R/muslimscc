@@ -1,0 +1,20 @@
+/* İslam həndəsi naxışı (components/quote/PatternStudio.jsx) */
+.ps__grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: clamp(16px, 3vw, 28px); align-items: start; }
+.ps__stage { position: relative; border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-3); aspect-ratio: 4 / 3; background: #0b1730; }
+.ps__cv { display: block; width: 100%; height: 100%; }
+.ps__panel { display: grid; gap: 16px; padding: 18px; }
+.ps__field { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.ps__field > span, .ps__field > legend { display: flex; justify-content: space-between; font-weight: 800; font-size: .86rem; padding: 0; }
+.ps__field input[type="range"] { width: 100%; accent-color: var(--accent, #c79a3a); }
+.ps__seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2, rgba(0, 0, 0, .05)); }
+.ps__seg button { border: 0; border-radius: 10px; padding: 8px 6px; font: inherit; font-weight: 700; font-size: .85rem; cursor: pointer; background: none; color: var(--text-secondary); }
+.ps__seg button.is-on { background: var(--surface); color: var(--text-strong); box-shadow: var(--shadow-1); }
+.ps__pals { display: flex; flex-wrap: wrap; gap: 10px; }
+.ps__pal { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; padding: 0; transition: transform .2s; }
+.ps__pal.is-on { border-color: var(--accent, #c79a3a); transform: scale(1.1); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #c79a3a) 30%, transparent); }
+.ps__btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ps__ok { color: var(--success, #1f7a4d); font-weight: 800; }
+@media (max-width: 767.98px) {
+  .ps__grid { grid-template-columns: 1fr; }
+  .ps__stage { aspect-ratio: 1; }
+}

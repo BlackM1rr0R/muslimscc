@@ -18,7 +18,7 @@
 // hərəkətlidir ("hərəkəti azalt" ayarında — statik). "Video" düyməsi eyni
 // animasiyanı MP4/WebM kimi yazır; ayə seçilibsə qiraət səsi ilə.
 // ═══════════════════════════════════════════════════════
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { BRAND } from '../config/brand'
@@ -41,6 +41,9 @@ import { FormatPicker, StylePanel } from '../components/quote/StylePanel'
 import { m } from 'motion/react'
 import LayoutFeatures from '../motion/LayoutFeatures'
 import { SPRING } from '../motion/presets'
+import DeferRender from '../components/DeferRender'
+// v5.9: İslam həndəsi naxışı — divar kağızı (bölməyə yaxınlaşanda)
+const PatternStudio = lazy(() => import('../components/quote/PatternStudio'))
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
@@ -646,6 +649,12 @@ export default function QuoteGeneratorPage() {
           </div>
         </div>
       </section>
+
+      <DeferRender height="640px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 640 }} />}>
+          <PatternStudio lang={lang} />
+        </Suspense>
+      </DeferRender>
     </>
   )
 }

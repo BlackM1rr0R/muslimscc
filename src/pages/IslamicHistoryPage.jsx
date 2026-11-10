@@ -9,6 +9,11 @@ import { HijraJourney, SirahMap, SpreadMap } from '../components/media/SiraMaps'
 import RelatedLinks from '../components/media/RelatedLinks'
 // Canlı yayılma xəritəsi (d3-geo + sahil xətləri) — ayrıca yüklənir; o vaxta qədər statik sxem
 const SpreadTimeline = lazy(() => import('../components/media/SpreadTimeline'))
+// v5.9: Hicrət yolu 3D (three.js — ayrıca chunk, bölməyə yaxınlaşanda)
+const HijraJourney3D = lazy(() => import('../components/media/HijraJourney3D'))
+// v5.9: Quranda adı keçən yerlər xəritəsi (peyğəmbərlər bölməsində)
+const ProphetPlacesMap = lazy(() => import('../components/media/ProphetPlacesMap'))
+import DeferRender from '../components/DeferRender'
 import { PLACE_PHOTOS } from '../data/placeImages'
 // Məlumat — src/data/islamicHistory.js (peyğəmbərlər, hadisələr, dövrlər)
 import { PROPHETS, EVENTS, EVENTS_SORTED, HISTORY_ERAS, eraOfEvent, eventYear, ULUL_AZM } from '../data/islamicHistory'
@@ -327,6 +332,11 @@ export default function IslamicHistoryPage() {
                     )
                   })}
                 </Stagger>
+                <DeferRender height="700px" idle={false} rootMargin="400px 0px">
+                  <Suspense fallback={<div className="ui-card" style={{ minHeight: 700 }} />}>
+                    <div className="hx-places"><ProphetPlacesMap lang={lang} prophets={PROPHETS} /></div>
+                  </Suspense>
+                </DeferRender>
               </section>
             ) : (
               <section aria-labelledby="hx-events-h">
@@ -401,6 +411,11 @@ export default function IslamicHistoryPage() {
             <HijraJourney lang={lang} />
             <SirahMap lang={lang} />
           </div>
+          <DeferRender height="620px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 620 }} />}>
+              <div className="history-hijra3d"><HijraJourney3D lang={lang} /></div>
+            </Suspense>
+          </DeferRender>
           <Suspense fallback={<SpreadMap lang={lang} />}>
             <SpreadTimeline lang={lang} />
           </Suspense>
