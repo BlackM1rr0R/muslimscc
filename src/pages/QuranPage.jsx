@@ -473,7 +473,9 @@ function useSurah(num, lang, attempt = 0) {
             ar: displayAyah(v.text, num, i),
             // Quranda ümumi ayə nömrəsi — səs faylının ünvanı ondan qurulur (utils/quranAudio.js)
             g: v.number,
-            tr: trText(trans?.ayahs[i]?.text, lang)
+            tr: trText(trans?.ayahs[i]?.text, lang),
+            // v5.9: səcdə ayəsi — API-nin öz məlumatı (Mədinə mushafında 15 yer) → SajdahMoment
+            sj: Boolean(v.sajda)
           }
         })
         startTransition(() => setData({ ...arabic, _key: `${num}|${lang}`, verses }))
@@ -526,6 +528,9 @@ const REVEAL_CARDS = 8
 const KaraokeAyah = lazy(() => import('../components/quran/KaraokeAyah'))
 // v5.7: Zen — surə tam ekranda, ayə-ayə (səhifənin pleyeri ilə)
 const QuranZen = lazy(() => import('../components/quran/QuranZen'))
+const SajdahMoment = lazy(() => import('../components/quran/SajdahMoment'))
+// Kartdakı səcdə nişanı (SajdahMoment-də də eyni sözlər)
+const SAJDAH_BADGE = { az: 'Səcdə', en: 'Sajdah', ru: 'Саджда', ar: 'سجدة', tr: 'Secde' }
 // v5.8: 3D Quran qalaktikası (three.js — yalnız bölməyə yaxınlaşanda)
 const QuranGalaxy = lazy(() => import('../components/quran/QuranGalaxy'))
 const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
@@ -553,7 +558,7 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
     // getBoundingClientRect çağırır; 286 kartda bu 286 məcburi düzülüş idi
     // (telefonda ~750 ms-lik tək tapşırıq, Bəqərə). Qalan kartlar dərhal görünür.
     // id + data-ayah: "Ayəyə keç" hədəfi və oxuma yerinin müşahidəçisi üçün
-    <div id={`ayah-${verse.n}`} data-ayah={verse.n} tabIndex={-1} data-cite={`${CITE_Q[lang] || CITE_Q.en} ${surahNum}:${verse.n}`}
+    <div id={`ayah-${verse.n}`} data-ayah={verse.n} data-sajdah={verse.sj ? '' : undefined} tabIndex={-1} data-cite={`${CITE_Q[lang] || CITE_Q.en} ${surahNum}:${verse.n}`}
       className={`ayah-card${active ? ' is-playing' : ''}${flash ? ' is-target' : ''}`} data-reveal={verse.n <= REVEAL_CARDS ? '' : undefined}
       aria-current={active ? 'true' : undefined}>
       {/* Qızılı halqa solur; key — eyni ayəyə təkrar keçəndə animasiya yenidən başlasın */}
@@ -563,6 +568,7 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
         aria-label={`${numLabel} — ${linkLabel}`} title={linkLabel}>{verse.n}</button>
       <div className="ayah-body">
         <p className="ayah-arabic" lang="ar">{verse.ar}</p>
+        {verse.sj && <span className="ayah-sajdah"><b aria-hidden="true">۩</b>{pickUi(SAJDAH_BADGE, lang, 'en')}</span>}
         <button type="button" className="ayah-reveal" aria-pressed="false" onClick={toggleReveal}>
           <Icon name="eye" size={16} /><span className="ayah-reveal__label">{xl.reveal}</span>
         </button>
@@ -1518,6 +1524,11 @@ export default function QuranPage() {
                   onSave={saveAyah} onShare={shareAyah} onKaraoke={openKaraoke} xl={xlCard} />
               ))}
             </div>
+            {surah.verses?.some(v => v.sj) && (
+              <Suspense fallback={null}>
+                <SajdahMoment listRef={listRef} activeAyah={playerBusy ? player.current : null} surah={surah.number} lang={lang} />
+              </Suspense>
+            )}
             {zen && (
               <Suspense fallback={null}>
                 <QuranZen player={player} verses={surah.verses} lang={lang} start={currentAyahRef.current || 1} surah={selected}

@@ -204,7 +204,9 @@ export function buildFeed({ feedback, history, errors, subs }, names, { max = 8 
   }
   for (const r of Array.isArray(subs?.webpushNew) ? subs.webpushNew : []) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(r.day) || !(r.count > 0)) continue
-    ev.push({ key: `s-${r.day}`, t: Date.parse(r.day + 'T12:00:00Z'), day: r.day, kind: 'sub', icon: 'bell', title: names.subs(Number(r.count)), meta: '' })
+    // Günlük say — günün BAŞLANĞICI (əvvəl 12:00 UTC idi: səhər saatlarında "bu günün" abunəsi
+    // gələcək vaxt kimi lentin başına düşürdü, yeni bildirişləri altda qoyurdu)
+    ev.push({ key: `s-${r.day}`, t: Date.parse(r.day + 'T00:00:00Z'), day: r.day, kind: 'sub', icon: 'bell', title: names.subs(Number(r.count)), meta: '' })
   }
   return ev.sort((a, b) => b.t - a.t).slice(0, max)
 }

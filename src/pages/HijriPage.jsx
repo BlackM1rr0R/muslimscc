@@ -19,6 +19,8 @@ import { ringFrom } from '../components/prayer/ringFrom'
 import MoonPhase from '../components/MoonPhase'
 import { pickUi } from '../utils/uiText'
 import PresenceSwap from '../motion/PresenceSwap'
+// v5.9: hicri doğum günü (bölməyə yaxınlaşanda)
+const HijriBirthday = lazy(() => import('../components/calendar/HijriBirthday'))
 
 // v5.6: Ramazanın 33 illik dövrü (spiral təkər) — ayrıca chunk
 const RamadanWheel = lazy(() => import('../components/calendar/RamadanWheel'))
@@ -283,6 +285,12 @@ export default function HijriPage({ setPage }) {
           <MonthGrid t={t} lang={lk} view={view} setView={setView} today={now} hToday={hToday} firstDow={firstDow} />
         </div>
       </section>
+
+      <DeferRender height="420px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 420 }} />}>
+          <HijriBirthday lang={lk} />
+        </Suspense>
+      </DeferRender>
 
       {/* Bu gecənin ayı — astronomik faza, növbəti bədr və təzə ay */}
       <section className="ui-section ui-section--tight hj-moon">

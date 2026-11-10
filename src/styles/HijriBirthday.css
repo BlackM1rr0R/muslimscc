@@ -1,0 +1,37 @@
+/* Hicri doğum günüm (components/calendar/HijriBirthday.jsx) */
+.hbd__card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: clamp(16px, 3vw, 36px); padding: clamp(18px, 3vw, 32px); overflow: hidden; position: relative;
+  background: radial-gradient(80% 120% at 100% 0%, color-mix(in srgb, var(--accent, #c79a3a) 16%, transparent), transparent 60%), var(--surface); }
+.hbd__intro { display: grid; gap: 10px; align-content: start; }
+.hbd__intro .ui-title, .hbd__intro .ui-lead { margin: 0; }
+.hbd__field { display: grid; gap: 6px; font-weight: 700; font-size: .9rem; max-width: 280px; }
+.hbd__field input { font: inherit; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg); color: var(--text); }
+.hbd__privacy { margin: 0; display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--text-muted); }
+.hbd__result { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: center; animation: hbd-in 600ms cubic-bezier(.22, 1, .36, 1) both; }
+.hbd__ring { position: relative; width: 150px; aspect-ratio: 1; display: grid; place-items: center; align-content: center; }
+.hbd__ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.hbd__track { fill: none; stroke: var(--border); stroke-width: 8; }
+.hbd__bar { fill: none; stroke: var(--accent, #c79a3a); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--p, 0)); transition: stroke-dashoffset 1200ms cubic-bezier(.22, 1, .36, 1); }
+.hbd__age { position: relative; font-family: var(--font-display); font-size: 3.2rem; line-height: 1; color: var(--text-strong); }
+.hbd__agel { position: relative; font-size: .75rem; font-weight: 700; color: var(--text-muted); text-align: center; }
+.hbd__info { display: grid; gap: 8px; }
+.hbd__k { font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--accent-text, #8a6512); }
+.hbd__h { font-family: var(--font-display); font-size: clamp(1.4rem, 3vw, 2rem); color: var(--text-strong); line-height: 1.15; }
+.hbd__next, .hbd__extra, .hbd__note, .hbd__today { margin: 0; line-height: 1.5; }
+.hbd__today { font-weight: 800; color: var(--accent-text, #8a6512); font-size: 1.1rem; }
+.hbd__extra { color: var(--text-secondary); }
+.hbd__note { font-size: .78rem; color: var(--text-muted); }
+.hbd__stats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 4px 0; padding: 0; list-style: none; }
+.hbd__stats li { display: grid; }
+.hbd__stats b { font-size: 1.3rem; color: var(--text-strong); }
+.hbd__stats span { font-size: .78rem; color: var(--text-muted); }
+.hbd__btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.hbd__ok { color: var(--success, #1f7a4d); font-weight: 800; }
+.hbd__result.is-today .hbd__ring { filter: drop-shadow(0 0 18px color-mix(in srgb, var(--accent, #c79a3a) 60%, transparent)); }
+@keyframes hbd-in { from { opacity: 0; transform: translate3d(0, 12px, 0); } }
+@media (max-width: 767.98px) {
+  .hbd__card { grid-template-columns: 1fr; }
+  .hbd__result { grid-template-columns: 1fr; justify-items: start; }
+  .hbd__ring { width: 120px; }
+}
+@media (prefers-reduced-motion: reduce) { .hbd__result { animation: none; } .hbd__bar { transition: none; } }
+html.a11y-reduce-motion .hbd__result { animation: none; }

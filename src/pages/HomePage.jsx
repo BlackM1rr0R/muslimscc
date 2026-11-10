@@ -73,6 +73,8 @@ const TadabburCard = lazy(() => import('../components/TadabburCard'))
 const HeroDust = lazy(() => import('../components/home/HeroDust'))
 // v5.8: "bir gün" sürüşmə hekayəsi — bölməyə yaxınlaşanda
 const DayStory = lazy(() => import('../components/home/DayStory'))
+// v5.9: günün ayəsi/hədisi/duası/zikri — "story" dairələri
+const DayStories = lazy(() => import('../components/home/DayStories'))
 // v3.2: "Bu gün" bento paneli (günün hədisi — Nəvəvi 40, günün ayəsi, davam et,
 // hicri tarix). Hero-nun düz altındadır — lazy, amma idle gözləmədən; yer
 // tutucu hündürlüyü saxlayır (CLS olmasın). Bax: components/home/HomeToday.jsx
@@ -687,6 +689,11 @@ export default function HomePage({ setPage }) {
           <JumuahCard />
         </Suspense>
       )}
+
+      {/* ═══ GÜNÜN HEKAYƏLƏRİ — story dairələri (v5.9) ═══ */}
+      <Suspense fallback={<div style={{ minHeight: 98 }} />}>
+        <DayStories lang={lang} />
+      </Suspense>
 
       {/* ═══ BU GÜN — bento: günün hədisi, ayəsi, davam et, tarix ═══ */}
       <Suspense fallback={<HomeTodayFallback />}>

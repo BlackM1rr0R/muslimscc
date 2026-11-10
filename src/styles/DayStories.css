@@ -1,0 +1,47 @@
+/* Günün hekayələri (components/home/DayStories.jsx) — sonsuz animasiyalar yalnız transform/opacity */
+.dsr { margin-block: 4px 0; }
+.dsr__list { display: flex; gap: clamp(12px, 3vw, 22px); margin: 0 auto; padding: 6px var(--gutter, 16px) 2px; list-style: none; overflow-x: auto; scrollbar-width: none; max-width: var(--container, 1200px); }
+.dsr__list::-webkit-scrollbar { display: none; }
+.dsr__bubble { display: grid; justify-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer; color: var(--text); font: inherit; }
+.dsr__ring { position: relative; width: 68px; height: 68px; border-radius: 50%; padding: 3px; display: grid; place-items: center; isolation: isolate; }
+.dsr__ring::before { content: ''; position: absolute; inset: 0; border-radius: 50%; z-index: -1; background: conic-gradient(from 0deg, #f6d77a, #e8963a, #c2447a, #6c5ce7, #2fb38a, #f6d77a); animation: dsr-spin 6s linear infinite; }
+.dsr__bubble.is-seen .dsr__ring::before { background: var(--border-strong, #cfc6b4); animation: none; }
+.dsr__in { width: 100%; height: 100%; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 3px solid var(--bg); color: var(--accent-text, #8a6512); transition: transform .25s; }
+.dsr__bubble:hover .dsr__in, .dsr__bubble:focus-visible .dsr__in { transform: scale(.94); }
+.dsr__label { font-size: .78rem; font-weight: 700; color: var(--text-secondary); }
+@keyframes dsr-spin { to { transform: rotate(360deg); } }
+
+/* Tam ekran baxış */
+.dst { position: fixed; inset: 0; z-index: 1300; display: grid; grid-template-rows: auto auto 1fr auto; color: #fff; overflow: hidden; touch-action: none; user-select: none; background: #0b1428; animation: dst-in 320ms ease both; }
+.dst__bg { position: absolute; inset: 0; z-index: -1; }
+.dst__bg i { position: absolute; width: 90vmax; height: 90vmax; border-radius: 50%; opacity: .55; animation: dst-float 14s ease-in-out infinite alternate; }
+.dst__bg i:first-child { left: -30vmax; top: -30vmax; }
+.dst__bg i:last-child { right: -35vmax; bottom: -35vmax; animation-delay: -7s; }
+.dst--ayah { background: #0a2a22; } .dst--ayah .dst__bg i { background: radial-gradient(circle, #1f7a5c 0%, transparent 65%); }
+.dst--hadith { background: #1d1636; } .dst--hadith .dst__bg i { background: radial-gradient(circle, #6a4fb8 0%, transparent 65%); }
+.dst--dua { background: #2a1a10; } .dst--dua .dst__bg i { background: radial-gradient(circle, #b8742f 0%, transparent 65%); }
+.dst--dhikr { background: #0c2034; } .dst--dhikr .dst__bg i { background: radial-gradient(circle, #2b78b8 0%, transparent 65%); }
+.dst__bars { display: flex; gap: 4px; padding: max(12px, env(safe-area-inset-top)) 12px 0; }
+.dst__bar { flex: 1; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .3); overflow: hidden; }
+.dst__bar b { display: block; height: 100%; background: #fff; transform-origin: left center; transform: scaleX(0); }
+[dir="rtl"] .dst__bar b { transform-origin: right center; }
+.dst__bar b.is-done { transform: scaleX(1); }
+.dst__bar b.is-run { animation: dst-bar linear forwards; }
+.dst.is-paused .dst__bar b.is-run { animation-play-state: paused; }
+.dst__top { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+.dst__kind { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: .92rem; }
+.dst__count { margin-inline-start: auto; font-size: .8rem; opacity: .7; }
+.dst__x { width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; background: rgba(255, 255, 255, .14); color: #fff; cursor: pointer; }
+.dst__body { align-self: center; display: grid; gap: 16px; padding: 12px clamp(20px, 6vw, 64px); max-width: 760px; margin-inline: auto; width: 100%; text-align: center; animation: dst-body 520ms cubic-bezier(.22, 1, .36, 1) both; }
+.dst__ar { margin: 0; font-family: var(--font-arabic, 'Amiri', serif); font-size: clamp(1.6rem, 5vw, 2.4rem); line-height: 2; text-shadow: 0 2px 20px rgba(0, 0, 0, .3); }
+.dst__name { margin: 0; font-weight: 700; opacity: .9; }
+.dst__tr { margin: 0; font-size: clamp(1rem, 2.6vw, 1.2rem); line-height: 1.6; opacity: .92; }
+.dst__src { margin: 0; font-size: .82rem; color: #f3d98f; }
+.dst__foot { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 12px 16px max(18px, env(safe-area-inset-bottom)); }
+.dst__share { color: #fff; }
+@keyframes dst-in { from { opacity: 0; transform: scale(.98); } }
+@keyframes dst-bar { to { transform: scaleX(1); } }
+@keyframes dst-body { from { opacity: 0; transform: translate3d(0, 18px, 0); } }
+@keyframes dst-float { to { transform: translate3d(8vmax, 6vmax, 0) scale(1.1); } }
+@media (prefers-reduced-motion: reduce) { .dsr__ring::before, .dst, .dst__body, .dst__bg i { animation: none; } }
+html.a11y-reduce-motion .dsr__ring::before, html.a11y-reduce-motion .dst, html.a11y-reduce-motion .dst__body, html.a11y-reduce-motion .dst__bg i { animation: none; }
