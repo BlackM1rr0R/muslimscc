@@ -430,8 +430,8 @@ const HADITH = {
 
 // Açılıb oxunmuş fətvalar (başlıq mənbədəki kimi — dildən asılı deyil)
 const SRC = {
-  bb3804: { url: 'https://binbaz.org.sa/fatwas/3804', label: `${BBZ} · 3804 — حكم الأجبان المعلّبة المستوردة` },
-  bb19486: { url: 'https://binbaz.org.sa/fatwas/19486', label: `${BBZ} · 19486 — حكم شحم الخنزير` },
+  bb3804: { url: 'https://binbaz.org.sa/fatwas/3804/%D8%AD%D9%83%D9%85-%D8%A7%D9%84%D8%A7%D8%AC%D8%A8%D8%A7%D9%86-%D8%A7%D9%84%D9%85%D8%B9%D9%84%D8%A8%D8%A9-%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D9%88%D8%B1%D8%AF%D8%A9', label: `${BBZ} · 3804 — حكم الأجبان المعلّبة المستوردة` },
+  bb19486: { url: 'https://binbaz.org.sa/fatwas/19486/%D8%AD%D9%83%D9%85-%D8%B4%D8%AD%D9%85-%D8%A7%D9%84%D8%AE%D9%86%D8%B2%D9%8A%D8%B1', label: `${BBZ} · 19486 — حكم شحم الخنزير` },
   bbRawd: { url: 'https://binbaz.org.sa/audios/1868', label: `${BBZ} · شرح الروض المربع — كتاب الطهارة (09)` },
   iq385517: { url: 'https://islamqa.info/ar/answers/385517', label: `${IQA} · 385517 — ما مفهوم الاستحالة المطهرة؟` },
   iq97541: { url: 'https://islamqa.info/en/answers/97541', label: `${IQA} · 97541 — Ruling on using materials to which “animal glycerine” has been added` },

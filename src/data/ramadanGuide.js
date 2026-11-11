@@ -511,10 +511,10 @@ export const RAMADAN_GUIDE = [
 
 // Mənbələr siyahısı (səhifənin sonunda) — adlar orijinal (ərəb) başlıqlarıdır
 export const RAMADAN_SOURCES = [
-  { label: 'ابن باز — الإبر المغذية تفطر (مجموع الفتاوى 15/257)', url: 'https://binbaz.org.sa/fatwas/11755' },
+  { label: 'ابن باز — الإبر المغذية تفطر (مجموع الفتاوى 15/257)', url: 'https://binbaz.org.sa/fatwas/11755/%D8%A7%D9%84%D8%A7%D8%A8%D8%B1-%D8%A7%D9%84%D9%85%D8%BA%D8%B0%D9%8A%D8%A9-%D8%AA%D9%81%D8%B7%D8%B1' },
   { label: 'ابن باز — حكم استعمال إبر الوريد والعضل (15/258)', url: URL_BAZ.injections },
   { label: 'ابن باز — معجون الأسنان وقطرة الأذن والعين والأنف (15/260)', url: URL_BAZ.drops },
-  { label: 'ابن باز — حكم القطرة والكحل أثناء الصيام (15/262)', url: 'https://binbaz.org.sa/fatwas/15965' },
+  { label: 'ابن باز — حكم القطرة والكحل أثناء الصيام (15/262)', url: 'https://binbaz.org.sa/fatwas/15965/%D8%AD%D9%83%D9%85-%D8%A7%D9%84%D8%B4%D8%B1%D8%A8-%D9%82%D8%A7%D9%89%D9%85%D8%A7' },
   { label: 'ابن باز — حكم استعمال مريض الربو البخاخ (15/265)', url: URL_BAZ.inhaler },
   { label: 'ابن باز — حكم سحب عينات الدم للتحليل (15/274)', url: URL_BAZ.blood },
   { label: 'ابن باز — حكم الزيادة على ثمان ركعات في التراويح', url: URL_BAZ.tarawih },

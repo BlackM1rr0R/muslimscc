@@ -256,7 +256,7 @@ export default {
               tr: 'Selamdan sonra. Şeyh İbn Baz der ki: Hadiste “iki rekât kılar, sonra der” buyrulmuştur; dolayısıyla dua iki rekâttan sonradır.',
             },
             ref: { az: 'İbn Baz, fətva 25310', en: 'Ibn Baz, fatwa 25310', ru: 'Ибн Баз, фетва 25310', ar: 'ابن باز، فتوى 25310', tr: 'İbn Baz, fetva 25310' },
-            url: 'https://binbaz.org.sa/fatwas/25310',
+            url: 'https://binbaz.org.sa/fatwas/25310/%D9%87%D9%84-%D9%8A%D9%83%D9%88%D9%86-%D8%AF%D8%B9%D8%A7%D8%A1-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%AE%D8%A7%D8%B1%D8%A9-%D9%82%D8%A8%D9%84-%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85-%D8%A7%D9%85-%D8%A8%D8%B9%D8%AF%D9%87',
           },
           {
             q: { az: 'İstixarədən sonra yuxu görməsəm nə etməliyəm?', en: 'What if I see no dream after istikhara?', ru: 'Что делать, если после истихары я не увидел сна?', ar: 'ماذا أفعل إن لم أرَ رؤيا بعد الاستخارة؟', tr: 'İstihareden sonra rüya görmezsem ne yapmalıyım?' },
@@ -280,7 +280,7 @@ export default {
               tr: 'Evet, müstehaptır. Şeyh İbn Baz, namazdan sonra hayır ehli ve samimi nasihatçilerle istişare etmenin müstehap olduğunu, kalp iki işten birine yatışınca onu yapacağını söyler.',
             },
             ref: { az: 'İbn Baz, fətva 15204', en: 'Ibn Baz, fatwa 15204', ru: 'Ибн Баз, фетва 15204', ar: 'ابن باز، فتوى 15204', tr: 'İbn Baz, fetva 15204' },
-            url: 'https://binbaz.org.sa/fatwas/15204',
+            url: 'https://binbaz.org.sa/fatwas/15204/%D8%AD%D9%83%D9%85-%D8%B5%D9%84%D8%A7%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%AE%D8%A7%D8%B1%D8%A9-%D9%88%D9%83%D9%8A%D9%81%D9%8A%D8%AA%D9%87%D8%A7',
           },
         ] },
       ],
@@ -294,7 +294,7 @@ export default {
     { label: 'İslamQA 164728 — Mətə yəkunu-d-dua fi salat əl-istixarə', url: 'https://islamqa.info/ar/answers/164728' },
     { label: 'İslamQA 109105 — Təriqə mubtədəə li-tələbi-r-ru’ya bə‘də-l-istixarə', url: 'https://islamqa.info/ar/answers/109105' },
     { label: 'İslamQA 72255 — Salat əl-istixarədən düzgün faydalanmaq', url: 'https://islamqa.info/ar/answers/72255' },
-    { label: 'İbn Baz — Hökmu salat əl-istixarə və keyfiyyətuha (15204)', url: 'https://binbaz.org.sa/fatwas/15204' },
-    { label: 'İbn Baz — Dua salamdan əvvəl, yoxsa sonra? (25310)', url: 'https://binbaz.org.sa/fatwas/25310' },
+    { label: 'İbn Baz — Hökmu salat əl-istixarə və keyfiyyətuha (15204)', url: 'https://binbaz.org.sa/fatwas/15204/%D8%AD%D9%83%D9%85-%D8%B5%D9%84%D8%A7%D8%A9-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%AE%D8%A7%D8%B1%D8%A9-%D9%88%D9%83%D9%8A%D9%81%D9%8A%D8%AA%D9%87%D8%A7' },
+    { label: 'İbn Baz — Dua salamdan əvvəl, yoxsa sonra? (25310)', url: 'https://binbaz.org.sa/fatwas/25310/%D9%87%D9%84-%D9%8A%D9%83%D9%88%D9%86-%D8%AF%D8%B9%D8%A7%D8%A1-%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%AE%D8%A7%D8%B1%D8%A9-%D9%82%D8%A8%D9%84-%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85-%D8%A7%D9%85-%D8%A8%D8%B9%D8%AF%D9%87' },
   ],
 }

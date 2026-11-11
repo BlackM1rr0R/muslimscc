@@ -39,6 +39,20 @@ export const hasPageInLang = (key, lang) => LANGS.includes(lang) || UI_LANGS.inc
 /** Səhifənin mövcud olduğu dillər (hreflang, sitemap, prerender üçün). */
 export const langsFor = (key) => (EXTRA_PAGES.includes(key) ? ALL_LANGS : [...LANGS, ...UI_LANGS])
 
+/**
+ * Detal məzmunu YALNIZ 5 əsas dildə olan bölmələr: dərs, lüğət, səhabə, alim, Allahın adları
+ * (dini mətn AI ilə tərcümə olunmur — əlavə dildə məzmun ingiliscədir). Əlavə dildəki belə
+ * detal səhifəsi açıqdır (menyu öz dilində), amma Google üçün ingilis səhifəsinin surətidir:
+ * canonical → /en/…, hreflang və sitemap-da yalnız 5 əsas dil. (2026-11-11 auditi: ~24 000
+ * səhifə 44 dildə eyni ingiliscə başlıq/təsvirlə özünü kanonik göstərirdi — dublikat məzmun.)
+ */
+export const CORE_CONTENT_DETAILS = ['glossary', 'names', 'sahaba', 'scholars', 'learn']
+const isCoreDetail = (key, param) => param != null && param !== '' && CORE_CONTENT_DETAILS.includes(key)
+/** hreflang / sitemap dilləri — səhifə (və detal parametri) üçün */
+export const seoLangsFor = (key, param) => (isCoreDetail(key, param) ? LANGS : langsFor(key))
+/** canonical-ın dili: əlavə dildə əsas-məzmunlu detal → ingiliscə səhifə */
+export const canonicalLang = (key, lang, param) => (isCoreDetail(key, param) && !LANGS.includes(lang) ? 'en' : lang)
+
 /** Məzmun cədvəllərində ehtiyat dil: əlavə dildə ingiliscə, əsas dildə azərbaycanca. */
 export const contentFallback = (lang) => (isExtraLang(lang) ? 'en' : DEFAULT_LANG)
 

@@ -103,7 +103,11 @@ export function extractUiStrings() {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
-  const list = extractUiStrings()
+  // SEO başlıq/təsvirləri — şablonlu olanlar (`${BRAND.aiName.en} — …`) AST-dən çıxmır, ona görə
+  // META-nın HESABLANMIŞ ingiliscə dəyərləri də əlavə olunur (əvvəl AI səhifəsinin başlığı 44 dildə ingiliscə qalırdı)
+  const { META } = await import('../src/seo/meta.js')
+  const metaEn = Object.values(META).flatMap(e => (e?.en ? [e.en.t, e.en.d] : [])).filter(isUiText)
+  const list = [...new Set([...extractUiStrings(), ...metaEn])].sort()
   const mi = process.argv.indexOf('--missing')
   if (mi > -1) {
     const lang = process.argv[mi + 1]

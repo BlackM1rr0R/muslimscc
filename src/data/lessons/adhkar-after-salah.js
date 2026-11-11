@@ -419,7 +419,7 @@ export default {
               tr: 'Elleri kaldırmak genel olarak sünnettir ve duanın kabulüne sebeptir; ancak Peygamber ﷺ beş farz namazın hiçbirinden sonra ellerini kaldırıp dua etmemiştir. Şeyh İbn Baz, bu durumda elleri kaldırmamak gerektiğini, çünkü bunun bid‘ate girdiğini; Peygamber’in ﷺ terk ettiği şeyin de yaptığı şey gibi delil olduğunu söyler. Elleri kaldırmadan dua etmek ise caizdir.',
             },
             ref: { az: 'İbn Baz, fətva 18742', en: 'Ibn Baz, fatwa 18742', ru: 'Ибн Баз, фетва 18742', ar: 'ابن باز، فتوى 18742', tr: 'İbn Baz, fetva 18742' },
-            url: 'https://binbaz.org.sa/fatwas/18742',
+            url: 'https://binbaz.org.sa/fatwas/18742/%D8%AD%D9%83%D9%85-%D8%B1%D9%81%D8%B9-%D8%A7%D9%84%D9%8A%D8%AF%D9%8A%D9%86-%D8%A8%D8%A7%D9%84%D8%AF%D8%B9%D8%A7%D8%A1-%D8%B9%D9%82%D8%A8-%D8%A7%D9%84%D8%A7%D9%86%D8%B5%D8%B1%D8%A7%D9%81-%D9%85%D9%86-%D8%A7%D9%84%D9%81%D8%B1%D9%8A%D8%B6%D8%A9',
           },
           {
             q: { az: 'Ayətül-Kürsi və surələri neçə dəfə oxumalı?', en: 'How many times are Ayat al-Kursi and the surahs recited?', ru: 'Сколько раз читать аят аль-Курси и суры?', ar: 'كم مرة تُقرأ آية الكرسي والسور؟', tr: 'Âyetü’l-Kürsî ve sureler kaç kez okunur?' },
@@ -431,7 +431,7 @@ export default {
               tr: 'Âyetü’l-Kürsî her farzdan sonra bir kez. İhlâs, Felak ve Nâs öğle, ikindi ve yatsıdan sonra bir kez, sabah ve akşamdan sonra ise üç kez.',
             },
             ref: { az: 'İbn Baz, fətva 10895 — “Namazların ardınca zikrlər”', en: 'Ibn Baz, fatwa 10895 — “The adhkar after the prayers”', ru: 'Ибн Баз, фетва 10895 — «Поминания после намазов»', ar: 'ابن باز، فتوى 10895: أذكار أدبار الصلوات', tr: 'İbn Baz, fetva 10895 — “Namazların ardından zikirler”' },
-            url: 'https://binbaz.org.sa/fatwas/10895',
+            url: 'https://binbaz.org.sa/fatwas/10895/%D8%A7%D8%B0%D9%83%D8%A7%D8%B1-%D8%A7%D8%AF%D8%A8%D8%A7%D8%B1-%D8%A7%D9%84%D8%B5%D9%84%D9%88%D8%A7%D8%AA',
           },
           {
             q: { az: 'Təsbihi təsbeh və ya sayğacla saymaq olarmı?', en: 'May I count the tasbih with prayer beads or a counter?', ru: 'Можно ли считать тасбих на чётках или счётчике?', ar: 'هل يعد التسبيح بالسبحة أو العداد؟', tr: 'Tesbihi tespih veya sayaçla saymak olur mu?' },
@@ -454,8 +454,8 @@ export default {
     { label: 'əs-Sünən əl-Kübra — İmam ən-Nəsai (9848)' },
     { label: 'Səhihul-Cami əs-Sağir — Şeyx Muhəmməd Nasirəddin əl-Albani' },
     { label: 'HadeethEnc — Ayətül-Kürsi hədisi', url: 'https://hadeethenc.com/ar/browse/hadith/10950' },
-    { label: 'İbn Baz — Əzkaru ədbar əs-salavat (10895)', url: 'https://binbaz.org.sa/fatwas/10895' },
-    { label: 'İbn Baz — Fərzdən sonra əlləri qaldırıb dua (18742)', url: 'https://binbaz.org.sa/fatwas/18742' },
+    { label: 'İbn Baz — Əzkaru ədbar əs-salavat (10895)', url: 'https://binbaz.org.sa/fatwas/10895/%D8%A7%D8%B0%D9%83%D8%A7%D8%B1-%D8%A7%D8%AF%D8%A8%D8%A7%D8%B1-%D8%A7%D9%84%D8%B5%D9%84%D9%88%D8%A7%D8%AA' },
+    { label: 'İbn Baz — Fərzdən sonra əlləri qaldırıb dua (18742)', url: 'https://binbaz.org.sa/fatwas/18742/%D8%AD%D9%83%D9%85-%D8%B1%D9%81%D8%B9-%D8%A7%D9%84%D9%8A%D8%AF%D9%8A%D9%86-%D8%A8%D8%A7%D9%84%D8%AF%D8%B9%D8%A7%D8%A1-%D8%B9%D9%82%D8%A8-%D8%A7%D9%84%D8%A7%D9%86%D8%B5%D8%B1%D8%A7%D9%81-%D9%85%D9%86-%D8%A7%D9%84%D9%81%D8%B1%D9%8A%D8%B6%D8%A9' },
     { label: 'Hadith API (fawazahmed0) — mətn və nömrələrin yoxlanması', url: 'https://github.com/fawazahmed0/hadith-api' },
   ],
 }

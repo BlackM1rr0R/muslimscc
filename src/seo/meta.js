@@ -869,6 +869,22 @@ export function fitTitle(t, max = TITLE_MAX) {
   return s
 }
 
+/**
+ * v5.9: meta description ≤ 160 simvol — Google uzun təsviri sözün ortasından kəsirdi
+ * (2026-11-11 auditi: 494 səhifədə 170+). Uzundursa cümlənin/sözün sonunda kəsilir, "…" əlavə olunur.
+ */
+export const DESC_MAX = 160
+export function fitDesc(d, max = DESC_MAX) {
+  const s = String(d || '').replace(/\s+/g, ' ').trim()
+  const chars = [...s]
+  if (chars.length <= max) return s
+  const cut = chars.slice(0, max - 1).join('')
+  const dot = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('। '), cut.lastIndexOf('。'))
+  if (dot > cut.length * 0.6) return cut.slice(0, dot + 1)
+  const sp = cut.lastIndexOf(' ')
+  return `${(sp > cut.length * 0.6 ? cut.slice(0, sp) : cut).replace(/[\s,;:—–-]+$/, '')}…`
+}
+
 /** Tam <title> — səhifə adı + brend şəkilçisi (sığırsa). */
 export function titleFor(key, lang = 'az') {
   const { t } = pickMeta(key, lang)
@@ -878,7 +894,7 @@ export function titleFor(key, lang = 'az') {
 
 /** Meta description. */
 export function descFor(key, lang = 'az') {
-  return pickMeta(key, lang).d
+  return fitDesc(pickMeta(key, lang).d)
 }
 
 // ── noscript blokunun interfeys mətnləri ────────────

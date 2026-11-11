@@ -323,7 +323,7 @@ export default {
     { label: 'IslamQA 97844 — Can You Combine Prayers when Sick?', url: 'https://islamqa.info/en/answers/97844' },
     { label: 'IslamQA 180122 — Can a sick person do tayammum, put more than two prayers together…?', url: 'https://islamqa.info/en/answers/180122' },
     { label: 'IslamQA 140773 — If someone is sick and unable to move… what should he do?', url: 'https://islamqa.info/en/answers/140773' },
-    { label: 'Ibn Baz — The purification and prayer of the sick (fatwa 14194)', url: 'https://binbaz.org.sa/fatwas/14194' },
+    { label: 'Ibn Baz — The purification and prayer of the sick (fatwa 14194)', url: 'https://binbaz.org.sa/fatwas/14194/%D8%B5%D9%81%D8%A9-%D8%A7%D9%84%D8%B7%D9%87%D8%A7%D8%B1%D8%A9-%D9%88%D8%B5%D9%84%D8%A7%D8%A9-%D8%A7%D9%84%D9%85%D8%B1%D9%8A%D8%B6' },
     { label: 'IslamQA 69796 — How to Do Wudu with a Bandage', url: 'https://islamqa.info/en/answers/69796' },
     { label: 'IslamQA 10352 — Prayer of one who becomes unconscious', url: 'https://islamqa.info/en/answers/10352' },
     { label: 'IslamQA 12425 — Coma in Ramadan', url: 'https://islamqa.info/en/answers/12425' },

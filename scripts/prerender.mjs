@@ -34,8 +34,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import zlib from 'node:zlib'
 
-import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor, detailParams, langsFor, uiLang, dirOf } from '../src/seo/routes.js'
-import { titleFor, descFor, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
+import { SITE, LANGS, LOCALES, DEFAULT_LANG, PAGES, INDEXABLE, DETAILS, pathFor, detailParams, langsFor, seoLangsFor, canonicalLang, uiLang, dirOf } from '../src/seo/routes.js'
+import { titleFor, descFor, fitDesc, shortName, UI, ogImageFor, OG_ALT } from '../src/seo/meta.js'
 import { brandName, siteJsonLd } from '../src/config/brand.js'
 import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detail.js'
 import { staticBodyFor, staticPreloadFor, hasQuranData } from './seo-body.mjs'
@@ -103,17 +103,18 @@ function breadcrumbFor(key, lang, title) {
 
 /** Səhifənin title/description-u (detal səhifəsində — src/seo/detail.js). */
 function textsFor(key, lang, param) {
-  if (param != null) return { title: titleForDetail(key, lang, param), desc: detailMeta(key, lang, param).d }
+  if (param != null) return { title: titleForDetail(key, lang, param), desc: fitDesc(detailMeta(key, lang, param).d) }
   return { title: titleFor(key, lang), desc: descFor(key, lang) }
 }
 
 /** Bir səhifə + dil (+ detal parametri) üçün <head> parçası. */
 function headFor(key, lang, param = null) {
   const p = param ?? undefined
-  const canonical = SITE + pathFor(key, lang, p)
+  // Əlavə dildə əsas-məzmunlu detal (dərs, lüğət, …) — kanonik ingilis səhifəsidir (routes.js → canonicalLang)
+  const canonical = SITE + pathFor(key, canonicalLang(key, lang, param), p)
   const alts = [
-    // Səhifənin mövcud olduğu bütün dillər (Quran — 25 dil; src/seo/langs.js)
-    ...langsFor(key).map(l => `    <link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}" data-seo="alt" />`),
+    // Səhifənin SEO dilləri (Quran — bütün dillər; dərs/lüğət detalı — 5 əsas dil; src/seo/routes.js)
+    ...seoLangsFor(key, param).map(l => `    <link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}" data-seo="alt" />`),
     `    <link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, DEFAULT_LANG, p)}" data-seo="alt" />`,
   ].join('\n')
 
@@ -421,7 +422,7 @@ const DETAIL_SITEMAP = {
 function urlEntry(key, lang, param, today, changefreq, priority) {
   const p = param ?? undefined
   const alts = [
-    ...langsFor(key).map(l => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}"/>`),
+    ...seoLangsFor(key, param).map(l => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}"/>`),
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, DEFAULT_LANG, p)}"/>`,
   ].join('\n')
   return `  <url>\n` +
@@ -481,7 +482,8 @@ function buildSitemap() {
     if (!cfg || DETAILS[key].noindex) continue
     const urls = []
     for (const param of detailParams(key)) {
-      for (const lang of langsFor(key)) urls.push(urlEntry(key, lang, param, today, cfg.changefreq, cfg.priority))
+      // Sitemap-a yalnız kanonik variantlar (əlavə dildəki dərs/lüğət detalı — ingilis səhifəsinin surəti)
+      for (const lang of seoLangsFor(key, param)) urls.push(urlEntry(key, lang, param, today, cfg.changefreq, cfg.priority))
     }
     files.push(...writeUrlsetChunks(cfg.file, urls))
     total += urls.length

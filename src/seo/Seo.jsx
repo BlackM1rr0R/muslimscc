@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { SITE, LOCALES, DEFAULT_LANG, DETAILS, urlFor, pathFor, langsFor, uiLang } from './routes'
-import { titleFor, descFor, ogImageFor, OG_ALT } from './meta'
+import { SITE, LOCALES, DEFAULT_LANG, DETAILS, urlFor, pathFor, langsFor, seoLangsFor, canonicalLang, uiLang } from './routes'
+import { titleFor, descFor, fitDesc, ogImageFor, OG_ALT } from './meta'
 import { brandName, siteJsonLd } from '../config/brand'
 import { useLang } from '../contexts/LangContext'
 
@@ -104,8 +104,8 @@ export default function Seo({ page, lang, param = null }) {
 function applySeo(page, lang, param, detail) {
   const meta = detail ? detail.detailMeta(page, lang, param) : null
   const title = meta ? detail.titleForDetail(page, lang, param) : titleFor(page, lang)
-  const desc = meta ? meta.d : descFor(page, lang)
-  const canonical = urlFor(page, lang, DETAILS[page]?.noindex ? undefined : (param ?? undefined))
+  const desc = meta ? fitDesc(meta.d) : descFor(page, lang)
+  const canonical = urlFor(page, canonicalLang(page, lang, param), DETAILS[page]?.noindex ? undefined : (param ?? undefined))
   // Tanınmayan ünvan (404): indekslənmir, canonical/hreflang/sxem yazılmır —
   // əks halda Google onu ana səhifənin dublikatı ("soft-404") sayardı
   const isNotFound = page === 'notfound'
@@ -139,7 +139,7 @@ function applySeo(page, lang, param, detail) {
   // canonical + hreflang — hər dil variantı bir-birini göstərir (Quran — 25 dil)
   setLinks('canonical', isNotFound ? [] : [{ rel: 'canonical', href: canonical }])
   setLinks('alt', isNotFound ? [] : [
-    ...langsFor(page).map(l => ({
+    ...seoLangsFor(page, param).map(l => ({
       rel: 'alternate',
       hreflang: l,
       href: SITE + pathFor(page, l, param ?? undefined),
