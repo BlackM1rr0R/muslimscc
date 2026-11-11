@@ -12,7 +12,7 @@
 // • Dəstəmaz: 8 addım, eyni üslubda təsvir (WuduPose) və dəlillər.
 // Məzmun və mənhəc qaydaları: src/data/prayerGuide.js.
 // ═══════════════════════════════════════════════════════
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
@@ -37,6 +37,9 @@ import '../styles/ToolsMotion.css'
 import { pickUi } from '../utils/uiText'
 import AnimatedTabs from '../motion/AnimatedTabs'
 import PresenceSwap from '../motion/PresenceSwap'
+import DeferRender from '../components/DeferRender'
+// v6.2: səhv səcdəsi bələdçisi (bölməyə yaxınlaşanda yüklənir)
+const SahwGuide = lazy(() => import('../components/prayer/SahwGuide'))
 
 // ── Surənin tam mənası (Fatihə, İxlas) ──
 // Ayələrin mənası yaddaşdan yazılmır: alquran.cloud-dan (QuranPage ilə eyni
@@ -597,6 +600,12 @@ export default function PrayerGuidePage({ setPage }) {
 
       <RakatOverview lang={lang} />
       <Pillars lang={lang} />
+      {/* v6.2: səhv səcdəsi — qərar ağacı, hər addım Buxari/Müslim hədisi ilə */}
+      <DeferRender height="520px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 520 }} />}>
+          <SahwGuide lang={lang} />
+        </Suspense>
+      </DeferRender>
       {/* Əsas istinadlar və səs lisenziyaları */}
       <aside className="ui-container pg-container pg-sources" aria-label={t.sources}>
         <div className="pg-sources-col">

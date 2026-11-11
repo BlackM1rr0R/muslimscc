@@ -1,0 +1,29 @@
+/* Ayə tapmacası (components/hifz/AyahPuzzle.jsx) */
+.apz { display: grid; gap: 12px; margin-block: 8px 4px; }
+.apz__line { margin: 0; min-height: 3.4em; padding: 14px 16px; border-radius: 18px; background: var(--surface-2, rgba(127, 127, 127, .08)); border: 1px dashed var(--border);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: clamp(1.5rem, 4.4vw, 2rem); line-height: 1.9; }
+.apz__w { color: var(--text); }
+.apz__slot { display: inline-block; width: 2.4em; height: .9em; border-bottom: 2px solid var(--border); opacity: .7; }
+.apz__slot.is-next { border-bottom-color: var(--accent, #c79a3a); opacity: 1; }
+.apz__num { color: var(--accent, #c79a3a); font-size: .8em; }
+.apz__meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .86rem; color: var(--text-muted); align-items: center; }
+.apz__mis { margin-inline-start: auto; }
+.apz__pool { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.apz__chip { min-height: 52px; padding: 4px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface, #fff); color: var(--text);
+  font-size: clamp(1.35rem, 4vw, 1.7rem); line-height: 1.6; cursor: pointer; box-shadow: var(--shadow-1); transition: transform .18s ease, opacity .25s ease; }
+.apz__chip:hover:not(:disabled) { transform: translateY(-2px); }
+.apz__chip.is-used { opacity: 0; pointer-events: none; transform: scale(.6); }
+.apz__chip.is-shake { border-color: #e0525e; color: #e0525e; }
+.apz__msg { margin: 0; min-height: 1.3em; font-size: .86rem; color: #e0525e; text-align: center; }
+.apz__done { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 12px 14px; border-radius: 16px; background: rgba(53, 194, 122, .12); }
+.apz__done b { display: inline-flex; align-items: center; gap: 6px; color: #1f9d63; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .apz__w.is-in { animation: apz-in .35s cubic-bezier(.3, 1.5, .5, 1) both; }
+  html:not(.a11y-reduce-motion) .apz__chip.is-shake.s0 { animation: apz-shake0 .4s ease both; }
+  html:not(.a11y-reduce-motion) .apz__chip.is-shake.s1 { animation: apz-shake1 .4s ease both; }
+}
+@keyframes apz-in { from { transform: translateY(18px) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes apz-shake0 { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+@keyframes apz-shake1 { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+/* Hifz qiymət düyməsi — tapmacanın tövsiyəsi */
+.hifz-grade__btn.is-suggested { outline: 3px solid var(--accent, #c79a3a); outline-offset: 2px; }

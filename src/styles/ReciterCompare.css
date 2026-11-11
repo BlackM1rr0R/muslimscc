@@ -1,0 +1,26 @@
+/* Qiraətçiləri müqayisə (components/quran/ReciterCompare.jsx) */
+.rcm { display: grid; gap: 14px; padding: clamp(16px, 3vw, 28px); margin-block: 20px; }
+.rcm__head { display: grid; gap: 6px; }
+.rcm__pick { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.rcm__pick label { display: grid; gap: 4px; font-size: .8rem; font-weight: 800; color: var(--text-muted); }
+.rcm__pick select, .rcm__pick input { min-height: 44px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface, #fff); color: var(--text); padding: 0 10px; font: inherit; font-size: .95rem; }
+.rcm__pick select { max-width: 240px; }
+.rcm__pick input { width: 90px; }
+.rcm__words { display: flex; flex-wrap: wrap; gap: 6px 8px; justify-content: center; padding: 10px; border-radius: 18px; background: var(--surface-2, rgba(127, 127, 127, .08)); }
+.rcm__w { border: 1px solid transparent; background: transparent; color: var(--text); border-radius: 12px; padding: 2px 10px; min-height: 44px; font-size: clamp(1.4rem, 3.6vw, 1.8rem); line-height: 1.7; cursor: pointer; transition: background .2s, color .2s; }
+.rcm__w:hover { border-color: var(--border); }
+.rcm__w.is-now { color: var(--accent, #c79a3a); }
+.rcm__w.is-sel { background: var(--accent, #c79a3a); color: #fff; }
+.rcm__rows { margin: 0; padding: 12px; list-style: none; display: grid; gap: 10px; border-radius: 20px; background: #0b1530; color: #e8eefc; }
+.rcm__row { display: grid; gap: 6px; }
+.rcm__who { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: .9rem; }
+.rcm__play { color: var(--c); border-color: rgba(255, 255, 255, .2); background: rgba(255, 255, 255, .05); }
+.rcm__name { font-weight: 800; color: var(--c); }
+.rcm__total { opacity: .7; font-size: .82rem; }
+.rcm__wd { margin-inline-start: auto; font-weight: 800; padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, .08); }
+.rcm__wd.is-max { background: var(--c); color: #0b1530; }
+.rcm__lane { display: block; width: 100%; height: 64px; border-radius: 12px; background: rgba(255, 255, 255, .03); }
+.rcm__row.is-play .rcm__lane { box-shadow: 0 0 0 1px var(--c); }
+.rcm__miss, .rcm__err { font-size: .84rem; color: #f59ab0; margin: 0; }
+.rcm__hint, .rcm__loading { margin: 0; font-size: .86rem; color: var(--text-muted); display: flex; gap: 8px; align-items: center; }
+.rcm__src { margin: 0; font-size: .8rem; color: var(--text-muted); }

@@ -22,6 +22,9 @@ import '../styles/HifzPage.css'
 import DeferRender from '../components/DeferRender'
 // v5.9: əkiz ayələr (mutəşabihat) — bölməyə yaxınlaşanda
 const TwinAyahs = lazy(() => import('../components/hifz/TwinAyahs'))
+// v6.2: məşq kartında "Tapmaca" — qarışıq sözləri sırası ilə düzmək (toxunuşla, nitq tanıma yoxdur)
+const AyahPuzzle = lazy(() => import('../components/hifz/AyahPuzzle'))
+const PUZZLE_LABEL = { az: 'Tapmaca', en: 'Puzzle', ru: 'Головоломка', ar: 'ترتيب الكلمات', tr: 'Bulmaca' }
 import { pickUi } from '../utils/uiText'
 
 // 5 dilli sahə → cari dil (funksiya da ola bilər — rəqəmli mətnlər)
@@ -358,6 +361,8 @@ function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, on
   const { verse, loading, error } = useAyah(item.s, item.a, attempt)
   const words = useMemo(() => (verse ? splitAyahWords(verse.ar) : []), [verse])
   const caps = useCapabilities()
+  const [suggest, setSuggest] = useState(null)   // tapmacanın təklif etdiyi qiymət
+  useEffect(() => { setSuggest(null) }, [view, verse])
 
   // Gizlət/aç: açılmış söz indeksləri
   const [shown, setShown] = useState(() => new Set())
@@ -425,8 +430,8 @@ function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, on
       </header>
 
       <div className="hifz-practice__views" role="group" aria-label={sm.view}>
-        {[['full', sm.viewFull], ['first', sm.viewFirst], ['blur', sm.viewBlur]].map(([v, label]) => (
-          <button type="button" key={v} className="ui-chip" aria-pressed={view === v} onClick={() => setView(v)}>{label}</button>
+        {[['full', sm.viewFull], ['first', sm.viewFirst], ['blur', sm.viewBlur], ['puzzle', pickUi(PUZZLE_LABEL, lang)]].map(([v, label]) => (
+          <button type="button" key={v} className="ui-chip" aria-pressed={view === v} onClick={() => setView(v)} data-testid={`hifz-view-${v}`}>{label}</button>
         ))}
       </div>
 
@@ -438,7 +443,12 @@ function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, on
         </div>
       )}
 
-      {verse && (
+      {verse && view === 'puzzle' && (
+        <Suspense fallback={<div style={{ minHeight: 220 }} />}>
+          <AyahPuzzle words={words} ayah={item.a} lang={lang} onDone={({ grade }) => setSuggest(grade)} />
+        </Suspense>
+      )}
+      {verse && view !== 'puzzle' && (
         <>
           <p className="hifz-ayah ui-arabic" lang="ar" dir="rtl">
             {words.map((w, i) => {
@@ -490,7 +500,7 @@ function PracticeCard({ item, srsItem, kind, pos, total, view, setView, lang, on
         <span className="hifz-grade__q">{sm.gradeQ}</span>
         <div className="hifz-grade__btns">
           {GRADES.map(g => (
-            <button type="button" key={g} className={`ui-btn ui-btn--secondary hifz-grade__btn is-${g}`} disabled={!verse}
+            <button type="button" key={g} className={`ui-btn ui-btn--secondary hifz-grade__btn is-${g}${suggest === g ? ' is-suggested' : ''}`} disabled={!verse}
               onClick={() => onGrade(g)}>
               <span>{sm[g]}</span>
               <span className="hifz-grade__when">{dayText(preview[g])}</span>

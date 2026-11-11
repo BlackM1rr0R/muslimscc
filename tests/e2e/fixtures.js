@@ -121,6 +121,9 @@ export const test = base.extend({
       : route.fulfill({ json: { day: '2026-01-01', today: { salawat: 0, dhikr: 0, juz: 0 }, total: { salawat: 0, dhikr: 0, juz: 0 } } })))
     // Köhnə Firebase ünvanları (köhnə SW keşi və s.) — bağlıdır
     await page.route(/firestore\.googleapis\.com|firebaseinstallations|fcmregistrations|identitytoolkit/, route => route.abort())
+    // v6.2: Quran.com ayə sözləri / qiraət vaxtları (ReciterCompare, /quran) — canlı şəbəkəyə getməsin;
+    // headless brauzerə API 404 qaytarır → konsol xətası. Spec-lər öz route-ları ilə əvəz edir.
+    await page.route(/api\.quran\.com\/api\/v4\/(recitations\/\d+\/by_ayah|verses\/by_key)\//, route => route.fulfill({ json: {} }))
     // Səs faylları və xarici şriftlər testdə lazım deyil
     await page.route(/\.(mp3|ogg|wav)(\?|$)/, route => route.abort())
     // v3.2: yeni xarici mənbələr (HadeethEnc, QuranEnc, hadith-api) — CI-da canlı şəbəkəyə getməsin.

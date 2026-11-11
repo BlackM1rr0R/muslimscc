@@ -1,0 +1,24 @@
+/* Hilalın görünmə xəritəsi (components/CrescentVisibilityMap.jsx) */
+.cvm { display: grid; gap: 14px; padding: clamp(16px, 3vw, 28px); margin-block: 24px; }
+.cvm__head { display: grid; gap: 6px; }
+.cvm__conj { margin: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: .92rem; color: var(--text-muted); }
+.cvm__conj b { color: var(--text); }
+.cvm__days { display: flex; flex-wrap: wrap; gap: 8px; }
+.cvm__map { position: relative; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-3); background: #0b1530; }
+.cvm__cv { display: block; width: 100%; height: auto; cursor: crosshair; touch-action: manipulation; }
+.cvm__calc { position: absolute; inset: 0; display: grid; place-content: center; grid-auto-flow: column; gap: 8px; color: #e8eefc; font-weight: 700; }
+.cvm__legend { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .84rem; color: var(--text-muted); }
+.cvm__legend i, .cvm__zone i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-inline-end: 4px; }
+.cvm__legend i.is-none { background: #1b2a4a !important; outline: 1px solid var(--border); }
+.cvm__out { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.cvm__res { display: grid; gap: 6px; padding: 14px; border-radius: 16px; background: var(--surface-2, rgba(127, 127, 127, .08)); }
+.cvm__res-l { font-size: .8rem; font-weight: 800; color: var(--text-muted); }
+.cvm__zone { font-size: 1.05rem; }
+.cvm__zone.is-D i { background: #1b2a4a !important; outline: 1px solid var(--border); }
+.cvm__nums { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font-size: .88rem; }
+.cvm__nums li { display: flex; gap: 6px; flex-wrap: wrap; }
+.cvm__nums span { color: var(--text-muted); }
+.cvm__nums small { color: var(--text-muted); }
+.cvm__why { font-size: .86rem; color: var(--text-muted); }
+.cvm__note { margin: 0; font-size: .82rem; color: var(--text-muted); display: block; }
+.cvm__src { display: block; margin-top: 4px; opacity: .8; }

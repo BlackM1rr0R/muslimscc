@@ -144,6 +144,8 @@ test('qeyd: rəng + mətn → kart vurğulanır → «Qeydlərim» siyahısında
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('quran_notes_v1')))
   expect(saved['1:2']).toMatchObject({ c: 'green', t: 'Həmd yalnız Allaha' })
 
+  // /quran-dakı qiraət müqayisəsi (v6.2) 1:7-ni gətirir — beforeEach-dəki 404 konsola düşməsin
+  await page.route(/api\.quran\.com\/api\/v4\/recitations\/\d+\/by_ayah\/1:7/, route => route.fulfill({ json: {} }))
   await page.goto('/quran')
   await settle(page)
   await page.getByRole('button', { name: /Saxlanılanlar/ }).click()

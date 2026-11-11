@@ -549,6 +549,8 @@ const SAJDAH_BADGE = { az: 'Səcdə', en: 'Sajdah', ru: 'Саджда', ar: 'س�
 // v5.8: 3D Quran qalaktikası (three.js — yalnız bölməyə yaxınlaşanda)
 const QuranGalaxy = lazy(() => import('../components/quran/QuranGalaxy'))
 const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
+// v6.2: eyni ayə 5 qarinin səsində — söz-söz müqayisə (Quran.com söz vaxtları)
+const ReciterCompare = lazy(() => import('../components/quran/ReciterCompare'))
 const QuranNumbers = lazy(() => import('../components/numbers/QuranNumbers'))
 // v7: sözə uzun basma menyusu (Məna · Kök · Dinlə · Qeyd · Paylaş) — ilk uzun basmada yüklənir
 const loadWordMenu = () => import('../components/quran/WordMenu')
@@ -2019,6 +2021,11 @@ export default function QuranPage() {
           <DeferRender height="560px" idle={false} rootMargin="300px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 520 }} />}>
               <QuranGalaxy lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} onOpen={n => openSurah(n)} />
+            </Suspense>
+          </DeferRender>
+          <DeferRender height="640px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 600 }} />}>
+              <ReciterCompare lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} />
             </Suspense>
           </DeferRender>
           <OfflinePack lang={lang} surahUrl={offlineSurahUrl} />

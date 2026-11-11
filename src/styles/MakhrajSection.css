@@ -1,0 +1,53 @@
+/* Məxrəc kəsiyi (components/arabic/MakhrajSection.jsx) */
+.mkh { display: grid; gap: 14px; padding: clamp(16px, 3vw, 28px); margin-bottom: 22px; }
+.mkh__head { display: grid; gap: 6px; }
+.mkh__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(260px, 1fr); gap: clamp(14px, 3vw, 28px); align-items: start; }
+@media (max-width: 760px) { .mkh__grid { grid-template-columns: 1fr; } }
+.mkh__stage { position: relative; aspect-ratio: 240 / 250; border-radius: 24px; overflow: hidden; perspective: 900px;
+  background: radial-gradient(120% 90% at 70% 30%, #1d2c4f 0%, #0b1530 70%); box-shadow: var(--shadow-3); touch-action: pan-y; }
+.mkh__rig { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .25s ease-out; }
+.mkh__layer { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mkh__layer--back { transform: translateZ(-40px) scale(1.045); }
+.mkh__layer--front { transform: translateZ(36px) scale(.96); }
+.mkh__skin { fill: #22355c; stroke: #3b5288; stroke-width: 2; }
+.mkh__cavity { fill: #0f1b36; stroke: #3b5288; stroke-width: 1.2; }
+.mkh__wall { fill: none; stroke: #6c80b8; stroke-width: 3; stroke-linecap: round; }
+.mkh__mouth { fill: #0f1b36; }
+.mkh__pharynx { fill: #0f1b36; }
+.mkh__palate { fill: none; stroke: #e9d7a8; stroke-width: 6; stroke-linecap: round; }
+.mkh__velum { fill: none; stroke: #d39a9a; stroke-width: 7; stroke-linecap: round; }
+.mkh__tongue { fill: #d9737f; stroke: #f0a3ab; stroke-width: 1.5; }
+.mkh__epi { fill: none; stroke: #d39a9a; stroke-width: 4; stroke-linecap: round; }
+.mkh__larynx { stroke: #f3e6b5; stroke-width: 3; stroke-linecap: round; }
+.mkh__tooth { fill: #f6f1e3; stroke: #c9bfa6; stroke-width: 1; }
+.mkh__lip { fill: #c46a6f; stroke: #e5959a; stroke-width: 1.2; }
+.mkh__air, .mkh__airN { fill: none; stroke: #8fd3ff; stroke-width: 2.5; stroke-dasharray: 3 9; stroke-linecap: round; opacity: .55; }
+.mkh__airN { opacity: 0; transition: opacity .3s; }
+.mkh__airN.is-on { opacity: .75; }
+.mkh__air.is-held { opacity: .2; }
+.mkh__halo { fill: rgba(255, 214, 102, .22); }
+.mkh__dot { fill: #ffd666; stroke: #fff6d0; stroke-width: 2; filter: drop-shadow(0 0 8px rgba(255, 214, 102, .95)); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .mkh__air, html:not(.a11y-reduce-motion) .mkh__airN { animation: mkh-flow 1.1s linear 5; }
+  html:not(.a11y-reduce-motion) .mkh__halo { animation: mkh-pulse 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  html:not(.a11y-reduce-motion) .mkh__glow { animation: mkh-in .45s cubic-bezier(.3, 1.6, .5, 1) both; transform-box: fill-box; transform-origin: center; }
+}
+@keyframes mkh-flow { to { stroke-dashoffset: -24; } }
+@keyframes mkh-pulse { 50% { transform: scale(1.35); opacity: .5; } }
+@keyframes mkh-in { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.mkh__panel { display: grid; gap: 12px; }
+.mkh__now { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.mkh__big { font-size: 64px; line-height: 1; color: var(--accent, #c79a3a); min-width: 64px; text-align: center; }
+.mkh__name { display: block; font-size: 1.15rem; }
+.mkh__area { font-size: .86rem; font-weight: 700; color: var(--text-muted); }
+.mkh__desc { margin: 0; line-height: 1.6; }
+.mkh__nasal { margin: 0; font-size: .86rem; color: var(--text-muted); }
+.mkh__same { margin: 0; font-size: 1.4rem; color: var(--text-muted); }
+.mkh__letters { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.mkh__l { min-height: 44px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface, transparent); color: var(--text); font-family: var(--font-arabic, 'Amiri', serif); font-size: 1.45rem; cursor: pointer; border-bottom-width: 3px; }
+.mkh__l.is-halq { border-bottom-color: #8fb8ff; }
+.mkh__l.is-lisan { border-bottom-color: #d9737f; }
+.mkh__l.is-shafatan { border-bottom-color: #e5959a; }
+.mkh__l.is-jawf { border-bottom-color: #e9d7a8; }
+.mkh__l[aria-pressed="true"] { background: var(--accent, #c79a3a); color: #fff; border-color: transparent; }
+.mkh__note { margin: 0; font-size: .82rem; color: var(--text-muted); }

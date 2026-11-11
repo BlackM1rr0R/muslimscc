@@ -1,0 +1,33 @@
+/* Səhv səcdəsi bələdçisi (components/prayer/SahwGuide.jsx) */
+.shw-wrap { margin-block: 28px; }
+.shw { display: grid; gap: 14px; padding: clamp(18px, 3vw, 30px); }
+.shw__head { display: grid; gap: 6px; }
+.shw__trail { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.shw__trail li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: var(--surface-2, rgba(127, 127, 127, .08)); font-size: .84rem; color: var(--text-muted); }
+.shw__stage { display: grid; gap: 12px; }
+.shw__q { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.shw__opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.shw__opt { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: start; min-height: 64px; padding: 12px 16px; border-radius: 18px;
+  border: 1px solid var(--border); background: var(--surface, #fff); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; box-shadow: var(--shadow-1); transition: transform .2s ease, border-color .2s ease; }
+.shw__opt:hover { transform: translateY(-2px); border-color: var(--accent, #c79a3a); }
+.shw__res { display: grid; gap: 12px; }
+.shw__when { justify-self: start; padding: 6px 14px; border-radius: 999px; font-weight: 800; font-size: .86rem; letter-spacing: .02em; }
+.shw__when.is-before { background: rgba(53, 194, 122, .14); color: #1f9d63; }
+.shw__when.is-after { background: rgba(199, 154, 58, .16); color: #9a7220; }
+.shw__steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.shw__steps li { display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: start; line-height: 1.55; }
+.shw__n { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent, #c79a3a); color: #fff; font-weight: 800; }
+.shw__refs { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; font-size: .84rem; color: var(--text-muted); }
+.shw__ref { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--text); text-decoration: none; font-weight: 700; }
+.shw__ref:hover { border-color: var(--accent, #c79a3a); }
+.shw__how { border-radius: 14px; padding: 10px 14px; background: var(--surface-2, rgba(127, 127, 127, .08)); }
+.shw__how summary { cursor: pointer; font-weight: 800; }
+.shw__how p { margin: 8px 0; line-height: 1.55; }
+.shw__nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.shw__flip { transform: scaleX(-1); }
+html[dir="rtl"] .shw__flip { transform: none; }
+.shw__note { margin: 0; font-size: .84rem; color: var(--text-muted); line-height: 1.5; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .shw__opt, html:not(.a11y-reduce-motion) .shw__steps li { animation: shw-in .4s cubic-bezier(.3, 1.3, .5, 1) both; animation-delay: calc(var(--i) * 70ms); }
+}
+@keyframes shw-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }

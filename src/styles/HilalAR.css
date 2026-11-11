@@ -15,3 +15,17 @@
   html:not(.a11y-motion-user) .hlr__ring { animation: hlr-spin 8s linear infinite; }
 }
 @keyframes hlr-spin { to { transform: rotate(360deg); } }
+/* v6.2 — Quranın səması (mode="sky") */
+.hlr__bodies { position: absolute; z-index: 3; top: 64px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; padding: 5px; border-radius: 999px; background: rgba(6, 12, 28, .62); max-width: calc(100vw - 24px); overflow-x: auto; }
+.hlr__body { border: 0; border-radius: 999px; padding: 8px 12px; min-height: 40px; background: transparent; color: #f3e6b5; font: inherit; font-weight: 700; font-size: 13px; white-space: nowrap; cursor: pointer; }
+.hlr__body span { font-family: var(--font-arabic, 'Amiri', serif); font-size: 16px; margin-inline-end: 4px; }
+.hlr__body[aria-pressed="true"] { background: #f3e6b5; color: #0b1530; }
+.hlr__sun { position: absolute; width: 64px; height: 64px; left: -32px; top: -32px; border-radius: 50%; background: radial-gradient(circle, #fffbe6 0 30%, #ffd36b 52%, rgba(255, 170, 40, 0) 72%); box-shadow: 0 0 46px 12px rgba(255, 196, 80, .55); }
+.hlr__star { position: absolute; width: 34px; height: 34px; left: -17px; top: -17px; background: radial-gradient(circle, #fff 0 14%, rgba(190, 220, 255, .85) 24%, rgba(190, 220, 255, 0) 62%);
+  clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%); filter: drop-shadow(0 0 10px rgba(190, 220, 255, .9)); }
+.hlr__ayahs { display: grid; gap: 8px; max-height: 0; overflow: hidden; opacity: 0; transition: max-height .5s ease, opacity .4s ease; }
+.hlr__ayahs.is-open { max-height: 320px; opacity: 1; }
+.hlr__ayah { margin: 0; display: grid; gap: 2px; text-align: center; }
+.hlr__ayah .ui-arabic { font-size: 22px; line-height: 1.8; color: #fff8dc; text-shadow: 0 2px 12px rgba(0, 0, 0, .7); }
+.hlr__read { color: #6ee7b7; font-size: 13px; font-weight: 700; }
+.hlr__warn { color: #ffd36b; }

@@ -21,6 +21,7 @@ import { CalDayMoon, CalCrescent, CalMoonNote } from '../components/calendar/Cal
 import { MOON_NAMES } from '../components/moonNames'
 import HijriYearWheel from '../components/calendar/HijriYearWheel'
 import PresenceSwap from '../motion/PresenceSwap'
+import DeferRender from '../components/DeferRender'
 
 // ── Gregorian → Hicri çevirmə (Kuwaiti alqoritmi) ──
 // Yalnız ehtiyat üçündür: Umm al-Qura-dan 1–2 gün fərqlənə bilər.
@@ -400,11 +401,15 @@ function MonthsGuide({ lang }) {
 
 // v5.8: kamerada Ayın yeri (telefonda) — yalnız açılanda yüklənir
 const HilalAR = lazy(() => import('../components/HilalAR'))
+// v6.2: hilalın görünmə xəritəsi (Odeh meyarı) — bölməyə yaxınlaşanda
+const CrescentVisibilityMap = lazy(() => import('../components/CrescentVisibilityMap'))
 // lang-ok[Kamera,Kameranı,kamera,kamerada]: az dilinin öz sözüdür (kamera)
 const HL_OBJ = { az: 'Ayı kamerada tap', en: 'Find the moon with the camera', ru: 'Найти луну камерой', ar: 'اعثر على القمر بالكاميرا', tr: 'Ayı kamerayla bul' }
+// v6.2: eyni AR — Quranın adını çəkdiyi göy cisimləri (Ay, Günəş, əş-Şira) və ayələri
+const SKY_OBJ = { az: 'Quranın səması', en: 'The sky of the Quran', ru: 'Небо Корана', ar: 'سماء القرآن', tr: 'Kur’an’ın göğü' }
 
 export function CalendarPage({ setPage }) {
-  const [hilal, setHilal] = useState(false)
+  const [hilal, setHilal] = useState(null)   // null | 'moon' | 'sky'
   const canAR = typeof window !== 'undefined' && !!navigator.mediaDevices?.getUserMedia && window.matchMedia?.('(pointer: coarse)').matches
   const { lang } = useLang()
   const t = pickUi(T, lang)?.calendar || T.az.calendar
@@ -714,11 +719,16 @@ export function CalendarPage({ setPage }) {
                 </PresenceSwap>
                 <CalCrescent days={monthDays} lang={lang} />
                 {canAR && (
-                  <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm cal-hilal-btn" onClick={() => setHilal(true)} data-testid="hilal-open">
-                    <Icon name="moonStar" className="ui-btn__icon" /> {pickUi(HL_OBJ, lang)}
-                  </button>
+                  <span className="cal-hilal-row">
+                    <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm cal-hilal-btn" onClick={() => setHilal('moon')} data-testid="hilal-open">
+                      <Icon name="moonStar" className="ui-btn__icon" /> {pickUi(HL_OBJ, lang)}
+                    </button>
+                    <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm cal-hilal-btn" onClick={() => setHilal('sky')} data-testid="sky-open">
+                      <Icon name="sparkle" className="ui-btn__icon" /> {pickUi(SKY_OBJ, lang)}
+                    </button>
+                  </span>
                 )}
-                {hilal && <Suspense fallback={null}><HilalAR lang={lang} onClose={() => setHilal(false)} /></Suspense>}
+                {hilal && <Suspense fallback={null}><HilalAR lang={lang} mode={hilal} onClose={() => setHilal(null)} /></Suspense>}
               </div>
             )}
 
@@ -827,6 +837,12 @@ export function CalendarPage({ setPage }) {
           </div>
         </div>
       </section>
+
+      <DeferRender height="760px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 760 }} />}>
+          <CrescentVisibilityMap lang={lang} />
+        </Suspense>
+      </DeferRender>
 
       {/* v3.2: sünnə oruc günləri, oruc qeydi və Ramazan qəzası */}
       <CalSunnahFasts lang={lang} hijriOf={hijriOf} monthNames={hijriMonthNames} />

@@ -1,0 +1,66 @@
+/* Kitab rəfi (components/HadithShelf.jsx) — CSS 3D */
+.hsh { display: grid; gap: 14px; padding: clamp(16px, 3vw, 28px); margin-bottom: 22px; overflow: hidden; }
+.hsh__head { display: grid; gap: 6px; }
+.hsh__room { position: relative; border-radius: 22px; padding: 34px 18px 0; background: radial-gradient(120% 100% at 50% 0%, #3a2a1c 0%, #20160e 75%); box-shadow: inset 0 10px 40px rgba(0, 0, 0, .45); overflow-x: auto; }
+.hsh__shelf { --d: 110px; margin: 0 auto; padding: 0 12px; list-style: none; display: flex; align-items: flex-end; justify-content: flex-start; gap: 5px; width: max-content;
+  perspective: 1100px; perspective-origin: 50% -30%; }
+.hsh__slot { position: relative; width: var(--w); height: var(--h); transform-style: preserve-3d; }
+.hsh__book { position: absolute; inset: 0; padding: 0; border: 0; background: none; cursor: pointer; transform-style: preserve-3d; transition: transform .45s cubic-bezier(.3, 1.3, .5, 1); }
+.hsh__book:hover, .hsh__book:focus-visible { transform: translateZ(22px) translateY(-4px); }
+.hsh__slot.is-out .hsh__book { transform: translateZ(70px) translateY(-14px) rotateY(-24deg); }
+.hsh__book:focus-visible { outline: none; }
+.hsh__book:focus-visible .hsh__spine { box-shadow: 0 0 0 3px #f3e6b5; }
+.hsh__spine, .hsh__top, .hsh__side { position: absolute; display: block; backface-visibility: hidden; }
+.hsh__spine { inset: 0; transform: translateZ(calc(var(--d) / 2)); border-radius: 3px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, .35), rgba(255, 255, 255, .12) 35%, rgba(0, 0, 0, .05) 60%, rgba(0, 0, 0, .4)), var(--c);
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 12px 0 10px; color: #f3e6b5; overflow: hidden; }
+.hsh__band { display: block; width: 100%; height: 6px; border-block: 1.5px solid rgba(243, 230, 181, .75); }
+.hsh__ar { writing-mode: vertical-rl; font-size: clamp(13px, calc(var(--w) * .32), 21px); line-height: 1; white-space: nowrap; max-height: calc(var(--h) - 70px); overflow: hidden; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); }
+.hsh__count { font-size: 10px; font-weight: 800; opacity: .85; writing-mode: vertical-rl; }
+.hsh__top { left: 0; width: var(--w); height: var(--d); top: calc(var(--d) / -2); transform: rotateX(90deg);
+  background: repeating-linear-gradient(90deg, #efe4c8 0 2px, #d9cba6 2px 3px); }
+.hsh__side { top: 0; height: var(--h); width: var(--d); left: calc(var(--w) - var(--d) / 2); transform: rotateY(90deg);
+  background: linear-gradient(90deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, .15)), var(--c); }
+.hsh__plank { height: 22px; margin: 0 -18px; background: linear-gradient(#8a5a33, #5e3b1f 60%, #3d2613); box-shadow: 0 10px 22px rgba(0, 0, 0, .5); position: relative; z-index: 1; }
+.hsh__desk { min-height: 60px; }
+.hsh__pick { margin: 0; color: var(--text-muted); font-size: .9rem; text-align: center; }
+.hsh__open { display: grid; gap: 12px; }
+.hsh__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.hsh__title { font-size: 1.1rem; }
+.hsh__meta { color: var(--text-muted); font-size: .86rem; margin-inline-end: auto; }
+.hsh__book2 { position: relative; display: grid; grid-template-columns: 1fr 1fr; perspective: 1800px; border-radius: 10px; padding: 10px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, .25), rgba(255, 255, 255, .05) 49.5%, rgba(0, 0, 0, .35) 50%, rgba(255, 255, 255, .05) 50.5%, rgba(0, 0, 0, .25)), var(--c); box-shadow: var(--shadow-3); }
+.hsh__page { position: relative; min-height: 330px; padding: 16px 16px 30px; background: linear-gradient(90deg, #fbf5e6, #f4ead2); color: #2b2418; }
+.hsh__page.is-l { border-radius: 6px 0 0 6px; box-shadow: inset -14px 0 18px -14px rgba(0, 0, 0, .35); }
+.hsh__page.is-r { border-radius: 0 6px 6px 0; box-shadow: inset 14px 0 18px -14px rgba(0, 0, 0, .35); }
+.hsh__secs { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.hsh__sec { width: 100%; display: grid; grid-template-columns: 28px 1fr; column-gap: 8px; align-items: baseline; text-align: start; padding: 6px 6px; border: 0; border-radius: 8px; background: none; color: inherit; font: inherit; font-size: .86rem; cursor: pointer; min-height: 40px; }
+.hsh__sec:hover, .hsh__sec:focus-visible { background: rgba(122, 90, 30, .12); }
+.hsh__secn { font-weight: 800; color: #8a6a2a; }
+.hsh__sect { font-weight: 600; line-height: 1.3; }
+.hsh__secr { grid-column: 2; font-size: .74rem; color: #8a7a5e; }
+.hsh__pn { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: .75rem; color: #8a7a5e; }
+.hsh__leaf { position: absolute; top: 10px; bottom: 10px; width: calc(50% - 10px); transform-style: preserve-3d; z-index: 2; }
+.hsh__leaf.is-next { left: 50%; transform-origin: left center; }
+.hsh__leaf.is-prev { left: 10px; transform-origin: right center; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .hsh__leaf.is-next { animation: hsh-next .64s cubic-bezier(.45, .05, .35, 1) both; }
+  html:not(.a11y-reduce-motion) .hsh__leaf.is-prev { animation: hsh-prev .64s cubic-bezier(.45, .05, .35, 1) both; }
+}
+.hsh__face { position: absolute; inset: 0; backface-visibility: hidden; }
+.hsh__face .hsh__page { height: 100%; min-height: 0; }
+.hsh__face.is-back { transform: rotateY(180deg); }
+@keyframes hsh-next { to { transform: rotateY(-180deg); } }
+@keyframes hsh-prev { to { transform: rotateY(180deg); } }
+.hsh__nav { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: .9rem; }
+.hsh__flipx { transform: scaleX(-1); }
+@media (max-width: 640px) {
+  .hsh__book2 { grid-template-columns: 1fr 1fr; padding: 6px; }
+  .hsh__page { min-height: 380px; padding: 10px 8px 28px; }
+  .hsh__sec { grid-template-columns: 1fr; font-size: .78rem; }
+  .hsh__secr { grid-column: 1; }
+  .hsh__leaf { top: 6px; bottom: 6px; width: calc(50% - 6px); }
+  .hsh__leaf.is-prev { left: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { .hsh__book { transition: none; } }
+html.a11y-reduce-motion .hsh__book { transition: none; }

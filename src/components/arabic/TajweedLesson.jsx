@@ -4,10 +4,12 @@
 // qalqalə, mədd. Hər qaydada hərflər + Qurandan nümunə (ayə səsi ilə).
 // ═══════════════════════════════════════════════════════
 
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { QW, TAJWEED } from '../../data/arabicCourse.js'
 import { ui, pick } from './strings.js'
 import { QuranExample } from './parts.jsx'
+// v6.2: məxrəc kəsiyi — ağız/boğaz, 3D qatlar (yalnız dərs açılanda yüklənir)
+const MakhrajSection = lazy(() => import('./MakhrajSection.jsx'))
 
 export default function TajweedLesson({ lang, audio }) {
   const t = ui(lang)
@@ -17,6 +19,9 @@ export default function TajweedLesson({ lang, audio }) {
   return (
     <div className="ac-tajweed-lesson">
       <p className="ui-card ui-card--sunken ac-note ac-text">{t.tajweedLead}</p>
+      <Suspense fallback={<div style={{ minHeight: 560 }} />}>
+        <MakhrajSection lang={lang} audio={audio} />
+      </Suspense>
       <div className="ac-chips ac-chips--scroll" role="group" aria-label={pick(g.title, lang)}>
         {TAJWEED.map(x => (
           <button key={x.id} type="button" className="ui-chip" aria-pressed={group === x.id} onClick={() => setGroup(x.id)}>

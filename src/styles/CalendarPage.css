@@ -777,3 +777,6 @@ button.cal-up__card { cursor: pointer; }
 .cal-moonnote__name { color: var(--text-strong); font-weight: 600; }
 .cal-moonnote__lit { color: var(--text-tertiary); font-size: var(--step--2); }
 .cal-moonnote__bid { color: var(--accent-text); font-size: var(--step--2); font-weight: 600; }
+
+/* v6.2: Hilal AR + Quranın səması düymələri */
+.cal-hilal-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }

@@ -17,6 +17,7 @@ import { SPRING } from '../motion/presets'
 import NumberTicker from '../motion/NumberTicker'
 import HadithBooksChart from '../components/HadithBooksChart'
 import HadithLibraryNumbers from '../components/numbers/HadithLibraryNumbers'
+import HadithShelf from '../components/HadithShelf'
 import { pickUi } from '../utils/uiText'
 
 /* ══════════════════════════════════════════════════════════════════
@@ -509,6 +510,8 @@ export default function HadithLibraryPage() {
                 <h2 className="ui-title ui-title--sm">{L.booksTitle}</h2>
                 <p className="hl-head__lead">{L.booksLead}</p>
               </div>
+              {/* v6.2: 3D kitab rəfi — qalınlıq hədis sayına görə, kitab açılır, bölmələr vərəqlənir */}
+              <HadithShelf books={BOOKS} data={BOOK_DATA} lang={lang} onBook={(k) => go({ book: k })} onSection={(k, sec) => go({ book: k, sec })} />
               <ul className="hl-books">
                 {BOOKS.map(b => {
                   const d = BOOK_DATA[b.key]
