@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, useLayoutEffect, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -18,6 +18,9 @@ import '../styles/ScholarsPage.css'
 import SpotlightCard from '../motion/SpotlightCard'
 import PressedGlide from '../components/pagefx/PressedGlide'
 import { pickUi } from '../utils/uiText'
+import DeferRender from '../components/DeferRender'
+// v5.9: Elm zənciri — kim kimdən öyrənib (bölməyə yaxınlaşanda)
+const ScholarChain = lazy(() => import('../components/ScholarChain'))
 
 // ── v3.2: sıralama, seçilmişlər, təsadüfi alim (5 dil) ──
 const C32 = {
@@ -380,6 +383,13 @@ export default function ScholarsPage() {
           )}
         </div>
       </div>
+
+      <DeferRender height="640px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 640 }} />}>
+          <ScholarChain scholars={SCHOLARS} lang={lang} nameOf={(s) => pick(s.name, lang)} hrefOf={(s) => pathFor('scholars', lang, s.slug)}
+            onOpen={openProfile} eraLabel={(k) => pick(ERA_SHORT[k], lang)} />
+        </Suspense>
+      </DeferRender>
 
       {/* Zaman xətti — hər alimin ömrü bir zolaqda (hicri il), rəng dövrdən */}
       <section id="sc-timeline" className="ui-section ui-section--alt sc-timeline" aria-labelledby="sc-timeline-h">

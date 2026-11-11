@@ -1,0 +1,18 @@
+/* Hədis qalaktikası (components/HadithGalaxy.jsx) */
+.hgx__frame { border-radius: 24px; overflow: hidden; background: radial-gradient(120% 100% at 50% 50%, #1a1f4a 0%, #0b0f2a 55%, #05071a 100%); color: #eef0f7; box-shadow: var(--shadow-3); }
+.hgx__cv { display: block; width: 100%; }
+.hgx__chips { display: flex; gap: 6px; overflow-x: auto; padding: 8px 14px; scrollbar-width: none; }
+.hgx__chips::-webkit-scrollbar { display: none; }
+.hgx__chips button { flex: none; padding: 5px 11px; border-radius: 99px; border: 1px solid hsla(var(--h), 70%, 70%, .4); background: hsla(var(--h), 70%, 50%, .12); color: hsl(var(--h), 80%, 86%); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+.hgx__chips button b { opacity: .7; margin-inline-start: 4px; }
+.hgx__chips button.is-on { background: hsl(var(--h), 80%, 75%); color: #0b0f2a; }
+.hgx__info { padding: 10px 18px 18px; min-height: 2em; color: #d5d8e6; font-size: .9rem; }
+.hgx__hadith { display: grid; gap: 8px; justify-items: start; animation: hgx-in 400ms ease both; }
+.hgx__ar { margin: 0; font-size: 1.3rem; line-height: 1.9; color: #fff; justify-self: stretch; }
+.hgx__tr { margin: 0; line-height: 1.6; color: #eef0f7; }
+.hgx__src { margin: 0; font-size: .8rem; color: #f3d98f; }
+.hgx__grp { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.hgx__grp b { color: #ffd979; font-size: 1rem; }
+@keyframes hgx-in { from { opacity: 0; transform: translate3d(0, 8px, 0); } }
+@media (prefers-reduced-motion: reduce) { .hgx__hadith { animation: none; } }
+html.a11y-reduce-motion .hgx__hadith { animation: none; }

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, useLayoutEffect, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { localizeSource } from '../utils/sourceNames'
@@ -11,6 +11,9 @@ import { SAHABA, slugOf } from '../data/sahaba'
 // Xəttatlıq lövhəsi (ərəbcə ad + رضي الله عنه/عنها) — canlı təsvir yoxdur
 import CalligraphyPlaque from '../components/media/CalligraphyPlaque'
 import LifespanChart from '../components/media/LifespanChart'
+import DeferRender from '../components/DeferRender'
+// v6.0: ailə və yaxınlıq ağacı — yalnız kartlarda yazılan əlaqələr (bölməyə yaxınlaşanda)
+const SahabaTree = lazy(() => import('../components/SahabaTree'))
 import { SahabaNumbers } from '../components/numbers/PeopleNumbers'
 import SpotlightCard from '../motion/SpotlightCard'
 import PressedGlide from '../components/pagefx/PressedGlide'
@@ -553,6 +556,12 @@ export default function SahabePage() {
           )}
         </div>
       </div>
+
+      <DeferRender height="760px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 760 }} />}>
+          <SahabaTree sahaba={SAHABA} lang={lang} nameOf={(s) => pickUi(s.name, lang, 'en')} hrefOf={(s) => pathFor('sahaba', lang, slugOf(s))} onOpen={openProfile} />
+        </Suspense>
+      </DeferRender>
 
       {/* Vəfat illəri — nöqtə qrafiki (hicri il), fonda raşid xəlifələr dövrü */}
       <section id="sp-timeline" className="ui-section ui-section--alt sp-timeline" aria-labelledby="sp-timeline-h">

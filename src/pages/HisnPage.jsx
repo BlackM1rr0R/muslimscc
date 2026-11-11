@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useLocation } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
+import DuaListen from '../components/DuaListen'
 import ReportErrorButton from '../components/ReportErrorButton'
 import { pathFor } from '../seo/routes'
 import ReaderDialog from '../components/reader/ReaderDialog'
@@ -183,7 +184,7 @@ function Counter({ total, L }) {
   )
 }
 
-function Item({ it, n, L, lang, isAr }) {
+function Item({ it, n, L, lang, isAr, akey }) {
   const [copied, setCopied] = useState(false)
   const t = useRef(null)
   useEffect(() => () => clearTimeout(t.current), [])
@@ -209,6 +210,7 @@ function Item({ it, n, L, lang, isAr }) {
       <p className="hs-item__ar ui-arabic" lang="ar" dir="rtl">{it.ar}</p>
       {!isAr && it.text && <p className="hs-item__text">{it.text}</p>}
       <div className="hs-item__foot">
+        <DuaListen akey={akey} lang={lang} />
         {it.repeat > 1 && <Counter key={`${lang}-${it.repeat}`} total={it.repeat} L={L} />}
         {it.src && <p className="hs-item__src"><span>{L.source}:</span> <cite dir="auto">{it.src}</cite></p>}
       </div>
@@ -603,7 +605,7 @@ export default function HisnPage({ setPage }) {
               {!isAr && <span className="hs-chapter__ar ui-arabic" lang="ar" dir="rtl">{chap.titleAr}</span>}
             </h2>
             <div className="hs-dlg__items">
-              {chap.items.map((it, i) => <Item key={`${chap.id}-${i}`} it={it} n={it.n || (startNum.get(chap.id) || 0) + i + 1} L={L} lang={lang} isAr={isAr} />)}
+              {chap.items.map((it, i) => <Item key={`${chap.id}-${i}`} akey={`${chap.id}:${i}`} it={it} n={it.n || (startNum.get(chap.id) || 0) + i + 1} L={L} lang={lang} isAr={isAr} />)}
             </div>
             <div className="hs-dlg__actions">
               <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={copyChapter}>

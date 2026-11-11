@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback, memo, lazy, Suspense } from 'react'
 import ReportErrorButton from '../components/ReportErrorButton'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
@@ -30,6 +30,9 @@ import NumberTicker from '../motion/NumberTicker'
 import { pickLang } from '../utils/pickLang'
 import { pickUi } from '../utils/uiText'
 import { gradeGroup, gradeOf } from '../utils/hadithGrade'
+import DeferRender from '../components/DeferRender'
+// v6.0: Hədis qalaktikası — hər hədis bir ulduz, mövzular bürc (bölməyə yaxınlaşanda)
+const HadithGalaxy = lazy(() => import('../components/HadithGalaxy'))
 
 const CATS_AZ = ['Hamısı','İman','Əxlaq','İbadət','Namaz','Quran','Elm','Oruc','Zəkat','Zikr','Sədəqə','Səbr','Dünya','Axirət','Salavat','Müsafirlik']
 const CATS_EN = ['All','Faith','Character','Worship','Prayer','Quran','Knowledge','Fasting','Zakat','Dhikr','Charity','Patience','World','Afterlife','Salawat','Travel']
@@ -675,6 +678,13 @@ export default function HadithPage() {
       </header>
 
       <HadithAbout u={u} lang={lang} list={staticList} />
+
+      <DeferRender height="700px" idle={false} rootMargin="300px 0px">
+        <Suspense fallback={<div style={{ minHeight: 700 }} />}>
+          <HadithGalaxy list={staticList} cats={cats} catsEn={CATS_EN} lang={lang} sourceOf={(s) => localizeSource(s, lang)}
+            onPickCat={(i) => { setCatIdx(i); setShowFavs(false); requestAnimationFrame(() => barRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })) }} />
+        </Suspense>
+      </DeferRender>
 
       <div className="hadith-page ui-section ui-section--tight">
         <div className="ui-container">

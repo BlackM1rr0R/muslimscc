@@ -8,6 +8,7 @@ import { localizeSource } from '../utils/sourceNames'
 import { normArabic, normText } from '../utils/uniqueHadiths'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
+import DuaListen from '../components/DuaListen'
 import MoodDuas from '../components/MoodDuas'
 import DuaDeck from '../components/DuaDeck'
 import Breadcrumb from '../components/Breadcrumb'
@@ -598,6 +599,8 @@ export default function DuasPage({ setPage }) {
                     {dua.translit && <p className="dua-translit" dir="ltr">{dua.translit}</p>}
                     {/* Tərcümə — ərəbcədə mətn elə ərəb mətninin özüdür, təkrarlanmır */}
                     {lang !== 'ar' && dua[lang] && <p className="dua-meaning">{dua[lang]}</p>}
+                    {/* v6.0: ərəbcə səs (hisnmuslim.com) — yalnız saytın öz dualarında */}
+                    {!dua._custom && <DuaListen akey={`d:${dua.id}`} lang={lang} />}
                     {/* Mənbə */}
                     {dua.source && (
                       <p className="dua-source">

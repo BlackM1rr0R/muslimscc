@@ -1,0 +1,27 @@
+/* Elm zənciri (components/ScholarChain.jsx) */
+.sch__frame { border-radius: 24px; overflow: hidden; background: radial-gradient(120% 100% at 50% 0%, #1b2d5c 0%, #0a1430 55%, #070d20 100%); color: #f3efe2; box-shadow: var(--shadow-3); }
+.sch__scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+.sch__svg { display: block; max-width: none; }
+@media (min-width: 1200px) { .sch__svg { width: 100%; height: auto; } }
+.sch__band rect { fill: rgba(255, 255, 255, .035); stroke: rgba(255, 255, 255, .06); }
+.sch__bandl { fill: #e8c779; font-size: 14px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.sch__yr { fill: #8f97b3; font-size: 12px; }
+.sch__edge { fill: none; stroke: url(#sch-edge); stroke-width: 1.6; stroke-dasharray: 1; stroke-dashoffset: 1; animation: sch-draw 1400ms cubic-bezier(.22, 1, .36, 1) forwards; animation-delay: calc(200ms + var(--i, 0) * 35ms); transition: opacity .3s, stroke-width .3s; }
+.sch__edge.is-on { stroke-width: 3; opacity: 1; }
+.sch__edge.is-dim { opacity: .12; }
+.sch__node { cursor: pointer; outline: none; transition: opacity .3s; }
+.sch__node.is-dim { opacity: .28; }
+.sch__star { fill: #fff3c8; stroke: #f0c75e; stroke-width: 1.5; }
+.sch__halo { opacity: .5; transition: opacity .3s; }
+.sch__node.is-on .sch__halo, .sch__node:focus-visible .sch__halo { opacity: 1; }
+.sch__node.is-focus .sch__star { fill: #ffd979; stroke: #fff; stroke-width: 2.5; }
+.sch__node:focus-visible .sch__star { stroke: #fff; stroke-width: 3; }
+.sch__name { fill: #e7e4d8; font-size: 12.5px; font-weight: 700; paint-order: stroke; stroke: #0a1430; stroke-width: 4px; }
+.sch__node.is-on .sch__name { fill: #ffd979; }
+.sch__info { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 12px 18px 16px; font-size: .9rem; color: #d5d8e6; min-height: 1.6em; }
+.sch__info b { color: #ffd979; font-size: 1rem; }
+.sch__info .ui-link { color: #f6d77a; }
+.sch__note { margin: 10px 0 0; font-size: .8rem; color: var(--text-muted); }
+@keyframes sch-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .sch__edge { animation: none; stroke-dashoffset: 0; } }
+html.a11y-reduce-motion .sch__edge { animation: none; stroke-dashoffset: 0; }

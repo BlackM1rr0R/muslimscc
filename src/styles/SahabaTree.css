@@ -1,0 +1,22 @@
+/* Səhabə ailə ağacı (components/SahabaTree.jsx) */
+.sct__frame { border-radius: 24px; overflow: hidden; background: radial-gradient(120% 100% at 50% 40%, color-mix(in srgb, var(--accent, #c79a3a) 12%, var(--surface)) 0%, var(--surface) 70%); border: 1px solid var(--border); box-shadow: var(--shadow-2); }
+.sct__svg { display: block; width: 100%; height: auto; }
+.sct__edge line { stroke: color-mix(in srgb, var(--accent, #c79a3a) 55%, transparent); stroke-width: 2; transition: opacity .3s, stroke-width .3s; }
+.sct__edge.is-on line { stroke: var(--accent, #c79a3a); stroke-width: 3.5; }
+.sct__edge.is-dim { opacity: .18; }
+.sct__rel { font-size: 12px; font-weight: 700; fill: var(--text-secondary); paint-order: stroke; stroke: var(--surface); stroke-width: 5px; }
+.sct__edge.is-on .sct__rel { fill: var(--accent-text, #8a6512); }
+.sct__node { cursor: pointer; transition: opacity .3s; }
+.sct__node.is-dim { opacity: .3; }
+.sct__node circle { fill: var(--surface); stroke: color-mix(in srgb, var(--accent, #c79a3a) 70%, transparent); stroke-width: 2.5; }
+.sct__node.is-p circle { fill: color-mix(in srgb, var(--accent, #c79a3a) 22%, var(--surface)); stroke: var(--accent, #c79a3a); stroke-width: 3.5; }
+.sct__node.is-focus circle { stroke: var(--accent, #c79a3a); stroke-width: 4; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent, #c79a3a) 60%, transparent)); }
+.sct__node text { font-size: 13px; font-weight: 800; fill: var(--text-strong); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
+.sct__node.is-p text { font-size: 15px; }
+a:focus-visible .sct__node circle { stroke-width: 5; }
+.sct__info { padding: 12px 18px 16px; display: grid; gap: 6px; font-size: .9rem; color: var(--text-secondary); min-height: 2.4em; border-top: 1px solid var(--border); }
+.sct__info b { color: var(--text-strong); font-size: 1rem; }
+.sct__info ul { margin: 0; padding-inline-start: 18px; }
+.sct__src { font-size: .8rem; color: var(--text-muted); }
+.sct__others-t { margin: 14px 0 6px; font-size: .82rem; color: var(--text-muted); }
+.sct__others { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }

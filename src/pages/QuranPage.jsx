@@ -28,7 +28,8 @@ import QuranNotes from '../components/quran/QuranNotes'
 import OfflinePack from '../components/OfflinePack'
 import OfflineAudio from '../components/quran/OfflineAudio'
 import DeferRender from '../components/DeferRender'
-import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta } from '../utils/quranEnc'
+import { quranEncOptions, quranEncUrl, readTranslationChoices, translationFor, saveTranslationChoice, fetchQuranEncSura, fetchQuranEncMeta, quranEncEntry } from '../utils/quranEnc'
+import { diffWords } from '../utils/wordDiff'
 import '../styles/QuranPage.css'
 import { pickUi } from '../utils/uiText'
 
@@ -62,6 +63,17 @@ const QE_LABELS = {
   ar: { label:'التفسير', def:'الافتراضي', group:'QuranEnc.com — تراجم وتفاسير محكَّمة', source:'المصدر', version:'الإصدار', updated:'آخر تحديث', loading:'جارٍ تحميل التفسير…', failed:'تعذّر تحميل التفسير من QuranEnc — يُعرض التفسير الافتراضي.', notes:'الحواشي' }, // lang-ok[QuranEnc]: saytın adı (brend)
   tr: { label:'Meal', def:'varsayılan', group:'QuranEnc.com — incelenmiş mealler', source:'Kaynak', version:'sürüm', updated:'güncellendi', loading:'Meal yükleniyor…', failed:'QuranEnc meali yüklenemedi — varsayılan meal gösteriliyor.', notes:'Dipnotlar' }, // lang-ok[QuranEnc]: saytın adı (brend)
 }
+
+// v6.0: iki tərcümə yan-yana (müqayisə) — ikinci seçici
+const CMP_LABELS = {
+  az: { label: 'Müqayisə et', off: '— yoxdur —', hint: 'İkinci tərcümədə birincidən fərqli sözlər rənglə göstərilir.' },
+  en: { label: 'Compare with', off: '— none —', hint: 'Words in the second translation that differ from the first are highlighted.' },
+  ru: { label: 'Сравнить с', off: '— нет —', hint: 'Слова второго перевода, отличающиеся от первого, выделены цветом.' },
+  ar: { label: 'قارن مع', off: '— لا شيء —', hint: 'الكلمات المختلفة في الترجمة الثانية مظلَّلة.' },
+  tr: { label: 'Karşılaştır', off: '— yok —', hint: 'İkinci mealde birinciden farklı kelimeler renkle gösterilir.' },
+}
+const CMP_KEY = 'quran_compare'
+const readCompare = () => { try { const v = JSON.parse(localStorage.getItem(CMP_KEY)); return v && typeof v === 'object' ? v : {} } catch { return {} } }
 
 const RETRY_LABELS = {
   az: { msg:'Surə yüklənmədi. İnternet bağlantısını yoxlayın.', listMsg:'Surələrin siyahısı yüklənmədi. İnternet bağlantısını yoxlayın.', retry:'Yenidən cəhd et' },
@@ -586,7 +598,13 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
         <button type="button" className="ayah-reveal" aria-pressed="false" onClick={toggleReveal}>
           <Icon name="eye" size={16} /><span className="ayah-reveal__label">{xl.reveal}</span>
         </button>
-        {showTrans && verse.tr && !showTafsir && <p className="ayah-trans" lang={trLang} dir={dirOf(trLang)}>{verse.tr}</p>}
+        {showTrans && verse.tr && !showTafsir && (verse.tr2
+          ? <div className="ayah-cmp" data-testid="ayah-cmp">
+              <div className="ayah-cmp__col"><span className="ayah-cmp__by">{verse.by1}</span><p className="ayah-trans" lang={trLang} dir={dirOf(trLang)}>{verse.tr}</p></div>
+              <div className="ayah-cmp__col"><span className="ayah-cmp__by">{verse.by2}</span>
+                <p className="ayah-trans ayah-trans--2" lang={trLang} dir={dirOf(trLang)}>{diffWords(verse.tr, verse.tr2).map((x, i) => (x.same ? x.w : <mark key={i} className="ayah-cmp__d">{x.w}</mark>))}</p></div>
+            </div>
+          : <p className="ayah-trans" lang={trLang} dir={dirOf(trLang)}>{verse.tr}</p>)}
         {showTafsir && verse.tr && (
           <div className="ayah-tafsir">
             <span className="ayah-tafsir-label">{tafsirLabel}</span>
@@ -858,6 +876,21 @@ export default function QuranPage() {
     return surah.verses.map((v, i) => ({ ...v, tr: qe.rows[i].tr, fn: qe.rows[i].fn }))
   }, [surahReady, surah, qe.rows, qe.error, forcedQe])
   const qeShown = !!(surahReady && qe.rows && shownVerses !== surah.verses)
+  // v6.0: müqayisə — ikinci tərcümə ('std' = standart nəşr, yoxsa QuranEnc açarı); birincidən fərqli olmalıdır
+  const [cmpChoices, setCmpChoices] = useState(readCompare)
+  const cmpRaw = extra ? '' : (cmpChoices[lang] || '')
+  const cmpKey = cmpRaw && cmpRaw !== (transKey || 'std') && (cmpRaw === 'std' || quranEncEntry(cmpRaw, lang)) ? cmpRaw : ''
+  const qe2 = useQuranEnc(cmpKey && cmpKey !== 'std' ? cmpKey : '', surahReady ? selected : 0, surahReady ? surah.verses.length : 0, lang)
+  const nameOfTr = (k) => (!k || k === 'std' ? pickUi(DEFAULT_TRANSLATOR, lang, 'en') : (quranEncEntry(k, lang)?.name || k))
+  const viewVerses = useMemo(() => {
+    if (!shownVerses || !cmpKey) return shownVerses
+    const second = cmpKey === 'std' ? surah.verses.map(v => v.tr) : qe2.rows?.length === surah.verses.length ? qe2.rows.map(x => x.tr) : null
+    if (!second) return shownVerses
+    const by1 = nameOfTr(qeShown ? transKey : 'std'), by2 = nameOfTr(cmpKey)
+    return shownVerses.map((v, i) => ({ ...v, tr2: second[i], by1, by2 }))
+  }, [shownVerses, cmpKey, qe2.rows, surah, qeShown, transKey, lang]) // eslint-disable-line react-hooks/exhaustive-deps
+  const cl = pickUi(CMP_LABELS, lang, 'en')
+  const setCompare = (k) => { haptic(); const next = { ...readCompare(), [lang]: k }; if (!k) delete next[lang]; try { localStorage.setItem(CMP_KEY, JSON.stringify(next)) } catch { /* */ } setCmpChoices(next) }
   const xlCard = useMemo(() => ({ ...(pickUi(V32_LABELS, lang)), notes: ql.notes }), [lang, ql])
   const rl = pickUi(RETRY_LABELS, lang)
   const sl = pickUi(SEARCH_LABELS, lang)
@@ -1527,6 +1560,15 @@ export default function QuranPage() {
                     </optgroup>
                   </select>
                 </label>
+                <label className="qp-trans-src__field">
+                  <span className="qp-trans-src__label">{cl.label}</span>
+                  <select className="ui-select ui-select--sm qp-trans-src__select" value={cmpKey} onChange={e => setCompare(e.target.value)} data-testid="compare-select">
+                    <option value="">{cl.off}</option>
+                    {transKey && <option value="std">{pickUi(DEFAULT_TRANSLATOR, lang, 'en')}</option>}
+                    {qeOptions.filter(o => o.key !== transKey).map(o => <option key={o.key} value={o.key}>{o.name}</option>)}
+                  </select>
+                </label>
+                {cmpKey && <p className="qp-trans-src__meta qp-cmp-hint">{cl.hint}{cmpKey !== 'std' && <> · {ql.source}: <a href={quranEncUrl(cmpKey, selected, lang)} target="_blank" rel="noopener noreferrer">QuranEnc.com</a></>}</p>}
                 <p className="qp-trans-src__meta" aria-live="polite">
                   {qeShown ? (
                     <>
@@ -1555,7 +1597,7 @@ export default function QuranPage() {
             )}
             {memorize && <p className="qp-memo-hint" role="status"><Icon name="eye" size={16} />{xl.memorizeHint}</p>}
             <div className={`ayahs-list${memorize ? ' is-memorize' : ''}`} ref={listRef} style={{ '--qp-scale': fontSize }}>
-              {shownVerses?.map(v => (
+              {viewVerses?.map(v => (
                 <AyahCard key={v.n} verse={v} surahNum={surah.number} lang={lang} trLang={qeShown && !forcedQe ? lang : (qe.error && forcedQe ? 'en' : tlang)} tafsirLabel={tafsirLabel} playLabels={playLabels}
                   showTrans={!hasTafsir && showTrans} showTafsir={hasTafsir && showTafsir}
                   active={player.current === v.n} playing={playerBusy && player.current === v.n}

@@ -97,6 +97,18 @@ const TRANSLATIONS = [
       tr: 'Okuyucu varsayılan meal yerine bir QuranEnc meali seçtiğinde metin ve dipnotlar bu sitenin açık API’sinden canlı yüklenir ve değiştirilmeden gösterilir. Şartlarına uygun olarak: metne ekleme yapılmaz, metinden bir şey silinmez; yayıncı ve kaynak (QuranEnc.com) bağlantıyla, sürüm numarası ve son güncelleme tarihiyle belirtilir; her zaman son sürüm kullanılır; notlar sitenin kendisine iletilebilir.', // lang-ok[QuranEnc]: saytın adı (brend)
     },
   },
+  // v6.0: duaların ərəbcə səsi — components/DuaListen.jsx, scripts/build-hisn-audio.mjs
+  {
+    name: 'hisnmuslim.com', url: 'https://www.hisnmuslim.com/',
+    by: { az: 'Hisnul-Müslim duaları üçün ərəbcə səs yazıları', en: 'Arabic audio recordings for the Hisn al-Muslim supplications', ru: 'Аудиозаписи дуа из «Крепости мусульманина» на арабском', ar: 'تسجيلات صوتية عربية لأذكار حصن المسلم', tr: 'Hisnü’l-Müslim duaları için Arapça ses kayıtları' },
+    note: {
+      az: 'Hisnul-Müslim və Dualar səhifələrindəki "Dinlə" düyməsi duanın səsini birbaşa bu saytın serverindən oxudur — fayllar bizdə saxlanılmır. Hansı səsin hansı duaya aid olduğu ərəb mətninin tam uyğunluğu ilə müəyyən edilib; uyğunluq tapılmayan duada düymə göstərilmir.',
+      en: 'The “Listen” button on the Hisn al-Muslim and Duas pages plays the recording straight from this site’s server — the files are not stored by us. Each recording is matched to its supplication by the Arabic text; where no match is found, no button is shown.',
+      ru: 'Кнопка «Слушать» на страницах «Крепость мусульманина» и «Дуа» воспроизводит запись прямо с сервера этого сайта — файлы у нас не хранятся. Каждая запись сопоставлена с дуа по арабскому тексту; если совпадения нет, кнопка не показывается.',
+      ar: 'زر «استمع» في صفحتي حصن المسلم والأدعية يشغّل التسجيل مباشرة من خادم هذا الموقع، ولا تُحفظ الملفات عندنا. وقد رُبط كل تسجيل بذكره بمطابقة النص العربي، وما لم تُوجد له مطابقة لا يظهر له زر.',
+      tr: 'Hisnü’l-Müslim ve Dualar sayfalarındaki “Dinle” düğmesi kaydı doğrudan bu sitenin sunucusundan çalar — dosyalar bizde saklanmaz. Her kayıt, duasıyla Arapça metin eşleşmesiyle bağlanmıştır; eşleşme bulunamayan duada düğme gösterilmez.',
+    },
+  },
 ]
 
 // Ayə təfsirləri — Quran.com API v4 (yalnız Sələf / Əhli-sünnə təfsirləri;

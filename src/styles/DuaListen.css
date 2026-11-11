@@ -1,0 +1,5 @@
+/* v6.0: duanın səsi (components/DuaListen) — Hisnul-Müslim və Dualar */
+.dua-listen { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.dua-listen__btn.is-on { background: color-mix(in srgb, var(--accent, #c79a3a) 16%, transparent); color: var(--accent-text, #8a6512); }
+.dua-listen__src { font-size: .72rem; color: var(--text-muted); text-decoration: none; }
+.dua-listen__src:hover { text-decoration: underline; }

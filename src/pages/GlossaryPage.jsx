@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useState, useCallback } from 'react'
+import { useMemo, useEffect, useRef, useState, useCallback, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { GLOSSARY, GLOSSARY_BY_ID, GLOSSARY_CATS } from '../data/glossary'
@@ -18,6 +18,9 @@ import useStarred, { dayPick, shareLink } from '../components/collect/useStarred
 import '../styles/GlossaryPage.css'
 import PressedGlide from '../components/pagefx/PressedGlide'
 import { pickUi } from '../utils/uiText'
+import DeferRender from '../components/DeferRender'
+// v5.9: Anlayışlar xəritəsi — terminlərin öz əlaqələri ilə şəbəkə (yalnız siyahı görünüşündə)
+const ConceptMap = lazy(() => import('../components/ConceptMap'))
 
 // ═══════════════════════════════════════════════════════
 // /glossary — İslami söz lüğəti (341 termin, 7 kateqoriya)
@@ -297,6 +300,16 @@ export default function GlossaryPage() {
           )}
         </div>
       </header>
+
+      {!focused && (
+        <DeferRender height="760px" idle={false} rootMargin="300px 0px">
+          <Suspense fallback={<div style={{ minHeight: 760 }} />}>
+            <ConceptMap terms={GLOSSARY} cats={GLOSSARY_CATS} lang={lang} nameOf={(x) => glossaryName(x, lang)}
+              catLabel={(k) => (CAT_LABELS[k] ? (CAT_LABELS[k][lang] || CAT_LABELS[k].en) : k)}
+              hrefOf={(x) => pathFor('glossary', lang, x.id)} onOpen={(x, e) => { openTerm(x.id)(e); window.scrollTo(0, 0) }} />
+          </Suspense>
+        </DeferRender>
+      )}
 
       <div className="ui-section ui-section--tight glossary-page">
         <div className="ui-container">
