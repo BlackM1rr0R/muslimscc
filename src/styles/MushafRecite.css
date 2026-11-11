@@ -1,0 +1,32 @@
+/* Mushafda canlı qiraət (components/quran/MushafRecite.jsx) */
+.mp-rc-chip[aria-pressed="true"] { background: var(--accent, #c79a3a); border-color: var(--accent, #c79a3a); color: #fff; }
+/* Oxunan ayə — yüngül fon; oxunan söz — qızılı parıltı */
+.mp-sheet .is-rc-ayah { background: color-mix(in srgb, var(--accent, #c79a3a) 9%, transparent); border-radius: 6px; transition: background-color .3s; }
+.mp-sheet .mp-word.is-rc-word { background: color-mix(in srgb, var(--accent, #c79a3a) 26%, transparent); border-radius: 8px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #c79a3a) 40%, transparent), 0 0 18px color-mix(in srgb, var(--accent, #c79a3a) 55%, transparent); transition: background-color .15s, box-shadow .15s; }
+.mp-sheet .mp-word.is-rc-word .mp-word__t { color: #8a5a00; text-shadow: 0 0 12px rgba(226, 184, 87, .8); }
+[data-theme="dark"] .mp-sheet .mp-word.is-rc-word .mp-word__t { color: #ffd77a; }
+.mp-rc-bar { position: fixed; z-index: 60; inset-inline: 50% auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(640px, calc(100vw - 20px));
+  display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 6px 12px; padding: 10px 12px 8px 14px; border-radius: 20px;
+  background: color-mix(in srgb, var(--surface, #fff) 94%, transparent); border: 1px solid color-mix(in srgb, var(--accent, #c79a3a) 45%, var(--border)); box-shadow: var(--shadow-3, 0 10px 30px rgba(0,0,0,.18)); }
+[dir="rtl"] .mp-rc-bar { transform: translateX(50%); inset-inline: auto 50%; }
+.mp-rc-bar__wave { display: inline-flex; gap: 3px; align-items: center; height: 22px; }
+.mp-rc-bar__wave i { width: 3px; height: 100%; border-radius: 2px; background: var(--accent, #c79a3a); transform: scaleY(.3); transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .mp-rc-bar__wave.is-on i { animation: mp-rc-wave 1s ease-in-out infinite; }
+  html:not(.a11y-reduce-motion) .mp-rc-bar__wave.is-on i:nth-child(2) { animation-delay: -.25s; }
+  html:not(.a11y-reduce-motion) .mp-rc-bar__wave.is-on i:nth-child(3) { animation-delay: -.5s; }
+  html:not(.a11y-reduce-motion) .mp-rc-bar__wave.is-on i:nth-child(4) { animation-delay: -.75s; }
+}
+@keyframes mp-rc-wave { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+.mp-rc-bar__txt { display: grid; min-width: 0; line-height: 1.25; }
+.mp-rc-bar__txt b { font-size: .9rem; }
+.mp-rc-bar__txt span { font-size: .8rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; }
+.mp-rc-bar__auto { grid-column: 1 / 4; display: inline-flex; gap: 6px; align-items: center; font-size: .8rem; font-weight: 700; color: var(--text-secondary); }
+.mp-rc-bar__auto input { accent-color: var(--accent, #c79a3a); width: 16px; height: 16px; }
+.mp-rc-bar__x { grid-column: 4; grid-row: 1; }
+.mp-rc-bar__src { grid-column: 1 / -1; font-size: .72rem; color: var(--text-muted); }
+@media (min-width: 640px) {
+  .mp-rc-bar { grid-template-columns: auto 1fr auto auto auto; }
+  .mp-rc-bar__auto { grid-column: auto; }
+  .mp-rc-bar__x { grid-column: auto; }
+}

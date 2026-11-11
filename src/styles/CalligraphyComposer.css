@@ -1,0 +1,6 @@
+/* Xəttatlıq kompozisiyası (components/quote/CalligraphyComposer.jsx) — panel/düymələr PatternStudio.css (.ps__*) */
+.ccm__stage { position: relative; border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-3); aspect-ratio: 1; background: #0b1730; }
+.ccm__phrases { display: flex; flex-wrap: wrap; gap: 6px; }
+.ccm__ph { font-family: var(--font-arabic, 'Amiri', serif); font-size: 1.05rem; min-height: 38px; padding: 4px 12px; }
+.ccm__ph.is-on { background: var(--accent, #c79a3a); border-color: var(--accent, #c79a3a); color: #fff; }
+@media (min-width: 768px) { .ccm__grid { grid-template-columns: minmax(0, 1.2fr) minmax(260px, 1fr); } }

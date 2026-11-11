@@ -21,6 +21,7 @@ import { pickUi } from '../utils/uiText'
 import { haptic } from '../hooks/useHaptic'
 import { useReduced } from '../motion/reduced'
 import useMushafCurl from '../components/quran/useMushafCurl'
+import MushafRecite from '../components/quran/MushafRecite'
 
 // v3: hero rəqəmləri və "Mushafın quruluşu" bölməsi.
 // 604 səhifə / 30 cüz — src/data/mushafIndex.js; 60 hizb, 240 rübʿ — ənənəvi bölgü
@@ -319,19 +320,19 @@ function MushafSheet({ page, data, error, prefs, sel, onWordClick, L, onRetry, s
             <div key={line.n} className={`mp-line mp-line--words${isCenteredLine(line, page) ? ' is-centered' : ''}`}>
               {line.words.map(w => {
                 if (w.type === 'end') {
-                  return <span key={`${w.key}-e`} className="mp-end" aria-label={w.key}>{toArabicDigits(w.a)}</span>
+                  return <span key={`${w.key}-e`} className="mp-end" aria-label={w.key} data-ak={w.key}>{toArabicDigits(w.a)}</span>
                 }
                 const active = sel && sel.w.key === w.key && sel.w.p === w.p
                 const content = prefs.tajweed && w.tj
                   ? <span className="mp-word__t" dangerouslySetInnerHTML={{ __html: w.tj }} />
                   : <span className="mp-word__t">{w.text}</span>
                 return prefs.wbw ? (
-                  <button key={`${w.key}-${w.p}`} type="button" className={`mp-word${active ? ' is-active' : ''}`}
+                  <button key={`${w.key}-${w.p}`} type="button" className={`mp-word${active ? ' is-active' : ''}`} data-wk={`${w.key}:${w.p}`} data-ak={w.key}
                     aria-expanded={active} aria-label={w.tr ? `${w.text} — ${w.tr}` : w.text} onClick={onWordClick(w)}>
                     {content}
                   </button>
                 ) : (
-                  <span key={`${w.key}-${w.p}`} className="mp-word">{content}</span>
+                  <span key={`${w.key}-${w.p}`} className="mp-word" data-wk={`${w.key}:${w.p}`} data-ak={w.key}>{content}</span>
                 )
               })}
             </div>
@@ -569,6 +570,8 @@ export default function MushafPage() {
   }
 
   const legendRules = TAJWEED_LEGEND
+  // Canlı qiraət üçün görünən sözlər: sağ (tək) səhifə, sonra sol
+  const reciteWords = useMemo(() => [...(data?.words || []), ...(pL ? left.data?.words || [] : [])], [data, left.data, pL])
 
   return (
     <div className="mp-page">
@@ -625,6 +628,8 @@ export default function MushafPage() {
               <button type="button" className="ui-chip" aria-pressed={prefs.wbw} onClick={() => togglePref('wbw')}>
                 <Icon name="list" size={16} /> {L.wbw}
               </button>
+              <MushafRecite pages={[pR, pL]} words={reciteWords} stageRef={stageRef} lang={lang} wbw={prefs.wbw}
+                canNext={pR < lastStart} onNextPage={next} />
               <SoundToggle lang={lang} />
               {wide && (
                 <button type="button" className="ui-chip" aria-pressed={prefs.spread} onClick={() => togglePref('spread')}>

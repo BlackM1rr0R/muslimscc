@@ -1,0 +1,24 @@
+/* Siyər zaman tuneli (components/media/SeerahTunnel3D.jsx) — əsas quruluş HajjJourney3D.css (.hj3) */
+.stn__stage { background: #060b1a; }
+.stn__nogl { color: #f4ead2; }
+.stn__label { position: absolute; top: 0; left: 0; pointer-events: none; white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; padding: 4px 10px; border-radius: 99px; font-size: .76rem; font-weight: 700; background: rgba(10, 16, 36, .72); color: #f4ead2; border: 1px solid rgba(226, 184, 87, .45); will-change: transform, opacity; }
+.stn__label.is-med { border-color: rgba(63, 208, 160, .5); }
+.stn__label b { color: #e2b857; margin-inline-end: 4px; }
+.stn__label.is-med b { color: #3fd0a0; }
+.stn__label.is-on { background: #c78a12; border-color: #c78a12; color: #fff; font-size: .84rem; box-shadow: 0 4px 18px rgba(226, 184, 87, .45); }
+.stn__label.is-on.is-med { background: #12936b; border-color: #12936b; box-shadow: 0 4px 18px rgba(63, 208, 160, .45); }
+.stn__label.is-on b { color: #fff; }
+.stn__year { position: absolute; inset-inline-start: 16px; top: 12px; display: grid; line-height: 1; pointer-events: none; color: #f4ead2; }
+.stn__year b { font-size: clamp(2rem, 6vw, 3.6rem); font-weight: 800; letter-spacing: -.02em; }
+.stn__year span { font-size: .8rem; font-weight: 700; margin-top: 4px; }
+.stn__year.is-mecca b { color: #e2b857; text-shadow: 0 2px 18px rgba(226, 184, 87, .5); }
+.stn__year.is-medina b { color: #3fd0a0; text-shadow: 0 2px 18px rgba(63, 208, 160, .5); }
+.stn__dots { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.stn__dots button { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #e2b857; background: transparent; cursor: pointer; padding: 0; transition: transform .2s, background-color .2s; }
+.stn__dots button.is-med { border-color: #3fd0a0; }
+.stn__dots button.is-done { background: color-mix(in srgb, #e2b857 40%, transparent); }
+.stn__dots button.is-done.is-med { background: color-mix(in srgb, #3fd0a0 40%, transparent); }
+.stn__dots button.is-on { background: #e2b857; transform: scale(1.25); }
+.stn__dots button.is-on.is-med { background: #3fd0a0; }
+@media (pointer: coarse) { .stn__dots button { width: 30px; height: 30px; } }
+.stn__stage { touch-action: pan-y; }

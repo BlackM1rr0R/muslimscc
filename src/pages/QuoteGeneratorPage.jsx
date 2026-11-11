@@ -44,6 +44,7 @@ import { SPRING } from '../motion/presets'
 import DeferRender from '../components/DeferRender'
 // v5.9: İslam həndəsi naxışı — divar kağızı (bölməyə yaxınlaşanda)
 const PatternStudio = lazy(() => import('../components/quote/PatternStudio'))
+const CalligraphyComposer = lazy(() => import('../components/quote/CalligraphyComposer'))
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
@@ -654,6 +655,12 @@ export default function QuoteGeneratorPage() {
       <DeferRender height="640px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 640 }} />}>
           <PatternStudio lang={lang} />
+        </Suspense>
+      </DeferRender>
+
+      <DeferRender height="720px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 720 }} />}>
+          <CalligraphyComposer lang={lang} />
         </Suspense>
       </DeferRender>
     </>

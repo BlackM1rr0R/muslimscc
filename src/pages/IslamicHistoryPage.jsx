@@ -13,6 +13,8 @@ const SpreadTimeline = lazy(() => import('../components/media/SpreadTimeline'))
 const HijraJourney3D = lazy(() => import('../components/media/HijraJourney3D'))
 // v5.9: Quranda adı keçən yerlər xəritəsi (peyğəmbərlər bölməsində)
 const ProphetPlacesMap = lazy(() => import('../components/media/ProphetPlacesMap'))
+const ProphetTree = lazy(() => import('../components/ProphetTree'))
+const SeerahTunnel3D = lazy(() => import('../components/media/SeerahTunnel3D'))
 import DeferRender from '../components/DeferRender'
 import { PLACE_PHOTOS } from '../data/placeImages'
 // Məlumat — src/data/islamicHistory.js (peyğəmbərlər, hadisələr, dövrlər)
@@ -337,6 +339,11 @@ export default function IslamicHistoryPage() {
                     <div className="hx-places"><ProphetPlacesMap lang={lang} prophets={PROPHETS} /></div>
                   </Suspense>
                 </DeferRender>
+                <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+                  <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
+                    <div className="hx-places"><ProphetTree lang={lang} prophets={PROPHETS} /></div>
+                  </Suspense>
+                </DeferRender>
               </section>
             ) : (
               <section aria-labelledby="hx-events-h">
@@ -414,6 +421,11 @@ export default function IslamicHistoryPage() {
           <DeferRender height="620px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 620 }} />}>
               <div className="history-hijra3d"><HijraJourney3D lang={lang} /></div>
+            </Suspense>
+          </DeferRender>
+          <DeferRender height="640px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 640 }} />}>
+              <div className="history-hijra3d"><SeerahTunnel3D lang={lang} events={EVENTS} yearOf={eventYear} /></div>
             </Suspense>
           </DeferRender>
           <Suspense fallback={<SpreadMap lang={lang} />}>

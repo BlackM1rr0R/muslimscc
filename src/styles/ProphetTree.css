@@ -1,0 +1,48 @@
+/* Peyğəmbərlər şəcərəsi (components/ProphetTree.jsx) */
+.ptr { padding: clamp(16px, 3vw, 24px); display: grid; gap: 14px; }
+.ptr__head { display: grid; gap: 6px; }
+.ptr__head .ui-lead { margin: 0; }
+.ptr__legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; font-size: .82rem; color: var(--text-muted); }
+.ptr__key { display: inline-block; width: 28px; height: 0; border-top: 2.5px solid var(--accent, #c79a3a); }
+.ptr__key.is-dash { border-top-style: dashed; }
+.ptr__frame { border-radius: 22px; overflow: hidden; border: 1px solid var(--border); background: radial-gradient(110% 90% at 50% 20%, color-mix(in srgb, var(--accent, #c79a3a) 12%, var(--surface)) 0%, var(--surface) 72%); }
+.ptr__svg { display: block; width: 100%; height: auto; }
+.ptr__edge path { fill: none; stroke: color-mix(in srgb, var(--accent, #c79a3a) 65%, transparent); stroke-width: 2.5; stroke-linecap: round; transition: opacity .3s, stroke-width .3s; }
+.ptr__edge.is-dash path { stroke-dasharray: 7 7; }
+.ptr__edge.is-on path { stroke: var(--accent, #c79a3a); stroke-width: 4; }
+.ptr__edge.is-dim { opacity: .14; }
+.ptr__rel { font-size: 12.5px; font-weight: 700; fill: var(--text-secondary); paint-order: stroke; stroke: var(--surface); stroke-width: 5px; transition: opacity .3s; }
+.ptr__edge.is-on .ptr__rel { fill: var(--accent-text, #8a6512); }
+/* Görünəndə bir dəfə çəkilir (düz xətlər); qırıq xətlər solğundan açılır — yalnız hərəkətə icazə varsa */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ptr__svg:not(.is-shown) .ptr__edge:not(.is-dash) path { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); }
+  html:not(.a11y-reduce-motion) .ptr__svg:not(.is-shown) .ptr__edge.is-dash,
+  html:not(.a11y-reduce-motion) .ptr__svg:not(.is-shown) .ptr__rel { opacity: 0; }
+  html:not(.a11y-reduce-motion) .ptr__svg.is-shown .ptr__edge:not(.is-dash) path { stroke-dasharray: var(--len); animation: ptr-draw 1.1s cubic-bezier(.3, .7, .2, 1) var(--d) both; }
+  html:not(.a11y-reduce-motion) .ptr__svg.is-shown .ptr__edge.is-dash { animation: ptr-fade .8s ease-out calc(var(--d) + .4s) both; }
+}
+@keyframes ptr-draw { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: 0; } }
+@keyframes ptr-fade { from { opacity: 0; } to { opacity: 1; } }
+.ptr__node { cursor: pointer; transition: opacity .3s; outline: none; }
+.ptr__node.is-dim { opacity: .28; }
+.ptr__disc { fill: var(--surface); stroke: color-mix(in srgb, var(--accent, #c79a3a) 70%, transparent); stroke-width: 2.5; transition: stroke-width .2s; }
+.ptr__node.is-person .ptr__disc { stroke-dasharray: 5 4; fill: color-mix(in srgb, var(--surface) 92%, var(--accent, #c79a3a)); }
+.ptr__node.is-last .ptr__disc { fill: color-mix(in srgb, var(--accent, #c79a3a) 22%, var(--surface)); stroke: var(--accent, #c79a3a); stroke-width: 3.5; }
+.ptr__node.is-focus .ptr__disc, .ptr__node:focus-visible .ptr__disc { stroke: var(--accent, #c79a3a); stroke-width: 4.5; }
+.ptr__ar { font-family: var(--font-arabic, 'Amiri', serif); font-size: 19px; fill: var(--accent-text, #8a6512); }
+.ptr__nm { font-size: 12.5px; font-weight: 800; fill: var(--text-strong); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
+.ptr__info { padding: 12px 18px 16px; display: grid; gap: 6px; font-size: .9rem; color: var(--text-secondary); min-height: 2.6em; border-top: 1px solid var(--border); }
+.ptr__info b { color: var(--text-strong); font-size: 1rem; }
+.ptr__info ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.ptr__info li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.ptr__refs { display: inline-flex; flex-wrap: wrap; gap: 10px; font-size: .84rem; }
+.ptr__others-t { margin: 0; font-size: .82rem; color: var(--text-muted); }
+.ptr__others { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ptr__note { display: flex; gap: 6px; align-items: flex-start; margin: 0; font-size: .8rem; color: var(--text-muted); }
+/* Telefonda ağac oxunaqlı ölçüdə qalır — yana sürüşdürülür */
+.ptr__scroll { overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+@media (max-width: 760px) {
+  .ptr__svg { width: 780px; max-width: none; }
+  .ptr__rel { font-size: 14px; }
+  .ptr__nm { font-size: 14px; }
+}

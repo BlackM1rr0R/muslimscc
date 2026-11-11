@@ -21,6 +21,7 @@ import { pickUi } from '../utils/uiText'
 import DeferRender from '../components/DeferRender'
 // v5.9: Elm zənciri — kim kimdən öyrənib (bölməyə yaxınlaşanda)
 const ScholarChain = lazy(() => import('../components/ScholarChain'))
+const ScholarRoutes = lazy(() => import('../components/ScholarRoutes'))
 
 // ── v3.2: sıralama, seçilmişlər, təsadüfi alim (5 dil) ──
 const C32 = {
@@ -388,6 +389,12 @@ export default function ScholarsPage() {
         <Suspense fallback={<div style={{ minHeight: 640 }} />}>
           <ScholarChain scholars={SCHOLARS} lang={lang} nameOf={(s) => pick(s.name, lang)} hrefOf={(s) => pathFor('scholars', lang, s.slug)}
             onOpen={openProfile} eraLabel={(k) => pick(ERA_SHORT[k], lang)} />
+        </Suspense>
+      </DeferRender>
+
+      <DeferRender height="720px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 720 }} />}>
+          <ScholarRoutes scholars={SCHOLARS} lang={lang} nameOf={(s) => pick(s.name, lang)} hrefOf={(s) => pathFor('scholars', lang, s.slug)} onOpen={openProfile} />
         </Suspense>
       </DeferRender>
 

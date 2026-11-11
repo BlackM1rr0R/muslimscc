@@ -1,0 +1,47 @@
+/* Elm yolları (components/ScholarRoutes.jsx) */
+.srt__grid { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(260px, 1fr); gap: clamp(14px, 2.5vw, 24px); align-items: start; }
+.srt__map { position: relative; border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-3); background: #0a1428; }
+.srt__svg { display: block; width: 100%; height: auto; }
+.srt__sea { fill: #0a1428; }
+.srt__land { fill: #17253f; stroke: #2a3b5c; stroke-width: .7; }
+.srt__journey { fill: none; stroke-width: 1.4; stroke-dasharray: 4 4; opacity: .35; transition: opacity .4s; }
+.srt__journey.is-alive { opacity: .9; }
+.srt__chain { fill: none; stroke: #e2b857; stroke-width: 1.3; opacity: .28; stroke-linecap: round; transition: opacity .4s, stroke-width .4s; }
+.srt__chain.is-alive { opacity: .95; stroke-width: 2.2; }
+.srt__pt { cursor: pointer; }
+.srt__dot { stroke: #0a1428; stroke-width: 1.5; opacity: .55; transition: opacity .4s; }
+.srt__halo { opacity: 0; transition: opacity .4s; }
+.srt__pt.is-alive .srt__dot { opacity: 1; }
+.srt__pt.is-alive .srt__halo { opacity: .22; }
+.srt__pt.is-sel .srt__dot { stroke: #fff; stroke-width: 2.5; opacity: 1; }
+.srt__label { font-size: 12px; font-weight: 800; fill: #f4ead2; paint-order: stroke; stroke: #0a1428; stroke-width: 4px; pointer-events: none; }
+/* Yeni görünən xətt bir dəfə "çəkilir" */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .srt__chain { stroke-dasharray: var(--len); animation: srt-draw 1.2s ease-out both; }
+  html:not(.a11y-reduce-motion) .srt__pt { animation: srt-pop .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+}
+@keyframes srt-draw { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: 0; } }
+@keyframes srt-pop { from { opacity: 0; } to { opacity: 1; } }
+.srt__year { position: absolute; inset-inline-start: 18px; bottom: 14px; display: grid; line-height: 1; color: #f4ead2; pointer-events: none; }
+.srt__year b { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -.02em; text-shadow: 0 2px 18px rgba(226, 184, 87, .45); }
+.srt__year span { font-size: .85rem; opacity: .75; margin-top: 4px; }
+.srt__panel { display: grid; gap: 12px; padding: 16px; }
+.srt__ctl { display: grid; gap: 10px; }
+.srt__range { display: grid; gap: 6px; font-weight: 800; font-size: .86rem; }
+.srt__range > span { display: flex; justify-content: space-between; }
+.srt__range input { width: 100%; accent-color: var(--accent, #c79a3a); }
+.srt__legend { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: .8rem; color: var(--text-muted); }
+.srt__k { display: inline-block; width: 26px; height: 0; vertical-align: middle; margin-inline-end: 4px; border-top: 2px dashed #7fa8ff; }
+.srt__k.is-c { border-top: 2.5px solid #e2b857; }
+.srt__h { margin: 0; font-weight: 800; font-size: .9rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.srt__all { min-height: 30px; padding: 2px 10px; font-size: .78rem; }
+.srt__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; max-height: 300px; overflow: auto; }
+.srt__list li { display: grid; grid-template-columns: 10px 1fr; column-gap: 8px; align-items: baseline; font-size: .9rem; }
+.srt__list li i { width: 10px; height: 10px; border-radius: 50%; align-self: center; }
+.srt__list li small { grid-column: 2; color: var(--text-muted); font-size: .78rem; }
+.srt__none { display: block !important; color: var(--text-muted); font-size: .86rem; }
+.srt__src { margin: 0; font-size: .78rem; color: var(--text-muted); }
+@media (max-width: 899.98px) {
+  .srt__grid { grid-template-columns: 1fr; }
+  .srt__label { font-size: 15px; }
+}
