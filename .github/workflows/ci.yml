@@ -80,7 +80,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with: { name: dist, path: dist }
       - name: Playwright brauzeri
-        run: npx playwright install --with-deps chromium
+        # apt güzgüləri əlçatmaz olanda (2026-11-11: DNS xətası) — sistem paketsiz quraşdırma;
+        # ubuntu-latest image-ində Chromium-un kitabxanaları var, çatmasa testlər özü yıxılır
+        run: npx playwright install --with-deps chromium || npx playwright install chromium
       - name: E2E testləri
         run: npx playwright test
       - name: Hesabat (yıxılanda)
