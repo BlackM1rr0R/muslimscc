@@ -1,0 +1,47 @@
+/* ══ Quranda heyvanlar (components/QuranAnimals.jsx, v6.5) ══ */
+.qan { --qan-acc: #2e9a73; --qan-gold: #e0a92e; --qan-bad: #c2410c; display: grid; gap: 14px; }
+[data-theme="dark"] .qan { --qan-acc: #3fbf8e; --qan-gold: #f0c75e; --qan-bad: #ff8a5c; }
+.qan__tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.qan__tab { border: 1px solid var(--border-color, rgba(0,0,0,.12)); background: transparent; color: var(--text-primary); border-radius: 999px; padding: 7px 16px; font: inherit; font-weight: 600; cursor: pointer; }
+.qan__tab.is-on { background: #1d6b52; color: #fff; border-color: transparent; }
+[data-theme="dark"] .qan__tab.is-on { background: #5fd3a8; color: #062018; }
+.qan__learn { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .qan__learn { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; } }
+.qan__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.qan__tile { width: 100%; display: grid; justify-items: center; gap: 4px; padding: 10px 6px; border-radius: 16px; border: 2px solid transparent;
+  background: var(--bg-secondary, rgba(0,0,0,.04)); color: var(--text-primary); font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; transition: border-color .2s, background .2s; }
+.qan__tile:hover { border-color: color-mix(in srgb, var(--qan-acc) 50%, transparent); }
+.qan__tile.is-on { border-color: var(--qan-acc); background: color-mix(in srgb, var(--qan-acc) 12%, transparent); }
+.qan__emoji { font-size: 2rem; line-height: 1.1; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qan__emoji { transition: transform .25s; }
+  html:not(.a11y-reduce-motion) .qan__tile:hover .qan__emoji, html:not(.a11y-reduce-motion) .qan__opt:hover .qan__emoji { transform: scale(1.15) rotate(-6deg); }
+  html:not(.a11y-reduce-motion) .qan__card { animation: qan-in .35s ease-out; }
+}
+@keyframes qan-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.qan__card { display: grid; gap: 10px; padding: 16px; border-radius: 18px; background: var(--bg-secondary, rgba(0,0,0,.03)); border: 1px solid var(--border-color, rgba(0,0,0,.08)); }
+.qan__top { display: flex; gap: 14px; align-items: center; }
+.qan__big { font-size: 3.6rem; line-height: 1; }
+.qan__title { margin: 0; font-size: 1.35rem; }
+.qan__ar { margin: 2px 0 0; font-size: 1.4rem; }
+.qan__count { margin: 2px 0 0; font-weight: 600; color: var(--qan-acc); }
+.qan__surah { margin: 4px 0 0; font-size: .86rem; display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.qan__ayah { margin: 0; font-size: 1.35rem; line-height: 2; }
+.qan__tr { margin: 0; font-size: .92rem; line-height: 1.55; }
+.qan__tr small { color: var(--text-secondary); }
+.qan__foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.qan__ref { color: var(--text-secondary); font-size: .85rem; }
+.qan__game { display: grid; gap: 12px; justify-items: center; text-align: center; padding: 18px; border-radius: 18px; background: var(--bg-secondary, rgba(0,0,0,.03)); }
+.qan__ask { margin: 0; font-weight: 600; }
+.qan__word { margin: 0; font-size: clamp(2.2rem, 7vw, 3.2rem); line-height: 1.4; }
+.qan__opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: min(100%, 440px); }
+@media (min-width: 640px) { .qan__opts { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 640px); } }
+.qan__opt { display: grid; justify-items: center; gap: 4px; padding: 12px 6px; border-radius: 16px; border: 2px solid var(--border-color, rgba(0,0,0,.12));
+  background: var(--card-bg, #fff); color: var(--text-primary); font: inherit; font-weight: 600; cursor: pointer; transition: border-color .2s, background .2s; }
+[data-theme="dark"] .qan__opt { background: rgba(255,255,255,.04); }
+.qan__opt.is-right { border-color: var(--qan-acc); background: color-mix(in srgb, var(--qan-acc) 16%, transparent); }
+.qan__opt.is-wrong { border-color: var(--qan-bad); background: color-mix(in srgb, var(--qan-bad) 12%, transparent); }
+.qan__fb { margin: 0; min-height: 1.4em; font-weight: 700; }
+.qan__game .qan__foot { width: min(100%, 640px); }
+.qan__note { margin: 0; font-size: .8rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: flex-start; }
+.qan__note svg { flex: none; margin-top: 2px; }

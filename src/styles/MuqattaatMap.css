@@ -1,0 +1,34 @@
+/* ══ Müqəttəə hərfləri (components/quran/MuqattaatMap.jsx, v6.5) ══ */
+.mqm { --mqm-gold: #b7791f; --mqm-lit: #f6ead0; --mqm-on: #1d6b52;
+  display: grid; gap: 14px; padding: clamp(14px, 2.4vw, 22px); margin-bottom: 18px; }
+[data-theme="dark"] .mqm { --mqm-gold: #f0c75e; --mqm-lit: #3a3220; --mqm-on: #5fd3a8; }
+.mqm__head { display: grid; gap: 4px; }
+.mqm__head .ui-lead { margin: 0; }
+.mqm__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 0; }
+.mqm__stats div { padding: 10px 12px; border-radius: 12px; background: var(--bg-secondary, rgba(0,0,0,.03)); }
+.mqm__stats dt { font-size: 1.6rem; font-weight: 800; color: var(--mqm-gold); line-height: 1.1; }
+.mqm__stats dd { margin: 2px 0 0; font-size: .82rem; color: var(--text-secondary); }
+.mqm__letters { display: flex; flex-wrap: wrap; gap: 6px; }
+.mqm__all, .mqm__letter { border: 1px solid var(--border-color, rgba(0,0,0,.12)); background: transparent; color: var(--text-primary); border-radius: 12px; font: inherit; cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
+.mqm__all { padding: 6px 12px; font-size: .84rem; font-weight: 600; }
+.mqm__letter { display: grid; justify-items: center; min-width: 56px; padding: 4px 8px 6px; }
+.mqm__all.is-on, .mqm__letter.is-on { background: var(--mqm-on); border-color: transparent; color: #fff; }
+[data-theme="dark"] .mqm__all.is-on, [data-theme="dark"] .mqm__letter.is-on { color: #062018; }
+.mqm__ch { font-size: 1.6rem; line-height: 1.5; }
+.mqm__ln { font-size: .7rem; min-height: 1em; }
+.mqm__lc { font-size: .72rem; font-weight: 700; opacity: .8; }
+.mqm__hint { margin: 0; min-height: 1.5em; font-size: .9rem; }
+.mqm__hint b { font-size: 1.2rem; }
+.mqm__surahs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.mqm__surah { width: 100%; display: grid; justify-items: center; gap: 2px; padding: 10px 6px 8px; border-radius: 14px; border: 1px solid var(--border-color, rgba(0,0,0,.1));
+  background: transparent; color: var(--text-primary); font: inherit; cursor: pointer; opacity: .38; transition: opacity .25s, background .25s, border-color .25s; }
+.mqm__surah.is-lit { opacity: 1; background: var(--mqm-lit); border-color: color-mix(in srgb, var(--mqm-gold) 45%, transparent); }
+.mqm__surah.is-sel { border-color: var(--mqm-gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mqm-gold) 40%, transparent); }
+.mqm__open { font-size: 1.7rem; line-height: 1.6; color: var(--mqm-gold); }
+.mqm__sn { font-size: .78rem; text-align: center; }
+.mqm__card { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 16px; border-radius: 14px; background: var(--bg-secondary, rgba(0,0,0,.03)); }
+.mqm__big { font-size: 2.6rem; line-height: 1.4; color: var(--mqm-gold); }
+.mqm__cardtxt { display: grid; gap: 2px; flex: 1 1 200px; font-size: .9rem; }
+.mqm__cardtxt i { font-style: normal; font-weight: 700; }
+.mqm__note { margin: 0; font-size: .8rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: flex-start; }
+.mqm__note svg { flex: none; margin-top: 2px; }

@@ -20,6 +20,16 @@ import { SPRING } from '../motion/presets'
 const TracePractice = lazy(() => import('../components/trace/TracePractice'))
 // v6.3: dəstəmaz addımlarını sıraya düzmək (oyun)
 const WuduOrder = lazy(() => import('../components/WuduOrder'))
+const QuranAnimals = lazy(() => import('../components/QuranAnimals'))
+import { getSurahLocal } from '../data/surahNamesAz'
+// v6.5: Quranda heyvanlar
+const KANIMALS = {
+  az: { title: 'Quranda heyvanlar', lead: 'Quranda adı çəkilən heyvanlarla tanış ol — hər birinin ayəsi ilə. Sonra oyunda özünü yoxla!' },
+  en: { title: 'Animals in the Quran', lead: 'Meet the animals named in the Quran, each with its verse. Then test yourself in the game!' },
+  ru: { title: 'Животные в Коране', lead: 'Познакомься с животными, которые названы в Коране, — у каждого свой аят. А потом проверь себя в игре!' },
+  ar: { title: 'حيوانات في القرآن', lead: 'تعرّف على الحيوانات التي ذُكرت في القرآن، ولكلٍّ منها آيته. ثم اختبر نفسك في اللعبة!' },
+  tr: { title: 'Kur’an’da hayvanlar', lead: 'Kur’an’da adı geçen hayvanlarla tanış, her birinin ayetiyle. Sonra oyunda kendini dene!' },
+}
 const KWUDU = {
   az: { title: 'Dəstəmaz oyunu', lead: 'Dəstəmazın addımlarını düzgün sıraya düz — Peyğəmbərimiz ﷺ necə dəstəmaz alıbsa, elə.' },
   en: { title: 'Wudu game', lead: 'Put the steps of wudu in the right order — the way our Prophet ﷺ made wudu.' },
@@ -478,6 +488,7 @@ export default function KidsPage({ setPage }) {
     { key:'quiz', icon:'quiz', title:t.quizTitle },
     { key:'trace', icon:'edit', title:pickUi(KTRACE, lang, 'en').title },
     { key:'wudu', icon:'drop', title:pickUi(KWUDU, lang, 'en').title },
+    { key:'animals', icon:'quran', title:pickUi(KANIMALS, lang, 'en').title },
     { key:'parents', icon:'jamaat', title:t.parentsTitle },
   ]
   // Ayə istinadı → Quran səhifəsindəki surəyə keçid ("2:30-37")
@@ -500,13 +511,15 @@ export default function KidsPage({ setPage }) {
     : 'ayə'
   const q = QUIZ[quizIdx]
 
+  const sectionLead = current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : current.key === 'wudu' ? pickUi(KWUDU, lang, 'en').lead
+    : current.key === 'animals' ? pickUi(KANIMALS, lang, 'en').lead : k.leads[current.key]
   // Bölmə başlığı: ikon kafeli + h2 (əvvəl başlığın sonunda emoji var idi)
   const SectionTitle = () => (
     <div className="kids-section-head">
       <span className="ui-icon-tile kids-section-icon" aria-hidden="true"><Icon name={current.icon} /></span>
       <div className="kids-section-titles">
         <h2 className="ui-title ui-title--sm kids-section-title">{current.title}</h2>
-        {(current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : current.key === 'wudu' ? pickUi(KWUDU, lang, 'en').lead : k.leads[current.key]) && <p className="kids-section-lead">{current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : current.key === 'wudu' ? pickUi(KWUDU, lang, 'en').lead : k.leads[current.key]}</p>}
+        {sectionLead && <p className="kids-section-lead">{sectionLead}</p>}
       </div>
     </div>
   )
@@ -831,6 +844,15 @@ export default function KidsPage({ setPage }) {
               <SectionTitle />
               <Suspense fallback={<div className="ui-skeleton" style={{ height: 420 }} />}>
                 <WuduOrder lang={lang} />
+              </Suspense>
+            </section>
+          )}
+
+          {openSection === 'animals' && (
+            <section className="kids-section" key="animals">
+              <SectionTitle />
+              <Suspense fallback={<div className="ui-skeleton" style={{ height: 460 }} />}>
+                <QuranAnimals lang={lang} surahName={n => getSurahLocal(n, lang)?.name || String(n)} ayahHref={(s, a) => `${pathFor('quran', lang, s)}?a=${a}`} />
               </Suspense>
             </section>
           )}

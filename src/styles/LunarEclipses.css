@@ -1,0 +1,45 @@
+/* ══ Ay tutulmaları (components/LunarEclipses.jsx, v6.5) ══ */
+.lec { --lec-sky: #0d1426; --lec-moon: #f3ead2; --lec-red: #b5452a; --lec-ok: #2e9a73; --lec-part: #c98a12; --lec-no: #a14a4a;
+  display: grid; gap: 16px; padding: clamp(14px, 2.4vw, 24px); }
+[data-theme="dark"] .lec { --lec-ok: #3fbf8e; --lec-part: #f0b54a; --lec-no: #f08a8a; }
+.lec__head { display: grid; gap: 4px; }
+.lec__head .ui-lead { margin: 0; }
+.lec__grid { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 820px) { .lec__grid { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); } }
+.lec__hero { display: grid; gap: 8px; justify-items: start; }
+.lec__sel { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); }
+.lec__date { font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.15; }
+.lec__type { font-weight: 600; }
+.lec__type--T { color: var(--lec-red); } .lec__type--P { color: var(--lec-part); }
+.lec__days { font-size: .88rem; color: var(--text-secondary); }
+.lec__vis { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-weight: 600; padding: 8px 12px; border-radius: 10px; }
+.lec__vis svg { flex: none; margin-top: 3px; }
+.lec__vis--full { color: var(--lec-ok); background: color-mix(in srgb, var(--lec-ok) 12%, transparent); }
+.lec__vis--part { color: var(--lec-part); background: color-mix(in srgb, var(--lec-part) 12%, transparent); }
+.lec__vis--none { color: var(--lec-no); background: color-mix(in srgb, var(--lec-no) 10%, transparent); }
+.lec__times { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; width: 100%; }
+.lec__times li { display: grid; padding: 6px 10px; border-radius: 9px; background: var(--bg-secondary, rgba(0,0,0,.03)); font-size: .78rem; color: var(--text-secondary); }
+.lec__times b { font-size: 1rem; color: var(--text-primary); }
+.lec__scene { display: grid; gap: 8px; }
+.lec__scene svg { width: 100%; height: auto; border-radius: 14px; display: block; }
+.lec__sky { fill: var(--lec-sky); }
+.lec__pen { fill: #1d2840; opacity: .7; }
+.lec__path { stroke: #8fa3c8; stroke-width: 1.2; stroke-dasharray: 3 5; opacity: .6; }
+.lec__moon { fill: var(--lec-moon); transition: fill .4s; }
+.lec__moon.is-total { fill: var(--lec-red); }
+.lec__moon-shadow { fill: #5a1a12; opacity: .78; }
+.lec__ground { fill: #0a0f1c; opacity: .85; }
+.lec__range { display: grid; gap: 6px; font-size: .88rem; }
+.lec__range input { width: 100%; accent-color: var(--lec-red); }
+.lec__below { margin: 0; font-size: .82rem; color: var(--lec-no); }
+.lec__h3 { margin: 4px 0 0; font-size: 1rem; }
+.lec__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; }
+.lec__list button { width: 100%; display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: center; text-align: start;
+  border: 1px solid var(--border-color, rgba(0,0,0,.12)); background: transparent; color: var(--text-primary); border-radius: 10px; padding: 7px 10px; font: inherit; font-size: .84rem; cursor: pointer; }
+.lec__list button.is-on { border-color: var(--lec-red); background: color-mix(in srgb, var(--lec-red) 8%, transparent); }
+.lec__lt { font-size: .74rem; } .lec__lt--T { color: var(--lec-red); } .lec__lt--P { color: var(--lec-part); }
+.lec__lh { color: var(--text-secondary); font-size: .8rem; }
+.lec__dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.lec__dot--full { background: var(--lec-ok); } .lec__dot--part { background: var(--lec-part); } .lec__dot--none { background: transparent; border: 2px solid var(--lec-no); }
+.lec__note { margin: 0; font-size: .8rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: flex-start; }
+.lec__note svg { flex: none; margin-top: 2px; }

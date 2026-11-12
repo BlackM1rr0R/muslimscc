@@ -403,6 +403,7 @@ function MonthsGuide({ lang }) {
 const HilalAR = lazy(() => import('../components/HilalAR'))
 // v6.2: hilalın görünmə xəritəsi (Odeh meyarı) — bölməyə yaxınlaşanda
 const CrescentVisibilityMap = lazy(() => import('../components/CrescentVisibilityMap'))
+const LunarEclipses = lazy(() => import('../components/LunarEclipses'))
 // lang-ok[Kamera,Kameranı,kamera,kamerada]: az dilinin öz sözüdür (kamera)
 const HL_OBJ = { az: 'Ayı kamerada tap', en: 'Find the moon with the camera', ru: 'Найти луну камерой', ar: 'اعثر على القمر بالكاميرا', tr: 'Ayı kamerayla bul' }
 // v6.2: eyni AR — Quranın adını çəkdiyi göy cisimləri (Ay, Günəş, əş-Şira) və ayələri
@@ -841,6 +842,13 @@ export function CalendarPage({ setPage }) {
       <DeferRender height="760px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 760 }} />}>
           <CrescentVisibilityMap lang={lang} />
+        </Suspense>
+      </DeferRender>
+
+      {/* v6.5: Ay tutulmaları — NASA vaxtları, şəhərinizdən görünmə; küsuf dərsinə keçid */}
+      <DeferRender height="720px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 720 }} />}>
+          <LunarEclipses lang={lang} lessonHref={pathFor('learn', lang, 'kusuf-prayer')} />
         </Suspense>
       </DeferRender>
 

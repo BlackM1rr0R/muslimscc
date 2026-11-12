@@ -554,6 +554,7 @@ const ReciterCompare = lazy(() => import('../components/quran/ReciterCompare'))
 // v6.3: Surələr şəhəri — 114 bina, nazil olma sırası ilə küçə (three.js)
 const SurahCity3D = lazy(() => import('../components/quran/SurahCity3D'))
 const QuranMosaic = lazy(() => import('../components/quran/QuranMosaic'))
+const MuqattaatMap = lazy(() => import('../components/quran/MuqattaatMap'))
 const QuranNumbers = lazy(() => import('../components/numbers/QuranNumbers'))
 // v7: sözə uzun basma menyusu (Məna · Kök · Dinlə · Qeyd · Paylaş) — ilk uzun basmada yüklənir
 const loadWordMenu = () => import('../components/quran/WordMenu')
@@ -2029,6 +2030,11 @@ export default function QuranPage() {
           <DeferRender height="620px" idle={false} rootMargin="300px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 580 }} />}>
               <QuranMosaic lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} onOpen={(s, a) => openSurah(s, a)} />
+            </Suspense>
+          </DeferRender>
+          <DeferRender height="700px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 660 }} />}>
+              <MuqattaatMap lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} onOpen={s => openSurah(s)} />
             </Suspense>
           </DeferRender>
           <DeferRender height="680px" idle={false} rootMargin="300px 0px">
