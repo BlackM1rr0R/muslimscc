@@ -1,0 +1,36 @@
+/* ══ Quranın mozaikası (components/quran/QuranMosaic.jsx, v6.4) ══ */
+.qmo { --qmo-mk: #dcc89a; --qmo-md: #5fae95; --qmo-lo: #f3ead3; --qmo-mid: #5fae95; --qmo-hi: #1d3f7a; --qmo-dim: #e9e3d6; --qmo-saj: #d9a92e;
+  --qmo-j1: #d5deeb; --qmo-j2: #a9bdd9; --qmo-sel: #c2410c;
+  display: grid; gap: 12px; padding: clamp(14px, 2.4vw, 22px); margin-bottom: 18px; }
+[data-theme="dark"] .qmo { --qmo-mk: #8a7442; --qmo-md: #2f8f74; --qmo-lo: #2a2f36; --qmo-mid: #2f8f74; --qmo-hi: #9fe0ff; --qmo-dim: #2b313a; --qmo-saj: #f0c75e;
+  --qmo-j1: #2c3a4f; --qmo-j2: #45597a; --qmo-sel: #ff9a5c; }
+.qmo__head { display: grid; gap: 4px; }
+.qmo__head .ui-lead { margin: 0; }
+.qmo__modes { display: flex; flex-wrap: wrap; gap: 6px; }
+.qmo__mode { border: 1px solid var(--border-color, rgba(0,0,0,.12)); background: var(--bg-secondary, transparent); color: var(--text-primary);
+  border-radius: 999px; padding: 6px 13px; font: inherit; font-size: .86rem; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.qmo__mode:hover { border-color: var(--accent-color, #2e9a73); }
+.qmo__mode.is-on { background: #1d6b52; border-color: transparent; color: #fff; }
+[data-theme="dark"] .qmo__mode.is-on { background: #5fd3a8; color: #062018; }
+.qmo__wrap { width: 100%; }
+.qmo__cv { display: block; border-radius: 8px; cursor: crosshair; touch-action: manipulation; }
+.qmo__cv:focus-visible { outline: 2px solid var(--accent-color, #2e9a73); outline-offset: 3px; }
+.qmo__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.qmo__legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .82rem; color: var(--text-secondary); }
+.qmo__legend span { display: inline-flex; align-items: center; gap: 6px; }
+.qmo__sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.qmo__sw--mk { background: var(--qmo-mk); } .qmo__sw--md { background: var(--qmo-md); }
+.qmo__sw--saj { background: var(--qmo-saj); border-radius: 50%; }
+.qmo__sw--j1 { background: var(--qmo-j1); } .qmo__sw--j2 { background: var(--qmo-j2); margin-inline-start: -4px; }
+.qmo__ramp i { display: inline-block; width: 90px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, var(--qmo-lo), var(--qmo-mid), var(--qmo-hi)); }
+[dir="rtl"] .qmo__ramp i { background: linear-gradient(270deg, var(--qmo-lo), var(--qmo-mid), var(--qmo-hi)); }
+.qmo__info { margin: 0; flex: 1 1 260px; font-size: .88rem; min-height: 1.4em; }
+.qmo__saj-tag { color: var(--qmo-saj); font-weight: 600; }
+.qmo__extra { display: grid; gap: 8px; border-top: 1px dashed var(--border-color, rgba(0,0,0,.12)); padding-top: 12px; }
+.qmo__h3 { margin: 0; font-size: .95rem; }
+.qmo__chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.qmo__chips button { border: 1px solid var(--border-color, rgba(0,0,0,.12)); background: transparent; color: var(--text-primary);
+  border-radius: 10px; padding: 5px 10px; font: inherit; font-size: .82rem; cursor: pointer; }
+.qmo__chips button:hover, .qmo__chips button.is-on { border-color: var(--qmo-saj); background: color-mix(in srgb, var(--qmo-saj) 14%, transparent); }
+.qmo__note { margin: 0; font-size: .8rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: flex-start; }
+.qmo__note svg { flex: none; margin-top: 2px; }

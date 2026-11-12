@@ -401,6 +401,7 @@ const isPlainClick = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey 
 const QiyamMode = lazy(() => import('../components/prayer/QiyamMode'))
 const AdhanWave = lazy(() => import('../components/prayer/AdhanWave'))
 const YearPrayerChart = lazy(() => import('../components/prayer/YearPrayerChart'))
+const AsrShadow = lazy(() => import('../components/prayer/AsrShadow'))
 const PrayerNumbers = lazy(() => import('../components/numbers/PrayerNumbers'))
 const QY = {
   until:  { az: 'Gecənin son üçdə biri', en: 'Last third of the night', ru: 'Последняя треть ночи', ar: 'الثلث الأخير من الليل', tr: 'Gecenin son üçte biri' },
@@ -1023,6 +1024,17 @@ export default function PrayerPage({ setPage }) {
           <PrayerNumbers loc={loc} lang={lang} city={cityName} />
         </Suspense>
       </DeferRender>
+
+      {/* ── v6.4: Əsrin kölgəsi (Əbu Davud 393) — çubuğun kölgəsi bu gün ── */}
+      <section className="ui-section ui-section--tight pp-asr-shadow">
+        <div className="ui-container">
+          <DeferRender height="720px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 680 }} />}>
+              <AsrShadow loc={loc} lang={lang} city={cityName} siteAsr={dayTimes?.asr} />
+            </Suspense>
+          </DeferRender>
+        </div>
+      </section>
 
       {/* ── Vaxtların sərhədləri (Müslim 612) + nafilə qılınmayan vaxtlar ── */}
       <section className="ui-section ui-section--tight ui-section--alt pp-bounds" aria-labelledby="pp-bounds-title">
