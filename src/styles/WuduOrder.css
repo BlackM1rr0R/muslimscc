@@ -1,0 +1,32 @@
+/* Dəstəmazı sıraya düz (components/WuduOrder.jsx) */
+.wdo { display: grid; gap: 14px; }
+.wdo__path { margin: 0; padding: 12px; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; border-radius: 18px; background: color-mix(in srgb, #3aa0e0 10%, var(--surface-1, #fff)); }
+.wdo__path li { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 10px; border-radius: 12px; background: var(--surface-1, #fff); border: 1px dashed var(--border); }
+.wdo__path li.is-in { border: 1px solid #3aa0e0; background: color-mix(in srgb, #3aa0e0 14%, var(--surface-1, #fff)); }
+.wdo__path li.is-next { border-color: var(--accent, #c79a3a); border-style: solid; }
+.wdo__n { display: grid; place-items: center; width: 26px; height: 26px; flex: none; border-radius: 50%; background: #3aa0e0; color: #fff; font-weight: 800; font-size: .82rem; }
+.wdo__done { font-weight: 700; font-size: .86rem; line-height: 1.2; }
+.wdo__slot { flex: 1; height: 10px; border-radius: 6px; background: var(--surface-2, rgba(127, 127, 127, .1)); }
+.wdo__hint { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; font-weight: 700; }
+.wdo__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.wdo__card { display: grid; gap: 4px; justify-items: center; padding: 10px; border-radius: 18px; border: 2px solid var(--border); background: var(--surface-1, #fff); color: var(--text); font: inherit; cursor: pointer; box-shadow: var(--shadow-1); transition: transform .2s ease, opacity .3s ease; }
+.wdo__card:hover:not(:disabled) { transform: translateY(-3px) rotate(-1deg); }
+.wdo__card.is-used { opacity: .25; transform: scale(.92); cursor: default; }
+.wdo__card.is-shake { border-color: #e0525e; }
+.wdo__pose { width: 100%; max-width: 120px; }
+.wdo__name { font-weight: 800; font-size: .88rem; text-align: center; line-height: 1.2; }
+.wdo__msg { margin: 0; min-height: 1.3em; color: #e0525e; font-weight: 700; text-align: center; }
+.wdo__win { display: grid; justify-items: center; gap: 8px; padding: 18px; border-radius: 20px; background: rgba(53, 194, 122, .12); text-align: center; }
+.wdo__win b { font-size: 1.15rem; color: #1f9d63; }
+.wdo__stars { display: flex; gap: 4px; color: var(--border); }
+.wdo__stars .is-on { color: #e2b857; fill: #e2b857; }
+.wdo__src { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .8rem; color: var(--text-muted); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .wdo__card.is-shake.s0 { animation: wdo-shake0 .4s ease both; }
+  html:not(.a11y-reduce-motion) .wdo__card.is-shake.s1 { animation: wdo-shake1 .4s ease both; }
+  html:not(.a11y-reduce-motion) .wdo__path li.is-in { animation: wdo-in .45s cubic-bezier(.3, 1.5, .5, 1) both; }
+}
+@keyframes wdo-shake0 { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
+@keyframes wdo-shake1 { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
+@keyframes wdo-in { from { transform: scale(.85); opacity: .3; } to { transform: none; opacity: 1; } }
+@media (max-width: 560px) { .wdo__path { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

@@ -18,6 +18,15 @@ import { SPRING } from '../motion/presets'
 
 // v7: "Barmaqla yaz" — uşaq versiyası (qalın fırça, yumşaq hədd; components/trace)
 const TracePractice = lazy(() => import('../components/trace/TracePractice'))
+// v6.3: dəstəmaz addımlarını sıraya düzmək (oyun)
+const WuduOrder = lazy(() => import('../components/WuduOrder'))
+const KWUDU = {
+  az: { title: 'Dəstəmaz oyunu', lead: 'Dəstəmazın addımlarını düzgün sıraya düz — Peyğəmbərimiz ﷺ necə dəstəmaz alıbsa, elə.' },
+  en: { title: 'Wudu game', lead: 'Put the steps of wudu in the right order — the way our Prophet ﷺ made wudu.' },
+  ru: { title: 'Игра «Омовение»', lead: 'Расставь шаги омовения по порядку — так, как совершал омовение наш Пророк ﷺ.' },
+  ar: { title: 'لعبة الوضوء', lead: 'رتّب خطوات الوضوء ترتيبًا صحيحًا — كما توضّأ نبيّنا ﷺ.' },
+  tr: { title: 'Abdest oyunu', lead: 'Abdestin adımlarını doğru sıraya koy — Peygamberimiz ﷺ nasıl abdest aldıysa öyle.' },
+}
 const KTRACE = {
   az: { title: 'Barmaqla yaz', lead: 'Ərəb hərflərinin üstündən barmağınla yaz — hərf qızılı rəngə boyanır.' },
   en: { title: 'Write with your finger', lead: 'Write over the Arabic letters with your finger — the letter turns gold.' },
@@ -468,6 +477,7 @@ export default function KidsPage({ setPage }) {
     { key:'manners', icon:'donate', title:t.mannersTitle },
     { key:'quiz', icon:'quiz', title:t.quizTitle },
     { key:'trace', icon:'edit', title:pickUi(KTRACE, lang, 'en').title },
+    { key:'wudu', icon:'drop', title:pickUi(KWUDU, lang, 'en').title },
     { key:'parents', icon:'jamaat', title:t.parentsTitle },
   ]
   // Ayə istinadı → Quran səhifəsindəki surəyə keçid ("2:30-37")
@@ -496,7 +506,7 @@ export default function KidsPage({ setPage }) {
       <span className="ui-icon-tile kids-section-icon" aria-hidden="true"><Icon name={current.icon} /></span>
       <div className="kids-section-titles">
         <h2 className="ui-title ui-title--sm kids-section-title">{current.title}</h2>
-        {(current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : k.leads[current.key]) && <p className="kids-section-lead">{current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : k.leads[current.key]}</p>}
+        {(current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : current.key === 'wudu' ? pickUi(KWUDU, lang, 'en').lead : k.leads[current.key]) && <p className="kids-section-lead">{current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : current.key === 'wudu' ? pickUi(KWUDU, lang, 'en').lead : k.leads[current.key]}</p>}
       </div>
     </div>
   )
@@ -812,6 +822,15 @@ export default function KidsPage({ setPage }) {
               <SectionTitle />
               <Suspense fallback={<div className="ui-skeleton" style={{ height: 380 }} />}>
                 <TracePractice lang={lang} kid storageKey="kids_trace_v1" />
+              </Suspense>
+            </section>
+          )}
+
+          {openSection === 'wudu' && (
+            <section className="kids-section" key="wudu">
+              <SectionTitle />
+              <Suspense fallback={<div className="ui-skeleton" style={{ height: 420 }} />}>
+                <WuduOrder lang={lang} />
               </Suspense>
             </section>
           )}

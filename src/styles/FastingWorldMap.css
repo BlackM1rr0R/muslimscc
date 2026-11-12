@@ -1,0 +1,22 @@
+/* Dünyada oruc müddəti (components/FastingWorldMap.jsx) */
+.fwm-wrap { margin-block: 28px; }
+.fwm { display: grid; gap: 14px; padding: clamp(16px, 3vw, 28px); }
+.fwm__head { display: grid; gap: 6px; }
+.fwm__day { display: grid; gap: 6px; font-size: .92rem; }
+.fwm__day input { width: 100%; accent-color: var(--accent, #c79a3a); }
+.fwm__map { border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-3); background: #0b1530; }
+.fwm__cv { display: block; width: 100%; height: auto; cursor: crosshair; }
+.fwm__legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: .8rem; color: var(--text-muted); }
+.fwm__grad { display: inline-block; width: 160px; height: 10px; border-radius: 6px; background: linear-gradient(90deg, rgb(64, 120, 220), rgb(54, 190, 160) 30%, rgb(150, 210, 80) 55%, rgb(245, 190, 60) 75%, rgb(225, 70, 60)); }
+.fwm__k i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-inline-end: 4px; outline: 1px solid var(--border); }
+.fwm__out { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.fwm__card { display: grid; gap: 2px; padding: 12px 14px; border-radius: 16px; background: var(--surface-2, rgba(127, 127, 127, .08)); }
+.fwm__card span { font-size: .82rem; color: var(--text-muted); font-weight: 700; }
+.fwm__card b { font-size: 1.3rem; }
+.fwm__card.is-you { border: 1px solid var(--accent, #c79a3a); }
+.fwm__ranks { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.fwm__rank h3 { margin: 0 0 6px; font-size: .95rem; }
+.fwm__rank ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.fwm__rank li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: .88rem; }
+.fwm__rank li i { grid-column: 1 / -1; height: 5px; border-radius: 4px; }
+.fwm__note { margin: 0; font-size: .82rem; color: var(--text-muted); line-height: 1.5; }

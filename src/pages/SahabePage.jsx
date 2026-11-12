@@ -14,6 +14,8 @@ import LifespanChart from '../components/media/LifespanChart'
 import DeferRender from '../components/DeferRender'
 // v6.0: ailə və yaxınlıq ağacı — yalnız kartlarda yazılan əlaqələr (bölməyə yaxınlaşanda)
 const SahabaTree = lazy(() => import('../components/SahabaTree'))
+// v6.3: ən çox hədis rəvayət edən 9 səhabə — ulduz qalaktikası
+const NarratorGalaxy = lazy(() => import('../components/NarratorGalaxy'))
 import { SahabaNumbers } from '../components/numbers/PeopleNumbers'
 import SpotlightCard from '../motion/SpotlightCard'
 import PressedGlide from '../components/pagefx/PressedGlide'
@@ -560,6 +562,12 @@ export default function SahabePage() {
       <DeferRender height="760px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 760 }} />}>
           <SahabaTree sahaba={SAHABA} lang={lang} nameOf={(s) => pickUi(s.name, lang, 'en')} hrefOf={(s) => pathFor('sahaba', lang, slugOf(s))} onOpen={openProfile} />
+        </Suspense>
+      </DeferRender>
+
+      <DeferRender height="700px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 700 }} />}>
+          <NarratorGalaxy lang={lang} hrefOf={(slug) => pathFor('sahaba', lang, slug)} />
         </Suspense>
       </DeferRender>
 

@@ -1,0 +1,27 @@
+/* Adı mənası ilə cütlə (components/NamesMatch.jsx) */
+.nmg { display: grid; gap: 14px; padding: clamp(16px, 3vw, 28px); margin-block: 24px; }
+.nmg__head { display: grid; gap: 6px; }
+.nmg__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.nmg__levels { display: flex; flex-wrap: wrap; gap: 6px; }
+.nmg__stat { font-size: .9rem; color: var(--text-muted); }
+.nmg__stat b { color: var(--text); }
+.nmg__grid { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.nmg__grid.is-8 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.nmg__grid.is-10 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 560px) { .nmg__grid, .nmg__grid.is-8, .nmg__grid.is-10 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.nmg__card { position: relative; width: 100%; aspect-ratio: 5 / 3; min-height: 84px; padding: 0; border: 0; background: none; cursor: pointer; perspective: 800px; }
+.nmg__face { position: absolute; inset: 0; display: grid; place-items: center; padding: 8px; border-radius: 16px; backface-visibility: hidden; text-align: center; line-height: 1.25; box-shadow: var(--shadow-1); }
+.nmg__back { background: radial-gradient(circle at 30% 25%, #2a6b57, #123a30); border: 1px solid rgba(243, 230, 181, .35); }
+.nmg__star { width: 34px; height: 34px; background: #e2b857; opacity: .85; clip-path: polygon(50% 0, 61% 32%, 96% 32%, 68% 53%, 79% 88%, 50% 66%, 21% 88%, 32% 53%, 4% 32%, 39% 32%); }
+.nmg__front { background: var(--surface, #fff); border: 1px solid var(--border); color: var(--text); transform: rotateY(180deg); font-weight: 700; font-size: clamp(.78rem, 2.2vw, .95rem); }
+.nmg__front.is-ar { font-family: var(--font-arabic, 'Amiri', serif); font-size: clamp(1.3rem, 3.6vw, 1.8rem); font-weight: 400; color: #9a7220; }
+.nmg__card .nmg__back, .nmg__card .nmg__front { transition: transform .45s cubic-bezier(.3, 1.2, .5, 1); }
+.nmg__card.is-up .nmg__back { transform: rotateY(-180deg); }
+.nmg__card.is-up .nmg__front { transform: rotateY(0); }
+.nmg__card.is-done .nmg__front { background: rgba(53, 194, 122, .12); border-color: rgba(53, 194, 122, .6); }
+.nmg__card:focus-visible { outline: 3px solid var(--accent, #c79a3a); outline-offset: 2px; border-radius: 16px; }
+@media (prefers-reduced-motion: reduce) { .nmg__card .nmg__back, .nmg__card .nmg__front { transition: none; } }
+html.a11y-reduce-motion .nmg__card .nmg__back, html.a11y-reduce-motion .nmg__card .nmg__front { transition: none; }
+.nmg__won { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 14px; border-radius: 16px; background: rgba(53, 194, 122, .12); }
+.nmg__won b { display: inline-flex; gap: 6px; align-items: center; color: #1f9d63; }
+.nmg__rec { font-weight: 800; color: #9a7220; }

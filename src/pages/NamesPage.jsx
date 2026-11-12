@@ -25,6 +25,8 @@ import { lazy, Suspense } from 'react'
 import '../styles/NamesSky.css'
 // v5.8: 3D göy qübbəsi (three.js — yalnız "Səma" seçiləndə yüklənir)
 const NamesSky = lazy(() => import('../components/NamesSky'))
+// v6.3: adı mənası ilə cütləşdirmə oyunu
+const NamesMatch = lazy(() => import('../components/NamesMatch'))
 const VIEW_T = { az: { mandala: 'Mandala', sky: 'Səma' }, en: { mandala: 'Mandala', sky: 'Sky' }, ru: { mandala: 'Мандала', sky: 'Небо' }, ar: { mandala: 'ماندالا', sky: 'السماء' }, tr: { mandala: 'Mandala', sky: 'Gökyüzü' } }
 import { pickUi } from '../utils/uiText'
 // Dizayn v6 (src/motion): şəbəkədəki ad kartı → ad pəncərəsi morph (layoutId; bağlananda
@@ -529,6 +531,8 @@ const HAS_ARABIC = /[؀-ۿ]/
 // NAMES_99-da "tr" sahəsi transliterasiyadır; türkcə məna "tr_meaning"-dədir.
 // Başqa dilə (ingiliscəyə) düşmür — hər dilin öz mətni var.
 const meaningOf = (name, lang) => lang === 'ar' ? '' : lang === 'tr' ? (name.tr_meaning || '') : (name[lang] || '')
+// Oyun üçün: ərəbcə interfeysdə məna sahəsi yoxdur — ingiliscə mənaya düşür (sabit funksiya — kartlar qarışmasın)
+const matchMeaning = (n, l) => meaningOf(n, l) || n.en
 
 // Siyahının mənbəyi (bax: src/data/names99.js başlığı). Tirmizi 3507-dəki
 // sadalama ravinin əlavəsidir; adlar 99-la məhdud deyil (Əhməd 3712).
@@ -969,6 +973,15 @@ export default function NamesPage({ setPage }) {
               </article>
             )}
           </ReaderDialog>
+        </div>
+      </section>
+
+      {/* v6.3: oyun — ərəbcə adı mənası ilə cütlə */}
+      <section className="ui-section ui-section--tight">
+        <div className="ui-container">
+          <Suspense fallback={null}>
+            <NamesMatch names={NAMES_99} lang={lang} meaningOf={matchMeaning} />
+          </Suspense>
         </div>
       </section>
 

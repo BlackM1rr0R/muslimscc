@@ -10,7 +10,10 @@
 //   və 30 günlük xətm planı (gündə bir cüz; localStorage 'muslim_cc_ramadan_khatm_v1').
 // ═══════════════════════════════════════════════════════
 
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import DeferRender from '../components/DeferRender'
+// v6.3: dünyada oruc müddəti xəritəsi (bölməyə yaxınlaşanda)
+const FastingWorldMap = lazy(() => import('../components/FastingWorldMap'))
 import CrescentPath from '../components/CrescentPath'
 import { ummahAdd } from '../utils/ummah'
 import { useNavigate } from 'react-router-dom'
@@ -529,6 +532,12 @@ export default function RamadanPage({ setPage }) {
         <MonthGlance calendar={calendar} todayDate={todayDate} dayNumber={day?.number}
           inRamadan={st.phase?.phase === 'ramadan'} lang={lang} city={city} />
       )}
+
+      <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 900 }} />}>
+          <FastingWorldMap lang={lang} />
+        </Suspense>
+      </DeferRender>
 
       <RamadanGuide lang={lang} todayJuz={day?.number >= 1 && day.number <= 30 ? day.number : null} />
     </div>

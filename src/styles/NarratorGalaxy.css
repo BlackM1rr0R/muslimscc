@@ -1,0 +1,32 @@
+/* Rəvayət qalaktikası (components/NarratorGalaxy.jsx) */
+.ngx { display: grid; gap: 14px; padding: clamp(16px, 3vw, 28px); }
+.ngx__head { display: grid; gap: 6px; }
+.ngx__grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(220px, 1fr); gap: clamp(14px, 3vw, 28px); align-items: center; }
+@media (max-width: 760px) { .ngx__grid { grid-template-columns: 1fr; } }
+.ngx__sky { position: relative; aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: radial-gradient(circle, #1b2a55 0%, #0a1226 62%, #060b1a 100%); box-shadow: var(--shadow-3); }
+.ngx__core { position: absolute; left: 50%; top: 50%; width: 22%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle, rgba(255, 231, 160, .95), rgba(226, 184, 87, .35) 55%, transparent 72%); color: #2a1d05; font-weight: 800; font-size: clamp(.7rem, 2vw, .95rem); }
+.ngx__orbit { position: absolute; inset: 0; transform: rotate(var(--a)); pointer-events: none; }
+.ngx__orbit::before { content: ''; position: absolute; left: calc(50% - var(--r)); top: calc(50% - var(--r)); width: calc(var(--r) * 2); height: calc(var(--r) * 2); border-radius: 50%; border: 1px dashed rgba(180, 200, 255, .14); }
+.ngx__star { position: absolute; left: calc(50% + var(--r)); top: 50%; width: var(--s); height: var(--s); padding: 0; border: 0; border-radius: 50%; cursor: pointer; background: none; pointer-events: auto; transform: translate(-50%, -50%); }
+.ngx__glow { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, #fff 0 18%, var(--c) 42%, transparent 70%); box-shadow: 0 0 18px 2px color-mix(in srgb, var(--c) 60%, transparent); transition: transform .3s ease; }
+.ngx__star.is-sel .ngx__glow { transform: scale(1.35); box-shadow: 0 0 30px 8px color-mix(in srgb, var(--c) 75%, transparent); }
+.ngx__star:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ngx__orbit { animation: ngx-spin var(--d) linear infinite; }
+}
+.ngx__sky:hover .ngx__orbit, .ngx__sky:focus-within .ngx__orbit { animation-play-state: paused; }
+@keyframes ngx-spin { from { transform: rotate(var(--a)); } to { transform: rotate(calc(var(--a) + 360deg)); } }
+.ngx__card { display: grid; gap: 6px; justify-items: start; padding: 16px; border-radius: 18px; background: var(--surface-2, rgba(127, 127, 127, .08)); }
+.ngx__rank { font-size: .8rem; font-weight: 800; color: var(--text-muted); }
+.ngx__name { font-size: 1.25rem; }
+.ngx__ar { font-size: 1.4rem; color: var(--text-muted); }
+.ngx__count { font-size: 2.2rem; font-weight: 800; line-height: 1; color: var(--accent, #c79a3a); }
+.ngx__count small { font-size: .9rem; color: var(--text-muted); }
+.ngx__bars { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.ngx__bars button { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 4px 6px; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.ngx__bars li.is-sel button { background: var(--surface-2, rgba(127, 127, 127, .08)); }
+.ngx__bars i { grid-column: 1 / -1; height: 6px; border-radius: 4px; }
+.ngx__bn { font-size: .88rem; font-weight: 700; }
+.ngx__bv { font-size: .86rem; font-weight: 800; }
+.ngx__note { margin: 0; font-size: .82rem; color: var(--text-muted); line-height: 1.5; }

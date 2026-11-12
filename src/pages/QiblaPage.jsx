@@ -24,6 +24,8 @@ const KAABA = { lat: 21.3891, lon: 39.8579 }
 // Fırladıla bilən qlobus — ayrıca chunk (d3-geo + quru xəritəsi yalnız burada yüklənir)
 const QiblaGlobe = lazy(() => import('../components/QiblaGlobe'))
 const QiblaLines = lazy(() => import('../components/QiblaLines'))
+// v6.3: Rəsdül-qiblə — Günəş Kəbənin üstündə (geri sayım, kölgə səhnəsi)
+const RasdQibla = lazy(() => import('../components/RasdQibla'))
 
 // Kompasda yalnız 4 əsas istiqamət yazı ilə göstərilir (aralıqdakılar
 // cizgi ilə). Azərbaycan və ərəb dillərində tək hərf toqquşur
@@ -730,6 +732,10 @@ export default function QiblaPage({ setPage }) {
           </Suspense>
         </div>
       </section>
+
+      <Suspense fallback={null}>
+        <RasdQibla lang={lang} />
+      </Suspense>
 
       {/* Hökmlər və tövsiyələr — məkan tapılmasa da göstərilir */}
       <QiblaGuide lang={lang} />
