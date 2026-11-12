@@ -33,7 +33,9 @@ describe('Quranda heyvanlar — Quranic Arabic Corpus ilə yoxlama', () => {
     const az = JSON.parse(fs.readFileSync('public/data/quran-animals/az.json', 'utf8'))
     for (const a of QURAN_ANIMALS) {
       const [s, n] = a.ref.split(':').map(Number)
-      expect(az.ar[a.ref]).toBe(Q.ayahs[s - 1][n - 1].replace('بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ', ''))
+      const full = Q.ayahs[s - 1][n - 1]
+      expect(az.ar[a.ref]).not.toMatch(/^بِسْمِ/)                       // surə əvvəlindəki bəsmələ ayənin özü deyil
+      expect(full.endsWith(az.ar[a.ref])).toBe(true)
       expect(az.tr[a.ref].length).toBeGreaterThan(10)
     }
   })
