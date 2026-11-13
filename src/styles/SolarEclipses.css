@@ -1,0 +1,41 @@
+/* ══ Günəş tutulmaları (components/SolarEclipses.jsx, v6.6) ══ */
+.sec { --sec-gold: #7a5208; --sec-ok: #1f7a58; --sec-no: #a14a4a;
+  display: grid; gap: 16px; padding: clamp(14px, 2.4vw, 24px); }
+[data-theme="dark"] .sec { --sec-gold: #f0b54a; --sec-ok: #3fbf8e; --sec-no: #f08a8a; }
+.sec__head { display: grid; gap: 4px; }
+.sec__head .ui-lead { margin: 0; }
+.sec__grid { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .sec__grid { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); } }
+.sec__hero { display: grid; gap: 8px; justify-items: start; }
+.sec__sel, .sec__cap { font-size: .78rem; color: var(--text-secondary); }
+.sec__sel { text-transform: uppercase; letter-spacing: .06em; }
+.sec__date { font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.15; }
+.sec__type { font-weight: 600; color: var(--sec-gold); }
+.sec__type--P { color: var(--text-secondary); }
+.sec__days { font-size: .88rem; color: var(--text-secondary); }
+.sec__here { display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; width: 100%; box-sizing: border-box;
+  border: 1px solid var(--border-color, rgba(0,0,0,.12)); }
+.sec__here b { font-size: 1.05rem; color: var(--sec-no); }
+.sec__here.is-on { border-color: color-mix(in srgb, var(--sec-ok) 50%, transparent); background: color-mix(in srgb, var(--sec-ok) 9%, transparent); }
+.sec__here.is-on b { color: var(--sec-ok); }
+.sec__times { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; width: 100%; }
+.sec__times li { display: grid; padding: 6px 10px; border-radius: 9px; background: var(--bg-secondary, rgba(0,0,0,.03)); font-size: .78rem; color: var(--text-secondary); }
+.sec__times b { font-size: 1rem; color: var(--text-primary); }
+.sec__mk { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: .88rem; }
+.sec__mk svg { flex: none; margin-top: 3px; color: var(--sec-ok); }
+.sec__mapbox { display: grid; gap: 8px; }
+.sec__map { width: 100%; aspect-ratio: 720 / 370; border-radius: 14px; display: block; background: #0d1a2e; }
+.sec__ctl { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+.sec__range { flex: 1 1 220px; display: grid; gap: 6px; font-size: .88rem; }
+.sec__range input { width: 100%; accent-color: #c98a12; }
+.sec__h3 { margin: 4px 0 0; font-size: 1rem; }
+.sec__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 6px; }
+.sec__list button { width: 100%; display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; text-align: start;
+  border: 1px solid var(--border-color, rgba(0,0,0,.12)); background: transparent; color: var(--text-primary); border-radius: 10px; padding: 7px 10px; font: inherit; font-size: .84rem; cursor: pointer; }
+.sec__list button.is-on { border-color: var(--sec-gold); background: color-mix(in srgb, var(--sec-gold) 9%, transparent); }
+.sec__lt { font-size: .74rem; color: var(--sec-gold); } .sec__lt--P { color: var(--text-secondary); }
+.sec__lp { font-size: .82rem; font-weight: 700; min-width: 3ch; text-align: end; }
+.sec__safety { margin: 0; display: flex; gap: 8px; align-items: flex-start; font-size: .86rem; padding: 10px 12px; border-radius: 10px;
+  background: color-mix(in srgb, #e5484d 9%, transparent); border: 1px solid color-mix(in srgb, #e5484d 30%, transparent); }
+.sec__safety svg { flex: none; margin-top: 2px; color: #c4353a; }
+.sec__note { margin: 0; font-size: .76rem; color: var(--text-secondary); }

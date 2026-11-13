@@ -1,4 +1,4 @@
-// v6.6: Ulduzlarla qiblə (/qibla)
+// v6.6: Ulduzlarla qiblə (/qibla), Günəş tutulmaları (/calendar)
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, settle } from './fixtures.js'
 
@@ -40,5 +40,40 @@ for (const theme of ['light', 'dark']) {
     const bad = violations.filter(v => v.impact === 'critical' || v.impact === 'serious')
       .flatMap(v => v.nodes.map(n => `${v.id} · ${n.target.join(' ')}`))
     expect(bad).toEqual([])
+  })
+}
+
+test('Günəş tutulmaları: Bakı üçün 2027-08-02 (27%), Məkkədə tam, xəritə və sürüşdürücü', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-13T17:00:00Z'))
+  await page.goto('/calendar')
+  await settle(page)
+  const s = page.getByTestId('solar-eclipses')
+  await scrollTo(page, s)
+  await expect(s.getByTestId('sec-date')).toContainText('2 avqust 2027')
+  await expect(s.getByTestId('sec-here')).toContainText('Günəşin 27%-i örtüləcək')
+  await expect(s.getByTestId('sec-makkah')).toContainText('Kəbənin üstündə tam tutulma')
+  await expect(s.getByTestId('sec-list').locator('button')).toHaveCount(32)   // 2026-11-13-dən sonrakılar
+  const t0 = await s.getByTestId('sec-time').innerText()
+  await s.getByTestId('sec-range').focus()
+  for (let i = 0; i < 15; i++) await page.keyboard.press('ArrowRight')
+  await expect(s.getByTestId('sec-time')).not.toHaveText(t0)
+  await expect(s.locator('a[href*="kusuf-prayer"]')).toBeVisible()
+  // 2034-03-20 — Bakıdan da görünür
+  await s.getByTestId('sec-list').locator('button').filter({ hasText: '20 mart 2034' }).click()
+  await expect(s.getByTestId('sec-date')).toContainText('20 mart 2034')
+})
+
+for (const theme of ['light', 'dark']) {
+  test(`Günəş tutulmaları: əlçatanlıq (axe, ${theme})`, async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-11-13T17:00:00Z'))
+    await page.emulateMedia({ colorScheme: theme })
+    await page.goto('/calendar')
+    await settle(page)
+    const s = page.getByTestId('solar-eclipses')
+    await scrollTo(page, s)
+    await expect(s.getByTestId('sec-here')).toBeVisible()
+    const { violations } = await new AxeBuilder({ page }).include('[data-testid=solar-eclipses]')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze()
+    expect(violations.filter(v => v.impact === 'critical' || v.impact === 'serious').flatMap(v => v.nodes.map(n => `${v.id} · ${n.target.join(' ')}`))).toEqual([])
   })
 }
