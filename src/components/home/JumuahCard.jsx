@@ -149,15 +149,16 @@ export default function JumuahCard() {
             {/* 3. Salavat sayğacı */}
             <div className="jm__cell jm__sal">
               <span className="jm__k">{l.salawat}</span>
-              <button type="button" className="jm__tap" onClick={addSalawat} aria-label={`${l.salawat}: ${st.salawat}. ${l.tap}`}>
+              {/* Ad görünən mətndən qurulur (aria-label görünən rəqəmlə uyğun gəlmirdi — axe label-content-name-mismatch) */}
+              <button type="button" className="jm__tap" onClick={addSalawat}>
                 <svg className="jm__ring jm__ring--sal" viewBox="0 0 100 100" aria-hidden="true">
                   <circle className="jm__ring-track" cx="50" cy="50" r={R} />
                   <circle className="jm__ring-bar" cx="50" cy="50" r={R} strokeDasharray={C} strokeDashoffset={C * (1 - lap / 100)} />
                 </svg>
                 {bump > 0 && <span key={bump} className="jm__ripple" aria-hidden="true" />}
                 <span className="jm__tap-ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ</span>
-                <b key={`n${bump}`} className="jm__count ui-num">{st.salawat}</b>
-                <span className="jm__tap-hint" aria-hidden="true">{l.tap}{laps > 0 ? ` · ×${laps}00` : ''}</span>
+                <span className="ui-sr-only">{l.salawat}: </span><b key={`n${bump}`} className="jm__count ui-num">{st.salawat}</b>
+                <span className="jm__tap-hint"><span className="ui-sr-only">. </span>{l.tap}{laps > 0 ? ` · ×${laps}00` : ''}</span>
               </button>
               <Quote h={H_SALAWAT} lang={lang} l={l} />
             </div>
