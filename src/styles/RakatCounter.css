@@ -1,0 +1,33 @@
+/* ══ Rəkət sayğacı (components/prayer/RakatCounter.jsx, v6.6) ══ */
+.rkc { display: grid; gap: 14px; padding: clamp(14px, 2.4vw, 24px); }
+.rkc__head { display: grid; gap: 4px; }
+.rkc__head .ui-lead { margin: 0; }
+.rkc__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.rkc__opt, .rkc__mode { border: 1px solid var(--border-color, rgba(0,0,0,.14)); background: transparent; color: var(--text-primary);
+  border-radius: 12px; padding: 9px 14px; font: inherit; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.rkc__opt { flex-direction: column; align-items: flex-start; gap: 0; min-width: 120px; }
+.rkc__opt span { font-size: .78rem; color: var(--text-secondary); }
+.rkc__opt.is-on, .rkc__mode.is-on { border-color: var(--color-primary, #1d6b52); background: color-mix(in srgb, var(--color-primary, #1d6b52) 10%, transparent); }
+.rkc__mode { font-size: .88rem; }
+.rkc__start { justify-self: start; }
+.rkc__muted { margin: 0; font-size: .82rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: flex-start; }
+.rkc__muted svg { flex: none; margin-top: 2px; }
+.rkc__sahw { justify-self: start; font-size: .9rem; }
+
+html.rkc-lock, html.rkc-lock body { overflow: hidden; }
+.rkc-ov { position: fixed; inset: 0; z-index: 10000; background: #000; color: #5b5b5b; display: grid; grid-template-rows: auto 1fr auto;
+  padding: max(14px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom)); user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.rkc-ov.is-dark { color: #3a3a3a; }
+.rkc-ov__video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.rkc-ov__close { justify-self: end; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #262626; background: transparent; color: #6b6b6b; cursor: pointer; display: grid; place-items: center; }
+.rkc-ov__mid { display: grid; place-content: center; justify-items: center; gap: 8px; text-align: center; }
+.rkc-ov__num { font-size: min(46vw, 300px); line-height: .9; font-weight: 700; color: #6e6e6e; }
+.rkc-ov__of { font-size: 1.3rem; }
+.rkc-ov__dots { display: flex; gap: 10px; margin-top: 6px; }
+.rkc-ov__dots i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #3d3d3d; }
+.rkc-ov__dots i.is-on { background: #5b5b5b; border-color: #5b5b5b; }
+.rkc-ov__msg { font-size: 1.1rem; color: #7a7a7a; margin-top: 8px; }
+.rkc-ov__end { font-size: clamp(2rem, 8vw, 3.4rem); color: #8a8a8a; font-weight: 700; }
+.rkc-ov__sub { font-size: 1.05rem; }
+.rkc-ov__foot { display: grid; justify-items: center; gap: 10px; font-size: .9rem; text-align: center; }
+.rkc-ov__undo { border: 1px solid #2c2c2c; background: transparent; color: #6b6b6b; border-radius: 999px; padding: 8px 16px; font: inherit; cursor: pointer; }

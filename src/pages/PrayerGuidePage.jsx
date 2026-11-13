@@ -40,6 +40,7 @@ import PresenceSwap from '../motion/PresenceSwap'
 import DeferRender from '../components/DeferRender'
 // v6.2: səhv səcdəsi bələdçisi (bölməyə yaxınlaşanda yüklənir)
 const SahwGuide = lazy(() => import('../components/prayer/SahwGuide'))
+const RakatCounter = lazy(() => import('../components/prayer/RakatCounter'))
 
 // ── Surənin tam mənası (Fatihə, İxlas) ──
 // Ayələrin mənası yaddaşdan yazılmır: alquran.cloud-dan (QuranPage ilə eyni
@@ -600,6 +601,12 @@ export default function PrayerGuidePage({ setPage }) {
 
       <RakatOverview lang={lang} />
       <Pillars lang={lang} />
+      {/* v6.6: rəkət sayğacı — kamera ilə səcdəni tanıyır (toxunuşsuz) və ya toxunuşla */}
+      <DeferRender height="420px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 420 }} />}>
+          <RakatCounter lang={lang} sahwHref="#shw-title" />
+        </Suspense>
+      </DeferRender>
       {/* v6.2: səhv səcdəsi — qərar ağacı, hər addım Buxari/Müslim hədisi ilə */}
       <DeferRender height="520px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 520 }} />}>

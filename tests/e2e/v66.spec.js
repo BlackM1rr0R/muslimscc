@@ -1,4 +1,4 @@
-// v6.6: Ulduzlarla qiblə (/qibla), Günəş tutulmaları (/calendar)
+// v6.6: Ulduzlarla qiblə (/qibla), Günəş tutulmaları (/calendar), rəkət sayğacı (/prayerguide)
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, settle } from './fixtures.js'
 
@@ -77,3 +77,58 @@ for (const theme of ['light', 'dark']) {
     expect(violations.filter(v => v.impact === 'critical' || v.impact === 'serious').flatMap(v => v.nodes.map(n => `${v.id} · ${n.target.join(' ')}`))).toEqual([])
   })
 }
+
+test('Rəkət sayğacı: toxunuş rejimi — 3 rəkətli namaz, orta təşəhhüd, son', async ({ page }) => {
+  await page.goto('/prayerguide')
+  await settle(page)
+  const c = page.getByTestId('rakat-counter')
+  await scrollTo(page, c)
+  await c.getByTestId('rkc-n3').click()
+  await c.getByTestId('rkc-tapmode').click()
+  await c.getByTestId('rkc-start').click()
+  const ov = page.getByTestId('rkc-overlay')
+  await expect(ov.getByTestId('rkc-num')).toHaveText('1')
+  await ov.click({ position: { x: 200, y: 300 } })
+  await expect(ov.getByTestId('rkc-num')).toHaveText('2')
+  await ov.click({ position: { x: 200, y: 300 } })
+  await expect(ov.getByTestId('rkc-msg')).toHaveText('Orta təşəhhüd — sonra qalxın')
+  await ov.click({ position: { x: 200, y: 300 } })
+  await expect(ov.getByTestId('rkc-end')).toHaveText('Namaz bitdi')
+  await page.keyboard.press('Escape')
+  await expect(ov).toHaveCount(0)
+})
+
+test('Rəkət sayğacı: kamera rejimi — işığın düşməsi səcdə sayılır (saxta kamera)', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__lum = 200
+    const cv = document.createElement('canvas'); cv.width = 64; cv.height = 48
+    const ctx = cv.getContext('2d')
+    setInterval(() => { ctx.fillStyle = `rgb(${window.__lum},${window.__lum},${window.__lum})`; ctx.fillRect(0, 0, 64, 48) }, 50)
+    navigator.mediaDevices.getUserMedia = async () => cv.captureStream(20)
+  })
+  await page.goto('/prayerguide')
+  await settle(page)
+  const c = page.getByTestId('rakat-counter')
+  await scrollTo(page, c)
+  await c.getByTestId('rkc-n2').click()
+  await c.getByTestId('rkc-start').click()
+  const ov = page.getByTestId('rkc-overlay')
+  await expect(ov.getByTestId('rkc-num')).toHaveText('1')
+  await page.waitForTimeout(1500)
+  for (let k = 0; k < 2; k++) {
+    await page.evaluate(() => { window.__lum = 25 }); await page.waitForTimeout(1300)
+    await page.evaluate(() => { window.__lum = 200 }); await page.waitForTimeout(1300)
+  }
+  await expect(ov.getByTestId('rkc-num')).toHaveText('2')
+  await expect(ov.getByTestId('rkc-msg')).toHaveText('Son rəkət')
+})
+
+test('Rəkət sayğacı: əlçatanlıq (axe)', async ({ page }) => {
+  await page.goto('/prayerguide')
+  await settle(page)
+  const c = page.getByTestId('rakat-counter')
+  await scrollTo(page, c)
+  const { violations } = await new AxeBuilder({ page }).include('[data-testid=rakat-counter]')
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze()
+  expect(violations.filter(v => v.impact === 'critical' || v.impact === 'serious').flatMap(v => v.nodes.map(n => `${v.id} · ${n.target.join(' ')}`))).toEqual([])
+})
