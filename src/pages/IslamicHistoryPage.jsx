@@ -9,6 +9,7 @@ import { HijraJourney, SirahMap, SpreadMap } from '../components/media/SiraMaps'
 import RelatedLinks from '../components/media/RelatedLinks'
 // Canlı yayılma xəritəsi (d3-geo + sahil xətləri) — ayrıca yüklənir; o vaxta qədər statik sxem
 const SpreadTimeline = lazy(() => import('../components/media/SpreadTimeline'))
+const IslamicScience = lazy(() => import('../components/IslamicScience'))
 // v5.9: Hicrət yolu 3D (three.js — ayrıca chunk, bölməyə yaxınlaşanda)
 const HijraJourney3D = lazy(() => import('../components/media/HijraJourney3D'))
 // v5.9: Quranda adı keçən yerlər xəritəsi (peyğəmbərlər bölməsində)
@@ -431,6 +432,12 @@ export default function IslamicHistoryPage() {
           <Suspense fallback={<SpreadMap lang={lang} />}>
             <SpreadTimeline lang={lang} />
           </Suspense>
+          {/* v6.6: elm adamları — xəritə, zaman xətti, canlı nümayişlər (cəbr, kamera obskura, Yerin radiusu) */}
+          <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
+              <IslamicScience lang={lang} />
+            </Suspense>
+          </DeferRender>
           <h3 className="history-places-title">{M.places}</h3>
           <div className="ph-strip" data-reveal="stagger">
             {['taif', 'al-baqi'].map(k => (

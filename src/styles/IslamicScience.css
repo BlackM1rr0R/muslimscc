@@ -1,0 +1,67 @@
+/* ══ Elm adamları (components/IslamicScience.jsx, v6.6) ══ */
+.isci { display: grid; gap: 14px; padding: clamp(14px, 2.4vw, 24px); margin-top: 20px; }
+.isci__head { display: grid; gap: 4px; }
+.isci__head .ui-lead { margin: 0; }
+.isci__fields { display: flex; flex-wrap: wrap; gap: 6px; }
+.isci__chip { display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--border-color, rgba(0,0,0,.14)); background: transparent; color: var(--text-primary);
+  border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .84rem; cursor: pointer; }
+.isci__chip i { width: 9px; height: 9px; border-radius: 50%; background: var(--c, #888); }
+.isci__chip.is-on { border-color: var(--c, var(--color-primary, #1d6b52)); background: color-mix(in srgb, var(--c, #1d6b52) 12%, transparent); font-weight: 600; }
+.isci__map { margin: 0; display: grid; gap: 4px; }
+.isci__map svg { width: 100%; height: auto; display: block; }
+.isci__sea { fill: #dfe9f2; }
+[data-theme="dark"] .isci__sea { fill: #13253a; }
+.isci__land { fill: #e9dfc6; stroke: #c9b98f; stroke-width: .5; }
+[data-theme="dark"] .isci__land { fill: #2c3a2f; stroke: #44564a; }
+.isci__pin { cursor: pointer; }
+.isci__pin circle { fill: var(--c); stroke: #fff; stroke-width: 1.5; transition: r .25s; }
+.isci__pin.is-on circle { stroke-width: 2.5; filter: drop-shadow(0 0 4px var(--c)); }
+.isci__pin text { font-size: 12px; font-weight: 700; fill: var(--text-primary); paint-order: stroke; stroke: var(--bg-primary, #fff); stroke-width: 3px; }
+.isci__cap { font-size: .76rem; color: var(--text-secondary); }
+.isci__time { display: grid; gap: 6px; }
+.isci__axis { position: relative; height: 16px; border-bottom: 1px solid var(--border-color, rgba(0,0,0,.14)); }
+.isci__axis span { position: absolute; transform: translateX(-50%); font-size: .72rem; color: var(--text-secondary); }
+[dir="rtl"] .isci__axis span { transform: translateX(50%); }
+.isci__bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.isci__bars li { position: relative; height: 26px; }
+.isci__bar { position: absolute; top: 0; height: 26px; min-width: 14%; border: 0; border-radius: 7px; cursor: pointer; padding: 0 8px; text-align: start; font: inherit; font-size: .78rem;
+  background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--text-primary); border-inline-start: 3px solid var(--c); white-space: nowrap; overflow: visible; }
+.isci__bar.is-on { background: color-mix(in srgb, var(--c) 34%, transparent); font-weight: 700; }
+.isci__card { display: grid; gap: 8px; padding: 14px 16px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); background: color-mix(in srgb, var(--c) 6%, transparent); }
+.isci__ctop { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.isci__ctop h3 { margin: 0; font-size: 1.25rem; }
+.isci__meta { font-size: .84rem; color: var(--text-secondary); }
+.isci__arname { margin: 0; font-size: 1.2rem; text-align: start; }
+.isci__fact { margin: 0; line-height: 1.6; }
+.isci__work { margin: 0; font-size: .9rem; }
+.isci__work span { color: var(--text-secondary); }
+.isci__demo { display: grid; gap: 8px; padding-top: 6px; border-top: 1px dashed color-mix(in srgb, var(--c) 40%, transparent); }
+.isci__demo h4 { margin: 0; font-size: .95rem; display: flex; gap: 6px; align-items: center; }
+.isci-alg, .isci-cam, .isci-earth { display: grid; gap: 8px; justify-items: start; }
+.isci-alg svg { width: min(100%, 260px); height: auto; }
+.isci-alg text { font-size: 14px; font-weight: 700; fill: var(--text-primary); }
+.isci-alg__sq { fill: color-mix(in srgb, #2f6fb3 35%, transparent); stroke: #2f6fb3; }
+.isci-alg__rect { fill: color-mix(in srgb, #2f6fb3 16%, transparent); stroke: #2f6fb3; }
+.isci-alg__add { fill: color-mix(in srgb, #c47a12 30%, transparent); stroke: #c47a12; stroke-dasharray: 4 3; }
+.isci-alg__big { fill: none; stroke: #1f7a58; stroke-width: 3; }
+.isci-alg__lbl { fill: #1f7a58 !important; }
+.isci-alg__txt { margin: 0; font-weight: 600; }
+.isci-cam svg, .isci-earth svg { width: 100%; max-width: 420px; height: auto; }
+.isci-cam__box { fill: #1a1a22; }
+.isci-cam__wall { stroke: #888; stroke-width: 3; }
+.isci-cam__ray { stroke: #f0c060; stroke-width: 1; opacity: .8; }
+.isci-cam__obj { stroke: #c47a12; stroke-width: 3; }
+.isci-cam__img { stroke: #e8d9a8; stroke-width: 3; }
+.isci-cam__t { font-size: 11px; fill: var(--text-secondary); }
+.isci-earth__ground { fill: color-mix(in srgb, #1f7a58 22%, transparent); stroke: #1f7a58; }
+.isci-earth__mt { fill: #8a7457; }
+.isci-earth__lvl { stroke: var(--text-secondary); stroke-dasharray: 4 3; }
+.isci-earth__sight { stroke: #c0453d; stroke-width: 1.5; }
+.isci-earth__out { margin: 0; display: flex; gap: 10px; flex-wrap: wrap; }
+.isci-earth__out div { padding: 6px 12px; border-radius: 9px; background: var(--bg-secondary, rgba(0,0,0,.04)); }
+.isci-earth__out dt { font-size: .74rem; color: var(--text-secondary); }
+.isci-earth__out dd { margin: 0; font-weight: 700; }
+.isci__range { display: grid; gap: 4px; font-size: .86rem; width: 100%; max-width: 420px; }
+.isci__range input { width: 100%; accent-color: var(--c, #1d6b52); }
+.isci__note { margin: 0; font-size: .86rem; color: var(--text-secondary); }
+.isci__src { margin: 0; font-size: .76rem; color: var(--text-secondary); }

@@ -1,4 +1,4 @@
-// v6.6: Ulduzlarla qiblə (/qibla), Günəş tutulmaları (/calendar), rəkət sayğacı (/prayerguide), uşaq adları (/muslim-baby-names)
+// v6.6: Ulduzlarla qiblə, Günəş tutulmaları, rəkət sayğacı, uşaq adları, elm adamları
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, settle } from './fixtures.js'
 
@@ -162,6 +162,37 @@ for (const theme of ['light', 'dark']) {
     await settle(page)
     await expect(page.getByTestId('bn-card').first()).toBeVisible()
     const { violations } = await new AxeBuilder({ page }).include('main')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze()
+    expect(violations.filter(v => v.impact === 'critical' || v.impact === 'serious').flatMap(v => v.nodes.map(n => `${v.id} · ${n.target.join(' ')}`))).toEqual([])
+  })
+}
+
+test('Elm adamları: xəritə, zaman xətti, cəbr nümayişi, Biruni', async ({ page }) => {
+  await page.goto('/history')
+  await settle(page)
+  const s = page.getByTestId('islamic-science')
+  await scrollTo(page, s)
+  await expect(s.getByTestId('isci-bar')).toHaveCount(14)
+  await expect(s.getByTestId('isci-card')).toContainText('Əl-Xarəzmi')
+  for (let i = 0; i < 3; i++) await s.getByTestId('isci-alg-next').click()
+  await expect(s.getByTestId('isci-alg-step')).toContainText('x = 3')
+  await s.getByTestId('isci-f-med').click()
+  await expect(s.getByTestId('isci-bar')).toHaveCount(4)
+  await s.getByTestId('isci-f-astro').click()
+  await s.locator('[data-testid=isci-bar][data-id=biruni]').click()
+  await expect(s.getByTestId('isci-fact')).toContainText('6339,9 km')
+  await expect(s.getByTestId('isci-radius')).toHaveText('6371 km')
+})
+
+for (const theme of ['light', 'dark']) {
+  test(`Elm adamları: əlçatanlıq (axe, ${theme})`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: theme })
+    await page.goto('/history')
+    await settle(page)
+    const s = page.getByTestId('islamic-science')
+    await scrollTo(page, s)
+    await expect(s.getByTestId('isci-card')).toBeVisible()
+    const { violations } = await new AxeBuilder({ page }).include('[data-testid=islamic-science]')
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze()
     expect(violations.filter(v => v.impact === 'critical' || v.impact === 'serious').flatMap(v => v.nodes.map(n => `${v.id} · ${n.target.join(' ')}`))).toEqual([])
   })
