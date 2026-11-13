@@ -418,36 +418,30 @@ const DETAIL_SITEMAP = {
   glossary: { file: 'sitemap-glossary.xml', priority: 0.7, changefreq: 'monthly' },
 }
 
-/** Bir URL girişi (5 dil + x-default hreflang alternativləri ilə). */
-function urlEntry(key, lang, param, today, changefreq, priority) {
-  const p = param ?? undefined
-  const alts = [
-    ...seoLangsFor(key, param).map(l => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SITE + pathFor(key, l, p)}"/>`),
-    `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE + pathFor(key, DEFAULT_LANG, p)}"/>`,
-  ].join('\n')
-  return `  <url>\n` +
-    `    <loc>${SITE + pathFor(key, lang, p)}</loc>\n` +
-    `    <lastmod>${today}</lastmod>\n` +
-    `    <changefreq>${changefreq}</changefreq>\n` +
-    `    <priority>${priority.toFixed(2)}</priority>\n` +
-    `${alts}\n` +
-    `  </url>`
+/**
+ * Bir URL girişi — yalnız <loc> (2026-11-13).
+ * hreflang alternativləri sitemap-da YOXDUR: hər səhifənin HTML-ində artıq var (<link rel="alternate">,
+ * ~51 ədəd — tests/e2e/seo-detail.spec.js). Google iki üsuldan birini istəyir; ikisi birlikdə hər URL-ə
+ * ~5 KB əlavə edirdi (sitemap-quran.xml 20 MB) və Search Console sitemap-ı aylarla "Getirilemedi"
+ * vəziyyətində saxlayırdı. lastmod (hər build-də bu gün), changefreq, priority — Google onları nəzərə
+ * almır / etibarsız sayır, ona görə yazılmır.
+ */
+function urlEntry(key, lang, param) {
+  return `  <url><loc>${SITE + pathFor(key, lang, param ?? undefined)}</loc></url>`
 }
 
 function writeUrlset(file, urls) {
   const xml =
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<!-- Avtomatik yaradılır: scripts/prerender.mjs. Əl ilə redaktə etmə. -->\n` +
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n` +
-    `        xmlns:xhtml="http://www.w3.org/1999/xhtml">\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
     urls.join('\n') + `\n</urlset>\n`
   fs.writeFileSync(path.join(DIST, file), xml, 'utf8')
 }
 
-// Google: bir sitemap ≤ 50 MB (sıxılmamış) və ≤ 50 000 URL. Hər URL-də ~50 hreflang
-// alternativi var (~5 KB) — sitemap-glossary.xml 82 MB olmuşdu və Google onu oxumurdu.
-// Ona görə bölmə ≤ SITEMAP_CHUNK URL-lik hissələrə bölünür (~20 MB): birinci hissə
-// köhnə adı saxlayır (sitemap-quran.xml), qalanları sitemap-quran-2.xml, -3 …
+// Google: bir sitemap ≤ 50 MB (sıxılmamış) və ≤ 50 000 URL. Bölmə ≤ SITEMAP_CHUNK URL-lik
+// hissələrə bölünür: birinci hissə köhnə adı saxlayır (sitemap-quran.xml), qalanları
+// sitemap-quran-2.xml, -3 … (indi hər URL ~70 bayt — fayllar 0.3 MB-dan kiçikdir).
 const SITEMAP_CHUNK = 4000
 function writeUrlsetChunks(file, urls) {
   const out = []
@@ -471,7 +465,7 @@ function buildSitemap() {
 
   const pages = []
   for (const p of INDEXABLE) {
-    for (const lang of langsFor(p.key)) pages.push(urlEntry(p.key, lang, null, today, p.changefreq, p.priority))
+    for (const lang of langsFor(p.key)) pages.push(urlEntry(p.key, lang, null))
   }
   files.push(...writeUrlsetChunks('sitemap-pages.xml', pages))
   total += pages.length
@@ -483,7 +477,7 @@ function buildSitemap() {
     const urls = []
     for (const param of detailParams(key)) {
       // Sitemap-a yalnız kanonik variantlar (əlavə dildəki dərs/lüğət detalı — ingilis səhifəsinin surəti)
-      for (const lang of seoLangsFor(key, param)) urls.push(urlEntry(key, lang, param, today, cfg.changefreq, cfg.priority))
+      for (const lang of seoLangsFor(key, param)) urls.push(urlEntry(key, lang, param))
     }
     files.push(...writeUrlsetChunks(cfg.file, urls))
     total += urls.length

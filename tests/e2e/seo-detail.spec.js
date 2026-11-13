@@ -91,7 +91,7 @@ test.describe('xam prerender HTML (JS-siz robotun gördüyü)', () => {
     expect(new Set(s.match(/href="\/tr\/sahaba\/[a-z0-9-]+"/g)).size).toBe(20)
   })
 
-  test('sitemap.xml — indeks; bölmə sitemap-larında hreflang alternativləri', async ({ request }) => {
+  test('sitemap.xml — indeks; bölmə sitemap-ları yalnız <loc> (hreflang HTML-dədir)', async ({ request }) => {
     const idx = await raw(request, '/sitemap.xml')
     expect(idx).toContain('<sitemapindex')
     for (const f of ['pages', 'quran', 'names', 'sahaba']) expect(idx).toContain(`https://muslims.cc/sitemap-${f}.xml`)
@@ -104,7 +104,9 @@ test.describe('xam prerender HTML (JS-siz robotun gördüyü)', () => {
     expect((q.match(/<loc>/g) || []).length).toBe(114 * (5 + EXTRA_CODES.length))
     expect(q).toContain('<loc>https://muslims.cc/ru/quran/36-yaseen</loc>')
     expect(q).toContain('<loc>https://muslims.cc/id/quran/36-yaseen</loc>')
-    expect(q).toContain('hreflang="ur" href="https://muslims.cc/ur/quran/36-yaseen"')
+    // 2026-11-13: hreflang yalnız HTML-də (yuxarıdakı testlər) — sitemap kiçik və sadədir
+    expect(q).not.toContain('xhtml:link')
+    for (const f of qFiles) expect((await raw(request, `/${f}`)).length).toBeLessThan(1_000_000)
     // Dərs/lüğət/ad/səhabə/alim detalları (2026-11-11): yalnız 5 əsas dil — əlavə dildə məzmun
     // ingiliscədir, o səhifə ingilis variantının surətidir (canonical → /en/…, sitemap-da yoxdur)
     const n = await raw(request, '/sitemap-names.xml')
@@ -113,7 +115,7 @@ test.describe('xam prerender HTML (JS-siz robotun gördüyü)', () => {
     expect(n).not.toContain('hreflang="zh"')
     const idName = await raw(request, '/id/names/2-al-ahad/')
     expect(idName).toContain('<link rel="canonical" href="https://muslims.cc/en/names/2-al-ahad"')
-    expect(q).toContain('hreflang="x-default" href="https://muslims.cc/quran/36-yaseen"')
+    expect(await raw(request, '/ur/quran/36-yaseen/')).toContain('hreflang="x-default" href="https://muslims.cc/quran/36-yaseen"')
   })
 })
 
