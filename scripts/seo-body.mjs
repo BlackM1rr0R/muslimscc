@@ -37,6 +37,9 @@ import { SCHOLARS, ERAS, ERA_LABEL, ERA_SPAN, dateText, lifeSpan } from '../src/
 import { LESSONS, LESSON_CATS, CAT_BY_KEY } from '../src/data/lessons/index.js'
 import { localizeSource } from '../src/utils/sourceNames.js'
 import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala, stripTranslationNotes } from '../src/utils/quranText.js'
+import { PRAYER_CITIES } from '../src/data/prayerCities.js'
+import { prayerCity, cityName, citySlug, monthTable, PRAYER_KEYS, PRAYER_LABELS, PRAYER_CITY_T } from '../src/seo/prayerCity.js'
+import { G_MONTHS } from '../src/utils/hijri.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
 setGlossarySource(GLOSSARY_BY_ID)
@@ -471,6 +474,44 @@ function glossaryListBody(lang) {
 }
 
 // ── Siyahı səhifəsi: h1 + təsvir + bütün detallara linklər (krawl yolu) ──
+// ═══ Namaz vaxtları: şəhər səhifəsi (/prayer/<şəhər>) və şəhərlər siyahısı (/prayer) ═══
+// Statik cədvəl — build ayı (Bakı vaxtı ilə); tətbiq yüklənəndə canlı vaxtlar göstərilir.
+const AZ_CITIES = PRAYER_CITIES.filter(c => c.country === 'AZ')
+const BUILD_YM = (() => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku', year: 'numeric', month: 'numeric' })
+    .formatToParts(new Date()).map(x => [x.type, x.value]))
+  return { y: Number(p.year), m: Number(p.month) }
+})()
+const cityLinks = (lang, except) => AZ_CITIES.filter(c => c !== except)
+  .map(c => `<li><a href="${pathFor('prayer', lang, citySlug(c))}">${esc(cityName(c, lang))}</a></li>`).join('')
+
+function prayerCityBody(lang, slug) {
+  const c = prayerCity(slug)
+  const m = detailMeta('prayer', lang, slug)
+  const T = PRAYER_CITY_T[lang] || PRAYER_CITY_T.az
+  const { y, m: mo } = BUILD_YM
+  const months = G_MONTHS[lang] || G_MONTHS.en
+  const head = `<tr><th scope="col">${esc(T.day)}</th>${PRAYER_KEYS.map(k => `<th scope="col">${esc(PRAYER_LABELS[k][lang] || PRAYER_LABELS[k].en)}</th>`).join('')}</tr>`
+  const rows = monthTable(c, y, mo).map(r => `<tr><th scope="row">${r.d}</th>${PRAYER_KEYS.map(k => `<td>${r[k]}</td>`).join('')}</tr>`).join('')
+  return shell(lang,
+    detailCrumbs('prayer', lang, slug) +
+    `<header><h1>${esc(m.h1)}</h1><p class="seo-static__lead">${esc(m.intro)}</p><p>${esc(T.live)}</p></header>` +
+    `<h2>${esc(T.month)}: ${esc(months[mo - 1])} ${y}</h2>` +
+    `<table class="seo-static__table"><thead>${head}</thead><tbody>${rows}</tbody></table>` +
+    `<h2>${esc(T.others)}</h2><ul class="seo-static__list">${cityLinks(lang, c)}</ul>` +
+    `<p><a href="${pathFor('prayer', lang)}">${esc(T.all)}</a></p>`,
+  )
+}
+
+function prayerListBody(lang) {
+  const T = PRAYER_CITY_T[lang] || PRAYER_CITY_T.az
+  return shell(lang,
+    crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: SECTION_LABEL.prayer[lang] || SECTION_LABEL.prayer.az }]) +
+    `<header><h1>${esc(shortName('prayer', lang))}</h1><p class="seo-static__lead">${esc(descFor('prayer', lang))}</p></header>` +
+    `<h2>${esc(T.all)}</h2><ul class="seo-static__list">${cityLinks(lang, null)}</ul>`,
+  )
+}
+
 function listShell(key, lang, heading, items) {
   return shell(lang,
     crumbs(lang, [
@@ -497,6 +538,7 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'scholars') return param ? scholarBody(lang, param) : scholarsListBody(lang)
   if (key === 'learn') return param ? lessonBody(lang, param) : lessonsListBody(lang)
   if (key === 'glossary') return param ? termBody(lang, param) : glossaryListBody(lang)
+  if (key === 'prayer') return param ? prayerCityBody(lang, param) : prayerListBody(lang)
   return ''
 }
 

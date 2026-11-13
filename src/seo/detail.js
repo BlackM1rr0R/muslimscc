@@ -35,6 +35,7 @@ import { withBrand } from './title.js'
 import { EXTRA_LANGS, EXTRA_CODES } from './langs.js'
 import { INTL_QURAN, INTL_BODY_UI } from './intl.js'
 import { INTL_QURAN_SECTION } from './intlMeta.js'
+import { prayerCity, cityName, PRAYER_CITY_T } from './prayerCity.js'
 
 // Title-ın səhifə hissəsi üçün hədd (brend şəkilçisi bundan sonra gəlir)
 export const TITLE_MAX = 60
@@ -350,6 +351,13 @@ export function detailMeta(key, lang, param) {
     const L = SCHOLAR_T[lang] || SCHOLAR_T.az
     return { t: L.t(n, pick(x.title, lang)), d: scholarDesc(x, lang), h1: n, intro: pick(x.summary, lang), crumb: n }
   }
+  if (key === 'prayer') {
+    const c = prayerCity(param)
+    if (!c) return null
+    const n = cityName(c, lang)
+    const L = PRAYER_CITY_T[lang] || PRAYER_CITY_T.az
+    return { t: L.t(n), d: clamp(L.d(n)), h1: L.h1(n), intro: L.intro(n), crumb: n }
+  }
   if (key === 'glossary') {
     const x = termInfo(param, lang)
     if (!x) return null
@@ -377,6 +385,7 @@ export const SECTION_LABEL = {
   scholars: { az: 'Alimlər', en: 'Scholars', ru: 'Учёные', ar: 'العلماء', tr: 'Âlimler' },
   learn:  { az: 'Dərslər', en: 'Lessons', ru: 'Уроки', ar: 'الدروس', tr: 'Dersler' },
   glossary: { az: 'İslami söz lüğəti', en: 'Islamic Glossary', ru: 'Исламский глоссарий', ar: 'قاموس المصطلحات الإسلامية', tr: 'İslami Sözlük' },
+  prayer: { az: 'Namaz vaxtları', en: 'Prayer times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz vakitleri' },
 }
 
 /** Bölmənin adı cari dildə (əlavə dildə — ingiliscənin lüğətdəki tərcüməsi). */
@@ -477,6 +486,15 @@ export function detailJsonLd(key, lang, param) {
       description: x.definition,
       inDefinedTermSet: { '@type': 'DefinedTermSet', name: sectionLabel('glossary', lang), url: SITE + pathFor('glossary', lang) },
       url,
+    }
+  } else if (key === 'prayer') {
+    // Şəhər — yalnız səhifədə görünən fakt: adı və koordinatı
+    const c = prayerCity(param)
+    main = {
+      '@type': 'Place',
+      name: m.crumb,
+      geo: { '@type': 'GeoCoordinates', latitude: c.lat, longitude: c.lng },
+      address: { '@type': 'PostalAddress', addressLocality: m.crumb, addressCountry: 'AZ' },
     }
   } else if (key === 'scholars') {
     const x = scholarInfo(param)

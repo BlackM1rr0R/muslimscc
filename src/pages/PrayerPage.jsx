@@ -1,14 +1,15 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
 import { qiyamState, hm } from '../utils/qiyam'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { subscribeToSettings } from '../data/adminContent'
 import usePrayerTimes from '../hooks/usePrayerTimes'
-import { usePrayerLocation, setAdminDefaultCity, locationSig } from '../utils/prayerLocation'
+import { usePrayerLocation, setAdminDefaultCity, locationSig, locationForCitySlug } from '../utils/prayerLocation'
 import CityPicker from '../components/CityPicker'
 import { haptic } from '../hooks/useHaptic'
-import { pathFor, PAGES } from '../seo/routes'
+import { pathFor, PAGES, parsePath } from '../seo/routes'
+import { PRAYER_CITY_T } from '../seo/prayerCity'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 import '../styles/PrayerPage.css'
@@ -417,7 +418,13 @@ export default function PrayerPage({ setPage }) {
   const navigate = useNavigate()
 
   // Seçilmiş şəhər — bütün saytda ortaq (utils/prayerLocation.js)
-  const loc = usePrayerLocation()
+  // v6.6: şəhər səhifəsi /prayer/<slug> — həmin şəhərin vaxtları (istifadəçinin seçdiyi şəhər dəyişmir).
+  // Seçicidə başqa şəhər seçiləndə həmin şəhərin səhifəsinə (AZ) və ya /prayer-ə keçilir.
+  const routeLoc = useLocation()
+  const { param: citySlug } = parsePath(routeLoc.pathname)
+  const pageCity = useMemo(() => (citySlug ? locationForCitySlug(citySlug) : null), [citySlug])
+  const sharedLoc = usePrayerLocation()
+  const loc = pageCity || sharedLoc
   // Siyahı açarı: şəhər dəyişəndə vaxtlar yumşaq yenidən görünsün (xüsusi yer də daxil)
   const sel = locationSig(loc)
 
@@ -430,7 +437,15 @@ export default function PrayerPage({ setPage }) {
     return () => unsubscribe?.()
   }, [])
 
-  const pt = usePrayerTimes()
+  const pt = usePrayerTimes(pageCity || undefined)
+  const sharedSig = locationSig(sharedLoc)
+  const firstSig = useRef(sharedSig)
+  useEffect(() => {
+    if (!pageCity || sharedSig === firstSig.current) return
+    firstSig.current = sharedSig
+    const slug = sharedLoc.country === 'AZ' && !sharedLoc.isCustom ? String(sharedLoc.id).toLowerCase() : null
+    navigate(slug && locationForCitySlug(slug) ? pathFor('prayer', lang, slug) : pathFor('prayer', lang))
+  }, [sharedSig]) // eslint-disable-line react-hooks/exhaustive-deps
   const [qiyamOpen, setQiyamOpen] = useState(false)
 
   const times = useMemo(() => {
@@ -656,7 +671,7 @@ export default function PrayerPage({ setPage }) {
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
-          <h1 className="ui-display">{t.title}</h1>
+          <h1 className="ui-display" data-testid="prayer-h1">{pageCity ? pickUi(PRAYER_CITY_T, lang).h1(cityName) : t.title}</h1>
           <p className="ui-lead">{TXT.lead[lk]}</p>
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> {P(V3.how)}</p>
           <ul className="ui-page-hero__stats">

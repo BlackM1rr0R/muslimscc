@@ -19,7 +19,7 @@ function loadWidget() {
 }
 
 // AZ şəhərləri prayerLocation.js-dən (mətn kimi — modul brauzer API-lərinə bağlıdır)
-const locSrc = fs.readFileSync(path.join(ROOT, 'src/utils/prayerLocation.js'), 'utf8')
+const locSrc = fs.readFileSync(path.join(ROOT, 'src/data/prayerCities.js'), 'utf8')
 const AZ = [...locSrc.matchAll(/\{ id:'([^']+)', country:'AZ', lat:(-?[\d.]+), lng:(-?[\d.]+)/g)]
   .map(m => ({ id: m[1], lat: Number(m[2]), lng: Number(m[3]) }))
 

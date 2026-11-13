@@ -126,8 +126,8 @@ describe('detal marşrutları — pathFor / parsePath', () => {
   it('URL-lər təkrarlanmır, hamısı ASCII kiçik hərf və defisdir', () => {
     const urls = Object.keys(DETAILS).flatMap(k => detailParams(k).flatMap(p => LANGS.map(l => pathFor(k, l, p))))
     expect(new Set(urls).size).toBe(urls.length)
-    expect(urls.length).toBe((114 + 99 + SAHABA.length + SCHOLAR_SLUGS.length + LESSON_SLUGS.length + GLOSSARY_SLUGS.length) * LANGS.length)
-    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba|scholars|learn|glossary)\/[a-z0-9-]+$/)
+    expect(urls.length).toBe((114 + 99 + SAHABA.length + SCHOLAR_SLUGS.length + LESSON_SLUGS.length + GLOSSARY_SLUGS.length + 75) * LANGS.length)
+    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba|scholars|learn|glossary|prayer)\/[a-z0-9-]+$/)
   })
 })
 
@@ -268,6 +268,27 @@ describe('lüğət termini — /glossary/<id>', () => {
         expect(j.mainEntity.name).toBe(m.h1)
         expect(j.breadcrumb.itemListElement).toHaveLength(3)
       }
+    }
+  })
+})
+
+// v6.6: /prayer/<şəhər> — slug siyahısı data/prayerCities.js-dəki AZ şəhərləri ilə eynidir
+import { PRAYER_CITY_SLUGS } from '../../src/seo/detailSlugs.js'
+import { PRAYER_CITIES } from '../../src/data/prayerCities.js'
+import { monthTable, prayerCity } from '../../src/seo/prayerCity.js'
+describe('namaz vaxtları — şəhər səhifələri', () => {
+  it('slug-lar AZ şəhərlərinin id-ləridir (75, təkrarsız, ASCII)', () => {
+    const az = PRAYER_CITIES.filter(c => c.country === 'AZ').map(c => c.id.toLowerCase())
+    expect(PRAYER_CITY_SLUGS).toEqual(az)
+    expect(new Set(PRAYER_CITY_SLUGS).size).toBe(75)
+    for (const s of PRAYER_CITY_SLUGS) expect(s).toMatch(/^[a-z]+$/)
+  })
+  it('aylıq cədvəl: günlərin sayı və vaxtların ardıcıllığı', () => {
+    const rows = monthTable(prayerCity('baku'), 2026, 2)
+    expect(rows).toHaveLength(28)
+    for (const r of rows) {
+      const order = [r.fajr, r.sunrise, r.dhuhr, r.asr, r.maghrib, r.isha]
+      expect([...order].sort()).toEqual(order)
     }
   })
 })

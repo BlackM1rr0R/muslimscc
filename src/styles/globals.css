@@ -1186,6 +1186,9 @@ body.panel-open .notif-fab {
 .seo-static__basmala-tr { margin: 0; color: var(--text-secondary); font-size: var(--step--1); text-align: center; }
 .seo-static__list { margin: var(--space-5) 0 0; padding: 0; list-style: none; }
 .seo-static__list > li { padding-block: var(--space-4); border-bottom: 1px solid var(--line); }
+.seo-static__table { width: 100%; border-collapse: collapse; margin-top: var(--space-4); font-variant-numeric: tabular-nums; font-size: var(--step--1); }
+.seo-static__table th, .seo-static__table td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: center; }
+.seo-static__table thead th { color: var(--text-tertiary); font-weight: 600; }
 .seo-static__ayah { margin: 0 0 var(--space-2); font-size: 1.65rem; }
 .seo-static__n { display: inline-block; min-width: 2.2em; color: var(--accent-text); font-family: var(--font-sans); font-size: var(--step--1); }
 .seo-static__tr { margin: 0; }

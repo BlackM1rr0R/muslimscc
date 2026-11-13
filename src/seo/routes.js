@@ -9,7 +9,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { SURAH_SLUGS } from './surahSlugs.js'
-import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS, GLOSSARY_SLUGS } from './detailSlugs.js'
+import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS, GLOSSARY_SLUGS, PRAYER_CITY_SLUGS } from './detailSlugs.js'
 import { EXTRA_LANGS, EXTRA_CODES, EXTRA_PAGES, EXTRA_UI_LANG, isExtraLang } from './langs.js'
 
 export const SITE = 'https://muslims.cc'
@@ -46,7 +46,8 @@ export const langsFor = (key) => (EXTRA_PAGES.includes(key) ? ALL_LANGS : [...LA
  * canonical → /en/…, hreflang və sitemap-da yalnız 5 əsas dil. (2026-11-11 auditi: ~24 000
  * səhifə 44 dildə eyni ingiliscə başlıq/təsvirlə özünü kanonik göstərirdi — dublikat məzmun.)
  */
-export const CORE_CONTENT_DETAILS = ['glossary', 'names', 'sahaba', 'scholars', 'learn']
+// prayer (v6.6): şəhər səhifəsinin başlıq/mətni 5 dildədir — əlavə dildə ingilis səhifəsinin surəti
+export const CORE_CONTENT_DETAILS = ['glossary', 'names', 'sahaba', 'scholars', 'learn', 'prayer']
 const isCoreDetail = (key, param) => param != null && param !== '' && CORE_CONTENT_DETAILS.includes(key)
 /** hreflang / sitemap dilləri — səhifə (və detal parametri) üçün */
 export const seoLangsFor = (key, param) => (isCoreDetail(key, param) ? LANGS : langsFor(key))
@@ -145,6 +146,7 @@ export const INDEXABLE = PAGES.filter(p => !p.noindex)
 //   /scholars/<slug>     — alimlər (param: slug)
 //   /learn/<slug>        — dərslər (param: slug; src/data/lessons/*.js)
 //   /glossary/<id>       — lüğət terminləri (param: id; src/data/glossary.js)
+//   /prayer/<şəhər>      — Azərbaycan şəhərinin namaz vaxtları (param: slug; src/data/prayerCities.js)
 // Rəqəmli növlərdə NÖMRƏ həqiqət mənbəyidir: slug səhv yazılsa belə
 // (/quran/2-bilmirem) səhifə surə 2-ni açır, canonical isə düzgün slug-u
 // göstərir. Naməlum nömrə / slug → known:false (404).
@@ -162,6 +164,7 @@ export const DETAILS = {
   scholars: { kind: 'slug', slugs: SCHOLAR_SLUGS },
   learn:  { kind: 'slug',   slugs: LESSON_SLUGS },
   glossary: { kind: 'slug', slugs: GLOSSARY_SLUGS },
+  prayer: { kind: 'slug', slugs: PRAYER_CITY_SLUGS },
   // Qrup otağı (/group/<id>) — istifadəçinin yaratdığı otaq: indekslənmir,
   // prerender və sitemap-a düşmür (detailParams → [])
   group:  { kind: 'id', pattern: /^[a-z0-9]{10}$/, noindex: true },

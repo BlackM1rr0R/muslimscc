@@ -3,7 +3,7 @@
 // public/widget.js qurucusu — node scripts/build-widget.mjs
 //
 // Mənbə: src/widget/widget.src.js (oxunaqlı). Azərbaycan şəhərlərinin
-// koordinatları src/utils/prayerLocation.js-dəki PRAYER_CITIES-dən götürülür
+// koordinatları src/data/prayerCities.js-dəki PRAYER_CITIES-dən götürülür
 // (country === 'AZ') və yığcam yazılır: 'Ad' + enlik*1e4 + uzunluq*1e4
 // (hər biri base36, 4 simvol), ayırıcısız. esbuild (Vite ilə gəlir) sıxır.
 // Ölçü 6 KB-dan çoxdursa xəta ilə çıxır.
@@ -21,7 +21,7 @@ const LIMIT = 6 * 1024
 
 // prayerLocation.js React/brand importları olduğu üçün birbaşa import edilmir —
 // AZ sətirləri mətn kimi oxunur (format sabitdir: { id:'…', country:'AZ', lat:…, lng:… })
-const locSrc = fs.readFileSync(path.join(ROOT, 'src/utils/prayerLocation.js'), 'utf8')
+const locSrc = fs.readFileSync(path.join(ROOT, 'src/data/prayerCities.js'), 'utf8')
 const re = /\{ id:'([^']+)', country:'AZ', lat:(-?[\d.]+), lng:(-?[\d.]+)/g
 const enc = (v) => {
   const n = Math.round(Number(v) * 1e4)

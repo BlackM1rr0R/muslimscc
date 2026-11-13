@@ -416,6 +416,7 @@ const DETAIL_SITEMAP = {
   scholars: { file: 'sitemap-scholars.xml', priority: 0.7, changefreq: 'monthly' },
   learn:  { file: 'sitemap-learn.xml',  priority: 0.75, changefreq: 'monthly' },
   glossary: { file: 'sitemap-glossary.xml', priority: 0.7, changefreq: 'monthly' },
+  prayer: { file: 'sitemap-prayer.xml', priority: 0.9, changefreq: 'daily' },
 }
 
 /**

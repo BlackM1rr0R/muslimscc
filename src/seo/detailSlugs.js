@@ -108,3 +108,19 @@ export const GLOSSARY_SLUGS = [
   "al-asharah-al-mubashsharun", "atba-at-tabiin", "kabah", "al-masjid-al-haram", "al-masjid-an-nabawi",
   "al-masjid-al-aqsa", "zamzam", "al-hajar-al-aswad", "bayah", "at-taqwim-al-hijri", "hurub-ar-riddah",
 ]
+
+// Namaz vaxtları — şəhər səhifələri /prayer/<slug> (v6.6): Azərbaycanın 75 şəhəri,
+// slug = data/prayerCities.js id-sinin kiçik hərflə yazılışı (tests/unit/seo-detail.test.js yoxlayır).
+// Yalnız AZ şəhərləri: onların vaxtı yerli hesabdır (Əbu Bəkr məscidinin cədvəli) — statik cədvəl düzgün olur.
+export const PRAYER_CITY_SLUGS = [
+  'baku', 'sumgait', 'ganja', 'aghjabadi', 'aghdam', 'aghdash', 'aghdara', 'aghstafa',
+  'agsu', 'astara', 'babek', 'balakan', 'beylagan', 'barda', 'bilasuvar', 'jabrayil',
+  'jalilabad', 'julfa', 'dashkasan', 'fuzuli', 'gadabay', 'goranboy', 'goychay', 'goygol',
+  'hajigabul', 'khachmaz', 'khankendi', 'khirdalan', 'khizi', 'khojaly', 'khojavend', 'imishli',
+  'ismayilli', 'kalbajar', 'kangarli', 'kurdamir', 'gakh', 'gazakh', 'gabala', 'gobustan',
+  'quba', 'gubadli', 'qusar', 'lachin', 'lerik', 'lankaran', 'masally', 'mingachevir',
+  'naftalan', 'nakhchivan', 'neftchala', 'oghuz', 'ordubad', 'saatli', 'sabirabad', 'salyan',
+  'samukh', 'sadarak', 'siyazan', 'shabran', 'shahbuz', 'shamakhi', 'sheki', 'shamkir',
+  'sharur', 'shirvan', 'shusha', 'tartar', 'tovuz', 'ujar', 'yardimli', 'yevlakh',
+  'zagatala', 'zangilan', 'zardab',
+]
