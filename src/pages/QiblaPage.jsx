@@ -26,6 +26,7 @@ const QiblaGlobe = lazy(() => import('../components/QiblaGlobe'))
 const QiblaLines = lazy(() => import('../components/QiblaLines'))
 // v6.3: Rəsdül-qiblə — Günəş Kəbənin üstündə (geri sayım, kölgə səhnəsi)
 const RasdQibla = lazy(() => import('../components/RasdQibla'))
+const StarQibla = lazy(() => import('../components/StarQibla'))
 
 // Kompasda yalnız 4 əsas istiqamət yazı ilə göstərilir (aralıqdakılar
 // cizgi ilə). Azərbaycan və ərəb dillərində tək hərf toqquşur
@@ -736,6 +737,15 @@ export default function QiblaPage({ setPage }) {
       <Suspense fallback={null}>
         <RasdQibla lang={lang} />
       </Suspense>
+
+      {/* v6.6: Gecə — qiblə ulduzlarla (məkan olmasa seçilmiş şəhər) */}
+      <section className="ui-section ui-section--tight">
+        <div className="ui-container">
+          <Suspense fallback={null}>
+            <StarQibla lang={lang} from={coords ? { lat: coords.lat, lng: coords.lon } : null} ayahHref={(s, a) => `${pathFor('quran', lang, s)}?a=${a}`} />
+          </Suspense>
+        </div>
+      </section>
 
       {/* Hökmlər və tövsiyələr — məkan tapılmasa da göstərilir */}
       <QiblaGuide lang={lang} />
