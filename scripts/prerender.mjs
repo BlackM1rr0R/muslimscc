@@ -40,6 +40,7 @@ import { brandName, siteJsonLd } from '../src/config/brand.js'
 import { detailMeta, titleForDetail, detailJsonLd } from '../src/seo/detail.js'
 import { staticBodyFor, staticPreloadFor, hasQuranData } from './seo-body.mjs'
 import { setUiDict } from '../src/utils/uiText.js'
+import { buildLlmsTxt } from './llms-txt.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 // Çıxış qovluğu: susmaya görə dist/. `--out <qovluq>` (və ya PRERENDER_DIST
@@ -547,6 +548,8 @@ fs.writeFileSync(path.join(DIST, '404.html'), renderPage(template, NOT_FOUND, DE
 count++
 
 const sitemap = buildSitemap()
+// llms.txt — AI axtarış sistemləri üçün saytın xəritəsi (scripts/llms-txt.mjs)
+fs.writeFileSync(path.join(DIST, 'llms.txt'), buildLlmsTxt(), 'utf8')
 console.log(`✓ Prerender: ${count} statik HTML (404.html daxil; ${detailCount} detal səhifəsi), ${((Date.now() - t0) / 1000).toFixed(1)} san.`)
 console.log(`✓ Sitemap: sitemap.xml (indeks) → ${sitemap.files.join(', ')} — cəmi ${sitemap.total} URL`)
 
