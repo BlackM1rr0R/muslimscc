@@ -25,7 +25,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const DIRS = ['src/components', 'src/pages', 'src/data/guides', 'src/data/pageGuides']
 const FILES = ['src/App.jsx', 'src/data/navigation.js', 'src/seo/meta.js', 'src/seo/detail.js', 'src/data/i18n.js',
   // v6.5: yalnız heyvan adları (dini mətn yoxdur — ayələr public/data/quran-animals-dəndir)
-  'src/data/quranAnimals.js']
+  'src/data/quranAnimals.js',
+  // v6.6: elm adamlarının adları, sahələri və ensiklopedik faktları (dini mətn deyil)
+  'src/data/islamicScientists.js']
 const CORE = new Set(['az', 'en', 'ru', 'ar', 'tr'])
 
 function walkDir(d, out) {
