@@ -244,6 +244,19 @@ export const META = {
           d: 'سجّل الصلوات الخمس: في وقتها أو قضاءً أو فائتة. أيام متتالية وتقرير أسبوعي وشهري وعدّاد للقضاء. تبقى بياناتك على جهازك.' },
   },
 
+  babynames: {
+    az: { t: 'Müsəlman uşaq adları və mənaları — oğlan və qız adları',
+          d: 'Oğlan və qız üçün müsəlman adları: ərəbcə yazılışı, mənası, Quranda neçə dəfə keçdiyi və bu adı daşıyan səhabə. Peyğəmbər və səhabə adları.' },
+    en: { t: 'Muslim Baby Names and Meanings — Boys and Girls',
+          d: 'Muslim names for boys and girls: Arabic spelling, meaning, how often the name occurs in the Quran and the Companion who bore it. Names of prophets and Companions.' },
+    ru: { t: 'Мусульманские имена для детей и их значения',
+          d: 'Мусульманские имена для мальчиков и девочек: написание по-арабски, значение, сколько раз имя встречается в Коране и сподвижник с этим именем.' },
+    ar: { t: 'أسماء إسلامية للمواليد ومعانيها — أولاد وبنات',
+          d: 'أسماء إسلامية للأولاد والبنات: الرسم العربي والمعنى وعدد ورود الاسم في القرآن والصحابي الذي حمله. أسماء الأنبياء والصحابة.' },
+    tr: { t: 'Müslüman Bebek İsimleri ve Anlamları — Erkek ve Kız',
+          d: 'Erkek ve kız çocukları için Müslüman isimleri: Arapça yazılışı, anlamı, Kur’an’da kaç kez geçtiği ve bu ismi taşıyan sahabe. Peygamber ve sahabe isimleri.' },
+  },
+
   namecalligraphy: {
     az: { t: 'Adın ərəb xəttilə — adını ərəbcə yaz və paylaş',
           d: 'Adınızı yazın: ərəbcə yazılışı qələm hərəkəti ilə görünür (nəsx, rüq‘ə, kufi), sonra barmağınızla üstündən yazın və kart kimi paylaşın.' },

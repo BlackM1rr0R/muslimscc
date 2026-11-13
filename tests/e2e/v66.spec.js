@@ -1,4 +1,4 @@
-// v6.6: Ulduzlarla qiblə (/qibla), Günəş tutulmaları (/calendar), rəkət sayğacı (/prayerguide)
+// v6.6: Ulduzlarla qiblə (/qibla), Günəş tutulmaları (/calendar), rəkət sayğacı (/prayerguide), uşaq adları (/muslim-baby-names)
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, settle } from './fixtures.js'
 
@@ -132,3 +132,37 @@ test('Rəkət sayğacı: əlçatanlıq (axe)', async ({ page }) => {
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze()
   expect(violations.filter(v => v.impact === 'critical' || v.impact === 'serious').flatMap(v => v.nodes.map(n => `${v.id} · ${n.target.join(' ')}`))).toEqual([])
 })
+
+test('Uşaq adları: süzgəclər, axtarış, Quran və səhabə keçidləri, hədis', async ({ page }) => {
+  await page.goto('/muslim-baby-names')
+  await settle(page)
+  await expect(page.locator('h1')).toHaveText('Müsəlman uşaq adları və mənaları')
+  await expect(page.getByTestId('bn-card')).toHaveCount(125)
+  await expect(page.getByTestId('bn-hadith')).toContainText('Müslim 2132')
+  await page.getByTestId('bn-f').click()
+  await page.getByTestId('bn-quran').click()
+  await expect(page.getByTestId('bn-card')).toHaveCount(1)
+  const maryam = page.locator('[data-testid=bn-card][data-id=maryam]')
+  await expect(maryam).toContainText('Quranda 34 dəfə')
+  await expect(maryam.locator('a').first()).toHaveAttribute('href', /\/quran\/2.*\?a=87$/)
+  await page.getByTestId('bn-all').click(); await page.getByTestId('bn-quran').click()
+  await page.getByTestId('bn-q').fill('Yusif')
+  await expect(page.getByTestId('bn-card')).toHaveCount(1)
+  await expect(page.getByTestId('bn-card')).toContainText('Quranda 27 dəfə')
+  await page.getByTestId('bn-q').fill('')
+  await page.getByTestId('bn-sahaba').click()
+  await expect(page.getByTestId('bn-count')).toHaveText('10 ad')
+  await expect(page.locator('[data-testid=bn-card][data-id=umar] a[href*="/sahaba/umar-ibn-al-khattab"]')).toBeVisible()
+})
+
+for (const theme of ['light', 'dark']) {
+  test(`Uşaq adları: əlçatanlıq (axe, ${theme})`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: theme })
+    await page.goto('/en/muslim-baby-names')
+    await settle(page)
+    await expect(page.getByTestId('bn-card').first()).toBeVisible()
+    const { violations } = await new AxeBuilder({ page }).include('main')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze()
+    expect(violations.filter(v => v.impact === 'critical' || v.impact === 'serious').flatMap(v => v.nodes.map(n => `${v.id} · ${n.target.join(' ')}`))).toEqual([])
+  })
+}

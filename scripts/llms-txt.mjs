@@ -15,7 +15,7 @@ const GROUPS = [
   ['Dua and dhikr', ['duas', 'hisn', 'dhikr', 'names', 'duajournal']],
   ['Calendar, fasting and Hajj', ['calendar', 'hijri', 'ramadan', 'hajjguide', 'holyplaces']],
   ['Learning', ['learn', 'arabic', 'glossary', 'fatwa', 'history', 'sahaba', 'scholars', 'kids', 'quiz', 'books', 'videos']],
-  ['Calculators and tools', ['zakat', 'inheritance', 'halalcheck', 'charity', 'namecalligraphy', 'quotes', 'dailytracker', 'muhasabah']],
+  ['Calculators and tools', ['zakat', 'inheritance', 'halalcheck', 'charity', 'babynames', 'namecalligraphy', 'quotes', 'dailytracker', 'muhasabah']],
 ]
 const SKIP = new Set(['home', 'privacy', 'terms', 'licenses', 'analytics', 'group', 'aichat', 'donate', 'announcements'])
 

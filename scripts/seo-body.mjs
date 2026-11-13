@@ -40,6 +40,7 @@ import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala, stripTranslationNotes
 import { PRAYER_CITIES } from '../src/data/prayerCities.js'
 import { prayerCity, cityName, citySlug, monthTable, PRAYER_KEYS, PRAYER_LABELS, PRAYER_CITY_T } from '../src/seo/prayerCity.js'
 import { G_MONTHS } from '../src/utils/hijri.js'
+import { BABY_NAMES, nameIn } from '../src/data/babyNames.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
 setGlossarySource(GLOSSARY_BY_ID)
@@ -512,6 +513,28 @@ function prayerListBody(lang) {
   )
 }
 
+// /muslim-baby-names (v6.6): oğlan və qız adları — ərəbcə, həmin dildə yazılış, məna, Quranda sayı
+const BABY_LBL = {
+  az: { m: 'Oğlan adları', f: 'Qız adları', q: n => `Quranda ${n} dəfə` },
+  en: { m: 'Boys’ names', f: 'Girls’ names', q: n => `${n} times in the Quran` },
+  ru: { m: 'Имена для мальчиков', f: 'Имена для девочек', q: n => `В Коране ${n} раз` },
+  ar: { m: 'أسماء الأولاد', f: 'أسماء البنات', q: n => `ورد في القرآن ${n} مرة` },
+  tr: { m: 'Erkek isimleri', f: 'Kız isimleri', q: n => `Kur’an’da ${n} kez` },
+}
+function babyNamesBody(lang) {
+  const L = BABY_LBL[lang] || BABY_LBL.az
+  const item = (n) => {
+    const extra = [n.meaning ? (n.meaning[lang] || n.meaning.en) : '', n.quran ? L.q(n.quran.count) : ''].filter(Boolean).join(' · ')
+    return `<li><b>${esc(nameIn(n, lang))}</b>${lang === 'ar' ? '' : ` <span lang="ar">${esc(n.ar)}</span>`}${extra ? ` — ${esc(extra)}` : ''}</li>`
+  }
+  const sec = (g) => `<h2>${esc(L[g])}</h2><ul class="seo-static__list">${BABY_NAMES.filter(n => n.gender === g).map(item).join('')}</ul>`
+  return shell(lang,
+    crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: shortName('babynames', lang) }]) +
+    `<header><h1>${esc(shortName('babynames', lang))}</h1><p class="seo-static__lead">${esc(descFor('babynames', lang))}</p></header>` +
+    sec('m') + sec('f'),
+  )
+}
+
 function listShell(key, lang, heading, items) {
   return shell(lang,
     crumbs(lang, [
@@ -539,6 +562,7 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'learn') return param ? lessonBody(lang, param) : lessonsListBody(lang)
   if (key === 'glossary') return param ? termBody(lang, param) : glossaryListBody(lang)
   if (key === 'prayer') return param ? prayerCityBody(lang, param) : prayerListBody(lang)
+  if (key === 'babynames') return babyNamesBody(lang)
   return ''
 }
 
