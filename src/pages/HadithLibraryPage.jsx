@@ -761,7 +761,7 @@ export default function HadithLibraryPage() {
             <div className="ui-card hl-src">
               <p className="hl-src__line">
                 <Icon name="books" size={16} />
-                <span>{L.dataLine}: <a href="https://github.com/fawazahmed0/hadith-api" target="_blank" rel="noopener noreferrer" lang="en" dir="ltr">fawazahmed0/hadith-api</a> (<span lang="en">Unlicense</span>) — {L.licenseNote}</span>
+                <span>{L.dataLine}: <a href="https://github.com/fawazahmed0/hadith-api" target="_blank" rel="noopener noreferrer" lang="en" dir="ltr" style={{ textDecoration: 'underline' }}>fawazahmed0/hadith-api</a> (<span lang="en">Unlicense</span>) — {L.licenseNote}</span>
               </p>
               {route.book && trCode && (
                 <p className="hl-src__line">

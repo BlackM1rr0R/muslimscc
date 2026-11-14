@@ -131,7 +131,7 @@ export default function NamesMatch({ names, lang = 'az', meaningOf }) {
               <button type="button" className={`nmg__card${up ? ' is-up' : ''}${done.has(c.id) ? ' is-done' : ''}`} onClick={() => flip(i)}
                 aria-label={up ? `${c.kind === 'ar' ? t.name : t.meaning}: ${c.text}` : `${t.card} ${i + 1}`} data-testid="nmg-card" data-id={c.id} data-kind={c.kind}>
                 <span className="nmg__face nmg__back" aria-hidden="true"><span className="nmg__star" /></span>
-                <span className={`nmg__face nmg__front is-${c.kind}`} aria-hidden="true" lang={c.kind === 'ar' ? 'ar' : undefined}>{c.text}</span>
+                <span className={`nmg__face nmg__front is-${c.kind}`} aria-hidden="true" lang={c.kind === 'ar' ? 'ar' : undefined}>{up ? c.text : ''}</span>
               </button>
             </li>
           )

@@ -527,7 +527,7 @@ export default function QuoteGeneratorPage() {
                     <Icon name="volume" size={14} /> {t.recitation}
                   </button>
                 )}
-                <button type="button" className="qg-pill" aria-pressed={motion} onClick={() => setMotion(m => !m)} disabled={recording} title={motion ? t.motionPause : t.motionPlay} aria-label={motion ? t.motionPause : t.motionPlay}>
+                <button type="button" className="qg-pill" aria-pressed={motion} onClick={() => setMotion(m => !m)} disabled={recording} title={motion ? t.motionPause : t.motionPlay}>
                   <Icon name={motion ? 'pause' : 'play'} size={14} /> {t.motion}
                 </button>
                 <span className="qg-caption__meta"><span>{tplName}</span> · <span className="ui-num">{format.w}×{format.h}</span></span>

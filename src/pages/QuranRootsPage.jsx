@@ -348,7 +348,7 @@ export default function QuranRootsPage() {
             </label>
 
             <div className="qr-kb">
-              <button type="button" className="ui-chip" aria-pressed={kbOpen} aria-controls="qr-kb-pad" onClick={() => setKbOpen(v => !v)}>
+              <button type="button" className="ui-chip" aria-pressed={kbOpen} aria-controls={kbOpen ? 'qr-kb-pad' : undefined} onClick={() => setKbOpen(v => !v)}>
                 <Icon name="arabic" size={16} /> {L.keyboard}
               </button>
               {input && (

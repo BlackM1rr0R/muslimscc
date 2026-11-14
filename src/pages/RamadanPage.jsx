@@ -474,11 +474,14 @@ export default function RamadanPage({ setPage }) {
 
             {calError ? (
               <div className="rp-state ui-card" role="alert">
+                <div id="rp-v-panel-cards" hidden /><div id="rp-v-panel-table" hidden />
                 <p>{pick(TXT.error, lang)}</p>
                 <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={reloadCalendar}>{pick(TXT.retry, lang)}</button>
               </div>
             ) : !calendar ? (
               <div className="rp-state ui-card" aria-busy="true">
+                {/* tab düymələrinin aria-controls hədəfi yüklənmə zamanı da mövcud olsun */}
+                <div id="rp-v-panel-cards" hidden /><div id="rp-v-panel-table" hidden />
                 {!year && !calLoading ? <p>{pick(TXT.wait, lang)}</p> : null}
                 {Array.from({ length: 6 }, (_, i) => <span key={i} className="ui-skeleton ui-skeleton--text" style={{ '--w': `${90 - i * 6}%` }} />)}
               </div>
