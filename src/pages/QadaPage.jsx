@@ -21,6 +21,8 @@ import { ringFrom } from '../components/prayer/ringFrom'
 import { pickUi } from '../utils/uiText'
 import QadaInsights from '../components/insights/QadaInsights'
 import NumberTicker from '../motion/NumberTicker'
+import KaffarahCalc from '../components/KaffarahCalc'
+import { pathFor } from '../seo/routes'
 
 // ═══════════════════════════════════════════════════════
 // /qada — Qəza izləyicisi
@@ -621,6 +623,9 @@ export default function QadaPage({ setPage }) {
 
       {/* viz v2: analitika — temp, bitmə tarixi, namazlar üzrə borc */}
       <QadaInsights state={state} today={today} lang={lk} names={names} />
+
+      {/* v6.8: fidyə və kəffarə hesablayıcısı — hökmlər "Kəffarə və fidyə" dərsindən */}
+      <KaffarahCalc lang={lang} lessonHref={pathFor('learn', lang, 'kaffarah-fidyah')} />
 
       <Rules t={t} lang={lk} />
     </div>

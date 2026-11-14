@@ -28,6 +28,7 @@ const DEFAULT_PREFS = {
   fasting: false,   // Sünnə orucu xatırlatması — serverə yazılır (prefs.fasting), susmaya görə sönülü
   adhkar: false,    // Səhər/axşam zikri (server/reminders.js) — susmaya görə sönülü
   jumuah: false,    // Cümə: Kəhf + salavat — susmaya görə sönülü
+  eclipse: false,   // v6.8: tutulma xəbərdarlığı (server/eclipse.js) — susmaya görə sönülü
   ayah: false,
   ayahHour: 8,
   announcements: true,
@@ -59,6 +60,7 @@ const LABELS = {
     checkinNeedsToken:'Xatırlatma üçün əvvəlcə yuxarıdan bildirişlərə icazə verin. Seçiminiz yadda qalacaq.',
     typeAdhkar:'Səhər və axşam zikri', typeAdhkarSub:'Sübhdən və əsrdən 30 dəqiqə sonra — Hisnul-Müslim açılır',
     typeJumuah:'Cümə xatırlatması', typeJumuahSub:'Cümə günü saat 09:00 — Kəhf surəsi və salavat',
+    typeEclipse:'Tutulma xəbərdarlığı', typeEclipseSub:'Şəhərinizdən görünəcək Ay və Günəş tutulmasından əvvəlki axşam 20:00-da',
     typeFasting:'Sünnə orucu xatırlatması',
     typeFastingSub:'Bazar ertəsi, cümə axşamı, ağ günlər, Ərəfə və Aşuradan əvvəlki axşam saat 20:00-da',
     typeAyah:'Günün ayəsi',
@@ -103,6 +105,7 @@ const LABELS = {
     checkinNeedsToken:'To get the reminder, allow notifications above first. Your choice will be saved.',
     typeAdhkar:'Morning and evening adhkar', typeAdhkarSub:'30 minutes after Fajr and Asr — opens Hisn al-Muslim',
     typeJumuah:'Friday reminder', typeJumuahSub:'On Friday at 09:00 — Surah al-Kahf and salawat',
+    typeEclipse:'Eclipse alert', typeEclipseSub:'At 20:00 the evening before a lunar or solar eclipse visible from your city',
     typeFasting:'Sunnah fasting reminder',
     typeFastingSub:'The evening before Mondays, Thursdays, the white days, Arafah and Ashura — at 20:00',
     typeAyah:'Verse of the day',
@@ -147,6 +150,7 @@ const LABELS = {
     checkinNeedsToken:'Чтобы получать напоминание, сначала разрешите уведомления выше. Ваш выбор сохранится.',
     typeAdhkar:'Утренние и вечерние азкары', typeAdhkarSub:'Через 30 минут после фаджра и асра — открывается «Крепость мусульманина»',
     typeJumuah:'Пятничное напоминание', typeJumuahSub:'В пятницу в 09:00 — сура «аль-Кахф» и салават',
+    typeEclipse:'Оповещение о затмении', typeEclipseSub:'В 20:00 накануне лунного или солнечного затмения, видимого из вашего города',
     typeFasting:'Напоминание о желательном посте',
     typeFastingSub:'Накануне понедельника, четверга, белых дней, Арафы и Ашуры — в 20:00',
     typeAyah:'Аят дня',
@@ -191,6 +195,7 @@ const LABELS = {
     checkinNeedsToken:'لتلقي التذكير، اسمح بالإشعارات أعلاه أولاً. سيُحفظ اختيارك.',
     typeAdhkar:'أذكار الصباح والمساء', typeAdhkarSub:'بعد الفجر والعصر بثلاثين دقيقة — يُفتح حصن المسلم',
     typeJumuah:'تذكير الجمعة', typeJumuahSub:'يوم الجمعة الساعة 09:00 — سورة الكهف والصلاة على النبي ﷺ',
+    typeEclipse:'تنبيه الكسوف والخسوف', typeEclipseSub:'الساعة 20:00 مساء اليوم السابق لخسوف أو كسوف يُرى من مدينتك',
     typeFasting:'تذكير بصيام التطوع',
     typeFastingSub:'مساء اليوم السابق للاثنين والخميس والأيام البيض وعرفة وعاشوراء — الساعة 20:00',
     typeAyah:'آية اليوم',
@@ -235,6 +240,7 @@ const LABELS = {
     checkinNeedsToken:'Hatırlatma için önce yukarıdan bildirimlere izin verin. Seçiminiz kaydedilecek.',
     typeAdhkar:'Sabah ve akşam zikirleri', typeAdhkarSub:'Sabah ve ikindi ezanından 30 dakika sonra — Hisnu’l-Müslim açılır',
     typeJumuah:'Cuma hatırlatması', typeJumuahSub:'Cuma günü saat 09:00’da — Kehf suresi ve salavat',
+    typeEclipse:'Tutulma uyarısı', typeEclipseSub:'Şehrinizden görünecek Ay veya Güneş tutulmasından önceki akşam 20:00’de',
     typeFasting:'Nafile oruç hatırlatması',
     typeFastingSub:'Pazartesi, perşembe, eyyâm-ı bîz, Arefe ve Aşure öncesi akşam saat 20:00’de',
     typeAyah:'Günün ayeti',
@@ -549,7 +555,9 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
                     on={prefs.adhkar} onClick={setFlag('adhkar')} />
                   <PrefToggle icon="calendar" label={l.typeJumuah} sub={l.typeJumuahSub}
                     on={prefs.jumuah} onClick={setFlag('jumuah')} />
-                  {(prefs.adhkar || prefs.jumuah) && !hasToken && (
+                  <PrefToggle icon="moon" label={l.typeEclipse} sub={l.typeEclipseSub}
+                    on={prefs.eclipse} onClick={setFlag('eclipse')} />
+                  {(prefs.adhkar || prefs.jumuah || prefs.eclipse) && !hasToken && (
                     <div className="notif-ayah-note" role="note">
                       <Icon name="info" size={16} /> <span>{supported ? l.checkinNeedsToken : l.ayahUnsupported}</span>
                     </div>

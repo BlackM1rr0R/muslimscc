@@ -13,6 +13,7 @@ export default [
       'dist/**', 'node_modules/**', 'mobile/**', 'public/**',
       'test-results/**', 'playwright-report/**', 'blob-report/**',
       'scripts/.icon-preview/**', 'scripts/social/out/**',
+      'server/eclipse-lib.js',   // avtomatik yığılır (scripts/build-server-eclipse.mjs)
     ],
   },
 

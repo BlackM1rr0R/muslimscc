@@ -104,7 +104,7 @@ function serverPrefs() {
   // checkin — "Qıldınızmı?" xatırlatması (server/checkin.js), susmaya görə sönülü
   // fasting — sünnə orucu xatırlatması (server/fasting.js), susmaya görə sönülü
   // adhkar / jumuah — səhər-axşam zikri və Cümə xatırlatması (server/reminders.js), susmaya görə sönülü
-  return { azan: p.prayer !== false, checkin: p.checkin === true, fasting: p.fasting === true, adhkar: p.adhkar === true, jumuah: p.jumuah === true, daily: { ayah: p.ayah === true, hour } }
+  return { azan: p.prayer !== false, checkin: p.checkin === true, fasting: p.fasting === true, adhkar: p.adhkar === true, jumuah: p.jumuah === true, eclipse: p.eclipse === true, daily: { ayah: p.ayah === true, hour } }
 }
 
 /**
@@ -226,6 +226,7 @@ export function updateTokenPrefs(patch) {
   if ('fasting' in patch) prefs.fasting = Boolean(patch.fasting)
   if ('adhkar' in patch) prefs.adhkar = Boolean(patch.adhkar)
   if ('jumuah' in patch) prefs.jumuah = Boolean(patch.jumuah)
+  if ('eclipse' in patch) prefs.eclipse = Boolean(patch.eclipse)   // v6.8: tutulma xəbərdarlığı (server/eclipse.js)
   return patchSubscription({ prefs })
 }
 

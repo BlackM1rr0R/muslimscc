@@ -1,0 +1,22 @@
+/* ══ Fidyə və kəffarə hesablayıcısı (components/KaffarahCalc.jsx, v6.8) ══ */
+.kfc { display: grid; gap: 14px; padding: clamp(14px, 2.4vw, 24px); }
+.kfc__head { display: grid; gap: 4px; }
+.kfc__head .ui-lead { margin: 0; }
+.kfc__kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.kfc__kind { border: 1px solid var(--border-color, rgba(0,0,0,.14)); background: transparent; color: var(--text-primary); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: .88rem; cursor: pointer; }
+.kfc__kind.is-on { border-color: var(--brand); background: var(--brand-soft); font-weight: 600; color: var(--brand); }
+.kfc__grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 760px) { .kfc__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.kfc__inputs { display: grid; gap: 12px; }
+.kfc__field { display: grid; gap: 4px; font-size: .88rem; color: var(--text-secondary); }
+.kfc__field input { max-width: 220px; }
+.kfc__cap { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); }
+.kfc__order ol { margin: 6px 0 0; padding-inline-start: 20px; display: grid; gap: 4px; }
+.kfc__out { margin: 0; display: grid; gap: 8px; }
+.kfc__out div { padding: 12px 14px; border-radius: 12px; background: var(--brand-soft); border: 1px solid var(--brand-line); }
+.kfc__out dt { font-size: clamp(1.5rem, 3.6vw, 2rem); font-weight: 800; color: var(--brand); line-height: 1.1; }
+.kfc__out .kfc__big { font-size: 1.15rem; }
+.kfc__out dd { margin: 2px 0 0; font-size: .86rem; color: var(--text-secondary); }
+.kfc__note { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: .84rem; color: var(--text-secondary); }
+.kfc__note svg { flex: none; margin-top: 2px; }
+.kfc__src { margin: 0; font-size: .8rem; color: var(--text-secondary); }
