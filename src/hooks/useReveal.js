@@ -58,13 +58,8 @@ function track(el) {
   if (!io || !el || el.hasAttribute('data-reveal-ready')) return
   const d = parseInt(el.getAttribute('data-reveal-delay'), 10)
   if (d > 0) el.style.setProperty('--reveal-delay', `${Math.min(d, MAX_DELAY)}ms`)
-  // Artıq ekranın YUXARISINDA qalıbsa (geri qayıdış, lövbər) — animasiyasız göstər
-  const r = el.getBoundingClientRect()
-  if (r.bottom < 0) {
-    el.setAttribute('data-reveal-ready', '')
-    el.setAttribute('data-revealed', 'static')
-    return
-  }
+  // v6.7 (perf): burada getBoundingClientRect YOXDUR — hər elementdə yazı → oxu növbəsi layout-u təkrar
+  // hesablatdırırdı (ana səhifədə ~1 s CPU×4). "Ekranın yuxarısında qalıb" qərarı IO callback-indədir.
   el.setAttribute('data-reveal-ready', '')
   io.observe(el)
 }
@@ -154,7 +149,9 @@ export function initReveal() {
 
   io = new IntersectionObserver((entries) => {
     for (const e of entries) {
-      if (e.isIntersecting || e.boundingClientRect.bottom < 0) reveal(e.target)
+      if (e.isIntersecting) reveal(e.target)
+      // Artıq ekranın YUXARISINDA (geri qayıdış, lövbər) — animasiyasız göstər
+      else if (e.boundingClientRect.bottom < 0) { e.target.setAttribute('data-revealed', 'static'); io.unobserve(e.target) }
     }
     // threshold 0: elementin İSTƏNİLƏN hissəsi görünən kimi aç. Əvvəl 0.08 idi —
     // ekrandan ~12 dəfə hündür element (uzun siyahı, admin cədvəli) heç vaxt

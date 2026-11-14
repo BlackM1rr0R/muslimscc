@@ -55,10 +55,21 @@ function gregorianToHijri(gDate) {
 }
 
 /** Tarixin hicri günü/ayı/ili — Intl Umm al-Qura; dəstəklənmirsə Kuwaiti alqoritmi. */
+// v6.7 (perf): formatter BİR dəfə — əvvəl hər çağırışda yaradılırdı (buildHijriYear 801 dəfə → CPU×4-də ~5 s)
+let UMQ_FMT
+function umqFmt() {
+  if (UMQ_FMT === undefined) {
+    try {
+      const f = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric' })
+      UMQ_FMT = String(f.resolvedOptions().calendar || '').startsWith('islamic') ? f : null
+    } catch { UMQ_FMT = null }
+  }
+  return UMQ_FMT
+}
 function hijriOf(date) {
   try {
-    const fmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric' })
-    if (String(fmt.resolvedOptions().calendar || '').startsWith('islamic')) {
+    const fmt = umqFmt()
+    if (fmt) {
       const parts = fmt.formatToParts(date)
       const num = (type) => Number(parts.find(p => p.type === type)?.value)
       const day = num('day'), month = num('month'), year = num('year')

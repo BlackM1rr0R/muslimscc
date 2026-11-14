@@ -13,6 +13,7 @@
 import { useLayoutEffect, useEffect, useRef, useState } from 'react'
 import { isReduced } from './reduced'
 import { inFirstPaint } from '../utils/wow'
+import { measureSoon } from './measure'
 import { splitText } from './format'
 
 const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect
@@ -25,16 +26,20 @@ export default function TextEffect({ as: Tag = 'span', children, per = 'word', p
   useIso(() => {
     const el = ref.current
     if (!el || !text || isReduced()) return undefined
-    const r = el.getBoundingClientRect()
-    const onScreen = r.top < window.innerHeight && r.bottom > 0
-    if (onScreen && inFirstPaint()) { setMode('lcp'); return undefined }
-    setMode('armed')
-    if (typeof IntersectionObserver !== 'function') { setMode('in'); return undefined }
-    const io = new IntersectionObserver((es) => {
-      if (es.some(e => e.isIntersecting)) { io.disconnect(); setMode('in') }
-    }, { rootMargin: '0px 0px -6% 0px' })
-    io.observe(el)
-    return () => io.disconnect()
+    let io = null, alive = true
+    // v6.7 (perf): ölçü toplu oxunur (motion/measure.js) — nüsxələr arası layout təkrarı yoxdur
+    measureSoon(el, (r) => {
+      if (!alive) return
+      const onScreen = r.top < window.innerHeight && r.bottom > 0
+      if (onScreen && inFirstPaint()) { setMode('lcp'); return }
+      setMode('armed')
+      if (typeof IntersectionObserver !== 'function') { setMode('in'); return }
+      io = new IntersectionObserver((es) => {
+        if (es.some(e => e.isIntersecting)) { io.disconnect(); setMode('in') }
+      }, { rootMargin: '0px 0px -6% 0px' })
+      io.observe(el)
+    })
+    return () => { alive = false; io?.disconnect() }
   }, [text])
 
   if (!text) return <Tag className={className} style={style} {...rest}>{children}</Tag>

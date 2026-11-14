@@ -177,12 +177,15 @@ function initEnter() {
     el.removeAttribute('data-wow-in')
     el.style.removeProperty('--wow-d')
   }
-  const io = new IntersectionObserver((entries) => {
-    // Eyni anda görünənlər növbə ilə (sıra — sənəddəki yerinə görə)
-    const shown = entries.filter(en => en.isIntersecting || en.boundingClientRect.bottom < 0).map(en => en.target)
-      .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
-    shown.forEach((el, i) => {
+  // v6.7 (perf): getBoundingClientRect YOXDUR. Element əvvəlcə "probe" kimi müşahidə olunur — IO-nun ilk
+  // cavabı ölçünü layout məcbur etmədən verir; qərar (gizlət / dərhal göstər) orada verilir. Əvvəl skan hər
+  // elementin ölçüsünü oxuyurdu: ana səhifədə CPU×4-də 2–3.5 s bloklanma.
+  const phase = new WeakMap()   // el → 'probe' | 'armed'
+  const show = (list) => {
+    list.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+    list.forEach((el, i) => {
       io.unobserve(el)
+      phase.delete(el)
       el.style.setProperty('--wow-d', `${Math.min(i, STAGGER_MAX) * STAGGER_MS}ms`)
       el.setAttribute('data-wow-in', '')
       let timer = 0
@@ -195,24 +198,38 @@ function initEnter() {
       el.addEventListener('transitionend', onEnd)
       timer = setTimeout(done, 1400 + i * STAGGER_MS)
     })
+  }
+  const io = new IntersectionObserver((entries) => {
+    const shown = [], late = []
+    const vh = window.innerHeight
+    for (const en of entries) {
+      const el = en.target
+      const r = en.boundingClientRect
+      if (phase.get(el) === 'probe') {
+        // İç-içə kart: valideyn artıq girirsə, uşaq ayrıca girməsin
+        if (r.height === 0 || r.bottom < 0 || (firstPaintWindow && en.isIntersecting) || el.parentElement?.closest('[data-wow-ready]')) {
+          io.unobserve(el); phase.delete(el); continue
+        }
+        // Çox hündür blok (uzun cədvəl) — yalnız yüngül görünmə, qalxma yox
+        if (r.height > vh * 1.5) el.setAttribute('data-wow-tall', '')
+        el.setAttribute('data-wow-ready', '')
+        phase.set(el, 'armed')
+        if (en.isIntersecting) late.push(el)   // sonradan, görünən yerdə yarandı — növbəti kadrda girsin
+        continue
+      }
+      if (en.isIntersecting || r.bottom < 0) shown.push(el)
+    }
+    if (shown.length) show(shown)
+    if (late.length) requestAnimationFrame(() => requestAnimationFrame(() => show(late)))
   }, { rootMargin: '0px 0px -6% 0px', threshold: 0 })
 
   const scan = () => {
     if (reduced()) return
-    const vh = window.innerHeight
     document.querySelectorAll(ENTER).forEach(el => {
       if (el.hasAttribute('data-wow-seen')) return
       el.setAttribute('data-wow-seen', '')
       if (el.closest(NO_ENTER)) return
-      // İç-içə kart: valideyn artıq girirsə, uşaq ayrıca girməsin
-      if (el.parentElement?.closest('[data-wow-ready]')) return
-      const r = el.getBoundingClientRect()
-      if (r.height === 0 || r.bottom < 0) return
-      // İlk açılışda ekranda olan — dərhal görünür
-      if (firstPaintWindow && r.top < vh * 0.92) return
-      // Çox hündür blok (uzun cədvəl) — yalnız yüngül görünmə, qalxma yox
-      if (r.height > vh * 1.5) el.setAttribute('data-wow-tall', '')
-      el.setAttribute('data-wow-ready', '')
+      phase.set(el, 'probe')
       io.observe(el)
     })
   }
@@ -231,9 +248,22 @@ function initAnim() {
     }
   }, { rootMargin: '0px 0px -4% 0px', threshold: 0 })
 
+  // v6.7 (perf): ölçü oxunmur — "probe" IO-nun ilk cavabı (layout məcbur etmədən) qərar verir:
+  // ekranın yuxarısında / ilk kadrda görünən → animasiyasız; qalanı → gizlənir və görünəndə açılır.
+  const probe = new IntersectionObserver((entries) => {
+    for (const en of entries) {
+      const el = en.target
+      probe.unobserve(el)
+      const r = en.boundingClientRect
+      if (r.bottom < 0 || (firstPaintWindow && en.isIntersecting)) continue
+      el.setAttribute('data-anim-ready', '')
+      if (en.isIntersecting) requestAnimationFrame(() => requestAnimationFrame(() => el.setAttribute('data-anim-in', '')))
+      else io.observe(el)
+    }
+  }, { threshold: 0 })
+
   const SEL = '[data-anim]:not([data-anim-seen]), [data-anim-stagger]:not([data-anim-seen])'
   const scan = () => {
-    const vh = window.innerHeight
     const red = reduced()
     document.querySelectorAll(SEL).forEach(el => {
       el.setAttribute('data-anim-seen', '')
@@ -244,11 +274,7 @@ function initAnim() {
       if (d > 0) el.style.setProperty('--anim-delay', `${Math.min(d, 1200)}ms`)
       const st = parseInt(el.getAttribute('data-anim-stagger'), 10)
       if (st > 0) el.style.setProperty('--anim-step', `${Math.min(st, 200)}ms`)
-      const r = el.getBoundingClientRect()
-      if (r.bottom < 0) return
-      if (firstPaintWindow && r.top < vh && r.bottom > 0) return
-      el.setAttribute('data-anim-ready', '')
-      io.observe(el)
+      probe.observe(el)
     })
   }
   onDomChange(scan)

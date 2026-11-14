@@ -13,6 +13,7 @@ import { useSpring } from 'motion/react'
 import { formatTicker } from './format'
 import { isReduced } from './reduced'
 import { inFirstPaint } from '../utils/wow'
+import { measureSoon } from './measure'
 
 export default function NumberTicker({ value, lang = 'az', from = 0, decimals = 0, prefix = '', suffix = '', compact = false, delay = 0, className = '', ...rest }) {
   const target = Number(value) || 0
@@ -46,23 +47,23 @@ export default function NumberTicker({ value, lang = 'az', from = 0, decimals = 
     if (!el) return undefined
     if (started.current) { spring.set(target); return undefined }
     const skip = isReduced() || typeof IntersectionObserver !== 'function'
-    const r = el.getBoundingClientRect()
-    if (skip || (inFirstPaint() && r.top < window.innerHeight && r.bottom > 0)) {
-      started.current = true
-      spring.jump(target)
-      return undefined
-    }
-    let t = 0
-    el.textContent = fmtRef.current(from)
-    const io = new IntersectionObserver((es) => {
-      if (!es.some(e => e.isIntersecting)) return
-      io.disconnect()
-      started.current = true
-      spring.jump(from)
-      t = setTimeout(() => spring.set(target), Math.max(0, delay * 1000))
-    }, { rootMargin: '0px 0px -10% 0px' })
-    io.observe(el)
-    return () => { io.disconnect(); clearTimeout(t) }
+    if (skip) { started.current = true; spring.jump(target); return undefined }
+    let t = 0, io = null, alive = true
+    // v6.7 (perf): ölçü toplu oxunur (motion/measure.js), boyamadan əvvəl
+    measureSoon(el, (r) => {
+      if (!alive || started.current) return
+      if (inFirstPaint() && r.top < window.innerHeight && r.bottom > 0) { started.current = true; spring.jump(target); return }
+      el.textContent = fmtRef.current(from)
+      io = new IntersectionObserver((es) => {
+        if (!es.some(e => e.isIntersecting)) return
+        io.disconnect()
+        started.current = true
+        spring.jump(from)
+        t = setTimeout(() => spring.set(target), Math.max(0, delay * 1000))
+      }, { rootMargin: '0px 0px -10% 0px' })
+      io.observe(el)
+    })
+    return () => { alive = false; io?.disconnect(); clearTimeout(t) }
   }, [target, from, delay, spring])
 
   return (

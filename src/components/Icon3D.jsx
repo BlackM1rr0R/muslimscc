@@ -211,6 +211,8 @@ export default function Icon3D({ name, size = 56, className = '' }) {
   const tone = (t) => (t ? `url(#${id(t)})` : 'none')
   const strokeOf = (s) => ({ line: '#8c6414', glint: 'rgba(255,255,255,.35)', emeraldInk: '#13705a', glowLine: '#f2b84b' }[s] || tone(s))
   const depth = g && !g.flat ? g.parts.filter(p => !p.solid && !p.text) : []
+  // v6.7 (perf): yalnız bu fiqurun işlətdiyi qradiyentlər (əvvəl hər ikonda 14 — ana səhifədə ~900 SVG düyünü)
+  const used = new Set(g ? g.parts.flatMap(p => [p.t, p.s]).filter(Boolean) : [])
   return (
     <span className={`i3d ${className}`} style={{ '--i3d': `${size}px` }} aria-hidden="true">
       <svg viewBox="0 0 64 64" width={size} height={size} focusable="false">
@@ -218,16 +220,16 @@ export default function Icon3D({ name, size = 56, className = '' }) {
           <linearGradient id={id('tile')} x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stopColor="#3fae8c" /><stop offset=".45" stopColor="#13705a" /><stop offset="1" stopColor="#062a21" /></linearGradient>
           <linearGradient id={id('hi')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".42" /><stop offset=".5" stopColor="#fff" stopOpacity="0" /></linearGradient>
           <linearGradient id={id('rim')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#f0e2c2" stopOpacity=".95" /><stop offset=".5" stopColor="#c09445" stopOpacity=".35" /><stop offset="1" stopColor="#d8b46a" stopOpacity=".8" /></linearGradient>
-          <linearGradient id={id('gold')} x1="0" y1="0" x2=".25" y2="1"><stop offset="0" stopColor="#fff6dc" /><stop offset=".35" stopColor="#e6cc95" /><stop offset=".7" stopColor="#c09445" /><stop offset="1" stopColor="#8c6414" /></linearGradient>
-          <linearGradient id={id('goldTop')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff9e8" /><stop offset="1" stopColor="#e6cc95" /></linearGradient>
-          <linearGradient id={id('goldDark')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#c09445" /><stop offset="1" stopColor="#5c410c" /></linearGradient>
-          <linearGradient id={id('paper')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fffdf6" /><stop offset="1" stopColor="#efe1bf" /></linearGradient>
-          <linearGradient id={id('paperTop')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#f3e8cd" /></linearGradient>
-          <linearGradient id={id('paperSide')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#e2cfa3" /><stop offset="1" stopColor="#c9b27c" /></linearGradient>
-          <linearGradient id={id('ink')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2b2b2b" /><stop offset="1" stopColor="#0b0b0b" /></linearGradient>
-          <linearGradient id={id('inkSide')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a3a3a" /><stop offset="1" stopColor="#151515" /></linearGradient>
-          <linearGradient id={id('inkTop')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5a5a5a" /><stop offset="1" stopColor="#2a2a2a" /></linearGradient>
-          <radialGradient id={id('glow')} cx=".5" cy=".55" r=".6"><stop offset="0" stopColor="#fffbe6" /><stop offset=".55" stopColor="#ffd86b" /><stop offset="1" stopColor="#e39a2a" /></radialGradient>
+          {used.has('gold') && <linearGradient id={id('gold')} x1="0" y1="0" x2=".25" y2="1"><stop offset="0" stopColor="#fff6dc" /><stop offset=".35" stopColor="#e6cc95" /><stop offset=".7" stopColor="#c09445" /><stop offset="1" stopColor="#8c6414" /></linearGradient>}
+          {used.has('goldTop') && <linearGradient id={id('goldTop')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff9e8" /><stop offset="1" stopColor="#e6cc95" /></linearGradient>}
+          {used.has('goldDark') && <linearGradient id={id('goldDark')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#c09445" /><stop offset="1" stopColor="#5c410c" /></linearGradient>}
+          {used.has('paper') && <linearGradient id={id('paper')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fffdf6" /><stop offset="1" stopColor="#efe1bf" /></linearGradient>}
+          {used.has('paperTop') && <linearGradient id={id('paperTop')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#f3e8cd" /></linearGradient>}
+          {used.has('paperSide') && <linearGradient id={id('paperSide')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#e2cfa3" /><stop offset="1" stopColor="#c9b27c" /></linearGradient>}
+          {used.has('ink') && <linearGradient id={id('ink')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2b2b2b" /><stop offset="1" stopColor="#0b0b0b" /></linearGradient>}
+          {used.has('inkSide') && <linearGradient id={id('inkSide')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a3a3a" /><stop offset="1" stopColor="#151515" /></linearGradient>}
+          {used.has('inkTop') && <linearGradient id={id('inkTop')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5a5a5a" /><stop offset="1" stopColor="#2a2a2a" /></linearGradient>}
+          {used.has('glow') && <radialGradient id={id('glow')} cx=".5" cy=".55" r=".6"><stop offset="0" stopColor="#fffbe6" /><stop offset=".55" stopColor="#ffd86b" /><stop offset="1" stopColor="#e39a2a" /></radialGradient>}
           <filter id={id('sh')} x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="2.2" stdDeviation="1.6" floodColor="#031a14" floodOpacity=".55" /></filter>
           <clipPath id={id('clip')}><rect x="2" y="2" width="60" height="60" rx="17" /></clipPath>
         </defs>
