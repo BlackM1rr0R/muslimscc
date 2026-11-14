@@ -26,7 +26,7 @@ const DETAIL_NOTES = {
   scholars: 'biographies of scholars',
   learn: 'lessons on worship, fiqh, aqidah and family life',
   glossary: 'Islamic terms explained',
-  prayer: 'monthly prayer timetables for cities in Azerbaijan',
+  prayer: 'monthly prayer timetables for 75 cities in Azerbaijan and 19 major cities worldwide (Makkah, Madinah, Istanbul, London, New York …)',
 }
 
 const line = (key) => {

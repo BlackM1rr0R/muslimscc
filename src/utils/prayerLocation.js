@@ -35,6 +35,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { useEffect, useState } from 'react'
+import { prayerCity } from '../seo/prayerCity.js'
 import { DEFAULT_PRAYER_LOCATION } from '../config/brand'
 import { METHOD_ABUBAKR } from './prayCalc'
 
@@ -163,11 +164,10 @@ function fromCity(c, isDefault) {
 
 /**
  * Şəhər səhifəsinin (/prayer/<slug>, v6.6) yeri — istifadəçinin seçiminə TOXUNMADAN.
- * Yalnız siyahıdakı Azərbaycan şəhərləri (seo/routes.js → PRAYER_CITY_SLUGS); tapılmasa null.
+ * Siyahıdakı Azərbaycan və yoxlanmış dünya şəhərləri (seo/routes.js → PRAYER_CITY_SLUGS); tapılmasa null.
  */
 export function locationForCitySlug(slug) {
-  const s = String(slug || '').toLowerCase()
-  const c = PRAYER_CITIES.find(x => x.country === 'AZ' && x.id.toLowerCase() === s)
+  const c = prayerCity(slug)   // AZ + yoxlanmış dünya şəhərləri (seo/prayerCity.js)
   return c ? fromCity(c, false) : null
 }
 

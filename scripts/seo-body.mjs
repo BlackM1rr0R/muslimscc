@@ -38,7 +38,7 @@ import { LESSONS, LESSON_CATS, CAT_BY_KEY } from '../src/data/lessons/index.js'
 import { localizeSource } from '../src/utils/sourceNames.js'
 import { BASMALA_DISPLAY, displayAyah, hasSeparateBasmala, stripTranslationNotes } from '../src/utils/quranText.js'
 import { PRAYER_CITIES } from '../src/data/prayerCities.js'
-import { prayerCity, cityName, citySlug, monthTable, PRAYER_KEYS, PRAYER_LABELS, PRAYER_CITY_T } from '../src/seo/prayerCity.js'
+import { prayerCity, cityName, citySlug, monthTable, isAzCity, WORLD_PAGE_CITIES, PRAYER_KEYS, PRAYER_LABELS, PRAYER_CITY_T } from '../src/seo/prayerCity.js'
 import { G_MONTHS } from '../src/utils/hijri.js'
 import { BABY_NAMES, nameIn } from '../src/data/babyNames.js'
 
@@ -483,7 +483,7 @@ const BUILD_YM = (() => {
     .formatToParts(new Date()).map(x => [x.type, x.value]))
   return { y: Number(p.year), m: Number(p.month) }
 })()
-const cityLinks = (lang, except) => AZ_CITIES.filter(c => c !== except)
+const cityLinks = (lang, except, list = AZ_CITIES) => list.filter(c => c !== except)
   .map(c => `<li><a href="${pathFor('prayer', lang, citySlug(c))}">${esc(cityName(c, lang))}</a></li>`).join('')
 
 function prayerCityBody(lang, slug) {
@@ -499,7 +499,9 @@ function prayerCityBody(lang, slug) {
     `<header><h1>${esc(m.h1)}</h1><p class="seo-static__lead">${esc(m.intro)}</p><p>${esc(T.live)}</p></header>` +
     `<h2>${esc(T.month)}: ${esc(months[mo - 1])} ${y}</h2>` +
     `<table class="seo-static__table"><thead>${head}</thead><tbody>${rows}</tbody></table>` +
-    `<h2>${esc(T.others)}</h2><ul class="seo-static__list">${cityLinks(lang, c)}</ul>` +
+    (isAzCity(c)
+      ? `<h2>${esc(T.others)}</h2><ul class="seo-static__list">${cityLinks(lang, c)}</ul>`
+      : `<h2>${esc(T.world)}</h2><ul class="seo-static__list">${cityLinks(lang, c, WORLD_PAGE_CITIES)}</ul>`) +
     `<p><a href="${pathFor('prayer', lang)}">${esc(T.all)}</a></p>`,
   )
 }
@@ -509,7 +511,8 @@ function prayerListBody(lang) {
   return shell(lang,
     crumbs(lang, [{ name: brandName(lang), href: pathFor('home', lang) }, { name: SECTION_LABEL.prayer[lang] || SECTION_LABEL.prayer.az }]) +
     `<header><h1>${esc(shortName('prayer', lang))}</h1><p class="seo-static__lead">${esc(descFor('prayer', lang))}</p></header>` +
-    `<h2>${esc(T.all)}</h2><ul class="seo-static__list">${cityLinks(lang, null)}</ul>`,
+    `<h2>${esc(T.azList)}</h2><ul class="seo-static__list">${cityLinks(lang, null)}</ul>` +
+    `<h2>${esc(T.world)}</h2><ul class="seo-static__list">${cityLinks(lang, null, WORLD_PAGE_CITIES)}</ul>`,
   )
 }
 

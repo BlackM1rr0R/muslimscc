@@ -123,4 +123,7 @@ export const PRAYER_CITY_SLUGS = [
   'samukh', 'sadarak', 'siyazan', 'shabran', 'shahbuz', 'shamakhi', 'sheki', 'shamkir',
   'sharur', 'shirvan', 'shusha', 'tartar', 'tovuz', 'ujar', 'yardimli', 'yevlakh',
   'zagatala', 'zangilan', 'zardab',
+  // v6.7: dünya şəhərləri (seo/prayerCity.js → WORLD_CITY_IDS; vaxtlar aladhan 13 ilə yoxlanılıb)
+  'mecca', 'medina', 'istanbul', 'ankara', 'derbent', 'tbilisi', 'marneuli', 'tabriz', 'tehran',
+  'dubai', 'cairo', 'tashkent', 'almaty', 'london', 'paris', 'new-york', 'toronto', 'jakarta', 'kuala-lumpur',
 ]

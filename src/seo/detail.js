@@ -35,7 +35,7 @@ import { withBrand } from './title.js'
 import { EXTRA_LANGS, EXTRA_CODES } from './langs.js'
 import { INTL_QURAN, INTL_BODY_UI } from './intl.js'
 import { INTL_QURAN_SECTION } from './intlMeta.js'
-import { prayerCity, cityName, PRAYER_CITY_T } from './prayerCity.js'
+import { prayerCity, cityName, countryName, isAzCity, PRAYER_CITY_T } from './prayerCity.js'
 
 // Title-ın səhifə hissəsi üçün hədd (brend şəkilçisi bundan sonra gəlir)
 export const TITLE_MAX = 60
@@ -356,6 +356,7 @@ export function detailMeta(key, lang, param) {
     if (!c) return null
     const n = cityName(c, lang)
     const L = PRAYER_CITY_T[lang] || PRAYER_CITY_T.az
+    if (!isAzCity(c)) return { t: L.t(n), d: clamp(L.dW(n, countryName(c, lang))), h1: L.h1(n), intro: L.introW(n), crumb: n }
     return { t: L.t(n), d: clamp(L.d(n)), h1: L.h1(n), intro: L.intro(n), crumb: n }
   }
   if (key === 'glossary') {
@@ -494,7 +495,7 @@ export function detailJsonLd(key, lang, param) {
       '@type': 'Place',
       name: m.crumb,
       geo: { '@type': 'GeoCoordinates', latitude: c.lat, longitude: c.lng },
-      address: { '@type': 'PostalAddress', addressLocality: m.crumb, addressCountry: 'AZ' },
+      address: { '@type': 'PostalAddress', addressLocality: m.crumb, addressCountry: c.country },
     }
   } else if (key === 'scholars') {
     const x = scholarInfo(param)

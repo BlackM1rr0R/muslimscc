@@ -15,11 +15,11 @@ test('statik HTML: title, h1, aylıq cədvəl, canonical, digər şəhərlərə 
   const ru = await raw(request, '/ru/prayer/ganja/')
   expect(ru).toContain('<h1>Время намаза: Гянджа</h1>')
   const list = await raw(request, '/prayer/')
-  expect((list.match(/href="\/prayer\/[a-z]+"/g) || []).length).toBe(75)
+  expect((list.match(/href="\/prayer\/[a-z-]+"/g) || []).length).toBe(94)   // 75 AZ + 19 dünya şəhəri
   const sm = await raw(request, '/sitemap.xml')
   expect(sm).toContain('https://muslims.cc/sitemap-prayer.xml')
   const sp = await raw(request, '/sitemap-prayer.xml')
-  expect((sp.match(/<loc>/g) || []).length).toBe(75 * 5)
+  expect((sp.match(/<loc>/g) || []).length).toBe(94 * 5)
 })
 
 test('tətbiq: şəhər səhifəsi öz şəhərini göstərir, istifadəçinin seçiminə toxunmur', async ({ page }) => {
@@ -40,4 +40,11 @@ test('naməlum şəhər — səhifə tapılmadı; əlavə dildə canonical → /
   await expect(page.getByTestId('prayer-h1')).toHaveCount(0)
   const id = await (await request.get('/id/prayer/baku/')).text()
   expect(id).toContain('<link rel="canonical" href="https://muslims.cc/en/prayer/baku"')
+})
+
+test('dünya şəhəri: /en/prayer/london — başlıq, H1, statik cədvəl, canlı səhifə', async ({ page }) => {
+  await page.goto('/en/prayer/london')
+  await settle(page)
+  await expect(page).toHaveTitle(/Prayer times in London/)
+  await expect(page.getByTestId('prayer-h1')).toHaveText('Prayer times in London')
 })

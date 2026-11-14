@@ -33,6 +33,11 @@ const fixHour = a => fix(a, 24)
 export const CALC_METHODS = {
   // Bakı, Əbu Bəkr məscidi (Ümmül-Qura): sübh 18.5°, işa = məğrib + 90 dəq.
   abubakr: { fajr: 18.5, ishaMin: 90, asrFactor: 1 },
+  // v6.7: aladhan 13 — Türkiyə Diyanəti (sübh 18°, işa 17°, Əsr — Şafii/1). Azərbaycandan kənar şəhərlərin canlı
+  // vaxtları aladhan-dan bu metodla gəlir; /prayer/<şəhər> statik cədvəli eyni hesabı yerli verir.
+  // Yüksək enlik — aladhan-ın susmaya görə qaydası (ANGLE_BASED): bucaq/60 × gecə.
+  // Diyanətin "temkin" ehtiyat dəqiqələri (aladhan-ın 13-cü metodu ilə eyni, onunla testlə yoxlanılıb)
+  diyanet: { fajr: 18, isha: 17, asrFactor: 1, highLat: 'angle', offset: { sunrise: -7, dhuhr: 5, asr: 4, maghrib: 7 } },
 }
 
 function julian(year, month, day) {
@@ -107,13 +112,24 @@ export function computeTimes({ year, month, day }, lat, lng, tzHours, method = C
   const adj = tzHours - lng / 15
   fajr += adj; sunrise += adj; dhuhr += adj; asr += adj; sunset += adj
   let maghrib = sunset
-  let isha = maghrib + method.ishaMin / 60
+  let isha = method.isha != null ? sunAngleTime(method.isha, p(18)) + adj : maghrib + method.ishaMin / 60
 
-  // Yüksək enliklər (gecənin ortası qaydası): sübh və işa gecənin yarısını keçməsin
   const night = fixHour(sunrise - sunset)
-  const half = night / 2
-  if (!Number.isFinite(fajr) || fixHour(sunrise - fajr) > half) fajr = sunrise - half
-  if (!Number.isFinite(isha) || fixHour(isha - sunset) > half) isha = sunset + half
+  if (method.highLat === 'angle') {
+    // ANGLE_BASED (aladhan/PrayTimes): sübh/işa günəşdən bucaq/60 × gecə-dən uzaq düşməsin
+    const fp = (method.fajr / 60) * night, ip = ((method.isha ?? 18) / 60) * night
+    if (!Number.isFinite(fajr) || fixHour(sunrise - fajr) > fp) fajr = sunrise - fp
+    if (!Number.isFinite(isha) || fixHour(isha - sunset) > ip) isha = sunset + ip
+  } else {
+    // Yüksək enliklər (gecənin ortası qaydası): sübh və işa gecənin yarısını keçməsin
+    const half = night / 2
+    if (!Number.isFinite(fajr) || fixHour(sunrise - fajr) > half) fajr = sunrise - half
+    if (!Number.isFinite(isha) || fixHour(isha - sunset) > half) isha = sunset + half
+  }
+
+  const off = method.offset || {}
+  const o = (k) => (off[k] || 0) / 60
+  fajr += o('fajr'); sunrise += o('sunrise'); dhuhr += o('dhuhr'); asr += o('asr'); maghrib += o('maghrib'); isha += o('isha')
 
   const fmt = t => {
     if (!Number.isFinite(t)) return ''
