@@ -21,6 +21,7 @@ import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
 import { haptic } from '../hooks/useHaptic'
 import { DailyReminderBarSkeleton } from '../components/DailyReminderBarSkeleton'
 import Icon from '../components/Icon'
+import Icon3D from '../components/Icon3D'
 import { StatTile } from '../components/viz'
 import { pathFor } from '../seo/routes'
 import CityPicker from '../components/CityPicker'
@@ -721,7 +722,7 @@ export default function HomePage({ setPage }) {
             {QUICK.map(q => (
               <li key={q.page}>
                 <SpotlightCard as="a" className="ui-tile hp-tile" href={pathFor(q.page, lang)} onClick={(e) => { if (plainClick(e)) { e.preventDefault(); goTo(q.page) } }}>
-                  <span className="ui-icon-tile" aria-hidden="true"><Icon name={q.page} /></span>
+                  <Icon3D name={q.page} size={56} />
                   <span className="ui-tile__title">{L(q.title)}</span>
                   <span className="ui-tile__text">{L(q.desc)}</span>
                 </SpotlightCard>

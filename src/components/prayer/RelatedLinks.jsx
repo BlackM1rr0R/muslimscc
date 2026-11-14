@@ -7,6 +7,7 @@
 // ═══════════════════════════════════════════════════════
 import { useNavigate } from 'react-router-dom'
 import Icon from '../Icon'
+import Icon3D, { ICON3D_NAMES } from '../Icon3D'
 import { isPlainClick } from '../PageLink'
 import { pathFor } from '../../seo/routes'
 import { pickUi } from '../../utils/uiText'
@@ -38,7 +39,9 @@ export default function RelatedLinks({ items, lang, title, eyebrow, id = 'relate
             return (
               <li key={href}>
                 <a className="ui-tile ui-tile--row" href={href} onClick={onClick}>
-                  <span className="ui-icon-tile" aria-hidden="true"><Icon name={it.icon || (it.lesson ? 'learn' : it.key)} fallback={<Icon name="learn" />} /></span>
+                  {ICON3D_NAMES.includes(it.icon || (it.lesson ? 'learn' : it.key))
+                    ? <Icon3D name={it.icon || (it.lesson ? 'learn' : it.key)} size={46} />
+                    : <span className="ui-icon-tile" aria-hidden="true"><Icon name={it.icon || (it.lesson ? 'learn' : it.key)} fallback={<Icon name="learn" />} /></span>}
                   <span className="ui-tile__body">
                     <span className="ui-tile__title">{pick(it.title, lang)}</span>
                     {it.text && <span className="ui-tile__text">{pick(it.text, lang)}</span>}

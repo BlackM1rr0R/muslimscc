@@ -1,0 +1,29 @@
+/* ══ Icon3D — "Nur" həcmli İslami ikonlar (components/Icon3D.jsx, v6.7) ══
+   Ana element (.ui-tile, kart, link) hover/focus olanda: kafel 3D əyilir, fiqur öndə qalxır, işıq zolağı keçir. */
+.i3d { position: relative; display: inline-block; width: var(--i3d); height: var(--i3d); flex-shrink: 0; border-radius: 28%;
+  transform-style: preserve-3d; transition: transform 520ms var(--ease-spring, cubic-bezier(.34,1.56,.64,1)), filter 400ms ease;
+  filter: drop-shadow(0 6px 10px rgba(6, 42, 33, .28)) drop-shadow(0 1px 1px rgba(6, 42, 33, .25)); }
+.i3d svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.i3d__g { transition: transform 520ms var(--ease-spring, cubic-bezier(.34,1.56,.64,1)); transform-origin: 50% 60%; transform-box: view-box; }
+.i3d__fallback { color: #f0e2c2; }
+/* İşıq zolağı (sheen) — kafelin üstündən çəpinə keçir */
+.i3d::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.45) 45%, rgba(255,246,220,.15) 52%, transparent 62%);
+  background-size: 260% 100%; background-position: 130% 0; }
+[data-theme="dark"] .i3d { filter: drop-shadow(0 6px 14px rgba(0,0,0,.5)) drop-shadow(0 0 10px rgba(95, 200, 165, .12)); }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) :is(a, button, .ui-tile, .ui-card):is(:hover, :focus-visible) .i3d,
+  html:not(.a11y-reduce-motion) :is(a, button, .ui-tile, .ui-card):is(:hover, :focus-visible) .i3d--hover {
+    transform: perspective(240px) rotateX(12deg) rotateY(-14deg) translateY(-3px) scale(1.04);
+  }
+  html:not(.a11y-reduce-motion) :is(a, button, .ui-tile, .ui-card):is(:hover, :focus-visible) .i3d .i3d__g,
+  html:not(.a11y-reduce-motion) :is(a, button, .ui-tile, .ui-card):is(:hover, :focus-visible) .i3d--hover .i3d__g {
+    transform: translate(1.2px, -2.2px) scale(1.07);
+  }
+  html:not(.a11y-reduce-motion) :is(a, button, .ui-tile, .ui-card):is(:hover, :focus-visible) .i3d::after,
+  html:not(.a11y-reduce-motion) :is(a, button, .ui-tile, .ui-card):is(:hover, :focus-visible) .i3d--hover::after {
+    opacity: 1; animation: i3d-sheen 900ms ease-out 1 both;
+  }
+}
+@keyframes i3d-sheen { from { background-position: 130% 0; } to { background-position: -40% 0; } }

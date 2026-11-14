@@ -1248,3 +1248,6 @@ html.a11y-reduce-motion .hp-kalima::after { animation: none !important; }
 .hp-td-date { position: relative; }
 .hp-td-moon { position: absolute; top: 14px; inset-inline-end: 14px; }
 .ui-eyebrow .hp-eyebrow-ar { font-size: 1.15em; letter-spacing: 0; text-transform: none; color: inherit; }
+
+/* v6.7: Icon3D bölmə kafellərində — telefonda kiçik */
+@media (max-width: 640px) { .hp-root .hp-tile .i3d { --i3d: 46px !important; width: 46px; height: 46px; margin-bottom: 4px; } }
