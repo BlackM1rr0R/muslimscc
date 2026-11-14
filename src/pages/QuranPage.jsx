@@ -1138,6 +1138,7 @@ export default function QuranPage() {
     const band = Math.max(80, Math.round((vh - top) * 0.35))
     const bottom = Math.max(0, vh - top - band)
     const visible = new Set()
+    let leaving = false
     const io = new IntersectionObserver(entries => {
       for (const e of entries) {
         const n = Number(e.target.dataset.ayah)
@@ -1155,11 +1156,19 @@ export default function QuranPage() {
       }) ?? sorted[sorted.length - 1]
       currentAyahRef.current = cur
       paintProgress(cur)
-      if (armedRef.current && !jumpingRef.current) queueSave(cur)
+      if (!leaving && armedRef.current && !jumpingRef.current) queueSave(cur)
     }, { rootMargin: `-${top}px 0px -${bottom}px 0px` })
     listRef.current.querySelectorAll('[data-ayah]').forEach(el => io.observe(el))
+    // "Geri" (popstate): oxuyucu bir an ekranda qalır, səhifə yuxarı sürüşür → 1-ci ayə "cari" görünüb
+    // yerin üstünə yazılırdı. Keçid başlayan kimi yer yazmanı söndür, növbədəki yazını ləğv et.
+    const onPop = () => {
+      flushSave()            // geridən ƏVVƏL növbəyə düşən (həqiqi) yer itməsin
+      armedRef.current = false
+      leaving = true         // sonrakı sürüşmələr (marşrutlayıcının scrollTo-su) yer yazmasın
+    }
+    window.addEventListener('popstate', onPop, true)
     const onScroll = () => {
-      if (jumpingRef.current || performance.now() < ignoreScrollUntilRef.current) return
+      if (leaving || jumpingRef.current || performance.now() < ignoreScrollUntilRef.current) return
       armedRef.current = true
       if (currentAyahRef.current) queueSave(currentAyahRef.current)
     }
@@ -1184,6 +1193,7 @@ export default function QuranPage() {
     return () => {
       io.disconnect()
       window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('popstate', onPop, true)
       window.removeEventListener('wheel', onInput)
       window.removeEventListener('touchmove', onInput)
       window.removeEventListener('keydown', onKeyScroll)
@@ -1384,10 +1394,14 @@ export default function QuranPage() {
     if (selected) { wasOpenRef.current = true; return }
     if (!wasOpenRef.current) return
     wasOpenRef.current = false
+    // Son oxunan yer itməsin: gözləyən yazını dərhal yaz, sonra yer yazmanı söndür — siyahının sürüşmə
+    // bərpası (scrollTo) oxuyucunun dinləyicisinə "oxuma" kimi düşüb yeri 1-ci ayə ilə əvəz edirdi
+    flushSave()
+    armedRef.current = false
     setBookmark(readBookmark())
     const y = listScrollRef.current
     requestAnimationFrame(() => window.scrollTo(0, y))
-  }, [selected])
+  }, [selected, flushSave])
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
