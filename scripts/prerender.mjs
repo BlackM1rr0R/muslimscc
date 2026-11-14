@@ -418,6 +418,7 @@ const DETAIL_SITEMAP = {
   learn:  { file: 'sitemap-learn.xml',  priority: 0.75, changefreq: 'monthly' },
   glossary: { file: 'sitemap-glossary.xml', priority: 0.7, changefreq: 'monthly' },
   prayer: { file: 'sitemap-prayer.xml', priority: 0.9, changefreq: 'daily' },
+  hadith: { file: 'sitemap-hadith.xml', priority: 0.7, changefreq: 'monthly' },
 }
 
 /**
@@ -531,7 +532,7 @@ for (const p of PAGES) {
 let detailCount = 0
 for (const key of Object.keys(DETAILS)) {
   for (const param of detailParams(key)) {
-    for (const lang of langsFor(key)) {
+    for (const lang of (DETAILS[key].coreOnly ? LANGS : langsFor(key))) {
       writeRoute(renderPage(template, key, lang, false, param), pathFor(key, lang, param))
       detailCount++
     }

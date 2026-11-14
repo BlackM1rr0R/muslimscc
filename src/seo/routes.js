@@ -11,6 +11,7 @@
 import { SURAH_SLUGS } from './surahSlugs.js'
 import { NAME_SLUGS, REMOVED_NAME_SLUGS, SAHABA_SLUGS, SCHOLAR_SLUGS, LESSON_SLUGS, GLOSSARY_SLUGS, PRAYER_CITY_SLUGS } from './detailSlugs.js'
 import { EXTRA_LANGS, EXTRA_CODES, EXTRA_PAGES, EXTRA_UI_LANG, isExtraLang } from './langs.js'
+import { HADITH_IDS } from './hadithIds.js'
 
 export const SITE = 'https://muslims.cc'
 
@@ -47,7 +48,7 @@ export const langsFor = (key) => (EXTRA_PAGES.includes(key) ? ALL_LANGS : [...LA
  * səhifə 44 dildə eyni ingiliscə başlıq/təsvirlə özünü kanonik göstərirdi — dublikat məzmun.)
  */
 // prayer (v6.6): şəhər səhifəsinin başlıq/mətni 5 dildədir — əlavə dildə ingilis səhifəsinin surəti
-export const CORE_CONTENT_DETAILS = ['glossary', 'names', 'sahaba', 'scholars', 'learn', 'prayer']
+export const CORE_CONTENT_DETAILS = ['glossary', 'names', 'sahaba', 'scholars', 'learn', 'prayer', 'hadith']
 const isCoreDetail = (key, param) => param != null && param !== '' && CORE_CONTENT_DETAILS.includes(key)
 /** hreflang / sitemap dilləri — səhifə (və detal parametri) üçün */
 export const seoLangsFor = (key, param) => (isCoreDetail(key, param) ? LANGS : langsFor(key))
@@ -166,6 +167,9 @@ export const DETAILS = {
   learn:  { kind: 'slug',   slugs: LESSON_SLUGS },
   glossary: { kind: 'slug', slugs: GLOSSARY_SLUGS },
   prayer: { kind: 'slug', slugs: PRAYER_CITY_SLUGS },
+  // v6.8: hər hədis (/hadith/<id>) — yalnız 5 əsas dildə prerender (coreOnly: əlavə dillərin ingiliscə
+  // nüsxələri yaradılmır — 1143 × 49 fayl image limitini aşardı); hreflang/sitemap da 5 dil
+  hadith: { kind: 'slug', slugs: HADITH_IDS, coreOnly: true },
   // Qrup otağı (/group/<id>) — istifadəçinin yaratdığı otaq: indekslənmir,
   // prerender və sitemap-a düşmür (detailParams → [])
   group:  { kind: 'id', pattern: /^[a-z0-9]{10}$/, noindex: true },

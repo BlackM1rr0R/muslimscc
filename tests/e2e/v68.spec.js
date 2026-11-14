@@ -28,3 +28,15 @@ test('Fidyə/kəffarə: fidyə 30 gün = 30 kasıb ≈ 45 kq; and kəffarəsi 2 
   const { violations } = await new AxeBuilder({ page }).include('[data-testid=kaffarah-calc]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']).analyze()
   expect(violations.filter(v => v.impact === 'critical' || v.impact === 'serious').map(v => v.id)).toEqual([])
 })
+
+test('Hədis səhifəsi /en/hadith/8: başlıq, seçilmiş hədis kartı, bütün hədislərə keçid', async ({ page }) => {
+  await page.goto('/en/hadith/8')
+  await settle(page)
+  await expect(page).toHaveTitle(/Actions are by intentions/)
+  const f = page.getByTestId('hadith-focus')
+  await expect(f).toBeVisible()
+  await expect(f).toContainText('Actions are by intentions')
+  await f.locator('a.hadith-focus__all').click()
+  await expect(page).toHaveURL(/\/en\/hadith$/)
+  await expect(page.getByTestId('hadith-focus')).toHaveCount(0)
+})

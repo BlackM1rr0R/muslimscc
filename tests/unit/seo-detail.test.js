@@ -1,3 +1,4 @@
+import { HADITH_IDS } from '../../src/seo/hadithIds.js'
 // Detal səhifələri: /quran/<n>-<slug>, /names/<n>-<slug>, /sahaba/<slug>
 // — marşrut (pathFor/parsePath), slug-ların məlumatla uyğunluğu, meta və sxem
 import { describe, it, expect } from 'vitest'
@@ -126,8 +127,8 @@ describe('detal marşrutları — pathFor / parsePath', () => {
   it('URL-lər təkrarlanmır, hamısı ASCII kiçik hərf və defisdir', () => {
     const urls = Object.keys(DETAILS).flatMap(k => detailParams(k).flatMap(p => LANGS.map(l => pathFor(k, l, p))))
     expect(new Set(urls).size).toBe(urls.length)
-    expect(urls.length).toBe((114 + 99 + SAHABA.length + SCHOLAR_SLUGS.length + LESSON_SLUGS.length + GLOSSARY_SLUGS.length + 75 + 19) * LANGS.length)   // 75 AZ + 19 dünya şəhəri
-    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba|scholars|learn|glossary|prayer)\/[a-z0-9-]+$/)
+    expect(urls.length).toBe((114 + 99 + SAHABA.length + SCHOLAR_SLUGS.length + LESSON_SLUGS.length + GLOSSARY_SLUGS.length + 75 + 19 + HADITH_IDS.length) * LANGS.length)   // 75 AZ + 19 dünya şəhəri + hədislər
+    for (const u of urls) expect(u, u).toMatch(/^(\/[a-z]{2})?\/(quran|names|sahaba|scholars|learn|glossary|prayer|hadith)\/[a-z0-9-]+$/)
   })
 })
 

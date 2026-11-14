@@ -17,9 +17,9 @@ import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
 import { ChartFigure, SegmentBreakdown, MiniTable, InlineBar } from '../components/viz'
 import { HADITH_COUNT } from '../data/siteStats'
-import { pathFor } from '../seo/routes'
+import { pathFor, parsePath } from '../seo/routes'
 import { isPlainClick } from '../components/PageLink'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import '../styles/HadithPage.css'
 // Dizayn v6 (src/motion): hero rəqəmləri sayğacla; dərəcə süzgəcində seçilmiş hap
 // yayla sürüşür (layoutId — "animated tabs" ideyası, semantika aria-pressed qrupu qalır)
@@ -294,6 +294,8 @@ const revealProps = (i) => {
 
 // memo: yeni partiya əlavə olunanda və ya bir kart sevimliyə düşəndə
 // köhnə kartlar yenidən render olunmur (callback-lar sabitdir)
+const FOCUS_ALL = { az: 'Bütün hədislər', en: 'All hadith', ru: 'Все хадисы', ar: 'كل الأحاديث', tr: 'Bütün hadisler' }
+
 const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, lang, index }) {
   const b = pickUi(BTN_LABELS, lang, 'en')
   // Ərəbcədə hadith.text elə hadith.ar-ın özüdür — eyni mətni iki dəfə göstərməyək
@@ -450,7 +452,7 @@ function HadithAbout({ u, lang, list }) {
   )
 }
 
-export default function HadithPage() {
+export default function HadithPage({ setPage }) {
   const { lang } = useLang()
   const t = pickUi(T, lang)?.hadith || T.az.hadith
   const cats = CATS_MAP[lang] || CATS_EN
@@ -655,6 +657,10 @@ export default function HadithPage() {
     },
   })
   const visible = filtered.slice(0, inf.count)
+  // v6.8: /hadith/<id> — həmin hədis siyahının üstündə ayrıca (statik SEO səhifəsi ilə eyni məzmun)
+  const routeLoc = useLocation()
+  const focusId = parsePath(routeLoc.pathname).param
+  const focus = useMemo(() => (focusId ? list.find(h => String(h.id) === String(focusId)) : null), [focusId, list])
 
   const countText = hadithCount(filtered.length, lang)
 
@@ -739,6 +745,14 @@ export default function HadithPage() {
           {/* Açar filtr dəyişəndə siyahını yenidən qurur — kartlar yenidən
               növbə ilə görünür (siyahı keçidi). Axtarış açara daxil deyil:
               hər hərfdə bütün kartlar yenidən oynamasın. */}
+          {focus && (
+            <div className="hadith-focus" data-testid="hadith-focus">
+              <HadithCard hadith={focus} lang={lang} index={0} displayNum={focus.id} isFav={isFav(focus)} onToggleFav={toggleFav} onShare={shareHadith} />
+              <a className="ui-link hadith-focus__all" href={pathFor('hadith', lang)} onClick={(e) => { if (isPlainClick(e) && setPage) { e.preventDefault(); setPage('hadith') } }}>
+                {pickUi(FOCUS_ALL, lang)} <Icon name="arrow" size={14} className="ui-link__arrow ui-flip-rtl" />
+              </a>
+            </div>
+          )}
           <div className="hadiths-list" key={`${safeCat}|${showFavs}|${gradeF}`}>
             {visible.length === 0
               ? (

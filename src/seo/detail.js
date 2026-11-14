@@ -36,6 +36,11 @@ import { EXTRA_LANGS, EXTRA_CODES } from './langs.js'
 import { INTL_QURAN, INTL_BODY_UI } from './intl.js'
 import { INTL_QURAN_SECTION } from './intlMeta.js'
 import { prayerCity, cityName, countryName, isAzCity, PRAYER_CITY_T } from './prayerCity.js'
+import { HADITHS } from '../data/hadiths.js'
+import { SUNAN_GRADES } from '../data/hadithGrades.js'
+import { gradeOf } from '../utils/hadithGrade.js'
+import { localizeSource } from '../utils/sourceNames.js'
+import { HADITH_IDS } from './hadithIds.js'
 
 // Title-ın səhifə hissəsi üçün hədd (brend şəkilçisi bundan sonra gəlir)
 export const TITLE_MAX = 60
@@ -313,6 +318,54 @@ const TERM_T = {
  * Detal səhifəsinin mətnləri: { t, d, h1, intro, crumb } və ya null.
  * t — title-ın səhifə hissəsi (brend şəkilçisi titleForDetail-də əlavə olunur).
  */
+// ── Hədis (/hadith/<id>, v6.8) — mətn, mənbə, dərəcə yalnız saytın yoxlanmış datasından ──
+const HADITH_MAP = {}
+export function hadithInfo(id, lang) {
+  const l = HADITHS[lang] ? lang : 'en'
+  HADITH_MAP[l] ||= new Map(HADITHS[l].map(h => [String(h.id), h]))
+  const h = HADITH_MAP[l].get(String(id))
+  if (!h) return null
+  const ar = (HADITH_MAP.ar ||= new Map(HADITHS.ar.map(x => [String(x.id), x]))).get(String(id))
+  return { ...h, arText: h.ar || ar?.ar || '', src: localizeSource(h.source, l), grade: gradeOf(h, SUNAN_GRADES) }
+}
+// Başlıq üçün mətnin əvvəli — söz sərhədində
+function snippet(text, max = 58) {
+  const s = String(text || '').replace(/\s+/g, ' ').replace(/^[«"“]+/, '').trim()
+  if ([...s].length <= max) return s.replace(/[.»"”]+$/, '')
+  const cut = [...s].slice(0, max).join('')
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(' '), max * 0.6)).replace(/[,;:—–-]+$/, '')}…`
+}
+export const HADITH_T = {
+  az: { more: 'Hədisin ərəbcə mətni, tərcüməsi, mənbəyi və səhihlik dərəcəsi — Muslims.cc.', t: (s, src) => `«${s}» — ${src}`, h1: 'Hədis', grade: { s: 'Səhih', h: 'Həsən' }, by: { bukhari: 'Buxari', muslim: 'Müslim', albani: 'Albani' }, src: 'Mənbə', gradeL: 'Dərəcəsi', all: 'Bütün hədislər', prev: 'Əvvəlki hədis', next: 'Növbəti hədis' },
+  en: { more: 'The hadith’s Arabic text, translation, source and authenticity grade — Muslims.cc.', t: (s, src) => `“${s}” — ${src}`, h1: 'Hadith', grade: { s: 'Sahih', h: 'Hasan' }, by: { bukhari: 'al-Bukhari', muslim: 'Muslim', albani: 'al-Albani' }, src: 'Source', gradeL: 'Grade', all: 'All hadith', prev: 'Previous hadith', next: 'Next hadith' },
+  ru: { more: 'Арабский текст хадиса, перевод, источник и степень достоверности — Muslims.cc.', t: (s, src) => `«${s}» — ${src}`, h1: 'Хадис', grade: { s: 'Сахих', h: 'Хасан' }, by: { bukhari: 'аль-Бухари', muslim: 'Муслим', albani: 'аль-Альбани' }, src: 'Источник', gradeL: 'Степень', all: 'Все хадисы', prev: 'Предыдущий хадис', next: 'Следующий хадис' },
+  ar: { more: 'نص الحديث بالعربية ومصدره ودرجته من حيث الصحة — Muslims.cc.', t: (s, src) => `«${s}» — ${src}`, h1: 'حديث', grade: { s: 'صحيح', h: 'حسن' }, by: { bukhari: 'البخاري', muslim: 'مسلم', albani: 'الألباني' }, src: 'المصدر', gradeL: 'الدرجة', all: 'كل الأحاديث', prev: 'الحديث السابق', next: 'الحديث التالي' },
+  tr: { more: 'Hadisin Arapça metni, tercümesi, kaynağı ve sıhhat derecesi — Muslims.cc.', t: (s, src) => `“${s}” — ${src}`, h1: 'Hadis', grade: { s: 'Sahih', h: 'Hasen' }, by: { bukhari: 'Buhârî', muslim: 'Müslim', albani: 'Elbânî' }, src: 'Kaynak', gradeL: 'Derecesi', all: 'Bütün hadisler', prev: 'Önceki hadis', next: 'Sonraki hadis' },
+}
+const hadithSrc1 = (h) => h.src.split(/\s*;\s*/)[0].replace(/\s*\([^)]*\)/g, '')
+const DUP = {}
+/** Dildə başlığı təkrarlanan hədislərin id-ləri (ilki istisna) — bir dəfə hesablanır */
+function hadithTitleDup(lang) {
+  if (DUP[lang]) return DUP[lang]
+  const L = HADITH_T[lang] || HADITH_T.az
+  const seen = new Set(), dup = new Set()
+  for (const id of HADITH_IDS) {
+    const h = hadithInfo(id, lang)
+    if (!h) continue
+    const src1 = hadithSrc1(h)
+    const t = L.t(snippet(lang === 'ar' ? h.arText : h.text, Math.max(16, 60 - [...src1].length - 6)), src1)
+    if (seen.has(t)) dup.add(String(id)); else seen.add(t)
+  }
+  return (DUP[lang] = dup)
+}
+/** Dərəcə mətni yalnız səhih/həsən və hökm verən məlum olanda: "Səhih (Albani)" */
+export function hadithGradeText(g, lang) {
+  const L = HADITH_T[lang] || HADITH_T.az
+  if (!g?.g || !L.grade[g.g]) return ''
+  const by = g.gb && L.by[g.gb]
+  return by ? `${L.grade[g.g]} (${by})` : L.grade[g.g]
+}
+
 export function detailMeta(key, lang, param) {
   // Əlavə dildə Qurandan başqa detal (səhabə, dərs, termin…): məzmun yalnız 5
   // dildədir — ingiliscə mətn (maşın tərcüməsi yox; sahibin qərarı, 2026-11-06)
@@ -359,6 +412,21 @@ export function detailMeta(key, lang, param) {
     if (!isAzCity(c)) return { t: L.t(n), d: clamp(L.dW(n, countryName(c, lang))), h1: L.h1(n), intro: L.introW(n), crumb: n }
     return { t: L.t(n), d: clamp(L.d(n)), h1: L.h1(n), intro: L.intro(n), crumb: n }
   }
+  if (key === 'hadith') {
+    const h = hadithInfo(param, lang)
+    if (!h) return null
+    const L = HADITH_T[lang] || HADITH_T.az
+    const text = lang === 'ar' ? h.arText : h.text
+    // Başlıq ≤ 60: mənbə adı + dırnaqlar çıxılır, qalan yer mətnin əvvəlinə
+    // Başlıqda yalnız ilk mənbə ("İbn Hibban 3467; Təbərani …" → "İbn Hibban 3467")
+    let src1 = hadithSrc1(h)
+    // Bu dildə başqa hədisin başlığı ilə eynidirsə — nömrə əlavə olunur (başlıqlar unikal qalsın)
+    if (hadithTitleDup(lang).has(String(param))) src1 = `${src1} · ${param}`
+    const sn = snippet(text, Math.max(16, 60 - [...src1].length - 6))
+    let d = `${text} — ${h.src}`
+    if ([...d].length < 80) d = `${d}. ${L.more}`
+    return { t: L.t(sn, src1), d: clamp(d), h1: `${L.h1}: ${snippet(text, 90)}`, intro: text, crumb: sn }
+  }
   if (key === 'glossary') {
     const x = termInfo(param, lang)
     if (!x) return null
@@ -387,6 +455,7 @@ export const SECTION_LABEL = {
   learn:  { az: 'Dərslər', en: 'Lessons', ru: 'Уроки', ar: 'الدروس', tr: 'Dersler' },
   glossary: { az: 'İslami söz lüğəti', en: 'Islamic Glossary', ru: 'Исламский глоссарий', ar: 'قاموس المصطلحات الإسلامية', tr: 'İslami Sözlük' },
   prayer: { az: 'Namaz vaxtları', en: 'Prayer times', ru: 'Время намаза', ar: 'مواقيت الصلاة', tr: 'Namaz vakitleri' },
+  hadith: { az: 'Hədislər', en: 'Hadith', ru: 'Хадисы', ar: 'الأحاديث', tr: 'Hadisler' },
 }
 
 /** Bölmənin adı cari dildə (əlavə dildə — ingiliscənin lüğətdəki tərcüməsi). */
@@ -488,6 +557,9 @@ export function detailJsonLd(key, lang, param) {
       inDefinedTermSet: { '@type': 'DefinedTermSet', name: sectionLabel('glossary', lang), url: SITE + pathFor('glossary', lang) },
       url,
     }
+  } else if (key === 'hadith') {
+    const h = hadithInfo(param, lang)
+    main = { '@type': 'Quotation', text: h.arText || m.intro, ...(lang !== 'ar' ? { abstract: m.intro } : {}), citation: h.src, inLanguage: lang, url }
   } else if (key === 'prayer') {
     // Şəhər — yalnız səhifədə görünən fakt: adı və koordinatı
     const c = prayerCity(param)

@@ -27,8 +27,7 @@ import { shortName, descFor } from '../src/seo/meta.js'
 import { brandName } from '../src/config/brand.js'
 import {
   BODY_UI, SECTION_LABEL, detailMeta, crumbsFor, surahInfo, nameInfo, sahabaInfo, sentencesOf,
-  termInfo, GLOSSARY_CAT_LABEL,
-} from '../src/seo/detail.js'
+  termInfo, GLOSSARY_CAT_LABEL, hadithInfo, hadithGradeText, HADITH_T } from '../src/seo/detail.js'
 import { GLOSSARY, GLOSSARY_CATS, GLOSSARY_BY_ID } from '../src/data/glossary.js'
 import { setGlossarySource } from '../src/seo/glossarySource.js'
 import { LESSON_SLUGS } from '../src/seo/detailSlugs.js'
@@ -41,6 +40,7 @@ import { PRAYER_CITIES } from '../src/data/prayerCities.js'
 import { prayerCity, cityName, citySlug, monthTable, isAzCity, WORLD_PAGE_CITIES, PRAYER_KEYS, PRAYER_LABELS, PRAYER_CITY_T } from '../src/seo/prayerCity.js'
 import { G_MONTHS } from '../src/utils/hijri.js'
 import { BABY_NAMES, nameIn } from '../src/data/babyNames.js'
+import { HADITH_IDS } from '../src/seo/hadithIds.js'
 
 // detail.js lüğəti glossarySource.js-dən oxuyur (prerender: meta + statik blok)
 setGlossarySource(GLOSSARY_BY_ID)
@@ -538,6 +538,25 @@ function babyNamesBody(lang) {
   )
 }
 
+// ═══ Hədis (/hadith/<id>, v6.8) — yalnız saytın yoxlanmış datası: ərəbcə mətn, tərcümə, mənbə, dərəcə ═══
+function hadithBody(lang, id) {
+  const h = hadithInfo(id, lang)
+  if (!h) return ''
+  const m = detailMeta('hadith', lang, id)
+  const T = HADITH_T[lang] || HADITH_T.az
+  const i = HADITH_IDS.indexOf(String(id))
+  const near = (j, label) => (j >= 0 && j < HADITH_IDS.length ? { href: pathFor('hadith', lang, HADITH_IDS[j]), label, name: detailMeta('hadith', lang, HADITH_IDS[j])?.crumb || '' } : null)
+  return shell(lang,
+    detailCrumbs('hadith', lang, id) +
+    `<header><h1>${esc(m.h1)}</h1></header>` +
+    (h.arText ? `<blockquote lang="ar" dir="rtl" class="seo-static__ar">${esc(h.arText)}</blockquote>` : '') +
+    (lang !== 'ar' ? `<p class="seo-static__lead">${esc(h.text)}</p>` : '') +
+    facts([[T.src, h.src], [T.gradeL, hadithGradeText(h.grade, lang)]]) +
+    pager(near(i - 1, T.prev), near(i + 1, T.next)) +
+    `<p><a href="${pathFor('hadith', lang)}">${esc(T.all)}</a></p>`,
+  )
+}
+
 function listShell(key, lang, heading, items) {
   return shell(lang,
     crumbs(lang, [
@@ -566,6 +585,7 @@ export function staticBodyFor(key, lang, param = null) {
   if (key === 'glossary') return param ? termBody(lang, param) : glossaryListBody(lang)
   if (key === 'prayer') return param ? prayerCityBody(lang, param) : prayerListBody(lang)
   if (key === 'babynames') return babyNamesBody(lang)
+  if (key === 'hadith' && param) return hadithBody(lang, param)
   return ''
 }
 
