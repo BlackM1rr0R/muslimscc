@@ -44,6 +44,7 @@ import { NAV_GROUPS, navGroupOf } from '../data/navigation'
 import { pathFor, parsePath, hasPageInLang, EXTRA_LANGS, EXTRA_CODES } from '../seo/routes'
 import { isOverlayEntry } from '../utils/useBackToClose'
 import Icon, { BrandMark } from './Icon'
+import Icon3D from './Icon3D'
 import '../styles/SideNav.css'
 import { m } from 'motion/react'
 import HoverPill from '../motion/HoverPill'
@@ -684,6 +685,9 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
                     <span className="qm-sn-item-icon" aria-hidden="true">
                       <Icon name={item.key} size={18} fallback={item.icon} />
                     </span>
+                    {/* v6.7: telefon menyusunda hər bölmə eyni zümrüd kafeldə — fiquru varsa 3D, yoxdursa qızılı xətti ikon
+                        (CSS: yalnız .qm-sn--drawer; desktop yan panelində xətti ikon qalır) */}
+                    <Icon3D name={item.key} size={38} lite className="qm-sn-i3d" />
                     <span className="qm-sn-item-label">{label}</span>
                   </a>
                 </li>

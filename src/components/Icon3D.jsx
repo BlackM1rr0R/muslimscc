@@ -11,6 +11,7 @@
 //   (paralaks), səthdən işıq zolağı keçir. prefers-reduced-motion / a11y-reduce-motion — hərəkətsiz.
 // • Yalnız SVG (şəkil yox), hər ikon ~2–3 KB. Fiqur yoxdursa — adi xətti <Icon> eyni kafeldə.
 // Kiçik UI ikonları (ox, info, axtarış) üçün DEYİL — onlar xətti <Icon> olaraq qalır.
+// lite — kölgə filtri və fon naxışı yoxdur (siyahılar, telefon menyusu: 60+ sətir, açılış səlis qalsın).
 // ═══════════════════════════════════════════════════════
 import { useId } from 'react'
 import Icon from './Icon'
@@ -204,7 +205,7 @@ const G = {
 
 export const ICON3D_NAMES = Object.keys(G)
 
-export default function Icon3D({ name, size = 56, className = '' }) {
+export default function Icon3D({ name, size = 56, className = '', lite = false }) {
   const uid = useId().replace(/:/g, '')
   const g = G[name]
   const id = (k) => `i3${uid}${k}`
@@ -230,14 +231,14 @@ export default function Icon3D({ name, size = 56, className = '' }) {
           {used.has('inkSide') && <linearGradient id={id('inkSide')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a3a3a" /><stop offset="1" stopColor="#151515" /></linearGradient>}
           {used.has('inkTop') && <linearGradient id={id('inkTop')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5a5a5a" /><stop offset="1" stopColor="#2a2a2a" /></linearGradient>}
           {used.has('glow') && <radialGradient id={id('glow')} cx=".5" cy=".55" r=".6"><stop offset="0" stopColor="#fffbe6" /><stop offset=".55" stopColor="#ffd86b" /><stop offset="1" stopColor="#e39a2a" /></radialGradient>}
-          <filter id={id('sh')} x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="2.2" stdDeviation="1.6" floodColor="#031a14" floodOpacity=".55" /></filter>
+          {!lite && <filter id={id('sh')} x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="2.2" stdDeviation="1.6" floodColor="#031a14" floodOpacity=".55" /></filter>}
           <clipPath id={id('clip')}><rect x="2" y="2" width="60" height="60" rx="17" /></clipPath>
         </defs>
         <g className="i3d__tile">
           <rect x="2" y="2" width="60" height="60" rx="17" fill={tone('tile')} />
           <g clipPath={`url(#${id('clip')})`}>
-            <path d={khatam(32, 32, 30)} fill="none" stroke="#fff" strokeOpacity=".07" strokeWidth="1.2" />
-            <path d={khatam(32, 32, 19)} fill="none" stroke="#fff" strokeOpacity=".05" strokeWidth="1" />
+            {!lite && <path d={khatam(32, 32, 30)} fill="none" stroke="#fff" strokeOpacity=".07" strokeWidth="1.2" />}
+            {!lite && <path d={khatam(32, 32, 19)} fill="none" stroke="#fff" strokeOpacity=".05" strokeWidth="1" />}
             <rect x="2" y="2" width="60" height="30" fill={tone('hi')} />
             <ellipse cx="32" cy="66" rx="34" ry="12" fill="#000" opacity=".22" />
           </g>
@@ -245,7 +246,7 @@ export default function Icon3D({ name, size = 56, className = '' }) {
         </g>
         <g className="i3d__g">
           {g ? (
-            <g filter={`url(#${id('sh')})`}>
+            <g filter={lite ? undefined : `url(#${id('sh')})`}>
               {depth.length > 0 && (
                 <g transform="translate(0 1.8)" className="i3d__depth">
                   {depth.map((p, i) => <path key={i} d={p.d} fillRule={p.rule} fill={p.t ? '#5c410c' : 'none'} stroke={p.s ? '#5c410c' : undefined} strokeWidth={p.w} strokeLinecap="round" />)}

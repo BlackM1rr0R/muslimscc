@@ -1121,3 +1121,9 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
 @media print {
   .qm-sn { display: none !important; }
 }
+
+/* v6.7: telefon menyusunda 3D bölmə nişanı; desktop yan panelində xətti ikon qalır */
+.qm-sn-i3d { display: none; }
+.qm-sn--drawer .qm-sn-item-icon { display: none; }
+.qm-sn--drawer .qm-sn-i3d { display: inline-block; filter: drop-shadow(0 2px 3px rgba(6, 42, 33, .22)); }
+[data-theme="dark"] .qm-sn--drawer .qm-sn-i3d { filter: none; }
