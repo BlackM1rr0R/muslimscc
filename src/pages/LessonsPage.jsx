@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { guessLang } from '../utils/textLang'
+import Icon3D from '../components/Icon3D'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -285,6 +286,7 @@ export default function LessonsPage() {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="learn" size={60} className="ui-hero-i3d" />
             <span className="ui-eyebrow">{L.eyebrow}</span>
             <h1 className="ui-display">{L.title}</h1>
             <p className="ui-lead">{L.subtitle}</p>

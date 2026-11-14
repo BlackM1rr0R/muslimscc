@@ -9,6 +9,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import Icon3D from '../components/Icon3D'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -458,6 +459,7 @@ export default function ArabicCoursePage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="arabic" size={60} className="ui-hero-i3d" />
             <Breadcrumb setPage={setPage} current={t.title} />
             <span className="ui-eyebrow">{t.eyebrow}</span>
             <h1 className="ui-display">{t.title}</h1>

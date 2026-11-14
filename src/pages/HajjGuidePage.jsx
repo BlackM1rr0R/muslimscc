@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
+import Icon3D from '../components/Icon3D'
 // Dizayn v2: addım görünüşü artıq tam bu faylın öz .hg-* siniflərindədir —
 // Namaz bələdçisinin CSS-i (PrayerGuidePage.css, .pg-*) idxal olunmur, o səhifə
 // dəyişəndə həcc bələdçisi pozulmasın.
@@ -647,6 +648,7 @@ export default function HajjGuidePage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text" data-reveal="stagger">
+            <Icon3D name="hajjguide" size={60} className="ui-hero-i3d" />
             <Breadcrumb setPage={setPage} current={t.title} />
             <span className="ui-eyebrow">{navGroupLabel(navGroupOf('hajjguide'), lang)}</span>
             <h1 className="ui-display">{t.title}</h1>

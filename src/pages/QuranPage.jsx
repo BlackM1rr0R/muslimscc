@@ -1,5 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, memo, startTransition, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import Icon3D from '../components/Icon3D'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { SURAH_AZ, getSurahLocal } from '../data/surahNamesAz'
@@ -1701,6 +1702,7 @@ export default function QuranPage() {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="quran" size={60} className="ui-hero-i3d" />
             <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
             <h1 className="ui-display">{t.title}</h1>
             <p className="ui-lead">{pk(QURAN_GUIDE.ui.lead, lang)}</p>

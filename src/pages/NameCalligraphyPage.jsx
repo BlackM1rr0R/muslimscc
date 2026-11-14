@@ -12,6 +12,7 @@
 // Ad yalnız bu cihazda saxlanır (localStorage 'ncal_last_v1').
 // ═══════════════════════════════════════════════════════
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import Icon3D from '../components/Icon3D'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import PageLink from '../components/PageLink'
@@ -216,6 +217,7 @@ export default function NameCalligraphyPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="namecalligraphy" size={60} className="ui-hero-i3d" />
             <span className="ui-eyebrow">{t.ey}</span>
             <h1 className="ui-display">{t.title}</h1>
             <p className="ui-lead">{t.lead}</p>

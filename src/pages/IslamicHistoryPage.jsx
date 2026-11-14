@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
+import Icon3D from '../components/Icon3D'
 import Icon from '../components/Icon'
 import ReaderDialog from '../components/reader/ReaderDialog'
 import '../styles/IslamicHistoryPage.css'
@@ -238,6 +239,7 @@ export default function IslamicHistoryPage() {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="history" size={60} className="ui-hero-i3d" />
             <span className="ui-eyebrow">{L.eyebrow}</span>
             <h1 className="ui-display">{L.title}</h1>
             <p className="ui-lead">{L.subtitle}</p>

@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Icon3D from '../components/Icon3D'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
@@ -257,6 +258,7 @@ export default function FatwaPage() {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="fatwa" size={60} className="ui-hero-i3d" />
             <span className="ui-eyebrow">{T.eyebrow}</span>
             <h1 className="ui-display">{T.title}</h1>
             {lang !== 'ar' && <p className="fw-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الفتاوى ومصادر العلم</p>}

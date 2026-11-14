@@ -1,5 +1,6 @@
 import { useState, useRef, lazy, Suspense } from 'react'
 import Swap from '../components/pagefx/Swap'
+import Icon3D from '../components/Icon3D'
 import PressedGlide from '../components/pagefx/PressedGlide'
 // Foto qalereyası — kart dəstəsi (drag, domMax) tənbəl yüklənir
 const CardStack = lazy(() => import('../motion/CardStack'))
@@ -389,6 +390,7 @@ export function HolyPlacesPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text" data-reveal="stagger">
+            <Icon3D name="hajjguide" size={60} className="ui-hero-i3d" />
             <Breadcrumb setPage={setPage} current={lb.title} />
             <span className="ui-eyebrow">{navGroupLabel(navGroupOf('holyplaces'), lk)}</span>
             <h1 className="ui-display">{lb.title}</h1>

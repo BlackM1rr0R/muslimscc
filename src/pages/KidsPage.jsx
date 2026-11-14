@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
+import Icon3D from '../components/Icon3D'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
 import PageLink, { isPlainClick } from '../components/PageLink'
@@ -532,6 +533,7 @@ export default function KidsPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="kids" size={60} className="ui-hero-i3d" />
             <span className="ui-eyebrow">{t.subtitle}</span>
             <h1 className="ui-display">{t.title}</h1>
             <p className="ui-lead">{k.lead}</p>

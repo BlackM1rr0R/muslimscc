@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { guessLang } from '../utils/textLang'
+import Icon3D from '../components/Icon3D'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
@@ -577,6 +578,7 @@ export function CalendarPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="calendar" size={60} className="ui-hero-i3d" />
             <Breadcrumb setPage={setPage} current={t.title} />
             <span className="ui-eyebrow">{(pickUi(HERO_SUBTITLE, lang, 'en'))(hijri.year)}</span>
             <h1 className="ui-display">{t.title}</h1>

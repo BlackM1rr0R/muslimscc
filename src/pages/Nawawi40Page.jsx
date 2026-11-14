@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import Icon3D from '../components/Icon3D'
 import { guessLang } from '../utils/textLang'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -277,6 +278,7 @@ export default function Nawawi40Page() {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="hadith" size={60} className="ui-hero-i3d" />
             <span className="ui-eyebrow">{L.eyebrow}</span>
             <h1 className="ui-display">{L.title}</h1>
             {!isAr && <p className="nw-hero__ar ui-arabic" lang="ar" dir="rtl" aria-hidden="true">الأربعون النووية</p>}

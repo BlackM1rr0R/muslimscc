@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Icon3D from '../components/Icon3D'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { getSurahLocal } from '../data/surahNamesAz'
@@ -871,6 +872,7 @@ export default function HifzPage() {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="hifz" size={60} className="ui-hero-i3d" />
             <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>
             <h1 className="ui-display">{t.title}</h1>
             <p className="ui-lead">{pk(H.lead, lang)}</p>

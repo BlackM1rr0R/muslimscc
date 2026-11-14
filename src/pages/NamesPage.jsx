@@ -1,5 +1,6 @@
 import { NAMES_99 } from '../data/names99'
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import Icon3D from '../components/Icon3D'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
@@ -688,6 +689,7 @@ export default function NamesPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text" data-reveal="stagger">
+            <Icon3D name="names" size={60} className="ui-hero-i3d" />
             <Breadcrumb setPage={setPage} current={t.title} />
             <span className="ui-eyebrow">{navGroupLabel(navGroupOf('names'), lang)}</span>
             <h1 className="ui-display">{t.title}</h1>

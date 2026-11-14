@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
+import Icon3D from '../components/Icon3D'
 import { BRAND, brandName, tr } from '../config/brand'
 import { HADITH_COUNT } from '../data/siteStats'
 import { INDEXABLE } from '../seo/routes'
@@ -237,6 +238,7 @@ export function AboutPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="about" size={60} className="ui-hero-i3d" />
             {/* Latın brend adı BÖYÜK hərflə az/tr lokalında "MUSLİMS.CC" (nöqtəli İ) olurdu — lang="en" */}
             <span className="ui-eyebrow ab-brand" lang={/^[A-Za-z]/.test(brand) ? 'en' : undefined}>{brand}</span>
             <h1 className="ui-display">{t.title}</h1>

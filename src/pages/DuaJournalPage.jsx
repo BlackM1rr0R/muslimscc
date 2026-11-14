@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { exitDelay } from '../utils/promptCoordinator'
+import Icon3D from '../components/Icon3D'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
@@ -311,6 +312,7 @@ export default function DuaJournalPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text" data-reveal="stagger">
+            <Icon3D name="duajournal" size={60} className="ui-hero-i3d" />
             <Breadcrumb setPage={setPage} current={t.title} />
             <span className="ui-eyebrow">{navGroupLabel(navGroupOf('duajournal'), lang)}</span>
             <h1 className="ui-display">{t.title}</h1>

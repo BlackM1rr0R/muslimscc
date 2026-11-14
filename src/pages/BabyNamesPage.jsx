@@ -9,6 +9,7 @@
 // Statik HTML (SEO): scripts/seo-body.mjs → babyNamesBody. Stillər: src/styles/BabyNames.css
 // ═══════════════════════════════════════════════════════
 import { useMemo, useState } from 'react'
+import Icon3D from '../components/Icon3D'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
@@ -73,6 +74,7 @@ export default function BabyNamesPage({ setPage }) {
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={t.ey} />
           <div className="ui-page-hero__text">
+            <Icon3D name="kids" size={60} className="ui-hero-i3d" />
             <span className="ui-eyebrow">{t.ey}</span>
             <h1 className="ui-display">{t.title}</h1>
             <p className="ui-lead">{t.lead}</p>

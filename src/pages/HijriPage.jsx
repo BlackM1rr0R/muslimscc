@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import DeferRender from '../components/DeferRender'
+import Icon3D from '../components/Icon3D'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
@@ -267,6 +268,7 @@ export default function HijriPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="calendar" size={60} className="ui-hero-i3d" />
             <Breadcrumb setPage={setPage} current={t.title} />
             <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
             <h1 className="ui-display">{t.title}</h1>

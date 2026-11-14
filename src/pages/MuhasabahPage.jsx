@@ -13,6 +13,7 @@
 // Format: { v:1, entries: { 'YYYY-MM-DD': { c:[id…], n:'qeyd', u:<ms> } } }
 // ═══════════════════════════════════════════════════════
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Icon3D from '../components/Icon3D'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { pathFor } from '../seo/routes'
@@ -536,6 +537,7 @@ export default function MuhasabahPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text" data-reveal="stagger">
+            <Icon3D name="muhasabah" size={60} className="ui-hero-i3d" />
             <Breadcrumb setPage={setPage} current={t.title} />
             <span className="ui-eyebrow">{group || t.eyebrow}</span>
             <h1 className="ui-display">{t.title}</h1>

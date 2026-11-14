@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import Icon3D from '../components/Icon3D'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import { PRAYER_NAMES } from '../data/prayerTrackerText'
@@ -457,6 +458,7 @@ export default function QadaPage({ setPage }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
         <div className="ui-container">
           <div className="ui-page-hero__text">
+            <Icon3D name="qada" size={60} className="ui-hero-i3d" />
             <Breadcrumb setPage={setPage} current={t.title} />
             <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>
             <h1 className="ui-display">{t.title}</h1>
