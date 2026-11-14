@@ -98,6 +98,8 @@ test('Xəttatlıq kompozisiyası: kətan çəkilir, forma dəyişir, yükləmə 
 })
 
 test('Siyər tuneli: hadisələr 610–632, "Növbəti" mətni dəyişir', async ({ page }) => {
+  // Ağır səhifə (3D tunel, xəritələr): CI-də 4 paralel işçidə 30 s-ə sığmırdı (lokalda ~4 s) — yoxlama dəyişmir
+  test.setTimeout(60000)
   await page.goto('/history')
   await settle(page)
   const fig = page.getByTestId('seerah-tunnel')
