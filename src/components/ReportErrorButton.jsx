@@ -13,7 +13,7 @@ import { pickUi } from '../utils/uiText'
    əlaqə məlumatı könüllüdür.
    Quruluş: düymə (ReportErrorButton) yalnız hadisə göndərir — dialoqun
    özü bütün sayt üçün BİR dənədir (ReportErrorHost, App.jsx-də tənbəl
-   yüklənir), 1250 hədis kartının hər birində dialoq yaranmasın.
+   yüklənir), 1100 hədis kartının hər birində dialoq yaranmasın.
    props: refText — nəyə aid olduğu (məs. "Buxari 1", "2:255", dərsin adı)
           kind    — susmaya görə seçilən növ; compact — yalnız ikon
    ══════════════════════════════════════════════════════════════════ */

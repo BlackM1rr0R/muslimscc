@@ -56,7 +56,12 @@ function collectStrings(node, out) {
   if (!node || typeof node !== 'object') return
   if (node.type === 'Literal' && typeof node.value === 'string') { out.push(node.value); return }
   if (node.type === 'TemplateLiteral') {
-    if (node.expressions.length === 0) out.push(node.quasis.map(q => q.value.cooked).join(''))
+    if (node.expressions.length === 0) { out.push(node.quasis.map(q => q.value.cooked).join('')); return }
+    // v6.7: dinamik yazı → şablon açarı: `${n} days left` → "{0} days left" (uiText.txt şablonla tapır).
+    // Statik hissədə hərf yoxdursa (`${a} ${b}`, `${n}%`) — açar yazılmır.
+    const stat = node.quasis.map(q => q.value.cooked).join('')
+    if (/\p{L}{2}/u.test(stat)) out.push(node.quasis.map((q, i) => q.value.cooked + (i < node.expressions.length ? `{${i}}` : '')).join(''))
+    node.expressions.forEach(x => collectStrings(x, out))   // içindəki sabit sözlər ('surah' / 'surahs')
     return
   }
   for (const k of Object.keys(node)) {

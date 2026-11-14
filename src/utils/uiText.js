@@ -57,6 +57,8 @@ export function setUiDict(lang, d) {
   dictLang = d ? lang : null
   dict = d || null
   cache = new WeakMap()
+  TPL = null
+  tplMemo = new Map()
   if (was !== dict) swapAll()
 }
 
@@ -105,11 +107,52 @@ export function setUiDateLocale(lang, locale) {
   dateLocale = lang ? dateLocaleFor(lang, locale) : null
 }
 
-/** Tək sətrin tərcüməsi (lüğətdə yoxdursa — olduğu kimi). */
+/** Tək sətrin tərcüməsi (lüğətdə yoxdursa — şablonla; o da yoxdursa — olduğu kimi). */
 export function txt(s) {
   if (!dict || typeof s !== 'string') return s
   const v = dict[s]
-  return typeof v === 'string' && v ? v : s
+  if (typeof v === 'string' && v) return v
+  return tplTranslate(s)
+}
+
+// ── v6.7: şablonlu (dinamik) yazılar ──
+// Lüğətdə "{0} days left" kimi açarlar var (scripts/extract-ui-strings.mjs `${n} days left`-dən yazır).
+// Hazır sətir ("27 days left") tapılmayanda şablonlarla tutuşdurulur, tərcümədə {0} yerinə dəyər qoyulur
+// (dəyərin özü də lüğətdə varsa — tərcümə olunur: "surahs"). Nəticələr yaddaşda (həcmi məhdud).
+let TPL = null
+let tplMemo = new Map()
+const escRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+function buildTpl() {
+  TPL = []
+  for (const [k, v] of Object.entries(dict)) {
+    if (typeof v !== 'string' || !/\{\d\}/.test(k)) continue
+    const parts = k.split(/\{(\d)\}/)
+    const order = []
+    let re = '^'
+    parts.forEach((p, i) => { if (i % 2) { order.push(+p); re += '([\\s\\S]+?)' } else re += escRe(p) })
+    const chunks = parts.filter((_, i) => i % 2 === 0).filter(Boolean).sort((a, b) => b.length - a.length)
+    TPL.push({ re: new RegExp(re + '$'), order, v, key: chunks[0] || '' })
+  }
+  TPL.sort((a, b) => b.key.length - a.key.length)
+}
+function tplTranslate(s) {
+  if (s.length > 600 || !/\p{L}/u.test(s)) return s
+  const m0 = tplMemo.get(s)
+  if (m0 !== undefined) return m0
+  if (!TPL) buildTpl()
+  let out = s
+  for (const t of TPL) {
+    if (t.key && !s.includes(t.key)) continue
+    const m = t.re.exec(s)
+    if (!m) continue
+    const vals = []
+    t.order.forEach((n, i) => { const x = m[i + 1]; const tv = dict[x]; vals[n] = typeof tv === 'string' && tv ? tv : x })
+    out = t.v.replace(/\{(\d)\}/g, (_, n) => (vals[n] ?? ''))
+    break
+  }
+  if (tplMemo.size > 3000) tplMemo = new Map()
+  tplMemo.set(s, out)
+  return out
 }
 
 function deep(v) {

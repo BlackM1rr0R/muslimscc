@@ -602,7 +602,7 @@ export default function HomePage({ setPage }) {
   const stats=[
     {num:114,  s:'',  icon:'quran', l:{az:'Quran surəsi',  en:'Quran Surahs',   ru:'Сур Корана',    tr:'Sure',         ar:'سورة'}},
     {num:6236, s:'',  icon:'mushaf', l:{az:'Quran ayəsi',   en:'Quran Verses',   ru:'Аятов Корана',  tr:'Ayet',         ar:'آية'}},
-    // Təkrarsız 1255 hədis — "1250+" (bax: data/siteStats.js)
+    // Təkrarsız 1255 hədis — "1100+" (bax: data/siteStats.js)
     {num:HADITH_COUNT, s:'+', icon:'hadith', l:{az:'Hədis',  en:'Hadiths',        ru:'Хадисов',       tr:'Hadis',        ar:'حديث'}},
     {num:99,   s:'',  icon:'names', l:{az:"Allahın adı",   en:"Names of Allah", ru:'Имён Аллаха',   tr:"Allah'ın İsmi",ar:'اسمًا لله'}},
     {num:50,   s:'',  icon:'globe', l:{az:'Dil',            en:'Languages',      ru:'Языков',        tr:'Dil',          ar:'لغات'}},

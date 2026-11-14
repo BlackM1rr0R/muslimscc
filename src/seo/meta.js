@@ -45,15 +45,15 @@ const FALLBACK = {
 export const META = {
   home: {
     az: { t: 'Quran, Namaz Vaxtları, Hədis və Dua — İslami Platforma',
-          d: '50 dildə 30-dan çox bölməli pulsuz İslami platforma: Quran oxu və dinlə, namaz vaxtları, 1250+ hədis, dua, zikr sayğacı, zəkat və qiblə. Reklamsız.' },
+          d: '50 dildə 30-dan çox bölməli pulsuz İslami platforma: Quran oxu və dinlə, namaz vaxtları, 1100+ hədis, dua, zikr sayğacı, zəkat və qiblə. Reklamsız.' },
     en: { t: 'Quran, Prayer Times, Hadith & Dua — Islamic Platform',
-          d: 'A free Islamic platform with 30+ sections in 50 languages: read and listen to the Quran, prayer times, 1250+ hadith, duas, dhikr, zakat and qibla. No ads.' },
+          d: 'A free Islamic platform with 30+ sections in 50 languages: read and listen to the Quran, prayer times, 1100+ hadith, duas, dhikr, zakat and qibla. No ads.' },
     ru: { t: 'Коран, время намаза, хадисы и дуа — исламская платформа',
-          d: 'Бесплатная исламская платформа: более 30 разделов на 50 языках. Читайте и слушайте Коран, время намаза, 1250+ хадисов, дуа, зикр, закят и кибла.' },
+          d: 'Бесплатная исламская платформа: более 30 разделов на 50 языках. Читайте и слушайте Коран, время намаза, 1100+ хадисов, дуа, зикр, закят и кибла.' },
     tr: { t: 'Kuran, Namaz Vakitleri, Hadis ve Dua — İslami Platform',
-          d: '50 dilde 30’dan fazla bölümlü ücretsiz İslami platform: Kuran oku ve dinle, namaz vakitleri, 1250+ hadis, dua, zikir, zekât ve kıble. Reklamsız.' },
+          d: '50 dilde 30’dan fazla bölümlü ücretsiz İslami platform: Kuran oku ve dinle, namaz vakitleri, 1100+ hadis, dua, zikir, zekât ve kıble. Reklamsız.' },
     ar: { t: 'القرآن ومواقيت الصلاة والحديث والدعاء — منصة إسلامية',
-          d: 'منصة إسلامية مجانية بأكثر من ٣٠ قسماً بخمس لغات: اقرأ القرآن واستمع إليه، ومواقيت الصلاة، وأكثر من ١٢٥٠ حديثاً، والأدعية والأذكار والزكاة والقبلة. بلا إعلانات.' },
+          d: 'منصة إسلامية مجانية بأكثر من ٣٠ قسماً بخمس لغات: اقرأ القرآن واستمع إليه، ومواقيت الصلاة، وأكثر من ١١٠٠ حديثاً، والأدعية والأذكار والزكاة والقبلة. بلا إعلانات.' },
   },
 
   // ── Camaat, elanlar, ianə ──
@@ -138,19 +138,19 @@ export const META = {
   },
 
   // Say: təkrarsız 1394 hədis (Quran ayələri və "Məşhur" sözlər sayılmır) →
-  // "1250+" — data/siteStats.js-dəki HADITH_COUNT ilə eyni. 15 mövzu.
+  // "1100+" — data/siteStats.js-dəki HADITH_COUNT ilə eyni. 15 mövzu.
   // "Səhih" yazılmır — toplu yalnız səhih hədislərdən ibarət deyil.
   hadith: {
-    az: { t: 'Hədis Toplusu — 1250+ Hədis, 15 Mövzu',
-          d: '1250-dən çox hədisi mövzu üzrə oxu: iman, namaz, əxlaq, ailə, elm və daha çox. Axtarış, favoritlər və paylaşma ilə. Buxari və Müslim mənbələri.' },
-    en: { t: 'Hadith Collection — 1250+ Hadith by Topic',
-          d: 'Browse over 1250 hadith across 15 topics: faith, prayer, character, family, knowledge and more. Full-text search, favourites and one-tap sharing.' },
-    ru: { t: 'Сборник хадисов — 1250+ хадисов по темам',
-          d: 'Более 1250 хадисов по 15 темам: вера, намаз, нравственность, семья, знание и другое. Поиск по тексту, избранное и быстрый обмен.' },
-    tr: { t: 'Hadis Koleksiyonu — 1250+ Hadis, 15 Konu',
-          d: '1250’den fazla hadisi konularına göre oku: iman, namaz, ahlak, aile, ilim ve daha fazlası. Arama, favoriler ve paylaşma özellikleriyle.' },
-    ar: { t: 'مجموعة الأحاديث — أكثر من ١٢٥٠ حديثًا',
-          d: 'تصفح أكثر من ١٢٥٠ حديثًا في ١٥ موضوعاً: الإيمان والصلاة والأخلاق والأسرة والعلم وغيرها، مع البحث الكامل والمفضلة والمشاركة.' },
+    az: { t: 'Hədis Toplusu — 1100+ Hədis, 15 Mövzu',
+          d: '1100-dən çox hədisi mövzu üzrə oxu: iman, namaz, əxlaq, ailə, elm və daha çox. Axtarış, favoritlər və paylaşma ilə. Buxari və Müslim mənbələri.' },
+    en: { t: 'Hadith Collection — 1100+ Hadith by Topic',
+          d: 'Browse over 1100 hadith across 15 topics: faith, prayer, character, family, knowledge and more. Full-text search, favourites and one-tap sharing.' },
+    ru: { t: 'Сборник хадисов — 1100+ хадисов по темам',
+          d: 'Более 1100 хадисов по 15 темам: вера, намаз, нравственность, семья, знание и другое. Поиск по тексту, избранное и быстрый обмен.' },
+    tr: { t: 'Hadis Koleksiyonu — 1100+ Hadis, 15 Konu',
+          d: '1100’den fazla hadisi konularına göre oku: iman, namaz, ahlak, aile, ilim ve daha fazlası. Arama, favoriler ve paylaşma özellikleriyle.' },
+    ar: { t: 'مجموعة الأحاديث — أكثر من ١١٠٠ حديثًا',
+          d: 'تصفح أكثر من ١١٠٠ حديثًا في ١٥ موضوعاً: الإيمان والصلاة والأخلاق والأسرة والعلم وغيرها، مع البحث الكامل والمفضلة والمشاركة.' },
   },
 
   duas: {
