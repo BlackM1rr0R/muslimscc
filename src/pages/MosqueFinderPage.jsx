@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react'
 import { guessLang } from '../utils/textLang'
+import DeferRender from '../components/DeferRender'
 import HeroOrnament from '../components/HeroOrnament'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
@@ -17,6 +18,7 @@ import MosqueRadar, { walkMinutes } from '../components/MosqueRadar'
 import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
 import { pickUi } from '../utils/uiText'
 import ShineButton from '../motion/ShineButton'
+const MosqueBuilder3D = lazy(() => import('../components/MosqueBuilder3D'))
 
 const WALK = { az: (m) => `piyada ≈ ${m} dəq`, en: (m) => `≈ ${m} min walk`, ru: (m) => `пешком ≈ ${m} мин`, tr: (m) => `yürüyerek ≈ ${m} dk`, ar: (m) => `≈ ${m} دقيقة مشيًا` }
 
@@ -413,6 +415,15 @@ export default function MosqueFinderPage({ setPage }) {
 
       {/* Ədəblər və fəzilətlər — axtarışdan asılı olmayaraq göstərilir */}
       <MosqueGuide lang={lang} />
+
+      {/* v6.9: "Məscidi qur" — sürüşdürdükcə 3D məscid hissə-hissə yığılır */}
+      <div className="ui-container">
+        <DeferRender height="600px" idle={false} rootMargin="300px 0px">
+          <Suspense fallback={<div style={{ minHeight: 600 }} />}>
+            <MosqueBuilder3D lang={lang} />
+          </Suspense>
+        </DeferRender>
+      </div>
     </div>
   )
 }

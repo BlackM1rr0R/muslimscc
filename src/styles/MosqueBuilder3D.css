@@ -1,0 +1,27 @@
+/* "Məscidi qur" (components/MosqueBuilder3D.jsx) — yapışqan səhnə, sürüşmə ilə addımlar */
+.mb3 { position: relative; height: calc((var(--steps) + 1) * 70vh); margin-block: 24px; }
+.mb3__sticky {
+  position: sticky; top: calc(var(--header-h, 64px) + 8px); height: calc(100vh - var(--header-h, 64px) - 16px);
+  display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 12px 24px;
+  padding: clamp(14px, 2.5vw, 24px); border-radius: 22px; overflow: hidden;
+  background: radial-gradient(ellipse 80% 70% at 30% 20%, color-mix(in srgb, var(--accent) 12%, var(--surface-1, #fff)), var(--surface-1, #fff));
+  border: 1px solid var(--line, var(--border));
+}
+.mb3__head { grid-column: 1 / -1; }
+.mb3__title { margin: 2px 0 0; font-size: var(--step-2, 1.5rem); }
+.mb3__lead { margin: 2px 0 0; color: var(--text-muted); }
+.mb3__stage { position: relative; min-height: 0; border-radius: 16px; overflow: hidden; }
+.mb3__nogl { margin: 0; padding: 20px; color: var(--text-muted); }
+.mb3__card { align-self: center; padding: 18px 20px; border-radius: 18px; background: var(--surface-0, #fff); border: 1px solid var(--line, var(--border)); box-shadow: var(--shadow-2, 0 6px 20px rgba(0,0,0,.08)); }
+.mb3__n { font-size: .78rem; color: var(--accent-text); font-weight: 700; letter-spacing: .04em; }
+.mb3__h { margin: 6px 0 8px; font-size: 1.35rem; }
+.mb3__p { margin: 0; line-height: 1.7; }
+.mb3__dots { list-style: none; margin: 14px 0 0; padding: 0; display: flex; gap: 6px; }
+.mb3__dots li { width: 22px; height: 5px; border-radius: 3px; background: var(--line, var(--border)); transition: background-color .3s ease; }
+.mb3__dots li.on { background: var(--accent); }
+@media (max-width: 760px) {
+  .mb3__sticky { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  .mb3__card { padding: 12px 14px; }
+  .mb3__h { font-size: 1.1rem; margin: 4px 0; }
+  .mb3__p { font-size: .9rem; line-height: 1.55; }
+}

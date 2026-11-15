@@ -149,3 +149,36 @@ for (const theme of ['light', 'dark']) {
     expectCleanConsole(consoleProblems)
   })
 }
+
+test('usturlab: Günəşi üfüqə gətirəndə vaxt Bakının çıxış/batış vaxtına yaxındır', async ({ page, consoleProblems }) => {
+  await page.clock.setFixedTime(new Date('2026-11-15T19:30:00Z'))
+  await page.goto('/history')
+  await settle(page)
+  const a = page.getByTestId('astrolabe')
+  for (let i = 0; i < 60 && !(await a.count()); i++) { await page.evaluate(() => window.scrollBy(0, 600)); await page.waitForTimeout(150) }
+  await a.scrollIntoViewIfNeeded()
+  await a.getByRole('button', { name: 'Günəş çıxır' }).click()
+  await expect(a.getByTestId('al-time')).toHaveText(/07:2\d/)
+  await a.getByRole('button', { name: 'Günəş batır' }).click()
+  await expect(a.getByTestId('al-time')).toHaveText(/17:2\d/)
+  expect(await axe(page, '[data-testid=astrolabe]')).toEqual([])
+  expectCleanConsole(consoleProblems)
+})
+
+test('"Məscidi qur": sürüşdürdükcə addımlar 1 → 7, əlçatanlıq', async ({ page, consoleProblems }) => {
+  await page.goto('/mosques')
+  await settle(page)
+  const m = page.getByTestId('mosque-builder')
+  for (let i = 0; i < 60 && !(await m.count()); i++) { await page.evaluate(() => window.scrollBy(0, 600)); await page.waitForTimeout(150) }
+  const step = m.getByTestId('mosque-step')
+  const go = async (f) => {
+    await m.evaluate((el, ff) => { const r = el.getBoundingClientRect(); window.scrollTo(0, r.top + window.scrollY + (el.offsetHeight - window.innerHeight) * ff) }, f)
+  }
+  await go(0.02)
+  await expect(step).toContainText('1 / 7')
+  await go(0.99)
+  await expect(step).toContainText('7 / 7')
+  await expect(step).toContainText('Minarə')
+  expect(await axe(page, '[data-testid=mosque-builder]')).toEqual([])
+  expectCleanConsole(consoleProblems)
+})

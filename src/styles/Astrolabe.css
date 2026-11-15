@@ -1,0 +1,40 @@
+/* İşləyən usturlab (components/Astrolabe.jsx) */
+.al { margin-top: 24px; padding: clamp(18px, 3vw, 30px); display: grid; gap: 10px; }
+.al__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.al__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.al__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 32px); align-items: center; }
+@media (max-width: 860px) { .al__grid { grid-template-columns: 1fr; } }
+.al__stage { display: grid; justify-items: center; gap: 6px; }
+.al__svg { width: 100%; max-width: 520px; touch-action: none; cursor: grab; user-select: none; }
+.al__svg:active { cursor: grabbing; }
+.al__hint { margin: 0; font-size: .82rem; color: var(--text-muted); }
+.al__tick { stroke: #5a3f10; stroke-width: 1; }
+.al__tick--l { stroke-width: 1.8; }
+.al__hour { font: 600 11px Inter, system-ui, sans-serif; fill: #4a330b; text-anchor: middle; }
+.al__plate .al__trop, .al__plate .al__eq { fill: none; stroke: #6b4b14; stroke-width: 1; }
+.al__plate .al__eq { stroke-width: 1.4; }
+.al__mer { stroke: #6b4b14; stroke-width: .8; opacity: .7; }
+.al__almu { fill: none; stroke: #7a5719; stroke-width: .7; opacity: .75; }
+.al__twi { fill: none; stroke: #3d5a8a; stroke-width: 1.2; stroke-dasharray: 4 3; }
+.al__hor { fill: none; stroke: #4a2f05; stroke-width: 2; }
+.al__zen { fill: #4a2f05; }
+.al__rete { transform-origin: 0 0; transform-box: view-box; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .al__rete.is-anim { transition: transform 1.2s cubic-bezier(.3, .8, .3, 1); }
+}
+.al__rete-rim { fill: none; stroke: url(#al-rete); stroke-width: 6; }
+.al__ecl { fill: none; stroke: url(#al-rete); stroke-width: 7; }
+.al__ptr { fill: url(#al-rete); stroke: #6d4e17; stroke-width: .6; }
+.al__star { fill: #fffbe8; stroke: #6d4e17; stroke-width: .6; }
+.al__sun { fill: #ffd257; stroke: #8a5b05; stroke-width: 1.4; filter: drop-shadow(0 0 6px #ffcf4a); }
+.al__sunline { stroke: #b07b17; stroke-width: 1.4; stroke-dasharray: 3 3; }
+.al__pin { fill: url(#al-brass); stroke: #6d4e17; }
+.al__sname { font: 13px var(--font-arabic, serif); fill: #3a2606; paint-order: stroke; stroke: rgba(255, 240, 200, .75); stroke-width: 3px; pointer-events: none; }
+.al__panel { display: grid; gap: 14px; }
+.al__read { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.al__read div { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); }
+.al__read dt { font-size: .75rem; color: var(--text-muted); }
+.al__read dd { margin: 2px 0 0; font-size: 1.35rem; font-weight: 700; color: var(--text-strong); }
+.al__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.al__hist { margin: 0; line-height: 1.7; }
+.al__note { margin: 0; font-size: .8rem; color: var(--text-muted); }
