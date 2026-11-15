@@ -1,5 +1,6 @@
 import { NAMES_99 } from '../data/names99'
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
@@ -686,6 +687,7 @@ export default function NamesPage({ setPage }) {
       {/* Hero — v3 kompakt, sağda mənbə bölgüsü (81 Quran / 18 Sünnə) */}
       <header className="ui-page-hero ui-page-hero--split names-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text" data-reveal="stagger">
             <Breadcrumb setPage={setPage} current={t.title} />

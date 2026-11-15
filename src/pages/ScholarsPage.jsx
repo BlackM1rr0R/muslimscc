@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useLayoutEffect, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
@@ -290,6 +291,7 @@ export default function ScholarsPage() {
   return (
     <div className="sc-page sc-list">
       <header className="ui-page-hero sc-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <span className="ui-eyebrow">{L.eyebrow}</span>

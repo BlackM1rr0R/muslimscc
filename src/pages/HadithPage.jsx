@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback, memo, lazy, Suspense } from 'react'
 import ReportErrorButton from '../components/ReportErrorButton'
+import HeroOrnament from '../components/HeroOrnament'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
@@ -667,6 +668,7 @@ export default function HadithPage({ setPage }) {
   return (
     <>
       <header className="ui-page-hero hadith-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <span className="ui-eyebrow">{u.eyebrow}</span>

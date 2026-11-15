@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { guessLang } from '../utils/textLang'
+import HeroOrnament from '../components/HeroOrnament'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { getPrayerLocation, PRAYER_CITIES } from '../utils/prayerLocation'
@@ -522,6 +523,7 @@ export default function QiblaPage({ setPage }) {
       {/* v2: sakit kağız hero — iz, eyebrow, bir h1, giriş */}
       <header className="ui-page-hero qibla-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={l.title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>

@@ -9,6 +9,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -456,6 +457,7 @@ export default function ArabicCoursePage({ setPage }) {
       {/* ── Hero (v3: kompakt split — solda izah və əsas düymə, sağda irəliləyiş halqası) ── */}
       <header className="ui-page-hero ui-page-hero--split ac-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text">
             <Breadcrumb setPage={setPage} current={t.title} />

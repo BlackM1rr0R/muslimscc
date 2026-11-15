@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { VIDEO_CATEGORIES, getThumbnail, getEmbedUrl, DEFAULT_VIDEOS, subscribeToVideos } from '../data/videos'
 import useInfiniteList, { useSessionState } from '../hooks/useInfiniteList'
@@ -224,6 +225,7 @@ export default function VideosPage() {
 
       {/* ═══ HERO ═══ */}
       <header className="ui-page-hero vp-hero2">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <span className="ui-eyebrow">{l.eyebrow}</span>

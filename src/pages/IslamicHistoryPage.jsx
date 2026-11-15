@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import Icon from '../components/Icon'
 import ReaderDialog from '../components/reader/ReaderDialog'
 import '../styles/IslamicHistoryPage.css'
@@ -235,6 +236,7 @@ export default function IslamicHistoryPage() {
   return (
     <div className="history-page">
       <header className="ui-page-hero ui-page-hero--split hist-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">

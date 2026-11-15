@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useRef, useState, useCallback, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { GLOSSARY, GLOSSARY_BY_ID, GLOSSARY_CATS } from '../data/glossary'
 import { LESSON_SLUGS } from '../seo/detailSlugs'
@@ -267,6 +268,7 @@ export default function GlossaryPage() {
   return (
     <>
       <header className="ui-page-hero glo-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           {focused ? (

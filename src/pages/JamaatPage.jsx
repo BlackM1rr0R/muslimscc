@@ -15,6 +15,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { useEffect, useMemo, useState } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { brandName, filled } from '../config/brand'
 import usePrayerTimes, { PRAYER_NAMES, toMinutes } from '../hooks/usePrayerTimes'
@@ -398,6 +399,7 @@ export default function JamaatPage({ setPage }) {
       {/* v2: sakit kağız hero — iz, eyebrow, bir h1, giriş, tarix nişanları */}
       <header className="ui-page-hero jm-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={l.title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>

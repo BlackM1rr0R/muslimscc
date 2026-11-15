@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/QuranGamePage.css'
 import Breadcrumb from '../components/Breadcrumb'
@@ -1107,6 +1108,7 @@ export default function QuranGamePage({ setPage }) {
       {/* Sakit kağız hero (dizayn v2): çörək qırıntısı, eyebrow, bir h1, lead */}
       <header className="ui-page-hero qgame-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>
           <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>

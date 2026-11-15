@@ -12,6 +12,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { PRAYER_CITIES, COUNTRY_NAMES, getPrayerLocation } from '../utils/prayerLocation'
 import { serializeConfig } from '../utils/iqamah'
@@ -340,6 +341,7 @@ export default function WidgetPage({ setPage }) {
     <div className="wg-page">
       <header className="ui-page-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={l.title} />
           <span className="ui-eyebrow">{l.eyebrow}</span>

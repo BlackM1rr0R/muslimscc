@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import { parsePath } from '../seo/routes'
@@ -454,6 +455,7 @@ function Landing({ L, lang }) {
   return (
     <div className="gp-root">
       <header className="ui-page-hero ui-page-hero--split gp-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">

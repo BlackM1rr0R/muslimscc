@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { guessLang } from '../utils/textLang'
+import HeroOrnament from '../components/HeroOrnament'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
@@ -575,6 +576,7 @@ export function CalendarPage({ setPage }) {
     <>
       <header className="ui-page-hero ui-page-hero--split cal-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text">
             <Breadcrumb setPage={setPage} current={t.title} />

@@ -50,6 +50,21 @@ export function skyState(times, nowMin) {
 const arcPos = (p) => ({ x: 8 + p * 84, y: 86 - Math.sin(Math.PI * Math.max(0, Math.min(1, p))) * 70 })
 
 // Ulduzlar — sabit yerlərdə (hər render-də eyni)
+// v6.9: günəşin yolu — qövs özünü çəkir, üstündə namaz nöqtələri (günəş/zöhr/əsr/məğrib)
+const ARC_D = (() => {
+  let d = ''
+  for (let i = 0; i <= 40; i++) { const { x, y } = arcPos(i / 40); d += `${i ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)} ` }
+  return d.trim()
+})()
+export function arcMarks(times) {
+  const sr = hmToMin(times?.sunrise), mg = hmToMin(times?.maghrib)
+  if (sr == null || mg == null || mg <= sr) return []
+  return ['sunrise', 'dhuhr', 'asr', 'maghrib'].map(k => {
+    const m = hmToMin(times?.[k])
+    return m == null ? null : { k, ...arcPos((m - sr) / (mg - sr)) }
+  }).filter(Boolean)
+}
+
 const STARS = Array.from({ length: 34 }, (_, i) => {
   const r = (s) => { const x = Math.sin(i * 12.9898 + s * 78.233) * 43758.5453; return x - Math.floor(x) }
   return { x: (r(1) * 100).toFixed(2), y: (r(2) * 70).toFixed(2), s: (1 + r(3) * 2).toFixed(1), d: (r(4) * 4).toFixed(2) }
@@ -68,6 +83,12 @@ function PrayerSky({ times, nowMin, className = '' }) {
           <i key={i} style={{ insetInlineStart: `${s.x}%`, top: `${s.y}%`, width: `${s.s}px`, height: `${s.s}px`, animationDelay: `${s.d}s` }} />
         ))}
       </div>
+      <svg className="psky__arc" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false">
+        <path d={ARC_D} vectorEffect="non-scaling-stroke" />
+      </svg>
+      {arcMarks(times).map((m, i) => (
+        <span key={m.k} className="psky__mark" style={{ insetInlineStart: `${m.x}%`, top: `${m.y}%`, '--mi': i }} />
+      ))}
       {st.sunUp && <div className="psky__sun" style={{ insetInlineStart: `${sun.x}%`, top: `${sun.y}%` }} />}
       {st.moonUp && <div className="psky__moon" style={{ insetInlineStart: `${moon.x}%`, top: `${moon.y}%` }} />}
       <div className="psky__haze" />

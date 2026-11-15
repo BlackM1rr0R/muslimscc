@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import { T } from '../data/i18n'
 import { localizeSource } from '../utils/sourceNames'
 import '../styles/ZakatPage.css'
@@ -478,6 +479,7 @@ export default function ZakatPage({ setPage }) {
       {/* Hero — v3: kompakt; eyebrow · h1 · bir cümlə · necə işlədilir · 4 açar rəqəm */}
       <header className="ui-page-hero zakat-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container" data-reveal="stagger">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel(navGroupOf('zakat'), lang)}</span>

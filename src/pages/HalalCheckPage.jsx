@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { guessLang } from '../utils/textLang'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import ReportErrorButton from '../components/ReportErrorButton'
@@ -1248,6 +1249,7 @@ export default function HalalCheckPage() {
   return (
     <div className="hc-page">
       <header className="ui-page-hero hc-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <span className="ui-eyebrow">{L.eyebrow}</span>

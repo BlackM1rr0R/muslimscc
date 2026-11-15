@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
 import { navGroupLabel, navGroupOf } from '../data/navigation'
@@ -401,6 +402,7 @@ export default function InheritancePage({ setPage }) {
     <div className="inh-page">
       <header className="ui-page-hero inh-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container" data-reveal="stagger">
           <Breadcrumb setPage={setPage} current={s('title')} />
           <span className="ui-eyebrow">{navGroupLabel(navGroupOf('inheritance') || navGroupOf('zakat'), lang)}</span>

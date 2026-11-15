@@ -12,6 +12,7 @@
 // Ad yalnız bu cihazda saxlanır (localStorage 'ncal_last_v1').
 // ═══════════════════════════════════════════════════════
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import PageLink from '../components/PageLink'
@@ -214,6 +215,7 @@ export default function NameCalligraphyPage({ setPage }) {
     <>
       <header className="ui-page-hero ncal-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text">
             <span className="ui-eyebrow">{t.ey}</span>

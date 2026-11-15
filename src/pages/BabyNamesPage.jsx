@@ -9,6 +9,7 @@
 // Statik HTML (SEO): scripts/seo-body.mjs → babyNamesBody. Stillər: src/styles/BabyNames.css
 // ═══════════════════════════════════════════════════════
 import { useMemo, useState } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import Breadcrumb from '../components/Breadcrumb'
@@ -70,6 +71,7 @@ export default function BabyNamesPage({ setPage }) {
     <div className="bn-page">
       <header className="ui-page-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={t.ey} />
           <div className="ui-page-hero__text">

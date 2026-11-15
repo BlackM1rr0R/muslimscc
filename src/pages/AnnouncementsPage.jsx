@@ -14,6 +14,7 @@
 // GÖSTƏRİLMİR — başqa dilin mətni səhifəyə "sızmır" (bax: pickLang).
 // ═══════════════════════════════════════════════════════
 import { useState, useEffect, useMemo } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import {
   subscribeToAnnouncements,
@@ -404,6 +405,7 @@ export default function AnnouncementsPage({ setPage }) {
     <div className="anp-page">
       {/* ── Hero ── */}
       <header className="ui-page-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container anp-container">
           <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={l.title} /></div>

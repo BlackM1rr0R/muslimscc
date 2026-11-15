@@ -1,5 +1,6 @@
 import { useState, useRef, lazy, Suspense } from 'react'
 import Swap from '../components/pagefx/Swap'
+import HeroOrnament from '../components/HeroOrnament'
 import PressedGlide from '../components/pagefx/PressedGlide'
 // Foto qalereyası — kart dəstəsi (drag, domMax) tənbəl yüklənir
 const CardStack = lazy(() => import('../motion/CardStack'))
@@ -387,6 +388,7 @@ export function HolyPlacesPage({ setPage }) {
       {/* Hero — v3: kompakt split; foto yalnız ≥900px (telefonda hero qısa qalır) */}
       <header className="ui-page-hero ui-page-hero--split holy-hero-v2">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text" data-reveal="stagger">
             <Breadcrumb setPage={setPage} current={lb.title} />

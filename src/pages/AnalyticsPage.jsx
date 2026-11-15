@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import '../styles/AnalyticsPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import Icon from '../components/Icon'
@@ -506,6 +507,7 @@ export default function AnalyticsPage({ setPage }) {
       {/* v6: salam + tarix + bir cümləlik nəticə */}
       <header className="ui-page-hero analytics-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container an-hero">
           <div className="an-hero__text">
             <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>

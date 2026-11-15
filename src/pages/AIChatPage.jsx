@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, m } from 'motion/react'
+import HeroOrnament from '../components/HeroOrnament'
 import { SPRING } from '../motion/presets'
 import { useLang } from '../contexts/LangContext'
 import { checkRateLimit, recordMessage, getActiveCooldown } from '../utils/rateLimit'
@@ -410,6 +411,7 @@ export default function AIChatPage() {
 
       {/* Hero — yığcam, söhbətə yer qalsın */}
       <header className="ui-page-hero aic-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container aic-hero-in">
           <span className="ui-eyebrow">{l.eyebrow}</span>

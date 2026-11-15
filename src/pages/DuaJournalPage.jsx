@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { exitDelay } from '../utils/promptCoordinator'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
@@ -309,6 +310,7 @@ export default function DuaJournalPage({ setPage }) {
       {/* Hero — v3 kompakt: solda izah, sağda qısa xülasə */}
       <header className="ui-page-hero ui-page-hero--split dj-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text" data-reveal="stagger">
             <Breadcrumb setPage={setPage} current={t.title} />

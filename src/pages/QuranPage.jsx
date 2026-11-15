@@ -1,5 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, memo, startTransition, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
 import { SURAH_AZ, getSurahLocal } from '../data/surahNamesAz'
@@ -1713,6 +1714,7 @@ export default function QuranPage() {
           Sağda (≥900px) — oxuma statistikası (varsa) və ya xəttatlıq lövhəsi */}
       <header className="ui-page-hero ui-page-hero--split qp-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text">
             <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>

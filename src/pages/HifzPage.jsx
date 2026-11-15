@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { getSurahLocal } from '../data/surahNamesAz'
@@ -869,6 +870,7 @@ export default function HifzPage() {
       {/* Kompakt hero (v3, --split): solda izah + keçidlər, sağda ümumi irəliləyiş paneli */}
       <header className="ui-page-hero ui-page-hero--split hifz-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text">
             <span className="ui-eyebrow">{navGroupLabel('quran', lang)}</span>

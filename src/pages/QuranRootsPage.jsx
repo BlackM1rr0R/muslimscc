@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import { QURAN_TOPICS, topicRoot } from '../data/quranTopics'
@@ -316,6 +317,7 @@ export default function QuranRootsPage() {
   return (
     <div className="qr-page">
       <header className="ui-page-hero qr-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <span className="ui-eyebrow">{L.eyebrow}</span>

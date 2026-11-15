@@ -104,3 +104,20 @@
 }
 html.a11y-reduce-motion .psky__stars > i,
 html.a11y-reduce-motion .psky__sun { animation: none; }
+
+/* v6.9: günəşin yolu + namaz nöqtələri (bir dəfə çəkilir) */
+.psky__arc { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+[dir="rtl"] .psky__arc { transform: scaleX(-1); }
+.psky__arc path { fill: none; stroke: var(--accent, #c9a227); stroke-width: 1.5; stroke-dasharray: 2 5; opacity: .5; }
+.psky__mark {
+  position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%;
+  background: var(--accent, #c9a227); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #c9a227) 22%, transparent);
+  opacity: .7; pointer-events: none;
+}
+[dir="rtl"] .psky__mark { margin: -4.5px -4.5px 0 0; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .psky__arc { clip-path: inset(0 100% 0 0); animation: psky-draw 2.4s cubic-bezier(.4,0,.2,1) .3s forwards; }
+  html:not(.a11y-reduce-motion) .psky__mark { opacity: 0; transform: scale(.3); animation: psky-mark .5s cubic-bezier(.3,1.6,.5,1) forwards; animation-delay: calc(.8s + var(--mi) * .45s); }
+}
+@keyframes psky-draw { to { clip-path: inset(0 0 0 0); } }
+@keyframes psky-mark { to { opacity: .7; transform: none; } }

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import { haptic } from '../hooks/useHaptic'
 import Sparkle from '../components/prayer/Sparkle'
 import Icon from '../components/Icon'
@@ -1198,6 +1199,7 @@ export default function QuizPage({ setPage }) {
   const hero = (
     <header className={`ui-page-hero quiz-hero${phase !== 'categories' ? ' quiz-hero--compact' : ''}`}>
       <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
       <div className="ui-container">
         {phase === 'categories' && <div className="ui-page-hero__crumbs"><Breadcrumb setPage={setPage} current={t.title} /></div>}
         <span className="ui-eyebrow">{phase !== 'categories' && category ? t[category] : x.eyebrow}</span>

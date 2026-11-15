@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import { haptic } from '../hooks/useHaptic'
 import Icon from '../components/Icon'
 import PageLink, { isPlainClick } from '../components/PageLink'
@@ -530,6 +531,7 @@ export default function KidsPage({ setPage }) {
           (əvvəl "🌙 ⭐ 🕌 📖 🤲" emoji sətri idi) */}
       <header className="ui-page-hero ui-page-hero--split kids-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text">
             <span className="ui-eyebrow">{t.subtitle}</span>

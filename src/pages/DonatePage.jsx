@@ -1,5 +1,6 @@
 import { useLang } from '../contexts/LangContext'
 import { brandName } from '../config/brand'
+import HeroOrnament from '../components/HeroOrnament'
 import { VerseCard, HadithCard } from '../components/VirtueCards'
 import '../styles/DonatePage.css'
 import '../styles/ToolsMotion.css'
@@ -239,6 +240,7 @@ export default function DonatePage({ setPage }) {
   return (
     <div className="dn-root">
       <header className="ui-page-hero dn-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <GeoStarfield className="dn-sky" rosette={false} />
         <div className="ui-container">

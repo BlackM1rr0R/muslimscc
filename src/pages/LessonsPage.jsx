@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { guessLang } from '../utils/textLang'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -282,6 +283,7 @@ export default function LessonsPage() {
   return (
     <div className="ls-page ls-listing">
       <header className="ui-page-hero ui-page-hero--split ls-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">

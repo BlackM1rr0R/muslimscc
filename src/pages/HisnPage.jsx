@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import DuaListen from '../components/DuaListen'
@@ -360,6 +361,7 @@ export default function HisnPage({ setPage }) {
     <ExpandableGroup id="hs-xc">
     <div className="hs-page">
       <header className="ui-page-hero hs-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <span className="ui-eyebrow">{L.eyebrow}</span>

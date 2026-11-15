@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
 import { qiyamState, hm } from '../utils/qiyam'
+import HeroOrnament from '../components/HeroOrnament'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { T } from '../data/i18n'
@@ -668,6 +669,7 @@ export default function PrayerPage({ setPage }) {
         {/* Namaz vaxtına görə canlı səma: sübh, günorta, qürub, gecə… */}
         <PrayerSky times={dayTimes} nowMin={nowMin} />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>

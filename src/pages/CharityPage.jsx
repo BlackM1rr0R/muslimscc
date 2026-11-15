@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import { haptic } from '../hooks/useHaptic'
 import '../styles/CharityPage.css'
 import '../styles/ToolsMotion.css'
@@ -205,6 +206,7 @@ export default function CharityPage({ setPage }) {
       {/* Hero — v3: kompakt; eyebrow · h1 · bir cümlə · necə işlədilir · 2 düymə */}
       <header className="ui-page-hero ch-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container" data-reveal="stagger">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel(navGroupOf('charity'), lang)}</span>

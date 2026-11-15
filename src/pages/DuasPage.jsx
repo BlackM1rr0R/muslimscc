@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import { brandName } from '../config/brand'
 import { T } from '../data/i18n'
 import { DUAS_DATA } from '../data/duas'
@@ -426,6 +427,7 @@ export default function DuasPage({ setPage }) {
           Ərəbcə sətir bəzəkdir: ərəb dilində başlıq onsuz da ərəbcədir */}
       <header className="ui-page-hero duas-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container" data-reveal="stagger">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel(navGroupOf('duas'), lang)}</span>

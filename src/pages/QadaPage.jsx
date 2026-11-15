@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import { PRAYER_NAMES } from '../data/prayerTrackerText'
@@ -457,6 +458,7 @@ export default function QadaPage({ setPage }) {
     <div className="qd-root">
       <header className="ui-page-hero ui-page-hero--split qd-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text">
             <Breadcrumb setPage={setPage} current={t.title} />

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { guessLang } from '../utils/textLang'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -274,6 +275,7 @@ export default function Nawawi40Page() {
     <ExpandableGroup id="nw-xc">
     <div className="nw-page">
       <header className="ui-page-hero ui-page-hero--split nw-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">

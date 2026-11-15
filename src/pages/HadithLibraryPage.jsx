@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import ReaderDialog from '../components/reader/ReaderDialog'
@@ -456,6 +457,7 @@ export default function HadithLibraryPage() {
     <ExpandableGroup id="hl-xc">
     <div className="hl-page">
       <header className={`ui-page-hero ui-page-hero--split hl-hero${route.book ? ' hl-hero--compact' : ''}`}>
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">

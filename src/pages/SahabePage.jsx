@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useLayoutEffect, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { localizeSource } from '../utils/sourceNames'
 import Icon from '../components/Icon'
@@ -452,6 +453,7 @@ export default function SahabePage() {
   return (
     <div className="sahabe-page sp-list">
       <header className="ui-page-hero sahabe-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <span className="ui-eyebrow">{L.eyebrow}</span>

@@ -11,6 +11,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import DeferRender from '../components/DeferRender'
 // v6.3: dünyada oruc müddəti xəritəsi (bölməyə yaxınlaşanda)
 const FastingWorldMap = lazy(() => import('../components/FastingWorldMap'))
@@ -425,6 +426,7 @@ export default function RamadanPage({ setPage }) {
     <div className="rp-root">
       <header className="ui-page-hero rp-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <GeoStarfield className="rp-sky" rosette={false} />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={title} />

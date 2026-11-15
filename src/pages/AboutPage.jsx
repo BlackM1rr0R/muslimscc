@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import { BRAND, brandName, tr } from '../config/brand'
 import { HADITH_COUNT } from '../data/siteStats'
 import { INDEXABLE } from '../seo/routes'
@@ -234,6 +235,7 @@ export function AboutPage({ setPage }) {
   return (
     <div className="ab-root">
       <header className="ui-page-hero ui-page-hero--split ab-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { ummahAdd } from '../utils/ummah'
+import HeroOrnament from '../components/HeroOrnament'
 import { celebrate } from '../utils/celebrate'
 import UmmahCounter from '../components/UmmahCounter'
 import { useLang } from '../contexts/LangContext'
@@ -387,6 +388,7 @@ export default function DhikrPage({ setPage }) {
       {/* Hero — dizayn v2 (sakit kağız fon + xatəm naxışı), bir <h1> */}
       <header className="ui-page-hero dhikr-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container" data-reveal="stagger">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel(navGroupOf('dhikr'), lang)}</span>

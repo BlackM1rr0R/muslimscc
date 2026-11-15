@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
@@ -254,6 +255,7 @@ export default function FatwaPage() {
   return (
     <div className="fw-page">
       <header className="ui-page-hero ui-page-hero--split fw-hero">
+        <HeroOrnament />
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           <div className="ui-page-hero__text">

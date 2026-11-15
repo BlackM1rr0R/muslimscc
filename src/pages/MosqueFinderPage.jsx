@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { guessLang } from '../utils/textLang'
+import HeroOrnament from '../components/HeroOrnament'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { getPrayerLocation } from '../utils/prayerLocation'
@@ -259,6 +260,7 @@ export default function MosqueFinderPage({ setPage }) {
       {/* v2: sakit kağız hero — iz, eyebrow, bir h1, giriş */}
       <header className="ui-page-hero mosque-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel('hajj', lang)}</span>

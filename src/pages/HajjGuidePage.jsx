@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 // Dizayn v2: addım görünüşü artıq tam bu faylın öz .hg-* siniflərindədir —
 // Namaz bələdçisinin CSS-i (PrayerGuidePage.css, .pg-*) idxal olunmur, o səhifə
 // dəyişəndə həcc bələdçisi pozulmasın.
@@ -645,6 +646,7 @@ export default function HajjGuidePage({ setPage }) {
       {/* Hero — v3: kompakt; solda izah + açar rəqəmlər + iki düymə, sağda Mina fotosu (≥900px) */}
       <header className="ui-page-hero ui-page-hero--split hg-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text" data-reveal="stagger">
             <Breadcrumb setPage={setPage} current={t.title} />

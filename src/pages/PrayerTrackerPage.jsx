@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useLang } from '../contexts/LangContext'
+import HeroOrnament from '../components/HeroOrnament'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
@@ -138,6 +139,7 @@ export default function PrayerTrackerPage({ setPage }) {
     <div className="pt-root">
       <header className="ui-page-hero pt-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>

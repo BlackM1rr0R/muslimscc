@@ -13,6 +13,7 @@
 // Məzmun və mənhəc qaydaları: src/data/prayerGuide.js.
 // ═══════════════════════════════════════════════════════
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
@@ -387,6 +388,7 @@ export default function PrayerGuidePage({ setPage }) {
     <div className="pg-root">
       <header className="ui-page-hero pg-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>

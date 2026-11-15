@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import NurRosette from '../components/prayer/NurRosette'
+import HeroOrnament from '../components/HeroOrnament'
 import DailyTrackerInsights from '../components/insights/DailyTrackerInsights'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
@@ -234,6 +235,7 @@ export default function DailyTrackerPage({ setPage }) {
       {/* v2: sakit kağız hero — iz, eyebrow, bir h1, giriş */}
       <header className="ui-page-hero tracker-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <Breadcrumb setPage={setPage} current={t.title} />
           <span className="ui-eyebrow">{navGroupLabel('worship', lang)}</span>

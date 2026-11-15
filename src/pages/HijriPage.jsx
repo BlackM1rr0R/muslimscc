@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import DeferRender from '../components/DeferRender'
+import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
@@ -265,6 +266,7 @@ export default function HijriPage({ setPage }) {
     <div className="hj-root">
       <header className="ui-page-hero ui-page-hero--split hj-hero">
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true" />
+        <HeroOrnament />
         <div className="ui-container">
           <div className="ui-page-hero__text">
             <Breadcrumb setPage={setPage} current={t.title} />

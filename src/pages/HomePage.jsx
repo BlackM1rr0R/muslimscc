@@ -14,6 +14,7 @@
 // Brend mətnləri yalnız src/config/brand.js-dən oxunur.
 // ═══════════════════════════════════════════════════════
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import HeroOrnament from '../components/HeroOrnament'
 import DeferRender from '../components/DeferRender'
 import { useLang } from '../contexts/LangContext'
 import { BRAND, brandName, tr } from '../config/brand'
@@ -632,6 +633,8 @@ export default function HomePage({ setPage }) {
           <div className="hp-hero-bg" aria-hidden="true">
             <div className="hp-aur"><i /><i /><i /></div>
             <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
+            {/* v6.9: Nur xatəmi — naxış qızılı xətlə özünü çəkir (bir dəfə) */}
+            <HeroOrnament className="hp-orn" />
             <div className="hp-hero-glow" />
             {/* v6: yavaş axan incə qızılı xətlər (dekor; ekrandan çıxanda dayanır) */}
             <BackgroundPaths tone="gold" count={22} className="hp-paths" />
@@ -647,7 +650,7 @@ export default function HomePage({ setPage }) {
               {/* v5.7: şəxsi salam (prerenderdə — adi nişan) */}
               <HeroGreeting fallback={l.badge} lang={lang} />
 
-              <h1 className="hp-hero-title" aria-label={brand}>
+              <h1 className="hp-hero-title hp-shine" aria-label={brand}>
                 {/* "Muslims" + ".cc" bir sətirdə (domen kimi oxunsun).
                     v4: hərflər növbə ilə yuxarı qalxır (yalnız transform — LCP
                     üçün mətn ilk kadrdan görünür), sonra qızılı işıq keçir. */}
