@@ -88,3 +88,25 @@ for (const theme of ['light', 'dark']) {
     expect(await axe(page, '[data-testid=nur-mosaic]')).toEqual([])
   })
 }
+
+test('isnad zənciri, kartın şərh üzü və Story düyməsi', async ({ page, consoleProblems }) => {
+  await page.goto('/hadith/1')
+  await settle(page)
+  const card = page.getByTestId('hadith-focus').locator('article.hadith-card')
+  await expect(card.getByRole('link', { name: 'Kart yarat' })).toHaveAttribute('href', /\/quotes\?.*hadith=1/)
+  await card.getByTestId('hadith-full-btn').click()
+  const chain = page.getByRole('dialog').getByTestId('isnad-chain')
+  await expect(chain.locator('.isn__node')).toHaveCount(6)   // Buxari + 4 ravi + Peyğəmbər ﷺ
+  await expect(chain.locator('.isn__node').last()).toContainText('Peyğəmbər')
+  expect(await axe(page, '[role=dialog]')).toEqual([])
+  await page.keyboard.press('Escape')
+  await page.goto('/hadith/14')
+  await settle(page)
+  const c14 = page.getByTestId('hadith-focus').locator('article.hadith-card')
+  await c14.getByTestId('hadith-flip-btn').click()
+  await expect(c14).toHaveClass(/is-flipped/)
+  await expect(c14.locator('.hadith-back__x')).toContainText('qəzəb')
+  await c14.getByRole('button', { name: 'Hədisə qayıt' }).click()
+  await expect(c14).not.toHaveClass(/is-flipped/)
+  expectCleanConsole(consoleProblems)
+})

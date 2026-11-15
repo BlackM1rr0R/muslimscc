@@ -1,0 +1,24 @@
+/* Ravilər zənciri (components/IsnadChain.jsx) */
+.isn { display: grid; gap: 8px; }
+.isn__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.isn__node { position: relative; display: flex; align-items: center; gap: 12px; padding: 7px 0 7px 4px; }
+/* Halqalar arası qızılı xətt (aşağıya) */
+.isn__node:not(.isn__node--end)::after {
+  content: ''; position: absolute; inset-inline-start: 10px; top: calc(50% + 8px); height: calc(100% - 4px); width: 2px;
+  background: linear-gradient(to bottom, var(--accent), #e7c77d); transform-origin: top; border-radius: 2px;
+}
+.isn__dot { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); background: var(--surface-1, #fff); margin-inline-start: 3px; z-index: 1; }
+.isn__node--book .isn__dot { background: var(--accent); }
+.isn__node--end .isn__dot { width: 18px; height: 18px; margin-inline-start: 1px; background: #e7c77d; box-shadow: 0 0 0 4px color-mix(in srgb, #e7c77d 35%, transparent), 0 0 18px #e7c77d; }
+.isn__name { font-size: 1.12rem; line-height: 1.6; color: var(--text-strong); }
+.isn__node--book .isn__name { font-weight: 700; }
+.isn__node--end .isn__name { font-weight: 700; color: var(--accent-text); font-size: 1.05rem; }
+.isn__note { margin-top: 0; border-top: 0; padding-top: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .isn__node { animation: isn-in .45s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i) * 170ms + 150ms); }
+  html:not(.a11y-reduce-motion) .isn__node::after { animation: isn-line .35s ease-out both; animation-delay: calc(var(--i) * 170ms + 300ms); }
+  html:not(.a11y-reduce-motion) .isn__node--end .isn__dot { animation: isn-glow 1.4s ease-out both; animation-delay: calc(var(--i) * 170ms + 250ms); }
+}
+@keyframes isn-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes isn-line { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes isn-glow { 0% { opacity: 0; transform: scale(.3); } 60% { opacity: 1; transform: scale(1.35); } 100% { opacity: 1; transform: none; } }

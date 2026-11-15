@@ -78,6 +78,7 @@ fs.mkdirSync(CACHE, { recursive: true })
 fs.writeFileSync(tmp, src.slice(src.indexOf('const RAW')).replace('const RAW =', 'export const RAW ='))
 const { RAW } = await import(pathToFileURL(tmp).href)
 
+const { parseIsnad } = await import(pathToFileURL(path.join(ROOT, 'src/utils/isnad.js')).href)
 const { narratorIds } = await import(pathToFileURL(path.join(ROOT, 'src/data/hadithNarrators.js')).href)
 const ara = {}, tr = {}
 for (const b of new Set(Object.values(BOOK))) {
@@ -128,6 +129,7 @@ function heMatch(ar) {
 }
 const clean = (s) => String(s || '').split('\r').join('').trim()
 let heAz = 0, heOnly = 0
+const heIds = []
 
 fs.rmSync(OUT, { recursive: true, force: true })
 fs.mkdirSync(OUT, { recursive: true })
@@ -165,6 +167,9 @@ for (const h of RAW) {
       const t = tr[book][l].get(n)
       if (t && t.trim()) o[l === 'eng' ? 'en' : l === 'tur' ? 'tr' : 'ru'] = t.trim()
     }
+    // İsnad zənciri (src/utils/isnad.js) — əmin olmadıqda yoxdur
+    const chain = parseIsnad(o.ar)
+    if (chain) o.isnad = chain
     const nar = narratorOf(o.en)
     const nids = nar ? narratorIds(nar) : []
     if (nids.length) o.nid = nids
@@ -183,6 +188,7 @@ for (const h of RAW) {
       }
       o.he = { id: heId, az: clean(az.hadeeth), x: clean(az.explanation), src: clean(az.attribution), g: clean(az.grade) }
       heAz++
+      if (o.he.x) heIds.push(h.id)
     }
   }
   if (!o) { miss++; continue }
@@ -194,6 +200,8 @@ fs.writeFileSync(path.join(ROOT, 'src/data/hadithFull.js'), `// AVTOMATİK YARAD
 export const HADITH_FULL = {
 ${Object.entries(index).map(([k, v]) => `  ${k}: '${v}',`).join('\n')}
 }
+// Rəsmi Azərbaycan şərhi olan hədislər (HadeethEnc.com) — kartın arxa üzü
+export const HADITH_HE_EXPL = new Set(${JSON.stringify(heIds)})
 `)
 console.log(`hadith-full: nömrə ilə ${byNum}, axtarışla ${bySearch}, HadeethEnc az ${heAz} (yalnız HE ${heOnly}), tapılmadı ${miss}; ravisi tanınmayan ${Object.values(narrators).reduce((a, b) => a + b, 0)}`)
 if (process.argv.includes('--narrators')) console.log(Object.entries(narrators).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${v}\t${k}`).join('\n'))

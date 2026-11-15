@@ -30,3 +30,29 @@
 .hfull__expl { font-size: .96rem; color: var(--text-body, var(--text)); }
 .hfull__he { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin: 0; font-size: .88rem; color: var(--text-muted); }
 .hfull__he b { color: var(--text-strong); }
+
+/* v6.9: kartın 3D çevrilməsi — arxa üzdə rəsmi şərh */
+.hadith-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.hadith-card--flip { position: relative; transform-style: preserve-3d; }
+.hadith-page .hadith-card .hadith-face { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.hadith-back {
+  position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px;
+  padding: inherit; border-radius: inherit; background: var(--surface-1, #fff);
+  transform: rotateY(180deg); overflow: hidden;
+}
+.hadith-back__h { margin: 0; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; color: var(--accent-text); }
+.hadith-back__x { flex: 1; overflow: auto; font-size: .95rem; line-height: 1.7; color: var(--text-body, var(--text)); padding-inline-end: 4px; }
+.hadith-back__foot { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.hadith-back__ic { transform: scaleX(-1); }
+[dir="rtl"] .hadith-back__ic { transform: none; }
+.hadith-back { visibility: hidden; }
+.hadith-card--flip.is-flipped .hadith-face { visibility: hidden; }
+.hadith-card--flip.is-flipped .hadith-back { visibility: visible; }
+.hadith-page .hadith-card.hadith-card--flip.is-flipped,
+.hadith-page .hadith-card.hadith-card--flip.is-flipped:hover { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .hadith-page .hadith-card.hadith-card--flip { transition: border-color .2s ease, box-shadow .2s ease, transform .7s cubic-bezier(.3, .9, .3, 1); }
+  /* Üzlər dönmənin ortasında dəyişir (kartın overflow-u 3D-ni yastılaşdırır — backface işləmir) */
+  html:not(.a11y-reduce-motion) .hadith-card--flip .hadith-face,
+  html:not(.a11y-reduce-motion) .hadith-card--flip .hadith-back { transition: visibility 0s linear .3s; }
+}

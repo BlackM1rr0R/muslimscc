@@ -1,8 +1,10 @@
 import { useState, useMemo, useEffect, useRef, useCallback, memo, lazy, Suspense } from 'react'
 import ReportErrorButton from '../components/ReportErrorButton'
 import HadithFullDialog from '../components/HadithFullDialog'
+import ShareCardButton from '../components/ShareCardButton'
 import HadithMemorize, { MEM_T, memorizeStatus } from '../components/HadithMemorize'
 import { FULL_T, narratorParts, hasFull } from '../utils/hadithFull'
+import { HADITH_HE_EXPL } from '../data/hadithFull'
 import HeroOrnament from '../components/HeroOrnament'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
@@ -305,6 +307,17 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
   const narr = narratorParts(hadith.id, lang)
   const nav = useNavigate()
   const full = onOpenFull && hasFull(hadith.id)
+  // v6.9: rəsmi şərhi olan hədis — kart 3D çevrilir, arxa üzdə şərh (HadeethEnc, az)
+  const canFlip = lang === 'az' && HADITH_HE_EXPL.has(Number(hadith.id))
+  const [flip, setFlip] = useState(false)
+  const [expl, setExpl] = useState(null)
+  const doFlip = () => {
+    setFlip(f => !f)
+    if (!expl) {
+      fetch(`/data/hadith-full/${hadith.id}.json`).then(r => (r.ok ? r.json() : null))
+        .then(d => setExpl(d?.he?.x ? { x: d.he.x, id: d.he.id } : { x: '' })).catch(() => setExpl({ x: '' }))
+    }
+  }
   const b = pickUi(BTN_LABELS, lang, 'en')
   // Ərəbcədə hadith.text elə hadith.ar-ın özüdür — eyni mətni iki dəfə göstərməyək
   const text = (hadith.text || '').trim()
@@ -313,7 +326,8 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
   return (
     // Kart: yuxarıda nömrə + kateqoriya + əməllər, ortada ərəbcə (Amiri) və
     // tərcümə (display şrifti), aşağıda mənbə — oxu ritmi sitat kimi
-    <article className="ui-card hadith-card" {...revealProps(index)}>
+    <article className={`ui-card hadith-card${canFlip ? ' hadith-card--flip' : ''}${flip ? ' is-flipped' : ''}`} {...revealProps(index)}>
+      <div className="hadith-face" inert={flip ? '' : undefined}>
       <div className="hadith-top">
         <span className="hadith-num ui-num">#{displayNum}</span>
         {hadith.cat && <span className="hadith-cat-badge">{localizeCat(hadith.cat, lang)}</span>}
@@ -337,6 +351,8 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
           >
             <Icon name="share" size={19} />
           </button>
+          {/* v6.9: hədis — şəkil / animasiyalı video (Story) kimi: sitat kartı generatoru */}
+          <ShareCardButton hadith={hadith.id} fmt="story" variant="icon" className="hadith-story-btn" />
           <ReportErrorButton compact kind="hadith" refText={`${source || ''} #${displayNum}`.trim()} className="hadith-report-btn" />
         </div>
       </div>
@@ -356,10 +372,19 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
           ))}
         </p>
       )}
-      {full && (
-        <button type="button" className="hadith-full-btn" onClick={() => onOpenFull(hadith.id)} data-testid="hadith-full-btn">
-          <Icon name="hadithbooks" size={16} /> {fu.full}
-        </button>
+      {(full || canFlip) && (
+        <div className="hadith-btns">
+          {full && (
+            <button type="button" className="hadith-full-btn" onClick={() => onOpenFull(hadith.id)} data-testid="hadith-full-btn">
+              <Icon name="hadithbooks" size={16} /> {fu.full}
+            </button>
+          )}
+          {canFlip && (
+            <button type="button" className="hadith-full-btn" onClick={doFlip} data-testid="hadith-flip-btn" aria-expanded={flip}>
+              <Icon name="sparkle" size={16} /> {fu.expl}
+            </button>
+          )}
+        </div>
       )}
       <div className="hadith-foot">
         {source && (
@@ -370,6 +395,19 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
         )}
         <HadithGrade h={hadith} lang={lang} />
       </div>
+      </div>
+      {canFlip && (
+        <div className="hadith-back" inert={flip ? undefined : ''} aria-hidden={!flip}>
+          <p className="hadith-back__h">{fu.expl}</p>
+          <div className="hadith-back__x">{expl ? (expl.x || fu.err) : fu.loading}</div>
+          <div className="hadith-back__foot">
+            {expl?.id && <a className="ui-link" href={`https://hadeethenc.com/az/browse/hadith/${expl.id}`} target="_blank" rel="noopener noreferrer">{fu.heOpen}</a>}
+            <button type="button" className="hadith-full-btn" onClick={doFlip}>
+              <Icon name="arrow" size={15} className="ui-flip-rtl hadith-back__ic" /> {fu.back}
+            </button>
+          </div>
+        </div>
+      )}
     </article>
   )
 })

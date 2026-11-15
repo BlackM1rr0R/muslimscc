@@ -8,6 +8,7 @@
 // ═══════════════════════════════════════════════════════
 import { useEffect, useState } from 'react'
 import ReaderDialog from './reader/ReaderDialog'
+import IsnadChain from './IsnadChain'
 export { FULL_T, narratorLine, hasFull } from '../utils/hadithFull'
 import { FULL_T, narratorLine } from '../utils/hadithFull'
 import { localizeSource } from '../utils/sourceNames'
@@ -69,6 +70,8 @@ export default function HadithFullDialog({ id, lang, onClose, onPrev, onNext, po
         {err && <p className="hfull__err" role="alert">{u.err}</p>}
         {data && (
           <>
+            {/* v6.9: ravilər zənciri — ərəbcə mətndən (data.isnad) */}
+            {data.isnad && data.ref && <IsnadChain book={data.ref[0]} chain={data.isnad} lang={lang} />}
             <h3 className="hfull__h">{u.arH}</h3>
             <p className="hfull__ar ui-arabic" lang="ar" dir="rtl">{data.ar}</p>
             {lang !== 'ar' && trLang && (
