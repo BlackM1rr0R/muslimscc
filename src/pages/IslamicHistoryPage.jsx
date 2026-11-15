@@ -11,6 +11,7 @@ import RelatedLinks from '../components/media/RelatedLinks'
 // Canlı yayılma xəritəsi (d3-geo + sahil xətləri) — ayrıca yüklənir; o vaxta qədər statik sxem
 const SpreadTimeline = lazy(() => import('../components/media/SpreadTimeline'))
 const IslamicScience = lazy(() => import('../components/IslamicScience'))
+const IsraJourney = lazy(() => import('../components/IsraJourney'))
 // v5.9: Hicrət yolu 3D (three.js — ayrıca chunk, bölməyə yaxınlaşanda)
 const HijraJourney3D = lazy(() => import('../components/media/HijraJourney3D'))
 // v5.9: Quranda adı keçən yerlər xəritəsi (peyğəmbərlər bölməsində)
@@ -421,6 +422,12 @@ export default function IslamicHistoryPage() {
             <HijraJourney lang={lang} />
             <SirahMap lang={lang} />
           </div>
+          {/* v6.9: İsra və Merac — İsra 17:1 və səmalardakı peyğəmbərlər (Buxari 3207, Muslim 162) */}
+          <DeferRender height="1100px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 1100 }} />}>
+              <IsraJourney lang={lang} />
+            </Suspense>
+          </DeferRender>
           <DeferRender height="620px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 620 }} />}>
               <div className="history-hijra3d"><HijraJourney3D lang={lang} /></div>

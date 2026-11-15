@@ -104,7 +104,7 @@ function serverPrefs() {
   // checkin — "Qıldınızmı?" xatırlatması (server/checkin.js), susmaya görə sönülü
   // fasting — sünnə orucu xatırlatması (server/fasting.js), susmaya görə sönülü
   // adhkar / jumuah — səhər-axşam zikri və Cümə xatırlatması (server/reminders.js), susmaya görə sönülü
-  return { azan: p.prayer !== false, checkin: p.checkin === true, fasting: p.fasting === true, adhkar: p.adhkar === true, jumuah: p.jumuah === true, eclipse: p.eclipse === true, daily: { ayah: p.ayah === true, hour } }
+  return { azan: p.prayer !== false, checkin: p.checkin === true, fasting: p.fasting === true, adhkar: p.adhkar === true, jumuah: p.jumuah === true, eclipse: p.eclipse === true, daily: { ayah: p.ayah === true, hadith: p.hadith === true, hour } }
 }
 
 /**
@@ -213,9 +213,9 @@ export function updateTokenLocation() {
   return patchSubscription({ lang: currentLang(), loc: locationPayload() })
 }
 
-/** "Günün ayəsi" → prefs.daily = { ayah, hour } (şəhərin yerli saatı). */
-export function updateTokenDaily({ ayah, hour }) {
-  return patchSubscription({ prefs: { daily: { ayah: Boolean(ayah), hour: Number(hour) } } })
+/** "Günün ayəsi" / "Günün hədisi" → prefs.daily = { ayah, hadith, hour } (şəhərin yerli saatı). */
+export function updateTokenDaily({ ayah, hadith, hour }) {
+  return patchSubscription({ prefs: { daily: { ayah: Boolean(ayah), hadith: Boolean(hadith), hour: Number(hour) } } })
 }
 
 /** Bildiriş seçimləri → prefs.azan / prefs.checkin / prefs.fasting. */

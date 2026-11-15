@@ -1,0 +1,35 @@
+/* İsra və Merac (components/IsraJourney.jsx) */
+.isj { position: relative; overflow: hidden; margin-top: 24px; padding: clamp(18px, 3vw, 32px);
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 100%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+    linear-gradient(to top, var(--surface-1, transparent), color-mix(in srgb, #2a3a7a 10%, var(--surface-1, transparent)));
+}
+.isj__title { margin: 6px 0 4px; font-size: var(--step-2, 1.5rem); }
+.isj__lead { margin: 0 0 16px; color: var(--text-muted); }
+.isj__ayah { margin: 0 0 22px; padding: 16px 18px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.isj__ayah blockquote { margin: 0; }
+.isj__ar { margin: 0 0 8px; font-size: 1.45rem; line-height: 2.1; color: var(--text-strong); }
+.isj__tr { margin: 0; line-height: 1.7; }
+.isj__ayah figcaption { margin-top: 8px; color: var(--text-muted); font-size: .88rem; }
+.isj__path { position: relative; padding-inline-start: 34px; }
+.isj__rail { position: absolute; inset-inline-start: 11px; top: 6px; bottom: 6px; width: 3px; border-radius: 3px; background: var(--line, var(--border)); overflow: hidden; }
+.isj__rail i { position: absolute; inset: 0; background: linear-gradient(to bottom, var(--accent), #e7c77d); transform-origin: top; transform: scaleY(0); transition: transform .9s cubic-bezier(.22, 1, .36, 1); }
+.isj__stops { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.isj__stop { position: relative; transform: translateY(10px); transition: transform .6s cubic-bezier(.22, 1, .36, 1); }
+.isj__stop.is-on { transform: none; }
+/* Yanmamış mərhələ — mətn solmur (kontrast), yalnız çərçivə sakitdir */
+.isj__stop.is-on .isj__card { border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent); }
+.isj__dot { position: absolute; inset-inline-start: -29px; top: 14px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--accent); background: var(--surface-1, #fff); transition: transform .4s ease; }
+.isj__stop.is-on .isj__dot { background: var(--accent); transform: scale(1.15); }
+.isj__card { padding: 12px 16px; border-radius: 14px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); }
+.isj__stop--sky .isj__card { background: color-mix(in srgb, #3b4fb0 7%, var(--surface-1, transparent)); }
+.isj__name { margin: 0; font-weight: 700; color: var(--text-strong); }
+.isj__sub { margin: 2px 0 0; color: var(--text-muted); font-size: .9rem; }
+.isj__met { margin: 4px 0 0; }
+.isj__met span { color: var(--text-muted); font-size: .88rem; }
+.isj__src { margin: 16px 0 0; font-size: .82rem; color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) {
+  .isj__stop, .isj__rail i, .isj__dot { transition: none; }
+  .isj__stop { transform: none; }
+}
+html.a11y-reduce-motion .isj__stop { transform: none; transition: none; }

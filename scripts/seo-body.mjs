@@ -548,11 +548,13 @@ function hadithFullBlock(lang, id) {
   try { d = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'data', 'hadith-full', `${id}.json`), 'utf8')) } catch { return '' }
   const u = FULL_T[lang] || FULL_T.en
   const order = lang === 'ru' ? ['ru', 'en'] : (lang === 'tr' || lang === 'az') ? ['tr', 'en'] : ['en']
-  const k = lang === 'ar' ? null : order.find(x => d[x])
+  const he = lang === 'az' && d.he?.az ? d.he : null
+  const k = lang === 'ar' || he ? null : order.find(x => d[x])
   return `<section><h2>${esc(u.title)}</h2>` +
     `<h3>${esc(u.arH)}</h3><p lang="ar" dir="rtl" class="seo-static__ar">${esc(d.ar)}</p>` +
+    (he ? `<h3>${esc(u.trH)}</h3><p lang="az">${esc(he.az)}</p>` + (he.x ? `<h3>${esc(u.expl)}</h3><p lang="az">${esc(he.x)}</p>` : '') : '') +
     (k ? `<h3>${esc(u.trH)}</h3><p lang="${k}">${esc(d[k])}</p>` : '') +
-    `<p><small>${esc(u.note)}</small></p></section>`
+    `<p><small>${esc(he ? u.heNote : u.note)}</small></p></section>`
 }
 
 function hadithBody(lang, id) {

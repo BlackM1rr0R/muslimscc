@@ -82,10 +82,12 @@ describe('normDaily', () => {
     expect(d.normDaily(undefined)).toBeNull()
     expect(d.normDaily({ ayah: false, hour: 8 })).toBeNull()
     expect(d.normDaily({ ayah: 'true', hour: 8 })).toBeNull()
-    expect(d.normDaily({ ayah: true, hour: 20 })).toEqual({ hour: 20 })
-    expect(d.normDaily({ ayah: true, hour: '7' })).toEqual({ hour: 7 })
-    expect(d.normDaily({ ayah: true, hour: 25 })).toEqual({ hour: d.DEFAULT_HOUR })
-    expect(d.normDaily({ ayah: true })).toEqual({ hour: d.DEFAULT_HOUR })
+    expect(d.normDaily({ ayah: true, hour: 20 })).toEqual({ hour: 20, ayah: true, hadith: false })
+    expect(d.normDaily({ ayah: true, hour: '7' })).toEqual({ hour: 7, ayah: true, hadith: false })
+    expect(d.normDaily({ ayah: true, hour: 25 })).toEqual({ hour: d.DEFAULT_HOUR, ayah: true, hadith: false })
+    expect(d.normDaily({ ayah: true })).toEqual({ hour: d.DEFAULT_HOUR, ayah: true, hadith: false })
+    // v6.9: yalnız hədis
+    expect(d.normDaily({ hadith: true, hour: 9 })).toEqual({ hour: 9, ayah: false, hadith: true })
   })
 })
 

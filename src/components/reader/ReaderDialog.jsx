@@ -130,13 +130,18 @@ export default function ReaderDialog({
             </div>
             <div ref={bodyRef} className={`rd-body${swap}`} key={contentKey}>{children}</div>
             <div className="rd-foot">
-              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm rd-nav" onClick={cbs.current.onPrev} disabled={!onPrev} aria-label={labels.prev}>
-                <Icon name="chevronLeft" className="ui-btn__icon ui-flip-rtl" /><span className="rd-nav__label">{labels.prev}</span>
-              </button>
+              {/* Əvvəlki/növbəti yalnız naviqasiya olanda (məs. əzbərləmə pəncərəsində yoxdur) */}
+              {(onPrev || onNext || labels.prev) && (
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm rd-nav" onClick={cbs.current.onPrev} disabled={!onPrev} aria-label={labels.prev}>
+                  <Icon name="chevronLeft" className="ui-btn__icon ui-flip-rtl" /><span className="rd-nav__label">{labels.prev}</span>
+                </button>
+              )}
               <div className="rd-foot__mid">{footer}</div>
-              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm rd-nav" onClick={cbs.current.onNext} disabled={!onNext} aria-label={labels.next}>
-                <span className="rd-nav__label">{labels.next}</span><Icon name="chevron" className="ui-btn__icon ui-flip-rtl" />
-              </button>
+              {(onPrev || onNext || labels.next) && (
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm rd-nav" onClick={cbs.current.onNext} disabled={!onNext} aria-label={labels.next}>
+                  <span className="rd-nav__label">{labels.next}</span><Icon name="chevron" className="ui-btn__icon ui-flip-rtl" />
+                </button>
+              )}
             </div>
           </m.div>
         </m.div>

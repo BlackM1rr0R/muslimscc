@@ -27,3 +27,6 @@
   transition: background-color .2s ease, border-color .2s ease;
 }
 .hadith-full-btn:hover { background: var(--surface-2, rgba(0,0,0,.04)); border-color: var(--accent); }
+.hfull__expl { font-size: .96rem; color: var(--text-body, var(--text)); }
+.hfull__he { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin: 0; font-size: .88rem; color: var(--text-muted); }
+.hfull__he b { color: var(--text-strong); }

@@ -37,7 +37,7 @@ else console.log(`Firebase: FCM ${FCM_ON ? 'açıq' : 'sönülü'}, köhnə admi
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
 for (const m of ['./auth', './analytics', './csp', './clientErrors', './ummah', './content', './feedback', './groups', './sync', './ics', './push',
-  './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib']) require(m)
+  './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data']) require(m)
 
 // ─── Verilənlər bazası (SQLite, node:sqlite) ─────────────────────────
 const { openDb } = require('./db')
@@ -555,6 +555,7 @@ app.post('/api/send-notification', requireAdmin, async (req, res) => {
 
 const { LANGS, PRAYERS, PUSH_TEXTS, normLoc, locKey, nowIn, addDay } = require('./prayer-utils')
 const dailyAyah = require('./daily-ayah')   // "Günün ayəsi" planlayıcısı (aşağıda)
+const dailyHadith = require('./daily-hadith')   // "Günün hədisi" (v6.9) — eyni planlayıcıda
 const { normDaily } = dailyAyah
 const checkin = require('./checkin')       // "Qıldınızmı?" xatırlatması (aşağıda)
 const fasting = require('./fasting')       // Sünnə orucu xatırlatması (aşağıda)
@@ -853,6 +854,22 @@ async function sendAyahPush(group, list, pick, data) {
   }
 }
 
+// "Günün hədisi" (v6.9): siyahı serverdədir (daily-hadith-data.js) — şəbəkə yoxdur
+async function sendHadithPush(group, list, h) {
+  for (const [lang, entries] of groupByLang(list)) {
+    const { title, body, link } = dailyHadith.buildHadithMessage(lang, h)
+    await deliver(entries, {
+      notification: { title, body },
+      data: { tag: 'daily-hadith', url: link },
+      webpush: {
+        headers: { TTL: '21600' },
+        notification: { ...WEBPUSH_ICONS, tag: 'daily-hadith' },
+        fcmOptions: { link },
+      },
+    }, `hadith ${h.id} [${lang} · ${group.loc.tz}]`)
+  }
+}
+
 let ayahBusy = false
 async function dailyAyahTick() {
   if (ayahBusy) return
@@ -863,16 +880,25 @@ async function dailyAyahTick() {
       if (!subs.length) continue
       const now = nowIn(group.loc.tz)
       const pick = dailyAyah.ayahForDate(now.dateKey)
+      // Köhnə yazılar (ayah sahəsi yoxdur) — ayə abunəsi sayılır
+      const ayahSubs = subs.filter(e => e.daily.ayah !== false)
       // Mətni əvvəlcədən çək (gün başlayan kimi) — göndərmə dəqiqəsində API ləngiməsin
-      const data = await ayahDataFor(pick)
+      const data = ayahSubs.length ? await ayahDataFor(pick) : null
       const hours = [...new Set(subs.map(e => e.daily.hour))]
       for (const hour of hours) {
         if (!dailyAyah.isDueNow(now.hhmm, hour)) continue
         const sk = `${key}|${now.dateKey}|${hour}`
         if (ayahSentKeys.has(sk)) continue
         ayahSentKeys.add(sk)
-        if (!data) { console.warn(`Ayah ${pick.ref} [${group.loc.tz} ${hour}:00]: mətn alınmadı — göndərilmədi`); continue }
-        await sendAyahPush(group, subs.filter(e => e.daily.hour === hour), pick, data)
+        const atHour = subs.filter(e => e.daily.hour === hour)
+        const ayahList = atHour.filter(e => e.daily.ayah !== false)
+        if (ayahList.length) {
+          if (!data) console.warn(`Ayah ${pick.ref} [${group.loc.tz} ${hour}:00]: mətn alınmadı — göndərilmədi`)
+          else await sendAyahPush(group, ayahList, pick, data)
+        }
+        const hadithList = atHour.filter(e => e.daily.hadith === true)
+        const h = hadithList.length ? dailyHadith.hadithForDate(now.dateKey) : null
+        if (h) await sendHadithPush(group, hadithList, h)
       }
       for (const k of ayahSentKeys) if (k.startsWith(key + '|') && !k.startsWith(`${key}|${now.dateKey}|`)) ayahSentKeys.delete(k)
     }

@@ -97,9 +97,10 @@ function ayahForDate(dateKey, refs = AYAH_REFS) {
 
 /** Token sənədindəki `daily` sahəsi → { hour } | null (ayə sönülüdürsə və ya yararsızdırsa). */
 function normDaily(raw) {
-  if (!raw || typeof raw !== 'object' || raw.ayah !== true) return null
+  // v6.9: "Günün hədisi" (hadith) eyni saatda — ikisindən biri açıqdırsa abunəçi planlayıcıdadır
+  if (!raw || typeof raw !== 'object' || (raw.ayah !== true && raw.hadith !== true)) return null
   const h = Number(raw.hour)
-  return { hour: Number.isInteger(h) && h >= 0 && h <= 23 ? h : DEFAULT_HOUR }
+  return { hour: Number.isInteger(h) && h >= 0 && h <= 23 ? h : DEFAULT_HOUR, ayah: raw.ayah === true, hadith: raw.hadith === true }
 }
 
 /** Yerli 'HH:MM' seçilmiş saatın tam başlanğıcıdırmı (dəqiqə 00)? */

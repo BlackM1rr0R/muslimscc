@@ -30,6 +30,7 @@ const DEFAULT_PREFS = {
   jumuah: false,    // Cümə: Kəhf + salavat — susmaya görə sönülü
   eclipse: false,   // v6.8: tutulma xəbərdarlığı (server/eclipse.js) — susmaya görə sönülü
   ayah: false,
+  hadith: false,   // v6.9: "Günün hədisi" (server/daily-hadith.js) — ayə ilə eyni saatda
   ayahHour: 8,
   announcements: true,
   events: true,
@@ -63,6 +64,8 @@ const LABELS = {
     typeEclipse:'Tutulma xəbərdarlığı', typeEclipseSub:'Şəhərinizdən görünəcək Ay və Günəş tutulmasından əvvəlki axşam 20:00-da',
     typeFasting:'Sünnə orucu xatırlatması',
     typeFastingSub:'Bazar ertəsi, cümə axşamı, ağ günlər, Ərəfə və Aşuradan əvvəlki axşam saat 20:00-da',
+    typeHadith:'Günün hədisi',
+    typeHadithSub:'Hər gün bir səhih hədis, mənbəsi ilə',
     typeAyah:'Günün ayəsi',
     typeAyahSub:'Hər gün bir ayə və tərcüməsi',
     ayahTime:'Bildiriş vaxtı',
@@ -108,6 +111,8 @@ const LABELS = {
     typeEclipse:'Eclipse alert', typeEclipseSub:'At 20:00 the evening before a lunar or solar eclipse visible from your city',
     typeFasting:'Sunnah fasting reminder',
     typeFastingSub:'The evening before Mondays, Thursdays, the white days, Arafah and Ashura — at 20:00',
+    typeHadith:'Hadith of the day',
+    typeHadithSub:'One authentic hadith with its source every day',
     typeAyah:'Verse of the day',
     typeAyahSub:'One verse with its translation every day',
     ayahTime:'Notification time',
@@ -153,6 +158,8 @@ const LABELS = {
     typeEclipse:'Оповещение о затмении', typeEclipseSub:'В 20:00 накануне лунного или солнечного затмения, видимого из вашего города',
     typeFasting:'Напоминание о желательном посте',
     typeFastingSub:'Накануне понедельника, четверга, белых дней, Арафы и Ашуры — в 20:00',
+    typeHadith:'Хадис дня',
+    typeHadithSub:'Каждый день один достоверный хадис с источником',
     typeAyah:'Аят дня',
     typeAyahSub:'Каждый день один аят с переводом',
     ayahTime:'Время уведомления',
@@ -198,6 +205,8 @@ const LABELS = {
     typeEclipse:'تنبيه الكسوف والخسوف', typeEclipseSub:'الساعة 20:00 مساء اليوم السابق لخسوف أو كسوف يُرى من مدينتك',
     typeFasting:'تذكير بصيام التطوع',
     typeFastingSub:'مساء اليوم السابق للاثنين والخميس والأيام البيض وعرفة وعاشوراء — الساعة 20:00',
+    typeHadith:'حديث اليوم',
+    typeHadithSub:'حديث صحيح مع مصدره كل يوم',
     typeAyah:'آية اليوم',
     typeAyahSub:'آية مع ترجمتها كل يوم',
     ayahTime:'وقت الإشعار',
@@ -243,6 +252,8 @@ const LABELS = {
     typeEclipse:'Tutulma uyarısı', typeEclipseSub:'Şehrinizden görünecek Ay veya Güneş tutulmasından önceki akşam 20:00’de',
     typeFasting:'Nafile oruç hatırlatması',
     typeFastingSub:'Pazartesi, perşembe, eyyâm-ı bîz, Arefe ve Aşure öncesi akşam saat 20:00’de',
+    typeHadith:'Günün hadisi',
+    typeHadithSub:'Her gün kaynağıyla bir sahih hadis',
     typeAyah:'Günün ayeti',
     typeAyahSub:'Her gün bir ayet ve meali',
     ayahTime:'Bildirim saati',
@@ -377,7 +388,7 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
       setFeedback({ ok: false, text: result.reason || 'failed' })
     }
     // Token indi yarandı — icazədən əvvəl seçilmiş "Günün ayəsi" serverə də yazılsın
-    if (result.ok && prefs.ayah) updateTokenDaily({ ayah: true, hour: prefs.ayahHour })
+    if (result.ok && (prefs.ayah || prefs.hadith)) updateTokenDaily({ ayah: prefs.ayah, hadith: prefs.hadith, hour: prefs.ayahHour })
     // checkin və fasting isə abunəlik yazılanda serverPrefs() ilə artıq gedib
   }
 
@@ -448,8 +459,8 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
 
   // "Günün ayəsi": seçim həmişə lokal yadda qalır; token varsa sənədə də yazılır
   const setAyah = async (patch) => {
-    const next = { ayah: prefs.ayah, hour: prefs.ayahHour, ...patch }
-    setPrefs(p => ({ ...p, ayah: next.ayah, ayahHour: next.hour }))
+    const next = { ayah: prefs.ayah, hadith: prefs.hadith === true, hour: prefs.ayahHour, ...patch }
+    setPrefs(p => ({ ...p, ayah: next.ayah, hadith: next.hadith, ayahHour: next.hour }))
     if (!getStoredToken()) return
     const ok = await updateTokenDaily(next)
     if (!ok) setFeedback({ ok: false, text: l.ayahSaveFailed })
@@ -564,7 +575,9 @@ export default function NotificationSettingsWidget({ open: openProp, onClose } =
                   )}
                   <PrefToggle icon="quran" label={l.typeAyah} sub={l.typeAyahSub}
                     on={prefs.ayah} onClick={() => setAyah({ ayah: !prefs.ayah })} />
-                  {prefs.ayah && (
+                  <PrefToggle icon="hadith" label={l.typeHadith} sub={l.typeHadithSub}
+                    on={prefs.hadith === true} onClick={() => setAyah({ hadith: !prefs.hadith })} />
+                  {(prefs.ayah || prefs.hadith) && (
                     <div className="notif-ayah">
                       <div className="notif-ayah-head" id="notif-ayah-time">
                         <span>{l.ayahTime}</span>

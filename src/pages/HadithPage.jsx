@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useRef, useCallback, memo, lazy, Suspense } from 'react'
 import ReportErrorButton from '../components/ReportErrorButton'
-import HadithFullDialog, { FULL_T, narratorLine, hasFull } from '../components/HadithFullDialog'
+import HadithFullDialog from '../components/HadithFullDialog'
+import HadithMemorize, { MEM_T, memorizeStatus } from '../components/HadithMemorize'
+import { FULL_T, narratorParts, hasFull } from '../utils/hadithFull'
 import HeroOrnament from '../components/HeroOrnament'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
@@ -300,7 +302,8 @@ const FOCUS_ALL = { az: 'Bütün hədislər', en: 'All hadith', ru: 'Все ха
 
 const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, onOpenFull, lang, index }) {
   const fu = pickUi(FULL_T, lang, 'en')
-  const narr = narratorLine(hadith.id, lang)
+  const narr = narratorParts(hadith.id, lang)
+  const nav = useNavigate()
   const full = onOpenFull && hasFull(hadith.id)
   const b = pickUi(BTN_LABELS, lang, 'en')
   // Ərəbcədə hadith.text elə hadith.ar-ın özüdür — eyni mətni iki dəfə göstərməyək
@@ -340,7 +343,19 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
       <p className="hadith-arabic ui-arabic" lang="ar" dir="rtl">{hadith.ar}</p>
       {showBody && <p className="hadith-text">{hadith.text}</p>}
       {/* v6.9: ravi (səhabə) və tam mətn — hadith-api nəşrindən olduğu kimi */}
-      {narr && <p className="hadith-narr"><b>{fu.narr}:</b> {narr}</p>}
+      {narr.length > 0 && (
+        <p className="hadith-narr"><b>{fu.narr}:</b>{' '}
+          {narr.map((p, i) => (
+            <span key={i}>
+              {i > 0 && ', '}
+              {p.slug
+                ? <a className="ui-link hadith-narr__link" href={pathFor('sahaba', lang, p.slug)}
+                    onClick={(e) => { if (isPlainClick(e)) { e.preventDefault(); nav(pathFor('sahaba', lang, p.slug)) } }}>{p.name}</a>
+                : p.name}
+            </span>
+          ))}
+        </p>
+      )}
       {full && (
         <button type="button" className="hadith-full-btn" onClick={() => onOpenFull(hadith.id)} data-testid="hadith-full-btn">
           <Icon name="hadithbooks" size={16} /> {fu.full}
@@ -674,6 +689,11 @@ export default function HadithPage({ setPage }) {
   const openFull = useCallback((id) => setFullId(id), [])
   const fullNav = useMemo(() => visible.filter(h => hasFull(h.id)).map(h => h.id), [visible])
   const fullIdx = fullNav.indexOf(fullId)
+  // v6.9: sevimliləri əzbərləmə (Leitner) — yalnız "Sevimlilər" görünəndə
+  const [memOpen, setMemOpen] = useState(false)
+  const favItems = useMemo(() => (showFavs ? list.filter(isFav) : []), [showFavs, list, isFav])
+  // Hər renderdə (pəncərə bağlananda yenilənsin) — yalnız sevimlilər görünəndə
+  const memStat = favItems.length ? memorizeStatus(favItems.map(h => h.id), lang) : null
   // v6.8: /hadith/<id> — həmin hədis siyahının üstündə ayrıca (statik SEO səhifəsi ilə eyni məzmun)
   const routeLoc = useLocation()
   const focusId = parsePath(routeLoc.pathname).param
@@ -771,6 +791,15 @@ export default function HadithPage({ setPage }) {
               </a>
             </div>
           )}
+          {memStat && (
+            <div className="hadith-mem-bar" data-testid="hadith-mem-bar">
+              <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={() => setMemOpen(true)}>
+                <Icon name="hifz" className="ui-btn__icon" /> {pickUi(MEM_T, lang, 'en').btn}
+              </button>
+              <span className="hadith-mem-bar__t ui-num">{memStat.label}</span>
+            </div>
+          )}
+          <HadithMemorize open={memOpen} onClose={() => setMemOpen(false)} items={favItems} lang={lang} />
           <div className="hadiths-list" key={`${safeCat}|${showFavs}|${gradeF}`}>
             {visible.length === 0
               ? (

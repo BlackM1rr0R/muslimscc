@@ -21,7 +21,7 @@ describe('hədisin tam mətni və ravi', () => {
     for (const id of ids) {
       const d = JSON.parse(fs.readFileSync(`public/data/hadith-full/${id}.json`, 'utf8'))
       expect(d.ar.length).toBeGreaterThan(10)
-      expect(d.en || d.tr).toBeTruthy()
+      expect(d.en || d.tr || d.he?.az).toBeTruthy()
       for (const k of (HADITH_FULL[id] ? HADITH_FULL[id].split(',') : [])) expect(narratorName(k, 'az')).toBeTruthy()
     }
   })
@@ -33,5 +33,21 @@ describe('hədisin tam mətni və ravi', () => {
   it('yalnız saytdakı hədislər (silinmiş id yoxdur)', () => {
     const all = new Set((HADITHS_DATA?.az || []).map(h => String(h.id)))
     if (all.size) for (const id of Object.keys(HADITH_FULL)) expect(all.has(id)).toBe(true)
+  })
+})
+
+describe('ravi → səhabə profili', async () => {
+  const { SAHABA, slugOf } = await import('../../src/data/sahaba.js')
+  const { narratorSlug } = await import('../../src/data/hadithNarrators.js')
+  const { hadithIdsBySahaba } = await import('../../src/utils/hadithFull.js')
+  it('hər profil slug-u saytda mövcuddur', () => {
+    const slugs = new Set(SAHABA.map(slugOf))
+    for (const k of ['abubakr', 'umar', 'uthman', 'ali', 'aisha', 'abuhurayra', 'ibnmasud', 'abudharr', 'muadh', 'sad', 'anas']) {
+      expect(slugs.has(narratorSlug(k))).toBe(true)
+    }
+    expect(narratorSlug('jabir')).toBe(null)
+  })
+  it('Əbu Hureyrənin saytda rəvayətləri var', () => {
+    expect(hadithIdsBySahaba(narratorSlug('abuhurayra')).length).toBeGreaterThan(100)
   })
 })

@@ -14,13 +14,15 @@ import { localizeSource } from '../utils/sourceNames'
 import { pickUi } from '../utils/uiText'
 import '../styles/HadithFull.css'
 
-const TR_LABEL = { tr: 'Türkçe', en: 'English', ru: 'Русский' } // lang-ok: dilin öz adı (endonim)
+const TR_LABEL = { az: 'Azərbaycanca', tr: 'Türkçe', en: 'English', ru: 'Русский' } // lang-ok: dilin öz adı (endonim)
 const BOOK_AZ = { bukhari: 'Buxari', muslim: 'Muslim', tirmidhi: 'Tirmizi', abudawud: 'Əbu Davud', ibnmajah: 'İbn Macə', nasai: 'Nəsai' } // lang-ok: mənbə adı (localizeSource çevirir)
 
 // İlkin tərcümə dili: rus → rus (yoxdursa ingilis), türk/az → türk, digərləri → ingilis
+const trText = (d, k) => (k === 'az' ? d?.he?.az : d?.[k])
 const defaultTr = (lang, d) => {
+  if (lang === 'az' && d?.he?.az) return 'az'
   const order = lang === 'ru' ? ['ru', 'en', 'tr'] : (lang === 'tr' || lang === 'az') ? ['tr', 'en', 'ru'] : ['en', 'tr', 'ru']
-  return order.find(k => d?.[k]) || null
+  return order.find(k => trText(d, k)) || null
 }
 
 export default function HadithFullDialog({ id, lang, onClose, onPrev, onNext, position }) {
@@ -40,8 +42,9 @@ export default function HadithFullDialog({ id, lang, onClose, onPrev, onNext, po
   }, [id, lang])
 
   const narr = id != null ? narratorLine(id, lang) : null
-  const ref = data ? localizeSource(`${BOOK_AZ[data.ref[0]]} ${data.ref[2]}`, lang) : ''
-  const avail = data ? ['tr', 'en', 'ru'].filter(k => data[k]) : []
+  const ref = data?.ref ? localizeSource(`${BOOK_AZ[data.ref[0]]} ${data.ref[2]}`, lang) : (lang === 'az' && data?.he?.src) || ''
+  const avail = data ? ['az', 'tr', 'en', 'ru'].filter(k => trText(data, k)) : []
+  const he = lang === 'az' ? data?.he : null
   return (
     <ReaderDialog
       open={id != null}
@@ -81,10 +84,22 @@ export default function HadithFullDialog({ id, lang, onClose, onPrev, onNext, po
                     </div>
                   )}
                 </div>
-                <p className="hfull__tr" lang={trLang}>{data[trLang]}</p>
+                <p className="hfull__tr" lang={trLang}>{trText(data, trLang)}</p>
               </>
             )}
-            <p className="hfull__note">{u.note}</p>
+            {he?.x && (
+              <>
+                <h3 className="hfull__h">{u.expl}</h3>
+                <p className="hfull__tr hfull__expl" lang="az">{he.x}</p>
+              </>
+            )}
+            {he && (
+              <p className="hfull__he">
+                {he.g && <span><b>{u.grade}:</b> {he.g}</span>}
+                <a className="ui-link" href={`https://hadeethenc.com/az/browse/hadith/${he.id}`} target="_blank" rel="noopener noreferrer">{u.heOpen}</a>
+              </p>
+            )}
+            <p className="hfull__note">{he ? `${u.heNote} ` : ''}{data.ref ? u.note : ''}</p>
           </>
         )}
       </div>

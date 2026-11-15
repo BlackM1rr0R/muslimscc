@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useLayoutEffect, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import SahabaNarrations from '../components/SahabaNarrations'
 import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import { localizeSource } from '../utils/sourceNames'
@@ -852,6 +853,9 @@ function Profile({ s, L, lang, isAr, onBack, onSibling, starOn, onStar, starLabe
                 ))}
               </div>
             </section>
+
+            {/* v6.9: saytdakı hədislərdən bu səhabənin rəvayətləri */}
+            <SahabaNarrations slug={slug} lang={lang} />
 
             {/* Mənbələr */}
             <section id="sp-sources" className="sp-sec ui-card ui-card--sunken sp-sources" aria-labelledby="sp-sources-h">

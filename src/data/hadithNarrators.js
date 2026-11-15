@@ -87,3 +87,16 @@ export function narratorIds(en) {
 
 /** Ad seçilmiş dildə (əlavə dillərdə ingiliscə) */
 export const narratorName = (id, lang) => N[id]?.[LANG_I[lang] || 2] || null
+
+// Saytda profili olan səhabələr (data/sahaba.js → name.en) — ravi açarı → profil
+const SAHABA_EN = {
+  abubakr: 'Abu Bakr as-Siddiq', umar: 'Umar ibn al-Khattab', uthman: 'Uthman ibn Affan', ali: 'Ali ibn Abi Talib',
+  aisha: 'Aisha bint Abi Bakr', abuhurayra: 'Abu Hurairah', ibnmasud: 'Abdullah ibn Masud', abudharr: 'Abu Dharr al-Ghifari',
+  muadh: 'Muadh ibn Jabal', sad: 'Saad ibn Abi Waqqas', anas: 'Anas ibn Malik',
+}
+// data/sahaba.js → slugOf ilə eyni qayda (test yoxlayır)
+const toSlug = (en) => en.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+/** Ravi açarı → səhabə profilinin slug-u (profil yoxdursa null) */
+export const narratorSlug = (id) => (SAHABA_EN[id] ? toSlug(SAHABA_EN[id]) : null)
+/** Slug → ravi açarı (səhabə səhifəsi üçün) */
+export const narratorBySlug = (slug) => Object.keys(SAHABA_EN).find(k => narratorSlug(k) === slug) || null

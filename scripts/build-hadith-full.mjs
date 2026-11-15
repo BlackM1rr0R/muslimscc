@@ -88,6 +88,47 @@ for (const b of new Set(Object.values(BOOK))) {
 }
 const wc = (s) => norm(s).split(' ').filter(w => w.length > 1).length
 
+// ── HadeethEnc.com (rəsmi Hədis Ensiklopediyası) — Azərbaycan dilində RƏSMİ tam
+// tərcümə + şərh. Ərəb başlıqları (id → mətn) build-hadith-grades.mjs-in keşindən
+// və ya API-dən; tutuşma qaydası hadithGrades ilə eynidir: bizim ərəbcə ifadə
+// başlığın içində BÜTÖV keçir (və ən az 5 söz), ya da ≥8 sözdə ≥90% söz.
+// Tutuşan hədisin az nəşri (varsa) OLDUĞU KİMİ: hədis, mənbə, dərəcə, şərh.
+const HE = 'https://hadeethenc.com/api/v1'
+const HE_CACHE = path.join(ROOT, 'node_modules', '.cache', 'hadith-grades', 'he')
+fs.mkdirSync(HE_CACHE, { recursive: true })
+const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+async function heGet(rel) {
+  const f = path.join(HE_CACHE, rel.replace(/[^\w]+/g, '_') + '.json')
+  if (fs.existsSync(f)) return JSON.parse(fs.readFileSync(f, 'utf8'))
+  await sleep(300)
+  const r = await fetch(`${HE}${rel}`)
+  const j = r.ok ? await r.json() : null
+  fs.writeFileSync(f, JSON.stringify(j))
+  return j
+}
+const heTitles = new Map()
+const useHe = !process.argv.includes('--no-he')
+if (useHe) {
+  for (const c of (await heGet('/categories/roots/?language=ar')) || []) {
+    for (let page = 1; ; page++) {
+      const l = await heGet(`/hadeeths/list/?language=ar&category_id=${c.id}&page=${page}&per_page=100`)
+      for (const x of l?.data || []) heTitles.set(x.id, norm(x.title))
+      if (!l || page >= Number(l.meta?.last_page || 1)) break
+    }
+  }
+}
+function heMatch(ar) {
+  const f = norm(ar), n = wc(ar)
+  let best = null
+  for (const [id, t] of heTitles) {
+    const s = (n >= 5 && t.includes(f)) ? 1 : (n >= 8 ? score(ar, t) : 0)
+    if (s >= 0.9 && (!best || s > best.s)) best = { id, s }
+  }
+  return best?.id || null
+}
+const clean = (s) => String(s || '').split('\r').join('').trim()
+let heAz = 0, heOnly = 0
+
 fs.rmSync(OUT, { recursive: true, force: true })
 fs.mkdirSync(OUT, { recursive: true })
 let byNum = 0, bySearch = 0, miss = 0
@@ -114,19 +155,37 @@ for (const h of RAW) {
       if (at) { hit = { book, at }; bySearch++ }
     }
   }
-  if (!hit) { miss++; continue }
-  const { book, at } = hit
-  const n = at.hadithnumber
-  // ref: [kitab, nəşr nömrəsi, göstərilən nömrə] — Muslim üçün Abdulbaqi nömrəsi
-  const o = { ref: [book, n, book === 'muslim' && at.arabicnumber ? String(Math.floor(at.arabicnumber)) : String(n)], ar: at.text.trim() }
-  for (const l of LANGS[book]) {
-    const t = tr[book][l].get(n)
-    if (t && t.trim()) o[l === 'eng' ? 'en' : l === 'tur' ? 'tr' : 'ru'] = t.trim()
+  let o = null
+  if (hit) {
+    const { book, at } = hit
+    const n = at.hadithnumber
+    // ref: [kitab, nəşr nömrəsi, göstərilən nömrə] — Muslim üçün Abdulbaqi nömrəsi
+    o = { ref: [book, n, book === 'muslim' && at.arabicnumber ? String(Math.floor(at.arabicnumber)) : String(n)], ar: at.text.trim() }
+    for (const l of LANGS[book]) {
+      const t = tr[book][l].get(n)
+      if (t && t.trim()) o[l === 'eng' ? 'en' : l === 'tur' ? 'tr' : 'ru'] = t.trim()
+    }
+    const nar = narratorOf(o.en)
+    const nids = nar ? narratorIds(nar) : []
+    if (nids.length) o.nid = nids
+    else if (nar) narrators[nar] = (narrators[nar] || 0) + 1
   }
-  const nar = narratorOf(o.en)
-  const nids = nar ? narratorIds(nar) : []
-  if (nids.length) o.nid = nids
-  else if (nar) narrators[nar] = (narrators[nar] || 0) + 1
+  // HadeethEnc — rəsmi az tərcüməsi və şərh
+  const heId = useHe ? heMatch(h.ar) : null
+  if (heId) {
+    const az = await heGet(`/hadeeths/one/?language=az&id=${heId}`)
+    if (az?.hadeeth) {
+      if (!o) {
+        const arOne = await heGet(`/hadeeths/one/?language=ar&id=${heId}`)
+        if (!arOne?.hadeeth) { miss++; continue }
+        o = { ar: clean(arOne.hadeeth) }
+        heOnly++
+      }
+      o.he = { id: heId, az: clean(az.hadeeth), x: clean(az.explanation), src: clean(az.attribution), g: clean(az.grade) }
+      heAz++
+    }
+  }
+  if (!o) { miss++; continue }
   fs.writeFileSync(path.join(OUT, `${h.id}.json`), JSON.stringify(o))
   index[h.id] = o.nid ? o.nid.join(',') : ''
 }
@@ -136,5 +195,5 @@ export const HADITH_FULL = {
 ${Object.entries(index).map(([k, v]) => `  ${k}: '${v}',`).join('\n')}
 }
 `)
-console.log(`hadith-full: nömrə ilə ${byNum}, axtarışla ${bySearch}, tapılmadı ${miss}; ravisi tanınmayan ${Object.values(narrators).reduce((a, b) => a + b, 0)}`)
+console.log(`hadith-full: nömrə ilə ${byNum}, axtarışla ${bySearch}, HadeethEnc az ${heAz} (yalnız HE ${heOnly}), tapılmadı ${miss}; ravisi tanınmayan ${Object.values(narrators).reduce((a, b) => a + b, 0)}`)
 if (process.argv.includes('--narrators')) console.log(Object.entries(narrators).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${v}\t${k}`).join('\n'))

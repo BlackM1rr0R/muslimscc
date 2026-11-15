@@ -1,0 +1,27 @@
+/* Hədis əzbərləmə (components/HadithMemorize.jsx) */
+.hmem__body { display: grid; gap: 14px; }
+.hmem__meta { display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: .86rem; }
+.hmem__boxes { display: inline-flex; gap: 4px; }
+.hmem__boxes i { width: 18px; height: 6px; border-radius: 3px; background: var(--line, var(--border)); }
+.hmem__boxes i.on { background: var(--accent); }
+.hmem__text { margin: 0; font-size: 1.15rem; line-height: 1.7; color: var(--text-strong); }
+.hmem__src { margin: 0; color: var(--text-muted); font-size: .9rem; }
+.hmem__ar { margin: 0; font-size: 1.55rem; line-height: 2.1; color: var(--text-strong); }
+.hmem__show { justify-self: start; }
+.hmem__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.hmem__actions .ui-btn { flex: 1 1 140px; justify-content: center; }
+.hmem__how { margin: 0; font-size: .82rem; color: var(--text-muted); }
+.hmem__learned { font-size: .85rem; color: var(--text-muted); }
+.hmem__done { display: grid; justify-items: center; text-align: center; gap: 6px; padding: 18px 0; }
+.hmem__done p { margin: 0; }
+.hmem__done-t { font-size: 1.2rem; font-weight: 700; color: var(--text-strong); }
+.hmem__star { font-size: 2.2rem; color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .hmem__star { animation: hmem-pop .7s cubic-bezier(.3, 1.6, .5, 1); }
+  html:not(.a11y-reduce-motion) .hmem__ar { animation: hmem-in .35s ease-out; }
+}
+@keyframes hmem-pop { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes hmem-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* Sevimlilər görünəndə — "Əzbərlə" zolağı */
+.hadith-mem-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 14px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); }
+.hadith-mem-bar__t { color: var(--text-muted); font-size: .9rem; }

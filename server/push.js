@@ -96,7 +96,7 @@ function validLoc(l) {
   return out
 }
 
-/** prefs: { azan, checkin, fasting, adhkar, jumuah, eclipse: bool, daily:{ ayah:bool, hour:0..23 } } — yararsızdırsa undefined. */
+/** prefs: { azan, checkin, fasting, adhkar, jumuah, eclipse: bool, daily:{ ayah:bool, hadith:bool, hour:0..23 } } — yararsızdırsa undefined. */
 function validPrefs(p) {
   if (p == null) return {}
   if (typeof p !== 'object' || Array.isArray(p)) return undefined
@@ -108,9 +108,10 @@ function validPrefs(p) {
   for (const k of ['adhkar', 'jumuah', 'eclipse']) if (k in p) { if (typeof p[k] !== 'boolean') return undefined; out[k] = p[k] }
   if ('daily' in p) {
     const d = p.daily
-    if (!d || typeof d !== 'object' || Array.isArray(d) || Object.keys(d).some((k) => !['ayah', 'hour'].includes(k))) return undefined
+    if (!d || typeof d !== 'object' || Array.isArray(d) || Object.keys(d).some((k) => !['ayah', 'hadith', 'hour'].includes(k))) return undefined
     out.daily = {}
     if ('ayah' in d) { if (typeof d.ayah !== 'boolean') return undefined; out.daily.ayah = d.ayah }
+    if ('hadith' in d) { if (typeof d.hadith !== 'boolean') return undefined; out.daily.hadith = d.hadith }
     if ('hour' in d) { if (!Number.isInteger(d.hour) || d.hour < 0 || d.hour > DAILY_HOURS_MAX) return undefined; out.daily.hour = d.hour }
   }
   return out
