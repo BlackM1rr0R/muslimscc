@@ -1,0 +1,27 @@
+/* Nur mozaikası (components/dhikr/NurMosaic.jsx) */
+.nm { padding: clamp(16px, 3vw, 24px); margin-top: 20px; }
+.nm__title { margin: 0; font-size: var(--step-1, 1.2rem); }
+.nm__sub { margin: 4px 0 0; color: var(--text-muted); font-size: .92rem; }
+.nm__body { display: grid; grid-template-columns: minmax(0, 260px) 1fr; gap: clamp(14px, 3vw, 28px); align-items: center; margin-top: 12px; }
+@media (max-width: 560px) { .nm__body { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+.nm__svg { width: 100%; max-width: 260px; aspect-ratio: 1; overflow: visible; }
+.nm__halo { fill: color-mix(in srgb, var(--accent) 6%, transparent); stroke: color-mix(in srgb, var(--accent) 30%, transparent); stroke-width: .4; }
+.nm__orbit { fill: none; stroke: var(--line, var(--border)); stroke-width: .35; stroke-dasharray: 1 1.6; }
+.nm__orbit.is-done { stroke: var(--accent); stroke-dasharray: none; stroke-width: .6; }
+.nm__core polygon { fill: color-mix(in srgb, var(--accent) 70%, transparent); }
+.nm__tile { fill: var(--surface-2, #e9e6dc); stroke: var(--line, var(--border)); stroke-width: .25; transform-box: fill-box; transform-origin: center; }
+.nm__tile.is-lit { fill: var(--accent); stroke: color-mix(in srgb, var(--accent) 60%, #fff); }
+.nm__tile.is-ring { fill: #e7c77d; }
+.nm__stats p { margin: 0 0 6px; color: var(--text-muted); }
+.nm__stats b { font-size: 1.6rem; color: var(--text-strong); margin-inline-end: 4px; }
+.nm__medals { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; align-items: center; }
+.nm__medal { width: 26px; height: 26px; }
+.nm__medal polygon { fill: var(--accent); }
+.nm__more { font-size: .85rem; color: var(--text-muted); }
+.nm__only { font-size: .8rem; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .nm__tile.is-new { animation: nm-pop .6s cubic-bezier(.3, 1.6, .5, 1); }
+  html:not(.a11y-reduce-motion) .nm__core { transform-origin: 50px 50px; animation: nm-breathe 4s ease-in-out infinite alternate; }
+}
+@keyframes nm-pop { from { transform: scale(.2); opacity: .2; } to { transform: scale(1); opacity: 1; } }
+@keyframes nm-breathe { from { transform: scale(.94); opacity: .8; } to { transform: scale(1.06); opacity: 1; } }

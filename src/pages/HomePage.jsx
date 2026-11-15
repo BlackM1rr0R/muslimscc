@@ -15,6 +15,7 @@
 // ═══════════════════════════════════════════════════════
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import HeroOrnament from '../components/HeroOrnament'
+import RamadanLanterns from '../components/home/RamadanLanterns'
 import DeferRender from '../components/DeferRender'
 import { useLang } from '../contexts/LangContext'
 import { BRAND, brandName, tr } from '../config/brand'
@@ -635,6 +636,7 @@ export default function HomePage({ setPage }) {
             <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
             {/* v6.9: Nur xatəmi — naxış qızılı xətlə özünü çəkir (bir dəfə) */}
             <HeroOrnament className="hp-orn" />
+            <RamadanLanterns />
             <div className="hp-hero-glow" />
             {/* v6: yavaş axan incə qızılı xətlər (dekor; ekrandan çıxanda dayanır) */}
             <BackgroundPaths tone="gold" count={22} className="hp-paths" />

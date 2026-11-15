@@ -25,6 +25,7 @@ import {
 } from '../utils/ramadan'
 import '../styles/RamadanCard.css'
 import { pickUi } from '../utils/uiText'
+import { localizeSource } from '../utils/sourceNames'
 
 export const RC_TXT = {
   month:     { az: 'Ramazan', en: 'Ramadan', ru: 'Рамадан', ar: 'رمضان', tr: 'Ramazan' }, // lang-ok: ayın adı az və tr-də eyni yazılır
@@ -173,6 +174,31 @@ function Sentence({ tpl, children }) {
 }
 
 /** İncə ay + ulduzlar (dekor). */
+// v6.9: son on gecə — Qədr gecəsi. Hədis mətni data/ramadanGuide.js-dəki ilə
+// eynidir (Buxari 2017; burada ayrıca — kart ana səhifədədir, bələdçi böyükdür)
+const QADR = {
+  ar: 'تَحَرَّوْا لَيْلَةَ الْقَدْرِ فِي الْوِتْرِ مِنَ الْعَشْرِ الْأَوَاخِرِ مِنْ رَمَضَانَ',
+  text: {
+    az: '«Qədr gecəsini Ramazanın son on gecəsinin tək gecələrində axtarın».',
+    en: '“Seek Laylat al-Qadr in the odd nights of the last ten of Ramadan.”',
+    ru: '«Ищите Ночь предопределения в нечётные ночи последней десятки Рамадана».',
+    tr: '“Kadir gecesini Ramazan’ın son on gecesinin tek gecelerinde arayın.”',
+  },
+  title: { az: 'Son on gecə — Qədr gecəsi', en: 'The last ten nights — Laylat al-Qadr', ru: 'Последние десять ночей — Ночь предопределения', ar: 'العشر الأواخر — ليلة القدر', tr: 'Son on gece — Kadir gecesi' },
+  odd: { az: 'Tək gecələr', en: 'Odd nights', ru: 'Нечётные ночи', ar: 'الليالي الوترية', tr: 'Tek geceler' },
+}
+function QadrStrip({ lang }) {
+  return (
+    <div className="rc-qadr" data-testid="ramadan-qadr">
+      <span className="rc-qadr__rain" aria-hidden="true"><i /><i /><i /><i /><i /></span>
+      <p className="rc-qadr__title">{pickUi(QADR.title, lang, 'en')}</p>
+      <p className="rc-qadr__ar" lang="ar" dir="rtl">{QADR.ar}</p>
+      {lang !== 'ar' && <p className="rc-qadr__tr">{pickUi(QADR.text, lang, 'en')} <span className="rc-qadr__src">— {localizeSource('Buxari 2017', lang)}</span></p>}
+      <p className="rc-qadr__odd"><span>{pickUi(QADR.odd, lang, 'en')}:</span> {[21, 23, 25, 27, 29].map(n => <b key={n} className="ui-num">{n}</b>)}</p>
+    </div>
+  )
+}
+
 function Sky() {
   return (
     <svg className="rc-sky" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
@@ -287,6 +313,8 @@ export default function RamadanCard({ onOpenTimetable, className = '', state }) 
             <dd className="ui-num">{t ? t.maghrib : '—'}</dd>
           </div>
         </dl>
+
+        {day.number >= 20 && <QadrStrip lang={lang} />}
 
         <div className="rc-foot">
           <span className="rc-note">{label('calc')}</span>

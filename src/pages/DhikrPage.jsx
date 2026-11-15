@@ -26,6 +26,7 @@ import { AnimatedList, AnimatedItem } from '../motion/AnimatedList'
 import { bumpDhikrDay } from '../utils/myDay'
 import { loadPalms, bumpPalm, PALM_SOURCE } from '../utils/palms'
 import PalmGarden from '../components/dhikr/PalmGarden'
+import NurMosaic from '../components/dhikr/NurMosaic'
 import DhikrInsights from '../components/insights/DhikrInsights'
 
 // ── localStorage helper-ləri ──
@@ -540,6 +541,9 @@ export default function DhikrPage({ setPage }) {
           {palmDhikr && (dhikr === palmDhikr || palms > 0) && (
             <PalmGarden count={palms} virtue={pickUi(palmDhikr.virtue, lang, 'en')} source={palmDhikr.source} lang={lang} />
           )}
+
+          {/* v6.9: ömürlük zikr — nur mozaikası (33 halqa, 99 naxış) */}
+          <NurMosaic total={lifetime} lang={lang} />
 
           {/* Jurnal — tamamlanan dövrələr (son 10) */}
           {log.length > 0 && (

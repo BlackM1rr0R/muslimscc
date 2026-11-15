@@ -227,3 +227,37 @@ html[lang="ar"] .rc-title { letter-spacing: 0; }
 @media print {
   .rc-sky, .rc-foot .ui-btn, .rc-soon-btn { display: none !important; }
 }
+
+/* v6.9: son on gecə — Qədr gecəsi (ulduz yağışı yalnız transform/opacity) */
+.rc-qadr {
+  position: relative; overflow: hidden; margin: 14px 0 4px; padding: 14px 16px;
+  border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+.rc-qadr > p { position: relative; margin: 0; }
+.rc-qadr__title { font-weight: 700; margin-bottom: 6px !important; }
+.rc-qadr__ar { font-family: var(--font-arabic); font-size: 1.25rem; line-height: 1.9; }
+.rc-qadr__tr { font-size: .92rem; line-height: 1.6; opacity: .92; }
+.rc-qadr__src { white-space: nowrap; opacity: .8; }
+.rc-qadr__odd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px !important; font-size: .85rem; }
+.rc-qadr__odd b { display: inline-grid; place-items: center; min-width: 30px; height: 30px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent); }
+.rc-qadr__rain { position: absolute; inset: 0; pointer-events: none; }
+.rc-qadr__rain i {
+  position: absolute; top: -20px; width: 1.5px; height: 46px; border-radius: 2px; opacity: 0;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent) 85%, #fff));
+  transform: rotate(18deg);
+}
+.rc-qadr__rain i:nth-child(1) { inset-inline-start: 12%; --d: 0s; }
+.rc-qadr__rain i:nth-child(2) { inset-inline-start: 34%; --d: 1.7s; }
+.rc-qadr__rain i:nth-child(3) { inset-inline-start: 58%; --d: 3.1s; }
+.rc-qadr__rain i:nth-child(4) { inset-inline-start: 76%; --d: .9s; }
+.rc-qadr__rain i:nth-child(5) { inset-inline-start: 92%; --d: 2.4s; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .rc-qadr__rain i { animation: rc-qadr-fall 4.6s linear infinite; animation-delay: var(--d); }
+}
+@keyframes rc-qadr-fall {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(18deg); }
+  12% { opacity: .9; }
+  60% { opacity: 0; transform: translate3d(-40px, 160px, 0) rotate(18deg); }
+  100% { opacity: 0; transform: translate3d(-40px, 160px, 0) rotate(18deg); }
+}

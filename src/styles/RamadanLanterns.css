@@ -1,0 +1,32 @@
+/* Ramazan fənərləri (components/home/RamadanLanterns.jsx) */
+.rl-wrap { display: none; position: absolute; inset: 0; pointer-events: none; }
+html[data-season="ramadan"] .rl-wrap { display: block; }
+.rl { position: absolute; top: 0; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 0; }
+.rl__cord { width: 1px; background: color-mix(in srgb, var(--accent) 70%, transparent); }
+.rl__svg { width: 34px; height: auto; overflow: visible; }
+.rl__metal { fill: var(--accent); stroke: var(--accent); }
+.rl__glass { fill: color-mix(in srgb, var(--accent) 22%, transparent); }
+.rl__frame { stroke: var(--accent); stroke-width: 1.3; stroke-linejoin: round; }
+.rl__flame { fill: #ffd27a; filter: drop-shadow(0 0 6px #ffb84d) drop-shadow(0 0 14px rgba(255, 184, 77, .7)); }
+.rl--1 { inset-inline-start: 44%; }
+.rl--1 .rl__cord { height: 70px; }
+.rl--2 { inset-inline-start: 49%; }
+.rl--2 .rl__cord { height: 120px; }
+.rl--2 .rl__svg { width: 44px; }
+.rl--3 { inset-inline-start: 53.5%; }
+.rl--3 .rl__cord { height: 44px; }
+.rl--3 .rl__svg { width: 28px; }
+@media (max-width: 760px) {
+  .rl--1 { inset-inline-start: auto; inset-inline-end: 5%; }
+  .rl--2 { inset-inline-start: auto; inset-inline-end: 16%; }
+  .rl--2 .rl__cord { height: 64px; }
+  .rl--3 { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .rl { animation: rl-swing 5.5s ease-in-out infinite alternate; }
+  html:not(.a11y-reduce-motion) .rl--2 { animation-duration: 6.8s; animation-delay: -2s; }
+  html:not(.a11y-reduce-motion) .rl--3 { animation-duration: 4.6s; animation-delay: -1s; }
+  html:not(.a11y-reduce-motion) .rl__flame { animation: rl-flicker 1.6s ease-in-out infinite alternate; transform-origin: 50% 70%; transform-box: fill-box; }
+}
+@keyframes rl-swing { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+@keyframes rl-flicker { from { opacity: .85; transform: scaleY(.92); } to { opacity: 1; transform: scaleY(1.06); } }
