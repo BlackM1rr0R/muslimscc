@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback, memo, lazy, Suspense } from 'react'
 import ReportErrorButton from '../components/ReportErrorButton'
+import HadithFullDialog, { FULL_T, narratorLine, hasFull } from '../components/HadithFullDialog'
 import HeroOrnament from '../components/HeroOrnament'
 import { createPortal } from 'react-dom'
 import { useLang } from '../contexts/LangContext'
@@ -297,7 +298,10 @@ const revealProps = (i) => {
 // köhnə kartlar yenidən render olunmur (callback-lar sabitdir)
 const FOCUS_ALL = { az: 'Bütün hədislər', en: 'All hadith', ru: 'Все хадисы', ar: 'كل الأحاديث', tr: 'Bütün hadisler' }
 
-const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, lang, index }) {
+const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, onOpenFull, lang, index }) {
+  const fu = pickUi(FULL_T, lang, 'en')
+  const narr = narratorLine(hadith.id, lang)
+  const full = onOpenFull && hasFull(hadith.id)
   const b = pickUi(BTN_LABELS, lang, 'en')
   // Ərəbcədə hadith.text elə hadith.ar-ın özüdür — eyni mətni iki dəfə göstərməyək
   const text = (hadith.text || '').trim()
@@ -335,6 +339,13 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
       </div>
       <p className="hadith-arabic ui-arabic" lang="ar" dir="rtl">{hadith.ar}</p>
       {showBody && <p className="hadith-text">{hadith.text}</p>}
+      {/* v6.9: ravi (səhabə) və tam mətn — hadith-api nəşrindən olduğu kimi */}
+      {narr && <p className="hadith-narr"><b>{fu.narr}:</b> {narr}</p>}
+      {full && (
+        <button type="button" className="hadith-full-btn" onClick={() => onOpenFull(hadith.id)} data-testid="hadith-full-btn">
+          <Icon name="hadithbooks" size={16} /> {fu.full}
+        </button>
+      )}
       <div className="hadith-foot">
         {source && (
           <p className="hadith-source" title={source}>
@@ -658,6 +669,11 @@ export default function HadithPage({ setPage }) {
     },
   })
   const visible = filtered.slice(0, inf.count)
+  // Tam mətn pəncərəsi: əvvəlki/növbəti — görünən siyahıda tam mətni olanlar
+  const [fullId, setFullId] = useState(null)
+  const openFull = useCallback((id) => setFullId(id), [])
+  const fullNav = useMemo(() => visible.filter(h => hasFull(h.id)).map(h => h.id), [visible])
+  const fullIdx = fullNav.indexOf(fullId)
   // v6.8: /hadith/<id> — həmin hədis siyahının üstündə ayrıca (statik SEO səhifəsi ilə eyni məzmun)
   const routeLoc = useLocation()
   const focusId = parsePath(routeLoc.pathname).param
@@ -749,7 +765,7 @@ export default function HadithPage({ setPage }) {
               hər hərfdə bütün kartlar yenidən oynamasın. */}
           {focus && (
             <div className="hadith-focus" data-testid="hadith-focus">
-              <HadithCard hadith={focus} lang={lang} index={0} displayNum={focus.id} isFav={isFav(focus)} onToggleFav={toggleFav} onShare={shareHadith} />
+              <HadithCard hadith={focus} lang={lang} index={0} displayNum={focus.id} isFav={isFav(focus)} onToggleFav={toggleFav} onShare={shareHadith} onOpenFull={openFull} />
               <a className="ui-link hadith-focus__all" href={pathFor('hadith', lang)} onClick={(e) => { if (isPlainClick(e) && setPage) { e.preventDefault(); setPage('hadith') } }}>
                 {pickUi(FOCUS_ALL, lang)} <Icon name="arrow" size={14} className="ui-link__arrow ui-flip-rtl" />
               </a>
@@ -786,10 +802,16 @@ export default function HadithPage({ setPage }) {
                     isFav={isFav(h)}
                     onToggleFav={toggleFav}
                     onShare={shareHadith}
+                    onOpenFull={openFull}
                   />
                 ))
             }
           </div>
+
+          <HadithFullDialog id={fullId} lang={lang} onClose={() => setFullId(null)}
+            onPrev={fullIdx > 0 ? () => setFullId(fullNav[fullIdx - 1]) : undefined}
+            onNext={fullIdx >= 0 && fullIdx < fullNav.length - 1 ? () => setFullId(fullNav[fullIdx + 1]) : undefined}
+            position={fullIdx >= 0 ? `${fullIdx + 1} / ${fullNav.length}` : null} />
 
           {/* Sonsuz sürüşmə: altda skeleton + "Daha çox göstər", sonda "Hamısı göstərildi" */}
           <ListMore {...inf} endText={countText} minForEnd={BATCH} skeleton={

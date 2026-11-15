@@ -25,6 +25,7 @@ import { LANGS, EXTRA_LANGS, EXTRA_CODES, EXTRA_PAGES, dirOf, pathFor, detailPar
 import { localDigits } from '../src/seo/intl.js'
 import { shortName, descFor } from '../src/seo/meta.js'
 import { brandName } from '../src/config/brand.js'
+import { FULL_T, narratorLine, hasFull } from '../src/utils/hadithFull.js'
 import {
   BODY_UI, SECTION_LABEL, detailMeta, crumbsFor, surahInfo, nameInfo, sahabaInfo, sentencesOf,
   termInfo, GLOSSARY_CAT_LABEL, hadithInfo, hadithGradeText, HADITH_T } from '../src/seo/detail.js'
@@ -539,6 +540,21 @@ function babyNamesBody(lang) {
 }
 
 // ═══ Hədis (/hadith/<id>, v6.8) — yalnız saytın yoxlanmış datası: ərəbcə mətn, tərcümə, mənbə, dərəcə ═══
+// v6.9: tam mətn (isnadla ərəbcə + tam tərcümə) — public/data/hadith-full/<id>.json,
+// hadith-api nəşrindən olduğu kimi (scripts/build-hadith-full.mjs)
+function hadithFullBlock(lang, id) {
+  if (!hasFull(id)) return ''
+  let d
+  try { d = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'data', 'hadith-full', `${id}.json`), 'utf8')) } catch { return '' }
+  const u = FULL_T[lang] || FULL_T.en
+  const order = lang === 'ru' ? ['ru', 'en'] : (lang === 'tr' || lang === 'az') ? ['tr', 'en'] : ['en']
+  const k = lang === 'ar' ? null : order.find(x => d[x])
+  return `<section><h2>${esc(u.title)}</h2>` +
+    `<h3>${esc(u.arH)}</h3><p lang="ar" dir="rtl" class="seo-static__ar">${esc(d.ar)}</p>` +
+    (k ? `<h3>${esc(u.trH)}</h3><p lang="${k}">${esc(d[k])}</p>` : '') +
+    `<p><small>${esc(u.note)}</small></p></section>`
+}
+
 function hadithBody(lang, id) {
   const h = hadithInfo(id, lang)
   if (!h) return ''
@@ -551,7 +567,9 @@ function hadithBody(lang, id) {
     `<header><h1>${esc(m.h1)}</h1></header>` +
     (h.arText ? `<blockquote lang="ar" dir="rtl" class="seo-static__ar">${esc(h.arText)}</blockquote>` : '') +
     (lang !== 'ar' ? `<p class="seo-static__lead">${esc(h.text)}</p>` : '') +
-    facts([[T.src, h.src], [T.gradeL, hadithGradeText(h.grade, lang)]]) +
+    facts([[T.src, h.src], [T.gradeL, hadithGradeText(h.grade, lang)],
+      ...(narratorLine(id, lang) ? [[(FULL_T[lang] || FULL_T.en).narr, narratorLine(id, lang)]] : [])]) +
+    hadithFullBlock(lang, id) +
     pager(near(i - 1, T.prev), near(i + 1, T.next)) +
     `<p><a href="${pathFor('hadith', lang)}">${esc(T.all)}</a></p>`,
   )

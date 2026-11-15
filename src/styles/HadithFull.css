@@ -1,0 +1,29 @@
+/* Hədisin tam mətni — HadithFullDialog + kartdakı ravi sətri / düymə */
+.hfull__title { margin: 0; font-size: 1.15rem; }
+.hfull__body { display: grid; gap: 14px; }
+.hfull__meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; color: var(--text-muted); font-size: .92rem; }
+.hfull__meta b { color: var(--text-strong); font-weight: 600; }
+.hfull__ref { color: var(--accent-text); font-weight: 600; }
+.hfull__h { margin: 4px 0 0; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+.hfull__ar { margin: 0; font-size: 1.45rem; line-height: 2.1; color: var(--text-strong); }
+.hfull__trhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.hfull__chips { display: flex; gap: 6px; }
+.hfull__chip {
+  min-height: 34px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font: inherit; font-size: .85rem; cursor: pointer;
+}
+.hfull__chip[aria-pressed="true"] { background: var(--text-strong); color: var(--bg); border-color: var(--text-strong); }
+.hfull__tr { margin: 0; font-size: 1.02rem; line-height: 1.75; color: var(--text); white-space: pre-line; }
+.hfull__note { margin: 6px 0 0; font-size: .8rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; }
+.hfull__loading, .hfull__err { margin: 0; color: var(--text-muted); }
+
+/* Kart: ravi sətri və "Tam mətn" düyməsi */
+.hadith-narr { margin: 0 0 6px; font-size: .86rem; color: var(--text-muted); }
+.hadith-narr b { color: var(--text-strong); font-weight: 600; }
+.hadith-full-btn {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px;
+  padding: 4px 12px; margin: 2px 0 10px; border-radius: 999px; border: 1px solid var(--border);
+  background: transparent; color: var(--accent-text); font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.hadith-full-btn:hover { background: var(--surface-2, rgba(0,0,0,.04)); border-color: var(--accent); }
