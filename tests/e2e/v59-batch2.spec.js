@@ -26,6 +26,8 @@ test('Naxış generatoru: kətan çəkilir, ulduz növü və bucaq dəyişir, di
 })
 
 test('Hicrət 3D: kətan, addımlar, mənbə və növbəti', async ({ page }) => {
+  // Ağır səhifə (3D + xəritələr + İsra yolu): CI-də (4 işçi) 30 s-ə sığmır, lokalda ~19 s
+  test.setTimeout(60000)
   await page.goto('/history')
   await settle(page)
   const h = page.getByTestId('hijra-3d')

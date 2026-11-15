@@ -72,6 +72,8 @@ function jumpTo(y) {
   root.style.scrollBehavior = prev
 }
 
+const RESET_HOLD_MS = 800   // onReset-in mövqe düzəlişi ~6×120 ms çəkir
+
 export default function useInfiniteList({
   total = 0,
   batch = 24,
@@ -91,30 +93,40 @@ export default function useInfiniteList({
     savedRef.current = s && s.k === key ? s : null
   }
 
-  const [n, setN] = useState(() => Math.max(batch, Number(savedRef.current?.n) || 0))
+  // Say filtr açarı ilə birlikdə saxlanılır: filtrdən ƏVVƏL növbəyə düşmüş (keçid
+  // gözləyən) "növbəti partiya" yeniləmələri sıfırlamadan sonra React tərəfindən
+  // yenidən tətbiq olunurdu (yavaş cihazda filtrdən sonra 85 kart) — indi köhnə
+  // açarlı yeniləmə heç nə etmir.
+  const [st, setSt] = useState(() => ({ k: key, n: Math.max(batch, Number(savedRef.current?.n) || 0) }))
+  const n = st.n
   // Filtr dəyişəndə say elə HƏMİN render-də sıfırlanır (köhnə sayla bir
   // artıq render olmasın) — React-in "prop dəyişəndə state-i düzəlt" nümunəsi
-  const [k, setK] = useState(key)
-  if (k !== key) {
-    setK(key)
-    setN(batch)
-  }
+  if (st.k !== key) setSt({ k: key, n: batch })
 
   const hasMore = n < total
   const count = Math.min(n, total)
 
   const loadMore = useCallback(() => {
-    startTransition(() => setN(c => c + batch))
-  }, [batch])
+    startTransition(() => setSt(s => (s.k === key ? { k: s.k, n: s.n + batch } : s)))
+  }, [batch, key])
 
   // onReset: filtr dəyişəndən sonra (DOM yeniləndikdən sonra) bir dəfə
   const onResetRef = useRef(onReset)
   onResetRef.current = onReset
   const prevKeyRef = useRef(key)
+  // Sıfırlanandan sonra qısa fasilə: siyahı qısalır, səhifə isə hələ köhnə
+  // (aşağı) mövqedədir — onReset yuxarı qaldırana qədər sentinel ekranda
+  // görünür və yavaş cihazda bir neçə partiya ardıcıl açılırdı (CI: 85 kart).
+  // Fasilə bitəndə müşahidəçi yenidən qurulur (holdTick) — lazımdırsa yükləyir.
+  const holdRef = useRef(0)
+  const [holdTick, setHoldTick] = useState(0)
   useEffect(() => {
-    if (prevKeyRef.current === key) return
+    if (prevKeyRef.current === key) return undefined
     prevKeyRef.current = key
+    holdRef.current = performance.now() + RESET_HOLD_MS
     onResetRef.current?.()
+    const t = setTimeout(() => setHoldTick(x => x + 1), RESET_HOLD_MS + 20)
+    return () => clearTimeout(t)
   }, [key])
 
   // ── Sentinel: siyahının altı ekrana 600px qalmış növbəti partiya ──
@@ -130,7 +142,9 @@ export default function useInfiniteList({
     // vermir) növbəti partiya açılır: həm IO, həm passiv scroll yoxlaması
     // (kadr başına bir dəfə).
     const passed = () => node.getBoundingClientRect().top < window.innerHeight
+    const held = () => performance.now() < holdRef.current
     const io = new IntersectionObserver((entries) => {
+      if (held()) return
       if (entries.some(e => e.isIntersecting || e.boundingClientRect.bottom < 0)) loadMore()
     }, { rootMargin })
     io.observe(node)
@@ -146,12 +160,12 @@ export default function useInfiniteList({
         const y = window.scrollY
         const down = y > lastY
         lastY = y
-        if (down && !fired && passed()) { fired = true; loadMore() }
+        if (down && !fired && !held() && passed()) { fired = true; loadMore() }
       })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => { io.disconnect(); window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
-  }, [node, hasMore, n, rootMargin, loadMore])
+  }, [node, hasMore, n, rootMargin, loadMore, holdTick])
 
   // ── Mövqe yaddaşı: say + sürüşmə ──
   const stateRef = useRef({ k: key, n })
