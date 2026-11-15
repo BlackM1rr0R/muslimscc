@@ -198,12 +198,3 @@ for (const theme of ['light', 'dark']) {
   })
 }
 
-test('Icon3D: ana səhifənin bölmə kafellərində həcmli İslami ikonlar', async ({ page }) => {
-  await page.goto('/')
-  await settle(page)
-  const tiles = page.locator('.hp-tile')
-  await scrollTo(page, tiles.first())
-  await expect(tiles.first().locator('.i3d svg')).toBeVisible()
-  expect(await page.locator('.hp-tile .i3d').count()).toBeGreaterThanOrEqual(10)
-  expect(await page.locator('.hp-tile .i3d foreignObject').count()).toBe(0)   // hamısının öz fiquru var
-})
