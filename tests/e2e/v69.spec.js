@@ -110,3 +110,42 @@ test('isnad zənciri, kartın şərh üzü və Story düyməsi', async ({ page, 
   await expect(c14).not.toHaveClass(/is-flipped/)
   expectCleanConsole(consoleProblems)
 })
+
+test('fon səsi: 4 təbiət səsi seçilir, söndürülür, xəta yoxdur', async ({ page, consoleProblems }) => {
+  await page.goto('/dhikr')
+  await settle(page)
+  const btn = page.getByTestId('ambient-btn')
+  await btn.click()
+  const panel = page.getByTestId('ambient-panel')
+  for (const name of ['Yağış', 'Külək', 'Dəniz', 'Gecə']) {
+    await panel.getByRole('button', { name }).click()
+    await expect(panel.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true')
+    await page.waitForTimeout(300)
+  }
+  await expect(btn).toContainText('Gecə')
+  expect(await axe(page, '[data-testid=ambient-panel]')).toEqual([])
+  await panel.getByRole('button', { name: 'Söndür' }).click()
+  await expect(btn).toContainText('Fon səsi')
+  expectCleanConsole(consoleProblems)
+})
+
+for (const theme of ['light', 'dark']) {
+  test(`planetari: göy çəkilir, vaxt sürgüsü, əlçatanlıq (${theme})`, async ({ page, consoleProblems }) => {
+    await page.clock.setFixedTime(new Date('2026-11-15T19:30:00Z'))
+    await page.emulateMedia({ colorScheme: theme })
+    await page.goto('/qibla')
+    await settle(page)
+    const s = page.getByTestId('sky-planetarium')
+    for (let i = 0; i < 40 && !(await s.count()); i++) { await page.evaluate(() => window.scrollBy(0, 600)); await page.waitForTimeout(150) }
+    await s.scrollIntoViewIfNeeded()
+    await expect(s.locator('canvas')).toBeVisible()
+    const label = s.locator('.skyp__time b')
+    const before = await label.textContent()
+    await s.locator('input[type=range]').fill('3')
+    await expect(label).not.toHaveText(before)
+    await s.getByRole('button', { name: 'İndi' }).click()
+    await expect(label).toHaveText(before)
+    expect(await axe(page, '[data-testid=sky-planetarium]')).toEqual([])
+    expectCleanConsole(consoleProblems)
+  })
+}

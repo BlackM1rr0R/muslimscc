@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import AmbientSound from '../components/AmbientSound'
 import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
 import Icon from '../components/Icon'
@@ -633,6 +634,7 @@ export default function MushafPage() {
               <MushafRecite pages={[pR, pL]} words={reciteWords} stageRef={stageRef} lang={lang} wbw={prefs.wbw}
                 canNext={pR < lastStart} onNextPage={next} />
               <SoundToggle lang={lang} />
+              <AmbientSound lang={lang} />
               {wide && (
                 <button type="button" className="ui-chip" aria-pressed={prefs.spread} onClick={() => togglePref('spread')}>
                   <Icon name="mushaf" size={16} /> {L.spread}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { guessLang } from '../utils/textLang'
+import DeferRender from '../components/DeferRender'
 import HeroOrnament from '../components/HeroOrnament'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
@@ -28,6 +29,7 @@ const QiblaLines = lazy(() => import('../components/QiblaLines'))
 // v6.3: Rəsdül-qiblə — Günəş Kəbənin üstündə (geri sayım, kölgə səhnəsi)
 const RasdQibla = lazy(() => import('../components/RasdQibla'))
 const StarQibla = lazy(() => import('../components/StarQibla'))
+const SkyPlanetarium = lazy(() => import('../components/SkyPlanetarium'))
 
 // Kompasda yalnız 4 əsas istiqamət yazı ilə göstərilir (aralıqdakılar
 // cizgi ilə). Azərbaycan və ərəb dillərində tək hərf toqquşur
@@ -746,6 +748,17 @@ export default function QiblaPage({ setPage }) {
           <Suspense fallback={null}>
             <StarQibla lang={lang} from={coords ? { lat: coords.lat, lng: coords.lon } : null} ayahHref={(s, a) => `${pathFor('quran', lang, s)}?a=${a}`} />
           </Suspense>
+        </div>
+      </section>
+
+      {/* v6.9: canlı planetari — "Sizin səmanız indi" (ulduzların ərəb adları) */}
+      <section className="ui-section ui-section--tight">
+        <div className="ui-container">
+          <DeferRender height="760px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
+              <SkyPlanetarium lang={lang} />
+            </Suspense>
+          </DeferRender>
         </div>
       </section>
 

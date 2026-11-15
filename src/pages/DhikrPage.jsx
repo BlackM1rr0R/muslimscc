@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { ummahAdd } from '../utils/ummah'
+import AmbientSound from '../components/AmbientSound'
 import HeroOrnament from '../components/HeroOrnament'
 import { celebrate } from '../utils/celebrate'
 import UmmahCounter from '../components/UmmahCounter'
@@ -424,6 +425,7 @@ export default function DhikrPage({ setPage }) {
           </div>
           </SegGroup>
           <SoundToggle lang={lang} className="dk-sound" />
+          <AmbientSound lang={lang} />
         </div>
         <PresenceSwap swapKey={mode} variant="slide" dir={modeDir} className="dk-mode-panel">
         {mode === 'after' && <div className="ui-container"><AfterPrayerCounter lang={lang} /></div>}
