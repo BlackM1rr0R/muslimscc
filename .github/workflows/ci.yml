@@ -66,10 +66,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: { name: dist, path: dist, retention-days: 3 }
 
-  # ── 2) Real brauzerdə e2e (kompüter + telefon) — 5 paralel maşın ──
+  # ── 2) Real brauzerdə e2e (kompüter + telefon) — 6 paralel maşın ──
   # Tək maşında ~23 dəq çəkirdi (bütün CI ~35 dəq, 2026-11-16). Playwright --shard testləri SAYA görə
   # bölür, vaxta görə yox: ağır a11y-all (hər səhifədə axe, ~9 dəq) tam 1-ci hissəyə düşürdü (14 dəq).
-  # Ona görə a11y-all tema üzrə iki ayrı maşında, qalanı 3 hissədə. Deploy hamısını gözləyir.
+  # Ona görə a11y-all tema üzrə iki ayrı maşında, qalanı 4 hissədə (3 hissədə 1-ci yenə 12.8 dəq idi). Deploy hamısını gözləyir.
   e2e:
     name: E2E (${{ matrix.name }})
     needs: checks
@@ -81,9 +81,10 @@ jobs:
         include:
           - { name: 'a11y işıqlı', grep: 'a11y \(light\)' }
           - { name: 'a11y qaranlıq', grep: 'a11y \(dark\)' }
-          - { name: '1/3', invert: 'a11y \((light|dark)\)', shard: '1/3' }
-          - { name: '2/3', invert: 'a11y \((light|dark)\)', shard: '2/3' }
-          - { name: '3/3', invert: 'a11y \((light|dark)\)', shard: '3/3' }
+          - { name: '1/4', invert: 'a11y \((light|dark)\)', shard: '1/4' }
+          - { name: '2/4', invert: 'a11y \((light|dark)\)', shard: '2/4' }
+          - { name: '3/4', invert: 'a11y \((light|dark)\)', shard: '3/4' }
+          - { name: '4/4', invert: 'a11y \((light|dark)\)', shard: '4/4' }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
