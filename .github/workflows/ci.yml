@@ -66,13 +66,18 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: { name: dist, path: dist, retention-days: 3 }
 
-  # ── 2) Real brauzerdə e2e (kompüter + telefon) ──
+  # ── 2) Real brauzerdə e2e (kompüter + telefon) — 4 paralel maşına bölünür ──
+  # Tək maşında ~23 dəq çəkirdi (bütün CI ~35 dəq); shard ilə hər hissə ~6–7 dəq (2026-11-16).
+  # Deploy hamısının keçməsini gözləyir (needs: e2e matrisin bütün hissələrini əhatə edir).
   e2e:
-    name: E2E (Playwright)
+    name: E2E (Playwright ${{ matrix.shard }}/4)
     needs: checks
     runs-on: ubuntu-latest
-    # 45: bütün səhifələrin əlçatanlıq testi (a11y-all) və hədis səhifələri ilə E2E ~30 dəq-ə çatdı (2026-11-14)
-    timeout-minutes: 45
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -80,16 +85,24 @@ jobs:
       - run: npm ci
       - uses: actions/download-artifact@v4
         with: { name: dist, path: dist }
+      - name: Playwright versiyası
+        id: pw
+        run: echo "v=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Brauzer keşi
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.v }}-chromium
       - name: Playwright brauzeri
         # apt güzgüləri əlçatmaz olanda (2026-11-11: DNS xətası) — sistem paketsiz quraşdırma;
         # ubuntu-latest image-ində Chromium-un kitabxanaları var, çatmasa testlər özü yıxılır
         run: npx playwright install --with-deps chromium || npx playwright install chromium
       - name: E2E testləri
-        run: npx playwright test
+        run: npx playwright test --shard=${{ matrix.shard }}/4
       - name: Hesabat (yıxılanda)
         if: failure()
         uses: actions/upload-artifact@v4
-        with: { name: playwright-report, path: playwright-report, retention-days: 7 }
+        with: { name: 'playwright-report-${{ matrix.shard }}', path: playwright-report, retention-days: 7 }
 
   # ── 3) Docker image-ləri (hər push-da build olunur ki, Dockerfile sınmasın) ──
   images:
