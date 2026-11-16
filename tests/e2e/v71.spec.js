@@ -22,7 +22,7 @@ const axe = async (page, sel) => {
 
 test('rəqəmlərin səyahəti: dayanacaqlar, çevirici (şərqi ərəb, Roma, sıfır)', async ({ page, consoleProblems }) => {
   test.setTimeout(60_000)
-  await page.goto('/history')
+  await page.goto('/history#elm')
   await settle(page)
   const nj = await reach(page, 'numerals-journey')
   await expect(nj).toHaveAttribute('data-step', '0')
@@ -69,7 +69,7 @@ test('Quran bitkiləri: bağ, kart — ayənin ərəbcə mətni və tərcümə, 
 
 test('Ay mənzilləri: 28 mənzil, sürgü Ayı növbəti mənzilə aparır, Yasin 36:39', async ({ page, consoleProblems }) => {
   test.setTimeout(60_000)
-  await page.goto('/qibla')
+  await page.goto('/qibla#sema')
   await settle(page)
   const lm = await reach(page, 'lunar-mansions')
   const m0 = Number(await lm.getAttribute('data-mansion'))

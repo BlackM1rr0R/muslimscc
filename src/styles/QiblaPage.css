@@ -511,3 +511,4 @@
 /* Qiblə nəbzi (2026-11-16) */
 .qibla-pulse { display: grid; gap: 6px; justify-items: center; margin-top: 10px; }
 .qibla-pulse__hint { margin: 0; max-width: 34ch; text-align: center; font-size: .82rem; color: var(--text-muted); }
+.qb-extra-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 8px 0; }

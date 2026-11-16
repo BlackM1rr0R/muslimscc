@@ -10,7 +10,7 @@ const scrollTo = async (page, loc) => {
 test('Ulduzlarla qiblə: qübbə, Bakının qiblə bucağı, Qütb ulduzu üsulu, ayələr və vaxt sürüşdürücüsü', async ({ page }) => {
   // 2026-11-13 21:00 Bakı vaxtı — qaranlıq
   await page.clock.setFixedTime(new Date('2026-11-13T17:00:00Z'))
-  await page.goto('/qibla')
+  await page.goto('/qibla#sema')
   await settle(page)
   const s = page.getByTestId('star-qibla')
   await scrollTo(page, s)
@@ -30,7 +30,7 @@ for (const theme of ['light', 'dark']) {
   test(`Ulduzlarla qiblə: əlçatanlıq (axe, ${theme})`, async ({ page }) => {
     await page.clock.setFixedTime(new Date('2026-11-13T17:00:00Z'))
     await page.emulateMedia({ colorScheme: theme })
-    await page.goto('/qibla')
+    await page.goto('/qibla#sema')
     await settle(page)
     const s = page.getByTestId('star-qibla')
     await scrollTo(page, s)
@@ -168,7 +168,7 @@ for (const theme of ['light', 'dark']) {
 }
 
 test('Elm adamları: xəritə, zaman xətti, cəbr nümayişi, Biruni', async ({ page }) => {
-  await page.goto('/history')
+  await page.goto('/history#elm')
   await settle(page)
   const s = page.getByTestId('islamic-science')
   await scrollTo(page, s)
@@ -187,7 +187,7 @@ test('Elm adamları: xəritə, zaman xətti, cəbr nümayişi, Biruni', async ({
 for (const theme of ['light', 'dark']) {
   test(`Elm adamları: əlçatanlıq (axe, ${theme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme })
-    await page.goto('/history')
+    await page.goto('/history#elm')
     await settle(page)
     const s = page.getByTestId('islamic-science')
     await scrollTo(page, s)

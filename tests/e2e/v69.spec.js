@@ -133,7 +133,7 @@ for (const theme of ['light', 'dark']) {
   test(`planetari: göy çəkilir, vaxt sürgüsü, əlçatanlıq (${theme})`, async ({ page, consoleProblems }) => {
     await page.clock.setFixedTime(new Date('2026-11-15T19:30:00Z'))
     await page.emulateMedia({ colorScheme: theme })
-    await page.goto('/qibla')
+    await page.goto('/qibla#sema')
     await settle(page)
     const s = page.getByTestId('sky-planetarium')
     for (let i = 0; i < 40 && !(await s.count()); i++) { await page.evaluate(() => window.scrollBy(0, 600)); await page.waitForTimeout(150) }
@@ -152,7 +152,7 @@ for (const theme of ['light', 'dark']) {
 
 test('usturlab: Günəşi üfüqə gətirəndə vaxt Bakının çıxış/batış vaxtına yaxındır', async ({ page, consoleProblems }) => {
   await page.clock.setFixedTime(new Date('2026-11-15T19:30:00Z'))
-  await page.goto('/history')
+  await page.goto('/history#elm')
   await settle(page)
   const a = page.getByTestId('astrolabe')
   for (let i = 0; i < 60 && !(await a.count()); i++) { await page.evaluate(() => window.scrollBy(0, 600)); await page.waitForTimeout(150) }

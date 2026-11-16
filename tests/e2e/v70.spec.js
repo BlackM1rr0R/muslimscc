@@ -138,7 +138,7 @@ test('məşrəbiyyə: sürgü vaxtı dəyişir, zöhr işarəsi günəşi ən y�
 })
 
 test('fil saatı: kasa səviyyəsi real vaxtla, mexanizm düyməsi buraxılışı oynadır', async ({ page, consoleProblems }) => {
-  await page.goto('/history')
+  await page.goto('/history#elm')
   await settle(page)
   const c = await reach(page, 'elephant-clock')
   const lvl = Number(await c.getAttribute('data-level'))

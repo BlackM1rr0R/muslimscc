@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, lazy, Suspense } from 'react'
+import { useState, useRef, useMemo, useEffect, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import HeroOrnament from '../components/HeroOrnament'
 import Icon from '../components/Icon'
@@ -54,6 +54,15 @@ const EVENT_PHOTO = {
   "Farewell Hajj & Prophet's Passing": 'mina',
 }
 // "Xəritələr və yerlər" bölməsi (5 dil)
+// v7.2: xəritələr bölməsi iki sekməyə bölünür — telefonda uzun səhifə qısalır, ağır bölmələr yalnız seçiləndə
+const MAP_TABS = {
+  az: { journeys: 'Səfərlər və xəritələr', science: 'Elm və ixtiralar', label: 'Bölmə' },
+  en: { journeys: 'Journeys & maps', science: 'Science & inventions', label: 'Section' },
+  ru: { journeys: 'Путешествия и карты', science: 'Наука и изобретения', label: 'Раздел' },
+  tr: { journeys: 'Yolculuklar ve haritalar', science: 'Bilim ve icatlar', label: 'Bölüm' },
+  ar: { journeys: 'الرحلات والخرائط', science: 'العلوم والاختراعات', label: 'القسم' },
+}
+
 const MAPS_L = {
   az: { eyebrow: 'Xəritələr', title: 'Siyərin coğrafiyası', lead: 'Hicrət yolu, döyüşlərin yerləri və İslamın yayılması — sxematik xəritələrdə.', places: 'Siyər yerləri' },
   en: { eyebrow: 'Maps', title: 'The geography of the Sirah', lead: 'The route of the Hijrah, the sites of the battles and the spread of Islam — on schematic maps.', places: 'Places of the Sirah' },
@@ -171,6 +180,19 @@ export default function IslamicHistoryPage() {
   const { lang } = useLang()
   const L = pickUi(LABELS, lang, 'en')
   const M = pickUi(MAPS_L, lang, 'en')
+  const MT = pickUi(MAP_TABS, lang, 'en')
+  // #elm — birbaşa "Elm və ixtiralar" sekməsi (paylaşılan link, testlər)
+  const [mapTab, setMapTab] = useState('journeys')
+  useEffect(() => {
+    const sync = () => { if (/^#(elm|science)$/.test(window.location.hash)) setMapTab('science') }
+    sync()
+    window.addEventListener('hashchange', sync)
+    return () => window.removeEventListener('hashchange', sync)
+  }, [])
+  const pickMapTab = (k) => {
+    setMapTab(k)
+    try { window.history.replaceState(window.history.state, '', k === 'science' ? '#elm' : window.location.pathname + window.location.search) } catch { /* */ }
+  }
   const isAr = lang === 'ar'
   const [tab, setTab] = useState('prophets')
   const [era, setEra] = useState('all')
@@ -422,6 +444,16 @@ export default function IslamicHistoryPage() {
             <h2 id="history-maps-h" className="ui-title">{M.title}</h2>
             <p className="ui-lead">{M.lead}</p>
           </div>
+          <div className="history-maptabs" role="group" aria-label={MT.label}>
+            <button type="button" className="ui-chip" aria-pressed={mapTab === 'journeys'} onClick={() => pickMapTab('journeys')} data-testid="hx-maptab-journeys">
+              <Icon name="globe" size={16} /> {MT.journeys}
+            </button>
+            <button type="button" className="ui-chip" aria-pressed={mapTab === 'science'} onClick={() => pickMapTab('science')} data-testid="hx-maptab-science">
+              <Icon name="flask" size={16} /> {MT.science}
+            </button>
+          </div>
+          {mapTab === 'journeys' ? (
+            <>
           <div className="history-maps-pair">
             <HijraJourney lang={lang} />
             <SirahMap lang={lang} />
@@ -445,6 +477,24 @@ export default function IslamicHistoryPage() {
           <Suspense fallback={<SpreadMap lang={lang} />}>
             <SpreadTimeline lang={lang} />
           </Suspense>
+          {/* v7.1: İbn Bəttutənin səyahəti (1325–1354) — qlobusda şəhər-şəhər */}
+          <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
+              <IbnBattutaJourney lang={lang} />
+            </Suspense>
+          </DeferRender>
+          <h3 className="history-places-title">{M.places}</h3>
+          <div className="ph-strip" data-reveal="stagger">
+            {['taif', 'al-baqi'].map(k => (
+              <div key={k}>
+                <PlacePhoto id={k} lang={lang} className="ph--zoom" sizes="(min-width: 1024px) 300px, 100vw" />
+                <p className="ph-strip__cap">{PLACE_PHOTOS[k].name[lang] || PLACE_PHOTOS[k].name.en}</p>
+              </div>
+            ))}
+          </div>
+            </>
+          ) : (
+            <>
           {/* v6.6: elm adamları — xəritə, zaman xətti, canlı nümayişlər (cəbr, kamera obskura, Yerin radiusu) */}
           <DeferRender height="900px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
@@ -469,21 +519,8 @@ export default function IslamicHistoryPage() {
               <NumeralsJourney />
             </Suspense>
           </DeferRender>
-          {/* v7.1: İbn Bəttutənin səyahəti (1325–1354) — qlobusda şəhər-şəhər */}
-          <DeferRender height="900px" idle={false} rootMargin="400px 0px">
-            <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
-              <IbnBattutaJourney lang={lang} />
-            </Suspense>
-          </DeferRender>
-          <h3 className="history-places-title">{M.places}</h3>
-          <div className="ph-strip" data-reveal="stagger">
-            {['taif', 'al-baqi'].map(k => (
-              <div key={k}>
-                <PlacePhoto id={k} lang={lang} className="ph--zoom" sizes="(min-width: 1024px) 300px, 100vw" />
-                <p className="ph-strip__cap">{PLACE_PHOTOS[k].name[lang] || PLACE_PHOTOS[k].name.en}</p>
-              </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       </section>
 

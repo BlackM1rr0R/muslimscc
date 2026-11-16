@@ -450,3 +450,6 @@
   .hx-orbit__desc { -webkit-line-clamp: 4; }
 }
 .history-hijra3d { margin-block: 24px; }
+
+/* v7.2: xəritələr bölməsinin sekmələri */
+.history-maptabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }

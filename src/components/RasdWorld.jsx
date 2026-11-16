@@ -17,12 +17,29 @@ import { eventIcs } from '../utils/eventIcs'
 import { saveBlob } from '../utils/quoteCard'
 
 const W = 640, H = 330
+// Şəhər adları 5 dildə (dil təmizliyi testi: /en səhifəsində azərbaycanca ad olmasın)
 const CITIES = [
-  ['Bakı', 40.41, 49.87], ['İstanbul', 41.01, 28.98], ['Qahirə', 30.04, 31.24], ['London', 51.51, -0.13], ['Moskva', 55.76, 37.62],
-  ['Tehran', 35.69, 51.39], ['Dehli', 28.61, 77.21], ['Cakarta', -6.21, 106.85], ['Lagos', 6.52, 3.38], ['Nayrobi', -1.29, 36.82],
-  ['Kazan', 55.79, 49.12], ['Daşkənd', 41.3, 69.24], ['Kəraçi', 24.86, 67.0], ['Kuala-Lumpur', 3.14, 101.69], ['Nyu-York', 40.71, -74.01],
-  ['Rabat', 34.02, -6.84], ['Pekin', 39.9, 116.4], ['Sidney', -33.87, 151.21], ['San-Paulu', -23.55, -46.63], ['Keyptaun', -33.92, 18.42],
-] // lang-ok: şəhər adları (xəritə nişanları)
+  { n: { az: 'Bakı', en: 'Baku', ru: 'Баку', tr: 'Bakü', ar: 'باكو' }, lat: 40.41, lng: 49.87 }, // lang-ok: şəhər adı
+  { n: { az: 'İstanbul', en: 'Istanbul', ru: 'Стамбул', tr: 'İstanbul', ar: 'إسطنبول' }, lat: 41.01, lng: 28.98 }, // lang-ok: şəhər adı
+  { n: { az: 'Qahirə', en: 'Cairo', ru: 'Каир', tr: 'Kahire', ar: 'القاهرة' }, lat: 30.04, lng: 31.24 }, // lang-ok: şəhər adı
+  { n: { az: 'London', en: 'London', ru: 'Лондон', tr: 'Londra', ar: 'لندن' }, lat: 51.51, lng: -0.13 }, // lang-ok: şəhər adı
+  { n: { az: 'Moskva', en: 'Moscow', ru: 'Москва', tr: 'Moskova', ar: 'موسكو' }, lat: 55.76, lng: 37.62 }, // lang-ok: şəhər adı
+  { n: { az: 'Tehran', en: 'Tehran', ru: 'Тегеран', tr: 'Tahran', ar: 'طهران' }, lat: 35.69, lng: 51.39 }, // lang-ok: şəhər adı
+  { n: { az: 'Dehli', en: 'Delhi', ru: 'Дели', tr: 'Delhi', ar: 'دلهي' }, lat: 28.61, lng: 77.21 }, // lang-ok: şəhər adı
+  { n: { az: 'Cakarta', en: 'Jakarta', ru: 'Джакарта', tr: 'Cakarta', ar: 'جاكرتا' }, lat: -6.21, lng: 106.85 }, // lang-ok: şəhər adı
+  { n: { az: 'Laqos', en: 'Lagos', ru: 'Лагос', tr: 'Lagos', ar: 'لاغوس' }, lat: 6.52, lng: 3.38 }, // lang-ok: şəhər adı
+  { n: { az: 'Nayrobi', en: 'Nairobi', ru: 'Найроби', tr: 'Nairobi', ar: 'نيروبي' }, lat: -1.29, lng: 36.82 }, // lang-ok: şəhər adı
+  { n: { az: 'Kazan', en: 'Kazan', ru: 'Казань', tr: 'Kazan', ar: 'قازان' }, lat: 55.79, lng: 49.12 }, // lang-ok: şəhər adı
+  { n: { az: 'Daşkənd', en: 'Tashkent', ru: 'Ташкент', tr: 'Taşkent', ar: 'طشقند' }, lat: 41.3, lng: 69.24 }, // lang-ok: şəhər adı
+  { n: { az: 'Kəraçi', en: 'Karachi', ru: 'Карачи', tr: 'Karaçi', ar: 'كراتشي' }, lat: 24.86, lng: 67.0 }, // lang-ok: şəhər adı
+  { n: { az: 'Kuala-Lumpur', en: 'Kuala Lumpur', ru: 'Куала-Лумпур', tr: 'Kuala Lumpur', ar: 'كوالالمبور' }, lat: 3.14, lng: 101.69 }, // lang-ok: şəhər adı
+  { n: { az: 'Nyu-York', en: 'New York', ru: 'Нью-Йорк', tr: 'New York', ar: 'نيويورك' }, lat: 40.71, lng: -74.01 }, // lang-ok: şəhər adı
+  { n: { az: 'Rabat', en: 'Rabat', ru: 'Рабат', tr: 'Rabat', ar: 'الرباط' }, lat: 34.02, lng: -6.84 }, // lang-ok: şəhər adı
+  { n: { az: 'Pekin', en: 'Beijing', ru: 'Пекин', tr: 'Pekin', ar: 'بكين' }, lat: 39.9, lng: 116.4 }, // lang-ok: şəhər adı
+  { n: { az: 'Sidney', en: 'Sydney', ru: 'Сидней', tr: 'Sidney', ar: 'سيدني' }, lat: -33.87, lng: 151.21 }, // lang-ok: şəhər adı
+  { n: { az: 'San-Paulu', en: 'São Paulo', ru: 'Сан-Паулу', tr: 'São Paulo', ar: 'ساو باولو' }, lat: -23.55, lng: -46.63 }, // lang-ok: şəhər adı
+  { n: { az: 'Keyptaun', en: 'Cape Town', ru: 'Кейптаун', tr: 'Cape Town', ar: 'كيب تاون' }, lat: -33.92, lng: 18.42 }, // lang-ok: şəhər adı
+]
 
 const T = {
   az: { title: 'O anda dünyada kölgələr', lead: 'Günəşi görən hər şəhərdə çubuğun kölgəsi — hamısı eyni nöqtəyə yönəlir.', night: 'Günəş batıb', cal: 'Təqvimə əlavə et', calHint: 'Telefon təqvimi 10 dəqiqə əvvəl xatırladacaq — sayt bağlı olsa da.', ev: 'Günəş Kəbənin üstündə — qibləni yoxla', evU: 'Kölgə qibləni göstərir — qibləni yoxla' },
@@ -42,11 +59,11 @@ export default function RasdWorld({ ev, lang = 'az' }) {
   const proj = useMemo(() => geoEquirectangular().fitExtent([[6, 6], [W - 6, H - 6]], { type: 'Sphere' }), [])
   const path = useMemo(() => geoPath(proj), [proj])
 
-  const marks = useMemo(() => CITIES.map(([name, lat, lng]) => {
+  const marks = useMemo(() => CITIES.map(({ n, lat, lng }) => {
     const [x, y] = proj([lng, lat])
     const s = shadowAt(ev.ms, lat, lng)
-    return { name, x, y, s }
-  }), [ev.ms, proj])
+    return { key: n.en, name: pickUi(n, lang, 'en'), x, y, s }
+  }), [ev.ms, proj, lang])
   const [kx, ky] = proj([ev.kind === 'over' ? KAABA.lng : KAABA.lng - 180, ev.kind === 'over' ? KAABA.lat : -KAABA.lat])
 
   const addCal = () => {
@@ -62,11 +79,11 @@ export default function RasdWorld({ ev, lang = 'az' }) {
         {land && <path d={path(land)} className="rqw__land" />}
         <circle cx={kx} cy={ky} r="6" className="rqw__target" />
         {marks.map((m) => {
-          if (!m.s) return <circle key={m.name} cx={m.x} cy={m.y} r="2.6" className="rqw__night"><title>{`${m.name} — ${t.night}`}</title></circle>
+          if (!m.s) return <circle key={m.key} cx={m.x} cy={m.y} r="2.6" className="rqw__night"><title>{`${m.name} — ${t.night}`}</title></circle>
           const a = (m.s.dir - 90) * Math.PI / 180, L = 16
           const x2 = m.x + Math.cos(a) * L, y2 = m.y + Math.sin(a) * L
           return (
-            <g key={m.name} className="rqw__city" data-city={m.name}>
+            <g key={m.key} className="rqw__city" data-city={m.key}>
               <title>{m.name}</title>
               <line x1={m.x} y1={m.y} x2={x2} y2={y2} className="rqw__shadow" markerEnd="url(#rqw-arrow)" />
               <circle cx={m.x} cy={m.y} r="3" className="rqw__stick" />

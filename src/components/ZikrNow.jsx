@@ -65,10 +65,17 @@ export default function ZikrNow() {
     const c = cv.current
     if (!c) return undefined
     let raf = 0, last = performance.now()
+    // Hərəkət azaldılıbsa — yalnız dəyişəndə (sürükləmə, ölçü) çəkilir; əks halda ~30 kadr/s,
+    // ekrandan kənarda və gizli vərəqdə heç çəkilmir (əsas axın boş qalsın)
+    let lastDrawn = -1e9, lastKey = ''
     const draw = (now) => {
       const dt = Math.min(64, now - last); last = now
-      if (visible.current && document.visibilityState === 'visible') {
-        if (!reduced && !drag.current) rot.current = [rot.current[0] + dt * 0.006, rot.current[1]]
+      const key = `${rot.current[0].toFixed(2)},${rot.current[1].toFixed(2)},${c.clientWidth}`
+      const due = reduced ? key !== lastKey : (now - lastDrawn > 33 || drag.current)
+      if (due && visible.current && document.visibilityState === 'visible') {
+        lastDrawn = now
+        if (!reduced && !drag.current) rot.current = [rot.current[0] + Math.max(dt, 33) * 0.006, rot.current[1]]
+        lastKey = `${rot.current[0].toFixed(2)},${rot.current[1].toFixed(2)},${c.clientWidth}`
         const size = c.clientWidth || 300
         const dpr = Math.min(2, window.devicePixelRatio || 1)
         if (c.width !== Math.round(size * dpr)) { c.width = Math.round(size * dpr); c.height = Math.round(size * dpr) }

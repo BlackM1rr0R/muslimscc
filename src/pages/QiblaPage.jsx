@@ -265,6 +265,15 @@ function QiblaGuide({ lang }) {
   )
 }
 
+// v7.2: kompasdan sonrakı bölmələr iki sekmədə — "Yer üzündə" / "Səmada" (#sema)
+const EXTRA_TABS = {
+  az: { earth: 'Yer üzündə', sky: 'Səmada', label: 'Bölmə' },
+  en: { earth: 'On Earth', sky: 'In the sky', label: 'Section' },
+  ru: { earth: 'На Земле', sky: 'На небе', label: 'Раздел' },
+  tr: { earth: 'Yeryüzünde', sky: 'Gökyüzünde', label: 'Bölüm' },
+  ar: { earth: 'على الأرض', sky: 'في السماء', label: 'القسم' },
+}
+
 // Qiblə nəbzi — ekrana baxmadan (titrəmə + zəng)
 const PULSE = {
   az: { on: 'Nəbz rejimi', off: 'Nəbzi söndür', hint: 'Telefonu yavaş-yavaş fırladın: qibləyə yaxınlaşdıqca titrəmə tezləşir, düz qibləyə tutanda zəng çalınır. Ekrana baxmaq lazım deyil.' },
@@ -522,6 +531,17 @@ export default function QiblaPage({ setPage }) {
   const [arOpen, setArOpen] = useState(false)
   // Nəbz rejimi: sapmaya görə titrəmə aralığı; tuşlananda bir dəfə zəng (yenidən uzaqlaşana qədər)
   const [pulseOn, setPulseOn] = useState(false)
+  const [extraTab, setExtraTab] = useState('earth')
+  useEffect(() => {
+    const sync = () => { if (/^#(sema|sky)$/.test(window.location.hash)) setExtraTab('sky') }
+    sync()
+    window.addEventListener('hashchange', sync)
+    return () => window.removeEventListener('hashchange', sync)
+  }, [])
+  const pickExtraTab = (k) => {
+    setExtraTab(k)
+    try { window.history.replaceState(window.history.state, '', k === 'sky' ? '#sema' : window.location.pathname + window.location.search) } catch { /* */ }
+  }
   const pulseCtxRef = useRef(null)
   useEffect(() => {
     if (!pulseOn) return undefined
@@ -782,6 +802,16 @@ export default function QiblaPage({ setPage }) {
         </Suspense>
       )}
 
+      <div className="ui-container qb-extra-tabs" role="group" aria-label={pickUi(EXTRA_TABS, lang, 'en').label}>
+        <button type="button" className="ui-chip" aria-pressed={extraTab === 'earth'} onClick={() => pickExtraTab('earth')} data-testid="qb-tab-earth">
+          <Icon name="globe" size={16} /> {pickUi(EXTRA_TABS, lang, 'en').earth}
+        </button>
+        <button type="button" className="ui-chip" aria-pressed={extraTab === 'sky'} onClick={() => pickExtraTab('sky')} data-testid="qb-tab-sky">
+          <Icon name="moonStar" size={16} /> {pickUi(EXTRA_TABS, lang, 'en').sky}
+        </button>
+      </div>
+      {extraTab === 'earth' ? (
+        <>
       {/* Bütün ümmət bir nöqtəyə — dünyanın şəhərlərindən Kəbəyə qövslər (məkan olmasa da göstərilir) */}
       <section className="ui-section ui-section--tight qb-lines">
         <div className="ui-container">
@@ -795,6 +825,9 @@ export default function QiblaPage({ setPage }) {
         <RasdQibla lang={lang} />
       </Suspense>
 
+        </>
+      ) : (
+        <>
       {/* v6.6: Gecə — qiblə ulduzlarla (məkan olmasa seçilmiş şəhər) */}
       <section className="ui-section ui-section--tight">
         <div className="ui-container">
@@ -820,6 +853,9 @@ export default function QiblaPage({ setPage }) {
           </DeferRender>
         </div>
       </section>
+
+        </>
+      )}
 
       {/* Hökmlər və tövsiyələr — məkan tapılmasa da göstərilir */}
       <QiblaGuide lang={lang} />
