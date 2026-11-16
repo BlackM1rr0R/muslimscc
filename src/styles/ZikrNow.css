@@ -1,0 +1,10 @@
+/* ══ İndi zikr edənlər (components/ZikrNow.jsx) — /dhikr ══ */
+.zn { display: grid; gap: 10px; padding: clamp(16px, 3vw, 24px); }
+.zn__title { margin: 0; font-size: var(--step-2, 1.5rem); }
+.zn__lead { margin: 0; color: var(--text-muted); max-width: 62ch; }
+.zn__body { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 18px; align-items: center; }
+@media (max-width: 680px) { .zn__body { grid-template-columns: 1fr; } }
+.zn__globe { width: 100%; max-width: 360px; aspect-ratio: 1; display: block; margin-inline: auto; touch-action: none; cursor: grab; border-radius: 50%; }
+.zn__stats { display: grid; gap: 4px; }
+.zn__stats b { font-size: 1.6rem; color: var(--accent-text, var(--accent)); }
+.zn__how { margin: 8px 0 0; font-size: .8rem; color: var(--text-muted); }

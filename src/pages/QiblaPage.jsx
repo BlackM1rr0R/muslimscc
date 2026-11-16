@@ -16,6 +16,7 @@ import '../styles/LessonsPage.css'
 import '../styles/QiblaPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import { haptic } from '../hooks/useHaptic'
+import { pulseInterval, chime } from '../utils/qiblaPulse'
 import '../styles/ToolsMotion.css'
 import GeoStarfield from '../components/prayer/GeoStarfield'
 import RelatedLinks from '../components/prayer/RelatedLinks'
@@ -264,6 +265,15 @@ function QiblaGuide({ lang }) {
   )
 }
 
+// Qiblə nəbzi — ekrana baxmadan (titrəmə + zəng)
+const PULSE = {
+  az: { on: 'Nəbz rejimi', off: 'Nəbzi söndür', hint: 'Telefonu yavaş-yavaş fırladın: qibləyə yaxınlaşdıqca titrəmə tezləşir, düz qibləyə tutanda zəng çalınır. Ekrana baxmaq lazım deyil.' },
+  en: { on: 'Pulse mode', off: 'Stop pulse', hint: 'Turn the phone slowly: the vibration quickens as you near the qibla and a soft chime sounds when you face it. No need to look at the screen.' },
+  ru: { on: 'Режим пульса', off: 'Выключить пульс', hint: 'Медленно поворачивайте телефон: вибрация учащается по мере приближения к кибле, а при точном направлении звучит мягкий звон. Смотреть на экран не нужно.' },
+  tr: { on: 'Nabız modu', off: 'Nabzı kapat', hint: 'Telefonu yavaşça çevirin: kıbleye yaklaştıkça titreşim hızlanır, tam kıbleye dönünce yumuşak bir zil çalar. Ekrana bakmanıza gerek yok.' },
+  ar: { on: 'وضع النبض', off: 'أوقف النبض', hint: 'أدر الهاتف ببطء: يتسارع الاهتزاز كلما اقتربت من القبلة، ويُسمع رنين لطيف حين تتجه إليها. لا حاجة للنظر إلى الشاشة.' },
+}
+
 const LABELS = {
   az: { title:'Qiblə istiqaməti', subtitle:'Kəbəyə dəqiq istiqamət', loading:'Məkan təyin edilir...', error:'Məkan tapılmadı', errorSub:'Brauzerdə məkan icazəsi verin', distance:'Kəbəyə məsafə', bearing:'Qiblə bucağı', grant:'İcazə ver', manual:'Seçilmiş şəhərlə davam et', accuracy:'Dəqiqlik', live:'Canlı kompas', liveDesc:'Cihazınızı düz tutun', noSensor:'Kompas sensoru yoxdur', noSensorSub:'Yalnız statik istiqamət göstərilir', fromNorth:'Şimaldan saat istiqamətində', enableCompass:'Kompası aktivləşdir', refreshLocation:'Yenilə', heading:'Cihaz istiqaməti' },
   ru: { title:'Направление Киблы', subtitle:'Точное направление к Каабе', loading:'Определение местоположения...', error:'Местоположение не найдено', errorSub:'Разрешите доступ к местоположению', distance:'Расстояние до Каабы', bearing:'Угол Киблы', grant:'Разрешить', manual:'Использовать выбранный город', accuracy:'Точность', live:'Живой Компас', liveDesc:'Держите устройство ровно', noSensor:'Нет компас-сенсора', noSensorSub:'Только статическое направление', fromNorth:'По часовой стрелке от севера', enableCompass:'Включить компас', refreshLocation:'Обновить', heading:'Направление устройства' },
@@ -299,6 +309,7 @@ export default function QiblaPage({ setPage }) {
   const orientOkRef    = useRef(false)
   const velRef         = useRef(0)       // v4: yay sürəti
   const alignedRef     = useRef(false)
+  const offRef         = useRef(null)    // qiblədən sapma (°) — nəbz rejimi üçün
   const compassElRef   = useRef(null)
   const reduceRef      = useRef(false)
   useEffect(() => {
@@ -336,6 +347,7 @@ export default function QiblaPage({ setPage }) {
         // Kəbəyə tuşlananda (±5°) kompas "is-aligned" olur — Kəbə nəbz vurur
         const off = Math.abs(((q - h) % 360 + 540) % 360 - 180)
         const aligned = off < 5
+        offRef.current = off
         if (aligned !== alignedRef.current) {
           alignedRef.current = aligned
           compassElRef.current?.classList.toggle('is-aligned', aligned)
@@ -508,6 +520,37 @@ export default function QiblaPage({ setPage }) {
 
   // Kamera ilə Qiblə (AR) — yalnız telefonda; iOS-da sensor icazəsi elə bu toxunuşla istənir
   const [arOpen, setArOpen] = useState(false)
+  // Nəbz rejimi: sapmaya görə titrəmə aralığı; tuşlananda bir dəfə zəng (yenidən uzaqlaşana qədər)
+  const [pulseOn, setPulseOn] = useState(false)
+  const pulseCtxRef = useRef(null)
+  useEffect(() => {
+    if (!pulseOn) return undefined
+    let timer = 0, rang = false, live = true
+    const vib = (p) => { try { navigator.vibrate?.(p) } catch { /* dəstəklənmir */ } }
+    const step = () => {
+      if (!live) return
+      const ms = pulseInterval(offRef.current)
+      if (ms === 0) {
+        if (!rang) { rang = true; vib([30, 60, 30]); try { chime(pulseCtxRef.current) } catch { /* səs yoxdur */ } }
+        timer = setTimeout(step, 300)
+        return
+      }
+      rang = false
+      if (ms == null) { timer = setTimeout(step, 400); return }
+      vib(18)
+      timer = setTimeout(step, ms)
+    }
+    step()
+    return () => { live = false; clearTimeout(timer) }
+  }, [pulseOn])
+  const togglePulse = () => {
+    if (!pulseOn && !pulseCtxRef.current) {
+      try { const AC = window.AudioContext || window.webkitAudioContext; if (AC) pulseCtxRef.current = new AC() } catch { /* səs yoxdur */ }
+    }
+    pulseCtxRef.current?.resume?.()
+    setPulseOn((v) => !v)
+  }
+  useEffect(() => () => { try { pulseCtxRef.current?.close?.() } catch { /* */ } }, [])
   const [arOk] = useState(() => typeof window !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
     && 'DeviceOrientationEvent' in window && !!window.matchMedia?.('(pointer: coarse)').matches)
   const openAR = async () => {
@@ -624,6 +667,15 @@ export default function QiblaPage({ setPage }) {
                 <span className="qibla-angle-val ui-num"><span data-count={Math.round(qibla)}>{Math.round(qibla)}</span>°</span>
                 <span className="qibla-angle-label">{l.fromNorth}</span>
               </div>
+              {hasOrient && (
+                <div className="qibla-pulse">
+                  <button type="button" className={`ui-btn ui-btn--sm ${pulseOn ? 'ui-btn--primary' : 'ui-btn--secondary'}`} aria-pressed={pulseOn}
+                    onClick={togglePulse} data-testid="qibla-pulse">
+                    <Icon name="bolt" className="ui-btn__icon" /> {pulseOn ? pickUi(PULSE, lang, 'en').off : pickUi(PULSE, lang, 'en').on}
+                  </button>
+                  {pulseOn && <p className="qibla-pulse__hint" role="status">{pickUi(PULSE, lang, 'en').hint}</p>}
+                </div>
+              )}
               {arOk && qibla != null && (
                 <ShineButton className="qibla-ar-btn" onClick={openAR} data-testid="qibla-ar-open" icon={<Icon name="target" className="ui-btn__icon" />}>
                   {' '}{pickUi(AR_BTN, lang, 'en')}

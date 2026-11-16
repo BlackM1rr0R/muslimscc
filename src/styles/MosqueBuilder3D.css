@@ -25,3 +25,6 @@
   .mb3__h { font-size: 1.1rem; margin: 4px 0; }
   .mb3__p { font-size: .9rem; line-height: 1.55; }
 }
+.mb3__ar { margin-top: 12px; display: grid; gap: 6px; justify-items: start; }
+.mb3__ar small { color: var(--text-muted); font-size: .78rem; line-height: 1.45; }
+.mb3__ar img { margin-inline-end: 6px; }

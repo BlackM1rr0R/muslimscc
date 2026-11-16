@@ -507,3 +507,7 @@
 
 /* Kamera ilə Qiblə düyməsi (components/QiblaAR.jsx) */
 .qibla-ar-btn { margin: 14px auto 0; display: flex; }
+
+/* Qiblə nəbzi (2026-11-16) */
+.qibla-pulse { display: grid; gap: 6px; justify-items: center; margin-top: 10px; }
+.qibla-pulse__hint { margin: 0; max-width: 34ch; text-align: center; font-size: .82rem; color: var(--text-muted); }

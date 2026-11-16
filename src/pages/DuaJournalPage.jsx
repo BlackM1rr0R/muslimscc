@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { exitDelay } from '../utils/promptCoordinator'
 import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
@@ -17,6 +17,8 @@ import { copyText } from '../components/reader/share'
 import '../styles/LessonsPage.css'
 import '../styles/DuaJournalPage.css'
 import { pickUi } from '../utils/uiText'
+import DeferRender from '../components/DeferRender'
+const DuaCapsule = lazy(() => import('../components/DuaCapsule'))
 // Dizayn v6 (src/motion): sekmə xətti və sıralama hapı yayla sürüşür (layoutId)
 import { SegGroup, SegPill } from '../components/quran/SegPill'
 
@@ -552,6 +554,13 @@ export default function DuaJournalPage({ setPage }) {
           </div>
         </section>
       ))}
+
+      {/* v7.2: dua zaman kapsulu — möhürlə, vaxtı çatanda açılır (yalnız bu cihazda) */}
+      <DeferRender height="560px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 560 }} />}>
+          <div className="ui-section ui-section--tight"><div className="ui-container ui-container--narrow"><DuaCapsule /></div></div>
+        </Suspense>
+      </DeferRender>
 
       {/* Əlaqəli bölmələr — dua mətnləri burada təkrarlanmır */}
       <section className="ui-section ui-section--tight" aria-labelledby="dj-rel-h">

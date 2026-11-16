@@ -15,6 +15,7 @@ import { pickUi } from '../utils/uiText'
 import { rasdEvents, bearing, shadowAt, KAABA } from '../utils/rasdQibla'
 import { getPrayerLocation } from '../utils/prayerLocation'
 import { G_MONTHS } from '../utils/hijri'
+import RasdWorld from './RasdWorld'
 import '../styles/RasdQibla.css'
 
 const T = {
@@ -161,6 +162,7 @@ export default function RasdQibla({ lang = 'az' }) {
               </figcaption>
             </figure>
           </div>
+          <RasdWorld ev={ev} lang={lang} />
           <h3 className="rqb__h3">{t.upcoming}</h3>
           <ul className="rqb__list" data-testid="rqb-list">
             {events.slice(0, 4).map(e => (

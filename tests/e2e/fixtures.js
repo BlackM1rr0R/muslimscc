@@ -119,6 +119,10 @@ export const test = base.extend({
     await page.route((u) => u.pathname === '/api/ummah', (route) => (route.request().method() === 'POST'
       ? route.fulfill({ status: 204 })
       : route.fulfill({ json: { day: '2026-01-01', today: { salawat: 0, dhikr: 0, juz: 0 }, total: { salawat: 0, dhikr: 0, juz: 0 } } })))
+    // v7.2: "indi zikr edənlər" xəritəsi (server/ummah.js → /api/ummah/here)
+    await page.route((u) => u.pathname === '/api/ummah/here', (route) => (route.request().method() === 'POST'
+      ? route.fulfill({ status: 204 })
+      : route.fulfill({ json: { window: 600, cells: [{ lat: 40, lng: 50, n: 3 }, { lat: 22, lng: 40, n: 12 }, { lat: -6, lng: 106, n: 5 }] } })))
     // Köhnə Firebase ünvanları (köhnə SW keşi və s.) — bağlıdır
     await page.route(/firestore\.googleapis\.com|firebaseinstallations|fcmregistrations|identitytoolkit/, route => route.abort())
     // v6.2: Quran.com ayə sözləri / qiraət vaxtları (ReciterCompare, /quran) — canlı şəbəkəyə getməsin;

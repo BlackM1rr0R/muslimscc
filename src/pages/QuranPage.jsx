@@ -555,6 +555,7 @@ const SurahRhythm = lazy(() => import('../components/quran/SurahRhythm'))
 const ReciterCompare = lazy(() => import('../components/quran/ReciterCompare'))
 // v6.3: Surələr şəhəri — 114 bina, nazil olma sırası ilə küçə (three.js)
 const SurahCity3D = lazy(() => import('../components/quran/SurahCity3D'))
+const QuranCity = lazy(() => import('../components/QuranCity'))
 const QuranMosaic = lazy(() => import('../components/quran/QuranMosaic'))
 const MuqattaatMap = lazy(() => import('../components/quran/MuqattaatMap'))
 const QuranNumbers = lazy(() => import('../components/numbers/QuranNumbers'))
@@ -2041,6 +2042,14 @@ export default function QuranPage() {
             </div>
           </article>
         )}
+          {/* v7.2: "Mənim Quran şəhərim" — oxuduğunuz surələrin pəncərələri yanır (yalnız oxunuş varsa) */}
+          {stats.sessions > 0 && (
+            <DeferRender height="520px" idle={false} rootMargin="300px 0px">
+              <Suspense fallback={<div className="ui-card" style={{ minHeight: 520 }} />}>
+                <QuranCity onOpen={n => openSurah(n)} />
+              </Suspense>
+            </DeferRender>
+          )}
           <DeferRender height="560px" idle={false} rootMargin="300px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 520 }} />}>
               <QuranGalaxy lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} onOpen={n => openSurah(n)} />

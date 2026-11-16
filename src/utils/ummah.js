@@ -37,6 +37,33 @@ export function ummahAdd(kind, n = 1) {
   if (!KINDS.includes(kind) || !enabled()) return
   pending[kind] += n
   if (!timer) timer = setTimeout(flushUmmah, FLUSH_MS)
+  if (kind !== 'juz') sendHere()
+}
+
+// ── "İndi zikr edənlər" xəritəsi (server/ummah.js → /api/ummah/here) ──
+// Yalnız istifadəçi namaz vaxtları üçün ÖZ şəhərini seçibsə (standart yer göndərilmir);
+// koordinat 1 rəqəmə yuvarlaqlaşır, server onu 2°-lik xanaya salır. 2 dəqiqədə ən çox bir dəfə.
+const HERE_EVERY_MS = 2 * 60 * 1000
+let hereAt = 0
+async function sendHere() {
+  const t = Date.now()
+  if (t - hereAt < HERE_EVERY_MS) return
+  hereAt = t
+  try {
+    const { getPrayerLocation } = await import('./prayerLocation')
+    const loc = getPrayerLocation()
+    if (!loc || loc.isDefault || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) return
+    const body = JSON.stringify({ lat: Math.round(loc.lat * 10) / 10, lng: Math.round(loc.lng * 10) / 10 })
+    fetch('/api/ummah/here', { method: 'POST', body, headers: { 'content-type': 'application/json' }, keepalive: true }).catch(() => {})
+  } catch { /* yer yoxdur */ }
+}
+
+/** Son 10 dəqiqədə zikr edilən xanalar: [{ lat, lng, n }] */
+export async function fetchUmmahHere() {
+  const r = await fetch('/api/ummah/here', { headers: { 'Cache-Control': 'no-cache' } })
+  if (!r.ok) throw new Error(String(r.status))
+  const d = await r.json()
+  return Array.isArray(d?.cells) ? d.cells.filter(c => Number.isFinite(c.lat) && Number.isFinite(c.lng) && c.n > 0) : []
 }
 
 if (typeof document !== 'undefined') {

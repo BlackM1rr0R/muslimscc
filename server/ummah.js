@@ -3,6 +3,11 @@
 //
 //   POST /api/ummah   { kind: 'salawat' | 'dhikr' | 'juz', n: 1…100 }  → 204
 //   GET  /api/ummah   → { today: { salawat, dhikr, juz }, total: { … }, day: 'YYYY-MM-DD' }
+//   POST /api/ummah/here { lat, lng }  → 204   — "indi zikr edənlər" xəritəsi (v7.2)
+//   GET  /api/ummah/here → { cells: [{ lat, lng, n }], window: 600 }
+//
+// "İndi" xəritəsi: koordinat SERVERDƏ 2°-lik xanaya yuvarlaqlaşır (~200 km), yalnız YADDAŞDA,
+// 10 dəqiqədən köhnə qeydlər silinir; cədvəl, IP, şəxs yoxdur. Bir sorğu = xanaya +1.
 //
 // • Heç bir şəxsi məlumat saxlanmır: yalnız gün (UTC) + növ + say. Kimin nə etdiyi yoxdur.
 // • Cədvəl MİQRASİYASIZ yaradılır (CREATE TABLE IF NOT EXISTS, user_version artmır):
@@ -59,7 +64,45 @@ function createUmmahRouter({ db, now = () => Date.now() }) {
     return cache
   }
 
+  // ── "İndi" xəritəsi (yaddaşda) ──
+  const HERE_MS = 10 * 60 * 1000
+  const GRID = 2
+  const here = new Map()   // "lat,lng" → [zaman damğaları]
+  const cellOf = (lat, lng) => {
+    const a = Math.round(lat / GRID) * GRID, b = ((Math.round(lng / GRID) * GRID + 540) % 360) - 180
+    return `${a},${b}`
+  }
+  const prune = (t) => {
+    for (const [k, arr] of here) {
+      const kept = arr.filter(x => t - x < HERE_MS)
+      if (kept.length) here.set(k, kept); else here.delete(k)
+    }
+  }
+  let hereCache = null, hereAt = 0
+
   const r = express.Router()
+  r.get('/ummah/here', (req, res) => {
+    const t = now()
+    if (!hereCache || t - hereAt > CACHE_MS) {
+      prune(t)
+      hereCache = { window: HERE_MS / 1000, cells: [...here].map(([k, arr]) => { const [lat, lng] = k.split(',').map(Number); return { lat, lng, n: arr.length } }) }
+      hereAt = t
+    }
+    res.set('Cache-Control', 'public, max-age=15')
+    res.json(hereCache)
+  })
+  r.post('/ummah/here', express.json({ limit: '1kb' }), (req, res) => {
+    const lat = Number(req.body?.lat), lng = Number(req.body?.lng)
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return res.status(400).json({ error: 'coords' })
+    if (!allow(req.ip)) return res.status(429).json({ error: 'rate' })
+    const t = now(), k = cellOf(lat, lng)
+    const arr = here.get(k) || []
+    arr.push(t)
+    if (arr.length > 500) arr.splice(0, arr.length - 500)
+    here.set(k, arr)
+    if (here.size > 5000) prune(t)
+    res.status(204).end()
+  })
   r.get('/ummah', (req, res) => {
     res.set('Cache-Control', 'public, max-age=15')
     res.json(snapshot())

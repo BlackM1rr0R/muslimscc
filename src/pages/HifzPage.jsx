@@ -25,6 +25,7 @@ import DeferRender from '../components/DeferRender'
 const TwinAyahs = lazy(() => import('../components/hifz/TwinAyahs'))
 // v6.2: məşq kartında "Tapmaca" — qarışıq sözləri sırası ilə düzmək (toxunuşla, nitq tanıma yoxdur)
 const AyahPuzzle = lazy(() => import('../components/hifz/AyahPuzzle'))
+const AyahRace = lazy(() => import('../components/hifz/AyahRace'))
 const PUZZLE_LABEL = { az: 'Tapmaca', en: 'Puzzle', ru: 'Головоломка', ar: 'ترتيب الكلمات', tr: 'Bulmaca' }
 import { pickUi } from '../utils/uiText'
 
@@ -1036,6 +1037,12 @@ export default function HifzPage() {
 
         </div>
       </section>
+
+      <DeferRender height="520px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 520 }} />}>
+          <AyahRace lang={lang} />
+        </Suspense>
+      </DeferRender>
 
       <DeferRender height="620px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 620 }} />}>

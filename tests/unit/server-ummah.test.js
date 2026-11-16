@@ -34,6 +34,19 @@ describe('ummah router', () => {
     expect(d.today).toEqual({ salawat: 0, dhikr: 2, juz: 0 })
     expect(d.total.salawat).toBe(103)
   })
+  it('"indi" xəritəsi: 2°-lik xanaya yuvarlaqlaşır, 10 dəq sonra silinir, pozuq koordinat — 400', async () => {
+    const ph = (b) => fetch(`${srv.url}/api/ummah/here`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) })
+    expect((await ph({ lat: 40.41, lng: 49.87 })).status).toBe(204)
+    expect((await ph({ lat: 40.9, lng: 50.6 })).status).toBe(204)
+    expect((await ph({ lat: 91, lng: 0 })).status).toBe(400)
+    expect((await ph({ lat: 'x' })).status).toBe(400)
+    t += 20000
+    let d = await (await fetch(`${srv.url}/api/ummah/here`)).json()
+    expect(d.cells).toEqual([{ lat: 40, lng: 50, n: 2 }])
+    t += 11 * 60000
+    d = await (await fetch(`${srv.url}/api/ummah/here`)).json()
+    expect(d.cells).toEqual([])
+  })
   it('sxem versiyası dəyişmir (geri qaytarma təhlükəsizdir)', () => {
     const v = (db.raw || db).prepare('PRAGMA user_version').get().user_version
     const fresh = openDb(':memory:')

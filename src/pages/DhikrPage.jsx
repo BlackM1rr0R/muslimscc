@@ -1,4 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react'
+import DeferRender from '../components/DeferRender'
+const ZikrNow = lazy(() => import('../components/ZikrNow'))
+const VoiceRibbon = lazy(() => import('../components/VoiceRibbon'))
 import { ummahAdd } from '../utils/ummah'
 import AmbientSound from '../components/AmbientSound'
 import HeroOrnament from '../components/HeroOrnament'
@@ -411,6 +414,13 @@ export default function DhikrPage({ setPage }) {
         <div className="ui-container"><UmmahCounter lang={lang} /></div>
       </section>
 
+      {/* v7.2: indi zikr edənlər — son 10 dəqiqə, ~200 km-lik bölgələr qlobusda (anonim) */}
+      <DeferRender height="460px" idle={false} rootMargin="300px 0px">
+        <Suspense fallback={<div style={{ minHeight: 460 }} />}>
+          <section className="ui-section ui-section--tight"><div className="ui-container"><ZikrNow /></div></section>
+        </Suspense>
+      </DeferRender>
+
       <section className="ui-section ui-section--tight">
         <div className="ui-container dk-modes-wrap">
           <SegGroup id="dk-modes">
@@ -606,6 +616,12 @@ export default function DhikrPage({ setPage }) {
           </ul>
         </div>
       </section>
+      {/* v7.2: səs heykəli — təkbirin səsi işıq lentinə çevrilir (səs yazılmır, tanınmır) */}
+      <DeferRender height="620px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 620 }} />}>
+          <section className="ui-section ui-section--tight"><div className="ui-container"><VoiceRibbon /></div></section>
+        </Suspense>
+      </DeferRender>
     </div>
   )
 }

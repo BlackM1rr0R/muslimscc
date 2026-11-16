@@ -1,0 +1,95 @@
+/* Quran şəhəri (components/QuranCity.jsx) — gecə səhnəsi hər iki temada qaranlıqdır */
+.qc { margin-top: 24px; padding: clamp(18px, 3vw, 30px); display: grid; gap: 10px; min-width: 0; max-width: 100%; }
+.qc__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.qc__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+
+.qc__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; }
+.qc__stat { margin: 0; color: var(--text-muted); }
+.qc__stat b { color: var(--text-strong); }
+.qc__legend { display: flex; gap: 14px; margin: 0; padding: 0; list-style: none; font-size: .85rem; color: var(--text-muted); }
+.qc__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.qc__sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.qc__sw--mk { background: linear-gradient(#e2bd82, #a8773f); }
+.qc__sw--md { background: linear-gradient(#6f8fdc, #34509c); }
+
+/* Səhnə: sabit səma (hilal, ulduzlar) + içində sürüşən şəhər */
+.qc__stage {
+  position: relative; overflow: hidden; border-radius: 16px; min-width: 0;
+  background: linear-gradient(180deg, #070b1f 0%, #121a3d 62%, #2a2350 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+}
+.qc__sky { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.qc__star { fill: #fff6dc; opacity: .75; }
+.qc__moon { fill: #ffe3a3; }
+
+.qc__scroll {
+  position: relative; z-index: 1; overflow-x: auto; overflow-y: hidden; max-width: 100%;
+  overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: rgba(255, 230, 180, .35) transparent;
+  -webkit-overflow-scrolling: touch; -webkit-tap-highlight-color: transparent; cursor: grab;
+}
+.qc__scroll:active { cursor: grabbing; }
+.qc__svg {
+  --qc-h: clamp(240px, 52vw, 360px);
+  display: block; height: var(--qc-h); width: calc(var(--qc-h) * var(--qc-ar, 8)); max-width: none;
+  user-select: none; -webkit-user-select: none;
+}
+.qc__ground { fill: #0b0f24; }
+
+.qc__t { cursor: pointer; outline: none; }
+.qc__hit { fill: transparent; }
+.qc__body { transition: filter .2s; }
+.qc__win, .qc__door { pointer-events: none; }
+.qc__wt { fill: rgba(255, 240, 210, .07); }
+.qc__wt--on { fill: #ffd889; }
+.qc__door { fill: rgba(8, 10, 28, .75); }
+.qc__t:hover .qc__body { filter: brightness(1.18); }
+.qc__t.is-sel .qc__body, .qc__t:focus-visible .qc__body { stroke: #ffe3a3; stroke-width: 2; }
+.qc__t:focus-visible .qc__hit { stroke: #ffe3a3; stroke-width: 1; stroke-dasharray: 3 2; }
+
+/* Binaların qalxması (bir dəfə) və ulduz parıltısı — yalnız hərəkət icazəlidirsə */
+.qc.is-wait:not(.is-still) .qc__t { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qc.is-in:not(.is-still) .qc__t {
+    transform-box: fill-box; transform-origin: 50% 100%;
+    animation: qc-rise .8s cubic-bezier(.2, .8, .3, 1) var(--d, 0ms) both;
+  }
+  html:not(.a11y-reduce-motion):not(.a11y-motion-user) .qc:not(.is-still) .qc__star--tw {
+    animation: qc-tw 3.2s ease-in-out infinite alternate;
+  }
+}
+@keyframes qc-rise { from { transform: scaleY(.05); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes qc-tw { from { opacity: .2; } to { opacity: .95; } }
+
+.qc__hint { margin: 0; font-size: .82rem; color: var(--text-muted); }
+
+/* Kart */
+.qc__card {
+  display: grid; gap: 10px; padding: 14px 16px; border-radius: 14px; max-width: 420px;
+  border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent);
+}
+.qc__card-head { display: flex; align-items: center; gap: 12px; }
+.qc__badge {
+  flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+  font-weight: 800; color: #fff;
+}
+.qc__badge--mk { background: linear-gradient(#c99d5e, #8c6131); }
+.qc__badge--md { background: linear-gradient(#5b7cca, #2c4488); }
+.qc__card-name { display: grid; min-width: 0; flex: 1; }
+.qc__card-name b { color: var(--text-strong); overflow-wrap: anywhere; }
+.qc__ar { font-family: var(--font-arabic, serif); font-size: 1.15rem; color: var(--text-muted); }
+.qc__x {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line, var(--border));
+  background: transparent; color: var(--text-muted); font-size: 1.3rem; line-height: 1; cursor: pointer;
+}
+.qc__x:hover { color: var(--text-strong); }
+.qc__facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.qc__facts div { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line, var(--border)); }
+.qc__facts dt { font-size: .75rem; color: var(--text-muted); }
+.qc__facts dd { margin: 2px 0 0; font-weight: 700; color: var(--text-strong); }
+.qc__status { margin: 0; font-size: .9rem; color: var(--text-muted); }
+.qc__status.is-lit { color: var(--text-strong); }
+.qc__status.is-lit::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-inline-end: 8px; border-radius: 2px; background: #ffd889; box-shadow: 0 0 6px #ffc85a; }
+.qc__card .ui-btn { justify-self: start; }
+
+.qc__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.qc__note { margin: 0; font-size: .8rem; color: var(--text-muted); }

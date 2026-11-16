@@ -23,6 +23,8 @@ const TracePractice = lazy(() => import('../components/trace/TracePractice'))
 const WuduOrder = lazy(() => import('../components/WuduOrder'))
 const QuranAnimals = lazy(() => import('../components/QuranAnimals'))
 const QuranPlants = lazy(() => import('../components/QuranPlants'))
+const LetterCatch = lazy(() => import('../components/LetterCatch'))
+const KCATCH = { az: 'Hərf tutma', en: 'Letter catch', ru: 'Лови буквы', tr: 'Harf yakalama', ar: 'التقط الحروف' }
 const KPLANTS = {
   az: { title: 'Quran bitkiləri', lead: 'Quranda adı çəkilən bitkilərin bağı — bitkiyə toxun, ayəni oxu.' },
   en: { title: 'Plants of the Quran', lead: 'A garden of the plants the Quran names — tap a plant to read its verse.' },
@@ -501,6 +503,7 @@ export default function KidsPage({ setPage }) {
     { key:'wudu', icon:'drop', title:pickUi(KWUDU, lang, 'en').title },
     { key:'animals', icon:'quran', title:pickUi(KANIMALS, lang, 'en').title },
     { key:'plants', icon:'leaf', title:pickUi(KPLANTS, lang, 'en').title },
+    { key:'catch', icon:'target', title:pickUi(KCATCH, lang, 'en') },
     { key:'card', icon:'gift', title:pickUi(KCARD, lang, 'en') },
     { key:'parents', icon:'jamaat', title:t.parentsTitle },
   ]
@@ -875,6 +878,15 @@ export default function KidsPage({ setPage }) {
               <SectionTitle />
               <Suspense fallback={<div className="ui-skeleton" style={{ height: 460 }} />}>
                 <QuranAnimals lang={lang} surahName={n => getSurahLocal(n, lang)?.name || String(n)} ayahHref={(s, a) => `${pathFor('quran', lang, s)}?a=${a}`} />
+              </Suspense>
+            </section>
+          )}
+
+          {openSection === 'catch' && (
+            <section className="kids-section" key="catch">
+              <SectionTitle />
+              <Suspense fallback={<div className="ui-skeleton" style={{ height: 460 }} />}>
+                <LetterCatch />
               </Suspense>
             </section>
           )}

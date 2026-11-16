@@ -1,0 +1,25 @@
+/* ══ Ayə yarışı (components/hifz/AyahRace.jsx) — /hifz ══ */
+.ar-race__lead { margin: 4px 0 14px; color: var(--text-muted); max-width: 62ch; }
+.ar-race__card { padding: clamp(14px, 3vw, 22px); display: grid; gap: 12px; }
+.ar-race__stats { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: .9rem; color: var(--text-muted); }
+.ar-race__stats b { color: var(--text, inherit); font-size: 1.05rem; margin-inline-start: 4px; }
+.ar-race__msg { margin: 0; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ar-race__go { justify-self: start; }
+.ar-race__bar { height: 8px; border-radius: 99px; background: var(--surface-1, #eee); overflow: hidden; }
+.ar-race__bar span { display: block; height: 100%; background: var(--accent); transform-origin: left center; transition: transform .1s linear; }
+[dir="rtl"] .ar-race__bar span { transform-origin: right center; }
+.ar-race__bar span.is-low { background: #c8553d; }
+.ar-race__from { margin: 0; font-size: .82rem; color: var(--text-muted); }
+.ar-race__line { margin: 0; min-height: 2.6em; display: flex; flex-wrap: wrap; gap: 6px 10px; font-family: 'Amiri', serif; font-size: clamp(1.4rem, 5vw, 1.9rem); line-height: 1.8; }
+.ar-race__placed { color: var(--accent-text, var(--accent)); }
+.ar-race__slot { color: var(--text-muted); }
+.ar-race__pool { display: flex; flex-wrap: wrap; gap: 8px; }
+.ar-race__w { font-family: 'Amiri', serif; font-size: clamp(1.25rem, 4.6vw, 1.6rem); padding: 6px 14px; border-radius: 14px; border: 1px solid var(--line, var(--border)); background: var(--surface-0, #fff); color: inherit; cursor: pointer; min-height: 44px; transition: transform .15s ease, opacity .2s ease; }
+.ar-race__w:hover { transform: translateY(-2px); }
+.ar-race__w.is-used { opacity: .25; cursor: default; transform: none; }
+.ar-race__w.is-shake { animation: ar-shake .35s ease; border-color: #c8553d; }
+@keyframes ar-shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.ar-race__end { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.ar-race__best { padding: 2px 10px; border-radius: 99px; background: color-mix(in srgb, #c9962e 22%, transparent); font-weight: 700; }
+.ar-race__note { margin: 0; font-size: .75rem; color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) { .ar-race__bar span, .ar-race__w { transition: none; } .ar-race__w.is-shake { animation: none; } }

@@ -1,0 +1,75 @@
+/* Səs heykəli — səs → xəttatlıq işıq lenti (components/VoiceRibbon.jsx) */
+.vr { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 10px; border-radius: 22px; min-width: 0; }
+.vr__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.vr__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+
+.vr__stage { position: relative; min-width: 0; margin-top: 6px; }
+.vr__canvas {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(233, 190, 98, 0.22);
+  /* vərəq həmişə qaranlıqdır (açıq temada da) — işıq lenti yalnız qaranlıqda parlayır */
+  background:
+    radial-gradient(ellipse at 55% 45%, rgba(64, 214, 200, 0.07), transparent 60%),
+    radial-gradient(ellipse at 50% 50%, #13203a 0%, #05080f 75%);
+  box-shadow: 0 14px 36px -20px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0, 0, 0, 0.5);
+}
+
+.vr__empty {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  margin: 0; padding: 16px;
+  text-align: center;
+  color: rgba(233, 210, 150, 0.7);
+  font-size: .95rem;
+  pointer-events: none;
+}
+
+.vr__badge {
+  position: absolute; top: 10px; inset-inline-end: 12px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: .75rem; font-weight: 600; letter-spacing: .03em;
+  color: #f4e7c6;
+  background: rgba(5, 8, 15, 0.6);
+  border: 1px solid rgba(233, 190, 98, 0.35);
+  pointer-events: none;
+}
+.vr__badge--demo { border-color: rgba(64, 214, 200, 0.4); }
+.vr__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #e9be62;
+  animation: vr-pulse 1.6s ease-in-out infinite;
+}
+.vr__badge--demo .vr__dot { background: #40d6c8; }
+@keyframes vr-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .35; transform: scale(.7); }
+}
+.vr__stage--still .vr__dot { animation: none; }
+@media (prefers-reduced-motion: reduce) { .vr__dot { animation: none; } }
+
+.vr__privacy {
+  margin: 4px 0 0;
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: .88rem; font-weight: 600;
+  color: var(--text);
+}
+.vr__privacy svg { flex: none; margin-top: 2px; color: var(--accent); }
+.vr__status { margin: 0; min-height: 1.3em; font-size: .85rem; color: var(--text-muted); }
+.vr__status:empty { display: none; }
+.vr__msg {
+  margin: 0; padding: 10px 14px;
+  border-radius: 12px;
+  font-size: .9rem;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.vr__btns { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.vr__btns .ui-btn { max-width: 100%; white-space: normal; }
+.vr__how { margin: 4px 0 0; font-size: .82rem; color: var(--text-muted); max-width: 80ch; }

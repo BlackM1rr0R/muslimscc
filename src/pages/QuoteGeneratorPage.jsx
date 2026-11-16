@@ -47,6 +47,8 @@ const PatternStudio = lazy(() => import('../components/quote/PatternStudio'))
 const CalligraphyComposer = lazy(() => import('../components/quote/CalligraphyComposer'))
 const StickerPack = lazy(() => import('../components/StickerPack'))
 const EbruCanvas = lazy(() => import('../components/EbruCanvas'))
+const IznikTile = lazy(() => import('../components/IznikTile'))
+const PhotoPattern = lazy(() => import('../components/PhotoPattern'))
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
@@ -675,6 +677,18 @@ export default function QuoteGeneratorPage() {
       <DeferRender height="900px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 900 }} />}>
           <section className="ui-section ui-section--tight ui-section--alt"><div className="ui-container"><EbruCanvas /></div></section>
+        </Suspense>
+      </DeferRender>
+
+      <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 900 }} />}>
+          <section className="ui-section ui-section--tight"><div className="ui-container"><IznikTile /></div></section>
+        </Suspense>
+      </DeferRender>
+
+      <DeferRender height="820px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 820 }} />}>
+          <section className="ui-section ui-section--tight ui-section--alt"><div className="ui-container"><PhotoPattern /></div></section>
         </Suspense>
       </DeferRender>
     </>

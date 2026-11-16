@@ -39,3 +39,18 @@
 .rqb__list li.is-over { border-inline-start: 4px solid #f0a93a; }
 .rqb__list li.is-under { border-inline-start: 4px solid #3578c2; }
 .rqb__note { margin: 0; font-size: .84rem; color: var(--text-muted); line-height: 1.5; }
+
+/* Dünyada kölgələr + təqvim (components/RasdWorld.jsx) */
+.rqw { margin-top: 18px; display: grid; gap: 8px; }
+.rqw__lead { margin: 0; color: var(--text-muted); font-size: .9rem; }
+.rqw__map { width: 100%; height: auto; display: block; border-radius: 14px; background: color-mix(in srgb, #2e6fa8 10%, var(--surface-1, #f6f6f2)); border: 1px solid var(--line, var(--border)); }
+.rqw__land { fill: color-mix(in srgb, var(--text-muted) 22%, transparent); }
+.rqw__target { fill: #c9962e; stroke: var(--surface-0, #fff); stroke-width: 2; }
+.rqw__night { fill: color-mix(in srgb, var(--text-muted) 55%, transparent); }
+.rqw__stick { fill: var(--accent); }
+.rqw__shadow { stroke: #3a3020; stroke-width: 2; stroke-linecap: round; }
+[data-theme="dark"] .rqw__shadow { stroke: #e9dcc0; }
+.rqw__head { fill: #3a3020; }
+[data-theme="dark"] .rqw__head { fill: #e9dcc0; }
+.rqw__cal { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.rqw__cal small { color: var(--text-muted); }
