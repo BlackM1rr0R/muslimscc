@@ -246,6 +246,10 @@ function HeartIcon({ filled }) {
 
 // Kartın bütün id-ləri (birləşdirilmiş dublikatda həm Firebase, həm yerli id)
 const idsOf = (h) => h._ids || [h.id]
+// Saytın öz (rəqəmli) id-si: admin panelindən gələn surət yerli hədislə birləşəndə
+// kartın id-si Firestore id-si olur, yerli id isə _ids-dədir. Tam mətn, ravi,
+// şərh, /hadith/<id> səhifəsi və kart generatoru yerli id ilə işləyir.
+const siteIdOf = (h) => idsOf(h).find(x => typeof x === 'number' || /^\d+$/.test(String(x))) ?? null
 
 // Say + isim uzlaşması: ru "1 хадис · 3 хадиса · 5 хадисов",
 // ar "حديث واحد · حديثان · 3 أحاديث · 11 حديثًا", en "1 hadith · 2 hadiths".
@@ -304,17 +308,18 @@ const FOCUS_ALL = { az: 'Bütün hədislər', en: 'All hadith', ru: 'Все ха
 
 const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggleFav, onShare, onOpenFull, lang, index }) {
   const fu = pickUi(FULL_T, lang, 'en')
-  const narr = narratorParts(hadith.id, lang)
+  const sid = siteIdOf(hadith)
+  const narr = sid != null ? narratorParts(sid, lang) : []
   const nav = useNavigate()
-  const full = onOpenFull && hasFull(hadith.id)
+  const full = onOpenFull && sid != null && hasFull(sid)
   // v6.9: rəsmi şərhi olan hədis — kart 3D çevrilir, arxa üzdə şərh (HadeethEnc, az)
-  const canFlip = lang === 'az' && HADITH_HE_EXPL.has(Number(hadith.id))
+  const canFlip = lang === 'az' && sid != null && HADITH_HE_EXPL.has(Number(sid))
   const [flip, setFlip] = useState(false)
   const [expl, setExpl] = useState(null)
   const doFlip = () => {
     setFlip(f => !f)
     if (!expl) {
-      fetch(`/data/hadith-full/${hadith.id}.json`).then(r => (r.ok ? r.json() : null))
+      fetch(`/data/hadith-full/${sid}.json`).then(r => (r.ok ? r.json() : null))
         .then(d => setExpl(d?.he?.x ? { x: d.he.x, id: d.he.id } : { x: '' })).catch(() => setExpl({ x: '' }))
     }
   }
@@ -352,7 +357,7 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
             <Icon name="share" size={19} />
           </button>
           {/* v6.9: hədis — şəkil / animasiyalı video (Story) kimi: sitat kartı generatoru */}
-          <ShareCardButton hadith={hadith.id} fmt="story" variant="icon" className="hadith-story-btn" />
+          {sid != null && <ShareCardButton hadith={sid} fmt="story" variant="icon" className="hadith-story-btn" />}
           <ReportErrorButton compact kind="hadith" refText={`${source || ''} #${displayNum}`.trim()} className="hadith-report-btn" />
         </div>
       </div>
@@ -375,7 +380,7 @@ const HadithCard = memo(function HadithCard({ hadith, displayNum, isFav, onToggl
       {(full || canFlip) && (
         <div className="hadith-btns">
           {full && (
-            <button type="button" className="hadith-full-btn" onClick={() => onOpenFull(hadith.id)} data-testid="hadith-full-btn">
+            <button type="button" className="hadith-full-btn" onClick={() => onOpenFull(sid)} data-testid="hadith-full-btn">
               <Icon name="hadithbooks" size={16} /> {fu.full}
             </button>
           )}
@@ -725,7 +730,7 @@ export default function HadithPage({ setPage }) {
   // Tam mətn pəncərəsi: əvvəlki/növbəti — görünən siyahıda tam mətni olanlar
   const [fullId, setFullId] = useState(null)
   const openFull = useCallback((id) => setFullId(id), [])
-  const fullNav = useMemo(() => visible.filter(h => hasFull(h.id)).map(h => h.id), [visible])
+  const fullNav = useMemo(() => visible.map(siteIdOf).filter(id => id != null && hasFull(id)), [visible])
   const fullIdx = fullNav.indexOf(fullId)
   // v6.9: sevimliləri əzbərləmə (Leitner) — yalnız "Sevimlilər" görünəndə
   const [memOpen, setMemOpen] = useState(false)
@@ -735,7 +740,7 @@ export default function HadithPage({ setPage }) {
   // v6.8: /hadith/<id> — həmin hədis siyahının üstündə ayrıca (statik SEO səhifəsi ilə eyni məzmun)
   const routeLoc = useLocation()
   const focusId = parsePath(routeLoc.pathname).param
-  const focus = useMemo(() => (focusId ? list.find(h => String(h.id) === String(focusId)) : null), [focusId, list])
+  const focus = useMemo(() => (focusId ? list.find(h => idsOf(h).some(id => String(id) === String(focusId))) : null), [focusId, list])
 
   const countText = hadithCount(filtered.length, lang)
 
@@ -823,7 +828,7 @@ export default function HadithPage({ setPage }) {
               hər hərfdə bütün kartlar yenidən oynamasın. */}
           {focus && (
             <div className="hadith-focus" data-testid="hadith-focus">
-              <HadithCard hadith={focus} lang={lang} index={0} displayNum={focus.id} isFav={isFav(focus)} onToggleFav={toggleFav} onShare={shareHadith} onOpenFull={openFull} />
+              <HadithCard hadith={focus} lang={lang} index={0} displayNum={siteIdOf(focus) ?? focus.id} isFav={isFav(focus)} onToggleFav={toggleFav} onShare={shareHadith} onOpenFull={openFull} />
               <a className="ui-link hadith-focus__all" href={pathFor('hadith', lang)} onClick={(e) => { if (isPlainClick(e) && setPage) { e.preventDefault(); setPage('hadith') } }}>
                 {pickUi(FOCUS_ALL, lang)} <Icon name="arrow" size={14} className="ui-link__arrow ui-flip-rtl" />
               </a>

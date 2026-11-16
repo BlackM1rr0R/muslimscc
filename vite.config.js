@@ -141,6 +141,12 @@ function versionFilePlugin() {
   }
 }
 
+const driveUpper = (p) => p.replace(/^[a-z]:/, (d) => d.toUpperCase())
+// Windows: proses "c:\…" qovluğunda başlayanda bəzi modul id-ləri "c:/…", bəziləri
+// "C:/…" olur → eyni fayl iki modul (React, LangContext, push.js…) — sayt açılmır.
+// Cari qovluq böyük disk hərfinə gətirilir (Linux/CI-ə təsiri yoxdur).
+if (process.platform === 'win32' && /^[a-z]:/.test(process.cwd())) process.chdir(driveUpper(process.cwd()))
+
 export default defineConfig({
   plugins: [uiDictPlugin(), react(), dailyPoolsPlugin(), hadithLangPlugin(), nawawiHomePlugin(), versionFilePlugin()],
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
@@ -148,9 +154,12 @@ export default defineConfig({
   // Yalnız bir React nüsxəsi olsun deyə
   resolve: {
     dedupe: ['react', 'react-dom'],
+    // Windows: cari qovluq "c:\…" (kiçik hərflə) olanda alias "c:/…/react", react-dom-un
+    // öz require('react')-i isə "C:/…/react" olur → bundla React-ın İKİ nüsxəsi düşür
+    // (2026-11-16: "Cannot read properties of null (reading 'useRef')"). Disk hərfi böyük.
     alias: {
-      react: path.resolve('./node_modules/react'),
-      'react-dom': path.resolve('./node_modules/react-dom'),
+      react: driveUpper(path.resolve('./node_modules/react')),
+      'react-dom': driveUpper(path.resolve('./node_modules/react-dom')),
     },
   },
 

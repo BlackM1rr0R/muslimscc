@@ -158,7 +158,8 @@ export default function MosqueBuilder3D({ lang = 'az' }) {
       camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix()
       render()
     }
-    let p = 0
+    // Başlanğıcda bünövrə artıq görünür (səhnə boş qalmasın)
+    let p = 0.8
     const render = () => {
       // p: 0 … STEPS.length (sürüşmə)
       groups.forEach((g, i) => {
@@ -183,7 +184,7 @@ export default function MosqueBuilder3D({ lang = 'az' }) {
         const r = sec.getBoundingClientRect()
         const total = r.height - window.innerHeight
         const prog = Math.max(0, Math.min(1, -r.top / Math.max(1, total)))
-        p = prog * (STEPS.length + 0.4)
+        p = 0.8 + prog * (STEPS.length - 0.4)
         setStep(Math.min(STEPS.length - 1, Math.floor(p)))
         render()
       })

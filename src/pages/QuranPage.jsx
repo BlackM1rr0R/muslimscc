@@ -1481,7 +1481,7 @@ export default function QuranPage() {
               <Icon name="eye" size={16} /><span className="ctrl-memo__label">{xl.memorize}</span>
             </button>
             {/* v6.9: sakit fon səsi (yağış, külək, dəniz, gecə — cihazda sintez) */}
-            <AmbientSound lang={lang} className="qp-amb" />
+            <AmbientSound lang={lang} className="qp-amb" variant="ctrl" />
             {/* dir="ltr": ərəbcədə "A−" bidi qaydası ilə "−A" kimi görünürdü.
                 Həddə çatanda düymə söndürülür (əvvəl basılırdı, heç nə olmurdu) */}
             {/* Əlçatan ad görünən yazını da daşıyır (WCAG 2.5.3 "Label in Name" —

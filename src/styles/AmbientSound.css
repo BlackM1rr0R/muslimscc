@@ -1,5 +1,6 @@
 /* Sakit fon səsi (components/AmbientSound.jsx) */
-.amb { position: relative; display: inline-flex; }
+.amb { position: relative; display: inline-flex; flex: none; }
+.amb__chip { white-space: nowrap; flex-shrink: 0; }
 .amb__eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
 .amb__eq i { width: 3px; height: 5px; border-radius: 2px; background: currentColor; opacity: .7; transform-origin: bottom; }
 .amb__chip.is-on .amb__eq i { opacity: 1; }
@@ -10,7 +11,7 @@
 }
 @keyframes amb-eq { from { transform: scaleY(.3); } to { transform: scaleY(1); } }
 .amb__panel {
-  position: absolute; z-index: 30; top: calc(100% + 8px); inset-inline-start: 0; width: min(300px, 86vw);
+  position: fixed; z-index: 1200; top: var(--amb-top, 120px); left: var(--amb-left, 12px); width: var(--amb-w, 300px);
   display: grid; gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid var(--line, var(--border));
   background: var(--surface-1, #fff); box-shadow: var(--shadow-3, 0 10px 30px rgba(0,0,0,.15));
 }
@@ -24,3 +25,8 @@
 .amb__vol { display: grid; gap: 4px; font-size: .85rem; color: var(--text-muted); }
 .amb__vol input { width: 100%; accent-color: var(--accent); }
 .amb__note { margin: 0; font-size: .78rem; color: var(--text-muted); }
+
+/* Telefon: aşağıdan vərəq (alt panellərin / pleyerin üstündə) */
+@media (max-width: 640px) {
+  .amb__panel { top: auto; left: 12px; right: 12px; width: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); box-shadow: 0 -8px 40px rgba(0, 0, 0, .25); }
+}

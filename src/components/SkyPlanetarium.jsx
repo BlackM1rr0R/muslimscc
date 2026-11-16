@@ -168,21 +168,33 @@ export default function SkyPlanetarium({ lang = 'az' }) {
       g.fillStyle = `rgba(231,199,125,${0.85 * starAlpha})`
       g.fillText(label, lx, ly)
     }
-    // Günəş, Ay, planetlər
+    // Günəş, Ay, planetlər — əvvəl bütün diskləri çək (yazılar onların üstünə düşməsin), sonra yazılar
+    const shown = []
     for (const b of sky.bodies) {
       if (b.alt < -1) continue
       const q = P(b.alt, b.az)
       if (!q) continue
-      const B = BODY[b.id]
+      const B = BODY[b.id], r = B.r * Math.sqrt(zoom)
       g.save()
       g.shadowColor = B.c; g.shadowBlur = b.id === 'sun' ? 30 : 12
       g.fillStyle = B.c
-      g.beginPath(); g.arc(q[0], q[1], B.r * Math.sqrt(zoom), 0, Math.PI * 2); g.fill()
+      g.beginPath(); g.arc(q[0], q[1], r, 0, Math.PI * 2); g.fill()
       g.restore()
-      g.fillStyle = '#fff'
-      g.font = '700 12px Inter, system-ui, sans-serif'
-      g.fillText(B[lang] || B.en, q[0] + B.r + 5, q[1] + 4)
+      boxes.push([q[0] - r - 2, q[1] + r + 2, r * 2 + 4, r * 2 + 4])
+      shown.push({ b, q, B })
       hit.push({ kind: 'body', id: b.id, x: q[0], y: q[1] })
+    }
+    g.fillStyle = '#fff'
+    g.font = '700 12px Inter, system-ui, sans-serif'
+    for (const { q, B } of shown) {
+      const lab = B[lang] || B.en, lw = g.measureText(lab).width
+      const lx = q[0] + B.r + 5
+      let ly = q[1] + 4
+      // Yaxın cisimlər (Merkuri / Venera): yazı tutulubsa aşağı sürüşür
+      const hits = (y) => boxes.some(bx => lx < bx[0] + bx[2] && lx + lw > bx[0] && y - 12 < bx[1] && y > bx[1] - (bx[3] || 12))
+      for (let k = 0; k < 4 && hits(ly); k++) ly += 15
+      boxes.push([lx, ly, lw])
+      g.fillText(lab, lx, ly)
     }
     // Yer (üfüqdən aşağı)
     g.beginPath()
@@ -197,8 +209,9 @@ export default function SkyPlanetarium({ lang = 'az' }) {
     for (let az = 0; az < 360; az += 2) {
       const a = P(0, az), b = P(0, az + 2), c2 = P(-40, az + 2), d = P(-40, az)
       if (!a || !b || !c2 || !d) continue
-      g.fillStyle = 'rgba(10,22,18,.92)'
-      g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineTo(c2[0], c2[1]); g.lineTo(d[0], d[1]); g.closePath(); g.fill()
+      // Qonşu dördbucaqlılar arasında antialias xətti qalmasın — eyni rənglə həm də cızılır
+      g.fillStyle = 'rgb(11,22,19)'; g.strokeStyle = 'rgb(11,22,19)'; g.lineWidth = 1.2
+      g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineTo(c2[0], c2[1]); g.lineTo(d[0], d[1]); g.closePath(); g.fill(); g.stroke()
     }
     // İstiqamətlər və qiblə
     g.font = '700 13px Inter, system-ui, sans-serif'
