@@ -13,6 +13,7 @@ const SpreadTimeline = lazy(() => import('../components/media/SpreadTimeline'))
 const IslamicScience = lazy(() => import('../components/IslamicScience'))
 const IsraJourney = lazy(() => import('../components/IsraJourney'))
 const Astrolabe = lazy(() => import('../components/Astrolabe'))
+const ElephantClock = lazy(() => import('../components/ElephantClock'))
 // v5.9: Hicrət yolu 3D (three.js — ayrıca chunk, bölməyə yaxınlaşanda)
 const HijraJourney3D = lazy(() => import('../components/media/HijraJourney3D'))
 // v5.9: Quranda adı keçən yerlər xəritəsi (peyğəmbərlər bölməsində)
@@ -452,6 +453,12 @@ export default function IslamicHistoryPage() {
           <DeferRender height="900px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
               <Astrolabe lang={lang} />
+            </Suspense>
+          </DeferRender>
+          {/* v7.0: əl-Cəzərinin fil saatı (1206) — real vaxtla işləyən mexanizm */}
+          <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
+              <ElephantClock lang={lang} />
             </Suspense>
           </DeferRender>
           <h3 className="history-places-title">{M.places}</h3>

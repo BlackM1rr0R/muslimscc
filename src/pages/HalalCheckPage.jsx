@@ -13,6 +13,7 @@ import '../styles/HalalCheckPage.css'
 import Swap from '../components/pagefx/Swap'
 import PressedGlide from '../components/pagefx/PressedGlide'
 import { pickUi } from '../utils/uiText'
+import HalalPlaces from '../components/HalalPlaces'
 
 /* ══════════════════════════════════════════════════════════════════
    HALAL QİDA YOXLAMASI — /halal-check
@@ -52,7 +53,7 @@ const LABELS = {
     ],
     eyebrow: 'Halal qida', title: 'Halal qida yoxlaması',
     lead: 'E-kodları (qida əlavələrini) və məhsulun ştrixkodunu yoxlayın: əlavənin mənşəyi barədə açıq məlumat, tərkib və fiqhi izah — dəlilləri ilə.',
-    jump: { codes: 'E-kodlar', barcode: 'Ştrixkod', fiqh: 'Fiqhi izah', sources: 'Mənbələr' },
+    jump: { codes: 'E-kodlar', barcode: 'Ştrixkod', places: 'Halal yerlər', fiqh: 'Fiqhi izah', sources: 'Mənbələr' },
     discTitle: 'Bu, halal sertifikatı deyil',
     // lang-ok[istehsalçılarda]: az dilinin öz sözləri (istehsalçı, vegetarian, kamera, mineral, konservant, konkret)
     disc: `Bu səhifə heç bir məhsul və ya əlavə üçün halal/haram hökmü vermir. Qruplar yalnız ${OFF} məlumat bazasının mənşə barədə faktlarından qurulub; bu məlumat səhv və ya natamam ola bilər, eyni E-kod müxtəlif istehsalçılarda müxtəlif mənbədən alına bilər. Qərar vermək üçün halal sertifikatlaşdırma qurumlarına, istehsalçıya və alimlərə müraciət edin.`,
@@ -117,7 +118,7 @@ const LABELS = {
     ],
     eyebrow: 'Halal food', title: 'Halal food check',
     lead: 'Check E-numbers (food additives) and product barcodes: open data on where an additive comes from, the ingredients, and a fiqh guide with its evidence.',
-    jump: { codes: 'E-numbers', barcode: 'Barcode', fiqh: 'Fiqh guide', sources: 'Sources' },
+    jump: { codes: 'E-numbers', barcode: 'Barcode', places: 'Halal places', fiqh: 'Fiqh guide', sources: 'Sources' },
     discTitle: 'This is not a halal certification',
     disc: `This page gives no halal/haram ruling on any product or additive. The groups are built only from the origin facts in the ${OFF} database; that data may be wrong or incomplete, and the same E-number can come from different sources at different manufacturers. For a decision, ask halal certification bodies, the manufacturer and scholars.`,
     codesTitle: 'E-number checker',
@@ -177,7 +178,7 @@ const LABELS = {
     ],
     eyebrow: 'Халяльная еда', title: 'Проверка продуктов на халяль',
     lead: 'Проверьте Е-коды (пищевые добавки) и штрихкод продукта: открытые данные о происхождении добавки, состав и фикх-пояснение с доводами.',
-    jump: { codes: 'Е-коды', barcode: 'Штрихкод', fiqh: 'Фикх', sources: 'Источники' },
+    jump: { codes: 'Е-коды', barcode: 'Штрихкод', places: 'Халяль-места', fiqh: 'Фикх', sources: 'Источники' },
     discTitle: 'Это не халяль-сертификат',
     disc: `Эта страница не выносит решения «халяль/харам» ни по одному продукту или добавке. Группы построены только на фактах о происхождении из базы ${OFF}; эти данные могут быть ошибочными или неполными, а один и тот же Е-код у разных производителей может иметь разное происхождение. За решением обращайтесь в органы халяль-сертификации, к производителю и к учёным.`,
     codesTitle: 'Проверка Е-кодов',
@@ -237,7 +238,7 @@ const LABELS = {
     ],
     eyebrow: 'الطعام الحلال', title: 'فحص الأطعمة الحلال',
     lead: 'افحص رموز E (المضافات الغذائية) والرمز الشريطي للمنتج: بيانات مفتوحة عن أصل المضاف، والمكوّنات، وبيان فقهي بأدلته.',
-    jump: { codes: 'رموز E', barcode: 'الرمز الشريطي', fiqh: 'البيان الفقهي', sources: 'المصادر' },
+    jump: { codes: 'رموز E', barcode: 'الرمز الشريطي', places: 'أماكن حلال', fiqh: 'البيان الفقهي', sources: 'المصادر' },
     discTitle: 'هذه ليست شهادة حلال',
     disc: `لا تُصدر هذه الصفحة حكمًا بالحل أو الحرمة على أي منتج أو مضاف. بُنيت المجموعات فقط من معلومات الأصل في قاعدة بيانات ${OFF}، وقد تكون خاطئة أو ناقصة، وقد يُستخرج رمز E الواحد من مصادر مختلفة عند مصنّعين مختلفين. وللحكم ارجع إلى جهات اعتماد الحلال والشركة المصنّعة وأهل العلم.`,
     codesTitle: 'فاحص رموز E',
@@ -297,7 +298,7 @@ const LABELS = {
     ],
     eyebrow: 'Helal gıda', title: 'Helal gıda kontrolü',
     lead: 'E-kodlarını (gıda katkı maddelerini) ve ürün barkodunu kontrol edin: katkının kaynağına dair açık veri, içindekiler ve delilleriyle fıkhî açıklama.',
-    jump: { codes: 'E-kodları', barcode: 'Barkod', fiqh: 'Fıkhî açıklama', sources: 'Kaynaklar' },
+    jump: { codes: 'E-kodları', barcode: 'Barkod', places: 'Helal yerler', fiqh: 'Fıkhî açıklama', sources: 'Kaynaklar' },
     discTitle: 'Bu bir helal sertifikası değildir',
     disc: `Bu sayfa hiçbir ürün veya katkı maddesi için helal/haram hükmü vermez. Gruplar yalnızca ${OFF} veri tabanındaki kaynak bilgilerinden oluşturulmuştur; bu veriler hatalı veya eksik olabilir ve aynı E-kodu farklı üreticilerde farklı kaynaktan elde edilebilir. Karar için helal sertifika kuruluşlarına, üreticiye ve âlimlere başvurun.`,
     codesTitle: 'E-kodu sorgulama',
@@ -1264,7 +1265,7 @@ export default function HalalCheckPage() {
             </ul>
           )}
           <nav className="hc-jump" aria-label={L.title}>
-            {['codes', 'barcode', 'fiqh', 'sources'].map((k) => (
+            {['codes', 'barcode', 'places', 'fiqh', 'sources'].map((k) => (
               <a key={k} className="ui-chip" href={`#hc-${k}`}>{L.jump[k]}</a>
             ))}
           </nav>
@@ -1283,6 +1284,7 @@ export default function HalalCheckPage() {
 
       <ECodeSection data={data} status={status} retry={() => setAttempt((a) => a + 1)} lang={lang} L={L} />
       <BarcodeSection data={data} lang={lang} L={L} />
+      <HalalPlaces />
       <OverviewSection data={data} lang={lang} L={L} />
       <FiqhSection data={data} lang={lang} L={L} />
 

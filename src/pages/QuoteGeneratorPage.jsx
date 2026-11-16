@@ -45,6 +45,8 @@ import DeferRender from '../components/DeferRender'
 // v5.9: İslam həndəsi naxışı — divar kağızı (bölməyə yaxınlaşanda)
 const PatternStudio = lazy(() => import('../components/quote/PatternStudio'))
 const CalligraphyComposer = lazy(() => import('../components/quote/CalligraphyComposer'))
+const StickerPack = lazy(() => import('../components/StickerPack'))
+const EbruCanvas = lazy(() => import('../components/EbruCanvas'))
 import Icon from '../components/Icon'
 import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
@@ -661,6 +663,18 @@ export default function QuoteGeneratorPage() {
       <DeferRender height="720px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 720 }} />}>
           <CalligraphyComposer lang={lang} />
+        </Suspense>
+      </DeferRender>
+
+      <DeferRender height="760px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 760 }} />}>
+          <StickerPack />
+        </Suspense>
+      </DeferRender>
+
+      <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 900 }} />}>
+          <section className="ui-section ui-section--tight ui-section--alt"><div className="ui-container"><EbruCanvas /></div></section>
         </Suspense>
       </DeferRender>
     </>

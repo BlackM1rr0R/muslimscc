@@ -1,0 +1,21 @@
+/* ══ Stikerlər (components/StickerPack.jsx) — /quotes ══ */
+.stk-lead { margin: 4px 0 14px; color: var(--text-muted); max-width: 62ch; }
+.stk-controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-bottom: 16px; }
+.stk-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.stk-group__l { font-size: .8rem; font-weight: 700; color: var(--text-muted); margin-inline-end: 2px; }
+.stk-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-inline-end: 6px; vertical-align: -1px; }
+.stk-toggle { display: inline-flex; gap: 6px; align-items: center; font-size: .9rem; }
+.stk-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(140px, 40vw), 1fr)); gap: 14px; }
+.stk-item { display: grid; gap: 6px; justify-items: center; }
+.stk-face { all: unset; cursor: pointer; display: block; width: 100%; border-radius: 18px; padding: 6px; box-sizing: border-box;
+  background: repeating-conic-gradient(color-mix(in srgb, var(--text-muted) 8%, transparent) 0 25%, transparent 0 50%) 50% / 18px 18px;
+  transition: transform .2s ease; }
+.stk-face:hover { transform: translateY(-2px) rotate(-1.5deg); }
+.stk-face:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.stk-canvas { width: 100%; height: auto; aspect-ratio: 1; display: block; }
+.stk-acts { display: flex; gap: 6px; }
+.stk-foot { margin-top: 16px; }
+.stk-how { margin-top: 12px; font-size: .9rem; }
+.stk-how summary { cursor: pointer; font-weight: 700; }
+.stk-how ol { margin: 8px 0 0; padding-inline-start: 20px; display: grid; gap: 4px; line-height: 1.55; }
+@media (prefers-reduced-motion: reduce) { .stk-face, .stk-face:hover { transition: none; transform: none; } }

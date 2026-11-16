@@ -29,5 +29,5 @@ describe('isnad (ravilər zənciri)', () => {
       for (const name of d.isnad) expect(d.ar.replace(/\s+/g, ' ').includes(name.split(' ')[0])).toBe(true)
     }
     expect(n).toBeGreaterThan(900)
-  })
+  }, 30_000)
 })

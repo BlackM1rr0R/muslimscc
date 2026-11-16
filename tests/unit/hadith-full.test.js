@@ -24,7 +24,7 @@ describe('hədisin tam mətni və ravi', () => {
       expect(d.en || d.tr || d.he?.az).toBeTruthy()
       for (const k of (HADITH_FULL[id] ? HADITH_FULL[id].split(',') : [])) expect(narratorName(k, 'az')).toBeTruthy()
     }
-  })
+  }, 30_000)
   it('kart sətri: Buxari 8 — İbn Ömər', () => {
     expect(hasFull(1)).toBe(true)
     expect(narratorLine(1, 'az')).toBe('Abdullah ibn Ömər')

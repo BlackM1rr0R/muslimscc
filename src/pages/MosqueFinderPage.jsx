@@ -15,6 +15,7 @@ import '../styles/LessonsPage.css'
 import '../styles/MosqueFinderPage.css'
 import Breadcrumb from '../components/Breadcrumb'
 import MosqueRadar, { walkMinutes } from '../components/MosqueRadar'
+import { overpass, haversine, formatDistance } from '../utils/osmQuery'
 import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
 import { pickUi } from '../utils/uiText'
 import ShineButton from '../motion/ShineButton'
@@ -124,47 +125,6 @@ const V3 = {
   ru: { privacy: 'Ваше местоположение не хранится на нашем сервере — только координаты отправляются в поисковый сервис OpenStreetMap для поиска мечетей.', km: '10 км', radius: 'радиус поиска', osm: 'открытые картографические данные', steps: ['Разрешите геолокацию (или выберите город)', 'Мечети в радиусе 10 км сортируются по расстоянию', 'Нажмите на строку — маршрут откроется на карте'] },
   ar: { privacy: 'لا يُحفظ موقعك على خادمنا، وإنما تُرسل الإحداثيات فقط إلى خدمة البحث في OpenStreetMap للبحث عن المساجد.', km: '١٠ كم', radius: 'نطاق البحث', osm: 'بيانات خرائط مفتوحة', steps: ['اسمح بالموقع (أو اختر مدينتك)', 'تُرتّب المساجد ضمن ١٠ كم حسب المسافة', 'اضغط على السطر لتفتح الاتجاهات في الخريطة'] },
   tr: { privacy: 'Konumunuz sunucumuzda saklanmaz — camileri bulmak için yalnızca koordinatlar OpenStreetMap’in arama hizmetine gönderilir.', km: '10 km', radius: 'arama yarıçapı', osm: 'açık harita verisi', steps: ['Konum izni verin (veya şehrinizi seçin)', '10 km içindeki camiler mesafeye göre sıralanır', 'Satıra dokunun — yol tarifi haritada açılır'] },
-}
-
-// Overpass serverləri: əsas server cavab verməsə (yüklənmə, 406/429) ehtiyat güzgü
-const OVERPASS_URLS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
-const OVERPASS_TIMEOUT_MS = 15000
-
-/** Sorğunu növbə ilə serverlərə göndər; ilk uğurlu JSON cavabı qaytar. */
-async function overpass(query) {
-  let lastErr = null
-  for (const url of OVERPASS_URLS) {
-    const ctrl = new AbortController()
-    const timer = setTimeout(() => ctrl.abort(), OVERPASS_TIMEOUT_MS)
-    try {
-      const res = await fetch(`${url}?data=${encodeURIComponent(query)}`, { signal: ctrl.signal })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      return await res.json()
-    } catch (e) {
-      lastErr = e
-    } finally {
-      clearTimeout(timer)
-    }
-  }
-  throw lastErr || new Error('overpass')
-}
-
-// ── Haversine distance (km) ──
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371
-  const toRad = (v) => (v * Math.PI) / 180
-  const dLat = toRad(lat2 - lat1)
-  const dLon = toRad(lon2 - lon1)
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2)
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
-function formatDistance(km) {
-  if (km < 1) return `${Math.round(km * 1000)} m`
-  return `${km.toFixed(1)} km`
 }
 
 export default function MosqueFinderPage({ setPage }) {

@@ -403,6 +403,7 @@ const isPlainClick = (e) => !e.defaultPrevented && e.button === 0 && !e.metaKey 
 const QiyamMode = lazy(() => import('../components/prayer/QiyamMode'))
 const AdhanWave = lazy(() => import('../components/prayer/AdhanWave'))
 const YearPrayerChart = lazy(() => import('../components/prayer/YearPrayerChart'))
+const MashrabiyaLight = lazy(() => import('../components/MashrabiyaLight'))
 const AsrShadow = lazy(() => import('../components/prayer/AsrShadow'))
 const PrayerNumbers = lazy(() => import('../components/numbers/PrayerNumbers'))
 const QY = {
@@ -898,6 +899,12 @@ export default function PrayerPage({ setPage }) {
                 <StatTile icon="duas" label={P(V3.third)} value={minToHM(lastThird)} hint={P(V3.thirdHint)} tone="brand" />
               </div>
             )}
+            {/* v7.0: məşrəbiyyədən düşən günəş işığı — namaz vaxtları günəşin yeri ilə */}
+            <DeferRender height="720px" idle={false} rootMargin="400px 0px">
+              <Suspense fallback={<div style={{ minHeight: 720 }} />}>
+                <MashrabiyaLight />
+              </Suspense>
+            </DeferRender>
             {/* Gecə namazı (Qiyam) — son üçdə birə / sübhə qədər; tam ekran rejim */}
             {qiyam && (
               <div className={`ui-card pp-qiyam${qiyam.phase === 'in' ? ' is-in' : ''}`} data-testid="qiyam-card">

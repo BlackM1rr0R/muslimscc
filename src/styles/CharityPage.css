@@ -289,3 +289,15 @@
   html.qm-reveal-on:not(.a11y-reduce-motion) .ch-type-btn[aria-pressed="true"] svg { animation: tm-pop 420ms var(--tm-spring); }
 }
 
+
+/* "Kimə" sətri və illər üzrə cəm (2026-11-16) */
+.ch-entry-to { margin: 2px 0 0; font-size: .82rem; color: var(--text-muted); overflow-wrap: anywhere; }
+.ch-entry-to span { font-weight: 600; }
+.ch-years { margin: 0 0 20px; }
+.ch-years__title { font-size: 1rem; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.ch-years__title small { font-weight: 500; font-size: .8rem; color: var(--text-muted); }
+.ch-years__list { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 4px; }
+.ch-year { flex: none; display: grid; gap: 2px; min-width: 120px; padding: 10px 14px; border-radius: 14px; background: var(--surface-0, #fff); border: 1px solid var(--line, var(--border)); }
+.ch-year__y { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.ch-year__n { font-size: .82rem; color: var(--text-muted); }
+.ch-year__a { font-weight: 700; color: var(--accent-text, var(--accent)); }

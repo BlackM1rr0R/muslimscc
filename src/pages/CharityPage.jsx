@@ -39,11 +39,11 @@ const DEED_TYPES = [
 const tileClass = (key) => `ui-icon-tile${key === 'money' ? ' ui-icon-tile--accent' : ''}`
 
 const LABELS = {
-  az: { title:'Sədəqə gündəliyi', subtitle:'Gündəlik xeyir əməllərinizi qeyd edin', heroArabic:'صَدَقَة', total:'Ümumi əməl', totalAmount:'Ümumi məbləğ', streak:'Ardıcıl gün', addTitle:'Yeni əməl əlavə et', date:'Tarix', type:'Növ', amount:'Məbləğ (istəyə bağlı)', description:'Təsvir', add:'Əlavə et', entries:'Qeydlər', noEntries:'Hələ heç bir qeyd yoxdur', delete:'Sil', all:'Hamısı', filterBy:'Süzgəc', descPh:'Məs.: qonşuya yemək apardım', added:'Əlavə edildi', guideMore:'Ətraflı', how:'Hər xeyir əməlini — pul, yemək, kömək, dua — tarixi ilə yazın. Qeydlər yalnız bu cihazda saxlanılır.', actAdd:'Əməl əlavə et', actWhat:'Nələr sədəqədir?', ovEy:'Xülasə', ovTitle:'Əməlləriniz bir baxışda', ovLead:'Qrafiklər yalnız sizin qeydlərinizdən qurulur.', monthsTitle:'Son 6 ay', monthsSub:'ayda əməl sayı', typesTitle:'Növlərə görə', typesSub:'əməl sayı', noData:'İlk əməlinizi əlavə edin — burada aylıq qrafik və növlər görünəcək.', guideEy:'Bələdçi', addEy:'Gündəlik' },
-  en: { title:'Charity Diary', subtitle:'Track your daily good deeds', heroArabic:'صَدَقَة', total:'Total Deeds', totalAmount:'Total Amount', streak:'Day Streak', addTitle:'Add New Deed', date:'Date', type:'Type', amount:'Amount (optional)', description:'Description', add:'Add', entries:'Entries', noEntries:'No entries yet', delete:'Delete', all:'All', filterBy:'Filter', descPh:'E.g. took food to a neighbour', added:'Added', guideMore:'Read more', how:'Log every good deed — money, food, help, dua — with its date. Entries are stored only on this device.', actAdd:'Add a deed', actWhat:'What counts as charity?', ovEy:'Overview', ovTitle:'Your deeds at a glance', ovLead:'The charts are built only from your own entries.', monthsTitle:'Last 6 months', monthsSub:'deeds per month', typesTitle:'By type', typesSub:'number of deeds', noData:'Add your first deed — a monthly chart and the types will appear here.', guideEy:'Guide', addEy:'Journal' },
-  ru: { title:'Дневник садаки', subtitle:'Записывайте ваши ежедневные добрые дела', heroArabic:'صَدَقَة', total:'Всего дел', totalAmount:'Общая сумма', streak:'Дней подряд', addTitle:'Добавить дело', date:'Дата', type:'Тип', amount:'Сумма (необязательно)', description:'Описание', add:'Добавить', entries:'Записи', noEntries:'Пока нет записей', delete:'Удалить', all:'Все', filterBy:'Фильтр', descPh:'Напр.: отнёс еду соседу', added:'Добавлено', guideMore:'Подробнее', how:'Записывайте каждое доброе дело — деньги, еду, помощь, дуа — с датой. Записи хранятся только на этом устройстве.', actAdd:'Добавить дело', actWhat:'Что считается милостыней?', ovEy:'Обзор', ovTitle:'Ваши дела с первого взгляда', ovLead:'Графики строятся только по вашим записям.', monthsTitle:'Последние 6 месяцев', monthsSub:'дел в месяц', typesTitle:'По типам', typesSub:'количество дел', noData:'Добавьте первое дело — здесь появятся график по месяцам и типы.', guideEy:'Руководство', addEy:'Дневник' },
-  ar: { title:'يوميات الصدقة', subtitle:'سجّل أعمالك الخيرية اليومية', heroArabic:'صَدَقَة', total:'إجمالي الأعمال', totalAmount:'المبلغ الإجمالي', streak:'أيام متتالية', addTitle:'أضف عملاً جديداً', date:'التاريخ', type:'النوع', amount:'المبلغ (اختياري)', description:'الوصف', add:'أضف', entries:'السجلات', noEntries:'لا توجد سجلات بعد', delete:'حذف', all:'الكل', filterBy:'تصفية', descPh:'مثال: أخذت طعاماً إلى الجار', added:'تمت الإضافة', guideMore:'للمزيد', how:'سجّل كل عمل خير — مالًا أو طعامًا أو عونًا أو دعاءً — بتاريخه. تُحفظ السجلات على هذا الجهاز فقط.', actAdd:'أضف عملًا', actWhat:'ما يُعدّ صدقة', ovEy:'ملخص', ovTitle:'أعمالك في لمحة', ovLead:'تُبنى الرسوم من سجلاتك أنت فقط.', monthsTitle:'آخر ٦ أشهر', monthsSub:'عدد الأعمال في الشهر', typesTitle:'حسب النوع', typesSub:'عدد الأعمال', noData:'أضف أول عمل لك لتظهر هنا الرسوم الشهرية والأنواع.', guideEy:'دليل', addEy:'السجل' },
-  tr: { title:'Sadaka Günlüğü', subtitle:'Günlük hayır işlerinizi kaydedin', heroArabic:'صَدَقَة', total:'Toplam İş', totalAmount:'Toplam Tutar', streak:'Ardışık Gün', addTitle:'Yeni İş Ekle', date:'Tarih', type:'Tür', amount:'Tutar (isteğe bağlı)', description:'Açıklama', add:'Ekle', entries:'Kayıtlar', noEntries:'Henüz kayıt yok', delete:'Sil', all:'Tümü', filterBy:'Filtre', descPh:'Örn.: komşuya yemek götürdüm', added:'Eklendi', guideMore:'Daha fazlası', how:'Her hayır işini — para, yemek, yardım, dua — tarihiyle yazın. Kayıtlar yalnızca bu cihazda saklanır.', actAdd:'İş ekle', actWhat:'Neler sadakadır?', ovEy:'Özet', ovTitle:'İşleriniz bir bakışta', ovLead:'Grafikler yalnızca sizin kayıtlarınızdan oluşur.', monthsTitle:'Son 6 ay', monthsSub:'ayda iş sayısı', typesTitle:'Türlere göre', typesSub:'iş sayısı', noData:'İlk işinizi ekleyin — burada aylık grafik ve türler görünecek.', guideEy:'Rehber', addEy:'Günlük' },
+  az: { to:'Kimə (istəyə bağlı)', toPh:'Məs.: qonşu, yetimxana, məscid', toLbl:'Kimə', years:'İllər üzrə', yearsSub:'əməl sayı və məbləğ — yalnız bu cihazda', deeds:(n)=>`${n} əməl`, title:'Sədəqə gündəliyi', subtitle:'Gündəlik xeyir əməllərinizi qeyd edin', heroArabic:'صَدَقَة', total:'Ümumi əməl', totalAmount:'Ümumi məbləğ', streak:'Ardıcıl gün', addTitle:'Yeni əməl əlavə et', date:'Tarix', type:'Növ', amount:'Məbləğ (istəyə bağlı)', description:'Təsvir', add:'Əlavə et', entries:'Qeydlər', noEntries:'Hələ heç bir qeyd yoxdur', delete:'Sil', all:'Hamısı', filterBy:'Süzgəc', descPh:'Məs.: qonşuya yemək apardım', added:'Əlavə edildi', guideMore:'Ətraflı', how:'Hər xeyir əməlini — pul, yemək, kömək, dua — tarixi ilə yazın. Qeydlər yalnız bu cihazda saxlanılır.', actAdd:'Əməl əlavə et', actWhat:'Nələr sədəqədir?', ovEy:'Xülasə', ovTitle:'Əməlləriniz bir baxışda', ovLead:'Qrafiklər yalnız sizin qeydlərinizdən qurulur.', monthsTitle:'Son 6 ay', monthsSub:'ayda əməl sayı', typesTitle:'Növlərə görə', typesSub:'əməl sayı', noData:'İlk əməlinizi əlavə edin — burada aylıq qrafik və növlər görünəcək.', guideEy:'Bələdçi', addEy:'Gündəlik' },
+  en: { to:'To whom (optional)', toPh:'E.g. a neighbour, an orphanage, the mosque', toLbl:'To', years:'By year', yearsSub:'number of deeds and amount — on this device only', deeds:(n)=>`${n} deeds`, title:'Charity Diary', subtitle:'Track your daily good deeds', heroArabic:'صَدَقَة', total:'Total Deeds', totalAmount:'Total Amount', streak:'Day Streak', addTitle:'Add New Deed', date:'Date', type:'Type', amount:'Amount (optional)', description:'Description', add:'Add', entries:'Entries', noEntries:'No entries yet', delete:'Delete', all:'All', filterBy:'Filter', descPh:'E.g. took food to a neighbour', added:'Added', guideMore:'Read more', how:'Log every good deed — money, food, help, dua — with its date. Entries are stored only on this device.', actAdd:'Add a deed', actWhat:'What counts as charity?', ovEy:'Overview', ovTitle:'Your deeds at a glance', ovLead:'The charts are built only from your own entries.', monthsTitle:'Last 6 months', monthsSub:'deeds per month', typesTitle:'By type', typesSub:'number of deeds', noData:'Add your first deed — a monthly chart and the types will appear here.', guideEy:'Guide', addEy:'Journal' },
+  ru: { to:'Кому (необязательно)', toPh:'Напр.: соседу, в детский дом, в мечеть', toLbl:'Кому', years:'По годам', yearsSub:'число дел и сумма — только на этом устройстве', deeds:(n)=>`дел: ${n}`, title:'Дневник садаки', subtitle:'Записывайте ваши ежедневные добрые дела', heroArabic:'صَدَقَة', total:'Всего дел', totalAmount:'Общая сумма', streak:'Дней подряд', addTitle:'Добавить дело', date:'Дата', type:'Тип', amount:'Сумма (необязательно)', description:'Описание', add:'Добавить', entries:'Записи', noEntries:'Пока нет записей', delete:'Удалить', all:'Все', filterBy:'Фильтр', descPh:'Напр.: отнёс еду соседу', added:'Добавлено', guideMore:'Подробнее', how:'Записывайте каждое доброе дело — деньги, еду, помощь, дуа — с датой. Записи хранятся только на этом устройстве.', actAdd:'Добавить дело', actWhat:'Что считается милостыней?', ovEy:'Обзор', ovTitle:'Ваши дела с первого взгляда', ovLead:'Графики строятся только по вашим записям.', monthsTitle:'Последние 6 месяцев', monthsSub:'дел в месяц', typesTitle:'По типам', typesSub:'количество дел', noData:'Добавьте первое дело — здесь появятся график по месяцам и типы.', guideEy:'Руководство', addEy:'Дневник' },
+  ar: { to:'لمن (اختياري)', toPh:'مثال: جار، دار أيتام، المسجد', toLbl:'إلى', years:'حسب السنة', yearsSub:'عدد الأعمال والمبلغ — على هذا الجهاز فقط', deeds:(n)=>`${n} عملًا`, title:'يوميات الصدقة', subtitle:'سجّل أعمالك الخيرية اليومية', heroArabic:'صَدَقَة', total:'إجمالي الأعمال', totalAmount:'المبلغ الإجمالي', streak:'أيام متتالية', addTitle:'أضف عملاً جديداً', date:'التاريخ', type:'النوع', amount:'المبلغ (اختياري)', description:'الوصف', add:'أضف', entries:'السجلات', noEntries:'لا توجد سجلات بعد', delete:'حذف', all:'الكل', filterBy:'تصفية', descPh:'مثال: أخذت طعاماً إلى الجار', added:'تمت الإضافة', guideMore:'للمزيد', how:'سجّل كل عمل خير — مالًا أو طعامًا أو عونًا أو دعاءً — بتاريخه. تُحفظ السجلات على هذا الجهاز فقط.', actAdd:'أضف عملًا', actWhat:'ما يُعدّ صدقة', ovEy:'ملخص', ovTitle:'أعمالك في لمحة', ovLead:'تُبنى الرسوم من سجلاتك أنت فقط.', monthsTitle:'آخر ٦ أشهر', monthsSub:'عدد الأعمال في الشهر', typesTitle:'حسب النوع', typesSub:'عدد الأعمال', noData:'أضف أول عمل لك لتظهر هنا الرسوم الشهرية والأنواع.', guideEy:'دليل', addEy:'السجل' },
+  tr: { to:'Kime (isteğe bağlı)', toPh:'Örn.: komşu, yetimhane, cami', toLbl:'Kime', years:'Yıllara göre', yearsSub:'iş sayısı ve tutar — yalnızca bu cihazda', deeds:(n)=>`${n} iş`, title:'Sadaka Günlüğü', subtitle:'Günlük hayır işlerinizi kaydedin', heroArabic:'صَدَقَة', total:'Toplam İş', totalAmount:'Toplam Tutar', streak:'Ardışık Gün', addTitle:'Yeni İş Ekle', date:'Tarih', type:'Tür', amount:'Tutar (isteğe bağlı)', description:'Açıklama', add:'Ekle', entries:'Kayıtlar', noEntries:'Henüz kayıt yok', delete:'Sil', all:'Tümü', filterBy:'Filtre', descPh:'Örn.: komşuya yemek götürdüm', added:'Eklendi', guideMore:'Daha fazlası', how:'Her hayır işini — para, yemek, yardım, dua — tarihiyle yazın. Kayıtlar yalnızca bu cihazda saklanır.', actAdd:'İş ekle', actWhat:'Neler sadakadır?', ovEy:'Özet', ovTitle:'İşleriniz bir bakışta', ovLead:'Grafikler yalnızca sizin kayıtlarınızdan oluşur.', monthsTitle:'Son 6 ay', monthsSub:'ayda iş sayısı', typesTitle:'Türlere göre', typesSub:'iş sayısı', noData:'İlk işinizi ekleyin — burada aylık grafik ve türler görünecek.', guideEy:'Rehber', addEy:'Günlük' },
 }
 
 // Yerli tarix (YYYY-MM-DD). toISOString() UTC-dir — Bakıda (UTC+4) gecə
@@ -124,6 +124,7 @@ export default function CharityPage({ setPage }) {
             type: DEED_TYPES.some(d => d.key === e.type) ? e.type : 'other',
             amount: Number.isFinite(amt) && amt > 0 ? amt : null,
             description: typeof e.description === 'string' ? e.description : '',
+            to: typeof e.to === 'string' ? e.to.slice(0, 80) : '',
           }
         })
     } catch { return [] }
@@ -133,6 +134,7 @@ export default function CharityPage({ setPage }) {
   const [type, setType] = useState('money')
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
+  const [recipient, setRecipient] = useState('')
   const [filterType, setFilterType] = useState('all')
   // Əlavə təsdiqi: hər əlavədə yeni açar (mesaj animasiyası yenidən başlayır), 2.4 san. sonra gizlənir
   const [justAdded, setJustAdded] = useState(0)
@@ -147,7 +149,16 @@ export default function CharityPage({ setPage }) {
     const total = entries.length
     const totalAmount = entries.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0)
     const streak = calcStreak(entries)
-    return { total, totalAmount, streak }
+    // İllər üzrə cəm (yeni il yuxarıda)
+    const byYear = new Map()
+    for (const e of entries) {
+      const y = e.date.slice(0, 4)
+      const r = byYear.get(y) || { year: y, n: 0, amount: 0 }
+      r.n++; r.amount += parseFloat(e.amount) || 0
+      byYear.set(y, r)
+    }
+    const years = [...byYear.values()].sort((a, b) => b.year.localeCompare(a.year))
+    return { total, totalAmount, streak, years }
   }, [entries])
 
   const filteredEntries = useMemo(() => {
@@ -166,10 +177,12 @@ export default function CharityPage({ setPage }) {
       // Yalnız sonlu, müsbət məbləğ ("1e999" → Infinity, mənfi — saxlanmır)
       amount: Number.isFinite(parseFloat(amount)) && parseFloat(amount) > 0 ? parseFloat(amount) : null,
       description: description.trim(),
+      to: recipient.trim(),
     }
     setEntries(prev => [...prev, entry])
     setAmount('')
     setDescription('')
+    setRecipient('')
     haptic()
     setJustAdded(entry.id)
     clearTimeout(addedTimer.current)
@@ -232,6 +245,21 @@ export default function CharityPage({ setPage }) {
             <StatTile icon="bolt" label={t.streak} tone="brand" value={<NumberTicker value={stats.streak} lang={lang} />} />
           </div>
 
+          {stats.years.length > 0 && (
+            <div className="ch-years" data-testid="charity-years">
+              <h2 className="ch-years__title">{t.years} <small>{t.yearsSub}</small></h2>
+              <ul className="ch-years__list">
+                {stats.years.map(y => (
+                  <li key={y.year} className="ch-year">
+                    <b className="ch-year__y">{y.year}</b>
+                    <span className="ch-year__n">{t.deeds(y.n)}</span>
+                    {y.amount > 0 && Number.isFinite(y.amount) && <span className="ch-year__a ui-num">{formatAmount(y.amount, lang)}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="ch-layout">
             {/* Əlavə forması (genişdə yan sütunda yapışqan) */}
             <div id="ch-add" className="ui-card ch-form-card" data-reveal="">
@@ -293,6 +321,19 @@ export default function CharityPage({ setPage }) {
                     onChange={e => setDescription(e.target.value)}
                     placeholder={t.descPh}
                     maxLength={200}
+                  />
+                </label>
+
+                <label className="ui-field" htmlFor="ch-to">
+                  <span className="ui-field__label">{t.to}</span>
+                  <input
+                    id="ch-to"
+                    type="text"
+                    className="ui-input"
+                    value={recipient}
+                    onChange={e => setRecipient(e.target.value)}
+                    placeholder={t.toPh}
+                    maxLength={80}
                   />
                 </label>
 
@@ -362,6 +403,9 @@ export default function CharityPage({ setPage }) {
                               </div>
                               {entry.description && (
                                 <p className="ch-entry-desc">{entry.description}</p>
+                              )}
+                              {entry.to && (
+                                <p className="ch-entry-to"><span>{t.toLbl}:</span> {entry.to}</p>
                               )}
                             </div>
                             {entry.amount != null && entry.amount > 0 && (

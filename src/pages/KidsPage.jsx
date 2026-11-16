@@ -22,6 +22,8 @@ const TracePractice = lazy(() => import('../components/trace/TracePractice'))
 // v6.3: dəstəmaz addımlarını sıraya düzmək (oyun)
 const WuduOrder = lazy(() => import('../components/WuduOrder'))
 const QuranAnimals = lazy(() => import('../components/QuranAnimals'))
+const KCARD = { az: 'Təbrik kartı', en: 'Certificate card', ru: 'Открытка', tr: 'Tebrik kartı', ar: 'بطاقة تهنئة' }
+const KidsCertificate = lazy(() => import('../components/KidsCertificate'))
 import { getSurahLocal } from '../data/surahNamesAz'
 // v6.5: Quranda heyvanlar
 const KANIMALS = {
@@ -490,6 +492,7 @@ export default function KidsPage({ setPage }) {
     { key:'trace', icon:'edit', title:pickUi(KTRACE, lang, 'en').title },
     { key:'wudu', icon:'drop', title:pickUi(KWUDU, lang, 'en').title },
     { key:'animals', icon:'quran', title:pickUi(KANIMALS, lang, 'en').title },
+    { key:'card', icon:'gift', title:pickUi(KCARD, lang, 'en') },
     { key:'parents', icon:'jamaat', title:t.parentsTitle },
   ]
   // Ayə istinadı → Quran səhifəsindəki surəyə keçid ("2:30-37")
@@ -838,6 +841,13 @@ export default function KidsPage({ setPage }) {
               <Suspense fallback={<div className="ui-skeleton" style={{ height: 380 }} />}>
                 <TracePractice lang={lang} kid storageKey="kids_trace_v1" />
               </Suspense>
+            </section>
+          )}
+
+          {openSection === 'card' && (
+            <section className="kids-section" key="card">
+              <SectionTitle />
+              <Suspense fallback={null}><KidsCertificate /></Suspense>
             </section>
           )}
 

@@ -16,6 +16,8 @@ const LONG_PAGES = ['/', '/hadith', '/duas', '/names', '/quran', '/history', '/s
 for (const url of LONG_PAGES) {
   test(`${url}: sürüşdükcə bütün data-reveal məzmunu görünür`, async ({ page }, info) => {
     test.skip(info.project.name === 'mobile' && !['/', '/hadith'].includes(url), 'mobil: iki səhifə kifayətdir')
+    // Uzun səhifələri (məs. /history — usturlab, fil saatı) addım-addım sürüşdürmək yük altında 30 s-ə çatır
+    test.setTimeout(60_000)
     await page.goto(url)
     await settle(page)
 

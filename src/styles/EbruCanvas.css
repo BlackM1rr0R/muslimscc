@@ -1,0 +1,53 @@
+/* Ebru — su üzərində boya naxışı (components/EbruCanvas.jsx) */
+.ebru { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 10px; border-radius: 22px; min-width: 0; }
+.ebru__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.ebru__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.ebru__grid { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(16px, 3vw, 32px); align-items: start; min-width: 0; }
+@media (max-width: 760px) { .ebru__grid { grid-template-columns: minmax(0, 1fr); } }
+.ebru__stage { display: grid; justify-items: center; gap: 6px; min-width: 0; }
+.ebru__canvas {
+  display: block;
+  width: min(100%, calc(72vh * 9 / 16));
+  width: min(100%, calc(72svh * 9 / 16));
+  min-width: 200px;
+  max-width: 100%;
+  aspect-ratio: 9 / 16;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid var(--line, var(--border));
+  background: #ece0c4;
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.45);
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.ebru__canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ebru__hint { margin: 0; font-size: .82rem; color: var(--text-muted); text-align: center; }
+.ebru__panel { display: grid; gap: 14px; min-width: 0; }
+.ebru__group { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: 8px; }
+.ebru__group legend { padding: 0; margin-bottom: 8px; font-size: .78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+[dir="rtl"] .ebru__group legend { letter-spacing: 0; }
+.ebru__swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.ebru__sw {
+  width: 40px; height: 40px; padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--surface-0, #fff);
+  background: var(--sw);
+  box-shadow: 0 0 0 1px var(--line, var(--border)), inset 0 -6px 10px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: transform var(--dur-1, 150ms) ease, box-shadow var(--dur-1, 150ms) ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.ebru__sw--paper { border-radius: 12px; box-shadow: 0 0 0 1px var(--line, var(--border)); }
+.ebru__sw:hover { transform: translateY(-1px); }
+.ebru__sw[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--accent), inset 0 -6px 10px rgba(0, 0, 0, 0.18); transform: scale(1.06); }
+.ebru__sw--paper[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--accent); }
+.ebru__sw:focus-visible { outline: 2px solid var(--accent-text, var(--accent)); outline-offset: 4px; }
+.ebru__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.ebru__btns .ui-btn { white-space: normal; }
+.ebru__undo-ic { transform: scaleX(-1); }
+.ebru__hist { margin: 0; line-height: 1.7; padding: 12px 14px; border-radius: 18px; background: var(--surface-1, transparent); border: 1px solid var(--line, var(--border)); }
+.ebru__note { margin: 0; font-size: .8rem; color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) { .ebru__sw { transition: none; } }

@@ -1,0 +1,41 @@
+/* Məşrəbiyyə — günəş işığı (components/MashrabiyaLight.jsx) */
+.mshr { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 12px; min-width: 0; }
+.mshr__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.mshr__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+
+.mshr__stage { position: relative; min-width: 0; border-radius: 16px; overflow: hidden;
+  background: #3a2a1c; border: 1px solid var(--line, var(--border)); }
+.mshr__canvas { display: block; width: 100%; height: auto; aspect-ratio: 100 / 62; }
+@media (max-width: 559px) { .mshr__canvas { aspect-ratio: 100 / 90; } }
+.mshr__face { position: absolute; inset-inline-start: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px;
+  font-size: .75rem; color: #fff6e6; background: rgba(30, 18, 8, .55); pointer-events: none; }
+
+.mshr__ctrl { display: grid; gap: 10px; min-width: 0; }
+.mshr__track { position: relative; padding-bottom: 66px; min-width: 0; }
+.mshr__range { width: 100%; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.mshr__marks { position: absolute; inset: 26px 0 0; pointer-events: none; }
+.mshr__mark { --x: 0%; position: absolute; top: 0; left: var(--x); transform: translateX(calc(var(--x) * -1));
+  display: grid; justify-items: center; gap: 1px; padding: 3px 7px; min-width: 44px; min-height: 30px;
+  border-radius: 10px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent);
+  color: inherit; font: inherit; line-height: 1.15; cursor: pointer; pointer-events: auto; white-space: nowrap; }
+.mshr__mark::before { content: ''; position: absolute; left: var(--x); bottom: 100%; width: 1px; height: 8px; background: var(--line, var(--border)); }
+.mshr__mark--low { top: 34px; }
+.mshr__mark--low::before { height: 42px; }
+.mshr__mark-n { font-size: .74rem; font-weight: 600; }
+.mshr__mark-t { font-size: .7rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.mshr__mark:hover, .mshr__mark:focus-visible { border-color: var(--accent); }
+.mshr__mark.is-on { border-color: var(--accent); background: var(--accent); color: var(--accent-text, #fff); }
+.mshr__mark.is-on .mshr__mark-t { color: inherit; opacity: .85; }
+[dir='rtl'] .mshr__mark { left: auto; right: var(--x); transform: translateX(var(--x)); }
+[dir='rtl'] .mshr__mark::before { left: auto; right: var(--x); }
+.mshr__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.mshr__read { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mshr__read div { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); min-width: 0; }
+.mshr__read dt { font-size: .75rem; color: var(--text-muted); }
+.mshr__read dd { margin: 2px 0 0; font-size: 1.25rem; font-weight: 700; color: var(--text-strong, inherit); font-variant-numeric: tabular-nums; }
+@media (max-width: 420px) { .mshr__read div { padding: 8px; } .mshr__read dd { font-size: 1.05rem; } }
+.mshr__cap { margin: 0; padding: 10px 14px; border-radius: 12px; border-inline-start: 3px solid var(--accent);
+  background: var(--surface-0, transparent); min-height: 3.2em; }
+.mshr__hist { margin: 0; line-height: 1.7; }
+.mshr__note { margin: 0; font-size: .8rem; color: var(--text-muted); }

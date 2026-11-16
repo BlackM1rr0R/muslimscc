@@ -1,0 +1,96 @@
+/* Əl-Cəzərinin fil saatı (components/ElephantClock.jsx)
+   Sonsuz animasiyalar yalnız transform/opacity (scripts/check-motion.mjs);
+   buraxılış ardıcıllığı birdəfəlikdir (4.5s, .is-release). */
+.jzc { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 10px; min-width: 0; }
+.jzc__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.jzc__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.jzc__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 32px); align-items: start; }
+@media (max-width: 860px) { .jzc__grid { grid-template-columns: minmax(0, 1fr); } }
+.jzc__stage { display: grid; justify-items: center; min-width: 0; }
+.jzc__svg { width: 100%; max-width: 460px; height: auto; display: block; filter: drop-shadow(0 6px 18px rgba(60, 40, 10, .18)); }
+
+/* ── Rentgen ── */
+.jzc__hide, .jzc__inside { transition: opacity .6s ease; }
+.jzc__inside { opacity: 0; }
+.jzc.is-xray .jzc__hide { opacity: .32; }
+.jzc.is-xray .jzc__inside { opacity: 1; }
+
+/* ── Su, qab, ip ── */
+.jzc__wave { animation: jzc-wave 3.2s linear infinite; }
+@keyframes jzc-wave { from { transform: translateX(0); } to { transform: translateX(-12px); } }
+.jzc__bubble { transform-box: view-box; animation: jzc-bubble 1.8s ease-out infinite; }
+@keyframes jzc-bubble { 0% { transform: translateY(0); opacity: 0; } 25% { opacity: .9; } 100% { transform: translateY(-14px); opacity: 0; } }
+.jzc__bowl { transition: transform 1s linear; }
+.jzc.is-release .jzc__bowl { transition: none; }
+.jzc.is-release .jzc__bowl-cycle { animation: jzc-bowl 4.5s ease-in-out both; }
+@keyframes jzc-bowl {
+  0% { transform: translateY(var(--from)); }
+  30%, 62% { transform: translateY(var(--to-bottom)); }
+  80% { transform: translateY(var(--to-top)); }
+  100% { transform: translateY(0); }
+}
+
+/* ── Fiqurlar ── */
+.jzc__pen { transform-box: view-box; transform-origin: 220px 258px; transition: transform 1s ease; }
+.jzc__scribe { transform-box: view-box; transform-origin: 220px 260px; }
+.jzc.is-release .jzc__scribe { animation: jzc-turn 4.5s ease-in-out both; }
+@keyframes jzc-turn { 0%, 64% { transform: scaleX(1); } 72% { transform: scaleX(-1); } 80% { transform: scaleX(1); } 88% { transform: scaleX(-1); } 100% { transform: scaleX(1); } }
+.jzc__phoenix { transform-box: view-box; transform-origin: 220px 56px; }
+.jzc.is-release .jzc__phoenix { animation: jzc-phoenix 4.5s ease-in-out both; }
+@keyframes jzc-phoenix { 0% { transform: scaleX(1); } 6% { transform: scaleX(-1); } 12% { transform: scaleX(1); } 18% { transform: scaleX(-1); } 24%, 100% { transform: scaleX(1); } }
+.jzc__serpent { transform-box: view-box; transform-origin: 165px 288px; }
+.jzc.is-release .jzc__serpent { animation: jzc-serpent 4.5s ease-in-out both; }
+@keyframes jzc-serpent { 0%, 30% { transform: rotate(0); } 48%, 70% { transform: rotate(-25deg); } 90%, 100% { transform: rotate(0); } }
+.jzc__arm { transform-box: view-box; transform-origin: 125px 287px; transform: rotate(-30deg); }
+.jzc.is-release .jzc__arm { animation: jzc-arm 4.5s ease-in-out both; }
+@keyframes jzc-arm { 0%, 54% { transform: rotate(-30deg); } 59% { transform: rotate(14deg); } 64% { transform: rotate(-30deg); } 68% { transform: rotate(14deg); } 74%, 100% { transform: rotate(-30deg); } }
+.jzc__cymbal { transform-box: view-box; transform-origin: 100px 289px; }
+.jzc.is-release .jzc__cymbal { animation: jzc-cymbal 4.5s linear both; }
+@keyframes jzc-cymbal { 0%, 59% { transform: rotate(0); } 61% { transform: rotate(8deg); } 63% { transform: rotate(-6deg); } 65% { transform: rotate(4deg); } 68%, 100% { transform: rotate(0); } }
+
+/* Kürə: şahin → ilanın ağzı → ilanla əyilir → sincə düşür */
+.jzc__ball { opacity: 0; }
+.jzc.is-release .jzc__ball { animation: jzc-ball 4.5s linear both; }
+@keyframes jzc-ball {
+  0% { transform: translate(0, -6px); opacity: 0; animation-timing-function: ease-out; }
+  8% { transform: translate(0, 0); opacity: 1; animation-timing-function: ease-in; }
+  22%, 30% { transform: translate(0, 6px); opacity: 1; animation-timing-function: linear; }
+  39% { transform: translate(-30.6px, 10.9px); animation-timing-function: linear; }
+  48% { transform: translate(-59.3px, 22.3px); animation-timing-function: ease-in; }
+  60% { transform: translate(-58px, 144px); opacity: 1; animation-timing-function: ease-out; }
+  68% { transform: translate(-50px, 136px); animation-timing-function: ease-in; }
+  82% { transform: translate(-42px, 160px); opacity: 0; }
+  100% { transform: translate(-42px, 160px); opacity: 0; }
+}
+
+/* ── Pauza (ekrandan kənar / vərəq gizli) və hərəkəti azalt ── */
+.jzc.is-paused .jzc__svg * { animation-play-state: paused !important; }
+.jzc.is-reduced .jzc__svg *, .jzc.is-reduced .jzc__meter span { animation: none !important; transition: none !important; }
+.jzc.is-reduced .jzc__hide, .jzc.is-reduced .jzc__inside { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .jzc .jzc__svg *, .jzc .jzc__meter span { animation: none !important; transition: none !important; }
+}
+
+/* ── Panel ── */
+.jzc__panel { display: grid; gap: 12px; min-width: 0; }
+.jzc__read { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.jzc__read div { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); min-width: 0; }
+.jzc__read .jzc__read-wide { grid-column: 1 / -1; }
+.jzc__read dt { font-size: .75rem; color: var(--text-muted); }
+.jzc__read dd { margin: 2px 0 0; font-size: 1.35rem; font-weight: 700; color: var(--text-strong); overflow-wrap: anywhere; }
+.jzc__read dd.jzc__small { font-size: 1.02rem; }
+.jzc__meter { height: 6px; border-radius: 99px; background: var(--surface-0, rgba(127, 127, 127, .15)); border: 1px solid var(--line, var(--border)); overflow: hidden; }
+.jzc__meter span { display: block; height: 100%; background: var(--accent); transform-origin: left center; transition: transform 1s linear; }
+[dir="rtl"] .jzc__meter span, .jzc__panel[dir="rtl"] .jzc__meter span { transform-origin: right center; }
+.jzc__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.jzc__btns .ui-btn { max-width: 100%; white-space: normal; }
+.jzc__status { margin: 0; min-height: 1.4em; font-weight: 600; color: var(--accent-text); }
+.jzc__how { margin: 4px 0 0; font-size: 1.05rem; }
+.jzc__steps { margin: 0; padding: 0; list-style: none; counter-reset: jzc; display: grid; gap: 8px; }
+.jzc__steps li { counter-increment: jzc; position: relative; padding: 8px 12px 8px 44px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); line-height: 1.55; transition: border-color .3s ease, background-color .3s ease; }
+.jzc__panel[dir="rtl"] .jzc__steps li { padding: 8px 44px 8px 12px; }
+.jzc__steps li::before { content: counter(jzc); position: absolute; inset-inline-start: 10px; top: 8px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; font-weight: 700; color: var(--accent-text); border: 1.5px solid var(--accent); }
+.jzc__steps li.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface-1, transparent)); }
+.jzc__steps li.is-on::before { background: var(--accent); color: var(--surface-0, #fff); }
+.jzc__note { margin: 0; line-height: 1.65; }
+.jzc__src { margin: 0; font-size: .8rem; color: var(--text-muted); font-style: italic; }
