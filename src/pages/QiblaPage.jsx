@@ -30,6 +30,7 @@ const QiblaLines = lazy(() => import('../components/QiblaLines'))
 const RasdQibla = lazy(() => import('../components/RasdQibla'))
 const StarQibla = lazy(() => import('../components/StarQibla'))
 const SkyPlanetarium = lazy(() => import('../components/SkyPlanetarium'))
+const LunarMansions = lazy(() => import('../components/LunarMansions'))
 
 // Kompasda yalnız 4 əsas istiqamət yazı ilə göstərilir (aralıqdakılar
 // cizgi ilə). Azərbaycan və ərəb dillərində tək hərf toqquşur
@@ -757,6 +758,12 @@ export default function QiblaPage({ setPage }) {
           <DeferRender height="760px" idle={false} rootMargin="300px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
               <SkyPlanetarium lang={lang} />
+            </Suspense>
+          </DeferRender>
+          {/* v7.1: Ay mənzilləri — 28 mənzil, bu gecə Ay hansındadır (Yasin 36:39) */}
+          <DeferRender height="820px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 820 }} />}>
+              <LunarMansions />
             </Suspense>
           </DeferRender>
         </div>

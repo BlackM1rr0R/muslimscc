@@ -14,6 +14,8 @@ const IslamicScience = lazy(() => import('../components/IslamicScience'))
 const IsraJourney = lazy(() => import('../components/IsraJourney'))
 const Astrolabe = lazy(() => import('../components/Astrolabe'))
 const ElephantClock = lazy(() => import('../components/ElephantClock'))
+const NumeralsJourney = lazy(() => import('../components/NumeralsJourney'))
+const IbnBattutaJourney = lazy(() => import('../components/IbnBattutaJourney'))
 // v5.9: Hicrət yolu 3D (three.js — ayrıca chunk, bölməyə yaxınlaşanda)
 const HijraJourney3D = lazy(() => import('../components/media/HijraJourney3D'))
 // v5.9: Quranda adı keçən yerlər xəritəsi (peyğəmbərlər bölməsində)
@@ -459,6 +461,18 @@ export default function IslamicHistoryPage() {
           <DeferRender height="900px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
               <ElephantClock lang={lang} />
+            </Suspense>
+          </DeferRender>
+          {/* v7.1: rəqəmlərin səyahəti — Hindistan → Bağdad → Əndəlus → Avropa; çevirici */}
+          <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
+              <NumeralsJourney />
+            </Suspense>
+          </DeferRender>
+          {/* v7.1: İbn Bəttutənin səyahəti (1325–1354) — qlobusda şəhər-şəhər */}
+          <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
+              <IbnBattutaJourney lang={lang} />
             </Suspense>
           </DeferRender>
           <h3 className="history-places-title">{M.places}</h3>

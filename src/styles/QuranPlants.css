@@ -1,0 +1,72 @@
+/* ══ Quran bitkiləri bağı (components/QuranPlants.jsx, v7.1) ══ */
+.qpl { --qpl-acc: #2e9a73; --qpl-bad: #c2410c;
+  --qpl-sky: #e6f4fb; --qpl-sky2: #f7fbe9; --qpl-grass: #a8d58a; --qpl-soil: #c8925f; --qpl-sun: #ffd45c;
+  display: grid; gap: 14px; min-width: 0; }
+[data-theme="dark"] .qpl { --qpl-acc: #3fbf8e; --qpl-bad: #ff8a5c;
+  --qpl-sky: #14233a; --qpl-sky2: #1d2f2a; --qpl-grass: #2f5a3a; --qpl-soil: #5a3b25; --qpl-sun: #f3e3a2; }
+.qpl__tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.qpl__tab { border: 1px solid var(--border-color, rgba(0,0,0,.12)); background: transparent; color: var(--text-primary); border-radius: 999px; padding: 7px 16px; font: inherit; font-weight: 600; cursor: pointer; }
+.qpl__tab.is-on { background: #1d6b52; color: #fff; border-color: transparent; }
+[data-theme="dark"] .qpl__tab.is-on { background: #5fd3a8; color: #062018; }
+.qpl__learn { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .qpl__learn { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; } }
+
+/* Bağ səhnəsi: göy → çəmən, yuxarıda günəş (ay — qaranlıq temada) */
+.qpl__garden { position: relative; overflow: hidden; border-radius: 22px; padding: 14px 10px 12px;
+  background: linear-gradient(180deg, var(--qpl-sky) 0%, var(--qpl-sky2) 38%, var(--qpl-grass) 100%);
+  border: 1px solid var(--border-color, rgba(0,0,0,.08)); }
+.qpl__garden::before { content: ''; position: absolute; top: -26px; inset-inline-end: -18px; width: 92px; height: 92px; border-radius: 50%;
+  background: var(--qpl-sun); opacity: .75; pointer-events: none; }
+.qpl__hint { position: relative; margin: 0 0 8px; font-size: .85rem; font-weight: 600; color: var(--text-secondary); }
+.qpl__bed { position: relative; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px 6px; }
+.qpl__plant { width: 100%; display: grid; justify-items: center; gap: 2px; padding: 6px 4px 8px; border-radius: 16px 16px 12px 12px; border: 2px solid transparent;
+  background: linear-gradient(180deg, transparent 62%, color-mix(in srgb, var(--qpl-soil) 55%, transparent) 62%);
+  color: var(--text-primary); font: inherit; font-size: .78rem; font-weight: 700; line-height: 1.2; cursor: pointer; transition: border-color .2s, background-color .2s; }
+.qpl__plant:hover { border-color: color-mix(in srgb, var(--qpl-acc) 50%, transparent); }
+.qpl__plant.is-on { border-color: var(--qpl-acc); background-color: color-mix(in srgb, var(--card-bg, #fff) 55%, transparent); }
+.qpl__plant:focus-visible, .qpl__opt:focus-visible, .qpl__chip:focus-visible { outline: 3px solid var(--qpl-acc); outline-offset: 2px; }
+.qpl__art { width: 68px; height: 68px; display: block; overflow: visible; }
+.qpl__nm { text-align: center; overflow-wrap: anywhere; }
+[data-theme="dark"] .qpl__nm { color: #f2f6ee; }
+[data-theme="dark"] .qpl__plant.is-on { background-color: rgba(255,255,255,.12); }
+
+/* Yellənmə — yalnız hərəkət azaldılmayıbsa (.is-live = useReduced() false) */
+.qpl__sw { transform-box: fill-box; transform-origin: 50% 100%; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qpl.is-live .qpl__plant .qpl__sw { animation: qpl-sway 3.6s ease-in-out var(--d, 0s) infinite alternate; }
+  html:not(.a11y-reduce-motion) .qpl.is-live .qpl__card { animation: qpl-in .35s ease-out; }
+  html:not(.a11y-reduce-motion) .qpl.is-live .qpl__opt .qpl__art { transition: transform .25s; }
+  html:not(.a11y-reduce-motion) .qpl.is-live .qpl__opt:hover .qpl__art { transform: scale(1.08); }
+}
+@keyframes qpl-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+@keyframes qpl-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.qpl__card { display: grid; gap: 10px; padding: 16px; border-radius: 18px; background: var(--bg-secondary, rgba(0,0,0,.03)); border: 1px solid var(--border-color, rgba(0,0,0,.08)); min-width: 0; }
+.qpl__top { display: flex; gap: 12px; align-items: center; }
+.qpl__big { width: 76px; height: 76px; flex: none; }
+.qpl__title { margin: 0; font-size: 1.35rem; }
+.qpl__ar { margin: 2px 0 0; font-size: 1.5rem; color: var(--qpl-acc); }
+.qpl__refs { display: flex; gap: 6px; flex-wrap: wrap; }
+.qpl__chip { border: 1px solid var(--border-color, rgba(0,0,0,.14)); background: transparent; color: var(--text-primary); border-radius: 999px; padding: 4px 12px; font: inherit; font-size: .85rem; cursor: pointer; }
+.qpl__chip.is-on { background: color-mix(in srgb, var(--qpl-acc) 16%, transparent); border-color: var(--qpl-acc); font-weight: 700; }
+.qpl__ayah { margin: 0; font-size: 1.35rem; line-height: 2; overflow-wrap: anywhere; }
+.qpl__tr { margin: 0; font-size: .92rem; line-height: 1.55; overflow-wrap: anywhere; }
+.qpl__tr small { color: var(--text-secondary); }
+.qpl__foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.qpl__ref { color: var(--text-secondary); font-size: .85rem; }
+
+.qpl__game { display: grid; gap: 12px; justify-items: center; text-align: center; padding: 18px 12px; border-radius: 18px; background: var(--bg-secondary, rgba(0,0,0,.03)); }
+.qpl__ask { margin: 0; font-weight: 600; }
+.qpl__word { margin: 0; font-size: clamp(2.2rem, 7vw, 3.2rem); line-height: 1.4; }
+.qpl__opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: min(100%, 440px); }
+@media (min-width: 640px) { .qpl__opts { grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 640px); } }
+.qpl__opt { display: grid; justify-items: center; gap: 4px; padding: 10px 6px; border-radius: 16px; border: 2px solid var(--border-color, rgba(0,0,0,.12));
+  background: var(--card-bg, #fff); color: var(--text-primary); font: inherit; font-weight: 600; cursor: pointer; transition: border-color .2s, background-color .2s; overflow-wrap: anywhere; }
+[data-theme="dark"] .qpl__opt { background: rgba(255,255,255,.04); }
+.qpl__opt .qpl__art { width: 70px; height: 70px; }
+.qpl__opt.is-right { border-color: var(--qpl-acc); background: color-mix(in srgb, var(--qpl-acc) 16%, transparent); }
+.qpl__opt.is-wrong { border-color: var(--qpl-bad); background: color-mix(in srgb, var(--qpl-bad) 12%, transparent); }
+.qpl__fb { margin: 0; min-height: 1.4em; font-weight: 700; }
+.qpl__game .qpl__foot { width: min(100%, 640px); }
+.qpl__note { margin: 0; font-size: .8rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: flex-start; }
+.qpl__note svg { flex: none; margin-top: 2px; }

@@ -22,6 +22,14 @@ const TracePractice = lazy(() => import('../components/trace/TracePractice'))
 // v6.3: dəstəmaz addımlarını sıraya düzmək (oyun)
 const WuduOrder = lazy(() => import('../components/WuduOrder'))
 const QuranAnimals = lazy(() => import('../components/QuranAnimals'))
+const QuranPlants = lazy(() => import('../components/QuranPlants'))
+const KPLANTS = {
+  az: { title: 'Quran bitkiləri', lead: 'Quranda adı çəkilən bitkilərin bağı — bitkiyə toxun, ayəni oxu.' },
+  en: { title: 'Plants of the Quran', lead: 'A garden of the plants the Quran names — tap a plant to read its verse.' },
+  ru: { title: 'Растения Корана', lead: 'Сад растений, названных в Коране, — нажми на растение и прочитай аят.' },
+  tr: { title: 'Kur’an bitkileri', lead: 'Kur’an’da adı geçen bitkilerin bahçesi — bir bitkiye dokun, ayeti oku.' },
+  ar: { title: 'نباتات القرآن', lead: 'حديقة النباتات التي ذكرها القرآن — المس النبتة واقرأ آيتها.' },
+}
 const KCARD = { az: 'Təbrik kartı', en: 'Certificate card', ru: 'Открытка', tr: 'Tebrik kartı', ar: 'بطاقة تهنئة' }
 const KidsCertificate = lazy(() => import('../components/KidsCertificate'))
 import { getSurahLocal } from '../data/surahNamesAz'
@@ -492,6 +500,7 @@ export default function KidsPage({ setPage }) {
     { key:'trace', icon:'edit', title:pickUi(KTRACE, lang, 'en').title },
     { key:'wudu', icon:'drop', title:pickUi(KWUDU, lang, 'en').title },
     { key:'animals', icon:'quran', title:pickUi(KANIMALS, lang, 'en').title },
+    { key:'plants', icon:'leaf', title:pickUi(KPLANTS, lang, 'en').title },
     { key:'card', icon:'gift', title:pickUi(KCARD, lang, 'en') },
     { key:'parents', icon:'jamaat', title:t.parentsTitle },
   ]
@@ -516,7 +525,8 @@ export default function KidsPage({ setPage }) {
   const q = QUIZ[quizIdx]
 
   const sectionLead = current.key === 'trace' ? pickUi(KTRACE, lang, 'en').lead : current.key === 'wudu' ? pickUi(KWUDU, lang, 'en').lead
-    : current.key === 'animals' ? pickUi(KANIMALS, lang, 'en').lead : k.leads[current.key]
+    : current.key === 'animals' ? pickUi(KANIMALS, lang, 'en').lead
+    : current.key === 'plants' ? pickUi(KPLANTS, lang, 'en').lead : k.leads[current.key]
   // Bölmə başlığı: ikon kafeli + h2 (əvvəl başlığın sonunda emoji var idi)
   const SectionTitle = () => (
     <div className="kids-section-head">
@@ -865,6 +875,15 @@ export default function KidsPage({ setPage }) {
               <SectionTitle />
               <Suspense fallback={<div className="ui-skeleton" style={{ height: 460 }} />}>
                 <QuranAnimals lang={lang} surahName={n => getSurahLocal(n, lang)?.name || String(n)} ayahHref={(s, a) => `${pathFor('quran', lang, s)}?a=${a}`} />
+              </Suspense>
+            </section>
+          )}
+
+          {openSection === 'plants' && (
+            <section className="kids-section" key="plants">
+              <SectionTitle />
+              <Suspense fallback={<div className="ui-skeleton" style={{ height: 460 }} />}>
+                <QuranPlants lang={lang} ayahHref={(s, a) => `${pathFor('quran', lang, s)}?a=${a}`} />
               </Suspense>
             </section>
           )}
