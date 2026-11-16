@@ -21,8 +21,8 @@ html main.page-enter.page-enter--motion:not(.page-leave) { animation: none; }
 /* Telefon: köhnə səhifənin "yola düşməsi" wow.css-in giriş qaydasından güclü olsun
    (əvvəl eyni spesifiklikdə wow-page-in qalib gəlirdi — köhnə səhifə yenidən "girirdi") */
 @media (max-width: 767.98px) and (prefers-reduced-motion: no-preference) {
-  html:not([dir="rtl"]) main.page-enter--motion.page-leave { animation: qm-page-out-next 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-  html[dir="rtl"] main.page-enter--motion.page-leave { animation: qm-page-out-prev 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+  html:not([dir="rtl"]) main.page-enter--motion.page-leave { animation: qm-page-out-next 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+  html[dir="rtl"] main.page-enter--motion.page-leave { animation: qm-page-out-prev 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 }
 /* popLayout: çıxan <main> axından çıxır; View Transition gedəndə yeni kadrda görünməsin */
 main[data-motion-pop-id] { pointer-events: none; }

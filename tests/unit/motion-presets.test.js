@@ -69,10 +69,11 @@ describe('səhifə keçidi', () => {
     expect(v.exit({ still: true }).transition.duration).toBe(0)
     expect(v.exit({ leaving: true }).transition.duration).toBe(0)
   })
-  it('telefon: irəli sağdan, geri soldan; RTL güzgü', () => {
-    expect(pageVariants({ phone: true }).enter({}).x).toBe(36)
-    expect(pageVariants({ phone: true }).enter({ back: true }).x).toBe(-36)
-    expect(pageVariants({ phone: true, rtl: true }).enter({}).x).toBe(-36)
+  it('telefon: üfüqi sürüşmə yoxdur (kənar kəsilmir), yalnız qalxma', () => {
+    for (const o of [{}, { back: true }]) for (const rtl of [false, true]) {
+      expect(pageVariants({ phone: true, rtl }).enter(o).x).toBe(0)
+      expect(pageVariants({ phone: true, rtl }).enter(o).y).toBe(8)
+    }
     expect(pageVariants({ phone: false }).enter({}).y).toBe(10)
   })
   it('çıxış girişdən qısa', () => {

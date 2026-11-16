@@ -87,15 +87,15 @@ export function staggerContainer(step = 0.05, delay = 0, max = 10) {
 
 /** Səhifə keçidi (PageTransition). custom: { back, still (VT/azaldılmış — ani), leaving (CSS artıq çıxarıb) };
  *  phone — üfüqi (oxu istiqaməti), masaüstü — şaquli. */
-export function pageVariants({ phone = false, rtl = false } = {}) {
-  const sign = (back) => (rtl ? -1 : 1) * (back ? -1 : 1)
+export function pageVariants({ phone = false } = {}) {
+  // Telefonda da üfüqi sürüşmə yoxdur — kənarlar kəsik görünürdü; yalnız yumşaq qalxma
   return {
-    enter: ({ back = false, still = false } = {}) => (still
+    enter: ({ still = false } = {}) => (still
       ? { opacity: 1, x: 0, y: 0, transition: instant }
-      : phone ? { opacity: 0, x: 36 * sign(back), y: 0, transition: instant } : { opacity: 0, y: 10, x: 0, transition: instant }),
+      : { opacity: 0, y: phone ? 8 : 10, x: 0, transition: instant }),
     center: ({ still = false } = {}) => (still
       ? { opacity: 1, x: 0, y: 0, transition: instant }
-      : { opacity: 1, x: 0, y: 0, transition: phone ? { duration: 0.48, ease: [0.22, 1, 0.36, 1] } : enterT(DUR.md) }),
+      : { opacity: 1, x: 0, y: 0, transition: phone ? { duration: 0.32, ease: [0.22, 1, 0.36, 1] } : enterT(DUR.md) }),
     exit: ({ still = false, leaving = false } = {}) => (still || leaving
       ? { opacity: 0, transition: instant }
       : { opacity: 0, transition: { duration: exitDur(DUR.sm), ease: EASE.in } }),
