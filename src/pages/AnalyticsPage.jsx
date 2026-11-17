@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import HeroOrnament from '../components/HeroOrnament'
 import '../styles/AnalyticsPage.css'
@@ -24,6 +24,9 @@ import { badgeList, syncBadges } from '../utils/badges.js'
 import '../styles/BadgeShelf.css'
 import { Stagger, StaggerItem } from '../motion/Stagger'
 import PresenceSwap from '../motion/PresenceSwap'
+import DeferRender from '../components/DeferRender'
+// vB: mənəvi səyahət kitabçası (möhürlər) — nişan rəfinin altında, tənbəl
+const SpiritualPassport = lazy(() => import('../components/SpiritualPassport'))
 
 // v3 — qrafiklər və bölmələr üçün əlavə mətnlər (5 dildə)
 const X = {
@@ -799,6 +802,11 @@ export default function AnalyticsPage({ setPage }) {
               </li>
             ))}
           </ul>
+          <DeferRender height="760px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div style={{ minHeight: 760 }} />}>
+              <SpiritualPassport lang={lang} />
+            </Suspense>
+          </DeferRender>
         </div>
       </section>
     </div>

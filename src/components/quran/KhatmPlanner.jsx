@@ -28,7 +28,7 @@ const L = {
     behind: n => `Plandan ${n} səhifə geridəsiniz — narahat olmayın, bu gün bir az çox oxuyun.`,
     ahead: n => `Plandan ${n} səhifə öndəsiniz.`, onTrack: 'Plan üzrə gedirsiniz.',
     finished: 'Təbrik edirik — Quranı bu planla xətm etdiniz!', share: 'Şəkil kimi paylaş', shareT: 'Xətm', shareEy: 'Quranı xətm etdim', shareSub: '{n} gündə · 604 səhifə', reset: 'Planı sıfırla', resetConfirm: 'Plan silinsin?',
-    note: 'Yalnız bu cihazda saxlanılır.', startsIn: 'Başlanğıc',
+    note: 'Yalnız bu cihazda saxlanılır.', startsIn: 'Başlanğıc', cert: 'Şəhadətnamə hazırla',
   },
   en: {
     eyebrow: 'Khatm plan', title: 'A plan to complete the Quran',
@@ -40,7 +40,7 @@ const L = {
     behind: n => `You are ${n} pages behind the plan — no worries, read a little more today.`,
     ahead: n => `You are ${n} pages ahead of the plan.`, onTrack: 'You are on track.',
     finished: 'Congratulations — you completed the Quran with this plan!', share: 'Share as image', shareT: 'Khatm', shareEy: 'I completed the Quran', shareSub: 'In {n} days · 604 pages', reset: 'Reset the plan', resetConfirm: 'Delete the plan?',
-    note: 'Stored on this device only.', startsIn: 'Starts in',
+    note: 'Stored on this device only.', startsIn: 'Starts in', cert: 'Make your certificate',
   },
   ru: {
     eyebrow: 'План хатма', title: 'План полного прочтения Корана',
@@ -52,7 +52,7 @@ const L = {
     behind: n => `Вы отстаёте от плана на ${n} стр. — не страшно, прочитайте сегодня немного больше.`,
     ahead: n => `Вы опережаете план на ${n} стр.`, onTrack: 'Вы идёте по плану.',
     finished: 'Поздравляем — вы завершили чтение Корана по этому плану!', share: 'Поделиться картинкой', shareT: 'Хатм', shareEy: 'Хатм Корана завершён', shareSub: 'За {n} дн. · 604 страницы', reset: 'Сбросить план', resetConfirm: 'Удалить план?',
-    note: 'Хранится только на этом устройстве.', startsIn: 'Начало',
+    note: 'Хранится только на этом устройстве.', startsIn: 'Начало', cert: 'Создать сертификат',
   },
   ar: {
     eyebrow: 'خطة الختمة', title: 'خطة لختم القرآن',
@@ -64,7 +64,7 @@ const L = {
     behind: n => `أنت متأخر عن الخطة بـ ${n} صفحة — لا بأس، اقرأ اليوم أكثر قليلًا.`,
     ahead: n => `أنت متقدم على الخطة بـ ${n} صفحة.`, onTrack: 'أنت على الخطة.',
     finished: 'مبارك — أتممت ختم القرآن بهذه الخطة!', share: 'شارك كصورة', shareT: 'ختمة', shareEy: 'ختمتُ القرآن', shareSub: 'في {n} يومًا · 604 صفحات', reset: 'أعد ضبط الخطة', resetConfirm: 'هل تحذف الخطة؟',
-    note: 'تُحفظ على هذا الجهاز فقط.', startsIn: 'البداية',
+    note: 'تُحفظ على هذا الجهاز فقط.', startsIn: 'البداية', cert: 'أنشئ شهادتك',
   },
   tr: {
     eyebrow: 'Hatim planı', title: 'Kur’an’ı bitirmek için plan',
@@ -76,7 +76,7 @@ const L = {
     behind: n => `Planın ${n} sayfa gerisindesiniz — endişelenmeyin, bugün biraz fazla okuyun.`,
     ahead: n => `Planın ${n} sayfa önündesiniz.`, onTrack: 'Plana uygun gidiyorsunuz.',
     finished: 'Tebrikler — Kur’an’ı bu planla hatmettiniz!', share: 'Görsel olarak paylaş', shareT: 'Hatim', shareEy: 'Kur’an’ı hatmettim', shareSub: '{n} günde · 604 sayfa', reset: 'Planı sıfırla', resetConfirm: 'Plan silinsin mi?',
-    note: 'Yalnızca bu cihazda saklanır.', startsIn: 'Başlangıç',
+    note: 'Yalnızca bu cihazda saklanır.', startsIn: 'Başlangıç', cert: 'Belgeni hazırla',
   },
 }
 
@@ -94,6 +94,8 @@ function readPlan() {
 }
 function writePlan(p) {
   try { if (p) localStorage.setItem(KEY, JSON.stringify(p)); else localStorage.removeItem(KEY) } catch { /* yaddaş bağlıdır */ }
+  // vB: xətm şəhadətnamələri (KhatmCertificates → PLAN_EVENT) planın dəyişdiyini bilsin
+  try { window.dispatchEvent(new CustomEvent('quran-khatm-plan-change')) } catch { /* */ }
 }
 function streakOf(log) {
   const set = new Set(log)
@@ -224,7 +226,12 @@ export default function KhatmPlanner({ lang, surahName }) {
           </>
         )}
         {finished && (
-          <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={shareKhatm} data-testid="khatm-share">
+          <a className="ui-btn ui-btn--primary ui-btn--sm" href="#khatm-certs" data-testid="khatm-cert-link">
+            <Icon name="sparkle" className="ui-btn__icon" />{t.cert}
+          </a>
+        )}
+        {finished && (
+          <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={shareKhatm} data-testid="khatm-share">
             <Icon name="share" className="ui-btn__icon" />{t.share}<span className="qk__shareic" hidden><Icon name="mushaf" /></span>
           </button>
         )}

@@ -49,6 +49,7 @@ const T = {
     colors: { gold: 'Qızılı', green: 'Yaşıl', blue: 'Mavi', rose: 'Çəhrayı', violet: 'Bənövşəyi' },
     notePh: 'Qeydiniz…', save: 'Saxla', saved: 'Saxlanıldı', del: 'Qeydi sil', deleted: 'Qeyd silindi',
     noteHint: 'Bu cihazda saxlanılır; sinxronizasiya açıqdırsa — digər cihazlarınızda da.',
+    wroteOn: (d) => `Bu qeydi ${d} tarixində yazmısınız`, editedOn: (d) => `son dəyişiklik: ${d}`, history: 'Əvvəlki versiyalar', restore: 'Redaktora qaytar',
     shareAyah: 'Ayəni paylaş', copyWord: 'Sözü kopyala', copied: 'Kopyalandı',
     hint: 'Barmağı düyməyə sürüşdürüb buraxın',
   },
@@ -67,6 +68,7 @@ const T = {
     colors: { gold: 'Gold', green: 'Green', blue: 'Blue', rose: 'Rose', violet: 'Violet' },
     notePh: 'Your note…', save: 'Save', saved: 'Saved', del: 'Delete note', deleted: 'Note deleted',
     noteHint: 'Stored on this device; with sync turned on — on your other devices too.',
+    wroteOn: (d) => `You wrote this on ${d}`, editedOn: (d) => `last edited: ${d}`, history: 'Earlier versions', restore: 'Put back in the editor',
     shareAyah: 'Share verse', copyWord: 'Copy word', copied: 'Copied',
     hint: 'Slide your finger onto a button and release',
   },
@@ -86,6 +88,7 @@ const T = {
     colors: { gold: 'Золотой', green: 'Зелёный', blue: 'Синий', rose: 'Розовый', violet: 'Фиолетовый' },
     notePh: 'Ваша заметка…', save: 'Сохранить', saved: 'Сохранено', del: 'Удалить заметку', deleted: 'Заметка удалена',
     noteHint: 'Хранится на этом устройстве; при включённой синхронизации — и на других ваших устройствах.',
+    wroteOn: (d) => `Вы написали это ${d}`, editedOn: (d) => `последнее изменение: ${d}`, history: 'Прежние версии', restore: 'Вернуть в редактор',
     shareAyah: 'Поделиться аятом', copyWord: 'Копировать слово', copied: 'Скопировано',
     hint: 'Проведите пальцем к кнопке и отпустите',
   },
@@ -105,6 +108,7 @@ const T = {
     colors: { gold: 'ذهبي', green: 'أخضر', blue: 'أزرق', rose: 'وردي', violet: 'بنفسجي' },
     notePh: 'ملاحظتك…', save: 'احفظ', saved: 'حُفظت', del: 'احذف الملاحظة', deleted: 'حُذفت الملاحظة',
     noteHint: 'تُحفظ على هذا الجهاز؛ وإن كانت المزامنة مفعّلة — على أجهزتك الأخرى أيضًا.',
+    wroteOn: (d) => `كتبتَ هذا في ${d}`, editedOn: (d) => `آخر تعديل: ${d}`, history: 'نسخ سابقة', restore: 'أعِدها إلى المحرّر',
     shareAyah: 'شارك الآية', copyWord: 'انسخ الكلمة', copied: 'نُسخ',
     hint: 'اسحب إصبعك إلى زر ثم ارفعه',
   },
@@ -124,6 +128,7 @@ const T = {
     colors: { gold: 'Altın', green: 'Yeşil', blue: 'Mavi', rose: 'Pembe', violet: 'Mor' },
     notePh: 'Notunuz…', save: 'Kaydet', saved: 'Kaydedildi', del: 'Notu sil', deleted: 'Not silindi',
     noteHint: 'Bu cihazda saklanır; senkronizasyon açıksa diğer cihazlarınızda da.',
+    wroteOn: (d) => `Bu notu ${d} tarihinde yazdınız`, editedOn: (d) => `son değişiklik: ${d}`, history: 'Önceki sürümler', restore: 'Düzenleyiciye geri al',
     shareAyah: 'Ayeti paylaş', copyWord: 'Kelimeyi kopyala', copied: 'Kopyalandı',
     hint: 'Parmağınızı bir düğmeye kaydırıp bırakın',
   },
@@ -393,7 +398,7 @@ export default function WordMenu({ req, verse, surah, lang = 'az', refLabel = ''
         {action === 'meaning' && <MeaningPanel k={key} pos={pos} lang={lang} t={t} />}
         {action === 'root' && <RootPanel k={key} pos={pos} lang={lang} t={t} onDone={() => close(false)} />}
         {action === 'listen' && <ListenPanel k={key} pos={pos} t={t} onPlayAyah={() => onPlayAyah?.(req.a)} onPausePlayer={onPausePlayer} />}
-        {action === 'note' && <NotePanel k={key} note={note} word={token?.text} pos={pos} t={t} onSave={onSaveNote} onRemove={onRemoveNote} />}
+        {action === 'note' && <NotePanel k={key} note={note} word={token?.text} pos={pos} t={t} lang={lang} onSave={onSaveNote} onRemove={onRemoveNote} />}
         {action === 'share' && <SharePanel k={key} verse={verse} word={token?.text} refLabel={refLabel} t={t} onShareAyah={onShareAyah} />}
       </div>
     </m.div>
@@ -537,7 +542,10 @@ function ListenPanel({ k, pos, t, onPlayAyah, onPausePlayer }) {
 }
 
 // ── Qeyd və rəngli vurğu ──
-function NotePanel({ k, note, word, pos, t, onSave, onRemove }) {
+const NOTE_DATE_LOC = { az: 'az-Latn-AZ', en: 'en-GB', ru: 'ru-RU', tr: 'tr-TR', ar: 'ar-u-nu-latn' }
+const noteDate = (ms, lang) => { try { return new Date(ms).toLocaleDateString(NOTE_DATE_LOC[lang] || 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) } catch { return new Date(ms).toISOString().slice(0, 10) } }
+
+function NotePanel({ k, note, word, pos, t, lang, onSave, onRemove }) {
   const [c, setC] = useState(note?.c || '')
   const [txt, setTxt] = useState(note?.t || '')
   const [status, setStatus] = useState('')
@@ -559,6 +567,12 @@ function NotePanel({ k, note, word, pos, t, onSave, onRemove }) {
           </label>
         ))}
       </fieldset>
+      {note?.t && (note.d || note.u) ? (
+        <p className="wm-note__when" data-testid="note-when">
+          <Icon name="clock" size={14} /> {t.wroteOn(noteDate(note.d || note.u, lang))}
+          {note.d && note.u && noteDate(note.u, lang) !== noteDate(note.d, lang) ? <> · {t.editedOn(noteDate(note.u, lang))}</> : null}
+        </p>
+      ) : null}
       <label className="ui-sr-only" htmlFor="wm-note-text">{t.noteTitle}</label>
       <textarea id="wm-note-text" className="ui-input wm-note__text" rows={3} maxLength={2000} value={txt} placeholder={t.notePh}
         onChange={(e) => { setTxt(e.target.value); setStatus('') }} />
@@ -571,6 +585,22 @@ function NotePanel({ k, note, word, pos, t, onSave, onRemove }) {
         )}
         <span className="wm-note__status" role="status">{status}</span>
       </div>
+      {note?.h?.length ? (
+        <details className="wm-note__hist">
+          <summary>{t.history} <span className="ui-num">({note.h.length})</span></summary>
+          <ol>
+            {note.h.map((v, i) => (
+              <li key={`${v.u}-${i}`}>
+                <time dateTime={new Date(v.u).toISOString()}>{noteDate(v.u, lang)}</time>
+                <p>{v.t}</p>
+                <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => { setTxt(v.t); setStatus('') }}>
+                  <Icon name="refresh" className="ui-btn__icon" /> {t.restore}
+                </button>
+              </li>
+            ))}
+          </ol>
+        </details>
+      ) : null}
       <p className="wm-pop__src">{t.noteHint}</p>
     </form>
   )

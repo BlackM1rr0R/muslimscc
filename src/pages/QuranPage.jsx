@@ -27,6 +27,7 @@ import SurahRootCloud from '../components/quran/SurahRootCloud'
 import useWordPress from '../components/quran/useWordPress'
 import useQuranNotes from '../components/quran/useQuranNotes'
 import QuranNotes from '../components/quran/QuranNotes'
+import useLifeRecorder from '../components/quran/useLifeRecorder'
 import OfflinePack from '../components/OfflinePack'
 import OfflineAudio from '../components/quran/OfflineAudio'
 import DeferRender from '../components/DeferRender'
@@ -560,6 +561,9 @@ const ScriptLayers = lazy(() => import('../components/ScriptLayers'))
 const QuranColors = lazy(() => import('../components/QuranColors'))
 const QuranWater = lazy(() => import('../components/QuranWater'))
 const QuranMosaic = lazy(() => import('../components/quran/QuranMosaic'))
+// vB: ömürlük mozaika (oxunan ayələr) və xətm şəhadətnamələri
+const QuranLifeMosaic = lazy(() => import('../components/quran/QuranLifeMosaic'))
+const KhatmCertificates = lazy(() => import('../components/quran/KhatmCertificates'))
 const MuqattaatMap = lazy(() => import('../components/quran/MuqattaatMap'))
 const QuranNumbers = lazy(() => import('../components/numbers/QuranNumbers'))
 // v7: sözə uzun basma menyusu (Məna · Kök · Dinlə · Qeyd · Paylaş) — ilk uzun basmada yüklənir
@@ -604,6 +608,12 @@ const AyahCard = memo(function AyahCard({ verse, surahNum, lang, trLang = lang, 
           <button type="button" className="ayah-note" onClick={(e) => onWordMenu?.(verse.n, e.currentTarget, 'note')}
             aria-label={`${pickUi(NOTE_LBL, lang, 'en')} — ${numLabel}: ${note.t}`}>
             <Icon name="edit" size={14} /><span>{note.t}</span>
+          </button>
+        ) : note?.c ? (
+          // vB: yalnız rəngli vurğu — kiçik göstərici (ekran oxuyucusu üçün də), qeyd panelini açır
+          <button type="button" className="ayah-note ayah-note--hl" onClick={(e) => onWordMenu?.(verse.n, e.currentTarget, 'note')}
+            aria-label={`${pickUi(NOTE_LBL, lang, 'en')} — ${numLabel}`} title={pickUi(NOTE_LBL, lang, 'en')} data-testid="ayah-hl">
+            <Icon name="edit" size={14} />
           </button>
         ) : null}
         {verse.sj && <span className="ayah-sajdah"><b aria-hidden="true">۩</b>{pickUi(SAJDAH_BADGE, lang, 'en')}</span>}
@@ -1232,6 +1242,8 @@ export default function QuranPage() {
   }, [])
   const player = useQuranPlayer({ surahNumber: selected, verses, lang, onFollow: followAyah, onSurahEnd, mediaTitle })
   const playerBusy = player.status === 'playing' || player.status === 'loading'
+  // vB: ömürlük mozaika — ekranda ≥ 1.5 s qalan və ya səslənən ayələr qeyd olunur (utils/quranLife)
+  useLifeRecorder(listRef, ready ? surah.number : 0, { active: ready && !!viewVerses, count: viewVerses?.length || 0, playing: player.status === 'playing' ? player.current : 0 })
   // player obyekti hər render yenidir; toggle isə sabitdir — yalnız ondan asılıdır
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const toggleAyah = useCallback((n) => { haptic(); player.toggle(n) }, [player.toggle])
@@ -2045,6 +2057,13 @@ export default function QuranPage() {
             </div>
           </article>
         )}
+          {/* vB: ömürlük Quran mozaikası — oxuduğunuz hər ayə qızılı yanır (utils/quranLife) */}
+          <DeferRender height="760px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
+              <QuranLifeMosaic lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} onOpen={(s, a) => openSurah(s, a)}
+                hrefOf={(s, a) => `${pathFor('quran', tlang, s)}?a=${a}`} certHref="#khatm-certs" />
+            </Suspense>
+          </DeferRender>
           {/* v7.3: Quranın yazı tarixi qat-qat — rasm → nöqtələr → hərəkələr (mətn saytdakı ilə eyni, yalnız qatlar gizlədilir) */}
           <DeferRender height="620px" idle={false} rootMargin="300px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 620 }} />}>
@@ -2099,6 +2118,12 @@ export default function QuranPage() {
           <OfflinePack lang={lang} surahUrl={offlineSurahUrl} />
           <OfflineAudio lang={lang} surahUrl={offlineSurahUrl} />
           <KhatmPlanner lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)} />
+          {/* vB: xətm şəhadətnamələri — plan bitəndə və ya mozaikada bütün ayələr oxunanda */}
+          <DeferRender height="260px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 260 }} />}>
+              <KhatmCertificates lang={lang} />
+            </Suspense>
+          </DeferRender>
           <QuranRadio lang={lang} surahName={n => surahTitle(surahByNum(n), lang) || staticSurahName(n, lang)}
             placeLabel={(name, a) => placeLabel(name, a, lang)} />
         </div>

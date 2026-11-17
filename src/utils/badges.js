@@ -97,6 +97,9 @@ function extraStats() {
   out.kahf = Array.isArray(kf) ? new Set(kf).size : 0
   const plan = safeJSON('quran_khatm_plan', {})
   out.khatmPages = Math.min(MUSHAF_PAGES, Math.max(0, Math.floor(Number(plan.done) || 0)))
+  // vB: ömürlük mozaikada (quran_life_v1.k) tamamlanan xətm də "Xətm" nişanıdır
+  const life = safeJSON('quran_life_v1', {})
+  if (life && Number.isInteger(life.k) && life.k > 0) out.khatmPages = MUSHAF_PAGES
   const ad = safeJSON(ADHKAR_DONE_KEY, {})
   out.adhkarAny = ad.morning || ad.evening ? 1 : 0
   out.adhkarBoth = ad.morning && ad.morning === ad.evening ? 1 : 0

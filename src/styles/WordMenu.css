@@ -188,3 +188,13 @@
   .wm-radial__item, .wm-note__swatch::before { transition: none; }
 }
 html.a11y-motion-user .wm-radial__item, html.a11y-motion-user .wm-note__swatch::before { transition: none; }
+
+/* vB: qeydin yazılma günü və əvvəlki versiyalar */
+.wm-note__when { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: var(--step--1, .86rem); color: var(--text-secondary); }
+.wm-note__when svg { flex: none; }
+.wm-note__hist { font-size: var(--step--1, .86rem); color: var(--text-secondary); }
+.wm-note__hist summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; gap: 4px; }
+.wm-note__hist ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; max-height: 220px; overflow: auto; }
+.wm-note__hist li { display: grid; gap: 4px; padding: 8px 10px; border-radius: 10px; background: var(--surface-2, rgba(0, 0, 0, .04)); }
+.wm-note__hist p { margin: 0; color: var(--text-body, var(--text-primary)); white-space: pre-line; }
+.wm-note__hist .ui-btn { justify-self: start; }

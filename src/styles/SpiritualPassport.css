@@ -1,0 +1,57 @@
+/* ══ Mənəvi səyahət kitabçası (components/SpiritualPassport.jsx, vB) ══ */
+.spp {
+  --spp-paper: #f7efdc; --spp-paper2: #efe2c4; --spp-line: rgba(120, 90, 40, .10); --spp-text: #2b2416; --spp-muted: #5e5136;
+  --spp-cover: #173f3a; --spp-gold: #d9b45e;
+  display: grid; gap: 12px; margin-block: 18px; padding: 0 0 14px; border-radius: 18px; overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 26px, var(--spp-line) 26px 27px),
+    radial-gradient(140% 90% at 50% 0%, var(--spp-paper), var(--spp-paper2));
+  color: var(--spp-text); box-shadow: 0 10px 30px rgba(60, 40, 10, .12), inset 0 0 0 1px rgba(120, 90, 40, .18);
+}
+[data-theme="dark"] .spp {
+  --spp-paper: #2a2620; --spp-paper2: #211e19; --spp-line: rgba(242, 193, 78, .06); --spp-text: #f1e8d4; --spp-muted: #cbbd9c;
+  --spp-cover: #0f2b28; --spp-gold: #f2c14e;
+}
+.spp--bare { margin: 0; }
+.spp__cover { display: flex; align-items: center; gap: 14px; padding: 16px clamp(14px, 3vw, 24px); background:
+  radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--spp-gold) 18%, transparent), transparent 60%), var(--spp-cover);
+  color: #fdf6e3; border-bottom: 3px double var(--spp-gold); }
+.spp__emblem { width: 52px; height: 52px; color: var(--spp-gold); flex: none; }
+.spp__cover-text { display: grid; gap: 2px; }
+.spp__ey { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--spp-gold); }
+.spp__title { margin: 0; font-size: 1.2rem; color: #fdf6e3; font-family: Georgia, 'Amiri', serif; }
+.spp__count { font-size: .85rem; color: #f2e6c4; }
+.spp__lead, .spp__note { margin: 0 clamp(14px, 3vw, 24px); font-size: .9rem; color: var(--spp-muted); }
+.spp__note { font-size: .8rem; display: flex; gap: 6px; align-items: flex-start; }
+.spp__note svg { flex: none; margin-top: 2px; }
+.spp__pages { list-style: none; margin: 0; padding: 4px clamp(10px, 3vw, 24px); display: grid; gap: 18px 14px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+@media (min-width: 900px) {
+  /* iki səhifə: ortada büküm */
+  .spp__pages { grid-template-columns: repeat(6, minmax(0, 1fr));
+    background: linear-gradient(90deg, transparent calc(50% - 1px), rgba(120, 90, 40, .22) 50%, transparent calc(50% + 1px)); }
+}
+.spp__slot { display: grid; justify-items: center; gap: 6px; text-align: center; }
+.spp__stamp { width: 112px; height: 112px; color: var(--ink); transform: rotate(var(--tilt)); }
+[data-theme="dark"] .spp__stamp { color: color-mix(in srgb, var(--ink) 45%, #fff); }
+.spp__svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.is-earned .spp__stamp { opacity: .9; filter: drop-shadow(0 0 .5px currentColor); }
+.is-locked .spp__stamp { opacity: .32; color: var(--spp-muted); }
+.spp__ring { font-family: system-ui, sans-serif; font-weight: 700; }
+.spp__cap { display: grid; gap: 3px; justify-items: center; max-width: 220px; }
+.spp__name { margin: 0; font-size: .92rem; font-weight: 700; color: var(--spp-text); }
+.spp__date { margin: 0; font-size: .8rem; color: var(--spp-muted); }
+.spp__how { margin: 0; font-size: .78rem; color: var(--spp-muted); line-height: 1.35; }
+.spp__prog { display: flex; align-items: center; gap: 6px; font-size: .75rem; color: var(--spp-muted); }
+.spp__prog progress { width: 80px; height: 6px; accent-color: #8a5f00; }
+.spp__prog-t { margin: 0; font-size: .75rem; color: var(--spp-muted); }
+.spp__go { display: inline-flex; align-items: center; gap: 4px; font-size: .8rem; font-weight: 600; color: #6b4a00; }
+[data-theme="dark"] .spp__go { color: #f2c14e; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .spp__slot[data-fresh] .spp__stamp { animation: spp-press .7s cubic-bezier(.2, 1.4, .4, 1) both; }
+}
+@keyframes spp-press {
+  0% { transform: rotate(var(--tilt)) scale(1.6); opacity: 0; }
+  60% { transform: rotate(var(--tilt)) scale(.94); opacity: 1; }
+  100% { transform: rotate(var(--tilt)) scale(1); opacity: .9; }
+}

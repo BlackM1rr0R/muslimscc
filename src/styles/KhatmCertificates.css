@@ -1,0 +1,43 @@
+/* ══ Xətm şəhadətnamələri (components/quran/KhatmCertificates.jsx, vB) ══ */
+.kcx { display: grid; gap: 14px; padding: clamp(14px, 2.4vw, 22px); margin-block: 18px; }
+.kcx--bare { padding: 0; margin: 0; }
+.kcx__head { display: flex; gap: 12px; align-items: flex-start; }
+.kcx__title { margin: 2px 0 4px; font-size: 1.2rem; }
+.kcx__lead, .kcx__none { margin: 0; color: var(--text-secondary); font-size: .92rem; }
+.kcx__pending, .kcx__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.kcx__pend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 14px; border-radius: 14px;
+  border: 1px solid color-mix(in srgb, #b8861d 45%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, #f2c14e 16%, transparent), transparent 70%); }
+.kcx__seal { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: #6b4a00;
+  background: radial-gradient(circle, #f6dc95, #d9a93a); flex: none; }
+[data-theme="dark"] .kcx__seal { color: #2a1d00; }
+.kcx__pend-text { display: grid; gap: 2px; flex: 1 1 240px; font-size: .9rem; color: var(--text-primary); }
+.kcx__pend-text span { color: var(--text-secondary); font-size: .85rem; }
+.kcx__form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 14px; border-radius: 14px;
+  border: 1px dashed var(--border-color, rgba(0, 0, 0, .15)); }
+.kcx__wide { grid-column: 1 / -1; }
+@media (max-width: 520px) { .kcx__form { grid-template-columns: 1fr; } }
+.kcx__err { margin: 0; color: #b42318; font-size: .88rem; }
+[data-theme="dark"] .kcx__err { color: #ff8a80; }
+.kcx__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.kcx__result { display: grid; gap: 10px; }
+.kcx__img { width: 100%; height: auto; border-radius: 10px; box-shadow: 0 10px 30px rgba(40, 30, 10, .18); }
+.kcx__coll { display: grid; gap: 8px; }
+.kcx__h3 { margin: 0; font-size: 1rem; display: flex; gap: 8px; align-items: center; }
+.kcx__item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 12px; border-radius: 12px;
+  background: var(--bg-secondary, rgba(0, 0, 0, .03)); }
+.kcx__medal { color: #a77a22; flex: none; display: grid; }
+[data-theme="dark"] .kcx__medal { color: #f2c14e; }
+.kcx__item-text { display: grid; gap: 2px; flex: 1 1 220px; font-size: .88rem; color: var(--text-primary); }
+.kcx__item-text span, .kcx__item-text i { color: var(--text-secondary); font-size: .82rem; }
+.kcx__item-btns { display: flex; gap: 4px; }
+@media (max-width: 520px) { .kcx__lbl { display: none; } }
+.kcx__privacy { margin: 0; font-size: .8rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: flex-start; }
+.kcx__privacy svg { flex: none; margin-top: 2px; }
+.kcx-print { display: none; }
+@media print {
+  html.kcx-printing body > *:not(.kcx-print) { display: none !important; }
+  html.kcx-printing .kcx-print { display: block !important; }
+  html.kcx-printing .kcx-print img { width: 100%; height: auto; }
+  @page { size: A4 landscape; margin: 8mm; }
+}

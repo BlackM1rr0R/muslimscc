@@ -23,6 +23,7 @@ import { pickUi } from '../utils/uiText'
 import { haptic } from '../hooks/useHaptic'
 import { useReduced } from '../motion/reduced'
 import useMushafCurl from '../components/quran/useMushafCurl'
+import { recordAyahs, pageAyahs } from '../utils/quranLife'
 import MushafRecite from '../components/quran/MushafRecite'
 
 // v3: hero rəqəmləri və "Mushafın quruluşu" bölməsi.
@@ -492,6 +493,23 @@ export default function MushafPage() {
     }, 600)
     return () => clearTimeout(t)
   }, [pR, spread, wl])
+
+  // vB: ömürlük mozaika — səhifə (və ya açıq iki səhifə) ekranda ≥ 10 s qalanda onun bütün ayələri
+  // "oxunub" sayılır. Ayələr API-dən gələn səhifənin öz sözlərindəndir (verse_key) — xəritə uydurulmur.
+  // Tab gizlənəndə taymer dayanır, qayıdanda yenidən başlayır.
+  const leftData = pL ? left.data : null
+  useEffect(() => {
+    const ids = pageAyahs([...(data?.words || []), ...(leftData?.words || [])])
+    if (!ids.length) return undefined
+    let t = 0
+    const arm = () => {
+      clearTimeout(t)
+      if (document.visibilityState === 'visible') t = setTimeout(() => recordAyahs(ids), 10_000)
+    }
+    arm()
+    document.addEventListener('visibilitychange', arm)
+    return () => { clearTimeout(t); document.removeEventListener('visibilitychange', arm) }
+  }, [data, leftData])
 
   const lastStart = spread ? MUSHAF_PAGES - 1 : MUSHAF_PAGES
   const next = useCallback(() => { if (pR < lastStart) goTo(pR + (spread ? 2 : 1)) }, [pR, lastStart, spread, goTo])

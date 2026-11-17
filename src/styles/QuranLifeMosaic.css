@@ -1,0 +1,47 @@
+/* ══ Ömürlük Quran mozaikası (components/quran/QuranLifeMosaic.jsx, vB) ══ */
+.qlm {
+  --qlm-read: #c8941c; --qlm-glow: rgba(226, 170, 40, .30); --qlm-un1: #e6dfcf; --qlm-un2: #d8d0bc; --qlm-prev: #63a99b;
+  --qlm-frame: rgba(130, 105, 55, .30); --qlm-label: #6d5c39; --qlm-ring1: #b8861d; --qlm-ring2: #2b8572; --qlm-ring3: #3563a8; --qlm-sel: #c2410c;
+  display: grid; gap: 12px; padding: clamp(14px, 2.4vw, 22px); margin-bottom: 18px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--qlm-read) 7%, transparent), transparent 70%),
+    var(--card-bg, var(--bg-primary, #fff));
+}
+[data-theme="dark"] .qlm {
+  --qlm-read: #f2c14e; --qlm-glow: rgba(242, 193, 78, .26); --qlm-un1: #2b3038; --qlm-un2: #353b45; --qlm-prev: #3f9c8a;
+  --qlm-frame: rgba(242, 193, 78, .20); --qlm-label: #c9b58a; --qlm-ring1: #f2c14e; --qlm-ring2: #4fc7a9; --qlm-ring3: #7aa7ff; --qlm-sel: #ff9a5c;
+}
+.qlm__head { display: grid; gap: 4px; }
+.qlm__head .ui-lead { margin: 0; }
+.qlm__stats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0; }
+.qlm__stat { display: grid; gap: 0; }
+.qlm__stat dt { font-size: .78rem; color: var(--text-secondary); order: 2; }
+.qlm__stat dd { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-primary); order: 1; }
+.qlm__stat dd small { font-size: .78rem; font-weight: 500; color: var(--text-secondary); }
+.qlm__stat--big dd { font-size: 1.7rem; color: #8a5f00; }
+[data-theme="dark"] .qlm__stat--big dd { color: #f2c14e; }
+.qlm__wrap { position: relative; width: 100%; }
+.qlm__cv { display: block; border-radius: 10px; cursor: pointer; touch-action: manipulation; }
+.qlm__cv:focus-visible { outline: 2px solid var(--accent-color, #2e9a73); outline-offset: 3px; }
+.qlm__empty { position: absolute; inset: auto 8% 42% 8%; margin: 0; padding: 10px 14px; text-align: center; font-size: .9rem;
+  border-radius: 12px; background: color-mix(in srgb, var(--card-bg, #fff) 88%, transparent); color: var(--text-primary);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .08); pointer-events: none; }
+.qlm__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.qlm__legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: .82rem; color: var(--text-secondary); }
+.qlm__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.qlm__sw { width: 12px; height: 12px; display: inline-block; border-radius: 50%; }
+.qlm__sw--read { background: var(--qlm-read); box-shadow: 0 0 0 3px var(--qlm-glow);
+  clip-path: polygon(50% 0, 61% 31%, 92% 18%, 75% 50%, 92% 82%, 61% 69%, 50% 100%, 39% 69%, 8% 82%, 25% 50%, 8% 18%, 39% 31%); border-radius: 0; }
+.qlm__sw--un { background: var(--qlm-un2); }
+.qlm__sw--prev { background: var(--qlm-prev); }
+.qlm__sw--ring { background: transparent; border: 2px solid var(--qlm-ring1); border-radius: 3px; transform: rotate(22.5deg); }
+.qlm__info { margin: 0; flex: 1 1 260px; font-size: .88rem; min-height: 1.4em; color: var(--text-primary); }
+.qlm__yes { color: #8a5f00; font-weight: 600; }
+[data-theme="dark"] .qlm__yes { color: #f2c14e; }
+.qlm__khatm { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 12px; border-radius: 12px; font-size: .9rem;
+  background: color-mix(in srgb, var(--qlm-read) 14%, transparent); color: var(--text-primary); }
+.qlm__note { margin: 0; font-size: .8rem; color: var(--text-secondary); display: flex; gap: 6px; align-items: flex-start; }
+.qlm__note svg { flex: none; margin-top: 2px; }
+.qlm--compact { margin-bottom: 0; box-shadow: none; padding: 0; background: none; }
+.qlm--compact .qlm__stat--big dd { font-size: 1.4rem; }
+.qlm__more { justify-self: start; }

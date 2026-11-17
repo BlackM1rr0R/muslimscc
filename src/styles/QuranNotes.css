@@ -1,0 +1,54 @@
+/* ══ «Qeydlərim» / Quran dəftəri (components/quran/QuranNotes.jsx) — QuranPage.css-dən köçürülüb (vB) ══ */
+/* «Qeydlərim» — Saxlanılanlar bölməsində */
+.qn { margin-top: var(--space-5, 28px); }
+.qn__title { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: var(--step-1); color: var(--text-strong); }
+.qn__title svg { color: var(--brand); }
+.qn__lead { margin: 0 0 var(--space-3, 14px); color: var(--text-tertiary); font-size: var(--step--1); }
+.qn__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+.qn__chip { gap: 6px; }
+.qn__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--qn); flex-shrink: 0; }
+.qn__search { position: relative; display: flex; align-items: center; flex: 1 1 220px; min-width: 0; }
+.qn__search svg { position: absolute; inset-inline-start: 12px; color: var(--text-tertiary); pointer-events: none; }
+.qn__search .ui-input { width: 100%; padding-inline-start: 36px; }
+.qn__empty { margin: 0; color: var(--text-tertiary); }
+.qn__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.qn__card {
+  position: relative;
+  display: flex; align-items: flex-start; gap: 8px;
+  padding-block: 12px; padding-inline: 16px 6px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.qn__card[data-note] { box-shadow: inset 4px 0 0 var(--qn); border-color: color-mix(in srgb, var(--qn) 40%, var(--line)); }
+[dir="rtl"] .qn__card[data-note] { box-shadow: inset -4px 0 0 var(--qn); }
+.qn__open { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; color: inherit; text-decoration: none; }
+.qn__open::before { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.qn__open:focus-visible { outline: none; }
+.qn__card:has(.qn__open:focus-visible) { outline: 2px solid var(--ring, var(--brand)); outline-offset: 2px; }
+.qn__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.qn__label { color: var(--text-strong); font-weight: 600; }
+.qn__ref { color: var(--text-tertiary); font-size: var(--step--1); }
+.qn__word { font-family: var(--font-arabic); font-size: 1.25rem; color: var(--brand); }
+.qn__text { color: var(--text-body); font-size: var(--step--1); white-space: pre-line; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+@media (hover: hover) { .qn__card:hover { box-shadow: var(--shadow-2); } .qn__card[data-note]:hover { box-shadow: inset 4px 0 0 var(--qn), var(--shadow-2); } }
+
+/* vB: /account-da (QuranPage.css yüklənmir) lazım olan ortaq siniflər — yalnız .qn daxilində */
+.qn [data-note="gold"], .qn[data-note="gold"] { --qn: #c9971c; }
+.qn [data-note="green"] { --qn: #2f9e6e; }
+.qn [data-note="blue"] { --qn: #3b7dd8; }
+.qn [data-note="rose"] { --qn: #d9577a; }
+.qn [data-note="violet"] { --qn: #8b5cd6; }
+.qn .qp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.qn .qp-views__n { min-width: 20px; padding: 0 6px; border-radius: var(--radius-pill, 999px); background: var(--brand-soft-2); color: var(--brand-strong);
+  font-size: var(--step--2); font-weight: 600; line-height: 20px; text-align: center; }
+.qn .qp-saved-card__del { position: relative; z-index: 1; display: inline-grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--text-tertiary); cursor: pointer; }
+@media (hover: hover) { .qn .qp-saved-card__del:hover { background: var(--surface-2); color: var(--bad); } }
+.qn--bare { margin-top: 0; }
+
+/* vB: «Quran dəftəri» — sıralama, ixrac, yazılma günü */
+.qn__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; flex: 1 1 100%; }
+.qn__sort { display: inline-flex; align-items: center; gap: 8px; font-size: var(--step--1); color: var(--text-secondary); }
+.qn__exp { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--text-tertiary); }
+.qn__when { color: var(--text-tertiary); font-size: var(--step--2); }

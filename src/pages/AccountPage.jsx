@@ -29,6 +29,8 @@ import '../styles/Account.css'
 
 // Çıxış dialoqu ("bu cihazda məlumat qalsın?") — yalnız sinxronizasiya hesaba bağlı olanda
 const LogoutDialog = lazy(() => import('../components/account/LogoutDialog'))
+// vB: ömürlük Quran mozaikası, Quran dəftəri, xətm şəhadətnamələri, mənəvi səyahət kitabçası
+const AccountQuranSections = lazy(() => import('../components/account/AccountQuranSections'))
 
 const LABELS = {
   az: {
@@ -314,6 +316,9 @@ export default function AccountPage() {
         <ProfileSection l={l} t={t} errText={errText} user={user} lang={lang} />
         <AccountSyncSection user={user} fmt={fmt} />
         <ContinueSection lang={lang} />
+        <Suspense fallback={null}>
+          <AccountQuranSections lang={lang} siteLang={siteLang} />
+        </Suspense>
         <PasswordSection l={l} t={t} errText={errText} user={user} />
         <PasskeySection l={l} errText={errText} user={user} fmt={fmt} />
         <SessionsSection l={l} errText={errText} fmt={fmt} onSignedOut={toLogin} />
