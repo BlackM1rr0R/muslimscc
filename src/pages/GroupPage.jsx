@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
@@ -6,6 +6,7 @@ import Icon from '../components/Icon'
 import { parsePath } from '../seo/routes'
 import {
   GROUP_ID_RE, createGroup, getGroup, claimJuz, markDone, releaseJuz, joinGoal, tickDay, leaveGoal, adminAction,
+  addDua, prayDua, answerDua, removeDua, deviceToken,
   localRoom, saveLocalRoom, forgetLocalRoom, localRooms, savedName, saveName, localDate, streakOf,
 } from '../api/groups'
 import { BarChart, ChartFigure, ProgressRing } from '../components/viz'
@@ -337,6 +338,86 @@ const V3 = {
   },
 }
 
+// ── Ailə dua lövhəsi (type: 'dua') ──
+// Hədis/ayə mətni burada YOXDUR — yalnız interfeys yazıları.
+const DUA_T = {
+  az: {
+    typeTitle: 'Ailə dua lövhəsi', typeText: 'Ailə və dostlar dua istəklərini yazır, digərləri onlar üçün dua edib «Dua etdim» düyməsini basır. İstək yerinə yetəndə sahibi «Əlhəmdulillah» qeyd edir.',
+    titlePh: 'Məsələn: Ailəmizin dua lövhəsi',
+    roomLead: 'Bir-biriniz üçün dua edin: istəyini yaz, başqalarının istəkləri üçün dua edəndə «Dua etdim» düyməsini bas.',
+    addTitle: 'Dua istəyi yaz', nameLabel: 'Adın (istəsən boş qoy)', textLabel: 'Nə üçün dua edilsin?',
+    textPh: 'Məsələn: Nənəmin şəfası üçün dua edin', add: 'Lövhəyə əlavə et', needText: 'Dua istəyini yaz (ən azı 2 simvol).',
+    anon: 'Adsız', pray: (n) => `Dua etdim (${n})`, prayedToday: 'Bu gün dua etdin — Allah qəbul etsin',
+    answeredTag: 'Əlhəmdulillah', markAnswered: 'Əlhəmdulillah, yerinə yetdi', unAnswer: 'Geri al',
+    removeMine: 'Sil', confirmRemoveMine: 'İstəyin silinsin?', mine: 'Sənin istəyin',
+    removeAny: 'İstəyi sil', confirmRemoveAny: 'Bu istək silinsin?',
+    empty: 'Hələ dua istəyi yoxdur. İlk istəyi sən yaz.',
+    stats: (o, a) => `Açıq istəklər: ${o} · Əlhəmdulillah: ${a}`, listLabel: 'Dua istəkləri',
+    privacy: 'Yazdığın mətni bu keçidi bilən hər kəs görür: xəstəlik və ya başqa şəxsi məlumatı yalnız o insanın razılığı ilə yaz. «Dua etdim» düyməsi heç bir ad saxlamır — hər cihaz bir istək üçün gündə bir dəfə sayılır.',
+    added: 'İstəyin lövhəyə əlavə olundu',
+  },
+  en: {
+    typeTitle: 'Family dua board', typeText: 'Family and friends post dua requests; others make dua for them and tap “I made dua”. When a request is fulfilled, its author marks it “Alhamdulillah”.',
+    titlePh: 'e.g. Our family dua board',
+    roomLead: 'Make dua for one another: post your request, and tap “I made dua” when you pray for someone else’s.',
+    addTitle: 'Post a dua request', nameLabel: 'Your name (optional)', textLabel: 'What should we make dua for?',
+    textPh: 'e.g. Please make dua for my grandmother’s recovery', add: 'Add to the board', needText: 'Write your dua request (at least 2 characters).',
+    anon: 'Anonymous', pray: (n) => `I made dua (${n})`, prayedToday: 'You made dua today — may Allah accept it',
+    answeredTag: 'Alhamdulillah', markAnswered: 'Alhamdulillah, it was fulfilled', unAnswer: 'Undo',
+    removeMine: 'Delete', confirmRemoveMine: 'Delete your request?', mine: 'Your request',
+    removeAny: 'Delete request', confirmRemoveAny: 'Delete this request?',
+    empty: 'No dua requests yet. Be the first to post one.',
+    stats: (o, a) => `Open requests: ${o} · Alhamdulillah: ${a}`, listLabel: 'Dua requests',
+    privacy: 'Anyone with this link can read what you write: only share an illness or other personal matter with that person’s consent. The “I made dua” button stores no names — each device counts once per request per day.',
+    added: 'Your request was added to the board',
+  },
+  ru: {
+    typeTitle: 'Семейная доска дуа', typeText: 'Родные и друзья пишут просьбы о дуа, остальные делают за них дуа и нажимают «Я сделал дуа». Когда просьба исполнится, автор отмечает её «Альхамдулиллях».',
+    titlePh: 'Например: семейная доска дуа',
+    roomLead: 'Делайте дуа друг за друга: напишите свою просьбу и нажимайте «Я сделал дуа», когда молитесь за других.',
+    addTitle: 'Написать просьбу о дуа', nameLabel: 'Ваше имя (необязательно)', textLabel: 'О чём сделать дуа?',
+    textPh: 'Например: сделайте дуа о выздоровлении моей бабушки', add: 'Добавить на доску', needText: 'Напишите просьбу (не менее 2 символов).',
+    anon: 'Аноним', pray: (n) => `Я сделал дуа (${n})`, prayedToday: 'Вы сделали дуа сегодня — да примет Аллах',
+    answeredTag: 'Альхамдулиллях', markAnswered: 'Альхамдулиллях, исполнилось', unAnswer: 'Отменить',
+    removeMine: 'Удалить', confirmRemoveMine: 'Удалить вашу просьбу?', mine: 'Ваша просьба',
+    removeAny: 'Удалить просьбу', confirmRemoveAny: 'Удалить эту просьбу?',
+    empty: 'Пока просьб нет. Напишите первую.',
+    stats: (o, a) => `Открытых просьб: ${o} · Альхамдулиллях: ${a}`, listLabel: 'Просьбы о дуа',
+    privacy: 'Написанное увидит каждый, у кого есть ссылка: о болезни или другом личном деле пишите только с согласия этого человека. Кнопка «Я сделал дуа» не хранит имён — каждое устройство учитывается один раз в день для каждой просьбы.',
+    added: 'Ваша просьба добавлена на доску',
+  },
+  ar: {
+    typeTitle: 'لوحة الدعاء العائلية', typeText: 'يكتب الأهل والأصدقاء طلبات الدعاء، ويدعو لهم الآخرون ثم يضغطون «دعوتُ». فإذا تحقّق الطلب علّم صاحبه عليه «الحمد لله».',
+    titlePh: 'مثال: لوحة دعاء العائلة',
+    roomLead: 'ادعوا بعضكم لبعض: اكتب طلبك، واضغط «دعوتُ» إذا دعوت لغيرك.',
+    addTitle: 'اكتب طلب دعاء', nameLabel: 'اسمك (اختياري)', textLabel: 'بماذا ندعو؟',
+    textPh: 'مثال: ادعوا لجدّتي بالشفاء', add: 'أضف إلى اللوحة', needText: 'اكتب طلب الدعاء (حرفان على الأقل).',
+    anon: 'بلا اسم', pray: (n) => `دعوتُ (${n})`, prayedToday: 'دعوتَ اليوم — تقبّل الله',
+    answeredTag: 'الحمد لله', markAnswered: 'الحمد لله، تحقّق', unAnswer: 'تراجع',
+    removeMine: 'احذف', confirmRemoveMine: 'هل تريد حذف طلبك؟', mine: 'طلبك',
+    removeAny: 'احذف الطلب', confirmRemoveAny: 'هل تريد حذف هذا الطلب؟',
+    empty: 'لا توجد طلبات دعاء بعد. كن أول من يكتب.',
+    stats: (o, a) => `طلبات مفتوحة: ${o} · الحمد لله: ${a}`, listLabel: 'طلبات الدعاء',
+    privacy: 'كل من لديه هذا الرابط يرى ما تكتبه: لا تذكر مرضًا أو أمرًا شخصيًا إلا بإذن صاحبه. زر «دعوتُ» لا يحفظ أي اسم — يُحسب كل جهاز مرة واحدة في اليوم لكل طلب.',
+    added: 'أُضيف طلبك إلى اللوحة',
+  },
+  tr: {
+    typeTitle: 'Aile dua panosu', typeText: 'Aile ve arkadaşlar dua isteklerini yazar, diğerleri onlar için dua edip «Dua ettim» düğmesine basar. İstek gerçekleşince sahibi «Elhamdülillah» olarak işaretler.',
+    titlePh: 'Örneğin: Ailemizin dua panosu',
+    roomLead: 'Birbiriniz için dua edin: isteğinizi yazın, başkalarının istekleri için dua ettiğinizde «Dua ettim» düğmesine basın.',
+    addTitle: 'Dua isteği yaz', nameLabel: 'Adınız (isteğe bağlı)', textLabel: 'Ne için dua edilsin?',
+    textPh: 'Örneğin: Ninemin şifası için dua edin', add: 'Panoya ekle', needText: 'Dua isteğinizi yazın (en az 2 karakter).',
+    anon: 'İsimsiz', pray: (n) => `Dua ettim (${n})`, prayedToday: 'Bugün dua ettiniz — Allah kabul etsin',
+    answeredTag: 'Elhamdülillah', markAnswered: 'Elhamdülillah, gerçekleşti', unAnswer: 'Geri al',
+    removeMine: 'Sil', confirmRemoveMine: 'İsteğiniz silinsin mi?', mine: 'Sizin isteğiniz',
+    removeAny: 'İsteği sil', confirmRemoveAny: 'Bu istek silinsin mi?',
+    empty: 'Henüz dua isteği yok. İlk isteği siz yazın.',
+    stats: (o, a) => `Açık istekler: ${o} · Elhamdülillah: ${a}`, listLabel: 'Dua istekleri',
+    privacy: 'Yazdığınızı bu bağlantıya sahip herkes görür: hastalık veya başka kişisel bir durumu yalnızca o kişinin izniyle yazın. «Dua ettim» düğmesi hiçbir isim saklamaz — her cihaz bir istek için günde bir kez sayılır.',
+    added: 'İsteğiniz panoya eklendi',
+  },
+}
+
 // Nümunə xəritə (təqdimat hero-su) — illüstrasiya, real məlumat deyil
 const SAMPLE = Array.from({ length: 30 }, (_, i) => (i < 18 ? 'done' : i < 24 ? 'reading' : 'free'))
 
@@ -450,6 +531,7 @@ function Landing({ L, lang }) {
   }
 
   const v = pickUi(V3, lang, 'en')
+  const D = pickUi(DUA_T, lang, 'en')
   const sampleCounts = { done: SAMPLE.filter(x => x === 'done').length, reading: SAMPLE.filter(x => x === 'reading').length, free: SAMPLE.filter(x => x === 'free').length }
 
   return (
@@ -523,6 +605,13 @@ function Landing({ L, lang }) {
               </div>
               <p className="ui-card__text">{L.goalText}</p>
             </div>
+            <div className="ui-card">
+              <div className="ui-card__head">
+                <span className="ui-icon-tile ui-icon-tile--accent"><Icon name="duas" /></span>
+                <h3 className="ui-card__title">{D.typeTitle}</h3>
+              </div>
+              <p className="ui-card__text">{D.typeText}</p>
+            </div>
           </div>
 
           <div className="gp-layout">
@@ -532,12 +621,13 @@ function Landing({ L, lang }) {
                 <div className="gp-chips" role="group" aria-labelledby="gp-type-l">
                   <button type="button" className="ui-chip" aria-pressed={type === 'khatm'} onClick={() => setType('khatm')}>{L.khatmTitle}</button>
                   <button type="button" className="ui-chip" aria-pressed={type === 'goal'} onClick={() => setType('goal')}>{L.goalTitle}</button>
+                  <button type="button" className="ui-chip" aria-pressed={type === 'dua'} onClick={() => setType('dua')}>{D.typeTitle}</button>
                 </div>
               </div>
               <label className="ui-field">
                 <span className="ui-field__label">{L.fieldTitle}</span>
                 <input className="ui-input" value={title} maxLength={80} onChange={e => setTitle(e.target.value)}
-                  placeholder={type === 'khatm' ? L.titlePhKhatm : L.titlePhGoal} required />
+                  placeholder={type === 'khatm' ? L.titlePhKhatm : type === 'dua' ? D.titlePh : L.titlePhGoal} required />
               </label>
               {type === 'goal' && (
                 <>
@@ -578,7 +668,7 @@ function Landing({ L, lang }) {
                     {rooms.map(r => (
                       <AnimatedItem as="li" key={r.id}>
                         <a href={roomPath(lang, r.id)} onClick={e => { if (e.button === 0 && !e.metaKey && !e.ctrlKey) { e.preventDefault(); navigate(roomPath(lang, r.id)) } }}>
-                          <Icon name={r.type === 'goal' ? 'target' : 'quran'} size={18} /> <span>{r.title || r.id}</span>
+                          <Icon name={r.type === 'goal' ? 'target' : r.type === 'dua' ? 'duas' : 'quran'} size={18} /> <span>{r.title || r.id}</span>
                         </a>
                         <button type="button" className="ui-icon-btn gp-x" aria-label={L.forget} title={L.forget}
                           onClick={() => { forgetLocalRoom(r.id); setRooms(localRooms()) }}>
@@ -720,6 +810,7 @@ function Room({ id, L, lang }) {
   }
 
   const isAdmin = !!local.adminKey
+  const D = pickUi(DUA_T, lang, 'en')
   const admin = (action, extra, confirmText, okText) => {
     if (confirmText && !window.confirm(confirmText)) return
     run(async () => {
@@ -737,11 +828,12 @@ function Room({ id, L, lang }) {
         <div className="ui-pattern ui-pattern--fade" aria-hidden="true"></div>
         <div className="ui-container">
           {back}
-          <span className="ui-eyebrow">{data.type === 'khatm' ? L.khatmTitle : L.goalTitle}</span>
+          <span className="ui-eyebrow">{data.type === 'khatm' ? L.khatmTitle : data.type === 'dua' ? D.typeTitle : L.goalTitle}</span>
           <h1 className="ui-display gp-title">{data.title}</h1>
           {data.type === 'goal' && (
             <p className="ui-lead">{data.goal.kind === 'fajr-40' ? L.fajr40 : `${data.goal.label} · ${L.goalDays(data.goal.days)}`}</p>
           )}
+          {data.type === 'dua' && <p className="ui-lead">{D.roomLead}</p>}
           <div className="ui-page-hero__actions">
             <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={share}>
               <Icon name="share" className="ui-btn__icon" /> {L.share}
@@ -756,16 +848,20 @@ function Room({ id, L, lang }) {
           {data.closed && <p className="gp-banner" role="status"><Icon name="info" size={18} /> {L.closedNote}</p>}
           {data.type === 'khatm'
             ? <Khatm data={data} L={L} lang={lang} local={local} updateLocal={updateLocal} run={run} busy={busy} isAdmin={isAdmin} admin={admin} flash={flash} id={id} />
-            : <Goal data={data} L={L} lang={lang} local={local} updateLocal={updateLocal} run={run} busy={busy} isAdmin={isAdmin} admin={admin} id={id} />}
+            : data.type === 'dua'
+              ? <DuaBoard data={data} L={L} D={D} lang={lang} local={local} updateLocal={updateLocal} run={run} busy={busy} isAdmin={isAdmin} admin={admin} flash={flash} id={id} />
+              : <Goal data={data} L={L} lang={lang} local={local} updateLocal={updateLocal} run={run} busy={busy} isAdmin={isAdmin} admin={admin} id={id} />}
 
           {isAdmin && (
             <div className="ui-card ui-card--sunken gp-admin">
               <h2 className="gp-h3">{L.admin}</h2>
               <div className="gp-actions">
-                <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" disabled={busy}
-                  onClick={() => admin('reset', {}, data.type === 'khatm' && data.khatm.completedAt ? null : L.confirmReset)}>
-                  <Icon name="refresh" className="ui-btn__icon" /> {data.type === 'khatm' ? L.resetKhatm : L.resetGoal}
-                </button>
+                {data.type !== 'dua' && (
+                  <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" disabled={busy}
+                    onClick={() => admin('reset', {}, data.type === 'khatm' && data.khatm.completedAt ? null : L.confirmReset)}>
+                    <Icon name="refresh" className="ui-btn__icon" /> {data.type === 'khatm' ? L.resetKhatm : L.resetGoal}
+                  </button>
+                )}
                 <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" disabled={busy}
                   onClick={() => admin(data.closed ? 'reopen' : 'close')}>
                   {data.closed ? L.reopen : L.close}
@@ -1012,6 +1108,145 @@ function Goal({ data, L, lang, local, updateLocal, run, busy, isAdmin, admin, id
             <p className="gp-src">— {L.fajrSrc}</p>
           </aside>
         )}
+      </div>
+    </>
+  )
+}
+
+/* ── Ailə dua lövhəsi ──
+   İstəklər kart kimi (yeni → köhnə). «Dua etdim»: anonim cihaz tokeni ilə
+   gündə bir dəfə (server tokeni saxlamır). Müəllif öz tokeni ilə
+   «Əlhəmdulillah» qeyd edir və ya silir; admin istənilən istəyi silir. */
+const AZ_MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avqust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr']
+
+function DuaBoard({ data, L, D, lang, local, updateLocal, run, busy, isAdmin, admin, flash, id }) {
+  const [name, setName] = useState(savedName)
+  const [text, setText] = useState('')
+  const [glow, setGlow] = useState(null)   // { did, n } — son «dua etdim» işığı
+  const closed = data.closed
+  const requests = data.dua.requests
+  const mine = local.duas || {}
+  const today = localDate()
+  const prayed = local.prayed || {}
+  const openN = requests.filter(r => !r.answered).length
+  // Chromium-un ICU-su az ay adlarını vermir ("M11 17") — az üçün öz siyahımız
+  const fmt = useMemo(() => {
+    if (lang === 'az') return null
+    try { return new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short', timeZone: 'UTC' }) } catch { return null }
+  }, [lang])
+  const dayText = (d) => {
+    if (fmt) return fmt.format(new Date(`${d}T12:00:00Z`))
+    const [, m, day] = d.split('-').map(Number)
+    return lang === 'az' && AZ_MONTHS[m - 1] ? `${day} ${AZ_MONTHS[m - 1]}` : d
+  }
+
+  const submit = (e) => {
+    e.preventDefault()
+    const t = text.trim()
+    const nm = name.trim()
+    if (t.length < 2) { flash(D.needText, false); return }
+    if (nm) saveName(nm)
+    run(async () => {
+      const r = await addDua(id, nm, t)
+      updateLocal({ duas: { ...(localRoom(id).duas || {}), [r.did]: r.token } })
+      setText('')
+    }, D.added)
+  }
+  const pray = (did) => run(async () => {
+    await prayDua(id, did, deviceToken())
+    const p = Object.fromEntries(Object.entries(localRoom(id).prayed || {}).filter(([, d]) => d === today))
+    updateLocal({ prayed: { ...p, [did]: today } })
+    setGlow(g => ({ did, n: (g ? g.n : 0) + 1 }))
+  })
+  const forgetMine = (did) => {
+    const m = { ...(localRoom(id).duas || {}) }
+    delete m[did]
+    updateLocal({ duas: m })
+  }
+  const answer = (did, on) => run(() => answerDua(id, did, mine[did], on))
+  const removeMine = (did) => {
+    if (!window.confirm(D.confirmRemoveMine)) return
+    run(async () => { await removeDua(id, did, mine[did]); forgetMine(did) })
+  }
+
+  return (
+    <>
+      {!closed && (
+        <form className="ui-card gp-duaform" onSubmit={submit} data-testid="dua-form">
+          <h2 className="gp-h2">{D.addTitle}</h2>
+          <label className="ui-field">
+            <span className="ui-field__label">{D.textLabel}</span>
+            <textarea className="ui-input gp-duaform__text" value={text} maxLength={280} rows={3} placeholder={D.textPh}
+              onChange={e => setText(e.target.value)} />
+            <span className="gp-muted gp-duaform__count ui-num" aria-hidden="true">{text.length} / 280</span>
+          </label>
+          <div className="gp-row">
+            <label className="ui-field gp-grow">
+              <span className="ui-field__label">{D.nameLabel}</span>
+              <input className="ui-input" value={name} maxLength={40} placeholder={L.namePh} autoComplete="nickname"
+                onChange={e => setName(e.target.value)} />
+            </label>
+            <button type="submit" className="ui-btn ui-btn--primary" disabled={busy || text.trim().length < 2}>
+              <Icon name="plus" className="ui-btn__icon" /> {D.add}
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="gp-people__head gp-duahead">
+        <h2 className="gp-h3">{D.listLabel}</h2>
+        {requests.length > 0 && <span className="gp-muted">{D.stats(openN, requests.length - openN)}</span>}
+      </div>
+      {requests.length === 0 ? <p className="gp-muted">{D.empty}</p> : (
+        // Yeni istək yayla gəlir, silinən qısa çıxır (AnimatedList)
+        <AnimatedList as="ul" className="gp-duas" aria-label={D.listLabel}>
+          {requests.map(r => {
+            const isMine = !!mine[r.did]
+            const done = prayed[r.did] === today
+            return (
+              <AnimatedItem as="li" key={r.did} data-testid="dua-card"
+                className={`gp-duacard${r.answered ? ' is-answered' : ''}${isMine ? ' is-mine' : ''}`}>
+                <div className="gp-duacard__top">
+                  <span className="gp-duacard__who">
+                    <bdi>{r.name || D.anon}</bdi>{isMine && <span className="gp-mine"> · {D.mine}</span>}
+                  </span>
+                  <span className="gp-muted ui-num">{dayText(r.day)}</span>
+                </div>
+                {r.answered && (
+                  <span className="gp-duacard__tag"><Icon name="sparkle" size={14} /> {D.answeredTag}</span>
+                )}
+                <p className="gp-duacard__text" dir="auto">{r.text}</p>
+                <div className="gp-duacard__actions">
+                  <button type="button" className={`ui-btn ui-btn--sm gp-pray ${done ? 'ui-btn--primary' : 'ui-btn--secondary'}`}
+                    aria-pressed={done} title={done ? D.prayedToday : undefined}
+                    disabled={busy || closed || done} onClick={() => pray(r.did)}>
+                    <Icon name="duas" className="ui-btn__icon" /> <span className="ui-num">{D.pray(r.count)}</span>
+                    {glow && glow.did === r.did && <span key={glow.n} className="gp-pray__glow" aria-hidden="true" />}
+                  </button>
+                  {isMine && !closed && (
+                    <button type="button" className={`ui-btn ui-btn--sm ${r.answered ? 'ui-btn--ghost' : 'ui-btn--secondary'}`} disabled={busy}
+                      onClick={() => answer(r.did, !r.answered)}>
+                      {r.answered ? D.unAnswer : <><Icon name="check" className="ui-btn__icon" /> {D.markAnswered}</>}
+                    </button>
+                  )}
+                  {isMine && (
+                    <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm gp-danger" disabled={busy} onClick={() => removeMine(r.did)}>
+                      <Icon name="trash" className="ui-btn__icon" /> {D.removeMine}
+                    </button>
+                  )}
+                  {isAdmin && !isMine && (
+                    <button type="button" className="ui-icon-btn gp-x" aria-label={D.removeAny} title={D.removeAny} disabled={busy}
+                      onClick={() => admin('remove', { did: r.did }, D.confirmRemoveAny)}><Icon name="close" size={16} /></button>
+                  )}
+                </div>
+              </AnimatedItem>
+            )
+          })}
+        </AnimatedList>
+      )}
+
+      <div className="gp-notes">
+        <p className="gp-note"><Icon name="shield" size={18} /> <span>{D.privacy}</span></p>
       </div>
     </>
   )

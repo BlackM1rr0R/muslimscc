@@ -16,8 +16,10 @@ const Astrolabe = lazy(() => import('../components/Astrolabe'))
 const ElephantClock = lazy(() => import('../components/ElephantClock'))
 const NumeralsJourney = lazy(() => import('../components/NumeralsJourney'))
 const IdrisiWorld = lazy(() => import('../components/IdrisiWorld'))
+const ArchBuilder = lazy(() => import('../components/ArchBuilder'))
 const HijraWalk = lazy(() => import('../components/HijraWalk'))
 const MuslimAtlas = lazy(() => import('../components/MuslimAtlas'))
+const ProphetLetters = lazy(() => import('../components/ProphetLetters'))
 const IbnBattutaJourney = lazy(() => import('../components/IbnBattutaJourney'))
 // v5.9: Hicrət yolu 3D (three.js — ayrıca chunk, bölməyə yaxınlaşanda)
 const HijraJourney3D = lazy(() => import('../components/media/HijraJourney3D'))
@@ -486,6 +488,12 @@ export default function IslamicHistoryPage() {
           <Suspense fallback={<SpreadMap lang={lang} />}>
             <SpreadTimeline lang={lang} />
           </Suspense>
+          {/* v7.5: Peyğəmbərin ﷺ krallara məktubları — Buxari 7, 64, 4424, 1245; Muslim 1773, 1774 */}
+          <DeferRender height="760px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
+              <ProphetLetters />
+            </Suspense>
+          </DeferRender>
           {/* v7.4: müsəlman dünyası atlası — Pew Research Center, 2010 və 2020 (201 ölkə) */}
           <DeferRender height="820px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 820 }} />}>
@@ -538,6 +546,12 @@ export default function IslamicHistoryPage() {
           <DeferRender height="760px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
               <IdrisiWorld lang={lang} />
+            </Suspense>
+          </DeferRender>
+          {/* v7.5: İslam memarlığında tağlar — pərgar və xətkeşlə addım-addım (Kordova, Ibn Tulun, Registan, Süleymaniyə) */}
+          <DeferRender height="720px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 720 }} />}>
+              <ArchBuilder />
             </Suspense>
           </DeferRender>
             </>

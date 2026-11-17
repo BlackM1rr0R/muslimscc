@@ -11,15 +11,22 @@
 //   POST  /api/groups/:id/join             { name }                 → { pid, token }
 //   POST  /api/groups/:id/tick             { pid, token, date, on? }→ { ok, ticks }
 //   POST  /api/groups/:id/leave            { pid, token }           → { ok }
+//   — Ailə dua lövhəsi —
+//   POST  /api/groups/:id/dua              { name, text }           → { did, token }
+//   POST  /api/groups/:id/dua/:did/pray    { device }               → { count, already }
+//   POST  /api/groups/:id/dua/:did/answered{ token, on? }           → { ok }
+//   POST  /api/groups/:id/dua/:did/remove  { token }                → { ok }
 //   — Otağı yaradan (adminKey) —
-//   POST  /api/groups/:id/admin            { adminKey, action, juz?, pid? } → { ok }
-//         action: check | reset | remove | close | reopen | delete
+//   POST  /api/groups/:id/admin            { adminKey, action, juz?, pid?, did? } → { ok }
+//         action: check | reset | remove | close | reopen | delete  (dua otağında reset yoxdur)
 //
 // Saxlama: docs cədvəli, collection 'groups', otaq başına bir sənəd.
 // Sirlər (adminKey, iştirakçı tokenləri) yalnız SHA-256 həşi ilə saxlanır.
 // Məxfilik: yalnız istifadəçinin yazdığı görünən ad saxlanır; IP, cookie,
 // brauzer məlumatı SAXLANMIR (limit sayğacı yalnız yaddaşdadır).
 // Ömür: son fəaliyyətdən 180 gün sonra otaq silinir (dövri təmizləmə).
+// "Dua etdim": cihaz tokeni HEÇ YERDƏ saxlanmır — yalnız yaddaşda, gün + otaq +
+// istək + cihazın SHA-256 həşindən ibarət gündəlik dəst (UTC gün dəyişəndə silinir).
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
 
@@ -27,7 +34,7 @@ const express = require('express')
 const crypto = require('node:crypto')
 
 const COLLECTION = 'groups'
-const TYPES = ['khatm', 'goal']
+const TYPES = ['khatm', 'goal', 'dua']
 const GOAL_KINDS = ['fajr-40', 'custom']
 const LANGS = ['az', 'en', 'ru', 'ar', 'tr']
 const JUZ = 30
@@ -35,6 +42,10 @@ const MAX_PARTICIPANTS = 60
 const MAX_TITLE = 80
 const MAX_NAME = 40
 const MAX_DAYS = 365
+const MAX_TEXT = 280
+const MAX_OPEN_DUA = 100     // cavablanmamış (açıq) istək həddi
+const MAX_ALL_DUA = 150      // cavablanmışlarla birlikdə ümumi hədd (sənəd böyüməsin)
+const MAX_PRAYED_SET = 200000
 const ID_LEN = 10
 const KEY_LEN = 24
 const PID_LEN = 8
@@ -67,6 +78,8 @@ function randStr(len, abc) {
   return s
 }
 const ID_RE = new RegExp(`^[a-z0-9]{${ID_LEN}}$`)
+const DID_RE = new RegExp(`^[a-z0-9]{${PID_LEN}}$`)
+const DEVICE_RE = /^[A-Za-z0-9_-]{16,64}$/
 const hash = (s) => crypto.createHash('sha256').update(String(s)).digest('hex')
 function sameHash(secret, h) {
   if (typeof secret !== 'string' || !secret || secret.length > 64 || typeof h !== 'string') return false
@@ -91,6 +104,8 @@ function validCreate(b) {
   const out = { type: b.type, title, lang: LANGS.includes(b.lang) ? b.lang : 'az', closed: false }
   if (b.type === 'khatm') {
     out.khatm = { round: 1, completions: 0, completedAt: null, juz: Array(JUZ).fill(null) }
+  } else if (b.type === 'dua') {
+    out.dua = { requests: [] }
   } else {
     const g = b.goal && typeof b.goal === 'object' ? b.goal : null
     if (!g || !GOAL_KINDS.includes(g.kind)) return null
@@ -117,6 +132,14 @@ function publicView(doc) {
     v.khatm = {
       round: k.round, completions: k.completions, completedAt: k.completedAt,
       juz: k.juz.map((j, i) => ({ n: i + 1, name: j ? j.name : null, done: !!(j && j.done) })),
+    }
+  } else if (doc.type === 'dua') {
+    // Yeni → köhnə; vaxt yalnız gün dəqiqliyi ilə (YYYY-MM-DD)
+    v.dua = {
+      requests: [...doc.dua.requests].sort((a, b) => b.createdAt - a.createdAt).map(r => ({
+        did: r.did, name: r.name, text: r.text, count: r.count || 0, answered: !!r.answered,
+        day: new Date(r.createdAt).toISOString().slice(0, 10),
+      })),
     }
   } else {
     v.goal = { ...doc.goal }
@@ -303,6 +326,76 @@ function createGroupsRouter({ db, now = () => Date.now(), limits = LIMITS, clean
     res.json({ ok: true })
   })
 
+  // ── Ailə dua lövhəsi ──
+  // Gündəlik "dua etdim" dəsti: yalnız yaddaşda, həşlənmiş açarlar; gün dəyişəndə boşalır
+  let prayed = { day: '', set: new Set() }
+  const prayedSet = () => {
+    const day = new Date(now()).toISOString().slice(0, 10)
+    if (prayed.day !== day || prayed.set.size > MAX_PRAYED_SET) prayed = { day, set: new Set() }
+    return prayed
+  }
+  const duaReq = (req, res) => {
+    const did = String(req.params.did || '')
+    const r = DID_RE.test(did) ? req.room.dua.requests.find(x => x.did === did) : null
+    if (!r) { res.status(404).json({ error: 'not found' }); return null }
+    return r
+  }
+  const author = (req, res) => {
+    const r = duaReq(req, res)
+    if (!r) return null
+    if (!sameHash(body(req).token, r.th)) { res.status(403).json({ error: 'forbidden' }); return null }
+    return r
+  }
+
+  router.post('/groups/:id/dua', noStore, limit('write'), json, room(true), ofType('dua'), (req, res) => {
+    const b = body(req)
+    const name = str(b.name, MAX_NAME)
+    const text = str(b.text, MAX_TEXT)
+    if (text.length < 2) return res.status(400).json({ error: 'invalid' })
+    const rs = req.room.dua.requests
+    if (rs.length >= MAX_ALL_DUA || rs.filter(r => !r.answered).length >= MAX_OPEN_DUA) return res.status(409).json({ error: 'full' })
+    const token = randStr(KEY_LEN, KEY_ABC)
+    let did
+    do { did = randStr(PID_LEN, ID_ABC) } while (rs.some(r => r.did === did))
+    rs.push({ did, name, text, th: hash(token), count: 0, answered: false, answeredAt: null, createdAt: now() })
+    save(req.room)
+    res.json({ did, token })
+  })
+
+  router.post('/groups/:id/dua/:did/pray', noStore, limit('write'), json, room(true), ofType('dua'), (req, res) => {
+    const r = duaReq(req, res)
+    if (!r) return
+    const device = body(req).device
+    if (typeof device !== 'string' || !DEVICE_RE.test(device)) return res.status(400).json({ error: 'invalid' })
+    const p = prayedSet()
+    const key = hash(`${p.day}|${req.room.id}|${r.did}|${device}`)
+    if (p.set.has(key)) return res.json({ count: r.count || 0, already: true })
+    p.set.add(key)
+    r.count = (r.count || 0) + 1
+    save(req.room)
+    res.json({ count: r.count, already: false })
+  })
+
+  router.post('/groups/:id/dua/:did/answered', noStore, limit('write'), json, room(true), ofType('dua'), (req, res) => {
+    const r = author(req, res)
+    if (!r) return
+    const on = body(req).on !== false
+    if (!on && !r.answered) return res.json({ ok: true })
+    if (!on && req.room.dua.requests.filter(x => !x.answered).length >= MAX_OPEN_DUA) return res.status(409).json({ error: 'full' })
+    r.answered = on
+    r.answeredAt = on ? now() : null
+    save(req.room)
+    res.json({ ok: true })
+  })
+
+  router.post('/groups/:id/dua/:did/remove', noStore, limit('write'), json, room(false), ofType('dua'), (req, res) => {
+    const r = author(req, res)
+    if (!r) return
+    req.room.dua.requests = req.room.dua.requests.filter(x => x !== r)
+    save(req.room)
+    res.json({ ok: true })
+  })
+
   // ── Otağı yaradan ──
   router.post('/groups/:id/admin', noStore, limit('write'), json, room(false), (req, res) => {
     const b = body(req)
@@ -319,6 +412,7 @@ function createGroupsRouter({ db, now = () => Date.now(), limits = LIMITS, clean
         doc.closed = b.action === 'close'
         break
       case 'reset':
+        if (doc.type === 'dua') return res.status(400).json({ error: 'invalid' })
         if (doc.type === 'khatm') {
           doc.khatm.juz = Array(JUZ).fill(null)
           doc.khatm.completedAt = null
@@ -333,6 +427,10 @@ function createGroupsRouter({ db, now = () => Date.now(), limits = LIMITS, clean
           if (!n) return res.status(400).json({ error: 'invalid' })
           if (doc.khatm.completedAt) return res.status(409).json({ error: 'completed' })
           doc.khatm.juz[n - 1] = null
+        } else if (doc.type === 'dua') {
+          const before = doc.dua.requests.length
+          doc.dua.requests = doc.dua.requests.filter(r => r.did !== b.did)
+          if (doc.dua.requests.length === before) return res.status(404).json({ error: 'not found' })
         } else {
           const before = doc.participants.length
           doc.participants = doc.participants.filter(p => p.pid !== b.pid)
@@ -360,5 +458,5 @@ function createGroupsRouter({ db, now = () => Date.now(), limits = LIMITS, clean
 
 module.exports = {
   createGroupsRouter, validCreate, publicView,
-  COLLECTION, MAX_PARTICIPANTS, MAX_TITLE, MAX_NAME, EXPIRE_MS, LIMITS, ID_LEN, KEY_LEN,
+  COLLECTION, MAX_PARTICIPANTS, MAX_TITLE, MAX_NAME, MAX_TEXT, MAX_OPEN_DUA, EXPIRE_MS, LIMITS, ID_LEN, KEY_LEN,
 }

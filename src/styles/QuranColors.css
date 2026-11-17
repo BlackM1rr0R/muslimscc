@@ -1,0 +1,76 @@
+/* ══ Quranda rənglər (components/QuranColors.jsx, v8) ══ */
+.qcl { --qcl-canvas: #fbf6ec; --qcl-canvas2: #f1e6d2; --qcl-far: #c79a6b; --qcl-near: #a5754c; --qcl-sky: #e9f1f7;
+  display: grid; gap: 12px; min-width: 0; }
+[data-theme="dark"] .qcl { --qcl-canvas: #2a2622; --qcl-canvas2: #1f1c19; --qcl-far: #7a5b3f; --qcl-near: #5e4430; --qcl-sky: #18222e; }
+.qcl__title { margin: 0; }
+.qcl__lead { margin: 0; color: var(--text-muted); line-height: 1.55; }
+.qcl__grid { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .qcl__grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; } }
+
+/* Molbert: kətan fon, üstdə dağlar, altda palitra */
+.qcl__easel { min-width: 0; display: grid; gap: 10px; padding: 12px; border-radius: 22px;
+  background: radial-gradient(circle at 20% 10%, var(--qcl-canvas) 0%, var(--qcl-canvas2) 100%);
+  border: 1px solid var(--line, var(--border)); }
+.qcl__mtn { display: block; width: 100%; height: auto; border-radius: 16px; background: linear-gradient(180deg, var(--qcl-sky), var(--qcl-canvas)); }
+.qcl__rock--far { fill: var(--qcl-far); }
+.qcl__rock--near { fill: var(--qcl-near); }
+.qcl__vein { transition: opacity .3s; }
+.qcl__vein.is-dim { opacity: .35; }
+.qcl__vein.is-on { opacity: 1; }
+.qcl__hint { margin: 0; font-size: .85rem; font-weight: 600; color: var(--text-muted); }
+
+.qcl__palette { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.qcl__sw { width: 100%; display: grid; justify-items: center; gap: 2px; padding: 6px 4px 8px; border-radius: 14px; border: 2px solid transparent;
+  background: color-mix(in srgb, var(--surface-0, #fff) 55%, transparent); color: var(--text-primary, inherit); font: inherit; font-size: .8rem; font-weight: 700; line-height: 1.2; cursor: pointer;
+  transition: border-color .2s, background-color .2s; }
+.qcl__sw:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.qcl__sw.is-on { border-color: var(--accent); background: var(--surface-1, #fff); }
+.qcl__sw:focus-visible, .qcl__chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.qcl__stroke { display: block; width: 100%; max-width: 96px; height: auto; overflow: visible; }
+.qcl__paint { stroke: rgba(0,0,0,.18); stroke-width: 1; }
+[data-theme="dark"] .qcl__paint { stroke: rgba(255,255,255,.22); }
+.qcl__nm { text-align: center; overflow-wrap: anywhere; }
+.qcl__w { font-size: 1rem; color: var(--text-muted); line-height: 1.6; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .qcl.is-live .qcl__stroke { transition: transform .25s; }
+  html:not(.a11y-reduce-motion) .qcl.is-live .qcl__sw:hover .qcl__stroke,
+  html:not(.a11y-reduce-motion) .qcl.is-live .qcl__sw.is-on .qcl__stroke { transform: rotate(-3deg) scale(1.06); }
+  html:not(.a11y-reduce-motion) .qcl.is-live .qcl__card { animation: qcl-in .35s ease-out; }
+}
+@keyframes qcl-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Kart */
+.qcl__card { display: grid; gap: 10px; padding: 16px; border-radius: 18px; background: var(--surface-1, rgba(0,0,0,.03)); border: 1px solid var(--line, var(--border)); min-width: 0; }
+.qcl__top { display: flex; gap: 14px; align-items: center; min-width: 0; }
+.qcl__hd { min-width: 0; }
+/* Daş (gem): fasetli kristal — rəng --g, işıq parıltısı */
+.qcl__gem { --g: #888; flex: none; width: 58px; height: 58px; clip-path: polygon(50% 0, 100% 34%, 82% 100%, 18% 100%, 0 34%);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.55) 0 18%, transparent 18% 100%),
+    linear-gradient(225deg, rgba(0,0,0,.18) 0 30%, transparent 30% 100%),
+    linear-gradient(0deg, rgba(0,0,0,.22) 0 22%, transparent 22% 100%),
+    var(--g);
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.2)); }
+.qcl__gem--white { background-color: #f4f1ea; box-shadow: inset 0 0 0 2px rgba(0,0,0,.15); }
+.qcl__gem--various { background:
+  linear-gradient(135deg, rgba(255,255,255,.5) 0 18%, transparent 18% 100%),
+  conic-gradient(from 20deg, #c0392b, #e67e22, #e9b824, #2f8a4c, #2a6fb0, #7b3f8c, #c0392b); }
+.qcl__gem--zurq { background: repeating-linear-gradient(35deg, #7d8a99 0 4px, #c9ced6 4px 9px); }
+.qcl__name { margin: 0; font-size: 1.35rem; overflow-wrap: anywhere; }
+.qcl__lbl { margin: 2px 0 0; font-size: .78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+.qcl__ar { margin: 0; font-size: 1.5rem; line-height: 1.7; color: var(--accent-text, var(--accent)); overflow-wrap: anywhere; }
+.qcl__neutral { margin: 0; font-size: .85rem; color: var(--text-muted); display: flex; gap: 6px; align-items: center; }
+.qcl__refs { display: flex; gap: 6px; flex-wrap: wrap; }
+.qcl__chip { border: 1px solid var(--line, var(--border)); background: transparent; color: inherit; border-radius: 999px; padding: 4px 12px; font: inherit; font-size: .85rem; cursor: pointer; }
+.qcl__chip.is-on { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); font-weight: 700; }
+.qcl__ayah { margin: 0; font-size: 1.35rem; line-height: 2.1; overflow-wrap: anywhere; }
+.qcl__mk { --g: var(--accent); color: inherit; background: none; padding: 0 2px; border-radius: 4px;
+  box-shadow: inset 0 -0.42em 0 color-mix(in srgb, var(--g) 45%, transparent); }
+[data-theme="dark"] .qcl__mk { box-shadow: inset 0 -0.42em 0 color-mix(in srgb, var(--g) 55%, transparent); }
+.qcl__card[data-id="white"] .qcl__mk { box-shadow: inset 0 -0.42em 0 rgba(160,150,130,.35); }
+[data-theme="dark"] .qcl__card[data-id="black"] .qcl__mk { box-shadow: inset 0 -0.42em 0 rgba(255,255,255,.22); }
+.qcl__tr { margin: 0; font-size: .92rem; line-height: 1.55; overflow-wrap: anywhere; }
+.qcl__tr small { color: var(--text-muted); }
+.qcl__foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.qcl__ref { color: var(--text-muted); font-size: .85rem; }
+.qcl__note { margin: 0; font-size: .8rem; color: var(--text-muted); display: flex; gap: 6px; align-items: flex-start; }

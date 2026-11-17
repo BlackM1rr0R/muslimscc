@@ -49,6 +49,7 @@ const StickerPack = lazy(() => import('../components/StickerPack'))
 const EbruCanvas = lazy(() => import('../components/EbruCanvas'))
 const IznikTile = lazy(() => import('../components/IznikTile'))
 const NasridTile = lazy(() => import('../components/NasridTile'))
+const RugDesigner = lazy(() => import('../components/RugDesigner'))
 const PhotoPattern = lazy(() => import('../components/PhotoPattern'))
 const NightSkyPoster = lazy(() => import('../components/NightSkyPoster'))
 import Icon from '../components/Icon'
@@ -691,6 +692,12 @@ export default function QuoteGeneratorPage() {
       <DeferRender height="860px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 860 }} />}>
           <section className="ui-section ui-section--tight ui-section--alt"><div className="ui-container"><NasridTile /></div></section>
+        </Suspense>
+      </DeferRender>
+
+      <DeferRender height="980px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 980 }} />}>
+          <section className="ui-section ui-section--tight"><div className="ui-container"><RugDesigner /></div></section>
         </Suspense>
       </DeferRender>
 

@@ -153,6 +153,91 @@ describe('Hədəf otağı', () => {
   })
 })
 
+describe('Ailə dua lövhəsi', () => {
+  let id, adminKey, mine
+  const DEV_A = 'devA'.padEnd(24, 'x')
+  const DEV_B = 'devB'.padEnd(24, 'y')
+  it('yaradılır; istək əlavə olunur, sirr GET-də yoxdur', async () => {
+    expect(groups.validCreate({ type: 'dua', title: 'Ailə duası' }).dua).toEqual({ requests: [] })
+    ;({ id, adminKey } = await (await S.call('POST', '/api/groups', { type: 'dua', title: 'Ailə duası', lang: 'az' })).json())
+    const r = await S.call('POST', `/api/groups/${id}/dua`, { name: 'Ana', text: 'Atamın  şəfası\u0000 üçün\n dua edin' })
+    expect(r.status).toBe(200)
+    mine = await r.json()
+    expect(mine.did).toMatch(/^[a-z0-9]{8}$/)
+    expect(mine.token).toHaveLength(24)
+    expect((await S.call('POST', `/api/groups/${id}/dua`, { name: 'X', text: ' ' })).status).toBe(400)
+    expect((await S.call('POST', `/api/groups/${id}/dua`, { name: 'X'.repeat(90), text: 'y'.repeat(500) })).status).toBe(200)
+    clock += 1000
+    expect((await S.call('POST', `/api/groups/${id}/dua`, { text: 'Adsız istək' })).status).toBe(200)
+    const g = await (await S.call('GET', `/api/groups/${id}`)).json()
+    expect(g.type).toBe('dua')
+    expect(g.dua.requests).toHaveLength(3)
+    expect(g.dua.requests[0]).toEqual({ did: expect.any(String), name: '', text: 'Adsız istək', count: 0, answered: false, day: today() })
+    const long = g.dua.requests.find(x => x.name.startsWith('X'))
+    expect(long.name).toHaveLength(40)
+    expect(long.text).toHaveLength(280)
+    expect(g.dua.requests.find(x => x.did === mine.did).text).toBe('Atamın şəfası üçün dua edin')
+    expect(JSON.stringify(g)).not.toMatch(/"th"|token|adminHash|createdAt":\d+,"answeredAt|device/)
+    // başqa növün yolu
+    expect((await S.call('POST', `/api/groups/${id}/join`, { name: 'A' })).status).toBe(400)
+  })
+  it('"dua etdim": cihaz başına gündə bir dəfə', async () => {
+    const pray = (device, did = mine.did) => S.call('POST', `/api/groups/${id}/dua/${did}/pray`, { device })
+    expect(await (await pray(DEV_A)).json()).toEqual({ count: 1, already: false })
+    expect(await (await pray(DEV_A)).json()).toEqual({ count: 1, already: true })
+    expect(await (await pray(DEV_B)).json()).toEqual({ count: 2, already: false })
+    expect((await pray('qısa')).status).toBe(400)
+    expect((await pray(undefined)).status).toBe(400)
+    expect((await pray(DEV_A, 'zzzzzzzz')).status).toBe(404)
+    expect((await pray(DEV_A, '../x')).status).toBe(404)
+    clock += 86400e3
+    expect(await (await pray(DEV_A)).json()).toEqual({ count: 3, already: false })
+    const g = await (await S.call('GET', `/api/groups/${id}`)).json()
+    expect(g.dua.requests.find(x => x.did === mine.did).count).toBe(3)
+  })
+  it('müəllif tokenlə "cavablandı" qeyd edir və silir; yad token 403', async () => {
+    const url = (a) => `/api/groups/${id}/dua/${mine.did}/${a}`
+    expect((await S.call('POST', url('answered'), { token: 'x'.repeat(24) })).status).toBe(403)
+    expect((await S.call('POST', url('answered'), { token: mine.token })).status).toBe(200)
+    let g = await (await S.call('GET', `/api/groups/${id}`)).json()
+    expect(g.dua.requests.find(x => x.did === mine.did).answered).toBe(true)
+    expect((await S.call('POST', url('answered'), { token: mine.token, on: false })).status).toBe(200)
+    g = await (await S.call('GET', `/api/groups/${id}`)).json()
+    expect(g.dua.requests.find(x => x.did === mine.did).answered).toBe(false)
+    expect((await S.call('POST', url('remove'), { token: 'yanlis' })).status).toBe(403)
+    expect((await S.call('POST', url('remove'), { token: mine.token })).status).toBe(200)
+    expect((await S.call('POST', url('remove'), { token: mine.token })).status).toBe(404)
+  })
+  it('admin istəyi silir, bağlayır (423), reset yoxdur, otağı silir', async () => {
+    let g = await (await S.call('GET', `/api/groups/${id}`)).json()
+    const victim = g.dua.requests[0].did
+    expect((await S.call('POST', `/api/groups/${id}/admin`, { adminKey, action: 'remove', did: victim })).status).toBe(200)
+    expect((await S.call('POST', `/api/groups/${id}/admin`, { adminKey, action: 'remove', did: victim })).status).toBe(404)
+    expect((await S.call('POST', `/api/groups/${id}/admin`, { adminKey, action: 'reset' })).status).toBe(400)
+    await S.call('POST', `/api/groups/${id}/admin`, { adminKey, action: 'close' })
+    expect((await S.call('POST', `/api/groups/${id}/dua`, { name: 'A', text: 'Salam olsun' })).status).toBe(423)
+    g = await (await S.call('GET', `/api/groups/${id}`)).json()
+    expect((await S.call('POST', `/api/groups/${id}/dua/${g.dua.requests[0].did}/pray`, { device: DEV_A })).status).toBe(423)
+    await S.call('POST', `/api/groups/${id}/admin`, { adminKey, action: 'reopen' })
+    expect((await S.call('POST', `/api/groups/${id}/dua`, { name: 'A', text: 'Salam olsun' })).status).toBe(200)
+    expect((await S.call('POST', `/api/groups/${id}/admin`, { adminKey, action: 'delete' })).status).toBe(200)
+    expect((await S.call('GET', `/api/groups/${id}`)).status).toBe(404)
+  })
+  it('ən çox 100 açıq istək', async () => {
+    const r = await (await S.call('POST', '/api/groups', { type: 'dua', title: 'Böyük lövhə' })).json()
+    let first
+    for (let i = 0; i < 100; i++) {
+      const x = await S.call('POST', `/api/groups/${r.id}/dua`, { name: 'N', text: `İstək ${i}` })
+      expect(x.status).toBe(200)
+      if (!i) first = await x.json()
+    }
+    expect((await S.call('POST', `/api/groups/${r.id}/dua`, { name: 'N', text: 'Artıq' })).status).toBe(409)
+    await S.call('POST', `/api/groups/${r.id}/dua/${first.did}/answered`, { token: first.token })
+    expect((await S.call('POST', `/api/groups/${r.id}/dua`, { name: 'N', text: 'İndi olar' })).status).toBe(200)
+    expect((await S.call('POST', `/api/groups/${r.id}/dua/${first.did}/answered`, { token: first.token, on: false })).status).toBe(409)
+  })
+})
+
 describe('Limit və ömür', () => {
   it('yaratma: saatda 10; yazı: 10 dəqiqədə 120', async () => {
     const T = await makeServer()

@@ -1,0 +1,66 @@
+/* ══ Peyğəmbərin ﷺ məktubları (components/ProphetLetters.jsx) ══ */
+.pl { display: grid; gap: 14px; padding: clamp(14px, 2.6vw, 28px); margin-top: 20px; min-width: 0; }
+.pl__head { display: grid; gap: 4px; }
+.pl__head .ui-lead { margin: 0; max-width: 76ch; }
+.pl__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pl__chip { display: inline-flex; gap: 7px; align-items: center; }
+.pl__chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+.pl__chip[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); color: inherit; font-weight: 700; }
+
+.pl__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(14px, 2.6vw, 26px); align-items: start; }
+@media (max-width: 860px) { .pl__grid { grid-template-columns: minmax(0, 1fr); } }
+
+.pl__map { margin: 0; display: grid; gap: 4px; min-width: 0; }
+.pl__map svg { width: 100%; height: auto; display: block; max-width: 560px; justify-self: center; }
+.pl__sea { fill: #dfe9f2; }
+[data-theme="dark"] .pl__sea { fill: #13253a; }
+.pl__land { fill: #ece2c7; stroke: #c9b98f; stroke-width: .6; }
+[data-theme="dark"] .pl__land { fill: #2c3a2f; stroke: #44564a; }
+.pl__cap { font-size: .76rem; color: var(--text-muted); text-align: center; }
+
+.pl__ghost { fill: none; stroke: var(--c); stroke-width: 3; stroke-dasharray: 4 7; opacity: .45; cursor: pointer; }
+.pl__route { fill: none; stroke: var(--c); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.pl__route.is-wait { stroke-dashoffset: 1; }
+.pl__route.is-draw { animation: pl-draw 1.8s cubic-bezier(.35, 0, .25, 1) both; }
+@keyframes pl-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.pl__envoy { fill: #fff; stroke: var(--c); stroke-width: 3; }
+[data-theme="dark"] .pl__envoy { fill: #10181f; }
+
+.pl__pt { cursor: pointer; }
+.pl__pt circle { fill: var(--c); stroke: #fff; stroke-width: 1.5; opacity: .7; }
+.pl__pt.is-on circle { opacity: 1; stroke-width: 2.2; }
+[data-theme="dark"] .pl__pt circle { stroke: #0e151c; }
+.pl__pt text, .pl__home text { font-size: 22px; font-weight: 700; fill: var(--text-primary, #1b2430); paint-order: stroke; stroke: var(--bg-primary, #fff); stroke-width: 5px; stroke-linejoin: round; }
+[data-theme="dark"] .pl__pt text, [data-theme="dark"] .pl__home text { fill: #eef2f6; stroke: #0e151c; }
+.pl__home circle { fill: var(--accent, #1d6b52); stroke: #fff; stroke-width: 2.5; }
+[data-theme="dark"] .pl__home circle { stroke: #0e151c; }
+
+.pl__card { display: grid; gap: 12px; padding: 16px 18px; border-radius: 16px; min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--c) 40%, var(--line, var(--border, transparent)));
+  background: color-mix(in srgb, var(--c) 6%, var(--surface-1, transparent)); }
+.pl__ctop { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.pl__ctop h3 { margin: 0; font-size: 1.3rem; }
+.pl__arname { font-size: 1.15rem; color: var(--c); }
+[data-theme="dark"] .pl__arname { color: color-mix(in srgb, var(--c) 55%, #fff); }
+.pl__realm { flex-basis: 100%; font-size: .86rem; color: var(--text-muted); }
+.pl__dl { margin: 0; display: grid; gap: 8px; }
+.pl__dl > div { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 8px; }
+.pl__dl dt { font-size: .8rem; font-weight: 700; color: var(--text-muted); padding-top: 2px; }
+.pl__dl dd { margin: 0; line-height: 1.55; overflow-wrap: anywhere; }
+@media (max-width: 420px) { .pl__dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.pl__ctx { display: block; font-size: .84rem; color: var(--text-muted); margin-top: 2px; }
+.pl__what h4 { margin: 0 0 6px; font-size: .95rem; }
+.pl__what ul { margin: 0; padding-inline-start: 1.15em; display: grid; gap: 6px; line-height: 1.6; }
+.pl__quote { margin: 0; padding: 10px 14px; border-radius: 12px; border-inline-start: 3px solid var(--c); background: var(--surface-0, transparent); display: grid; gap: 4px; }
+.pl__quote figcaption { font-size: .76rem; color: var(--text-muted); }
+.pl__quote blockquote { margin: 0; font-size: 1.25rem; line-height: 1.9; overflow-wrap: anywhere; }
+.pl__context { margin: 0; display: flex; gap: 8px; align-items: flex-start; font-size: .88rem; line-height: 1.55; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--line, var(--border)); }
+.pl__context svg { flex: none; margin-top: 2px; color: var(--accent-text, var(--accent)); }
+.pl__refs { display: inline-flex; flex-wrap: wrap; gap: 4px; vertical-align: baseline; }
+.pl__ref { font-size: .78rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; text-decoration: none; white-space: nowrap;
+  color: var(--accent-text, var(--accent)); border: 1px solid color-mix(in srgb, var(--accent, #1d6b52) 35%, transparent); }
+.pl__ref:hover, .pl__ref:focus-visible { background: color-mix(in srgb, var(--accent, #1d6b52) 12%, transparent); }
+.pl__src { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .86rem; }
+.pl__src > span:first-child { color: var(--text-muted); font-weight: 700; }
+.pl__full { margin: 0; display: flex; gap: 6px; align-items: center; font-size: .8rem; color: var(--text-muted); }
+.pl__note { margin: 0; font-size: .8rem; line-height: 1.55; color: var(--text-muted); }

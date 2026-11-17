@@ -557,6 +557,7 @@ const ReciterCompare = lazy(() => import('../components/quran/ReciterCompare'))
 const SurahCity3D = lazy(() => import('../components/quran/SurahCity3D'))
 const QuranCity = lazy(() => import('../components/QuranCity'))
 const ScriptLayers = lazy(() => import('../components/ScriptLayers'))
+const QuranColors = lazy(() => import('../components/QuranColors'))
 const QuranMosaic = lazy(() => import('../components/quran/QuranMosaic'))
 const MuqattaatMap = lazy(() => import('../components/quran/MuqattaatMap'))
 const QuranNumbers = lazy(() => import('../components/numbers/QuranNumbers'))
@@ -2047,6 +2048,12 @@ export default function QuranPage() {
           <DeferRender height="620px" idle={false} rootMargin="300px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 620 }} />}>
               <ScriptLayers />
+            </Suspense>
+          </DeferRender>
+          {/* v7.5: Quranda rənglər — ayədə adı keçən rənglər, mətn və tərcümə saytdakı ilə eyni */}
+          <DeferRender height="680px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 680 }} />}>
+              <QuranColors />
             </Suspense>
           </DeferRender>
           {/* v7.2: "Mənim Quran şəhərim" — oxuduğunuz surələrin pəncərələri yanır (yalnız oxunuş varsa) */}
