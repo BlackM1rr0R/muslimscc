@@ -11,6 +11,9 @@
 import { mergeLife, sanitizeLife, serializeLife, LIFE_KEY } from './quranLife'
 import { mergeNotes, NOTES_KEY } from './quranNotes'
 import { sanitizeCerts, CERTS_KEY } from './khatmCert'
+import { NS } from './profileCore'
+import { sanitizeGarden, GARDEN_KEY } from './duaGardenLife'
+import { sanitizeVisits, combineVisit, VISITS_KEY } from './mosqueVisits'
 
 export const CONFLICT = Symbol('conflict')
 
@@ -96,6 +99,51 @@ const earliestDates = json((L, R) => {
 const idSet = (idOf) => json((L, R, B) => mergeSet3(L, R, B, idOf), { ok: Array.isArray })
 
 /** İç-içə xəritə { gün: { sahə: dəyər } } — gün üzrə, sonra sahə üzrə 3 tərəfli; sahədə fərqli dəyişiklik → CONFLICT */
+/** { gün: say } — gün üzrə sayğac (iki cihazın artımı toplanır), son `keepN` gün */
+const dayCounter = (keepN) => json((L, R, B) => {
+  const out = {}
+  const Lm = isObj(L) ? L : {}, Rm = isObj(R) ? R : {}, Bm = isObj(B) ? B : null
+  for (const d of new Set([...Object.keys(Lm), ...Object.keys(Rm)])) {
+    if (!DATE_RE.test(d)) continue
+    out[d] = mergeCounter(Lm[d], Rm[d], Bm ? (Bm[d] ?? 0) : undefined)
+  }
+  const keep = Object.keys(out).filter((d) => out[d] > 0).sort().slice(-keepN)
+  return Object.fromEntries(keep.map((d) => [d, out[d]]))
+}, { ok: isObj })
+
+/** Massiv [{ id, … }] — id üzrə 3 tərəfli; eyni id hər iki tərəfdə fərqli dəyişibsə — both(l, r). Sıra: yerli, sonra yenilər */
+const idList = (both, idOf = (x) => x?.id) => (L, R, B) => {
+  const list = (a) => (Array.isArray(a) ? a.filter((x) => x && typeof x === 'object' && (typeof idOf(x) === 'string' || typeof idOf(x) === 'number')) : [])
+  const byId = (a) => Object.fromEntries(list(a).map((x) => [String(idOf(x)), x]))
+  const m = mergeMap3(byId(L), byId(R), byId(B), both)
+  if (m === CONFLICT) return CONFLICT
+  const order = [...new Set([...list(L), ...list(R)].map((x) => String(idOf(x))))]
+  return order.filter((id) => id in m).map((id) => m[id])
+}
+
+/** Ramazan albomu: il üzrə; saylar — max, oxu sayğacının başlanğıcı — daha erkən ölçülən tərəfdən */
+export function mergeAlbumYears(L, R) {
+  const Ly = isObj(L?.y) ? L.y : {}, Ry = isObj(R?.y) ? R.y : {}
+  const y = {}
+  for (const k of new Set([...Object.keys(Ly), ...Object.keys(Ry)])) {
+    const a = Ly[k], b = Ry[k]
+    if (!isObj(a) || !isObj(b)) { y[k] = isObj(a) ? a : b; continue }
+    const c = { ...a }
+    for (const f of ['f', 'x', 'su', 'k', 'dh', 'du', 'da', 'ii', 'fin']) {
+      const v = Math.max(Number(a[f]) || 0, Number(b[f]) || 0)
+      if (v) c[f] = v; else delete c[f]
+    }
+    const qa = Number.isInteger(a.q0), qb = Number.isInteger(b.q0)
+    if (qa || qb) {
+      const first = qa && qb ? (String(b.b) < String(a.b) ? b : a) : qa ? a : b
+      c.q0 = first.q0; c.b = first.b
+      c.q1 = Math.max(Number(a.q1) || 0, Number(b.q1) || 0, first.q0)
+    }
+    y[k] = c
+  }
+  return { v: 1, y }
+}
+
 const dayFieldMap = json((L, R, B) => mergeMap3(L, R, B, (l, r, b) =>
   isObj(l) && isObj(r) ? mergeMap3(l, r, isObj(b) ? b : {}, () => CONFLICT) : CONFLICT), { ok: isObj })
 
@@ -143,15 +191,50 @@ export const MERGERS = {
   // { gün: { namaz/əməl: dəyər } } — gün və sahə üzrə; eyni günün eyni sahəsi fərqli dəyişibsə — ziddiyyət
   daily_tracker: dayFieldMap,
   muslim_cc_prayer_status: dayFieldMap,
+  // ── E mərhələsi ──
+  // Ramazan albomu — fəsillər yalnız böyüyür (utils/ramadanAlbum)
+  ramadan_album_v1: json((L, R) => mergeAlbumYears(L, R), { ok: isObj }),
+  // Ömürlük dua bağçası — çiçəklər heç vaxt itmir (birlik, eyni dua — ən erkən gün)
+  [GARDEN_KEY]: json((L, R) => sanitizeGarden({ b: [...(Array.isArray(L?.b) ? L.b : []), ...(Array.isArray(R?.b) ? R.b : [])] }), { ok: isObj }),
+  // Məscid kolleksiyası — ziyarət üzrə 3 tərəfli (silinmə də keçir); eyni ziyarət — birləşir
+  [VISITS_KEY]: json((L, R, B) => {
+    const byId = (o) => Object.fromEntries(sanitizeVisits(o).l.map((v) => [v.i, v]))
+    const m = mergeMap3(byId(L), byId(R), byId(B), (l, r) => combineVisit(l, r))
+    const out = sanitizeVisits({ l: Object.values(m).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0)) })
+    return out.l.length ? out : undefined
+  }, { ok: isObj }),
+  // İftar dəvətlərinin sayı { gün: say }
+  muslim_cc_iftar_log_v1: dayCounter(200),
+  // Dua gündəliyi { duas: [...] } — dua üzrə 3 tərəfli; eyni dua hər iki cihazda dəyişibsə:
+  // "qəbul oldu" hər hansı tərəfdə qeyd olunubsa qalır (ən erkən gün), mətn — bu cihazınkı
+  dua_journal: json((L, R, B) => {
+    const pick = (o) => (Array.isArray(o?.duas) ? o.duas : [])
+    const duas = idList((l, r) => {
+      const ans = l.answered === true || r.answered === true
+      const days = [l.answeredDate, r.answeredDate].filter((d) => typeof d === 'string' && d).sort()
+      return { ...l, answered: ans, answeredDate: ans ? (days[0] || null) : null }
+    })(pick(L), pick(R), B === undefined ? undefined : pick(B))
+    return { ...(isObj(L) ? L : {}), duas }
+  }, { ok: isObj }),
+  // Sədəqə gündəliyi [{ id, … }] — qeyd üzrə 3 tərəfli; eyni qeyd hər iki tərəfdə dəyişibsə — bu cihazınkı
+  charity_log: json((L, R, B) => idList((l) => l)(L, R, B), { ok: Array.isArray }),
 }
 
 /** Cihaz tərcihləri: hər iki tərəf dəyişibsə ziddiyyət deyil (avtomatik yolda bu cihazınkı qalır) */
 export const PREFERENCE_KEYS = new Set(['muslim_cc_lang', 'muslim_cc_theme'])
 
+/** Profilin ad sahəsindəki açar ("mcc_profile:<id>:dua_journal") → əsas açar (birləşdirici eynidir) */
+const baseKey = (key) => {
+  if (typeof key !== 'string' || !key.startsWith(NS)) return key
+  const i = key.indexOf(':', NS.length)
+  return i > 0 ? key.slice(i + 1) : key
+}
+
 /** Açarın birləşdiricisi: nəticə — sətir | undefined (sil) | CONFLICT */
 export function runMerger(key, l, r, b) {
+  key = baseKey(key)
   const fn = Object.prototype.hasOwnProperty.call(MERGERS, key) ? MERGERS[key] : null
   if (!fn) return CONFLICT
   try { return fn(l, r, b) } catch { return CONFLICT }
 }
-export const hasMerger = (key) => Object.prototype.hasOwnProperty.call(MERGERS, key)
+export const hasMerger = (key) => Object.prototype.hasOwnProperty.call(MERGERS, baseKey(key))

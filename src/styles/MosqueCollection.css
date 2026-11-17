@@ -1,0 +1,50 @@
+/* ══ Məscid kolleksiyam (components/mosque/MosqueCollection.jsx) ══ */
+.mc { display: grid; gap: 12px; padding: 20px; }
+.mc--compact { padding: 0; background: none; border: 0; box-shadow: none; }
+.mc__title { margin: 0; font-size: 1.35rem; }
+.mc__lead, .mc__muted { margin: 0; color: var(--text-secondary); font-size: .92rem; }
+.mc__stats { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mc__stats > div { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--primary, #0d5c46) 7%, var(--surface-1, #fff)); }
+.mc__stats dt { font-size: .78rem; color: var(--text-secondary); }
+.mc__stats dd { margin: 2px 0 0; font-size: 1.4rem; font-weight: 700; }
+.mc__map { width: 100%; height: auto; display: block; }
+.mc__sea { fill: color-mix(in srgb, #2b6cb0 10%, var(--surface-1, #fff)); }
+.mc__land { fill: color-mix(in srgb, var(--text-secondary) 22%, var(--surface-1, #fff)); stroke: var(--surface-1, #fff); stroke-width: .5; }
+.mc__land.is-visited { fill: color-mix(in srgb, var(--primary, #0d5c46) 55%, var(--surface-1, #fff)); }
+.mc__loading { fill: var(--text-secondary); font-size: 20px; }
+.mc__pt-halo { fill: color-mix(in srgb, var(--gold, #c59a2c) 35%, transparent); }
+.mc__pt-dot { fill: var(--gold, #c59a2c); stroke: #fff; stroke-width: 1.4; }
+.mc__row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mc__status { margin: 0; min-height: 1.2em; font-size: .88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+.mc__spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; }
+.mc__err { display: grid; gap: 8px; padding: 12px; border-radius: 10px; background: var(--surface-2, rgba(0, 0, 0, .04)); }
+.mc__err p { margin: 0; }
+.mc__form { display: grid; gap: 10px; padding: 12px; border-radius: 12px; background: var(--surface-2, rgba(0, 0, 0, .04)); }
+.mc__pick { margin: 0; padding: 0; border: 0; display: grid; gap: 6px; }
+.mc__pick legend { font-weight: 700; margin-bottom: 6px; }
+.mc__opt { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px;
+  background: var(--surface-1, #fff); border: 1px solid var(--border, rgba(0, 0, 0, .1)); cursor: pointer; }
+.mc__opt:has(input:checked) { border-color: var(--primary, #0d5c46); box-shadow: 0 0 0 1px var(--primary, #0d5c46); }
+.mc__opt-dist { color: var(--text-secondary); font-size: .85rem; }
+.mc__note-in { resize: vertical; }
+.mc__count { justify-self: end; font-size: .75rem; color: var(--text-secondary); }
+.mc__src, .mc__privacy { margin: 0; font-size: .78rem; color: var(--text-secondary); }
+.mc__privacy { display: flex; gap: 6px; align-items: center; }
+.mc__h3 { margin: 4px 0 0; font-size: 1rem; }
+.mc__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.mc__item { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start; padding: 10px; border-radius: 12px;
+  border: 1px solid var(--border, rgba(0, 0, 0, .1)); background: var(--surface-1, #fff); }
+.mc__body { display: grid; gap: 2px; min-width: 0; }
+.mc__name { overflow-wrap: anywhere; }
+.mc__meta { font-size: .82rem; color: var(--text-secondary); }
+.mc__note { margin: 4px 0 0; font-size: .88rem; overflow-wrap: anywhere; }
+.mc__edit { display: grid; gap: 6px; margin-top: 6px; }
+.mc__acts { display: flex; gap: 2px; }
+.mc__more { justify-self: start; display: inline-flex; gap: 4px; align-items: center; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .mc__spin { animation: mc-spin .9s linear infinite; }
+  html:not(.a11y-reduce-motion) .mc__pt-halo { animation: mc-pulse 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+}
+@keyframes mc-spin { to { transform: rotate(360deg); } }
+@keyframes mc-pulse { 50% { transform: scale(1.5); opacity: .4; } }

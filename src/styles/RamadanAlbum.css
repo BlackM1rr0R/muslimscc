@@ -1,0 +1,60 @@
+/* ══ Ramazan albomu (components/ramadan/RamadanAlbum.jsx) ══ */
+.ra { display: grid; gap: 12px; padding: 20px; }
+.ra--compact { padding: 0; background: none; border: 0; box-shadow: none; }
+.ra__title { margin: 0; font-size: 1.35rem; }
+.ra__lead, .ra__empty, .ra__muted, .ra__note { margin: 0; color: var(--text-secondary); font-size: .92rem; }
+.ra__note { font-size: .8rem; }
+.ra__privacy { margin: 0; display: flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--text-secondary); }
+
+/* Rəf: hər il bir kitab cildi */
+.ra__shelf { display: flex; gap: 6px; align-items: flex-end; padding: 6px 4px 0; overflow-x: auto;
+  border-bottom: 4px solid color-mix(in srgb, var(--gold, #c59a2c) 55%, var(--surface-1, #fff)); }
+.ra__spine { flex: 0 0 auto; width: 40px; min-height: 92px; padding: 8px 0; border: 0; border-radius: 6px 6px 0 0; cursor: pointer;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--primary, #0d5c46) 78%, #000), var(--primary, #0d5c46) 40%, color-mix(in srgb, var(--primary, #0d5c46) 85%, #000));
+  color: #fff; display: grid; place-items: center; transition: transform .2s ease; }
+.ra__spine:nth-child(3n+2) { min-height: 84px; background: linear-gradient(90deg, #13304f, #1d4673 40%, #13304f); }
+.ra__spine:nth-child(3n) { min-height: 98px; background: linear-gradient(90deg, #5a3a0e, #8a5c1a 40%, #5a3a0e); }
+.ra__spine-y { writing-mode: vertical-rl; font-weight: 700; letter-spacing: .06em; font-size: .9rem; }
+.ra__spine.is-on { outline: 3px solid var(--gold, #c59a2c); outline-offset: 2px; transform: translateY(-6px); }
+.ra__spine:focus-visible { outline: 3px solid var(--focus, #c59a2c); outline-offset: 2px; }
+
+/* Kitab: iki səhifə, ortada cild xətti */
+.ra__book { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); border-radius: 14px; overflow: hidden;
+  background: var(--surface-1, #fff); border: 1px solid color-mix(in srgb, var(--gold, #c59a2c) 35%, transparent);
+  box-shadow: 0 10px 28px -16px rgba(0, 0, 0, .35); }
+.ra__page { padding: 18px; position: relative; }
+.ra__page--cover { display: grid; justify-items: center; align-content: center; gap: 8px; text-align: center; color: #f7f1de;
+  background: radial-gradient(120% 90% at 50% 0%, #1d4673, #0b1f3a 70%);
+  box-shadow: inset -14px 0 18px -14px rgba(0, 0, 0, .55); }
+[dir="rtl"] .ra__page--cover { box-shadow: inset 14px 0 18px -14px rgba(0, 0, 0, .55); }
+.ra__moon { width: 56px; height: 56px; fill: #e3b955; }
+.ra__moon-star { fill: #f7f1de; }
+.ra__ch { margin: 0; font-size: 1.4rem; color: #fff; }
+.ra__dates { margin: 0; font-size: .85rem; color: rgba(247, 241, 222, .85); }
+.ra__stats { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ra__stat { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--gold, #c59a2c) 8%, var(--surface-1, #fff)); }
+.ra__stat dt { display: flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--text-secondary); }
+.ra__stat dd { margin: 4px 0 0; font-size: 1.3rem; font-weight: 700; color: var(--text-primary); }
+.ra__stat.is-zero dd { font-weight: 500; font-size: 1rem; color: var(--text-secondary); }
+.ra__sub { font-size: .75rem; font-weight: 500; color: var(--text-secondary); }
+
+.ra__cmp { overflow-x: auto; }
+.ra__table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.ra__table caption { text-align: start; font-weight: 700; padding: 0 0 6px; }
+.ra__table th, .ra__table td { padding: 6px 8px; border-bottom: 1px solid var(--border, rgba(0, 0, 0, .1)); text-align: end; }
+.ra__table th[scope="row"], .ra__table thead th:first-child { text-align: start; font-weight: 500; }
+.ra__d.is-up { color: var(--text-primary); font-weight: 700; }
+.ra__d.is-down { color: var(--text-secondary); }
+
+.ra__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ra__status { font-size: .85rem; color: var(--text-secondary); }
+
+@media (max-width: 640px) {
+  .ra__book { grid-template-columns: 1fr; }
+  .ra__page--cover { box-shadow: inset 0 -14px 18px -14px rgba(0, 0, 0, .55); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) .ra__book { animation: ra-open 520ms cubic-bezier(.2, .8, .2, 1) both; transform-origin: 0 50%; }
+  html:not(.a11y-reduce-motion) [dir="rtl"] .ra__book { transform-origin: 100% 50%; }
+}
+@keyframes ra-open { from { opacity: 0; transform: perspective(900px) rotateY(-14deg); } }

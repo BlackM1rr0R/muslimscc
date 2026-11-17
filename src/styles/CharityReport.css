@@ -1,0 +1,25 @@
+/* ══ Sədəqə hesabatı (components/charity/CharityReport.jsx) ══ */
+.cr { display: grid; gap: 14px; padding: 20px; }
+.cr--compact { padding: 0; background: none; border: 0; box-shadow: none; }
+.cr__title { margin: 0; font-size: 1.35rem; }
+.cr__lead, .cr__muted, .cr__note { margin: 0; color: var(--text-secondary); font-size: .92rem; }
+.cr__note { font-size: .8rem; }
+.cr__controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
+.cr__year { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.cr__year select { width: auto; min-width: 96px; }
+.cr__hide { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: .92rem; }
+.cr__hide input { width: 18px; height: 18px; accent-color: var(--primary, #0d5c46); }
+.cr__kpis { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.cr__kpis > div { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--primary, #0d5c46) 7%, var(--surface-1, #fff)); }
+.cr__kpis dt { font-size: .78rem; color: var(--text-secondary); }
+.cr__kpis dd { margin: 2px 0 0; font-size: 1.35rem; font-weight: 700; display: grid; }
+.cr__sub { font-size: .75rem; font-weight: 500; color: var(--text-secondary); }
+.cr__hidden { font-size: .95rem; font-weight: 500; color: var(--text-secondary); font-style: italic; }
+.cr__fig { margin: 0; }
+.cr__seg { display: flex; gap: 6px; margin: 0 0 8px; }
+.cr__h3 { margin: 0; font-size: 1rem; }
+.cr__to ol { margin: 6px 0 0; padding-inline-start: 20px; display: grid; gap: 4px; }
+.cr__to li { overflow-wrap: anywhere; }
+.cr__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cr__status { font-size: .85rem; color: var(--text-secondary); }
+.cr__more { justify-self: start; display: inline-flex; gap: 4px; align-items: center; }

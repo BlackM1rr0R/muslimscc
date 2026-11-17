@@ -35,6 +35,8 @@ const AccountQuranSections = lazy(() => import('../components/account/AccountQur
 const PersonalSections = lazy(() => import('../components/account/PersonalSections'))
 // vD: profillər, ailə dairəsi, "Birlikdə Quran oxu"
 const AccountDSections = lazy(() => import('../components/account/AccountDSections'))
+// vE: Ramazan albomu, ömürlük dua bağçası, məscid kolleksiyası, sədəqə hesabatı (hamısı şifrəli sinxron)
+const AccountESections = lazy(() => import('../components/account/AccountESections'))
 
 const LABELS = {
   az: {
@@ -330,6 +332,9 @@ export default function AccountPage() {
         </Suspense>
         <Suspense fallback={null}>
           <AccountDSections lang={lang} siteLang={siteLang} user={user} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AccountESections lang={lang} siteLang={siteLang} />
         </Suspense>
         <PasswordSection l={l} t={t} errText={errText} user={user} />
         <PasskeySection l={l} errText={errText} user={user} fmt={fmt} />

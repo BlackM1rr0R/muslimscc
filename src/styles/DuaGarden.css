@@ -29,3 +29,36 @@
 }
 @keyframes dg-grow { from { opacity: 0; transform: scaleY(.1); } }
 @keyframes dg-bloom { from { opacity: 0; transform: scale(.2) rotate(-40deg); } }
+
+/* ══ Ömürlük dua bağçası (components/DuaGardenLife.jsx) ══ */
+.dgl { display: grid; gap: 8px; padding: 16px; margin: 0 0 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary, #0d5c46) 6%, var(--surface-1, #fff)), var(--surface-1, #fff)); }
+.dgl--compact { margin: 0; }
+.dgl__svg { width: 100%; height: auto; overflow: visible; }
+.dgl__row { cursor: pointer; outline: none; }
+.dgl__hit { fill: transparent; }
+.dgl__row:hover .dgl__hit { fill: color-mix(in srgb, var(--gold, #c59a2c) 7%, transparent); }
+.dgl__row:focus-visible .dgl__hit, .dgl__row.is-open .dgl__hit { fill: color-mix(in srgb, var(--gold, #c59a2c) 12%, transparent); stroke: var(--focus, #c59a2c); stroke-width: 2; }
+.dgl__ridge { stroke: color-mix(in srgb, var(--primary, #0d5c46) 55%, transparent); stroke-width: 2; }
+.dgl__year { font-size: 15px; font-weight: 700; fill: var(--text-primary); }
+.dgl__count { font-size: 12px; fill: var(--text-secondary); }
+.dgl__season--0 { fill: color-mix(in srgb, #7aa6d6 30%, transparent); background: color-mix(in srgb, #7aa6d6 45%, transparent); }
+.dgl__season--1 { fill: color-mix(in srgb, #6cc08a 30%, transparent); background: color-mix(in srgb, #6cc08a 45%, transparent); }
+.dgl__season--2 { fill: color-mix(in srgb, #e3b955 32%, transparent); background: color-mix(in srgb, #e3b955 50%, transparent); }
+.dgl__season--3 { fill: color-mix(in srgb, #d0874a 30%, transparent); background: color-mix(in srgb, #d0874a 45%, transparent); }
+.dgl__flower { fill: currentColor; }
+.dgl__core { fill: #f0c75e; }
+.dgl__legend { margin: 0; display: flex; flex-wrap: wrap; gap: 12px; font-size: .78rem; color: var(--text-secondary); }
+.dgl__sw { display: inline-block; width: 14px; height: 8px; border-radius: 3px; vertical-align: middle; }
+.dgl__list { display: grid; gap: 6px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2, rgba(0, 0, 0, .03)); }
+.dgl__list-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.dgl__list ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; max-height: 260px; overflow: auto; }
+.dgl__list li { font-size: .88rem; overflow-wrap: anywhere; }
+.dgl__dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-inline-end: 6px; vertical-align: middle; }
+.dgl__removed { font-style: italic; color: var(--text-secondary); }
+.dgl__more { justify-self: start; display: inline-flex; align-items: center; gap: 4px; font-size: .9rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-reduce-motion) [data-revealed] .dgl__plant { animation: dgl-up 600ms cubic-bezier(.2, .8, .2, 1.1) both; animation-delay: calc(var(--i, 0) * 25ms); transform-box: fill-box; transform-origin: 50% 100%; }
+}
+@keyframes dgl-up { from { opacity: 0; transform: scaleY(.2); } }

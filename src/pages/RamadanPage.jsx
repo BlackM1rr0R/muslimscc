@@ -16,6 +16,8 @@ import DeferRender from '../components/DeferRender'
 // v6.3: dünyada oruc müddəti xəritəsi (bölməyə yaxınlaşanda)
 const FastingWorldMap = lazy(() => import('../components/FastingWorldMap'))
 const IftarInvite = lazy(() => import('../components/IftarInvite'))
+// vE: Ramazan albomu — hər Ramazan bir fəsil (utils/ramadanAlbum)
+const RamadanAlbum = lazy(() => import('../components/ramadan/RamadanAlbum'))
 import CrescentPath from '../components/CrescentPath'
 import { ummahAdd } from '../utils/ummah'
 import { useNavigate } from 'react-router-dom'
@@ -549,6 +551,12 @@ export default function RamadanPage({ setPage }) {
       <DeferRender height="900px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 900 }} />}>
           <section className="ui-section ui-section--tight"><div className="ui-container"><IftarInvite /></div></section>
+        </Suspense>
+      </DeferRender>
+
+      <DeferRender height="640px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 640 }} />}>
+          <section className="ui-section ui-section--tight" id="ramadan-album"><div className="ui-container"><RamadanAlbum lang={lang} /></div></section>
         </Suspense>
       </DeferRender>
 

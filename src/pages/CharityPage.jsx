@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import HeroOrnament from '../components/HeroOrnament'
 import { haptic } from '../hooks/useHaptic'
@@ -20,6 +20,9 @@ import CharityInsights from '../components/insights/CharityInsights'
 import { pickUi } from '../utils/uiText'
 import NumberTicker from '../motion/NumberTicker'
 import ShineButton from '../motion/ShineButton'
+import DeferRender from '../components/DeferRender'
+// vE: illik sədəqə hesabatı — aylar, növlər, Ramazan payı, PNG / CSV (məbləğ gizlədilə bilər)
+const CharityReport = lazy(() => import('../components/charity/CharityReport'))
 
 // Əməl növləri. icon — Icon.jsx adı (emoji əvəzinə: rəngi tokendən,
 // bütün sistemlərdə eyni). Dəqiq ikonu olmayanlar üçün ən yaxın:
@@ -435,6 +438,16 @@ export default function CharityPage({ setPage }) {
       {/* ══ Xülasə (viz v2): KPI, dinamika, növlər, təqvim, həftə günləri — əvvəlki 6 ay sütunları + növlər zolağı əvəzinə ══ */}
       <CharityInsights className="ch-overview" entries={entries} today={getToday()} lang={lang}
         types={DEED_TYPES.map(dt => ({ key: dt.key, icon: dt.icon, label: pickUi(dt, lang, 'en') }))} />
+
+      <section className="ui-section ui-section--tight" id="charity-report">
+        <div className="ui-container">
+          <DeferRender height="760px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div style={{ minHeight: 760 }} />}>
+              <CharityReport lang={lang} entries={entries} />
+            </Suspense>
+          </DeferRender>
+        </div>
+      </section>
 
       {/* ══ "Nələr sədəqədir?" — gündəlikdəki növlərin dəlili (LessonBlocks formatı) ══ */}
       <section className="ui-section ch-guide ui-cv" style={{ '--cv-h': '1800px' }}>

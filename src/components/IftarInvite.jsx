@@ -19,6 +19,7 @@ import { pickUi } from '../utils/uiText'
 import { getPrayerLocation, searchCities } from '../utils/prayerLocation'
 import { gKey, parseGKey } from '../utils/hijri'
 import { canShareFile, preopenWindow, saveBlob } from '../utils/quoteCard'
+import { logIftarInvite, todayKey } from '../utils/iftarLog'
 import {
   DESIGNS, FORMATS, HOST_KEY, LIMITS, cityLabel, dateLines, defaultIftarDate, fileName, formatOf,
   iftarTime, inviteText, locFromCity, renderInvite, todayIn,
@@ -210,6 +211,8 @@ export default function IftarInvite() {
 
   const message = () => inviteText({ fields, g, time, city, lang })
 
+  // Ramazan albomu üçün yalnız say (kimə / hara yazılmır) — utils/iftarLog
+  const logMade = () => logIftarInvite(todayKey())
   const exportBlob = async () => {
     const f = formatOf(format)
     const c = document.createElement('canvas')
@@ -225,7 +228,7 @@ export default function IftarInvite() {
     setBusy(true)
     try {
       const blob = await exportBlob()
-      if (blob) saveBlob(blob, fileName(g, format), win)
+      if (blob) { saveBlob(blob, fileName(g, format), win); logMade() }
     } finally { setBusy(false) }
   }
 
@@ -234,6 +237,7 @@ export default function IftarInvite() {
     try {
       const blob = await exportBlob()
       if (!blob) return
+      logMade()
       const text = message()
       const file = new File([blob], fileName(g, format), { type: 'image/png' })
       if (canShareFile(file)) {

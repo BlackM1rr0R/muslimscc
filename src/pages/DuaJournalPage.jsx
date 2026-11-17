@@ -19,6 +19,9 @@ import '../styles/DuaJournalPage.css'
 import { pickUi } from '../utils/uiText'
 import DeferRender from '../components/DeferRender'
 const DuaCapsule = lazy(() => import('../components/DuaCapsule'))
+// vE: ömürlük dua bağçası — qəbul olunan hər dua çiçək açır, hər il bir pillə
+const DuaGardenLife = lazy(() => import('../components/DuaGardenLife'))
+import { syncGardenFromStorage } from '../utils/duaGardenLife'
 // Dizayn v6 (src/motion): sekmə xətti və sıralama hapı yayla sürüşür (layoutId)
 import { SegGroup, SegPill } from '../components/quran/SegPill'
 
@@ -196,6 +199,9 @@ export default function DuaJournalPage({ setPage }) {
     setDuas(data.duas || [])
   }, [])
 
+  // vE: qəbul olunan dualar ömürlük bağçaya köçür (yaddaşdakı gündəlikdən — yalnız saxlanmış id-lər)
+  useEffect(() => { syncGardenFromStorage() }, [duas])
+
   const persist = useCallback((updated) => {
     setDuas(updated)
     saveData({ duas: updated })
@@ -340,6 +346,11 @@ export default function DuaJournalPage({ setPage }) {
           {/* ── Gündəlik: əlavə et, forma, tablar, kartlar ── */}
           <div className="dua-journal-layout">
             <DuaGarden duas={duas} lang={lang} />
+            <DeferRender height="220px" idle={false} rootMargin="300px 0px">
+              <Suspense fallback={<div style={{ minHeight: 220 }} />}>
+                <DuaGardenLife duas={duas} lang={lang} />
+              </Suspense>
+            </DeferRender>
             {/* Əlavə et — telefonda tam en (baş barmaqla rahat) */}
             {!showForm && (
               <button type="button" className="ui-btn ui-btn--primary dua-add-btn" onClick={() => setShowForm(true)}>

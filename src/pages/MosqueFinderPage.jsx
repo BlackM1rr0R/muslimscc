@@ -20,6 +20,10 @@ import usePrayerTimes, { PRAYER_NAMES } from '../hooks/usePrayerTimes'
 import { pickUi } from '../utils/uiText'
 import ShineButton from '../motion/ShineButton'
 const MosqueBuilder3D = lazy(() => import('../components/MosqueBuilder3D'))
+// vE: Məscid kolleksiyam — ziyarət etdiyiniz məscidlər (şəxsi, şifrəli sinxron)
+const MosqueCollection = lazy(() => import('../components/mosque/MosqueCollection'))
+import { MC_TXT } from '../components/mosque/mosqueText'
+import { readVisits, VISITS_EVENT } from '../utils/mosqueVisits'
 
 const WALK = { az: (m) => `piyada ≈ ${m} dəq`, en: (m) => `≈ ${m} min walk`, ru: (m) => `пешком ≈ ${m} мин`, tr: (m) => `yürüyerek ≈ ${m} dk`, ar: (m) => `≈ ${m} دقيقة مشيًا` }
 
@@ -138,6 +142,24 @@ export default function MosqueFinderPage({ setPage }) {
   const [status, setStatus] = useState('idle') // idle | loading | done | error
   const [mosques, setMosques] = useState([])
   const [errorMsg, setErrorMsg] = useState('')
+  // vE: kolleksiyadakı OSM id-ləri ('w5') — nəticədə "Kolleksiyada" göstərilir
+  const mc = pickUi(MC_TXT, lang, 'en')
+  const [visited, setVisited] = useState(() => new Set())
+  const [checkMsg, setCheckMsg] = useState('')
+  useEffect(() => {
+    const re = () => setVisited(new Set(readVisits().l.map(v => v.i)))
+    re()
+    window.addEventListener(VISITS_EVENT, re)
+    return () => window.removeEventListener(VISITS_EVENT, re)
+  }, [])
+  const shortId = (id) => { const m = /^(n|w|r)[a-z]*(\d+)$/.exec(String(id)); return m ? m[1] + m[2] : '' }
+  const checkIn = async (place) => {
+    try {
+      const { checkInMosque } = await import('../utils/mosqueCountry')
+      const r = await checkInMosque({ osm: place.id, n: place.name || '', la: place.lat, lo: place.lon })
+      setCheckMsg(r.added ? mc.added : mc.again)
+    } catch { /* chunk yüklənmədi — növbəti cəhddə */ }
+  }
   const [userPos, setUserPos] = useState(null)
   const [center, setCenter] = useState(null) // radarın mərkəzi: axtarışın nöqtəsi
   const { next } = usePrayerTimes()
@@ -362,14 +384,36 @@ export default function MosqueFinderPage({ setPage }) {
                         <span className="mosque-maps-btn">{t.openMaps} <Icon name="external" size={15} /></span>
                         <Icon name="chevron" size={18} className="mosque-row-chev ui-flip-rtl" />
                       </a>
+                      <div className="mosque-checkin-row">
+                        {visited.has(shortId(place.id)) ? (
+                          <span className="ui-badge ui-badge--brand mosque-checkin" data-testid="mosque-in-collection"><Icon name="check" size={14} /> {mc.inCollection}</span>
+                        ) : (
+                          <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm mosque-checkin" onClick={() => checkIn(place)}
+                            aria-label={`${mc.checkin}: ${place.name || t.unknown}`} data-testid="mosque-checkin">
+                            <Icon name="pin" className="ui-btn__icon" /> {mc.checkin}
+                          </button>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>
                 </>
               )}
+              <p className="mosque-checkin-msg" role="status">{checkMsg}</p>
               <p className="mosque-source">{x.source}</p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* vE: Məscid kolleksiyam — xəritə, statistika, "Buradayam" */}
+      <section className="ui-section ui-section--tight" id="mosque-collection">
+        <div className="ui-container">
+          <DeferRender height="720px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div style={{ minHeight: 720 }} />}>
+              <MosqueCollection lang={lang} />
+            </Suspense>
+          </DeferRender>
         </div>
       </section>
 

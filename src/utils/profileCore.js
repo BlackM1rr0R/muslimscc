@@ -39,9 +39,12 @@ export const PROFILE_KEYS = [
   // Namaz, oruc
   'muslim_cc_prayer_status', 'muslim_cc_prayer_stats', 'daily_tracker', 'muslim_cc_qada', 'jumuah_v1',
   'muslim_cc_ramadan_fasts_v1', 'muslim_cc_sunnah_fasts_v1', 'muslim_cc_ramadan_khatm_v1',
+  'ramadan_album_v1', 'muslim_cc_iftar_log_v1',
   // Zikr, dua
   'dhikr_count_total', 'dhikr_daily_v1', 'dhikr_free_v1', 'dhikr_session', 'dhikr_palms_v1', 'adhkar_done_v1',
-  'dua_journal', 'muslim_cc_muhasabah_v1',
+  'dua_journal', 'dua_garden_v1', 'muslim_cc_muhasabah_v1',
+  // Ziyarətlər
+  'mosque_visits_v1',
   // Uşaqlar və öyrənmə
   'kids_manners', 'muslim_cc_storybooks', 'muslim_cc_kids_card_name', 'muslim_cc_letter_catch_best', 'muslim_cc_memory_best',
   'names_match_best', 'muslim_cc_ayah_race_best', 'quiz_scores', 'qm_badges_v1', 'learn_progress_v1', 'learn_path_v1',

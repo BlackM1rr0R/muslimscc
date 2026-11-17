@@ -306,3 +306,8 @@
   .mf-guide .ls-qa__item { transition: none; }
   .mf-guide .ls-qa__item:hover { transform: none; }
 }
+
+/* vE: axtarış nəticəsində "Ziyarət etdim" → Məscid kolleksiyam (components/mosque/MosqueCollection) */
+.mosque-checkin-row { display: flex; padding: 0 16px 10px; padding-inline-start: 64px; }
+.mosque-checkin[aria-pressed="true"] { cursor: default; }
+@media (max-width: 640px) { .mosque-checkin-row { padding-inline-start: 14px; } }

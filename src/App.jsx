@@ -1,4 +1,4 @@
-import { Component, Suspense, lazy as reactLazy, useLayoutEffect, useRef } from 'react'
+import { Component, Suspense, lazy as reactLazy, useEffect, useLayoutEffect, useRef } from 'react'
 import { reportError } from './utils/errorReport'
 import OfflineBadge from './components/OfflineBadge'
 import AutoSyncToast from './components/AutoSyncToast'
@@ -20,7 +20,7 @@ import InstallBanner from './components/InstallBanner'
 // Adi import: dok özü yüngüldür, ağır panelləri (AI, bildirişlər) içəridə tənbəl yükləyir,
 // əlçatanlıq tərcihləri isə ilk boyamadan tətbiq olunmalıdır.
 import FloatingDock from './components/FloatingDock'
-import { lazyWhenIdle } from './utils/idle'
+import { lazyWhenIdle, whenIdle } from './utils/idle'
 import { usePageviews } from './api/analytics'
 import { withChunkRetry } from './utils/chunkRetry'
 import { markRouteLoading, withViewTransition, routeCommitted, leavePage } from './utils/wow'
@@ -298,6 +298,15 @@ function AppInner() {
   const isBack = navType === 'POP' && location.key !== firstKey.current
 
   useStoredLangRedirect()
+
+  // vE: Ramazan albomu — hər açılışda (boş vaxtda) cari / son Ramazanın fəsli yenilənir
+  // (idempotent; ayrı kiçik chunk — ilk paketə düşmür). utils/ramadanAlbum
+  useEffect(() => {
+    let off = false
+    whenIdle({ delay: 4000 }).then(() => (off ? null : import('./utils/ramadanAlbum')))
+      .then((m) => { if (m && !off) m.snapshotAlbum() }).catch(() => {})
+    return () => { off = true }
+  }, [])
 
   const legacy = legacyRedirect(location.pathname)
 
