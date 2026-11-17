@@ -558,6 +558,7 @@ const SurahCity3D = lazy(() => import('../components/quran/SurahCity3D'))
 const QuranCity = lazy(() => import('../components/QuranCity'))
 const ScriptLayers = lazy(() => import('../components/ScriptLayers'))
 const QuranColors = lazy(() => import('../components/QuranColors'))
+const QuranWater = lazy(() => import('../components/QuranWater'))
 const QuranMosaic = lazy(() => import('../components/quran/QuranMosaic'))
 const MuqattaatMap = lazy(() => import('../components/quran/MuqattaatMap'))
 const QuranNumbers = lazy(() => import('../components/numbers/QuranNumbers'))
@@ -2054,6 +2055,12 @@ export default function QuranPage() {
           <DeferRender height="680px" idle={false} rootMargin="300px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 680 }} />}>
               <QuranColors />
+            </Suspense>
+          </DeferRender>
+          {/* v7.6: Quranda su dövranı — hər mərhələdə ayə, mətn və tərcümə saytdakı ilə eyni */}
+          <DeferRender height="680px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 680 }} />}>
+              <QuranWater />
             </Suspense>
           </DeferRender>
           {/* v7.2: "Mənim Quran şəhərim" — oxuduğunuz surələrin pəncərələri yanır (yalnız oxunuş varsa) */}

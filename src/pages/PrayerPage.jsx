@@ -404,6 +404,7 @@ const QiyamMode = lazy(() => import('../components/prayer/QiyamMode'))
 const AdhanWave = lazy(() => import('../components/prayer/AdhanWave'))
 const YearPrayerChart = lazy(() => import('../components/prayer/YearPrayerChart'))
 const MashrabiyaLight = lazy(() => import('../components/MashrabiyaLight'))
+const FlightPrayer = lazy(() => import('../components/FlightPrayer'))
 const AsrShadow = lazy(() => import('../components/prayer/AsrShadow'))
 const PrayerNumbers = lazy(() => import('../components/numbers/PrayerNumbers'))
 const QY = {
@@ -903,6 +904,12 @@ export default function PrayerPage({ setPage }) {
             <DeferRender height="720px" idle={false} rootMargin="400px 0px">
               <Suspense fallback={<div style={{ minHeight: 720 }} />}>
                 <MashrabiyaLight />
+              </Suspense>
+            </DeferRender>
+            {/* v7.6: təyyarədə namaz vaxtları — marşrut boyunca Günəş, hər namaz anında qiblə */}
+            <DeferRender height="820px" idle={false} rootMargin="400px 0px">
+              <Suspense fallback={<div style={{ minHeight: 820 }} />}>
+                <FlightPrayer />
               </Suspense>
             </DeferRender>
             {/* Gecə namazı (Qiyam) — son üçdə birə / sübhə qədər; tam ekran rejim */}

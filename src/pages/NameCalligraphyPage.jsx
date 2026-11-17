@@ -26,6 +26,7 @@ import '../styles/NameCalligraphy.css'
 
 const TraceCanvas = lazy(() => import('../components/trace/TraceCanvas'))
 const NameTughra = lazy(() => import('../components/NameTughra'))
+const QalamPen = lazy(() => import('../components/QalamPen'))
 
 const STYLES = [
   { id: 'naskh', family: "'Amiri', 'Noto Naskh Arabic', serif", weight: 400, ar: 'نسخ' },
@@ -350,6 +351,9 @@ export default function NameCalligraphyPage({ setPage }) {
 
           {/* v7.3: ad tuğrası — Osmanlı tuğrası üslubunda bədii kompozisiya */}
           <Suspense fallback={<div className="ui-card" style={{ minHeight: 640 }} />}><NameTughra /></Suspense>
+
+          {/* v7.6: qamış qələm — enli uc, nöqtə ölçü sistemi (İbn Müqlə) */}
+          <Suspense fallback={<div className="ui-card" style={{ minHeight: 640 }} />}><QalamPen /></Suspense>
 
           <section className="ncal-about ui-card" aria-labelledby="ncal-about-h">
             <h2 id="ncal-about-h" className="ui-title ui-title--sm">{t.aboutTitle}</h2>

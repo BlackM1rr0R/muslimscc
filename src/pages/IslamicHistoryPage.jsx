@@ -17,6 +17,7 @@ const ElephantClock = lazy(() => import('../components/ElephantClock'))
 const NumeralsJourney = lazy(() => import('../components/NumeralsJourney'))
 const IdrisiWorld = lazy(() => import('../components/IdrisiWorld'))
 const ArchBuilder = lazy(() => import('../components/ArchBuilder'))
+const MoonCraters = lazy(() => import('../components/MoonCraters'))
 const HijraWalk = lazy(() => import('../components/HijraWalk'))
 const MuslimAtlas = lazy(() => import('../components/MuslimAtlas'))
 const ProphetLetters = lazy(() => import('../components/ProphetLetters'))
@@ -552,6 +553,12 @@ export default function IslamicHistoryPage() {
           <DeferRender height="720px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 720 }} />}>
               <ArchBuilder />
+            </Suspense>
+          </DeferRender>
+          {/* v7.6: Ayda İslam dünyası alimlərinin adları — IAU/USGS rəsmi siyahısı (25 krater) */}
+          <DeferRender height="760px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
+              <MoonCraters />
             </Suspense>
           </DeferRender>
             </>

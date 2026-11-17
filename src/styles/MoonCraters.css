@@ -1,0 +1,52 @@
+/* Ayda müsəlman alimlərinin adları (components/MoonCraters.jsx) */
+.mcr { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 10px; min-width: 0; }
+.mcr__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.mcr__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.mcr__grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 32px); align-items: start; }
+@media (max-width: 860px) { .mcr__grid { grid-template-columns: minmax(0, 1fr); } }
+.mcr__stage { display: grid; justify-items: center; gap: 8px; min-width: 0; }
+.mcr__bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.mcr__bar .ui-btn, .mcr__bar .ui-chip { display: inline-flex; align-items: center; gap: 6px; }
+.mcr__svg { width: 100%; max-width: 480px; touch-action: none; cursor: grab; user-select: none; border-radius: 50%; }
+.mcr__svg:active { cursor: grabbing; }
+.mcr__svg:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.mcr__halo { fill: none; stroke: var(--accent); stroke-opacity: .18; stroke-width: 14; }
+.mcr__mare { fill: #55575a; fill-opacity: .55; stroke: none; }
+.mcr__grat { fill: none; stroke: #fff; stroke-opacity: .22; stroke-width: .7; }
+.mcr__night { fill: #0b0d14; fill-opacity: .78; }
+.mcr__crater { cursor: pointer; outline: none; }
+.mcr__ring { fill: none; stroke: #2a2c33; stroke-width: 1; stroke-opacity: .7; }
+.mcr__hit { fill: transparent; }
+.mcr__dot { fill: var(--accent, #c9a227); stroke: #fff; stroke-width: 1.2; }
+.mcr__lbl { font: 600 11px Inter, system-ui, sans-serif; fill: #14161c; paint-order: stroke; stroke: rgba(255, 255, 255, .8); stroke-width: 3px; pointer-events: none; }
+.mcr__crater.is-dark .mcr__dot { fill: #3b3f4c; stroke: #9aa0b5; }
+.mcr__crater.is-dark .mcr__lbl { fill: #e7e9f2; stroke: rgba(10, 12, 20, .85); }
+.mcr__crater.is-lit .mcr__dot { fill: #ffd257; stroke: #7a5300; }
+.mcr__crater.is-sel .mcr__dot { stroke: #14161c; stroke-width: 2; }
+.mcr__crater.is-sel .mcr__ring { stroke: var(--accent, #c9a227); stroke-width: 2; stroke-opacity: 1; }
+.mcr__crater:focus-visible .mcr__hit { stroke: var(--accent); stroke-width: 2; }
+.mcr__hint { margin: 0; font-size: .82rem; color: var(--text-muted); text-align: center; }
+.mcr__panel { display: grid; gap: 12px; min-width: 0; }
+.mcr__empty { margin: 0; padding: 14px; border: 1px dashed var(--line, var(--border)); border-radius: 12px; color: var(--text-muted); }
+.mcr__card { display: grid; gap: 10px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); min-width: 0; }
+.mcr__card-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.mcr__cname { margin: 0; font-size: 1.3rem; }
+.mcr__person { margin: 2px 0 0; font-weight: 600; color: var(--accent-text, var(--accent)); }
+.mcr__ar { margin: 2px 0 0; font-family: var(--font-arabic, serif); font-size: 1.05rem; color: var(--text-muted); text-align: start; }
+.mcr__bio, .mcr__fact { margin: 0; line-height: 1.6; }
+.mcr__fact { font-size: .92rem; color: var(--text-muted); }
+.mcr__facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.mcr__facts div { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line, var(--border)); background: var(--surface-0, transparent); min-width: 0; }
+.mcr__facts dt { font-size: .72rem; color: var(--text-muted); }
+.mcr__facts dd { margin: 2px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.mcr__now { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .9rem; color: var(--text-muted); }
+.mcr__now.is-lit { color: var(--accent-text, var(--accent)); }
+.mcr__origin { margin: 0; padding: 8px 12px; border-inline-start: 3px solid var(--accent); background: var(--surface-0, transparent); font-size: .88rem; line-height: 1.55; overflow-wrap: anywhere; }
+.mcr__src, .mcr__note { margin: 0; font-size: .8rem; color: var(--text-muted); overflow-wrap: anywhere; }
+.mcr__src a, .mcr__note a { color: var(--accent-text, var(--accent)); }
+.mcr__list { display: flex; flex-wrap: wrap; gap: 6px; }
+.mcr__chip { display: inline-flex; align-items: center; gap: 6px; }
+.mcr__pip { width: 8px; height: 8px; border-radius: 50%; background: #3b3f4c; box-shadow: 0 0 0 1px #9aa0b5; }
+.mcr__pip.is-lit { background: #ffd257; box-shadow: 0 0 0 1px #7a5300; }
+[data-theme="dark"] .mcr__halo { stroke-opacity: .3; }
+[data-theme="dark"] .mcr__mare { fill: #3d3f43; }
