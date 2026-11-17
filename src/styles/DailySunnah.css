@@ -52,7 +52,7 @@
   transition: background-color .25s ease, color .25s ease;
 }
 .ds__day--empty { background: transparent; }
-.ds__day.is-future { opacity: .5; }
+.ds__day.is-future { color: var(--text-muted); border-style: dashed; background: transparent; }
 .ds__day.is-today { border-color: var(--accent); font-weight: 700; }
 .ds__day.is-done { background: var(--accent); color: #1b1408; font-weight: 700; }
 .ds__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
