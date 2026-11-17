@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { useLang } from '../contexts/LangContext'
 import HeroOrnament from '../components/HeroOrnament'
 import { T } from '../data/i18n'
@@ -19,6 +19,8 @@ import { ChartFigure, BarChart, SegmentBreakdown, ProgressBar } from '../compone
 import ZakatFlow from '../components/ZakatFlow'
 import { pickUi } from '../utils/uiText'
 import ShineButton from '../motion/ShineButton'
+// Zəkat ili (hövl) xatırlatması + keçmiş illərin arxivi (server/personal.js; arxiv — localStorage)
+const HawlReminder = lazy(() => import('../components/zakat/HawlReminder'))
 
 // ═══ ZƏKAT HESABI — Sələf alimlərinin fətvalarına uyğun ═══
 // • Zəkat nisaba çatan və üzərindən bir hicri il (hövl) keçən mala düşür. Aylıq maaş
@@ -695,6 +697,11 @@ export default function ZakatPage({ setPage }) {
 
       {/* ══ v5.9: maaşdan aylıq — zəkatı əvvəlcədən hissə-hissə və ya könüllü sədəqə ══ */}
       <MonthlyGiving lang={lang} zakatYear={zakatYear} aboveNisab={aboveNisab} hasInput={totalAssets > 0} money={money} symbol={cur.symbol} />
+
+      {/* ══ vC: "Zəkat ilim tamamlananda xatırlat" (hesabla) + hesab arxivi ══ */}
+      <Suspense fallback={null}>
+        <HawlReminder total={total} zakat={zakatYear} currency={currency} hasInput={totalAssets > 0} />
+      </Suspense>
 
       {/* ══ Qayda: 4 addım + nisab müqayisəsi ══ */}
       <section className="ui-section ui-section--alt zakat-rule">

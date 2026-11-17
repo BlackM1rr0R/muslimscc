@@ -59,7 +59,7 @@ const IGNORED = [
   /\[vite\]/i,
   // İstifadəçi hesabı API-sinin GÖZLƏNİLƏN 4xx cavabları (girişsiz /me → 401, yanlış şifrə → 401, admin 403 kodları):
   // brauzer onları "Failed to load resource" kimi yazır — saytın xətası deyil (UI onları özü göstərir)
-  /Failed to load resource.*\/api\/(auth\/|admin\/(users|role-audit))/i,
+  /Failed to load resource.*\/api\/(auth\/|personal\/|admin\/(users|role-audit))/i,
 ]
 
 // Saxta Google Identity Services (src/utils/googleSignIn.js-in işlətdiyi hissə)
@@ -145,6 +145,16 @@ export const test = base.extend({
         return route.fulfill({ json: { challengeId: 'c'.repeat(24), options: { challenge: 'dGVzdC1jaGFsbGVuZ2UtMDAwMDAwMDA', rpId: 'invalid.test', timeout: 300000, userVerification: 'required', allowCredentials: [] } } })
       }
       if (pathname === '/api/auth/forgot') return route.fulfill({ json: { ok: true } })
+      return route.fulfill({ status: 401, json: { error: 'Unauthorized', code: 'unauthenticated' } })
+    })
+    // Şəxsi xatırlatmalar (server/personal.js) — susmaya görə boş; tests/e2e/personalApi.js öz saxtasını qoyur
+    await page.route((u) => u.pathname === '/api/personal' || u.pathname.startsWith('/api/personal/'), (route) => {
+      const { pathname } = new URL(route.request().url())
+      const get = route.request().method() === 'GET'
+      if (get && pathname === '/api/personal/letters') return route.fulfill({ json: { letters: [], consent: false, emailVerified: true, max: 50, maxLength: 4000 } })
+      if (get && pathname === '/api/personal/loved') return route.fulfill({ json: { items: [], consent: false, emailVerified: true, lovedEmail: true, share: { active: false, createdAt: null, followers: [] }, following: [], max: 50 } })
+      if (get && pathname === '/api/personal/zakat') return route.fulfill({ json: { reminder: null, consent: false, emailVerified: true } })
+      if (pathname === '/api/personal/push-link/status') return route.fulfill({ json: { linked: false } })
       return route.fulfill({ status: 401, json: { error: 'Unauthorized', code: 'unauthenticated' } })
     })
     // Google ilə giriş (accounts.google.com/gsi/client) — real Google-a getməsin: kiçik saxta GIS.

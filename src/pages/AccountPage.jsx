@@ -31,6 +31,8 @@ import '../styles/Account.css'
 const LogoutDialog = lazy(() => import('../components/account/LogoutDialog'))
 // vB: ömürlük Quran mozaikası, Quran dəftəri, xətm şəhadətnamələri, mənəvi səyahət kitabçası
 const AccountQuranSections = lazy(() => import('../components/account/AccountQuranSections'))
+// vC: gələcəyə məktub, sevdiklərim üçün dua, zəkat xatırlatması (server/personal.js — serverdə şifrəsiz, razılıqla)
+const PersonalSections = lazy(() => import('../components/account/PersonalSections'))
 
 const LABELS = {
   az: {
@@ -236,7 +238,9 @@ export default function AccountPage() {
   const [askLogout, setAskLogout] = useState(false)
 
   const toLogin = useCallback(() => {
-    navigate(`${pathFor('login', siteLang)}?next=${encodeURIComponent(pathFor('account', siteLang))}`, { replace: true })
+    // Ailə paylaşma keçidi (#follow=…) girişdən sonra da qalsın
+    const hash = typeof window !== 'undefined' && /^#follow=/.test(window.location.hash) ? window.location.hash : ''
+    navigate(`${pathFor('login', siteLang)}?next=${encodeURIComponent(pathFor('account', siteLang) + hash)}`, { replace: true })
   }, [navigate, siteLang])
 
   const fetchMe = useCallback(() => {
@@ -318,6 +322,9 @@ export default function AccountPage() {
         <ContinueSection lang={lang} />
         <Suspense fallback={null}>
           <AccountQuranSections lang={lang} siteLang={siteLang} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PersonalSections emailVerified={Boolean(user.emailVerified)} />
         </Suspense>
         <PasswordSection l={l} t={t} errText={errText} user={user} />
         <PasskeySection l={l} errText={errText} user={user} fmt={fmt} />

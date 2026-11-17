@@ -1,0 +1,68 @@
+/* ═══════════════════════════════════════════════════════
+   Şəxsi xatırlatmalar (components/account/PersonalSections, personal/PersonalUi, zakat/HawlReminder)
+   Account.css-in .acc-* sinifləri üzərində; yalnız token rəngləri (açıq/tünd tema, RTL — məntiqi xassələr).
+   ═══════════════════════════════════════════════════════ */
+.pr-section { scroll-margin-top: 90px; }
+.pr-form { display: grid; gap: var(--space-3, 14px); }
+.pr-grid { display: grid; gap: var(--space-3, 14px); grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.pr-textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+.pr-count { text-align: end; }
+.pr-date { max-width: 220px; }
+.pr-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pr-chips .ui-chip { min-height: 40px; }
+.pr-preview, .pr-hint {
+  display: flex; align-items: center; gap: 6px; margin: 0;
+  color: var(--text-secondary); font-size: var(--step--1);
+}
+.pr-preview { color: var(--brand-strong, var(--brand)); font-weight: 600; }
+.pr-subtitle {
+  display: flex; align-items: center; gap: 6px;
+  margin: var(--space-3, 14px) 0 var(--space-2, 8px); font-size: var(--step-0); color: var(--text-strong);
+}
+.pr-subtitle--sm { font-size: var(--step--1); }
+.pr-consent {
+  display: grid; gap: 8px; padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line));
+  border-radius: var(--radius-md); background: var(--brand-soft);
+}
+.pr-consent__title { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 600; color: var(--text-strong); }
+.pr-consent__note { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.pr-consent__check { background: var(--surface-1); }
+.pr-consent__check span { color: var(--text-strong); font-weight: 600; }
+.pr-toggle span { color: var(--text-primary, var(--text-strong)); }
+.pr-item { align-items: flex-start; }
+.pr-letter, .pr-note {
+  margin: 8px 0 0; padding: 12px 14px; white-space: pre-wrap; overflow-wrap: anywhere;
+  border-inline-start: 3px solid var(--brand); border-radius: var(--radius-sm, 8px);
+  background: var(--surface-2); color: var(--text-strong); line-height: 1.7;
+}
+.pr-note { font-size: var(--step--1); color: var(--text-secondary); }
+.pr-details summary { cursor: pointer; }
+.pr-details summary:focus-visible { outline: 2px solid var(--focus, var(--brand)); outline-offset: 2px; border-radius: 4px; }
+.pr-rel { color: var(--text-secondary); font-weight: 400; }
+.pr-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.pr-tags:empty { display: none; }
+.pr-confirm { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pr-dua { margin: 0; }
+.pr-dua a { display: inline-flex; align-items: center; gap: 6px; color: var(--brand-strong, var(--brand)); font-weight: 600; }
+.pr-share, .pr-following { display: grid; gap: var(--space-2, 8px); padding-top: var(--space-2, 8px); border-top: 1px solid var(--line); }
+.pr-linkrow { display: flex; gap: 8px; align-items: center; }
+.pr-linkrow .ui-input { flex: 1; min-width: 0; font-size: var(--step--1); direction: ltr; }
+.pr-followed { padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-md); }
+.pr-followed__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pr-followed__list { margin: 8px 0 0; padding-inline-start: 18px; display: grid; gap: 4px; color: var(--text-secondary); }
+.pr-invite .acc-row { margin-top: 8px; }
+.pr-zakat { display: grid; gap: 8px; }
+.pr-zakat__due { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 600; color: var(--text-strong); }
+.pr-tablewrap { overflow-x: auto; }
+.pr-table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+.pr-table th, .pr-table td { padding: 8px 10px; text-align: start; border-bottom: 1px solid var(--line); }
+.pr-table thead th { color: var(--text-secondary); font-weight: 600; }
+.pr-table tbody th { font-weight: 500; color: var(--text-strong); }
+.pr-teaser {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 12px 14px;
+  border: 1px dashed var(--line-strong, var(--line)); border-radius: var(--radius-md); background: var(--surface-1);
+}
+.pr-teaser p { flex: 1 1 220px; margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.55; }
+.pr-hawl__card { display: grid; gap: var(--space-3, 14px); }
+.pr-capsule-mail { display: grid; gap: 8px; }

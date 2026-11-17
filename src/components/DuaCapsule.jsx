@@ -11,6 +11,9 @@
 // heç nə getmir; açar ehtiyat nüsxəyə (utils/userBackup) avtomatik düşür.
 // Mətn şifrələnmir — sadəcə vaxtına qədər göstərilmir (UI-də dürüst deyilir).
 // useReduced(): qatlanma / sınma animasiyası yoxdur, vəziyyət dərhal dəyişir.
+// vC: hesabla daxil olan istifadəçi "Açılış günü e-poçtuma da göndər" seçə bilər — onda mətn və tarix
+// (açıq razılıqla) serverə gedir: server/personal.js → "Gələcək özünə məktub" (kind: 'capsule').
+// Seçilməsə, əvvəlki kimi heç nə göndərilmir. Girişsiz ziyarətçiyə qısa tizer göstərilir.
 // ═══════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from './Icon'
@@ -22,6 +25,10 @@ import {
   STORAGE_KEY, MAX_TEXT, PRESETS, loadCapsules, saveCapsules, createCapsule, presetOpenAt,
   capsuleState, daysUntil, resealCapsule, sortCapsules,
 } from '../utils/duaCapsule'
+import { pathFor } from '../seo/routes'
+import { createLetter, listLetters } from '../api/personal'
+import { localKey } from '../utils/personalDates'
+import { ConsentBox, LovedTeaser, PersonalTeaser, usePersonalText, useSignedIn } from './personal/PersonalUi'
 import '../styles/DuaCapsule.css'
 
 const SEAL_MS = 1750
@@ -160,6 +167,11 @@ function Envelope({ className = '' }) {
 export default function DuaCapsule() {
   const { lang } = useLang()
   const t = pickUi(T, lang, 'en')
+  const { t: pt, siteLang } = usePersonalText()
+  const { status } = useSignedIn()
+  const [mailIt, setMailIt] = useState(false)
+  const [mailConsent, setMailConsent] = useState(false)
+  const [consentKnown, setConsentKnown] = useState(null)   // null — bilinmir; true/false — serverdən
   const reduced = useReduced()
   const [list, setList] = useState(() => loadCapsules())
   const [text, setText] = useState('')
@@ -207,7 +219,13 @@ export default function DuaCapsule() {
     if (!openAt) { setErr(t.badDate); return }
     const c = createCapsule(text, openAt, at)
     if (!c) return
+    if (mailIt && status === 'user' && !consentKnown && !mailConsent) { setErr(pt.consentNeed); return }
     commit([...list, c])
+    if (mailIt && status === 'user') {
+      createLetter({ body: c.text, deliverOn: localKey(openAt), kind: 'capsule', lang, consent: !consentKnown && mailConsent })
+        .then(() => { setConsentKnown(true); setMsg(pt.capsuleMailed) })
+        .catch(() => setErr(pt.err.unknown))
+    }
     setText('')
     setNow(at)
     const done = () => { setSealing(null); setFreshId(c.id); setMsg(t.sealedMsg(fmt(c.openAt, lang))) }
@@ -288,11 +306,26 @@ export default function DuaCapsule() {
         )}
         {err && <p id="dc-err" className="dc-err" role="alert">{err}</p>}
 
+        {status === 'user' && (
+          <div className="pr-capsule-mail">
+            <label className="acc-check" htmlFor="dc-mail">
+              <input id="dc-mail" type="checkbox" checked={mailIt} data-testid="dc-mail"
+                onChange={(e) => {
+                  setMailIt(e.target.checked); setErr('')
+                  if (e.target.checked && consentKnown === null) listLetters().then((r) => setConsentKnown(Boolean(r.consent))).catch(() => setConsentKnown(false))
+                }} />
+              <span>{pt.capsuleMail}</span>
+            </label>
+            {mailIt && consentKnown === false && <ConsentBox t={pt} checked={mailConsent} onChange={setMailConsent} id="dc-mail-consent" />}
+          </div>
+        )}
+
         <button type="submit" className="ui-btn ui-btn--primary dc-seal-btn" data-testid="dc-seal"
           disabled={!text.trim() || !!sealing || (preset === 'custom' && !custom)}>
           <Icon name="duajournal" className="ui-btn__icon" /> {sealing ? t.sealing : t.seal}
         </button>
-        <p id="dc-privacy" className="dc-privacy"><Icon name="shield" size={14} /> {t.privacy}</p>
+        <p id="dc-privacy" className="dc-privacy"><Icon name="shield" size={14} /> {mailIt ? pt.consentNote : t.privacy}</p>
+        {status === 'anon' && <PersonalTeaser text={pt.teaser.letters} next={pathFor('duajournal', siteLang)} testId="capsule-teaser" icon="mail" />}
       </form>
 
       {sealing && (
@@ -370,6 +403,8 @@ export default function DuaCapsule() {
           </ul>
         )}
       </div>
+
+      <LovedTeaser />
     </section>
   )
 }

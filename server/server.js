@@ -23,7 +23,7 @@ if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUT
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
 for (const m of ['./auth', './users', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
-  './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data']) require(m)
+  './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -81,6 +81,7 @@ app.use('/api/auth', limit(60000, 60))
 // Hesaba bağlı şifrəli sinxronizasiya (server/syncKeys.js) — açar qabları + hesab↔blok bağlantısı; miqrasiyasız
 const syncKeysLib = require('./syncKeys')
 const syncKeysStore = syncKeysLib.createSyncKeysStore(db)
+const mailer = require('./mailer').createMailer({ apiKey: process.env.RESEND_API_KEY })
 const usersRouter = usersLib.createUsersRouter({
   db, store: usersStore, requireAdmin, allowedOrigins: ALLOWED,
   hooks: {
@@ -88,7 +89,7 @@ const usersRouter = usersLib.createUsersRouter({
     passkeyRemoved: (userId, credId) => syncKeysStore.remove(userId, 'prf', credId),
     passwordReset: (userId) => syncKeysStore.remove(userId, 'password', ''),
   },
-  mailer: require('./mailer').createMailer({ apiKey: process.env.RESEND_API_KEY }),
+  mailer,
   publicOrigin: PUBLIC_ORIGIN,
   rpId: process.env.RP_ID || undefined,
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -129,6 +130,16 @@ app.use('/api', require('./ummah').createUmmahRouter({ db }))
 // ─── Hilal müşahidələri (server/sightings.js) — 1°-lik xana, gündə bir qeyd; cədvəl miqrasiyasız ──
 app.use('/api/sightings', limit(60000, 30))
 app.use('/api', require('./sightings').createSightingsRouter({ db }))
+// ─── Şəxsi xatırlatmalar (server/personal.js): gələcəyə məktub, mərhumların ildönümü, zəkat ili ──
+// Hesaba bağlı, SERVERDƏ OXUNAN (istifadəçi razılığı ilə); cədvəllər miqrasiyasız, users(id) CASCADE.
+// Push üçün deliver() aşağıda (Web Push bölməsi) — funksiya bəyannaməsi, çağırış anında hazırdır.
+app.use('/api/personal', limit(60000, 60))
+const personalRouter = require('./personal').createPersonalRouter({
+  db, requireUser: usersRouter.requireUser, mailer, publicOrigin: PUBLIC_ORIGIN, icons: require('./push').DEFAULT_ICONS,
+  secret: process.env.PERSONAL_SECRET || '',
+  pushSend: (subs, msg, label) => (webPush.enabled ? deliver(subs.map((sub) => ({ sub })), msg, label) : Promise.resolve({ successCount: 0, disabled: true })),
+})
+app.use('/api', personalRouter)
 
 // ─── CSP pozuntu hesabatları (server/csp.js) — Report-Only rejimi; yaddaşda birləşdirilir ──
 app.use('/api/csp-report', limit(60000, 60))
@@ -836,6 +847,9 @@ async function dailyAyahTick() {
 
 // Abunəçi siyahısını prayerTick yükləyir; bu planlayıcı da hər 20 saniyədə yoxlayır
 setInterval(dailyAyahTick, 20000)
+
+// Şəxsi xatırlatmalar planlayıcısı (server/personal.js) — dəqiqədə bir; ikiqat göndəriş yoxdur
+setInterval(() => { personalRouter.scheduler.tick().catch((e) => console.error('personal tick:', e && e.message)) }, 60000).unref()
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`API running on port ${PORT} (DB: ${DB_PATH})`)

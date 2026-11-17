@@ -155,6 +155,55 @@ Cədvəllər (`user_sync_keys`, `user_sync_link`) miqrasiyasızdır (`CREATE TAB
 modul `server.js`-in əvvəlcədən yükləmə siyahısındadır. Klientdə bu cihazın vəziyyəti — `localStorage.mcc_acct_sync`
 (ehtiyat nüsxəyə düşmür), hesaba bağlılıq — `muslim_cc_sync.acct`.
 
+## Şəxsi xatırlatmalar (`server/personal.js`) — SERVERDƏ OXUNA BİLƏN məlumat
+
+Hesabın qalan məlumatı uçdan-uca şifrəlidir. Bu üç xüsusiyyətdə isə server məktubu **vaxtında özü** göndərməlidir,
+ona görə tarix və mətn açıq saxlanır. Hər xüsusiyyətin ilk istifadəsində istifadəçi qeydi oxuyub qutunu işarələyir
+("Vaxtında göndərə bilməyimiz üçün tarix və mətn serverimizdə şifrəsiz saxlanır. İstənilən vaxt silə bilərsiniz.")
+— server `consent: true` olmadan ilk yazını qəbul etmir (`400 consent_required`), razılıq vaxtı `personal_prefs`-də qalır.
+
+| Cədvəl | Saxlanan sahələr (minimum) |
+|---|---|
+| `personal_prefs` | `user_id`, `tz` (IANA, brauzerdən), `lang`, `consent_letters/loved/zakat` (vaxt), `loved_email` (0/1) |
+| `personal_letters` | mətn (≤4000), `deliver_on` (YYYY-MM-DD), `kind` (date/year/ramadan/birthday/capsule — yalnız etiket), `tz`, `lang`, status, cəhd sayı, vaxtlar. **Ad günü saxlanmır** — klient növbəti tarixi hesablayıb göndərir; "gələn Ramazan" da klientdə (`utils/duaCapsule` → `nextRamadan`) |
+| `personal_loved` | ad (≤80, istifadəçinin yazdığı kimi), yaxınlıq (≤40), vəfat tarixi (miladi), təqvim `g`/`h`, `friday`, qeyd (≤500), `next_on` |
+| `personal_loved_shares` | paylaşma tokeninin **yalnız SHA-256**-ı (token 32 bayt = 256 bit, bir dəfə göstərilir) |
+| `personal_loved_followers` | `owner_id` ↔ `follower_id` (izləyən qeydi görmür, redaktə edə bilmir) |
+| `personal_zakat` | hövlün başlanğıcı, növbəti tarix; məbləğ + valyuta **yalnız** istifadəçi ayrıca istəsə |
+| `personal_push_links` | push endpoint ↔ hesab (abunəliyin özü `push_subs`-dadır; hesabla əlaqə yalnız burada) |
+| `personal_sent` | göndərilmiş təkrarlanan xatırlatmaların açarı (`a:<id>:<tarix>`, `f:<tarix>`, `z:pre|due:<tarix>`) — 400 gündən sonra silinir |
+| `personal_secret` | abunəlikdən çıxma tokenlərinin HMAC sirri (env `PERSONAL_SECRET` yoxdursa bir dəfə təsadüfi yaradılır) |
+
+Hamısı `users(id) ON DELETE CASCADE` — hesab silinəndə hər şey silinir. `DELETE /api/personal` — bu modulun bütün
+məlumatı (hesab qalır). Cədvəllər miqrasiyasızdır (`CREATE TABLE IF NOT EXISTS`, `user_version` dəyişmir); modul
+(`./personal`, `./hijri`) `server.js`-in əvvəlcədən yükləmə siyahısındadır. Limit: `/api/personal` — 60/dəq (IP).
+
+| Endpoint | Qeyd |
+|---|---|
+| `GET/POST /api/personal/letters`, `PATCH/DELETE /api/personal/letters/:id` | ≤50 gözləyən; PATCH yalnız `pending` |
+| `GET/POST /api/personal/loved`, `PATCH/DELETE /api/personal/loved/:id` | ≤50 nəfər |
+| `POST/DELETE /api/personal/loved/share` | POST — yeni keçid (köhnə işləmir, izləyənlər qalır) → `{ token }`; DELETE — keçid ləğv + bütün izləyənlər çıxarılır |
+| `DELETE /api/personal/loved/followers/:id` | sahib bir izləyəni çıxarır |
+| `POST /api/personal/follow/preview`, `POST /api/personal/follow`, `DELETE /api/personal/follow/:ownerId` | token gövdədə (URL-də yox); ≤20 siyahı izləmək, ≤30 izləyən |
+| `GET/PUT/DELETE /api/personal/zakat` | hövl = eyni hicri tarix gələn hicri il (Ümmül-Qura, `server/hijri.js`) |
+| `GET/PATCH /api/personal/prefs` | `lovedEmail`, `tz`, `lang` |
+| `POST /api/personal/push-link` `{ endpoint, on }`, `POST /api/personal/push-link/status` | yalnız `push_subs`-da olan endpoint; ≤10 cihaz |
+| `DELETE /api/personal` | hamısını sil |
+| `GET/POST /api/personal/unsubscribe?t=…` | **girişsiz**, HMAC imzalı token (`<userId>.<loved|zakat>.<sig>`); GET yalnız təsdiq səhifəsi (poçt skanerləri heç nəyi dəyişmir), POST çıxış; RFC 8058 `List-Unsubscribe-Post` dəstəklənir |
+
+Hamısı (unsubscribe-dan başqa) `requireUser` + CSRF.
+
+**Planlayıcı** (`server.js` → dəqiqədə bir `personalRouter.scheduler.tick()`): istifadəçinin saat qurşağında
+həmin günün 09:00-ından sonra (gün bitənə qədər) göndərir. E-poçt əsas kanaldır (yalnız **təsdiqlənmiş** e-poçta —
+mətn yad ünvana getməsin); push — hesaba bağlanmış cihazlara (Hesab səhifəsində "bu cihaza da göndər").
+İkiqat göndəriş yoxdur: sətir göndərişdən ƏVVƏL atomik tutulur ("sending"); proses göndəriş ortasında ölsə,
+həmin xatırlatma yenidən göndərilmir (15 dəq sonra "çatdırılıb" sayılır). Xəta → 5 cəhdə qədər, 5/15/45/135 dəq
+fasilə ilə; sonra `failed` (məktub hesab səhifəsində oxunur). Mərhumun ildönümü: miladi (29 fevral → 28 fevral)
+və ya hicri (ayın 30-u 29 günlük ayda → 29); sahib və izləyənlərin hər biri öz saat qurşağında. Cümə — həftədə bir
+məktubda bütün adlar. Zəkat — 7 gün əvvəl və həmin gün, sonra avtomatik növbəti hicri ilə keçir.
+Məktubdakı "Mərhum üçün dua" keçidi saytın mövcud mənbəli duasına aparır (`/learn/janazah#ls-prayer`, Müslim 963) —
+yeni dini mətn yazılmayıb.
+
 ## Env dəyişənləri (`api.env`)
 
 | Dəyişən | Nədir | Yoxdursa |
@@ -162,6 +211,7 @@ modul `server.js`-in əvvəlcədən yükləmə siyahısındadır. Klientdə bu c
 | `RESEND_API_KEY` | Resend API açarı (`re_…`) | Məktub getmir, bir dəfə loga xəbərdarlıq; hesablar `emailVerified=false` qalır, "şifrəni unutdum" işləmir |
 | `GOOGLE_CLIENT_ID` | Google Cloud → OAuth client (Web) ID | `/api/auth/google` → `503 google_disabled` |
 | `PUBLIC_ORIGIN` | Məktub keçidləri və WebAuthn origin | `https://muslims.cc` |
+| `PERSONAL_SECRET` | Abunəlikdən çıxma tokenlərinin HMAC sirri (istəyə bağlı) | Bazada bir dəfə təsadüfi yaradılır (`personal_secret`) |
 | `RP_ID` | WebAuthn RP ID | `PUBLIC_ORIGIN`-in hostu (`muslims.cc`) — `www.muslims.cc` də qəbul olunur (`ALLOWED_ORIGINS`-dən) |
 
 Google Cloud Console → OAuth client → **Authorized JavaScript origins**: `https://muslims.cc`, `https://www.muslims.cc`
