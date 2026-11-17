@@ -1,0 +1,53 @@
+/* Əndəlus kaşısının sehri — Nəsri pajarita (components/NasridTile.jsx) */
+.ns { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 10px; min-width: 0; }
+.ns__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.ns__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.ns__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 32px); align-items: start; min-width: 0; }
+@media (max-width: 820px) { .ns__grid { grid-template-columns: minmax(0, 1fr); } }
+.ns__stage { display: grid; justify-items: center; gap: 8px; min-width: 0; }
+.ns__canvas {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid var(--line, var(--border));
+  background: #efe7d6;
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.45);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.ns__canvas.is-paint { cursor: pointer; touch-action: manipulation; }
+.ns__step { margin: 0; max-width: 520px; min-height: 4.2em; font-size: .9rem; line-height: 1.5; color: var(--text-muted); }
+.ns__step b { color: var(--accent-text, var(--accent)); }
+.ns__panel { display: grid; gap: 14px; min-width: 0; }
+.ns__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.ns__btns .ui-btn, .ns__btns .ui-chip { white-space: normal; }
+.ns__btns .ui-chip small { opacity: .7; font-size: .75em; }
+.ns__range { display: grid; gap: 4px; min-width: 0; }
+.ns__range input { width: 100%; accent-color: var(--accent); }
+.ns__rl { display: flex; justify-content: space-between; gap: 8px; font-size: .85rem; font-weight: 600; }
+.ns__rl output { font-variant-numeric: tabular-nums; color: var(--text-muted); font-weight: 500; }
+.ns__ends { display: flex; justify-content: space-between; gap: 8px; font-size: .75rem; color: var(--text-muted); }
+.ns__group { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: 8px; }
+.ns__group legend { padding: 0; margin-bottom: 8px; font-size: .78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+[dir="rtl"] .ns__group legend { letter-spacing: 0; }
+.ns__swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.ns__sw {
+  width: 40px; height: 40px; padding: 0;
+  border-radius: 10px;
+  border: 3px solid #17130f;
+  background: var(--sw);
+  box-shadow: 0 0 0 1px var(--line, var(--border));
+  cursor: pointer;
+  transform: rotate(45deg) scale(.82);
+  transition: transform var(--dur-1, 150ms) ease, box-shadow var(--dur-1, 150ms) ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.ns__sw[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--accent); transform: rotate(45deg) scale(.92); }
+.ns__sw:focus-visible { outline: 2px solid var(--accent-text, var(--accent)); outline-offset: 4px; }
+.ns__hist { margin: 0; line-height: 1.7; padding: 12px 14px; border-radius: 18px; background: var(--surface-1, transparent); border: 1px solid var(--line, var(--border)); }
+.ns__note { margin: 0; font-size: .8rem; color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) { .ns__sw { transition: none; } }

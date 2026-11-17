@@ -1,0 +1,127 @@
+/* Səhabə kartları albomu (components/SahabaAlbum.jsx) — prefiks .sa */
+.sa { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 16px; min-width: 0; position: relative; }
+.sa__head { display: flex; gap: 16px; align-items: center; justify-content: space-between; }
+.sa__intro { display: grid; gap: 6px; min-width: 0; }
+.sa__title { margin: 2px 0 0; font-size: var(--step-2, 1.5rem); }
+.sa__lead { margin: 0; color: var(--text-muted); max-width: 70ch; }
+
+/* İrəliləyiş halqası */
+.sa__ring { position: relative; flex: 0 0 auto; width: 84px; height: 84px; }
+.sa__ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.sa__ring circle { fill: none; stroke-width: 6; }
+.sa__ring-bg { stroke: var(--line, var(--border)); }
+.sa__ring-fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .8s cubic-bezier(.3, .8, .3, 1); }
+.sa__ring-num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1; font-variant-numeric: tabular-nums; }
+.sa__ring-num b { font-size: 1.45rem; color: var(--text-strong, inherit); }
+.sa__ring-num small { font-size: .78rem; color: var(--text-muted); }
+@media (max-width: 520px) {
+  .sa__head { align-items: flex-start; }
+  .sa__ring { width: 68px; height: 68px; }
+  .sa__ring-num b { font-size: 1.15rem; }
+}
+
+/* Nişanlar */
+.sa__badges { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.sa__badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: .82rem;
+  border: 1px dashed var(--line, var(--border)); color: var(--text-muted); background: transparent; max-width: 100%;
+}
+.sa__badge.is-done { border-style: solid; border-color: color-mix(in srgb, var(--accent) 55%, transparent); color: var(--text-strong, inherit); background: color-mix(in srgb, var(--accent) 10%, var(--surface-1)); }
+.sa__badge-star {
+  flex: 0 0 auto; width: 14px; height: 14px; background: currentColor; opacity: .55;
+  clip-path: polygon(50% 0, 61% 26%, 85% 15%, 74% 39%, 100% 50%, 74% 61%, 85% 85%, 61% 74%, 50% 100%, 39% 74%, 15% 85%, 26% 61%, 0 50%, 26% 39%, 15% 15%, 39% 26%);
+}
+.sa__badge.is-done .sa__badge-star { background: #c9a24e; opacity: 1; }
+.sa__badge-n { font-variant-numeric: tabular-nums; opacity: .85; }
+
+.sa__filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.sa__chip-n { font-variant-numeric: tabular-nums; opacity: .75; margin-inline-start: 2px; }
+
+/* Kartlar */
+.sa__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); }
+@media (max-width: 420px) { .sa__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
+
+.sa-card { --sa-c: #1d7a5a; min-width: 0; perspective: 900px; }
+.sa-card--caliph { --sa-c: #b8892f; }
+.sa-card--woman { --sa-c: #8e4a6e; }
+.sa-card--narrator { --sa-c: #2d6a93; }
+
+.sa-card__link { display: block; height: 100%; color: inherit; text-decoration: none; border-radius: 16px; }
+.sa-card__link:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.sa-card__inner { display: grid; height: 100%; transform-style: preserve-3d; }
+.sa-card__inner.is-open { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .sa-card__inner.is-reveal { transition: transform .9s cubic-bezier(.3, .9, .3, 1.05) var(--sa-d, 0ms); }
+  html:not(.a11y-motion-user) .sa-card__link:hover .sa-card__inner:not(.is-open) { transform: rotateY(-8deg); }
+  html:not(.a11y-motion-user) .sa-card__inner:not(.is-reveal) { transition: transform .25s ease; }
+}
+
+.sa-face {
+  grid-area: 1 / 1; min-width: 0; min-height: 250px; border-radius: 16px; overflow: hidden;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: flex; flex-direction: column; gap: 6px; padding: 12px;
+}
+.sa-face--front { transform: rotateY(180deg); }
+
+/* Möhürlü arxa üz: 8 guşəli ulduz naxışı (SVG), qrup rəngi */
+.sa-face--back {
+  align-items: center; justify-content: space-between; text-align: center; color: #f3ead2;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%23f3e6b5' stroke-opacity='.2' stroke-width='1'%3E%3Cpath d='M20 6l4.1 9.9L34 20l-9.9 4.1L20 34l-4.1-9.9L6 20l9.9-4.1z'/%3E%3Cpath d='M10 10h20v20H10z' transform='rotate(45 20 20)'/%3E%3Cpath d='M0 0l6 6M40 0l-6 6M0 40l6-6M40 40l-6-6'/%3E%3C/g%3E%3C/svg%3E") center / 40px 40px,
+    radial-gradient(120% 90% at 50% 40%, color-mix(in srgb, var(--sa-c) 70%, #0b1411), color-mix(in srgb, var(--sa-c) 30%, #070d0b));
+  border: 1px solid color-mix(in srgb, #e7c77d 35%, transparent);
+  box-shadow: inset 0 0 0 5px color-mix(in srgb, #070d0b 40%, transparent), inset 0 0 0 6px color-mix(in srgb, #e7c77d 30%, transparent);
+}
+.sa-face__no { font-size: .74rem; letter-spacing: .08em; font-variant-numeric: tabular-nums; color: #e7c77d; }
+.sa-seal {
+  width: 74px; height: 74px; display: grid; place-items: center; position: relative;
+  color: #2a1d05; font-weight: 700; font-size: 1.2rem; font-variant-numeric: tabular-nums;
+}
+.sa-seal::before {
+  content: ''; position: absolute; inset: 0; background: linear-gradient(145deg, #f3e6b5, #c9a24e 55%, #9c7a2c);
+  clip-path: polygon(50% 0, 61% 26%, 85% 15%, 74% 39%, 100% 50%, 74% 61%, 85% 85%, 61% 74%, 50% 100%, 39% 74%, 15% 85%, 26% 61%, 0 50%, 26% 39%, 15% 15%, 39% 26%);
+}
+.sa-seal span { position: relative; }
+.sa-face__ghost { font-weight: 600; font-size: .95rem; line-height: 1.3; color: #d6cfbd; overflow-wrap: anywhere; }
+.sa-face__hint { font-size: .74rem; color: #e7c77d; border-top: 1px solid color-mix(in srgb, #e7c77d 35%, transparent); padding-top: 6px; width: 100%; }
+
+/* Ön üz */
+.sa-face--front {
+  background: var(--surface-1); color: var(--text, inherit);
+  border: 1px solid color-mix(in srgb, var(--sa-c) 45%, var(--line, var(--border)));
+  box-shadow: inset 0 4px 0 var(--sa-c);
+}
+.sa-face__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.sa-face__no--front { color: var(--text-muted); }
+.sa-medal {
+  width: 52px; height: 52px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--sa-c) 55%, #fff), var(--sa-c) 70%);
+  box-shadow: 0 0 0 2px var(--surface-1), 0 0 0 3px color-mix(in srgb, var(--sa-c) 60%, #e7c77d);
+}
+.sa-medal span { font-family: 'Aref Ruqaa', var(--font-arabic, serif); font-size: 1.7rem; line-height: 1; color: #fff8e6; transform: translateY(-2px); }
+.sa-face__ar { font-family: var(--font-arabic, serif); font-size: 1.2rem; line-height: 1.5; color: var(--text-strong, inherit); }
+.sa-face__name { font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.sa-face__role { font-size: .78rem; color: var(--text-muted); overflow-wrap: anywhere; }
+.sa-face__fact { font-size: .84rem; line-height: 1.5; overflow-wrap: anywhere; }
+.sa-face__more { margin-top: auto; font-size: .78rem; font-weight: 600; color: var(--accent-text, var(--accent)); }
+@media (max-width: 420px) {
+  .sa-face { min-height: 230px; padding: 10px; }
+  .sa-face__fact { font-size: .8rem; }
+  .sa-medal { width: 44px; height: 44px; }
+  .sa-medal span { font-size: 1.4rem; }
+}
+
+.sa__empty, .sa__note { margin: 0; color: var(--text-muted); font-size: .85rem; }
+
+/* Mərhələ bildirişi */
+.sa__live { position: fixed; inset-inline: 12px; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 60; display: flex; justify-content: center; pointer-events: none; }
+.sa__toast {
+  display: inline-flex; align-items: center; gap: 8px; max-width: min(520px, 100%); padding: 10px 16px; border-radius: 14px;
+  background: var(--surface-0); color: var(--text, inherit); border: 1px solid color-mix(in srgb, #c9a24e 60%, transparent);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25); font-size: .9rem;
+}
+.sa__toast .sa__badge-star { background: #c9a24e; opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .sa__toast { animation: sa-toast-in .35s ease-out both; }
+}
+@keyframes sa-toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }

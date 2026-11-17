@@ -17,6 +17,7 @@ const ElephantClock = lazy(() => import('../components/ElephantClock'))
 const NumeralsJourney = lazy(() => import('../components/NumeralsJourney'))
 const IdrisiWorld = lazy(() => import('../components/IdrisiWorld'))
 const HijraWalk = lazy(() => import('../components/HijraWalk'))
+const MuslimAtlas = lazy(() => import('../components/MuslimAtlas'))
 const IbnBattutaJourney = lazy(() => import('../components/IbnBattutaJourney'))
 // v5.9: Hicrət yolu 3D (three.js — ayrıca chunk, bölməyə yaxınlaşanda)
 const HijraJourney3D = lazy(() => import('../components/media/HijraJourney3D'))
@@ -485,6 +486,12 @@ export default function IslamicHistoryPage() {
           <Suspense fallback={<SpreadMap lang={lang} />}>
             <SpreadTimeline lang={lang} />
           </Suspense>
+          {/* v7.4: müsəlman dünyası atlası — Pew Research Center, 2010 və 2020 (201 ölkə) */}
+          <DeferRender height="820px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 820 }} />}>
+              <MuslimAtlas />
+            </Suspense>
+          </DeferRender>
           {/* v7.1: İbn Bəttutənin səyahəti (1325–1354) — qlobusda şəhər-şəhər */}
           <DeferRender height="900px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>

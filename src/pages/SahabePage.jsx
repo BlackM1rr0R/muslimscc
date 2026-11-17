@@ -18,6 +18,7 @@ import DeferRender from '../components/DeferRender'
 const SahabaTree = lazy(() => import('../components/SahabaTree'))
 // v6.3: ən çox hədis rəvayət edən 9 səhabə — ulduz qalaktikası
 const NarratorGalaxy = lazy(() => import('../components/NarratorGalaxy'))
+const SahabaAlbum = lazy(() => import('../components/SahabaAlbum'))
 import { SahabaNumbers } from '../components/numbers/PeopleNumbers'
 import SpotlightCard from '../motion/SpotlightCard'
 import PressedGlide from '../components/pagefx/PressedGlide'
@@ -574,6 +575,13 @@ export default function SahabePage() {
         </Suspense>
       </DeferRender>
 
+      {/* v7.4: səhabə kartları albomu — profil oxuduqca kart açılır */}
+      <DeferRender height="760px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 760 }} />}>
+          <section className="ui-section ui-section--tight"><div className="ui-container"><SahabaAlbum /></div></section>
+        </Suspense>
+      </DeferRender>
+
       {/* Vəfat illəri — nöqtə qrafiki (hicri il), fonda raşid xəlifələr dövrü */}
       <section id="sp-timeline" className="ui-section ui-section--alt sp-timeline" aria-labelledby="sp-timeline-h">
         <div className="ui-container">
@@ -633,6 +641,8 @@ export default function SahabePage() {
 function Profile({ s, L, lang, isAr, onBack, onSibling, starOn, onStar, starLabel }) {
   const n = pick(s.name, lang)
   const slug = slugOf(s)
+  // v7.4: profil oxundu — səhabə kartı albuma düşür (yalnız bu cihazda)
+  useEffect(() => { import('../utils/sahabaAlbum').then(m => m.markSahabaSeen(slug)).catch(() => {}) }, [slug])
   const { summary, blocks } = proseOf(s, lang)
   const glance = glanceOf(s, lang, L)
   const sources = sourcesOf(s, lang)

@@ -26,6 +26,8 @@ const QuranPlants = lazy(() => import('../components/QuranPlants'))
 const LetterCatch = lazy(() => import('../components/LetterCatch'))
 const IslamicCrossword = lazy(() => import('../components/IslamicCrossword'))
 const MemoryPairs = lazy(() => import('../components/MemoryPairs'))
+const StoryBooks = lazy(() => import('../components/StoryBooks'))
+const KBOOKS = { az: 'Hekayə kitabları', en: 'Storybooks', ru: 'Книжки-истории', tr: 'Hikâye kitapları', ar: 'كتب القصص' }
 const KCROSS = { az: 'Krossvord', en: 'Crossword', ru: 'Кроссворд', tr: 'Bulmaca', ar: 'الكلمات المتقاطعة' }
 const KMEM = { az: 'Yaddaş oyunu', en: 'Memory game', ru: 'Игра на память', tr: 'Hafıza oyunu', ar: 'لعبة الذاكرة' }
 const KCATCH = { az: 'Hərf tutma', en: 'Letter catch', ru: 'Лови буквы', tr: 'Harf yakalama', ar: 'التقط الحروف' }
@@ -500,6 +502,7 @@ export default function KidsPage({ setPage }) {
     { key:'duas', icon:'duas', title:t.duasTitle },
     { key:'rules', icon:'holyplaces', title:t.rulesTitle },
     { key:'stories', icon:'books', title:t.storiesTitle },
+    { key:'books', icon:'learn', title:pickUi(KBOOKS, lang, 'en') },
     { key:'prophets', icon:'history', title:t.prophetsTitle },
     { key:'manners', icon:'donate', title:t.mannersTitle },
     { key:'quiz', icon:'quiz', title:t.quizTitle },
@@ -885,6 +888,13 @@ export default function KidsPage({ setPage }) {
               <Suspense fallback={<div className="ui-skeleton" style={{ height: 460 }} />}>
                 <QuranAnimals lang={lang} surahName={n => getSurahLocal(n, lang)?.name || String(n)} ayahHref={(s, a) => `${pathFor('quran', lang, s)}?a=${a}`} />
               </Suspense>
+            </section>
+          )}
+
+          {openSection === 'books' && (
+            <section className="kids-section" key="books">
+              <SectionTitle />
+              <Suspense fallback={<div className="ui-skeleton" style={{ height: 560 }} />}><StoryBooks lang={lang} /></Suspense>
             </section>
           )}
 

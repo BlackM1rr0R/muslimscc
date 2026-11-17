@@ -15,6 +15,7 @@ import HeroOrnament from '../components/HeroOrnament'
 import DeferRender from '../components/DeferRender'
 // v6.3: dünyada oruc müddəti xəritəsi (bölməyə yaxınlaşanda)
 const FastingWorldMap = lazy(() => import('../components/FastingWorldMap'))
+const IftarInvite = lazy(() => import('../components/IftarInvite'))
 import CrescentPath from '../components/CrescentPath'
 import { ummahAdd } from '../utils/ummah'
 import { useNavigate } from 'react-router-dom'
@@ -541,6 +542,13 @@ export default function RamadanPage({ setPage }) {
       <DeferRender height="900px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 900 }} />}>
           <FastingWorldMap lang={lang} />
+        </Suspense>
+      </DeferRender>
+
+      {/* v7.4: iftar dəvət kartı — iftar vaxtı saytın namaz hesablaması ilə avtomatik */}
+      <DeferRender height="900px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 900 }} />}>
+          <section className="ui-section ui-section--tight"><div className="ui-container"><IftarInvite /></div></section>
         </Suspense>
       </DeferRender>
 
