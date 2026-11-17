@@ -123,6 +123,13 @@ export const test = base.extend({
     await page.route((u) => u.pathname === '/api/ummah/here', (route) => (route.request().method() === 'POST'
       ? route.fulfill({ status: 204 })
       : route.fulfill({ json: { window: 600, cells: [{ lat: 40, lng: 50, n: 3 }, { lat: 22, lng: 40, n: 12 }, { lat: -6, lng: 106, n: 5 }] } })))
+    // v7.3: hilal müşahidələri (server/sightings.js → /api/sightings)
+    await page.route((u) => u.pathname === '/api/sightings', (route) => (route.request().method() === 'POST'
+      ? route.fulfill({ status: 204 })
+      : route.fulfill({ json: { date: '2026-01-01', from: '2025-12-31', to: '2026-01-02', cells: [
+        { lat: 40, lng: 50, seen: 2, notSeen: 1, methods: { eye: 2, binoculars: 1, telescope: 0, camera: 0 } },
+        { lat: 21, lng: 40, seen: 5, notSeen: 0, methods: { eye: 4, binoculars: 0, telescope: 1, camera: 0 } },
+        { lat: -6, lng: 107, seen: 0, notSeen: 3, methods: { eye: 3, binoculars: 0, telescope: 0, camera: 0 } }] } })))
     // Köhnə Firebase ünvanları (köhnə SW keşi və s.) — bağlıdır
     await page.route(/firestore\.googleapis\.com|firebaseinstallations|fcmregistrations|identitytoolkit/, route => route.abort())
     // v6.2: Quran.com ayə sözləri / qiraət vaxtları (ReciterCompare, /quran) — canlı şəbəkəyə getməsin;

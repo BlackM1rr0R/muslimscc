@@ -15,6 +15,8 @@ const IsraJourney = lazy(() => import('../components/IsraJourney'))
 const Astrolabe = lazy(() => import('../components/Astrolabe'))
 const ElephantClock = lazy(() => import('../components/ElephantClock'))
 const NumeralsJourney = lazy(() => import('../components/NumeralsJourney'))
+const IdrisiWorld = lazy(() => import('../components/IdrisiWorld'))
+const HijraWalk = lazy(() => import('../components/HijraWalk'))
 const IbnBattutaJourney = lazy(() => import('../components/IbnBattutaJourney'))
 // v5.9: Hicrət yolu 3D (three.js — ayrıca chunk, bölməyə yaxınlaşanda)
 const HijraJourney3D = lazy(() => import('../components/media/HijraJourney3D'))
@@ -469,6 +471,12 @@ export default function IslamicHistoryPage() {
               <div className="history-hijra3d"><HijraJourney3D lang={lang} /></div>
             </Suspense>
           </DeferRender>
+          {/* v7.3: Hicrət yolunu piyada qət et — gündəlik km, dayanacaqlar SiraMaps məlumatı ilə */}
+          <DeferRender height="760px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
+              <HijraWalk lang={lang} />
+            </Suspense>
+          </DeferRender>
           <DeferRender height="640px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 640 }} />}>
               <div className="history-hijra3d"><SeerahTunnel3D lang={lang} events={EVENTS} yearOf={eventYear} /></div>
@@ -517,6 +525,12 @@ export default function IslamicHistoryPage() {
           <DeferRender height="900px" idle={false} rootMargin="400px 0px">
             <Suspense fallback={<div className="ui-card" style={{ minHeight: 900 }} />}>
               <NumeralsJourney />
+            </Suspense>
+          </DeferRender>
+          {/* v7.3: əl-İdrisinin dünyası (1154) — cənub yuxarıda, 7 iqlim; müasir xəritəyə çevrilir */}
+          <DeferRender height="760px" idle={false} rootMargin="400px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 760 }} />}>
+              <IdrisiWorld lang={lang} />
             </Suspense>
           </DeferRender>
             </>

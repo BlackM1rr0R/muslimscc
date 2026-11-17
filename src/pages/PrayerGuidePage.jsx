@@ -41,6 +41,7 @@ import PresenceSwap from '../motion/PresenceSwap'
 import DeferRender from '../components/DeferRender'
 // v6.2: səhv səcdəsi bələdçisi (bölməyə yaxınlaşanda yüklənir)
 const SahwGuide = lazy(() => import('../components/prayer/SahwGuide'))
+const MuddWater = lazy(() => import('../components/MuddWater'))
 const RakatCounter = lazy(() => import('../components/prayer/RakatCounter'))
 
 // ── Surənin tam mənası (Fatihə, İxlas) ──
@@ -613,6 +614,12 @@ export default function PrayerGuidePage({ setPage }) {
       <DeferRender height="520px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 520 }} />}>
           <SahwGuide lang={lang} />
+        </Suspense>
+      </DeferRender>
+      {/* v7.3: bir mudd su — Peyğəmbərin ﷺ dəstəmazı (Muslim, Hayz 51) və sizin kran taymeriniz */}
+      <DeferRender height="640px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={<div style={{ minHeight: 640 }} />}>
+          <section className="ui-section ui-section--tight"><div className="ui-container pg-container"><MuddWater /></div></section>
         </Suspense>
       </DeferRender>
       {/* Əsas istinadlar və səs lisenziyaları */}

@@ -1,0 +1,36 @@
+/* Kağız qiblə kompası və günəş saatı (components/PaperQiblaDial.jsx) */
+.pd { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 10px; min-width: 0; }
+.pd__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.pd__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.pd__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(16px, 3vw, 32px); align-items: start; min-width: 0; }
+@media (max-width: 860px) { .pd__grid { grid-template-columns: minmax(0, 1fr); } }
+.pd__stage { display: grid; justify-items: center; min-width: 0; }
+.pd__canvas {
+  display: block; width: 100%; max-width: 520px; height: auto; aspect-ratio: 210 / 297;
+  background: #fff; border-radius: 6px;
+  border: 1px solid var(--line, var(--border));
+  box-shadow: 0 14px 34px -20px rgba(0, 0, 0, .55);
+}
+[data-theme="dark"] .pd__canvas { border-color: transparent; box-shadow: 0 14px 34px -18px rgba(0, 0, 0, .9); }
+.pd__panel { display: grid; gap: 12px; min-width: 0; }
+.pd__read { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.pd__read div { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); min-width: 0; }
+.pd__read dt { font-size: .75rem; color: var(--text-muted); }
+.pd__read dd { margin: 2px 0 0; font-size: 1.15rem; font-weight: 700; color: var(--accent-text, var(--accent)); overflow-wrap: anywhere; }
+.pd__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.pd__h3 { margin: 6px 0 0; font-size: 1.05rem; }
+.pd__steps { margin: 0; padding-inline-start: 1.3em; display: grid; gap: 6px; line-height: 1.55; }
+.pd__note { margin: 0; font-size: .85rem; line-height: 1.6; color: var(--text-muted); }
+.pd__note svg { vertical-align: -2px; color: var(--accent); }
+.pd__warn svg { color: #c0571b; }
+.pd__corr { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--surface-0, transparent); border: 1px dashed var(--line, var(--border)); font-weight: 600; color: var(--accent-text, var(--accent)); line-height: 1.55; }
+
+/* Çap: yalnız portal ilə qoyulan A4 şəkli */
+.pd-print { display: none; }
+@media print {
+  html.pd-printing body > *:not(.pd-print) { display: none !important; }
+  html.pd-printing .pd-print { display: block !important; page: pd-sheet; }
+  html.pd-printing .pd-print img { display: block; width: 210mm; height: 297mm; }
+}
+/* Adlı səhifə — yalnız bu vərəqə aiddir, saytın başqa çaplarına təsir etmir (100% miqyas üçün kənar 0) */
+@page pd-sheet { size: A4 portrait; margin: 0; }

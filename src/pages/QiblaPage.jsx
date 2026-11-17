@@ -32,6 +32,7 @@ const RasdQibla = lazy(() => import('../components/RasdQibla'))
 const StarQibla = lazy(() => import('../components/StarQibla'))
 const SkyPlanetarium = lazy(() => import('../components/SkyPlanetarium'))
 const LunarMansions = lazy(() => import('../components/LunarMansions'))
+const PaperQiblaDial = lazy(() => import('../components/PaperQiblaDial'))
 
 // Kompasda yalnız 4 əsas istiqamət yazı ilə göstərilir (aralıqdakılar
 // cizgi ilə). Azərbaycan və ərəb dillərində tək hərf toqquşur
@@ -824,6 +825,13 @@ export default function QiblaPage({ setPage }) {
       <Suspense fallback={null}>
         <RasdQibla lang={lang} />
       </Suspense>
+
+      {/* v7.3: kağız qiblə kompası və günəş saatı — şəhəriniz üçün A4 vərəq (çap et, kəs, qur) */}
+      <DeferRender height="900px" idle={false} rootMargin="300px 0px">
+        <Suspense fallback={null}>
+          <section className="ui-section ui-section--tight"><div className="ui-container"><PaperQiblaDial /></div></section>
+        </Suspense>
+      </DeferRender>
 
         </>
       ) : (

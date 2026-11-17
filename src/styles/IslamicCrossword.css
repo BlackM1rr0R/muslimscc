@@ -1,0 +1,84 @@
+/* İslami krossvord (components/IslamicCrossword.jsx) */
+.cw { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 12px; min-width: 0; }
+.cw__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.cw__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.cw__opts { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.cw__group { display: flex; flex-wrap: wrap; gap: 6px; }
+.cw__board { display: grid; gap: 12px; min-width: 0; }
+.cw__now {
+  margin: 0; padding: 10px 14px; border-radius: 12px; min-height: 2.6em;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-1, transparent));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line, var(--border)));
+  font-size: .95rem; line-height: 1.45;
+}
+.cw__now b { color: var(--accent-text, var(--accent)); margin-inline-end: 4px; }
+.cw__layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(14px, 3vw, 28px); align-items: start; }
+@media (max-width: 860px) { .cw__layout { grid-template-columns: minmax(0, 1fr); } }
+.cw__gridwrap { container-type: inline-size; min-width: 0; display: grid; justify-items: center; }
+.cw__grid {
+  display: grid; grid-template-columns: repeat(var(--cw-cols), minmax(0, 1fr));
+  width: min(100%, calc(var(--cw-cols) * 46px)); gap: 2px;
+  font-size: 1rem;
+  font-size: min(1.35rem, calc(100cqi / var(--cw-cols) * .5));
+}
+.cw__void { aspect-ratio: 1; }
+.cw__cell {
+  position: relative; aspect-ratio: 1; border-radius: 4px;
+  background: var(--surface-0, #fff); border: 1.5px solid color-mix(in srgb, var(--text-muted) 55%, transparent);
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.cw__cell.is-word { background: color-mix(in srgb, var(--accent) 14%, var(--surface-0, #fff)); }
+.cw__cell.is-active { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent); z-index: 1; }
+.cw__cell.is-ok .cw__input { color: var(--accent-text, var(--accent)); }
+.cw__cell.is-bad { background: color-mix(in srgb, #e5484d 20%, var(--surface-0, #fff)); border-color: #e5484d; }
+.cw__cell.is-revealed .cw__input { font-style: italic; opacity: .85; }
+.cw__num {
+  position: absolute; inset-block-start: 1px; inset-inline-start: 2px; pointer-events: none;
+  font-size: max(8px, .42em); line-height: 1; color: var(--text-muted); font-weight: 600;
+}
+.cw__input {
+  position: absolute; inset: 0; width: 100%; height: 100%; padding: .3em 0 0; margin: 0;
+  border: 0; background: transparent; outline: none; text-align: center; caret-color: transparent;
+  font: 700 1em/1 Inter, system-ui, sans-serif; color: var(--text-strong, inherit); text-transform: none;
+  cursor: pointer;
+}
+.cw__grid[dir="rtl"] .cw__input { font-family: var(--font-arabic, serif); padding-top: .15em; font-size: 1.1em; }
+.cw__board.is-solved .cw__cell { border-color: var(--accent); }
+.cw__side { display: grid; gap: 10px; min-width: 0; }
+.cw__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cw__msg { margin: 0; min-height: 1.4em; font-size: .9rem; color: var(--text-muted); }
+.cw__msg.is-solved { color: var(--accent-text, var(--accent)); font-weight: 700; font-size: 1.05rem; }
+.cw__cluecols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px 18px; }
+.cw__clues-h { margin: 0 0 6px; font-size: .95rem; }
+.cw__clues { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.cw__clue {
+  display: block; width: 100%; text-align: start; padding: 6px 8px; border-radius: 8px;
+  border: 0; background: transparent; color: inherit; font: inherit; font-size: .88rem; line-height: 1.4; cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.cw__clue:hover { background: var(--surface-1, rgba(0, 0, 0, .04)); }
+.cw__clue.is-active { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.cw__clue b { color: var(--accent-text, var(--accent)); margin-inline-end: 2px; }
+.cw__len { color: var(--text-muted); font-size: .8em; }
+.cw__src { margin: 0; font-size: .8rem; color: var(--text-muted); }
+
+/* ── Çap ── */
+.cw-print { display: none; }
+@media print {
+  html.cw-printing body > *:not(.cw-print) { display: none !important; }
+  html.cw-printing .cw-print { display: block !important; color: #000; background: #fff; font: 11pt/1.4 Inter, system-ui, sans-serif; }
+  html.cw-printing .cw-print__page { page-break-after: always; break-after: page; }
+  html.cw-printing .cw-print__page:last-child { page-break-after: auto; break-after: auto; }
+  html.cw-printing .cw-print h2 { margin: 0 0 6mm; font-size: 16pt; }
+  html.cw-printing .cw-print h3 { margin: 0 0 2mm; font-size: 12pt; }
+  html.cw-printing .cw-print__grid { display: grid; grid-template-columns: repeat(var(--cw-cols), 9mm); grid-auto-rows: 9mm; margin: 0 auto 6mm; width: max-content; }
+  html.cw-printing .cw-print__cell { position: relative; border: .3mm solid #000; margin: -.15mm; display: grid; place-items: center; font-weight: 700; font-size: 13pt; }
+  html.cw-printing .cw-print__grid[dir="rtl"] .cw-print__cell { font-family: var(--font-arabic, serif); }
+  html.cw-printing .cw-print__cell i { position: absolute; inset-block-start: .4mm; inset-inline-start: .6mm; font: 600 6.5pt Inter, system-ui, sans-serif; }
+  html.cw-printing .cw-print__clues { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+  html.cw-printing .cw-print__clues ol { margin: 0; padding-inline-start: 7mm; }
+  html.cw-printing .cw-print__clues li { margin-bottom: 1.2mm; break-inside: avoid; }
+  html.cw-printing .cw-print__foot { margin-top: 6mm; font-size: 8pt; color: #555; text-align: center; }
+  html.cw-printing .cw-print { page: cw-sheet; }
+  @page cw-sheet { size: A4 portrait; margin: 12mm; }
+}

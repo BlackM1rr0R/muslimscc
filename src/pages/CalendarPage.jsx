@@ -415,6 +415,7 @@ function MonthsGuide({ lang }) {
 const HilalAR = lazy(() => import('../components/HilalAR'))
 // v6.2: hilalın görünmə xəritəsi (Odeh meyarı) — bölməyə yaxınlaşanda
 const CrescentVisibilityMap = lazy(() => import('../components/CrescentVisibilityMap'))
+const HilalReports = lazy(() => import('../components/HilalReports'))
 const LunarEclipses = lazy(() => import('../components/LunarEclipses'))
 const SolarEclipses = lazy(() => import('../components/SolarEclipses'))
 // lang-ok[Kamera,Kameranı,kamera,kamerada]: az dilinin öz sözüdür (kamera)
@@ -856,6 +857,13 @@ export function CalendarPage({ setPage }) {
       <DeferRender height="760px" idle={false} rootMargin="400px 0px">
         <Suspense fallback={<div style={{ minHeight: 760 }} />}>
           <CrescentVisibilityMap lang={lang} />
+        </Suspense>
+      </DeferRender>
+
+      {/* v7.3: hilal müşahidələri — istifadəçilər "gördüm / görmədim" bildirir (anonim, 1°-lik xana); hökm deyil */}
+      <DeferRender height="620px" idle={false} rootMargin="400px 0px">
+        <Suspense fallback={null}>
+          <section className="ui-section ui-section--tight"><div className="ui-container"><HilalReports lang={lang} /></div></section>
         </Suspense>
       </DeferRender>
 

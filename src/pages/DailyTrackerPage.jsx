@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import NurRosette from '../components/prayer/NurRosette'
 import HeroOrnament from '../components/HeroOrnament'
 import DailyTrackerInsights from '../components/insights/DailyTrackerInsights'
@@ -6,6 +6,7 @@ import { useLang } from '../contexts/LangContext'
 import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
+const DailySunnah = lazy(() => import('../components/DailySunnah'))
 import '../styles/DailyTrackerPage.css'
 import '../styles/ToolsMotion.css'
 import Sparkle from '../components/prayer/Sparkle'
@@ -246,6 +247,13 @@ export default function DailyTrackerPage({ setPage }) {
           <p className="ui-page-hero__how"><Icon name="info" size={16} /> <span>{v.how}</span></p>
         </div>
       </header>
+
+      {/* v7.3: günün sünnəsi — hər gün bir kiçik əməl, saytdakı səhih hədislə; ay təqvimi və silsilə */}
+      <section className="ui-section ui-section--tight">
+        <div className="ui-container">
+          <Suspense fallback={<div className="ui-card" style={{ minHeight: 360 }} />}><DailySunnah /></Suspense>
+        </div>
+      </section>
 
       <section className="ui-section tracker-page">
         <div className="ui-container tracker-layout">

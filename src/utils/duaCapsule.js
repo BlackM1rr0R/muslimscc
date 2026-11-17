@@ -7,6 +7,9 @@
 // Format: [{ id, text, createdAt, openAt, opened, answered? }] — tarixlər ISO sətri.
 // ═══════════════════════════════════════════════════════
 import { gregorianToHijri, hijriToGregorian, hijriToGregorianCivil, fromLocalDate } from './hijri'
+// Məxfi rejimdə localStorage-a müraciətin özü xəta atır — default parametr try-dan kənardadır
+const safeStorage = () => { try { return globalThis.localStorage } catch { return null } }
+
 
 export const STORAGE_KEY = 'muslim_cc_dua_capsules'
 export const MAX_TEXT = 600
@@ -49,11 +52,11 @@ export function parseCapsules(raw) {
 
 export const serializeCapsules = (list) => JSON.stringify(list.map(validateCapsule).filter(Boolean))
 
-export function loadCapsules(storage = globalThis.localStorage) {
-  try { return parseCapsules(storage.getItem(STORAGE_KEY)) } catch { return [] }
+export function loadCapsules(storage = safeStorage()) {
+  try { return parseCapsules(storage?.getItem(STORAGE_KEY)) } catch { return [] }
 }
-export function saveCapsules(list, storage = globalThis.localStorage) {
-  try { storage.setItem(STORAGE_KEY, serializeCapsules(list)); return true } catch { return false }
+export function saveCapsules(list, storage = safeStorage()) {
+  try { storage?.setItem(STORAGE_KEY, serializeCapsules(list)); return true } catch { return false }
 }
 
 const localMidnight = (g) => new Date(g.year, g.month - 1, g.day)

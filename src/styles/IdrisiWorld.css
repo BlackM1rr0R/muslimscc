@@ -1,0 +1,59 @@
+/* Əl-İdrisinin dünyası (components/IdrisiWorld.jsx) — əlyazma üslubu ↔ müasir baxış */
+.idr {
+  margin-top: 24px; padding: clamp(18px, 3vw, 30px); display: grid; gap: 10px; min-width: 0;
+  --idr-parch: #efe0bb; --idr-parch-2: #e4cf9f; --idr-ink: #4a3412;
+  --idr-sea: #3f6fa6; --idr-land: #c99a4b; --idr-land-edge: #7a5520;
+  --idr-band-a: rgba(255, 244, 214, .16); --idr-band-b: rgba(90, 60, 20, .10);
+}
+[data-theme="dark"] .idr { --idr-parch: #3b301f; --idr-parch-2: #31281a; --idr-ink: #f1dfb4; --idr-sea: #2c527c; --idr-land: #b48640; --idr-land-edge: #e3c07a; }
+.idr[data-view="modern"] { --idr-sea: #a9cbe6; --idr-land: #e9e6da; --idr-land-edge: #8d8a7c; --idr-parch: var(--surface-1, #f3f4f6); --idr-parch-2: var(--surface-0, #fff); --idr-ink: var(--text-muted); }
+[data-theme="dark"] .idr[data-view="modern"] { --idr-sea: #1f3a55; --idr-land: #4b5560; --idr-land-edge: #8a96a3; }
+
+.idr__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.idr__lead { margin: 0; color: var(--text-muted); max-width: 72ch; line-height: 1.65; }
+.idr__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.idr__mode { font-size: .85rem; color: var(--text-muted); }
+
+.idr__map { margin: 4px 0 0; display: grid; gap: 6px; min-width: 0; }
+.idr__map svg { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 14px; box-shadow: 0 2px 14px rgba(60, 40, 10, .18); }
+.idr__frame { fill: var(--idr-parch-2); stroke: var(--line, var(--border)); }
+.idr__dir { font: 700 11px Inter, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; fill: var(--idr-ink); text-anchor: middle; }
+.idr__sea { fill: var(--idr-sea); }
+.idr__land { fill: var(--idr-land); stroke: var(--idr-land-edge); stroke-width: .7; stroke-linejoin: round; }
+.idr__band--odd { fill: var(--idr-band-a); }
+.idr__band--even { fill: var(--idr-band-b); }
+.idr__grain { fill: rgba(80, 50, 10, .16); }
+.idr__grainlayer { pointer-events: none; }
+.idr__cline { stroke: #7a1f12; stroke-width: 1.1; }
+[data-theme="dark"] .idr__cline { stroke: #f0b46a; }
+.idr__sline { stroke: var(--idr-ink); stroke-width: .6; stroke-dasharray: 2 4; opacity: .55; }
+.idr__equator { stroke: var(--idr-ink); stroke-width: 1; stroke-dasharray: 6 4; opacity: .6; }
+.idr__clabel { font: 700 13px Georgia, 'Times New Roman', serif; fill: #7a1f12; text-anchor: middle; paint-order: stroke; stroke: rgba(255, 244, 214, .8); stroke-width: 3px; }
+[data-theme="dark"] .idr__clabel { fill: #f6d79b; stroke: rgba(30, 22, 10, .8); }
+
+/* Müasir baxışda iqlimlər və perqament dənəsi gizlənir */
+.idr__bands, .idr__lines, .idr__clabels, .idr__grainlayer { transition: opacity .6s ease; }
+.idr[data-view="modern"] .idr__bands,
+.idr[data-view="modern"] .idr__lines,
+.idr[data-view="modern"] .idr__clabels,
+.idr[data-view="modern"] .idr__grainlayer { opacity: 0; }
+.idr__sea, .idr__land, .idr__frame { transition: fill .6s ease, stroke .6s ease; }
+.idr.is-reduced *, html.a11y-motion-user .idr * { transition: none !important; }
+@media (prefers-reduced-motion: reduce) { .idr * { transition: none !important; } }
+
+.idr__city { cursor: pointer; outline: none; }
+.idr__hit { fill: transparent; }
+.idr__dot { fill: #7a1f12; stroke: #fff4d6; stroke-width: 1.4; }
+.idr__city.is-bio .idr__dot { fill: var(--accent, #1f7a58); }
+.idr__city.is-on .idr__dot { stroke-width: 2; }
+.idr__city:focus-visible .idr__dot { stroke: var(--accent, #1f7a58); stroke-width: 3; }
+.idr[data-view="modern"] .idr__dot { stroke: #fff; }
+.idr__cname { font: 700 12px Inter, system-ui, sans-serif; fill: #2a1a05; text-anchor: middle; paint-order: stroke; stroke: rgba(255, 246, 222, .92); stroke-width: 3.5px; pointer-events: none; }
+
+.idr__cap { font-size: .8rem; color: var(--text-muted); text-align: center; }
+.idr__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.idr__info { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); }
+.idr__info b { font-size: 1.05rem; }
+.idr__info .ui-num { color: var(--accent-text, var(--accent)); font-weight: 600; }
+.idr__role { color: var(--text-muted); font-size: .9rem; }
+.idr__note { margin: 0; font-size: .8rem; line-height: 1.6; color: var(--text-muted); }

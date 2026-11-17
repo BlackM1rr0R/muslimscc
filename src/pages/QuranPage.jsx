@@ -556,6 +556,7 @@ const ReciterCompare = lazy(() => import('../components/quran/ReciterCompare'))
 // v6.3: Surələr şəhəri — 114 bina, nazil olma sırası ilə küçə (three.js)
 const SurahCity3D = lazy(() => import('../components/quran/SurahCity3D'))
 const QuranCity = lazy(() => import('../components/QuranCity'))
+const ScriptLayers = lazy(() => import('../components/ScriptLayers'))
 const QuranMosaic = lazy(() => import('../components/quran/QuranMosaic'))
 const MuqattaatMap = lazy(() => import('../components/quran/MuqattaatMap'))
 const QuranNumbers = lazy(() => import('../components/numbers/QuranNumbers'))
@@ -2042,6 +2043,12 @@ export default function QuranPage() {
             </div>
           </article>
         )}
+          {/* v7.3: Quranın yazı tarixi qat-qat — rasm → nöqtələr → hərəkələr (mətn saytdakı ilə eyni, yalnız qatlar gizlədilir) */}
+          <DeferRender height="620px" idle={false} rootMargin="300px 0px">
+            <Suspense fallback={<div className="ui-card" style={{ minHeight: 620 }} />}>
+              <ScriptLayers />
+            </Suspense>
+          </DeferRender>
           {/* v7.2: "Mənim Quran şəhərim" — oxuduğunuz surələrin pəncərələri yanır (yalnız oxunuş varsa) */}
           {stats.sessions > 0 && (
             <DeferRender height="520px" idle={false} rootMargin="300px 0px">

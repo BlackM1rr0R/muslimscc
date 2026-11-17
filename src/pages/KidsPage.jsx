@@ -24,6 +24,10 @@ const WuduOrder = lazy(() => import('../components/WuduOrder'))
 const QuranAnimals = lazy(() => import('../components/QuranAnimals'))
 const QuranPlants = lazy(() => import('../components/QuranPlants'))
 const LetterCatch = lazy(() => import('../components/LetterCatch'))
+const IslamicCrossword = lazy(() => import('../components/IslamicCrossword'))
+const MemoryPairs = lazy(() => import('../components/MemoryPairs'))
+const KCROSS = { az: 'Krossvord', en: 'Crossword', ru: 'Кроссворд', tr: 'Bulmaca', ar: 'الكلمات المتقاطعة' }
+const KMEM = { az: 'Yaddaş oyunu', en: 'Memory game', ru: 'Игра на память', tr: 'Hafıza oyunu', ar: 'لعبة الذاكرة' }
 const KCATCH = { az: 'Hərf tutma', en: 'Letter catch', ru: 'Лови буквы', tr: 'Harf yakalama', ar: 'التقط الحروف' }
 const KPLANTS = {
   az: { title: 'Quran bitkiləri', lead: 'Quranda adı çəkilən bitkilərin bağı — bitkiyə toxun, ayəni oxu.' },
@@ -504,6 +508,8 @@ export default function KidsPage({ setPage }) {
     { key:'animals', icon:'quran', title:pickUi(KANIMALS, lang, 'en').title },
     { key:'plants', icon:'leaf', title:pickUi(KPLANTS, lang, 'en').title },
     { key:'catch', icon:'target', title:pickUi(KCATCH, lang, 'en') },
+    { key:'crossword', icon:'edit', title:pickUi(KCROSS, lang, 'en') },
+    { key:'memory', icon:'star', title:pickUi(KMEM, lang, 'en') },
     { key:'card', icon:'gift', title:pickUi(KCARD, lang, 'en') },
     { key:'parents', icon:'jamaat', title:t.parentsTitle },
   ]
@@ -879,6 +885,20 @@ export default function KidsPage({ setPage }) {
               <Suspense fallback={<div className="ui-skeleton" style={{ height: 460 }} />}>
                 <QuranAnimals lang={lang} surahName={n => getSurahLocal(n, lang)?.name || String(n)} ayahHref={(s, a) => `${pathFor('quran', lang, s)}?a=${a}`} />
               </Suspense>
+            </section>
+          )}
+
+          {openSection === 'crossword' && (
+            <section className="kids-section" key="crossword">
+              <SectionTitle />
+              <Suspense fallback={<div className="ui-skeleton" style={{ height: 460 }} />}><IslamicCrossword /></Suspense>
+            </section>
+          )}
+
+          {openSection === 'memory' && (
+            <section className="kids-section" key="memory">
+              <SectionTitle />
+              <Suspense fallback={<div className="ui-skeleton" style={{ height: 460 }} />}><MemoryPairs /></Suspense>
             </section>
           )}
 

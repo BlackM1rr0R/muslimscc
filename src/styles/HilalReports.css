@@ -1,0 +1,36 @@
+/* Hilal müşahidələri xəritəsi (components/HilalReports.jsx) */
+.hr { display: grid; gap: 12px; padding: clamp(16px, 3vw, 28px); margin-block: 24px; min-width: 0; }
+.hr__head { display: grid; gap: 6px; }
+.hr__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.hr__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.hr__note { margin: 0; display: flex; gap: 8px; align-items: flex-start; padding: 10px 14px; border-radius: 14px; font-size: .9rem; font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 9%, var(--surface-1, transparent)); color: var(--text); }
+.hr__note svg { flex: none; margin-top: 2px; color: var(--accent-text, var(--accent)); }
+.hr__days { display: flex; flex-wrap: wrap; gap: 8px; }
+.hr__map { position: relative; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-3); background: #0b1530; }
+.hr__cv { display: block; width: 100%; height: auto; cursor: pointer; touch-action: manipulation; }
+.hr__legend { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .84rem; color: var(--text-muted); }
+.hr__legend i { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: -2px; margin-inline-end: 4px; }
+.hr__legend i.is-you { background: transparent; border: 2px dashed var(--text-muted); box-sizing: border-box; }
+.hr__zones { margin: 0; font-size: .8rem; color: var(--text-muted); }
+.hr__tot { margin: 0; font-size: .95rem; }
+.hr__tot b, .hr__pick b { color: var(--text); }
+.hr .is-seen { color: #b8860b; }
+[data-theme="dark"] .hr .is-seen { color: #ffd257; }
+.hr__pick { display: grid; gap: 4px; padding: 12px 14px; border-radius: 14px; background: var(--surface-1, rgba(127, 127, 127, .08)); border: 1px solid var(--line, var(--border)); }
+.hr__pick-l, .hr__pick-m { font-size: .82rem; color: var(--text-muted); }
+.hr__form { display: grid; gap: 12px; padding: 14px; border-radius: 16px; background: var(--surface-1, rgba(127, 127, 127, .06)); border: 1px solid var(--line, var(--border)); min-width: 0; }
+.hr__where { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: .92rem; }
+.hr__where > svg { color: var(--accent-text, var(--accent)); }
+.hr__err { color: var(--danger, #c0392b); font-size: .85rem; }
+.hr__methods { margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.hr__methods legend { padding: 0; margin-bottom: 6px; font-size: .82rem; font-weight: 700; color: var(--text-muted); }
+.hr__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.hr__btns .ui-btn { flex: 1 1 200px; justify-content: center; }
+.hr__status { margin: 0; min-height: 1.3em; font-size: .9rem; font-weight: 600; }
+.hr__status[data-state="err"] { color: var(--danger, #c0392b); }
+.hr__privacy { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: .8rem; color: var(--text-muted); }
+.hr__privacy svg { flex: none; margin-top: 2px; }
+@media (max-width: 420px) {
+  .hr__btns .ui-btn { flex-basis: 100%; }
+}

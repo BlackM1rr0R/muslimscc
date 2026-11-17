@@ -1,0 +1,61 @@
+/* "Cütünü tap" yaddaş oyunu (components/MemoryPairs.jsx) */
+.mp { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 12px; min-width: 0; }
+.mp__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.mp__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.mp__opts { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.mp__group { display: flex; flex-wrap: wrap; gap: 6px; }
+.mp__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.mp__stats { margin: 0; display: flex; gap: 8px; flex-wrap: wrap; }
+.mp__stats div { padding: 6px 12px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); min-width: 72px; }
+.mp__stats dt { font-size: .72rem; color: var(--text-muted); }
+.mp__stats dd { margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-strong, inherit); }
+
+.mp__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(6px, 1.6vw, 12px); width: 100%; max-width: 640px; margin-inline: auto; }
+.mp__card {
+  position: relative; aspect-ratio: 3 / 4; padding: 0; border: 0; background: none; cursor: pointer;
+  perspective: 700px; border-radius: 12px; color: inherit; font: inherit; min-width: 0;
+}
+.mp__card:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mp__card:disabled { cursor: default; }
+.mp__inner {
+  position: absolute; inset: 0; transform-style: preserve-3d;
+  transition: transform .45s cubic-bezier(.3, .7, .3, 1);
+}
+.mp__card.is-up .mp__inner { transform: rotateY(180deg); }
+.mp__face {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 6px; border-radius: 12px;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; text-align: center; overflow: hidden;
+  border: 1px solid var(--line, var(--border));
+}
+.mp__back {
+  color: color-mix(in srgb, var(--accent) 70%, #fff);
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 34%, color-mix(in srgb, #fff 10%, transparent) 35% 37%, transparent 38%),
+    repeating-linear-gradient(45deg, color-mix(in srgb, #fff 8%, transparent) 0 6px, transparent 6px 12px),
+    linear-gradient(150deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #0b1d2b));
+  border-color: transparent;
+}
+.mp__front {
+  transform: rotateY(180deg); background: var(--surface-0, #fff); color: var(--text-strong, inherit);
+  font-weight: 650; line-height: 1.2; font-size: clamp(.7rem, 2.6vw, .95rem); overflow-wrap: anywhere; hyphens: auto;
+}
+.mp__front.is-ar { font-family: var(--font-arabic, serif); font-size: clamp(1.05rem, 4.6vw, 1.6rem); font-weight: 400; line-height: 1.5; }
+.mp__card.is-matched .mp__front {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-0, #fff));
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.mp__card.is-miss .mp__front { border-color: #e5484d; }
+.mp__card.is-matched .mp__inner { transform: rotateY(180deg); }
+
+/* Hərəkət azaldılıb — çevrilmə yoxdur, üz dərhal dəyişir */
+.mp--still .mp__inner, .mp--still .mp__card.is-up .mp__inner { transition: none; transform: none; transform-style: flat; }
+.mp--still .mp__face { backface-visibility: visible; -webkit-backface-visibility: visible; }
+.mp--still .mp__front { transform: none; visibility: hidden; }
+.mp--still .mp__card.is-up .mp__front { visibility: visible; }
+.mp--still .mp__card.is-up .mp__back { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) { .mp__inner { transition: none; } }
+
+.mp__msg { margin: 0; min-height: 1.4em; color: var(--text-muted); }
+.mp__msg.is-won { color: var(--accent-text, var(--accent)); font-weight: 700; font-size: 1.05rem; }
+.mp__record { color: var(--text-strong, inherit); }
+.mp__src { margin: 0; font-size: .8rem; color: var(--text-muted); }

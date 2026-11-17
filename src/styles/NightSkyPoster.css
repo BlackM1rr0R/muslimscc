@@ -1,0 +1,45 @@
+/* Ayə ilə ulduzlu gecə kartı (components/NightSkyPoster.jsx) */
+.np { margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 10px; min-width: 0; }
+.np__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.np__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.np__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 32px); align-items: start; margin-top: 6px; }
+@media (max-width: 860px) { .np__grid { grid-template-columns: minmax(0, 1fr); } }
+.np__form { display: grid; gap: 14px; min-width: 0; }
+.np__row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.np__field { display: grid; gap: 6px; min-width: 0; position: relative; }
+.np__field > span { font-size: .82rem; font-weight: 600; color: var(--text-muted); }
+.np__field > span b { color: var(--accent-text, var(--accent)); }
+.np__input {
+  width: 100%; min-width: 0; box-sizing: border-box; min-height: 42px; padding: 8px 12px;
+  border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent);
+  color: inherit; font: inherit;
+}
+.np__input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.np__search { position: relative; }
+.np__search .np__input { padding-inline-start: 34px; }
+.np__sicon { position: absolute; inset-inline-start: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.np__results {
+  list-style: none; margin: 0; padding: 4px; display: grid; gap: 2px;
+  border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-0, var(--surface-1));
+}
+.np__res {
+  width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 0; border-radius: 8px;
+  background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer;
+}
+.np__res:hover, .np__res:focus-visible { background: var(--surface-1, rgba(127, 127, 127, .1)); }
+.np__none { padding: 8px 10px; color: var(--text-muted); font-size: .9rem; }
+.np__count { justify-self: end; font-size: .75rem; color: var(--text-muted); }
+.np__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.np__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.np__note { margin: 0; font-size: .85rem; color: var(--text-muted); }
+.np__stage {
+  margin: 0; position: relative; display: grid; justify-items: center; min-width: 0;
+  padding: clamp(10px, 2vw, 18px); border-radius: 18px; background: linear-gradient(160deg, #0d1838, #050a1b);
+  border: 1px solid var(--line, var(--border));
+}
+.np__cvs { display: block; width: 100%; height: auto; max-width: 440px; border-radius: 6px; box-shadow: 0 18px 40px rgba(0, 0, 0, .35); background: #081129; }
+.np__stage--a4 .np__cvs { aspect-ratio: 900 / 1273; }
+.np__stage--story .np__cvs { aspect-ratio: 9 / 16; max-width: 340px; }
+.np__loading { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: #e2c27a; font-size: .9rem; }
+.np__src { margin: 0; font-size: .78rem; color: var(--text-muted); }
+@media (max-width: 380px) { .np__row { grid-template-columns: minmax(0, 1fr); } }

@@ -36,7 +36,7 @@ else console.log(`Firebase: FCM ${FCM_ON ? 'açıq' : 'sönülü'}, köhnə admi
 // çöksün: yoxsa yeni sxem tətbiq olunur və köhnə versiyaya qayıdış da alınmır
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
-for (const m of ['./auth', './analytics', './csp', './clientErrors', './ummah', './content', './feedback', './groups', './sync', './ics', './push',
+for (const m of ['./auth', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data']) require(m)
 
 // ─── Verilənlər bazası (SQLite, node:sqlite) ─────────────────────────
@@ -113,6 +113,9 @@ app.use('/api', require('./sync').createSyncRouter({ db }))
 // ─── Ümmətin sayğacı (server/ummah.js) — anonim gündəlik cəm; cədvəl miqrasiyasız (geri qaytarma pozulmur) ──
 app.use('/api/ummah', limit(60000, 120))
 app.use('/api', require('./ummah').createUmmahRouter({ db }))
+// ─── Hilal müşahidələri (server/sightings.js) — 1°-lik xana, gündə bir qeyd; cədvəl miqrasiyasız ──
+app.use('/api/sightings', limit(60000, 30))
+app.use('/api', require('./sightings').createSightingsRouter({ db }))
 
 // ─── CSP pozuntu hesabatları (server/csp.js) — Report-Only rejimi; yaddaşda birləşdirilir ──
 app.use('/api/csp-report', limit(60000, 60))

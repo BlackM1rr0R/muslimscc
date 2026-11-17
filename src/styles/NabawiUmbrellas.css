@@ -1,0 +1,57 @@
+/* Məscidi-Nəbəvinin çətirləri (components/NabawiUmbrellas.jsx) */
+.nu {
+  --nu-night: #24305a; --nu-day: #f0b878; --nu-open: #f7e6b8;
+  margin-top: 24px; padding: clamp(16px, 3vw, 30px); display: grid; gap: 12px; min-width: 0;
+}
+[data-theme="dark"] .nu { --nu-night: #1a2244; --nu-day: #c98e4c; --nu-open: #d9c38e; }
+.nu__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.nu__lead { margin: 0; color: var(--text-muted); max-width: 72ch; line-height: 1.65; }
+
+.nu__stage {
+  position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 260px; max-height: 620px;
+  border-radius: 18px; overflow: hidden; border: 1px solid var(--line, var(--border));
+  touch-action: pan-y; cursor: grab; user-select: none; outline: none;
+}
+.nu__stage:active { cursor: grabbing; }
+.nu__stage:focus-visible { box-shadow: 0 0 0 3px var(--accent); }
+.nu__stage canvas { display: block; }
+@media (max-width: 600px) { .nu__stage { aspect-ratio: 4 / 3.4; } }
+
+.nu__badge {
+  position: absolute; inset-inline-start: 10px; top: 10px; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 999px; font-size: .82rem; font-weight: 600;
+  color: #1d2433; background: rgba(255, 255, 255, .82); backdrop-filter: blur(6px); pointer-events: none;
+}
+.nu__hint {
+  position: absolute; inset-inline-end: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px;
+  font-size: .74rem; color: #fff; background: rgba(0, 0, 0, .35); pointer-events: none;
+}
+.nu__nogl { position: absolute; inset: 0; display: grid; place-content: center; gap: 14px; padding: 20px; text-align: center; }
+.nu__nogl p { margin: 0; max-width: 46ch; padding: 10px 14px; border-radius: 12px; background: var(--surface-0); color: var(--text-strong, inherit); }
+.nu__fallback { position: relative; justify-self: center; width: 160px; height: 90px; }
+.nu__fallback span {
+  position: absolute; left: 0; right: 0; top: 0; height: 14px; border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background: #fbfaf6; box-shadow: 0 2px 6px rgba(0, 0, 0, .2); transition: transform .4s ease;
+}
+.nu__fallback i { position: absolute; left: 50%; top: 4px; bottom: 0; width: 6px; margin-left: -3px; background: #ece6dc; border-radius: 3px; }
+
+.nu__controls { display: grid; gap: 12px; min-width: 0; }
+.nu__row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; }
+.nu__clock, .nu__date { display: grid; gap: 2px; font-size: .78rem; color: var(--text-muted); }
+.nu__clock strong { font-size: 1.7rem; line-height: 1.1; color: var(--text-strong, inherit); }
+.nu__date input {
+  font: inherit; font-size: .95rem; padding: 6px 10px; border-radius: 10px; min-width: 0; max-width: 100%;
+  border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); color: inherit;
+}
+.nu__slider { position: relative; display: grid; gap: 4px; min-width: 0; }
+.nu__band { height: 8px; border-radius: 999px; opacity: .9; }
+.nu__slider input[type="range"] { width: 100%; margin: -16px 0 0; accent-color: var(--accent); height: 26px; background: transparent; }
+.nu__ticks { display: flex; justify-content: space-between; font-size: .7rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.nu__read { margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 600px) { .nu__read { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.nu__read div { padding: 9px 12px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); min-width: 0; }
+.nu__read dt { font-size: .74rem; color: var(--text-muted); }
+.nu__read dd { margin: 2px 0 0; font-size: 1.2rem; font-weight: 700; color: var(--text-strong, inherit); }
+.nu__note { margin: 0; font-size: .8rem; color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) { .nu__fallback span { transition: none; } }

@@ -1,0 +1,54 @@
+/* Quranın yazı tarixi qat-qat (components/ScriptLayers.jsx) */
+.sl { margin-top: 24px; padding: clamp(18px, 3vw, 30px); display: grid; gap: 12px; min-width: 0; }
+.sl__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.sl__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+
+.sl__ayahs { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.sl__group { display: grid; gap: 6px; min-width: 0; }
+.sl__surah { font-size: .78rem; font-weight: 600; color: var(--text-muted); }
+.sl__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sl__chip { min-width: 44px; justify-content: center; }
+
+.sl__page {
+  --sl-ink: #2b1d0b; --sl-paper: #f6ecd2; --sl-edge: #d9c49a;
+  display: grid; gap: 12px; padding: clamp(14px, 3vw, 24px); border-radius: 18px;
+  border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); min-width: 0;
+  transition: background-color .5s ease, border-color .5s ease;
+}
+/* 1-ci qat — köhnə perqament */
+.sl__page--1 { background: radial-gradient(120% 90% at 30% 20%, #fbf3dc 0%, var(--sl-paper) 55%, #ead9ae 100%); border-color: var(--sl-edge); }
+.sl__page--2 { background: linear-gradient(180deg, #fbf6e8, #f3ead2); border-color: var(--sl-edge); }
+[data-theme="dark"] .sl__page { --sl-ink: #f3e6c4; --sl-edge: #5a4a2a; }
+[data-theme="dark"] .sl__page--1 { background: radial-gradient(120% 90% at 30% 20%, #3a2f1b 0%, #2c2414 60%, #221c10 100%); }
+[data-theme="dark"] .sl__page--2 { background: linear-gradient(180deg, #2f281a, #26200f); }
+
+.sl__layers { display: flex; flex-wrap: wrap; gap: 6px; }
+.sl__num { display: inline-grid; place-items: center; width: 1.4em; height: 1.4em; border-radius: 50%; font-size: .75em; font-weight: 700; background: color-mix(in srgb, currentColor 14%, transparent); }
+.sl__range { width: 100%; accent-color: var(--accent); }
+
+.sl__stage { min-height: 7.5em; display: grid; align-items: center; min-width: 0; }
+.sl__text {
+  margin: 0; font-family: 'Amiri', var(--font-arabic, serif); font-size: clamp(1.6rem, 6.4vw, 2.6rem); line-height: 2.1;
+  text-align: center; overflow-wrap: anywhere; color: var(--text-strong, inherit);
+}
+.sl__page--1 .sl__text, .sl__page--2 .sl__text { color: var(--sl-ink); }
+.sl__ref { font-family: Inter, system-ui, sans-serif; font-size: .38em; color: var(--text-muted); margin-inline-start: .5em; white-space: nowrap; }
+.sl__page--1 .sl__ref, .sl__page--2 .sl__ref { color: color-mix(in srgb, var(--sl-ink) 60%, transparent); }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.a11y-motion-user) .sl__text.is-anim { animation: sl-in .55s ease-out both; }
+}
+@keyframes sl-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.sl__skel { height: 3.2em; border-radius: 12px; background: color-mix(in srgb, var(--text-muted) 14%, transparent); }
+
+.sl__cap { margin: 0; font-size: .92rem; line-height: 1.6; }
+.sl__page--1 .sl__cap, .sl__page--2 .sl__cap { color: var(--sl-ink); }
+.sl__stats { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sl__stats div { padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-0, transparent); opacity: .55; transition: opacity .3s ease; }
+.sl__stats div.is-on { opacity: 1; border-color: var(--accent); }
+.sl__stats dt { font-size: .74rem; color: var(--text-muted); }
+.sl__stats dd { margin: 2px 0 0; font-size: 1.25rem; font-weight: 700; color: var(--text-strong, inherit); }
+.sl__ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.sl__hist { margin: 0; line-height: 1.7; max-width: 80ch; }
+.sl__note { margin: 0; padding: 10px 14px; border-radius: 12px; border-inline-start: 3px solid var(--accent); background: var(--surface-1, transparent); line-height: 1.6; }
+.sl__tech, .sl__src { margin: 0; font-size: .8rem; color: var(--text-muted); line-height: 1.55; overflow-wrap: anywhere; }

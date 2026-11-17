@@ -13,6 +13,9 @@
 // ona görə yay/qış saatı keçidi bir günü "itirmir".
 // ═══════════════════════════════════════════════════════
 
+// Məxfi rejimdə localStorage-a müraciətin özü xəta atır — default parametr try-dan kənardadır
+const safeStorage = () => { try { return globalThis.localStorage } catch { return null } }
+
 export const SRS_KEY = 'hifz_srs'
 export const SRS_VERSION = 1
 export const GRADES = ['again', 'hard', 'good', 'easy']
@@ -89,10 +92,10 @@ export function sanitizeState(raw) {
   return st
 }
 
-export function loadState(storage = globalThis.localStorage) {
+export function loadState(storage = safeStorage()) {
   try { return sanitizeState(JSON.parse(storage?.getItem(SRS_KEY) || 'null')) } catch { return emptyState() }
 }
-export function saveState(state, storage = globalThis.localStorage) {
+export function saveState(state, storage = safeStorage()) {
   try { storage?.setItem(SRS_KEY, JSON.stringify(state)) } catch { /* yaddaş bağlıdır */ }
 }
 

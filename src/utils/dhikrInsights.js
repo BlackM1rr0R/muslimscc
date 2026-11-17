@@ -4,6 +4,9 @@
 // saxlanılır) və 'dhikr_session'.log [{ id: ms, idx, name, count }] (son 10 dövrə).
 // ═══════════════════════════════════════════════════════
 import { isDay } from './trackerInsights.js'
+// Məxfi rejimdə localStorage-a müraciətin özü xəta atır — default parametr try-dan kənardadır
+const safeStorage = () => { try { return globalThis.localStorage } catch { return null } }
+
 
 export const DHIKR_KEEP_DAYS = 60
 
@@ -18,7 +21,7 @@ export function cleanDaily(raw) {
   return out
 }
 
-export function readDhikrDaily(storage = globalThis.localStorage) {
+export function readDhikrDaily(storage = safeStorage()) {
   try { return cleanDaily(JSON.parse(storage?.getItem('dhikr_daily_v1') || 'null')) } catch { return {} }
 }
 

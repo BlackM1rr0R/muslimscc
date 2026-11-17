@@ -1,0 +1,63 @@
+/* Günün sünnəsi (components/DailySunnah.jsx) */
+.ds { margin-top: 24px; padding: clamp(18px, 3vw, 30px); display: grid; gap: 10px; min-width: 0; }
+.ds__title { margin: 4px 0 0; font-size: var(--step-2, 1.5rem); }
+.ds__lead { margin: 0; color: var(--text-muted); max-width: 72ch; }
+.ds__grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 32px); align-items: start; margin-top: 6px; }
+@media (max-width: 860px) { .ds__grid { grid-template-columns: minmax(0, 1fr); } }
+
+.ds__today {
+  display: grid; gap: 10px; min-width: 0; padding: clamp(16px, 2.6vw, 24px); border-radius: 18px;
+  border: 1px solid var(--line, var(--border));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 9%, var(--surface-1, transparent)), var(--surface-1, transparent) 70%);
+}
+.ds__date { margin: 0; font-size: .8rem; color: var(--text-muted); text-transform: capitalize; }
+.ds__act { margin: 0; font-size: clamp(1.3rem, 3.4vw, 1.75rem); line-height: 1.2; color: var(--accent-text); overflow-wrap: anywhere; }
+.ds__tip { margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+
+.ds__proof { margin: 4px 0 0; padding: 14px 16px; border-radius: 14px; background: var(--surface-0, transparent); border: 1px solid var(--line, var(--border)); display: grid; gap: 8px; min-width: 0; }
+.ds__proof-lbl { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+.ds__quote { margin: 0; display: grid; gap: 8px; border-inline-start: 3px solid var(--accent); padding-inline-start: 12px; }
+.ds__ar { margin: 0; font-size: clamp(1.15rem, 2.6vw, 1.35rem); line-height: 1.9; overflow-wrap: anywhere; }
+.ds__tx { margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+.ds__src { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: .85rem; color: var(--text-muted); }
+.ds__grade { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; font-size: .78rem; font-weight: 600; background: color-mix(in srgb, #2e9e5b 14%, transparent); color: var(--text-strong, inherit); }
+.ds__grade-dot { width: 7px; height: 7px; border-radius: 50%; background: #2e9e5b; }
+.ds__grade--d .ds__grade-dot { background: #c2453b; }
+.ds__grade--m .ds__grade-dot { background: #d18b1d; }
+.ds__open { margin-inline-start: auto; }
+.ds__loading { margin: 0; color: var(--text-muted); font-size: .9rem; }
+
+.ds__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 4px; }
+.ds__done { transition: transform .18s ease; }
+.ds__done:active { transform: scale(.96); }
+.ds__done.is-done { color: var(--accent-text); border-color: var(--accent); }
+.ds--still .ds__done, .ds--still .ds__day { transition: none; }
+.ds__msg { margin: 0; font-size: .88rem; color: var(--accent-text); min-height: 1.2em; }
+
+.ds__side { display: grid; gap: 12px; min-width: 0; }
+.ds__stats { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ds__stats div { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); }
+.ds__stats dt { font-size: .75rem; color: var(--text-muted); }
+.ds__stats dd { margin: 2px 0 0; font-size: 1.5rem; font-weight: 700; color: var(--text-strong); }
+
+.ds__cal { padding: 12px; border-radius: 14px; border: 1px solid var(--line, var(--border)); background: var(--surface-1, transparent); display: grid; gap: 6px; }
+.ds__cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ds__month { font-weight: 600; text-transform: capitalize; text-align: center; }
+.ds__nav { min-width: 36px; padding-inline: 8px; }
+.ds__week, .ds__days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.ds__week span { text-align: center; font-size: .7rem; color: var(--text-muted); text-transform: uppercase; }
+.ds__day {
+  position: relative; aspect-ratio: 1; display: grid; place-items: center; border-radius: 10px;
+  font-size: .82rem; background: var(--surface-0, transparent); border: 1px solid transparent;
+  transition: background-color .25s ease, color .25s ease;
+}
+.ds__day--empty { background: transparent; }
+.ds__day.is-future { opacity: .5; }
+.ds__day.is-today { border-color: var(--accent); font-weight: 700; }
+.ds__day.is-done { background: var(--accent); color: #1b1408; font-weight: 700; }
+.ds__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ds__note { margin: 0; font-size: .8rem; color: var(--text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds__done, .ds__day { transition: none; }
+}
