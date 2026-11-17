@@ -861,6 +861,8 @@
 }
 
 .qm-sn-tool:active { transform: scale(0.96); }
+/* Hesab kafeli keçiddir (<a>) — düymələrlə eyni görünsün */
+a.qm-sn-tool { text-decoration: none; }
 
 .qm-sn-tool-icon {
   display: grid;
@@ -1122,3 +1124,13 @@ html:not(.qm-input-pointer) .qm-sn-close:focus-visible {
   .qm-sn { display: none !important; }
 }
 
+/* Hesab keçidi yan panelin altında — yalnız 1024–1439px (≥1440px-də başlıqdadır: Header.css → .hdr-account-wrap) */
+.qm-sn-rail-foot { display: none; padding: 8px 14px 14px; border-top: 1px solid var(--line); }
+@media (min-width: 1024px) and (max-width: 1439.98px) { .qm-sn-rail-foot { display: block; } }
+.qm-sn-account {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 10px;
+  border-radius: var(--radius-md); color: var(--text-body); font-size: 14px; font-weight: 600; text-decoration: none;
+}
+.qm-sn-account[aria-current="page"] { background: var(--qm-sn-current, var(--surface-2)); color: var(--text-strong); }
+@media (hover: hover) { .qm-sn-account:hover { background: var(--surface-2); color: var(--text-strong); } }
+.qm-sn-account:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }

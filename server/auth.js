@@ -18,6 +18,8 @@
 //   `must_change=1` olur. Belə sessiya yalnız /me, /password, /logout-a çata
 //   bilər (requireAdmin.allowTemp); qalan admin API-ləri 403 { code:'must_change' }.
 //   POST /api/admin/password — cari + yeni şifrə; digər sessiyalar ləğv olunur.
+// • İstifadəçi hesabları (admin panelindən AYRI) — server/users.js; oradakı
+//   köməkçilər (hashPassword, csrfRejected, createFailureLimiter...) buradan gəlir.
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
 
@@ -41,10 +43,10 @@ const scryptOpts = (N, r, p) => ({ N, r, p, maxmem: 128 * N * r * 2 })
 const normEmail = (e) => (typeof e === 'string' ? e.trim().toLowerCase() : '')
 const validEmail = (e) => EMAIL_RE.test(e) && e.length <= 254
 
-/** Şifrə → saxlanma sətri. */
-async function hashPassword(password) {
-  if (typeof password !== 'string' || password.length < MIN_PASSWORD || password.length > MAX_PASSWORD) {
-    throw new Error(`Şifrə ${MIN_PASSWORD}-${MAX_PASSWORD} simvol olmalıdır`)
+/** Şifrə → saxlanma sətri. opts.min — minimal uzunluq (admin 12; istifadəçi hesabları, server/users.js — 10). */
+async function hashPassword(password, { min = MIN_PASSWORD } = {}) {
+  if (typeof password !== 'string' || password.length < min || password.length > MAX_PASSWORD) {
+    throw new Error(`Şifrə ${min}-${MAX_PASSWORD} simvol olmalıdır`)
   }
   const { N, r, p, keylen } = SCRYPT
   const salt = crypto.randomBytes(16)
@@ -250,7 +252,7 @@ function createRequireAdmin({ store, allowedOrigins = [], verifyFirebaseToken = 
  * /api/admin/login, /logout, /me, /password.
  *  opts.limits — { ipMax, emailMax, windowMs } (testlər üçün dəyişilə bilər)
  */
-function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {} }) {
+function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {}, adminRoleOf = null }) {
   const windowMs = limits.windowMs || 15 * 60 * 1000
   const ipLimiter = createFailureLimiter({ max: limits.ipMax || 10, windowMs })
   const emailLimiter = createFailureLimiter({ max: limits.emailMax || 5, windowMs })
@@ -303,7 +305,10 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
 
   router.get('/admin/me', requireAny, (req, res) => {
     res.set('Cache-Control', 'no-store')
-    res.json({ email: req.adminUser.email, via: req.adminUser.via, mustChangePassword: Boolean(req.adminUser.mustChange) })
+    const body = { email: req.adminUser.email, via: req.adminUser.via, mustChangePassword: Boolean(req.adminUser.mustChange) }
+    // Panel rolu (server/users.js → admin_roles; sətri olmayan admin = 'admin'). Köhnə Firebase tokeni — 'admin'.
+    if (adminRoleOf) body.role = req.adminUser.via === 'session' ? adminRoleOf(req.adminUser.id) : 'admin'
+    res.json(body)
   })
 
   // Şifrəni dəyiş: { currentPassword, newPassword } — yalnız sessiya ilə (köhnə
@@ -343,7 +348,8 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
 
 module.exports = {
   COOKIE_NAME, SESSION_TTL_MS, MIN_PASSWORD,
-  hashPassword, verifyPassword, normEmail, validEmail,
+  MAX_PASSWORD, SAFE_METHODS,
+  hashPassword, verifyPassword, normEmail, validEmail, dummyHash, sha256,
   createFailureLimiter, parseCookies, sessionCookie, csrfRejected,
   createAuthStore, createRequireAdmin, createAuthRouter,
 }

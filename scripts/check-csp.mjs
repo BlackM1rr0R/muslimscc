@@ -22,5 +22,21 @@ if (/'unsafe-inline'|'unsafe-eval'/.test(scriptSrc)) bad.push("script-src-də 'u
 if (!/report-uri \/api\/csp-report/.test(m[1])) bad.push('report-uri /api/csp-report yoxdur')
 if (/ on[a-z]+="/i.test(html.replace(/<script[\s\S]*?<\/script>/g, ''))) bad.push('index.html-də inline hadisə atributu (on…="") var — CSP bloklayar')
 
+// Google ilə giriş (src/utils/googleSignIn.js, /login və /signup): GIS yalnız accounts.google.com/gsi/
+// yolundan — domenin qalanı (və ya bütün https:) açılmasın. Hər direktivdə dəqiq mənbə olmalıdır.
+const directive = (name) => ((new RegExp(`(?:^|;\\s*)${name} ([^;]+)`).exec(m[1]) || [])[1] || '').split(/\s+/)
+const GSI = {
+  'script-src': 'https://accounts.google.com/gsi/client',
+  'frame-src': 'https://accounts.google.com/gsi/',
+  'connect-src': 'https://accounts.google.com/gsi/',
+  'style-src': 'https://accounts.google.com/gsi/style',
+}
+for (const [name, src] of Object.entries(GSI)) {
+  const list = directive(name)
+  if (!list.includes(src)) bad.push(`${name}-də Google ilə giriş mənbəyi yoxdur: ${src}`)
+  const wide = list.filter(s => /accounts\.google\.com/.test(s) && s !== src)
+  if (wide.length) bad.push(`${name}-də accounts.google.com üçün lazımsız geniş mənbə: ${wide.join(' ')}`)
+}
+
 if (bad.length) { for (const b of bad) console.error('✗ ' + b); process.exit(1) }
 console.log(`✓ CSP: ${inline.length} inline skript hash-i siyasətdədir`)

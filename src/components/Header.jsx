@@ -8,6 +8,8 @@ import { useScrollDirection } from "../hooks/useScrollDirection";
 import SideNav from "./SideNav";
 import Icon, { BrandMark } from "./Icon";
 import LimelightNav from "../motion/LimelightNav";
+// Hesab düyməsi (≥1024px) — kiçik; ağır hissə (formalar, passkey, Google) yalnız /login, /account-da
+import HeaderAccount from "./HeaderAccount";
 import "../styles/Header.css";
 import { pickUi } from '../utils/uiText'
 import { lazyWhenIdle, whenIdle } from '../utils/idle'
@@ -570,6 +572,9 @@ function Header({ currentPage, setPage }) {
                 </div>
               )}
             </div>
+
+            {/* Hesab: anonim — "Daxil ol", daxil olub — avatar menyusu (<1024px-də çəkmə menyudadır) */}
+            <HeaderAccount currentPage={currentPage} />
 
             {/* ☰ — yalnız <1024px (Header.css); ≥1024px-də yan panel həmişə açıqdır */}
             <button

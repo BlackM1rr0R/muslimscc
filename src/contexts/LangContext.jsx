@@ -223,7 +223,8 @@ export function useStoredLangRedirect() {
     if (lang !== DEFAULT_LANG) return
     if (location.pathname !== pathFor(key, DEFAULT_LANG, param)) return
     // Əlavə dildə olmayan səhifə (ana səhifə, namaz…) — pathFor ingiliscəni verir
-    navigate(pathFor(key, saved, param), { replace: true })
+    // Sorğu və fraqment saxlanır: e-poçt keçidinin tokeni (/account/verify#token=…) itməsin
+    navigate(`${pathFor(key, saved, param)}${location.search}${location.hash}`, { replace: true })
     // Yalnız bir dəfə — sonrakı naviqasiyalarda URL hakimdir
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

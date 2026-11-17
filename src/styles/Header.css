@@ -698,3 +698,69 @@ html:not(.qm-input-pointer) .header .hdr-btn:focus-visible {
   .header.scrolled .logo-text-wrap,
   .logo:hover .logo-icon { transform: none; }
 }
+
+/* ── Başlıqdakı hesab düyməsi və menyusu (components/HeaderAccount.jsx) ── */
+.hdr-account-wrap { position: relative; display: flex; }
+.hdr-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+.hdr-account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 60;
+  display: grid;
+  gap: 2px;
+  min-width: 240px;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-3);
+  animation: hdr-account-pop var(--dur-2, 240ms) var(--ease-out, ease) both;
+}
+.hdr-account-menu__who { display: grid; gap: 2px; padding: 8px 10px 10px; margin-bottom: 4px; border-bottom: 1px solid var(--line); }
+.hdr-account-menu__who strong { color: var(--text-strong); font-size: 14px; overflow-wrap: anywhere; }
+.hdr-account-menu__who span { color: var(--text-tertiary); font-size: 13px; overflow-wrap: anywhere; }
+.hdr-account-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-body);
+  font: inherit;
+  font-size: 14px;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+.hdr-account-menu__item svg { flex-shrink: 0; color: var(--text-tertiary); }
+@media (hover: hover) {
+  .hdr-account-menu__item:hover { background: var(--surface-2); color: var(--text-strong); }
+}
+.hdr-account-menu__item:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+
+/* <1440px: başlıqda yer azdır — hesab 1024–1439px-də yan paneldə, <1024px-də çəkmə menyudadır (SideNav) */
+@media (max-width: 1439.98px) {
+  .hdr-account-wrap { display: none; }
+}
+@keyframes hdr-account-pop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hdr-account-menu { animation: none; }
+}

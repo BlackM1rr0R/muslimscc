@@ -161,6 +161,10 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
 const LicensesPage = lazy(() => import('./pages/LicensesPage'))
+// İstifadəçi hesabı (server/users.js, docs/USER-ACCOUNTS.md) — noindex, yalnız açılanda yüklənir
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const AccountPage = lazy(() => import('./pages/AccountPage'))
+const AccountTokenPage = lazy(() => import('./pages/AccountTokenPage'))
 
 // Bu widget-ler her sehifede render olunur ve Firebase-i cekir (~470 KB).
 // Statik import edilse, Firebase ilk yuklenme paketine dusur; halbuki
@@ -419,6 +423,11 @@ function AppInner() {
       case 'privacy':       return <PrivacyPage       setPage={navigate} />
       case 'terms':         return <TermsPage         setPage={navigate} />
       case 'licenses':      return <LicensesPage      setPage={navigate} />
+      case 'login':         return <LoginPage         setPage={navigate} mode="login" />
+      case 'signup':        return <LoginPage         setPage={navigate} mode="signup" />
+      case 'account':       return <AccountPage       setPage={navigate} />
+      case 'accountverify': return <AccountTokenPage  setPage={navigate} mode="verify" />
+      case 'accountreset':  return <AccountTokenPage  setPage={navigate} mode="reset" />
       case 'notfound':      return <NotFoundPage      setPage={navigate} />
       default:              return <HomePage          setPage={navigate} />
     }

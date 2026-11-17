@@ -49,6 +49,7 @@ import { m } from 'motion/react'
 import HoverPill from '../motion/HoverPill'
 import { SPRING } from '../motion/presets'
 import { pickUi } from '../utils/uiText'
+import { useAuthUser } from '../api/userSession'
 
 // Açar "v2"-dir: sahibin qərarı ilə susmaya görə BÜTÜN qruplar açıq oldu.
 // Köhnə açarda (qm_sidenav_groups) yalnız bir qrup yazılmışdı — onu oxusaydıq,
@@ -87,6 +88,15 @@ const LANG_OPTIONS = [
 ]
 
 const SVG = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
+
+// Çəkmə menyuda hesab kafeli (başlıqdakı HeaderAccount düyməsi <1024px-də gizlidir)
+const ACCOUNT_LABELS = {
+  az: { signIn: 'Daxil ol', account: 'Hesabım' },
+  en: { signIn: 'Sign in', account: 'My account' },
+  ru: { signIn: 'Войти', account: 'Мой аккаунт' },
+  tr: { signIn: 'Giriş yap', account: 'Hesap' },
+  ar: { signIn: 'دخول', account: 'حسابي' },
+}
 
 const LABELS = {
   az: {
@@ -409,6 +419,9 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
   const { lang, siteLang = lang, dir: uiDir, setLang, dark, toggleDark } = useLang()
   const routerNavigate = useNavigate()
   const l = pickUi(LABELS, lang)
+  const al = pickUi(ACCOUNT_LABELS, lang)
+  const { status: authStatus } = useAuthUser()
+  const accountKey = authStatus === 'anon' ? 'login' : 'account'
   // İstiqamət kontekstdən: ərəbcə və rtl əlavə dillər (urdu interfeysi) — rtl
   const isRtl = (uiDir || (lang === 'ar' ? 'rtl' : 'ltr')) === 'rtl'
   const currentGroup = navGroupOf(currentPage)
@@ -726,6 +739,18 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
           />
           {groups}
         </div>
+        {/* Hesab — 1024–1439px (başlıqda yer azdır, orada düymə ≥1440px-dədir; SideNav.css) */}
+        <div className="qm-sn-rail-foot">
+          <a
+            className="qm-sn-account"
+            href={pathFor(accountKey, siteLang)}
+            onClick={(e) => onItemClick(e, accountKey)}
+            aria-current={currentPage === accountKey ? 'page' : undefined}
+          >
+            <span className="qm-sn-tool-icon"><Icon name="user" size={18} /></span>
+            <span>{accountKey === 'login' ? al.signIn : al.account}</span>
+          </a>
+        </div>
       </nav>
     )
   }
@@ -823,6 +848,16 @@ export default function SideNav({ mode = 'drawer', id, open = false, onClose, cu
                 <span className="qm-sn-tool-icon"><BellIcon /></span>
                 <span className="qm-sn-tool-label">{l.notifications}</span>
               </button>
+              {/* Hesab: anonim — /login, daxil olub (və ya ipucu var) — /account */}
+              <a
+                className="qm-sn-tool"
+                href={pathFor(accountKey, siteLang)}
+                onClick={(e) => onItemClick(e, accountKey)}
+                aria-current={currentPage === accountKey ? 'page' : undefined}
+              >
+                <span className="qm-sn-tool-icon"><Icon name="user" size={18} /></span>
+                <span className="qm-sn-tool-label">{accountKey === 'login' ? al.signIn : al.account}</span>
+              </a>
             </div>
             <div className="qm-sn-settings" role="group" aria-label={l.settings}>
               <button

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { SITE, LOCALES, DEFAULT_LANG, DETAILS, urlFor, pathFor, langsFor, seoLangsFor, canonicalLang, uiLang } from './routes'
+import { SITE, LOCALES, DEFAULT_LANG, DETAILS, NOINDEX_KEYS, urlFor, pathFor, langsFor, seoLangsFor, canonicalLang, uiLang } from './routes'
 import { titleFor, descFor, fitDesc, ogImageFor, OG_ALT } from './meta'
 import { brandName, siteJsonLd } from '../config/brand'
 import { useLang } from '../contexts/LangContext'
@@ -115,7 +115,7 @@ function applySeo(page, lang, param, detail) {
   document.title = title
   setMeta('name', 'description', desc)
   setMeta('name', 'robots',
-    page === 'adminlogin' || page === 'admin' || isNotFound || isPrivateDetail
+    NOINDEX_KEYS.has(page) || isNotFound || isPrivateDetail
       ? 'noindex, nofollow'
       : 'index, follow, max-image-preview:large, max-snippet:-1')
 

@@ -30,7 +30,7 @@ async function seriousViolations(page) {
     .flatMap(v => v.nodes.map(n => `${v.impact} · ${v.id} · ${n.target.join(' ')} — ${n.html.slice(0, 120)}`))
 }
 
-const PAGES = ['/', '/prayer', '/quran', '/hadith', '/about', '/zakat', '/ar', '/calendar', '/charity', '/jamaat', '/aichat', '/en/prayer', '/ar/zakat']
+const PAGES = ['/', '/prayer', '/quran', '/hadith', '/about', '/zakat', '/ar', '/calendar', '/charity', '/jamaat', '/aichat', '/en/prayer', '/ar/zakat', '/login', '/signup', '/ar/login']
 
 for (const theme of ['light', 'dark']) {
   test.describe(`${theme === 'dark' ? 'qaranlıq' : 'işıqlı'} rejim`, () => {

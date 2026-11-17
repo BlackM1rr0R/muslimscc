@@ -36,8 +36,10 @@ else console.log(`Firebase: FCM ${FCM_ON ? 'açıq' : 'sönülü'}, köhnə admi
 // çöksün: yoxsa yeni sxem tətbiq olunur və köhnə versiyaya qayıdış da alınmır
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
-for (const m of ['./auth', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
+for (const m of ['./auth', './users', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data']) require(m)
+// Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
+for (const m of ['@simplewebauthn/server']) require(m)
 
 // ─── Verilənlər bazası (SQLite, node:sqlite) ─────────────────────────
 const { openDb } = require('./db')
@@ -84,9 +86,27 @@ const requireAdmin = authLib.createRequireAdmin({
   allowedOrigins: ALLOWED,
   verifyFirebaseToken: (t) => (verifyFirebaseToken ? verifyFirebaseToken(t) : Promise.reject(new Error('legacy auth off'))),
 })
-app.use('/api', authLib.createAuthRouter({ store: authStore, requireAdmin, allowedOrigins: ALLOWED }))
+// İstifadəçi hesabları (server/users.js) — cədvəllər miqrasiyasız; admin_roles burada yaradılır,
+// ona görə store admin router-indən əvvəl qurulur (GET /api/admin/me → role)
+const usersLib = require('./users')
+const usersStore = usersLib.createUsersStore(db)
+app.use('/api', authLib.createAuthRouter({ store: authStore, requireAdmin, allowedOrigins: ALLOWED, adminRoleOf: usersStore.adminRole }))
 // Vaxtı keçmiş sessiyaları saatda bir təmizlə
 setInterval(() => { try { authStore.purgeExpired() } catch { /* */ } }, 3600e3).unref()
+
+// ─── İstifadəçi hesabları (server/users.js, docs/USER-ACCOUNTS.md) — öz limitləri də var (IP/e-poçt) ──
+const PUBLIC_ORIGIN = (process.env.PUBLIC_ORIGIN || 'https://muslims.cc').replace(/\/+$/, '')
+app.use('/api/auth', limit(60000, 60))
+const usersRouter = usersLib.createUsersRouter({
+  db, store: usersStore, requireAdmin, allowedOrigins: ALLOWED,
+  mailer: require('./mailer').createMailer({ apiKey: process.env.RESEND_API_KEY }),
+  publicOrigin: PUBLIC_ORIGIN,
+  rpId: process.env.RP_ID || undefined,
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+})
+app.use('/api', usersRouter)
+// Gələcək xüsusiyyətlər üçün: app.post('/api/x', usersRouter.requireUser('mosque_rep'), …)
+setInterval(() => { try { usersStore.purgeExpired() } catch { /* */ } }, 3600e3).unref()
 
 // ─── Kukisiz sayt statistikası (server/analytics.js) ─────────────────
 const analytics = require('./analytics')

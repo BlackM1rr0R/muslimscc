@@ -15,20 +15,21 @@ import { apiFetch, ApiError } from './http'
 const meState = () => apiFetch('/api/admin/me', { admin: true })
 
 /**
- * Admin vəziyyətini izlə: cb({ status, email, mustChangePassword })
+ * Admin vəziyyətini izlə: cb({ status, email, mustChangePassword, role })
+ *   role: panel rolu — 'editor' | 'admin' | 'superadmin' (server/users.js → admin_roles; köhnə server — 'admin')
  *   status: 'loading' | 'admin' | 'signedOut' | 'unavailable'
  * Qaytarır: dayandıran funksiya. (İmza köhnə src/firebase/auth.js ilə eynidir.)
  */
 export function watchAdmin(cb) {
   let stopped = false
-  cb({ status: 'loading', email: '', mustChangePassword: false })
+  cb({ status: 'loading', email: '', mustChangePassword: false, role: '' })
   meState().then((me) => {
     if (stopped) return
-    cb({ status: 'admin', email: me?.email || '', mustChangePassword: Boolean(me?.mustChangePassword) })
+    cb({ status: 'admin', email: me?.email || '', mustChangePassword: Boolean(me?.mustChangePassword), role: typeof me?.role === 'string' ? me.role : 'admin' })
   }).catch((e) => {
     if (stopped) return
     const signedOut = e instanceof ApiError && (e.status === 401 || e.status === 403)
-    cb({ status: signedOut ? 'signedOut' : 'unavailable', email: '', mustChangePassword: false })
+    cb({ status: signedOut ? 'signedOut' : 'unavailable', email: '', mustChangePassword: false, role: '' })
   })
   return () => { stopped = true }
 }

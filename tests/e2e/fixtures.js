@@ -57,7 +57,28 @@ const IGNORED = [
   /Failed to load resource.*(fonts\.g|aladhan|alquran|everyayah|islamic\.network|hadeethenc|quranenc|jsdelivr|githubusercontent)/i,
   /service ?worker/i,
   /\[vite\]/i,
+  // İstifadəçi hesabı API-sinin GÖZLƏNİLƏN 4xx cavabları (girişsiz /me → 401, yanlış şifrə → 401, admin 403 kodları):
+  // brauzer onları "Failed to load resource" kimi yazır — saytın xətası deyil (UI onları özü göstərir)
+  /Failed to load resource.*\/api\/(auth\/|admin\/(users|role-audit))/i,
 ]
+
+// Saxta Google Identity Services (src/utils/googleSignIn.js-in işlətdiyi hissə)
+const GIS_STUB = `(() => {
+  let cfg = null
+  window.google = { accounts: { id: {
+    initialize(c) { cfg = c },
+    renderButton(el, opts) {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.textContent = 'Google'
+      b.setAttribute('data-gis-stub', (opts && opts.text) || '')
+      b.style.cssText = 'min-height:44px;padding:0 24px;border-radius:22px;border:1px solid #747775;background:#fff;color:#1f1f1f;font:500 14px sans-serif'
+      b.onclick = () => cfg && cfg.callback({ credential: 'test-google-credential', select_by: 'btn' })
+      el.appendChild(b)
+    },
+    prompt() {}, cancel() {}, disableAutoSelect() {},
+  } } }
+})()`
 
 export const test = base.extend({
   consoleProblems: async ({ page }, use) => {
@@ -115,6 +136,22 @@ export const test = base.extend({
       // Admin: daxil olunmayıb (adminAuth.js-dəki saxta sessiya bunu əvəz edir)
       return route.fulfill({ status: 401, json: { error: 'Unauthorized' } })
     })
+    // İstifadəçi hesabı (server/users.js) — susmaya görə DAXİL OLMAYIB. Passkey avtomatik doldurma
+    // (/login) seçimləri alır; real WebAuthn testdə işləmir (rpId saxtadır) — klient səssizcə dayanır.
+    // Spec-lər (tests/e2e/userAuth.js) öz saxta sessiyası ilə əvəz edir.
+    await page.route((u) => u.pathname.startsWith('/api/auth/'), (route) => {
+      const { pathname } = new URL(route.request().url())
+      if (pathname === '/api/auth/passkey/login/options') {
+        return route.fulfill({ json: { challengeId: 'c'.repeat(24), options: { challenge: 'dGVzdC1jaGFsbGVuZ2UtMDAwMDAwMDA', rpId: 'invalid.test', timeout: 300000, userVerification: 'required', allowCredentials: [] } } })
+      }
+      if (pathname === '/api/auth/forgot') return route.fulfill({ json: { ok: true } })
+      return route.fulfill({ status: 401, json: { error: 'Unauthorized', code: 'unauthenticated' } })
+    })
+    // Google ilə giriş (accounts.google.com/gsi/client) — real Google-a getməsin: kiçik saxta GIS.
+    // Düymə basılanda callback-ə saxta ID tokeni verir (server cavabını spec saxtalaşdırır).
+    await page.route(/^https:\/\/accounts\.google\.com\/gsi\//, (route) => (route.request().url().includes('/gsi/client')
+      ? route.fulfill({ contentType: 'text/javascript', body: GIS_STUB })
+      : route.abort()))
     // Ümmətin sayğacı (server/ummah.js) — preview-da API yoxdur; testlər öz route-u ilə əvəz edə bilər
     await page.route((u) => u.pathname === '/api/ummah', (route) => (route.request().method() === 'POST'
       ? route.fulfill({ status: 204 })

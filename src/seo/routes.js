@@ -136,7 +136,19 @@ export const PAGES = [
   // Admin — indekslənmir, sitemap-a düşmür
   { key: 'adminlogin',   path: 'adminlogin',   noindex: true },
   { key: 'admin',        path: 'admin',        noindex: true },
+
+  // İstifadəçi hesabı (server/users.js, docs/USER-ACCOUNTS.md) — indekslənmir, sitemap-a düşmür.
+  // account/verify və account/reset — e-poçt keçidləri (#token=… fraqmentdə); iki seqmentli yol
+  // parseCore-da ayrıca tanınır.
+  { key: 'login',         path: 'login',          noindex: true },
+  { key: 'signup',        path: 'signup',         noindex: true },
+  { key: 'account',       path: 'account',        noindex: true },
+  { key: 'accountverify', path: 'account/verify', noindex: true },
+  { key: 'accountreset',  path: 'account/reset',  noindex: true },
 ]
+
+/** İndekslənməyən səhifə açarları (Seo.jsx → robots noindex). */
+export const NOINDEX_KEYS = new Set(PAGES.filter(p => p.noindex).map(p => p.key))
 
 export const INDEXABLE = PAGES.filter(p => !p.noindex)
 
@@ -301,6 +313,9 @@ function parseCore(pathname) {
     parts.shift() // /az/... da qəbul edilir, kanonik forma prefiksizdir
   }
   const slug = parts[0] || ''
+  // İki seqmentli səhifə (account/verify, account/reset) — detal deyil, ayrıca səhifədir
+  const sub = parts.length >= 2 ? PAGES.find(p => p.path === `${slug}/${parts[1]}`) : null
+  if (sub) return { lang, key: sub.key, known: parts.length === 2, param: null }
   const page = PAGES.find(p => p.path === slug)
   if (!page) return { lang, key: 'home', known: slug === '', param: null }
   const rest = parts.slice(1)

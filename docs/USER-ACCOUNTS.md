@@ -1,0 +1,177 @@
+# İstifadəçi hesabları və rollar (`server/users.js`)
+
+Saytın **istifadəçi** hesabları — admin panelindən **tam ayrıdır** (ayrı cədvəllər, ayrı cookie, ayrı giriş).
+Admin paneli öz girişini saxlayır (`server/auth.js`, [ADMIN-SECURITY.md](ADMIN-SECURITY.md), [FIREBASE-EXIT.md](FIREBASE-EXIT.md)).
+
+| | Admin paneli | İstifadəçi hesabı |
+|---|---|---|
+| Cədvəl | `admins`, `sessions` (+ `admin_roles`) | `users`, `user_sessions`, `user_passkeys`, `user_oauth`, `user_tokens` |
+| Cookie | `__Host-mcc_admin` | `__Host-mcc_user` |
+| Giriş | e-poçt + şifrə (yalnız skriptlə yaradılır) | e-poçt + şifrə, passkey, Google |
+| Rol | `editor` / `admin` / `superadmin` | `user` / `mosque_rep` / `editor` / `admin` / `superadmin` |
+
+## Arxitektura
+
+- **Fayllar:** `server/users.js` (cədvəllər, sessiya, endpoint-lər, rol qaydaları, Google tokeni yoxlaması),
+  `server/mailer.js` (Resend HTTP API, 5 dildə şablon), `server/auth.js`-dən köməkçilər (scrypt, CSRF, limit).
+- **Cədvəllər MİQRASİYASIZ** yaradılır (`CREATE TABLE IF NOT EXISTS`, `PRAGMA user_version` dəyişmir) —
+  köhnə versiyaya geri qayıtmaq (deploy.sh rollback) pozulmur (2026-11-04 dərsi). Köhnə kod bu cədvəllərə toxunmur.
+- **Sessiya:** təsadüfi 32 bayt token → cookie `__Host-mcc_user; HttpOnly; Secure; SameSite=Strict; Path=/`.
+  DB-də yalnız SHA-256. 30 gün, **sürüşən** (aktiv istifadədə gündə bir dəfə uzadılır, yeni `Set-Cookie` gəlir).
+  Bir istifadəçidə ən çox 50 sessiya (köhnələr silinir).
+- **CSRF:** vəziyyət dəyişən hər sorğuda `X-Requested-With` başlığı olmalı və `Origin` (varsa) icazəli siyahıda
+  (`ALLOWED_ORIGINS`) olmalıdır — admin girişi ilə eyni qayda.
+- **Məxfilik:** IP saxlanmır (limitlər yaddaşdadır, açar — prosesə məxsus duzla HMAC). Tam user-agent saxlanmır,
+  yalnız "Chrome · Android" kimi etiket. Məktub keçidlərində token **URL fraqmentindədir** (`#token=…`) —
+  nginx loguna və Referer-ə düşmür.
+- **Hesabın varlığı açılmır:** `login` səhv şifrədə / naməlum e-poçtda / bloklanmış hesabda eyni `401`;
+  naməlum e-poçtda da scrypt işləyir (vaxt eyni). `forgot` həmişə `200`. `register` mövcud e-poçtda
+  `202 { checkEmail: true }` qaytarır (cookie yox) və sahibinə "hesabınız artıq var" məktubu göndərir.
+- **Limitlər** (hamısı yaddaşda): ümumi `/api/auth/*` — IP üzrə dəqiqədə 60 (server.js); login — IP üzrə 20, e-poçt
+  üzrə 5 uğursuz / 15 dəq; register — IP üzrə 10 / saat; forgot — IP üzrə 10 / saat, e-poçt üzrə 3 / saat (artığı
+  səssizcə atılır, cavab yenə 200); token (verify/reset) — 20 səhv / 15 dəq; Google — 20 səhv / 15 dəq; passkey —
+  60 options + 20 səhv / 15 dəq; şifrə dəyişmə/silmə — istifadəçi üzrə 5 səhv / 15 dəq; verify məktubunu təkrar — 3 / saat.
+  Admin endpoint-ləri mövcud `/api/admin` limitinin (dəqiqədə 30) altındadır.
+- **Passkey challenge-ləri** yaddaşdadır (5 dəq, birdəfəlik, `challengeId` ilə). API bir konteynerdir — kifayətdir;
+  bir neçə replika olsa, paylaşılan yaddaş lazım olacaq.
+
+## Rollar
+
+`user` < `mosque_rep` < `editor` < `admin` < `superadmin`
+
+- **superadmin HTTP ilə heç vaxt verilmir və alınmır** — yalnız serverdə skriptlə.
+- `admin` rolunu yalnız **superadmin** verir/alır. `admin` paneli hesabı `editor` / `mosque_rep` / `user` verə bilər.
+- **Heç kim öz rolunu dəyişə bilməz** (admin panelinin e-poçtu istifadəçinin e-poçtu ilə eynidirsə — 403 `self`).
+- `admin` istifadəçini yalnız superadmin bloklaya bilər; superadmin-i heç kim HTTP ilə bloklaya bilməz.
+- Hər dəyişiklik (rol, blok, blokun açılması, skriptlə verilən rol) `role_audit`-ə yazılır.
+- Admin panelinin hesabları üçün rol `admin_roles`-dadır; sətri olmayan admin = **`admin`**.
+  İstifadəçi idarəsi (`/api/admin/users*`, `/api/admin/role-audit`) — yalnız `admin` və `superadmin`.
+  Köhnə Firebase tokeni (keçid dövrü) ilə bu endpoint-lər **işləmir** (403 `session_required`).
+- `requireUser(minRole)` — gələcək xüsusiyyətlər üçün middleware (`usersRouter.requireUser('mosque_rep')`).
+  Rol hər sorğuda DB-dən oxunur — dəyişiklik dərhal təsir edir.
+
+### Özünüzü superadmin etmək
+
+```sh
+cd /opt/muslimscc
+# admin PANELİ hesabınız (admins cədvəli) — superadmin | admin | editor
+TAG=$(cat .current_tag) docker compose exec api node scripts/admin-user.js set-role abdllyevv@gmail.com superadmin
+# yoxlama — siyahıda rol mötərizədə görünür
+TAG=$(cat .current_tag) docker compose exec api node scripts/admin-user.js list
+# saytın İSTİFADƏÇİ hesabının rolu (users cədvəli) — lazım olsa
+TAG=$(cat .current_tag) docker compose exec api node scripts/admin-user.js user-role someone@example.com mosque_rep --mosque=baku-taza-pir
+```
+
+Sonra paneldə `GET /api/admin/me` cavabında `role: "superadmin"` görünür.
+
+## Endpoint-lər
+
+Bütün cavablar JSON, `Cache-Control: no-store`. Səhv formatı: `{ error: "…", code: "…" }`.
+**Klient vəziyyət dəyişən hər sorğuda göndərməlidir:** `X-Requested-With: fetch` (istənilən dəyər),
+`Content-Type: application/json`, `credentials: 'same-origin'` (cookie avtomatik gedir; JS onu görmür).
+
+`User` obyekti (`/me` və bir çox cavabda `user`):
+
+```json
+{ "id": 12, "email": "a@x.az", "emailVerified": false, "displayName": "Əli", "role": "user", "mosqueId": null,
+  "hasPassword": true, "passkeys": [{ "id": "b64url", "name": "Chrome · Android", "createdAt": 0, "lastUsedAt": null }],
+  "providers": ["google"] }
+```
+
+| Metod, yol | Gövdə | Uğurlu cavab | Səhvlər (code) |
+|---|---|---|---|
+| `POST /api/auth/register` | `{ email, password, displayName?, lang? }` | `201 { ok, user, verificationSent }` + cookie; mövcud e-poçtda `202 { ok, checkEmail: true }` | 400 `bad_request` / `weak_password`, 429 |
+| `POST /api/auth/login` | `{ email, password }` | `200 { ok, user }` + cookie | 401 `invalid_credentials`, 429 `rate_limited` (+ `Retry-After`) |
+| `POST /api/auth/logout` | — | `200 { ok }` (cookie silinir) | |
+| `GET /api/auth/me` | — | `200 User` | 401 `unauthenticated` |
+| `POST /api/auth/verify` | `{ token }` | `200 { ok }` | 400 `invalid_token` |
+| `POST /api/auth/verify/resend` | `{ lang? }` (girişli) | `200 { ok }` | 429 |
+| `POST /api/auth/forgot` | `{ email, lang? }` | **həmişə** `200 { ok }` | 400 (yararsız e-poçt formatı), 429 (IP) |
+| `POST /api/auth/reset` | `{ token, password }` | `200 { ok }` — bütün sessiyalar ləğv, e-poçt təsdiqlənir; sonra login | 400 `invalid_token` / `weak_password` |
+| `POST /api/auth/password` | `{ current, next }` (şifrəsiz hesabda `current` lazım deyil) | `200 { ok }` — digər sessiyalar ləğv | 400 `wrong_password` / `same_password` / `weak_password` |
+| `PATCH /api/auth/profile` | `{ displayName }` (≤ 60 simvol) | `200 User` | 400 |
+| `GET /api/auth/sessions` | — | `200 { sessions: [{ id, label, createdAt, lastSeenAt, current }] }` | |
+| `POST /api/auth/sessions/revoke` | `{ all: true }` (cari qalır) və ya `{ id }` | `200 { ok, revoked }` | 404 |
+| `POST /api/auth/delete` | `{ password }` və ya şifrəsiz hesabda `{ confirm: "DELETE" }` | `200 { ok }` — hər şey silinir (CASCADE) | 400 `wrong_password` / `confirm_required` |
+| `POST /api/auth/passkey/register/options` | — (girişli) | `200 { challengeId, options }` | 400 `too_many_passkeys` (20) |
+| `POST /api/auth/passkey/register/verify` | `{ challengeId, response, name? }` | `200 { ok, passkeys }` | 400 `passkey_failed`, 409 `passkey_exists` |
+| `POST /api/auth/passkey/login/options` | — | `200 { challengeId, options }` (usernameless) | 429 |
+| `POST /api/auth/passkey/login/verify` | `{ challengeId, response }` | `200 { ok, user }` + cookie | 401 `passkey_failed` |
+| `POST /api/auth/passkey/remove` | `{ id }` | `200 { ok, passkeys }` | 400 `last_method`, 404 |
+| `POST /api/auth/google` | `{ credential }` (GIS ID tokeni) | `200/201 { ok, created, user }` + cookie | 401 `google_invalid`, 409 `link_requires_verification`, 503 `google_disabled` / `google_unavailable` |
+| `GET /api/admin/users?q=&page=` | admin sessiyası | `{ users: [{ id, email, emailVerified, displayName, role, mosqueId, disabled, createdAt, lastLoginAt }], page, pageSize: 50, total }` | 403 `forbidden` / `session_required` |
+| `POST /api/admin/users/:id/role` | `{ role, mosqueId? }` | `{ ok, user }` | 403 `superadmin_required` / `script_only` / `self` / `forbidden`, 400 `bad_role` |
+| `POST /api/admin/users/:id/disable` | `{ disabled: true\|false }` | `{ ok, user }` — bloklananda sessiyalar ləğv | 403 (yuxarıdakı kimi) |
+| `GET /api/admin/role-audit?page=` | admin sessiyası | `{ entries: [{ id, actorKind, actorId, actorEmail, targetKind, targetId, targetEmail, action, oldRole, newRole, at }], page, pageSize }` | |
+| `GET /api/admin/me` | (mövcud) | əlavə sahə: `role` | |
+
+**Passkey klientdə:** `@simplewebauthn/browser` → `startRegistration({ optionsJSON: options })` /
+`startAuthentication({ optionsJSON: options })`, nəticəni `{ challengeId, response }` kimi geri göndərin.
+User verification **tələb olunur**, residentKey **required** (usernameless giriş üçün), attestation `none`.
+
+**E-poçt keçidləri:** `${PUBLIC_ORIGIN}/account/verify#token=…`, `${PUBLIC_ORIGIN}/account/reset#token=…`,
+mövcud hesab xəbərdarlığı → `${PUBLIC_ORIGIN}/account`. Klient səhifəsi tokeni `location.hash`-dən oxuyub
+POST etməli və sonra `history.replaceState` ilə hash-i silməlidir. Məktub dili: `lang` (az/en/ru/tr/ar; başqa dil → en).
+
+**Google:** Google hesabı `user_oauth(google, sub)` ilə bağlanır. Bağlantı yoxdursa və eyni e-poçtla hesab varsa —
+yalnız həmin hesabın e-poçtu **təsdiqlidirsə** bağlanır; təsdiqsizdirsə `409 link_requires_verification`
+(qabaqcadan ələ keçirmə hücumu: kimsə başqasının e-poçtu ilə hesab açıb gözləyə bilər). İstifadəçi əvvəl
+"şifrəni unutdum" ilə (bu, e-poçtu da təsdiqləyir) və ya verify keçidi ilə təsdiqləməli, sonra Google ilə girməlidir.
+
+## Env dəyişənləri (`api.env`)
+
+| Dəyişən | Nədir | Yoxdursa |
+|---|---|---|
+| `RESEND_API_KEY` | Resend API açarı (`re_…`) | Məktub getmir, bir dəfə loga xəbərdarlıq; hesablar `emailVerified=false` qalır, "şifrəni unutdum" işləmir |
+| `GOOGLE_CLIENT_ID` | Google Cloud → OAuth client (Web) ID | `/api/auth/google` → `503 google_disabled` |
+| `PUBLIC_ORIGIN` | Məktub keçidləri və WebAuthn origin | `https://muslims.cc` |
+| `RP_ID` | WebAuthn RP ID | `PUBLIC_ORIGIN`-in hostu (`muslims.cc`) — `www.muslims.cc` də qəbul olunur (`ALLOWED_ORIGINS`-dən) |
+
+Google Cloud Console → OAuth client → **Authorized JavaScript origins**: `https://muslims.cc`, `https://www.muslims.cc`
+(lokal test üçün `http://localhost:5173`). Redirect URI lazım deyil (GIS popup/One Tap ID tokeni verir).
+Klientdə client ID ictimaidir (`VITE_GOOGLE_CLIENT_ID` kimi `.env.public`-ə qoyula bilər).
+
+## Resend DNS (domen: muslims.cc)
+
+Resend → Domains → **Add domain** `muslims.cc` (region: eu-west-1 tövsiyə olunur). Resend dəqiq dəyərləri göstərir —
+aşağıdakılar **nümunədir**, Cloudflare DNS-ə Resend-in verdiyi dəyərlərlə əlavə edin (hamısı "DNS only"):
+
+| Tip | Ad | Dəyər | Qeyd |
+|---|---|---|---|
+| TXT | `resend._domainkey` | `p=MIGfMA0GCSqGSIb3DQEB…` (Resend verir) | DKIM |
+| MX | `send` | `feedback-smtp.eu-west-1.amazonses.com` (prioritet 10) | Bounce/MAIL FROM |
+| TXT | `send` | `v=spf1 include:amazonses.com ~all` | SPF (alt domen üçün — kök SPF-ə toxunmur) |
+| TXT | `_dmarc` | `v=DMARC1; p=none; rua=mailto:…` | Hələ yoxdursa; müşahidədən sonra `quarantine` |
+
+Domen "Verified" olandan sonra API açarını yaradın (yalnız **Sending access**, yalnız `muslims.cc` domeni) və `api.env`-ə
+`RESEND_API_KEY=…` yazın, `docker compose up -d api`.
+
+## CSP / nginx (`infra/nginx/security-headers.conf` — əlavə olunub, `scripts/check-csp.mjs` yoxlayır)
+
+Google Identity Services (`https://accounts.google.com/gsi/client`) istifadə olunarsa, CSP-yə əlavə lazımdır:
+
+- `script-src … https://accounts.google.com/gsi/client`
+- `frame-src … https://accounts.google.com/gsi/`
+- `connect-src … https://accounts.google.com/gsi/`
+- `style-src … https://accounts.google.com/gsi/style` (artıq `'unsafe-inline'` var, amma xarici stil faylı üçün lazımdır)
+
+`Cross-Origin-Opener-Policy: same-origin-allow-popups` artıq qoyulub — GIS popup-u üçün uyğundur.
+Passkey üçün CSP dəyişikliyi lazım deyil (`navigator.credentials` saytın özündədir); `Permissions-Policy`-də
+`publickey-credentials-*` qadağan edilməyib (susmaya görə `self`). `/api/auth/*` artıq `location /api/`-dən keçir.
+
+## Klient (sayt)
+
+- Səhifələr (noindex, sitemap-a düşmür): `/login`, `/signup`, `/account`, `/account/verify`, `/account/reset`
+  (`src/pages/LoginPage.jsx`, `AccountPage.jsx`, `AccountTokenPage.jsx`; ortaq hissələr `src/components/account/`).
+- API: `src/api/userSession.js` (yüngül — başlıq düyməsi; `authFetch`, cari istifadəçi) və `src/api/userAuth.js`
+  (bütün endpoint-lər, `@simplewebauthn/browser` tənbəl). Google: `src/utils/googleSignIn.js` (`VITE_GOOGLE_CLIENT_ID`).
+- Başlıq: localStorage-da `mcc_logged_in` ipucu yoxdursa `/api/auth/me` ÇAĞIRILMIR; varsa — boş vaxtda bir dəfə.
+- Admin paneli → "İstifadəçilər" (`src/components/admin/UserManager.jsx`) — yalnız admin / superadmin.
+
+## Açıq məsələlər
+
+- `register` cavabı (201 + cookie vs 202) prinsipcə e-poçtun varlığını aça bilər — limit (IP üzrə 10/saat) bunu
+  bahalı edir; tam gizlətmək üçün "əvvəl e-poçtu təsdiqlə, sonra giriş" axını lazımdır (UX bahasına).
+- `editor` admin paneli rolu hələlik yalnız istifadəçi idarəsini bağlayır; mövcud admin API-ləri (məzmun, push və s.)
+  rolu yoxlamır — editor-u məhdudlaşdırmaq ayrıca iş tələb edir.
+- nginx `access_log` `/api/auth/*` sorğularının IP-lərini mövcud qayda ilə yazır (DB-yə yazılmır).

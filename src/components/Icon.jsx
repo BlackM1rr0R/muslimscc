@@ -144,6 +144,12 @@ const P = {
   moonStar: <><path d="M19 14.8A7.5 7.5 0 0 1 9.2 5a7.5 7.5 0 1 0 9.8 9.8z" /><path d="m17.5 3 .6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z" /></>,
   babynames: <><circle cx="12" cy="7.5" r="3.5" /><path d="M6 20.5a6 6 0 0 1 12 0" /><path d="M10.5 4.4c.4-1 1-1.4 1.5-1.4" /></>,
   user: <><circle cx="12" cy="8" r="4" /><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" /></>,
+  // İstifadəçi hesabı (/login, /account): passkey açarı, məktub, kilid, çıxış, cihaz
+  key: <><circle cx="8" cy="15" r="4" /><path d="m10.8 12.2 8.7-8.7M16.5 6.5l2.5 2.5M14 9l2 2" /></>,
+  mail: <><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="m3.8 7 8.2 6 8.2-6" /></>,
+  lock: <><rect x="4.5" y="10.5" width="15" height="10" rx="2.5" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" /></>,
+  logout: <><path d="M14 4.5H7a2.5 2.5 0 0 0-2.5 2.5v10A2.5 2.5 0 0 0 7 19.5h7" /><path d="M10.5 12h10M17 8.5l3.5 3.5-3.5 3.5" /></>,
+  device: <><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" /><path d="M10.5 18.5h3" /></>,
   mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v3.5" /></>,
   copy: <><rect x="8.5" y="8.5" width="12" height="12" rx="2.5" /><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2" /></>,
   external: <><path d="M14 4.5h5.5V10M19.5 4.5 11 13" /><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" /></>,

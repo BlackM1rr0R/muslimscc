@@ -1403,3 +1403,36 @@ button.admin-stat-card:active { transform: scale(0.98); }
 @media (max-width: 899.98px) {
   .admin-nav-mark { inset-inline-start: 0; inset-block: 10px; }
 }
+
+/* ── Panel rolu nişanı (yan menyunun başı) və "İstifadəçilər" bölməsi (UserManager.jsx) ── */
+.admin-role-badge { margin-top: 6px; }
+.admin-role-badge--super {
+  background: var(--accent-text);
+  color: var(--surface-1);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.admin-users-search { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.admin-users-search .ui-input { flex: 1 1 240px; min-width: 0; }
+.admin-users-total { margin: 0 0 10px; color: var(--text-secondary); font-size: var(--step--1); }
+.admin-users-list { display: grid; gap: 12px; }
+.admin-user { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 14px 20px; padding: 16px; }
+.admin-user__who { display: grid; gap: 4px; flex: 1 1 280px; min-width: 0; }
+.admin-user__who strong { color: var(--text-strong); overflow-wrap: anywhere; }
+.admin-user__name { color: var(--text-secondary); font-size: 14px; }
+.admin-user__badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.admin-user__meta { color: var(--text-tertiary); font-size: 13px; }
+.admin-user__controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; flex: 0 1 auto; }
+.admin-user__controls .ui-field { min-width: 160px; }
+.admin-user__btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.admin-user__ro { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--text-tertiary); font-size: 13px; }
+.admin-users-pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 16px 0; color: var(--text-secondary); font-size: 14px; }
+.admin-users-audit { margin-top: 28px; }
+.admin-audit { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.admin-audit li { display: grid; grid-template-columns: minmax(130px, auto) 1fr auto; gap: 4px 14px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.admin-audit__when, .admin-audit__who { color: var(--text-tertiary); font-size: 13px; }
+.admin-audit__what { color: var(--text-body); overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .admin-audit li { grid-template-columns: 1fr; }
+}

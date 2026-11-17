@@ -18,13 +18,23 @@
 // paneli yalnız "Şifrəni dəyiş" formasını göstərir (server/auth.js → must_change).
 // --permanent — şifrə müvəqqəti sayılmasın (məs. parol menecerindən gələn güclü şifrə).
 // DB yolu: env DB_PATH (susmaya görə /data/muslims.db — server.js ilə eyni).
+//
+// ROLLAR (server/users.js, docs/USER-ACCOUNTS.md) — superadmin YALNIZ buradan verilir:
+//   ... node scripts/admin-user.js set-role <admin-email> <superadmin|admin|editor>
+//       — admin PANELİ hesabının rolu (admin_roles). Sətri olmayan admin = 'admin'.
+//   ... node scripts/admin-user.js user-role <user-email> <user|mosque_rep|editor|admin|superadmin> [--mosque=<id>]
+//       — saytın İSTİFADƏÇİ hesabının rolu (users.role).
+// Hər iki əmr role_audit-ə (actor_kind='script') yazılır.
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
 
 const { openDb } = require('../db')
 const auth = require('../auth')
+const users = require('../users')
 
-const USAGE = 'İstifadə: node scripts/admin-user.js <create|set-password|list|delete> [email] [--password-stdin] [--permanent]'
+const USAGE = 'İstifadə: node scripts/admin-user.js <create|set-password|list|delete> [email] [--password-stdin] [--permanent]\n' +
+  '         node scripts/admin-user.js set-role <admin-email> <superadmin|admin|editor>\n' +
+  '         node scripts/admin-user.js user-role <user-email> <user|mosque_rep|editor|admin|superadmin> [--mosque=<id>]'
 
 /** Terminalda gizli oxu (simvollar ekrana çıxmır). */
 function readHidden(prompt) {
@@ -84,17 +94,37 @@ async function main() {
     console.error('XƏTA: şifrə arqumentdə verilmir — stdin və ya gizli sorğu istifadə edin')
     process.exit(2)
   }
-  if (!['create', 'set-password', 'list', 'delete'].includes(cmd)) { console.error(USAGE); process.exit(2) }
+  if (!['create', 'set-password', 'list', 'delete', 'set-role', 'user-role'].includes(cmd)) { console.error(USAGE); process.exit(2) }
   if (cmd !== 'list' && !auth.validEmail(auth.normEmail(email || ''))) { console.error(USAGE); process.exit(2) }
 
   const db = openDb()
   const store = auth.createAuthStore(db)
+  const userStore = users.createUsersStore(db)
   try {
+    if (cmd === 'set-role' || cmd === 'user-role') {
+      const role = args.filter((a, i) => i > 0 && !a.startsWith('--'))[1]
+      if (cmd === 'set-role') {
+        if (!users.ADMIN_PANEL_ROLES.includes(role)) { console.error(USAGE); process.exitCode = 2; return }
+        const r = userStore.setAdminRole(email, role)
+        if (!r) { console.error(`XƏTA: "${auth.normEmail(email)}" admin tapılmadı`); process.exitCode = 1; return }
+        console.log(`OK: admin ${r.email} → rol: ${r.role}`)
+        return
+      }
+      if (!users.ROLES.includes(role)) { console.error(USAGE); process.exitCode = 2; return }
+      const mArg = args.find((a) => a.startsWith('--mosque='))
+      const mosqueId = mArg ? mArg.slice('--mosque='.length) : null
+      if (mosqueId !== null && !/^[A-Za-z0-9_-]{1,64}$/.test(mosqueId)) { console.error('XƏTA: --mosque yararsızdır'); process.exitCode = 2; return }
+      const u = userStore.findByEmail(email)
+      if (!u) { console.error(`XƏTA: "${auth.normEmail(email)}" istifadəçi tapılmadı`); process.exitCode = 1; return }
+      const r = userStore.setUserRole(u.id, role, mosqueId, { kind: 'script', id: null })
+      console.log(`OK: istifadəçi ${r.email} → rol: ${r.role}${r.mosque_id ? ` (məscid ${r.mosque_id})` : ''}`)
+      return
+    }
     if (cmd === 'list') {
       const rows = store.listAdmins()
       if (!rows.length) console.log('Admin yoxdur.')
       for (const r of rows) {
-        console.log(`${r.email}  (yaradılıb ${new Date(r.created_at).toISOString().slice(0, 10)}, ` +
+        console.log(`${r.email}  [${userStore.adminRole(r.id)}]  (yaradılıb ${new Date(r.created_at).toISOString().slice(0, 10)}, ` +
           `şifrə ${new Date(r.updated_at).toISOString().slice(0, 10)}, aktiv sessiya: ${r.sessions})`)
       }
       return
