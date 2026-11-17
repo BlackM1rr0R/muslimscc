@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// Çoxdilli sahədən YALNIZ cari dili seçmək (admin / Firebase məzmunu)
+// Çoxdilli sahədən YALNIZ cari dili seçmək (admin məzmunu)
 //
 // Admin paneldən gələn məzmunda ({ az, en, ru, ar, tr }) bəzi dillər boş
 // qala bilər. Belə halda mətn BAŞQA DİLLƏ (ingiliscə daxil) əvəz OLUNMUR —

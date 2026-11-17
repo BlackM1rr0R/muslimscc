@@ -60,7 +60,7 @@ describe('endpoint və açar validasiyası', () => {
     expect(push.validKeys({ p256dh: 'və!', auth: KEYS.auth })).toBeNull()
     expect(push.validKeys(null)).toBeNull()
   })
-  it('loc və prefs — firestore.rules ilə eyni qaydalar', () => {
+  it('loc və prefs qaydaları', () => {
     expect(push.validLoc({ lat: 40.41, lng: 49.87, tz: 'Asia/Baku', method: 13, city: { az: 'Bakı' } })).toBeTruthy()
     expect(push.validLoc({ lat: 91 })).toBeUndefined()
     expect(push.validLoc({ extra: 1 })).toBeUndefined()
@@ -178,13 +178,12 @@ describe('saxlama: admin icmalı üçün cəmlər', () => {
 
 describe('HTTP: /api/push/*', () => {
   let srv, store
-  const legacy = []
   const H = { 'content-type': 'application/json' }
   const post = (p, body, method = 'POST') => fetch(srv.url + p, { method, headers: H, body: JSON.stringify(body) })
   beforeAll(async () => {
     store = push.createPushStore(openDb(':memory:'))
     const app = express()
-    app.use('/api', push.createPushRouter({ store, publicKey: 'BPUBLICKEY', onLegacyToken: async (t) => { legacy.push(t) } }))
+    app.use('/api', push.createPushRouter({ store, publicKey: 'BPUBLICKEY' }))
     srv = await listen(app)
   })
   afterAll(() => srv.close())
@@ -217,16 +216,13 @@ describe('HTTP: /api/push/*', () => {
     expect(store.count()).toBe(0)
   })
 
-  it('KEÇİD: legacyFcmToken (subscribe/unsubscribe) Firestore silinməsinə ötürülür; yararsız token nəzərə alınmır', async () => {
+  it('köhnə klientin legacyFcmToken sahəsi nəzərə alınmır (abunəliyə mane olmur)', async () => {
     const tok = 'fcm-token_ABC:def-' + 'x'.repeat(100)
     const body = { subscription: { endpoint: EP.chrome + 'mig', keys: KEYS }, lang: 'az', legacyFcmToken: tok }
     expect((await post('/api/push/subscribe', body)).status).toBe(201)
-    expect((await post('/api/push/subscribe', { ...body, legacyFcmToken: '../fcm_tokens/x' })).status).toBe(201)
-    expect((await post('/api/push/unsubscribe', { legacyFcmToken: tok + 'y' })).status).toBe(200)
-    expect((await post('/api/push/unsubscribe', { legacyFcmToken: 'a/b' })).status).toBe(400)
-    await new Promise((r) => setTimeout(r, 10))
-    expect(legacy).toEqual([tok, tok + 'y'])
-    expect(push.validLegacyToken('qisa')).toBeNull()
+    expect(store.get(EP.chrome + 'mig')).toBeTruthy()
+    expect((await post('/api/push/unsubscribe', { legacyFcmToken: tok })).status).toBe(400)
+    expect(await (await post('/api/push/unsubscribe', { endpoint: EP.chrome + 'mig', legacyFcmToken: tok })).json()).toEqual({ ok: true, removed: true })
   })
 
   it('yararsız gövdələr → 400', async () => {

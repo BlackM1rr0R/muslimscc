@@ -6,7 +6,7 @@
 //   GET  /api/content/:collection             → [{ id, ...data }]  (createdAt desc)
 //   GET  /api/content/:collection/:id         → { id, ...data } | 404
 //   GET  /api/singletons/:id                  → { id, ...data } | null  (daily|hero|settings)
-// Admin (sessiya və ya keçid dövründə Firebase ID tokeni):
+// Admin (sessiya cookie-si, server/auth.js):
 //   POST   /api/admin/content/:collection           addDoc   → 201 { id, ...data }
 //   POST   /api/admin/content/:collection/batch     { items:[...] } (≤200) → 201 { ids }
 //   PUT    /api/admin/content/:collection/:id       setDoc (tam əvəz, createdAt qorunur)
@@ -25,7 +25,7 @@
 const crypto = require('node:crypto')
 const express = require('express')
 
-// firestore.rules ilə eyni siyahı — başqa kolleksiya adı qəbul edilmir
+// İcazəli kolleksiyalar — başqa kolleksiya adı qəbul edilmir
 const PUBLIC_COLLECTIONS = ['videos', 'books', 'hadiths', 'duas', 'quotes', 'announcements', 'events', 'places']
 const SINGLETONS = ['daily', 'hero', 'settings']
 const SINGLETON_COLLECTION = 'singletons'

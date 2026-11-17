@@ -53,7 +53,7 @@ function surahEdition(identifier, type) {
 // Brauzerin özü-özünə yaratdığı, saytın xətası olmayan səs-küy
 const IGNORED = [
   /favicon/i,
-  /firestore|firebase|googleapis\.com|gstatic/i,   // testdə Firebase şəbəkəsi əlçatmaz ola bilər
+  /googleapis\.com|gstatic/i,   // Google xidmətləri (GIS, YouTube önizləmələri) testdə əlçatmaz ola bilər
   /Failed to load resource.*(fonts\.g|aladhan|alquran|everyayah|islamic\.network|hadeethenc|quranenc|jsdelivr|githubusercontent)/i,
   /service ?worker/i,
   /\[vite\]/i,
@@ -167,8 +167,6 @@ export const test = base.extend({
         { lat: 40, lng: 50, seen: 2, notSeen: 1, methods: { eye: 2, binoculars: 1, telescope: 0, camera: 0 } },
         { lat: 21, lng: 40, seen: 5, notSeen: 0, methods: { eye: 4, binoculars: 0, telescope: 1, camera: 0 } },
         { lat: -6, lng: 107, seen: 0, notSeen: 3, methods: { eye: 3, binoculars: 0, telescope: 0, camera: 0 } }] } })))
-    // Köhnə Firebase ünvanları (köhnə SW keşi və s.) — bağlıdır
-    await page.route(/firestore\.googleapis\.com|firebaseinstallations|fcmregistrations|identitytoolkit/, route => route.abort())
     // v6.2: Quran.com ayə sözləri / qiraət vaxtları (ReciterCompare, /quran) — canlı şəbəkəyə getməsin;
     // headless brauzerə API 404 qaytarır → konsol xətası. Spec-lər öz route-ları ilə əvəz edir.
     await page.route(/api\.quran\.com\/api\/v4\/(recitations\/\d+\/by_ayah|verses\/by_key)\//, route => route.fulfill({ json: {} }))
@@ -190,7 +188,7 @@ export function expectCleanConsole(problems) {
 
 /**
  * Səhifə yüklənsin (lazy chunk-lar). "networkidle" ən çox 3 san gözlənilir:
- * Firebase daimi bağlantı saxlayır və şəbəkə heç vaxt tam "sakit" olmur —
+ * Şəbəkə (xarici API-lər, gec yüklənən chunk-lar) bəzən tam "sakit" olmur —
  * limitsiz gözləmə hər testin bütün vaxtını yeyirdi.
  */
 export async function settle(page) {

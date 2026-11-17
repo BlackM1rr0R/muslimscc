@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// Admin girişi — öz serverimiz (server/auth.js, docs/FIREBASE-EXIT.md)
+// Admin girişi — öz serverimiz (server/auth.js, docs/ADMIN-SECURITY.md)
 //
 // • Sessiyasız admin paneli açılmır (köhnə sessionStorage bayrağı da işləmir)
 // • Giriş formu: e-poçt, şifrə, "Şifrəni unutmusunuz?" (e-poçt xidməti yoxdur —

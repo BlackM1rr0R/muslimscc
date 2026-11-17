@@ -33,7 +33,7 @@ export default function PushNotificationManager() {
   }, [])
 
   const refresh = async () => {
-    // Abunəçi sayı serverdən (Web Push + keçid dövründə FCM)
+    // Abunəçi sayı serverdən (Web Push)
     try {
       const data = await apiFetch('/api/admin/subscribers', { admin: true })
       setSubscribers(Number(data?.count) || 0)

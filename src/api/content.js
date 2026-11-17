@@ -1,9 +1,7 @@
 // ═══════════════════════════════════════════════════════════
-// MƏZMUN API-si — Firestore-un əvəzi (server/content.js, SQLite)
+// MƏZMUN API-si (server/content.js, SQLite)
 //
-// Funksiyaların İMZALARI köhnə src/firebase/firestore.js ilə eynidir —
-// səhifələr və admin idarəediciləri dəyişmədən işləyir. Cavab forması da
-// eynidir: [{ id, ...data }] (createdAt azalan); vaxtlar millisaniyədir.
+// Cavab forması: [{ id, ...data }] (createdAt azalan); vaxtlar millisaniyədir.
 //
 // Realtime (onSnapshot) yoxdur. subscribe* funksiyaları:
 //   • ilk abunədə bir dəfə soruşur;
@@ -11,7 +9,7 @@
 //     (ən çox 15 saniyədə bir) — If-None-Match ilə: dəyişməyibsə server
 //     304 qaytarır (gövdəsiz) və callback ÇAĞIRILMIR;
 //   • admin yazısından (add/update/delete/set) sonra həmin kolleksiya dərhal
-//     yenidən oxunur — admin siyahısı Firestore-dakı kimi özü yenilənir.
+//     yenidən oxunur — admin siyahısı özü yenilənir.
 // Eyni ünvana bir neçə abunəçi olsa da sorğu birdir (paylaşılan mənbə).
 // ═══════════════════════════════════════════════════════════
 import { apiFetch } from './http'

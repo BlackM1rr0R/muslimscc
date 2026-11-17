@@ -16,7 +16,7 @@ import { pickUi } from '../utils/uiText'
 const MSG_IN = { opacity: 0, y: 10, scale: 0.94 }
 const MSG_SHOW = { opacity: 1, y: 0, scale: 1, transition: SPRING.bouncy }
 
-// URL prioritet: Firebase Settings.apiUrl > VITE_API_URL > ''
+// URL prioritet: admin Settings.apiUrl (singletons/settings) > VITE_API_URL > ''
 const FALLBACK_API_URL = import.meta.env.VITE_API_URL || ''
 const STORAGE_KEY = 'muslim_cc_aichat_v2'
 
@@ -241,7 +241,7 @@ export default function AIChatWidget({ open: openProp, onClose, onUnreadChange }
   // Komponent çıxanda yarımçıq sorğunu kəs
   useEffect(() => () => abortRef.current?.abort(), [])
 
-  // Admin Firebase Settings-dən API URL-i real-time oxu (mobile ilə eyni)
+  // Admin Settings-dən (singletons/settings) API URL-i oxu (mobile ilə eyni)
   useEffect(() => {
     const unsubscribe = subscribeToSettings((settings) => {
       const url = settings?.apiUrl?.trim()

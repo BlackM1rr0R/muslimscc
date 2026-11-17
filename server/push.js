@@ -8,16 +8,13 @@
 //   GET   /api/push/vapid-public-key  → { key }   (klient pushManager.subscribe üçün)
 //   POST  /api/push/subscribe         { subscription:{endpoint,keys:{p256dh,auth}}, lang, loc, prefs, userAgent? }
 //   PATCH /api/push/subscription      { endpoint, lang?, loc?, prefs? }   (yalnız verilən sahələr)
-//   POST  /api/push/unsubscribe       { endpoint } | { legacyFcmToken }
-// KEÇİD (2-ci mərhələ): subscribe/unsubscribe gövdəsində `legacyFcmToken` —
-// köhnə klientin FCM tokeni; server onu Firestore-dan (fcm_tokens/<token>) silir
-// ki, eyni cihaza iki bildiriş getməsin (onLegacyToken; Firebase yoxdursa heç nə).
-// Endpoint ünvanını bilən öz abunəliyini idarə edir (Firestore-dakı
-// fcm_tokens/<token> modeli ilə eyni) — siyahı/oxuma API-si YOXDUR.
+//   POST  /api/push/unsubscribe       { endpoint }
+// Endpoint ünvanını bilən öz abunəliyini idarə edir — siyahı/oxuma API-si YOXDUR.
+// (Köhnə klientlərin göndərdiyi `legacyFcmToken` sahəsi sadəcə nəzərə alınmır.)
 //
 // Payload formatı public/sw.js → parsePush() ilə uyğundur (sw.js dəyişmir):
 //   { notification:{ title, body, tag, icon, badge }, data:{ url, tag, ... } }
-// Planlayıcılar FCM formatında mesaj qurur (checkin.buildCheckinMessage və s.);
+// Planlayıcılar mesajı { notification, data, webpush } formasında qurur (checkin.buildCheckinMessage və s.);
 // toWebPush() onu bu formata + TTL/Urgency başlıqlarına çevirir.
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
@@ -73,7 +70,7 @@ function validKeys(keys) {
 
 const strMax = (v, n) => typeof v === 'string' && v.length <= n
 
-/** firestore.rules → validLoc ilə eyni qaydalar. Yararsızdırsa undefined. */
+/** Abunəlikdəki yer (loc) — yararsızdırsa undefined. */
 function validLoc(l) {
   if (l == null) return null
   if (typeof l !== 'object' || Array.isArray(l)) return undefined
@@ -118,10 +115,6 @@ function validPrefs(p) {
 }
 
 const validLang = (l) => (LANGS.includes(l) ? l : null)
-
-/** Köhnə FCM tokeni (Firestore sənəd ID-si kimi işlənir — '/' və s. qadağandır). */
-const LEGACY_TOKEN_RE = /^[A-Za-z0-9_:-]{20,4096}$/
-const validLegacyToken = (t) => (typeof t === 'string' && LEGACY_TOKEN_RE.test(t) ? t : null)
 
 /**
  * POST /subscribe gövdəsi → { ok:true, value } | { ok:false, error }.
@@ -219,11 +212,11 @@ function createPushStore(db) {
   }
 }
 
-// ─── Mesaj çevrilməsi: FCM formatı → Web Push ─────────────────────────
+// ─── Mesaj çevrilməsi: daxili mesaj forması → Web Push payload ─────────
 const truncate = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s)
 
 /**
- * FCM sendEachForMulticast mesajı (tokens-suz) → { payload: string, options:{ TTL, urgency } }.
+ * Daxili mesaj (keçmişdə FCM-in forması; fcmOptions.link adı saxlanılıb) → { payload: string, options:{ TTL, urgency } }.
  *   msg = { notification:{title,body}, data?:{...}, webpush?:{ headers:{TTL,Urgency}, notification:{tag,icon,badge}, fcmOptions:{link} } }
  */
 function toWebPush(msg) {
@@ -303,16 +296,9 @@ function createWebPushSender({ publicKey, privateKey, subject, sendFn, concurren
 }
 
 // ─── Router ───────────────────────────────────────────────────────────
-function createPushRouter({ store, publicKey = '', extraHosts = [], onChange = () => {}, onLegacyToken = null }) {
+function createPushRouter({ store, publicKey = '', extraHosts = [], onChange = () => {} }) {
   const router = express.Router()
   const json = express.json({ limit: '8kb' })
-  // Köhnə FCM tokenini sil — cavabı gözlətmir, xəta abunəliyə mane olmur
-  const dropLegacy = (body) => {
-    const t = validLegacyToken(body && body.legacyFcmToken)
-    if (!t || !onLegacyToken) return false
-    Promise.resolve().then(() => onLegacyToken(t)).catch(() => { /* Firestore əlçatmazdır — server ölü tokeni sonra özü silir */ })
-    return true
-  }
 
   router.get('/push/vapid-public-key', (req, res) => {
     if (!publicKey) return res.status(503).json({ error: 'Web Push not configured' })
@@ -324,7 +310,6 @@ function createPushRouter({ store, publicKey = '', extraHosts = [], onChange = (
     const v = validateSubscribeBody(req.body, extraHosts)
     if (!v.ok) return res.status(400).json({ error: v.error })
     store.upsert(v.value)
-    dropLegacy(req.body)
     onChange()
     res.status(201).json({ ok: true })
   })
@@ -339,11 +324,7 @@ function createPushRouter({ store, publicKey = '', extraHosts = [], onChange = (
 
   router.post('/push/unsubscribe', json, (req, res) => {
     const endpoint = validEndpoint(req.body && req.body.endpoint, extraHosts)
-    const legacy = dropLegacy(req.body)
-    if (!endpoint) {
-      if (legacy) return res.json({ ok: true, removed: false })
-      return res.status(400).json({ error: 'Invalid endpoint' })
-    }
+    if (!endpoint) return res.status(400).json({ error: 'Invalid endpoint' })
     const removed = store.remove(endpoint)
     if (removed) onChange()
     res.json({ ok: true, removed })
@@ -363,7 +344,7 @@ function createPushRouter({ store, publicKey = '', extraHosts = [], onChange = (
 
 module.exports = {
   PUSH_HOSTS, DEFAULT_ICONS, MAX_PAYLOAD_BYTES,
-  hostAllowed, validEndpoint, validKeys, validLoc, validPrefs, validLegacyToken,
+  hostAllowed, validEndpoint, validKeys, validLoc, validPrefs,
   validateSubscribeBody, validatePatchBody,
   createPushStore, toWebPush, createWebPushSender, createPushRouter,
 }

@@ -54,10 +54,8 @@ const CV = {
 // Günün xatırlatmaları zolağı quotes.js və duas.js-i (~235 KB) yükləyir —
 // tənbəl yüklənir; yer tutucu (skeleton) hündürlüyü əvvəlcədən saxlayır.
 const DailyReminderBar = lazy(() => import('../components/DailyReminderBar'))
-// Bu bolmeler Firestore-dan melumat cekir (Firebase ~470 KB) ve hec biri
-// ilk ekranda deyil. Lazy edilmesi Firebase-i ilk yuklenmeden cixarir.
-// PERFORMANS: bu 5 bölmə Firestore-dan gəlir (hər biri Firebase SDK-nı, ~90 KB
-// gzip, statik çəkir) və ekranın ALTINDADIR — chunk-ları "load"-dan sonra,
+// PERFORMANS: bu 5 bölmə admin məzmununu serverdən (/api/content) çəkir və
+// ekranın ALTINDADIR — chunk-ları "load"-dan sonra,
 // boş vaxtda yüklənir (utils/idle.js). Əvvəl ana səhifənin ilk render-ində
 // yüklənib LCP resursları ilə yarışırdı. Məzmun gələndə CTA-dan yuxarıda
 // əlavə olunur — ekranın altında olduğu üçün görünən sıçrayış (CLS) yoxdur.

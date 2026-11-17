@@ -181,7 +181,7 @@ function buildFastingMessage(lang, kind, dateKey, icons = {}) {
   const url = fastingLink(lang)
   return {
     notification: { title: t.title, body: t.body },
-    // sw.js data-dan tag/url oxuyur; FCM data dəyərləri yalnız mətn ola bilər
+    // sw.js data-dan tag/url oxuyur; data dəyərləri yalnız mətndir
     data: { kind: 'fasting', fast: kind, date: dateKey, tag, url },
     webpush: {
       // Səhər səhura qədər mənalıdır; ertəsi axşam gəlməsin — 8 saat

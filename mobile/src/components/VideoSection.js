@@ -78,7 +78,7 @@ export default function VideoSection() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Real-time Firebase subscription — web ilə eyni mənbə.
+  // Admin məzmununa abunə (muslims.cc/api/content) — web ilə eyni mənbə.
   // Admin video əlavə edəndə ana səhifədə dərhal görünür.
   useEffect(() => {
     const unsubscribe = subscribeToVideos((items) => {

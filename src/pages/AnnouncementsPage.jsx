@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════
 // Elanlar (/announcements)
 //
-// Məlumat yalnız admin paneldən gəlir (Firestore, canlı):
+// Məlumat yalnız admin paneldən gəlir (server/content.js → /api/content):
 //   • announcements — elanlar (title[lang], message[lang], type, link, active, createdAt)
 //   • events        — hicri təqvim günləri (name[lang], desc[lang], month, day, type)
 // Heç bir elan və ya tədbir uydurulmur: məlumat yoxdursa sakit boş vəziyyət
-// göstərilir. Firebase qoşulmayıbsa da eyni boş vəziyyət — xəta yoxdur.
+// göstərilir. Server cavab vermirsə də eyni boş vəziyyət — xəta yoxdur.
 //
 // Ən yuxarıda sabit "Xeyriyyə və ianə" kartı durur: /donate bələdçisinə
 // qısa dəvət. Məbləğ, layihə və ya rekvizit yoxdur (Muslims.cc ianə qəbul etmir).

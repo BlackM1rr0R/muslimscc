@@ -23,7 +23,7 @@ export const HERO_GRADIENTS = [
   { key:'teal',   colors:['#14b8a6', '#0d9488', '#0f766e'] },
 ]
 
-// ═══ Default singletons (Firebase boşdursa) ═══
+// ═══ Default singletons (server cavab vermirsə) ═══
 const DEFAULT_DAILY = {
   ayah: { ar:'', text:{az:'',en:'',ru:'',ar:'',tr:''}, source:'' },
   dhikr: { ar:'', translit:'', text:{az:'',en:'',ru:'',ar:'',tr:''}, count:33 },

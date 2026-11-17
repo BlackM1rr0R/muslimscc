@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
-// Admin girişi — e-poçt + şifrə, Firebase Auth-suz (docs/FIREBASE-EXIT.md)
+// Admin girişi — e-poçt + şifrə, öz sessiyalarımız (docs/ADMIN-SECURITY.md)
 //
 // • Şifrə: crypto.scrypt (N=2^15, r=8, p=1, 64 bayt), duz 16 bayt — asılılıqsız.
 //   Saxlanma formatı: scrypt$<N>$<r>$<p>$<duz b64url>$<hash b64url>
@@ -12,8 +12,6 @@
 // • CSRF: cookie SameSite=Strict + vəziyyət dəyişən sorğularda Origin (varsa)
 //   icazəli siyahıda olmalı VƏ "X-Requested-With" başlığı olmalıdır (bu
 //   başlığı başqa sayt CORS preflight-sız göndərə bilməz, CORS isə onu rədd edir).
-// • KEÇİD DÖVRÜ: requireAdmin köhnə Firebase ID tokenini də (Authorization:
-//   Bearer) qəbul edir — klient (2-ci mərhələ) keçənə qədər admin paneli işləsin.
 // • Müvəqqəti şifrə: admin-user.js (create / set-password) ilə qoyulan şifrə
 //   `must_change=1` olur. Belə sessiya yalnız /me, /password, /logout-a çata
 //   bilər (requireAdmin.allowTemp); qalan admin API-ləri 403 { code:'must_change' }.
@@ -209,12 +207,10 @@ function createAuthStore(db) {
 }
 
 /**
- * requireAdmin middleware.
- *  verifyFirebaseToken — (idToken) => Promise<{uid,email}|null> — KEÇİD DÖVRÜ
- *  üçün; verilməyibsə yalnız yeni sessiya qəbul olunur.
+ * requireAdmin middleware — yalnız sessiya cookie-si (req.adminUser.via === 'session').
  */
-function createRequireAdmin({ store, allowedOrigins = [], verifyFirebaseToken = null }) {
-  const make = (allowTemp) => async function requireAdmin(req, res, next) {
+function createRequireAdmin({ store, allowedOrigins = [] }) {
+  const make = (allowTemp) => function requireAdmin(req, res, next) {
     const token = parseCookies(req.headers.cookie)[COOKIE_NAME]
     if (token) {
       const user = store.sessionUser(token)
@@ -227,17 +223,6 @@ function createRequireAdmin({ store, allowedOrigins = [], verifyFirebaseToken = 
           return res.status(403).json({ error: 'Password change required', code: 'must_change' })
         }
         return next()
-      }
-    }
-    // Köhnə yol: Firebase ID tokeni (Authorization: Bearer) — CSRF riski yoxdur
-    const m = /^Bearer\s+(\S{20,4096})$/i.exec(req.headers.authorization || '')
-    if (m && verifyFirebaseToken) {
-      try {
-        const u = await verifyFirebaseToken(m[1])
-        if (u) { req.adminUser = { uid: u.uid, email: u.email || '', via: 'firebase' }; return next() }
-        return res.status(403).json({ error: 'Forbidden' })
-      } catch {
-        return res.status(401).json({ error: 'Unauthorized' })
       }
     }
     return res.status(401).json({ error: 'Unauthorized' })
@@ -306,14 +291,13 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
   router.get('/admin/me', requireAny, (req, res) => {
     res.set('Cache-Control', 'no-store')
     const body = { email: req.adminUser.email, via: req.adminUser.via, mustChangePassword: Boolean(req.adminUser.mustChange) }
-    // Panel rolu (server/users.js → admin_roles; sətri olmayan admin = 'admin'). Köhnə Firebase tokeni — 'admin'.
-    if (adminRoleOf) body.role = req.adminUser.via === 'session' ? adminRoleOf(req.adminUser.id) : 'admin'
+    // Panel rolu (server/users.js → admin_roles; sətri olmayan admin = 'admin')
+    if (adminRoleOf) body.role = adminRoleOf(req.adminUser.id)
     res.json(body)
   })
 
-  // Şifrəni dəyiş: { currentPassword, newPassword } — yalnız sessiya ilə (köhnə
-  // Firebase tokeni ilə yox). CSRF requireAdmin-dədir. Uğurlu olanda digər
-  // sessiyalar ləğv olunur, cari sessiya qalır.
+  // Şifrəni dəyiş: { currentPassword, newPassword } — yalnız sessiya ilə.
+  // CSRF requireAdmin-dədir. Uğurlu olanda digər sessiyalar ləğv olunur, cari sessiya qalır.
   router.post('/admin/password', requireAny, json, async (req, res) => {
     res.set('Cache-Control', 'no-store')
     if (req.adminUser.via !== 'session') return res.status(403).json({ error: 'Session required' })

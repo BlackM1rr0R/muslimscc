@@ -85,10 +85,8 @@ describe('HTTP: login / me / logout / requireAdmin', () => {
     const db = openDb(':memory:')
     store = auth.createAuthStore(db)
     await store.createAdmin('admin@example.com', PASS)
-    const legacy = async (t) => (t === 'firebase-admin-token-xxxxxxxx' ? { uid: 'u1', email: 'fb@example.com' }
-      : t === 'firebase-user-token-xxxxxxxxx' ? null : Promise.reject(new Error('bad')))
     const allowedOrigins = ['https://muslims.cc']
-    const requireAdmin = auth.createRequireAdmin({ store, allowedOrigins, verifyFirebaseToken: legacy })
+    const requireAdmin = auth.createRequireAdmin({ store, allowedOrigins })
     const app = express()
     app.use('/api', auth.createAuthRouter({ store, requireAdmin, allowedOrigins, limits: { ipMax: 50, emailMax: 3 } }))
     app.post('/api/admin/thing', requireAdmin, (req, res) => res.json({ via: req.adminUser.via }))
@@ -171,18 +169,13 @@ describe('HTTP: login / me / logout / requireAdmin', () => {
     expect(await (await login('temp@example.com', NEW)).json()).toMatchObject({ ok: true, mustChangePassword: false })
   })
 
-  it('şifrə dəyişmə köhnə Firebase tokeni ilə olmur', async () => {
-    const r = await fetch(srv.url + '/api/admin/password', { method: 'POST',
+  it('yalnız sessiya cookie-si: Bearer tokeni (köhnə Firebase yolu) qəbul olunmur', async () => {
+    const post = (t) => fetch(srv.url + '/api/admin/thing', { method: 'POST', headers: { authorization: `Bearer ${t}` } })
+    expect((await post('firebase-admin-token-xxxxxxxx')).status).toBe(401)
+    expect((await fetch(srv.url + '/api/admin/thing', { method: 'POST' })).status).toBe(401)
+    const pw = await fetch(srv.url + '/api/admin/password', { method: 'POST',
       headers: { authorization: 'Bearer firebase-admin-token-xxxxxxxx', 'content-type': 'application/json' },
       body: JSON.stringify({ currentPassword: 'a'.repeat(12), newPassword: 'b'.repeat(12) }) })
-    expect(r.status).toBe(403)
-  })
-
-  it('KEÇİD DÖVRÜ: köhnə Firebase ID tokeni (Bearer) qəbul olunur', async () => {
-    const post = (t) => fetch(srv.url + '/api/admin/thing', { method: 'POST', headers: { authorization: `Bearer ${t}` } })
-    expect(await (await post('firebase-admin-token-xxxxxxxx')).json()).toEqual({ via: 'firebase' })
-    expect((await post('firebase-user-token-xxxxxxxxx')).status).toBe(403)   // admin claim-i yoxdur
-    expect((await post('invalid-token-xxxxxxxxxxxxxxxx')).status).toBe(401)
-    expect((await fetch(srv.url + '/api/admin/thing', { method: 'POST' })).status).toBe(401)
+    expect(pw.status).toBe(401)
   })
 })

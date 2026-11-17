@@ -24,7 +24,6 @@ const CC_BY_3 = 'https://creativecommons.org/licenses/by/3.0/'
 const CC_BY_4 = 'https://creativecommons.org/licenses/by/4.0/'
 const OFL = 'https://openfontlicense.org/'
 const MIT = 'MIT'
-const APACHE = 'Apache-2.0'
 
 // ── Quran ──
 const QURAN_TEXT = [
@@ -386,11 +385,9 @@ const FONTS = [
 const SOFTWARE = [
   { name: 'React, React DOM', url: 'https://react.dev/', license: MIT, licenseUrl: 'https://github.com/facebook/react/blob/main/LICENSE', by: 'Meta Platforms, Inc.' },
   { name: 'React Router', url: 'https://reactrouter.com/', license: MIT, licenseUrl: 'https://github.com/remix-run/react-router/blob/main/LICENSE.md', by: 'Remix Software Inc.' },
-  { name: 'Firebase JavaScript SDK', url: 'https://github.com/firebase/firebase-js-sdk', license: APACHE, licenseUrl: 'https://www.apache.org/licenses/LICENSE-2.0', by: 'Google LLC' },
   { name: 'd3-geo, topojson-client', url: 'https://d3js.org/d3-geo', license: 'ISC', licenseUrl: 'https://github.com/d3/d3-geo/blob/main/LICENSE', by: 'Mike Bostock' },
   { name: 'Vite', url: 'https://vite.dev/', license: MIT, licenseUrl: 'https://github.com/vitejs/vite/blob/main/LICENSE', by: 'VoidZero Inc. & Vite contributors' },
   { name: 'Express, cors, express-rate-limit', url: 'https://expressjs.com/', license: MIT, licenseUrl: 'https://github.com/expressjs/express/blob/master/LICENSE' },
-  { name: 'Firebase Admin SDK', url: 'https://github.com/firebase/firebase-admin-node', license: APACHE, licenseUrl: 'https://www.apache.org/licenses/LICENSE-2.0', by: 'Google LLC' },
   { name: 'Expo, React Native', url: 'https://expo.dev/', license: MIT, licenseUrl: 'https://github.com/expo/expo/blob/main/LICENSE' },
 ]
 

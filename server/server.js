@@ -1,7 +1,6 @@
 const express = require('express')
 const cors = require('cors')
 const rateLimit = require('express-rate-limit')
-const admin = require('firebase-admin')
 
 const app = express()
 // nginx-in arxasındayıq — real IP-ni X-Forwarded-For-dan oxu (rate-limit üçün vacib)
@@ -10,26 +9,13 @@ app.set('trust proxy', 1)
 // ─── Config (env-dən oxunur — heç bir açar kodda yoxdur) ─────────────
 const PORT = process.env.PORT || 3001
 const OPENROUTER_KEY = process.env.OPENROUTER_KEY
-const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID
-const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL
-const FIREBASE_PRIVATE_KEY = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash'
 const DB_PATH = process.env.DB_PATH || '/data/muslims.db'
-const envOff = (v) => /^(0|false|no|off)$/i.test(String(v || '').trim())
+// Qeyd: köhnə FIREBASE_*, FCM_ENABLED, LEGACY_FIREBASE_AUTH env-ləri artıq oxunmur
+// (Firebase-dən çıxış tamamdır — docs/FIREBASE-EXIT.md); api.env-də qalsalar zərərsizdir.
 
 // Vacib env dəyişənləri yoxdursa serveri başlatma (səssiz sınıqdan yaxşıdır)
 if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUTER_KEY'); process.exit(1) }
-
-// ─── Firebase — KEÇİD DÖVRÜ (docs/FIREBASE-EXIT.md) ──────────────────
-// Firebase env-i yoxdursa server yenə işləyir: FCM göndərişi və köhnə admin
-// tokeni (Firebase ID token) sönür, qalan hər şey (SQLite, Web Push) işləyir.
-//   FCM_ENABLED=false            — FCM tokenlərinə göndərmə (və Firestore oxuması) dayanır
-//   LEGACY_FIREBASE_AUTH=false   — admin API-si Firebase ID tokenini qəbul etmir
-const FIREBASE_READY = Boolean(FIREBASE_PROJECT_ID && FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY)
-const FCM_ON = FIREBASE_READY && !envOff(process.env.FCM_ENABLED)
-const LEGACY_AUTH_ON = FIREBASE_READY && !envOff(process.env.LEGACY_FIREBASE_AUTH)
-if (!FIREBASE_READY) console.warn('XƏBƏRDARLIQ: Firebase env-i yoxdur — FCM və köhnə admin tokeni sönülüdür')
-else console.log(`Firebase: FCM ${FCM_ON ? 'açıq' : 'sönülü'}, köhnə admin tokeni ${LEGACY_AUTH_ON ? 'qəbul olunur' : 'qəbul olunmur'}`)
 
 // ─── Modullar BAZADAN ƏVVƏL yüklənir ──────────────────────────────────
 // Modul çatışmırsa (məs. Dockerfile-a düşməyib), server MİQRASİYADAN ƏVVƏL
@@ -80,12 +66,7 @@ app.use('/api/push', limit(60000, 30))
 // ─── Admin girişi (server/auth.js) ───────────────────────────────────
 const authLib = require('./auth')
 const authStore = authLib.createAuthStore(db)
-let verifyFirebaseToken = null   // aşağıda Firebase işə düşəndə təyin olunur
-const requireAdmin = authLib.createRequireAdmin({
-  store: authStore,
-  allowedOrigins: ALLOWED,
-  verifyFirebaseToken: (t) => (verifyFirebaseToken ? verifyFirebaseToken(t) : Promise.reject(new Error('legacy auth off'))),
-})
+const requireAdmin = authLib.createRequireAdmin({ store: authStore, allowedOrigins: ALLOWED })
 // İstifadəçi hesabları (server/users.js) — cədvəllər miqrasiyasız; admin_roles burada yaradılır,
 // ona görə store admin router-indən əvvəl qurulur (GET /api/admin/me → role)
 const usersLib = require('./users')
@@ -172,14 +153,6 @@ app.use('/api', push.createPushRouter({
   publicKey: webPush.enabled ? process.env.VAPID_PUBLIC_KEY : '',
   extraHosts: PUSH_EXTRA_HOSTS,
   onChange: () => { tokensLoadedAt = 0 },   // planlayıcı siyahını növbəti dövrdə təzələsin
-  // KEÇİD: Web Push-a keçən klient köhnə FCM tokenini göndərir — Firestore-dan
-  // silinir ki, cihaza ikiqat bildiriş getməsin. FCM sönülüdürsə (adminDb yox) — heç nə.
-  onLegacyToken: async (token) => {
-    if (!adminDb) return
-    await adminDb.collection('fcm_tokens').doc(token).delete()
-    fcmCache = fcmCache.filter((e) => e.id !== token)
-    tokensLoadedAt = 0
-  },
 }))
 
 app.use(express.json())
@@ -357,110 +330,43 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', db: 'ok', time: new Date().toISOString() })
 })
 
-// ─── Firebase Admin SDK — yalnız KEÇİD DÖVRÜ üçün ────────────────────
-let adminDb = null    // Firestore (fcm_tokens oxuması) — FCM_ON olanda
-let adminMsg = null   // FCM göndərişi — FCM_ON olanda
-if (FIREBASE_READY) {
-  try {
-    if (!admin.apps.length) {
-      admin.initializeApp({ credential: admin.credential.cert({
-        projectId: FIREBASE_PROJECT_ID, clientEmail: FIREBASE_CLIENT_EMAIL, privateKey: FIREBASE_PRIVATE_KEY,
-      }) })
-    }
-    if (FCM_ON) { adminDb = admin.firestore(); adminMsg = admin.messaging() }
-    // Köhnə admin paneli: Firebase ID tokeni + `admin: true` custom claim
-    // (server/scripts/set-admin.js). checkRevoked=true — ləğv olunmuş token keçmir.
-    if (LEGACY_AUTH_ON) {
-      verifyFirebaseToken = async (idToken) => {
-        const decoded = await admin.auth().verifyIdToken(idToken, true)
-        return decoded.admin === true ? { uid: decoded.uid, email: decoded.email || '' } : null
-      }
-    }
-  } catch (e) {
-    console.error('XƏBƏRDARLIQ: Firebase işə düşmədi — FCM və köhnə admin tokeni sönülüdür:', e.message)
-    adminDb = null; adminMsg = null; verifyFirebaseToken = null
-  }
-}
 // Bildirişin ikonu və nişanı (public/sw.js parsePush oxuyur) — saytın loqosu
 const WEBPUSH_ICONS = push.DEFAULT_ICONS
-const FCM_DEAD = /registration-token-not-registered|invalid-registration-token|invalid-argument/
 
-// ═══ ABUNƏÇİLƏR — İKİ MƏNBƏ ═══════════════════════════════════════════
-// (a) push_subs (SQLite) — standart Web Push, VAPID ilə (yeni klient)
-// (b) fcm_tokens (Firestore) — KEÇİD DÖVRÜ: köhnə klient hələ ora yazır.
-//     FCM_ENABLED=false olanda (b) tam sönür — Firestore oxunmur.
-// Eyni cihaz iki mənbədə OLMAMALIDIR: 2-ci mərhələdə klient Web Push-a
-// keçəndə köhnə FCM tokenini özü silir (fcm_tokens/<token> → delete).
+// ═══ ABUNƏÇİLƏR — push_subs (SQLite, standart Web Push, VAPID) ═══════
 
-let fcmCache = []     // son uğurlu Firestore oxuması (Firestore əlçatmaz olanda istifadə olunur)
-
-/** Bütün abunəçilər (xam): [{ kind:'wp'|'fcm', id, sub?, token?, lang, loc, azan, daily, checkin, fasting }] */
-async function loadAllSubscribers() {
+/** Bütün abunəçilər (xam): [{ id, sub, lang, loc, azan, daily, checkin, fasting, ... }] */
+function loadAllSubscribers() {
   const out = []
   for (const s of pushStore.all()) {
     out.push({
-      kind: 'wp', id: s.endpoint, sub: { endpoint: s.endpoint, keys: s.keys },
+      id: s.endpoint, sub: { endpoint: s.endpoint, keys: s.keys },
       lang: s.lang, loc: s.loc, azan: s.prefs.azan, daily: s.prefs.daily, checkin: s.prefs.checkin,
       fasting: s.prefs.fasting, adhkar: s.prefs.adhkar, jumuah: s.prefs.jumuah, eclipse: s.prefs.eclipse,
     })
   }
-  if (adminDb) {
-    try {
-      const snap = await adminDb.collection('fcm_tokens').get()
-      fcmCache = []
-      for (const doc of snap.docs) {
-        const d = doc.data()
-        if (!d.token) continue
-        fcmCache.push({ kind: 'fcm', id: doc.id, token: d.token, lang: d.lang, loc: d.loc, azan: d.azan, daily: d.daily, checkin: d.checkin, fasting: d.fasting, adhkar: d.adhkar, jumuah: d.jumuah, eclipse: d.eclipse })
-      }
-    } catch (e) {
-      console.error('Firestore fcm_tokens oxunmadı — əvvəlki siyahı istifadə olunur:', e.message)
-    }
-    out.push(...fcmCache)
-  }
   return out
 }
 
-/** Ölü abunəlikləri sil (hər iki mənbədə). */
-async function removeDead(deadTokens, deadEndpoints) {
-  for (const id of deadTokens) {
-    try { await adminDb.collection('fcm_tokens').doc(id).delete() } catch { /* boş ver */ }
-  }
+/** Ölü abunəlikləri (push xidməti 404/410 qaytarıb) sil. */
+function removeDead(deadEndpoints) {
   for (const ep of deadEndpoints) {
     try { pushStore.remove(ep) } catch { /* boş ver */ }
   }
-  if (deadTokens.length) fcmCache = fcmCache.filter((e) => !deadTokens.includes(e.id))
-  const n = deadTokens.length + deadEndpoints.length
-  if (n) {
-    console.log(`${n} ölü abunəlik silindi (FCM ${deadTokens.length}, Web Push ${deadEndpoints.length})`)
+  if (deadEndpoints.length) {
+    console.log(`${deadEndpoints.length} ölü abunəlik silindi (Web Push)`)
     tokensLoadedAt = 0   // siyahı növbəti dövrdə təzələnsin
   }
 }
 
 /**
- * Bir mesajı (FCM formatında — notification/data/webpush) abunəçilərə göndər:
- * FCM tokenlərinə Admin SDK ilə, Web Push abunəliklərinə web-push ilə
- * (push.toWebPush eyni mesajı sw.js-in oxuduğu formata çevirir).
+ * Bir mesajı (notification/data/webpush forması) Web Push abunəliklərinə göndər
+ * (push.toWebPush mesajı sw.js-in oxuduğu formata çevirir).
  */
 async function deliver(entries, msg, label) {
-  const fcm = adminMsg ? entries.filter((e) => e.kind === 'fcm') : []
-  const wp = webPush.enabled ? entries.filter((e) => e.kind === 'wp') : []
-  const deadTokens = [], deadEndpoints = []
-  const r = { fcmOk: 0, fcmFail: 0, wpOk: 0, wpFail: 0 }
-  for (let i = 0; i < fcm.length; i += 500) {
-    const chunk = fcm.slice(i, i + 500)
-    try {
-      const result = await adminMsg.sendEachForMulticast({ tokens: chunk.map((e) => e.token), ...msg })
-      r.fcmOk += result.successCount
-      r.fcmFail += result.failureCount
-      result.responses.forEach((x, j) => {
-        if (FCM_DEAD.test((x.error && x.error.code) || '')) deadTokens.push(chunk[j].id)
-      })
-    } catch (e) {
-      r.fcmFail += chunk.length
-      console.error(`FCM xəta (${label}):`, e.message)
-    }
-  }
+  const wp = webPush.enabled ? entries : []
+  const deadEndpoints = []
+  const r = { wpOk: 0, wpFail: 0 }
   if (wp.length) {
     try {
       const res = await webPush.sendMany(wp.map((e) => e.sub), msg)
@@ -471,24 +377,14 @@ async function deliver(entries, msg, label) {
       r.wpFail += wp.length
       console.error(`Web Push xəta (${label}):`, e.message)
     }
+    console.log(`Push ${label}: Web Push ${r.wpOk} çatdı/${r.wpFail} alınmadı`)
   }
-  if (fcm.length || wp.length) {
-    console.log(`Push ${label}: FCM ${r.fcmOk} çatdı/${r.fcmFail} alınmadı · Web Push ${r.wpOk} çatdı/${r.wpFail} alınmadı`)
-  }
-  await removeDead(deadTokens, deadEndpoints)
-  return { successCount: r.fcmOk + r.wpOk, failureCount: r.fcmFail + r.wpFail, ...r }
+  removeDead(deadEndpoints)
+  return { successCount: r.wpOk, failureCount: r.wpFail, ...r }
 }
 
 // Abunəçi sayı (admin paneli)
-app.get('/api/admin/subscribers', requireAdmin, async (req, res) => {
-  let fcm = 0
-  if (adminDb) {
-    try {
-      fcm = (await adminDb.collection('fcm_tokens').count().get()).data().count
-    } catch (e) {
-      console.error('Subscribers count error:', e.message)
-    }
-  }
+app.get('/api/admin/subscribers', requireAdmin, (req, res) => {
   const webpush = pushStore.count()
   // İcmal paneli üçün cəmlər (yalnız say; endpoint/açar yox): son 90 gündə yaranan
   // və hələ aktiv Web Push abunəlikləri gün üzrə + dillər üzrə bölgü
@@ -498,7 +394,7 @@ app.get('/api/admin/subscribers', requireAdmin, async (req, res) => {
     webpushLangs = pushStore.langs()
   } catch (e) { console.error('Subscribers summary error:', e.message) }
   res.set('Cache-Control', 'no-store')
-  res.json({ count: fcm + webpush, fcm, webpush, webpushNew, webpushLangs })
+  res.json({ count: webpush, webpush, webpushNew, webpushLangs })
 })
 
 // ─── Bildiriş tarixçəsi (notification_history) ───────────────────────
@@ -507,7 +403,7 @@ const historyInsert = db.raw.prepare(`INSERT INTO notification_history
 const historyList = db.raw.prepare(`SELECT id, title, body, url, priority, sent_to, failed, created_at
   FROM notification_history ORDER BY created_at DESC LIMIT 200`)
 
-// Firestore-dakı notification_history sənədləri ilə eyni forma
+// Admin panelinin gözlədiyi forma (keçmişdə Firestore sənədi ilə eyni idi)
 app.get('/api/admin/notification-history', requireAdmin, (req, res) => {
   res.set('Cache-Control', 'no-store')
   res.json(historyList.all().map((h) => ({
@@ -546,17 +442,11 @@ app.post('/api/send-notification', requireAdmin, async (req, res) => {
         fcmOptions: { link },
       },
     }
-    const entries = await loadAllSubscribers()
-    const result = await deliver(entries, msg, 'admin')
-    // Tarixçə: köhnə admin paneli (Firebase tokeni) onu özü Firestore-a yazır —
-    // ikiqat olmasın deyə yalnız yeni sessiya ilə gələn göndərişlər burada yazılır
-    let historyId
-    if (req.adminUser && req.adminUser.via === 'session') {
-      historyId = newId()
-      historyInsert.run(historyId, title.trim(), body.trim(), link, high ? 'high' : 'normal',
-        result.successCount, result.failureCount, Date.now())
-    }
-    res.json({ ...result, ...(historyId ? { historyId } : {}) })
+    const result = await deliver(loadAllSubscribers(), msg, 'admin')
+    const historyId = newId()
+    historyInsert.run(historyId, title.trim(), body.trim(), link, high ? 'high' : 'normal',
+      result.successCount, result.failureCount, Date.now())
+    res.json({ ...result, historyId })
   } catch (e) {
     console.error('Push error:', e)
     res.status(500).json({ error: 'Push failed' })
@@ -571,7 +461,7 @@ app.post('/api/send-notification', requireAdmin, async (req, res) => {
 // • Yer: abunəlikdəki loc = { lat, lng, tz, method, city:{az..} } — sayt şəhər
 //   seçiləndə yazır (src/utils/prayerLocation.js). loc-u olmayan köhnə
 //   abunələr standart yerə (Bakı) düşür.
-// • Abunəçilər (Web Push + keçid dövründə FCM) eyni yerə görə qruplaşdırılır;
+// • Abunəçilər (Web Push) eyni yerə görə qruplaşdırılır;
 //   hər yer üçün gündə bir aladhan sorğusu (o yerin öz saat qurşağında).
 // • Bildirişdə növbəti namaz və şəhər adı da yazılır (kilid ekranında görünsün).
 // • Ölü abunəliklər (tətbiq silinib, icazə geri alınıb) silinir.
@@ -617,19 +507,19 @@ async function fetchTimings(loc, ddmmyyyy) {
 }
 
 // ── Keşlər ──
-let tokenGroups = new Map()      // locKey → { loc, entries:[{kind, id, token|sub, lang, ...}] }
+let tokenGroups = new Map()      // locKey → { loc, entries:[{ id, sub, lang, ... }] }
 let tokensLoadedAt = 0
 const dayTimes = new Map()       // `${locKey}|${dateKey}` → { times, tomorrowFajr } | { failedAt }
 const sentKeys = new Set()       // `${locKey}|${dateKey}|${prayer}`
 
 async function loadTokens() {
   const groups = new Map()
-  for (const d of await loadAllSubscribers()) {
+  for (const d of loadAllSubscribers()) {
     const loc = normLoc(d.loc)
     const key = locKey(loc)
     if (!groups.has(key)) groups.set(key, { loc, entries: [] })
     groups.get(key).entries.push({
-      kind: d.kind, id: d.id, token: d.token, sub: d.sub,
+      id: d.id, sub: d.sub,
       lang: LANGS.includes(d.lang) ? d.lang : 'az',
       daily: normDaily(d.daily),   // "Günün ayəsi" seçimi — aşağıdakı planlayıcı üçün
       azan: d.azan !== false,      // ayarlarda "Namaz vaxtı" söndürülübsə azan göndərilmir

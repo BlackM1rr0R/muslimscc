@@ -2,7 +2,7 @@
 // Admin icmal paneli (components/admin/DashboardOverview.jsx) — saf hesab.
 // YALNIZ mövcud admin API cavablarından (heç nə uydurulmur):
 //   GET /api/admin/analytics?from&to&compare=1  { series, totals, pages, referrers, languages, devices, browsers, prev, pageSeries }
-//   GET /api/admin/subscribers                  { count, fcm, webpush, webpushNew:[{day,count}], webpushLangs }
+//   GET /api/admin/subscribers                  { count, webpush, webpushNew:[{day,count}], webpushLangs }
 //   GET /api/admin/notification-history         [{ id, title, sentTo, failed, createdAt }]
 //   GET /api/admin/feedback                     [{ id, kind, page, status, lang, createdAt }]
 //   GET /api/admin/errors                       { since, total, items:[{ kind, message, count, last }] }
@@ -152,7 +152,6 @@ export function subscriberStats(subs, days, now = Date.now()) {
   return {
     count: Number(subs?.count) || 0,
     webpush: Number(subs?.webpush) || 0,
-    fcm: Number(subs?.fcm) || 0,
     hasDaily: Array.isArray(subs?.webpushNew),
     added: sumOf(daily),
     addedPrev: sumOf(prevKeys.map(k => m.get(k) || 0)),

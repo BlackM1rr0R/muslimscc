@@ -1,12 +1,10 @@
 # 📱 Muslims.cc Mobile — Setup
 
-## 🔥 Firebase paylaşımı (web ilə eyni)
+## Admin məzmunu (web ilə eyni server)
 
-Mobile **eyni Firebase layihəsindən** oxuyur — admin paneldən web-də əlavə edilən kitab/video/hədis dərhal mobile-da görünür.
+Mobile saytın serverindən oxuyur (`https://muslims.cc/api/content/...`, [src/api/content.js](src/api/content.js)) — admin paneldən web-də əlavə edilən kitab/video/hədis mobile-da da görünür (tətbiq ön plana qayıdanda yenidən soruşulur). Yalnız oxuma.
 
-Konfiqurasiya: [mobile/src/firebase/config.js](src/firebase/config.js) — açarlar `muslims-cc` layihəsi ilə eynidir (publik web açarlardır).
-
-### Real-time abunələr
+### Abunələr
 
 | Modul | Funksiya | Faylda |
 |---|---|---|
@@ -57,7 +55,7 @@ Vercel deploy URL-i ilə əvəz edin. Sonra hər iki tərəfdə eyni `/api/ask-a
 
 ```bash
 cd mobile
-npm install   # firebase paketini quraşdırır
+npm install
 npx expo start
 ```
 
@@ -76,12 +74,5 @@ eas build --platform ios
 
 ## ⚠️ Vacib qeydlər
 
-1. **Firebase Security Rules** — Firestore Console-da public read icazə verilməlidir:
-   ```
-   match /{collection}/{doc} {
-     allow read: if true;  // hər kəs oxuya bilər
-     allow write: if false; // yalnız Admin SDK (web admin panel)
-   }
-   ```
-2. **AI Chat üçün Vercel endpoint** mütləq deploy edilməlidir
-3. **Notifications** — Expo Notifications + FCM token Firestore-ə yazılır (web ilə paylaşılmış `fcm_tokens` kolleksiya)
+1. **AI Chat üçün endpoint** mütləq deploy edilməlidir
+2. **Notifications** — namaz xatırlatmaları cihazda planlaşdırılır (Expo Notifications); server push-u yoxdur

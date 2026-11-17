@@ -3,7 +3,7 @@
 //
 // NƏ: "virtual:hadiths/<dil>" modulunu (vite.config.js → hadithLangPlugin)
 // dinamik yükləyir və keşləyir. Modulda həmin dilin TƏKRARSIZ siyahısı və
-// alias cədvəli var; Firebase birləşməsi üçün açar həşləri (bütün dillər
+// alias cədvəli var; admin hədisləri ilə birləşmə üçün açar həşləri (bütün dillər
 // üçün eyni) ayrıca "virtual:hadiths/keys" modulundadır — hamısı build
 // zamanı utils/uniqueHadiths.js ilə hesablanıb.
 // NİYƏ: əvvəl HadithPage / GlobalSearch bütöv src/data/hadiths.js-i (5 dil,
@@ -85,7 +85,7 @@ export function useHadithData(lang) {
 
 let keysPromise = null
 /**
- * Firebase (admin) hədisləri ilə birləşmə açarları: Promise<keysOf(id)>.
+ * Admin hədisləri ilə birləşmə açarları: Promise<keysOf(id)>.
  * Yalnız /hadith-də, ilk boyamadan sonra lazım olur (admin hədisləri onsuz da
  * şəbəkədən sonra gəlir) — ona görə dil modulundan ayrıdır (~31 KB gzip).
  */

@@ -121,7 +121,7 @@ const normAr = (s) => String(s || '').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED
 const fold = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ı/g, 'i').replace(/ə/g, 'e')
 const HAS_ARABIC = /[؀-ۿ]/
 
-// Kartın bütün id-ləri (birləşdirilmiş dublikatda həm Firebase, həm yerli id)
+// Kartın bütün id-ləri (birləşdirilmiş dublikatda həm admin, həm yerli id)
 const idsOf = (dua) => dua._ids || [dua.id]
 
 // ── Ayə: api.alquran.cloud-dan gətirilir (mətn yaddaşdan yazılmır) ──
@@ -276,7 +276,7 @@ export default function DuasPage({ setPage }) {
     try { localStorage.setItem('dua_favs', JSON.stringify(favs)) } catch { /* yaddaş bağlıdır */ }
   }, [favs])
 
-  // Firebase real-time custom duas
+  // Admin duaları (server/content.js → /api/content/duas)
   useEffect(() => {
     const unsubscribe = subscribeToDuas((items) => setCustomDuas(items))
     return () => unsubscribe?.()
@@ -344,7 +344,7 @@ export default function DuasPage({ setPage }) {
   }
   const copyDua = async (dua) => { if (await copyText(duaText(dua))) flashCopied(`c-${dua.id}`) }
 
-  // Firebase custom duaları normal formata çevirək
+  // Admin dualarını normal formata çevirək
   const customForLang = useMemo(() => {
     const catMap = { morning:'Morning', evening:'Evening', general:'Misc', forgiveness:'Forgiveness', gratitude:'Gratitude', travel:'Travel', food:'Eating', sleep:'Sleeping' }
     return customDuas.map(d => ({
@@ -363,7 +363,7 @@ export default function DuasPage({ setPage }) {
       .filter(d => (lang === 'ar' ? d.ar : pickLang(d[lang], lang, { warn: false })))
   }, [customDuas, lang])
 
-  // Dublikatları birləşdir: Firebase-dəki dua yerli siyahıdakının surətidirsə,
+  // Dublikatları birləşdir: admin duası yerli siyahıdakının surətidirsə,
   // bir kart qalır. Admin mətni (tərcümə, mənbə) üstündür, boş sahələr yerli
   // nüsxədən doldurulur; kateqoriya yerli nüsxədən götürülür — admin panelində
   // cəmi 8 kateqoriya var, yerli siyahı daha dəqiqdir ("Narahatlıq" → "Digər" olmasın).

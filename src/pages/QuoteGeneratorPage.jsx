@@ -158,7 +158,7 @@ export default function QuoteGeneratorPage() {
     try { localStorage.setItem(PREFS_KEY, JSON.stringify({ tpl: tplId, fmt: fmtId, style })) } catch { /* yaddaş bağlıdır */ }
   }, [tplId, fmtId, style])
 
-  /* ── 1. Sitatlar kitabxanası (quotes.js + admin Firebase) ── */
+  /* ── 1. Sitatlar kitabxanası (quotes.js + admin sitatları) ── */
   const [customQuotes, setCustomQuotes] = useState([])
   useEffect(() => {
     const unsubscribe = subscribeToQuotes((items) => {
@@ -172,7 +172,7 @@ export default function QuoteGeneratorPage() {
     })
     return () => unsubscribe?.()
   }, [])
-  // Admin paneli yerli sitatları Firebase-ə köçürə bilir — surətlər bir dəfə sayılsın
+  // Admin paneli yerli sitatları serverə köçürə bilir — surətlər bir dəfə sayılsın
   const QUOTES = useMemo(
     () => dedupeList([...customQuotes, ...STATIC_QUOTES], q => hadithKeys(q.ar, q.text?.az, q.source), { idOf: q => q }).items
       // Cari dildə mətni olmayan admin sitatı bu dildə göstərilmir (ərəbcədə — orijinal varsa)

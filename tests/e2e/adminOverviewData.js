@@ -84,7 +84,7 @@ export async function mockOverviewApi(page, { failing = [], empty = false } = {}
   const fx = overviewFixtures()
   const requests = []
   const map = {
-    '/api/admin/subscribers': ['subs', () => (empty ? { count: 0, fcm: 0, webpush: 0, webpushNew: [], webpushLangs: [] } : fx.subscribers)],
+    '/api/admin/subscribers': ['subs', () => (empty ? { count: 0, webpush: 0, webpushNew: [], webpushLangs: [] } : fx.subscribers)],
     '/api/admin/notification-history': ['history', () => (empty ? [] : fx.history)],
     '/api/admin/feedback': ['feedback', () => (empty ? [] : fx.feedback)],
     '/api/admin/errors': ['errors', () => (empty ? { since: new Date().toISOString(), total: 0, dropped: 0, items: [] } : fx.errors)],

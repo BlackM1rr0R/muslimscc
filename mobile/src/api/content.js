@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════
-// MƏZMUN API-si — Mobile (Firestore-un əvəzi; veb src/api/content.js ilə eyni)
+// MƏZMUN API-si — Mobile (veb src/api/content.js ilə eyni)
 //
 // Sayt ilə eyni server: https://muslims.cc/api/content/... (server/content.js,
-// SQLite). Yalnız oxuma — mobil tətbiq heç nə yazmır. İmzalar köhnə
-// src/firebase/firestore.js ilə eynidir: [{ id, ...data }] (createdAt azalan).
+// SQLite). Yalnız oxuma — mobil tətbiq heç nə yazmır. Cavab forması:
+// [{ id, ...data }] (createdAt azalan).
 //
 // Realtime yoxdur: subscribe* ilk abunədə soruşur, tətbiq ön plana qayıdanda
 // (AppState 'active') yenidən soruşur — If-None-Match ilə, dəyişməyibsə server

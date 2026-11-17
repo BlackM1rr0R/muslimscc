@@ -1,6 +1,6 @@
 # Firebase-dən çıxış (Firestore, Auth, FCM → öz serverimiz)
 
-Bu sənəd Firebase-dən tam çıxışı izah edir. **1-ci mərhələ (server) canlıdadır. 2-ci mərhələ (klient: sayt + mobil) kodda hazırdır** — deploy sırası aşağıda. 3-cü mərhələ (Firebase-in bağlanması) — klient keçəndən 2–4 həftə sonra.
+Bu sənəd Firebase-dən tam çıxışı izah edir. **1-ci (server) və 2-ci (klient) mərhələlər canlıdadır; 3-cü mərhələnin kod hissəsi (keçid kodunun silinməsi) EDİLDİ** — aşağıda "3-cü mərhələ". Keçid dövrünə aid bölmələr tarixçə kimi saxlanılır.
 
 | Firebase | Əvəzi |
 |---|---|
@@ -17,9 +17,6 @@ brauzer ──► nginx (web) ──/api/──► api (Node, server.js)
                                      ├─ /api/push/*                     (Web Push abunəliyi)
                                      ├─ planlayıcılar: azan, günün ayəsi, "Qıldınızmı?"
                                      └─ SQLite: /data/muslims.db (named volume api-data, WAL)
-                                            │
-                     KEÇİD DÖVRÜ ───────────┴── Firestore fcm_tokens (oxuma) + FCM (göndərmə)
-                                                Firebase ID token (köhnə admin paneli)
 ```
 
 **Cədvəllər** (`server/db.js`, miqrasiya versiyası `PRAGMA user_version`):
@@ -46,21 +43,21 @@ Vaxtlar (`createdAt`, `updatedAt`) **millisaniyədir** (Firestore Timestamp deyi
 | GET | `/api/singletons/:id` | hamı | `daily`, `hero`, `settings` |
 | POST | `/api/admin/login` | — | `{ email, password }` → cookie `__Host-mcc_admin` (HttpOnly, Secure, SameSite=Strict, 30 gün). Limit: IP 10, e-poçt 5 / 15 dəq |
 | POST | `/api/admin/logout` | cookie | |
-| GET | `/api/admin/me` | admin (müvəqqəti şifrə ilə də) | `{ email, via:'session'\|'firebase', mustChangePassword }` |
-| POST | `/api/admin/password` | sessiya (müvəqqəti şifrə ilə də) | `{ currentPassword, newPassword≥12 }` → `{ ok }`; xəta `code`: `wrong`/`weak`/`same`; uğurlu olanda **digər** sessiyalar ləğv olunur, cari qalır; köhnə Firebase tokeni ilə `403` |
+| GET | `/api/admin/me` | admin (müvəqqəti şifrə ilə də) | `{ email, via:'session', mustChangePassword, role }` |
+| POST | `/api/admin/password` | sessiya (müvəqqəti şifrə ilə də) | `{ currentPassword, newPassword≥12 }` → `{ ok }`; xəta `code`: `wrong`/`weak`/`same`; uğurlu olanda **digər** sessiyalar ləğv olunur, cari qalır |
 | POST | `/api/admin/content/:collection` | admin | `addDoc` → `201 { id, ...data }` (`createdAt` serverdən) |
 | POST | `/api/admin/content/:collection/batch` | admin | `{ items:[…] }` (≤200) — toplu əlavə (SeedManager, ehtiyatdan bərpa) |
 | PUT | `/api/admin/content/:collection/:id` | admin | `setDoc` — tam əvəz, `createdAt` qorunur |
 | PATCH | `/api/admin/content/:collection/:id` | admin | `updateDoc` — üst səviyyə birləşmə, `404` yoxdursa |
 | DELETE | `/api/admin/content/:collection/:id` | admin | |
 | PUT | `/api/admin/singletons/:id` | admin | `setSingleDoc` |
-| GET | `/api/admin/subscribers` | admin | `{ count, fcm, webpush }` |
-| GET | `/api/admin/notification-history` | admin | son 200, Firestore sənədi formasında |
-| POST | `/api/send-notification` | admin | `{ title≤200, body≤1000, url:'/…', priority }` → hər iki mənbəyə; yeni sessiya ilə göndəriləndə tarixçəyə özü yazır |
+| GET | `/api/admin/subscribers` | admin | `{ count, webpush, webpushNew, webpushLangs }` |
+| GET | `/api/admin/notification-history` | admin | son 200 |
+| POST | `/api/send-notification` | admin | `{ title≤200, body≤1000, url:'/…', priority }` → Web Push abunəçilərinə; tarixçəyə yazır (`historyId`) |
 | GET | `/api/push/vapid-public-key` | hamı | `{ key }` |
-| POST | `/api/push/subscribe` | hamı | `{ subscription: PushSubscription.toJSON(), lang, loc, prefs, userAgent, legacyFcmToken? }` — `legacyFcmToken` (keçid): server Firestore-dan `fcm_tokens/<token>`-i silir (Firebase/FCM sönülüdürsə sakit keçir) |
+| POST | `/api/push/subscribe` | hamı | `{ subscription: PushSubscription.toJSON(), lang, loc, prefs, userAgent }` (köhnə klientin `legacyFcmToken` sahəsi nəzərə alınmır) |
 | PATCH | `/api/push/subscription` | endpoint-i bilən | `{ endpoint, lang?, loc?, prefs? }` (prefs üst səviyyədə birləşir) |
-| POST | `/api/push/unsubscribe` | endpoint-i bilən | `{ endpoint }` və/və ya `{ legacyFcmToken }` |
+| POST | `/api/push/unsubscribe` | endpoint-i bilən | `{ endpoint }` |
 | GET | `/api/sync/:id` | id-ni bilən | Cihazlar arası sinxronizasiya (`server/sync.js`): `{ blob, version, updatedAt }` / `404`. `id` — bərpa kodundan brauzerdə HKDF ilə alınan 64 hex |
 | PUT | `/api/sync/:id` | id-ni bilən | `{ blob (base64url, ≤900 KB), version }` → `{ version, updatedAt }`; versiya uyğun deyilsə `409` (başqa cihaz yeniləyib). Blok brauzerdə AES-256-GCM ilə şifrələnib — server oxuya bilmir. 400 gün toxunulmayan silinir |
 | DELETE | `/api/sync/:id` | id-ni bilən | Serverdəki şifrəli nüsxəni silir |
@@ -69,7 +66,7 @@ Vaxtlar (`createdAt`, `updatedAt`) **millisaniyədir** (Firestore Timestamp deyi
 
 **Admin sorğuları (cookie ilə)** — vəziyyət dəyişən hər sorğuda (`POST/PUT/PATCH/DELETE`, `login` daxil) `X-Requested-With: fetch` başlığı **mütləqdir**; `Origin` varsa icazəli siyahıda olmalıdır (CSRF). `GET` üçün lazım deyil.
 
-**Validasiya:** kolleksiya adı yalnız siyahıdan; ID `[A-Za-z0-9_-]{1,128}`; gövdə JSON obyekti, ≤256 KB, dərinlik ≤12, `__proto__`/`constructor` qadağandır; `id/createdAt/updatedAt` klientdən qəbul edilmir. Push endpoint-i yalnız `https` və icazəli xidmətlər: `fcm.googleapis.com`, `updates.push.services.mozilla.com`, `*.push.apple.com`, `*.notify.windows.com` (əlavə: env `PUSH_EXTRA_HOSTS`); `p256dh` 65 bayt (0x04…), `auth` 16 bayt; `loc/prefs` — `firestore.rules`-dakı qaydaların eynisi.
+**Validasiya:** kolleksiya adı yalnız siyahıdan; ID `[A-Za-z0-9_-]{1,128}`; gövdə JSON obyekti, ≤256 KB, dərinlik ≤12, `__proto__`/`constructor` qadağandır; `id/createdAt/updatedAt` klientdən qəbul edilmir. Push endpoint-i yalnız `https` və icazəli xidmətlər: `fcm.googleapis.com`, `updates.push.services.mozilla.com`, `*.push.apple.com`, `*.notify.windows.com` (əlavə: env `PUSH_EXTRA_HOSTS`); `p256dh` 65 bayt (0x04…), `auth` 16 bayt; `loc/prefs` — tip və sahə yoxlaması (`server/push.js`).
 
 **Push payload** (`public/sw.js → parsePush` dəyişmədən oxuyur — test: `tests/unit/server-push.test.js` funksiyanı sw.js-in özündən götürür):
 
@@ -80,7 +77,7 @@ Vaxtlar (`createdAt`, `updatedAt`) **millisaniyədir** (Firestore Timestamp deyi
 
 Başlıqlar: azan — `Urgency: high`, `TTL 1200`; günün ayəsi — `TTL 21600`; "Qıldınızmı?" — `TTL 10800`. Push xidməti `404/410` qaytarsa abunəlik silinir.
 
-## Keçid dövrü (1-ci mərhələ ilə 3-cü mərhələ arası)
+## Keçid dövrü (1-ci mərhələ ilə 3-cü mərhələ arası) — TARİXÇƏ, kod silinib
 
 | | Davranış | Söndürmək |
 |---|---|---|
@@ -251,7 +248,7 @@ gcloud firestore export gs://<bucket>/firestore-final-$(date +%F) --project <lay
 
 **5. Sirləri ləğv et:** `api.env`-dən `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `FCM_ENABLED`, `LEGACY_FIREBASE_AUTH` sətirlərini sil → `TAG=$(cat .current_tag) docker compose up -d api` (log: "Firebase env-i yoxdur" — normaldır). Google Cloud Console → IAM → Service accounts → açarı sil; Web API açarını ləğv et. Lokal `.env`-dən `VITE_FIREBASE_*`, `VITE_FCM_VAPID_KEY` sətirlərini sil (kod artıq oxumur).
 
-**6. Kodda (ayrıca commit):** `server/server.js`-dəki keçid kodu (`firebase-admin`, `adminDb`/`adminMsg`, `fcm_tokens` oxuması, `verifyFirebaseToken`, `onLegacyToken`), `server/auth.js`-də `verifyFirebaseToken` yolu, `firebase-admin` asılılığı (`server/package.json`), `server/scripts/set-admin.js`, `server/scripts/migrate-from-firestore.js`, `firestore.rules`, `firebase.json`, `.firebaserc`, `tests/rules/`, `@firebase/rules-unit-testing` və `test:rules` skripti (`package.json`), `docs/ADMIN-SECURITY.md`-in Firebase hissəsi. `public/firebase-messaging-sw.js`-i ən azı bir neçə ay saxla (köhnə qeydiyyatlar), sonra sil. `legacyFcmToken` (`src/api/push.js` keçidi) — 3-cü mərhələdən sonra zərərsizdir, istəsən sil.
+**6. Kodda — EDİLDİ (2026-11-17).** Silinənlər: `server/server.js`-dəki keçid kodu (`firebase-admin`, `adminDb`/`adminMsg`, `fcm_tokens` oxuması, `verifyFirebaseToken`, `onLegacyToken`), `server/auth.js`-də `verifyFirebaseToken` yolu, `firebase-admin` asılılığı (`server/package.json`), `server/scripts/set-admin.js`, `server/scripts/migrate-from-firestore.js`, `firestore.rules`, `firebase.json`, `.firebaserc`, `tests/rules/`, `@firebase/rules-unit-testing` və `test:rules` skripti (`package.json`), `docs/ADMIN-SECURITY.md`-in Firebase hissəsi. `public/firebase-messaging-sw.js`-i ən azı bir neçə ay saxla (köhnə qeydiyyatlar), sonra sil. `legacyFcmToken` serverə artıq göndərilmir; `src/api/push.js` köhnə FCM tokeni qalan cihazı yalnız lokalda Web Push-a keçirir (açar təmizlənir). Server köhnə `FIREBASE_*`, `FCM_ENABLED`, `LEGACY_FIREBASE_AUTH` env-lərini oxumur — `api.env`-də qalsalar zərərsizdir (5-ci addımda silinə bilər). Push logu: `Push <etiket>: Web Push N çatdı/M alınmadı`. `/api/admin/subscribers` cavabında `fcm` sahəsi yoxdur.
 
 ## Geri qaytarma planı
 
@@ -260,13 +257,13 @@ gcloud firestore export gs://<bucket>/firestore-final-$(date +%F) --project <lay
 | Yeni server versiyası işləmir | `deploy.sh` özü əvvəlki TAG-a qayıdır; əl ilə: `./deploy.sh --rollback`. Köhnə versiya Firestore/FCM ilə işləyir — `/data` volume-u ona mane olmur |
 | Köçürmə səhv oldu | Firestore toxunulmazdır. `docker compose stop api`, volume-dakı bazanı sil (`docker run --rm -v muslimscc_api-data:/data alpine rm -f /data/muslims.db /data/muslims.db-wal /data/muslims.db-shm`), `up -d api`, köçürməni yenidən işlət. Admin hesabı da silinir — yenidən `create` |
 | 2-ci mərhələ klienti problemlidir | Klienti əvvəlki commit-ə qaytar; server keçid rejimində həm Firestore-u (köhnə klient), həm SQLite-ı xidmət edir. Klientin SQLite-a yazdıqları Firestore-a qayıtmır — qısa müddətdə əl ilə |
-| 3-cü mərhələdən sonra FCM lazım oldu | `FCM_ENABLED=true` (Firebase hələ bağlanmayıbsa) |
+| 3-cü mərhələdən sonra FCM lazım oldu | Mümkün deyil — keçid kodu silinib (git tarixçəsindən bərpa etmək lazımdır) |
 | Baza pozuldu | "Ehtiyat nüsxədən bərpa" (yuxarıda) |
 
 ## Fayllar
 
 `server/db.js`, `server/auth.js`, `server/content.js`, `server/push.js`, `server/server.js` ·
-`server/scripts/admin-user.js`, `migrate-from-firestore.js`, `gen-vapid.js`, `backup-db.js` ·
+`server/scripts/admin-user.js`, `gen-vapid.js`, `backup-db.js` (`migrate-from-firestore.js`, `set-admin.js` — silinib) ·
 Klient: `src/api/{http,content,adminAuth,push}.js`, `src/components/admin/AccountManager.jsx`, `mobile/src/api/content.js` ·
 `infra/docker-compose.yml` (volume), `infra/deploy.sh` (tüstü testi), `infra/backup.sh`, `infra/systemd/` ·
-Testlər: `tests/unit/server-{db,content,auth,push,migrate}.test.js`
+Testlər: `tests/unit/server-{db,content,auth,push}.test.js`

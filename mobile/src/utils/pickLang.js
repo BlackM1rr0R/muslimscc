@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// Çoxdilli sahədən YALNIZ cari dili seçmək (admin / Firebase məzmunu)
+// Çoxdilli sahədən YALNIZ cari dili seçmək (admin məzmunu)
 // (veb src/utils/pickLang.js-in mobil surəti; fərq yalnız __DEV__ sətridir)
 //
 // Admin paneldən gələn məzmunda ({ az, en, ru, ar, tr }) bəzi dillər boş

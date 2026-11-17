@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════
 // PUSH BİLDİRİŞLƏRİ — standart Web Push (VAPID), FCM-siz
-// (server/push.js; docs/FIREBASE-EXIT.md, 2-ci mərhələ)
+// (server/push.js; docs/FIREBASE-EXIT.md)
 //
 // Axın: /sw.js (saytın YEGANƏ service worker-i, push-u o göstərir) →
 // pushManager.subscribe({ userVisibleOnly, applicationServerKey: serverin
@@ -14,13 +14,12 @@
 // `loc` istifadəçinin seçdiyi namaz yeridir (utils/prayerLocation.js) — server
 // hər istifadəçiyə ÖZ şəhərinin azan vaxtında push göndərir.
 //
-// KÖHNƏ FCM ABUNƏLİYİNDƏN KEÇİD (ikiqat bildiriş olmasın): localStorage-da
-// köhnə FCM tokeni (muslim_cc_fcm_token) varsa və icazə artıq verilibsə,
-// səhifə açılanda səssizcə: FCM-in yaratdığı push abunəliyi (başqa
-// applicationServerKey ilə) ləğv olunur, bizim VAPID açarı ilə yenisi yaranır
-// (icazə var — sorğu çıxmır), serverə göndərilir və eyni sorğuda
-// `legacyFcmToken` — server Firestore-dakı fcm_tokens/<token> sənədini silir.
-// Sonra köhnə açar lokalda təmizlənir. iOS (ana ekran PWA) — eyni məntiq.
+// KÖHNƏ FCM ABUNƏLİYİ OLAN CİHAZLAR: localStorage-da köhnə FCM tokeni
+// (muslim_cc_fcm_token) varsa və icazə artıq verilibsə, səhifə açılanda
+// səssizcə: FCM-in yaratdığı push abunəliyi (başqa applicationServerKey ilə)
+// ləğv olunur, bizim VAPID açarı ilə yenisi yaranır (icazə var — sorğu
+// çıxmır), serverə göndərilir və köhnə açar lokalda təmizlənir. FCM artıq
+// işləmir — server köhnə tokeni bilmir, ona göndərilmir.
 // ═══════════════════════════════════════════════════════════
 import { apiFetch, ApiError } from './http'
 import { getPrayerLocation } from '../utils/prayerLocation'
@@ -123,8 +122,8 @@ async function ensureSubscription({ forceNew = false } = {}) {
   return sub
 }
 
-/** Abunəliyi serverə yaz (upsert). legacyFcmToken — server Firestore-dan silsin. */
-async function sendSubscription(sub, legacyFcmToken) {
+/** Abunəliyi serverə yaz (upsert). */
+async function sendSubscription(sub) {
   await apiFetch('/api/push/subscribe', {
     method: 'POST',
     body: {
@@ -133,12 +132,11 @@ async function sendSubscription(sub, legacyFcmToken) {
       loc: locationPayload(),
       prefs: serverPrefs(),
       userAgent: String(navigator.userAgent || '').slice(0, 512),
-      ...(legacyFcmToken ? { legacyFcmToken } : {}),
     },
   })
   const old = readLS(ENDPOINT_KEY)
   writeLS(ENDPOINT_KEY, sub.endpoint)
-  if (legacyFcmToken) writeLS(LEGACY_TOKEN_KEY, null)
+  writeLS(LEGACY_TOKEN_KEY, null)
   // Brauzer abunəliyi dəyişibsə köhnə endpoint serverdə qalmasın
   if (old && old !== sub.endpoint) {
     apiFetch('/api/push/unsubscribe', { method: 'POST', body: { endpoint: old } }).catch(() => {})
@@ -154,17 +152,14 @@ function migrateLegacy() {
   migration = (async () => {
     const perm = getPermissionStatus()
     if (perm !== 'granted') {
-      // İcazə geri alınıb — köhnə token onsuz da ölüdür; serverdə də silinsin
-      if (perm === 'denied') {
-        await apiFetch('/api/push/unsubscribe', { method: 'POST', body: { legacyFcmToken: legacy } }).catch(() => {})
-        writeLS(LEGACY_TOKEN_KEY, null)
-      }
+      // İcazə geri alınıb — köhnə token onsuz da ölüdür
+      if (perm === 'denied') writeLS(LEGACY_TOKEN_KEY, null)
       return false
     }
     if (!(await isPushSupported())) return false
     // FCM abunəliyi başqa açarladır — həmişə yenisi yaradılır
     const sub = await ensureSubscription({ forceNew: !readLS(ENDPOINT_KEY) })
-    await sendSubscription(sub, legacy)
+    await sendSubscription(sub)
     return true
   })()
   // Alınmasa (şəbəkə, server) — növbəti açılışda yenidən; köhnə açar qalır
@@ -183,9 +178,8 @@ export async function requestNotificationPermission() {
   const perm = await Notification.requestPermission()
   if (perm !== 'granted') return { ok: false, reason: 'denied' }
   try {
-    const legacy = readLS(LEGACY_TOKEN_KEY)
-    const sub = await ensureSubscription({ forceNew: Boolean(legacy) })
-    await sendSubscription(sub, legacy)
+    const sub = await ensureSubscription({ forceNew: Boolean(readLS(LEGACY_TOKEN_KEY)) })
+    await sendSubscription(sub)
     return { ok: true, token: sub.endpoint }
   } catch (e) {
     const reason = e?.message === 'no-vapid-key' || (e instanceof ApiError && e.status === 503) ? 'no-vapid-key' : 'token-failed'
@@ -253,17 +247,13 @@ export async function refreshPushToken() {
 /** "Söndür": brauzer abunəliyini ləğv et və serverdən sil. */
 export async function disablePush() {
   const endpoint = readLS(ENDPOINT_KEY)
-  const legacy = readLS(LEGACY_TOKEN_KEY)
   try {
     const reg = await navigator.serviceWorker?.getRegistration?.()
     const sub = await reg?.pushManager?.getSubscription()
     if (sub) await sub.unsubscribe().catch(() => {})
   } catch { /* brauzer dəstəkləmir */ }
-  if (endpoint || legacy) {
-    await apiFetch('/api/push/unsubscribe', {
-      method: 'POST',
-      body: { ...(endpoint ? { endpoint } : {}), ...(legacy ? { legacyFcmToken: legacy } : {}) },
-    }).catch(() => {})
+  if (endpoint) {
+    await apiFetch('/api/push/unsubscribe', { method: 'POST', body: { endpoint } }).catch(() => {})
   }
   clearStoredToken()
 }

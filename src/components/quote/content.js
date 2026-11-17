@@ -3,7 +3,7 @@
 // URL parametrləri (ShareCardButton → /quotes?ayah=2:255 …)
 //
 // Mətnlər heç vaxt yaddaşdan yazılmır və dəyişdirilmir:
-//  • sitatlar — src/data/quotes.js (+ admin Firebase sitatları)
+//  • sitatlar — src/data/quotes.js (+ admin sitatları, /api/content/quotes)
 //  • ayə — api.alquran.cloud (Quran səhifəsi ilə eyni nəşrlər)
 //  • hədis — utils/hadithData.js (layihənin hədis bazası)
 // ═══════════════════════════════════════════════════════

@@ -6120,7 +6120,7 @@
  "There are two games: find how a verse continues from its beginning, or find which surah a verse is from. You have 30 seconds per question; on a keyboard 1–4 picks an option and Enter goes to the next question.": "ゲームは2種類あります:節の冒頭から続きを見つける、または節がどの章のものかを当てる。1問30秒で、キーボードでは1〜4で選択肢を選び、Enterで次の問題に進みます。",
  "There is a male descendant — 1/6 (4:11)": "男の子孫がいる ― 1/6（4:11）",
  "There is no English voice on this device or browser, so read-aloud is unavailable. You can add one in your device’s speech settings.": "この端末またはブラウザには英語の音声がないため、読み上げは利用できません。端末の音声設定で追加できます。",
- "There is no email recovery. Change the password on the server with the admin-user.js set-password command — see the admin docs (docs/FIREBASE-EXIT.md).": "メールによる復旧はありません。サーバー上で admin-user.js set-password コマンドを使ってパスワードを変更してください ― 管理者向けドキュメント(docs/FIREBASE-EXIT.md)をご覧ください。",
+ "There is no email recovery. Change the password on the server with the admin-user.js set-password command — see the admin docs (docs/ADMIN-SECURITY.md).": "メールによる復旧はありません。サーバー上で admin-user.js set-password コマンドを使ってパスワードを変更してください ― 管理者向けドキュメント(docs/ADMIN-SECURITY.md)をご覧ください。",
  "There is no openly licensed recording of this letter yet.": "この文字の、オープンライセンスの録音はまだありません。",
  "There is no ranking here: deeds are for Allah, not for show (riya’). The percentages are only to encourage one another; participants are listed by name.": "ここには順位はありません。行いは見せるためではなくアッラーのためのものです(リヤー)。割合は互いを励ますためだけのもので、参加者は名前で表示されます。",
  "There is no residuary and no heir to receive radd. The remainder goes to distant kin (dhawu al-arham) or elsewhere according to differing scholarly views — consult a scholar or a court.": "残余相続人はおらず、ラッドを受け取る相続人もいません。残りは遠縁(ズー・アル・アルハーム)に、または学者の見解の違いに応じて別の形で渡ります ― 学者または裁判所にご相談ください。",

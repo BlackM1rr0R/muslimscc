@@ -89,7 +89,7 @@ export function makeCover({ title, author, color = '#11604c' }) {
   return 'data:image/svg+xml,' + encodeURIComponent(svg)
 }
 
-// ═══ DEFAULT BOOKS (Firebase qoşulmadıqda fallback) ═══
+// ═══ DEFAULT BOOKS (admin kitabları gəlmədikdə fallback) ═══
 export const DEFAULT_BOOKS = [
   {
     id: 'default-b1',
@@ -175,7 +175,7 @@ export const BOOK_CATEGORIES = [
   { key:'kids',      label:{az:'Uşaqlar',en:'Kids',ru:'Дети',ar:'الأطفال',tr:'Çocuk'}, color:'#3d5236' },
 ]
 
-// Şəkli olmayan hər kitaba İslami SVG üz qabığı ver (Firestore + default).
+// Şəkli olmayan hər kitaba İslami SVG üz qabığı ver (admin + default).
 // Üz qabığındakı ad/müəllif HƏR DİL ÜÇÜN ayrıca çəkilir (coverByLang) — ki
 // ingilis/rus istifadəçisi üz qabığında azərbaycanca ad görməsin.
 // coverUrl (az) köhnə istifadəçilər üçün saxlanılır.

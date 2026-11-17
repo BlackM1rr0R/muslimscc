@@ -634,7 +634,7 @@ export default function HomeScreen({ navigation }) {
             ))}
           </View>
 
-          {/* ═══ ADMIN-DRIVEN CONTENT (web ilə eyni Firebase) ═══ */}
+          {/* ═══ ADMIN-DRIVEN CONTENT (web ilə eyni server, /api/content) ═══ */}
           {/* Admin hero banner — Ramazan, Eyd kimi xüsusi günlər üçün */}
           <HeroBannerDisplay />
 

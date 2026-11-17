@@ -115,7 +115,7 @@ export default function AnnouncementToast() {
   // Səhifə dəyişəndə sayğacı sıfırla
   useEffect(() => { routeAtRef.current = Date.now() }, [location.pathname])
 
-  // Firestore abunəsi
+  // Elanlara abunə (server/content.js; fokusda yenidən soruşulur)
   useEffect(() => {
     const unsubscribe = subscribeToAnnouncements((all) => setItems(Array.isArray(all) ? all : []))
     return () => unsubscribe?.()

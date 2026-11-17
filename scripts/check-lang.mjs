@@ -61,7 +61,7 @@ for (let i = 0; i < argv.length; i++) {
 
 // ── Yoxlanan fayllar ──
 const SCAN_DIRS = ['src/data', 'src/pages', 'src/components', 'src/seo', 'src/utils', 'mobile/src']
-const SKIP_DIRS = new Set(['node_modules', 'firebase', 'assets', 'theme'])
+const SKIP_DIRS = new Set(['node_modules', 'assets', 'theme'])
 function walk(dir, out) {
   const abs = path.join(ROOT, dir)
   if (!fs.existsSync(abs)) return

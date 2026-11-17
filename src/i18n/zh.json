@@ -6118,7 +6118,7 @@
  "There are two games: find how a verse continues from its beginning, or find which surah a verse is from. You have 30 seconds per question; on a keyboard 1–4 picks an option and Enter goes to the next question.": "共有两种游戏：根据开头找出经文如何继续，或找出某节经文出自哪一章。每题限时30秒；使用键盘时，1–4键选择选项，回车键进入下一题。",
  "There is a male descendant — 1/6 (4:11)": "有男性后代——1/6（4:11）",
  "There is no English voice on this device or browser, so read-aloud is unavailable. You can add one in your device’s speech settings.": "此设备或浏览器上没有英语语音，因此无法朗读。您可以在设备的语音设置中添加。",
- "There is no email recovery. Change the password on the server with the admin-user.js set-password command — see the admin docs (docs/FIREBASE-EXIT.md).": "不支持邮件找回。请在服务器上使用 admin-user.js set-password 命令修改密码——参见管理文档（docs/FIREBASE-EXIT.md）。",
+ "There is no email recovery. Change the password on the server with the admin-user.js set-password command — see the admin docs (docs/ADMIN-SECURITY.md).": "不支持邮件找回。请在服务器上使用 admin-user.js set-password 命令修改密码——参见管理文档（docs/ADMIN-SECURITY.md）。",
  "There is no openly licensed recording of this letter yet.": "这一字母目前还没有公开授权的录音。",
  "There is no ranking here: deeds are for Allah, not for show (riya’). The percentages are only to encourage one another; participants are listed by name.": "这里没有排名：功修是为安拉，而不是为了炫耀（里雅）。百分比仅用于相互勉励；参与者以姓名列出。",
  "There is no residuary and no heir to receive radd. The remainder goes to distant kin (dhawu al-arham) or elsewhere according to differing scholarly views — consult a scholar or a court.": "没有剩余继承人，也没有可获得回补（拉德）的继承人。剩余部分按学者们不同的观点归于远亲（祖维·艾尔哈姆）或其他处——请咨询学者或法庭。",

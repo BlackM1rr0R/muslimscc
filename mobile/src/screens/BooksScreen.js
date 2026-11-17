@@ -31,7 +31,7 @@ export default function BooksScreen() {
   const [search, setSearch] = useState('')
   const [selectedBook, setSelectedBook] = useState(null)
 
-  // Real-time Firebase — admin əlavə edəndə dərhal görünür
+  // Admin kitabları (muslims.cc/api/content) — tətbiq ön plana qayıdanda yenilənir
   useEffect(() => {
     const unsubscribe = subscribeToBooks((items) => setBooks(items))
     return () => unsubscribe?.()

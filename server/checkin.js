@@ -2,7 +2,7 @@
 // etmir, ona görə ayrıca test olunur (tests/unit/checkin.test.js).
 //
 // AXIN: namaz (azan) vaxtından CHECKIN_DELAY_MIN dəqiqə sonra seçimi açıq
-// olan abunəçiyə (fcm_tokens/<token>.checkin === true; susmaya görə SÖNÜLÜ)
+// olan abunəçiyə (push_subs → prefs.checkin === true; susmaya görə SÖNÜLÜ)
 // "🕌 Zöhr namazını qıldınızmı?" bildirişi gedir. Bildirişin data hissəsi
 // service worker-ə (public/sw.js) "✅ Qıldım" / "Sonra" düymələrinin mətnini
 // və klikdə açılacaq ünvanı verir: /prayer?checkin=dhuhr&d=YYYY-MM-DD.
@@ -71,7 +71,7 @@ function buildCheckinMessage(lang, prayer, dateKey, icons = {}) {
   return {
     notification: { title: t.title, body: t.body },
     // sw.js data-dan oxuyur: tag, url, düymə mətnləri, təsdiq mətni.
-    // FCM data dəyərləri yalnız mətn ola bilər.
+    // data dəyərləri yalnız mətndir (sw.js belə gözləyir).
     data: {
       kind: 'checkin', tag, url, prayer, date: dateKey,
       actPrayed: t.prayed, actLater: t.later, doneTitle: t.done,

@@ -228,14 +228,15 @@ self.addEventListener('message', (e) => {
   }
 })
 
-// ── PUSH (Firebase Cloud Messaging) ──
+// ── PUSH (standart Web Push, VAPID — server/push.js) ──
 // SAYTIN YEGANƏ service worker-i budur. Əvvəl push üçün ayrıca
 // /firebase-messaging-sw.js vardı və o da "/" əhatəsində qeyd olunurdu —
 // brauzer bir əhatədə yalnız BİR SW saxlayır, ona görə hər səhifə açılışında
 // /sw.js onu əvəz edirdi, bu faylda isə "push" dinləyicisi yox idi: bildirişlər
 // "gah gəlir, gah gəlmir"di, iPhone-da Safari görünməyən push-lara görə
-// abunəliyi ləğv edə bilirdi. İndi push-u Firebase SDK-sız özümüz göstəririk
-// (FCM web push payload-u adi JSON-dur) və HƏR push-da bildiriş MÜTLƏQ görünür.
+// abunəliyi ləğv edə bilirdi. İndi push-u özümüz göstəririk (payload adi
+// JSON-dur) və HƏR push-da bildiriş MÜTLƏQ görünür. /firebase-messaging-sw.js
+// indi yalnız importScripts('/sw.js') edən stubdur (köhnə qeydiyyatlar üçün).
 function parsePush(e) {
   let p = {}
   try { p = e.data ? e.data.json() : {} } catch {
@@ -327,7 +328,7 @@ self.addEventListener('push', (e) => {
 })
 
 // Brauzer push abunəliyini özü yeniləyəndə (açar dövriyyəsi) — açıq səhifə
-// növbəti açılışda tokeni Firestore-a yenidən yazır (messaging.js → ensureToken)
+// yenidən abunə olur, köhnə endpoint serverdən silinir (src/api/push.js → refreshPushToken)
 self.addEventListener('pushsubscriptionchange', (e) => {
   e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true })
     .then((wins) => wins.forEach((w) => w.postMessage({ type: 'PUSH_RESUBSCRIBE' }))))

@@ -244,10 +244,10 @@ function HeartIcon({ filled }) {
 }
 
 
-// Kartın bütün id-ləri (birləşdirilmiş dublikatda həm Firebase, həm yerli id)
+// Kartın bütün id-ləri (birləşdirilmiş dublikatda həm admin, həm yerli id)
 const idsOf = (h) => h._ids || [h.id]
 // Saytın öz (rəqəmli) id-si: admin panelindən gələn surət yerli hədislə birləşəndə
-// kartın id-si Firestore id-si olur, yerli id isə _ids-dədir. Tam mətn, ravi,
+// kartın id-si admin sənədinin id-si olur, yerli id isə _ids-dədir. Tam mətn, ravi,
 // şərh, /hadith/<id> səhifəsi və kart generatoru yerli id ilə işləyir.
 const siteIdOf = (h) => idsOf(h).find(x => typeof x === 'number' || /^\d+$/.test(String(x))) ?? null
 
@@ -557,8 +557,8 @@ export default function HadithPage({ setPage }) {
     try { localStorage.setItem('hadith_favs', JSON.stringify(favs)) } catch { /* yaddaş bağlıdır */ }
   }, [favs])
 
-  // Firebase real-time custom hadiths.
-  // PERFORMANS: adminContent (→ Firebase SDK, ~90 KB gzip) statik import
+  // Admin hədisləri (server/content.js → /api/content/hadiths).
+  // PERFORMANS: adminContent statik import
   // edilmir — "load"-dan sonra, boş vaxtda yüklənir (utils/idle.js). Əvvəl
   // /hadith-in kritik yolunda idi; admin hədisləri onsuz da şəbəkədən sonra
   // gəlirdi və siyahının əvvəlinə əlavə olunurdu (davranış eynidir).
@@ -575,7 +575,7 @@ export default function HadithPage({ setPage }) {
   }, [])
 
   // Yerli hədislərin birləşmə açarları (utils/hadithData.js → loadHadithKeys):
-  // yalnız Firebase-dən admin hədisi gələndə yüklənir (~31 KB gzip) — admin
+  // yalnız serverdən admin hədisi gələndə yüklənir (~31 KB gzip) — admin
   // hədisi yoxdursa heç vaxt. Yüklənə bilməsə, admin hədisləri birləşməsiz
   // göstərilir (itmir).
   const [staticKeysOf, setStaticKeysOf] = useState(null)
@@ -624,7 +624,7 @@ export default function HadithPage({ setPage }) {
     }
   }, [lang])
 
-  // Firebase custom hadithləri uyğun formata çevirək
+  // Admin hədislərini uyğun formata çevirək
   const customForLang = useMemo(() => {
     return customHadiths.map(h => ({
       id: h.id,
@@ -646,8 +646,8 @@ export default function HadithPage({ setPage }) {
   // (build zamanı hesablanıb: uniqueHadithsFor(HADITHS, lang) ilə eyni siyahı)
   const staticList = hadithData.list
 
-  // Firebase-dən gələnləri əvvəl göstər. Admin paneli yerli hədisləri
-  // Firebase-ə "toxum" kimi köçürə bilir — belə surət yerli hədislə bir
+  // Admin hədislərini əvvəl göstər. Admin paneli yerli hədisləri
+  // serverə "toxum" kimi köçürə bilir — belə surət yerli hədislə bir
   // kart olur (eyni qayda: ərəb mətni / Azərbaycanca tərcümə). Admin mətni
   // üstündür, boş sahələr yerli nüsxədən doldurulur; kateqoriya yerli
   // nüsxədən götürülür (admin panelində kateqoriyalar daha azdır).

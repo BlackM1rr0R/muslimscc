@@ -2,13 +2,13 @@
 // whenIdle() — ilk boyamadan / səhifə yüklənməsindən SONRA, brauzer boş
 // olanda həll olunan vəd.
 //
-// NƏ: ilk ekran üçün vacib olmayan ağır işləri (Firebase SDK ~90 KB gzip +
-// Firestore abunəlikləri, ekranın altındakı admin bölmələri, elan bildirişi)
+// NƏ: ilk ekran üçün vacib olmayan işləri (admin məzmunu sorğuları,
+// ekranın altındakı admin bölmələri, elan bildirişi)
 // "load" hadisəsindən sonra, kiçik gecikmə ilə, requestIdleCallback ilə
 // başladır (Safari-də requestIdleCallback yoxdur — setTimeout ehtiyatı).
 // Gecikmə NİYƏ lazımdır: "load" modul skriptləri icra olunan kimi gəlir —
 // səhifə chunk-ları hələ yüklənərkən əsas axın boşdur və requestIdleCallback
-// dərhal işləyərdi (Lighthouse izində Firebase yenə LCP-dən əvvəl idi).
+// dərhal işləyərdi (Lighthouse izində bu işlər yenə LCP-dən əvvəl idi).
 // NİYƏ: əvvəl bunlar ana səhifənin ilk render-ində yüklənirdi və LCP
 // resursları (şrift, hero) ilə şəbəkə / əsas axın uğrunda yarışırdı.
 // ═══════════════════════════════════════════════════════

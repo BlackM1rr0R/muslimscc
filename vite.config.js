@@ -53,7 +53,7 @@ function dailyPoolsPlugin() {
 // /<dil>/hadith HTML-inə həmin chunk üçün modulepreload yazır).
 const HADITH_PREFIX = 'virtual:hadiths/'
 const HADITH_LANGS = ['az', 'en', 'ru', 'tr', 'ar']
-// + "virtual:hadiths/keys" — Firebase birləşməsi üçün açar həşləri (dildən asılı
+// + "virtual:hadiths/keys" — admin hədisləri ilə birləşmə üçün açar həşləri (dildən asılı
 // deyil, ~31 KB gzip; yalnız /hadith-də ilk boyamadan sonra yüklənir)
 const HADITH_MODS = [...HADITH_LANGS, 'keys']
 function hadithLangPlugin() {

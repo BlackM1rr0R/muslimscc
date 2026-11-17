@@ -1,6 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// Öz serverimizə (server/server.js) sorğular — Firebase-in əvəzi
-// (docs/FIREBASE-EXIT.md, 2-ci mərhələ).
+// Öz serverimizə (server/server.js) sorğular.
 //
 // • Ünvan nisbidir (/api/...): saytda nginx /api-ni API konteynerinə ötürür,
 //   lokal dev-də isə vite.config.js-dəki proksi. Admin cookie-si

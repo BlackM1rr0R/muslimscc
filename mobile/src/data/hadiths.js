@@ -3,7 +3,7 @@
 //                Fasting | Zakat | Dhikr | Charity | Patience | World |
 //                Afterlife | Salawat | Travel
 
-// ═══ Firebase real-time əlavə hədislər (admin paneldən) ═══
+// ═══ Admin paneldən əlavə hədislər (muslims.cc/api/content) ═══
 import { subscribeToCollection, COLLECTIONS } from '../api/content'
 
 // Admin paneldən əlavə edilmiş custom hədisləri dinləmək (default-lara əlavə)

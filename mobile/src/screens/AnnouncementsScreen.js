@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════
 // Elanlar — web /announcements (src/pages/AnnouncementsPage.jsx) ilə eyni məzmun
 //
-// Məlumat yalnız admin paneldən gəlir (Firestore, real-vaxt, web ilə eyni):
+// Məlumat yalnız admin paneldən gəlir (muslims.cc/api/content, web ilə eyni):
 //   • announcements — elanlar (title[lang], message[lang], type, link, active, createdAt)
 //   • events        — hicri təqvim günləri (name[lang], desc[lang], month, day, type)
 // Tətbiq heç bir elan və ya tədbir uydurmur: məlumat yoxdursa sakit boş
-// vəziyyət göstərilir. Firebase qoşulmayıbsa da eyni boş vəziyyət — xəta yoxdur.
+// vəziyyət göstərilir. Server cavab vermirsə də eyni boş vəziyyət — xəta yoxdur.
 // Deaktiv (active === false) elanlar göstərilmir.
 //
 // Siyahının başında həmişə sabitlənmiş "Xeyriyyə və ianə" kartı durur — o, elan

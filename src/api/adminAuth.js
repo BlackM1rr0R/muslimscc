@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// ADMIN GİRİŞİ — öz serverimiz (server/auth.js), Firebase Auth-suz
+// ADMIN GİRİŞİ — öz serverimiz (server/auth.js), sessiya cookie-si
 //
 // • POST /api/admin/login (e-poçt + şifrə) → HttpOnly cookie sessiyası
 //   (__Host-mcc_admin, 30 gün). Token JS-ə HEÇ VAXT görünmür.
@@ -8,7 +8,7 @@
 //   me → mustChangePassword:true; panel yalnız "Şifrəni dəyiş" formasını
 //   göstərir, server isə digər admin API-lərini 403 (must_change) ilə bağlayır.
 // • "Şifrəni unutdum": e-poçt xidməti yoxdur — şifrə serverdə
-//   `admin-user.js set-password` ilə dəyişdirilir (docs/FIREBASE-EXIT.md).
+//   `admin-user.js set-password` ilə dəyişdirilir (docs/ADMIN-SECURITY.md).
 // ═══════════════════════════════════════════════════════════
 import { apiFetch, ApiError } from './http'
 
@@ -18,7 +18,7 @@ const meState = () => apiFetch('/api/admin/me', { admin: true })
  * Admin vəziyyətini izlə: cb({ status, email, mustChangePassword, role })
  *   role: panel rolu — 'editor' | 'admin' | 'superadmin' (server/users.js → admin_roles; köhnə server — 'admin')
  *   status: 'loading' | 'admin' | 'signedOut' | 'unavailable'
- * Qaytarır: dayandıran funksiya. (İmza köhnə src/firebase/auth.js ilə eynidir.)
+ * Qaytarır: dayandıran funksiya.
  */
 export function watchAdmin(cb) {
   let stopped = false

@@ -34,7 +34,7 @@ ecosystem.config.js
 secret*.json
 serviceAccount*.json
 
-# Environment variables (Firebase config etc.)
+# Environment variables
 .env
 .env.local
 .env.production

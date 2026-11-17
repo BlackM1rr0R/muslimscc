@@ -166,12 +166,10 @@ const LoginPage = lazy(() => import('./pages/LoginPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const AccountTokenPage = lazy(() => import('./pages/AccountTokenPage'))
 
-// Bu widget-ler her sehifede render olunur ve Firebase-i cekir (~470 KB).
-// Statik import edilse, Firebase ilk yuklenme paketine dusur; halbuki
-// hec biri ilk ekran ucun vacib deyil. Ona gore tex ire salinirlar.
-// PERFORMANS: üstəlik chunk-ları yalnız "load"-dan sonra, boş vaxtda
-// (utils/idle.js) yüklənir — əvvəl ilk render-də yüklənirdi və Firebase SDK
-// (~90 KB gzip) hər səhifədə LCP resursları ilə yarışırdı. Hər ikisi
+// Bu widget-lər hər səhifədə render olunur, amma heç biri ilk ekran üçün
+// vacib deyil — ona görə tənbəl yüklənir.
+// PERFORMANS: chunk-ları yalnız "load"-dan sonra, boş vaxtda (utils/idle.js)
+// yüklənir — ilk render-də LCP resursları ilə yarışmasın. Hər ikisi
 // fallback={null} ilə üzən elementdir (axında yer tutmur — CLS yoxdur);
 // bildiriş onsuz da promptCoordinator ilə gecikmə ilə göstərilir.
 const AnnouncementToast = lazy(lazyWhenIdle(() => import('./components/AnnouncementToast')))

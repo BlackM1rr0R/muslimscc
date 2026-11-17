@@ -5,13 +5,13 @@
 ```
 İnternet ──► Cloudflare ──► server :80/:443 ──► [web] nginx (root-suz) ──► /api/ ──► [api] Node
                                      ▲                                              │
-                     yalnız Cloudflare IP-ləri qəbul edilir              Firebase, OpenRouter, aladhan
+                     yalnız Cloudflare IP-ləri qəbul edilir              Web Push, OpenRouter, aladhan
 ```
 
 | Konteyner | Image | Nə edir |
 |---|---|---|
 | `web` | `infra/web.Dockerfile` | Sayt (Vite build + prerender) + `/api/` proksi. Yeganə açıq xidmət. |
-| `api` | `server/Dockerfile` | `server/server.js`: AI köməkçi, məzmun API-si və admin girişi (SQLite, volume `api-data` → `/data`), admin push, **azan push planlayıcısı** (hər abunəçiyə öz şəhərinin vaxtında). Port açmır. Firebase-dən çıxış: [docs/FIREBASE-EXIT.md](../docs/FIREBASE-EXIT.md). |
+| `api` | `server/Dockerfile` | `server/server.js`: AI köməkçi, məzmun API-si və admin girişi (SQLite, volume `api-data` → `/data`), admin push, **azan push planlayıcısı** (hər abunəçiyə öz şəhərinin vaxtında). Port açmır. Firebase-dən çıxış (tamamlanıb): [docs/FIREBASE-EXIT.md](../docs/FIREBASE-EXIT.md). |
 
 Serverdə hər şey `/opt/muslimscc/`-dədir:
 

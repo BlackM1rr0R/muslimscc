@@ -13,8 +13,8 @@ public/       Statik fayllar (service worker sw.js, audio, təfsir, şəkillər)
 scripts/      Build köməkçiləri (prerender, dil yoxlaması), scripts/social — sosial şəbəkə postları
 infra/        Docker, nginx, deploy və ehtiyat nüsxə skriptləri (canlı server)
 mobile/       Mobil tətbiq (Expo / React Native)
-tests/        unit (Vitest), e2e (Playwright), rules (Firestore qaydaları)
-docs/         Admin təhlükəsizliyi, Firebase-dən çıxış planı
+tests/        unit (Vitest), e2e (Playwright)
+docs/         Admin təhlükəsizliyi, Firebase-dən çıxış (tamamlanıb), istifadəçi hesabları
 seo-data/     Prerender üçün SEO məlumatları
 ```
 
@@ -53,7 +53,6 @@ Admin hesabı: `node server/scripts/admin-user.js create <email>` (bax [docs/FIR
 | `npm run check` | Brend konfiqi veb ↔ mobil sinxronluğu və dil təmizliyi |
 | `npm run test:unit` | Vitest |
 | `npm run test:e2e` | Playwright (əvvəlcə `npm run build`) |
-| `npm run test:rules` | Firestore qaydaları (Java + firebase emulyatoru lazımdır, CI-da işləmir) |
 
 ## Mühit dəyişənləri
 
@@ -73,15 +72,14 @@ Admin hesabı: `node server/scripts/admin-user.js create <email>` (bax [docs/FIR
 | `OPENROUTER_KEY` (**məcburi**), `OPENROUTER_MODEL`, `OPENROUTER_API_URL`, `OPENROUTER_MAX_TOKENS`, `OPENROUTER_REASONING` | AI köməkçi |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Web Push (açarı dəyişmə, bütün abunəliklər etibarsız olur) |
 | `PUSH_EXTRA_HOSTS` | Əlavə icazəli push xidmətləri |
-| `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `FCM_ENABLED`, `LEGACY_FIREBASE_AUTH` | Yalnız Firebase keçid dövrü üçün (aşağıya bax) |
 
 ## Deploy
 
 `main`-ə push: GitHub Actions yoxlamaları, lint, unit və e2e testləri işlədir, Docker image-lərini yığır və serverə deploy edir. Sağlamlıq yoxlaması alınmasa, server avtomatik əvvəlki versiyaya qayıdır. Testlərdən biri yıxılsa deploy olmur. Ətraflı: [infra/README.md](infra/README.md), [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
-## Firebase keçid dövrü
+## Firebase-dən çıxış
 
-Məzmun, admin girişi və push artıq öz serverimizdədir (SQLite, sessiya cookie-si, Web Push). Keçid dövründə server hələ köhnə FCM abunəçilərinə göndərir və köhnə Firebase admin tokenini qəbul edir. Ona görə `firestore.rules`, `firebase.json`, `.firebaserc`, `public/firebase-messaging-sw.js` və serverdəki `firebase-admin` hələ saxlanılır. Firebase tam bağlananda (3-cü mərhələ) bunlar silinəcək. Plan: [docs/FIREBASE-EXIT.md](docs/FIREBASE-EXIT.md).
+Tamamlanıb: məzmun, admin girişi və push öz serverimizdədir (SQLite, sessiya cookie-si, Web Push); kodda Firebase asılılığı yoxdur. `public/firebase-messaging-sw.js` yalnız köhnə service worker qeydiyyatları üçün `/sw.js`-ə yönləndirən stubdur. Köhnə `FIREBASE_*`, `FCM_ENABLED`, `LEGACY_FIREBASE_AUTH` env-ləri server tərəfindən nəzərə alınmır. Tarixçə: [docs/FIREBASE-EXIT.md](docs/FIREBASE-EXIT.md).
 
 ## Qaydalar
 

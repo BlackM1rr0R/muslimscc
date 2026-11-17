@@ -19,7 +19,7 @@ import { pickUi } from '../utils/uiText'
 //
 // • Əlçatanlıq tərcihləri panel bağlı olanda da tətbiq olunmalıdır —
 //   ona görə AccessibilityWidget həmişə render edilir (statik import).
-// • AI və bildiriş panelləri Firebase çəkir (~470 KB) — yalnız ilk dəfə
+// • AI və bildiriş panelləri ağırdır — yalnız ilk dəfə
 //   açılanda yüklənir və sonra yaddaşda qalır (yarımçıq AI cavabı itmir).
 // • <1024px-də düymənin özü CSS ilə gizlidir (məzmunu örtürdü) — alətlər
 //   başlıqdakı ☰ çəkmə menyusundadır (SideNav "drawer", "Alətlər" sətri)

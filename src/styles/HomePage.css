@@ -9,7 +9,7 @@
      4. .hp-feats   — Quran kafeli + rəqəmlər (StatTile, .ui-stats)
      5. .hp-tw      — Tövhid (sakit ikinci səth, kəlmə tünd zümrüd paneldə)
      6. .hp-names   — Allahın 12 adı
-     7. Firestore bölmələri (AdminPage.css) və .hp-cta (tünd zümrüd panel)
+     7. Admin məzmunu bölmələri (AdminPage.css) və .hp-cta (tünd zümrüd panel)
 
    Qaydalar: rənglər YALNIZ tokenlərdən (globals.css) — rəngli kod yoxdur;
    məntiqi xassələr (RTL); hover yalnız (hover:hover); hərəkət 150–400ms,
@@ -865,7 +865,7 @@ html[lang="ar"] .hp-twtab-ar { font-size: 17px; }
   .hp-name-en { font-size: 12px; }
 }
 
-/* Firestore bölmələri: video bölməsi AdminPage.css-dən əlavə 48px yuxarı
+/* Admin məzmunu bölmələri: video bölməsi AdminPage.css-dən əlavə 48px yuxarı
    boşluq alırdı — bölmənin öz padding-i kifayətdir */
 .hp-root .video-section { margin-top: 0; }
 .hp-names { padding-bottom: calc(var(--section-gap) / 2); }

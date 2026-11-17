@@ -166,7 +166,7 @@ export default function NotificationPrompt() {
 
   // Hər açılışda push abunəliyini təzələ (icazə varsa) — köhnəlmiş abunəlik
   // bildirişlərin səssizcə kəsilməsinin əsas səbəblərindən biri idi. Köhnə
-  // FCM tokeni varsa burada səssizcə Web Push-a keçilir (api/push.js)
+  // Köhnə FCM tokeni qalıbsa burada səssizcə Web Push-a keçilir (api/push.js)
   useEffect(() => { refreshPushToken() }, [])
 
   // Bildirişdəki "✅ Qıldım" düyməsi (public/sw.js) qeydi IndexedDB-yə yazır —

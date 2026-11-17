@@ -287,7 +287,7 @@ function watchAdminDefault() {
     subscribeToSettings(settings => {
       if (settings && settings.defaultCity !== undefined) setAdminDefaultCity(settings.defaultCity)
     })
-  } catch { /* Firebase əlçatan deyil — saxlanılmış standart qalır */ }
+  } catch { /* server əlçatan deyil — saxlanılmış standart qalır */ }
 }
 
 /** Saxlanılmış seçimi bir dəfə oxu; cari yeri qaytarır. */

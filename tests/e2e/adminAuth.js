@@ -49,7 +49,7 @@ export async function fakeAdminSession(page, mode = 'admin') {
       return route.fulfill({ json: { ok: true } })
     }
     if (state.mustChange) return route.fulfill({ status: 403, json: { error: 'Password change required', code: 'must_change' } })
-    if (pathname === '/api/admin/subscribers') return route.fulfill({ json: { count: 0, fcm: 0, webpush: 0 } })
+    if (pathname === '/api/admin/subscribers') return route.fulfill({ json: { count: 0, webpush: 0 } })
     if (pathname === '/api/admin/notification-history') return route.fulfill({ json: [] })
     // Məzmun yazıları — testdə heç nə yazılmır, sadəcə uğur
     if (pathname.startsWith('/api/admin/content/') || pathname.startsWith('/api/admin/singletons/')) {

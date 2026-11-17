@@ -1,5 +1,4 @@
 # Muslims.cc API (server.js) — Express + SQLite (node:sqlite) + Web Push
-# (+ keçid dövründə firebase-admin — docs/FIREBASE-EXIT.md)
 # Root olmadan ("node" istifadəçisi), yalnız istehsal asılılıqları ilə.
 # Node 22 LTS: Node 20 2026-04-də dəstəkdən çıxıb.
 FROM node:22-alpine
@@ -20,7 +19,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Bütün modullar (*.js) — siyahı ilə kopyalananda yeni fayl unudulurdu
 # (2026-11-04: sync.js image-ə düşmədi → API başlamadı). Sirr faylları .dockerignore-dadır.
 COPY *.js ./
-# Admin/xidmət skriptləri (admin-user.js, migrate-from-firestore.js, backup-db.js, gen-vapid.js, set-admin.js)
+# Admin/xidmət skriptləri (admin-user.js, backup-db.js, gen-vapid.js)
 COPY scripts ./scripts
 
 # /data sahibi "node" olsun: yeni named volume ilk dəfə bu image ilə qoşulanda

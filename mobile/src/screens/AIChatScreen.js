@@ -14,7 +14,7 @@ import { subscribeToSettings } from '../data/adminContent'
 import { BRAND } from '../config/brand'
 
 // URL prioritet sırası (web ilə eyni):
-//   1) Firebase Settings.apiUrl (admin paneldən, real-time)
+//   1) admin Settings.apiUrl (singletons/settings, admin paneldən)
 //   2) app.json -> expo.extra.apiUrl (compile-time)
 //   3) Constants.manifest / manifest2 (köhnə Expo formatları)
 //   4) Hard default: https://muslims.cc  (production canonical)
@@ -79,7 +79,7 @@ export default function AIChatScreen() {
     AsyncStorage.getItem(STORAGE_KEY).then(s => { if (s) try { setMessages(JSON.parse(s)) } catch {} })
   }, [])
 
-  // Admin Firebase Settings-dən API URL-i real-time oxu
+  // Admin Settings-dən (singletons/settings) API URL-i oxu
   useEffect(() => {
     const unsubscribe = subscribeToSettings((settings) => {
       const url = settings?.apiUrl?.trim()
