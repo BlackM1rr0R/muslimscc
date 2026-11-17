@@ -629,7 +629,7 @@ function DeleteSection({ l, t, errText, user, onLeaving, onDeleted }) {
   const [word, setWord] = useState('')
   const a = useAction(errText)
   const has = user.hasPassword
-  const ready = has ? pw.length > 0 : word === 'DELETE'
+  const ready = has ? pw.length > 0 : word.trim().toUpperCase() === 'DELETE'
   const onDelete = async (e) => {
     e.preventDefault()
     if (!ready) { a.show('bad', errText(has ? 'errWrongPw' : 'errConfirm')); return }
