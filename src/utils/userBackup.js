@@ -13,6 +13,8 @@
 // məlumatı da avtomatik ehtiyat nüsxəyə düşür.
 // ═══════════════════════════════════════════════════════
 
+import { ACTIVE_KEY, REGISTRY_KEY, isProfileScoped, profilesOn, flushActive, hydrateActive, dataHasProfiles } from './profileCore'
+
 export const BACKUP_KIND = 'muslims.cc/user-backup'
 export const BACKUP_VERSION = 1
 export const LAST_BACKUP_KEY = 'muslim_cc_last_backup'
@@ -35,6 +37,8 @@ const EXCLUDE_KEYS = new Set([
   'muslim_cc_sync',   // sinxronizasiya kodu + bu cihazın versiyası (utils/userSync) — cihaza aiddir
   'mcc_logged_in',    // "daxil olub" ipucu (api/userSession) — bu brauzerin sessiyasına aiddir
   'mcc_acct_sync',    // hesab sinxronizasiyasının bu cihazdakı vəziyyəti (utils/accountSync)
+  ACTIVE_KEY,         // bu cihazda aktiv profil (utils/profiles) — hər cihazın öz seçimi
+  'mcc_rt_sessions',  // "Birlikdə oxu" otaqlarının bu cihazdakı iştirakçı sirləri (pages/ReadTogetherPage)
 ])
 
 export function isBackupKey(key) {
@@ -43,12 +47,18 @@ export function isBackupKey(key) {
   return !EXCLUDE_PREFIXES.some(p => key.startsWith(p))
 }
 
-/** storage-dən ehtiyat nüsxə obyekti (dəyərlər xam sətir kimi — format dəyişmir) */
+/**
+ * storage-dən ehtiyat nüsxə obyekti (dəyərlər xam sətir kimi — format dəyişmir).
+ * Profillər açıqdırsa (utils/profiles): əvvəlcə aktiv profilin iş nüsxəsi öz ad sahəsinə yazılır
+ * və iş nüsxəsi (adi şəxsi açarlar) nüsxəyə DÜŞMÜR — hər profil "mcc_profile:<id>:…" kimi gedir.
+ */
 export function collectBackup(storage = globalThis.localStorage, now = new Date()) {
   const data = {}
+  const prof = profilesOn(storage)
+  if (prof) flushActive(storage)
   for (let i = 0; i < storage.length; i++) {
     const k = storage.key(i)
-    if (!isBackupKey(k)) continue
+    if (!isBackupKey(k) || (prof && isProfileScoped(k))) continue
     const v = storage.getItem(k)
     if (typeof v === 'string') data[k] = v
   }
@@ -84,11 +94,30 @@ export function parseBackup(text) {
  */
 export function restoreBackup(backup, storage = globalThis.localStorage) {
   let n = 0
+  // Profillər: yazmazdan əvvəl iş nüsxəsi saxlanır; profilli nüsxədən iş nüsxəsi açarları yazılmır
+  // (orada olmamalıdır), sonra aktiv profilin iş nüsxəsi ad sahəsindən yenilənir. Profilsiz köhnə
+  // nüsxə profilli cihaza yazılanda isə onun şəxsi açarları aktiv profilə aiddir (flush).
+  const wasOn = profilesOn(storage)
+  if (wasOn) flushActive(storage)
+  const incomingProfiles = dataHasProfiles(backup.data)
   for (const [k, v] of Object.entries(backup.data)) {
+    if (incomingProfiles && isProfileScoped(k)) continue
     try { storage.setItem(k, v); n++ } catch { /* yaddaş dolub — qalanını davam et */ }
   }
+  afterProfileWrite(storage, !incomingProfiles && wasOn)
   return n
 }
+
+/**
+ * Xaricdən (sinxronizasiya / fayl) yazılandan sonra: profillər açıqdırsa aktiv profilin iş nüsxəsini
+ * ad sahəsindən yenilə; ownWorking=true — iş nüsxəsi yeni yazılıb (profilsiz mənbə), əksinə flush.
+ */
+export function afterProfileWrite(storage = globalThis.localStorage, ownWorking = false) {
+  if (!profilesOn(storage)) return []
+  if (ownWorking) { flushActive(storage); return [] }
+  return hydrateActive(storage)
+}
+export { REGISTRY_KEY as PROFILES_REGISTRY_KEY }
 
 export function backupFileName(now = new Date()) {
   const p = (x) => String(x).padStart(2, '0')

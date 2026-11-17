@@ -7,7 +7,7 @@ import { getSurahLocal } from '../data/surahNamesAz'
 import QuranMap from '../components/QuranMap'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
-import { AYAH_WORDS, ayahCountText, pluralWord, displayAyah } from '../utils/quranText'
+import { AYAH_WORDS, ayahCountText, pluralWord } from '../utils/quranText'
 import { ayahSources, readAudioPrefs, reciterName } from '../utils/quranAudio'
 import {
   loadState as loadSrs, saveState as saveSrs, dateKey, todayStats, streak, perSurahCounts,
@@ -26,8 +26,11 @@ const TwinAyahs = lazy(() => import('../components/hifz/TwinAyahs'))
 // v6.2: məşq kartında "Tapmaca" — qarışıq sözləri sırası ilə düzmək (toxunuşla, nitq tanıma yoxdur)
 const AyahPuzzle = lazy(() => import('../components/hifz/AyahPuzzle'))
 const AyahRace = lazy(() => import('../components/hifz/AyahRace'))
+// vD: "Məni yoxla" — insan yoxlayır (nitq tanıma yoxdur); nəticə təkrar planına idxal olunur
+const HifzChecks = lazy(() => import('../components/hifz/HifzChecks'))
 const PUZZLE_LABEL = { az: 'Tapmaca', en: 'Puzzle', ru: 'Головоломка', ar: 'ترتيب الكلمات', tr: 'Bulmaca' }
 import { pickUi } from '../utils/uiText'
+import { fetchSurahText } from '../utils/surahText'
 
 // 5 dilli sahə → cari dil (funksiya da ola bilər — rəqəmli mətnlər)
 const pk = (o, lang) => (o == null ? '' : typeof o === 'string' ? o : (o[lang] !== undefined ? o[lang] : o.az))
@@ -316,22 +319,7 @@ const LOCALES = { az: 'az-Latn-AZ', en: 'en-GB', ru: 'ru-RU', ar: 'ar', tr: 'tr-
 const fill = (s, vars) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''))
 const reduceMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
-// ── Surə mətni (alquran.cloud, Quran səhifəsi ilə eyni nəşr: ar.alafasy) ──
-// Modul səviyyəsində keş: eyni surə bir dəfə gətirilir; xəta keşdə qalmır.
-const SURAH_CACHE = new Map()
-function fetchSurahText(s) {
-  if (SURAH_CACHE.has(s)) return SURAH_CACHE.get(s)
-  const p = fetch(`https://api.alquran.cloud/v1/surah/${s}/editions/ar.alafasy`)
-    .then(r => { if (!r.ok) throw new Error('http'); return r.json() })
-    .then(d => {
-      const ed = Array.isArray(d?.data) ? d.data[0] : null
-      if (!Array.isArray(ed?.ayahs)) throw new Error('bad-response')
-      return ed.ayahs.map((v, i) => ({ a: v.numberInSurah, g: v.number, ar: displayAyah(v.text, s, i) }))
-    })
-  SURAH_CACHE.set(s, p)
-  p.catch(() => SURAH_CACHE.delete(s))
-  return p
-}
+// Surə mətni — utils/surahText.js (alquran.cloud, ar.alafasy; "Məni yoxla" səhifəsi ilə ortaq)
 function useAyah(s, a, attempt) {
   const [st, setSt] = useState({ verse: null, loading: true, error: false })
   useEffect(() => {
@@ -790,7 +778,7 @@ function SmartHifz({ lang, progress, setProgress, srs, setSrs }) {
 }
 
 export default function HifzPage() {
-  const { lang } = useLang()
+  const { lang, siteLang = lang } = useLang()
   const t = pickUi(LABELS, lang)
   const sl = pickUi(STATUS_LABELS, lang)
 
@@ -917,6 +905,9 @@ export default function HifzPage() {
             surahName={(n) => (lang === 'ar' ? SURAHS[n - 1].name : (getSurahLocal(n, lang)?.name || SURAHS[n - 1].en))}
             surahHref={(n) => pathFor('quran', lang, n)} />
           <SmartHifz lang={lang} progress={progress} setProgress={setProgress} srs={srs} setSrs={setSrs} />
+          <Suspense fallback={null}>
+            <HifzChecks lang={lang} siteLang={siteLang} setSrs={setSrs} />
+          </Suspense>
         </div>
       </div>
 

@@ -15,7 +15,8 @@
 // utils/syncBase) və hesabla yeni cihazın qoşulması (utils/accountSync → planMerge/applyMerge).
 // tests/unit/sync-merge.test.js
 // ═══════════════════════════════════════════════════════
-import { collectBackup, restoreBackup, isBackupKey } from './userBackup'
+import { collectBackup, restoreBackup, isBackupKey, afterProfileWrite } from './userBackup'
+import { dataHasProfiles, isProfileScoped } from './profileCore'
 import { runMerger, hasMerger, CONFLICT, PREFERENCE_KEYS } from './syncMergers'
 
 export const CONFLICT_IGNORE = PREFERENCE_KEYS
@@ -27,8 +28,11 @@ export const CONFLICT_IGNORE = PREFERENCE_KEYS
 export function mergeData(local = {}, remote = {}, base = null, { prefs = 'local' } = {}) {
   const B = base || {}
   const data = {}, conflicts = [], merged = []
+  // Profillər (utils/profiles) açıqdırsa iş nüsxəsi açarları sinxronlanmır — yalnız ad sahələri
+  const prof = dataHasProfiles(local) || dataHasProfiles(remote)
   for (const k of new Set([...Object.keys(local), ...Object.keys(remote), ...Object.keys(B)])) {
     if (!isBackupKey(k)) continue   // cihaza aid açarlara toxunulmur
+    if (prof && isProfileScoped(k)) continue
     const l = local[k], r = remote[k], b = B[k]
     let v
     if (l === r) v = l
@@ -67,6 +71,8 @@ export function writeMerged(data, current = collectBackup().data, storage = glob
       changed.push(k)
     } catch { /* yaddaş dolub — qalanını davam et */ }
   }
+  // Aktiv profilin ad sahəsi dəyişibsə iş nüsxəsi də yenilənsin (açıq səhifələr storage hadisəsi alsın)
+  for (const k of afterProfileWrite(storage)) if (!changed.includes(k)) changed.push(k)
   return changed
 }
 
@@ -88,6 +94,7 @@ export function applyMerge(remoteBackup, prefer = 'remote', storage = globalThis
     if (v === remoteBackup.data[k] || !isBackupKey(k)) continue
     try { if (v === undefined) storage.removeItem(k); else storage.setItem(k, v) } catch { /* yaddaş dolub */ }
   }
+  afterProfileWrite(storage)
   const needsPush = Object.keys(result).some((k) => result[k] !== remoteBackup.data[k])
   return { written, needsPush, data: result }
 }

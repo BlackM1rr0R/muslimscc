@@ -33,6 +33,8 @@ const LogoutDialog = lazy(() => import('../components/account/LogoutDialog'))
 const AccountQuranSections = lazy(() => import('../components/account/AccountQuranSections'))
 // vC: gələcəyə məktub, sevdiklərim üçün dua, zəkat xatırlatması (server/personal.js — serverdə şifrəsiz, razılıqla)
 const PersonalSections = lazy(() => import('../components/account/PersonalSections'))
+// vD: profillər, ailə dairəsi, "Birlikdə Quran oxu"
+const AccountDSections = lazy(() => import('../components/account/AccountDSections'))
 
 const LABELS = {
   az: {
@@ -239,7 +241,7 @@ export default function AccountPage() {
 
   const toLogin = useCallback(() => {
     // Ailə paylaşma keçidi (#follow=…) girişdən sonra da qalsın
-    const hash = typeof window !== 'undefined' && /^#follow=/.test(window.location.hash) ? window.location.hash : ''
+    const hash = typeof window !== 'undefined' && /^#(follow|family)=/.test(window.location.hash) ? window.location.hash : ''
     navigate(`${pathFor('login', siteLang)}?next=${encodeURIComponent(pathFor('account', siteLang) + hash)}`, { replace: true })
   }, [navigate, siteLang])
 
@@ -325,6 +327,9 @@ export default function AccountPage() {
         </Suspense>
         <Suspense fallback={null}>
           <PersonalSections emailVerified={Boolean(user.emailVerified)} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AccountDSections lang={lang} siteLang={siteLang} user={user} />
         </Suspense>
         <PasswordSection l={l} t={t} errText={errText} user={user} />
         <PasskeySection l={l} errText={errText} user={user} fmt={fmt} />

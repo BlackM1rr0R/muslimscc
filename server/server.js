@@ -23,7 +23,8 @@ if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUT
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
 for (const m of ['./auth', './users', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
-  './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri']) require(m)
+  './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
+  './readTogether', './family', './hifzTest']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -85,7 +86,7 @@ const mailer = require('./mailer').createMailer({ apiKey: process.env.RESEND_API
 const usersRouter = usersLib.createUsersRouter({
   db, store: usersStore, requireAdmin, allowedOrigins: ALLOWED,
   hooks: {
-    beforeDeleteUser: (id) => syncKeysStore.deleteUserData(id),
+    beforeDeleteUser: (id) => { syncKeysStore.deleteUserData(id); readTogetherRouter.closeOwnerRooms(id) },
     passkeyRemoved: (userId, credId) => syncKeysStore.remove(userId, 'prf', credId),
     passwordReset: (userId) => syncKeysStore.remove(userId, 'password', ''),
   },
@@ -140,6 +141,22 @@ const personalRouter = require('./personal').createPersonalRouter({
   pushSend: (subs, msg, label) => (webPush.enabled ? deliver(subs.map((sub) => ({ sub })), msg, label) : Promise.resolve({ successCount: 0, disabled: true })),
 })
 app.use('/api', personalRouter)
+
+// ─── D mərhələsi: hesaba bağlı sosial xüsusiyyətlər ──
+// "Birlikdə Quran oxu" (server/readTogether.js) — otaqlar YALNIZ yaddaşda, SSE + POST; bazaya heç nə yazılmır.
+// Limit genişdir: SSE yenidən qoşulmaları (bilet) və vərəq çevirmələri; modulun öz limitləri də var.
+app.use('/api/read-together', limit(60000, 300))
+const readTogetherRouter = require('./readTogether').createReadTogetherRouter({ requireUser: usersRouter.requireUser, allowedOrigins: ALLOWED })
+app.use('/api', readTogetherRouter)
+// Ailə dairəsi (server/family.js) — yalnız istifadəçinin seçdiyi xülasə rəqəmləri + şablon kartlar; cədvəllər miqrasiyasız, CASCADE
+app.use('/api/family', limit(60000, 60))
+const familyRouter = require('./family').createFamilyRouter({ db, requireUser: usersRouter.requireUser })
+app.use('/api', familyRouter)
+// "Məni yoxla" hifz keçidi (server/hifzTest.js) — token yalnız SHA-256; nəticə götürüləndən 7 gün sonra silinir
+app.use('/api/hifz-tests', limit(60000, 60))
+const hifzTestRouter = require('./hifzTest').createHifzTestRouter({ db, requireUser: usersRouter.requireUser, allowedOrigins: ALLOWED })
+app.use('/api', hifzTestRouter)
+setInterval(() => { try { familyRouter.purge(); hifzTestRouter.purge() } catch (e) { console.error('family/hifz purge:', e && e.message) } }, 3600e3).unref()
 
 // ─── CSP pozuntu hesabatları (server/csp.js) — Report-Only rejimi; yaddaşda birləşdirilir ──
 app.use('/api/csp-report', limit(60000, 60))
@@ -858,6 +875,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 // docker stop → SIGTERM: yeni sorğu qəbul etmə, bazanı səliqəli bağla (WAL checkpoint)
 for (const sig of ['SIGTERM', 'SIGINT']) {
   process.once(sig, () => {
+    try { readTogetherRouter.shutdown() } catch { /* */ }   // açıq SSE axınları bağlansın
     server.close()
     try { db.raw.exec('PRAGMA wal_checkpoint(TRUNCATE)'); db.close() } catch { /* */ }
     process.exit(0)

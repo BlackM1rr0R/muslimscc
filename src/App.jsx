@@ -165,6 +165,8 @@ const LicensesPage = lazy(() => import('./pages/LicensesPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const AccountTokenPage = lazy(() => import('./pages/AccountTokenPage'))
+const ReadTogetherPage = lazy(() => import('./pages/ReadTogetherPage'))
+const HifzTestPage = lazy(() => import('./pages/HifzTestPage'))
 
 // Bu widget-lər hər səhifədə render olunur, amma heç biri ilk ekran üçün
 // vacib deyil — ona görə tənbəl yüklənir.
@@ -426,6 +428,8 @@ function AppInner() {
       case 'account':       return <AccountPage       setPage={navigate} />
       case 'accountverify': return <AccountTokenPage  setPage={navigate} mode="verify" />
       case 'accountreset':  return <AccountTokenPage  setPage={navigate} mode="reset" />
+      case 'readtogether':  return <ReadTogetherPage />
+      case 'hifztest':      return <HifzTestPage />
       case 'notfound':      return <NotFoundPage      setPage={navigate} />
       default:              return <HomePage          setPage={navigate} />
     }

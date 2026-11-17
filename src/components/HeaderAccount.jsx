@@ -18,6 +18,9 @@ import Icon from './Icon'
 
 // "Bu cihazda məlumat qalsın?" — yalnız sinxronizasiya hesaba bağlı olanda (tənbəl chunk)
 const LogoutDialog = lazy(() => import('./account/LogoutDialog'))
+// Profil seçicisi (utils/profiles) — yalnız profillər açıqdırsa, menyu açılanda (tənbəl chunk)
+const ProfileMenu = lazy(() => import('./account/ProfileMenu'))
+const hasProfiles = () => { try { return Boolean(globalThis.localStorage?.getItem('mcc_profiles')) } catch { return false } }
 
 const LABELS = {
   az: { signIn: 'Daxil ol', account: 'Hesabım', menu: 'Hesab menyusu', panel: 'Admin paneli', logout: 'Çıxış' },
@@ -118,6 +121,11 @@ export default function HeaderAccount({ currentPage }) {
           <a className="hdr-account-menu__item" href={pathFor('account', siteLang)} onClick={go('account')}>
             <Icon name="user" size={18} /> {l.account}
           </a>
+          {hasProfiles() && (
+            <Suspense fallback={null}>
+              <ProfileMenu lang={lang} manageHref={`${pathFor('account', siteLang)}#profiles`} onManage={() => setOpen(false)} />
+            </Suspense>
+          )}
           {PANEL_ROLES.has(user.role) && (
             <a className="hdr-account-menu__item" href={pathFor('admin', siteLang)}>
               <Icon name="shield" size={18} /> {l.panel}

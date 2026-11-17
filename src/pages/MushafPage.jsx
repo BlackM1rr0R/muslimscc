@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import AmbientSound from '../components/AmbientSound'
 import HeroOrnament from '../components/HeroOrnament'
@@ -8,11 +8,9 @@ import { isPlainClick } from '../components/PageLink'
 import { pathFor } from '../seo/routes'
 import { getSurahLocal } from '../data/surahNamesAz'
 import { SURAH_TABLE } from '../data/mushafIndex'
-import { BASMALA_DISPLAY } from '../utils/quranText'
 import {
   MUSHAF_PAGES, clampPage, isValidPage, surahStartPage, juzStartPage, juzForPage, surahsOnPage, surahInfo,
-  hizbFromRub, layoutPage, isCenteredLine, wbwLang, readLastPage, saveLastPage,
-  fetchMushafPage, getCachedPage, prefetchMushafPage,
+  wbwLang, readLastPage, saveLastPage, prefetchMushafPage,
 } from '../utils/mushaf'
 import { loadWordIndex, spacedRoot, ROOT_CAT_LABELS, verbFormLabel } from '../utils/quranRoots'
 import { ProgressBar, StatTile } from '../components/viz'
@@ -25,6 +23,7 @@ import { useReduced } from '../motion/reduced'
 import useMushafCurl from '../components/quran/useMushafCurl'
 import { recordAyahs, pageAyahs } from '../utils/quranLife'
 import MushafRecite from '../components/quran/MushafRecite'
+import { MushafSheet, useMushafPage } from '../components/quran/MushafSheet'
 
 // v3: hero rəqəmləri və "Mushafın quruluşu" bölməsi.
 // 604 səhifə / 30 cüz — src/data/mushafIndex.js; 60 hizb, 240 rübʿ — ənənəvi bölgü
@@ -79,6 +78,7 @@ const ROOTS_KEY = 'quranroots'
 
 const LABELS = {
   az: {
+    together: 'Birlikdə oxu', togetherHint: 'Ailə və dostlarla eyni səhifəni birlikdə oxuyun',
     eyebrow: 'Quran', title: 'Mushaf görünüşü',
     lead: 'Mədinə mushafı — 604 səhifə, hər səhifə çap nüsxəsindəki kimi 15 sətir. Təcvid rəngləri və söz-söz tərcümə ilə.',
     page: 'Səhifə', of: 'cəmi', next: 'Növbəti səhifə', prev: 'Əvvəlki səhifə',
@@ -95,6 +95,7 @@ const LABELS = {
     quarter: ['', '¼', '½', '¾'],
   },
   en: {
+    together: 'Read together', togetherHint: 'Read the same page together with family and friends',
     eyebrow: 'Quran', title: 'Mushaf view',
     lead: 'The Madani mushaf — 604 pages, each with the same 15 lines as the printed copy. With tajweed colours and word-by-word translation.',
     page: 'Page', of: 'of', next: 'Next page', prev: 'Previous page',
@@ -111,6 +112,7 @@ const LABELS = {
     quarter: ['', '¼', '½', '¾'],
   },
   ru: {
+    together: 'Читать вместе', togetherHint: 'Читайте одну страницу вместе с семьёй и друзьями',
     eyebrow: 'Коран', title: 'Вид мусхафа',
     lead: 'Мединский мусхаф — 604 страницы, на каждой те же 15 строк, что и в печатном издании. С цветами таджвида и пословным переводом.',
     page: 'Страница', of: 'из', next: 'Следующая страница', prev: 'Предыдущая страница',
@@ -128,6 +130,7 @@ const LABELS = {
     quarter: ['', '¼', '½', '¾'],
   },
   ar: {
+    together: 'القراءة معًا', togetherHint: 'اقرؤوا الصفحة نفسها معًا مع الأهل والأصدقاء',
     eyebrow: 'القرآن', title: 'عرض المصحف',
     lead: 'مصحف المدينة النبوية — ٦٠٤ صفحات، في كل صفحة ١٥ سطرًا كما في النسخة المطبوعة، مع ألوان التجويد وترجمة الكلمات.',
     page: 'الصفحة', of: 'من', next: 'الصفحة التالية', prev: 'الصفحة السابقة',
@@ -145,6 +148,7 @@ const LABELS = {
     quarter: ['', '¼', '½', '¾'],
   },
   tr: {
+    together: 'Birlikte oku', togetherHint: 'Aynı sayfayı aile ve arkadaşlarla birlikte okuyun',
     eyebrow: 'Kur’an', title: 'Mushaf görünümü',
     lead: 'Medine mushafı — 604 sayfa, her sayfada basılı nüshadaki gibi 15 satır. Tecvid renkleri ve kelime kelime meal ile.',
     page: 'Sayfa', of: 'toplam', next: 'Sonraki sayfa', prev: 'Önceki sayfa',
@@ -199,8 +203,6 @@ function readPrefs() {
 function savePrefs(p) { try { localStorage.setItem(PREFS_KEY, JSON.stringify(p)) } catch { /* bağlıdır */ } }
 
 const isTyping = el => !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
-const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩'
-const toArabicDigits = n => String(n).replace(/\d/g, d => AR_DIGITS[d])
 const readPageParam = search => {
   const n = Number(new URLSearchParams(search || '').get('p'))
   return isValidPage(n) ? n : null
@@ -211,52 +213,6 @@ function surahName(n, lang) {
   if (!info) return String(n)
   if (lang === 'ar') return info.ar
   return getSurahLocal(n, lang)?.name || info.latin
-}
-
-/** Sətirləri konteynerə sığdırır: daşan sətrin şrift ölçüsünü azaldır */
-function useFitLines(sheetRef, deps) {
-  useLayoutEffect(() => {
-    const sheet = sheetRef.current
-    if (!sheet) return undefined
-    const fit = () => {
-      const lines = sheet.querySelectorAll('.mp-line--words')
-      lines.forEach(el => { el.style.fontSize = '' })
-      lines.forEach(el => {
-        const over = el.scrollWidth - el.clientWidth
-        if (over > 1) {
-          const base = parseFloat(getComputedStyle(el).fontSize)
-          el.style.fontSize = `${Math.floor(base * (el.clientWidth / el.scrollWidth) * 0.98 * 10) / 10}px`
-        }
-      })
-    }
-    fit()
-    let raf = 0
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit) }) : null
-    ro?.observe(sheet)
-    // Şrift gec yüklənərsə yenidən ölç
-    document.fonts?.ready?.then(fit).catch(() => {})
-    return () => { ro?.disconnect(); cancelAnimationFrame(raf) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps)
-}
-
-/** Bir səhifənin məlumatı (keş → şəbəkə). enabled=false — heç nə yüklənmir. */
-function useMushafPage(p, wl, reload, enabled = true) {
-  const [st, setSt] = useState(() => ({ p, data: enabled ? getCachedPage(p, wl) : null, error: null }))
-  useEffect(() => {
-    if (!enabled) return undefined
-    let alive = true
-    const hit = getCachedPage(p, wl)
-    setSt({ p, data: hit, error: null })
-    if (!hit) {
-      fetchMushafPage(p, wl)
-        .then(v => { if (alive) setSt({ p, data: v, error: null }) })
-        .catch(e => { if (alive) setSt({ p, data: null, error: e?.kind || 'network' }) })
-    }
-    return () => { alive = false }
-  }, [p, wl, reload, enabled])
-  // Səhifə dəyişən kimi köhnə səhifənin məlumatı göstərilməsin
-  return st.p === p ? st : { p, data: enabled ? getCachedPage(p, wl) : null, error: null }
 }
 
 /** Geniş ekran (iki səhifəli açıq kitab üçün) */
@@ -271,91 +227,6 @@ function useWide() {
     return () => mq.removeEventListener?.('change', on)
   }, [])
   return wide
-}
-
-/**
- * Bir mushaf vərəqi: başlıq (surə, cüz/hizb), 15 sətir, səhifə nömrəsi.
- * side: 'right' | 'left' | '' — açıq kitabda vərəqin tərəfi (kölgə, kənar).
- */
-function MushafSheet({ page, data, error, prefs, sel, onWordClick, L, onRetry, side = '' }) {
-  const sheetRef = useRef(null)
-  const lines = useMemo(() => (data ? layoutPage(data.words, page) : null), [data, page])
-  useFitLines(sheetRef, [lines, prefs.tajweed])
-  const juz = data?.juz || juzForPage(page)
-  const hz = hizbFromRub(data?.rub)
-  const headerSurah = data?.words?.[0]?.s || surahsOnPage(page)[0]
-  const label = `${L.page} ${page} ${L.of} ${MUSHAF_PAGES} · ${L.juz} ${juz}`
-  return (
-    <article className={`mp-sheet${prefs.tajweed ? ' is-tajweed' : ''}${prefs.wbw ? ' is-wbw' : ''}${side ? ` mp-sheet--${side}` : ''}`}
-      aria-label={label} aria-busy={!data && !error}>
-      <div className="mp-sheet__head" dir="rtl">
-        <span className="mp-sheet__surah ui-arabic" lang="ar">{headerSurah ? `سورة ${surahInfo(headerSurah)?.ar}` : ''}</span>
-        <span className="mp-sheet__juz" dir="auto">
-          {L.juz} <span className="ui-num">{juz}</span>
-          {hz && <> · {L.hizb} <span className="ui-num">{hz.hizb}</span>{hz.quarter ? ` ${L.quarter[hz.quarter]}` : ''}</>}
-        </span>
-      </div>
-
-      <div className="mp-sheet__body" ref={sheetRef} lang="ar" dir="rtl">
-        {error && !data && (
-          <div className="mp-error" role="alert">
-            <span className="ui-icon-tile ui-icon-tile--lg" aria-hidden="true"><Icon name="quran" /></span>
-            <p>{error === 'offline' ? L.offline : L.error}</p>
-            <button type="button" className="ui-btn ui-btn--primary ui-btn--sm" onClick={onRetry}>
-              <Icon name="refresh" className="ui-btn__icon" /> {L.retry}
-            </button>
-          </div>
-        )}
-        {!data && !error && <MushafSkeleton label={L.loading} />}
-        {lines && lines.map(line => {
-          if (line.kind === 'header') {
-            return (
-              <div key={line.n} className="mp-line mp-line--header">
-                <span className="mp-surah-title ui-arabic">سورة {surahInfo(line.surah)?.ar}</span>
-              </div>
-            )
-          }
-          if (line.kind === 'basmala') {
-            return <div key={line.n} className="mp-line mp-line--basmala ui-arabic">{BASMALA_DISPLAY}</div>
-          }
-          if (line.kind === 'blank') return <div key={line.n} className="mp-line mp-line--blank" aria-hidden="true" />
-          return (
-            <div key={line.n} className={`mp-line mp-line--words${isCenteredLine(line, page) ? ' is-centered' : ''}`}>
-              {line.words.map(w => {
-                if (w.type === 'end') {
-                  return <span key={`${w.key}-e`} className="mp-end" aria-label={w.key} data-ak={w.key}>{toArabicDigits(w.a)}</span>
-                }
-                const active = sel && sel.w.key === w.key && sel.w.p === w.p
-                const content = prefs.tajweed && w.tj
-                  ? <span className="mp-word__t" dangerouslySetInnerHTML={{ __html: w.tj }} />
-                  : <span className="mp-word__t">{w.text}</span>
-                return prefs.wbw ? (
-                  <button key={`${w.key}-${w.p}`} type="button" className={`mp-word${active ? ' is-active' : ''}`} data-wk={`${w.key}:${w.p}`} data-ak={w.key}
-                    aria-expanded={active} aria-label={w.tr ? `${w.text} — ${w.tr}` : w.text} onClick={onWordClick(w)}>
-                    {content}
-                  </button>
-                ) : (
-                  <span key={`${w.key}-${w.p}`} className="mp-word" data-wk={`${w.key}:${w.p}`} data-ak={w.key}>{content}</span>
-                )
-              })}
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="mp-sheet__foot" aria-hidden="true">
-        <span className="mp-sheet__num ui-arabic">{toArabicDigits(page)}</span>
-      </div>
-    </article>
-  )
-}
-
-function MushafSkeleton({ label }) {
-  return (
-    <div className="mp-skel" role="status" aria-label={label}>
-      {Array.from({ length: 15 }, (_, i) => <span key={i} className="ui-skeleton ui-skeleton--text mp-skel__line" />)}
-    </div>
-  )
 }
 
 function WordPopover({ sel, L, lang, onClose, stageRef, rootsHref }) {
@@ -438,7 +309,7 @@ function WordPopover({ sel, L, lang, onClose, stageRef, rootsHref }) {
 }
 
 export default function MushafPage() {
-  const { lang } = useLang()
+  const { lang, siteLang = lang } = useLang()
   const L = pickUi(LABELS, lang)
   const location = useLocation()
   const routerNavigate = useNavigate()
@@ -651,6 +522,10 @@ export default function MushafPage() {
               </button>
               <MushafRecite pages={[pR, pL]} words={reciteWords} stageRef={stageRef} lang={lang} wbw={prefs.wbw}
                 canNext={pR < lastStart} onNextPage={next} />
+              <a className="ui-chip mp-together" href={`${pathFor('readtogether', siteLang)}?p=${pR}`} title={L.togetherHint} data-testid="mp-together"
+                onClick={(e) => { if (!isPlainClick(e)) return; e.preventDefault(); routerNavigate(`${pathFor('readtogether', siteLang)}?p=${pR}`) }}>
+                <Icon name="group" size={16} /> {L.together}
+              </a>
               <SoundToggle lang={lang} />
               <AmbientSound lang={lang} />
               {wide && (

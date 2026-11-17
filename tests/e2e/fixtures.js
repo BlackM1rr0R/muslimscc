@@ -60,6 +60,8 @@ const IGNORED = [
   // İstifadəçi hesabı API-sinin GÖZLƏNİLƏN 4xx cavabları (girişsiz /me → 401, yanlış şifrə → 401, admin 403 kodları):
   // brauzer onları "Failed to load resource" kimi yazır — saytın xətası deyil (UI onları özü göstərir)
   /Failed to load resource.*\/api\/(auth\/|personal\/|admin\/(users|role-audit))/i,
+  // D mərhələsi (otaq, ailə, hifz yoxlaması) — gözlənilən 4xx (yanlış/köhnə keçid, giriş yoxdur): UI özü göstərir
+  /Failed to load resource.*\/api\/(read-together|family|hifz-tests)(\/|\?|$)/i,
 ]
 
 // Saxta Google Identity Services (src/utils/googleSignIn.js-in işlətdiyi hissə)
@@ -156,6 +158,19 @@ export const test = base.extend({
       if (get && pathname === '/api/personal/zakat') return route.fulfill({ json: { reminder: null, consent: false, emailVerified: true } })
       if (pathname === '/api/personal/push-link/status') return route.fulfill({ json: { linked: false } })
       return route.fulfill({ status: 401, json: { error: 'Unauthorized', code: 'unauthenticated' } })
+    })
+    // D mərhələsi (server/readTogether.js, family.js, hifzTest.js) — susmaya görə boş / girişsiz.
+    // Spec-lər tests/e2e/socialApi.js ilə öz saxtasını qoyur.
+    await page.route((u) => /^\/api\/(read-together|family|hifz-tests)(\/|$)/.test(u.pathname), (route) => {
+      const { pathname } = new URL(route.request().url())
+      const get = route.request().method() === 'GET'
+      if (get && pathname === '/api/family') return route.fulfill({ json: { circle: null, cards: [], share: null, consent: false, limits: {} } })
+      if (get && pathname === '/api/hifz-tests') return route.fulfill({ json: { tests: [], max: 10 } })
+      if (get && pathname === '/api/read-together/mine') return route.fulfill({ json: { rooms: [], max: 3 } })
+      // Girişsiz keçidlər (yoxlayan, qonaq) — serverdə olmayan token → 404 (real serverin cavabı)
+      if (pathname === '/api/hifz-tests/open' || pathname === '/api/hifz-tests/submit') return route.fulfill({ status: 404, json: { error: 'Invalid link', code: 'invalid_token' } })
+      if (pathname === '/api/read-together/join') return route.fulfill({ status: 404, json: { error: 'invalid_invite', code: 'invalid_invite' } })
+      return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
     })
     // Google ilə giriş (accounts.google.com/gsi/client) — real Google-a getməsin: kiçik saxta GIS.
     // Düymə basılanda callback-ə saxta ID tokeni verir (server cavabını spec saxtalaşdırır).

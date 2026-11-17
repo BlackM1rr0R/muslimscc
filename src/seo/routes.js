@@ -145,6 +145,10 @@ export const PAGES = [
   { key: 'account',       path: 'account',        noindex: true },
   { key: 'accountverify', path: 'account/verify', noindex: true },
   { key: 'accountreset',  path: 'account/reset',  noindex: true },
+  // D mərhələsi — şəxsi keçidlərlə açılan səhifələr (sirr URL fraqmentindədir: #j=…, #t=…);
+  // indekslənmir, sitemap-a düşmür. "Birlikdə Quran oxu" otağı və "Məni yoxla" hifz keçidi.
+  { key: 'readtogether',  path: 'read-together',  noindex: true },
+  { key: 'hifztest',      path: 'hifz-test',      noindex: true },
 ]
 
 /** İndekslənməyən səhifə açarları (Seo.jsx → robots noindex). */

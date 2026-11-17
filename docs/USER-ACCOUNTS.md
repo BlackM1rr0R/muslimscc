@@ -246,6 +246,52 @@ Google Identity Services (`https://accounts.google.com/gsi/client`) istifadə ol
 Passkey üçün CSP dəyişikliyi lazım deyil (`navigator.credentials` saytın özündədir); `Permissions-Policy`-də
 `publickey-credentials-*` qadağan edilməyib (susmaya görə `self`). `/api/auth/*` artıq `location /api/`-dən keçir.
 
+## D mərhələsi: birlikdə oxu, profillər, ailə dairəsi, "Məni yoxla"
+
+### "Birlikdə Quran oxu" (`server/readTogether.js`, `/read-together`)
+- Otağı yalnız **girişli** istifadəçi yaradır; qoşulmaq üçün hesab lazım deyil (yalnız ləqəb). Aparıcı vərəqi çevirir və
+  oxunan ayəni işarələyir; "Hər kəs vərəq çevirə bilər" seçimi; "Aparıcını izlə" klientdə hər iştirakçının öz seçimidir.
+- **Bazaya heç nə yazılmır** — otaqlar API prosesinin yaddaşındadır (bir konteyner); restart → otaqlar bağlanır.
+  24 saat fəaliyyətsizlikdən sonra silinir. Hədlər: istifadəçi başına 3 otaq, otaqda 30 iştirakçı, iştirakçı başına
+  3 SSE bağlantısı, cəmi 500 otaq / 3000 bağlantı; IP üzrə qoşulma 30/10 dəq, iştirakçı üzrə əməliyyat 120/dəq.
+- Nəqliyyat: SSE (`GET …/events?t=<bilet>`) + POST. Hər mesaj otağın **tam** vəziyyətidir (itən hadisə yoxdur).
+  Dəvət tokeni və iştirakçı sirri 128 bit, yaddaşda da yalnız SHA-256. EventSource başlıq göndərmədiyi üçün sirr URL-ə
+  qoyulmur: `POST …/ticket` birdəfəlik, 60 saniyəlik bilet verir. nginx: yalnız `^/api/read-together/<id>/events$`
+  üçün `proxy_buffering off`, `proxy_read_timeout 3600s`, `access_log off`.
+- Keçidlər: `/read-together#j=<dəvət>` (qoşul), `/read-together#r=<otaq>` (bu cihazın iştirak sirri —
+  `localStorage.mcc_rt_sessions`, ehtiyat nüsxəyə düşmür; sahib başqa cihazda `reclaim` ilə aparıcılığı bərpa edir).
+
+### Profillər (`src/utils/profileCore.js`, `profiles.js`) — serverdə heç nə yoxdur
+- Hesabda ≤6 profil. Profilə aid açarlar AÇIQ siyahıdır (`PROFILE_KEYS`); dil/mövzu/şəhər/tərcihlər ortaqdır.
+  Hər profil `mcc_profile:<id>:<açar>` kimi; adi açarlar — aktiv profilin iş nüsxəsi. Keçid: flush → aktiv id → hydrate → yenilə.
+- Sinxronizasiya: `collectBackup` əvvəlcə flush edir və iş nüsxəsini göndərmir; gələn məlumat yazılandan sonra
+  aktiv profil yenidən yüklənir. Aktiv id cihaza aiddir (`mcc_profile_active`). Reyestri ilk dəfə sinxronizasiya ilə alan
+  cihazın köhnə şəxsi açarları yalnız birinci profildə OLMAYAN açarlara köçür (qalanı hesabdakı qalib gəlir).
+
+### Ailə dairəsi (`server/family.js`) — SERVERDƏ OXUNA BİLƏN (yalnız seçilmiş rəqəmlər)
+| Cədvəl | Saxlanan |
+|---|---|
+| `family_circles` | sahib (`owner_id` UNIQUE) |
+| `family_members` | dairə ↔ hesab, rol (`owner`/`member`); hesab ən çox bir dairədə; ≤8 üzv |
+| `family_invites` | dəvət tokeninin **yalnız SHA-256**-ı (32 bayt), birdəfəlik, 7 gün; ≤5 açıq |
+| `family_shares` | istifadəçinin SEÇDİYİ xülasə rəqəmləri (ağ siyahı: `quranAyahsTotal, quranDaysWeek, storybooksRead, prayerStarsWeek, hifzAyahs, dhikrWeek`), razılıq vaxtı |
+| `family_cards` | şablon id + istəyə bağlı rəqəm (sərbəst mətn YOXDUR — uşaq üçün təhlükəsiz); 60 gündən sonra silinir; göndərən üzrə 30/gün |
+Hamısı `users(id) ON DELETE CASCADE` (sahib silinəndə dairə bütövlükdə). Rəqəmləri klient hesablayır (`src/utils/familyStats.js`).
+Dəvət: `/account#family=<token>`. Endpoint-lər: `GET/POST/DELETE /api/family`, `POST /api/family/invites`,
+`DELETE /api/family/invites/:id`, `POST /api/family/join/preview`, `POST /api/family/join`, `DELETE /api/family/members/:id`,
+`PUT/DELETE /api/family/share`, `POST /api/family/cards`, `POST /api/family/cards/seen`, `DELETE /api/family/cards/:id`.
+
+### "Məni yoxla" (`server/hifzTest.js`, `/hifz-test`) — NİTQ TANIMA YOXDUR
+- `hifz_tests`: sahib, token **SHA-256** (32 bayt), surə + ayə aralığı, göstəriləcək ad, 24 saat ömür; nəticə — yalnız
+  işarələr (`{ a, kind: mistake|hesitation, words? }`), sərbəst mətn qəbul olunmur. Nəticə sahib siyahını açanda "götürülür",
+  7 gün sonra silinir (heç götürülməsə — 90 gün); cavabsız keçid vaxtı bitəndən 1 gün sonra. ≤10 açıq keçid.
+- Yoxlayan girişsizdir: token URL fraqmentindədir (`/hifz-test#t=…`) və gövdədə göndərilir (`POST /api/hifz-tests/open`, `/submit`).
+  Sahib: `POST/GET /api/hifz-tests`, `DELETE /api/hifz-tests/:id`. Klient nəticəni hifz SRS-ə bir dəfə idxal edir
+  (`src/utils/hifzTestImport.js`: səhv → bu gün, tərəddüd → ən gec sabah).
+
+Limitlər (`server.js`, IP üzrə): `/api/read-together` 300/dəq, `/api/family` 60/dəq, `/api/hifz-tests` 60/dəq. Bütün
+cədvəllər miqrasiyasızdır; modullar əvvəlcədən yükləmə siyahısındadır.
+
 ## Klient (sayt)
 
 - Səhifələr (noindex, sitemap-a düşmür): `/login`, `/signup`, `/account`, `/account/verify`, `/account/reset`
