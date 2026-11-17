@@ -37,6 +37,7 @@ import { pickLang } from '../utils/pickLang'
 import { pickUi } from '../utils/uiText'
 import { gradeGroup, gradeOf } from '../utils/hadithGrade'
 import DeferRender from '../components/DeferRender'
+import { recordHadithRead } from '../utils/hadithLastRead'
 // v6.0: Hədis qalaktikası — hər hədis bir ulduz, mövzular bürc (bölməyə yaxınlaşanda)
 const HadithGalaxy = lazy(() => import('../components/HadithGalaxy'))
 
@@ -729,7 +730,10 @@ export default function HadithPage({ setPage }) {
   const visible = filtered.slice(0, inf.count)
   // Tam mətn pəncərəsi: əvvəlki/növbəti — görünən siyahıda tam mətni olanlar
   const [fullId, setFullId] = useState(null)
-  const openFull = useCallback((id) => setFullId(id), [])
+  const openFull = useCallback((id) => {
+    setFullId(id)
+    recordHadithRead({ src: 'site', id, lang })   // "Davam et" kartı
+  }, [lang])
   const fullNav = useMemo(() => visible.map(siteIdOf).filter(id => id != null && hasFull(id)), [visible])
   const fullIdx = fullNav.indexOf(fullId)
   // v6.9: sevimliləri əzbərləmə (Leitner) — yalnız "Sevimlilər" görünəndə
@@ -741,6 +745,8 @@ export default function HadithPage({ setPage }) {
   const routeLoc = useLocation()
   const focusId = parsePath(routeLoc.pathname).param
   const focus = useMemo(() => (focusId ? list.find(h => idsOf(h).some(id => String(id) === String(focusId))) : null), [focusId, list])
+  const focusSid = focus ? (siteIdOf(focus) ?? focus.id) : null
+  useEffect(() => { if (focusSid != null) recordHadithRead({ src: 'site', id: focusSid, lang }) }, [focusSid, lang])
 
   const countText = hadithCount(filtered.length, lang)
 
@@ -881,8 +887,8 @@ export default function HadithPage({ setPage }) {
           </div>
 
           <HadithFullDialog id={fullId} lang={lang} onClose={() => setFullId(null)}
-            onPrev={fullIdx > 0 ? () => setFullId(fullNav[fullIdx - 1]) : undefined}
-            onNext={fullIdx >= 0 && fullIdx < fullNav.length - 1 ? () => setFullId(fullNav[fullIdx + 1]) : undefined}
+            onPrev={fullIdx > 0 ? () => openFull(fullNav[fullIdx - 1]) : undefined}
+            onNext={fullIdx >= 0 && fullIdx < fullNav.length - 1 ? () => openFull(fullNav[fullIdx + 1]) : undefined}
             position={fullIdx >= 0 ? `${fullIdx + 1} / ${fullNav.length}` : null} />
 
           {/* Sonsuz sürüşmə: altda skeleton + "Daha çox göstər", sonda "Hamısı göstərildi" */}

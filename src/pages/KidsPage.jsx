@@ -413,13 +413,23 @@ const PROPHETS_FOR_KIDS = [
   { name:'Muhammad ﷺ', ar:'محمد ﷺ', emoji:'🌙', az:'Son peyğəmbər, Quran verildi', en:'The last prophet, given the Quran', ru:'Последний пророк, ему дан Коран', ar_desc:'آخر الأنبياء، أنزل عليه القرآن', tr:'Son peygamber, Kuran verildi' },
 ]
 
+// Ünvanla açıla bilən bölmələr (?section=…)
+const DEEP_SECTIONS = new Set(['books', 'stories', 'surahs', 'duas', 'prophets'])
+
 export default function KidsPage({ setPage }) {
   const { lang } = useLang()
   const t = pickUi(LABELS, lang)
   const k = pickUi(KX, lang)
   const navigate = useNavigate()
 
+  // ?section=books — "Davam et" kartından birbaşa bölməyə (yalnız brauzerdə; prerender 'names')
   const [openSection, setOpenSection] = useState('names')
+  useEffect(() => {
+    try {
+      const sec = new URLSearchParams(window.location.search).get('section')
+      if (sec && DEEP_SECTIONS.has(sec)) setOpenSection(sec)
+    } catch { /* */ }
+  }, [])
   const [quizIdx, setQuizIdx] = useState(0)
   const [quizState, setQuizState] = useState(null) // null, 'correct', 'wrong'
   const [score, setScore] = useState(0)

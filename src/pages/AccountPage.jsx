@@ -8,7 +8,7 @@
 // məscidi), "Hesabla nə edə bilərsiniz", çıxış, hesabı silmə (səhifədə təsdiqlə).
 // noindex (src/seo/routes.js).
 // ═══════════════════════════════════════════════════════
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { pickUi } from '../utils/uiText'
@@ -16,13 +16,19 @@ import { pathFor } from '../seo/routes'
 import Icon from '../components/Icon'
 import { AuthMessage, PasswordField, useAuthText } from '../components/account/AuthUi'
 import { fillText } from '../components/account/authText'
-import { useAuthUser, initialOf } from '../api/userSession'
+import { useAuthUser, initialOf, syncLinkedHere } from '../api/userSession'
+import AccountSyncSection from '../components/account/AccountSyncSection'
+import ContinueCard, { CONT_TXT } from '../components/ContinueCard'
+import { rewrapAfterPasswordChange } from '../utils/accountSync'
 import {
   MAX_NAME, addPasskey, changePassword, deleteAccount, errorKey, isPanelRole, listSessions, logoutUser,
   passkeySupported, passwordStrength, refreshMe, removePasskey, resendVerification, revokeOtherSessions,
   revokeSession, updateProfile,
 } from '../api/userAuth'
 import '../styles/Account.css'
+
+// Çıxış dialoqu ("bu cihazda məlumat qalsın?") — yalnız sinxronizasiya hesaba bağlı olanda
+const LogoutDialog = lazy(() => import('../components/account/LogoutDialog'))
 
 const LABELS = {
   az: {
@@ -225,6 +231,7 @@ export default function AccountPage() {
   useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
   // Çıxış / silmə özü ana səhifəyə aparır — "anonim oldu → girişə" effekti mane olmasın
   const leaving = useRef(false)
+  const [askLogout, setAskLogout] = useState(false)
 
   const toLogin = useCallback(() => {
     navigate(`${pathFor('login', siteLang)}?next=${encodeURIComponent(pathFor('account', siteLang))}`, { replace: true })
@@ -272,6 +279,8 @@ export default function AccountPage() {
   }
 
   const onLogout = async () => {
+    // Dialoq çıxışı özü edir — "anonim oldu → girişə" effekti mane olmasın (ləğvdə geri qaytarılır)
+    if (syncLinkedHere()) { leaving.current = true; setAskLogout(true); return }
     leaving.current = true
     try { await logoutUser() } catch { /* ipucu onsuz da silindi */ }
     navigate(pathFor('home', siteLang))
@@ -303,13 +312,35 @@ export default function AccountPage() {
       <div className="ui-container ui-container--narrow acc-sections">
         {!user.emailVerified && user.email && <VerifyBanner l={l} errText={errText} lang={lang} />}
         <ProfileSection l={l} t={t} errText={errText} user={user} lang={lang} />
+        <AccountSyncSection user={user} fmt={fmt} />
+        <ContinueSection lang={lang} />
         <PasswordSection l={l} t={t} errText={errText} user={user} />
         <PasskeySection l={l} errText={errText} user={user} fmt={fmt} />
         <SessionsSection l={l} errText={errText} fmt={fmt} onSignedOut={toLogin} />
         <CanDoSection l={l} user={user} siteLang={siteLang} />
         <DeleteSection l={l} t={t} errText={errText} user={user} onLeaving={(on) => { leaving.current = on }} onDeleted={() => navigate(pathFor('home', siteLang))} />
       </div>
+      {askLogout && (
+        <Suspense fallback={null}>
+          <LogoutDialog onClose={() => { leaving.current = false; setAskLogout(false) }}
+            onSignedOut={(wiped) => {
+              leaving.current = true
+              if (wiped) window.location.assign(pathFor('home', siteLang))   // silinmiş məlumatla açıq səhifə qalmasın
+              else navigate(pathFor('home', siteLang))
+            }} />
+        </Suspense>
+      )}
     </div>
+  )
+}
+
+/** "Davam et" — bu cihazdakı (hesabla sinxronlanan) tərəqqi: hər element birbaşa həmin yerə */
+function ContinueSection({ lang }) {
+  const c = pickUi(CONT_TXT, lang, 'en')
+  return (
+    <Section icon="books" title={c.title} lead={c.sub} id="acc-continue">
+      <div className="acc-continue"><ContinueCard bare /></div>
+    </Section>
   )
 }
 
@@ -408,6 +439,8 @@ function PasswordSection({ l, t, errText, user }) {
     if (passwordStrength(next, user.email).short) { a.show('bad', errText('errWeak')); return }
     const ok = await a.run(async () => {
       await changePassword(has ? cur : '', next)
+      // Hesaba bağlı sinxronizasiya: bərpa kodu yeni şifrə ilə yenidən qablanır (brauzerdə)
+      await rewrapAfterPasswordChange(user, { current: has ? cur : '', next }).catch(() => {})
       await refreshMe().catch(() => {})
     }, l.pwSaved)
     if (ok) { setCur(''); setNext('') }

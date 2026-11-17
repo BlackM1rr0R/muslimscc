@@ -496,6 +496,8 @@ function createGoogleVerifier({ clientId, fetchImpl = (...a) => fetch(...a), now
  *  googleClientId       — yoxdursa /auth/google → 503 google_disabled
  *  webauthn             — @simplewebauthn/server (testlərdə saxta; verilməyibsə require)
  *  googleVerify, fetchImpl, limits, now
+ *  hooks                — { beforeDeleteUser(id), passkeyRemoved(userId, credId), passwordReset(userId) }:
+ *                         hesaba bağlı sinxronizasiya (server/syncKeys.js) — blok və açar qabları təmizlənsin
  */
 function createUsersRouter(opts) {
   const {
@@ -503,6 +505,9 @@ function createUsersRouter(opts) {
     publicOrigin = 'https://muslims.cc', googleClientId = '',
   } = opts
   const store = opts.store || createUsersStore(db)
+  const hooks = opts.hooks || {}
+  // Qarmaq xətası əsas əməliyyatı dayandırmır (məs. köhnə bazada cədvəl yoxdur)
+  const hook = (name, ...args) => { try { if (typeof hooks[name] === 'function') hooks[name](...args) } catch (e) { console.error(`users hook ${name}:`, e && e.message) } }
   const rpId = opts.rpId || new URL(publicOrigin).hostname
   const expectedOrigins = opts.expectedOrigins || [...new Set([publicOrigin, ...allowedOrigins.filter((o) => {
     try { const h = new URL(o).hostname; return h === rpId || h.endsWith('.' + rpId) } catch { return false }
@@ -680,6 +685,7 @@ function createUsersRouter(opts) {
       store.setPasswordHash(uid, hash, now())
       store.markVerified(uid, now())          // poçta çıxışı sübut olundu
       store.revokeAllSessions(uid)
+      hook('passwordReset', uid)              // köhnə şifrə ilə şifrələnmiş sinxronizasiya açarı artıq açılmır
       res.json({ ok: true })
     } catch (e) {
       console.error('reset error:', e && e.message)
@@ -747,6 +753,7 @@ function createUsersRouter(opts) {
     } else if (b.confirm !== 'DELETE') {
       return err(res, 400, 'confirm_required', 'Confirmation required')
     }
+    hook('beforeDeleteUser', u.id)           // hesaba bağlı şifrəli sinxronizasiya bloku da silinsin
     store.deleteUser(u.id)
     setCookie(res, '', 0)
     res.json({ ok: true })
@@ -878,6 +885,7 @@ function createUsersRouter(opts) {
     // Son giriş yolunu silmək olmaz (şifrə yox, Google yox, son passkey)
     if (!u.pass_hash && !store.providersOf(u.id).length && mine.length <= 1) return err(res, 400, 'last_method', 'Cannot remove the last sign-in method')
     store.removePasskey(u.id, id)
+    hook('passkeyRemoved', u.id, id)
     res.json({ ok: true, passkeys: store.listPasskeys(u.id) })
   })
 

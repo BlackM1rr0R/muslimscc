@@ -152,6 +152,24 @@ export const test = base.extend({
     await page.route(/^https:\/\/accounts\.google\.com\/gsi\//, (route) => (route.request().url().includes('/gsi/client')
       ? route.fulfill({ contentType: 'text/javascript', body: GIS_STUB })
       : route.abort()))
+    // Cihazlar arası sinxronizasiya (server/sync.js) — susmaya görə yaddaşda (hər səhifəyə ayrıca);
+    // hesab sinxronizasiyası girişdən sonra blok yarada bilər. sync.spec.js / account-sync.spec.js öz serverini qoyur.
+    const syncBlobs = new Map()
+    await page.route((u) => /^\/api\/sync\/[^/]+$/.test(u.pathname), (route) => {
+      const req = route.request()
+      const id = new URL(req.url()).pathname.split('/').pop()
+      const row = syncBlobs.get(id)
+      if (req.method() === 'GET') return row ? route.fulfill({ json: row }) : route.fulfill({ status: 404, json: { error: 'not_found' } })
+      if (req.method() === 'PUT') {
+        const { blob, version = 0 } = req.postDataJSON() || {}
+        const cur = row ? row.version : 0
+        if (cur !== version) return route.fulfill({ status: 409, json: { version: cur } })
+        syncBlobs.set(id, { blob, version: cur + 1, updatedAt: Date.now() })
+        return route.fulfill({ json: { version: cur + 1, updatedAt: Date.now() } })
+      }
+      if (req.method() === 'DELETE') { syncBlobs.delete(id); return route.fulfill({ json: { ok: true } }) }
+      return route.fulfill({ status: 405, json: {} })
+    })
     // Ümmətin sayğacı (server/ummah.js) — preview-da API yoxdur; testlər öz route-u ilə əvəz edə bilər
     await page.route((u) => u.pathname === '/api/ummah', (route) => (route.request().method() === 'POST'
       ? route.fulfill({ status: 204 })

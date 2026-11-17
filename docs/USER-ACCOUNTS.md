@@ -118,6 +118,43 @@ yalnız həmin hesabın e-poçtu **təsdiqlidirsə** bağlanır; təsdiqsizdirs�
 (qabaqcadan ələ keçirmə hücumu: kimsə başqasının e-poçtu ilə hesab açıb gözləyə bilər). İstifadəçi əvvəl
 "şifrəni unutdum" ilə (bu, e-poçtu da təsdiqləyir) və ya verify keçidi ilə təsdiqləməli, sonra Google ilə girməlidir.
 
+## Hesaba bağlı, uçdan-uca şifrəli sinxronizasiya (`server/syncKeys.js`, `src/utils/accountSync.js`)
+
+Mövcud hesabsız sinxronizasiyanın (`server/sync.js`, `src/utils/userSync.js`) **üstündədir** — ikinci sistem yoxdur.
+Kök sirr — bərpa kodu (brauzerdə yaradılır); blok əvvəlki kimi AES-GCM ilə şifrələnir. Hesab yalnız kodun
+brauzerdə şifrələnmiş **qabını** saxlayır (`src/utils/syncWrap.js`):
+
+- `password` — açar PBKDF2-SHA256(şifrə, 16 bayt duz, 600 000 dövr) ilə brauzerdə törədilir (giriş/qeydiyyat/şifrə
+  dəyişmə formasında). Yeni cihazda şifrə ilə giriş → kod açılır → cihaz avtomatik qoşulur.
+- `prf` — passkey-in WebAuthn PRF çıxışı → HKDF. PRF çıxışı serverə **göndərilmir** (`userAuth.takePrf`).
+- Google / PRF-siz passkey — yeni cihazda bir dəfə bərpa kodu soruşulur (hesab səhifəsi + yumşaq bildiriş).
+- Şifrə dəyişəndə kod yeni şifrə ilə yenidən qablanır; **şifrə bərpasında** server `password` qabını silir
+  (köhnə şifrə ilə açılmır) — sonra bərpa kodu və ya kodu saxlayan cihaz lazımdır (o cihaz növbəti girişdə özü yenidən qablayır).
+- Yeni cihazda yerli məlumat da varsa: ziddiyyətsiz açarlar birləşir; fərqli dəyərli açarlar varsa istifadəçi seçir
+  (hesabdakı / bu cihazdakı) — heç nə səssizcə itmir (`src/utils/syncMerge.js`).
+- Çıxışda (sinxronizasiya hesaba bağlıdırsa): "Bu cihazda məlumat qalsın?" — saxla (susmaya görə) / kodu unut / məlumatı da sil.
+- Hesab silinəndə bağlı şifrəli blok da silinir (başqa hesaba da bağlı deyilsə).
+
+**Təhdid modeli (vacib):** DB oğurlansa — qabı açmaq üçün şifrəni PBKDF2 (600k) + scrypt ilə sındırmaq lazımdır.
+Amma server giriş zamanı şifrəni açıq görür (adi login) — **aktiv zərərli server** (kod dəyişdirilsə, şifrə loglansa)
+`password` qabını aça bilər. PRF və bərpa kodu qabları bundan təsirlənmir. Tam qorunma üçün gələcəkdə login-də
+klient tərəfli ayrılmış açar (məs. OPAQUE və ya `authKey`/`wrapKey` bölgüsü) lazımdır.
+
+| Metod, yol | Gövdə | Cavab | Səhvlər |
+|---|---|---|---|
+| `GET /api/auth/sync-keys` | — | `{ keys: [{ kind, credId, salt, wrapped, createdAt }], syncId }` | 401 |
+| `PUT /api/auth/sync-keys` | `{ kind: 'password'\|'prf', credId?, salt, wrapped }` (salt ≤ 200, wrapped 40–512 simvol base64url; gövdə ≤ 4 KB) | `{ ok }` | 400 `bad_request` / `no_password` / `too_many`, 404 (passkey sizin deyil), 429 |
+| `DELETE /api/auth/sync-keys/:kind[/:credId]` | — | `{ ok, removed }` | 400, 429 |
+| `POST /api/auth/sync-keys/check-password` | `{ password }` | `{ ok }` — qablamazdan əvvəl şifrə yoxlanır (səhv şifrə ilə qab yaranmasın) | 400 `wrong_password`, 429 (5 səhv / 15 dəq) |
+| `GET /api/auth/sync-link` | — | `{ syncId, linkedAt }` | 401 |
+| `PUT /api/auth/sync-link` | `{ syncId }` (64 hex) | `{ ok }` | 400, 429 |
+| `DELETE /api/auth/sync-link` | — | `{ ok }` (blok qalır) | 429 |
+
+Hamısı `requireUser` + CSRF (yuxarıdakı qayda). Yazılar: istifadəçi üzrə 30 / 15 dəq. `wrapped`/`salt` loga yazılmır.
+Cədvəllər (`user_sync_keys`, `user_sync_link`) miqrasiyasızdır (`CREATE TABLE IF NOT EXISTS`, `user_version` dəyişmir);
+modul `server.js`-in əvvəlcədən yükləmə siyahısındadır. Klientdə bu cihazın vəziyyəti — `localStorage.mcc_acct_sync`
+(ehtiyat nüsxəyə düşmür), hesaba bağlılıq — `muslim_cc_sync.acct`.
+
 ## Env dəyişənləri (`api.env`)
 
 | Dəyişən | Nədir | Yoxdursa |

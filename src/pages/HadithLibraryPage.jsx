@@ -20,6 +20,7 @@ import HadithBooksChart from '../components/HadithBooksChart'
 import HadithLibraryNumbers from '../components/numbers/HadithLibraryNumbers'
 import HadithShelf from '../components/HadithShelf'
 import { pickUi } from '../utils/uiText'
+import { recordHadithRead } from '../utils/hadithLastRead'
 
 /* ══════════════════════════════════════════════════════════════════
    HƏDİS KİTABXANASI — /hadith-library
@@ -383,6 +384,7 @@ export default function HadithLibraryPage() {
     replaceUrl(toHash({ book: route.book, sec: route.sec, n: cur.n }))
     const v = { book: route.book, sec: route.sec, n: cur.n }
     writeJSON(LAST_KEY, v); setLast(v)
+    recordHadithRead({ src: 'lib', ...v, lang })   // "Davam et" kartı (hesabla sinxronlanır)
     // Kart siyahının görünməyən hissəsindədirsə — göstərilən sayı artır
     const i = list.findIndex(h => h.n === cur.n)
     if (i >= limit) setLimit(Math.ceil((i + 1) / PAGE) * PAGE)

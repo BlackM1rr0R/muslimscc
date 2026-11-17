@@ -16,7 +16,9 @@ export const VERIFY_TOKEN = 'V'.repeat(43)
  *   signedIn  — sessiya artıq var (cookie-ni təqlid edir)
  *   user      — istifadəçi sahələrinin üstünə yazılanlar (role, hasPassword, …)
  *   google    — 'ok' | 'conflict' (409 link_requires_verification)
- * Qaytarır: state ({ signedIn, user, sessions, requests, bodies }).
+ *   syncKeys  — hesaba bağlı sinxronizasiyanın qabları ([{ kind, credId, salt, wrapped }], server/syncKeys.js)
+ *   syncId    — hesaba bağlı blokun id-si (64 hex) və ya null
+ * Qaytarır: state ({ signedIn, user, sessions, requests, bodies, syncKeys, syncId }).
  */
 export async function fakeUserSession(page, opts = {}) {
   const state = {
@@ -34,6 +36,8 @@ export async function fakeUserSession(page, opts = {}) {
     requests: [],
     bodies: {},
     csrfMissing: [],
+    syncKeys: (opts.syncKeys || []).map((k) => ({ credId: '', createdAt: 1, ...k })),
+    syncId: opts.syncId || null,
   }
   const unauth = (route) => route.fulfill({ status: 401, json: { error: 'Unauthorized', code: 'unauthenticated' } })
 
@@ -111,7 +115,24 @@ export async function fakeUserSession(page, opts = {}) {
         if (state.user.hasPassword && body.password !== USER_PASSWORD) return route.fulfill({ status: 400, json: { error: 'Wrong password', code: 'wrong_password' } })
         state.signedIn = false
         return route.fulfill({ json: { ok: true } })
+      // ── Hesaba bağlı sinxronizasiya (server/syncKeys.js) ──
+      case '/api/auth/sync-keys':
+        if (method === 'GET') return route.fulfill({ json: { keys: state.syncKeys, syncId: state.syncId } })
+        state.syncKeys = [...state.syncKeys.filter(k => !(k.kind === body.kind && k.credId === (body.credId || ''))),
+          { kind: body.kind, credId: body.credId || '', salt: body.salt, wrapped: body.wrapped, createdAt: Date.now() }]
+        return route.fulfill({ json: { ok: true } })
+      case '/api/auth/sync-keys/check-password':
+        return body.password === USER_PASSWORD ? route.fulfill({ json: { ok: true } }) : route.fulfill({ status: 400, json: { error: 'Wrong password', code: 'wrong_password' } })
+      case '/api/auth/sync-link':
+        if (method === 'GET') return route.fulfill({ json: { syncId: state.syncId, linkedAt: state.syncId ? 1 : null } })
+        state.syncId = method === 'DELETE' ? null : body.syncId
+        return route.fulfill({ json: { ok: true } })
       default:
+        if (method === 'DELETE' && pathname.startsWith('/api/auth/sync-keys/')) {
+          const [kind, credId = ''] = pathname.split('/').slice(4)
+          state.syncKeys = state.syncKeys.filter(k => !(k.kind === kind && k.credId === decodeURIComponent(credId)))
+          return route.fulfill({ json: { ok: true } })
+        }
         return route.fulfill({ status: 404, json: { error: 'Not found', code: 'not_found' } })
     }
   })

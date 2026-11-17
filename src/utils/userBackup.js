@@ -33,6 +33,8 @@ const EXCLUDE_KEYS = new Set([
   LAST_BACKUP_KEY,
   'muslim_cc_motion', // zəif cihaz rejimi (utils/liteDevice) — cihaza aiddir
   'muslim_cc_sync',   // sinxronizasiya kodu + bu cihazın versiyası (utils/userSync) — cihaza aiddir
+  'mcc_logged_in',    // "daxil olub" ipucu (api/userSession) — bu brauzerin sessiyasına aiddir
+  'mcc_acct_sync',    // hesab sinxronizasiyasının bu cihazdakı vəziyyəti (utils/accountSync)
 ])
 
 export function isBackupKey(key) {

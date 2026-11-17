@@ -343,7 +343,14 @@ export default function StoryBooks({ lang: langProp }) {
   const [open, setOpen] = useState(null)       // bookId
   const lastBtn = useRef(null)
 
-  useEffect(() => { setProgress(loadProgress()) }, [])
+  useEffect(() => {
+    setProgress(loadProgress())
+    // ?book=<id> — "Davam et" kartından: kitab qaldığı səhifədə açılır
+    try {
+      const want = new URLSearchParams(window.location.search).get('book')
+      if (want && STORIES.some(st => bookId(st) === want)) setOpen(want)
+    } catch { /* */ }
+  }, [])
 
   const books = useMemo(() => STORIES.map(st => ({ id: bookId(st), st, art: BOOK_ART[bookId(st)] || BOOK_ART.adam })), [])
   const current = books.find(b => b.id === open)

@@ -9,6 +9,8 @@
 //   pull()            → serverdəkini gətir və bu cihaza yaz
 //   unlink()          → bu cihazda kodu unut (serverdəki blok qalır)
 //   removeRemote()    → serverdəki şifrəli nüsxəni sil + bu cihazda unut
+//   adoptCode(code,v) → kodu bu cihazda qeyd et (məlumat YAZMADAN) — hesab axını (utils/accountSync)
+//   setAccount(uid)   → bu cihazın sinxronizasiyası hesaba bağlıdır ("acct"; çıxışda soruşulur)
 //
 // Ziddiyyət: hər blokun versiyası var. push() bildiyi versiyanı göndərir; başqa
 // cihaz arada yeniləyibsə server 409 qaytarır → { conflict: true } — istifadəçiyə
@@ -68,8 +70,10 @@ export async function fetchRemote(input) {
   let text
   try { text = await decryptText(key, r.blob) } catch { throw new Error('decrypt') }
   const parsed = parseBackup(text)
-  if (!parsed.ok) throw new Error('decrypt')
-  return { code, version: r.version, updatedAt: r.updatedAt, backup: parsed.backup }
+  // Boş blok (məlumatsız cihazdan açılmış sinxronizasiya) — xəta deyil, sadəcə qeyd yoxdur
+  const backup = parsed.ok ? parsed.backup : parsed.code === 'empty' ? { createdAt: null, count: 0, data: {} } : null
+  if (!backup) throw new Error('decrypt')
+  return { code, version: r.version, updatedAt: r.updatedAt, backup }
 }
 
 /** fetchRemote nəticəsini bu cihaza yaz və kodu yadda saxla */
@@ -77,8 +81,29 @@ export function link(remote) {
   const prev = readSync()
   restoreBackup(remote.backup)
   // Avtomatik rejim: yeni qoşulmada açıq, mövcud qoşulmada əvvəlki seçim saxlanır
-  const auto = prev && prev.code === remote.code ? prev.auto !== false : true
-  writeSync({ code: remote.code, version: remote.version, syncedAt: new Date().toISOString(), auto, hash: dataHash() })
+  const same = prev && prev.code === remote.code
+  const auto = same ? prev.auto !== false : true
+  const acct = same && prev.acct ? { acct: prev.acct } : {}
+  writeSync({ code: remote.code, version: remote.version, syncedAt: new Date().toISOString(), auto, hash: dataHash(), ...acct })
+}
+
+/**
+ * Kodu bu cihazda qeyd et — məlumata TOXUNMADAN (hesab axını özü birləşdirib yazır).
+ * version — serverdəki blokun versiyası (blok yoxdursa 0); hash — hazırkı məlumat.
+ */
+export function adoptCode(code, version, { acct, auto = true } = {}) {
+  const norm = normalizeCode(code)
+  if (!norm) throw new Error('bad_code')
+  writeSync({ code: norm, version: Number(version) || 0, syncedAt: new Date().toISOString(), auto, hash: dataHash(), ...(acct ? { acct } : {}) })
+}
+/** Bu cihazın sinxronizasiyası hesaba bağlıdır (null — bağ kəsilir, kod qalır) */
+export function setAccount(uid) {
+  const s = readSync()
+  if (!s) return
+  const next = { ...s }
+  if (uid) next.acct = uid
+  else delete next.acct
+  writeSync(next)
 }
 
 /** Bu cihazın məlumatını göndər. Qaytarır: { ok } | { conflict } */

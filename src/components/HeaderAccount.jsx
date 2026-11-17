@@ -7,14 +7,17 @@
 //   Avatar menyunu açır: ad/e-poçt, "Hesabım", (panel rolu üçün) "Admin paneli", "Çıxış".
 // • Prerender HTML-də React yoxdur (createRoot) — ilk çəkiliş anonim/ipucu vəziyyətindədir.
 // ═══════════════════════════════════════════════════════
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { pathFor } from '../seo/routes'
 import { pickUi } from '../utils/uiText'
 import { whenIdle } from '../utils/idle'
-import { useAuthUser, refreshMe, logoutUser, initialOf } from '../api/userSession'
+import { useAuthUser, refreshMe, logoutUser, initialOf, syncLinkedHere } from '../api/userSession'
 import Icon from './Icon'
+
+// "Bu cihazda məlumat qalsın?" — yalnız sinxronizasiya hesaba bağlı olanda (tənbəl chunk)
+const LogoutDialog = lazy(() => import('./account/LogoutDialog'))
 
 const LABELS = {
   az: { signIn: 'Daxil ol', account: 'Hesabım', menu: 'Hesab menyusu', panel: 'Admin paneli', logout: 'Çıxış' },
@@ -44,6 +47,7 @@ export default function HeaderAccount({ currentPage }) {
   const navigate = useNavigate()
   const { status, user } = useAuthUser()
   const [open, setOpen] = useState(false)
+  const [askLogout, setAskLogout] = useState(false)
   const wrapRef = useRef(null)
   const btnRef = useRef(null)
   useLazyMe(status)
@@ -65,6 +69,17 @@ export default function HeaderAccount({ currentPage }) {
     navigate(pathFor(key, siteLang))
   }
 
+  const logoutDialog = askLogout && (
+    <Suspense fallback={null}>
+      <LogoutDialog onClose={() => setAskLogout(false)}
+        onSignedOut={(wiped) => {
+          setAskLogout(false)
+          if (wiped) window.location.assign(pathFor('home', siteLang))   // silinmiş məlumatla açıq səhifə qalmasın
+          else if (currentPage === 'account') navigate(pathFor('home', siteLang))
+        }} />
+    </Suspense>
+  )
+
   // Anonim (və ya hələ yoxlanmamış ipucu) — /login və ya /account-a sadə keçid
   if (status !== 'user' || !user) {
     const key = status === 'unknown' ? 'account' : 'login'
@@ -75,12 +90,14 @@ export default function HeaderAccount({ currentPage }) {
           aria-current={currentPage === key ? 'page' : undefined} data-testid="hdr-account">
           <Icon name="user" size={20} strokeWidth={2} />
         </a>
+        {logoutDialog}
       </div>
     )
   }
 
   const onLogout = async () => {
     setOpen(false)
+    if (syncLinkedHere()) { setAskLogout(true); return }
     try { await logoutUser() } catch { /* ipucu onsuz da silindi */ }
     if (currentPage === 'account') navigate(pathFor('home', siteLang))
   }
@@ -111,6 +128,7 @@ export default function HeaderAccount({ currentPage }) {
           </button>
         </div>
       )}
+      {logoutDialog}
     </div>
   )
 }

@@ -522,7 +522,23 @@ export default function HajjGuidePage({ setPage }) {
   const h32 = pickUi(H32, lang, 'en')
   // Son açılmış addım — yalnız brauzerdə oxunur (prerender HTML-i ilə uyğunsuzluq olmasın)
   const [last, setLast] = useState(null)
-  useEffect(() => { setLast(readLast()) }, [])
+  useEffect(() => {
+    const v = readLast()
+    setLast(v)
+    // "Davam et" kartından (?resume=1): son addım dərhal açılır, parametr ünvandan silinir
+    try {
+      const q = new URLSearchParams(window.location.search)
+      if (q.get('resume') === '1') {
+        q.delete('resume')
+        const rest = q.toString()
+        window.history.replaceState(window.history.state, '', window.location.pathname + (rest ? `?${rest}` : '') + window.location.hash)
+        if (v) {
+          const list = v.mode === 'hajj' ? HAJJ_STEPS : UMRAH_STEPS
+          setMode(v.mode); setCurrentStep(Math.min(v.step, list.length - 1)); setDir('none'); setVisited(true)
+        }
+      }
+    } catch { /* köhnə brauzer */ }
+  }, [])
 
   const guideRef = useRef(null)
   const topbarRef = useRef(null)

@@ -79,6 +79,7 @@ const DayStories = lazy(() => import('../components/home/DayStories'))
 // hicri tarix). Hero-nun düz altındadır — lazy, amma idle gözləmədən; yer
 // tutucu hündürlüyü saxlayır (CLS olmasın). Bax: components/home/HomeToday.jsx
 const HomeToday = lazy(() => import('../components/home/HomeToday'))
+// "Davam et" — qaldığınız yerlər (yalnız tərəqqi varsa görünür; hesabla sinxronlanır)
 // 'Mənim günüm' — bu cihazdakı bu günün ibadətləri (utils/myDay)
 const MyDay = lazy(lazyWhenIdle(() => import('../components/home/MyDay').catch(() => ({ default: () => null }))))
 // Cümə rejimi (v5.3) — chunk yalnız cümə günü (və ya ?jumuah sınağı) yüklənir

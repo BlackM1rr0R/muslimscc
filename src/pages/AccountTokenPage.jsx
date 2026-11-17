@@ -27,6 +27,7 @@ const LABELS = {
     toAccount: 'Hesabıma keç', toLogin: 'Girişə keç',
     resetTitle: 'Yeni şifrə təyin edin',
     resetLead: 'Hesabınız üçün yeni şifrə yazın. Bundan sonra bütün cihazlardakı girişlər bağlanacaq.',
+    resetSync: 'Sinxronlanan məlumatınız şifrələnib: şifrə bərpasından sonra onu yeni cihazda açmaq üçün bərpa kodunuz və ya sinxronizasiyası artıq açıq olan cihazınız lazım olacaq (orada yenidən daxil olun — məlumat yeni şifrə ilə özü qorunacaq).',
     save: 'Şifrəni yadda saxla',
     noToken: 'Keçid natamamdır. Məktubdakı keçidi tam açın və ya yenisini istəyin.',
     requestNew: 'Yeni keçid istə',
@@ -37,6 +38,7 @@ const LABELS = {
     toAccount: 'Go to my account', toLogin: 'Go to sign in',
     resetTitle: 'Set a new password',
     resetLead: 'Enter a new password for your account. After that you will be signed out on all devices.',
+    resetSync: 'Your synced data is encrypted: after a reset you will need your recovery code, or a device where sync is already on, to unlock it on a new device (sign in there again — the data will then be protected with the new password automatically).',
     save: 'Save password',
     noToken: 'This link is incomplete. Open the full link from the email or request a new one.',
     requestNew: 'Request a new link',
@@ -47,6 +49,7 @@ const LABELS = {
     toAccount: 'Перейти в аккаунт', toLogin: 'Перейти ко входу',
     resetTitle: 'Задайте новый пароль',
     resetLead: 'Введите новый пароль для аккаунта. После этого входы на всех устройствах будут закрыты.',
+    resetSync: 'Синхронизированные данные зашифрованы: после сброса, чтобы открыть их на новом устройстве, понадобится код восстановления или устройство, где синхронизация уже включена (войдите там снова — данные сами защитятся новым паролем).',
     save: 'Сохранить пароль',
     noToken: 'Ссылка неполная. Откройте полную ссылку из письма или запросите новую.',
     requestNew: 'Запросить новую ссылку',
@@ -57,6 +60,7 @@ const LABELS = {
     toAccount: 'Hesabıma git', toLogin: 'Girişe git',
     resetTitle: 'Yeni şifre belirleyin',
     resetLead: 'Hesabınız için yeni bir şifre yazın. Ardından tüm cihazlardaki oturumlar kapatılacak.',
+    resetSync: 'Eşitlenen verileriniz şifrelidir: sıfırlamadan sonra yeni bir cihazda açmak için kurtarma kodunuz veya eşitlemenin zaten açık olduğu bir cihazınız gerekir (orada tekrar giriş yapın — veriler yeni şifreyle kendiliğinden korunur).',
     save: 'Şifreyi kaydet',
     noToken: 'Bağlantı eksik. E-postadaki bağlantının tamamını açın veya yeni bir bağlantı isteyin.',
     requestNew: 'Yeni bağlantı iste',
@@ -67,6 +71,7 @@ const LABELS = {
     toAccount: 'الانتقال إلى حسابي', toLogin: 'الانتقال إلى تسجيل الدخول',
     resetTitle: 'عيّن كلمة مرور جديدة',
     resetLead: 'اكتب كلمة مرور جديدة لحسابك. بعد ذلك سيُغلق الدخول على جميع الأجهزة.',
+    resetSync: 'بياناتك المتزامنة مشفّرة: بعد إعادة التعيين ستحتاج إلى رمز الاستعادة أو جهاز فُعّلت فيه المزامنة لفتحها على جهاز جديد (سجّل الدخول عليه مجددًا — وستُحمى البيانات بكلمة المرور الجديدة تلقائيًا).',
     save: 'حفظ كلمة المرور',
     noToken: 'الرابط غير مكتمل. افتح الرابط كاملًا من الرسالة أو اطلب رابطًا جديدًا.',
     requestNew: 'اطلب رابطًا جديدًا',
@@ -151,6 +156,7 @@ export default function AccountTokenPage({ mode = 'verify' }) {
     return (
       <AuthShell>
         <AuthHead icon="key" title={l.resetTitle} sub={l.resetLead} />
+        <p className="ui-callout ui-callout--note acc-reset-sync" data-testid="reset-sync-note"><Icon name="shield" /> <span>{l.resetSync}</span></p>
         <AuthMessage msg={msg} />
         <form className="acc-form" onSubmit={onReset} noValidate aria-busy={busy || undefined}>
           <PasswordField label={t.newPassword} value={password} onChange={setPassword} autoComplete="new-password" withHint autoFocus

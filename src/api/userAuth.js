@@ -165,17 +165,48 @@ export const passkeySupported = () => typeof globalThis.PublicKeyCredential === 
 
 const webauthn = () => import('@simplewebauthn/browser')
 
+// ── PRF (WebAuthn "prf" genişlənməsi) — hesaba bağlı sinxronizasiyanın açarı (utils/accountSync) ──
+// Sabit giriş (utils/syncWrap → PRF_INPUT ilə eyni). Brauzer/autentifikator dəstəkləmirsə
+// genişlənmə səssizcə nəzərə alınmır. PRF ÇIXIŞI SERVERƏ GETMİR: cavabdan çıxarılıb silinir.
+const PRF_INPUT = new TextEncoder().encode('muslims.cc/sync-prf/v1')
+const withPrf = (options) => ({ ...options, extensions: { ...(options && options.extensions), prf: { eval: { first: PRF_INPUT } } } })
+/** Cavabdan PRF çıxışını götür və cavabdan SİL (serverə yalnız { enabled } qala bilər). */
+export function takePrf(response) {
+  const ext = response && response.clientExtensionResults
+  const prf = ext && ext.prf
+  if (!prf) return null
+  const first = prf.results && prf.results.first
+  delete prf.results
+  if (!first) return null
+  const bytes = first instanceof ArrayBuffer ? new Uint8Array(first.slice(0)) : ArrayBuffer.isView(first) ? new Uint8Array(first.buffer.slice(first.byteOffset, first.byteOffset + first.byteLength)) : null
+  return bytes && bytes.length >= 16 ? { credId: response.id, bytes } : null
+}
+
 /**
  * Passkey ilə giriş (usernameless). autofill: true — e-poçt sahəsinin avtomatik
  * doldurma siyahısında təklif (autocomplete="username webauthn"); səssizcə gözləyir.
  */
-export async function passkeyLogin({ autofill = false } = {}) {
+export async function passkeyLogin({ autofill = false, onPrf } = {}) {
   const { startAuthentication } = await webauthn()
   const { challengeId, options } = await post('/api/auth/passkey/login/options')
-  const response = await startAuthentication({ optionsJSON: options, useBrowserAutofill: autofill })
+  const response = await startAuthentication({ optionsJSON: withPrf(options), useBrowserAutofill: autofill })
+  const prf = takePrf(response)
   const r = await post('/api/auth/passkey/login/verify', { challengeId, response })
   setCurrentUser(r.user)
+  if (prf && typeof onPrf === 'function') onPrf(prf, r.user)
   return r.user
+}
+
+/**
+ * Bu passkey-in PRF çıxışı (hesab səhifəsi: "passkey ilə kilidi aç"). Server seçimləri yalnız
+ * rpId və birdəfəlik challenge üçün alınır; cavab serverə GÖNDƏRİLMİR (PRF çıxışı cihazda qalır).
+ * → { credId, bytes } | null (dəstəklənmir)
+ */
+export async function passkeyPrf(credId) {
+  const { startAuthentication } = await webauthn()
+  const { options } = await post('/api/auth/passkey/login/options')
+  const optionsJSON = withPrf({ ...options, allowCredentials: credId ? [{ id: credId, type: 'public-key' }] : [] })
+  return takePrf(await startAuthentication({ optionsJSON }))
 }
 
 /** Avtomatik doldurma ilə passkey: brauzer dəstəkləyirmi? */
@@ -187,14 +218,17 @@ export async function passkeyAutofillAvailable() {
 }
 
 /** Yeni passkey (daxil olmuş istifadəçi) → serverin yeni siyahısı. */
-export async function addPasskey(name) {
+export async function addPasskey(name, { onPrf } = {}) {
   const { startRegistration } = await webauthn()
   const { challengeId, options } = await post('/api/auth/passkey/register/options')
-  const response = await startRegistration({ optionsJSON: options })
+  const response = await startRegistration({ optionsJSON: withPrf(options) })
+  const prf = takePrf(response)
+  const prfEnabled = Boolean(response.clientExtensionResults && response.clientExtensionResults.prf && response.clientExtensionResults.prf.enabled)
   const body = { challengeId, response }
   const n = String(name || '').trim()
   if (n) body.name = n
   const r = await post('/api/auth/passkey/register/verify', body)
+  if (typeof onPrf === 'function') onPrf(prf, { credId: response.id, enabled: prfEnabled || Boolean(prf) })
   return Array.isArray(r.passkeys) ? r.passkeys : []
 }
 export const removePasskey = (id) => post('/api/auth/passkey/remove', { id }).then((r) => (Array.isArray(r.passkeys) ? r.passkeys : []))

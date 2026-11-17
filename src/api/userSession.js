@@ -30,6 +30,14 @@ function setLoginHint(on) {
   } catch { /* yaddaş bağlıdır və ya doludur */ }
 }
 
+/**
+ * Bu cihazın sinxronizasiyası hesaba bağlıdırmı (utils/userSync → muslim_cc_sync.acct)?
+ * Çıxışda "məlumat bu cihazda qalsın?" dialoqu yalnız bu halda göstərilir. Yüngül — başlıq üçün.
+ */
+export function syncLinkedHere() {
+  try { return Boolean(JSON.parse(safeStorage()?.getItem('muslim_cc_sync') || 'null')?.acct) } catch { return false }
+}
+
 /** Server səhvi: status, code ('invalid_credentials', 'weak_password', …), retryAfter (san). */
 export class AuthError extends Error {
   constructor(status, body, retryAfter = 0) {

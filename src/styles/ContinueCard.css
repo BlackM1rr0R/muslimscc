@@ -1,0 +1,80 @@
+/* "Davam et" kartı (components/ContinueCard) — ana səhifə kartları ilə eyni dil (ui-card, ui-icon-tile) */
+.cc-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: var(--space-4, 16px);
+}
+.cc-title { margin: 2px 0 0; }
+.cc-sub { margin: 4px 0 0; }
+.cc-synced { flex-shrink: 0; }
+
+.cc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cc-grid > li { min-width: 0; }
+
+.ui-card.cc-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  height: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform var(--dur-2, 240ms) var(--ease-out, ease), border-color var(--dur-2, 240ms) var(--ease-out, ease);
+}
+/* Yumşaq qızılı işıq — kartın küncündə (yalnız bəzək) */
+.ui-card.cc-item::after {
+  content: '';
+  position: absolute;
+  inset-block-start: -40%;
+  inset-inline-end: -20%;
+  width: 60%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gold, #c59a2c) 14%, transparent), transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+.cc-item__ic { flex-shrink: 0; }
+.cc-item__b { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 2px; }
+.cc-item__t { color: var(--text-strong); font-size: var(--step--1, 15px); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-item__s { color: var(--text-tertiary); font-size: var(--step--2, 13px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-item__chev { flex-shrink: 0; color: var(--text-tertiary); transition: transform var(--dur-2, 240ms) var(--ease-out, ease); }
+.cc-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (hover: hover) {
+  .ui-card.cc-item:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--brand) 35%, var(--border, transparent)); }
+  .cc-item:hover .cc-item__chev { transform: translateX(3px); color: var(--brand); }
+  [dir="rtl"] .cc-item:hover .cc-item__chev { transform: scaleX(-1) translateX(3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-card.cc-item, .cc-item__chev { transition: none; }
+  .ui-card.cc-item:hover { transform: none; }
+}
+/* Telefon: üfüqi sürüşən sıra (ekranı uzatmasın) */
+@media (max-width: 599px) {
+  .cc .cc-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(230px, 78%);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+  }
+  .cc .cc-grid > li { scroll-snap-align: start; }
+}
+.cc-empty { margin: 0; color: var(--text-secondary); font-size: var(--step--1, 15px); line-height: 1.55; }

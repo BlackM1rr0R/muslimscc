@@ -153,6 +153,16 @@ const LABELS = {
 
 const PERK_ICONS = ['shield', 'device', 'mosques']
 
+/**
+ * Girişdən sonra hesaba bağlı şifrəli sinxronizasiya (utils/accountSync — tənbəl chunk).
+ * Gözlənilmir: səhifə keçidi dərhal olur, nəticə AutoSyncToast / hesab səhifəsində görünür.
+ * Şifrə yalnız brauzerdə açar törətmək üçün ötürülür (serverə əvvəlki kimi yalnız girişdə gedir).
+ */
+function startAccountSync(user, opts) {
+  if (!user) return
+  import('../utils/accountSync').then((m) => m.afterLogin(user, opts)).catch(() => {})
+}
+
 /** Rəsmi Google düyməsi (GIS iframe). Skript yüklənməsə — heç nə göstərmir. */
 function GoogleButton({ text, onCredential }) {
   const { siteLang, lang, dark } = useLang()
@@ -221,7 +231,11 @@ export default function LoginPage({ mode = 'login' }) {
     const timer = setTimeout(async () => {
       if (!(await passkeyAutofillAvailable()) || !on) return
       started = true
-      try { await passkeyLogin({ autofill: true }) } catch (e) {
+      try {
+        let prf = null
+        const u = await passkeyLogin({ autofill: true, onPrf: (p) => { prf = p } })
+        startAccountSync(u, { prf })
+      } catch (e) {
         if (on && e instanceof AuthError && e.code === 'passkey_failed') show('bad', errText('errPasskey'))
       }
     }, 400)
@@ -248,10 +262,10 @@ export default function LoginPage({ mode = 'login' }) {
       if (passwordStrength(password, email).short) { setInvalid('password'); show('bad', errText('errWeak')); return }
       run(async () => {
         const r = await register({ email, password, displayName: name, lang })
-        if (r.checkEmail && alive.current) setView('checkEmail')
+        if (r.checkEmail) { if (alive.current) setView('checkEmail') } else startAccountSync(r.user, { password })
       })
     } else {
-      run(() => login(email, password))
+      run(async () => { const u = await login(email, password); startAccountSync(u, { password }) })
     }
   }
 
@@ -264,8 +278,12 @@ export default function LoginPage({ mode = 'login' }) {
     })
   }
 
-  const onGoogle = (credential) => run(() => googleLogin(credential))
-  const onPasskey = () => run(() => passkeyLogin())
+  const onGoogle = (credential) => run(async () => { const r = await googleLogin(credential); startAccountSync(r.user) })
+  const onPasskey = () => run(async () => {
+    let prf = null
+    const u = await passkeyLogin({ onPrf: (p) => { prf = p } })
+    startAccountSync(u, { prf })
+  })
 
   const go = (key) => (e) => {
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return

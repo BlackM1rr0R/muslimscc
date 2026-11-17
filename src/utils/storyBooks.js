@@ -150,7 +150,7 @@ export function parseRef(ref) {
   return { s, a, to }
 }
 
-// ── Yaddaş: { [bookId]: pageIndex } ──
+// ── Yaddaş: { [bookId]: pageIndex, __last: bookId } — __last: "Davam et" kartı üçün son açılan kitab ──
 export function loadProgress() {
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
@@ -165,7 +165,7 @@ export function saveProgress(id, page) {
   try {
     const cur = loadProgress()
     cur[id] = Math.max(0, Math.floor(page) || 0)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cur))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...cur, __last: id }))
     return cur
   } catch { return null }
 }

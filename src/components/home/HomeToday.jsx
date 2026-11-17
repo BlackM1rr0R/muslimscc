@@ -15,7 +15,7 @@
 //     Açarlar səhifələrin özlərindədir — burada yalnız OXUNUR.
 //   • Paylaş: Web Share API, yoxdursa keçid buferə kopyalanır.
 // ═══════════════════════════════════════════════════════
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../../contexts/LangContext'
 import Icon from '../Icon'
@@ -28,6 +28,9 @@ import '../../styles/HomeToday.css'
 import MoonPhase from '../MoonPhase'
 import AyahAudio from '../AyahAudio'
 import { pickUi } from '../../utils/uiText'
+import { buildContinueItems } from '../../utils/continueItems'
+
+const ContinueCard = lazy(() => import('../ContinueCard'))
 
 // Statik import() — Vite hər dil üçün ayrıca kiçik chunk yaradır
 const NAWAWI_HOME = {
@@ -45,8 +48,6 @@ const LABELS = {
     open: 'Tam oxu', copy: 'Kopyala', copied: 'Kopyalandı', share: 'Paylaş', shared: 'Keçid kopyalandı',
     ayah: 'Günün ayəsi', toQuran: 'Qurana keç', grade: 'Dərəcəsi haqqında qeyd var',
     cont: 'Qaldığınız yerdən', contEmpty: 'Oxumağa başlayın — qaldığınız yer burada görünəcək.',
-    quran: 'Quran', ayahN: (n) => `${n}-ci ayə`, mushaf: 'Mushaf', page: (n) => `${n}-ci səhifə`,
-    lesson: 'Dərs', arabic: 'Ərəb dili kursu', arabicGo: 'Növbəti dərsə davam et',
     startQuran: 'Fatihə surəsindən başla', startLearn: 'İlk dərsi aç',
     today: 'Bu gün', approx: 'təxmini', friday: 'Cümə — fəziləti və hökmləri', toCal: 'Təqvim',
   },
@@ -56,8 +57,6 @@ const LABELS = {
     open: 'Read in full', copy: 'Copy', copied: 'Copied', share: 'Share', shared: 'Link copied',
     ayah: 'Verse of the day', toQuran: 'Open the Quran', grade: 'Has a note on its grading',
     cont: 'Continue where you left off', contEmpty: 'Start reading — your place will show up here.',
-    quran: 'Quran', ayahN: (n) => `verse ${n}`, mushaf: 'Mushaf', page: (n) => `page ${n}`,
-    lesson: 'Lesson', arabic: 'Arabic course', arabicGo: 'Continue to the next lesson',
     startQuran: 'Start with Al-Fatiha', startLearn: 'Open the first lesson',
     today: 'Today', approx: 'approx.', friday: 'Friday — virtues and rulings', toCal: 'Calendar',
   },
@@ -67,8 +66,6 @@ const LABELS = {
     open: 'Читать полностью', copy: 'Копировать', copied: 'Скопировано', share: 'Поделиться', shared: 'Ссылка скопирована',
     ayah: 'Аят дня', toQuran: 'Открыть Коран', grade: 'Есть примечание о достоверности',
     cont: 'Продолжить с того же места', contEmpty: 'Начните читать — ваше место появится здесь.',
-    quran: 'Коран', ayahN: (n) => `аят ${n}`, mushaf: 'Мусхаф', page: (n) => `страница ${n}`,
-    lesson: 'Урок', arabic: 'Курс арабского', arabicGo: 'Перейти к следующему уроку',
     startQuran: 'Начать с суры аль-Фатиха', startLearn: 'Открыть первый урок',
     today: 'Сегодня', approx: 'прибл.', friday: 'Пятница — достоинства и нормы', toCal: 'Календарь',
   },
@@ -78,8 +75,6 @@ const LABELS = {
     open: 'اقرأ كاملًا', copy: 'نسخ', copied: 'تم النسخ', share: 'مشاركة', shared: 'تم نسخ الرابط',
     ayah: 'آية اليوم', toQuran: 'افتح القرآن', grade: 'عليه تنبيه في درجته',
     cont: 'تابع من حيث توقفت', contEmpty: 'ابدأ القراءة — سيظهر موضع توقفك هنا.',
-    quran: 'القرآن', ayahN: (n) => `الآية ${n}`, mushaf: 'المصحف', page: (n) => `الصفحة ${n}`,
-    lesson: 'الدرس', arabic: 'دورة العربية', arabicGo: 'تابع إلى الدرس التالي',
     startQuran: 'ابدأ بسورة الفاتحة', startLearn: 'افتح الدرس الأول',
     today: 'اليوم', approx: 'تقريبي', friday: 'الجمعة — الفضل والأحكام', toCal: 'التقويم',
   },
@@ -89,32 +84,9 @@ const LABELS = {
     open: 'Tamamını oku', copy: 'Kopyala', copied: 'Kopyalandı', share: 'Paylaş', shared: 'Bağlantı kopyalandı',
     ayah: 'Günün ayeti', toQuran: 'Kur’an’a git', grade: 'Derecesi hakkında not var',
     cont: 'Kaldığınız yerden', contEmpty: 'Okumaya başlayın — kaldığınız yer burada görünecek.',
-    quran: 'Kur’an', ayahN: (n) => `${n}. ayet`, mushaf: 'Mushaf', page: (n) => `${n}. sayfa`,
-    lesson: 'Ders', arabic: 'Arapça kursu', arabicGo: 'Sonraki derse devam et',
     startQuran: 'Fatiha suresiyle başla', startLearn: 'İlk dersi aç',
     today: 'Bugün', approx: 'yaklaşık', friday: 'Cuma — fazileti ve hükümleri', toCal: 'Takvim',
   },
-}
-
-// ── Yaddaşdan oxu (hər açar ayrıca try/catch — biri pozulubsa digərləri işləyir) ──
-const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } }
-function readResume() {
-  const out = {}
-  const bm = readJSON('quran_bookmark')
-  const s = Number(bm?.surah)
-  if (Number.isInteger(s) && s >= 1 && s <= 114) {
-    const a = Number(bm.ayah)
-    out.quran = { surah: s, ayah: Number.isInteger(a) && a > 1 ? a : null, name: typeof bm.name === 'string' ? bm.name : '' }
-  }
-  try {
-    const p = Number(localStorage.getItem('mushaf_last_page'))
-    if (Number.isInteger(p) && p >= 1 && p <= 604) out.mushaf = p
-  } catch { /* yaddaş bağlıdır */ }
-  const lp = readJSON('learn_progress_v1')
-  if (typeof lp?.last === 'string' && lp.last) out.lesson = { slug: lp.last, read: Array.isArray(lp.read) ? lp.read.length : 0 }
-  const ac = readJSON('arabic_course_v1')
-  if (ac && typeof ac === 'object' && (ac.last || Object.keys(ac.best || {}).length)) out.arabic = true
-  return out
 }
 
 function useCopy() {
@@ -137,8 +109,7 @@ export default function HomeToday() {
   const navigate = useNavigate()
   const day = useMemo(() => dayNumber(), [])
   const [nawawi, setNawawi] = useState(null)
-  const [resume, setResume] = useState(null)
-  const [lessonTitle, setLessonTitle] = useState('')
+  const [hasCont, setHasCont] = useState(null)   // null — hələ oxunmayıb (prerender)
   const [done, copy] = useCopy()
 
   // Nəvəvi hədisləri — dinamik, YALNIZ cari dil və kartın sahələri
@@ -149,17 +120,14 @@ export default function HomeToday() {
     load().then(m => { if (alive) setNawawi(m.default) }).catch(() => {})
     return () => { alive = false }
   }, [lang])
-  // Yaddaş yalnız brauzerdə (prerender HTML-i ilə uyğunsuzluq olmasın)
-  useEffect(() => { setResume(readResume()) }, [])
+  // Yaddaş yalnız brauzerdə (prerender HTML-i ilə uyğunsuzluq olmasın).
+  // Siyahının özünü ContinueCard göstərir (hədis, hifz, kitablar… + hesab sinxronizasiyası).
   useEffect(() => {
-    if (!resume?.lesson) return undefined
-    let alive = true
-    import('../../data/lessons/index.js').then(m => {
-      const ls = m.lessonBySlug(resume.lesson.slug)
-      if (alive && ls) setLessonTitle(ls.title?.[lang] || ls.title?.en || '')
-    }).catch(() => {})
-    return () => { alive = false }
-  }, [resume, lang])
+    const read = () => { let st = null; try { st = globalThis.localStorage } catch { /* gizli rejim */ } setHasCont(buildContinueItems(st).length > 0) }
+    read()
+    window.addEventListener('mcc-acctsync', read)
+    return () => window.removeEventListener('mcc-acctsync', read)
+  }, [])
 
   const h = nawawi && nawawi.length ? nawawi[((day % nawawi.length) + nawawi.length) % nawawi.length] : null
   const ayah = useMemo(() => buildDailyItems(lang, day, null).find(i => i.type === 'ayah') || null, [lang, day])
@@ -192,14 +160,7 @@ export default function HomeToday() {
   }
   const copyHadith = () => h && copy(`${hTitle}\n\n${h.ar}\n\n${hText ? hText + '\n' : ''}— ${hSrc}\n${window.location.origin}${hHref}`, 'copy')
 
-  const quranHref = resume?.quran
-    ? pathFor('quran', lang, resume.quran.surah) + (resume.quran.ayah ? `?a=${resume.quran.ayah}` : '')
-    : pathFor('quran', lang, 1)
-  const contItems = []
-  if (resume?.quran) contItems.push({ key: 'q', icon: 'quran', title: `${l.quran} · ${resume.quran.name || resume.quran.surah}`, sub: resume.quran.ayah ? l.ayahN(resume.quran.ayah) : `${resume.quran.surah}`, href: quranHref })
-  if (resume?.mushaf) contItems.push({ key: 'm', icon: 'mushaf', title: l.mushaf, sub: l.page(resume.mushaf), href: `${pathFor('mushaf', lang)}?p=${resume.mushaf}` })
-  if (resume?.lesson) contItems.push({ key: 'l', icon: 'learn', title: lessonTitle || l.lesson, sub: l.lesson, href: pathFor('learn', lang, resume.lesson.slug) })
-  if (resume?.arabic) contItems.push({ key: 'a', icon: 'arabic', title: l.arabic, sub: l.arabicGo, href: pathFor('arabic', lang) })
+  const quranHref = pathFor('quran', lang, 1)
 
   return (
     <section className="ui-section ui-section--tight hp-td" aria-labelledby="hp-td-ttl">
@@ -284,23 +245,12 @@ export default function HomeToday() {
           {/* ── Davam et ── */}
           <article className="ui-card ui-card--elevated hp-td-cont" aria-labelledby="hp-td-c-ttl">
             <h3 id="hp-td-c-ttl" className="hp-td-cell-ttl"><Icon name="books" size={16} /> {l.cont}</h3>
-            {resume === null ? (
+            {hasCont === null ? (
               <span className="ui-skeleton" style={{ height: 96 }} aria-hidden="true" />
-            ) : contItems.length ? (
-              <ul className="hp-td-list">
-                {contItems.slice(0, 3).map(it => (
-                  <li key={it.key}>
-                    <a className="hp-td-row" href={it.href} onClick={go(it.href)}>
-                      <span className="ui-icon-tile ui-icon-tile--sm" aria-hidden="true"><Icon name={it.icon} /></span>
-                      <span className="hp-td-row-b">
-                        <span className="hp-td-row-t">{it.title}</span>
-                        <span className="hp-td-row-s">{it.sub}</span>
-                      </span>
-                      <Icon name="chevron" size={16} className="hp-td-row-chev ui-flip-rtl" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+            ) : hasCont ? (
+              <Suspense fallback={<span className="ui-skeleton" style={{ height: 96 }} aria-hidden="true" />}>
+                <ContinueCard bare max={3} />
+              </Suspense>
             ) : (
               <div className="hp-td-empty">
                 <p>{l.contEmpty}</p>

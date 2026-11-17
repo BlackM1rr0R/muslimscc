@@ -22,7 +22,7 @@ if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUT
 // çöksün: yoxsa yeni sxem tətbiq olunur və köhnə versiyaya qayıdış da alınmır
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
-for (const m of ['./auth', './users', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
+for (const m of ['./auth', './users', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
@@ -78,14 +78,26 @@ setInterval(() => { try { authStore.purgeExpired() } catch { /* */ } }, 3600e3).
 // ─── İstifadəçi hesabları (server/users.js, docs/USER-ACCOUNTS.md) — öz limitləri də var (IP/e-poçt) ──
 const PUBLIC_ORIGIN = (process.env.PUBLIC_ORIGIN || 'https://muslims.cc').replace(/\/+$/, '')
 app.use('/api/auth', limit(60000, 60))
+// Hesaba bağlı şifrəli sinxronizasiya (server/syncKeys.js) — açar qabları + hesab↔blok bağlantısı; miqrasiyasız
+const syncKeysLib = require('./syncKeys')
+const syncKeysStore = syncKeysLib.createSyncKeysStore(db)
 const usersRouter = usersLib.createUsersRouter({
   db, store: usersStore, requireAdmin, allowedOrigins: ALLOWED,
+  hooks: {
+    beforeDeleteUser: (id) => syncKeysStore.deleteUserData(id),
+    passkeyRemoved: (userId, credId) => syncKeysStore.remove(userId, 'prf', credId),
+    passwordReset: (userId) => syncKeysStore.remove(userId, 'password', ''),
+  },
   mailer: require('./mailer').createMailer({ apiKey: process.env.RESEND_API_KEY }),
   publicOrigin: PUBLIC_ORIGIN,
   rpId: process.env.RP_ID || undefined,
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
 })
 app.use('/api', usersRouter)
+app.use('/api', syncKeysLib.createSyncKeysRouter({
+  store: syncKeysStore, requireUser: usersRouter.requireUser,
+  passkeyIdsOf: (userId) => usersStore.listPasskeys(userId).map((k) => k.id),
+}))
 // Gələcək xüsusiyyətlər üçün: app.post('/api/x', usersRouter.requireUser('mosque_rep'), …)
 setInterval(() => { try { usersStore.purgeExpired() } catch { /* */ } }, 3600e3).unref()
 
