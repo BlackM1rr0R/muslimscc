@@ -21,6 +21,7 @@
 // ═══════════════════════════════════════════════════════
 import { authFetch, AuthError, safeStorage } from '../api/userSession'
 import { readSync, enable, fetchRemote, push, adoptCode, setAccount, setAuto, unlink } from './userSync'
+import { setBase } from './syncBase'
 import { deriveKeys, normalizeCode } from './syncCrypto'
 import { collectBackup, isBackupKey } from './userBackup'
 import { passwordKey, newPasswordSalt, prfKey, newPrfSalt, wrapCode, unwrapCode } from './syncWrap'
@@ -124,8 +125,11 @@ async function adopt(uid, code, prefer, fetched) {
     writeState({ uid, status: 'choose', pendingCode: code, conflicts: plan.conflicts.length, remoteCount: remote.backup.count, updatedAt: remote.updatedAt || null })
     return 'choose'
   }
+  // Birləşdiricisi olan açarlar (Quran mozaikası, qeydlər, sevimlilər, sayğaclar…) ziddiyyət sayılmır
   const { written, needsPush } = applyMerge(remote.backup, prefer || 'remote')
   adoptCode(code, remote.version, { acct: uid })
+  // Baza — hesabdakı blok (bu cihazın məlumatı onun davamıdır); göndərmə uğurlu olsa — göndərilən
+  await setBase(code, remote.version, remote.backup.data)
   if (needsPush) await push().catch(() => {})
   markLinked(uid)
   emit('restored', { uid, count: written })

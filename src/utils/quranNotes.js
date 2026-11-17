@@ -151,6 +151,52 @@ export function restoreVersion(map, key, idx, now = Date.now()) {
   return setNote({ ...map, [key]: { ...n, h: n.h.filter((_, i) => i !== idx) } }, key, { c: n.c, t: v.t, w: n.w, p: n.p }, now)
 }
 
+/**
+ * Eyni ayənin iki fərqli versiyası (iki cihazda dəyişib) → bir qeyd. Yenisi (u) qalib gəlir;
+ * digərinin mətni fərqlidirsə tarixçəyə (h) düşür — heç bir mətn səssizcə itmir (limitlər daxilində).
+ */
+export function mergeNote(x, y) {
+  const [win, lose] = (y.u || 0) > (x.u || 0) ? [y, x] : [x, y]
+  const seen = new Set()
+  const hist = []
+  const add = (h) => {
+    if (!h || typeof h.t !== 'string' || !h.t.trim() || h.t === win.t) return
+    if (seen.has(h.t)) return
+    seen.add(h.t)
+    hist.push({ t: h.t, u: Number.isFinite(h.u) ? h.u : 0 })
+  }
+  if (lose.t && lose.t !== win.t) add({ t: lose.t, u: lose.u || 0 })
+  for (const h of [...(win.h || []), ...(lose.h || [])]) add(h)
+  hist.sort((p, q) => q.u - p.u)
+  const d = [win.d, lose.d].filter((v) => Number.isFinite(v) && v > 0)
+  const merged = { ...win, h: hist }
+  if (d.length) merged.d = Math.min(...d)
+  // sanitizeNotes limitləri tətbiq edir (≤ 3 versiya, ≤ 2000 simvol; ən yeniləri qalır)
+  return sanitizeNotes({ '1:1': merged })['1:1'] || win
+}
+
+/**
+ * 3 tərəfli birləşmə (ayə açarı üzrə): base — son sinxronlanmış vəziyyət (yoxdursa — {}:
+ * birləşmə). Bir tərəfdə dəyişən götürülür; bir tərəfdə silinib digərində dəyişməyibsə — silinir;
+ * hər iki tərəf dəyişibsə — mergeNote. Qaytarır: təmiz xəritə.
+ */
+export function mergeNotes(local, remote, base = {}) {
+  const L = sanitizeNotes(local), R = sanitizeNotes(remote), B = sanitizeNotes(base)
+  const same = (p, q) => JSON.stringify(p) === JSON.stringify(q)
+  const out = {}
+  for (const k of new Set([...Object.keys(L), ...Object.keys(R), ...Object.keys(B)])) {
+    const l = L[k], r = R[k], b = B[k]
+    let v
+    if (same(l, r)) v = l
+    else if (same(l, b)) v = r
+    else if (same(r, b)) v = l
+    else if (!l || !r) v = l || r          // bir tərəfdə silinib, digərində dəyişib — dəyişən qalır
+    else v = mergeNote(l, r)
+    if (v) out[k] = v
+  }
+  return out
+}
+
 /** Hər rəngdə neçə qeyd var: { gold: 2, … } */
 export function countByColor(map) {
   const out = Object.fromEntries(NOTE_COLORS.map(c => [c, 0]))

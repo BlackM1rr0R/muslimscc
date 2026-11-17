@@ -103,6 +103,17 @@ describe('hesaba bağlı sinxronizasiya', () => {
     expect(localStorage.getItem('hifz_progress')).toBe('{"1":2,"2":2}')
   }, 60000)
 
+  it('C2: fərqlər yalnız birləşdiricisi olan açarlardadır → seçim soruşulmur, birləşir və göndərilir', async () => {
+    newDevice({ dua_favs: '[7]', dhikr_count_total: '40' })
+    expect(await acc.afterLogin(USER, { password: PASSWORD })).toBe('linked')
+    expect(events).not.toContain('choose')
+    expect(JSON.parse(localStorage.getItem('dua_favs')).sort()).toEqual([5, 7])
+    newDevice()
+    await acc.afterLogin(USER, { password: PASSWORD })
+    expect(JSON.parse(localStorage.getItem('dua_favs')).sort()).toEqual([5, 7])
+    expect(localStorage.getItem('dhikr_count_total')).toBe('40')
+  }, 60000)
+
   it('Google ilə (şifrəsiz) yeni cihaz → "needCode"; kod daxil edilir → bərpa', async () => {
     const code = readSync().code
     newDevice()

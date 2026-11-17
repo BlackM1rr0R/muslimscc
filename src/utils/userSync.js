@@ -16,10 +16,14 @@
 // cihaz arada yeniləyibsə server 409 qaytarır → { conflict: true } — istifadəçiyə
 // "əvvəlcə gətirin" deyilir (heç bir cihazın məlumatı səssizcə itmir).
 // Kod yalnız bu cihazın localStorage-indədir (ehtiyat nüsxə faylına DÜŞMÜR).
+// Hər uğurlu göndərmə / gətirmə / qoşulmadan sonra blokun açıq məlumatı "baza" kimi
+// IndexedDB-də saxlanılır (utils/syncBase) — avtomatik rejim 409-da 3 tərəfli birləşdirir
+// (utils/autoSync → utils/syncMerge). Unutmada baza da silinir.
 // ═══════════════════════════════════════════════════════
 import { apiFetch, ApiError } from '../api/http'
 import { deriveKeys, generateCode, normalizeCode, encryptText, decryptText } from './syncCrypto'
 import { collectBackup, parseBackup, restoreBackup } from './userBackup'
+import { setBase, clearBase } from './syncBase'
 
 export const SYNC_KEY = 'muslim_cc_sync'
 const MAX_BLOB = 900 * 1024
@@ -41,7 +45,8 @@ async function upload(code, version) {
   if (blob.length > MAX_BLOB) throw new Error('too_big')
   try {
     const r = await apiFetch(path(id), { method: 'PUT', body: { blob, version } })
-    return { version: r.version, updatedAt: r.updatedAt, count: backup.count }
+    await setBase(code, r.version, backup.data)
+    return { version: r.version, updatedAt: r.updatedAt, count: backup.count, hash: hashData(backup.data) }
   } catch (e) {
     if (e instanceof ApiError && e.status === 409) return { conflict: true, version: e.body?.version ?? null }
     throw e
@@ -53,7 +58,7 @@ export async function enable() {
   const code = generateCode()
   const r = await upload(code, 0)
   if (r.conflict) throw new Error('conflict')   // praktik olaraq mümkün deyil (yeni təsadüfi kod)
-  writeSync({ code, version: r.version, syncedAt: new Date().toISOString(), auto: true, hash: dataHash() })
+  writeSync({ code, version: r.version, syncedAt: new Date().toISOString(), auto: true, hash: r.hash })
   return { code }
 }
 
@@ -85,6 +90,19 @@ export function link(remote) {
   const auto = same ? prev.auto !== false : true
   const acct = same && prev.acct ? { acct: prev.acct } : {}
   writeSync({ code: remote.code, version: remote.version, syncedAt: new Date().toISOString(), auto, hash: dataHash(), ...acct })
+  return setBase(remote.code, remote.version, remote.backup.data)
+}
+
+/**
+ * Bu cihazın məlumatı serverdəki bloku (remote — fetchRemote nəticəsi) artıq özündə birləşdirib
+ * (utils/autoSync 409 yolu, hesab axını): versiya və baza ona keçir, yerli dəyişiklik "göndərilməmiş"
+ * qalır (heş toxunulmur) — növbəti push() bu versiyadan davam edir.
+ */
+export async function rebase(remote) {
+  const s = readSync()
+  if (!s || s.code !== remote.code) return
+  writeSync({ ...s, version: remote.version })
+  await setBase(remote.code, remote.version, remote.backup.data)
 }
 
 /**
@@ -112,7 +130,7 @@ export async function push() {
   if (!s) throw new Error('not_linked')
   const r = await upload(s.code, s.version)
   if (r.conflict) return { conflict: true }
-  writeSync({ ...s, version: r.version, syncedAt: new Date().toISOString(), hash: dataHash() })
+  writeSync({ ...s, version: r.version, syncedAt: new Date().toISOString(), hash: r.hash })
   return { ok: true, count: r.count }
 }
 
@@ -130,7 +148,10 @@ export async function pull() {
  * yerli dəyişikliyi bununla tanıyır (utils/autoSync).
  */
 export function dataHash(storage = globalThis.localStorage) {
-  const data = collectBackup(storage).data
+  return hashData(collectBackup(storage).data)
+}
+/** collectBackup().data xəritəsinin heşi (göndərilən blokun özündən — göndərmə arasında yazılan dəyişiklik itmir) */
+export function hashData(data) {
   let h = 0x811c9dc5
   for (const k of Object.keys(data).sort()) {
     const str = `${k}\u0001${data[k]}\u0002`
@@ -143,7 +164,7 @@ export function markSynced() { const s = readSync(); if (s) writeSync({ ...s, ha
 /** Avtomatik sinxronizasiyanı aç / söndür */
 export function setAuto(on) { const s = readSync(); if (s) writeSync({ ...s, auto: !!on, hash: s.hash ?? dataHash() }) }
 
-export function unlink() { try { localStorage.removeItem(SYNC_KEY) } catch { /* */ } }
+export function unlink() { try { localStorage.removeItem(SYNC_KEY) } catch { /* */ } clearBase() }
 
 /** Serverdəki nüsxəni sil (geri qaytarılmaz) və bu cihazda kodu unut */
 export async function removeRemote() {

@@ -2,6 +2,8 @@
 // AutoSyncToast — avtomatik sinxronizasiyanın nəticəsi (utils/autoSync → 'qm-autosync')
 // • pulled — başqa cihazdan yeni məlumat gəldi → "Yenilə" (səhifə yenidən oxusun)
 // • conflict — hər iki cihaz dəyişib → heç nə yazılmayıb; ehtiyat nüsxə pəncərəsində seçmək
+// • merged — iki cihazın dəyişiklikləri avtomatik birləşdi (utils/syncMerge) → səssiz; o biri
+//   cihazdan bu cihaza nəsə yazılıbsa — yumşaq "sinxronlandı" (bir neçə saniyəyə gizlənir, istəyə görə "Yenilə")
 // pushed / error — səssiz (göstərilmir). Bütün sayt üçün (App.jsx).
 //
 // Hesaba bağlı sinxronizasiya (utils/accountSync — TƏNBƏL, yalnız daxil olmuş istifadəçidə və
@@ -22,23 +24,23 @@ import { pickUi } from '../utils/uiText'
 
 const T = {
   az: {
-    pulled: 'Başqa cihazdan yeni məlumat gəldi.', reload: 'Yenilə', conflict: 'Sinxronizasiya: hər iki cihazda dəyişiklik var — «Ehtiyat nüsxə» bölməsində hansını saxlayacağınızı seçin.', close: 'Bağla',
+    merged: 'Digər cihazınızla sinxronlandı.', pulled: 'Başqa cihazdan yeni məlumat gəldi.', reload: 'Yenilə', conflict: 'Sinxronizasiya: hər iki cihazda dəyişiklik var — «Ehtiyat nüsxə» bölməsində hansını saxlayacağınızı seçin.', close: 'Bağla',
     restored: 'Tərəqqiniz hesabınızdan bərpa olundu.', needCode: 'Sinxronlanmış məlumatınızı bu cihazda açmaq üçün bərpa kodunu daxil edin.', choose: 'Bu cihazda da məlumat var — hesab səhifəsində hansını saxlayacağınızı seçin.', open: 'Hesabım',
   },
   en: {
-    pulled: 'New data arrived from another device.', reload: 'Reload', conflict: 'Sync: both devices have changes — choose which to keep under “Backup”.', close: 'Close',
+    merged: 'Synced with your other device.', pulled: 'New data arrived from another device.', reload: 'Reload', conflict: 'Sync: both devices have changes — choose which to keep under “Backup”.', close: 'Close',
     restored: 'Your progress was restored from your account.', needCode: 'Enter your recovery code to unlock your synced data on this device.', choose: 'This device has data too — choose what to keep on your account page.', open: 'My account',
   },
   ru: {
-    pulled: 'Пришли новые данные с другого устройства.', reload: 'Обновить', conflict: 'Синхронизация: изменения на обоих устройствах — выберите, что сохранить, в разделе «Резервная копия».', close: 'Закрыть',
+    merged: 'Синхронизировано с другим устройством.', pulled: 'Пришли новые данные с другого устройства.', reload: 'Обновить', conflict: 'Синхронизация: изменения на обоих устройствах — выберите, что сохранить, в разделе «Резервная копия».', close: 'Закрыть',
     restored: 'Ваш прогресс восстановлен из аккаунта.', needCode: 'Введите код восстановления, чтобы открыть синхронизированные данные на этом устройстве.', choose: 'На этом устройстве тоже есть данные — выберите, что оставить, на странице аккаунта.', open: 'Мой аккаунт',
   },
   tr: {
-    pulled: 'Başka cihazdan yeni veri geldi.', reload: 'Yenile', conflict: 'Senkronizasyon: iki cihazda da değişiklik var — «Yedek» bölümünde hangisini tutacağınızı seçin.', close: 'Kapat',
+    merged: 'Diğer cihazınızla eşitlendi.', pulled: 'Başka cihazdan yeni veri geldi.', reload: 'Yenile', conflict: 'Senkronizasyon: iki cihazda da değişiklik var — «Yedek» bölümünde hangisini tutacağınızı seçin.', close: 'Kapat',
     restored: 'İlerlemeniz hesabınızdan geri yüklendi.', needCode: 'Eşitlenen verilerinizi bu cihazda açmak için kurtarma kodunuzu girin.', choose: 'Bu cihazda da veri var — hangisinin kalacağını hesap sayfasında seçin.', open: 'Hesap ayarları',
   },
   ar: {
-    pulled: 'وصلت بيانات جديدة من جهاز آخر.', reload: 'حدّث', conflict: 'المزامنة: يوجد تغيير على الجهازين — اختر ما تحتفظ به في قسم «النسخة الاحتياطية».', close: 'إغلاق',
+    merged: 'تمت المزامنة مع جهازك الآخر.', pulled: 'وصلت بيانات جديدة من جهاز آخر.', reload: 'حدّث', conflict: 'المزامنة: يوجد تغيير على الجهازين — اختر ما تحتفظ به في قسم «النسخة الاحتياطية».', close: 'إغلاق',
     restored: 'استُعيد تقدّمك من حسابك.', needCode: 'أدخل رمز الاستعادة لفتح بياناتك المتزامنة على هذا الجهاز.', choose: 'على هذا الجهاز بيانات أيضًا — اختر ما تبقيه في صفحة الحساب.', open: 'حسابي',
   },
 }
@@ -55,7 +57,12 @@ export default function AutoSyncToast() {
   const [kind, setKind] = useState(null)
   useEffect(() => {
     startAutoSync()
-    const on = (e) => { const k = e.detail?.type; if (k === 'pulled' || k === 'conflict') setKind(k) }
+    const on = (e) => {
+      const k = e.detail?.type
+      if (k === 'pulled' || k === 'conflict') setKind(k)
+      // birləşmə: yalnız bu cihaza yeni nəsə gəlibsə və ekranda daha vacib bildiriş yoxdursa
+      else if (k === 'merged' && e.detail?.changed > 0) setKind((cur) => cur || 'merged')
+    }
     const onAcct = (e) => {
       const k = e.detail?.status
       if (k === 'restored') { setKind('restored'); return }
@@ -85,6 +92,13 @@ export default function AutoSyncToast() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid])
 
+  // "sinxronlandı" — yumşaq, özü gizlənir
+  useEffect(() => {
+    if (kind !== 'merged') return undefined
+    const id = setTimeout(() => setKind((cur) => (cur === 'merged' ? null : cur)), 6000)
+    return () => clearTimeout(id)
+  }, [kind])
+
   if (!kind) return null
   const text = t[kind]
   const toAccount = kind === 'needCode' || kind === 'choose'
@@ -95,7 +109,7 @@ export default function AutoSyncToast() {
   return (
     <div className="ob ob--sync" role="status" data-testid="autosync-toast" data-kind={kind}>
       <span>{text}</span>
-      {(kind === 'pulled' || kind === 'restored') && <button type="button" className="ob__btn" onClick={() => window.location.reload()}>{t.reload}</button>}
+      {(kind === 'pulled' || kind === 'restored' || kind === 'merged') && <button type="button" className="ob__btn" onClick={() => window.location.reload()}>{t.reload}</button>}
       {toAccount && <a className="ob__btn" href={pathFor('account', siteLang)} onClick={goAccount}>{t.open}</a>}
       <button type="button" className="ob__x" onClick={() => setKind(null)} aria-label={t.close}><Icon name="close" size={14} /></button>
     </div>

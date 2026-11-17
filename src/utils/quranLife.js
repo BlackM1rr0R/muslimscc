@@ -136,6 +136,49 @@ export function applyRead(prev, indices, today = localDay()) {
   return { st, added, changed, khatm }
 }
 
+/**
+ * İki cihazın vəziyyətini birləşdir (SAF, kommutativ — sinxronizasiya: utils/syncMergers).
+ * a, b — xam obyekt və ya sanitizeLife nəticəsi. Heç bir oxunuş itmir:
+ *   e — OR; k — max; c — k bərabərdirsə OR, deyilsə böyük k-lı tərəfin dövrü (r də onunku);
+ *   ks — (s, e) üzrə birləşmə, sıralı, ≤ 100; d — surə üzrə [ən erkən ilk, ən gec son];
+ *   r — k bərabərdirsə ən erkən. OR-dan sonra dövr dolubsa — xətm sayılır (applyRead kimi).
+ */
+export function mergeLife(a, b) {
+  const A = a && a.e instanceof Uint8Array ? a : sanitizeLife(a)
+  const B = b && b.e instanceof Uint8Array ? b : sanitizeLife(b)
+  const st = emptyLife()
+  for (let i = 0; i < BYTES; i++) st.e[i] = A.e[i] | B.e[i]
+  if (A.k === B.k) {
+    for (let i = 0; i < BYTES; i++) st.c[i] = A.c[i] | B.c[i]
+    st.r = [A.r, B.r].filter(Boolean).sort()[0] || null
+  } else {
+    const hi = A.k > B.k ? A : B
+    st.c = hi.c.slice()
+    st.r = hi.r
+  }
+  const seen = new Set()
+  st.ks = [...A.ks, ...B.ks]
+    .filter((x) => { const id = `${x.s}|${x.e}`; if (seen.has(id)) return false; seen.add(id); return true })
+    .sort((x, y) => (x.e < y.e ? -1 : x.e > y.e ? 1 : x.s < y.s ? -1 : x.s > y.s ? 1 : 0))
+    .slice(-MAX_KHATMS)
+  st.k = Math.max(A.k, B.k, st.ks.length)
+  for (const s of new Set([...Object.keys(A.d), ...Object.keys(B.d)])) {
+    const x = A.d[s], y = B.d[s]
+    st.d[s] = x && y ? [x[0] <= y[0] ? x[0] : y[0], x[1] >= y[1] ? x[1] : y[1]] : (x || y).slice()
+  }
+  for (let i = 0; i < BYTES; i++) st.e[i] |= st.c[i]
+  if (countBits(st.c) >= TOTAL) {
+    // İki cihazda oxunanlar birlikdə dövrü tamamladı
+    const last = Object.values(st.d).reduce((m, v) => (v[1] > m ? v[1] : m), st.r || '')
+    const end = last || localDay()
+    st.k += 1
+    st.ks = [...st.ks, { s: st.r || end, e: end }].slice(-MAX_KHATMS)
+    st.c = newBits()
+    st.r = null
+  }
+  return st
+}
+
 /** Statistika: { ever, current, pct, surahsDone, khatms, round } */
 export function lifeStats(st) {
   const ever = countBits(st.e)
