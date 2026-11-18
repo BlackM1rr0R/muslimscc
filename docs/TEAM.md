@@ -28,6 +28,9 @@ unless the lead explicitly says so in the task.**
 - **Gates before reporting done:** `npx eslint . --max-warnings=0` · `npm run check` · `npx vitest run` · `npm run build` · related e2e. `.env.public` must exist before a local build.
 - **e2e:** fixtures mock every `/api/*` (`tests/e2e/fixtures.js`); new endpoints need mocks; reducedMotion on; `page.route` regexes can match chunk names; never leave an empty `role="alert"` rendered; wait for the page to render before checking optional elements (`isVisible()` races).
 - **Parallel builds:** `PRERENDER_DIST=dist-<x>` and `--output test-results-<x>`; delete them afterwards (lint fails on stray dist dirs).
+- **CI installs root deps, then `server/` deps (`npm ci --prefix server`) before unit tests** — a test that spawns `server/server.js` passes locally but fails in CI without them (2026-11-19, 4394a77).
+- **Controlled checkboxes with async onChange** need optimistic local state, otherwise Playwright `.check()` fails ("did not change its state").
+- **Dependabot PRs** (GitHub Actions major bumps) are never auto-merged; security-reviewer checks them first.
 - **localStorage:** use the `safeStorage()` pattern (try/catch); profile keys via `PROFILE_KEYS` in `src/utils/profileCore.js`; synced keys need a merger in `src/utils/syncMergers.js`.
 
 ## i18n
