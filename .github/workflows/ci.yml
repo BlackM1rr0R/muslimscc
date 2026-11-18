@@ -53,6 +53,9 @@ jobs:
         run: node scripts/check-csp.mjs
       - name: ESLint (hook qaydaları, istifadəsiz kod)
         run: npm run lint
+      # server-inline.test.js əsl server.js-i işə salır — server/ asılılıqları (express, cors…) lazımdır
+      - name: Server asılılıqları
+        run: npm ci --prefix server --omit=dev --no-audit --no-fund
       - name: Unit testlər
         run: npm run test:unit
       - name: API sintaksisi
