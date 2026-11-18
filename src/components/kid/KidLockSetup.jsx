@@ -95,7 +95,7 @@ export default function KidLockSetup({ heading = false }) {
           </div>
         </div>
       )}
-      <p className="kid-setup__err" role="alert">{err}</p>
+      {err ? <p className="kid-setup__err" role="alert">{err}</p> : null}
       <p className="ui-sr-only" role="status" aria-live="polite">{msg}</p>
       <p className="kid-setup__honest"><Icon name="info" size={14} /> {t.honest}</p>
       {askOld && (
