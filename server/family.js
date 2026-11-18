@@ -360,6 +360,12 @@ function createFamilyRouter({ db, store: givenStore, requireUser, now = () => Da
     const t = now()
     return st.purgeInvites.run(t).changes + st.purgeCards.run(t - CARD_TTL_MS).changes
   }
+  /** "Mənim məlumatlarım" (server/security.js): istifadəçinin gördüyü dairə, kartlar, paylaşdığı rəqəmlər (dəvət tokenləri YOX) */
+  router.exportUser = (uid) => ({ circle: view(uid), cards: cardsOut(uid), share: shareOut(st.share.get(uid)) })
+  router.summaryUser = (uid) => {
+    const c = view(uid)
+    return { inCircle: Boolean(c), role: c ? c.role : null, members: c ? c.members.length : 0, cards: cardsOut(uid).length, sharing: Boolean(st.share.get(uid)) }
+  }
   router.store = store
   return router
 }

@@ -12,15 +12,17 @@
 //   hifz_surah — hifz_progress — ən azı bir surə "əzbər" (2)
 //   dhikr_1000 — dhikr_count_total ≥ 1000 (və ya nişan 'dhikr_1000')
 //   kahf_4     — kahf_fridays_v1 — 4 cümə Kəhf (və ya nişan 'kahf_4')
+//   ummah_khatm — world_khatm_v1 — iştirak etdiyiniz "Ümmətin Canlı Xətmi" dövrü tamamlanıb (utils/worldKhatm)
 // Qazanılma günü bir dəfə yazılır: muslim_cc_passport_v1 → { id: 'YYYY-MM-DD' } (ehtiyat
 // nüsxəyə və hesab sinxronizasiyasına düşür). Nişanı olan möhürlərdə nişanın günü götürülür.
 // tests/unit/passport.test.js
 // ═══════════════════════════════════════════════════════
 import { STATS_KEY, TRACKER_KEY, STATUS_KEY, HAYD_KEY, normHayd, earliestDate, addDays, toKey, excusedPeriod, prayerStatus } from './prayerTracker.js'
 import { SAHABA_SLUGS } from '../seo/detailSlugs.js'
+import { KHATM_KEY, sanitizeKhatm, doneRounds } from './worldKhatm.js'
 
 export const PASSPORT_KEY = 'muslim_cc_passport_v1'
-export const STAMP_IDS = ['khatm', 'fajr_40', 'names_99', 'hijra', 'sahaba', 'arabic', 'hifz_surah', 'dhikr_1000', 'kahf_4']
+export const STAMP_IDS = ['khatm', 'fajr_40', 'names_99', 'hijra', 'sahaba', 'arabic', 'hifz_surah', 'dhikr_1000', 'kahf_4', 'ummah_khatm']
 /** Mövcud nişanla (utils/badges) üst-üstə düşən möhürlər — nişanın günü istifadə olunur */
 export const STAMP_BADGE = { khatm: 'khatm', dhikr_1000: 'dhikr_1000', kahf_4: 'kahf_4' }
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -72,7 +74,8 @@ export function passportStats(storage = safeStorage(), refs = {}, today = toKey(
   const dhikr = Math.max(0, parseInt(storage?.getItem?.('dhikr_count_total'), 10) || 0)
   const kf = json(storage, 'kahf_fridays_v1', [])
   const kahf = Array.isArray(kf) ? new Set(kf.filter(d => typeof d === 'string' && DATE_RE.test(d))).size : 0
-  return { khatms, fajr, names, hijraKm, sahaba, sahabaTotal: slugs.length, hifz, dhikr, kahf, arabicPassed: refs.arabicPassed ?? null, arabicTotal: refs.arabicTotal ?? null, hijraTotal: refs.hijraKm ?? null }
+  const ummah = doneRounds(sanitizeKhatm(json(storage, KHATM_KEY, null)))
+  return { khatms, fajr, names, hijraKm, sahaba, sahabaTotal: slugs.length, hifz, dhikr, kahf, ummah, arabicPassed: refs.arabicPassed ?? null, arabicTotal: refs.arabicTotal ?? null, hijraTotal: refs.hijraKm ?? null }
 }
 
 /** [{ id, value, goal, ready }] — ready: false → bu möhürün ölçüsü hələ yüklənməyib (refs) */
@@ -88,6 +91,7 @@ export function stampProgress(s) {
     r('hifz_surah', s.hifz, 1),
     r('dhikr_1000', s.dhikr, 1000),
     r('kahf_4', s.kahf, 4),
+    r('ummah_khatm', s.ummah || 0, 1),
   ]
 }
 

@@ -203,6 +203,9 @@ function createHifzTestRouter({ db, requireUser, allowedOrigins = [], now = () =
     const t = now()
     return st.purge.run(t - 24 * 3600e3, t - RESULT_KEEP_MS, t - UNFETCHED_KEEP_MS).changes
   }
+  /** "Mənim məlumatlarım" (server/security.js): keçidlər və nəticələr (token heşi YOX); "götürüldü" işarəsi qoyulmur */
+  router.exportUser = (uid) => st.list.all(uid).map(testOut)
+  router.summaryUser = (uid) => ({ tests: st.list.all(uid).length })
   return router
 }
 

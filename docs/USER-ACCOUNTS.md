@@ -212,6 +212,7 @@ yeni dini mətn yazılmayıb.
 | `GOOGLE_CLIENT_ID` | Google Cloud → OAuth client (Web) ID | `/api/auth/google` → `503 google_disabled` |
 | `PUBLIC_ORIGIN` | Məktub keçidləri və WebAuthn origin | `https://muslims.cc` |
 | `PERSONAL_SECRET` | Abunəlikdən çıxma tokenlərinin HMAC sirri (istəyə bağlı) | Bazada bir dəfə təsadüfi yaradılır (`personal_secret`) |
+| `TOTP_KEY` | İki addımlı yoxlama sirlərinin şifrələmə açarı (32 bayt base64, istəyə bağlı) — [ACCOUNT-SECURITY.md](ACCOUNT-SECURITY.md) | Bazada bir dəfə təsadüfi yaradılır (`security_secret`) |
 | `RP_ID` | WebAuthn RP ID | `PUBLIC_ORIGIN`-in hostu (`muslims.cc`) — `www.muslims.cc` də qəbul olunur (`ALLOWED_ORIGINS`-dən) |
 
 Google Cloud Console → OAuth client → **Authorized JavaScript origins**: `https://muslims.cc`, `https://www.muslims.cc`

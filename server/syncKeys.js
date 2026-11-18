@@ -93,6 +93,20 @@ function createSyncKeysStore(db) {
       st.delKind.run(userId, 'password'); st.delKind.run(userId, 'prf')
       return blob
     },
+    /**
+     * "Mənim məlumatlarım" (server/security.js): yalnız növlər, vaxtlar və şifrəli blokun ölçüsü.
+     * salt/wrapped (şifrəli qablar) və syncId (bloka çıxış "imkanı") QƏSDƏN YOXDUR.
+     */
+    exportUser(userId) {
+      const l = st.link.get(userId)
+      let blob = null
+      if (l) { try { const b = p('SELECT size, updated_at FROM sync_blobs WHERE id = ?').get(l.sync_id); if (b) blob = { size: b.size, updatedAt: b.updated_at } } catch { /* */ } }
+      return {
+        linked: Boolean(l), linkedAt: l ? l.linked_at : null, blob,
+        keys: st.list.all(userId).map((r) => ({ kind: r.kind, createdAt: r.created_at })),
+      }
+    },
+    summaryUser(userId) { const e = this.exportUser(userId); return { linked: e.linked, blobSize: e.blob ? e.blob.size : 0, updatedAt: e.blob ? e.blob.updatedAt : null, keys: e.keys.length } },
   }
 }
 

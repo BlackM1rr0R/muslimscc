@@ -59,7 +59,8 @@ const IGNORED = [
   /\[vite\]/i,
   // İstifadəçi hesabı API-sinin GÖZLƏNİLƏN 4xx cavabları (girişsiz /me → 401, yanlış şifrə → 401, admin 403 kodları):
   // brauzer onları "Failed to load resource" kimi yazır — saytın xətası deyil (UI onları özü göstərir)
-  /Failed to load resource.*\/api\/(auth\/|personal\/|admin\/(users|role-audit))/i,
+  // (+ admin 2FA: yanlış kod → 401 /api/admin/2fa — server/security.js)
+  /Failed to load resource.*\/api\/(auth\/|personal\/|admin\/(users|role-audit|2fa))/i,
   // D mərhələsi (otaq, ailə, hifz yoxlaması) — gözlənilən 4xx (yanlış/köhnə keçid, giriş yoxdur): UI özü göstərir
   /Failed to load resource.*\/api\/(read-together|family|hifz-tests)(\/|\?|$)/i,
 ]
@@ -170,6 +171,18 @@ export const test = base.extend({
       // Girişsiz keçidlər (yoxlayan, qonaq) — serverdə olmayan token → 404 (real serverin cavabı)
       if (pathname === '/api/hifz-tests/open' || pathname === '/api/hifz-tests/submit') return route.fulfill({ status: 404, json: { error: 'Invalid link', code: 'invalid_token' } })
       if (pathname === '/api/read-together/join') return route.fulfill({ status: 404, json: { error: 'invalid_invite', code: 'invalid_invite' } })
+      return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
+    })
+    // Ümmətin Canlı Xətmi (server/globalKhatm.js) — susmaya görə boş dövr; ictimai SSE bir "hello" göndərib
+    // bağlanır (retry çox böyükdür — yenidən qoşulmur). tests/e2e/khatm.spec.js öz saxtasını qoyur.
+    await page.route((u) => u.pathname.startsWith('/api/khatm/'), (route) => {
+      const { pathname } = new URL(route.request().url())
+      const empty = { roundNo: 1, startedAt: Date.UTC(2026, 10, 1), bits: '', readCount: 0, active: 0, total: 604 }
+      if (pathname === '/api/khatm/state') return route.fulfill({ json: empty })
+      if (pathname === '/api/khatm/stats') return route.fulfill({ json: { roundNo: 1, readCount: 0, active: 0, rounds: 0 } })
+      if (pathname === '/api/khatm/rounds') return route.fulfill({ json: { rounds: [], page: 1, pages: 1, total: 0, ramadan: null } })
+      if (pathname === '/api/khatm/me') return route.fulfill({ json: { claim: null, rounds: [], dedications: [], loved: [], minReadMs: 40000, claimMs: 1800000 } })
+      if (pathname === '/api/khatm/live') return route.fulfill({ status: 200, contentType: 'text/event-stream', body: `retry: 86400000\n\nevent: hello\ndata: ${JSON.stringify(empty)}\n\n` })
       return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
     })
     // Google ilə giriş (accounts.google.com/gsi/client) — real Google-a getməsin: kiçik saxta GIS.

@@ -1,0 +1,80 @@
+/* ═══════════════════════════════════════════════════════
+   "Ümmətin Canlı Xətmi" (/khatm) — pages/KhatmPage.jsx, components/khatm/* (kt-*, kg-*)
+   Mushaf vərəqi: MushafPage.css (mp-*). RTL — yalnız məntiqi xassələr. Hərəkət yalnız qısa
+   keçiddir, prefers-reduced-motion-da söndürülür; sonsuz animasiya yoxdur.
+   ═══════════════════════════════════════════════════════ */
+
+.kt-page {
+  --kg-ocean: #e4f1f2; --kg-ocean-2: #b9d8de; --kg-land: #a9cfb1; --kg-land-edge: #76a985;
+  --kg-line: rgba(20, 40, 40, 0.12); --kg-ring: rgba(122, 92, 30, 0.2); --kg-gold: #b8892f; --kg-glow: #f0cf7a;
+}
+[data-theme="dark"] .kt-page {
+  --kg-ocean: #183847; --kg-ocean-2: #0b1d27; --kg-land: #2f5e47; --kg-land-edge: #4f8a68;
+  --kg-line: rgba(255, 255, 255, 0.08); --kg-ring: rgba(230, 200, 130, 0.16); --kg-gold: #e2b85a; --kg-glow: #f7dc95;
+}
+.kt-hero .ui-lead { max-width: 62ch; }
+
+.kt-live { display: grid; gap: var(--space-5, 24px); align-items: center; }
+@media (min-width: 900px) { .kt-live { grid-template-columns: minmax(0, 1fr) minmax(320px, 560px); } }
+.kt-live__text { display: grid; gap: var(--space-3, 12px); }
+.kt-live__text .ui-lead { margin: 0; }
+.kt-live__text .ui-title { margin: 0; }
+.kt-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.kt-meter { margin-top: 4px; }
+.kt-conn { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--text-secondary); font-size: var(--step--1); font-weight: 500; }
+.kt-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); }
+.kt-dot--live { background: var(--ok, #1f9d55); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok, #1f9d55) 25%, transparent); }
+.kt-dot--retry, .kt-dot--closed { background: var(--warn, #b7791f); }
+
+.kt-live__globe { display: grid; place-items: center; }
+.kg-wrap { position: relative; display: grid; place-items: center; width: 100%; max-width: 560px; aspect-ratio: 1; }
+.kg-canvas { display: block; touch-action: none; cursor: grab; border-radius: 50%; outline: none; }
+.kg-canvas:active { cursor: grabbing; }
+.kg-canvas:focus-visible { box-shadow: 0 0 0 3px var(--brand-soft-2, var(--brand)); }
+.kg-skel { position: absolute; inset: 8px; border-radius: 50%; }
+
+.kt-card { display: grid; gap: 12px; padding: clamp(18px, 3vw, 28px); }
+.kt-card + .kt-card { margin-top: var(--space-4, 16px); }
+.kt-card__title { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--text-strong); font-size: var(--step-1); font-weight: 600; }
+.kt-card form { display: grid; gap: 12px; }
+.kt-note { margin: 0; color: var(--text-secondary); font-size: var(--step--1); line-height: 1.5; }
+.kt-honor { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: var(--text-secondary); font-size: var(--step--1); }
+.kt-msg { margin: 0; padding: 8px 12px; border-radius: var(--radius-md); background: var(--surface-2); color: var(--text-strong); font-size: var(--step--1); }
+.kt-thanks { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--brand-strong); font-weight: 600; }
+.kt-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.kt-switch { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; color: var(--text-primary); font-size: var(--step--1); }
+.kt-switch input { width: 20px; height: 20px; accent-color: var(--brand); }
+.kt-loved { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.kt-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.kt-list > li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); }
+.kt-list > li > button { margin-inline-start: auto; }
+
+.kt-reader { display: grid; gap: 12px; }
+.kt-page-title { margin: 0; color: var(--text-strong); font-size: var(--step-1); }
+.kt-stage { padding: 0; }
+.kt-wait { font-weight: 500; opacity: 0.85; }
+
+.kt-ramadan { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 10px 14px; border-radius: var(--radius-md); background: var(--brand-soft); color: var(--brand-strong); font-weight: 600; }
+.kt-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md); }
+.kt-table-wrap:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+.kt-table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+.kt-table th, .kt-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: start; white-space: nowrap; color: var(--text-primary); }
+.kt-table thead th { color: var(--text-strong); font-weight: 600; background: var(--surface-2); }
+.kt-table tbody tr:last-child > * { border-bottom: 0; }
+.kt-pager { justify-content: center; margin-top: 12px; }
+
+/* ── Dövr tamamlandı — təbrik (həndəsi naxış; canlı varlıq təsviri yoxdur) ── */
+.kt-overlay { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; background: rgba(6, 18, 14, 0.62); }
+.kt-overlay__card {
+  display: grid; justify-items: center; gap: 10px; width: min(100%, 460px); padding: clamp(22px, 4vw, 34px);
+  border: 1px solid var(--line); border-radius: var(--radius-lg, 18px); background: var(--surface-1); color: var(--text-primary);
+  text-align: center; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+.kt-overlay__title { margin: 0; color: var(--text-strong); font-size: var(--step-2); }
+.kt-overlay__line { margin: 0; color: var(--text-strong); font-size: var(--step-0); font-weight: 600; }
+.kt-overlay p { margin: 0; }
+.kt-rosette { width: 96px; height: 96px; color: var(--kg-gold); }
+@media (prefers-reduced-motion: no-preference) {
+  .kt-overlay__card { animation: kt-rise 0.35s ease-out both; }
+  @keyframes kt-rise { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+}

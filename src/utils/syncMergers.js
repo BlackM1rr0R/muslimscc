@@ -14,6 +14,7 @@ import { sanitizeCerts, CERTS_KEY } from './khatmCert'
 import { NS } from './profileCore'
 import { sanitizeGarden, GARDEN_KEY } from './duaGardenLife'
 import { sanitizeVisits, combineVisit, VISITS_KEY } from './mosqueVisits'
+import { mergeKhatm, KHATM_KEY } from './worldKhatm'
 
 export const CONFLICT = Symbol('conflict')
 
@@ -218,6 +219,8 @@ export const MERGERS = {
   }, { ok: isObj }),
   // Sədəqə gündəliyi [{ id, … }] — qeyd üzrə 3 tərəfli; eyni qeyd hər iki tərəfdə dəyişibsə — bu cihazınkı
   charity_log: json((L, R, B) => idList((l) => l)(L, R, B), { ok: Array.isArray }),
+  // Ümmətin Canlı Xətmi — iştirak: səhifələr birləşir, dövrün tamamlanma günü ən erkən (utils/worldKhatm)
+  [KHATM_KEY]: json((L, R) => mergeKhatm(L, R), { ok: isObj }),
 }
 
 /** Cihaz tərcihləri: hər iki tərəf dəyişibsə ziddiyyət deyil (avtomatik yolda bu cihazınkı qalır) */

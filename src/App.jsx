@@ -166,6 +166,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const AccountTokenPage = lazy(() => import('./pages/AccountTokenPage'))
 const ReadTogetherPage = lazy(() => import('./pages/ReadTogetherPage'))
+const KhatmPage = lazy(() => import('./pages/KhatmPage'))
 const HifzTestPage = lazy(() => import('./pages/HifzTestPage'))
 
 // Bu widget-lər hər səhifədə render olunur, amma heç biri ilk ekran üçün
@@ -438,6 +439,7 @@ function AppInner() {
       case 'accountverify': return <AccountTokenPage  setPage={navigate} mode="verify" />
       case 'accountreset':  return <AccountTokenPage  setPage={navigate} mode="reset" />
       case 'readtogether':  return <ReadTogetherPage />
+      case 'khatm':         return <KhatmPage />
       case 'hifztest':      return <HifzTestPage />
       case 'notfound':      return <NotFoundPage      setPage={navigate} />
       default:              return <HomePage          setPage={navigate} />

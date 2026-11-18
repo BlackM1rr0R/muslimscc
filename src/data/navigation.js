@@ -58,6 +58,8 @@ export const NAV_GROUPS = [
         label: { az: 'Quran', en: 'Quran', ru: 'Коран', ar: 'القرآن', tr: "Kur'an" } },
       { key: 'mushaf', icon: '📖',
         label: { az: 'Mushaf görünüşü', en: 'Mushaf view', ru: 'Вид мусхафа', ar: 'عرض المصحف', tr: 'Mushaf görünümü' } },
+      { key: 'khatm', icon: '🌍',
+        label: { az: 'Ümmətin canlı xətmi', en: 'The Ummah’s live khatm', ru: 'Живой хатм уммы', ar: 'ختمة الأمة الحيّة', tr: 'Ümmetin canlı hatmi' } },
       { key: 'quranroots', icon: '🌱',
         label: { az: 'Kök axtarışı', en: 'Root search', ru: 'Поиск по корню', ar: 'البحث بالجذر', tr: 'Kök araması' } },
       { key: 'hifz', icon: '📝',

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
-import { watchAdmin, signInAdmin } from '../api/adminAuth'
+import { watchAdmin, signInAdmin, verifyAdminTwoFactor } from '../api/adminAuth'
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AdminPage.css'
 import { pickUi } from '../utils/uiText'
@@ -28,13 +28,22 @@ const LABELS = {
     errCreds:'E-posta veya şifre yanlış', errMany:'Çok fazla deneme yapıldı. Biraz sonra tekrar deneyin', errNet:'Ağ hatası. İnternet bağlantınızı kontrol edin', errUnknown:'Giriş yapılamadı', errEmail:'Önce e-posta adresinizi yazın', forgotInfo:'E-postayla kurtarma yok. Şifreyi sunucuda admin-user.js set-password komutuyla değiştirin — yönetici belgelerine bakın (docs/ADMIN-SECURITY.md).', hint:'Sadece yöneticiler için.' },
 }
 
+// İki addımlı yoxlama (server/auth.js → POST /api/admin/2fa): şifrə düzdürsə kod soruşulur
+const TF_LABELS = {
+  az: { tfTitle:'İki addımlı yoxlama', tfSub:'Kod tətbiqindəki 6 rəqəmli kodu yazın', tfSubBackup:'Ehtiyat kodlarınızdan birini yazın', tfCode:'Kod', tfBackup:'Ehtiyat kodu', tfVerify:'Təsdiqlə', tfUseBackup:'Ehtiyat kodu işlət', tfUseApp:'Tətbiqdəki kodu işlət', tfBack:'Girişə qayıt', errCode:'Kod yanlışdır. Tətbiqdəki yeni kodu yazın', errTicket:'Yoxlama vaxtı bitdi və ya cəhdlər tükəndi. Yenidən daxil olun' },
+  en: { tfTitle:'Two-step verification', tfSub:'Enter the 6-digit code from your authenticator app', tfSubBackup:'Enter one of your backup codes', tfCode:'Code', tfBackup:'Backup code', tfVerify:'Verify', tfUseBackup:'Use a backup code', tfUseApp:'Use the code from the app', tfBack:'Back to sign in', errCode:'Wrong code. Enter the new code from your app', errTicket:'The check timed out or you ran out of attempts. Please sign in again' },
+  ru: { tfTitle:'Двухэтапная проверка', tfSub:'Введите 6-значный код из приложения-аутентификатора', tfSubBackup:'Введите один из резервных кодов', tfCode:'Код', tfBackup:'Резервный код', tfVerify:'Подтвердить', tfUseBackup:'Использовать резервный код', tfUseApp:'Использовать код из приложения', tfBack:'Вернуться ко входу', errCode:'Неверный код. Введите новый код из приложения', errTicket:'Время проверки истекло или попытки закончились. Войдите снова' },
+  ar: { tfTitle:'التحقق بخطوتين', tfSub:'أدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة', tfSubBackup:'أدخل أحد رموزك الاحتياطية', tfCode:'الرمز', tfBackup:'رمز احتياطي', tfVerify:'تحقّق', tfUseBackup:'استخدم رمزًا احتياطيًا', tfUseApp:'استخدم الرمز من التطبيق', tfBack:'العودة إلى تسجيل الدخول', errCode:'الرمز غير صحيح. أدخل الرمز الجديد من التطبيق', errTicket:'انتهت مهلة التحقق أو نفدت المحاولات. سجّل الدخول مرة أخرى' },
+  tr: { tfTitle:'İki adımlı doğrulama', tfSub:'Doğrulama uygulamanızdaki 6 haneli kodu girin', tfSubBackup:'Yedek kodlarınızdan birini girin', tfCode:'Kod', tfBackup:'Yedek kod', tfVerify:'Doğrula', tfUseBackup:'Yedek kod kullan', tfUseApp:'Uygulamadaki kodu kullan', tfBack:'Girişe dön', errCode:'Kod yanlış. Uygulamadaki yeni kodu girin', errTicket:'Doğrulama süresi doldu veya deneme hakkınız bitti. Yeniden giriş yapın' },
+}
+
 // api/adminAuth.js xəta kodu → mətn açarı
-const ERR_KEY = { creds: 'errCreds', many: 'errMany', net: 'errNet' }
+const ERR_KEY = { creds: 'errCreds', many: 'errMany', net: 'errNet', code: 'errCode', ticket: 'errTicket' }
 const errKeyOf = (code) => ERR_KEY[code] || 'errUnknown'
 
 export default function AdminLoginPage({ setPage }) {
   const { lang } = useLang()
-  const l = pickUi(LABELS, lang)
+  const l = { ...pickUi(LABELS, lang), ...pickUi(TF_LABELS, lang) }
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -44,6 +53,10 @@ export default function AdminLoginPage({ setPage }) {
   // Hər yanlış cəhddə xəta qutusu yenidən "silkələnsin" (key dəyişir)
   const [errKey, setErrKey] = useState(0)
   const [reveal, setReveal] = useState(false)
+  // 2FA: şifrə düzdür, kod gözlənilir
+  const [ticket, setTicket] = useState(null)
+  const [code, setCode] = useState('')
+  const [backup, setBackup] = useState(false)
   const mounted = useRef(true)
   // Effekt gövdəsində yenidən true: React StrictMode (dev) effekti iki dəfə
   // işlədir — əvvəl ilk təmizləmə ref-i həmişəlik false qoyurdu və giriş
@@ -80,12 +93,27 @@ export default function AdminLoginPage({ setPage }) {
     if (!email.trim()) { showError('errEmail'); return }
     setBusy(true)
     setMsg(null)
-    const res = await signInAdmin(email, password)
+    const res = await signInAdmin(email, password, lang)
     if (!mounted.current) return
     setBusy(false)
     if (!res.ok) { showError(errKeyOf(res.code)); return }
+    if (res.twoFactor) { setTicket(res.ticket); setPassword(''); setCode(''); return }
     // Müvəqqəti şifrədirsə panel özü "Şifrəni dəyiş" formasını göstərir
     goAdmin()
+  }
+
+  const handleCode = async (e) => {
+    e.preventDefault()
+    if (busy || !code.trim()) return
+    setBusy(true)
+    setMsg(null)
+    const res = await verifyAdminTwoFactor(ticket, backup ? { backupCode: code } : { code }, lang)
+    if (!mounted.current) return
+    setBusy(false)
+    setCode('')
+    if (res.ok) { goAdmin(); return }
+    if (res.code === 'ticket') { setTicket(null); setBackup(false) }
+    showError(errKeyOf(res.code))
   }
 
   // E-poçt xidməti yoxdur — sıfırlama linki əvəzinə dürüst izah
@@ -109,6 +137,38 @@ export default function AdminLoginPage({ setPage }) {
           </div>
         )}
 
+        {ticket ? (
+          <form onSubmit={handleCode} className="admin-login-form" aria-busy={busy || undefined} data-testid="admin-2fa">
+            <h2 className="admin-login-sub">{l.tfTitle}</h2>
+            <p className="admin-login-sub" id="adm-2fa-hint">{backup ? l.tfSubBackup : l.tfSub}</p>
+            <label className="ui-field">
+              <span className="ui-field__label">{backup ? l.tfBackup : l.tfCode}</span>
+              <input
+                type="text"
+                name={backup ? 'backup-code' : 'otp'}
+                className="ui-input admin-login-input"
+                value={code}
+                onChange={(e) => setCode(backup ? e.target.value : e.target.value.replace(/[^\d]/g, '').slice(0, 6))}
+                inputMode={backup ? 'text' : 'numeric'}
+                autoComplete="one-time-code"
+                maxLength={backup ? 11 : 6}
+                aria-describedby="adm-2fa-hint"
+                dir="ltr"
+                required
+                autoFocus
+              />
+            </label>
+            <button type="submit" className="ui-btn ui-btn--primary ui-btn--lg ui-btn--block" disabled={busy || (!backup && code.length !== 6)}>
+              <Icon name="check" className="ui-btn__icon" /> {busy ? l.signingIn : l.tfVerify}
+            </button>
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => { setBackup((b) => !b); setCode('') }} disabled={busy}>
+              {backup ? l.tfUseApp : l.tfUseBackup}
+            </button>
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={() => { setTicket(null); setBackup(false); setMsg(null) }} disabled={busy}>
+              {l.tfBack}
+            </button>
+          </form>
+        ) : (
         <form onSubmit={handleSubmit} className="admin-login-form" aria-busy={busy || undefined}>
           <label className="ui-field">
             <span className="ui-field__label">{l.email}</span>
@@ -163,6 +223,7 @@ export default function AdminLoginPage({ setPage }) {
             {l.forgot}
           </button>
         </form>
+        )}
 
         <div className="admin-login-hint">
           <p>{l.hint}</p>

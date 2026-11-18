@@ -184,6 +184,11 @@ function createAuthStore(db) {
       })
       return 'ok'
     },
+    /** Cari şifrə düzdürmü (2FA qurulumu/bağlanması üçün təkrar yoxlama) */
+    async checkPassword(adminId, password) {
+      const row = st.hashById.get(adminId)
+      return Boolean(row) && verifyPassword(password, row.pass_hash)
+    },
     deleteAdmin: (email) => st.del.run(normEmail(email)).changes > 0,   // sessiyalar CASCADE ilə silinir
     listAdmins: (now = Date.now()) => st.list.all(now),
     createSession(adminId, now = Date.now()) {
@@ -237,7 +242,16 @@ function createRequireAdmin({ store, allowedOrigins = [] }) {
  * /api/admin/login, /logout, /me, /password.
  *  opts.limits — { ipMax, emailMax, windowMs } (testlər üçün dəyişilə bilər)
  */
-function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {}, adminRoleOf = null }) {
+function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {}, adminRoleOf = null, security = null }) {
+  // security — server/security.js createSecurity(): admin TOTP (admin_totp) + yeni cihaz məktubu (verilməyibsə sönülü)
+  const lang = (req) => (req.body && typeof req.body.lang === 'string' && req.body.lang.length <= 8 ? req.body.lang : undefined)
+  const openSession = (req, res, admin) => {
+    const token = store.createSession(admin.id)
+    res.append('Set-Cookie', sessionCookie(token, Math.floor(SESSION_TTL_MS / 1000)))
+    res.set('Cache-Control', 'no-store')
+    if (security) security.afterAdminLogin(req, res, admin, { lang: lang(req) })
+    return token
+  }
   const windowMs = limits.windowMs || 15 * 60 * 1000
   const ipLimiter = createFailureLimiter({ max: limits.ipMax || 10, windowMs })
   const emailLimiter = createFailureLimiter({ max: limits.emailMax || 5, windowMs })
@@ -267,9 +281,12 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
         return res.status(401).json({ error: 'Invalid credentials' })
       }
       emailLimiter.reset(emKey)
-      const token = store.createSession(admin.id)
-      res.set('Set-Cookie', sessionCookie(token, Math.floor(SESSION_TTL_MS / 1000)))
-      res.set('Cache-Control', 'no-store')
+      if (security && security.twoFactorEnabled('admin', admin.id)) {
+        // Şifrə düzdür, amma sessiya hələ yoxdur — ikinci addım (POST /api/admin/2fa)
+        res.set('Cache-Control', 'no-store')
+        return res.json({ ok: true, twoFactor: true, ticket: security.issueTicket('admin', admin.id, { lang: lang(req) }) })
+      }
+      openSession(req, res, admin)
       return res.json({ ok: true, email: admin.email, mustChangePassword: admin.must_change === 1 })
     } catch (e) {
       console.error('login error:', e && e.message)
@@ -293,8 +310,66 @@ function createAuthRouter({ store, requireAdmin, allowedOrigins = [], limits = {
     const body = { email: req.adminUser.email, via: req.adminUser.via, mustChangePassword: Boolean(req.adminUser.mustChange) }
     // Panel rolu (server/users.js → admin_roles; sətri olmayan admin = 'admin')
     if (adminRoleOf) body.role = adminRoleOf(req.adminUser.id)
+    if (security) body.twoFactor = security.twoFactorEnabled('admin', req.adminUser.id)
     res.json(body)
   })
+
+  // ── İki addımlı yoxlama (TOTP, server/security.js → admin_totp) ──
+  if (security) {
+    const sstore = security.store
+    router.post('/admin/2fa', json, (req, res) => {
+      res.set('Cache-Control', 'no-store')
+      if (csrfRejected(req, allowedOrigins)) return res.status(403).json({ error: 'Forbidden' })
+      const r = security.secondFactor('admin', req.body || {})
+      if (!r.ok) {
+        if (r.retryAfter) res.set('Retry-After', String(r.retryAfter))
+        return res.status(r.status).json({ error: 'Two-step verification failed', code: r.code })
+      }
+      const admin = store.adminById(r.id)
+      const full = admin && store.findByEmail(admin.email)
+      if (!full) return res.status(401).json({ error: 'Two-step verification failed', code: 'invalid_ticket' })
+      openSession(req, res, full)
+      return res.json({ ok: true, email: full.email, mustChangePassword: full.must_change === 1 })
+    })
+    const reauth = async (req, res) => {
+      const b = req.body || {}
+      const key = 'tf:' + req.adminUser.id
+      if (pwLimiter.blocked(key)) { res.set('Retry-After', String(pwLimiter.retryAfterSec(key))); res.status(429).json({ error: 'Too many attempts' }); return false }
+      let ok = false
+      if (b.code != null || b.backupCode != null) ok = security.checkCode('admin', req.adminUser.id, b) === 'ok'
+      else if (typeof b.password === 'string' && b.password && b.password.length <= MAX_PASSWORD) ok = await store.checkPassword(req.adminUser.id, b.password)
+      if (!ok) { pwLimiter.fail(key); res.status(400).json({ error: 'Wrong password or code', code: 'wrong' }); return false }
+      pwLimiter.reset(key)
+      return true
+    }
+    router.get('/admin/2fa', requireAdmin, (req, res) => {
+      res.set('Cache-Control', 'no-store')
+      res.json(sstore.totpStatus('admin', req.adminUser.id))
+    })
+    router.post('/admin/2fa/setup', requireAdmin, json, async (req, res) => {
+      res.set('Cache-Control', 'no-store')
+      if (sstore.totpEnabled('admin', req.adminUser.id)) return res.status(409).json({ error: 'Already enabled', code: 'already_enabled' })
+      if (!(await reauth(req, res))) return
+      const secret = sstore.totpBegin('admin', req.adminUser.id)
+      if (!secret) return res.status(409).json({ error: 'Already enabled', code: 'already_enabled' })
+      res.json({ secret, uri: require('./security').otpauthUri({ secret, account: req.adminUser.email, issuer: 'Muslims.cc Admin' }) })
+    })
+    router.post('/admin/2fa/enable', requireAdmin, json, (req, res) => {
+      res.set('Cache-Control', 'no-store')
+      const key = 'tf:' + req.adminUser.id
+      if (pwLimiter.blocked(key)) return res.status(429).json({ error: 'Too many attempts' })
+      const codes = sstore.totpConfirm('admin', req.adminUser.id, req.body && req.body.code)
+      if (!codes) { pwLimiter.fail(key); return res.status(400).json({ error: 'Invalid code', code: 'invalid_code' }) }
+      res.json({ ok: true, backupCodes: codes })
+    })
+    router.post('/admin/2fa/disable', requireAdmin, json, async (req, res) => {
+      res.set('Cache-Control', 'no-store')
+      if (!sstore.totpEnabled('admin', req.adminUser.id)) return res.json({ ok: true })
+      if (!(await reauth(req, res))) return
+      sstore.totpDisable('admin', req.adminUser.id)
+      res.json({ ok: true })
+    })
+  }
 
   // Şifrəni dəyiş: { currentPassword, newPassword } — yalnız sessiya ilə.
   // CSRF requireAdmin-dədir. Uğurlu olanda digər sessiyalar ləğv olunur, cari sessiya qalır.

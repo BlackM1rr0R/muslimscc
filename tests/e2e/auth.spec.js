@@ -158,7 +158,7 @@ test.describe('giriş', () => {
     await page.goto('/login')
     await page.locator('[data-gis-stub="signin_with"]').click()
     await expect(page.getByRole('alert')).toContainText('e-poçt hələ təsdiqlənməyib')
-    expect(state.bodies['POST /api/auth/google']).toEqual({ credential: 'test-google-credential' })
+    expect(state.bodies['POST /api/auth/google']).toEqual({ credential: 'test-google-credential', lang: 'az' })
     await expect(page).toHaveURL(/\/login$/)
     expectCleanConsole(consoleProblems)
   })

@@ -32,7 +32,7 @@ import FeedbackManager from '../components/admin/FeedbackManager'
 import AnalyticsManager from '../components/admin/AnalyticsManager'
 import UserManager from '../components/admin/UserManager'
 import { AUTH_TEXT } from '../components/account/authText'
-import { AdminEmpty } from '../components/admin/AdminUi'
+import { AdminEmpty, AdminAlert } from '../components/admin/AdminUi'
 import Icon, { BrandMark } from '../components/Icon'
 import '../styles/AdminPage.css'
 import { pickUi } from '../utils/uiText'
@@ -43,6 +43,15 @@ const LABELS = {
   ru: { users:'Пользователи', roleLabel:'Роль в панели', checking:'Проверка входа...', account:'Аккаунт и пароль', dashboard:'Главная', content:'КОНТЕНТ', videos:'Видео', books:'Книги', hadiths:'Хадисы', duas:'Дуа', quotes:'Цитаты', announcements:'Объявления', events:'События', daily:'Контент дня', customization:'НАСТРОЙКА', hero:'Главный баннер', system:'СИСТЕМА', settings:'Настройки', analytics:'Статистика сайта', feedback:'Сообщения об ошибках', stats:'Статистика', backup:'Резервная копия', seed:'Начальные данные', pushNotif:'Мгновенные уведомления', logout:'Выход', adminPanel:'Админ-панель', sections:'Разделы админки', dark:'Тёмная тема', light:'Светлая тема' },
   ar: { users:'المستخدمون', roleLabel:'الدور في اللوحة', checking:'جارٍ التحقق من تسجيل الدخول...', account:'الحساب وكلمة المرور', dashboard:'لوحة التحكم', content:'المحتوى', videos:'الفيديوهات', books:'الكتب', hadiths:'الأحاديث', duas:'الأدعية', quotes:'الاقتباسات', announcements:'الإعلانات', events:'الأحداث', daily:'محتوى اليوم', customization:'التخصيص', hero:'بانر رئيسي', system:'النظام', settings:'الإعدادات', analytics:'إحصائيات الموقع', feedback:'بلاغات الأخطاء', stats:'الإحصائيات', backup:'النسخ الاحتياطي', seed:'البيانات الأولية', pushNotif:'الإشعارات', logout:'خروج', adminPanel:'لوحة الإدارة', sections:'أقسام الإدارة', dark:'الوضع الداكن', light:'الوضع الفاتح' },
   tr: { users:'Kullanıcılar', roleLabel:'Panel rolü', checking:'Giriş kontrol ediliyor...', account:'Hesap ve şifre', dashboard:'Yönetim Paneli', content:'İÇERİK', videos:'Videolar', books:'Kitaplar', hadiths:'Hadisler', duas:'Dualar', quotes:'Alıntılar', announcements:'Duyurular', events:'Olaylar', daily:'Günün İçeriği', customization:'KİŞİSELLEŞTİRME', hero:'Ana afiş', system:'SİSTEM', settings:'Ayarlar', analytics:'Site istatistikleri', feedback:'Hata bildirimleri', stats:'İstatistik', backup:'Yedekleme ve geri yükleme', seed:'Başlangıç verileri', pushNotif:'Anlık bildirimler', logout:'Çıkış', adminPanel:'Yönetim paneli', sections:'Yönetim bölümleri', dark:'Karanlık mod', light:'Aydınlık mod' },
+}
+
+// Baş admin üçün güclü tövsiyə: iki addımlı yoxlama açılana qədər hər bölmənin üstündə (server/security.js)
+const TF_BANNER = {
+  az: { tfBanner:'Baş admin hesabında iki addımlı yoxlama bağlıdır. Şifrə oğurlansa, saytın hər şeyi təhlükədədir — onu indi açmağı qəti tövsiyə edirik.', tfBannerBtn:'İki addımlı yoxlamanı aç' },
+  en: { tfBanner:'Two-step verification is off on this super administrator account. If the password is stolen, the whole site is at risk — we strongly recommend turning it on now.', tfBannerBtn:'Turn on two-step verification' },
+  ru: { tfBanner:'На аккаунте суперадминистратора двухэтапная проверка отключена. Если пароль украдут, под угрозой окажется весь сайт — настоятельно рекомендуем включить её сейчас.', tfBannerBtn:'Включить двухэтапную проверку' },
+  ar: { tfBanner:'التحقق بخطوتين غير مفعّل في حساب المشرف الأعلى. إن سُرقت كلمة المرور فالموقع كله في خطر — ننصح بشدة بتفعيله الآن.', tfBannerBtn:'تفعيل التحقق بخطوتين' },
+  tr: { tfBanner:'Süper yönetici hesabında iki adımlı doğrulama kapalı. Şifre çalınırsa tüm site tehlikeye girer — şimdi açmanızı kesinlikle öneririz.', tfBannerBtn:'İki adımlı doğrulamayı aç' },
 }
 
 const NAV_GROUPS = [
@@ -101,10 +110,10 @@ export default function AdminPage({ setPage }) {
   // (və ya server əlçatmazdırsa) — giriş səhifəsinə. Müvəqqəti şifrə ilə
   // (mustChangePassword) panel açılmır — yalnız "Şifrəni dəyiş" forması.
   const [authStatus, setAuthStatus] = useState('loading')
-  const [account, setAccount] = useState({ email: '', mustChangePassword: false, role: '' })
-  useEffect(() => watchAdmin(({ status, email, mustChangePassword, role }) => {
+  const [account, setAccount] = useState({ email: '', mustChangePassword: false, role: '', twoFactor: undefined })
+  useEffect(() => watchAdmin(({ status, email, mustChangePassword, role, twoFactor }) => {
     setAuthStatus(status)
-    if (status === 'admin') setAccount({ email, mustChangePassword, role })
+    if (status === 'admin') setAccount({ email, mustChangePassword, role, twoFactor })
     if (status === 'loading' || status === 'admin') return
     setPage('adminlogin')
   // Bir dəfəlik abunə (watchAdmin) — setPage dəyişsə belə yenidən abunə lazım deyil
@@ -153,7 +162,7 @@ export default function AdminPage({ setPage }) {
       case 'backup':        return <BackupManager />
       case 'seed':          return <SeedManager />
       case 'users':         return canUsers ? <UserManager actorRole={account.role} actorEmail={account.email} /> : <DashboardOverview counts={counts} setActiveTab={setActiveTab} />
-      case 'account':       return <AccountManager email={account.email} />
+      case 'account':       return <AccountManager email={account.email} twoFactor={account.twoFactor} onTwoFactor={(on) => setAccount(a => ({ ...a, twoFactor: on }))} />
       default:              return <DashboardOverview counts={counts} setActiveTab={setActiveTab} />
     }
   }
@@ -257,6 +266,12 @@ export default function AdminPage({ setPage }) {
 
         {/* Əsas sahə (div — səhifənin <main>-i App.jsx-dədir); key: tab dəyişəndə məzmun yumşaq girsin */}
         <div className="admin-main" key={activeTab}>
+          {account.role === 'superadmin' && account.twoFactor === false && activeTab !== 'account' && (
+            <AdminAlert tone="warn" className="admin-2fa-banner">
+              {pickUi(TF_BANNER, lang).tfBanner}{' '}
+              <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => setActiveTab('account')}>{pickUi(TF_BANNER, lang).tfBannerBtn}</button>
+            </AdminAlert>
+          )}
           {renderTab()}
         </div>
 

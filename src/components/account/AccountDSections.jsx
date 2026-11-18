@@ -8,6 +8,7 @@ import { pickUi } from '../../utils/uiText'
 import { RT } from '../readroom/readRoomText'
 import ProfilesSection from './ProfilesSection'
 import FamilySection from './FamilySection'
+import KhatmAccountCard from '../khatm/KhatmAccountCard'
 
 export default function AccountDSections({ lang, siteLang, user }) {
   const r = pickUi(RT, lang, 'en')
@@ -28,6 +29,7 @@ export default function AccountDSections({ lang, siteLang, user }) {
           <a className="ui-btn ui-btn--ghost ui-btn--sm" href={pathFor('mushaf', siteLang)}><Icon name="mushaf" className="ui-btn__icon" /> {r.backMushaf}</a>
         </div>
       </section>
+      <KhatmAccountCard lang={lang} siteLang={siteLang} />
     </>
   )
 }

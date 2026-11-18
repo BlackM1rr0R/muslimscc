@@ -84,6 +84,8 @@ const HomeToday = lazy(() => import('../components/home/HomeToday'))
 const MyDay = lazy(lazyWhenIdle(() => import('../components/home/MyDay').catch(() => ({ default: () => null }))))
 // Cümə rejimi (v5.3) — chunk yalnız cümə günü (və ya ?jumuah sınağı) yüklənir
 const JumuahCard = lazy(() => import('../components/home/JumuahCard').catch(() => ({ default: () => null })))
+// Ümmətin Canlı Xətmi: kiçik canlı sayğac (SSE açmır — boş vaxtda keşlənmiş /api/khatm/stats)
+const KhatmPulse = lazy(() => import('../components/khatm/KhatmPulse').catch(() => ({ default: () => null })))
 const isFridayLocal = () => { try { return new Date().getDay() === 5 || new URLSearchParams(window.location.search).has('jumuah') } catch { return false } }
 const HomeTodayFallback = () => (
   <div className="ui-section ui-section--tight" aria-hidden="true">
@@ -798,6 +800,7 @@ export default function HomePage({ setPage }) {
                 {l.btnQuran}
                 <Icon name="arrow" size={18} className="ui-btn__icon ui-btn__icon--end ui-flip-rtl" />
               </button>
+              <Suspense fallback={null}><KhatmPulse lang={lang} onNavigate={goTo} /></Suspense>
             </div>
           </div>
 

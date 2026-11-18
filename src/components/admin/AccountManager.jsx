@@ -13,6 +13,7 @@ import { AdminHeader, SectionTitle, AdminAlert } from './AdminUi'
 import Icon from '../Icon'
 import { changeAdminPassword, MIN_ADMIN_PASSWORD } from '../../api/adminAuth'
 import { pickUi } from '../../utils/uiText'
+import AdminTwoFactor from './AdminTwoFactor'
 
 const LABELS = {
   az: { title:'Hesab', sub:'Admin hesabınızın təhlükəsizliyi', change:'Şifrəni dəyiş', signedInAs:'Daxil olan hesab', current:'Cari şifrə', next:'Yeni şifrə', confirm:'Yeni şifrə (təkrar)', hint:'Ən azı {n} simvol. Şifrə dəyişəndə digər cihazlardakı girişlər bağlanır.', save:'Şifrəni dəyiş', saving:'Yadda saxlanılır...', done:'Şifrə dəyişdirildi. Digər cihazlardakı girişlər bağlandı.', forcedTitle:'Müvəqqəti şifrəni dəyişin', forcedSub:'Hesabınız müvəqqəti şifrə ilə açılıb. Panelə keçmək üçün yeni şifrə təyin edin.', show:'Şifrələri göstər', hide:'Şifrələri gizlət', logout:'Çıxış',
@@ -32,7 +33,8 @@ const ERR_KEY = { wrong:'errWrong', weak:'errWeak', same:'errSame', many:'errMan
 // Ərəbcədə rəqəm ərəb-hind yazılışı ilə
 const num = (n, lang) => (lang === 'ar' ? n.toLocaleString('ar-EG') : String(n))
 
-export default function AccountManager({ email = '', forced = false, onChanged, onLogout }) {
+// twoFactor — /api/admin/me → twoFactor (server/security.js); undefined — köhnə server, bölmə göstərilmir
+export default function AccountManager({ email = '', forced = false, onChanged, onLogout, twoFactor, onTwoFactor }) {
   const { lang } = useLang()
   const l = pickUi(LABELS, lang)
   const fill = (s) => s.replace('{n}', num(MIN_ADMIN_PASSWORD, lang))
@@ -111,6 +113,7 @@ export default function AccountManager({ email = '', forced = false, onChanged, 
           </div>
         </form>
       </div>
+      {!forced && typeof twoFactor === 'boolean' && <AdminTwoFactor email={email} enabled={twoFactor} onChange={onTwoFactor} />}
     </div>
   )
 }

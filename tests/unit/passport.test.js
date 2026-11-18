@@ -52,9 +52,10 @@ describe('göstəricilər', () => {
       hifz_progress: { 112: 2, 113: 1 },
       dhikr_count_total: '1000',
       kahf_fridays_v1: ['2026-10-02', '2026-10-09', '2026-10-16', '2026-10-23'],
+      world_khatm_v1: { v: 1, r: { 3: { p: [12], d: '2026-11-10' }, 4: { p: [1] } } },
     })
     const st = passportStats(s, { hijraKm: 450, arabicPassed: 9, arabicTotal: 9 }, '2026-11-17')
-    expect(st).toMatchObject({ khatms: 1, fajr: 40, names: 99, hijraKm: 500, sahaba: SAHABA_SLUGS.length, hifz: 1, dhikr: 1000, kahf: 4 })
+    expect(st).toMatchObject({ khatms: 1, fajr: 40, names: 99, hijraKm: 500, sahaba: SAHABA_SLUGS.length, hifz: 1, dhikr: 1000, kahf: 4, ummah: 1 })
     const { stamps, fresh } = syncPassport({ storage: s, refs: { hijraKm: 450, arabicPassed: 9, arabicTotal: 9 }, today: '2026-11-17' })
     expect(fresh).toEqual(STAMP_IDS)
     expect(stamps.every(x => x.earned && x.at === '2026-11-17')).toBe(true)

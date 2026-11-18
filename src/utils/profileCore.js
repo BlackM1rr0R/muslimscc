@@ -36,6 +36,7 @@ export const PROFILE_KEYS = [
   // Quran, hifz
   'quran_life_v1', 'quran_stats', 'quran_bookmark', 'quran_saved_ayahs', 'quran_notes_v1', 'quran_khatm_plan',
   'quran_khatm_certs_v1', 'mushaf_last_page', 'kahf_fridays_v1', 'hifz_progress', 'hifz_srs', 'hifz_tests_v1',
+  'world_khatm_v1',
   // Namaz, oruc
   'muslim_cc_prayer_status', 'muslim_cc_prayer_stats', 'daily_tracker', 'muslim_cc_qada', 'jumuah_v1',
   'muslim_cc_ramadan_fasts_v1', 'muslim_cc_sunnah_fasts_v1', 'muslim_cc_ramadan_khatm_v1',

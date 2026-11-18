@@ -22,9 +22,9 @@ if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUT
 // çöksün: yoxsa yeni sxem tətbiq olunur və köhnə versiyaya qayıdış da alınmır
 // (köhnə kod yeni sxemi açmır) — 2026-11-04 hadisəsi. require keşlənir, ikinci
 // çağırış pulsuzdur.
-for (const m of ['./auth', './users', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
+for (const m of ['./auth', './users', './security', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
-  './readTogether', './family', './hifzTest']) require(m)
+  './readTogether', './family', './hifzTest', './globalKhatm']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -72,7 +72,14 @@ const requireAdmin = authLib.createRequireAdmin({ store: authStore, allowedOrigi
 // ona görə store admin router-indən əvvəl qurulur (GET /api/admin/me → role)
 const usersLib = require('./users')
 const usersStore = usersLib.createUsersStore(db)
-app.use('/api', authLib.createAuthRouter({ store: authStore, requireAdmin, allowedOrigins: ALLOWED, adminRoleOf: usersStore.adminRole }))
+// Hesab təhlükəsizliyi (server/security.js, docs/ACCOUNT-SECURITY.md): yeni cihaz məktubu, hadisələr, TOTP 2FA (istifadəçi +
+// admin), "Bu mən deyildim". Cədvəllər miqrasiyasız. mailer/personalRouter aşağıda yaradılır — çağırış anında hazırdır.
+const security = require('./security').createSecurity({
+  db, totpKey: process.env.TOTP_KEY || '', publicOrigin: (process.env.PUBLIC_ORIGIN || 'https://muslims.cc').replace(/\/+$/, ''),
+  mailer: { sendTemplate: (...a) => mailer.sendTemplate(...a) },
+  prefsOf: (id) => personalRouter.store.prefs(id),
+})
+app.use('/api', authLib.createAuthRouter({ store: authStore, requireAdmin, allowedOrigins: ALLOWED, adminRoleOf: usersStore.adminRole, security }))
 // Vaxtı keçmiş sessiyaları saatda bir təmizlə
 setInterval(() => { try { authStore.purgeExpired() } catch { /* */ } }, 3600e3).unref()
 
@@ -91,11 +98,19 @@ const usersRouter = usersLib.createUsersRouter({
     passwordReset: (userId) => syncKeysStore.remove(userId, 'password', ''),
   },
   mailer,
+  security,
   publicOrigin: PUBLIC_ORIGIN,
   rpId: process.env.RP_ID || undefined,
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
 })
 app.use('/api', usersRouter)
+// 2FA idarəsi, təhlükəsizlik fəaliyyəti, "Bu mən deyildim" (/api/security — girişsiz, öz limiti), məlumat xülasəsi + ixrac
+app.use('/api/security', limit(60000, 30))
+app.use('/api', require('./security').createSecurityRouter({
+  security, usersStore, requireUser: usersRouter.requireUser, mailer, publicOrigin: PUBLIC_ORIGIN,
+  sources: { personal: () => personalRouter.store, family: () => familyRouter, hifzTests: () => hifzTestRouter, sync: syncKeysStore, readTogether: () => readTogetherRouter, globalKhatm: () => khatmRouter },
+}))
+setInterval(() => security.purge(), 3600e3).unref()
 app.use('/api', syncKeysLib.createSyncKeysRouter({
   store: syncKeysStore, requireUser: usersRouter.requireUser,
   passkeyIdsOf: (userId) => usersStore.listPasskeys(userId).map((k) => k.id),
@@ -157,6 +172,19 @@ app.use('/api/hifz-tests', limit(60000, 60))
 const hifzTestRouter = require('./hifzTest').createHifzTestRouter({ db, requireUser: usersRouter.requireUser, allowedOrigins: ALLOWED })
 app.use('/api', hifzTestRouter)
 setInterval(() => { try { familyRouter.purge(); hifzTestRouter.purge() } catch (e) { console.error('family/hifz purge:', e && e.message) } }, 3600e3).unref()
+// "Ümmətin Canlı Xətmi" (server/globalKhatm.js) — 604 səhifəlik bitməyən dövr; ictimai SSE yalnız toplu məlumat
+// (nginx: location = /api/khatm/live, buferləmə yox). Cədvəllər miqrasiyasız; ithaflar dövr bitəndən 30 gün sonra silinir.
+app.use('/api/khatm', limit(60000, 120))
+const personalLib = require('./personal')
+const khatmRouter = require('./globalKhatm').createGlobalKhatmRouter({
+  db, requireUser: usersRouter.requireUser, publicOrigin: PUBLIC_ORIGIN,
+  lovedNames: (uid) => personalLib.lovedNamesOf(db, uid),
+  pushSubsOf: (uid) => personalLib.pushSubsForUser(db, uid),
+  langOf: (uid) => personalLib.prefLangOf(db, uid),
+  pushSend: (subs, msg, label) => (webPush.enabled ? deliver(subs.map((sub) => ({ sub })), msg, label) : Promise.resolve({ successCount: 0, disabled: true })),
+})
+app.use('/api', khatmRouter)
+setInterval(() => { try { khatmRouter.purge() } catch (e) { console.error('khatm purge:', e && e.message) } }, 3600e3).unref()
 
 // ─── CSP pozuntu hesabatları (server/csp.js) — Report-Only rejimi; yaddaşda birləşdirilir ──
 app.use('/api/csp-report', limit(60000, 60))

@@ -376,6 +376,28 @@ function createPersonalStore(db, { secret: envSecret = '' } = {}) {
 
     secret: () => secret,
     wipeUser(userId) { tx(() => { for (const s of st.wipe) s.run(userId) }) },
+    /**
+     * "Mənim məlumatlarım" ixracı (server/security.js). Paylaşma tokeninin heşi və push ünvanları
+     * (abunəliyə çıxış "imkanı") YOXDUR — yalnız sayı.
+     */
+    exportUser(userId) {
+      const pr = st.prefs.get(userId)
+      const share = st.share.get(userId)
+      return {
+        prefs: pr ? { tz: pr.tz, lang: pr.lang, consentLetters: pr.consent_letters || null, consentLoved: pr.consent_loved || null, consentZakat: pr.consent_zakat || null, lovedEmail: pr.loved_email === 1 } : null,
+        letters: st.letters.all(userId).map(letterOut),
+        loved: st.loved.all(userId).map((r) => lovedOut(r)),
+        lovedShare: share ? { active: true, createdAt: share.created_at } : null,
+        followers: st.followers.all(userId).map((f) => ({ label: personLabel(f), since: f.created_at })),
+        following: st.following.all(userId).map((f) => ({ label: personLabel(f), since: f.created_at })),
+        zakat: zakatOut(st.zakat.get(userId)),
+        pushDevices: st.pushCount.get(userId).n,
+      }
+    },
+    summaryUser(userId) {
+      const e = this.exportUser(userId)
+      return { letters: e.letters.length, loved: e.loved.length, followers: e.followers.length, following: e.following.length, zakat: Boolean(e.zakat), pushDevices: e.pushDevices }
+    },
   }
   return store
 }
@@ -955,7 +977,26 @@ function createPersonalRouter(opts) {
   return router
 }
 
+// ─── Ümmətin xətmi (server/globalKhatm.js) üçün kiçik oxu funksiyaları — YALNIZ həmin istifadəçinin öz sətirləri ──
+/** "Sevdiklərim üçün dua" adları (ithaf seçimi üçün). Cədvəl yoxdursa — boş. */
+function lovedNamesOf(db, userId, max = MAX_LOVED) {
+  try { return (db.raw || db).prepare('SELECT name FROM personal_loved WHERE user_id = ? ORDER BY id ASC LIMIT ?').all(userId, max).map((r) => r.name) } catch { return [] }
+}
+/** Hesaba bağlı push abunəlikləri → [{ endpoint, keys }] (personal_push_links ↔ push_subs) */
+function pushSubsForUser(db, userId) {
+  try {
+    return (db.raw || db).prepare(`SELECT s.endpoint, s.keys_p256dh, s.keys_auth FROM personal_push_links l
+      JOIN push_subs s ON s.endpoint = l.endpoint WHERE l.user_id = ?`).all(userId)
+      .map((r) => ({ endpoint: r.endpoint, keys: { p256dh: r.keys_p256dh, auth: r.keys_auth } }))
+  } catch { return [] }
+}
+/** İstifadəçinin bildiriş dili (personal_prefs.lang) | 'en' */
+function prefLangOf(db, userId) {
+  try { const r = (db.raw || db).prepare('SELECT lang FROM personal_prefs WHERE user_id = ?').get(userId); return (r && r.lang) || 'en' } catch { return 'en' }
+}
+
 module.exports = {
+  lovedNamesOf, pushSubsForUser, prefLangOf,
   MAX_LETTER, MAX_PENDING_LETTERS, MAX_LOVED, MAX_FOLLOWERS, MAX_FOLLOWING, SEND_HOUR, MAX_ATTEMPTS,
   createPersonalStore, createPersonalRouter, createScheduler,
   validTz, localNow, dayState, nextAnniversary, nextGregorianAnniversary, nextHijriAnniversary, hawlDue,

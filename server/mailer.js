@@ -9,6 +9,8 @@
 //   Şəxsi xatırlatmalar (server/personal.js): letter | anniversary | friday | zakatSoon | zakatDue —
 //   mətndə {name}, {n}, {names}, {date}, {amount} yer tutucuları; məktubun özü (vars.body) sitat
 //   kimi; vars.unsubUrl varsa — altda "abunəlikdən çıx" keçidi + List-Unsubscribe başlıqları.
+//   Hesab təhlükəsizliyi (server/security.js): newSignIn | securityChange | adminSignIn — {time},
+//   {device}, {place}, {event}; "details" sətirləri ayrıca blokda.
 //   Mətn + sadə HTML; dəyişənlər HTML-escape olunur. Logda alıcı ünvanı və
 //   token YOXDUR (yalnız şablon adı və HTTP statusu).
 // ═══════════════════════════════════════════════════════════════════════
@@ -80,6 +82,29 @@ const T = {
     tr: { subject: 'Zekât yılınız bugün doluyor', intro: 'Bugün ({date}) zekât yılınız (havl) doluyor. Malınız nisaba ulaşıyorsa zekâtını hesaplayıp verin.', amount: 'Son hesaplanan zekât: {amount}', button: 'Zekâtı hesapla', note: 'Bu hatırlatmayı Muslims.cc zekât sayfasında kurdunuz.', unsub: 'Zekât hatırlatmasını durdur' },
     ar: { subject: 'اليوم يتمّ حول زكاتك', intro: 'اليوم ({date}) يتمّ حول زكاتك. إن بلغ مالك النصاب فاحسب زكاته وأخرجها.', amount: 'آخر زكاة محسوبة: {amount}', button: 'احسب الزكاة', note: 'أعددتَ هذا التذكير في صفحة الزكاة على Muslims.cc.', unsub: 'إيقاف تذكير الزكاة' },
   },
+  // ── Hesab təhlükəsizliyi (server/security.js) — {time}, {device}, {place}, {event}; düymə — "Bu mən deyildim" ──
+  newSignIn: {
+    az: { subject: 'Yeni cihazdan giriş — Muslims.cc', intro: 'Muslims.cc hesabınıza yeni cihazdan daxil olundu.', details: 'Vaxt: {time}\nCihaz: {device}\nTəxmini yer: {place}', button: 'Bu mən deyildim', note: 'Bu sizsinizsə, heç nə etməyin. Siz deyilsinizsə, düyməyə basın — bütün girişlər bağlanacaq və şifrəni yeniləmək üçün məktub göndəriləcək. Keçid 7 gün etibarlıdır.' },
+    en: { subject: 'New sign-in from a new device — Muslims.cc', intro: 'Your Muslims.cc account was signed in to from a new device.', details: 'Time: {time}\nDevice: {device}\nApproximate location: {place}', button: 'This wasn’t me', note: 'If this was you, no action is needed. If not, press the button — all sessions will be signed out and we will email you a link to set a new password. The link is valid for 7 days.' },
+    ru: { subject: 'Вход с нового устройства — Muslims.cc', intro: 'В ваш аккаунт Muslims.cc выполнен вход с нового устройства.', details: 'Время: {time}\nУстройство: {device}\nПримерное место: {place}', button: 'Это был не я', note: 'Если это были вы, ничего делать не нужно. Если нет, нажмите кнопку — все сеансы будут закрыты, и мы пришлём ссылку для нового пароля. Ссылка действует 7 дней.' },
+    tr: { subject: 'Yeni bir cihazdan giriş — Muslims.cc', intro: 'Muslims.cc hesabınıza yeni bir cihazdan giriş yapıldı.', details: 'Zaman: {time}\nCihaz: {device}\nYaklaşık konum: {place}', button: 'Bu ben değildim', note: 'Bu sizseniz bir şey yapmanıza gerek yok. Değilseniz düğmeye basın — tüm oturumlar kapatılır ve yeni şifre için bir bağlantı gönderilir. Bağlantı 7 gün geçerlidir.' },
+    ar: { subject: 'تسجيل دخول من جهاز جديد — Muslims.cc', intro: 'تم تسجيل الدخول إلى حسابك في Muslims.cc من جهاز جديد.', details: 'الوقت: {time}\nالجهاز: {device}\nالموقع التقريبي: {place}', button: 'لم أكن أنا', note: 'إن كنت أنت فلا حاجة لأي إجراء. وإلا فاضغط الزر — ستُغلق جميع الجلسات ونرسل إليك رابطًا لتعيين كلمة مرور جديدة. الرابط صالح لمدة 7 أيام.' },
+  },
+  securityChange: {
+    az: { subject: 'Hesabınızda dəyişiklik: {event} — Muslims.cc', intro: 'Muslims.cc hesabınızda təhlükəsizlik dəyişikliyi oldu: {event}.', details: 'Vaxt: {time}\nCihaz: {device}\nTəxmini yer: {place}', button: 'Bu mən deyildim', note: 'Bunu siz etmisinizsə, heç nə etməyin. Siz deyilsinizsə, düyməyə basın — bütün girişlər bağlanacaq və şifrəni yeniləmək üçün məktub göndəriləcək.' },
+    en: { subject: 'Account change: {event} — Muslims.cc', intro: 'A security change was made to your Muslims.cc account: {event}.', details: 'Time: {time}\nDevice: {device}\nApproximate location: {place}', button: 'This wasn’t me', note: 'If this was you, no action is needed. If not, press the button — all sessions will be signed out and we will email you a link to set a new password.' },
+    ru: { subject: 'Изменение в аккаунте: {event} — Muslims.cc', intro: 'В вашем аккаунте Muslims.cc изменены настройки безопасности: {event}.', details: 'Время: {time}\nУстройство: {device}\nПримерное место: {place}', button: 'Это был не я', note: 'Если это были вы, ничего делать не нужно. Если нет, нажмите кнопку — все сеансы будут закрыты, и мы пришлём ссылку для нового пароля.' },
+    tr: { subject: 'Hesap değişikliği: {event} — Muslims.cc', intro: 'Muslims.cc hesabınızda bir güvenlik değişikliği yapıldı: {event}.', details: 'Zaman: {time}\nCihaz: {device}\nYaklaşık konum: {place}', button: 'Bu ben değildim', note: 'Bunu siz yaptıysanız bir şey yapmanıza gerek yok. Değilseniz düğmeye basın — tüm oturumlar kapatılır ve yeni şifre için bir bağlantı gönderilir.' },
+    ar: { subject: 'تغيير في الحساب: {event} — Muslims.cc', intro: 'جرى تغيير أمني في حسابك على Muslims.cc: {event}.', details: 'الوقت: {time}\nالجهاز: {device}\nالموقع التقريبي: {place}', button: 'لم أكن أنا', note: 'إن كنت أنت فلا حاجة لأي إجراء. وإلا فاضغط الزر — ستُغلق جميع الجلسات ونرسل إليك رابطًا لتعيين كلمة مرور جديدة.' },
+  },
+  // Admin paneli: yeni cihazdan giriş (e-poçtla bərpa yoxdur — şifrə və 2FA serverdə skriptlə)
+  adminSignIn: {
+    az: { subject: 'Admin panelinə yeni cihazdan giriş — Muslims.cc', intro: 'Muslims.cc admin panelindəki hesabınıza yeni cihazdan daxil olundu.', details: 'Vaxt: {time}\nCihaz: {device}\nTəxmini yer: {place}', button: 'Admin panelini aç', note: 'Siz deyilsinizsə: serverdə şifrəni dəyişin (admin-user.js set-password) — bu, bütün sessiyaları bağlayır — və iki addımlı yoxlamanı açın.' },
+    en: { subject: 'Admin panel sign-in from a new device — Muslims.cc', intro: 'Your Muslims.cc admin panel account was signed in to from a new device.', details: 'Time: {time}\nDevice: {device}\nApproximate location: {place}', button: 'Open the admin panel', note: 'If this was not you: change the password on the server (admin-user.js set-password) — this signs out all sessions — and turn on two-step verification.' },
+    ru: { subject: 'Вход в админ-панель с нового устройства — Muslims.cc', intro: 'В ваш аккаунт админ-панели Muslims.cc выполнен вход с нового устройства.', details: 'Время: {time}\nУстройство: {device}\nПримерное место: {place}', button: 'Открыть админ-панель', note: 'Если это были не вы: смените пароль на сервере (admin-user.js set-password) — это закроет все сеансы — и включите двухэтапную проверку.' },
+    tr: { subject: 'Yönetim paneline yeni cihazdan giriş — Muslims.cc', intro: 'Muslims.cc yönetim paneli hesabınıza yeni bir cihazdan giriş yapıldı.', details: 'Zaman: {time}\nCihaz: {device}\nYaklaşık konum: {place}', button: 'Yönetim panelini aç', note: 'Bu siz değilseniz: sunucuda şifreyi değiştirin (admin-user.js set-password) — bu tüm oturumları kapatır — ve iki adımlı doğrulamayı açın.' },
+    ar: { subject: 'دخول إلى لوحة الإدارة من جهاز جديد — Muslims.cc', intro: 'تم تسجيل الدخول إلى حسابك في لوحة إدارة Muslims.cc من جهاز جديد.', details: 'الوقت: {time}\nالجهاز: {device}\nالموقع التقريبي: {place}', button: 'فتح لوحة الإدارة', note: 'إن لم تكن أنت: غيّر كلمة المرور على الخادم (admin-user.js set-password) — وهذا يغلق جميع الجلسات — وفعّل التحقق بخطوتين.' },
+  },
 }
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -93,7 +118,7 @@ const ordinalEn = (n) => {
 }
 /** "{name}" yer tutucuları; dəyişənlərdən idarə simvolları (başlıq inyeksiyası) atılır */
 function fill(str, vars, l) {
-  return String(str).replace(/\{(name|n|names|date|amount)\}/g, (_, k) => {
+  return String(str).replace(/\{(name|n|names|date|amount|time|device|place|event)\}/g, (_, k) => {
     let v = vars[k]
     if (v == null) return ''
     if (k === 'n' && l === 'en') v = ordinalEn(Number(v))
@@ -116,13 +141,15 @@ function render(kind, lang, vars = {}) {
   const body = typeof vars.body === 'string' ? vars.body.slice(0, 8000) : ''
   const intro = fill(t.intro, vars, l)
   const amount = t.amount && vars.amount ? fill(t.amount, vars, l) : ''
+  const details = t.details ? fill(t.details, vars, l) : ''
   const dir = l === 'ar' ? 'rtl' : 'ltr'
-  const text = `${intro}\n\n` + (body ? `${body}\n\n` : '') + (amount ? `${amount}\n\n` : '') +
+  const text = `${intro}\n\n` + (details ? `${details}\n\n` : '') + (body ? `${body}\n\n` : '') + (amount ? `${amount}\n\n` : '') +
     `${safeUrl}\n\n${t.note}\n\n— Muslims.cc` + (unsubUrl ? `\n\n${t.unsub}: ${unsubUrl}` : '')
   const html = `<!doctype html><html lang="${l}" dir="${dir}"><body style="margin:0;padding:24px;background:#f6f7f5;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1d2a24">` +
     `<div style="max-width:520px;margin:0 auto;background:#fff;border-radius:12px;padding:28px">` +
     `<p style="font-size:18px;font-weight:600;margin:0 0 16px">Muslims.cc</p>` +
     `<p style="font-size:15px;line-height:1.6;margin:0 0 20px">${esc(intro)}</p>` +
+    (details ? `<p dir="auto" style="font-size:14px;line-height:1.7;margin:0 0 20px;padding:12px 16px;background:#f3f6f4;border-radius:8px;white-space:pre-line">${esc(details)}</p>` : '') +
     (body ? `<blockquote dir="auto" style="margin:0 0 20px;padding:16px 18px;background:#f3f6f4;border-inline-start:4px solid #0f6b4f;border-radius:8px;font-size:15px;line-height:1.7;white-space:pre-wrap">${esc(body)}</blockquote>` : '') +
     (amount ? `<p style="font-size:15px;line-height:1.6;margin:0 0 20px;font-weight:600">${esc(amount)}</p>` : '') +
     (safeUrl ? `<p style="margin:0 0 20px"><a href="${esc(safeUrl)}" style="display:inline-block;background:#0f6b4f;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600">${esc(t.button)}</a></p>` +

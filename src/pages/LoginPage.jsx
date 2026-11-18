@@ -11,7 +11,7 @@
 // • ?reset=done — /account/reset-dən sonra "şifrə dəyişdirildi" mesajı; ?forgot=1 — bərpa forması.
 // noindex (src/seo/routes.js), sitemap-a düşmür.
 // ═══════════════════════════════════════════════════════
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang } from '../contexts/LangContext'
 import { pickUi } from '../utils/uiText'
@@ -25,6 +25,9 @@ import {
   passkeySupported, passwordStrength, refreshMe, register, safeNext, validEmail,
 } from '../api/userAuth'
 import { GOOGLE_CLIENT_ID, renderGoogleButton, releaseGoogleButton } from '../utils/googleSignIn'
+
+// İki addımlı yoxlamanın kod addımı (server/security.js) — yalnız 2FA açıq hesabda yüklənir
+const TwoFactorStep = lazy(() => import('../components/account/TwoFactorStep'))
 
 const LABELS = {
   az: {
@@ -200,6 +203,7 @@ export default function LoginPage({ mode = 'login' }) {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(() => (params.get('reset') === 'done' ? { tone: 'ok', text: null, key: 'resetDone' } : null))
   const [invalid, setInvalid] = useState('')       // 'email' | 'password' | ''
+  const [twoFa, setTwoFa] = useState(null)          // { ticket, password? } — şifrə/Google düzdür, kod gözlənilir
   const seq = useRef(0)
   const alive = useRef(true)
   useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
@@ -233,7 +237,7 @@ export default function LoginPage({ mode = 'login' }) {
       started = true
       try {
         let prf = null
-        const u = await passkeyLogin({ autofill: true, onPrf: (p) => { prf = p } })
+        const u = await passkeyLogin({ autofill: true, onPrf: (p) => { prf = p }, lang })
         startAccountSync(u, { prf })
       } catch (e) {
         if (on && e instanceof AuthError && e.code === 'passkey_failed') show('bad', errText('errPasskey'))
@@ -265,7 +269,11 @@ export default function LoginPage({ mode = 'login' }) {
         if (r.checkEmail) { if (alive.current) setView('checkEmail') } else startAccountSync(r.user, { password })
       })
     } else {
-      run(async () => { const u = await login(email, password); startAccountSync(u, { password }) })
+      run(async () => {
+        const u = await login(email, password, lang)
+        if (u && u.twoFactor) { if (alive.current) setTwoFa({ ticket: u.ticket, password }); return }
+        startAccountSync(u, { password })
+      })
     }
   }
 
@@ -278,10 +286,14 @@ export default function LoginPage({ mode = 'login' }) {
     })
   }
 
-  const onGoogle = (credential) => run(async () => { const r = await googleLogin(credential); startAccountSync(r.user) })
+  const onGoogle = (credential) => run(async () => {
+    const r = await googleLogin(credential, lang)
+    if (r.twoFactor) { if (alive.current) setTwoFa({ ticket: r.ticket }); return }
+    startAccountSync(r.user)
+  })
   const onPasskey = () => run(async () => {
     let prf = null
-    const u = await passkeyLogin({ onPrf: (p) => { prf = p } })
+    const u = await passkeyLogin({ onPrf: (p) => { prf = p }, lang })
     startAccountSync(u, { prf })
   })
 
@@ -306,6 +318,18 @@ export default function LoginPage({ mode = 'login' }) {
       <p className="acc-aside__note"><Icon name="lock" size={16} /> {l.privacy}</p>
     </aside>
   )
+
+  if (twoFa) {
+    return (
+      <AuthShell aside={aside}>
+        <Suspense fallback={<div className="spinner-wrap" role="status"><div className="spinner" /></div>}>
+          <TwoFactorStep ticket={twoFa.ticket}
+            onDone={(u) => startAccountSync(u, twoFa.password ? { password: twoFa.password } : undefined)}
+            onCancel={(k) => { setTwoFa(null); setPassword(''); if (k) show('bad', errText(k)); else setMsg(null) }} />
+        </Suspense>
+      </AuthShell>
+    )
+  }
 
   if (view === 'checkEmail') {
     return (

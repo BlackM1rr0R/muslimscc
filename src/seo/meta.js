@@ -882,6 +882,18 @@ export const META = {
     ar: { t: 'تأكيد البريد الإلكتروني',
           d: 'أكّد عنوان البريد الإلكتروني لحسابك في Muslims.cc.' },
   },
+  khatm: {
+    az: { t: 'Ümmətin Canlı Xətmi — dünya ilə birlikdə Quran oxu',
+          d: 'Bütün dünyadan müsəlmanlarla bir Mushafı birlikdə xətm edin: bir səhifə götürün, oxuyun və 604 səhifənin canlı halqada parladığını izləyin.' },
+    en: { t: 'The Ummah’s Live Khatm — Read the Quran with the World',
+          d: 'Complete the Quran together with Muslims worldwide: take one page of the mushaf, read it, and watch all 604 pages light up on a live golden ring.' },
+    ru: { t: 'Живой хатм уммы — читаем Коран всем миром',
+          d: 'Завершите Коран вместе с мусульманами всего мира: возьмите страницу мусхафа, прочитайте её и смотрите, как 604 страницы загораются на живом кольце.' },
+    tr: { t: 'Ümmetin Canlı Hatmi — Dünyayla Birlikte Kur’an Oku',
+          d: 'Dünyanın dört bir yanındaki Müslümanlarla Kur’an’ı birlikte hatmedin: bir sayfa alın, okuyun ve 604 sayfanın canlı halkada parlamasını izleyin.' },
+    ar: { t: 'ختمة الأمة الحيّة — اقرأ القرآن مع العالم',
+          d: 'اختم القرآن مع المسلمين في أنحاء العالم: خذ صفحة من المصحف واقرأها، وشاهد صفحاته الـ604 تضيء على حلقة ذهبية حيّة.' },
+  },
   readtogether: {
     az: { t: 'Birlikdə Quran oxu',
           d: 'Ailə və dostlarla eyni Mushaf səhifəsini birlikdə oxuyun: aparıcı vərəqi çevirir, oxunan ayə hamıda parlayır.' },

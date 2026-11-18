@@ -370,6 +370,9 @@ function createReadTogetherRouter({ requireUser, allowedOrigins = [], now = () =
   router.rooms = rooms
   router.connections = () => connCount
   router.closeOwnerRooms = (userId) => { for (const r of roomsOf(userId)) closeRoom(r) }
+  /** "Mənim məlumatlarım" (server/security.js): yalnız yaddaşdakı otaqların sayı (bazada heç nə yoxdur) */
+  router.summaryUser = (userId) => ({ openRooms: roomsOf(userId).length })
+  router.exportUser = (userId) => ({ openRooms: roomsOf(userId).length })
   router.shutdown = () => { if (timer) clearInterval(timer); for (const r of [...rooms.values()]) closeRoom(r) }
   return router
 }

@@ -1,0 +1,36 @@
+/* /account → iki addımlı yoxlama, təhlükəsizlik fəaliyyəti, "Mənim məlumatlarım" (components/account/SecuritySections.jsx)
+   və girişin kod addımı (components/account/TwoFactorStep.jsx) */
+.acc-section__title .ui-badge { vertical-align: middle; margin-inline-start: 6px; }
+.acc-sec-step { margin: 0; color: var(--text-body); font-weight: 600; line-height: 1.5; }
+.acc-sec-qrwrap { display: flex; flex-wrap: wrap; gap: 16px 20px; align-items: center; }
+.acc-sec-qr { width: 196px; height: 196px; flex-shrink: 0; border-radius: var(--radius-sm, 8px); border: 1px solid var(--line); background: #fff; }
+.acc-sec-qr--empty { display: block; }
+.acc-sec-manual { flex: 1 1 220px; min-width: 0; display: grid; gap: 6px; }
+.acc-sec-manual p { margin: 0; color: var(--text-secondary, var(--text-body)); line-height: 1.5; }
+.acc-sec-secret, .acc-sec-codes__list code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 15px; letter-spacing: .06em;
+  color: var(--text-strong); overflow-wrap: anywhere; user-select: all;
+}
+.acc-sec-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 20px; letter-spacing: .3em; max-width: 16ch; }
+.acc-sec-codes__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 16px; margin: 10px 0 14px; padding-inline-start: 22px; }
+.acc-sec-codes .acc-row { margin-top: 4px; }
+.acc-sec-tile--warn { background: color-mix(in srgb, var(--warn, #b26a00) 14%, transparent); color: var(--warn, #b26a00); }
+.acc-sec-data { display: grid; gap: 8px; }
+.acc-sec-h3 { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; font-size: var(--step-0, 1rem); color: var(--text-strong); }
+.acc-sec-h3:first-child { margin-top: 0; }
+.acc-sec-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.acc-sec-table th, .acc-sec-table td { padding: 8px 0; border-bottom: 1px solid var(--line); text-align: start; font-weight: 400; color: var(--text-body); }
+.acc-sec-table td { text-align: end; white-space: nowrap; padding-inline-start: 12px; color: var(--text-secondary, var(--text-body)); font-variant-numeric: tabular-nums; }
+.acc-sec-total th, .acc-sec-total td { font-weight: 600; color: var(--text-strong); }
+.acc-sec-note { margin-top: 8px; }
+
+/* Girişin kod addımı */
+.acc-2fa-step .acc-sec-code { max-width: none; text-align: center; }
+
+/* Ehtiyat kodlarını çap: yalnız kod bloku */
+@media print {
+  html.acc-print-codes body * { visibility: hidden !important; }
+  html.acc-print-codes .acc-sec-codes, html.acc-print-codes .acc-sec-codes * { visibility: visible !important; }
+  html.acc-print-codes .acc-sec-codes { position: absolute; inset-inline-start: 0; top: 0; width: 100%; }
+  html.acc-print-codes .acc-sec-noprint { display: none !important; }
+}

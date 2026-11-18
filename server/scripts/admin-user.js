@@ -25,6 +25,11 @@
 //   ... node scripts/admin-user.js user-role <user-email> <user|mosque_rep|editor|admin|superadmin> [--mosque=<id>]
 //       — saytın İSTİFADƏÇİ hesabının rolu (users.role).
 // Hər iki əmr role_audit-ə (actor_kind='script') yazılır.
+//
+// İKİ ADDIMLI YOXLAMA (server/security.js, docs/ACCOUNT-SECURITY.md) — telefon itəndə bərpa (yalnız serverdən):
+//   ... node scripts/admin-user.js totp-reset <admin-email>       — admin panelinin TOTP-si və ehtiyat kodları silinir
+//   ... node scripts/admin-user.js user-totp-reset <user-email>   — saytın istifadəçi hesabının TOTP-si silinir
+// Sessiyalara toxunulmur; növbəti girişdə yalnız şifrə soruşulur, sonra 2FA yenidən qurulmalıdır.
 // ═══════════════════════════════════════════════════════════════════════
 'use strict'
 
@@ -34,7 +39,8 @@ const users = require('../users')
 
 const USAGE = 'İstifadə: node scripts/admin-user.js <create|set-password|list|delete> [email] [--password-stdin] [--permanent]\n' +
   '         node scripts/admin-user.js set-role <admin-email> <superadmin|admin|editor>\n' +
-  '         node scripts/admin-user.js user-role <user-email> <user|mosque_rep|editor|admin|superadmin> [--mosque=<id>]'
+  '         node scripts/admin-user.js user-role <user-email> <user|mosque_rep|editor|admin|superadmin> [--mosque=<id>]\n' +
+  '         node scripts/admin-user.js <totp-reset|user-totp-reset> <email>'
 
 /** Terminalda gizli oxu (simvollar ekrana çıxmır). */
 function readHidden(prompt) {
@@ -94,13 +100,23 @@ async function main() {
     console.error('XƏTA: şifrə arqumentdə verilmir — stdin və ya gizli sorğu istifadə edin')
     process.exit(2)
   }
-  if (!['create', 'set-password', 'list', 'delete', 'set-role', 'user-role'].includes(cmd)) { console.error(USAGE); process.exit(2) }
+  if (!['create', 'set-password', 'list', 'delete', 'set-role', 'user-role', 'totp-reset', 'user-totp-reset'].includes(cmd)) { console.error(USAGE); process.exit(2) }
   if (cmd !== 'list' && !auth.validEmail(auth.normEmail(email || ''))) { console.error(USAGE); process.exit(2) }
 
   const db = openDb()
   const store = auth.createAuthStore(db)
   const userStore = users.createUsersStore(db)
   try {
+    if (cmd === 'totp-reset' || cmd === 'user-totp-reset') {
+      const sec = require('../security').createSecurityStore(db, { totpKey: process.env.TOTP_KEY || '' })
+      const row = cmd === 'totp-reset' ? store.findByEmail(email) : userStore.findByEmail(email)
+      if (!row) { console.error(`XƏTA: "${auth.normEmail(email)}" tapılmadı`); process.exitCode = 1; return }
+      const scope = cmd === 'totp-reset' ? 'admin' : 'user'
+      const was = sec.totpEnabled(scope, row.id)
+      sec.totpDisable(scope, row.id)
+      console.log(was ? `OK: ${row.email} — iki addımlı yoxlama söndürüldü (ehtiyat kodları da silindi).` : `${row.email}: iki addımlı yoxlama onsuz da sönülü idi.`)
+      return
+    }
     if (cmd === 'set-role' || cmd === 'user-role') {
       const role = args.filter((a, i) => i > 0 && !a.startsWith('--'))[1]
       if (cmd === 'set-role') {

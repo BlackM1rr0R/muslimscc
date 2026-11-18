@@ -82,6 +82,8 @@ export const PAGES = [
   { key: 'donate',        path: 'donate',        priority: 0.70, changefreq: 'monthly' },
   { key: 'quran',        path: 'quran',        priority: 0.95, changefreq: 'weekly'  },
   { key: 'mushaf',       path: 'mushaf',       priority: 0.85, changefreq: 'monthly' },
+  // Ümmətin Canlı Xətmi (server/globalKhatm.js) — izləmə hamıya açıqdır, səhifə götürmək girişlidir
+  { key: 'khatm',        path: 'khatm',        priority: 0.80, changefreq: 'daily'   },
   { key: 'quranroots',   path: 'quran-roots',  priority: 0.80, changefreq: 'monthly' },
   { key: 'prayer',       path: 'prayer',       priority: 0.95, changefreq: 'daily'   },
   { key: 'ramadan',      path: 'ramadan',      priority: 0.8,  changefreq: 'daily'   },

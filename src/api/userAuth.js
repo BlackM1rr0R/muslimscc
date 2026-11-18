@@ -65,6 +65,13 @@ const CODE_KEY = {
   forbidden: 'errForbidden',
   not_found: 'errNotFound',
   bad_request: 'errBad',
+  // iki addımlı yoxlama, "Bu mən deyildim" qorunması (server/security.js)
+  invalid_code: 'errCode',
+  invalid_ticket: 'errTicket',
+  security_hold: 'errHold',
+  code_required: 'errCodeRequired',
+  reauth_required: 'errReauth',
+  already_enabled: 'errAlready2fa',
 }
 export function errorKey(e) {
   if (!(e instanceof AuthError)) {
@@ -117,8 +124,20 @@ export function safeNext(next, fallback) {
 const post = (path, body) => authFetch(path, { method: 'POST', body: body === undefined ? {} : body })
 
 // ── Giriş / qeydiyyat ──
-export async function login(email, password) {
-  const r = await post('/api/auth/login', { email: String(email || '').trim(), password })
+/**
+ * Şifrə ilə giriş → user, və ya 2FA açıqdırsa { twoFactor: true, ticket } (sessiya hələ YOXDUR —
+ * verifyTwoFactor ilə davam et). lang — xəbərdarlıq məktubunun dili (server/security.js).
+ */
+export async function login(email, password, lang) {
+  const r = await post('/api/auth/login', { email: String(email || '').trim(), password, ...(lang ? { lang } : {}) })
+  if (r && r.twoFactor) return { twoFactor: true, ticket: r.ticket }
+  setCurrentUser(r.user)
+  return r.user
+}
+/** Girişin ikinci addımı: { ticket, code } və ya { ticket, backupCode } → user */
+export async function verifyTwoFactor({ ticket, code, backupCode, lang }) {
+  const body = { ticket, ...(backupCode ? { backupCode: String(backupCode).trim() } : { code: String(code || '').replace(/\s+/g, '') }), ...(lang ? { lang } : {}) }
+  const r = await post('/api/auth/2fa', body)
   setCurrentUser(r.user)
   return r.user
 }
@@ -139,8 +158,9 @@ export const verifyEmail = (token) => post('/api/auth/verify', { token })
 export const resetPassword = (token, password) => post('/api/auth/reset', { token, password })
 export const resendVerification = (lang) => post('/api/auth/verify/resend', { lang })
 
-export async function googleLogin(credential) {
-  const r = await post('/api/auth/google', { credential })
+export async function googleLogin(credential, lang) {
+  const r = await post('/api/auth/google', { credential, ...(lang ? { lang } : {}) })
+  if (r && r.twoFactor) return { twoFactor: true, ticket: r.ticket }
   setCurrentUser(r.user)
   return { user: r.user, created: Boolean(r.created) }
 }
@@ -186,12 +206,12 @@ export function takePrf(response) {
  * Passkey ilə giriş (usernameless). autofill: true — e-poçt sahəsinin avtomatik
  * doldurma siyahısında təklif (autocomplete="username webauthn"); səssizcə gözləyir.
  */
-export async function passkeyLogin({ autofill = false, onPrf } = {}) {
+export async function passkeyLogin({ autofill = false, onPrf, lang } = {}) {
   const { startAuthentication } = await webauthn()
   const { challengeId, options } = await post('/api/auth/passkey/login/options')
   const response = await startAuthentication({ optionsJSON: withPrf(options), useBrowserAutofill: autofill })
   const prf = takePrf(response)
-  const r = await post('/api/auth/passkey/login/verify', { challengeId, response })
+  const r = await post('/api/auth/passkey/login/verify', { challengeId, response, ...(lang ? { lang } : {}) })
   setCurrentUser(r.user)
   if (prf && typeof onPrf === 'function') onPrf(prf, r.user)
   return r.user
@@ -232,6 +252,22 @@ export async function addPasskey(name, { onPrf } = {}) {
   return Array.isArray(r.passkeys) ? r.passkeys : []
 }
 export const removePasskey = (id) => post('/api/auth/passkey/remove', { id }).then((r) => (Array.isArray(r.passkeys) ? r.passkeys : []))
+
+// ── İki addımlı yoxlama (TOTP) və təhlükəsizlik fəaliyyəti (server/security.js) ──
+export const getTwoFactor = () => authFetch('/api/auth/2fa')
+/** → { secret, uri } (şifrəli hesabda cari şifrə lazımdır) */
+export const setupTwoFactor = (password) => post('/api/auth/2fa/setup', password ? { password } : {})
+/** → [ehtiyat kodları] (yalnız bir dəfə göstərilir) */
+export const enableTwoFactor = (code, lang) => post('/api/auth/2fa/enable', { code: String(code || '').replace(/\s+/g, ''), lang }).then((r) => r.backupCodes || [])
+/** reauth: { password } | { code } | { backupCode } */
+export const disableTwoFactor = (reauth, lang) => post('/api/auth/2fa/disable', { ...reauth, lang })
+export const regenBackupCodes = (reauth, lang) => post('/api/auth/2fa/backup-codes', { ...reauth, lang }).then((r) => r.backupCodes || [])
+export const listSecurityEvents = () => authFetch('/api/auth/security/events')
+export const releaseSecurityHold = () => post('/api/auth/security/hold/release')
+/** "Mənim məlumatlarım": serverdəki məlumatın sayları */
+export const getDataSummary = () => authFetch('/api/auth/data-summary')
+/** Serverdəki bütün məlumat (sirlərsiz) — JSON obyekti */
+export const exportAccount = () => authFetch('/api/auth/export')
 
 // ── Admin paneli: istifadəçilər (admin / superadmin) ──
 export function adminListUsers({ q = '', page = 1 } = {}) {

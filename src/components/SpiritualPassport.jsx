@@ -55,12 +55,23 @@ const T = {
   },
 }
 
+// Ümmətin Canlı Xətmi möhürü (pages/KhatmPage, utils/worldKhatm)
+const STAMP_NAME = { az: 'Ümmət xətmində iştirak', en: 'Part of the Ummah’s khatm', ru: 'Участие в хатме уммы', ar: 'المشاركة في ختمة الأمة', tr: 'Ümmet hatmine katılım' }
+const STAMP_HOW = {
+  az: 'Ümmətin Canlı Xətmində bir səhifə oxuyun: həmin xətm tamamlananda möhür verilir.',
+  en: 'Read a page in the Ummah’s Live Khatm: the stamp is given when that khatm is complete.',
+  ru: 'Прочитайте страницу в живом хатме уммы: штамп даётся, когда этот хатм завершится.',
+  ar: 'اقرأ صفحة في ختمة الأمة الحيّة، ويُمنح الختم عند اكتمال تلك الختمة.',
+  tr: 'Ümmetin Canlı Hatminde bir sayfa okuyun: o hatim tamamlanınca mühür verilir.',
+}
+
 const NAMES = {
   fajr_40: { az: '40 gün Sübh', en: '40 days of Fajr', ru: '40 дней фаджра', ar: 'أربعون يومًا من الفجر', tr: '40 gün sabah namazı' },
   names_99: { az: '99 ad', en: 'The 99 Names', ru: '99 имён', ar: 'الأسماء الحسنى', tr: '99 isim' },
   hijra: { az: 'Hicrət yolu', en: 'The Hijra road', ru: 'Путь хиджры', ar: 'طريق الهجرة', tr: 'Hicret yolu' },
   sahaba: { az: 'Səhabə albomu', en: 'The Sahaba album', ru: 'Альбом сподвижников', ar: 'ألبوم الصحابة', tr: 'Sahabe albümü' },
   arabic: { az: 'Ərəb dili kursu', en: 'The Arabic course', ru: 'Курс арабского', ar: 'دورة العربية', tr: 'Arapça kursu' },
+  ummah_khatm: STAMP_NAME,
   hifz_surah: { az: 'İlk əzbər surə', en: 'First surah memorised', ru: 'Первая выученная сура', ar: 'أول سورة محفوظة', tr: 'İlk ezber sure' },
 }
 const HOW = {
@@ -72,11 +83,12 @@ const HOW = {
   arabic: { az: 'Ərəb dili kursunun bütün dərslərini ən azı 70% nəticə ilə bitirin.', en: 'Pass every lesson of the Arabic course with at least 70%.', ru: 'Пройдите все уроки курса арабского минимум на 70%.', ar: 'اجتز كل دروس دورة العربية بنسبة 70% على الأقل.', tr: 'Arapça kursunun bütün derslerini en az %70 ile geçin.' },
   hifz_surah: { az: 'Hifz bölməsində ilk surənizi «əzbərlənib» kimi qeyd edin.', en: 'Mark your first surah as memorised in the Hifz section.', ru: 'Отметьте свою первую суру как выученную в разделе хифза.', ar: 'علِّم أول سورة تحفظها «محفوظة» في قسم الحفظ.', tr: 'Hıfz bölümünde ilk surenizi «ezberlendi» olarak işaretleyin.' },
   dhikr_1000: { az: 'Zikr sayğacında cəmi 1000 zikrə çatın.', en: 'Reach 1,000 dhikr in total on the dhikr counter.', ru: 'Наберите в сумме 1000 зикров на счётчике.', ar: 'بلغ ألف ذكر في المجموع على عدّاد الذكر.', tr: 'Zikir sayacında toplam 1000 zikre ulaşın.' },
+  ummah_khatm: STAMP_HOW,
   kahf_4: { az: 'Kəhf surəsini 4 fərqli cümə günü oxuyun.', en: 'Read Surah al-Kahf on 4 different Fridays.', ru: 'Прочитайте суру «аль-Кахф» в 4 разные пятницы.', ar: 'اقرأ سورة الكهف في أربع جُمَع مختلفة.', tr: 'Kehf suresini 4 farklı cuma günü okuyun.' },
 }
-const LINK = { khatm: 'quran', fajr_40: 'tracker', names_99: 'names', hijra: 'history', sahaba: 'sahaba', arabic: 'arabic', hifz_surah: 'hifz', dhikr_1000: 'dhikr', kahf_4: 'quran' }
-const INK = { khatm: '#8c1d2c', fajr_40: '#9a3412', names_99: '#1e4f8f', hijra: '#7a5212', sahaba: '#1f6b4f', arabic: '#6a3d8f', hifz_surah: '#0f6b74', dhikr_1000: '#3f4a9a', kahf_4: '#7c2d5b' }
-const TILT = { khatm: -6, fajr_40: 4, names_99: -3, hijra: 7, sahaba: -8, arabic: 3, hifz_surah: -5, dhikr_1000: 6, kahf_4: -2 }
+const LINK = { khatm: 'quran', fajr_40: 'tracker', names_99: 'names', hijra: 'history', sahaba: 'sahaba', arabic: 'arabic', hifz_surah: 'hifz', dhikr_1000: 'dhikr', kahf_4: 'quran', ummah_khatm: 'khatm' }
+const INK = { khatm: '#8c1d2c', fajr_40: '#9a3412', names_99: '#1e4f8f', hijra: '#7a5212', sahaba: '#1f6b4f', arabic: '#6a3d8f', hifz_surah: '#0f6b74', dhikr_1000: '#3f4a9a', kahf_4: '#7c2d5b', ummah_khatm: '#7a5a12' }
+const TILT = { khatm: -6, fajr_40: 4, names_99: -3, hijra: 7, sahaba: -8, arabic: 3, hifz_surah: -5, dhikr_1000: 6, kahf_4: -2, ummah_khatm: 5 }
 const DATE_LOC = { az: 'az-Latn-AZ', en: 'en-GB', ru: 'ru-RU', tr: 'tr-TR', ar: 'ar-u-nu-latn' }
 const fmtDate = (key, lang) => {
   const [y, m, d] = String(key).split('-').map(Number)
@@ -103,6 +115,7 @@ function Emblem({ id }) {
     case 'hifz_surah': return (<g><path d="M44 82 V58 Q44 42 60 36 Q76 42 76 58 V82 Z" /><path d="M50 82 V60 Q50 48 60 44 Q70 48 70 60 V82" /><circle cx="60" cy="62" r="3" fill="currentColor" /></g>)
     case 'dhikr_1000': return (<g>{Array.from({ length: 11 }, (_, i) => { const a = -Math.PI / 2 + ((i + 0.5) * 2 * Math.PI) / 12; return <circle key={i} cx={60 + Math.cos(a) * 18} cy={56 + Math.sin(a) * 18} r="3" fill="currentColor" stroke="none" /> })}<path d="M60 74 V86 M56 86 H64" /></g>)
     case 'kahf_4': return (<g><path d="M34 80 Q36 44 60 40 Q84 44 86 80" /><path d="M46 80 Q48 58 60 56 Q72 58 74 80" /><path d="M30 80 H90" />{[50, 56.7, 63.3, 70].map(x => <circle key={x} cx={x} cy="70" r="1.8" fill="currentColor" stroke="none" />)}</g>)
+    case 'ummah_khatm': return (<g><circle cx="60" cy="60" r="13" /><path d="M47 60 H73 M60 47 Q52 60 60 73 Q68 60 60 47" />{Array.from({ length: 24 }, (_, i) => { const a = (i * Math.PI) / 12; return <path key={i} d={`M${(60 + Math.cos(a) * 20).toFixed(1)} ${(60 + Math.sin(a) * 20).toFixed(1)} L${(60 + Math.cos(a) * 26).toFixed(1)} ${(60 + Math.sin(a) * 26).toFixed(1)}`} /> })}</g>)
     default: return null
   }
 }

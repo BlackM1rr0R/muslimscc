@@ -378,6 +378,18 @@ function createUsersStore(db) {
         return { id: a.id, email: a.email, role }
       })
     },
+    /** "Mənim məlumatlarım" ixracı — SİRLƏRSİZ (şifrə heşi, token heşləri, passkey açarları, OAuth subject yoxdur) */
+    exportUser(id, currentHash, now = Date.now()) {
+      const u = st.byId.get(id)
+      if (!u) return null
+      return {
+        id: u.id, email: u.email, emailVerified: u.email_verified === 1, displayName: u.display_name, role: u.role,
+        mosqueId: u.mosque_id || null, hasPassword: Boolean(u.pass_hash), createdAt: u.created_at, updatedAt: u.updated_at,
+        lastLoginAt: u.last_login_at ?? null, providers: st.providersOf.all(id).map((r) => r.provider),
+        passkeys: st.passkeysOf.all(id).map((k) => ({ name: k.name, createdAt: k.created_at, lastUsedAt: k.last_used_at ?? null })),
+        sessions: st.sessionsOf.all(id, now).map((x) => ({ label: x.ua || '', createdAt: x.created_at, lastSeenAt: x.expires_at - SESSION_TTL_MS, current: x.id_hash === currentHash })),
+      }
+    },
     listUsers({ q = '', page = 1 } = {}) {
       const term = typeof q === 'string' ? q.trim().slice(0, 100) : ''
       const like = '%' + term.replace(/[\\%_]/g, (c) => '\\' + c) + '%'
@@ -496,6 +508,8 @@ function createGoogleVerifier({ clientId, fetchImpl = (...a) => fetch(...a), now
  *  googleClientId       — yoxdursa /auth/google → 503 google_disabled
  *  webauthn             — @simplewebauthn/server (testlərdə saxta; verilməyibsə require)
  *  googleVerify, fetchImpl, limits, now
+ *  security             — server/security.js createSecurity(): yeni cihaz xəbərdarlığı, hadisələr, TOTP 2FA,
+ *                         "security hold" (verilməyibsə hamısı sönülüdür — köhnə davranış)
  *  hooks                — { beforeDeleteUser(id), passkeyRemoved(userId, credId), passwordReset(userId) }:
  *                         hesaba bağlı sinxronizasiya (server/syncKeys.js) — blok və açar qabları təmizlənsin
  */
@@ -506,6 +520,7 @@ function createUsersRouter(opts) {
   } = opts
   const store = opts.store || createUsersStore(db)
   const hooks = opts.hooks || {}
+  const sec = opts.security || null
   // Qarmaq xətası əsas əməliyyatı dayandırmır (məs. köhnə bazada cədvəl yoxdur)
   const hook = (name, ...args) => { try { if (typeof hooks[name] === 'function') hooks[name](...args) } catch (e) { console.error(`users hook ${name}:`, e && e.message) } }
   const rpId = opts.rpId || new URL(publicOrigin).hostname
@@ -537,17 +552,35 @@ function createUsersRouter(opts) {
   const err = (res, status, code, error = 'Request failed') => res.status(status).json({ error, code })
   const setCookie = (res, token, maxAgeMs) =>
     res.append('Set-Cookie', `${USER_COOKIE}=${token}; Path=/; Max-Age=${Math.floor(maxAgeMs / 1000)}; HttpOnly; Secure; SameSite=Strict`)
-  const startSession = (req, res, user) => {
+  // method verilibsə — GİRİŞ (yeni cihaz yoxlanır, hadisə yazılır); qeydiyyatda verilmir
+  const startSession = (req, res, user, method, lang) => {
     const token = store.createSession(user.id, uaLabel(req.headers['user-agent']), now())
     store.touchLogin(user.id, now())
     setCookie(res, token, SESSION_TTL_MS)
+    if (sec && method) sec.afterUserLogin(req, res, user, { method, lang })
     return token
   }
   const meOf = (u) => ({
     id: u.id, email: u.email, emailVerified: u.email_verified === 1, displayName: u.display_name,
     role: u.role, mosqueId: u.mosque_id || null, hasPassword: Boolean(u.pass_hash),
     passkeys: store.listPasskeys(u.id), providers: store.providersOf(u.id),
+    ...(sec ? sec.meExtra(u.id) : {}),
   })
+  const langOf = (b) => (b && typeof b.lang === 'string' && b.lang.length <= 8 ? b.lang : undefined)
+  const secEvent = (req, user, kind, lang) => { if (sec) sec.userEvent(req, user, kind, { lang }) }
+  /**
+   * Şifrə / Google yoxlanandan sonra: hold → 403; 2FA açıqdırsa sessiya YOX, bilet → { twoFactor, ticket }.
+   * true — cavab artıq göndərilib.
+   */
+  const gate = (req, res, u, method) => {
+    if (!sec) return false
+    if (sec.onHold(u.id)) { err(res, 403, 'security_hold', 'Account is on security hold — reset your password'); return true }
+    if (sec.twoFactorEnabled('user', u.id)) {
+      res.json({ ok: true, twoFactor: true, ticket: sec.issueTicket('user', u.id, { method, lang: langOf(req.body) }) })
+      return true
+    }
+    return false
+  }
   const sendMail = (kind, lang, to, path, token) => {
     if (!mailer || !to) return
     const ml = mailLang(lang)
@@ -592,6 +625,7 @@ function createUsersRouter(opts) {
       }
       const user = store.byId(id)
       startSession(req, res, user)
+      if (sec) sec.afterRegister(req, res, user)
       if (mailer) sendMail('verify', b.lang, email, '/account/verify', store.createToken(id, 'verify', now()))
       return res.status(201).json({ ok: true, user: meOf(user), verificationSent: Boolean(mailer && mailer.enabled) })
     } catch (e) {
@@ -617,7 +651,8 @@ function createUsersRouter(opts) {
         return err(res, 401, 'invalid_credentials', 'Invalid credentials')
       }
       lim.loginEmail.reset(ek)
-      startSession(req, res, u)
+      if (gate(req, res, u, 'password')) return
+      startSession(req, res, u, 'password', langOf(b))
       return res.json({ ok: true, user: meOf(store.byId(u.id)) })
     } catch (e) {
       console.error('login error:', e && e.message)
@@ -633,6 +668,23 @@ function createUsersRouter(opts) {
   })
 
   router.get('/auth/me', requireUser(), (req, res) => res.json(meOf(req.user)))
+
+  // ── İki addımlı yoxlama: girişin ikinci addımı (bilet + TOTP kodu və ya ehtiyat kodu) ──
+  router.post('/auth/2fa', json, (req, res) => {
+    if (!sec) return err(res, 404, 'not_found', 'Not found')
+    const r = sec.secondFactor('user', req.body || {})
+    if (!r.ok) {
+      if (r.retryAfter) res.set('Retry-After', String(r.retryAfter))
+      return res.status(r.status).json({ error: 'Two-step verification failed', code: r.code, ...(r.attemptsLeft ? { attemptsLeft: r.attemptsLeft } : {}) })
+    }
+    const u = store.byId(r.id)
+    if (!u || u.disabled) return err(res, 401, 'invalid_ticket', 'Two-step verification failed')
+    if (sec.onHold(u.id)) return err(res, 403, 'security_hold', 'Account is on security hold — reset your password')
+    const lang = r.meta.lang || langOf(req.body)
+    startSession(req, res, u, `${r.meta.method || ''}+${r.via === 'backup' ? 'backup' : '2fa'}`, lang)
+    if (r.via === 'backup') secEvent(req, u, 'backup_code_used', lang)
+    res.json({ ok: true, user: meOf(store.byId(u.id)) })
+  })
 
   // ── E-poçt təsdiqi ──
   router.post('/auth/verify', json, (req, res) => {
@@ -686,6 +738,7 @@ function createUsersRouter(opts) {
       store.markVerified(uid, now())          // poçta çıxışı sübut olundu
       store.revokeAllSessions(uid)
       hook('passwordReset', uid)              // köhnə şifrə ilə şifrələnmiş sinxronizasiya açarı artıq açılmır
+      if (sec) { sec.clearHold(uid); secEvent(req, u, 'password_reset', langOf(b)) }   // "Bu mən deyildim" hold-u bərpa ilə açılır
       res.json({ ok: true })
     } catch (e) {
       console.error('reset error:', e && e.message)
@@ -710,6 +763,7 @@ function createUsersRouter(opts) {
       store.setPasswordHash(u.id, hash, now())
       store.revokeOtherSessions(u.id, req.userSessionHash)
       lim.userAction.reset(k)
+      secEvent(req, u, 'password_changed', langOf(b))
       res.json({ ok: true })
     } catch (e) {
       console.error('password error:', e && e.message)
@@ -828,6 +882,7 @@ function createUsersRouter(opts) {
         transports: Array.isArray(cred.transports) ? cred.transports.filter((x) => typeof x === 'string').slice(0, 8) : [],
         name: name || uaLabel(req.headers['user-agent']) || 'Passkey',
       }, now())
+      secEvent(req, u, 'passkey_added', langOf(b))
       res.json({ ok: true, passkeys: store.listPasskeys(u.id) })
     } catch (e) {
       passkeyFail(req)
@@ -868,7 +923,8 @@ function createUsersRouter(opts) {
       })
       if (!v || !v.verified) return fail()
       store.usePasskey(pk.id, Number(v.authenticationInfo && v.authenticationInfo.newCounter) || 0, now())
-      startSession(req, res, u)
+      // Passkey TOTP-ni keçir (özü iki faktorludur) və "security hold" zamanı da açıqdır (docs/ACCOUNT-SECURITY.md)
+      startSession(req, res, u, 'passkey', langOf(b))
       res.json({ ok: true, user: meOf(store.byId(u.id)) })
     } catch (e) {
       console.error('passkey auth verify:', e && e.message)
@@ -886,6 +942,7 @@ function createUsersRouter(opts) {
     if (!u.pass_hash && !store.providersOf(u.id).length && mine.length <= 1) return err(res, 400, 'last_method', 'Cannot remove the last sign-in method')
     store.removePasskey(u.id, id)
     hook('passkeyRemoved', u.id, id)
+    secEvent(req, u, 'passkey_removed', langOf(req.body))
     res.json({ ok: true, passkeys: store.listPasskeys(u.id) })
   })
 
@@ -921,7 +978,8 @@ function createUsersRouter(opts) {
       }
       const u = store.byId(uid)
       if (!u || u.disabled) { lim.google.fail(ik); return err(res, 401, 'google_invalid', 'Invalid Google credential') }
-      startSession(req, res, u)
+      if (!created && gate(req, res, u, 'google')) return
+      if (created) { startSession(req, res, u); if (sec) sec.afterRegister(req, res, u) } else startSession(req, res, u, 'google', langOf(req.body))
       res.status(created ? 201 : 200).json({ ok: true, created, user: meOf(store.byId(uid)) })
     } catch (e) {
       console.error('google login error:', e && e.message)

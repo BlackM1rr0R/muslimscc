@@ -33,6 +33,7 @@ export const AUTH_TEXT = {
     errBad: 'Sahələri yoxlayıb yenidən sınayın',
     errNotFound: 'Tapılmadı — siyahı yenilənib',
     errForbidden: 'Bu əməliyyata icazəniz yoxdur',
+    errCode: 'Kod yanlışdır və ya vaxtı keçib. Tətbiqdəki yeni kodu yazın', errTicket: 'Yoxlama vaxtı bitdi və ya cəhdlər tükəndi. Yenidən daxil olun', errHold: 'Hesab qorunma rejimindədir: e-poçtunuza gələn keçidlə yeni şifrə təyin edin (və ya passkey ilə daxil olun)', errCodeRequired: 'Tətbiqdəki kodu və ya ehtiyat kodunu yazın', errReauth: 'Əvvəlcə yenidən daxil olun', errAlready2fa: 'İki addımlı yoxlama artıq açıqdır',
   },
   en: {
     roles: { user: 'User', mosque_rep: 'Mosque representative', editor: 'Editor', admin: 'Administrator', superadmin: 'Super administrator' },
@@ -62,6 +63,7 @@ export const AUTH_TEXT = {
     errBad: 'Check the fields and try again',
     errNotFound: 'Not found — the list has been refreshed',
     errForbidden: 'You are not allowed to do this',
+    errCode: 'The code is wrong or has expired. Enter the new code from your app', errTicket: 'The check timed out or you ran out of attempts. Please sign in again', errHold: 'Your account is on security hold: set a new password with the link we emailed you (or sign in with a passkey)', errCodeRequired: 'Enter the code from your app or a backup code', errReauth: 'Please sign in again first', errAlready2fa: 'Two-step verification is already on',
   },
   ru: {
     roles: { user: 'Пользователь', mosque_rep: 'Представитель мечети', editor: 'Редактор', admin: 'Администратор', superadmin: 'Суперадминистратор' },
@@ -92,6 +94,7 @@ export const AUTH_TEXT = {
     errBad: 'Проверьте поля и попробуйте снова',
     errNotFound: 'Не найдено — список обновлён',
     errForbidden: 'У вас нет прав на это действие',
+    errCode: 'Код неверный или устарел. Введите новый код из приложения', errTicket: 'Время проверки истекло или попытки закончились. Войдите снова', errHold: 'Аккаунт в режиме защиты: задайте новый пароль по ссылке из письма (или войдите с ключом доступа)', errCodeRequired: 'Введите код из приложения или резервный код', errReauth: 'Сначала войдите снова', errAlready2fa: 'Двухэтапная проверка уже включена',
   },
   tr: {
     roles: { user: 'Kullanıcı', mosque_rep: 'Cami temsilcisi', editor: 'Editör', admin: 'Yönetici', superadmin: 'Süper yönetici' },
@@ -121,6 +124,7 @@ export const AUTH_TEXT = {
     errBad: 'Alanları kontrol edip tekrar deneyin',
     errNotFound: 'Bulunamadı — liste yenilendi',
     errForbidden: 'Bu işlem için yetkiniz yok',
+    errCode: 'Kod yanlış veya süresi dolmuş. Uygulamadaki yeni kodu girin', errTicket: 'Doğrulama süresi doldu veya deneme hakkınız bitti. Yeniden giriş yapın', errHold: 'Hesabınız koruma modunda: e-postanıza gelen bağlantıyla yeni şifre belirleyin (veya geçiş anahtarıyla giriş yapın)', errCodeRequired: 'Uygulamadaki kodu veya bir yedek kodu girin', errReauth: 'Önce yeniden giriş yapın', errAlready2fa: 'İki adımlı doğrulama zaten açık',
   },
   ar: {
     roles: { user: 'مستخدم', mosque_rep: 'ممثل المسجد', editor: 'محرر', admin: 'مشرف', superadmin: 'مشرف أعلى' },
@@ -151,6 +155,7 @@ export const AUTH_TEXT = {
     errBad: 'تحقق من الحقول وحاول مرة أخرى',
     errNotFound: 'غير موجود — حُدِّثت القائمة',
     errForbidden: 'ليس لديك إذن بهذا الإجراء',
+    errCode: 'الرمز غير صحيح أو منتهي الصلاحية. أدخل الرمز الجديد من التطبيق', errTicket: 'انتهت مهلة التحقق أو نفدت المحاولات. سجّل الدخول مرة أخرى', errHold: 'حسابك في وضع الحماية: عيّن كلمة مرور جديدة عبر الرابط المرسل إلى بريدك (أو ادخل بمفتاح المرور)', errCodeRequired: 'أدخل الرمز من التطبيق أو رمزًا احتياطيًا', errReauth: 'سجّل الدخول مرة أخرى أولًا', errAlready2fa: 'التحقق بخطوتين مفعّل بالفعل',
   },
 }
 

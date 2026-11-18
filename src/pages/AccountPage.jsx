@@ -37,6 +37,8 @@ const PersonalSections = lazy(() => import('../components/account/PersonalSectio
 const AccountDSections = lazy(() => import('../components/account/AccountDSections'))
 // vE: Ramazan albomu, ömürlük dua bağçası, məscid kolleksiyası, sədəqə hesabatı (hamısı şifrəli sinxron)
 const AccountESections = lazy(() => import('../components/account/AccountESections'))
+// İki addımlı yoxlama, təhlükəsizlik fəaliyyəti, "Mənim məlumatlarım" (server/security.js)
+const SecuritySections = lazy(() => import('../components/account/SecuritySections'))
 
 const LABELS = {
   az: {
@@ -338,6 +340,9 @@ export default function AccountPage() {
         </Suspense>
         <PasswordSection l={l} t={t} errText={errText} user={user} />
         <PasskeySection l={l} errText={errText} user={user} fmt={fmt} />
+        <Suspense fallback={null}>
+          <SecuritySections user={user} fmt={fmt} />
+        </Suspense>
         <SessionsSection l={l} errText={errText} fmt={fmt} onSignedOut={toLogin} />
         <CanDoSection l={l} user={user} siteLang={siteLang} />
         <DeleteSection l={l} t={t} errText={errText} user={user} onLeaving={(on) => { leaving.current = on }} onDeleted={() => navigate(pathFor('home', siteLang))} />
