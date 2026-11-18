@@ -293,6 +293,43 @@ Dəvət: `/account#family=<token>`. Endpoint-lər: `GET/POST/DELETE /api/family`
 Limitlər (`server.js`, IP üzrə): `/api/read-together` 300/dəq, `/api/family` 60/dəq, `/api/hifz-tests` 60/dəq. Bütün
 cədvəllər miqrasiyasızdır; modullar əvvəlcədən yükləmə siyahısındadır.
 
+## I mərhələsi: birlikdə — çağırışlar, müəllim sinfi, ailə Ramazan lövhəsi, təqvim axını
+
+Hamısı `requireUser` + CSRF (yalnız `GET /api/cal/<token>.ics` girişsizdir). Cədvəllər miqrasiyasızdır
+(`CREATE TABLE IF NOT EXISTS`, `user_version` dəyişmir), `users(id) ON DELETE CASCADE`; modullar `server.js`-in
+əvvəlcədən yükləmə siyahısında, "Mənim məlumatlarım" ixracında (`exportUser`/`summaryUser`, token heşləri YOX).
+Sərbəst mətn yoxdur — yalnız çağırışın öz başlığı (`custom`, ≤60) və müəllimin qeydi (≤200, bütün sinfə).
+
+### Qrup çağırışları (`server/challenges.js`, `/together#c=<id>`)
+- Şablonlar: `quran_pages` (gündə 1–20 səhifə), `fajr`, `adhkar`, `mulk`, `khatm` (30 cüz üzvlər arasında), `custom`; 7/30/40 gün.
+- Dəvət: 32 bayt token, yalnız SHA-256, çoxdəfəlik (≤50 üzv), sahib yeniləyir → köhnə ölür. `/together#cj=<token>`.
+- Lövhə: YALNIZ gün üzrə toplu say; üzvün adı/sayı/reytinqi heç kimə getmir; hər üzv öz işarələrini görür. Cüzlərdə
+  yalnız "götürülüb / oxunub / sizin". Yaratmaq və qoşulmaq — `consent: true`.
+- Xatırlatma: üzvün yerli saatında, gündə bir dəfə, həmin gün işarələməyibsə; yalnız hesaba bağlı push cihazlarına
+  (`personal_push_links`), yoxdursa heç nə. Planlayıcı dəqiqədə bir (`challengesRouter.tick`). Bitəndən 30 gün sonra silinir.
+- Cədvəllər: `challenges`, `challenge_members`, `challenge_ticks`, `challenge_juz`. Limit: `/api/challenges` 60/dəq.
+
+### Müəllim sinfi (`server/classes.js`, `/together#k=<id>`)
+- ≤60 şagird, müəllim ≤10 sinif, şagird ≤20 sinif. Dəvət — yuxarıdakı kimi (`#kj=<token>`).
+- Tapşırıqlar şablondan: `memorize`/`review` (surə + ayə aralığı), `read` (Mushaf səhifələri 1–604) + son tarix.
+- Müəllim fərdi vəziyyəti ("etdim" işarələri, hifz xülasəsi `hifzAyahs, quranAyahsTotal, quranDaysWeek` — klient
+  hesablayır) YALNIZ razılıq verən şagird üçün görür; razılıq geri alınanda rəqəmlər silinir. Toplu say da yalnız paylaşanlardan.
+- "Məni yoxla": müəllim şagird üçün `hifz_tests` keçidi yaradır (sahibi şagirddir — nəticə onun SRS-inə), əlaqə `class_hifz_tests`-də;
+  müəllim yalnız vəziyyəti görür. Cədvəllər: `classes`, `class_members`, `class_assignments`, `class_done`, `class_hifz_tests`. Limit 60/dəq.
+
+### Ailə Ramazan lövhəsi (`server/familyRamadan.js`, `/api/family/ramadan`)
+- Açıq: 20 Şəban — 7 Şəvval (Ümmül-Qura, `server/hijri.js`); kənarda yazılar `409 not_ramadan`.
+- Razılıqla: tutulan oruc sayı, bu Ramazan oxunan səhifə sayı (gizlət → silinir). Ailə xətmi (cüz → ad), iftar növbəsi
+  (gün → ad), son on gecənin tək gecələri (gecə üzrə say). Keçən mövsümlər və dairədən çıxanların sətirləri təmizlənir.
+- Cədvəllər: `family_ramadan`, `family_ramadan_juz`, `family_ramadan_iftar`, `family_ramadan_qadr` (`/api/family` limiti altında).
+
+### Şəxsi təqvim axını (`server/calFeed.js`)
+- `cal_feeds`: tokenin yalnız SHA-256-ı (32 bayt), seçilmiş bölmələr, dil. Token bir dəfə göstərilir; "Yeni keçid" köhnəni öldürür.
+- `GET /api/cal/<token>.ics` — bütün-gün hadisələri (VALUE=DATE, VTIMEZONE lazım deyil): ildönümləri (adlarla), Cümə (RRULE),
+  zəkat (VALARM −7 gün), məktubun açılış günü (yalnız başlıq), sünnə orucları (`CalSunnahFasts.jsx → fastStatus`-un surəti;
+  Şəvval daxil deyil), çağırış günləri. `Cache-Control: private, max-age=1800`, `X-Robots-Tag: noindex`. Limit 300/dəq;
+  idarə `/api/cal-feed` 30/dəq. nginx: `location ^~ /api/cal/` — `access_log off` (URL-in özü sirdir).
+
 ## Klient (sayt)
 
 - Səhifələr (noindex, sitemap-a düşmür): `/login`, `/signup`, `/account`, `/account/verify`, `/account/reset`

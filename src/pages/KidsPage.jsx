@@ -40,6 +40,8 @@ const KPLANTS = {
 }
 const KCARD = { az: 'Təbrik kartı', en: 'Certificate card', ru: 'Открытка', tr: 'Tebrik kartı', ar: 'بطاقة تهنئة' }
 const KidsCertificate = lazy(() => import('../components/KidsCertificate'))
+// H5: uşaq rejimi kilidi (valideyn PIN-i) — "Valideynlərə" bölməsində
+const KidLockSetup = lazy(() => import('../components/kid/KidLockSetup'))
 import { getSurahLocal } from '../data/surahNamesAz'
 // v6.5: Quranda heyvanlar
 const KANIMALS = {
@@ -414,7 +416,7 @@ const PROPHETS_FOR_KIDS = [
 ]
 
 // Ünvanla açıla bilən bölmələr (?section=…)
-const DEEP_SECTIONS = new Set(['books', 'stories', 'surahs', 'duas', 'prophets'])
+const DEEP_SECTIONS = new Set(['books', 'stories', 'surahs', 'duas', 'prophets', 'parents'])
 
 export default function KidsPage({ setPage }) {
   const { lang } = useLang()
@@ -945,6 +947,9 @@ export default function KidsPage({ setPage }) {
             <section className="kids-section kids-parents" key="parents">
               <SectionTitle />
               <p className="kids-lead">{t.parentsLead}</p>
+              <section className="kids-guide-sec kids-lock" aria-labelledby="kid-setup-h">
+                <Suspense fallback={null}><KidLockSetup heading /></Suspense>
+              </section>
               {PARENTS.sections.map(sec => (
                 <section key={sec.id} className="kids-guide-sec" aria-labelledby={`kids-p-${sec.id}`}>
                   <h3 id={`kids-p-${sec.id}`} className="kids-sub-title">{pick(sec.title, lang)}</h3>

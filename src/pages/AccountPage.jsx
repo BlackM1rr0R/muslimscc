@@ -39,6 +39,10 @@ const AccountDSections = lazy(() => import('../components/account/AccountDSectio
 const AccountESections = lazy(() => import('../components/account/AccountESections'))
 // İki addımlı yoxlama, təhlükəsizlik fəaliyyəti, "Mənim məlumatlarım" (server/security.js)
 const SecuritySections = lazy(() => import('../components/account/SecuritySections'))
+// vI: qrup çağırışları, müəllim sinfi, ailə Ramazan lövhəsi, təqvim axını (server/challenges.js, classes.js, familyRamadan.js, calFeed.js)
+const AccountISections = lazy(() => import('../components/account/AccountISections'))
+// H: vird, kitabxana, öyrənmə məqsədi, uşaq rejimi, şəxsi ana səhifə
+const AccountHSections = lazy(() => import('../components/account/AccountHSections'))
 
 const LABELS = {
   az: {
@@ -337,6 +341,12 @@ export default function AccountPage() {
         </Suspense>
         <Suspense fallback={null}>
           <AccountESections lang={lang} siteLang={siteLang} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AccountISections lang={lang} siteLang={siteLang} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AccountHSections lang={lang} siteLang={siteLang} />
         </Suspense>
         <PasswordSection l={l} t={t} errText={errText} user={user} />
         <PasskeySection l={l} errText={errText} user={user} fmt={fmt} />

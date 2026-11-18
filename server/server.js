@@ -24,7 +24,7 @@ if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUT
 // çağırış pulsuzdur.
 for (const m of ['./auth', './users', './security', './syncKeys', './mailer', './analytics', './csp', './clientErrors', './ummah', './sightings', './content', './feedback', './groups', './sync', './ics', './push',
   './prompts', './ai-utils', './prayer-utils', './daily-ayah', './checkin', './fasting', './reminders', './prayCalc', './eclipse', './eclipse-lib', './daily-hadith', './daily-hadith-data', './personal', './hijri',
-  './readTogether', './family', './hifzTest', './globalKhatm']) require(m)
+  './readTogether', './family', './hifzTest', './globalKhatm', './challenges', './classes', './familyRamadan', './calFeed']) require(m)
 // Paket asılılıqları da (server/package.json → npm ci) — image-də yoxdursa bazadan ƏVVƏL çöksün
 for (const m of ['@simplewebauthn/server']) require(m)
 
@@ -108,7 +108,8 @@ app.use('/api', usersRouter)
 app.use('/api/security', limit(60000, 30))
 app.use('/api', require('./security').createSecurityRouter({
   security, usersStore, requireUser: usersRouter.requireUser, mailer, publicOrigin: PUBLIC_ORIGIN,
-  sources: { personal: () => personalRouter.store, family: () => familyRouter, hifzTests: () => hifzTestRouter, sync: syncKeysStore, readTogether: () => readTogetherRouter, globalKhatm: () => khatmRouter },
+  sources: { personal: () => personalRouter.store, family: () => familyRouter, hifzTests: () => hifzTestRouter, sync: syncKeysStore, readTogether: () => readTogetherRouter, globalKhatm: () => khatmRouter,
+    challenges: () => challengesRouter, classes: () => classesRouter, familyRamadan: () => familyRamadanRouter, calFeed: () => calFeedRouter },
 }))
 setInterval(() => security.purge(), 3600e3).unref()
 app.use('/api', syncKeysLib.createSyncKeysRouter({
@@ -185,6 +186,32 @@ const khatmRouter = require('./globalKhatm').createGlobalKhatmRouter({
 })
 app.use('/api', khatmRouter)
 setInterval(() => { try { khatmRouter.purge() } catch (e) { console.error('khatm purge:', e && e.message) } }, 3600e3).unref()
+
+// ─── I mərhələsi: birlikdə (docs/USER-ACCOUNTS.md → "I mərhələsi") — cədvəllər miqrasiyasız, users(id) CASCADE ──
+// Ailə Ramazan lövhəsi (server/familyRamadan.js) — /api/family limitinin altındadır; family.js-dən SONRA (family_* cədvəlləri)
+const familyRamadanRouter = require('./familyRamadan').createFamilyRamadanRouter({ db, requireUser: usersRouter.requireUser })
+app.use('/api', familyRamadanRouter)
+// Qrup çağırışları (server/challenges.js) — lövhədə yalnız gün üzrə toplu say; xatırlatma yalnız bağlı push cihazlarına
+app.use('/api/challenges', limit(60000, 60))
+const challengesRouter = require('./challenges').createChallengesRouter({
+  db, requireUser: usersRouter.requireUser, icons: require('./push').DEFAULT_ICONS,
+  pushSubsOf: (uid) => personalLib.pushSubsForUser(db, uid),
+  langOf: (uid) => personalLib.prefLangOf(db, uid),
+  pushSend: (subs, msg, label) => (webPush.enabled ? deliver(subs.map((sub) => ({ sub })), msg, label) : Promise.resolve({ successCount: 0, disabled: true })),
+})
+app.use('/api', challengesRouter)
+// Müəllim sinfi (server/classes.js) — fərdi vəziyyət yalnız şagirdin razılığı ilə; "Məni yoxla" hifzTest.js ilə
+app.use('/api/classes', limit(60000, 60))
+const classesRouter = require('./classes').createClassesRouter({ db, requireUser: usersRouter.requireUser, hifzTests: hifzTestRouter })
+app.use('/api', classesRouter)
+// Şəxsi təqvim axını (server/calFeed.js): /api/cal/<token>.ics girişsiz (nginx: access_log off); idarə — /api/cal-feed
+app.use('/api/cal-feed', limit(60000, 30))
+app.use('/api/cal', limit(60000, 300))
+const calFeedRouter = require('./calFeed').createCalFeedRouter({
+  db, requireUser: usersRouter.requireUser, publicOrigin: PUBLIC_ORIGIN, challengesOf: (uid) => challengesRouter.calendarOf(uid),
+})
+app.use('/api', calFeedRouter)
+setInterval(() => { try { challengesRouter.purge(); familyRamadanRouter.purge() } catch (e) { console.error('together purge:', e && e.message) } }, 3600e3).unref()
 
 // ─── CSP pozuntu hesabatları (server/csp.js) — Report-Only rejimi; yaddaşda birləşdirilir ──
 app.use('/api/csp-report', limit(60000, 60))
@@ -895,6 +922,8 @@ setInterval(dailyAyahTick, 20000)
 
 // Şəxsi xatırlatmalar planlayıcısı (server/personal.js) — dəqiqədə bir; ikiqat göndəriş yoxdur
 setInterval(() => { personalRouter.scheduler.tick().catch((e) => console.error('personal tick:', e && e.message)) }, 60000).unref()
+// Qrup çağırışlarının gündəlik xatırlatması (server/challenges.js) — dəqiqədə bir, gündə bir dəfə
+setInterval(() => { challengesRouter.tick().catch((e) => console.error('challenge tick:', e && e.message)) }, 60000).unref()
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`API running on port ${PORT} (DB: ${DB_PATH})`)

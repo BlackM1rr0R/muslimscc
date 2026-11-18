@@ -101,3 +101,6 @@
 }
 .hp-td-list > li { min-width: 0; }
 .hp-td-row { min-width: 0; }
+
+/* H1: kartlar istifadəçinin sırası ilə — gizlənən / yeri dəyişən kart boşluq buraxmasın */
+.hp-td-grid { grid-auto-flow: dense; }

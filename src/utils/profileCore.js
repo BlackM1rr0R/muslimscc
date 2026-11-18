@@ -50,6 +50,8 @@ export const PROFILE_KEYS = [
   'kids_manners', 'muslim_cc_storybooks', 'muslim_cc_kids_card_name', 'muslim_cc_letter_catch_best', 'muslim_cc_memory_best',
   'names_match_best', 'muslim_cc_ayah_race_best', 'quiz_scores', 'qm_badges_v1', 'learn_progress_v1', 'learn_path_v1',
   'arabic_course_v1', 'nawawi40_learned_v1', 'hadith_srs_v1', 'names99_practice_v1',
+  // H mərhələsi: şəxsi ana səhifə, vird, kitabxana, öyrənmə məqsədi
+  'home_layout_v1', 'wird_v1', 'books_shelf_v1', 'learn_goal_v1',
 ]
 const SCOPED = new Set(PROFILE_KEYS)
 export const isProfileScoped = (k) => SCOPED.has(k)

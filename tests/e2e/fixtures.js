@@ -63,6 +63,8 @@ const IGNORED = [
   /Failed to load resource.*\/api\/(auth\/|personal\/|admin\/(users|role-audit|2fa))/i,
   // D mərhələsi (otaq, ailə, hifz yoxlaması) — gözlənilən 4xx (yanlış/köhnə keçid, giriş yoxdur): UI özü göstərir
   /Failed to load resource.*\/api\/(read-together|family|hifz-tests)(\/|\?|$)/i,
+  // I mərhələsi (çağırışlar, siniflər, təqvim axını) — gözlənilən 4xx (yanlış keçid, giriş yoxdur): UI özü göstərir
+  /Failed to load resource.*\/api\/(challenges|classes|cal-feed)(\/|\?|$)/i,
 ]
 
 // Saxta Google Identity Services (src/utils/googleSignIn.js-in işlətdiyi hissə)
@@ -171,6 +173,17 @@ export const test = base.extend({
       // Girişsiz keçidlər (yoxlayan, qonaq) — serverdə olmayan token → 404 (real serverin cavabı)
       if (pathname === '/api/hifz-tests/open' || pathname === '/api/hifz-tests/submit') return route.fulfill({ status: 404, json: { error: 'Invalid link', code: 'invalid_token' } })
       if (pathname === '/api/read-together/join') return route.fulfill({ status: 404, json: { error: 'invalid_invite', code: 'invalid_invite' } })
+      return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
+    })
+    // I mərhələsi (server/challenges.js, classes.js, calFeed.js, familyRamadan.js) — susmaya görə boş / girişsiz.
+    // tests/e2e/togetherApi.js öz saxtasını qoyur. /api/family/ramadan — Ramazan mövsümü bağlı, dairə yoxdur.
+    await page.route((u) => /^\/api\/(challenges|classes|cal-feed|family\/ramadan)(\/|$)/.test(u.pathname), (route) => {
+      const { pathname } = new URL(route.request().url())
+      const get = route.request().method() === 'GET'
+      if (get && pathname === '/api/challenges') return route.fulfill({ json: { challenges: [], limits: {} } })
+      if (get && pathname === '/api/classes') return route.fulfill({ json: { teaching: [], learning: [], limits: {} } })
+      if (get && pathname === '/api/cal-feed') return route.fulfill({ json: { enabled: false, cats: null, lang: null, createdAt: null, available: [] } })
+      if (get && pathname === '/api/family/ramadan') return route.fulfill({ json: { season: { open: false, hyear: 1448, start: '2027-02-08', end: '2027-03-09', phase: null }, circle: null } })
       return route.fulfill({ status: 401, json: { error: 'unauthenticated', code: 'unauthenticated' } })
     })
     // Ümmətin Canlı Xətmi (server/globalKhatm.js) — susmaya görə boş dövr; ictimai SSE bir "hello" göndərib

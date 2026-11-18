@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import HeroOrnament from '../components/HeroOrnament'
 import { useLang } from '../contexts/LangContext'
@@ -23,6 +23,11 @@ import useStarred from '../components/collect/useStarred'
 // Admin məzmunu cari dildə yoxdursa başqa dilə düşmür (bax: utils/pickLang)
 import { pickLang, hasLang } from '../utils/pickLang'
 import { pickUi } from '../utils/uiText'
+// H3: Mənim kitabxanam — rəflər, qaldığım səhifə, şəxsi qeyd (utils/bookShelf)
+import useBookShelf from '../components/my/useBookShelf'
+import { SHELF_TXT } from '../components/my/shelfText'
+import { SHELVES, shelfCounts } from '../utils/bookShelf'
+const BookShelfControls = lazy(() => import('../components/my/BookShelfControls'))
 
 // ── v3.2: seçilmiş kitablar (ulduz, localStorage) — 5 dil ──
 const BP32 = {
@@ -126,6 +131,9 @@ export default function BooksPage() {
   const l = pickUi(LABELS, lang)
   const bx = pickUi(BP32, lang, 'en')
   const star = useStarred('books:favs')
+  const st = pickUi(SHELF_TXT, lang, 'en')
+  const { shelf } = useBookShelf()
+  const shelfN = useMemo(() => shelfCounts(shelf), [shelf])
   const catRef = useRef(null)
   const tilt = useTilt({ max: 5 })
   const navigate = useNavigate()
@@ -140,6 +148,19 @@ export default function BooksPage() {
   const [search, setSearch] = useSessionState('books:q', '')
   const [selectedBook, setSelectedBook] = useState(null)
   const [shareToast, setShareToast] = useState(false)
+  // H3: rəf filtri — 'shelf:reading' | 'shelf:want' | 'shelf:read'
+  const shelfSel = typeof selectedCat === 'string' && selectedCat.startsWith('shelf:') ? selectedCat.slice(6) : null
+
+  // H3: "Davam et" → /books?book=<id> — kitab yüklənəndən sonra pəncərəsi açılır (bir dəfə)
+  const deepDone = useRef(false)
+  useEffect(() => {
+    if (deepDone.current || loading || !books.length) return
+    deepDone.current = true
+    let id = null
+    try { id = new URLSearchParams(window.location.search).get('book') } catch { /* */ }
+    const b = id ? books.find(x => String(x.id) === id) : null
+    if (b) setSelectedBook(b)
+  }, [loading, books])
 
   useEffect(() => {
     const unsubscribe = subscribeToBooks((items) => {
@@ -165,11 +186,13 @@ export default function BooksPage() {
     let list = books
     if (selectedCat === 'fav') {
       list = list.filter(b => star.list.includes(String(b.id)))
+    } else if (shelfSel) {
+      list = list.filter(b => shelf.b[String(b.id)]?.s === shelfSel)
     } else if (featured.length) {
       const ids = new Set(featured.map(b => b.id))
       list = list.filter(b => !ids.has(b.id))
     }
-    if (selectedCat !== 'all' && selectedCat !== 'fav') {
+    if (selectedCat !== 'all' && selectedCat !== 'fav' && !shelfSel) {
       list = list.filter(b => b.category === selectedCat)
     }
     if (search.trim()) {
@@ -182,7 +205,7 @@ export default function BooksPage() {
       })
     }
     return list
-  }, [books, featured, selectedCat, search, lang, star.list])
+  }, [books, featured, selectedCat, search, lang, star.list, shelfSel, shelf])
 
   // Sonsuz sürüşmə — filtr/axtarış/dil dəyişəndə siyahı əvvəldən başlayır və
   // (şəbəkənin ortasında idisə) onun başlığına qalxır (hero-ya yox)
@@ -407,11 +430,23 @@ export default function BooksPage() {
           </div>
         )}
 
+        {/* ═══ H3: MƏNİM KİTABXANAM — rəflər ═══ */}
+        <div className="bp-cat-filter bp-shelf-filter" role="group" aria-label={st.mine} data-testid="shelf-filter">
+          <span className="bp-shelf-ttl"><Icon name="books" size={15} /> {st.mine}</span>
+          {SHELVES.map(s => (
+            <button key={s} type="button" className="ui-chip bp-cat-btn" aria-pressed={shelfSel === s}
+              onClick={() => setSelectedCat(shelfSel === s ? 'all' : `shelf:${s}`)} data-testid={`shelf-chip-${s}`}>
+              <span>{st[s]}</span>
+              <span className="bp-cat-count ui-num">{shelfN[s]}</span>
+            </button>
+          ))}
+        </div>
+
         {/* ═══ BÜTÜN KİTABLAR ═══ */}
         <section className="bp-section">
           <div className="bp-section-head" ref={gridTopRef}>
             <h2 className="ui-title ui-title--sm bp-section-title">
-              <Icon name="books" size={20} className="bp-section-ic" /> {selectedCat === 'fav' ? bx.favs : selectedCat !== 'all'
+              <Icon name="books" size={20} className="bp-section-ic" /> {selectedCat === 'fav' ? bx.favs : shelfSel ? st[shelfSel] : selectedCat !== 'all'
                 ? BOOK_CATEGORIES.find(c => c.key === selectedCat)?.label[lang]
                 : featured.length ? l.moreBooks : l.allBooks}
             </h2>
@@ -434,7 +469,7 @@ export default function BooksPage() {
           ) : filtered.length === 0 ? (
             <div className="ui-card ui-card--sunken bp-empty" data-reveal="scale">
               <span className="ui-icon-tile ui-icon-tile--lg ui-icon-tile--neutral"><Icon name="books" /></span>
-              <p className="bp-empty-title">{selectedCat === 'fav' && !star.count ? bx.favNone : l.noResults}</p>
+              <p className="bp-empty-title">{selectedCat === 'fav' && !star.count ? bx.favNone : shelfSel && !shelfN[shelfSel] ? st.emptyShelf : l.noResults}</p>
               {(search || selectedCat !== 'all') && (
                 <button type="button" className="ui-btn ui-btn--secondary ui-btn--sm" onClick={() => { setSearch(''); setSelectedCat('all') }}>
                   <Icon name="close" className="ui-btn__icon" /> {l.clear}
@@ -607,6 +642,9 @@ export default function BooksPage() {
                       <Icon name="share" className="ui-btn__icon" /> {l.share}
                     </button>
                   </div>
+                  <Suspense fallback={null}>
+                    <BookShelfControls bookId={selectedBook.id} title={pickLang(selectedBook.title, lang)} maxPage={Number(selectedBook.pages) || undefined} />
+                  </Suspense>
                 </div>
               </div>
             </div>

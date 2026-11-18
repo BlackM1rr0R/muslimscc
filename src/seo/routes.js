@@ -151,6 +151,8 @@ export const PAGES = [
   // indekslənmir, sitemap-a düşmür. "Birlikdə Quran oxu" otağı və "Məni yoxla" hifz keçidi.
   { key: 'readtogether',  path: 'read-together',  noindex: true },
   { key: 'hifztest',      path: 'hifz-test',      noindex: true },
+  // I mərhələsi — qrup çağırışı / müəllim sinfi (#c=, #k=; dəvət #cj=, #kj= fraqmentdə)
+  { key: 'together',      path: 'together',       noindex: true },
 ]
 
 /** İndekslənməyən səhifə açarları (Seo.jsx → robots noindex). */

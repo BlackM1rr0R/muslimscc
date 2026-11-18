@@ -1,0 +1,48 @@
+// H1 — şəxsi ana səhifə redaktorunun yazıları (5 dil; əlavə dillər — src/i18n/<dil>.json)
+export const HOME_TXT = {
+  az: {
+    title: 'Ana səhifəni fərdiləşdir', lead: 'Bölmələri və «Bu gün» panelinin kartlarını gizlədin, göstərin və sıralayın. Sürüşdürün və ya ox düymələrindən istifadə edin.',
+    sections: 'Bölmələr', cells: '«Bu gün» panelinin kartları', show: 'Göstər', up: 'Yuxarı', down: 'Aşağı', drag: 'Sürüşdürüb yerini dəyişin',
+    reset: 'Susmaya görə qaytar', done: 'Hazırdır', close: 'Bağla', hiddenTag: 'gizli',
+    moved: (name, pos, total) => `${name}: ${pos} / ${total}`, shown: (name) => `${name} göstərilir`, hidden: (name) => `${name} gizlədildi`, resetDone: 'Sıra susmaya görə qaytarıldı',
+    note: 'Seçim bu profildə saxlanılır və hesabınızla sinxronlanır.',
+    s: { stories: 'Günün hekayələri', today: '«Bu gün» paneli', myday: 'Mənim günüm', wird: 'Mənim virdim', quick: 'Nə axtarırsınız? (bölmələr)', daystory: '«Bir gün» hekayəsi', start: 'Haradan başlamalı?', feats: 'Quran və rəqəmlər', tawheed: 'Tövhid', names: 'Allahın 99 gözəl adı' },
+    c: { hadith: 'Günün hədisi', ayah: 'Günün ayəsi', cont: 'Qaldığınız yerdən', date: 'Tarix və ayın fazası' },
+  },
+  en: {
+    title: 'Customize your home page', lead: 'Hide, show and reorder the sections and the cards of the “Today” panel. Drag them or use the arrow buttons.',
+    sections: 'Sections', cells: 'Cards of the “Today” panel', show: 'Show', up: 'Move up', down: 'Move down', drag: 'Drag to reorder',
+    reset: 'Reset to default', done: 'Done', close: 'Close', hiddenTag: 'hidden',
+    moved: (name, pos, total) => `${name}: ${pos} of ${total}`, shown: (name) => `${name} is shown`, hidden: (name) => `${name} is hidden`, resetDone: 'Order reset to default',
+    note: 'Saved in this profile and synced with your account.',
+    s: { stories: 'Stories of the day', today: 'The “Today” panel', myday: 'My day', wird: 'My wird', quick: 'What are you looking for? (sections)', daystory: 'The “One day” story', start: 'Where to start?', feats: 'Quran and numbers', tawheed: 'Tawheed', names: 'The 99 beautiful names of Allah' },
+    c: { hadith: 'Hadith of the day', ayah: 'Verse of the day', cont: 'Continue where you left off', date: 'Date and moon phase' },
+  },
+  ru: {
+    title: 'Настроить главную страницу', lead: 'Скрывайте, показывайте и меняйте порядок разделов и карточек панели «Сегодня». Перетаскивайте их или пользуйтесь кнопками со стрелками.',
+    sections: 'Разделы', cells: 'Карточки панели «Сегодня»', show: 'Показывать', up: 'Выше', down: 'Ниже', drag: 'Перетащите, чтобы изменить порядок',
+    reset: 'Вернуть по умолчанию', done: 'Готово', close: 'Закрыть', hiddenTag: 'скрыто',
+    moved: (name, pos, total) => `${name}: ${pos} из ${total}`, shown: (name) => `${name} — показывается`, hidden: (name) => `${name} — скрыто`, resetDone: 'Порядок возвращён по умолчанию',
+    note: 'Сохраняется в этом профиле и синхронизируется с аккаунтом.',
+    s: { stories: 'Истории дня', today: 'Панель «Сегодня»', myday: 'Мой день', wird: 'Мой вирд', quick: 'Что вы ищете? (разделы)', daystory: 'История «Один день»', start: 'С чего начать?', feats: 'Коран и цифры', tawheed: 'Таухид', names: '99 прекрасных имён Аллаха' },
+    c: { hadith: 'Хадис дня', ayah: 'Аят дня', cont: 'С того же места', date: 'Дата и фаза луны' },
+  },
+  ar: {
+    title: 'خصّص صفحتك الرئيسية', lead: 'أخفِ الأقسام وبطاقات لوحة «اليوم» وأظهرها ورتّبها. اسحبها أو استخدم أزرار الأسهم.',
+    sections: 'الأقسام', cells: 'بطاقات لوحة «اليوم»', show: 'إظهار', up: 'إلى الأعلى', down: 'إلى الأسفل', drag: 'اسحب لتغيير الترتيب',
+    reset: 'استعادة الترتيب الافتراضي', done: 'تم', close: 'إغلاق', hiddenTag: 'مخفي',
+    moved: (name, pos, total) => `${name}: ${pos} من ${total}`, shown: (name) => `${name}: ظاهر`, hidden: (name) => `${name}: مخفي`, resetDone: 'أُعيد الترتيب الافتراضي',
+    note: 'يُحفظ في هذا الملف الشخصي ويُزامَن مع حسابك.',
+    s: { stories: 'قصص اليوم', today: 'لوحة «اليوم»', myday: 'يومي', wird: 'وِردي', quick: 'عمّ تبحث؟ (الأقسام)', daystory: 'قصة «يوم واحد»', start: 'من أين تبدأ؟', feats: 'القرآن والأرقام', tawheed: 'التوحيد', names: 'أسماء الله الحسنى' },
+    c: { hadith: 'حديث اليوم', ayah: 'آية اليوم', cont: 'تابع من حيث توقفت', date: 'التاريخ وطور القمر' },
+  },
+  tr: {
+    title: 'Ana sayfanı kişiselleştir', lead: 'Bölümleri ve «Bugün» panelinin kartlarını gizleyin, gösterin ve sıralayın. Sürükleyin veya ok düğmelerini kullanın.',
+    sections: 'Bölümler', cells: '«Bugün» panelinin kartları', show: 'Göster', up: 'Yukarı', down: 'Aşağı', drag: 'Sıralamak için sürükleyin',
+    reset: 'Varsayılana döndür', done: 'Tamam', close: 'Kapat', hiddenTag: 'gizli',
+    moved: (name, pos, total) => `${name}: ${pos} / ${total}`, shown: (name) => `${name} gösteriliyor`, hidden: (name) => `${name} gizlendi`, resetDone: 'Sıra varsayılana döndürüldü',
+    note: 'Bu profilde saklanır ve hesabınızla eşitlenir.',
+    s: { stories: 'Günün hikâyeleri', today: '«Bugün» paneli', myday: 'Benim günüm', wird: 'Benim virdim', quick: 'Ne arıyorsunuz? (bölümler)', daystory: '«Bir gün» hikâyesi', start: 'Nereden başlamalı?', feats: 'Kur’an ve rakamlar', tawheed: 'Tevhid', names: 'Allah’ın 99 güzel ismi' },
+    c: { hadith: 'Günün hadisi', ayah: 'Günün ayeti', cont: 'Kaldığınız yerden', date: 'Tarih ve ayın evresi' },
+  },
+}

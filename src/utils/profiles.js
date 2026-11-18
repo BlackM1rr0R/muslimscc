@@ -7,6 +7,8 @@ import {
   REGISTRY_KEY, ACTIVE_KEY, EVENT, MAX_PROFILES, NS, PROFILE_KEYS, nsKey, readRegistry, activeId, workingOwner,
   flushActive, hydrateActive, cleanProfile, safeStorage,
 } from './profileCore'
+// H5: uşaq rejimi açıqdırsa profil dəyişmək bağlıdır (əvvəlcə PIN ilə çıxılmalıdır)
+import { isKidLocked } from './kidLock'
 
 export * from './profileCore'
 
@@ -93,6 +95,7 @@ export function switchProfile(id, storage = safeStorage()) {
   const reg = readRegistry(storage)
   if (!reg || !reg.list.some((p) => p.id === id)) return false
   if (activeId(storage) === id && workingOwner(storage) === 'ok') return true
+  if (isKidLocked(storage)) return false
   if (!flushActive(storage)) return false
   try { storage.setItem(ACTIVE_KEY, id) } catch { return false }
   hydrateActive(storage)

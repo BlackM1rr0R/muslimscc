@@ -21,6 +21,7 @@ import StarButton from '../components/collect/StarButton'
 import useStarred from '../components/collect/useStarred'
 import { pickUi } from '../utils/uiText'
 import LearningPaths from '../components/lesson/LearningPaths'
+import { readGoal, saveGoal, logRead } from '../utils/learnGoal'
 
 // ── v3.2: vəziyyət süzgəci (oxunmamış / oxunmuş / seçilmiş), əlfəcin, şrift ölçüsü (5 dil) ──
 const LS32 = {
@@ -177,9 +178,12 @@ function useLessonProgress() {
     return next
   }), [])
   const readSet = useMemo(() => new Set(p.read), [p.read])
-  const toggleRead = useCallback((slug) => save(prev => ({
-    ...prev, read: prev.read.includes(slug) ? prev.read.filter(s => s !== slug) : [...prev.read, slug],
-  })), [save])
+  const toggleRead = useCallback((slug) => save(prev => {
+    const was = prev.read.includes(slug)
+    // H4: oxunan gün — həftəlik xülasə üçün (utils/learnGoal; learn_progress_v1-də tarix yoxdur)
+    if (!was) { try { saveGoal(logRead(readGoal(), slug)) } catch { /* */ } }
+    return { ...prev, read: was ? prev.read.filter(s => s !== slug) : [...prev.read, slug] }
+  }), [save])
   const setLast = useCallback((slug) => save(prev => (prev.last === slug ? prev : { ...prev, last: slug })), [save])
   return { readSet, last: p.last, toggleRead, setLast }
 }

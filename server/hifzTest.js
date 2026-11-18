@@ -203,6 +203,31 @@ function createHifzTestRouter({ db, requireUser, allowedOrigins = [], now = () =
     const t = now()
     return st.purge.run(t - 24 * 3600e3, t - RESULT_KEEP_MS, t - UNFETCHED_KEEP_MS).changes
   }
+  /**
+   * Başqa modul üçün (server/classes.js — müəllim sinifdəki şagird üçün yoxlama yaradır): keçid
+   * ŞAGİRDİN adına yaranır (user_id = şagird) — nəticə onun /hifz siyahısına və SRS-inə düşür.
+   * → { test, token } | { error: 'bad_range' | 'bad_name' | 'too_many' }
+   */
+  router.createFor = (uid, range, displayName) => {
+    const r = validRange(range)
+    if (!r) return { error: 'bad_range' }
+    const name = cleanLine(displayName, MAX_NAME)
+    if (!name) return { error: 'bad_name' }
+    const t = now()
+    if (st.open.get(uid, t).n >= MAX_OPEN_TESTS) return { error: 'too_many' }
+    const token = crypto.randomBytes(32).toString('base64url')
+    const id = Number(st.insert.run(uid, sha256(token), r.surah, r.from, r.to, name, t, t + TEST_TTL_MS).lastInsertRowid)
+    return { test: testOut(st.list.all(uid).find((x) => x.id === id)), token }
+  }
+  /** id-lər → { id: status } (classes.js müəllimə yalnız vəziyyəti göstərir, işarələri yox) */
+  router.statusOf = (ids) => {
+    const out = {}
+    for (const id of ids) {
+      const row = raw.prepare('SELECT id, result, expires_at, created_at, surah, from_ayah, to_ayah FROM hifz_tests WHERE id = ?').get(id)
+      if (row) out[id] = { status: row.result != null ? 'done' : row.expires_at <= now() ? 'expired' : 'open', surah: row.surah, from: row.from_ayah, to: row.to_ayah, createdAt: row.created_at }
+    }
+    return out
+  }
   /** "Mənim məlumatlarım" (server/security.js): keçidlər və nəticələr (token heşi YOX); "götürüldü" işarəsi qoyulmur */
   router.exportUser = (uid) => st.list.all(uid).map(testOut)
   router.summaryUser = (uid) => ({ tests: st.list.all(uid).length })

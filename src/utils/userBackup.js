@@ -39,6 +39,7 @@ const EXCLUDE_KEYS = new Set([
   'mcc_acct_sync',    // hesab sinxronizasiyasının bu cihazdakı vəziyyəti (utils/accountSync)
   ACTIVE_KEY,         // bu cihazda aktiv profil (utils/profiles) — hər cihazın öz seçimi
   'mcc_rt_sessions',  // "Birlikdə oxu" otaqlarının bu cihazdakı iştirakçı sirləri (pages/ReadTogetherPage)
+  'mcc_kidlock',      // uşaq rejimi kilidi + valideyn PIN-inin heşi (utils/kidLock) — yalnız bu cihaz
 ])
 
 export function isBackupKey(key) {

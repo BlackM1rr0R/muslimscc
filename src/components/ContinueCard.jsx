@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════
 // "Davam et" kartı — qaldığınız yerlər: Quran, Mushaf, hədis, ərəb kursu, dərs, hifz,
-// həcc bələdçisi, uşaq kitabları, zikr. Hər element birbaşa həmin yerə aparır.
+// həcc bələdçisi, uşaq kitabları, zikr, kitabxanada oxunan kitab (H3). Hər element birbaşa həmin yerə aparır.
 //
 // Məlumat yalnız bu cihazın yaddaşındandır (utils/continueItems) — hesabsız da işləyir;
 // hesabla daxil olanda sinxronlanmış məlumatı göstərir (bərpadan sonra özü yenilənir).
@@ -31,6 +31,7 @@ export const CONT_TXT = {
     hifz: 'Hifz', hifzSub: (m, p) => `Əzbər: ${m} surə · davam edir: ${p}`,
     hajj: 'Həcc bələdçisi', umrah: 'Ümrə bələdçisi', step: (n) => `Addım ${n}`,
     story: 'Hekayə kitabları', dhikr: 'Zikr', dhikrCount: (n) => `Sayğac: ${n}`,
+    book: 'Kitab', bookReading: 'Oxuyuram',
   },
   en: {
     ey: 'Continue', title: 'Pick up where you left off', sub: 'The places you last read and studied — continue with one tap.',
@@ -42,6 +43,7 @@ export const CONT_TXT = {
     hifz: 'Hifz', hifzSub: (m, p) => `Memorized: ${m} surahs · in progress: ${p}`,
     hajj: 'Hajj guide', umrah: 'Umrah guide', step: (n) => `Step ${n}`,
     story: 'Story books', dhikr: 'Dhikr', dhikrCount: (n) => `Counter: ${n}`,
+    book: 'Book', bookReading: 'Reading',
   },
   ru: {
     ey: 'Продолжить', title: 'С того же места', sub: 'Места, где вы читали и учились в последний раз, — продолжайте одним касанием.',
@@ -53,6 +55,7 @@ export const CONT_TXT = {
     hifz: 'Хифз', hifzSub: (m, p) => `Выучено сур: ${m} · в процессе: ${p}`,
     hajj: 'Руководство по хаджу', umrah: 'Руководство по умре', step: (n) => `Шаг ${n}`,
     story: 'Книги историй', dhikr: 'Зикр', dhikrCount: (n) => `Счётчик: ${n}`,
+    book: 'Книга', bookReading: 'Читаю',
   },
   tr: {
     ey: 'Devam et', title: 'Kaldığınız yerden', sub: 'En son okuduğunuz ve öğrendiğiniz yerler — tek dokunuşla devam edin.',
@@ -64,6 +67,7 @@ export const CONT_TXT = {
     hifz: 'Hıfz', hifzSub: (m, p) => `Ezber: ${m} sure · devam eden: ${p}`,
     hajj: 'Hac rehberi', umrah: 'Umre rehberi', step: (n) => `Adım ${n}`,
     story: 'Hikâye kitapları', dhikr: 'Zikir', dhikrCount: (n) => `Sayaç: ${n}`,
+    book: 'Kitap', bookReading: 'Okuyorum',
   },
   ar: {
     ey: 'تابِع', title: 'من حيث توقفت', sub: 'آخر ما قرأته وتعلّمته — تابع بلمسة واحدة.',
@@ -75,6 +79,7 @@ export const CONT_TXT = {
     hifz: 'الحفظ', hifzSub: (m, p) => `محفوظ: ${m} سورة · قيد الحفظ: ${p}`,
     hajj: 'دليل الحج', umrah: 'دليل العمرة', step: (n) => `الخطوة ${n}`,
     story: 'كتب القصص', dhikr: 'الذكر', dhikrCount: (n) => `العدّاد: ${n}`,
+    book: 'كتاب', bookReading: 'أقرؤه',
   },
 }
 
@@ -98,6 +103,7 @@ function describe(it, l, lang, books) {
     case 'hajj': return { title: v.mode === 'umrah' ? l.umrah : l.hajj, sub: l.step(v.step) }
     case 'story': return { title: l.story, sub: l.page(v.page) }
     case 'dhikr': return { title: l.dhikr, sub: l.dhikrCount(v.count) }
+    case 'book': return { title: v.title ? `${l.book} · ${v.title}` : l.book, sub: v.page ? l.page(v.page) : l.bookReading }
     default: return { title: '', sub: '' }
   }
 }

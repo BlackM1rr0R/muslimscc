@@ -7,6 +7,8 @@ import { haptic } from '../hooks/useHaptic'
 import { navGroupLabel } from '../data/navigation'
 import Icon from '../components/Icon'
 const DailySunnah = lazy(() => import('../components/DailySunnah'))
+// H2: şəxsi vird — bugünkü siyahı + qurucu (components/my/WirdPanel)
+const WirdPanel = lazy(() => import('../components/my/WirdPanel'))
 import '../styles/DailyTrackerPage.css'
 import '../styles/ToolsMotion.css'
 import Sparkle from '../components/prayer/Sparkle'
@@ -252,6 +254,13 @@ export default function DailyTrackerPage({ setPage }) {
       <section className="ui-section ui-section--tight">
         <div className="ui-container">
           <Suspense fallback={<div className="ui-card" style={{ minHeight: 360 }} />}><DailySunnah /></Suspense>
+        </div>
+      </section>
+
+      {/* H2: Mənim virdim — namaz vaxtlarına görə bugünkü siyahı, halqa, seriya */}
+      <section className="ui-section ui-section--tight" id="wird" aria-labelledby="wird-ttl">
+        <div className="ui-container">
+          <Suspense fallback={<div className="ui-card" style={{ minHeight: 280 }} />}><WirdPanel /></Suspense>
         </div>
       </section>
 

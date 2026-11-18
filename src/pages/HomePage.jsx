@@ -13,7 +13,7 @@
 // yuxarıdakı sakit zolaqdadır.
 // Brend mətnləri yalnız src/config/brand.js-dən oxunur.
 // ═══════════════════════════════════════════════════════
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense, Fragment } from 'react'
 import HeroOrnament from '../components/HeroOrnament'
 import RamadanLanterns from '../components/home/RamadanLanterns'
 import DeferRender from '../components/DeferRender'
@@ -29,6 +29,7 @@ import CityPicker from '../components/CityPicker'
 import HeroGreeting from '../components/home/HeroGreeting'
 import { HADITH_COUNT } from '../data/siteStats'
 import { lazyWhenIdle, whenIdle } from '../utils/idle'
+import { readLayout, visibleIds, LAYOUT_EVENT, LAYOUT_KEY } from '../utils/homeLayout'
 
 // PERFORMANS: hero-dan aşağıdakı bölmələr .ui-cv (ui.css → content-visibility:
 // auto) alır — ekrandan uzaq olanda brauzer onların style/layout/paint işini
@@ -85,6 +86,9 @@ const MyDay = lazy(lazyWhenIdle(() => import('../components/home/MyDay').catch((
 // Cümə rejimi (v5.3) — chunk yalnız cümə günü (və ya ?jumuah sınağı) yüklənir
 const JumuahCard = lazy(() => import('../components/home/JumuahCard').catch(() => ({ default: () => null })))
 // Ümmətin Canlı Xətmi: kiçik canlı sayğac (SSE açmır — boş vaxtda keşlənmiş /api/khatm/stats)
+// H1: şəxsi ana səhifə — redaktor yalnız düyməyə basanda yüklənir; vird kartı (H2) boş vaxtda
+const HomeLayoutEditor = lazy(() => import('../components/my/HomeLayoutEditor'))
+const HomeWird = lazy(lazyWhenIdle(() => import('../components/my/HomeWird').catch(() => ({ default: () => null }))))
 const KhatmPulse = lazy(() => import('../components/khatm/KhatmPulse').catch(() => ({ default: () => null })))
 const isFridayLocal = () => { try { return new Date().getDay() === 5 || new URLSearchParams(window.location.search).has('jumuah') } catch { return false } }
 const HomeTodayFallback = () => (
@@ -135,6 +139,7 @@ const LABELS = {
     calcNote: (c) => `Azan vaxtları ${c} üçün aladhan.com ilə hesablanıb.`,
     loading: 'Namaz vaxtları yüklənir...', error: 'Namaz vaxtlarını yükləmək alınmadı.', retry: 'Yenidən cəhd et',
     mainTitle: 'Əsas',
+    customize: 'Ana səhifəni fərdiləşdir',
     featEy: 'Saytda', featTitle: 'İslami bilik və ibadət',
     featSub: 'Quran, hədis, dua və digər faydalı bölmələr — hamısı pulsuz.', featGo: 'Keçid et →',
     ctaTitle: 'Hər gün İslamla birlikdə',
@@ -158,6 +163,7 @@ const LABELS = {
     calcNote: (c) => `Adhan times for ${c} are calculated via aladhan.com.`,
     loading: 'Loading prayer times...', error: 'Couldn’t load prayer times.', retry: 'Try again',
     mainTitle: 'Main',
+    customize: 'Customize your home page',
     featEy: 'On the site', featTitle: 'Islamic knowledge & worship',
     featSub: 'Quran, hadith, duas and other useful sections — all free.', featGo: 'Open →',
     ctaTitle: 'With Islam, every day',
@@ -181,6 +187,7 @@ const LABELS = {
     calcNote: (c) => `Время азана для города ${c} рассчитано через aladhan.com.`,
     loading: 'Загрузка времени намаза...', error: 'Не удалось загрузить время намаза.', retry: 'Повторить',
     mainTitle: 'Главное',
+    customize: 'Настроить главную страницу',
     featEy: 'На сайте', featTitle: 'Исламские знания и поклонение',
     featSub: 'Коран, хадисы, дуа и другие полезные разделы — всё бесплатно.', featGo: 'Перейти →',
     ctaTitle: 'С исламом каждый день',
@@ -204,6 +211,7 @@ const LABELS = {
     calcNote: (c) => `أوقات الأذان لمدينة ${c} محسوبة عبر aladhan.com.`,
     loading: 'جارٍ تحميل مواقيت الصلاة...', error: 'تعذّر تحميل مواقيت الصلاة.', retry: 'إعادة المحاولة',
     mainTitle: 'الرئيسية',
+    customize: 'خصّص صفحتك الرئيسية',
     featEy: 'في الموقع', featTitle: 'المعرفة الإسلامية والعبادة',
     featSub: 'القرآن والحديث والأدعية وأقسام مفيدة أخرى — كلها مجانًا.', featGo: 'انتقل ←',
     ctaTitle: 'مع الإسلام كل يوم',
@@ -227,6 +235,7 @@ const LABELS = {
     calcNote: (c) => `${c} ezan vakitleri aladhan.com ile hesaplanmıştır.`,
     loading: 'Namaz vakitleri yükleniyor...', error: 'Namaz vakitleri yüklenemedi.', retry: 'Tekrar dene',
     mainTitle: 'Ana Menü',
+    customize: 'Ana sayfanı kişiselleştir',
     featEy: 'Sitede', featTitle: 'İslami bilgi ve ibadet',
     featSub: "Kur'an, hadis, dua ve diğer faydalı bölümler — hepsi ücretsiz.", featGo: 'Git →',
     ctaTitle: 'Her gün İslam ile',
@@ -611,106 +620,52 @@ export default function HomePage({ setPage }) {
     {num:100,  s:'%', icon:'gift', l:{az:'Pulsuz',         en:'Free',           ru:'Бесплатно',     tr:'Ücretsiz',     ar:'مجاناً'}},
   ]
 
-  return (
-    <div className="hp-root">
+  // H1: şəxsi sıra — ilk render-də sinxron oxunur (createRoot, hidrasiya yoxdur → yanıb-sönmə yoxdur)
+  const [layout, setLayout] = useState(() => readLayout())
+  const [editOpen, setEditOpen] = useState(false)
+  useEffect(() => {
+    const on = () => setLayout(readLayout())
+    const st = (e) => { if (e.key === LAYOUT_KEY || e.key === null) on() }
+    const sync = (e) => { const t = e.detail?.status || e.detail?.type; if (t === 'restored' || t === 'pulled' || t === 'linked') on() }
+    window.addEventListener(LAYOUT_EVENT, on)
+    window.addEventListener('storage', st)
+    window.addEventListener('mcc-acctsync', sync)
+    return () => { window.removeEventListener(LAYOUT_EVENT, on); window.removeEventListener('storage', st); window.removeEventListener('mcc-acctsync', sync) }
+  }, [])
 
-      {/* Zolaq + hero + "Əsas" sırası eyni fonda */}
-      <div className="hp-top">
-
-        {/* ═══ GÜNÜN XATIRLATMALARI — başlığın düz altında, axında (üzmür) ═══
-            Öz Suspense sərhədi var: yer tutucu hündürlüyü əvvəlcədən saxlayır.
-            Ziyarətçi bu gün bağlayıbsa həm zolaq, həm yer tutucu null qaytarır. */}
-        <Suspense fallback={<DailyReminderBarSkeleton />}>
-          <DailyReminderBar setPage={goTo} />
-        </Suspense>
-
-        {/* ═══ HERO ═══════════════════════════════════════════════════════
-            v3: "bu sayt nədir" bir baxışda — brend, bir cümlə, iki əsas düymə,
-            üç qısa üstünlük; sağda (telefonda altda) namaz vaxtları kartı.
-            Hədis sitatı və üçüncü ("Elanlar") düymə götürülüb — sakitlik. */}
-        <section ref={heroRef} className={`hp-hero ${visible?'hp-hero--vis':''}`} data-wow-pause="">
-          {/* v4 "canlı səma": namaz vaxtına görə səma + yavaş axan aurora +
-              fırlanan xatəm ulduzu + üzən kiçik həndəsi ulduzlar (hamısı dekor,
-              yalnız transform/opacity; ekrandan çıxanda dayanır — wow.css) */}
-          <div className="hp-hero-bg" aria-hidden="true">
-            <div className="hp-aur"><i /><i /><i /></div>
-            <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
-            {/* v6.9: Nur xatəmi — naxış qızılı xətlə özünü çəkir (bir dəfə) */}
-            <HeroOrnament className="hp-orn" />
-            <RamadanLanterns />
-            <div className="hp-hero-glow" />
-            {/* v6: yavaş axan incə qızılı xətlər (dekor; ekrandan çıxanda dayanır) */}
-            <BackgroundPaths tone="gold" count={22} className="hp-paths" />
-            <div className="hp-khatam" data-parallax="0.08" />
-            <div className="hp-stars">{HERO_STARS.map((st, i) => <i key={i} style={st} />)}</div>
-            {/* v5.7: hava effekti — html[data-weather] olanda (WeatherDua) */}
-            <div className="hp-wx" />
-          </div>
-
-          {dust && <Suspense fallback={null}><HeroDust heroRef={heroRef} /></Suspense>}
-          <div className="hp-hero-inner">
-            <div className="hp-hero-content">
-              {/* v5.7: şəxsi salam (prerenderdə — adi nişan) */}
-              <HeroGreeting fallback={l.badge} lang={lang} />
-
-              <h1 className="hp-hero-title hp-shine" aria-label={brand}>
-                {/* "Muslims" + ".cc" bir sətirdə (domen kimi oxunsun).
-                    v4: hərflər növbə ilə yuxarı qalxır (yalnız transform — LCP
-                    üçün mətn ilk kadrdan görünür), sonra qızılı işıq keçir. */}
-                <span className="hp-ht-row" aria-hidden="true">
-                  <span className="hp-ht-1">{[...brandFirst].map((ch, i) => <span key={i} className="hp-ht-ch" style={{ '--ci': i }}>{ch}</span>)}</span>
-                  {brandLast && <span className="hp-ht-2">{brandLast}</span>}
-                </span>
-              </h1>
-
-              {/* v6: söz-söz yerinə oturur — ilk kadrda opacity 1 (LCP), yalnız transform + kiçik blur */}
-              <TextEffect as="p" className="hp-hero-sub" per="word" preset="blur" delay={0.14}>{tr(BRAND.tagline, lang)}</TextEffect>
-
-              <div className="hp-hero-btns">
-                <button type="button" className="ui-btn ui-btn--primary ui-btn--lg" onClick={()=>goTo('prayer')}><Icon name="prayer" className="ui-btn__icon" /> {l.btnTimes}</button>
-                <button type="button" className="ui-btn ui-btn--secondary ui-btn--lg" onClick={()=>goTo('quran')}><Icon name="quran" className="ui-btn__icon" /> {l.btnQuran}</button>
-              </div>
-
-              <ul className="hp-hero-trust" aria-label={l.heroTrust}>
-                <li><Icon name="check" size={16} /> {l.noSignup}</li>
-                <li><Icon name="shield" size={16} /> {l.adFree}</li>
-                <li><Icon name="globe" size={16} /> {l.langs}</li>
-              </ul>
-            </div>
-
-            <div className="hp-hero-visual">
-              <PrayerWidget lang={lang} l={l} onMore={()=>goTo('prayer')} />
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <Suspense fallback={null}>
-        <WeatherDua />
-      </Suspense>
-
-      {/* ═══ CÜMƏ — yalnız cümə günü: geri sayım, Kəhf, salavat ═══ */}
-      {isFridayLocal() && (
-        <Suspense fallback={null}>
-          <JumuahCard />
-        </Suspense>
-      )}
-
+  // H1: hero-dan aşağıdakı bölmələr — istifadəçinin sırası ilə (utils/homeLayout; prerender-də susmaya görə)
+  const SECTIONS = {
+    stories: (
+      <>
       {/* ═══ GÜNÜN HEKAYƏLƏRİ — story dairələri (v5.9) ═══ */}
       <Suspense fallback={<div style={{ minHeight: 98 }} />}>
         <DayStories lang={lang} />
       </Suspense>
-
+      </>
+    ),
+    today: (
+      <>
       {/* ═══ BU GÜN — bento: günün hədisi, ayəsi, davam et, tarix ═══ */}
       <Suspense fallback={<HomeTodayFallback />}>
-        <HomeToday />
+        <HomeToday cells={visibleIds(layout.c)} />
       </Suspense>
-
+      </>
+    ),
+    myday: (
+      <>
       {/* ═══ MƏNİM GÜNÜM — namaz, zikr, Quran, əməllər (vau3 §15) ═══ */}
       <Suspense fallback={null}>
         <MyDay onNavigate={goTo} />
       </Suspense>
-
+      </>
+    ),
+    wird: (
+      <Suspense fallback={null}>
+        <HomeWird onNavigate={goTo} />
+      </Suspense>
+    ),
+    quick: (
+      <>
       {/* ═══ NƏ AXTARIRSINIZ? — 12 əsas bölmə, ikon kafelləri ═════════════
           Əvvəlki "Əsas" sırası + "Saytda" kafelləri BİR şəbəkədə (təkrar yox).
           <a href> — Ctrl/orta klik yeni tabda açır; adi klik SPA ilə. */}
@@ -736,14 +691,20 @@ export default function HomePage({ setPage }) {
           </ul>
         </div>
       </section>
-
+      </>
+    ),
+    daystory: (
+      <>
       {/* ═══ BİR GÜN — sürüşdükcə açılan hekayə (Sübh → İşa) ═══ */}
       <DeferRender height="1600px" idle={false} rootMargin="600px 0px">
         <Suspense fallback={<div style={{ minHeight: 1600 }} />}>
           <DayStory lang={lang} onNavigate={goTo} />
         </Suspense>
       </DeferRender>
-
+      </>
+    ),
+    start: (
+      <>
       {/* ═══ HARADAN BAŞLAMALI? — yeni gələn üçün 4 addım ═════════════════ */}
       <DeferRender height={CV.start['--cv-h']} delay={300}>
       <section className="ui-section ui-section--tight hp-start ui-cv" style={CV.start} aria-labelledby="hp-start-ttl">
@@ -772,7 +733,10 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
       </DeferRender>
-
+      </>
+    ),
+    feats: (
+      <>
       {/* ═══ QURAN + RƏQƏMLƏR ════════════════════════════════════════════
           Solda Quran kafeli (Hicr 9 + "Quran oxu"), sağda saytın məzmunu
           rəqəmlərlə (statistika kafelləri; görünəndə sayır — data-count). */}
@@ -818,7 +782,10 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
       </DeferRender>
-
+      </>
+    ),
+    tawheed: (
+      <>
       {/* ═══ TAWHEED ════════════════════════════════════════════════════ */}
       <DeferRender height={CV.tw['--cv-h']} delay={900}>
       <section className="hp-tw ui-cv" style={CV.tw}>
@@ -934,8 +901,10 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
       </DeferRender>
-
-
+      </>
+    ),
+    names: (
+      <>
       {/* ═══ 99 NAMES ════════════════════════════════════════════════════ */}
       <DeferRender height={CV.names['--cv-h']} delay={1200}>
       <section className="hp-names ui-cv" style={CV.names}>
@@ -971,6 +940,109 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
       </DeferRender>
+      </>
+    ),
+  }
+
+  return (
+    <div className="hp-root">
+
+      {/* Zolaq + hero + "Əsas" sırası eyni fonda */}
+      <div className="hp-top">
+
+        {/* ═══ GÜNÜN XATIRLATMALARI — başlığın düz altında, axında (üzmür) ═══
+            Öz Suspense sərhədi var: yer tutucu hündürlüyü əvvəlcədən saxlayır.
+            Ziyarətçi bu gün bağlayıbsa həm zolaq, həm yer tutucu null qaytarır. */}
+        <Suspense fallback={<DailyReminderBarSkeleton />}>
+          <DailyReminderBar setPage={goTo} />
+        </Suspense>
+
+        {/* ═══ HERO ═══════════════════════════════════════════════════════
+            v3: "bu sayt nədir" bir baxışda — brend, bir cümlə, iki əsas düymə,
+            üç qısa üstünlük; sağda (telefonda altda) namaz vaxtları kartı.
+            Hədis sitatı və üçüncü ("Elanlar") düymə götürülüb — sakitlik. */}
+        <section ref={heroRef} className={`hp-hero ${visible?'hp-hero--vis':''}`} data-wow-pause="">
+          {/* v4 "canlı səma": namaz vaxtına görə səma + yavaş axan aurora +
+              fırlanan xatəm ulduzu + üzən kiçik həndəsi ulduzlar (hamısı dekor,
+              yalnız transform/opacity; ekrandan çıxanda dayanır — wow.css) */}
+          <div className="hp-hero-bg" aria-hidden="true">
+            <div className="hp-aur"><i /><i /><i /></div>
+            <div className="ui-pattern ui-pattern--fade hp-hero-pattern" />
+            {/* v6.9: Nur xatəmi — naxış qızılı xətlə özünü çəkir (bir dəfə) */}
+            <HeroOrnament className="hp-orn" />
+            <RamadanLanterns />
+            <div className="hp-hero-glow" />
+            {/* v6: yavaş axan incə qızılı xətlər (dekor; ekrandan çıxanda dayanır) */}
+            <BackgroundPaths tone="gold" count={22} className="hp-paths" />
+            <div className="hp-khatam" data-parallax="0.08" />
+            <div className="hp-stars">{HERO_STARS.map((st, i) => <i key={i} style={st} />)}</div>
+            {/* v5.7: hava effekti — html[data-weather] olanda (WeatherDua) */}
+            <div className="hp-wx" />
+          </div>
+
+          {dust && <Suspense fallback={null}><HeroDust heroRef={heroRef} /></Suspense>}
+          <div className="hp-hero-inner">
+            <div className="hp-hero-content">
+              {/* v5.7: şəxsi salam (prerenderdə — adi nişan) */}
+              <HeroGreeting fallback={l.badge} lang={lang} />
+
+              <h1 className="hp-hero-title hp-shine" aria-label={brand}>
+                {/* "Muslims" + ".cc" bir sətirdə (domen kimi oxunsun).
+                    v4: hərflər növbə ilə yuxarı qalxır (yalnız transform — LCP
+                    üçün mətn ilk kadrdan görünür), sonra qızılı işıq keçir. */}
+                <span className="hp-ht-row" aria-hidden="true">
+                  <span className="hp-ht-1">{[...brandFirst].map((ch, i) => <span key={i} className="hp-ht-ch" style={{ '--ci': i }}>{ch}</span>)}</span>
+                  {brandLast && <span className="hp-ht-2">{brandLast}</span>}
+                </span>
+              </h1>
+
+              {/* v6: söz-söz yerinə oturur — ilk kadrda opacity 1 (LCP), yalnız transform + kiçik blur */}
+              <TextEffect as="p" className="hp-hero-sub" per="word" preset="blur" delay={0.14}>{tr(BRAND.tagline, lang)}</TextEffect>
+
+              <div className="hp-hero-btns">
+                <button type="button" className="ui-btn ui-btn--primary ui-btn--lg" onClick={()=>goTo('prayer')}><Icon name="prayer" className="ui-btn__icon" /> {l.btnTimes}</button>
+                <button type="button" className="ui-btn ui-btn--secondary ui-btn--lg" onClick={()=>goTo('quran')}><Icon name="quran" className="ui-btn__icon" /> {l.btnQuran}</button>
+              </div>
+
+              <ul className="hp-hero-trust" aria-label={l.heroTrust}>
+                <li><Icon name="check" size={16} /> {l.noSignup}</li>
+                <li><Icon name="shield" size={16} /> {l.adFree}</li>
+                <li><Icon name="globe" size={16} /> {l.langs}</li>
+              </ul>
+            </div>
+
+            <div className="hp-hero-visual">
+              <PrayerWidget lang={lang} l={l} onMore={()=>goTo('prayer')} />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <Suspense fallback={null}>
+        <WeatherDua />
+      </Suspense>
+
+      {/* ═══ CÜMƏ — yalnız cümə günü: geri sayım, Kəhf, salavat ═══ */}
+      {isFridayLocal() && (
+        <Suspense fallback={null}>
+          <JumuahCard />
+        </Suspense>
+      )}
+
+      {/* ═══ H1: fərdiləşdirmə düyməsi + istifadəçinin sırası ilə bölmələr ═══ */}
+      <div className="ui-container hp-custom">
+        <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm hp-custom__btn" onClick={() => setEditOpen(true)} aria-haspopup="dialog" data-testid="home-customize">
+          <Icon name="edit" className="ui-btn__icon" /> {l.customize}
+        </button>
+      </div>
+      {editOpen && (
+        <Suspense fallback={null}>
+          <HomeLayoutEditor onClose={() => setEditOpen(false)} />
+        </Suspense>
+      )}
+      <div data-testid="home-sections">
+        {visibleIds(layout.s).map((id) => SECTIONS[id] ? <Fragment key={id}><div className="hp-slot" data-home-section={id}>{SECTIONS[id]}</div></Fragment> : null)}
+      </div>
 
       {/* Quran zolağı (Hicr 9 + 114/6236/30 + "Quran oxu") yuxarıdakı bento
           şəbəkəsinin iri Quran kafelinə köçürülüb — məzmun eynidir. */}

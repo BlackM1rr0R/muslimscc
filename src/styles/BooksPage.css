@@ -565,3 +565,7 @@
 }
 @keyframes bp-close { from { transform: rotateY(-75deg); opacity: .4; } to { transform: none; opacity: 1; } }
 @keyframes bp-close-rtl { from { transform: rotateY(75deg); opacity: .4; } to { transform: none; opacity: 1; } }
+
+/* H3: Mənim kitabxanam — rəf çipləri (components/my/BookShelfControls) */
+.bp-shelf-filter { margin-block-start: 8px; align-items: center; }
+.bp-shelf-ttl { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; color: var(--text-strong); font-size: var(--step--1); margin-inline-end: 4px; }

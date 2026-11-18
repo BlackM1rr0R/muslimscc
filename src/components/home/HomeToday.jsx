@@ -15,7 +15,7 @@
 //     Açarlar səhifələrin özlərindədir — burada yalnız OXUNUR.
 //   • Paylaş: Web Share API, yoxdursa keçid buferə kopyalanır.
 // ═══════════════════════════════════════════════════════
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Fragment, Suspense, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang } from '../../contexts/LangContext'
 import Icon from '../Icon'
@@ -29,6 +29,7 @@ import MoonPhase from '../MoonPhase'
 import AyahAudio from '../AyahAudio'
 import { pickUi } from '../../utils/uiText'
 import { buildContinueItems } from '../../utils/continueItems'
+import { TODAY_CELLS } from '../../utils/homeLayout'
 
 const ContinueCard = lazy(() => import('../ContinueCard'))
 
@@ -102,7 +103,8 @@ function useCopy() {
   return [done, copy]
 }
 
-export default function HomeToday() {
+export default function HomeToday({ cells = TODAY_CELLS }) {
+  const order = cells
   const { lang } = useLang()
   const l = pickUi(LABELS, lang, 'en')
   const isAr = lang === 'ar'
@@ -162,16 +164,10 @@ export default function HomeToday() {
 
   const quranHref = pathFor('quran', lang, 1)
 
-  return (
-    <section className="ui-section ui-section--tight hp-td" aria-labelledby="hp-td-ttl">
-      <div className="ui-container">
-        <div className="ui-section-head" data-reveal>
-          <span className="ui-eyebrow">{l.ey}</span>
-          <h2 id="hp-td-ttl" className="ui-title">{l.title}</h2>
-          <p className="ui-lead">{l.sub}</p>
-        </div>
-
-        <div className="ui-bento hp-td-grid">
+  // H1: kartların sırası / görünməsi — istifadəçinin seçimi (utils/homeLayout → TODAY_CELLS)
+  const CELLS = {
+    hadith: (
+      <>
           {/* ── Günün hədisi ── */}
           <article className="ui-card ui-card--elevated ui-bento__cell--wide ui-bento__cell--tall hp-td-hadith" aria-labelledby="hp-td-h-ttl">
             <div className="ui-pattern ui-pattern--fade hp-td-pattern" aria-hidden="true" />
@@ -223,7 +219,10 @@ export default function HomeToday() {
               </div>
             )}
           </article>
-
+      </>
+    ),
+    ayah: (
+      <>
           {/* ── Günün ayəsi ── */}
           {ayah && (
             <article className="ui-card ui-card--inverse ui-bento__cell--wide hp-td-ayah" aria-label={l.ayah}>
@@ -241,7 +240,10 @@ export default function HomeToday() {
               </div>
             </article>
           )}
-
+      </>
+    ),
+    cont: (
+      <>
           {/* ── Davam et ── */}
           <article className="ui-card ui-card--elevated hp-td-cont" aria-labelledby="hp-td-c-ttl">
             <h3 id="hp-td-c-ttl" className="hp-td-cell-ttl"><Icon name="books" size={16} /> {l.cont}</h3>
@@ -259,7 +261,10 @@ export default function HomeToday() {
               </div>
             )}
           </article>
-
+      </>
+    ),
+    date: (
+      <>
           {/* ── Bu gün: hicri + miladi tarix ── */}
           <article className="ui-card ui-card--elevated hp-td-date" aria-labelledby="hp-td-d-ttl">
             <h3 id="hp-td-d-ttl" className="hp-td-cell-ttl"><Icon name="calendar" size={16} /> {l.today} · {weekdayName(g, lang)}</h3>
@@ -273,6 +278,21 @@ export default function HomeToday() {
             {isFriday && <a className="ui-badge ui-badge--accent hp-td-fri" href={pathFor('jamaat', lang)} onClick={go(pathFor('jamaat', lang))}><Icon name="star" /> {l.friday}</a>}
             <a className="ui-link hp-td-cal" href={pathFor('calendar', lang)} onClick={go(pathFor('calendar', lang))}>{l.toCal} <Icon name="arrow" size={14} className="ui-link__arrow ui-flip-rtl" /></a>
           </article>
+      </>
+    ),
+  }
+
+  return (
+    <section className="ui-section ui-section--tight hp-td" aria-labelledby="hp-td-ttl">
+      <div className="ui-container">
+        <div className="ui-section-head" data-reveal>
+          <span className="ui-eyebrow">{l.ey}</span>
+          <h2 id="hp-td-ttl" className="ui-title">{l.title}</h2>
+          <p className="ui-lead">{l.sub}</p>
+        </div>
+
+        <div className="ui-bento hp-td-grid">
+          {order.map((id) => CELLS[id] ? <Fragment key={id}>{CELLS[id]}</Fragment> : null)}
         </div>
       </div>
     </section>

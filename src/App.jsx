@@ -1,4 +1,4 @@
-import { Component, Suspense, lazy as reactLazy, useEffect, useLayoutEffect, useRef } from 'react'
+import { Component, Suspense, lazy as reactLazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { reportError } from './utils/errorReport'
 import OfflineBadge from './components/OfflineBadge'
 import AutoSyncToast from './components/AutoSyncToast'
@@ -8,6 +8,8 @@ import { ALL_LANGS, parsePath, pathFor, legacyDetailParam, uiLang } from './seo/
 import Seo from './seo/Seo'
 import { isOverlayEntry } from './utils/useBackToClose'
 import Header from './components/Header'
+// H5: uşaq rejimi — kilid sinxron oxunur (kiçik modul); qabıq yalnız aktiv olanda tənbəl yüklənir
+import { isKidLocked, kidAllowed, KIDLOCK_EVENT, KIDLOCK_KEY } from './utils/kidLock'
 // Naviqasiya:
 //   ≥1024px — başlığın altında həmişə açıq yan panel (SideNav "rail", qərar #5)
 //   <1024px — başlıqdakı ☰ sağdan sürüşən çəkmə menyunu açır (Header →
@@ -168,6 +170,7 @@ const AccountTokenPage = lazy(() => import('./pages/AccountTokenPage'))
 const ReadTogetherPage = lazy(() => import('./pages/ReadTogetherPage'))
 const KhatmPage = lazy(() => import('./pages/KhatmPage'))
 const HifzTestPage = lazy(() => import('./pages/HifzTestPage'))
+const TogetherPage = lazy(() => import('./pages/TogetherPage'))
 
 // Bu widget-lər hər səhifədə render olunur, amma heç biri ilk ekran üçün
 // vacib deyil — ona görə tənbəl yüklənir.
@@ -244,6 +247,20 @@ function PageFallback() {
 
 // Gizli admin girişi — ünvan sətrinə "#admin" yaz
 const ADMIN_HASH = '#admin'
+
+// H5: uşaq rejiminin qabığı (components/kid/KidShell) — yalnız kilid açıq olanda
+const KidShell = lazy(() => import('./components/kid/KidShell'))
+function useKidLock() {
+  const [on, setOn] = useState(() => isKidLocked())
+  useEffect(() => {
+    const f = () => setOn(isKidLocked())
+    const st = (e) => { if (e.key === KIDLOCK_KEY || e.key === null) f() }
+    window.addEventListener(KIDLOCK_EVENT, f)
+    window.addEventListener('storage', st)
+    return () => { window.removeEventListener(KIDLOCK_EVENT, f); window.removeEventListener('storage', st) }
+  }, [])
+  return on
+}
 
 // "Məzmuna keç" linki — klaviatura ilə başlığı və yan paneli atlamaq üçün
 const SKIP_LABEL = { az: 'Məzmuna keç', en: 'Skip to content', ru: 'Перейти к содержимому', ar: 'انتقل إلى المحتوى', tr: 'İçeriğe geç' }
@@ -441,6 +458,7 @@ function AppInner() {
       case 'readtogether':  return <ReadTogetherPage />
       case 'khatm':         return <KhatmPage />
       case 'hifztest':      return <HifzTestPage />
+      case 'together':      return <TogetherPage />
       case 'notfound':      return <NotFoundPage      setPage={navigate} />
       default:              return <HomePage          setPage={navigate} />
     }
@@ -448,6 +466,9 @@ function AppInner() {
 
   // ≥1024px — yan panel (globals.css, SideNav.css ilə eyni sərhəd); hook — ilk return-dən əvvəl
   const wide = useMedia('(min-width: 1024px)')
+  const kidLock = useKidLock()
+  // H5: uşaq rejimində icazəsiz səhifə (AI, hesab, admin, 404 …) → /kids (eyni dil)
+  if (kidLock && !kidAllowed(page)) return <Navigate to={pathFor('kids', lang)} replace />
   if (legacy) return <Navigate to={pathFor(legacy.to, legacy.lang)} replace />
   // Köhnə siyahıdan çıxarılmış ad (/names/23-al-khafid) → /names siyahısı (replace)
   if (removed) return <Navigate to={pathFor(key, lang)} replace />
@@ -482,6 +503,18 @@ function AppInner() {
     </Suspense>
     </PageErrorBoundary>
   )
+
+  // H5: uşaq rejimi — sadə başlıq, footer / yan panel / üzən düymə / bildirişlər yoxdur
+  if (kidLock) {
+    return (
+      <>
+        <Seo page={page} lang={lang} param={page === key ? param : null} />
+        <Suspense fallback={null}>
+          <KidShell page={page} mainId={MAIN_ID}>{pageMain}</KidShell>
+        </Suspense>
+      </>
+    )
+  }
 
   if (isBarePage) {
     return (

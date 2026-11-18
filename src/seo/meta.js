@@ -918,6 +918,18 @@ export const META = {
     ar: { t: 'اختبار الحفظ',
           d: 'يتلو الحافظ وأنت تتابع الآيات وتعلّم على الأخطاء والتردّد، ثم تُرسل النتيجة إليه لخطة مراجعته.' },
   },
+  together: {
+    az: { t: 'Birlikdə — qrup çağırışları və müəllim sinfi',
+          d: 'Yaxşı əməli birlikdə 7, 30 və ya 40 gün edin; Quran müəllimi şablon tapşırıqlar verir, şagirdlər özləri işarələyir.' },
+    en: { t: 'Together — group challenges and teacher classes',
+          d: 'Do a good deed together for 7, 30 or 40 days; a Quran teacher gives template assignments and students mark them themselves.' },
+    ru: { t: 'Вместе — групповые челленджи и классы учителей',
+          d: 'Делайте доброе дело вместе 7, 30 или 40 дней; учитель Корана даёт задания по шаблонам, а ученики сами отмечают выполнение.' },
+    tr: { t: 'Birlikte — grup meydan okumaları ve öğretmen sınıfları',
+          d: 'Güzel bir ameli 7, 30 veya 40 gün birlikte yapın; Kur’an öğretmeni şablondan ödev verir, öğrenciler kendileri işaretler.' },
+    ar: { t: 'معًا — تحديات جماعية وفصول المعلّمين',
+          d: 'اعملوا عملًا صالحًا معًا 7 أو 30 أو 40 يومًا؛ يعطي معلّم القرآن واجبات من قوالب ويعلّمها الطلاب بأنفسهم.' },
+  },
   accountreset: {
     az: { t: 'Yeni şifrə təyin edin',
           d: 'Muslims.cc hesabınız üçün yeni şifrə təyin edin.' },

@@ -1249,3 +1249,8 @@ html.a11y-reduce-motion .hp-kalima::after { animation: none !important; }
 .hp-td-moon { position: absolute; top: 14px; inset-inline-end: 14px; }
 .ui-eyebrow .hp-eyebrow-ar { font-size: 1.15em; letter-spacing: 0; text-transform: none; color: inherit; }
 
+
+/* ── H1: şəxsi ana səhifə — sıra sarğıları qutu yaratmır (bölmələrin aralıqları dəyişmir) ── */
+[data-testid="home-sections"], .hp-slot { display: contents; }
+.hp-custom { display: flex; justify-content: flex-end; padding-block: 6px 0; }
+.hp-custom__btn { min-height: 40px; }

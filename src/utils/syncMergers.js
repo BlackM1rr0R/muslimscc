@@ -15,6 +15,10 @@ import { NS } from './profileCore'
 import { sanitizeGarden, GARDEN_KEY } from './duaGardenLife'
 import { sanitizeVisits, combineVisit, VISITS_KEY } from './mosqueVisits'
 import { mergeKhatm, KHATM_KEY } from './worldKhatm'
+import { mergeLayout, LAYOUT_KEY } from './homeLayout'
+import { mergeWird, WIRD_KEY } from './wird'
+import { mergeShelf, SHELF_KEY } from './bookShelf'
+import { mergeGoal, GOAL_KEY } from './learnGoal'
 
 export const CONFLICT = Symbol('conflict')
 
@@ -221,6 +225,17 @@ export const MERGERS = {
   charity_log: json((L, R, B) => idList((l) => l)(L, R, B), { ok: Array.isArray }),
   // Ümmətin Canlı Xətmi — iştirak: səhifələr birləşir, dövrün tamamlanma günü ən erkən (utils/worldKhatm)
   [KHATM_KEY]: json((L, R) => mergeKhatm(L, R), { ok: isObj }),
+  // ── H mərhələsi ──
+  // Şəxsi ana səhifə — hissə üzrə 3 tərəfli; hər ikisi dəyişibsə — bu cihazınkı (utils/homeLayout)
+  [LAYOUT_KEY]: json((L, R, B) => mergeLayout(L, R, B), { ok: isObj }),
+  // Şəxsi vird — elementlər id üzrə, işarələr gün üzrə 3 tərəfli (utils/wird)
+  [WIRD_KEY]: json((L, R, B) => mergeWird(L, R, B), { ok: isObj }),
+  // Mənim kitabxanam — kitab üzrə 3 tərəfli; hər ikisi dəyişibsə — təzəsi (utils/bookShelf)
+  [SHELF_KEY]: json((L, R, B) => mergeShelf(L, R, B), { ok: isObj }),
+  // Öyrənmə məqsədi — sonra seçilən; oxu jurnalı — birlik (utils/learnGoal)
+  [GOAL_KEY]: json((L, R) => mergeGoal(L, R), { ok: isObj }),
+  // Dərs yolu sekmesi (lesson/LearningPaths) — sadə sətir tərcih: bu cihazınkı
+  learn_path_v1: (l, r) => (typeof l === 'string' ? l : r),
 }
 
 /** Cihaz tərcihləri: hər iki tərəf dəyişibsə ziddiyyət deyil (avtomatik yolda bu cihazınkı qalır) */

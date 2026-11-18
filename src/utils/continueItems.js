@@ -7,11 +7,12 @@
 //   muslim_cc_hadith_last (utils/hadithLastRead) · arabic_course_v1 { best, last }
 //   learn_progress_v1 { last, read[] }            · hifz_progress { surə: 1|2 }
 //   hajjguide:last { mode, step }                  · muslim_cc_storybooks { kitab: səhifə, __last }
-//   dhikr_session { selIdx, count }
+//   dhikr_session { selIdx, count }              · books_shelf_v1 (H3: "oxuyuram" rəfindəki ən təzə kitab)
 // Element: { key, icon, page, param?, search?, hash?, at, vars } — page/param → seo/routes.pathFor
 // Sıra: vaxtı bilinənlər (ən təzəsi əvvəl), sonra sabit sıra.
 // ═══════════════════════════════════════════════════════
 import { readHadithLast } from './hadithLastRead'
+import { sanitizeShelf, currentBook, SHELF_KEY } from './bookShelf'
 
 const ARABIC_PASS = 70   // components/arabic/progress.js → PASS_PERCENT
 const LESSON_RE = /^[a-z0-9-]{1,48}$/
@@ -81,6 +82,12 @@ export function buildContinueItems(storage) {
       push({ key: 'story', icon: 'kids', page: 'kids', search: `?section=books&book=${encodeURIComponent(id)}`, vars: { book: id, page: sb[id] + 1 } })
     }
   }
+
+  // H3: Mənim kitabxanam — "oxuyuram" rəfindəki son kitab → /books?book=<id> (pəncərəsi açılır)
+  try {
+    const bk = currentBook(sanitizeShelf(storage.getItem(SHELF_KEY)))
+    if (bk) push({ key: 'book', icon: 'books', page: 'books', search: `?book=${encodeURIComponent(bk.id)}`, at: bk.at, vars: { id: bk.id, title: bk.t || '', page: bk.p || null } })
+  } catch { /* */ }
 
   const dz = json(storage, 'dhikr_session')
   const cnt = Number(dz?.count)
