@@ -57,7 +57,7 @@ describe('mesaj', () => {
     expect(tr).not.toMatch(/[əƏ]/)
     expect(az).not.toMatch(/\b(kıl|namazınızı|tek)\b/i)
   })
-  it('FCM mesajı: data yalnız mətndir, webpush tag və link', () => {
+  it('push mesajı: data yalnız mətndir, webpush tag və link', () => {
     const m = c.buildCheckinMessage('en', 'maghrib', '2026-10-30', { icon: '/i.png' })
     expect(m.notification.title).toBe('🕌 Did you pray Maghrib?')
     expect(m.data).toMatchObject({
@@ -66,7 +66,7 @@ describe('mesaj', () => {
     })
     for (const v of Object.values(m.data)) expect(typeof v).toBe('string')
     expect(m.webpush.notification).toEqual({ icon: '/i.png', tag: 'checkin-maghrib-2026-10-30' })
-    expect(m.webpush.fcmOptions.link).toBe(m.data.url)
+    expect(m.webpush.link).toBe(m.data.url)
     expect(Number(m.webpush.headers.TTL)).toBeGreaterThan(0)
   })
 })

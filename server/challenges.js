@@ -432,7 +432,7 @@ function createChallengesRouter({ db, requireUser, now = () => Date.now(), pushS
         try {
           await pushSend(subs, {
             notification: { title: T.title, body: T.body(templateLabel(r, lang)) },
-            webpush: { notification: { ...icons, tag: `challenge-${r.challenge_id}` }, fcmOptions: { link } },
+            webpush: { notification: { ...icons, tag: `challenge-${r.challenge_id}` }, link },
           }, 'challenge reminder')
           sent++
         } catch (e) { log.error('challenge push:', e && e.message) }

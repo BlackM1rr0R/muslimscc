@@ -44,7 +44,10 @@ export function asrOfLoc(loc) {
   return a === 1 || a === 2 ? a : currentAsrFactor()
 }
 
-/** Seçimi yaz ('' — sil), abunəçilərə xəbər ver, push abunəliyini yenilə (server azanı eyni əmsalla) */
+/**
+ * Seçimi yaz ('' — sil), abunəçilərə xəbər ver, push abunəliyini yenilə (server azanı eyni əmsalla).
+ * Başqa yollarla gələn dəyişikliyi (sinxronizasiya, başqa vərəq) api/push → watchPushAsr tutur.
+ */
 export function writeMadhab(m, storage) {
   const v = normMadhab(m)
   mem = v
@@ -55,8 +58,8 @@ export function writeMadhab(m, storage) {
   try { globalThis.dispatchEvent?.(new Event(MADHAB_EVENT)) } catch { /* SSR */ }
   try {
     const ls = globalThis.localStorage
-    if (ls?.getItem('muslim_cc_push_endpoint') || ls?.getItem('muslim_cc_fcm_token')) {
-      import('../api/push').then((p) => p.updateTokenLocation?.()).catch(() => {})
+    if (ls?.getItem('muslim_cc_push_endpoint')) {
+      import('../api/push').then((p) => p.syncPushAsr?.()).catch(() => {})
     }
   } catch { /* */ }
   return v

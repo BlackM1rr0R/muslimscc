@@ -48,3 +48,31 @@ test('dünya şəhəri: /en/prayer/london — başlıq, H1, statik cədvəl, can
   await expect(page).toHaveTitle(/Prayer times in London/)
   await expect(page.getByTestId('prayer-h1')).toHaveText('Prayer times in London')
 })
+
+// J1: statik HTML (SEO, məzhəb bilinmir) əsri 1× yazır və brauzerin yenidən hesablaması üçün
+// data-city / data-ym daşıyır (src/seo/staticPrayerAsr.js — unit: tests/unit/static-prayer-asr.test.js).
+// React kökü createRoot ilə dərhal əvəz edir, ona görə ekranda qalan cədvəl tətbiqinkidir —
+// Hənəfi seçilibsə şəhər səhifəsinin əsri 2× olmalıdır.
+test('şəhər səhifəsi: HTML-də əsr 1×; Hənəfi seçilibsə səhifədə əsr 2×', async ({ page, request }) => {
+  const { computeTimes, tzOffsetHours, withAsr, CALC_METHODS } = await import('../../src/utils/prayCalc.js')
+  const { prayerCity } = await import('../../src/seo/prayerCity.js')
+  const c = prayerCity('ganja')
+  const html = await (await request.get('/prayer/ganja/')).text()
+  const ym = /<table class="seo-static__table" data-city="ganja" data-ym="(\d{4})-(\d{1,2})">/.exec(html)
+  expect(ym).not.toBeNull()
+  const [y, m] = [Number(ym[1]), Number(ym[2])]
+  const asrAt = (yy, mm, dd, f) => computeTimes({ year: yy, month: mm, day: dd }, c.lat, c.lng, tzOffsetHours(c.tz, yy, mm, dd), withAsr(CALC_METHODS.abubakr, f)).asr
+  expect(html).toContain('<th scope="col" data-k="asr">')
+  expect(html).toContain(`<td>${asrAt(y, m, 1, 1)}</td>`)
+  expect(html).not.toContain('data-asr-note')
+
+  const p = {}
+  for (const x of new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Baku', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())) p[x.type] = x.value
+  const hanafi = asrAt(+p.year, +p.month, +p.day, 2)
+  expect(hanafi > asrAt(+p.year, +p.month, +p.day, 1)).toBe(true)
+  await page.addInitScript(() => { try { localStorage.setItem('muslim_cc_madhab', 'hanafi') } catch { /* */ } })
+  await page.goto('/prayer/ganja')
+  await settle(page)
+  await expect(page.getByTestId('prayer-h1')).toHaveText('Gəncə namaz vaxtları')
+  await expect(page.locator('.prayer-times-list').first().getByText(hanafi, { exact: true })).toBeVisible()
+})

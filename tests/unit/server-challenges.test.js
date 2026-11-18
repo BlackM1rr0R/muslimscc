@@ -206,7 +206,7 @@ describe('challenges HTTP', () => {
     await join(m, token)
     await A.call(`/api/challenges/${challenge.id}/me`, { method: 'PATCH', cookie: o.cookie, body: { remindAt: '12:00', tz: 'Asia/Baku' } })   // UTC+4
     await A.call(`/api/challenges/${challenge.id}/me`, { method: 'PATCH', cookie: m.cookie, body: { remindAt: '12:00', tz: 'Asia/Baku' } })
-    const mine = () => pushes.filter((p) => p.msg.webpush.fcmOptions.link.endsWith(`#c=${challenge.id}`))
+    const mine = () => pushes.filter((p) => p.msg.webpush.link.endsWith(`#c=${challenge.id}`))
     const base = Date.UTC(2026, 10, 18, 7, 59)   // Bakı 11:59
     await router.tick(base)
     expect(mine()).toHaveLength(0)
@@ -217,7 +217,7 @@ describe('challenges HTTP', () => {
     expect(mine()).toHaveLength(1)
     expect(mine()[0].msg.notification.title).toBe('Qrup çağırışı')
     expect(mine()[0].msg.notification.body).toContain('Hər gün 2 səhifə Quran')
-    expect(mine()[0].msg.webpush.fcmOptions.link).toBe(`/together#c=${challenge.id}`)
+    expect(mine()[0].msg.webpush.link).toBe(`/together#c=${challenge.id}`)
     await router.tick(Date.UTC(2026, 10, 18, 9, 0))
     expect(mine()).toHaveLength(1)                 // gündə bir dəfə
     // pəncərədən (3 saat) sonra — növbəti gün gecikmiş tick göndərmir

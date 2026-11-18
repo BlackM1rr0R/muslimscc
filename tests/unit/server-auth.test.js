@@ -169,12 +169,12 @@ describe('HTTP: login / me / logout / requireAdmin', () => {
     expect(await (await login('temp@example.com', NEW)).json()).toMatchObject({ ok: true, mustChangePassword: false })
   })
 
-  it('yalnız sessiya cookie-si: Bearer tokeni (köhnə Firebase yolu) qəbul olunmur', async () => {
+  it('yalnız sessiya cookie-si: Bearer tokeni qəbul olunmur', async () => {
     const post = (t) => fetch(srv.url + '/api/admin/thing', { method: 'POST', headers: { authorization: `Bearer ${t}` } })
-    expect((await post('firebase-admin-token-xxxxxxxx')).status).toBe(401)
+    expect((await post('some-bearer-token-xxxxxxxx')).status).toBe(401)
     expect((await fetch(srv.url + '/api/admin/thing', { method: 'POST' })).status).toBe(401)
     const pw = await fetch(srv.url + '/api/admin/password', { method: 'POST',
-      headers: { authorization: 'Bearer firebase-admin-token-xxxxxxxx', 'content-type': 'application/json' },
+      headers: { authorization: 'Bearer some-bearer-token-xxxxxxxx', 'content-type': 'application/json' },
       body: JSON.stringify({ currentPassword: 'a'.repeat(12), newPassword: 'b'.repeat(12) }) })
     expect(pw.status).toBe(401)
   })

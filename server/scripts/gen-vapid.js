@@ -8,7 +8,7 @@
 // • GİZLİ açar YALNIZ göstərilən fayla yazılır (icazə 0600), ekrana çıxmır.
 //   Fayl artıq varsa skript onu əzmir (açarı dəyişmək bütün abunəlikləri öldürür!).
 //
-// Sonra api.env-ə əlavə et (docs/FIREBASE-EXIT.md → "VAPID açarları"):
+// Sonra api.env-ə əlavə et (docs/SERVER-OPS.md → "VAPID açarları"):
 //   VAPID_PUBLIC_KEY=<stdout-dakı açar>
 //   VAPID_PRIVATE_KEY=<fayldakı açar>
 //   VAPID_SUBJECT=mailto:<sahibin e-poçtu>

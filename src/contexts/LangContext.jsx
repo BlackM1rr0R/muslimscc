@@ -87,7 +87,7 @@ export function LangProvider({ children }) {
     // bildirişi istifadəçinin indiki dilində gəlsin. Abunəlik yoxdursa
     // push modulu ümumiyyətlə yüklənmir (açarlar: src/api/push.js)
     let hasToken = false
-    try { hasToken = Boolean(localStorage.getItem('muslim_cc_push_endpoint') || localStorage.getItem('muslim_cc_fcm_token')) } catch { /* yaddaş bağlıdır */ }
+    try { hasToken = Boolean(localStorage.getItem('muslim_cc_push_endpoint')) } catch { /* yaddaş bağlıdır */ }
     if (hasToken) {
       import('../api/push')
         .then(m => m.updateTokenLocation?.())

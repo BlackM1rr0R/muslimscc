@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ═══════════════════════════════════════════════════════════════════════
-// Admin istifadəçiləri (SQLite, server/auth.js) — Firebase Auth-un əvəzi
+// Admin istifadəçiləri (SQLite, server/auth.js) — admin panelinin girişi
 //
 //   Konteynerdə (serverdə, root):
 //     cd /opt/muslimscc

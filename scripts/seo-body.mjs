@@ -493,13 +493,14 @@ function prayerCityBody(lang, slug) {
   const T = PRAYER_CITY_T[lang] || PRAYER_CITY_T.az
   const { y, m: mo } = BUILD_YM
   const months = G_MONTHS[lang] || G_MONTHS.en
-  const head = `<tr><th scope="col">${esc(T.day)}</th>${PRAYER_KEYS.map(k => `<th scope="col">${esc(PRAYER_LABELS[k][lang] || PRAYER_LABELS[k].en)}</th>`).join('')}</tr>`
+  const head = `<tr><th scope="col">${esc(T.day)}</th>${PRAYER_KEYS.map(k => `<th scope="col" data-k="${k}">${esc(PRAYER_LABELS[k][lang] || PRAYER_LABELS[k].en)}</th>`).join('')}</tr>`
   const rows = monthTable(c, y, mo).map(r => `<tr><th scope="row">${r.d}</th>${PRAYER_KEYS.map(k => `<td>${r[k]}</td>`).join('')}</tr>`).join('')
   return shell(lang,
     detailCrumbs('prayer', lang, slug) +
     `<header><h1>${esc(m.h1)}</h1><p class="seo-static__lead">${esc(m.intro)}</p><p>${esc(T.live)}</p></header>` +
     `<h2>${esc(T.month)}: ${esc(months[mo - 1])} ${y}</h2>` +
-    `<table class="seo-static__table"><thead>${head}</thead><tbody>${rows}</tbody></table>` +
+    // data-city / data-ym: brauzerdə Hənəfi seçilibsə əsr sütunu yenidən hesablanır (src/seo/staticPrayerAsr.js)
+    `<table class="seo-static__table" data-city="${esc(citySlug(c))}" data-ym="${y}-${mo}"><thead>${head}</thead><tbody>${rows}</tbody></table>` +
     (isAzCity(c)
       ? `<h2>${esc(T.others)}</h2><ul class="seo-static__list">${cityLinks(lang, c)}</ul>`
       : `<h2>${esc(T.world)}</h2><ul class="seo-static__list">${cityLinks(lang, c, WORLD_PAGE_CITIES)}</ul>`) +

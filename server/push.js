@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
-// Standart Web Push (FCM-siz) — `web-push` paketi, VAPID açarları env-dən
+// Standart Web Push (VAPID) — `web-push` paketi, VAPID açarları env-dən
 //
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY  — server/scripts/gen-vapid.js yaradır
 //   VAPID_SUBJECT                        — mailto:<sahibin e-poçtu> (kodda YOX)
@@ -10,7 +10,7 @@
 //   PATCH /api/push/subscription      { endpoint, lang?, loc?, prefs? }   (yalnız verilən sahələr)
 //   POST  /api/push/unsubscribe       { endpoint }
 // Endpoint ünvanını bilən öz abunəliyini idarə edir — siyahı/oxuma API-si YOXDUR.
-// (Köhnə klientlərin göndərdiyi `legacyFcmToken` sahəsi sadəcə nəzərə alınmır.)
+// Gövdədəki tanınmayan sahələr sadəcə nəzərə alınmır.
 //
 // Payload formatı public/sw.js → parsePush() ilə uyğundur (sw.js dəyişmir):
 //   { notification:{ title, body, tag, icon, badge }, data:{ url, tag, ... } }
@@ -218,8 +218,8 @@ function createPushStore(db) {
 const truncate = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s)
 
 /**
- * Daxili mesaj (keçmişdə FCM-in forması; fcmOptions.link adı saxlanılıb) → { payload: string, options:{ TTL, urgency } }.
- *   msg = { notification:{title,body}, data?:{...}, webpush?:{ headers:{TTL,Urgency}, notification:{tag,icon,badge}, fcmOptions:{link} } }
+ * Daxili mesaj → { payload: string, options:{ TTL, urgency } }.
+ *   msg = { notification:{title,body}, data?:{...}, webpush?:{ headers:{TTL,Urgency}, notification:{tag,icon,badge}, link } }
  */
 function toWebPush(msg) {
   const n = msg.notification || {}
@@ -227,7 +227,7 @@ function toWebPush(msg) {
   const wn = wp.notification || {}
   const headers = wp.headers || {}
   const data = { ...(msg.data || {}) }
-  const url = data.url || (wp.fcmOptions && wp.fcmOptions.link) || '/'
+  const url = data.url || wp.link || '/'
   const tag = wn.tag || data.tag || 'muslims-cc'
   data.url = url
   data.tag = tag

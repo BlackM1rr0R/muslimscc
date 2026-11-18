@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
-// Məzmun API-si — Firestore-un əvəzi (docs/FIREBASE-EXIT.md)
+// Məzmun API-si — SQLite-da saxlanılan ictimai məzmun (docs/SERVER-OPS.md)
 //
 // İctimai (oxuma):
 //   GET  /api/content/version                 → { version, collections:{ad: ms} }
@@ -14,8 +14,8 @@
 //   DELETE /api/admin/content/:collection/:id       → { ok } | 404
 //   PUT    /api/admin/singletons/:id                setSingleDoc
 //
-// Cavab forması Firestore klientindəki ilə eynidir: { id, ...data }; vaxtlar
-// (createdAt, updatedAt) Firestore Timestamp yox, millisaniyə (rəqəm) olur —
+// Cavab forması: { id, ...data }; vaxtlar (createdAt, updatedAt)
+// millisaniyə (rəqəm) olur —
 // klient kodu (AnnouncementsPage toMillis, AnnouncementSection) rəqəmi qəbul edir.
 // Realtime (onSnapshot) yoxdur: klient yükləmədə + fokusda soruşur; ETag sayəsində
 // dəyişməyibsə 304 (gövdəsiz) qayıdır, /version isə ən ucuz yoxlamadır.
@@ -31,7 +31,7 @@ const SINGLETONS = ['daily', 'hero', 'settings']
 const SINGLETON_COLLECTION = 'singletons'
 
 const ID_RE = /^[A-Za-z0-9_-]{1,128}$/
-const MAX_DOC_BYTES = 256 * 1024     // bir sənəd (Firestore limiti 1 MiB, bizdə məzmun kiçikdir)
+const MAX_DOC_BYTES = 256 * 1024     // bir sənəd (bizdə məzmun kiçikdir)
 const MAX_DEPTH = 12
 const MAX_KEYS = 2000
 const MAX_BATCH = 200

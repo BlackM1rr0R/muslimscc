@@ -7,7 +7,7 @@
 #         bildirişləri, azan planlayıcısı. Heç bir port açmır — yalnız "web"
 #         ona Docker şəbəkəsində çatır. Baza: named volume api-data → /data
 #         (kök fayl sistemi read-only-dir; yazıla bilən yeganə yer /data).
-#         Gündəlik ehtiyat nüsxə: backup.sh (docs/FIREBASE-EXIT.md).
+#         Gündəlik ehtiyat nüsxə: backup.sh (docs/SERVER-OPS.md).
 #
 # Image-lər CI-da (GitHub Actions) build olunur və serverə tar kimi
 # göndərilir (server 1 CPU / 1 GB — build üçün kiçikdir). Versiya: TAG

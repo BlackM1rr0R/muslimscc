@@ -3,6 +3,7 @@ import { SITE, LOCALES, DEFAULT_LANG, DETAILS, NOINDEX_KEYS, urlFor, pathFor, la
 import { titleFor, descFor, fitDesc, ogImageFor, OG_ALT } from './meta'
 import { brandName, siteJsonLd } from '../config/brand'
 import { useLang } from '../contexts/LangContext'
+import { ROBOTS_NOINDEX } from './profileSeo'
 
 // ═══════════════════════════════════════════════════════
 // <head>-i cari səhifəyə uyğun yeniləyir.
@@ -78,11 +79,52 @@ function setJsonLd(data, group = 'page-jsonld') {
   document.head.appendChild(el)
 }
 
+// ── Öz head-ini idarə edən detal (DETAILS[key].selfSeo — /u/<ləqəb>) ──
+// Məlumat serverdən gəlir (profil, icazə) — səhifə hazır olanda setSelfSeo() çağırır.
+// Seo.jsx və səhifə EYNİ vəziyyəti yazır: hansı effekt sonra işləsə də (dil lüğəti
+// gec yüklənəndə Seo yenidən işləyir) nəticə eynidir. Səhifə hələ yazmayıbsa — noindex,
+// canonical/hreflang/sxem yoxdur.
+let selfState = null   // { page, param, lang, robots, title, desc, canonical, jsonLd }
+
+/** state = null — sıfırla; əks halda { page, param, lang, robots, title, desc, canonical?, jsonLd? } */
+export function setSelfSeo(state) {
+  selfState = state || null
+  if (selfState) applySelfSeo(selfState.page, selfState.lang, selfState.param)
+}
+
+function applySelfSeo(page, lang, param) {
+  const s = selfState && selfState.page === page && selfState.param === param ? selfState : null
+  const title = s?.title || titleFor(page, lang)
+  const desc = s?.desc || descFor(page, lang)
+  document.title = title
+  setMeta('name', 'description', desc)
+  setMeta('name', 'robots', s?.robots || ROBOTS_NOINDEX)
+  setMeta('property', 'og:title', title)
+  setMeta('property', 'og:description', desc)
+  setMeta('property', 'og:url', s?.canonical || window.location.href)
+  setMeta('property', 'og:locale', LOCALES[lang] || LOCALES.az)
+  setMeta('property', 'og:site_name', brandName(lang))
+  setLocaleAlternates(lang, page)
+  const ogAlt = OG_ALT[uiLang(lang)] || OG_ALT.az
+  setMeta('property', 'og:image', ogImageFor(lang))
+  setMeta('property', 'og:image:alt', ogAlt)
+  setMeta('name', 'twitter:title', title)
+  setMeta('name', 'twitter:description', desc)
+  setMeta('name', 'twitter:image', ogImageFor(lang))
+  setMeta('name', 'twitter:image:alt', ogAlt)
+  // hreflang yoxdur (istifadəçi məzmunu, dil variantları eyni canonical-ı göstərir)
+  setLinks('canonical', s?.canonical ? [{ rel: 'canonical', href: s.canonical }] : [])
+  setLinks('alt', [])
+  setJsonLd(s?.jsonLd || null)
+  setJsonLd(null, 'site-jsonld')
+}
+
 export default function Seo({ page, lang, param = null }) {
   // Əlavə dilin lüğəti dil dəyişəndən sonra yüklənir — başlıq onda yenilənsin
   const { dictLang } = useLang() || {}
   useEffect(() => {
     if (param == null) { applySeo(page, lang, null, null); return undefined }
+    if (DETAILS[page]?.selfSeo) { applySelfSeo(page, lang, param); return undefined }
     let cancelled = false
     // Lüğət termini: detail.js məlumatı glossarySource.js-dən oxuyur — lüğət
     // chunk-ı yalnız burada yüklənir (GlossaryPage onu onsuz da yükləyib)

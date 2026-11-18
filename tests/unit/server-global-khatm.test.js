@@ -297,7 +297,7 @@ describe('ümmətin xətmi — dövrün tamamlanması', () => {
     // push: yalnız push-u hesaba bağlı olan iştirakçıya (a = id 1), bir dəfə
     await waitFor(() => pushes.length === 1)
     expect(pushes[0].msg.notification.body).toContain('№1')
-    expect(pushes[0].msg.webpush.fcmOptions.link).toBe('https://muslims.cc/khatm')
+    expect(pushes[0].msg.webpush.link).toBe('https://muslims.cc/khatm')
     expect(k.db.raw.prepare('SELECT COUNT(*) AS n FROM khatm_participants WHERE notified = 1').get().n).toBe(2)
 
     // ithaflar dövr bitəndən 30 gün sonra silinir

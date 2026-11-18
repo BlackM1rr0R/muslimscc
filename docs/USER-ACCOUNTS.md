@@ -1,7 +1,7 @@
 # İstifadəçi hesabları və rollar (`server/users.js`)
 
 Saytın **istifadəçi** hesabları — admin panelindən **tam ayrıdır** (ayrı cədvəllər, ayrı cookie, ayrı giriş).
-Admin paneli öz girişini saxlayır (`server/auth.js`, [ADMIN-SECURITY.md](ADMIN-SECURITY.md), [FIREBASE-EXIT.md](FIREBASE-EXIT.md)).
+Admin paneli öz girişini saxlayır (`server/auth.js`, [ADMIN-SECURITY.md](ADMIN-SECURITY.md), [SERVER-OPS.md](SERVER-OPS.md)).
 
 | | Admin paneli | İstifadəçi hesabı |
 |---|---|---|
@@ -46,7 +46,7 @@ Admin paneli öz girişini saxlayır (`server/auth.js`, [ADMIN-SECURITY.md](ADMI
 - Hər dəyişiklik (rol, blok, blokun açılması, skriptlə verilən rol) `role_audit`-ə yazılır.
 - Admin panelinin hesabları üçün rol `admin_roles`-dadır; sətri olmayan admin = **`admin`**.
   İstifadəçi idarəsi (`/api/admin/users*`, `/api/admin/role-audit`) — yalnız `admin` və `superadmin`.
-  Köhnə Firebase tokeni (keçid dövrü) ilə bu endpoint-lər **işləmir** (403 `session_required`).
+  Sessiya cookie-si olmadan bu endpoint-lər **işləmir** (403 `session_required`).
 - `requireUser(minRole)` — gələcək xüsusiyyətlər üçün middleware (`usersRouter.requireUser('mosque_rep')`).
   Rol hər sorğuda DB-dən oxunur — dəyişiklik dərhal təsir edir.
 

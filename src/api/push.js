@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════
-// PUSH BİLDİRİŞLƏRİ — standart Web Push (VAPID), FCM-siz
-// (server/push.js; docs/FIREBASE-EXIT.md)
+// PUSH BİLDİRİŞLƏRİ — standart Web Push (VAPID)
+// (server/push.js; docs/SERVER-OPS.md)
 //
 // Axın: /sw.js (saytın YEGANƏ service worker-i, push-u o göstərir) →
 // pushManager.subscribe({ userVisibleOnly, applicationServerKey: serverin
@@ -14,18 +14,21 @@
 // `loc` istifadəçinin seçdiyi namaz yeridir (utils/prayerLocation.js) — server
 // hər istifadəçiyə ÖZ şəhərinin azan vaxtında push göndərir.
 //
-// KÖHNƏ FCM ABUNƏLİYİ OLAN CİHAZLAR: localStorage-da köhnə FCM tokeni
-// (muslim_cc_fcm_token) varsa və icazə artıq verilibsə, səhifə açılanda
-// səssizcə: FCM-in yaratdığı push abunəliyi (başqa applicationServerKey ilə)
-// ləğv olunur, bizim VAPID açarı ilə yenisi yaranır (icazə var — sorğu
-// çıxmır), serverə göndərilir və köhnə açar lokalda təmizlənir. FCM artıq
-// işləmir — server köhnə tokeni bilmir, ona göndərilmir.
+// Hənəfi əsri (utils/madhab): serverə son göndərilən əsr əmsalı ASR_SENT_KEY-də
+// saxlanılır (yalnız bu cihaz — ehtiyat nüsxəyə və sinxronizasiyaya düşmür).
+// Məzhəb hansı yolla dəyişirsə dəyişsin (bu cihaz, başqa vərəq, hesab
+// sinxronizasiyası) və hər açılışda — watchPushAsr() fərqi görüb abunəliyin
+// loc-unu yeniləyir (PATCH). Fərq yoxdursa — sorğu yoxdur.
 // ═══════════════════════════════════════════════════════════
 import { apiFetch, ApiError } from './http'
 import { getPrayerLocation } from '../utils/prayerLocation'
+import { currentAsrFactor, MADHAB_EVENT, MADHAB_KEY } from '../utils/madhab'
 
 export const ENDPOINT_KEY = 'muslim_cc_push_endpoint'
-export const LEGACY_TOKEN_KEY = 'muslim_cc_fcm_token'
+/** Serverdəki abunəliyə son göndərilən əsr əmsalı ('1' | '2') — yalnız bu cihaz */
+export const ASR_SENT_KEY = 'muslim_cc_push_asr'
+// Köhnə bildiriş açarı (əvvəlki push sisteminin tokeni) — heç nə oxumur, açılışda silinir
+export const OLD_PUSH_KEY = 'muslim_cc_fcm_token'
 const LANG_KEY = 'muslim_cc_lang'
 const PREFS_KEY = 'muslim_cc_notif_prefs'
 
@@ -108,9 +111,24 @@ function serverPrefs() {
   return { azan: p.prayer !== false, checkin: p.checkin === true, fasting: p.fasting === true, adhkar: p.adhkar === true, jumuah: p.jumuah === true, eclipse: p.eclipse === true, daily: { ayah: p.ayah === true, hadith: p.hadith === true, hour } }
 }
 
+// ─── Əsr əmsalının izlənməsi (serverə nə getdiyi) ───
+let asrInFlight = null   // göndərilməkdə olan əmsal — eyni dəyər ikinci dəfə göndərilməsin
+/** loc daşıyan sorğu: uğurlu olanda göndərilən əmsalı yadda saxla. */
+async function trackAsr(loc, run) {
+  const a = loc && loc.asr === 2 ? 2 : 1
+  asrInFlight = a
+  try {
+    const r = await run()
+    writeLS(ASR_SENT_KEY, String(a))
+    return r
+  } finally {
+    if (asrInFlight === a) asrInFlight = null
+  }
+}
+
 /**
  * Service worker + bizim açarla push abunəliyi. Mövcud abunəlik başqa
- * açarladırsa (FCM-in yaratdığı) və ya forceNew — ləğv edilib yenisi yaranır.
+ * VAPID açarı iləndirsə və ya forceNew — ləğv edilib yenisi yaranır.
  */
 async function ensureSubscription({ forceNew = false } = {}) {
   const reg = await navigator.serviceWorker.register('/sw.js')
@@ -126,47 +144,23 @@ async function ensureSubscription({ forceNew = false } = {}) {
 
 /** Abunəliyi serverə yaz (upsert). */
 async function sendSubscription(sub) {
-  await apiFetch('/api/push/subscribe', {
+  const loc = locationPayload()
+  await trackAsr(loc, () => apiFetch('/api/push/subscribe', {
     method: 'POST',
     body: {
       subscription: sub.toJSON(),
       lang: currentLang(),
-      loc: locationPayload(),
+      loc,
       prefs: serverPrefs(),
       userAgent: String(navigator.userAgent || '').slice(0, 512),
     },
-  })
+  }))
   const old = readLS(ENDPOINT_KEY)
   writeLS(ENDPOINT_KEY, sub.endpoint)
-  writeLS(LEGACY_TOKEN_KEY, null)
   // Brauzer abunəliyi dəyişibsə köhnə endpoint serverdə qalmasın
   if (old && old !== sub.endpoint) {
     apiFetch('/api/push/unsubscribe', { method: 'POST', body: { endpoint: old } }).catch(() => {})
   }
-}
-
-// ─── Köhnə FCM tokenindən keçid (bir səhifədə bir dəfə) ───
-let migration = null
-function migrateLegacy() {
-  const legacy = readLS(LEGACY_TOKEN_KEY)
-  if (!legacy) return Promise.resolve(false)
-  if (migration) return migration
-  migration = (async () => {
-    const perm = getPermissionStatus()
-    if (perm !== 'granted') {
-      // İcazə geri alınıb — köhnə token onsuz da ölüdür
-      if (perm === 'denied') writeLS(LEGACY_TOKEN_KEY, null)
-      return false
-    }
-    if (!(await isPushSupported())) return false
-    // FCM abunəliyi başqa açarladır — həmişə yenisi yaradılır
-    const sub = await ensureSubscription({ forceNew: !readLS(ENDPOINT_KEY) })
-    await sendSubscription(sub)
-    return true
-  })()
-  // Alınmasa (şəbəkə, server) — növbəti açılışda yenidən; köhnə açar qalır
-  migration.catch((e) => { console.warn('Push keçidi alınmadı:', e?.message || e); migration = null })
-  return migration
 }
 
 // ─── İcazə istə + abunə ol ───
@@ -180,7 +174,7 @@ export async function requestNotificationPermission() {
   const perm = await Notification.requestPermission()
   if (perm !== 'granted') return { ok: false, reason: 'denied' }
   try {
-    const sub = await ensureSubscription({ forceNew: Boolean(readLS(LEGACY_TOKEN_KEY)) })
+    const sub = await ensureSubscription()
     await sendSubscription(sub)
     return { ok: true, token: sub.endpoint }
   } catch (e) {
@@ -191,11 +185,11 @@ export async function requestNotificationPermission() {
 
 /** PATCH /api/push/subscription. Server abunəliyi tanımırsa (404) — yenidən abunə. */
 async function patchSubscription(fields) {
-  await migrateLegacy().catch(() => {})
   const endpoint = readLS(ENDPOINT_KEY)
   if (!endpoint) return false
   try {
-    await apiFetch('/api/push/subscription', { method: 'PATCH', body: { endpoint, ...fields } })
+    const send = () => apiFetch('/api/push/subscription', { method: 'PATCH', body: { endpoint, ...fields } })
+    await (fields.loc ? trackAsr(fields.loc, send) : send())
     return true
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) return refreshPushToken()
@@ -227,14 +221,60 @@ export function updateTokenPrefs(patch) {
 }
 
 /**
- * Hər açılışda (icazə varsa): köhnə FCM tokeni varsa — keçid; yoxsa
- * abunəliyi yoxla (brauzer onu vaxtaşırı dəyişir) və serverə yenidən yaz
- * (eyni endpoint — upsert; yeni şəhər/dil/seçimlər də gedir).
+ * Məzhəbin əsr əmsalı serverə son göndəriləndən fərqlidirsə (və ya heç
+ * göndərilməyibsə — abunəlik bu xüsusiyyətdən əvvəl yaranıb) — abunəliyin
+ * loc-unu yenilə. Fərq yoxdursa və ya eyni dəyər indi göndərilirsə — heç nə.
+ * → Promise<boolean> (sorğu göndərildimi)
+ */
+export function syncPushAsr() {
+  if (typeof window === 'undefined' || !readLS(ENDPOINT_KEY)) return Promise.resolve(false)
+  const want = currentAsrFactor()
+  if (asrInFlight === want) return Promise.resolve(false)
+  if (asrInFlight == null && readLS(ASR_SENT_KEY) === String(want)) return Promise.resolve(false)
+  return updateTokenLocation()
+}
+
+/**
+ * Məzhəbin dəyişməsini izlə: bu vərəq (mcc-madhab), başqa vərəq (storage),
+ * hesab sinxronizasiyası (qm-autosync, mcc-acctsync), vərəqə qayıdış — və
+ * açılışda bir dəfə yoxla. Debounce: ardıcıl hadisələr bir yoxlamaya birləşir.
+ * → unsubscribe
+ */
+export function watchPushAsr({ delay = 1500 } = {}) {
+  if (typeof window === 'undefined') return () => {}
+  let t = 0
+  const check = () => {
+    clearTimeout(t)
+    t = setTimeout(() => { syncPushAsr().catch(() => {}) }, delay)
+  }
+  const onStorage = (e) => { if (!e || !e.key || e.key === MADHAB_KEY || e.key === ENDPOINT_KEY) check() }
+  const onVisible = () => { if (document.visibilityState === 'visible') check() }
+  const events = [MADHAB_EVENT, 'qm-autosync', 'mcc-acctsync']
+  for (const ev of events) window.addEventListener(ev, check)
+  window.addEventListener('storage', onStorage)
+  document.addEventListener('visibilitychange', onVisible)
+  check()
+  return () => {
+    clearTimeout(t)
+    for (const ev of events) window.removeEventListener(ev, check)
+    window.removeEventListener('storage', onStorage)
+    document.removeEventListener('visibilitychange', onVisible)
+  }
+}
+
+/** Köhnə bildiriş açarını bir dəfəlik sil (əvvəlki push sistemindən qalıb). */
+export function removeOldPushKey() {
+  try { if (localStorage.getItem(OLD_PUSH_KEY) != null) localStorage.removeItem(OLD_PUSH_KEY) } catch { /* yaddaş bağlıdır */ }
+}
+
+/**
+ * Hər açılışda (icazə varsa): abunəliyi yoxla (brauzer onu vaxtaşırı
+ * dəyişir) və serverə yenidən yaz (eyni endpoint — upsert; yeni
+ * şəhər/dil/seçimlər/əsr əmsalı da gedir).
  */
 export async function refreshPushToken() {
   if (typeof window === 'undefined') return false
   try {
-    if (readLS(LEGACY_TOKEN_KEY)) return await migrateLegacy()
     if (getPermissionStatus() !== 'granted' || !readLS(ENDPOINT_KEY)) return false   // abunə olmayıb / söndürüb
     if (!(await isPushSupported())) return false
     const sub = await ensureSubscription()
@@ -261,13 +301,13 @@ export async function disablePush() {
 }
 
 // ─── Lokal vəziyyət ───
-/** Abunəlik varmı (yeni endpoint və ya hələ keçməmiş köhnə FCM tokeni). */
+/** Abunəlik varmı (bu cihazın endpoint ünvanı). */
 export function getStoredToken() {
   if (typeof window === 'undefined') return null
-  return readLS(ENDPOINT_KEY) || readLS(LEGACY_TOKEN_KEY)
+  return readLS(ENDPOINT_KEY)
 }
 
 export function clearStoredToken() {
   writeLS(ENDPOINT_KEY, null)
-  writeLS(LEGACY_TOKEN_KEY, null)
+  writeLS(ASR_SENT_KEY, null)
 }

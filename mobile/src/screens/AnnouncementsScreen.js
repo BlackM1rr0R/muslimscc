@@ -161,7 +161,7 @@ const EVENTS_PREVIEW = 6;
 
 // ── Köməkçilər ──────────────────────────────────────
 
-/** createdAt → millisaniyə. Firestore Timestamp, {seconds} (backup JSON) və ISO sətri qəbul edir. */
+/** createdAt → millisaniyə. Rəqəm (məzmun API-si), Date-tipli obyekt, {seconds} (backup JSON) və ISO sətri qəbul edir. */
 function toMillis(ts) {
   if (!ts) return null;
   try {

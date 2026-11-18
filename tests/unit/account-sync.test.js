@@ -195,6 +195,6 @@ describe('hesaba bağlı sinxronizasiya', () => {
     for (const k of ['muslim_cc_ai_chat', 'muslim_cc_aichat_v2', 'muslim_cc_selected_city', 'muslim_cc_custom_city', 'muslim_cc_recent_cities',
       'muslim_cc_mosque_tv', 'muslim_cc_notif_prefs', 'azan_enabled', 'calendar_reminders', 'muslim_cc_hadith_last']) expect(isBackupKey(k), k).toBe(true)
     // Cihaza aid: push ünvanı, AI limiti
-    for (const k of ['muslim_cc_push_endpoint', 'muslim_cc_fcm_token', 'muslim_cc_aichat_rate']) expect(isBackupKey(k), k).toBe(false)
+    for (const k of ['muslim_cc_push_endpoint', 'muslim_cc_push_asr', 'muslim_cc_aichat_rate']) expect(isBackupKey(k), k).toBe(false)
   })
 })

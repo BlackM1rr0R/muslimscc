@@ -135,14 +135,14 @@ describe('mətnlər və mesaj', () => {
     expect(f.fastingLink('ar')).toBe('/ar/learn/sunnah-fasts')
     expect(f.fastingLink('xx')).toBe('/learn/sunnah-fasts')
   })
-  it('buildFastingMessage — deliver üçün FCM formalı mesaj', () => {
+  it('buildFastingMessage — deliver üçün daxili push mesajı', () => {
     const icons = { icon: '/i.png', badge: '/b.png' }
     const m = f.buildFastingMessage('ru', 'monday', '2026-11-02', icons)
     expect(m.notification.title).toContain('Завтра понедельник')
     expect(m.data).toEqual({ kind: 'fasting', fast: 'monday', date: '2026-11-02', tag: 'fasting-2026-11-02', url: '/ru/learn/sunnah-fasts' })
     expect(Object.values(m.data).every(v => typeof v === 'string')).toBe(true)
     expect(m.webpush.notification).toEqual({ ...icons, tag: 'fasting-2026-11-02' })
-    expect(m.webpush.fcmOptions.link).toBe('/ru/learn/sunnah-fasts')
+    expect(m.webpush.link).toBe('/ru/learn/sunnah-fasts')
     expect(m.webpush.headers.TTL).toBe('28800')
     expect(f.buildFastingMessage('az', 'nope', '2026-11-02')).toBeNull()
   })

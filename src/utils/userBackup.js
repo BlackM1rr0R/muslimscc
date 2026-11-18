@@ -27,7 +27,7 @@ const EXCLUDE_PREFIXES = [
   'muslim_cc_session_', 'muslim_cc_prompt_shown_', 'qm-',                    // sessiya / yeniləmə
 ]
 const EXCLUDE_KEYS = new Set([
-  'muslim_cc_fcm_token', 'muslim_cc_push_endpoint',   // bu cihazın bildiriş ünvanı
+  'muslim_cc_push_endpoint', 'muslim_cc_push_asr',    // bu cihazın bildiriş ünvanı + serverə gedən əsr əmsalı (api/push)
   'last_azan_notif', 'muslim_cc_aichat_rate',          // vaxt damğaları / limit
   'muslim_cc_landing_path', 'muslim_cc_visit_count',
   'muslim_cc_pwa_installed', 'install_dismissed',

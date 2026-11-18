@@ -14,7 +14,7 @@ scripts/      Build köməkçiləri (prerender, dil yoxlaması), scripts/social 
 infra/        Docker, nginx, deploy və ehtiyat nüsxə skriptləri (canlı server)
 mobile/       Mobil tətbiq (Expo / React Native)
 tests/        unit (Vitest), e2e (Playwright)
-docs/         Admin təhlükəsizliyi, Firebase-dən çıxış (tamamlanıb), istifadəçi hesabları
+docs/         Admin təhlükəsizliyi, server əməliyyatları, istifadəçi hesabları
 seo-data/     Prerender üçün SEO məlumatları
 ```
 
@@ -39,7 +39,7 @@ OPENROUTER_KEY=dummy DB_PATH=./dev.db node server.js    # http://localhost:3001
 VITE_DEV_API=http://localhost:3001 npm run dev
 ```
 
-Admin hesabı: `node server/scripts/admin-user.js create <email>` (bax [docs/FIREBASE-EXIT.md](docs/FIREBASE-EXIT.md)).
+Admin hesabı: `node server/scripts/admin-user.js create <email>` (bax [docs/SERVER-OPS.md](docs/SERVER-OPS.md)).
 
 ## Əmrlər
 
@@ -76,10 +76,6 @@ Admin hesabı: `node server/scripts/admin-user.js create <email>` (bax [docs/FIR
 ## Deploy
 
 `main`-ə push: GitHub Actions yoxlamaları, lint, unit və e2e testləri işlədir, Docker image-lərini yığır və serverə deploy edir. Sağlamlıq yoxlaması alınmasa, server avtomatik əvvəlki versiyaya qayıdır. Testlərdən biri yıxılsa deploy olmur. Ətraflı: [infra/README.md](infra/README.md), [.github/workflows/ci.yml](.github/workflows/ci.yml).
-
-## Firebase-dən çıxış
-
-Tamamlanıb: məzmun, admin girişi və push öz serverimizdədir (SQLite, sessiya cookie-si, Web Push); kodda Firebase asılılığı yoxdur. `public/firebase-messaging-sw.js` yalnız köhnə service worker qeydiyyatları üçün `/sw.js`-ə yönləndirən stubdur. Köhnə `FIREBASE_*`, `FCM_ENABLED`, `LEGACY_FIREBASE_AUTH` env-ləri server tərəfindən nəzərə alınmır. Tarixçə: [docs/FIREBASE-EXIT.md](docs/FIREBASE-EXIT.md).
 
 ## Qaydalar
 

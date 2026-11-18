@@ -56,7 +56,7 @@ export function overviewFixtures(now = Date.now()) {
   const t = (minAgo) => now - minAgo * 60e3
   return {
     subscribers: {
-      count: 1287, fcm: 312, webpush: 975,
+      count: 1287, webpush: 975,
       webpushNew: Array.from({ length: 90 }, (_, i) => ({ day: dayOf(now - (89 - i) * DAY), count: (i * 7) % 11 === 0 ? 0 : 2 + ((i * 5) % 9) })),
       webpushLangs: [{ key: 'az', count: 610 }, { key: 'ru', count: 190 }, { key: 'en', count: 95 }, { key: 'tr', count: 80 }],
     },

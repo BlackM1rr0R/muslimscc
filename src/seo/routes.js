@@ -197,8 +197,10 @@ export const DETAILS = {
   // Qrup otağı (/group/<id>) — istifadəçinin yaratdığı otaq: indekslənmir,
   // prerender və sitemap-a düşmür (detailParams → [])
   group:  { kind: 'id', pattern: /^[a-z0-9]{10}$/, noindex: true },
-  // K1: açıq profil (/u/<ləqəb>) — ləqəb server/publicProfile.js HANDLE_RE ilə eyni; indekslənmir (istəyə görə — klientdə)
-  publicprofile: { kind: 'id', pattern: /^[a-z0-9_]{3,24}$/, noindex: true },
+  // K1: açıq profil (/u/<ləqəb>) — ləqəb server/publicProfile.js HANDLE_RE ilə eyni. Sitemap və prerender
+  // yoxdur (noindex); selfSeo — <head>-i səhifə özü yazır (seo/profileSeo.js): sahibi icazə veribsə
+  // "index", əks halda noindex. Server qabığı (prerender → [<dil>/]u/index.html) robots noindex daşımır.
+  publicprofile: { kind: 'id', pattern: /^[a-z0-9_]{3,24}$/, noindex: true, selfSeo: true },
 }
 
 /** Detal parametri düzgündürmü (surə 1–114, ad 1–99, mövcud səhabə slug-u)? */

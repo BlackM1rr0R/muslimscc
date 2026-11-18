@@ -1,4 +1,4 @@
-// Server: məzmun API-si (server/content.js) — Firestore klientinin əvəzi
+// Server: məzmun API-si (server/content.js) — ictimai məzmun (SQLite)
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { require, express, listen } from './server-helpers.js'
 
@@ -45,7 +45,7 @@ describe('validateDocData', () => {
 
 describe('ictimai oxuma', () => {
   it('yalnız icazəli kolleksiyalar', async () => {
-    expect((await call('GET', '/api/content/fcm_tokens')).status).toBe(404)
+    expect((await call('GET', '/api/content/push_tokens')).status).toBe(404)
     expect((await call('GET', '/api/content/notification_history')).status).toBe(404)
     expect((await call('GET', '/api/content/admins')).status).toBe(404)
     const r = await call('GET', '/api/content/books')
@@ -74,7 +74,7 @@ describe('admin yazıları', () => {
     expect((await call('DELETE', '/api/admin/content/books/x')).status).toBe(401)
   })
 
-  it('tam CRUD dövrü — Firestore forması { id, ...data }', async () => {
+  it('tam CRUD dövrü — cavab forması { id, ...data }', async () => {
     let r = await call('POST', '/api/admin/content/announcements', { title: { az: 'A' }, active: true, createdAt: 5 }, ADMIN)
     expect(r.status).toBe(201)
     const a = await r.json()
@@ -106,7 +106,7 @@ describe('admin yazıları', () => {
   })
 
   it('naməlum kolleksiyaya yazmaq olmur', async () => {
-    expect((await call('POST', '/api/admin/content/fcm_tokens', { a: 1 }, ADMIN)).status).toBe(404)
+    expect((await call('POST', '/api/admin/content/push_tokens', { a: 1 }, ADMIN)).status).toBe(404)
   })
 
   it('pozuq JSON və massiv → 400 (daxili detal yoxdur)', async () => {

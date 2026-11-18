@@ -73,7 +73,7 @@ describe('bildirişlər, abunəlik, xətalar', () => {
     expect(s.aiDaily).toHaveLength(7)
   })
   it('subscriberStats', () => {
-    const s = subscriberStats({ count: 12, fcm: 2, webpush: 10, webpushNew: [{ day: '2026-11-09', count: 2 }, { day: '2026-11-01', count: 3 }] }, 7, NOW)
+    const s = subscriberStats({ count: 12, webpush: 10, webpushNew: [{ day: '2026-11-09', count: 2 }, { day: '2026-11-01', count: 3 }] }, 7, NOW)
     expect(s).toMatchObject({ count: 12, added: 2, addedPrev: 3, hasDaily: true })
     expect(subscriberStats({ count: 1 }, 7, NOW).hasDaily).toBe(false)
   })

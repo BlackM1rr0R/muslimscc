@@ -187,7 +187,7 @@ function buildFastingMessage(lang, kind, dateKey, icons = {}) {
       // Səhər səhura qədər mənalıdır; ertəsi axşam gəlməsin — 8 saat
       headers: { TTL: '28800' },
       notification: { ...icons, tag },
-      fcmOptions: { link: url },
+      link: url,
     },
   }
 }

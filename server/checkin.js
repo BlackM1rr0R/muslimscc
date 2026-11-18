@@ -81,7 +81,7 @@ function buildCheckinMessage(lang, prayer, dateKey, icons = {}) {
       // amma gecikmiş push-un ertəsi gün gəlməsi lazım deyil — 3 saat
       headers: { TTL: '10800' },
       notification: { ...icons, tag },
-      fcmOptions: { link: url },
+      link: url,
     },
   }
 }

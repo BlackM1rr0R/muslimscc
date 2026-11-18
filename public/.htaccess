@@ -65,6 +65,10 @@ ErrorDocument 404 /404.html
   # Əvvəl "/" aşağıdakı ümumi SPA qaydası ilə açılırdı; o qayda artıq yoxdur.
   RewriteRule ^$ /index.html [L]
 
+  # ── Açıq profil /u/<ləqəb>, /<dil>/u/<ləqəb> → [<dil>/]u/index.html (200; robots-u səhifə özü yazır) ──
+  RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
+  RewriteRule ^((?:[a-z]{2}/)?u)/[a-z0-9_]{3,24}$ /$1/index.html [L]
+
   # ── Prerender edilmiş marşrutlar: /quran → /quran/index.html ──
   # DirectorySlash Off olduğu üçün bunu açıq şəkildə yazmaq lazımdır.
   RewriteCond %{REQUEST_URI} !^/$
@@ -106,7 +110,7 @@ ErrorDocument 404 /404.html
   </FilesMatch>
 
   # Service worker və sitemap də təzə oxunsun
-  <FilesMatch "(sw\.js|firebase-messaging-sw\.js|sitemap\.xml|robots\.txt)$">
+  <FilesMatch "(sw\.js|sitemap\.xml|robots\.txt)$">
     Header set Cache-Control "no-cache, no-store, must-revalidate"
   </FilesMatch>
 </IfModule>

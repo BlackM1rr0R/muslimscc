@@ -8,6 +8,8 @@ import {
   requestNotificationPermission,
   getStoredToken,
   refreshPushToken,
+  watchPushAsr,
+  removeOldPushKey,
 } from '../api/push'
 import { playAzan, stopAzan, onAzanChange, azanKeyFromTag } from '../utils/azanAudio'
 import {
@@ -165,9 +167,13 @@ export default function NotificationPrompt() {
   }, [])
 
   // Hər açılışda push abunəliyini təzələ (icazə varsa) — köhnəlmiş abunəlik
-  // bildirişlərin səssizcə kəsilməsinin əsas səbəblərindən biri idi. Köhnə
-  // Köhnə FCM tokeni qalıbsa burada səssizcə Web Push-a keçilir (api/push.js)
-  useEffect(() => { refreshPushToken() }, [])
+  // bildirişlərin səssizcə kəsilməsinin əsas səbəblərindən biri idi.
+  // Köhnə bildiriş açarı (əvvəlki push sistemindən) bir dəfəlik silinir.
+  useEffect(() => { removeOldPushKey(); refreshPushToken() }, [])
+
+  // Məzhəb (Hənəfi əsri) başqa cihazdan / başqa vərəqdən dəyişibsə və ya abunəlik
+  // bu xüsusiyyətdən əvvəl yaranıbsa — serverdəki abunəliyin əsr əmsalı yenilənir
+  useEffect(() => watchPushAsr(), [])
 
   // Bildirişdəki "✅ Qıldım" düyməsi (public/sw.js) qeydi IndexedDB-yə yazır —
   // hansı səhifə açılırsa açılsın, onu cihazdakı namaz izləyicisinə köçür

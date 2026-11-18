@@ -5,10 +5,10 @@
 // volume). WAL rejimi: oxumalar yazmanı gözləmir, ehtiyat nüsxə (VACUUM INTO)
 // işləyən serveri dayandırmır.
 //
-// Sxem Firestore-a bənzəyir ki, klient keçidi asan olsun:
+// Sxem (sənəd yanaşması — kolleksiya + id + JSON):
 //   docs(collection, id, data JSON, created_at, updated_at) — ictimai məzmun
 //     (videos, books, ...) və tək sənədlər (collection='singletons', id=daily|hero|settings)
-//   push_subs            — standart Web Push abunəlikləri (FCM-siz)
+//   push_subs            — standart Web Push abunəlikləri (VAPID)
 //   admins, sessions     — admin girişi (server/auth.js)
 //   notification_history — admin panelindən göndərilmiş bildirişlər
 //
@@ -100,7 +100,7 @@ const MIGRATIONS = [
 
 const SCHEMA_VERSION = MIGRATIONS.length
 
-/** Firestore avtomatik ID-sinə bənzər 20 simvollu təsadüfi ID. */
+/** 20 simvollu təsadüfi sənəd ID-si (hərf + rəqəm). */
 const ID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 function newId(len = 20) {
   const bytes = crypto.randomBytes(len)
@@ -189,7 +189,7 @@ function wrap(db) {
     close: () => db.close(),
     ping: () => db.prepare('SELECT 1 AS ok').get().ok === 1,
 
-    // ── Sənədlər (Firestore-a bənzər) ──
+    // ── Sənədlər (kolleksiya + id) ──
     listDocs: (collection) => st.list.all(collection).map(toDoc),
     getDoc: (collection, id) => toDoc(st.get.get(collection, id)),
     getDocMeta: (collection, id) => st.get.get(collection, id) || null,

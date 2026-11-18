@@ -9,9 +9,9 @@
 # gzip-ləyib saxlayır:
 #   /opt/muslimscc/backups/muslims-YYYYMMDD.db.gz   (600, root)
 # Son $KEEP_DAYS gün saxlanılır. Gündə bir dəfə systemd timer işlədir —
-# quraşdırma: infra/systemd/ və docs/FIREBASE-EXIT.md → "Ehtiyat nüsxə".
+# quraşdırma: infra/systemd/ və docs/SERVER-OPS.md → "Ehtiyat nüsxə".
 #
-# Bərpa (geri yükləmə): docs/FIREBASE-EXIT.md → "Ehtiyat nüsxədən bərpa".
+# Bərpa (geri yükləmə): docs/SERVER-OPS.md → "Ehtiyat nüsxədən bərpa".
 # ═══════════════════════════════════════════════════════
 set -eu
 cd /opt/muslimscc

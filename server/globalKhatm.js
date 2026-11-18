@@ -325,7 +325,7 @@ function createGlobalKhatmRouter(opts) {
       const link = `${publicOrigin}${lang === 'az' ? '' : `/${PUSH_TEXT[lang] ? lang : 'en'}`}/khatm`
       const msg = {
         notification: { title: tx5.title, body: tx5.body(done.roundNo, done.participants, done.countries) },
-        webpush: { notification: { tag: `khatm-${done.roundNo}` }, fcmOptions: { link } },
+        webpush: { notification: { tag: `khatm-${done.roundNo}` }, link },
       }
       try { await pushSend(subs, msg, `khatm ${done.roundNo}`) } catch (e) { log.error('khatm push:', e && e.message) }
     }

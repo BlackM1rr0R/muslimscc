@@ -7,7 +7,7 @@
 // Bu iki açar "namaz qılınıb" (vaxtında və ya qəza) deməkdir — /prayer,
 // /dailytracker və /analytics onları əvvəlki kimi oxuyur.
 //
-// Yeni açarlar (hamısı localStorage, heç biri serverə/Firestore-a getmir):
+// Yeni açarlar (hamısı localStorage, heç biri serverə getmir):
 //   'muslim_cc_prayer_status' → { 'YYYY-MM-DD': { fajr: 'qada' | 'missed' } }
 //        Yalnız "qılındı"dan fərqli vəziyyətlər. Köhnə qeydlərdə bu açar
 //        yoxdur → onlar avtomatik "qıldım" sayılır.

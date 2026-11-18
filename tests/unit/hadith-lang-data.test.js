@@ -1,6 +1,6 @@
 // Build-zamanı dillərə bölünmüş hədis modulları (vite.config.js → hadithLangPlugin,
 // src/utils/uniqueHadiths.js → buildHadithLangData / buildHadithMergeKeys) köhnə
-// runtime nəticəsi ilə EYNİ olmalıdır: siyahı, alias cədvəli, Firebase birləşməsi
+// runtime nəticəsi ilə EYNİ olmalıdır: siyahı, alias cədvəli, admin hədisləri ilə birləşmə
 // və axtarış. Modul JSON kimi yazıldığı üçün burada da JSON-dan keçirilir.
 import { describe, it, expect } from 'vitest'
 import { HADITHS } from '../../src/data/hadiths.js'
@@ -48,7 +48,7 @@ describe('dil modulları = köhnə runtime nəticəsi', () => {
   })
 })
 
-describe('Firebase (admin) hədisləri ilə birləşmə eynidir', () => {
+describe('admin panelindən əlavə olunan hədislər ilə birləşmə eynidir', () => {
   // Admin "toxumu" yerli hədisləri köçürür — həm saxlanılan, həm ATILAN surət
   // id-lərindən (alias), üstəlik yerli siyahıda olmayan yeni hədis.
   const raw = (id) => HADITHS.az.find(h => h.id === id)

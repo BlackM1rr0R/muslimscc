@@ -11,8 +11,6 @@ const PORT = process.env.PORT || 3001
 const OPENROUTER_KEY = process.env.OPENROUTER_KEY
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash'
 const DB_PATH = process.env.DB_PATH || '/data/muslims.db'
-// Qeyd: köhnə FIREBASE_*, FCM_ENABLED, LEGACY_FIREBASE_AUTH env-ləri artıq oxunmur
-// (Firebase-dən çıxış tamamdır — docs/FIREBASE-EXIT.md); api.env-də qalsalar zərərsizdir.
 
 // Vacib env dəyişənləri yoxdursa serveri başlatma (səssiz sınıqdan yaxşıdır)
 if (!OPENROUTER_KEY) { console.error('FATAL: env dəyişəni yoxdur → OPENROUTER_KEY'); process.exit(1) }
@@ -37,7 +35,7 @@ try {
 } catch (e) {
   console.error(`FATAL: verilənlər bazası açılmadı (${DB_PATH}):`, e.message)
   if (e && /readonly|EACCES|EROFS|unable to open/i.test(String(e.message))) {
-    console.error('İpucu: /data volume-u yazıla bilən olmalıdır (docs/FIREBASE-EXIT.md → "Volume icazəsi")')
+    console.error('İpucu: /data volume-u yazıla bilən olmalıdır (docs/SERVER-OPS.md → "Volume icazəsi")')
   }
   process.exit(1)
 }
@@ -534,7 +532,7 @@ const historyInsert = db.raw.prepare(`INSERT INTO notification_history
 const historyList = db.raw.prepare(`SELECT id, title, body, url, priority, sent_to, failed, created_at
   FROM notification_history ORDER BY created_at DESC LIMIT 200`)
 
-// Admin panelinin gözlədiyi forma (keçmişdə Firestore sənədi ilə eyni idi)
+// Admin panelinin gözlədiyi forma ({ id, ...data }, vaxtlar millisaniyə)
 app.get('/api/admin/notification-history', requireAdmin, (req, res) => {
   res.set('Cache-Control', 'no-store')
   res.json(historyList.all().map((h) => ({
@@ -570,7 +568,7 @@ app.post('/api/send-notification', requireAdmin, async (req, res) => {
       webpush: {
         ...(high ? { headers: { Urgency: 'high' } } : {}),
         notification: { ...WEBPUSH_ICONS, tag: 'muslim-cc' },
-        fcmOptions: { link },
+        link,
       },
     }
     const result = await deliver(loadAllSubscribers(), msg, 'admin')
@@ -714,7 +712,7 @@ async function sendPrayerPush(group, prayer, now, day) {
         // 20 dəqiqədən gec çatan azan bildirişinin mənası yoxdur
         headers: { Urgency: 'high', TTL: '1200' },
         notification: { ...WEBPUSH_ICONS, tag: `azan-${prayer}` },
-        fcmOptions: { link },
+        link,
       },
     }, `${prayer} [${lang} · ${loc.tz}]`)
   }
@@ -892,7 +890,7 @@ async function sendAyahPush(group, list, pick, data) {
       webpush: {
         headers: { TTL: '21600' },   // 6 saatdan gec çatsa da mənalıdır
         notification: { ...WEBPUSH_ICONS, tag: 'daily-ayah' },
-        fcmOptions: { link },
+        link,
       },
     }, `ayah ${pick.ref} [${lang} · ${group.loc.tz}]`)
   }
@@ -908,7 +906,7 @@ async function sendHadithPush(group, list, h) {
       webpush: {
         headers: { TTL: '21600' },
         notification: { ...WEBPUSH_ICONS, tag: 'daily-hadith' },
-        fcmOptions: { link },
+        link,
       },
     }, `hadith ${h.id} [${lang} · ${group.loc.tz}]`)
   }

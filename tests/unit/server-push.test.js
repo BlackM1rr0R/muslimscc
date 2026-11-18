@@ -37,7 +37,7 @@ describe('endpoint və açar validasiyası', () => {
   it('yad host, http, port, istifadəçi adı, uzunluq → rədd', () => {
     for (const bad of [
       'http://fcm.googleapis.com/fcm/send/x',
-      'https://evil.example/fcm/send/x',
+      'https://evil.example/push/send/x',
       'https://fcm.googleapis.com.evil.example/x',
       'https://evilnotify.windows.com/x',
       'https://notify.windows.com/x',
@@ -94,7 +94,7 @@ describe('payload — sw.js parsePush ilə uyğunluq', () => {
   it('azan: başlıq, mətn, tag, ikon, url; Urgency high + TTL 1200', () => {
     const { payload, options } = push.toWebPush({
       notification: { title: '🕌 Zöhr azanı — 12:29', body: 'Növbəti: Əsr 15:24 · Bakı' },
-      webpush: { headers: { Urgency: 'high', TTL: '1200' }, notification: { ...ICONS, tag: 'azan-dhuhr' }, fcmOptions: { link: '/prayer' } },
+      webpush: { headers: { Urgency: 'high', TTL: '1200' }, notification: { ...ICONS, tag: 'azan-dhuhr' }, link: '/prayer' },
     })
     expect(options).toEqual({ TTL: 1200, urgency: 'high' })
     const m = parsePush(pushEvent(payload))
@@ -109,7 +109,7 @@ describe('payload — sw.js parsePush ilə uyğunluq', () => {
     const { payload, options } = push.toWebPush({
       notification: { title: 'Bəqərə 2:255', body: 'Allah...' },
       data: { tag: 'daily-ayah', url: '/quran/2#ayah-255' },
-      webpush: { headers: { TTL: '21600' }, notification: { ...ICONS, tag: 'daily-ayah' }, fcmOptions: { link: '/quran/2#ayah-255' } },
+      webpush: { headers: { TTL: '21600' }, notification: { ...ICONS, tag: 'daily-ayah' }, link: '/quran/2#ayah-255' },
     })
     expect(options).toEqual({ TTL: 21600, urgency: 'normal' })
     expect(parsePush(pushEvent(payload))).toMatchObject({ tag: 'daily-ayah', url: '/quran/2#ayah-255' })
@@ -216,13 +216,13 @@ describe('HTTP: /api/push/*', () => {
     expect(store.count()).toBe(0)
   })
 
-  it('köhnə klientin legacyFcmToken sahəsi nəzərə alınmır (abunəliyə mane olmur)', async () => {
-    const tok = 'fcm-token_ABC:def-' + 'x'.repeat(100)
-    const body = { subscription: { endpoint: EP.chrome + 'mig', keys: KEYS }, lang: 'az', legacyFcmToken: tok }
+  it('gövdədəki naməlum sahə (legacyToken) nəzərə alınmır (abunəliyə mane olmur)', async () => {
+    const tok = 'old-token_ABC:def-' + 'x'.repeat(100)
+    const body = { subscription: { endpoint: EP.chrome + 'mig', keys: KEYS }, lang: 'az', legacyToken: tok }
     expect((await post('/api/push/subscribe', body)).status).toBe(201)
     expect(store.get(EP.chrome + 'mig')).toBeTruthy()
-    expect((await post('/api/push/unsubscribe', { legacyFcmToken: tok })).status).toBe(400)
-    expect(await (await post('/api/push/unsubscribe', { endpoint: EP.chrome + 'mig', legacyFcmToken: tok })).json()).toEqual({ ok: true, removed: true })
+    expect((await post('/api/push/unsubscribe', { legacyToken: tok })).status).toBe(400)
+    expect(await (await post('/api/push/unsubscribe', { endpoint: EP.chrome + 'mig', legacyToken: tok })).json()).toEqual({ ok: true, removed: true })
   })
 
   it('yararsız gövdələr → 400', async () => {

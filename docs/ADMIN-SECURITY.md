@@ -1,8 +1,8 @@
 # Admin paneli təhlükəsizliyi
 
 Admin girişi öz serverimizdədir — e-poçt + şifrə, HttpOnly sessiya cookie-si (`server/auth.js`).
-Firebase Auth / Firestore qaydaları artıq yoxdur (Firebase-dən çıxış tamamdır — tarixçə:
-[FIREBASE-EXIT.md](FIREBASE-EXIT.md)). Panel rolları və saytın istifadəçi hesabları:
+Server tərəfi (məzmun API-si, push, ehtiyat nüsxə): [SERVER-OPS.md](SERVER-OPS.md).
+Panel rolları və saytın istifadəçi hesabları:
 [USER-ACCOUNTS.md](USER-ACCOUNTS.md).
 
 ## Necə işləyir

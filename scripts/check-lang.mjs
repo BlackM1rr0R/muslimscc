@@ -112,7 +112,7 @@ const AZ_E_COMPOUND = /\p{L}{2,}(?:edici|edən|etmə|edir|etdi|edər|edil|edə|v
 function azTurkishSpelling(s) {
   for (const w of s.match(/[\p{L}]+/gu) || []) {
     if (/^\p{Lu}{2,}$/u.test(w)) continue // qısaltma
-    if (LATIN_OK.has(w.toLowerCase()) || /^\p{Lu}\p{Ll}+\p{Lu}/u.test(w)) continue // brend: Firebase, OpenStreetMap
+    if (LATIN_OK.has(w.toLowerCase()) || /^\p{Lu}\p{Ll}+\p{Lu}/u.test(w)) continue // brend: OpenStreetMap, YouTube
     const lw = w.replace(/İ/g, 'i').replace(/I/g, 'ı').toLowerCase()
     // birinci saitdən sonrakı "e" — "ey/ye" diftonqu (Hüseyn, Qüreyş, Umeyr) və "-yev" soyadı istisna
     const rest = lw.replace(/^[^aeıioöuüə]*[aeıioöuüə]/, '').replace(/ey|ye|yev$/g, '')
@@ -133,7 +133,7 @@ const RX_LATIN_WORD = /(?<![\p{L}\p{M}])[A-Za-zÀ-ÖØ-öø-ɏḀ-ỿ][A-Za-zÀ-
 // ru və ar mətnində icazəli latın sözləri (qısaltmalar, brendlər, vahidlər)
 const LATIN_OK = new Set([
   'pdf', 'sms', 'gps', 'qr', 'ai', 'id', 'url', 'ok', 'wi-fi', 'wifi', 'ios', 'android', 'google', 'youtube',
-  'instagram', 'facebook', 'whatsapp', 'telegram', 'tiktok', 'twitter', 'x', 'firebase', 'muslims', 'cc',
+  'instagram', 'facebook', 'whatsapp', 'telegram', 'tiktok', 'twitter', 'x', 'muslims', 'cc',
   'muslims.cc', 'km', 'kg', 'g', 'm', 'h', 'min', 'am', 'pm', 'gmt', 'utc', 'i', 'ii', 'iii', 'iv', 'v', 'vi',
   'vii', 'viii', 'ix', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx', 'xxi', 'azn',
   'usd', 'eur', 'try', 'rub', 'sar', 'api', 'apple', 'play', 'store', 'outlook', 'natural', 'earth', 'app', 'claude', 'anthropic', 'ics',

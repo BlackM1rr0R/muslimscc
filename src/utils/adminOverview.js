@@ -100,7 +100,7 @@ export function pageRows(analytics, limit = 8) {
 const msOf = (v) => {
   if (typeof v === 'number' && Number.isFinite(v)) return v
   if (typeof v === 'string') { const t = Date.parse(v); return Number.isFinite(t) ? t : null }
-  if (v && typeof v === 'object' && typeof v.seconds === 'number') return v.seconds * 1000   // köhnə Firestore Timestamp
+  if (v && typeof v === 'object' && typeof v.seconds === 'number') return v.seconds * 1000   // köhnə {seconds} vaxt damğası (ehtiyat nüsxə JSON)
   return null
 }
 

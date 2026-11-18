@@ -167,6 +167,38 @@ test('açıq profil: susmaya görə bağlı → aç, ləqəb, razılıq → /u/<
   expectCleanConsole(consoleProblems)
 })
 
+test('açıq profil: icazə varsa index + canonical /u/<ləqəb> + başlıq; icazə yoxdursa / naməlum — noindex', async ({ page, consoleProblems }) => {
+  const S = createK()
+  S.profile = { handle: 'ali_k', enabled: true, allowIndex: true, fields: ['displayName', 'bio'], data: { displayName: 'Əli', bio: 'Quran tələbəsi' }, consentAt: 1, moderatedAt: null, updatedAt: 2 }
+  await attachK(page, S)
+  const robots = page.locator('meta[name="robots"]')
+  const canonical = page.locator('link[rel="canonical"]')
+
+  for (const path of ['/u/ali_k', '/en/u/ali_k']) {
+    await page.goto(path)
+    await expect(page.getByTestId('public-profile').getByRole('heading', { level: 1, name: 'Əli' })).toBeVisible()
+    await expect(robots).toHaveAttribute('content', /^index, follow/)
+    await expect(canonical).toHaveAttribute('href', 'https://muslims.cc/u/ali_k')
+    await expect(page.locator('link[rel="alternate"][hreflang]')).toHaveCount(0)
+    await expect(page).toHaveTitle(/^Əli — /)
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Əli: Quran tələbəsi')
+  }
+
+  // Sahibi icazəni geri alıb — eyni ünvan noindex, canonical yoxdur
+  S.profile = { ...S.profile, allowIndex: false }
+  await page.goto('/u/ali_k')
+  await expect(page.getByTestId('public-profile')).toBeVisible()
+  await expect(robots).toHaveAttribute('content', /noindex/)
+  await expect(canonical).toHaveCount(0)
+
+  // Naməlum ləqəb — 404 səhifəsi, noindex
+  await page.goto('/u/yoxdur_bele')
+  await expect(page.locator('#nf-title')).toBeVisible()
+  await expect(robots).toHaveAttribute('content', /noindex/)
+  await expect(canonical).toHaveCount(0)
+  expectCleanConsole(consoleProblems)
+})
+
 test('ailə dua siyahısı: istək yaz; başqasının istəyinə "dua etdim" — yalnız say', async ({ page, consoleProblems }) => {
   const S = createK()
   await signedIn(page)

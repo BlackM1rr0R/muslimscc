@@ -72,7 +72,7 @@ function bannedHit(text, list) {
 
 const PANEL_RANK = { editor: 1, admin: 2, superadmin: 3 }
 /**
- * Admin paneli (server/auth.js) sessiyası + panel rolu ≥ editor. Köhnə Firebase tokeni ilə işləmir
+ * Admin paneli (server/auth.js) sessiyası + panel rolu ≥ editor. Yalnız sessiya cookie-si ilə işləyir
  * (users.js-dəki istifadəçi idarəsi kimi). req.adminRole qoyulur.
  */
 function createRequireEditor({ requireAdmin, adminRoleOf }) {

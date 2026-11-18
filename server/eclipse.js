@@ -99,7 +99,7 @@ function buildEclipseMessage(lang, x, dateKey, icons = {}) {
     webpush: {
       headers: { TTL: '43200' },   // ertəsi gün axşama qədər mənalıdır
       notification: { ...icons, tag },
-      fcmOptions: { link: url },
+      link: url,
     },
   }
 }

@@ -208,12 +208,18 @@ function uiDictFor(lang) {
  * qaytarır, ona görə o heç bir konkret URL-i "özüm" deyə göstərməməlidir
  * (Seo.jsx brauzerdə canonical/hreflang/sxem üçün eyni qaydanı tətbiq edir).
  * Həmişə noindex.
+ *
+ * Öz head-ini idarə edən detalın qabığı (DETAILS[key].selfSeo — /u/<ləqəb>, nginx onu hər
+ * ləqəbə 200 ilə verir): canonical/hreflang/sxem/og:url yazılmır və robots noindex YOXDUR —
+ * Google ilkin HTML-də noindex görəndə JS-i render etmir; qərarı səhifə özü verir
+ * (src/seo/profileSeo.js). Sitemap-a düşmür (PAGES-də noindex qalır).
  */
 function renderPage(template, key, lang, noindex = false, param = null) {
   // Əlavə dilin interfeys lüğəti (src/i18n/<dil>.json) — title/description və
   // noscript naviqasiyası tərcümə olunsun (brauzerdə main.jsx eyni lüğəti yükləyir)
   setUiDict(lang, uiDictFor(lang))
   const notFound = key === NOT_FOUND
+  const selfShell = !notFound && param == null && Boolean(DETAILS[key]?.selfSeo)
   const { title, desc } = notFound ? { title: titleFor(key, lang), desc: descFor(key, lang) } : textsFor(key, lang, param)
   const canonical = SITE + pathFor(key, lang, param ?? undefined)
   // Statik HTML səhifənin öz dilindədir (urdu/fars/puştu — rtl); React
@@ -222,7 +228,7 @@ function renderPage(template, key, lang, noindex = false, param = null) {
 
   let html = template
 
-  html = notFound
+  html = notFound || selfShell
     ? html.replace(/[ \t]*<!--SEO:HEAD-->[ \t]*\r?\n?/, '')
     : html.replace('<!--SEO:HEAD-->', () => headFor(key, lang, param))
   // Səhifə chunk-ı + şrift preload-ları (yuxarıdakı PERFORMANS bölməsi)
@@ -235,7 +241,7 @@ function renderPage(template, key, lang, noindex = false, param = null) {
   html = replaceMeta(html, 'name', 'description', desc)
   html = replaceMeta(html, 'property', 'og:title', title)
   html = replaceMeta(html, 'property', 'og:description', desc)
-  html = notFound
+  html = notFound || selfShell
     ? html.replace(/[ \t]*<meta\s+[^>]*property=["']og:url["'][^>]*>[ \t]*\r?\n?/i, '')
     : replaceMeta(html, 'property', 'og:url', canonical)
   html = replaceMeta(html, 'property', 'og:locale', LOCALES[lang] || LOCALES.az)
@@ -269,7 +275,7 @@ function renderPage(template, key, lang, noindex = false, param = null) {
   // Statik noscript blokunu səhifəyə uyğun olanı ilə əvəz et
   html = html.replace(/<noscript>[\s\S]*?<\/noscript>/i, () => noscriptFor(key, lang, Boolean(body)))
 
-  if (noindex || notFound) {
+  if ((noindex && !selfShell) || notFound) {
     html = replaceMeta(html, 'name', 'robots', 'noindex, nofollow')
     html = replaceMeta(html, 'name', 'googlebot', 'noindex, nofollow')
   }

@@ -26,7 +26,8 @@ import { readA11yPrefs, applyA11yPrefs } from './utils/a11yPrefs'
 import { startUpdateWatcher } from './utils/appUpdate'
 import { applyUiDict } from './i18n/load'
 import { installDateLocale } from './utils/uiText'
-import { parsePath } from './seo/routes'
+import { parsePath, uiLang } from './seo/routes'
+import { currentAsrFactor } from './utils/madhab'
 
 // Fokus halqası yalnız klaviatura ilə (toxunuşdan sonra narıncı halqa yox)
 // və [data-reveal] elementləri üçün tək qlobal IntersectionObserver
@@ -56,6 +57,17 @@ if ('serviceWorker' in navigator) {
 
 // Yeni versiya çıxanda açıq sayt / ana ekrandakı tətbiq özü yenilənsin
 startUpdateWatcher()
+
+// /prayer/<şəhər>: prerender olunmuş statik aylıq cədvəldə əsr 1×-dir (SEO üçün düzgün). Hənəfi
+// seçilibsə, React kökü əvəz edənə qədər görünən cədvəldə də əsr 2× olsun (src/seo/staticPrayerAsr.js)
+{
+  const pp = parsePath(window.location.pathname)
+  if (pp.key === 'prayer' && pp.param && currentAsrFactor() === 2 && document.querySelector('table.seo-static__table[data-city]')) {
+    import('./seo/staticPrayerAsr')
+      .then((m) => m.patchStaticPrayerAsr(document, 2, uiLang(pp.lang)))
+      .catch(() => { /* statik cədvəl — tətbiq onsuz da canlı vaxtı göstərəcək */ })
+  }
+}
 
 function render() {
   const root = ReactDOM.createRoot(document.getElementById('root'))

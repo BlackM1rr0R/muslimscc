@@ -89,7 +89,7 @@ function buildReminderMessage(lang, kind, dateKey, icons = {}) {
     webpush: {
       headers: { TTL: kind === 'jumuah' ? '21600' : '7200' },
       notification: { ...icons, tag },
-      fcmOptions: { link: url },
+      link: url,
     },
   }
 }

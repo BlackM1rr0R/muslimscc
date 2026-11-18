@@ -1047,7 +1047,7 @@ export default function HomePage({ setPage }) {
       {/* Quran zolağı (Hicr 9 + 114/6236/30 + "Quran oxu") yuxarıdakı bento
           şəbəkəsinin iri Quran kafelinə köçürülüb — məzmun eynidir. */}
 
-      {/* Aşağıdakı bölmələr Firestore-dan gəlir və ekranın altındadır —
+      {/* Aşağıdakı bölmələr məzmun API-sindən (admin paneli) gəlir və ekranın altındadır —
           fallback yoxdur ki, boş yer sıçrayışı (layout shift) olmasın. */}
       <Suspense fallback={null}>
         {/* ═══ HERO BANNER (admin) ═══ */}

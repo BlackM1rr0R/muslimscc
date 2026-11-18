@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════
 // Qəza izləyicisi (/qada) — saf köməkçilər
 //
-// Hər şey YALNIZ bu cihazda: localStorage 'muslim_cc_qada_v1'. Serverə,
-// Firestore-a heç nə getmir; ehtiyat nüsxə — istifadəçinin özünün yüklədiyi
+// Hər şey YALNIZ bu cihazda: localStorage 'muslim_cc_qada_v1'. Serverə
+// heç nə getmir; ehtiyat nüsxə — istifadəçinin özünün yüklədiyi
 // JSON faylı.
 //
 // Vəziyyət:

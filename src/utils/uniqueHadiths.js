@@ -162,7 +162,7 @@ function hadithInfo(HADITHS) {
   })
   const { items, aliases } = dedupeList(rows, r => r.keys)
   // Saxlanılan hədisin açarlarına qrupdakı bütün surətlərin açarları da
-  // əlavə olunur — Firebase-dəki surət hansı id-dən köçürülübsə, tanınsın
+  // əlavə olunur — admin panelindəki surət hansı id-dən köçürülübsə, tanınsın
   const keysById = new Map()
   for (const r of rows) {
     const root = aliases.has(r.id) ? aliases.get(r.id) : r.id
@@ -192,7 +192,7 @@ export function hadithAliases(HADITHS) {
 /**
  * Saxlanılan yerli hədisin müqayisə açarları (Azərbaycanca mətn üzrə,
  * əvvəlcədən hesablanmış; atılan surətlərinki də daxil) — başqa siyahı ilə
- * (məs. Firebase) birləşdirmək üçün.
+ * (məs. admin panelindən əlavə olunan hədislər) birləşdirmək üçün.
  */
 export function staticHadithKeys(HADITHS, id) {
   return hadithInfo(HADITHS).keysById.get(id) || []
@@ -203,7 +203,7 @@ export function staticHadithKeys(HADITHS, id) {
 //
 // NƏ: vite.config.js → "virtual:hadiths/<dil>" modulu buildHadithLangData()
 // ilə qurulur: yalnız həmin dilin TƏKRARSIZ siyahısı (id, cat, source, ar,
-// text) və atılan id → saxlanılan id cədvəli. Firebase birləşməsi üçün
+// text) və atılan id → saxlanılan id cədvəli. admin hədisləri ilə birləşmə üçün
 // müqayisə açarlarının qısa həşləri dildən asılı deyil — ayrıca
 // "virtual:hadiths/keys" modulundadır (buildHadithMergeKeys, ~31 KB gzip) və
 // yalnız /hadith-də, ilk boyamadan sonra yüklənir. Veb (HadithPage,
@@ -238,14 +238,14 @@ export function hashKey(str) {
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36)
 }
 
-// Firebase (admin) hədisinin açarları yalnız bu prefikslərlə olur
+// Admin panelindən əlavə olunan hədisin açarları yalnız bu prefikslərlə olur
 // (hadithKeys: ar / az / tx). Yerli qeydlərin en/ru/tr açarları heç bir admin
 // açarı ilə üst-üstə düşə bilməz, saxlanılan yerli hədislər isə öz aralarında
 // artıq ortaq açarsızdır (union-find qrupları) — ona görə o açarlar birləşmə
 // nəticəsini dəyişmir və modula yazılmır.
 const MERGE_PREFIX = /^(ar|az|tx):/
 
-/** Admin (Firebase) hədisinin həşlənmiş açarları — dil modulundakı açarlarla müqayisə üçün. */
+/** Admin panelindən əlavə olunan hədisin həşlənmiş açarları — dil modulundakı açarlarla müqayisə üçün. */
 export function customHadithKeyHashes(ar, azText, source) {
   return hadithKeys(ar, azText, source).map(hashKey)
 }
@@ -269,7 +269,7 @@ export function buildHadithLangData(HADITHS, lang, sunanGrades = {}) {
 }
 
 /**
- * Firebase birləşməsi üçün açarlar (bütün dillər üçün eyni):
+ * Admin hədisləri ilə birləşmə üçün açarlar (bütün dillər üçün eyni):
  * { id: [həş, ...] } — staticHadithKeys(HADITHS, id)-nin ar/az/tx açarları, həşlənmiş.
  */
 export function buildHadithMergeKeys(HADITHS) {

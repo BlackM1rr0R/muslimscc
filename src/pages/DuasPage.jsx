@@ -602,7 +602,7 @@ export default function DuasPage({ setPage }) {
                     {/* Tərcümə — ərəbcədə mətn elə ərəb mətninin özüdür, təkrarlanmır */}
                     {lang !== 'ar' && dua[lang] && <p className="dua-meaning">{dua[lang]}</p>}
                     {/* v6.0: ərəbcə səs (hisnmuslim.com) — saytın öz duasının id-si ilə. Canlı saytda admin
-                        (Firebase) surəti yerli dua ilə birləşir və kart admin id-si daşıyır — yerli (rəqəmli)
+                        panelindən əlavə olunan surət yerli dua ilə birləşir və kart admin id-si daşıyır — yerli (rəqəmli)
                         id _ids-dən götürülür; yalnız admin-in yeni duasında səs yoxdur */}
                     {(() => { const sid = idsOf(dua).find(x => typeof x === 'number'); return sid != null ? <DuaListen akey={`d:${sid}`} lang={lang} /> : null })()}
                     {/* Mənbə */}

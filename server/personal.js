@@ -490,7 +490,7 @@ function createScheduler({ store, mailer = null, pushSend = null, publicOrigin =
 
   const pushMsg = (title, body, link, tag) => ({
     notification: { title, body },
-    webpush: { notification: { ...icons, tag }, fcmOptions: { link } },
+    webpush: { notification: { ...icons, tag }, link },
   })
 
   /** Təkrarlanan xatırlatmanı (ildönümü, Cümə, zəkat) bir alıcıya bir dəfə göndər. */

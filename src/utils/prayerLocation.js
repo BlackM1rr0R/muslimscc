@@ -45,10 +45,8 @@ const CUSTOM_KEY = 'muslim_cc_custom_city'
 const RECENT_KEY = 'muslim_cc_recent_cities'
 const ADMIN_DEFAULT_KEY = 'muslim_cc_admin_default_city'
 const CHANGE_EVENT = 'qm-prayer-location'
-// src/api/push.js ilə eyni açarlar — abunəlik yoxdursa push modulu heç yüklənmir
-// (köhnə FCM tokeni — keçid hələ olmayıbsa; modul onu özü Web Push-a keçirir)
+// src/api/push.js ilə eyni açar — abunəlik yoxdursa push modulu heç yüklənmir
 const PUSH_ENDPOINT_KEY = 'muslim_cc_push_endpoint'
-const FCM_TOKEN_KEY = 'muslim_cc_fcm_token'
 const CUSTOM_ID = 'custom'
 const LANG_LIST = ['az', 'en', 'ru', 'ar', 'tr']
 
@@ -237,7 +235,7 @@ function emitChange() {
  * Abunəlik yoxdursa push modulu ümumiyyətlə yüklənmir.
  */
 function syncPushLocation() {
-  if (!readLS(PUSH_ENDPOINT_KEY) && !readLS(FCM_TOKEN_KEY)) return
+  if (!readLS(PUSH_ENDPOINT_KEY)) return
   import('../api/push')
     .then(m => m.updateTokenLocation?.())
     .catch(() => { /* şəbəkə yoxdur — növbəti token yazılışında yenilənəcək */ })

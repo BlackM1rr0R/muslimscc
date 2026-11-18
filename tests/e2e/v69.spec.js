@@ -183,11 +183,11 @@ test('"Məscidi qur": sürüşdürdükcə addımlar 1 → 7, əlçatanlıq', asy
   expectCleanConsole(consoleProblems)
 })
 
-// Canlı saytda admin panelindən gələn surət (Firestore id) yerli hədislə birləşir —
+// Canlı saytda admin panelindən gələn surət (admin id-si) yerli hədislə birləşir —
 // /hadith/<yerli id> fokus kartı, ravi, tam mətn yenə də yerli id ilə tapılmalıdır
 test('admin surəti ilə birləşmiş hədis: fokus kartı, ravi və tam mətn işləyir', async ({ page }) => {
   await page.route((u) => u.pathname === '/api/content/hadiths', route => route.fulfill({ json: [{
-    id: 'FirestoreAbc123', ar: 'لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ',
+    id: 'AdminDocAbc123', ar: 'لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الغَضَبِ',
     text: { az: 'Güclü pəhləvan deyil; güclü qəzəb zamanı özünü saxlayan şəxsdir.' }, source: 'Buxari 6114', category: 'Character',
   }] }))
   await page.goto('/hadith/14')

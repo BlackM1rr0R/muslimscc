@@ -28,8 +28,8 @@ const CACHE = {
   'mushaf:v1:12:en': '{}',
   'tafsir:v1:x': '{}',
   'he1:list': '[]',
-  muslim_cc_fcm_token: 'tok',
-  muslim_cc_push_endpoint: 'https://fcm…',
+  muslim_cc_push_endpoint: 'https://push.example/x',
+  muslim_cc_push_asr: '2',
   muslim_cc_session_started: '1',
   'qm-update-reload': '1',
 }

@@ -1,8 +1,9 @@
 // ═══════════════════════════════════════════════════════
-// /u/<ləqəb> — könüllü açıq profil (server/publicProfile.js → GET /api/u/:handle). Klientdə render olunur,
-// prerender YOXDUR. Naməlum / bağlı / moderasiya ilə gizlədilmiş profil → 404 səhifəsi (noindex).
-// Susmaya görə noindex (routes.js → DETAILS.u.noindex); istifadəçi "axtarış sistemlərinə icazə ver" seçibsə
-// robots meta-sı "index" olur. İzləyici sayı, müqayisə, reytinq yoxdur. Şikayət — girişli.
+// /u/<ləqəb> — könüllü açıq profil (server/publicProfile.js → GET /api/u/:handle). Klientdə render olunur;
+// server 200 ilə noindex-siz SPA qabığı verir (infra/nginx → [<dil>/]u/index.html). Naməlum / bağlı /
+// moderasiya ilə gizlədilmiş profil → 404 səhifəsi (noindex). <head>-i bu səhifə yazır (seo/profileSeo.js →
+// Seo.jsx setSelfSeo): yalnız istifadəçi "axtarış sistemlərinə icazə ver" seçibsə "index", canonical /u/<ləqəb>.
+// İzləyici sayı, müqayisə, reytinq yoxdur. Şikayət — girişli.
 // ═══════════════════════════════════════════════════════
 import { lazy, Suspense, useEffect, useId, useState } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -16,6 +17,8 @@ import { PUB } from '../components/account/communityText'
 import { nf } from '../components/community/CommunityUi'
 import { getPublicProfile, reportProfile, HANDLE_RE } from '../api/community'
 import { stampName } from '../components/SpiritualPassport'
+import { setSelfSeo } from '../seo/Seo'
+import { profileSeo } from '../seo/profileSeo'
 import '../styles/ReadTogether.css'
 import '../styles/Account.css'
 import '../styles/Community.css'
@@ -23,13 +26,6 @@ import '../styles/Community.css'
 const NotFoundPage = lazy(() => import('./NotFoundPage'))
 const REASONS = ['spam', 'offensive', 'impersonation', 'personal_info', 'other']
 const surahTitle = (n) => (SURAH_SLUGS[n - 1] || '').split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('-')
-
-function setRobots(content) {
-  try {
-    const m = document.querySelector('meta[name="robots"]')
-    if (m) m.setAttribute('content', content)
-  } catch { /* SSR */ }
-}
 
 export default function PublicProfilePage({ setPage }) {
   const { lang, siteLang = lang } = useLang()
@@ -51,14 +47,12 @@ export default function PublicProfilePage({ setPage }) {
     return () => { off = true }
   }, [handle])
 
-  // İstifadəçi icazə veribsə indeksləmə (Seo.jsx susmaya görə noindex yazır — sonra üstünə yazılır)
+  // <head>: başlıq, təsvir, canonical; robots — yalnız profil var və sahibi icazə veribsə "index"
   useEffect(() => {
-    if (state.status !== 'ok') return undefined
-    const want = state.profile.allowIndex ? 'index, follow' : 'noindex, nofollow'
-    setRobots(want)
-    const id = setTimeout(() => setRobots(want), 600)
-    return () => { clearTimeout(id); setRobots('noindex, nofollow') }
-  }, [state])
+    if (!handle) return undefined
+    setSelfSeo({ page: 'publicprofile', param: handle, lang: siteLang, ...profileSeo(state, siteLang) })
+    return () => setSelfSeo(null)
+  }, [state, handle, siteLang])
 
   if (state.status === 'missing') return <Suspense fallback={null}><NotFoundPage setPage={setPage} /></Suspense>
   if (state.status === 'loading') {

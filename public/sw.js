@@ -5,7 +5,7 @@
 // v5: brend yenidən Muslims.cc oldu — keşdə qalmış köhnə adlı index.html
 //     və site.webmanifest təmizlənsin.
 // v6: keş strategiyası yenidən yazıldı (performans) — bax aşağıdakı "Fetch".
-//     Köhnə v5 keşində Firestore kanal URL-ləri, audio və digər üçüncü tərəf
+//     Köhnə v5 keşində uzun sorğulu kanal URL-ləri, audio və digər üçüncü tərəf
 //     cavabları yığılırdı; yeni ad onu bir dəfəlik təmizləyir.
 const CACHE_NAME = 'muslims-cc-v6'
 // Hash-li /assets/* faylları ayrıca keşdə: məzmun dəyişəndə ad da dəyişir,
@@ -77,8 +77,8 @@ self.addEventListener('periodicsync', (e) => {
 //     şəbəkə yoxdursa — keşdəki səhifə, o da yoxdursa ana səhifə
 //   • digər öz faylları (ikonlar, manifest) → stale-while-revalidate
 //   • namaz/Quran API-ləri → əvvəl şəbəkə, oflayn — son cavab
-//   • QALAN HƏR ŞEY (Firestore kanalları, audio, Google, xəritə) → SW toxunmur:
-//     əvvəl bunlar da keşə yazılırdı — uzun sorğulu Firestore axınları və
+//   • QALAN HƏR ŞEY (üçüncü tərəf API-ləri, audio, Google, xəritə) → SW toxunmur:
+//     əvvəl bunlar da keşə yazılırdı — uzun sorğulu axınlar və
 //     Range (206) audio cavabları keşi şişirdir, cache.put isə xəta verirdi
 const okToCache = (res) => res && res.ok && res.status === 200 && res.type !== 'opaque'
 
@@ -229,14 +229,10 @@ self.addEventListener('message', (e) => {
 })
 
 // ── PUSH (standart Web Push, VAPID — server/push.js) ──
-// SAYTIN YEGANƏ service worker-i budur. Əvvəl push üçün ayrıca
-// /firebase-messaging-sw.js vardı və o da "/" əhatəsində qeyd olunurdu —
-// brauzer bir əhatədə yalnız BİR SW saxlayır, ona görə hər səhifə açılışında
-// /sw.js onu əvəz edirdi, bu faylda isə "push" dinləyicisi yox idi: bildirişlər
-// "gah gəlir, gah gəlmir"di, iPhone-da Safari görünməyən push-lara görə
-// abunəliyi ləğv edə bilirdi. İndi push-u özümüz göstəririk (payload adi
-// JSON-dur) və HƏR push-da bildiriş MÜTLƏQ görünür. /firebase-messaging-sw.js
-// indi yalnız importScripts('/sw.js') edən stubdur (köhnə qeydiyyatlar üçün).
+// SAYTIN YEGANƏ service worker-i budur (brauzer bir əhatədə yalnız BİR SW
+// saxlayır). Push-u özümüz göstəririk (payload adi JSON-dur) və HƏR push-da
+// bildiriş MÜTLƏQ görünür — iPhone-da Safari görünməyən push-lara görə
+// abunəliyi ləğv edə bilər.
 function parsePush(e) {
   let p = {}
   try { p = e.data ? e.data.json() : {} } catch {
@@ -244,7 +240,7 @@ function parsePush(e) {
   }
   const n = p.notification || {}
   const d = p.data || {}
-  const url = d.url || (p.fcmOptions && p.fcmOptions.link) || n.click_action || '/'
+  const url = d.url || n.click_action || '/'
   return {
     title: n.title || d.title || 'Muslims.cc',
     body: n.body || d.body || '',

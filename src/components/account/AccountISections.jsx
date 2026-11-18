@@ -210,10 +210,12 @@ function FamilyRamadanSection({ t, lang }) {
   const [b, setB] = useState(null)
   const [msg, setMsg] = useState(null)
   const [busy, setBusy] = useState(false)
+  // Gecə qutusu toxunanda dərhal dəyişsin (server cavabını gözləmədən); cavab/xəta gələndə serverin dəyəri qalır
+  const [qadrPend, setQadrPend] = useState({})
   useEffect(() => { getRamadanBoard().then(setB).catch(() => setB(null)) }, [])
   const run = async (fn, okText) => {
     setBusy(true); setMsg(null)
-    try { setB(await fn()); if (okText) setMsg({ tone: 'ok', text: okText }) } catch (e) { setMsg({ tone: 'bad', text: tgError(e, t) }) } finally { setBusy(false) }
+    try { setB(await fn()); if (okText) setMsg({ tone: 'ok', text: okText }) } catch (e) { setMsg({ tone: 'bad', text: tgError(e, t) }) } finally { setBusy(false); setQadrPend({}) }
   }
   if (!b || !b.circle) return null   // ailə dairəsi yoxdur — "Ailə dairəsi" bölməsi onu təklif edir
   const s = b.season
@@ -269,7 +271,7 @@ function FamilyRamadanSection({ t, lang }) {
           {b.qadr.map((q) => (
             <li key={q.night}>
               <label className="rt-switch">
-                <input type="checkbox" checked={q.mine} disabled={busy} onChange={(e) => run(() => ramadanQadr(q.night, e.target.checked))} data-testid={`ram-night-${q.night}`} />
+                <input type="checkbox" checked={qadrPend[q.night] ?? q.mine} disabled={busy} onChange={(e) => { const v = e.target.checked; setQadrPend({ [q.night]: v }); run(() => ramadanQadr(q.night, v)) }} data-testid={`ram-night-${q.night}`} />
                 <span>{t.ram.night(q.night)} — {t.ram.me} <span className="ui-num">({t.ram.together(q.count, b.total)})</span></span>
               </label>
             </li>
